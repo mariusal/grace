@@ -916,7 +916,7 @@ void startup_gui(Grace *grace)
     frbot = CreateFrame(form, NULL);
     statlab = CreateLabel(frbot, "");
 
-    if (get_pagelayout() == PAGE_FIXED) {
+    if (!gui_is_page_free(grace->gui)) {
         drawing_window = XtVaCreateManagedWidget("drawing_window",
 				     xmScrolledWindowWidgetClass, form,
 				     XmNscrollingPolicy, XmAUTOMATIC,
@@ -1075,27 +1075,6 @@ void startup_gui(Grace *grace)
     update_app_title(grace->project);
 
     XtAppMainLoop(app_con);
-}
-
-static int page_layout = PAGE_FIXED;
-
-int get_pagelayout(void)
-{
-    return page_layout;
-}
-
-void set_pagelayout(int layout)
-{
-    if (page_layout == layout) {
-        return;
-    }
-    
-    if (grace->gui->inwin) {
-        errmsg("Can not change layout after initialization of GUI");
-        return;
-    } else {
-        page_layout = layout;
-    }
 }
 
 static int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)

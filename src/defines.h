@@ -62,10 +62,6 @@
 #define INTERP_SPLINE   1
 #define INTERP_ASPLINE  2
 
-/* Canvas types */
-#define PAGE_FREE       0
-#define PAGE_FIXED      1
-
 /* Coordinates */
 #define COORD_VIEW      0
 #define COORD_FRAME     1

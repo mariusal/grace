@@ -310,13 +310,13 @@ int main(int argc, char *argv[])
 		    	hpp = atoi(argv[i]);
                         set_page_dimensions(grace, wpp, hpp, FALSE);
 #ifndef NONE_GUI
-		    	set_pagelayout(PAGE_FIXED);
+		    	gui_set_page_free(gui, FALSE);
 #endif
 		    }
 		}
 #ifndef NONE_GUI
 	    } else if (argmatch(argv[i], "-free", 5)) {
-		set_pagelayout(PAGE_FREE);
+		gui_set_page_free(gui, TRUE);
 #endif
 	    } else if (argmatch(argv[i], "-noask", 5)) {
 		gui->noask = TRUE;

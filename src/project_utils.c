@@ -209,7 +209,8 @@ static int project_postprocess_hook(Quark *q,
         if (version_id <= 40102) {
             double ext_x, ext_y;
 #ifndef NONE_GUI
-            set_pagelayout(PAGE_FIXED);
+            GUI *gui = gui_from_quark(q);
+            gui_set_page_free(gui, FALSE);
 #endif
             get_page_viewport(rt->canvas, &ext_x, &ext_y);
             rescale_viewport(q, ext_x, ext_y);

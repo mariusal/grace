@@ -415,7 +415,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
             cbs->event->xexpose.width,
             cbs->event->xexpose.height);
     } else {
-        if (get_pagelayout() == PAGE_FREE) {
+        if (gui_is_page_free(grace->gui)) {
             sync_canvas_size(grace);
             xdrawgraph(grace->project, TRUE);
         }
@@ -489,7 +489,7 @@ static void resize_drawables(unsigned int w, unsigned int h)
 
     xstuff->win_scale = MIN2(xstuff->win_w, xstuff->win_h);
     
-    if (get_pagelayout() == PAGE_FIXED) {
+    if (!gui_is_page_free(grace->gui)) {
         SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
     }
 }

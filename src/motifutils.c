@@ -4245,7 +4245,7 @@ void update_all(void)
         return;
     }
 
-    if (get_pagelayout() == PAGE_FREE) {
+    if (gui_is_page_free(grace->gui)) {
         sync_canvas_size(grace);
     }
     

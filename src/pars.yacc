@@ -2784,7 +2784,7 @@ actions:
 options:
         PAGE LAYOUT pagelayout {
 #ifndef NONE_GUI
-            set_pagelayout($3);
+            gui_set_page_free(grace->gui, $3 == FREE);
 #endif
         }
 	| AUTO REDRAW onoff {
@@ -3488,8 +3488,8 @@ objecttype:
 	;
 
 pagelayout:
-        FREE { $$ = PAGE_FREE; }
-        | FIXED { $$ = PAGE_FIXED; }
+        FREE
+        | FIXED
         ;
 
 pageorient:

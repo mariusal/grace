@@ -50,6 +50,9 @@ typedef struct _GUI {
     /* true if running X */
     int inwin;
 
+    /* true if running in the free page mode */
+    int page_free;
+
     /* use GXxor or GXinvert for xor'ing */
     int invert;
     /* if true, redraw graph each time action is performed */

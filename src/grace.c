@@ -488,3 +488,22 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
         return RETURN_SUCCESS;
     }
 }
+
+int gui_is_page_free(const GUI *gui)
+{
+    return gui->page_free;
+}
+
+void gui_set_page_free(GUI *gui, int onoff)
+{
+    if (gui->page_free == onoff) {
+        return;
+    }
+    
+    if (gui->inwin) {
+        errmsg("Can not change layout after initialization of GUI");
+        return;
+    } else {
+        gui->page_free = onoff;
+    }
+}
