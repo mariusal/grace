@@ -281,21 +281,19 @@ int initialize_gui(int *argc, char **argv)
 {
     ApplicationData rd;
 
-    /* check for X connection available */
-    disp = XOpenDisplay(NULL);
+    XtToolkitInitialize();
+    app_con = XtCreateApplicationContext();
+    XtAppSetFallbackResources(app_con, fallbackResources);
+    disp = XtOpenDisplay(app_con, NULL, NULL, "XMgrace", NULL, 0, argc, argv);
     if (disp == NULL) {
-        errmsg("Can't open X display connection!");
-	return GRACE_EXIT_FAILURE;
-    } else {
-        XCloseDisplay(disp);
+        return GRACE_EXIT_FAILURE;
     }
 
-    app_shell = XtVaAppInitialize(&app_con, "XMgrace", NULL, 0, argc, argv, 
-    	fallbackResources, NULL);
-    disp = XtDisplay(app_shell);
+    app_shell = XtAppCreateShell(NULL, "XMgrace", applicationShellWidgetClass,
+        disp, NULL, 0);
     
-    XtGetApplicationResources(app_shell, &rd, resources,
-  			    XtNumber(resources), NULL, 0);
+    XtGetApplicationResources(app_shell, &rd,
+        resources, XtNumber(resources), NULL, 0);
     
     invert = rd.invert;
     allow_dc = rd.allow_dc;
