@@ -408,6 +408,10 @@ void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int c
 	while (e < s) {
 		e += 360;
 	}
+	while (s < 0) {
+		s += 360;
+		e += 360;
+	}
 	for (i=s; (i <= e); i++) {
 		int x, y;
 		x = ((long)cost[i % 360] * (long)w2 / costScale) + cx; 
@@ -429,6 +433,10 @@ void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h,
 	w2 = w/2;
 	h2 = h/2;
 	while (e < s) {
+		e += 360;
+	}
+	while (s < 0) {
+		s += 360;
 		e += 360;
 	}
         
