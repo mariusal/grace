@@ -30,6 +30,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <X11/Xlib.h>
 #include <X11/cursorfont.h>
@@ -548,7 +549,8 @@ static int HandleXIOError(Display *d)
 
     emergency_exit(FALSE, msg);
     
-    exit(1);
+    /* Ideally, we don't reach this anyway ... */
+    return 1;
 }
 
 void installXErrorHandler(void)
