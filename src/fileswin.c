@@ -218,7 +218,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         set_date_hint(GetOptionChoice(gui->datehint));
         
-        getdata(grace, gr, filename, grace->rt->cursource, load);
+        getdata(grace->project, filename, grace->rt->cursource, load);
 
 	if (load == LOAD_BLOCK) {
             create_eblock_frame(gr);

@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for block data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    getdata(grace, cur_graph, argv[i], rt->cursource, LOAD_BLOCK);
+		    getdata(grace->project, argv[i], rt->cursource, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-bxy", 4)) {
 		i++;
@@ -366,7 +366,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for nxy data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    getdata(grace, cur_graph, argv[i], rt->cursource, LOAD_NXY);
+		    getdata(grace->project, argv[i], rt->cursource, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
                        argmatch(argv[i], "-settype", 8)) {
