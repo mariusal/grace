@@ -146,6 +146,9 @@ $GRACE pie.agr
 # vector map
 $GRACE vmap.agr
 #
+# a bubble plot
+$GRACE xysize.agr
+#
 # non-linear curve fitting
 $GRACE logistic.agr
 #

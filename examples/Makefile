@@ -19,7 +19,8 @@ EXAMPLES = altaxis.par logtest.par times.agr \
 	brw.dat hilo.agr test2.agr arrows.agr txyr.agr \
 	co2.agr log.dat stackedb.agr tfonts.agr typeset.agr xyz.agr \
 	co2.par logistic.agr logistic.fit symslines.agr tforms.par polar.agr \
-	motif.agr spectrum.agr pie.agr txttrans.agr boxplot.agr vmap.agr
+	motif.agr spectrum.agr pie.agr txttrans.agr boxplot.agr vmap.agr \
+	xysize.agr
 
 all : dummy
 
