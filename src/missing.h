@@ -37,7 +37,7 @@
 
 
 #if defined(__VMS)
-#  if defined(__ALPHA || __DECC_VER >= 60000000)
+#  if __ALPHA || __DECC_VER >= 60000000
 #    include <builtins.h>
 #  endif
 #  include "vms_unix.h"
