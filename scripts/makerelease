@@ -9,6 +9,7 @@ cat << EOF > Make.conf
 O=.o
 EXE=
 YACC=bison -y
+XCC=xcc
 EOF
 
 make CHANGES
@@ -17,7 +18,10 @@ make ChangeLog
 CDIR=`pwd`
 CDIR_BNAME=`basename $CDIR`
 cd src
+touch Make.dep
 make pars.c
+make xml_in.c
+rm -f Make.dep
 cd ..
 cd doc
 make all
