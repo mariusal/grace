@@ -191,6 +191,17 @@ static void xmlio_write_text(XFile *xf, char *text)
     }
 }
 
+static void xmlio_write_arrow(XFile *xf, Attributes *attrs, Arrow *arrow)
+{
+    attributes_reset(attrs);
+
+    attributes_set_ival(attrs, AStrType, arrow->type); /* FIXME: textual */
+    attributes_set_dval(attrs, AStrLength, arrow->length);
+    attributes_set_dval(attrs, AStrDlFf, arrow->dL_ff);
+    attributes_set_dval(attrs, AStrLlFf, arrow->lL_ff);
+    xfile_empty_element(xf, EStrArrow, attrs);
+}
+
 int save_fontmap(XFile *xf)
 {
     int i;
@@ -724,7 +735,7 @@ int save_object(XFile *xf, DObject *o)
             {
                 DOLineData *l = (DOLineData *) o->odata;
                 attributes_set_dval(attrs, AStrLength, l->length);
-                /* FIXME arrows */;
+                attributes_set_ival(attrs, AStrArrowsAt, l->arrow_end); /* FIXME: textual */
             }
             break;
         case DO_BOX:
@@ -761,6 +772,14 @@ int save_object(XFile *xf, DObject *o)
             {
                 DOStringData *s = (DOStringData *) o->odata;
                 xmlio_write_text(xf, s->s);
+            }
+            xfile_end_element(xf, buf);
+        } else
+        if (o->type == DO_LINE) {
+            xfile_begin_element(xf, buf, attrs);
+            {
+                DOLineData *l = (DOLineData *) o->odata;
+                xmlio_write_arrow(xf, attrs, &l->arrow);
             }
             xfile_end_element(xf, buf);
         } else {
@@ -809,7 +828,7 @@ int save_regions(XFile *xf)
         return RETURN_FAILURE;
     }
 
-    /* FIXME */
+    /* FIXME: regions */
 
     attributes_free(attrs);
 

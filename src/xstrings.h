@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2000,2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -31,6 +31,7 @@
 /* Element names */
 #define EStrAnnotation          "annotation"
 #define EStrArcData             "arc-data"
+#define EStrArrow               "arrow"
 #define EStrAxis                "axis"
 #define EStrAxisbar             "axisbar"
 #define EStrAxislabel           "axislabel"
@@ -94,6 +95,7 @@
 #define AStrAngle               "angle"
 #define AStrAppend              "append"
 #define AStrArrowClip           "arrow-clip"
+#define AStrArrowsAt            "arrows-at"
 #define AStrAutoTicking         "auto-ticking"
 #define AStrBargap              "bargap"
 #define AStrBaselineType        "baseline-type"
@@ -104,6 +106,8 @@
 #define AStrCols                "cols"
 #define AStrComment             "comment"
 #define AStrDataRef             "data-ref"
+#define AStrDlFf                "dl-ff"
+#define AStrLlFf                "ll-ff"
 #define AStrDrawBaseline        "draw-baseline"
 #define AStrDrawDroplines       "draw-droplines"
 #define AStrFallback            "fallback"

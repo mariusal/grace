@@ -494,6 +494,16 @@ RiserLine *riserline_new(void)
     return retval;
 }
 
+Arrow *arrow_new(void)
+{
+    Arrow *retval;
+    retval = xmalloc(sizeof(Arrow));
+    if (retval) {
+        memset(retval, 0, sizeof(Arrow));
+    }
+    return retval;
+}
+
 char *utf2iso(const char *s)
 {
     char *retval;
@@ -538,7 +548,7 @@ char *utf2iso(const char *s)
         $$ = atof($?);
     ]]></attribute-type>
     <attribute-type name="sval" ctype="char *"><![CDATA[
-        $$ = strdup($?);
+        $$ = utf2iso($?);
     ]]></attribute-type>
     <attribute-type name="bval" ctype="int"><![CDATA[
         $$ = compare_strings($?, "yes");
@@ -763,6 +773,9 @@ char *utf2iso(const char *s)
     ]]></element-type>
     <element-type name="do_arc_data" ctype="DOArcData *"><![CDATA[
         $$ = object_data_new(DO_ARC);
+    ]]></element-type>
+    <element-type name="arrow" ctype="Arrow *"><![CDATA[
+        $$ = arrow_new();
     ]]></element-type>
     <element-type name="do_string_data" ctype="DOStringData *"><![CDATA[
         $$ = object_data_new(DO_STRING);
@@ -1688,6 +1701,15 @@ char *utf2iso(const char *s)
         <attribute name="#AStrLength" type="dval">
             $$->length = $?;
         </attribute>
+        <attribute name="#AStrArrowsAt" type="ival">
+            $$->arrow_end = $?;
+        </attribute>
+
+        <!-- Child elements -->
+        <child name="#EStrArrow">
+            $$->arrow = *($?);
+            xfree($?);
+        </child>
     </element>
     <element name="#EStrStringData" type="do_string_data">
         <!-- Attributes -->
@@ -1706,6 +1728,21 @@ char *utf2iso(const char *s)
             $$->s = $?->s;
             xfree($?);
         </child>
+    </element>
+    <element name="#EStrArrow" type="arrow">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="ival">
+            $$->type = $?;
+        </attribute>
+        <attribute name="#AStrLength" type="dval">
+            $$->length = $?;
+        </attribute>
+        <attribute name="#AStrDlFf" type="dval">
+            $$->dL_ff = $?;
+        </attribute>
+        <attribute name="#AStrLlFf" type="dval">
+            $$->lL_ff = $?;
+        </attribute>
     </element>
     <element name="#EStrSet" type="set">
         <!-- Attributes -->
