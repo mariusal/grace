@@ -47,7 +47,9 @@
 #define LFORMAT_TYPE_PLAIN      0
 #define LFORMAT_TYPE_EXTENDED   1
 
-void cxfree(void *ptr);
+#define cxfree(ptr) xfree(ptr); ptr = NULL
+
+void xfree(void *ptr);
 void *xrealloc(void *ptr, size_t size);
 void fswap(double *x, double *y);
 void iswap(int *x, int *y);

@@ -59,11 +59,10 @@ static void bugwarn(char *signame);
 /*
  * free and check for NULL pointer
  */
-void cxfree(void *ptr)
+void xfree(void *ptr)
 {
     if (ptr != NULL) {
 	free(ptr);
-        ptr = NULL;
     }
 }
 
