@@ -188,6 +188,11 @@ AC_ARG_ENABLE(xmhtml,
   *) AC_MSG_ERROR(bad value ${enableval} for --enable-xmhtml) ;;
 esac],[xmhtml=true])
 
+if test $xmhtml = true && test $libhelp = true
+then
+  AC_MSG_ERROR(can't use both libhelp and XmHTML)
+fi
+
 dnl **** define editor
 GRACE_EDITOR="'xterm -e vi'"
 AC_ARG_WITH(editor,
