@@ -52,7 +52,7 @@ static int define_autos_proc(void *data);
 
 typedef struct _Arrange_ui {
     Widget top;
-    StorageStructure *graphs;
+    StorageStructure *frames;
     SpinStructure *nrows;
     SpinStructure *ncols;
     OptionStructure *order;
@@ -71,13 +71,13 @@ typedef struct _Arrange_ui {
 
 
 /*
- * Arrange graphs popup routines
+ * Arrange frames popup routines
  */
 static int define_arrange_proc(void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
-    int ngraphs;
-    Quark **graphs;
+    int nframes;
+    Quark **frames;
     int nrows, ncols, order, snake;
     int hpack, vpack, add, kill;
     double toff, loff, roff, boff, vgap, hgap;
@@ -89,9 +89,9 @@ static int define_arrange_proc(void *data)
 	return RETURN_FAILURE;
     }
     
-    ngraphs = GetStorageChoices(ui->graphs, &graphs);
-    if (ngraphs == 0) {
-        graphs = NULL;
+    nframes = GetStorageChoices(ui->frames, &frames);
+    if (nframes == 0) {
+        frames = NULL;
     }
     
     order = GetOptionChoice(ui->order);
@@ -111,29 +111,29 @@ static int define_arrange_proc(void *data)
     hpack = GetToggleButtonState(ui->hpack);
     vpack = GetToggleButtonState(ui->vpack);
 
-    if (add && ngraphs < nrows*ncols) {
+    if (add && nframes < nrows*ncols) {
         int i;
-        graphs = xrealloc(graphs, nrows*ncols*sizeof(Quark *));
-        for (i = number_of_graphs(grace->project); ngraphs < nrows*ncols; ngraphs++, i++) {
-            graphs[ngraphs] = graph_new(grace->project);
+        frames = xrealloc(frames, nrows*ncols*sizeof(Quark *));
+        for (i = number_of_frames(grace->project); nframes < nrows*ncols; nframes++, i++) {
+            frames[nframes] = frame_new(grace->project);
         }
     }
     
-    if (kill && ngraphs > nrows*ncols) {
-        for (; ngraphs > nrows*ncols; ngraphs--) {
-            quark_free(graphs[ngraphs - 1]);
+    if (kill && nframes > nrows*ncols) {
+        for (; nframes > nrows*ncols; nframes--) {
+            quark_free(frames[nframes - 1]);
         }
     }
     
-    arrange_graphs(graphs, ngraphs,
+    arrange_frames(frames, nframes,
         nrows, ncols, order, snake,
         loff, roff, toff, boff, vgap, hgap,
         hpack, vpack);
     
     update_all();
     
-    SelectStorageChoices(ui->graphs, ngraphs, graphs);
-    xfree(graphs);
+    SelectStorageChoices(ui->frames, nframes, frames);
+    xfree(frames);
     
     xdrawgraph(grace->project, FALSE);
     
@@ -171,17 +171,17 @@ void create_arrange_frame(Widget but, void *data)
         
         ui = xmalloc(sizeof(Arrange_ui));
     
-	ui->top = CreateDialogForm(app_shell, "Arrange graphs");
+	ui->top = CreateDialogForm(app_shell, "Arrange frames");
 
 	arrange_panel = CreateVContainer(ui->top);
         
 	fr = CreateFrame(arrange_panel, NULL);
         rc = CreateVContainer(fr);
-        ui->graphs = CreateGraphChoice(rc,
-            "Arrange graphs:", LIST_TYPE_MULTIPLE);
+        ui->frames = CreateFrameChoice(rc,
+            "Arrange frames:", LIST_TYPE_MULTIPLE);
         ui->add = CreateToggleButton(rc,
-            "Add graphs as needed to fill the matrix");
-        ui->kill = CreateToggleButton(rc, "Kill extra graphs");
+            "Add frames as needed to fill the matrix");
+        ui->kill = CreateToggleButton(rc, "Kill extra frames");
 
         fr = CreateFrame(arrange_panel, "Matrix");
         gr = CreateGrid(fr, 4, 1);

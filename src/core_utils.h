@@ -81,6 +81,8 @@ int graph_get_viewport(Quark *gr, view *v);
 int is_log_axis(const Quark *q);
 int is_logit_axis(const Quark *q);
 
+int number_of_frames(Quark *project);
+
 int number_of_graphs(Quark *project);
 int select_graph(Quark *g);
 
@@ -129,7 +131,7 @@ FormatType get_format_type_by_name(const char *name);
 int graph_scroll(Quark *gr, int type);
 int graph_zoom(Quark *gr, int type);
 
-int arrange_graphs(Quark **graphs, int ngraphs,
+int arrange_frames(Quark **graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,

@@ -709,7 +709,8 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Data sets...", 'D', create_datasetprop_popup, NULL);
 
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "Arrange graphs...", 'r', create_arrange_frame, NULL);
+    CreateMenuButton(menupane, "Arrange frames...", 'r', create_arrange_frame, NULL);
+    CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 

@@ -60,6 +60,26 @@ int number_of_graphs(Quark *project)
     return ngraphs;
 }
 
+static int frame_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    int *nframes = (int *) udata;
+    
+    if (quark_fid_get(q) == QFlavorFrame) {
+        (*nframes)++;
+    }
+    
+    return TRUE;
+}
+
+int number_of_frames(Quark *project)
+{
+    int nframes = 0;
+    
+    quark_traverse(project, frame_count_hook, &nframes);
+    
+    return nframes;
+}
+
 Quark *graph_get_current(const Quark *project)
 {
     if (project) {
@@ -690,25 +710,25 @@ int graph_zoom(Quark *gr, int type)
 }
 
 /*
- *  Arrange graphs
+ *  Arrange frames
  */
-int arrange_graphs(Quark **graphs, int ngraphs,
+int arrange_frames(Quark **frames, int nframes,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
                    int hpack, int vpack)
 {
-    int i, imax, j, jmax, iw, ih, ng;
+    int i, imax, j, jmax, iw, ih, nf;
     double pw, ph, w, h;
     view v;
-    Quark *gr, *pr;
+    Quark *f, *pr;
 
-    if (!graphs) {
+    if (!frames) {
         return RETURN_FAILURE;
     }
-    gr = graphs[0];
+    f = frames[0];
     
-    pr = get_parent_project(gr);
+    pr = get_parent_project(f);
     if (!pr) {
         return RETURN_FAILURE;
     }
@@ -736,7 +756,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
         return RETURN_FAILURE;
     }
     
-    ng = 0;
+    nf = 0;
     if (order & GA_ORDER_HV_INV) {
         imax = ncols;
         jmax = nrows;
@@ -744,9 +764,9 @@ int arrange_graphs(Quark **graphs, int ngraphs,
         imax = nrows;
         jmax = ncols;
     }
-    for (i = 0; i < imax && ng < ngraphs; i++) {
-        for (j = 0; j < jmax && ng < ngraphs; j++) {
-            gr = graphs[ng];
+    for (i = 0; i < imax && nf < nframes; i++) {
+        for (j = 0; j < jmax && nf < nframes; j++) {
+            f = frames[nf];
             
             if (order & GA_ORDER_HV_INV) {
                 iw = i;
@@ -773,39 +793,9 @@ int arrange_graphs(Quark **graphs, int ngraphs,
             v.xv2 = v.xv1 + w;
             v.yv1 = boff + ih*h*(1.0 + vgap);
             v.yv2 = v.yv1 + h;
-#if 0
-            graph_set_viewport(gr, &v);
+            frame_set_view(f, &v);
             
-            if (hpack) {
-	        tickmarks *t = graph_get_tickmarks(gr, Y_AXIS);
-                if (iw == 0) {
-	            if (!t) {
-                        continue;
-                    }
-                    t->active = TRUE;
-	            t->label_op = PLACEMENT_NORMAL;
-	            t->t_op = PLACEMENT_NORMAL;
-	            t->tl_op = PLACEMENT_NORMAL;
-                } else {
-                    activate_tick_labels(t, FALSE);
-                }
-            }
-            if (vpack) {
-	        tickmarks *t = graph_get_tickmarks(gr, X_AXIS);
-                if (ih == 0) {
-	            if (!t) {
-                        continue;
-                    }
-	            t->active = TRUE;
-	            t->label_op = PLACEMENT_NORMAL;
-	            t->t_op = PLACEMENT_NORMAL;
-	            t->tl_op = PLACEMENT_NORMAL;
-                } else {
-                    activate_tick_labels(t, FALSE);
-                }
-            }
-#endif            
-            ng++;
+            nf++;
         }
     }
     return RETURN_SUCCESS;
