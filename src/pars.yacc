@@ -429,6 +429,7 @@ symtab_entry *key;
 %token <pset> TICKLABEL
 %token <pset> TICKP
 %token <pset> TICKSP
+%token <pset> TIMER
 %token <pset> TIMESTAMP
 %token <pset> TITLE
 %token <pset> TO
@@ -1904,6 +1905,9 @@ parmset:
 	    target_set.gno = $2;
 	    target_set.setno = $4;
 	}
+	| TIMER NUMBER {
+            timer_delay = (int) $2;
+	}
 	| WITH GRAPHNO {
             select_graph($2);
 	}
@@ -2568,7 +2572,9 @@ actions:
 	    }
 	}
 	| SLEEP NUMBER {
-	    sleep_wrap((int) $2);
+	    if ($2 > 0) {
+	        msleep_wrap((unsigned int) (1000 * $2));
+	    }
 	}
 	| GETP CHRSTR {
 	    gotparams = TRUE;
@@ -4375,6 +4381,7 @@ symtab_entry ikey[] = {
 	{"TICK", TICKP, NULL},
 	{"TICKLABEL", TICKLABEL, NULL},
 	{"TICKS", TICKSP, NULL},
+	{"TIMER", TIMER, NULL},
 	{"TIMESTAMP", TIMESTAMP, NULL},
 	{"TITLE", TITLE, NULL},
 	{"TO", TO, NULL},
