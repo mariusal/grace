@@ -214,7 +214,9 @@ int get_graph_labels(int gno, labels *labs);
 int get_graph_plotarr(int gno, int i, plotarr *p);
 int get_graph_legend(int gno, legend *leg);
 
+int graph_allocate(int gno);
 int set_graph_active(int gno);
+
 void set_graph_framep(int gno, framep *f);
 void set_graph_world(int gno, world w);
 void set_graph_viewport(int gno, view v);

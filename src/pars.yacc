@@ -5274,7 +5274,7 @@ static int yylex(void)
                 } else {
                     gn = atoi(sbuf);
                 }
-		if (set_graph_active(gn) == RETURN_SUCCESS) {
+		if (is_valid_gno(gn) || graph_allocate(gn) == RETURN_SUCCESS) {
 		    yylval.ival = gn;
 		    return GRAPHNO;
 		}

@@ -402,19 +402,33 @@ int get_graph_legend(int gno, legend *leg)
     }
 }
 
-
-int set_graph_active(int gno)
+int graph_allocate(int gno)
 {
     int retval;
     
+    if (is_valid_gno(gno)) {
+        return RETURN_SUCCESS;
+    } else
     if (gno >= maxgraph) {
         retval = realloc_graphs(gno + 1);
         if (retval != RETURN_SUCCESS) {
             return RETURN_FAILURE;
+        } else {
+            return set_graph_hidden(gno, TRUE);
         }
+    } else {
+        return RETURN_FAILURE;
     }
-    
-    return set_graph_hidden(gno, FALSE);
+}
+
+
+int set_graph_active(int gno)
+{
+    if (graph_allocate(gno) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    } else {
+        return set_graph_hidden(gno, FALSE);
+    }
 }
 
 void set_graph_framep(int gno, framep * f)
