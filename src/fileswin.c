@@ -932,36 +932,20 @@ static Open_ui oui;
 static void open_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     char *s;
-    int done_ok;
-    
+
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
     if (!XmStringGetLtoR(cbs->value, charset, &s)) {
 	errwin("Error converting XmString to char string");
 	return;
     }
     
-    if (wipeout()){
-    	return;
-    }
     set_wait_cursor();
     
-    lock_dirtystate(TRUE);
-    if (getdata(get_cg(), s, cursource, SET_XY) == GRACE_EXIT_SUCCESS) {
-    	done_ok = TRUE;
-    } else {
-    	done_ok = FALSE;
-    }
-    lock_dirtystate(FALSE);
-
-    if (done_ok) {
-    	strcpy(docname, s);
-    	clear_dirtystate();
-    } else {
-        set_dirtystate();
-    }
-    
+    load_project(s);
+        
     XtFree(s);
     unset_wait_cursor();
+
     update_all();
     drawgraph();
 }
