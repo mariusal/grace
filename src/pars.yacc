@@ -179,7 +179,7 @@ symtab_entry *key;
 }
 
 %token <ival> INDEX
-%token <ival> JDAY
+%token <ival> JDATE
 
 %token <ival> CONSTANT	 /* a (double) constant                                     */
 %token <ival> UCONSTANT	 /* a (double) unit constant                                */
@@ -561,7 +561,7 @@ symtab_entry *key;
 
 %type <ival> sourcetype
 
-%type <ival> extremetype
+%type <ival> stattype
 %type <ival> datacolumn
 
 %type <ival> runtype
@@ -580,9 +580,9 @@ symtab_entry *key;
 %type <ival> proctype
 
 %type <ival> indx
-
 %type <ival> iexpr
 %type <ival> nexpr
+%type <dval> jdate
 %type <dval> expr
 
 %type <vrbl> array
@@ -648,7 +648,7 @@ expr:	NUMBER {
             }
             $$ = $1->data[$2];
 	}
-	| extremetype '(' vexpr ')' {
+	| stattype '(' vexpr ')' {
 	    double dummy;
             int length = $3->length;
 	    if ($3->data == NULL) {
@@ -743,23 +743,13 @@ expr:	NUMBER {
 	| selectgraph '.' WY2 {
 	    $$ = g[$1].w.yg2;
 	}
-	| JDAY '(' CHRSTR ')' {
-            double jul;
-            Dates_format recognized;
-            if (parse_date($3, FMT_iso, &jul, &recognized)
-                == GRACE_EXIT_SUCCESS) {
-                free($3);
-                $$ = jul;
-            } else {
-                free($3);
-		yyerror("Invalid date");
-		return 1;
-            }
+	| JDATE '(' jdate ')' {
+            $$ = $3;
 	}
-	| JDAY '(' iexpr ',' nexpr ',' nexpr ')' { /* yr, mo, day */
+	| JDATE '(' iexpr ',' nexpr ',' nexpr ')' { /* yr, mo, day */
 	    $$ = cal_and_time_to_jul($3, $5, $7, 12, 0, 0.0);
 	}
-	| JDAY '(' iexpr ',' nexpr ',' nexpr ',' nexpr ',' nexpr ',' expr ')' 
+	| JDATE '(' iexpr ',' nexpr ',' nexpr ',' nexpr ',' nexpr ',' expr ')' 
 	{ /* yr, mo, day, hr, min, sec */
 	    $$ = cal_and_time_to_jul($3, $5, $7, $9, $11, $13);
 	}
@@ -874,6 +864,23 @@ expr:	NUMBER {
 	    $$ = !($2);
 	}
 	;
+
+jdate:  expr {
+            $$ = $1;
+        }
+        | CHRSTR {
+            double jul;
+            Dates_format dummy;
+            if (parse_date($1, FMT_iso, &jul, &dummy) == GRACE_EXIT_SUCCESS) {
+                free($1);
+                $$ = jul;
+            } else {
+                free($1);
+		yyerror("Invalid date");
+		return 1;
+            }
+        }
+        ;
 
 iexpr:  expr {
 	    int itmp = rint($1);
@@ -1850,16 +1857,8 @@ parmset:
             pg.height = (long) $4;
             set_page_geometry(pg);
         }
-        | REFDATE CHRSTR {
-            double jul;
-            Dates_format recognized;
-            if (parse_date($2, FMT_iso, &jul, &recognized) ==
-                GRACE_EXIT_SUCCESS) {
-                set_ref_date(jul);
-            } else {
-		yyerror("Invalid date");
-		return 1;
-            }
+        | REFDATE jdate {
+            set_ref_date($2);
 	}
 	| DEVICE CHRSTR PAGE SIZE NUMBER NUMBER {
             int device_id;
@@ -3754,7 +3753,7 @@ windowtype:
 	| PARZEN {$$=6;}
 	;
 	
-extremetype: MINP { $$ = MINP; }
+stattype: MINP { $$ = MINP; }
 	| MAXP { $$ = MAXP; }
         | AVG { $$ = AVG; }
 	| SD { $$ = SD; }
@@ -4346,7 +4345,7 @@ symtab_entry ikey[] = {
 	{"INVFFT", INVFFT, NULL},
 	{"IRAND", FUNC_I, irand_wrap},
 	{"IV", FUNC_DD, iv_wrap},
-	{"JDAY", JDAY, NULL},
+	{"JDATE", JDATE, NULL},
 	{"JUST", JUST, NULL},
 	{"JV", FUNC_DD, jv_wrap},
 	{"K0E", FUNC_D, k0e},
