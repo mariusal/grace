@@ -2509,12 +2509,9 @@ parmset:
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
-	    if ((map_font_by_name($5, $3) == RETURN_SUCCESS) || 
-                (map_font_by_name($7, $3) == RETURN_SUCCESS)) {
-                ;
-            } else {
+	    if ((map_font_by_name($5, $3) != RETURN_SUCCESS) && 
+                (map_font_by_name($7, $3) != RETURN_SUCCESS)) {
                 errmsg("Failed mapping a font");
-                map_font(0, $3);
             }
             xfree($5);
 	    xfree($7);
