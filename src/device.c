@@ -153,9 +153,27 @@ int select_device(int dindex)
 /*
  * set the current print device
  */
-void set_printer(int device)
+int set_printer(int device)
 {
-    grace->rt->hdevice = device;
+    if (device >= ndevices || device < 0 ||
+        device_table[device].type == DEVICE_TERM) {
+        return RETURN_FAILURE;
+    } else {
+        grace->rt->hdevice = device;
+	if (device_table[device].type != DEVICE_PRINT) {
+            set_ptofile(TRUE);
+        }
+        return RETURN_SUCCESS;
+    }
+}
+
+int set_printer_by_name(char *dname)
+{
+    int device;
+    
+    device = get_device_by_name(dname);
+    
+    return set_printer(device);
 }
 
 int get_device_by_name(char *dname)
@@ -174,20 +192,6 @@ int get_device_by_name(char *dname)
         return -1;
     } else {
 	return i;
-    }
-}
-
-int set_printer_by_name(char *dname)
-{
-    int id;
-    
-    id = get_device_by_name(dname);
-    
-    if (id >= ndevices || id < 0 || device_table[id].type == DEVICE_TERM) {
-        return RETURN_FAILURE;
-    } else {
-        grace->rt->hdevice = id;
-	return RETURN_SUCCESS;
     }
 }
 
