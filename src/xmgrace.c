@@ -300,8 +300,8 @@ static int is_motif_compatible(void)
     /* Finally, if LessTif is used, check for a reasonably new release */
     if (rt_lesstif) {
         s = strstr(_XmVersionString, "Version");
-        if (s == NULL || (strcmp(s, "Version 0.89.9") < 0)) {
-            errmsg("An old version of LessTif, please upgrade to 0.89.9 at least");
+        if (s == NULL || (strcmp(s, "Version 0.90.0") < 0)) {
+            errmsg("An old version of LessTif, please upgrade to 0.90.0 at least");
         }
     }
 #endif
@@ -318,7 +318,15 @@ static int is_motif_compatible(void)
         errmsg(buf);
         errmsg("Use a semistatic binary or compile Grace/libXbae yourself!");
         return FALSE;
-
+    }
+    /* Now we check for consistency of the used M*tif version */
+    if (XbaeGetXmVersionNum() != XmVersion) {
+        sprintf(buf, "libXbae was built with Motif/LessTif %i, but is running with %i!",
+            XbaeGetXmVersionNum(), XmVersion);
+        errmsg(buf);
+        errmsg("Use a semistatic binary or compile Grace/libXbae yourself!");
+        return FALSE;
+    }
 #endif /* XbaeVersion > 40800 */
 
     return TRUE;
