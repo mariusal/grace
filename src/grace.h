@@ -205,4 +205,14 @@ void project_set_wrap_year(Quark *q, int wrap_year);
 
 int get_font_by_name(const Quark *project, const char *name);
 
+
+char *grace_path(Grace *grace, char *fn);
+char *grace_path2(Grace *grace, const char *prefix, char *fn);
+char *grace_exe_path(Grace *grace, char *fn);
+
+FILE *grace_openw(Grace *grace, char *fn);
+FILE *grace_openr(Grace *grace, char *fn, int src);
+void grace_close(FILE *fp);
+
+
 #endif /* __GRACE_H_ */

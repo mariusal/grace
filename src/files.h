@@ -49,14 +49,6 @@ void clear_io_filters( int f );
 FILE *filter_read(Grace *grace, char *fn);
 FILE *filter_write(Grace *grace, char *fn);
 
-char *grace_path(Grace *grace, char *fn);
-char *grace_path2(Grace *grace, const char *prefix, char *fn);
-char *grace_exe_path(Grace *grace, char *fn);
-
-FILE *grace_openw(Grace *grace, char *fn);
-FILE *grace_openr(Grace *grace, char *fn, int src);
-void grace_close(FILE *fp);
-
 int getparms(Grace *grace, char *plfile);
 int getdata(Grace *grace, Quark *gr, char *fn, int src, int type);
 int update_set_from_file(Quark *pset);
