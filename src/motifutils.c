@@ -1677,6 +1677,18 @@ TextStructure *CreateCSText(Widget parent, char *s)
     return retval;
 }
 
+TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows)
+{
+    TextStructure *retval;
+
+    retval = CreateScrolledTextInput(parent, s, nrows);
+    SetUserData(retval->text, retval);
+    XtOverrideTranslations(retval->text, 
+        XtParseTranslationTable(cstext_translation_table));
+        
+    return retval;
+}
+
 char *GetTextString(TextStructure *cst)
 {
     char *s, *buf;

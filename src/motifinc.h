@@ -460,6 +460,7 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
 TextStructure *CreateTextInput(Widget parent, char *s);
 TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
 TextStructure *CreateCSText(Widget parent, char *s);
+TextStructure *CreateScrolledCSText(Widget parent, char *s, int nrows);
 
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
