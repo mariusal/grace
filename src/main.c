@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
 		    } else {
                         fd = atoi(argv[i]);
                         sprintf(fd_name, "pipe<%d>", fd);
-                        if (register_real_time_input(fd, fd_name, 0) !=
+                        if (register_real_time_input(fd, fd_name, FALSE) !=
                             GRACE_EXIT_SUCCESS) {
                             exit(1);
                         }
@@ -419,7 +419,7 @@ int main(int argc, char *argv[])
                         if (fd < 0) {
                             fprintf(stderr, "Can't open fifo\n");
                         } else {
-                            register_real_time_input(fd, argv[i], 1);
+                            register_real_time_input(fd, argv[i], TRUE);
                         }
 		    }
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
