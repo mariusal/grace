@@ -71,7 +71,7 @@ extern graph *g;
 #define GRVAR_DATASET   2
 
 /* variable */
-typedef struct _variable {
+typedef struct _grvar {
     int type;
     int length;
     double *data;
@@ -109,8 +109,8 @@ static char f_string[MAX_STRING_LENGTH]; /* buffer for string to parse */
 static int pos;
 
 /* scratch arrays used in scanner */
-static int maxarr = 0;
-static double *ax = NULL, *bx = NULL, *cx = NULL, *dx = NULL;
+static int sarray_len[4] = {0, 0, 0, 0};
+static double *sarrays[] = {NULL, NULL, NULL, NULL};
 
 /* the graph, set, and its length of the parser's current state */
 static int whichgraph;
@@ -129,6 +129,8 @@ extern char *close_input;
 static int filltype_obs;
 
 static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
+
+static int get_scratch(int ind, grvar *vrbl);
 
 static double rnorm(double mean, double sdev);
 static double fx(double x);
@@ -348,6 +350,7 @@ symtab_entry *key;
 %token <ival> MAJOR
 %token <ival> MAP
 %token <ival> MAXP
+%token <ival> MESH
 %token <ival> MINP
 %token <ival> MINOR
 %token <ival> MMDD
@@ -604,14 +607,8 @@ symtab_entry *key;
 
 %%
 
-list:
-	parmset {}
-	| parmset_obs {}
-	| regionset {}
-	| setaxis {}
-	| set_setprop {}
-	| actions {}
-	| options {}
+full_list:
+        multi_list
         | expr {
             expr_parsed = TRUE;
             s_result = $1;
@@ -620,6 +617,21 @@ list:
             vexpr_parsed = TRUE;
             v_result = $1;
         }
+        ;
+
+multi_list:
+        list
+        | multi_list ';' list
+        ;
+
+list:
+	parmset {}
+	| parmset_obs {}
+	| regionset {}
+	| setaxis {}
+	| set_setprop {}
+	| actions {}
+	| options {}
 	| asgn {}
 	| vasgn {}
 	| error {
@@ -914,26 +926,20 @@ indx:	'[' iexpr ']' {
 array:
 	SCRARRAY
 	{
-	    double *ptr = get_scratch($1);
             $$ = &freelist[fcnt++];
-            $$->type = GRVAR_SCRARRAY;
-            $$->data = ptr;
-            if (ptr == NULL) {
-                $$->length = 0;
-            } else {
-                $$->length = maxarr;
-            }
+            get_scratch($1, $$);
 	}
         | datacolumn
 	{
-	    double *ptr = getcol(whichgraph, whichset, $1);
+	    double *ptr = getcol(vasgn_gno, vasgn_setno, $1);
             $$ = &freelist[fcnt++];
             $$->type = GRVAR_DATASET;
             $$->data = ptr;
             if (ptr == NULL) {
-                $$->length = 0;
+                errmsg("NULL variable - check set type");
+                return 1;
             } else {
-                $$->length = getsetlength(whichgraph, whichset);
+                $$->length = getsetlength(vasgn_gno, vasgn_setno);
             }
 	}
 	| selectset '.' datacolumn
@@ -943,7 +949,8 @@ array:
             $$->type = GRVAR_DATASET;
             $$->data = ptr;
             if (ptr == NULL) {
-                $$->length = 0;
+                errmsg("NULL variable - check set type");
+                return 1;
             } else {
                 $$->length = getsetlength($1->gno, $1->setno);
             }
@@ -956,14 +963,46 @@ vexpr:
             $$ = &freelist[fcnt++];
             copy_vrbl($$, $1);
 	}
-	| INDEX
+	| MESH '(' nexpr ')'
 	{
-	    int length;
-	    length = getsetlength(vasgn_gno, vasgn_setno);
-            $$ = &freelist[fcnt++];
-            $$->type = GRVAR_TMP;
-            $$->data = allocate_index_data(length);
-            $$->length = length;
+            int len = $3;
+            if (len < 1) {
+                yyerror("npoints must be > 0");
+            } else {
+                double *ptr = allocate_index_data(len);
+                if (ptr == NULL) {
+                    errmsg("Malloc failed");
+                    return 1;
+                } else {
+                    $$ = &freelist[fcnt++];
+                    $$->type = GRVAR_TMP;
+                    $$->data = ptr;
+                    $$->length = len;
+                }
+            }
+	}
+	| MESH '(' expr ',' expr ',' nexpr ')'
+	{
+            int len = $7;
+            if (len < 2) {
+                yyerror("npoints must be > 1");
+            } else {
+                double *ptr = calloc(len, SIZEOF_DOUBLE);
+                if (ptr == NULL) {
+                    errmsg("Malloc failed");
+                    return 1;
+                } else {
+                    int i;
+                    double s = ($3 + $5)/2, d = ($5 - $3)/2;
+                    for (i = 0; i < len; i++) {
+                        ptr[i] = s + d*((double) (2*i + 1 - len)/(len - 1));
+                    }
+                    $$ = &freelist[fcnt++];
+                    $$->type = GRVAR_TMP;
+                    $$->data = ptr;
+                    $$->length = len;
+                }
+            }
 	}
 	| FUNC_I '(' vexpr ')'
 	{
@@ -1762,6 +1801,8 @@ lside_array:
                 }
                 break;
             case GRVAR_SCRARRAY:
+                vasgn_gno   = -1;
+                vasgn_setno = -1;
                 break;
             default:
                 /* It can NOT be a tmp array on the left side! */
@@ -2707,6 +2748,9 @@ actions:
 	| selectset LENGTH nexpr {
 	    setlength($1->gno, $1->setno, $3);
 	}
+	| SCRARRAY LENGTH nexpr {
+	    realloc_scratch($1, $3);
+	}
 	| selectset POINT expr ',' expr {
 	    add_point($1->gno, $1->setno, $3, $5);
 	}
@@ -2761,20 +2805,6 @@ actions:
 	| ARRANGE nexpr ',' nexpr {
             arrange_graphs($2, $4);
         }
-	| LOAD SCRARRAY nexpr ',' expr ',' expr {
-	    int i, ilen = $3;
-            double *ptr;
-	    if (ilen < 0) {
-		yyerror("Length of array < 0");
-		return 1;
-	    } else if (ilen > maxarr) {
-		init_scratch_arrays(ilen);
-	    }
-            ptr = get_scratch($2);
-	    for (i = 0; i < ilen; i++) {
-		ptr[i] = $5 + $7 * i;
-	    }
-	}
 	| NONLFIT '(' selectset ',' nexpr ')' {
 	    gotnlfit = TRUE;
 	    nlfit_gno = $3->gno;
@@ -4364,6 +4394,7 @@ symtab_entry ikey[] = {
 	{"MAP", MAP, NULL},
 	{"MAX", MAXP, NULL},
 	{"MAXOF", FUNC_DD, max_wrap},
+	{"MESH", MESH, NULL},
 	{"MIN", MINP, NULL},
 	{"MINOF", FUNC_DD, min_wrap},
 	{"MINOR", MINOR, NULL},
@@ -4601,49 +4632,45 @@ int set_parser_setno(int gno, int setno)
     }
 }
 
-int init_array(double **a, int n)
+double *realloc_scratch(int ind, int len)
 {
-    *a = xrealloc(*a, n * SIZEOF_DOUBLE);
+    double *a;
+    int i, oldlen;
     
-    return *a == NULL ? 1 : 0;
-}
-
-int init_scratch_arrays(int n)
-{
-    if (!init_array(&ax, n)) {
-	if (!init_array(&bx, n)) {
-	    if (!init_array(&cx, n)) {
-		if (!init_array(&dx, n)) {
-		    maxarr = n;
-		    return 0;
-		}
-		free(cx);
-	    }
-	    free(bx);
-	}
-	free(ax);
-    }
-    return 1;
-}
-
-double *get_scratch(int ind)
-{
-    switch (ind) {
-    case 0:
-        return ax;
-        break;
-    case 1:
-        return bx;
-        break;
-    case 2:
-        return cx;
-        break;
-    case 3:
-        return dx;
-        break;
-    default:
+    if (ind < 0 || ind > 3 || len < 0) {
+        errmsg("Internal error");
         return NULL;
-        break;
+    } else {
+        a = sarrays[ind];
+        oldlen = sarray_len[ind];
+        if (oldlen == len) {
+            return a;
+        } else {
+            a = xrealloc(a, len * SIZEOF_DOUBLE);
+            if (a != NULL) {
+                sarrays[ind] = a;
+                sarray_len[ind] = len;
+                for (i = oldlen; i < len; i++) {
+                    sarrays[ind][i] = 0.0;
+                }
+            } else {
+                errmsg("Malloc failed in realloc_scratch()");
+            }
+            return sarrays[ind];
+        }
+    }
+}
+
+static int get_scratch(int ind, grvar *vrbl)
+{
+    if (ind < 0 || ind > 3) {
+        errmsg("Internal error");
+        return GRACE_EXIT_FAILURE;
+    } else {
+        vrbl->type   = GRVAR_SCRARRAY;
+        vrbl->length = sarray_len[ind];
+        vrbl->data   = sarrays[ind];
+        return GRACE_EXIT_SUCCESS;
     }
 }
 
@@ -5264,12 +5291,12 @@ static double sqr_wrap(double x)
 
 static double max_wrap(double x, double y)
 {
-	    return (x >= y ? x : y);
+    return MAX2(x, y);
 }
 
 static double min_wrap(double x, double y)
 {
-	    return (x <= y ? x : y);
+    return MIN2(x, y);
 }
 
 static double irand_wrap(int x)
