@@ -489,21 +489,6 @@ int getncols(int gno, int setno)
     return 0;
 }
 
-void setxy(int gno, double **ex, int setno, int len, int ncols)
-{
-    int i;
-
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return;
-    }
-
-    for (i = 0; i < ncols; i++) {
-	g[gno].p[setno].data.ex[i] = ex[i];
-    }
-    g[gno].p[setno].data.len = len;
-    set_dirtystate();
-}
-
 int setlength(int gno, int setno, int length)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
