@@ -69,13 +69,13 @@
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-#define rg (project_get_data(grace->project))->rg
 #define grdefaults grace->rt->grdefaults
 #define canvas grace->rt->canvas
 
-/* Types of Fourier transforms */
-#define FFT_FFT         0
-#define FFT_INVFFT      1
+/* Tick sign type (obsolete) */
+#define SIGN_NORMAL     0
+#define SIGN_ABSOLUTE   1
+#define SIGN_NEGATE     2
 
 #define CAST_DBL_TO_BOOL(x) (fabs(x) < 0.5 ? 0:1)
 
@@ -141,6 +141,7 @@ static void add_xmgr_fonts(Quark *project);
 
 static Quark *allocate_graph(Quark *project, int gno);
 static Quark *allocate_set(Quark *gr, int setno);
+static Quark *allocate_region(Quark *gr, int rn);
 
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
@@ -511,6 +512,7 @@ static void yyerror(char *s);
 
 %type <quark> selectgraph
 %type <quark> selectset
+%type <quark> selectregion
 
 %type <ival> pagelayout
 %type <ival> pageorient
@@ -1857,38 +1859,36 @@ defines:
         ;
 
 regionset:
-	REGNUM onoff {
-	    rg[$1].active = $2;
+	selectregion onoff {
+	    region *r = region_get_data($1);
+            if (r) {
+                r->active = $2;
+                XCFREE(r->x);
+                XCFREE(r->y);
+                r->n = 0;
+            }
 	}
-	| REGNUM TYPE regiontype {
-	    rg[$1].type = $3;
+	| selectregion TYPE regiontype {
+	    region_set_type($1, $3);
 	}
-	| REGNUM color_select {
-	    rg[$1].color = $2;
+	| selectregion color_select {
+	    region_set_color($1, $2);
+        }
+	| selectregion lines_select {
 	}
-	| REGNUM lines_select {
-	    rg[$1].lines = $2;
+	| selectregion linew_select {
 	}
-	| REGNUM linew_select {
-	    rg[$1].linew = $2;
-	}
-	| REGNUM LINE expr ',' expr ',' expr ',' expr
+	| selectregion LINE expr ',' expr ',' expr ',' expr
 	{
-	    rg[$1].x1 = $3;
-	    rg[$1].y1 = $5;
-	    rg[$1].x2 = $7;
-	    rg[$1].y2 = $9;
+	    region_add_point($1, $3, $5);
+	    region_add_point($1, $7, $9);
 	}
-	| REGNUM XY expr ',' expr
+	| selectregion XY expr ',' expr
 	{
-	    rg[$1].x = xrealloc(rg[$1].x, (rg[$1].n + 1) * SIZEOF_DOUBLE);
-	    rg[$1].y = xrealloc(rg[$1].y, (rg[$1].n + 1) * SIZEOF_DOUBLE);
-	    rg[$1].x[rg[$1].n] = $3;
-	    rg[$1].y[rg[$1].n] = $5;
-	    rg[$1].n++;
+	    region_add_point($1, $3, $5);
 	}
-	| LINK REGNUM TO selectgraph {
-	    /* FIXME */;
+	| LINK selectregion TO selectgraph {
+	    quark_reparent($2, $4);
 	}
 	;
 
@@ -3362,6 +3362,16 @@ axis:
             curtm = axis_get_data(q);
         }
 	;
+
+selectregion:
+        REGNUM
+        {
+            if (!whichgraph) {
+                whichgraph = allocate_graph(grace->project, 0);
+            }
+            $$ = allocate_region(whichgraph, $1);
+        }
+        ;
 
 proctype:
         KEY_CONST        { $$ = CONSTANT; }
@@ -4934,8 +4944,8 @@ static int yylex(void)
 	    } else if (ctmp == 'R') {
 	        sbuf[i] = '\0';
 		rn = atoi(sbuf);
-		if (rn >= 0 && rn < MAXREGION) {
-		    yylval.ival = rn;
+		if (rn >= 0) {
+                    yylval.ival = rn;
 		    return REGNUM;
 		} else {
                     errmsg("Invalid region number");
@@ -5098,6 +5108,23 @@ static Quark *allocate_graph(Quark *project, int gno)
     }
     
     return gr;
+}
+
+static Quark *allocate_region(Quark *gr, int rn)
+{
+    Quark *r = NULL;
+    char buf[32];
+    
+    if (rn >= 0) {
+        sprintf(buf, "R%d", rn);
+        r = quark_find_descendant_by_idstr(gr, buf);
+        if (!r) {
+            r = region_new(gr);
+            quark_idstr_set(r, buf);
+        }
+    }
+    
+    return r;
 }
 
 static Quark *allocate_set(Quark *gr, int setno)

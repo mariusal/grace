@@ -65,7 +65,6 @@ Quark *project_new(Grace *grace)
 Project *project_data_new(void)
 {
     Project *pr;
-    int i;
     
     pr = xmalloc(sizeof(Project));
     if (!pr) {
@@ -75,11 +74,6 @@ Project *project_data_new(void)
     
     pr->version_id  = bi_version_id();
     pr->description = NULL;
-    
-    pr->nr = 0;
-    for (i = 0; i < MAXREGION; i++) {
-        set_region_defaults(&pr->rg[i]);
-    }
     
     pr->sformat = copy_string(NULL, "%.8g");
 
@@ -112,8 +106,6 @@ void project_data_free(Project *pr)
     
     xfree(pr->timestamp);
     
-    kill_all_regions();
-
     for (i = 0; i < pr->nfonts; i++) {
         Fontdef *f = &pr->fontmap[i];
         xfree(f->fontname);

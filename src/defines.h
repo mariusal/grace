@@ -49,12 +49,7 @@
 /* max length for strings */
 #define MAX_STRING_LENGTH 512
 
-#define MAXREGION 5             /* max number of regions */
-
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
-
-#define MAXFIT 12               /* max degree of polynomial+1 that can be
-                                 * fitted */
 
 #define MAX_ARROW 3
 #define MAX_PREC 10
@@ -133,11 +128,6 @@ typedef enum {
 #define COORD_VIEW      0
 #define COORD_FRAME     1
 #define COORD_WORLD     2
-
-/* Tick sign type */
-#define SIGN_NORMAL     0
-#define SIGN_ABSOLUTE   1
-#define SIGN_NEGATE     2
 
 
 /* Tick label/display formats */
@@ -397,19 +387,6 @@ typedef struct {
     double *c;
     double *d;
 } Spline;
-
-
-typedef struct {
-    int active;                 /* region on or off */
-    int type;                   /* region type */
-    int color;                  /* region color */
-    int lines;                  /* region linestyle */
-    double linew;               /* region line width */
-    int linkto;                 /* associated with graph linkto */
-    int n;                      /* number of points if type is POLY */
-    double *x, *y;              /* coordinates if type is POLY */
-    double x1, y1, x2, y2;      /* starting and ending points if type is not POLY */
-} region;
 
 
 /* parameters for non-linear fit */

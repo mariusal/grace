@@ -341,6 +341,15 @@ typedef struct {
     GLocator locator;           /* locator props */
 } graph;
 
+typedef struct {
+    int active;                 /* region on or off */
+    int type;                   /* region type */
+    int n;                      /* number of points if type is POLY */
+    double *x, *y;              /* coordinates if type is POLY */
+
+    int color;
+} region;
+
 Symbol *symbol_new();
 void symbol_free(Symbol *sym);
 SetLine *setline_new();
@@ -518,6 +527,17 @@ tickmarks *copy_graph_tickmarks(tickmarks *);
 tickmarks *axis_get_data(const Quark *q);
 int axis_set_active(Quark *q, int flag);
 int axis_set_type(Quark *q, int type);
+
+region *region_data_new(void);
+void region_data_free(region *r);
+region *region_data_copy(region *r);
+region *region_get_data(const Quark *q);
+Quark *region_new(Quark *gr);
+int region_set_active(Quark *q, int flag);
+int region_set_type(Quark *q, int type);
+int region_add_point(Quark *q, double x, double y);
+int region_set_color(Quark *q, int color);
+
 
 void project_postprocess(Quark *pr);
 

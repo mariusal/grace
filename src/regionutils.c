@@ -38,16 +38,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "globals.h"
-
 #include "grace/canvas.h"
 #include "graphs.h"
 #include "utils.h"
 #include "protos.h"
-
-#define rg (project_get_data(grace->project))->rg
-
-int regiontype = 0;
 
 /*
  * see if (x,y) lies inside the plot
@@ -59,154 +53,6 @@ int inbounds(Quark *gr, double x, double y)
     wp.x = x;
     wp.y = y;
     return is_validWPoint(wp);
-}
-
-int isactive_region(int regno)
-{
-    return (regno == MAXREGION || regno == MAXREGION + 1 || rg[regno].active == TRUE);
-}
-
-char *region_types(int it, int which)
-{
-    char *s;
-
-    s = "UNDEFINED";
-    switch (it) {
-    case REGION_TOLEFT:
-	s = "REGION_TOLEFT";
-	break;
-    case REGION_TORIGHT:
-	s = "REGION_TORIGHT";
-	break;
-    case REGION_ABOVE:
-	s = "REGION_ABOVE";
-	break;
-    case REGION_BELOW:
-	s = "REGION_BELOW";
-	break;
-    case REGION_POLYI:
-	if (which) {
-	    s = "REGION_POLYI";
-	} else {
-	    s = "INSIDE POLY";
-	}
-	break;
-    case REGION_POLYO:
-	if (which) {
-	    s = "REGION_POLYO";
-	} else {
-	    s = "OUTSIDE POLY";
-	}
-	break;
-    case REGION_HORIZI:
-      s ="REGION_HORIZI";
-      break;
-    case REGION_VERTI:
-      s ="REGION_VERTI";
-      break;
-    case REGION_HORIZO:
-       s ="REGION_HORIZO";
-      break;
-    case REGION_VERTO:
-      s ="REGION_VERTO";
-      break;
-
-    }
-    return s;
-}
-
-void kill_region(int r)
-{
-    if (grace->project && rg[r].active) {
-	XCFREE(rg[r].x);
-	XCFREE(rg[r].y);
-        rg[r].active = FALSE;
-        rg[r].n = 0;
-        set_dirtystate();
-    }
-}
-
-void kill_all_regions(void)
-{
-    int r;
-    for (r = 0; r < MAXREGION; r++) {
-        kill_region(r);
-    }
-}
-
-void activate_region(int r, int type, int linkto)
-{
-    kill_region(r);
-    rg[r].active = TRUE;
-    rg[r].type = type;
-    rg[r].linkto = linkto;
-    set_dirtystate();
-}
-
-
-/*
- * report on sets in a region
- */
-void reporton_region(Quark *gr, int rno, int type)
-{
-    char buf[256];
-    int i, setno, first, contained, nsets;
-    double *x, *y;
-    Quark **psets;
-
-    sprintf(buf, "\nRegion R%1d contains:\n", rno);
-    stufftext(buf);
-    
-    nsets = get_descendant_sets(gr, &psets);
-    for (setno = 0; setno < nsets; setno++) {
-	Quark *pset = psets[setno];
-        x = getx(pset);
-	y = gety(pset);
-	first = 1;
-	contained = 0;
-	for (i = 0; i < getsetlength(pset); i++) {
-	    if (inregion(gr, rno, x[i], y[i])) {
-		contained = 1;
-		switch (type) {
-		case 0:	/* report on sets */
-		    if (first) {
-			first = 0;
-			sprintf(buf, "  Set S%1d\n", setno);
-			stufftext(buf);
-		    }
-		    break;
-		case 1:	/* points */
-		    if (first) {
-			first = 0;
-			sprintf(buf, "  Set S%1d\n", setno);
-			stufftext(buf);
-		    }
-		    sprintf(buf, "    %d %f %f\n", i + 1, x[i], y[i]);
-		    stufftext(buf);
-		    break;
-		}
-	    } else {
-		contained = 0;
-	    }
-	}
-    }
-    stufftext("\n");
-}
-
-void load_poly_region(int r, int gno, int n, WPoint *wps)
-{
-    int i;
-
-    if (n > 2) {
-	activate_region(r, regiontype, gno);
-	rg[r].n = n;
-	rg[r].x = xcalloc(n, SIZEOF_DOUBLE);
-	rg[r].y = xcalloc(n, SIZEOF_DOUBLE);
-	for (i = 0; i < n; i++) {
-	    rg[r].x[i] = wps[i].x;
-	    rg[r].y[i] = wps[i].y;
-	}
-    }
 }
 
 /*
@@ -294,7 +140,6 @@ int isleft(double x, double y, double x1, double y1, double x2, double y2)
     return 0;
 }
 
-
 /*
  * routines to determine if a point lies to the left of an infinite line
 */
@@ -369,6 +214,7 @@ int isbelow(double x, double y, double x1, double y1, double x2, double y2)
 
 int inregion(Quark *gr, int regno, double x, double y)
 {
+#if 0
     if (regno == MAXREGION) {
 	return (inbounds(gr , x, y));
     }
@@ -422,5 +268,119 @@ int inregion(Quark *gr, int regno, double x, double y)
 
 	}
     }
-    return 0;
+#endif
+    return FALSE;
+}
+
+char *region_types(int it, int which)
+{
+    return "";
+}
+
+Quark *region_new(Quark *gr)
+{
+    Quark *r; 
+    r = quark_new(gr, QFlavorRegion);
+    return r;
+}
+
+region *region_data_new(void)
+{
+    region *r;
+    
+    r = xmalloc(sizeof(region));
+    if (r) {
+        memset(r, 0, sizeof(region));
+        set_region_defaults(r);
+    }
+    return r;
+}
+
+void region_data_free(region *r)
+{
+    if (r) {
+        xfree(r);
+    }
+}
+
+region *region_data_copy(region *r)
+{
+    region *r_new;
+    
+    if (!r) {
+        return NULL;
+    }
+    
+    r_new = xmalloc(sizeof(region));
+    if (!r_new) {
+        return NULL;
+    }
+    
+    memcpy(r_new, r, sizeof(region));
+
+    /* duplicate allocatable storage */
+    
+    return r_new;
+}
+
+region *region_get_data(const Quark *q)
+{
+    if (q && q->fid == QFlavorRegion) {
+        return (region *) q->data;
+    } else {
+        return NULL;
+    }
+}
+
+int region_set_active(Quark *q, int flag)
+{
+    region *r = region_get_data(q);
+    if (r) {
+        r->active = flag;
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int region_set_type(Quark *q, int type)
+{
+    region *r = region_get_data(q);
+    if (r) {
+        r->type = type;
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int region_add_point(Quark *q, double x, double y)
+{
+    region *r = region_get_data(q);
+    if (r) {
+        r->x = xrealloc(r->x, (r->n + 1)*SIZEOF_DOUBLE);
+        r->y = xrealloc(r->y, (r->n + 1)*SIZEOF_DOUBLE);
+        r->x[r->n] = x;
+        r->y[r->n] = y;
+        r->n++;
+        
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int region_set_color(Quark *q, int color)
+{
+    region *r = region_get_data(q);
+    if (r) {
+        r->color = color;
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }

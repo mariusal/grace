@@ -188,14 +188,8 @@ int isleft(double x, double y, double x1, double y1, double x2, double y2);
 int isright(double x, double y, double x1, double y1, double x2, double y2);
 int isabove(double x, double y, double x1, double y1, double x2, double y2);
 int isbelow(double x, double y, double x1, double y1, double x2, double y2);
-void reporton_region(Quark *gr, int rno, int type);
-int isactive_region(int regno);
-char *region_types(int it, int which);
-void kill_region(int r);
-void kill_all_regions(void);
-void activate_region(int r, int type, int gno);
-void load_poly_region(int r, int gno, int n, WPoint *wps);
 int inregion(Quark *gr, int regno, double x, double y);
+char *region_types(int it, int which);
 
 void set_plotstr_string(plotstr * pstr, char *buf);
 

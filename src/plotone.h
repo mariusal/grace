@@ -94,6 +94,4 @@ void draw_titles(Canvas *canvas, Quark *gr);
 
 void draw_ref_point(Canvas *canvas, Quark *gr);
 
-void draw_regions(Canvas *canvas, Quark *gr);
-
 #endif /* __PLOTONE_H_ */

@@ -151,6 +151,7 @@ static char *q_labeling(Quark *q)
     set *s;
     tickmarks *t;
     DObject *o;
+    region *r;
     
     switch (q->fid) {
     case QFlavorProject:
@@ -193,6 +194,13 @@ static char *q_labeling(Quark *q)
 
         sprintf(buf, "(%c) DObject \"%s\" (%s)",
             o->active ? '+':'-', QIDSTR(q), object_types(o->type));
+        
+        break;
+    case QFlavorRegion:
+        r = region_get_data(q);
+
+        sprintf(buf, "(%c) Region \"%s\" (%d pts)",
+            r->active ? '+':'-', QIDSTR(q), r->n);
         
         break;
     default:

@@ -64,13 +64,8 @@ void set_region_defaults(region *r)
     r->active = FALSE;
     r->type = 0;
     r->color = 1;
-    r->lines = 1;
-    r->linew = 1.0;
     r->n = 0;
     r->x = r->y = NULL;
-    r->x1 = r->y1 = r->x2 = r->y2 = 0.0;
-
-    r->linkto = 0;
 }
 
 void set_default_frame(frame *f)

@@ -96,7 +96,6 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
 
             /* draw regions and mark the reference points only if in interactive mode */
             if (terminal_device(plot_rt->canvas) == TRUE) {
-                draw_regions(plot_rt->canvas, q);
                 draw_ref_point(plot_rt->canvas, q);
             }
 
@@ -113,6 +112,9 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         break;
     case QFlavorDObject:
         draw_object(canvas, q);
+        break;
+    case QFlavorRegion:
+        draw_region(canvas, region_get_data(q));
         break;
     }
     
@@ -496,28 +498,6 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         
         break;
     }
-}
-
-void draw_regions(Canvas *canvas, Quark *gr)
-{
-#if 0
-    int i;
-    Project *pr = (Project *) grace->project->data;
-
-    setclipping(canvas, TRUE);
-    
-    /* draw any defined regions for this graph */
-    for (i = 0; i < MAXREGION; i++) {
-        region r = pr->rg[i];
-        if (r.active && r.linkto == gr) {
-            setcolor(canvas, r.color);
-            setpattern(canvas, 1);
-            setlinewidth(canvas, r.linew);
-            setlinestyle(canvas, r.lines);
-            draw_region(canvas, &r);
-        }
-    }
-#endif
 }
 
 void draw_ref_point(Canvas *canvas, Quark *gr)
@@ -2111,10 +2091,22 @@ void draw_region(Canvas *canvas, region *this)
     WPoint wptmp, wp1, wp2, wp3, wp4;
     VPoint vps[4], *vpstmp;
     Pen pen;
+    
+    if (terminal_device(canvas) != TRUE || !this->active) {
+        return;
+    }
+    
+    setclipping(canvas, TRUE);
+    
+    setcolor(canvas, this->color);
+    setpattern(canvas, 1);
+    setlinewidth(canvas, 1.0);
+    setlinestyle(canvas, 1);
+    
+    set_default_arrow(&arrow);
+
     getpen(canvas, &pen);
 
-    set_default_arrow(&arrow);
-    
     switch (this->type) {
     case REGION_POLYI:
     case REGION_POLYO:
@@ -2152,26 +2144,26 @@ void draw_region(Canvas *canvas, region *this)
         break;
     case REGION_HORIZI:
     case REGION_HORIZO:
-        wp1.x=this->x1;
-	wp1.y=this->y1;
-	wp2.x=this->x1;
-	wp2.y=this->y2;
-        wp3.x=this->x2;
-	wp3.y=this->y1;
-	wp4.x=this->x2;
-	wp4.y=this->y2;
+        wp1.x=this->x[0];
+	wp1.y=this->y[0];
+	wp2.x=this->x[0];
+	wp2.y=this->y[1];
+        wp3.x=this->x[1];
+	wp3.y=this->y[0];
+	wp4.x=this->x[1];
+	wp4.y=this->y[1];
 	rgndouble=1;
 	break;
     case REGION_VERTI:
     case REGION_VERTO:
-        wp1.x=this->x1;
-	wp1.y=this->y1;
-	wp2.x=this->x2;
-	wp2.y=this->y1;
-        wp3.x=this->x1;
-	wp3.y=this->y2;
-	wp4.x=this->x2;
-	wp4.y=this->y2;
+        wp1.x=this->x[0];
+	wp1.y=this->y[0];
+	wp2.x=this->x[1];
+	wp2.y=this->y[0];
+        wp3.x=this->x[0];
+	wp3.y=this->y[1];
+	wp4.x=this->x[1];
+	wp4.y=this->y[1];
 	rgndouble=1;
 	break;
     default:
@@ -2180,11 +2172,11 @@ void draw_region(Canvas *canvas, region *this)
     }
     
     if(!rgndouble) {
-        wptmp.x = this->x1;
-        wptmp.y = this->y1;
+        wptmp.x = this->x[0];
+        wptmp.y = this->y[0];
         vps[1] = Wpoint2Vpoint(wptmp);
-        wptmp.x = this->x2;
-        wptmp.y = this->y2;
+        wptmp.x = this->x[1];
+        wptmp.y = this->y[1];
         vps[2] = Wpoint2Vpoint(wptmp);
         vps[0].x = vps[1].x + xshift;
         vps[0].y = vps[1].y + yshift;

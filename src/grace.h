@@ -100,14 +100,6 @@ typedef struct _Project {
 #endif
     /* (pointer to) current graph */
     Quark *cg;
-#if 0
-    Storage *regions;
-#else
-    /* region definition */
-    region rg[MAXREGION];
-    /* the current region */
-    int nr;
-#endif
     
     /* timestamp */
     char *timestamp;
@@ -254,6 +246,7 @@ enum {
     QFlavorSet,
     QFlavorDObject,
     QFlavorAxis,
+    QFlavorRegion,
     QFlavorContainer
 };
 
