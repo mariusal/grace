@@ -581,9 +581,17 @@ char *get_legend_string(int gno, int setno)
 
 int set_dataset_type(int gno, int setno, int type)
 { 
-    int i, len, ncols_old, ncols_new;
+    int old_type = dataset_type(gno, setno);
     
-    if (is_valid_setno(gno, setno)) {
+    if (old_type < 0) {
+        /* wrong gno/setno */
+        return RETURN_FAILURE;
+    } else if (old_type == type) {
+        /* nothing changed */
+        return RETURN_SUCCESS;
+    } else {
+        int i, len, ncols_old, ncols_new;
+        
         len = getsetlength(gno, setno);
         ncols_old = dataset_cols(gno, setno);
         ncols_new = settype_cols(type);
@@ -593,18 +601,11 @@ int set_dataset_type(int gno, int setno, int type)
         for (i = ncols_new; i < ncols_old; i++) {
             XCFREE(g[gno].p[setno].data.ex[i]);
         }
-        switch (type) {
-        case SET_XYZ:
-            g[gno].p[setno].avalue.active = TRUE;
-            g[gno].p[setno].avalue.type = AVALUE_TYPE_Z;
-            break;
-        }
+
         g[gno].p[setno].type = type;
         
         set_dirtystate();
         return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
     }
 }
 
