@@ -3417,10 +3417,10 @@ void FixateDialogFormChild(Widget w)
 {
     Widget prev;
     XtVaGetValues(w, XmNtopWidget, &prev, NULL);
+    XtVaSetValues(w, XmNtopAttachment, XmATTACH_NONE, NULL);
     XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
         XmNbottomWidget, w,
         NULL);
-    XtVaSetValues(w, XmNtopAttachment, XmATTACH_NONE, NULL);
 }
 
 typedef struct {
