@@ -3357,6 +3357,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
         Quark *destgr;
         if (GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel,
             (void **) &destgr) != RETURN_SUCCESS) {
+            xfree(*srcsets);
             errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
         }
