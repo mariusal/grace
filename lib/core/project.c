@@ -336,12 +336,26 @@ int project_add_font(Quark *project, const Fontdef *f)
 int project_add_color(Quark *project, const Colordef *c)
 {
     Project *pr = project_get_data(project);
-    Colordef *cnew;
+    Colordef *cbuf;
+    unsigned int i;
+    
+    /* Check whether a color with this id exists */
+    for (i = 0; i < pr->ncolors; i++) {
+        cbuf = &pr->colormap[i];
+        if (cbuf->id == c->id) {
+            cbuf->rgb = c->rgb;
+            cbuf->cname = copy_string(cbuf->cname, c->cname);
+            
+            return RETURN_SUCCESS;
+        }
+    }
+    
+    /* If id not found */
     pr->colormap = xrealloc(pr->colormap, (pr->ncolors + 1)*sizeof(Colordef));
-    cnew = &pr->colormap[pr->ncolors];
-    cnew->id = c->id;
-    cnew->rgb = c->rgb;
-    cnew->cname = copy_string(NULL, c->cname);
+    cbuf = &pr->colormap[pr->ncolors];
+    cbuf->id = c->id;
+    cbuf->rgb = c->rgb;
+    cbuf->cname = copy_string(NULL, c->cname);
     pr->ncolors++;
     
     return RETURN_SUCCESS;
