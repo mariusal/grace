@@ -327,85 +327,54 @@ void create_overlay_frame(void *data)
  */
 typedef struct _Auto_ui {
     Widget top;
-    SetChoiceItem sel;
-    OptionStructure *on_item;
-    Widget *applyto_item;
+    ListStructure *sel;
+    OptionStructure *astype;
 } Auto_ui;
-
-static Auto_ui aui;
 
 static int define_autos_proc(void *data)
 {
-    int aon, au, ap;
+    int astype, nsets, *sids, gno = get_cg();
     Auto_ui *ui = (Auto_ui *) data;
     
-    aon = GetOptionChoice(ui->on_item);
-    ap = GetChoice(ui->applyto_item);
-    au = GetSelectedSet(ui->sel);
-    if (au == SET_SELECT_ERROR) {
-        errmsg("No set selected");
+    nsets = GetListChoices(ui->sel, &sids);
+    if (nsets <= 0) {
+        errmsg("No sets selected");
         return RETURN_FAILURE;
     }
-    if (au == SET_SELECT_ALL) {
-      au = -1;
-    }
+
+    astype = GetOptionChoice(ui->astype);
     
-    define_autos(aon, au, ap);
+    autoscale_bysets(gno, sids, nsets, astype);
+    
+    xfree(sids);
+    
+    update_all();
+    xdrawgraph();
     
     return RETURN_SUCCESS;
 }
 
 void create_autos_frame(void *data)
 {
+    static Auto_ui *aui = NULL;
+
     set_wait_cursor();
     
-    if (aui.top == NULL) {
+    if (aui == NULL) {
 	Widget rc;
         
-        aui.top = CreateDialogForm(app_shell, "Autoscale graphs");
+        aui = xmalloc(sizeof(Auto_ui));
+        
+        aui->top = CreateDialogForm(app_shell, "Autoscale graph");
 
-	rc = CreateVContainer(aui.top);
-        aui.on_item = CreateASChoice(rc, "Autoscale:");
-        aui.sel = CreateSetSelector(rc, "Use set:",
-                                    SET_SELECT_ALL,
-                                    FILTER_SELECT_NONE,
-                                    GRAPH_SELECT_CURRENT,
-                                    SELECTION_TYPE_SINGLE);
-	aui.applyto_item = CreatePanelChoice(rc, "Apply to graph:",
-					     3,
-					     "Current",
-					     "All",
-					     NULL,
-					     NULL);
+	rc = CreateVContainer(aui->top);
+        aui->sel = CreateSetChoice(rc,
+            "Use sets:", SELECTION_TYPE_MULTIPLE, TRUE);
+        aui->astype = CreateASChoice(rc, "Autoscale type:");
 
-	CreateAACDialog(aui.top, rc, define_autos_proc, &aui);
+	CreateAACDialog(aui->top, rc, define_autos_proc, aui);
     }
     
-    RaiseWindow(GetParent(aui.top));
+    RaiseWindow(GetParent(aui->top));
     unset_wait_cursor();
-}
-
-void define_autos(int aon, int au, int ap)
-{
-    int i, gno, ngraphs, *gids;
-    int cg = get_cg();
-
-    if (au >= 0 && !is_set_active(cg, au)) {
-	errmsg("Set not active");
-	return;
-    }
-    if (ap) {
-	ngraphs = get_graph_ids(&gids);
-    } else {
-	ngraphs = 1;
-	gids = &cg;
-    }
-    for (i = 0; i < ngraphs; i++) {
-	gno = gids[i];
-        if (is_graph_active(gno)) {
-	    autoscale_byset(gno, au, aon);
-	}
-    }
-    update_ticks(cg);
-    xdrawgraph();
 }

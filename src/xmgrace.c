@@ -687,7 +687,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Arrange graphs...", 'r', create_arrange_frame, NULL);
     CreateMenuButton(menupane, "Overlay graphs...", 'O', create_overlay_frame, NULL);
-    CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
+    CreateMenuButton(menupane, "Autoscale graph...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 
     submenupane = CreateMenu(menupane, "Regions", 'i', FALSE);
