@@ -145,4 +145,6 @@ void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
 
+int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp);
+
 #endif /* __CORE_UTILS_H_ */

@@ -136,3 +136,32 @@ int object_get_loctype(const Quark *q)
     /* default */
     return COORD_VIEW;
 }
+
+int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp)
+{
+    int loctype = object_get_loctype(q);
+    if (loctype == COORD_WORLD) {
+        WPoint wp;
+        Quark *gr = get_parent_graph(q);
+        wp.x = ap->x;
+        wp.y = ap->y;
+        
+        if (!is_validWPoint(gr, &wp)) {
+            return RETURN_FAILURE;
+        }
+        
+        Wpoint2Vpoint(gr, &wp, vp);
+    } else
+    if (loctype == COORD_FRAME) {
+        FPoint fp;
+        Quark *f = get_parent_frame(q);
+        fp.x = ap->x;
+        fp.y = ap->y;
+        Fpoint2Vpoint(f, &fp, vp);
+    } else {
+        vp->x = ap->x;
+        vp->y = ap->y;
+    }
+    
+    return RETURN_SUCCESS;
+}

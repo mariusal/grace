@@ -41,34 +41,13 @@ void draw_object(Canvas *canvas, Quark *q)
 {
     VPoint anchor;
     DObject *o = object_get_data(q);
-    int loctype;
 
     if (o == NULL || o->active == FALSE) {
         return;
     }
     
-    loctype = object_get_loctype(q);
-    if (loctype == COORD_WORLD) {
-        WPoint wp;
-        Quark *gr = get_parent_graph(q);
-        wp.x = o->ap.x;
-        wp.y = o->ap.y;
-        
-        if (!is_validWPoint(gr, &wp)) {
-            return;
-        }
-        
-        Wpoint2Vpoint(gr, &wp, &anchor);
-    } else
-    if (loctype == COORD_FRAME) {
-        FPoint fp;
-        Quark *f = get_parent_frame(q);
-        fp.x = o->ap.x;
-        fp.y = o->ap.y;
-        Fpoint2Vpoint(f, &fp, &anchor);
-    } else {
-        anchor.x = o->ap.x;
-        anchor.y = o->ap.y;
+    if (Apoint2Vpoint(q, &o->ap, &anchor) != RETURN_SUCCESS) {
+        return;
     }
     anchor.x += o->offset.x;
     anchor.y += o->offset.y;
@@ -192,7 +171,6 @@ void draw_object(Canvas *canvas, Quark *q)
 void draw_atext(Canvas *canvas, Quark *q)
 {
     VPoint anchor;
-    int loctype;
     int savebg;
     AText *at = atext_get_data(q);
     
@@ -200,28 +178,8 @@ void draw_atext(Canvas *canvas, Quark *q)
         return;
     }
 
-    loctype = object_get_loctype(q);
-    if (loctype == COORD_WORLD) {
-        WPoint wp;
-        Quark *gr = get_parent_graph(q);
-        wp.x = at->ap.x;
-        wp.y = at->ap.y;
-        
-        if (!is_validWPoint(gr, &wp)) {
-            return;
-        }
-        
-        Wpoint2Vpoint(gr, &wp, &anchor);
-    } else
-    if (loctype == COORD_FRAME) {
-        FPoint fp;
-        Quark *f = get_parent_frame(q);
-        fp.x = at->ap.x;
-        fp.y = at->ap.y;
-        Fpoint2Vpoint(f, &fp, &anchor);
-    } else {
-        anchor.x = at->ap.x;
-        anchor.y = at->ap.y;
+    if (Apoint2Vpoint(q, &at->ap, &anchor) != RETURN_SUCCESS) {
+        return;
     }
     anchor.x += at->offset.x;
     anchor.y += at->offset.y;
