@@ -110,6 +110,7 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp);
 int legend_clicked(int gno, VPoint vp, view *bb);
 int timestamp_clicked(VPoint vp, view *bb);
 int axis_clicked(int gno, VPoint vp, int *axisno);
+int title_clicked(int gno, VPoint vp);
 int find_insert_location(int gno, int setno, VPoint vp);
 int find_point(int gno, VPoint vp, int *setno, int *loc);
 void newworld(int gno, int axes, VPoint vp1, VPoint vp2);

@@ -227,6 +227,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         define_symbols_popup(parent, (XtPointer) setno, NULL);
                     } else if (axis_clicked(cg, vp, &axisno) == TRUE) {
                         create_axes_dialog(axisno);
+                    } else if (title_clicked(cg, vp) == TRUE) {
+                        create_graphapp_frame(cg);
                     } else if (legend_clicked(cg, vp, &bb) == TRUE) {
                         create_graphapp_frame(cg);
                     } else if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
@@ -1081,6 +1083,24 @@ int axis_clicked(int gno, VPoint vp, int *axisno)
             (fabs(vp.x - v.xv1) < MAXPICKDIST ||
              fabs(vp.x - v.xv2) < MAXPICKDIST)) {
             *axisno = Y_AXIS;
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+}
+
+int title_clicked(int gno, VPoint vp)
+{
+    view v;
+    
+    /* a rude check; TODO: use right offsets */
+    if (is_valid_gno(gno) == FALSE) {
+        return FALSE;
+    } else {
+        get_graph_viewport(gno, &v);
+        if (vp.x >= v.xv1 && vp.x <= v.xv2 &&
+            vp.y > v.yv2 && vp.y < v.yv2 + 0.1) {
             return TRUE;
         } else {
             return FALSE;
