@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -91,9 +90,10 @@ int mfinitgraphics(void)
 
     fprintf(prstream, "ColorResources {\n");
     for (i = 0; i < number_of_colors(); i++) {
-        RGB *rgb = get_rgb(i);
+        RGB rgb;
+        get_rgb(i, &rgb);
         fprintf(prstream, "\t( %d , \"%s\" , %d , %d , %d )\n", 
-            i, get_colorname(i), rgb->red, rgb->green, rgb->blue);
+            i, get_colorname(i), rgb.red, rgb.green, rgb.blue);
     }
     fprintf(prstream, "}\n");
 

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -234,7 +234,7 @@ int mifinitgraphics(void)
     int i;
     double *data;
     double c, m, y, k;
-    fRGB *frgb;
+    fRGB frgb;
 
     /* device-dependent routines */
     devupdatecmap   = NULL;
@@ -262,14 +262,13 @@ int mifinitgraphics(void)
 
     fprintf(prstream, "<ColorCatalog\n");
     for (i = 0; i < number_of_colors(); i++) {
-        frgb = get_frgb(i);
-        if (frgb != NULL) {
+        if (get_frgb(i, &frgb) == RETURN_SUCCESS) {
 
             /* convert RGB to CMYK */
-            if (frgb->red > 1e-3 || frgb->green > 1e-3 || frgb->blue > 1e-3) {
-                c = 100.0 - 100.0*frgb->red;
-                m = 100.0 - 100.0*frgb->green;
-                y = 100.0 - 100.0*frgb->blue;
+            if (frgb.red > 1e-3 || frgb.green > 1e-3 || frgb.blue > 1e-3) {
+                c = 100.0 - 100.0*frgb.red;
+                m = 100.0 - 100.0*frgb.green;
+                y = 100.0 - 100.0*frgb.blue;
                 k = 0.0;
             } else {
                 c = 0.0;
@@ -568,7 +567,7 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
 {
     int i, j, k, paddedW;
     double side;
-    fRGB *frgb;
+    fRGB frgb;
     unsigned char tmpbyte;
 
     if (pixmap_bpp != 1 && pixmap_bpp != 8) {
@@ -619,21 +618,18 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
         /* colormap */
         for (i = 0; i < 256; i++) {
             /* red intensities */
-            frgb = get_frgb(i);
-            fprintf(prstream, "&%.2x\n",
-                    (frgb != NULL) ? ((unsigned int) frgb->red) : 0);
+            get_frgb(i, &frgb);
+            fprintf(prstream, "&%.2x\n", (unsigned int) frgb.red);
         }
         for (i = 0; i < 256; i++) {
             /* green intensities */
-            frgb = get_frgb(i);
-            fprintf(prstream, "&%.2x\n",
-                    (frgb != NULL) ? ((unsigned int) frgb->green) : 0);
+            get_frgb(i, &frgb);
+            fprintf(prstream, "&%.2x\n", (unsigned int) frgb.green);
         }
         for (i = 0; i < 256; i++) {
             /* blue intensities */
-            frgb = get_frgb(i);
-            fprintf(prstream, "&%.2x\n",
-                    (frgb != NULL) ? ((unsigned int) frgb->blue) : 0);
+            get_frgb(i, &frgb);
+            fprintf(prstream, "&%.2x\n", (unsigned int) frgb.blue);
         }
 
         /* image data */

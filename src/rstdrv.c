@@ -161,15 +161,14 @@ int register_png_drv(void)
 static void rst_updatecmap(void)
 {
     int i, c;
-    RGB *prgb;
+    RGB rgb;
     int red, green, blue;
     
     for (i = 0; i < number_of_colors(); i++) {
-        prgb = get_rgb(i);
-        if (prgb != NULL) {
-            red = prgb->red >> (GRACE_BPP - 8);
-            green = prgb->green >> (GRACE_BPP - 8);
-            blue = prgb->blue >> (GRACE_BPP - 8);
+        if (get_rgb(i, &rgb) == RETURN_SUCCESS) {
+            red   = rgb.red   >> (GRACE_BPP - 8);
+            green = rgb.green >> (GRACE_BPP - 8);
+            blue  = rgb.blue  >> (GRACE_BPP - 8);
             if ((c = gdImageColorExact(ihandle, red, green, blue))    == -1 &&
                 (c = gdImageColorAllocate(ihandle, red, green, blue)) == -1 &&
                 (c = gdImageColorClosest(ihandle, red, green, blue))  == -1) {
@@ -195,7 +194,7 @@ void rst_setdrawbrush(void)
     static gdImagePtr brush = NULL;
     int i, j, k;
     int *tmp_dash_array;
-    RGB *prgb;
+    RGB rgb;
     int red, green, blue, bcolor;
     int scale;
     int on, off;
@@ -216,10 +215,10 @@ void rst_setdrawbrush(void)
         }
         brush = gdImageCreate(rstlinew, rstlinew);
 
-        prgb = get_rgb(rstpen.color);
-        red = prgb->red >> (GRACE_BPP - 8);
-        green = prgb->green >> (GRACE_BPP - 8);
-        blue = prgb->blue >> (GRACE_BPP - 8);
+        get_rgb(rstpen.color, &rgb);
+        red   = rgb.red   >> (GRACE_BPP - 8);
+        green = rgb.green >> (GRACE_BPP - 8);
+        blue  = rgb.blue  >> (GRACE_BPP - 8);
         bcolor = gdImageColorAllocate(brush, red, green, blue);
 
         gdImageFilledRectangle(brush, 0, 0, rstlinew, rstlinew, bcolor);
@@ -280,7 +279,7 @@ void rst_setfillbrush(void)
 {
     static gdImagePtr brush = NULL;
     int i, j, k;
-    RGB *prgb;
+    RGB rgb;
     int red, green, blue, fgcolor, bgcolor;
     unsigned char p;
     
@@ -298,16 +297,16 @@ void rst_setfillbrush(void)
         }
         brush = gdImageCreate(16, 16);
         
-        prgb = get_rgb(rstpen.color);
-        red = prgb->red >> (GRACE_BPP - 8);
-        green = prgb->green >> (GRACE_BPP - 8);
-        blue = prgb->blue >> (GRACE_BPP - 8);
+        get_rgb(rstpen.color, &rgb);
+        red   = rgb.red   >> (GRACE_BPP - 8);
+        green = rgb.green >> (GRACE_BPP - 8);
+        blue  = rgb.blue  >> (GRACE_BPP - 8);
         fgcolor = gdImageColorAllocate(brush, red, green, blue);
         
-        prgb = get_rgb(getbgcolor());
-        red = prgb->red >> (GRACE_BPP - 8);
-        green = prgb->green >> (GRACE_BPP - 8);
-        blue = prgb->blue >> (GRACE_BPP - 8);
+        get_rgb(getbgcolor(), &rgb);
+        red   = rgb.red   >> (GRACE_BPP - 8);
+        green = rgb.green >> (GRACE_BPP - 8);
+        blue  = rgb.blue  >> (GRACE_BPP - 8);
         bgcolor = gdImageColorAllocate(brush, red, green, blue);
         
         for (k = 0; k < 16; k++) {

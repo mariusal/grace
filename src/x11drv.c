@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -243,7 +243,7 @@ void xlibupdatecmap(void)
 void xlibinitcmap(void)
 {
     int i;
-    RGB *prgb;
+    RGB rgb;
     XColor xc[MAXCOLORS];
     
     for (i = 0; i < MAXCOLORS; i++) {
@@ -254,11 +254,10 @@ void xlibinitcmap(void)
     for (i = 0; i < number_of_colors(); i++) {
         /* even in mono, b&w must be allocated */
         if (grace->gui->monomode == FALSE || i < 2) { 
-            prgb = get_rgb(i);
-            if (prgb != NULL) {
-                xc[i].red = prgb->red << (16 - GRACE_BPP);
-                xc[i].green = prgb->green << (16 - GRACE_BPP);
-                xc[i].blue = prgb->blue << (16 - GRACE_BPP);
+            if (get_rgb(i, &rgb) == RETURN_SUCCESS) {
+                xc[i].red   = rgb.red << (16 - GRACE_BPP);
+                xc[i].green = rgb.green << (16 - GRACE_BPP);
+                xc[i].blue  = rgb.blue << (16 - GRACE_BPP);
                 if (XAllocColor(disp, cmap, &xc[i])) {
                     xvlibcolors[i] = xc[i].pixel;
                 } else {

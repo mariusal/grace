@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -178,13 +177,13 @@ int pdfinitgraphics(void)
 void pdf_setpen(void)
 {
     Pen pen;
-    fRGB *frgb;
     
     pen = getpen();
     if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
-        frgb = get_frgb(pen.color);
+        fRGB frgb;
+        get_frgb(pen.color, &frgb);
         PDF_setrgbcolor(phandle,
-                    (float) frgb->red, (float) frgb->green,(float) frgb->blue);     
+                    (float) frgb.red, (float) frgb.green,(float) frgb.blue);     
         /* TODO: patterns */
         pdf_color = pen.color;
         pdf_pattern = pen.pattern;
@@ -395,7 +394,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     char *buf, *bp;
     int image;
     int cindex;
-    RGB *fg, *bg;
+    RGB fg, bg;
     int	i, k, j;
     long paddedW;
 
@@ -410,19 +409,19 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     bp = buf;
     if (pixmap_bpp == 1) {
         paddedW = PAD(width, bitmap_pad);
-        fg = get_rgb(getcolor());
-        bg = get_rgb(getbgcolor());
+        get_rgb(getcolor(), &fg);
+        get_rgb(getbgcolor(), &bg);
         for (k = 0; k < height; k++) {
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
                     if (bin_dump(&(databits)[k*paddedW/bitmap_pad + j], i, bitmap_pad)) {
-                        *bp++ = (char) fg->red;
-                        *bp++ = (char) fg->green;
-                        *bp++ = (char) fg->blue;
+                        *bp++ = (char) fg.red;
+                        *bp++ = (char) fg.green;
+                        *bp++ = (char) fg.blue;
                     } else {
-                        *bp++ = (char) bg->red;
-                        *bp++ = (char) bg->green;
-                        *bp++ = (char) bg->blue;
+                        *bp++ = (char) bg.red;
+                        *bp++ = (char) bg.green;
+                        *bp++ = (char) bg.blue;
                     }
                 }
             }
@@ -431,10 +430,10 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         for (k = 0; k < height; k++) {
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width + j];
-                fg = get_rgb(cindex);
-                *bp++ = (char) fg->red;
-                *bp++ = (char) fg->green;
-                *bp++ = (char) fg->blue;
+                get_rgb(cindex, &fg);
+                *bp++ = (char) fg.red;
+                *bp++ = (char) fg.green;
+                *bp++ = (char) fg.blue;
             }
         }
     }

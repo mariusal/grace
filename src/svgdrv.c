@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -305,7 +305,7 @@ static void svg_group_props (int draw, int fill)
     double lw;
     Pen pen;
     int fillrule, linecap, linejoin, linestyle;
-    RGB *prgb;
+    RGB rgb;
     int red, green, blue;
     Svg_data *data;
 
@@ -351,11 +351,10 @@ static void svg_group_props (int draw, int fill)
         }
 
         define_pattern(pen.pattern, data);
-        prgb = get_rgb(pen.color);
-        if (prgb != NULL) {
-            red   = prgb->red   >> (GRACE_BPP - 8);
-            green = prgb->green >> (GRACE_BPP - 8);
-            blue  = prgb->blue  >> (GRACE_BPP - 8);
+        if (get_rgb(pen.color, &rgb) == RETURN_SUCCESS) {
+            red   = rgb.red   >> (GRACE_BPP - 8);
+            green = rgb.green >> (GRACE_BPP - 8);
+            blue  = rgb.blue  >> (GRACE_BPP - 8);
         } else {
             red   = 0;
             green = 0;

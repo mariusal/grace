@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -403,7 +403,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
     int modflag;
     T1_TMATRIX matrix, *matrixP;
 
-    RGB fg_rgb, bg_rgb, delta_rgb, *prgb;
+    RGB fg_rgb, bg_rgb, delta_rgb;
     CMap_entry cmap;
     
     if (cs->len == 0) {
@@ -444,17 +444,13 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 
     	if ((fg != last_fg) || (bg != last_bg)) {
     	    /* Get RGB values for fore- and background */
-    	    prgb = get_rgb(fg);
-    	    if (prgb == NULL) {
+    	    if (get_rgb(fg, &fg_rgb) != RETURN_SUCCESS) {
     		return NULL;
     	    }
-    	    fg_rgb = *prgb;
  
-    	    prgb = get_rgb(bg);
-    	    if (prgb == NULL) {
+    	    if (get_rgb(bg, &bg_rgb) != RETURN_SUCCESS) {
     		return NULL;
     	    }
-    	    bg_rgb = *prgb;
  
     	    delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)   / (T1_AALEVELS - 1);
     	    delta_rgb.green = (fg_rgb.green - bg_rgb.green) / (T1_AALEVELS - 1);
