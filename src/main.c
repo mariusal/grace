@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing argument for exec\n");
 			usage(stderr, argv[0]);
 		    } else {
-			read_param(argv[i]);
+			scanner(argv[i]);
 		    }
 		} else if (argmatch(argv[i], "-graph", 6)) {
 		    i++;

@@ -398,7 +398,7 @@ static int process_complete_lines(Input_buffer *ib)
             *end_of_line = '\0';
             close_input = NULL;
 
-            if (line_corrupted || read_param(begin_of_line)) {
+            if (line_corrupted || scanner(begin_of_line)) {
                 sprintf(buf, "Error at line %d", ib->lineno);
                 errmsg(buf);
                 ++(ib->errors);
@@ -858,7 +858,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 breakon = TRUE;
             }
 	    if (linebuf[0] == '@') {
-                read_param(linebuf + 1);
+                scanner(linebuf + 1);
 	        continue;
             }
 	} else {
