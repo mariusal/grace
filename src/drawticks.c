@@ -516,7 +516,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 
 	tsize = 0.02 * t->props.size;
 
-	switch (tprops.inout) {
+	switch (t->props.inout) {
 	case TICKS_IN:
 	    vbase_tlabel1 = vbase1 - (1 - tick_dir_sign)/2*tsize - tl_offset;
 	    vbase_tlabel2 = vbase2 + (1 - tick_dir_sign)/2*tsize + tl_offset;
