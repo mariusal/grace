@@ -189,6 +189,7 @@ static char defaultTranslations[] = "\
 <Key>Return:            keypress()\n\
 <Key>osfUp:             keypress()\n\
 Ctrl <Btn1Down>:	extend-select-start()\n\
+Shift <Btn1Down>:	extend-select()\n\
 <Btn1Down>:		select-start()\n\
 <Btn1Up>:		notify()\n\
 Button1 <Btn1Motion>:	extend-select()\n\
@@ -1036,7 +1037,8 @@ SelectDouble(ListTreeWidget w, Boolean highlight_selected)
   if (item) {
     w->list.timer_type = TIMER_DOUBLE;
     item->open = !item->open;
-    if (highlight_selected || !item->firstchild && item->type != ItemBranchType) {
+    if (highlight_selected ||
+        (!item->firstchild && item->type != ItemBranchType)) {
       w->list.highlighted = item;
       HighlightAll(w, False, True);
     }
@@ -1059,7 +1061,8 @@ SelectDouble(ListTreeWidget w, Boolean highlight_selected)
       XtCallCallbacks((Widget) w, XtNactivateCallback, (XtPointer) & ret);
     }
     
-    if (highlight_selected || !item->firstchild && item->type != ItemBranchType) {
+    if (highlight_selected ||
+        (!item->firstchild && item->type != ItemBranchType)) {
       item->highlighted = True;
     }
     w->list.recount = True;
