@@ -121,7 +121,7 @@ void set_curdevice_props(Device_entry dev);
 int set_page_geometry(Page_geometry pg);
 Page_geometry get_page_geometry(void);
 
-int set_page_dimensions(int wpp, int hpp);
+int set_page_dimensions(int wpp, int hpp, int rescale);
 int get_device_page_dimensions(int dindex, int *wpp, int *hpp);
 
 int get_device_by_name(char *dname);

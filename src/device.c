@@ -33,6 +33,7 @@
 
 #include "defines.h"
 #include "globals.h"
+#include "graphutils.h"
 #include "utils.h"
 #include "device.h"
 
@@ -57,14 +58,42 @@ Page_geometry get_page_geometry(void)
     return (device_table[curdevice].pg);
 }
 
-int set_page_dimensions(int wpp, int hpp)
+int set_page_dimensions(int wpp, int hpp, int rescale)
 {
     int i;
     
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
     } else {
-	for (i = 0; i < ndevices; i++) {
+	if (rescale) {
+            int wpp_old, hpp_old;
+            
+            get_device_page_dimensions(curdevice, &wpp_old, &hpp_old);
+            if (hpp*wpp_old - wpp*hpp_old != 0) {
+                /* aspect ratio changed */
+                double ext_x, ext_y;
+                double old_aspectr, new_aspectr;
+                
+                old_aspectr = (double) wpp_old/hpp_old;
+                new_aspectr = (double) wpp/hpp;
+                if (old_aspectr >= 1.0 && new_aspectr >= 1.0) {
+                    ext_x = new_aspectr/old_aspectr;
+                    ext_y = 1.0;
+                } else if (old_aspectr <= 1.0 && new_aspectr <= 1.0) {
+                    ext_x = 1.0;
+                    ext_y = old_aspectr/new_aspectr;
+                } else if (old_aspectr >= 1.0 && new_aspectr <= 1.0) {
+                    ext_x = 1.0/old_aspectr;
+                    ext_y = 1.0/new_aspectr;
+                } else {
+                    ext_x = new_aspectr;
+                    ext_y = old_aspectr;
+                }
+
+                rescale_viewport(ext_x, ext_y);
+            } 
+        }
+        for (i = 0; i < ndevices; i++) {
             device_table[i].pg.width =
                 (unsigned long) (wpp*(device_table[i].pg.dpi/72));
             device_table[i].pg.height =
