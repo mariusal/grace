@@ -132,7 +132,7 @@ static void dproc(Canvas *canvas, void *data)
 /*
  * draw all active graphs
  */
-void drawgraph(const Quark *project)
+int drawgraph(const Quark *project)
 {
     Project *pr = project_get_data(project);
     RunTime *rt = rt_from_quark(project);
@@ -144,7 +144,9 @@ void drawgraph(const Quark *project)
         canvas_set_fontsize_scale(rt->canvas,  pr->fscale);
         canvas_set_linewidth_scale(rt->canvas, pr->lscale);
 
-        canvas_draw(rt->canvas, dproc, (void *) project);
+        return canvas_draw(rt->canvas, dproc, (void *) project);
+    } else {
+        return RETURN_FAILURE;
     }
 }
 
@@ -160,7 +162,7 @@ void do_hardcopy(const Quark *project)
     char fname[GR_MAXPATHLEN];
     view v;
     double vx, vy;
-    int truncated_out;
+    int truncated_out, res;
     FILE *prstream;
     
     if (!grace) {
@@ -197,9 +199,13 @@ void do_hardcopy(const Quark *project)
     
     select_device(canvas, rt->hdevice);
     
-    drawgraph(project);
+    res = drawgraph(project);
     
     grace_close(prstream);
+    
+    if (res != RETURN_SUCCESS) {
+        return;
+    }
     
     get_bbox(canvas, BBOX_TYPE_GLOB, &v);
     project_get_viewport(project, &vx, &vy);
