@@ -483,7 +483,11 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
                     item = ret.items[i];
                     ti_data = (TreeItemData *) item->user_data;
                     q = ti_data->q;
-                    quark_reparent(q, drop_q);
+                    if (cbs->operation == XmDROP_COPY) {
+                        quark_copy2(drop_q, q);
+                    } else {
+                        quark_reparent(q, drop_q);
+                    }
                 }
                 cbs->ok = True;
                 xdrawgraph(grace->project, FALSE);
