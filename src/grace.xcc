@@ -1638,8 +1638,8 @@ char *utf2iso(const char *s)
         
         <!-- Child elements -->
         <child name="#EStrText">
-            $$->s = $?->s;
-            xfree($?);
+            $$->s = copy_string($$->s, $?->s);
+            xcc_string_free($?);
         </child>
     </element>
     <element name="#EStrArrow" type="arrow">
