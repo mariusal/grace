@@ -57,27 +57,22 @@ static void amem_simple_free(AMem *amem, void *ptr)
 #ifdef HAVE_LIBUNDO
 static void *amem_undo_malloc(AMem *amem, size_t size)
 {
-    undo_set_session((UNDO *) amem->heap);
-    return undo_malloc(size);
+    return undo_malloc((UNDO *) amem->heap, size);
 }
 
 static void *amem_undo_realloc(AMem *amem, void *ptr, size_t size)
 {
-    undo_set_session((UNDO *) amem->heap);
-    return undo_realloc(ptr, size);
+    return undo_realloc((UNDO *) amem->heap, ptr, size);
 }
 
 static void amem_undo_free(AMem *amem, void *ptr)
 {
-    undo_set_session((UNDO *) amem->heap);
-    undo_free(ptr);
+    undo_free((UNDO *) amem->heap, ptr);
 }
 
 static int amem_undo_snapshot(AMem *amem)
 {
-    undo_set_session((UNDO *) amem->heap);
-
-    if (undo_snapshot() == UNDO_NOERROR) {
+    if (undo_snapshot((UNDO *) amem->heap) == UNDO_NOERROR) {
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -86,9 +81,7 @@ static int amem_undo_snapshot(AMem *amem)
 
 static int amem_undo_undo(AMem *amem)
 {
-    undo_set_session((UNDO *) amem->heap);
-
-    if (undo_undo() == UNDO_NOERROR) {
+    if (undo_undo((UNDO *) amem->heap) == UNDO_NOERROR) {
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -97,9 +90,7 @@ static int amem_undo_undo(AMem *amem)
 
 static int amem_undo_redo(AMem *amem)
 {
-    undo_set_session((UNDO *) amem->heap);
-
-    if (undo_redo() == UNDO_NOERROR) {
+    if (undo_redo((UNDO *) amem->heap) == UNDO_NOERROR) {
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -108,16 +99,12 @@ static int amem_undo_redo(AMem *amem)
 
 static unsigned int amem_undo_count(AMem *amem)
 {
-    undo_set_session((UNDO *) amem->heap);
-
-    return undo_get_undo_count();
+    return undo_get_undo_count((UNDO *) amem->heap);
 }
 
 static unsigned int amem_redo_count(AMem *amem)
 {
-    undo_set_session((UNDO *) amem->heap);
-
-    return undo_get_redo_count();
+    return undo_get_redo_count((UNDO *) amem->heap);
 }
 #endif
 
@@ -134,9 +121,10 @@ AMem *amem_amem_new(int model)
         switch (model) {
 #ifdef HAVE_LIBUNDO
         case AMEM_MODEL_LIBUNDO:
-            undo_new("grace");
+            amem->heap            = undo_new();
             
-            amem->heap            = undo_get_session();
+            undo_set_history_logical((UNDO *) amem->heap, TRUE);
+            
             amem->undoable        = TRUE;
             
             amem->malloc_proc     = amem_undo_malloc;
@@ -173,8 +161,7 @@ void amem_amem_free(AMem *amem)
         switch (amem->model) {
 #ifdef HAVE_LIBUNDO
         case AMEM_MODEL_LIBUNDO:
-            undo_set_session((UNDO *) amem->heap);
-            undo_destroy();
+            undo_destroy((UNDO *) amem->heap);
             break;
 #endif
         default:
@@ -189,8 +176,7 @@ int amem_set_undo_limit(AMem *amem, size_t max_memory)
     switch (amem->model) {
 #ifdef HAVE_LIBUNDO
     case AMEM_MODEL_LIBUNDO:
-        undo_set_session((UNDO *) amem->heap);
-        if (undo_set_memory_limit(max_memory) == UNDO_NOERROR) {
+        if (undo_set_memory_limit((UNDO *) amem->heap, max_memory) == UNDO_NOERROR) {
             return RETURN_SUCCESS;
         } else {
             return RETURN_FAILURE;
