@@ -355,8 +355,47 @@ static LLNode *storage_allocate_node(Storage *sto, void *data)
     return new;
 }
 
+static void storage_extract_node(Storage *sto, LLNode *llnode)
+{
+    LLNode *prev, *next;
+    
+    next = llnode->next;
+    prev = llnode->prev;
+    if (next) {
+        next->prev = prev;
+    }
+    if (prev) {
+        prev->next = next;
+    }
+    if (sto->start == sto->cp) {
+        if (next) {
+            sto->start = next;
+        } else if (prev) {
+            sto->start = prev;
+        } else {
+            /* empty storage */
+            sto->start = NULL;
+        }
+    }
+    if (next) {
+        sto->cp = next;
+    } else if (prev) {
+        sto->cp = prev;
+    } else {
+        /* empty storage */
+        sto->cp = sto->start;
+    }
+
+    sto->count--;
+    
+    if (sto->cp == llnode) {
+        sto->cp = llnode->prev;
+    }
+}
+
 static void storage_deallocate_node(Storage *sto, LLNode *llnode)
 {
+    storage_extract_node(sto, llnode);
     sto->data_free(llnode->data);
     xfree(llnode);
 }
@@ -412,44 +451,6 @@ int storage_add(Storage *sto, void *data)
     }
 }
 
-static void storage_extract_node(Storage *sto, LLNode *llnode)
-{
-    LLNode *prev, *next;
-    
-    next = llnode->next;
-    prev = llnode->prev;
-    if (next) {
-        next->prev = prev;
-    }
-    if (prev) {
-        prev->next = next;
-    }
-    if (sto->start == sto->cp) {
-        if (next) {
-            sto->start = next;
-        } else if (prev) {
-            sto->start = prev;
-        } else {
-            /* empty storage */
-            sto->start = NULL;
-        }
-    }
-    if (next) {
-        sto->cp = next;
-    } else if (prev) {
-        sto->cp = prev;
-    } else {
-        /* empty storage */
-        sto->cp = sto->start;
-    }
-
-    sto->count--;
-    
-    if (sto->cp == llnode) {
-        sto->cp = llnode->prev;
-    }
-}
-
 int storage_delete(Storage *sto)
 {
     LLNode *llnode;
@@ -461,7 +462,6 @@ int storage_delete(Storage *sto)
         sto->ierrno = STORAGE_ENOENT;
         return RETURN_FAILURE;
     } else {
-        storage_extract_node(sto, llnode);
         storage_deallocate_node(sto, llnode);
         
         return RETURN_SUCCESS;
