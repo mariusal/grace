@@ -261,14 +261,10 @@ void create_nonl_frame(void *data)
 	rc3 = XmCreateRowColumn(fr3, "rc3", NULL, 0);
 	
 	CreateCommandButtons(rc3, 4, fitbut, fitlabel);
-	XtAddCallback(fitbut[0], XmNactivateCallback,
-	     		   (XtCallbackProc) do_nonl_proc, (XtPointer)   (0));
-	XtAddCallback(fitbut[1], XmNactivateCallback,
-	     		   (XtCallbackProc) do_nonl_proc, (XtPointer)   (5));
-	XtAddCallback(fitbut[2], XmNactivateCallback,
-	     		   (XtCallbackProc) do_nonl_proc, (XtPointer)  (20));	     		   
-	XtAddCallback(fitbut[3], XmNactivateCallback,
-	     		   (XtCallbackProc) do_nonl_proc, (XtPointer) (100));
+	AddButtonCB(fitbut[0], do_nonl_proc, (void *) 0);
+	AddButtonCB(fitbut[1], do_nonl_proc, (void *) 5);
+	AddButtonCB(fitbut[2], do_nonl_proc, (void *) 20);
+	AddButtonCB(fitbut[3], do_nonl_proc, (void *) 100);
 	
 	CreateSeparator(rc3);	
 	
