@@ -67,14 +67,14 @@ links : $(GRACE)
 	cd $(PREFIX)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRBATCH)
 
 clean : 
-	$(RM) $(GROBJS) $(GUIOBJS)
+	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O)
 
 distclean : 
-	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) \
+	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) \
 	tags *.orig *.*gr .gdb_history t1lib.log
-	
+
 devclean : 
-	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) \
+	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) \
 	tags *.orig *.*gr .gdb_history t1lib.log $(PARS_C)
 
 depend :
