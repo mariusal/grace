@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -38,7 +38,6 @@
 #include <Xm/Form.h>
 #include <Xm/DialogS.h>
 #include <Xm/RowColumn.h>
-#include <Xm/PanedW.h>
 
 #include "Tab.h"
 
@@ -126,7 +125,7 @@ void create_graphapp_frame_cb(void *data)
 void create_graphapp_frame(int gno)
 {
     Widget graphapp_tab, graphapp_frame, graphapp_main, graphapp_titles,
-         graphapp_legends, graphapp_legendbox;
+         graphapp_legends, graphapp_legendbox, graphapp_spec;
     Widget rc, rc1, rc2, fr;
 
     set_wait_cursor();
@@ -140,20 +139,10 @@ void create_graphapp_frame(int gno)
 	handle_close(graphapp_dialog);
         graphapp_panel = XtVaCreateWidget("graphapp_panel", xmFormWidgetClass, 
                                           graphapp_dialog, NULL, 0);
-/*
- *         graphapp_panel = XtVaCreateWidget("graphapp_panel", xmPanedWindowWidgetClass, 
- *                                           graphapp_dialog, NULL, 0);
- */
 
-/*
- *         rc_head = XmCreateRowColumn(graphapp_panel, "rc_head", NULL, 0);
- */
         graph_selector = CreateGraphChoice(graphapp_panel, "Graph:",
                             LIST_TYPE_MULTIPLE);
         AddListChoiceCB(graph_selector, update_graphapp_items, NULL);
-/*
- *         XtManageChild(rc_head);
- */
         XtVaSetValues(graph_selector->rc,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -171,7 +160,9 @@ void create_graphapp_frame(int gno)
         graphapp_main = CreateTabPage(graphapp_tab, "Main");
 
 	fr = CreateFrame(graphapp_main, "Presentation");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
 	graph_type_choice_item = CreatePanelChoice(rc, 
                                                    "Type:",
 						   7,
@@ -183,14 +174,8 @@ void create_graphapp_frame(int gno)
 						   "Pie chart",
 						   NULL,
 						   NULL);
+	stacked_item = CreateToggleButton(rc, "Stacked chart");
 
-        rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
-	stacked_item = CreateToggleButton(rc1, "Stacked chart");
-        bargap_item = CreateSpinChoice(rc1, "Bar gap:", 5,
-            SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
-        XtManageChild(rc1);
-        
         XtManageChild(rc);
 
 	fr = CreateFrame(graphapp_main, "Titles");
@@ -219,8 +204,8 @@ void create_graphapp_frame(int gno)
         fr = CreateFrame(graphapp_main, "Display options");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-	graph_flipxy_item = CreateToggleButton(rc, "Flip XY (N/I)");
 	toggle_legends_item = CreateToggleButton(rc, "Display legend");
+	graph_flipxy_item = CreateToggleButton(rc, "Flip XY (N/I)");
         XtManageChild(rc);
 
 
@@ -266,16 +251,23 @@ void create_graphapp_frame(int gno)
 							 NULL,
 							 NULL);
 
-	frame_color_choice_item = CreateColorChoice(rc, "Line color:");
-	frame_pattern_choice_item = CreatePatternChoice(rc, "Line pattern:");
-	frame_linew_choice_item = CreateLineWidthChoice(rc, "Line width:");
-	frame_lines_choice_item = CreateLineStyleChoice(rc, "Line style:");
+	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
+	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	frame_color_choice_item = CreateColorChoice(rc2, "Color:");
+	frame_pattern_choice_item = CreatePatternChoice(rc2, "Pattern:");
+        XtManageChild(rc2);
+	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
+	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	frame_linew_choice_item = CreateLineWidthChoice(rc2, "Width:");
+	frame_lines_choice_item = CreateLineStyleChoice(rc2, "Style:");
+        XtManageChild(rc2);
         XtManageChild(rc);
 
 	fr = CreateFrame(graphapp_frame, "Frame fill");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	frame_fillcolor_choice_item = CreateColorChoice(rc, "Fill color:");
-	frame_fillpattern_choice_item = CreatePatternChoice(rc, "Fill pattern:");
+	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	frame_fillcolor_choice_item = CreateColorChoice(rc, "Color:");
+	frame_fillpattern_choice_item = CreatePatternChoice(rc, "Pattern:");
         XtManageChild(rc);
 
 
@@ -299,22 +291,27 @@ void create_graphapp_frame(int gno)
 	XtManageChild(rc1);
 	XtManageChild(rc);
 
-	fr = CreateFrame(graphapp_legendbox, "Frame box");
+	fr = CreateFrame(graphapp_legendbox, "Frame line");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 
-	legend_boxcolor_item = CreateColorChoice(rc, "Line color:");
-	legend_boxpattern_item = CreatePatternChoice(rc, "Line pattern:");
-	legend_boxlinew_item = CreateLineWidthChoice(rc, "Line width:");
-	legend_boxlines_item = CreateLineStyleChoice(rc, "Line style:");
+	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
+	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	legend_boxcolor_item = CreateColorChoice(rc2, "Color:");
+	legend_boxpattern_item = CreatePatternChoice(rc2, "Pattern:");
+	XtManageChild(rc2);
+	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
+	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	legend_boxlinew_item = CreateLineWidthChoice(rc2, "Width:");
+	legend_boxlines_item = CreateLineStyleChoice(rc2, "Style:");
+	XtManageChild(rc2);
 	XtManageChild(rc);
 
 	fr = CreateFrame(graphapp_legendbox, "Frame fill");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	legend_boxfillcolor_item = CreateColorChoice(rc, "Color:");
 	legend_boxfillpat_item = CreatePatternChoice(rc, "Pattern:");
 	XtManageChild(rc);
-
-
 
 
         /* ------------ Legends tab --------------*/
@@ -353,7 +350,16 @@ void create_graphapp_frame(int gno)
 	legends_invert_item = CreateToggleButton(rc, "Put in reverse order");
 	XtManageChild(rc);
         
+
+        /* ------------ Special tab --------------*/
         
+        graphapp_spec = CreateTabPage(graphapp_tab, "Special");
+
+	fr = CreateFrame(graphapp_spec, "XY chart");
+        bargap_item = CreateSpinChoice(fr, "Bar gap:", 5,
+            SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
+
+       
         SelectTabPage(graphapp_tab, graphapp_main);
 
 
