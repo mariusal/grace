@@ -1635,6 +1635,7 @@ int setcomment(int gno, int setno, char *s)
 { 
     if (is_valid_setno(gno, setno) && s != NULL) {
         strncpy(g[gno].p[setno].comments, s, MAX_STRING_LENGTH - 1);
+        set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
