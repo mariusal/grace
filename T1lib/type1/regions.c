@@ -268,6 +268,11 @@ struct region *CopyRegion(area)
         for (p=area->anchor; VALIDEDGE(p); p=p->link) {
  
                newp = NewEdge(p->xmin, p->xmax, p->ymin, p->ymax, p->xvalues, ISDOWN(p->flag));
+	       newp->fpx1 = p->fpx1;
+	       newp->fpx2 = p->fpx2;
+	       newp->fpy1 = p->fpy1;
+	       newp->fpy2 = p->fpy2;
+	       
                if (r->anchor == NULL)
                        r->anchor = last = newp;
                else
@@ -373,225 +378,155 @@ struct region *Interior(p, fillrule)
        register struct segment *p;    /* take interior of this path          */
        register int fillrule;         /* rule to follow if path crosses itself */
 {
-       register fractpel x,y;  /* keeps ending point of path segment         */
-       fractpel lastx,lasty; /* previous x,y from path segment before        */
-       register struct region *R;  /* region I will build                    */
-       register struct segment *nextP; /* next segment of path */
-       struct fractpoint hint; /* accumulated hint value */
-       char tempflag;        /* flag; is path temporary?                     */
-       char Cflag;           /* flag; should we apply continuity?            */
+  register fractpel x,y;  /* keeps ending point of path segment         */
+  fractpel lastx,lasty; /* previous x,y from path segment before        */
+  register struct region *R;  /* region I will build                    */
+  register struct segment *nextP; /* next segment of path */
+  char tempflag;        /* flag; is path temporary?                     */
+  char Cflag;           /* flag; should we apply continuity?            */
+  
+  IfTrace2((MustTraceCalls),".  INTERIOR(%p, %d)\n", p, (LONG) fillrule);
+  
+  if (p == NULL)
+    return(NULL);
+  /*
+    Establish the 'Cflag' continuity flag based on user's fill rule and
+    our own 'Continuity' pragmatic (0: never do continuity, 1: do what
+    user asked, >1: do it regardless).
+  */
+  if (fillrule > 0) {
+    Cflag = Continuity > 0;
+    fillrule -= CONTINUITY;
+  }
+  else
+    Cflag = Continuity > 1;
  
-       IfTrace2((MustTraceCalls),".  INTERIOR(%p, %d)\n", p, (LONG) fillrule);
+  ARGCHECK((fillrule != WINDINGRULE && fillrule != EVENODDRULE),
+	   "Interior: bad fill rule", NULL, NULL, (1,p), struct region *);
+  
+  if (p->type == TEXTTYPE)
+    /*             if (fillrule != EVENODDRULE)
+		   else */
+    return((struct region *)UniquePath(p));
+  if (p->type == STROKEPATHTYPE){
+    if (fillrule == WINDINGRULE)
+      return((struct region *)DoStroke(p));
+    else
+      p = CoercePath(p);
+  }
+  
  
-       if (p == NULL)
-               return(NULL);
-/*
-Establish the 'Cflag' continuity flag based on user's fill rule and
-our own 'Continuity' pragmatic (0: never do continuity, 1: do what
-user asked, >1: do it regardless).
-*/
-       if (fillrule > 0) {
-               Cflag = Continuity > 0;
-               fillrule -= CONTINUITY;
-       }
-       else
-               Cflag = Continuity > 1;
+  R = (struct region *)Allocate(sizeof(struct region), &EmptyRegion, 0);
+  
+  ARGCHECK(!ISPATHANCHOR(p), "Interior:  bad path", p, R, (0), struct region *);
+  ARGCHECK((p->type != MOVETYPE), "Interior:  path not closed", p, R, (0), struct region *);
+  
+  
+  /* changed definition from !ISPERMANENT to references <= 1 3-26-91 PNM */
+  tempflag =  (p->references <= 1); /* only first segment in path is so marked */
+  if (!ISPERMANENT(p->flag)) p->references -= 1;
+  
+  R->newedgefcn = newfilledge;
+  /*
+    Believe it or not, "R" is now completely initialized.  We are counting
+    on the copy of template to get other fields the way we want them,
+    namely
+    :ol.
+    :li.anchor = NULL
+    :li.xmin, ymin, xmax, ymax, to minimum and maximum values respectively.
+    :eol.
+    Anchor = NULL is very
+    important to ChangeDirection.
+    See :hdref refid=CD..
+    
+    To minimize problems of "wrapping" in our pel arithmetic, we keep an
+    origin of the region which is the first move.  Hopefully, that keeps
+    numbers within plus or minus 32K pels.
+  */
+  R->origin.x = 0/*TOFRACTPEL(NEARESTPEL(p->dest.x))*/;
+  R->origin.y = 0/*TOFRACTPEL(NEARESTPEL(p->dest.y))*/;
+  lastx = - R->origin.x;
+  lasty = - R->origin.y;
+  /*
+    ChangeDirection initializes other important fields in R, such as
+    lastdy, edge, edgeYstop, edgexmin, and edgexmax.  The first segment
+    is a MOVETYPE, so it will be called first.
+  */
+  /*
+    Note: Hinting is completely performed in charspace coordinates
+          in the Type 1 module. Therefore, I have removed the code
+	  to handle hint segments. (2002-08-11)
+  */
+  
+  while (p != NULL)  {
  
-       ARGCHECK((fillrule != WINDINGRULE && fillrule != EVENODDRULE),
-                       "Interior: bad fill rule", NULL, NULL, (1,p), struct region *);
+    x = lastx + p->dest.x;
+    y = lasty + p->dest.y;
+    
+    nextP = p->link;
  
-       if (p->type == TEXTTYPE)
-/*             if (fillrule != EVENODDRULE)
-               else */
-                       return((struct region *)UniquePath(p));
-       if (p->type == STROKEPATHTYPE){
-	 if (fillrule == WINDINGRULE)
-	   return((struct region *)DoStroke(p));
-	 else
-	   p = CoercePath(p);
-       }
-       
+    switch(p->type) {
+      
+    case LINETYPE:
+      StepLine(R, lastx, lasty, x, y);
+      break;
+      
+    case CONICTYPE:
+	/* 2nd order Beziers not implemented! */
+      break;
+      
+    case BEZIERTYPE:
+      {
+	register struct beziersegment *bp = (struct beziersegment *) p;
+	
+	StepBezier(R, lastx, lasty,
+		   lastx + bp->B.x, lasty + bp->B.y,
+		   lastx + bp->C.x,
+		   lasty + bp->C.y,
+		   x, y);
+      }
+      break;
  
-       R = (struct region *)Allocate(sizeof(struct region), &EmptyRegion, 0);
- 
-       ARGCHECK(!ISPATHANCHOR(p), "Interior:  bad path", p, R, (0), struct region *);
-       ARGCHECK((p->type != MOVETYPE), "Interior:  path not closed", p, R, (0), struct region *);
- 
- 
-/* changed definition from !ISPERMANENT to references <= 1 3-26-91 PNM */
-       tempflag =  (p->references <= 1); /* only first segment in path is so marked */
-       if (!ISPERMANENT(p->flag)) p->references -= 1;
- 
-       R->newedgefcn = newfilledge;
-/*
-Believe it or not, "R" is now completely initialized.  We are counting
-on the copy of template to get other fields the way we want them,
-namely
-:ol.
-:li.anchor = NULL
-:li.xmin, ymin, xmax, ymax, to minimum and maximum values respectively.
-:eol.
-Anchor = NULL is very
-important to ChangeDirection.
-See :hdref refid=CD..
- 
-To minimize problems of "wrapping" in our pel arithmetic, we keep an
-origin of the region which is the first move.  Hopefully, that keeps
-numbers within plus or minus 32K pels.
-*/
-       R->origin.x = 0/*TOFRACTPEL(NEARESTPEL(p->dest.x))*/;
-       R->origin.y = 0/*TOFRACTPEL(NEARESTPEL(p->dest.y))*/;
-       lastx = - R->origin.x;
-       lasty = - R->origin.y;
-/*
-ChangeDirection initializes other important fields in R, such as
-lastdy, edge, edgeYstop, edgexmin, and edgexmax.  The first segment
-is a MOVETYPE, so it will be called first.
-*/
-/*
-The hints data structure must be initialized once for each path.
-*/
- 
-       if (ProcessHints)
-               InitHints(); /* initialize hint data structure */
- 
-       while (p != NULL)  {
- 
-               x = lastx + p->dest.x;
-               y = lasty + p->dest.y;
- 
-               IfTrace2((HintDebug > 0),"Ending point = (%d,%d)\n",
-			x,
-			y);
- 
-               nextP = p->link;
- 
-/*
-Here we start the hints processing by initializing the hint value to
-zero.  If ProcessHints is FALSE, the value will remain zero.
-Otherwise, hint accumulates the computed hint values.
-*/
- 
-               hint.x = hint.y = 0;
- 
-/*
-If we are processing hints, and this is a MOVE segment (other than
-the first on the path), we need to close (reverse) any open hints.
-*/
- 
-               if (ProcessHints)
-                       if ((p->type == MOVETYPE) && (p->last == NULL)) {
-                               CloseHints(&hint);
-                               IfTrace2((HintDebug>0),"Closed point= (%d,%d)\n",
-					x+hint.x,
-					y+hint.y);
-                       }
- 
-/*
-Next we run through all the hint segments (if any) attached to this
-segment.  If ProcessHints is TRUE, we will accumulate computed hint
-values.  In either case, nextP will be advanced to the first non-HINT
-segment (or NULL), and each hint segment will be freed if necessary.
-*/
- 
-               while ((nextP != NULL) && (nextP->type == HINTTYPE))  {
-                       if (ProcessHints)
-                               ProcessHint(nextP, x + hint.x, y + hint.y, &hint);
-		       
-                       {
-                               register struct segment *saveP = nextP;
- 
-                               nextP = nextP->link;
-                               if (tempflag)
-                                       Free(saveP);
-                       }
-               }
- 
-/*
-We now apply the full hint value to the ending point of the path segment.
-*/
-	       /*  printf("Applying hints (x=%d,y=%d)\n", hint.x, hint.y);*/
- 
-               x += hint.x;
-               y += hint.y;
- 
-               IfTrace2((HintDebug>0),"Hinted ending point = (%d,%d)\n", 
-			x, y);
- 
-               switch(p->type) {
- 
-                   case LINETYPE:
-                       StepLine(R, lastx, lasty, x, y);
-                       break;
- 
-                   case CONICTYPE:
-                   {
- 
-/*
-For a conic curve, we apply half the hint value to the conic midpoint.
-*/
- 
-                   }
-                       break;
- 
-                   case BEZIERTYPE:
-                   {
-                       register struct beziersegment *bp = (struct beziersegment *) p;
- 
-/*
-For a Bezier curve, we apply the full hint value to the Bezier C point.
-*/
- 
-                       StepBezier(R, lastx, lasty,
-                                 lastx + bp->B.x, lasty + bp->B.y,
-                                 lastx + bp->C.x + hint.x,
-                                 lasty + bp->C.y + hint.y,
-                                 x, y);
-                   }
-                       break;
- 
-                   case MOVETYPE:
-/*
-At this point we have encountered a MOVE segment.  This breaks the
-path, making it disjoint.
-*/
-                       if (p->last == NULL) /* i.e., not first in path */
-                               ChangeDirection(CD_LAST, R, lastx, lasty, (fractpel) 0);
- 
-                       ChangeDirection(CD_FIRST, R, x, y, (fractpel) 0);
-/*
-We'll just double check for closure here.  We forgive an appended
-MOVETYPE at the end of the path, if it isn't closed:
-*/
-                       if (!ISCLOSED(p->flag) && p->link != NULL)
-                               return((struct region *)ArgErr("Fill: sub-path not closed", p, NULL));
-                       break;
- 
-                   default:
-                       abort("Interior: path type error", 30);
-               }
-/*
-We're done with this segment.  Advance to the next path segment in
-the list, freeing this one if necessary:
-*/
-               lastx = x;  lasty = y;
- 
-               if (tempflag)
-                       Free(p);
-               p = nextP;
-       }
-       ChangeDirection(CD_LAST, R, lastx, lasty, (fractpel) 0);
-       R->ending.x = lastx;
-       R->ending.y = lasty;
-/*
-Finally, clean up the region's based on the user's 'fillrule' request:
-*/
-       if (Cflag)
-             ApplyContinuity(R);
-       if (fillrule == WINDINGRULE)
-             Unwind(R->anchor);
-       return(R);
+    case MOVETYPE:
+      /* At this point we have encountered a MOVE segment.  This breaks the
+	 path, making it disjoint. */
+      if (p->last == NULL) /* i.e., not first in path */
+	ChangeDirection(CD_LAST, R, lastx, lasty, (fractpel) 0, (fractpel) 0, (fractpel) 0);
+      
+      ChangeDirection(CD_FIRST, R, x, y, (fractpel) 0, (fractpel) 0, (fractpel) 0);
+      /* We'll just double check for closure here.  We forgive an appended
+	 MOVETYPE at the end of the path, if it isn't closed: */
+      if (!ISCLOSED(p->flag) && p->link != NULL)
+	return((struct region *)ArgErr("Fill: sub-path not closed", p, NULL));
+      break;
+      
+    default:
+      abort("Interior: path type error", 30);
+    }
+    /*  We're done with this segment.  Advance to the next path segment in
+	the list, freeing this one if necessary: */
+    lastx = x;  lasty = y;
+    
+    if (tempflag)
+      Free(p);
+    p = nextP;
+  }
+  ChangeDirection(CD_LAST, R, lastx, lasty, (fractpel) 0, (fractpel) 0, (fractpel) 0);
+  R->ending.x = lastx;
+  R->ending.y = lasty;
+
+
+  /*  Finally, clean up the region's based on the user's 'fillrule' request: */
+  if (Cflag)
+    ApplyContinuity(R);
+
+  if (fillrule == WINDINGRULE)
+    Unwind(R->anchor);
+
+  return R;
 }
+
+
 /*
 :h4.Unwind() - Discards Edges That Fail the Winding Rule Test
  
@@ -664,7 +599,7 @@ emerging edgelist at 'anchor' by calling whatever "newedgefcn"
 is appropriate.
 */
  
-void ChangeDirection(type, R, x, y, dy)
+void ChangeDirection(type, R, x, y, dy, x2, y2)
        int type;             /* CD_FIRST, CD_CONTINUE, or CD_LAST            */
        register struct region *R;  /* region in which we are changing direction */
        fractpel x,y;         /* current beginning x,y                        */
@@ -699,7 +634,8 @@ void ChangeDirection(type, R, x, y, dy)
  
  
                (*R->newedgefcn)(R, R->edgexmin, R->edgexmax, ymin, ymax,
-                                   R->lastdy > 0, x_at_ymin, x_at_ymax);
+				R->lastdy > 0, x_at_ymin, x_at_ymax,
+				x, y, x2, y2);
  
        }
  
@@ -750,37 +686,89 @@ This function also has to keep the bounding box of the region
 up to date.
 */
  
-static int newfilledge(R, xmin, xmax, ymin, ymax, isdown)
-       register struct region *R;  /* region being built                     */
-       fractpel xmin,xmax;   /* X range of this edge                         */
-       fractpel ymin,ymax;   /* Y range of this edge                         */
-       int isdown;           /* flag:  TRUE means edge goes down, else up    */
+static int newfilledge(R, xmin, xmax, ymin, ymax, isdown, x1, y1, x2, y2)
+     register struct region *R;  /* region being built                     */
+     fractpel xmin,xmax;   /* X range of this edge                         */
+     fractpel ymin,ymax;   /* Y range of this edge                         */
+     int isdown;           /* flag:  TRUE means edge goes down, else up    */
+     fractpel x1;
+     fractpel y1;
+     fractpel x2;
+     fractpel y2;
 {
- 
-       register pel pelxmin,pelymin,pelxmax,pelymax;  /* pel versions of bounds */
-       register struct edgelist *edge;  /* newly created edge                */
- 
-       pelymin = NEARESTPEL(ymin);
-       pelymax = NEARESTPEL(ymax);
-       if (pelymin == pelymax)
-               return(0);
- 
-       pelxmin = NEARESTPEL(xmin);
-       pelxmax = NEARESTPEL(xmax);
- 
-       if (pelxmin < R->xmin)  R->xmin = pelxmin;
-       if (pelxmax > R->xmax)  R->xmax = pelxmax;
-       if (pelymin < R->ymin)  R->ymin = pelymin;
-       if (pelymax > R->ymax)  R->ymax = pelymax;
- 
-       edge = NewEdge(pelxmin, pelxmax, pelymin, pelymax, &R->edge[pelymin], isdown);
-       edge->subpath = R->lastedge;
-       R->lastedge = edge;
-       if (R->firstedge == NULL)
-               R->firstedge = edge;
- 
-       R->anchor = SortSwath(R->anchor, edge, swathxsort);
-       return(0);
+  
+  register pel pelxmin,pelymin,pelxmax,pelymax;  /* pel versions of bounds */
+  register struct edgelist *edge;  /* newly created edge                */
+  
+  pelymin = NEARESTPEL(ymin);
+  pelymax = NEARESTPEL(ymax);
+  if (pelymin == pelymax)
+    return(0);
+  
+  pelxmin = NEARESTPEL(xmin);
+  pelxmax = NEARESTPEL(xmax);
+  
+  if (pelxmin < R->xmin)  R->xmin = pelxmin;
+  if (pelxmax > R->xmax)  R->xmax = pelxmax;
+  if (pelymin < R->ymin)  R->ymin = pelymin;
+  if (pelymax > R->ymax)  R->ymax = pelymax;
+  
+  edge = NewEdge(pelxmin, pelxmax, pelymin, pelymax, &R->edge[pelymin], isdown);
+
+  /* Save maximum and minimum values of edge in order to be able to
+     use them in ApplyContinity. */
+  edge->fpx1 = x1;
+  edge->fpy1 = y1;
+  edge->fpx2 = x2;
+  edge->fpy2 = y2;
+  
+  edge->subpath = R->lastedge;
+  R->lastedge = edge;
+  if (R->firstedge == NULL)
+    R->firstedge = edge;
+   
+  R->anchor = SortSwath(R->anchor, edge, swathxsort);
+
+  /*
+  { 
+    struct region*   r  = (struct region*) R;
+    struct edgelist* el = (struct edgelist*) (r->anchor);
+    
+    while ( el != 0 )
+      {
+	long i = 0;
+	short int* spl;
+	short int* spr;
+	int xl;
+	int xr;
+	
+	printf( "Region after Sort (NE=%ld) : ymin=%d, ymax=%d, xmin=%d, xmax=%d\n",
+		callcount, el->ymin, el->ymax, el->xmin, el->xmax);
+	for ( i=0; i<((el->ymax)-(el->ymin)); i++ ) {
+	  spl = el->xvalues;
+	  if ( el->link != NULL ) {
+	    spr = el->link->xvalues;
+	    xl = spl[i];
+	    xr = spr[i];
+	    printf( "Region after Sort (NE=%ld): y=%ld              xleft=%d, xright=%d\n",
+		    callcount, el->ymin + i, xl, xr);
+	  }
+	  else {
+	    printf( "Region after Sort (NE=%ld): y=%ld              xval=%d\n",
+		    callcount, el->ymin + i, spl[i]);
+	  }
+	}
+	if ( el->link != 0 )
+	  el = el->link->link;
+	else
+	  break;
+      }
+  }
+
+  ++callcount;
+  */
+  
+  return 0;
 }
  
 /*
@@ -812,106 +800,108 @@ struct edgelist *SortSwath(anchor, edge, swathfcn)
        register struct edgelist *edge;  /* incoming edge or pair of edges    */
        struct edgelist *(*swathfcn)();  /* horizontal sorter                 */
 {
-       register struct edgelist *before,*after;
-       struct edgelist base;
+  register struct edgelist *before,*after;
+  struct edgelist base;
+  
+  if (RegionDebug > 0) {
+    if (RegionDebug > 2)  {
+      IfTrace3(TRUE,"SortSwath(anchor=%p, edge=%p, fcn=%p)\n",
+	       anchor, edge, swathfcn);
+    }
+    else  {
+      IfTrace3(TRUE,"SortSwath(anchor=%p, edge=%p, fcn=%p)\n",
+	       anchor, edge, swathfcn);
+    }
+  }
+  if (anchor == NULL)
+    return(edge);
+  
+  before = &base;
+  before->ymin = before->ymax = MINPEL;
+  before->link = after = anchor;
+  
+  /*
+    If the incoming edge is above the current list, we connect the current
+    list to the bottom of the incoming edge.  One slight complication is
+    if the incoming edge overlaps into the current list.  Then, we
+    first split the incoming edge in two at the point of overlap and recursively
+    call ourselves to sort the bottom of the split into the current list:
+  */
+  if (TOP(edge) < TOP(after)) {
+    if (BOTTOM(edge) > TOP(after)) {
+      after = SortSwath(after, splitedge(edge, TOP(after)), swathfcn);
+    }
+    vertjoin(edge, after);
+    return(edge);
+  }
+  
+  /*
+    At this point the top of edge is not higher than the top of the list,
+    which we keep in 'after'.  We move the 'after' point down the list,
+    until the top of the edge occurs in the swath beginning with 'after'.
+    
+    If the bottom of 'after' is below the bottom of the edge, we have to
+    split the 'after' swath into two parts, at the bottom of the edge.
+    If the bottom of 'after' is above the bottom of the swath,
+  */
  
-       if (RegionDebug > 0) {
-               if (RegionDebug > 2)  {
-                       IfTrace3(TRUE,"SortSwath(anchor=%p, edge=%p, fcn=%p)\n",
-                            anchor, edge, swathfcn);
-               }
-               else  {
-                       IfTrace3(TRUE,"SortSwath(anchor=%p, edge=%p, fcn=%p)\n",
-                            anchor, edge, swathfcn);
-               }
-       }
-       if (anchor == NULL)
-               return(edge);
- 
-       before = &base;
-       before->ymin = before->ymax = MINPEL;
-       before->link = after = anchor;
- 
-/*
-If the incoming edge is above the current list, we connect the current
-list to the bottom of the incoming edge.  One slight complication is
-if the incoming edge overlaps into the current list.  Then, we
-first split the incoming edge in two at the point of overlap and recursively
-call ourselves to sort the bottom of the split into the current list:
-*/
-       if (TOP(edge) < TOP(after)) {
-               if (BOTTOM(edge) > TOP(after)) {
- 
-                       after = SortSwath(after, splitedge(edge, TOP(after)), swathfcn);
-               }
-               vertjoin(edge, after);
-               return(edge);
-       }
-/*
-At this point the top of edge is not higher than the top of the list,
-which we keep in 'after'.  We move the 'after' point down the list,
-until the top of the edge occurs in the swath beginning with 'after'.
- 
-If the bottom of 'after' is below the bottom of the edge, we have to
-split the 'after' swath into two parts, at the bottom of the edge.
-If the bottom of 'after' is above the bottom of the swath,
-*/
- 
-       while (VALIDEDGE(after)) {
- 
-               if (TOP(after) == TOP(edge)) {
-                       if (BOTTOM(after) > BOTTOM(edge))
-                               vertjoin(after, splitedge(after, BOTTOM(edge)));
-                       else if (BOTTOM(after) < BOTTOM(edge)) {
-                               after = SortSwath(after,
-                                     splitedge(edge, BOTTOM(after)), swathfcn);
-                       }
-                       break;
-               }
-               else if (TOP(after) > TOP(edge)) {
-                       IfTrace0((BOTTOM(edge) < TOP(after) && RegionDebug > 0),
-                                                "SortSwath:  disjoint edges\n");
-                       if (BOTTOM(edge) > TOP(after)) {
-                               after = SortSwath(after,
-                                         splitedge(edge, TOP(after)), swathfcn);
-                       }
-                       break;
-               }
-               else if (BOTTOM(after) > TOP(edge))
-                       vertjoin(after, splitedge(after, TOP(edge)));
- 
-               before = after;
-               after = after->link;
-       }
- 
-/*
-At this point 'edge' exactly corresponds in height to the current
-swath pointed to by 'after'.
-*/
-       if (after != NULL && TOP(after) == TOP(edge)) {
-               before = (*swathfcn)(before, edge);
-               after = before->link;
-       }
-/*
-At this point 'after' contains all the edges after 'edge', and 'before'
-contains all the edges before.  Whew!  A simple matter now of adding
-'edge' to the linked list in its rightful place:
-*/
-       before->link = edge;
-       if (RegionDebug > 1) {
-               IfTrace3(TRUE,"SortSwath:  in between %p and %p are %p",
-                                                before, after, edge);
-               while (edge->link != NULL) {
-                       edge = edge->link;
-                       IfTrace1(TRUE," and %p", edge);
-               }
-               IfTrace0(TRUE,"\n");
-       }
-       else
-               for (; edge->link != NULL; edge = edge->link) { ; }
- 
-       edge->link = after;
-       return(base.link);
+  while (VALIDEDGE(after)) {
+    
+    if (TOP(after) == TOP(edge)) {
+      if (BOTTOM(after) > BOTTOM(edge))
+	vertjoin(after, splitedge(after, BOTTOM(edge)));
+      else if (BOTTOM(after) < BOTTOM(edge)) {
+	after = SortSwath(after,
+			  splitedge(edge, BOTTOM(after)), swathfcn);
+      }
+      break;
+    }
+    else if (TOP(after) > TOP(edge)) {
+      IfTrace0((BOTTOM(edge) < TOP(after) && RegionDebug > 0),
+	       "SortSwath:  disjoint edges\n");
+      if (BOTTOM(edge) > TOP(after)) {
+	after = SortSwath(after,
+			  splitedge(edge, TOP(after)), swathfcn);
+      }
+      break;
+    }
+    else if (BOTTOM(after) > TOP(edge))
+      vertjoin(after, splitedge(after, TOP(edge)));
+    
+    before = after;
+    after = after->link;
+  }
+  
+  /*
+    At this point 'edge' exactly corresponds in height to the current
+    swath pointed to by 'after'.
+  */
+  if (after != NULL && TOP(after) == TOP(edge)) {
+    before = (*swathfcn)(before, edge);
+    after = before->link;
+  }
+  /*
+    At this point 'after' contains all the edges after 'edge', and 'before'
+    contains all the edges before.  Whew!  A simple matter now of adding
+    'edge' to the linked list in its rightful place:
+  */
+  before->link = edge;
+  if (RegionDebug > 1) {
+    IfTrace3(TRUE,"SortSwath:  in between %p and %p are %p",
+	     before, after, edge);
+    while (edge->link != NULL) {
+      edge = edge->link;
+      IfTrace1(TRUE," and %p", edge);
+    }
+    IfTrace0(TRUE,"\n");
+  }
+  else
+    for (; edge->link != NULL; edge = edge->link) { ; }
+  
+  edge->link = after;
+
+  return base.link;
+  
 }
  
 /*
@@ -926,66 +916,78 @@ static struct edgelist *splitedge(list, y)
        struct edgelist *list;  /* area to split                              */
        register pel y;       /* Y value to split list at                     */
 {
-       register struct edgelist *new;  /* anchor for newly built list        */
-       register struct edgelist *last=NULL;  /* end of newly built list           */
-       register struct edgelist *r;  /* temp pointer to new structure        */
-       register struct edgelist *lastlist;  /* temp pointer to last 'list' value */
- 
-       IfTrace2((RegionDebug > 1),"splitedge of %p at %d ", list, (LONG) y);
- 
-       lastlist = new = NULL;
- 
-       while (list != NULL) {
-               if (y < list->ymin)
-                       break;
-               if (y >= list->ymax)
-                       abort("splitedge: above top of list", 33);
-               if (y == list->ymin)
-                       abort("splitedge: would be null", 34);
- 
-               r = (struct edgelist *)Allocate(sizeof(struct edgelist), list, 0);
-/*
-At this point 'r' points to a copy of the single structure at 'list'.
-We will make 'r' be the new split 'edgelist'--the lower half.
-We don't bother to correct 'xmin' and 'xmax', we'll take the
-the pessimistic answer that results from using the old values.
-*/
-               r->ymin = y;
-               r->xvalues = list->xvalues + (y - list->ymin);
-/*
-Note that we do not need to allocate new memory for the X values,
-they can remain with the old "edgelist" structure.  We do have to
-update that old structure so it is not as high:
-*/
-               list->ymax = y;
-/*
-Insert 'r' in the subpath chain:
-*/
-               r->subpath = list->subpath;
-               list->subpath = r;
-/*
-Now attach 'r' to the list we are building at 'new', and advance
-'list' to point to the next element in the old list:
-*/
-               if (new == NULL)
-                       new = r;
-               else
-                       last->link = r;
-               last = r;
-               lastlist = list;
-               list = list->link;
-       }
-/*
-At this point we have a new list built at 'new'.  We break the old
-list at 'lastlist', and add the broken off part to the end of 'new'.
-Then, we return the caller a pointer to 'new':
-*/
-       if (new == NULL)
-               abort("null splitedge", 35);
-       lastlist->link = NULL;
-       last->link = list;
-       IfTrace1((RegionDebug > 1),"yields %p\n", new);
-       return(new);
+  register struct edgelist *new;  /* anchor for newly built list        */
+  register struct edgelist *last=NULL;  /* end of newly built list           */
+  register struct edgelist *r;  /* temp pointer to new structure        */
+  register struct edgelist *lastlist;  /* temp pointer to last 'list' value */
+  
+  IfTrace2((RegionDebug > 1),"splitedge of %p at %d ", list, (LONG) y);
+  
+  lastlist = new = NULL;
+  
+  while (list != NULL) {
+    if (y < list->ymin)
+      break;
+    
+    if (y >= list->ymax)
+      abort("splitedge: above top of list", 33);
+    if (y == list->ymin)
+      abort("splitedge: would be null", 34);
+    
+    r = (struct edgelist *)Allocate(sizeof(struct edgelist), list, 0);
+    /*
+      At this point 'r' points to a copy of the single structure at 'list'.
+      We will make 'r' be the new split 'edgelist'--the lower half.
+      We don't bother to correct 'xmin' and 'xmax', we'll take the
+      the pessimistic answer that results from using the old values.
+    */
+    r->ymin = y;
+    r->xvalues = list->xvalues + (y - list->ymin);
+    
+    /*
+      Update the fpx values so that ApplyContinuity() will continue
+      to work. Note that high precision is a fake, here!
+    */
+    r->fpx1 = (r->xvalues[0]) << FRACTBITS;
+    r->fpx2 = (list->xvalues[list->ymax - list->ymin - 1]) << FRACTBITS;
+    list->fpx2 = (list->xvalues[y - list->ymin -1]) << FRACTBITS;
+    
+    /*
+      Note that we do not need to allocate new memory for the X values,
+      they can remain with the old "edgelist" structure.  We do have to
+      update that old structure so it is not as high:
+    */
+    list->ymax = y;
+    
+    /*
+      Insert 'r' in the subpath chain:
+    */
+    r->subpath = list->subpath;
+    list->subpath = r;
+    /*
+      Now attach 'r' to the list we are building at 'new', and advance
+      'list' to point to the next element in the old list:
+    */
+    if (new == NULL) {
+      new = r;
+    }
+    else
+      last->link = r;
+    last = r;
+    lastlist = list;
+    list = list->link;
+  }
+  /*
+    At this point we have a new list built at 'new'.  We break the old
+    list at 'lastlist', and add the broken off part to the end of 'new'.
+    Then, we return the caller a pointer to 'new':
+  */
+  if (new == NULL)
+    abort("null splitedge", 35);
+  lastlist->link = NULL;
+  last->link = list;
+  IfTrace1((RegionDebug > 1),"yields %p\n", new);
+  return(new);
 }
  
 /*
@@ -1559,7 +1561,7 @@ void MoreWorkArea(R, x1, y1, x2, y2)
                currentworkarea = (pel *)Allocate(0, NULL, idy * sizeof(pel));
                currentsize = idy;
        }
-       ChangeDirection(CD_CONTINUE, R, x1, y1, y2 - y1);
+       ChangeDirection(CD_CONTINUE, R, x1, y1, y2 - y1, x2, y2);
 }
  
 /*

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1afmtool.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2002-08-17
   ----- Description: This file is part of the t1-library. It contains
                      functions for generating a fallback set of afm data
 		     from type 1 font files.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -103,7 +103,7 @@ FontInfo *T1_GenerateAFMFallbackInfo( int FontID)
   
 
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     sprintf( err_warn_msg_buf,
 	     "Can't generate AFM Info from Font %d (invalid ID)\n", FontID);
     T1_PrintLog( "T1_GenerateAFMFallbackInfo()", err_warn_msg_buf,
@@ -281,7 +281,7 @@ int T1_WriteAFMFallbackFile( int FontID)
   
 
   /* Check for valid font */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     sprintf( err_warn_msg_buf,
 	     "Warning: Invalid FontID, font %d not loaded!",
 	     FontID);

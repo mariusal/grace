@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-10-03
+  ----- Date:        2004-03-03
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2004.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -55,7 +55,7 @@
 
 /* The maximum length of a PostScript name of a font: */
 #define MAXPSNAMELEN 256
-#define MAXPATHLEN   1024
+#define MAXPATHLEN   4096
 
 /* The default resolution used by the library */
 #define DEFAULT_RES           72.0
@@ -71,7 +71,7 @@
 #if defined(VMS)
 # define DIRECTORY_SEP        "]"
 # define DIRECTORY_SEP_CHAR   ']'
-#elif defined(MSDOS) | defined(_WIN32) | defined(__EMX__) | defined(_MSC_VER)
+#elif defined(MSDOS) | defined(_WIN32) | defined(_MSC_VER)
 # define DIRECTORY_SEP        "\\"
 # define DIRECTORY_SEP_CHAR   '\\'
 #else
@@ -176,6 +176,7 @@
 #define T1ERR_NO_AFM_DATA             16
 #define T1ERR_X11                     17
 #define T1ERR_COMPOSITE_CHAR          18
+#define T1ERR_SCAN_ENCODING           19
 
 
 /* The info_flags meaning */
@@ -183,8 +184,9 @@
 #define AFM_SLOPPY_SUCCESS        (short)0x0002
 #define AFM_SELFGEN_SUCCESS       (short)0x0004
 #define USES_STANDARD_ENCODING    (short)0x0008
+#define RASTER_STROKED            (short)0x0010
+#define CACHE_STROKED             (short)0x0020
 #define FONT_NOCACHING            (short)0x0100
-
 
 #ifndef PI
 #define PI 3.1415927

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1aaset.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2003-01-02
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1set.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2003. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -32,6 +32,9 @@ GLYPH *T1_AASetChar( int FontID, char charcode,
 GLYPH *T1_AASetString( int FontID, char *string, int len,
 		       long spaceoff, int modflag,
 		       float size, T1_TMATRIX *transform);
+GLYPH* T1_AASetRect( int FontID, float size,
+		     float width, float height,
+		     T1_TMATRIX *transform);
 int T1_AASetGrayValues( unsigned long white,
 			unsigned long gray75,
 			unsigned long gray50,
@@ -57,6 +60,9 @@ extern GLYPH *T1_AASetChar( int FontID, char charcode,
 extern GLYPH *T1_AASetString( int FontID, char *string, int len,
 			      long spaceoff, int modflag,
 			      float size, T1_TMATRIX *transform);
+extern GLYPH* T1_AASetRect( int FontID, float size,
+			  float width, float height,
+			  T1_TMATRIX *transform);
 extern int T1_AASetGrayValues( unsigned long white,
 			       unsigned long gray75,
 			       unsigned long gray50,

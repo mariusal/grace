@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-10-03
+  ----- Date:        2002-12-08
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1base.c
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -33,17 +33,13 @@ int T1_CloseLib( void);
 int T1_AddFont( char *fontfilename);
 void T1_PrintLog( char *func_ident, char *msg_txt, int level, ...);
 void T1_SetLogLevel( int level);
-int CheckForInit(void);
-int CheckForFontID( int FontID);
-int test_for_t1_file( char *buffer );
+int T1_CheckForInit(void);
+int T1_CheckForFontID( int FontID);
 char *T1_GetFontFileName( int FontID);
-int  T1_Get_no_fonts(void);
+int  T1_GetNoFonts(void);
 int T1_SetDeviceResolutions( float x_res, float y_res);
 int T1_CopyFont( int FontID);
 int T1_QueryX11Support( void);
-void bin_dump_c(unsigned char value, char space_flag);
-void bin_dump_s(unsigned short value, char space_flag);
-void bin_dump_l(unsigned long value, char space_flag);
 int T1_CheckEndian(void);
 int T1_SetBitmapPad( int pad);
 int T1_GetBitmapPad( void);
@@ -53,6 +49,7 @@ char *T1_GetAfmFileName( int FontID);
 int T1_SetAfmFileName( int FontId, char *afm_name);
 char *T1_GetFontFilePath( int FontID);
 char *T1_GetAfmFilePath( int FontID);
+const char *T1_StrError( int t1err);
 
 extern int T1_Type1OperatorFlags;
 
@@ -64,17 +61,13 @@ extern int T1_CloseLib( void);
 extern int T1_AddFont( char *fontfilename);
 extern void T1_PrintLog( char *func_ident, char *msg_txt, int level, ...);
 extern void T1_SetLogLevel( int level);
-extern int CheckForInit(void);
-extern int CheckForFontID( int FontID);
-extern int test_for_t1_file( char *buffer );
+extern int T1_CheckForInit(void);
+extern int T1_CheckForFontID( int FontID);
 extern char *T1_GetFontFileName( int FontID);
-extern int  T1_Get_no_fonts(void);
+extern int  T1_GetNoFonts(void);
 extern int T1_SetDeviceResolutions( float x_res, float y_res);
 extern int T1_QueryX11Support( void);
 extern int T1_CopyFont( int FontID);
-extern void bin_dump_c(unsigned char value, char space_flag);
-extern void bin_dump_s(unsigned short value, char space_flag);
-extern void bin_dump_l(unsigned long value, char space_flag);
 extern int T1_CheckEndian(void);
 extern int T1_SetBitmapPad( int pad);
 extern int T1_GetBitmapPad( void);
@@ -84,5 +77,6 @@ extern char *T1_GetAfmFileName( int FontID);
 extern int T1_SetAfmFileName( int FontId, char *afm_name);
 extern char *T1_GetFontFilePath( int FontID);
 extern char *T1_GetAfmFilePath( int FontID);
+extern const char *T1_StrError( int t1err);
 
 #endif

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2002-12-02
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1load.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -30,9 +30,9 @@
 
 int T1_LoadFont( int FontID);
 static int openFontMetricsFile( int FontID, int open_sloppy);
-FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa);
-FONTSIZEDEPS *GetLastFontSize( int FontID);
-FONTSIZEDEPS *QueryFontSize( int FontID, float size, int aa);
+FONTSIZEDEPS *T1int_CreateNewFontSize( int FontID, float size, int aa);
+FONTSIZEDEPS *T1int_GetLastFontSize( int FontID);
+FONTSIZEDEPS *T1int_QueryFontSize( int FontID, float size, int aa);
 int fontfcnA( char *env, int *mode, psfont *Font_Ptr);
 static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2);
 extern char *vm_base; /* from fontfcn.c in initfont()! */
@@ -41,8 +41,8 @@ extern char *vm_used; /* from fontfcn.c in fontfcnA()! */
 #else
 
 extern int T1_LoadFont( int FontID);
-extern FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa);
-extern FONTSIZEDEPS *GetLastFontSize( int FontID);
-extern FONTSIZEDEPS *QueryFontSize( int FontID, float size, int aa);
+extern FONTSIZEDEPS *T1int_CreateNewFontSize( int FontID, float size, int aa);
+extern FONTSIZEDEPS *T1int_GetLastFontSize( int FontID);
+extern FONTSIZEDEPS *T1int_QueryFontSize( int FontID, float size, int aa);
 
 #endif

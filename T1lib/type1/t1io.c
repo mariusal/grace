@@ -56,7 +56,7 @@
 /* we define this to switch to decrypt-debugging mode. The stream of
    decrypted bytes will be written to stdout! This contains binary
    charstring data */
-/* #define DEBUG_DECRYPTION  */
+/* #define DEBUG_DECRYPTION */
 /* #define DEBUG_PFB_BLOCKS  */
 
 /* Constants and variables used in the decryption */
@@ -104,7 +104,7 @@ F_FILE *T1Open(fn, mode)
 #ifndef O_BINARY
 #  define O_BINARY 0x0
 #endif
-
+ 
   /* We know we are only reading */
   if ((of->fd=open(fn, O_RDONLY | O_BINARY)) < 0) return NULL;
 
@@ -154,7 +154,7 @@ int T1Getc(f)        /* Read one character */
     T1Gets(): Read a line of the file and save it to string. At most,
     (size-1) bytes are read. The user *must* ensure (by making size large
     enough) that "eexec" does not get split between two calls because
-    in this case, eexec-encryption does not set in.
+    in this case, eexec-decryption does not set in.
     ------------------------------------------------------------ */
 int T1Gets(char *string,
 	   int size,
@@ -198,7 +198,7 @@ int T1Gets(char *string,
     }
 
     /* do not skip white space as required by Adobe spec, because
-       if have found fonts where the first encrypted byte was of
+       I have found fonts where the first encrypted byte was of
        white space type. */
     if ( (eexec_startOK==1) && (eexec_endOK==1)) {
       T1eexec( f);
@@ -228,7 +228,15 @@ int T1Gets(char *string,
        seen a pfb-file which uses the sequence '\r''\n' as a newline
        indicator, as known from DOS. So we don't take care for this case
        and simply map both single characters \r and \n into \n. Of course,
-       this can only be done in the ASCII section of the font. */
+       this can only be done in the ASCII section of the font.
+
+       2002-10-26: Well, life life is teaching me better: There *are* fonts
+       out there, ASCII encoded pfa's, that use the crappy DOSian 0x0d 0x0a
+       sequence as line separation. In order to make it still work, we absorb
+       the byte 0x0a. Failure to do so result in decryption failure. The
+       workaround is implemented T1eexec():
+       
+    */
     if ( *(f->b_ptr)=='\n' || *(f->b_ptr)=='\r') {
       if (in_eexec==0)
 	string[i-1]='\n';  
@@ -269,6 +277,7 @@ int T1GetTrailer(char *string,
   char *ctmP;
   int i=0, j;
   int datasize;
+  int len;
   
   datasize=size;
   
@@ -289,11 +298,18 @@ int T1GetTrailer(char *string,
       datasize=i; /* we skip the segment marker of pfb-files */
     }
     if ((ctmP=strstr( &(buf[j]), "cleartomark"))!=NULL) {
-      memcpy( string, &(buf[i]), datasize-i);
-      string[datasize-i]='\0';
+      /* buf[i-1] now is the first character after cleartomark. Advance now
+	 to the next non white character of EOF. */
+      len = datasize - i;
+      while ( (isspace( (int)(buf[i-1])) != 0) &&
+	      (i < datasize) ) {
+	++i;
+      }
+      memcpy( string, &(buf[i-1]), len);
+      string[len]='\0';
       lseek( f->fd, off_save, SEEK_SET);
       free( buf);
-      return( datasize-i);
+      return len;
     }
     i--;
   }
@@ -386,6 +402,7 @@ F_FILE *T1eexec(f)   /* Initialization */
   int H;
   
   unsigned char *p;
+  int testchar;
   unsigned char randomP[8];
  
   r = 55665;  /* initial key */
@@ -394,7 +411,15 @@ F_FILE *T1eexec(f)   /* Initialization */
 #ifdef DEBUG_DECRYPTION
   printf("T1eexec(1): first 20 bytes=%.20s, b_cnt=%d\n", f->b_ptr, f->b_cnt);
 #endif
-  
+
+  /* As the very first action we check the first byte against 0x0a.
+     This mmight happen in context with the T1gets() function for
+     pfa files that use DOSian linefeed style. If that character appears
+     here, we absorb it (see also T1Gets()!). 
+  */
+  if ( ( testchar = T1Getc( f)) != 0x0a )
+    T1Ungetc( testchar, f);
+    
   /* Consume the 4 random bytes, determining if we are also to
      ASCIIDecodeHex as we process our input.  (See pages 63-64
      of the Adobe Type 1 Font Format book.)  */

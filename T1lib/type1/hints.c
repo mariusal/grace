@@ -369,30 +369,37 @@ static pel SearchXofY(edge, y)
        register struct edgelist *edge;  /* represents edge                   */
        register pel y;       /* 'y' value to find edge for                   */
 {
-       register struct edgelist *e;  /* loop variable                        */
- 
-       if (y < edge->ymin) {
-               if (ISTOP(edge->flag))
-                       return(MINPEL);
-               for (e = edge->subpath; e->subpath != edge; e = e->subpath) { ; }
-               if (e->ymax == edge->ymin)
-                        return(XofY(e, y));
-       }
-       else if (y >= edge->ymax) {
-               if (ISBOTTOM(edge->flag))
-                       return(MINPEL);
-               e = edge->subpath;
-               if (e->ymin == edge->ymax)
-                         return(XofY(e, y));
-       }
-       else
-               return(XofY(edge, y));
- 
-       abort("bad subpath chain", 11);
-       /*NOTREACHED*/
-       /* To make ANSI-C-compiler happy: */
-       return(y);
-       
+  register struct edgelist *e;  /* loop variable                        */
+  
+  if (y < edge->ymin) {
+    if (ISTOP(edge->flag)) {
+      return(MINPEL);
+    }
+    
+    for (e = edge->subpath; e->subpath != edge; e = e->subpath) { ; }
+    if (e->ymax == edge->ymin) {
+      return(XofY(e, y));
+    }
+  }
+  else if (y >= edge->ymax) {
+    if (ISBOTTOM(edge->flag)) {
+      return(MINPEL);
+    }
+    e = edge->subpath;
+    if (e->ymin == edge->ymax) {
+      return(XofY(e, y));
+    }
+  }
+  else {
+    return(XofY(edge, y));
+  }
+  
+  
+  abort("bad subpath chain", 11);
+  /*NOTREACHED*/
+  /* To make ANSI-C-compiler happy: */
+  return(y);
+  
 }
 /*
 :h3.ISBREAK() Macro - Tests if an Edge List is at a "Break"
@@ -495,139 +502,166 @@ Also, this routine sets the ISTOP and ISBOTTOM flags in the edge lists.
 static void FixSubPaths(R)
        register struct region *R;       /* anchor of region                */
 {
-       register struct edgelist *e;     /* fast loop variable                */
-       register struct edgelist *edge;  /* current edge in region            */
-       register struct edgelist *next;  /* next in subpath after 'edge'      */
-       register struct edgelist *break1;  /* first break after 'next'        */
-       register struct edgelist *break2=NULL; /* last break before 'edge'        */
-       register struct edgelist *prev;    /* previous edge for fixing links  */
-       int left = TRUE;
- 
-       for (edge = R->anchor; edge != NULL; edge = edge->link) {
- 
-               if (left)
-                       edge->flag |= ISLEFT(ON);
-               left = !left;
- 
-               next = edge->subpath;
- 
-               if (!ISBREAK(edge, next))
-                       continue;
-               if (edge->ymax < next->ymin)
-                       abort("disjoint subpath?", 13);
-/*
-'edge' now contains an edgelist at the bottom of an edge, and 'next'
-contains the next subsequent edgelist in the subpath, which must be at
-the top.  We refer to this a "break" in the subpath.
-*/
-               next->flag |= ISTOP(ON);
-               edge->flag |= ISBOTTOM(ON);
- 
-               if (ISDOWN(edge->flag) != ISDOWN(next->flag))
-                       continue;
-/*
-We are now in the unusual case; both edges are going in the same
-direction so this must be a "false break" due to the way that the user
-created the path.  We'll have to fix it.
-*/
-               for (break1 = next; !ISBREAK(break1, break1->subpath); break1 = break1->subpath) { ; }
- 
-               for (e = break1->subpath; e != edge; e = e->subpath)
-                       if (ISBREAK(e, e->subpath))
-                               break2 = e;
-/*
-Now we've set up 'break1' and 'break2'.  I've found the following
-diagram invaluable.  'break1' is the first break after 'next'.  'break2'
-is the LAST break before 'edge'.
-&drawing.
-         next
-        +------+     +---->+------+
-   +--->|    >-----+ |     |    >-----+
-   |    |      |   | |     |      |   |
-   | +-------------+ |  +-------------+
-   | |  |break1|     |  |  |      |
-   | +->|    >-------+  +->|    >-----+
-   |    |      |           |      |   |
-   |    |      |        +-------------+
-   |    +------+        |  |      |
-   | +----------------+ |  |      |
-   | |  +------+      | +->|    >-----+
-   | +->|    >-----+  |    |      |   |
-   |    |      |   |  | +-------------+
-   | +-------------+  | |  |      |
-   | |  |edge  |      | |  |break2|
-   | +->|    >-----+  | +->|    >-----+
-   |    |      |   |  |    |      |   |
-   |    |      |   |  |    |      |   |
-   |    |      |   |  |    |      |   |
-   |    +------+   |  |    +------+   |
-   |               |  |               |
-   +---------------+  +---------------+
- 
-&edrawing.
-We want to fix this situation by having 'edge' point to where 'break1'
-now points, and having 'break1' point to where 'break2' now points.
-Finally, 'break2' should point to 'next'.  Also, we observe that
-'break1' can't be a bottom, and is also not a top unless it is the same
-as 'next':
-*/
-               edge->subpath = break1->subpath;
- 
-               break1->subpath = break2->subpath;
-               if (ISBREAK(break1, break1->subpath))
-                       abort("unable to fix subpath break?", 14);
- 
-               break2->subpath = next;
- 
-               break1->flag &= ~ISBOTTOM(ON);
-               if (break1 != next)
-                       break1->flag &= ~ISTOP(ON);
-       }
-/*
-This region might contain "ambiguous" edges; edges exactly equal to
-edge->link.  Due to the random dynamics of where they get sorted into
-the list, they can yield false crossings, where the edges appear
-to cross.  This confuses our continuity logic no end.  Since we can
-swap them without changing the region, we do.
-*/
-       for (edge = R->anchor, prev = NULL; VALIDEDGE(edge); prev = edge, edge = prev->link) {
- 
-               if (! ISAMBIGUOUS(edge->flag))
-                       continue;
- 
-               next = edge->subpath;
- 
-               while (ISAMBIGUOUS(next->flag) && next != edge)
-                       next = next->subpath;
-/*
-We've finally found a non-ambiguous edge; we make sure it is left/right
-compatible with 'edge':
-*/
-               if ( (ISLEFT(edge->flag) == ISLEFT(next->flag) && ISDOWN(edge->flag) == ISDOWN(next->flag) )
-                    || (ISLEFT(edge->flag) != ISLEFT(next->flag) && ISDOWN(edge->flag) != ISDOWN(next->flag) ) )
-                       continue;
- 
-/*
-Incompatible, we will swap 'edge' and the following edge in the list.
-You may think that there must be a next edge in this swath.  So did I.
-No!  If there is a totally ambiguous inner loop, for example, we could
-get all the way to the outside without resolving ambiguity.
-*/
-               next = edge->link;  /* note new meaning of 'next' */
-               if (next == NULL || edge->ymin != next->ymin)
-                       continue;
-               if (prev == NULL)
-                       R->anchor = next;
-               else
-                       prev->link = next;
-               edge->link = next->link;
-               next->link = edge;
-               edge->flag ^= ISLEFT(ON);
-               edge->flag &= ~ISAMBIGUOUS(ON);
-               next->flag ^= ISLEFT(ON);
-               next->flag &= ~ISAMBIGUOUS(ON);
-               edge = next;
-       }
+  register struct edgelist *e;     /* fast loop variable                */
+  register struct edgelist *edge;  /* current edge in region            */
+  register struct edgelist *next;  /* next in subpath after 'edge'      */
+  register struct edgelist *break1;  /* first break after 'next'        */
+  register struct edgelist *break2=NULL; /* last break before 'edge'        */
+  register struct edgelist *prev;    /* previous edge for fixing links  */
+  int left = TRUE;
+  
+  for (edge = R->anchor; edge != NULL; edge = edge->link) {
+	 
+    if (left)
+      edge->flag |= ISLEFT(ON);
+    left = !left;
+    
+    next = edge->subpath;
+    
+    if (!ISBREAK(edge, next))
+      continue;
+    if (edge->ymax < next->ymin)
+      abort("disjoint subpath?", 13);
+    /*
+      'edge' now contains an edgelist at the bottom of an edge, and 'next'
+      contains the next subsequent edgelist in the subpath, which must be at
+      the top.  We refer to this a "break" in the subpath.
+    */
+    next->flag |= ISTOP(ON);
+    edge->flag |= ISBOTTOM(ON);
+    
+    if (ISDOWN(edge->flag) != ISDOWN(next->flag))
+      continue;
+    /*
+      We are now in the unusual case; both edges are going in the same
+      direction so this must be a "false break" due to the way that the user
+      created the path.  We'll have to fix it.
+    */
+    for (break1 = next; !ISBREAK(break1, break1->subpath); break1 = break1->subpath) { ; }
+    
+    for (e = break1->subpath; e != edge; e = e->subpath)
+      if (ISBREAK(e, e->subpath))
+	break2 = e;
+    /*
+      Now we've set up 'break1' and 'break2'.  I've found the following
+      diagram invaluable.  'break1' is the first break after 'next'.  'break2'
+      is the LAST break before 'edge'.
+      &drawing.
+      next
+      +------+     +---->+------+
+      +--->|    >-----+ |     |    >-----+
+      |    |      |   | |     |      |   |
+      | +-------------+ |  +-------------+
+      | |  |break1|     |  |  |      |
+      | +->|    >-------+  +->|    >-----+
+      |    |      |           |      |   |
+      |    |      |        +-------------+
+      |    +------+        |  |      |
+      | +----------------+ |  |      |
+      | |  +------+      | +->|    >-----+
+      | +->|    >-----+  |    |      |   |
+      |    |      |   |  | +-------------+
+      | +-------------+  | |  |      |
+      | |  |edge  |      | |  |break2|
+      | +->|    >-----+  | +->|    >-----+
+      |    |      |   |  |    |      |   |
+      |    |      |   |  |    |      |   |
+      |    |      |   |  |    |      |   |
+      |    +------+   |  |    +------+   |
+      |               |  |               |
+      +---------------+  +---------------+
+      
+      &edrawing.
+      We want to fix this situation by having 'edge' point to where 'break1'
+      now points, and having 'break1' point to where 'break2' now points.
+      Finally, 'break2' should point to 'next'.  Also, we observe that
+      'break1' can't be a bottom, and is also not a top unless it is the same
+      as 'next':
+    */
+    edge->subpath = break1->subpath;
+    
+    break1->subpath = break2->subpath;
+    if (ISBREAK(break1, break1->subpath))
+      abort("unable to fix subpath break?", 14);
+    
+    break2->subpath = next;
+    
+    break1->flag &= ~ISBOTTOM(ON);
+    if (break1 != next)
+      break1->flag &= ~ISTOP(ON);
+  }
+  
+  /*
+    This region might contain "ambiguous" edges; edges exactly equal to
+    edge->link.  Due to the random dynamics of where they get sorted into
+    the list, they can yield false crossings, where the edges appear
+    to cross.  This confuses our continuity logic no end.  Since we can
+    swap them without changing the region, we do.
+  */
+  for (edge = R->anchor, prev = NULL; VALIDEDGE(edge); prev = edge, edge = prev->link) {
+    
+    if (! ISAMBIGUOUS(edge->flag)) {
+      continue;
+    }
+    
+    next = edge->subpath;
+    
+    while (ISAMBIGUOUS(next->flag) && next != edge) {
+      next = next->subpath;
+    }
+    
+    /*
+      We've finally found a non-ambiguous edge; we make sure it is left/right
+      compatible with 'edge':
+    */
+    if ( (ISLEFT(edge->flag) == ISLEFT(next->flag) && ISDOWN(edge->flag) == ISDOWN(next->flag) )
+	 || (ISLEFT(edge->flag) != ISLEFT(next->flag) && ISDOWN(edge->flag) != ISDOWN(next->flag) ) ) {
+      continue;
+    }
+    
+    /*
+      Incompatible, we will swap 'edge' and the following edge in the list.
+      You may think that there must be a next edge in this swath.  So did I.
+      No!  If there is a totally ambiguous inner loop, for example, we could
+      get all the way to the outside without resolving ambiguity.
+    */
+    next = edge->link;  /* note new meaning of 'next' */
+    if (next == NULL || edge->ymin != next->ymin) {
+      continue;
+    }
+    
+    /* 
+       printf("      Swap:                \n");
+       printf("            Edge=0x%x, ymin=%d, ymax=%d, xmin=%d, xmax=%d, fpx1=%ld, fpx2=%ld\n",
+       edge, edge->ymin, edge->ymax, edge->xmin, edge->xmax, edge->fpx1, edge->fpx2);
+       printf("            Link=0x%x, ymin=%d, ymax=%d, xmin=%d, xmax=%d, fpx1=%ld, fpx2=%ld\n",
+       next, next->ymin, next->ymax, next->xmin, next->xmax, next->fpx1, next->fpx2);
+       printf("            Edge=0x%x (amb=%d), x[ymin]=%d, x[ymax]=%d, px1=%ld, px2=%ld\n",
+       edge, ISAMBIGUOUS(edge->flag), edge->xvalues[0], edge->xvalues[edge->ymax - edge->ymin],
+       edge->fpx1>>FRACTBITS, edge->fpx2>>FRACTBITS);
+       printf("            Link=0x%x (amb=%d), x[ymin]=%d, x[ymax]=%d, px1=%ld, px2=%ld\n",
+       next, ISAMBIGUOUS(next->flag), next->xvalues[0], next->xvalues[next->ymax - next->ymin],
+       next->fpx1>>FRACTBITS, next->fpx2>>FRACTBITS);
+    */
+
+    /* Check ambiguity also for link edge (RMz) */
+    if ( !ISAMBIGUOUS(next->flag) ) {
+      continue;
+    }
+    
+    
+    if (prev == NULL)
+      R->anchor = next;
+    else
+      prev->link = next;
+    edge->link = next->link;
+    next->link = edge;
+    edge->flag ^= ISLEFT(ON);
+    edge->flag &= ~ISAMBIGUOUS(ON);
+    next->flag ^= ISLEFT(ON);
+    next->flag &= ~ISAMBIGUOUS(ON);
+    edge = next;
+  }
 }
 /*
 :h3.DumpSubPaths()
@@ -719,11 +753,12 @@ static void writeXofY(e, y, x)
        int y;                /* y value                                      */
        int x;                /* new x value                                  */
 {
-       if (e->xmin > x)  e->xmin = x;
-       if (e->xmax < x)  e->xmax = x;
-       e->xvalues[y - e->ymin] = x;
+  if (e->xmin > x)  e->xmin = x;
+  if (e->xmax < x)  e->xmax = x;
+  e->xvalues[y - e->ymin] = x;
 }
  
+
 /*-------------------------------------------------------------------------*/
 /* the following three macros tell us whether we are at a birth point, a    */
 /* death point, or simply in the middle of the character                */
@@ -822,107 +857,128 @@ when the +CONTINUITY flag is on the Interior() fill rule.
 void ApplyContinuity(R)
 struct region *R;
 {
- struct edgelist *left;
- struct edgelist *right;
- struct edgelist *edge,*e2;
- pel rightXabove,rightXbelow,leftXabove,leftXbelow;
- pel leftX,rightX;
- int i;
- LONG newcenter,abovecenter,belowcenter;
- 
- FixSubPaths(R);
- if (RegionDebug >= 3)
-        DumpSubPaths(R->anchor);
- left = R->anchor;
-/* loop through and do all of the easy checking. ( no tops or bottoms) */
- while(VALIDEDGE(left))
- {
-  right = left->link;
-  for(i=left->ymin;i<left->ymax;++i)
-  {
-   leftX       = findXofY(left,i);
-   rightX      = findXofY(right,i);
-   leftXbelow  = findXofY(left,i+1);
-   rightXbelow = findXofY(right,i+1);
-   if(rightX <= leftX)
-   {
-/* then, we have a break in a near vertical line */
-     leftXabove  = findXofY(left,i-1);
-     rightXabove = findXofY(right,i-1);
-     if( IsValidPel(leftXabove) && IsValidPel(rightXabove) )
-     {
-      abovecenter = leftXabove + rightXabove;
-     }
-     else
-     {
-      abovecenter = leftX + rightX;
-     }
-     if( IsValidPel(leftXbelow) && IsValidPel(rightXbelow) )
-     {
-      belowcenter = leftXbelow + rightXbelow;
-     }
-     else
-     {
-      belowcenter = leftX + rightX;
-     }
-     newcenter = abovecenter + belowcenter;
-     if( newcenter > 4*leftX )
-     {
-      rightX = rightX + 1;
-     }
-     else if( newcenter < 4*leftX)
-     {
-      leftX = leftX - 1;
-     }
-     else
-     {
-      rightX = rightX + 1;
-     }
-     writeXofY(right,i,rightX);
-     writeXofY(left,i,leftX);
-     if(rightX > R->xmax) {R->xmax = rightX;}
-     if(leftX < R->xmin) {R->xmin = leftX;}
-   }
-   if( !WeAreAtBottom(left,i) && (leftXbelow>=rightX))
-   {
-/* then we have a break in a near horizontal line in the middle */
-    writeXofY(right,i,leftXbelow);
-   }
-   if( !WeAreAtBottom(right,i) && (leftX >=rightXbelow))
-   {
-/* then we have a break in a near horizontal line in the middle */
-    writeXofY(left,i,rightXbelow);
-   }
-  }
-  left = right->link;
- }
-/*
-There may be "implied horizontal lines" between edges that have
-implications for continuity.  This loop looks for white runs that
-have implied horizontal lines on the top or bottom, and calls
-CollapseWhiteRuns to check and fix any continuity problems from
-them.
-*/
-      for (edge = R->anchor; VALIDEDGE(edge); edge = edge->link) {
-              if ((!ISTOP(edge->flag) && !ISBOTTOM(edge->flag)) || ISLEFT(edge->flag))
-                      continue;  /* at some future date we may want left edge logic here too */
-              for (e2 = edge->link; VALIDEDGE(e2) && SAMESWATH(edge,e2); e2 = e2->link) {
-                      if (ISTOP(e2->flag) && ISTOP(edge->flag)
-                          && NONE != ImpliedHorizontalLine(edge,e2,edge->ymin)) {
-                              if (ISLEFT(e2->flag))
-                                      CollapseWhiteRun(R->anchor, edge->ymin-1,
-                                                       edge, e2, edge->ymin);
-                      }
-                      if (ISBOTTOM(e2->flag) && ISBOTTOM(edge->flag)
-                          && NONE != ImpliedHorizontalLine(edge,e2, edge->ymax)) {
-                              if (ISLEFT(e2->flag))
-                                      CollapseWhiteRun(R->anchor, edge->ymax,
-                                                       edge, e2, edge->ymax-1);
-                      }
-              }
+  struct edgelist *left;
+  struct edgelist *right;
+  struct edgelist *edge,*e2;
+  pel rightXabove,rightXbelow,leftXabove,leftXbelow;
+  pel leftX,rightX;
+  int i;
+  long edgecnt = 0;
+  
+  fractpel xavrg = 0;
+  LONG newcenter,abovecenter,belowcenter;
+
+  
+  FixSubPaths(R);
+  if ( RegionDebug >= 3)
+    DumpSubPaths(R->anchor);
+  left = R->anchor;
+
+  /* loop through and do all of the easy checking. ( no tops or bottoms) */
+  while(VALIDEDGE(left)) {
+    right = left->link;
+    for(i=left->ymin;i<left->ymax;++i) {
+      leftX       = findXofY(left,i);
+      rightX      = findXofY(right,i);
+      leftXbelow  = findXofY(left,i+1);
+      rightXbelow = findXofY(right,i+1);
+      if(rightX <= leftX) {
+
+	/* then, we have a break in a near vertical line */
+	leftXabove  = findXofY(left,i-1);
+	rightXabove = findXofY(right,i-1);
+	/* Check above current scanline */
+	if ( IsValidPel(leftXabove) && IsValidPel(rightXabove) ) {
+	  abovecenter = leftXabove + rightXabove;
+	}
+	else { 
+	  /* We are at the top. We can assume that the current edge list is just started
+	     --> Inspect the stored start fractpel values in order to decide about
+	     to which side to extend. -->
+	     Compute arithmetic average between left and right edge at high resolution */
+	  xavrg        = ((left->fpx1 + right->fpx1) >> 1);
+	  /* round down to get left (not nearest!) and get right edge by adding one pel. */
+	  leftXabove   = (xavrg >> FRACTBITS);
+	  rightXabove  = leftXabove + 1;
+	  abovecenter  = leftXabove + rightXabove;
+	  belowcenter  = leftXabove + rightXabove;
+	}
+
+	/* Check below current scanline */
+	if ( IsValidPel(leftXbelow) && IsValidPel(rightXbelow) ) {
+	  belowcenter  = leftXbelow + rightXbelow;
+	}
+	else { 
+	  /* We are at the bottom. We can assume that the current edge list terminates here
+	     --> Inspect the stored end fractpel values in order to decide about
+	     to which side to extend. -->
+	     Compute arithmetic average between left and right edge at high resolution */
+	  xavrg        = ((left->fpx2 + right->fpx2) >> 1);
+	  /* round down to get left (not nearest!) and get right edge by adding one pel. */
+	  leftXbelow   = (xavrg >> FRACTBITS);
+	  rightXbelow  = leftXbelow + 1;
+	  abovecenter  = leftXbelow + rightXbelow;
+	  belowcenter  = leftXbelow + rightXbelow;
+	}
+
+	newcenter = abovecenter + belowcenter;
+
+	if( newcenter > 4*leftX ) {
+	  rightX = rightX + 1;
+	  writeXofY(right,i,rightX);
+	}
+	else if( newcenter < 4*leftX) {
+	  leftX = leftX - 1;
+	  writeXofY(left,i,leftX);
+	}
+	else {
+	  rightX = rightX + 1;
+	  writeXofY(right,i,rightX);
+	}
+	
+	if ( rightX > R->xmax ) {
+	  R->xmax = rightX;
+	}
+	if ( leftX < R->xmin ) {
+	  R->xmin = leftX;
+	}
       }
+      if( !WeAreAtBottom(left,i) && (leftXbelow>=rightX)) {
+	/* then we have a break in a near horizontal line in the middle */
+	writeXofY(right,i,leftXbelow);
+      }
+      if( !WeAreAtBottom(right,i) && (leftX >=rightXbelow)) {
+	/* then we have a break in a near horizontal line in the middle */
+	writeXofY(left,i,rightXbelow);
+      }
+    }
+    left = right->link;
+    ++edgecnt;
+  }
+  
+  /*
+    There may be "implied horizontal lines" between edges that have
+    implications for continuity.  This loop looks for white runs that
+    have implied horizontal lines on the top or bottom, and calls
+    CollapseWhiteRuns to check and fix any continuity problems from
+    them.
+  */
+  for (edge = R->anchor; VALIDEDGE(edge); edge = edge->link) {
+    if ((!ISTOP(edge->flag) && !ISBOTTOM(edge->flag)) || ISLEFT(edge->flag))
+      continue;  /* at some future date we may want left edge logic here too */
+    for (e2 = edge->link; VALIDEDGE(e2) && SAMESWATH(edge,e2); e2 = e2->link) {
+      if (ISTOP(e2->flag) && ISTOP(edge->flag)
+	  && NONE != ImpliedHorizontalLine(edge,e2,edge->ymin)) {
+	if (ISLEFT(e2->flag))
+	  CollapseWhiteRun(R->anchor, edge->ymin-1,
+			   edge, e2, edge->ymin);
+      }
+      if (ISBOTTOM(e2->flag) && ISBOTTOM(edge->flag)
+	  && NONE != ImpliedHorizontalLine(edge,e2, edge->ymax)) {
+	if (ISLEFT(e2->flag))
+	  CollapseWhiteRun(R->anchor, edge->ymax,
+			   edge, e2, edge->ymax-1);
+      }
+    }
+  }
 }
- 
- 
- 
- 

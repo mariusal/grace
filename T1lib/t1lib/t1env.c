@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-11-12
+  ----- Date:        2002-11-27
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -620,7 +620,7 @@ int T1_SetFileSearchPath( int type, char *pathname)
 
   /* We do not allow to change the searchpath if the database already
      contains one or more entries. */
-  if (T1_Get_no_fonts()>0){
+  if (T1_GetNoFonts()>0){
     sprintf( err_warn_msg_buf, "Path %s not set, database is not empty",
 	     pathname);
     T1_PrintLog( "T1_SetFileSearchPath()", err_warn_msg_buf,
@@ -769,15 +769,14 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
 {
   int i;
   int pathlen;
-  char* newpath;
+  char* newpath = NULL;
   int nofonts;
-  
   
   
   if (pathname==NULL)
     return(-1);
 
-  nofonts=T1_Get_no_fonts();
+  nofonts=T1_GetNoFonts();
   
   pathlen=strlen(pathname);
   
@@ -895,6 +894,11 @@ int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
     }
     T1_ENC_ptr[enc_no]=NULL;
   }
+  
+  /* Copy new path to where it belongs ... */
+  if (newpath)
+    strcpy(newpath, pathname);
+  
   return(0);
   
 }
@@ -953,7 +957,7 @@ int T1_SetFontDataBase( char *filename)
   fdb_no=1;
 
   /* Load database immediately if t1lib already is initailzed */
-  if (CheckForInit()==0) {
+  if (T1_CheckForInit()==0) {
     if ((result=intT1_scanFontDBase(T1_FDB_ptr[0]))==-1) {
       T1_PrintLog( "T1_AddFontDataBase()", "Fatal error scanning Font Database File %s (T1_errno=%d)",
 		   T1LOG_WARNING, T1_FDB_ptr[0], T1_errno);
@@ -1011,7 +1015,7 @@ int T1_AddFontDataBase( int mode, char *filename)
   }
   /* Insert the new database. If t1lib is already initialzed, the database can only
      be appended. Otherwise. prepending is also possible.*/
-  if ((mode & T1_PREPEND_PATH) && (CheckForInit()!=0) ) { /* prepend */
+  if ((mode & T1_PREPEND_PATH) && (T1_CheckForInit()!=0) ) { /* prepend */
     i=fdb_no-2;
     while (i>=0) {
       T1_FDB_ptr[i+1]=T1_FDB_ptr[i];
@@ -1022,7 +1026,7 @@ int T1_AddFontDataBase( int mode, char *filename)
   }
   else { /* append */
     T1_FDB_ptr[fdb_no-1]=newpath;
-    if (CheckForInit()==0) {
+    if (T1_CheckForInit()==0) {
       if ((result=intT1_scanFontDBase(T1_FDB_ptr[fdb_no-1]))==-1) {
 	T1_PrintLog( "T1_AddFontDataBase()", "Fatal error scanning Font Database File %s (T1_errno=%d)",
 		     T1LOG_WARNING, T1_FDB_ptr[fdb_no-1], T1_errno);

@@ -2,11 +2,11 @@
   ----- File:        t1aaset.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
                      Subsampling based on code by Raph Levien (raph@acm.org)
-  ----- Date:        2001-04-01
+  ----- Date:        2003-01-02
   ----- Description: This file is part of the t1-library. It contains
                      functions for antialiased setting of characters
 		     and strings of characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2003.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -803,10 +803,10 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
   if ((pFontBase->t1lib_flags & T1_AA_CACHING)) {
     if (transform==NULL){
       /* if size/aa is not existent we create it */
-      if ((font_ptr=QueryFontSize( FontID, size, T1aa_level))==NULL){
+      if ((font_ptr=T1int_QueryFontSize( FontID, size, T1aa_level))==NULL){
 	/* We create the required size struct and leave the rest
 	   for T1_SetChar() */
-	font_ptr=CreateNewFontSize( FontID, size, T1aa_level);
+	font_ptr=T1int_CreateNewFontSize( FontID, size, T1aa_level);
 	if (font_ptr==NULL){
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  T1aa_level=savelevel;
@@ -1219,6 +1219,218 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
 
 
 
+/* T1_AASetRect(): Raster a rectangle, whose size is given in charspace units.
+   The resulting glyph does not cause any escapement. */
+GLYPH* T1_AASetRect( int FontID, float size,
+		     float width, float height, T1_TMATRIX *transform)
+{
+  GLYPH *glyph;   /* pointer to bitmap glyph */
+  static GLYPH aaglyph={NULL,{0,0,0,0,0,0},NULL,DEFAULTBPP};/* The anti-aliased glyph */
+  long asc, dsc, ht, wd;
+  long i;
+  long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
+  long v_start, v_end;
+  char *target_ptr;
+  long offset;
+  char *ptr;
+  int y;
+  long lsb, aalsb, aahstart;
+  int memsize;
+  LONG paddedW;
+  int savelevel;
+  
+
+  /* Reset character glyph, if necessary */
+  if (aaglyph.bits!=NULL){
+    free(aaglyph.bits);
+    aaglyph.bits=NULL;
+  }
+  aaglyph.metrics.leftSideBearing=0;
+  aaglyph.metrics.rightSideBearing=0;
+  aaglyph.metrics.advanceX=0;
+  aaglyph.metrics.advanceY=0;
+  aaglyph.metrics.ascent=0;
+  aaglyph.metrics.descent=0;
+  aaglyph.pFontCacheInfo=NULL;
+  aaglyph.bpp=T1aa_bpp;
+
+
+  /* Check for smart antialiasing */
+  savelevel=T1aa_level;
+  if (T1aa_SmartOn){
+    if (size>=T1aa_smartlimit2) {
+      T1aa_level=T1_AA_NONE;
+    }
+    else if (size>=T1aa_smartlimit1) {
+      T1aa_level=T1_AA_LOW;
+    }
+    else {
+      T1aa_level=T1_AA_HIGH;
+    }
+  }
+
+
+  /* First, call routine to rasterize character, all error checking is
+     done in this function: */ 
+  if ((glyph=T1_SetRect( FontID, T1aa_level*size, width, height, transform))==NULL){
+    /* restore level */
+    T1aa_level=savelevel;
+    return(NULL); /* An error occured */
+  }
+  
+  /* In case there are no black pixels, we simply set the dimensions and
+     then return */
+  if ( glyph->bits == NULL) {
+    aaglyph.bits=NULL;
+    aaglyph.metrics.leftSideBearing=0;
+    aaglyph.metrics.rightSideBearing=0;
+    aaglyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+    aaglyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+    aaglyph.metrics.ascent=0;
+    aaglyph.metrics.descent=0;
+    aaglyph.pFontCacheInfo=NULL;
+    /* restore level and return */
+    T1aa_level=savelevel;
+    return(&aaglyph);
+  }
+
+  /* Get dimensions of bitmap: */
+  asc=glyph->metrics.ascent;
+  dsc=glyph->metrics.descent;
+  lsb=glyph->metrics.leftSideBearing;
+  ht=asc-dsc;
+  wd=glyph->metrics.rightSideBearing-lsb;
+  
+  if (T1aa_level==T1_AA_NONE){
+    /* we only convert bitmap to bytemap */
+    aaglyph=*glyph;
+    aaglyph.bpp=T1aa_bpp;
+    /* Compute scanline length and such */
+    n_horz_pad=PAD( wd*T1aa_bpp, pFontBase->bitmap_pad )>>3;
+    /* Allocate memory for glyph */
+    memsize = n_horz_pad*ht*8;
+    /*    aaglyph.bits = (char *)malloc(memsize*sizeof( char)); */
+    aaglyph.bits = (char *)malloc(memsize*sizeof( char));
+    if (aaglyph.bits == NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      /* restore level */
+      T1aa_level=savelevel;
+      return(NULL);
+    }
+    paddedW=PAD(wd,pFontBase->bitmap_pad)>>3;
+    ptr=glyph->bits;
+    target_ptr=aaglyph.bits;
+    for (i = 0; i < ht; i++) {
+      T1_DoLine ( wd, paddedW, ptr, target_ptr );
+      ptr += paddedW;
+      target_ptr += n_horz_pad;
+    }
+    /* restore level */
+    T1aa_level=savelevel;
+    return(&aaglyph);
+  }
+  
+
+  /* Set some looping parameters for subsampling */
+  if (lsb<0){
+    aalsb=lsb/T1aa_level-1;
+    aahstart=T1aa_level+(lsb%T1aa_level);
+  }
+  else{
+    aalsb=lsb/T1aa_level;
+    aahstart=lsb%T1aa_level;
+  }
+  
+  /* The horizontal number of steps: */
+  n_horz=(wd+aahstart+T1aa_level-1)/T1aa_level;
+  /* And the padded value */
+  n_horz_pad=PAD( n_horz*T1aa_bpp, pFontBase->bitmap_pad )>>3;
+
+  /* vertical number of steps: */
+  if (asc % T1aa_level){ /* not aligned */
+    if ( asc > 0){
+      n_asc=asc/T1aa_level+1;
+      v_start=asc % T1aa_level;
+    }
+    else{
+      n_asc=asc/T1aa_level;
+      v_start=T1aa_level + (asc % T1aa_level); 
+    }
+  }
+  else{
+    n_asc=asc/T1aa_level;
+    v_start=T1aa_level;
+  }
+  if (dsc % T1aa_level){ /* not aligned */
+    if ( dsc < 0){
+      n_dsc=dsc/T1aa_level-1;
+      v_end=-(dsc % T1aa_level);
+    }
+    else{
+      n_dsc=dsc/T1aa_level;
+      v_end=T1aa_level - (dsc % T1aa_level);
+    }
+  }
+  else{
+    n_dsc=dsc/T1aa_level;
+    v_end=T1aa_level;
+  }
+  /* the total number of lines: */
+  n_vert=n_asc-n_dsc;
+  
+  /* Allocate memory for glyph */
+  memsize = n_horz_pad*n_vert;
+
+  /* Note: we allocate 12 bytes more than necessary */
+  aaglyph.bits = (char *)malloc(memsize*sizeof( char) +12);
+  if (aaglyph.bits == NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    /* restore level */
+    T1aa_level=savelevel;
+    return(NULL);
+  }
+  
+
+  paddedW=PAD(wd,pFontBase->bitmap_pad)/8;
+  offset=0;
+  target_ptr=aaglyph.bits;
+  
+  /* We must check for n_vert==1 because the computation above is not
+     valid in this case */
+  if (n_vert==1)
+    v_start=v_start < v_end ? v_start : v_end;
+
+  ptr = glyph->bits;
+  for (i = 0; i < n_vert; i++) {
+    if (i==0)
+      y=v_start;
+    else if (i==n_vert-1)
+      y=v_end;
+    else
+      y=T1aa_level;
+    T1_AADoLine ( T1aa_level, wd, y, paddedW, ptr, target_ptr, aahstart );
+    ptr += y * paddedW;
+    target_ptr += n_horz_pad;
+  }
+  
+  /* .. and set them in aaglyph */
+  aaglyph.metrics.leftSideBearing=aalsb;
+  aaglyph.metrics.rightSideBearing=aalsb + n_horz;
+  aaglyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+  aaglyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+  aaglyph.metrics.ascent=n_asc;
+  aaglyph.metrics.descent=n_dsc;
+  aaglyph.pFontCacheInfo=NULL;
+
+  /* restore level */
+  T1aa_level=savelevel;
+
+  return(&aaglyph);
+
+}
+
+
+
 /* T1_AASetGrayValues(): Sets the byte values that are put into the
    pixel position for the respective entries:
    Returns 0 if successfull.
@@ -1230,7 +1442,7 @@ int T1_AASetGrayValues(unsigned long white,
 		       unsigned long black)
 {
   
-  if (CheckForInit()){
+  if (T1_CheckForInit()){
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1259,7 +1471,7 @@ int T1_AAHSetGrayValues( unsigned long *grayvals)
 {
   int i;
   
-  if (CheckForInit()){
+  if (T1_CheckForInit()){
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1288,7 +1500,7 @@ int T1_AAHSetGrayValues( unsigned long *grayvals)
 int T1_AANSetGrayValues( unsigned long bg, unsigned long fg)
 {
   
-  if (CheckForInit()){
+  if (T1_CheckForInit()){
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1313,7 +1525,7 @@ int T1_AAGetGrayValues( long *pgrayvals)
 {
   int i;
   
-  if (CheckForInit()) {
+  if (T1_CheckForInit()) {
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1339,7 +1551,7 @@ int T1_AAHGetGrayValues( long *pgrayvals)
 {
   int i;
 
-  if (CheckForInit()) {
+  if (T1_CheckForInit()) {
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1363,7 +1575,7 @@ int T1_AAHGetGrayValues( long *pgrayvals)
 int T1_AANGetGrayValues( long *pgrayvals) 
 {
 
-  if (CheckForInit()) {
+  if (T1_CheckForInit()) {
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1385,7 +1597,7 @@ int T1_AANGetGrayValues( long *pgrayvals)
 int  T1_AASetBitsPerPixel( int bpp)
 {
   
-  if (CheckForInit()){
+  if (T1_CheckForInit()){
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -1425,7 +1637,7 @@ int T1_AAGetBitsPerPixel( void)
 int T1_AASetLevel( int level)
 {
   
-   if (CheckForInit()){
+   if (T1_CheckForInit()){
      T1_errno=T1ERR_OP_NOT_PERMITTED;
      return(-1);
    }

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1trans.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2003-01-04
   ----- Description: This file is part of the t1-library. It contains
                      functions for transforming fonts and setting
 		     line-parameters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2003.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -69,7 +69,7 @@ int T1_ExtendFont( int FontID, double extend)
 {
   
   /* First, check for font residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -95,7 +95,7 @@ int T1_ExtendFont( int FontID, double extend)
 double T1_GetExtend( int FontID)
 {
   /* First, check for font residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -115,7 +115,7 @@ int T1_SlantFont( int FontID, double slant)
 {
   
   /* First, check for font residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -141,7 +141,7 @@ int T1_SlantFont( int FontID, double slant)
 double T1_GetSlant( int FontID)
 {
   /* First, check for font residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -160,7 +160,7 @@ int T1_TransformFont( int FontID, T1_TMATRIX *matrix)
 {
   
   /* First, check for font residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -190,7 +190,7 @@ T1_TMATRIX T1_GetTransform( int FontID)
   T1_TMATRIX tmatrix={0.0, 0.0, 0.0, 0.0};
   
   /* First, check for font residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(tmatrix);
   }
@@ -212,7 +212,7 @@ T1_TMATRIX T1_GetTransform( int FontID)
 int T1_SetLinePosition( int FontID, int linetype, float value)
 {
 
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -241,7 +241,7 @@ int T1_SetLinePosition( int FontID, int linetype, float value)
 int T1_SetLineThickness( int FontID, int linetype, float value)
 {
 
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -269,7 +269,7 @@ int T1_SetLineThickness( int FontID, int linetype, float value)
 float T1_GetLinePosition( int FontID, int linetype)
 {
 
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -292,7 +292,7 @@ float T1_GetLinePosition( int FontID, int linetype)
 float T1_GetLineThickness( int FontID, int linetype)
 {
 
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -533,4 +533,170 @@ T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
   return( matrix);
 }
 
+
+
+/* T1_StrokeFont(): Switch the  font referenced by FontID to stroking
+   or filling. The stroked character will be cached and 
+   filled characters are no longer cached and vice versa.
+   This is only allowed if no size dependent data exists.
+   Of course, the font must already have been loaded.
+   Returns 0 for success and -1 otherwise.
+   */
+int T1_StrokeFont( int FontID, int dostroke)
+{
+  
+  /* First, check for font residing in memory: */
+  if ( T1_CheckForFontID( FontID) != 1 ) {
+    T1_errno = T1ERR_INVALID_FONTID;
+    return -1;
+  }
+  
+  /* Second, check whether size-dependent data exists: */
+  if ( pFontBase->pFontArray[FontID].pFontSizeDeps != NULL ) {
+    T1_errno = T1ERR_OP_NOT_PERMITTED;
+    return -1; 
+  }
+
+  if ( dostroke != 0 ) {
+    pFontBase->pFontArray[FontID].info_flags |= RASTER_STROKED;
+    pFontBase->pFontArray[FontID].info_flags |= CACHE_STROKED;
+  }
+  else {
+    pFontBase->pFontArray[FontID].info_flags &= ~RASTER_STROKED;
+    pFontBase->pFontArray[FontID].info_flags &= ~CACHE_STROKED;
+  }
+  
+
+  return 0;
+}
+
+
+
+/* T1_SetStrokeFlag(): Return the stroke flag for font FontID.
+   Return:  0                      flag has been set
+           -1                      flag could not be set 
+*/
+int T1_SetStrokeFlag( int FontID)
+{
+  /* First, check for font residing in memory: */
+  if ( T1_CheckForFontID(FontID) != 1 ) {
+    T1_errno = T1ERR_INVALID_FONTID;
+    return -1;
+  }
+  
+  /* Set stroke flag to true */
+  pFontBase->pFontArray[FontID].info_flags |= RASTER_STROKED;
+  
+  return 0;
+  
+}
+
+
+
+/* T1_ClearStrokeFlag(): Reset the stroke flag for font FontID.
+   Return:  0                      flag has been reset
+           -1                      flag could not be reset 
+*/
+int T1_ClearStrokeFlag( int FontID)
+{
+  /* First, check for font residing in memory: */
+  if ( T1_CheckForFontID(FontID) != 1 ) {
+    T1_errno = T1ERR_INVALID_FONTID;
+    return -1;
+  }
+
+  /* Reset stroke flag */
+  pFontBase->pFontArray[FontID].info_flags &= ~RASTER_STROKED;
+  
+  return 0;
+  
+}
+
+
+
+/* T1_GetStrokeMode(): Return the stroke flag for font FontID.
+   Return: -1                      if font is not loaded.
+	    0                      if flag is reset,
+	    1                      if stroking is enabled for this font,
+	    2                      if stroked characters are cached,
+	    3                      if stroking is enabled and stroked
+	                           characters are cached.
+*/
+int T1_GetStrokeMode( int FontID)
+{
+  int outval = 0;
+  
+  /* First, check for font residing in memory: */
+  if ( T1_CheckForFontID( FontID) != 1 ) {
+    T1_errno = T1ERR_INVALID_FONTID;
+    return -1;
+  }
+
+  if ( (pFontBase->pFontArray[FontID].info_flags & CACHE_STROKED) != 0 ) 
+    outval |= 0x02;
+  
+  if ( (pFontBase->pFontArray[FontID].info_flags & RASTER_STROKED) != 0 ) 
+    outval |= 0x01;
+  
+  return outval;
+    
+}
+
+
+
+/* T1_SetStrokeWidth(): Set the penwidth used when stroking font FontID.
+   Return  -1           If width could not be set.
+            0           if width has been set.
+ */
+int T1_SetStrokeWidth( int FontID, float strokewidth)
+{
+  /* First, check for font residing in memory: */
+  if ( T1_CheckForFontID( FontID) != 1 ) {
+    T1_errno = T1ERR_INVALID_FONTID;
+    return -1;
+  }
+
+  /* Second, check whether caching stroked characters is enabled
+     for this font and glyph data is already existing. In this case
+     the operation is forbidden, unless the previous non-zero value
+     is just restored! */
+  if ( ((pFontBase->pFontArray[FontID].info_flags & CACHE_STROKED) != 0) &&
+       (pFontBase->pFontArray[FontID].pFontSizeDeps != NULL) &&
+       (pFontBase->pFontArray[FontID].SavedStrokeWidth != strokewidth)
+       ) {
+    T1_errno = T1ERR_OP_NOT_PERMITTED;
+    return -1; 
+  }
+
+  /* OK, accept stroke width after ensuring a numerically meaningful
+     value */
+  if ( strokewidth < 0.0f ) {
+    T1_errno = T1ERR_INVALID_PARAMETER;
+    return -1;
+  }
+
+  pFontBase->pFontArray[FontID].StrokeWidth = strokewidth;
+  
+  if ( strokewidth != 0.0f )
+    pFontBase->pFontArray[FontID].SavedStrokeWidth = strokewidth;
+  
+  return 0;
+    
+}
+
+
+
+/* T1_GetStrokeWidth(): Get the penwidth used when stroking font FontID.
+   If 0.0 is returned, it might also indicate that the font is not loaded.
+*/
+float T1_GetStrokeWidth( int FontID)
+{
+  /* First, check for font residing in memory: */
+  if ( T1_CheckForFontID( FontID) != 1 ) {
+    T1_errno = T1ERR_INVALID_FONTID;
+    return 0.0f;
+  }
+
+  return pFontBase->pFontArray[FontID].StrokeWidth;  
+}
 

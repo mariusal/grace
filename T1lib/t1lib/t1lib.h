@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-10-03
+  ----- Date:        2004-02-04
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
 		     user must deal with.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2004.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -37,6 +37,12 @@
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 #endif
+
+/* Version information filled in by configure */
+#define T1LIB_VERSION            5
+#define T1LIB_REVISION           0
+#define T1LIB_PATCHLEVEL         2
+#define T1LIB_VERSIONSTRING      "5.0.2"
 
 
 /* the data structure which contains the character bitmap description */
@@ -165,6 +171,7 @@ extern int T1_errno;
 #define T1ERR_NO_AFM_DATA             16
 #define T1ERR_X11                     17
 #define T1ERR_COMPOSITE_CHAR          18
+#define T1ERR_SCAN_ENCODING           19
 
 
 /* Flags to control the rasterizer */
@@ -264,17 +271,13 @@ extern int T1_CloseLib( void);
 extern int T1_AddFont( char *fontfilename);
 extern void T1_PrintLog( char *func_ident, char *msg_txt, int level, ...);
 extern void T1_SetLogLevel( int level);
-extern int CheckForInit(void);
-extern int CheckForFontID( int FontID);
-extern int test_for_t1_file( char *buffer );
+extern int T1_CheckForInit(void);
+extern int T1_CheckForFontID( int FontID);
 extern char *T1_GetFontFileName( int FontID);
-extern int  T1_Get_no_fonts(void);
+extern int  T1_GetNoFonts(void);
 extern int T1_SetDeviceResolutions( float x_res, float y_res);
 extern int T1_CopyFont( int FontID);
 extern int T1_QueryX11Support( void);
-extern void bin_dump_c(unsigned char value);
-extern void bin_dump_s(unsigned short value);
-extern void bin_dump_l(unsigned long value);
 extern int T1_CheckEndian(void);
 extern int T1_SetBitmapPad( int pad);
 extern int T1_GetBitmapPad( void);
@@ -284,6 +287,7 @@ extern char *T1_GetAfmFileName( int FontID);
 extern int T1_SetAfmFileName( int FontId, char *afm_name);
 extern char *T1_GetFontFilePath( int FontID);
 extern char *T1_GetAfmFilePath( int FontID);
+extern const char *T1_StrError( int t1err);
 
 /* from t1delete.c */
 extern int T1_DeleteSize( int FontID, float size);
@@ -345,10 +349,7 @@ extern int T1_IsInternalChar( int FontID, char char1);
 
 /* from t1load.c */
 extern int T1_LoadFont( int FontID);
-extern int openFontMetricsFile( int FontID);
-extern void *CreateNewFontSize( int FontID, float size, int aa);
-extern void *GetLastFontSize( int FontID);
-extern void *QueryFontSize( int FontID, float size, int aa);
+extern void *T1_QueryFontSize( int FontID, float size, int aa);
 
 /* from t1set.c */
 extern GLYPH *T1_SetChar( int FontID, char charcode, 
@@ -356,6 +357,9 @@ extern GLYPH *T1_SetChar( int FontID, char charcode,
 extern GLYPH *T1_SetString( int FontID, char *string, int len,
 			    long spaceoff, int modflag,
 			    float size, T1_TMATRIX *transform);
+extern GLYPH* T1_SetRect( int FontID, float size,
+			  float width, float height,
+			  T1_TMATRIX *transform);
 extern GLYPH *T1_CopyGlyph(GLYPH *glyph);
 extern void T1_DumpGlyph( GLYPH *glyph);
 extern GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
@@ -384,6 +388,12 @@ extern T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent);
 extern T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
 				       double cxx, double cyx,
 				       double cxy, double cyy);
+extern int T1_StrokeFont( int FontID, int dostroke);
+extern int T1_SetStrokeFlag( int FontID);
+extern int T1_ClearStrokeFlag( int FontID);
+extern int T1_GetStrokeMode( int FontID);
+extern int T1_SetStrokeWidth( int FontID, float strokewidth);
+extern float T1_GetStrokeWidth( int FontID);
 
 
 /* from t1aaset.c */
@@ -392,6 +402,9 @@ extern GLYPH *T1_AASetChar( int FontID, char charcode,
 extern GLYPH *T1_AASetString( int FontID, char *string, int len,
 			      long spaceoff, int modflag,
 			      float size, T1_TMATRIX *transform);
+extern GLYPH* T1_AASetRect( int FontID, float size,
+			    float width, float height,
+			    T1_TMATRIX *transform);
 extern int T1_AASetGrayValues(unsigned long white,
 			      unsigned long gray75,
 			      unsigned long gray50,

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1outline.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-05-27
+  ----- Date:        2002-12-02
   ----- Description: This file is part of the t1-library. It contains
                      functions for getting glyph outline descriptions of
 		     strings and characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -121,7 +121,7 @@ T1_OUTLINE *T1_GetCharOutline( int FontID, char charcode, float size,
 
   
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i==-1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
@@ -141,8 +141,8 @@ T1_OUTLINE *T1_GetCharOutline( int FontID, char charcode, float size,
   
   /* font is now loaded into memory =>
      Check for size: */
-  if ((font_ptr=QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
-    font_ptr=CreateNewFontSize( FontID, size, NO_ANTIALIAS);
+  if ((font_ptr=T1int_QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
+    font_ptr=T1int_CreateNewFontSize( FontID, size, NO_ANTIALIAS);
     if (font_ptr==NULL){
       T1_errno=T1ERR_ALLOC_MEM;
       return(NULL);
@@ -175,7 +175,7 @@ T1_OUTLINE *T1_GetCharOutline( int FontID, char charcode, float size,
 				       fontarrayP->pFontEnc,
 				       ucharcode, &mode,
 				       fontarrayP->pType1Data,
-				       DO_NOT_RASTER);
+				       DO_NOT_RASTER,0.0f);
   KillSpace (Current_S);
 
   return((T1_OUTLINE *)charpath);
@@ -224,7 +224,7 @@ T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len,
   ustring=(unsigned char*)string;
   
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i==-1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
@@ -250,8 +250,8 @@ T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len,
   
   /* font is now loaded into memory =>
      Check for size: */
-  if ((font_ptr=QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
-    font_ptr=CreateNewFontSize( FontID, size, NO_ANTIALIAS);
+  if ((font_ptr=T1int_QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
+    font_ptr=T1int_CreateNewFontSize( FontID, size, NO_ANTIALIAS);
     if (font_ptr==NULL){
       T1_errno=T1ERR_ALLOC_MEM;
       return(NULL);
@@ -326,7 +326,7 @@ T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len,
 					       no_chars, &mode,
 					       fontarrayP->pType1Data,
 					       kern_pairs, spacewidth,
-					       DO_NOT_RASTER);
+					       DO_NOT_RASTER,0.0f);
   KillSpace (Current_S);
   
   /* In all cases, free memory for kerning pairs */
@@ -378,7 +378,7 @@ T1_OUTLINE *T1_GetMoveOutline( int FontID, int deltax, int deltay, int modflag,
 
 
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i==-1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
@@ -398,8 +398,8 @@ T1_OUTLINE *T1_GetMoveOutline( int FontID, int deltax, int deltay, int modflag,
   
   /* font is now loaded into memory =>
      Check for size: */
-  if ((font_ptr=QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
-    font_ptr=CreateNewFontSize( FontID, size, NO_ANTIALIAS);
+  if ((font_ptr=T1int_QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
+    font_ptr=T1int_CreateNewFontSize( FontID, size, NO_ANTIALIAS);
     if (font_ptr==NULL){
       T1_errno=T1ERR_ALLOC_MEM;
       return(NULL);

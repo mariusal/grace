@@ -50,12 +50,13 @@ extern xobject Type1Char(psfont *env, struct XYspace *S,
 			 psobj *charstrP, psobj *subrsP,
 			 psobj *osubrsP,
 			 struct blues_struct *bluesP,
-			 int *modeP, char *name);
+			 int *modeP, char *name,
+			 float strokewidth );
 extern xobject Type1Line(psfont *env, struct XYspace *S,
-				 float line_position,
-				 float line_thickness,
-				 float line_length);
-extern  boolean Init_BuiltInEncoding( void);
+			 float line_position,
+			 float line_thickness,
+			 float line_length,
+			 float strokewidth);
 void objFormatName(psobj *objP, int length, char *valueP);
   
 extern void T1io_reset( void);
@@ -64,13 +65,49 @@ extern void T1io_reset( void);
 #define LINETYPE   0x10+0x00
 #define MOVETYPE   0x10+0x05
 
+#if 1
+struct region {
+  XOBJ_COMMON           /* xobject common data define 3-26-91 PNM    */
+  /* type = REGIONTYPE                         */
+  struct fractpoint origin;    /* beginning handle:  X,Y origin of region      */
+  struct fractpoint ending;    /* ending handle:  X,Y change after painting region */
+  pel xmin,ymin;        /* minimum X,Y of region                        */
+  pel xmax,ymax;        /* mat1_mum X,Y of region                        */
+  struct edgelist *anchor;  /* list of edges that bound the region      */
+  struct picture *thresholded;  /* region defined by thresholded picture*/
+  /*
+    Note that the ending handle and the bounding box values are stored
+    relative to 'origin'.
+    
+    The above elements describe a region.  The following elements are
+    scratchpad areas used while the region is being built:
+  */
+  fractpel lastdy;      /* direction of last segment                    */
+  fractpel firstx,firsty;    /* starting point of current edge          */
+  fractpel edgexmin,edgexmax;  /* x extent of current edge              */
+  struct edgelist *lastedge,*firstedge;  /* last and first edges in subpath */
+  pel *edge;            /* pointer to array of X values for edge        */
+  fractpel edgeYstop;   /* Y value where 'edges' array ends             */
+  int (*newedgefcn)();  /* function to use when building a new edge     */
+  struct strokeinfo *strokeinfo;  /* scratchpad info during stroking only */
+} ;
+struct edgelist {
+  XOBJ_COMMON          /* xobject common data define 3-26-91 PNM        */
+  /* type = EDGETYPE                               */
+  struct edgelist *link;  /* pointer to next in linked list             */
+  struct edgelist *subpath;  /* informational link for "same subpath"   */
+  pel xmin,xmax;        /* range of edge in X                           */
+  pel ymin,ymax;        /* range of edge in Y                           */
+  pel *xvalues;         /* pointer to ymax-ymin X values                */
+};
+#endif
 
 /***================================================================***/
 /*   GLOBALS                                                          */
 /***================================================================***/
 static char CurCharName[257]="";
 static char BaseCharName[257]="";
-char CurFontName[120];
+char CurFontName[MAXPATHLEN];
 char *CurFontEnv;
 char *vm_base = NULL;
 
@@ -119,7 +156,6 @@ boolean initFont()
 {
   if (!(vm_init())) return(FALSE);
   vm_base = vm_next_byte();
-  if (!(Init_BuiltInEncoding())) return(FALSE);
   strcpy(CurFontName, "");    /* iniitialize to none */
   FontP->vm_start = vm_next_byte();
   FontP->FontFileName.len = 0;
@@ -140,7 +176,8 @@ char *env;
   FontP->fontInfoP = NULL;
   FontP->BluesP = NULL;
   /* This will load the font into the FontP */
-  strcpy(CurFontName,env);
+  strncpy(CurFontName,env, MAXPATHLEN);
+  CurFontName[MAXPATHLEN-1] = '\0';
   FontP->FontFileName.len = strlen(CurFontName);
   FontP->FontFileName.data.nameP = CurFontName;
   T1io_reset();
@@ -241,7 +278,8 @@ xobject fontfcnB(int FontID, int modflag,
 		 struct XYspace *S, char **ev,
 		 unsigned char index, int *mode,
 		 psfont *Font_Ptr,
-		 int do_raster)
+		 int do_raster,
+		 float strokewidth)
 {
  
   psobj *charnameP; /* points to psobj that is name of character*/
@@ -337,7 +375,7 @@ xobject fontfcnB(int FontID, int modflag,
   /* get CharString and character path */
   theStringP = &(CharStringsDictP[basechar].value);
   tmppath2 = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					  FontP->BluesP,mode,CurCharName);
+					  FontP->BluesP,mode,CurCharName,strokewidth);
   /* if Type1Char reported an error, then return */
   if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
     return(NULL);
@@ -378,7 +416,7 @@ xobject fontfcnB(int FontID, int modflag,
     strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
     CurCharName[charnameP->len]='\0';
     charpath=(struct segment *)Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					 FontP->BluesP,mode,CurCharName);
+					 FontP->BluesP,mode,CurCharName,strokewidth);
     /* return if Type1Char reports an error */
     if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
       return(NULL);
@@ -593,7 +631,8 @@ xobject fontfcnB_string( int FontID, int modflag,
 			 unsigned char *string, int no_chars,
 			 int *mode, psfont *Font_Ptr,
 			 int *kern_pairs, long spacewidth,
-			 int do_raster)
+			 int do_raster,
+			 float strokewidth)
 {
  
   psobj *charnameP; /* points to psobj that is name of character*/
@@ -714,7 +753,7 @@ xobject fontfcnB_string( int FontID, int modflag,
       /* get CharString and character path */
       theStringP = &(CharStringsDictP[basechar].value);
       tmppath2 = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					      FontP->BluesP,mode,CurCharName);
+					      FontP->BluesP,mode,CurCharName,strokewidth);
       strcpy( BaseCharName, CurCharName);
       /* if Type1Char reports an error, clean up and return */
       if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR) {
@@ -790,7 +829,7 @@ xobject fontfcnB_string( int FontID, int modflag,
 	strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
 	CurCharName[charnameP->len]='\0';
 	tmppath5=(struct segment *)Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					     FontP->BluesP,mode,CurCharName);
+					     FontP->BluesP,mode,CurCharName,strokewidth);
 	/* return if Type1Char reports an error */
 	if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
 	  return(NULL);
@@ -873,21 +912,21 @@ xobject fontfcnB_string( int FontID, int modflag,
     tmppath2=(struct segment *)Type1Line(FontP,S,
 					 pFontBase->pFontArray[FontID].UndrLnPos,
 					 pFontBase->pFontArray[FontID].UndrLnThick,
-					 (float) acc_width);
+					 (float) acc_width,strokewidth);
     charpath=(struct segment *)Join(charpath,tmppath2);
   }
   if (modflag & T1_OVERLINE){
     tmppath2=(struct segment *)Type1Line(FontP,S,
 					 pFontBase->pFontArray[FontID].OvrLnPos,
 					 pFontBase->pFontArray[FontID].OvrLnThick,
-					 (float) acc_width);
+					 (float) acc_width,strokewidth);
     charpath=(struct segment *)Join(charpath,tmppath2);
   }
   if (modflag & T1_OVERSTRIKE){
     tmppath2=(struct segment *)Type1Line(FontP,S,
 					 pFontBase->pFontArray[FontID].OvrStrkPos,
 					 pFontBase->pFontArray[FontID].OvrStrkThick,
-					 (float) acc_width);
+					 (float) acc_width,strokewidth);
     charpath=(struct segment *)Join(charpath,tmppath2);
   }
   
@@ -1012,7 +1051,7 @@ xobject fontfcnB_ByName( int FontID, int modflag,
   /* get CharString and character path */
   theStringP = &(CharStringsDictP[basechar].value);
   tmppath2 = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					  FontP->BluesP,mode,CurCharName);
+					  FontP->BluesP,mode,CurCharName, 0.0f);
   /* if Type1Char reported an error, then return */
   if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
     return(NULL);
@@ -1053,7 +1092,7 @@ xobject fontfcnB_ByName( int FontID, int modflag,
     strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
     CurCharName[charnameP->len]='\0';
     charpath=(struct segment *)Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					 FontP->BluesP,mode,CurCharName);
+					 FontP->BluesP,mode,CurCharName,0.0f);
     /* return if Type1Char reports an error */
     if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
       return(NULL);
@@ -1103,3 +1142,30 @@ xobject fontfcnB_ByName( int FontID, int modflag,
 
 }
 
+
+xobject fontfcnRect( float width,
+		     float height,
+		     struct XYspace* S,
+		     int *mode,
+		     int do_raster,
+		     float strokewidth)
+{
+  struct segment *charpath = NULL;   /* the path for this character (rectangle)  */           
+  
+  charpath = (struct segment *) Type1Line( NULL, S,
+					   0.5f * height,    /* position */
+					   height,           /* thickness */
+					   -width,            /* width */
+					   strokewidth       /* strokewidth */
+					   );
+  
+  if (do_raster) { 
+    /* fill with winding rule unless path was requested */
+    if (*mode != FF_PATH) {
+      charpath =  (struct segment *)Interior(charpath,WINDINGRULE+CONTINUITY);
+    }
+  }
+
+  return((xobject) charpath);
+  
+}

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1subset.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-09-09
+  ----- Date:        2002-12-08
   ----- Description: This file is part of the t1-library. It contains
                      functions for subsetting type 1 fonts.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -58,6 +58,7 @@
 #include "t1finfo.h"
 #include "t1misc.h"
 #include "t1base.h"
+#include "t1delete.h"
 #include "t1subset.h"
 
 /* Segment header for pfb-files (reminder):
@@ -236,6 +237,8 @@ char *T1_SubsetFont( int FontID,
   int m=0;
   int n=0;
   int o=0;
+  int p=0;
+  
   
   int notdefencoded=0;
   int stdenc=0;
@@ -245,11 +248,12 @@ char *T1_SubsetFont( int FontID,
   int encrypt=1;      /* 1=ASCII-hex, 2=Binary, 0=None (for debugging) */
   int dindex=0;
   int nocharstrings=0;
-
+  char encmask[256];  /* Mask after resolving composite characters */
+  T1_COMP_CHAR_INFO* cci = NULL;
   
   
   /* Otherwise we would get invalid accesses later */
-  if (CheckForFontID(FontID)!=1) {
+  if (T1_CheckForFontID(FontID)!=1) {
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   } 
@@ -262,12 +266,28 @@ char *T1_SubsetFont( int FontID,
     return(NULL);
   } 
 
+
+  /* First, we check how many characters have to find their way into the
+     subsetted file. We take possibly existing composite character
+     definitions by the user into account. */
   for ( j=0; j<256; j++) {
-    if (mask[j]!=0) {
-      nocharstrings++;
+    if ( mask[j] != 0 ) {
+      /* check whether addressed character is an internal character of
+	 the font */
+      if ( cci != NULL )
+	T1_FreeCompCharData( cci);
+      
+      cci = T1_GetCompCharData( FontID, j);
+      
+      if ( cci != NULL ) {
+	nocharstrings += cci->numPieces;
+      }
+      else {
+	++nocharstrings;
+      }
     }
   }
-
+  
 
   /* adjust encrypting type according to flags. Default is ASCII-hex
      encryption because the output may be verbatim inserted into a
@@ -312,6 +332,7 @@ char *T1_SubsetFont( int FontID,
        ensure that "eexec" does not get split between two reads.
        Otherwise, decryption would not be started. */
     retval=T1Gets(&(filebuf[i]), 1025, ifp);
+    
     i+=retval;
     if ( (dindex==0) && (T1GetDecrypt()>0) ) {
       dindex=i-retval; /* from this point on we have decrypted bytes */
@@ -319,7 +340,7 @@ char *T1_SubsetFont( int FontID,
 	       dindex);
       T1_PrintLog( "T1_SubsetFont()", err_warn_msg_buf,
 		   T1LOG_DEBUG);
-    }  
+    }
     
     /* Encoding handling */
     if (strstr( &(filebuf[i-retval]), "/Encoding")!=NULL) {
@@ -370,11 +391,36 @@ char *T1_SubsetFont( int FontID,
       }
       
       /* At this point, if required, the actual encoding definition
-	 follows  */
+	 follows. */
       if ( reencode!=0) {
 	k=0;
+
+	/* Reset resulting encoding mask */ 
+	for ( j=0; j<256; j++) {
+	  encmask[j] = 0;
+	}
+
+	/* Resolve composite characters and their components */
 	for ( j=0; j<256; j++) {
 	  if (mask[j]!=0) {
+	    if ( cci != NULL)
+	      T1_FreeCompCharData( cci);
+	    cci = T1_GetCompCharData( FontID, j);
+	    if ( (cci != NULL) && (cci->numPieces > 1) ) {
+	      /* Tag all components that are required to construct
+		 the composite character j. */
+	      for ( p=0; p<cci->numPieces; p++) {
+		encmask[cci->pieces[p].piece] = 1;
+	      }
+	    }
+	    /* Tag character j in encoding definition */
+	    encmask[j] = 1;
+	  }
+	}
+
+	/* Write actually required encoding slots */
+	for ( j=0; j<256; j++) {
+	  if (encmask[j]!=0) {
 	    charnameP=T1_GetCharName( FontID, j);
 	    i+=sprintf( &(filebuf[i]), "dup %d /%s put\n", j,
 			charnameP);
@@ -383,6 +429,7 @@ char *T1_SubsetFont( int FontID,
 	      notdefencoded=1;
 	  }
 	}
+
 	/* finish encoding definition */
 	i+=sprintf( &(filebuf[i]), "readonly def\n");
 	sprintf( err_warn_msg_buf, "Encoded %d characters",
@@ -464,13 +511,55 @@ char *T1_SubsetFont( int FontID,
     if (mask[j]!=0) {
       charnameP=T1_GetCharName( FontID, j);
       if ((currstring_no=locateCharString( FontID, charnameP))==0) {
-	/* This is mysterious, but causes no harm because .notdef
-	   will be substituted */
-	sprintf( err_warn_msg_buf, "Could not locate CS ""%s"" for index %d",
-		 charnameP, j);
-	T1_PrintLog( "T1_SubsetFont()", err_warn_msg_buf,
-		     T1LOG_WARNING);
-	continue;
+	/* This might be a composite character, check and handle this case ... */
+	if ( cci != NULL )
+	  T1_FreeCompCharData( cci);
+	
+	cci = T1_GetCompCharData( FontID, j);
+	if ( (cci != NULL) && (cci->numPieces > 1) ) {
+	  /* composite character, loop through pieces and look for the components */
+	  for ( p=0; p<cci->numPieces; p++) {
+	    
+	    charnameP=T1_GetCharName( FontID, cci->pieces[p].piece);
+	    if ((currstring_no=locateCharString( FontID, charnameP))==0) {
+	      /* Character component not found. Try next ... */
+	      T1_PrintLog( "T1_SubsetFont()", "Could not locate component CS ""%s"" for index %d",
+			   T1LOG_WARNING, charnameP, cci->pieces[p].piece);
+	    }
+	    else {
+	      /* Add component to subset and process charstring only if it has not
+		 already been done */
+	      if (csdone[currstring_no-1]==0) {
+		k=i;
+		i+=sprintf( &(filebuf[i]), "/%s %d %s ", charnameP, charstringL, rdstring);
+		memcpy(&(filebuf[i]), charstringP, charstringL);
+		i+=charstringL;
+		i+=sprintf( &(filebuf[i]), " %s\n", ndstring);
+		csdone[currstring_no-1]=1;
+		T1_PrintLog( "T1_SubsetFont()",
+			     "Processing of component CS ""%s"" for index %d successful (len=%d bytes, line=%d bytes)",
+			     T1LOG_DEBUG, charnameP, cci->pieces[p].piece, charstringL, i-k);
+	      }
+	      else {
+		sprintf( err_warn_msg_buf, "Skipped multiple processing of component CS ""%s"" (index %d)",
+			 charnameP, cci->pieces[p].piece);
+		T1_PrintLog( "T1_SubsetFont()", err_warn_msg_buf,
+			     T1LOG_DEBUG);
+	      }
+	    }
+	  }
+	  continue;
+	}
+	else {
+	  /* Character not found and no composite. This is mysterious, but causes no harm
+	     because .notdef will be substituted */
+	  sprintf( err_warn_msg_buf, "Could not locate CS ""%s"" for index %d",
+		   charnameP, j);
+	  T1_PrintLog( "T1_SubsetFont()", err_warn_msg_buf,
+		       T1LOG_WARNING);
+	  continue;
+	}
+	
       }
       /* Process charstring only if it has not already been done */
       if (csdone[currstring_no-1]==0) {
@@ -494,8 +583,17 @@ char *T1_SubsetFont( int FontID,
       }
     }
   }
-  if (csdone!=NULL)
+
+  /* Get rid of temporary data */
+  if (csdone!=NULL) {
     free( csdone);
+    csdone = NULL;
+  }
+  if ( cci != NULL ) {
+    free( cci);
+    cci = NULL;
+  }
+
   /* All charstrings are written. Some PostScript code follows */
   i+=sprintf( &(filebuf[i]),
 	      "end\nend\nreadonly put\nnoaccess put\ndup /FontName get exch definefont pop\nmark currentfile closefile\n");
@@ -785,7 +883,7 @@ char *T1_GetCharString( int FontID, char *charname, int *len)
 
   static char *charstring=NULL;
   
-  if (CheckForFontID(FontID)!=1) {
+  if (T1_CheckForFontID(FontID)!=1) {
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   } 
@@ -826,7 +924,7 @@ char *T1_GetCharString( int FontID, char *charname, int *len)
 int T1_GetlenIV( int FontID)
 {
   
-  if (CheckForFontID(FontID)!=1) {
+  if (T1_CheckForFontID(FontID)!=1) {
     T1_errno=T1ERR_INVALID_FONTID;
     return( -2);
   } 

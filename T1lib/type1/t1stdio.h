@@ -63,7 +63,9 @@ typedef struct F_FILE {
 #ifndef NULL
 #define NULL 0       /* null pointer */
 #endif
+#ifndef EOF
 #define EOF (-1)     /* end of file */
+#endif
 #define F_BUFSIZ (512)
  
 #define getc(f) \

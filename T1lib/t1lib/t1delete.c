@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1delete.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-06-03
+  ----- Date:        2002-12-02
   ----- Description: This file is part of the t1-library. It contains
                      functions for giving free previously allocated
 		     memory areas and similar things.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -76,7 +76,7 @@ int T1_DeleteSize( int FontID, float size)
   for ( j=0; j<4; j++){
     antialias=level[j];
     /* Check if size exists; if not, return 1 */
-    if ((ptr=QueryFontSize( FontID, size, antialias))!=NULL){
+    if ((ptr=T1int_QueryFontSize( FontID, size, antialias))!=NULL){
       /* We have to remove a size-> */
       jobs++;
       /* Get pointers to structure which is before/after  the structure
@@ -140,17 +140,17 @@ int T1_DeleteAllSizes( int FontID)
   
   FONTSIZEDEPS *ptr;
   
-  if (CheckForFontID(FontID)!=1)
+  if (T1_CheckForFontID(FontID)!=1)
     return(-1);
   
   /* Start deleting at the end of the linked list: */ 
   sizecount=0;
-  if ((ptr=GetLastFontSize( FontID))==NULL){
+  if ((ptr=T1int_GetLastFontSize( FontID))==NULL){
     /* There has not been any size dependent data: */
     return(0);
   }
 
-  while (((ptr=GetLastFontSize(FontID)) != NULL)){
+  while (((ptr=T1int_GetLastFontSize(FontID)) != NULL)){
     currsize=ptr->size;
     T1_DeleteSize( FontID, currsize);
     sizecount++;
@@ -198,12 +198,12 @@ int T1_DeleteFont( int FontID)
   int result;
 
   
-  if (CheckForFontID(FontID)==-1){  /* Invalid ID */
+  if (T1_CheckForFontID(FontID)==-1){  /* Invalid ID */
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);   
   }
   
-  if (CheckForFontID(FontID)==0)   /* Font is not loaded */
+  if (T1_CheckForFontID(FontID)==0)   /* Font is not loaded */
     return(0);   
 
   /* Memory freeing must be done hierachical, start with size dependent

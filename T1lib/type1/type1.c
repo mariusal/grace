@@ -42,13 +42,29 @@
 /*                 (Font level hints & stem hints)                   */
 /*                                                                   */
 /*********************************************************************/
- 
+
+
+/* Write debug info into a PostScript file? */
+/* #define DUMPDEBUGPATH */
+/* If Dumping a debug path, should we dump both character and
+   outline path? Warning: Do never enable this, unless, your name
+   is Rainer Menzner and you know what you are doing! */
+/* #define DUMPDEBUGPATHBOTH */
+
+/* Generate a bunch of stderr output to understand and debug
+   the generation of outline surrounding curves */
+/* #define DEBUG_OUTLINE_SURROUNDING */
+
+#define SUBPATH_CLOSED     1
+#define SUBPATH_OPEN       0
+
 /******************/
 /* Include Files: */
 /******************/
 #include  "types.h"
 #include  <stdio.h>          /* a system-dependent include, usually */
 #include  <math.h>
+#include  <stdlib.h>
 
 #include  "objects.h"
 #include  "spaces.h"
@@ -60,7 +76,212 @@ typedef struct xobject xobject;
 #include  "util.h"       /* PostScript objects */
 #include  "fontfcn.h"
 #include  "blues.h"          /* Blues structure for font-level hints */
- 
+
+
+/* Considerations about hinting (2002-07-11, RMz (Author of t1lib))
+
+   It turns out that the hinting code as used until now produces some
+   artifacts in which may show up in suboptimal bitmaps. I have therefore
+   redesigned the algorithm. It is generally a bad idea to hint every
+   point that falls into a stem hint.
+
+   The idea is to hint only points for
+   which at least one of the two neighboring curve/line segments is aligned
+   with the stem in question. For curves, we are speaking about the
+   tangent line, that is, the line defined by (p1-p2) or (p3-p4).
+
+   For vertical stems this means, that only points which are connected
+   exactly into vertical direction are hinted. That is, the dx of the
+   respective curve vanishes. For horizontal stems, accordingly, dy must
+   vanish at least on one hand side of the point in order to be considered
+   as a stem.
+
+   Unfortunately this principle requires information about both sides of the
+   neighborhood of the point in question. In other words, it is not possible
+   to define a segment completely until the next segment has been inspected.
+   The idea thus is not compatible with the code in this file.
+
+   Furthermore, if certain points of a character outline are hinted according
+   to the stem hint info from the charstring, the non-hinted points may not be
+   left untouched. This would lead to very strong artifacts at small sizes,
+   especially if characters are defined in terms of curves. This is predominantly
+   the case for ComputerModern, for example.
+
+   To conclude, it is best to build a point list from the character description
+   adjust the non-hinted points after hinting has been completely finished. 
+
+   
+   Another rule we should state is
+   
+   We can work around this by not directly connecting the path segments at
+   the end of the lineto/curveto's, but rather deferring this to the beginning
+   of the next path constructing function. It's not great but it should work.
+
+   The functions that produce segments are
+
+   1) RMoveTo()
+   2) RLineto()
+   3) RRCurveTo()
+   4) DoClosePath()
+
+   Their code is moved into the switch statement of the new function
+   handleCurrentSegment(). This function is called when a new segment generating
+   operation has been decoded from the charstring. At this point a serious
+   decision about how to hint the points is possible.
+
+   ...
+*/
+
+
+/* The following struct is used to record points that define a path
+   in absolute charspace coordinates. x and y describe the location and
+   hinted, if greater 0, indicates that this point has been hinted. Bit 0
+   (0x1) indicates vertically adjusted and Bit 1 (0x2) indicates
+   horizontally adjusted. If hinted == -1, this point is not to be hinted
+   at all. This, for example, is the case for a a (H)SBW command.
+
+   The member type can be one of
+
+   PPOINT_SBW                --> initial path point as setup by (H)SBW
+   PPOINT_MOVE               --> point that finishes a MOVE segment
+   PPOINT_LINE               --> point that finishes a LINE segment
+   PPOINT_BEZIER_B           --> second point of a BEZIER segment
+   PPOINT_BEZIER_C           --> third point of a BEZIER segment
+   PPOINT_BEZIER_D           --> fourth point of a BEZIER segment
+   PPOINT_CLOSEPATH          --> a ClosePath command
+   PPOINT_ENDCHAR            --> an EndChar command
+   PPOINT_SEAC               --> a Standard Encoding Accented Char command
+   PPOINT_NONE               --> an invalid entry
+   
+
+   Note: BEZIER_B and BEZIER_C points generally cannot be flagged as
+   being hinted because are off-curve points.
+*/
+typedef struct 
+{
+  double x;              /* x-coordinate */
+  double y;              /* y-coordinate */
+  double ax;             /* adjusted x-coordinate */
+  double ay;             /* adjusted y-coordinate */
+  double dxpr;           /* x-shift in right path due to incoming segment (previous) */
+  double dypr;           /* y-shift in right path due to incoming segment (previous) */
+  double dxnr;           /* x-shift in right path due to outgoing segment (next) */
+  double dynr;           /* y-shift in right path due to incoming segment (next) */
+  double dxir;           /* x-shift in right path resulting from prologation of the linkend tangents (intersect) */
+  double dyir;           /* y-shift in right path resulting from prologation of the linkend tangents (intersect) */
+  double dist2prev;      /* distance to the previous point in path (used only for stroking) */
+  double dist2next;      /* distance to the next point in path (used only for stroking) */
+  enum 
+  {
+    PPOINT_SBW,
+    PPOINT_MOVE,
+    PPOINT_LINE,
+    PPOINT_BEZIER_B,
+    PPOINT_BEZIER_C,
+    PPOINT_BEZIER_D,
+    PPOINT_CLOSEPATH,
+    PPOINT_ENDCHAR,
+    PPOINT_SEAC,
+    PPOINT_NONE
+  } type;                /* type of path point */
+  signed char   hinted;  /* is this point hinted? */
+  unsigned char shape;   /* is the outline concave or convex or straight at this point? This flag
+			    is only relevant for onCurve points in the context of stroking! */
+} PPOINT;
+
+#define CURVE_NONE            0x00
+#define CURVE_STRAIGHT        0x01
+#define CURVE_CONVEX          0x02
+#define CURVE_CONCAVE         0x03
+
+#ifdef DEBUG_OUTLINE_SURROUNDING
+static char* pptypes[] = {
+  "PPOINT_SBW",
+  "PPOINT_MOVE",
+  "PPOINT_LINE",
+  "PPOINT_BEZIER_B",
+  "PPOINT_BEZIER_C",
+  "PPOINT_BEZIER_D",
+  "PPOINT_CLOSEPATH",
+  "PPOINT_ENDCHAR",
+  "PPOINT_SEAC"
+};
+static char* ppshapes[] = {
+  "SHAPE_OFFCURVE",
+  "SHAPE_STRAIGHT",
+  "SHAPE_CONVEX",
+  "SHAPE_CONCAVE"
+};
+#endif
+
+
+/* The PPOINT structs are organized in an array which is allocated
+   in chunks of 256 entries. A new point is allocated by a call to
+   nextPPoint and returns the index in the array of the newly
+   allocated point. */
+static PPOINT* ppoints       = NULL;
+static long numppoints       = 0;
+static long numppointchunks  = 0;
+static int  closepathatfirst = 0;
+
+static long nextPPoint( void) 
+{
+  ++numppoints;
+  /* Check whether to reallocate */
+  if ( numppoints > (numppointchunks * 256) ) {
+    ++numppointchunks;
+    ppoints = (PPOINT*) realloc( ppoints, (numppointchunks * 256) * sizeof( PPOINT));
+  }
+  /* return the current index */
+  return numppoints-1;
+}
+
+static void createFillPath( void);
+static void createStrokePath( double strokewidth, int subpathclosed);
+static void createClosedStrokeSubPath( long startind, long stopind,
+				       double strokewidth, int subpathclosed);
+static long computeDistances( long startind, long stopind, int subpathclosed);
+static void transformOnCurvePathPoint( double strokewidth,
+				       long prevind, long currind, long lastind);
+static void transformOffCurvePathPoint( double strokewidth, long currind);
+/* values for flag:
+   INTERSECT_PREVIOUS:     only take previous path segment into account.
+   INTERSECT_NEXT:         only take next path segment into account. 
+   INTERSECT_BOTH:         do a real intersection
+*/
+#define INTERSECT_PREVIOUS    -1
+#define INTERSECT_NEXT         1
+#define INTERSECT_BOTH         0
+static void intersectRight( long index, double halfwidth, long flag);
+/* values for orientation:
+   PATH_LEFT:              we are constructing the left path.
+   PATH_RIGHT:             we are constructing the right path.
+*/
+#define PATH_LEFT              1
+#define PATH_RIGHT             0
+/* values for position:
+   PATH_START:             current point starts the current path (use next-values).
+   PATH_END:               current point ends the current path (use prev-values).
+*/
+#define PATH_START             0
+#define PATH_END               1
+static void linkNode( long index, int position, int orientation);
+
+
+static long handleNonSubPathSegments( long pindex);
+static void handleCurrentSegment( long pindex);
+static void adjustBezier( long pindex);
+
+static double  size;
+static double scxx, scyx, scxy, scyy;
+static double  up;
+
+#ifdef DUMPDEBUGPATH
+static FILE*   psfile = NULL;
+static void PSDumpProlog( FILE* fp);
+static void PSDumpEpilog( FILE* fp);
+#endif
+
 /**********************************/
 /* Type1 Constants and Structures */
 /**********************************/
@@ -71,7 +292,7 @@ typedef struct xobject xobject;
 #define MAXLABEL 256       /* Maximum number of new hints */
 #define MAXSTEMS 512       /* Maximum number of VSTEM and HSTEM hints */
 #define EPS 0.001          /* Small number for comparisons */
- 
+
 /************************************/
 /* Adobe Type 1 CharString commands */
 /************************************/
@@ -143,7 +364,7 @@ static LONG tmpi;    /* Store converted value in tmpi to avoid re-evaluation */
 
 #define CC IfTrace1(TRUE, "Char \"%s\": ", currentchar)
 
-/* To make some compiler happy we have to care about return  types! */
+/* To make some compiler happy we have to care about return types! */
 #define Errori {errflag = TRUE; return 0;}    /* integer */
 #define Errord {errflag = TRUE; return 0.0;}  /* double */
 #define Errorv {errflag = TRUE; return;}      /* void */
@@ -159,21 +380,47 @@ static LONG tmpi;    /* Store converted value in tmpi to avoid re-evaluation */
 /********************/
 /* global variables */
 /********************/
-struct stem {                     /* representation of a STEM hint */
-    int vertical;                 /* TRUE if vertical, FALSE otherwise */
-    DOUBLE x, dx;                 /* interval of vertical stem */
-    DOUBLE y, dy;                 /* interval of horizontal stem */
-    struct segment *lbhint, *lbrevhint;   /* left  or bottom hint adjustment */
-    struct segment *rthint, *rtrevhint;   /* right or top    hint adjustment */
+struct stem {              /* representation of a STEM hint */
+  int vertical;                 /* TRUE if vertical, FALSE otherwise */
+  DOUBLE x, dx;                 /* interval of vertical stem */
+  DOUBLE y, dy;                 /* interval of horizontal stem */
+  DOUBLE alx, aldx;             /* interval of grid-aligned vertical stem */
+  DOUBLE aly, aldy;             /* interval of grid-aligned horizontal stem */
+  double lbhintval;             /* adjustment value for left or bottom hint */
+  double rthintval;             /* adjustment value for right ir top hint */
 };
  
+/******************************************************/
+/* Subroutines and statics for the Type1Char routines */
+/******************************************************/
+ 
+static int strindex; /* index into PostScript string being interpreted */
+static double currx, curry;           /* accumulated x and y values */
+static double hcurrx, hcurry;         /* accumulated values with hinting */
+
+
+struct callstackentry {
+  psobj *currstrP;        /* current CharStringP */
+  int currindex;          /* current strindex */
+  unsigned short currkey; /* current decryption key */
+  };
+ 
+static DOUBLE Stack[MAXSTACK];
+static int Top;
+static struct callstackentry CallStack[MAXCALLSTACK];
+static int CallTop;
+static DOUBLE PSFakeStack[MAXPSFAKESTACK];
+static int PSFakeTop;
+ 
+
 extern struct XYspace *IDENTITY;
  
 static DOUBLE escapementX, escapementY;
 static DOUBLE sidebearingX, sidebearingY;
 static DOUBLE accentoffsetX, accentoffsetY;
  
-static struct segment *path;
+static struct segment *path;    /* path of basechar */
+static struct segment *apath;   /* pass of accent char */
 static int errflag;
  
 /*************************************************/
@@ -332,6 +579,16 @@ static int ComputeAlignmentZones()
 	    blues->FamilyBlues[i];
 	  alignmentzones[numalignmentzones].topy =
 	    blues->FamilyBlues[i+1];
+#ifdef DUMPDEBUGPATH
+	  if ( psfile != NULL ) {
+	    if ( alignmentzones[numalignmentzones].topzone == TRUE )
+	      fprintf( psfile, "%f %f t1topzone\n", (blues->FamilyBlues[i])*up,
+		       (blues->BlueValues[i+1])*up);
+	    else
+	      fprintf( psfile, "%f %f t1bottomzone\n", (blues->FamilyBlues[i])*up,
+		       (blues->BlueValues[i+1])*up);
+	  }
+#endif
 	  continue;
 	}
       }
@@ -339,6 +596,16 @@ static int ComputeAlignmentZones()
     /* use this font's Blue zones */
     alignmentzones[numalignmentzones].bottomy = blues->BlueValues[i];
     alignmentzones[numalignmentzones].topy = blues->BlueValues[i+1];
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL ) {
+      if ( alignmentzones[numalignmentzones].topzone == TRUE )
+	fprintf( psfile, "%f %f t1topzone\n", (blues->BlueValues[i])*up,
+		 (blues->BlueValues[i+1])*up);
+      else
+	fprintf( psfile, "%f %f t1bottomzone\n", (blues->BlueValues[i])*up,
+		 (blues->BlueValues[i+1])*up);
+    }
+#endif
   }
  
   /* do the OtherBlues zones */
@@ -362,6 +629,12 @@ static int ComputeAlignmentZones()
 	    blues->FamilyOtherBlues[i];
 	  alignmentzones[numalignmentzones].topy =
 	    blues->FamilyOtherBlues[i+1];
+#ifdef DUMPDEBUGPATH
+	  if ( psfile != NULL ) {
+	    fprintf( psfile, "%f %f t1bottomzone\n", (blues->FamilyOtherBlues[i])*up,
+		     (blues->FamilyOtherBlues[i+1])*up);
+	  }
+#endif
 	  continue;
 	}
       }
@@ -369,6 +642,12 @@ static int ComputeAlignmentZones()
     /* use this font's Blue zones (as opposed to the Family Blues */
     alignmentzones[numalignmentzones].bottomy = blues->OtherBlues[i];
     alignmentzones[numalignmentzones].topy = blues->OtherBlues[i+1];
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL ) {
+      fprintf( psfile, "%f %f t1bottomzone\n", (blues->OtherBlues[i])*up,
+	       (blues->OtherBlues[i+1])*up);
+    }
+#endif
   }
   return(0);
   
@@ -395,20 +674,7 @@ static int InitStems()  /* Initialize the STEM hint data structures */
   
 }
  
-static int FinitStems()  /* Terminate the STEM hint data structures */
-{
-  int i;
- 
-  for (i = 0; i < numstems; i++) {
-    Destroy(stems[i].lbhint);
-    Destroy(stems[i].lbrevhint);
-    Destroy(stems[i].rthint);
-    Destroy(stems[i].rtrevhint);
-  }
-  return(0);
-  
-}
- 
+
 /*******************************************************************/
 /* Compute the dislocation that a stemhint should cause for points */
 /* inside the stem.                                                */
@@ -441,10 +707,9 @@ int stemno;
   else if (FABS(cyx) < 0.00001 || FABS(cxy) < 0.00001)
     rotated = FALSE; /* Char is upright (0 or 180 degrees), possibly oblique. */
   else {
-    stems[stemno].lbhint = NULL; /* Char is at non-axial angle, ignore hints. */
-    stems[stemno].lbrevhint = NULL;
-    stems[stemno].rthint = NULL;
-    stems[stemno].rtrevhint = NULL;
+    stems[stemno].lbhintval = 0.0; /* Char is at non-axial angle, ignore hints. */
+    stems[stemno].rthintval = 0.0;
+    ProcessHints = 0;
     return(0);
   }
  
@@ -454,10 +719,18 @@ int stemno;
     verticalondevice = !rotated;
     stemstart = stems[stemno].x;
     stemwidth = stems[stemno].dx;
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1vstem\n", stemstart*up, stemwidth*up);
+#endif
   } else {
     verticalondevice = rotated;
     stemstart = stems[stemno].y;
     stemwidth = stems[stemno].dy;
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1hstem\n", stemstart*up, stemwidth*up);
+#endif
   }
  
   /* Determine how many pixels (non-negative) correspond to 1 character space
@@ -476,7 +749,7 @@ int stemno;
     unitpixels = FABS(Ypixels);
  
   onepixel = 1.0 / unitpixels;
- 
+
   /**********************/
   /* ADJUST STEM WIDTHS */
   /**********************/
@@ -501,7 +774,7 @@ int stemno;
         widthdiff = blues->StemSnapH[i] - stemwidth;
     }
   }
- 
+
   /* Only expand or contract stems if they differ by less than 1 pixel from
      the closest standard width, otherwise make the width difference = 0. */
   if (FABS(widthdiff) > onepixel)
@@ -528,7 +801,7 @@ int stemno;
  
   stemshift = 0.0;
  
-  if (!stems[stemno].vertical) {
+  if ( !stems[stemno].vertical ) {
  
     /* Get bottom and top boundaries of the stem. */
     stembottom = stemstart;
@@ -648,11 +921,18 @@ int stemno;
         rthintvalue = stemshift + widthdiff; /* top    */
       }
 
-      stems[stemno].lbhint    = (struct segment *)Permanent(Loc(CharSpace, 0.0,  lbhintvalue));
-      stems[stemno].lbrevhint = (struct segment *)Permanent(Loc(CharSpace, 0.0, -lbhintvalue));
-      stems[stemno].rthint    = (struct segment *)Permanent(Loc(CharSpace, 0.0,  rthintvalue));
-      stems[stemno].rtrevhint = (struct segment *)Permanent(Loc(CharSpace, 0.0, -rthintvalue));
- 
+      stems[stemno].lbhintval = lbhintvalue;
+      stems[stemno].rthintval = rthintvalue;
+
+      /* store grid-aligned stems values */
+      stems[stemno].aly       = stemstart + lbhintvalue;
+      stems[stemno].aldy      = stemwidth + widthdiff;
+      
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f t1alignedhstem\n", (stems[stemno].aly)*up,
+		 (stems[stemno].aldy)*up);
+#endif
       return(0);
  
     } /* endif (i < numalignmentzones) */
@@ -671,157 +951,179 @@ int stemno;
   rthintvalue = stemshift + widthdiff / 2; /* right or top    */
  
   if (stems[stemno].vertical) {
-    stems[stemno].lbhint    = (struct segment *)Permanent(Loc(CharSpace,  lbhintvalue, 0.0));
-    stems[stemno].lbrevhint = (struct segment *)Permanent(Loc(CharSpace, -lbhintvalue, 0.0));
-    stems[stemno].rthint    = (struct segment *)Permanent(Loc(CharSpace,  rthintvalue, 0.0));
-    stems[stemno].rtrevhint = (struct segment *)Permanent(Loc(CharSpace, -rthintvalue, 0.0));
+    stems[stemno].lbhintval = lbhintvalue;
+    stems[stemno].rthintval = rthintvalue;
+
+    /* store grid-aligned stem values */
+    stems[stemno].alx       = stemstart + stemshift;
+    stems[stemno].aldx      = stemwidth + widthdiff;
+      
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1alignedvstem\n", (stems[stemno].alx)*up,
+	       (stems[stemno].aldx)*up);
+#endif
   } else {
-    stems[stemno].lbhint    = (struct segment *)Permanent(Loc(CharSpace, 0.0,  lbhintvalue));
-    stems[stemno].lbrevhint = (struct segment *)Permanent(Loc(CharSpace, 0.0, -lbhintvalue));
-    stems[stemno].rthint    = (struct segment *)Permanent(Loc(CharSpace, 0.0,  rthintvalue));
-    stems[stemno].rtrevhint = (struct segment *)Permanent(Loc(CharSpace, 0.0, -rthintvalue));
+    stems[stemno].lbhintval = lbhintvalue;
+    stems[stemno].rthintval = rthintvalue;
+
+    /* store grid-aligned stem values */
+    stems[stemno].aly       = stemstart + stemshift;
+    stems[stemno].aldy      = stemwidth + widthdiff;
+      
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1alignedhstem\n", (stems[stemno].aly)*up,
+    	       (stems[stemno].aldy)*up);
+#endif
   }
   return(0);
   
 }
  
+
 #define LEFT   1
 #define RIGHT  2
 #define BOTTOM 3
 #define TOP    4
- 
-/*********************************************************************/
-/* Adjust a point using the given stem hint.  Use the left/bottom    */
-/* hint value or the right/top hint value depending on where the     */
-/* point lies in the stem.                                           */
-/*********************************************************************/
-static struct segment *Applyhint(p, stemnumber, half)
-struct segment *p;
-int stemnumber, half;
-{
-  if (half == LEFT || half == BOTTOM)
-    return Join(p, stems[stemnumber].lbhint); /* left  or bottom hint */
-  else
-    return Join(p, stems[stemnumber].rthint); /* right or top    hint */
-}
- 
-/*********************************************************************/
-/* Adjust a point using the given reverse hint.  Use the left/bottom */
-/* hint value or the right/top hint value depending on where the     */
-/* point lies in the stem.                                           */
-/*********************************************************************/
-static struct segment *Applyrevhint(p, stemnumber, half)
-struct segment *p;
-int stemnumber, half;
-{
-  if (half == LEFT || half == BOTTOM)
-    return Join(p, stems[stemnumber].lbrevhint); /* left  or bottom hint */
-  else
-    return Join(p, stems[stemnumber].rtrevhint); /* right or top    hint */
-}
- 
+
+
 /***********************************************************************/
 /* Find the vertical and horizontal stems that the current point       */
 /* (x, y) may be involved in.  At most one horizontal and one vertical */
 /* stem can apply to a single point, since there are no overlaps       */
 /* allowed.                                                            */
-/*   The actual hintvalue is returned as a location.                   */
+/*   The point list updated by this function.                          */
 /* Hints are ignored inside a DotSection.                              */
 /***********************************************************************/
-static struct segment *FindStems(x, y, dx, dy)
-DOUBLE x, y, dx, dy;
+static void FindStems( double x, double y,
+		       double dx, double dy,
+		       double nextdx, double nextdy)
 {
   int i;
   int newvert, newhor;
-  struct segment *p;
   int newhorhalf, newverthalf;
+
+  /* The following values will be used to decide whether a curve
+     crosses or touches a stem in an aligned manner or not */
+  double dtana     = 0.0;   /* tangent of pre-delta against horizontal line */ 
+  double dtanb     = 0.0;   /* tangent of pre-delta against vertical line */ 
+  double nextdtana = 0.0;   /* tangent of post-delta against horizontal line */ 
+  double nextdtanb = 0.0;   /* tangent of post-delta against vertical line */ 
+  
  
-  if (InDotSection) return(NULL);
- 
+  /* setup default hinted position */
+  ppoints[numppoints-1].ax     = ppoints[numppoints-1].x;
+  ppoints[numppoints-1].ay     = ppoints[numppoints-1].y;
+  if ( ppoints[numppoints-1].hinted == -1 )
+    /* point is not to be hinted! */
+    return;
+  else
+    ppoints[numppoints-1].hinted = 0;
+
+  if ( InDotSection )
+    return;
+
+  if ( ProcessHints == 0 ) {
+    return;
+  }
+
+  /* setup (absolute) tangent values and define limits that indicate nearly
+     horizontal or nearly vertical alignment */
+#define NEARLYVERTICAL     0.2   /* This corresponds to about 11.3 degress deviation */
+#define NEARLYHORIZONTAL   0.2   /* from the ideal direction.                        */
+  if ( dy != 0 ) {
+    dtana = dx/dy;
+    if ( dtanb < 0.0 )
+      dtana = -dtana;
+  }
+  else
+    dtana = NEARLYHORIZONTAL;
+  if ( dx != 0 ) {
+    dtanb = dy/dx;
+    if ( dtanb < 0.0 )
+      dtanb = -dtanb;
+  }
+  else
+    dtanb = NEARLYVERTICAL;
+  if ( nextdy != 0 ) {
+    nextdtana = nextdx/nextdy;
+    if ( nextdtana < 0.0 )
+      nextdtana = -nextdtana;
+  }
+  else
+    nextdtana = NEARLYHORIZONTAL;
+  if ( nextdx != 0 ) {
+    nextdtanb = nextdy/nextdx;
+    if ( nextdtanb < 0.0 )
+      nextdtanb = -nextdtanb;
+  }
+  else
+    nextdtanb = NEARLYVERTICAL;
+  
   newvert = newhor = -1;
   newhorhalf = newverthalf = -1;
- 
+
   for (i = currstartstem; i < numstems; i++) {
     if (stems[i].vertical) { /* VSTEM hint */
-      if ((x >= stems[i].x - EPS) &&
-          (x <= stems[i].x+stems[i].dx + EPS)) {
-        newvert = i;
-        if (dy != 0.0) {
-          if (dy < 0) newverthalf = LEFT;
-          else        newverthalf = RIGHT;
-        } else {
-          if (x < stems[i].x+stems[i].dx / 2) newverthalf = LEFT;
-          else                                newverthalf = RIGHT;
-        }
+      /* OK, stem is crossed in an aligned way */
+      if ( (dtana <= NEARLYVERTICAL) || (nextdtana <= NEARLYVERTICAL)) {
+	if ((x >= stems[i].x ) &&
+	    (x <= stems[i].x+stems[i].dx )) {
+	  newvert = i;
+	  if (x < stems[i].x+stems[i].dx / 2)
+	    newverthalf = LEFT;
+	  else
+	    newverthalf = RIGHT;
+	}
       }
-    } else {                 /* HSTEM hint */
-      if ((y >= stems[i].y - EPS) &&
-          (y <= stems[i].y+stems[i].dy + EPS)) {
-        newhor = i;
-        if (dx != 0.0) {
-          if (dx < 0) newhorhalf = TOP;
-          else        newhorhalf = BOTTOM;
-        } else {
-          if (y < stems[i].y+stems[i].dy / 2) newhorhalf = BOTTOM;
-          else                                newhorhalf = TOP;
-        }
+    }
+    else {                 /* HSTEM hint */
+      if ( (dtanb <= NEARLYHORIZONTAL) || (nextdtanb <= NEARLYHORIZONTAL)) {
+	/* OK, stem is crossed in an aligned way */
+	if ((y >= stems[i].y ) &&
+	    (y <= stems[i].y+stems[i].dy )) {
+	  newhor = i;
+	  if (y < stems[i].y+stems[i].dy / 2)
+	    newhorhalf = BOTTOM;
+	  else
+	    newhorhalf = TOP;
+	}
       }
     }
   }
- 
-  p = NULL;
- 
-  if (newvert == -1 && oldvert == -1) ; /* Outside of any hints */
-  else if (newvert == oldvert &&
-    newverthalf == oldverthalf); /* No hint change */
-  else if (oldvert == -1) { /* New vertical hint in effect */
-    p = Applyhint(p, newvert, newverthalf);
-  } else if (newvert == -1) { /* Old vertical hint no longer in effect */
-    p = Applyrevhint(p, oldvert, oldverthalf);
-  } else { /* New vertical hint in effect, old hint no longer in effect */
-    p = Applyrevhint(p, oldvert, oldverthalf);
-    p = Applyhint(p, newvert, newverthalf);
+
+  if ( newvert != -1 ) {
+    /* mark the latest point in the point list to be v-hinted! */
+    if ( newverthalf == LEFT ) {
+      /* left hint */
+      ppoints[numppoints-1].ax  += stems[newvert].lbhintval;
+    }
+    else {
+       /* right hint */
+      ppoints[numppoints-1].ax  += stems[newvert].rthintval;
+    }
+    ppoints[numppoints-1].hinted |= 0x01;
   }
- 
-  if (newhor == -1 && oldhor == -1) ; /* Outside of any hints */
-  else if (newhor == oldhor &&
-    newhorhalf == oldhorhalf) ; /* No hint change */
-  else if (oldhor == -1) { /* New horizontal hint in effect */
-    p = Applyhint(p, newhor, newhorhalf);
-  } else if (newhor == -1) { /* Old horizontal hint no longer in effect */
-    p = Applyrevhint(p, oldhor, oldhorhalf);
+  if ( newhor != -1 ) {
+    /* mark the latest point in the point list to be h-hinted! */
+    if ( newhorhalf == BOTTOM ) {
+      /* bottom hint */
+      ppoints[numppoints-1].ay  += stems[newhor].lbhintval;
+    }
+    else {
+       /* top hint */
+      ppoints[numppoints-1].ay  += stems[newhor].rthintval;
+    }
+    ppoints[numppoints-1].hinted |= 0x02;
   }
-  else { /* New horizontal hint in effect, old hint no longer in effect */
-    p = Applyrevhint(p, oldhor, oldhorhalf);
-    p = Applyhint(p, newhor, newhorhalf);
-  }
- 
-  oldvert = newvert; oldverthalf = newverthalf;
-  oldhor  = newhor;  oldhorhalf  = newhorhalf;
- 
-  return p;
+  
+  return;
+  
 }
- 
-/******************************************************/
-/* Subroutines and statics for the Type1Char routines */
-/******************************************************/
- 
-static int strindex; /* index into PostScript string being interpreted */
-static DOUBLE currx, curry; /* accumulated x and y values for hints */
- 
-struct callstackentry {
-  psobj *currstrP;        /* current CharStringP */
-  int currindex;          /* current strindex */
-  unsigned short currkey; /* current decryption key */
-  };
- 
-static DOUBLE Stack[MAXSTACK];
-static int Top;
-static struct callstackentry CallStack[MAXCALLSTACK];
-static int CallTop;
-static DOUBLE PSFakeStack[MAXPSFAKESTACK];
-static int PSFakeTop;
- 
+
+
+/* Type 1 internal functions */
 static int ClearStack()
 {
   Top = -1;
@@ -1394,20 +1696,24 @@ static int VStem(x, dx)
 static int RLineTo(dx, dy)
   DOUBLE dx, dy;
 {
-  struct segment *B;
- 
-  IfTrace2((FontDebug), "RLineTo %f %f\n", dx, dy);
- 
-  B = Loc(CharSpace, dx, dy);
- 
-  if (ProcessHints) {
-    currx += dx;
-    curry += dy;
-    /* B = Join(B, FindStems(currx, curry)); */
-    B = Join(B, FindStems(currx, curry, dx, dy));
-  }
- 
-  path = Join(path, Line(B));
+  long pindex = 0;
+  
+  /* compute hinting for previous segment! */
+  FindStems( currx, curry, currx-ppoints[numppoints-2].x, curry-ppoints[numppoints-2].y, dx, dy);
+
+  /* Allocate a new path point and pre-setup data */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx + dx;
+  ppoints[pindex].y       = curry + dy;
+  ppoints[pindex].ax      = ppoints[pindex].x;
+  ppoints[pindex].ay      = ppoints[pindex].y;
+  ppoints[pindex].type    = PPOINT_LINE;
+  ppoints[pindex].hinted  = 0;
+
+  /* update ideal position */
+  currx                  += dx;
+  curry                  += dy;
+
   return(0);
 }
  
@@ -1418,31 +1724,54 @@ static int RLineTo(dx, dy)
 static int RRCurveTo(dx1, dy1, dx2, dy2, dx3, dy3)
   DOUBLE dx1, dy1, dx2, dy2, dx3, dy3;
 {
-  struct segment *B, *C, *D;
- 
-  IfTrace4((FontDebug), "RRCurveTo %f %f %f %f ", dx1, dy1, dx2, dy2);
-  IfTrace2((FontDebug), "%f %f\n", dx3, dy3);
- 
-  B = Loc(CharSpace, dx1, dy1);
-  C = Loc(CharSpace, dx2, dy2);
-  D = Loc(CharSpace, dx3, dy3);
- 
-  if (ProcessHints) {
-    /* For a Bezier curve, we apply the full hint value to
-       the Bezier C point (and thereby D point). */
-    currx += dx1 + dx2 + dx3;
-    curry += dy1 + dy2 + dy3;
-    /* C = Join(C, FindStems(currx, curry)); */
-    C = Join(C, FindStems(currx, curry, dx3, dy3));
-  }
- 
-  /* Since XIMAGER is not completely relative, */
-  /* we need to add up the delta values */
- 
-  C = Join(C, Dup(B));
-  D = Join(D, Dup(C));
- 
-  path = Join(path, Bezier(B, C, D));
+  long pindex = 0;
+  
+  /* compute hinting for previous point! */
+  FindStems( currx, curry, currx-ppoints[numppoints-2].x, curry-ppoints[numppoints-2].y, dx1, dy1);
+
+  /* Allocate three new path points and pre-setup data */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx + dx1;
+  ppoints[pindex].y       = curry + dy1;
+  ppoints[pindex].ax      = ppoints[pindex].x;
+  ppoints[pindex].ay      = ppoints[pindex].y;
+  ppoints[pindex].type    = PPOINT_BEZIER_B;
+  ppoints[pindex].hinted  = 0;
+
+  /* update ideal position */
+  currx                  += dx1;
+  curry                  += dy1;
+
+  /* compute hinting for previous point! */
+  FindStems( currx, curry, currx-ppoints[numppoints-2].x, curry-ppoints[numppoints-2].y, dx2, dy2);
+
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx + dx2;
+  ppoints[pindex].y       = curry + dy2;
+  ppoints[pindex].ax      = ppoints[pindex].x;
+  ppoints[pindex].ay      = ppoints[pindex].y;
+  ppoints[pindex].type    = PPOINT_BEZIER_C;
+  ppoints[pindex].hinted  = 0;
+
+  /* update ideal position */
+  currx                  += dx2;
+  curry                  += dy2;
+
+  /* compute hinting for previous point! */
+  FindStems( currx, curry, currx-ppoints[numppoints-2].x, curry-ppoints[numppoints-2].y, dx3, dy3);
+
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx + dx3;
+  ppoints[pindex].y       = curry + dy3;
+  ppoints[pindex].ax      = ppoints[pindex].x;
+  ppoints[pindex].ay      = ppoints[pindex].y;
+  ppoints[pindex].type    = PPOINT_BEZIER_D;
+  ppoints[pindex].hinted  = 0;
+
+  /* update ideal position */
+  currx                  += dx3;
+  curry                  += dy3;
+
   return(0);
 }
  
@@ -1451,12 +1780,49 @@ static int RRCurveTo(dx1, dy1, dx2, dy2, dx3, dy3)
 /* current point */
 static int DoClosePath()
 {
-  struct segment *CurrentPoint;
- 
-  IfTrace0((FontDebug), "DoClosePath\n");
-  CurrentPoint = Phantom(path);
-  path = ClosePath(path);
-  path = Join(Snap(path), CurrentPoint);
+  long pindex = 0;
+  long i = 0;
+  long tmpind;
+  double deltax = 0.0;
+  double deltay = 0.0;
+  
+  /* If this ClosePath command together with the starting point of this
+     path completes to a segment aligned to a stem, we would miss
+     hinting for this point. --> Check and explicitly care for this! */
+  /* 1. Step back in the point list to the last moveto-point */
+  i = numppoints - 1;
+  while ( (i > 0) && (ppoints[i].type != PPOINT_MOVE ) ) { 
+    --i; 
+  }
+  
+  /* 2. Re-hint starting point and hint current point */
+  if ( ppoints[i].type == PPOINT_MOVE) {
+    deltax = ppoints[i].x - ppoints[numppoints-1].x;
+    deltay = ppoints[i].y - ppoints[numppoints-1].y;
+
+    /* save nummppoints and reset to move point */
+    tmpind = numppoints;
+    numppoints = i + 1;
+    
+    /* re-hint starting point of current subpath (uses the value of numppoints!) */
+    FindStems( ppoints[i].x, ppoints[i].y, deltax, deltay,
+	       ppoints[i+1].x-ppoints[i].x, ppoints[i+1].y-ppoints[i].y);
+
+    /* restore numppoints and setup hinting for current point */
+    numppoints = tmpind;
+    FindStems( currx, curry, currx-ppoints[numppoints-2].x, curry-ppoints[numppoints-2].y,
+	       deltax, deltay);
+  }
+  
+  /* Allocate a new path point and pre-setup data */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx;
+  ppoints[pindex].y       = curry;
+  ppoints[pindex].ax      = ppoints[pindex-1].x;
+  ppoints[pindex].ay      = ppoints[pindex-1].y;
+  ppoints[pindex].type    = PPOINT_CLOSEPATH;
+  ppoints[pindex].hinted  = 0;
+
   return(0);
 }
  
@@ -1466,7 +1832,7 @@ static int DoClosePath()
 static int CallSubr(subrno)
   int subrno;
 {
-  IfTrace1((FontDebug), "CallSubr %d\n", subrno);
+  IfTrace2((FontDebug), "CallSubr %d (CallStackSize=%d)\n", subrno, CallTop);
   if ((subrno < 0) || (subrno >= SubrsP->len))
     Error0i("CallSubr: subrno out of range\n");
   PushCall(CharStringP, strindex, r);
@@ -1495,16 +1861,26 @@ static int Return()
 /* font dictionary */
 static int EndChar()
 {
+  long pindex = 0;
+  
   IfTrace0((FontDebug), "EndChar\n");
  
   /* There is no need to compute and set bounding box for
      the cache, since XIMAGER does that on the fly. */
  
-  /* Perform a Closepath just in case the command was left out */
-  path = ClosePath(path);
- 
-  /* Set character width */
-  path = Join(Snap(path), Loc(CharSpace, escapementX, escapementY));
+  /* Allocate a new path point and pre-setup data.
+     Note: For this special case, we use the variables that usually
+     store hinted coordinates for the escapement of the character.
+     It is required in handleCurrentSegment().
+  */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx;
+  ppoints[pindex].y       = curry;
+  ppoints[pindex].ax      = escapementX;
+  ppoints[pindex].ay      = escapementY;
+  ppoints[pindex].type    = PPOINT_ENDCHAR;
+  ppoints[pindex].hinted  = -1;
+
   return(0);
  
 }
@@ -1514,21 +1890,37 @@ static int EndChar()
 static int RMoveTo(dx,dy)
   DOUBLE dx,dy;
 {
-  struct segment *B;
- 
-  IfTrace2((FontDebug), "RMoveTo %f %f\n", dx, dy);
- 
-  B = Loc(CharSpace, dx, dy);
- 
-  if (ProcessHints) {
-    currx += dx;
-    curry += dy;
-    /* B = Join(B, FindStems(currx, curry)); */
-    B = Join(B, FindStems(currx, curry, 0.0, 0.0));
+  long pindex = 0;
+
+  /* Compute hinting for this path point! */
+  if ( numppoints == 1 ) {
+    /* Since RMoveTo for this case starts a new path segment
+       (flex-constructs have already been handled), the current
+       point is hinted here only taking the next point into account,
+       but not the previous. Later on, in DoClosePath(), we'll step
+       back to this point and the position might be rehinted. */
+    FindStems( currx, curry, 0, 0, dx, dy);
   }
- 
-  path = Join(path, B);
-  return(0);
+  else {
+    FindStems( currx, curry, ppoints[numppoints-2].x, ppoints[numppoints-2].y, dx, dy);
+  }
+  
+
+
+  /* Allocate a new path point and pre-setup data */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx + dx;
+  ppoints[pindex].y       = curry + dy;
+  ppoints[pindex].ax      = ppoints[pindex].x;
+  ppoints[pindex].ay      = ppoints[pindex].y;
+  ppoints[pindex].type    = PPOINT_MOVE;
+  ppoints[pindex].hinted  = 0;
+
+  /* update ideal position */
+  currx                  += dx;
+  curry                  += dy;
+  
+  return 0;
 }
  
 /* - DOTSECTION |- */
@@ -1548,8 +1940,8 @@ static int Seac(asb, adx, ady, bchar, achar)
   unsigned char bchar, achar;
 {
   int Code;
-  struct segment *mypath;
- 
+  long pindex = 0;
+  
   IfTrace4((FontDebug), "SEAC %f %f %f %d ", asb, adx, ady, bchar);
   IfTrace1((FontDebug), "%d\n", achar);
  
@@ -1558,9 +1950,9 @@ static int Seac(asb, adx, ady, bchar, achar)
   /* The variables accentoffsetX/Y modify sidebearingX/Y in Sbw(). */
   /* Note that these incorporate the base character's sidebearing shift by */
   /* using the current sidebearingX, Y values. */
-  accentoffsetX = sidebearingX + adx - asb;
-  accentoffsetY = sidebearingY + ady;
- 
+  accentoffsetX = adx - asb;
+  accentoffsetY = ady;
+
   /* Set path = NULL to avoid complaints from Sbw(). */
   path = NULL;
  
@@ -1580,10 +1972,18 @@ static int Seac(asb, adx, ady, bchar, achar)
     Decode(Code);
     if (errflag) return(0);
   }
-  /* Copy snapped path to mypath and set path to NULL as above. */
-  mypath = Snap(path);
-  path = NULL;
- 
+
+  /* Allocate a new path point. Data in this case is not relevant
+     in handleSegment(), we merely insert a snap() in order to return
+     to origin of the accent char. */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = accentoffsetX;
+  ppoints[pindex].y       = accentoffsetY;
+  ppoints[pindex].ax      = accentoffsetX;
+  ppoints[pindex].ay      = accentoffsetY;
+  ppoints[pindex].type    = PPOINT_SEAC;
+  ppoints[pindex].hinted  = 0;
+
   /* We must reset these to null now. */
   accentoffsetX = accentoffsetY = 0;
  
@@ -1595,7 +1995,6 @@ static int Seac(asb, adx, ady, bchar, achar)
   ClearPSFakeStack();
   ClearCallStack();
  
-  FinitStems();
   InitStems();
  
   for (;;) {
@@ -1603,7 +2002,7 @@ static int Seac(asb, adx, ady, bchar, achar)
     Decode(Code);
     if (errflag) return(0);
   }
-  path = Join(mypath, path);
+
   return(0);
 }
  
@@ -1614,6 +2013,9 @@ static int Seac(asb, adx, ady, bchar, achar)
 static int Sbw(sbx, sby, wx, wy)
   DOUBLE sbx, sby, wx, wy;
 {
+  long pindex = 0;
+  
+  
   IfTrace4((FontDebug), "SBW %f %f %f %f\n", sbx, sby, wx, wy);
  
   escapementX = wx; /* Character width vector */
@@ -1623,8 +2025,29 @@ static int Sbw(sbx, sby, wx, wy)
   sidebearingX = sbx + accentoffsetX;
   sidebearingY = sby + accentoffsetY;
  
+  currx = sidebearingX;
+  curry = sidebearingY;
+  /*
   path = Join(path, Loc(CharSpace, sidebearingX, sidebearingY));
-  if (ProcessHints) {currx = sidebearingX; curry = sidebearingY;}
+  if (ProcessHints) {
+    hcurrx = sidebearingX;
+    hcurry = sidebearingY;
+  }
+  */
+  
+  /* Allocate a path point and setup.
+     Note: In this special case, we store the char escapement in the members
+           ax and ay. They are required in handleCurrentSegment(). Hinting
+	   is not required for SBW, anyhow!
+  */
+  pindex = nextPPoint();
+  ppoints[pindex].x       = currx;
+  ppoints[pindex].y       = curry;
+  ppoints[pindex].ax      = wx;
+  ppoints[pindex].ay      = wy;
+  ppoints[pindex].type    = PPOINT_SBW;
+  ppoints[pindex].hinted  = -1; /* indicate that point is not to be hinted */
+ 
   return(0);
 }
  
@@ -1675,24 +2098,6 @@ static DOUBLE Div(num1, num2)
  
 #define PaintType (0)
  
-#define lineto(x,y) { \
-  struct segment *CurrentPoint; \
-  DOUBLE CurrentX, CurrentY; \
-  CurrentPoint = Phantom(path); \
-  QueryLoc(CurrentPoint, CharSpace, &CurrentX, &CurrentY); \
-  Destroy(CurrentPoint); \
-  RLineTo(x - CurrentX, y - CurrentY); \
-}
- 
-#define curveto(x0,y0,x1,y1,x2,y2) { \
-  struct segment *CurrentPoint; \
-  DOUBLE CurrentX, CurrentY; \
-  CurrentPoint = Phantom(path); \
-  QueryLoc(CurrentPoint, CharSpace, &CurrentX, &CurrentY); \
-  Destroy(CurrentPoint); \
-  RRCurveTo(x0 - CurrentX, y0 - CurrentY, x1 - x0, y1 - y0, x2 - x1, y2 - y1); \
-}
- 
 #define xshrink(x) ((x - c4x2) * shrink +c4x2)
 #define yshrink(y) ((y - c4y2) * shrink +c4y2)
  
@@ -1741,9 +2146,15 @@ static void FlxProc(c1x2, c1y2, c3x0, c3y0, c3x1, c3y1, c3x2, c3y2,
   DOUBLE eShift;
   DOUBLE cx, cy;
   DOUBLE ex, ey;
- 
-  Destroy(path);
-  path = FlxOldPath; /* Restore previous path (stored in FlxProc1) */
+
+
+  /* Our PPOINT list now contains 7 moveto commands which
+     are about to be consumed by the Flex mechanism. --> Remove these
+     seven elements (their values already reside on the PSFakeStack!)
+     and approriately restore the current accumulated position. */
+  numppoints -= 7;
+  currx = ppoints[numppoints-1].x;
+  curry = ppoints[numppoints-1].y;
  
   if (ProcessHints) {
     dmin = TYPE1_ABS(idmin) / 100.0; /* Minimum Flex height in pixels */
@@ -1865,15 +2276,25 @@ static void FlxProc(c1x2, c1y2, c3x0, c3y0, c3x1, c3y1, c3x2, c3y2,
     }
  
     if (x2 == x5 || y2 == y5) {
-      lineto(x5, y5);
+      RLineTo( x5 - currx, y5 - curry); \
     } else {
-      curveto(x0, y0, x1, y1, x2, y2);
-      curveto(x3, y3, x4, y4, x5, y5);
+      RRCurveTo( x0 - currx, y0 - curry,
+		 x1 - x0, y1 - y0,
+		 x2 - x1,
+		 y2 - y1); 
+      RRCurveTo( x3 - currx, y3 - curry,
+		 x4 - x3, y4 - y3,
+		 x5 - x4, y5 - y4); 
     }
   } else { /* ProcessHints is off */
     PickCoords(FALSE); /* Pick original control points */
-    curveto(x0, y0, x1, y1, x2, y2);
-    curveto(x3, y3, x4, y4, x5, y5);
+    RRCurveTo( x0 - currx, y0 - curry,
+	       x1 - x0, y1 - y0,
+	       x2 - x1,
+	       y2 - y1); 
+    RRCurveTo( x3 - currx, y3 - curry,
+	       x4 - x3, y4 - y3,
+	       x5 - x4, y5 - y4); 
   }
  
   PSFakePush(epY);
@@ -1885,12 +2306,9 @@ static void FlxProc(c1x2, c1y2, c3x0, c3y0, c3x1, c3y1, c3x2, c3y2,
 /*   Saves and clears path, then restores currentpoint */
 static void FlxProc1()
 {
-  struct segment *CurrentPoint;
- 
-  CurrentPoint = Phantom(path);
- 
-  FlxOldPath = path;
-  path = CurrentPoint;
+  /* Since we are now building the path point list,
+     there's nothing to do here! */
+  return;
 }
  
 /* FlxProc2() = OtherSubrs[2]; Part of Flex */
@@ -1900,14 +2318,10 @@ static void FlxProc2()
 {
   struct segment *CurrentPoint;
   DOUBLE CurrentX, CurrentY;
- 
-  CurrentPoint = Phantom(path);
-  QueryLoc(CurrentPoint, CharSpace, &CurrentX, &CurrentY);
-  Destroy(CurrentPoint);
- 
+  
   /* Push CurrentPoint on fake PostScript stack */
-  PSFakePush(CurrentX);
-  PSFakePush(CurrentY);
+  PSFakePush( ppoints[numppoints-1].x);
+  PSFakePush( ppoints[numppoints-1].y);
 }
  
 /* HintReplace() = OtherSubrs[3]; Hint Replacement            */
@@ -1988,11 +2402,32 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
 			  psobj *charstrP, psobj *subrsP,
 			  psobj *osubrsP,
 			  struct blues_struct *bluesP,
-			  int *modeP, char *charname)
+			  int *modeP, char *charname,
+			  float strokewidth)
 {
   int Code;
- 
-  path = NULL;
+  long i = 0;
+  
+  double xp, yp;
+#ifdef DUMPDEBUGPATH
+  char fnbuf[128];
+#endif
+  struct segment* p;
+
+  /* Reset point list */
+  ppoints          = NULL;
+  numppoints       = 0;
+  numppointchunks  = 0;
+
+  /* disable hinting for stroking */
+  if ( strokewidth != 0.0f )
+    ProcessHints = 0;
+  
+  if ( env->fontInfoP[PAINTTYPE].value.data.integer == 1 )
+    ProcessHints = 0;
+
+  path    = NULL;
+  apath   = NULL;
   errflag = FALSE;
  
   /* Make parameters available to all Type1 routines */
@@ -2006,6 +2441,22 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
  
   blues = bluesP;
  
+  QuerySpace( S, &scxx, &scyx, &scxy, &scyy); /* Transformation matrix */
+  p = ILoc( S, 1, 0);
+  QueryLoc(p, IDENTITY, &xp, &yp);
+  up = FABS(xp);
+ 
+  size = scxx * 1000.0;
+#ifdef DUMPDEBUGPATH
+  sprintf( fnbuf, "t1dump_%s_%f.eps", charname, size); 
+  psfile = fopen( fnbuf, "wb");
+  if ( psfile != NULL ) {
+    PSDumpProlog( psfile);
+    fprintf( psfile, "T1LibDict begin\n\ngsave\n%f t1SetupSize\nt1PreparePage\n", size);
+  }
+  
+#endif
+
   /* compute the alignment zones */
   SetRasterFlags();
   ComputeAlignmentZones();
@@ -2014,21 +2465,72 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
   ClearPSFakeStack();
   ClearCallStack();
   InitStems();
- 
-  currx = curry = 0;
+
+  /* reset variables */
+  currx = curry = 0.0;
+  hcurrx = hcurry = 0.0;
   escapementX = escapementY = 0;
   sidebearingX = sidebearingY = 0;
   accentoffsetX = accentoffsetY = 0;
   wsoffsetX = wsoffsetY = 0;           /* No shift to preserve whitspace. */
   wsset = 0;                           /* wsoffsetX,Y haven't been set yet. */
- 
+
+  
   for (;;) {
     if (!DoRead(&Code)) break;
     Decode(Code);
     if (errflag) break;
   }
-  FinitStems();
 
+  /* We now have a point list in absolute charspace coordinates. Adjust
+     non-hinted points to suppress hinting artifacts and generate path. */
+  for ( i=0; i<numppoints; i++ ) {
+    if ( ppoints[i].type == PPOINT_BEZIER_D)
+      adjustBezier( i);
+  }
+  /* Create path elements */
+#if defined(DUMPDEBUGPATH) & defined(DUMPDEBUGPATHBOTH)
+  if ( env->fontInfoP[PAINTTYPE].value.data.integer == 0 ) {
+    /* For this special debug case, we generate both a filled and a stroked
+       path!. */
+      createStrokePath( strokewidth, SUBPATH_CLOSED);
+      createFillPath();
+  }
+  else if ( env->fontInfoP[PAINTTYPE].value.data.integer == 1 ) {
+    /* PaintType = 1 indicates stroked font. If strokewidth is 0.0f,
+       we stroke using the font's internal strokewidth. Otherwise, the
+       user supplied value is used. */
+    if ( strokewidth != 0.0f )
+      createStrokePath( strokewidth, SUBPATH_OPEN);
+    else
+      createStrokePath( env->fontInfoP[STROKEWIDTH].value.data.real, SUBPATH_OPEN);
+  }
+#else
+  if ( env->fontInfoP[PAINTTYPE].value.data.integer == 0 ) {
+    /* PaintType = 0 indicates filled font. Hence, a strokewidth value
+       other than 0.0 indicates the character is to be stroked instead
+       of to be filled. */
+    if ( strokewidth != 0.0f )
+      createStrokePath( strokewidth, SUBPATH_CLOSED);
+    else
+      createFillPath();
+  }
+  else if ( env->fontInfoP[PAINTTYPE].value.data.integer == 1 ) {
+    /* PaintType = 1 indicates stroked font. If strokewidth is 0.0f,
+       we stroke using the font's internal strokewidth. Otherwise, the
+       user supplied value is used. */
+    if ( strokewidth != 0.0f )
+      createStrokePath( strokewidth, SUBPATH_OPEN);
+    else
+      createStrokePath( env->fontInfoP[STROKEWIDTH].value.data.real, SUBPATH_OPEN);
+  }
+#endif
+  
+  /* check and handle accented char */
+  if ( apath != NULL ) {
+    path = Join( apath, path);
+  }
+  
   /* Report a possible error: */
   *modeP=errflag;
   
@@ -2040,6 +2542,21 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
     }
   }
  
+#ifdef DUMPDEBUGPATH
+  if ( psfile != NULL ) {
+    PSDumpEpilog( psfile);
+    fclose( psfile);
+    psfile = 0;
+  }
+#endif
+
+  /* Cleanup ppoints */
+  if ( ppoints != NULL ) {
+    free( ppoints);
+    ppoints = NULL;
+    numppoints = 0;
+  }
+  
   return((struct xobject *) path);
 }
  
@@ -2048,11 +2565,19 @@ struct xobject *Type1Char(psfont *env, struct XYspace *S,
 struct xobject *Type1Line(psfont *env, struct XYspace *S,
 			  float line_position,
 			  float line_thickness,
-			  float line_length)
+			  float line_length,
+			  float strokewidth)
 {
+
+  /* Reset point list */
+  ppoints          = NULL;
+  numppoints       = 0;
+  numppointchunks  = 0;
   
-  path = NULL;
+  path    = NULL;
+  apath   = NULL;
   errflag = FALSE;
+
   
   /* Make parameters available to all Type1 routines */
   Environment = (char *)env;
@@ -2075,11 +2600,1903 @@ struct xobject *Type1Line(psfont *env, struct XYspace *S,
   DoClosePath();  
   EndChar();
 
-  /* De-Initialize the stems (of course there have not been
-     defined any) */
-  FinitStems();
+  /* Create path */
+  if ( strokewidth != 0.0f )
+    createStrokePath( strokewidth, SUBPATH_CLOSED);
+  else
+    createFillPath();
   
+  /* Cleanup ppoints */
+  if ( ppoints != NULL ) {
+    free( ppoints);
+    ppoints = NULL;
+  }
+
   return((struct xobject *)path);
   
 }
 
+
+/* Adjust the points of a given cubic Bezier Spline so that the
+   geometric relation of points B and C to A and D remain
+   qualitatively the same. This reduces hinting artifacts
+   at low resolutions.
+*/
+static void adjustBezier( long pindex)
+{
+  double deltax  = 0.0;      /* x distance between point A and D */
+  double deltay  = 0.0;      /* y distance between point A and D */
+  double adeltax = 0.0;      /* x distance between hinted point A and D */
+  double adeltay = 0.0;      /* y distance between hinted point A and D */
+
+  deltax  = ppoints[pindex].x - ppoints[pindex-3].x;
+  deltay  = ppoints[pindex].y - ppoints[pindex-3].y;
+  adeltax = ppoints[pindex].ax - ppoints[pindex-3].ax;
+  adeltay = ppoints[pindex].ay - ppoints[pindex-3].ay;
+
+  if ( deltax == 0 || deltay == 0 )
+    return;
+  
+  ppoints[pindex-1].ax = ppoints[pindex-3].ax +
+    (adeltax / deltax * (ppoints[pindex-1].x - ppoints[pindex-3].x));
+  ppoints[pindex-1].ay = ppoints[pindex-3].ay +
+    (adeltay / deltay * (ppoints[pindex-1].y - ppoints[pindex-3].y));
+  ppoints[pindex-2].ax = ppoints[pindex-3].ax +
+    (adeltax / deltax * (ppoints[pindex-2].x - ppoints[pindex-3].x));
+  ppoints[pindex-2].ay = ppoints[pindex-3].ay +
+    (adeltay / deltay * (ppoints[pindex-2].y - ppoints[pindex-3].y));
+
+  return;
+  
+}
+
+
+
+/* This function actually generates path segments. It is called
+   after all hinting and adjustments have been performed.
+*/
+static void handleCurrentSegment( long pindex)
+{
+  struct segment* B;
+  struct segment* C;
+  struct segment* D;
+  struct segment* tmpseg;
+  double dx1;
+  double dy1;
+  double dx2;
+  double dy2;
+  double dx3;
+  double dy3;
+  double adx1;
+  double ady1;
+  double adx2;
+  double ady2;
+  double adx3;
+  double ady3;
+  
+
+  /* handle the different segment types in a switch-statement */
+  switch ( ppoints[pindex].type ) {
+
+  case PPOINT_MOVE:
+    /* handle a move segment */
+    dx1  = ppoints[pindex].x - ppoints[pindex-1].x;
+    dy1  = ppoints[pindex].y - ppoints[pindex-1].y;
+    adx1 = ppoints[pindex].ax - ppoints[pindex-1].ax;
+    ady1 = ppoints[pindex].ay - ppoints[pindex-1].ay;
+    
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1rmoveto\n", dx1*up, dy1*up);
+#endif
+    if ( ProcessHints ) {
+      IfTrace2((FontDebug), "RMoveTo(h) %f %f\n", adx1, ady1);
+      B = Loc(CharSpace, adx1, ady1);
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL ) {
+	fprintf( psfile, "%f %f t1hintedrmoveto\n", adx1*up, ady1*up);
+      }
+#endif
+    }
+    else {
+      IfTrace2((FontDebug), "RMoveTo %f %f\n", dx1, dy1);
+      B = Loc(CharSpace, dx1, dy1);
+    }
+    path = Join(path, B);
+    break;
+
+
+  case PPOINT_LINE:
+    /* handle a line segment */
+    dx1  = ppoints[pindex].x - ppoints[pindex-1].x;
+    dy1  = ppoints[pindex].y - ppoints[pindex-1].y;
+    adx1 = ppoints[pindex].ax - ppoints[pindex-1].ax;
+    ady1 = ppoints[pindex].ay - ppoints[pindex-1].ay;
+    
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1rlineto\n", dx1*up, dy1*up);
+#endif
+    if ( ProcessHints ) {
+      IfTrace2((FontDebug), "RLineTo(h) %f %f\n", adx1, ady1);
+      B = Loc(CharSpace, adx1, ady1);
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL ) {
+	fprintf( psfile, "%f %f t1hintedrlineto\n", adx1*up, ady1*up);
+      }
+#endif
+    }
+    else {
+      IfTrace2((FontDebug), "RLineTo %f %f\n", dx1, dy1);
+      B = Loc(CharSpace, dx1, dy1);
+    }
+    path = Join(path, Line(B));
+    break;
+
+
+  case PPOINT_BEZIER_B:
+    /* handle a bezier segment (given by this and the following points) */
+    dx1  = ppoints[pindex].x - ppoints[pindex-1].x;
+    dy1  = ppoints[pindex].y - ppoints[pindex-1].y;
+    adx1 = ppoints[pindex].ax - ppoints[pindex-1].ax;
+    ady1 = ppoints[pindex].ay - ppoints[pindex-1].ay;
+    dx2  = ppoints[pindex+1].x - ppoints[pindex].x;
+    dy2  = ppoints[pindex+1].y - ppoints[pindex].y;
+    adx2 = ppoints[pindex+1].ax - ppoints[pindex].ax;
+    ady2 = ppoints[pindex+1].ay - ppoints[pindex].ay;
+    dx3  = ppoints[pindex+2].x - ppoints[pindex+1].x;
+    dy3  = ppoints[pindex+2].y - ppoints[pindex+1].y;
+    adx3 = ppoints[pindex+2].ax - ppoints[pindex+1].ax;
+    ady3 = ppoints[pindex+2].ay - ppoints[pindex+1].ay;
+
+
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f %f %f %f %f t1rrcurveto\n",
+	       dx1*up, dy1*up,
+	       dx2*up, dy2*up,
+	       dx3*up, dy3*up);
+#endif
+    if (ProcessHints) {
+      IfTrace4((FontDebug), "RRCurveTo %f %f %f %f ",
+	       adx1, ady1, adx2, ady2);
+      IfTrace2((FontDebug), "%f %f\n", adx3, ady3);
+      B = Loc(CharSpace, adx1, ady1);
+      C = Loc(CharSpace, adx2, ady2);
+      D = Loc(CharSpace, adx3, ady3);
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL ) {
+	fprintf( psfile, "%f %f %f %f %f %f t1hintedrrcurveto\n",
+		 adx1*up, ady1*up,
+		 adx2*up, ady2*up,
+		 adx3*up, ady3*up);
+      }
+#endif
+    }
+    else {
+      IfTrace4((FontDebug), "RRCurveTo %f %f %f %f ",
+	       dx1, dy1, dx2, dy2);
+      IfTrace2((FontDebug), "%f %f\n", dx3, dy3);
+      B = Loc(CharSpace, dx1, dy1);
+      C = Loc(CharSpace, dx2, dy2);
+      D = Loc(CharSpace, dx3, dy3);
+    }
+    
+    /* Since XIMAGER is not completely relative, */
+    /* we need to add up the delta values */
+    C = Join(C, Dup(B));
+    D = Join(D, Dup(C));
+    path = Join(path, Bezier(B, C, D));
+    break;
+
+
+  case PPOINT_SBW:
+#ifdef DUMPDEBUGPATH
+  if ( psfile != NULL )
+    fprintf( psfile, "%f %f %f %f t1sbw\n",
+	     ppoints[pindex].x*up, ppoints[pindex].y*up,   /* sidebearings */
+	     ppoints[pindex].ax*up, ppoints[pindex].ay*up  /* escapements  */
+	     );
+#endif
+    path = Join(path, Loc(CharSpace, ppoints[pindex].x, ppoints[pindex].y));
+    break;
+    
+    
+  case PPOINT_CLOSEPATH:
+    IfTrace0((FontDebug), "DoClosePath\n");
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL ) {
+      fprintf( psfile, "t1closepath\n");
+      if ( ProcessHints )
+	fprintf( psfile, "t1hintedclosepath\n");
+    }
+#endif
+    
+    tmpseg = Phantom(path);
+    path = ClosePath(path);
+    path = Join(Snap(path), tmpseg);
+    break;
+    
+    
+  case PPOINT_ENDCHAR:
+    /* Perform a Closepath just in case the command was left out */
+    path = ClosePath(path);
+    
+    /* Set character width / escapement. It is stored in the vars for
+       hinted coordinates. */
+    path = Join(Snap(path), Loc(CharSpace, ppoints[pindex].ax, ppoints[pindex].ay));
+    
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fputs( "t1FinishPage\ngrestore\n", psfile);
+#endif
+    break;
+    
+
+  case PPOINT_SEAC:
+    /* return to origin of accent */
+    apath = Snap(path);
+    /* reset path to NULL */
+    path  = NULL;
+    break;
+    
+    
+  default:
+    /* We must be at the beginning of the path, that is, there is
+       nothing to do! */
+    ;
+  }
+
+  return;
+  
+}
+
+
+#ifdef DUMPDEBUGPATH
+static void PSDumpProlog( FILE* fp)
+{
+#include "t1chardump"
+}
+
+
+static void PSDumpEpilog( FILE* fp)
+{
+  fputs( "\nend\n", fp);
+}
+
+#endif /* #ifdef DUMPDEBUGPATH */
+
+
+
+/* Take the accumulated path point list and construct the path that is
+   to be filled. */
+static void createFillPath( void)
+{
+  long i;
+  
+  for ( i=0; i<numppoints; i++ ) {
+    handleCurrentSegment( i);
+  }
+  return;
+}
+
+
+/* Take the accumulated path point list and construct a path so that the
+   character appears as a stroked outline, where the virtual pen has a diameter
+   of strokewidth (measured in big points [bp]). This function works analogously
+   to PostScripts charpath operator. */
+static void createStrokePath( double strokewidth, int subpathclosed)
+{
+  long pindex   = 0;
+  long startind = 0;
+  long stopind  = 0;
+
+
+  /* For each subpath in the path list (some sub path is closed!), we construct 
+     one path interior and one path exterior to the path under consideration in
+     a way, that the resulting thick curve has a thickness of strokewidth. */
+
+  if ( subpathclosed == 0 ) {
+    /* We have a stroked font */
+    /* loop through all subpaths */
+    while ( pindex < numppoints ) {
+      /* First, handle any non-subpath commands. */
+      if ( handleNonSubPathSegments( pindex) != 0 ) {
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "PPoint %ld: (%f,%f), Type=%s\n", pindex,
+		 ppoints[pindex].x, ppoints[pindex].y, pptypes[ppoints[pindex].type]);
+#endif
+	++pindex;
+	continue;
+      }
+      
+      if ( ppoints[pindex].type == PPOINT_LINE ||
+	   ppoints[pindex].type == PPOINT_BEZIER_B ) {
+	if ( ppoints[pindex-1].type == PPOINT_MOVE ) {
+	  /* A line or curve segment following a move segment indicates a
+	     new subpath. */
+	  startind = pindex - 1;
+	  while ( (pindex < numppoints) &&
+		  (ppoints[pindex].type != PPOINT_CLOSEPATH) &&
+		  (ppoints[pindex].type != PPOINT_MOVE) && 
+		  (ppoints[pindex].type != PPOINT_ENDCHAR) 
+		  ) {
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	    fprintf( stderr, "PPoint %ld: (%f,%f), Type=%s\n", pindex,
+		   ppoints[pindex].x, ppoints[pindex].y, pptypes[ppoints[pindex].type]);
+#endif
+	    ++pindex;
+	  }
+	  if ( (ppoints[pindex].type == PPOINT_ENDCHAR) ||  /* for outline fonts */
+	       (ppoints[pindex].type == PPOINT_MOVE)          /* for stroked fonts */
+	       ) {
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	    fprintf( stderr, "PPoint %ld: (%f,%f), Type=%s\n", pindex,
+		   ppoints[pindex].x, ppoints[pindex].y, pptypes[ppoints[pindex].type]);
+#endif
+	    stopind = --pindex;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	    fprintf( stderr, "Found subpath from index %ld to %ld inclusively\n", startind, stopind);
+#endif
+	    /* We have found a subpath defined by the path points indexed by
+	       the interval from startind to stopind. */
+	    createClosedStrokeSubPath( startind, stopind, strokewidth, subpathclosed);
+	  }
+	}
+      }
+      ++pindex;
+    }
+  }
+  else {
+    /* We have a filled font */
+    /* loop through all subpaths */
+    while ( pindex < numppoints ) {
+      /* First, handle any non-subpath commands. */
+      if ( handleNonSubPathSegments( pindex) != 0 ) {
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "PPoint %ld: (%f,%f), Type=%s\n", pindex,
+	       ppoints[pindex].x, ppoints[pindex].y, pptypes[ppoints[pindex].type]);
+#endif
+	++pindex;
+	continue;
+      }
+      
+      if ( ppoints[pindex].type == PPOINT_LINE ||
+	   ppoints[pindex].type == PPOINT_BEZIER_B ) {
+	if ( ppoints[pindex-1].type == PPOINT_MOVE ) {
+	  /* A line or curve segment following a move segment indicates a
+	     new subpath. */
+	  startind = --pindex;
+	  while ( (pindex < numppoints) &&
+		  (ppoints[pindex].type != PPOINT_CLOSEPATH) 
+		  ) {
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	    fprintf( stderr, "PPoint %ld: (%f,%f), Type=%s\n", pindex,
+		   ppoints[pindex].x, ppoints[pindex].y, pptypes[ppoints[pindex].type]);
+#endif
+	    ++pindex;
+	  }
+	  if ( ppoints[pindex].type == PPOINT_CLOSEPATH ) {
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	    fprintf( stderr, "PPoint %ld: (%f,%f), Type=%s\n", pindex,
+		   ppoints[pindex].x, ppoints[pindex].y, pptypes[ppoints[pindex].type]);
+#endif
+	    stopind = pindex;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	    fprintf( stderr, "Found subpath from index %ld to %ld inclusively\n", startind, stopind);
+#endif
+	    /* We have found a subpath defined by the path points indexed by
+	       the interval from startind to stopind. */
+	    createClosedStrokeSubPath( startind, stopind, strokewidth, subpathclosed);
+	  }
+	}
+      }
+      ++pindex;
+    }
+  }
+  
+  return;
+  
+}
+
+
+
+/* Create two closed paths that surround the the current subpath of the
+   charpath in a centered fashion. */
+static void createClosedStrokeSubPath( long startind, long stopind,
+				       double strokewidth, int subpathclosed)
+{
+  long i;
+  long inext;
+  long iprev;
+  long ip = 0;
+  long in = 0;
+  long segstartind;
+  long segendind;
+  
+  long lastind     = 0; /* Index of last point whose location is different from first
+			   point. After this point there may follow an explicit line-
+			   or curveto to the starting point and also the ClosePath-point
+			   may be and usually is identical to the starting point. */
+
+  double dx1;
+  double dy1;
+  double dx2;
+  double dy2;
+  double dx3;
+  double dy3;
+  
+  struct segment* B;
+  struct segment* C;
+  struct segment* D;
+  struct segment* tmpseg;
+
+  int type;
+  
+
+  /* The ClosePath operator is somewhat problematic, because it adds a point
+     to the defining points of a path, without actually having a distance to
+     the previous or the next point. This causes problems with the distance
+     handling. As a remedy, we check whether ClosePath is located at the first
+     point or the last point of the path. In the latter case, ClosePath causes
+     an additional line segment. */
+  if ( (ppoints[stopind].x == ppoints[startind].x) &&
+       (ppoints[stopind].y == ppoints[startind].y)
+       ) {
+    closepathatfirst = 1;
+  }
+  else {
+    closepathatfirst = 0;
+  }
+  
+  
+  /* For each path point in the list, we have to define a set of points, to the
+     left and to the right of the current curve. The positions of these
+     new points depend on the coordinates of the previous path point, the current
+     path and the next path point. */
+
+  /* For the computations, the distance from the start and end points of curves
+     and lines to the neighbouring points is required. We start by calculating
+     these and by filling in the path point entries dist2prev and dist2next for
+     the respective points. */
+  lastind = computeDistances( startind, stopind, subpathclosed);
+
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "startind=%ld, lastind=%ld, stopind=%ld\n", startind, lastind, stopind);
+#endif
+
+  /********************************************************************************
+   ********************************************************************************
+   ***** 
+   ***** Path point transformation
+   ***** 
+   ********************************************************************************
+   ********************************************************************************/
+
+  /* Next we step through the path points of the current subpath and compute the 
+     points' transformations. From these newly computed points,
+     the path is constructed. */
+  for ( i=startind; i<=lastind; ) {
+    /* Be aware of cycling! */
+    if ( i == startind ) {
+      iprev = lastind;
+      inext = i + 1;
+    }
+    else if ( i == lastind ) {
+      iprev = i - 1;
+      inext = startind;
+    }
+    else {
+      iprev = i - 1;
+      inext = i + 1;
+    }
+    
+    
+    switch ( ppoints[i].type ) {
+    case PPOINT_MOVE:
+      /* The first segment always is of type PPOINT_MOVE. It is defined by the first,
+	 the second and the last point. */
+      transformOnCurvePathPoint( strokewidth, iprev, i, inext);
+
+      /* Compute one point which results from prolongating the linked segment and
+	 and computing the intersection. The result values are stored in dxres,
+	 dyres. */
+      if ( subpathclosed == 0 ) {
+	/* open subpath --> stroked font */
+	if ( i == startind ) {
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_NEXT);
+	}
+	else if ( i == lastind ) {
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_PREVIOUS);
+	}
+	else {
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_BOTH);
+	}
+      }
+      else {
+	intersectRight( i, 0.5*strokewidth, INTERSECT_BOTH);
+      }
+
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "PP %ld (%s): (%f,%f), shape=%s;\n", i, pptypes[ppoints[i].type], 
+	       ppoints[i].x, ppoints[i].y, ppshapes[ppoints[i].shape]);
+      fprintf( stderr, "                     Right: prev (%f,%f); next (%f,%f)\n",
+	       ppoints[i].x+ppoints[i].dxpr, ppoints[i].y+ppoints[i].dypr,
+	       ppoints[i].x+ppoints[i].dxnr, ppoints[i].y+ppoints[i].dynr);
+      fprintf( stderr, "                     Left:  prev (%f,%f); next (%f,%f)\n",
+	       ppoints[i].x-ppoints[i].dxpr, ppoints[i].y-ppoints[i].dypr,
+	       ppoints[i].x-ppoints[i].dxnr, ppoints[i].y-ppoints[i].dynr);
+      fprintf( stderr, "                     Res:  Right (%f,%f); Left (%f,%f)\n\n",
+	       ppoints[i].x+ppoints[i].dxir, ppoints[i].y+ppoints[i].dyir,
+	       ppoints[i].x-ppoints[i].dxir, ppoints[i].y-ppoints[i].dyir);
+#endif
+      
+      break;
+
+      
+    case PPOINT_LINE:
+      transformOnCurvePathPoint( strokewidth, iprev, i, inext);
+      if ( subpathclosed == 0 ) {
+	/* open subpath --> stroked font */
+	if ( i == startind )
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_NEXT);
+	else if ( i == lastind )
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_PREVIOUS);
+	else
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_BOTH);
+      }
+      else {
+	intersectRight( i, 0.5*strokewidth, INTERSECT_BOTH);
+      }
+      
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "PP %ld (%s): (%f,%f), shape=%s; \n",
+	       i, pptypes[ppoints[i].type], ppoints[i].x, ppoints[i].y,
+	       ppshapes[ppoints[i].shape]);
+      fprintf( stderr, "                     Right: prev (%f,%f); next (%f,%f)\n",
+	       ppoints[i].x+ppoints[i].dxpr, ppoints[i].y+ppoints[i].dypr,
+	       ppoints[i].x+ppoints[i].dxnr, ppoints[i].y+ppoints[i].dynr);
+      fprintf( stderr, "                     Left:  prev (%f,%f); next (%f,%f)\n",
+	       ppoints[i].x-ppoints[i].dxpr, ppoints[i].y-ppoints[i].dypr,
+	       ppoints[i].x-ppoints[i].dxnr, ppoints[i].y-ppoints[i].dynr);
+      fprintf( stderr, "                     Res:  Right (%f,%f); Left (%f,%f)\n\n",
+	       ppoints[i].x+ppoints[i].dxir, ppoints[i].y+ppoints[i].dyir,
+	       ppoints[i].x-ppoints[i].dxir, ppoints[i].y-ppoints[i].dyir);
+#endif
+
+      break;
+
+      
+    case PPOINT_BEZIER_B:
+      break;
+
+    case PPOINT_BEZIER_C:
+      break;
+
+    case PPOINT_BEZIER_D:
+      transformOnCurvePathPoint( strokewidth, iprev, i, inext);
+      if ( subpathclosed == 0 ) {
+	/* open subpath --> stroked font */
+	if ( i == startind )
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_NEXT);
+	else if ( i == lastind )
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_PREVIOUS);
+	else
+	  intersectRight( i, 0.5*strokewidth, INTERSECT_BOTH);
+      }
+      else {
+	intersectRight( i, 0.5*strokewidth, INTERSECT_BOTH);
+      }
+      
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "PP %ld (%s): (%f,%f), shape=%s;\n",
+	       i, pptypes[ppoints[i].type], ppoints[i].x, ppoints[i].y,
+	       ppshapes[ppoints[i].shape]);
+      fprintf( stderr, "                     Right: prev (%f,%f); next (%f,%f)\n",
+	       ppoints[i].x+ppoints[i].dxpr, ppoints[i].y+ppoints[i].dypr,
+	       ppoints[i].x+ppoints[i].dxnr, ppoints[i].y+ppoints[i].dynr);
+      fprintf( stderr, "                     Left:  prev (%f,%f); next (%f,%f)\n",
+	       ppoints[i].x-ppoints[i].dxpr, ppoints[i].y-ppoints[i].dypr,
+	       ppoints[i].x-ppoints[i].dxnr, ppoints[i].y-ppoints[i].dynr);
+      fprintf( stderr, "                     Res:  Right (%f,%f); Left (%f,%f)\n\n",
+	       ppoints[i].x+ppoints[i].dxir, ppoints[i].y+ppoints[i].dyir,
+	       ppoints[i].x-ppoints[i].dxir, ppoints[i].y-ppoints[i].dyir);
+#endif
+      
+      /* transform the preceding two offCurve points */
+      transformOffCurvePathPoint( strokewidth, i-2);
+
+      break;
+      
+    case PPOINT_CLOSEPATH:
+
+      break;
+      
+    default:
+      break;
+    }
+    ++i;
+  }
+
+  /* copy the shift values from starting point to ending points that
+     have not yet been handled */
+  for ( ; i<=stopind; i++) {
+    ppoints[i].dxpr      = ppoints[startind].dxpr;
+    ppoints[i].dypr      = ppoints[startind].dypr;
+    ppoints[i].dxnr      = ppoints[startind].dxnr;
+    ppoints[i].dynr      = ppoints[startind].dynr;
+    ppoints[i].dxir      = ppoints[startind].dxir;
+    ppoints[i].dyir      = ppoints[startind].dyir;
+    ppoints[i].dist2prev = ppoints[startind].dist2prev;
+    ppoints[i].dist2next = ppoints[startind].dist2next;
+    if ( ppoints[i].type == PPOINT_BEZIER_D ) {
+      transformOffCurvePathPoint( strokewidth, i-2);
+    }
+    ppoints[i].shape     = ppoints[startind].shape;
+  }
+  
+
+  
+  /* We now have computed the resulting shift values for each path point of the current
+     subpath's right path. The values for the left path follow by negation.
+     The path is still to be build!
+  */
+
+  /********************************************************************************
+   ********************************************************************************
+   ***** 
+   ***** Construction of right path
+   ***** 
+   ********************************************************************************
+   ********************************************************************************/
+
+  /* The leading move segment is treated separately. First check from which
+     point the leading Moveto was called. This is safe even in cases where
+     multiple moveto appear in a series. */
+  i = startind;
+  while ( ppoints[i].type == PPOINT_MOVE )
+    --i;
+  dx1  = ppoints[startind].x - (ppoints[i].x);
+  dy1  = ppoints[startind].y - (ppoints[i].y);
+  /* If the first node in the subpath is not concave, we may directly jump
+     to the intersection right path point. Otherwise, we remain at the onCurve
+     point because later, prolongation will happen. */
+  if ( ppoints[startind].shape != CURVE_CONCAVE ) {
+    dx1  += ppoints[startind].dxir;
+    dy1  += ppoints[startind].dyir;
+  }
+  
+#ifdef DUMPDEBUGPATH
+  if ( psfile != NULL )
+    fprintf( psfile, "%f %f t1srmoveto\n", dx1*up, dy1*up);
+#endif
+  B = Loc(CharSpace, dx1, dy1);
+  path = Join(path, B);
+  
+  
+  /* Now, handle the remaining path in a loop */
+  for ( i=startind+1; i<=stopind; ) {
+    switch ( ppoints[i].type ) {
+    case PPOINT_LINE:
+      /* handle a line segment */
+      
+      /* 1. Check and handle starting node */
+      linkNode( i-1, PATH_START, PATH_RIGHT);
+
+      /* 2. Draw ideal isolated line segment */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "RP:  Line from point %ld to %ld\n", i-1, i);
+#endif
+      dx1  = ppoints[i].x + ppoints[i].dxpr - (ppoints[i-1].x + ppoints[i-1].dxnr);
+      dy1  = ppoints[i].y + ppoints[i].dypr - (ppoints[i-1].y + ppoints[i-1].dynr);
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f t1srlineto\n", dx1*up, dy1*up);
+#endif
+      B = Loc(CharSpace, dx1, dy1);
+      path = Join(path, Line(B));
+
+      /* 3. Check and handle ending node */
+      linkNode( i, PATH_END, PATH_RIGHT);
+
+      break;
+
+    case PPOINT_BEZIER_B:
+      break;
+    case PPOINT_BEZIER_C:
+      break;
+    case PPOINT_BEZIER_D:
+      /* handle a bezier segment (given by this and the previous 3 path points)! */
+
+      /* 1. Check and handle starting node */
+      linkNode( i-3, PATH_START, PATH_RIGHT);
+
+      /* 2. Draw curve based on ideal point locations */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "RP:  Curve from PP %ld to PP %ld to PP %ld to PP %ld\n",
+	       i-3, i-2, i-1, i);
+#endif
+      dx1  = ppoints[i-2].x + ppoints[i-2].dxir - (ppoints[i-3].x + ppoints[i-3].dxnr);
+      dy1  = ppoints[i-2].y + ppoints[i-2].dyir - (ppoints[i-3].y + ppoints[i-3].dynr);
+      dx2  = ppoints[i-1].x + ppoints[i-1].dxir - (ppoints[i-2].x + ppoints[i-2].dxir);
+      dy2  = ppoints[i-1].y + ppoints[i-1].dyir - (ppoints[i-2].y + ppoints[i-2].dyir);
+      dx3  = ppoints[i].x +   ppoints[i].dxpr   - (ppoints[i-1].x + ppoints[i-1].dxir);
+      dy3  = ppoints[i].y +   ppoints[i].dypr   - (ppoints[i-1].y + ppoints[i-1].dyir);
+      
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f %f %f %f %f t1srrcurveto\n",
+		 dx1*up, dy1*up,
+		 dx2*up, dy2*up,
+		 dx3*up, dy3*up);
+#endif
+      IfTrace4((FontDebug), "RRCurveTo %f %f %f %f ",
+	       dx1, dy1, dx2, dy2);
+      IfTrace2((FontDebug), "%f %f\n", dx3, dy3);
+      B = Loc(CharSpace, dx1, dy1);
+      C = Loc(CharSpace, dx2, dy2);
+      D = Loc(CharSpace, dx3, dy3);
+    
+      C = Join(C, Dup(B));
+      D = Join(D, Dup(C));
+      path = Join(path, Bezier(B, C, D));
+
+      /* 3. Check and handle starting node */
+      linkNode( i, PATH_END, PATH_RIGHT);
+
+      break;
+
+      
+    case PPOINT_CLOSEPATH:
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "RP:  ClosePath command ignored\n");
+#endif
+      
+      break;
+
+    default:
+      break;
+      
+    }
+    ++i;
+  }
+
+  /********************************************************************************
+   ********************************************************************************
+   ***** 
+   ***** Close right path
+   ***** 
+   ********************************************************************************
+   ********************************************************************************/
+
+  if ( subpathclosed != 0 ) {
+    /* We are stroking an outline font to be filled */ 
+    if ( closepathatfirst == 0 ) {
+      /* Because of the concavity issue, we may not simply use
+	 the closepath operator here. Instead we have to manage a possible
+	 prolongation manually if the closepath would cause a line segment. */
+
+      /* 1. Check and handle starting node */
+      linkNode( lastind, PATH_START, PATH_RIGHT);
+
+      /* 2. Draw ideal isolated line segment */
+      dx1  = ppoints[startind].x + ppoints[startind].dxpr - (ppoints[lastind].x + ppoints[lastind].dxnr);
+      dy1  = ppoints[startind].y + ppoints[startind].dypr - (ppoints[lastind].y + ppoints[lastind].dynr);
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f t1srlineto\n", dx1*up, dy1*up);
+#endif
+      B = Loc(CharSpace, dx1, dy1);
+      path = Join(path, Line(B));
+
+      /* 3. Check and handle ending node */
+      linkNode( startind, PATH_END, PATH_RIGHT);
+
+    } /* if ( closepathatfirst == 0) */
+
+    /* Now close path formally. Anyhow, this won't cause a line segment! */
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL ) {
+      fprintf( psfile, "t1sclosepath\n");
+    }
+#endif
+    tmpseg = Phantom(path);
+    path = ClosePath(path);
+    path = Join(Snap(path), tmpseg);
+
+    
+    /********************************************************************************
+     ********************************************************************************
+     ***** 
+     ***** Stepping to beginning of left path
+     ***** 
+     ********************************************************************************
+     ********************************************************************************/
+    
+    /* If curve is concave at the subpath's starting point, the location is onCurve
+       and the left path is convex, there. Conversely, if the curve is convex, the
+       location is at the right intersection point and the left path will be concave
+       so that the initial location must be onCurve. Hence, for both cases, we have
+       to translate back once the intersection shift.
+
+       If the curve is straight at the starting point, we directly jump from the right
+       intersection point ot he left intersection point.
+    */
+    if ( (ppoints[startind].shape == CURVE_CONCAVE) ||
+	 (ppoints[startind].shape == CURVE_CONVEX) ) { 
+      dx1 = - ppoints[startind].dxir;
+      dy1 = - ppoints[startind].dyir;
+    }
+    else {
+      dx1 = - 2.0 * ppoints[startind].dxir;
+      dy1 = - 2.0 * ppoints[startind].dyir;
+    }
+
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1srmoveto\n", dx1*up, dy1*up);
+#endif
+    B = Loc(CharSpace, dx1, dy1);
+    path = Join(path, B);
+  } /* if ( subpathclose != 0 */
+  else {
+    /* We have a stroked font. In this case, a line segment has to be drawn */
+    if ( (ppoints[stopind].shape == CURVE_CONCAVE) ||
+	 (ppoints[stopind].shape == CURVE_CONVEX) ) { 
+      dx1 = - ppoints[stopind].dxir;
+      dy1 = - ppoints[stopind].dyir;
+    }
+    else {
+      dx1 = - 2.0 * ppoints[stopind].dxir;
+      dy1 = - 2.0 * ppoints[stopind].dyir;
+    }
+
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1srlineto\n", dx1*up, dy1*up);
+#endif
+    B = Loc(CharSpace, dx1, dy1);
+    path = Join(path, Line(B));
+    
+  }
+  
+  
+  /********************************************************************************
+   ********************************************************************************
+   ***** 
+   ***** Construction of left path
+   ***** 
+   ********************************************************************************
+   ********************************************************************************/
+  
+  /* Create left path. This is somewhat more complicated, because the
+     order/direction has to be exchanged. */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "Constructing LeftPath: stopind=%ld, lastind=%ld, closepathatfirst=%d\n",
+	   stopind, lastind, closepathatfirst);
+#endif
+  for ( i=stopind; i>=startind; ) {
+    if ( subpathclosed != 0 ) {
+      /* closed subpath --> filled font */
+      if ( i == stopind ) {
+	ip   = startind;
+	if ( (closepathatfirst != 0) )
+	  type = ppoints[ip].type;
+	else
+	  type = PPOINT_NONE;
+      }
+      else if ( i == startind ) {
+	ip   = startind + 1;
+	type = ppoints[ip].type;
+      }
+      else {
+	ip   = i + 1;
+	type = ppoints[ip].type;
+      }
+    }
+    else {
+      /* open subpath --> stroked font */
+      type   = ppoints[i].type;
+      in     = i - 1;
+    }
+
+    /* Step through path in inverted direction.
+       Note: - ip is the index of the starting point, i the index of the
+               ending point of the current segment.
+             - If the path point is flagged "concave", then this reverts into
+               "convex" in the left path and vice versa!
+	     - there is an index shift of 1 between closed and open subpaths.
+    */
+    switch ( type ) {
+    case PPOINT_MOVE:
+      
+      break;
+      
+    case PPOINT_LINE:
+
+      /* handle a line segment */
+      if ( subpathclosed != 0 ) {
+	segendind    = i;
+	segstartind  = ip;
+      }
+      else {
+	segstartind  = i;
+	segendind    = in;
+      }
+      
+      /* 1. Check and handle starting node */
+      linkNode( segstartind, PATH_START, PATH_LEFT);
+
+      /* 2. Draw ideal isolated line segment */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "LP:  Line from point %ld to %ld\n", segstartind, segendind);
+#endif
+      dx1  = ppoints[segendind].x - ppoints[segendind].dxnr -
+	(ppoints[segstartind].x - ppoints[segstartind].dxpr);
+      dy1  = ppoints[segendind].y - ppoints[segendind].dynr -
+	(ppoints[segstartind].y - ppoints[segstartind].dypr);
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f t1srlineto\n", dx1*up, dy1*up);
+#endif
+      B = Loc(CharSpace, dx1, dy1);
+      path = Join(path, Line(B));
+
+      /* 3. Check and handle ending node */
+      linkNode( segendind, PATH_END, PATH_LEFT);
+
+      break;
+
+      
+    case PPOINT_BEZIER_B:
+      break;
+
+    case PPOINT_BEZIER_C:
+      break;
+
+    case PPOINT_BEZIER_D:
+      /* handle a bezier segment (given by this and the previous 3 path points)!
+	 For bezier segments, we may not simply apply the intersection of previous
+	 and next candidate because that would damage the curve's layout. Instead,
+	 in cases where the candidate produced by intersection is not identical to
+	 the ideal point, we prolongate and link the distance with a line segment.
+      */
+
+      /* 1. Check and handle starting node */
+      linkNode( ip, PATH_START, PATH_LEFT);
+
+      /* 2. Draw ideal curve segment */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "LP:  Curve from PP %ld to PP %ld to PP %ld to PP %ld\n",
+	       ip, ip-1, ip-2, ip-3);
+#endif
+      /* Use ideal point locations for curve at starting and ending point: */
+      dx1  = ppoints[ip-1].x - ppoints[ip-1].dxir - (ppoints[ip].x   - ppoints[ip].dxpr);
+      dy1  = ppoints[ip-1].y - ppoints[ip-1].dyir - (ppoints[ip].y   - ppoints[ip].dypr);
+      dx2  = ppoints[ip-2].x - ppoints[ip-2].dxir - (ppoints[ip-1].x - ppoints[ip-1].dxir);
+      dy2  = ppoints[ip-2].y - ppoints[ip-2].dyir - (ppoints[ip-1].y - ppoints[ip-1].dyir);
+      dx3  = ppoints[ip-3].x - ppoints[ip-3].dxnr - (ppoints[ip-2].x - ppoints[ip-2].dxir);
+      dy3  = ppoints[ip-3].y - ppoints[ip-3].dynr - (ppoints[ip-2].y - ppoints[ip-2].dyir);
+
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f %f %f %f %f t1srrcurveto\n",
+		 dx1*up, dy1*up,
+		 dx2*up, dy2*up,
+		 dx3*up, dy3*up);
+#endif
+      IfTrace4((FontDebug), "RRCurveTo %f %f %f %f ",
+	       dx1, dy1, dx2, dy2);
+      IfTrace2((FontDebug), "%f %f\n", dx3, dy3);
+      B = Loc(CharSpace, dx1, dy1);
+      C = Loc(CharSpace, dx2, dy2);
+      D = Loc(CharSpace, dx3, dy3);
+    
+      C = Join(C, Dup(B));
+      D = Join(D, Dup(C));
+      path = Join(path, Bezier(B, C, D));
+
+      /* 3. Check and handle ending node */
+      linkNode( ip-3, PATH_END, PATH_LEFT);
+
+      break;
+
+      
+    case PPOINT_CLOSEPATH:
+      
+      /* Handle a ClosePath segment, if it had
+	 caused a line segment. Hence, actually, we handle
+	 a line segment here. */
+      if ( closepathatfirst == 1 ) {
+	/* ignore this command */
+	break;
+      }
+
+      /* 1. Check and handle starting node */
+      linkNode( startind, PATH_START, PATH_LEFT);
+
+      /* 2. Draw ideal isolated line segment */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "LP:  Inverted ClosePath from point %ld to %ld\n", startind, lastind);
+#endif
+      if ( subpathclosed != 0 ) {
+	dx1  = ppoints[lastind].x - ppoints[lastind].dxnr - (ppoints[startind].x - ppoints[startind].dxpr);
+	dy1  = ppoints[lastind].y - ppoints[lastind].dynr - (ppoints[startind].y - ppoints[startind].dypr);
+      }
+      else {
+	dx1  = -(ppoints[i].x - ppoints[i].dxnr - (ppoints[ip].x - ppoints[ip].dxpr));
+	dy1  = -(ppoints[i].y - ppoints[i].dynr - (ppoints[ip].y - ppoints[ip].dypr));
+      }
+      
+#ifdef DUMPDEBUGPATH
+      if ( psfile != NULL )
+	fprintf( psfile, "%f %f t1srlineto\n", dx1*up, dy1*up);
+#endif
+      B = Loc(CharSpace, dx1, dy1);
+      path = Join(path, Line(B));
+
+      /* 3. Check and handle ending node */
+      linkNode( lastind, PATH_END, PATH_LEFT);
+      
+      break;
+      
+    default:
+      break;
+      
+    }
+    --i;
+  }
+
+#ifdef DUMPDEBUGPATH
+  if ( psfile != NULL ) {
+    fprintf( psfile, "t1sclosepath\n");
+  }
+#endif
+  tmpseg = Phantom(path);
+  path = ClosePath(path);
+  path = Join(Snap(path), tmpseg);
+  
+  
+  /********************************************************************************
+   ********************************************************************************
+   ***** 
+   ***** Move to final position
+   ***** 
+   ********************************************************************************
+   ********************************************************************************/
+  
+  /* Step to back to starting point of this subpath. If closepathatfirst==0, the
+     final closepath caused a line segment. In this case, we first have to step
+     back that segment and proceed from this point. */
+  if ( ppoints[startind].shape == CURVE_CONVEX ) {
+    /* In this case, left path is concave and the current location is at
+       the onCurve point */
+    dx1  = 0.0;
+    dy1  = 0.0;
+  }
+  else {
+    /* OK, it seems to be the intersection point */
+    dx1  = ppoints[startind].dxir;
+    dy1  = ppoints[startind].dyir;
+  }
+  /* We are now onCurve. If necessary step to the point where the closepath
+     appeared. */
+  if ( closepathatfirst == 0 ) {
+    dx1 += ppoints[lastind].x - ppoints[startind].x;
+    dy1 += ppoints[lastind].y - ppoints[startind].y;
+  }
+
+  
+#ifdef DUMPDEBUGPATH
+  if ( psfile != NULL )
+    fprintf( psfile, "%f %f t1srmoveto\n", dx1*up, dy1*up);
+#endif
+  B = Loc(CharSpace, dx1, dy1);
+  path = Join(path, B);
+
+  return;
+  
+}
+
+
+
+/* Compute distance from OnCurve-points to their neighbouring points, fill in
+   the respective entries dist2prev and dist2next in the ppoints[] structures
+   and return the index of the last point in the current subpath which has
+   a location different from the starting point of the subpath. */
+static long computeDistances( long startind, long stopind, int subpathclosed)
+{
+  long   lastind       = 0;
+  double dx            = 0.0;
+  double dy            = 0.0;
+  long   i             = 0;
+  int    neighboured   = 0;
+
+
+  /* Handle first point as a special case */
+  /* distance to previous point. First, get index of previous point. */
+  lastind = stopind;
+
+  if ( subpathclosed != 0 ) {
+    if ( (ppoints[startind].x == ppoints[stopind].x) &&
+	 (ppoints[startind].y == ppoints[stopind].y) ) {
+      while ( (ppoints[lastind].x == ppoints[stopind].x) &&
+	      (ppoints[lastind].y == ppoints[stopind].y))
+	--lastind;
+    }
+    else {
+      lastind = stopind - 1;
+    }
+  }
+  
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr,
+	   "computeDistance(): startind=%ld stopind=%ld, lastind=%ld, start.x=%f, start.y=%f, last.x=%f, last.y=%f\n",
+	   startind, stopind, lastind, ppoints[startind].x, ppoints[startind].y,
+	   ppoints[lastind].x, ppoints[lastind].y);
+#endif
+  
+  dx = ppoints[startind].x - ppoints[lastind].x;
+  dy = ppoints[startind].y - ppoints[lastind].y;
+  ppoints[startind].dist2prev = sqrt( dx*dx + dy*dy );
+  
+  /* distance to next point */
+  dx = ppoints[startind+1].x - ppoints[startind].x;
+  dy = ppoints[startind+1].y - ppoints[startind].y;
+  ppoints[startind].dist2next = sqrt( dx*dx + dy*dy );
+  
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr,
+	   "Pre: Distance at point %ld: Prev=%f Next=%f\n",
+	   startind, ppoints[startind].dist2prev, ppoints[startind].dist2next);
+#endif
+  
+  for ( i = startind+1; i < lastind; i++ ) {
+    if ( (ppoints[i].type == PPOINT_MOVE) ||
+	 (ppoints[i].type == PPOINT_LINE) ||
+	 (ppoints[i].type == PPOINT_BEZIER_D) ) {
+      if ( neighboured ) {
+	ppoints[i].dist2prev = ppoints[i-1].dist2next;
+      }
+      else {
+	/* distance to previous point */
+	dx = ppoints[i].x - ppoints[i-1].x;
+	dy = ppoints[i].y - ppoints[i-1].y;
+	/* Take care of degenerated curves */
+	if ( (dx == 0.0) && (dy == 0.0) ) {
+	  dx = ppoints[i].x - ppoints[i-2].x;
+	  dy = ppoints[i].y - ppoints[i-2].y;
+	  if ( (dx == 0.0) && (dy == 0.0) ) {
+	    dx = ppoints[i].x - ppoints[i-3].x;
+	    dy = ppoints[i].y - ppoints[i-3].y;
+	  }
+	}
+	ppoints[i].dist2prev = sqrt( dx*dx + dy*dy );
+      }
+      /* distance to next point */
+      dx = ppoints[i+1].x - ppoints[i].x;
+      dy = ppoints[i+1].y - ppoints[i].y;
+      /* Take care of degenerated curves */
+      if ( (dx == 0.0) && (dy == 0.0) ) {
+	dx = ppoints[i+2].x - ppoints[i].x;
+	dy = ppoints[i+2].y - ppoints[i].y;
+	if ( (dx == 0.0) && (dy == 0.0) ) {
+	  dx = ppoints[i+3].x - ppoints[i].x;
+	  dy = ppoints[i+3].y - ppoints[i].y;
+	}
+      }
+      ppoints[i].dist2next = sqrt( dx*dx + dy*dy );
+      neighboured = 1;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+      fprintf( stderr, "     Distance at point %ld: Prev=%f Next=%f\n",
+	       i, ppoints[i].dist2prev, ppoints[i].dist2next);
+#endif
+    }
+    else {
+      neighboured = 0;
+    }
+    
+  }
+  /* We still have to handle the last point */
+  /* distance to previous point */
+  dx = ppoints[lastind].x - ppoints[lastind-1].x;
+  dy = ppoints[lastind].y - ppoints[lastind-1].y;
+  /* Take care of degenerated curves */
+  if ( (dx == 0.0) && (dy == 0.0) ) {
+    dx = ppoints[lastind].x - ppoints[lastind-2].x;
+    dy = ppoints[lastind].y - ppoints[lastind-2].y;
+    if ( (dx == 0.0) && (dy == 0.0) ) {
+      dx = ppoints[lastind].x - ppoints[lastind-3].x;
+      dy = ppoints[lastind].y - ppoints[lastind-3].y;
+    }
+  }
+  ppoints[lastind].dist2prev = sqrt( dx*dx + dy*dy );
+  /* distance to next point */
+  ppoints[lastind].dist2next = ppoints[startind].dist2prev;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "End: Distance at point %ld: Prev=%f Next=%f\n",
+	   lastind, ppoints[lastind].dist2prev, ppoints[lastind].dist2next);
+#endif
+  
+  return lastind;
+  
+}
+
+
+
+/*
+
+ */
+static long handleNonSubPathSegments( long pindex)
+{
+
+  /* handle the different segment types in a switch-statement */
+  switch ( ppoints[pindex].type ) {
+
+  case PPOINT_SBW:
+#ifdef DUMPDEBUGPATH
+  if ( psfile != NULL )
+    fprintf( psfile, "%f %f %f %f t1sbw\n",
+	     ppoints[pindex].x*up, ppoints[pindex].y*up,   /* sidebearings */
+	     ppoints[pindex].ax*up, ppoints[pindex].ay*up  /* escapements  */
+	     );
+#endif
+    path = Join(path, Loc(CharSpace, ppoints[pindex].x, ppoints[pindex].y));
+    return 1;
+    break;
+    
+
+  case PPOINT_ENDCHAR:
+    /* Perform a Closepath just in case the command was left out */
+    path = ClosePath(path);
+    
+    /* Set character width / escapement. It is stored in the vars for
+       hinted coordinates. */
+    path = Join(Snap(path), Loc(CharSpace, ppoints[pindex].ax, ppoints[pindex].ay));
+    
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fputs( "t1FinishPage\n", psfile);
+#endif
+    return 1;
+    break;
+    
+
+  case PPOINT_SEAC:
+    /* return to origin of accent */
+    apath = Snap(path);
+    /* reset path to NULL */
+    path  = NULL;
+    return 1;
+    break;
+    
+    
+  default:
+    /* not handled, return 0! */
+    ;
+  }
+  
+  return 0;
+  
+}
+
+
+
+/* Transform a path point according to the path's incoming angle, the path's
+   outgoing angle and the parameter strokewidth. The computation is based on
+   simple geometric considerations and makes use of the distance from the
+   current point to the previous point and the next point respectively.
+
+   Generally, each link to a path point induces its own candidate by simply
+   widening the respective link orthogonally to strokewidth/2. This yields
+   two displacement vectors (dx,dy) for the link from the previous point to the
+   point under consideration (dxp, dyp) and and for the link from the current
+   point to the next point (dxn, dyn).
+
+   Later on, the two candidates are used to compute the resulting displacement
+   as the intersection of the prolongated lines from before and behind the
+   current point.
+
+   Additionally, check whether the curve is concave or convex at this point.
+   This is required for prolongation in the context of stroking.
+*/
+static void transformOnCurvePathPoint( double strokewidth,
+				       long prevind, long currind, long nextind)
+{
+  double distxp;
+  double distyp;
+  double distxn;
+  double distyn;
+  double det;
+
+  /*
+  distxp =  (ppoints[currind].y - ppoints[prevind].y);
+  distyp = -(ppoints[currind].x - ppoints[prevind].x);
+  distxn =  (ppoints[nextind].y - ppoints[currind].y);
+  distyn = -(ppoints[nextind].x - ppoints[currind].x);
+
+  ppoints[currind].dxpr = distxp * strokewidth * 0.5 / ppoints[currind].dist2prev;
+  ppoints[currind].dypr = distyp * strokewidth * 0.5 / ppoints[currind].dist2prev;
+
+  ppoints[currind].dxnr = distxn * strokewidth * 0.5 / ppoints[currind].dist2next;
+  ppoints[currind].dynr = distyn * strokewidth * 0.5 / ppoints[currind].dist2next;
+  */
+  /* Note: When computing transformations of OnCurve points, we consider two
+           special cases:
+
+	   1) The OnCurve beginning or end point is equal to the neighboring
+	      control point of a Bezier-Segment.
+
+	   2) This holds for beginning *and* end point. In this case the curve
+	      degenerates to a straight lines.
+
+	   Although this is deprecated by Adobe, fonts that use such constructions
+	   exist (e.g.m lower case 'n' of Univers 55). However, we do not care
+	   for segments that do not any escapement at all!
+  */
+  
+  distxp =  (ppoints[currind].y - ppoints[prevind].y);
+  distyp = -(ppoints[currind].x - ppoints[prevind].x);
+  if ( (distxp == 0.0) && (distyp == 0.0) ) {
+    distxp =  (ppoints[currind].y - ppoints[prevind-1].y);
+    distyp = -(ppoints[currind].x - ppoints[prevind-1].x);
+    if ( (distxp == 0.0) && (distyp == 0.0) ) {
+      distxp =  (ppoints[currind].y - ppoints[prevind-2].y);
+      distyp = -(ppoints[currind].x - ppoints[prevind-2].x);
+    }
+  }
+  ppoints[currind].dxpr = distxp * strokewidth * 0.5 / ppoints[currind].dist2prev;
+  ppoints[currind].dypr = distyp * strokewidth * 0.5 / ppoints[currind].dist2prev;
+  
+  distxn =  (ppoints[nextind].y - ppoints[currind].y);
+  distyn = -(ppoints[nextind].x - ppoints[currind].x);
+  if ( (distxn == 0.0) && (distyn == 0.0) ) {
+    distxn =  (ppoints[nextind+1].y - ppoints[currind].y);
+    distyn = -(ppoints[nextind+1].x - ppoints[currind].x);
+    if ( (distxn == 0.0) && (distyn == 0.0) ) {
+      distxn =  (ppoints[nextind+2].y - ppoints[currind].y);
+      distyn = -(ppoints[nextind+2].x - ppoints[currind].x);
+    }
+  }
+  ppoints[currind].dxnr = distxn * strokewidth * 0.5 / ppoints[currind].dist2next;
+  ppoints[currind].dynr = distyn * strokewidth * 0.5 / ppoints[currind].dist2next;
+  
+  /* Consider determinant of the two tangent vectors at this node in order to
+     decide whether the curve is convex or cancave at this point. */
+  if ( (det = ((distxp * distyn) - (distxn * distyp))) < 0.0 ) {
+    /* curve turns to the right */
+    ppoints[currind].shape = CURVE_CONCAVE;
+  }
+  else if ( det > 0.0 ) {
+    /* curve turns to the left */
+    ppoints[currind].shape = CURVE_CONVEX;
+  }
+  else {
+    /* curve is straight */
+    ppoints[currind].shape = CURVE_STRAIGHT;
+  }
+  
+  return;
+}
+
+
+/* Compute a displacement for offCurve points, that is, for Bezier B and C points.
+   
+   This computation is not as simple as it might appear at a first glance and,
+   depending on the actual curve parameters and the parameter strokewidth, it might
+   be necessary to subdivide the curve. My mathematical background is not actually
+   reliable in this context but it seems that in particular the angle that the curve
+   runs through is important in this context. Since the Adobe Type 1 recommendations
+   on font design include a rule which states that curves' end points should be located
+   at extreme values, and consequently, that the angle of a curve segment should not
+   be larger than 90 degrees, I have decided not to implement curve subdivision. This
+   might lead to some deviations if fonts do not adhere to the Adobe recommendations.
+   Anyways, I have never seen such fonts.
+
+   This function is called for Bezier_B points and computes displacements for the B
+   and C points at once. Fortunately, index cycling cannot happen here.
+
+   The new Bezier B' and C' points can be considered as four degrees of freedom and we have
+   to find 4 equations to be able to compute them.
+
+   1) We require the tangents slope at point A' to be identical to the slope at the
+      point A of the ideally thin mathematical curve.
+
+   2) The same holds for the tangents slope at point D' with respect to point D.
+
+   3) We compute the following points
+
+      P1:       Equally subdivides the line A - B
+      P2:       Equally subdivides the line B - C
+      P3:       Equally subdivides the line C - D
+
+      P4:       Equally subdivides the line P1 - P2
+      P5:       Equally subdivides the line P1 - P3
+
+      P6:       Equally subdivides the line P4 - P5
+
+      This latter point is part of the curve and, moreover, the line P4 - P5 is
+      tangent to the curve at that point.
+      From this point, we compute a displacement for P6, orthogonally to the curve
+      at that point and with length strokewidth/2. The resulting point is part of
+      the delimiting path that makes up the thick curve.
+
+   4) We require that the tangent's slope at P6' equals the tangents slope at P6.
+
+   Then, under certain further constraints as mentioned above, we compute the points
+   B' and C' making use of the points A' and D' which have been transformed as onCurve
+   points. By definition, for offCurve points, there is only one candidate.
+
+ */
+static void transformOffCurvePathPoint( double strokewidth, long currind)
+{
+  double diameter;
+  double dx;
+  double dy;
+  
+  /* points defining the curve */
+  double pax;
+  double pay;
+  double pbx;
+  double pby;
+  double pcx;
+  double pcy;
+  double pdx;
+  double pdy;
+  
+  /* auxiliary points from iterative Bezier construction */
+  double p1x;
+  double p1y;
+  double p2x;
+  double p2y;
+  double p3x;
+  double p3y;
+  double p4x;
+  double p4y;
+  double p5x;
+  double p5y;
+  double p6x;
+  double p6y;
+  
+  /* already displaced / shifted onCurve points and the ones we are going
+     to compute. */
+  double paxs;
+  double pays;
+  double pbxs;
+  double pbys;
+  double pcxs;
+  double pcys;
+  double pdxs;
+  double pdys;
+
+  /* The normal vector on the curve at t=1/2 */
+  double nabs;
+  double nx;
+  double ny;
+
+  /* some variables for computations at point B' */
+  double bloc1x;         
+  double bloc1y;
+  double bdir1x;
+  double bdir1y;
+  double bloc2x;
+  double bloc2y;
+  double bdir2x;
+  double bdir2y;
+  double bdet;
+  double binvdet;
+  double binvdir1x;
+  double binvdir1y; /**/
+  double binvdir2x;
+  double binvdir2y; /**/
+  double bmu;
+  double bnu; /**/
+
+  /* some variables for computations at point C' */
+  double cloc1x;         
+  double cloc1y;
+  double cdir1x;
+  double cdir1y;
+  double cloc2x;
+  double cloc2y;
+  double cdir2x;
+  double cdir2y;
+  double cdet;
+  double cinvdet;
+  double cinvdir1x;
+  double cinvdir1y; /**/
+  double cinvdir2x;
+  double cinvdir2y; /**/
+  double cmu;
+  double cnu; /**/
+  
+  diameter = strokewidth * 0.5;
+  
+  pax = ppoints[currind-1].x;
+  pay = ppoints[currind-1].y;
+  pbx = ppoints[currind].x;
+  pby = ppoints[currind].y;
+  pcx = ppoints[currind+1].x;
+  pcy = ppoints[currind+1].y;
+  pdx = ppoints[currind+2].x;
+  pdy = ppoints[currind+2].y;
+  
+  p1x = (pax + pbx) * 0.5;
+  p1y = (pay + pby) * 0.5;
+  p2x = (pbx + pcx) * 0.5;
+  p2y = (pby + pcy) * 0.5;
+  p3x = (pcx + pdx) * 0.5;
+  p3y = (pcy + pdy) * 0.5;
+  p4x = (p1x + p2x) * 0.5;
+  p4y = (p1y + p2y) * 0.5;
+  p5x = (p2x + p3x) * 0.5;
+  p5y = (p2y + p3y) * 0.5;
+  p6x = (p4x + p5x) * 0.5;
+  p6y = (p4y + p5y) * 0.5;
+
+  
+  /* We start by computing the shift of the onCurve points. It is not possible
+     to use  dxr / dyr of the ppoints-stucture entries. These values have been
+     computed by intersection of both links to a path point. Here we need the
+     ideal points of the thick isolated curve segment. We are aware that for
+     Bezier splines, control point and OnCurve point might be identical! */
+  dx   =   (ppoints[currind].y - ppoints[currind-1].y) * strokewidth * 0.5 / ppoints[currind-1].dist2next;
+  dy   = - (ppoints[currind].x - ppoints[currind-1].x) * strokewidth * 0.5 / ppoints[currind-1].dist2next;
+  if ( (dx == 0.0) && (dy == 0.0) ) {
+    /* Bezier_A and Bezier_B are identical */
+    dx   =   (ppoints[currind+1].y - ppoints[currind-1].y) * strokewidth * 0.5 / ppoints[currind-1].dist2next;
+    dy   = - (ppoints[currind+1].x - ppoints[currind-1].x) * strokewidth * 0.5 / ppoints[currind-1].dist2next;
+  }
+  paxs = ppoints[currind-1].x + dx;
+  pays = ppoints[currind-1].y + dy;
+  dx   =   (ppoints[currind+2].y - ppoints[currind+1].y) * strokewidth * 0.5 / ppoints[currind+2].dist2prev;
+  dy   = - (ppoints[currind+2].x - ppoints[currind+1].x) * strokewidth * 0.5 / ppoints[currind+2].dist2prev;
+  if ( (dx == 0.0) && (dy == 0.0) ) {
+    /* Bezier_C and Bezier_D are identical */
+    dx   =   (ppoints[currind+2].y - ppoints[currind].y) * strokewidth * 0.5 / ppoints[currind+2].dist2prev;
+    dy   = - (ppoints[currind+2].x - ppoints[currind].x) * strokewidth * 0.5 / ppoints[currind+2].dist2prev;
+  }
+  pdxs = ppoints[currind+2].x + dx;
+  pdys = ppoints[currind+2].y + dy;
+
+  /* Next, we compute the right side normal vector at the curve point t=1/2,
+   that is, at P6. */
+  nabs    = diameter / sqrt(((p5x - p4x) * (p5x - p4x)) + ((p5y - p4y) * (p5y - p4y)));
+  nx      = (p5y - p4y) * nabs;
+  ny      = (p4x - p5x) * nabs;
+
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "transformOffCurvePathPoint():\n");
+  fprintf( stderr, "    A=(%f,%f), B=(%f,%f), C=(%f,%f), D=(%f,%f)\n",
+	   pax, pay, pbx, pby, pcx, pcy, pdx, pdy);
+  fprintf( stderr, "%% DebugInfo: Curve from PP %ld ... PP %ld ... PP %ld ... PP %ld. StrokeWidth=%f.\n",
+	   currind-1, currind, currind+1, currind+2, strokewidth);
+  fprintf( stderr, "/xa %f def\n/ya %f def\n/xb %f def\n/yb %f def\n/xc %f def\n/yc %f def\n/xd %f def\n/yd %f def\n",
+	   pax, pay, pbx, pby, pcx, pcy, pdx, pdy);
+  fprintf( stderr, "    As=(%f,%f), Ds=(%f,%f)\n",
+	   paxs, pays, pdxs, pdys);
+  fprintf( stderr, "    p6=(%f,%f)\n", p6x, p6y);
+  fprintf( stderr, "    nx=%f, ny=%f, nabs=%f\n", nx, ny, nabs);
+  fprintf( stderr, "    p6s=(%f,%f)\n", p6x+nx, p6y+ny);
+#endif
+
+  /* Compute two lines whose intersection will define point B' */
+  bloc1x = (4.0 * (nx + p6x) - (2 * paxs) + pdxs) / 3.0;
+  bloc1y = (4.0 * (ny + p6y) - (2 * pays) + pdys) / 3.0;
+  bdir1x = pcx + pdx - pax - pbx;
+  bdir1y = pcy + pdy - pay - pby;
+  bloc2x = paxs;
+  bloc2y = pays;
+  bdir2x = pbx - pax;
+  bdir2y = pby - pay;
+  bdet   = (bdir2x * bdir1y) - (bdir2y * bdir1x);
+  
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "    bloc1x=%f, bloc1y=%f, bloc2x,=%f bloc2y=%f\n",
+	   bloc1x, bloc1y, bloc2x, bloc2y);
+  fprintf( stderr, "    bdir1x=%f, bdir1y=%f, bdir2x,=%f bdir2y=%f\n",
+	   bdir1x, bdir1y, bdir2x, bdir2y);
+#endif
+
+  /* Switch if determinant is zero; we then actually have a straight line */
+  if ( fabs(bdet) < 0.001 ) {
+    pbxs   = pbx + nx;
+    pbys   = pby + ny;
+    bmu    = 0.0;
+    bnu    = 0.0;
+  }
+  else {
+    /* Calculate required part of inverse matrix */
+    binvdet   =   1.0 / bdet;
+    binvdir2x =   bdir1y * binvdet;
+    binvdir2y = - bdir2y * binvdet; /**/
+    binvdir1x = - bdir1x * binvdet;
+    binvdir1y =   bdir2x * binvdet; /**/
+
+    /* Calculate coefficient that describes intersection */
+    bmu       =   (binvdir2x * (bloc1x - bloc2x)) + (binvdir1x * (bloc1y - bloc2y));
+    bnu       =   (binvdir2y * (bloc1x - bloc2x)) + (binvdir1y * (bloc1y - bloc2y)); /**/
+
+    /* Calculate B' */
+    pbxs      =   bloc2x + (bmu * bdir2x);
+    pbys      =   bloc2y + (bmu * bdir2y);
+  }
+
+  /* Compute two lines whose intersection will define point C' */
+  cloc1x = (4.0 * (nx + p6x) - (2 * pdxs) + paxs) / 3.0;
+  cloc1y = (4.0 * (ny + p6y) - (2 * pdys) + pays) / 3.0;
+  cdir1x = bdir1x;
+  cdir1y = bdir1y;
+  cloc2x = pdxs;
+  cloc2y = pdys;
+  cdir2x = pcx - pdx;
+  cdir2y = pcy - pdy;
+  cdet   = (cdir2x * cdir1y) - (cdir2y * cdir1x);
+
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "    cloc1x=%f, cloc1y=%f, cloc2x,=%f cloc2y=%f\n",
+	   cloc1x, cloc1y, cloc2x, cloc2y);
+  fprintf( stderr, "    cdir1x=%f, cdir1y=%f, cdir2x,=%f cdir2y=%f\n",
+	   cdir1x, cdir1y, cdir2x, cdir2y);
+#endif
+
+  /* Switch if determinant is zero; we then actually have a straight line */
+  if ( fabs( cdet) < 0.001 ) {
+    pcxs   = pcx + nx;
+    pcys   = pcy + ny;
+    cmu    = 0.0;
+    cnu    = 0.0;
+  }
+  else {
+    /* Calculate required part of inverse matrix */
+    cinvdet   =   1.0 / cdet;
+    cinvdir2x =   cdir1y * cinvdet;
+    cinvdir2y = - cdir2y * cinvdet; /**/
+    cinvdir1x = - cdir1x * cinvdet;
+    cinvdir1y =   cdir2x * cinvdet; /**/
+
+    /* Calculate coefficient that describes intersection */
+    cmu       =   (cinvdir2x * (cloc1x - cloc2x)) + (cinvdir1x * (cloc1y - cloc2y));
+    cnu       =   (cinvdir2y * (cloc1x - cloc2x)) + (cinvdir1y * (cloc1y - cloc2y)); /**/
+
+    /* Calculate C' */
+    pcxs      =   cloc2x + (cmu * cdir2x);
+    pcys      =   cloc2y + (cmu * cdir2y);
+  }
+
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "    bdet=%f, cdet=%f, bmu=%f, bnu=%f, cmu=%f, cnu=%f\n",
+	   bdet, cdet, bmu, bnu, cmu, cnu);
+#endif
+
+  /* Analyse coefficients and decide on numerical stability. If suggesting,
+     overwrite, using another relation. Here, we assume that at least the
+     solution at *one* end of the curve is stable. */
+  if ( bmu < 0.1 ) {
+    pbxs = ((8 * (nx + p6x) - paxs - pdxs) / 3.0) - pcxs;
+    pbys = ((8 * (ny + p6y) - pays - pdys) / 3.0) - pcys;
+  }
+  if ( cmu < 0.1 ) {
+    pcxs = ((8 * (nx + p6x) - paxs - pdxs) / 3.0) - pbxs;
+    pcys = ((8 * (ny + p6y) - pays - pdys) / 3.0) - pbys;
+  }
+  
+  
+  /* Store the resulting displacement values in the ppoints-struct so
+     they can be used for path construction. We use the "intersect" member
+     because in this case nothing is related to "previous" or "next".*/
+#ifdef DEBUG_OUTLINE_SURROUNDING
+  fprintf( stderr, "    pbx=%f, pbxs=%f, bxshift=%f, pby=%f, pbys=%f, byshift=%f\n",
+	   pbx, pbxs, pbxs-pbx, pby, pbys, pbys-pby);
+  fprintf( stderr, "    pcx=%f, pcxs=%f, cxshift=%f, pcy=%f, pcys=%f, cyshift=%f\n",
+	   pcx, pcxs, pcxs-pcx, pcy, pcys, pcys-pcy);
+#endif
+  ppoints[currind].dxir    = pbxs - pbx;
+  ppoints[currind].dyir    = pbys - pby;
+  ppoints[currind+1].dxir  = pcxs - pcx;
+  ppoints[currind+1].dyir  = pcys - pcy;
+
+  return;
+  
+}
+
+
+static void intersectRight( long index, double halfwidth, long flag)
+{
+  double r2  = 0.0;
+  double det = 0.0;
+  double dxprev;
+  double dyprev;
+  double dxnext;
+  double dynext;
+  
+  
+  /* In order to determine the intersection between the two
+     prolongations at the path point under consideration, we use
+     the Hesse Normal Form, multiplied with r.
+
+     dx * x + dy + y + r^2 = 0
+
+     Here, r is the distance from the origin, that is, from the path point
+     under consideration. */
+
+  /* Check for start and ending of non-closed paths */
+  if ( flag == INTERSECT_PREVIOUS ) {
+    ppoints[index].dxir = ppoints[index].dxpr;
+    ppoints[index].dyir = ppoints[index].dypr;
+    /* Correct shape to be "straight" at ending point! */
+    ppoints[index].shape = CURVE_STRAIGHT;
+    return;
+  }
+  if ( flag == INTERSECT_NEXT ) {
+    ppoints[index].dxir = ppoints[index].dxnr;
+    ppoints[index].dyir = ppoints[index].dynr;
+    /* Correct shape to be "straight" at starting point! */
+    ppoints[index].shape = CURVE_STRAIGHT;
+    return;
+  }
+
+  /* OK, we actually compute an intersection */
+  dxprev = ppoints[index].dxpr;
+  dyprev = ppoints[index].dypr;
+  dxnext = ppoints[index].dxnr;
+  dynext = ppoints[index].dynr;
+
+  /* Compute distance square */
+  r2 = halfwidth * halfwidth;
+
+  /* Check the determinant. If it is zero, the two lines are parallel
+     and also must touch at atleast one location,
+     so that there are an infinite number of solutions. In this case,
+     we compute the average position and are done. */
+  if ( (det = ((dyprev * dxnext) - (dynext * dxprev))) == 0.0 ) {
+    ppoints[index].dxir = 0.5 * (dxprev + dxnext);
+    ppoints[index].dyir = 0.5 * (dyprev + dynext);
+#ifdef DEBUG_OUTLINE_SURROUNDING
+    fprintf( stderr, "intersectRight(0): dxprev=%f, dxnext=%f,  dxres=%f, dyprev=%f, dynext=%f, dyres=%f\n",
+	     dxprev, dxnext, ppoints[index].dxir, dyprev, dynext, ppoints[index].dyir);
+#endif
+    return;
+  }
+  
+  /* OK, there seems to be a unique solution, compute it */
+  if ( dxprev != 0.0 ) {
+    ppoints[index].dyir =  r2 * (dxnext - dxprev) / det;
+    ppoints[index].dxir = (r2 - (dyprev * ppoints[index].dyir)) / dxprev; /* - ? */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+    fprintf( stderr, "intersectRight(1): dxprev=%f, dxnext=%f,  dxres=%f, dyprev=%f, dynext=%f, dyres=%f\n",
+	     dxprev, dxnext, ppoints[index].dxir, dyprev, dynext, ppoints[index].dyir);
+#endif
+  }
+  else {
+    ppoints[index].dyir = -r2 * (dxprev - dxnext) / det;
+    ppoints[index].dxir = (r2 - (dynext * ppoints[index].dyir)) / dxnext; /* - ? */
+#ifdef DEBUG_OUTLINE_SURROUNDING
+    fprintf( stderr, "intersectRight(2): dxprev=%f, dxnext=%f,  dxres=%f, dyprev=%f, dynext=%f, dyres=%f\n",
+	     dxprev, dxnext, ppoints[index].dxir, dyprev, dynext, ppoints[index].dyir);
+#endif
+  }
+  
+  return;
+     
+}
+
+
+
+/* linkNode(): Insert prolongation lines at nodes. */
+static void linkNode( long index, int position, int orientation)
+{
+  struct segment* B;
+  double dx = 0.0;
+  double dy = 0.0;
+
+  if ( orientation == PATH_RIGHT ) {
+    /* We are constructing the right hand side path */
+    if ( position == PATH_START ) {
+      /* We are starting a new segment. Link from current point to ideally
+	 next-shifted point of segment. */
+      if ( ppoints[index].shape == CURVE_CONCAVE ) {
+	/* prolongate from original curve point to ideally next-shifted point */
+	dx = ppoints[index].dxnr;
+	dy = ppoints[index].dynr;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "    Right Path Concave at PP %ld. Prolongation from onCurve to ideal: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+      else if ( ppoints[index].shape == CURVE_CONVEX ) {
+	/* prolongate from intersecion point to ideally next-shifted point */
+	dx = ppoints[index].dxnr - ppoints[index].dxir;
+	dy = ppoints[index].dynr - ppoints[index].dyir;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "RP:  Convex at PP %ld. Prolongation from intersection to ideal: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+    }
+    else if ( position == PATH_END ) {
+      /* We are ending the current segment. Link from ideally prev-shifted point
+	 to the appropriate ending point. */
+      if ( ppoints[index].shape == CURVE_CONCAVE ) {
+	/* prolongate from ideally prev-shifted point to original curve point. */
+	dx = - ppoints[index].dxpr;
+	dy = - ppoints[index].dypr;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "RP:  Concave at PP %ld. Prolongation from ideal to onCurve: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+      else if ( ppoints[index].shape == CURVE_CONVEX ) {
+	/* prolongate from ideally prev-shifted point to intersection point. */
+	dx = ppoints[index].dxir - ppoints[index].dxpr;
+	dy = ppoints[index].dyir - ppoints[index].dypr;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "RP:  Convex at PP %ld. Prolongation from ideal to intersection: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+    } /* if ( PATH_END ) */
+  } /* if ( PATH_RIGHT ) */
+  else if ( orientation == PATH_LEFT ) {
+
+    /* We are constructing the left hand side path. Some notions have to be
+       reverted (e.g. concavity vs. convexity and next vs. previous)! */
+    if ( position == PATH_START ) {
+      /* We are starting a new segment. Link from current point to ideally
+	 next-shifted point of segment. */
+      if ( ppoints[index].shape == CURVE_CONVEX ) {
+	/* prolongate from original curve point to ideally next-shifted point.
+	   Remember: next --> prev! */
+	dx = - (ppoints[index].dxpr);
+	dy = - (ppoints[index].dypr);
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "LP:  Concave at PP %ld. Prolongation from onCurve to ideal: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+      else if ( ppoints[index].shape == CURVE_CONCAVE ) {
+	/* prolongate from intersecion point to ideally next-shifted point */
+	dx = - (ppoints[index].dxpr - ppoints[index].dxir);
+	dy = - (ppoints[index].dypr - ppoints[index].dyir);
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "LP:  Convex at PP %ld. Prolongation from intersection to ideal: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+    }/* if ( PATH_START ) */
+    else if ( position == PATH_END ) {
+      /* We are ending the current segment. Link from ideally prev-shifted point
+	 to the appropriate ending point. */
+      if ( ppoints[index].shape == CURVE_CONVEX ) {
+	/* prolongate from ideally prev-shifted point to original curve point. */
+	dx = ppoints[index].dxnr;
+	dy = ppoints[index].dynr;
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "LP:  Concave at PP %ld. Prolongation from ideal to onCurve: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+      else if ( ppoints[index].shape == CURVE_CONCAVE ) {
+	/* prolongate from ideally prev-shifted point to intersection point. */
+	dx = - (ppoints[index].dxir - ppoints[index].dxnr);
+	dy = - (ppoints[index].dyir - ppoints[index].dynr);
+#ifdef DEBUG_OUTLINE_SURROUNDING
+	fprintf( stderr, "LP:  Convex at PP %ld. Prolongation from ideal to intersection: (%f,%f)\n",
+		 index, dx, dy);
+#endif
+      }
+    } /* if ( PATH_END ) */
+  } /* if ( PATH_LEFT ) */
+
+  if ( (dx != 0.0) || (dy != 0.0) ) {
+#ifdef DUMPDEBUGPATH
+    if ( psfile != NULL )
+      fprintf( psfile, "%f %f t1sprolongate\n", dx*up, dy*up);
+#endif
+    B = Loc( CharSpace, dx, dy);
+    path = Join(path, Line(B));
+  }
+  
+  return;
+  
+}

@@ -45,7 +45,7 @@ int t1_Overlap();             /* returns a Boolean; TRUE if regions overlap   */
 /*END SHARED*/
 /*SHARED*/
  
-#define   ChangeDirection(type,R,x,y,dy)  t1_ChangeDirection(type,R,x,y,dy)
+#define   ChangeDirection(type,R,x,y,dy,x2,y2)  t1_ChangeDirection(type,R,x,y,dy,x2,y2)
  
 void t1_ChangeDirection();    /* called when we change direction in Y         */
 #define   CD_FIRST         -1  /* enumeration of ChangeDirection type       */
@@ -80,17 +80,17 @@ void t1_UnJumble();           /* sort the edges and reset the jumbled flag    */
 #define GOING_TO(R, x1, y1, x2, y2, dy) { \
    if (dy < 0) { \
       if (R->lastdy >= 0) \
-          ChangeDirection(CD_CONTINUE, R, x1, y1, dy); \
+          ChangeDirection(CD_CONTINUE, R, x1, y1, dy, x2, y2); \
       if (y2 < R->edgeYstop) \
           MoreWorkArea(R, x1, y1, x2, y2); \
    } \
    else if (dy > 0) { \
       if (R->lastdy <= 0) \
-          ChangeDirection(CD_CONTINUE, R, x1, y1, dy); \
+          ChangeDirection(CD_CONTINUE, R, x1, y1, dy, x2, y2); \
       if (y2 > R->edgeYstop) \
           MoreWorkArea(R, x1, y1, x2, y2); \
    } \
-   else /* dy == 0 */ ChangeDirection(CD_CONTINUE, R, x1, y1, dy); \
+   else /* dy == 0 */ ChangeDirection(CD_CONTINUE, R, x1, y1, dy, x2, y2); \
    if (x2 < R->edgexmin) R->edgexmin = x2; \
    else if (x2 > R->edgexmax) R->edgexmax = x2; \
 }
@@ -166,13 +166,18 @@ is frequently intersected.
 /*SHARED*/
  
 struct edgelist {
-       XOBJ_COMMON          /* xobject common data define 3-26-91 PNM        */
-                            /* type = EDGETYPE                               */
-       struct edgelist *link;  /* pointer to next in linked list             */
-       struct edgelist *subpath;  /* informational link for "same subpath"   */
-       pel xmin,xmax;        /* range of edge in X                           */
-       pel ymin,ymax;        /* range of edge in Y                           */
-       pel *xvalues;         /* pointer to ymax-ymin X values                */
+  XOBJ_COMMON          /* xobject common data define 3-26-91 PNM        */
+  /* type = EDGETYPE                               */
+  struct edgelist *link;  /* pointer to next in linked list             */
+  struct edgelist *subpath;  /* informational link for "same subpath"   */
+  pel xmin,xmax;        /* range of edge in X                           */
+  pel ymin,ymax;        /* range of edge in Y                           */
+  pel *xvalues;         /* pointer to ymax-ymin X values                */
+  
+  fractpel fpx1;        /* Added by RMz, author of t1lib, 2002-08-15.   */
+  fractpel fpy1;        /* This produces a little memory overhead, but  */
+  fractpel fpx2;        /* gives the opportunity to take more           */ 
+  fractpel fpy2;        /* intelligent decisions in ApplyContinuity().  */
 } ;
 /*
 The end of the list is marked by either "link" being NULL, or by

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-10-03
+  ----- Date:        2002-11-27
   ----- Description: This file is part of the t1-library. It contains
                      functions for loading fonts  and for managing size
 		     dependent data.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -100,13 +100,13 @@ int T1_LoadFont( int FontID)
   int char1, char2;
   
   
-  if (CheckForInit()){
+  if (T1_CheckForInit()){
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
   
 
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i==1)
     return(0);      /* Font already loaded */
   if (i==-1){
@@ -608,6 +608,7 @@ int T1_LoadFont( int FontID)
     }
     /* We now create an encoding-specific kerning table which will speed up
        looking for kerning pairs! */
+    pFontBase->pFontArray[FontID].KernMapSize=0;
     /* First, get number of defined kerning pairs: */
     k=pFontBase->pFontArray[FontID].pAFMData->numOfPairs;
     if (k>0){ /* i.e., there are any pairs */
@@ -850,7 +851,7 @@ static int openFontMetricsFile( int FontID, int open_sloppy)
 
 
 
-/* CreateNewFontSize( FontID, size): Create a new size "size" of font
+/* T1int_CreateNewFontSize( FontID, size): Create a new size "size" of font
    "FontID" and allocate all data necessary for this. The data
    structure is connected to the linked list of FontSizeDeps for this
    font. Returns a pointer to the newly created FontSizeDeps-struct
@@ -863,7 +864,7 @@ static int openFontMetricsFile( int FontID, int open_sloppy)
    2:     low-antialiased bytemaps are stored in this struct
    4:     high-antialiased bytemaps are stored in this struct
    */
-FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa)
+FONTSIZEDEPS *T1int_CreateNewFontSize( int FontID, float size, int aa)
 {
 
   FONTSIZEDEPS *pFontSizeDeps, *pPrev;
@@ -872,7 +873,7 @@ FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa)
   /* First, get to the last font size in the linked list for this font.
      The following routine returns the address of the last struct in the
      linked list of FONTSIZEDEPS or NULL if none exists. */
-  pFontSizeDeps=GetLastFontSize( FontID);
+  pFontSizeDeps=T1int_GetLastFontSize( FontID);
   pPrev=pFontSizeDeps;
   
   
@@ -939,10 +940,10 @@ FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa)
   
 
 
-/* QueryFontSize( FontID, size, aa): Search if a requested size of font
+/* T1_QueryFontSize( FontID, size, aa): Search if a requested size of font
    FontID is already existing. If so, it returns a pointer to the
    respective FontSizeDeps-structure,  otherwise NULL is returned: */
-FONTSIZEDEPS *QueryFontSize( int FontID, float size, int aa)
+FONTSIZEDEPS *T1int_QueryFontSize( int FontID, float size, int aa)
 {
   
   FONTSIZEDEPS *link_ptr;
@@ -967,10 +968,10 @@ FONTSIZEDEPS *QueryFontSize( int FontID, float size, int aa)
   
 }
 
-/* FONTSIZEDEPS *GetLastFontSize( FontID): Get the address of the
+/* FONTSIZEDEPS *T1int_GetLastFontSize( FontID): Get the address of the
    last struct in the linked list of FontSizeDeps or NULL if there is
    no existing size dependent data. */
-FONTSIZEDEPS *GetLastFontSize( int FontID)
+FONTSIZEDEPS *T1int_GetLastFontSize( int FontID)
 {
   FONTSIZEDEPS *link_ptr, *result_ptr;
   

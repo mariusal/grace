@@ -36,6 +36,7 @@
 #include "fontfcn.h"
 #include "blues.h"
 
+#include "../t1lib/t1misc.h"
 
 /* #define DEBUG_SCANFONT */
  
@@ -247,7 +248,7 @@ static psobj *MakeEncodingArrayP(encodingTable)
   int i;
   psobj *encodingArrayP;
  
-  encodingArrayP = (psobj *)vm_alloc(256*(sizeof(psobj)));
+  encodingArrayP = (psobj *)malloc(256*(sizeof(psobj)));
   if (!encodingArrayP)
       return NULL;
 
@@ -1217,7 +1218,7 @@ int scan_font(FontP)
 {
  
  
-  char   filename[128];
+  char   filename[MAXPATHLEN];
   FILE   *fileP;
   char   *nameP;
   int    namelen;
@@ -1233,6 +1234,10 @@ int scan_font(FontP)
     /* now remove any trailing blanks */
     while ((namelen>0) && ( nameP[namelen-1] == ' ')) {
       namelen--;
+    }
+    if ( namelen >= MAXPATHLEN ) {
+      /* Hopefully, this will lead to a file open error */
+      namelen = MAXPATHLEN;
     }
     strncpy(filename,nameP,namelen);
     filename[namelen] = '\0';
@@ -1343,7 +1348,11 @@ int scan_font(FontP)
 	      filterFile.data.fileP = T1eexec(inputP->data.fileP);
 	      if (filterFile.data.fileP == NULL) {
 		fclose(inputFile.data.fileP);
-		return(SCAN_FILE_OPEN_ERROR);
+		/* SCAN_FILE_OPEN_ERROR replaced because at this point
+		   a portion of the file has already been read successfully.
+		   We hence have encountered a premature end of file
+		   (2002-08-17, RMz). */
+		return SCAN_FILE_EOF;
 	      }
 	      inputP = &filterFile;
 	      

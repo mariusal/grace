@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-10-03
+  ----- Date:        2004-03-04
   ----- Description: This file is part of the t1-library. It contains basic
                      routines to initialize the data structures used
 		     by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2004.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -50,7 +50,7 @@
 
 #include "../type1/ffilest.h" 
 #include "../type1/types.h"
-#include "parseAFM.h" 
+#include "parseAFM.h"
 #include "../type1/objects.h"
 #include "../type1/spaces.h"
 #include "../type1/util.h"
@@ -66,7 +66,65 @@
 #include "t1delete.h"
 
 
+static int test_for_t1_file( char *buffer );
 static int T1_pad=0;
+
+/* A fix for Encoding Vector problem. Initialization / Deinitialization
+   is now done in T1_InitLib() / T1-CloseLib. */
+extern boolean Init_BuiltInEncoding( void);
+extern psobj *StdEncArrayP;
+
+static const char* T1errmsg[] = {
+  "",                                                          /*                              -10 */
+  "",                                                          /*                              -9  */
+  "",                                                          /*                              -8  */
+  "",                                                          /*                              -7  */
+  "",                                                          /*                              -6  */
+  "Attempt to Load Multiple Master Font",                      /* T1ERR_SCAN_FONT_FORMAT       -5  */
+  "Type 1 Font File Open Error",                               /* T1ERR_SCAN_FILE_OPEN_ERR     -4  */
+  "Virtual Memory Exceeded",                                   /* T1ERR_SCAN_OUT_OF_MEMORY     -3  */
+  "Syntactical Error Scanning Font File",                      /* T1ERR_SCAN_ERROR             -2  */
+  "Premature End of Font File Encountered",                    /* T1ERR_SCAN_FILE_EOF          -1  */
+  "",                                                          /*                               0  */
+  "Path Construction Error",                                   /* T1ERR_PATH_ERROR              1  */
+  "Font is Corrupt",                                           /* T1ERR_PARSE_ERROR             2  */
+  "Rasterization Aborted",                                     /* T1ERR_TYPE1_ABORT             3  */
+  "",                                                          /*                               4  */
+  "",                                                          /*                               5  */
+  "",                                                          /*                               6  */
+  "",                                                          /*                               7  */
+  "",                                                          /*                               8  */
+  "",                                                          /*                               9  */
+  "Font ID Invalid in this Context",                           /* T1ERR_INVALID_FONTID          10 */
+  "Invalid Argument in Function Call",                         /* T1ERR_INVALID_PARAMETER       11 */
+  "Operation not Permitted",                                   /* T1ERR_OP_NOT_PERMITTED        12 */
+  "Memory Allocation Error",                                   /* T1ERR_ALLOC_MEM               13 */
+  "Error Opening File",                                        /* T1ERR_FILE_OPEN_ERR           14 */
+  "Unspecified T1Lib Error",                                   /* T1ERR_UNSPECIFIED             15 */
+  "Missing AFM Data",                                          /* T1ERR_NO_AFM_DATA             16 */
+  "X11 Interface Error",                                       /* T1ERR_X11                     17 */
+  "Missing Component of Composite Character"                   /* T1ERR_COMPOSITE_CHAR          18 */
+  "Error Scanning Encoding File",                              /* T1ERR_SCAN_ENCODING           19 */
+  "",                                                          /*                               20 */
+};
+
+
+/* T1_StrError(): Return an error message corresponding to the value of
+   t1err. */
+const char *T1_StrError( int t1err) 
+{
+  int errind;
+
+  errind = t1err + 10;
+
+  if ( errind < 0 )
+    errind = 0;
+  if ( errind > 29 )
+    errind = 0;
+  
+  return T1errmsg[errind];
+}
+
 
 
 /* This function is to be called by the user to initialize
@@ -223,7 +281,12 @@ void *T1_InitLib( int log)
 		   T1LOG_WARNING);
   }
   
-
+  /* Initialize builtin Standard Encoding */
+  if ( !(Init_BuiltInEncoding()) ) {
+      T1_PrintLog( "T1_InitLib()", "Unable initialize internal StandardEncoding!",
+		   T1LOG_ERROR);
+  }
+  
   /* Set the default encoding to the fonts' internal encoding */
   pFontBase->default_enc=NULL;
   
@@ -294,7 +357,6 @@ int intT1_scanFontDBase( char *filename)
   char *filebuffer;
   int nofonts=0;
   FONTPRIVATE* fontarrayP=NULL;
-  
   
 #ifndef O_BINARY
 #  define O_BINARY 0x0
@@ -444,6 +506,12 @@ int T1_CloseLib( void)
       free( pFontBase->pFontArray);
     else
       error=1;
+
+    /* Get rid of internal StandardEncoding vector */
+    if ( StdEncArrayP != NULL ) {
+      free( StdEncArrayP);
+      StdEncArrayP = NULL;
+    }
 
     /* Free search paths */
     intT1_FreeSearchPaths();
@@ -617,9 +685,9 @@ void T1_SetLogLevel( int level)
 
 
 
-/* CheckForInit(): If no initialization of font mechanism has been
+/* T1_CheckForInit(): If no initialization of font mechanism has been
    done, return -1, indicating an error. */
-int CheckForInit(void)
+int T1_CheckForInit(void)
 {
   if(T1_Up)
     return(0);
@@ -630,14 +698,14 @@ int CheckForInit(void)
 
 
 
-/* CheckForFontID(): Checks the font mechanism concerning the specified
+/* T1_CheckForFontID(): Checks the font mechanism concerning the specified
    ID. It returns:
                    0  if font belonging to FontID has not yet been loaded
 		   1  if font belonging to FontID has already been loaded
 		   -1 if FontID is an invalid specification or t1lib not
 		      initialized
 		   */
-int CheckForFontID( int FontID)
+int T1_CheckForFontID( int FontID)
 {
 
   /* FontID is invalid */
@@ -656,7 +724,7 @@ int CheckForFontID( int FontID)
 /* test_for_t1_file returns 0 if a file "name.pfa" or "name.pfb"
    was found. Else, -1 is returned. If successful, buffer contains the
    found filename string */
-int test_for_t1_file( char *buffer )
+static int test_for_t1_file( char *buffer )
 {
   int i=0;
   char *FullName;
@@ -706,7 +774,7 @@ char *T1_GetFontFileName( int FontID)
 
   static char filename[MAXPATHLEN+1];
   
-  if (CheckForInit())return(NULL);
+  if (T1_CheckForInit())return(NULL);
 
   /* Check first for valid FontID */
   if ((FontID<0) || (FontID>FontBase.no_fonts)){
@@ -733,7 +801,7 @@ char *T1_GetFontFileName( int FontID)
 int T1_SetAfmFileName( int FontID, char *afm_name)
 {
 
-  if (CheckForFontID(FontID)!=0){
+  if (T1_CheckForFontID(FontID)!=0){
     /* Operation may not be applied because FontID is invalid
        or font is loaded */
     T1_errno=T1ERR_INVALID_FONTID;
@@ -769,7 +837,7 @@ char *T1_GetAfmFileName( int FontID)
 
   static char filename[MAXPATHLEN+1];
   
-  if (CheckForInit())return(NULL);
+  if (T1_CheckForInit())return(NULL);
 
   /* Check first for valid FontID */
   if ((FontID<0) || (FontID>FontBase.no_fonts)){
@@ -788,10 +856,11 @@ char *T1_GetAfmFileName( int FontID)
 
 
   
-/* T1_Get_no_fonts(): Return the number of declared fonts */
-int  T1_Get_no_fonts(void)
+/* T1_GetNoFonts(): Return the number of declared fonts */
+int  T1_GetNoFonts(void)
 {
-  if (CheckForInit())return(-1);
+  if (T1_CheckForInit())
+    return(-1);
   return(FontBase.no_fonts);
 }
 
@@ -806,11 +875,11 @@ int T1_SetDeviceResolutions( float x_res, float y_res)
 
   int i;
   
-  if (CheckForInit())
+  if (T1_CheckForInit())
     ;   /* Not initialized -> no size dependent data -> OK */
   else
     /* Check if size-dependent data is existent */
-    for ( i=T1_Get_no_fonts(); i; i--)
+    for ( i=T1_GetNoFonts(); i; i--)
       if (pFontBase->pFontArray[i-1].pFontSizeDeps!=NULL){
 	T1_errno=T1ERR_OP_NOT_PERMITTED;
 	return(-1); /* There's is size dependent data for a font */
@@ -862,7 +931,7 @@ int T1_CopyFont( int FontID)
   
   
   /* Check for a valid source font */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -1017,99 +1086,6 @@ int T1_GetBitmapPad( void)
 
 
 
-/* bin_dump(): Print a binary dump of a byte, short and
-   long variable (used for debug purposes only): */
-void bin_dump_c(unsigned char value, char space_flag)
-{
-  int i,j;
-  
-  for (i=0;i<=7;i++){
-    if ((j=((value)>>i)&0x01))
-      printf("X");
-    else
-      printf(".");
-  }
-  if (space_flag)
-    printf(" ");
-
-}
-
-void bin_dump_s(unsigned short value, char space_flag)
-{
-  int i,j;
-
-  if (T1_CheckEndian()){
-    for (i=8;i<=15;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-    for (i=0;i<=7;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-  }
-  else{
-    for (i=0;i<=15;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-  }
-  if (space_flag)
-    printf(" ");
-  
-}
-
-void bin_dump_l(unsigned long value, char space_flag)
-{
-  int i,j;
-  
-  if (T1_CheckEndian()){
-    for (i=24;i<=31;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-    for (i=16;i<=23;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-    for (i=8;i<=15;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-    for (i=0;i<=7;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-  }
-  else{
-    for (i=0;i<=31;i++){
-      if ((j=((value)>>i)&0x01))
-	printf("X");
-      else
-	printf(".");
-    }
-  }
-  if (space_flag)
-    printf(" ");
-
-}
-
-
-
 /* CheckEndian(): Checks whether the current machine is of little or big
    endian architecture. This is important for concatenating bitmaps.
    Function returns 0 if LittleEndian and 1 if BigEndian representation
@@ -1167,7 +1143,7 @@ char *T1_GetFontFilePath( int FontID)
   char *FileNamePath=NULL;
   
   /* is initialzed? */
-  if (CheckForInit()) {
+  if (T1_CheckForInit()) {
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -1208,7 +1184,7 @@ char *T1_GetAfmFilePath( int FontID)
   int i, j;
   
   /* is initialized? */
-  if ((CheckForInit())) {
+  if ((T1_CheckForInit())) {
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -1261,11 +1237,16 @@ char *T1_GetAfmFilePath( int FontID)
     filepath[i+4]='\0';
   }
   /* Get full path of the afm file (The case of a full path name
-     name specification is valid */
-  AFMFilePath=intT1_Env_GetCompletePath( filepath, T1_AFM_ptr);
+     name specification is valid) */
+  if ((AFMFilePath=intT1_Env_GetCompletePath( filepath, T1_AFM_ptr)) == NULL) {
+    return NULL;
+  }
+  
   strcpy( filepath, AFMFilePath);
   free( AFMFilePath);
   
   return( filepath);
   
 }
+
+

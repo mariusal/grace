@@ -74,6 +74,9 @@ typedef struct
   float OvrLnThick;
   float OvrStrkPos;
   float OvrStrkThick;
+  float StrokeWidth;
+  float SavedStrokeWidth;
+  
   unsigned short physical; /* This entry is used to decide, whether a
 			      font is associated with an own physical
 			      fontfile, or whether it has been created
@@ -144,7 +147,7 @@ typedef struct
 
 
 
-/* A data that makes most important information available to user. */
+/* A data type that makes most important information available to user. */
 typedef struct
 {
   int      width;       /* The glyph's width */

@@ -147,6 +147,7 @@ Find the starting x and y integer pel coordinates:
  
  x = RoundFP(x1,PREC);
  y = RoundFP(y1,PREC);
+
  edgeP += y;
  count = RoundFP(y2,PREC) - y;
 /*------------------------------------------------------------------*/
@@ -172,6 +173,15 @@ Find the starting x and y integer pel coordinates:
  }
  else  /* positive dx */
  {
+   
+   if ( dx == 0 ) {
+     while(--count >= 0 ) {
+       *(edgeP++) = x;
+     }
+     return;
+     
+   }
+   
 #define P PREC
   d = (dy*((x<<P)-x1+(1<<(P-1)))-dx*((y<<P)-y1+(1<<(P-1))))>>P;
 #undef P

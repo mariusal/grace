@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-06-10
+  ----- Date:        2003-01-04
   ----- Description: This file is part of the t1-library. It contains
                      functions for accessing afm-data and some other
 		     fontinformation data.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2003. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -89,7 +89,7 @@ int T1_GetKerning( int FontID, char char1, char char2)
   
 
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0);
   }
@@ -131,7 +131,7 @@ int T1_GetCharWidth( int FontID, char char1)
   uchar1=(unsigned char) char1;
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0);
   }
@@ -195,7 +195,7 @@ BBox T1_GetCharBBox( int FontID, char char1)
   uchar1=(unsigned char) char1;
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NullBBox);
   }
@@ -228,7 +228,7 @@ BBox T1_GetCharBBox( int FontID, char char1)
 		   pFontBase->pFontArray[FontID].pFontEnc,
 		   (int) uchar1, &mode,
 		   pFontBase->pFontArray[FontID].pType1Data,
-		   DO_RASTER);
+		   DO_RASTER,0.0f);
     /* Read out bounding box */
     ResultBox.llx =area->xmin;
     ResultBox.urx =area->xmax;
@@ -273,7 +273,7 @@ BBox T1_GetCharBBox( int FontID, char char1)
    is not yet loaded into memory. or an invalid ID has been specified. */
 float T1_GetUnderlinePosition( int FontID)
 {
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -288,7 +288,7 @@ float T1_GetUnderlinePosition( int FontID)
    is not yet loaded into memory. or an invalid ID has been specified. */
 float T1_GetUnderlineThickness( int FontID)
 {
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -302,7 +302,7 @@ float T1_GetUnderlineThickness( int FontID)
    is not yet loaded into memory. or an invalid ID has been specified. */
 float T1_GetItalicAngle( int FontID)
 {
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -317,7 +317,7 @@ float T1_GetItalicAngle( int FontID)
    is not yet loaded into memory. or an invalid ID has been specified. */
 int T1_GetIsFixedPitch( int FontID)
 {
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0.0);
   }
@@ -334,7 +334,7 @@ char *T1_GetFontName( int FontID)
 {
   static char fontname[MAXPSNAMELEN];
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -356,7 +356,7 @@ char *T1_GetFullName( int FontID)
 {
   static char fullname[MAXPSNAMELEN];
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -378,7 +378,7 @@ char *T1_GetFamilyName( int FontID)
 {
   static char familyname[MAXPSNAMELEN];
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -400,7 +400,7 @@ char *T1_GetWeight( int FontID)
 {
   static char weight[128];
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -422,7 +422,7 @@ char *T1_GetVersion( int FontID)
 {
   static char version[2048];
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -444,7 +444,7 @@ char *T1_GetNotice( int FontID)
 {
   static char notice[2048];
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -469,7 +469,7 @@ char *T1_GetCharName( int FontID, char char1)
   char *c1;
   
 
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -518,7 +518,7 @@ int T1_QueryLigs( int FontID,  char char1, char **successors,
   int i,j;
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -600,7 +600,7 @@ int T1_GetEncodingIndex( int FontID, char *char1)
   psobj *objptr;
   
   
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -654,7 +654,7 @@ int *T1_GetEncodingIndices( int FontID, char *char1)
   static int indices[257];
 
   
-  if (CheckForFontID(FontID)!=1) {
+  if (T1_CheckForFontID(FontID)!=1) {
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
@@ -711,7 +711,7 @@ int T1_GetStringWidth( int FontID, char *string,
   ustring=(unsigned char *) string;
   
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0);
@@ -733,52 +733,76 @@ int T1_GetStringWidth( int FontID, char *string,
   else        /* use value given on command line */
     no_chars=len;
 
-  /* Allocate room for temporary arrays of kerning and width arrays: */
-  kern_pairs=(int *)calloc(no_chars -1, sizeof(int));
-  if (kern_pairs==NULL){
-    T1_errno=T1ERR_ALLOC_MEM;
-    return(0);
-  }
-  charwidths=(int *)calloc(no_chars, sizeof(int));
-  if (charwidths==NULL){
-    T1_errno=T1ERR_ALLOC_MEM;
-    return(0);
-  }
+  switch (no_chars) {
+    case 0:
+      /* Empty string has width 0 */
+      stringwidth=0;
+      break;
+
+    case 1:
+      /* Width of string with 1 character is the width of that character.
+         If the character is a space, adjust by the value of spaceoff.
+         */
+      stringwidth=T1_GetCharWidth(FontID,ustring[0]);
+      if (ustring[0]==pFontBase->pFontArray[FontID].space_position)
+        stringwidth+=spaceoff;
+      break;
+
+    default:
+      /* Two or more characters.  Add widths of characters and adjust by
+         the adjustment widths for any kerning pairs.  For spaces, use the
+         width of the space character in the font adjusted by the value of
+         spaceoff.
+         */
+    
+      /* Allocate room for temporary arrays of kerning and width arrays: */
+      kern_pairs=(int *)calloc(no_chars -1, sizeof(int));
+      if (kern_pairs==NULL){
+        T1_errno=T1ERR_ALLOC_MEM;
+        return(0);
+      }
+      charwidths=(int *)calloc(no_chars, sizeof(int));
+      if (charwidths==NULL){
+        T1_errno=T1ERR_ALLOC_MEM;
+        return(0);
+      }
   
-  /* If kerning is requested, get kerning amounts and fill the array: */
-  if (kerning){
-    for (i=0; i<no_chars -1; i++){
-      kern_pairs[i]=T1_GetKerning( FontID, ustring[i], ustring[i+1]);
-    }
-  }
+      /* If kerning is requested, get kerning amounts and fill the array: */
+      if (kerning){
+        for (i=0; i<no_chars -1; i++){
+          kern_pairs[i]=T1_GetKerning( FontID, ustring[i], ustring[i+1]);
+        }
+      }
   
-  /* Compute the correct spacewidth value (in charspace units): */
-  spacewidth=T1_GetCharWidth(FontID,pFontBase->pFontArray[FontID].space_position)+spaceoff;
+      /* Compute the correct spacewidth value (in charspace units): */
+      spacewidth=T1_GetCharWidth(FontID,pFontBase->pFontArray[FontID].space_position)+spaceoff;
   
-  /* Fill the width-array:  */
-  for (i=0; i<no_chars; i++){
-    if (ustring[i]==pFontBase->pFontArray[FontID].space_position)
-      charwidths[i]=(int)spacewidth;
-    else
-      charwidths[i]=T1_GetCharWidth(FontID,ustring[i]);
-  }
+      /* Fill the width-array:  */
+      for (i=0; i<no_chars; i++){
+        if (ustring[i]==pFontBase->pFontArray[FontID].space_position)
+          charwidths[i]=(int)spacewidth;
+        else
+          charwidths[i]=T1_GetCharWidth(FontID,ustring[i]);
+      }
   
-  /* Accumulate width: */
-  stringwidth=0;
-  for (i=0; i<no_chars-1; i++){
-    stringwidth += kern_pairs[i];
-  }
-  for (i=0; i<no_chars; i++){
-    stringwidth += charwidths[i];
-  }
+      /* Accumulate width: */
+      stringwidth=0;
+      for (i=0; i<no_chars-1; i++){
+        stringwidth += kern_pairs[i];
+      }
+      for (i=0; i<no_chars; i++){
+        stringwidth += charwidths[i];
+      }
   
-  /* free memory: */
-  free( charwidths);
-  free( kern_pairs);
+      /* free memory: */
+      free( charwidths);
+      free( kern_pairs);
+
+      break;
+  }
 
   /* .. and return result: */
   return( stringwidth);
-
 }
 
     
@@ -808,7 +832,7 @@ BBox T1_GetStringBBox( int FontID, char *string,
 
   
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NullBBox);
@@ -902,7 +926,7 @@ METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 
 
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(metrics);
@@ -977,7 +1001,7 @@ BBox T1_GetFontBBox( int FontID)
   struct ps_obj *obj;
 
   /* return Null-box if font not loaded */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(outbox);
   }
@@ -1019,7 +1043,7 @@ char **T1_GetAllCharNames( int FontID)
   int bufmemsize=0;
   
   /* return NULL if font not loaded */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( NULL);
   }
@@ -1077,7 +1101,7 @@ int T1_GetNoKernPairs( int FontID)
 {
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( -1);
   }
@@ -1116,7 +1140,7 @@ int T1_GetNoCompositeChars( int FontID)
 {
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( -1);
   }
@@ -1151,7 +1175,7 @@ int T1_QueryCompositeChar( int FontID, char char1)
   uchar1=char1;
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( -2);
   }
@@ -1184,7 +1208,7 @@ T1_COMP_CHAR_INFO *T1_GetCompCharData( int FontID, char char1)
   unsigned char uchar1;
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( cci);
   }
@@ -1253,7 +1277,7 @@ T1_COMP_CHAR_INFO *T1_GetCompCharDataByIndex( int FontID, int index)
   int i;
   
   /* Check whether font is loaded: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( cci);
   }
@@ -1312,7 +1336,7 @@ int T1_IsInternalChar( int FontID, char char1)
   int len, i, j;
   
   /* return NULL if font not loaded */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return( -1);
   }

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-05-27
+  ----- Date:        2003-01-02
   ----- Description: This file is part of the t1-library. It contains
                      functions for setting characters and strings of
 		     characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2003.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -76,6 +76,12 @@
 extern char *t1_get_abort_message( int number);
 extern struct region *Interior(struct segment *path, int fillrule);
 extern unsigned T1_AA_TYPE32 T1aa_bg;          /* white value */
+
+
+static void T1_ComputeLineParameters( int FontID, int width,
+				      int mode, float size,
+				      int *startx, int *endx,
+				      int *starty, int *endy);
   
   
 
@@ -90,6 +96,99 @@ static int l_shift=32;
 
 
 
+/* bin_dump(): Print a binary dump of a byte, short and
+   long variable (used for debug purposes only): */
+static void bin_dump_c(unsigned char value, char space_flag)
+{
+  int i,j;
+  
+  for (i=0;i<=7;i++){
+    if ((j=((value)>>i)&0x01))
+      printf("X");
+    else
+      printf(".");
+  }
+  if (space_flag)
+    printf(" ");
+
+}
+
+static void bin_dump_s(unsigned short value, char space_flag)
+{
+  int i,j;
+
+  if (T1_CheckEndian()){
+    for (i=8;i<=15;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+    for (i=0;i<=7;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+  }
+  else{
+    for (i=0;i<=15;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+  }
+  if (space_flag)
+    printf(" ");
+  
+}
+
+static void bin_dump_l(unsigned long value, char space_flag)
+{
+  int i,j;
+  
+  if (T1_CheckEndian()){
+    for (i=24;i<=31;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+    for (i=16;i<=23;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+    for (i=8;i<=15;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+    for (i=0;i<=7;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+  }
+  else{
+    for (i=0;i<=31;i++){
+      if ((j=((value)>>i)&0x01))
+	printf("X");
+      else
+	printf(".");
+    }
+  }
+  if (space_flag)
+    printf(" ");
+
+}
+
+
+
 /* T1_SetChar(...): Generate the bitmap for a character */
 GLYPH *T1_SetChar( int FontID, char charcode, float size,
 		   T1_TMATRIX *transform)
@@ -98,9 +197,11 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
   int mode;
   struct region *area;
   struct XYspace *Current_S;
-  int cache_flag=1;
-  int rot_flag=0;
+  int cache_flag    = 1;
+  int rot_flag      = 0;
   unsigned char ucharcode;
+  float strokewidth = 0.0f;
+  volatile int strokeextraflag = 0;
   
   
   FONTSIZEDEPS *font_ptr;
@@ -145,7 +246,7 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
   glyph.bpp=1;  
   
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i==-1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
@@ -181,18 +282,42 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
     rot_flag=0;
     cache_flag=1;
   }
+  
+  /* handle stroking stuff */
+  if ( pFontBase->pFontArray[FontID].info_flags & RASTER_STROKED) {
+    /* Stroking requested. If caching is not desired, clear cache_flag.
+       Otherwise, leave it unaffected. */
+    if ( (pFontBase->pFontArray[FontID].info_flags & CACHE_STROKED) == 0 ) {
+      /* filled glyphs are cached, indicate that character is to be rendered
+	 on the fly and not to be cached */
+      strokeextraflag = 1;
+      cache_flag = 0;
+    }
+    strokewidth = pFontBase->pFontArray[FontID].StrokeWidth;
+  }
+  else {
+    /* filling requested. */
+    if ( (pFontBase->pFontArray[FontID].info_flags & CACHE_STROKED) != 0 ) {
+      /* stroked glyphs are cached, indicate that character is to be rendered
+	 on the fly and not to be cached */
+      strokeextraflag = 1;
+      cache_flag = 0;
+    }
+    strokewidth = 0.0f;
+  }
+  
   /* font is now loaded into memory =>
      Check for size: */
-  if ((font_ptr=QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
-    font_ptr=CreateNewFontSize( FontID, size, NO_ANTIALIAS);
+  if ((font_ptr=T1int_QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
+    font_ptr=T1int_CreateNewFontSize( FontID, size, NO_ANTIALIAS);
     if (font_ptr==NULL){
       T1_errno=T1ERR_ALLOC_MEM;
       return(NULL);
     }
   }
   else {/* size is already existent in cache */
-    /* If no rotation, try to get character from cache */
-    if (rot_flag==0){
+    /* If no rotation and no noncached stroking , try to get character from cache */
+    if ( (rot_flag==0) && (strokeextraflag==0) ) {
       /* we don't use the .bits entry to check because in newer releases
 	 also white glyphs (bits=NULL) are allowed. Rather, we check
 	 whether bpp > 0! */
@@ -240,7 +365,8 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
 		 fontarrayP->pFontEnc,
 		 ucharcode, &mode,
 		 fontarrayP->pType1Data,
-		 DO_RASTER);
+		 DO_RASTER,
+		 strokewidth);
   KillSpace (Current_S);
 
   /* fill the glyph-structure */
@@ -355,6 +481,8 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   static int lastno_chars=0;
   float factor;
   long spacewidth;       /* This is given to fontfcnb_string() */
+  float strokewidth = 0.0f;
+  volatile int strokeextraflag = 0;
   
   
   FONTSIZEDEPS *font_ptr;
@@ -467,7 +595,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   cache_flag=0;
   
   /* First, check for a correct ID */
-  i=CheckForFontID(FontID);
+  i=T1_CheckForFontID(FontID);
   if (i==-1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
@@ -507,10 +635,33 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
     cache_flag=0;
   }
   
+  /* handle stroking stuff */
+  if ( pFontBase->pFontArray[FontID].info_flags & RASTER_STROKED) {
+    /* Stroking requested. If caching is not desired, clear cache_flag.
+       Otherwise, leave it unaffected. */
+    if ( (pFontBase->pFontArray[FontID].info_flags & CACHE_STROKED) == 0 ) {
+      /* filled glyphs are cached, indicate that character is to be rendered
+	 on the fly and not to be cached */
+      strokeextraflag = 1;
+      cache_flag = 0;
+    }
+    strokewidth = pFontBase->pFontArray[FontID].StrokeWidth;
+  }
+  else {
+    /* filling requested. */
+    if ( (pFontBase->pFontArray[FontID].info_flags & CACHE_STROKED) != 0 ) {
+      /* stroked glyphs are cached, indicate that character is to be rendered
+	 on the fly and not to be cached */
+      strokeextraflag = 1;
+      cache_flag = 0;
+    }
+    strokewidth = 0.0f;
+  }
+  
   /* font is now loaded into memory =>
      Check for size: */
-  if ((font_ptr=QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
-    font_ptr=CreateNewFontSize( FontID, size, NO_ANTIALIAS);
+  if ((font_ptr=T1int_QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
+    font_ptr=T1int_CreateNewFontSize( FontID, size, NO_ANTIALIAS);
     if (font_ptr==NULL){
       T1_errno=T1ERR_ALLOC_MEM;
       return(NULL);
@@ -583,7 +734,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
      */
   /* First, ensure that all needed characters are in the Cache; if not,
      generate them */
-  if ((rot_flag==0)){
+  if ( (rot_flag==0) && (strokeextraflag==0) ){
     overallwidth=0;
     for (i=0; i<no_chars; i++) {
       currchar= &(font_ptr->pFontCache[ustring[i]]);
@@ -597,7 +748,8 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 			 fontarrayP->pFontEnc,
 			 ustring[i], &mode,
 			 fontarrayP->pType1Data,
-			 DO_RASTER);
+			 DO_RASTER,
+			 strokewidth);
 
 	  /* fill the glyph-structure */
 	  if (mode > 0) {
@@ -1055,7 +1207,8 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 			ustring, no_chars, &mode,
 			fontarrayP->pType1Data,
 			kern_pairs, spacewidth,
-			DO_RASTER);
+			DO_RASTER,
+			strokewidth);
   KillSpace (Current_S);
   
   /* In all cases, free memory for kerning pairs */
@@ -1378,10 +1531,10 @@ void T1_DumpGlyph( GLYPH *glyph)
 
 /* This function will essentially return the bounding box of the
    line-rule */
-void T1_ComputeLineParameters( int FontID, int mode,
-			       int width, float size,
-			       int *startx, int *endx,
-			       int *starty, int *endy)
+static void T1_ComputeLineParameters( int FontID, int mode,
+				      int width, float size,
+				      int *startx, int *endx,
+				      int *starty, int *endy)
 {
   float position=0.0, thickness=0.0;
   int startx1, startx2, endx1, endx2;
@@ -1901,4 +2054,186 @@ GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag)
   return( &glyph);
   
   
+}
+
+
+/* T1_SetRect(): Raster a rectangle, whose size is given in charspace units.
+   The resulting glyph does not cause any escapement. */
+GLYPH* T1_SetRect( int FontID, float size,
+		   float width, float height, T1_TMATRIX *transform)
+{
+  int i;
+  int mode;
+  struct region *area;
+  struct XYspace *Current_S;
+  float strokewidth = 0.0f;
+  
+  FONTSIZEDEPS *font_ptr;
+  FONTPRIVATE  *fontarrayP;
+  
+  volatile int memsize=0;
+  LONG h,w;
+  LONG paddedW;
+
+  static GLYPH glyph={NULL,{0,0,0,0,0,0},NULL,1};
+
+
+  /* We return to this if something goes wrong deep in the rasterizer */
+  if ((i=setjmp( stck_state))!=0) {
+    T1_errno=T1ERR_TYPE1_ABORT;
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
+	     t1_get_abort_message( i));
+    T1_PrintLog( "T1_SetRect()", err_warn_msg_buf,
+	       T1LOG_ERROR);
+    return( NULL);
+  }
+
+  font_ptr = NULL;
+  
+  /* Reset character glyph, if necessary */
+  if (glyph.bits!=NULL){
+    free(glyph.bits);
+    glyph.bits=NULL;
+  }
+  glyph.metrics.leftSideBearing=0;
+  glyph.metrics.rightSideBearing=0;
+  glyph.metrics.advanceX=0;
+  glyph.metrics.advanceY=0;
+  glyph.metrics.ascent=0;
+  glyph.metrics.descent=0;
+  glyph.pFontCacheInfo=NULL;
+  glyph.bpp=1;  
+  
+  /* First, check for a correct ID. */
+  i=T1_CheckForFontID(FontID);
+  if ( i == -1 ) {
+    return NULL;
+  }
+  /* if necessary load font into memory */
+  if ( i == 0 )
+    if ( T1_LoadFont( FontID) )
+      return NULL;
+
+  /* Check for valid size */
+  if (size<=0.0){
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(NULL);
+  }
+
+  /* Assign padding value */
+  T1_pad=pFontBase->bitmap_pad;
+  if (pFontBase->endian)
+    T1_byte=1;
+  else
+    T1_byte=0;
+  T1_wordsize=T1_pad;
+
+  if ( i > 0 ) {
+    /* FontID identifies a valid font */
+    fontarrayP = &(pFontBase->pFontArray[FontID]);
+    
+    /* Check for size and create it if necessary */
+    if ((font_ptr=T1int_QueryFontSize( FontID, size, NO_ANTIALIAS))==NULL){
+      font_ptr=T1int_CreateNewFontSize( FontID, size, NO_ANTIALIAS);
+      if (font_ptr==NULL){
+	T1_errno=T1ERR_ALLOC_MEM;
+	return(NULL);
+      }
+    }
+    
+    /* handle stroking stuff */
+    if ( fontarrayP->info_flags & RASTER_STROKED) {
+      strokewidth = pFontBase->pFontArray[FontID].StrokeWidth;
+    }
+    else {
+      strokewidth = 0.0f;
+    }
+  }
+  else {
+    fontarrayP = NULL;
+    strokewidth = 0.0f;
+  }
+  
+  
+  /* Setup an appropriate charspace matrix. Note that the rasterizer
+     assumes vertical values with inverted sign! Transformation should
+     create a copy of the local charspace matrix which then still has
+     to be made permanent. */
+  if ( transform != NULL ) {
+    Current_S = (struct XYspace *) 
+      Permanent(Scale(Transform (font_ptr->pCharSpaceLocal,
+				 transform->cxx, - transform->cxy,
+				 transform->cyx, - transform->cyy),
+		      DeviceSpecifics.scale_x, DeviceSpecifics.scale_y));
+  }
+  else{
+    Current_S = (struct XYspace *)
+      Permanent(Scale(Transform(font_ptr->pCharSpaceLocal,
+				1.0, 0.0, 0.0, -1.0),
+		      DeviceSpecifics.scale_x, DeviceSpecifics.scale_y));
+  }
+  
+  mode=0;
+  area=fontfcnRect( width,
+		    height,
+		    Current_S,
+		    &mode,
+		    DO_RASTER,
+		    strokewidth);
+  KillSpace (Current_S);
+  
+  /* fill the glyph-structure */
+  if ( mode > 0 ) {
+    sprintf( err_warn_msg_buf, "fontfcnRect() set mode=%d", mode);
+    T1_PrintLog( "T1_SetRect()", err_warn_msg_buf, T1LOG_WARNING);
+    T1_errno=mode;
+    return(NULL);
+  }
+  if ( area == NULL ) {
+    T1_PrintLog( "T1_SetRect()", "area=NULL returned by fontfcnRect()", T1LOG_WARNING);
+    T1_errno=mode;
+    return(NULL);
+  }
+  h = area->ymax - area->ymin;
+  w = area->xmax - area->xmin;
+
+  paddedW = PAD(w, T1_pad);
+  
+  if (h > 0 && w > 0) {
+    memsize = h * paddedW / 8 + 1;
+    /* This is for the users copy of the character, for security-reasons
+       the original pointer to the cache area is not used. The entry glyph.bits
+       is free'ed every time this function is called: */
+    glyph.bits = (char *)malloc(memsize*sizeof( char));
+    if ( glyph.bits == NULL ) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      /* make sure to get rid of 'area' before leaving! */
+      KillRegion (area);
+      return(NULL);
+    }
+  }
+  else {
+    h = w = 0;
+    area->xmin = area->xmax = 0;
+    area->ymin = area->ymax = 0;
+  }
+
+  /* Assign metrics */
+  glyph.metrics.leftSideBearing  = area->xmin;
+  glyph.metrics.advanceX   = NEARESTPEL(area->ending.x - area->origin.x);
+  glyph.metrics.advanceY   = - NEARESTPEL(area->ending.y - area->origin.y);
+  glyph.metrics.rightSideBearing = area->xmax;
+  glyph.metrics.descent          = - area->ymax;
+  glyph.metrics.ascent           = - area->ymin;
+
+  
+  if (h > 0 && w > 0) {
+    (void) memset(glyph.bits, 0, memsize);
+    fill(glyph.bits, h, paddedW, area, T1_byte, T1_bit, T1_wordsize );
+  }
+  
+  /* make sure to get rid of 'area' before leaving! */
+  KillRegion (area);
+  
+  return(&glyph);
 }

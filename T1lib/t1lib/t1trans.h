@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1trans.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2002-10-19
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations fort t1trans.c
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2002. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -47,8 +47,16 @@ T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent);
 T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
 				double cxx, double cyx,
 				double cxy, double cyy);
+int T1_StrokeFont( int FontID, int dostroke);
+int T1_SetStrokeFlag( int FontID);
+int T1_ClearStrokeFlag( int FontID);
+int T1_GetStrokeMode( int FontID);
+int T1_SetStrokeWidth( int FontID, float strokewidth);
+float T1_GetStrokeWidth( int FontID);
+
 
 #else
+
 
 extern int T1_ExtendFont( int FontID, double extend);
 extern int T1_SlantFont( int FontID, double slant);
@@ -70,6 +78,12 @@ extern T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent);
 extern T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
 				       double cxx, double cyx,
 				       double cxy, double cyy);
+extern int T1_StrokeFont( int FontID, int dostroke);
+extern int T1_SetStrokeFlag( int FontID);
+extern int T1_ClearStrokeFlag( int FontID);
+extern int T1_GetStrokeMode( int FontID);
+extern int T1_SetStrokeWidth( int FontID, float strokewidth);
+extern float T1_GetStrokeWidth( int FontID);
 
 #endif
 

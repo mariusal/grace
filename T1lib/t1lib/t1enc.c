@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1enc.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-10-18
+  ----- Date:        2003-01-05
   ----- Description: This file is part of the t1-library. It contains
                      functions encoding handling at runtime.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2003.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -424,7 +424,6 @@ static int TryT1LibEncoding( char *linebuf, int filesize, char *charnames)
   /* Check if exactly 256 characters have been defined, if not,
      return NULL: */
   if (charname_count!=256){
-    T1_errno=T1ERR_UNSPECIFIED;
     return( -1);
   }
 
@@ -534,7 +533,7 @@ static char **ScanEncodingFile( char *FileName)
   }
   
   if ( cnsize<0) {
-    /* T1_errno is already set from the respective function */
+    T1_errno=T1ERR_SCAN_ENCODING;
     if ( charnames!=NULL) {
       free(charnames); 
     }
@@ -629,7 +628,7 @@ int T1_ReencodeFont( int FontID, char **Encoding)
   
   
   /* First, check for valid font ID residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(-1);
   }
@@ -694,6 +693,7 @@ int T1_ReencodeFont( int FontID, char **Encoding)
       }
     }
     /* Update kerning table */
+    pFontBase->pFontArray[FontID].KernMapSize=0;
     k=pFontBase->pFontArray[FontID].pAFMData->numOfPairs;
     if (k>0){ /* i.e., there are any pairs */
       /* OK, it does not suffice to alloc numOfPairs METRICS_ENTRYs, because
@@ -754,7 +754,7 @@ int T1_ReencodeFont( int FontID, char **Encoding)
 int T1_SetDefaultEncoding( char **encoding)
 {
   
-  if (CheckForInit()){
+  if (T1_CheckForInit()){
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
@@ -772,7 +772,7 @@ char *T1_GetEncodingScheme( int FontID)
   static char enc_scheme[256];
   
   /* First, check for valid font ID residing in memory: */
-  if (CheckForFontID(FontID)!=1){
+  if (T1_CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
