@@ -55,6 +55,7 @@ static Widget printfile_item;
 static Widget pdev_rc;
 static OptionStructure *devices_item;
 static Widget output_frame;
+static Widget page_frame;
 static OptionStructure *page_orient_item;
 static OptionStructure *page_format_item;
 static Widget page_x_item;
@@ -64,7 +65,6 @@ static Widget dev_res_item;
 static Widget autocrop_item;
 static OptionStructure *fontrast_item;
 static OptionStructure *color_trans_item;
-static Widget dsync_item, psync_item;
 
 static void do_pr_toggle(Widget tbut, int onoff, void *data);
 static void do_format_toggle(OptionStructure *opt, int value, void *data);
@@ -110,14 +110,6 @@ void create_printer_setup(Widget but, void *data)
         CreateMenuSeparator(menupane);
         CreateMenuCloseButton(menupane, psetup_frame);
 
-        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
-        dsync_item = CreateMenuToggle(menupane,
-            "Sync page size of all devices", 'S', NULL, NULL);
-        SetToggleButtonState(dsync_item, TRUE);
-        psync_item = CreateMenuToggle(menupane,
-            "Rescale plot on page size change", 'R', NULL, NULL);
-        SetToggleButtonState(psync_item, FALSE);
-
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On device setup", 'd',
             psetup_frame, "doc/UsersGuide.html#print-setup");
@@ -157,33 +149,17 @@ void create_printer_setup(Widget but, void *data)
 	AddButtonCB(wbut, create_printfiles_popup, NULL);
 
 	
-        fr = CreateFrame(psetup_rc, "Page");
-        rc1 = CreateVContainer(fr);
+        page_frame = CreateFrame(psetup_rc, "Page");
+        rc1 = CreateVContainer(page_frame);
         
 	rc = CreateHContainer(rc1);
 
-        option_items = xmalloc(2*sizeof(OptionItem));
-        option_items[0].value = PAGE_ORIENT_LANDSCAPE;
-        option_items[0].label = "Landscape";
-        option_items[1].value = PAGE_ORIENT_PORTRAIT;
-        option_items[1].label = "Portrait";
-        page_orient_item =
-            CreateOptionChoice(rc, "Orientation: ", 1, 2, option_items);
+        page_orient_item = CreatePaperOrientationChoice(rc, "Orientation:");
 	AddOptionChoiceCB(page_orient_item, do_orient_toggle, NULL);
-        xfree(option_items);
 
 
-        option_items = xmalloc(3*sizeof(OptionItem));
-        option_items[0].value = PAGE_FORMAT_CUSTOM;
-        option_items[0].label = "Custom";
-        option_items[1].value = PAGE_FORMAT_USLETTER;
-        option_items[1].label = "Letter";
-        option_items[2].value = PAGE_FORMAT_A4;
-        option_items[2].label = "A4";
-        page_format_item =
-            CreateOptionChoice(rc, "Size: ", 1, 3, option_items);
+        page_format_item = CreatePaperFormatChoice(rc, "Size:");
 	AddOptionChoiceCB(page_format_item, do_format_toggle, NULL);
-        xfree(option_items);
 
 	rc = CreateHContainer(rc1);
         page_x_item = CreateTextItem2(rc, 7, "Dimensions:");
@@ -299,9 +275,11 @@ static void update_device_setup(int device_id)
         switch (dev->type) {
         case DEVICE_TERM:
             UnmanageChild(output_frame);
+            UnmanageChild(page_frame);
             break;
         case DEVICE_FILE:
             ManageChild(output_frame);
+            ManageChild(page_frame);
             SetToggleButtonState(printto_item, TRUE);
             SetSensitive(printto_item, False);
             SetSensitive(GetParent(print_string_item), False);
@@ -309,6 +287,7 @@ static void update_device_setup(int device_id)
             break;
         case DEVICE_PRINT:
             ManageChild(output_frame);
+            ManageChild(page_frame);
             SetToggleButtonState(printto_item, get_ptofile(grace));
             SetSensitive(printto_item, True);
             if (get_ptofile(grace) == TRUE) {
@@ -399,57 +378,49 @@ static int set_printer_proc(void *data)
         } else {
             set_print_cmd(grace, xv_getstr(print_string_item));
         }
+
+        if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
+            xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ||
+            page_x <= 0.0 || page_y <= 0.0) {
+            errmsg("Invalid page dimension(s)");
+            return RETURN_FAILURE;
+        }
+
+        if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS ||
+            dpi <= 0.0) {
+            errmsg("Invalid dpi");
+            return RETURN_FAILURE;
+        }
+
+        dev->autocrop = GetToggleButtonState(autocrop_item);
+
+        page_units = GetOptionChoice(page_size_unit_item);
+
+        switch (page_units) {
+        case 0: 
+            pg.width =  (long) page_x;
+            pg.height = (long) page_y;
+            break;
+        case 1: 
+            pg.width =  (long) (page_x * dpi);
+            pg.height = (long) (page_y * dpi);
+            break;
+        case 2: 
+            pg.width =  (long) (page_x * dpi / CM_PER_INCH);
+            pg.height = (long) (page_y * dpi / CM_PER_INCH);
+            break;
+        default:
+            errmsg("Internal error");
+            return RETURN_FAILURE;
+        }
+
+        pg.dpi = dpi;
+    
+        dev->pg = pg;
     }
     
     dev->fontrast = GetOptionChoice(fontrast_item);
     dev->color_trans = GetOptionChoice(color_trans_item);
-    
-    if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
-        xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ||
-        page_x <= 0.0 || page_y <= 0.0) {
-        errmsg("Invalid page dimension(s)");
-        return RETURN_FAILURE;
-    }
-
-    if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS ||
-        dpi <= 0.0) {
-        errmsg("Invalid dpi");
-        return RETURN_FAILURE;
-    }
-
-    dev->autocrop = GetToggleButtonState(autocrop_item);
-
-    page_units = GetOptionChoice(page_size_unit_item);
-
-    switch (page_units) {
-    case 0: 
-        pg.width =  (long) page_x;
-        pg.height = (long) page_y;
-        break;
-    case 1: 
-        pg.width =  (long) (page_x * dpi);
-        pg.height = (long) (page_y * dpi);
-        break;
-    case 2: 
-        pg.width =  (long) (page_x * dpi / CM_PER_INCH);
-        pg.height = (long) (page_y * dpi / CM_PER_INCH);
-        break;
-    default:
-        errmsg("Internal error");
-        return RETURN_FAILURE;
-    }
-    
-    pg.dpi = dpi;
-    
-    dev->pg = pg;
-    
-    if (GetToggleButtonState(dsync_item) == TRUE) {
-        set_page_dimensions(grace,
-            (int) rint(72.0*pg.width/pg.dpi),
-            (int) rint(72.0*pg.height/pg.dpi),
-            GetToggleButtonState(psync_item) == TRUE);
-        do_redraw = TRUE;
-    }
     
     if (seldevice == grace->rt->tdevice) {
         do_redraw = TRUE;
