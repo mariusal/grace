@@ -521,11 +521,11 @@ void xyplot(int gno)
                 case SET_BARDY:
                 case SET_BARDYDY:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
+                    drawsetbars(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
-                    drawsetbars(gno, i, &p, refn, refx, refy, offset);
                     break;
                 case SET_XYDY:
                 case SET_XYDYDY:
