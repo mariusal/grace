@@ -387,7 +387,7 @@ static int readnxy(int gno, char *fn, FILE * fp)
 {
     int i, j, pstat, cnt, scnt[MAXSETN], setn[MAXSETN], retval = 0;
     double *x[MAXSETN], *y[MAXSETN], xval, yr[MAXSETN];
-    char *s, buf[1024], *tmpbuf = NULL;
+    char *s, buf[1024], *tmpbuf;
     int do_restart = 0;
 
 /* if more than one set of nxy data is in the file,
@@ -396,9 +396,6 @@ static int readnxy(int gno, char *fn, FILE * fp)
  */
   restart:;
 
-    i = 0;
-    pstat = 0;
-    cnt = 0;
     while ((read_long_line(fp) > 0) && ((linebuf[0] == '#') || (linebuf[0] == '@'))) {
 	readline++;
 	if (linebuf[0] == '@') {
@@ -414,12 +411,10 @@ static int readnxy(int gno, char *fn, FILE * fp)
     /*
      * count the columns
      */
+    tmpbuf = NULL;
     tmpbuf = copy_string(tmpbuf, linebuf);
-    if (tmpbuf == NULL) {
-	errmsg("Insufficient memory for string");
-	return 0;
-    }
     s = tmpbuf;
+    cnt = 0;
     while ((s = strtok(s, " \t\n")) != NULL) {
 	cnt++;
 	s = NULL;
@@ -428,7 +423,7 @@ static int readnxy(int gno, char *fn, FILE * fp)
 	errmsg("Maximum number of columns exceeded, reading first 31");
 	cnt = 31;
     }
-    free (tmpbuf);
+    free(tmpbuf);
     s = linebuf;
     s = strtok(s, " \t\n");
     if (s == NULL) {
@@ -453,22 +448,12 @@ static int readnxy(int gno, char *fn, FILE * fp)
     }
     if (cnt > 1) {
 	for (i = 0; i < cnt - 1; i++) {
-	    if ((setn[i] = nextset(gno)) == -1) {
-		for (j = 0; j < i; j++) {
-		    killset(gno, setn[j]);
-		}
-		return 0;
-	    }
-	    activateset(gno, setn[i]);
 	    x[i] = calloc(BUFSIZE, SIZEOF_DOUBLE);
 	    y[i] = calloc(BUFSIZE, SIZEOF_DOUBLE);
 	    if (x[i] == NULL || y[i] == NULL) {
 		errmsg("Insufficient memory for set");
 		cxfree(x[i]);
 		cxfree(y[i]);
-		for (j = 0; j < i + 1; j++) {
-		    killset(gno, setn[j]);
-		}
 		return (0);
 	    }
 	    *(x[i]) = xval;
@@ -532,6 +517,16 @@ static int readnxy(int gno, char *fn, FILE * fp)
 	    }
 	}
 	for (i = 0; i < cnt - 1; i++) {
+	    setn[i] = nextset(gno);
+            if ((setn[i]) == -1) {
+		errmsg("Can't allocate more sets in readnxy()");
+                for (j = 0; j < i; j++) {
+		    killsetdata(gno, setn[j]);
+		}
+                return 0;
+	    }
+	    set_set_hidden(gno, setn[i], FALSE);
+
 	    setcol(gno, x[i], setn[i], scnt[i], 0);
 	    setcol(gno, y[i], setn[i], scnt[i], 1);
 	    sprintf( buf, "%s:%d", fn, i+1 );	/* identify column # in comment */
@@ -588,11 +583,9 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
 		cur_gno = gno = change_gno;
 	    }
 	    if (change_type != type) {
-		if (change_type != type) {
-		    cur_type = change_type;
-                    retval = -1;
-		    break;	/* exit this module and store any set */
-		}
+	        cur_type = change_type;
+                retval = -1;
+	        break;      /* exit this module and store any set */
 	    }
 	    continue;
 	}
