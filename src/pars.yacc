@@ -446,6 +446,7 @@ symtab_entry *key;
 %token <ival> TRIANGULAR
 %token <ival> TYPE
 %token <ival> UP
+%token <ival> UPDATEALL
 %token <ival> USE
 %token <ival> UNLINK
 %token <ival> VERSION
@@ -2832,6 +2833,13 @@ actions:
 	REDRAW {
 	    drawgraph();
 	}
+	| UPDATEALL {
+#ifndef NONE_GUI
+            if (inwin) {
+                update_all();
+            }
+#endif
+        }
 	| CD CHRSTR {
 	    set_workingdir($2);
 	    xfree($2);
@@ -4881,6 +4889,7 @@ symtab_entry ikey[] = {
 	{"UNLINK", UNLINK, NULL},
 	{"UNIT", KEY_UNIT, NULL},
 	{"UP", UP, NULL},
+	{"UPDATEALL", UPDATEALL, NULL},
 	{"USE", USE, NULL},
 	{"VERSION", VERSION, NULL},
 	{"VERTI", VERTI, NULL},
