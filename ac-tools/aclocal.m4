@@ -44,7 +44,7 @@ dnl **** Check for gcc strength-reduce bug ****
 AC_DEFUN(ACX_GCC_STRENGTH_REDUCE,
 [
 AC_REQUIRE([AC_PROG_CC])
-AC_CACHE_CHECK( "for gcc strength-reduce bug", ac_cv_c_gcc_strength_bug,
+AC_CACHE_CHECK([for gcc strength-reduce bug], ac_cv_c_gcc_strength_bug,
   AC_TRY_RUN([
     int main(void) {
       static int Array[[3]];
@@ -73,7 +73,7 @@ AC_CACHE_CHECK( "for gcc strength-reduce bug", ac_cv_c_gcc_strength_bug,
 dnl **** Checks for FPU arithmetics
 AC_DEFUN(ACX_CHECK_FPU,
 [
-AC_CACHE_CHECK( "for FPU arithmetics type", ac_cv_c_fpu_arithmetics_type,
+AC_CACHE_CHECK([for FPU arithmetics type], ac_cv_c_fpu_arithmetics_type,
                   AC_TRY_RUN([
 #include <stdio.h>
 #include <string.h>
@@ -182,7 +182,7 @@ AC_DEFUN(ACX_ANSI_TYPES,
 dnl **** Check for buggy realloc()
 AC_DEFUN(ACX_CHECK_REALLOC,
 [
-AC_CACHE_CHECK( "whether realloc is buggy", ac_cv_c_realloc_bug,
+AC_CACHE_CHECK([whether realloc is buggy], ac_cv_c_realloc_bug,
                   AC_TRY_RUN([
 #include <stdio.h>
 #include <stdlib.h>
@@ -316,7 +316,7 @@ AC_DEFUN(ACX_CHECK_MOTIF,
 
   ACX_SAVE_STATE
   
-  AC_CACHE_CHECK( "for a Motif \>= $1 compatible API", acx_cv_motif,
+  AC_CACHE_CHECK([for a Motif >= $1 compatible API], acx_cv_motif,
     AC_CACHE_VAL(acx_cv_motif_library, acx_cv_motif_library=$motif_library)
     LIBS="$acx_cv_motif_library $GUI_LIBS"
     CFLAGS="$X_CFLAGS $CFLAGS"
@@ -388,7 +388,7 @@ dnl ACX_CHECK_XMVERSIONSTRING
 dnl --------------
 AC_DEFUN(ACX_CHECK_XMVERSIONSTRING,
 [
-  AC_CACHE_CHECK( "whether _XmVersionString[] can be referred to",
+  AC_CACHE_CHECK([whether _XmVersionString[] can be referred to],
     acx_cv__xmversionstring,
     AC_TRY_LINK([#include <stdio.h>],
                 [extern char _XmVersionString[[]]; printf("%s\n", _XmVersionString);],
@@ -411,7 +411,7 @@ dnl ACX_CHECK_T1LIB
 dnl --------------
 AC_DEFUN(ACX_CHECK_T1LIB,
 [
-  AC_CACHE_CHECK( "for T1lib \>= $1", acx_cv_t1lib,
+  AC_CACHE_CHECK([for T1lib >= $1], acx_cv_t1lib,
     ACX_SAVE_STATE
     LIBS="-lt1 -lm $LIBS"
     AC_TRY_RUN([
@@ -455,7 +455,7 @@ AC_DEFUN(ACX_CHECK_ZLIB,
     zlib_library=-lz
   fi
 
-  AC_CACHE_CHECK( "for zlib \>= $1", acx_cv_zlib,
+  AC_CACHE_CHECK([for zlib >= $1], acx_cv_zlib,
     AC_CACHE_VAL(acx_cv_zlib_library, acx_cv_zlib_library=$zlib_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_zlib_library $LIBS"
@@ -504,7 +504,7 @@ AC_DEFUN(ACX_CHECK_JPEG,
     jpeg_library=-ljpeg
   fi
   
-  AC_CACHE_CHECK( "for IJG JPEG software \>= $1", acx_cv_jpeg,
+  AC_CACHE_CHECK([for IJG JPEG software >= $1], acx_cv_jpeg,
     AC_CACHE_VAL(acx_cv_jpeg_library, acx_cv_jpeg_library=$jpeg_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_jpeg_library $LIBS"
@@ -551,7 +551,7 @@ AC_DEFUN(ACX_CHECK_PNG,
     png_library=-lpng
   fi
 
-  AC_CACHE_CHECK( "for libpng \>= $1", acx_cv_png,
+  AC_CACHE_CHECK([for libpng >= $1], acx_cv_png,
     AC_CACHE_VAL(acx_cv_png_library, acx_cv_png_library=$png_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_png_library $Z_LIB $LIBS"
@@ -600,7 +600,7 @@ AC_DEFUN(ACX_CHECK_TIFF,
     tiff_library=-ltiff
   fi
 
-  AC_CACHE_CHECK( "for libtiff \>= $1", acx_cv_tiff,
+  AC_CACHE_CHECK([for libtiff >= $1], acx_cv_tiff,
     AC_CACHE_VAL(acx_cv_tiff_library, acx_cv_tiff_library=$tiff_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_tiff_library $JPEG_LIB $Z_LIB -lm $LIBS"
@@ -645,7 +645,7 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
     pdf_library=-lpdf
   fi
 
-  AC_CACHE_CHECK( "for PDFlib \>= $1", acx_cv_pdflib,
+  AC_CACHE_CHECK([for PDFlib >= $1], acx_cv_pdflib,
     AC_CACHE_VAL(acx_cv_pdf_library, acx_cv_pdf_library=$pdf_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_pdf_library $TIFF_LIB $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
@@ -695,7 +695,7 @@ AC_DEFUN(ACX_CHECK_NETCDF,
     netcdf_libraries=-lnetcdf
   fi
 
-  AC_CACHE_CHECK( "for netCDF API version \>= $1", acx_cv_netcdf,
+  AC_CACHE_CHECK([for netCDF API version >= $1], acx_cv_netcdf,
     AC_CACHE_VAL(acx_cv_netcdf_libraries, acx_cv_netcdf_libraries=$netcdf_libraries)
     ACX_SAVE_STATE
     LIBS="$acx_cv_netcdf_libraries $LIBS"
@@ -742,7 +742,7 @@ AC_DEFUN(ACX_CHECK_FFTW,
     fftw_library=-lfftw
   fi
 
-  AC_CACHE_CHECK( "for FFTW library \>= $1", acx_cv_fftw,
+  AC_CACHE_CHECK([for FFTW library >= $1], acx_cv_fftw,
     AC_CACHE_VAL(acx_cv_fftw_library, acx_cv_fftw_library=$fftw_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_fftw_library $LIBS"
@@ -788,7 +788,7 @@ AC_DEFUN(ACX_CHECK_XMHTML,
     xmhtml_library=-lXmHTML
   fi
 
-  AC_CACHE_CHECK( "for XmHTML widget \>= $1", acx_cv_xmhtml,
+  AC_CACHE_CHECK([for XmHTML widget >= $1], acx_cv_xmhtml,
     AC_CACHE_VAL(acx_cv_xmhtml_library, acx_cv_xmhtml_library=$xmhtml_library)
     ACX_SAVE_STATE
     LIBS="$acx_cv_xmhtml_library $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"

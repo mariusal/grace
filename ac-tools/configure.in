@@ -342,8 +342,18 @@ case $debug in
   *) CFLAGS="$OPTIMIZE $CFLAGS";;
 esac
 
-AC_CHECK_PROG(fc, $FC, $FC, no)
-if test "${ac_cv_prog_fc}" = "no"
+case $FC in
+  /*|../*|./*)
+     if test ! -x $FC; then
+       FC=no
+     fi
+     ;;
+  *) AC_CHECK_PROG(fc, $FC, $FC, no)
+     FC=$ac_cv_prog_fc
+     ;;
+esac
+
+if test "${FC}" = "no"
 then
   AC_MSG_RESULT(--> Fortran tests won't be compiled)
   FC=:
@@ -441,7 +451,7 @@ AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(on_exit)
 AC_CHECK_FUNCS(strerror)
 if test "$ac_cv_func_strerror" = no; then
-  AC_CACHE_CHECK("for sys_errlist declaration in stdio.h", ac_cv_sys_errlist_decl,
+  AC_CACHE_CHECK([for sys_errlist declaration in stdio.h], ac_cv_sys_errlist_decl,
       AC_EGREP_HEADER(sys_errlist, stdio.h, ac_cv_sys_errlist_decl="yes",
       ac_cv_sys_errlist_decl="no"))
   if test "$ac_cv_sys_errlist_decl" = yes; then
@@ -473,7 +483,7 @@ ICE_CHECK_DECL(lgamma, math.h)
 dnl **** The machten4 (unix for mac) system does have signgam in libm
 dnl **** but it is not declared in <math.h>
 if test "$ac_cv_func_lgamma" = yes; then
-  AC_CACHE_CHECK("for signgam declaration in math.h", ac_cv_signgam_decl,
+  AC_CACHE_CHECK([for signgam declaration in math.h], ac_cv_signgam_decl,
       AC_EGREP_HEADER(signgam, math.h, ac_cv_signgam_decl="yes",
       ac_cv_signgam_decl="no"))
   if test "$ac_cv_signgam_decl" = yes; then
@@ -534,7 +544,7 @@ mdw_CHECK_MANYLIBS(dlopen, dl, [DL_LIB=$mdw_cv_lib_dlopen; AC_DEFINE(HAVE_DLOPEN
 
 if test "${DL_LIB}" != "NONE"; then
   dnl **** Old implementations of dlopen() don't have RTLD_NOW
-  AC_CACHE_CHECK("whether RTLD_NOW is defined in dlfcn.h", ac_rtld_now_in_dlfcn_h,  
+  AC_CACHE_CHECK([whether RTLD_NOW is defined in dlfcn.h], ac_rtld_now_in_dlfcn_h,  
     AC_EGREP_CPP(yes,
         [#include <dlfcn.h>
          #ifdef RTLD_NOW
@@ -629,7 +639,7 @@ dnl **** Check for Motif
     *) ;;
   esac
   
-  if test $ac_cv_lib_Xmu__XEditResCheckMessages != yes; then
+  if test "$ac_cv_lib_Xmu__XEditResCheckMessages" != yes; then
     AC_MSG_RESULT(--> support for EditRes protocol is disabled)
   fi
 
@@ -637,9 +647,12 @@ dnl **** Check for Motif
   AC_CHECK_LIB(Xp,main,GUI_LIBS="-lXp $GUI_LIBS")
 
   dnl **** and some - Xpm lib
-  AC_CHECK_LIB(Xpm,main,GUI_LIBS="-lXpm $GUI_LIBS"; AC_DEFINE(HAVE_XPM)
-                 AC_CHECK_HEADERS(xpm.h X11/xpm.h))
+  AC_CHECK_LIB(Xpm,XpmCreatePixmapFromData,GUI_LIBS="-lXpm $GUI_LIBS"; AC_DEFINE(HAVE_XPM))
 
+  if test "$ac_cv_lib_Xpm_XpmCreatePixmapFromData" = yes; then
+    AC_CHECK_HEADERS(xpm.h X11/xpm.h)
+  fi
+  
   ACX_RESTORE_STATE
 
   ACX_CHECK_MOTIF(1002)
