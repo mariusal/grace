@@ -1198,7 +1198,7 @@ void echomsg(char *msg)
     }
 }
 
-static void update_timestamp(void)
+void update_timestamp(void)
 {
     struct tm tm;
     time_t time_value;
@@ -1233,36 +1233,22 @@ void update_app_title(void)
  */
 void set_dirtystate(void)
 {
-    if (grace->rt->dirtystate_lock == FALSE) {
-        grace->rt->dirtystate++;
-        update_timestamp();
-        update_app_title();
-
-/*
- * TODO:
- * 	if ( (dirtystate > SOME_LIMIT) || 
- *           (current_time - autosave_time > ANOTHER_LIMIT) ) {
- * 	    autosave();
- * 	}
- */
-    }
+    project_set_dirtystate(grace->project);
 }
 
 void clear_dirtystate(void)
 {
-    grace->rt->dirtystate = 0;
-    grace->rt->dirtystate_lock = FALSE;
-    update_app_title();
+    project_clear_dirtystate(grace->project);
 }
 
 void lock_dirtystate(flag)
 {
-    grace->rt->dirtystate_lock = flag;
+    project_lock_dirtystate(grace->project, flag);
 }
 
 int is_dirtystate(void)
 {
-    return (grace->rt->dirtystate ? TRUE:FALSE);
+    return project_is_dirtystate(grace->project);
 }
 
 int system_wrap(const char *string)

@@ -117,6 +117,7 @@ char *get_username(void);
 
 char *get_userhome(void);
 
+void update_timestamp(void);
 void update_app_title(void);
 
 void set_dirtystate(void);

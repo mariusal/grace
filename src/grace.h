@@ -37,6 +37,12 @@
 #include "storage.h"
 
 typedef struct _Project {
+    /* Version ID */
+    int version_id;
+    
+    /* textual description */
+    char *description;
+    
 #if 0
     Storage *blockdata;
 #endif
@@ -53,23 +59,17 @@ typedef struct _Project {
     int nr;
 #endif
 
-    /* default graphics properties */
-    defaults grdefaults;
+    plotstr timestamp; /* timestamp */
     
-    /* linked scroll */
-    int scrolling_islinked;
-    /* scroll fraction */
-    double scrollper;
-    /* expand/shrink fraction */
-    double shexper;
-
     /* format for saving data sets */
     char *sformat;
 
-    plotstr timestamp; /* timestamp */
-    
     /* project file name */
     char *docname;	
+
+    /* dirtystate stuff */
+    int dirtystate;
+    int dirtystate_lock;
 } Project;
 
 typedef struct _GUI {
@@ -108,6 +108,16 @@ typedef struct _RunTime {
     /* file for results */
     FILE *resfp;
     
+    /* default graphics properties */
+    defaults grdefaults;
+    
+    /* linked scroll */
+    int scrolling_islinked;
+    /* scroll fraction */
+    double scrollper;
+    /* expand/shrink fraction */
+    double shexper;
+
     /* flag raised on emergency save */
     int emergency_save;
     /* number of interrupts received during the emergency save */
@@ -133,10 +143,6 @@ typedef struct _RunTime {
 
     /* $HOME */
     char *userhome;
-
-    /* dirtystate stuff */
-    int dirtystate;
-    int dirtystate_lock;
 
     /* debug level */
 #ifdef DEBUG
@@ -164,5 +170,19 @@ void runtime_free(RunTime *rt);
 
 Grace *grace_new(void);
 void grace_free(Grace *grace);
+
+int project_get_version_id(Project *pr);
+int project_set_version_id(Project *pr, int version_id);
+void project_reset_version(Project *pr);
+
+void project_set_description(Project *pr, char *descr);
+char *project_get_description(Project *pr);
+
+void project_set_dirtystate(Project *pr);
+void project_clear_dirtystate(Project *pr);
+void project_lock_dirtystate(Project *pr, int flag);
+int project_is_dirtystate(Project *pr);
+
+Storage *project_get_graphs(Project *pr);
 
 #endif /* __GRACE_H_ */

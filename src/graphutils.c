@@ -160,20 +160,18 @@ char *get_format_types(int f)
 
 int wipeout(void)
 {
-    if (is_dirtystate() &&
+    if (project_is_dirtystate(grace->project) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
         return 1;
     }
-    kill_all_graphs();
-    do_clear_objects();
-    reset_project_version();
+    project_free(grace->project);
+    grace->project = project_new();
+    
     map_fonts(FONT_MAP_DEFAULT);
-    set_docname(NULL);
-    set_project_description(NULL);
     print_file[0] = '\0';
     /* a hack! the global "curtype" (as well as all others) should be removed */
     grace->rt->curtype = SET_XY;
-    clear_dirtystate();
+    
     return 0;
 }
 
@@ -484,12 +482,12 @@ static double nicenum(double x, int nrange, int round)
  */
 void scroll_proc(int value)
 {
-    grace->project->scrollper = value / 100.0;
+    grace->rt->scrollper = value / 100.0;
 }
 
 void scrollinout_proc(int value)
 {
-    grace->project->shexper = value / 100.0;
+    grace->rt->shexper = value / 100.0;
 }
 
 /*
@@ -501,7 +499,7 @@ int graph_scroll(int type)
     double dwc = 0.0;
     int ngraphs, *gids, i, gno, cg = get_cg();
 
-    if (grace->project->scrolling_islinked) {
+    if (grace->rt->scrolling_islinked) {
         ngraphs = get_graph_ids(&gids);
     } else {
         ngraphs = 1;
@@ -518,7 +516,7 @@ int graph_scroll(int type)
                     errmsg("Scrolling of LOG axes is not implemented");
                     return RETURN_FAILURE;
                 }
-                dwc = grace->project->scrollper * (w.xg2 - w.xg1);
+                dwc = grace->rt->scrollper * (w.xg2 - w.xg1);
                 break;
             case GSCROLL_DOWN:    
             case GSCROLL_UP:    
@@ -526,7 +524,7 @@ int graph_scroll(int type)
                     errmsg("Scrolling of LOG axes is not implemented");
                     return RETURN_FAILURE;
                 }
-                dwc = grace->project->scrollper * (w.yg2 - w.yg1);
+                dwc = grace->rt->scrollper * (w.yg2 - w.yg1);
                 break;
             }
             
@@ -561,7 +559,7 @@ int graph_zoom(int type)
     world w;
     int ngraphs, *gids, i, gno, cg = get_cg();
 
-    if (grace->project->scrolling_islinked) {
+    if (grace->rt->scrolling_islinked) {
         ngraphs = get_graph_ids(&gids);
     } else {
         ngraphs = 1;
@@ -572,8 +570,8 @@ int graph_zoom(int type)
         gno = gids[i];
         if (!islogx(gno) && !islogy(gno)) {
             if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
-                dx = grace->project->shexper * (w.xg2 - w.xg1);
-                dy = grace->project->shexper * (w.yg2 - w.yg1);
+                dx = grace->rt->shexper * (w.xg2 - w.xg1);
+                dy = grace->rt->shexper * (w.yg2 - w.yg1);
                 if (type == GZOOM_SHRINK) {
                     dx *= -1;
                     dy *= -1;

@@ -48,7 +48,7 @@
 #include "utils.h"
 #include "protos.h"
 
-#define grdefaults grace->project->grdefaults
+#define grdefaults grace->rt->grdefaults
 
 static world d_w =
 {0.0, 1.0, 0.0, 1.0};

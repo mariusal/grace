@@ -196,16 +196,16 @@ void update_props_items(void)
 	SetChoice(graph_focus_choice_item, itest);
 	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
-	SetToggleButtonState(linkscroll_item, grace->project->scrolling_islinked);
+	SetToggleButtonState(linkscroll_item, grace->rt->scrolling_islinked);
 	SetToggleButtonState(autoredraw_type_item, gui->auto_redraw);
 	SetToggleButtonState(cursor_type_item, cursortype);
 #if defined WITH_XMHTML || defined WITH_LIBHELP
 	SetToggleButtonState(force_external_viewer_item, force_external_viewer);
 #endif
 	SetSpinChoice(max_path_item, (double) get_max_path_limit());
-	iv = (int) rint(100*grace->project->scrollper);
+	iv = (int) rint(100*grace->rt->scrollper);
 	SetScaleValue(scrollper_item, iv);
-	iv = (int) rint(100*grace->project->shexper);
+	iv = (int) rint(100*grace->rt->shexper);
 	SetScaleValue(shexper_item, iv);
         switch (get_date_hint()) {
         case FMT_iso :
@@ -257,15 +257,15 @@ static int props_define_notify_proc(void *data)
     }
     gui->draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
 
-    grace->project->scrolling_islinked = GetToggleButtonState(linkscroll_item);
+    grace->rt->scrolling_islinked = GetToggleButtonState(linkscroll_item);
     gui->auto_redraw = GetToggleButtonState(autoredraw_type_item);
     cursortype = GetToggleButtonState(cursor_type_item);
 #if defined WITH_XMHTML || defined WITH_LIBHELP
     force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
     set_max_path_limit((int) GetSpinChoice(max_path_item));
-    grace->project->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
-    grace->project->shexper   = (double) GetScaleValue(shexper_item)/100.0;
+    grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
+    grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
 
     switch (GetChoice(hint_item)) {
     case 0 :

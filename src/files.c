@@ -54,6 +54,7 @@
 #endif
 
 #include "globals.h"
+#include "grace.h"
 #include "utils.h"
 #include "files.h"
 #include "ssdata.h"
@@ -949,8 +950,8 @@ int getdata(int gno, char *fn, int src, int load_type)
 	return RETURN_FAILURE;
     }
     
-    save_version = get_project_version();
-    set_project_version(0);
+    save_version = project_get_version_id(grace->project);
+    project_set_version_id(grace->project, 0);
 
     set_parser_gno(gno);
     
@@ -958,15 +959,15 @@ int getdata(int gno, char *fn, int src, int load_type)
 
     grace_close(fp);
     
-    cur_version = get_project_version();
+    cur_version = project_get_version_id(grace->project);
     if (cur_version != 0) {
         /* a complete project */
-        postprocess_project(cur_version);
+        project_postprocess(grace->project);
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
         autoscale_graph(gno, grace->rt->autoscale_onread);
     }
-    set_project_version(save_version);
+    project_set_version_id(grace->project, save_version);
 
     return retval;
 }

@@ -114,11 +114,6 @@ int main(int argc, char *argv[])
     rt      = grace->rt;
     gui     = grace->gui;
     
-    /*
-     * set version
-     */
-    reset_project_version();
-    
     /* initialize the parser symbol table */
     init_symtab();
     

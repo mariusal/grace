@@ -50,7 +50,7 @@
 #include "protos.h"
 
 #define graphs grace->project->graphs
-#define grdefaults grace->project->grdefaults
+#define grdefaults grace->rt->grdefaults
 /*
  * return the string version of the set type
  */

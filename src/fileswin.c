@@ -80,7 +80,7 @@ static saveGUI save_gui;
 static void update_save_gui(saveGUI *gui)
 {
     xv_setstr(gui->format_item, grace->project->sformat);
-    xv_setstr(gui->descr_item, get_project_description());
+    xv_setstr(gui->descr_item, project_get_description(grace->project));
 }
 
 void create_saveproject_popup(void)
@@ -119,7 +119,7 @@ static int save_proc(char *filename, void *data)
     
     grace->project->sformat = copy_string(grace->project->sformat, xv_getstr(gui->format_item));
     s = XmTextGetString(gui->descr_item);
-    set_project_description(s);
+    project_set_description(grace->project, s);
     XtFree(s);
     if (save_project(filename) == RETURN_SUCCESS) {
         return TRUE;

@@ -69,7 +69,7 @@ void putparms(int gno, FILE *pp, int embed)
     GLocator locator;
     char *p1, *p2, *tmpbuf;
     int wpp, hpp;
-    defaults grdefaults = grace->project->grdefaults;
+    defaults grdefaults = grace->rt->grdefaults;
     plotstr timestamp = grace->project->timestamp;
 
     if (embed) {
@@ -86,7 +86,7 @@ void putparms(int gno, FILE *pp, int embed)
     get_device_page_dimensions(grace->rt->tdevice, &wpp, &hpp);
     fprintf(pp, "%spage size %d, %d\n", embedstr, wpp, hpp);
 
-    tmpbuf = copy_string(NULL, get_project_description());
+    tmpbuf = copy_string(NULL, grace->project->description);
     if (tmpbuf != NULL) {
         p1 = tmpbuf;
         while ((p2 = strchr (p1, '\n')) != NULL) {
@@ -102,9 +102,9 @@ void putparms(int gno, FILE *pp, int embed)
         xfree(tmpbuf);
     }
 
-    fprintf(pp, "%spage scroll %d%%\n", embedstr, (int) rint(grace->project->scrollper * 100));
-    fprintf(pp, "%spage inout %d%%\n", embedstr, (int) rint(grace->project->shexper * 100));
-    fprintf(pp, "%slink page %s\n", embedstr, grace->project->scrolling_islinked ? "on" : "off");
+    fprintf(pp, "%spage scroll %d%%\n", embedstr, (int) rint(grace->rt->scrollper * 100));
+    fprintf(pp, "%spage inout %d%%\n", embedstr, (int) rint(grace->rt->shexper * 100));
+    fprintf(pp, "%slink page %s\n", embedstr, grace->rt->scrolling_islinked ? "on" : "off");
 
     for (i = 0; i < number_of_fonts(); i++) {
         if (get_font_mapped_id(i) != BAD_FONT_ID) {

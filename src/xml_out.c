@@ -864,7 +864,7 @@ int save_project(char *fn)
     xfile_begin(xf, "ISO-8859-1", FALSE, NULL, "grace.dtd", "grace", attrs);
 
     xfile_comment(xf, "Description");
-    xmlio_write_text(xf, "description", get_project_description());
+    xmlio_write_text(xf, "description", grace->project->description);
 
     xfile_comment(xf, "Definitions");
     xfile_begin_element(xf, "definitions", NULL);
@@ -875,21 +875,6 @@ int save_project(char *fn)
         save_fontmap(xf);
     }
     xfile_end_element(xf, "definitions");
-
-    xfile_comment(xf, "Defaults");
-    xfile_begin_element(xf, "defaults", NULL);
-    {
-        Pen pen;
-        defaults grdefaults = grace->project->grdefaults;
-        pen.color = grdefaults.color;
-        pen.pattern = grdefaults.pattern;
-        xmlio_write_line_spec(xf, attrs,
-            &pen, grdefaults.linew, grdefaults.lines);
-        xmlio_write_fill_spec(xf, attrs, &pen);
-        xmlio_write_face_spec(xf, attrs,
-            grdefaults.font, grdefaults.charsize, grdefaults.color);
-    }
-    xfile_end_element(xf, "defaults");
 
     xfile_comment(xf, "Page properties");
     get_device_page_dimensions(grace->rt->tdevice, &wpp, &hpp);
@@ -1010,3 +995,24 @@ int save_project(char *fn)
     
     return RETURN_SUCCESS;
 }
+
+
+/*
+save_prefs()
+{
+    xfile_comment(xf, "Defaults");
+    xfile_begin_element(xf, "defaults", NULL);
+    {
+        Pen pen;
+        defaults grdefaults = grace->project->grdefaults;
+        pen.color = grdefaults.color;
+        pen.pattern = grdefaults.pattern;
+        xmlio_write_line_spec(xf, attrs,
+            &pen, grdefaults.linew, grdefaults.lines);
+        xmlio_write_fill_spec(xf, attrs, &pen);
+        xmlio_write_face_spec(xf, attrs,
+            grdefaults.font, grdefaults.charsize, grdefaults.color);
+    }
+    xfile_end_element(xf, "defaults");
+}
+*/

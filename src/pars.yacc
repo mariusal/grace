@@ -52,6 +52,7 @@
 
 #include "defines.h"
 #include "globals.h"
+#include "grace.h"
 #include "cephes/cephes.h"
 #include "device.h"
 #include "utils.h"
@@ -69,7 +70,7 @@
 #define MAX_PARS_STRING_LENGTH  4096
 
 #define rg grace->project->rg
-#define grdefaults grace->project->grdefaults
+#define grdefaults grace->rt->grdefaults
 #define nlfit grace->rt->nlfit
 #define nonl_parms nlfit->parms
 
@@ -2025,10 +2026,10 @@ regionset:
 
 parmset:
         VERSION nexpr {
-            if (set_project_version($2) != RETURN_SUCCESS) {
+            if (project_set_version_id(grace->project, $2) != RETURN_SUCCESS) {
                 errmsg("Project version is newer than software!");
             }
-            if (get_project_version() < 50001) {
+            if (project_get_version_id(grace->project) < 50001) {
                 map_fonts(FONT_MAP_ACEGR);
             } else {
                 map_fonts(FONT_MAP_DEFAULT);
@@ -2135,7 +2136,7 @@ parmset:
 	    scrollinout_proc((int) $3);
 	}
 	| LINK PAGE onoff {
-	    grace->project->scrolling_islinked = $3;
+	    grace->rt->scrolling_islinked = $3;
 	}
 
 	| STACK WORLD expr ',' expr ',' expr ',' expr
@@ -2545,15 +2546,15 @@ parmset:
 
 	| DESCRIPTION CHRSTR {
             char *s;
-            s = copy_string(NULL, get_project_description());
+            s = copy_string(NULL, project_get_description(grace->project));
             s = concat_strings(s, $2);
 	    xfree($2);
             s = concat_strings(s, "\n");
-            set_project_description(s);
+            project_set_description(grace->project, s);
             xfree(s);
 	}
         | CLEAR DESCRIPTION {
-            set_project_description(NULL);
+            project_set_description(grace->project, NULL);
         }
 
 	| LEGEND onoff {
@@ -3132,7 +3133,7 @@ setprop:
         {
 	    int prop = $3;
 
-	    if (get_project_version() <= 40102 && get_project_version() >= 30000) {
+	    if (project_get_version_id(grace->project) <= 40102 && project_get_version_id(grace->project) >= 30000) {
                 switch (filltype_obs) {
                 case COLOR:
                     break;
@@ -3150,7 +3151,7 @@ setprop:
         {
 	    int prop = $3;
 
-	    if (get_project_version() <= 40102) {
+	    if (project_get_version_id(grace->project) <= 40102) {
                 switch (filltype_obs) {
                 case COLOR:
                     prop = 1;
@@ -3957,7 +3958,7 @@ parmset_obs:
 	| SUBTITLE linew_select { }
 
 	| LEGEND BOX onoff {
-	    if ($3 == FALSE && get_project_version() <= 40102) {
+	    if ($3 == FALSE && project_get_version_id(grace->project) <= 40102) {
                 (graph_get(whichgraph))->l.boxpen.pattern = 0;
             }
 	}

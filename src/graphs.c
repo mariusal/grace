@@ -1219,65 +1219,36 @@ int set_set_colors(set *p, int color)
     }
 }
 
-static int project_version;
-
-int get_project_version(void)
-{
-    return project_version;
-}
-
-int set_project_version(int version)
-{
-    if (version > bi_version_id()) {
-        project_version = bi_version_id();
-        return RETURN_FAILURE;
-    } else {
-        project_version = version;
-        return RETURN_SUCCESS;
-    }
-}
-
-void reset_project_version(void)
-{
-    project_version = bi_version_id();
-}
-
-static char *project_description = NULL;
-
-void set_project_description(char *descr)
-{
-    project_description = copy_string(project_description, descr);
-    set_dirtystate();
-}
-
 char *get_project_description(void)
 {
-    return project_description;
+    return project_get_description(grace->project);
 }
 
-void postprocess_project(int version)
+#undef graphs
+
+void project_postprocess(Project *pr)
 {
     int ngraphs, gno, setno, naxis;
     double ext_x, ext_y;
     
-    if (version >= bi_version_id()) {
+    if (pr->version_id >= bi_version_id()) {
         return;
     }
 
-    if (version < 40005) {
+    if (pr->version_id < 40005) {
         set_page_dimensions(792, 612, FALSE);
     }
 
-    if (get_project_version() < 50002) {
+    if (pr->version_id < 50002) {
         setbgfill(TRUE);
     }
 
-    if (get_project_version() < 50003) {
+    if (pr->version_id < 50003) {
         allow_two_digits_years(TRUE);
         set_wrap_year(1900);
     }
     
-    if (version <= 40102) {
+    if (pr->version_id <= 40102) {
 #ifndef NONE_GUI
         set_pagelayout(PAGE_FIXED);
 #endif
@@ -1285,17 +1256,17 @@ void postprocess_project(int version)
         rescale_viewport(ext_x, ext_y);
     }
     
-    storage_rewind(graphs);
-    ngraphs = storage_count(graphs);
+    storage_rewind(pr->graphs);
+    ngraphs = storage_count(pr->graphs);
     for (gno = 0; gno < ngraphs; gno++) {
         graph *g;
         Storage *sets;
         int nsets;
         
-        if (storage_get_data(graphs, (void **) &g) != RETURN_SUCCESS) {
+        if (storage_get_data(pr->graphs, (void **) &g) != RETURN_SUCCESS) {
             break;
         }
-	if (version <= 40102) {
+	if (pr->version_id <= 40102) {
             g->l.vgap -= 1;
         }
         
@@ -1308,7 +1279,7 @@ void postprocess_project(int version)
                 break;
             }
             
-            if (version < 50000) {
+            if (pr->version_id < 50000) {
                 switch (s->sym) {
                 case SYM_NONE:
                     break;
@@ -1323,15 +1294,15 @@ void postprocess_project(int version)
                     break;
                 }
             }
-            if ((version < 40004 && g->type != GRAPH_CHART) ||
+            if ((pr->version_id < 40004 && g->type != GRAPH_CHART) ||
                 s->sympen.color == -1) {
                 s->sympen.color = s->linepen.color;
             }
-            if (version < 40200 || s->symfillpen.color == -1) {
+            if (pr->version_id < 40200 || s->symfillpen.color == -1) {
                 s->symfillpen.color = s->sympen.color;
             }
             
-	    if (version <= 40102 && g->type == GRAPH_CHART) {
+	    if (pr->version_id <= 40102 && g->type == GRAPH_CHART) {
                 s->type     = SET_BAR;
                 s->sympen   = s->linepen;
                 s->symlines = s->lines;
@@ -1341,10 +1312,10 @@ void postprocess_project(int version)
                 s->symfillpen = s->setfillpen;
                 s->setfillpen.pattern = 0;
             }
-	    if (version <= 40102 && s->type == SET_XYHILO) {
+	    if (pr->version_id <= 40102 && s->type == SET_XYHILO) {
                 s->symlinew = s->linew;
             }
-	    if (version < 50100 && s->type == SET_BOXPLOT) {
+	    if (pr->version_id < 50100 && s->type == SET_BOXPLOT) {
                 s->symlinew = s->linew;
                 s->symlines = s->lines;
                 s->symsize = 2.0;
@@ -1353,7 +1324,7 @@ void postprocess_project(int version)
                 s->lines = 0;
                 s->errbar.barsize = 0.0;
             }
-            if (version < 50003) {
+            if (pr->version_id < 50003) {
                 s->errbar.active = TRUE;
                 s->errbar.pen.color = s->sympen.color;
                 s->errbar.pen.pattern = 1;
@@ -1375,14 +1346,14 @@ void postprocess_project(int version)
                     break;
                 }
             }
-            if (version < 50002) {
+            if (pr->version_id < 50002) {
                 s->errbar.barsize *= 2;
             }
 
             storage_next(sets);
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
-	    if (version <= 40102) {
+	    if (pr->version_id <= 40102) {
                 if ((is_xaxis(naxis) && g->xscale == SCALE_LOG) ||
                     (is_yaxis(naxis) && g->yscale == SCALE_LOG)) {
                     g->t[naxis]->tmajor = pow(10.0, g->t[naxis]->tmajor);
@@ -1392,7 +1363,7 @@ void postprocess_project(int version)
                 g->t[naxis]->offsx = 0.0;
                 g->t[naxis]->offsy = 0.0;
             }
-	    if (version < 50000) {
+	    if (pr->version_id < 50000) {
 	        /* There was no label_op in Xmgr */
                 g->t[naxis]->label_op = g->t[naxis]->tl_op;
 	        
@@ -1407,10 +1378,10 @@ void postprocess_project(int version)
         }
         
         
-        storage_next(graphs);
+        storage_next(pr->graphs);
     }
 
-    if (version >= 40200 && version <= 50005) {
+    if (pr->version_id >= 40200 && pr->version_id <= 50005) {
         int i, n;
         DObject *o;
         /* BBox type justification was erroneously set */
@@ -1428,7 +1399,7 @@ void postprocess_project(int version)
             storage_next(objects);
         }
     }
-    if (version <= 50101) {
+    if (pr->version_id <= 50101) {
         int i, n, gsave;
         DObject *o;
         

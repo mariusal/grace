@@ -334,11 +334,6 @@ int copysetdata(int gnofrom, int setfrom, int gnoto, int setto);
 int get_recent_setno(void);
 int get_recent_gno(void);
 
-int get_project_version(void);
-int set_project_version(int version);
-void reset_project_version(void);
-
-void set_project_description(char *descr);
 char *get_project_description(void);
 
 void set_free(set *s);
@@ -349,6 +344,6 @@ set *set_get(int gno, int setno);
 int get_graph_ids(int **ids);
 int get_set_ids(int gno, int **ids);
 
-void postprocess_project(int version);
+void project_postprocess(Project *pr);
 
 #endif /* __GRAPHS_H_ */

@@ -32,8 +32,8 @@
 
 #include "defines.h"
 #include "grace.h"
-#include "objutils.h"
 #include "utils.h"
+#include "graphs.h"
 #include "protos.h"
 
 /* FIXME */
@@ -52,89 +52,6 @@ static defaults d_d =
     int font;
     double symsize;
 */
-
-static void wrap_object_free(void *data)
-{
-    object_free((DObject *) data);
-}
-
-static void *wrap_object_copy(void *data)
-{
-    return (void *) object_copy((DObject *) data);
-}
-
-static void wrap_graph_free(void *data)
-{
-    graph_free((graph *) data);
-}
-
-static void *wrap_graph_copy(void *data)
-{
-    return (void *) graph_copy((graph *) data);
-}
-
-Project *project_new(void)
-{
-    Project *pr;
-    int i;
-    
-    pr = xmalloc(sizeof(Project));
-    if (!pr) {
-        return NULL;
-    }
-    
-    pr->graphs  = storage_new(wrap_graph_free, wrap_graph_copy, NULL);
-    if (!pr->graphs) {
-        xfree(pr);
-        return NULL;
-    }
-    
-    pr->objects = storage_new(wrap_object_free, wrap_object_copy, NULL);
-    if (!pr->objects) {
-        storage_free(pr->graphs);
-        xfree(pr);
-        return NULL;
-    }
-
-    pr->grdefaults = d_d;
-        
-    pr->nr = 0;
-    for (i = 0; i < MAXREGION; i++) {
-        set_region_defaults(&pr->rg[i]);
-    }
-    
-    pr->scrolling_islinked = FALSE;
-    pr->scrollper = 0.05;
-    pr->shexper = 0.05;
-    
-    pr->sformat = copy_string(NULL, "%16.8g");
-
-    set_default_string(&pr->timestamp);
-    pr->timestamp.offset.x = 0.03;
-    pr->timestamp.offset.y = 0.03;
-    
-    pr->docname = copy_string(NULL, NONAME);
-    
-    return pr;
-}
-
-void project_free(Project *pr)
-{
-    if (!pr) {
-        return;
-    }
-    
-    storage_free(pr->graphs);
-    storage_free(pr->objects);
-    
-    xfree(pr->sformat);
-    xfree(pr->docname);
-    
-    /* FIXME regions */
-    /* FIXME timestamp */
-    
-    xfree(pr);
-}
 
 
 GUI *gui_new(void)
@@ -273,14 +190,17 @@ RunTime *runtime_new(void)
     rt->curtype   = SET_XY;
     rt->cursource = SOURCE_DISK;
 
+    rt->grdefaults = d_d;
+        
+    rt->scrolling_islinked = FALSE;
+    rt->scrollper = 0.05;
+    rt->shexper = 0.05;
+    
     rt->resfp = NULL;
 
     rt->emergency_save = FALSE;
     rt->interrupts = 0;
 
-    rt->dirtystate = 0;
-    rt->dirtystate_lock = FALSE;
-    
 #ifdef DEBUG
     rt->debuglevel = 0;
 #endif
