@@ -8,6 +8,33 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.6</H2>
+
+<H3>Parser</H3>
+ !  [ES] implemented region on set evaluation: REGNUM(selectset)
+ *  [ES] implemented applying region and logical restrictions to a set:
+         RESTRICT(selectset, vexpr) and RESTRICT(selectset, REGNUM, onoff)
+ !  [ES] implemented KILL REGNUM
+ *  [ES] added SUM(vexpr)
+ *  [ES] allow accessing array segments (e.g. x[4:10])
+
+<H3>Portability/Compilation</H3>
+ *  [ES] use the bundled Xbae by default to make sure we don't come accross
+         a buggy version installed
+
+<H3>Bug fixes</H3>
+ *  [ES] re-loading projects with polygon regions defined might result in
+         memory leaks and wrong region evaluations
+ *  [ES] optimize (again) updating large pulldown selectors (rep. #1082)
+ *  [ES] axis label with "Auto" placement was misplaced/absent with tick marks
+         and labels disabled on the respective side (rep. #1086)
+ *  [ES] in the interpolation and histogram dialogs it wasn't checked that
+         the source and destinations sets were different (rep. #1084)
+ *  [ES] when the invert x-axis flag was turned on, pie charts were wrongly
+         reproduced in all but screen outputs (rep. #1092)
+ *  [ES] when saving project under the same name, don't warn about file
+         overwriting (rep. #1094)
+
 <H2>5.1.5</H2>
 
 <H3>Functionality</H3>

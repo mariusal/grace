@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.5)
+  <title>Grace FAQ (for Grace-5.1.6)
   <author>by the Grace Team
-  <date>2.10.2001
+  <date>15.12.2001
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1176,6 +1176,16 @@ XMgrace*background: ...
         
         If you find some columns are too narrow to show all significant
         digits, you can drag the vertical rules using Shift+Button 2.
+ 
+    <sect1>When making use of <it>-param</it> via the command line to set
+           the parameters, the world scaling is not correctly set (it just
+           auto-scales).
+      <p>
+        
+        The <it>-param</it> flag and its argument should be placed on the
+        command line <bf>after</bf> the data filenames. Alternatively,
+        disable the autoscale with <it>-autoscale none</it> - but
+        <bf>before</bf> your data is read in.
  
 
 <!-- **************************************** -->

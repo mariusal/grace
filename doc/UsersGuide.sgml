@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.5)</title>
+<title>Grace User's Guide (for Grace-5.1.6)</title>
 <author>by the Grace Team</author>
-<date>22.11.2001</date>
+<date>29.12.2001</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1831,6 +1831,9 @@ integral     | cumulative sum @
         qstr |
           Quoted string |
           "a string" @
+        vexpr |
+          Vector expression |
+          "2*x" @
         <hline>
       </tabular>
       <caption>
@@ -1901,6 +1904,26 @@ integral     | cumulative sum @
       </caption>
       </table>
     </p>
+
+    <p>
+      <table loc="htbp">
+      <tabular ca="llll">
+        <hline>
+        Expression | Description | Types | Example @
+        <hline>
+        R<it>n</it> |
+          region <it>n</it> |
+          <it>n</it>: 0-4 |
+          R0 @
+        <hline>
+      </tabular>
+      <caption>
+        <label id="region-sel">
+        Region selections
+      </caption>
+      </table>
+    </p>
+
 
     <p>
       <table loc="htbp">
@@ -1987,6 +2010,8 @@ integral     | cumulative sum @
         set.datacolumn  | data column of set @
         <hline>
         vvar            | user-defined array @
+        <hline>
+        vvariable &lsqb;i:j&rsqb; | segment of a vector variable (elements from i-th to j-th inclusive, i &lt;= j) @
         <hline>
       </tabular>
       <caption>
@@ -2211,6 +2236,26 @@ integral     | cumulative sum @
       </caption>
       </table>
 
+      <p>
+
+      <table loc="htbp">
+      <tabular ca="cl">
+        <hline>
+        Function    | Description                    @
+        <hline>
+	MIN(x)      | min value of array x           @
+	MAX(x)      | max value of array x           @
+	AVG(x)      | average of array x             @
+	SD(x)       | standard deviation of array x  @
+	SUM(x)      | sum of all elements of array x @
+        <hline>
+      </tabular>
+      <caption>
+        <label id="aggregate-functions">
+        Aggregate functions
+      </caption>
+      </table>     
+
   <sect1>Procedures
     <p>
      Methods of directly manipulating the data corresponding to the
@@ -2230,6 +2275,14 @@ integral     | cumulative sum @
           calculate Histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively.  Data points are placed at upper limit of the bin |
           vexpr <it>bins</it>, onoff <it>cumulative</it>, onoff <it>normalize</it> |
           HISTOGRAM (S0, MESH(0, 1, 11), OFF, ON) @
+        RESTRICT (set, restriction) |
+          filter <it>set</it> according to logical <it>restriction</it>. The original set will be overwritten |
+          vexpr <it>restriction</it> |
+          RESTRICT (S0, x < 0) @
+        RESTRICT (set, region, negate) |
+          filter <it>set</it> by keeping only points lying inside/outside <it>region</it>. The original set will be overwritten |
+          onoff <it>negate</it>|
+          RESTRICT (S0, x < 0) @
         <hline>
       </tabular>
       <caption>
