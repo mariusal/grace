@@ -713,31 +713,31 @@ int arrange_graphs(Quark **graphs, int ngraphs,
     return RETURN_SUCCESS;
 }
 
-void move_legend(Quark *gr, VVector shift)
+void move_legend(Quark *fr, const VVector *shift)
 {
-    legend *l = frame_get_legend(gr);
+    legend *l = frame_get_legend(fr);
     if (l) {
         switch (l->acorner) {
         case CORNER_LL:
-            l->offset.x += shift.x;
-            l->offset.y += shift.y;
+            l->offset.x += shift->x;
+            l->offset.y += shift->y;
             break;
         case CORNER_UL:
-            l->offset.x += shift.x;
-            l->offset.y -= shift.y;
+            l->offset.x += shift->x;
+            l->offset.y -= shift->y;
             break;
         case CORNER_UR:
         default:
-            l->offset.x -= shift.x;
-            l->offset.y -= shift.y;
+            l->offset.x -= shift->x;
+            l->offset.y -= shift->y;
             break;
         case CORNER_LR:
-            l->offset.x -= shift.x;
-            l->offset.y += shift.y;
+            l->offset.x -= shift->x;
+            l->offset.y += shift->y;
             break;
         }
 
-        quark_dirtystate_set(gr, TRUE);
+        quark_dirtystate_set(fr, TRUE);
     }
 }
 
@@ -788,148 +788,4 @@ void rescale_viewport(Quark *project, double ext_x, double ext_y)
     ext_xy.y = ext_y;
 
     quark_traverse(project, hook, &ext_xy);
-
-    quark_dirtystate_set(project, TRUE);
-}
-
-
-int overlay_graphs(Quark *gsec, Quark *gpri, int type)
-{
-#if 0
-    int i;
-    tickmarks *tsec, *tpri;
-    world wpri, wsec;
-    view v;
-    
-    if (gsec == gpri) {
-        return RETURN_FAILURE;
-    }
-    if (!gpri || !gsec) {
-        return RETURN_FAILURE;
-    }
-    
-    get_graph_viewport(gpri, &v);
-    get_graph_world(gpri, &wpri);
-    get_graph_world(gsec, &wsec);
-
-    switch (type) {
-    case GOVERLAY_SMART_AXES_XY:
-        wsec = wpri;
-	for (i = 0; i < MAXAXES; i++) {
-	    tpri = get_graph_tickmarks(gpri, i);
-	    tsec = get_graph_tickmarks(gsec, i);
-            switch(i) {
-            case X_AXIS:
-            case Y_AXIS:
-                tpri->active = TRUE;
-	        tpri->label_op = PLACEMENT_NORMAL;
-	        tpri->t_op = PLACEMENT_BOTH;
-	        tpri->tl_op = PLACEMENT_NORMAL;
-
-	        tsec->active = FALSE;
-                break;
-            default:
-                /* don't touch alternative axes */
-                break;
-            }
-	}
-	break;
-    case GOVERLAY_SMART_AXES_X:
-        wsec.xg1 = wpri.xg1;
-        wsec.xg2 = wpri.xg2;
-	for (i = 0; i < MAXAXES; i++) {
-	    tpri = get_graph_tickmarks(gpri, i);
-	    tsec = get_graph_tickmarks(gsec, i);
-	    switch(i) {
-            case X_AXIS:
-                tpri->active = TRUE;
-	        tpri->label_op = PLACEMENT_NORMAL;
-	        tpri->t_op = PLACEMENT_BOTH;
-	        tpri->tl_op = PLACEMENT_NORMAL;
-
-	        tsec->active = FALSE;
-                break;
-            case Y_AXIS:
-	        tpri->active = TRUE;
-	        tpri->label_op = PLACEMENT_NORMAL;
-	        tpri->t_op = PLACEMENT_NORMAL;
-	        tpri->tl_op = PLACEMENT_NORMAL;
-
-                tsec->active = TRUE;
-	        tsec->label_op = PLACEMENT_OPPOSITE;
-	        tsec->t_op = PLACEMENT_OPPOSITE;
-	        tsec->tl_op = PLACEMENT_OPPOSITE;
-                break;
-            default:
-                /* don't touch alternative axes */
-                break;
-            }
-	}
-	break;
-    case GOVERLAY_SMART_AXES_Y:
-        wsec.yg1 = wpri.yg1;
-        wsec.yg2 = wpri.yg2;
-	for (i = 0; i < MAXAXES; i++) {
-	    tpri = get_graph_tickmarks(gpri, i);
-	    tsec = get_graph_tickmarks(gsec, i);
-	    switch(i) {
-            case X_AXIS:
-	        tpri->active = TRUE;
-	        tpri->label_op = PLACEMENT_NORMAL;
-	        tpri->t_op = PLACEMENT_NORMAL;
-	        tpri->tl_op = PLACEMENT_NORMAL;
-
-                tsec->active = TRUE;
-	        tsec->label_op = PLACEMENT_OPPOSITE;
-	        tsec->t_op = PLACEMENT_OPPOSITE;
-	        tsec->tl_op = PLACEMENT_OPPOSITE;
-                break;
-            case Y_AXIS:
-                tpri->active = TRUE;
-	        tpri->label_op = PLACEMENT_NORMAL;
-	        tpri->t_op = PLACEMENT_BOTH;
-	        tpri->tl_op = PLACEMENT_NORMAL;
-
-	        tsec->active = FALSE;
-                break;
-            default:
-                /* don't touch alternative axes */
-                break;
-            }
-	}
-	break;
-    case GOVERLAY_SMART_AXES_NONE:
-	for (i = 0; i < MAXAXES; i++) {
-	    tpri = get_graph_tickmarks(gpri, i);
-	    tsec = get_graph_tickmarks(gsec, i);
-	    switch(i) {
-            case X_AXIS:
-            case Y_AXIS:
-	        tpri->active = TRUE;
-	        tpri->label_op = PLACEMENT_NORMAL;
-	        tpri->t_op = PLACEMENT_NORMAL;
-	        tpri->tl_op = PLACEMENT_NORMAL;
-
-                tsec->active = TRUE;
-	        tsec->label_op = PLACEMENT_OPPOSITE;
-	        tsec->t_op = PLACEMENT_OPPOSITE;
-	        tsec->tl_op = PLACEMENT_OPPOSITE;
-                break;
-            default:
-                /* don't touch alternative axes */
-                break;
-            }
-	}
-	break;
-    default:
-        break;
-    }
-    
-    /* set identical viewports */
-    set_graph_viewport(gsec, &v);
-    
-    /* update world coords */
-    set_graph_world(gsec, &wsec);
-#endif
-    return RETURN_SUCCESS;
 }

@@ -103,7 +103,7 @@ static int eval_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     char *rarray;
     Eval_pars *pars = (Eval_pars *) tddata;
 
-    res = get_restriction_array(psrc, pars->restr_type, pars->restr_negate, &rarray);
+    res = get_restriction_array(psrc, NULL, pars->restr_negate, &rarray);
     if (res != RETURN_SUCCESS) {
 	errmsg("Error in evaluation of restriction");
         return RETURN_FAILURE;

@@ -5006,7 +5006,7 @@ static int yylex(void)
 	ungetchstr();
 	*p = '\0';
 #ifdef DEBUG
-        if (get_debuglevel(grace->project) == 2) {
+        if (get_debuglevel(grace) == 2) {
 	    printf("->%s<-\n", sbuf);
 	}
 #endif

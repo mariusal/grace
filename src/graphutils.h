@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -61,22 +61,18 @@ FormatType get_format_type_by_name(const char *name);
 int graph_scroll(Quark *gr, int type);
 int graph_zoom(Quark *gr, int type);
 
-int overlay_graphs(Quark *gsec, Quark *gpri, int type);
-
 int arrange_graphs(Quark **graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
                    int hpack, int vpack);
-int arrange_graphs_simple(int nrows, int ncols,
-    int order, int snake, double offset, double hgap, double vgap);
 
 void autotick_axis(Quark *q);
 void autoscale_bysets(Quark **sets, int nsets, int autos_type);
 int autoscale_graph(Quark *gr, int autos_type);
 void autotick_graph_axes(Quark *q, int amask);
 
-void move_legend(Quark *gr, VVector shift);
+void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
 

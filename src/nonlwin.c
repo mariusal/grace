@@ -476,7 +476,7 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
 
         /* Apply restrictions */
         res = get_restriction_array(psrc,
-            pars->restr_type, pars->restr_negate, &rarray);
+            NULL, pars->restr_negate, &rarray);
 	if (res != RETURN_SUCCESS) {
 	    errmsg("Error in restriction evaluation");
 	    xfree(warray);
