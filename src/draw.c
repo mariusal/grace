@@ -712,6 +712,8 @@ int is_validWPoint(WPoint wp)
 #define LINE_FINITE     0
 #define LINE_INFINITE   1
 
+/* TODO: implement fpcomp() */
+#define FPCMP_EPS      1.0e-6
 /*
  * line_intersect() returns pointer to the intersection point of two
  * lines defined by points vp1, vp2 and vp1p, vp2p respectively. 
@@ -734,7 +736,7 @@ VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mod
         t = ((vp1.x - vp1p.x)*vp2p.y + 
              (vp2p.x - vp1.x)*vp1p.y - 
              (vp2p.x - vp1p.x)*vp1.y)/vprod;
-        if ((t >= 0.0) && (t <= 1.0)) {
+        if ((t >= 0.0 - FPCMP_EPS) && (t <= 1.0 + FPCMP_EPS)) {
             vpbuf.x = vp1.x + t*(vp2.x - vp1.x);
             vpbuf.y = vp1.y + t*(vp2.y - vp1.y);
             
@@ -747,7 +749,7 @@ VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mod
                     tp = (vpbuf.y - vp1p.y)/(vp2p.y - vp1p.y);
                 }
                 
-                if ((tp >= 0.0) && (tp <= 1.0)) {
+                if ((tp >= 0.0 - FPCMP_EPS) && (tp <= 1.0 + FPCMP_EPS)) {
                     return &vpbuf;
                 } else {
                     return NULL;
