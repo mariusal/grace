@@ -96,6 +96,8 @@
 #include "utils.h"
 #include "protos.h"
 
+#define BUGGY_GLOBAL_DATE_OFFSET    1.0
+
 static double ref_date = 0.0;
 
 /*
@@ -418,7 +420,7 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
     double tmp;
 
     /* compensate for the reference date */
-    jday += get_ref_date();
+    jday += get_ref_date() + BUGGY_GLOBAL_DATE_OFFSET;
     
     /* find the time of the day */
     n = (long) floor(jday - 0.5);
@@ -724,7 +726,7 @@ int parse_date(const char* s, Dates_format preferred,
               if (check_date(tab[ky], tab[km], tab[kd], &j)
                   == GRACE_EXIT_SUCCESS) {
                   *jul = jul_and_time_to_jul(j, tab[3].value, tab[4].value,
-                                             sec);
+                                             sec) - BUGGY_GLOBAL_DATE_OFFSET;
                   *recognized = trials[i];
                   return GRACE_EXIT_SUCCESS;
               }
