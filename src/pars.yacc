@@ -301,6 +301,7 @@ symtab_entry *key;
 %token <ival> FROM
 %token <ival> GENERAL
 %token <ival> GETP
+%token <ival> GRAPH
 %token <ival> GRAPHNO
 %token <ival> GRID
 %token <ival> HAMMING
@@ -520,6 +521,7 @@ symtab_entry *key;
 
 %type <ival> onoff
 
+%type <ival> selectgraph
 %type <trgt> selectset
 
 %type <ival> pagelayout
@@ -672,7 +674,7 @@ expr:	NUMBER {
 	| selectset '.' ID {
 	    $$ = $1->setno;
 	}
-	| GRAPHNO '.' ID {
+	| selectgraph '.' ID {
 	    $$ = $1;
 	}
 	| CONSTANT
@@ -715,28 +717,28 @@ expr:	NUMBER {
 	{
 	    $$ = key[$1].fnc($3, $5, $7, $9);
 	}
-	| GRAPHNO '.' VX1 {
+	| selectgraph '.' VX1 {
 	    $$ = g[$1].v.xv1;
 	}
-	| GRAPHNO '.' VX2 {
+	| selectgraph '.' VX2 {
 	    $$ = g[$1].v.xv2;
 	}
-	| GRAPHNO '.' VY1 {
+	| selectgraph '.' VY1 {
 	    $$ = g[$1].v.yv1;
 	}
-	| GRAPHNO '.' VY2 {
+	| selectgraph '.' VY2 {
 	    $$ = g[$1].v.yv2;
 	}
-	| GRAPHNO '.' WX1 {
+	| selectgraph '.' WX1 {
 	    $$ = g[$1].w.xg1;
 	}
-	| GRAPHNO '.' WX2 {
+	| selectgraph '.' WX2 {
 	    $$ = g[$1].w.xg2;
 	}
-	| GRAPHNO '.' WY1 {
+	| selectgraph '.' WY1 {
 	    $$ = g[$1].w.yg1;
 	}
-	| GRAPHNO '.' WY2 {
+	| selectgraph '.' WY2 {
 	    $$ = g[$1].w.yg2;
 	}
 	| JDAY '(' expr ',' expr ',' expr ')' { /* yr, mo, day */
@@ -1713,9 +1715,22 @@ lside_array:
         array
         {
             target tgt;
-            if (find_set_bydata($1->data, &tgt) == GRACE_EXIT_SUCCESS) {
-                vasgn_gno   = tgt.gno;
-                vasgn_setno = tgt.setno;
+            switch ($1->type) {
+            case GRVAR_DATASET:
+                if (find_set_bydata($1->data, &tgt) == GRACE_EXIT_SUCCESS) {
+                    vasgn_gno   = tgt.gno;
+                    vasgn_setno = tgt.setno;
+                } else {
+                    errmsg("Internal error");
+		    return 1;
+                }
+                break;
+            case GRVAR_SCRARRAY:
+                break;
+            default:
+                /* It can NOT be a tmp array on the left side! */
+                errmsg("Internal error");
+	        return 1;
             }
             $$ = $1;
         }
@@ -1726,7 +1741,7 @@ vasgn:
 	{
 	    int i;
 	    if ($1->length != $3->length) {
-                errmsg("Can't operate on vectors of different lengths");
+                errmsg("Left and right vectors are of different lengths");
                 return 1;
             }
 	    for (i = 0; i < $1->length; i++) {
@@ -1779,10 +1794,10 @@ regionset:
 	    rg[$1].y[rg[$1].n] = $5;
 	    rg[$1].n++;
 	}
-	| LINK REGNUM TO GRAPHNO {
+	| LINK REGNUM TO selectgraph {
 	    rg[$2].linkto[$4] = TRUE;
 	}
-	| UNLINK REGNUM FROM GRAPHNO {
+	| UNLINK REGNUM FROM selectgraph {
 	    rg[$2].linkto[$4]=FALSE;
 	}
 	;
@@ -1926,7 +1941,7 @@ parmset:
 	    target_set = *($2);
 	    set_parser_setno(target_set.gno, target_set.setno);
 	}
-	| WITH GRAPHNO {
+	| WITH selectgraph {
 	    set_parser_gno($2);
 	}
 	| WITH selectset {
@@ -1956,7 +1971,7 @@ parmset:
 	        boxes[curbox].active = $2;
             }
 	}
-	| BOX GRAPHNO {
+	| BOX selectgraph {
 	    if (!is_valid_box(curbox)) {
                 yyerror("Box not active");
 	    } else {
@@ -2035,7 +2050,7 @@ parmset:
 	        ellip[curellipse].active = $2;
             }
 	}
-	| ELLIPSE GRAPHNO {
+	| ELLIPSE selectgraph {
 	    if (!is_valid_ellipse(curellipse)) {
                 yyerror("Ellipse not active");
 	    } else {
@@ -2114,7 +2129,7 @@ parmset:
 	        lines[curline].active = $2;
             }
 	}
-	| LINE GRAPHNO {
+	| LINE selectgraph {
 	    if (!is_valid_line(curline)) {
                 yyerror("Line not active");
 	    } else {
@@ -2186,7 +2201,7 @@ parmset:
                 pstr[curstring].active = $2;
             }
         }
-	| STRING GRAPHNO {
+	| STRING selectgraph {
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
 	    } else {
@@ -2485,39 +2500,39 @@ parmset:
             g[whichgraph].f.fillpen.pattern = $3;
         }
 
-	| GRAPHNO onoff {
+	| selectgraph onoff {
             set_graph_active($1, $2);
         }
-	| GRAPHNO HIDDEN onoff {
+	| selectgraph HIDDEN onoff {
             set_graph_hidden($1, $3);
         }
-	| GRAPHNO TYPE graphtype {
+	| selectgraph TYPE graphtype {
             set_graph_type($1, $3);
         }
-	| GRAPHNO STACKED onoff {
+	| selectgraph STACKED onoff {
             set_graph_stacked($1, $3);
         }
 
-	| GRAPHNO BAR HGAP expr {
+	| selectgraph BAR HGAP expr {
 	    set_graph_bargap($1, $4);
 	}
         
-	| GRAPHNO FIXEDPOINT onoff {
+	| selectgraph FIXEDPOINT onoff {
             g[$1].locator.pointset = $3;
         }
-	| GRAPHNO FIXEDPOINT FORMAT formatchoice formatchoice {
+	| selectgraph FIXEDPOINT FORMAT formatchoice formatchoice {
 	    g[$1].locator.fx = $4;
 	    g[$1].locator.fy = $5;
 	}
-	| GRAPHNO FIXEDPOINT PREC expr ',' expr {
+	| selectgraph FIXEDPOINT PREC expr ',' expr {
 	    g[$1].locator.px = $4;
 	    g[$1].locator.py = $6;
 	}
-	| GRAPHNO FIXEDPOINT XY expr ',' expr {
+	| selectgraph FIXEDPOINT XY expr ',' expr {
 	    g[$1].locator.dsx = $4;
 	    g[$1].locator.dsy = $6;
 	}
-	| GRAPHNO FIXEDPOINT TYPE expr {
+	| selectgraph FIXEDPOINT TYPE expr {
             g[$1].locator.pt_type = (int) $4;
         }
         
@@ -2603,7 +2618,7 @@ actions:
 	}
 	| ECHO expr {
 	    char buf[32];
-            sprintf(buf, "%g", (double) $2);
+            sprintf(buf, "%g", $2);
             echomsg(buf);
 	}
 	| CLOSE {
@@ -2677,8 +2692,8 @@ actions:
 	}
 
 	| selectset DROP expr ',' expr {
-	    int start = (int) $3 - 1;
-	    int stop = (int) $5 - 1;
+	    int start = (int) $3 - index_shift;
+	    int stop = (int) $5 - index_shift;
 	    int dist = stop - start + 1;
 	    if (dist > 0 && start >= 0) {
 	        droppoints($1->gno, $1->setno, start, stop, dist);
@@ -2717,7 +2732,7 @@ actions:
 	| KILL selectset SAVEALL {
             killsetdata($2->gno, $2->setno);
         }
-	| KILL GRAPHNO {
+	| KILL selectgraph {
             kill_graph($2);
         }
 	| FLUSH {
@@ -2824,7 +2839,7 @@ actions:
         | AUTOTICKS {
             autotick_axis(whichgraph, ALL_AXES);
         }
-	| FOCUS GRAPHNO {
+	| FOCUS selectgraph {
 	    int gno = $2;
             if (is_graph_hidden(gno) == FALSE) {
                 select_graph(gno);
@@ -3433,10 +3448,30 @@ nonlfitopts:
         }
         ;
 
+selectgraph:
+        GRAPHNO
+        {
+            $$ = $1;
+        }
+        | GRAPH indx
+        {
+            $$ = $2;
+        }
+        ;
+
 selectset:
-	GRAPHNO '.' SETNUM
+	selectgraph '.' SETNUM
 	{
 	    int gno = $1, setno = $3;
+            allocate_set(gno, setno);
+            $$ = &trgt_pool[tgtn];
+            $$->gno   = gno;
+            $$->setno = setno;
+            tgtn++;
+	}
+	| selectgraph '.' SET indx
+	{
+	    int gno = $1, setno = $4;
             allocate_set(gno, setno);
             $$ = &trgt_pool[tgtn];
             $$->gno   = gno;
@@ -3452,11 +3487,20 @@ selectset:
             $$->setno = setno;
             tgtn++;
 	}
+	| SET indx
+	{
+	    int gno = whichgraph, setno = $2;
+            allocate_set(gno, setno);
+	    $$ = &trgt_pool[tgtn];
+            $$->gno   = gno;
+            $$->setno = setno;
+            tgtn++;
+	}
 	;
 
 setaxis:
 	axis axisfeature {}
-	| GRAPHNO axis axisfeature {}
+	| selectgraph axis axisfeature {}
 	;
 
 axis:
@@ -3832,39 +3876,39 @@ parmset_obs:
 	| LEGEND lines_select { }
 	| LEGEND linew_select { }
 
-	| GRAPHNO LABEL onoff { }
+	| selectgraph LABEL onoff { }
 
-	| GRAPHNO TYPE LOGX { 
+	| selectgraph TYPE LOGX { 
 	    g[$1].type = GRAPH_XY;
 	    g[$1].xscale = SCALE_LOG;
 	}
-	| GRAPHNO TYPE LOGY { 
+	| selectgraph TYPE LOGY { 
 	    g[$1].type = GRAPH_XY;
 	    g[$1].yscale = SCALE_LOG;
 	}
-	| GRAPHNO TYPE LOGXY
+	| selectgraph TYPE LOGXY
 	{ 
 	    g[$1].type = GRAPH_XY;
 	    g[$1].xscale = SCALE_LOG;
 	    g[$1].yscale = SCALE_LOG;
 	}
-	| GRAPHNO TYPE BAR
+	| selectgraph TYPE BAR
 	{ 
 	    g[$1].type = GRAPH_CHART;
 	    g[$1].xyflip = FALSE;
 	    g[$1].stacked = FALSE;
 	}
-	| GRAPHNO TYPE HBAR
+	| selectgraph TYPE HBAR
 	{ 
 	    g[$1].type = GRAPH_CHART;
 	    g[$1].xyflip = TRUE;
 	}
-	| GRAPHNO TYPE STACKEDBAR
+	| selectgraph TYPE STACKEDBAR
 	{ 
 	    g[$1].type = GRAPH_CHART;
 	    g[$1].stacked = TRUE;
 	}
-	| GRAPHNO TYPE STACKEDHBAR
+	| selectgraph TYPE STACKEDHBAR
 	{ 
 	    g[$1].type = GRAPH_CHART;
 	    g[$1].stacked = TRUE;
@@ -3878,9 +3922,9 @@ parmset_obs:
             g[whichgraph].f.fillpen.pattern = $3;
         }
 
-	| GRAPHNO AUTOSCALE TYPE AUTO {
+	| selectgraph AUTOSCALE TYPE AUTO {
         }
-	| GRAPHNO AUTOSCALE TYPE SPEC {
+	| selectgraph AUTOSCALE TYPE SPEC {
         }
 
 	| LINE ARROW SIZE expr {
@@ -4225,6 +4269,7 @@ symtab_entry ikey[] = {
 	{"GE", GE, NULL},
 	{"GENERAL", GENERAL, NULL},
 	{"GETP", GETP, NULL},
+	{"GRAPH", GRAPH, NULL},
 	{"GRID", GRID, NULL},
 	{"GT", GT, NULL},
 	{"HAMMING", HAMMING, NULL},
