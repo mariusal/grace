@@ -186,9 +186,10 @@ static XtActionsRec canvas_actions[] = {
 static XtActionsRec list_select_actions[] = {
     {"list_selectall_action",   list_selectall_action},
     {"list_unselectall_action", list_unselectall_action}
-/*
- *     {"graph_choice_delete", (XtActionProc) graph_choice_delete}
- */
+};
+
+static XtActionsRec cstext_actions[] = {
+    {"cstext_edit_action", cstext_edit_action}
 };
 
 static char canvas_table[] = "#override\n\
@@ -330,6 +331,7 @@ void xlibprocess_args(int *argc, char **argv)
 
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
     XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
+    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 }
 
 static void do_drawgraph(Widget w, XtPointer client_data, XtPointer call_data)
@@ -831,7 +833,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "drawingObjects", "Drawing objects", 'o',
     	(XtCallbackProc) define_objects_popup, (XtPointer) NULL, 0);
     CreateMenuButton(menupane, "fontTool", "Font tool", 'F',
-       (XtCallbackProc) create_fonttool, (XtPointer) NULL, 0);
+        create_fonttool_cb, (XtPointer) NULL, 0);
 
 /*
  *     CreateMenuButton(menupane, "areaPerimeter", "Area/perimeter...", 'A',
