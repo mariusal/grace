@@ -234,9 +234,9 @@ int main(int argc, char *argv[])
     /* if no print command defined, print to file by default */
     s = get_print_cmd();
     if (s == NULL || s[0] == '\0') {
-        ptofile = TRUE;
+        set_ptofile(TRUE);
     } else {
-        ptofile = FALSE;
+        set_ptofile(FALSE);
     }
     
     /*
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing file name for printing\n");
 			usage(stderr, argv[0]);
 		    } else {
-			ptofile = TRUE;
+			set_ptofile(TRUE);
                         strcpy(print_file, argv[i]);
 		    }
 		} else if (argmatch(argv[i], "-hardcopy", 6)) {

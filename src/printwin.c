@@ -295,9 +295,9 @@ static void update_device_setup(int device_id)
             break;
         case DEVICE_PRINT:
             XtManageChild(output_frame);
-            SetChoice(printto_item, ptofile);
+            SetChoice(printto_item, get_ptofile());
             XtSetSensitive(printto_item[0], True);
-            if (ptofile == TRUE) {
+            if (get_ptofile() == TRUE) {
                 XtSetSensitive(rc_filesel, True);
                 XtSetSensitive(XtParent(print_fileing_item), False);
             } else {
@@ -384,8 +384,8 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
 
     if (dev.type != DEVICE_TERM) {
         hdevice = seldevice;
-        ptofile = GetChoice(printto_item);
-        if (ptofile) {
+        set_ptofile(GetChoice(printto_item));
+        if (get_ptofile()) {
             strcpy(print_file, xv_getstr(printfile_item));
         } else {
             set_print_cmd(xv_getstr(print_fileing_item));

@@ -124,7 +124,7 @@ void do_hardcopy(void)
     double vx, vy;
     int truncated_out;
     
-    if (ptofile) {
+    if (get_ptofile()) {
         strcpy(fname, print_file);
     } else {
         s = get_print_cmd();
@@ -157,7 +157,7 @@ void do_hardcopy(void)
         truncated_out = FALSE;
     }
     
-    if (ptofile == FALSE) {
+    if (get_ptofile() == FALSE) {
         sprintf(tbuf, "%s %s", get_print_cmd(), fname);
         if (truncated_out == FALSE ||
             !yesno("Printout is truncated. Abort?", NULL, NULL, NULL)) {
