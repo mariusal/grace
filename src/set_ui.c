@@ -297,10 +297,12 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddScaleCB(ui->avalue_angle, scale_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->avalue_prestr = CreateTextItem(rc2, 10, "Prepend:");
-    AddTextItemCB(ui->avalue_prestr, titem_explorer_cb, eui);
-    ui->avalue_appstr = CreateTextItem(rc2, 10, "Append:");
-    AddTextItemCB(ui->avalue_appstr, titem_explorer_cb, eui);
+    ui->avalue_prestr = CreateTextInput(rc2, "Prepend:");
+    SetTextInputLength(ui->avalue_prestr, 13);
+    AddTextInputCB(ui->avalue_prestr, text_explorer_cb, eui);
+    ui->avalue_appstr = CreateTextInput(rc2, "Append:");
+    SetTextInputLength(ui->avalue_appstr, 13);
+    AddTextInputCB(ui->avalue_appstr, text_explorer_cb, eui);
 
     fr = CreateFrame(ui->avalue_tp, "Format options");
     rc = CreateVContainer(fr);
@@ -456,8 +458,8 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetOptionChoice(ui->avalue_format, p->avalue.format);
         SetOptionChoice(ui->avalue_precision, p->avalue.prec);
         
-        xv_setstr(ui->avalue_prestr, p->avalue.prestr);
-        xv_setstr(ui->avalue_appstr, p->avalue.appstr);
+        SetTextString(ui->avalue_prestr, p->avalue.prestr);
+        SetTextString(ui->avalue_appstr, p->avalue.appstr);
 
         sprintf(val, "%f", p->avalue.offset.x);
         xv_setstr(ui->avalue_offsetx, val);
@@ -595,10 +597,14 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->avalue.prec = GetOptionChoice(ui->avalue_precision);
         }
         if (!caller || caller == ui->avalue_prestr) {
-            strcpy(p->avalue.prestr, xv_getstr(ui->avalue_prestr));
+            char *s = GetTextString(ui->avalue_prestr);
+            strcpy(p->avalue.prestr, s);
+            xfree(s);
         }
         if (!caller || caller == ui->avalue_appstr) {
-            strcpy(p->avalue.appstr, xv_getstr(ui->avalue_appstr));
+            char *s = GetTextString(ui->avalue_appstr);
+            strcpy(p->avalue.appstr, s);
+            xfree(s);
         }
         if (!caller || caller == ui->avalue_offsetx) {
             xv_evalexpr(ui->avalue_offsetx, &p->avalue.offset.x);

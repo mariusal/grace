@@ -37,7 +37,7 @@
 typedef struct {
     Widget          top;
 
-    Widget          sformat;
+    TextStructure  *sformat;
     TextStructure  *description;
     
     OptionStructure *page_orient;
@@ -186,8 +186,8 @@ typedef struct {
     Widget          avalue_offsetx;
     Widget          avalue_offsety;
     OptionStructure *avalue_just;
-    Widget          avalue_prestr;
-    Widget          avalue_appstr;
+    TextStructure   *avalue_prestr;
+    TextStructure   *avalue_appstr;
 } SetUI;
 
 typedef struct {
@@ -229,8 +229,8 @@ typedef struct {
     OptionStructure *tlfont;
     SpinStructure   *tlcharsize;
     OptionStructure *tlcolor;
-    Widget          tlappstr;
-    Widget          tlprestr;
+    TextStructure   *tlappstr;
+    TextStructure   *tlprestr;
     OptionStructure *tlskip;
     OptionStructure *tlstarttype;
     Widget          tlstart;
@@ -306,8 +306,8 @@ typedef struct {
     Widget          main_tp;
     Widget          odata_tp;
 
-    TextStructure   *x;
-    TextStructure   *y;
+    Widget          x;
+    Widget          y;
     
     SpinStructure   *offsetx;
     SpinStructure   *offsety;

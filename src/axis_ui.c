@@ -218,10 +218,12 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddTextInputCB(ui->tlformula, text_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->tlprestr = CreateTextItem(rc2, 13, "Prepend:");
-    AddTextItemCB(ui->tlprestr, titem_explorer_cb, eui);
-    ui->tlappstr = CreateTextItem(rc2, 13, "Append:");
-    AddTextItemCB(ui->tlappstr, titem_explorer_cb, eui);
+    ui->tlprestr = CreateTextInput(rc2, "Prepend:");
+    SetTextInputLength(ui->tlprestr, 13);
+    AddTextInputCB(ui->tlprestr, text_explorer_cb, eui);
+    ui->tlappstr = CreateTextInput(rc2, "Append:");
+    SetTextInputLength(ui->tlappstr, 13);
+    AddTextInputCB(ui->tlappstr, text_explorer_cb, eui);
 
     ui->tlgap_rc = CreateHContainer(rc);
     AddOptionChoiceCB(ui->tlgaptype, auto_spec_cb, ui->tlgap_rc);
@@ -393,8 +395,8 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         SetOptionChoice(ui->tlcolor, t->tl_tprops.color);
         SetOptionChoice(ui->tlskip, t->tl_skip);
         SetOptionChoice(ui->tlstagger, t->tl_staggered);
-        xv_setstr(ui->tlappstr, t->tl_appstr);
-        xv_setstr(ui->tlprestr, t->tl_prestr);
+        SetTextString(ui->tlappstr, t->tl_appstr);
+        SetTextString(ui->tlprestr, t->tl_prestr);
         SetOptionChoice(ui->tlstarttype, t->tl_starttype == TYPE_SPEC);
         if (t->tl_starttype == TYPE_SPEC) {
             sprintf(buf, "%f", t->tl_start);
@@ -604,10 +606,14 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->tl_formula = GetTextString(ui->tlformula);
         }
         if (!caller || caller == ui->tlprestr) {
-            strcpy(t->tl_prestr, xv_getstr(ui->tlprestr));
+            char *s = GetTextString(ui->tlprestr);
+            strcpy(t->tl_prestr, s);
+            xfree(s);
         }
         if (!caller || caller == ui->tlappstr) {
-            strcpy(t->tl_appstr, xv_getstr(ui->tlappstr));
+            char *s = GetTextString(ui->tlappstr);
+            strcpy(t->tl_appstr, s);
+            xfree(s);
         }
         if (!caller || caller == ui->tlgaptype) {
             t->tl_gaptype = GetOptionChoice(ui->tlgaptype);

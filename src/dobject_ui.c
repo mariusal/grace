@@ -61,12 +61,10 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->main_tp, "Anchor point");
     rc = CreateHContainer(fr);
-    ui->x = CreateTextInput(rc, "X:");
-    XtVaSetValues(ui->x->text, XmNcolumns, 10, NULL);
-    AddTextInputCB(ui->x, text_explorer_cb, eui);
-    ui->y = CreateTextInput(rc, "Y:");
-    XtVaSetValues(ui->y->text, XmNcolumns, 10, NULL);
-    AddTextInputCB(ui->y, text_explorer_cb, eui);
+    ui->x = CreateTextItem(rc, 10, "X:");
+    AddTextItemCB(ui->x, titem_explorer_cb, eui);
+    ui->y = CreateTextItem(rc, 10, "Y:");
+    AddTextItemCB(ui->y, titem_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Placement");
     rc = CreateVContainer(fr);
@@ -308,9 +306,9 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             format = "%.4f";
         }
         sprintf(buf, format, o->ap.x);
-        SetTextString(ui->x, buf);
+        xv_setstr(ui->x, buf);
         sprintf(buf, format, o->ap.y);
-        SetTextString(ui->y, buf);
+        xv_setstr(ui->y, buf);
         
         SetSpinChoice(ui->offsetx, o->offset.x);
         SetSpinChoice(ui->offsety, o->offset.y);
@@ -358,10 +356,10 @@ int set_object_data(ObjectUI *ui, Quark *q, void *caller)
     
     if (o && ui) {
         if (!caller || caller == ui->x) {
-            xv_evalexpr(ui->x->text, &o->ap.x);
+            xv_evalexpr(ui->x, &o->ap.x);
         }
         if (!caller || caller == ui->y) {
-            xv_evalexpr(ui->y->text, &o->ap.y);
+            xv_evalexpr(ui->y, &o->ap.y);
         }
         if (!caller || caller == ui->offsetx) {
             o->offset.x = GetSpinChoice(ui->offsetx);

@@ -187,12 +187,9 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     ui = xmalloc(sizeof(ProjectUI));
     ui->current_page_units = PAGE_UNITS_PP;
 
-    fr = CreateFrame(form, NULL);
-    rc = CreateVContainer(fr);
-    ui->description  = CreateScrolledTextInput(rc, "Project description:", 5);
+    fr = CreateFrame(form, "Project description");
+    ui->description  = CreateScrolledTextInput(fr, "", 5);
     AddTextInputCB(ui->description, text_explorer_cb, eui);
-    ui->sformat = CreateTextItem(rc, 15, "Data format:");
-    AddTextItemCB(ui->sformat, titem_explorer_cb, eui);
 
     fr = CreateFrame(form, "Page dimensions");
     rc1 = CreateVContainer(fr);
@@ -238,8 +235,10 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
         SPIN_TYPE_FLOAT, 0.0, 1.0, 0.0005);
     AddSpinChoiceCB(ui->lwidth_scale, sp_explorer_cb, eui);
 
-    fr = CreateFrame(form, "Dates");
+    fr = CreateFrame(form, "Data & Dates");
     rc1 = CreateVContainer(fr);
+    ui->sformat = CreateTextInput(rc1, "Data format:");
+    AddTextInputCB(ui->sformat, text_explorer_cb, eui);
     ui->refdate = CreateTextItem(rc1, 20, "Reference date:");
     AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
     rc = CreateHContainer(rc1);
@@ -263,7 +262,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         double factor;
         int format;
 
-        xv_setstr(ui->sformat, project_get_sformat(q));
+        SetTextString(ui->sformat, project_get_sformat(q));
         SetTextString(ui->description, project_get_description(q));
 
         switch (GetOptionChoice(ui->page_size_unit)) {
@@ -336,7 +335,9 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         double jul;
     
         if (!caller || caller == ui->sformat) {
-            project_set_sformat(q, xv_getstr(ui->sformat));
+            char *s = GetTextString(ui->sformat);
+            project_set_sformat(q, s);
+            xfree(s);
         }
         if (!caller || caller == ui->description) {
             char *s = GetTextString(ui->description);
