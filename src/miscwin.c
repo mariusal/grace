@@ -290,7 +290,7 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 	focus_policy = FOCUS_FOLLOWS;
 	break;
     }
-    draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item) ? TRUE : FALSE;
+    draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
 
     scrolling_islinked = GetToggleButtonState(linkscroll_item);
     auto_redraw = GetToggleButtonState(autoredraw_type_item);
