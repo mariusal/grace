@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -46,6 +46,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <limits.h>
+
+#ifdef HAVE_SETLOCALE
+#  include <locale.h>
+#endif
 
 #include "globals.h"
 #include "utils.h"
@@ -1394,4 +1398,15 @@ unsigned int sleep_wrap(unsigned int nsec)
     alarm((int) ceil((double) timer_delay/1000));
     
     return retval;
+}
+
+char *set_locale_num(int flag)
+{
+#ifdef HAVE_SETLOCALE
+    if (flag == TRUE) {
+        return setlocale(LC_NUMERIC, "");
+    } else {
+        return setlocale(LC_NUMERIC, "C");
+    }
+#endif
 }

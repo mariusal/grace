@@ -290,6 +290,13 @@ int main(int argc, char *argv[])
 #endif
     }
 
+    /* check whether locale is correctly set */
+    if (set_locale_num(TRUE) == NULL) {
+        errmsg("Invalid or unsupported locale");
+    }
+    /* default is POSIX */
+    set_locale_num(FALSE);
+    
     /* check for system wide startup file */
     if ((fp = fopen(strcat(strcpy(gracerc_file, get_grace_home()),"/gracerc"), "r")) != NULL) {
 	fclose(fp);

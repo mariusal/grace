@@ -1112,6 +1112,10 @@ void drawsetavalues(int gno, int setno, plotarr *p,
     setcharsize(avalue.size);
     setfont(avalue.font);
     setcolor(avalue.color);
+
+    /* for locale decimal points */
+    set_locale_num(TRUE);
+
     for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
         wp.y = y[i];
@@ -1170,6 +1174,9 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         WriteString(vp, avalue.angle,
                         JUST_CENTER|JUST_BOTTOM|JUST_BBOX, str);
     } 
+
+    /* revert to POSIX */
+    set_locale_num(FALSE);
 }
 
 void drawseterrbars(int gno, int setno, plotarr *p,

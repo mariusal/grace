@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -664,6 +664,9 @@ void calculate_tickgrid(int gno)
     world w;
     tickmarks t;
     
+    /* for locale decimal points */
+    set_locale_num(TRUE);
+    
 reenter:
     get_graph_world(gno, &w);
     
@@ -774,4 +777,7 @@ reenter:
         set_graph_tickmarks(gno, &t, caxis);
         free_ticklabels(&t);
     }
+
+    /* revert to POSIX */
+    set_locale_num(FALSE);
 }
