@@ -3172,6 +3172,12 @@ void destroy_dialog_cb(void *data)
     XtUnmanageChild((Widget) data);
 }
 
+/* if user tried to close from WM */
+static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    bailout();
+}
+
 /*
  * handle the close item on the WM menu
  */
@@ -3182,10 +3188,8 @@ void handle_close(Widget w)
     XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
     WM_DELETE_WINDOW = XmInternAtom(disp, "WM_DELETE_WINDOW", False);
     XmAddProtocolCallback(w,
-        XM_WM_PROTOCOL_ATOM(w),
-        WM_DELETE_WINDOW,
-        destroy_dialog,
-        (XtPointer) w);
+        XM_WM_PROTOCOL_ATOM(w), WM_DELETE_WINDOW,
+        (w == app_shell) ? wm_exit_cb : destroy_dialog, w);
     
     savewidget(w);
 }
