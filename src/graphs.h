@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -115,7 +115,7 @@ typedef struct {
     int symlines;               /* symbol linestyle */
     double symlinew;            /* symbol linewidth */
     int symskip;                /* number of symbols to skip */
-    char symchar;               /* char used if sym == SYM_CHAR */
+    unsigned char symchar;      /* char used if sym == SYM_CHAR */
     int charfont;               /* font for symchar if sym == SYM_CHAR */
 
     int linet;                  /* set line type */
