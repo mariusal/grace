@@ -106,11 +106,47 @@ void set_ref_date(double ref)
 }
 
 /*
- * store the reference date
+ * get the reference date
  */
 double get_ref_date(void)
 {
     return ref_date;
+}
+
+static Dates_format date_hint = FMT_nohint;
+
+/*
+ * store the user's preferrence (it is only an hint)
+ */
+void set_date_hint(Dates_format preferred)
+{
+    date_hint = preferred;
+}
+
+/*
+ * get the user's preferrence (it is only an hint)
+ */
+Dates_format get_date_hint(void)
+{
+    return date_hint;
+}
+
+static int two_digits_years_flag = FALSE;
+
+/*
+ * set two digits years handling
+ */
+void allow_two_digits_years(int allowed)
+{
+    two_digits_years_flag = allowed ? TRUE : FALSE;
+}
+
+/*
+ * get two digits years handling
+ */
+int two_digits_years_allowed(void)
+{
+    return two_digits_years_flag;
 }
 
 /*
@@ -369,11 +405,15 @@ static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
 {
     int y_expand, y_check, m_check, d_check;
 
-    /* expands years written with two digits only */
-    if (y.value >= 0 && y.value < 50 && y.digits <= 2) {
-        y_expand = 2000 + y.value;
-    } else if (y.value >= 50 && y.value < 100 && y.digits <= 2) {
-        y_expand = 1900 + y.value;
+    if (two_digits_years_allowed()) {
+        /* expands years written with two digits only */
+        if (y.value >= 0 && y.value < 50 && y.digits <= 2) {
+            y_expand = 2000 + y.value;
+        } else if (y.value >= 50 && y.value < 100 && y.digits <= 2) {
+            y_expand = 1900 + y.value;
+        } else {
+            y_expand = y.value;
+        }
     } else {
         y_expand = y.value;
     }
@@ -395,8 +435,9 @@ static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
 
 
 /*
- * lexical analyser for float data (knows about fortran exponent
- * markers, return address of following data)
+ * lexical analyzer for float data. Knows about fortran exponent
+ * markers. Store address of following data in *after, only in case of
+ * success (thus it is allowed to have after == &s)
  */
 int parse_float(const char* s, double *value, const char **after)
 {
@@ -473,7 +514,7 @@ int parse_float(const char* s, double *value, const char **after)
 
 
 /*
- * lexical analyser for calendar dates
+ * lexical analyzer for calendar dates
  * return the number of read elements, or -1 on failure
  */
 static int parse_calendar_date(const char* s,
@@ -496,7 +537,7 @@ static int parse_calendar_date(const char* s,
               negative = 0;
               break;
 
-          case '/' : case ':' : /* non-repeatable separator */
+          case '/' : case ':' : case '.' : /* non-repeatable separator */
               if (waiting_separator) {
                   s++;
                   negative = 0;
@@ -548,7 +589,7 @@ static int parse_calendar_date(const char* s,
         return 5;
     }
 
-    if ((*s == '/') || (*s == ':') || (*s == '-')) {
+    if ((*s == '/') || (*s == ':') || (*s == '.') || (*s == '-')) {
         /* this was the seconds separator */
         s++;
 
@@ -578,7 +619,7 @@ int parse_date(const char* s, Dates_format preferred,
 {
     int i, n;
     int ky, km, kd;
-    static Dates_format trials [] = {FMT_auto, FMT_iso, FMT_european, FMT_us};
+    static Dates_format trials [] = {FMT_nohint, FMT_iso, FMT_european, FMT_us};
     Int_token tab [5];
     long j;
     double sec;
