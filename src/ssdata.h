@@ -35,6 +35,8 @@
 #ifndef __SSDATA_H_
 #define __SSDATA_H_
 
+#include "grace.h"
+
 #define FFORMAT_NUMBER  0
 #define FFORMAT_STRING  1
 #define FFORMAT_DATE    2

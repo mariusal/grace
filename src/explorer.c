@@ -171,7 +171,7 @@ static char *q_labeling(Quark *q)
         g = graph_get_data(q);
         
         sprintf(buf, "(%c) Graph \"%s\" (type: %s, sets: %d)",
-            g->active ? '+':'-', QIDSTR(q), graph_types(grace->rt, g->type),
+            g->active ? '+':'-', QIDSTR(q), graph_types(q->grace->rt, g->type),
             number_of_sets(q));
 
         break;
@@ -179,7 +179,7 @@ static char *q_labeling(Quark *q)
         s = set_get_data(q);
         
         sprintf(buf, "(%c) Set \"%s\" (%s)",
-            s->active ? '+':'-', QIDSTR(q), set_types(grace->rt, s->type));
+            s->active ? '+':'-', QIDSTR(q), set_types(q->grace->rt, s->type));
 
         break;
     case QFlavorAxis:
@@ -703,6 +703,7 @@ static void add_object_cb(Widget but, void *udata)
 void define_explorer_popup(Widget but, void *data)
 {
     GUI *gui = (GUI *) data;
+    Grace *grace = gui->P;
 
     set_wait_cursor();
     

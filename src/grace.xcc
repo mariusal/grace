@@ -185,7 +185,7 @@ legend *legend_new()
     legend *l;
     l = xmalloc(sizeof(legend));
     if (l) {
-        set_default_legend(l);
+        memset(l, 0, sizeof(legend));
     }
     return l;
 }

@@ -166,6 +166,19 @@ char *region_types(int it, int which)
     return "";
 }
 
+static void set_region_defaults(region *r)
+{
+    if (!r) {
+        return;
+    }
+    
+    r->active = FALSE;
+    r->type = 0;
+    r->color = 1;
+    r->n = 0;
+    r->wps = NULL;
+}
+
 Quark *region_new(Quark *gr)
 {
     Quark *r; 

@@ -77,17 +77,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     char *formula);
 int cumulative(Quark **sets, int nsets, Quark *pdest);
 
-
-void set_region_defaults(region *r);
-void set_default_frame(frame * f);
-void set_default_world(world * w);
-void set_default_view(view * v);
-void set_default_legend(legend * l);
-
 void set_default_string(plotstr *s);
-void set_default_arrow(Arrow *arrowp);
-
-void set_default_ticks(tickmarks *t);
 
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
 int fmap_proc(const Canvas *canvas, int font);

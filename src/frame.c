@@ -39,10 +39,68 @@
 #include "graphs.h"
 #include "protos.h"
 
+static void set_default_legend(legend *l, const defaults *grdefaults)
+{
+    l->active = TRUE;
+    
+    l->acorner = CORNER_UR;
+    l->offset.x = 0.05;
+    l->offset.y = 0.05;
+    
+    l->boxline.pen.color = grdefaults->color;
+    l->boxline.pen.pattern = grdefaults->pattern;
+    l->boxline.width = grdefaults->linew;
+    l->boxline.style = grdefaults->lines;
+    l->boxfillpen.color = 0;
+    l->boxfillpen.pattern = grdefaults->pattern;
+    
+    l->singlesym = FALSE;
+    l->vgap = 0.01;
+    l->hgap = 0.01;
+    l->len = 0.04;
+    l->invert = FALSE;
+    
+    l->font = grdefaults->font;
+    l->charsize = grdefaults->charsize;
+    l->color = grdefaults->color;
+    
+    l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
+}
+
+static void set_default_frame(Quark *q)
+{
+    frame *f = frame_get_data(q);
+    defaults grdefaults;
+    static const view d_v = {0.15, 0.85, 0.15, 0.85};
+    
+    if (!f) {
+        return;
+    }
+    
+    grdefaults = q->grace->rt->grdefaults;
+    
+    f->active = TRUE;
+    f->type = 0;                /* frame type */
+    f->outline.style = grdefaults.lines;
+    f->outline.width = grdefaults.linew;
+    f->outline.pen.color = grdefaults.color;
+    f->outline.pen.pattern = grdefaults.pattern;
+    f->fillpen.color = grdefaults.bgcolor;      /* fill background */
+    f->fillpen.pattern = 0;
+
+    memcpy(&f->v, &d_v, sizeof(view));
+    set_default_legend(&f->l, &grdefaults);
+    set_default_string(&f->labs.title);
+    f->labs.title.charsize = 1.5;
+    set_default_string(&f->labs.stitle);
+    f->labs.stitle.charsize = 1.0;
+}
+
 Quark *frame_new(Quark *project)
 {
     Quark *f; 
     f = quark_new(project, QFlavorFrame);
+    set_default_frame(f);
     return f;
 }
 
@@ -53,7 +111,6 @@ frame *frame_data_new(void)
     f = xmalloc(sizeof(frame));
     if (f) {
         memset(f, 0, sizeof(frame));
-        set_default_frame(f);
     }
     return f;
 }

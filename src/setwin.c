@@ -41,7 +41,6 @@
 
 #include <Xbae/Matrix.h>
 
-#include "globals.h"
 #include "graphs.h"
 #include "utils.h"
 #include "plotone.h"
@@ -606,13 +605,13 @@ void create_leval_frame(Widget but, void *data)
 {
     Quark *gr = (Quark *) data;
 
+    if (!gr) {
+        return;
+    }
+    
     set_wait_cursor();
 
-    if (gr) {
-        levalui.gr = gr;
-    } else {
-        levalui.gr = graph_get_current(grace->project);
-    }
+    levalui.gr = gr;
 
     if (levalui.top == NULL) {
         int i;
@@ -637,7 +636,7 @@ void create_leval_frame(Widget but, void *data)
         AddDialogFormChild(levalui.top, levalui.set_type->menu);
         AddOptionChoiceCB(levalui.set_type, set_type_cb, (void *) &levalui);
 	
-        nscols = settype_cols(grace->rt->curtype);
+        nscols = settype_cols(gr->grace->rt->curtype);
 	for (i = 0; i < nscols; i++) {
             rowlabels[i] = copy_string(NULL, dataset_colname(i));
             rowlabels[i] = concat_strings(rowlabels[i], " = ");

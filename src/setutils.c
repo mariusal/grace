@@ -39,15 +39,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
 #include "ssdata.h"
 #include "utils.h"
 #include "grace/canvas.h"
 #include "files.h"
 #include "graphs.h"
 #include "protos.h"
-
-#define grdefaults grace->rt->grdefaults
 
 int settype_cols(int type)
 {
@@ -327,8 +324,17 @@ int zero_set_data(Dataset *dsp)
     }
 }
 
-static void set_default_set(set *p)
+static void set_default_set(Quark *pset)
 {
+    set *p = set_get_data(pset);
+    defaults grdefaults;
+    
+    if (!p) {
+        return;
+    }
+    
+    grdefaults = pset->grace->rt->grdefaults;
+    
     p->active = TRUE;
     p->type = SET_XY;                           /* dataset type */
 
@@ -394,6 +400,7 @@ Quark *set_new(Quark *gr)
 {
     Quark *pset; 
     pset = quark_new(gr, QFlavorSet);
+    set_default_set(pset);
     return pset;
 }
 
@@ -405,7 +412,6 @@ set *set_data_new(void)
     if (!p) {
         return NULL;
     }
-    set_default_set(p);
     p->data = dataset_new();
     if (!p->data) {
         xfree(p);
@@ -1794,14 +1800,12 @@ Dataset *set_get_dataset(Quark *qset)
 
 int set_set_colors(Quark *pset, int color)
 {
-    set *p;
-    if (!pset) {
+    set *p = set_get_data(pset);
+    if (!p) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
-    if (color < number_of_colors(grace->rt->canvas) && color >= 0) {
+    if (color < number_of_colors(pset->grace->rt->canvas) && color >= 0) {
         p->line.line.pen.color    = color;
         p->sym.line.pen.color = color;
         p->sym.fillpen.color  = color;

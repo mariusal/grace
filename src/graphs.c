@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
 #include "defines.h"
 #include "utils.h"
 #include "grace/canvas.h"
@@ -91,6 +90,8 @@ graph *graph_get_data(const Quark *q)
 
 static void set_default_graph(graph *g)
 {    
+    static const world d_w = {0.0, 1.0, 0.0, 1.0};
+
     g->active = TRUE;
     g->type = GRAPH_XY;
     g->xinvert = FALSE;
@@ -108,7 +109,7 @@ static void set_default_graph(graph *g)
     g->locator.fy = FORMAT_GENERAL;
     g->locator.px = 6;
     g->locator.py = 6;
-    set_default_world(&g->w);
+    memcpy(&g->w, &d_w, sizeof(world));
 }
 
 graph *graph_data_new(void)
@@ -244,14 +245,89 @@ Quark *graph_next(Quark *project)
 
 /**** Tickmarks ****/
 
+static void set_default_ticks(Quark *q)
+{
+    int i;
+
+    tickmarks *t = axis_get_data(q);
+    defaults grdefaults;
+    
+    if (!t) {
+        return;
+    }
+    
+    grdefaults = q->grace->rt->grdefaults;
+    
+    t->active = TRUE;
+    t->type = AXIS_TYPE_X;
+    t->zero = FALSE;
+    t->tl_flag = TRUE;
+    t->t_flag = TRUE;
+    
+    set_default_string(&t->label);
+    t->label.offset.x = 0.0;
+    t->label.offset.y = 0.08;
+    
+    t->tmajor = 0.5;
+    t->nminor = 1;
+    t->t_round = TRUE;
+    t->offsx = 0.0;
+    t->offsy = 0.0;
+    t->label_layout = LAYOUT_PARALLEL;
+    t->label_place = TYPE_AUTO;
+    t->label_op = PLACEMENT_NORMAL;
+    t->tl_format = FORMAT_GENERAL;
+    t->tl_prec = 5;
+    t->tl_formula = NULL;
+    t->tl_angle = 0;
+    t->tl_skip = 0;
+    t->tl_staggered = 0;
+    t->tl_starttype = TYPE_AUTO;
+    t->tl_stoptype = TYPE_AUTO;
+    t->tl_start = 0.0;
+    t->tl_stop = 0.0;
+    t->tl_op = PLACEMENT_NORMAL;
+    t->tl_gaptype = TYPE_AUTO;
+    t->tl_gap.x = 0.0;
+    t->tl_gap.y = 0.01;
+    t->tl_font = grdefaults.font;
+    t->tl_charsize = 1.0;
+    t->tl_color = grdefaults.color;
+    t->tl_appstr[0] = 0;
+    t->tl_prestr[0] = 0;
+    t->t_spec = TICKS_SPEC_NONE;
+    t->t_autonum = 6;
+    t->t_inout = TICKS_IN;
+    t->t_op = PLACEMENT_BOTH;
+    t->props.size = grdefaults.charsize;
+    t->mprops.size = grdefaults.charsize / 2;
+    t->t_drawbar = TRUE;
+    t->t_drawbarcolor = grdefaults.color;
+    t->t_drawbarlines = grdefaults.lines;
+    t->t_drawbarlinew = grdefaults.linew;
+    t->props.gridflag = FALSE;
+    t->mprops.gridflag = FALSE;
+    t->props.color = grdefaults.color;
+    t->props.lines = grdefaults.lines;
+    t->props.linew = grdefaults.linew;
+    t->mprops.color = grdefaults.color;
+    t->mprops.lines = grdefaults.lines;
+    t->mprops.linew = grdefaults.linew;
+    t->nticks = 0;
+    for (i = 0; i < MAX_TICKS; i++) {
+        t->tloc[i].wtpos = 0.0;
+        t->tloc[i].label = NULL;
+    }
+}
+
 Quark *axis_new(Quark *q)
 {
     Quark *a; 
     a = quark_new(q, QFlavorAxis);
+    set_default_ticks(q);
     autotick_axis(a);
     return a;
 }
-
 
 tickmarks *axis_data_new(void)
 {
@@ -259,7 +335,7 @@ tickmarks *axis_data_new(void)
     
     retval = xmalloc(sizeof(tickmarks));
     if (retval != NULL) {
-        set_default_ticks(retval);
+        memset(retval, 0, sizeof(tickmarks));
     }
     return retval;
 }
@@ -1031,7 +1107,7 @@ static int project_postprocess_hook(Quark *q,
         }
 
         if (version_id < 40005) {
-            set_page_dimensions(grace, 792, 612, FALSE);
+            set_page_dimensions(q->grace, 792, 612, FALSE);
         }
 
         if (version_id < 50002) {
@@ -1049,7 +1125,7 @@ static int project_postprocess_hook(Quark *q,
 #ifndef NONE_GUI
             set_pagelayout(PAGE_FIXED);
 #endif
-            get_page_viewport(grace->rt->canvas, &ext_x, &ext_y);
+            get_page_viewport(q->grace->rt->canvas, &ext_x, &ext_y);
             rescale_viewport(q, ext_x, ext_y);
         }
         break;

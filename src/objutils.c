@@ -186,6 +186,14 @@ void object_data_free(DObject *o)
     }
 }
 
+static void set_default_arrow(Arrow *arrowp)
+{
+    arrowp->type = 0;
+    arrowp->length = 1.0;
+    arrowp->dL_ff = 1.0;
+    arrowp->lL_ff = 1.0;
+}
+
 void *object_odata_new(OType type)
 {
     void *odata;
@@ -364,6 +372,18 @@ int isactive_object(DObject *o)
 void set_plotstr_string(plotstr *pstr, char *s)
 {
     pstr->s = copy_string(pstr->s, s);
+}
+
+void set_default_string(plotstr * s)
+{
+    s->active = FALSE;
+    s->offset.x = s->offset.y = 0.0;
+    s->color = 1;
+    s->angle = 0.0;
+    s->font = 0;
+    s->just = JUST_LEFT|JUST_BLINE;
+    s->charsize = 1.0;
+    s->s = NULL;
 }
 
 int object_set_active(Quark *q, int flag)

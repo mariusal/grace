@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "globals.h"
 #include "graphs.h"
 #include "utils.h"
 #include "files.h"
@@ -769,6 +768,8 @@ void do_ext_editor(Quark *pset)
     char *fname, ebuf[256];
     FILE *cp;
     int save_autos;
+    Quark *pr = get_parent_project(pset);
+    Grace *grace = pset->grace;
 
     fname = tmpnam(NULL);
     cp = grace_openw(fname);
@@ -776,7 +777,7 @@ void do_ext_editor(Quark *pset)
         return;
     }
 
-    write_set(pset, cp, project_get_sformat(grace->project));
+    write_set(pset, cp, project_get_sformat(pr));
     grace_close(cp);
 
     sprintf(ebuf, "%s %s", get_editor(grace), fname);
