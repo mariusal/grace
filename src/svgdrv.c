@@ -65,6 +65,7 @@ typedef struct {
     int   *pattern_defined;
     int   *pattern_empty;
     int   *pattern_full;
+    int   *colorfilter_defined;
     int    group_is_open;
     double line_width;
     Pen    pen;
@@ -92,6 +93,7 @@ static int init_svg_data(void)
         data->pattern_defined = NULL;
         data->pattern_empty = NULL;
         data->pattern_full = NULL;
+        data->colorfilter_defined = NULL;
 
         set_curdevice_data((void *) data);
     }
@@ -108,6 +110,12 @@ static int init_svg_data(void)
         data->pattern_defined[i] = FALSE;
         data->pattern_empty[i]   = FALSE;
         data->pattern_full[i]    = FALSE;
+    }
+    
+    data->colorfilter_defined = 
+        xrealloc(data->colorfilter_defined, number_of_colors()*SIZEOF_INT);
+    for (i = 0; i < number_of_colors(); i++) {
+        data->colorfilter_defined[i] = FALSE;
     }
 
     data->group_is_open = FALSE;
@@ -166,54 +174,83 @@ int register_svg_drv(void)
     return register_device(dev_svg);
 }
 
-static void define_pattern(int i, Svg_data *data)
+static void define_pattern(int i, int c, Svg_data *data)
 {
-#ifndef EXPERIMENTAL_SVG_PATTERNS
-    data->pattern_full[i]  = TRUE;
-    data->pattern_defined[i] = TRUE;
-    return;
-#else
     int j, k, l;
+    fRGB *frgb;
+    double bg_red, bg_green, bg_blue;
 
-    if (data->pattern_defined[i] == TRUE) {
+    if (data->pattern_defined[i] == TRUE && data->colorfilter_defined[c] == TRUE) {
         return;
     }
 
-    /* testing if the pattern is either empty or full */
-    data->pattern_empty[i] = TRUE;
-    data->pattern_full[i]  = TRUE;
-    for (j = 0; j < 32; j++) {
-        if (pat_bits[i][j] != 0x00) {
-            data->pattern_empty[i] = FALSE;
-        }
-        if (pat_bits[i][j] != 0xff) {
-            data->pattern_full[i] = FALSE;
+    if (data->pattern_defined[i] != TRUE) {
+        /* testing if the pattern is either empty or full */
+        data->pattern_empty[i] = TRUE;
+        data->pattern_full[i]  = TRUE;
+        for (j = 0; j < 32; j++) {
+            if (pat_bits[i][j] != 0x00) {
+                data->pattern_empty[i] = FALSE;
+            }
+            if (pat_bits[i][j] != 0xff) {
+                data->pattern_full[i] = FALSE;
+            }
         }
     }
 
     if (data->pattern_empty[i] != TRUE && data->pattern_full[i] != TRUE) {
-        /* this is an horrible hack ! */
-        /* we define pixels as squares in vector graphics */
-        fprintf(prstream,
-                "  <defs>\n   <pattern id=\"pattern%d\""
-                " width=\"%d\" height=\"%d\">\n",
-                i, 16, 16);
-        for (j = 0; j < 256; j++) {
-            k = j/16;
-            l = j%16;
-            if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
-                /* the bit is set */
-                fprintf(prstream,
-                        "     <rect x=\"%d\" y=\"%d\""
-                        " width=\"1\" height=\"1\"/>\n",
-                        l, 15 - k);
+        fprintf(prstream, "  <defs>\n");
+        /* test if the pattern is already defined. */
+        if (data->pattern_defined[i] != TRUE) {
+            /* this is an horrible hack ! */
+            /* we define pixels as squares in vector graphics */
+            /* first fill the whole pattern */
+            fprintf(prstream,
+                    "   <pattern id=\"pattern%d\""
+                    " width=\"%d\" height=\"%d\" patternUnits=\"userSpaceOnUse\">\n",
+                    i, 16, 16);
+            fprintf(prstream,"     <rect fill=\"#FFFFFF\" x=\"0\" y=\"0\""
+                            " width=\"16\" height=\"16\"/>\n");
+            for (j = 0; j < 256; j++) {
+                k = j/16;
+                l = j%16;
+                if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
+                    /* the bit is set */
+                    fprintf(prstream,
+                            "     <rect x=\"%d\" y=\"%d\""
+                            " width=\"1\" height=\"1\"/>\n",
+                            l, k);
+                }
             }
+            fprintf(prstream, "   </pattern>\n");
+            data->pattern_defined[i] = TRUE;
         }
-        fprintf(prstream, "   </pattern>\n  </defs>\n");
-    }
 
-    data->pattern_defined[i] = TRUE;
-#endif
+        /* test if the needed colorfilter is already defined. */
+        /* color-patterns can be drawn with black patterns and then
+           applying a colorfilter to change white to the background-color
+           and black to the patterncolor. */
+        if (data->colorfilter_defined[c] != TRUE) {
+            frgb = get_fsrgb(getbgcolor());
+            bg_red=frgb->red;
+            bg_green=frgb->green;
+            bg_blue=frgb->blue;
+            frgb = get_fsrgb(c);
+            fprintf(prstream, "   <filter id=\"tocolor%d\" filterUnits=\"objectBoundingBox\"\n", c);
+            fprintf(prstream, "    color-interpolation-filters=\"sRGB\" x=\"0%%\" y=\"0%%\" width=\"100%%\" height=\"100%%\">\n");
+            fprintf(prstream, "    <feComponentTransfer>\n");
+            fprintf(prstream, "      <feFuncR type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
+                    frgb->red, bg_red);
+            fprintf(prstream, "      <feFuncG type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
+                    frgb->green, bg_green);
+            fprintf(prstream, "      <feFuncB type=\"discrete\" tableValues=\"%.6f %.6f\"/>\n",
+                    frgb->blue, bg_blue);
+            fprintf(prstream, "    </feComponentTransfer>\n");
+            fprintf(prstream, "   </filter>\n");
+            data->colorfilter_defined[c] = TRUE;
+        }
+        fprintf(prstream, "  </defs>\n");
+    }
 }
 
 /*
@@ -350,8 +387,8 @@ static void svg_group_props (int draw, int fill)
             data->group_is_open = FALSE;
         }
 
-        define_pattern(pen.pattern, data);
-        prgb = get_rgb(pen.color);
+        define_pattern(pen.pattern, pen.color, data);
+        prgb = get_srgb(pen.color);
         if (prgb != NULL) {
             red   = prgb->red   >> (GRACE_BPP - 8);
             green = prgb->green >> (GRACE_BPP - 8);
@@ -367,9 +404,8 @@ static void svg_group_props (int draw, int fill)
                 fprintf(prstream, "  <g style=\"fill:#%2.2X%2.2X%2.2X",
                         red, green, blue);
             } else {
-                fprintf(prstream, "  <g style=\"color:#%2.2X%2.2X%2.2X",
-                        red, green, blue);
-                fprintf(prstream, "; fill:url(#pattern%d)", pen.pattern);
+                fprintf(prstream, "  <g style=\"filter:url(#tocolor%d); ", pen.color);
+                fprintf(prstream, "fill:url(#pattern%d)", pen.pattern);
             }
             if (getfillrule() == FILLRULE_WINDING) {
                 fprintf(prstream, "; fill-rule:nonzero");
@@ -526,7 +562,7 @@ void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
         end.y   = center.y + ry*sin((M_PI/180.0)*a2);
 
         fprintf(prstream,
-            "   <path  d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4f\"/>\n",
+            "   <path d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4f\"/>\n",
             convertX(start.x), convertY(start.y),
             convertW(rx), convertH(ry),
             0,
@@ -567,7 +603,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 
         if (mode == ARCFILL_CHORD) {
             fprintf(prstream,
-                "   <path  d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4fz\"/>\n",
+                "   <path d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4fz\"/>\n",
                 convertX(start.x), convertY(start.y),
                 convertW(rx), convertH(ry),
                 0,
@@ -576,7 +612,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
                 convertX(end.x), convertY(end.y));
         } else {
             fprintf(prstream,
-                "   <path  d=\"M%.4f,%.4fL%.4f,%.4fA%.4f,%.4f %d %d %d %.4f,%.4fz\"/>\n",
+                "   <path d=\"M%.4f,%.4fL%.4f,%.4fA%.4f,%.4f %d %d %d %.4f,%.4fz\"/>\n",
                 convertX(center.x), convertY(center.y),
                 convertX(start.x), convertY(start.y),
                 convertW(rx), convertH(ry),
