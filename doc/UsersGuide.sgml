@@ -5,9 +5,9 @@
 
 <article>
 
-<title>Grace User's Guide (v0.6 - for Grace-5.1.0)
+<title>Grace User's Guide (v0.7 - for Grace-5.1.1)
 <author>by the Grace Team
-<date>02.04.2000
+<date>07.04.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -251,7 +251,31 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <p>
 
   For a jump-in start, you can browse the demos ("Help/Examples" menu tree).
+  These are ordinary grace projects, so you can play with them and modify them.
   Also, read the <url name="Tutorial" url="Tutorial.html">.
+  <p>
+  O.k. Here's a VERY quick introduction:
+       <enum>
+       <item> Start the GUI version: xmgrace (return).
+       <item> Select/check the output medium and canvas size in File/Device
+              Setup.
+       <item> If needed, set the graph size ('Viewport' in
+              Plot/Graph Appearance).
+       <item> Load your data with File/Read/Sets. 'Load as': 'Single set' for
+              two-column ASCII data, 'Block data' for multi-column ASCII data.
+       <item> Adjust the scales, axis labels and tick marks in Plot/Axis
+              properties. Acknowledge all changes with 'Apply'.
+       <item> Adjust lines, symbols, legends in Plot/Set appearance.
+       <item> Adjust titles, plot frame and legend display in Plot/Graph
+              Appearance.
+       <item> Data can be manipulated in Data/Transformations. To shift a
+              data set by 20 to the left, e.g., in 'Evaluate Expression'
+              select the same set on the left and the right, and say Formula:
+              y=y-20.
+              As you'll probably notice, grace can do MUCH more than that.
+              Explore at your leisure.
+       <item> When you like your plot, select File/Print. That's it!
+       </enum>
 
   <sect1>General concepts
     <p>
@@ -262,7 +286,33 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           A project file contains all information necessary to restore a plot
           created by Grace, as well as some of preferences. Each plot is
           represented on a single page, but may have an unlimited number of
-          graphs.
+          graphs.You create a project file of your current graph with
+          File/Save,Save as.
+
+      <sect2>Parameter files <label id="parameter-file">
+	<p>
+
+          A parameter file contains the detailed settings of your project.
+          It can be used to transfer these settings to a different
+          plot/project. You generate a parameter file with
+          File/Write/Parameters. You can load the settings contained in
+          a parameter file with File/Read/Parameters.
+
+      <sect2>Input File formats <label id="files-formats">
+	<p>
+
+          Grace understands several input files formats. The most
+          basic one is ASCII text files containing space and comma
+          separated columns of data. The data fields can be either
+          numeric (Fortran 'd' and 'D' exponent markers are supported)
+          or alphanumeric (with or without quotes). Several calendar
+          date formats are recognized automatically and you can
+          specify your own reference for numeric dates formats. Grace also
+          has a command language (see <ref id="command-interpreter"
+          name="command interpreter">), you can include commands in
+          data files using lines having "@" as their first non-blank
+          character. Depending on configuration, Grace can also read
+          NetCDF files (see <ref id="configuration" name="configuration">).
 
       <sect2>Graphs <label id="graph">
 	<p>
@@ -280,10 +330,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
              <item> Pie chart
           </itemize>
 
+      <sect2>Datasets <label id="datasets">
+	<p>
+
+          A dataset is a collection of points with x and y coordinates, up to
+          four optional data values (which, depending on the set type, can be
+          displayed as error bars or like) and one optional character string.
+
       <sect2>Sets <label id="sets">
 	<p>
 
-	  A set is a way of representing numerical data (datasets). It consists
+	  A set is a way of representing datasets. It consists
           of a pointer to a dataset plus a collection of parameters describing
           the visual appearance of the data (like color, line dash pattern etc).
 
@@ -292,7 +349,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <p>
         
           <table loc="htbp">
-          <tabular ca="lcl">
+          <tabular ca="lcp{9cm}">
             <hline>
             Set type   | # of num. cols | Description @
             <hline>
@@ -359,14 +416,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           </table>
 
 
-      <sect2>Datasets <label id="datasets">
-
-	<p>
-          A dataset is a collection of points with x and y coordinates, up to
-          four optional data values (which, depending on the set type, can be
-          displayed as error bars or like) and one optional character string.
-	</p>
-
       <sect2>Regions <label id="regions">
 	<p>
 
@@ -392,22 +441,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           will provide specific commands to refresh the data on a
           mouse click (a later version will probably allow automatic
           refresh).
-
-      <sect2>File formats <label id="files-formats">
-	<p>
-
-          Grace understands several input files formats. The most
-          basic one is ASCII text files containing space and comma
-          separated columns of data. The data fields can be either
-          numeric (Fortran 'd' and 'D' exponent markers are supported)
-          or alphanumeric (with or without quotes). Several calendar
-          date formats are recognized automatically and you can
-          specify your own reference for numeric dates formats. Grace also
-          has a command language (see <ref id="command-interpreter"
-          name="command interpreter">), you can include commands in
-          data files using lines having "@" as their first non-blank
-          character. Depending on configuration, Grace can also read
-          NetCDF files (see <ref id="configuration" name="configuration">).
 
       <sect2>Devices<label id="devices">
 	<p>
@@ -883,7 +916,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       settings" id="device-settings">). According to the device, the
       output can be sent either directly to a printer or directed to a
       file. The global settings available for all devices are the
-      sizing parameters.
+      sizing parameters. The size of the graph is fixed. Changing the 'Page'
+      settings changes the size of the canvas underneath the graph.
+      Switching between portrait and landscape rotates the canvas.
+      Make sure the canvas size is large enough to hold your graph.
+      Otherwise you get a 'Printout truncated' warning. If your canvas
+      size cannot easily be changed because, for example, you want to
+      print on letter size paper, you need to adjust the size of
+      your graph ('Viewport' in Plot/Graph Appearance).
 
       <sect2> Exit <label id="exit">
       <p>
@@ -1270,7 +1310,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <p>
       <table loc="htbp">
-      <tabular ca="ll">
+      <tabular ca="lp{10cm}">
               <hline>
               Feature           | Description                       @
               <hline>
@@ -2036,7 +2076,7 @@ integral     | cumulative sum @
     <p>
 
       <table loc="htbp">
-      <tabular ca="ll">
+      <tabular ca="lp{7cm}">
         <hline>
         Command                                           | Description   @
         <hline>
@@ -2059,7 +2099,7 @@ integral     | cumulative sum @
 
     <p>
       <table loc="htbp">
-      <tabular ca="llll">
+      <tabular ca="lp{7cm}ll">
         <hline>
         Statement | Description | Types | Example @
         <hline>
@@ -2088,7 +2128,7 @@ integral     | cumulative sum @
 
     <p>
       <table loc="htbp">
-      <tabular ca="llll">
+      <tabular ca="lp{7cm}ll">
         <hline>
         Statement | Description | Types | Example @
         <hline>
@@ -2265,7 +2305,7 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
       from it.
 
       <table loc="htbp">
-      <tabular ca="lll">
+      <tabular ca="p{4.5cm}lp{5.5cm}">
         <hline>
         Function           | Arguments          |  Description                 @
         <hline>
@@ -2292,7 +2332,7 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
       </table>
 
       <table loc="htbp">
-      <tabular ca="lll">
+      <tabular ca="p{5cm}lp{5cm}">
         <hline>
         Function                | Arguments     |  Description                 @
         <hline>

@@ -9,6 +9,26 @@
 
 <PRE>
 
+<H2>5.1.1</H2>
+
+ *  [ES] fixed text under/overlining in SVG
+ *  [ES] fixed dashed patterns for thick lines in SVG
+ *  [ES] configure checks for netCDF version
+ *  [ES] a bug in interpolation caused crash under some conditions (rep. #783)
+ *  [ES] fixed interpolation of reversed arrays (rep. #675)
+ *  [ES] fixed a memory leak in interpolation using splines
+ *  [ES] interpolation now takes into account all data set columns
+ *  [ES] there was no automatic canvas refresh after performing interpolation
+ *  [ES] there was no automatic canvas refresh after changes in locator props
+ *  [ES] fixed "\\" in strings
+ *  [ES] removed restriction on the max line length (512) in parameter files
+ *  [ES] check for positive page dims and dpi in device setup
+ *  [ES] invert logics of the yesno dialog popped up if printout is truncated
+         (rep. #778)
+ *  [ES] fixed overflowing of some tables in dvi output of the User's guide 
+ *  [WB] some fixes/additions to the User's guide 
+
+
 <H2>5.1.0</H2>
 
 <H3>New functionality</H3>
@@ -801,6 +821,7 @@
     [AH]  - A. Stewart Hopkins &lt;ahopkins@mail.arc.nasa.gov&gt;
     [KS]  - Keith Stribley &lt;keith@stribley.dabsol.co.uk&gt;
     [DP]  - Donald A. Peterson &lt;donald@nd.edu&gt;
+    [WB]  - Wolfgang Braun &lt;braun@pdi-berlin.de&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
