@@ -73,9 +73,11 @@ static int pdf_lines;
 static int pdf_linecap;
 static int pdf_linejoin;
 
-static int pdf_setup_pdf1_3 = TRUE;
-static int pdf_setup_compression = 4;
+static PDFCompatibility pdf_setup_compat = PDF_1_3;
+static PDFColorSpace pdf_setup_colorspace = DEFAULT_COLORSPACE;
 static int pdf_setup_tight_bb = FALSE;
+static int pdf_setup_compression = 4;
+static int pdf_setup_fpprec = 4;
 
 extern FILE *prstream;
 
@@ -137,12 +139,19 @@ int pdfinitgraphics(void)
         return RETURN_FAILURE;
     }
 
-    PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
-
-    if (pdf_setup_pdf1_3 == TRUE) {
-        s = "1.3";
-    } else {
+    switch (pdf_setup_compat) {
+    case PDF_1_2:
         s = "1.2";
+        break;
+    case PDF_1_3:
+        s = "1.3";
+        break;
+    case PDF_1_4:
+        s = "1.4";
+        break;
+    default:
+        s = "1.3";
+        break;
     }
     PDF_set_parameter(phandle, "compatibility", s);
 
@@ -150,6 +159,9 @@ int pdfinitgraphics(void)
         return RETURN_FAILURE;
     }
     
+    PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
+    PDF_set_value(phandle, "floatdigits", (float) pdf_setup_fpprec);
+
     PDF_set_info(phandle, "Creator", bi_version_string());
     PDF_set_info(phandle, "Author", get_username());
     PDF_set_info(phandle, "Title", get_docname());
@@ -159,7 +171,7 @@ int pdfinitgraphics(void)
         pdf_font_ids[i] = -1;
     }
     
-    if (pdf_setup_pdf1_3 == TRUE) {
+    if (pdf_setup_compat >= PDF_1_3) {
         pdf_pattern_ids = xmalloc(number_of_patterns()*SIZEOF_INT);
         for (i = 1; i < number_of_patterns(); i++) {
 /* Unfortunately, there is no way to open a _masked_ image from memory */
@@ -191,14 +203,18 @@ int pdfinitgraphics(void)
     }
 
     PDF_begin_page(phandle, pg.width*72.0/pg.dpi, pg.height*72.0/pg.dpi);
+    
+    if (pdf_setup_compat >= PDF_1_3) {
+        s = get_project_description();
 
-    if ((s = get_project_description())) {
-        PDF_set_border_style(phandle, "dashed", 3.0);
-        PDF_set_border_dash(phandle, 5.0, 1.0);
-        PDF_set_border_color(phandle, 1.0, 0.0, 0.0);
+        if (!is_empty_string(s)) {
+            PDF_set_border_style(phandle, "dashed", 3.0);
+            PDF_set_border_dash(phandle, 5.0, 1.0);
+            PDF_set_border_color(phandle, 1.0, 0.0, 0.0);
 
-        PDF_add_note(phandle,
-            20.0, 50.0, 320.0, 100.0, s, "Project description", "note", 0);
+            PDF_add_note(phandle,
+                20.0, 50.0, 320.0, 100.0, s, "Project description", "note", 0);
+        }
     }
     
     PDF_scale(phandle, page_scalef, page_scalef);
@@ -209,11 +225,48 @@ int pdfinitgraphics(void)
 void pdf_setpen(Pen pen)
 {
     if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
-        fRGB frgb;
-        get_frgb(pen.color, &frgb);
-        PDF_setcolor(phandle, "both", "rgb",
-            (float) frgb.red, (float) frgb.green,(float) frgb.blue, 0.0);     
-        if (pdf_setup_pdf1_3 &&
+        float c1, c2, c3, c4;
+        char *cstype;
+        switch (pdf_setup_colorspace) {
+        case COLORSPACE_GRAYSCALE:
+            {
+                cstype = "gray";
+                
+                c1 = (float) get_colorintensity(pen.color);
+                c2 = c3 = c4 = 0.0;
+            }
+            break;
+        case COLORSPACE_CMYK:
+            {
+                fCMYK fcmyk;
+                
+                cstype = "cmyk";
+                
+                get_fcmyk(pen.color, &fcmyk);
+                c1 = (float) fcmyk.cyan;
+                c2 = (float) fcmyk.magenta;
+                c3 = (float) fcmyk.yellow;
+                c4 = (float) fcmyk.black;
+            }
+            break;
+        case COLORSPACE_RGB:
+        default:
+            {
+                fRGB frgb;
+                
+                cstype = "rgb";
+                
+                get_frgb(pen.color, &frgb);
+                c1 = (float) frgb.red;
+                c2 = (float) frgb.green;
+                c3 = (float) frgb.blue;
+                c4 = 0.0;
+            }
+            break;
+        }
+
+        PDF_setcolor(phandle, "both", cstype, c1, c2, c3, c4);     
+        if (pdf_setup_compat >= PDF_1_3 &&
             pen.pattern > 1 && pdf_pattern_ids[pen.pattern] >= 0) {
             PDF_setcolor(phandle, "both", "pattern",
                 (float) pdf_pattern_ids[pen.pattern], 0.0, 0.0, 0.0);     
@@ -357,7 +410,7 @@ void pdf_fillpolygon(VPoint *vps, int nc)
         PDF_set_parameter(phandle, "fillrule", "evenodd");
     }
     
-    if (pdf_setup_pdf1_3 && pen.pattern > 1) {
+    if (pdf_setup_compat >= PDF_1_3 && pen.pattern > 1) {
         Pen solid_pen;
         solid_pen.color = getbgcolor();
         solid_pen.pattern = 1;
@@ -420,7 +473,7 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
         return;
     }
     
-    if (pdf_setup_pdf1_3 && pen.pattern > 1) {
+    if (pdf_setup_compat >= PDF_1_3 && pen.pattern > 1) {
         Pen solid_pen;
         solid_pen.color = getbgcolor();
         solid_pen.pattern = 1;
@@ -625,13 +678,19 @@ static void pdf_error_handler(PDF *p, int type, const char *msg)
 
 int pdf_op_parser(char *opstring)
 {
-    if (!strcmp(opstring, "PDF1.3")) {
-        pdf_setup_pdf1_3 = TRUE;
+    if (!strcmp(opstring, "compatibility:PDF-1.2")) {
+        pdf_setup_compat = PDF_1_2;
         return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "PDF1.2")) {
-        pdf_setup_pdf1_3 = FALSE;
+    } else
+    if (!strcmp(opstring, "compatibility:PDF-1.3")) {
+        pdf_setup_compat = PDF_1_3;
         return RETURN_SUCCESS;
-    } else if (!strncmp(opstring, "compression:", 12)) {
+    } else
+    if (!strcmp(opstring, "compatibility:PDF-1.4")) {
+        pdf_setup_compat = PDF_1_4;
+        return RETURN_SUCCESS;
+    } else
+    if (!strncmp(opstring, "compression:", 12)) {
         char *bufp;
         bufp = strchr(opstring, ':');
         bufp++;
@@ -641,11 +700,36 @@ int pdf_op_parser(char *opstring)
         } else {
             return RETURN_FAILURE;
         }
-    } else if (!strcmp(opstring, "bbox:tight")) {
+    } else
+    if (!strncmp(opstring, "fpprecision:", 12)) {
+        char *bufp;
+        bufp = strchr(opstring, ':');
+        bufp++;
+        if (!is_empty_string(bufp)) {
+            pdf_setup_fpprec = atoi(bufp);
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else
+    if (!strcmp(opstring, "bbox:tight")) {
         pdf_setup_tight_bb = TRUE;
         return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "bbox:page")) {
+    } else
+    if (!strcmp(opstring, "bbox:page")) {
         pdf_setup_tight_bb = FALSE;
+        return RETURN_SUCCESS;
+    } else
+    if (!strcmp(opstring, "colorspace:grayscale")) {
+        pdf_setup_colorspace = COLORSPACE_GRAYSCALE;
+        return RETURN_SUCCESS;
+    } else
+    if (!strcmp(opstring, "colorspace:rgb")) {
+        pdf_setup_colorspace = COLORSPACE_RGB;
+        return RETURN_SUCCESS;
+    } else
+    if (!strcmp(opstring, "colorspace:cmyk")) {
+        pdf_setup_colorspace = COLORSPACE_CMYK;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -658,9 +742,11 @@ static void update_pdf_setup_frame(void);
 static int set_pdf_setup_proc(void *data);
 
 static Widget pdf_setup_frame;
-static Widget pdf_setup_pdf1_3_item;
+static OptionStructure *pdf_setup_compat_item;
 static SpinStructure *pdf_setup_compression_item;
+static SpinStructure *pdf_setup_fpprec_item;
 static Widget pdf_setup_tight_bb_item;
+static OptionStructure *pdf_setup_colorspace_item;
 
 void pdf_gui_setup(void)
 {
@@ -668,15 +754,30 @@ void pdf_gui_setup(void)
     
     if (pdf_setup_frame == NULL) {
         Widget fr, rc;
+        OptionItem compat_op_items[3] = {
+            {PDF_1_2, "PDF-1.2"},
+            {PDF_1_3, "PDF-1.3"},
+            {PDF_1_4, "PDF-1.4"}
+        };
+        OptionItem colorspace_op_items[3] = {
+            {COLORSPACE_GRAYSCALE, "Grayscale"},
+            {COLORSPACE_RGB,       "RGB"      },
+            {COLORSPACE_CMYK,      "CMYK"     }
+        };
     
 	pdf_setup_frame = CreateDialogForm(app_shell, "PDF options");
 
 	fr = CreateFrame(pdf_setup_frame, "PDF options");
         rc = CreateVContainer(fr);
-	pdf_setup_pdf1_3_item = CreateToggleButton(rc, "PDF-1.3");
+	pdf_setup_compat_item =
+            CreateOptionChoice(rc, "Compatibility:", 1, 3, compat_op_items);
+        pdf_setup_colorspace_item =
+            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
 	pdf_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
 	pdf_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
+	pdf_setup_fpprec_item = CreateSpinChoice(rc,
+            "FP precision:", 1, SPIN_TYPE_INT, 4.0, 6.0, 1.0);
 
 	CreateAACDialog(pdf_setup_frame, fr, set_pdf_setup_proc, NULL);
     }
@@ -688,17 +789,21 @@ void pdf_gui_setup(void)
 static void update_pdf_setup_frame(void)
 {
     if (pdf_setup_frame) {
-        SetToggleButtonState(pdf_setup_pdf1_3_item, pdf_setup_pdf1_3);
-        SetSpinChoice(pdf_setup_compression_item, (double) pdf_setup_compression);
+        SetOptionChoice(pdf_setup_compat_item, pdf_setup_compat);
+        SetOptionChoice(pdf_setup_colorspace_item, pdf_setup_colorspace);
         SetToggleButtonState(pdf_setup_tight_bb_item, pdf_setup_tight_bb);
+        SetSpinChoice(pdf_setup_compression_item, (double) pdf_setup_compression);
+        SetSpinChoice(pdf_setup_fpprec_item, (double) pdf_setup_fpprec);
     }
 }
 
 static int set_pdf_setup_proc(void *data)
 {
-    pdf_setup_pdf1_3 = GetToggleButtonState(pdf_setup_pdf1_3_item);
+    pdf_setup_compat      = GetOptionChoice(pdf_setup_compat_item);
+    pdf_setup_colorspace  = GetOptionChoice(pdf_setup_colorspace_item);
+    pdf_setup_tight_bb    = GetToggleButtonState(pdf_setup_tight_bb_item);
     pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
-    pdf_setup_tight_bb = GetToggleButtonState(pdf_setup_tight_bb_item);
+    pdf_setup_fpprec      = (int) GetSpinChoice(pdf_setup_fpprec_item);
     
     return RETURN_SUCCESS;
 }

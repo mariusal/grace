@@ -27,6 +27,20 @@
 
 #include "defines.h"
 
+typedef enum {
+    PDF_1_2,
+    PDF_1_3,
+    PDF_1_4
+} PDFCompatibility;
+
+typedef enum {
+    COLORSPACE_GRAYSCALE,
+    COLORSPACE_RGB,
+    COLORSPACE_CMYK
+} PDFColorSpace;
+
+#define DEFAULT_COLORSPACE  COLORSPACE_RGB
+
 int pdfinitgraphics(void);
 
 void pdf_drawpixel(VPoint vp);
