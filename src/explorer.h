@@ -140,6 +140,10 @@ typedef struct {
     Widget          avalue_tp;
 
     OptionStructure *type;
+    
+    OptionStructure *cols[MAX_SET_COLS];
+    OptionStructure *scol;
+    
     OptionStructure *symbols;
     SpinStructure   *symsize;
     SpinStructure   *symskip;

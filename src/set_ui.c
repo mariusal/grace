@@ -106,6 +106,17 @@ static void charfont_cb(OptionStructure *opt, int a, void *data)
     UpdateCharOptionChoice(ui->symchar, a);
 }
 
+void type_cb(OptionStructure *opt, int a, void *data)
+{
+    SetUI *ui = (SetUI *) data;
+    unsigned int i, nncols;
+    
+    nncols = settype_cols(GetOptionChoice(ui->type));
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        SetSensitive(ui->cols[i]->menu, (i < nncols));
+    }
+}
+
 /*
  * create the symbols popup
  */
@@ -113,6 +124,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
 {
     SetUI *ui;
     Widget tab, fr, rc, rc1, rc2;
+    OptionItem blockitem = {COL_NONE, "None"};
+    unsigned int i;
 
     ui = xmalloc(sizeof(SetUI));
 
@@ -148,6 +161,18 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->main_tp, "Set presentation");
     ui->type = CreateSetTypeChoice(fr, "Type:");
     AddOptionChoiceCB(ui->type, oc_explorer_cb, eui);
+    AddOptionChoiceCB(ui->type, type_cb, ui);
+
+    fr = CreateFrame(ui->main_tp, "Data binding");
+    rc = CreateVContainer(fr);
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        char buf[32];
+        sprintf(buf, "%s from column:", dataset_colname(i));
+        ui->cols[i] = CreateOptionChoice(rc, buf, 0, 1, &blockitem);
+        AddOptionChoiceCB(ui->cols[i], oc_explorer_cb, eui);
+    }
+    ui->scol = CreateOptionChoice(rc, "Strings from column:", 0, 1, &blockitem);
+    AddOptionChoiceCB(ui->scol, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Legend");
     ui->legend_str = CreateCSText(fr, "String:");
@@ -391,20 +416,64 @@ SetUI *create_set_ui(ExplorerUI *eui)
 void update_set_ui(SetUI *ui, Quark *q)
 {
     set *p = set_get_data(q);
+    Quark *ss = get_parent_ssd(q);
     
-    if (p && ui) {
+    if (p && ui && ss) {
         int i;
         char val[32];
+        int blocklen, blockncols;
+        int *blockformats;
+        OptionItem *blockitems, *sblockitems;
+        unsigned int nncols, nscols;
 
         SetOptionChoice(ui->type, p->type);
-        for (i = 0; i < ui->type->nchoices; i++) {
-            if (settype_cols(ui->type->options[i].value)==
-                                            settype_cols(p->type)) {
-                SetSensitive(ui->type->options[i].widget, True);
+
+        blockncols   = ssd_get_ncols(ss);
+        blocklen     = ssd_get_nrows(ss);
+        blockformats = ssd_get_formats(ss);
+
+        blockitems  = xmalloc((blockncols + 1)*sizeof(OptionItem));
+        sblockitems = xmalloc((blockncols + 1)*sizeof(OptionItem));
+        blockitems[0].value = COL_NONE;
+        blockitems[0].label = copy_string(NULL, "None");
+        sblockitems[0].value = COL_NONE;
+        sblockitems[0].label = copy_string(NULL, "None");
+        nncols = 0;
+        nscols = 0;
+        for (i = 0; i < blockncols; i++) {
+            char buf[32];
+            sprintf(buf, "%d", i + 1);
+            if (blockformats[i] != FFORMAT_STRING) {
+                nncols++;
+                blockitems[nncols].value = i;
+                blockitems[nncols].label = copy_string(NULL, buf);
             } else {
-                SetSensitive(ui->type->options[i].widget, False);
+                nscols++;
+                sblockitems[nscols].value = i;
+                sblockitems[nscols].label = copy_string(NULL, buf);
             }
         }
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            UpdateOptionChoice(ui->cols[i], nncols + 1, blockitems);
+            SetOptionChoice(ui->cols[i], p->data->cols[i]);
+        }
+        UpdateOptionChoice(ui->scol, nscols + 1, sblockitems);
+        SetOptionChoice(ui->scol, p->data->scol);
+
+        for (i = 0; i < nncols + 1; i++) {
+            xfree(blockitems[i].label);
+        }
+        xfree(blockitems);
+        for (i = 0; i < nscols + 1; i++) {
+            xfree(sblockitems[i].label);
+        }
+        xfree(sblockitems);
+
+        nncols = settype_cols(p->type);
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            SetSensitive(ui->cols[i]->menu, (i < nncols));
+        }
+
 
         SetSpinChoice(ui->symsize, p->sym.size);
         SetSpinChoice(ui->symskip, p->symskip);
@@ -483,7 +552,21 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
     
     if (p && ui) {
         AMem *amem = quark_get_amem(q);
+        unsigned int i, nncols = settype_cols(GetOptionChoice(ui->type));
         
+        if (!caller || caller == ui->type) {
+            set_set_type((q), GetOptionChoice(ui->type));
+        }
+        
+        for (i = 0; i < nncols; i++) {
+            if (!caller || caller == ui->cols[i]) {
+                p->data->cols[i] = GetOptionChoice(ui->cols[i]);
+            }
+        }
+        if (!caller || caller == ui->scol) {
+            p->data->scol = GetOptionChoice(ui->scol);
+        }
+
         if (!caller || caller == ui->symskip) {
             p->symskip = GetSpinChoice(ui->symskip);
         }
@@ -515,8 +598,9 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->fillpen, &p->line.fillpen);
         }
         if (!caller || caller == ui->legend_str) {
-            xfree(p->legstr);
-            p->legstr = GetTextString(ui->legend_str);
+            char *s = GetTextString(ui->legend_str);
+            p->legstr = amem_strcpy(amem, p->legstr, s);
+            xfree(s);
         }
         if (!caller || caller == ui->symbols) {
             p->sym.type = GetOptionChoice(ui->symbols);
@@ -562,9 +646,6 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->errbar_riserlinew) {
             p->errbar.riser_linew = GetSpinChoice(ui->errbar_riserlinew);
-        }
-        if (!caller || caller == ui->type) {
-            set_set_type((q), GetOptionChoice(ui->type));
         }
         if (!caller || caller == ui->errbar_riserlines) {
             p->errbar.riser_lines = GetOptionChoice(ui->errbar_riserlines);
