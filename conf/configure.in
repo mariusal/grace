@@ -1,0 +1,675 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(src/main.c)
+AC_CONFIG_AUX_DIR(ac-tools)
+
+AC_CONFIG_HEADER(config.h:conf/config.h.in)
+
+AC_PREFIX_DEFAULT("/usr/local")
+
+builtin(include, ac-tools/mdw_check_manylibs.m4)
+builtin(include, ac-tools/ice_find_motif.m4)
+builtin(include, ac-tools/ice_check_lesstif.m4)
+
+AC_SUBST(MKINSTALLDIRS)
+
+AC_SUBST(GRACE)
+AC_SUBST(GRACE_HOME)
+AC_SUBST(GUI_FLAGS)
+AC_SUBST(GUI_LIBS)
+AC_SUBST(NOGUI_LIBS)
+AC_SUBST(NETCDF_LIBS)
+AC_SUBST(XDR_LIB)
+AC_SUBST(DL_LIB)
+AC_SUBST(T1_LIB)
+AC_SUBST(FFTW_LIB)
+AC_SUBST(PDF_LIB)
+AC_SUBST(PDFDRV_O)
+AC_SUBST(MISSING_O)
+AC_SUBST(GD_LIB)
+AC_SUBST(RSTDRV_O)
+AC_SUBST(TERMDRV_O)
+AC_SUBST(HELPVIEWER)
+AC_SUBST(SUBDIRS)
+
+dnl **** Those are for T1lib
+
+AC_SUBST(T1_AA_TYPE16)
+AC_SUBST(T1_AA_TYPE32)
+AC_SUBST(T1_AA_TYPE64)
+
+SUBDIRS="cephes src"
+
+dnl Check for host type
+AC_CANONICAL_HOST
+
+dnl option to define config file overriding autodetect
+AC_ARG_ENABLE(config,
+[  --enable-config=CONF_FILE 
+                          define configuration file to override autodetection
+                          (not recommended!)],
+[CONF_FILE="${enableval}"])
+
+if test -z "${CONF_FILE}"
+then
+  case "${host}" in
+    i?86-*-linux-*) CONF_FILE="ix86-linux";;
+    *-*-linux-*) CONF_FILE="linux";;
+    i?86-*-sco-*) CONF_FILE="ix86-sco";;
+    i?86-*-cygwin32) CONF_FILE="ix86-cygwin32";;
+    alpha*-dec-osf4.*) CONF_FILE="alpha-osf4";;
+    hppa*-hp-hpux*) CONF_FILE="hppa-hpux";;
+    mips-sgi-irix6.4*) CONF_FILE="mips-irix6.4";;
+    mips-sgi-irix*) CONF_FILE="mips-irix";;
+    rs6000-ibm-aix3*) CONF_FILE="rs6000-aix3";;
+    rs6000-ibm-aix4*) CONF_FILE="rs6000-aix4";;
+    mips-dec-ultrix*) CONF_FILE="mips-ultrix";;
+    sparc-sun-sunos4*) CONF_FILE="sparc-sunos4";;
+    sparc-sun-solaris*) CONF_FILE="sparc-sunos5";;
+    m88k-dg-dgux*) CONF_FILE="m88k-dgux";;
+    *-pc-opennt) CONF_FILE="opennt";;
+    *) CONF_FILE="none";
+  esac
+fi
+
+if test ${CONF_FILE} = "none"
+then
+  AC_MSG_WARN(no predefined configuration found for ${host})
+else
+  AC_MSG_RESULT(--> using \`conf/$CONF_FILE' as config file)
+  if test -r conf/$CONF_FILE
+  then
+    . conf/$CONF_FILE
+  else
+    AC_MSG_ERROR(--> Can't open file \`conf/$CONF_FILE' for reading!)
+    exit 1
+  fi
+fi
+
+dnl Chance to add include path
+AC_ARG_ENABLE(extra-incpath,
+[  --enable-extra-incpath=PATH 
+                          define extra include path (dir1:dir2:...)],
+[CPPFLAGS="${CPPFLAGS} -I`echo ${enableval}|sed 's/:/\ -I/g'`"])
+
+dnl ... and ld path
+AC_ARG_ENABLE(extra-ldpath,
+[  --enable-extra-ldpath=PATH 
+                          define extra ld path (dir1:dir2:...)],
+[LDFLAGS="-L`echo ${enableval}|sed 's/:/\ -L/g'` ${LDFLAGS}";
+  case "${host}" in
+    sparc-sun-solaris*) LDFLAGS="-R:${enableval} ${LDFLAGS}";;
+  esac
+])
+
+
+dnl Checks for C compiler
+AC_PROG_CC
+AC_ISC_POSIX
+AC_AIX
+
+dnl **** Check for some compiler/system characteristics
+
+AC_C_CHAR_UNSIGNED
+AC_CHECK_SIZEOF(char,0)
+AC_CHECK_SIZEOF(short,0)
+AC_CHECK_SIZEOF(int,0)
+AC_CHECK_SIZEOF(long,0)
+AC_CHECK_SIZEOF(long long,0)
+AC_CHECK_SIZEOF(float,0)
+AC_CHECK_SIZEOF(double,0)
+AC_CHECK_SIZEOF(long double,0)
+AC_CHECK_SIZEOF(void *,0)
+
+
+dnl **** Check for gcc strength-reduce bug ****
+dnl (this part is stolen from WINE config)
+
+if test "x${GCC}" = "xyes"
+then
+  CFLAGS="$CFLAGS"
+  AC_CACHE_CHECK( "for gcc strength-reduce bug", ac_cv_c_gcc_strength_bug,
+                  AC_TRY_RUN([
+int main(void) {
+  static int Array[[3]];
+  unsigned int B = 3;
+  int i;
+  for(i=0; i<B; i++) Array[[i]] = i - 3;
+  exit( Array[[1]] != -2 );
+}],
+    ac_cv_c_gcc_strength_bug="no",
+    ac_cv_c_gcc_strength_bug="yes",
+    ac_cv_c_gcc_strength_bug="yes") )
+  if test "$ac_cv_c_gcc_strength_bug" = "yes"
+  then
+    CFLAGS="$CFLAGS -fno-strength-reduce"
+  fi
+fi
+
+dnl **** Check for endianess
+AC_C_BIGENDIAN
+
+dnl **** Checks for FPU arithmetics
+
+AC_CACHE_CHECK( "for FPU arithmetics type", ac_cv_c_fpu_arithmetics_type,
+                  AC_TRY_RUN([
+#include <stdio.h>
+#include <string.h>
+
+#define LOG2EA 0.44269504088896340735992
+#define ACCURACY "%1.4f"
+
+typedef union {unsigned short s[[4]]; double d;} XTYPE;
+
+XTYPE X[[]] = { 
+              {{0,0,0,0}},			    /* Unknown             */
+              {{0x3fdc,0x551d,0x94ae,0x0bf8}}, 	    /* Big endian     IEEE */
+              {{0x0bf8,0x94ae,0x551d,0x3fdc}}, 	    /* Littile endian IEEE */
+              {{0037742,0124354,0122560,0057703}}   /* DEC                 */
+            };
+            
+int main (void)
+{
+    int i; char TMPSTR[[1024]]; char LOG2EA_STR[[80]];
+    i = 0;
+ 
+    sprintf(LOG2EA_STR, ACCURACY, LOG2EA);
+ 
+    for (i=3; i >= 0; i--)
+    {
+      	sprintf(TMPSTR, ACCURACY, X[[i]].d);
+      	if (strcmp(TMPSTR, LOG2EA_STR) == 0) {
+    	    break;
+      	}
+    }
+ 
+    exit(i);
+}],
+    ac_cv_c_fpu_arithmetics_type="Unknown",
+    [case "$?" in
+      "1"[)] ac_cv_c_fpu_arithmetics_type="Big endian IEEE" ;;
+      "2"[)] ac_cv_c_fpu_arithmetics_type="Little endian IEEE" ;;
+      "3"[)] ac_cv_c_fpu_arithmetics_type="DEC" ;;
+    esac],
+    ac_cv_c_fpu_arithmetics_type="Unknown") )
+
+case "$ac_cv_c_fpu_arithmetics_type" in
+  "DEC")                AC_DEFINE(HAVE_DEC_FPU) ;;
+  "Little endian IEEE") AC_DEFINE(HAVE_LIEEE_FPU) ;;
+  "Big endian IEEE")    AC_DEFINE(HAVE_BIEEE_FPU) ;;
+esac
+
+
+dnl **** Checks for programs.
+AC_PROG_INSTALL
+case "$INSTALL" in
+  /*) ;;
+   *) INSTALL=`pwd`/"$INSTALL" ;
+esac
+
+MKINSTALLDIRS=`pwd`/ac-tools/mkinstalldirs
+
+AC_CHECK_PROG(AR, ar, ar, NONE)
+if test "$AR" = "NONE"; then
+  AC_MSG_ERROR(--> Can't find \`ar'!)
+  exit 1
+fi
+
+AC_PROG_RANLIB
+AC_PROG_LN_S
+AC_PROG_YACC
+
+AC_PROG_MAKE_SET
+
+dnl **** Checks for header files.
+AC_HEADER_STDC
+AC_HEADER_SYS_WAIT
+AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h)
+dnl **** math.h and related
+AC_CHECK_HEADERS(math.h float.h ieeefp.h)
+
+dnl **** Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_STRUCT_TM
+
+dnl **** Checks for library functions.
+AC_TYPE_SIGNAL
+AC_FUNC_VFORK
+AC_FUNC_ALLOCA
+AC_CHECK_FUNCS(getcwd gethostname)
+AC_CHECK_FUNCS(strstr strerror)
+AC_CHECK_FUNCS(memcpy memmove)
+AC_CHECK_FUNCS(unlink)
+AC_CHECK_FUNCS(popen)
+AC_CHECK_FUNCS(fnmatch)
+AC_CHECK_FUNCS(vsnprintf)
+AC_CHECK_FUNCS(on_exit)
+AC_CHECK_FUNC(mkfifo, SUBDIRS="$SUBDIRS grace_np")
+
+dnl **** Check for buggy realloc()
+AC_CACHE_CHECK( "whether realloc is buggy", ac_cv_c_realloc_bug,
+                  AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+int main(void) {
+  void *ptr;
+  ptr = NULL;
+  ptr = realloc(ptr, 1);
+  exit(ptr == NULL);
+}],
+  ac_cv_c_realloc_bug="no",
+  ac_cv_c_realloc_bug="yes",
+  ac_cv_c_realloc_bug="yes") )
+if test "$ac_cv_c_realloc_bug" = "yes"
+then
+  AC_DEFINE(REALLOC_IS_BUGGY)
+fi
+
+AC_CHECK_FUNCS(drand48)
+dnl **** SunOS4, for one, lacks this definition
+if test "$ac_cv_func_drand48" = yes; then
+  AC_CACHE_CHECK("whether drand48 is defined in stdlib.h", ac_drand48_in_stdlib_h,
+      AC_EGREP_HEADER(drand48, stdlib.h, ac_drand48_in_stdlib_h="yes";
+      AC_DEFINE(HAVE_DRAND48_IN_STDLIB_H), ac_drand48_in_stdlib_h="no"))
+fi
+
+dnl **** Checks for libm
+AC_CHECK_LIB(m, main)
+if test "$ac_cv_lib_m_main" = yes; then
+  dnl **** Those functions are usually found in libm but...
+  AC_CHECK_LIB(m, hypot, AC_DEFINE(HAVE_HYPOT))
+  AC_CHECK_LIB(m, rint, AC_DEFINE(HAVE_RINT))
+  AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT))
+  AC_CHECK_LIB(m, log2, AC_DEFINE(HAVE_LOG2))
+  AC_CHECK_LIB(m, asinh, AC_DEFINE(HAVE_ASINH))
+  AC_CHECK_LIB(m, acosh, AC_DEFINE(HAVE_ACOSH))
+  AC_CHECK_LIB(m, atanh, AC_DEFINE(HAVE_ATANH))
+  AC_CHECK_LIB(m, lgamma, AC_DEFINE(HAVE_LGAMMA))
+  
+  dnl **** Some braindamaged compiler suites don't have the lgamma define though
+  dnl **** the function itself does exist in libm!
+  if test "$ac_cv_lib_m_lgamma" = yes; then
+    AC_CACHE_CHECK("whether lgamma is defined in math.h", ac_lgamma_in_math_h,
+        AC_EGREP_HEADER(lgamma, math.h, ac_lgamma_in_math_h="yes";
+        AC_DEFINE(HAVE_LGAMMA_IN_MATH_H), ac_lgamma_in_math_h="no"))
+  fi
+  
+  AC_CHECK_LIB(m, erf, AC_DEFINE(HAVE_ERF))
+  AC_CHECK_LIB(m, erfc, AC_DEFINE(HAVE_ERFC))
+  AC_CHECK_LIB(m, j0, AC_DEFINE(HAVE_J0))
+  AC_CHECK_LIB(m, j1, AC_DEFINE(HAVE_J1))
+  AC_CHECK_LIB(m, jn, AC_DEFINE(HAVE_JN))
+  AC_CHECK_LIB(m, y0, AC_DEFINE(HAVE_Y0))
+  AC_CHECK_LIB(m, y1, AC_DEFINE(HAVE_Y1))
+  AC_CHECK_LIB(m, yn, AC_DEFINE(HAVE_YN))
+  AC_CHECK_LIB(m, finite, AC_DEFINE(HAVE_FINITE))
+  dnl **** C9X-compatible isfinite() may be a good replacement for finite()
+  if test "$ac_cv_lib_m_finite" != yes; then
+    AC_CHECK_LIB(m, isfinite, AC_DEFINE(HAVE_ISFINITE))
+  fi
+fi
+
+dnl **** Check for libgen
+AC_CHECK_LIB(gen, main)
+
+AC_CHECK_LIB(t1, T1_TransformMatrix, T1_LIB="-lt1";AC_DEFINE(HAVE_LIBT1))
+
+if test -z "$T1_LIB"
+then
+  dnl **** Use the bundled T1lib
+
+  AC_MSG_RESULT(--> Bundled version of T1lib will be used)
+
+  T1_LIB='$(TOP)/T1lib/libt1.a'
+  SUBDIRS="T1lib $SUBDIRS"
+
+  dnl **** Check which ANSI integer type is 16 bit
+  AC_CACHE_CHECK( "which ANSI integer type is 16 bit", ac_16bit_type,
+                  AC_TRY_RUN([
+  int main(void) {
+    if (sizeof(short)==2)
+      return(0);
+    else if (sizeof(int)==2)
+      return(1);
+    else
+      return(2);
+  }], ac_16bit_type="short", ac_16bit_type="int", ac_16bit_type=))
+  if test "$ac_16bit_type" = "short"
+  then
+    T1_AA_TYPE16="short"
+  else
+    T1_AA_TYPE16="int"
+  fi
+
+  dnl **** Check which ANSI integer type is 32 bit
+  AC_CACHE_CHECK( "which ANSI integer type is 32 bit", ac_32bit_type,
+                  AC_TRY_RUN([
+  int main(void) {
+    if (sizeof(int)==4)
+      return(0);
+    else if (sizeof(long)==4)
+      return(1);
+    else
+      return(2);
+  }], ac_32bit_type="int", ac_32bit_type="long", ac_32bit_type=))
+  if test "$ac_32bit_type" = "int"
+  then
+    T1_AA_TYPE32="int"
+  else
+    T1_AA_TYPE32="long"
+  fi
+
+  dnl **** Check which ANSI integer type is 64 bit 
+  AC_CACHE_CHECK( "which ANSI integer type is 64 bit", ac_64bit_type,
+                  AC_TRY_RUN([
+  int main(void) {
+    if (sizeof(long)==8)
+      return(0);
+    else
+      return(1);
+  }], ac_64bit_type="long", ac_64bit_type="<none>"))
+  if test "$ac_64bit_type" = "long"
+  then
+    T1_AA_TYPE64="long"
+  else
+    T1_AA_TYPE64=
+  fi
+else
+  AC_MSG_RESULT(--> Good. Seems you have compatible version of T1lib installed)
+fi
+
+dnl **** Check for XDR
+mdw_CHECK_MANYLIBS(xdrstdio_create, nsl rpc xdr, XDR_LIB=$mdw_cv_lib_xdrstdio_create, XDR_LIB="NONE")
+
+if test "${XDR_LIB}" = "NONE"; then
+  XDR_LIB=
+  AC_MSG_RESULT(--> No XDR library found; grconvert will not be built)
+else
+  SUBDIRS="$SUBDIRS grconvert"
+fi
+
+dnl **** Check for dlopen() interface
+dnl           (Linux, SunOS-[4,5], OSF, IRIX, AIX-4, UnixWare, ...)
+mdw_CHECK_MANYLIBS(dlopen, dl, [DL_LIB=$mdw_cv_lib_dlopen; AC_DEFINE(HAVE_DLOPEN)], DL_LIB="NONE")
+
+if test "${DL_LIB}" != "NONE"; then
+  dnl **** Old implementations of dlopen() don't have RTLD_NOW
+  AC_CACHE_CHECK("whether RTLD_NOW is defined in dlfcn.h", ac_rtld_now_in_dlfcn_h,  
+    AC_EGREP_CPP(yes,
+        [#include <dlfcn.h>
+         #ifdef RTLD_NOW
+            yes
+         #endif
+        ], ac_rtld_now_in_dlfcn_h="yes"; AC_DEFINE(HAVE_RTLD_NOW),
+           ac_rtld_now_in_dlfcn_h="no")
+  )
+else
+  dnl **** Check for shl_load() interface (HP/UX)
+  mdw_CHECK_MANYLIBS(shl_load, dld, [DL_LIB=$mdw_cv_lib_shl_load; AC_DEFINE(HAVE_SHL_LOAD)], DL_LIB="NONE")
+fi
+
+if test "${DL_LIB}" = "NONE"; then
+  AC_MSG_RESULT(--> Support for dll modules will not be compiled)
+  DL_LIB=""
+fi
+
+dnl **** Check how to print
+AC_CHECK_PROG(PRINT_CMD, lpr, 'lpr', 'lp -c')
+
+dnl **** Final list of subdirs
+SUBDIRS="$SUBDIRS fonts doc examples auxiliary"
+
+dnl **** use netcdf  
+AC_ARG_ENABLE(netcdf,
+[  --enable-netcdf         enable support for netCDF (default = yes)],
+[case "${enableval}" in
+  yes) netcdf=true ;;
+  no)  netcdf=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-netcdf) ;;
+esac],[netcdf=true])
+
+dnl **** use mfhdf  
+AC_ARG_ENABLE(mfhdf,
+[  --enable-mfhdf          use NCSA combined libs for netCDF (default = no)],
+[case "${enableval}" in
+  yes) mfhdf=true ;;
+  no)  mfhdf=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-mfhdf) ;;
+esac],[mfhdf=false])
+
+case $netcdf in
+  true) AC_CHECK_LIB(netcdf,main,NETCDF_LIBS="-lnetcdf"; AC_DEFINE(HAVE_NETCDF))
+        case $mfhdf in
+          true) AC_CHECK_LIB(df,main,NETCDF_LIBS="$NETCDF_LIBS -ldf"; AC_DEFINE(HAVE_MFHDF));;
+          *) ;;
+        esac ;;
+  *) ;;
+esac
+
+if test $ac_cv_lib_netcdf_main != yes; then
+  AC_MSG_RESULT(--> support for NetCDF is disabled)
+fi
+
+dnl **** use FFTW
+AC_ARG_ENABLE(fftw,
+[  --enable-fftw           use FFTW library (default = yes)],
+[case "${enableval}" in
+  yes) fftw=true ;;
+  no)  fftw=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-fftw) ;;
+esac],[fftw=true])
+
+case $fftw in
+  true) AC_CHECK_LIB(fftw, main, FFTW_LIB="-lfftw"; AC_DEFINE(HAVE_FFTW));;
+  *) ;;
+esac
+
+dnl **** whether to build PDF driver
+AC_ARG_ENABLE(pdfdrv,
+[  --enable-pdfdrv         build PDF driver (default = yes)],
+[case "${enableval}" in
+  yes) pdfdrv=true ;;
+  no)  pdfdrv=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-pdfdrv) ;;
+esac],[pdfdrv=true])
+
+case $pdfdrv in
+  true) AC_CHECK_LIB(pdf, PDF_setfillrule, PDF_LIB="-lpdf";PDFDRV_O='pdfdrv$(O)';AC_DEFINE(HAVE_LIBPDF));;
+  *);;
+esac
+if test $ac_cv_lib_pdf_PDF_setfillrule != yes; then
+  AC_MSG_RESULT(--> PDF driver is disabled)
+fi
+
+dnl **** whether to build generic raster driver
+AC_ARG_ENABLE(rstdrv,
+[  --enable-rstdrv         build generic raster driver (default = yes)],
+[case "${enableval}" in
+  yes) rstdrv=true ;;
+  no)  rstdrv=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-rstdrv) ;;
+esac],[rstdrv=true])
+
+case $rstdrv in
+  true) AC_CHECK_LIB(gd, main, GD_LIB="-lgd";RSTDRV_O='rstdrv$(O)';AC_DEFINE(HAVE_LIBGD));;
+  *);;
+esac
+if test $ac_cv_lib_gd_main != yes; then
+  AC_MSG_RESULT(--> raster driver is disabled)
+fi
+
+dnl **** check if user wants to compile grace_np lib with support for Fortran
+AC_ARG_ENABLE(f77,
+[  --enable-f77            include fortran wrapper for libgrace_np 
+                          (default = yes)],
+[case "${enableval}" in
+  yes) f77=true ;;
+  no)  f77=false;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-f77) ;;
+esac],[f77=true])
+
+if test $f77 = true; then
+  case "${host}" in
+     hppa*-hp-hpux*) FC="fort77 +U77";;
+    rs6000-ibm-aix*) forts="xlf f77 g77 f90";;
+                  *) forts="f77 fort77 g77 f90 f95";;
+  esac
+  
+  for fc in $forts
+  do
+    AC_CHECK_PROG(FC, $fc, "$fc")
+    if test "x$FC" != "x"; then
+      break
+    fi
+  done
+fi
+
+if test "x$FC" != "x"; then
+  AC_DEFINE(HAVE_F77)
+  dnl **** Check whether f77 adds underscore to external symbol names ****
+
+  AC_CACHE_CHECK("whether Fortran adds underscore to external symbol names",
+                 ac_cv_c_f77_underscore,
+cat > conftest_f77.f <<EOF
+      CALL ACTEST ()
+      STOP
+      END
+EOF
+
+cat > conftest_c.c <<EOF
+void actest_(void)
+{
+    return;
+}
+EOF
+
+  $CC $CFLAGS -c conftest_c.c > /dev/null 2>&1
+  $FC conftest_f77.f conftest_c.o -o conftest $LIBS > /dev/null 2>&1
+
+  case "$?" in
+    0[)] ac_cv_c_f77_underscore="yes" ;;
+    *[)] ac_cv_c_f77_underscore="no" ;;
+  esac
+  rm -f conftest*
+  )
+
+  if test "$ac_cv_c_f77_underscore" = "yes"
+  then
+    AC_DEFINE(NEED_F77_UNDERSCORE)
+  fi
+fi
+
+dnl **** check if user wants to compile with debugging support
+AC_ARG_ENABLE(debug,
+[  --enable-debug          turn on debugging (default = no)],
+[case "${enableval}" in
+  yes) debug=true ;;
+  no)  debug=false ;;
+  *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[debug=false])
+
+case $debug in
+  true) CFLAGS="$DEBUG $CFLAGS"; AC_DEFINE(WITH_DEBUG);;
+  *) CFLAGS="$OPTIMIZE $CFLAGS";;
+esac
+
+dnl **** define home dir of Grace
+GRACE_HOME=${ac_default_prefix}/grace
+AC_ARG_ENABLE(grace-home,
+[  --enable-grace-home=GRACE_HOME 
+                          define Grace home dir (default = ${ac_default_prefix}/grace)],
+[GRACE_HOME="${enableval}"])
+
+
+NOGUI_LIBS="$LIBS"
+
+dnl **** Choose a GUI *****
+
+dnl **** default is gui-less
+GRACE=grace
+TERMDRV_O='dummydrv$(O)'
+
+AC_PATH_XTRA
+if test "$no_x" = yes; then
+  GUI="NONE_GUI"
+else
+dnl **** Check for Motif
+  GUI_LIBS="-lXt -lXext -lX11 $X_PRE_LIBS $X_EXTRA_LIBS"
+
+dnl **** use editres  
+  AC_ARG_ENABLE(editres,
+  [  --enable-editres        enable editres support (default = yes)],
+  [case "${enableval}" in
+    yes) editres=true ;;
+    no)  editres=false;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-editres) ;;
+  esac],[editres=true])
+
+  case $editres in
+    true) AC_CHECK_LIB(Xmu,_XEditResCheckMessages,GUI_LIBS="-lXmu $GUI_LIBS"; AC_DEFINE(WITH_EDITRES),,$X_LIBS $GUI_LIBS);;
+    *) ;;
+  esac
+  
+  if test $ac_cv_lib_Xmu__XEditResCheckMessages != yes; then
+    AC_MSG_RESULT(--> support for EditRes protocol is disabled)
+  fi
+
+  dnl **** some Motif-2.1 variants need the -lXp library
+  AC_CHECK_LIB(Xp,main,GUI_LIBS="-lXp $GUI_LIBS",,$X_LIBS $GUI_LIBS)
+  dnl **** and some - Xpm lib
+  AC_CHECK_LIB(Xpm,main,GUI_LIBS="-lXpm $GUI_LIBS"; AC_DEFINE(HAVE_XPM)
+                 AC_CHECK_HEADERS(xpm.h X11/xpm.h),,$X_LIBS $GUI_LIBS)
+
+  ICE_FIND_MOTIF
+  if test "$motif_libraries_result" = "(none)" || 
+     test "$motif_includes_result" = "(none)"; then
+    dnl **** only Motif GUI is supported by now:
+    GUI="NONE_GUI"
+    GUI_FLAGS=""
+    GUI_LIBS=""
+    AC_MSG_WARN(Motif has not been found; building a GUI-less version)
+  else
+    dnl **** Check whether Motif is actually Lesstif
+    save_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $X_CFLAGS"
+    ICE_CHECK_LESSTIF
+    CPPFLAGS="$save_CPPFLAGS"
+    
+    dnl **** check for Xbae widget
+    GUI_LIBS="-lXm $GUI_LIBS"
+    AC_CHECK_LIB(Xbae,main,GUI_LIBS="-lXbae $GUI_LIBS"; AC_DEFINE(HAVE_LIBXBAE),,$X_LIBS $GUI_LIBS)
+    GUI="MOTIF_GUI"
+    GUI_FLAGS="$X_CFLAGS"
+    AC_DEFINE(HAVE_MOTIF)
+    GRACE=xmgrace
+    TERMDRV_O='x11drv$(O)'
+  fi
+fi
+
+if test "${GUI}" != "NONE_GUI"; then
+
+dnl **** use libhelp
+  AC_ARG_ENABLE(libhelp,
+  [  --enable-libhelp        use libhelp (default = no)],
+  [case "${enableval}" in
+    yes) libhelp=true ;;
+    no)  libhelp=false;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libhelp) ;;
+  esac],[libhelp=false])
+
+  case $libhelp in
+    true) AC_CHECK_LIB(hlpclient,get_help,GUI_LIBS="-lhlpclient $GUI_LIBS"; AC_DEFINE(WITH_LIBHELP),,$X_LIBS $GUI_LIBS);;
+    *)  ;;
+  esac
+  
+dnl **** define help viewer
+  AC_ARG_ENABLE(helpviewer,
+  [  --enable-helpviewer=COMMAND 
+                          define (alternative) help viewer command],
+  [HELPVIEWER="-DGRACE_HELPVIEWER=${enableval}"])
+
+fi
+
+AC_OUTPUT(Make.conf:conf/Make.conf.in)

@@ -1,0 +1,13 @@
+/* config.h-VMS7 -- VMS -- */
+
+/* Define if you have the drand48 function.  */
+#define HAVE_DRAND48 1 
+
+/* Define if stdlib.h defines the drand48 function.  */
+#define HAVE_DRAND48_IN_STDLIB_H 1
+
+/* Define if you have the popen and pclose functions. */
+#define HAVE_POPEN 1
+
+/* Define if you have the fnmatch function. */
+#undef HAVE_FNMATCH

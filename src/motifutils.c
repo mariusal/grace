@@ -1,0 +1,2688 @@
+/*
+ * Grace - Graphics for Exploratory Data Analysis
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-98 GRACE Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/*
+ *
+ * utilities for Motif
+ *
+ */
+
+#include <config.h>
+#include <cmath.h>
+
+#include <stdlib.h>
+#include <stdarg.h>
+
+#include <X11/X.h>
+#include <X11/Xatom.h>
+
+#include <Xm/Xm.h>
+#include <Xm/BulletinB.h>
+#include <Xm/DialogS.h>
+#include <Xm/Frame.h>
+#include <Xm/Form.h>
+#include <Xm/Scale.h>
+#include <Xm/Label.h>
+#include <Xm/List.h>
+#include <Xm/PushB.h>
+#include <Xm/RowColumn.h>
+#include <Xm/Text.h>
+#include <Xm/ToggleB.h>
+#include <Xm/Protocols.h>
+
+#include "Tab.h"
+#include "motifinc.h"
+
+#include "defines.h"
+#include "globals.h"
+#include "draw.h"
+#include "patterns.h"
+#include "t1fonts.h"
+#include "graphs.h"
+#include "plotone.h"
+#include "utils.h"
+#include "protos.h"
+
+extern double result;
+
+/* lookup table to determine if character is a floating point digit 
+ * only allowable char's [0-9.eE]
+ */
+unsigned char fpdigit[256] = {  
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+			      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+extern Widget app_shell;
+extern XmStringCharSet charset;
+
+extern XtAppContext app_con;
+
+extern Display *disp;
+extern Window root;
+extern int depth;
+
+extern unsigned long xvlibcolors[];
+    
+OptionStructure CreateOptionChoice(Widget parent, char *labelstr, int ncols,
+                                                int nchoices, OptionItem *items)
+{
+    int i;
+    XmString str;
+    OptionStructure retval;
+
+    retval.nchoices = nchoices;
+    retval.options = malloc(nchoices*sizeof(OptionWidgetItem));
+    if (retval.options == NULL) {
+        errmsg("Malloc error in CreateOptionChoice()");
+        return retval;
+    }
+
+    retval.rc = XmCreateRowColumn(parent, "rcOption", NULL, 0);
+    XtVaSetValues(retval.rc, XmNorientation, XmHORIZONTAL, NULL);
+
+    retval.pulldown = XmCreatePulldownMenu(retval.rc, "pulldownMenu", NULL, 0);
+
+    if (ncols > 0) {
+        XtVaSetValues(retval.pulldown,
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, ncols,
+                      NULL);
+    }
+    
+    for (i = 0; i < nchoices; i++) {
+	retval.options[i].value = items[i].value;
+	if (items[i].label != NULL) {
+            retval.options[i].widget = 
+                  XmCreatePushButton(retval.pulldown, items[i].label, NULL, 0);
+        } else {
+            retval.options[i].widget = 
+                  XmCreatePushButton(retval.pulldown, "None", NULL, 0);
+        }
+    }
+    for (i = 0; i < nchoices; i++) {
+        XtManageChild(retval.options[i].widget);
+    }
+
+    retval.menu = XmCreateOptionMenu(retval.rc, "optionMenu", NULL, 0);
+    str = XmStringCreate(labelstr, charset);
+    XtVaSetValues(retval.menu,
+		  XmNlabelString, str,
+		  XmNsubMenuId, retval.pulldown,
+		  XmNwhichButton, 1,
+		  NULL);
+    XmStringFree(str);
+    XtManageChild(retval.menu);
+
+    XtManageChild(retval.rc);
+    
+    return retval;
+}
+
+OptionStructure CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
+                int nchoices, int width, int height, BitmapOptionItem *items)
+{
+    int i;
+    XmString str;
+    OptionStructure retval;
+    Pixel fg, bg;
+    Pixmap ptmp;
+
+    retval.nchoices = nchoices;
+    retval.options = malloc(nchoices*sizeof(OptionWidgetItem));
+    if (retval.options == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+        return retval;
+    }
+
+
+    retval.rc = XmCreateRowColumn(parent, "rcOption", NULL, 0);
+    XtVaSetValues(retval.rc, XmNorientation, XmHORIZONTAL, NULL);
+
+    retval.pulldown = XmCreatePulldownMenu(retval.rc, "pulldownMenu", NULL, 0);
+    XtVaSetValues(retval.pulldown, 
+                  XmNentryAlignment, XmALIGNMENT_CENTER,
+                  NULL);
+
+    if (ncols > 0) {
+        XtVaSetValues(retval.pulldown,
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, ncols,
+                      NULL);
+    }
+    
+    XtVaGetValues(retval.pulldown,
+                  XmNforeground, &fg,
+                  XmNbackground, &bg,
+                  NULL);
+    
+    for (i = 0; i < nchoices; i++) {
+	retval.options[i].value = items[i].value;
+        if (items[i].bitmap != NULL) {
+            ptmp = XCreatePixmapFromBitmapData(disp, root, 
+                                    (char *) items[i].bitmap, width, height,
+                                    fg, bg, depth);
+            retval.options[i].widget = 
+                XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
+                                 retval.pulldown,
+	                         XmNlabelType, XmPIXMAP,
+	                         XmNlabelPixmap, ptmp,
+	                         NULL);
+        } else {
+	    retval.options[i].widget = 
+                  XmCreatePushButton(retval.pulldown, "None", NULL, 0);
+        }
+                                
+    }
+    for (i = 0; i < nchoices; i++) {
+        XtManageChild(retval.options[i].widget);
+    }
+
+    retval.menu = XmCreateOptionMenu(retval.rc, "optionMenu", NULL, 0);
+    str = XmStringCreate(labelstr, charset);
+    XtVaSetValues(retval.menu,
+		  XmNlabelString, str,
+		  XmNsubMenuId, retval.pulldown,
+		  XmNwhichButton, 1,
+		  NULL);
+    XmStringFree(str);
+    XtManageChild(retval.menu);
+
+    XtManageChild(retval.rc);
+    
+    return retval;
+}
+
+
+void SetOptionChoice(OptionStructure opt, int value)
+{
+    int i;
+    Arg a;
+    
+    if (opt.options == NULL || opt.nchoices <= 0) {
+        return;
+    }
+    
+    for (i = 0; i < opt.nchoices; i++) {
+        if (opt.options[i].value == value) {
+            XtSetArg(a, XmNmenuHistory, opt.options[i].widget);
+            XtSetValues(opt.menu, &a, 1);
+            return;
+        }
+    }
+}
+
+int GetOptionChoice(OptionStructure opt)
+{
+    Arg a;
+    Widget warg;
+    int i;
+
+    if (opt.options == NULL || opt.nchoices <= 0) {
+        errmsg("Internal error in GetOptionChoice()");
+        return 0;
+    }
+
+    XtSetArg(a, XmNmenuHistory, &warg);
+    XtGetValues(opt.menu, &a, 1);
+
+    for (i = 0; i < opt.nchoices; i++) {
+        if (opt.options[i].widget == warg) {
+            return(opt.options[i].value);
+        }
+    }
+    errmsg("Internal error in GetOptionChoice()");
+    return 0;
+}
+
+void AddOptionChoiceCB(OptionStructure opt, XtCallbackProc cb)
+{
+    int i;
+    
+    for (i = 0; i < opt.nchoices; i++) {
+        XtAddCallback(opt.options[i].widget, XmNactivateCallback, 
+                                    cb, (XtPointer) opt.options[i].value);
+    }
+}
+
+ListStructure CreateListChoice(Widget parent, char *labelstr,
+                                              int nchoices, OptionItem *items)
+{
+    Arg args[3];
+    Widget lab;
+    ListStructure retval;
+
+    retval.rc = XmCreateRowColumn(parent, "rcList", NULL, 0);
+
+    lab = XmCreateLabel(retval.rc, labelstr, NULL, 0);
+    XtManageChild(lab);
+    
+    XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
+    XtSetArg(args[1], XmNselectionPolicy, XmEXTENDED_SELECT);
+    XtSetArg(args[2], XmNvisibleItemCount, 4);
+    retval.list = XmCreateScrolledList(retval.rc, "listList", args, 3);
+    retval.values = NULL;
+    
+    UpdateListChoice(&retval, nchoices, items);
+
+    XtManageChild(retval.list);
+    
+    XtManageChild(retval.rc);
+    
+    return retval;
+}
+
+void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
+{
+    int i, nsel;
+    int *selvalues;
+    XmString str;
+    
+    if (listp == NULL) {
+        return;
+    }
+    
+    listp->nchoices = nchoices;
+    listp->values = xrealloc(listp->values, nchoices*SIZEOF_INT);
+    for (i = 0; i < nchoices; i++) {
+        listp->values[i] = items[i].value;
+    }
+    
+    nsel = GetListChoices(listp, &selvalues);
+    XtUnmanageChild(listp->list);
+    XmListDeleteAllItems(listp->list);
+    for (i = 0; i < nchoices; i++) {
+	str = XmStringCreateSimple(items[i].label);
+        XmListAddItemUnselected(listp->list, str, 0);
+        XmStringFree(str);
+    }
+    SelectListChoices(*listp, nsel, selvalues);
+    XtManageChild(listp->list);
+    if (nsel > 0) {
+        free(selvalues);
+    }
+}
+
+void SelectListChoice(ListStructure list, int choice)
+{
+    int top, visible;
+    int i = 0;
+    
+    while (i < list.nchoices && list.values[i] != choice) {
+        i++;
+    }
+    if (i < list.nchoices) {
+        i++;
+        XmListDeselectAllItems(list.list);
+        XmListSelectPos(list.list, i, True);
+        XtVaGetValues(list.list, XmNtopItemPosition, &top,
+                                 XmNvisibleItemCount, &visible,
+                                 NULL);
+        if (i < top) {
+            XmListSetPos(list.list, i);
+        } else if (i >= top + visible) {
+            XmListSetBottomPos(list.list, i);
+        }
+    }
+}
+
+void SelectListChoices(ListStructure list, int nchoices, int *choices)
+{
+    int i, j;
+    int selection_type_save;
+    
+    XtVaGetValues(list.list, XmNselectionPolicy, &selection_type_save, NULL);
+    XtVaSetValues(list.list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+                             
+    XmListDeselectAllItems(list.list);
+    for (j = 0; j < nchoices; j++) {
+        i = 0;
+        while (i < list.nchoices && list.values[i] != choices[j]) {
+            i++;
+        }
+        if (i < list.nchoices) {
+            i++;
+            XmListSelectPos(list.list, i, True);
+        }
+    }
+
+    XtVaSetValues(list.list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+int GetListChoices(ListStructure *listp, int **values)
+{
+    int i, n;
+    
+    if (XmListGetSelectedPos(listp->list, values, &n) != True) {
+        return 0;
+    }
+    
+    for (i = 0; i < n; i++) {
+        (*values)[i] = listp->values[(*values)[i] - 1];
+    }
+    
+    return n;
+}
+
+
+static OptionItem *font_option_items;
+static BitmapOptionItem *pattern_option_items;
+static BitmapOptionItem *lines_option_items;
+
+#define LINES_BM_HEIGHT 15
+#define LINES_BM_WIDTH  64
+
+int init_option_menus(void) {
+    int i, j, k, l, n;
+    
+    n = number_of_fonts();
+    font_option_items = malloc(n*sizeof(OptionItem));
+    if (font_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return GRACE_EXIT_FAILURE;
+    }
+    for (i = 0; i < n; i++) {
+        font_option_items[i].value = i;
+        font_option_items[i].label = get_fontalias(i);
+    }
+    
+    n = number_of_patterns();
+    pattern_option_items = malloc(n*sizeof(BitmapOptionItem));
+    if (pattern_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        free(font_option_items);
+        return GRACE_EXIT_FAILURE;
+    }
+    for (i = 0; i < n; i++) {
+        pattern_option_items[i].value = i;
+        if (i == 0) {
+            pattern_option_items[i].bitmap = NULL;
+        } else {
+            pattern_option_items[i].bitmap = pat_bits[i];
+        }
+    }
+    
+    n = number_of_linestyles();
+    lines_option_items = malloc(n*sizeof(BitmapOptionItem));
+    if (lines_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        free(pattern_option_items);
+        free(font_option_items);
+        return GRACE_EXIT_FAILURE;
+    }
+    for (i = 0; i < n; i++) {
+        lines_option_items[i].value = i;
+        if (i == 0) {
+            lines_option_items[i].bitmap = NULL;
+            continue;
+        }
+        
+        lines_option_items[i].bitmap = 
+              calloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
+        
+        k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
+        while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+            for (j = 0; j < dash_array_length[i]; j++) {
+                for (l = 0; l < dash_array[i][j]; l++) {
+                    if (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
+                        if (j % 2 == 0) { 
+                            /* black */
+                            lines_option_items[i].bitmap[k/8] |= 1 << k % 8;
+                        }
+                        k++;
+                    }
+                }
+            }
+        }
+    }
+
+    return GRACE_EXIT_SUCCESS;
+}
+
+OptionStructure CreateFontChoice(Widget parent, char *s)
+{
+    return (CreateOptionChoice(parent, s, 0, number_of_fonts(), font_option_items));
+}
+
+OptionStructure CreatePatternChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(), 
+                                     16, 16, pattern_option_items));
+}
+
+OptionStructure CreateLineStyleChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(), 
+                        LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
+}
+
+
+void graph_select_cb(Widget list, XtPointer client_data, XmListCallbackStruct *cbs)
+{
+    /* TODO: use values[] */
+    switch_current_graph(cbs->item_position - 1);
+}
+
+static OptionItem *graph_select_items = NULL;
+static int ngraph_select_items = 0;
+static ListStructure **graph_selectors = NULL;
+static int ngraph_selectors = 0;
+
+void update_graph_selectors(void)
+{
+    int i, new_n = number_of_graphs();
+    char buf[64];
+    OptionItem *p;
+    
+    for (i = 0; i < ngraph_select_items; i++) {
+        free(graph_select_items[i].label);
+    }
+    p = xrealloc(graph_select_items, new_n*sizeof(OptionItem));
+    if (p != NULL) {
+        graph_select_items = p;
+    } else {
+        ngraph_select_items = 0;
+        return;
+    }
+    for (i = 0; i < new_n; i++) {
+        graph_select_items[i].value = i;
+        graph_select_items[i].label = NULL;
+        sprintf(buf, "G%d (%s, %d sets)", i, 
+                                          is_graph_hidden(i) ? "hidden":"shown",
+                                          number_of_sets(i));
+        graph_select_items[i].label =
+            copy_string(graph_select_items[i].label, buf);
+    }
+    ngraph_select_items = new_n;
+    
+    for (i = 0; i < ngraph_selectors; i++) {
+        UpdateListChoice(graph_selectors[i], ngraph_select_items, graph_select_items);
+    }
+}
+
+typedef struct {
+    Widget label_item;
+    Widget focus_item;
+    Widget hide_item;
+    Widget show_item;
+    Widget duplicate_item;
+    Widget kill_item;
+    Widget copy12_item;
+    Widget copy21_item;
+    Widget move12_item;
+    Widget move21_item;
+    Widget swap_item;
+} GraphPopupMenu;
+
+typedef enum {
+    GraphMenuFocusCB,
+    GraphMenuHideCB,
+    GraphMenuShowCB,
+    GraphMenuDuplicateCB,
+    GraphMenuKillCB,
+    GraphMenuCopy12CB,
+    GraphMenuCopy21CB,
+    GraphMenuMove12CB,
+    GraphMenuMove21CB,
+    GraphMenuSwapCB,
+    GraphMenuNewCB
+} GraphMenuCBtype;
+
+void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
+{
+    int err = FALSE;
+    int i, n, *values;
+    char buf[32];
+
+    n = GetListChoices(listp, &values);
+    
+    switch (type) {
+    case GraphMenuFocusCB:
+        if (n == 1) {
+            switch_current_graph(values[0]);
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuHideCB:
+        if (n > 0) {
+            for (i = 0; i < n; i++) {
+                set_graph_hidden(values[i], TRUE);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuShowCB:
+        if (n > 0) {
+            for (i = 0; i < n; i++) {
+                set_graph_hidden(values[i], FALSE);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuDuplicateCB:
+        if (n > 0) {
+            for (i = 0; i < n; i++) {
+                duplicate_graph(values[i]);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuKillCB:
+        if (n > 0) {
+            if (yesno("Kill selected graph(s)?", NULL, NULL, NULL)) {
+                for (i = 0; i < n; i++) {
+                    kill_graph(values[i]);
+                }
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuCopy12CB:
+        if (n == 2) {
+            sprintf(buf, "Overwrite G%d?", values[1]);
+            if (yesno(buf, NULL, NULL, NULL)) {
+                copy_graph(values[0], values[1]);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuCopy21CB:
+        if (n == 2) {
+            sprintf(buf, "Overwrite G%d?", values[0]);
+            if (yesno(buf, NULL, NULL, NULL)) {
+                copy_graph(values[1], values[0]);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuMove12CB:
+        if (n == 2) {
+            sprintf(buf, "Replace G%d?", values[1]);
+            if (yesno(buf, NULL, NULL, NULL)) {
+                move_graph(values[0], values[1]);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuMove21CB:
+        if (n == 2) {
+            sprintf(buf, "Replace G%d?", values[0]);
+            if (yesno(buf, NULL, NULL, NULL)) {
+                move_graph(values[1], values[0]);
+            }
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuSwapCB:
+        if (n == 2) {
+            swap_graph(values[0], values[1]);
+        } else {
+            err = TRUE;
+        }
+        break;
+    case GraphMenuNewCB:
+        set_graph_active(number_of_graphs(), TRUE);
+        break;
+    default:
+        err = TRUE;
+        break;
+    }
+
+    if (n > 0) {
+        free(values);
+    }
+
+    if (err == TRUE) {
+        errmsg("Internal error in a graph selector callback");
+    } else {
+        update_all();
+        drawgraph();
+    }
+}
+
+void switch_focus_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuFocusCB);
+}
+
+void hide_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuHideCB);
+}
+
+void show_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuShowCB);
+}
+
+void duplicate_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuDuplicateCB);
+}
+
+void kill_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuKillCB);
+}
+
+void copy12_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuCopy12CB);
+}
+
+void copy21_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuCopy21CB);
+}
+
+void move12_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuMove12CB);
+}
+
+void move21_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuMove21CB);
+}
+
+void swap_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuSwapCB);
+}
+
+void create_new_graph_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    graph_menu_cb((ListStructure *) client_data, GraphMenuNewCB);
+}
+
+GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
+{
+    GraphPopupMenu *graph_popup_menu;
+    Widget popup = listp->popup;
+    
+    graph_popup_menu = malloc(sizeof(GraphPopupMenu));
+    
+    graph_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
+    CreateMenuSeparator(popup, "sep");
+    graph_popup_menu->focus_item = CreateMenuButton(popup, "switchFocus", "Focus to", 'F',
+    	switch_focus_proc, (XtPointer) listp, 0);
+    CreateMenuSeparator(popup, "sep");
+    graph_popup_menu->hide_item = CreateMenuButton(popup, "hide", "Hide", 'H',
+    	hide_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->show_item = CreateMenuButton(popup, "show", "Show", 'S',
+    	show_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->duplicate_item = CreateMenuButton(popup, "duplicate", "Duplicate", 'D',
+    	duplicate_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->kill_item = CreateMenuButton(popup, "kill", "Kill", 'K',
+    	kill_graph_proc, (XtPointer) listp, 0);
+    CreateMenuSeparator(popup, "sep");
+    graph_popup_menu->copy12_item = CreateMenuButton(popup, "copy12", "Copy 1 to 2", 'C',
+    	copy12_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->copy21_item = CreateMenuButton(popup, "copy21", "Copy 2 to 1", 'C',
+    	copy21_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->move12_item = CreateMenuButton(popup, "move12", "Move 1 to 2", 'M',
+    	move12_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->move21_item = CreateMenuButton(popup, "move21", "Move 2 to 1", 'M',
+    	move21_graph_proc, (XtPointer) listp, 0);
+    graph_popup_menu->swap_item = CreateMenuButton(popup, "swap", "Swap", 'w',
+    	swap_graph_proc, (XtPointer) listp, 0);
+    CreateMenuSeparator(popup, "sep");
+    CreateMenuButton(popup, "createNew", "Create new", 'C',
+    	create_new_graph_proc, (XtPointer) listp, 0);
+
+    return graph_popup_menu;
+}
+
+void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
+{
+    int i, n;
+    int *values;
+    char buf[64];
+    Widget popup;
+    XmString str;
+    GraphPopupMenu* graph_popup_menu;
+    
+    if (event->button != 3) {
+        return;
+    }
+    
+    popup = listp->popup;
+    graph_popup_menu = (GraphPopupMenu*) listp->anydata;
+    
+    n = GetListChoices(listp, &values);
+    if (n > 0) {
+        sprintf(buf, "G%d", values[0]);
+        for (i = 1; i < n; i++) {
+            if (strlen(buf) > 30) {
+                strcat(buf, "...");
+                break;
+            }
+            sprintf(buf, "%s, G%d", buf, values[i]);
+        }
+    } else {
+        strcpy(buf, "None"); 
+    }
+    
+    str = XmStringCreateSimple(buf);
+    XtVaSetValues(graph_popup_menu->label_item, XmNlabelString, str, NULL);
+    XmStringFree(str);
+    
+    if (n == 0) {
+        XtSetSensitive(graph_popup_menu->hide_item, False);
+        XtSetSensitive(graph_popup_menu->show_item, False);
+        XtSetSensitive(graph_popup_menu->duplicate_item, False);
+        XtSetSensitive(graph_popup_menu->kill_item, False);
+    } else {
+        XtSetSensitive(graph_popup_menu->hide_item, True);
+        XtSetSensitive(graph_popup_menu->show_item, True);
+        XtSetSensitive(graph_popup_menu->duplicate_item, True);
+        XtSetSensitive(graph_popup_menu->kill_item, True);
+    }
+    if (n == 1) {
+        XtSetSensitive(graph_popup_menu->focus_item, True);
+    } else {
+        XtSetSensitive(graph_popup_menu->focus_item, False);
+    }
+    if (n == 2) {
+        sprintf(buf, "Copy G%d to G%d", values[0], values[1]);
+        str = XmStringCreateSimple(buf);
+        XtVaSetValues(graph_popup_menu->copy12_item, XmNlabelString, str, NULL);
+        XmStringFree(str);
+        XtManageChild(graph_popup_menu->copy12_item);
+        sprintf(buf, "Copy G%d to G%d", values[1], values[0]);
+        str = XmStringCreateSimple(buf);
+        XtVaSetValues(graph_popup_menu->copy21_item, XmNlabelString, str, NULL);
+        XmStringFree(str);
+        XtManageChild(graph_popup_menu->copy21_item);
+        sprintf(buf, "Move G%d to G%d", values[0], values[1]);
+        str = XmStringCreateSimple(buf);
+        XtVaSetValues(graph_popup_menu->move12_item, XmNlabelString, str, NULL);
+        XmStringFree(str);
+        XtManageChild(graph_popup_menu->move12_item);
+        sprintf(buf, "Move G%d to G%d", values[1], values[0]);
+        str = XmStringCreateSimple(buf);
+        XtVaSetValues(graph_popup_menu->move21_item, XmNlabelString, str, NULL);
+        XmStringFree(str);
+        XtManageChild(graph_popup_menu->move21_item);
+        XtSetSensitive(graph_popup_menu->swap_item, True);
+    } else {
+        XtUnmanageChild(graph_popup_menu->copy12_item);
+        XtUnmanageChild(graph_popup_menu->copy21_item);
+        XtUnmanageChild(graph_popup_menu->move12_item);
+        XtUnmanageChild(graph_popup_menu->move21_item);
+        XtSetSensitive(graph_popup_menu->swap_item, False);
+    }
+    
+    if (n > 0) {
+        free(values);
+    }
+    XmMenuPosition(popup, event);
+    XtManageChild(popup);
+}
+
+void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    int i, n;
+    int selection_type_save;
+    
+    XtVaGetValues(w,
+                  XmNselectionPolicy, &selection_type_save,
+                  XmNitemCount, &n,
+                  NULL);
+    XtVaSetValues(w, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+                             
+    XmListDeselectAllItems(w);
+    for (i = 1; i <= n; i++) {
+        XmListSelectPos(w, i, False);
+    }
+    
+    XtVaSetValues(w, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+static char graph_translation_table[] = "\
+    Ctrl<Key>A: list_choice_selectall()";
+
+ListStructure CreateNewGraphChoice(Widget parent, char *labelstr,
+                                                XtCallbackProc cbproc)
+{
+    ListStructure *retvalp;
+        
+    ngraph_selectors++;
+    graph_selectors = xrealloc(graph_selectors, 
+                                    ngraph_selectors*sizeof(ListStructure *));
+    retvalp = malloc(sizeof(ListStructure));
+    graph_selectors[ngraph_selectors - 1] = retvalp;
+    
+    *retvalp = CreateListChoice(parent,
+                            labelstr, ngraph_select_items, graph_select_items);
+    
+    XtAddCallback(retvalp->list, XmNdefaultActionCallback,
+                               (XtCallbackProc) graph_select_cb, NULL);
+    XtAddCallback(retvalp->list, XmNextendedSelectionCallback,
+                                cbproc, NULL);
+    
+    retvalp->popup = XmCreatePopupMenu(retvalp->list, "graphPopupMenu", NULL, 0);
+    retvalp->anydata = CreateGraphPopupEntries(retvalp);
+    
+    XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
+                            (XtEventHandler) graph_popup, retvalp);
+    XtOverrideTranslations(retvalp->list, 
+                             XtParseTranslationTable(graph_translation_table));
+
+    update_graph_selectors();
+   
+    return *retvalp;
+}
+
+void set_graph_selectors(int gno)
+{
+    int i;
+    
+    for (i = 0; i < ngraph_selectors; i++) {
+        SelectListChoice(*graph_selectors[i], gno);
+    }
+}
+
+
+Widget *CreatePanelChoice0(Widget parent, char *labelstr, int ncols, int nchoices,...)
+{
+    va_list var;
+    int i = 0;
+    XmString str;
+    char *s;
+    Widget *retval;
+
+    nchoices--;
+
+    retval = (Widget *) XtMalloc((nchoices + 2) * sizeof(Widget));
+
+    retval[1] = XmCreatePulldownMenu(parent, "pulldown", NULL, 0);
+    
+    if (ncols > 0) {
+        XtVaSetValues(retval[1],
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, ncols,
+                      NULL);
+    }
+
+    va_start(var, nchoices);
+    i = 0;
+    while ((s = va_arg(var, char *)) != NULL) {
+	retval[i + 2] = XmCreatePushButton(retval[1], s, NULL, 0);
+	i++;
+    }
+    if (i != nchoices) {
+	errmsg("Incorrect number of selections in CreatePanelChoice0()");
+    }
+    va_end(var);
+
+    XtManageChildren(retval + 2, nchoices);
+
+    retval[0] = XmCreateOptionMenu(parent, "optionmenu", NULL, 0);
+    str = XmStringCreate(labelstr, charset);
+    XtVaSetValues(retval[0],
+		  XmNlabelString, str,
+		  XmNsubMenuId, retval[1],
+		  XmNwhichButton, 1,
+		  NULL);
+    XmStringFree(str);
+    XtManageChild(retval[0]);
+
+    return retval;
+}
+
+Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
+{
+    va_list var;
+    int i = 0;
+    XmString str;
+    char *s;
+    Widget *retval;
+
+    nchoices--;
+
+    retval = (Widget *) XtMalloc((nchoices + 2) * sizeof(Widget));
+
+    retval[1] = XmCreatePulldownMenu(parent, "pulldown", NULL, 0);
+    
+    va_start(var, nchoices);
+    i = 0;
+    while ((s = va_arg(var, char *)) != NULL) {
+	retval[i + 2] = XmCreatePushButton(retval[1], s, NULL, 0);
+	i++;
+    }
+    if (i != nchoices) {
+	errmsg("Incorrect number of selections in CreatePanelChoice0()");
+    }
+    va_end(var);
+
+    XtManageChildren(retval + 2, nchoices);
+
+    retval[0] = XmCreateOptionMenu(parent, "optionmenu", NULL, 0);
+    str = XmStringCreate(labelstr, charset);
+    XtVaSetValues(retval[0],
+		  XmNlabelString, str,
+		  XmNsubMenuId, retval[1],
+		  XmNwhichButton, 1,
+		  NULL);
+    XmStringFree(str);
+    XtManageChild(retval[0]);
+
+    return retval;
+}
+
+
+void SetChoice(Widget * w, int value)
+{
+    Arg a;
+
+    if (w == (Widget *) NULL) {
+	return;
+    }
+    if (w[value + 2] == (Widget) NULL) {
+	errwin("Internal error, SetChoice: Attempt to set NULL Widget");
+	return;
+    }
+    XtSetArg(a, XmNmenuHistory, w[value + 2]);
+    XtSetValues(w[0], &a, 1);
+}
+
+int GetChoice(Widget * w)
+{
+    Arg a;
+    Widget warg;
+    int i;
+
+    if (w == (Widget *) NULL) {
+	errwin("Internal error, GetChoice called with NULL argument");
+	return 0;
+    }
+    XtSetArg(a, XmNmenuHistory, &warg);
+    XtGetValues(w[0], &a, 1);
+    i = 0;
+    while (w[i + 2] != warg) {
+	if (w[i + 2] == (Widget) NULL) {
+	    errwin("Internal error, GetChoice: Found NULL in Widget list");
+	    return 0;
+	}
+	i++;
+    }
+    return i;
+}
+
+
+Widget *CreateGraphChoice(Widget parent, char *labelstr, int ngraphs, int type)
+{
+    int i = 0;
+    XmString str;
+    char *name, buf[32];
+    Widget *retval = NULL;
+
+    strcpy(buf, "graphchoice");
+    name = buf;
+
+    switch (type) {
+    case 0:
+	retval = (Widget *) XtMalloc((ngraphs + 2) * sizeof(Widget));
+	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+	XtVaSetValues(retval[1],
+		      XmNorientation, XmVERTICAL,
+		      XmNpacking, XmPACK_COLUMN,
+		      XmNnumColumns, 4,
+		      NULL);
+	i = 0;
+	for (i = 0; i < ngraphs; i++) {
+	    sprintf(buf, "%d", i);
+	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+	}
+	XtManageChildren(retval + 2, ngraphs);
+
+	str = XmStringCreate(labelstr, charset);
+
+	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+	XtVaSetValues(retval[0],
+		      XmNlabelString, str,
+		      XmNsubMenuId, retval[1],
+		      XmNwhichButton, 1,
+		      NULL);
+	XtManageChild(retval[0]);
+	break;
+
+    case 1:
+	retval = (Widget *) XtMalloc((ngraphs + 3) * sizeof(Widget));
+	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+	XtVaSetValues(retval[1],
+		      XmNorientation, XmVERTICAL,
+		      XmNpacking, XmPACK_COLUMN,
+		      XmNnumColumns, 4,
+		      NULL);
+	retval[2] = XmCreatePushButton(retval[1], "Current", NULL, 0);
+	for (i = 1; i <= ngraphs; i++) {
+	    sprintf(buf, "%d", i - 1);
+	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+	}
+	XtManageChildren(retval + 2, ngraphs + 1);
+	str = XmStringCreate(labelstr, charset);
+	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+	XtVaSetValues(retval[0],
+		      XmNlabelString, str,
+		      XmNsubMenuId, retval[1],
+		      XmNwhichButton, 1,
+		      NULL);
+	XtManageChild(retval[0]);
+	break;
+    case 2:
+	retval = (Widget *) XtMalloc((ngraphs + 4) * sizeof(Widget));
+	retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+	XtVaSetValues(retval[1],
+		      XmNorientation, XmVERTICAL,
+		      XmNpacking, XmPACK_COLUMN,
+		      XmNnumColumns, 4,
+		      NULL);
+	retval[2] = XmCreatePushButton(retval[1], "Current", NULL, 0);
+	for (i = 1; i <= ngraphs; i++) {
+	    sprintf(buf, "%d", i - 1);
+	    retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+	}
+	retval[ngraphs + 3] = XmCreatePushButton(retval[1], "All", NULL, 0);
+
+	XtManageChildren(retval + 2, ngraphs + 2);
+	str = XmStringCreate(labelstr, charset);
+	retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+	XtVaSetValues(retval[0],
+		      XmNlabelString, str,
+		      XmNsubMenuId, retval[1],
+		      XmNwhichButton, 1,
+		      NULL);
+	XtManageChild(retval[0]);
+	break;
+    }
+    return retval;
+}
+
+
+Widget *CreateColorChoice(Widget parent, char *s)
+{
+    int nchoices, ncols, i = 0;
+    char *name, labelstr[32], buf[32];
+    
+    Widget *retval;
+    XmString str;
+
+    if (s == NULL) {
+	strcpy(labelstr, "");
+    } else {
+	strcpy(labelstr, s);
+    }
+
+    ncols = (int) sqrt((double) number_of_colors());
+    if (ncols == 0) {
+	ncols = 1;
+    }
+    nchoices = number_of_colors();
+    retval = (Widget *) XtMalloc((number_of_colors() + 2) * sizeof(Widget));
+
+    strcpy(buf, "colorchoice");
+    name = buf;
+    retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+    XtVaSetValues(retval[1],
+		  XmNorientation, XmVERTICAL,
+		  XmNpacking, XmPACK_COLUMN,
+		  XmNnumColumns, ncols,
+		  NULL);
+    for (i = 0; i < number_of_colors(); i++) {
+	strcpy(buf, get_colorname(i));
+	if (get_colortype(i) == COLOR_AUX) {
+	    strcat(buf, " (a)");
+	}
+	retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+	XtVaSetValues(retval[i + 2], XmNbackground, xvlibcolors[i], NULL);
+	if ((get_colorintensity(i) < 0.5 && is_video_reversed() == FALSE) ||
+            (get_colorintensity(i) > 0.5 && is_video_reversed() == TRUE )) {
+	    XtVaSetValues(retval[i + 2], XmNforeground, xvlibcolors[0], NULL);
+	} else {
+	    XtVaSetValues(retval[i + 2], XmNforeground, xvlibcolors[1], NULL);
+	}
+    }
+    XtManageChildren(retval + 2, nchoices);
+
+    strcpy(buf, "coloroption");
+    str = XmStringCreate(labelstr, charset);
+
+    retval[0] = XmCreateOptionMenu(parent, buf, NULL, 0);
+    XtVaSetValues(retval[0],
+		  XmNlabelString, str,
+		  XmNsubMenuId, retval[1],
+		  XmNwhichButton, 1,
+		  NULL);
+    XtManageChild(retval[0]);
+    return retval;
+}
+
+Widget *CreateSetChoice(Widget parent, char *labelstr, int nsets, int type)
+{
+    int nmal, i = 0;
+    XmString str;
+    char *name = "setchoice";
+    char buf[10];
+    Widget *retval = NULL;
+ 
+    switch (type) {
+    case 0:
+        nmal = nsets + 2;
+        retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
+        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[1],
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, nsets / 10,
+                      NULL);
+        i = 0;
+        for (i = 0; i < nsets; i++) {
+            sprintf(buf, "%d", i);
+            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+        }
+        XtManageChildren(retval + 2, nsets);
+ 
+        str = XmStringCreate(labelstr, charset);
+ 
+        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[0],
+                      XmNlabelString, str,
+                      XmNsubMenuId, retval[1],
+                      XmNwhichButton, 1,
+                      NULL);
+        XtManageChild(retval[0]);
+        break;
+    case 1:
+        nmal = nsets + 3;
+        retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
+        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[1],
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, nsets / 10,
+                      NULL);
+        i = 0;
+        for (i = 0; i < nsets; i++) {
+            sprintf(buf, "%d", i);
+            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+        }
+        retval[nsets + 2] = XmCreatePushButton(retval[1], "All", NULL, 0);
+        XtManageChildren(retval + 2, nsets + 1);
+ 
+        str = XmStringCreate(labelstr, charset);
+ 
+        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[0],
+                      XmNlabelString, str,
+                      XmNsubMenuId, retval[1],
+                      XmNwhichButton, 1,
+                      NULL);
+        XtManageChild(retval[0]);
+        break;
+    case 2:
+        retval = (Widget *) XtMalloc((nsets + 3) * sizeof(Widget));
+        strcpy(buf, "setchoice");
+        name = buf;
+        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[1],
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, nsets / 10,
+                      NULL);
+        i = 0;
+        for (i = 0; i < nsets; i++) {
+            sprintf(buf, "%d", i);
+            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+        }
+        retval[nsets + 2] = XmCreatePushButton(retval[1], "All", NULL, 0);
+        XtManageChildren(retval + 2, nsets + 1);
+ 
+        str = XmStringCreate(labelstr, charset);
+ 
+        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[0],
+                      XmNlabelString, str,
+                      XmNsubMenuId, retval[1],
+                      XmNwhichButton, 1,
+                      NULL);
+        XtManageChild(retval[0]);
+        break;
+/* 4 is Next */
+    case 4:
+        retval = (Widget *) XtMalloc((nsets + 3) * sizeof(Widget));
+        strcpy(buf, "setchoice");
+        name = buf;
+        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[1],
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, nsets / 10,
+                      NULL);
+        retval[2] = XmCreatePushButton(retval[1], "Next", NULL, 0);
+        for (i = 1; i <= nsets; i++) {
+            sprintf(buf, "%d", i - 1);
+            retval[i + 2] = XmCreatePushButton(retval[1], buf, NULL, 0);
+        }
+        XtManageChildren(retval + 2, nsets + 1);
+ 
+        str = XmStringCreate(labelstr, charset);
+ 
+        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[0],
+                      XmNlabelString, str,
+                      XmNsubMenuId, retval[1],
+                      XmNwhichButton, 1,
+                      NULL);
+        XtManageChild(retval[0]);
+        break;
+/* 5 is Next, Same */
+    case 6:                     /* All, then sets */
+        nmal = nsets + 3;
+        retval = (Widget *) XtMalloc(nmal * sizeof(Widget));
+        retval[1] = XmCreatePulldownMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[1],
+                      XmNorientation, XmVERTICAL,
+                      XmNpacking, XmPACK_COLUMN,
+                      XmNnumColumns, nsets / 10,
+                      NULL);
+        retval[2] = XmCreatePushButton(retval[1], "All", NULL, 0);
+        for (i = 0; i < nsets; i++) {
+            sprintf(buf, "%d", i);
+            retval[i + 3] = XmCreatePushButton(retval[1], buf, NULL, 0);
+        }
+        XtManageChildren(retval + 2, nsets + 1);
+ 
+        str = XmStringCreate(labelstr, charset);
+ 
+        retval[0] = XmCreateOptionMenu(parent, name, NULL, 0);
+        XtVaSetValues(retval[0],
+                      XmNlabelString, str,
+                      XmNsubMenuId, retval[1],
+                      XmNwhichButton, 1,
+                      NULL);
+        XtManageChild(retval[0]);
+        break;
+    }
+    return retval;
+}
+
+Widget *CreateLineWidthChoice(Widget parent, char *s)
+{
+    Widget *wp, rc;
+
+    rc = XmCreateRowColumn(parent, "rcLineWidth", NULL, 0);
+    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+    wp = CreatePanelChoice(rc, s,
+                           11,
+                           "0", "1", "2", "3", "4", "5",
+                           "6", "7", "8", "9",
+                           NULL,
+                           0);
+    XtManageChild(rc);
+    
+    return wp;
+}
+
+Widget *CreateFormatChoice(Widget parent, char *s)
+{
+    Widget *w;
+    
+    w = CreatePanelChoice0(parent,
+                       s, 4,
+                       32,
+                       "Decimal",
+                       "Exponential",
+                       "General",
+                       "Power",
+                       "Scientific",
+                       "Engineering",
+                       "DD-MM-YY",
+                       "MM-DD-YY",
+                       "YY-MM-DD",
+                       "MM-YY",
+                       "MM-DD",
+                       "Month-DD",
+                       "DD-Month",
+                       "Month (abrev.)",
+                       "Month (abrev.)-YY",
+                       "Month",
+                       "Day of week (abrev.)",
+                       "Day of week",
+                       "Day of year",
+                       "HH:MM:SS.s",
+                       "MM-DD HH:MM:SS.s",
+                       "MM-DD-YY HH:MM:SS.s",
+                       "YY-MM-DD HH:MM:SS.s",
+                       "Degrees (lon)",
+                       "DD MM' (lon)",
+                       "DD MM' SS.s\" (lon)",
+                       "MM' SS.s\" (lon)",
+                       "Degrees (lat)",
+                       "DD MM' (lat)",
+                       "DD MM' SS.s\" (lat)",
+                       "MM' SS.s\" (lat)", 
+                       NULL,
+                       0);
+    
+    return(w);
+}
+
+Widget *CreatePrecisionChoice(Widget parent, char *s)
+{
+    Widget *w;
+    
+    w = CreatePanelChoice(parent, s,
+                          11,
+                          "0", "1", "2", "3", "4",
+                          "5", "6", "7", "8", "9",
+                          NULL,
+                          0);
+
+    return(w);
+}
+    
+
+
+Widget CreateCharSizeChoice(Widget parent, char *s)
+{
+    Widget w;
+    XmString str;
+    
+/*
+ *     rc = XmCreateRowColumn(parent, "rcCharSize", NULL, 0);
+ *     XtVaSetValues(rc, 
+ *                   XmNorientation, XmHORIZONTAL,
+ *                   XmNisAligned, True,
+ *                   XmNentryAlignment, XmALIGNMENT_END,
+ *                   XmNadjustLast, True,
+ *                   NULL);
+ * 
+ *     XtVaCreateManagedWidget(s, xmLabelWidgetClass, rc, NULL);
+ */
+
+    str = XmStringCreate(s, charset);
+    w = XtVaCreateManagedWidget("charSize", xmScaleWidgetClass, parent,
+				XmNtitleString, str,
+				XmNminimum, 0,
+				XmNmaximum, 400,
+				XmNvalue, 100,
+				XmNshowValue, True,
+#if XmVersion >= 2000    
+				XmNsliderMark, XmROUND_MARK,
+#endif
+				XmNprocessingDirection, XmMAX_ON_RIGHT,
+				XmNorientation, XmHORIZONTAL,
+				NULL);
+    XmStringFree(str);
+/*
+ *     XtManageChild(rc);
+ */
+    
+    return w;
+}
+
+double GetCharSizeChoice(Widget w)
+{
+    Arg arg;
+    int value;
+    
+    XtSetArg(arg, XmNvalue, &value);
+    XtGetValues(w, &arg, 1);
+    
+    return ((double) value / 100);
+}
+
+void SetCharSizeChoice(Widget w, double size)
+{
+    Arg arg;
+    int value;
+    
+    if (w == NULL) {
+        return;
+    }
+    
+    value = (int) rint(size*100);
+    XtSetArg(arg, XmNvalue, value);
+    XtSetValues(w, &arg, 1);
+    
+    return;
+}
+
+Widget CreateAngleChoice(Widget parent, char *s)
+{
+    Widget w;
+    XmString str;
+    
+    str = XmStringCreate(s, charset);
+    w = XtVaCreateManagedWidget("angle", xmScaleWidgetClass, parent,
+				XmNtitleString, str,
+				XmNminimum, 0,
+				XmNmaximum, 360,
+				XmNvalue, 100,
+				XmNshowValue, True,
+#if XmVersion >= 2000    
+				XmNsliderMark, XmROUND_MARK,
+#endif
+				XmNprocessingDirection, XmMAX_ON_RIGHT,
+				XmNorientation, XmHORIZONTAL,
+				NULL);
+    XmStringFree(str);
+
+    return w;
+}
+
+int GetAngleChoice(Widget w)
+{
+    Arg arg;
+    int value;
+    
+    XtSetArg(arg, XmNvalue, &value);
+    XtGetValues(w, &arg, 1);
+    
+    return (value);
+}
+
+void SetAngleChoice(Widget w, int angle)
+{
+    Arg arg;
+    
+    XtSetArg(arg, XmNvalue, angle);
+    XtSetValues(w, &arg, 1);
+    
+    return;
+}
+
+
+Widget CreateToggleButton(Widget parent, char *s)
+{
+    return (XtVaCreateManagedWidget(s, xmToggleButtonWidgetClass, parent, NULL));
+}
+
+int GetToggleButtonState(Widget w)
+{
+    return (XmToggleButtonGetState(w));
+}
+
+void SetToggleButtonState(Widget w, int value)
+{
+    if (w == NULL) {
+        return;
+    }
+    XmToggleButtonSetState(w, value ? True:False, False);
+    
+    return;
+}
+
+Widget CreateFrame(Widget parent, char *s)
+{
+    Widget fr;
+    
+    fr = XtVaCreateManagedWidget("frame", xmFrameWidgetClass, parent, NULL);
+    if (s != NULL) {
+        XtVaCreateManagedWidget(s, xmLabelWidgetClass, fr,
+				XmNchildType, XmFRAME_TITLE_CHILD,
+				NULL);
+    }
+    
+    return (fr);   
+}
+
+Widget CreateTab(Widget parent)
+{
+    Widget tab;
+    
+    tab = XtVaCreateManagedWidget("tab", xmTabWidgetClass, parent, NULL);
+    
+    return (tab);
+}
+
+Widget CreateTabPage(Widget parent, char *s)
+{
+    Widget w;
+    XmString str;
+    
+    w = XmCreateRowColumn(parent, "tabPage", NULL, 0);
+    str = XmStringCreateSimple(s);
+    XtVaSetValues(w, XmNtabLabel, str, NULL);
+    XmStringFree(str);
+    XtManageChild(w);
+    
+    return (w);
+}
+
+void SelectTabPage(Widget tab, Widget w)
+{
+    XmTabSetTabWidget(tab, w, True);
+}
+
+Widget CreateTextItem2(Widget parent, int len, char *s)
+{
+    Widget w;
+    Widget rc;
+    XmString str;
+    rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+    str = XmStringCreateLtoR(s, charset);
+    XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
+			    XmNlabelString, str,
+			    NULL);
+    XmStringFree(str);
+    w = XtVaCreateManagedWidget("text", xmTextWidgetClass, rc,
+				XmNtraversalOn, True,
+				XmNcolumns, len,
+				NULL);
+    XtManageChild(rc);
+    return w;
+}
+
+Widget CreateTextItem4(Widget parent, int len, char *label)
+{
+    Widget retval;
+    XtVaCreateManagedWidget(label, xmLabelWidgetClass, parent, NULL);
+    retval = XtVaCreateManagedWidget("text", xmTextWidgetClass, parent, NULL);
+    XtVaSetValues(retval, XmNcolumns, len, NULL);
+    return retval;
+}
+
+/* 
+ * create a multiline editable window
+ * parent = parent widget
+ * len    = width of edit window
+ * hgt    = number of lines in edit window
+ * s      = label for window
+ * 
+ * returns the edit window widget
+ */
+Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s)
+{
+    Widget w;
+    Widget rc;
+    XmString str;
+	
+    rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+    str = XmStringCreateLtoR(s, charset);
+    XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
+			    XmNlabelString, str,
+			    NULL);
+    XmStringFree(str);
+    w = XmCreateScrolledText( rc, "text", NULL, 0 );
+	XtVaSetValues( w,
+			XmNcolumns, len,
+			XmNrows, hgt,
+			XmNeditMode, XmMULTI_LINE_EDIT,
+		    XmNwordWrap, True,		
+			NULL);
+    XtManageChild(w);
+    XtManageChild(rc);
+    return w;
+}
+
+
+char *xv_getstr(Widget w)
+/* 
+ * return the string from a text widget
+ *
+ * NB - newlines are converted to spaces
+ */
+{
+    char *s;
+    int i;
+    static char buf[MAX_STRING_LENGTH];
+
+    strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
+    XtFree(s);
+    
+    i=strlen(buf);
+    for (i--; i >= 0; i--) {
+        if (buf[i] == '\n') {
+            buf[i] = ' ';
+        }
+    }
+    return buf;
+}
+
+
+/*
+ * xv_evalexpr - take a text field and pass it to the parser if it needs to
+ * 					evaluated, else use atof().
+ *               place the double result in answer
+ *               if an error, return False, else True
+ */
+Boolean xv_evalexpr(Widget w, double *answer )
+{
+    char *s;
+    static char buf[MAX_STRING_LENGTH];
+    int i, len, ier = 0;
+    double x, y, a, b, c, d;
+	
+    strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
+    XtFree(s);
+
+    if (!(len = strlen( buf ) )) { /* check for zero length */
+        *answer = 0;
+        return GRACE_EXIT_FAILURE;
+    }
+    /* first character may be a sign */
+    if (!fpdigit[(int) s[0]] && s[0] != '-' && s[0] != '+') {
+        i = len +1;
+    } else {
+        i = 1;
+    }
+
+    for (; i<len; i++) {
+        if (!fpdigit[(int) buf[i]]) {
+            break;
+        }
+    }
+
+    if (i == len) {         /* only floating point digits */
+        *answer = atof( buf );
+        return GRACE_EXIT_SUCCESS;
+    } else {                /* must evaluate an expression */
+        scanner(buf, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &ier);
+        if( !ier ) {
+            *answer = result;
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            *answer = 0;
+            return GRACE_EXIT_FAILURE;
+        }
+    }
+}
+
+/*
+ * xv_evalexpri - take a text field and pass it to the parser if it needs to
+ * 					evaluated, else use atoi().
+ *               place the integer result in answer
+ *               if an error, return False, else True
+ */
+Boolean xv_evalexpri(Widget w, int *answer )
+{
+    char *s;
+    static char buf[MAX_STRING_LENGTH];
+    int i, len, ier = 0;
+    double x, y, a, b, c, d;
+	
+    strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
+    XtFree(s);
+
+    if (!(len = strlen( buf ) )) { /* check for zero length */
+        *answer = 0;
+        return GRACE_EXIT_FAILURE;
+    }
+    /* first character may be a sign */
+    if (!fpdigit[(int) s[0]] && s[0] != '-' && s[0] != '+') {
+        i = len +1;
+    } else {
+        i = 1;
+    }
+    
+    for (; i<len; i++) {
+        if (!fpdigit[(int) buf[i]]) {
+            break;
+        }
+    }
+
+    if (i == len) {             /* only floating point digits */
+        *answer = atoi(buf);
+        return GRACE_EXIT_SUCCESS;
+    } else {                    /* must evaluate an expression */
+        scanner(buf, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &ier);
+        if( !ier ) {
+            *answer = (int)result;
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            *answer = 0;
+            return GRACE_EXIT_FAILURE;
+        }
+    }
+}
+
+
+void xv_setstr(Widget w, char *s)
+{
+    if (s != NULL && w != NULL) {
+        XmTextSetString(w, s);
+    }
+}
+
+/*
+ * generic unmanage popup routine, used elswhere
+ */
+void destroy_dialog(Widget w, XtPointer p)
+{
+    XtUnmanageChild((Widget) p);
+}
+
+/*
+ * handle the close item on the WM menu
+ */
+void handle_close(Widget w)
+{
+    Atom WM_DELETE_WINDOW;
+    XtVaSetValues(w,
+		  XmNdeleteResponse, XmDO_NOTHING,
+		  NULL);
+    WM_DELETE_WINDOW = XmInternAtom(XtDisplay(app_shell), "WM_DELETE_WINDOW",
+                                    False);
+    XmAddProtocolCallback((Widget) w, (Atom) XM_WM_PROTOCOL_ATOM(w),
+                          (Atom) WM_DELETE_WINDOW,
+			  (XtCallbackProc) destroy_dialog, (XtPointer) w);
+}
+
+/*
+ * Manage and raise
+ */
+void XtRaise(Widget w)
+{
+    XtManageChild(w);
+    XMapRaised(XtDisplay(w), XtWindow(w));
+    savewidget(w);
+}
+
+
+static Widget *savewidgets = NULL;
+static int nsavedwidgets = 0;
+
+void savewidget(Widget w)
+{
+    int i;
+    if (savewidgets == NULL) {
+	savewidgets = (Widget *) malloc(sizeof(Widget));
+    } else {
+	for (i = 0; i < nsavedwidgets; i++) {
+	    if (w == savewidgets[i]) {
+		return;
+	    }
+	}
+	savewidgets = (Widget *) realloc(savewidgets, (nsavedwidgets + 2) * sizeof(Widget));
+    }
+    savewidgets[nsavedwidgets] = w;
+    nsavedwidgets++;
+}
+
+void savewidgetstate(Widget w)
+{
+    int i;
+    if (savewidgets == NULL) {
+    } else {
+	for (i = 0; i < nsavedwidgets; i++) {
+	}
+    }
+}
+
+void restorewidgetstate(Widget w)
+{
+    int i;
+    if (savewidgets == NULL) {
+    } else {
+	for (i = 0; i < nsavedwidgets; i++) {
+	}
+    }
+}
+
+void deletewidget(Widget w)
+{
+    int i, j;
+    if (savewidgets == NULL || nsavedwidgets == 0) {
+	return;
+    } else {
+	/* find the widget */
+	for (i = 0; i < nsavedwidgets; i++) {
+	    if (w == savewidgets[i]) {
+		break;
+	    }
+	}
+/* shouldn't happen, widget not in the saved widget list */
+	if (i == nsavedwidgets) {
+	    return;
+	}
+/* remove the widget from the list */
+	for (j = i; j < nsavedwidgets - 1; j++) {
+	    savewidgets[j] = savewidgets[j + 1];
+	}
+	if (nsavedwidgets - 1 > 0) {
+	    savewidgets = (Widget *) realloc(savewidgets, (nsavedwidgets - 1) * sizeof(Widget));
+	    nsavedwidgets--;
+	} else {
+	    free(savewidgets);
+	    savewidgets = NULL;
+	}
+    }
+}
+
+void DefineDialogCursor(Cursor c)
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+	XDefineCursor(disp, XtWindow(savewidgets[i]), c);
+/*
+        attrs.cursor = c;
+        XChangeWindowAttributes(disp, XtWindow(savewidgets[i]), CWCursor, &attrs);
+*/
+    }
+    XFlush(disp);
+}
+
+void UndefineDialogCursor()
+{
+    int i;
+    
+    for (i = 0; i < nsavedwidgets; i++) {
+	XUndefineCursor(disp, XtWindow(savewidgets[i]));
+    }
+    XFlush(disp);
+}
+
+Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l)
+{
+    int i;
+    Widget form;
+    Dimension h;
+
+    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
+			    XmNfractionBase, n,
+			    NULL);
+
+    for (i = 0; i < n; i++) {
+	buts[i] = XtVaCreateManagedWidget(l[i],
+					  xmPushButtonWidgetClass, form,
+					  XmNtopAttachment, XmATTACH_FORM,
+					  XmNbottomAttachment, XmATTACH_FORM,
+					  XmNleftAttachment, XmATTACH_POSITION,
+					  XmNleftPosition, i,
+					  XmNrightAttachment, XmATTACH_POSITION,
+					  XmNrightPosition, i + 1,
+					  XmNleftOffset, (i == 0) ? 2 : 0,
+					  XmNrightOffset, 3,
+					  XmNtopOffset, 2,
+					  XmNbottomOffset, 3,
+					  NULL);
+    }
+    XtManageChild(form);
+    XtVaGetValues(buts[0], XmNheight, &h, NULL);
+    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
+    
+    return form;
+}
+
+Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l)
+{
+    int i;
+    Widget form;
+    Dimension h;
+
+    form = XtVaCreateWidget("form", xmFormWidgetClass, parent,
+			    XmNfractionBase, n,
+			    NULL);
+
+    for (i = 0; i < n; i++) {
+	buts[i] = XtVaCreateManagedWidget(l[i],
+					  xmPushButtonWidgetClass, form,
+					  XmNtopAttachment, XmATTACH_FORM,
+					  XmNbottomAttachment, XmATTACH_FORM,
+					  XmNleftAttachment, XmATTACH_POSITION,
+					  XmNleftPosition, i,
+					  XmNrightAttachment, XmATTACH_POSITION,
+					  XmNrightPosition, i + 1,
+					  XmNdefaultButtonShadowThickness, 1,
+					  XmNshowAsDefault, (i == 0) ? True : False,
+					  NULL);
+    }
+    XtManageChild(form);
+    XtVaGetValues(buts[0], XmNheight, &h, NULL);
+    XtVaSetValues(form, XmNpaneMaximum, h, XmNpaneMinimum, h, NULL);
+    
+    return form;
+}
+
+static SetChoiceItem *plist = NULL;
+static int nplist = 0;
+
+int GetSetFromString(char *buf)
+{
+    int retval = SET_SELECT_ERROR;
+    if (strcmp(buf, "New set") == 0) {
+	retval = SET_SELECT_NEXT;
+    } else if (strcmp(buf, "All sets") == 0) {
+	retval = SET_SELECT_ALL;
+    } else {
+	sscanf(buf, "S%d", &retval);
+    }
+    return retval;
+}
+
+int GetSelectedSet(SetChoiceItem l)
+{
+    int retval = SET_SELECT_ERROR;
+    int *pos_list;
+    int pos_cnt, cnt;
+    char buf[256];
+	
+    if (XmListGetSelectedPos(l.list, &pos_list, &pos_cnt)) {
+	XmString *s, cs;
+	char *cstr;
+	XtVaGetValues(l.list,
+		      XmNselectedItemCount, &cnt,
+		      XmNselectedItems, &s,
+		      NULL);
+	cs = XmStringCopy(*s);
+	if (XmStringGetLtoR(cs, charset, &cstr)) {
+	    strcpy(buf, cstr);
+	    if (strcmp(buf, "New set") == 0) {
+		retval = SET_SELECT_NEXT;
+	    } else if (strcmp(buf, "All sets") == 0) {
+		retval = SET_SELECT_ALL;
+	    } else if (strcmp(buf, "Nearest set") == 0) {
+		retval = SET_SELECT_NEAREST;
+	    } else {
+		sscanf(buf, "S%d", &retval);
+	    }
+	    XtFree(cstr);
+	}
+        XmStringFree(cs);
+    }
+    
+    return retval;
+}
+
+/* TODO */
+int SetSelectedSet(int gno, int setno, SetChoiceItem l)
+{
+    char buf[1024];
+    XmString xms;
+    sprintf(buf, "S%d (N=%d, %s)", setno, getsetlength(gno, setno), getcomment(gno, setno));
+    xms = XmStringCreateLtoR(buf, charset);
+    XmListSelectItem(l.list, xms, True);
+    XmStringFree(xms);
+    return 0;
+}
+
+/*
+ * if the set selection type is multiple, then get a
+ * list of sets, returns the number of selected sets.
+ */
+int GetSelectedSets(SetChoiceItem l, int **sets)
+{
+    int i;
+    int cnt = SET_SELECT_ERROR, retval = SET_SELECT_ERROR;
+    int *ptr;
+    int *pos_list;
+    int pos_cnt, gno;
+    if (XmListGetSelectedPos(l.list, &pos_list, &pos_cnt)) {
+	char buf[256];
+	char *cstr;
+	XmString *s, cs;
+
+	XtVaGetValues(l.list,
+		      XmNselectedItemCount, &cnt,
+		      XmNselectedItems, &s,
+		      NULL);
+	*sets = (int *) malloc(cnt * sizeof(int));
+	ptr = *sets;
+	for (i = 0; i < cnt; i++) {
+	    cs = XmStringCopy(s[i]);
+	    if (XmStringGetLtoR(cs, charset, &cstr)) {
+		strcpy(buf, cstr);
+		if (strcmp(buf, "New set") == 0) {
+		    retval = SET_SELECT_NEXT;
+		    return retval;
+		} else if (strcmp(buf, "All sets") == 0) {
+		    int j, nsets = 0;
+		    retval = SET_SELECT_ALL;
+		    if (l.gno == GRAPH_SELECT_CURRENT) {
+			gno = get_cg();
+		    } else {
+			gno = l.gno;
+		    }
+		    retval = nactive(gno);
+		    *sets = (int *) realloc(*sets, retval * sizeof(int));
+		    ptr = *sets;
+		    for (j = 0; j < number_of_sets(gno); j++) {
+			if (is_set_active(gno, j)) {
+			    ptr[nsets] = j;
+			    nsets++;
+			}
+		    }
+		    if (nsets != retval) {
+			errwin("Nsets != reval, can't happen!");
+		    }
+		    return retval;
+		} else {
+		    sscanf(buf, "S%d", &retval);
+		}
+		ptr[i] = retval;
+/*
+		printf("S%d %d\n", retval, ptr[i]);
+*/
+		XtFree(cstr);
+	    }
+	    XmStringFree(cs);
+	}
+    }
+/*
+    printf("Selected sets:");
+    for (i = 0; i < cnt; i++) {
+	printf(" %d", ptr[i]);
+    }
+    printf("\n");
+*/
+    return cnt;
+}
+
+void SetSelectorFilterCB(Widget w, XtPointer clientd, XtPointer calld)
+{
+    SetChoiceItem *s = (SetChoiceItem *) clientd;
+    if (XmToggleButtonGetState(w)) {
+	int i;
+	for (i = 0; i < 4; i++) {
+	    if (w == s->but[i]) {
+		break;
+	    }
+	}
+	/* update the list in s->list */
+	s->fflag = i + 1;
+	plist[s->indx].fflag = i + 1;
+	update_set_list(get_cg(), *s);
+    }
+}
+
+void DefineSetSelectorFilter(SetChoiceItem * s)
+{
+    XtAddCallback(s->but[0], XmNvalueChangedCallback, (XtCallbackProc) SetSelectorFilterCB, (XtPointer) s);
+    XtAddCallback(s->but[1], XmNvalueChangedCallback, (XtCallbackProc) SetSelectorFilterCB, (XtPointer) s);
+    XtAddCallback(s->but[2], XmNvalueChangedCallback, (XtCallbackProc) SetSelectorFilterCB, (XtPointer) s);
+    XtAddCallback(s->but[3], XmNvalueChangedCallback, (XtCallbackProc) SetSelectorFilterCB, (XtPointer) s);
+}
+
+SetChoiceItem CreateSetSelector(Widget parent,
+				char *label,
+				int type,
+				int ff,
+				int gtype,
+				int stype)
+{
+    Arg args[3];
+    Widget rc, rc2, lab;
+    SetChoiceItem sel;
+    
+    rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, parent,
+			      XmNorientation, XmVERTICAL, NULL);
+    lab = XmCreateLabel(rc2, label, NULL, 0);
+    XtManageChild(lab);
+    XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
+    XtSetArg(args[1], XmNvisibleItemCount, 8);
+    sel.list = XmCreateScrolledList(rc2, "list", args, 2);
+    if (stype == SELECTION_TYPE_MULTIPLE) {	/* multiple select */
+	XtVaSetValues(sel.list,
+		      XmNselectionPolicy, XmEXTENDED_SELECT,
+		      NULL);
+    } else {			/* single select */
+    	XtVaSetValues(sel.list,
+		      XmNselectionPolicy, XmSINGLE_SELECT,
+		      NULL);
+    }
+    sel.type = type;
+    sel.fflag = ff;
+    sel.gno = gtype;
+    XtManageChild(sel.list);
+    sel.indx = save_set_list(sel);
+    update_set_list(gtype == GRAPH_SELECT_CURRENT ? get_cg():sel.gno, sel);
+    
+    if (ff) {			/* need a filter gadget */
+	rc = XmCreateRowColumn(rc2, "rc", NULL, 0);
+	XtVaSetValues(rc,
+		      XmNorientation, XmHORIZONTAL,
+		      NULL);
+	lab = XmCreateLabel(rc, "Display:", NULL, 0);
+	XtManageChild(lab);
+	sel.rb = XmCreateRadioBox(rc, "rb", NULL, 0);
+	XtVaSetValues(sel.rb,
+		      XmNorientation, XmHORIZONTAL,
+		      XmNpacking, XmPACK_TIGHT,
+		      NULL);
+	sel.but[0] = XtVaCreateManagedWidget("Active", xmToggleButtonWidgetClass, sel.rb,
+					XmNalignment, XmALIGNMENT_CENTER,
+			    XmNindicatorOn, False, XmNshadowThickness, 2,
+					     NULL);
+	sel.but[1] = XtVaCreateManagedWidget("All", xmToggleButtonWidgetClass, sel.rb,
+					XmNalignment, XmALIGNMENT_CENTER,
+			    XmNindicatorOn, False, XmNshadowThickness, 2,
+					     NULL);
+	sel.but[2] = XtVaCreateManagedWidget("Inactive", xmToggleButtonWidgetClass, sel.rb,
+					XmNalignment, XmALIGNMENT_CENTER,
+			    XmNindicatorOn, False, XmNshadowThickness, 2,
+					     NULL);
+	sel.but[3] = XtVaCreateManagedWidget("Deact", xmToggleButtonWidgetClass, sel.rb,
+					XmNalignment, XmALIGNMENT_CENTER,
+			    XmNindicatorOn, False, XmNshadowThickness, 2,
+					     NULL);
+	XmToggleButtonSetState(sel.but[ff - 1], True, False);
+	XtManageChild(sel.rb);
+	XtManageChild(rc);
+    }
+    XtManageChild(rc2);
+    return sel;
+}
+
+int save_set_list(SetChoiceItem l)
+{
+    nplist++;
+    if (plist == NULL) {
+	plist = (SetChoiceItem *) malloc(nplist * sizeof(SetChoiceItem));
+    } else {
+	plist = (SetChoiceItem *) realloc(plist, nplist * sizeof(SetChoiceItem));
+    }
+    plist[nplist - 1] = l;
+    return nplist - 1;
+}
+
+void update_save_set_list( SetChoiceItem l, int newgr )
+{
+	plist[l.indx] = l;
+	update_set_list( newgr, plist[l.indx] );
+}
+
+void update_set_list(int gno, SetChoiceItem l)
+{
+    int i, cnt, scnt=0;
+    char buf[1024];
+    XmString *xms;
+    
+    XmListDeleteAllItems(l.list);
+    for (i = 0; i < number_of_sets(gno); i++) {
+	switch (l.fflag) {
+	case FILTER_SELECT_NONE:	/* Active sets */
+	    if (is_set_active(gno, i)) {
+		scnt++;
+	    }
+	    break;
+	case FILTER_SELECT_ALL:/* All sets */
+	    scnt++;
+	    break;
+	case FILTER_SELECT_ACTIVE:	/* Active sets */
+	    if (is_set_active(gno, i)) {
+		scnt++;
+	    }
+	    break;
+	case FILTER_SELECT_INACT:	/* Inactive sets */
+	    if (!is_set_active(gno, i)) {
+		scnt++;
+	    }
+	    break;
+	case FILTER_SELECT_DEACT:	/* Deactivated sets */
+	    if (!is_set_active(gno, i) && is_set_hidden(gno, i)) {
+		scnt++;
+	    }
+	    break;
+	}
+    }
+    switch (l.type) {		/* TODO */
+    case SET_SELECT_ACTIVE:
+	xms = (XmString *) malloc(sizeof(XmString) * scnt);
+	cnt = 0;
+	break;
+    case SET_SELECT_ALL:
+	xms = (XmString *) malloc(sizeof(XmString) * (scnt + 1));
+	xms[0] = XmStringCreateLtoR("All sets", charset);
+	cnt = 1;
+	break;
+    case SET_SELECT_NEXT:
+	xms = (XmString *) malloc(sizeof(XmString) * (scnt + 1));
+	xms[0] = XmStringCreateLtoR("New set", charset);
+	cnt = 1;
+	break;
+    case SET_SELECT_NEAREST:
+	xms = (XmString *) malloc(sizeof(XmString) * (scnt + 1));
+	xms[0] = XmStringCreateLtoR("Nearest set", charset);
+	cnt = 1;
+	break;
+    default:
+	xms = (XmString *) malloc(sizeof(XmString) * scnt);
+	cnt = 0;
+	break;
+    }
+
+    for (i = 0; i < number_of_sets(gno); i++) {
+	switch (l.fflag) {
+	case FILTER_SELECT_NONE:	/* Active sets */
+	    if (is_set_active(gno, i)) {
+		sprintf(buf, "S%d (N=%d, %s)", i, getsetlength(gno, i), getcomment(gno, i));
+		xms[cnt] = XmStringCreateLtoR(buf, charset);
+		cnt++;
+	    }
+	    break;
+	case FILTER_SELECT_ALL:/* All sets */
+	    if (is_set_active(gno, i)) {
+		sprintf(buf, "S%d (N=%d, %s)", i, getsetlength(gno, i), getcomment(gno, i));
+	    } else if (is_set_hidden(gno, i)) {
+		sprintf(buf, "S%d (DEACTIVATED)", i);
+	    } else {
+		sprintf(buf, "S%d (INACTIVE)", i);
+	    }
+	    xms[cnt] = XmStringCreateLtoR(buf, charset);
+	    cnt++;
+	    break;
+	case FILTER_SELECT_ACTIVE:	/* Active sets */
+	    if (is_set_active(gno, i)) {
+		sprintf(buf, "S%d (N=%d, %s)", i, getsetlength(gno, i), getcomment(gno, i));
+		xms[cnt] = XmStringCreateLtoR(buf, charset);
+		cnt++;
+	    }
+	    break;
+	case FILTER_SELECT_INACT:	/* Inactive sets */
+	    if (!is_set_active(gno, i)) {
+		sprintf(buf, "S%d (INACTIVE)", i);
+		xms[cnt] = XmStringCreateLtoR(buf, charset);
+		cnt++;
+	    }
+	    break;
+	case FILTER_SELECT_DEACT:	/* Deactivated sets */
+	    if (!is_set_active(gno, i) && is_set_hidden(gno, i)) {
+		sprintf(buf, "S%d (DEACTIVATED, N=%d, %s)",
+			i, getsetlength(gno, i), getcomment(gno, i));
+		xms[cnt] = XmStringCreateLtoR(buf, charset);
+		cnt++;
+	    }
+	    break;
+	}
+    }
+#if XmVersion > 1001    
+    XmListAddItemsUnselected(l.list, xms, cnt, 0);
+#endif
+
+	/* automatically highlight if only 1 selection */
+	if( scnt == 1 ){
+		XmListSelectItem( l.list, xms[cnt-1], True );
+	}
+	
+	
+    for (i = 0; i < cnt; i++) {
+#if XmVersion < 1002   /* For Motif 1.1 */
+        XmListAddItemUnselected(l.list, xms[i], 0);
+#endif    
+        XmStringFree(xms[i]);
+    }
+    free(xms);
+}
+
+void update_set_lists(int gno)
+{
+    int i;
+/*
+printf("dirty = %d pending = %d\n", lists_dirty(),work_pending());
+*/
+    if (inwin && lists_dirty() && !work_pending()) {
+	for (i = 0; i < nplist; i++) {
+		if( plist[i].gno == gno || 
+			(gno==get_cg() && plist[i].gno==GRAPH_SELECT_CURRENT) )
+	    	update_set_list(gno, plist[i]);
+	}
+	set_lists_dirty(FALSE);
+    }
+}
+
+void AddSetToLists(int gno, int setno)
+{
+    if (nplist) {
+	int i;
+	XmString xms = NULL;
+	char buf[256];
+	if (is_set_active(gno, setno)) {
+	    sprintf(buf, "S%d (N=%d, %s)", setno, getsetlength(gno, setno), getcomment(gno, setno));
+	    xms = XmStringCreateLtoR(buf, charset);
+	}
+	for (i = 0; i < nplist; i++) {
+	    XmListAddItemUnselected(plist[i].list, xms, 0);
+	}
+	XmStringFree(xms);
+    }
+}
+
+Widget CreateMenuBar(Widget parent, char *name, char *help_anchor)
+{
+    Widget menubar;
+    
+    menubar = XmCreateMenuBar(parent, name, NULL, 0);
+    
+    if (help_anchor) {
+     	XtAddCallback(menubar, XmNhelpCallback, (XtCallbackProc) HelpCB,
+    			(XtPointer) help_anchor);
+    }
+
+    return menubar;
+}
+
+Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
+	Widget *cascade, char *help_anchor)
+{
+    Widget menu, cascadeTmp;
+    XmString str;
+    
+    str = XmStringCreateSimple(label);
+    menu = XmCreatePulldownMenu(parent, name, NULL, 0);
+    cascadeTmp = XtVaCreateWidget((String) name, xmCascadeButtonWidgetClass, parent, 
+    	XmNlabelString, str, 
+    	XmNmnemonic, mnemonic,
+    	XmNsubMenuId, menu, 
+    	0);
+    XmStringFree(str);
+    if (help_anchor) {
+     	XtAddCallback(menu, XmNhelpCallback, (XtCallbackProc) HelpCB,
+    			(XtPointer) help_anchor);
+    }
+    XtManageChild(cascadeTmp);
+    if (cascade != NULL) {
+    	*cascade = cascadeTmp;
+    }
+
+    return menu;
+}
+
+
+Widget CreateMenuButton(Widget parent, char *name, char *label, char mnemonic,
+	XtCallbackProc cb, XtPointer data, char *help_anchor)
+{
+    Widget button;
+    XmString str;
+    
+    str = XmStringCreateSimple(label);
+    button = XtVaCreateManagedWidget((String) name, xmPushButtonWidgetClass, parent, 
+    	XmNlabelString, str,
+    	XmNmnemonic, mnemonic,
+    	NULL);
+    XmStringFree(str);
+    XtAddCallback(button, XmNactivateCallback, cb, data);
+    if (help_anchor) {
+     	XtAddCallback(button, XmNhelpCallback, (XtCallbackProc) HelpCB,
+    			(XtPointer) help_anchor);
+    }
+
+    return button;
+}
+
+Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
+	XtCallbackProc cb, XtPointer data, char *help_anchor)
+{
+    Widget button;
+    XmString str;
+    
+    str = XmStringCreateSimple(label);
+    button = XtVaCreateManagedWidget((String) name, xmToggleButtonWidgetClass, parent, 
+    	XmNlabelString, str,
+    	XmNmnemonic, mnemonic,
+    	XmNvisibleWhenOff, True,
+    	XmNindicatorOn, True,
+    	NULL);
+    XmStringFree(str);
+    if (cb) {
+        XtAddCallback(button, XmNvalueChangedCallback, cb, data);
+    }
+    if (help_anchor) {
+     	XtAddCallback(button, XmNhelpCallback, (XtCallbackProc) HelpCB,
+    			(XtPointer) help_anchor);
+    }
+
+    return button;
+}
+
+Widget CreateMenuSeparator(Widget parent, char *name)
+{
+    Widget sep;
+    
+    sep = XmCreateSeparator(parent, name, NULL, 0);
+    XtManageChild(sep);
+    return sep;
+}
+
+Widget CreateMenuLabel(Widget parent, char *name)
+{
+    Widget lab;
+    
+    lab = XmCreateLabel(parent, name, NULL, 0);
+    XtManageChild(lab);
+    return lab;
+}
+
+
+static int yesno_retval = 0;
+static Boolean keep_grab = True;
+
+void infowin(char *s);
+
+void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason)
+{
+    int why = reason->reason;
+
+    *keep_grab = False;
+    XtRemoveGrab(XtParent(w));
+    XtUnmanageChild(w);
+    switch (why) {
+    case XmCR_OK:
+	yesno_retval = 1;
+	/* process ok action */
+	break;
+    case XmCR_CANCEL:
+	yesno_retval = 0;
+	/* process cancel action */
+	break;
+    }
+}
+
+int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
+{
+    Widget yesno_popup = NULL;
+    XmString str;
+    XEvent event;
+
+    keep_grab = True;
+
+    if (yesno_popup == NULL) {
+	yesno_popup = XmCreateErrorDialog(app_shell, "warndlg", NULL, 0);
+	if (msg != NULL) {
+	    str = XmStringCreateLtoR(msg, charset);
+	} else {
+	    str = XmStringCreateLtoR("Warning", charset);
+	}
+	XtVaSetValues(yesno_popup, XmNmessageString, str, NULL);
+	XmStringFree(str);
+	
+	if (s1 != NULL) {
+	    str = XmStringCreateLtoR(s1, charset);
+	} else {
+	    str = XmStringCreateLtoR("OK", charset);
+	}
+	XtVaSetValues(yesno_popup, str, XmNokLabelString, NULL);
+	XmStringFree(str);
+	
+	if (s2 != NULL) {
+	    str = XmStringCreateLtoR(s2, charset);
+	} else {
+	    str = XmStringCreateLtoR("Cancel", charset);
+	}
+	XtVaSetValues(yesno_popup, str, XmNcancelLabelString, NULL);
+	XmStringFree(str);
+	
+	XtAddCallback(yesno_popup, XmNokCallback, (XtCallbackProc) yesnoCB,
+	(XtPointer) & keep_grab);
+	XtAddCallback(yesno_popup, XmNcancelCallback, (XtCallbackProc) yesnoCB,
+	(XtPointer) & keep_grab);
+
+	if (help_anchor) {
+	    XtAddCallback(yesno_popup, XmNhelpCallback, (XtCallbackProc) HelpCB,
+	    (XtPointer) help_anchor);
+	    XtSetSensitive(XtNameToWidget(yesno_popup, "Help"), True);
+	} else {    
+	    XtSetSensitive(XtNameToWidget(yesno_popup, "Help"), False);
+	}
+	XtManageChild(yesno_popup);
+    }
+    XtRaise(yesno_popup);
+    XtAddGrab(XtParent(yesno_popup), True, False);
+    while (keep_grab || XtAppPending(app_con)) {
+	XtAppNextEvent(app_con, &event);
+	XtDispatchEvent(&event);
+    }
+    return yesno_retval;
+}
+
+/*
+ * close error window and set message to null
+ */
+void cancelerrwin( Widget w, XtPointer client_data, XtPointer call_data)
+{
+	XmString empty;
+	
+	empty = XmStringCreateLtoR( "", charset);
+	XtVaSetValues( (Widget)client_data, XmNmessageString, empty, NULL );
+	XmStringFree( empty );
+	XtUnmanageChild( (Widget)client_data );
+}	
+
+/*
+ * open error window
+ * all errors are sent to the same window
+ */
+void errwin(char *s)
+{
+    XmString str, str1, nl;
+    static Widget error_popup = NULL;
+
+    keep_grab = True;
+    
+    log_results(s);
+    
+    if (error_popup == NULL) {
+        error_popup = XmCreateErrorDialog(app_shell, "errorDialog", NULL, 0);
+		str = XmStringCreateLtoR(s, charset);
+		XtVaSetValues(error_popup, XmNmessageString, str, NULL);
+		XmStringFree(str);
+		XtVaSetValues(error_popup,
+		  XmNdialogTitle, XmStringCreateLtoR("Error (you may hit return to cancel)", charset),
+		  XmNdialogStyle, XmDIALOG_APPLICATION_MODAL,
+		  NULL);
+		XtAddCallback(error_popup, XmNokCallback, 
+				(XtCallbackProc) cancelerrwin, (XtPointer) error_popup);
+		XtAddCallback(error_popup, XmNhelpCallback, (XtCallbackProc) HelpCB,
+		  (XtPointer) NULL);
+		XtUnmanageChild(XmMessageBoxGetChild(error_popup,
+		XmDIALOG_CANCEL_BUTTON));
+		XtUnmanageChild(XmMessageBoxGetChild(error_popup,
+		XmDIALOG_HELP_BUTTON));
+		XtManageChild(error_popup);
+    } else {									/* add new error onto end */
+		nl = XmStringCreateLtoR( "\n", charset);
+		XtVaGetValues( error_popup, XmNmessageString, &str, NULL );
+		str1 = 	XmStringConcat( str, nl );
+		XmStringFree( str );
+		str = XmStringCreateLtoR(s, charset);
+		XtVaSetValues(error_popup,XmNmessageString,
+					XmStringConcat( str1, str), NULL);
+		XmStringFree( str );
+		XmStringFree( str1 );
+		XmStringFree( nl );
+	}
+    XtRaise(error_popup);
+}
+
+Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb)
+{
+    Widget w;
+    Widget aacbut[3];
+    static char *aaclab[3] = {"Apply", "Accept", "Close"};
+    
+    w = CreateCommandButtons(parent, 3, aacbut, aaclab);
+    XtAddCallback(aacbut[0], XmNactivateCallback, aac_cb, (XtPointer) AAC_APPLY);
+    XtAddCallback(aacbut[1], XmNactivateCallback, aac_cb, (XtPointer) AAC_ACCEPT);
+    XtAddCallback(aacbut[2], XmNactivateCallback, aac_cb, (XtPointer) AAC_CLOSE);
+    
+    if (form != NULL) {
+        XtVaSetValues(form, XmNcancelButton, aacbut[2], NULL);
+    }
+    
+    return w;
+}
+
+void update_all(void)
+{
+    int gno = get_cg();
+    
+    set_lists_dirty(TRUE);
+    update_set_lists(gno);
+    updatesymbols(gno, -1);
+
+    update_graph_selectors();
+
+    update_status(gno, -1);
+
+    update_ticks(gno);
+/*
+ *     update_view(gno);
+ */
+/*
+ *     update_graphapp_items(gno);
+ */
+/*
+ *     update_frame_items(gno);
+ */
+    update_props_items();
+    update_hotlinks();
+    update_prune_frame();
+    update_describe_popup ();
+    update_locator_items(gno);
+    set_stack_message();
+}

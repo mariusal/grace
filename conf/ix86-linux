@@ -1,0 +1,32 @@
+#****************************************
+#* Intel Linux with X11R6 and Motif 2.0 *
+#****************************************
+
+###############################
+# Compiler
+#
+CC="gcc"
+###############################
+
+###############################
+# C flags
+#
+CFLAGS="-m486 -malign-double -fno-common -Wall -pedantic -Wtraditional \
+-Wpointer-arith -Wcast-align -Wnested-externs"
+#-Wshadow -Wmissing-prototypes -Wwrite-strings -Waggregate-return \
+#-W -Wcast-qual -Wconversion -Wstrict-prototypes 
+
+###############################
+
+###############################
+# Misc optimization flags
+#
+OPTIMIZE="-O2"
+###############################
+
+###############################
+# Flags used for debugging
+#
+DEBUG="-g -O2"
+###############################
+

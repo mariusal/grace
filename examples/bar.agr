@@ -1,0 +1,562 @@
+# Grace project file
+#
+@version 50002
+@page size 600 600
+@page scroll 5%
+@page inout 5%
+@link page off
+@map font 0 to "Times-Roman" , "Times-Roman"
+@map font 2 to "Times-Italic" , "Times-Italic"
+@map font 1 to "Times-Bold" , "Times-Bold"
+@map font 3 to "Times-BoldItalic" , "Times-BoldItalic"
+@map font 4 to "Helvetica" , "Helvetica"
+@map font 6 to "Helvetica-Oblique" , "Helvetica-Oblique"
+@map font 5 to "Helvetica-Bold" , "Helvetica-Bold"
+@map font 7 to "Helvetica-BoldOblique" , "Helvetica-BoldOblique"
+@map font 10 to "Courier-Bold" , "Courier-Bold"
+@map font 11 to "Courier-BoldOblique" , "Courier-BoldOblique"
+@map font 8 to "Symbol" , "Symbol"
+@map font 9 to "ZapfDingbats" , "ZapfDingbats"
+@default linewidth 1
+@default linestyle 1
+@default color 1
+@default pattern 1
+@default font 4
+@default char size 1.000000
+@default symbol size 1.000000
+@background color 0
+@timestamp off
+@timestamp 0.03, 0.03
+@timestamp color 1
+@timestamp rot 0
+@timestamp font 0
+@timestamp char size 1.000000
+@timestamp def "Mon Oct 26 00:19:18 1998"
+@with string
+@    string on
+@    string loctype view
+@    string 0.22375, 0.257143
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 0.790000
+@    string def "Specified tick marks and tick labels are done with the features provided"
+@with string
+@    string on
+@    string loctype view
+@    string 0.22375, 0.234286
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 0.790000
+@    string def "in 'Plot/Ticks/User ticks/labels'. There are a couple of variations"
+@with string
+@    string on
+@    string loctype view
+@    string 0.22375, 0.211429
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 0.790000
+@    string def "allowed - tick marks may be specified while the tick labels are drawn"
+@with string
+@    string on
+@    string loctype view
+@    string 0.22375, 0.188571
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 0.790000
+@    string def "using the location of the tick mark or the tick labels may be specified"
+@with string
+@    string on
+@    string loctype view
+@    string 0.22375, 0.165714
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 0.790000
+@    string def "while using the start/step method of tick mark placement."
+@with string
+@    string on
+@    string loctype view
+@    string 0.22375, 0.12
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 0.790000
+@    string def "This example uses specified tick marks and specified tick labels."
+@r0 type above
+@r0 linestyle 1
+@r0 linewidth 1
+@r0 color 1
+@r0 line 0, 0, 0, 0
+@r1 type above
+@r1 linestyle 1
+@r1 linewidth 1
+@r1 color 1
+@r1 line 0, 0, 0, 0
+@r2 type above
+@r2 linestyle 1
+@r2 linewidth 1
+@r2 color 1
+@r2 line 0, 0, 0, 0
+@r3 type above
+@r3 linestyle 1
+@r3 linewidth 1
+@r3 color 1
+@r3 line 0, 0, 0, 0
+@r4 type above
+@r4 linestyle 1
+@r4 linewidth 1
+@r4 color 1
+@r4 line 0, 0, 0, 0
+@g0 on
+@g0 hidden false
+@g0 type Chart
+@g0 stacked false
+@g0 fixedpoint off
+@g0 fixedpoint type 0
+@g0 fixedpoint xy 0.000000, 0.000000
+@g0 fixedpoint format general general
+@g0 fixedpoint prec 6, 6
+@with g0
+@    world xmin 0
+@    world xmax 6
+@    world ymin -10
+@    world ymax 20
+@    stack world 0, 0, 0, 0
+@    view xmin 0.220000
+@    view xmax 0.978750
+@    view ymin 0.514286
+@    view ymax 0.874286
+@    title "Test of tick marks and tick labels"
+@    title font 3
+@    title size 1.500000
+@    title color 1
+@    subtitle "Using specified tick marks and tick labels"
+@    subtitle font 1
+@    subtitle size 1.000000
+@    subtitle color 1
+@    xaxes scale Normal
+@    yaxes scale Normal
+@    xaxes invert off
+@    yaxes invert off
+@    xaxis  on
+@    xaxis  type zero false
+@    xaxis  offset 0.000000 , 0.000000
+@    xaxis  bar off
+@    xaxis  bar color 1
+@    xaxis  bar linestyle 1
+@    xaxis  bar linewidth 1
+@    xaxis  label "This is the X-axis label"
+@    xaxis  label layout para
+@    xaxis  label place auto
+@    xaxis  label char size 1.000000
+@    xaxis  label font 4
+@    xaxis  label color 1
+@    xaxis  label op bottom
+@    xaxis  tick on
+@    xaxis  tick major 1
+@    xaxis  tick minor ticks 1
+@    xaxis  tick default 6
+@    xaxis  tick place rounded true
+@    xaxis  tick in
+@    xaxis  tick major size 1.000000
+@    xaxis  tick major color 1
+@    xaxis  tick major linewidth 1
+@    xaxis  tick major linestyle 1
+@    xaxis  tick major grid off
+@    xaxis  tick minor color 1
+@    xaxis  tick minor linewidth 1
+@    xaxis  tick minor linestyle 1
+@    xaxis  tick minor grid off
+@    xaxis  tick minor size 0.500000
+@    xaxis  ticklabel on
+@    xaxis  ticklabel prec 1
+@    xaxis  ticklabel format decimal
+@    xaxis  ticklabel append ""
+@    xaxis  ticklabel prepend ""
+@    xaxis  ticklabel angle 0
+@    xaxis  ticklabel skip 0
+@    xaxis  ticklabel stagger 0
+@    xaxis  ticklabel op bottom
+@    xaxis  ticklabel offset auto
+@    xaxis  ticklabel offset 0.000000 , 0.010000
+@    xaxis  ticklabel sign normal
+@    xaxis  ticklabel start type auto
+@    xaxis  ticklabel start 0.000000
+@    xaxis  ticklabel stop type auto
+@    xaxis  ticklabel stop 0.000000
+@    xaxis  ticklabel char size 0.850000
+@    xaxis  ticklabel font 4
+@    xaxis  ticklabel color 1
+@    xaxis  tick op both
+@    xaxis  ticklabel type spec
+@    xaxis  tick type spec
+@    xaxis  tick spec 5
+@    xaxis  tick major 0, 1
+@    xaxis  ticklabel 0, "Bar one"
+@    xaxis  tick major 1, 2
+@    xaxis  ticklabel 1, "Bar two"
+@    xaxis  tick major 2, 3
+@    xaxis  ticklabel 2, "Bar three"
+@    xaxis  tick major 3, 4
+@    xaxis  ticklabel 3, "Bar four"
+@    xaxis  tick major 4, 5
+@    xaxis  ticklabel 4, "Bar none"
+@    yaxis  on
+@    yaxis  type zero false
+@    yaxis  offset 0.000000 , 0.000000
+@    yaxis  bar off
+@    yaxis  bar color 1
+@    yaxis  bar linestyle 1
+@    yaxis  bar linewidth 1
+@    yaxis  label "This is the Y-axis label"
+@    yaxis  label layout para
+@    yaxis  label place spec
+@    yaxis  label place 0.000000, 0.160000
+@    yaxis  label char size 1.000000
+@    yaxis  label font 4
+@    yaxis  label color 1
+@    yaxis  label op left
+@    yaxis  tick on
+@    yaxis  tick major 10
+@    yaxis  tick minor ticks 1
+@    yaxis  tick default 6
+@    yaxis  tick place rounded true
+@    yaxis  tick in
+@    yaxis  tick major size 1.000000
+@    yaxis  tick major color 1
+@    yaxis  tick major linewidth 1
+@    yaxis  tick major linestyle 1
+@    yaxis  tick major grid off
+@    yaxis  tick minor color 1
+@    yaxis  tick minor linewidth 1
+@    yaxis  tick minor linestyle 1
+@    yaxis  tick minor grid off
+@    yaxis  tick minor size 0.500000
+@    yaxis  ticklabel on
+@    yaxis  ticklabel prec 1
+@    yaxis  ticklabel format decimal
+@    yaxis  ticklabel append ""
+@    yaxis  ticklabel prepend ""
+@    yaxis  ticklabel angle 0
+@    yaxis  ticklabel skip 0
+@    yaxis  ticklabel stagger 0
+@    yaxis  ticklabel op left
+@    yaxis  ticklabel offset auto
+@    yaxis  ticklabel offset 0.000000 , 0.010000
+@    yaxis  ticklabel sign normal
+@    yaxis  ticklabel start type auto
+@    yaxis  ticklabel start 0.000000
+@    yaxis  ticklabel stop type auto
+@    yaxis  ticklabel stop 0.000000
+@    yaxis  ticklabel char size 1.030000
+@    yaxis  ticklabel font 1
+@    yaxis  ticklabel color 1
+@    yaxis  tick op both
+@    yaxis  ticklabel type spec
+@    yaxis  tick type spec
+@    yaxis  tick spec 5
+@    yaxis  tick major 0, 0
+@    yaxis  ticklabel 0, "Bar one"
+@    yaxis  tick major 1, 5
+@    yaxis  ticklabel 1, "Bar two"
+@    yaxis  tick major 2, 10
+@    yaxis  ticklabel 2, "Bar three"
+@    yaxis  tick major 3, 12
+@    yaxis  ticklabel 3, "Bar four"
+@    yaxis  tick major 4, 20
+@    yaxis  ticklabel 4, "Bar none"
+@    altxaxis  off
+@    altyaxis  off
+@    legend on
+@    legend loctype view
+@    legend x1 0.0425
+@    legend y1 0.492857
+@    legend box on
+@    legend box color 1
+@    legend box pattern 1
+@    legend box linewidth 1
+@    legend box linestyle 0
+@    legend box fill color 1
+@    legend box fill pattern 0
+@    legend font 1
+@    legend char size 1.000000
+@    legend color 1
+@    legend length 0
+@    legend vgap 2
+@    legend hgap 1
+@    frame type 0
+@    frame linestyle 1
+@    frame linewidth 1
+@    frame color 1
+@    frame pattern 1
+@    frame background color 0
+@    frame background pattern 0
+@    s0 type bar
+@    s0 symbol 0
+@    s0 symbol size 1.000000
+@    s0 symbol color 1
+@    s0 symbol pattern 1
+@    s0 symbol fill color 1
+@    s0 symbol fill pattern 1
+@    s0 symbol linewidth 1
+@    s0 symbol linestyle 1
+@    s0 symbol char 65
+@    s0 symbol char font 4
+@    s0 symbol center false
+@    s0 symbol skip 0
+@    s0 line type 0
+@    s0 line linestyle 1
+@    s0 line linewidth 1
+@    s0 line color 1
+@    s0 line pattern 1
+@    s0 baseline type 0
+@    s0 baseline off
+@    s0 dropline off
+@    s0 fill type 1
+@    s0 fill rule 0
+@    s0 fill color 1
+@    s0 fill pattern 0
+@    s0 avalue off
+@    s0 avalue type 2
+@    s0 avalue char size 1.000000
+@    s0 avalue font 4
+@    s0 avalue color 1
+@    s0 avalue rot 0
+@    s0 avalue format general
+@    s0 avalue prec 3
+@    s0 avalue prepend ""
+@    s0 avalue append ""
+@    s0 avalue offset 0.000000 , 0.000000
+@    s0 errorbar off
+@    s0 errorbar type both
+@    s0 errorbar length 1.000000
+@    s0 errorbar linewidth 1
+@    s0 errorbar linestyle 1
+@    s0 errorbar riser linewidth 1
+@    s0 errorbar riser linestyle 1
+@    s0 comment "/u/pturner/xmgr/bar.d"
+@    s0 legend  "A set legend"
+@    s1 type bar
+@    s1 symbol 0
+@    s1 symbol size 1.000000
+@    s1 symbol color 2
+@    s1 symbol pattern 1
+@    s1 symbol fill color 7
+@    s1 symbol fill pattern 1
+@    s1 symbol linewidth 2
+@    s1 symbol linestyle 1
+@    s1 symbol char 65
+@    s1 symbol char font 4
+@    s1 symbol center false
+@    s1 symbol skip 0
+@    s1 line type 0
+@    s1 line linestyle 1
+@    s1 line linewidth 1
+@    s1 line color 2
+@    s1 line pattern 1
+@    s1 baseline type 0
+@    s1 baseline off
+@    s1 dropline off
+@    s1 fill type 1
+@    s1 fill rule 0
+@    s1 fill color 2
+@    s1 fill pattern 0
+@    s1 avalue off
+@    s1 avalue type 2
+@    s1 avalue char size 1.000000
+@    s1 avalue font 4
+@    s1 avalue color 1
+@    s1 avalue rot 0
+@    s1 avalue format general
+@    s1 avalue prec 3
+@    s1 avalue prepend ""
+@    s1 avalue append ""
+@    s1 avalue offset 0.000000 , 0.000000
+@    s1 errorbar off
+@    s1 errorbar type both
+@    s1 errorbar length 1.000000
+@    s1 errorbar linewidth 1
+@    s1 errorbar linestyle 1
+@    s1 errorbar riser linewidth 1
+@    s1 errorbar riser linestyle 1
+@    s1 comment "/u/pturner/xmgr/bar.d"
+@    s1 legend  "Another set legend"
+@    s2 type bar
+@    s2 symbol 0
+@    s2 symbol size 1.000000
+@    s2 symbol color 3
+@    s2 symbol pattern 1
+@    s2 symbol fill color 3
+@    s2 symbol fill pattern 1
+@    s2 symbol linewidth 1
+@    s2 symbol linestyle 1
+@    s2 symbol char 65
+@    s2 symbol char font 4
+@    s2 symbol center false
+@    s2 symbol skip 0
+@    s2 line type 0
+@    s2 line linestyle 1
+@    s2 line linewidth 1
+@    s2 line color 3
+@    s2 line pattern 1
+@    s2 baseline type 0
+@    s2 baseline off
+@    s2 dropline off
+@    s2 fill type 1
+@    s2 fill rule 0
+@    s2 fill color 3
+@    s2 fill pattern 0
+@    s2 avalue off
+@    s2 avalue type 2
+@    s2 avalue char size 1.000000
+@    s2 avalue font 4
+@    s2 avalue color 1
+@    s2 avalue rot 0
+@    s2 avalue format general
+@    s2 avalue prec 3
+@    s2 avalue prepend ""
+@    s2 avalue append ""
+@    s2 avalue offset 0.000000 , 0.000000
+@    s2 errorbar off
+@    s2 errorbar type both
+@    s2 errorbar length 1.000000
+@    s2 errorbar linewidth 1
+@    s2 errorbar linestyle 1
+@    s2 errorbar riser linewidth 1
+@    s2 errorbar riser linestyle 1
+@    s2 comment "/u/pturner/xmgr/bar.d"
+@    s2 legend  "Yet another"
+@    s3 type bar
+@    s3 symbol 0
+@    s3 symbol size 1.000000
+@    s3 symbol color 4
+@    s3 symbol pattern 1
+@    s3 symbol fill color 4
+@    s3 symbol fill pattern 12
+@    s3 symbol linewidth 1
+@    s3 symbol linestyle 1
+@    s3 symbol char 65
+@    s3 symbol char font 4
+@    s3 symbol center false
+@    s3 symbol skip 0
+@    s3 line type 0
+@    s3 line linestyle 1
+@    s3 line linewidth 1
+@    s3 line color 4
+@    s3 line pattern 1
+@    s3 baseline type 0
+@    s3 baseline off
+@    s3 dropline off
+@    s3 fill type 1
+@    s3 fill rule 0
+@    s3 fill color 4
+@    s3 fill pattern 0
+@    s3 avalue off
+@    s3 avalue type 2
+@    s3 avalue char size 1.000000
+@    s3 avalue font 4
+@    s3 avalue color 1
+@    s3 avalue rot 0
+@    s3 avalue format general
+@    s3 avalue prec 3
+@    s3 avalue prepend ""
+@    s3 avalue append ""
+@    s3 avalue offset 0.000000 , 0.000000
+@    s3 errorbar off
+@    s3 errorbar type both
+@    s3 errorbar length 1.000000
+@    s3 errorbar linewidth 1
+@    s3 errorbar linestyle 1
+@    s3 errorbar riser linewidth 1
+@    s3 errorbar riser linestyle 1
+@    s3 comment "/u/pturner/xmgr/bar.d"
+@    s3 legend  "And another"
+@    s4 type bar
+@    s4 symbol 0
+@    s4 symbol size 1.000000
+@    s4 symbol color 5
+@    s4 symbol pattern 1
+@    s4 symbol fill color 5
+@    s4 symbol fill pattern 13
+@    s4 symbol linewidth 1
+@    s4 symbol linestyle 1
+@    s4 symbol char 65
+@    s4 symbol char font 4
+@    s4 symbol center false
+@    s4 symbol skip 0
+@    s4 line type 0
+@    s4 line linestyle 1
+@    s4 line linewidth 1
+@    s4 line color 5
+@    s4 line pattern 1
+@    s4 baseline type 0
+@    s4 baseline off
+@    s4 dropline off
+@    s4 fill type 0
+@    s4 fill rule 0
+@    s4 fill color 1
+@    s4 fill pattern 1
+@    s4 avalue off
+@    s4 avalue type 2
+@    s4 avalue char size 1.000000
+@    s4 avalue font 4
+@    s4 avalue color 1
+@    s4 avalue rot 0
+@    s4 avalue format general
+@    s4 avalue prec 3
+@    s4 avalue prepend ""
+@    s4 avalue append ""
+@    s4 avalue offset 0.000000 , 0.000000
+@    s4 errorbar off
+@    s4 errorbar type both
+@    s4 errorbar length 1.000000
+@    s4 errorbar linewidth 1
+@    s4 errorbar linestyle 1
+@    s4 errorbar riser linewidth 1
+@    s4 errorbar riser linestyle 1
+@    s4 comment "bar.d"
+@    s4 legend  ""
+@target G0.S0
+@type bar
+               1                2
+               2                5
+               3                9
+&
+@target G0.S1
+@type bar
+               1                9
+               2                5
+               3                4
+&
+@target G0.S2
+@type bar
+               1                7
+               2                7
+               3                2
+&
+@target G0.S3
+@type bar
+               1                6
+               2                9
+               3               20
+               4               -6
+               5                5
+&
+@target G0.S4
+@type bar
+               1                6
+               2                9
+               3               20
+               4               -6
+               5                5
+&

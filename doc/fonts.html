@@ -1,0 +1,57 @@
+<HTML>
+
+<HEAD>
+<TITLE>Grace: fonts</TITLE>
+</HEAD>
+
+<BODY>
+
+	<h2> <a NAME="fonts">Fonts</a> </h2>
+<p>
+Summary of control codes
+<ul>
+	<li>  \f{x} .... switch to font named "x"
+	<li>  \f{n} .... switch to font number n (not recommended)
+	<li>  \f{}  .... return to original font
+	<li>  \u    .... begin underline
+	<li>  \U    .... stop underline
+	<li>  \o    .... begin overline
+	<li>  \O    .... stop overline
+	<li>  \c    .... begin using upper 128 characters of set
+	<li>  \C    .... stop using upper 128 characters of set
+	<li>  \z{x} .... zoom x times
+	<li>  \z{}  .... return to original zoom
+	<li>  \v{x} .... shift vertically by x
+	<li>  \v{}  .... return to unshifted baseline
+	<li>  \h{x} .... horizontal shift by x
+	<li>  \m{n} .... mark current position as n
+	<li>  \M{n} .... return to saved position n
+	<li>  \dl   .... LtoR substring direction
+	<li>  \dr   .... RtoL substring direction
+	<li>  \dL   .... LtoR text advancing
+	<li>  \dR   .... RtoL text advancing (not implemented yet)
+
+	<li>  \x    .... switch to Symbol font (same as \f{Symbol})
+	<li>  \+    .... increase size (same as \z{1.19} ; 1.19 = sqrt(sqrt(2)))
+	<li>  \-    .... decrease size (same as \z{0.84} ; 0.84 = 1/sqrt(sqrt(2)))
+	<li>  \s    .... begin subscripting (same as \v{-0.4}\z{0.71})
+	<li>  \S    .... begin superscripting (same as \v{0.6}\z{0.71})
+	<li>  \N    .... return to normal style (same as \v{}\z{})
+</ul>
+<p>
+To print a backslash use \\.
+<p>
+Example:
+<p>
+ F\sX\N(\xe\f{}) = sin(\xe\B)\c7\Ce\S-X\N\c7\Ccos(\xe\f{})
+<p>
+ prints roughly F<SUB>X</SUB>(e) = sin(e)&middot;e<SUP>-X</SUP>&middot;cos(e)
+<p>
+ using string's initial font and e prints as epsilon from the Symbol font. 
+<p>
+NOTE:
+Characters from the upper half of the char table can be entered directly from
+the keyboard, using appropriate xmodmap(1) settings. 
+<p>
+</BODY>
+</HTML>

@@ -1,0 +1,1182 @@
+/*
+ * Grace - Graphics for Exploratory Data Analysis
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-98 GRACE Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/* 
+ *
+ * ticks / tick labels / axis labels
+ *
+ */
+
+#include <config.h>
+#include <cmath.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <Xm/Xm.h>
+#include <Xm/DialogS.h>
+#include <Xm/RowColumn.h>
+#include <Xm/Text.h>
+#include <Xm/TextF.h>
+
+#include "Tab.h"
+
+#include "globals.h"
+#include "protos.h"
+#include "utils.h"
+#include "graphs.h"
+#include "graphutils.h"
+#include "plotone.h"
+#include "motifinc.h"
+
+#define cg get_cg()
+
+static Widget axes_dialog = NULL;
+
+static Widget axes_tab;
+
+static Widget *editaxis;        /* which axis to edit */
+static Widget axis_active;      /* active or not */
+static Widget axis_zero;        /* "zero" or "plain" */
+static Widget *axis_scale;      /* axis scale */
+static Widget axis_invert;      /* invert axis */
+static Widget *axis_applyto;    /* override */
+static Widget offx;             /* x offset of axis in viewport coords */
+static Widget offy;             /* y offset of axis in viewport coords */
+static Widget tonoff;           /* toggle display of axis ticks */
+static Widget tlonoff;          /* toggle display of tick labels */
+static Widget axislabel;        /* axis label */
+static Widget *axislabellayout; /* axis label layout (perp or parallel) */
+static Widget *axislabelplace;  /* axis label placement, auto or specified */
+static Widget axislabelspec;    /* location of axis label if specified (viewport coords) */
+static OptionStructure axislabelfont;   /* axis label font */
+static Widget axislabelcharsize;/* axis label charsize */
+static Widget *axislabelcolor;  /* axis label color */
+static Widget *axislabelop;     /* tick labels normal|opposite|both sides */
+static Widget tmajor;           /* major tick spacing */
+static Widget nminor;           /* minor tick spacing */
+static Widget *tickop;          /* ticks normal|opposite|both sides */
+static Widget *ticklop;         /* tick labels normal|opposite|both sides */
+static Widget *tlform;          /* format for labels */
+static Widget *tlprec;          /* precision for labels */
+static OptionStructure tlfont;  /* tick label font */
+static Widget tlcharsize;       /* tick label charsize */
+static Widget *tlcolor;         /* tick label color */
+static Widget tlappstr;         /* tick label append string */
+static Widget tlprestr;         /* tick label prepend string */
+static Widget *tlskip;          /* tick marks to skip */
+static Widget *tlstarttype;     /* use graph min or starting value */
+static Widget tlstart;          /* value to start tick labels */
+static Widget *tlstoptype;      /* use graph max or stop value */
+static Widget tlstop;           /* value to stop tick labels */
+static Widget *tlgaptype;       /* tick label placement, auto or specified */
+static Widget tlgap;            /* location of tick label if specified (viewport coords) */
+static Widget tlangle;          /* angle */
+static Widget *tlstagger;       /* stagger */
+static Widget *tlsign;          /* sign of tick label (normal, negate, *
+                                 * absolute) */
+static Widget *autonum;         /* number of autotick divisions */
+static Widget tround;           /* place at rounded positions */
+static Widget tgrid;            /* major ticks grid */
+static Widget *tgridcol;
+static Widget *tgridlinew;
+static OptionStructure tgridlines;
+static Widget tmgrid;           /* minor ticks grid */
+static Widget *tmgridcol;
+static Widget *tmgridlinew;
+static OptionStructure tmgridlines;
+static Widget tlen;             /* tick length */
+static Widget tmlen;
+static Widget *tinout;          /* ticks in out or both */
+static Widget baronoff;         /* axis bar */
+static Widget *barcolor;
+static Widget *barlinew;
+static OptionStructure barlines;
+
+static Widget specticks;        /* special ticks and tick labels */
+static Widget specticklabels;
+static Widget nspec;
+static Widget specnum[MAX_TICKS];       /* label denoting which tick/label */
+static Widget specloc[MAX_TICKS];
+static Widget speclabel[MAX_TICKS];
+
+static void set_axis_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void set_active_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void axes_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+
+static Widget axis_world_start;
+static Widget axis_world_stop;
+
+/*
+ * Create the ticks popup
+ */
+void create_axes_dialog(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Widget axes_main, axes_label, axes_ticklabel, 
+           axes_tickmark, axes_special;
+    Widget axes_panel, rc_head, rc, rc2, rc3, fr, sw;
+
+    int i;
+    char buf[32];
+    
+    set_wait_cursor();
+    
+    if (axes_dialog == NULL) {
+        axes_dialog = XmCreateDialogShell(app_shell, "Axes", NULL, 0);
+        handle_close(axes_dialog);
+        axes_panel = XtVaCreateWidget("tick_panel", xmFormWidgetClass, 
+                                        axes_dialog, NULL, 0);
+
+        rc_head = XmCreateRowColumn(axes_panel, "rc_head", NULL, 0);
+        
+        rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        editaxis = CreatePanelChoice(rc, "Edit:",
+                                         MAXAXES + 1,
+                                         "X axis",
+                                         "Y axis",
+                                         "Alt X axis",
+                                         "Alt Y axis",
+                                         NULL,
+                                         NULL);
+        for (i = 0; i < MAXAXES; i++) {
+            XtAddCallback(editaxis[2 + i], XmNactivateCallback,
+                                (XtCallbackProc) set_axis_proc, (XtPointer) i);
+        }
+        axis_active = CreateToggleButton(rc, "Active");
+        XtAddCallback(axis_active, XmNvalueChangedCallback,
+                                (XtCallbackProc) set_active_proc, NULL);
+        XtManageChild(rc);
+        
+        rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        axis_world_start = CreateTextItem2(rc, 10, "Start:");
+	axis_world_stop = CreateTextItem2(rc, 10, "Stop:");
+        XtManageChild(rc);
+
+        rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        axis_scale = CreatePanelChoice(rc, "Scale:",
+                                           4,
+                                           "Linear",
+                                           "Logarithmic",
+                                           "Reciprocal",
+                                           NULL,
+                                           NULL);
+	axis_invert = CreateToggleButton(rc, "Invert axis");
+        XtManageChild(rc);
+        
+        XtManageChild(rc_head);
+        XtVaSetValues(rc_head,
+                      XmNtopAttachment, XmATTACH_FORM,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      NULL);
+
+
+        /* ------------ Tabs --------------*/
+
+        
+        axes_tab = CreateTab(axes_panel);        
+
+        axes_main = CreateTabPage(axes_tab, "Main");
+
+        fr = CreateFrame(axes_main, "Axis label");
+        
+        axislabel = CreateTextItem2(fr, 35, "Label string:");
+        
+        XtManageChild(fr);
+
+        fr = CreateFrame(axes_main, "Tick properties");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        tmajor = CreateTextItem2(rc2, 8, "Major spacing:");
+        nminor = CreateTextItem2(rc2, 6, "Minor ticks:");
+        XtManageChild(rc2);
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        tlform = CreateFormatChoice(rc2, "Format:");
+        tlprec = CreatePrecisionChoice(rc2, "Precision:");
+        XtManageChild(rc2);
+
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+
+
+        fr = XmCreateFrame(axes_main, "fr", NULL, 0);
+        XtVaCreateManagedWidget("Display options", xmLabelWidgetClass, fr,
+					XmNchildType, XmFRAME_TITLE_CHILD,
+					NULL);
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+
+        tlonoff = CreateToggleButton(rc2, "Display tick labels");
+        tonoff = CreateToggleButton(rc2, "Display tick marks");
+        XtManageChild(rc2);
+        
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        
+        baronoff = CreateToggleButton(rc2, "Display axis bar");
+
+        XtManageChild(rc2);
+
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+        fr = CreateFrame(axes_main, "Axis placement");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
+	axis_zero = CreateToggleButton(rc, "Zero axis");
+        offx = CreateTextItem2(rc, 4, "Offsets - Left/bottom:");
+        offy = CreateTextItem2(rc, 4, "Right/top:");
+
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+        fr = CreateFrame(axes_main, "Tick label properties");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
+        tlfont = CreateFontChoice(rc, "Font:");
+        tlcolor = CreateColorChoice(rc, "Color:");
+        XtManageChild(rc);
+
+
+
+
+        axes_label = CreateTabPage(axes_tab, "Axis label & bar");
+
+        fr = CreateFrame(axes_label, "Label properties");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+
+        axislabelfont = CreateFontChoice(rc2, "Font:");
+        axislabelcolor = CreateColorChoice(rc2, "Color:");
+        XtManageChild(rc2);
+        
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+
+        axislabelcharsize = CreateCharSizeChoice(rc2, "Char size");
+	XtVaSetValues(axislabelcharsize, XmNscaleWidth, 180, NULL);
+        
+        axislabellayout = (Widget *) CreatePanelChoice(rc2, "Layout:",
+                                                       3,
+                                                       "Parallel to axis",
+                                                       "Perpendicular to axis",
+                                                       NULL,
+                                                       NULL);
+        XtManageChild(rc2);
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        axislabelop = CreatePanelChoice(rc2, "Side:",
+                                             4,
+                                             "Normal",
+                                             "Opposite",
+                                             "Both",
+                                             0, 0);
+        axislabelplace = CreatePanelChoice(rc2, "Location:",
+                                                3,
+                                                "Auto",
+                                                "Specified",
+                                                0, 0);
+        axislabelspec = CreateTextItem2(rc2, 7, " ");
+        XtManageChild(rc2);
+
+        XtManageChild(rc);
+        XtManageChild(fr);
+        
+
+        fr = CreateFrame(axes_label, "Bar properties");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+
+        barcolor = CreateColorChoice(rc2, "Color:");
+        barlinew = CreateLineWidthChoice(rc2, "Width:");
+        XtManageChild(rc2);
+        
+        barlines = CreateLineStyleChoice(rc, "Line style:");
+
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+
+
+
+        axes_ticklabel = CreateTabPage(axes_tab, "Tick labels");
+
+        fr = CreateFrame(axes_ticklabel, "Labels");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        tlcharsize = CreateCharSizeChoice(rc2, "Char size");
+	XtVaSetValues(tlcharsize, XmNscaleWidth, 200, NULL);
+
+        tlangle = CreateAngleChoice(rc2, "Angle");
+	XtVaSetValues(tlangle, XmNscaleWidth, 180, NULL);
+        XtManageChild(rc2);
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+
+        fr = CreateFrame(axes_ticklabel, "Placement");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
+
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        ticklop = CreatePanelChoice(rc2, "Side:",
+                                    4,
+                                    "Normal",
+                                    "Opposite",
+                                    "Both",
+                                    0, 0);
+        tlstagger = CreatePanelChoice(rc2, "Stagger:",
+                                      11,
+                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
+                                      0);
+        XtManageChild(rc2);
+        
+        
+        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        rc3 = XmCreateRowColumn(rc2, "rc3", NULL, 0);
+        XtVaSetValues(rc3, XmNorientation, XmHORIZONTAL, NULL);
+        tlstarttype = CreatePanelChoice(rc3, "Start at:",
+                                        3,
+                                        "Axis min", "Specified:", 0,
+                                        0);
+        tlstart = XtVaCreateManagedWidget("tlstart", xmTextWidgetClass, rc3,
+                                          XmNtraversalOn, True,
+                                          XmNcolumns, 8,
+                                          NULL);
+        XtManageChild(rc3);
+
+        rc3 = XmCreateRowColumn(rc2, "rc3", NULL, 0);
+        XtVaSetValues(rc3, XmNorientation, XmHORIZONTAL, NULL);
+        tlstoptype = CreatePanelChoice(rc3, "Stop at:",
+                                       3,
+                                       "Axis max", "Specified:", 0,
+                                       0);
+        tlstop = XtVaCreateManagedWidget("tlstop", xmTextWidgetClass, rc3,
+                                         XmNtraversalOn, True,
+                                         XmNcolumns, 8,
+                                         NULL);
+        XtManageChild(rc3);
+        XtManageChild(rc2);
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+
+        fr = CreateFrame(axes_ticklabel, "Extra");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        tlskip = CreatePanelChoice(rc2, "Skip every:",
+                                   11,
+                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
+                                   0);
+
+        tlsign = CreatePanelChoice(rc2, "Sign of label:",
+                                   4,
+                                   "As is", "Absolute value", "Negate",
+                                   NULL,
+                                   0);
+        XtManageChild(rc2);
+
+        rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        tlprestr = CreateTextItem2(rc2, 13, "Prepend:");
+        tlappstr = CreateTextItem2(rc2, 13, "Append:");
+        XtManageChild(rc2);
+
+        rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+        tlgaptype = (Widget *) CreatePanelChoice(rc2, "Location:",
+                                                       3,
+                                                       "Auto",
+                                                       "Specified",
+                                                       NULL,
+                                                       NULL);
+        tlgap = CreateTextItem2(rc2, 16, " ");
+        XtManageChild(rc2);
+
+
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+
+        axes_tickmark = CreateTabPage(axes_tab, "Tick marks");
+
+        fr = CreateFrame(axes_tickmark, "Placement");
+        rc2 = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = XmCreateRowColumn(rc2, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        tinout = CreatePanelChoice(rc, "Pointing:",
+                                   4,
+                                   "In", "Out", "Both", 0,
+                                   0);
+        tickop = CreatePanelChoice(rc, "Draw on:",
+                                   4,
+                                   "Normal side",
+                                   "Opposite side",
+                                   "Both sides",
+                                   0, 0);
+        XtManageChild(rc);
+        rc = XmCreateRowColumn(rc2, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        tround = CreateToggleButton(rc, "Place at rounded positions");
+	autonum = CreatePanelChoice(rc, "Autotick divisions",
+                                    12,
+		                    "2",
+                                    "3",
+                                    "4",
+                                    "5",
+                                    "6",
+                                    "7",
+                                    "8",
+                                    "9",
+                                    "10",
+                                    "11",
+                                    "12",
+				    NULL,
+				    NULL);
+        XtManageChild(rc);
+        XtManageChild(rc2);
+        XtManageChild(fr);
+        
+        rc2 = XmCreateRowColumn(axes_tickmark, "rc2", NULL, 0);
+        XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+
+/* major tick marks */
+        fr = CreateFrame(rc2, "Major ticks");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        tgrid = CreateToggleButton(rc, "Draw grid lines");
+
+        rc3 = XmCreateRowColumn(rc, "rc3", NULL, 0);
+        tlen = CreateCharSizeChoice(rc3, "Tick length");
+        XtManageChild(rc3);
+
+        tgridcol = CreateColorChoice(rc, "Color:");
+
+        tgridlinew = CreateLineWidthChoice(rc, "Line width:");
+        tgridlines = CreateLineStyleChoice(rc, "Line style:");
+        XtManageChild(rc);
+        XtManageChild(fr);
+
+        fr = CreateFrame(rc2, "Minor ticks");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        tmgrid = CreateToggleButton(rc, "Draw grid lines");
+        rc3 = XmCreateRowColumn(rc, "rc", NULL, 0);
+        tmlen = CreateCharSizeChoice(rc3, "Tick length");
+        XtManageChild(rc3);
+
+        tmgridcol = CreateColorChoice(rc, "Color:");
+        tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
+        tmgridlines = CreateLineStyleChoice(rc, "Line style:");
+        XtManageChild(rc);
+        XtManageChild(fr);
+        XtManageChild(rc2);
+
+
+
+        axes_special = CreateTabPage(axes_tab, "Special");
+
+        rc = XmCreateRowColumn(axes_special, "rc", NULL, 0);
+        specticks = CreateToggleButton(rc, "Use special tick locations");
+        specticklabels = CreateToggleButton(rc, "Use special tick labels");
+
+        nspec = CreateTextItem2(rc, 3, "# of user ticks/labels to use:");
+        XtVaCreateManagedWidget("Tick location - Label:", xmLabelWidgetClass,
+                                         rc, NULL);
+        XtManageChild(rc);
+
+        sw = XtVaCreateManagedWidget("sw",
+                                     xmScrolledWindowWidgetClass, axes_special,
+				     XmNheight, 240,
+                                     XmNscrollingPolicy, XmAUTOMATIC,
+                                     XmNtopAttachment, XmATTACH_WIDGET,
+                                     XmNtopWidget, rc,
+                                     XmNleftAttachment, XmATTACH_FORM,
+                                     XmNrightAttachment, XmATTACH_FORM,
+                                     XmNbottomAttachment, XmATTACH_FORM,
+                                     NULL);
+        rc = XmCreateRowColumn(sw, "rc", NULL, 0);
+        XtVaSetValues(sw,
+                      XmNworkWindow, rc,
+                      NULL);
+
+        for (i = 0; i < MAX_TICKS; i++) {
+            rc3 = XmCreateRowColumn(rc, "rc3", NULL, 0);
+            XtVaSetValues(rc3, XmNorientation, XmHORIZONTAL, NULL);
+            sprintf(buf, "%2d", i + 1);
+            specnum[i] = XtVaCreateManagedWidget(buf, xmLabelWidgetClass, rc3,
+                                                 NULL);
+            specloc[i] = XtVaCreateManagedWidget("tickmark", xmTextFieldWidgetClass, rc3,
+                                                 XmNcolumns, 10,
+                                                 NULL);
+            speclabel[i] = XtVaCreateManagedWidget("ticklabel", xmTextFieldWidgetClass, rc3,
+                                                   XmNcolumns, 25,
+                                                   NULL);
+            XtManageChild(rc3);
+        }
+
+        XtManageChild(rc);
+        XtManageChild(sw);
+
+
+        SelectTabPage(axes_tab, axes_main);
+
+         
+        fr = CreateFrame(axes_panel, NULL); 
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+
+        axis_applyto = (Widget *) CreatePanelChoice(rc,
+                                                    "Apply to:",
+                                                    5,
+                                                    "Current axis",
+                                                    "All axes, current graph",
+                                                    "Current axis, all graphs",
+                                                    "All axes, all graphs",
+                                                    NULL,
+                                                    NULL);
+
+        CreateAACButtons(rc, axes_panel, axes_aac_cb);
+        
+        XtManageChild(rc);
+        XtManageChild(fr);
+        XtVaSetValues(fr,
+                      XmNtopAttachment, XmATTACH_NONE,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      XmNbottomAttachment, XmATTACH_FORM,
+                      NULL);
+                      
+        XtVaSetValues(axes_tab,
+                      XmNtopAttachment, XmATTACH_WIDGET,
+                      XmNtopWidget, rc_head,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      XmNbottomAttachment, XmATTACH_WIDGET,
+                      XmNbottomWidget, fr,
+                      NULL);
+ 
+ 
+        XtManageChild(axes_panel);
+    }
+    XtRaise(axes_dialog);
+    update_ticks(cg);
+    unset_wait_cursor();
+}
+
+/*
+ * Callback function for definition of tick marks and axis labels.
+ */
+static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_data)
+{
+    int aac_mode;
+    int i, j;
+    int iv;
+    int applyto;
+    int axis_start, axis_stop, graph_start, graph_stop;
+    int invert;
+    tickmarks t;
+    double axestart, axestop;
+    char *cp;
+    world w;
+    
+    char buf[256];
+
+    aac_mode = (int) client_data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(axes_dialog);
+        return;
+    }
+    
+    get_graph_tickmarks(cg, &t, curaxis);
+    t.label.s = NULL;
+
+    applyto = GetChoice(axis_applyto);
+    t.active = GetToggleButtonState(axis_active);
+    
+    t.zero = GetToggleButtonState(axis_zero);
+
+    if (xv_evalexpr(tmajor, &t.tmajor) != GRACE_EXIT_SUCCESS ||
+        xv_evalexpri(nminor, &t.nminor) != GRACE_EXIT_SUCCESS) {
+        free_ticklabels(&t);
+        return;
+    }
+
+    t.tl_flag = GetToggleButtonState(tlonoff);
+    t.t_flag = GetToggleButtonState(tonoff);
+    t.t_drawbar = GetToggleButtonState(baronoff);
+    set_plotstr_string(&t.label, xv_getstr(axislabel));
+
+    xv_evalexpr(offx, &t.offsx);
+    xv_evalexpr(offy, &t.offsy);
+
+    t.label_layout = GetChoice(axislabellayout) ? LAYOUT_PERPENDICULAR : LAYOUT_PARALLEL;
+    t.label_place = GetChoice(axislabelplace) ? TYPE_SPEC : TYPE_AUTO;
+    if (t.label_place == TYPE_SPEC) {
+        strcpy(buf, xv_getstr(axislabelspec));
+        sscanf(buf, "%lf %lf", &t.label.x, &t.label.y);
+    }
+    t.label.font = GetOptionChoice(axislabelfont);
+    t.label.color = GetChoice(axislabelcolor);
+    t.label.charsize = GetCharSizeChoice(axislabelcharsize);
+
+    /* somehow the value of axislabelop gets automagically correctly
+       applied to all selected axes without checking for the value of
+       applyto directly here (strange...) */
+    switch (GetChoice(axislabelop)) {
+    case 0:
+      if (is_xaxis(curaxis)) {
+	t.label_op = PLACE_BOTTOM;
+      } else {
+	t.label_op = PLACE_LEFT;
+      }
+      break;
+    case 1:
+      if (is_xaxis(curaxis)) {
+	t.label_op = PLACE_TOP;
+      } else {
+	t.label_op = PLACE_RIGHT;
+      }
+      break;
+    case 2:
+      t.label_op = PLACE_BOTH;
+      break;
+    }
+
+    t.tl_font = GetOptionChoice(tlfont);
+    t.tl_color = GetChoice(tlcolor);
+    t.tl_skip = GetChoice(tlskip);
+    t.tl_prec = GetChoice(tlprec);
+    t.tl_staggered = (int) GetChoice(tlstagger);
+    strcpy(t.tl_appstr, xv_getstr(tlappstr));
+    strcpy(t.tl_prestr, xv_getstr(tlprestr));
+    t.tl_starttype = (int) GetChoice(tlstarttype) == 0 ? TYPE_AUTO : TYPE_SPEC;
+    if (t.tl_starttype == TYPE_SPEC) {
+        if(xv_evalexpr(tlstart, &t.tl_start) != GRACE_EXIT_SUCCESS) {
+	    errwin( "Specify tick label start" );
+	    free_ticklabels(&t);
+            return;
+	}
+    }
+    t.tl_stoptype = (int) GetChoice(tlstoptype) == 0 ? TYPE_AUTO : TYPE_SPEC;
+    if (t.tl_stoptype == TYPE_SPEC) {
+        if(xv_evalexpr(tlstop, &t.tl_stop) != GRACE_EXIT_SUCCESS){
+	    errwin( "Specify tick label stop" );
+	    free_ticklabels(&t);
+            return;
+	}
+    }
+    t.tl_format = format_types[(int) GetChoice(tlform)];
+    switch ((int) GetChoice(tlsign)) {
+    case 0:
+        t.tl_sign = SIGN_NORMAL;
+        break;
+    case 1:
+        t.tl_sign = SIGN_ABSOLUTE;
+        break;
+    case 2:
+        t.tl_sign = SIGN_NEGATE;
+        break;
+    }
+
+    t.tl_gaptype = GetChoice(tlgaptype) ? TYPE_SPEC : TYPE_AUTO;
+    if (t.tl_gaptype == TYPE_SPEC) {
+        strcpy(buf, xv_getstr(tlgap));
+        sscanf(buf, "%lf %lf", &t.tl_gap.x, &t.tl_gap.y);
+    }
+    
+    t.tl_angle = GetAngleChoice(tlangle);
+    
+    t.tl_charsize = GetCharSizeChoice(tlcharsize);
+
+    switch ((int) GetChoice(tinout)) {
+    case 0:
+        t.t_inout = TICKS_IN;
+        break;
+    case 1:
+        t.t_inout = TICKS_OUT;
+        break;
+    case 2:
+        t.t_inout = TICKS_BOTH;
+        break;
+    }
+    
+    t.props.color = GetChoice(tgridcol);
+    t.props.linew = GetChoice(tgridlinew);
+    t.props.lines = GetOptionChoice(tgridlines);
+    t.mprops.color = GetChoice(tmgridcol);
+    t.mprops.linew = GetChoice(tmgridlinew);
+    t.mprops.lines = GetOptionChoice(tmgridlines);
+    
+    t.props.size = GetCharSizeChoice(tlen);
+    t.mprops.size = GetCharSizeChoice(tmlen);
+
+    t.t_autonum = GetChoice(autonum) + 2;
+
+    t.t_round = GetToggleButtonState(tround);
+    
+    t.props.gridflag = GetToggleButtonState(tgrid);
+    t.mprops.gridflag = GetToggleButtonState(tmgrid);
+
+    t.t_drawbarcolor = GetChoice(barcolor);
+    t.t_drawbarlinew = GetChoice(barlinew);
+    t.t_drawbarlines = GetOptionChoice(barlines);
+
+    t.t_type = GetToggleButtonState(specticks) ? TYPE_SPEC : TYPE_AUTO;
+    t.tl_type = GetToggleButtonState(specticklabels) ? TYPE_SPEC : TYPE_AUTO;
+    /* only read special info if special ticks used */
+    if (t.t_type == TYPE_SPEC || t.tl_type == TYPE_SPEC) {
+        if (xv_evalexpri(nspec, &iv) != GRACE_EXIT_SUCCESS) {
+            errmsg("Specify number of ticks to use");
+            free_ticklabels(&t);
+            return;
+        }
+        if (iv > MAX_TICKS) {
+            sprintf(buf, "Number of ticks/tick labels exceeds %d", MAX_TICKS);
+            errmsg(buf);
+            free_ticklabels(&t);
+            return;
+        }
+        t.nticks = iv;
+        /* ensure that enough tick positions have been specified */
+        for (i = 0; i < iv; i++) {
+            if (xv_evalexpr(specloc[i], &t.tloc[i].wtpos) == GRACE_EXIT_SUCCESS) {
+                if (t.tl_type == TYPE_SPEC) {
+                    cp = xv_getstr(speclabel[i]);
+                    if (cp[0] == '\0') {
+                        t.tloc[i].type = TICK_TYPE_MINOR;
+                    } else {
+                        t.tloc[i].type = TICK_TYPE_MAJOR;
+                    }
+                    t.tloc[i].label = copy_string(t.tloc[i].label, cp);
+                } else {
+                    t.tloc[i].type = TICK_TYPE_MAJOR;
+                }
+            } else {
+                errmsg("Not enough tick locations specified");
+                free_ticklabels(&t);
+                return;
+            }
+        }
+    }
+    
+    switch (applyto) {
+    case 0:                     /* current axis */
+        axis_start = curaxis;
+        axis_stop  = curaxis;
+        graph_start = cg;
+        graph_stop  = cg;
+        break;
+    case 1:                     /* all axes, current graph */
+        axis_start = 0;
+        axis_stop  = MAXAXES - 1;
+        graph_start = cg;
+        graph_stop  = cg;
+        break;
+    case 2:                     /* current axis, all graphs */
+        axis_start = curaxis;
+        axis_stop  = curaxis;
+        graph_start = 0;
+        graph_stop  = number_of_graphs() - 1;
+        break;
+    case 3:                     /* all axes, all graphs */
+        axis_start = 0;
+        axis_stop  = MAXAXES - 1;
+        graph_start = 0;
+        graph_stop  = number_of_graphs() - 1;
+        break;
+    default:
+        axis_start = curaxis;
+        axis_stop  = curaxis;
+        graph_start = cg;
+        graph_stop  = cg;
+        break;        
+    }
+        
+    if (xv_evalexpr(axis_world_start, &axestart) != GRACE_EXIT_SUCCESS ||
+        xv_evalexpr(axis_world_stop,  &axestop)  != GRACE_EXIT_SUCCESS) {
+        errmsg("Axis start/stop values undefined");
+        free_ticklabels(&t);
+        return;
+    }
+		
+    for (i = graph_start; i <= graph_stop; i++) {
+        for (j = axis_start; j <= axis_stop; j++) {
+        
+            get_graph_world(i, &w);
+            if (is_xaxis(j)) {
+               	w.xg1 = axestart;
+                w.xg2 = axestop;
+            } else {
+                w.yg1 = axestart; 
+               	w.yg2 = axestop;
+            }
+            set_graph_world(i, w);
+            
+            switch (GetChoice(axis_scale)) {
+            case 0:
+                if (is_xaxis(j)) {
+                    set_graph_xscale(i, SCALE_NORMAL);
+                } else {
+                    set_graph_yscale(i, SCALE_NORMAL);
+                }
+                break;
+            case 1:
+                if (is_xaxis(j)) {
+                    set_graph_xscale(i, SCALE_LOG);
+                } else {
+                    set_graph_yscale(i, SCALE_LOG);
+                }
+                break;
+            case 2:
+                if (is_xaxis(j)) {
+                    set_graph_xscale(i, SCALE_REC);
+                } else {
+                    set_graph_yscale(i, SCALE_REC);
+                }
+                break;
+            }
+
+            invert = GetToggleButtonState(axis_invert);
+            if (is_xaxis(j)) {
+                set_graph_xinvert(i, invert);
+            } else {
+                set_graph_yinvert(i, invert);
+            }
+            
+            switch (GetChoice(ticklop)) {
+            case 0:
+                if (is_xaxis(j)) {
+		  t.tl_op = PLACE_BOTTOM;
+                } else {
+		  t.tl_op = PLACE_LEFT;
+                }
+                break;
+            case 1:
+                if (is_xaxis(j)) {
+		  t.tl_op = PLACE_TOP;
+                } else {
+		  t.tl_op = PLACE_RIGHT;
+                }
+                break;
+            case 2:
+                t.tl_op = PLACE_BOTH;
+                break;
+            }
+
+            switch (GetChoice(tickop)) {
+            case 0:
+                if (is_xaxis(j)) {
+		  t.t_op = PLACE_BOTTOM;
+                } else {
+		  t.t_op = PLACE_LEFT;
+                }
+                break;
+            case 1:
+                if (is_xaxis(j)) {
+		  t.t_op = PLACE_TOP;
+                } else {
+		  t.t_op = PLACE_RIGHT;
+                }
+                break;
+            case 2:
+                t.t_op = PLACE_BOTH;
+                break;
+            }
+
+            set_graph_tickmarks(i, &t, j);
+        }
+    }
+    
+    free_ticklabels(&t);
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(axes_dialog);
+    }
+
+    drawgraph();
+    set_dirtystate();
+}
+
+/*
+ * Fill 'Axes' dialog with values
+ */
+
+void update_ticks(int gno)
+{
+    tickmarks t;
+    world w;
+    char buf[128];
+    int i, iv;
+
+    if (axes_dialog) {
+        get_graph_tickmarks(gno, &t, curaxis);
+
+        SetToggleButtonState(axis_active, is_axis_active(gno, curaxis));
+        if (is_axis_active(gno, curaxis) == FALSE) {
+            XtSetSensitive(axes_tab, False);
+        } else {
+            XtSetSensitive(axes_tab, True);
+        }
+
+        SetChoice(editaxis, curaxis);
+
+        SetToggleButtonState(axis_zero, is_zero_axis(gno, curaxis));
+
+        get_graph_world(gno, &w);
+        if (is_xaxis(curaxis)) {
+            sprintf(buf, "%.9g", w.xg1);
+            xv_setstr(axis_world_start, buf);
+            sprintf(buf, "%.9g", w.xg2);
+            xv_setstr(axis_world_stop, buf);
+            SetChoice(axis_scale, get_graph_xscale(gno));
+            SetToggleButtonState(axis_invert, is_graph_xinvert(gno));
+        } else {
+            sprintf(buf, "%.9g", w.yg1);
+            xv_setstr(axis_world_start, buf);
+            sprintf(buf, "%.9g", w.yg2);
+            xv_setstr(axis_world_stop, buf);
+            SetChoice(axis_scale, get_graph_yscale(gno));
+            SetToggleButtonState(axis_invert, is_graph_yinvert(gno));
+        }
+
+        sprintf(buf, "%.2f", t.offsx);
+        XmTextSetString(offx, buf);
+        sprintf(buf, "%.2f", t.offsy);
+        XmTextSetString(offy, buf);
+
+        SetChoice(axislabellayout, t.label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
+        SetChoice(axislabelplace, t.label_place == TYPE_AUTO ? 0 : 1);
+        sprintf(buf, "%.2f %.2f", t.label.x, t.label.y);
+        xv_setstr(axislabelspec, buf);
+        SetOptionChoice(axislabelfont, t.label.font);
+        SetChoice(axislabelcolor, t.label.color);
+        SetCharSizeChoice(axislabelcharsize, t.label.charsize);
+        switch (t.label_op) {
+        case PLACE_LEFT:
+            SetChoice(axislabelop, 0);
+            break;
+        case PLACE_RIGHT:
+            SetChoice(axislabelop, 1);
+            break;
+        case PLACE_BOTTOM:
+            SetChoice(axislabelop, 0);
+            break;
+        case PLACE_TOP:
+            SetChoice(axislabelop, 1);
+            break;
+        case PLACE_BOTH:
+            SetChoice(axislabelop, 2);
+            break;
+        }
+
+        SetToggleButtonState(tlonoff, t.tl_flag);
+        SetToggleButtonState(tonoff, t.t_flag);
+        SetToggleButtonState(baronoff, t.t_drawbar);
+        xv_setstr(axislabel, t.label.s);
+
+        if (islogx(gno) && (curaxis % 2 == 0)) {
+            if (t.tmajor <= 1.0) {
+                t.tmajor = 10.0;
+            }
+            sprintf(buf, "%g", t.tmajor);
+        } else if (islogy(gno) && (curaxis % 2 == 1)) {
+            if (t.tmajor <= 1.0) {
+                t.tmajor = 10.0;
+            }
+            sprintf(buf, "%g", t.tmajor);
+        } else if (t.tmajor > 0) {
+            sprintf(buf, "%g", t.tmajor);
+        } else {
+            strcpy(buf, "UNDEFINED");
+        }
+        xv_setstr(tmajor, buf);
+ 
+        if (t.nminor >= 0) {
+            sprintf(buf, "%d", t.nminor);
+        } else {
+            strcpy(buf, "UNDEFINED");
+        }
+        xv_setstr(nminor, buf);
+
+        SetOptionChoice(tlfont, t.tl_font);
+        SetChoice(tlcolor, t.tl_color);
+        SetChoice(tlskip, t.tl_skip);
+        SetChoice(tlstagger, t.tl_staggered);
+        xv_setstr(tlappstr, t.tl_appstr);
+        xv_setstr(tlprestr, t.tl_prestr);
+        SetChoice(tlstarttype, t.tl_starttype == TYPE_SPEC);
+        if (t.tl_starttype == TYPE_SPEC) {
+            sprintf(buf, "%f", t.tl_start);
+            xv_setstr(tlstart, buf);
+            sprintf(buf, "%f", t.tl_stop);
+            xv_setstr(tlstop, buf);
+        }
+        SetChoice(tlstoptype, t.tl_stoptype == TYPE_SPEC);
+        if (t.tl_stoptype == TYPE_SPEC) {
+            sprintf(buf, "%f", t.tl_stop);
+            xv_setstr(tlstop, buf);
+        }
+        iv = get_format_index(t.tl_format);
+        SetChoice(tlform, iv);
+        switch (t.tl_op) {
+        case PLACE_LEFT:
+            SetChoice(ticklop, 0);
+            break;
+        case PLACE_RIGHT:
+            SetChoice(ticklop, 1);
+            break;
+        case PLACE_BOTTOM:
+            SetChoice(ticklop, 0);
+            break;
+        case PLACE_TOP:
+            SetChoice(ticklop, 1);
+            break;
+        case PLACE_BOTH:
+            SetChoice(ticklop, 2);
+            break;
+        }
+        switch (t.tl_sign) {
+        case SIGN_NORMAL:
+            SetChoice(tlsign, 0);
+            break;
+        case SIGN_ABSOLUTE:
+            SetChoice(tlsign, 1);
+            break;
+        case SIGN_NEGATE:
+            SetChoice(tlsign, 2);
+            break;
+        }
+        SetChoice(tlprec, t.tl_prec);
+
+        SetChoice(tlgaptype, t.tl_gaptype == TYPE_AUTO ? 0 : 1);
+        sprintf(buf, "%.2f %.2f", t.tl_gap.x, t.tl_gap.y);
+        xv_setstr(tlgap, buf);
+
+        SetCharSizeChoice(tlcharsize, t.tl_charsize);
+        SetAngleChoice(tlangle, t.tl_angle);
+
+        switch (t.t_inout) {
+        case TICKS_IN:
+            SetChoice(tinout, 0);
+            break;
+        case TICKS_OUT:
+            SetChoice(tinout, 1);
+            break;
+        case TICKS_BOTH:
+            SetChoice(tinout, 2);
+            break;
+        }
+        switch (t.t_op) {
+        case PLACE_LEFT:
+            SetChoice(tickop, 0);
+            break;
+        case PLACE_RIGHT:
+            SetChoice(tickop, 1);
+            break;
+        case PLACE_BOTTOM:
+            SetChoice(tickop, 0);
+            break;
+        case PLACE_TOP:
+            SetChoice(tickop, 1);
+            break;
+        case PLACE_BOTH:
+            SetChoice(tickop, 2);
+            break;
+        }
+        SetChoice(tgridcol, t.props.color);
+        SetChoice(tgridlinew, t.props.linew);
+        SetOptionChoice(tgridlines, t.props.lines);
+        SetChoice(tmgridcol, t.mprops.color);
+        SetChoice(tmgridlinew, t.mprops.linew);
+        SetOptionChoice(tmgridlines, t.mprops.lines);
+        SetCharSizeChoice(tlen, t.props.size);
+        SetCharSizeChoice(tmlen, t.mprops.size);
+
+        SetChoice(autonum, t.t_autonum - 2);
+
+        SetToggleButtonState(tround, t.t_round);
+        SetToggleButtonState(tgrid, t.props.gridflag);
+        SetToggleButtonState(tmgrid, t.mprops.gridflag);
+
+        SetChoice(barcolor, t.t_drawbarcolor);
+        SetChoice(barlinew, t.t_drawbarlinew);
+        SetOptionChoice(barlines, t.t_drawbarlines);
+
+        SetToggleButtonState(specticks, (t.t_type == TYPE_SPEC));
+        SetToggleButtonState(specticklabels, (t.tl_type == TYPE_SPEC));
+        sprintf(buf, "%d", t.nticks);
+        xv_setstr(nspec, buf);
+        for (i = 0; i < t.nticks; i++) {
+            sprintf(buf, "%g", t.tloc[i].wtpos);
+            xv_setstr(specloc[i], buf);
+            xv_setstr(speclabel[i], t.tloc[i].label);
+        }
+        
+        free_ticklabels(&t);
+    }
+}
+
+
+
+static void set_active_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    if (GetToggleButtonState(axis_active) == TRUE) {
+        XtSetSensitive(axes_tab, True);
+    } else {
+        XtSetSensitive(axes_tab, False);
+    }
+}
+
+static void set_axis_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int cd = (int) client_data;
+    curaxis = cd;
+    update_ticks(cg);
+}

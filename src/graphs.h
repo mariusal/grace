@@ -1,0 +1,310 @@
+/*
+ * Grace - Graphics for Exploratory Data Analysis
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-98 GRACE Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#ifndef __GRAPHS_H_
+#define __GRAPHS_H_
+
+#include "defines.h"
+
+/* Graph type */
+#define GRAPH_XY        0
+#define GRAPH_CHART     1
+#define GRAPH_POLAR     2
+#define GRAPH_SMITH     3
+#define GRAPH_FIXED     4
+
+/* Set types */
+#define SET_XY          0
+#define SET_XYDX        1
+#define SET_XYDY        2
+#define SET_XYDXDX      3
+#define SET_XYDYDY      4
+#define SET_XYDXDY      5
+#define SET_BAR         6
+#define SET_BARDY       7
+#define SET_BARDYDY     8
+#define SET_XYSTRING    9
+#define SET_XYHILO     10
+#define SET_XYZ        11
+#define SET_XYR        12
+
+/* TODO: those are NOT really set types */
+#define SET_NXY        13
+#define SET_BLOCK      14
+
+/* Data column names; */
+#define DATA_INDEX      0 /* reserved */
+#define DATA_X          1
+#define DATA_Y          2
+#define DATA_Y1         3
+#define DATA_Y2         4
+#define DATA_Y3         5
+#define DATA_Y4         6
+
+
+typedef struct {
+    int pointset;               /* if (dsx, dsy) have been set */
+    int pt_type;                /* type of locator display */
+    double dsx, dsy;            /* locator fixed point */
+    int fx, fy;                 /* locator format type */
+    int px, py;                 /* locator precision */
+} GLocator;
+
+
+typedef struct {
+    int active;                 /* active flag */
+    int hidden;                 /* hidden set */
+
+    int type;                   /* dataset type */
+
+    int len;                    /* set length */
+    double *ex[MAX_SET_COLS];   /* x, y, dx, z, r, hi depending on dataset type */
+    char **s;                   /* pointer to strings */
+    char comments[MAX_STRING_LENGTH];   /* how did this set originate */
+
+    int hotlink;                /* hot linked set */
+    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
+    char hotfile[GR_MAXPATHLEN];   /* hot linked filename */
+
+    int sym;                    /* set plot symbol type */
+    double symsize;             /* size of symbols */
+    Pen sympen;                 /* pen props of symbol line */
+    Pen symfillpen;             /* pen props of symbol filling */
+    int symlines;               /* Symbol linestyle */
+    int symlinew;               /* Symbol linewidth */
+    int symskip;                /* How many symbols to skip */
+    char symchar;               /* char used if sym == SYM_CHAR */
+    int charfont;               /* font for symchar if sym == SYM_CHAR */
+
+    int linet;                  /* set line type */
+    int lines;                  /* set line style */
+    int linew;                  /* line width */
+    Pen linepen;                /* pen for connecting line */
+
+    int baseline_type;          /* type of baseline */
+    int baseline;               /* should the baseline be drawn */
+    int dropline;               /* should the drop lines (from data points to
+                                                      the baseline) be drawn */
+    
+    int filltype;               /* fill type */
+    int fillrule;               /* fill rule (winding/even-odd) */
+    Pen setfillpen;             /* pen props for set fill */
+
+    char lstr[MAX_STRING_LENGTH];       /* legend for this set */
+
+    AValue avalue;              /* Parameters for annotative string */
+    
+    Errbar errbar;              /* error bar properties */
+
+    Regression *r;              /* coefs from any regression performed on this set */
+    Spline *spl;                /* coefs from any spline performed on this set */
+
+    void *ep;                   /* pointer to EditPoints structure */
+} plotarr;
+
+/*
+ * a graph
+ */
+typedef struct {
+    int hidden;                 /* display or not */
+
+    int type;                   /* type of graph */
+
+    int maxplot;                /* number of sets allocated for this graph */
+
+    int xscale;                 /* scale mapping of X axes*/
+    int yscale;                 /* scale mapping of Y axes*/
+    int xinvert;                /* X axes inverted, TRUE or FALSE */
+    int yinvert;                /* Y axes inverted, TRUE or FALSE */
+    int xyflip;                 /* whether x and y axes should be flipped */
+
+    int stacked;                /* TRUE if graph is stacked */
+    double bargap;              /* Distance between bars (in bar charts) */
+
+    plotarr *p;                 /* sets go here */
+
+    legend l;                   /* legends */
+
+    world w;                    /* world */
+    view v;                     /* viewport */
+
+    labels labs;                /* title and subtitle */
+
+    tickmarks t[MAXAXES];       /* flags etc. for tickmarks for all axes */
+
+    framep f;                   /* type of box around plot */
+
+    GLocator locator;           /* locator props */
+
+    world_stack ws[MAX_ZOOM_STACK]; /* zoom stack */
+    int ws_top;                 /* stack pointer */
+    int curw;                   /* for cycling through the stack */
+} graph;
+
+
+int get_cg(void);
+
+char *graph_types(int it);
+char *set_types(int it);
+
+int kill_graph(int gno);
+void kill_all_graphs(void);
+int copy_graph(int from, int to);
+int move_graph(int from, int to);
+int swap_graph(int from, int to);
+int duplicate_graph(int gno);
+
+int get_graph_tickmarks(int gno, tickmarks *t, int a);
+int set_graph_tickmarks(int gno, tickmarks *t, int a);
+void free_ticklabels(tickmarks *t);
+void zero_ticklabels(tickmarks *t);
+
+int get_graph_framep(int gno, framep *f);
+int get_graph_world(int gno, world *w);
+int get_graph_viewport(int gno, view *v);
+int get_graph_labels(int gno, labels *labs);
+int get_graph_plotarr(int gno, int i, plotarr *p);
+int get_graph_legend(int gno, legend *leg);
+
+int set_graph_active(int gno, int flag);
+void set_graph_framep(int gno, framep *f);
+void set_graph_world(int gno, world w);
+void set_graph_viewport(int gno, view v);
+void set_graph_labels(int gno, labels *labs);
+void set_graph_plotarr(int gno, int i, plotarr *p);
+void set_graph_legend(int gno, legend *leg);
+void set_graph_legend_active(int gno, int flag);
+
+
+int nactive(int gno);
+
+#define is_graph_active(gno) is_valid_gno(gno)
+
+int is_graph_hidden(int gno);
+int set_graph_hidden(int gno, int flag);
+
+int get_graph_type(int gno);
+
+int is_graph_stacked(int gno);
+int set_graph_stacked(int gno, int flag);
+
+double get_graph_bargap(int gno);
+int set_graph_bargap(int gno, double bargap);
+
+int islogx(int gno);
+int islogy(int gno);
+
+int select_graph(int gno);
+
+int realloc_graphs(int n);
+int realloc_graph_plots(int gno, int n);
+
+int set_graph_xscale(int gno, int scale);
+int set_graph_yscale(int gno, int scale);
+
+int get_graph_xscale(int gno);
+int get_graph_yscale(int gno);
+
+int is_valid_gno(int gno);
+int is_valid_setno(int gno, int setno);
+int number_of_graphs(void);
+
+int set_graph_type(int gno, int gtype);
+
+int is_set_active(int gno, int setno);
+int is_set_hidden(int gno, int setno);
+int set_set_hidden(int gno, int setno, int flag);
+
+int number_of_sets(int gno);
+
+int load_comments_to_legend(int gno, int setno);
+
+int settype_cols(int type);
+int dataset_type(int gno, int setno);
+
+int is_refpoint_active(int gno);
+
+int set_refpoint(int gno, WPoint wp);
+
+WPoint get_refpoint(int gno);
+
+double *getcol(int gno, int setno, int col);
+#define getx(gno, setno) getcol(gno, setno, 0)
+#define gety(gno, setno) getcol(gno, setno, 1)
+
+char *get_legend_string(int gno, int setno);
+int set_legend_string(int gno, int setno, char *s);
+
+int settype(int gno, int set, int stype);
+
+char *getcomment(int gno, int setno);
+int setcomment(int gno, int setno, char *s);
+
+int set_set_strings(int gno, int setno, int len, char **s);
+char **get_set_strings(int gno, int setno);
+
+int getsetlength(int gno, int setno);
+
+double setybase(int gno, int setno);
+
+int is_graph_xinvert(int gno);
+int is_graph_yinvert(int gno);
+
+int set_graph_xinvert(int gno, int flag);
+int set_graph_yinvert(int gno, int flag);
+
+int is_axis_active(int gno, int axis);
+int is_zero_axis(int gno, int axis);
+
+void cycle_world_stack(void);
+void clear_world_stack(void);
+void show_world_stack(int n);
+void add_world(int gno, double x1, double x2, double y1, double y2);
+void push_world(void);
+
+int activate_tick_labels(int gno, int axis, int flag);
+
+int get_graph_locator(int gno, GLocator *locator);
+void set_graph_locator(int gno, GLocator *locator);
+
+int graph_world_stack_size(int gno);
+int get_world_stack_entry(int gno, int n, world_stack *ws);
+
+int overlay_graphs(int g1, int g2, int type);
+
+int set_set_colors(int gno, int setno, int color);
+
+int moveset(int gnofrom, int setfrom, int gnoto, int setto);
+
+
+int get_project_version(void);
+int set_project_version(int version);
+void reset_project_version(void);
+void postprocess_project(int version);
+
+#endif /* __GRAPHS_H_ */

@@ -1,0 +1,65 @@
+#####################################################
+# Makefile for libgrace_np                          #
+#####################################################
+# You should not change anything here.              #
+# Please read INSTALL file in the upper directory   #
+#####################################################
+
+TOP=..
+
+include $(TOP)/Make.conf
+
+.SUFFIXES : .c .f $(O)
+
+LIB = libgrace_np.a
+
+CFLAGS=$(CFLAGS0) -I$(TOP) -I. 
+
+LIBS = $(NOGUI_LIBS)
+
+LIBOBJS = grace_np$(O) gracef_np$(O)
+TESTS=test_np$(EXE) testf_np$(EXE)
+
+all : $(LIB)
+
+tests : $(TESTS)
+	-@PATH=../src:$$PATH; export PATH; GRACE_HOME=..; export GRACE_HOME; \
+	for i in $(TESTS); do echo Running $$i; ./$$i; done
+
+$(LIB) : $(LIBOBJS) 
+	$(RM) $@
+	$(AR) cr $@ $(LIBOBJS)
+	$(RANLIB) $@
+
+$(LIBOBJS) : $(TOP)/config.h grace_np.h
+
+test_np$(EXE) : test_np$(O)
+	$(CC) $(CFLAGS) -o $@ $? $(LIB)
+
+testf_np$(EXE) : testf_np$(O)
+	-$(FC) $(FFLAGS) -o $@ $? $(LIB)
+
+test_np$(O) : $(LIB)
+testf_np$(O) : $(LIB)
+
+install : $(LIB)
+	$(MKINSTALLDIRS) $(GRACE_HOME)/lib
+	$(INSTALL_DATA) $(LIB) $(GRACE_HOME)/lib/$(LIB)
+	$(MKINSTALLDIRS) $(GRACE_HOME)/include
+	$(INSTALL_DATA) grace_np.h $(GRACE_HOME)/include/grace_np.h
+
+links : $(LIB)
+	$(MKINSTALLDIRS) $(PREFIX)/lib
+	cd $(PREFIX)/lib; $(RM) $(LIB); $(LN_S) $(GRACE_HOME)/lib/$(LIB) $(LIB)
+	$(MKINSTALLDIRS) $(PREFIX)/include
+	cd $(PREFIX)/include; $(RM) grace_np.h; $(LN_S) $(GRACE_HOME)/include/grace_np.h grace_np.h
+	
+clean :
+	$(RM) *.o sample.gr $(TESTS)
+
+distclean :
+	$(RM) *.o sample.gr $(LIB) $(TESTS)
+	
+devclean :
+	$(RM) *.o sample.gr $(LIB) $(TESTS)
+

@@ -1,0 +1,8 @@
+GIF/GD driver requires the GD-1.3 library of Thomas Boutell to be present
+on the system. The home page of the library is http://www.boutell.com/gd/.
+
+As of now, the following problems with the driver are known:
+
+ * patterned fills of ellipses make Grace crash
+ * complex polygons are filled incorrectly sometimes
+

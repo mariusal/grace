@@ -1,0 +1,128 @@
+README for GRACE on VMS -- 4-Nov-1998
+
+Some notes about the current release of grace:
+
+ I have not tested it with options other than the defaults.  NODPML
+ and D_FLOAT may not work.
+
+ I define HAVE_GETHOSTNAME.  I am not sure when gethostname was added
+ to the run time library.  It should be undefined for versions of VMS
+ that do not have it.
+
+ On VAX, the example test.com fails with "Oops, got SIGSYS ...".
+
+ Pipes do not work on VMS V6.
+
+ There are two informational messages relating to alloca not being
+ declared; I haven't figured out the proper fix yet.
+
+ Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
+ problem report in case there is a guru lurking:
+  >>
+  >>  I have apply your patch for Tab.c and I get the next problems:
+  >>  
+  >>          XFontSet *font_set;
+  >>          ^
+  >>  %CC-E-UNDECLARED, In this statement, "XFontSet" is not declared.
+  >> ...
+  >
+  >I see. It seems that all problems are related to the font stuff. Since no 
+  >advanced features like localization etc are really needed for xmgr, I'm 
+  >sure it can be solved. However, I have no experience with backward porting
+  >to X11R4 and Motif-1.1 :). Probably, there is a guru lurking around you
+  >(I mean who is using the same OS). Such a guy would definitly be familiar
+  >with the issue. 
+
+Rolf Niepraschk (niepraschk@ptb.de)
+John Hasstedt (John.Hasstedt@sunysb.edu)
+
+1. Introduction
+
+ Rolf has ported grace to VMS with assistance from John.
+
+  We have compiled grace with the following combinations:
+     VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
+     VMS Alpha V6.2    DECC V5.7     Motif 1.2-4   (John)
+
+  We have compiled xmgr with the following combinations:
+     VMS VAX V5.5      DECC V5.2                   (Rolf)
+     VMS Alpha V6.2    DECC V5.0                   (Rolf)
+     VMS Alpha V7.1    DECC V5.7                   (Rolf)
+     VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
+     VMS Alpha V6.2    DECC V5.6     Motif 1.2-4   (John)
+  We have also received a report that it compiled with
+     VMS Alpha V6.1    DECC V5.7     Motif 1.2-3
+
+ You need mms or mmk to compile it.  You can get mmk from
+
+     ftp://ftp.madgoat.com/madgoat/mmk.zip
+
+2. Compilation
+
+ In the top directory, do
+
+    @[.arch.vms]configure
+    mms               (or mmk)
+
+ Configure accepts options as parameters on the command line:
+
+    NOOPTIMIZE -- compile with /NOOPTIMIZE.
+    NODPML -- do not use DPML even if the system has it (DPML is the
+      Digital Portable Math Library; it contains hyperbolic trig
+      and other functions).
+    D_FLOAT, G_FLOAT, IEEE -- specify the type of floating point; the
+      default it G on VAX and IEEE on Alpha.  You will get errors about
+      overflow in the T1 library if you use D_FLOAT.  IEEE will not work
+      on VAX, but configure allows you to set it.
+
+ You can specify multiple options on the command line; separate them
+ with spaces.  All other strings are ignored--configure reports the
+ options it uses so you can check that you get what you want.
+
+ If you wish to compile GRACE with support for HDF (or CDF)
+ file format, edit [.SRC]DESCRIP.MMS after running configure.com,
+ and change it as shown below:
+
+    NETCDF = ,HAVE_MFHDF=1
+    NETCDF_INC = ,USR_INC:[HDF]    # the c header files
+    NETCDF_LIBS = ,USR_LIB:MFHDF.OLB,DF.OLB/LIB,LIBZ.OLB/LIB # the libraries
+
+ Note the comma as the first character!
+
+ You can find the NETCDF package at ftp://ftp.ncsa.uiuc.edu/HDF/,
+ including precompiled binaries for VAX and Alpha.
+
+3. Installation
+
+ Define a symbol for the executable like
+
+  $ grace :== $disk:[path]grace
+
+ Define the following logicals
+
+  $ define GRACE_HOME "/disk/dir1/dir2/grace"
+  ! the path of the directotry [.doc] (unix-like)
+
+ optional:
+
+  $ define GRACE_HELPVIEWER "www-browser %s"
+  ! for netscape look at the original make.conf
+
+  $ define GRACE_PS_PRSTR  " "print/name=""from GRACE""/delete/queue=your_queue"
+  ! the /delete qualifier is recommended
+
+ x-resources:
+
+  The file [.SRC]XMGRACE.AD contains the x resources.  You may want to
+  copy this file to XMGRACE.DAT in either DECW$SYSTEM_DEFAULTS and/or
+  DECW$USER_DEFAULTS to customize the program.
+
+4. Test
+
+  $ set default [.examples]
+  $ @dotest
+
+5. Bugs
+
+ Please send bug reports to the grace mailing list.
+

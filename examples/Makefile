@@ -1,0 +1,42 @@
+#####################################################
+# Makefile for examples of GRACE                    #
+#####################################################
+# You should not change anything here.              #
+# Please read INSTALL file in the upper directory   #
+#####################################################
+
+TOP=..
+
+include $(TOP)/Make.conf
+
+DOTEST = dotest$(BAT)
+
+EXAMPLES = altaxis.par logtest.par times.agr \
+	au.agr manygraphs.agr terr.agr tinset.agr \
+	axes.agr mlo.dat terr2.agr tlog.agr \
+	bar.agr explain.agr moresyms.agr test.com tmc.c \
+	fills.agr props.agr test.dat \
+	chartebar.agr charts.agr graphs.par regions.par test1.par tstack.agr \
+	brw.dat hilo.agr slideshow.d test2.agr txyr.agr \
+	co2.agr log.dat stackedb.agr tfonts.agr typeset.agr \
+	co2.par logistic.agr logistic.fit symslines.agr tforms.par polar.agr
+
+all : dummy
+
+clean : dummy
+
+distclean : dummy
+
+devclean : dummy
+
+install : $(EXAMPLES) $(DOTEST)
+	$(MKINSTALLDIRS) $(GRACE_HOME)/examples
+	for i in $(EXAMPLES); do $(INSTALL_DATA) $$i $(GRACE_HOME)/examples; done
+	$(INSTALL_PROGRAM) $(DOTEST) $(GRACE_HOME)/examples/$(DOTEST)
+
+links : dummy
+
+tests : $(EXAMPLES) $(DOTEST)
+	./$(DOTEST)
+
+dummy :

@@ -1,0 +1,966 @@
+/*--------------------------------------------------------------------------
+  ----- File:        t1finfo.c 
+  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
+  ----- Date:        09/01/1998
+  ----- Description: This file is part of the t1-library. It contains
+                     functions for accessing afm-data and some other
+		     fontinformation data.
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+                     As of version 0.5, t1lib is distributed under the
+		     GNU General Public Library Lincense. The
+		     conditions can be found in the files LICENSE and
+		     LGPL, which should reside in the toplevel
+		     directory of the distribution.  Please note that 
+		     there are parts of t1lib that are subject to
+		     other licenses:
+		     The parseAFM-package is copyrighted by Adobe Systems
+		     Inc.
+		     The type1 rasterizer is copyrighted by IBM and the
+		     X11-consortium.
+  ----- Warranties:  Of course, there's NO WARRANTY OF ANY KIND :-)
+  ----- Credits:     I want to thank IBM and the X11-consortium for making
+                     their rasterizer freely available.
+		     Also thanks to Piet Tutelaers for his ps2pk, from
+		     which I took the rasterizer sources in a format
+		     independent from X11.
+                     Thanks to all people who make free software living!
+--------------------------------------------------------------------------*/
+  
+#define T1FINFO_C
+
+
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
+#include "../type1/ffilest.h" 
+#include "../type1/types.h"
+#include "parseAFM.h" 
+#include "../type1/objects.h"
+#include "../type1/spaces.h"
+#include "../type1/util.h"
+#include "../type1/fontfcn.h"
+#include "../type1/regions.h"
+
+
+#include "t1types.h"
+#include "t1extern.h"
+#include "t1finfo.h"
+#include "t1base.h"
+#include "t1misc.h"
+#include "t1set.h"
+#include "t1load.h"
+
+
+/* The following variable controls the computation of the bbox internal
+   to T1_GetMetricsInfo(). Its influence may be overridden by the
+   global variable ForceAFMBBox: */
+static int ForceAFMBBoxInternal=0;
+
+
+/* int T1_GetKerning(): This function returns the amount of kerning that
+   is specified in the afm-file for the supplied character-pair. If an
+   an extension has been applied to the font in question, this is taken
+   into account.
+   If for whatever reason there's no afm information available (that's not
+   deadly), simply 0 is returned, indicating that no kerning should be used.
+   The value returned is meant to be in character space coordinates. Thus,
+   it must be transformed to be applicable in device space.
+   */
+int T1_GetKerning( int FontID, char char1, char char2)
+{
+  METRICS_ENTRY entry;
+  METRICS_ENTRY *target_pair=NULL;
+  
+
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0);
+  }
+
+  /* if there's no kerning info, return immediately */
+  if (pFontBase->pFontArray[FontID].pAFMData->numOfPairs==0)
+    return( 0);
+  
+  entry.chars=(char1<<8) | char2;
+  if ((target_pair=(METRICS_ENTRY *)
+       bsearch( &entry, pFontBase->pFontArray[FontID].pKernMap,
+		(size_t) pFontBase->pFontArray[FontID].pAFMData->numOfPairs,
+		sizeof(METRICS_ENTRY),
+		&cmp_METRICS_ENTRY))==NULL)
+    return(0);
+  else
+    return( target_pair->hkern * pFontBase->pFontArray[FontID].extend);
+  
+}
+
+
+
+/* int T1_GetCharWidth(): This function returns the characterwidth
+   specified in the .afm-file. If no .afm-file is loaded for that font,
+   0 is returned. Note that if one tries to raster strings, afm data
+   should always be available. The returned character width is corrected
+   using  a possibly applied font extension!
+   */
+int T1_GetCharWidth( int FontID, char char1)
+{
+  unsigned char uchar1;
+
+  uchar1=(unsigned char) char1;
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0);
+  }
+  
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL){
+    T1_errno=T1ERR_UNSPECIFIED;
+    return(0);  /* font is loaded, but no afm data available */
+  }
+  
+  /* Check if character is encoded */
+  if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]==-1)
+    return(0);
+  
+  return((int) ((pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]].wx) * pFontBase->pFontArray[FontID].extend));
+  
+}
+
+
+
+/* T1_GetCharBBox(): Get the BoundingBox of specified character. If an
+   extension factor has been applied to the font in question, this
+   is taken into account. However, a slant factor which has been applied
+   to the font, also affects the bounding box of a character. The
+   only way to determine its influence on the character bounding box
+   is to compute the exact shape of that slanted character. There's no
+   simple way to extract the new bounding box from the former bounding
+   box. Thus, if a font has been slanted, the characters outline itself
+   is examined. Since this must be done at 1000 bp it takes considerably
+   longer than reading afm data. */
+BBox T1_GetCharBBox( int FontID, char char1)
+{
+
+  struct region *area;
+  struct XYspace *S;    
+  int mode=0;
+  
+  extern int ForceAFMBBox;
+  BBox NullBBox= { 0, 0, 0, 0}; /* A bounding box containing all 0's. */
+  BBox ResultBox= { 0, 0, 0, 0}; /* The Box returned if char is found */
+  
+  unsigned char uchar1;
+
+  
+  uchar1=(unsigned char) char1;
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NullBBox);
+  }
+
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL){
+    T1_errno=T1ERR_UNSPECIFIED;
+    return(NullBBox);  /* font is loaded, but no afm data available */
+  }
+  
+  /* Check if character is encoded */
+  if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]==-1)
+    return(NullBBox);
+  
+  /* Check for a font slant */
+  if ((pFontBase->pFontArray[FontID].slant!=0.0)
+      &&(ForceAFMBBox==0)
+      &&(ForceAFMBBoxInternal==0)){
+    /* We have a font slant -> character outline must be examined in order
+       to determine bounding box */
+    /* Set up an identity charspace matrix 
+       and take a slant and an extension into account */
+    /* And make it permanent, to plug a memory leak */
+    S=(struct XYspace *)IDENTITY;
+    S=(struct XYspace *)Permanent
+      (Transform(S, pFontBase->pFontArray[FontID].FontTransform[0],
+		 pFontBase->pFontArray[FontID].FontTransform[1],
+		 pFontBase->pFontArray[FontID].FontTransform[2],
+		 pFontBase->pFontArray[FontID].FontTransform[3]));
+    /* Genrate an edgelist for the current character at size 1000bp
+       using current transformation and encoding: */
+    area=fontfcnB( FontID, 0, S,
+		   pFontBase->pFontArray[FontID].pFontEnc,
+		   (int) uchar1, &mode,
+		   pFontBase->pFontArray[FontID].pType1Data);
+    /* Read out bounding box */
+    ResultBox.llx =area->xmin;
+    ResultBox.urx =area->xmax;
+    ResultBox.lly =area->ymin;
+    ResultBox.ury =area->ymax;
+    
+    /* Reset AFM-switch and return BBox */
+    ForceAFMBBoxInternal=0;
+    /* make sure to destroy 'area' before leaving! */
+    KillRegion (area);
+    /* make sure to free S */
+    if (S) {
+      KillSpace (S);
+    }
+    return(ResultBox);
+  }
+  else{
+    /* Assign bounding box ... */
+    ResultBox=(pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]].charBBox);
+    
+    /* .. and apply transformations: */
+    ResultBox.llx *=pFontBase->pFontArray[FontID].extend;
+    ResultBox.urx *=pFontBase->pFontArray[FontID].extend;
+    
+    return(ResultBox);
+  }
+    
+}
+
+
+/* int T1_GetUnderlinePosition(): Return underline position of specified
+   font in charspace units. If 0 is returned, it indicated that the font
+   is not yet loaded into memory. or an invalid ID has been specified. */
+float T1_GetUnderlinePosition( int FontID)
+{
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0.0);
+  }
+  
+  return((float)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[UNDERLINEPOSITION].value.data.real));
+}
+
+
+
+/* int T1_GetUnderlineThickness(): Return underline thickness of specified
+   font in charspace units. If 0 is returned, it indicated that the font
+   is not yet loaded into memory. or an invalid ID has been specified. */
+float T1_GetUnderlineThickness( int FontID)
+{
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0.0);
+  }
+  
+  return((float)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[UNDERLINETHICKNESS].value.data.real));
+}
+
+
+/* int T1_ItalicAngle(): Return underline position of specified
+   font in charspace units. If 0.0 is returned, it indicated that the font
+   is not yet loaded into memory. or an invalid ID has been specified. */
+float T1_GetItalicAngle( int FontID)
+{
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0.0);
+  }
+  
+  return((float)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ITALICANGLE].value.data.real));
+}
+
+
+
+/* int T1_GetUnderlinePosition(): Return underline position of specified
+   font in charspace units. If 0 is returned, it indicated that the font
+   is not yet loaded into memory. or an invalid ID has been specified. */
+int T1_GetIsFixedPitch( int FontID)
+{
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0.0);
+  }
+  
+  return((int)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ISFIXEDPITCH].value.data.boolean));
+}
+
+
+
+/* char *T1_GetFontName( FontID): Get the PostScript FontName of
+   the  font dictionary associated with thre specified font, or NULL if
+   an error occurs. */
+char *T1_GetFontName( int FontID)
+{
+  static char fontname[MAXPSNAMELEN];
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  strncpy(fontname,
+	  (char *)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTNAME].value.data.nameP),
+	  pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTNAME].value.len);
+  fontname[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTNAME].value.len]=0;
+    
+  return(fontname);
+  
+}
+
+
+/* char *T1_GetFullName( FontID): Get the Full Name from
+   the  font dictionary associated with the specified font, or NULL if
+   an error occurs. */
+char *T1_GetFullName( int FontID)
+{
+  static char fullname[MAXPSNAMELEN];
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  strncpy(fullname,
+	  (char *)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FULLNAME].value.data.nameP),
+	  pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FULLNAME].value.len);
+  fullname[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FULLNAME].value.len]=0;
+    
+  return(fullname);
+  
+}
+
+
+/* char *T1_GetFamilyName( FontID): Get the Family Name of
+   the  font dictionary associated with the specified font, or NULL if
+   an error occurs. */
+char *T1_GetFamilyName( int FontID)
+{
+  static char familyname[MAXPSNAMELEN];
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  strncpy(familyname,
+	  (char *)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FAMILYNAME].value.data.nameP),
+	  pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FAMILYNAME].value.len);
+  familyname[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FAMILYNAME].value.len]=0;
+    
+  return(familyname);
+  
+}
+
+
+/* char *T1_GetWeight( FontID): Get the Weight entry from
+   the  font dictionary associated with the specified font, or NULL if
+   an error occurs. */
+char *T1_GetWeight( int FontID)
+{
+  static char weight[128];
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  strncpy(weight,
+	  (char *)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[WEIGHT].value.data.nameP),
+	  pFontBase->pFontArray[FontID].pType1Data->fontInfoP[WEIGHT].value.len);
+  weight[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[WEIGHT].value.len]=0;
+    
+  return(weight);
+  
+}
+
+
+/* char *T1_GetFontName( FontID): Get the Version entry from 
+   the  font dictionary associated with the specified font, or NULL if
+   an error occurs. */
+char *T1_GetVersion( int FontID)
+{
+  static char version[2048];
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  strncpy(version,
+	  (char *)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[VERSION].value.data.nameP),
+	  pFontBase->pFontArray[FontID].pType1Data->fontInfoP[VERSION].value.len);
+  version[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[VERSION].value.len]=0;
+    
+  return(version);
+  
+}
+
+
+/* char *T1_GetNotice( FontID): Get the Notice entry from
+   the  font dictionary associated with the specified font, or NULL if
+   an error occurs. */
+char *T1_GetNotice( int FontID)
+{
+  static char notice[2048];
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  strncpy(notice,
+	  (char *)(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[NOTICE].value.data.nameP),
+	  pFontBase->pFontArray[FontID].pType1Data->fontInfoP[NOTICE].value.len);
+  notice[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[NOTICE].value.len]=0;
+    
+  return(notice);
+  
+}
+
+
+
+
+/* char *T1_GetCharName(): Get the PostScript character name of
+   the  character indexed by char1. */
+char *T1_GetCharName( int FontID, char char1)
+{
+  static char cc_name1[256];
+  char *c1;
+  
+
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  } 
+  
+  if (pFontBase->pFontArray[FontID].pFontEnc==NULL){
+    /* We have to get the names from the fonts internal encoding */
+    c1= (char *)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].data.arrayP;
+    strncpy(cc_name1,
+	    (char *)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].data.arrayP,
+	    pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].len);
+    cc_name1[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].len]=0;
+  }
+  else{
+    /* Take names from explicitly loaded and assigned encoding */
+    c1=pFontBase->pFontArray[FontID].pFontEnc[(unsigned char)char1];
+    strcpy(cc_name1,c1);
+  }
+
+  /* Return address of charname */
+  return(cc_name1);
+  
+}
+
+
+
+/* T1_QueryLigs(): Get the number of ligatures defined in the font FontID for
+   the character which is located at position char1 in the current encoding
+   vector!
+   Function returns the number of defined ligs (including 0) or -1 if an
+   error occured.
+   */
+int T1_QueryLigs( int FontID,  char char1, char **successors,
+		  char **ligatures)
+{
+
+  FontInfo *afm_ptr;
+  CharMetricInfo *m_ptr;
+  char *c_name;
+  char cc_name[128];
+  static char succ[MAX_LIGS];
+  char succ_index;
+  static char lig[MAX_LIGS];
+  char lig_index;
+  
+  Ligature *ligs;
+  int i,j;
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(-1);
+  }
+  
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL){
+    T1_errno=T1ERR_UNSPECIFIED;
+    return(-1);  /* font is loaded, but no afm data available */
+  }
+  
+  /* All OK, ... */
+  afm_ptr=pFontBase->pFontArray[FontID].pAFMData;
+  m_ptr=afm_ptr->cmi;
+
+  /* Get the name of the character: */
+  if (pFontBase->pFontArray[FontID].pFontEnc==NULL){
+    /* We have to get the name from the fonts internal encoding */
+    c_name=(char *)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].data.arrayP;
+    strncpy(cc_name,
+	    (char *)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].data.arrayP,
+	    pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].len);
+    cc_name[pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].len]=0;
+  }
+  else{
+    /* Take name from explicitly loaded and assigned encoding */
+    c_name=pFontBase->pFontArray[FontID].pFontEnc[(unsigned char)char1];
+    strcpy(cc_name,c_name);
+  }
+
+  for (i=0; i<afm_ptr->numOfChars; i++){
+    if (strcmp(m_ptr[i].name,cc_name)==0)
+      break;
+  }
+  
+
+  if (i==afm_ptr->numOfChars) /* we didn't find the characters name */
+    return(-1);
+  
+  ligs=m_ptr[i].ligs;
+
+  j=0;
+  if (ligs==NULL)
+    return(0);
+  
+  while (ligs!=NULL){
+    /* Get indices of the two characters: */
+    succ_index=T1_GetEncodingIndex( FontID, (char*) ligs->succ);
+    lig_index=T1_GetEncodingIndex( FontID, (char*) ligs->lig);
+    succ[j]=(char)succ_index;
+    lig[j]=(char)lig_index;
+    j++;
+    ligs=ligs->next;
+  }
+    
+  *successors=succ;
+  *ligatures=lig;
+  
+  return(j);
+}
+
+      
+
+/* T1_GetEncodingIndex(): Return the Index of char1 in the current
+   encoding vector of font FontID */
+int T1_GetEncodingIndex( int FontID, char *char1)
+{
+  int i;
+  int len1;
+  int result_index;
+  char **extern_enc;
+  psobj *objptr;
+  
+  
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(-1);
+  }
+
+  extern_enc=pFontBase->pFontArray[FontID].pFontEnc;
+
+  len1=strlen( char1);
+  
+  /* The default return-value if character is not found: */
+  result_index=-1;
+
+  if (extern_enc==NULL){
+    objptr=&(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[0]);
+    /* We have to search the fonts internal encoding */
+    for (i=0;i<256;i++){
+      if (len1==objptr[i].len){
+	if (strncmp((char *)objptr[i].data.arrayP,
+		    char1, objptr[i].len)==0){ 
+	  result_index=i; 
+	  break; 
+	}
+      }
+    }
+  }
+  else{
+    /* Take name from explicitly loaded and assigned encoding */
+    for (i=0;i<256;i++){
+      if (strcmp(extern_enc[i], char1)==0){
+	result_index=i;
+	break;
+      }
+    }
+  }
+
+  return(result_index);
+}
+
+
+/* int T1_GetStringWidth(): This function returns the width of string
+   in .afm-file units. If no .afm-file is loaded for font FontID,
+   0 is returned. Note that if one tries to raster strings, afm data
+   should always be available. The returned character width is corrected
+   using  a possibly applied font extension!
+   */
+int T1_GetStringWidth( int FontID, char *string,
+		       int len,  long spaceoff, int kerning)
+{
+
+  int no_chars;      /* Number of chars in string */
+  int i;
+  int *kern_pairs;
+  int *charwidths;
+  int spacewidth; 
+  int stringwidth;
+
+  unsigned char *ustring;
+
+  ustring=(unsigned char *) string;
+  
+  /* First, check for a correct ID */
+  i=CheckForFontID(FontID);
+  if (i==-1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0);
+  }
+  /* if necessary load font into memory */
+  if (i==0)
+    if (T1_LoadFont(FontID))
+      return(0);
+
+  /* Get length of string: */
+  if (len<0){  /* invalid length */
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(0);
+  }
+  if (len==0) /* should be computed assuming "normal" 0-terminated string */
+    no_chars=strlen(string);
+  else        /* use value given on command line */
+    no_chars=len;
+
+  /* Allocate room for temporary arrays of kerning and width arrays: */
+  kern_pairs=(int *)calloc(no_chars -1, sizeof(int));
+  if (kern_pairs==NULL){
+    T1_errno=T1ERR_ALLOC_MEM;
+    return(0);
+  }
+  charwidths=(int *)calloc(no_chars, sizeof(int));
+  if (charwidths==NULL){
+    T1_errno=T1ERR_ALLOC_MEM;
+    return(0);
+  }
+  
+  /* If kerning is requested, get kerning amounts and fill the array: */
+  if (kerning){
+    for (i=0; i<no_chars -1; i++){
+      kern_pairs[i]=T1_GetKerning( FontID, ustring[i], ustring[i+1]);
+    }
+  }
+  
+  /* Compute the correct spacewidth value (in charspace units): */
+  spacewidth=T1_GetCharWidth(FontID,pFontBase->pFontArray[FontID].space_position)+spaceoff;
+  
+  /* Fill the width-array:  */
+  for (i=0; i<no_chars; i++){
+    if (ustring[i]==pFontBase->pFontArray[FontID].space_position)
+      charwidths[i]=(int)spacewidth;
+    else
+      charwidths[i]=T1_GetCharWidth(FontID,ustring[i]);
+  }
+  
+  /* Accumulate width: */
+  stringwidth=0;
+  for (i=0; i<no_chars-1; i++){
+    stringwidth += kern_pairs[i];
+  }
+  for (i=0; i<no_chars; i++){
+    stringwidth += charwidths[i];
+  }
+  
+  /* free memory: */
+  free( charwidths);
+  free( kern_pairs);
+
+  /* .. and return result: */
+  return( stringwidth);
+
+}
+
+    
+
+/* int T1_GetStringBBox(): This function returns the bounding box of string
+   in .afm-file units. If no .afm-file is loaded for font FontID,
+   0 is returned. Note that if one tries to raster strings, afm data
+   should always be available. The returned character width is corrected
+   using  a possibly applied font extension!
+   */
+BBox T1_GetStringBBox( int FontID, char *string,
+		       int len,  long spaceoff, int kerning)
+{
+
+  BBox NullBBox= { 0, 0, 0, 0}; /* A bounding box containing all 0's. */
+  BBox tmp_BBox= { 0, 0, 0, 0}; 
+  BBox ResultBBox= { 0, 0, 0, 0}; /* The resulting BBox */
+  int i;
+  int no_chars;
+  int curr_width=0;
+  int spacewidth=0;
+  
+  int rsb_max=-30000;
+  int lsb_min= 30000;
+  int overallascent=-30000;
+  int overalldescent=30000;
+
+  
+  /* First, check for a correct ID */
+  i=CheckForFontID(FontID);
+  if (i==-1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NullBBox);
+  }
+  
+  /* if necessary load font into memory */
+  if (i==0)
+    if (T1_LoadFont(FontID))
+      return(NullBBox);
+
+  /* Get length of string: */
+  if (len<0){  /* invalid length */
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(NullBBox);
+  }
+  if (len==0) /* should be computed assuming "normal" 0-terminated string */
+    no_chars=strlen(string);
+  else        /* use value given on command line */
+    no_chars=len;
+  
+  spacewidth=
+    T1_GetCharWidth(FontID,pFontBase->pFontArray[FontID].space_position)+spaceoff;
+  
+  /* Accumulate metrics: */
+  for (i=0; i<no_chars; i++){
+    if (string[i]==pFontBase->pFontArray[FontID].space_position)
+      curr_width +=spacewidth;
+    else{
+      tmp_BBox=T1_GetCharBBox( FontID, string[i]);
+      if (curr_width+tmp_BBox.llx < lsb_min)
+	lsb_min=curr_width+tmp_BBox.llx;
+      if (curr_width+tmp_BBox.urx > rsb_max)
+	rsb_max=curr_width+tmp_BBox.urx;
+      if (tmp_BBox.lly < overalldescent)
+	overalldescent=tmp_BBox.lly;
+      if (tmp_BBox.ury > overallascent)
+	overallascent=tmp_BBox.ury;
+      curr_width +=T1_GetCharWidth( FontID, string[i]);
+      if ((i<no_chars-1) && (kerning != 0))
+	curr_width += T1_GetKerning( FontID, string[i], string[i+1]);
+    }
+  }
+
+  ResultBBox.llx=lsb_min;
+  ResultBBox.lly=overalldescent;
+  ResultBBox.urx=rsb_max;
+  ResultBBox.ury=overallascent;
+  
+  return( ResultBBox);
+  
+}
+
+
+/* T1_GetMetricsInfo(): Return a structure containing metrics information
+   about the string to the user. */
+METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
+			       int len, long spaceoff, int kerning)
+{
+
+  BBox NullBBox= { 0, 0, 0, 0}; /* A bounding box containing all 0's. */
+  BBox tmp_BBox= { 0, 0, 0, 0}; 
+
+
+  int i;
+  int no_chars;
+  
+  int curr_width=0;
+  int spacewidth=0;
+  
+  int rsb_max=-30000;
+  int lsb_min= 30000;
+  int overallascent=-30000;
+  int overalldescent=30000;
+
+  static METRICSINFO metrics={ 0, {0, 0, 0, 0}, 0, NULL};
+
+  unsigned char *ustring;
+
+  
+  ustring=(unsigned char *) string;
+  
+  /* Reset struct: */
+  metrics.width=0;
+  metrics.bbox=NullBBox;
+  metrics.numchars=0;
+  if (metrics.charpos != NULL){
+    free( metrics.charpos);
+    metrics.charpos=NULL;
+  }
+
+
+  /* First, check for a correct ID */
+  i=CheckForFontID(FontID);
+  if (i==-1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(metrics);
+  }
+  
+  /* if necessary load font into memory */
+  if (i==0)
+    if (T1_LoadFont(FontID))
+      return(metrics);
+
+  /* Get length of string: */
+  if (len<0){  /* invalid length */
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(metrics);
+  }
+  
+  if (len==0) /* should be computed assuming "normal" 0-terminated string */
+    no_chars=strlen(string);
+  else        /* use value given on command line */
+    no_chars=len;
+
+  /* Compute the correct spacewidth value (in charspace units): */
+  spacewidth=T1_GetCharWidth(FontID,pFontBase->pFontArray[FontID].space_position)+spaceoff;
+
+  /* Allocate memory for character positions array: */
+  metrics.charpos=(int *)calloc(no_chars, sizeof(int));
+
+  metrics.numchars=no_chars;
+  
+  /* Accumulate metrics: */
+  for (i=0; i<no_chars; i++){
+    /* Save current offst to array */
+    metrics.charpos[i]=curr_width;
+    if (string[i]==pFontBase->pFontArray[FontID].space_position)
+      curr_width +=spacewidth;
+    else{
+      tmp_BBox=T1_GetCharBBox( FontID, string[i]);
+      if (curr_width+tmp_BBox.llx < lsb_min)
+	lsb_min=curr_width+tmp_BBox.llx;
+      if (curr_width+tmp_BBox.urx > rsb_max)
+	rsb_max=curr_width+tmp_BBox.urx;
+      if (tmp_BBox.lly < overalldescent)
+	overalldescent=tmp_BBox.lly;
+      if (tmp_BBox.ury > overallascent)
+	overallascent=tmp_BBox.ury;
+      curr_width +=T1_GetCharWidth( FontID, string[i]);
+      if ((i<no_chars-1) && (kerning != 0))
+	curr_width += T1_GetKerning( FontID, string[i], string[i+1]);
+    }
+  }
+
+  metrics.width   =curr_width;
+  metrics.bbox.llx=lsb_min;
+  metrics.bbox.lly=overalldescent;
+  metrics.bbox.urx=rsb_max;
+  metrics.bbox.ury=overallascent;
+
+  return( metrics);
+  
+}
+
+
+
+/* T1_GetFontBBox(): Return the font's bounding box. Note: The font
+   BBox is taken is taken from the font file rather than from afm
+   file since I have seen some afm with rather inaccurate BBoxes.: */
+BBox T1_GetFontBBox( int FontID)
+{
+  
+  BBox outbox= { 0, 0, 0, 0}; 
+
+  /* return Null-box if font not loaded */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(outbox);
+  }
+  
+  outbox.llx=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[0].data.integer; 
+  outbox.lly=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[1].data.integer;
+  outbox.urx=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[2].data.integer;
+  outbox.ury=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[3].data.integer;
+  
+  return( outbox);
+}
+
+       
+
+/* T1_GetAllCharNames(): Get a list of all defined character names in
+   in the font FontID: */
+char **T1_GetAllCharNames( int FontID)
+{
+  static char **bufmem=NULL;
+  register char *namedest;
+  psdict *pCharStrings;
+  int len, i, j;
+  long nameoffset;
+  
+  int bufmemsize=0;
+  
+  /* return NULL if font not loaded */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( NULL);
+  }
+  
+  pCharStrings=pFontBase->pFontArray[FontID].pType1Data->CharStringsP;
+
+  /* First, get number of charstrings: */
+  len=pCharStrings[0].key.len;
+
+  /* We must be careful here: size of the charstrings dict might be larger
+     than the actual number of charstrings. We correct for this by reducing
+     the value of len appropriately */
+  for ( i=1; i<=len; i++){
+    /* calculate room for each characters name plus the prepending \0 */ 
+    if ((j=pCharStrings[i].key.len)){
+      bufmemsize += j + 1;
+    }
+    else{ /* we skip this (the remaining) entries */
+      len--;
+      i--;
+    }
+  }
+  /* Now we reserve memory for the pointers (including final NULL) */
+  nameoffset=(len+1)*sizeof( char *);
+  bufmemsize += nameoffset;
+
+  /* Now allocate memory, copy strings and initialize pointers */
+  if (bufmem!=NULL)
+    free(bufmem);
+  if ((bufmem=(char **)malloc( bufmemsize))==NULL){
+    T1_errno=T1ERR_ALLOC_MEM;
+    return(NULL);
+  }
+  
+  namedest=(char *)((long)bufmem + nameoffset);
+  j=0;
+  for ( i=0; i<len; i++){
+    bufmem[i]=&(namedest[j]);
+    strncpy( &(namedest[j]), pCharStrings[i+1].key.data.nameP,
+	     pCharStrings[i+1].key.len);
+    j += pCharStrings[i+1].key.len;
+    namedest[j++]='\0';
+  }
+  bufmem[i++]=NULL;
+  
+  return( bufmem);
+  
+}
+
+
+/* A function for comparing METRICS_ENTRY structs */
+static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
+{
+  if (((METRICS_ENTRY *)entry1)->chars <
+      ((METRICS_ENTRY *)entry2)->chars)
+    return(-1);
+  if (((METRICS_ENTRY *)entry1)->chars >
+      ((METRICS_ENTRY *)entry2)->chars)
+    return(1);
+  return(0); /* This should not happen */
+}
+    
+    

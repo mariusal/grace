@@ -1,0 +1,216 @@
+/*
+ * Grace - Graphics for Exploratory Data Analysis
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-98 GRACE Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#ifndef __DRAW_H_
+#define __DRAW_H_
+
+#include "defines.h"
+
+/* bpp that Grace uses internally ( = 256 colors) */
+#define GRACE_BPP	8
+#define MAXCOLORS	(0x01 << GRACE_BPP)
+
+#define MAXPATTERNS 32
+
+#define MAXLINESTYLES 9
+
+#define MAXLINEWIDTHS 9
+
+#define POLYLINE_OPEN	0
+#define POLYLINE_CLOSED	1
+
+#define PIXMAP_TRANSPARENT	0
+#define PIXMAP_OPAQUE		1
+
+/* polygon fill type */
+#define FILLRULE_WINDING    0
+#define FILLRULE_EVENODD    1
+
+/* Drawing properties */
+typedef struct {
+    Pen pen;
+    int bgcolor;
+    int lines;
+    int linew;
+    double charsize;
+    int font;
+    int fillrule;
+} DrawProps;
+
+typedef struct {
+    int red;
+    int green;
+    int blue;
+} RGB;
+
+typedef struct {
+    double red;
+    double green;
+    double blue;
+} fRGB;
+
+typedef struct {
+    double y;
+    double i;
+    double q;
+} YIQ;
+
+#define BAD_COLOR	-1
+
+#define COLOR_AUX 	0
+#define COLOR_MAIN 	1
+
+typedef struct {
+    RGB rgb;
+    char *cname;
+    int ctype;
+    int tstamp;
+} CMap_entry;
+
+#define BBOX_TYPE_GLOB	0
+#define BBOX_TYPE_TEMP	1
+
+typedef struct {
+    int active;
+    view v;
+    view fv;
+} BBox_type;
+
+void setpen(Pen pen);
+Pen getpen(void);
+
+void setcolor(int color);
+int getcolor(void);
+
+void setbgcolor(int bgcolor);
+int getbgcolor(void);
+
+void setlinestyle(int lines);
+int getlinestyle(void);
+
+void setlinewidth(int linew);
+double getlinewidth(void);
+
+void setpattern(int pattern);
+int getpattern(void);
+
+void setcharsize(double charsize);
+double getcharsize(void);
+
+void setfont(int font);
+int getfont(void);
+
+void setfillrule(int rule);
+int getfillrule(void);
+
+void symplus(VPoint vp, double s);
+void symx(VPoint vp, double s);
+void symsplat(VPoint vp, double s);
+
+void leavegraphics(void);
+
+void DrawRect(VPoint vp1, VPoint vp2);
+void FillRect(VPoint vp1, VPoint vp2);
+void DrawLine(VPoint vp1, VPoint vp2);
+void DrawPolyline(VPoint *vps, int n, int mode);
+void DrawPolygon(VPoint *vps, int n);
+void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2);
+void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2);
+void DrawEllipse(VPoint vp1, VPoint vp2);
+void DrawFilledEllipse(VPoint vp1, VPoint vp2);
+void DrawCircle(VPoint vp, double radius);
+void DrawFilledCircle(VPoint vp, double radius);
+
+void setclipping(int fl);
+int doclipping(void);
+int is_vpoint_inside(view v, VPoint vp);
+int is_validVPoint(VPoint vp);
+int is_validWPoint(WPoint wp);
+VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mode);
+int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c);
+int intersect_polygon(VPoint *vps, int n, VPoint vp1p, VPoint vp2p);
+int clip_polygon(VPoint *vps, int n);
+
+int is_valid_color(RGB rgb);
+int find_color(RGB rgb);
+int add_color(CMap_entry cmap);
+RGB *get_rgb(unsigned int cindex);
+fRGB *get_frgb(unsigned int cindex);
+CMap_entry *get_cmap_entry(unsigned int cindex);
+char *get_colorname(unsigned int cindex);
+int get_colortype(unsigned int cindex);
+YIQ RGB2YIQ(RGB rgb);
+double get_colorintensity(int cindex);
+void initialize_cmap(void);
+void reverse_video(void);
+int is_video_reversed(void);
+
+char *scale_types(int it);
+
+int checkon_world(int gno);
+int checkon_viewport(int gno);
+int isvalid_viewport(view v);
+
+double fscale(double wc, int scale);
+double ifscale(double vc, int scale);
+
+int polar2xy(double phi, double rho, double *x, double *y);
+void xy2polar(double x, double y, double *phi, double *rho);
+
+double xy_xconv(double wx);
+double xy_yconv(double wy);
+VPoint Wpoint2Vpoint(WPoint wp);
+int world2view(double x, double y, double *xv, double *yv);
+void view2world(double xv, double yv, double *xw, double *yw);
+
+int definewindow(world w, view v, int gtype,
+                 int xscale, int yscale,
+                 int xinv, int yinv);
+
+void reset_bbox(int type);
+void reset_bboxes(void);
+void freeze_bbox(int type);
+view get_bbox(int type);
+int is_valid_bbox(view v);
+view merge_bboxes(view v1, view v2);
+void update_bbox(int type, VPoint vp);
+void update_bboxes(VPoint vp);
+void melt_bbox(int type);
+void activate_bbox(int type, int status);
+
+void set_draw_mode(int mode);
+int get_draw_mode(void);
+
+int number_of_colors(void);
+int number_of_patterns(void);
+int number_of_linestyles(void);
+int number_of_linewidths(void);
+
+void vpswap(VPoint *vp1, VPoint *vp2);
+
+#endif /* __DRAW_H_ */

@@ -1,0 +1,90 @@
+/*
+ * Grace - Graphics for Exploratory Data Analysis
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-98 GRACE Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+/* replacements for some functions */
+
+#ifndef __MISSING_H_
+#define __MISSING_H_
+
+#include <config.h>
+
+#include <stdio.h>
+
+#if defined(__VMS)
+#  include "vms_unix.h"
+#endif
+
+#ifndef HAVE_MEMMOVE
+#  define memmove(a, b, c) bcopy((b), (a), (c))
+#endif
+
+#ifndef HAVE_MEMCPY
+#  define memcpy(a, b, c) bcopy ((b), (a), (c))
+#endif
+
+#ifndef HAVE_GETHOSTNAME
+#  define gethostname(a, n) (strncpy((a), "localhost", n)?0:1)
+#endif
+
+
+#ifndef HAVE_DRAND48
+#  define srand48 srand
+#  define lrand48 rand
+double drand48(void);
+#else
+#  ifndef HAVE_DRAND48_IN_STDLIB_H
+extern double drand48(void);
+#  endif
+#endif
+
+#ifndef HAVE_GETCWD
+#  ifdef OS2
+#    define getcwd _getcwd2
+#    define chdir _chdir2
+#  endif
+#endif
+
+#ifndef HAVE_UNLINK
+#  ifdef VMS
+#    include <unixio.h>
+#    define unlink delete
+#  endif
+#endif
+
+#ifndef HAVE_POPEN
+FILE *popen(char *cmd, char *mode);
+int   pclose(FILE *fp);
+#endif
+
+#ifdef __EMX__
+char *popen_path_translate(char *path);
+#else
+#  define popen_path_translate(p) (p)
+#endif
+
+#endif /* __MISSING_H_ */
