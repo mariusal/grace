@@ -4,15 +4,13 @@
 
 # Rolf Niepraschk, 11/97, niepraschk@ptb.de
 
-include Make.conf
+INCLUDE Make.conf
 
 CD = SET DEFAULT
 TOP = [-]
 ECHO = WRITE SYS$OUTPUT
 
-ALL : CEPHES T1LIB GRACE 
-	@ !
-
+ALL : $(SUBDIRS)
 
 .LAST
 	 @ $(ECHO) ""
@@ -28,13 +26,13 @@ T1LIB :
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
 	 @ $(CD) $(TOP)
 
-GRACE :
+SRC :
 	 @ $(CD) [.SRC]
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
 	 @ $(CD) $(TOP)
 
-clean : CEPHES T1LIB GRACE
+clean : $(SUBDIRS)
 	@ !
 
-distclean : CEPHES T1LIB GRACE
+distclean : $(SUBDIRS)
 	@ !

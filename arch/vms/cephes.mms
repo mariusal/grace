@@ -7,13 +7,14 @@
 TOP = [-]
 ECHO = WRITE SYS$OUTPUT
 
-.INCLUDE $(TOP)Make.conf
-.INCLUDE Make.common
+INCLUDE $(TOP)Make.conf
 
 CFLAGS = $(CFLAGS0)/INCLUDE=$(TOP)
 
 LIB = libcephes.olb
                    
+INCLUDE Make.common
+#INCLUDE Make.dep
 
 all : msg $(LIB)($(OBJS))
 	@ !

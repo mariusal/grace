@@ -1,50 +1,51 @@
-README for GRACE on VMS -- 4-Nov-1998
+README for GRACE on VMS -- 17-Dec-1998
+
+Rolf Niepraschk (niepraschk@ptb.de)
+John Hasstedt (John.Hasstedt@sunysb.edu)
 
 Some notes about the current release of grace:
 
  On VAX, the example test.com fails; it give the error "Oops, got SIGSYS ..."
  when you move the mouse in the graphics window after the test completes.
- I assume this is a decwindows bug, but installing the latest patches from
- DEC did not fix the problem.
+ This may be a decwindows bug, but installing the latest patches from DEC
+ did not fix the problem.
 
- Pipes do not work on VMS V6.
+ Printing to the printer does not work; the print command gives an error
+ that the temporary file cannot be found.  I know the cause of this, but
+ don't have a fix yet.  You can print to a file.
 
  Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
  problem report in case there is a guru lurking:
   >>
   >>  I have apply your patch for Tab.c and I get the next problems:
-  >>  
+  >>
   >>          XFontSet *font_set;
   >>          ^
   >>  %CC-E-UNDECLARED, In this statement, "XFontSet" is not declared.
   >> ...
   >
-  >I see. It seems that all problems are related to the font stuff. Since no 
-  >advanced features like localization etc are really needed for xmgr, I'm 
+  >I see. It seems that all problems are related to the font stuff. Since no
+  >advanced features like localization etc are really needed for xmgr, I'm
   >sure it can be solved. However, I have no experience with backward porting
   >to X11R4 and Motif-1.1 :). Probably, there is a guru lurking around you
   >(I mean who is using the same OS). Such a guy would definitly be familiar
-  >with the issue. 
-
-Rolf Niepraschk (niepraschk@ptb.de)
-John Hasstedt (John.Hasstedt@sunysb.edu)
+  >with the issue.
 
 1. Introduction
 
- Rolf has ported grace to VMS with assistance from John.
-
-  We have compiled grace with the following combinations:
-     VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
-     VMS Alpha V6.2    DECC V5.7     Motif 1.2-4   (John)
-
-  We have compiled xmgr with the following combinations:
-     VMS VAX V5.5      DECC V5.2                   (Rolf)
-     VMS Alpha V6.2    DECC V5.0                   (Rolf)
-     VMS Alpha V7.1    DECC V5.7                   (Rolf)
-     VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
-     VMS Alpha V6.2    DECC V5.6     Motif 1.2-4   (John)
-  We have received a report that it compiled with
-     VMS Alpha V6.1    DECC V5.7     Motif 1.2-3
+ We have compiled grace with the following combinations:
+    VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
+    VMS VAX V7.1      DECC V5.7     Motif 1.2-4   (John)
+    VMS Alpha V6.2    DECC V5.7     Motif 1.2-4   (John)
+    VMS Alpha V7.1    DECC V5.7     Motif 1.2-4   (John)
+ We have compiled xmgr with the following combinations:
+    VMS VAX V5.5      DECC V5.2                   (Rolf)
+    VMS Alpha V6.2    DECC V5.0                   (Rolf)
+    VMS Alpha V7.1    DECC V5.7                   (Rolf)
+    VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
+    VMS Alpha V6.2    DECC V5.6     Motif 1.2-4   (John)
+ We have received a report that xmgr compiled with
+    VMS Alpha V6.1    DECC V5.7     Motif 1.2-3
 
  You need mms or mmk to compile it.  You can get mmk from
 
@@ -54,39 +55,88 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
 
  In the top directory, do
 
-    @[.arch.vms]configure
+    @[.arch.vms]configure [options]
     mms               (or mmk)
 
- Configure accepts options as parameters on the command line:
+ Configure accepts options as parameters on the command line.  Separate
+ multiple options with spaces.  Note that you CANNOT put spaces around the
+ equal sign.  Configure accepts the following options:
 
-    NOOPTIMIZE -- compile with /NOOPTIMIZE.
-    NODPML -- do not use DPML even if the system has it (DPML is the
-      Digital Portable Math Library; it contains hyperbolic trig
-      and other functions).
-    D_FLOAT, G_FLOAT, IEEE -- specify the type of floating point; the
-      default it G on VAX and IEEE on Alpha.  You will get errors about
-      overflow in the T1 library if you use D_FLOAT.  IEEE will not work
-      on VAX, but configure allows you to set it.
+    DPML -- Use the DPML if it exists.  This option allows you to override
+      a NODPML specified in a save file.  DPML is the Digital Portable Math
+      Library; it contains hyperbolic trig and other functions.  It does not
+      exist on the VAX.  Grace uses the routines in the cephes library if
+      you don't have the DPML.
 
- I have not tested it with options other than the defaults.  NODPML
- and D_FLOAT may not work.
+    NODPML -- Do not use the DPML even if the system has it.
 
- You can specify multiple options on the command line; separate them
- with spaces.  All other strings are ignored--configure reports the
- options it uses so you can check that you get what you want.
+    OPTIMIZE -- Use the optimizer when you compile code.  This is the default.
+      This option allows you to override a NOOPTIMIZE specified in a save file.
 
- If you wish to compile GRACE with support for HDF (or CDF)
- file format, edit [.SRC]DESCRIP.MMS after running configure.com,
- and change it as shown below:
+    NOOPTIMIZE -- Compile the code with /NOOPTIMIZE.
 
-    NETCDF = ,HAVE_MFHDF=1
-    NETCDF_INC = ,USR_INC:[HDF]    # the c header files
-    NETCDF_LIBS = ,USR_LIB:MFHDF.OLB,DF.OLB/LIB,LIBZ.OLB/LIB # the libraries
+    D_FLOAT, G_FLOAT, IEEE -- Specify the type of floating point; the
+      default is G on VAX and IEEE on Alpha.  IEEE is not available on
+      VAX.  You will get errors about overflow and underflow of some
+      constants in [.t1lib.type1]token.c from the T1 library if you use
+      D_FLOAT.  However, grace still works (you should use
+      mms/ignore=warning to compile if you select D_FLOAT).
 
- Note the comma as the first character!
+    HOME="/dev/dir" -- Specify the home directory for grace; it must be
+      in Unix format.  You can override this directory when running grace
+      by defining the logical name GRACE_HOME.  The default is "", and
+      you have to define the logical name.
 
- You can find the NETCDF package at ftp://ftp.ncsa.uiuc.edu/HDF/,
- including precompiled binaries for VAX and Alpha.
+    PRINT="print cmd" -- Specify the default print command.  If you don't
+      specify a print command, configure will use
+        print/name="from Grace"/delete/queue=<queue>
+      where <queue> is specified with the QUEUE option.  You should not
+      double the quotes in the string: PRINT="print/name="from Grace"..."
+
+    QUEUE="queue" -- This option is ignored if you include the PRINT
+      option.  The default is decw$printer_format_ps.  Note that the
+      string you specify is appended to the string given above, so you
+      can add other print qualifiers.  For example,
+        QUEUE="psqueue/form=ps"
+
+    HELP="browser" -- Specify the html browser used for help; you can
+      override the browser specfied here by defining the GRACE_HELPVIEWER
+      logical name.  The default is mosaic.  A %s indicates where the URL
+      should be added; if you omit it, " %s" will be added to the end.
+      There is a command file, [.arch.vms]netscape.com, that you can use
+      with netscape.  When you select help, this command file will start
+      netscape if it is not already running; otherwise, it will display
+      the new help in the existing netscape window.  To use it, you need
+      to specify HELP="@dev:[dir]netscape.com %s"; you cannot use
+      GRACE_HOME: instead of the device and directory because GRACE_HOME
+      is defined in Unix format.
+
+    NETCDF=<header>=<libraries> -- Compile and link in the netcdf library.
+      <header> is the directory containing the netcdf.h header file (may
+      be omitted).  <libraries> is a list of the netcdf object libraries,
+      separated by commas.   You can find the NETCDF package at
+      ftp://ftp.ncsa.uiuc.edu/HDF/, including precompiled binaries for
+      VAX and Alpha.
+
+    COPY -- Copy the build files to the other directories even if the
+      files already exist in the other directories.  This can be used
+      when debugging the build procedures to make sure the version in
+      the other directories is the same as the version in this directory.
+
+    SAVE -- Save the command line parameters in SAVED.DAT.  If this file
+      exists when you run configure, reads the file and processes the
+      parameters in it before processing the command line parameters.  If
+      you specify SAVE and SAVED.DAT exists, the new parameters are appended
+      to the file; if you specify a parameter that is already in the save
+      file, the original parameter will remain in the file, but the new
+      parameter will override it.  For example, if you run configure with
+      parameters QUEUE="psprinter" and SAVE, in future runs of configure,
+      QUEUE will default to psprinter.  However, any value for QUEUE on the
+      command line will override this, and if you specify QUEUE and SAVE on
+      a later run, the new value of QUEUE will override the old one.  You
+      can also edit SAVED.DAT to add or delete parameters.  The file is just
+      the parameters you specify on the command line, one on each line of
+      the file.
 
  If you get an error on linking about gethostname being undefined, edit
  config.h and #undef HAVE_GETHOSTNAME.  I am not sure when gethostname
@@ -96,24 +146,19 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
 
 3. Installation
 
- Define a symbol for the executable like
+ Define a symbol for the executable:
 
-  $ grace :== $disk:[path]grace
+  $ xmgrace :== $disk:[path]xmgrace
 
- Define the following logicals
+ Define the following logicals if necessary:
 
   $ define GRACE_HOME "/disk/dir1/dir2/grace"
-  ! the path of the directotry [.doc] (unix-like)
-
- optional:
+  ! the path of the directory for [.doc] and [.fonts] (unix-like)
 
   $ define GRACE_HELPVIEWER "www-browser %s"
-  ! for netscape look at the original make.conf
+  ! see the description of the HELP= option above
 
-  $ define GRACE_PS_PRSTR  " "print/name=""from GRACE""/delete/queue=your_queue"
-  ! the /delete qualifier is recommended
-
- x-resources:
+ X-resources:
 
   The file [.SRC]XMGRACE.AD contains the x resources.  You may want to
   copy this file to XMGRACE.DAT in either DECW$SYSTEM_DEFAULTS and/or

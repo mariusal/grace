@@ -1,6 +1,6 @@
 $ ! This command file reads DOTEST. and executes the GRACE commands.
 $ !
-$ GRACE = GRACE + " -noask"
+$ XMGRACE = XMGRACE + " -noask"
 $ !
 $ ON CONTROL_Y THEN GOTO DONE
 $ OPEN IN DOTEST.
@@ -8,7 +8,14 @@ $LOOP:
 $ READ/END=DONE IN REC
 $ IF (F$EXTRACT (0, 6, REC) .EQS. "$GRACE")
 $ THEN
-$   REC = REC - "$"
+$   REDIR = F$ELEMENT (1, "<", REC)
+$   IF (REDIR .NES. "<")
+$   THEN
+$     WRITE SYS$OUTPUT "$ DEFINE/USER SYS$INPUT ''REDIR'"
+$     DEFINE/USER SYS$INPUT 'REDIR'
+$     REC = F$ELEMENT (0, "<", REC)
+$   ENDIF
+$   REC = "XM" + (REC - "$")
 $   WRITE SYS$OUTPUT "$ ", REC
 $   'REC'
 $ ENDIF

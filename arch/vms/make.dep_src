@@ -1,9 +1,0 @@
-#
-# Dependencies:
-#
- 
-#$(GROBJS) : $(TOP)config.h defines.h globals.h
-#$(GUIOBJS) : $(TOP)config.h defines.h globals.h motifinc.h
-
-#$(PARS_O) : ps.h dlmodule.h $(CEPHESDIR)protos.h
-
