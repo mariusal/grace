@@ -36,9 +36,6 @@
 #include "defines.h"
 #include "draw.h"
 
-#define BAR_HORIZONTAL  0
-#define BAR_VERTICAL    1
-
 void drawgraph(void);
 void do_hardcopy(void);
 
@@ -75,8 +72,11 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
 
 void draw_region(int r);
 
-void draw_object(int gno, DObject *o);
 void draw_objects(int gno);
+void draw_string(int gno, int i);
+void draw_box(int gno, int i);
+void draw_ellipse(int gno, int i);
+void draw_line(int gno, int i);
 
 void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp);
 
