@@ -112,6 +112,9 @@
 /* Define if <time.h> and <sys/time.h> can be both included.  */
 #undef TIME_WITH_SYS_TIME
 
+/* Define if you have the gettimeofday function.  */
+#undef HAVE_GETTIMEOFDAY
+
 /* Define if you have <vfork.h>.  */
 #undef HAVE_VFORK_H
 
