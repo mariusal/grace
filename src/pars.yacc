@@ -68,6 +68,8 @@
 
 #define MAX_PARS_STRING_LENGTH  4096
 
+#define CAST_DBL_TO_BOOL(x) (fabs(x) < 0.5 ? 0:1)
+
 typedef double (*ParserFnc)();
 
 extern graph *g;
@@ -1428,7 +1430,7 @@ vexpr:
 	    copy_vrbl($$, $1);
             $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = $1->data[i] ? $3 : $5;
+                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3 : $5;
             }
 	}
 	| vexpr '?' expr ':' vexpr {
@@ -1441,7 +1443,7 @@ vexpr:
 	    copy_vrbl($$, $1);
             $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = $1->data[i] ? $3 : $5->data[i];
+                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3 : $5->data[i];
             }
 	}
 	| vexpr '?' vexpr ':' expr {
@@ -1454,7 +1456,7 @@ vexpr:
 	    copy_vrbl($$, $1);
             $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = $1->data[i] ? $3->data[i] : $5;
+                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3->data[i] : $5;
             }
 	}
 	| vexpr '?' vexpr ':' vexpr {
@@ -1467,7 +1469,7 @@ vexpr:
 	    copy_vrbl($$, $1);
             $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
-                $$->data[i] = $1->data[i] ? $3->data[i] : $5->data[i];
+                $$->data[i] = CAST_DBL_TO_BOOL($1->data[i]) ? $3->data[i] : $5->data[i];
             }
 	}
 	| vexpr OR vexpr
