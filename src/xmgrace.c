@@ -790,10 +790,10 @@ static Widget CreateMainMenuBar(Widget parent)
 
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
-    CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, (void *) "UsersGuide.html");
-    CreateMenuButton(menupane, "Tutorial", 'T', HelpCB, (void *) "Tutorial.html");
-    CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, (void *) "FAQ.html");
-    CreateMenuButton(menupane, "Changes", 'C', HelpCB, (void *) "CHANGES.html");
+    CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, "doc/UsersGuide.html");
+    CreateMenuButton(menupane, "Tutorial", 'T', HelpCB, "doc/Tutorial.html");
+    CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, "doc/FAQ.html");
+    CreateMenuButton(menupane, "Changes", 'C', HelpCB, "doc/CHANGES.html");
 
     CreateMenuSeparator(menupane);
  
@@ -855,7 +855,7 @@ static Widget CreateMainMenuBar(Widget parent)
         bi_version_id());
     CreateMenuButton(menupane, "Comments", 'm', HelpCB, buf);
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "License terms", 'L', HelpCB, (void *) "GPL.html");
+    CreateMenuButton(menupane, "License terms", 'L', HelpCB, "doc/GPL.html");
     CreateMenuButton(menupane, "About...", 'A', create_about_grtool, NULL);
 
     return (menubar);
