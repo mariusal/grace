@@ -89,12 +89,6 @@
 #define SYM_DOT_OBS     1
 
 /*
- *  location types for objects
- */
-#define LOCWORLD 0
-#define LOCVIEW 1
-
-/*
  * types of coordinate frames
  */
 #define COORDINATES_XY      0       /* Cartesian coordinates */
