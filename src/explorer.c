@@ -192,7 +192,7 @@ static char *q_labeling(Quark *q)
         
         break;
     default:
-        sprintf(buf, "???");
+        sprintf(buf, "??? \"%s\"", QIDSTR(q));
         break;
     }
     
