@@ -145,6 +145,11 @@ extern double j1 ( double x );
 extern double jn ( int n, double x );
 #endif
 
+/* HP-11 defines isfinite via macro */
+#ifdef isfinite
+#  undef isfinite
+#endif
+
 #ifndef HAVE_FINITE
 #  define finite isfinite
 #  ifndef HAVE_ISFINITE_DECL
