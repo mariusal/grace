@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -309,6 +309,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     unsigned int i, j, first;
     Page_geometry *pg;
     int width_pp, height_pp;
+    double clip_width, clip_height;
     PSFont *psfonts;
     int font_needed_any = FALSE, font_embed_any = FALSE;
     char **enc;
@@ -357,7 +358,20 @@ int ps_initgraphics(const Canvas *canvas, void *data,
         height_pp = (int) rint(72.0*pg->height/pg->dpi);
     }
 
+    if (pg->height < pg->width) {
+        clip_width =  (double) pg->width/pg->height;
+        clip_height = 1.0;
+    } else {
+        clip_width =  1.0;
+        clip_height = (double) pg->height/pg->width;
+    }
+    
     v = cstats->bbox;
+    v.xv1 = MAX2(0.0,         v.xv1);
+    v.yv1 = MAX2(0.0,         v.yv1);
+    v.xv2 = MIN2(clip_width,  v.xv2);
+    v.yv2 = MIN2(clip_height, v.yv2);
+    
     if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
         llx = psdata->page_scalef*(1.0 - v.yv2);
         lly = psdata->page_scalef*v.xv1;
@@ -683,6 +697,9 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     if (psdata->format == PS_FORMAT) {
         fprintf(prstream, "%%%%Page: 1 1\n");
     }
+
+    /* clip by the page dimensions */
+    fprintf(prstream, "0 0 %.4f %.4f rectclip\n", clip_width, clip_height);
 
     /* free the psfonts array */
     for (i = 0; i < cstats->nfonts; i++) {
