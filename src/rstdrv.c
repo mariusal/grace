@@ -799,7 +799,64 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
 
 int jpg_op_parser(char *opstring)
 {
-    return GRACE_EXIT_FAILURE;
+    char *bufp;
+    
+    if (!strcmp(opstring, "grayscale")) {
+        jpg_setup_grayscale = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "color")) {
+        jpg_setup_grayscale = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "optimize:on")) {
+        jpg_setup_optimize = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "optimize:off")) {
+        jpg_setup_optimize = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "baseline:on")) {
+        jpg_setup_baseline = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "baseline:off")) {
+        jpg_setup_baseline = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "progressive:on")) {
+        jpg_setup_progressive = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "progressive:off")) {
+        jpg_setup_progressive = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "dct:ifast")) {
+        jpg_setup_dct = JPEG_DCT_IFAST;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "dct:islow")) {
+        jpg_setup_dct = JPEG_DCT_ISLOW;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "dct:float")) {
+        jpg_setup_dct = JPEG_DCT_FLOAT;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strncmp(opstring, "quality:", 8)) {
+        bufp = strchr(opstring, ':');
+        bufp++;
+        if (bufp != NULL && *bufp != '\0') {
+            jpg_setup_quality = atoi(bufp);
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strncmp(opstring, "smoothing:", 10)) {
+        bufp = strchr(opstring, ':');
+        bufp++;
+        if (bufp != NULL && *bufp != '\0') {
+            jpg_setup_smoothing = atoi(bufp);
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
 }
 #endif
 
@@ -1001,7 +1058,7 @@ void jpg_gui_setup(void)
     
     set_wait_cursor();
     if (jpg_setup_frame == NULL) {
-	jpg_setup_frame = XmCreateDialogShell(app_shell, "GIF options", NULL, 0);
+	jpg_setup_frame = XmCreateDialogShell(app_shell, "JPEG options", NULL, 0);
 	handle_close(jpg_setup_frame);
         jpg_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
                                         jpg_setup_frame, NULL, 0);
