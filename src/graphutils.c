@@ -252,6 +252,15 @@ static void round_axis_limits(double *amin, double *amax, int scale)
     } 
     
     if (scale == SCALE_LOG) {
+        if (*amax <= 0.0) {
+            errmsg("Can't autoscale a log axis by non-positive data");
+            *amax = 10.0;
+            *amin = 1.0;
+            return;
+        } else if (*amin <= 0.0) {
+            errmsg("Data have non-positive values");
+            *amin = *amax/1.0e3;
+        }
         smin = log10(*amin);
         smax = log10(*amax);
     } else {
@@ -319,20 +328,6 @@ static void autorange_byset(int gno, int setno, int autos_type)
         getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 2);
     } else if (autos_type == AUTOSCALE_Y) {
         getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 1);
-    }
-
-/*  Ensure we have finite endpoints for axis */
-    if ((finite(xmin) == 0) && (xmin < 0.)) {
-      xmin = -MAXNUM;
-    }
-    if ((finite(xmax) == 0) && (xmax > 0.)) {
-      xmax = +MAXNUM;
-    }
-    if ((finite(ymin) == 0) && (ymin < 0.)) {
-      ymin = -MAXNUM;
-    }
-    if ((finite(ymax) == 0) && (ymax > 0.)) {
-      ymax = +MAXNUM;
     }
 
     if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
@@ -408,23 +403,18 @@ static double nicenum(double x, int nrange, int round)
 {
     int xsign;
     double f, y, fexp, rx, sx;
-    double maxf, maxexp;
     
     if (x == 0.0) {
         return(0.0);
     }
 
-    maxexp = floor(log10(MAXNUM)) - nrange + 1;
-    maxf   = MAXNUM/pow(10.0, maxexp);
-
     xsign = sign(x);
     x = fabs(x);
 
-    fexp = floor(log10(x)) - nrange + 1;
-    sx = x/pow(10.0, fexp);                 /* scaled x */
+    fexp = floor(log10(x)) - nrange;
+    sx = x/pow(10.0, fexp)/10.0;            /* scaled x */
     rx = floor(sx);                         /* rounded x */
     f = 10*(sx - rx);                       /* fraction between 0 and 10 */
-    /* epsilon = pow(10.0, -(nrange + 1)); */    /* accuracy */
 
     if ((round == NICE_FLOOR && xsign == +1) ||
         (round == NICE_CEIL  && xsign == -1)) {
@@ -444,11 +434,8 @@ static double nicenum(double x, int nrange, int round)
     }
     
     sx = rx + (double) y/10.0;
-    if (fexp == maxexp && sx > maxf) {
-        sx = maxf;
-    }
     
-    return (xsign*sx*pow(10.0, fexp));
+    return (xsign*sx*10.0*pow(10.0, fexp));
 }
 
 /*
