@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -106,6 +106,9 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         break;
     case QFlavorDObject:
         draw_object(canvas, q);
+        break;
+    case QFlavorAText:
+        draw_atext(canvas, q);
         break;
     case QFlavorRegion:
         draw_region(canvas, q);
@@ -1079,6 +1082,16 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
 }
 
 
+void drawtext(Canvas *canvas,
+    const VPoint *vp, const TextProps *tprops, const char *s)
+{
+    setcolor(canvas, tprops->color);
+    setfont(canvas, tprops->font);
+    setcharsize(canvas, tprops->charsize);
+
+    WriteString(canvas, vp, tprops->angle, tprops->just, s);
+}
+
 /* draw the annotative values */
 void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 {
@@ -1122,9 +1135,6 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         stacked_chart = FALSE;
     }
     
-    setcharsize(canvas, avalue.size);
-    setfont(canvas, avalue.font);
-
     for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
         wp.y = y[i];
@@ -1180,9 +1190,8 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         
         strcat(str, avalue.appstr);
         
-        setcolor(canvas, avalue.color);
-        WriteString(canvas, &vp, (double) avalue.angle, avalue.just, str);
-    } 
+        drawtext(canvas, &vp, &avalue.tprops, str); 
+    }
 }
 
 void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
@@ -1725,6 +1734,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
         avalue = p->avalue;
 
         if (avalue.active == TRUE) {
+            TextProps tprops = avalue.tprops;
 
             vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
                 cos((start_angle + stop_angle)/2.0);
@@ -1749,11 +1759,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
 
             strcat(str, avalue.appstr);
 
-            setcharsize(canvas, avalue.size);
-            setfont(canvas, avalue.font);
-            setcolor(canvas, avalue.color);
-
-            WriteString(canvas, &vpa, (double) avalue.angle, avalue.just, str);
+            drawtext(canvas, &vpa, &tprops, str); 
         }
     }
 }

@@ -56,6 +56,9 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt);
 void draw_frame(Quark *q, plot_rt_t *plot_rt);
 void fillframe(Canvas *canvas, Quark *q);
 
+void drawtext(Canvas *canvas,
+    const VPoint *vp, const TextProps *pstr, const char *s);
+
 void drawsetfill(Quark *pset, plot_rt_t *plot_rt);
 void drawsetline(Quark *pset, plot_rt_t *plot_rt);
 void drawsetbars(Quark *pset, plot_rt_t *plot_rt);
@@ -80,6 +83,7 @@ void draw_region(Canvas *canvas, Quark *q);
 
 void draw_axis(Canvas *canvas, Quark *q);
 void draw_object(Canvas *canvas, Quark *q);
+void draw_atext(Canvas *canvas, Quark *q);
 
 void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     const Arrow *arrowp, const Pen *pen, const Pen *fill);

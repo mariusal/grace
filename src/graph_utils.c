@@ -857,6 +857,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
     frame *f;
     view v;
     DObject *o;
+    AText *at;
     ext_xy_t *ext_xy = (ext_xy_t *) udata;
     
     switch (q->fid) {
@@ -882,6 +883,17 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
             o->ap.y     *= ext_xy->y;
             o->offset.x *= ext_xy->x;
             o->offset.y *= ext_xy->y;
+            
+            quark_dirtystate_set(q, TRUE);
+        }
+        break;
+    case QFlavorAText:
+        at = atext_get_data(q);
+        if (object_get_loctype(q) == COORD_VIEW) {
+            at->ap.x     *= ext_xy->x;
+            at->ap.y     *= ext_xy->y;
+            at->offset.x *= ext_xy->x;
+            at->offset.y *= ext_xy->y;
             
             quark_dirtystate_set(q, TRUE);
         }

@@ -44,15 +44,6 @@ static BoxUI *create_box_ui(Widget parent, ExplorerUI *eui);
 static void update_arc_ui(ArcUI *ui, DOArcData *odata);
 static void set_arc_odata(ArcUI *ui, DOArcData *odata, void *caller);
 static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui);
-static void update_string_ui(StringUI *ui, DOStringData *odata);
-static void set_string_odata(StringUI *ui, DOStringData *odata, void *caller);
-static StringUI *create_string_ui(Widget parent, ExplorerUI *eui);
-
-SpinStructure *CreateViewCoordInput(Widget parent, char *s)
-{
-    return CreateSpinChoice(parent, s, 6, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
-}
-
 
 ObjectUI *create_object_ui(ExplorerUI *eui)
 {    
@@ -111,8 +102,6 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     UnmanageChild(ui->box_ui->top);
     ui->arc_ui = create_arc_ui(ui->odata_tp, eui);
     UnmanageChild(ui->arc_ui->top);
-    ui->string_ui = create_string_ui(ui->odata_tp, eui);
-    UnmanageChild(ui->string_ui->top);
 
     SelectTabPage(tab, ui->main_tp);
     
@@ -123,7 +112,8 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
 
 static void update_line_ui(LineUI *ui, DOLineData *odata)
 {
-    SetSpinChoice(ui->length, odata->length);
+    SetSpinChoice(ui->width,  odata->width);
+    SetSpinChoice(ui->height, odata->height);
     SetOptionChoice(ui->arrow_end, odata->arrow_end);
 
     SetOptionChoice(ui->a_type, odata->arrow.type);
@@ -135,8 +125,11 @@ static void update_line_ui(LineUI *ui, DOLineData *odata)
 static void set_line_odata(LineUI *ui, DOLineData *odata, void *caller)
 {
     if (ui && odata && IsManaged(ui->top)) {
-        if (!caller || caller == ui->length) {
-            odata->length    = GetSpinChoice(ui->length);
+        if (!caller || caller == ui->width) {
+            odata->width  = GetSpinChoice(ui->width);
+        }
+        if (!caller || caller == ui->height) {
+            odata->height = GetSpinChoice(ui->height);
         }
         if (!caller || caller == ui->arrow_end) {
             odata->arrow_end = GetOptionChoice(ui->arrow_end);
@@ -166,9 +159,13 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     ui->top = CreateVContainer(parent);
     fr = CreateFrame(ui->top, "Line properties");
     rc = CreateVContainer(fr);
-    ui->length = CreateSpinChoice(rc, "Length:",
+    ui->width = CreateSpinChoice(rc, "Width: ",
         8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
-    AddSpinChoiceCB(ui->length, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->width, sp_explorer_cb, eui);
+    ui->height = CreateSpinChoice(rc, "Height:",
+        8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
+    AddSpinChoiceCB(ui->height, sp_explorer_cb, eui);
+
     ui->arrow_end = CreatePanelChoice(rc, "Place arrows at:",
 				      5,
 				      "None",
@@ -303,91 +300,6 @@ static ArcUI *create_arc_ui(Widget parent, ExplorerUI *eui)
     return ui;
 }
 
-
-
-static void update_string_ui(StringUI *ui, DOStringData *odata)
-{
-    SetTextString(ui->text,     odata->s);
-    SetOptionChoice(ui->font,   odata->font);
-    SetOptionChoice(ui->just,   odata->just);
-    SetSpinChoice(ui->size,     odata->size);
-
-    SetSpinChoice(ui->linew,   odata->line.width);
-    SetOptionChoice(ui->lines, odata->line.style);
-    SetPenChoice(ui->linepen, &odata->line.pen);
-    SetPenChoice(ui->fillpen, &odata->fillpen);
-}
-
-static void set_string_odata(StringUI *ui, DOStringData *odata, void *caller)
-{
-    if (ui && odata && IsManaged(ui->top)) {
-
-        if (!caller || caller == ui->text) {
-            xfree(odata->s);
-            odata->s    = GetTextString(ui->text);
-        }
-        if (!caller || caller == ui->font) {
-            odata->font = GetOptionChoice(ui->font);
-        }
-        if (!caller || caller == ui->just) {
-            odata->just = GetOptionChoice(ui->just);
-        }
-        if (!caller || caller == ui->size) {
-            odata->size = GetSpinChoice(ui->size);
-        }
-        if (!caller || caller == ui->linew) {
-            odata->line.width = GetSpinChoice(ui->linew);
-        }
-        if (!caller || caller == ui->lines) {
-            odata->line.style = GetOptionChoice(ui->lines);
-        }
-        if (!caller || caller == ui->linepen) {
-            GetPenChoice(ui->linepen, &odata->line.pen);
-        }
-        if (!caller || caller == ui->fillpen) {
-            GetPenChoice(ui->fillpen, &odata->fillpen);
-        }
-    }
-}
-
-static StringUI *create_string_ui(Widget parent, ExplorerUI *eui)
-{
-    StringUI *ui;
-    Widget fr, rc, rc1;
-    
-    ui = xmalloc(sizeof(StringUI));
-    
-    ui->top = CreateVContainer(parent);
-    fr = CreateFrame(ui->top, "String properties");
-    rc = CreateVContainer(fr);
-    
-    ui->text = CreateCSText(rc, "Text:");
-    AddTextInputCB(ui->text, text_explorer_cb, eui);
-    ui->font = CreateFontChoice(rc, "Font:");
-    AddOptionChoiceCB(ui->font, oc_explorer_cb, eui);
-    rc1 = CreateHContainer(rc);
-    ui->size = CreateCharSizeChoice(rc1, "Size:");
-    AddSpinChoiceCB(ui->size, sp_explorer_cb, eui);
-    ui->just = CreateJustChoice(rc1, "Justification:");
-    AddOptionChoiceCB(ui->just, oc_explorer_cb, eui);
-
-    fr = CreateFrame(ui->top, "Frame");
-    rc = CreateVContainer(fr);
-    rc1 = CreateHContainer(rc);
-    ui->linew = CreateLineWidthChoice(rc1, "Width:");
-    AddSpinChoiceCB(ui->linew, sp_explorer_cb, eui);
-    ui->lines = CreateLineStyleChoice(rc1, "Style:");
-    AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
-    rc1 = CreateHContainer(rc);
-    ui->linepen = CreatePenChoice(rc1, "Outline pen:");
-    AddPenChoiceCB(ui->linepen, pen_explorer_cb, eui);
-    ui->fillpen = CreatePenChoice(rc1, "Fill pen:");
-    AddPenChoiceCB(ui->fillpen, pen_explorer_cb, eui);
-    
-    return ui;
-}
-
-
 void update_object_ui(ObjectUI *ui, Quark *q)
 {
     DObject *o = object_get_data(q);
@@ -422,7 +334,6 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             ManageChild(ui->line_ui->top);
             UnmanageChild(ui->box_ui->top);
             UnmanageChild(ui->arc_ui->top);
-            UnmanageChild(ui->string_ui->top);
             break;
         case DO_BOX:
             update_box_ui(ui->box_ui, (DOBoxData *) o->odata);
@@ -430,7 +341,6 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             UnmanageChild(ui->line_ui->top);
             ManageChild(ui->box_ui->top);
             UnmanageChild(ui->arc_ui->top);
-            UnmanageChild(ui->string_ui->top);
             break;
         case DO_ARC:
             update_arc_ui(ui->arc_ui, (DOArcData *) o->odata);
@@ -438,21 +348,11 @@ void update_object_ui(ObjectUI *ui, Quark *q)
             UnmanageChild(ui->line_ui->top);
             UnmanageChild(ui->box_ui->top);
             ManageChild(ui->arc_ui->top);
-            UnmanageChild(ui->string_ui->top);
-            break;
-        case DO_STRING:
-            update_string_ui(ui->string_ui, (DOStringData *) o->odata);
-            
-            UnmanageChild(ui->line_ui->top);
-            UnmanageChild(ui->box_ui->top);
-            UnmanageChild(ui->arc_ui->top);
-            ManageChild(ui->string_ui->top);
             break;
         default:
             UnmanageChild(ui->line_ui->top);
             UnmanageChild(ui->box_ui->top);
             UnmanageChild(ui->arc_ui->top);
-            UnmanageChild(ui->string_ui->top);
             break;
         }
     }
@@ -503,9 +403,6 @@ int set_object_data(ObjectUI *ui, Quark *q, void *caller)
             break;
         case DO_ARC:
             set_arc_odata(ui->arc_ui, (DOArcData *) o->odata, caller);
-            break;
-        case DO_STRING:
-            set_string_odata(ui->string_ui, (DOStringData *) o->odata, caller);
             break;
         default:
             break;

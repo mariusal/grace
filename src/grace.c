@@ -124,6 +124,13 @@ RunTime *runtime_new(Grace *grace)
         (Quark_data_copy) set_data_copy
     };
 
+    QuarkFlavor axis_qf = {
+        QFlavorAxis,
+        (Quark_data_new) axis_data_new,
+        (Quark_data_free) axis_data_free,
+        (Quark_data_copy) axis_data_copy
+    };
+
     QuarkFlavor dobject_qf = {
         QFlavorDObject,
         (Quark_data_new) object_data_new,
@@ -131,11 +138,11 @@ RunTime *runtime_new(Grace *grace)
         (Quark_data_copy) object_data_copy
     };
 
-    QuarkFlavor axis_qf = {
-        QFlavorAxis,
-        (Quark_data_new) axis_data_new,
-        (Quark_data_free) axis_data_free,
-        (Quark_data_copy) axis_data_copy
+    QuarkFlavor atext_qf = {
+        QFlavorAText,
+        (Quark_data_new) atext_data_new,
+        (Quark_data_free) atext_data_free,
+        (Quark_data_copy) atext_data_copy
     };
 
     QuarkFlavor region_qf = {
@@ -170,8 +177,9 @@ RunTime *runtime_new(Grace *grace)
     quark_flavor_add(rt->qfactory, &frame_qf);
     quark_flavor_add(rt->qfactory, &graph_qf);
     quark_flavor_add(rt->qfactory, &set_qf);
-    quark_flavor_add(rt->qfactory, &dobject_qf);
     quark_flavor_add(rt->qfactory, &axis_qf);
+    quark_flavor_add(rt->qfactory, &dobject_qf);
+    quark_flavor_add(rt->qfactory, &atext_qf);
     quark_flavor_add(rt->qfactory, &region_qf);
     quark_flavor_add(rt->qfactory, &container_qf);
 

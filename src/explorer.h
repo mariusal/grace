@@ -267,7 +267,8 @@ typedef struct {
 typedef struct {
     Widget top;
     
-    SpinStructure   *length;
+    SpinStructure   *width;
+    SpinStructure   *height;
     OptionStructure *arrow_end;
     
     OptionStructure *a_type;
@@ -297,20 +298,6 @@ typedef struct {
 
 typedef struct {
     Widget          top;
-    
-    TextStructure   *text;
-    OptionStructure *font;
-    SpinStructure   *size;
-    OptionStructure *just;
-
-    SpinStructure   *linew;
-    OptionStructure *lines;
-    Widget          linepen;
-    Widget          fillpen;
-} StringUI;
-
-typedef struct {
-    Widget          top;
 
     Widget          main_tp;
     Widget          odata_tp;
@@ -332,9 +319,42 @@ typedef struct {
     LineUI          *line_ui;
     BoxUI           *box_ui;
     ArcUI           *arc_ui;
-    StringUI        *string_ui;
 } ObjectUI;
 
+typedef struct {
+    Widget          top;
+    Widget          main_tp;
+    Widget          frame_tp;
+    
+    Widget          active;
+    
+    TextStructure   *x;
+    TextStructure   *y;
+    
+    SpinStructure   *offsetx;
+    SpinStructure   *offsety;
+    
+    TextStructure   *text;
+
+    OptionStructure *font;
+    SpinStructure   *size;
+    OptionStructure *color;
+    OptionStructure *just;
+    Widget          angle;
+
+    OptionStructure *frame_decor;
+    SpinStructure   *frame_offset;
+    SpinStructure   *linew;
+    OptionStructure *lines;
+    Widget          linepen;
+    Widget          fillpen;
+    
+    Widget          arrow_flag;
+    OptionStructure *a_type;
+    SpinStructure   *a_length;
+    SpinStructure   *a_dL_ff;
+    SpinStructure   *a_lL_ff;
+} ATextUI;
 
 struct _ExplorerUI {
     Widget       top;
@@ -350,6 +370,7 @@ struct _ExplorerUI {
     SetUI        *set_ui;
     AxisUI       *axis_ui;
     ObjectUI     *object_ui;
+    ATextUI      *atext_ui;
 
     Widget       popup;
 
@@ -403,5 +424,9 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller);
 ObjectUI *create_object_ui(ExplorerUI *eui);
 void update_object_ui(ObjectUI *ui, Quark *q);
 int set_object_data(ObjectUI *ui, Quark *q, void *caller);
+
+ATextUI *create_atext_ui(ExplorerUI *eui);
+void update_atext_ui(ATextUI *ui, Quark *q);
+int set_atext_data(ATextUI *ui, Quark *q, void *caller);
 
 #endif /* __EXPLORER_H_ */

@@ -136,6 +136,12 @@ int get_font_by_name(const Quark *project, const char *name)
 
 static int fcomp(const Quark *q1, const Quark *q2, void *udata)
 {
+    if (q1->fid == QFlavorAText) {
+        return 1;
+    } else
+    if (q2->fid == QFlavorAText) {
+        return -1;
+    } else
     if (q1->fid == QFlavorDObject && q2->fid == QFlavorDObject) {
         DObject *o1 = object_get_data(q1), *o2 = object_get_data(q2);
         if (o1->type != o2->type) {
@@ -252,17 +258,17 @@ static int project_postprocess_hook(Quark *q,
             /* in xmgr, axis label placement was in x,y coordinates */
 	    /* in Grace, it's parallel/perpendicular */
 	    if (axis_is_y(q)) {
-	        fswap(&t->label.offset.x,
-                      &t->label.offset.y);
+	        fswap(&t->label_offset.x,
+                      &t->label_offset.y);
 	    }
-	    t->label.offset.y *= -1;
+	    t->label_offset.y *= -1;
 	}
 	if (version_id >= 50000 && version_id < 50103) {
 	    /* Autoplacement of axis labels wasn't implemented 
                in early versions of Grace */
             if (t->label_place == TYPE_AUTO) {
-                t->label.offset.x = 0.0;
-                t->label.offset.y = 0.08;
+                t->label_offset.x = 0.0;
+                t->label_offset.y = 0.08;
                 t->label_place = TYPE_SPEC;
             }
         }
@@ -373,16 +379,6 @@ static int project_postprocess_hook(Quark *q,
         
         break;
     case QFlavorDObject:
-        if (version_id >= 40200 && version_id <= 50005 &&
-            !compare_strings(q->idstr, "timestamp")) {
-            /* BBox type justification was erroneously set */
-            DObject *o = object_get_data(q);
-            if (o->type == DO_STRING) {
-                DOStringData *s = (DOStringData *) o->odata;
-                s->just |= JUST_MIDDLE;
-            }
-        }
-
         if (version_id < 50200) {
             DObject *o = object_get_data(q);
             Quark *gr = get_parent_graph(q);
@@ -422,21 +418,16 @@ static int project_postprocess_hook(Quark *q,
                 case DO_LINE:
                     {
                         DOLineData *l = (DOLineData *) o->odata;
-                        wp.x = o->ap.x;
-                        wp.y = o->ap.y;
+                        wp.x = o->ap.x - l->width/2;
+                        wp.y = o->ap.y - l->height/2;
                         Wpoint2Vpoint(gr, &wp, &vp1);
-                        wp.x = o->ap.x +
-                            l->length*cos(M_PI/180.0*o->angle);
-                        wp.y = o->ap.y +
-                            l->length*sin(M_PI/180.0*o->angle);
+                        wp.x = o->ap.x + l->width/2;
+                        wp.y = o->ap.y + l->height/2;
                         Wpoint2Vpoint(gr, &wp, &vp2);
 
-                        l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
-                        o->angle  = 180.0/M_PI*atan2(vp2.y - vp1.y,
-                                                     vp2.x - vp1.x);
+                        l->width  = fabs(vp2.x - vp1.x);
+                        l->height = fabs(vp2.y - vp1.y);
                     }
-                    break;
-                case DO_STRING:
                     break;
                 case DO_NONE:
                     break;
@@ -444,6 +435,16 @@ static int project_postprocess_hook(Quark *q,
             }
         }
 
+        break;
+    case QFlavorAText:
+        if (version_id >= 40200 && version_id <= 50005 &&
+            !compare_strings(q->idstr, "timestamp")) {
+            /* BBox type justification was erroneously set */
+            AText *at = atext_get_data(q);
+            if (at) {
+                at->text_props.just |= JUST_MIDDLE;
+            }
+        }
         break;
     }
     

@@ -79,6 +79,47 @@ void draw_object(Canvas *canvas, Quark *q)
     reset_bbox(canvas, BBOX_TYPE_TEMP);
 
     switch (o->type) {
+    case DO_LINE:
+        {
+            DOLineData *l = (DOLineData *) o->odata;
+
+            VPoint vp1, vp2;
+            double x, y, co, si;
+
+            x = l->width/2;
+            y = l->height/2;
+
+            co = cos(M_PI/180.0*o->angle);
+            si = sin(M_PI/180.0*o->angle);
+
+            vp1.x = anchor.x + x*co - y*si;
+            vp1.y = anchor.y + x*si + y*co;
+            vp2.x = anchor.x - x*co + y*si;
+            vp2.y = anchor.y - x*si - y*co;
+
+            setline(canvas, &o->line);
+            DrawLine(canvas, &vp1, &vp2);
+
+            switch (l->arrow_end) {
+            case 0:
+                break;
+            case 1:
+                draw_arrowhead(canvas, &vp2, &vp1, &l->arrow,
+                    &o->line.pen, &o->fillpen);
+                break;
+            case 2:
+                draw_arrowhead(canvas, &vp1, &vp2, &l->arrow,
+                    &o->line.pen, &o->fillpen);
+                break;
+            case 3:
+                draw_arrowhead(canvas, &vp2, &vp1, &l->arrow,
+                    &o->line.pen, &o->fillpen);
+                draw_arrowhead(canvas, &vp1, &vp2, &l->arrow,
+                    &o->line.pen, &o->fillpen);
+                break;
+            }
+        }
+        break;
     case DO_BOX:
         {
             DOBoxData *b = (DOBoxData *) o->odata;
@@ -141,155 +182,161 @@ void draw_object(Canvas *canvas, Quark *q)
             DrawArc(canvas, &vp1, &vp2, e->angle1 + o->angle, e->angle2);
         }
         break;
-    case DO_STRING:
-        {
-            DOStringData *s = (DOStringData *) o->odata;
-            int savebg;
-            
-            setcharsize(canvas, s->size);
-            setfont(canvas, s->font);
-
-            if (s->line.pen.pattern || s->fillpen.pattern) {
-                view bbox;
-                VPoint vp1, vp2;
-                
-                get_string_bbox(canvas, &anchor, o->angle, s->just, s->s, &bbox);
-                view_extend(&bbox, s->frame_offset);
-                switch (s->frame_decor) {
-                case FRAME_DECOR_LINE:
-                    vp1.x = bbox.xv1;
-                    vp1.y = bbox.yv1;
-                    vp2.x = bbox.xv2;
-                    vp2.y = bbox.yv1;
-                    setline(canvas, &s->line);
-                    DrawLine(canvas, &vp1, &vp2);
-                    break;
-                case FRAME_DECOR_RECT:
-                    vp1.x = bbox.xv1;
-                    vp1.y = bbox.yv1;
-                    vp2.x = bbox.xv2;
-                    vp2.y = bbox.yv2;
-                    setpen(canvas, &s->fillpen);
-                    FillRect(canvas, &vp1, &vp2);
-                    setline(canvas, &s->line);
-                    DrawRect(canvas, &vp1, &vp2);
-                    break;
-                case FRAME_DECOR_OVAL:
-                    vp1.x = bbox.xv1 - (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
-                    vp1.y = bbox.yv1 - (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
-                    vp2.x = bbox.xv2 + (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
-                    vp2.y = bbox.yv2 + (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
-                    setpen(canvas, &s->fillpen);
-                    DrawFilledEllipse(canvas, &vp1, &vp2);
-                    setline(canvas, &s->line);
-                    DrawEllipse(canvas, &vp1, &vp2);
-                    break;
-                }
-                
-                if (s->arrow_flag && s->line.style) {
-                    vp2.x = anchor.x - o->offset.x;
-                    vp2.y = anchor.y - o->offset.y;
-                    switch (s->frame_decor) {
-                    case FRAME_DECOR_LINE:
-                        if (vp2.x < bbox.xv1) {
-                            vp1.x = bbox.xv1;
-                        } else
-                        if (vp2.x > bbox.xv2) {
-                            vp1.x = bbox.xv2;
-                        } else {
-                            vp1.x = vp2.x;
-                        }
-                        vp1.y = bbox.yv1;
-                        break;
-                    case FRAME_DECOR_OVAL:
-                        if (vp2.x < bbox.xv1) {
-                            vp1.x = bbox.xv1;
-                        } else
-                        if (vp2.x > bbox.xv2) {
-                            vp1.x = bbox.xv2;
-                        } else {
-                            vp1.x = (bbox.xv1 + bbox.xv2)/2;
-                        }
-                        if (vp2.y < bbox.yv1) {
-                            vp1.y = bbox.yv1;
-                        } else
-                        if (vp2.y > bbox.yv2) {
-                            vp1.y = bbox.yv2;
-                        } else {
-                            vp1.y = (bbox.yv1 + bbox.yv2)/2;
-                        }
-                        break;
-                    default:
-                        if (vp2.x < bbox.xv1) {
-                            vp1.x = bbox.xv1;
-                        } else
-                        if (vp2.x > bbox.xv2) {
-                            vp1.x = bbox.xv2;
-                        } else {
-                            vp1.x = vp2.x;
-                        }
-                        if (vp2.y < bbox.yv1) {
-                            vp1.y = bbox.yv1;
-                        } else
-                        if (vp2.y > bbox.yv2) {
-                            vp1.y = bbox.yv2;
-                        } else {
-                            vp1.y = vp2.y;
-                        }
-                    }
-
-                    setline(canvas, &s->line);
-                    DrawLine(canvas, &vp1, &vp2);
-                    draw_arrowhead(canvas, &vp1, &vp2, &s->arrow,
-                        &s->line.pen, &s->line.pen);
-                }
-            }
-
-            setpen(canvas, &o->line.pen);
-            savebg = getbgcolor(canvas);
-            /* If frame is filled with a solid color, alter bgcolor to
-               make AA look good */
-            if (s->fillpen.pattern == 1) {
-                setbgcolor(canvas, s->fillpen.color);
-            }
-            WriteString(canvas, &anchor, o->angle, s->just, s->s);
-            setbgcolor(canvas, savebg);
-        }
-        break;
-    case DO_LINE:
-        {
-            VPoint vp;
-            DOLineData *l = (DOLineData *) o->odata;
-            
-            vp.x = anchor.x + l->length*cos(M_PI/180.0*o->angle);
-            vp.y = anchor.y + l->length*sin(M_PI/180.0*o->angle);
-
-            setline(canvas, &o->line);
-            DrawLine(canvas, &anchor, &vp);
-
-            switch (l->arrow_end) {
-            case 0:
-                break;
-            case 1:
-                draw_arrowhead(canvas, &vp, &anchor, &l->arrow,
-                    &o->line.pen, &o->fillpen);
-                break;
-            case 2:
-                draw_arrowhead(canvas, &anchor, &vp, &l->arrow,
-                    &o->line.pen, &o->fillpen);
-                break;
-            case 3:
-                draw_arrowhead(canvas, &vp, &anchor, &l->arrow,
-                    &o->line.pen, &o->fillpen);
-                draw_arrowhead(canvas, &anchor, &vp, &l->arrow,
-                    &o->line.pen, &o->fillpen);
-                break;
-            }
-        }
-        break;
     case DO_NONE:
         break;
     }
 
     get_bbox(canvas, BBOX_TYPE_TEMP, &o->bb);
+}
+
+
+
+void draw_atext(Canvas *canvas, Quark *q)
+{
+    VPoint anchor;
+    int loctype;
+    int savebg;
+    AText *at = atext_get_data(q);
+    
+    if (!at || !at->active || is_empty_string(at->s)) {
+        return;
+    }
+
+    loctype = object_get_loctype(q);
+    if (loctype == COORD_WORLD) {
+        WPoint wp;
+        Quark *gr = get_parent_graph(q);
+        wp.x = at->ap.x;
+        wp.y = at->ap.y;
+        
+        if (!is_validWPoint(gr, &wp)) {
+            return;
+        }
+        
+        Wpoint2Vpoint(gr, &wp, &anchor);
+    } else
+    if (loctype == COORD_FRAME) {
+        FPoint fp;
+        Quark *f = get_parent_frame(q);
+        fp.x = at->ap.x;
+        fp.y = at->ap.y;
+        Fpoint2Vpoint(f, &fp, &anchor);
+    } else {
+        anchor.x = at->ap.x;
+        anchor.y = at->ap.y;
+    }
+    anchor.x += at->offset.x;
+    anchor.y += at->offset.y;
+    
+    setclipping(canvas, FALSE);
+    
+    activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
+    reset_bbox(canvas, BBOX_TYPE_TEMP);
+
+    if (at->line.pen.pattern || at->fillpen.pattern) {
+        view bbox;
+        VPoint vp1, vp2;
+
+        setcharsize(canvas, at->text_props.charsize);
+        get_string_bbox(canvas, &anchor,
+            at->text_props.angle, at->text_props.just, at->s, &bbox);
+        view_extend(&bbox, at->frame_offset);
+        switch (at->frame_decor) {
+        case FRAME_DECOR_LINE:
+            vp1.x = bbox.xv1;
+            vp1.y = bbox.yv1;
+            vp2.x = bbox.xv2;
+            vp2.y = bbox.yv1;
+            setline(canvas, &at->line);
+            DrawLine(canvas, &vp1, &vp2);
+            break;
+        case FRAME_DECOR_RECT:
+            vp1.x = bbox.xv1;
+            vp1.y = bbox.yv1;
+            vp2.x = bbox.xv2;
+            vp2.y = bbox.yv2;
+            setpen(canvas, &at->fillpen);
+            FillRect(canvas, &vp1, &vp2);
+            setline(canvas, &at->line);
+            DrawRect(canvas, &vp1, &vp2);
+            break;
+        case FRAME_DECOR_OVAL:
+            vp1.x = bbox.xv1 - (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
+            vp1.y = bbox.yv1 - (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
+            vp2.x = bbox.xv2 + (M_SQRT2 - 1)/2*(bbox.xv2 - bbox.xv1);
+            vp2.y = bbox.yv2 + (M_SQRT2 - 1)/2*(bbox.yv2 - bbox.yv1);
+            setpen(canvas, &at->fillpen);
+            DrawFilledEllipse(canvas, &vp1, &vp2);
+            setline(canvas, &at->line);
+            DrawEllipse(canvas, &vp1, &vp2);
+            break;
+        }
+
+        if (at->arrow_flag && at->line.style) {
+            vp2.x = anchor.x - at->offset.x;
+            vp2.y = anchor.y - at->offset.y;
+            switch (at->frame_decor) {
+            case FRAME_DECOR_LINE:
+                if (vp2.x < bbox.xv1) {
+                    vp1.x = bbox.xv1;
+                } else
+                if (vp2.x > bbox.xv2) {
+                    vp1.x = bbox.xv2;
+                } else {
+                    vp1.x = vp2.x;
+                }
+                vp1.y = bbox.yv1;
+                break;
+            case FRAME_DECOR_OVAL:
+                if (vp2.x < bbox.xv1) {
+                    vp1.x = bbox.xv1;
+                } else
+                if (vp2.x > bbox.xv2) {
+                    vp1.x = bbox.xv2;
+                } else {
+                    vp1.x = (bbox.xv1 + bbox.xv2)/2;
+                }
+                if (vp2.y < bbox.yv1) {
+                    vp1.y = bbox.yv1;
+                } else
+                if (vp2.y > bbox.yv2) {
+                    vp1.y = bbox.yv2;
+                } else {
+                    vp1.y = (bbox.yv1 + bbox.yv2)/2;
+                }
+                break;
+            default:
+                if (vp2.x < bbox.xv1) {
+                    vp1.x = bbox.xv1;
+                } else
+                if (vp2.x > bbox.xv2) {
+                    vp1.x = bbox.xv2;
+                } else {
+                    vp1.x = vp2.x;
+                }
+                if (vp2.y < bbox.yv1) {
+                    vp1.y = bbox.yv1;
+                } else
+                if (vp2.y > bbox.yv2) {
+                    vp1.y = bbox.yv2;
+                } else {
+                    vp1.y = vp2.y;
+                }
+            }
+
+            setline(canvas, &at->line);
+            DrawLine(canvas, &vp1, &vp2);
+            draw_arrowhead(canvas, &vp1, &vp2, &at->arrow,
+                &at->line.pen, &at->line.pen);
+        }
+    }
+
+    savebg = getbgcolor(canvas);
+    /* If frame is filled with a solid color, alter bgcolor to
+       make AA look good */
+    if (at->fillpen.pattern == 1) {
+        setbgcolor(canvas, at->fillpen.color);
+    }
+    drawtext(canvas, &anchor, &at->text_props, at->s);
+    setbgcolor(canvas, savebg);
 }

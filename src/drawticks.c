@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -38,9 +38,8 @@
 
 #include "utils.h"
 #include "core_utils.h"
-#include "grace/canvas.h"
+#include "plotone.h"
 #include "parser.h"
-#include "protos.h"
 
 static void drawgrid(Canvas *canvas, Quark *q)
 {
@@ -512,9 +511,9 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	    wc_stop_labels = wc_stop;
 	}
 
-	tlsize = 0.02 * t->tl_charsize;
+	tlsize = 0.02*t->tl_tprops.charsize;
 
-	tsize = 0.02 * t->props.size;
+	tsize  = 0.02*t->props.size;
 
 	switch (t->props.inout) {
 	case TICKS_IN:
@@ -533,9 +532,6 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	    errmsg("Internal error in drawaxis()");
 	    return;
 	}
-
-	setfont(canvas, t->tl_font);
-	setcharsize(canvas, t->tl_charsize);
 
 	itcur = 0;
         for (itick = 0; itick < t->nticks; itick++) {
@@ -564,12 +560,9 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	    vtpos = coord_conv(gr, wtpos);
 
 	    if (itcur % (t->tl_skip + 1) == 0) {
-                /* Set color before each tick label, since pre/app
-                   strings may change it */
-	        setcolor(canvas, t->tl_color);
-
+	        TextProps tprops = t->tl_tprops;
                 /* Tick labels on normal side */
-	        if (t->tl_op == PLACEMENT_NORMAL ||
+                if (t->tl_op == PLACEMENT_NORMAL ||
 	            t->tl_op == PLACEMENT_BOTH) {
 	            vbase_tlabel = vbase_tlabel1 - (tl_offset + tlsize)*
 	                                    (itcur % (t->tl_staggered + 1));
@@ -577,7 +570,8 @@ static void drawaxis(Canvas *canvas, Quark *q)
                                                    vbase_tlabel*ort_perp.x;
 	            vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                    vbase_tlabel*ort_perp.y;
-	            WriteString(canvas, &vp_tlabel, (double) t->tl_angle, tlabel1_just, tlabel);
+                    tprops.just = tlabel1_just;
+                    drawtext(canvas, &vp_tlabel, &tprops, tlabel); 
 	        }
 		/* Tick labels on opposite side */
 	        if (t->tl_op == PLACEMENT_OPPOSITE ||
@@ -588,7 +582,8 @@ static void drawaxis(Canvas *canvas, Quark *q)
                                                    vbase_tlabel*ort_perp.x;
 	            vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                    vbase_tlabel*ort_perp.y;
-	            WriteString(canvas, &vp_tlabel, (double) t->tl_angle, tlabel2_just, tlabel);
+                    tprops.just = tlabel2_just;
+                    drawtext(canvas, &vp_tlabel, &tprops, tlabel); 
 	        }
 	    }
             itcur++;
@@ -602,8 +597,8 @@ static void drawaxis(Canvas *canvas, Quark *q)
     /* Begin axis label stuff */
 
     if (t->label_place == TYPE_SPEC) {
-	vp_label_offset1 = t->label.offset;
-	vp_label_offset2 = t->label.offset;
+	vp_label_offset1 = t->label_offset;
+	vp_label_offset2 = t->label_offset;
 
         /* These settings are for backward compatibility */
         label1_just = JUST_CENTER|JUST_MIDDLE;
@@ -629,11 +624,11 @@ static void drawaxis(Canvas *canvas, Quark *q)
         label2_just = tlabel2_just;
     }
 
-    if (t->label.s && t->label.s[0]) {
+    if (!is_empty_string(t->label)) {
 
-	setcharsize(canvas, t->label.charsize);
-	setfont(canvas, t->label.font);
-	setcolor(canvas, t->label.color);
+	setcharsize(canvas, t->label_tprops.charsize);
+	setfont(canvas, t->label_tprops.font);
+	setcolor(canvas, t->label_tprops.color);
 
 	/* Axis label on normal side */
 	if (t->label_op == PLACEMENT_NORMAL ||
@@ -646,7 +641,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
                 + vp_label_offset1.x*ort_para.y
                 - vp_label_offset1.y*ort_perp.y;
 
-	    WriteString(canvas, &vp_label, (double) langle, label1_just, t->label.s);
+	    WriteString(canvas, &vp_label, (double) langle, label1_just, t->label);
 	}
 
 	/* Axis label on opposite side */
@@ -660,7 +655,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
                 + vp_label_offset2.x*ort_para.y
                 + vp_label_offset2.y*ort_perp.y ;
 
-	    WriteString(canvas, &vp_label, (double) langle, label2_just, t->label.s);
+	    WriteString(canvas, &vp_label, (double) langle, label2_just, t->label);
 	}
     }
 

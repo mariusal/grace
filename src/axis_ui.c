@@ -383,20 +383,20 @@ void update_axis_ui(AxisUI *ui, Quark *q)
 
         SetOptionChoice(ui->labellayout, t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
         SetOptionChoice(ui->labelplace, t->label_place);
-        sprintf(buf, "%.2f", t->label.offset.x);
+        sprintf(buf, "%.2f", t->label_offset.x);
         xv_setstr(ui->labelspec_para, buf);
-        sprintf(buf, "%.2f", t->label.offset.y);
+        sprintf(buf, "%.2f", t->label_offset.y);
         xv_setstr(ui->labelspec_perp, buf);
         SetSensitive(ui->labelspec_rc, t->label_place == TYPE_SPEC);
-        SetOptionChoice(ui->labelfont, t->label.font);
-        SetOptionChoice(ui->labelcolor, t->label.color);
-        SetSpinChoice(ui->labelcharsize, t->label.charsize);
+        SetOptionChoice(ui->labelfont, t->label_tprops.font);
+        SetOptionChoice(ui->labelcolor, t->label_tprops.color);
+        SetSpinChoice(ui->labelcharsize, t->label_tprops.charsize);
         SetOptionChoice(ui->labelop, t->label_op);
 
         SetToggleButtonState(ui->tlonoff, t->tl_flag);
         SetToggleButtonState(ui->tonoff, t->t_flag);
         SetToggleButtonState(ui->baronoff, t->t_drawbar);
-        SetTextString(ui->label, t->label.s);
+        SetTextString(ui->label, t->label);
 
         if (is_log_axis(q)) {
             if (t->tmajor <= 1.0) {
@@ -420,8 +420,8 @@ void update_axis_ui(AxisUI *ui, Quark *q)
  
         SetSpinChoice(ui->nminor, t->nminor);
 
-        SetOptionChoice(ui->tlfont, t->tl_font);
-        SetOptionChoice(ui->tlcolor, t->tl_color);
+        SetOptionChoice(ui->tlfont, t->tl_tprops.font);
+        SetOptionChoice(ui->tlcolor, t->tl_tprops.color);
         SetOptionChoice(ui->tlskip, t->tl_skip);
         SetOptionChoice(ui->tlstagger, t->tl_staggered);
         xv_setstr(ui->tlappstr, t->tl_appstr);
@@ -450,8 +450,8 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         xv_setstr(ui->tlgap_perp, buf);
         SetSensitive(ui->tlgap_rc, t->tl_gaptype == TYPE_SPEC);
 
-        SetSpinChoice(ui->tlcharsize, t->tl_charsize);
-        SetAngleChoice(ui->tlangle, t->tl_angle);
+        SetSpinChoice(ui->tlcharsize, t->tl_tprops.charsize);
+        SetAngleChoice(ui->tlangle, t->tl_tprops.angle);
 
         
         SetOptionChoice(ui->tickop, t->t_op);
@@ -510,7 +510,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
 
         if (!caller || caller == ui->label) {
             char *s = GetTextString(ui->label);
-            set_plotstr_string(&t->label, s);
+            t->label = copy_string(t->label, s);
             xfree(s);
         }
         if (!caller || caller == ui->tmajor) {
@@ -547,19 +547,19 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             xv_evalexpr(ui->offy, &t->offsy);
         }
         if (!caller || caller == ui->tlfont) {
-            t->tl_font = GetOptionChoice(ui->tlfont);
+            t->tl_tprops.font = GetOptionChoice(ui->tlfont);
         }
         if (!caller || caller == ui->tlcolor) {
-            t->tl_color = GetOptionChoice(ui->tlcolor);
+            t->tl_tprops.color = GetOptionChoice(ui->tlcolor);
         }
         if (!caller || caller == ui->labelfont) {
-            t->label.font = GetOptionChoice(ui->labelfont);
+            t->label_tprops.font = GetOptionChoice(ui->labelfont);
         }
         if (!caller || caller == ui->labelcolor) {
-            t->label.color = GetOptionChoice(ui->labelcolor);
+            t->label_tprops.color = GetOptionChoice(ui->labelcolor);
         }
         if (!caller || caller == ui->labelcharsize) {
-            t->label.charsize = GetSpinChoice(ui->labelcharsize);
+            t->label_tprops.charsize = GetSpinChoice(ui->labelcharsize);
         }
         if (!caller || caller == ui->labellayout) {
             t->label_layout = GetOptionChoice(ui->labellayout) ?
@@ -572,10 +572,10 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->label_place = GetOptionChoice(ui->labelplace);
         }
         if (!caller || caller == ui->labelspec_para) {
-            xv_evalexpr(ui->labelspec_para, &t->label.offset.x);
+            xv_evalexpr(ui->labelspec_para, &t->label_offset.x);
         }
         if (!caller || caller == ui->labelspec_perp) {
-            xv_evalexpr(ui->labelspec_perp, &t->label.offset.y);
+            xv_evalexpr(ui->labelspec_perp, &t->label_offset.y);
         }
         if (!caller || caller == ui->barcolor) {
             t->t_drawbarcolor = GetOptionChoice(ui->barcolor);
@@ -587,10 +587,10 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->t_drawbarlines = GetOptionChoice(ui->barlines);
         }
         if (!caller || caller == ui->tlcharsize) {
-            t->tl_charsize = GetSpinChoice(ui->tlcharsize);
+            t->tl_tprops.charsize = GetSpinChoice(ui->tlcharsize);
         }
         if (!caller || caller == ui->tlangle) {
-            t->tl_angle = GetAngleChoice(ui->tlangle);
+            t->tl_tprops.angle = GetAngleChoice(ui->tlangle);
         }
         if (!caller || caller == ui->ticklop) {
             t->tl_op = GetOptionChoice(ui->ticklop);

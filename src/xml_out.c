@@ -108,15 +108,16 @@ static void xmlio_set_pattern_ref(Attributes *attrs, int pattern)
 
 
 static void xmlio_write_location(Quark *q, XFile *xf, Attributes *attrs,
-    int loctype, double x, double y)
+    const APoint *ap)
 {
+    int loctype = object_get_loctype(q);
     attributes_reset(attrs);
     if (loctype == COORD_WORLD) {
-        xmlio_set_world_value(q, attrs, AStrX, x);
-        xmlio_set_world_value(q, attrs, AStrY, y);
+        xmlio_set_world_value(q, attrs, AStrX, ap->x);
+        xmlio_set_world_value(q, attrs, AStrY, ap->y);
     } else {
-        attributes_set_dval(attrs, AStrX, x);
-        attributes_set_dval(attrs, AStrY, y);
+        attributes_set_dval(attrs, AStrX, ap->x);
+        attributes_set_dval(attrs, AStrY, ap->y);
     }
     xfile_empty_element(xf, EStrLocation, attrs);
 }
@@ -180,6 +181,21 @@ static void xmlio_write_arrow(XFile *xf, Attributes *attrs, Arrow *arrow)
     attributes_set_dval(attrs, AStrDlFf, arrow->dL_ff);
     attributes_set_dval(attrs, AStrLlFf, arrow->lL_ff);
     xfile_empty_element(xf, EStrArrow, attrs);
+}
+
+static void xmlio_write_text_props(XFile *xf, Attributes *attrs,
+    const TextProps *tprops)
+{
+    attributes_reset(attrs);
+
+    xmlio_set_angle(attrs, tprops->angle);
+    attributes_set_ival(attrs, AStrJustification, tprops->just); /* FIXME: textual */
+    xfile_begin_element(xf, EStrTextProperties, attrs);
+    {
+        xmlio_write_face_spec(xf, attrs,
+            tprops->font, tprops->charsize, tprops->color);
+    }
+    xfile_end_element(xf, EStrTextProperties);
 }
 
 int save_fontmap(XFile *xf, const Project *pr)
@@ -276,13 +292,12 @@ int save_axis_properties(XFile *xf, Quark *q)
     attributes_set_sval(attrs, AStrLayout,
         t->label_layout == LAYOUT_PERPENDICULAR ? VStrPerpendicular:VStrParallel);
     xmlio_set_offset_placement(attrs,
-        t->label_place == TYPE_AUTO, t->label.offset.x, t->label.offset.y);
+        t->label_place == TYPE_AUTO, t->label_offset.x, t->label_offset.y);
     xmlio_set_side_placement(rt_from_quark(q), attrs, t->label_op);
     xfile_begin_element(xf, EStrAxislabel, attrs);
     {
-        xmlio_write_face_spec(xf, attrs,
-            t->label.font, t->label.charsize, t->label.color);
-        xmlio_write_text(xf, t->label.s);
+        xmlio_write_text_props(xf, attrs, &t->label_tprops);
+        xmlio_write_text(xf, t->label);
     }
     xfile_end_element(xf, EStrAxislabel);
 
@@ -363,7 +378,7 @@ int save_axis_properties(XFile *xf, Quark *q)
         attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
         xmlio_set_offset_placement(attrs,
             t->tl_gaptype == TYPE_AUTO, t->tl_gap.x, t->tl_gap.y);
-        xmlio_set_angle(attrs, (double) t->tl_angle);
+        
         attributes_set_ival(attrs, AStrSkip, t->tl_skip);
         attributes_set_ival(attrs, AStrStagger, t->tl_staggered);
         if (t->tl_starttype == TYPE_AUTO) {
@@ -378,8 +393,7 @@ int save_axis_properties(XFile *xf, Quark *q)
         }
         xfile_begin_element(xf, EStrTicklabels, attrs);
         {
-            xmlio_write_face_spec(xf, attrs,
-                t->tl_font, t->tl_charsize, t->tl_color);
+            xmlio_write_text_props(xf, attrs, &t->tl_tprops);
             xmlio_write_format_spec(xf, attrs,
                 EStrFormat, t->tl_format, t->tl_prec);
         }
@@ -561,15 +575,12 @@ int save_set_properties(XFile *xf, Quark *pset)
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->avalue.active);
     attributes_set_ival(attrs, AStrType, p->avalue.type); /* FIXME: textual */
-    xmlio_set_angle(attrs, (double) p->avalue.angle);
-    xmlio_set_offset(attrs, p->avalue.offset.x, p->avalue.offset.y);
-    attributes_set_ival(attrs, AStrJustification, p->avalue.just); /* FIXME: textual */
+
     attributes_set_sval(attrs, AStrPrepend, p->avalue.prestr);
     attributes_set_sval(attrs, AStrAppend, p->avalue.appstr);
     xfile_begin_element(xf, EStrAnnotation, attrs);
     {
-        xmlio_write_face_spec(xf, attrs,
-            p->avalue.font, p->avalue.size, p->avalue.color);
+        xmlio_write_text_props(xf, attrs, &p->avalue.tprops);
         xmlio_write_format_spec(xf, attrs,
             EStrFormat, p->avalue.format, p->avalue.prec);
     }
@@ -707,6 +718,7 @@ static int project_save_hook(Quark *q,
     set *p;
     tickmarks *t;
     DObject *o;
+    AText *at;
     Attributes *attrs;
 
     if (!q) {
@@ -838,7 +850,7 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrObject, attrs);
         {
             char buf[32];
-            xmlio_write_location(q, xf, attrs, object_get_loctype(q), o->ap.x, o->ap.y);
+            xmlio_write_location(q, xf, attrs, &o->ap);
             xmlio_write_line_spec(xf, attrs,
                 &(o->line.pen), o->line.width, o->line.style);
             xmlio_write_fill_spec(xf, attrs, &(o->fillpen));
@@ -847,7 +859,8 @@ static int project_save_hook(Quark *q,
             case DO_LINE:
                 {
                     DOLineData *l = (DOLineData *) o->odata;
-                    attributes_set_dval(attrs, AStrLength, l->length);
+                    attributes_set_dval(attrs, AStrWidth, l->width);
+                    attributes_set_dval(attrs, AStrHeight, l->height);
                     attributes_set_ival(attrs, AStrArrowsAt, l->arrow_end); /* FIXME: textual */
                 }
                 break;
@@ -868,26 +881,10 @@ static int project_save_hook(Quark *q,
                     attributes_set_ival(attrs, AStrFillMode, a->fillmode); /* FIXME: textual */
                 }
                 break;
-            case DO_STRING:
-                {
-                    DOStringData *s = (DOStringData *) o->odata;
-                    xmlio_set_font_ref(attrs, s->font);
-                    attributes_set_dval(attrs, AStrCharSize, s->size);
-                    attributes_set_ival(attrs, AStrJustification, s->just); /* FIXME: textual */
-                }
-                break;
             case DO_NONE:
                 break;
             }
             sprintf(buf, "%s-data", object_types(o->type));
-            if (o->type == DO_STRING) {
-                xfile_begin_element(xf, buf, attrs);
-                {
-                    DOStringData *s = (DOStringData *) o->odata;
-                    xmlio_write_text(xf, s->s);
-                }
-                xfile_end_element(xf, buf);
-            } else
             if (o->type == DO_LINE) {
                 xfile_begin_element(xf, buf, attrs);
                 {
@@ -900,6 +897,45 @@ static int project_save_hook(Quark *q,
             }
         }
         xfile_end_element(xf, EStrObject);
+
+        break;
+    case QFlavorAText:
+        at = atext_get_data(q);
+
+        attributes_set_sval(attrs, AStrId, QIDSTR(q));
+
+        xmlio_set_active(attrs, at->active);
+        xmlio_set_offset(attrs, at->offset.x, at->offset.y);
+
+        xfile_begin_element(xf, EStrAText, attrs);
+        {
+            xmlio_write_location(q, xf, attrs, &at->ap);
+            xmlio_write_text_props(xf, attrs, &at->text_props);
+            xmlio_write_text(xf, at->s);
+            
+            attributes_reset(attrs);
+            attributes_set_ival(attrs, AStrType, at->frame_decor); /* FIXME: textual */
+            attributes_set_dval(attrs, AStrOffset, at->frame_offset);
+            xfile_begin_element(xf, EStrTextFrame, attrs);
+            {
+                xmlio_write_line_spec(xf, attrs,
+                    &at->line.pen, at->line.width, at->line.style);
+                xmlio_write_fill_spec(xf, attrs, &at->fillpen);
+            }
+            xfile_end_element(xf, EStrTextFrame);
+            
+            attributes_reset(attrs);
+            attributes_set_bval(attrs, AStrActive, at->arrow_flag);
+            xfile_begin_element(xf, EStrPointer, attrs);
+            {
+                xmlio_write_arrow(xf, attrs, &at->arrow);
+            }
+            xfile_end_element(xf, EStrPointer);
+        }
+        xfile_end_element(xf, EStrAText);
+
+
+
 
         break;
     }

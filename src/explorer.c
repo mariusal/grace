@@ -151,6 +151,7 @@ static char *q_labeling(Quark *q)
     set *s;
     tickmarks *t;
     DObject *o;
+    AText *at;
     region *r;
     
     switch (q->fid) {
@@ -197,6 +198,13 @@ static char *q_labeling(Quark *q)
         sprintf(buf, "(%c) DObject \"%s%s\" (%s)",
             o->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
             object_types(o->type));
+        
+        break;
+    case QFlavorAText:
+        at = atext_get_data(q);
+
+        sprintf(buf, "(%c) AText \"%s%s\"",
+            at->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"");
         
         break;
     case QFlavorRegion:
@@ -275,6 +283,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         UnmanageChild(ui->set_ui->top);
         UnmanageChild(ui->axis_ui->top);
         UnmanageChild(ui->object_ui->top);
+        UnmanageChild(ui->atext_ui->top);
     } else {
         SetSensitive(ui->aacbuts[0], TRUE);
         SetSensitive(ui->aacbuts[1], TRUE);
@@ -289,6 +298,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->set_ui->top);
             UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
             break;
         case QFlavorFrame:
             update_frame_ui(ui->frame_ui, q);
@@ -299,6 +309,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->set_ui->top);
             UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
             break;
         case QFlavorGraph:
             update_graph_ui(ui->graph_ui, q);
@@ -309,6 +320,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->set_ui->top);
             UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
             break;
         case QFlavorSet:
             update_set_ui(ui->set_ui, q);
@@ -319,6 +331,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             ManageChild(ui->set_ui->top);
             UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
             break;
         case QFlavorAxis:
             update_axis_ui(ui->axis_ui, q);
@@ -329,6 +342,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->set_ui->top);
             ManageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
             break;
         case QFlavorDObject:
             update_object_ui(ui->object_ui, q);
@@ -339,6 +353,18 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->set_ui->top);
             UnmanageChild(ui->axis_ui->top);
             ManageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
+            break;
+        case QFlavorAText:
+            update_atext_ui(ui->atext_ui, q);
+            
+            UnmanageChild(ui->project_ui->top);
+            UnmanageChild(ui->frame_ui->top);
+            UnmanageChild(ui->graph_ui->top);
+            UnmanageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
+            UnmanageChild(ui->object_ui->top);
+            ManageChild(ui->atext_ui->top);
             break;
         default:
             UnmanageChild(ui->project_ui->top);
@@ -347,6 +373,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->set_ui->top);
             UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
+            UnmanageChild(ui->atext_ui->top);
             break;
         }
     }
@@ -455,6 +482,11 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             break;
         case QFlavorDObject:
             if (set_object_data(ui->object_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorAText:
+            if (set_atext_data(ui->atext_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;
             }
             break;
@@ -627,7 +659,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             object_new_complete(q, DO_ARC);
             break;
         case ADD_TEXT_CB:
-            object_new_complete(q, DO_STRING);
+            atext_new(q);
             break;
         }
     }
@@ -792,6 +824,9 @@ void define_explorer_popup(Widget but, void *data)
 
 	eui->object_ui = create_object_ui(eui);
         UnmanageChild(eui->object_ui->top);
+
+	eui->atext_ui = create_atext_ui(eui);
+        UnmanageChild(eui->atext_ui->top);
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 

@@ -52,9 +52,6 @@ char *object_types(OType type)
     case DO_ARC:
         s = "arc";
         break;
-    case DO_STRING:
-        s = "string";
-        break;
     case DO_NONE:
         s = "none";
         break;

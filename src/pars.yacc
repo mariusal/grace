@@ -83,6 +83,7 @@ static Quark *whichgraph;
 static Quark *whichset;
 static tickmarks *curtm;
 static DObject *curobject;
+static Quark *curatext;
 static Quark *objgno;
 static int curobject_loctype = COORD_VIEW;
 static int dobject_id = 0;
@@ -432,7 +433,6 @@ static void yyerror(char *s);
 %token <ival> TITLE
 %token <ival> TO
 %token <ival> TOP
-%token <ival> TRIANGULAR
 %token <ival> TYPE
 %token <ival> UP
 %token <ival> USE
@@ -448,7 +448,6 @@ static void yyerror(char *s);
 %token <ival> VY1
 %token <ival> VY2
 %token <ival> VYMAX
-%token <ival> WELCH
 %token <ival> WITH
 %token <ival> WORLD
 %token <ival> WRAP
@@ -506,6 +505,7 @@ static void yyerror(char *s);
 %type <quark> selectset
 %type <quark> selectregion
 %type <quark> title
+%type <quark> atext
 
 %type <ival> pagelayout
 %type <ival> pageorient
@@ -551,8 +551,6 @@ static void yyerror(char *s);
 %type <ival> stattype
 
 %type <ival> datacolumn
-
-%type <ival> sortdir
 
 %type <ival> proctype
 
@@ -2026,9 +2024,6 @@ parmset:
 	| ELLIPSE selectgraph {
 	    objgno = $2;
 	}
-	| STRING selectgraph {
-	    objgno = $2;
-	}
 	| objecttype LOCTYPE worldview {
 	    if (!curobject) {
                 yyerror("No active object");
@@ -2085,10 +2080,10 @@ parmset:
                 yyerror("The object is not a line");
 	    } else {
 	        DOLineData *l = (DOLineData *) curobject->odata;
-                l->length = hypot($6 - $2, $8 - $4);
-                curobject->ap.x  = $2;
-                curobject->ap.y  = $4;
-                curobject->angle = 180.0/M_PI*atan2($8 - $4, $6 - $2);
+                l->width  = fabs($6 - $2);
+                l->height = fabs($8 - $4);
+                curobject->ap.x = ($6 + $2)/2;
+                curobject->ap.y = ($8 + $4)/2;
             }
 	}
 	| LINE ARROW nexpr {
@@ -2175,83 +2170,6 @@ parmset:
                 curobject->ap.y = ($8 + $4)/2;
             }
 	}
-	| STRING expr ',' expr {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else if (curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-                curobject->ap.x = $2;
-                curobject->ap.y = $4;
-            }
-	}
-	| STRING font_select {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else if (curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                s->font = $2;
-            }
-        }
-	| STRING JUST nexpr {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else if (curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                s->just = $3;
-            }
-        }
-	| STRING CHAR SIZE expr {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else if (curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                s->size = $4;
-            }
-        }
-	| STRING DEF CHRSTR {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else if (curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                s->s = copy_string(s->s, $3);
-                
-                if (!curobject) {
-                    yyerror("No active object");
-	        } else {
-                    Quark *q = NULL;
-                    if (curobject_loctype == COORD_VIEW) {
-                        q = object_new(grace->project);
-                    } else {
-                        Quark *gr;
-                        gr = objgno;
-                        if (!gr) {
-                            gr = allocate_graph(grace->project, 0);
-                        }
-                        if (gr) {
-                            q = object_new(gr);
-                        }
-                    }
-                    if (q) {
-                        char buf[16];
-                        object_data_free(object_get_data(q));
-                        q->data = curobject;
-	                sprintf(buf, "DO%02d", dobject_id);
-                        quark_idstr_set(q, buf);
-                        dobject_id++;
-                    }
-                }
-            }
-	    xfree($3);
-	}
 	| objecttype DEF {
             if (!curobject) {
                 yyerror("No active object");
@@ -2280,65 +2198,43 @@ parmset:
             }
         }
 
-/* timestamp */
-	| TIMESTAMP onoff {
-            curobject = object_data_new_complete(DO_STRING);
-            if (curobject) {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                Quark *q;
-                
-                curobject->active = $2;
-                curobject_loctype = COORD_VIEW;
-                s->s = copy_string(NULL, "\\${timestamp}");
-
-                q = object_new(grace->project);
-                if (q) {
-                    object_data_free(object_get_data(q));
-                    q->data = curobject;
-                    quark_idstr_set(q, "timestamp");
-                }
-            }
-        }
-	| TIMESTAMP font_select {
-	    if (!curobject || curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                s->font = $2;
-            }
-        }
-	| TIMESTAMP CHAR SIZE expr {
-	    if (!curobject || curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-	        DOStringData *s = (DOStringData *) curobject->odata;
-                s->size = $4;
-            }
-        }
-	| TIMESTAMP ROT expr {
-	    if (!curobject || curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-                curobject->angle = $3;
-            }
-        }
-	| TIMESTAMP color_select {
-	    if (!curobject || curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-                curobject->fillpen.color = $2;
-            }
-        }
-	| TIMESTAMP expr ',' expr {
-	    if (!curobject || curobject->type != DO_STRING) {
-                yyerror("The object is not a string");
-	    } else {
-                curobject->ap.x = $2;
-                curobject->ap.y = $4;
-            }
+/* timestamp and string */
+	| WITH STRING {
+            curatext = atext_new(grace->project);
 	}
-	| TIMESTAMP DEF CHRSTR {
-	    xfree($3);
+	| atext selectgraph {
+	    quark_reparent($1, $2);
+	}
+	| atext LOCTYPE worldview {
+	}
+	| atext onoff {
+            atext_set_active($1, $2);
+        }
+	| atext font_select {
+            atext_set_font($1, $2);
+        }
+	| atext CHAR SIZE expr {
+            atext_set_char_size($1, $4);
+        }
+	| atext ROT expr {
+            atext_set_angle($1, $3);
+        }
+	| atext color_select {
+            atext_set_color($1, $2);
+        }
+	| atext expr ',' expr {
+            APoint ap;
+            ap.x = $2; ap.y = $4;
+            atext_set_ap($1, &ap);
+	}
+	| atext JUST nexpr {
+            atext_set_just($1, $3);
+        }
+	| atext DEF CHRSTR {
+	    if (!compare_strings("timestamp", quark_idstr_get($1))) {
+                atext_set_string($1, $3);
+            }
+            xfree($3);
 	}
 
 /* defaults */
@@ -2475,31 +2371,25 @@ parmset:
 	}
 	
         | title CHRSTR {
-            DObject *o = object_get_data($1);
-            if (o) {
-                DOStringData *s = (DOStringData *) o->odata;
-                s->s = copy_string(s->s, $2);
-            }
+            atext_set_string($1, $2);
 	    xfree($2);
 	}
 	| title font_select {
-            DObject *o = object_get_data($1);
-            if (o) {
-                DOStringData *s = (DOStringData *) o->odata;
-                s->font = $2;
+            AText *at = atext_get_data($1);
+            if (at) {
+                at->text_props.font = $2;
             }
 	}
 	| title SIZE expr {
-            DObject *o = object_get_data($1);
-            if (o) {
-                DOStringData *s = (DOStringData *) o->odata;
-                s->size = $3;
+            AText *at = atext_get_data($1);
+            if (at) {
+                at->text_props.charsize = $3;
             }
 	}
 	| title color_select {
-            DObject *o = object_get_data($1);
-            if (o) {
-                o->line.pen.color = $2;
+            AText *at = atext_get_data($1);
+            if (at) {
+                at->text_props.color = $2;
             }
 	}
 
@@ -2976,22 +2866,22 @@ setprop:
 	| selectset AVALUE CHAR SIZE expr
         {
 	    set *p = set_get_data($1);
-	    p->avalue.size = $5;
+	    p->avalue.tprops.charsize = $5;
 	}
 	| selectset AVALUE font_select
         {
 	    set *p = set_get_data($1);
-	    p->avalue.font = $3;
+	    p->avalue.tprops.font = $3;
 	}
 	| selectset AVALUE color_select
         {
 	    set *p = set_get_data($1);
-	    p->avalue.color = $3;
+	    p->avalue.tprops.color = $3;
 	}
 	| selectset AVALUE ROT nexpr
         {
 	    set *p = set_get_data($1);
-	    p->avalue.angle = $4;
+	    p->avalue.tprops.angle = $4;
 	}
 	| selectset AVALUE FORMAT formatchoice
         {
@@ -3202,7 +3092,7 @@ ticklabelattr:
 	    xfree($2);
 	}
 	| ANGLE nexpr {
-	    curtm->tl_angle = $2;
+	    curtm->tl_tprops.angle = $2;
 	}
 	| SKIP nexpr {
 	    curtm->tl_skip = $2;
@@ -3237,13 +3127,13 @@ ticklabelattr:
 	    curtm->tl_stoptype = TYPE_AUTO;
 	}
 	| CHAR SIZE expr {
-	    curtm->tl_charsize = $3;
+	    curtm->tl_tprops.charsize = $3;
 	}
 	| font_select {
-	    curtm->tl_font = $1;
+	    curtm->tl_tprops.font = $1;
 	}
 	| color_select {
-	    curtm->tl_color = $1;
+	    curtm->tl_tprops.color = $1;
 	}
 	| nexpr ',' CHRSTR {
 	    curtm->tloc[$1].label = 
@@ -3264,7 +3154,7 @@ ticklabelattr:
 
 axislabeldesc:
 	CHRSTR {
-	    set_plotstr_string(&curtm->label, $1);
+	    curtm->label = copy_string(curtm->label, $1);
 	    xfree($1);
 	}
 	| LAYOUT PERP {
@@ -3280,20 +3170,20 @@ axislabeldesc:
 	    curtm->label_place = TYPE_SPEC;
 	}
 	| PLACE expr ',' expr {
-	    curtm->label.offset.x = $2;
-	    curtm->label.offset.y = $4;
+	    curtm->label_offset.x = $2;
+	    curtm->label_offset.y = $4;
 	}
 	| JUST justchoice {
-	    curtm->label.just = $2;
+	    curtm->label_tprops.just = $2;
 	}
 	| CHAR SIZE expr {
-	    curtm->label.charsize = $3;
+	    curtm->label_tprops.charsize = $3;
 	}
 	| font_select {
-	    curtm->label.font = $1;
+	    curtm->label_tprops.font = $1;
 	}
 	| color_select {
-	    curtm->label.color = $1;
+	    curtm->label_tprops.color = $1;
 	}
 	| opchoice_sel {
 	    curtm->label_op = $1;
@@ -3382,17 +3272,17 @@ title:
 	TITLE {
             Quark *q = quark_find_descendant_by_idstr(whichframe, "title");
             if (!q) {
-                DObject *o;
-                q = object_new_complete(whichframe, DO_STRING);
-                o = object_get_data(q);
-                if (o) {
-                    DOStringData *s = (DOStringData *) o->odata;
+                AText *at;
+                q = atext_new(whichframe);
+                atext_set_active(q, TRUE);
+                at = atext_get_data(q);
+                if (at) {
                     APoint ap = {0.5, 1.0};
                     VPoint offset = {0.0, 0.06};
                     quark_idstr_set(q, "title");
-                    object_set_location(q, &ap);
-                    object_set_offset(q, &offset);
-                    s->just = JUST_CENTER|JUST_BOTTOM;
+                    at->ap = ap;
+                    at->offset = offset;
+                    at->text_props.just = JUST_CENTER|JUST_BOTTOM;
                 }
             }
             
@@ -3401,18 +3291,35 @@ title:
 	| SUBTITLE {
             Quark *q = quark_find_descendant_by_idstr(whichframe, "subtitle");
             if (!q) {
-                DObject *o;
-                q = object_new_complete(whichframe, DO_STRING);
-                o = object_get_data(q);
-                if (o) {
-                    DOStringData *s = (DOStringData *) o->odata;
+                AText *at;
+                q = atext_new(whichframe);
+                atext_set_active(q, TRUE);
+                at = atext_get_data(q);
+                if (at) {
                     APoint ap = {0.5, 1.0};
                     VPoint offset = {0.0, 0.02};
                     quark_idstr_set(q, "subtitle");
-                    object_set_location(q, &ap);
-                    object_set_offset(q, &offset);
-                    s->just = JUST_CENTER|JUST_BOTTOM;
+                    at->ap = ap;
+                    at->offset = offset;
+                    at->text_props.just = JUST_CENTER|JUST_BOTTOM;
                 }
+            }
+            
+            $$ = q;
+        }
+	;
+
+atext:
+	STRING {
+            $$ = curatext;
+        }
+	| TIMESTAMP {
+            Quark *q = quark_find_descendant_by_idstr(grace->project,
+                "timestamp");
+            if (!q) {
+                q = atext_new(grace->project);
+                quark_idstr_set(q, "timestamp");
+                atext_set_string(q, "\\${timestamp}");
             }
             
             $$ = q;
@@ -3493,7 +3400,6 @@ objecttype:
 	BOX       { $$ = DO_BOX;    }
 	| ELLIPSE { $$ = DO_ARC;    }
 	| LINE    { $$ = DO_LINE;   }
-	| STRING  { $$ = DO_STRING; }
 	;
 
 pagelayout:
@@ -3609,10 +3515,6 @@ datacolumn: X_TOK { $$ = DATA_X; }
 	| Y2 { $$ = DATA_Y2; }
 	| Y3 { $$ = DATA_Y3; }
 	| Y4 { $$ = DATA_Y4; }
-	;
-
-sortdir: ASCENDING { $$ = ASCENDING; }
-	| DESCENDING { $$ = DESCENDING; }
 	;
 
 stattype: MINP { $$ = MINP; }
@@ -3761,7 +3663,7 @@ parmset_obs:
 
 	| objecttype FILL colpat_obs {filltype_obs = $3;}
 
-	| TIMESTAMP linew_select { }
+	| atext linew_select { }
 
 	| title linew_select { }
 
@@ -4018,10 +3920,10 @@ ticklabelattr_obs:
 	| LAYOUT SPEC { }
 
 	| LAYOUT HORIZONTAL {
-	    curtm->tl_angle = 0;
+	    curtm->tl_tprops.angle = 0;
 	}
 	| LAYOUT VERTICAL {
-	    curtm->tl_angle = 90;
+	    curtm->tl_tprops.angle = 90;
 	}
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
@@ -4423,7 +4325,6 @@ symtab_entry ikey[] = {
 	{"TITLE", TITLE, NULL},
 	{"TO", TO, NULL},
 	{"TOP", TOP, NULL},
-	{"TRIANGULAR", TRIANGULAR, NULL},
 	{"TRUE", ON, NULL},
 	{"TYPE", TYPE, NULL},
 	{"UNIT", KEY_UNIT, NULL},
@@ -4441,7 +4342,6 @@ symtab_entry ikey[] = {
 	{"VY1", VY1, NULL},
 	{"VY2", VY2, NULL},
 	{"VYMAX", VYMAX, NULL},
-	{"WELCH", WELCH, NULL},
 	{"WITH", WITH, NULL},
 	{"WORLD", WORLD, NULL},
 	{"WRAP", WRAP, NULL},

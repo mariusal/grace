@@ -453,10 +453,10 @@ void update_set_ui(SetUI *ui, Quark *q)
 
         SetToggleButtonState(ui->avalue_active, p->avalue.active);
         SetOptionChoice(ui->avalue_type, p->avalue.type);
-        SetSpinChoice(ui->avalue_charsize, p->avalue.size);
-        SetOptionChoice(ui->avalue_font, p->avalue.font);
-        SetOptionChoice(ui->avalue_color, p->avalue.color);
-        SetAngleChoice(ui->avalue_angle, p->avalue.angle);
+        SetSpinChoice(ui->avalue_charsize, p->avalue.tprops.charsize);
+        SetOptionChoice(ui->avalue_font, p->avalue.tprops.font);
+        SetOptionChoice(ui->avalue_color, p->avalue.tprops.color);
+        SetAngleChoice(ui->avalue_angle, p->avalue.tprops.angle);
         SetOptionChoice(ui->avalue_format, p->avalue.format);
         SetOptionChoice(ui->avalue_precision, p->avalue.prec);
         
@@ -468,7 +468,7 @@ void update_set_ui(SetUI *ui, Quark *q)
         sprintf(val, "%f", p->avalue.offset.y);
         xv_setstr(ui->avalue_offsety, val);
 
-        SetOptionChoice(ui->avalue_just, p->avalue.just);
+        SetOptionChoice(ui->avalue_just, p->avalue.tprops.just);
     }
 }
 
@@ -582,16 +582,16 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->avalue.type = GetOptionChoice(ui->avalue_type);
         }
         if (!caller || caller == ui->avalue_charsize) {
-            p->avalue.size = GetSpinChoice(ui->avalue_charsize);
+            p->avalue.tprops.charsize = GetSpinChoice(ui->avalue_charsize);
         }
         if (!caller || caller == ui->avalue_font) {
-            p->avalue.font = GetOptionChoice(ui->avalue_font);
+            p->avalue.tprops.font = GetOptionChoice(ui->avalue_font);
         }
         if (!caller || caller == ui->avalue_color) {
-            p->avalue.color = GetOptionChoice(ui->avalue_color);
+            p->avalue.tprops.color = GetOptionChoice(ui->avalue_color);
         }
         if (!caller || caller == ui->avalue_angle) {
-            p->avalue.angle = GetAngleChoice(ui->avalue_angle);
+            p->avalue.tprops.angle = GetAngleChoice(ui->avalue_angle);
         }
         if (!caller || caller == ui->avalue_format) {
             p->avalue.format = GetOptionChoice(ui->avalue_format);
@@ -612,7 +612,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             xv_evalexpr(ui->avalue_offsety, &p->avalue.offset.y);
         }
         if (!caller || caller == ui->avalue_just) {
-            p->avalue.just = GetOptionChoice(ui->avalue_just);
+            p->avalue.tprops.just = GetOptionChoice(ui->avalue_just);
         }
 
         quark_dirtystate_set(q, TRUE);
