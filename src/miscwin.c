@@ -276,7 +276,6 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
     Arg a;
     int value;
     double jul;
-    Dates_format ignored;
     
 #ifdef DEBUG
     debuglevel = GetChoice(debug_item);
@@ -324,8 +323,7 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
           set_date_hint(FMT_nohint);
           break;
     }
-    if (parse_date(xv_getstr(date_item), get_date_hint(), &jul, &ignored)
-        == GRACE_EXIT_SUCCESS) {
+    if (parse_date_or_number(xv_getstr(date_item), &jul) == GRACE_EXIT_SUCCESS) {
         set_ref_date(jul);
     } else {
         errmsg("Invalid date");

@@ -93,6 +93,7 @@
 #include <ctype.h>
 
 #include "defines.h"
+#include "utils.h"
 #include "protos.h"
 
 static double ref_date = 0.0;
@@ -139,6 +140,7 @@ static int two_digits_years_flag = FALSE;
 void allow_two_digits_years(int allowed)
 {
     two_digits_years_flag = allowed ? TRUE : FALSE;
+    set_dirtystate();
 }
 
 /*
@@ -716,4 +718,18 @@ int parse_date(const char* s, Dates_format preferred,
     }
 
     return GRACE_EXIT_FAILURE;
+}
+
+int parse_date_or_number(const char* s, double *value)
+{
+    Dates_format dummy;
+    const char *sdummy;
+    
+    if (parse_date(s, get_date_hint(), value, &dummy) == GRACE_EXIT_SUCCESS) {
+        return GRACE_EXIT_SUCCESS;
+    } else if (parse_float(s, value, &sdummy) == GRACE_EXIT_SUCCESS) {
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
 }

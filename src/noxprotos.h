@@ -298,5 +298,6 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
 int parse_float(const char* s, double *value, const char **after);
 int parse_date(const char* s, Dates_format preferred,
                double *jul, Dates_format *recognized);
+int parse_date_or_number(const char* s, double *value);
 
 #endif /* __NOXPROTOS_H_ */
