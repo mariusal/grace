@@ -72,6 +72,7 @@
 
 #include "Tab.h"
 #include "motifinc.h"
+#include "explorer.h"
 
 #include "defines.h"
 #include "globals.h"
@@ -4567,6 +4568,11 @@ void update_undo_buttons(Quark *project)
     
     SetSensitive(gui->mwui->undo_button, amem_get_undo_count(amem));
     SetSensitive(gui->mwui->redo_button, amem_get_redo_count(amem));
+
+    if (gui->eui) {
+        SetSensitive(gui->eui->edit_undo_bt, amem_get_undo_count(amem));
+        SetSensitive(gui->eui->edit_redo_bt, amem_get_redo_count(amem));
+    }
 }
 
 void update_all(void)
@@ -4680,4 +4686,36 @@ int clean_set_selectors(Quark *gr, int etype, void *data)
     }
     
     return RETURN_SUCCESS;
+}
+
+static void undo_stats(AMem *amem)
+{
+    printf("undo = %d, redo = %d\n",
+        amem_get_undo_count(amem), amem_get_redo_count(amem));
+}
+
+void undo_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    AMem *amem = quark_get_amem(grace->project);
+    
+    amem_undo(amem);
+    
+    xdrawgraph(grace->project);
+    update_all();
+    
+    undo_stats(amem);
+}
+
+void redo_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    AMem *amem = quark_get_amem(grace->project);
+    
+    amem_redo(amem);
+    
+    xdrawgraph(grace->project);
+    update_all();
+    
+    undo_stats(amem);
 }

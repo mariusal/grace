@@ -685,39 +685,6 @@ static void print_cb(Widget but, void *data)
     unset_wait_cursor();
 }
 
-static void undo_stats(AMem *amem)
-{
-    printf("undo = %d, redo = %d\n",
-        amem_get_undo_count(amem), amem_get_redo_count(amem));
-}
-
-static void undo_cb(Widget but, void *data)
-{
-    Grace *grace = (Grace *) data;
-    AMem *amem = quark_get_amem(grace->project);
-    
-    amem_undo(amem);
-    
-    xdrawgraph(grace->project);
-    update_all();
-    
-    undo_stats(amem);
-}
-
-static void redo_cb(Widget but, void *data)
-{
-    Grace *grace = (Grace *) data;
-    AMem *amem = quark_get_amem(grace->project);
-    
-    amem_redo(amem);
-    
-    xdrawgraph(grace->project);
-    update_all();
-    
-    undo_stats(amem);
-}
-
-
 /*
  * create the main menubar
  */

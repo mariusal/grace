@@ -872,6 +872,12 @@ void raise_explorer(GUI *gui, Quark *q)
         CreateMenuButton(menupane,
             "Close", 'C', destroy_dialog_cb, GetParent(eui->top));
 
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
+        eui->edit_undo_bt = CreateMenuButton(menupane, "Undo", 'U',
+            undo_cb, grace);
+        eui->edit_redo_bt = CreateMenuButton(menupane, "Redo", 'R',
+            redo_cb, grace);
+
         menupane = CreateMenu(menubar, "Insert", 'I', FALSE);
         eui->insert_frame_bt = CreateMenuButton(menupane,
             "Frame", '\0', add_frame_cb, eui);
@@ -1051,6 +1057,8 @@ void raise_explorer(GUI *gui, Quark *q)
     if (q) {
         SelectQuarkTreeItem(gui->eui->tree, gui->eui->project, q);
     }
+
+    update_undo_buttons(grace->project);
 
     unset_wait_cursor();
 }

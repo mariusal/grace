@@ -614,4 +614,7 @@ void deletewidget(Widget w);
 void DefineDialogCursor(Cursor c);
 void UndefineDialogCursor(void);
 
+void undo_cb(Widget but, void *data);
+void redo_cb(Widget but, void *data);
+
 #endif /* __MOTIFINC_H_ */

@@ -416,7 +416,10 @@ struct _ExplorerUI {
     Widget       popup_send_to_back_bt;
     Widget       popup_move_up_bt;
     Widget       popup_move_down_bt;
-    
+ 
+    Widget       edit_undo_bt;
+    Widget       edit_redo_bt;
+   
     Widget       insert_frame_bt;
     Widget       insert_graph_bt;
     Widget       insert_set_bt;
