@@ -105,8 +105,8 @@ $GRACE terr.agr
 # another graph with error bars
 $GRACE terr2.agr
 #
-# a graph with XY RADIUS format
-#$GRACE txyr.agr 
+# a fixed graph with XY RADIUS format
+$GRACE txyr.agr 
 #
 # a graph with HILO data
 $GRACE hilo.agr 
