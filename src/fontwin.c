@@ -333,6 +333,18 @@ static void update_fonttool_cb(int value, void *data)
     }
 
     bbox = T1_GetFontBBox(FontID);
+    /* check if bbox is zero or invalid and then calculate it ourselves */
+    if (bbox.llx >= bbox.urx || bbox.lly >= bbox.ury) {
+        int c;
+        memset(&bbox, 0, sizeof(bbox));
+        for (c = 0; c < 256; c++) {
+            BBox bbox_tmp = T1_GetCharBBox(FontID, c);
+            bbox.llx = MIN2(bbox.llx, bbox_tmp.llx);
+            bbox.lly = MIN2(bbox.lly, bbox_tmp.lly);
+            bbox.urx = MAX2(bbox.urx, bbox_tmp.urx);
+            bbox.ury = MAX2(bbox.ury, bbox_tmp.ury);
+        }
+    }
     
     bbox.llx = bbox.llx*Size/1000;
     bbox.lly = bbox.lly*Size/1000;
