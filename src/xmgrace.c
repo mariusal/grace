@@ -764,6 +764,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     sub2menupane = CreateMenu(submenupane, "Type setting", 'T', FALSE);
     CreateMenuButton(sub2menupane, "Simple", '\0', load_example, "test2.agr");
+    CreateMenuButton(sub2menupane, "Text transforms", '\0', load_example, "txttrans.agr");
     CreateMenuButton(sub2menupane, "Advanced", '\0', load_example, "typeset.agr");
 
     sub2menupane = CreateMenu(submenupane, "Calculus", 'u', FALSE);

@@ -76,6 +76,9 @@ $GRACE log2.agr
 # display fonts and font mappings
 $GRACE tfonts.agr 
 #
+# text transforms
+$GRACE txttrans.agr 
+#
 # advaned typesetting
 $GRACE typeset.agr
 #
