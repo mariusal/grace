@@ -99,10 +99,10 @@ void set_docname(const char *s);
 char *get_docname(void);
 char *get_docbname(void);
 
-void errmsg(char *buf);
+void errmsg(char *msg);
 void echomsg(char *msg);
-void stufftext(char *s, int sp);
-void log_results(char *buf);
+void stufftext(char *msg);
+void log_results(char *msg);
 
 int yesnoterm(char *msg);
 int yesno(char *msg, char *s1, char *s2, char *help_anchor);

@@ -1057,7 +1057,7 @@ void log_results(char *buf)
         if (tmpbuf[strlen(tmpbuf) - 1] != '\n') {
             strcat(tmpbuf, "\n");
         }
-        stufftext(tmpbuf, 1);
+        stufftext(tmpbuf);
     }
 }
 
@@ -1112,12 +1112,16 @@ int fexists(const char *to)
     return (0);
 }
 
-void stufftext(char *s, int sp)
+void stufftext(char *s)
 {
 #ifdef NONE_GUI
-    printf("%s", s);
+    printf(s);
 #else
-    stufftextwin(s, sp);
+    if (inwin) {
+        stufftextwin(s);
+    } else {
+        printf(s);
+    }
 #endif
 }
 
