@@ -1288,6 +1288,25 @@ void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
         XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
 }
 
+static void spin_updown(Widget parent,
+    XtPointer closure, XEvent *event, Boolean *cont)
+{
+    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
+    SpinStructure *spinp = (SpinStructure *) closure;
+    double value, incr;
+    
+    if (e->button == 4) {
+        incr =  spinp->incr;
+    } else
+    if (e->button == 5) {
+        incr = -spinp->incr;
+    } else {
+        return;
+    }
+    value = GetSpinChoice(spinp) + incr;
+    SetSpinChoice(spinp, value);
+}
+
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr)
 {
@@ -1324,6 +1343,9 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 	XmNtraversalOn, True,
 	XmNcolumns, len,
 	NULL);
+
+    XtAddEventHandler(retval->text, ButtonPressMask, False, spin_updown, retval);
+
     retval->arrow_up = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
         XmNarrowDirection, XmARROW_UP,
         NULL);
