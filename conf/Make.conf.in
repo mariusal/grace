@@ -25,9 +25,6 @@ GRACE=@GRACE@$(EXE)
 # Location of the Grace home
 GRACE_HOME=@GRACE_HOME@
 
-# Relocatable that contains misc missing functions
-MISSING_O=@MISSING_O@
-
 # Relocatable that contains alloca()
 ALLOCA=@ALLOCA@
 
