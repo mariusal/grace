@@ -307,14 +307,6 @@ void xyplot(int gno)
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
-                case SET_XYR:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
-/*
- *                  drawcirclexy(&g[gno].p[i]);
- */
-                    break;
                 case SET_XYSTRING:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -443,6 +435,48 @@ void xyplot(int gno)
 
         if (refy != NULL) {
             free(refy);
+        }
+        break;
+    case GRAPH_FIXED:
+        for (i = 0; i < number_of_sets(gno); i++) {
+            if (is_set_drawable(gno, i)) {
+                get_graph_plotarr(gno, i, &p);
+                switch (dataset_type(gno, i)) {
+                case SET_XY:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
+                case SET_XYDX:
+                case SET_XYDY:
+                case SET_XYDXDX:
+                case SET_XYDYDY:
+                case SET_XYDXDY:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
+                case SET_XYZ:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
+                case SET_XYR:
+                    drawcirclexy(&p);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
+                case SET_XYSTRING:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
+                default:
+                    errmsg("Unsupported in XY graph set type");
+                    break;
+                }
+            }
         }
         break;
     } /* end g.type */
@@ -1553,6 +1587,45 @@ void drawsetbars(int gno, int setno, plotarr *p,
     }
 }
 
+void drawcirclexy(plotarr *p)
+{
+    int i, setlen;
+    double *x, *y, *r;
+    WPoint wp;
+    VPoint vp1, vp2;
+
+    setclipping(TRUE);
+    
+    setlen = p->data.len;
+    x = p->data.ex[0];
+    y = p->data.ex[1];
+    r = p->data.ex[2];
+
+    setfillrule(p->fillrule);
+    setlinewidth(p->linew);
+    setlinestyle(p->lines);
+
+    for (i = 0; i < setlen; i++) {
+        wp.x = x[i];
+        wp.y = y[i];
+        /* TODO: remove once ellipse clipping works */
+        if (!is_validWPoint(wp)){
+            continue;
+        }
+        wp.x = x[i] - r[i];
+        wp.y = y[i] - r[i];
+        vp1 = Wpoint2Vpoint(wp);
+        wp.x = x[i] + r[i];
+        wp.y = y[i] + r[i];
+        vp2 = Wpoint2Vpoint(wp);
+        if (p->filltype != SETFILL_NONE) {
+            setpen(p->setfillpen);
+            DrawFilledEllipse(vp1, vp2);
+        }
+        setpen(p->linepen);
+        DrawEllipse(vp1, vp2);
+    }
+}
 
 int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
 {   

@@ -645,6 +645,8 @@ int main(int argc, char *argv[])
 			    set_graph_type(cur_graph, GRAPH_CHART);
 			} else if (!strcmp("smith", argv[i])) {
 			    set_graph_type(cur_graph, GRAPH_SMITH);
+			} else if (!strcmp("fixed", argv[i])) {
+			    set_graph_type(cur_graph, GRAPH_FIXED);
 			} else {
 			    fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
 			    usage(stderr, argv[0]);

@@ -172,11 +172,12 @@ void create_graphapp_frame(int gno)
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	graph_type_choice_item = CreatePanelChoice(rc, 
                                                    "Type:",
-						   5,
+						   6,
 						   "XY graph",
 						   "XY chart",
 						   "Polar graph",
 						   "Smith chart (N/I)",
+						   "Fixed",
 						   NULL,
 						   NULL);
 

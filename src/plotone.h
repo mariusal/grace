@@ -64,6 +64,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
 void drawseterrbars(int gno, int setno, plotarr *p,
                  int refn, double *refx, double *refy, double offset);
 void drawsethilo(plotarr *p);
+void drawcirclexy(plotarr *p);
 
 int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s);
 void drawerrorbar(WPoint wp, double offset, double ebarlen, int orient);
