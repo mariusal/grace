@@ -1149,13 +1149,8 @@ void expand_tilde(const Grace *grace, char *buf)
 
 void echomsg(char *msg)
 {
-    if (grace->gui->inwin) {
-#ifndef NONE_GUI
-        set_left_footer(msg);
-#endif
-    } else {
-        printf("%s\n", msg);
-    }
+    stufftext(msg);
+    stufftext("\n");
 }
 
 void update_timestamp(time_t *t)
