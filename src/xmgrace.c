@@ -803,6 +803,9 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuSeparator(menupane);
  
     submenupane = CreateMenu(menupane, "Examples", 'E', FALSE);
+    sub2menupane = CreateMenu(submenupane, "New 5.99 samples", 'N', FALSE);
+    CreateMenuButton(sub2menupane, "Diode", '\0', load_example_cb, "diode.xgr");
+
     sub2menupane = CreateMenu(submenupane, "General intro", 'i', FALSE);
     CreateMenuButton(sub2menupane, "Explain", '\0', load_example_cb, "explain.agr");
     CreateMenuButton(sub2menupane, "Properties", '\0', load_example_cb, "props.agr");

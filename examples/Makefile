@@ -18,9 +18,10 @@ EXAMPLES = times.agr \
 	chartebar.agr charts.agr \
 	hilo.agr test2.agr arrows.agr txyr.agr \
 	co2.agr stackedb.agr tfonts.agr typeset.agr xyz.agr \
-	logistic.agr symslines.agr polar.agr \
+	symslines.agr polar.agr \
 	motif.agr spectrum.agr pie.agr txttrans.agr boxplot.agr vmap.agr \
-	xysize.agr xycolor.agr
+	xysize.agr xycolor.agr \
+	diode.xgr
 
 all : dummy
 

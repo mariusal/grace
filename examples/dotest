@@ -25,6 +25,11 @@ fi
 GRACE="$GRACE -noask"
 #
 
+#
+# new xgr project
+$GRACE diode.xgr
+#
+
 # explain the row of single character buttons and a few other things
 $GRACE explain.agr 
 #
@@ -132,5 +137,5 @@ $GRACE xysize.agr
 $GRACE xycolor.agr
 #
 # non-linear curve fitting
-$GRACE logistic.agr
+#$GRACE logistic.agr
 #
