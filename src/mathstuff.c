@@ -31,6 +31,7 @@
 #include <stdlib.h>
 
 #include "cmath.h"
+#include "protos.h"
 #include "defines.h"
 #include "utils.h"
 #include "cephes/cephes.h"
