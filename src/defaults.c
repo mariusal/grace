@@ -264,7 +264,7 @@ void set_default_plotarr(plotarr * p)
     p->setfillpen.pattern = grdefaults.pattern; /* fill pattern */
 
     p->errbar.active = TRUE;            /* on by default */
-    p->errbar.type = PLACE_BOTH;        /* type of error bar */
+    p->errbar.ptype = PLACEMENT_BOTH;   /* type of error bar */
     p->errbar.lines = grdefaults.lines; /* error bar line width */
     p->errbar.linew = grdefaults.linew; /* error bar line style */
     p->errbar.riser_linew = 1;          /* connecting line between error limits line
@@ -311,7 +311,7 @@ void set_default_ticks(tickmarks *t, int a)
     t->offsy = 0.0;
     t->label_layout = LAYOUT_PARALLEL;
     t->label_place = TYPE_AUTO;
-    t->label_op = is_xaxis(a) ? PLACE_BOTTOM : PLACE_LEFT;
+    t->label_op = PLACEMENT_NORMAL;
     t->tl_type = TYPE_AUTO;
     t->tl_sign = SIGN_NORMAL;
     t->tl_prec = 5;
@@ -323,7 +323,7 @@ void set_default_ticks(tickmarks *t, int a)
     t->tl_stoptype = TYPE_AUTO;
     t->tl_start = 0.0;
     t->tl_stop = 0.0;
-    t->tl_op = is_xaxis(a) ? PLACE_BOTTOM : PLACE_LEFT;
+    t->tl_op = PLACEMENT_NORMAL;
     t->tl_gaptype = TYPE_AUTO;
     t->tl_gap.x = 0.0;
     t->tl_gap.y = 0.01;
@@ -335,7 +335,7 @@ void set_default_ticks(tickmarks *t, int a)
     t->t_type = TYPE_AUTO;
     t->t_autonum = 6;
     t->t_inout = TICKS_IN;
-    t->t_op = PLACE_BOTH;
+    t->t_op = PLACEMENT_BOTH;
     t->props.size = grdefaults.charsize;
     t->mprops.size = grdefaults.charsize / 2;
     t->t_drawbar = TRUE;

@@ -671,25 +671,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     /* somehow the value of axislabelop gets automagically correctly
        applied to all selected axes without checking for the value of
        applyto directly here (strange...) */
-    switch (GetChoice(axislabelop)) {
-    case 0:
-      if (is_xaxis(curaxis)) {
-	t.label_op = PLACE_BOTTOM;
-      } else {
-	t.label_op = PLACE_LEFT;
-      }
-      break;
-    case 1:
-      if (is_xaxis(curaxis)) {
-	t.label_op = PLACE_TOP;
-      } else {
-	t.label_op = PLACE_RIGHT;
-      }
-      break;
-    case 2:
-      t.label_op = PLACE_BOTH;
-      break;
-    }
+    t.label_op = GetChoice(axislabelop);
 
     t.tl_font = GetOptionChoice(tlfont);
     t.tl_color = GetOptionChoice(tlcolor);
@@ -714,18 +696,8 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
             return;
 	}
     }
-    t.tl_format = format_types[(int) GetChoice(tlform)];
-    switch ((int) GetChoice(tlsign)) {
-    case 0:
-        t.tl_sign = SIGN_NORMAL;
-        break;
-    case 1:
-        t.tl_sign = SIGN_ABSOLUTE;
-        break;
-    case 2:
-        t.tl_sign = SIGN_NEGATE;
-        break;
-    }
+    t.tl_format = format_types[GetChoice(tlform)];
+    t.tl_sign = GetChoice(tlsign);
 
     t.tl_gaptype = GetChoice(tlgaptype) ? TYPE_SPEC : TYPE_AUTO;
     if (t.tl_gaptype == TYPE_SPEC) {
@@ -881,45 +853,9 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
                 set_graph_yinvert(i, invert);
             }
             
-            switch (GetChoice(ticklop)) {
-            case 0:
-                if (is_xaxis(j)) {
-		  t.tl_op = PLACE_BOTTOM;
-                } else {
-		  t.tl_op = PLACE_LEFT;
-                }
-                break;
-            case 1:
-                if (is_xaxis(j)) {
-		  t.tl_op = PLACE_TOP;
-                } else {
-		  t.tl_op = PLACE_RIGHT;
-                }
-                break;
-            case 2:
-                t.tl_op = PLACE_BOTH;
-                break;
-            }
+            t.tl_op = GetChoice(ticklop);
 
-            switch (GetChoice(tickop)) {
-            case 0:
-                if (is_xaxis(j)) {
-		  t.t_op = PLACE_BOTTOM;
-                } else {
-		  t.t_op = PLACE_LEFT;
-                }
-                break;
-            case 1:
-                if (is_xaxis(j)) {
-		  t.t_op = PLACE_TOP;
-                } else {
-		  t.t_op = PLACE_RIGHT;
-                }
-                break;
-            case 2:
-                t.t_op = PLACE_BOTH;
-                break;
-            }
+            t.t_op = GetChoice(tickop);
 
             set_graph_tickmarks(i, &t, j);
         }
@@ -990,23 +926,7 @@ void update_ticks(int gno)
         SetOptionChoice(axislabelfont, t.label.font);
         SetOptionChoice(axislabelcolor, t.label.color);
         SetCharSizeChoice(axislabelcharsize, t.label.charsize);
-        switch (t.label_op) {
-        case PLACE_LEFT:
-            SetChoice(axislabelop, 0);
-            break;
-        case PLACE_RIGHT:
-            SetChoice(axislabelop, 1);
-            break;
-        case PLACE_BOTTOM:
-            SetChoice(axislabelop, 0);
-            break;
-        case PLACE_TOP:
-            SetChoice(axislabelop, 1);
-            break;
-        case PLACE_BOTH:
-            SetChoice(axislabelop, 2);
-            break;
-        }
+        SetChoice(axislabelop, t.label_op);
 
         SetToggleButtonState(tlonoff, t.tl_flag);
         SetToggleButtonState(tonoff, t.t_flag);
@@ -1057,34 +977,8 @@ void update_ticks(int gno)
         }
         iv = get_format_index(t.tl_format);
         SetChoice(tlform, iv);
-        switch (t.tl_op) {
-        case PLACE_LEFT:
-            SetChoice(ticklop, 0);
-            break;
-        case PLACE_RIGHT:
-            SetChoice(ticklop, 1);
-            break;
-        case PLACE_BOTTOM:
-            SetChoice(ticklop, 0);
-            break;
-        case PLACE_TOP:
-            SetChoice(ticklop, 1);
-            break;
-        case PLACE_BOTH:
-            SetChoice(ticklop, 2);
-            break;
-        }
-        switch (t.tl_sign) {
-        case SIGN_NORMAL:
-            SetChoice(tlsign, 0);
-            break;
-        case SIGN_ABSOLUTE:
-            SetChoice(tlsign, 1);
-            break;
-        case SIGN_NEGATE:
-            SetChoice(tlsign, 2);
-            break;
-        }
+        SetChoice(ticklop, t.tl_op);
+        SetChoice(tlsign, t.tl_sign);
         SetChoice(tlprec, t.tl_prec);
 
         SetChoice(tlgaptype, t.tl_gaptype == TYPE_AUTO ? 0 : 1);
@@ -1105,23 +999,9 @@ void update_ticks(int gno)
             SetChoice(tinout, 2);
             break;
         }
-        switch (t.t_op) {
-        case PLACE_LEFT:
-            SetChoice(tickop, 0);
-            break;
-        case PLACE_RIGHT:
-            SetChoice(tickop, 1);
-            break;
-        case PLACE_BOTTOM:
-            SetChoice(tickop, 0);
-            break;
-        case PLACE_TOP:
-            SetChoice(tickop, 1);
-            break;
-        case PLACE_BOTH:
-            SetChoice(tickop, 2);
-            break;
-        }
+        
+        SetChoice(tickop, t.t_op);
+        
         SetOptionChoice(tgridcol, t.props.color);
         SetSpinChoice(tgridlinew, t.props.linew);
         SetOptionChoice(tgridlines, t.props.lines);

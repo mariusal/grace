@@ -357,6 +357,7 @@ symtab_entry *key;
 %token <pset> OFILTER
 %token <pset> ON
 %token <pset> OP
+%token <pset> OPPOSITE
 %token <pset> OUT
 %token <pset> PAGE
 %token <pset> PARA
@@ -516,6 +517,9 @@ symtab_entry *key;
 %type <pset> lines_select
 %type <pset> onoff
 %type <pset> opchoice
+%type <pset> opchoice_sel
+%type <pset> opchoice_obs
+%type <pset> opchoice_sel_obs
 %type <pset> pagelayout
 %type <pset> pageorient
 %type <pset> regiontype
@@ -3110,8 +3114,8 @@ setprop:
 	| ERRORBAR LENGTH NUMBER {
             g[whichgraph].p[whichset].errbar.length = $3;
 	}
-	| ERRORBAR TYPE opchoice {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $3, 0);
+	| ERRORBAR opchoice_sel {
+	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $2, 0);
 	}
 	| ERRORBAR linew_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINEWIDTH, $2, 0);
@@ -3253,8 +3257,8 @@ tickattr:
 	| MINOR GRID onoff {
 	    g[get_cg()].t[naxis].mprops.gridflag = $3;
 	}
-	| OP opchoice {
-	    g[get_cg()].t[naxis].t_op = $2;
+	| opchoice_sel {
+	    g[get_cg()].t[naxis].t_op = $1;
 	}
 	| TYPE AUTO {
 	    g[get_cg()].t[naxis].t_type = TYPE_AUTO;
@@ -3311,8 +3315,8 @@ ticklabelattr:
 	| STAGGER NUMBER {
 	    g[get_cg()].t[naxis].tl_staggered = (int) $2;
 	}
-	| OP opchoice {
-	    g[get_cg()].t[naxis].tl_op = $2;
+	| opchoice_sel {
+	    g[get_cg()].t[naxis].tl_op = $1;
 	}
 	| SIGN signchoice {
 	    g[get_cg()].t[naxis].tl_sign = $2;
@@ -3394,8 +3398,8 @@ axislabeldesc:
 	| color_select {
 	    g[get_cg()].t[naxis].label.color = (int) $1;
 	}
-	| OP opchoice {
-	    g[get_cg()].t[naxis].label_op = $2;
+	| opchoice_sel {
+	    g[get_cg()].t[naxis].label_op = $1;
 	}
 	;
 
@@ -3565,11 +3569,6 @@ onoff: ON { $$ = TRUE; }
 	| OFF { $$ = FALSE; }
 	;
 
-colpat_obs: NONE
-	| COLOR
-	| PATTERN
-	;
-
 runtype: RUNAVG { $$ = RUN_AVG; }
 	| RUNSTD { $$ = RUN_STD; }
 	| RUNMED { $$ = RUN_MED; }
@@ -3578,21 +3577,8 @@ runtype: RUNAVG { $$ = RUN_AVG; }
 	;
 
 sourcetype: 
-        DISK 
-        {
-            $$ = SOURCE_DISK;
-        }
-	| PIPE
-        {
-            $$ = SOURCE_PIPE;
-        }
-	;
-
-opchoice: TOP { $$ = PLACE_TOP; }
-	| BOTTOM { $$ = PLACE_BOTTOM; }
-	| LEFT { $$ = PLACE_LEFT; }
-	| RIGHT { $$ = PLACE_RIGHT; }
-	| BOTH { $$ = PLACE_BOTH; }
+        DISK { $$ = SOURCE_DISK; }
+	| PIPE { $$ = SOURCE_PIPE; }
 	;
 
 justchoice: RIGHT { $$ = JUST_RIGHT; }
@@ -3805,6 +3791,18 @@ linew_select:
         }
         ;
 
+opchoice_sel: PLACE opchoice
+        {
+            $$ = $2;
+        }
+        ;
+
+opchoice: NORMAL { $$ = PLACEMENT_NORMAL; }
+	| OPPOSITE { $$ = PLACEMENT_OPPOSITE; }
+	| BOTH { $$ = PLACEMENT_BOTH; }
+	;
+
+
 parmset_obs:
         PAGE LAYOUT pageorient
         {
@@ -3920,6 +3918,9 @@ parmset_obs:
 
 axislabeldesc_obs:
 	linew_select { }
+	| opchoice_sel_obs {
+	    g[get_cg()].t[naxis].label_op = $1;
+	}
         ;
 
 setprop_obs:
@@ -3942,6 +3943,9 @@ setprop_obs:
 	}
 	| FILL WITH colpat_obs {filltype_obs = (int) $3;}
 	|  XYZ expr ',' expr { }
+	| ERRORBAR TYPE opchoice_obs {
+	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $3, 0);
+	}
         ;
         
 
@@ -3970,6 +3974,9 @@ tickattr_obs:
 	    g[get_cg()].t[naxis].tloc[(int) $1].wtpos = $3;
 	    g[get_cg()].t[naxis].tloc[(int) $1].type = TICK_TYPE_MAJOR;
 	}
+	| opchoice_sel_obs {
+	    g[get_cg()].t[naxis].t_op = $1;
+	}
         ;
 
 ticklabelattr_obs:
@@ -3982,11 +3989,30 @@ ticklabelattr_obs:
 	| LAYOUT VERTICAL {
 	    g[get_cg()].t[naxis].tl_angle = 90;
 	}
-	| PLACE ON TICKSP {
-	}
-	| PLACE BETWEEN TICKSP {
+	| PLACE ON TICKSP { }
+	| PLACE BETWEEN TICKSP { }
+	| opchoice_sel_obs {
+	    g[get_cg()].t[naxis].tl_op = $1;
 	}
         ;
+
+colpat_obs: NONE
+	| COLOR
+	| PATTERN
+	;
+
+opchoice_sel_obs: OP opchoice_obs
+        {
+            $$ = $2;
+        }
+        ;
+
+opchoice_obs: TOP { $$ = PLACEMENT_OPPOSITE; }
+	| BOTTOM { $$ = PLACEMENT_NORMAL; }
+	| LEFT { $$ = PLACEMENT_NORMAL; }
+	| RIGHT { $$ = PLACEMENT_OPPOSITE; }
+	| BOTH { $$ = PLACEMENT_BOTH; }
+	;
 
 %%
 
@@ -4288,6 +4314,7 @@ symtab_entry ikey[] = {
 	{"OFILTER", OFILTER, NULL},
 	{"ON", ON, NULL},
 	{"OP", OP, NULL},
+	{"OPPOSITE", OPPOSITE, NULL},
 	{"OR", OR, NULL},
 	{"OUT", OUT, NULL},
 	{"PAGE", PAGE, NULL},
@@ -5270,7 +5297,7 @@ void set_prop(int gno,...)
 			ends = g[i].maxplot - 1;
 		    }
 		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].errbar.type = prop;
+			g[i].p[j].errbar.ptype = prop;
 		    }
 		}
 		break;

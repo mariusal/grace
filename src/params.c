@@ -322,20 +322,14 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s label font %d\n", buf, get_font_mapped_id(t.label.font));
                 fprintf(pp, "%s label color %d\n", buf, t.label.color);
                 switch (t.label_op) {
-                case PLACE_TOP:
-                    fprintf(pp, "%s label op top\n", buf);
+                case PLACEMENT_NORMAL:
+                    fprintf(pp, "%s label place normal\n", buf);
                     break;
-                case PLACE_BOTTOM:
-                    fprintf(pp, "%s label op bottom\n", buf);
+                case PLACEMENT_OPPOSITE:
+                    fprintf(pp, "%s label place opposite\n", buf);
                     break;
-                case PLACE_LEFT:
-                    fprintf(pp, "%s label op left\n", buf);
-                    break;
-                case PLACE_RIGHT:
-                    fprintf(pp, "%s label op right\n", buf);
-                    break;
-                case PLACE_BOTH:
-                    fprintf(pp, "%s label op both\n", buf);
+                case PLACEMENT_BOTH:
+                    fprintf(pp, "%s label place both\n", buf);
                     break;
                 }
 
@@ -376,20 +370,14 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s ticklabel skip %d\n", buf, t.tl_skip);
                 fprintf(pp, "%s ticklabel stagger %d\n", buf, t.tl_staggered);
                 switch (t.tl_op) {
-                case PLACE_TOP:
-                    fprintf(pp, "%s ticklabel op top\n", buf);
+                case PLACEMENT_NORMAL:
+                    fprintf(pp, "%s ticklabel place normal\n", buf);
                     break;
-                case PLACE_BOTTOM:
-                    fprintf(pp, "%s ticklabel op bottom\n", buf);
+                case PLACEMENT_OPPOSITE:
+                    fprintf(pp, "%s ticklabel place opposite\n", buf);
                     break;
-                case PLACE_LEFT:
-                    fprintf(pp, "%s ticklabel op left\n", buf);
-                    break;
-                case PLACE_RIGHT:
-                    fprintf(pp, "%s ticklabel op right\n", buf);
-                    break;
-                case PLACE_BOTH:
-                    fprintf(pp, "%s ticklabel op both\n", buf);
+                case PLACEMENT_BOTH:
+                    fprintf(pp, "%s ticklabel place both\n", buf);
                     break;
                 }
                 fprintf(pp, "%s ticklabel offset %s\n", buf,
@@ -417,20 +405,14 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s ticklabel color %d\n", buf, t.tl_color);
 
                 switch (t.t_op) {
-                case PLACE_TOP:
-                    fprintf(pp, "%s tick op top\n", buf);
+                case PLACEMENT_NORMAL:
+                    fprintf(pp, "%s tick place normal\n", buf);
                     break;
-                case PLACE_BOTTOM:
-                    fprintf(pp, "%s tick op bottom\n", buf);
+                case PLACEMENT_OPPOSITE:
+                    fprintf(pp, "%s tick place opposite\n", buf);
                     break;
-                case PLACE_LEFT:
-                    fprintf(pp, "%s tick op left\n", buf);
-                    break;
-                case PLACE_RIGHT:
-                    fprintf(pp, "%s tick op right\n", buf);
-                    break;
-                case PLACE_BOTH:
-                    fprintf(pp, "%s tick op both\n", buf);
+                case PLACEMENT_BOTH:
+                    fprintf(pp, "%s tick place both\n", buf);
                     break;
                 }
                 if (t.tl_type == TYPE_AUTO) {
@@ -543,21 +525,15 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s    s%1d avalue offset %f , %f\n", embedstr, i, p.avalue.offset.x, p.avalue.offset.y);
 
                     fprintf(pp, "%s    s%1d errorbar %s\n", embedstr, i, on_or_off(p.errbar.active));
-                    switch (p.errbar.type) {
-                    case PLACE_TOP:
-                        fprintf(pp, "%s    s%1d errorbar type top\n", embedstr, i);
+                    switch (p.errbar.ptype) {
+                    case PLACEMENT_NORMAL:
+                        fprintf(pp, "%s    s%1d errorbar place normal\n", embedstr, i);
                         break;
-                    case PLACE_BOTTOM:
-                        fprintf(pp, "%s    s%1d errorbar type bottom\n", embedstr, i);
+                    case PLACEMENT_OPPOSITE:
+                        fprintf(pp, "%s    s%1d errorbar place opposite\n", embedstr, i);
                         break;
-                    case PLACE_LEFT:
-                        fprintf(pp, "%s    s%1d errorbar type left\n", embedstr, i);
-                        break;
-                    case PLACE_RIGHT:
-                        fprintf(pp, "%s    s%1d errorbar type right\n", embedstr, i);
-                        break;
-                    case PLACE_BOTH:
-                        fprintf(pp, "%s    s%1d errorbar type both\n", embedstr, i);
+                    case PLACEMENT_BOTH:
+                        fprintf(pp, "%s    s%1d errorbar place both\n", embedstr, i);
                         break;
                     }
                     fprintf(pp, "%s    s%1d errorbar length %f\n", embedstr, i, p.errbar.length);

@@ -69,11 +69,6 @@
 #define MAX_ARROW 3
 #define MAX_PREC 10
 
-
-#ifndef MAXARR
-#  define MAXARR 1000           /* startup max elements in a scratch array */
-#endif
-
 /* symbol types */
 
 #define SYM_NONE    0
@@ -176,12 +171,12 @@
 #define LAYOUT_PARALLEL         0
 #define LAYOUT_PERPENDICULAR    1
 
-/* Axis & tick placement */
-#define PLACE_LEFT      0
-#define PLACE_RIGHT     1
-#define PLACE_TOP       2
-#define PLACE_BOTTOM    3
-#define PLACE_BOTH      4
+/* Placement (axis labels, ticks, error bars */
+typedef enum {
+    PLACEMENT_NORMAL,
+    PLACEMENT_OPPOSITE,
+    PLACEMENT_BOTH
+} PlacementType;
 
 /* Tick label placement */
 #define LABEL_ONTICK    0
@@ -549,7 +544,7 @@ typedef struct {
 
 typedef struct {
     int active;          /* on/off */
-    int type;            /* type of error bar */
+    PlacementType ptype; /* placement type */
     double linew;        /* error bar line width */
     int lines;           /* error bar line style */
     double riser_linew;  /* connecting line between error limits line width */
@@ -596,7 +591,7 @@ typedef struct {
     plotstr label;              /* graph axis label */
     int label_layout;           /* axis label orientation (h or v) */
     int label_place;            /* axis label placement (specfied or auto) */
-    int label_op;               /* tick labels on opposite side or both */
+    PlacementType label_op;     /* tick labels on opposite side or both */
 
     int t_drawbar;              /* draw a bar connecting tick marks */
     int t_drawbarcolor;         /* color of bar */
@@ -621,7 +616,7 @@ typedef struct {
     tickloc tloc[MAX_TICKS];    /* locations of ticks */
 
     int t_inout;                /* ticks inward, outward or both */
-    int t_op;                   /* ticks on opposite side */
+    PlacementType t_op;         /* ticks on opposite side */
     
     tickprops props;
     tickprops mprops;
@@ -641,7 +636,7 @@ typedef struct {
     double tl_start;            /* value of x to begin tick labels and major ticks */
     double tl_stop;             /* value of x to end tick labels and major ticks */
 
-    int tl_op;                  /* tick labels on opposite side or both */
+    PlacementType tl_op;        /* tick labels on opposite side or both */
 
     int tl_gaptype;             /* tick label placement auto or specified */
     VVector tl_gap;             /* tick label to tickmark distance

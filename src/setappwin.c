@@ -97,7 +97,7 @@ static Widget errbar_active_item;
 static Widget errbar_size_item;
 static SpinStructure *errbar_width_item;
 static OptionStructure *errbar_lines_item;
-static Widget *errbar_type_item;
+static Widget *errbar_ptype_item;
 static SpinStructure *errbar_riserlinew_item;
 static OptionStructure *errbar_riserlines_item;
 
@@ -432,12 +432,12 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc2, NULL);
         fr = CreateFrame(rc1, "Placement");
-        errbar_type_item = CreatePanelChoice(fr,
+        errbar_ptype_item = CreatePanelChoice(fr,
                                              "Type:",
                                              4,
+                                             "Normal",
+                                             "Opposite",
                                              "Both",
-                                             "Top/left",
-                                             "Bottom/right",
                                              NULL,
                                              0);
         
@@ -494,7 +494,6 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     int dropline, filltype, fillrule, fillpat, fillcol;
     int symcolor, sympattern, symfillcolor, symfillpattern;
     double symsize;
-    int etype_tmp, errbar_type;
     int baseline, baselinetype;
     Errbar errbar;
     AValue avalue;
@@ -590,35 +589,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.baseline = baseline;
             p.baseline_type = baselinetype;
 
-            etype_tmp = GetChoice(errbar_type_item);
-            switch (dataset_type(cg, setno)) {
-            case SET_XYDX:
-            case SET_XYDXDX:
-                if (etype_tmp == 0) {
-                    errbar_type = PLACE_BOTH;;
-                } else if (etype_tmp == 1) {
-                    errbar_type = PLACE_LEFT;
-                } else {
-                    errbar_type = PLACE_RIGHT;
-                }
-                break;
-            case SET_XYDY:
-            case SET_XYDYDY:
-            case SET_BARDY:
-            case SET_BARDYDY:
-                if (etype_tmp == 0) {
-                    errbar_type = PLACE_BOTH;;
-                } else if (etype_tmp == 1) {
-                    errbar_type = PLACE_TOP;
-                } else {
-                    errbar_type = PLACE_BOTTOM;
-                }
-                break;
-            default:
-                errbar_type = PLACE_BOTH;
-                break;
-            }
-            errbar.type = errbar_type;
+            errbar.ptype = GetChoice(errbar_ptype_item);
     
             p.errbar = errbar;
             p.avalue = avalue;
@@ -644,7 +615,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void UpdateSymbols(int gno, int value)
 {
-    int i, itmp;
+    int i;
     char val[24];
     plotarr p;
 
@@ -693,24 +664,8 @@ static void UpdateSymbols(int gno, int value)
 
         SetCSTextString(legend_str_item, p.lstr);
         
-        switch (p.errbar.type) {
-        case PLACE_BOTH:
-            itmp = 0;
-            break;
-        case PLACE_TOP:
-        case PLACE_LEFT:
-            itmp = 1;
-            break;
-        case PLACE_BOTTOM:
-        case PLACE_RIGHT:
-            itmp = 2;
-            break;
-        default:
-            itmp = 0;
-            break;
-        }
         SetToggleButtonState(errbar_active_item, p.errbar.active);
-        SetChoice(errbar_type_item, itmp);
+        SetChoice(errbar_ptype_item, p.errbar.ptype);
         SetSpinChoice(errbar_width_item, p.errbar.linew);
         SetOptionChoice(errbar_lines_item, p.errbar.lines);
         SetSpinChoice(errbar_riserlinew_item, p.errbar.riser_linew);

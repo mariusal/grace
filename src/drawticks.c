@@ -360,7 +360,7 @@ void drawaxes(int gno)
 	    setcolor(t.t_drawbarcolor);
 	    setlinewidth(t.t_drawbarlinew);
 	    setlinestyle(t.t_drawbarlines);
-	    if (t.t_op == PLACE_LEFT || t.t_op == PLACE_BOTTOM || t.t_op == PLACE_BOTH) {
+	    if (t.t_op == PLACEMENT_NORMAL || t.t_op == PLACEMENT_BOTH) {
                 if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
                     xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
                              &phi_start, &rho);
@@ -382,7 +382,7 @@ void drawaxes(int gno)
 	    	    DrawLine(vp1_start, vp1_stop);
                 }
 	    }
-	    if (t.t_op == PLACE_RIGHT || t.t_op == PLACE_TOP || t.t_op == PLACE_BOTH) {
+	    if (t.t_op == PLACEMENT_OPPOSITE || t.t_op == PLACEMENT_BOTH) {
                 if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
                     xy2polar(vp2_start.x - vpc.x, vp2_start.y - vpc.y,
                              &phi_start, &rho);
@@ -467,18 +467,16 @@ void drawaxes(int gno)
 	            }
 	
 	            vtpos = coord_conv(wtpos);
-	            if (t.t_op == PLACE_LEFT ||
-	                t.t_op == PLACE_BOTTOM ||
-	                t.t_op == PLACE_BOTH) {
+	            if (t.t_op == PLACEMENT_NORMAL ||
+	                t.t_op == PLACEMENT_BOTH) {
 	                vp_tick1_start.x = vtpos*ort_para.x + vbase1_start*ort_perp.x;
 	                vp_tick1_start.y = vtpos*ort_para.y + vbase1_start*ort_perp.y;
 	                vp_tick1_stop.x  = vtpos*ort_para.x + vbase1_stop*ort_perp.x;
 	                vp_tick1_stop.y  = vtpos*ort_para.y + vbase1_stop*ort_perp.y;
 	                DrawLine(vp_tick1_start, vp_tick1_stop);
 	            }
-	            if (t.t_op == PLACE_RIGHT ||
-	                t.t_op == PLACE_TOP ||
-	                t.t_op == PLACE_BOTH) {
+	            if (t.t_op == PLACEMENT_OPPOSITE ||
+	                t.t_op == PLACEMENT_BOTH) {
 	                vp_tick2_start.x = vtpos*ort_para.x + vbase2_start*ort_perp.x;
 	                vp_tick2_start.y = vtpos*ort_para.y + vbase2_start*ort_perp.y;
 	                vp_tick2_stop.x  = vtpos*ort_para.x + vbase2_stop*ort_perp.x;
@@ -570,9 +568,8 @@ void drawaxes(int gno)
 
 	        if (itcur % (t.tl_skip + 1) == 0) {
 		  /* Tick labels on normal side */
-	            if (t.tl_op == PLACE_LEFT ||
-	                t.tl_op == PLACE_BOTTOM ||
-	                t.tl_op == PLACE_BOTH) {
+	            if (t.tl_op == PLACEMENT_NORMAL ||
+	                t.tl_op == PLACEMENT_BOTH) {
 	                vbase_tlabel = vbase_tlabel1 - (tl_offset + tlsize)*
 	                                        (itcur % (t.tl_staggered + 1));
 	                vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
@@ -582,9 +579,8 @@ void drawaxes(int gno)
 	                WriteString(vp_tlabel, t.tl_angle, tlabel1_just, tlabel);
 	            }
 		    /* Tick labels on opposite side */
-	            if (t.tl_op == PLACE_RIGHT ||
-	                t.tl_op == PLACE_TOP ||
-	                t.tl_op == PLACE_BOTH) {
+	            if (t.tl_op == PLACEMENT_OPPOSITE ||
+	                t.tl_op == PLACEMENT_BOTH) {
 	                vbase_tlabel = vbase_tlabel2 + (tl_offset + tlsize)*
 	                                        (itcur % (t.tl_staggered + 1));
 	                vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
@@ -621,9 +617,8 @@ void drawaxes(int gno)
 	    setcolor(t.label.color);
 
 	    /* Axis label on normal side */
-	    if (t.label_op == PLACE_LEFT ||
-		t.label_op == PLACE_BOTTOM ||
-		t.label_op == PLACE_BOTH) {
+	    if (t.label_op == PLACEMENT_NORMAL ||
+		t.label_op == PLACEMENT_BOTH) {
 
 	        vp_label.x = (vp1_start.x + vp1_stop.x)/2 + vp_label_offset.x*ort_para.x
                                                         - vp_label_offset.y*ort_perp.x ;
@@ -634,9 +629,8 @@ void drawaxes(int gno)
 	    }
 
 	    /* Axis label on opposite side */
-	    if (t.label_op == PLACE_RIGHT ||
-		t.label_op == PLACE_TOP ||
-		t.label_op == PLACE_BOTH) {
+	    if (t.label_op == PLACEMENT_OPPOSITE ||
+		t.label_op == PLACEMENT_BOTH) {
 
 	        vp_label.x = (vp2_start.x + vp2_stop.x)/2 + vp_label_offset.x*ort_para.x
 		                                        + vp_label_offset.y*ort_perp.x ;

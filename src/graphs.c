@@ -975,15 +975,15 @@ int overlay_graphs(int g1, int g2, int type)
 	    g[g1].t[i].active = FALSE;
 	    g[g2].t[i].active = TRUE;
 	}
-	g[g1].t[1].tl_op = PLACE_LEFT;
-	g[g2].t[1].tl_op = PLACE_LEFT;
-	g[g1].t[1].t_op = PLACE_BOTH;
-	g[g2].t[1].t_op = PLACE_BOTH;
+	g[g1].t[1].tl_op = PLACEMENT_NORMAL;
+	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1].t_op = PLACEMENT_BOTH;
+	g[g2].t[1].t_op = PLACEMENT_BOTH;
 
-	g[g1].t[0].tl_op = PLACE_BOTTOM;
-	g[g2].t[0].tl_op = PLACE_BOTTOM;
-	g[g1].t[0].t_op = PLACE_BOTH;
-	g[g2].t[0].t_op = PLACE_BOTH;
+	g[g1].t[0].tl_op = PLACEMENT_NORMAL;
+	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0].t_op = PLACEMENT_BOTH;
+	g[g2].t[0].t_op = PLACEMENT_BOTH;
 	break;
     case 1:
 	g[g1].w.xg1 = g[g2].w.xg1;
@@ -995,15 +995,15 @@ int overlay_graphs(int g1, int g2, int type)
 		g[g1].t[i].active = TRUE;
 	    }
 	}
-	g[g2].t[1].tl_op = PLACE_LEFT;
-	g[g1].t[1].tl_op = PLACE_RIGHT;
-	g[g2].t[1].t_op = PLACE_LEFT;
-	g[g1].t[1].t_op = PLACE_RIGHT;
+	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1].tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[1].t_op = PLACEMENT_NORMAL;
+	g[g1].t[1].t_op = PLACEMENT_OPPOSITE;
 
-	g[g2].t[0].tl_op = PLACE_BOTTOM;
-	g[g1].t[0].tl_op = PLACE_BOTTOM;
-	g[g2].t[0].t_op = PLACE_BOTH;
-	g[g1].t[0].t_op = PLACE_BOTH;
+	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0].tl_op = PLACEMENT_NORMAL;
+	g[g2].t[0].t_op = PLACEMENT_BOTH;
+	g[g1].t[0].t_op = PLACEMENT_BOTH;
 
 	break;
     case 2:
@@ -1016,29 +1016,29 @@ int overlay_graphs(int g1, int g2, int type)
 		g[g1].t[i].active = TRUE;
 	    }
 	}
-	g[g2].t[0].tl_op = PLACE_BOTTOM;
-	g[g1].t[0].tl_op = PLACE_TOP;
-	g[g2].t[0].t_op = PLACE_BOTTOM;
-	g[g1].t[0].t_op = PLACE_TOP;
+	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0].tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0].t_op = PLACEMENT_NORMAL;
+	g[g1].t[0].t_op = PLACEMENT_OPPOSITE;
 
-	g[g2].t[1].tl_op = PLACE_LEFT;
-	g[g1].t[1].tl_op = PLACE_LEFT;
-	g[g2].t[1].t_op = PLACE_BOTH;
-	g[g1].t[1].t_op = PLACE_BOTH;
+	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1].tl_op = PLACEMENT_NORMAL;
+	g[g2].t[1].t_op = PLACEMENT_BOTH;
+	g[g1].t[1].t_op = PLACEMENT_BOTH;
 	break;
     case 3:
 	for (i = 0; i < MAXAXES; i++) {
 	    g[g1].t[i].active = TRUE;
 	    g[g2].t[i].active = TRUE;
 	}
-	g[g2].t[1].tl_op = PLACE_LEFT;
-	g[g1].t[1].tl_op = PLACE_RIGHT;
-	g[g2].t[0].tl_op = PLACE_BOTTOM;
-	g[g1].t[0].tl_op = PLACE_TOP;
-	g[g2].t[1].t_op = PLACE_LEFT;
-	g[g1].t[1].t_op = PLACE_RIGHT;
-	g[g2].t[0].t_op = PLACE_BOTTOM;
-	g[g1].t[0].t_op = PLACE_TOP;
+	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1].tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0].tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[1].t_op = PLACEMENT_NORMAL;
+	g[g1].t[1].t_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0].t_op = PLACEMENT_NORMAL;
+	g[g1].t[0].t_op = PLACEMENT_OPPOSITE;
 	break;
     }
     
@@ -1213,6 +1213,16 @@ void postprocess_project(int version)
 	for (setno = 0; setno < number_of_sets(gno); setno++) {
             if (version < 50003) {
                 g[gno].p[setno].errbar.active = TRUE;
+                switch (g[gno].p[setno].errbar.ptype) {
+                case PLACEMENT_NORMAL:
+                    g[gno].p[setno].errbar.ptype = PLACEMENT_OPPOSITE;
+                    break;
+                case PLACEMENT_OPPOSITE:
+                    g[gno].p[setno].errbar.ptype = PLACEMENT_NORMAL;
+                    break;
+                default:
+                    break;
+                }
             }
             if (version < 50002) {
                 g[gno].p[setno].errbar.length *= 2;
