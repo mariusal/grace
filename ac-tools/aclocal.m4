@@ -369,7 +369,6 @@ dnl Define `HAVE_LESSTIF' if the Motif library is actually a LessTif library
 dnl
 AC_DEFUN(ICE_CHECK_LESSTIF,
 [
-AC_REQUIRE([ACX_CHECK_MOTIF])
 AC_MSG_CHECKING(whether the Motif library is actually a LessTif library)
 AC_CACHE_VAL(ice_cv_have_lesstif,
 AC_EGREP_CPP(yes,
