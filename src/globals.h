@@ -104,7 +104,7 @@ int inwin = FALSE;		/* true if running X */
 defaults grdefaults;		/* default properties */
 
 
-int curset, curaxis;
+int curset;
 int focus_policy = FOCUS_CLICK;
 
 int draw_focus_flag = TRUE;
@@ -261,7 +261,7 @@ extern int force_redraw;
 
 extern double charsize, xlibcharsize;	/* declared in draw.c and xlib.c resp. */
 
-extern int curset, curaxis;
+extern int curset;
 extern int focus_policy;
 extern int draw_focus_flag;
 
