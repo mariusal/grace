@@ -58,8 +58,9 @@
 
 #define  WEIGHT_NONE    0
 #define  WEIGHT_Y       1
-#define  WEIGHT_DY      2
-#define  WEIGHT_CUSTOM  3
+#define  WEIGHT_Y2      2
+#define  WEIGHT_DY      3
+#define  WEIGHT_CUSTOM  4
 
 /* prefs for non-linear fit */
 typedef struct {
@@ -121,7 +122,7 @@ void create_nonl_frame(void *data)
     set_wait_cursor();
     if (nonl_frame == NULL) {
         int i;
-        OptionItem np_option_items[MAXPARM + 1], option_items[4];
+        OptionItem np_option_items[MAXPARM + 1], option_items[5];
         Widget menubar, menupane;
         Widget nonl_tab, nonl_main, nonl_advanced;
         Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
@@ -262,11 +263,13 @@ void create_nonl_frame(void *data)
         option_items[0].label = "None";
         option_items[1].value = WEIGHT_Y;
         option_items[1].label = "1/Y";
-        option_items[2].value = WEIGHT_DY;
-        option_items[2].label = "1/dY^2";
-        option_items[3].value = WEIGHT_CUSTOM;
-        option_items[3].label = "Custom";
-	nonl_weigh_item = CreateOptionChoice(rc3, "Weights", 1, 4, option_items);
+        option_items[2].value = WEIGHT_Y2;
+        option_items[2].label = "1/Y^2";
+        option_items[3].value = WEIGHT_DY;
+        option_items[3].label = "1/dY^2";
+        option_items[4].value = WEIGHT_CUSTOM;
+        option_items[4].label = "Custom";
+	nonl_weigh_item = CreateOptionChoice(rc3, "Weights", 1, 5, option_items);
 	nonl_wfunc_item = CreateTextItem2(rc3, 30, "Function:");
 	AddOptionChoiceCB(nonl_weigh_item, nonl_wf_cb, (void *) nonl_wfunc_item);
         XtManageChild(rc3);
@@ -451,6 +454,7 @@ static void do_nonl_proc(void *data)
     int resno;
     char *fstr;
     int nlen, wlen;
+    int weight_method;
     double *ytmp, *warray;
     int restr_type, restr_negate;
     char *rarray;
@@ -514,9 +518,18 @@ static void do_nonl_proc(void *data)
     if (nsteps) {
         /* apply weigh function */
     	nlen = getsetlength(src_gno, src_setno);
-	switch (GetOptionChoice(nonl_weigh_item)) {
+	weight_method = GetOptionChoice(nonl_weigh_item);
+        switch (weight_method) {
         case WEIGHT_Y:
+        case WEIGHT_Y2:
             ytmp = getcol(src_gno, src_setno, DATA_Y);
+            for (i = 0; i < nlen; i++) {
+                if (ytmp[i] == 0.0) {
+	            errmsg("Divide by zero while calculating weights");
+                    unset_wait_cursor();
+                    return;
+                }
+            }
             warray = malloc(nlen*SIZEOF_DOUBLE);
             if (warray == NULL) {
 	        errmsg("malloc failed in do_nonl_proc()");
@@ -524,12 +537,11 @@ static void do_nonl_proc(void *data)
                 return;
             }
             for (i = 0; i < nlen; i++) {
-                if (ytmp[i] == 0.0) {
-	            errmsg("Divide by zero while calculating weights");
-                    unset_wait_cursor();
-                    return;
+                if (weight_method == WEIGHT_Y) {
+                    warray[i] = 1/ytmp[i];
+                } else {
+                    warray[i] = 1/(ytmp[i]*ytmp[i]);
                 }
-                warray[i] = 1/ytmp[i];
             }
             break;
         case WEIGHT_DY:
@@ -539,17 +551,19 @@ static void do_nonl_proc(void *data)
                 unset_wait_cursor();
                 return;
             }
-            warray = malloc(nlen*SIZEOF_DOUBLE);
-            if (warray == NULL) {
-	        errmsg("malloc failed in do_nonl_proc()");
-                unset_wait_cursor();
-            }
             for (i = 0; i < nlen; i++) {
                 if (ytmp[i] == 0.0) {
 	            errmsg("Divide by zero while calculating weights");
                     unset_wait_cursor();
                     return;
                 }
+            }
+            warray = malloc(nlen*SIZEOF_DOUBLE);
+            if (warray == NULL) {
+	        errmsg("malloc failed in do_nonl_proc()");
+                unset_wait_cursor();
+            }
+            for (i = 0; i < nlen; i++) {
                 warray[i] = 1/(ytmp[i]*ytmp[i]);
             }
             break;
