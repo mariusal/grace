@@ -60,8 +60,6 @@ typedef struct _GUI {
     int invert;
     /* if true, redraw graph each time action is performed */
     int auto_redraw;
-    /* allow double click ops */
-    int allow_dc;
     int focus_policy;
     int draw_focus_flag;
     /* if TRUE, assume yes for everything */

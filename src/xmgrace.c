@@ -98,10 +98,6 @@ static XtActionsRec dummy_actions[] = {
 
 static XtActionsRec canvas_actions[] = {
     {"autoscale",         autoscale_action        },     
-    {"draw_line",         draw_line_action        },     
-    {"draw_box",          draw_box_action         },      
-    {"draw_ellipse",      draw_ellipse_action     },  
-    {"write_string",      write_string_action     },  
     {"refresh_hotlink",   refresh_hotlink_action  },
     {"enable_zoom",       enable_zoom_action      }
 };
@@ -117,10 +113,6 @@ static XtActionsRec cstext_actions[] = {
 };
 
 static char canvas_table[] = "#override\n\
-	Ctrl Alt <Key>l: draw_line()\n\
-	Ctrl Alt <Key>b: draw_box()\n\
-	Ctrl Alt <Key>e: draw_ellipse()\n\
-	Ctrl Alt <Key>t: write_string()\n\
 	Ctrl <Key>a: autoscale()\n\
 	Ctrl <Key>u: refresh_hotlink()\n\
 	Ctrl <Key>z: enable_zoom()";
@@ -130,7 +122,6 @@ static char canvas_table[] = "#override\n\
  */
 typedef struct {
     Boolean invert;
-    Boolean allow_dc;
     Boolean auto_redraw;
     Boolean toolbar;
     Boolean statusbar;
@@ -142,9 +133,6 @@ static XtResource resources[] =
 {
     {"invertDraw", "InvertDraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, invert), XtRImmediate,
-     (XtPointer) TRUE},
-    {"allowDoubleClick", "AllowDoubleClick", XtRBoolean, sizeof(Boolean),
-     XtOffset(ApplicationDataPtr, allow_dc), XtRImmediate,
      (XtPointer) TRUE},
     {"allowRedraw", "AllowRedraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, auto_redraw), XtRImmediate,
@@ -412,7 +400,6 @@ int initialize_gui(int *argc, char **argv)
         resources, XtNumber(resources), NULL, 0);
     
     grace->gui->invert = rd.invert;
-    grace->gui->allow_dc = rd.allow_dc;
     grace->gui->auto_redraw = rd.auto_redraw;
     grace->gui->instant_update = rd.instantupdate;
     grace->gui->toolbar = rd.toolbar;

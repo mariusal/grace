@@ -2429,6 +2429,8 @@ Widget CreatePenChoice(Widget parent, char *s)
         XmNlabelType, XmPIXMAP,
         XmNuserData, pdata,
         NULL);
+    
+    AddHelpCB(button, "doc/UsersGuide.html#pen-chooser");
 
     AddButtonCB(button, define_pen_choice_dialog, button);
     

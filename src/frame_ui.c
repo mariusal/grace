@@ -52,6 +52,7 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     /* ------------ Tabs -------------- */
 
     tab = CreateTab(eui->scrolled_window);        
+    AddHelpCB(tab, "doc/UsersGuide.html#frame-properties");
 
 
     /* ------------ Main tab -------------- */

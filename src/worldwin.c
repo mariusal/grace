@@ -172,6 +172,7 @@ void create_arrange_frame(Widget but, void *data)
         ui = xmalloc(sizeof(Arrange_ui));
     
 	ui->top = CreateDialogForm(app_shell, "Arrange frames");
+        AddHelpCB(ui->top, "doc/UsersGuide.html#arrange-frames");
 
 	arrange_panel = CreateVContainer(ui->top);
         

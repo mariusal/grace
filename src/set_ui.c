@@ -138,6 +138,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     /* ------------ Tabs -------------- */
 
     tab = CreateTab(eui->scrolled_window);        
+    AddHelpCB(tab, "doc/UsersGuide.html#set-properties");
 
 
     /* ------------ Main tab -------------- */

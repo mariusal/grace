@@ -58,7 +58,6 @@ static Widget props_frame;
 static SpinStructure *debug_item;
 #endif
 static Widget noask_item;
-static Widget dc_item;
 
 static OptionStructure *graph_focus_choice_item;
 static Widget graph_drawfocus_choice_item;
@@ -97,7 +96,6 @@ void create_props_frame(Widget but, void *data)
             "Debug level:", 1, SPIN_TYPE_INT, 0.0, 8.0, 1.0);
 #endif
 	noask_item = CreateToggleButton(rc1, "Don't ask questions");
-	dc_item = CreateToggleButton(rc1, "Allow double clicks on canvas");
 
 	graph_focus_choice_item = CreateOptionChoiceVA(rc1,
             "Graph focus switch",
@@ -150,7 +148,6 @@ void update_props_items(void)
 	SetSpinChoice(debug_item, (double) get_debuglevel(grace));
 #endif
 	SetToggleButtonState(noask_item, gui->noask);
-	SetToggleButtonState(dc_item, gui->allow_dc);
 
 	if (gui->focus_policy == FOCUS_SET) {
 	    itest = 1;
@@ -185,7 +182,6 @@ static int props_define_notify_proc(void *data)
     set_debuglevel(grace, (int) GetSpinChoice(debug_item));
 #endif
     gui->noask = GetToggleButtonState(noask_item);
-    gui->allow_dc = GetToggleButtonState(dc_item);
 
     switch (GetOptionChoice(graph_focus_choice_item)) {
     case 0:

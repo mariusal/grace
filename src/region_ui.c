@@ -38,6 +38,7 @@ RegionUI *create_region_ui(ExplorerUI *eui)
     Widget form;
 
     form = CreateVContainer(eui->scrolled_window);
+    AddHelpCB(form, "doc/UsersGuide.html#region-properties");
     
     ui = xmalloc(sizeof(ProjectUI));
 

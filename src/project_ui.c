@@ -182,6 +182,7 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     Widget form, fr, rc, rc1;
 
     form = CreateVContainer(eui->scrolled_window);
+    AddHelpCB(form, "doc/UsersGuide.html#project-properties");
     
     ui = xmalloc(sizeof(ProjectUI));
     ui->current_page_units = PAGE_UNITS_PP;

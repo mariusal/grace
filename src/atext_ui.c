@@ -51,6 +51,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     ui = xmalloc(sizeof(ATextUI));
     
     ui->top = CreateTab(eui->scrolled_window);
+    AddHelpCB(ui->top, "doc/UsersGuide.html#atext-properties");
 
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(ui->top, "Main");

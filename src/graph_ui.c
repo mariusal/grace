@@ -51,6 +51,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     /* ------------ Tabs -------------- */
 
     tab = CreateTab(eui->scrolled_window);        
+    AddHelpCB(tab, "doc/UsersGuide.html#graph-properties");
 
 
     /* ------------ Main tab -------------- */

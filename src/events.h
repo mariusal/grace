@@ -72,26 +72,14 @@
 /* #define SELECTION_TYPE_POLY 4 */
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
-void anchor_point(int curx, int cury, VPoint curvp);
 void set_action(GUI *gui, unsigned int npoints, int seltype,
     CanvasPointSink sink, void *data);
 void track_point(Quark *pset, int *loc, int shift);
 void update_locator_lab(Quark *cg, VPoint *vpp);
-void set_stack_message(void);
 void do_select_area(void);
 void do_select_peri(void);
-void do_dist_proc(void);
 void do_select_region(void);
 Quark *next_graph_containing(Quark *cg, VPoint *vp);
-int graph_clicked(Quark *gr, VPoint vp);
-int focus_clicked(Quark *cg, VPoint vp, VPoint *avp);
-int legend_clicked(Quark *gr, VPoint vp, view *bb);
-int axis_clicked(Quark *gr, VPoint vp, int *axisno);
-int title_clicked(Quark *gr, VPoint vp);
-int find_insert_location(Quark *pset, VPoint vp);
-int find_point(Quark *gr, VPoint vp, Quark **pset, int *loc);
-void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2);
-void push_and_zoom(void);
 
 void set_zoom_cb(Widget but, void *data);
 void set_zoomx_cb(Widget but, void *data);
@@ -101,10 +89,6 @@ void set_locator_cb(Widget but, void *data);
 /* action routines */
 void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );
 void autoscale_action( Widget, XEvent *, String *, Cardinal * );
-void draw_line_action( Widget, XEvent *, String *, Cardinal * );
-void draw_box_action( Widget, XEvent *, String *, Cardinal * );
-void draw_ellipse_action( Widget, XEvent *, String *, Cardinal * );
-void write_string_action( Widget, XEvent *, String *, Cardinal * );
 void refresh_hotlink_action( Widget, XEvent *, String *, Cardinal * );
 
 void update_point_locator(Quark *pset, int loc);
