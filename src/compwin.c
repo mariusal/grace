@@ -803,7 +803,7 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     int rno = GetChoice(ui->region_item) - 1;
     int invr = XmToggleButtonGetState(ui->rinvert_item);
     int nstep = 0, rx, rset = 0;
-    double xs = 0.0, stepsize = 0.0, *xr;
+    double xstart, xstop, stepsize = 0.0, *xr;
 
     if (w == NULL) {		/* called with "Pick" button */
 		cnt = 1;
@@ -832,15 +832,16 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
 		            errwin("Number points < 2");
 		            return;         
 		    }
-		    if(xv_evalexpr(ui->start_item, &xs ) != GRACE_EXIT_SUCCESS) {
+		    if(xv_evalexpr(ui->start_item, &xstart ) != GRACE_EXIT_SUCCESS) {
 		            errwin("Specify starting value");
 		            return;
 		    }               
-		    if(xv_evalexpr(ui->stop_item, &stepsize) != GRACE_EXIT_SUCCESS) {
+		    if(xv_evalexpr(ui->stop_item, &xstop) != GRACE_EXIT_SUCCESS) {
 		            errwin("Specify stopping value");
 		            return;
-		    } else
-				stepsize /= (float)(nstep-1);
+		    } else {
+                        stepsize = (xstop - xstart)/(nstep-1);
+                    }
 		    break;
                 default:
                     errwin("Internal error");
@@ -859,7 +860,7 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
 				setlength( get_cg(), rset, nstep);
 				xr = getx( get_cg(), rset );
 				for( k=0; k<nstep; k++ )
-					xr[k] = xs+k*stepsize;
+					xr[k] = xstart+k*stepsize;
 			}
 			do_regress(setno, i, iresid, rno, invr, rset);
 	    }
