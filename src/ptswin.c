@@ -50,7 +50,7 @@
 #include "protos.h"
 #include "motifinc.h"
 
-static int track_setno;
+static int track_setno = -1;
 static int track_add_at;    /* where to begin inserting points in the set */
 static int track_move_dir;  /* direction on point movement */
 
@@ -243,6 +243,10 @@ void update_point_locator(int gno, int setno, int loc)
     Datapoint dpoint;
     char *s, buf[64];
     
+    if (points_frame == NULL) {
+        return;
+    }
+    
     if (get_datapoint(gno, setno, loc, &ncols, &dpoint) == RETURN_SUCCESS) {
         SelectListChoice(track_set_sel, setno);
 
@@ -266,7 +270,10 @@ void update_point_locator(int gno, int setno, int loc)
         sprintf(buf, "%d", loc);
         xv_setstr(goto_index_item, buf);
     } else {
+        track_setno = -1;
+        SelectListChoices(track_set_sel, 0, NULL);
         SetTextString(locate_point_item, "");
+        xv_setstr(goto_index_item, "");
     }
 }
 
