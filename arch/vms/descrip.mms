@@ -26,6 +26,11 @@ T1LIB :
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
 	 @ $(CD) $(TOP)
 
+XBAE :
+	 @ $(CD) [.XBAE]
+	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
+	 @ $(CD) $(TOP)
+
 SRC :
 	 @ $(CD) [.SRC]
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)

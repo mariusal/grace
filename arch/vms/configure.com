@@ -2,26 +2,6 @@ $! configure for GRACE -- VMS version
 $! Rolf Niepraschk, 12/97, niepraschk@ptb.de
 $! John Hasstedt, 12/98, John.Hasstedt@sunysb.edu
 $!
-$ IF (P1 .NES. "DEFINE_TOP_IN_UNIX_FORMAT") THEN GOTO CONFIGURE
-$!
-$! code to define a logical name as part of the build procedure
-$!
-$ LOG = F$ELEMENT (0, "]", F$ENVIRONMENT ("PROCEDURE")) - "[" - ".ARCH.VMS"
-$ N = F$LOCATE(":",LOG)
-$ LOG[N,1] := /
-$LOOP_DEFINE_TOP_IN_UNIX_FORMAT:
-$ N = F$LOCATE(".",LOG)
-$ IF (N .NE. F$LENGTH(LOG))
-$ THEN
-$   LOG[N,1] := /
-$   GOTO LOOP_DEFINE_TOP_IN_UNIX_FORMAT
-$ ENDIF
-$ LOG = "/" + LOG
-$ DEFINE/NOLOG TOP_IN_UNIX_FORMAT "''LOG'"
-$ EXIT
-$!
-$CONFIGURE:
-$!
 $ echo := WRITE SYS$OUTPUT
 $!
 $! get versions, hardware type, etc
@@ -251,6 +231,7 @@ $ CEPHES_DIR := [--.CEPHES]
 $ T1LIB_DIR := [--.T1LIB]
 $ T1LIB_T1LIB_DIR := [--.T1LIB.T1LIB]
 $ T1LIB_TYPE1_DIR := [--.T1LIB.TYPE1]
+$ XBAE_DIR := [--.XBAE]
 $ SRC_DIR := [--.SRC]
 $ GRCONVERT_DIR := [--.GRCONVERT]
 $ EXAMPLES_DIR := [--.EXAMPLES]
@@ -274,6 +255,8 @@ $ IF (FORCECOPY .OR. F$SEARCH("''T1LIB_T1LIB_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY T1LIB_T1LIB.MMS 'T1LIB_T1LIB_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''T1LIB_TYPE1_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY T1LIB_TYPE1.MMS 'T1LIB_TYPE1_DIR'DESCRIP.MMS
+$ IF (FORCECOPY .OR. F$SEARCH("''XBAE_DIR'DESCRIP.MMS") .EQS. "") THEN -
+      COPY XBAE.MMS 'XBAE_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''SRC_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY SRC.MMS 'SRC_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''GRCONVERT_DIR'DESCRIP.MMS") .EQS. "") THEN -
@@ -297,7 +280,7 @@ $ EXE = ".exe"
 $ BAT = ".com"
 $ SHELL = ""
 $ PREFIX = ""
-$ SUBDIRS = "cephes t1lib src"
+$ SUBDIRS = "cephes t1lib xbae src"
 $ GRACE = "xmgrace$(EXE)"
 $ GRACE_HOME = HOME
 $ MISSING_O = "missing$(O)"
@@ -469,6 +452,7 @@ $ HAVE_BIEEE_FPU = 0
 $ REALLOC_IS_BUGGY = 0
 $ HAVE_DRAND48 = VMS_MAJOR .GE. 7
 $ HAVE_DRAND48_IN_STDLIB_H = HAVE_DRAND48
+$ HAVE_SETLOCALE = 1
 $ HAVE_LIBM = 1
 $ HAVE_MATH_H = 1
 $ HAVE_FLOAT_H = 1
@@ -505,12 +489,10 @@ $ HAVE_LESSTIF = 0
 $ HAVE_XPM = 0
 $ HAVE_XPM_H = 0
 $ HAVE_X11_XPM_H = 0
-$ HAVE_LIBXBAE = 0
 $ WITH_LIBHELP = 0
 $ WITH_EDITRES = 0
 $ PRINT_CMD_UNLINKS = 1
 $ WITH_DEBUG = 0
-$ HAVE_LIBT1 = 0
 $!
 $! create config.h
 $! Any lines beginning with #define SIZEOF or #undef are rewritten; all
