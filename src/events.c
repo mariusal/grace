@@ -420,7 +420,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 if (on_focus) {
                     set_cursor(grace->gui, 4);
                 } else {
-                    set_cursor(grace->gui, 0);
+                    set_cursor(grace->gui, -1);
                 }
             }
         }
