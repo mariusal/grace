@@ -263,12 +263,15 @@ String fallbackResources[] = {
     "XMgrace*tabFontList:-adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*",
     "XMgrace*background: #e5e5e5",
     "XMgrace*foreground: #000000",
+    "XMgrace*XbaeMatrix.oddRowBackground: #cccccc",
+    "XMgrace*XbaeMatrix.evenRowBackground: #cfe7e7",
+    "XMgrace*fontTable.evenRowBackground: #e5e5e5",
     "XMgrace*XmPushButton.background: #b0c4de",
     "XMgrace*XmMenuShell*XmPushButton.background: #e5e5e5",
     "XMgrace*XmText*background: #cfe7e7",
     "XMgrace*XmToggleButton.selectColor: #ff0000",
-    "*XmToggleButton.fillOnSelect: true",
-    "*XmSeparator.margin: 0",
+    "XMgrace*XmToggleButton.fillOnSelect: true",
+    "XMgrace*XmSeparator.margin: 0",
 #if ((XmVersion >= 1002) || defined (LesstifVersion) && (LesstifVersion >= 1000))
 /*
  * Lesstif-0.80 sometimes crashes with tear-off menus; let's hope version 1.0
