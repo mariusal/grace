@@ -193,6 +193,16 @@ typedef struct {
 typedef struct {
     Widget          top;
 
+    OptionStructure *position;
+    SpinStructure   *offset;
+    Widget          draw_bar;
+    Widget          draw_ticks;
+    Widget          draw_labels;
+} AxisUI;
+    
+typedef struct {
+    Widget          top;
+
     Widget          main_tp;
     Widget          label_tp;
     Widget          ticklabel_tp;
@@ -202,28 +212,9 @@ typedef struct {
 
     OptionStructure *type;
     
-    Widget          zero;
-    Widget          offx;
-    Widget          offy;
-    Widget          tonoff;
-    Widget          tlonoff;
-    TextStructure   *label;
-    OptionStructure *labellayout;
-    OptionStructure *labelplace;
-    Widget          labelspec_rc;
-
-    Widget          labelspec_para;
-    Widget          labelspec_perp;
-    OptionStructure *labelfont;
-    SpinStructure   *labelcharsize;
-    OptionStructure *labelcolor;
-    OptionStructure *labelop;
-    
     Widget          tmajor;
     SpinStructure   *nminor;
     
-    OptionStructure *tickop;
-    OptionStructure *ticklop;
     OptionStructure *tlform;
     OptionStructure *tlprec;
     OptionStructure *tlfont;
@@ -266,7 +257,7 @@ typedef struct {
     SpinStructure   *nspec;
     Widget          specloc[MAX_TICKS];
     Widget          speclabel[MAX_TICKS];
-} AxisUI;
+} AGridUI;
 
 typedef struct {
     Widget top;
@@ -379,6 +370,7 @@ struct _ExplorerUI {
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;
     SetUI        *set_ui;
+    AGridUI      *axisgrid_ui;
     AxisUI       *axis_ui;
     ObjectUI     *object_ui;
     ATextUI      *atext_ui;
@@ -400,6 +392,7 @@ struct _ExplorerUI {
     Widget       insert_frame_bt;
     Widget       insert_graph_bt;
     Widget       insert_set_bt;
+    Widget       insert_axisgrid_bt;
     Widget       insert_axis_bt;
     Widget       insert_object_pane;
     Widget       insert_line_bt;
@@ -434,6 +427,10 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller);
 SetUI *create_set_ui(ExplorerUI *eui);
 void update_set_ui(SetUI *ui, Quark *q);
 int set_set_data(SetUI *ui, Quark *q, void *caller);
+
+AGridUI *create_axisgrid_ui(ExplorerUI *eui);
+void update_axisgrid_ui(AGridUI *ui, Quark *q);
+int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller);
 
 AxisUI *create_axis_ui(ExplorerUI *eui);
 void update_axis_ui(AxisUI *ui, Quark *q);

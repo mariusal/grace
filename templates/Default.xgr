@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE grace SYSTEM "grace.dtd">
-<grace version="59900" xmlns:grace="http://plasma-gate.weizmann.ac.il/Grace/">
+<grace version="59901" xmlns:grace="http://plasma-gate.weizmann.ac.il/Grace/">
   <!-- Description -->
   <description>
     <text/>
@@ -74,20 +74,13 @@
         <xformat format="general" prec="6"/>
         <yformat format="general" prec="6"/>
       </locator>
-      <axis id="x_axis" type="x" active="yes">
-        <placement zero="no" offset="(0, 0)"/>
-        <axisbar active="yes">
+      <agrid id="x_axisgrid" type="x" active="yes">
+        <axisbar>
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </axisbar>
-        <axislabel layout="parallel" offset="auto" side-placement="normal">
-          <text-properties angle="0" justification="0">
-            <face-spec font-id="0" color-id="1" char-size="1"/>
-          </text-properties>
-          <text/>
-        </axislabel>
         <ticks major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
           <userticks type="none"/>
-          <tickmarks active="yes" side-placement="both">
+          <tickmarks>
             <major size="1" inout-placement="in" grid-lines="no">
               <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
             </major>
@@ -95,28 +88,39 @@
               <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
             </minor>
           </tickmarks>
-          <ticklabels active="yes" side-placement="normal" transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+          <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
             <text-properties angle="0" justification="0">
               <face-spec font-id="0" color-id="1" char-size="1"/>
             </text-properties>
             <format format="general" prec="5"/>
           </ticklabels>
         </ticks>
-      </axis>
-      <axis id="y_axis" type="y" active="yes">
-        <placement zero="no" offset="(0, 0)"/>
-        <axisbar active="yes">
+        <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
+          <atext id="label" active="no" offset="(0, -0.01)">
+            <location x="0.5" y="0"/>
+            <text-properties angle="0" justification="10">
+              <face-spec font-id="0" color-id="1" char-size="1"/>
+            </text-properties>
+            <text><![CDATA[X label]]></text>
+            <text-frame type="0" offset="0.005">
+              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+              <fill-spec color-id="0" pattern-id="0"/>
+            </text-frame>
+            <pointer active="no">
+              <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
+            </pointer>
+          </atext>
+        </axis>
+        <axis id="opposite" active="yes" position="opposite" offset="0" bar="yes" ticks="yes" labels="no">
+        </axis>
+      </agrid>
+      <agrid id="y_axisgrid" type="y" active="yes">
+        <axisbar>
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </axisbar>
-        <axislabel layout="parallel" offset="auto" side-placement="normal">
-          <text-properties angle="0" justification="0">
-            <face-spec font-id="0" color-id="1" char-size="1"/>
-          </text-properties>
-          <text/>
-        </axislabel>
         <ticks major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
           <userticks type="none"/>
-          <tickmarks active="yes" side-placement="both">
+          <tickmarks>
             <major size="1" inout-placement="in" grid-lines="no">
               <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
             </major>
@@ -124,14 +128,32 @@
               <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
             </minor>
           </tickmarks>
-          <ticklabels active="yes" side-placement="normal" transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+          <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
             <text-properties angle="0" justification="0">
               <face-spec font-id="0" color-id="1" char-size="1"/>
             </text-properties>
             <format format="general" prec="5"/>
           </ticklabels>
         </ticks>
-      </axis>
+        <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
+          <atext id="label" active="no" offset="(-0.01, 0)">
+            <location x="0" y="0.5"/>
+            <text-properties angle="90" justification="13">
+              <face-spec font-id="0" color-id="1" char-size="1"/>
+            </text-properties>
+            <text><![CDATA[Y label]]></text>
+            <text-frame type="0" offset="0.005">
+              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+              <fill-spec color-id="0" pattern-id="0"/>
+            </text-frame>
+            <pointer active="no">
+              <arrow type="0" length="1" dl-ff="1" ll-ff="0"/>
+            </pointer>
+          </atext>
+        </axis>
+        <axis id="opposite" active="yes" position="opposite" offset="0" bar="yes" ticks="yes" labels="no">
+        </axis>
+      </agrid>
     </graph>
     <atext id="title" active="no" offset="(0, 0.06)">
       <location x="0.5" y="1"/>

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2003 Grace Development Team
+ * Copyright (c) 2003,2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -39,7 +39,7 @@ static void set_default_ticks(Quark *q)
 {
     int i;
 
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
     defaults grdefaults;
     Project *pr = project_get_data(get_parent_project(q));
     
@@ -50,24 +50,10 @@ static void set_default_ticks(Quark *q)
     grdefaults = pr->grdefaults;
     
     t->type = AXIS_TYPE_X;
-    t->zero = FALSE;
-    t->tl_flag = TRUE;
-    t->t_flag = TRUE;
-    
-    set_default_textprops(&t->label_tprops, &grdefaults);
-    t->label_active = TRUE;
-    t->label = NULL;
-    t->label_offset.x = 0.0;
-    t->label_offset.y = 0.08;
     
     t->tmajor = 0.5;
     t->nminor = 1;
     t->t_round = TRUE;
-    t->offsx = 0.0;
-    t->offsy = 0.0;
-    t->label_layout = LAYOUT_PARALLEL;
-    t->label_place = TYPE_AUTO;
-    t->label_op = PLACEMENT_NORMAL;
     t->tl_format = FORMAT_GENERAL;
     t->tl_prec = 5;
     t->tl_formula = NULL;
@@ -82,18 +68,15 @@ static void set_default_ticks(Quark *q)
     t->tl_stoptype = TYPE_AUTO;
     t->tl_start = 0.0;
     t->tl_stop = 0.0;
-    t->tl_op = PLACEMENT_NORMAL;
     t->tl_gaptype = TYPE_AUTO;
     t->tl_appstr = NULL;
     t->tl_prestr = NULL;
     t->t_spec = TICKS_SPEC_NONE;
     t->t_autonum = 6;
-    t->t_op = PLACEMENT_BOTH;
     t->props.inout = TICKS_IN;
     t->mprops.inout = TICKS_IN;
     t->props.size = grdefaults.charsize;
     t->mprops.size = grdefaults.charsize / 2;
-    t->t_drawbar = TRUE;
     t->t_drawbarcolor = grdefaults.line.pen.color;
     t->t_drawbarlines = grdefaults.line.style;
     t->t_drawbarlinew = grdefaults.line.width;
@@ -112,16 +95,16 @@ static void set_default_ticks(Quark *q)
     }
 }
 
-Quark *axis_new(Quark *q)
+Quark *axisgrid_new(Quark *q)
 {
     Quark *a; 
-    a = quark_new(q, QFlavorAxis);
+    a = quark_new(q, QFlavorAGrid);
     set_default_ticks(a);
-    axis_autotick(a);
+    axisgrid_autotick(a);
     return a;
 }
 
-tickmarks *axis_data_new(void)
+tickmarks *axisgrid_data_new(void)
 {
     tickmarks *retval;
     
@@ -132,7 +115,7 @@ tickmarks *axis_data_new(void)
     return retval;
 }
 
-tickmarks *axis_data_copy(tickmarks *t)
+tickmarks *axisgrid_data_copy(tickmarks *t)
 {
     tickmarks *retval;
     int i;
@@ -140,10 +123,9 @@ tickmarks *axis_data_copy(tickmarks *t)
     if (t == NULL) {
         return NULL;
     } else {
-        retval = axis_data_new();
+        retval = axisgrid_data_new();
         if (retval != NULL) {
             memcpy(retval, t, sizeof(tickmarks));
-	    retval->label = copy_string(NULL, t->label);
 	    retval->tl_formula = copy_string(NULL, t->tl_formula);
 	    retval->tl_prestr = copy_string(NULL, t->tl_prestr);
 	    retval->tl_appstr = copy_string(NULL, t->tl_appstr);
@@ -155,12 +137,11 @@ tickmarks *axis_data_copy(tickmarks *t)
     }
 }
 
-void axis_data_free(tickmarks *t)
+void axisgrid_data_free(tickmarks *t)
 {
     if (t) {
         int i;
 
-        xfree(t->label);
         xfree(t->tl_formula);
         xfree(t->tl_prestr);
         xfree(t->tl_appstr);
@@ -173,18 +154,18 @@ void axis_data_free(tickmarks *t)
     }
 }
 
-tickmarks *axis_get_data(const Quark *q)
+tickmarks *axisgrid_get_data(const Quark *q)
 {
-    if (q && q->fid == QFlavorAxis) {
+    if (q && q->fid == QFlavorAGrid) {
         return (tickmarks *) q->data;
     } else {
         return NULL;
     }
 }
 
-int axis_set_type(Quark *q, int type)
+int axisgrid_set_type(Quark *q, int type)
 {
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
     if (t) {
         if (t->type != type) {
             t->type = type;
@@ -196,19 +177,19 @@ int axis_set_type(Quark *q, int type)
     }
 }
 
-int axis_is_x(const Quark *q)
+int axisgrid_is_x(const Quark *q)
 {
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
     return (t && t->type == AXIS_TYPE_X);
 }
 
-int axis_is_y(const Quark *q)
+int axisgrid_is_y(const Quark *q)
 {
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
     return (t && t->type == AXIS_TYPE_Y);
 }
 
-void axis_autotick(Quark *q)
+void axisgrid_autotick(Quark *q)
 {
     Quark *gr;
     tickmarks *t;
@@ -216,14 +197,14 @@ void axis_autotick(Quark *q)
     double range, d, tmpmax, tmpmin;
     int axis_scale;
 
-    t = axis_get_data(q);
+    t = axisgrid_get_data(q);
     if (t == NULL) {
         return;
     }
     gr = get_parent_graph(q);
     graph_get_world(gr, &w);
 
-    if (axis_is_x(q)) {
+    if (axisgrid_is_x(q)) {
         tmpmin = w.xg1;
         tmpmax = w.xg2;
         axis_scale = graph_get_xscale(gr);
@@ -273,4 +254,234 @@ void axis_autotick(Quark *q)
     }
     
     quark_dirtystate_set(q, TRUE);
+}
+
+Quark *get_parent_axisgrid(const Quark *child)
+{
+    Quark *p = (Quark *) child;
+    
+    while (p) {
+        p = quark_parent_get(p);
+        if (p && p->fid == QFlavorAGrid) {
+            return p;
+        }
+    }
+    
+    return NULL;
+}
+
+
+/* Axis instances */
+Quark *axis_new(Quark *q)
+{
+    Quark *a; 
+    a = quark_new(q, QFlavorAxis);
+    axis_enable_bar(a, TRUE);
+    axis_enable_ticks(a, TRUE);
+    axis_enable_labels(a, TRUE);
+    return a;
+}
+
+Axis *axis_data_new(void)
+{
+    Axis *retval;
+    
+    retval = xmalloc(sizeof(Axis));
+    if (retval != NULL) {
+        memset(retval, 0, sizeof(Axis));
+    }
+    return retval;
+}
+
+Axis *axis_data_copy(Axis *a)
+{
+    Axis *retval;
+    
+    if (a == NULL) {
+        return NULL;
+    } else {
+        retval = axis_data_new();
+        if (retval != NULL) {
+            memcpy(retval, a, sizeof(Axis));
+        }
+        return retval;
+    }
+}
+
+void axis_data_free(Axis *a)
+{
+    if (a) {
+        xfree(a);
+    }
+}
+
+Axis *axis_get_data(const Quark *q)
+{
+    if (q && q->fid == QFlavorAxis) {
+        return (Axis *) q->data;
+    } else {
+        return NULL;
+    }
+}
+
+
+int axis_set_offset(Quark *q, double offset)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        if (a->offset != offset) {
+            a->offset = offset;
+            quark_dirtystate_set(q, TRUE);
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_enable_bar(Quark *q, int onoff)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        if (a->draw_bar != onoff) {
+            a->draw_bar = onoff;
+            quark_dirtystate_set(q, TRUE);
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_enable_ticks(Quark *q, int onoff)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        if (a->draw_ticks != onoff) {
+            a->draw_ticks = onoff;
+            quark_dirtystate_set(q, TRUE);
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_enable_labels(Quark *q, int onoff)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        if (a->draw_labels != onoff) {
+            a->draw_labels = onoff;
+            quark_dirtystate_set(q, TRUE);
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_set_position(Quark *q, int pos)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        if (a->position != pos) {
+            a->position = pos;
+            quark_dirtystate_set(q, TRUE);
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+double axis_get_offset(const Quark *q)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        return a->offset;
+    } else {
+        return 0.0;
+    }
+}
+
+int axis_get_position(const Quark *q)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        return a->position;
+    } else {
+        return AXIS_POS_NORMAL;
+    }
+}
+
+int axis_bar_enabled(const Quark *q)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        return a->draw_bar;
+    } else {
+        return FALSE;
+    }
+}
+
+int axis_ticks_enabled(const Quark *q)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        return a->draw_ticks;
+    } else {
+        return FALSE;
+    }
+}
+
+int axis_labels_enabled(const Quark *q)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        return a->draw_labels;
+    } else {
+        return FALSE;
+    }
+}
+
+int axis_get_bb(const Quark *q, view *bbox)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        *bbox = a->bb;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_set_bb(const Quark *q, const view *bbox)
+{
+    Axis *a = axis_get_data(q);
+    if (a) {
+        a->bb = *bbox;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_shift(Quark *q, const VVector *vshift)
+{
+    Quark *ag = get_parent_axisgrid(q);
+    Axis *a = axis_get_data(q);
+    if (ag && a) {
+        
+        if (axisgrid_is_x(ag)) {
+            a->offset += vshift->y;
+        } else {
+            a->offset += vshift->x;
+        }
+        
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }

@@ -196,6 +196,11 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
             }
         }
         break;
+    case QFlavorAxis:
+        if (axis_get_bb(q, &v) == RETURN_SUCCESS) {
+            target_consider(ct, q, 0, &v);
+        }
+        break;
     case QFlavorDObject:
         o = object_get_data(q);
         target_consider(ct, q, 0, &o->bb);
@@ -260,6 +265,9 @@ static void move_target(canvas_target *ct, const VPoint *vp)
             atext_at_shift(ct->q, &vshift);
             break;
         }
+        break;
+    case QFlavorAxis:
+        axis_shift(ct->q, &vshift);
         break;
     case QFlavorDObject:
         object_shift(ct->q, &vshift);

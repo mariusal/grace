@@ -85,7 +85,9 @@ static Quark *whichframe;
 static Quark *whichgraph;
 static Quark *whichset;
 
-static Quark *whichaxis;
+static Quark *whichaxisgrid;
+static Quark *normaxis,  *oppaxis;
+static Quark *normlabel, *opplabel;
 static tickmarks *curtm;
 
 static DObject *curobject;
@@ -2724,10 +2726,13 @@ setprop:
 
 axisfeature:
 	onoff {
-	    quark_set_active(whichaxis, $1);
+	    quark_set_active(whichaxisgrid, $1);
 	}
 	| TYPE ZERO onoff {
-	    curtm->zero = $3;
+	    if ($3) {
+                axis_set_position(normaxis, AXIS_POS_ZERO);
+	        axis_set_position(oppaxis,  AXIS_POS_ZERO);
+            }
 	}
 	| TICKP tickattr {}
 	| TICKP tickattr_obs {}
@@ -2737,14 +2742,15 @@ axisfeature:
 	| LABEL axislabeldesc_obs {}
 	| BAR axisbardesc {}
 	| OFFSET expr ',' expr {
-            curtm->offsx = $2;
-	    curtm->offsy = $4;
+	    axis_set_offset(normaxis, -$2);
+	    axis_set_offset(oppaxis,  $4);
 	}
 	;
 
 tickattr:
 	onoff {
-	    curtm->t_flag = $1;
+            axis_enable_ticks(normaxis, $1);
+            axis_enable_ticks(oppaxis,  $1);
 	}
 	| MAJOR expr {
             curtm->tmajor = $2;
@@ -2757,10 +2763,10 @@ tickattr:
 	}
 
 	| OFFSETX expr {
-            curtm->offsx = $2;
+            axis_set_offset(normaxis, -$2);
 	}
 	| OFFSETY expr {
-            curtm->offsy = $2;
+            axis_set_offset(oppaxis,  $2);
 	}
 	| DEFAULT nexpr {
 	    curtm->t_autonum = $2;
@@ -2806,7 +2812,12 @@ tickattr:
 	    curtm->mprops.gridflag = $3;
 	}
 	| opchoice_sel {
-	    curtm->t_op = $1;
+	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+                axis_enable_ticks(normaxis, $1);
+            }
+	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+                axis_enable_ticks(oppaxis, $1);
+            }
 	}
 	| SPEC TYPE tickspectype {
 	    curtm->t_spec = $3;
@@ -2826,7 +2837,8 @@ tickattr:
 
 ticklabelattr:
 	onoff {
-	    curtm->tl_flag = $1;
+            axis_enable_labels(normaxis, $1);
+            axis_enable_labels(oppaxis,  $1);
 	}
 	| PREC nexpr {
 	    curtm->tl_prec = $2;
@@ -2855,7 +2867,16 @@ ticklabelattr:
 	    curtm->tl_staggered = $2;
 	}
 	| opchoice_sel {
-	    curtm->tl_op = $1;
+	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+                axis_enable_labels(normaxis, TRUE);
+            } else {
+                axis_enable_labels(normaxis, FALSE);
+            }
+	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+                axis_enable_labels(oppaxis, TRUE);
+            } else {
+                axis_enable_labels(oppaxis, FALSE);
+            }
 	}
 	| FORMULA CHRSTR {
             curtm->tl_formula =
@@ -2908,45 +2929,72 @@ ticklabelattr:
 
 axislabeldesc:
 	CHRSTR {
-	    curtm->label = copy_string(curtm->label, $1);
+	    atext_set_string(normlabel, $1);
+	    atext_set_string(opplabel,  $1);
 	    xfree($1);
 	}
 	| LAYOUT PERP {
-	    curtm->label_layout = LAYOUT_PERPENDICULAR;
+	    if (axisgrid_is_x(whichaxisgrid)) {
+                atext_set_angle(normlabel, 90);
+	        atext_set_angle(opplabel,  90);
+            } else {
+                atext_set_angle(normlabel, 0);
+	        atext_set_angle(opplabel,  0);
+            }
 	}
 	| LAYOUT PARA {
-	    curtm->label_layout = LAYOUT_PARALLEL;
+	    if (axisgrid_is_x(whichaxisgrid)) {
+	        atext_set_angle(normlabel, 0);
+	        atext_set_angle(opplabel,  0);
+            } else {
+                atext_set_angle(normlabel, 90);
+	        atext_set_angle(opplabel,  90);
+            }
 	}
 	| PLACE AUTO {
-	    curtm->label_place = TYPE_AUTO;
+	    // curtm->label_place = TYPE_AUTO;
 	}
 	| PLACE SPEC {
-	    curtm->label_place = TYPE_SPEC;
+	    // curtm->label_place = TYPE_SPEC;
 	}
 	| PLACE expr ',' expr {
-	    curtm->label_offset.x = $2;
-	    curtm->label_offset.y = $4;
+	    // VPoint vp;
+            // vp.x = $2; vp.y = $4;
+            // atext_set_offset(opplabel,  &vp);
+            // atext_set_offset(normlabel, &vp);
 	}
 	| JUST justchoice {
-	    curtm->label_tprops.just = $2;
 	}
 	| CHAR SIZE expr {
-	    curtm->label_tprops.charsize = $3;
+	    atext_set_char_size(normlabel, $3);
+	    atext_set_char_size(opplabel,  $3);
 	}
 	| font_select {
-	    curtm->label_tprops.font = $1;
+	    atext_set_font(normlabel, $1);
+	    atext_set_font(opplabel,  $1);
 	}
 	| color_select {
-	    curtm->label_tprops.color = $1;
+	    atext_set_color(normlabel, $1);
+	    atext_set_color(opplabel,  $1);
 	}
 	| opchoice_sel {
-	    curtm->label_op = $1;
+	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+                quark_set_active(normlabel, TRUE);
+            } else {
+                quark_set_active(normlabel, FALSE);
+            }
+	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+                quark_set_active(opplabel, TRUE);
+            } else {
+                quark_set_active(opplabel, FALSE);
+            }
 	}
 	;
 
 axisbardesc:
 	onoff {
-	    curtm->t_drawbar = $1;
+            axis_enable_bar(normaxis, $1);
+            axis_enable_bar(oppaxis, $1);
 	}
 	| color_select {
 	    curtm->t_drawbarcolor = $1;
@@ -2985,44 +3033,163 @@ setaxis:
 
 axis:
 	XAXIS {
-            Quark *q = quark_find_descendant_by_idstr(whichgraph, "x_axis");
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "x_axisgrid");
             if (!q) {
-                q = axis_new(whichgraph);
-                quark_idstr_set(q, "x_axis");
-                axis_set_type(q, AXIS_TYPE_X);
+                Quark *a, *l;
+                APoint ap;
+                VPoint vp;
+                
+                q = axisgrid_new(whichgraph);
+                quark_idstr_set(q, "x_axisgrid");
+                axisgrid_set_type(q, AXIS_TYPE_X);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "normal");
+                axis_set_position(a, AXIS_POS_NORMAL);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 0.5; ap.y = 0.0;
+                atext_set_ap(l, &ap);
+                atext_set_just(l, JUST_CENTER|JUST_TOP);
+                vp.x = 0.0; vp.y = -0.01;
+                atext_set_offset(l, &vp);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "opposite");
+                axis_set_position(a, AXIS_POS_OPPOSITE);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 0.5; ap.y = 1.0;
+                atext_set_ap(l, &ap);
+                atext_set_just(l, JUST_CENTER|JUST_BOTTOM);
+                vp.x = 0.0; vp.y = 0.01;
+                atext_set_offset(l, &vp);
             }
-            curtm = axis_get_data(q);
-            whichaxis = q;
+            curtm = axisgrid_get_data(q);
+            whichaxisgrid = q;
+            normaxis  = quark_find_descendant_by_idstr(q, "normal");
+            oppaxis   = quark_find_descendant_by_idstr(q, "opposite");
+            normlabel = quark_find_descendant_by_idstr(normaxis, "label");
+            opplabel  = quark_find_descendant_by_idstr(oppaxis,  "label");
+            
         }
 	| YAXIS {
-            Quark *q = quark_find_descendant_by_idstr(whichgraph, "y_axis");
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "y_axisgrid");
             if (!q) {
-                q = axis_new(whichgraph);
-                quark_idstr_set(q, "y_axis");
-                axis_set_type(q, AXIS_TYPE_Y);
+                Quark *a, *l;
+                APoint ap;
+                VPoint vp;
+                
+                q = axisgrid_new(whichgraph);
+                quark_idstr_set(q, "y_axisgrid");
+                axisgrid_set_type(q, AXIS_TYPE_Y);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "normal");
+                axis_set_position(a, AXIS_POS_NORMAL);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 0.0; ap.y = 0.5;
+                atext_set_ap(l, &ap);
+                atext_set_just(l, JUST_RIGHT|JUST_MIDDLE);
+                vp.x = -0.01; vp.y = 0.0;
+                atext_set_offset(l, &vp);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "opposite");
+                axis_set_position(a, AXIS_POS_OPPOSITE);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 1.0; ap.y = 0.5;
+                atext_set_ap(l, &ap);
+                atext_set_just(l, JUST_LEFT|JUST_MIDDLE);
+                vp.x = 0.01; vp.y = 0.0;
+                atext_set_offset(l, &vp);
             }
-            curtm = axis_get_data(q);
-            whichaxis = q;
+            curtm = axisgrid_get_data(q);
+            whichaxisgrid = q;
+            normaxis  = quark_find_descendant_by_idstr(q, "normal");
+            oppaxis   = quark_find_descendant_by_idstr(q, "opposite");
+            normlabel = quark_find_descendant_by_idstr(normaxis, "label");
+            opplabel  = quark_find_descendant_by_idstr(oppaxis,  "label");
         }
 	| ALTXAXIS {
-            Quark *q = quark_find_descendant_by_idstr(whichgraph, "altx_axis");
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "altx_axisgrid");
             if (!q) {
-                q = axis_new(whichgraph);
-                quark_idstr_set(q, "altx_axis");
-                axis_set_type(q, AXIS_TYPE_X);
+                Quark *a, *l;
+                APoint ap;
+                VPoint vp;
+                
+                q = axisgrid_new(whichgraph);
+                quark_idstr_set(q, "altx_axisgrid");
+                axisgrid_set_type(q, AXIS_TYPE_X);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "normal");
+                axis_set_position(a, AXIS_POS_NORMAL);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 0.5; ap.y = 0.0;
+                atext_set_ap(l, &ap);
+                vp.x = 0.0; vp.y = -0.01;
+                atext_set_offset(l, &vp);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "opposite");
+                axis_set_position(a, AXIS_POS_OPPOSITE);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 0.5; ap.y = 1.0;
+                atext_set_ap(l, &ap);
+                vp.x = 0.0; vp.y = 0.01;
+                atext_set_offset(l, &vp);
             }
-            curtm = axis_get_data(q);
-            whichaxis = q;
+            curtm = axisgrid_get_data(q);
+            whichaxisgrid = q;
+            normaxis  = quark_find_descendant_by_idstr(q, "normal");
+            oppaxis   = quark_find_descendant_by_idstr(q, "opposite");
+            normlabel = quark_find_descendant_by_idstr(normaxis, "label");
+            opplabel  = quark_find_descendant_by_idstr(oppaxis,  "label");
         }
 	| ALTYAXIS {
-            Quark *q = quark_find_descendant_by_idstr(whichgraph, "alty_axis");
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "alty_axisgrid");
             if (!q) {
-                q = axis_new(whichgraph);
-                quark_idstr_set(q, "alty_axis");
-                axis_set_type(q, AXIS_TYPE_Y);
+                Quark *a, *l;
+                APoint ap;
+                VPoint vp;
+                
+                q = axisgrid_new(whichgraph);
+                quark_idstr_set(q, "alty_axisgrid");
+                axisgrid_set_type(q, AXIS_TYPE_Y);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "normal");
+                axis_set_position(a, AXIS_POS_NORMAL);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 0.0; ap.y = 0.5;
+                atext_set_ap(l, &ap);
+                atext_set_just(l, JUST_RIGHT|JUST_MIDDLE);
+                vp.x = -0.01; vp.y = 0.0;
+                atext_set_offset(l, &vp);
+                
+                a = axis_new(q);
+                quark_idstr_set(a, "opposite");
+                axis_set_position(a, AXIS_POS_OPPOSITE);
+                l = atext_new(a);
+                quark_idstr_set(l, "label");
+                ap.x = 1.0; ap.y = 0.5;
+                atext_set_ap(l, &ap);
+                atext_set_just(l, JUST_LEFT|JUST_MIDDLE);
+                vp.x = 0.01; vp.y = 0.0;
+                atext_set_offset(l, &vp);
             }
-            curtm = axis_get_data(q);
-            whichaxis = q;
+            curtm = axisgrid_get_data(q);
+            whichaxisgrid = q;
+            normaxis  = quark_find_descendant_by_idstr(q, "normal");
+            oppaxis   = quark_find_descendant_by_idstr(q, "opposite");
+            normlabel = quark_find_descendant_by_idstr(normaxis, "label");
+            opplabel  = quark_find_descendant_by_idstr(oppaxis,  "label");
         }
 	;
 
@@ -3516,7 +3683,16 @@ parmset_obs:
 axislabeldesc_obs:
 	linew_select { }
 	| opchoice_sel_obs {
-	    curtm->label_op = $1;
+	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+                quark_set_active(normlabel, TRUE);
+            } else {
+                quark_set_active(normlabel, FALSE);
+            }
+	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+                quark_set_active(opplabel, TRUE);
+            } else {
+                quark_set_active(opplabel, FALSE);
+            }
 	}
         ;
 
@@ -3600,7 +3776,7 @@ setprop_obs:
 tickattr_obs:
 	MAJOR onoff {
 	    /* <= xmgr-4.1 */
-	    quark_set_active(whichaxis, $2);
+	    quark_set_active(whichaxisgrid, $2);
 	}
 	| MINOR onoff { }
 	| ALT onoff   { }
@@ -3631,7 +3807,12 @@ tickattr_obs:
 	    curtm->tloc[$1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
-	    curtm->t_op = $1;
+	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+                axis_enable_ticks(normaxis, TRUE);
+            }
+	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+                axis_enable_ticks(oppaxis, TRUE);
+            }
 	}
         ;
 
@@ -3656,7 +3837,12 @@ ticklabelattr_obs:
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
-	    curtm->tl_op = $1;
+	    if ($1 == PLACEMENT_NORMAL || $1 == PLACEMENT_BOTH) {
+                axis_enable_labels(normaxis, TRUE);
+            }
+	    if ($1 == PLACEMENT_OPPOSITE || $1 == PLACEMENT_BOTH) {
+                axis_enable_labels(oppaxis, TRUE);
+            }
 	}
 	| SIGN signchoice {
 	    switch($2) {
@@ -4810,7 +4996,9 @@ void parser_state_reset(Quark *pr)
         whichgraph = NULL;
     }
     whichset  = NULL;
-    whichaxis = NULL;
+    whichaxisgrid = NULL;
+    normaxis = NULL;
+    oppaxis  = NULL;
     curtm     = NULL;
     curobject = NULL;
     objgno    = NULL;

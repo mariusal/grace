@@ -65,6 +65,11 @@
 #define TICKS_OUT       1
 #define TICKS_BOTH      2
 
+/* Position of axis instances */
+#define AXIS_POS_NORMAL   0
+#define AXIS_POS_OPPOSITE 1
+#define AXIS_POS_ZERO     2
+
 /* symbol types */
 
 #define SYM_NONE    0
@@ -174,6 +179,7 @@ enum {
     QFlavorFrame,
     QFlavorGraph,
     QFlavorSet,
+    QFlavorAGrid,
     QFlavorAxis,
     QFlavorRegion,
     QFlavorDObject,
@@ -453,50 +459,30 @@ typedef struct {
     double charsize;
 } TextProps;
 
+/* Axis grid */
 typedef struct {
     int type;                   /* X or Y */
-    int zero;                   /* "zero" axis or plain */
-
-    int label_active;
-    char *label;
-    VVector label_offset;       /* axis label offset */
-    TextProps label_tprops;     /* axis label text properties */
-    int label_layout;           /* axis label orientation (h or v) */
-    int label_place;            /* axis label placement (specfied or auto) */
-    PlacementType label_op;     /* axis labels on opposite side or both */
-
-    int t_drawbar;              /* draw a bar connecting tick marks */
-    int t_drawbarcolor;         /* color of bar */
-    int t_drawbarlines;         /* linestyle of bar */
-    double t_drawbarlinew;      /* line width of bar */
-
-    double offsx, offsy;        /* offset of axes in viewport coords
-                                   (attention: these
-				   are not x and y coordinates but
-				   perpendicular and parallel offsets */
-
-    int t_flag;                 /* toggle tickmark display */
-    int t_autonum;              /* approximate default number of major ticks */
-
-    int t_spec;                 /* special (user-defined) tickmarks/ticklabels, */
-                                /* can be none/marks/both marks and labels */
-
-    int t_round;                /* place major ticks at rounded positions */
 
     double tmajor;              /* major tick divisions */
     int nminor;                 /* number of minor ticks per one major division */
 
+    int t_autonum;              /* approximate default number of major ticks */
+
+    int t_spec;                 /* special (user-defined) tickmarks/ticklabels,
+                                   can be none/marks/both marks and labels */
+
+    int t_round;                /* place major ticks at rounded positions */
+
     int nticks;                 /* total number of ticks */
     tickloc tloc[MAX_TICKS];    /* locations of ticks */
 
-    PlacementType t_op;         /* ticks on opposite side */
-    
+    int t_drawbarcolor;         /* color of bar */
+    int t_drawbarlines;         /* linestyle of bar */
+    double t_drawbarlinew;      /* line width of bar */
+
     tickprops props;
     tickprops mprops;
 
-    int tl_flag;                /* toggle ticmark labels on or off */
-    VVector tl_gap;             /* tick label to tickmark distance
-				   (parallel and perpendicular to axis) */
     TextProps tl_tprops;        /* tick label text properties */
 
     int tl_format;              /* tickmark label format */
@@ -514,10 +500,23 @@ typedef struct {
     double tl_start;            /* value of x to begin tick labels and major ticks */
     double tl_stop;             /* value of x to end tick labels and major ticks */
 
-    PlacementType tl_op;        /* tick labels on opposite side or both */
-
     int tl_gaptype;             /* tick label placement auto or specified */
+    VVector tl_gap;             /* tick label to tickmark distance
+				   (parallel and perpendicular to axis) */
 } tickmarks;
+
+/* Axis instance */
+typedef struct {
+    int position;               /* normal/opposite/"zero" axis */
+
+    double offset;              /* offset in perpendicular direction */
+
+    int draw_ticks;             /* toggle tickmark display */
+    int draw_labels;            /* toggle ticmark labels on or off */
+    int draw_bar;               /* draw axis bar */
+
+    view bb;                    /* BBox (calculated at run-time) */
+} Axis;
 
 
 /* Set types */
@@ -870,19 +869,45 @@ int graph_set_yinvert(Quark *gr, int flag);
 
 Quark *get_parent_graph(const Quark *child);
 
+/* AxisGrid  */
+tickmarks *axisgrid_data_new(void);
+tickmarks *axisgrid_data_copy(tickmarks *t);
+void axisgrid_data_free(tickmarks *t);
+
+Quark *axisgrid_new(Quark *q);
+
+tickmarks *axisgrid_get_data(const Quark *q);
+
+int axisgrid_set_type(Quark *q, int type);
+int axisgrid_is_x(const Quark *q);
+int axisgrid_is_y(const Quark *q);
+void axisgrid_autotick(Quark *q);
+
+Quark *get_parent_axisgrid(const Quark *child);
+
 /* Axis */
-tickmarks *axis_data_new(void);
-tickmarks *axis_data_copy(tickmarks *t);
-void axis_data_free(tickmarks *t);
-
 Quark *axis_new(Quark *q);
+Axis *axis_data_new(void);
+Axis *axis_data_copy(Axis *a);
+void axis_data_free(Axis *a);
+Axis *axis_get_data(const Quark *q);
 
-tickmarks *axis_get_data(const Quark *q);
+int axis_set_offset(Quark *q, double offset);
+int axis_set_position(Quark *q, int pos);
+int axis_enable_bar(Quark *q, int onoff);
+int axis_enable_ticks(Quark *q, int onoff);
+int axis_enable_labels(Quark *q, int onoff);
 
-int axis_set_type(Quark *q, int type);
-int axis_is_x(const Quark *q);
-int axis_is_y(const Quark *q);
-void axis_autotick(Quark *q);
+double axis_get_offset(const Quark *q);
+int axis_get_position(const Quark *q);
+int axis_bar_enabled(const Quark *q);
+int axis_ticks_enabled(const Quark *q);
+int axis_labels_enabled(const Quark *q);
+
+int axis_get_bb(const Quark *q, view *bbox);
+int axis_set_bb(const Quark *q, const view *bbox);
+
+int axis_shift(Quark *q, const VVector *vshift);
 
 /* Set */
 double *copy_data_column(double *src, int nrows);

@@ -94,6 +94,15 @@ int grace_rt_init_dicts(RunTime *rt)
             {PLACEMENT_BOTH,     VStrBoth,     "Both"    }
         };
 
+    const DictEntry axis_position_defaults =
+        {AXIS_POS_NORMAL, VStrNormal, "Normal"};
+    const DictEntry axis_position_entries[] = 
+        {
+            {AXIS_POS_NORMAL,   VStrNormal,   "Normal"  },
+            {AXIS_POS_OPPOSITE, VStrOpposite, "Opposite"},
+            {AXIS_POS_ZERO,     VStrZero,     "Zero"    }
+        };
+
     const DictEntry spec_ticks_defaults =
         {TICKS_SPEC_NONE, VStrNone, "None"};
     const DictEntry spec_ticks_entries[] = 
@@ -128,6 +137,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(side_placement_entries, &side_placement_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->axis_position_dict =
+        DICT_NEW_STATIC(axis_position_entries, &axis_position_defaults))) {
+        return RETURN_FAILURE;
+    }
     if (!(rt->spec_ticks_dict =
         DICT_NEW_STATIC(spec_ticks_entries, &spec_ticks_defaults))) {
         return RETURN_FAILURE;
@@ -146,6 +159,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->set_type_dict);
     dict_free(rt->inout_placement_dict);
     dict_free(rt->side_placement_dict);
+    dict_free(rt->axis_position_dict);
     dict_free(rt->spec_ticks_dict);
     dict_free(rt->region_type_dict);
 }
@@ -277,3 +291,22 @@ int get_regiontype_by_name(RunTime *rt, const char *name)
     
     return retval;
 }
+
+char *axis_position_name(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->axis_position_dict, it, &s);
+    
+    return s;
+}
+
+int get_axis_position_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->axis_position_dict, name, &retval);
+    
+    return retval;
+}
+

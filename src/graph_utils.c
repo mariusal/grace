@@ -201,21 +201,11 @@ int is_refpoint_active(Quark *gr)
 }
 
 
-int is_zero_axis(tickmarks *t)
-{
-    if (t) {
-        return t->zero;
-    } else {
-        return FALSE;
-    }
-}
-
-
 int is_log_axis(const Quark *q)
 {
     Quark *gr = get_parent_graph(q);
-    if ((axis_is_x(q) && islogx(gr)) ||
-        (axis_is_y(q) && islogy(gr))) {
+    if ((axisgrid_is_x(q) && islogx(gr)) ||
+        (axisgrid_is_y(q) && islogy(gr))) {
         return TRUE;
     } else {
         return FALSE;
@@ -225,8 +215,8 @@ int is_log_axis(const Quark *q)
 int is_logit_axis(const Quark *q)
 {
     Quark *gr = get_parent_graph(q);
-    if ((axis_is_x(q) && islogitx(gr)) ||
-        (axis_is_y(q) && islogity(gr))) {
+    if ((axisgrid_is_x(q) && islogitx(gr)) ||
+        (axisgrid_is_y(q) && islogity(gr))) {
         return TRUE;
     } else {
         return FALSE;
@@ -399,11 +389,11 @@ static int autotick_hook(Quark *q, void *udata, QTraverseClosure *closure)
     int *amask = (int *) udata;
     
     switch (quark_fid_get(q)) {
-    case QFlavorAxis:
+    case QFlavorAGrid:
         closure->descend = FALSE;
-        if (((*amask & AXIS_MASK_X) && axis_is_x(q)) ||
-            ((*amask & AXIS_MASK_Y) && axis_is_y(q))) {
-            axis_autotick(q);
+        if (((*amask & AXIS_MASK_X) && axisgrid_is_x(q)) ||
+            ((*amask & AXIS_MASK_Y) && axisgrid_is_y(q))) {
+            axisgrid_autotick(q);
         }
         break;
     }

@@ -71,6 +71,15 @@ static void xmlio_set_side_placement(RunTime *rt, Attributes *attrs, PlacementTy
     attributes_set_sval(attrs, AStrSidePlacement, s);
 }
 
+static void xmlio_set_axis_position(RunTime *rt, Attributes *attrs, int position)
+{
+    char *s;
+    
+    s = axis_position_name(rt, position);
+
+    attributes_set_sval(attrs, AStrPosition, s);
+}
+
 static void xmlio_set_offset(Attributes *attrs, double offset1, double offset2)
 {
     char buf[32];
@@ -265,10 +274,10 @@ int save_colormap(XFile *xf, const Project *pr)
     return RETURN_SUCCESS;
 }
 
-int save_axis_properties(XFile *xf, Quark *q)
+int save_axisgrid_properties(XFile *xf, Quark *q)
 {
     Attributes *attrs;
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
     
     if (!t) {
         return RETURN_SUCCESS;
@@ -279,12 +288,7 @@ int save_axis_properties(XFile *xf, Quark *q)
         return RETURN_FAILURE;
     }
 
-    attributes_set_bval(attrs, AStrZero, t->zero);
-    xmlio_set_offset(attrs, t->offsx, t->offsy);
-    xfile_empty_element(xf, EStrPlacement, attrs);
-    
     attributes_reset(attrs);
-    xmlio_set_active(attrs, t->t_drawbar);
     xfile_begin_element(xf, EStrAxisbar, attrs);
     {
         Pen pen;
@@ -294,19 +298,6 @@ int save_axis_properties(XFile *xf, Quark *q)
             &pen, t->t_drawbarlinew, t->t_drawbarlines);
     }
     xfile_end_element(xf, EStrAxisbar);
-
-    attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrLayout,
-        t->label_layout == LAYOUT_PERPENDICULAR ? VStrPerpendicular:VStrParallel);
-    xmlio_set_offset_placement(attrs,
-        t->label_place == TYPE_AUTO, t->label_offset.x, t->label_offset.y);
-    xmlio_set_side_placement(rt_from_quark(q), attrs, t->label_op);
-    xfile_begin_element(xf, EStrAxislabel, attrs);
-    {
-        xmlio_write_text_props(xf, attrs, &t->label_tprops);
-        xmlio_write_text(xf, t->label);
-    }
-    xfile_end_element(xf, EStrAxislabel);
 
     attributes_reset(attrs);
     xmlio_set_world_value(q, attrs, AStrMajorStep, t->tmajor);
@@ -343,8 +334,6 @@ int save_axis_properties(XFile *xf, Quark *q)
         }
 
         attributes_reset(attrs);
-        xmlio_set_active(attrs, t->t_flag);
-        xmlio_set_side_placement(rt_from_quark(q), attrs, t->t_op);
         xfile_begin_element(xf, EStrTickmarks, attrs);
         {
             Pen pen;
@@ -378,8 +367,6 @@ int save_axis_properties(XFile *xf, Quark *q)
         xfile_end_element(xf, EStrTickmarks);
 
         attributes_reset(attrs);
-        xmlio_set_active(attrs, t->tl_flag);
-        xmlio_set_side_placement(rt_from_quark(q), attrs, t->tl_op);
         attributes_set_sval(attrs, AStrTransform, t->tl_formula);
         attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
         attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
@@ -703,7 +690,6 @@ static int project_save_hook(Quark *q,
     Project *pr;
     frame *f;
     set *p;
-    tickmarks *t;
     DObject *o;
     AText *at;
     region *r;
@@ -814,16 +800,38 @@ static int project_save_hook(Quark *q,
         xfile_end_element(xf, EStrSet);
         
         break;
+    case QFlavorAGrid:
+        if (!closure->post) {
+            attributes_set_sval(attrs, AStrId, QIDSTR(q));
+
+            attributes_set_sval(attrs, AStrType, axisgrid_is_x(q) ? "x":"y");
+            xmlio_set_active(attrs, quark_is_active(q));
+            xfile_begin_element(xf, EStrAGrid, attrs);
+            save_axisgrid_properties(xf, q);
+            
+            closure->post = TRUE;
+        } else {
+            xfile_end_element(xf, EStrAGrid);
+        }
+        
+        break;
     case QFlavorAxis:
-        t = axis_get_data(q);
-        
-        attributes_set_sval(attrs, AStrId, QIDSTR(q));
-        
-        attributes_set_sval(attrs, AStrType, axis_is_x(q) ? "x":"y");
-        xmlio_set_active(attrs, quark_is_active(q));
-        xfile_begin_element(xf, EStrAxis, attrs);
-        save_axis_properties(xf, q);
-        xfile_end_element(xf, EStrAxis);
+        if (!closure->post) {
+            attributes_set_sval(attrs, AStrId, QIDSTR(q));
+
+            xmlio_set_active(attrs, quark_is_active(q));
+            xmlio_set_axis_position(rt_from_quark(q), attrs,
+                axis_get_position(q));
+            attributes_set_dval(attrs, AStrOffset, axis_get_offset(q));
+            attributes_set_bval(attrs, AStrBar, axis_bar_enabled(q));
+            attributes_set_bval(attrs, AStrTicks, axis_ticks_enabled(q));
+            attributes_set_bval(attrs, AStrLabels, axis_labels_enabled(q));
+            xfile_begin_element(xf, EStrAxis, attrs);
+            
+            closure->post = TRUE;
+        } else {
+            xfile_end_element(xf, EStrAxis);
+        }
         
         break;
     case QFlavorDObject:

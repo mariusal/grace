@@ -33,10 +33,11 @@
 #define GRACE_NS_URI    "http://plasma-gate.weizmann.ac.il/Grace/"
 
 /* Element names */
+#define EStrAGrid               "agrid"
+#define EStrAText               "atext"
 #define EStrAnnotation          "annotation"
 #define EStrArcData             "arc-data"
 #define EStrArrow               "arrow"
-#define EStrAText               "atext"
 #define EStrAxis                "axis"
 #define EStrAxisbar             "axisbar"
 #define EStrAxislabel           "axislabel"
@@ -71,7 +72,6 @@
 #define EStrMinor               "minor"
 #define EStrObject              "object"
 #define EStrPage                "page"
-#define EStrPlacement           "placement"
 #define EStrPointer             "pointer"
 #define EStrPresentationSpec    "presentation-spec"
 #define EStrRegion              "region"
@@ -106,6 +106,7 @@
 #define AStrArrowsAt            "arrows-at"
 #define AStrAutoPlacement       "auto-placement"
 #define AStrAutoTicking         "auto-ticking"
+#define AStrBar                 "bar"
 #define AStrBargap              "bargap"
 #define AStrBaselineType        "baseline-type"
 #define AStrChar                "char"
@@ -140,6 +141,7 @@
 #define AStrInvert              "invert"
 #define AStrJustification       "justification"
 #define AStrLabel               "label"
+#define AStrLabels              "labels"
 #define AStrLayout              "layout"
 #define AStrLength              "length"
 #define AStrLineWidth           "line-width"
@@ -169,6 +171,7 @@
 #define AStrStartAngle          "start-angle"
 #define AStrStop                "stop"
 #define AStrStyleId             "style-id"
+#define AStrTicks               "ticks"
 #define AStrTransform           "transform"
 #define AStrType                "type"
 #define AStrValue               "value"
@@ -183,7 +186,6 @@
 #define AStrY                   "y"
 #define AStrYmax                "ymax"
 #define AStrYmin                "ymin"
-#define AStrZero                "zero"
 
 /* Attribute value names */
 #define VStrAuto                "auto"
@@ -205,5 +207,6 @@
 #define VStrView                "view"
 #define VStrWinding             "winding"
 #define VStrWorld               "world"
+#define VStrZero                "zero"
 
 #endif /* __XSTRINGS_H_ */

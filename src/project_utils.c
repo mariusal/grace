@@ -189,16 +189,16 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
     if (quark_fid_get(q2) == QFlavorDObject) {
         return -1;
     } else
-    if (quark_fid_get(q1) == QFlavorAxis) {
-        tickmarks *t = axis_get_data(q1);
+    if (quark_fid_get(q1) == QFlavorAGrid) {
+        tickmarks *t = axisgrid_get_data(q1);
         if (t->props.gridflag || t->mprops.gridflag) {
             return -1;
         } else {
             return 1;
         }
     } else
-    if (quark_fid_get(q2) == QFlavorAxis) {
-        tickmarks *t = axis_get_data(q2);
+    if (quark_fid_get(q2) == QFlavorAGrid) {
+        tickmarks *t = axisgrid_get_data(q2);
         if (t->props.gridflag || t->mprops.gridflag) {
             return 1;
         } else {
@@ -268,7 +268,7 @@ static int project_postprocess_hook(Quark *q,
         }
 
         break;
-    case QFlavorAxis:
+    case QFlavorAGrid:
         /* kill inactive axes in old projects */
         if (version_id < 50200 && !quark_is_active(q)) {
             quark_free(q);
@@ -276,37 +276,12 @@ static int project_postprocess_hook(Quark *q,
             break;
         }
 
-	t = axis_get_data(q);
+	t = axisgrid_get_data(q);
 
         if (version_id <= 40102) {
-            if ((axis_is_x(q) && islogx(q)) ||
-                (axis_is_y(q) && islogy(q))) {
+            if ((axisgrid_is_x(q) && islogx(q)) ||
+                (axisgrid_is_y(q) && islogy(q))) {
                 t->tmajor = pow(10.0, t->tmajor);
-            }
-
-            /* TODO : world/view translation */
-            t->offsx = 0.0;
-            t->offsy = 0.0;
-        }
-	if (version_id < 50000) {
-	    /* There was no label_op in Xmgr */
-            t->label_op = t->tl_op;
-
-            /* in xmgr, axis label placement was in x,y coordinates */
-	    /* in Grace, it's parallel/perpendicular */
-	    if (axis_is_y(q)) {
-	        fswap(&t->label_offset.x,
-                      &t->label_offset.y);
-	    }
-	    t->label_offset.y *= -1;
-	}
-	if (version_id >= 50000 && version_id < 50103) {
-	    /* Autoplacement of axis labels wasn't implemented 
-               in early versions of Grace */
-            if (t->label_place == TYPE_AUTO) {
-                t->label_offset.x = 0.0;
-                t->label_offset.y = 0.08;
-                t->label_place = TYPE_SPEC;
             }
         }
         if (version_id < 50105) {
@@ -322,6 +297,11 @@ static int project_postprocess_hook(Quark *q,
             }
         }
 
+        break;
+    case QFlavorAxis:
+        if (version_id <= 40102) {
+            /* TODO : world/view translation */
+        }
         break;
     case QFlavorSet:
         s = set_get_data(q);
@@ -481,12 +461,18 @@ static int project_postprocess_hook(Quark *q,
         if (version_id >= 40200 && version_id <= 50005        &&
             !compare_strings(quark_idstr_get(q), "timestamp") &&
             !compare_strings(quark_idstr_get(q), "title")     &&
-            !compare_strings(quark_idstr_get(q), "subtitle")) {
+            !compare_strings(quark_idstr_get(q), "subtitle")  &&
+            !compare_strings(quark_idstr_get(q), "label")) {
             /* BBox type justification was erroneously set */
             AText *at = atext_get_data(q);
             if (at) {
                 at->text_props.just |= JUST_MIDDLE;
             }
+        }
+        /* kill inactive labels in old projects */
+        if (version_id < 50200 && !quark_is_active(q)) {
+            quark_free(q);
+            closure->descend = FALSE;
         }
         break;
     case QFlavorRegion:

@@ -55,4 +55,7 @@ int get_spec_tick_by_name(RunTime *rt, const char *name);
 char *region_types(RunTime *rt, int it);
 int get_regiontype_by_name(RunTime *rt, const char *name);
 
+char *axis_position_name(RunTime *rt, int it);
+int get_axis_position_by_name(RunTime *rt, const char *name);
+
 #endif /* __DICTS_H_ */

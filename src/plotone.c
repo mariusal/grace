@@ -102,6 +102,9 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
     case QFlavorSet:
         draw_set(q, plot_rt);
         break;
+    case QFlavorAGrid:
+        draw_axisgrid(canvas, q);
+        break;
     case QFlavorAxis:
         draw_axis(canvas, q);
         break;

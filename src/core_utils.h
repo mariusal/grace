@@ -67,9 +67,6 @@ Quark *graph_next(Quark *project);
 
 Quark *graph_get_current(const Quark *project);
 
-int is_zero_axis(tickmarks *t);
-int activate_tick_labels(tickmarks *t, int flag);
-
 int islogx(Quark *gr);
 int islogy(Quark *gr);
 

@@ -245,6 +245,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         UnmanageChild(ui->frame_ui->top);
         UnmanageChild(ui->graph_ui->top);
         UnmanageChild(ui->set_ui->top);
+        UnmanageChild(ui->axisgrid_ui->top);
         UnmanageChild(ui->axis_ui->top);
         UnmanageChild(ui->object_ui->top);
         UnmanageChild(ui->atext_ui->top);
@@ -262,6 +263,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -274,6 +276,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 ManageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -286,6 +289,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 ManageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -298,6 +302,20 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 ManageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
+                UnmanageChild(ui->axis_ui->top);
+                UnmanageChild(ui->object_ui->top);
+                UnmanageChild(ui->atext_ui->top);
+                UnmanageChild(ui->region_ui->top);
+                break;
+            case QFlavorAGrid:
+                update_axisgrid_ui(ui->axisgrid_ui, q);
+
+                UnmanageChild(ui->project_ui->top);
+                UnmanageChild(ui->frame_ui->top);
+                UnmanageChild(ui->graph_ui->top);
+                UnmanageChild(ui->set_ui->top);
+                ManageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -310,6 +328,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 ManageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -322,6 +341,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 ManageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -334,6 +354,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 ManageChild(ui->atext_ui->top);
@@ -346,6 +367,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -356,6 +378,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
                 UnmanageChild(ui->frame_ui->top);
                 UnmanageChild(ui->graph_ui->top);
                 UnmanageChild(ui->set_ui->top);
+                UnmanageChild(ui->axisgrid_ui->top);
                 UnmanageChild(ui->axis_ui->top);
                 UnmanageChild(ui->object_ui->top);
                 UnmanageChild(ui->atext_ui->top);
@@ -392,6 +415,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     SetSensitive(ui->insert_frame_bt,    FALSE);
     SetSensitive(ui->insert_graph_bt,    FALSE);
     SetSensitive(ui->insert_set_bt,      FALSE);
+    SetSensitive(ui->insert_axisgrid_bt, FALSE);
     SetSensitive(ui->insert_axis_bt,     FALSE);
     SetSensitive(ui->insert_object_pane, FALSE);
     if (count == 1) {
@@ -408,7 +432,13 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             break;
         case QFlavorGraph:
             SetSensitive(ui->insert_set_bt,      TRUE);
+            SetSensitive(ui->insert_axisgrid_bt, TRUE);
+            SetSensitive(ui->insert_object_pane, TRUE);
+            break;
+        case QFlavorAGrid:
             SetSensitive(ui->insert_axis_bt,     TRUE);
+            break;
+        case QFlavorAxis:
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
         }
@@ -519,6 +549,11 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             break;
         case QFlavorSet:
             if (set_set_data(ui->set_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorAGrid:
+            if (set_axisgrid_data(ui->axisgrid_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;
             }
             break;
@@ -642,11 +677,12 @@ static void update_explorer_cb(Widget but, void *data)
 #define ADD_FRAME_CB      8
 #define ADD_GRAPH_CB      9
 #define ADD_SET_CB       10
-#define ADD_AXIS_CB      11
-#define ADD_LINE_CB      12
-#define ADD_BOX_CB       13
-#define ADD_ARC_CB       14
-#define ADD_TEXT_CB      15
+#define ADD_AXISGRID_CB  11
+#define ADD_AXIS_CB      12
+#define ADD_LINE_CB      13
+#define ADD_BOX_CB       14
+#define ADD_ARC_CB       15
+#define ADD_TEXT_CB      16
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
@@ -707,6 +743,9 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             break;
         case ADD_SET_CB:
             grace_set_new(q);
+            break;
+        case ADD_AXISGRID_CB:
+            axisgrid_new(q);
             break;
         case ADD_AXIS_CB:
             axis_new(q);
@@ -787,6 +826,11 @@ static void add_set_cb(Widget but, void *udata)
     popup_any_cb((ExplorerUI *) udata, ADD_SET_CB);
 }
 
+static void add_axisgrid_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, ADD_AXISGRID_CB);
+}
+
 static void add_axis_cb(Widget but, void *udata)
 {
     popup_any_cb((ExplorerUI *) udata, ADD_AXIS_CB);
@@ -859,6 +903,9 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->insert_set_bt = CreateMenuButton(menupane,
             "Set", '\0', add_set_cb, eui);
         SetSensitive(eui->insert_set_bt,    FALSE);
+        eui->insert_axisgrid_bt = CreateMenuButton(menupane,
+            "Axis grid", '\0', add_axisgrid_cb, eui);
+        SetSensitive(eui->insert_axisgrid_bt,   FALSE);
         eui->insert_axis_bt = CreateMenuButton(menupane,
             "Axis", '\0', add_axis_cb, eui);
         SetSensitive(eui->insert_axis_bt,   FALSE);
@@ -961,6 +1008,9 @@ void raise_explorer(GUI *gui, Quark *q)
 
 	eui->set_ui = create_set_ui(eui);
         UnmanageChild(eui->set_ui->top);
+
+	eui->axisgrid_ui = create_axisgrid_ui(eui);
+        UnmanageChild(eui->axisgrid_ui->top);
 
 	eui->axis_ui = create_axis_ui(eui);
         UnmanageChild(eui->axis_ui->top);

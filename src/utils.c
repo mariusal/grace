@@ -1059,11 +1059,18 @@ char *q_labeling(Quark *q)
             set_types(rt, set_get_type(q)));
 
         break;
-    case QFlavorAxis:
-        t = axis_get_data(q);
+    case QFlavorAGrid:
+        t = axisgrid_get_data(q);
         
-        sprintf(buf, "%c Axis \"%s%s\"",
+        sprintf(buf, "%c Axis grid \"%s%s\"",
             t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
+
+        break;
+    case QFlavorAxis:
+        t = axisgrid_get_data(q);
+        
+        sprintf(buf, "Axis \"%s%s\"", QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"");
 
         break;

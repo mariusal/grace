@@ -130,6 +130,13 @@ RunTime *runtime_new(Grace *grace)
         (Quark_data_copy) set_data_copy
     };
 
+    QuarkFlavor axisgrid_qf = {
+        QFlavorAGrid,
+        (Quark_data_new) axisgrid_data_new,
+        (Quark_data_free) axisgrid_data_free,
+        (Quark_data_copy) axisgrid_data_copy
+    };
+
     QuarkFlavor axis_qf = {
         QFlavorAxis,
         (Quark_data_new) axis_data_new,
@@ -183,6 +190,7 @@ RunTime *runtime_new(Grace *grace)
     quark_flavor_add(rt->qfactory, &frame_qf);
     quark_flavor_add(rt->qfactory, &graph_qf);
     quark_flavor_add(rt->qfactory, &set_qf);
+    quark_flavor_add(rt->qfactory, &axisgrid_qf);
     quark_flavor_add(rt->qfactory, &axis_qf);
     quark_flavor_add(rt->qfactory, &dobject_qf);
     quark_flavor_add(rt->qfactory, &atext_qf);

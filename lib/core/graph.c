@@ -412,8 +412,8 @@ typedef struct {
 
 static int axis_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    if (q->fid == QFlavorAxis) {
-        tickmarks *t = axis_get_data(q);
+    if (q->fid == QFlavorAGrid) {
+        tickmarks *t = axisgrid_get_data(q);
         axis_hook_t *hdata = (axis_hook_t *) udata;
         closure->descend = FALSE;
         

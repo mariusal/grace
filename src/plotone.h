@@ -81,6 +81,7 @@ void drawerrorbar(Canvas *canvas,
 
 void draw_region(Canvas *canvas, Quark *q);
 
+void draw_axisgrid(Canvas *canvas, Quark *q);
 void draw_axis(Canvas *canvas, Quark *q);
 void draw_object(Canvas *canvas, Quark *q);
 void draw_atext(Canvas *canvas, Quark *q);

@@ -40,21 +40,21 @@
 
 static void auto_spec_cb(OptionStructure *opt, int value, void *data);
 
-AxisUI *create_axis_ui(ExplorerUI *eui)
+AGridUI *create_axisgrid_ui(ExplorerUI *eui)
 {
-    AxisUI *ui;
+    AGridUI *ui;
     int i;
     OptionItem opitems[3];
     char buf[32];
     Widget tab, rc, rc2, rc3, fr;
 
-    ui = xmalloc(sizeof(AxisUI));
+    ui = xmalloc(sizeof(AGridUI));
 
     /* ------------ Tabs --------------*/
     tab = CreateTab(eui->scrolled_window); 
-    AddHelpCB(tab, "doc/UsersGuide.html#axis-properties");
+    AddHelpCB(tab, "doc/UsersGuide.html#axisgrid-properties");
 
-    ui->main_tp = CreateTabPage(tab, "Main");
+    ui->main_tp = CreateTabPage(tab, "Grid");
 
     rc = CreateHContainer(ui->main_tp);
     opitems[0].value = AXIS_TYPE_X;
@@ -64,12 +64,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->type = CreateOptionChoice(rc, "Type:", 0, 2, opitems);
     AddOptionChoiceCB(ui->type, oc_explorer_cb, eui);
 
-    fr = CreateFrame(ui->main_tp, "Axis label");
-
-    ui->label = CreateCSText(fr, "Label string:");
-    AddTextInputCB(ui->label, text_explorer_cb, eui);
-
-    fr = CreateFrame(ui->main_tp, "Tick properties");
+    fr = CreateFrame(ui->main_tp, "Spacing");
     rc = CreateVContainer(fr);
 
     rc2 = CreateHContainer(rc);
@@ -80,78 +75,14 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->nminor, sp_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->tlform = CreateFormatChoice(rc2, "Format:");
-    AddOptionChoiceCB(ui->tlform , oc_explorer_cb, eui);
-    ui->tlprec = CreatePrecisionChoice(rc2, "Precision:");
-    AddOptionChoiceCB(ui->tlprec, oc_explorer_cb, eui);
-
-    fr = CreateFrame(ui->main_tp, "Display options");
-    rc = CreateHContainer(fr);
-
-    rc2 = CreateVContainer(rc);
-    ui->tlonoff = CreateToggleButton(rc2, "Display tick labels");
-    AddToggleButtonCB(ui->tlonoff, tb_explorer_cb, eui);
-    ui->tonoff = CreateToggleButton(rc2, "Display tick marks");
-    AddToggleButtonCB(ui->tonoff, tb_explorer_cb, eui);
-
-    rc2 = CreateVContainer(rc);
-    ui->baronoff = CreateToggleButton(rc2, "Display  bar");
-    AddToggleButtonCB(ui->baronoff, tb_explorer_cb, eui);
-
-    fr = CreateFrame(ui->main_tp, "Axis placement");
-    rc = CreateHContainer(fr);
-    ui->zero = CreateToggleButton(rc, "Zero ");
-    AddToggleButtonCB(ui->zero, tb_explorer_cb, eui);
-    ui->offx = CreateTextItem(rc, 5, "Offsets - Left/bottom:");
-    AddTextItemCB(ui->offx, titem_explorer_cb, eui);
-    ui->offy = CreateTextItem(rc, 5, "Right/top:");
-    AddTextItemCB(ui->offy, titem_explorer_cb, eui);
-
-    fr = CreateFrame(ui->main_tp, "Tick label properties");
-    rc = CreateHContainer(fr);
-
-    ui->tlfont = CreateFontChoice(rc, "Font:");
-    AddOptionChoiceCB(ui->tlfont, oc_explorer_cb, eui);
-    ui->tlcolor = CreateColorChoice(rc, "Color:");
-    AddOptionChoiceCB(ui->tlcolor, oc_explorer_cb, eui);
+    ui->tround = CreateToggleButton(rc2, "Place at rounded positions");
+    AddToggleButtonCB(ui->tround, tb_explorer_cb, eui);
+    ui->autonum = CreatePanelChoice(rc2, "Autotick divisions:",
+        "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", NULL);
+    AddOptionChoiceCB(ui->autonum, oc_explorer_cb, eui);
 
 
-    ui->label_tp = CreateTabPage(tab, "Axis label & bar");
-
-    fr = CreateFrame(ui->label_tp, "Label properties");
-    rc = CreateVContainer(fr);
-
-    rc2 = CreateHContainer(rc);
-    ui->labelfont = CreateFontChoice(rc2, "Font:");
-    AddOptionChoiceCB(ui->labelfont, oc_explorer_cb, eui);
-    ui->labelcolor = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->labelcolor, oc_explorer_cb, eui);
-
-    rc2 = CreateHContainer(rc);
-    ui->labelcharsize = CreateCharSizeChoice(rc2, "Size:");
-    AddSpinChoiceCB(ui->labelcharsize, sp_explorer_cb, eui);
-
-    ui->labellayout = CreateOptionChoiceVA(rc2, "Layout:",
-        "Parallel to",      LAYOUT_PARALLEL,
-        "Perpendicular to", LAYOUT_PERPENDICULAR,
-        NULL);
-    AddOptionChoiceCB(ui->labellayout, oc_explorer_cb, eui);
-
-    rc2 = CreateHContainer(rc);
-    ui->labelop = CreatePlacementChoice(rc2, "Side:");
-    AddOptionChoiceCB(ui->labelop, oc_explorer_cb, eui);
-    opitems[0].value = TYPE_AUTO;
-    opitems[0].label = "Auto";
-    opitems[1].value = TYPE_SPEC;
-    opitems[1].label = "Specified";
-    ui->labelplace = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
-    AddOptionChoiceCB(ui->labelplace, oc_explorer_cb, eui);
-    ui->labelspec_rc = CreateHContainer(rc);
-    AddOptionChoiceCB(ui->labelplace, auto_spec_cb, ui->labelspec_rc);
-    ui->labelspec_para = CreateTextItem(ui->labelspec_rc, 5, "Parallel offset:");
-    AddTextItemCB(ui->labelspec_para, titem_explorer_cb, eui);
-    ui->labelspec_perp = CreateTextItem(ui->labelspec_rc, 5, "Perpendicular offset:");
-    AddTextItemCB(ui->labelspec_perp, titem_explorer_cb, eui);
+    ui->label_tp = CreateTabPage(tab, "Axis bar");
 
     fr = CreateFrame(ui->label_tp, "Bar properties");
     rc = CreateVContainer(fr);
@@ -166,87 +97,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->barlines, oc_explorer_cb, eui);
 
 
-    ui->ticklabel_tp = CreateTabPage(tab, "Tick labels");
-
-    fr = CreateFrame(ui->ticklabel_tp, "Labels");
-    rc2 = CreateHContainer(fr);
-    ui->ticklop = CreatePlacementChoice(rc2, "Side:");
-    ui->tlcharsize = CreateCharSizeChoice(rc2, "Char size");
-    AddSpinChoiceCB(ui->tlcharsize, sp_explorer_cb, eui);
-
-    fr = CreateFrame(ui->ticklabel_tp, "Placement");
-
-    rc2 = CreateVContainer(fr);
-    rc3 = CreateHContainer(rc2);
-    ui->tlstarttype = CreatePanelChoice(rc3, "Start at:",
-                                    "Axis min", "Specified:", NULL);
-    AddOptionChoiceCB(ui->tlstarttype, oc_explorer_cb, eui);
-    ui->tlstart = CreateTextItem(rc3, 8, "");
-    AddTextItemCB(ui->tlstart, titem_explorer_cb, eui);
-
-    rc3 = CreateHContainer(rc2);
-    ui->tlstoptype = CreatePanelChoice(rc3, "Stop at:",
-                                   "Axis max", "Specified:", NULL);
-    AddOptionChoiceCB(ui->tlstoptype, oc_explorer_cb, eui);
-    ui->tlstop = CreateTextItem(rc3, 8, "");
-    AddTextItemCB(ui->tlstop, titem_explorer_cb, eui);
-
-    fr = CreateFrame(ui->ticklabel_tp, "Extra");
-    rc = CreateVContainer(fr);
-
-    opitems[0].value = TYPE_AUTO;
-    opitems[0].label = "Auto";
-    opitems[1].value = TYPE_SPEC;
-    opitems[1].label = "Specified";
-    rc2 = CreateHContainer(rc);
-    ui->tlgaptype = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
-    ui->tlangle = CreateAngleChoice(rc2, "Angle");
-    SetScaleWidth(ui->tlangle, 200);
-    AddScaleCB(ui->tlangle, scale_explorer_cb, eui);
-
-    rc2 = CreateHContainer(rc);
-    ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
-    AddOptionChoiceCB(ui->tlskip, oc_explorer_cb, eui);
-    AddOptionChoiceCB(ui->ticklop, oc_explorer_cb, eui);
-    ui->tlstagger = CreatePanelChoice(rc2, "Stagger:",
-        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
-    AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
-
-
-    ui->tlformula = CreateTextInput(rc, "Axis transform:");
-    AddTextInputCB(ui->tlformula, text_explorer_cb, eui);
-
-    rc2 = CreateHContainer(rc);
-    ui->tlprestr = CreateTextInput(rc2, "Prepend:");
-    SetTextInputLength(ui->tlprestr, 13);
-    AddTextInputCB(ui->tlprestr, text_explorer_cb, eui);
-    ui->tlappstr = CreateTextInput(rc2, "Append:");
-    SetTextInputLength(ui->tlappstr, 13);
-    AddTextInputCB(ui->tlappstr, text_explorer_cb, eui);
-
-    ui->tlgap_rc = CreateHContainer(rc);
-    AddOptionChoiceCB(ui->tlgaptype, auto_spec_cb, ui->tlgap_rc);
-    AddOptionChoiceCB(ui->tlgaptype, oc_explorer_cb, eui);
-    ui->tlgap_para = CreateTextItem(ui->tlgap_rc, 5, "Parallel offset:");
-    AddTextItemCB(ui->tlgap_para, titem_explorer_cb, eui);
-    ui->tlgap_perp = CreateTextItem(ui->tlgap_rc, 5, "Perpendicular offset:");
-    AddTextItemCB(ui->tlgap_perp, titem_explorer_cb, eui);
-
-
     ui->tickmark_tp = CreateTabPage(tab, "Tick marks");
-
-    fr = CreateFrame(ui->tickmark_tp, "Placement");
-    rc2 = CreateVContainer(fr);
-    rc = CreateHContainer(rc2);
-    ui->tickop = CreatePlacementChoice(rc, "Draw on side:");
-    AddOptionChoiceCB(ui->tickop, oc_explorer_cb, eui);
-    rc = CreateHContainer(rc2);
-    ui->tround = CreateToggleButton(rc, "Place at rounded positions");
-    AddToggleButtonCB(ui->tround, tb_explorer_cb, eui);
-    ui->autonum = CreatePanelChoice(rc, "Autotick divisions:",
-        "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", NULL);
-    AddOptionChoiceCB(ui->autonum, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(ui->tickmark_tp);
 
@@ -292,6 +143,86 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->tmgridlines, oc_explorer_cb, eui);
 
 
+    ui->ticklabel_tp = CreateTabPage(tab, "Tick labels");
+
+    fr = CreateFrame(ui->ticklabel_tp, "Formatting");
+    rc2 = CreateVContainer(fr);
+    rc = CreateHContainer(rc2);
+    ui->tlcharsize = CreateCharSizeChoice(rc, "Char size");
+    AddSpinChoiceCB(ui->tlcharsize, sp_explorer_cb, eui);
+
+    rc = CreateHContainer(rc2);
+    ui->tlfont = CreateFontChoice(rc, "Font:");
+    AddOptionChoiceCB(ui->tlfont, oc_explorer_cb, eui);
+    ui->tlcolor = CreateColorChoice(rc, "Color:");
+    AddOptionChoiceCB(ui->tlcolor, oc_explorer_cb, eui);
+
+    ui->tlangle = CreateAngleChoice(rc2, "Angle");
+    AddScaleCB(ui->tlangle, scale_explorer_cb, eui);
+
+    rc = CreateHContainer(rc2);
+    ui->tlform = CreateFormatChoice(rc, "Format:");
+    AddOptionChoiceCB(ui->tlform , oc_explorer_cb, eui);
+    ui->tlprec = CreatePrecisionChoice(rc, "Precision:");
+    AddOptionChoiceCB(ui->tlprec, oc_explorer_cb, eui);
+
+
+    fr = CreateFrame(ui->ticklabel_tp, "Placement");
+
+    rc2 = CreateVContainer(fr);
+    rc3 = CreateHContainer(rc2);
+    ui->tlstarttype = CreatePanelChoice(rc3, "Start at:",
+                                    "Axis min", "Specified:", NULL);
+    AddOptionChoiceCB(ui->tlstarttype, oc_explorer_cb, eui);
+    ui->tlstart = CreateTextItem(rc3, 8, "");
+    AddTextItemCB(ui->tlstart, titem_explorer_cb, eui);
+
+    rc3 = CreateHContainer(rc2);
+    ui->tlstoptype = CreatePanelChoice(rc3, "Stop at:",
+                                   "Axis max", "Specified:", NULL);
+    AddOptionChoiceCB(ui->tlstoptype, oc_explorer_cb, eui);
+    ui->tlstop = CreateTextItem(rc3, 8, "");
+    AddTextItemCB(ui->tlstop, titem_explorer_cb, eui);
+
+    fr = CreateFrame(ui->ticklabel_tp, "Extra");
+    rc = CreateVContainer(fr);
+
+    opitems[0].value = TYPE_AUTO;
+    opitems[0].label = "Auto";
+    opitems[1].value = TYPE_SPEC;
+    opitems[1].label = "Specified";
+    rc2 = CreateHContainer(rc);
+    ui->tlgaptype = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
+
+    rc2 = CreateHContainer(rc);
+    ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
+    AddOptionChoiceCB(ui->tlskip, oc_explorer_cb, eui);
+    ui->tlstagger = CreatePanelChoice(rc2, "Stagger:",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
+    AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
+
+
+    ui->tlformula = CreateTextInput(rc, "Axis transform:");
+    AddTextInputCB(ui->tlformula, text_explorer_cb, eui);
+
+    rc2 = CreateHContainer(rc);
+    ui->tlprestr = CreateTextInput(rc2, "Prepend:");
+    SetTextInputLength(ui->tlprestr, 13);
+    AddTextInputCB(ui->tlprestr, text_explorer_cb, eui);
+    ui->tlappstr = CreateTextInput(rc2, "Append:");
+    SetTextInputLength(ui->tlappstr, 13);
+    AddTextInputCB(ui->tlappstr, text_explorer_cb, eui);
+
+    ui->tlgap_rc = CreateHContainer(rc);
+    AddOptionChoiceCB(ui->tlgaptype, auto_spec_cb, ui->tlgap_rc);
+    AddOptionChoiceCB(ui->tlgaptype, oc_explorer_cb, eui);
+    ui->tlgap_para = CreateTextItem(ui->tlgap_rc, 5, "Parallel offset:");
+    AddTextItemCB(ui->tlgap_para, titem_explorer_cb, eui);
+    ui->tlgap_perp = CreateTextItem(ui->tlgap_rc, 5, "Perpendicular offset:");
+    AddTextItemCB(ui->tlgap_perp, titem_explorer_cb, eui);
+
+
     ui->special_tp = CreateTabPage(tab, "Special");
 
     opitems[0].value = TICKS_SPEC_NONE;
@@ -334,9 +265,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 /*
  * Fill 'Axes' dialog with values
  */
-void update_axis_ui(AxisUI *ui, Quark *q)
+void update_axisgrid_ui(AGridUI *ui, Quark *q)
 {
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
 
     if (t && ui) {
         char buf[128];
@@ -344,30 +275,6 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         Widget vbar;
 
         SetOptionChoice(ui->type, t->type);
-
-        SetToggleButtonState(ui->zero, is_zero_axis(t));
-
-        sprintf(buf, "%.2f", t->offsx);
-        xv_setstr(ui->offx, buf);
-        sprintf(buf, "%.2f", t->offsy);
-        xv_setstr(ui->offy, buf);
-
-        SetOptionChoice(ui->labellayout, t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
-        SetOptionChoice(ui->labelplace, t->label_place);
-        sprintf(buf, "%.2f", t->label_offset.x);
-        xv_setstr(ui->labelspec_para, buf);
-        sprintf(buf, "%.2f", t->label_offset.y);
-        xv_setstr(ui->labelspec_perp, buf);
-        SetSensitive(ui->labelspec_rc, t->label_place == TYPE_SPEC);
-        SetOptionChoice(ui->labelfont, t->label_tprops.font);
-        SetOptionChoice(ui->labelcolor, t->label_tprops.color);
-        SetSpinChoice(ui->labelcharsize, t->label_tprops.charsize);
-        SetOptionChoice(ui->labelop, t->label_op);
-
-        SetToggleButtonState(ui->tlonoff, t->tl_flag);
-        SetToggleButtonState(ui->tonoff, t->t_flag);
-        SetToggleButtonState(ui->baronoff, t->t_drawbar);
-        SetTextString(ui->label, t->label);
 
         if (is_log_axis(q)) {
             if (t->tmajor <= 1.0) {
@@ -410,7 +317,6 @@ void update_axis_ui(AxisUI *ui, Quark *q)
             xv_setstr(ui->tlstop, buf);
         }
         SetOptionChoice(ui->tlform, t->tl_format);
-        SetOptionChoice(ui->ticklop, t->tl_op);
         SetTextString(ui->tlformula, t->tl_formula);
         SetOptionChoice(ui->tlprec, t->tl_prec);
 
@@ -424,8 +330,6 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         SetSpinChoice(ui->tlcharsize, t->tl_tprops.charsize);
         SetAngleChoice(ui->tlangle, t->tl_tprops.angle);
 
-        
-        SetOptionChoice(ui->tickop, t->t_op);
         
         SetOptionChoice(ui->autonum, t->t_autonum - 2);
 
@@ -473,9 +377,9 @@ void update_axis_ui(AxisUI *ui, Quark *q)
 }
 
 
-int set_axis_data(AxisUI *ui, Quark *q, void *caller)
+int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
 {
-    tickmarks *t = axis_get_data(q);
+    tickmarks *t = axisgrid_get_data(q);
 
     if (t && ui) {
         int i;
@@ -484,11 +388,6 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->type = GetOptionChoice(ui->type);
         }
 
-        if (!caller || caller == ui->label) {
-            char *s = GetTextString(ui->label);
-            t->label = copy_string(t->label, s);
-            xfree(s);
-        }
         if (!caller || caller == ui->tmajor) {
             if (xv_evalexpr(ui->tmajor, &t->tmajor) != RETURN_SUCCESS) {
                 errmsg("Specify major tick spacing");
@@ -504,54 +403,11 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tlprec) {
             t->tl_prec = GetOptionChoice(ui->tlprec);
         }
-        if (!caller || caller == ui->tlonoff) {
-            t->tl_flag = GetToggleButtonState(ui->tlonoff);
-        }
-        if (!caller || caller == ui->baronoff) {
-            t->t_drawbar = GetToggleButtonState(ui->baronoff);
-        }
-        if (!caller || caller == ui->tonoff) {
-            t->t_flag = GetToggleButtonState(ui->tonoff);
-        }
-        if (!caller || caller == ui->zero) {
-            t->zero = GetToggleButtonState(ui->zero);
-        }
-        if (!caller || caller == ui->offx) {
-            xv_evalexpr(ui->offx, &t->offsx);
-        }
-        if (!caller || caller == ui->offy) {
-            xv_evalexpr(ui->offy, &t->offsy);
-        }
         if (!caller || caller == ui->tlfont) {
             t->tl_tprops.font = GetOptionChoice(ui->tlfont);
         }
         if (!caller || caller == ui->tlcolor) {
             t->tl_tprops.color = GetOptionChoice(ui->tlcolor);
-        }
-        if (!caller || caller == ui->labelfont) {
-            t->label_tprops.font = GetOptionChoice(ui->labelfont);
-        }
-        if (!caller || caller == ui->labelcolor) {
-            t->label_tprops.color = GetOptionChoice(ui->labelcolor);
-        }
-        if (!caller || caller == ui->labelcharsize) {
-            t->label_tprops.charsize = GetSpinChoice(ui->labelcharsize);
-        }
-        if (!caller || caller == ui->labellayout) {
-            t->label_layout = GetOptionChoice(ui->labellayout) ?
-                LAYOUT_PERPENDICULAR:LAYOUT_PARALLEL;
-        }
-        if (!caller || caller == ui->labelop) {
-            t->label_op = GetOptionChoice(ui->labelop);
-        }
-        if (!caller || caller == ui->labelplace) {
-            t->label_place = GetOptionChoice(ui->labelplace);
-        }
-        if (!caller || caller == ui->labelspec_para) {
-            xv_evalexpr(ui->labelspec_para, &t->label_offset.x);
-        }
-        if (!caller || caller == ui->labelspec_perp) {
-            xv_evalexpr(ui->labelspec_perp, &t->label_offset.y);
         }
         if (!caller || caller == ui->barcolor) {
             t->t_drawbarcolor = GetOptionChoice(ui->barcolor);
@@ -567,9 +423,6 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->tlangle) {
             t->tl_tprops.angle = GetAngleChoice(ui->tlangle);
-        }
-        if (!caller || caller == ui->ticklop) {
-            t->tl_op = GetOptionChoice(ui->ticklop);
         }
         if (!caller || caller == ui->tlstagger) {
             t->tl_staggered = GetOptionChoice(ui->tlstagger);
@@ -622,9 +475,6 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->tlgap_perp) {
             xv_evalexpr(ui->tlgap_perp, &t->tl_gap.y);
-        }
-        if (!caller || caller == ui->tickop) {
-            t->t_op = GetOptionChoice(ui->tickop);
         }
         if (!caller || caller == ui->tround) {
             t->t_round = GetToggleButtonState(ui->tround);
@@ -710,4 +560,77 @@ static void auto_spec_cb(OptionStructure *opt, int value, void *data)
 {
     Widget rc = (Widget) data;
     SetSensitive(rc, value);
+}
+
+AxisUI *create_axis_ui(ExplorerUI *eui)
+{
+    AxisUI *ui;
+    Widget rc, fr;
+
+    ui = xmalloc(sizeof(AxisUI));
+
+    ui->top = CreateVContainer(eui->scrolled_window);
+    AddHelpCB(ui->top, "doc/UsersGuide.html#axis-properties");
+
+    fr = CreateFrame(ui->top, "Position");
+    rc = CreateHContainer(fr);
+    ui->position = CreateOptionChoiceVA(rc, "Placement:",
+        "Normal",   AXIS_POS_NORMAL,
+        "Opposite", AXIS_POS_OPPOSITE,
+        "Zero",     AXIS_POS_ZERO,
+        NULL);
+    AddOptionChoiceCB(ui->position, oc_explorer_cb, eui);
+
+    ui->offset = CreateSpinChoice(rc, "Offset:",
+        4, SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
+    AddSpinChoiceCB(ui->offset, sp_explorer_cb, eui);
+    
+    fr = CreateFrame(ui->top, "Options");
+    rc = CreateVContainer(fr);
+    ui->draw_bar    = CreateToggleButton(rc, "Draw axis bar");
+    AddToggleButtonCB(ui->draw_bar, tb_explorer_cb, eui);
+    ui->draw_ticks  = CreateToggleButton(rc, "Draw tick marks");
+    AddToggleButtonCB(ui->draw_ticks, tb_explorer_cb, eui);
+    ui->draw_labels = CreateToggleButton(rc, "Draw tick labels");
+    AddToggleButtonCB(ui->draw_labels, tb_explorer_cb, eui);
+    
+    return ui;
+}
+
+void update_axis_ui(AxisUI *ui, Quark *q)
+{
+    if (ui && q && quark_fid_get(q) == QFlavorAxis) {
+        SetOptionChoice(ui->position, axis_get_position(q));
+        SetSpinChoice(ui->offset, axis_get_offset(q));
+        
+        SetToggleButtonState(ui->draw_bar,    axis_bar_enabled(q));
+        SetToggleButtonState(ui->draw_ticks,  axis_ticks_enabled(q));
+        SetToggleButtonState(ui->draw_labels, axis_labels_enabled(q));
+    }
+}
+
+int set_axis_data(AxisUI *ui, Quark *q, void *caller)
+{
+    if (ui && q && quark_fid_get(q) == QFlavorAxis) {
+        if (!caller || caller == ui->position) {
+            axis_set_position(q, GetOptionChoice(ui->position));
+        }
+        if (!caller || caller == ui->offset) {
+            axis_set_offset(q, GetSpinChoice(ui->offset));
+        }
+
+        if (!caller || caller == ui->draw_bar) {
+            axis_enable_bar(q, GetToggleButtonState(ui->draw_bar));
+        }
+        if (!caller || caller == ui->draw_ticks) {
+            axis_enable_ticks(q, GetToggleButtonState(ui->draw_ticks));
+        }
+        if (!caller || caller == ui->draw_labels) {
+            axis_enable_labels(q, GetToggleButtonState(ui->draw_labels));
+        }
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }

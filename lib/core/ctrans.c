@@ -56,25 +56,44 @@ static const Quark *get_defining_graph(const Quark *q)
     }
 }
 
-
-int object_get_loctype(const Quark *q)
+static Quark *get_defining_quark(const Quark *q)
 {
     Quark *p = (Quark *) q;
     
     while (p) {
         p = quark_parent_get(p);
-        if (p->fid == QFlavorGraph) {
-            return COORD_WORLD;
-        } else
-        if (p->fid == QFlavorFrame) {
-            return COORD_FRAME;
-        } else
-        if (p->fid == QFlavorProject) {
-            return COORD_VIEW;
+        if (p->fid == QFlavorGraph ||
+            p->fid == QFlavorFrame ||
+            p->fid == QFlavorAxis  ||
+            p->fid == QFlavorProject) {
+            return p;
         }
     }
     
-    /* default */
+    return NULL;
+}
+
+int object_get_loctype(const Quark *q)
+{
+    Quark *p = get_defining_quark(q);
+    
+    if (p) {
+        switch (p->fid) {
+        case QFlavorGraph:
+            return COORD_WORLD;
+            break;
+        case QFlavorFrame:
+        case QFlavorAxis:
+            return COORD_FRAME;
+            break;
+        case QFlavorProject:
+            return COORD_VIEW;
+            break;
+        }
+    }
+    
+    /* Not reached */
+    errmsg("internal error in object_get_loctype()");
     return COORD_VIEW;
 }
 
@@ -224,10 +243,11 @@ int is_validFPoint(const FPoint *fp)
 /*
  * Convert point's frame coordinates to viewport
  */
-int Fpoint2Vpoint(const Quark *f, const FPoint *fp, VPoint *vp)
+int Fpoint2Vpoint(const Quark *q, const FPoint *fp, VPoint *vp)
 {
     view v;
-    if (frame_get_view(f, &v) == RETURN_SUCCESS) {
+    if (frame_get_view(q, &v) == RETURN_SUCCESS ||
+        axis_get_bb(q, &v)    == RETURN_SUCCESS) {
         vp->x = v.xv1 + (v.xv2 - v.xv1)*fp->x;
         vp->y = v.yv1 + (v.yv2 - v.yv1)*fp->y;
         return RETURN_SUCCESS;
@@ -239,10 +259,11 @@ int Fpoint2Vpoint(const Quark *f, const FPoint *fp, VPoint *vp)
 /*
  * Convert point's viewport coordinates to frame coordinates
  */
-int Vpoint2Fpoint(const Quark *f, const VPoint *vp, FPoint *fp)
+int Vpoint2Fpoint(const Quark *q, const VPoint *vp, FPoint *fp)
 {
     view v;
-    if (frame_get_view(f, &v) == RETURN_SUCCESS &&
+    if ((frame_get_view(q, &v) == RETURN_SUCCESS ||
+         axis_get_bb(q, &v)    == RETURN_SUCCESS) &&
         v.xv2 != v.xv1 && v.yv2 != v.yv1) {
         fp->x = (vp->x - v.xv1)/(v.xv2 - v.xv1);
         fp->y = (vp->y - v.yv1)/(v.yv2 - v.yv1);
@@ -255,32 +276,39 @@ int Vpoint2Fpoint(const Quark *f, const VPoint *vp, FPoint *fp)
 
 int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp)
 {
-    int loctype = object_get_loctype(q);
-    if (loctype == COORD_WORLD) {
-        WPoint wp;
-        Quark *gr = get_parent_graph(q);
+    Quark *p = get_defining_quark(q);
+    WPoint wp;
+    FPoint fp;
+    
+    if (!p) {
+        return RETURN_FAILURE;
+    }
+
+    switch (p->fid) {
+    case QFlavorGraph:
         wp.x = ap->x;
         wp.y = ap->y;
         
-        if (!is_validWPoint(gr, &wp)) {
+        if (!is_validWPoint(p, &wp)) {
             return RETURN_FAILURE;
         }
         
-        Wpoint2Vpoint(gr, &wp, vp);
-    } else
-    if (loctype == COORD_FRAME) {
-        FPoint fp;
-        Quark *f = get_parent_frame(q);
+        Wpoint2Vpoint(p, &wp, vp);
+        break;
+    case QFlavorFrame:
+    case QFlavorAxis:
         fp.x = ap->x;
         fp.y = ap->y;
         if (!is_validFPoint(&fp)) {
             return RETURN_FAILURE;
         }
         
-        Fpoint2Vpoint(f, &fp, vp);
-    } else {
+        Fpoint2Vpoint(p, &fp, vp);
+        break;
+    case QFlavorProject:
         vp->x = ap->x;
         vp->y = ap->y;
+        break;
     }
     
     return RETURN_SUCCESS;
@@ -288,29 +316,36 @@ int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp)
 
 int Vpoint2Apoint(const Quark *q, const VPoint *vp, APoint *ap)
 {
-    int loctype = object_get_loctype(q);
-    if (loctype == COORD_WORLD) {
-        WPoint wp;
-        
-        if (Vpoint2Wpoint(q, vp, &wp) != RETURN_SUCCESS) {
+    Quark *p = get_defining_quark(q);
+    WPoint wp;
+    FPoint fp;
+    
+    if (!p) {
+        return RETURN_FAILURE;
+    }
+
+    switch (p->fid) {
+    case QFlavorGraph:
+        if (Vpoint2Wpoint(p, vp, &wp) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         } else {
             ap->x = wp.x;
             ap->y = wp.y;
         } 
-    } else
-    if (loctype == COORD_FRAME) {
-        Quark *f = get_parent_frame(q);
-        FPoint fp;
-        if (Vpoint2Fpoint(f, vp, &fp) != RETURN_SUCCESS) {
+        break;
+    case QFlavorFrame:
+    case QFlavorAxis:
+        if (Vpoint2Fpoint(p, vp, &fp) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         } else {
             ap->x = fp.x;
             ap->y = fp.y;
         }
-    } else {
+        break;
+    case QFlavorProject:
         ap->x = vp->x;
         ap->y = vp->y;
+        break;
     }
     
     return RETURN_SUCCESS;
