@@ -6,7 +6,7 @@
  * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
  * 
- * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * Maintained by Evgeny Stambulchik
  * 
  * 
  *                           All Rights Reserved

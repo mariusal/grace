@@ -40,7 +40,8 @@ distclean :
 
 devclean :
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) devclean) || exit 1; done
-	$(RM) config.log config.status config.cache config.h Make.conf configure
+	$(RM) config.log config.status config.cache config.h Make.conf \
+	configure CHANGES ChangeLog
 
 texts : CHANGES ChangeLog
 

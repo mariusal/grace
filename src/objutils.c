@@ -3,10 +3,10 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
- * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * Maintained by Evgeny Stambulchik
  * 
  * 
  *                           All Rights Reserved
@@ -28,7 +28,7 @@
 
 /*
  *
- * operations on objects (strings, lines, boxes, and arcs)
+ * operations on objects (strings, lines, and boxes)
  *
  */
 
@@ -43,358 +43,657 @@
 
 #include "graphs.h"
 #include "utils.h"
-#include "objutils.h"
+#include "protos.h"
 
-static int object_data_size(OType type)
+static int maxboxes = 0;
+static int maxlines = 0;
+static int maxstr = 0;
+static int maxellipses = 0;
+
+int number_of_lines(void)
 {
-    int size;
+    return maxlines;
+}
+
+int number_of_boxes(void)
+{
+    return maxboxes;
+}
+
+int number_of_ellipses(void)
+{
+    return maxellipses;
+}
+
+int number_of_strings(void)
+{
+    return maxstr;
+}
+
+int is_valid_line(int line)
+{
+    return (line >= 0 && line < maxlines);
+}
+
+int is_valid_box(int box)
+{
+    return (box >= 0 && box < maxboxes);
+}
+
+int is_valid_ellipse(int ellipse)
+{
+    return (ellipse >= 0 && ellipse < maxellipses);
+}
+
+int is_valid_string(int string)
+{
+    return (string >= 0 && string < maxstr);
+}
+
+void move_object(int type, int id, VVector shift)
+{
+    double xtmp, ytmp;
+    boxtype box;
+    ellipsetype ellipse;
+    linetype line;
+    plotstr str;
 
     switch (type) {
-    case DO_LINE:
-        size = sizeof(DOLineData);
+    case OBJECT_BOX:
+	if (isactive_box(id)) {
+	    get_graph_box(id, &box);
+	    if (box.loctype == COORD_VIEW) {
+		box.x1 += shift.x;
+		box.y1 += shift.y;
+		box.x2 += shift.x;
+		box.y2 += shift.y;
+	    } else {
+		world2view(box.x1, box.y1, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &box.x1, &box.y1);
+		world2view(box.x2, box.y2, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &box.x2, &box.y2);
+	    }
+            set_graph_box(id, &box);
+            set_dirtystate();
+        }
+	break;
+    case OBJECT_ELLIPSE:
+	if (isactive_ellipse(id)) {
+	    get_graph_ellipse(id, &ellipse);
+	    if (ellipse.loctype == COORD_VIEW) {
+		ellipse.x1 += shift.x;
+		ellipse.y1 += shift.y;
+		ellipse.x2 += shift.x;
+		ellipse.y2 += shift.y;
+	    } else {
+		world2view(ellipse.x1, ellipse.y1, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &ellipse.x1, &ellipse.y1);
+		world2view(ellipse.x2, ellipse.y2, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &ellipse.x2, &ellipse.y2);
+	    }
+            set_graph_ellipse(id, &ellipse);
+            set_dirtystate();
+        }
+	break;
+    case OBJECT_LINE:
+	if (isactive_line(id)) {
+	    get_graph_line(id, &line);
+	    if (line.loctype == COORD_VIEW) {
+		line.x1 += shift.x;
+		line.y1 += shift.y;
+		line.x2 += shift.x;
+		line.y2 += shift.y;
+	    } else {
+		world2view(line.x1, line.y1, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &line.x1, &line.y1);
+		world2view(line.x2, line.y2, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &line.x2, &line.y2);
+	    }
+            set_graph_line(id, &line);
+            set_dirtystate();
+        }
+	break;
+    case OBJECT_STRING:
+	if (isactive_string(id)) {
+	    get_graph_string(id, &str);
+	    if (str.loctype == COORD_VIEW) {
+		str.x += shift.x;
+		str.y += shift.y;
+	    } else {
+		world2view(str.x, str.y, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &str.x, &str.y);
+	    }
+            set_graph_string(id, &str);
+            set_dirtystate();
+        }
+	break;
+    }
+}
+
+
+int isactive_line(int lineno)
+{
+    if (is_valid_line(lineno)) {
+	return lines[lineno].active;
+    } else {
+        return FALSE;
+    }
+}
+
+int isactive_box(int boxno)
+{
+    if (is_valid_box(boxno)) {
+	return boxes[boxno].active;
+    } else {
+        return FALSE;
+    }
+}
+
+int isactive_ellipse(int ellipno)
+{
+    if (is_valid_ellipse(ellipno)) {
+	return ellip[ellipno].active;
+    } else {
+        return FALSE;
+    }
+}
+
+int isactive_string(int strno)
+{
+    if (is_valid_string(strno) && pstr[strno].s && pstr[strno].s[0]) {
+	return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+
+int next_line(void)
+{
+    int i, maxold;
+
+    for (i = 0; i < maxlines; i++) {
+	if (!isactive_line(i)) {
+	    lines[i].active = TRUE;
+	    set_dirtystate();
+	    return (i);
+	}
+    }
+    maxold = maxlines;
+    if (realloc_lines(maxlines + OBJECT_BUFNUM) == RETURN_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no lines available");
+        return (-1);
+    }
+}
+
+int next_box(void)
+{
+    int i, maxold;
+
+    for (i = 0; i < maxboxes; i++) {
+	if (!isactive_box(i)) {
+	    boxes[i].active = TRUE;
+	    set_dirtystate();
+	    return (i);
+	}
+    }
+    maxold = maxboxes;
+    if (realloc_boxes(maxboxes + OBJECT_BUFNUM) == RETURN_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no boxes available");
+        return (-1);
+    }
+}
+
+int next_string(void)
+{
+    int i, maxold;
+
+    for (i = 0; i < maxstr; i++) {
+	if (!isactive_string(i)) {
+	    set_dirtystate();
+	    return (i);
+	}
+    }
+    maxold = maxstr;
+    if (realloc_strings(maxstr + OBJECT_BUFNUM) == RETURN_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no strings available");
+        return (-1);
+    }
+}
+
+int next_ellipse(void)
+{
+    int i, maxold;
+
+    for (i = 0; i < maxellipses; i++) {
+	if (!isactive_ellipse(i)) {
+	    ellip[i].active = TRUE;
+	    set_dirtystate();
+	    return (i);
+	}
+    }
+    maxold = maxellipses;
+    if (realloc_ellipses(maxellipses + OBJECT_BUFNUM) == RETURN_SUCCESS) {
+        return maxold;
+    } else {
+        errmsg("Error - no ellipses available");
+        return (-1);
+    }
+}
+
+int next_object(int type)
+{
+    switch (type) {
+    case OBJECT_BOX:
+        return next_box();
         break;
-    case DO_BOX:
-        size = sizeof(DOBoxData);
+    case OBJECT_ELLIPSE:
+        return next_ellipse();
         break;
-    case DO_ARC:
-        size = sizeof(DOArcData);
+    case OBJECT_LINE:
+        return next_line();
         break;
-    case DO_STRING:
-        size = sizeof(DOStringData);
+    case OBJECT_STRING:
+        return next_string();
         break;
     default:
-        size = 0;
+        return -1;
+        break;
     }
-    
-    return size;
 }
 
-static DObject *object_new(OType type)
+int kill_object(int type, int id)
 {
-    DObject *o;
-    
-    o = xmalloc(sizeof(DObject));
-    if (o) {
-        o->type = type;
-        o->gno = get_cg();
-
-        o->loctype = COORD_VIEW;
-        o->ap.x = 0.0;
-        o->ap.y = 0.0;
-    
-        o->offset.x = 0.0;
-        o->offset.y = 0.0;
-        o->angle = 0.0;
-    
-        o->pen.color = 1;
-        o->pen.pattern = 1;
-        o->lines = 1;
-        o->linew = 1.0;
-        o->fillpen.color = 1;
-        o->fillpen.pattern = 1;
-
-        o->odata = xmalloc(object_data_size(type));
-        if (o->odata == NULL) {
-            xfree(o);
-            return NULL;
-        }
-        switch (o->type) {
-        case DO_LINE:
-            {
-                DOLineData *l = (DOLineData *) o->odata;
-                l->length    = 0.0;
-                l->arrow_end = 0; 
-                set_default_arrow(&l->arrow);
-            }
-            break;
-        case DO_BOX:
-            {
-                DOBoxData *b = (DOBoxData *) o->odata;
-                b->width  = 0.0;
-                b->height = 0.0;
-            }
-            break;
-        case DO_ARC:
-            {
-                DOArcData *e = (DOArcData *) o->odata;
-                e->width  = 0.0;
-                e->height = 0.0;
-                e->angle1 =   0.0;
-                e->angle2 = 360.0;
-                e->fillmode = ARCFILL_CHORD;
-            }
-            break;
-        case DO_STRING:
-            {
-                DOStringData *s = (DOStringData *) o->odata;
-                s->s    = NULL;
-                s->font = 0;
-                s->just = 0;
-                s->size = 1.0;
-            }
-            break;
-        }
-    
-        /* o->bb = ; */
-    }
-    
-    return o;
-}
-
-static int object_set_data(DObject *o, void *odata)
-{
-    int size = object_data_size(o->type);
-    
-    if (!size) {
+    switch (type) {
+    case OBJECT_BOX:
+        kill_box(id);
+        break;
+    case OBJECT_ELLIPSE:
+        kill_ellipse(id);
+        break;
+    case OBJECT_LINE:
+        kill_line(id);
+        break;
+    case OBJECT_STRING:
+        kill_string(id);
+        break;
+    default:
         return RETURN_FAILURE;
+        break;
     }
-
-    memcpy(o->odata, (void *) odata, size);
-    
-    if (o->type == DO_STRING) {
-        ((DOStringData *) (o->odata))->s =
-            copy_string(NULL, ((DOStringData *) odata)->s);
-    }
-    
     return RETURN_SUCCESS;
 }
 
-static DObject *object_copy(DObject *osrc)
+void copy_object(int type, int from, int to)
 {
-    DObject *odest;
-    void *odata;
-    
-    if (!osrc) {
-        return NULL;
+    switch (type) {
+	case OBJECT_BOX:
+	boxes[to] = boxes[from];
+	break;
+ 	case OBJECT_ELLIPSE:
+	ellip[to] = ellip[from];
+	break;
+    case OBJECT_LINE:
+	lines[to] = lines[from];
+	break;
+    case OBJECT_STRING:
+	kill_string(to);
+	pstr[to] = pstr[from];
+	pstr[to].s = copy_string(NULL, pstr[from].s);
+	break;
     }
-    
-    odest = object_new(osrc->type);
-    if (!odest) {
-        return NULL;
-    }
-    
-    /* Save odata pointer before memcpy overwrites it */
-    odata = odest->odata;
-    
-    memcpy(odest, osrc, sizeof(DObject));
-    
-    /* Restore odata */
-    odest->odata = odata;
-    
-    if (object_set_data(odest, osrc->odata) != RETURN_SUCCESS) {
-        object_free(odest);
-        return NULL;
-    }
-    
-    return odest;
+    set_dirtystate();
 }
 
-void object_free(DObject *o)
+int duplicate_object(int type, int id)
 {
-    if (o) {
-        if (o->type == DO_STRING) {
-            DOStringData *s = (DOStringData *) o->odata;
-            xfree(s->s);
-        }
-        xfree(o->odata);
-        xfree(o);
-    }
-}
-
-int next_object(OType type)
-{
-    int id;
-    DObject *o;
+    int newid;
     
-    id = storage_get_unique_id(objects);
-    if (id >= 0) {
-        o = object_new(type);
-        if (o) {
-            if (storage_add(objects, id, (void *) o) != RETURN_SUCCESS) {
-                object_free(o);
-                id = -1;
-            }
-        } else {
-            id = -1;
-        }
-        
-        set_dirtystate();
-    }
-    
-    return id;
-}
-
-DObject *object_get(int id)
-{
-    DObject *o;
-    
-    if (storage_get_data_by_id(objects, id, (void **) &o) != RETURN_SUCCESS) {
-        o = NULL;
-    }
-    
-    return o;
-}
-
-void do_clear_objects(void)
-{
-    storage_empty(objects);
-}
-
-int get_object_bb(DObject *o, view *bb)
-{
-    if (o) {
-        *bb = o->bb;
-        return RETURN_SUCCESS;
+    if ((newid = next_object(type)) >= 0) {
+        copy_object(type, id, newid);
     } else {
+        newid = -1;
+    }
+    
+    return newid;
+}
+
+void kill_box(int boxno)
+{
+    boxes[boxno].active = FALSE;
+    set_dirtystate();
+}
+
+void kill_ellipse(int ellipseno)
+{
+    ellip[ellipseno].active = FALSE;
+    set_dirtystate();
+}
+
+void kill_line(int lineno)
+{
+    lines[lineno].active = FALSE;
+    set_dirtystate();
+}
+
+void kill_string(int stringno)
+{
+    XCFREE(pstr[stringno].s);
+    pstr[stringno].active = FALSE;
+    set_dirtystate();
+}
+
+int get_object_bb(int type, int id, view *bb)
+{
+    switch (type) {
+    case OBJECT_BOX:
+        *bb = boxes[id].bb;
+        break;
+    case OBJECT_ELLIPSE:
+        *bb = ellip[id].bb;
+        break;
+    case OBJECT_LINE:
+        *bb = lines[id].bb;
+        break;
+    case OBJECT_STRING:
+        *bb = pstr[id].bb;
+        break;
+    default:
         return RETURN_FAILURE;
+        break;
     }
+    return RETURN_SUCCESS;
 }
 
-int kill_object(int id)
+void set_plotstr_string(plotstr *pstr, char *buf)
 {
-    if (storage_delete_by_id(objects, id) == RETURN_SUCCESS) {
-        set_dirtystate();
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
+    pstr->s = copy_string(pstr->s, buf);
 }
 
-int duplicate_object(int id)
+void init_line(int id, VPoint vp1, VPoint vp2)
 {
-    DObject *osrc, *odest;
-    int new_id;
-    
-    osrc = object_get(id);
-    if (!osrc) {
-        return -1;
-    }
-    
-    new_id = storage_get_unique_id(objects);
-    if (new_id < 0) {
-        return -1;
-    }
-    
-    odest = object_copy(osrc);
-    if (!odest) {
-        return -1;
-    }
-    
-    if (storage_add(objects, new_id, (void *) odest) == RETURN_SUCCESS) {
-        return new_id;
-    } else {
-        object_free(odest);
-        return -1;
-    }
-}
-
-void move_object(int id, VVector shift)
-{
-    DObject *o;
-    
-    o = object_get(id);
-    if (!o) {
+    if (id < 0 || id > number_of_lines()) {
         return;
     }
-
-    if (o->loctype == COORD_VIEW) {
-        o->ap.x += shift.x;
-        o->ap.y += shift.y;
+    lines[id].active = TRUE;
+    lines[id].color = line_color;
+    lines[id].lines = line_lines;
+    lines[id].linew = line_linew;
+    lines[id].loctype = line_loctype;
+    if (line_loctype == COORD_VIEW) {
+        lines[id].x1 = vp1.x;
+        lines[id].y1 = vp1.y;
+        lines[id].x2 = vp2.x;
+        lines[id].y2 = vp2.y;
+        lines[id].gno = -1;
     } else {
-        WPoint wp;
-        VPoint vp;
-        
-        wp.x = o->ap.x;
-        wp.y = o->ap.y;
-        
-        vp = Wpoint2Vpoint(wp);
-        vp.x += shift.x;
-        vp.y += shift.y;
-        
-        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
+        lines[id].gno = get_cg();
+        view2world(vp1.x, vp1.y, &lines[id].x1, &lines[id].y1);
+        view2world(vp2.x, vp2.y, &lines[id].x2, &lines[id].y2);
     }
-    
+    lines[id].arrow_end = line_arrow_end;
+    set_default_arrow(&lines[id].arrow);
     set_dirtystate();
 }
 
-int object_place_at_vp(int id, VPoint vp)
+void init_box(int id, VPoint vp1, VPoint vp2)
 {
-    DObject *o;
-    
-    o = object_get(id);
-    if (!o) {
-        return RETURN_FAILURE;
+    if (id < 0 || id > number_of_boxes()) {
+        return;
     }
-    
-    if (o->loctype == COORD_VIEW) {
-        o->ap.x = vp.x;
-        o->ap.y = vp.y;
+    boxes[id].color = box_color;
+    boxes[id].fillcolor = box_fillcolor;
+    boxes[id].fillpattern = box_fillpat;
+    boxes[id].lines = box_lines;
+    boxes[id].linew = box_linew;
+    boxes[id].loctype = box_loctype;
+    boxes[id].active = TRUE;
+    if (box_loctype == COORD_VIEW) {
+        boxes[id].x1 = vp1.x;
+        boxes[id].y1 = vp1.y;
+        boxes[id].x2 = vp2.x;
+        boxes[id].y2 = vp2.y;
+        boxes[id].gno = -1;
     } else {
-        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
+        boxes[id].gno = get_cg();
+        view2world(vp1.x, vp1.y, &boxes[id].x1, &boxes[id].y1);
+        view2world(vp2.x, vp2.y, &boxes[id].x2, &boxes[id].y2);
+    }
+    set_dirtystate();
+}
+
+void init_ellipse(int id, VPoint vp1, VPoint vp2)
+{
+    if (id < 0 || id > number_of_ellipses()) {
+        return;
+    }
+    ellip[id].color = ellipse_color;
+    ellip[id].fillcolor = ellipse_fillcolor;
+    ellip[id].fillpattern = ellipse_fillpat;
+    ellip[id].lines = ellipse_lines;
+    ellip[id].linew = ellipse_linew;
+    ellip[id].loctype = ellipse_loctype;
+    ellip[id].active = TRUE;
+    if (ellipse_loctype == COORD_VIEW) {
+        ellip[id].x1 = vp1.x;
+        ellip[id].y1 = vp1.y;
+        ellip[id].x2 = vp2.x;
+        ellip[id].y2 = vp2.y;
+        ellip[id].gno = -1;
+    } else {
+        ellip[id].gno = get_cg();
+        view2world(vp1.x, vp1.y, &ellip[id].x1, &ellip[id].y1);
+        view2world(vp2.x, vp2.y, &ellip[id].x2, &ellip[id].y2);
+    }
+    set_dirtystate();
+}
+
+void init_string(int id, VPoint vp)
+{
+    if (id < 0 || id > number_of_strings()) {
+        return;
+    }
+    pstr[id].s = copy_string(NULL, "\0");
+    pstr[id].font = string_font;
+    pstr[id].color = string_color;
+    pstr[id].rot = string_rot;
+    pstr[id].charsize = string_size;
+    pstr[id].loctype = string_loctype;
+    pstr[id].just = string_just;
+    pstr[id].active = TRUE;
+    if (string_loctype == COORD_VIEW) {
+        pstr[id].x = vp.x;
+        pstr[id].y = vp.y;
+        pstr[id].gno = -1;
+    } else {
+        pstr[id].gno = get_cg();
+        view2world(vp.x, vp.y, &pstr[id].x, &pstr[id].y);
+    }
+    set_dirtystate();
+}
+
+void do_clear_lines(void)
+{
+    int i;
+
+    for (i = 0; i < maxlines; i++) {
+	kill_line(i);
+    }
+}
+
+void do_clear_boxes(void)
+{
+    int i;
+
+    for (i = 0; i < maxboxes; i++) {
+	kill_box(i);
+    }
+}
+
+void do_clear_ellipses(void)
+{
+    int i;
+
+    for (i = 0; i < maxellipses; i++) {
+	kill_ellipse(i);
+    }
+}
+
+void do_clear_text(void)
+{
+    int i;
+
+    for (i = 0; i < maxstr; i++) {
+	kill_string(i);
+    }
+}
+
+int realloc_lines(int n)
+{
+    int i;
+    void *ptmp;
+
+    if (n > maxlines) {
+	ptmp = xrealloc(lines, n * sizeof(linetype));
+	if (ptmp != NULL) {
+            lines = ptmp;
+            for (i = maxlines; i < n; i++) {
+	        set_default_line(&lines[i]);
+	    }
+	    maxlines = n;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     }
     
-    set_dirtystate();
     return RETURN_SUCCESS;
 }
 
-int isactive_object(DObject *o)
+int realloc_boxes(int n)
 {
-    return o->active;
-}
-
-int init_string(int id, DOStringData *s)
-{
-    DObject *o;
+    int i;
+    void *ptmp;
     
-    o = object_get(id);
-    if (!o || o->type != DO_STRING) {
-        return RETURN_FAILURE;
+    if (n > maxboxes) {
+	ptmp = xrealloc(boxes, n * sizeof(boxtype));
+	if (ptmp != NULL) {
+            boxes = ptmp;
+            for (i = maxboxes; i < n; i++) {
+	        set_default_box(&boxes[i]);
+	    }
+	    maxboxes = n;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     }
     
-    set_dirtystate();
-    return object_set_data(o, (void *) s);
+    return RETURN_SUCCESS;
 }
 
-int init_line(int id, DOLineData *l)
+int realloc_ellipses(int n)
 {
-    DObject *o;
+    int i;
+    void *ptmp;
     
-    o = object_get(id);
-    if (!o || o->type != DO_LINE) {
-        return RETURN_FAILURE;
+    if (n > maxellipses) {
+	ptmp = xrealloc(ellip, n * sizeof(ellipsetype));
+	if (ptmp != NULL) {
+            ellip = ptmp;
+            for (i = maxellipses; i < n; i++) {
+	        set_default_ellipse(&ellip[i]);
+	    }
+	    maxellipses = n;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     }
     
-    set_dirtystate();
-    return object_set_data(o, (void *) l);
+    return RETURN_SUCCESS;
 }
 
-int init_box(int id, DOBoxData *b)
+int realloc_strings(int n)
 {
-    DObject *o;
+    int i;
+    void *ptmp;
     
-    o = object_get(id);
-    if (!o || o->type != DO_BOX) {
-        return RETURN_FAILURE;
+    if (n > maxstr) {
+	ptmp = xrealloc(pstr, n * sizeof(plotstr));
+	if (ptmp != NULL) {
+            pstr = ptmp;
+            for (i = maxstr; i < n; i++) {
+	        set_default_string(&pstr[i]);
+	    }
+	    maxstr = n;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     }
     
-    set_dirtystate();
-    return object_set_data(o, (void *) b);
+    return RETURN_SUCCESS;
 }
 
-int init_arc(int id, DOArcData *a)
+
+void get_graph_box(int i, boxtype * b)
 {
-    DObject *o;
-    
-    o = object_get(id);
-    if (!o || o->type != DO_ARC) {
-        return RETURN_FAILURE;
-    }
-    
-    set_dirtystate();
-    return object_set_data(o, (void *) a);
+    memcpy(b, &boxes[i], sizeof(boxtype));
 }
 
-void set_plotstr_string(plotstr *pstr, char *s)
+void get_graph_ellipse(int i, ellipsetype * b)
 {
-    pstr->s = copy_string(pstr->s, s);
+    memcpy(b, &ellip[i], sizeof(ellipsetype));
 }
+
+void get_graph_line(int i, linetype * l)
+{
+    memcpy(l, &lines[i], sizeof(linetype));
+}
+
+void get_graph_string(int i, plotstr * s)
+{
+    memcpy(s, &pstr[i], sizeof(plotstr));
+}
+
+void set_graph_box(int i, boxtype * b)
+{
+    memcpy(&boxes[i], b, sizeof(boxtype));
+}
+
+void set_graph_line(int i, linetype * l)
+{
+    memcpy(&lines[i], l, sizeof(linetype));
+}
+
+void set_graph_ellipse(int i, ellipsetype * e)
+{
+    memcpy(&ellip[i], e, sizeof(ellipsetype));
+}
+
+void set_graph_string(int i, plotstr * s)
+{
+    memcpy(&pstr[i], s, sizeof(plotstr));
+}
+
