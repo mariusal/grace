@@ -157,7 +157,7 @@ void reporton_region(Quark *gr, int rno, int type)
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
     stufftext(buf);
     
-    nsets = get_graph_sets(gr, &psets);
+    nsets = graph_get_sets(gr, &psets);
     for (setno = 0; setno < nsets; setno++) {
 	Quark *pset = psets[setno];
         x = getx(pset);

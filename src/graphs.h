@@ -505,7 +505,7 @@ int graph_world_stack_size(Quark *gr);
 int get_world_stack_current(Quark *gr);
 int get_world_stack_entry(Quark *gr, int n, world_stack *ws);
 
-int get_graph_sets(Quark *gr, Quark ***sets);
+int graph_get_sets(Quark *gr, Quark ***sets);
 
 int set_set_colors(Quark *p, int color);
 

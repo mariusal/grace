@@ -261,7 +261,7 @@ void draw_pie_chart(Canvas *canvas, Quark *gr)
     get_graph_world(gr, &w);
     sgn = is_graph_xinvert(gr) ? -1:1;
     
-    nsets = get_graph_sets(gr, &psets);
+    nsets = graph_get_sets(gr, &psets);
     
     for (setno = 0; setno < nsets; setno++) {
         Quark *pset = psets[setno];
@@ -398,7 +398,7 @@ void draw_polar_graph(Canvas *canvas, Quark *gr)
     int setno, nsets;
     Quark **psets;
 
-    nsets = get_graph_sets(gr, &psets);
+    nsets = graph_get_sets(gr, &psets);
     
     for (setno = 0; setno < nsets; setno++) {
         Quark *pset = psets[setno];
@@ -434,7 +434,7 @@ void xyplot(Canvas *canvas, Quark *gr)
     refx = NULL;
     refy = NULL;
 
-    nsets = get_graph_sets(gr, &psets);
+    nsets = graph_get_sets(gr, &psets);
 
     /* draw sets */
     switch (get_graph_type(gr)) {
@@ -2278,7 +2278,7 @@ void dolegend(Canvas *canvas, Quark *gr)
     
     maxsymsize = 0.0;
     draw_flag = FALSE;
-    nsets = get_graph_sets(gr, &psets);
+    nsets = graph_get_sets(gr, &psets);
     for (setno = 0; setno < nsets; setno++) {
         Quark *pset = psets[setno];
         if (is_set_drawable(pset)) {
@@ -2377,7 +2377,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
     vpstr.y = vp->y;
     vpstr.x = vp2.x + l->hgap + 0.01*maxsymsize;
     
-    nsets = get_graph_sets(gr, &psets);
+    nsets = graph_get_sets(gr, &psets);
     for (i = 0; i < nsets; i++) {
         Quark *pset;
         

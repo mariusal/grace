@@ -737,7 +737,7 @@ static int set_hook(unsigned int step, void *data, void *udata)
     return TRUE;
 }
 
-int get_graph_sets(Quark *gr, Quark ***sets)
+int graph_get_sets(Quark *gr, Quark ***sets)
 {
     set_hook_t p;
     

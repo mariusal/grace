@@ -3680,7 +3680,7 @@ parmset_obs:
 	| LEGEND STRING nexpr CHRSTR {
             int nsets;
             Quark *pset, **psets;
-            nsets = get_graph_sets(whichgraph, &psets);
+            nsets = graph_get_sets(whichgraph, &psets);
             if ($3 >= 0 && $3 < nsets) {
                 pset = psets[$3];
             } else {

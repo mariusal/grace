@@ -1456,7 +1456,7 @@ int write_netcdf(char *fname)
     while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
         if (is_graph_active(gr)) {
             Quark **psets;
-            int nsets = get_graph_sets(gr, &psets);
+            int nsets = graph_get_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
                 if (is_set_active(pset)) {
@@ -1500,7 +1500,7 @@ int write_netcdf(char *fname)
     while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
 	if (is_graph_active(gr)) {
             Quark **psets;
-            int nsets = get_graph_sets(gr, &psets);
+            int nsets = graph_get_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
                 if (is_set_active(pset)) {
