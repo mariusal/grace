@@ -192,7 +192,7 @@ int correlation(double *x, double *y, int n, double *cor)
     for (i = 0; i < n; i++) {
         *cor += (x[i] - xbar)*(y[i] - ybar);
     }
-    *cor /= (n*xsd*ysd);
+    *cor /= ((n - 1)*xsd*ysd);
     
     return RETURN_SUCCESS;
 }
