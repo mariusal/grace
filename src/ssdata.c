@@ -75,28 +75,29 @@ double *allocate_mesh(double start, double stop, int len)
     return retval;
 }
 
-static ss_data blockdata = {0, 0, NULL, NULL};
-
-void set_blockdata(ss_data *ssd)
+void set_blockdata(Quark *q, const ss_data *ssd)
 {
-    free_ss_data(&blockdata);
-    memcpy(&blockdata, ssd, sizeof(ss_data));
-    blockdata.label = copy_string(NULL, ssd->label);
+    ss_data *dest_ssd = ssd_get_data(q);
+    if (dest_ssd) {
+        free_ss_data(dest_ssd);
+        memcpy(dest_ssd, ssd, sizeof(ss_data));
+        dest_ssd->label = copy_string(NULL, ssd->label);
+    }
 }
 
-int get_blockncols(void)
+int get_blockncols(const ss_data *ssd)
 {
-    return blockdata.ncols;
+    return ssd->ncols;
 }
 
-int get_blocknrows(void)
+int get_blocknrows(const ss_data *ssd)
 {
-    return blockdata.nrows;
+    return ssd->nrows;
 }
 
-int *get_blockformats(void)
+int *get_blockformats(const ss_data *ssd)
 {
-    return blockdata.formats;
+    return ssd->formats;
 }
 
 int realloc_ss_data(ss_data *ssd, int nrows)
@@ -355,7 +356,7 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
     double *xdata;
-    Quark *gr, *pset;
+    Quark *gr, *pset, *ss;
     int x_from_index;
     RunTime *rt = rt_from_quark(pr);
     
@@ -458,7 +459,9 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
         XCFREE(ssd->label);
         break;
     case LOAD_BLOCK:
-        set_blockdata(ssd);
+        ss = ssd_new(pr);
+        set_blockdata(ss, ssd);
+        quark_idstr_set(ss, ssd->label);
         break;
     default:
         errmsg("Internal error");
@@ -544,20 +547,24 @@ char *cols_to_field_string(int nc, int *cols, int scol)
     return s;
 }
 
-int create_set_fromblock(Quark *pset,
+int create_set_fromblock(const Quark *ss, Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale)
 {
     int i, ncols, blockncols, blocklen, column;
     double *cdata;
     char buf[256], *s;
+    ss_data *blockdata = ssd_get_data(ss);
+    if (!blockdata) {
+        return RETURN_FAILURE;
+    }
 
-    blockncols = get_blockncols();
+    blockncols = get_blockncols(blockdata);
     if (blockncols <= 0) {
         errmsg("No block data read");
         return RETURN_FAILURE;
     }
 
-    blocklen = get_blocknrows();
+    blocklen = get_blocknrows(blockdata);
     
     ncols = settype_cols(type);
     if (nc > ncols) {
@@ -591,8 +598,8 @@ int create_set_fromblock(Quark *pset,
         if (column == -1) {
             cdata = allocate_index_data(blocklen);
         } else {
-            if (blockdata.formats[column] != FFORMAT_STRING) {
-                cdata = copy_data_column((double *) blockdata.data[column], blocklen);
+            if (blockdata->formats[column] != FFORMAT_STRING) {
+                cdata = copy_data_column((double *) blockdata->data[column], blocklen);
             } else {
                 errmsg("Tried to read doubles from strings!");
                 killsetdata(pset);
@@ -608,18 +615,18 @@ int create_set_fromblock(Quark *pset,
 
     /* strings, if any */
     if (scol >= 0) {
-        if (blockdata.formats[scol] != FFORMAT_STRING) {
+        if (blockdata->formats[scol] != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
             killsetdata(pset);
             return RETURN_FAILURE;
         } else {
             set_set_strings(pset, blocklen,
-                copy_string_column((char **) blockdata.data[scol], blocklen));
+                copy_string_column((char **) blockdata->data[scol], blocklen));
         }
     }
 
     s = cols_to_field_string(nc, coli, scol);
-    sprintf(buf, "%s, cols %s", blockdata.label, s);
+    sprintf(buf, "%s, cols %s", blockdata->label, s);
     xfree(s);
     set_set_comment(pset, buf);
 

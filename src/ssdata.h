@@ -37,27 +37,14 @@
 
 #include "grace.h"
 
-#define FFORMAT_NUMBER  0
-#define FFORMAT_STRING  1
-#define FFORMAT_DATE    2
-
-typedef struct _ss_data
-{
-    int ncols;
-    int nrows;
-    int *formats;
-    void **data;
-    char *label;
-} ss_data;
-
 double *allocate_index_data(int nrows);
 double *allocate_mesh(double start, double stop, int len);
 
-void set_blockdata(ss_data *ssd);
+void set_blockdata(Quark *q, const ss_data *ssd);
 
-int get_blockncols(void);
-int get_blocknrows(void);
-int *get_blockformats(void);
+int get_blockncols(const ss_data *ssd);
+int get_blocknrows(const ss_data *ssd);
+int *get_blockformats(const ss_data *ssd);
 
 int realloc_ss_data(ss_data *ssd, int nrows);
 void free_ss_data(ss_data *ssd);
@@ -67,7 +54,7 @@ int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **forma
 int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s);
 int store_data(Quark *pr, ss_data *ssd, int load_type);
 
-int create_set_fromblock(Quark *pset,
+int create_set_fromblock(const Quark *ss, Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale);
 char *cols_to_field_string(int nc, int *cols, int scol);
 int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);

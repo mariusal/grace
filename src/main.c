@@ -359,8 +359,8 @@ int main(int argc, char *argv[])
                         errmsg("Erroneous field specifications");
                         return 1;
                     }
-		    create_set_fromblock(grace_set_new(cur_graph),
-                        rt->curtype, nc, cols, scol, rt->autoscale_onread);
+		    // create_set_fromblock(grace_set_new(cur_graph),
+                    //    rt->curtype, nc, cols, scol, rt->autoscale_onread);
                     xfree(cols);
                 }
 	    } else if (argmatch(argv[i], "-nxy", 4)) {

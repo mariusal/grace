@@ -107,6 +107,13 @@ RunTime *runtime_new(Grace *grace)
         NULL
     };
 
+    QuarkFlavor ssd_qf = {
+        QFlavorSSD,
+        (Quark_data_new) ssd_data_new,
+        (Quark_data_free) ssd_data_free,
+        (Quark_data_copy) ssd_data_copy
+    };
+
     QuarkFlavor frame_qf = {
         QFlavorFrame,
         (Quark_data_new) frame_data_new,
@@ -185,6 +192,7 @@ RunTime *runtime_new(Grace *grace)
     }
     quark_factory_set_udata(rt->qfactory, grace);
     quark_flavor_add(rt->qfactory, &project_qf);
+    quark_flavor_add(rt->qfactory, &ssd_qf);
     quark_flavor_add(rt->qfactory, &frame_qf);
     quark_flavor_add(rt->qfactory, &graph_qf);
     quark_flavor_add(rt->qfactory, &set_qf);

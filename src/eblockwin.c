@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -54,10 +54,10 @@ static Widget eblock_panel;
  */
 static OptionStructure *eblock_nchoice_items[MAX_SET_COLS];
 static OptionStructure *eblock_schoice_item;
-static Widget eblock_ncols_item;
 static OptionStructure *eblock_type_choice_item;
 static GraphSetStructure *eblock_graphset_item;
 static OptionStructure *auto_item;
+static StorageStructure *ssd_sel;
 
 /*
  * Event and Notify proc declarations
@@ -66,17 +66,22 @@ static void eblock_type_notify_proc(OptionStructure *opt, int value, void *data)
 static int eblock_accept_notify_proc(void *data);
 static void update_eblock(Quark *gr);
 
+
+
+
+static void update_block_cb(StorageStructure *ss, int n, Quark **values,
+    void *data)
+{
+    update_eblock((Quark *) data);
+}
+
 /*
  * Create the block data panel
  */
 void create_eblock_frame(Quark *gr)
 {
-    if (get_blockncols() == 0) {
-	errmsg("Need to read block data first");
-	return;
-    }
-    
     set_wait_cursor();
+
     if (eblock_frame == NULL) {
         int i;
         char buf[32];
@@ -89,9 +94,9 @@ void create_eblock_frame(Quark *gr)
 	eblock_frame = CreateDialogForm(app_shell, "Edit block data");
 
 	eblock_panel = CreateVContainer(eblock_frame);
-
-	fr = CreateFrame(eblock_panel, NULL);
-        eblock_ncols_item = CreateLabel(fr, "tmp");
+        
+        ssd_sel = CreateSSDChoice(eblock_panel, "", LIST_TYPE_SINGLE);
+        AddStorageChoiceCB(ssd_sel, update_block_cb, gr);
 
 	eblock_graphset_item =
             CreateGraphSetSelector(eblock_panel, "Load to:", LIST_TYPE_SINGLE);
@@ -131,25 +136,29 @@ static void update_eblock(Quark *gr)
     int *blockformats;
     int i, ncols, nncols, nscols;
     char buf[128];
+    Quark *ss;
 
     OptionItem *blockitems, *sblockitems;
     
     if (eblock_frame == NULL) {
 	return;
     }
-    blockncols = get_blockncols();
-    if (blockncols == 0) {
-	errmsg("Need to read block data first");
+
+    if (GetSingleStorageChoice(ssd_sel, &ss) != RETURN_SUCCESS) {
+        return;
+    }
+
+    blockncols   = ssd_get_ncols(ss);
+    blocklen     = ssd_get_nrows(ss);
+    blockformats = ssd_get_formats(ss);
+
+    if (!blockncols || !blocklen || !blockformats) {
 	return;
     }
-    blocklen = get_blocknrows();
-    blockformats = get_blockformats();
+    
     if (gr) {
         SelectStorageChoice(eblock_graphset_item->graph_sel, gr);
     }
-    sprintf(buf, "Block data: %d column(s) of length %d",
-        blockncols, blocklen);
-    SetLabel(eblock_ncols_item, buf);
     
     /* TODO: check if new data arrived */
     if (1) {
@@ -211,8 +220,13 @@ static void eblock_type_notify_proc(OptionStructure *opt, int value, void *data)
 static int eblock_accept_notify_proc(void *data)
 {
     int i;
-    Quark *gr, *pset;
+    Quark *ss, *gr, *pset;
     int cs[MAX_SET_COLS], nncols, scol, autoscale;
+
+    if (GetSingleStorageChoice(ssd_sel, &ss) != RETURN_SUCCESS) {
+        errmsg("Please select a single SSD");
+        return RETURN_FAILURE;
+    }
 
     if (GetSingleStorageChoice(eblock_graphset_item->graph_sel, &gr)
         != RETURN_SUCCESS) {
@@ -233,7 +247,7 @@ static int eblock_accept_notify_proc(void *data)
 
     autoscale = GetOptionChoice(auto_item);
 
-    create_set_fromblock(pset, block_curtype, nncols, cs, scol, autoscale);
+    create_set_fromblock(ss, pset, block_curtype, nncols, cs, scol, autoscale);
 
     update_all();
     xdrawgraph(pset, FALSE);

@@ -215,9 +215,9 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
 	if (load == LOAD_BLOCK) {
             create_eblock_frame(gr);
         } else {
-            update_all();
             xdrawgraph(grace->project, FALSE);
         }
+        update_all();
     }
     /* never close the popup */
     return FALSE;
