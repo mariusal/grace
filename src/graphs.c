@@ -1192,9 +1192,6 @@ void postprocess_project(int version)
 
     if (version < 40005) {
         set_page_dimensions(792, 612);
-#ifndef NONE_GUI
-        set_pagelayout(PAGE_FIXED);
-#endif
     }
 
     if (get_project_version() < 50002) {
@@ -1207,6 +1204,9 @@ void postprocess_project(int version)
     }
     
     if (version <= 40102) {
+#ifndef NONE_GUI
+        set_pagelayout(PAGE_FIXED);
+#endif
         get_page_viewport(&ext_x, &ext_y);
         rescale_viewport(ext_x, ext_y);
     }
