@@ -34,20 +34,15 @@
 
 #include <config.h>
 
-#include <Xm/Xm.h>
-#include <Xm/Form.h>
-#include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
-
 #include "graphs.h"
 #include "graphutils.h"
 #include "utils.h"
 #include "plotone.h"
-#include "motifinc.h"
 #include "protos.h"
 
+#include "motifinc.h"
+
 static Widget graphapp_dialog = NULL;
-static Widget graphapp_panel;
 
 /*
  * Widget item declarations
@@ -106,7 +101,7 @@ static OptionStructure *legend_boxpattern_item;
 /*
  * Event and Notify proc declarations
  */
-static void graphapp_aac_cb(void *data);
+static int graphapp_aac_cb(void *data);
 static void updatelegends(int gno);
 static void update_view(int gno);
 static void update_frame_items(int gno);
@@ -118,15 +113,18 @@ void create_graphapp_frame_cb(void *data)
     create_graphapp_frame((int) data);
 }
 
+static void flipxy_cb(int onoff, void *data)
+{
+    if (onoff) {
+        errmsg("Flip XY is not implemented yet.");
+    }
+}
+
 /*
  * 
  */
 void create_graphapp_frame(int gno)
 {
-    Widget graphapp_tab, graphapp_frame, graphapp_main, graphapp_titles,
-         graphapp_legends, graphapp_legendbox, graphapp_spec;
-    Widget rc, rc1, rc2, fr;
-
     set_wait_cursor();
     
     if (is_valid_gno(gno) == FALSE) {
@@ -134,34 +132,59 @@ void create_graphapp_frame(int gno)
     }
     
     if (graphapp_dialog == NULL) {
-	graphapp_dialog = XmCreateDialogShell(app_shell, "GraphAppearance", NULL, 0);
-	handle_close(graphapp_dialog);
-        graphapp_panel = XtVaCreateWidget("graphapp_panel", xmFormWidgetClass, 
-                                          graphapp_dialog, NULL, 0);
+        Widget graphapp_tab, graphapp_frame, graphapp_main, graphapp_titles,
+             graphapp_legends, graphapp_legendbox, graphapp_spec;
+        Widget menubar, menupane, rc, rc1, rc2, fr;
 
-        graph_selector = CreateGraphChoice(graphapp_panel, "Graph:",
+	graphapp_dialog = CreateDialogForm(app_shell, "Graph Appearance");
+
+        menubar = CreateMenuBar(graphapp_dialog);
+        ManageChild(menubar);
+        AddDialogFormChild(graphapp_dialog, menubar);
+        
+        graph_selector = CreateGraphChoice(graphapp_dialog, "Graph:",
                             LIST_TYPE_MULTIPLE);
+        AddDialogFormChild(graphapp_dialog, graph_selector->rc);
         AddListChoiceCB(graph_selector, update_graphapp_items, NULL);
-        XtVaSetValues(graph_selector->rc,
-                      XmNtopAttachment, XmATTACH_FORM,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      NULL);
+
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Open...", 'O', create_rparams_popup, NULL);
+        CreateMenuButton(menupane, "Save...", 'S', create_wparam_frame, NULL);
+        CreateMenuSeparator(menupane);
+        CreateMenuCloseButton(menupane, graphapp_dialog);
+        
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
+
+        CreateMenuButton(menupane,
+            "Focus to", 'F', switch_focus_proc, graph_selector);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane,
+            "Hide", 'H', hide_graph_proc, graph_selector);
+        CreateMenuButton(menupane,
+            "Show", 'S', show_graph_proc, graph_selector);
+        CreateMenuButton(menupane,
+            "Duplicate", 'D', duplicate_graph_proc, graph_selector);
+        CreateMenuButton(menupane,
+            "Kill", 'K', kill_graph_proc, graph_selector);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane,
+            "Create new", 'C', create_new_graph_proc, graph_selector);
+
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuButton(menupane, "On graph appearance", 'g', HelpCB, NULL);
 
 
-        /* ------------ Tabs --------------*/
+        /* ------------ Tabs -------------- */
 
-        graphapp_tab = CreateTab(graphapp_panel);        
+        graphapp_tab = CreateTab(graphapp_dialog);        
 
 
-        /* ------------ Main tab --------------*/
+        /* ------------ Main tab -------------- */
         
         graphapp_main = CreateTabPage(graphapp_tab, "Main");
 
 	fr = CreateFrame(graphapp_main, "Presentation");
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-
+        rc = CreateHContainer(fr);
 	graph_type_choice_item = CreatePanelChoice(rc, 
                                                    "Type:",
 						   7,
@@ -175,70 +198,52 @@ void create_graphapp_frame(int gno)
 						   NULL);
 	stacked_item = CreateToggleButton(rc, "Stacked chart");
 
-        ManageChild(rc);
-
 	fr = CreateFrame(graphapp_main, "Titles");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	rc = CreateVContainer(fr);
 	label_title_text_item = CreateCSText(rc, "Title: ");
 	label_subtitle_text_item = CreateCSText(rc, "Subtitle: ");
-        ManageChild(rc);
 
         fr = CreateFrame(graphapp_main, "Viewport");
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        rc = CreateVContainer(fr);
 
-        rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
+        rc1 = CreateHContainer(rc);
 	define_view_xv1 = CreateTextItem2(rc1, 8, "Xmin:");
 	define_view_xv2 = CreateTextItem2(rc1, 8, "Xmax:");
-        ManageChild(rc1);
 
-        rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
+        rc1 = CreateHContainer(rc);
 	define_view_yv1 = CreateTextItem2(rc1, 8, "Ymin:");
 	define_view_yv2 = CreateTextItem2(rc1, 8, "Ymax:");
-        ManageChild(rc1);
 
-        ManageChild(rc);
-        
         fr = CreateFrame(graphapp_main, "Display options");
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        rc = CreateHContainer(fr);
 	toggle_legends_item = CreateToggleButton(rc, "Display legend");
 	graph_flipxy_item = CreateToggleButton(rc, "Flip XY (N/I)");
-        ManageChild(rc);
+        AddToggleButtonCB(graph_flipxy_item, flipxy_cb, NULL);
 
 
-
-        /* ------------ Titles tab --------------*/
+        /* ------------ Titles tab -------------- */
         
         graphapp_titles = CreateTabPage(graphapp_tab, "Titles");
 
 	fr = CreateFrame(graphapp_titles, "Title");
-	rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr,
-				      NULL);
+	rc2 = CreateVContainer(fr);
 	title_font_item = CreateFontChoice(rc2, "Font:");
 	title_size_item = CreateCharSizeChoice(rc2, "Character size");
-
 	title_color_item = CreateColorChoice(rc2, "Color:");
 
-	ManageChild(rc2);
-
 	fr = CreateFrame(graphapp_titles, "Subtitle");
-	rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-
+	rc2 = CreateVContainer(fr);
 	stitle_font_item = CreateFontChoice(rc2, "Font:");
 	stitle_size_item = CreateCharSizeChoice(rc2, "Character size");
 	stitle_color_item = CreateColorChoice(rc2, "Color:");
 
-	ManageChild(rc2);
 
-
-        /* ------------ Frame tab --------------*/
+        /* ------------ Frame tab -------------- */
         
         graphapp_frame = CreateTabPage(graphapp_tab, "Frame");
 
 	fr = CreateFrame(graphapp_frame, "Frame box");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	rc = CreateVContainer(fr);
 	frame_framestyle_choice_item = CreatePanelChoice(rc, "Frame type:",
 							 7,
 							 "Closed",
@@ -250,87 +255,66 @@ void create_graphapp_frame(int gno)
 							 NULL,
 							 NULL);
 
-	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	rc2 = CreateHContainer(rc);
 	frame_color_choice_item = CreateColorChoice(rc2, "Color:");
 	frame_pattern_choice_item = CreatePatternChoice(rc2, "Pattern:");
-        ManageChild(rc2);
-	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	
+        rc2 = CreateHContainer(rc);
 	frame_linew_choice_item = CreateLineWidthChoice(rc2, "Width:");
 	frame_lines_choice_item = CreateLineStyleChoice(rc2, "Style:");
-        ManageChild(rc2);
-        ManageChild(rc);
 
 	fr = CreateFrame(graphapp_frame, "Frame fill");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	rc = CreateHContainer(fr);
 	frame_fillcolor_choice_item = CreateColorChoice(rc, "Color:");
 	frame_fillpattern_choice_item = CreatePatternChoice(rc, "Pattern:");
-        ManageChild(rc);
 
 
-
-        /* ------------ Legend frame tab --------------*/
+        /* ------------ Legend frame tab -------------- */
         
         graphapp_legendbox = CreateTabPage(graphapp_tab, "Leg. box");
 
 	fr = CreateFrame(graphapp_legendbox, "Location");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	rc = CreateVContainer(fr);
 	toggle_legendloc_item = CreatePanelChoice(rc, "Locate in:",
 						  3,
 						  "World coords",
 						  "Viewport coords",
 						  0, 0);
 
-        rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
+        rc1 = CreateHContainer(rc);
 	legend_x_item = CreateTextItem2(rc1, 10, "X:");
 	legend_y_item = CreateTextItem2(rc1, 10, "Y:");
-	ManageChild(rc1);
-	ManageChild(rc);
 
 	fr = CreateFrame(graphapp_legendbox, "Frame line");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	rc = CreateVContainer(fr);
 
-	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	rc2 = CreateHContainer(rc);
 	legend_boxcolor_item = CreateColorChoice(rc2, "Color:");
 	legend_boxpattern_item = CreatePatternChoice(rc2, "Pattern:");
-	ManageChild(rc2);
-	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	
+        rc2 = CreateHContainer(rc);
 	legend_boxlinew_item = CreateLineWidthChoice(rc2, "Width:");
 	legend_boxlines_item = CreateLineStyleChoice(rc2, "Style:");
-	ManageChild(rc2);
-	ManageChild(rc);
 
 	fr = CreateFrame(graphapp_legendbox, "Frame fill");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	rc = CreateHContainer(fr);
 	legend_boxfillcolor_item = CreateColorChoice(rc, "Color:");
 	legend_boxfillpat_item = CreatePatternChoice(rc, "Pattern:");
-	ManageChild(rc);
 
 
-        /* ------------ Legends tab --------------*/
+        /* ------------ Legends tab -------------- */
         
         graphapp_legends = CreateTabPage(graphapp_tab, "Legends");
 
 	fr = CreateFrame(graphapp_legends, "Text properties");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	rc = CreateVContainer(fr);
 	legend_font_item = CreateFontChoice(rc, "Font:");
-
 	legend_charsize_item = CreateCharSizeChoice(rc, "Char size");
 	legend_color_item = CreateColorChoice(rc, "Color:");
-        
-        ManageChild(rc);
 
 	fr = CreateFrame(graphapp_legends, "Placement");
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-	
-        rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
-	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
+	rc = CreateVContainer(fr);
+        rc1 = CreateHContainer(rc);
         legends_vgap_item = CreatePanelChoice(rc1, "V-gap:",
 					     7,
 					     "0", "1", "2", "3", "4", "5",
@@ -339,18 +323,15 @@ void create_graphapp_frame(int gno)
 					     7,
 					     "0", "1", "2", "3", "4", "5",
 					     0, 0);
-	ManageChild(rc1);
-
 	legends_len_item = CreatePanelChoice(rc, "Legend line length:",
 					     10,
 				             "0", "1", "2", "3", "4",
                                              "5", "6", "7", "8",
 					     0, 0);
 	legends_invert_item = CreateToggleButton(rc, "Put in reverse order");
-	ManageChild(rc);
         
 
-        /* ------------ Special tab --------------*/
+        /* ------------ Special tab -------------- */
         
         graphapp_spec = CreateTabPage(graphapp_tab, "Special");
 
@@ -364,40 +345,19 @@ void create_graphapp_frame(int gno)
        
         SelectTabPage(graphapp_tab, graphapp_main);
 
-
-        fr = CreateFrame(graphapp_panel, NULL); 
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-
-        CreateAACButtons(rc, graphapp_panel, graphapp_aac_cb);
+        CreateAACDialog(graphapp_dialog, graphapp_tab, graphapp_aac_cb, NULL);
         
-        ManageChild(rc);
-        XtVaSetValues(fr,
-                      XmNtopAttachment, XmATTACH_NONE,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      XmNbottomAttachment, XmATTACH_FORM,
-                      NULL);
-        XtVaSetValues(graphapp_tab,
-                      XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, graph_selector->rc,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      XmNbottomAttachment, XmATTACH_WIDGET,
-                      XmNbottomWidget, fr,
-                      NULL);
-
-        ManageChild(graphapp_panel);
-
 #ifdef HAVE_LESSTIF
         /* a kludge against Lesstif geometry calculation bug */
         SelectTabPage(graphapp_tab, graphapp_legendbox);
-        RaiseWindow(graphapp_dialog);
+        RaiseWindow(GetParent(graphapp_dialog));
         SelectTabPage(graphapp_tab, graphapp_main);
 #endif
     }
     
     SelectListChoice(graph_selector, gno);
-    RaiseWindow(graphapp_dialog);
+    
+    RaiseWindow(GetParent(graphapp_dialog));
     unset_wait_cursor();
 }
 
@@ -405,10 +365,9 @@ void create_graphapp_frame(int gno)
  * Notify and event procs
  */
 
-static void graphapp_aac_cb(void *data)
+static int graphapp_aac_cb(void *data)
 {
     int j, gno, n, *values;
-    int aac_mode;
     view v;
     labels labs;
     framep f;
@@ -421,13 +380,6 @@ static void graphapp_aac_cb(void *data)
  *     int flipxy;
  */
     
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(graphapp_dialog);
-        return;
-    }
-    
     graphtype = GetChoice(graph_type_choice_item);
     
     xv_evalexpr(define_view_xv1, &v.xv1);  
@@ -436,7 +388,7 @@ static void graphapp_aac_cb(void *data)
     xv_evalexpr(define_view_yv2, &v.yv2);  
     if (isvalid_viewport(v) == FALSE) {
         errmsg("Invalid viewport coordinates");
-        return;
+        return RETURN_FAILURE;
     } 
 
     set_default_string(&labs.title);
@@ -507,11 +459,9 @@ static void graphapp_aac_cb(void *data)
     
     xfree(values);
 
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(graphapp_dialog);
-    }
-    
     drawgraph();
+    
+    return RETURN_SUCCESS;
 }
 
 void update_graphapp_items(int n, int *values, void *data)
