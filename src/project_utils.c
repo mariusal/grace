@@ -60,6 +60,9 @@ static int project_free_cb(Quark *pr, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
+/* TODO */
+#define MAGIC_FONT_SCALE    0.028
+#define MAGIC_LINEW_SCALE   0.0015
 Quark *project_new(QuarkFactory *qfactory)
 {
     Quark *q;
@@ -67,6 +70,8 @@ Quark *project_new(QuarkFactory *qfactory)
     q = quark_root(qfactory, QFlavorProject);
     project_set_version_id(q, bi_version_id());
     project_set_docname(q, NONAME);
+    project_set_fontsize_scale(q, MAGIC_FONT_SCALE);
+    project_set_linewidth_scale(q, MAGIC_LINEW_SCALE);
 #ifndef NONE_GUI
     if (q) {
         quark_cb_set(q, project_free_cb, NULL);

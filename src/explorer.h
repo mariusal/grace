@@ -43,6 +43,9 @@ typedef struct {
     OptionStructure *bg_color;
     Widget          bg_fill;
 
+    SpinStructure   *fsize_scale;
+    SpinStructure   *lwidth_scale;
+
     Widget          refdate;
     Widget          wrap_year;
     Widget          two_digits_years;

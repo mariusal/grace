@@ -65,17 +65,26 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     ui->bg_fill = CreateToggleButton(rc, "Fill");
     AddToggleButtonCB(ui->bg_fill, tb_explorer_cb, eui);
 
+    fr = CreateFrame(form, "Scaling factors");
+    AddDialogFormChild(form, fr);
+    rc = CreateVContainer(fr);
+    ui->fsize_scale = CreateSpinChoice(rc, "Font size:", 5,
+        SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
+    AddSpinButtonCB(ui->fsize_scale, sp_explorer_cb, eui);
+    ui->lwidth_scale = CreateSpinChoice(rc, "Line width:", 6,
+        SPIN_TYPE_FLOAT, 0.0, 1.0, 0.0005);
+    AddSpinButtonCB(ui->lwidth_scale, sp_explorer_cb, eui);
+
     fr = CreateFrame(form, "Dates");
     rc1 = CreateVContainer(fr);
     ui->refdate = CreateTextItem2(rc1, 20, "Reference date:");
     AddTextItemCB(ui->refdate, titem_explorer_cb, eui);
     rc = CreateHContainer(rc1);
     ui->two_digits_years = CreateToggleButton(rc, "Two-digit year span");
-    AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
     AddToggleButtonCB(ui->two_digits_years, tb_explorer_cb, eui);
     ui->wrap_year = CreateTextItem2(rc, 4, "Wrap year:");
     AddTextItemCB(ui->wrap_year, titem_explorer_cb, eui);
-
+    AddToggleButtonCB(ui->two_digits_years, wrap_year_cb, ui->wrap_year);
     
     ui->top = form;
     
@@ -94,6 +103,9 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         
         SetOptionChoice(ui->bg_color, pr->bgcolor);
         SetToggleButtonState(ui->bg_fill, pr->bgfill);
+
+        SetSpinChoice(ui->fsize_scale, pr->fscale);
+        SetSpinChoice(ui->lwidth_scale, pr->lscale);
 
 	jul_to_cal_and_time(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
@@ -128,6 +140,13 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->bg_fill) {
             pr->bgfill = GetToggleButtonState(ui->bg_fill);
+        }
+
+        if (!caller || caller == ui->fsize_scale) {
+            pr->fscale = GetSpinChoice(ui->fsize_scale);
+        }
+        if (!caller || caller == ui->lwidth_scale) {
+            pr->lscale = GetSpinChoice(ui->lwidth_scale);
         }
 
         if (!caller || caller == ui->refdate) {

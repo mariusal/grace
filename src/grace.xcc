@@ -782,6 +782,8 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrFontmap">
         </child>
+        <child name="#EStrScales">
+        </child>
     </element>
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
@@ -797,6 +799,15 @@ char *utf2iso(const char *s)
 	    project_add_font($0, $?);
             fontdef_free($?);
         ]]></child>
+    </element>
+    <element name="#EStrScales" type="dummy">
+        <!-- Attributes -->
+        <attribute name="#AStrFontSize" type="dval">
+	    project_set_fontsize_scale($0, $?);
+        </attribute>
+        <attribute name="#AStrLineWidth" type="dval">
+	    project_set_linewidth_scale($0, $?);
+        </attribute>
     </element>
     <element name="#EStrColorDef" type="colordef">
         <!-- Attributes -->

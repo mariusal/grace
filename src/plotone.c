@@ -145,6 +145,8 @@ void drawgraph(const Quark *project)
         canvas_set_docname(rt->canvas, get_docname(project));
         canvas_set_pagefill(rt->canvas, pr->bgfill);
         setbgcolor(rt->canvas, pr->bgcolor);
+        canvas_set_fontsize_scale(rt->canvas,  pr->fscale);
+        canvas_set_linewidth_scale(rt->canvas, pr->lscale);
 
         canvas_draw(rt->canvas, dproc, (void *) project);
     }

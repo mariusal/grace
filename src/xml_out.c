@@ -734,6 +734,12 @@ static int project_save_hook(Quark *q,
             save_colormap(xf, rt_from_quark(q)->canvas);
             xfile_comment(xf, "Font map");
             save_fontmap(xf, pr);
+            attributes_reset(attrs);
+            
+            xfile_comment(xf, "Size scales");
+            attributes_set_dval(attrs, AStrFontSize, pr->fscale);
+            attributes_set_dval(attrs, AStrLineWidth, pr->lscale);
+            xfile_empty_element(xf, EStrScales, attrs);
         }
         xfile_end_element(xf, EStrDefinitions);
 
