@@ -354,15 +354,16 @@ int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s)
 Quark *nextset(Quark *gr)
 {
     Quark *pset, **psets;
+    RunTime *rt = rt_from_quark(gr);
     
-    if (!gr) {
+    if (!gr || !rt) {
         return NULL;
     }
     
-    pset = gr->grace->rt->target_set;
+    pset = rt->target_set;
     
     if (pset && get_parent_graph(pset) == gr && !is_set_active(pset)) {
-        gr->grace->rt->target_set = NULL;
+        rt->target_set = NULL;
         return pset;
     } else {
         int i, nsets;
@@ -387,8 +388,9 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
     double *xdata;
     Quark *gr, *pset;
     int x_from_index;
+    RunTime *rt = rt_from_quark(pr);
     
-    if (ssd == NULL) {
+    if (ssd == NULL || rt == NULL) {
         return RETURN_FAILURE;
     }
     ncols = ssd->ncols;
@@ -418,7 +420,7 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
             return RETURN_FAILURE;
         }
 
-        nncols_req = settype_cols(pr->grace->rt->curtype);
+        nncols_req = settype_cols(rt->curtype);
         x_from_index = FALSE;
         if (nncols_req == nncols + 1) {
             x_from_index = TRUE;
@@ -428,7 +430,7 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
         }
 
         pset = nextset(gr);
-        set_dataset_type(pset, pr->grace->rt->curtype);
+        set_dataset_type(pset, rt->curtype);
 
         nncols = 0;
         if (x_from_index) {

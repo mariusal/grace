@@ -325,14 +325,15 @@ int zero_set_data(Dataset *dsp)
 
 static void set_default_set(Quark *pset)
 {
+    RunTime *rt = rt_from_quark(pset);
     set *p = set_get_data(pset);
     defaults grdefaults;
     
-    if (!p) {
+    if (!p || !rt) {
         return;
     }
     
-    grdefaults = pset->grace->rt->grdefaults;
+    grdefaults = rt->grdefaults;
     
     p->active = TRUE;
     p->type = SET_XY;                           /* dataset type */
@@ -1746,11 +1747,12 @@ Dataset *set_get_dataset(Quark *qset)
 int set_set_colors(Quark *pset, int color)
 {
     set *p = set_get_data(pset);
-    if (!p) {
+    RunTime *rt = rt_from_quark(pset);
+    if (!p || !rt) {
         return RETURN_FAILURE;
     }
     
-    if (color < number_of_colors(pset->grace->rt->canvas) && color >= 0) {
+    if (color < number_of_colors(rt->canvas) && color >= 0) {
         p->line.line.pen.color    = color;
         p->sym.line.pen.color = color;
         p->sym.fillpen.color  = color;

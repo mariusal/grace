@@ -772,7 +772,7 @@ void do_ext_editor(Quark *pset)
     FILE *cp;
     int save_autos;
     Quark *pr = get_parent_project(pset);
-    Grace *grace = pset->grace;
+    Grace *grace = grace_from_quark(pset);
 
     fname = tmpnam(NULL);
     cp = grace_openw(grace, fname);

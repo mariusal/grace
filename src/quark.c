@@ -30,6 +30,79 @@
 
 #include "grace.h"
 
+
+QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid)
+{
+    unsigned int i;
+    
+    if (!qfactory) {
+        return NULL;
+    }
+    
+    for (i = 0; i < qfactory->nflavours; i++) {
+        QuarkFlavor *qf = &qfactory->qflavours[i];
+        if (qf->fid == fid) {
+            return qf;
+        }
+    }
+    
+    return NULL;
+}
+
+QuarkFactory *qfactory_new(void)
+{
+    QuarkFactory *qfactory;
+    
+    qfactory = xmalloc(sizeof(QuarkFactory));
+    if (qfactory) {
+        memset(qfactory, 0, sizeof(QuarkFactory));
+    }
+    
+    return qfactory;
+}
+
+int quark_factory_set_udata(QuarkFactory *qfactory, void *udata)
+{
+    if (qfactory) {
+        qfactory->udata = udata;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+void *quark_factory_get_udata(const QuarkFactory *qfactory)
+{
+    if (qfactory) {
+        return qfactory->udata;
+    } else {
+        return NULL;
+    }
+}
+
+
+int quark_flavor_add(QuarkFactory *qfactory, const QuarkFlavor *qf)
+{
+    void *p;
+    
+    if (!qfactory || !qf) {
+        return RETURN_FAILURE;
+    }
+    
+    p = xrealloc(qfactory->qflavours,
+        (qfactory->nflavours + 1)*sizeof(QuarkFlavor));
+    if (!p) {
+        return RETURN_FAILURE;
+    } else {
+        qfactory->qflavours = p;
+    }
+    
+    qfactory->qflavours[qfactory->nflavours] = *qf;
+    qfactory->nflavours++;
+    
+    return RETURN_SUCCESS;
+}
+
 static void quark_storage_free(void *data)
 {
     quark_free((Quark *) data);
@@ -54,8 +127,8 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
         }
         
         if (parent) {
-            q->parent = parent;
-            q->grace = parent->grace;
+            q->parent   = parent;
+            q->qfactory = parent->qfactory;
             parent->refcount++;
             storage_add(parent->children, q);
             
@@ -66,17 +139,17 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
     return q;
 }
 
-Quark *quark_root(Grace *grace, unsigned int fid)
+Quark *quark_root(QuarkFactory *qfactory, unsigned int fid)
 {
     Quark *q;
     QuarkFlavor *qf;
     void *data;
     
-    qf = quark_flavor_get(grace, fid);
+    qf = quark_flavor_get(qfactory, fid);
     
     data = qf->data_new();
     q = quark_new_raw(NULL, fid, data);
-    q->grace = grace;
+    q->qfactory = qfactory;
     
     return q;
 }
@@ -91,7 +164,7 @@ Quark *quark_new(Quark *parent, unsigned int fid)
         return NULL;
     }
     
-    qf = quark_flavor_get(parent->grace, fid);
+    qf = quark_flavor_get(parent->qfactory, fid);
     
     if (!qf) {
         return NULL;
@@ -114,7 +187,7 @@ void quark_free(Quark *q)
             quark_dirtystate_set(parent, TRUE);
         }
         
-        qf = quark_flavor_get(q->grace, q->fid);
+        qf = quark_flavor_get(q->qfactory, q->fid);
         if (q->cb) {
             q->cb(q, QUARK_ETYPE_DELETE, q->cbdata);
         }
@@ -142,6 +215,25 @@ Quark *quark_parent_get(const Quark *q)
     }
 }
 
+int quark_set_udata(Quark *q, void *udata)
+{
+    if (q) {
+        q->udata = udata;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+void *quark_get_udata(const Quark *q)
+{
+    if (q) {
+        return q->udata;
+    } else {
+        return NULL;
+    }
+}
+
 Quark *quark_copy2(Quark *newparent, const Quark *q);
 
 static int copy_hook(unsigned int step, void *data, void *udata)
@@ -161,7 +253,7 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     QuarkFlavor *qf;
     void *data;
     
-    qf = quark_flavor_get(q->grace, q->fid);
+    qf = quark_flavor_get(q->qfactory, q->fid);
     data = qf->data_copy(q->data);
     new = quark_new_raw(newparent, q->fid, data);
 

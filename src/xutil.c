@@ -151,13 +151,14 @@ void init_cursors(void)
  */
 void set_title(const Quark *pr)
 {
+    GUI *gui = gui_from_quark(pr);
     static char *ts_save = NULL;
     char *ts;
     static int dstate_save = 0;
     int dstate = quark_dirtystate_get(pr);
     
     
-    if (!pr || !pr->grace->gui->inwin) {
+    if (!pr || !gui->inwin) {
         return;
     }
     

@@ -144,6 +144,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller);
 
 static char *q_labeling(Quark *q)
 {
+    RunTime *rt = rt_from_quark(q);
     char buf[128];
     Project *pr;
     frame *f;
@@ -173,7 +174,7 @@ static char *q_labeling(Quark *q)
         
         sprintf(buf, "(%c) Graph \"%s%s\" (type: %s, sets: %d)",
             g->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
-            graph_types(q->grace->rt, g->type), number_of_sets(q));
+            graph_types(rt, g->type), number_of_sets(q));
 
         break;
     case QFlavorSet:
@@ -181,7 +182,7 @@ static char *q_labeling(Quark *q)
         
         sprintf(buf, "(%c) Set \"%s%s\" (%s)",
             s->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
-            set_types(q->grace->rt, s->type));
+            set_types(rt, s->type));
 
         break;
     case QFlavorAxis:

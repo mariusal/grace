@@ -279,7 +279,7 @@ int save_axis_properties(XFile *xf, Quark *q)
         t->label_layout == LAYOUT_PERPENDICULAR ? VStrPerpendicular:VStrParallel);
     xmlio_set_offset_placement(attrs,
         t->label_place == TYPE_AUTO, t->label.offset.x, t->label.offset.y);
-    xmlio_set_side_placement(q->grace->rt, attrs, t->label_op);
+    xmlio_set_side_placement(rt_from_quark(q), attrs, t->label_op);
     xfile_begin_element(xf, EStrAxislabel, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
@@ -297,7 +297,7 @@ int save_axis_properties(XFile *xf, Quark *q)
     {
         char *s;
         
-        s = spec_tick_name(q->grace->rt, t->t_spec);
+        s = spec_tick_name(rt_from_quark(q), t->t_spec);
         
         attributes_reset(attrs);
         attributes_set_sval(attrs, AStrType, s);
@@ -324,8 +324,8 @@ int save_axis_properties(XFile *xf, Quark *q)
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->t_flag);
-        xmlio_set_side_placement(q->grace->rt, attrs, t->t_op);
-        xmlio_set_inout_placement(q->grace->rt, attrs, t->t_inout);
+        xmlio_set_side_placement(rt_from_quark(q), attrs, t->t_op);
+        xmlio_set_inout_placement(rt_from_quark(q), attrs, t->t_inout);
         xfile_begin_element(xf, EStrTickmarks, attrs);
         {
             Pen pen;
@@ -358,7 +358,7 @@ int save_axis_properties(XFile *xf, Quark *q)
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->tl_flag);
-        xmlio_set_side_placement(q->grace->rt, attrs, t->tl_op);
+        xmlio_set_side_placement(rt_from_quark(q), attrs, t->tl_op);
         attributes_set_sval(attrs, AStrTransform, t->tl_formula);
         attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
         attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
@@ -466,7 +466,7 @@ int save_graph_properties(XFile *xf, Quark *gr)
     }
     
     attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrType, graph_types(gr->grace->rt, g->type));
+    attributes_set_sval(attrs, AStrType, graph_types(rt_from_quark(gr), g->type));
     attributes_set_bval(attrs, AStrStacked, g->stacked);
     attributes_set_dval(attrs, AStrBargap, g->bargap);
     xfile_empty_element(xf, EStrPresentationSpec, attrs);
@@ -577,7 +577,7 @@ int save_set_properties(XFile *xf, Quark *pset)
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->errbar.active);
-    xmlio_set_side_placement(pset->grace->rt, attrs, p->errbar.ptype);
+    xmlio_set_side_placement(rt_from_quark(pset), attrs, p->errbar.ptype);
     xfile_begin_element(xf, EStrErrorbar, attrs);
     {
         attributes_reset(attrs);
@@ -733,7 +733,7 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrDefinitions, NULL);
         {
             xfile_comment(xf, "Color map");
-            save_colormap(xf, q->grace->rt->canvas);
+            save_colormap(xf, rt_from_quark(q)->canvas);
             xfile_comment(xf, "Font map");
             save_fontmap(xf, pr);
         }
@@ -799,7 +799,7 @@ static int project_save_hook(Quark *q,
         
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
         xmlio_set_active(attrs, p->active);
-        attributes_set_sval(attrs, AStrType, set_types(q->grace->rt, p->type));
+        attributes_set_sval(attrs, AStrType, set_types(rt_from_quark(q), p->type));
         attributes_set_ival(attrs, AStrSkip, p->symskip);
         xfile_begin_element(xf, EStrSet, attrs);
         {
@@ -911,7 +911,7 @@ int save_project(Quark *project, char *fn)
     Attributes *attrs;
     Project *pr = project_get_data(project);
     
-    fp = grace_openw(project->grace, fn);
+    fp = grace_openw(grace_from_quark(project), fn);
     xf = xfile_new(fp);
     attrs = attributes_new();
     

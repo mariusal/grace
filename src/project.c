@@ -39,7 +39,7 @@
 static int project_free_cb(Quark *pr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
-        Grace *grace = pr->grace;
+        Grace *grace = grace_from_quark(pr);
         if (pr == grace->project) {
             grace->project = NULL;
         }
@@ -62,10 +62,10 @@ static int project_free_cb(Quark *pr, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
-Quark *project_new(Grace *grace)
+Quark *project_new(QuarkFactory *qfactory)
 {
     Quark *q;
-    q = quark_root(grace, QFlavorProject);
+    q = quark_root(qfactory, QFlavorProject);
 #ifndef NONE_GUI
     if (q) {
         quark_cb_set(q, project_free_cb, NULL);

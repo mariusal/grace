@@ -251,12 +251,13 @@ static void set_default_ticks(Quark *q)
 
     tickmarks *t = axis_get_data(q);
     defaults grdefaults;
+    RunTime *rt = rt_from_quark(q);
     
-    if (!t) {
+    if (!t || !rt) {
         return;
     }
     
-    grdefaults = q->grace->rt->grdefaults;
+    grdefaults = rt->grdefaults;
     
     t->active = TRUE;
     t->type = AXIS_TYPE_X;
@@ -1094,6 +1095,7 @@ static int project_postprocess_hook(Quark *q,
     void *udata, QTraverseClosure *closure)
 {
     int version_id = *((int *) udata);
+    RunTime *rt = rt_from_quark(q);
     Project *pr;
     frame *f;
     graph *g;
@@ -1110,7 +1112,7 @@ static int project_postprocess_hook(Quark *q,
         }
 
         if (version_id < 40005) {
-            set_page_dimensions(q->grace, 792, 612, FALSE);
+            set_page_dimensions(grace_from_quark(q), 792, 612, FALSE);
         }
 
         if (version_id < 50002) {
@@ -1127,7 +1129,7 @@ static int project_postprocess_hook(Quark *q,
 #ifndef NONE_GUI
             set_pagelayout(PAGE_FIXED);
 #endif
-            get_page_viewport(q->grace->rt->canvas, &ext_x, &ext_y);
+            get_page_viewport(rt->canvas, &ext_x, &ext_y);
             rescale_viewport(q, ext_x, ext_y);
         }
         break;

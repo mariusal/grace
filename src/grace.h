@@ -55,13 +55,26 @@ typedef int (*Quark_cb)(Quark *q, int etype, void *data);
 typedef int (*Quark_comp_proc)(const Quark *q1, const Quark *q2, void *udata); 
 
 typedef struct _QuarkFlavor {
+    unsigned int    fid;
     Quark_data_new  data_new;
     Quark_data_free data_free;
     Quark_data_copy data_copy;
 } QuarkFlavor;
 
+typedef struct _QuarkFactory {
+    unsigned int refcount;
+    
+    QuarkFlavor *qflavours;
+    unsigned int nflavours;
+    
+    void *udata;
+} QuarkFactory;
+
 struct _Quark {
-    Grace *grace;
+    QuarkFactory *qfactory;
+    
+    void *udata;
+    
     unsigned int fid;
     char *idstr;
     
@@ -156,6 +169,8 @@ typedef struct _GUI {
 typedef struct _RunTime {
     /* Parent */
     Grace *P;
+    
+    QuarkFactory *qfactory;
     
     /* safe mode flag */
     int safe_mode;
@@ -253,9 +268,13 @@ enum {
     QFlavorContainer
 };
 
-QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid);
+QuarkFactory *qfactory_new(void);
+int quark_flavor_add(QuarkFactory *qfactory, const QuarkFlavor *qf);
+QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid);
+int quark_factory_set_udata(QuarkFactory *qfactory, void *udata);
+void *quark_factory_get_udata(const QuarkFactory *qfactory);
 
-Quark *quark_root(Grace *grace, unsigned int fid);
+Quark *quark_root(QuarkFactory *qfactory, unsigned int fid);
 Quark *quark_new(Quark *parent, unsigned int fid);
 void quark_free(Quark *q);
 Quark *quark_copy(const Quark *q);
@@ -284,11 +303,14 @@ int quark_push(const Quark *q, int forward);
 
 int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata);
 
+int quark_set_udata(Quark *q, void *udata);
+void *quark_get_udata(const Quark *q);
+
 #define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
 
 Project *project_data_new(void);
 void project_data_free(Project *pr);
-Quark *project_new(Grace *grace);
+Quark *project_new(QuarkFactory *qfactory);
 void project_free(Quark *q);
 
 GUI *gui_new(Grace *grace);
@@ -299,6 +321,10 @@ void runtime_free(RunTime *rt);
 
 Grace *grace_new(void);
 void grace_free(Grace *grace);
+
+Grace *grace_from_quark(const Quark *q);
+RunTime *rt_from_quark(const Quark *q);
+GUI *gui_from_quark(const Quark *q);
 
 int grace_set_project(Grace *grace, Quark *project);
 

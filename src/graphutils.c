@@ -473,6 +473,7 @@ static double nicenum(double x, int nrange, int round)
  */
 int graph_scroll(Quark *gr, int type)
 {
+    RunTime *rt = rt_from_quark(gr);
     world w;
     double xmax, xmin, ymax, ymin;
     double dwc;
@@ -499,14 +500,14 @@ int graph_scroll(Quark *gr, int type)
         case GSCROLL_LEFT:
 	    dwc = -1.0;
 	case GSCROLL_RIGHT:    
-            dwc *= gr->grace->rt->scrollper * (xmax - xmin);
+            dwc *= rt->scrollper * (xmax - xmin);
             xmin += dwc;
             xmax += dwc;
             break;
         case GSCROLL_DOWN:
 	    dwc = -1.0;
 	case GSCROLL_UP:    
-            dwc *= gr->grace->rt->scrollper * (ymax - ymin);
+            dwc *= rt->scrollper * (ymax - ymin);
             ymin += dwc;
             ymax += dwc;
             break;
@@ -538,6 +539,7 @@ int graph_scroll(Quark *gr, int type)
 
 int graph_zoom(Quark *gr, int type)
 {
+    RunTime *rt = rt_from_quark(gr);
     double dx, dy;
     double xmax, xmin, ymax, ymin;
     world w;
@@ -560,8 +562,8 @@ int graph_zoom(Quark *gr, int type)
 	    ymax = w.yg2;
 	}
 
-	dx = gr->grace->rt->shexper * (xmax - xmin);
-	dy = gr->grace->rt->shexper * (ymax - ymin);
+	dx = rt->shexper * (xmax - xmin);
+	dy = rt->shexper * (ymax - ymin);
 	if (type == GZOOM_SHRINK) {
 	    dx *= -1;
 	    dy *= -1;
@@ -609,11 +611,17 @@ int arrange_graphs(Quark **graphs, int ngraphs,
     double pw, ph, w, h;
     view v;
     Quark *gr;
+    RunTime *rt;
 
     if (!graphs) {
         return RETURN_FAILURE;
     }
     gr = graphs[0];
+    
+    rt = rt_from_quark(gr);
+    if (!rt) {
+        return RETURN_FAILURE;
+    }
     
     if (hpack) {
         hgap = 0.0;
@@ -630,7 +638,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
         return RETURN_FAILURE;
     }
     
-    get_page_viewport(gr->grace->rt->canvas, &pw, &ph);
+    get_page_viewport(rt->canvas, &pw, &ph);
     w = (pw - loff - roff)/(ncols + (ncols - 1)*hgap);
     h = (ph - toff - boff)/(nrows + (nrows - 1)*vgap);
     if (h <= 0.0 || w <= 0.0) {

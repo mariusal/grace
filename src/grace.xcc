@@ -19,7 +19,7 @@
 #include "xstrings.h"
 
 typedef struct {
-    Grace *grace;
+    RunTime *rt;
     int nrow;
 } ParserData;
 
@@ -587,7 +587,7 @@ char *utf2iso(const char *s)
         }
     ]]></attribute-type>
     <attribute-type name="settype" ctype="SetType"><![CDATA[
-        RunTime *rt = ((ParserData *)$U)->grace->rt;
+        RunTime *rt = ((ParserData *)$U)->rt;
         $$ = get_settype_by_name(rt, $?);
     ]]></attribute-type>
     <attribute-type name="fillrule" ctype="int"><![CDATA[
@@ -600,7 +600,7 @@ char *utf2iso(const char *s)
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
-        $$ = project_new(((ParserData *) $U)->grace);
+        $$ = project_new(((ParserData *) $U)->rt->qfactory);
     ]]></element-type>
     <element-type name="page" ctype="Page *"><![CDATA[
         $$ = page_new();
@@ -789,7 +789,7 @@ char *utf2iso(const char *s)
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
         <child name="#EStrColorDef"><![CDATA[
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            RunTime *rt = ((ParserData *)$U)->rt;
             store_color(rt->canvas, $?->id, &$?->color);
             colordef_free($?);
         ]]></child>
@@ -993,7 +993,7 @@ char *utf2iso(const char *s)
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            RunTime *rt = ((ParserData *)$U)->rt;
             $$->type = get_graph_type_by_name(rt, $?);
             xfree($?);
         </attribute>
@@ -1908,7 +1908,7 @@ int load_xgr_project(Grace *grace, char *fn)
 	return RETURN_FAILURE;
     }
 
-    udata.grace = grace;
+    udata.rt = grace->rt;
     udata.nrow = -1;
     
     ret = xcc_parse(fp, &udata, (void **) &project, xcc_start_handler, xcc_end_handler);

@@ -888,7 +888,8 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                 }
                 
                 if (load_type == LOAD_SINGLE) {
-                    nncols_req = settype_cols(pr->grace->rt->curtype);
+                    RunTime *rt = rt_from_quark(pr);
+                    nncols_req = settype_cols(rt->curtype);
                     if (nncols_req <= nncols) {
                         nncols = nncols_req;
                     } else if (nncols_req == nncols + 1) {
@@ -1007,11 +1008,12 @@ int update_set_from_file(Quark *pset)
         retval = RETURN_FAILURE;
     } else {
         FILE *fp;
+        RunTime *rt = rt_from_quark(pset);
         
-        fp = grace_openr(pset->grace, dsp->hotfile, dsp->hotsrc);
+        fp = grace_openr(grace_from_quark(pset), dsp->hotfile, dsp->hotsrc);
         
         killsetdata(pset);
-        pset->grace->rt->curtype = dataset_type(pset);
+        rt->curtype = dataset_type(pset);
         retval = uniread(get_parent_project(pset), fp, LOAD_SINGLE, dsp->hotfile);
 
         grace_close(fp);
@@ -1025,7 +1027,7 @@ void outputset(Quark *pset, char *fname, char *dformat)
 {
     FILE *cp;
     
-    if ((cp = grace_openw(pset->grace, fname)) == NULL) {
+    if ((cp = grace_openw(grace_from_quark(pset), fname)) == NULL) {
 	return;
     } else {
         write_set(pset, cp, dformat);
@@ -1081,7 +1083,7 @@ extern int load_xgr_project(Grace *grace, char *fn);
 int load_agr_project(Grace *grace, char *fn)
 {
     quark_free(grace->project);
-    grace->project = project_new(grace);
+    grace->project = project_new(grace->rt->qfactory);
 
     grace->rt->print_file[0] = '\0';
     grace->rt->curtype = SET_XY;
@@ -1097,7 +1099,8 @@ int load_project_file(Grace *grace, char *fn, int as_template)
     Quark **graphs;
     int i, ngraphs;
 
-    if (quark_dirtystate_get(grace->project) &&
+    if (grace->project &&
+        quark_dirtystate_get(grace->project) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
 	return RETURN_FAILURE;
     }
@@ -1252,6 +1255,8 @@ int readnetcdf(Quark *pset,
     int yndims, ydim[10], ynatts;
     long nx, ny;
 
+    RunTime *rt = rt_from_quark(pset);
+    
     ncopts = 0;			/* no crash on error */
 
 /*
@@ -1439,7 +1444,7 @@ int readnetcdf(Quark *pset,
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
     setcomment(pset, buf);
     
-    autoscale_graph(gr, gr->grace->rt->autoscale_onread);
+    autoscale_graph(gr, rt->autoscale_onread);
     
     return 1;
 }
@@ -1460,6 +1465,7 @@ int write_netcdf(Quark *pr, char *fname)
     long len[1];
     long it = 0;
     double *x, *y, x1, x2, y1, y2;
+    RunTime *rt = rt_from_quark(pr);
     ncid = nccreate(fname, NC_CLOBBER);
     ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
     ngraphs = project_get_graphs(pr, &graphs);
@@ -1478,7 +1484,7 @@ int write_netcdf(Quark *pr, char *fname)
 		    strlen(getcomment(pset)), (void *) getcomment(pset));
 
 		    sprintf(buf, "type");
-		    strcpy(s, set_types(pr->grace->rt, dataset_type(pset)));
+		    strcpy(s, set_types(rt, dataset_type(pset)));
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
 		    sprintf(buf, "n");

@@ -46,8 +46,6 @@
 #include "ssdata.h"
 
 #include "dicts.h"
-#include "graphs.h"
-#include "graphutils.h"
 #include "plotone.h"
 
 #include "devlist.h"
@@ -98,17 +96,14 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    grace->project = project_new(grace);
-    rt      = grace->rt      = runtime_new(grace);
-    gui     = grace->gui     = gui_new(grace);
-    canvas  = rt->canvas     = canvas_new();
-    canvas_set_udata(canvas, grace);
+    rt      = grace->rt;
+    canvas  = rt->canvas;
+    gui     = grace->gui;
+    
     if (init_font_db(canvas)) {
         errmsg("Broken or incomplete installation - read the FAQ!");
         exit(1);
     }
-    canvas_set_fmap_proc(canvas, fmap_proc);
-    canvas_set_csparse_proc(canvas, csparse_proc);
     
     /* initialize the parser symbol table */
     init_symtab();
@@ -148,7 +143,7 @@ int main(int argc, char *argv[])
 #else
     rt->tdevice = register_dummy_drv(canvas);
 #endif
-    select_device(grace->rt->canvas, rt->tdevice);
+    select_device(canvas, rt->tdevice);
 
     rt->hdevice = register_ps_drv(canvas);
     register_eps_drv(canvas);

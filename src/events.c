@@ -324,7 +324,8 @@ void switch_current_graph(Quark *gr)
 {
     
     if (is_graph_hidden(gr) == FALSE) {
-        Quark *cg = graph_get_current(gr->grace->project);
+        Grace *grace = grace_from_quark(gr);
+        Quark *cg = graph_get_current(grace->project);
         
         select_graph(gr);
         draw_focus(cg);

@@ -72,12 +72,13 @@ static void set_default_frame(Quark *q)
     frame *f = frame_get_data(q);
     defaults grdefaults;
     static const view d_v = {0.15, 0.85, 0.15, 0.85};
+    RunTime *rt = rt_from_quark(q);
     
-    if (!f) {
+    if (!f || !rt) {
         return;
     }
     
-    grdefaults = q->grace->rt->grdefaults;
+    grdefaults = rt->grdefaults;
     
     f->active = TRUE;
     f->type = 0;                /* frame type */

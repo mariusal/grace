@@ -90,10 +90,80 @@ void gui_free(GUI *gui)
 }
 
 
+void *container_data_new(void)
+{
+    return NULL;
+}
+
+void container_data_free(void *data)
+{
+}
+
+void *container_data_copy(void *data)
+{
+    return data;
+}
+
 RunTime *runtime_new(Grace *grace)
 {
     RunTime *rt;
     char *s;
+
+    QuarkFlavor project_qf = {
+        QFlavorProject,
+        (Quark_data_new) project_data_new,
+        (Quark_data_free) project_data_free,
+        NULL
+    };
+
+    QuarkFlavor frame_qf = {
+        QFlavorFrame,
+        (Quark_data_new) frame_data_new,
+        (Quark_data_free) frame_data_free,
+        (Quark_data_copy) frame_data_copy
+    };
+
+    QuarkFlavor graph_qf = {
+        QFlavorGraph,
+        (Quark_data_new) graph_data_new,
+        (Quark_data_free) graph_data_free,
+        (Quark_data_copy) graph_data_copy
+    };
+
+    QuarkFlavor set_qf = {
+        QFlavorSet,
+        (Quark_data_new) set_data_new,
+        (Quark_data_free) set_data_free,
+        (Quark_data_copy) set_data_copy
+    };
+
+    QuarkFlavor dobject_qf = {
+        QFlavorDObject,
+        (Quark_data_new) object_data_new,
+        (Quark_data_free) object_data_free,
+        (Quark_data_copy) object_data_copy
+    };
+
+    QuarkFlavor axis_qf = {
+        QFlavorAxis,
+        (Quark_data_new) axis_data_new,
+        (Quark_data_free) axis_data_free,
+        (Quark_data_copy) axis_data_copy
+    };
+
+    QuarkFlavor region_qf = {
+        QFlavorRegion,
+        (Quark_data_new) region_data_new,
+        (Quark_data_free) region_data_free,
+        (Quark_data_copy) region_data_copy
+    };
+
+    QuarkFlavor container_qf = {
+        QFlavorContainer,
+        container_data_new,
+        container_data_free,
+        container_data_copy
+    };
 
     rt = xmalloc(sizeof(RunTime));
     if (!rt) {
@@ -102,6 +172,30 @@ RunTime *runtime_new(Grace *grace)
     memset(rt, 0, sizeof(RunTime));
 
     rt->P = grace;
+    
+    rt->qfactory = qfactory_new();
+    if (!rt->qfactory) {
+        runtime_free(rt);
+        return NULL;
+    }
+    quark_factory_set_udata(rt->qfactory, grace);
+    quark_flavor_add(rt->qfactory, &project_qf);
+    quark_flavor_add(rt->qfactory, &frame_qf);
+    quark_flavor_add(rt->qfactory, &graph_qf);
+    quark_flavor_add(rt->qfactory, &set_qf);
+    quark_flavor_add(rt->qfactory, &dobject_qf);
+    quark_flavor_add(rt->qfactory, &axis_qf);
+    quark_flavor_add(rt->qfactory, &region_qf);
+    quark_flavor_add(rt->qfactory, &container_qf);
+
+    rt->canvas = canvas_new();
+    if (!rt->canvas) {
+        runtime_free(rt);
+        return NULL;
+    }
+    canvas_set_udata(rt->canvas, grace);
+    canvas_set_fmap_proc(rt->canvas, fmap_proc);
+    canvas_set_csparse_proc(rt->canvas, csparse_proc);
     
     rt->safe_mode = TRUE;
     
@@ -245,7 +339,7 @@ Grace *grace_new(void)
         return NULL;
     }
     memset(grace, 0, sizeof(grace));
-#if 0    
+
     grace->rt = runtime_new(grace);
     if (!grace->rt) {
         grace_free(grace);
@@ -257,15 +351,7 @@ Grace *grace_new(void)
         grace_free(grace);
         return NULL;
     }
-    
-    pr = project_new(grace);
-    if (!pr) {
-        grace_free(grace);
-        return NULL;
-    }
 
-    grace_set_project(grace, pr);
-#endif    
     return grace;
 }
 
@@ -280,6 +366,36 @@ void grace_free(Grace *grace)
     runtime_free(grace->rt);
     
     xfree(grace);
+}
+
+Grace *grace_from_quark(const Quark *q)
+{
+    Grace *grace = NULL;
+    if (q) {
+        grace = (Grace *) quark_factory_get_udata(q->qfactory);
+    }
+    
+    return grace;
+}
+
+RunTime *rt_from_quark(const Quark *q)
+{
+    Grace *grace = grace_from_quark(q);
+    if (grace) {
+        return grace->rt;
+    } else {
+        return NULL;
+    }
+}
+
+GUI *gui_from_quark(const Quark *q)
+{
+    Grace *grace = grace_from_quark(q);
+    if (grace) {
+        return grace->gui;
+    } else {
+        return NULL;
+    }
 }
 
 int grace_set_project(Grace *grace, Quark *project)
@@ -298,107 +414,6 @@ int grace_set_project(Grace *grace, Quark *project)
         return RETURN_FAILURE;
     }
 }
-
-void *container_data_new(void)
-{
-    return NULL;
-}
-
-void container_data_free(void *data)
-{
-}
-
-void *container_data_copy(void *data)
-{
-    return data;
-}
-
-static QuarkFlavor project_qf = {
-    (Quark_data_new) project_data_new,
-    (Quark_data_free) project_data_free,
-    NULL
-};
-
-static QuarkFlavor frame_qf = {
-    (Quark_data_new) frame_data_new,
-    (Quark_data_free) frame_data_free,
-    (Quark_data_copy) frame_data_copy
-};
-
-static QuarkFlavor graph_qf = {
-    (Quark_data_new) graph_data_new,
-    (Quark_data_free) graph_data_free,
-    (Quark_data_copy) graph_data_copy
-};
-
-static QuarkFlavor set_qf = {
-    (Quark_data_new) set_data_new,
-    (Quark_data_free) set_data_free,
-    (Quark_data_copy) set_data_copy
-};
-
-static QuarkFlavor axis_qf = {
-    (Quark_data_new) axis_data_new,
-    (Quark_data_free) axis_data_free,
-    (Quark_data_copy) axis_data_copy
-};
-
-static QuarkFlavor dobject_qf = {
-    (Quark_data_new) object_data_new,
-    (Quark_data_free) object_data_free,
-    (Quark_data_copy) object_data_copy
-};
-
-static QuarkFlavor region_qf = {
-    (Quark_data_new) region_data_new,
-    (Quark_data_free) region_data_free,
-    (Quark_data_copy) region_data_copy
-};
-
-static QuarkFlavor container_qf = {
-    container_data_new,
-    container_data_free,
-    container_data_copy
-};
-
-
-QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
-{
-    QuarkFlavor *qf;
-    
-    switch (fid) {
-    case QFlavorProject:
-        qf = &project_qf;
-        break;
-    case QFlavorFrame:
-        qf = &frame_qf;
-        break;
-    case QFlavorGraph:
-        qf = &graph_qf;
-        break;
-    case QFlavorSet:
-        qf = &set_qf;
-        break;
-    case QFlavorDObject:
-        qf = &dobject_qf;
-        break;
-    case QFlavorAxis:
-        qf = &axis_qf;
-        break;
-    case QFlavorRegion:
-        qf = &region_qf;
-        break;
-    case QFlavorContainer:
-        qf = &container_qf;
-        break;
-    default:
-        qf = NULL;
-        break;
-    }
-    
-    return qf;
-}
-
 
 /*
  * flag to indicate destination of hardcopy output,
