@@ -368,8 +368,7 @@ void create_autos_frame(void *data)
         aui->top = CreateDialogForm(app_shell, "Autoscale graph");
 
 	rc = CreateVContainer(aui->top);
-        aui->sel = CreateSetChoice(rc,
-            "Use sets:", SELECTION_TYPE_MULTIPLE, TRUE);
+        aui->sel = CreateSetChoice(rc, "Use sets:", LIST_TYPE_MULTIPLE, TRUE);
         aui->astype = CreateASChoice(rc, "Autoscale type:");
 
 	CreateAACDialog(aui->top, rc, define_autos_proc, aui);
