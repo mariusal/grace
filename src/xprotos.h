@@ -39,6 +39,12 @@
 #include "defines.h"
 #include "core_utils.h"
 
+typedef int (*CanvasPointSink) (
+    unsigned int npoints,
+    const VPoint *vps,
+    void *data
+);
+
 struct _X11Stuff {
     Display *disp;
     int screennumber;
@@ -73,6 +79,16 @@ struct _X11Stuff {
     /* coords of focus markers*/
     short f_x1, f_y1, f_x2, f_y2;
     view f_v;
+    
+    unsigned int npoints;
+    XPoint *xps;
+    
+    unsigned int npoints_requested;
+    int collect_points;
+    
+    CanvasPointSink point_sink;
+    void *sink_data;
+    int sel_type;
 };
 
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
@@ -94,6 +110,8 @@ void setpointer(VPoint vp);
 void select_line(GUI *gui, int x1, int y1, int x2, int y2, int erase);
 void select_region(GUI *gui, int x1, int y1, int x2, int y2, int erase);
 void slide_region(GUI *gui, view bbox, int shift_x, int shift_y, int erase);
+void select_vregion(GUI *gui, int x1, int x2, int erase);
+void select_hregion(GUI *gui, int y1, int y2, int erase);
 void resize_region(GUI *gui, view bb, int on_focus,
     int shift_x, int shift_y, int erase);
 void reset_crosshair(GUI *gui, int clear);

@@ -287,7 +287,7 @@ void select_line(GUI *gui, int x1, int y1, int x2, int y2, int erase)
     aux_XDrawLine(gui, x1, y1, x2, y2);
 }
 
-
+static int region_need_erasing = FALSE;
 /*
  * draw an xor'ed box (optionally erasing previous one)
  */
@@ -305,7 +305,7 @@ void select_region(GUI *gui, int x1, int y1, int x2, int y2, int erase)
 	iswap(&y1, &y2);
 	dy = -dy;
     }
-    if (erase) {
+    if (erase && region_need_erasing) {
         aux_XDrawRectangle(gui, x1_old, y1_old, dx_old, dy_old);
     }
     x1_old = x1;
@@ -313,6 +313,21 @@ void select_region(GUI *gui, int x1, int y1, int x2, int y2, int erase)
     dx_old = dx;
     dy_old = dy;
     aux_XDrawRectangle(gui, x1, y1, dx, dy);
+    region_need_erasing = TRUE;
+}
+
+void select_vregion(GUI *gui, int x1, int x2, int erase)
+{
+    X11Stuff *xstuff = gui->xstuff;
+    
+    select_region(gui, x1, xstuff->f_y1, x2, xstuff->f_y2, erase);
+}
+
+void select_hregion(GUI *gui, int y1, int y2, int erase)
+{
+    X11Stuff *xstuff = gui->xstuff;
+    
+    select_region(gui, xstuff->f_x1, y1, xstuff->f_x2, y2, erase);
 }
 
 /*
@@ -498,6 +513,7 @@ void xdrawgraph(const Quark *q, int force)
             draw_focus(gr);
         }
         reset_crosshair(grace->gui, FALSE);
+        region_need_erasing = FALSE;
 
         x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
 

@@ -294,7 +294,7 @@ static void popup_any_cb(canvas_target *ct, int type)
         break;
     }
     
-    xdrawgraph(pr, FALSE);
+    xdrawgraph(pr, TRUE);
     update_all();
 }
 
@@ -363,8 +363,6 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 
     int undo_point = FALSE;
     int abort_action = FALSE;
-    int collect_points = FALSE;
-    int npoints = 0, npoints_requested = 0;
     
     static canvas_target ct;
     static int on_focus;
@@ -381,14 +379,29 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 
         x11_dev2VPoint(x, y, &vp);
 
-	if (xme->state & Button1Mask) {
+	if (xstuff->collect_points && xstuff->npoints) {
+            switch (xstuff->sel_type) {
+            case SELECTION_TYPE_RECT:
+                select_region(grace->gui,
+                    x, y, last_b1down_x, last_b1down_y, TRUE);
+                break;
+            case SELECTION_TYPE_VERT:
+                select_vregion(grace->gui, x, last_b1down_x, TRUE);
+                break;
+            case SELECTION_TYPE_HORZ:
+                select_hregion(grace->gui, y, last_b1down_y, TRUE);
+                break;
+            }
+        } else
+        if (xme->state & Button1Mask) {
             if (xme->state & ControlMask) {
                 if (on_focus) {
                     resize_region(grace->gui, xstuff->f_v, on_focus,
                         x - last_b1down_x, y - last_b1down_y, TRUE);
                 } else
                 if (ct.found) {
-                    slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, TRUE);
+                    slide_region(grace->gui, ct.bbox,
+                        x - last_b1down_x, y - last_b1down_y, TRUE);
                 }
             } else {
                 scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
@@ -459,6 +472,16 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         slide_region(grace->gui, ct.bbox, 0, 0, FALSE);
                     }
                 } else {
+                    if (xstuff->collect_points) {
+                        XPoint xp;
+                        xp.x = x;
+                        xp.y = y;
+                        xstuff->npoints++;
+                        xstuff->xps =
+                            xrealloc(xstuff->xps, xstuff->npoints*sizeof(XPoint));
+                            xstuff->xps[xstuff->npoints - 1] = xp;
+                        select_region(grace->gui, x, y, x, y, FALSE);
+                    } else
                     if (grace->gui->focus_policy == FOCUS_CLICK) {
                         cg = next_graph_containing(cg, &vp);
                     }
@@ -472,26 +495,24 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
             }
             
-            if (collect_points) {
-                /* add_point(x, y) */
-                npoints++;
-            }
-
             last_b1down_x = x;
             last_b1down_y = y;
-            set_cursor(grace->gui, 5);
+            
+            if (!xstuff->collect_points) {
+                set_cursor(grace->gui, 5);
+            }
             
             break;
 	case Button2:
             fprintf(stderr, "Button2\n");
             break;
 	case Button3:
-            if (collect_points) {
+            if (xstuff->collect_points) {
                 undo_point = TRUE;
-                if (npoints) {
-                    npoints--;
+                if (xstuff->npoints) {
+                    xstuff->npoints--;
                 }
-                if (npoints == 0) {
+                if (xstuff->npoints == 0) {
                     abort_action = TRUE;
                 }
             } else {
@@ -618,7 +639,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 update_explorer(grace->gui->eui, TRUE);
                 xdrawgraph(grace->project, TRUE);
             }
-            set_cursor(grace->gui, -1);
+            if (!xstuff->collect_points) {
+                set_cursor(grace->gui, -1);
+            }
             break;
         }
         break;
@@ -627,10 +650,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         keybuf = XLookupKeysym(xke, 0);
         switch (keybuf) {
         case XK_Escape: /* Esc */
-            fprintf(stderr, "Esc\n");
             abort_action = TRUE;
-            set_cursor(grace->gui, -1);
-            return;
             break;
         case XK_KP_Add: /* "Grey" plus */
             if (xke->state & ControlMask) {
@@ -671,16 +691,50 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     }
     
     if (abort_action) {
+        /* clear selection */
+        switch (xstuff->sel_type) {
+        case SELECTION_TYPE_RECT:
+            select_region(grace->gui,
+                x, y, last_b1down_x, last_b1down_y, FALSE);
+            break;
+        case SELECTION_TYPE_VERT:
+            select_vregion(grace->gui, x, last_b1down_x, FALSE);
+            break;
+        case SELECTION_TYPE_HORZ:
+            select_hregion(grace->gui, y, last_b1down_y, FALSE);
+            break;
+        }
         /* abort action */
-        /* xfree(points) */
-        npoints = 0;
-        /* return RETURN_FAILURE to caller */
+        xstuff->npoints = 0;
+        xstuff->collect_points = FALSE;
+        set_cursor(grace->gui, -1);
     } else
     if (undo_point) {
         /* previous action */
     } else
-    if (npoints == npoints_requested) {
+    if (xstuff->npoints_requested &&
+        xstuff->npoints == xstuff->npoints_requested) {
+        int ret;
+        unsigned int i;
+        VPoint *vps = xmalloc(xstuff->npoints*sizeof(VPoint));
+        for (i = 0; i < xstuff->npoints; i++) {
+            XPoint xp = xstuff->xps[i];
+            x11_dev2VPoint(xp.x, xp.y, &vps[i]);
+        }
         /* return points to caller */
+        ret = xstuff->point_sink(xstuff->npoints, vps, xstuff->sink_data);
+        if (ret != RETURN_SUCCESS) {
+            XBell(xstuff->disp, 50);
+        }
+        
+        xfree(vps);
+
+        xstuff->npoints_requested = 0;
+        xstuff->collect_points = FALSE;
+        xstuff->npoints = 0;
+        set_cursor(grace->gui, -1);
+
+        xdrawgraph(grace->project, TRUE);
     }
 }
 
@@ -829,24 +883,152 @@ void switch_current_graph(Quark *gr)
     }
 }
 
-/*
- * action callback
- */
-void set_actioncb(Widget but, void *data)
+static int zoom_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
+    Grace *grace = (Grace *) data;
+    world w;
+    Quark *cg = graph_get_current(grace->project);
+    WPoint wp;
+    
+    if (!cg || npoints != 2) {
+        return RETURN_FAILURE;
+    }
+    
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+    w.xg1 = wp.x;
+    w.yg1 = wp.y;
+    Vpoint2Wpoint(cg, &vps[1], &wp);
+    w.xg2 = wp.x;
+    w.yg2 = wp.y;
+    
+    if (w.xg1 > w.xg2) {
+        fswap(&w.xg1, &w.xg2);
+    }
+    if (w.yg1 > w.yg2) {
+        fswap(&w.yg1, &w.yg2);
+    }
+    
+    return graph_set_world(cg, &w);
 }
 
-/*
- * set the action_flag to the desired action (actions are
- * defined in defines.h), if 0 then cleanup the results
- * from previous actions.
- */
-void set_action(CanvasAction act)
+static int zoomx_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
+    Grace *grace = (Grace *) data;
+    world w;
+    Quark *cg = graph_get_current(grace->project);
+    WPoint wp;
+    
+    if (!cg || npoints != 2) {
+        return RETURN_FAILURE;
+    }
+    
+    graph_get_world(cg, &w);
+    
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+    w.xg1 = wp.x;
+    Vpoint2Wpoint(cg, &vps[1], &wp);
+    w.xg2 = wp.x;
+    
+    if (w.xg1 > w.xg2) {
+        fswap(&w.xg1, &w.xg2);
+    }
+    
+    return graph_set_world(cg, &w);
+}
+
+static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
+{
+    Grace *grace = (Grace *) data;
+    world w;
+    Quark *cg = graph_get_current(grace->project);
+    WPoint wp;
+    
+    if (!cg || npoints != 2) {
+        return RETURN_FAILURE;
+    }
+    
+    graph_get_world(cg, &w);
+    
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+    w.yg1 = wp.y;
+    Vpoint2Wpoint(cg, &vps[1], &wp);
+    w.yg2 = wp.y;
+    
+    if (w.yg1 > w.yg2) {
+        fswap(&w.yg1, &w.yg2);
+    }
+    
+    return graph_set_world(cg, &w);
+}
+
+static int locator_sink(unsigned int npoints, const VPoint *vps, void *data)
+{
+    Grace *grace = (Grace *) data;
+    Quark *cg = graph_get_current(grace->project);
+    GLocator *gl;
+    WPoint wp;
+
+    if (!cg || npoints != 1) {
+        return RETURN_FAILURE;
+    }
+    
+    Vpoint2Wpoint(cg, &vps[0], &wp);
+
+    gl = graph_get_locator(cg);
+    gl->dsx = wp.x;
+    gl->dsy = wp.y;
+    gl->pointset = TRUE;
+    quark_dirtystate_set(cg, TRUE);
+    
+    return RETURN_SUCCESS;
+}
+
+void set_action(GUI *gui, unsigned int npoints, int seltype,
+    CanvasPointSink sink, void *data)
+{
+    X11Stuff *xstuff = gui->xstuff;
+    
+    xstuff->npoints = 0;
+    xstuff->npoints_requested = npoints;
+    xstuff->point_sink = sink;
+    xstuff->sink_data  = data;
+    xstuff->sel_type = seltype;
+    
+    xstuff->collect_points = TRUE;
+
+    XmProcessTraversal(xstuff->canvas, XmTRAVERSE_CURRENT);
 }
 
 /* -------------------------------------------------------------- */
 /* canvas_actions */
+void set_zoom_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    set_cursor(grace->gui, 0);
+    set_action(grace->gui, 2, SELECTION_TYPE_RECT, zoom_sink, grace);
+}
+
+void set_zoomx_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    set_cursor(grace->gui, 0);
+    set_action(grace->gui, 2, SELECTION_TYPE_VERT, zoomx_sink, grace);
+}
+
+void set_zoomy_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    set_cursor(grace->gui, 0);
+    set_action(grace->gui, 2, SELECTION_TYPE_HORZ, zoomy_sink, grace);
+}
+
+void set_locator_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    set_cursor(grace->gui, 0);
+    set_action(grace->gui, 1, SELECTION_TYPE_NONE, locator_sink, grace);
+}
+
 void autoscale_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
 }

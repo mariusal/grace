@@ -546,10 +546,13 @@ void set_tracker_string(char *s)
  */
 static void do_clear_point(Widget but, void *data)
 {
+    Quark *cg = graph_get_current(grace->project);
     GLocator *locator;
     
-    locator = graph_get_locator(graph_get_current(grace->project));
+    locator = graph_get_locator(cg);
     locator->pointset = FALSE;
+    quark_dirtystate_set(cg, TRUE);
+    
     xdrawgraph(grace->project, FALSE);
 }
 
@@ -712,7 +715,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Set locator fixed point", 'f', set_actioncb, (void *) SEL_POINT);
+    CreateMenuButton(menupane, "Set locator fixed point", 'f', set_locator_cb, (void *) grace);
     CreateMenuButton(menupane, "Clear locator fixed point", 'C', do_clear_point, NULL);
     
     CreateMenuSeparator(menupane);
@@ -997,11 +1000,11 @@ void startup_gui(Grace *grace)
 
     /* zoom */
     bt = CreateBitmapButton(rcleft, 16, 16, zoom_bits);
-    AddButtonCB(bt, set_actioncb, (void *) ZOOM_1ST);
+    AddButtonCB(bt, set_zoom_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, zoom_x_bits);
-    AddButtonCB(bt, set_actioncb, (void *) ZOOMX_1ST);
+    AddButtonCB(bt, set_zoomx_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, zoom_y_bits);
-    AddButtonCB(bt, set_actioncb, (void *) ZOOMY_1ST);
+    AddButtonCB(bt, set_zoomy_cb, (void *) grace);
 
     CreateSeparator(rcleft);
 
@@ -1146,3 +1149,4 @@ static void load_example(Widget but, void *data)
 
     unset_wait_cursor();
 }
+

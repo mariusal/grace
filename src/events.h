@@ -38,51 +38,11 @@
 #include <config.h>
 
 #include "grace.h"
+#include "xprotos.h"
 
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 
-/* for canvas event proc */
-typedef enum {
-    DO_NOTHING,
-    ZOOM_1ST,
-    ZOOM_2ND,
-    VIEW_1ST,
-    VIEW_2ND,
-    STR_LOC,
-    PLACE_LEGEND_1ST,
-    PLACE_LEGEND_2ND,
-    DEL_POINT,
-    MOVE_POINT1ST,
-    MOVE_POINT2ND,
-    ADD_POINT,
-    DEL_OBJECT,
-    MOVE_OBJECT_1ST,
-    MOVE_OBJECT_2ND,
-    MAKE_BOX_1ST,
-    MAKE_BOX_2ND,
-    MAKE_LINE_1ST,
-    MAKE_LINE_2ND,
-    MAKE_ELLIP_1ST,
-    MAKE_ELLIP_2ND,
-    SEL_POINT,
-    COMP_AREA,
-    COMP_PERIMETER,
-    TRACKER,
-    DEF_REGION,
-    DEF_REGION1ST,
-    DEF_REGION2ND,
-    EDIT_OBJECT,
-    COPY_OBJECT1ST,
-    COPY_OBJECT2ND,
-    AUTO_NEAREST,
-    ZOOMX_1ST,
-    ZOOMX_2ND,
-    ZOOMY_1ST,
-    ZOOMY_2ND,
-    DISLINE1ST,
-    DISLINE2ND
-} CanvasAction;
 
 /* add points at */
 #define ADD_POINT_BEGINNING 0
@@ -101,13 +61,20 @@ typedef enum {
 #define CLICK_DIST 10
 
 #define MAXPICKDIST 0.015      /* the maximum distance away from an object */
-                              /* you may be when picking it (in viewport  */
-                              /* coordinates)                             */  
+                               /* you may be when picking it (in viewport  */
+                               /* coordinates)                             */  
+
+/* selection type */
+#define SELECTION_TYPE_NONE 0
+#define SELECTION_TYPE_RECT 1
+#define SELECTION_TYPE_VERT 2
+#define SELECTION_TYPE_HORZ 3
+/* #define SELECTION_TYPE_POLY 4 */
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
 void anchor_point(int curx, int cury, VPoint curvp);
-void set_actioncb(Widget but, void *data);
-void set_action(CanvasAction act);
+void set_action(GUI *gui, unsigned int npoints, int seltype,
+    CanvasPointSink sink, void *data);
 void track_point(Quark *pset, int *loc, int shift);
 void update_locator_lab(Quark *cg, VPoint *vpp);
 void set_stack_message(void);
@@ -125,6 +92,11 @@ int find_insert_location(Quark *pset, VPoint vp);
 int find_point(Quark *gr, VPoint vp, Quark **pset, int *loc);
 void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
+
+void set_zoom_cb(Widget but, void *data);
+void set_zoomx_cb(Widget but, void *data);
+void set_zoomy_cb(Widget but, void *data);
+void set_locator_cb(Widget but, void *data);
 
 /* action routines */
 void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );
