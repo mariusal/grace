@@ -52,6 +52,16 @@ Device_entry *device_new(const char *name, int type, int twopass, void *data)
     return d;
 }
 
+void device_free(Device_entry *d)
+{
+    if (d) {
+        /* FIXME: d->data!!! */
+        xfree(d->name);
+        xfree(d->fext);
+        xfree(d);
+    }
+}
+
 int device_set_procs(Device_entry *d,
     DevInitProc          initgraphics,
     DevLeaveGraphicsProc leavegraphics,

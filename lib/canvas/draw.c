@@ -213,9 +213,7 @@ Canvas *canvas_new(void)
 void canvas_free(Canvas *canvas)
 {
     if (canvas) {
-        /* FIXME!!! */
-        /* free_devices(); */
-        
+        /* free fonts */
         while (canvas->nfonts) {
             FontDB *f = &canvas->FontDBtable[canvas->nfonts - 1];
             xfree(f->alias);
@@ -223,14 +221,25 @@ void canvas_free(Canvas *canvas)
         }
         xfree(canvas->FontDBtable);
         
+        /* free colors, patterns, linestyles */
         realloc_colors(canvas, 0);
         realloc_patterns(canvas, 0);
         realloc_linestyles(canvas, 0);
         
+        /* free devices */
+        while (canvas->ndevices) {
+            Device_entry *d = canvas->device_table[canvas->ndevices - 1];
+            device_free(d);
+            canvas->ndevices--;
+        }
+        xfree(canvas->device_table);
+        
+        /* free some strings */
         xfree(canvas->username);
         xfree(canvas->docname);
         xfree(canvas->description);
         
+        /* ... and the structure itself */
         xfree(canvas);
     }
 }
