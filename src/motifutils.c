@@ -2892,7 +2892,6 @@ static int nset_selectors = 0;
 #define SSS_NEWF_CB          2
 #define SSS_NEWS_CB          3
 #define SSS_NEWE_CB          4
-#define SSS_NEWB_CB          5
 
 typedef struct {
     StorageStructure *graphss;
@@ -2953,9 +2952,6 @@ static void sss_any_cb(void *udata, int cbtype)
             do_ext_editor(pset);
         }
         break;
-    case SSS_NEWB_CB:
-        create_eblock_frame(gr);
-        break;
     }
     
     if (n > 0) {
@@ -2988,11 +2984,6 @@ static void s_newS_cb(Widget but, void *udata)
 static void s_newE_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_NEWE_CB);
-}
-
-static void s_newB_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_NEWB_CB);
 }
 
 static void s_popup_cb(StorageStructure *ss, int nselected)
@@ -3069,7 +3060,6 @@ StorageStructure *CreateSetChoice(Widget parent,
     CreateMenuButton(submenupane, "By formula", '\0', s_newF_cb, ss);
     CreateMenuButton(submenupane, "In spreadsheet", '\0', s_newS_cb, ss);
     CreateMenuButton(submenupane, "In text editor", '\0', s_newE_cb, ss);
-    CreateMenuButton(submenupane, "From block data", '\0', s_newB_cb, ss);
 
     UpdateSetChoice(ss);
     

@@ -40,7 +40,7 @@ GROBJS =  main$(O) grace$(O) project_utils$(O) \
 #
 
 GUISRCS =  Tab.c ListTree.c motifutils.c \
-	compwin.c eblockwin.c \
+	compwin.c \
 	editpwin.c events.c fileswin.c \
 	helpwin.c \
 	miscwin.c monwin.c \
@@ -51,7 +51,7 @@ GUISRCS =  Tab.c ListTree.c motifutils.c \
         atext_ui.c region_ui.c worldwin.c fontwin.c xutil.c x11drv.c xmgrace.c
 
 GUIOBJS =  Tab$(O) ListTree$(O) motifutils$(O) \
-	compwin$(O) eblockwin$(O) \
+	compwin$(O) \
 	editpwin$(O) events$(O) fileswin$(O) \
 	helpwin$(O) \
 	miscwin$(O) monwin$(O) \

@@ -146,8 +146,6 @@ void create_saveproject_popup(void);
 void create_openproject_popup(void);
 void create_write_popup(Widget but, void *data);
 
-void create_eblock_frame(Quark *gr);
-
 void create_printer_setup(Widget but, void *data);
 
 void create_eval_frame(Widget but, void *data);

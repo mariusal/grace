@@ -436,7 +436,6 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
         case QFlavorGraph:
-            SetSensitive(ui->insert_set_bt,      TRUE);
             SetSensitive(ui->insert_axisgrid_bt, TRUE);
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
@@ -446,6 +445,11 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         case QFlavorAxis:
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
+        }
+        
+        if (get_parent_ssd(q) &&
+            (fid == QFlavorGraph || fid == QFlavorSSD)) {
+            SetSensitive(ui->insert_set_bt,      TRUE);
         }
     } else {
         SetSensitive(ui->idstr->form, FALSE);
@@ -691,6 +695,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
 {
     ListTreeMultiReturnStruct ret;
     int count, i;
+    Quark *qnew = NULL;
     
     ListTreeGetHighlighted(eui->tree, &ret);
     count = ret.count;
@@ -739,36 +744,40 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             quark_copy(q);
             break;
         case ADD_FRAME_CB:
-            frame_new(q);
+            qnew = frame_new(q);
             break;
         case ADD_GRAPH_CB:
-            graph_new(q);
+            qnew = graph_new(q);
             break;
         case ADD_SET_CB:
-            grace_set_new(q);
+            qnew = grace_set_new(q);
             break;
         case ADD_AXISGRID_CB:
-            axisgrid_new(q);
+            qnew = axisgrid_new(q);
             break;
         case ADD_AXIS_CB:
-            axis_new(q);
+            qnew = axis_new(q);
             break;
         case ADD_LINE_CB:
-            object_new_complete(q, DO_LINE);
+            qnew = object_new_complete(q, DO_LINE);
             break;
         case ADD_BOX_CB:
-            object_new_complete(q, DO_BOX);
+            qnew = object_new_complete(q, DO_BOX);
             break;
         case ADD_ARC_CB:
-            object_new_complete(q, DO_ARC);
+            qnew = object_new_complete(q, DO_ARC);
             break;
         case ADD_TEXT_CB:
-            atext_new(q);
+            qnew = atext_new(q);
             break;
         }
     }
     
     snapshot_and_update(grace->project, TRUE);
+    
+    if (qnew) {
+        SelectQuarkTreeItem(eui->tree, eui->project, qnew);
+    }
 }
 
 static void hide_cb(Widget but, void *udata)

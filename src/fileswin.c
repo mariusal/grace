@@ -212,9 +212,6 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         
         getdata(grace->project, filename, grace->rt->cursource, load);
 
-	if (load == LOAD_BLOCK) {
-            create_eblock_frame(gr);
-        }
         snapshot_and_update(gr, TRUE);
     }
     /* never close the popup */
