@@ -296,7 +296,7 @@ XFile *xfile_new(char *fname)
 
 static int xfile_output(XFile *xf, char *str)
 {
-    int i, nb, len;
+    int i, nb;
     
     if (xf->curpos == 0) {
         for (i = 0; i < xf->indent; i++) {
@@ -310,12 +310,17 @@ static int xfile_output(XFile *xf, char *str)
     
     nb = fputs(str, xf->fp);
     if (nb >= 0) {
-        len = strlen(str);
-        if (len && str[len - 1] == '\n') {
-            xf->curpos = 0;
-        } else {
-            xf->curpos += nb;
-        }
+        xf->curpos += nb;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static int xfile_crlf(XFile *xf)
+{
+    if (fputc('\n', xf->fp) != EOF) {
+        xf->curpos = 0;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -325,7 +330,7 @@ static int xfile_output(XFile *xf, char *str)
 static int xfile_indent_increment(XFile *xf)
 {
     if (xf->curpos > 0) {
-        xfile_output(xf, "\n");
+        xfile_crlf(xf);
     }
     xf->indent++;
     return RETURN_SUCCESS;
@@ -335,7 +340,7 @@ static int xfile_indent_decrement(XFile *xf)
 {
     if (xf->indent > 0) {
         if (xf->curpos > 0) {
-            xfile_output(xf, "\n");
+            xfile_crlf(xf);
         }
         xf->indent--;
         return RETURN_SUCCESS;
@@ -365,7 +370,8 @@ int xfile_processing_instruction(XFile *xf, Attributes *attrs)
 {
     xfile_output(xf, "<?xml");
     xfile_output_attributes(xf, attrs);
-    xfile_output(xf, "?>\n");
+    xfile_output(xf, "?>");
+    xfile_crlf(xf);
     
     return RETURN_SUCCESS;
 }
@@ -375,7 +381,7 @@ int xfile_begin_element(XFile *xf, char *name, Attributes *attrs)
     xfile_output(xf, "<");
     xfile_output(xf, name);
     xfile_output_attributes(xf, attrs);
-    xfile_output(xf, ">\n");
+    xfile_output(xf, ">");
     xfile_indent_increment(xf);
     
     if (xstack_increment(xf->tree, name, NULL) != RETURN_SUCCESS) {
@@ -391,7 +397,8 @@ int xfile_end_element(XFile *xf, char *name)
     xfile_indent_decrement(xf);
     xfile_output(xf, "</");
     xfile_output(xf, name);
-    xfile_output(xf, ">\n");
+    xfile_output(xf, ">");
+    xfile_crlf(xf);
     
     if (xstack_decrement(xf->tree, name) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
@@ -405,7 +412,8 @@ int xfile_empty_element(XFile *xf, char *name, Attributes *attrs)
     xfile_output(xf, "<");
     xfile_output(xf, name);
     xfile_output_attributes(xf, attrs);
-    xfile_output(xf, "/>\n");
+    xfile_output(xf, "/>");
+    xfile_crlf(xf);
     
     return RETURN_SUCCESS;
 }
@@ -425,7 +433,8 @@ int xfile_text_element(XFile *xf, char *name, Attributes *attrs, char *text)
 
         xfile_output(xf, "</");
         xfile_output(xf, name);
-        xfile_output(xf, ">\n");
+        xfile_output(xf, ">");
+        xfile_crlf(xf);
 
         return RETURN_SUCCESS;
     }
@@ -466,7 +475,8 @@ int xfile_begin(XFile *xf, char *encoding, int standalone,
         }
         xfile_output(xf, "\"");
         xfile_output(xf, dtd_uri);
-        xfile_output(xf, "\">\n");
+        xfile_output(xf, "\">");
+        xfile_crlf(xf);
     }
     
     xfile_begin_element(xf, root, root_attrs);
@@ -490,7 +500,8 @@ int xfile_comment(XFile *xf, char *comment)
 {
     xfile_output(xf, "<!-- ");
     xfile_output(xf, comment);
-    xfile_output(xf, " -->\n");
+    xfile_output(xf, " -->");
+    xfile_crlf(xf);
     
     return RETURN_SUCCESS;
 }
