@@ -64,6 +64,10 @@ extern double MAXNUM;
 #  define M_SQRT1_2   0.70710678118654752440      /* 1/sqrt(2) */
 #endif
 
+#ifndef M_SQRT1_3
+#  define M_SQRT1_3   0.57735026918962576451      /* 1/sqrt(3) */
+#endif
+
 #ifndef HAVE_HYPOT
 #  define hypot(x, y) sqrt((x)*(x) + (y)*(y))
 #endif
