@@ -2774,6 +2774,103 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
         XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
+Widget CreateDialogForm(Widget parent, char *s)
+{
+    Widget dialog, w;
+    char *bufp;
+    
+    bufp = label_to_resname(s, "Dialog");
+    dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
+    xfree(bufp);
+    
+    handle_close(dialog);
+
+    bufp = copy_string(NULL, "Grace: ");
+    bufp = concat_strings(bufp, s);
+    XtVaSetValues(dialog,
+        XmNallowShellResize, True,
+        XmNtitle, bufp,
+        NULL);
+    xfree(bufp);
+
+    w = XmCreateForm(dialog, "dialog_form", NULL, 0);
+    XtVaSetValues(w, XmNresizePolicy, XmRESIZE_ANY, NULL);
+    
+    return w;
+}
+
+
+typedef struct {
+    Widget form;
+    int close;
+    int (*cbproc)();
+    void *anydata;
+} AACDialog_CBdata;
+
+void aacdialog_int_cb_proc(void *data)
+{
+    AACDialog_CBdata *cbdata;
+    int retval;
+    
+    set_wait_cursor();
+
+    cbdata = (AACDialog_CBdata *) data;
+    
+    retval = cbdata->cbproc(cbdata->anydata);
+
+    if (cbdata->close && retval == RETURN_SUCCESS) {
+        XtUnmanageChild(XtParent(cbdata->form));
+    }
+    
+    unset_wait_cursor();
+}
+
+void CreateAACDialog(Widget form,
+    Widget container, AACDialog_CBProc cbproc, void *data)
+{
+    Widget fr, aacbut[3];
+    AACDialog_CBdata *cbdata_accept, *cbdata_apply;
+    char *aaclab[3] = {"Apply", "Accept", "Close"};
+
+    fr = CreateFrame(form, NULL);
+    XtVaSetValues(fr,
+        XmNtopAttachment, XmATTACH_NONE,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        NULL);
+    CreateCommandButtons(fr, 3, aacbut, aaclab);
+
+    XtVaSetValues(container,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_WIDGET,
+        XmNbottomWidget, fr,
+        NULL);
+    
+    XtVaSetValues(form, XmNcancelButton, aacbut[2], NULL);
+    
+    cbdata_accept = xmalloc(sizeof(AACDialog_CBdata));
+    cbdata_accept->form    = form;
+    cbdata_accept->anydata = data;
+    cbdata_accept->cbproc  = cbproc;
+    cbdata_accept->close   = TRUE;
+
+    cbdata_apply  = xmalloc(sizeof(AACDialog_CBdata));
+    cbdata_apply->form     = form;
+    cbdata_apply->anydata  = data;
+    cbdata_apply->cbproc   = cbproc;
+    cbdata_apply->close    = FALSE;
+
+    AddButtonCB(aacbut[0], aacdialog_int_cb_proc, cbdata_apply);
+    AddButtonCB(aacbut[1], aacdialog_int_cb_proc, cbdata_accept);
+    AddButtonCB(aacbut[2], destroy_dialog_cb, XtParent(form));
+    
+    XtManageChild(container);
+    XtManageChild(form);
+}
+
 
 Widget CreateFrame(Widget parent, char *s)
 {

@@ -217,6 +217,12 @@ typedef void (*List_CBProc)(
     void *               /* data the application registered */
 );
 
+/* AAC Dialog CB procedure */
+typedef int (*AACDialog_CBProc)(
+    void *               /* data the application registered */
+);
+
+Widget CreateDialogForm(Widget parent, char *s);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateSeparator(Widget parent);
@@ -242,6 +248,9 @@ Widget CreateButton(Widget parent, char *label);
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
+
+void CreateAACDialog(Widget form,
+    Widget container, AACDialog_CBProc cbproc, void *data);
 
 Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb);
 
