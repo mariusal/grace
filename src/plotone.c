@@ -1238,7 +1238,11 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     WPoint wp1, wp2, wp3, wp4;
     VPoint vp1, vp2;
     int stacked_chart;
-
+    
+    if (p->errbar.active != TRUE) {
+        return;
+    }
+    
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
         n = MIN2(p->data.len, refn);

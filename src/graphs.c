@@ -1211,6 +1211,9 @@ void postprocess_project(int version)
             g[gno].l.vgap -= 1;
         }
 	for (setno = 0; setno < number_of_sets(gno); setno++) {
+            if (version < 50003) {
+                g[gno].p[setno].errbar.active = TRUE;
+            }
             if (version < 50002) {
                 g[gno].p[setno].errbar.length *= 2;
             }
