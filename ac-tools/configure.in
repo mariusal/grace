@@ -34,7 +34,6 @@ AC_SUBST(JPEG_LIB)
 AC_SUBST(PNG_LIB)
 AC_SUBST(TIFF_LIB)
 AC_SUBST(PDF_LIB)
-AC_SUBST(PDFDRV_O)
 AC_SUBST(GRACE_EDITOR)
 AC_SUBST(XBAE_INC)
 AC_SUBST(HELPVIEWER)
@@ -529,7 +528,7 @@ esac],[pdfdrv=true])
 
 case $pdfdrv in
   true) AC_CHECK_LIB(pdf, PDF_show2,
-        PDF_LIB="-lpdf";PDFDRV_O='pdfdrv$(O)';AC_DEFINE(HAVE_LIBPDF),,
+        PDF_LIB="-lpdf";AC_DEFINE(HAVE_LIBPDF),,
         $TIFF_LIB $JPEG_LIB $PNG_LIB $Z_LIB);;
   *);;
 esac

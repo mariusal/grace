@@ -70,9 +70,6 @@ TIFF_LIB=-ltiff
 # PDFlib library
 PDF_LIB=-lpdf
 
-# PDF driver
-PDFDRV_O=pdfdrv.o
-
 # Xbae include path
 #XBAE_INC=-I../Xbae
 XBAE_INC=

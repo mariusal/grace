@@ -502,10 +502,8 @@ $ ENDIF
 $ IF (PDFLIB .NES. "")
 $ THEN
 $   PDF_LIB = "," + PDFLIB + "/LIBRARY"
-$   PDFDRV_O = "pdfdrv$(O)"
 $ ELSE
 $   PDF_LIB = ""
-$   PDFDRV_O = ""
 $ ENDIF
 $ XBAE_INC = "[-.XBAE.XBAE]"
 $ YACC = ""

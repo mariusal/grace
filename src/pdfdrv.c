@@ -31,6 +31,9 @@
  */
 
 #include <config.h>
+
+#ifdef HAVE_LIBPDF
+
 #include <cmath.h>
 
 #include <stdio.h>
@@ -540,3 +543,7 @@ static void pdf_error_handler(PDF *p, int type, const char* msg)
         return;
     }
 }
+
+#else /* No PDFlib */
+void _pdfdrv_c_dummy_func(void) {}
+#endif

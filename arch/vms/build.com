@@ -110,9 +110,8 @@ $ SRCS = "main plotone files ssdata utils drawticks " -
        + "objutils computils defaults params " -
        + "compute draw dlmodule pars missing " -
        + "iofilters dates t1fonts device " -
-       + "dummydrv mfdrv psdrv gd rstdrv"
+       + "dummydrv mfdrv psdrv pdfdrv gd rstdrv"
 $ IF (ALLOCA .NES. "") THEN SRCS = SRCS + " alloca"
-$ IF (PDFDRV_O .NES. "") THEN SRCS = SRCS + " pdfdrv"
 $ GOSUB COMPILE
 $ SRCS = "Tab motifutils " -
        + "compwin comwin eblockwin " -
