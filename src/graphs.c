@@ -167,8 +167,8 @@ void graph_data_free(graph *g)
     if (g) {
         int j;
         
-        XCFREE(g->labs.title.s);
-        XCFREE(g->labs.stitle.s);
+        xfree(g->labs.title.s);
+        xfree(g->labs.stitle.s);
         
         for (j = 0; j < MAXAXES; j++) {
             free_graph_tickmarks(g->t[j]);
@@ -308,14 +308,14 @@ void free_graph_tickmarks(tickmarks *t)
     if (t) {
         int i;
 
-        XCFREE(t->label.s);
-        XCFREE(t->tl_formula);
+        xfree(t->label.s);
+        xfree(t->tl_formula);
         
         for (i = 0; i < MAX_TICKS; i++) {
-            XCFREE(t->tloc[i].label);
+            xfree(t->tloc[i].label);
         }
         
-        XCFREE(t);
+        xfree(t);
     }
 }
 
