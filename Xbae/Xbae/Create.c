@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Create.c,v 1.2 2000-09-06 22:20:57 fnevgeny Exp $
+ * $Id: Create.c,v 1.3 2001-12-26 21:39:46 fnevgeny Exp $
  */
 
 /*
@@ -835,10 +835,7 @@ XbaeMatrixWidget mw;
     
     if (!stipple)
     {
-	stipple = malloc(maxScreens*sizeof(Pixmap));
-        if (!stipple) {
-            return (Pixmap) NULL;
-        }
+	stipple = (Pixmap *) XtMalloc(maxScreens*sizeof(Pixmap));
         for (i = 0 ; i < maxScreens ; i++)
 	    stipple[i] = XCreatePixmapFromBitmapData(
 		dpy, RootWindow(dpy,i), stippleBits, 2, 2, 0, 1, 1);
