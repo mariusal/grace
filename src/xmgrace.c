@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -641,6 +641,10 @@ static Widget CreateMainMenuBar(Widget parent)
     	    (XtCallbackProc) create_define_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "clear", "Clear...", 'C',
     	    (XtCallbackProc) create_clear_frame, (XtPointer) NULL, 0);
+    CreateMenuSeparator(submenupane);
+    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
+    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
+
 
     CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
     	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
@@ -667,24 +671,10 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "dataSetOperationsMenu", "Data set operations...", 'o',
     	    (XtCallbackProc) create_datasetop_popup, (XtPointer) NULL, 0);
 
-    submenupane = CreateMenu(menupane, "regionOperationsMenu", 
-    				"Region operations", 'i', NULL, NULL);
-    CreateMenuButton(submenupane, "extractSets", "Extract sets...", 's',
-    	    (XtCallbackProc) create_extractsets_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "killSets", "Kill sets...", 'K',
-    	    (XtCallbackProc) create_deletesets_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
-    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
-    	    
     submenupane = CreateMenu(menupane, "transformationsMenu", "Transformations", 'T', NULL, NULL);
-
 
     CreateMenuButton(submenupane, "evaluateExpression", "Evaluate expression...", 'E',
     	    (XtCallbackProc) create_eval_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "evaluate", "Evaluate in R...", 'E',
-    	    (XtCallbackProc) create_evalregion_frame, (XtPointer) NULL, 0);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "histograms", "Histograms...", 'H',
     	    (XtCallbackProc) create_histo_frame, (XtPointer) NULL, 0);
@@ -721,15 +711,11 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "samplePoints", "Sample points...", 'm',
     	    (XtCallbackProc) create_samp_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "extractPoints", "Extract points in R...", 'p',
-    	    (XtCallbackProc) create_extract_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "deletePoints", "Delete points in R...", 'o',
-    	    (XtCallbackProc) create_delete_frame, (XtPointer) NULL, 0);
-    CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "featureExtraction", "Feature extraction...", 'x',
-    	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
     	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
+
+    CreateMenuButton(menupane, "featureExtraction", "Feature extraction...", 'x',
+    	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
 
 /* Plot menu */
     menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
