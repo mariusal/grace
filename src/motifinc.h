@@ -186,6 +186,12 @@ typedef void (*Button_CBProc)(
     void *               /* data the application registered */
 );
 
+/* List CB procedure */
+typedef void (*List_CBProc)(
+    int n,               /* # of items selected */
+    int *values,         /* list of values of the selected items */
+    void *               /* data the application registered */
+);
 
 Widget CreateFrame(Widget parent, char *s);
 
@@ -230,7 +236,7 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices);
 void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items);
 int GetListChoices(ListStructure *listp, int **values);
 int GetSingleListChoice(ListStructure *listp, int *value);
-void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb);
+void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata);
 
 void list_selectall(Widget list);
 void list_unselectall(Widget list);

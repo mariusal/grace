@@ -505,11 +505,40 @@ int GetSingleListChoice(ListStructure *listp, int *value)
     return retval;
 }
 
-void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb)
+typedef struct {
+    ListStructure *listp;
+    void (*cbproc)();
+    void *anydata;
+} List_CBdata;
+
+static void list_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XtAddCallback(listp->list, XmNsingleSelectionCallback, cb, listp);
-    XtAddCallback(listp->list, XmNmultipleSelectionCallback, cb, listp);
-    XtAddCallback(listp->list, XmNextendedSelectionCallback, cb, listp);
+    int n, *values;
+    List_CBdata *cbdata = (List_CBdata *) client_data;
+ 
+    n = GetListChoices(cbdata->listp, &values);
+    
+    cbdata->cbproc(n, values, cbdata->anydata);
+
+    if (n > 0) {
+        free(values);
+    }
+}
+
+void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
+{
+    List_CBdata *cbdata;
+    
+    cbdata = malloc(sizeof(List_CBdata));
+    cbdata->listp = listp;
+    cbdata->cbproc = (List_CBProc) cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(listp->list,
+        XmNsingleSelectionCallback,   list_int_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(listp->list,
+        XmNmultipleSelectionCallback, list_int_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(listp->list,
+        XmNextendedSelectionCallback, list_int_cb_proc, (XtPointer) cbdata);
 }
 
 
