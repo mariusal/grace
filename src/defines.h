@@ -49,7 +49,7 @@
 
 
 #define MAXAXES 4               /* max number of axes per graph */
-#define MAX_TICKS 100           /* max number of ticks/labels per axis */
+#define MAX_TICKS 256           /* max number of ticks/labels per axis */
 #define MAXREGION 5             /* max number of regions */
 
 #define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
