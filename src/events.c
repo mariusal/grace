@@ -860,7 +860,7 @@ void getpoints(VPoint *vpp)
         break;
     case 3:
         if (dsx - wx != 0.0 || dsy - wy != 0.0) {
-            xy2polar(dsx - wx, dsy - wy, &xtmp, &ytmp);
+            xy2polar(wx - dsx, wy - dsy, &xtmp, &ytmp);
         } else {
             xtmp = 0.0;
             ytmp = 0.0;
