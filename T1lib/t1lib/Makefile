@@ -6,33 +6,34 @@ include $(TOP)/Make.conf
 .SUFFIXES : .c $(O)
 
 OBJS = \
-	t1finfo.o \
-	t1base.o \
-	t1delete.o \
-	t1enc.o \
-	t1env.o \
-	t1load.o \
-	t1set.o \
-	t1trans.o \
-	t1aaset.o \
-	t1afmtool.o \
-	parseAFM.o 
+	t1finfo$(O) \
+	t1base$(O) \
+	t1delete$(O) \
+	t1enc$(O) \
+	t1env$(O) \
+	t1load$(O) \
+	t1set$(O) \
+	t1trans$(O) \
+	t1aaset$(O) \
+	t1afmtool$(O) \
+	t1outline$(O) \
+	parseAFM$(O) 
 
 
-all: $(OBJS)
+all : $(OBJS)
 
 
-.PHONY: clean
+.PHONY : clean
 
-clean: dummy
-	$(RM) *.o
+clean : dummy
+	$(RM) *$(O)
 	$(RM) *~ *.bak \#*\#
 
 
-install: dummy
+install : dummy
 
 
-dummy:
+dummy :
 
 
 # Dependencies of object files 

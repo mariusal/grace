@@ -8,38 +8,38 @@ include $(TOP)/Make.conf
 # targets to build: 
 
 OBJS = \
-	arith.o \
-	curves.o \
-	fontfcn.o \
-	hints.o \
-	lines.o \
-	objects.o \
-	paths.o \
-	regions.o \
-	scanfont.o \
-	spaces.o \
-	t1io.o \
-	t1snap.o \
-	t1stub.o \
-	token.o \
-	type1.o \
-	util.o 
+	arith$(O) \
+	curves$(O) \
+	fontfcn$(O) \
+	hints$(O) \
+	lines$(O) \
+	objects$(O) \
+	paths$(O) \
+	regions$(O) \
+	scanfont$(O) \
+	spaces$(O) \
+	t1io$(O) \
+	t1snap$(O) \
+	t1stub$(O) \
+	token$(O) \
+	type1$(O) \
+	util$(O) 
 
 
-all: $(OBJS)
+all : $(OBJS)
 
 
-.PHONY: clean
+.PHONY : clean
 
-clean: dummy
-	$(RM) *.o
+clean : dummy
+	$(RM) *$(O)
 	$(RM) *~ *.bak \#*\#
 
 
-install: dummy
+install : dummy
 
 
-dummy:
+dummy :
 
 
 # Dependencies of object files 
