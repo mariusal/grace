@@ -107,7 +107,7 @@ int formula(int gno, int selset, char *sscanstr)
 	
     oldcg = get_cg();         /* kludge to get around not being able to set result graph */ 
     select_graph(gno);
-    scanner(sscanstr, xtmp, ytmp, lenset, ax, bx, cx, dx, MAXARR, i, selset, &errpos);
+    scanner(sscanstr, xtmp, ytmp, lenset, ax, bx, cx, dx, maxarr, i, selset, &errpos);
     select_graph(oldcg);
 
     if (!errpos) {

@@ -196,8 +196,6 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "Max scratch array length = %d", MAXARR);
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "Max number of lines = %d", maxlines);
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "Max number of boxes = %d", maxboxes);

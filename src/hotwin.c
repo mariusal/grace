@@ -193,7 +193,7 @@ void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data)
 		strcpy(hotcom, xv_getstr(hotlink_command));
 		if( hotcom[0] != '\0' )
 			scanner( hotcom, getx(get_cg(), curset), gety(get_cg(), curset),
-				getsetlength(get_cg(), curset), ax, bx, cx, dx, MAXARR, 0, curset, 
+				getsetlength(get_cg(), curset), ax, bx, cx, dx, maxarr, 0, curset, 
 	    														&errpos);
 	}
 	

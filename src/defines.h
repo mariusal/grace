@@ -74,7 +74,7 @@
 
 
 #ifndef MAXARR
-#  define MAXARR 20000          /* max elements in an array */
+#  define MAXARR 1000           /* startup max elements in a scratch array */
 #endif
 
 /* symbol types */
