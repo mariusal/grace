@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -171,14 +171,14 @@ void update_hotlinks(void)
  */
 void do_hotupdate_proc(void *data)
 {
-    int i;
+    int gno, setno;
 
     set_wait_cursor();
 
     /* do links */
-    for (i = 0; i < number_of_sets(get_cg()); i++) {
-        if (is_hotlinked(get_cg(), i)) {
-            do_update_hotlink(get_cg(), i);
+    for (gno = 0; gno < number_of_graphs(); gno++) {
+        for (setno = 0; setno < number_of_sets(gno); setno++) {
+            do_update_hotlink(gno, setno);
         }
     }
 
