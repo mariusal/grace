@@ -75,6 +75,9 @@ static int interr;
 static double *freelist[100]; 	/* temporary vectors */
 static int fcnt = 0;		/* number of the temporary vectors allocated */
 
+static target trgt_pool[100]; 	/* pool of temporary targets */
+static int tgtn = 0;		/* number of the temporary targets used */
+
 int naxis = 0;	/* current axis */
 static int curline, curbox, curellipse, curstring;
 /* these guys attempt to avoid reentrancy problems */
@@ -97,6 +100,10 @@ static double *ax = NULL, *bx = NULL, *cx = NULL, *dx = NULL;
 static int whichgraph;
 static int whichset;
 static int lxy;
+
+/* the graph and set of the left part of a vector assignment */
+static int vasgn_gno;
+static int vasgn_setno;
 
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
@@ -154,12 +161,12 @@ symtab_entry *key;
 %}
 
 %union {
-    double val;
-    long ival;
+    long    ival;
+    double  val;
     double *ptr;
-    long func;
-    long pset;
-    char *str;
+    char   *sval;
+    long    func;
+    target *trgt;
 }
 
 %token <func> INDEX
@@ -176,329 +183,327 @@ symtab_entry *key;
 %token <func> FUNC_NND   /* a function of 2 int parameters and 1 double variable    */
 %token <func> FUNC_PPD   /* a function of 2 double parameters and 1 double variable */
 %token <func> FUNC_PPPD  /* a function of 3 double parameters and 1 double variable */
-%token <pset> PROC_CONST
-%token <pset> PROC_UNIT
-%token <pset> PROC_FUNC_I
-%token <pset> PROC_FUNC_D
-%token <pset> PROC_FUNC_NN
-%token <pset> PROC_FUNC_ND
-%token <pset> PROC_FUNC_DD
-%token <pset> PROC_FUNC_NND
-%token <pset> PROC_FUNC_PPD
-%token <pset> PROC_FUNC_PPPD
+%token <ival> PROC_CONST
+%token <ival> PROC_UNIT
+%token <ival> PROC_FUNC_I
+%token <ival> PROC_FUNC_D
+%token <ival> PROC_FUNC_NN
+%token <ival> PROC_FUNC_ND
+%token <ival> PROC_FUNC_DD
+%token <ival> PROC_FUNC_NND
+%token <ival> PROC_FUNC_PPD
+%token <ival> PROC_FUNC_PPPD
 
-%token <pset> ABOVE
-%token <pset> ABSOLUTE
-%token <pset> ALIAS
-%token <pset> ALT
-%token <pset> ALTXAXIS
-%token <pset> ALTYAXIS
-%token <pset> ANGLE
-%token <pset> ANTIALIASING
-%token <pset> APPEND
-%token <pset> ARRANGE
-%token <pset> ARROW
-%token <pset> ASCENDING
-%token <pset> ASPLINE
-%token <pset> AUTO
-%token <pset> AUTOSCALE
-%token <pset> AUTOTICKS
-%token <pset> AVALUE
-%token <pset> AVG
-%token <pset> AXES
-%token <pset> BACKGROUND
-%token <pset> BAR
-%token <pset> BARDY
-%token <pset> BARDYDY
-%token <pset> BASELINE
-%token <pset> BATCH
-%token <pset> BEGIN
-%token <pset> BELOW
-%token <pset> BETWEEN
-%token <pset> BLACKMAN
-%token <pset> BLOCK
-%token <pset> BOTH
-%token <pset> BOTTOM
-%token <pset> BOX
-%token <pset> CD
-%token <pset> CENTER
-%token <pset> CHAR
-%token <pset> CHART
-%token <pset> CHRSTR
-%token <pset> CLEAR
-%token <pset> CLICK
-%token <pset> CLIP
-%token <pset> CLOSE
-%token <pset> COEFFICIENTS
-%token <pset> COLOR
-%token <pset> COMMENT
-%token <pset> COMPLEX
-%token <pset> CONSTRAINTS
-%token <pset> COPY
-%token <pset> CYCLE
-%token <pset> DAYMONTH
-%token <pset> DAYOFWEEKL
-%token <pset> DAYOFWEEKS
-%token <pset> DAYOFYEAR
-%token <pset> DDMMYY
-%token <pset> DECIMAL
-%token <pset> DEF
-%token <pset> DEFAULT
-%token <pset> DEFINE
-%token <pset> DEGREESLAT
-%token <pset> DEGREESLON
-%token <pset> DEGREESMMLAT
-%token <pset> DEGREESMMLON
-%token <pset> DEGREESMMSSLAT
-%token <pset> DEGREESMMSSLON
-%token <pset> DESCENDING
-%token <pset> DESCRIPTION
-%token <pset> DEVICE
-%token <pset> DFT
-%token <pset> DIFFERENCE
-%token <pset> DISK
-%token <pset> DOWN
-%token <pset> DPI
-%token <pset> DROP
-%token <pset> DROPLINE
-%token <pset> ECHO
-%token <pset> ELLIPSE
-%token <pset> ENGINEERING
-%token <pset> ERRORBAR
-%token <pset> EXIT
-%token <pset> EXPONENTIAL
-%token <pset> FFT
-%token <pset> FILEP
-%token <pset> FILL
-%token <pset> FIT
-%token <pset> FIXED
-%token <pset> FIXEDPOINT
-%token <pset> FLUSH
-%token <pset> FOCUS
-%token <pset> FOLLOWS
-%token <pset> FONTP
-%token <pset> FORCE
-%token <pset> FORMAT
-%token <pset> FORMULA
-%token <pset> FRAMEP
-%token <pset> FREE
-%token <pset> FREQUENCY
-%token <pset> FROM
-%token <pset> GENERAL
-%token <pset> GETP
-%token <pset> GRAPHNO
-%token <pset> GRAPHS
-%token <pset> GRID
-%token <pset> HAMMING
-%token <pset> HANNING
-%token <pset> HARDCOPY
-%token <pset> HBAR
-%token <pset> HGAP
-%token <pset> HIDDEN
-%token <pset> HISTO
-%token <pset> HMS
-%token <pset> HORIZI
-%token <pset> HORIZONTAL
-%token <pset> HORIZO
-%token <pset> ID
-%token <pset> IFILTER
-%token <pset> IN
-%token <pset> INCREMENT
-%token <pset> INOUT
-%token <pset> INTEGRATE
-%token <pset> INTERP
-%token <pset> INVDFT
-%token <pset> INVERT
-%token <pset> INVFFT
-%token <pset> JOIN
-%token <pset> JUST
-%token <pset> KILL
-%token <pset> LABEL
-%token <pset> LANDSCAPE
-%token <pset> LAYOUT
-%token <pset> LEFT
-%token <pset> LEGEND
-%token <pset> LENGTH
-%token <pset> LINE
-%token <pset> LINESTYLE
-%token <pset> LINEWIDTH
-%token <pset> LINK
-%token <pset> LOAD
-%token <pset> LOCTYPE
-%token <pset> LOG
-%token <pset> LOGARITHMIC
-%token <pset> LOGX
-%token <pset> LOGXY
-%token <pset> LOGY
-%token <pset> MAGIC
-%token <pset> MAGNITUDE
-%token <pset> MAJOR
-%token <pset> MAP
-%token <pset> MAXP
-%token <pset> MINP
-%token <pset> MINOR
-%token <pset> MMDD
-%token <pset> MMDDHMS
-%token <pset> MMDDYY
-%token <pset> MMDDYYHMS
-%token <pset> MMSSLAT
-%token <pset> MMSSLON
-%token <pset> MMYY
-%token <pset> MONTHDAY
-%token <pset> MONTHL
-%token <pset> MONTHS
-%token <pset> MONTHSY
-%token <pset> MOVE
-%token <pset> NEGATE
-%token <pset> NEW
-%token <pset> NONE
-%token <pset> NONLFIT
-%token <pset> NORMAL
-%token <pset> NXY
-%token <pset> OFF
-%token <pset> OFFSET
-%token <pset> OFFSETX
-%token <pset> OFFSETY
-%token <pset> OFILTER
-%token <pset> ON
-%token <pset> OP
-%token <pset> OPPOSITE
-%token <pset> OUT
-%token <pset> PAGE
-%token <pset> PARA
-%token <pset> PARAMETERS
-%token <pset> PARZEN
-%token <pset> PATTERN
-%token <pset> PERIOD
-%token <pset> PERP
-%token <pset> PHASE
-%token <pset> PIPE
-%token <pset> PLACE
-%token <pset> POINT
-%token <pset> POLAR
-%token <pset> POLYI
-%token <pset> POLYO
-%token <pset> POP
-%token <pset> PORTRAIT
-%token <pset> POWER
-%token <pset> PREC
-%token <pset> PREPEND
-%token <pset> PRINT
-%token <pset> PS
-%token <pset> PUSH
-%token <pset> PUTP
-%token <pset> READ
-%token <pset> REAL
-%token <pset> RECIPROCAL
-%token <pset> REDRAW
-%token <pset> REGNUM
-%token <pset> REGRESS
-%token <pset> REVERSE
-%token <pset> RIGHT
-%token <pset> RISER
-%token <pset> ROT
-%token <pset> ROUNDED
-%token <pset> RULE
-%token <pset> RUNAVG
-%token <pset> RUNMAX
-%token <pset> RUNMED
-%token <pset> RUNMIN
-%token <pset> RUNSTD
-%token <pset> SAVEALL
-%token <pset> SCALE
-%token <pset> SCIENTIFIC
-%token <pset> SCROLL
-%token <pset> SD
-%token <pset> SET
-%token <pset> SETNUM
-%token <pset> SETS
-%token <pset> SFORMAT
-%token <pset> SIGN
-%token <pset> SIZE
-%token <pset> SKIP
-%token <pset> SLEEP
-%token <pset> SMITH 
-%token <pset> SORT
-%token <pset> SOURCE
-%token <pset> SPEC
-%token <pset> SPLINE
-%token <pset> SPLIT
-%token <pset> STACK
-%token <pset> STACKED
-%token <pset> STACKEDBAR
-%token <pset> STACKEDHBAR
-%token <pset> STAGGER
-%token <pset> START
-%token <pset> STOP
-%token <pset> STRING
-%token <pset> SUBTITLE
-%token <pset> SYMBOL
-%token <pset> TARGET
-%token <pset> TICKLABEL
-%token <pset> TICKP
-%token <pset> TICKSP
-%token <pset> TIMER
-%token <pset> TIMESTAMP
-%token <pset> TITLE
-%token <pset> TO
-%token <pset> TOP
-%token <pset> TRIANGULAR
-%token <pset> TYPE
-%token <pset> UP
-%token <pset> USE
-%token <pset> UNLINK
-%token <pset> VERSION
-%token <pset> VERTI
-%token <pset> VERTICAL
-%token <pset> VERTO
-%token <pset> VGAP
-%token <pset> VIEW
-%token <pset> VX1
-%token <pset> VX2
-%token <pset> VXMAX
-%token <pset> VY1
-%token <pset> VY2
-%token <pset> VYMAX
-%token <pset> WELCH
-%token <pset> WITH
-%token <pset> WORLD
-%token <pset> WRITE
-%token <pset> WX1
-%token <pset> WX2
-%token <pset> WY1
-%token <pset> WY2
-%token <pset> X_TOK
-%token <pset> X0
-%token <pset> X1
-%token <pset> XAXES
-%token <pset> XAXIS
-%token <pset> XCOR
-%token <pset> XMAX
-%token <pset> XMIN
-%token <pset> XY
-%token <pset> XYDX
-%token <pset> XYDXDX
-%token <pset> XYDXDXDYDY
-%token <pset> XYDXDY
-%token <pset> XYDY
-%token <pset> XYDYDY
-%token <pset> XYHILO
-%token <pset> XYR
-%token <pset> XYSTRING
-%token <pset> XYZ
-%token <pset> Y_TOK
-%token <pset> Y0
-%token <pset> Y1
-%token <pset> Y2
-%token <pset> Y3
-%token <pset> Y4
-%token <pset> YAXES
-%token <pset> YAXIS
-%token <pset> YMAX
-%token <pset> YMIN
-%token <pset> YYMMDD
-%token <pset> YYMMDDHMS
-%token <pset> ZERO
+%token <ival> ABOVE
+%token <ival> ABSOLUTE
+%token <ival> ALIAS
+%token <ival> ALT
+%token <ival> ALTXAXIS
+%token <ival> ALTYAXIS
+%token <ival> ANGLE
+%token <ival> ANTIALIASING
+%token <ival> APPEND
+%token <ival> ARRANGE
+%token <ival> ARROW
+%token <ival> ASCENDING
+%token <ival> ASPLINE
+%token <ival> AUTO
+%token <ival> AUTOSCALE
+%token <ival> AUTOTICKS
+%token <ival> AVALUE
+%token <ival> AVG
+%token <ival> AXES
+%token <ival> BACKGROUND
+%token <ival> BAR
+%token <ival> BARDY
+%token <ival> BARDYDY
+%token <ival> BASELINE
+%token <ival> BATCH
+%token <ival> BEGIN
+%token <ival> BELOW
+%token <ival> BETWEEN
+%token <ival> BLACKMAN
+%token <ival> BLOCK
+%token <ival> BOTH
+%token <ival> BOTTOM
+%token <ival> BOX
+%token <ival> CD
+%token <ival> CENTER
+%token <ival> CHAR
+%token <ival> CHART
+%token <sval> CHRSTR
+%token <ival> CLEAR
+%token <ival> CLICK
+%token <ival> CLIP
+%token <ival> CLOSE
+%token <ival> COEFFICIENTS
+%token <ival> COLOR
+%token <ival> COMMENT
+%token <ival> COMPLEX
+%token <ival> CONSTRAINTS
+%token <ival> COPY
+%token <ival> CYCLE
+%token <ival> DAYMONTH
+%token <ival> DAYOFWEEKL
+%token <ival> DAYOFWEEKS
+%token <ival> DAYOFYEAR
+%token <ival> DDMMYY
+%token <ival> DECIMAL
+%token <ival> DEF
+%token <ival> DEFAULT
+%token <ival> DEFINE
+%token <ival> DEGREESLAT
+%token <ival> DEGREESLON
+%token <ival> DEGREESMMLAT
+%token <ival> DEGREESMMLON
+%token <ival> DEGREESMMSSLAT
+%token <ival> DEGREESMMSSLON
+%token <ival> DESCENDING
+%token <ival> DESCRIPTION
+%token <ival> DEVICE
+%token <ival> DFT
+%token <ival> DIFFERENCE
+%token <ival> DISK
+%token <ival> DOWN
+%token <ival> DPI
+%token <ival> DROP
+%token <ival> DROPLINE
+%token <ival> ECHO
+%token <ival> ELLIPSE
+%token <ival> ENGINEERING
+%token <ival> ERRORBAR
+%token <ival> EXIT
+%token <ival> EXPONENTIAL
+%token <ival> FFT
+%token <ival> FILEP
+%token <ival> FILL
+%token <ival> FIT
+%token <ival> FIXED
+%token <ival> FIXEDPOINT
+%token <ival> FLUSH
+%token <ival> FOCUS
+%token <ival> FOLLOWS
+%token <ival> FONTP
+%token <ival> FORCE
+%token <ival> FORMAT
+%token <ival> FORMULA
+%token <ival> FRAMEP
+%token <ival> FREE
+%token <ival> FREQUENCY
+%token <ival> FROM
+%token <ival> GENERAL
+%token <ival> GETP
+%token <ival> GRAPHNO
+%token <ival> GRID
+%token <ival> HAMMING
+%token <ival> HANNING
+%token <ival> HARDCOPY
+%token <ival> HBAR
+%token <ival> HGAP
+%token <ival> HIDDEN
+%token <ival> HISTO
+%token <ival> HMS
+%token <ival> HORIZI
+%token <ival> HORIZONTAL
+%token <ival> HORIZO
+%token <ival> ID
+%token <ival> IFILTER
+%token <ival> IN
+%token <ival> INCREMENT
+%token <ival> INOUT
+%token <ival> INTEGRATE
+%token <ival> INTERP
+%token <ival> INVDFT
+%token <ival> INVERT
+%token <ival> INVFFT
+%token <ival> JOIN
+%token <ival> JUST
+%token <ival> KILL
+%token <ival> LABEL
+%token <ival> LANDSCAPE
+%token <ival> LAYOUT
+%token <ival> LEFT
+%token <ival> LEGEND
+%token <ival> LENGTH
+%token <ival> LINE
+%token <ival> LINESTYLE
+%token <ival> LINEWIDTH
+%token <ival> LINK
+%token <ival> LOAD
+%token <ival> LOCTYPE
+%token <ival> LOG
+%token <ival> LOGARITHMIC
+%token <ival> LOGX
+%token <ival> LOGXY
+%token <ival> LOGY
+%token <ival> MAGIC
+%token <ival> MAGNITUDE
+%token <ival> MAJOR
+%token <ival> MAP
+%token <ival> MAXP
+%token <ival> MINP
+%token <ival> MINOR
+%token <ival> MMDD
+%token <ival> MMDDHMS
+%token <ival> MMDDYY
+%token <ival> MMDDYYHMS
+%token <ival> MMSSLAT
+%token <ival> MMSSLON
+%token <ival> MMYY
+%token <ival> MONTHDAY
+%token <ival> MONTHL
+%token <ival> MONTHS
+%token <ival> MONTHSY
+%token <ival> MOVE
+%token <ival> NEGATE
+%token <ival> NEW
+%token <ival> NONE
+%token <ival> NONLFIT
+%token <ival> NORMAL
+%token <ival> NXY
+%token <ival> OFF
+%token <ival> OFFSET
+%token <ival> OFFSETX
+%token <ival> OFFSETY
+%token <ival> OFILTER
+%token <ival> ON
+%token <ival> OP
+%token <ival> OPPOSITE
+%token <ival> OUT
+%token <ival> PAGE
+%token <ival> PARA
+%token <ival> PARAMETERS
+%token <ival> PARZEN
+%token <ival> PATTERN
+%token <ival> PERIOD
+%token <ival> PERP
+%token <ival> PHASE
+%token <ival> PIPE
+%token <ival> PLACE
+%token <ival> POINT
+%token <ival> POLAR
+%token <ival> POLYI
+%token <ival> POLYO
+%token <ival> POP
+%token <ival> PORTRAIT
+%token <ival> POWER
+%token <ival> PREC
+%token <ival> PREPEND
+%token <ival> PRINT
+%token <ival> PS
+%token <ival> PUSH
+%token <ival> PUTP
+%token <ival> READ
+%token <ival> REAL
+%token <ival> RECIPROCAL
+%token <ival> REDRAW
+%token <ival> REGNUM
+%token <ival> REGRESS
+%token <ival> REVERSE
+%token <ival> RIGHT
+%token <ival> RISER
+%token <ival> ROT
+%token <ival> ROUNDED
+%token <ival> RULE
+%token <ival> RUNAVG
+%token <ival> RUNMAX
+%token <ival> RUNMED
+%token <ival> RUNMIN
+%token <ival> RUNSTD
+%token <ival> SAVEALL
+%token <ival> SCALE
+%token <ival> SCIENTIFIC
+%token <ival> SCROLL
+%token <ival> SD
+%token <ival> SET
+%token <ival> SETNUM
+%token <ival> SFORMAT
+%token <ival> SIGN
+%token <ival> SIZE
+%token <ival> SKIP
+%token <ival> SLEEP
+%token <ival> SMITH 
+%token <ival> SORT
+%token <ival> SOURCE
+%token <ival> SPEC
+%token <ival> SPLINE
+%token <ival> SPLIT
+%token <ival> STACK
+%token <ival> STACKED
+%token <ival> STACKEDBAR
+%token <ival> STACKEDHBAR
+%token <ival> STAGGER
+%token <ival> START
+%token <ival> STOP
+%token <ival> STRING
+%token <ival> SUBTITLE
+%token <ival> SYMBOL
+%token <ival> TARGET
+%token <ival> TICKLABEL
+%token <ival> TICKP
+%token <ival> TICKSP
+%token <ival> TIMER
+%token <ival> TIMESTAMP
+%token <ival> TITLE
+%token <ival> TO
+%token <ival> TOP
+%token <ival> TRIANGULAR
+%token <ival> TYPE
+%token <ival> UP
+%token <ival> USE
+%token <ival> UNLINK
+%token <ival> VERSION
+%token <ival> VERTI
+%token <ival> VERTICAL
+%token <ival> VERTO
+%token <ival> VGAP
+%token <ival> VIEW
+%token <ival> VX1
+%token <ival> VX2
+%token <ival> VXMAX
+%token <ival> VY1
+%token <ival> VY2
+%token <ival> VYMAX
+%token <ival> WELCH
+%token <ival> WITH
+%token <ival> WORLD
+%token <ival> WRITE
+%token <ival> WX1
+%token <ival> WX2
+%token <ival> WY1
+%token <ival> WY2
+%token <ival> X_TOK
+%token <ival> X0
+%token <ival> X1
+%token <ival> XAXES
+%token <ival> XAXIS
+%token <ival> XCOR
+%token <ival> XMAX
+%token <ival> XMIN
+%token <ival> XY
+%token <ival> XYDX
+%token <ival> XYDXDX
+%token <ival> XYDXDXDYDY
+%token <ival> XYDXDY
+%token <ival> XYDY
+%token <ival> XYDYDY
+%token <ival> XYHILO
+%token <ival> XYR
+%token <ival> XYSTRING
+%token <ival> XYZ
+%token <ival> Y_TOK
+%token <ival> Y0
+%token <ival> Y1
+%token <ival> Y2
+%token <ival> Y3
+%token <ival> Y4
+%token <ival> YAXES
+%token <ival> YAXIS
+%token <ival> YMAX
+%token <ival> YMIN
+%token <ival> YYMMDD
+%token <ival> YYMMDDHMS
+%token <ival> ZERO
 
 %token <ival> SCRARRAY
 
@@ -507,49 +512,49 @@ symtab_entry *key;
 %token <val> FITPMIN
 %token <val> NUMBER
 
-%type <pset> colpat_obs
-%type <pset> direction
+%type <ival> colpat_obs
+%type <ival> direction
 
-%type <pset> extremetype
+%type <ival> extremetype
 
-%type <pset> filtermethod
-%type <pset> filtertype
+%type <ival> filtermethod
+%type <ival> filtertype
 
-%type <pset> formatchoice
-%type <pset> graphtype
-%type <pset> inoutchoice
-%type <pset> justchoice
-%type <pset> color_select
-%type <pset> pattern_select
-%type <pset> font_select
-%type <pset> lines_select
-%type <pset> onoff
-%type <pset> opchoice
-%type <pset> opchoice_sel
-%type <pset> opchoice_obs
-%type <pset> opchoice_sel_obs
-%type <pset> pagelayout
-%type <pset> pageorient
-%type <pset> regiontype
-%type <pset> runtype
-%type <pset> scaletype
-%type <pset> selectsets
-%type <pset> signchoice
-%type <pset> sourcetype
-%type <pset> vector
-%type <pset> worldview
-%type <pset> xytype
+%type <ival> formatchoice
+%type <ival> graphtype
+%type <ival> inoutchoice
+%type <ival> justchoice
+%type <ival> color_select
+%type <ival> pattern_select
+%type <ival> font_select
+%type <ival> lines_select
+%type <ival> onoff
+%type <ival> opchoice
+%type <ival> opchoice_sel
+%type <ival> opchoice_obs
+%type <ival> opchoice_sel_obs
+%type <ival> pagelayout
+%type <ival> pageorient
+%type <ival> regiontype
+%type <ival> runtype
+%type <ival> scaletype
+%type <trgt> selectset
+%type <ival> signchoice
+%type <ival> sourcetype
+%type <ival> vector
+%type <ival> worldview
+%type <ival> xytype
 
-%type <pset> proctype
+%type <ival> proctype
 
-%type <pset> ffttype
-%type <pset> fourierdata
-%type <pset> fourierloadx
-%type <pset> fourierloady
-%type <pset> nonlfitopts
-%type <pset> sortdir
-%type <pset> sorton
-%type <pset> windowtype
+%type <ival> ffttype
+%type <ival> fourierdata
+%type <ival> fourierloadx
+%type <ival> fourierloady
+%type <ival> nonlfitopts
+%type <ival> sortdir
+%type <ival> sorton
+%type <ival> windowtype
 
 %type <val> expr
 %type <val> linew_select
@@ -559,12 +564,11 @@ symtab_entry *key;
 %type <ptr> vasgn
 
 /* Precedence */
-%right '='
 %nonassoc '?' ':'
-%right UCONSTANT
 %left OR
 %left AND
 %nonassoc GT LT LE GE EQ NE
+%right UCONSTANT
 %left '+' '-'
 %left '*' '/' '%'
 %left UMINUS NOT	/* negation--unary minus */
@@ -630,8 +634,8 @@ expr:	NUMBER {
 		return 1;
 	    }
 	}
-	| SETNUM '.' vector '[' expr ']' {
-	    double *ptr = getcol(whichgraph, $1, $3);
+	| selectset '.' vector '[' expr ']' {
+	    double *ptr = getcol($1->setno, $1->gno, $3);
 	    if (ptr != NULL) {
 		$$ = ptr[(int) $5 - index_shift];
 	    }
@@ -640,60 +644,27 @@ expr:	NUMBER {
 		return 1;
 	    }
 	}
-	| GRAPHNO '.' SETNUM '.' vector '[' expr ']' {
-	    double *ptr = getcol($1, $3, $5);
-	    if (ptr != NULL) {
-		$$ = ptr[(int) $7 - index_shift];
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| SETNUM '.' vector '.' extremetype {
+	| selectset '.' vector '.' extremetype {
 	    double bar, sd;
-	    double *ptr = getcol(whichgraph, $1, $3);
+            int gno = $1->gno, setno = $1->setno;
+	    double *ptr = getcol(gno, setno, $3);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
 	    switch ((int) $5) {
 	    case MINP:
-		$$ = vmin(ptr, getsetlength(whichgraph, $1));
+		$$ = vmin(ptr, getsetlength(gno, setno));
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, getsetlength(whichgraph, $1));
+		$$ = vmax(ptr, getsetlength(gno, setno));
 		break;
             case AVG:
-	        stasum(ptr, getsetlength(whichgraph, $1), &bar, &sd);
+	        stasum(ptr, getsetlength(gno, setno), &bar, &sd);
 	        $$ = bar;
                 break;
             case SD:
-	        stasum(ptr, getsetlength(whichgraph, $1), &bar, &sd);
-                $$ = sd;
-                break;
-	    }
-	}
-	| GRAPHNO '.' SETNUM '.' vector '.' extremetype {
-	    double bar, sd;
-	    double *ptr = getcol($1, $3, $5);
-	    if (ptr == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	    switch ((int) $7) {
-	    case MINP:
-		$$ = vmin(ptr, getsetlength($1, $3));
-		break;
-	    case MAXP:
-		$$ = vmax(ptr, getsetlength($1, $3));
-		break;
-            case AVG:
-		stasum(ptr, getsetlength($1, $3), &bar, &sd);
-	        $$ = bar;
-                break;
-            case SD:
-		stasum(ptr, getsetlength($1, $3), &bar, &sd);
+	        stasum(ptr, getsetlength(gno, setno), &bar, &sd);
                 $$ = sd;
                 break;
 	    }
@@ -722,20 +693,14 @@ expr:	NUMBER {
                 break;
 	    }
 	}
-	| GRAPHNO '.' SETNUM '.' LENGTH {
-	    $$ = getsetlength($1, $3);
-	}
-	| SETNUM '.' LENGTH {
-	    $$ = getsetlength(whichgraph, $1);
+	| selectset '.' LENGTH {
+	    $$ = getsetlength($1->gno, $1->setno);
 	}
 	| LENGTH {
 	    $$ = getsetlength(whichgraph, whichset);
 	}
-	| GRAPHNO '.' SETNUM '.' ID {
-	    $$ = $3;
-	}
-	| SETNUM '.' ID {
-	    $$ = $1;
+	| selectset '.' ID {
+	    $$ = $1->setno;
 	}
 	| GRAPHNO '.' ID {
 	    $$ = $1;
@@ -935,34 +900,22 @@ vexpr:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
+	    lxy = getsetlength(vasgn_gno, vasgn_setno);
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = ptr[i];
 	    }
 	}
-	| SETNUM '.' vector
+	| selectset '.' vector
 	{
 	    int i;
-	    double *ptr = getcol(whichgraph, $1, $3);
-	    if (ptr == NULL) {
+	    double *ptr = getcol($1->gno, $1->setno, $3);
+            if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = ptr[i];
-	    }
-	}
-	| GRAPHNO '.' SETNUM '.' vector
-	{
-	    int i;
-	    double *ptr = getcol($1, $3, $5);
-	    if (ptr == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
+	    lxy = getsetlength($1->gno, $1->setno);
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
@@ -1053,6 +1006,7 @@ vexpr:
 	| INDEX
 	{
 	    int i;
+	    lxy = getsetlength(vasgn_gno, vasgn_setno);
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
@@ -1552,24 +1506,12 @@ asgn:
 		return 1;
 	    }
 	}
-	| SETNUM '.' vector '[' expr ']' '=' expr
+	| selectset '.' vector '[' expr ']' '=' expr
 	{
 	    int itmp = (int) $5 - index_shift;
-	    double *ptr = getcol(whichgraph, $1, $3);
+	    double *ptr = getcol($1->gno, $1->setno, $3);
 	    if (ptr != NULL) {
 	        ptr[itmp] = $8;
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| GRAPHNO '.' SETNUM '.' vector '[' expr ']' '=' expr
-	{
-	    int itmp = (int) $7 - index_shift;
-	    double *ptr = getcol($1, $3, $5);
-	    if (ptr != NULL) {
-	        ptr[itmp] = $10;
 	    }
 	    else {
 		yyerror("NULL variable, check set type");
@@ -1627,11 +1569,12 @@ vasgn:
 	{
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(whichgraph, whichset)) {
-		setlength(whichgraph, whichset, lxy);
-		setcomment(whichgraph, whichset, "Created");
+	    vasgn_gno = whichgraph;
+	    vasgn_setno = whichset;
+            if (getsetlength(vasgn_gno, vasgn_setno) < lxy) {
+		setlength(vasgn_gno, vasgn_setno, lxy);
 	    }
-	    ptr = getcol(whichgraph, whichset, $1);
+	    ptr = getcol(vasgn_gno, vasgn_setno, $1);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $3;
@@ -1642,14 +1585,15 @@ vasgn:
 		return 1;
 	    }
 	}
-	| SETNUM '.' vector '=' vexpr {
+	| selectset '.' vector '=' vexpr {
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(whichgraph, $1)) {
-		setlength(whichgraph, $1, lxy);
-		setcomment(whichgraph, $1, "Created");
+	    vasgn_gno = $1->gno;
+	    vasgn_setno = $1->setno;
+            if (getsetlength(vasgn_gno, vasgn_setno) < lxy) {
+		setlength(vasgn_gno, vasgn_setno, lxy);
 	    }
-	    ptr = getcol(whichgraph, $1, $3);
+	    ptr = getcol(vasgn_gno, vasgn_setno, $3);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $5[i];
@@ -1660,58 +1604,21 @@ vasgn:
 		return 1;
 	    }
 	}
-	| SETNUM '.' vector '=' expr {
+	| selectset '.' vector '=' expr {
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(whichgraph, $1)) {
-		setlength(whichgraph, $1, lxy);
-		setcomment(whichgraph, $1, "Created");
+	    vasgn_gno = $1->gno;
+	    vasgn_setno = $1->setno;
+            if (getsetlength(vasgn_gno, vasgn_setno) < lxy) {
+		setlength(vasgn_gno, vasgn_setno, lxy);
 	    }
-	    ptr = getcol(whichgraph, $1, $3);
+	    ptr = getcol(vasgn_gno, vasgn_setno, $3);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $5;
 	        }
 	    }
 	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| GRAPHNO '.' SETNUM '.' vector '=' vexpr
-	{
-	    int i;
-	    double *ptr;
-	    
-	    if (!is_set_active($1, $3)) {
-		setlength($1, $3, lxy);
-		setcomment($1, $3, "Created");
-	    }
-	    ptr = getcol($1, $3, $5);
-	    if (ptr != NULL) {
-	        for (i = 0; i < lxy; i++) {
-		    ptr[i] = $7[i];
-	        }
-	    } else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
- 	| GRAPHNO '.' SETNUM '.' vector '=' expr
-	{
-	    int i;
-	    double *ptr;
-	    
-	    if (!is_set_active($1, $3)) {
-		setlength($1, $3, lxy);
-		setcomment($1, $3, "Created");
-	    }
-	    ptr = getcol($1, $3, $5);
-	    if (ptr != NULL) {
-	        for (i = 0; i < lxy; i++) {
-		    ptr[i] = $7;
-	        }
-	    } else {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
@@ -1786,7 +1693,7 @@ parmset:
             int device_id;
             Device_entry dev;
             
-            device_id = get_device_by_name((char *) $2);
+            device_id = get_device_by_name($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
@@ -1795,13 +1702,13 @@ parmset:
                 dev.pg.height = (long) $6;
                 set_device_props(device_id, dev);
             }
-            free((char *) $2);
+            free($2);
         }
         | DEVICE CHRSTR DPI NUMBER NUMBER {
             int device_id;
             Device_entry dev;
             
-            device_id = get_device_by_name((char *) $2);
+            device_id = get_device_by_name($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
@@ -1810,13 +1717,13 @@ parmset:
                 dev.pg.dpi_y = (long) $5;
                 set_device_props(device_id, dev);
             }
-            free((char *) $2);
+            free($2);
         }
         | DEVICE CHRSTR DPI NUMBER {
             int device_id;
             Device_entry dev;
             
-            device_id = get_device_by_name((char *) $2);
+            device_id = get_device_by_name($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
@@ -1824,13 +1731,13 @@ parmset:
                 dev.pg.dpi_x = dev.pg.dpi_y = (long) $4;
                 set_device_props(device_id, dev);
             }
-            free((char *) $2);
+            free($2);
         }
         | DEVICE CHRSTR FONTP ANTIALIASING onoff {
             int device_id;
             Device_entry dev;
             
-            device_id = get_device_by_name((char *) $2);
+            device_id = get_device_by_name($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
@@ -1838,13 +1745,13 @@ parmset:
                 dev.fontaa = (int) $5;
                 set_device_props(device_id, dev);
             }
-            free((char *) $2);
+            free($2);
         }
         | DEVICE CHRSTR FONTP onoff {
             int device_id;
             Device_entry dev;
             
-            device_id = get_device_by_name((char *) $2);
+            device_id = get_device_by_name($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
@@ -1852,26 +1759,26 @@ parmset:
                 dev.devfonts = (int) $4;
                 set_device_props(device_id, dev);
             }
-            free((char *) $2);
+            free($2);
         }
         | DEVICE CHRSTR OP CHRSTR {
             int device_id;
             
-            device_id = get_device_by_name((char *) $2);
+            device_id = get_device_by_name($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
-                if (parse_device_options(device_id, (char *) $4) != 
+                if (parse_device_options(device_id, $4) != 
                                                         GRACE_EXIT_SUCCESS) {
                     yyerror("Incorrect device option string");
                 }
             }
-            free((char *) $2);
-            free((char *) $4);
+            free($2);
+            free($4);
         }
         | HARDCOPY DEVICE CHRSTR {
-            set_printer_by_name((char *) $3);
-            free((char *) $3);
+            set_printer_by_name($3);
+            free($3);
         }
 	| BACKGROUND color_select {
 	    setbgcolor((int) $2);
@@ -1894,38 +1801,28 @@ parmset:
 	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
-	| TARGET SETNUM {
-	    target_set.gno = whichgraph;
-	    target_set.setno = (int) $2;
-	}
-	| TARGET GRAPHNO '.' SETNUM {
-	    target_set.gno = $2;
-	    target_set.setno = $4;
-	}
 	| TIMER NUMBER {
             timer_delay = (int) $2;
+	}
+
+	| TARGET selectset {
+	    target_set = *($2);
+	    set_parser_setno(target_set.gno, target_set.setno);
 	}
 	| WITH GRAPHNO {
 	    set_parser_gno($2);
 	}
-	| WITH SETNUM {
-	    set_parser_setno(whichgraph, $2);
+	| WITH selectset {
+	    set_parser_setno($2->gno, $2->setno);
 	}
 
 /* Hot links */
-	| SETNUM LINK sourcetype CHRSTR {
-	    set_hotlink(whichgraph, $1, 1, (char *) $4, $3);
-	    free((char *) $4);
+	| selectset LINK sourcetype CHRSTR {
+	    set_hotlink($1->gno, $1->setno, 1, $4, $3);
+	    free($4);
 	}
-	| GRAPHNO '.' SETNUM LINK sourcetype CHRSTR {
-	    set_hotlink($1, $3, 1, (char *) $6, $5);
-	    free((char *) $6);
-	}
-	| SETNUM LINK onoff {
-	    set_hotlink(whichgraph, $1, $3, NULL, 0);
-	}
-	| GRAPHNO '.' SETNUM LINK onoff {
-	    set_hotlink($1, $3, $5, NULL, 0);
+	| selectset LINK onoff {
+	    set_hotlink($1->gno, $1->setno, $3, NULL, 0);
 	}
 
 /* boxes */
@@ -2209,7 +2106,7 @@ parmset:
 	    if (!is_valid_string(curstring)) {
                 yyerror("String not active");
 	    } else {
-	        set_plotstr_string(&pstr[curstring], (char *) $3);
+	        set_plotstr_string(&pstr[curstring], $3);
 	        pstr[curstring].color = string_color;
 	        pstr[curstring].font = string_font;
 	        pstr[curstring].just = string_just;
@@ -2217,7 +2114,7 @@ parmset:
 	        pstr[curstring].rot = string_rot;
 	        pstr[curstring].charsize = string_size;
             }
-	    free((char *) $3);
+	    free($3);
 	}
 
 /* timestamp */
@@ -2241,8 +2138,8 @@ parmset:
 	    timestamp.y = $4;
 	}
 	| TIMESTAMP DEF CHRSTR {
-	  set_plotstr_string(&timestamp, (char *) $3);
-	  free((char *) $3);
+	  set_plotstr_string(&timestamp, $3);
+	  free($3);
 	}
 
 /* defaults */
@@ -2268,19 +2165,19 @@ parmset:
 	    grdefaults.symsize = $4;
 	}
 	| DEFAULT SFORMAT CHRSTR {
-	    strcpy(sformat, (char *) $3);
-	    free((char *) $3);
+	    strcpy(sformat, $3);
+	    free($3);
 	}
 	| MAP FONTP NUMBER TO CHRSTR ',' CHRSTR {
-	    if ((map_font_by_name((char *) $5, (int) $3) == GRACE_EXIT_SUCCESS) || 
-                (map_font_by_name((char *) $7, (int) $3) == GRACE_EXIT_SUCCESS)) {
+	    if ((map_font_by_name($5, (int) $3) == GRACE_EXIT_SUCCESS) || 
+                (map_font_by_name($7, (int) $3) == GRACE_EXIT_SUCCESS)) {
                 ;
             } else {
                 errmsg("Failed mapping a font");
                 map_font(0, (int) $3);
             }
-            free((char *) $5);
-	    free((char *) $7);
+            free($5);
+	    free($7);
 	}
 	| MAP COLOR NUMBER TO '(' NUMBER ',' NUMBER ',' NUMBER ')' ',' CHRSTR {
 	    CMap_entry cmap;
@@ -2288,11 +2185,11 @@ parmset:
             cmap.rgb.green = $8;
             cmap.rgb.blue  = $10;
             cmap.ctype = COLOR_MAIN;
-            cmap.cname = (char *) $13;
+            cmap.cname = $13;
             if (store_color((int) $3, cmap) == GRACE_EXIT_FAILURE) {
                 errmsg("Failed mapping a color");
             }
-	    free((char *) $13);
+	    free($13);
         }
 
 	| WORLD expr ',' expr ',' expr ',' expr {
@@ -2332,8 +2229,8 @@ parmset:
 	    g[whichgraph].v.yv2 = $3;
 	}
 	| TITLE CHRSTR {
-	    set_plotstr_string(&g[whichgraph].labs.title, (char *) $2);
-	    free((char *) $2);
+	    set_plotstr_string(&g[whichgraph].labs.title, $2);
+	    free($2);
 	}
 	| TITLE font_select {
 	    g[whichgraph].labs.title.font = (int) $2;
@@ -2345,8 +2242,8 @@ parmset:
 	    g[whichgraph].labs.title.color = (int) $2;
 	}
 	| SUBTITLE CHRSTR {
-	    set_plotstr_string(&g[whichgraph].labs.stitle, (char *) $2);
-	    free((char *) $2);
+	    set_plotstr_string(&g[whichgraph].labs.stitle, $2);
+	    free($2);
 	}
 	| SUBTITLE font_select {
 	    g[whichgraph].labs.stitle.font = (int) $2;
@@ -2374,8 +2271,8 @@ parmset:
 	| DESCRIPTION CHRSTR {
             char *s;
             s = copy_string(NULL, get_project_description());
-            s = concat_strings(s, (char *) $2);
-	    free((char *) $2);
+            s = concat_strings(s, $2);
+	    free($2);
             s = concat_strings(s, "\n");
             set_project_description(s);
             free(s);
@@ -2440,8 +2337,8 @@ parmset:
 	    g[whichgraph].l.color = (int) $2;
 	}
 	| LEGEND STRING NUMBER CHRSTR {
-	    strcpy(g[whichgraph].p[(int) $3].lstr, (char *) $4);
-	    free((char *) $4);
+	    strcpy(g[whichgraph].p[(int) $3].lstr, $4);
+	    free($4);
 	}
 
 	| FRAMEP onoff {
@@ -2514,12 +2411,12 @@ parmset:
 
 	| ALIAS CHRSTR CHRSTR {
 	    int position;
-	    lowtoupper((char *) $2);
-	    lowtoupper((char *) $3);
-	    if ((position = findf(key, (char *) $3)) >= 0) {
+	    lowtoupper($2);
+	    lowtoupper($3);
+	    if ((position = findf(key, $3)) >= 0) {
 	        symtab_entry tmpkey;
-		tmpkey.s = malloc(strlen((char *) $2) + 1);
-		strcpy(tmpkey.s, (char *) $2);
+		tmpkey.s = malloc(strlen($2) + 1);
+		strcpy(tmpkey.s, $2);
 		tmpkey.type = key[position].type;
 		tmpkey.fnc = key[position].fnc;
 		if (addto_symtab(tmpkey) != 0) {
@@ -2529,35 +2426,35 @@ parmset:
 	    } else {
 	        yyerror("Aliased keyword not found");
 	    }
-	    free((char *) $2);
-	    free((char *) $3);
+	    free($2);
+	    free($3);
 	}
 	| ALIAS FORCE onoff {
 	    alias_force = (int) $3;
 	}
 	| USE CHRSTR TYPE proctype FROM CHRSTR {
-	    if (load_module((char *) $6, (char *) $2, (char *) $2, $4) != 0) {
+	    if (load_module($6, $2, $2, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
-	    free((char *) $2);
-	    free((char *) $6);
+	    free($2);
+	    free($6);
 	}
 	| USE CHRSTR TYPE proctype FROM CHRSTR ALIAS CHRSTR {
-	    if (load_module((char *) $6, (char *) $2, (char *) $8, $4) != 0) {
+	    if (load_module($6, $2, $8, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
-	    free((char *) $2);
-	    free((char *) $6);
-	    free((char *) $8);
+	    free($2);
+	    free($6);
+	    free($8);
 	}
 
 /* I/O filters */
 	| DEFINE filtertype CHRSTR filtermethod CHRSTR {
-	    if (add_io_filter((int) $2, (int) $4, (char *) $5, (char *) $3) != 0) {
+	    if (add_io_filter((int) $2, (int) $4, $5, $3) != 0) {
 	        yyerror("Failed adding i/o filter");
 	    }
-	    free((char *) $3);
-	    free((char *) $5);
+	    free($3);
+	    free($5);
 	}
 	| CLEAR filtertype {
 	    clear_io_filters((int) $2);
@@ -2580,12 +2477,12 @@ actions:
 	    drawgraph();
 	}
 	| CD CHRSTR {
-	    set_workingdir((char *) $2);
-	    free((char *) $2);
+	    set_workingdir($2);
+	    free($2);
 	}
 	| ECHO CHRSTR {
-	    echomsg((char *) $2);
-	    free((char *) $2);
+	    echomsg($2);
+	    free($2);
 	}
 	| ECHO expr {
 	    char buf[MAX_STRING_LENGTH];
@@ -2596,7 +2493,7 @@ actions:
 	    close_input = copy_string(close_input, "");
 	}
 	| CLOSE CHRSTR {
-	    close_input = copy_string(close_input, (char *) $2);
+	    close_input = copy_string(close_input, $2);
 	}
 	| EXIT {
 	    exit(0);
@@ -2609,8 +2506,8 @@ actions:
 	}
 	| PRINT TO CHRSTR {
             set_ptofile(TRUE);
-	    strcpy(print_file, (char *) $3);
-            free((char *) $3);
+	    strcpy(print_file, $3);
+            free($3);
 	}
 	| PAGE direction {
 	    switch ((int) $2) {
@@ -2641,113 +2538,70 @@ actions:
 	}
 	| GETP CHRSTR {
 	    gotparams = TRUE;
-	    strcpy(paramfile, (char *) $2);
-	    free((char *) $2);
+	    strcpy(paramfile, $2);
+	    free($2);
 	}
 	| PUTP CHRSTR {
-	    FILE *pp = grace_openw((char *) $2);
+	    FILE *pp = grace_openw($2);
 	    if (pp != NULL) {
 	        putparms(whichgraph, pp, 0);
 	        grace_close(pp);
 	    }
-	    free((char *) $2);
+	    free($2);
 	}
-	| SETNUM HIDDEN onoff {
-	    set_set_hidden(whichgraph, $1, (int) $3);
+	| selectset HIDDEN onoff {
+	    set_set_hidden($1->gno, $1->setno, (int) $3);
 	}
-	| GRAPHNO '.' SETNUM HIDDEN onoff {
-	    set_set_hidden($1, $3, (int) $5);
+	| selectset LENGTH NUMBER {
+	    setlength($1->gno, $1->setno, (int) $3);
 	}
-	| SETNUM LENGTH NUMBER {
-	    setlength(whichgraph, $1, (int) $3);
-	}
-	| GRAPHNO '.' SETNUM LENGTH NUMBER {
-	    setlength($1, $3, (int) $5);
-	}
-	| SETNUM POINT expr ',' expr {
-	    add_point(whichgraph, $1, $3, $5);
-	}
-	| GRAPHNO '.' SETNUM POINT expr ',' expr {
-	    add_point($1, $3, $5, $7);
+	| selectset POINT expr ',' expr {
+	    add_point($1->gno, $1->setno, $3, $5);
 	}
 
-	| SETNUM DROP NUMBER ',' NUMBER {
+	| selectset DROP NUMBER ',' NUMBER {
 	    int start = (int) $3 - 1;
 	    int stop = (int) $5 - 1;
 	    int dist = stop - start + 1;
 	    if (dist > 0 && start >= 0) {
-	        droppoints(whichgraph, $1, start, stop, dist);
+	        droppoints($1->gno, $1->setno, start, stop, dist);
 	    }
 	}
-	| GRAPHNO '.' SETNUM DROP NUMBER ',' NUMBER {
-	    int start = (int) $5 - 1;
-	    int stop = (int) $7 - 1;
-	    int dist = stop - start + 1;
-	    if (dist > 0 && start >= 0) {
-	        droppoints($1, $3, start, stop, dist);
+	| SORT selectset sorton sortdir {
+	    if (is_set_active($2->gno, $2->setno)) {
+	        sortset($2->gno, $2->setno, $3, $4 == ASCENDING ? 0 : 1);
 	    }
 	}
-	| SORT SETNUM sorton sortdir {
-	    if (is_set_active(whichgraph, $2)) {
-	        sortset(whichgraph, $2, $3, $4 == ASCENDING ? 0 : 1);
-	    } else {
-		errmsg("Set not active!");
-	    }
+	| COPY selectset TO selectset {
+	    do_copyset($2->gno, $2->setno, $4->gno, $4->setno);
 	}
-	| COPY SETNUM TO SETNUM {
-	    do_copyset(whichgraph, $2, whichgraph, $4);
+	| APPEND selectset TO selectset {
+	    if ($2->gno != $4->gno) {
+                errmsg("Can't append sets from different graphs");
+            } else {
+                int sets[2];
+	        sets[0] = $4->setno;
+	        sets[1] = $2->setno;
+	        join_sets($2->gno, sets, 2);
+            }
 	}
-	| APPEND SETNUM TO SETNUM {
-		int sets[2];
-		sets[0] = $4;
-		sets[1] = $2;
-		join_sets(whichgraph, sets, 2);
+	| REVERSE selectset {
+            reverse_set($2->gno, $2->setno);
 	}
-	| REVERSE SETNUM {
-		reverse_set( whichgraph, $2 );
+	| SPLIT selectset NUMBER {
+            do_splitsets($2->gno, $2->setno, (int) $3);
 	}
-	| REVERSE GRAPHNO '.' SETNUM {
-		reverse_set( $2, $4 );
+	| MOVE selectset TO selectset {
+	    do_moveset($2->gno, $2->setno, $4->gno, $4->setno);
 	}
-	| SPLIT SETNUM NUMBER {
-		do_splitsets( whichgraph, $2, (int)$3 );
+	| KILL selectset {
+	    killset($2->gno, $2->setno);
 	}
-	| SPLIT GRAPHNO '.' SETNUM NUMBER {
-		do_splitsets( $2, $4, (int)$5 );
-	}	
-	| COPY GRAPHNO '.' SETNUM TO GRAPHNO '.' SETNUM {
-	    do_copyset($2, $4, $6, $8);
-	}
-	| MOVE SETNUM TO SETNUM {
-	    do_moveset(whichgraph, $2, whichgraph, $4);
-	}
-	| MOVE GRAPHNO '.' SETNUM TO GRAPHNO '.' SETNUM {
-	    do_moveset($2, $4, $6, $8);
-	}
-	| KILL SETNUM {
-	    killset(whichgraph, $2);
-	}
-	| KILL SETS {
-	    int i;
-	    for (i = 0; i < g[whichgraph].maxplot; i++) {
-		killset(whichgraph, i);
-	    }
-	}
-	| KILL SETNUM SAVEALL {
-            killsetdata(whichgraph, $2);
+	| KILL selectset SAVEALL {
+            killsetdata($2->gno, $2->setno);
         }
-	| KILL SETS SAVEALL {
-	    int i;
-            int cg = whichgraph;
-	    for (i = 0; i < number_of_sets(cg); i++) {
-		killsetdata(cg, i);
-	    }
-	}
 	| KILL GRAPHNO {
             kill_graph($2);
-        }
-	| KILL GRAPHS {
-            kill_all_graphs();
         }
 	| FLUSH {
             wipeout();
@@ -2769,69 +2623,62 @@ actions:
 		ptr[i] = $5 + $7 * i;
 	    }
 	}
-	| NONLFIT '(' SETNUM ',' NUMBER ')' {
+	| NONLFIT '(' selectset ',' NUMBER ')' {
 	    gotnlfit = TRUE;
-	    nlfit_gno = whichgraph;
-	    nlfit_setno = $3;
+	    nlfit_gno = $3->gno;
+	    nlfit_setno = $3->setno;
 	    nlfit_nsteps = (int) $5;
 	}
-	| NONLFIT '(' GRAPHNO '.' SETNUM ',' NUMBER ')' {
-	    gotnlfit = TRUE;
-	    nlfit_gno = $3;
-	    nlfit_setno = $5;
-	    nlfit_nsteps = (int) $7;
+	| REGRESS '(' selectset ',' NUMBER ')' {
+	    do_regress($3->gno, $3->setno, (int) $5, 0, -1, 0, -1);
 	}
-	| REGRESS '(' SETNUM ',' NUMBER ')' {
-	    int setno = $3, ideg = (int) $5;
-	    do_regress(setno, ideg, 0, -1, 0, -1);
+	| runtype '(' selectset ',' NUMBER ')' {
+	    do_runavg($3->gno, $3->setno, (int) $5, $1, -1, 0);
 	}
-	| runtype '(' SETNUM ',' NUMBER ')' {
-	    do_running_command($1, $3, (int) $5);
+	| ffttype '(' selectset ',' NUMBER ')' {
+	    do_fourier_command($3->gno, $3->setno, $1, (int) $5);
 	}
-	| ffttype '(' SETNUM ',' NUMBER ')' {
-	    do_fourier_command($1, $3, (int) $5);
-	}
-        | ffttype '(' SETNUM ',' fourierdata ',' windowtype ',' 
-          fourierloadx ','  fourierloady ')' {
+        | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
+                      fourierloadx ','  fourierloady ')' {
 	    switch ((int) $1) {
 	    case FFT_DFT:
-                do_fourier(0, $3, $11, $9, 0, $5, $7);
+                do_fourier($3->gno, $3->setno, 0, $11, $9, 0, $5, $7);
 	        break;
-	    case FFT_INVDFT:
-                do_fourier(0, $3, $11, $9, 1, $5, $7);
+	    case FFT_INVDFT    :
+                do_fourier($3->gno, $3->setno, 0, $11, $9, 1, $5, $7);
 	        break;
 	    case FFT_FFT:
-                do_fourier(1, $3, $11, $9, 0, $5, $7);
+                do_fourier($3->gno, $3->setno, 1, $11, $9, 0, $5, $7);
 	        break;
-	    case FFT_INVFFT:
-                do_fourier(1, $3, $11, $9, 1, $5, $7);
+	    case FFT_INVFFT    :
+                do_fourier($3->gno, $3->setno, 1, $11, $9, 1, $5, $7);
 	        break;
 	    default:
                 errmsg("Internal error");
 	        break;
 	    }
         }
-	| SPLINE '(' SETNUM ',' expr ',' expr ',' NUMBER ')' {
-	    do_spline($3, $5, $7, (int) $9, SPLINE_CUBIC);
+	| SPLINE '(' selectset ',' expr ',' expr ',' NUMBER ')' {
+	    do_spline($3->gno, $3->setno, $5, $7, (int) $9, SPLINE_CUBIC);
 	}
-	| ASPLINE '(' SETNUM ',' expr ',' expr ',' NUMBER ')' {
-	    do_spline($3, $5, $7, (int) $9, SPLINE_AKIMA);
+	| ASPLINE '(' selectset ',' expr ',' expr ',' NUMBER ')' {
+	    do_spline($3->gno, $3->setno, $5, $7, (int) $9, SPLINE_AKIMA);
 	}
-	| INTERP '(' SETNUM ',' SETNUM ',' NUMBER ')' {
-	    do_interp($3, $5, (int) $7);
+	| INTERP '(' selectset ',' selectset ',' NUMBER ')' {
+	    do_interp($3->gno, $3->setno, $5->gno, $5->setno, (int) $7);
 	}
-	| HISTO '(' SETNUM ',' expr ',' expr ',' NUMBER ')' {
-            do_histo(whichgraph, $3, SET_SELECT_NEXT, -1, $7, $5, $5 + ((int) $9)*$7, 
+	| HISTO '(' selectset ',' expr ',' expr ',' NUMBER ')' {
+            do_histo($3->gno, $3->setno, SET_SELECT_NEXT, -1, $7, $5, $5 + ((int) $9)*$7, 
                                         HISTOGRAM_TYPE_ORDINARY);
 	}
-	| DIFFERENCE '(' SETNUM ',' NUMBER ')' {
-	    do_differ($3, (int) $5);
+	| DIFFERENCE '(' selectset ',' NUMBER ')' {
+	    do_differ($3->gno, $3->setno, (int) $5);
 	}
-	| INTEGRATE '(' SETNUM ')' {
-	    do_int($3, 0);
+	| INTEGRATE '(' selectset ')' {
+	    do_int($3->gno, $3->setno, 0);
 	}
- 	| XCOR '(' SETNUM ',' SETNUM ',' NUMBER ')' {
-	    do_xcor($3, $5, (int) $7);
+ 	| XCOR '(' selectset ',' selectset ',' NUMBER ')' {
+	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, (int) $7);
 	}
 	| AUTOSCALE {
 	    if (activeset(whichgraph)) {
@@ -2854,12 +2701,8 @@ actions:
 		errmsg("No active sets!");
 	    }
 	}
-	| AUTOSCALE SETNUM {
-	    if (is_set_active(whichgraph, $2)) {
-		autoscale_byset(whichgraph, $2, AUTOSCALE_XY);
-	    } else {
-		errmsg("Set not active");
-	    }
+	| AUTOSCALE selectset {
+	    autoscale_byset($2->gno, $2->setno, AUTOSCALE_XY);
 	}
         | AUTOTICKS {
             autotick_axis(whichgraph, ALL_AXES);
@@ -2874,68 +2717,68 @@ actions:
 	}
 	| READ CHRSTR {
 	    gotread = TRUE;
-	    strcpy(readfile, (char *) $2);
-	    free((char *) $2);
+	    strcpy(readfile, $2);
+	    free($2);
 	}
 	| READ BATCH CHRSTR {
-	    strcpy(batchfile, (char *) $3);
-	    free((char *) $3);
+	    strcpy(batchfile, $3);
+	    free($3);
 	}
 	| READ BLOCK CHRSTR {
-	    getdata(whichgraph, (char *) $3, SOURCE_DISK, LOAD_BLOCK);
-	    free((char *) $3);
+	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_BLOCK);
+	    free($3);
 	}
 	| READ BLOCK sourcetype CHRSTR {
-	    getdata(whichgraph, (char *) $4, $3, LOAD_BLOCK);
-	    free((char *) $4);
+	    getdata(whichgraph, $4, $3, LOAD_BLOCK);
+	    free($4);
 	}
 	| BLOCK xytype CHRSTR {
-	    create_set_fromblock(whichgraph, $2, (char *) $3);
-	    free((char *) $3);
+	    create_set_fromblock(whichgraph, $2, $3);
+	    free($3);
 	}
 	| READ xytype CHRSTR {
 	    gotread = TRUE;
 	    curtype = $2;
-	    strcpy(readfile, (char *) $3);
-	    free((char *) $3);
+	    strcpy(readfile, $3);
+	    free($3);
 	}
 	| READ xytype sourcetype CHRSTR {
 	    gotread = TRUE;
-	    strcpy(readfile, (char *) $4);
+	    strcpy(readfile, $4);
 	    curtype = $2;
 	    cursource = $3;
-	    free((char *) $4);
+	    free($4);
 	}
-	| WRITE SETNUM {
-	    outputset(whichgraph, $2, (char *) NULL, (char *) NULL);
+	| WRITE selectset {
+	    outputset($2->gno, $2->setno, NULL, NULL);
 	}
-	| WRITE SETNUM FORMAT CHRSTR {
-	    outputset(whichgraph, $2, (char *) NULL, (char *) $4);
-	    free((char *) $4);
+	| WRITE selectset FORMAT CHRSTR {
+	    outputset($2->gno, $2->setno, NULL, $4);
+	    free($4);
 	}
-	| WRITE SETNUM FILEP CHRSTR {
-	    outputset(whichgraph, $2, (char *) $4, (char *) NULL);
-	    free((char *) $4);
+	| WRITE selectset FILEP CHRSTR {
+	    outputset($2->gno, $2->setno, $4, NULL);
+	    free($4);
 	}
-	| WRITE SETNUM FILEP CHRSTR FORMAT CHRSTR {
-	    outputset(whichgraph, $2, (char *) $4, (char *) $6);
-	    free((char *) $4);
-	    free((char *) $6);
+	| WRITE selectset FILEP CHRSTR FORMAT CHRSTR {
+	    outputset($2->gno, $2->setno, $4, $6);
+	    free($4);
+	    free($6);
 	}
         | SAVEALL CHRSTR {
-            save_project((char *) $2);
-            free((char *) $2);
+            save_project($2);
+            free($2);
         }
         | LOAD CHRSTR {
-            load_project((char *) $2);
-            free((char *) $2);
+            load_project($2);
+            free($2);
         }
         | NEW {
             new_project(NULL);
         }
         | NEW FROM CHRSTR {
-            new_project((char *) $3);
-            free((char *) $3);
+            new_project($3);
+            free($3);
         }
 	| PUSH {
 	    push_world();
@@ -2993,94 +2836,94 @@ options:
 
 
 set_setprop:
-	selectsets setprop {}
-	| selectsets setprop_obs {}
+	setprop {}
+	| setprop_obs {}
 	;
 
 setprop:
-	onoff {
-	    set_set_hidden(whichgraph, whichset, !$1);
+	selectset onoff {
+	    set_set_hidden($1->gno, $1->setno, !$2);
 	}
-	| TYPE xytype {
-	    set_prop(whichgraph, SET, SETNUM, whichset, TYPE, $2, 0);
+	| selectset TYPE xytype {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, TYPE, $3, 0);
 	}
-	| PREC NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, PREC, (int) $2, 0);
+	| selectset PREC NUMBER {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, PREC, (int) $3, 0);
 	}
-	| FORMAT formatchoice {
-	    set_prop(whichgraph, SET, SETNUM, whichset, FORMAT, $2, 0);
-	}
-
-	| SYMBOL NUMBER {
-            set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, TYPE, (int) $2, 0);
-	}
-	| SYMBOL color_select {
-	    g[whichgraph].p[whichset].sympen.color = (int) $2;
-	}
-	| SYMBOL pattern_select {
-	    g[whichgraph].p[whichset].sympen.pattern = (int) $2;
-	}
-	| SYMBOL linew_select {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINEWIDTH, $2, 0);
-	}
-	| SYMBOL lines_select {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINESTYLE, (int) $2, 0);
-	}
-	| SYMBOL FILL color_select {
-	    g[whichgraph].p[whichset].symfillpen.color = (int) $3;
-	}
-	| SYMBOL FILL pattern_select {
-	    g[whichgraph].p[whichset].symfillpen.pattern = (int) $3;
-	}
-	| SYMBOL SIZE expr {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, SIZE, $3, 0);
-	}
-	| SYMBOL CHAR NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, CHAR, (int) $3, 0);
-	}
-	| SYMBOL CHAR font_select {
-	    g[whichgraph].p[whichset].charfont = (int) $3;
-	}
-	| SYMBOL SKIP NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, SKIP, (int) $3, 0);
+	| selectset FORMAT formatchoice {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, FORMAT, $3, 0);
 	}
 
-	| LINE TYPE NUMBER
-        {
-	    g[whichgraph].p[whichset].linet = (int) $3;
+	| selectset SYMBOL NUMBER {
+            set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, TYPE, (int) $3, 0);
 	}
-	| LINE lines_select
-        {
-	    g[whichgraph].p[whichset].lines = (int) $2;
+	| selectset SYMBOL color_select {
+	    g[$1->gno].p[$1->setno].sympen.color = (int) $3;
 	}
-	| LINE linew_select
-        {
-	    g[whichgraph].p[whichset].linew = $2;
+	| selectset SYMBOL pattern_select {
+	    g[$1->gno].p[$1->setno].sympen.pattern = (int) $3;
 	}
-	| LINE color_select
-        {
-	    g[whichgraph].p[whichset].linepen.color = (int) $2;
+	| selectset SYMBOL linew_select {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, LINEWIDTH, $3, 0);
 	}
-	| LINE pattern_select
-        {
-	    g[whichgraph].p[whichset].linepen.pattern = (int) $2;
+	| selectset SYMBOL lines_select {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, LINESTYLE, (int) $3, 0);
+	}
+	| selectset SYMBOL FILL color_select {
+	    g[$1->gno].p[$1->setno].symfillpen.color = (int) $4;
+	}
+	| selectset SYMBOL FILL pattern_select {
+	    g[$1->gno].p[$1->setno].symfillpen.pattern = (int) $4;
+	}
+	| selectset SYMBOL SIZE expr {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, SIZE, $4, 0);
+	}
+	| selectset SYMBOL CHAR NUMBER {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, CHAR, (int) $4, 0);
+	}
+	| selectset SYMBOL CHAR font_select {
+	    g[$1->gno].p[$1->setno].charfont = (int) $4;
+	}
+	| selectset SYMBOL SKIP NUMBER {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, SKIP, (int) $4, 0);
 	}
 
-	| FILL NUMBER
+	| selectset LINE TYPE NUMBER
         {
-	    set_prop(whichgraph, SET, SETNUM, whichset, FILL, TYPE, (int) $2, 0);
+	    g[$1->gno].p[$1->setno].linet = (int) $4;
 	}
-	| FILL TYPE NUMBER
+	| selectset LINE lines_select
         {
-	    g[whichgraph].p[whichset].filltype = (int) $3;
+	    g[$1->gno].p[$1->setno].lines = (int) $3;
 	}
-	| FILL RULE NUMBER
+	| selectset LINE linew_select
         {
-	    g[whichgraph].p[whichset].fillrule = (int) $3;
+	    g[$1->gno].p[$1->setno].linew = $3;
 	}
-	| FILL color_select
+	| selectset LINE color_select
         {
-	    int prop = (int) $2;
+	    g[$1->gno].p[$1->setno].linepen.color = (int) $3;
+	}
+	| selectset LINE pattern_select
+        {
+	    g[$1->gno].p[$1->setno].linepen.pattern = (int) $3;
+	}
+
+	| selectset FILL NUMBER
+        {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, FILL, TYPE, (int) $3, 0);
+	}
+	| selectset FILL TYPE NUMBER
+        {
+	    g[$1->gno].p[$1->setno].filltype = (int) $4;
+	}
+	| selectset FILL RULE NUMBER
+        {
+	    g[$1->gno].p[$1->setno].fillrule = (int) $4;
+	}
+	| selectset FILL color_select
+        {
+	    int prop = (int) $3;
 
 	    if (get_project_version() <= 40102 && get_project_version() >= 30000) {
                 switch (filltype_obs) {
@@ -3094,11 +2937,11 @@ setprop:
                     break;
                 }
 	    }
-	    g[whichgraph].p[whichset].setfillpen.color = prop;
+	    g[$1->gno].p[$1->setno].setfillpen.color = prop;
 	}
-	| FILL pattern_select
+	| selectset FILL pattern_select
         {
-	    int prop = (int) $2;
+	    int prop = (int) $3;
 
 	    if (get_project_version() <= 40102) {
                 switch (filltype_obs) {
@@ -3112,117 +2955,117 @@ setprop:
                     break;
                 }
 	    }
-	    g[whichgraph].p[whichset].setfillpen.pattern = prop;
+	    g[$1->gno].p[$1->setno].setfillpen.pattern = prop;
 	}
 
-	| SKIP NUMBER
+	| selectset SKIP NUMBER
         {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SKIP, (int) $2, 0);
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SKIP, (int) $3, 0);
 	}
         
-	| BASELINE onoff
+	| selectset BASELINE onoff
         {
-	    g[whichgraph].p[whichset].baseline = (int) $2;
+	    g[$1->gno].p[$1->setno].baseline = (int) $3;
 	}
-	| BASELINE TYPE NUMBER
+	| selectset BASELINE TYPE NUMBER
         {
-	    g[whichgraph].p[whichset].baseline_type = (int) $3;
+	    g[$1->gno].p[$1->setno].baseline_type = (int) $4;
 	}
         
-	| DROPLINE onoff
+	| selectset DROPLINE onoff
         {
-	    g[whichgraph].p[whichset].dropline = (int) $2;
+	    g[$1->gno].p[$1->setno].dropline = (int) $3;
 	}
 
-	| AVALUE onoff
+	| selectset AVALUE onoff
         {
-	    g[whichgraph].p[whichset].avalue.active = (int) $2;
+	    g[$1->gno].p[$1->setno].avalue.active = (int) $3;
 	}
-	| AVALUE TYPE NUMBER
+	| selectset AVALUE TYPE NUMBER
         {
-	    g[whichgraph].p[whichset].avalue.type = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.type = (int) $4;
 	}
-	| AVALUE CHAR SIZE NUMBER
+	| selectset AVALUE CHAR SIZE NUMBER
         {
-	    g[whichgraph].p[whichset].avalue.size = $4;
+	    g[$1->gno].p[$1->setno].avalue.size = $5;
 	}
-	| AVALUE font_select
+	| selectset AVALUE font_select
         {
-	    g[whichgraph].p[whichset].avalue.font = (int) $2;
+	    g[$1->gno].p[$1->setno].avalue.font = (int) $3;
 	}
-	| AVALUE color_select
+	| selectset AVALUE color_select
         {
-	    g[whichgraph].p[whichset].avalue.color = (int) $2;
+	    g[$1->gno].p[$1->setno].avalue.color = (int) $3;
 	}
-	| AVALUE ROT NUMBER
+	| selectset AVALUE ROT NUMBER
         {
-	    g[whichgraph].p[whichset].avalue.angle = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.angle = (int) $4;
 	}
-	| AVALUE FORMAT formatchoice
+	| selectset AVALUE FORMAT formatchoice
         {
-	    g[whichgraph].p[whichset].avalue.format = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.format = (int) $4;
 	}
-	| AVALUE PREC NUMBER
+	| selectset AVALUE PREC NUMBER
         {
-	    g[whichgraph].p[whichset].avalue.prec = (int) $3;
+	    g[$1->gno].p[$1->setno].avalue.prec = (int) $4;
 	}
-	| AVALUE OFFSET expr ',' expr {
-	    g[whichgraph].p[whichset].avalue.offset.x = $3;
-	    g[whichgraph].p[whichset].avalue.offset.y = $5;
+	| selectset AVALUE OFFSET expr ',' expr {
+	    g[$1->gno].p[$1->setno].avalue.offset.x = $4;
+	    g[$1->gno].p[$1->setno].avalue.offset.y = $6;
 	}
-	| AVALUE PREPEND CHRSTR
+	| selectset AVALUE PREPEND CHRSTR
         {
-	    strcpy(g[whichgraph].p[whichset].avalue.prestr, (char *) $3);
-	    free((char *) $3);
+	    strcpy(g[$1->gno].p[$1->setno].avalue.prestr, $4);
+	    free($4);
 	}
-	| AVALUE APPEND CHRSTR
+	| selectset AVALUE APPEND CHRSTR
         {
-	    strcpy(g[whichgraph].p[whichset].avalue.appstr, (char *) $3);
-	    free((char *) $3);
+	    strcpy(g[$1->gno].p[$1->setno].avalue.appstr, $4);
+	    free($4);
 	}
 
-	| ERRORBAR onoff {
-	    g[whichgraph].p[whichset].errbar.active = (int) $2;
+	| selectset ERRORBAR onoff {
+	    g[$1->gno].p[$1->setno].errbar.active = (int) $3;
 	}
-	| ERRORBAR opchoice_sel {
-	    g[whichgraph].p[whichset].errbar.ptype = (int) $2;
+	| selectset ERRORBAR opchoice_sel {
+	    g[$1->gno].p[$1->setno].errbar.ptype = (int) $3;
 	}
-	| ERRORBAR color_select {
-	    g[whichgraph].p[whichset].errbar.pen.color = (int) $2;
+	| selectset ERRORBAR color_select {
+	    g[$1->gno].p[$1->setno].errbar.pen.color = (int) $3;
 	}
-	| ERRORBAR pattern_select {
-	    g[whichgraph].p[whichset].errbar.pen.pattern = (int) $2;
+	| selectset ERRORBAR pattern_select {
+	    g[$1->gno].p[$1->setno].errbar.pen.pattern = (int) $3;
 	}
-	| ERRORBAR SIZE NUMBER {
-            g[whichgraph].p[whichset].errbar.barsize = $3;
+	| selectset ERRORBAR SIZE NUMBER {
+            g[$1->gno].p[$1->setno].errbar.barsize = $4;
 	}
-	| ERRORBAR linew_select {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINEWIDTH, $2, 0);
+	| selectset ERRORBAR linew_select {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, LINEWIDTH, $3, 0);
 	}
-	| ERRORBAR lines_select {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINESTYLE, (int) $2, 0);
+	| selectset ERRORBAR lines_select {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, LINESTYLE, (int) $3, 0);
 	}
-	| ERRORBAR RISER linew_select {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINEWIDTH, $3, 0);
+	| selectset ERRORBAR RISER linew_select {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, RISER, LINEWIDTH, $4, 0);
 	}
-	| ERRORBAR RISER lines_select {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINESTYLE, (int) $3, 0);
+	| selectset ERRORBAR RISER lines_select {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, RISER, LINESTYLE, (int) $4, 0);
 	}
-	| ERRORBAR RISER CLIP onoff {
-            g[whichgraph].p[whichset].errbar.arrow_clip = (int) $4;
+	| selectset ERRORBAR RISER CLIP onoff {
+            g[$1->gno].p[$1->setno].errbar.arrow_clip = (int) $5;
 	}
-	| ERRORBAR RISER CLIP LENGTH NUMBER {
-            g[whichgraph].p[whichset].errbar.cliplen = $5;
+	| selectset ERRORBAR RISER CLIP LENGTH NUMBER {
+            g[$1->gno].p[$1->setno].errbar.cliplen = $6;
 	}
 
-	| COMMENT CHRSTR {
-	    strncpy(g[whichgraph].p[whichset].comments, (char *) $2, MAX_STRING_LENGTH - 1);
-	    free((char *) $2);
+	| selectset COMMENT CHRSTR {
+	    strncpy(g[$1->gno].p[$1->setno].comments, $3, MAX_STRING_LENGTH - 1);
+	    free($3);
 	}
         
-	| LEGEND CHRSTR {
-	    strncpy(g[whichgraph].p[whichset].lstr, (char *) $2, MAX_STRING_LENGTH - 1);
-	    free((char *) $2);
+	| selectset LEGEND CHRSTR {
+	    strncpy(g[$1->gno].p[$1->setno].lstr, $3, MAX_STRING_LENGTH - 1);
+	    free($3);
 	}
 	;
 
@@ -3351,12 +3194,12 @@ ticklabelattr:
 	    g[whichgraph].t[naxis].tl_format = $2;
 	}
 	| APPEND CHRSTR {
-	    strcpy(g[whichgraph].t[naxis].tl_appstr, (char *) $2);
-	    free((char *) $2);
+	    strcpy(g[whichgraph].t[naxis].tl_appstr, $2);
+	    free($2);
 	}
 	| PREPEND CHRSTR {
-	    strcpy(g[whichgraph].t[naxis].tl_prestr, (char *) $2);
-	    free((char *) $2);
+	    strcpy(g[whichgraph].t[naxis].tl_prestr, $2);
+	    free($2);
 	}
 	| ANGLE NUMBER {
 	    g[whichgraph].t[naxis].tl_angle = (int) $2;
@@ -3402,8 +3245,8 @@ ticklabelattr:
 	}
 	| NUMBER ',' CHRSTR {
 	    g[whichgraph].t[naxis].tloc[(int) $1].label = 
-                copy_string(g[whichgraph].t[naxis].tloc[(int) $1].label, (char *) $3);
-	    free((char *) $3);
+                copy_string(g[whichgraph].t[naxis].tloc[(int) $1].label, $3);
+	    free($3);
 	}
 	| OFFSET AUTO {
 	    g[whichgraph].t[naxis].tl_gaptype = TYPE_AUTO;
@@ -3419,8 +3262,8 @@ ticklabelattr:
 
 axislabeldesc:
 	CHRSTR {
-	    set_plotstr_string(&g[whichgraph].t[naxis].label, (char *) $1);
-	    free((char *) $1);
+	    set_plotstr_string(&g[whichgraph].t[naxis].label, $1);
+	    free($1);
 	}
 	| LAYOUT PERP {
 	    g[whichgraph].t[naxis].label_layout = LAYOUT_PERPENDICULAR;
@@ -3472,12 +3315,12 @@ axisbardesc:
 
 nonlfitopts:
         TITLE CHRSTR { 
-          strcpy(nonl_opts.title, (char *) $2);
-	  free((char *) $2);
+          strcpy(nonl_opts.title, $2);
+	  free($2);
         }
         | FORMULA CHRSTR { 
-          strcpy(nonl_opts.formula, (char *) $2);
-	  free((char *) $2);
+          strcpy(nonl_opts.formula, $2);
+	  free($2);
         }
         | WITH NUMBER PARAMETERS { 
             nonl_opts.parnum = (int) $2; 
@@ -3487,14 +3330,24 @@ nonlfitopts:
         }
         ;
 
-selectsets:
+selectset:
 	GRAPHNO '.' SETNUM
 	{
-	    set_parser_setno($1, $3);
+	    int gno = $1, setno = $3;
+            allocate_set(gno, setno);
+            $$ = &trgt_pool[tgtn];
+            $$->gno   = gno;
+            $$->setno = setno;
+            tgtn++;
 	}
 	| SETNUM
 	{
-	    set_parser_setno(whichgraph, $1);
+	    int gno = whichgraph, setno = $1;
+            allocate_set(gno, setno);
+	    $$ = &trgt_pool[tgtn];
+            $$->gno   = gno;
+            $$->setno = setno;
+            tgtn++;
 	}
 	;
 
@@ -3727,8 +3580,8 @@ font_select:
         }
         | FONTP CHRSTR
         {
-            $$ = get_font_by_name((char *) $2);
-            free((char *) $2);
+            $$ = get_font_by_name($2);
+            free($2);
         }
         ;
 
@@ -3771,12 +3624,12 @@ color_select:
         }
         | COLOR CHRSTR
         {
-            int c = get_color_by_name((char *) $2);
+            int c = get_color_by_name($2);
             if (c == BAD_COLOR) {
                 errmsg("Invalid color name");
                 c = 1;
             }
-            free((char *) $2);
+            free($2);
             $$ = c;
         }
         | COLOR '(' NUMBER ',' NUMBER ',' NUMBER ')'
@@ -3946,31 +3799,31 @@ axislabeldesc_obs:
         ;
 
 setprop_obs:
-	SYMBOL FILL NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, FILL, (int) $3, 0);
+	selectset SYMBOL FILL NUMBER {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, SYMBOL, FILL, (int) $4, 0);
 	}
-	| SYMBOL COLOR '-' NUMBER {
-	    g[whichgraph].p[whichset].sympen.color = -1;
+	| selectset SYMBOL COLOR '-' NUMBER {
+	    g[$1->gno].p[$1->setno].sympen.color = -1;
 	}
-	| SYMBOL CENTER onoff { }
-	| lines_select {
-	    g[whichgraph].p[whichset].lines = (int) $1;
+	| selectset SYMBOL CENTER onoff { }
+	| selectset lines_select {
+	    g[$1->gno].p[$1->setno].lines = (int) $2;
 	}
-	| linew_select {
-	    g[whichgraph].p[whichset].linew = $1;
+	| selectset linew_select {
+	    g[$1->gno].p[$1->setno].linew = $2;
 	}
-	| color_select {
-	    g[whichgraph].p[whichset].linepen.color = (int) $1;
+	| selectset color_select {
+	    g[$1->gno].p[$1->setno].linepen.color = (int) $2;
 	}
-	| FILL WITH colpat_obs {filltype_obs = (int) $3;}
-	|  XYZ expr ',' expr { }
-	| ERRORBAR TYPE opchoice_obs {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $3, 0);
+	| selectset FILL WITH colpat_obs {filltype_obs = (int) $4;}
+	| selectset XYZ expr ',' expr { }
+	| selectset ERRORBAR TYPE opchoice_obs {
+	    set_prop($1->gno, SET, SETNUM, $1->setno, ERRORBAR, TYPE, $4, 0);
 	}
-	| ERRORBAR LENGTH NUMBER {
-            g[whichgraph].p[whichset].errbar.barsize = $3;
+	| selectset ERRORBAR LENGTH NUMBER {
+            g[$1->gno].p[$1->setno].errbar.barsize = $4;
 	}
-	| ERRORBAR RISER onoff { }
+	| selectset ERRORBAR RISER onoff { }
         ;
         
 
@@ -4230,7 +4083,6 @@ symtab_entry ikey[] = {
 	{"GE", GE, NULL},
 	{"GENERAL", GENERAL, NULL},
 	{"GETP", GETP, NULL},
-	{"GRAPHS", GRAPHS, NULL},
 	{"GRID", GRID, NULL},
 	{"GT", GT, NULL},
 	{"HAMMING", HAMMING, NULL},
@@ -4399,7 +4251,6 @@ symtab_entry ikey[] = {
 	{"SCROLL", SCROLL, NULL},
 	{"SD", SD, NULL},
 	{"SET", SET, NULL},
-	{"SETS", SETS, NULL},
 	{"SFORMAT", SFORMAT, NULL},
 	{"SHI", FUNC_D, shi_wrap},
 	{"SI", FUNC_D, si_wrap},
@@ -4519,7 +4370,6 @@ int set_parser_gno(int gno)
 {
     if (is_valid_gno(gno) == TRUE) {
         whichgraph = gno;
-	lxy = getsetlength(whichgraph, whichset);
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -4536,7 +4386,11 @@ int set_parser_setno(int gno, int setno)
     if (is_valid_setno(gno, setno) == TRUE) {
         whichgraph = gno;
         whichset = setno;
-	lxy = getsetlength(whichgraph, whichset);
+	lxy = getsetlength(gno, setno);
+        /* those will usually be overridden except when evaluating
+           a _standalone_ vexpr */
+        vasgn_gno = gno;
+        vasgn_setno = setno;
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -4650,6 +4504,8 @@ static int parser(char *s, int type)
         }
     }
     fcnt = 0;
+    
+    tgtn = 0;
     
     if ((type == PARSER_TYPE_VEXPR && !vexpr_parsed) ||
         (type == PARSER_TYPE_EXPR  && !expr_parsed)) {
@@ -4819,7 +4675,7 @@ int yylex(void)
 	s[i] = '\0';
 	str = malloc(strlen(s) + 1);
 	strcpy(str, s);
-	yylval.str = str;
+	yylval.sval = str;
 	return CHRSTR;
     }
     if (c == '.' || isdigit(c)) {
@@ -4887,7 +4743,7 @@ int yylex(void)
                 }
 		if (set_graph_active(gn, TRUE) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = gn;
-		    set_parser_gno(gn);
+		    /* set_parser_gno(gn); */
 		    return GRAPHNO;
 		}
 	    } else if (ctmp == 'S') {
@@ -4899,11 +4755,8 @@ int yylex(void)
                 } else {
 		    sn = atoi(stmp);
                 }
-		if (allocate_set(whichgraph, sn) == GRACE_EXIT_SUCCESS) {
-		    yylval.ival = sn;
-		    set_parser_setno(whichgraph, sn);
-		    return SETNUM;
-		}
+		yylval.ival = sn;
+		return SETNUM;
 	    } else if (ctmp == 'R') {
 	        stmp[i] = '\0';
 		rn = atoi(stmp);
