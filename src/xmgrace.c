@@ -189,8 +189,6 @@ String fallbackResourcesCommon[] = {
     "XMgrace*mainWin.shadowThickness: 0",
     "XMgrace*mainWin.menuBar.shadowThickness: 1",
     "XMgrace*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
-    "XMgrace*dragInitiatorProtocolStyle: XmDRAG_NONE",
-    "XMgrace*dragReceiverProtocolStyle:  XmDRAG_NONE",
     "XMgrace*fileMenu.newButton.acceleratorText: Ctrl+N",
     "XMgrace*fileMenu.newButton.accelerator: Ctrl<Key>n",
     "XMgrace*fileMenu.openButton.acceleratorText: Ctrl+O",
