@@ -125,7 +125,7 @@ static int world2view(const Quark *q,
 {
     ctrans_data cd;
     if (get_ctrans_data(q, &cd) != RETURN_SUCCESS) {
-        return FALSE;
+        return RETURN_FAILURE;
     }
     
     if (cd.coordinates == COORDINATES_POLAR) {
