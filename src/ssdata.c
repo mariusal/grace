@@ -319,12 +319,12 @@ int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s)
  * If target is allocated but with no data, choose it (used for loading sets
  * from project files when sets aren't packed)
  */
-Quark *nextset(Quark *gr)
+static Quark *nextset(Quark *gr)
 {
     Quark *pset, **psets;
     RunTime *rt = rt_from_quark(gr);
     
-    if (!gr || !rt) {
+    if (!rt) {
         return NULL;
     }
     
@@ -398,7 +398,7 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
         }
 
         pset = nextset(gr);
-        set_dataset_type(pset, rt->curtype);
+        set_set_type(pset, rt->curtype);
 
         nncols = 0;
         if (x_from_index) {
@@ -406,19 +406,19 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
             if (xdata == NULL) {
                 free_ss_data(ssd);
             }
-            setcol(pset, nncols, xdata, nrows);
+            set_set_col(pset, nncols, xdata, nrows);
             nncols++;
         }
         for (j = 0; j < ncols; j++) {
             if (ssd->formats[j] == FFORMAT_STRING) {
                 set_set_strings(pset, nrows, (char **) ssd->data[j]);
             } else {
-                setcol(pset, nncols, (double *) ssd->data[j], nrows);
+                set_set_col(pset, nncols, (double *) ssd->data[j], nrows);
                 nncols++;
             }
         }
-        if (!getcomment(pset)) {
-            setcomment(pset, ssd->label);
+        if (!set_get_comment(pset)) {
+            set_set_comment(pset, ssd->label);
         }
         
         XCFREE(ssd->data);
@@ -446,10 +446,10 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
             } else {
                 xdata = (double *) ssd->data[0];
             }
-            set_dataset_type(pset, SET_XY);
-            setcol(pset, DATA_X, xdata, nrows);
-            setcol(pset, DATA_Y, (double *) ssd->data[i + 1], nrows);
-            setcomment(pset, ssd->label);
+            set_set_type(pset, SET_XY);
+            set_set_col(pset, DATA_X, xdata, nrows);
+            set_set_col(pset, DATA_Y, (double *) ssd->data[i + 1], nrows);
+            set_set_comment(pset, ssd->label);
         }
     
         XCFREE(ssd->data);
@@ -583,7 +583,7 @@ int create_set_fromblock(Quark *pset,
     /* clear data stored in the set, if any */
     killsetdata(pset);
     
-    set_dataset_type(pset, type);
+    set_set_type(pset, type);
 
     for (i = 0; i < nc; i++) {
         column = coli[i];
@@ -602,7 +602,7 @@ int create_set_fromblock(Quark *pset,
             killsetdata(pset);
             return RETURN_FAILURE;
         }
-        setcol(pset, i, cdata, blocklen);
+        set_set_col(pset, i, cdata, blocklen);
     }
 
     /* strings, if any */
@@ -620,7 +620,7 @@ int create_set_fromblock(Quark *pset,
     s = cols_to_field_string(nc, coli, scol);
     sprintf(buf, "%s, cols %s", blockdata.label, s);
     xfree(s);
-    setcomment(pset, buf);
+    set_set_comment(pset, buf);
 
     autoscale_graph(get_parent_graph(pset), autoscale);
 

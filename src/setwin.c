@@ -217,11 +217,11 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
     
     if (n == 1) {
 	pset = values[0];
-        ncols = set_get_dataset_ncols(pset);
-        SetTextString(tui.comment_item, getcomment(pset));
-	sprintf(buf, "%d", getsetlength(pset));
+        ncols = set_get_ncols(pset);
+        SetTextString(tui.comment_item, set_get_comment(pset));
+	sprintf(buf, "%d", set_get_length(pset));
         xv_setstr(tui.length_item, buf);
-        SetOptionChoice(tui.datatype_item, dataset_type(pset));
+        SetOptionChoice(tui.datatype_item, set_get_type(pset));
         SetToggleButtonState(tui.hotlink_item, set_is_hotlinked(pset));
         SetOptionChoice(tui.hotsrc_item, set_get_hotlink_src(pset));
         xv_setstr(tui.hotfile_item, set_get_hotlink_file(pset));
@@ -230,9 +230,9 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
         ncols = 0;
     }
     for (i = 0; i < MAX_SET_COLS; i++) {
-        datap = getcol(pset, i);
-	minmax(datap, getsetlength(pset), &dmin, &dmax, &imin, &imax);
-	stasum(datap, getsetlength(pset), &dmean, &dsd);
+        datap = set_get_col(pset, i);
+	minmax(datap, set_get_length(pset), &dmin, &dmax, &imin, &imax);
+	stasum(datap, set_get_length(pset), &dmean, &dsd);
         for (j = 0; j < 6; j++) {
             if (i < ncols) {
                 switch (j) {
@@ -309,9 +309,9 @@ static int datasetprop_aac_cb(void *data)
         if (error == FALSE) {
             for (i = 0; i < nsets; i++) {
                 pset = selset[i];
-                set_dataset_type(pset, type);
-                setlength(pset, len);
-                setcomment(pset, s);
+                set_set_type(pset, type);
+                set_set_length(pset, len);
+                set_set_comment(pset, s);
                 set_set_hotlink(pset, hotlink, hotfile, hotsrc);
             }
         }
@@ -731,9 +731,9 @@ static int leval_aac_cb(void *data)
     t->length = npts;
     
     pset = set_new(gr);
-    set_dataset_type(pset, type);
+    set_set_type(pset, type);
     set_set_active(pset, TRUE);
-    if (setlength(pset, npts) != RETURN_SUCCESS) {
+    if (set_set_length(pset, npts) != RETURN_SUCCESS) {
         killset(pset);
         XCFREE(t->data);
         t->length = 0;
@@ -769,7 +769,7 @@ static int leval_aac_cb(void *data)
     XCFREE(t->data);
     t->length = 0;
 
-    setcomment(pset, "Formula");
+    set_set_comment(pset, "Formula");
     
     update_set_lists(gr);
     xdrawgraph();

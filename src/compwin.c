@@ -251,9 +251,9 @@ static void *interp_get_cb(void *gui)
                 errmsg("Please select a single sampling set");
                 error = TRUE;
             } else {
-                pars->meshlen = getsetlength(psampl);
+                pars->meshlen = set_get_length(psampl);
                 pars->mesh =
-                    copy_data_column(getcol(psampl, DATA_X), pars->meshlen);
+                    copy_data_column(set_get_col(psampl, DATA_X), pars->meshlen);
             }
         } else {
             double start, stop;
@@ -417,9 +417,9 @@ static void *histo_get_cb(void *gui)
                 errmsg("Please select a single sampling set");
                 error = TRUE;
             } else {
-                pars->nbins = getsetlength(psampl) - 1;
+                pars->nbins = set_get_length(psampl) - 1;
                 pars->bins =
-                    copy_data_column(getcol(psampl, DATA_X), pars->nbins + 1);
+                    copy_data_column(set_get_col(psampl, DATA_X), pars->nbins + 1);
             }
         } else {
             double start, stop;

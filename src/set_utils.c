@@ -78,22 +78,6 @@ char *dataset_colname(int col)
     return s;
 }
 
-int zero_set_data(Dataset *dsp)
-{
-    int k;
-    
-    if (dsp) {
-        dsp->len = 0;
-        for (k = 0; k < dsp->ncols; k++) {
-	    dsp->ex[k] = NULL;
-        }
-        dsp->s = NULL;
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 int copy_set_params(Quark *src, Quark *dest)
 {
     if (!src || !dest) {
@@ -135,22 +119,6 @@ void killsetdata(Quark *pset)
 }
 
 /*
- * (re)allocate data arrays for a set of length len.
- */
-int setlength(Quark *pset, int len)
-{
-    set *p = set_get_data(pset);
-
-    if (!p) {
-        return RETURN_FAILURE;
-    }
-    
-    quark_dirtystate_set(pset, TRUE);
-    
-    return dataset_set_nrows(p->data, len);
-}
-
-/*
  * same as copyset(), but doesn't alter the to set appearance
  */
 int copysetdata(Quark *psrc, Quark *pdest)
@@ -168,7 +136,7 @@ int copysetdata(Quark *psrc, Quark *pdest)
     p2->data = dataset_copy(p1->data);
     
     if (p2->data) {
-        if (set_get_dataset_ncols(pdest) != set_get_dataset_ncols(psrc)) {
+        if (set_get_ncols(pdest) != set_get_ncols(psrc)) {
             p2->type = p1->type;
         }
         quark_dirtystate_set(pdest, TRUE);
@@ -184,114 +152,6 @@ int copysetdata(Quark *psrc, Quark *pdest)
 void killset(Quark *pset)
 {
     quark_free(pset);
-}
-
-double *getcol(Quark *pset, int col)
-{
-    if (pset) {
-        set *p = set_get_data(pset);
-        return p->data->ex[col];
-    } else {
-        return NULL;
-    }
-}
-
-void setcol(Quark *pset, int col, double *x, int len)
-{
-    if (pset) {
-        set *p = set_get_data(pset);
-        p->data->ex[col] = x;
-        p->data->len = len;
-        quark_dirtystate_set(pset, TRUE);
-    }
-}
-
-char **get_set_strings(Quark *pset)
-{
-    if (pset) {
-        set *p = set_get_data(pset);
-        return p->data->s;
-    } else {
-        return NULL;
-    }
-}
-
-int set_set_strings(Quark *pset, int len, char **s)
-{
-    if (pset && len > 0 && s!= NULL) {
-        set *p = set_get_data(pset);
-        p->data->s = s;
-        p->data->len = len;
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int getsetlength(Quark *pset)
-{
-    if (pset) {
-        set *p = set_get_data(pset);
-        return p->data->len;
-    } else {
-        return -1;
-    }
-}
-
-int setcomment(Quark *pset, char *s)
-{ 
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        dsp->comment = copy_string(dsp->comment, s);
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-char *getcomment(Quark *pset)
-{ 
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        return dsp->comment;
-    } else {
-        return NULL;
-    }
-}
-
-int set_dataset_type(Quark *pset, int type)
-{ 
-    int ncols_new = settype_cols(type);
-    set *p;
-    
-    if (!pset) {
-        return RETURN_FAILURE;
-    }
-    
-    p = set_get_data(pset);
-    if (dataset_set_ncols(p->data, ncols_new) == RETURN_SUCCESS) {
-        p->type = type;
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int dataset_type(Quark *pset)
-{ 
-    if (pset) {
-        set *p = set_get_data(pset);
-        return p->type;
-    } else {
-        return -1;
-    }
 }
 
 
@@ -320,9 +180,9 @@ int getsetminmax(Quark **sets, int nsets,
     for (i = 0; i < nsets; i++) {
         Quark *pset = sets[i];
         if (is_set_drawable(pset)) {
-            x = getcol(pset, DATA_X);
-            y = getcol(pset, DATA_Y);
-            len = getsetlength(pset);
+            x = set_get_col(pset, DATA_X);
+            y = set_get_col(pset, DATA_Y);
+            len = set_get_length(pset);
             minmax(x, len, &x1, &x2, &imin, &imax);
             minmax(y, len, &y1, &y2, &imin, &imax);
             if (first) {
@@ -385,7 +245,7 @@ int getsetminmax_c(Quark **sets, int nsets,
                 vec  = getx(pset);
             }
             
-            n = getsetlength(pset);
+            n = set_get_length(pset);
             hits = minmaxrange(bvec, vec, n, bvmin, bvmax, &vmin_t, &vmax_t);
             if (hits == RETURN_SUCCESS) {
                 if (first) {
@@ -565,11 +425,11 @@ int set_point(Quark *pset, int seti, const WPoint *wp)
     if (!pset) {
         return RETURN_FAILURE;
     }
-    if (seti >= getsetlength(pset) || seti < 0) {
+    if (seti >= set_get_length(pset) || seti < 0) {
         return RETURN_FAILURE;
     }
-    (getcol(pset, DATA_X))[seti] = wp->x;
-    (getcol(pset, DATA_Y))[seti] = wp->y;
+    (set_get_col(pset, DATA_X))[seti] = wp->x;
+    (set_get_col(pset, DATA_Y))[seti] = wp->y;
     quark_dirtystate_set(pset, TRUE);
     return RETURN_SUCCESS;
 }
@@ -579,11 +439,11 @@ int get_point(Quark *pset, int seti, WPoint *wp)
     if (!pset) {
         return RETURN_FAILURE;
     }
-    if (seti >= getsetlength(pset) || seti < 0) {
+    if (seti >= set_get_length(pset) || seti < 0) {
         return RETURN_FAILURE;
     }
-    wp->x = (getcol(pset, DATA_X))[seti];
-    wp->y = (getcol(pset, DATA_Y))[seti];
+    wp->x = (set_get_col(pset, DATA_X))[seti];
+    wp->y = (set_get_col(pset, DATA_Y))[seti];
     return RETURN_SUCCESS;
 }
 
@@ -595,13 +455,13 @@ void copycol2(Quark *psrc, Quark *pdest, int col)
     if (!psrc || !pdest) {
         return;
     }
-    n1 = getsetlength(psrc);
-    n2 = getsetlength(pdest);
+    n1 = set_get_length(psrc);
+    n2 = set_get_length(pdest);
     if (n1 != n2) {
         return;
     }
-    x1 = getcol(psrc, col);
-    x2 = getcol(pdest, col);
+    x1 = set_get_col(psrc, col);
+    x2 = set_get_col(pdest, col);
     for (i = 0; i < n1; i++) {
 	x2[i] = x1[i];
     }
@@ -610,7 +470,7 @@ void copycol2(Quark *psrc, Quark *pdest, int col)
 
 int is_set_dataless(Quark *pset)
 {
-    if (getsetlength(pset) > 0) {
+    if (set_get_length(pset) > 0) {
         return FALSE;
     } else {
         return TRUE;
@@ -654,26 +514,26 @@ void droppoints(Quark *pset, int startno, int endno)
         return;
     }
     
-    len = getsetlength(pset);
+    len = set_get_length(pset);
     
     if (dist == len) {
         killsetdata(pset);
         return;
     }
     
-    ncols = set_get_dataset_ncols(pset);
+    ncols = set_get_ncols(pset);
     for (j = 0; j < ncols; j++) {
-	x = getcol(pset, j);
+	x = set_get_col(pset, j);
 	for (i = endno + 1; i < len; i++) {
 	    x[i - dist] = x[i];
 	}
     }
-    if ((s = get_set_strings(pset)) != NULL) {
+    if ((s = set_get_strings(pset)) != NULL) {
 	for (i = endno + 1; i < len; i++) {
 	    s[i - dist] = copy_string(s[i - dist], s[i]);
 	}
     }
-    setlength(pset, len - dist);
+    set_set_length(pset, len - dist);
 }
 
 /*
@@ -692,36 +552,36 @@ int join_sets(Quark **sets, int nsets)
     }
     
     pset_final = sets[0];
-    ncols = set_get_dataset_ncols(pset_final);
+    ncols = set_get_ncols(pset_final);
     for (i = 0; i < nsets; i++) {
         pset = sets[i];
         if (!pset) {
             errmsg("Invalid pset in the list");
             return RETURN_FAILURE;
         }
-        if (set_get_dataset_ncols(pset) != ncols) {
+        if (set_get_ncols(pset) != ncols) {
             errmsg("Can't join datasets with different number of cols");
             return RETURN_FAILURE;
         }
     }
     
-    new_length = getsetlength(pset_final);
+    new_length = set_get_length(pset_final);
     for (i = 1; i < nsets; i++) {
         pset = sets[i];
         old_length = new_length;
-        new_length += getsetlength(pset);
-        if (setlength(pset_final, new_length) != RETURN_SUCCESS) {
+        new_length += set_get_length(pset);
+        if (set_set_length(pset_final, new_length) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
         for (j = 0; j < ncols; j++) {
-            x1 = getcol(pset_final, j);
-            x2 = getcol(pset, j);
+            x1 = set_get_col(pset_final, j);
+            x2 = set_get_col(pset, j);
             for (n = old_length; n < new_length; n++) {
                 x1[n] = x2[n - old_length];
             }
         }
-        s1 = get_set_strings(pset_final);
-        s2 = get_set_strings(pset);
+        s1 = set_get_strings(pset_final);
+        s2 = set_get_strings(pset);
         if (s1 != NULL && s2 != NULL) {
             for (n = old_length; n < new_length; n++) {
                 s1[n] = copy_string(s1[n], s2[n - old_length]);
@@ -742,16 +602,16 @@ void reverse_set(Quark *pset)
     if (!pset) {
 	return;
     }
-    n = getsetlength(pset);
-    ncols = set_get_dataset_ncols(pset);
+    n = set_get_length(pset);
+    ncols = set_get_ncols(pset);
     for (k = 0; k < ncols; k++) {
-	x = getcol(pset, k);
+	x = set_get_col(pset, k);
 	for (i = 0; i < n / 2; i++) {
 	    j = (n - 1) - i;
 	    fswap(&x[i], &x[j]);
 	}
     }
-    if ((s = get_set_strings(pset)) != NULL) {
+    if ((s = set_get_strings(pset)) != NULL) {
 	char *stmp;
         for (i = 0; i < n / 2; i++) {
 	    j = (n - 1) - i;
@@ -812,13 +672,13 @@ void sortset(Quark *pset, int sorton, int stype)
     char **s, **stmp;
 
     /* get the vector to sort on */
-    vptr = getcol(pset, sorton);
+    vptr = set_get_col(pset, sorton);
     if (vptr == NULL) {
 	errmsg("NULL vector in sort, operation cancelled, check set type");
 	return;
     }
 
-    len = getsetlength(pset);
+    len = set_get_length(pset);
     if (len <= 1) {
 	return;
     }
@@ -835,7 +695,7 @@ void sortset(Quark *pset, int sorton, int stype)
 	return;
     }
     
-    s = get_set_strings(pset);
+    s = set_get_strings(pset);
     if (s != NULL) {
         stmp = xmalloc(len*sizeof(char *));
         if (stmp == NULL) {
@@ -856,11 +716,11 @@ void sortset(Quark *pset, int sorton, int stype)
 
     /* straighten things out - done one vector at a time for storage */
     
-    nc = set_get_dataset_ncols(pset);
+    nc = set_get_ncols(pset);
     /* loop over the number of columns */
     for (j = 0; j < nc; j++) {
         /* get this vector and put into the temporary vector in the right order */
-	x = getcol(pset, j);
+	x = set_get_col(pset, j);
 	for (i = 0; i < len; i++) {
 	    xtmp[i] = x[ind[i]];
 	}
@@ -907,8 +767,8 @@ void add_point(Quark *pset, double px, double py)
     double *x, *y;
 
     if (pset) {
-	 len = getsetlength(pset);
-	 setlength(pset, len + 1);
+	 len = set_get_length(pset);
+	 set_set_length(pset, len + 1);
 	 x = getx(pset);
 	 y = gety(pset);
 	 x[len] = px;
@@ -959,21 +819,21 @@ int add_point_at(Quark *pset, int ind, const Datapoint *dpoint)
     char **s;
 
     if (pset) {
-        len = getsetlength(pset);
+        len = set_get_length(pset);
         if (ind < 0 || ind > len) {
             return RETURN_FAILURE;
         }
         len++;
-        setlength(pset, len);
-        ncols = set_get_dataset_ncols(pset);
+        set_set_length(pset, len);
+        ncols = set_get_ncols(pset);
         for (col = 0; col < ncols; col++) {
-            ex = getcol(pset, col);
+            ex = set_get_col(pset, col);
             if (ind < len - 1) {
                 memmove(ex + ind + 1, ex + ind, (len - ind - 1)*SIZEOF_DOUBLE);
             }
             ex[ind] = dpoint->ex[col];
         }
-        s = get_set_strings(pset);
+        s = set_get_strings(pset);
         if (s != NULL) {
             if (ind < len - 1) {
                 memmove(s + ind + 1, s + ind, (len - ind - 1)*sizeof(char *));
@@ -993,16 +853,16 @@ int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
     double *ex;
     char **s;
     
-    n = getsetlength(pset);
+    n = set_get_length(pset);
     if (ind < 0 || ind >= n) {
         return RETURN_FAILURE;
     } else {
-        *ncols = set_get_dataset_ncols(pset);
+        *ncols = set_get_ncols(pset);
         for (col = 0; col < *ncols; col++) {
-            ex = getcol(pset, col);
+            ex = set_get_col(pset, col);
             dpoint->ex[col] = ex[ind];
         }
-        s = get_set_strings(pset);
+        s = set_get_strings(pset);
         if (s != NULL) {
             dpoint->s = s[ind];
         } else {
@@ -1015,31 +875,31 @@ int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
 void delete_byindex(Quark *pset, int *ind)
 {
     int i, j, cnt = 0;
-    int ncols = set_get_dataset_ncols(pset);
+    int ncols = set_get_ncols(pset);
 
     if (!pset) {
         return;
     }
     
-    for (i = 0; i < getsetlength(pset); i++) {
+    for (i = 0; i < set_get_length(pset); i++) {
 	if (ind[i]) {
 	    cnt++;
 	}
     }
-    if (cnt == getsetlength(pset)) {
+    if (cnt == set_get_length(pset)) {
 	killset(pset);
 	return;
     }
     cnt = 0;
-    for (i = 0; i < getsetlength(pset); i++) {
+    for (i = 0; i < set_get_length(pset); i++) {
 	if (ind[i] == 0) {
 	    for (j = 0; j < ncols; j++) {
-                (getcol(pset, j))[cnt] = (getcol(pset, j))[i];
+                (set_get_col(pset, j))[cnt] = (set_get_col(pset, j))[i];
 	    }
 	    cnt++;
 	}
     }
-    setlength(pset, cnt);
+    set_set_length(pset, cnt);
 }
 
 /*
@@ -1053,7 +913,7 @@ int do_splitsets(Quark *pset, int lpart)
     Quark *gr, *ptmp;
     Dataset *dsp, *dsptmp;
 
-    if ((len = getsetlength(pset)) < 2) {
+    if ((len = set_get_length(pset)) < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
     }
@@ -1069,7 +929,7 @@ int do_splitsets(Quark *pset, int lpart)
     npsets = (len - 1)/lpart + 1;
 
     /* get number of columns in this set */
-    ncols = set_get_dataset_ncols(pset);
+    ncols = set_get_ncols(pset);
 
     gr = get_parent_graph(pset);
     dsp = set_get_dataset(pset);
@@ -1088,17 +948,16 @@ int do_splitsets(Quark *pset, int lpart)
         /* set the plot parameters */
         copy_set_params(pset, ptmp);
 
-	if (setlength(ptmp, plen) != RETURN_SUCCESS) {
+	if (set_set_length(ptmp, plen) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
         if (dsp->s) {
-            /* FIXME (no direct use of *alloc/free) !!! */
-            dsptmp->s = xmalloc(plen*sizeof(char *));
+            dataset_enable_scol(dsptmp, TRUE);
         }
         
         /* load the data into each column */
 	for (k = 0; k < ncols; k++) {
-	    x = getcol(ptmp, k);
+	    x = set_get_col(ptmp, k);
 	    for (j = 0; j < plen; j++) {
 		x[j] = dsp->ex[k][i*lpart + j];
 	    }
@@ -1111,7 +970,7 @@ int do_splitsets(Quark *pset, int lpart)
         }
 	
         sprintf(s, "partition %d of set %s", i + 1, quark_idstr_get(pset));
-	setcomment(ptmp, s);
+	set_set_comment(ptmp, s);
     }
     
     /* kill the original set */
@@ -1125,19 +984,19 @@ int do_splitsets(Quark *pset, int lpart)
  */
 void do_drop_points(Quark *pset, int startno, int endno)
 {
-    int setlength;
+    int set_set_length;
 
     if (!pset) {
 	errmsg("Set not active");
 	return;
     }
 
-    setlength = getsetlength(pset);
+    set_set_length = set_get_length(pset);
     if (startno < 0) {
-        startno = setlength + 1 + startno;
+        startno = set_set_length + 1 + startno;
     }
     if (endno < 0) {
-        endno = setlength + 1 + endno;
+        endno = set_set_length + 1 + endno;
     }
 
     if (startno > endno) {
@@ -1148,7 +1007,7 @@ void do_drop_points(Quark *pset, int startno, int endno)
 	errmsg("Start # < 0");
 	return;
     }
-    if (endno >= setlength) {
+    if (endno >= set_set_length) {
 	errmsg("Ending # >= set length");
 	return;
     }
@@ -1215,7 +1074,7 @@ double setybase(Quark *pset)
 
 int load_comments_to_legend(Quark *pset)
 {
-    return set_set_legstr(pset, getcomment(pset));
+    return set_set_legstr(pset, set_get_comment(pset));
 }
 
 int filter_set(Quark *pset, char *rarray)
@@ -1229,7 +1088,7 @@ int filter_set(Quark *pset, char *rarray)
     if (rarray == NULL) {
         return RETURN_SUCCESS;
     }
-    ncols = set_get_dataset_ncols(pset);
+    ncols = set_get_ncols(pset);
     dsp = set_get_dataset(pset);
     ip = 0;
     for (i = 0; i < dsp->len; i++) {
@@ -1243,11 +1102,11 @@ int filter_set(Quark *pset, char *rarray)
             ip++;
         }
     }
-    setlength(pset, ip);
+    set_set_length(pset, ip);
     return RETURN_SUCCESS;
 }
 
-int set_set_colors(Quark *pset, int color)
+int setcolors(Quark *pset, int color)
 {
     set *p = set_get_data(pset);
     RunTime *rt = rt_from_quark(pset);

@@ -93,9 +93,9 @@ static int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
         return RETURN_FAILURE;
     }
     
-    *nrows = getsetlength(ep->pset);
-    *ncols = set_get_dataset_ncols(ep->pset);
-    if (get_set_strings(ep->pset) != NULL) {
+    *nrows = set_get_length(ep->pset);
+    *ncols = set_get_ncols(ep->pset);
+    if (set_get_strings(ep->pset) != NULL) {
         *scols = 1;
     } else {
         *scols = 0;
@@ -192,9 +192,9 @@ void add_row_cb(Widget but, void *data)
     
     if (i < nrows) {
         for (k = 0; k < ncols; k++) {
-            dpoint.ex[k] = *(getcol(ep->pset, k) + i);
+            dpoint.ex[k] = *(set_get_col(ep->pset, k) + i);
         }
-        if ((s = get_set_strings(ep->pset)) != NULL) {
+        if ((s = set_get_strings(ep->pset)) != NULL) {
             dpoint.s = s[i];
         }
         add_point_at(ep->pset, i + 1, &dpoint);
@@ -320,7 +320,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 
     if (cs->row >= nrows) {
         if (!is_empty_string(cs->value)) {
-            setlength(ep->pset, cs->row + 1);
+            set_set_length(ep->pset, cs->row + 1);
             update_set_lists(get_parent_graph(ep->pset));
         } else {
             /* empty cell */
@@ -331,7 +331,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     /* TODO: add edit_point() function to setutils.c */
     if (cs->column < ncols) {
         char *s;
-        double *datap = getcol(ep->pset, cs->column);
+        double *datap = set_get_col(ep->pset, cs->column);
         s = create_fstring(get_parent_project(ep->pset),
             ep->cformat[cs->column], ep->cprec[cs->column],
             datap[cs->row], LFORMAT_TYPE_PLAIN);
@@ -346,7 +346,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
             }
         }
     } else if (cs->column < ncols + scols) {
-        char **datap = get_set_strings(ep->pset);
+        char **datap = set_get_strings(ep->pset);
         if (compare_strings(datap[cs->row], cs->value) == 0) {
 	    datap[cs->row] = copy_string(datap[cs->row], cs->value);
             changed = TRUE;
@@ -385,7 +385,7 @@ static char *get_cell_content(EditPoints *ep, int row, int column)
         s = "";
     } else if (column < ncols) {
         double *datap;
-        datap = getcol(ep->pset, column);
+        datap = set_get_col(ep->pset, column);
         strcpy(buf[stackp],
             create_fstring(get_parent_project(ep->pset), ep->cformat[column],
                 ep->cprec[column], datap[row], LFORMAT_TYPE_PLAIN));
@@ -394,7 +394,7 @@ static char *get_cell_content(EditPoints *ep, int row, int column)
         stackp %= STACKLEN;
     } else {
         char **datap;
-        datap = get_set_strings(ep->pset);
+        datap = set_get_strings(ep->pset);
         s = datap[row];
     }
     
@@ -529,8 +529,8 @@ static void update_cells(EditPoints *ep)
     sprintf(buf, "Dataset %s", QIDSTR(ep->pset));
     SetLabel(ep->label, buf);
 
-    SetOptionChoice(ep->stype, dataset_type(ep->pset));
-    SetTextString(ep->comment, getcomment(ep->pset));
+    SetOptionChoice(ep->stype, set_get_type(ep->pset));
+    SetTextString(ep->comment, set_get_comment(ep->pset));
     
     /* get current size of widget and update rows/columns as needed */
     get_ep_dims(ep, &nr, &nc);
@@ -630,8 +630,8 @@ int ep_aac_proc(void *data)
     stype = GetOptionChoice(ep->stype);
     comment = GetTextString(ep->comment);
     
-    set_dataset_type(ep->pset, stype);
-    setcomment(ep->pset, comment);
+    set_set_type(ep->pset, stype);
+    set_set_comment(ep->pset, comment);
     update_set_lists(get_parent_graph(ep->pset));
     xdrawgraph();
     
@@ -790,7 +790,7 @@ void do_ext_editor(Quark *pset)
     save_autos = grace->rt->autoscale_onread;
     grace->rt->autoscale_onread = AUTOSCALE_NONE;
     if (!is_set_dataless(pset)) {
-        grace->rt->curtype = dataset_type(pset);
+        grace->rt->curtype = set_get_type(pset);
         grace->rt->target_set = pset;
 	killsetdata(pset);	
     }

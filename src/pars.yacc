@@ -661,7 +661,7 @@ expr:	NUMBER {
 	    $$ = $1->length;
 	}
 	| selectset '.' LENGTH {
-	    $$ = getsetlength($1);
+	    $$ = set_get_length($1);
 	}
 	| CONSTANT
 	{
@@ -877,7 +877,7 @@ array:
 	}
         | datacolumn
 	{
-	    double *ptr = getcol(vasgn_pset, $1);
+	    double *ptr = set_get_col(vasgn_pset, $1);
             $$ = &freelist[fcnt++];
             $$->type = GRARR_SET;
             $$->data = ptr;
@@ -885,12 +885,12 @@ array:
                 errmsg("NULL variable - check set type");
                 return 1;
             } else {
-                $$->length = getsetlength(vasgn_pset);
+                $$->length = set_get_length(vasgn_pset);
             }
 	}
 	| selectset '.' datacolumn
 	{
-	    double *ptr = getcol($1, $3);
+	    double *ptr = set_get_col($1, $3);
             $$ = &freelist[fcnt++];
             $$->type = GRARR_SET;
             $$->data = ptr;
@@ -898,7 +898,7 @@ array:
                 errmsg("NULL variable - check set type");
                 return 1;
             } else {
-                $$->length = getsetlength($1);
+                $$->length = set_get_length($1);
             }
 	}
         ;
@@ -2772,7 +2772,7 @@ actions:
 	    set_set_active($1, !$3);
 	}
 	| selectset LENGTH nexpr {
-	    setlength($1, $3);
+	    set_set_length($1, $3);
 	}
 	| VEC_D LENGTH nexpr {
 	    realloc_vrbl($1, $3);
@@ -2814,7 +2814,7 @@ setprop:
 	    set_set_active($1, $2);
 	}
 	| selectset TYPE xytype {
-	    set_dataset_type($1, $3);
+	    set_set_type($1, $3);
 	}
 
 	| selectset SYMBOL nexpr {
@@ -3059,7 +3059,7 @@ setprop:
 	}
 
 	| selectset COMMENT CHRSTR {
-	    setcomment($1, $3);
+	    set_set_comment($1, $3);
 	    xfree($3);
 	}
         
@@ -4787,7 +4787,7 @@ static int find_set_bydata(double *data, Quark **pset)
 	    for (setno = 0; setno < nsets; setno++) {
                 int ncol;
                 for (ncol = 0; ncol < MAX_SET_COLS; ncol++) {
-                    if (getcol(gno, setno, ncol) == data) {
+                    if (set_get_col(gno, setno, ncol) == data) {
                         tgt->gno   = gno;
                         tgt->setno = setno;
                         return RETURN_SUCCESS;

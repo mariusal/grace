@@ -1662,7 +1662,7 @@ char *utf2iso(const char *s)
             set_set_active($$, $?);
         </attribute>
         <attribute name="#AStrType" type="settype">
-            set_dataset_type($$, $?);
+            set_set_type($$, $?);
         </attribute>
         <attribute name="#AStrSkip" type="ival">
             set_set_symskip($$, $?);

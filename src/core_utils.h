@@ -94,7 +94,6 @@ int number_of_sets(Quark *gr);
 
 int load_comments_to_legend(Quark *p);
 
-int dataset_type(Quark *p);
 char *dataset_colname(int col);
 
 int is_refpoint_active(Quark *gr);
@@ -103,20 +102,8 @@ int set_refpoint(Quark *gr, const WPoint *wp);
 
 WPoint get_refpoint(Quark *gr);
 
-double *getcol(Quark *p, int col);
-#define getx(p) getcol(p, 0)
-#define gety(p) getcol(p, 1)
-
-int set_dataset_type(Quark *p, int stype);
-
-char *getcomment(Quark *p);
-int setcomment(Quark *p, char *s);
-
-int set_set_strings(Quark *p, int len, char **s);
-char **get_set_strings(Quark *p);
-
-int setlength(Quark *p, int length);
-int getsetlength(Quark *p);
+#define getx(p) set_get_col(p, DATA_X)
+#define gety(p) set_get_col(p, DATA_Y)
 
 double setybase(Quark *p);
 
@@ -127,7 +114,6 @@ int set_set_colors(Quark *p, int color);
 int copysetdata(Quark *psrc, Quark *pdest);
 
 void project_postprocess(Quark *pr);
-
 
 char *object_types(OType type);
 

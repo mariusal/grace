@@ -74,7 +74,7 @@ static void setapp_data_proc(Widget but, void *data)
                 c++;
                 c %= number_of_colors(grace->rt->canvas);
             }
-            set_set_colors(pset, c);
+            setcolors(pset, c);
             c++;
             break;
         case SETAPP_ALL_SYMBOLS:
@@ -88,7 +88,7 @@ static void setapp_data_proc(Widget but, void *data)
                 + 1;
             break;
         case SETAPP_ALL_BW:
-            set_set_colors(pset, 1);
+            setcolors(pset, 1);
             break;
         }
     }
@@ -582,7 +582,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->errbar.riser_linew = GetSpinChoice(ui->errbar_riserlinew);
         }
         if (!caller || caller == ui->type) {
-            set_dataset_type((q), GetOptionChoice(ui->type));
+            set_set_type((q), GetOptionChoice(ui->type));
         }
         if (!caller || caller == ui->errbar_riserlines) {
             p->errbar.riser_lines = GetOptionChoice(ui->errbar_riserlines);

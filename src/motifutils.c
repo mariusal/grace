@@ -2459,14 +2459,14 @@ static void sss_any_cb(void *udata, int cbtype)
         break;
     case SSS_NEWS_CB:
         if ((pset = set_new(gr))) {
-            setcomment(pset, "Editor");
+            set_set_comment(pset, "Editor");
             set_set_active(pset, TRUE);
             create_ss_frame(pset);
         }
         break;
     case SSS_NEWE_CB:
         if ((pset = set_new(gr))) {
-            setcomment(pset, "Editor");
+            set_set_comment(pset, "Editor");
             set_set_active(pset, TRUE);
             do_ext_editor(pset);
         }
@@ -2553,7 +2553,7 @@ static char *set_labeling(Quark *q, unsigned int *rid)
 
         sprintf(buf, "(%c) Set \"%s\" (type: %s, length: %d)",
             p->active ? '+':'-', QIDSTR(q), set_types(grace->rt, p->type),
-            getsetlength(q));
+            set_get_length(q));
 
         (*rid)++;
         

@@ -245,8 +245,8 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
                 Quark *pset = psets[setno];
                 if (is_set_drawable(pset)) {
                     set *p = set_get_data(pset);
-                    if (getsetlength(pset) > plot_rt->refn) {
-                        plot_rt->refn = getsetlength(pset);
+                    if (set_get_length(pset) > plot_rt->refn) {
+                        plot_rt->refn = set_get_length(pset);
                         plot_rt->refx = getx(pset);
                     }
                     if (graph_is_stacked(gr) != TRUE) {
@@ -308,7 +308,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
     gtype = graph_get_type(gr);
     switch (gtype) {
     case GRAPH_XY:
-        switch (dataset_type(pset)) {
+        switch (set_get_type(pset)) {
         case SET_XY:
         case SET_XYSIZE:
         case SET_XYCOLOR:
@@ -354,7 +354,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         }
         break;
     case GRAPH_FIXED:
-        switch (dataset_type(pset)) {
+        switch (set_get_type(pset)) {
         case SET_XY:
         case SET_XYSIZE:
         case SET_XYCOLOR:
@@ -391,7 +391,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         }
         break;
     case GRAPH_POLAR:
-        switch (dataset_type(pset)) {
+        switch (set_get_type(pset)) {
         case SET_XY:
         case SET_XYSIZE:
         case SET_XYCOLOR:
@@ -406,7 +406,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         }
         break;
     case GRAPH_PIE:
-        switch (dataset_type(pset)) {
+        switch (set_get_type(pset)) {
         case SET_XY:
         case SET_XYCOLOR:
         case SET_XYCOLPAT:
@@ -419,9 +419,9 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         break;
     case GRAPH_CHART:
         /* check that abscissas are identical with refx */
-        x = getcol(pset, DATA_X);
+        x = set_get_col(pset, DATA_X);
         x_ok = TRUE;
-        for (j = 0; j < getsetlength(pset); j++) {
+        for (j = 0; j < set_get_length(pset); j++) {
             if (fabs(x[j] - plot_rt->refx[j]) > plot_rt->epsilon) {
                 x_ok = FALSE;
                 break;
@@ -440,7 +440,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
             plot_rt->offset += 0.5*0.02*p->sym.size;
         }
 
-        switch (dataset_type(pset)) {
+        switch (set_get_type(pset)) {
         case SET_XY:
         case SET_XYSIZE:
         case SET_XYCOLOR:
@@ -493,7 +493,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         if (graph_is_stacked(gr) != TRUE) {
             plot_rt->offset += 0.5*0.02*p->sym.size + graph_get_bargap(gr);
         } else {
-            for (j = 0; j < getsetlength(pset); j++) {
+            for (j = 0; j < set_get_length(pset); j++) {
                 plot_rt->refy[j] += p->data->ex[1][j];
             }
         }
@@ -651,10 +651,10 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
     
     if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
-        setlen = MIN2(getsetlength(pset), plot_rt->refn);
+        setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
-        setlen = getsetlength(pset);
+        setlen = set_get_length(pset);
     }
     y = p->data->ex[1];
     
@@ -787,10 +787,10 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     
     if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
-        setlen = MIN2(getsetlength(pset), plot_rt->refn);
+        setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
-        setlen = getsetlength(pset);
+        setlen = set_get_length(pset);
     }
     y = p->data->ex[1];
     
@@ -1009,10 +1009,10 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
     
     if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
-        setlen = MIN2(getsetlength(pset), plot_rt->refn);
+        setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
-        setlen = getsetlength(pset);
+        setlen = set_get_length(pset);
     }
     y = p->data->ex[1];
     
@@ -1102,14 +1102,14 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 
     if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
-        setlen = MIN2(getsetlength(pset), plot_rt->refn);
+        setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
-        setlen = getsetlength(pset);
+        setlen = set_get_length(pset);
     }
     y = p->data->ex[1];
     
-    if (set_get_dataset_ncols(pset) > 2) {
+    if (set_get_ncols(pset) > 2) {
         z = p->data->ex[2];
     } else {
         z = NULL;
@@ -1205,10 +1205,10 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     
     if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
-        n = MIN2(getsetlength(pset), plot_rt->refn);
+        n = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
-        n = getsetlength(pset);
+        n = set_get_length(pset);
     }
     y = p->data->ex[1];
     
@@ -1335,7 +1335,7 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
 
     if (p->sym.line.style != 0) {
         setline(canvas, &p->sym.line);
-        for (i = 0; i < getsetlength(pset); i += skip) {
+        for (i = 0; i < set_get_length(pset); i += skip) {
             wp.x = x[i];
             wp.y = y1[i];
             vp1 = Wpoint2Vpoint(wp);
@@ -1375,10 +1375,10 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     
     if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
-        n = MIN2(getsetlength(pset), plot_rt->refn);
+        n = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
         x = p->data->ex[0];
-        n = getsetlength(pset);
+        n = set_get_length(pset);
     }
     y = p->data->ex[1];
     
@@ -1476,7 +1476,7 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
 
     setclipping(canvas, TRUE);
     
-    setlen = getsetlength(pset);
+    setlen = set_get_length(pset);
     x = p->data->ex[0];
     y = p->data->ex[1];
     r = p->data->ex[2];
@@ -1528,7 +1528,7 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
         return;
     }
     
-    setlen = getsetlength(pset);
+    setlen = set_get_length(pset);
     x = p->data->ex[DATA_X];
     y = p->data->ex[DATA_Y];
     vx = p->data->ex[DATA_Y1];
@@ -1578,7 +1578,7 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
 
     setclipping(canvas, TRUE);
 
-    for (i = 0; i < getsetlength(pset); i += skip) {
+    for (i = 0; i < set_get_length(pset); i += skip) {
         wp.x =  x[i];
 
         wp.y = lb[i];
@@ -1651,24 +1651,24 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     }
 
     /* data */
-    x = getcol(pset, DATA_X);
+    x = set_get_col(pset, DATA_X);
     /* explode factor */
-    e = getcol(pset, DATA_Y);
+    e = set_get_col(pset, DATA_Y);
     /* colors */
-    c = getcol(pset, DATA_Y1);
+    c = set_get_col(pset, DATA_Y1);
     /* patterns */
-    pt = getcol(pset, DATA_Y2);
+    pt = set_get_col(pset, DATA_Y2);
 
     /* get max explode factor */
     e_max = 0.0;
-    for (i = 0; i < getsetlength(pset); i++) {
+    for (i = 0; i < set_get_length(pset); i++) {
         e_max = MAX2(e_max, e[i]);
     }
 
     r = 0.8/(1.0 + e_max)*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
 
     norm = 0.0;
-    for (i = 0; i < getsetlength(pset); i++) {
+    for (i = 0; i < set_get_length(pset); i++) {
         if (x[i] < 0.0) {
             errmsg("No negative values in pie charts allowed");
             return;
@@ -1681,7 +1681,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     }
 
     stop_angle = w.xg1;
-    for (i = 0; i < getsetlength(pset); i++) {
+    for (i = 0; i < set_get_length(pset); i++) {
         Pen pen;
 
         start_angle = stop_angle;

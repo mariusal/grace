@@ -891,7 +891,7 @@ int set_set_dataset(Quark *q, Dataset *dsp);
 char *set_get_legstr(Quark *pset);
 int set_set_legstr(Quark *pset, const char *s);
 
-int set_get_dataset_ncols(Quark *pset);
+int set_get_ncols(Quark *pset);
 
 int set_set_symskip(Quark *pset, int symskip);
 int set_set_symbol(Quark *pset, const Symbol *sym);
@@ -903,6 +903,22 @@ void set_set_hotlink(Quark *pset, int onoroff, char *fname, int src);
 int set_is_hotlinked(Quark *pset);
 char *set_get_hotlink_file(Quark *pset);
 int set_get_hotlink_src(Quark *pset);
+
+int set_set_strings(Quark *p, int len, char **s);
+char **set_get_strings(Quark *p);
+
+int set_set_length(Quark *p, unsigned int length);
+int set_get_length(Quark *p);
+
+double *set_get_col(Quark *p, unsigned int col);
+void set_set_col(Quark *pset, unsigned int col, double *x, unsigned int len);
+
+int set_get_type(Quark *p);
+int set_set_type(Quark *p, int stype);
+
+char *set_get_comment(Quark *p);
+int set_set_comment(Quark *p, char *s);
+
 
 /* Region */
 region *region_data_new(void);

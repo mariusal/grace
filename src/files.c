@@ -1012,7 +1012,7 @@ int update_set_from_file(Quark *pset)
         fp = grace_openr(grace_from_quark(pset), dsp->hotfile, dsp->hotsrc);
         
         killsetdata(pset);
-        rt->curtype = dataset_type(pset);
+        rt->curtype = set_get_type(pset);
         retval = uniread(get_parent_project(pset), fp, LOAD_SINGLE, dsp->hotfile);
 
         grace_close(fp);
@@ -1048,12 +1048,12 @@ int write_set(Quark *pset, FILE *cp, char *format)
     }
     
     if (is_set_dataless(pset) == FALSE) {
-        n = getsetlength(pset);
-        ncols = set_get_dataset_ncols(pset);
+        n = set_get_length(pset);
+        ncols = set_get_ncols(pset);
         for (col = 0; col < ncols; col++) {
-            x[col] = getcol(pset, col);
+            x[col] = set_get_col(pset, col);
         }
-        s = get_set_strings(pset);
+        s = set_get_strings(pset);
 
         if (format == NULL) {
             format = project_get_sformat(get_parent_project(pset));
@@ -1436,12 +1436,12 @@ int readnetcdf(Quark *pset,
 /*
  * initialize stuff for the newly created set
  */
-    set_dataset_type(pset, SET_XY);
-    setcol(pset, 0, x, n);
-    setcol(pset, 1, y, n);
+    set_set_type(pset, SET_XY);
+    set_set_col(pset, 0, x, n);
+    set_set_col(pset, 1, y, n);
 
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
-    setcomment(pset, buf);
+    set_set_comment(pset, buf);
     
     autoscale_graph(gr, rt->autoscale_onread);
     
@@ -1480,14 +1480,14 @@ int write_netcdf(Quark *pr, char *fname)
 
 		    sprintf(buf, "comment");
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR,
-		    strlen(getcomment(pset)), (void *) getcomment(pset));
+		    strlen(set_get_comment(pset)), (void *) set_get_comment(pset));
 
 		    sprintf(buf, "type");
-		    strcpy(s, set_types(rt, dataset_type(pset)));
+		    strcpy(s, set_types(rt, set_get_type(pset)));
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
 		    sprintf(buf, "n");
-		    n_dim = ncdimdef(ncid, buf, getsetlength(pset));
+		    n_dim = ncdimdef(ncid, buf, set_get_length(pset));
 		    dims[0] = n_dim;
 		    getsetminmax(&pset, 1, &x1, &x2, &y1, &y2);
 		    sprintf(buf, "x");
@@ -1519,7 +1519,7 @@ int write_netcdf(Quark *pr, char *fname)
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
                 if (!is_set_dataless(pset)) {
-		    len[0] = getsetlength(pset);
+		    len[0] = set_get_length(pset);
 		    x = getx(pset);
 		    y = gety(pset);
 		    sprintf(buf, "x");

@@ -868,14 +868,14 @@ int do_differ(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(psrc);
+    len = set_get_length(psrc);
     newlen = len - period;
     if (newlen <= 0) {
 	errmsg("Source set length <= differentiation period");
 	return RETURN_FAILURE;
     }
     
-    x1 = getcol(psrc, DATA_X);
+    x1 = set_get_col(psrc, DATA_X);
     if (derivative) {
         for (i = 0; i < newlen; i++) {
             if (x1[i + period] - x1[i] == 0.0) {
@@ -888,19 +888,19 @@ int do_differ(Quark *psrc, Quark *pdest,
         }
     }
     
-    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, newlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
     
-    ncols = set_get_dataset_ncols(psrc);
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        set_dataset_type(pdest, dataset_type(psrc));
+    ncols = set_get_ncols(psrc);
+    if (set_get_ncols(pdest) != ncols) {
+        set_set_type(pdest, set_get_type(psrc));
     }
     
     for (nc = 1; nc < ncols; nc++) {
         double h, *d1, *d2;
-        d1 = getcol(psrc, nc);
-        d2 = getcol(pdest, nc);
+        d1 = set_get_col(psrc, nc);
+        d2 = set_get_col(pdest, nc);
         for (i = 0; i < newlen; i++) {
             d2[i] = d1[i + period] - d1[i];
             if (derivative) {
@@ -910,7 +910,7 @@ int do_differ(Quark *psrc, Quark *pdest,
         }
     }
     
-    x2 = getcol(pdest, DATA_X);
+    x2 = set_get_col(pdest, DATA_X);
     for (i = 0; i < newlen; i++) {
         switch (xplace) {
         case DIFF_XPLACE_LEFT:
@@ -949,7 +949,7 @@ int do_differ(Quark *psrc, Quark *pdest,
     }
     sprintf(buf, "%s %s%s of set %s", stype, pbuf,
        derivative ? "derivative":"difference", QIDSTR(psrc));
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -964,8 +964,8 @@ int do_linearc(Quark *psrc, Quark *pdest,
     double xspace1, xspace2, *xsrc, *xconv, *xdest, *yconv;
     char buf[256];
 
-    srclen  = getsetlength(psrc);
-    convlen = getsetlength(pconv);
+    srclen  = set_get_length(psrc);
+    convlen = set_get_length(pconv);
     if (srclen < 2 || convlen < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
@@ -973,7 +973,7 @@ int do_linearc(Quark *psrc, Quark *pdest,
     
     destlen = srclen + convlen - 1;
 
-    xsrc  = getcol(psrc, DATA_X);
+    xsrc  = set_get_col(psrc, DATA_X);
     if (monospaced(xsrc, srclen, &xspace1) != TRUE) {
         errmsg("Abscissas of the set are not monospaced");
         return RETURN_FAILURE;
@@ -984,7 +984,7 @@ int do_linearc(Quark *psrc, Quark *pdest,
         }
     }
 
-    xconv = getcol(pconv, DATA_X);
+    xconv = set_get_col(pconv, DATA_X);
     if (monospaced(xconv, convlen, &xspace2) != TRUE) {
         errmsg("Abscissas of the set are not monospaced");
         return RETURN_FAILURE;
@@ -995,22 +995,22 @@ int do_linearc(Quark *psrc, Quark *pdest,
         }
     }
     
-    if (setlength(pdest, destlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, destlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
 
-    ncols = set_get_dataset_ncols(psrc);
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        set_dataset_type(pdest, dataset_type(psrc));
+    ncols = set_get_ncols(psrc);
+    if (set_get_ncols(pdest) != ncols) {
+        set_set_type(pdest, set_get_type(psrc));
     }
     
-    yconv = getcol(pconv, DATA_Y);
+    yconv = set_get_col(pconv, DATA_Y);
     
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
         
-        d1 = getcol(psrc, nc);
-        d2 = getcol(pdest, nc);
+        d1 = set_get_col(psrc, nc);
+        d2 = set_get_col(pdest, nc);
         
         linearconv(d1, srclen, yconv, convlen, d2);
         for (i = 0; i < destlen; i++) {
@@ -1018,14 +1018,14 @@ int do_linearc(Quark *psrc, Quark *pdest,
         }
     }
 
-    xdest = getcol(pdest, DATA_X);
+    xdest = set_get_col(pdest, DATA_X);
     for (i = 0; i < destlen; i++) {
 	xdest[i] = (xsrc[0] + xconv[0]) + i*xspace1;
     }
     
     sprintf(buf, "Linear convolution of set %s with set %s",
         QIDSTR(psrc), QIDSTR(pconv));
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1051,13 +1051,13 @@ int do_xcor(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(psrc);
+    len = set_get_length(psrc);
     if (len < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
     }
 
-    xsrc = getcol(psrc, DATA_X);
+    xsrc = set_get_col(psrc, DATA_X);
     if (monospaced(xsrc, len, &xspace1) != TRUE) {
         errmsg("Abscissas of the source set are not monospaced");
         return RETURN_FAILURE;
@@ -1080,12 +1080,12 @@ int do_xcor(Quark *psrc, Quark *pdest,
 	    return RETURN_FAILURE;
         }
         
-        if (getsetlength(pcor) != len) {
+        if (set_get_length(pcor) != len) {
 	    errmsg("The correlating sets are of different length");
 	    return RETURN_FAILURE;
         }
 
-        xcor = getcol(pcor, DATA_X);
+        xcor = set_get_col(pcor, DATA_X);
         if (monospaced(xcor, len, &xspace2) != TRUE) {
             errmsg("Abscissas of the set are not monospaced");
             return RETURN_FAILURE;
@@ -1101,15 +1101,15 @@ int do_xcor(Quark *psrc, Quark *pdest,
         xoffset = 0.0;
     }
 
-    if (setlength(pdest, maxlag) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, maxlag) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
 
-    ncols1 = set_get_dataset_ncols(psrc);
-    ncols2 = set_get_dataset_ncols(pcor);
+    ncols1 = set_get_ncols(psrc);
+    ncols2 = set_get_ncols(pcor);
     ncols = MIN2(ncols1, ncols2);
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        set_dataset_type(pdest, dataset_type(psrc));
+    if (set_get_ncols(pdest) != ncols) {
+        set_set_type(pdest, set_get_type(psrc));
     }
 
     for (nc = 1; nc < ncols; nc++) {
@@ -1121,7 +1121,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
         buflen = len + maxlag;
         
         /* reallocate input to pad with zeros */
-        d1_re = copy_data_column(getcol(psrc, nc), len);
+        d1_re = copy_data_column(set_get_col(psrc, nc), len);
         d1_re = xrealloc(d1_re, SIZEOF_DOUBLE*buflen);
         d1_im = xcalloc(buflen, SIZEOF_DOUBLE);
         if (!d1_re || !d1_im) {
@@ -1146,7 +1146,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
         
         /* do the same with the second input if not autocorrelating */
         if (!autocor) {
-            d2_re = copy_data_column(getcol(pcor, nc), len);
+            d2_re = copy_data_column(set_get_col(pcor, nc), len);
             d2_re = xrealloc(d2_re, SIZEOF_DOUBLE*buflen);
             d2_im = xcalloc(buflen, SIZEOF_DOUBLE);
             if (!d1_im || !d2_im) {
@@ -1195,7 +1195,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
         /* the imaginary part must be zero */
         xfree(d1_im);
         
-        dres = getcol(pdest, nc);
+        dres = set_get_col(pdest, nc);
         for (i = 0; i < maxlag; i++) {
             dres[i] = d1_re[i]/buflen*xspace1;
             if (i == 0) {
@@ -1210,7 +1210,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
         xfree(d1_re);
     }
 
-    xdest = getcol(pdest, DATA_X);
+    xdest = set_get_col(pdest, DATA_X);
     for (i = 0; i < maxlag; i++) {
 	xdest[i] = xoffset + i*xspace1;
     }
@@ -1229,7 +1229,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
             "Cross-%s of sets %s and %s at maximum lag %d",
             fname, QIDSTR(psrc), QIDSTR(pcor), maxlag);
     }
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1251,23 +1251,23 @@ int do_int(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(psrc);
+    len = set_get_length(psrc);
     if (len < 3) {
 	errmsg("Set length < 3");
 	return RETURN_FAILURE;
     }
     
-    x = getcol(psrc, DATA_X);
-    y = getcol(psrc, DATA_Y);
+    x = set_get_col(psrc, DATA_X);
+    y = set_get_col(psrc, DATA_Y);
     if (!disponly) {
 	char buf[256];
-        if (setlength(pdest, len) != RETURN_SUCCESS) {
+        if (set_set_length(pdest, len) != RETURN_SUCCESS) {
 	    errmsg("Can't activate target set");
 	    return RETURN_FAILURE;
         } else {
 	    *sum = trapint(x, y, getx(pdest), gety(pdest), len);
 	    sprintf(buf, "Integral of set %s", QIDSTR(psrc));
-	    setcomment(pdest, buf);
+	    set_set_comment(pdest, buf);
 	}
     } else {
 	*sum = trapint(x, y, NULL, NULL, len);
@@ -1291,7 +1291,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    len = getsetlength(psrc);
+    len = set_get_length(psrc);
     if (runlen > len) {
 	errmsg("Length of running average > set length");
 	return RETURN_FAILURE;
@@ -1303,13 +1303,13 @@ int do_runavg(Quark *psrc, Quark *pdest,
     }
 
     newlen = len - runlen + 1;
-    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, newlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
     
-    ncols = set_get_dataset_ncols(psrc);
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        set_dataset_type(pdest, dataset_type(psrc));
+    ncols = set_get_ncols(psrc);
+    if (set_get_ncols(pdest) != ncols) {
+        set_set_type(pdest, set_get_type(psrc));
     }
     
     t = get_parser_arr_by_name("$t");
@@ -1329,8 +1329,8 @@ int do_runavg(Quark *psrc, Quark *pdest,
     set_parser_setno(psrc);
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
-        d1 = getcol(psrc, nc);
-        d2 = getcol(pdest, nc);
+        d1 = set_get_col(psrc, nc);
+        d2 = set_get_col(pdest, nc);
         for (i = 0; i < newlen; i++) {
             t->data = &(d1[i]);
             if (s_scanner(formula, &(d2[i])) != RETURN_SUCCESS) {
@@ -1345,8 +1345,8 @@ int do_runavg(Quark *psrc, Quark *pdest,
     t->length = 0;
     t->data = NULL;
 
-    x1 = getcol(psrc, DATA_X);
-    x2 = getcol(pdest, DATA_X);
+    x1 = set_get_col(psrc, DATA_X);
+    x2 = set_get_col(pdest, DATA_X);
     for (i = 0; i < newlen; i++) {
         double dummy;
         switch (xplace) {
@@ -1363,7 +1363,7 @@ int do_runavg(Quark *psrc, Quark *pdest,
     }
     
     sprintf(buf, "%d-pt. running %s on %s", runlen, formula, QIDSTR(psrc));
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1382,14 +1382,14 @@ int do_fourier(Quark *psrc, Quark *pdest,
     double xspace, amp_correction;
     char buf[256];
 
-    inlen = getsetlength(psrc);
+    inlen = set_get_length(psrc);
     if (inlen < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
     }
 
     /* get input */
-    in_re = getcol(psrc, DATA_Y);
+    in_re = set_get_col(psrc, DATA_Y);
     if (!in_re) {
         /* should never happen */
         return RETURN_FAILURE;
@@ -1397,10 +1397,10 @@ int do_fourier(Quark *psrc, Quark *pdest,
     if (!complexin) {
         in_im = NULL;
     } else {
-        in_im = getcol(psrc, DATA_Y1);
+        in_im = set_get_col(psrc, DATA_Y1);
     }
     
-    in_x = getcol(psrc, DATA_X);
+    in_x = set_get_col(psrc, DATA_X);
     if (monospaced(in_x, inlen, &xspace) != TRUE) {
         errmsg("Abscissas of the set are not monospaced, can't use for sampling");
         return RETURN_FAILURE;
@@ -1508,21 +1508,21 @@ int do_fourier(Quark *psrc, Quark *pdest,
         break;
     }
     
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        if (set_dataset_type(pdest, settype) != RETURN_SUCCESS) {
+    if (set_get_ncols(pdest) != ncols) {
+        if (set_set_type(pdest, settype) != RETURN_SUCCESS) {
             xfree(buf_re);
             xfree(buf_im);
             return RETURN_FAILURE;
         } 
     }
-    if (setlength(pdest, outlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, outlen) != RETURN_SUCCESS) {
         xfree(buf_re);
         xfree(buf_im);
         return RETURN_FAILURE;
     }
     
-    out_y  = getcol(pdest, DATA_Y);
-    out_y1 = getcol(pdest, DATA_Y1);
+    out_y  = set_get_col(pdest, DATA_Y);
+    out_y1 = set_get_col(pdest, DATA_Y1);
     
     for (i = 0; i < outlen; i++) {
         switch (output) {
@@ -1549,7 +1549,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
         }
     }
     
-    out_x  = getcol(pdest, DATA_X);
+    out_x  = set_get_col(pdest, DATA_X);
     for (i = 0; i < outlen; i++) {
         switch (xscale) {
 	case FFT_XSCALE_NU:
@@ -1568,7 +1568,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
     xfree(buf_im);
     
     sprintf(buf, "FFT of set %s", QIDSTR(psrc));
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1591,7 +1591,7 @@ int do_histo(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    ndata = getsetlength(psrc);
+    ndata = set_get_length(psrc);
     data = gety(psrc);
     
     hist = xmalloc(nbins*SIZEOF_INT);
@@ -1605,7 +1605,7 @@ int do_histo(Quark *psrc, Quark *pdest,
         return RETURN_FAILURE;
     }
     
-    setlength(pdest, nbins + 1);
+    set_set_length(pdest, nbins + 1);
     x = getx(pdest);
     y = gety(pdest);
     
@@ -1642,7 +1642,7 @@ int do_histo(Quark *psrc, Quark *pdest,
     p->line.line.style = 1;
     p->sym.line.style = 1;
     sprintf(buf, "Histogram from %s", QIDSTR(psrc));
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
 
     return RETURN_SUCCESS;
 }
@@ -1668,7 +1668,7 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(psrc);
+    len = set_get_length(psrc);
     
     if (v_scanner(formula, &reslen, &result) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
@@ -1686,12 +1686,12 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
 	}
     }
 
-    ncols = set_get_dataset_ncols(psrc);
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        set_dataset_type(pdest, dataset_type(psrc));
+    ncols = set_get_ncols(psrc);
+    if (set_get_ncols(pdest) != ncols) {
+        set_set_type(pdest, set_get_type(psrc));
     }
     
-    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, newlen) != RETURN_SUCCESS) {
         xfree(result);
         return RETURN_FAILURE;
     }
@@ -1700,8 +1700,8 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
         double *d1, *d2;
         int j;
         j = 0;
-        d1 = getcol(psrc, nc);
-        d2 = getcol(pdest, nc);
+        d1 = set_get_col(psrc, nc);
+        d2 = set_get_col(pdest, nc);
         for (i = 0; i < len; i++) {
 	    if ((int) rint(result[i])) {
 	        d2[j] = d1[i];
@@ -1713,7 +1713,7 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
     xfree(result);
     
     sprintf(buf, "Sample from %s, using '%s'", QIDSTR(psrc), formula);
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1743,7 +1743,7 @@ int do_prune(Quark *psrc, Quark *pdest,
         return RETURN_FAILURE;
     }
     
-    len = getsetlength(psrc);
+    len = set_get_length(psrc);
     if (len < 3) {
 	errmsg("Set length < 3");
 	return RETURN_FAILURE;
@@ -1757,9 +1757,9 @@ int do_prune(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    ncols = set_get_dataset_ncols(psrc);
-    if (set_get_dataset_ncols(pdest) != ncols) {
-        set_dataset_type(pdest, dataset_type(psrc));
+    ncols = set_get_ncols(psrc);
+    if (set_get_ncols(pdest) != ncols) {
+        set_set_type(pdest, set_get_type(psrc));
     }
     
     iprune = xmalloc(len*SIZEOF_CHAR);
@@ -1794,7 +1794,7 @@ int do_prune(Quark *psrc, Quark *pdest,
         }
     }
 
-    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, newlen) != RETURN_SUCCESS) {
         xfree(iprune);
         return RETURN_FAILURE;
     }
@@ -1803,8 +1803,8 @@ int do_prune(Quark *psrc, Quark *pdest,
         double *d1, *d2;
         int j;
         j = 0;
-        d1 = getcol(psrc, nc);
-        d2 = getcol(pdest, nc);
+        d1 = set_get_col(psrc, nc);
+        d2 = set_get_col(pdest, nc);
         for (i = 0; i < len; i++) {
 	    if (iprune[i] == FALSE) {
 	        d2[j] = d1[i];
@@ -1820,7 +1820,7 @@ int do_prune(Quark *psrc, Quark *pdest,
         interp ? "interpolation":"plain",
         elliptic ? "elliptic":"rectangular",
         dx, dy);
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1844,22 +1844,22 @@ int do_interp(Quark *psrc, Quark *pdest,
         return RETURN_FAILURE;
     }
     
-    len = getsetlength(psrc);
-    ncols = set_get_dataset_ncols(psrc);
+    len = set_get_length(psrc);
+    ncols = set_get_ncols(psrc);
 
-    if (set_get_dataset_ncols(pdest) != ncols) {
+    if (set_get_ncols(pdest) != ncols) {
         copysetdata(psrc, pdest);
     }
     
-    setlength(pdest, meshlen);
+    set_set_length(pdest, meshlen);
     
-    x = getcol(psrc, DATA_X);
+    x = set_get_col(psrc, DATA_X);
     for (n = 1; n < ncols; n++) {
         int res;
         double *y, *yint;
         
-        y    = getcol(psrc, n);
-        yint = getcol(pdest, n);
+        y    = set_get_col(psrc, n);
+        yint = set_get_col(pdest, n);
         
         res = interpolate(mesh, yint, meshlen, x, y, len, method);
         if (res != RETURN_SUCCESS) {
@@ -1868,7 +1868,7 @@ int do_interp(Quark *psrc, Quark *pdest,
         }
     }
 
-    xint = getcol(pdest, DATA_X);
+    xint = set_get_col(pdest, DATA_X);
     memcpy(xint, mesh, meshlen*SIZEOF_DOUBLE);
 
     if (strict) {
@@ -1894,7 +1894,7 @@ int do_interp(Quark *psrc, Quark *pdest,
         break;
     }
     sprintf(buf, "Interpolated from %s using %s", QIDSTR(psrc), s);
-    setcomment(pdest, buf);
+    set_set_comment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1910,7 +1910,7 @@ int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray)
         return RETURN_SUCCESS;
     }
     
-    n = getsetlength(pset);
+    n = set_get_length(pset);
     if (n <= 0) {
         *rarray = NULL;
         return RETURN_FAILURE;
@@ -1921,8 +1921,8 @@ int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray)
         return RETURN_FAILURE;
     }
     
-    x = getcol(pset, DATA_X);
-    y = getcol(pset, DATA_Y);
+    x = set_get_col(pset, DATA_X);
+    y = set_get_col(pset, DATA_Y);
     
     for (i = 0; i < n; i++) {
         wp.x = x[i];
@@ -1941,16 +1941,16 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     char *tbuf;
     double *x, *y;
 
-    if (set_get_dataset_ncols(pdest) != 2) {
-        set_dataset_type(pdest, SET_XY);
+    if (set_get_ncols(pdest) != 2) {
+        set_set_type(pdest, SET_XY);
     }
     
-    if (setlength(pdest, nsets) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, nsets) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
-    x = getcol(pdest, DATA_X);
-    y = getcol(pdest, DATA_Y);
+    x = set_get_col(pdest, DATA_X);
+    y = set_get_col(pdest, DATA_Y);
     for (i = 0; i < nsets; i++) {
         Quark *pset = sets[i];
 	set_parser_setno(pset);
@@ -1963,7 +1963,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     /* set comment */
     tbuf = copy_string(NULL, "Feature extraction by formula ");
     tbuf = concat_strings(tbuf, formula);
-    setcomment(pdest, tbuf);
+    set_set_comment(pdest, tbuf);
     xfree(tbuf);
     
     return RETURN_SUCCESS;
@@ -1977,14 +1977,14 @@ int cumulative(Quark **sets, int nsrc, Quark *pdest)
     maxlen = 0; maxncols = 0; settype = SET_XY;
     for (is = 0; is < nsrc; is++) {
         Quark *pset = sets[is];
-        int len   = getsetlength(pset);
-        int ncols = set_get_dataset_ncols(pset);
+        int len   = set_get_length(pset);
+        int ncols = set_get_ncols(pset);
         if (maxlen < len) {
             maxlen = len;
         }
         if (maxncols < ncols) {
             maxncols = ncols;
-            settype  = dataset_type(pset);
+            settype  = set_get_type(pset);
         }
     }
     
@@ -1992,23 +1992,23 @@ int cumulative(Quark **sets, int nsrc, Quark *pdest)
         return RETURN_FAILURE;
     }
     
-    if (set_get_dataset_ncols(pdest) != maxncols) {
-        set_dataset_type(pdest, settype);
+    if (set_get_ncols(pdest) != maxncols) {
+        set_set_type(pdest, settype);
     }
     
-    if (setlength(pdest, maxlen) != RETURN_SUCCESS) {
+    if (set_set_length(pdest, maxlen) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
     for (k = 0; k < maxlen; k++) {
         for (j = 0; j < maxncols; j++) {
-            double *y = getcol(pdest, j);
+            double *y = set_get_col(pdest, j);
             int nvar = 0;
             double var = 0.0;
             for (is = 0; is < nsrc; is++) {
                 Quark *pset = sets[is];
-                int len    = getsetlength(pset);
-                double *x = getcol(pset, j);
+                int len    = set_get_length(pset);
+                double *x = set_get_col(pset, j);
                 if (x && k < len) {
                     var += x[k];
                     nvar++;
@@ -2019,7 +2019,7 @@ int cumulative(Quark **sets, int nsrc, Quark *pdest)
     }
 
     /* set comment */
-    setcomment(pdest, "Cumulative average");
+    set_set_comment(pdest, "Cumulative average");
     
     return RETURN_SUCCESS;
 } 

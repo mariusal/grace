@@ -409,11 +409,11 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
         char *rarray;
         
         /* apply weigh function */
-    	nlen = getsetlength(psrc);
+    	nlen = set_get_length(psrc);
         switch (pars->weight_method) {
         case WEIGHT_Y:
         case WEIGHT_Y2:
-            ytmp = getcol(psrc, DATA_Y);
+            ytmp = set_get_col(psrc, DATA_Y);
             for (i = 0; i < nlen; i++) {
                 if (ytmp[i] == 0.0) {
 	            errmsg("Divide by zero while calculating weights");
@@ -434,7 +434,7 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
             }
             break;
         case WEIGHT_DY:
-            ytmp = getcol(psrc, DATA_Y1);
+            ytmp = set_get_col(psrc, DATA_Y1);
             if (ytmp == NULL) {
 	        errmsg("The set doesn't have dY data column");
                 return RETURN_FAILURE;
@@ -508,14 +508,14 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
         switch (pars->prefs.load) {
     	case LOAD_VALUES:
     	case LOAD_RESIDUALS:
-    	    npts = getsetlength(psrc);
-    	    setlength(pdest, npts);
+    	    npts = set_get_length(psrc);
+    	    set_set_length(pdest, npts);
     	    copycol2(psrc, pdest, DATA_X);
     	    break;
     	case LOAD_FUNCTION:
     	    npts  = pars->prefs.npoints;
  
-    	    setlength(pdest, npts);
+    	    set_set_length(pdest, npts);
  
     	    delx = (pars->prefs.stop - pars->prefs.start)/(npts - 1);
     	    xfit = getx(pdest);
@@ -525,7 +525,7 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     	    break;
     	}
     	
-    	setcomment(pdest, pars->nlfit.formula);
+    	set_set_comment(pdest, pars->nlfit.formula);
     	
     	do_compute(pdest, pdest, NULL, pars->nlfit.formula);
     	

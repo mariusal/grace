@@ -209,7 +209,7 @@ int do_nonlfit(Quark *psrc, NLFit *nlfit,
     if (set_parser_setno(psrc) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
-    n = getsetlength(psrc);
+    n = set_get_length(psrc);
     
     lwa = (integer) n * parnum + 5 * parnum + n;
         
