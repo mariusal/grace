@@ -54,6 +54,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
+#include "dicts.h"
 #include "protos.h"
 
 static void rereadConfig(Grace *grace);
@@ -1009,3 +1010,73 @@ int get_debuglevel(Grace *grace)
     return grace->rt->debuglevel;
 }
 #endif
+
+char *q_labeling(Quark *q)
+{
+    RunTime *rt = rt_from_quark(q);
+    char buf[128];
+    tickmarks *t;
+    DObject *o;
+    region *r;
+    
+    switch (quark_fid_get(q)) {
+    case QFlavorProject:
+        sprintf(buf, "Project \"%s%s\" (%d graphs)", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"" , number_of_graphs(q));
+
+        break;
+    case QFlavorFrame:
+        sprintf(buf, "Frame \"%s%s\"", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
+
+        break;
+    case QFlavorGraph:
+        sprintf(buf, "Graph \"%s%s\" (type: %s, sets: %d)",
+            QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"",
+            graph_types(rt, graph_get_type(q)), number_of_sets(q));
+
+        break;
+    case QFlavorSet:
+        sprintf(buf, "Set \"%s%s\" (%s)",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            set_types(rt, set_get_type(q)));
+
+        break;
+    case QFlavorAxis:
+        t = axis_get_data(q);
+        
+        sprintf(buf, "%c Axis \"%s%s\"",
+            t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
+
+        break;
+    case QFlavorDObject:
+        o = object_get_data(q);
+
+        sprintf(buf, "DObject \"%s%s\" (%s)",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            object_types(o->type));
+        
+        break;
+    case QFlavorAText:
+        sprintf(buf, "AText \"%s%s\"",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"");
+        
+        break;
+    case QFlavorRegion:
+        r = region_get_data(q);
+
+        sprintf(buf, "Region \"%s%s\" (%d pts)",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            r->n);
+        
+        break;
+    default:
+        sprintf(buf, "??? \"%s%s\"", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
+        break;
+    }
+    
+    return copy_string(NULL, buf);
+}

@@ -123,4 +123,6 @@ void set_debuglevel(Grace *grace, int level);
 int get_debuglevel(Grace *grace);
 #endif
 
+char *q_labeling(Quark *q);
+
 #endif /* __UTILS_H_*/

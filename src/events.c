@@ -527,6 +527,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             } else {
                 ct.vp = vp;
                 if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
+                    char *s;
                     ct.found = FALSE;
                     
                     if (!popup) {
@@ -568,7 +569,9 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         drop_pt_bt = CreateMenuButton(popup,
                             "Drop this point", '\0', drop_point_cb, &ct);
                     }
-                    SetLabel(poplab, QIDSTR(ct.q));
+                    s = q_labeling(ct.q);
+                    SetLabel(poplab, s);
+                    xfree(s);
                     if (quark_is_last_child(ct.q)) {
                         SetSensitive(bring_to_front_bt, FALSE);
                         SetSensitive(move_up_bt, FALSE);
