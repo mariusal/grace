@@ -793,7 +793,7 @@ static Widget CreateMainMenuBar(Widget parent)
 /* Window menu */
     menupane = CreateMenu(menubar, "Tools", 'T', FALSE);
    
-    CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, NULL);
+    CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, grace->gui);
     CreateMenuButton(menupane, "Console", 'C', create_monitor_frame_cb, NULL);
 #if 0
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);

@@ -46,6 +46,8 @@ typedef struct _Grace Grace;
 
 typedef struct _Quark Quark;
 
+typedef struct _ExplorerUI ExplorerUI;
+
 typedef void  (*Quark_data_free)(void *data); 
 typedef void *(*Quark_data_new)(void); 
 typedef void *(*Quark_data_copy)(void *data); 
@@ -154,6 +156,8 @@ typedef struct _GUI {
     int toolbar;
     int statusbar;
     int locbar;
+    
+    ExplorerUI *eui;
 } GUI;
 
 typedef struct _RunTime {

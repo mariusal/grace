@@ -347,7 +347,7 @@ typedef struct {
 } ObjectUI;
 
 
-typedef struct {
+struct _ExplorerUI {
     Widget       top;
     Widget       tree;
     Widget       instantupdate;
@@ -363,7 +363,7 @@ typedef struct {
     SetUI        *set_ui;
     AxisUI       *axis_ui;
     ObjectUI     *object_ui;
-} ExplorerUI;
+};
 
 void oc_explorer_cb(OptionStructure *opt, int a, void *data);
 void tb_explorer_cb(Widget but, int a, void *data);

@@ -120,7 +120,10 @@ void create_overlay_frame(Widget but, void *data);
 void create_autos_frame(Widget but, void *data);
 
 void create_monitor_frame_cb(Widget but, void *data);
+
 void define_explorer_popup(Widget but, void *data);
+void update_explorer(ExplorerUI *ui, int reselect);
+
 void stufftextwin(char *s);
 
 void HelpCB(Widget w, void *data);

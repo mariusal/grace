@@ -60,7 +60,6 @@ typedef struct {
 
 static ListTreeItem *q_create(Widget w,
     ListTreeItem *parent, char *string, void *udata);
-static void update_explorer(ExplorerUI *ui, int reselect);
 
 static char *default_quark_labeling_proc(Quark *q)
 {
@@ -431,11 +430,15 @@ static void highlight_selected(Widget w, ListTreeItem *parent,
     }
 }
 
-static void update_explorer(ExplorerUI *ui, int reselect)
+void update_explorer(ExplorerUI *ui, int reselect)
 {
     ListTreeMultiReturnStruct ret;
     int i, nsquarks;
     Quark **squarks;
+    
+    if (!ui) {
+        return;
+    }
     
     ListTreeGetHighlighted(ui->tree, &ret);
     nsquarks = ret.count;
@@ -472,11 +475,13 @@ static void update_explorer_cb(Widget but, void *data)
 
 void define_explorer_popup(Widget but, void *data)
 {
-    static ExplorerUI *eui = NULL;
+    GUI *gui = (GUI *) data;
 
     set_wait_cursor();
     
-    if (!eui) {
+    if (!gui->eui) {
+        ExplorerUI *eui;
+        
         Widget menubar, menupane, panel;
 
         eui = xmalloc(sizeof(ExplorerUI));
@@ -496,7 +501,7 @@ void define_explorer_popup(Widget but, void *data)
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         eui->instantupdate = CreateMenuToggle(menupane, "Instantaneous update",
                             'u', NULL, NULL);
-        SetToggleButtonState(eui->instantupdate, grace->gui->instant_update);
+        SetToggleButtonState(eui->instantupdate, gui->instant_update);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On explorer", 'e',
@@ -541,9 +546,11 @@ void define_explorer_popup(Widget but, void *data)
         ManageChild(eui->tree);
         ListTreeRefreshOn(eui->tree);
         ListTreeRefresh(eui->tree);
+        
+        gui->eui = eui;
     }
 
-    RaiseWindow(GetParent(eui->top));
+    RaiseWindow(GetParent(gui->eui->top));
 
     unset_wait_cursor();
 }
