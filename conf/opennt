@@ -12,7 +12,7 @@ CC="gcc"
 # C flags
 #
 CFLAGS="-fno-common -Wall -pedantic \
--Wpointer-arith -Wcast-align -Wnested-externs -D_ALL_SOURCE"
+-Wpointer-arith -Wnested-externs -D_ALL_SOURCE"
 ###############################
 
 ###############################
