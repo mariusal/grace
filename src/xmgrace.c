@@ -332,7 +332,8 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
     case MENU_NEW:
 	new_project(NULL);
 
-	xdrawgraph();
+	update_all();
+        xdrawgraph();
 	break;
     case MENU_OPEN:
 	create_openproject_popup();
@@ -819,12 +820,12 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "onContext", "On context", 'x',
     	(XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
 
-    CreateMenuButton(menupane, "migrationGuide", "Migration Guide", 'M',
-    	(XtCallbackProc) HelpCB, (XtPointer) "MIGRATION.html", 0);
-
-    CreateMenuButton(menupane, "userGiude", "User Guide", 'G',
-    	(XtCallbackProc) HelpCB, (XtPointer) "guide.html", 0);
+    CreateMenuButton(menupane, "usersGiude", "User's Guide", 'G',
+    	(XtCallbackProc) HelpCB, (XtPointer) "UsersGuide.html", 0);
     
+    CreateMenuButton(menupane, "tutorial", "Tutorial", 'T',
+    	(XtCallbackProc) HelpCB, (XtPointer) "Tutorial.html", 0);
+
     CreateMenuButton(menupane, "faq", "FAQ", 'Q',
     	(XtCallbackProc) HelpCB, (XtPointer) "FAQ.html", 0);
 
