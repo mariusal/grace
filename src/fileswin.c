@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -71,6 +71,18 @@ static int write_sets_proc(char *filename, void *data);
 static int read_params_proc(char *filename, void *data);
 static int write_params_proc(char *filename, void *data);
 
+typedef struct {
+    Widget format_item;    /* format */
+    Widget descr_item;     /* description */
+} saveGUI;
+
+static saveGUI save_gui;
+
+static void update_save_gui(saveGUI *gui)
+{
+    xv_setstr(gui->format_item, sformat);
+    xv_setstr(gui->descr_item, get_project_description());
+}
 
 void create_saveproject_popup(void)
 {
@@ -79,18 +91,22 @@ void create_saveproject_popup(void)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        Widget fr, format_item;
+        Widget fr, rc;
 	
         fsb = CreateFileSelectionBox(app_shell,
             "Save project", "*.agr");
-	
-	fr = CreateFrame(fsb->rc, NULL);
-	format_item = CreateTextItem2(fr, 15, "Format: ");
-        xv_setstr(format_item, sformat);
 
-	AddFileSelectionBoxCB(fsb, save_proc, (void *) format_item);
+	fr = CreateFrame(fsb->rc, NULL);
+	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	save_gui.descr_item  = CreateScrollTextItem2(rc, 5, "Project description:");
+	save_gui.format_item = CreateTextItem2(rc, 15, "Data format:");
+        XtManageChild(rc);
+
+	AddFileSelectionBoxCB(fsb, save_proc, &save_gui);
         XtManageChild(fsb->FSB);
     }
+    
+    update_save_gui(&save_gui);
     XtRaise(fsb->dialog);
 
     unset_wait_cursor();
@@ -101,9 +117,13 @@ void create_saveproject_popup(void)
  */
 static int save_proc(char *filename, void *data)
 {
-    Widget format_item = (Widget) data;
+    char *s;
+    saveGUI *gui = (saveGUI *) data;
     
-    strcpy(sformat, xv_getstr(format_item));
+    strcpy(sformat, xv_getstr(gui->format_item));
+    s = XmTextGetString(gui->descr_item);
+    set_project_description(s);
+    XtFree(s);
     if (save_project(filename) == RETURN_SUCCESS) {
         return TRUE;
     } else {
@@ -420,61 +440,6 @@ static int write_params_proc(char *filename, void *data)
     return FALSE;
 }
 
-
-/* Add comment capability to project file */
-
-static Widget describe_frame, describe_panel;
-static Widget text_w;
-extern Display *disp;
-
-void update_descript(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    char *s;
-    s = (char *)XmTextGetString(text_w);
-    set_project_description(s);
-    XtFree(s);
-}
-
-void update_describe_popup(void)
-{
-    if (describe_frame != NULL && text_w != NULL) {
-        XmTextSetString(text_w, get_project_description());
-    }
-}
-
-void create_describe_popup(void *data)
-{
-    set_wait_cursor();
-    if (describe_frame == NULL) {
-    	Widget buts[2];
-    	char *label[2];
-    	label[0] = "Accept";
-    	label[1] = "Close";
-		describe_frame = XmCreateDialogShell(app_shell, "Description", NULL, 0);
-		handle_close(describe_frame);
-		describe_panel = XmCreateRowColumn(describe_frame, "describe_form", NULL, 0);
-		text_w = XmCreateScrolledText(describe_panel, "text_w", NULL, 0);
-		XtVaSetValues(text_w,
-		      XmNrows, 10,
-		      XmNcolumns, 80,
-		      XmNeditMode, XmMULTI_LINE_EDIT,
-		      XmNwordWrap, True,
-		      NULL);
-		XtManageChild(text_w);
-
-		CreateSeparator(describe_panel);
-		CreateCommandButtons(describe_panel, 2, buts, label);
-		XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc)
-							update_descript, (XtPointer) text_w);
-		XtAddCallback(buts[1], XmNactivateCallback, 
-					(XtCallbackProc) destroy_dialog, (XtPointer) describe_frame);
-
-		XtManageChild(describe_panel);
-    }
-    update_describe_popup();
-    XtRaise(describe_frame);
-    unset_wait_cursor();
-}
 
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
 

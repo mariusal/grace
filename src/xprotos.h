@@ -70,7 +70,6 @@ void create_rparams_popup(void *data);
 void create_wparam_frame(void *data);
 void create_saveproject_popup(void);
 void create_openproject_popup(void);
-void update_describe_popup (void);
 void do_hotupdate_proc(void *data);
 
 void create_eblock_frame(int gno);
@@ -181,8 +180,6 @@ void set_pagelayout(int layout);
 int get_pagelayout(void);
 
 void errwin(char *s);
-
-void create_describe_popup(void *data);
 
 void create_datasetprop_popup(void *data);
 void create_datasetop_popup(void *data);

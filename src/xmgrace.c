@@ -573,7 +573,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Save", 'S', MenuCB, (void *) MENU_SAVE);
     CreateMenuButton(menupane, "Save as...", 'a', MenuCB, (void *) MENU_SAVEAS);
     CreateMenuButton(menupane, "Revert to saved", 'v', MenuCB, (void *) MENU_REVERT);
-    CreateMenuButton(menupane, "Describe...", 'D', create_describe_popup, NULL);
 
     CreateMenuSeparator(menupane);
 
