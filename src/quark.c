@@ -89,16 +89,16 @@ void quark_free(Quark *q)
     if (q) {
         QuarkFlavor *qf;
         Quark *parent = q->parent;
-        if (parent) {
-            parent->refcount--;
-            quark_dirtystate_set(parent, TRUE);
-        }
         
         qf = quark_flavor_get(q->grace, q->fid);
         if (q->cb) {
             q->cb(q, QUARK_ETYPE_DELETE, q->cbdata);
         }
         qf->data_free(q->data);
+        if (parent) {
+            parent->refcount--;
+            quark_dirtystate_set(parent, TRUE);
+        }
         
         if (q->refcount == 0) {
             xfree(q->idstr);
@@ -126,11 +126,14 @@ void quark_dirtystate_set(Quark *q, int flag)
 {
     if (flag) {
         q->dirtystate++;
+        if (q->cb) {
+            q->cb(q, QUARK_ETYPE_MODIFY, q->cbdata);
+        }
         if (q->parent) {
             quark_dirtystate_set(q->parent, TRUE);
         }
     } else {
-        q->dirtystate = FALSE;
+        q->dirtystate = 0;
     }
 }
 
