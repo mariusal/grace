@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -361,6 +361,17 @@ static void rereadConfig(void)
     getparms("gracerc");
 }
 
+static void please_report_the_bug(void)
+{
+    fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
+#ifdef HAVE_LESSTIF
+    fprintf(stderr, "NB. This version of Grace was compiled with LessTif.\n");
+    fprintf(stderr, "    Make sure to read the FAQ carefully prior to\n");
+    fprintf(stderr, "    reporting the bug, ESPECIALLY is the problem is\n");
+    fprintf(stderr, "    related to the graphical interface.\n");
+#endif
+}
+
 /*
  * Warn about bug (TODO X message)
  */
@@ -380,7 +391,7 @@ static void bugwarn(char *signame)
         interrupts++;
         if (interrupts > 10) {
             fprintf(stderr, "oh, no luck :-(\n");
-            fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
+            please_report_the_bug();
             exit(RETURN_FAILURE);
         }
         return;
@@ -400,7 +411,7 @@ static void bugwarn(char *signame)
                 fprintf(stderr, "oh, no luck :-(\n");
             }
         }
-        fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
+        please_report_the_bug();
         exit(RETURN_FAILURE);
     }
 }
