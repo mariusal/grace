@@ -1,12 +1,7 @@
 
 In order to compile Grace, you'll need Cygnus's GNU-win32 development kit 
-(ftp://ftp.cygnus.com/pub/gnu-win32/gnu-win32/), version B20.1 or above,
-and Arlindo da Silva's port of XWindows libs, which can be found at 
-http://dao.gsfc.nasa.gov/software/grads/win32/X11R6.4/, or, alternatively,
-you can use a commercial X/Motif SDK for Win32.
-
-Of course, you'll need an X server for Windows, too; for a comprehensive list,
-see http://www.rahul.net/kenton/xsites.html 
+(http://www.cygwin.com/), version 1.3.6 or above, a respective port of the
+XWindows libs, and an X server. You'll find all at the aforementioned site.
 
 Evgeny
 
