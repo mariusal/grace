@@ -377,6 +377,12 @@ void create_graphapp_frame(int gno)
 
         XtManageChild(graphapp_panel);
 
+#ifdef HAVE_LESSTIF
+        /* a kludge against Lesstif geometry calculation bug */
+        SelectTabPage(graphapp_tab, graphapp_legendbox);
+        XtRaise(graphapp_dialog);
+        SelectTabPage(graphapp_tab, graphapp_main);
+#endif
     }
     
     SelectListChoice(graph_selector, gno);

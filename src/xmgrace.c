@@ -258,11 +258,7 @@ String fallbackResources[] = {
     "XMgrace*XmToggleButton.selectColor: #ff0000",
     "XMgrace*XmToggleButton.fillOnSelect: true",
     "XMgrace*XmSeparator.margin: 0",
-#if ((XmVersion >= 1002) || defined (LesstifVersion) && (LesstifVersion >= 1000))
-/*
- * Lesstif-0.80 sometimes crashes with tear-off menus; let's hope version 1.0
- * will fix it :-)
- */
+#if (XmVersion >= 1002)
     "*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
 #endif
     "*dragInitiatorProtocolStyle: XmDRAG_NONE",
@@ -926,6 +922,10 @@ void initialize_screen()
     rctop = XtVaCreateManagedWidget("rctop", xmRowColumnWidgetClass, frtop,
 				    XmNorientation, XmHORIZONTAL,
 				    XmNpacking, XmPACK_TIGHT,
+#ifdef HAVE_LESSTIF
+                                    /* Lesstif-0.88 for some reason needs it */
+                                    XmNresizeWidth, False,
+#endif
 				    XmNspacing, 0,
 				    XmNentryBorder, 0,
 				    XmNmarginWidth, 0,
@@ -943,7 +943,7 @@ void initialize_screen()
     XtAddCallback(statlab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#statbar");
 
     loclab = XtVaCreateManagedWidget("label Locate", xmLabelWidgetClass, rctop,
-				     XmNalignment, XmALIGNMENT_END,
+				     XmNalignment, XmALIGNMENT_BEGINNING,
 				     XmNrecomputeSize, True,
 				     NULL);
     XtAddCallback(loclab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#locbar");
