@@ -487,9 +487,9 @@ static XmImageInfo *loadImage(Widget w,
     return image;
 }
 
-void location_cb(const char *s, void *data)
+void location_cb(char *s, void *data)
 {
-    HelpCB((void *) s);
+    HelpCB(s);
 }
 
 void create_helper_frame(char *URL)
