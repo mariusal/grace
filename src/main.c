@@ -55,8 +55,6 @@
 #endif
 #include "protos.h"
 
-#include "buildinfo.h"
-
 
 extern char batchfile[];
 extern char print_file[];
@@ -868,8 +866,8 @@ void VersionInfo(void)
 /* We don't want to reproduce the complete config.h,
    but those settings which may be related to problems on runtime */
 
-    fprintf(stdout, "GUI toolkit: %s\n", BI_GUI);
-    fprintf(stdout, "T1lib: %s\n", BI_T1LIB);
+    fprintf(stdout, "GUI toolkit: %s\n", bi_gui());
+    fprintf(stdout, "T1lib: %s\n", bi_t1lib());
 #ifdef HAVE_FFTW
     fprintf(stdout, "FFT: FFTW\n");
 #else
@@ -884,8 +882,8 @@ void VersionInfo(void)
 #ifdef DEBUG
     fprintf(stdout, "Debugging: enabled\n");
 #endif
-    fprintf(stdout, "Built: %s on %s\n", BI_DATE, BI_SYSTEM);
-    fprintf(stdout, "Compiler flags: %s\n", BI_CCOMPILER);
+    fprintf(stdout, "Built: %s on %s\n", bi_date(), bi_system());
+    fprintf(stdout, "Compiler flags: %s\n", bi_ccompiler());
  
     fprintf(stdout, "\n");
     

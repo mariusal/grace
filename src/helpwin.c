@@ -33,7 +33,6 @@
 
 #include "globals.h"
 #include "utils.h"
-#include "buildinfo.h"
 #include "protos.h"
 
 #include <X11/cursorfont.h>
@@ -178,13 +177,13 @@ void create_about_grtool(void *data)
 
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "Built on: %s", BI_SYSTEM);
+	sprintf(buf, "Built on: %s", bi_system());
 	CreateLabel(about_panel, buf);
-	sprintf(buf, "Build time: %s", BI_DATE);
+	sprintf(buf, "Build time: %s", bi_date());
 	CreateLabel(about_panel, buf);
-	sprintf(buf, "GUI toolkit: %s ", BI_GUI);
+	sprintf(buf, "GUI toolkit: %s ", bi_gui());
 	CreateLabel(about_panel, buf);
-	sprintf(buf, "T1lib: %s ", BI_T1LIB);
+	sprintf(buf, "T1lib: %s ", bi_t1lib());
 	CreateLabel(about_panel, buf);
 #ifdef DEBUG
 	CreateLabel(about_panel, "Debugging is enabled");
