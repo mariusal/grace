@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -39,11 +39,7 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Scale.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -97,37 +93,18 @@ void create_plot_frame(void)
 	bg_fill_item = CreateToggleButton(rc, "Fill");
         XtManageChild(rc);
 
-	CreateSeparator(panel);
+	fr = CreateFrame(panel, "Time stamp");
+        rc = XmCreateRowColumn(fr, "bg_rc", NULL, 0);
 
-	timestamp_active_item = XtVaCreateManagedWidget("Display Time stamp",
-					   xmToggleButtonWidgetClass, panel,
-							NULL);
+	timestamp_active_item = CreateToggleButton(rc, "Enable");
+	timestamp_font_item = CreateFontChoice(rc, "Font:");
+	timestamp_color_item = CreateColorChoice(rc, "Color:");
+	timestamp_size_item = CreateCharSizeChoice(rc, "Character size");
+	timestamp_rotate_item = CreateAngleChoice(rc, "Angle");
+	timestamp_x_item = CreateTextItem2(rc, 10, "Timestamp X:");
+	timestamp_y_item = CreateTextItem2(rc, 10, "Timestamp Y:");
 
-	timestamp_font_item = CreateFontChoice(panel, "Font:");
-	timestamp_color_item = CreateColorChoice(panel, "Color:");
-
-	XtVaCreateManagedWidget("Character size:", xmLabelWidgetClass, panel, NULL);
-	timestamp_size_item = XtVaCreateManagedWidget("size", xmScaleWidgetClass, panel,
-						      XmNminimum, 0,
-						      XmNmaximum, 400,
-						      XmNvalue, 100,
-						      XmNshowValue, True,
-				     XmNprocessingDirection, XmMAX_ON_RIGHT,
-					       XmNorientation, XmHORIZONTAL,
-						      NULL);
-
-        XtVaCreateManagedWidget("Place at angle:", xmLabelWidgetClass, panel, NULL);
-	timestamp_rotate_item = XtVaCreateManagedWidget("tstampangle", xmScaleWidgetClass, panel,
-					  XmNminimum, 0,
-					  XmNmaximum, 360,
-					  XmNvalue, 100,
-					  XmNshowValue, True,
-					  XmNprocessingDirection, XmMAX_ON_RIGHT,
-					  XmNorientation, XmHORIZONTAL,
-					  NULL);
-
-	timestamp_x_item = CreateTextItem2(panel, 10, "Timestamp X:");
-	timestamp_y_item = CreateTextItem2(panel, 10, "Timestamp Y:");
+        XtManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -146,25 +123,19 @@ void create_plot_frame(void)
 
 static void update_plot_items(void)
 {
-    int iv;
-    Arg a;
     char buf[32];
 
     if (plot_frame) {
 	SetOptionChoice(bg_color_item, getbgcolor());
 	SetToggleButtonState(bg_fill_item, getbgfill());
 
-	XmToggleButtonSetState(timestamp_active_item, timestamp.active == TRUE, False);
+	SetToggleButtonState(timestamp_active_item, timestamp.active);
 	SetOptionChoice(timestamp_font_item, timestamp.font);
 	SetOptionChoice(timestamp_color_item, timestamp.color);
 
-	iv = (int) (100 * timestamp.charsize);
-	XtSetArg(a, XmNvalue, iv);
-	XtSetValues(timestamp_size_item, &a, 1);
+	SetCharSizeChoice(timestamp_size_item, timestamp.charsize);
 
-	iv = (int) (timestamp.rot % 360);
-	XtSetArg(a, XmNvalue, iv);
-	XtSetValues(timestamp_rotate_item, &a, 1);
+	SetAngleChoice(timestamp_rotate_item, timestamp.rot);
 
 	sprintf(buf, "%g", timestamp.x);
 	xv_setstr(timestamp_x_item, buf);
@@ -175,23 +146,16 @@ static void update_plot_items(void)
 
 static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int value;
-    Arg a;
-
     setbgcolor(GetOptionChoice(bg_color_item));
     setbgfill(GetToggleButtonState(bg_fill_item));
 
-    timestamp.active = XmToggleButtonGetState(timestamp_active_item) ? TRUE : FALSE;
+    timestamp.active = GetToggleButtonState(timestamp_active_item);
     timestamp.font = GetOptionChoice(timestamp_font_item);
     timestamp.color = GetOptionChoice(timestamp_color_item);
     
-    XtSetArg(a, XmNvalue, &value);
-    XtGetValues(timestamp_size_item, &a, 1);
-    timestamp.charsize = value / 100.0;
+    timestamp.charsize = GetCharSizeChoice(timestamp_size_item);
     
-    XtSetArg(a, XmNvalue, &value);
-    XtGetValues(timestamp_rotate_item, &a, 1);
-    timestamp.rot = value;
+    timestamp.rot = GetAngleChoice(timestamp_rotate_item);
     
     xv_evalexpr(timestamp_x_item, &timestamp.x);
     xv_evalexpr(timestamp_y_item, &timestamp.y);
