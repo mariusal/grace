@@ -33,7 +33,7 @@ $(LIB) : $(LIBOBJS)
 $(LIBOBJS) : $(TOP)/config.h grace_np.h
 
 gracef_np_$(O) : gracef_np.c
-	$(CC) $(CFLAGS) -DNEED_F77_UNDERSCORE -c -o $@ $<
+	$(CC) $(CFLAGS) -DNEED_F77_UNDERSCORE -c -o $@ gracef_np.c
 
 test_np$(EXE) : test_np$(O)
 	$(CC) $(CFLAGS) -o $@ $? $(LIB)
