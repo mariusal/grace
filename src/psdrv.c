@@ -847,7 +847,7 @@ void ps_leavegraphics(void)
 }
 
 /*
- * Put a NOT NULL-terminated string escaping parentheses
+ * Put a NOT NULL-terminated string escaping parentheses and backslashes
  */
 static void put_string(FILE *fp, char *s, int len)
 {
@@ -855,7 +855,7 @@ static void put_string(FILE *fp, char *s, int len)
     
     fputc('(', fp);
     for (i = 0; i < len; i++) {
-        if (s[i] == '(' || s[i] == ')') {
+        if (s[i] == '(' || s[i] == ')' || s[i] == '\\') {
             fputc('\\', fp);
         }
         fputc(s[i], fp);
