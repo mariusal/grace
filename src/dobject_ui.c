@@ -174,8 +174,7 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
 				      "Start",
 				      "End",
 				      "Both ends",
-				      0,
-				      0);
+				      NULL);
     AddOptionChoiceCB(ui->arrow_end, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->top, "Arrows");
@@ -185,8 +184,7 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
 				   3,
 				   "Line",
 				   "Filled",
-				   0,
-				   0);
+				   NULL);
     AddOptionChoiceCB(ui->a_type, oc_explorer_cb, eui);
     ui->a_length = CreateSpinChoice(rc1, "Length:",
         4, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.5);

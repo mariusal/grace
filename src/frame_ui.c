@@ -126,7 +126,6 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
 						     "Break bottom",
 						     "Break left",
 						     "Break right",
-						     NULL,
 						     NULL);
     AddOptionChoiceCB(ui->frame_framestyle_choice, oc_explorer_cb, eui);
 

@@ -164,8 +164,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                              "X",               /* 9 */
                                              "Star",            /* 10 */
                                              "Char",            /* 11 */
-                                             NULL,
-                                             0);
+                                             NULL);
     AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
     ui->symsize = CreateCharSizeChoice(rc, "Size");
     AddScaleCB(ui->symsize, scale_explorer_cb, eui);
@@ -184,8 +183,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                           "Right stairs",
                                           "Segments",
                                           "3-Segments",
-                                          NULL,
-                                          0);
+                                          NULL);
     AddOptionChoiceCB(ui->linet, oc_explorer_cb, eui); 
     ui->lines = CreateLineStyleChoice(rc, "Style:");
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
@@ -256,15 +254,13 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                          "None",
                                          "As polygon",
                                          "To baseline",
-                                         NULL,
-                                         0);
+                                         NULL);
     AddOptionChoiceCB(ui->filltype, oc_explorer_cb, eui); 
     ui->fillrule = CreatePanelChoice(rc2, "Rule:",
                                          3,
                                          "Winding",
                                          "Even-Odd",
-                                         NULL,
-                                         0);
+                                         NULL);
     AddOptionChoiceCB(ui->fillrule, oc_explorer_cb, eui); 
     rc2 = CreateHContainer(rc);
     ui->fillpat = CreatePatternChoice(rc2, "Pattern:");
@@ -281,8 +277,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                          "Set max",
                                          "Graph min",
                                          "Graph max",
-                                         NULL,
-                                         0);
+                                         NULL);
     AddOptionChoiceCB(ui->baselinetype, oc_explorer_cb, eui);
     ui->baseline = CreateToggleButton(rc, "Draw line");
     AddToggleButtonCB(ui->baseline, tb_explorer_cb, eui);
@@ -328,8 +323,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                          "X, Y",
                                          "String",
                                          "Z",
-                                         NULL,
-                                         0);
+                                         NULL);
     AddOptionChoiceCB(ui->avalue_type, oc_explorer_cb, eui); 
     ui->avalue_precision = CreatePrecisionChoice(rc2, "Precision:");
     AddOptionChoiceCB(ui->avalue_precision, oc_explorer_cb, eui);
@@ -358,8 +352,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                          "Normal",
                                          "Opposite",
                                          "Both",
-                                         NULL,
-                                         0);
+                                         NULL);
     AddOptionChoiceCB(ui->errbar_ptype, oc_explorer_cb, eui); 
     ui->errbar_color = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->errbar_color, oc_explorer_cb, eui);

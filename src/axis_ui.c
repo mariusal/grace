@@ -131,7 +131,6 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
                                         3,
                                         "Parallel to ",
                                         "Perpendicular to ",
-                                        NULL,
                                         NULL);
     AddOptionChoiceCB(ui->labellayout, oc_explorer_cb, eui);
 
@@ -141,7 +140,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
                                          "Normal",
                                          "Opposite",
                                          "Both",
-                                         0, 0);
+                                         NULL);
     AddOptionChoiceCB(ui->labelop, oc_explorer_cb, eui);
     opitems[0].value = TYPE_AUTO;
     opitems[0].label = "Auto";
@@ -189,12 +188,11 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
                                 "Normal",
                                 "Opposite",
                                 "Both",
-                                0, 0);
+                                NULL);
     AddOptionChoiceCB(ui->ticklop, oc_explorer_cb, eui);
     ui->tlstagger = CreatePanelChoice(rc2, "Stagger:",
                                   11,
-                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
-                                  0);
+                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
     AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
 
 
@@ -202,8 +200,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc3 = CreateHContainer(rc2);
     ui->tlstarttype = CreatePanelChoice(rc3, "Start at:",
                                     3,
-                                    "Axis min", "Specified:", 0,
-                                    0);
+                                    "Axis min", "Specified:", NULL);
     AddOptionChoiceCB(ui->tlstarttype, oc_explorer_cb, eui);
     ui->tlstart = CreateTextItem2(rc3, 8, "");
     AddTextItemCB(ui->tlstart, titem_explorer_cb, eui);
@@ -211,8 +208,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc3 = CreateHContainer(rc2);
     ui->tlstoptype = CreatePanelChoice(rc3, "Stop at:",
                                    3,
-                                   "Axis max", "Specified:", 0,
-                                   0);
+                                   "Axis max", "Specified:", NULL);
     AddOptionChoiceCB(ui->tlstoptype, oc_explorer_cb, eui);
     ui->tlstop = CreateTextItem2(rc3, 8, "");
     AddTextItemCB(ui->tlstop, titem_explorer_cb, eui);
@@ -223,8 +219,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc2 = CreateHContainer(rc);
     ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
                                11,
-                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
-                               0);
+                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
     AddOptionChoiceCB(ui->tlskip, oc_explorer_cb, eui);
 
     ui->tlformula = CreateTextInput(rc2, "Axis transform:");
@@ -257,15 +252,14 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateHContainer(rc2);
     ui->tinout = CreatePanelChoice(rc, "Pointing:",
                                4,
-                               "In", "Out", "Both", 0,
-                               0);
+                               "In", "Out", "Both", NULL);
     AddOptionChoiceCB(ui->tinout, oc_explorer_cb, eui);
     ui->tickop = CreatePanelChoice(rc, "Draw on:",
                                4,
                                "Normal side",
                                "Opposite side",
                                "Both sides",
-                               0, 0);
+                               NULL);
     AddOptionChoiceCB(ui->tickop, oc_explorer_cb, eui);
     rc = CreateHContainer(rc2);
     ui->tround = CreateToggleButton(rc, "Place at rounded positions");
@@ -283,7 +277,6 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
                                 "10",
                                 "11",
                                 "12",
-				NULL,
 				NULL);
     AddOptionChoiceCB(ui->autonum, oc_explorer_cb, eui);
 

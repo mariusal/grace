@@ -107,7 +107,6 @@ void create_props_frame(Widget but, void *data)
 	    "Button press",
 	    "As set",
 	    "Follows mouse",
-	    NULL,
 	    NULL);
 
         graph_drawfocus_choice_item =

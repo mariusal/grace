@@ -225,7 +225,7 @@ void pnm_gui_setup(const Canvas *canvas, void *data)
 					 "1-bit mono (PBM)",
 					 "8-bit grayscale (PGM)",
 					 "8-bit color (PPM)",
-                                         0, 0);
+                                         NULL);
 	pnmdata->rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
 
 	CreateAACDialog(pnmdata->frame, fr, set_pnm_setup_proc, pnmdata);

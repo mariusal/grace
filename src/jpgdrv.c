@@ -291,7 +291,7 @@ void jpg_gui_setup(const Canvas *canvas, void *data)
 					 "Fast integer",
 					 "Slow integer",
 					 "Float",
-                                         0, 0);
+                                         NULL);
 
 	CreateAACDialog(jpgdata->frame, rc, set_jpg_setup_proc, jpgdata);
     }

@@ -74,8 +74,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 		                       "Smith chart (N/I)",
 		                       "Fixed",
 		                       "Pie chart",
-		                       NULL,
-                                       0);
+		                       NULL);
     AddOptionChoiceCB(ui->graph_type, oc_explorer_cb, eui);
     ui->stacked = CreateToggleButton(rc, "Stacked chart");
     AddToggleButtonCB(ui->stacked, tb_explorer_cb, eui);
@@ -140,7 +139,6 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 	                          "[Phi, Rho]",
 	                          "[VX, VY]",
 	                          "[SX, SY]",
-	                          NULL,
 	                          NULL);
     AddOptionChoiceCB(ui->delta, oc_explorer_cb, eui);
 
