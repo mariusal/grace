@@ -274,7 +274,8 @@ static void EditStringCB(Widget w, XtPointer client_data, XtPointer call_data)
         char *buf;
         
         buf = copy_string(NULL, "\\f{");
-        buf = concat_strings(buf, get_fontalias(grace->rt->canvas, ui->font_id));
+        buf = concat_strings(buf,
+            get_font_name_by_id(grace->project, ui->font_id));
         buf = concat_strings(buf, "}");
         buf = concat_strings(buf, text->ptr);
         XtFree(text->ptr);
