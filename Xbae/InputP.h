@@ -21,7 +21,7 @@
  *
  * Author: Andrew Lister
  *
- * $Id: InputP.h,v 1.1 1999-07-26 22:55:06 fnevgeny Exp $
+ * $Id: InputP.h,v 1.2 1999-07-27 21:25:15 fnevgeny Exp $
  */
 
 #ifndef _Xbae_InputP_h
@@ -75,11 +75,11 @@ typedef struct _XbaeInputPart
     unsigned char alignment;
     Boolean auto_fill;
     Boolean overwrite_mode;
-    String template;
+    String pattern;
     XtCallbackList validate_callback;
     Boolean convert_case;
     /* Internal resources */
-    int template_length;
+    int pattern_length;
     XmTextPosition last_insert;
     char *literal_pending;
     int literal_count;

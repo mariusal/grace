@@ -21,7 +21,7 @@
  *
  * Author: Andrew Lister
  *
- * $Id: Input.c,v 1.2 1999-07-26 22:58:24 fnevgeny Exp $
+ * $Id: Input.c,v 1.3 1999-07-27 21:25:15 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -90,7 +90,7 @@ static Boolean SetValues P((Widget, Widget, Widget, ArgList, Cardinal *));
 static void Destroy P((Widget));
 
 /* Utility routines */
-static void parseTemplate P((XbaeInputWidget, String));
+static void parsePattern P((XbaeInputWidget, String));
 static int match P((XbaeInputWidget, char *, int));
 
 /* Internal callbacks */
@@ -117,8 +117,8 @@ static XtResource resources[] = {
       offset(input.convert_case), XmRImmediate, (XtPointer)True },
     { XmNoverwriteMode, XmCBoolean, XmRBoolean, sizeof(Boolean),
       offset(input.overwrite_mode), XmRImmediate, (XtPointer)False },
-    { XmNtemplate, XmCString, XmRString, sizeof(String),
-      offset(input.template), XmRImmediate, (XtPointer)NULL },
+    { XmNpattern, XmCString, XmRString, sizeof(String),
+      offset(input.pattern), XmRImmediate, (XtPointer)NULL },
     { XmNvalidateCallback, XmCCallback, XmRCallback, sizeof(XtCallbackList),
       offset(input.validate_callback), XmRCallback, (XtPointer)NULL }
 };
@@ -209,11 +209,11 @@ XtPointer cb;
     XmTextVerifyCallbackStruct *vcbs = (XmTextVerifyCallbackStruct *)cb;
     XbaeInputWidget iw = (XbaeInputWidget)w;
     XbaeInputValidateCallbackStruct call_data;
-    String template = NULL;
+    String pattern = NULL;
     String value;
     int ret;
 
-    if (!iw->input.template)
+    if (!iw->input.pattern)
 	return;
 
     value = XmTextGetString(w);
@@ -243,20 +243,20 @@ XtPointer cb;
     }
 
     /*
-     * Check that the string matches exactly with the template
+     * Check that the string matches exactly with the pattern
      */
     call_data.doit = ret;
 
     if (iw->input.validate_callback)
     {
-	if (iw->input.template)
-	    template = XtNewString(iw->input.template);
+	if (iw->input.pattern)
+	    pattern = XtNewString(iw->input.pattern);
 	else
-	    template = NULL;
+	    pattern = NULL;
 
 	call_data.reason = cbs->reason;
 	call_data.event = cbs->event;
-	call_data.template = template;
+	call_data.pattern = pattern;
 	call_data.value = value;
 
 	XtCallCallbackList(w, iw->input.validate_callback,
@@ -291,8 +291,8 @@ XtPointer cb;
 	XmTextSetString(w, value);
     }
 
-    if (template)
-	XtFree(template);
+    if (pattern)
+	XtFree(pattern);
     if (value)
 	XtFree(value);
 }
@@ -332,18 +332,18 @@ Cardinal *num_args;
     iw->input.literal_count = 0;
     iw->input.last_insert = 0;
     /*
-     * Check for a template associated with the text field
+     * Check for a pattern associated with the text field
      */
-    if (iw->input.template)
+    if (iw->input.pattern)
     {
-	iw->input.template = XtNewString(iw->input.template);
-	parseTemplate(iw, iw->input.template);
+	iw->input.pattern = XtNewString(iw->input.pattern);
+	parsePattern(iw, iw->input.pattern);
 	XtAddCallback(new, XmNmodifyVerifyCallback, checkInput, NULL);
     }
     else
     {
-	iw->input.template_length = 0;
-	iw->input.template = NULL;
+	iw->input.pattern_length = 0;
+	iw->input.pattern = NULL;
     }
 
 #if 0
@@ -379,19 +379,19 @@ Cardinal *num_args;
 #define NE(field)	(current(field) != new(field))
 #define EQ(field)	(current(field) == new(field))
 
-    if (NE(template))
+    if (NE(pattern))
     {
-        if (new(template) == NULL) 
+        if (new(pattern) == NULL) 
             XtRemoveCallback(new, XmNmodifyVerifyCallback, checkInput, NULL);
         else
-            new(template) = XtNewString(new(template));
+            new(pattern) = XtNewString(new(pattern));
 
-        if (current(template) == NULL)
+        if (current(pattern) == NULL)
             XtAddCallback(new, XmNmodifyVerifyCallback, checkInput, NULL);
         else
-            XtFree(current(template));
+            XtFree(current(pattern));
         
-	parseTemplate(n, new(template));
+	parsePattern(n, new(pattern));
     }
     
 
@@ -414,7 +414,7 @@ Cardinal *num_args;
 	    (void)match(n, text, (int)False);
 	}
 	else
-	    parseTemplate(n, new(template));
+	    parsePattern(n, new(pattern));
 
 	XtFree(text);
     }
@@ -431,19 +431,19 @@ Widget w;
 {
     XbaeInputWidget iw = (XbaeInputWidget)w;
 
-    if (iw->input.template)
-	XtFree(iw->input.template);
+    if (iw->input.pattern)
+	XtFree(iw->input.pattern);
 }
 
 static void
-parseTemplate(iw, template)
+parsePattern(iw, pattern)
 XbaeInputWidget iw;
-String template;
+String pattern;
 {
-    char *ptr = template;
+    char *ptr = pattern;
     Boolean optional = False;
 
-    iw->input.template_length = 0;
+    iw->input.pattern_length = 0;
 
     if (!ptr || !*ptr)
 	return;
@@ -456,8 +456,8 @@ String template;
 	    {
 		XtAppWarningMsg(
 		    XtWidgetToApplicationContext((Widget) iw),
-		    "template", "badTemplate", "XbaeInput",
-		    "XbaeInput: Nested optionals in template",
+		    "pattern", "badPattern", "XbaeInput",
+		    "XbaeInput: Nested optionals in pattern",
 		    (String *) NULL, (Cardinal *) NULL);
 		break;
 	    }
@@ -474,8 +474,8 @@ String template;
 	    {
 		XtAppWarningMsg(
 		    XtWidgetToApplicationContext((Widget) iw),
-		    "template", "badTemplate", "XbaeInput",
-		    "XbaeInput: Error in template",
+		    "pattern", "badPattern", "XbaeInput",
+		    "XbaeInput: Error in pattern",
 		    (String *) NULL, (Cardinal *) NULL);
 		break;
 	    }	    
@@ -488,7 +488,7 @@ String template;
 	     * to True
 	     */
 	    if (iw->text.cursor_position == 0 &&
-	       	iw->input.template_length == 0 && IS_LITERAL(*ptr))
+	       	iw->input.pattern_length == 0 && IS_LITERAL(*ptr))
 	    {
 		char *orig = ptr;
 
@@ -509,11 +509,11 @@ String template;
 		}
 		ptr = orig;
 	    }
-	    iw->input.template_length++;
+	    iw->input.pattern_length++;
 	}
 	ptr++;
     }
-    XtVaSetValues((Widget)iw, XmNmaxLength, iw->input.template_length, NULL);
+    XtVaSetValues((Widget)iw, XmNmaxLength, iw->input.pattern_length, NULL);
 }
 
 static int
@@ -522,19 +522,21 @@ XbaeInputWidget iw;
 char *string;
 int exact;
 {
-    char *tptr, *sptr;
+    char *tptr, *sptr, *ntptr;
     char *lastopt = NULL;	/* last optional block */
     char *lastreq = NULL;	/* last required block */
     int optional = 0;
+    /*int pend_rew = 0;*/
     int equal = 1;
     int escaped;
+    int set_lastopt = 0;
 
-    tptr = iw->input.template;
+    tptr = iw->input.pattern;
     sptr = string;
 
 #ifdef DEBUG    
     printf("checking '%s' against '%s'\n", string ? string : "(null)",
-	   iw->input.template ? iw->input.template : "(null)");
+	   iw->input.pattern ? iw->input.pattern : "(null)");
 #endif
 
     if (!tptr || !sptr || !*tptr || !*sptr)
@@ -558,7 +560,7 @@ int exact;
 	    }
 	}
 	/*
-	 * No template or no string - must match!
+	 * No pattern or no string - must match!
 	 */
 	return True;
     }
@@ -566,70 +568,93 @@ int exact;
     while (*sptr && *tptr)
     {
 	escaped = 0;
-	switch (*tptr)
+	do
 	{
-	    case CHAR_SOPTION:	/* start of optional sequence */
-		optional = 1;
-		/*if (!lastopt)*/	/* XXX -cg */
-		/*
-		   Trouble is with this removed we don't rewind far enough back
-		   should another thing fail further along. Also presents
-		   problems for autofill since the position of the filled chars
-		   may move!  Need either another loop which rewinds or a stack
-		   of lastopt pointers which can be popped. Thus the beauty of
-		   recursion.
-		 */
-		/*lastopt = sptr;*/
-		break;
-	    case CHAR_EOPTION:	/* start of optional sequence */
-		optional = 0;
-		if (*(tptr + 1) != CHAR_SOPTION)
-		    lastreq = tptr + 1;
-		break;
-	    case CHAR_ALPHA:	/* alphabetic */
-		equal = (int)isalpha(*sptr);
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	    case CHAR_BOTH:		/* both: alphabetic or digit */
-		equal = (int)isalnum(*sptr);
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	    case CHAR_CHARACTER:	/* any character */
-		equal = True;
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	    case CHAR_DIGIT:	/* any digit */
-		equal = (int)isdigit(*sptr);
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	    case CHAR_UPPER:
-		if (iw->input.convert_case && islower(*sptr))
-		    *sptr = toupper(*sptr);
-		equal = (int)(isalpha(*sptr) && isupper(*sptr));
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	    case CHAR_LOWER:
-		if (iw->input.convert_case && isupper(*sptr))
-		    *sptr = tolower(*sptr);
-		equal = (int)(isalpha(*sptr) && islower(*sptr));
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	    case CHAR_ESCAPE:
-		tptr++;
-		escaped = 1;
-		/* And fall through to literal */
-	    default:		/* treat as a literal */
-		equal = (int)(*sptr == *tptr);
-		if (equal && optional)
-		    lastopt = sptr;
-		break;
-	}
+	    ntptr = tptr + 1;	/* next tptr */
+	    switch (*tptr)
+	    {
+		case CHAR_SOPTION:	/* start of optional sequence */
+		    optional = 1;
+		    /*if (!lastopt)*/	/* XXX -cg */
+		    /*
+		       Trouble is with this removed we don't rewind far enough
+		       back should another thing fail further along.  Also
+		       presents problems for autofill since the position of
+		       the filled chars may move!  Need either another loop
+		       which rewinds or a stack of lastopt pointers which can
+		       be popped. Thus the beauty of recursion.
+		     */
+		    /*lastopt = sptr;*/
+		    lastopt = NULL;
+		    set_lastopt = 1;
+		    break;
+		case CHAR_EOPTION:	/* start of optional sequence */
+		    optional = 0;
+		    if (*(tptr + 1) != CHAR_SOPTION)
+			lastreq = tptr + 1;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_ALPHA:	/* alphabetic */
+		    equal = (int)isalpha(*sptr);
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_BOTH:		/* both: alphabetic or digit */
+		    equal = (int)isalnum(*sptr);
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_CHARACTER:	/* any character */
+		    equal = True;
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_DIGIT:	/* any digit */
+		    equal = (int)isdigit(*sptr);
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_UPPER:
+		    if (iw->input.convert_case && islower(*sptr))
+			*sptr = toupper(*sptr);
+		    equal = (int)(isalpha(*sptr) && isupper(*sptr));
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_LOWER:
+		    if (iw->input.convert_case && isupper(*sptr))
+			*sptr = tolower(*sptr);
+		    equal = (int)(isalpha(*sptr) && islower(*sptr));
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+		case CHAR_OR:
+		    /*
+		       If tptr is | then we already had success on the previous
+		       char so skip it and then next.
+		    */
+		    tptr = ntptr + 1;
+		    equal = 0;
+		    continue;
+		case CHAR_ESCAPE:
+		    tptr++;
+		    ntptr++;
+		    escaped = 1;
+		    /* And fall through to literal */
+		default:		/* treat as a literal */
+		    equal = (int)(*sptr == *tptr);
+		    if (equal && set_lastopt)
+			lastopt = sptr;
+		    set_lastopt = 0;
+		    break;
+	    }
+	} while (!equal && *ntptr == CHAR_OR && (tptr = ntptr + 1));
 	if (!lastreq && !optional)
 	    lastreq = tptr;
 	if (!equal)
@@ -648,8 +673,8 @@ int exact;
 	    for (z = 0; z < w; z++)
 		putchar(' ');
 	    puts("^");
-	    puts("template was at:");
-	    for (z1 = iw->input.template, z = 0; *z1; z1++, z++)
+	    puts("pattern was at:");
+	    for (z1 = iw->input.pattern, z = 0; *z1; z1++, z++)
 	    {
 		if (z1 == tptr)
 		    w = z;
@@ -687,38 +712,81 @@ int exact;
 		    /* rewind if necessary */
 		    if (lastopt)
 		    {
+			/*if (pend_rew)*/
+			{
 #ifdef DEBUG
-			int z, w, w1;
-			char *z1;
-			puts("Rewinding:");
-			for (z1 = string, z = 0; *z1; z1++, z++)
-			{
-			    if (z1 == sptr)
-				w = z;
-			    if (z1 == lastopt)
-				w1 = z;
-			    putchar(*z1);
-			}
-			putchar('\n');
-			for (z = 0; z < w; z++)
-			{
-			    if (z == w1)
-				putchar('^');
-			    else
-				putchar(' ');
-			}
-			puts("<");
+			    int z, w, w1;
+			    char *z1;
+			    puts("Rewinding:");
+			    for (z1 = string, z = 0; *z1; z1++, z++)
+			    {
+				if (z1 == sptr)
+				    w = z;
+				if (z1 == lastopt)
+				    w1 = z;
+				putchar(*z1);
+			    }
+			    putchar('\n');
+			    for (z = 0; z < w; z++)
+			    {
+				if (z == w1)
+				    putchar('^');
+				else
+				    putchar(' ');
+			    }
+			    puts("<");
 #endif
-			sptr = lastopt;
+			    sptr = lastopt;
+			    lastopt = NULL;
+			    /*pend_rew = 0;*/
+			}
+			/*
+			else
+			{
+#ifdef DEBUG
+			    puts("rewind pending...");
+#endif
+			    pend_rew = 1;
+			}
+			*/
 		    }
 		    equal = True; /* hope for the best! */
 /*		    if (*tptr == CHAR_SOPTION)
 			lastopt = tptr;
 			else*/
-		    lastopt = NULL;
 		}
 		optional = 0;
 	    }
+	    /*
+	    else if (pend_rew)
+	    {
+#ifdef DEBUG
+		int z, w, w1;
+		char *z1;
+		puts("Rewinding:");
+		for (z1 = string, z = 0; *z1; z1++, z++)
+		{
+		    if (z1 == sptr)
+			w = z;
+		    if (z1 == lastopt)
+			w1 = z;
+		    putchar(*z1);
+		}
+		putchar('\n');
+		for (z = 0; z < w; z++)
+		{
+		    if (z == w1)
+			putchar('^');
+		    else
+			putchar(' ');
+		}
+		puts("<");
+#endif
+		sptr = lastopt;
+		lastopt = NULL;
+		pend_rew = 0;
+	    }
+	*/
 	    else
 	    {
 		/*
@@ -750,7 +818,7 @@ int exact;
 	{
 #ifdef DEBUG
 	    printf("%.*s matches %.*s\n", sptr - string +1, string /*strbuf*/,
-		   tptr - iw->input.template +1, iw->input.template/*matchbuf*/);
+		   tptr - iw->input.pattern +1, iw->input.pattern/*matchbuf*/);
 #if 0
 	    s++;
 #endif
@@ -805,7 +873,7 @@ int exact;
     if (*sptr && !*tptr)
     {
 #ifdef DEBUG
-	printf("Couldn't fit all chars into template. Sorry about that\n");
+	printf("Couldn't fit all chars into pattern. Sorry about that\n");
 #endif
 	equal = False;
     }
@@ -862,9 +930,9 @@ XtPointer cb;
     }
 
     /*
-     * Has the length exceeded the template?
+     * Has the length exceeded the pattern?
      */
-    if (cbs->text->length + cbs->startPos > iw->input.template_length)
+    if (cbs->text->length + cbs->startPos > iw->input.pattern_length)
     {
 	cbs->doit = False;
 	return;

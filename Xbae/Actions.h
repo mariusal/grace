@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
+ * $Id: Actions.h,v 1.3 1999-07-27 21:25:15 fnevgeny Exp $
  */
 
 /*
@@ -48,4 +48,6 @@ void xbaeTraversePrevACT P((Widget, XEvent *, String *, Cardinal *));
 void xbaeProcessDragACT P((Widget, XEvent *, String *, Cardinal *));
 void xbaeHandleClick P((Widget, XtPointer, XEvent *, Boolean *));
 void xbaeHandleMotionACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaePageDownACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaePageUpACT P((Widget, XEvent *, String *, Cardinal *));
 #endif

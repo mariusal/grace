@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.c,v 1.3 1999-07-26 22:55:06 fnevgeny Exp $
+ * $Id: Matrix.c,v 1.4 1999-07-27 21:25:15 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -80,7 +80,10 @@ Shift ~Ctrl ~Meta ~Alt <Key>Tab	:	EditCell(Left)\n\
 ~Shift ~Meta ~Alt <Key>Return	:   	CommitEdit(False)\n\
 <Key>osfCancel			:	CancelEdit(False)\n\
 Shift Ctrl ~Meta ~Alt <Key>Tab	:	TraversePrev()\n\
-Ctrl ~Meta ~Alt <Key>Tab	:	TraverseNext()";
+Ctrl ~Meta ~Alt <Key>Tab	:	TraverseNext()\n\
+<Key>osfPageDown		:	PageDown()\n\
+<Key>osfPageUp			:	PageUp()";
+
     
 #define offset(field)	XtOffsetOf(XbaeMatrixRec, field)
 
@@ -491,7 +494,9 @@ static XtActionsRec actions[] =
     {"TraverseNext",	xbaeTraverseNextACT},
     {"TraversePrev",	xbaeTraversePrevACT},
     {"ProcessDrag",	xbaeProcessDragACT},
-    {"HandleMotion",	xbaeHandleMotionACT}
+    {"HandleMotion",	xbaeHandleMotionACT},
+    {"PageDown",	xbaePageDownACT},
+    {"PageUp",		xbaePageUpACT}
 };
 
 

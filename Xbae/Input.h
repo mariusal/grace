@@ -21,7 +21,7 @@
  *
  * Author: Andrew Lister
  *
- * $Id: Input.h,v 1.1 1999-07-26 22:55:05 fnevgeny Exp $
+ * $Id: Input.h,v 1.2 1999-07-27 21:25:15 fnevgeny Exp $
  */
 
 #ifndef _Xbae_Input_h
@@ -59,8 +59,8 @@ externalref WidgetClass xbaeInputWidgetClass;
 #ifndef XmNoverwriteMode
 #define XmNoverwriteMode "overwriteMode"
 #endif
-#ifndef XmNtemplate
-#define XmNtemplate "template"
+#ifndef XmNpattern
+#define XmNpattern "pattern"
 #endif
 #ifndef XmNvalidateCallback
 #define XmNvalidateCallback "validateCallback"
@@ -93,7 +93,7 @@ typedef struct _XbaeInputValidateCallbackStruct
 {
     int reason;
     XEvent *event;
-    String template;
+    String pattern;
     String value;
     Boolean doit;
 }

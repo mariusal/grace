@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.3 1999-07-26 22:55:06 fnevgeny Exp $
+ * $Id: Methods.c,v 1.4 1999-07-27 21:25:15 fnevgeny Exp $
  */
 
 /*
@@ -1852,7 +1852,7 @@ Cardinal nparams;
     call_data.map = True;
     call_data.doit = True;
     call_data.position = -1;
-    call_data.template = NULL;
+    call_data.pattern = NULL;
     
     XtVaGetValues(TextChild(mw),
 		  XmNoverwriteMode, &call_data.overwrite_mode,
@@ -2063,16 +2063,16 @@ Cardinal nparams;
 	XtVaSetValues(TextChild(mw),
 		      XmNwidth, COLUMN_WIDTH(mw, column) -
 		      mw->matrix.cell_shadow_thickness * 2,
-		      XmNheight, ROW_HEIGHT(mw)
-		      - mw->matrix.cell_shadow_thickness * 2,
-		      XmNmaxLength, mw->matrix.column_max_lengths ?
-		      mw->matrix.column_max_lengths[column] :
-		      (int) mw->matrix.column_widths[column],
+		      XmNheight, (ROW_HEIGHT(mw) -
+				  mw->matrix.cell_shadow_thickness * 2),
+		      XmNmaxLength, (mw->matrix.column_max_lengths ?
+				     mw->matrix.column_max_lengths[column] :
+				     (int) mw->matrix.column_widths[column]),
 		      XmNeditable, call_data.doit,
 		      XmNcursorPositionVisible, call_data.doit,
 		      XmNbackground, bgcolor,
 		      XmNforeground, fgcolor,
-		      XmNtemplate, call_data.template,
+		      XmNpattern, call_data.pattern,
 		      XmNoverwriteMode, call_data.overwrite_mode,
 		      XmNautoFill, call_data.auto_fill,
 		      XmNconvertCase, call_data.convert_case,

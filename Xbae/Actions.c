@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.c,v 1.3 1999-07-26 22:55:05 fnevgeny Exp $
+ * $Id: Actions.c,v 1.4 1999-07-27 21:25:14 fnevgeny Exp $
  */
 
 /*
@@ -1914,3 +1914,101 @@ Cardinal *nparams;
 	scrolling = False;
     }
 }
+
+/* ARGSUSED */
+void
+xbaePageDownACT(w, event, params, nparams)
+Widget w;
+XEvent *event;
+String *params;
+Cardinal *nparams;
+{
+    XbaeMatrixWidget mw;
+    char *down = "0";
+    int top;
+    /*
+     * Get Matrix widget and make sure it is a Matrix subclass.
+     * w should be the textField widget.
+     */
+    if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
+	mw = (XbaeMatrixWidget)XtParent(w);
+    else
+    {
+	XtAppWarningMsg(
+	    XtWidgetToApplicationContext(w),
+	    "pageDownACT", "badWidget", "XbaeMatrix",
+	    "XbaeMatrix: Bad widget passed to PageDown action",
+	    NULL, 0);
+	return;
+    }
+
+    if (!XtIsManaged(VertScrollChild(mw)))
+	return;
+
+    /*
+     * Save the top row - if scrolling occurs, the text widget needs
+     * to be moved
+     */
+    top = VERT_ORIGIN(mw);
+
+    XtCallActionProc(VertScrollChild(mw), "PageDownOrRight",
+		     event, &down, 1);
+
+    if (VERT_ORIGIN(mw) != top)
+	/*
+	 * Position the cursor at the top most non fixed row if there was
+	 * a page down
+	 */
+	XbaeMatrixEditCell((Widget)mw, VERT_ORIGIN(mw) +
+			   mw->matrix.fixed_rows, mw->matrix.current_column);
+}
+
+/* ARGSUSED */
+void
+xbaePageUpACT(w, event, params, nparams)
+Widget w;
+XEvent *event;
+String *params;
+Cardinal *nparams;
+{
+    XbaeMatrixWidget mw;
+    char *up = "0";
+    int top;
+
+    /*
+     * Get Matrix widget and make sure it is a Matrix subclass.
+     * w should be the textField widget.
+     */
+    if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
+	mw = (XbaeMatrixWidget)XtParent(w);
+    else
+    {
+	XtAppWarningMsg(
+	    XtWidgetToApplicationContext(w),
+	    "pageUpACT", "badWidget", "XbaeMatrix",
+	    "XbaeMatrix: Bad widget passed to PageUp action",
+	    NULL, 0);
+	return;
+    }
+
+    if (!XtIsManaged(VertScrollChild(mw)))
+	return;
+
+    /*
+     * Save the top row - if scrolling occurs, the text widget needs
+     * to be moved
+     */
+    top = VERT_ORIGIN(mw);
+
+    XtCallActionProc(VertScrollChild(mw), "PageUpOrLeft",
+		     event, &up, 1);
+
+    if (VERT_ORIGIN(mw) != top)
+	/*
+	 * Position the cursor at the top most non fixed row if there was
+	 * a page down
+	 */
+	XbaeMatrixEditCell((Widget)mw, VERT_ORIGIN(mw) +
+			   mw->matrix.fixed_rows, mw->matrix.current_column);
+}
+
