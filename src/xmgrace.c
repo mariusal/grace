@@ -36,10 +36,6 @@
 
 #include <unistd.h>
 
-#ifdef WITH_EDITRES
-#  include <X11/Xmu/Editres.h>
-#endif
-
 #include <Xm/Xm.h>
 #include <Xm/MainW.h>
 #include <Xm/Form.h>
@@ -48,6 +44,10 @@
 #include <Xm/ScrolledW.h>
 #include <Xm/DrawingA.h>
 #include <Xm/RepType.h>
+
+#ifdef WITH_EDITRES
+#  include <X11/Xmu/Editres.h>
+#endif
 
 #if defined(HAVE_XPM_H)
 #  include <xpm.h>
