@@ -168,7 +168,6 @@ static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data
     }
     strcpy(fstr, xv_getstr(ui->formula_item));
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	resno = do_compute(setno, loadto, graphto, fstr);
@@ -177,7 +176,6 @@ static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data
 	    break;
 	}
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     free(selsets);
     unset_wait_cursor();
@@ -290,13 +288,11 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     hist_type = GetChoice(ui->type_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	fromset = selsets[i];
 	do_histo(get_cg(), fromset, tograph, toset, binw, xmin, xmax, hist_type);
     }
     free(selsets);
-    set_work_pending(FALSE);
     update_all();
     drawgraph();
     unset_wait_cursor();
@@ -446,6 +442,7 @@ static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data
 	setno = selsets[i];
 	do_fourier(0, setno, load, loadx, invflag, type, wind);
     }
+    update_set_lists(get_cg());
     free(selsets);
     unset_wait_cursor();
     drawgraph();
@@ -471,12 +468,10 @@ static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data)
     invflag = GetChoice(ui->inv_item);
     type = GetChoice(ui->type_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	do_fourier(1, setno, load, loadx, invflag, type, wind);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     free(selsets);
     unset_wait_cursor();
@@ -506,12 +501,10 @@ static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data)
     wind = GetChoice(ui->window_item);
     type = GetChoice(ui->type_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	do_window(setno, type, wind);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     free(selsets);
     unset_wait_cursor();
@@ -632,12 +625,10 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
     rno = GetChoice(ui->region_item) - 1;
     invr = XmToggleButtonGetState(ui->rinvert_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	do_runavg(setno, runlen, runtype, rno, invr);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -860,7 +851,6 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
 		    return;
 	}	
     set_wait_cursor();
-    set_work_pending(TRUE);
 	for (i = (ideg==11?1:ideg); i <= (ideg==11?10:ideg); i++) {
     	for (j = 0; j < cnt; j++) {
 			setno = selsets[j];
@@ -878,7 +868,6 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
 			do_regress(setno, i, iresid, rno, invr, rset);
 	    }
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -958,12 +947,10 @@ static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     itype = (int) GetChoice(ui->type_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	do_differ(setno, itype);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -1047,14 +1034,12 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     itype = GetChoice(ui->type_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	sum = do_int(setno, itype);
 	sprintf(buf, "%g", sum);
 	xv_setstr(ui->sum_item, buf);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -1130,12 +1115,10 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
     if(xv_evalexpri(ui->period_item, &period ) != GRACE_EXIT_SUCCESS)
 		return;
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 		setno = selsets[i];
 		do_seasonal_diff(setno, period);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     free(selsets);
     unset_wait_cursor();
@@ -1221,11 +1204,9 @@ static void do_interp_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	}
     }
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -1241,9 +1222,7 @@ static void do_interp_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     method = (int) GetChoice(ui->meth_item);
     set_wait_cursor();
-    set_work_pending(TRUE);
     do_interp(set1, set2, method);
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
 }
@@ -1311,13 +1290,13 @@ static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	errwin("Select 2 sets");
 	return;
     }
-	if(xv_evalexpri(ui->lag_item, &maxlag) != GRACE_EXIT_SUCCESS) 
-		return;
+    if(xv_evalexpri(ui->lag_item, &maxlag) != GRACE_EXIT_SUCCESS) { 
+        return;
+    }
     set_wait_cursor();
-    set_work_pending(TRUE);
     do_xcor(set1, set2, maxlag);
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
+    drawgraph();
     unset_wait_cursor();
 }
 
@@ -1408,12 +1387,10 @@ static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
     stype = GetChoice(ui->type_item);
     
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	do_spline(setno, start, stop, n, stype+1);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
 
@@ -1518,14 +1495,12 @@ static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	   xv_evalexpri(ui->step_item, &stepno) != GRACE_EXIT_SUCCESS)
 		return;
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 		setno = selsets[i];
 /* exprstr gets clobbered */
 		strcpy(exprstr, (char *) xv_getstr(ui->expr_item));
 		do_sample(setno, typeno, exprstr, startno, stepno);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -1727,13 +1702,11 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
 		deltay = 0;	
 	
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 
 	do_prune(setno, typeno, deltatypeno, deltax, deltay, dxtype, dytype);
     }
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
     free(selsets);
@@ -1803,9 +1776,7 @@ static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_da
 	return;
     }
     set_wait_cursor();
-    set_work_pending(TRUE);
     do_digfilter(set1, set2);
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     unset_wait_cursor();
 }
@@ -1874,10 +1845,9 @@ static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data
 	return;
     }
     set_wait_cursor();
-    set_work_pending(TRUE);
     do_linearc(set1, set2);
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
+    drawgraph();
     unset_wait_cursor();
 }
 
@@ -1978,9 +1948,7 @@ static void do_compute_proc2(Widget w, XtPointer client_data, XtPointer call_dat
     strcpy(stopstr, xv_getstr(ui->stop_item));
     toval = GetChoice(ui->load_item) + 1;
     set_wait_cursor();
-    set_work_pending(TRUE);
     do_compute2(ui->gno, fstrx, fstry, startstr, stopstr, npts, toval);
-    set_work_pending(FALSE);
     update_all();
     drawgraph();
     unset_wait_cursor();
@@ -2153,7 +2121,6 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	sind = sin(degrees);
 	
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (k = 0; k < cnt; k++) {
 	setno = selsets[k];
 	if (is_set_active(get_cg(), setno)) {
@@ -2187,10 +2154,9 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
 		}		/* end case */
 	    }			/* end for j */
 
-	    update_set_status(get_cg(), setno);
+	    update_set_lists(get_cg());
 	}			/* end if */
     }				/* end for k */
-    set_work_pending(FALSE);
     update_set_lists(get_cg());
     free(selsets);
     set_dirtystate();

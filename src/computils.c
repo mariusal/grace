@@ -139,29 +139,6 @@ int do_compute(int setno, int loadto, int graphto, char *fstr)
 }
 
 /*
- * load a set
- */
-void do_load(int setno, int toval, double start, double step )
-{
-    int i, idraw = 0;
-
-    if (setno == SET_SELECT_ALL) {
-	for (i = 0; i < number_of_sets(get_cg()); i++) {
-	    if (is_set_active(get_cg(), i)) {
-		loadset(get_cg(), i, toval, start, step);
-		idraw = 1;
-	    }
-	}
-    } else if (is_set_active(get_cg(), setno)) {
-	loadset(get_cg(), setno, toval, start, step);
-	idraw = 1;
-    }
-    if (!idraw) {
-	errmsg("Set(s) not active");
-    }
-}
-
-/*
  * evaluate a formula loading the next set
  */
 void do_compute2(int gno, char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval)
@@ -364,9 +341,6 @@ void do_digfilter(int set1, int set2)
 		  getsetlength(get_cg(), set2));
 	setcomment(get_cg(), digfiltset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), digfiltset);
-#endif
     }
 }
 
@@ -398,9 +372,6 @@ void do_linearc(int set1, int set2)
 	sprintf(buf, "Linear convolution of set %d with set %d", set1, set2);
 	setcomment(get_cg(), linearcset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), linearcset);
-#endif
     }
 }
 
@@ -443,9 +414,6 @@ void do_xcor(int set1, int set2, int maxlag)
 	}
 	setcomment(get_cg(), xcorset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), xcorset);
-#endif
     }
 }
 
@@ -511,10 +479,6 @@ void do_spline(int set, double start, double stop, int n, int type)
 	cxfree(b);
 	cxfree(c);
 	cxfree(d);
-
-#ifndef NONE_GUI
-	update_set_status(get_cg(), splineset);
-#endif
     }
 }
 
@@ -544,9 +508,6 @@ double do_int(int setno, int itype)
 	    sum = trapint(getx(get_cg(), setno), gety(get_cg(), setno), getx(get_cg(), intset), gety(get_cg(), intset), getsetlength(get_cg(), setno));
 	    setcomment(get_cg(), intset, buf);
 	    log_results(buf);
-#ifndef NONE_GUI
-	    update_set_status(get_cg(), intset);
-#endif
 	}
     } else {
 	sum = trapint(getx(get_cg(), setno), gety(get_cg(), setno), NULL, NULL, getsetlength(get_cg(), setno));
@@ -595,9 +556,6 @@ void do_differ(int setno, int itype)
 	}
 	setcomment(get_cg(), diffset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), diffset);
-#endif
     }
 }
 
@@ -626,9 +584,6 @@ void do_seasonal_diff(int setno, int period)
 	sprintf(buf, "Seasonal difference of set %d, period %d", setno, period);
 	setcomment(get_cg(), diffset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), diffset);
-#endif
     }
 }
 
@@ -840,9 +795,6 @@ void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
 	sprintf(buf, "%d deg fit of set %d", ideg, setno);
 	setcomment(get_cg(), fitset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), fitset);
-#endif
     }
     bustout:;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
@@ -922,9 +874,6 @@ void do_runavg(int setno, int runlen, int runtype, int rno, int invr)
 	}
 	setcomment(get_cg(), runset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), runset);
-#endif
     }
   bustout:;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
@@ -1047,9 +996,6 @@ void do_fourier(int fftflag, int setno, int load, int loadx, int invflag, int ty
 	}
 	setcomment(get_cg(), specset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), specset);
-#endif
     }
 }
 
@@ -1094,9 +1040,6 @@ void do_window(int setno, int type, int wind)
 	}
 	setcomment(get_cg(), specset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), specset);
-#endif
     }
 }
 
@@ -1365,9 +1308,6 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
     if (npts > 0) {
 	setcomment(get_cg(), resset, buf);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(get_cg(), resset);
-#endif
     }
 }
 
@@ -1678,9 +1618,6 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
     }
     setcomment(get_cg(), resset, buf);
     log_results(buf);
-#ifndef NONE_GUI
-    update_set_status(get_cg(), resset);
-#endif
 }
 
 int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *cnt, double **xt, double **yt)
@@ -1820,7 +1757,4 @@ void do_interp( int yset, int xset, int method )
     sprintf( buf, "Interpolated from Set %d at points from Set %d", yset, xset );
     cxfree( newx );
     setcomment(get_cg(), iset, buf);
-#ifndef NONE_GUI
-    update_set_status(get_cg(), iset);
-#endif
 }

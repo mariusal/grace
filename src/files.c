@@ -330,7 +330,6 @@ int getdata(int gno, char *fn, int src, int type)
     change_type = cur_type = type;
     save_version = get_project_version();
     set_project_version(0);
-    set_work_pending(TRUE);
 
     while (retval == -1) {
 	retval = 0;
@@ -359,12 +358,6 @@ int getdata(int gno, char *fn, int src, int type)
         autoscale_graph(cur_gno, autoscale_onread);
     }
     set_project_version(save_version);
-    
-    set_work_pending(FALSE);
-
-#ifndef NONE_GUI
-    update_status_popup(NULL, NULL, NULL);
-#endif
 
     if (retval < 0) {
         return GRACE_EXIT_FAILURE;
@@ -1361,11 +1354,7 @@ void create_set_fromblock(int gno, int type, char *cols)
 
     free(coli);
     setcomment(gno, setno, buf);
-    log_results(buf);
-    
-#ifndef NONE_GUI
-    update_status_popup(NULL, NULL, NULL);
-#endif
+    log_results(buf);   
 }
 
 void outputset(int gno, int setno, char *fname, char *dformat)

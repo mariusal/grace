@@ -2734,10 +2734,14 @@ void update_set_list(int gno, SetChoiceItem l)
 void update_set_lists(int gno)
 {
     int i;
-/*
-printf("dirty = %d pending = %d\n", lists_dirty(),work_pending());
-*/
-    if (inwin && lists_dirty() && !work_pending()) {
+
+    if (gno == GRAPH_SELECT_CURRENT) {
+        update_set_selectors(get_cg());
+    } else {
+        update_set_selectors(gno);
+    }
+
+    if (inwin && lists_dirty()) {
 	for (i = 0; i < nplist; i++) {
 		if( plist[i].gno == gno || 
 			(gno==get_cg() && plist[i].gno==GRAPH_SELECT_CURRENT) )
@@ -3020,12 +3024,6 @@ void SetLabel(Widget w, char *s)
     XmStringFree(str);
 }
 
-
-void update_set_status(int gno, int setno)
-{
-    update_graph_selectors();
-    update_set_selectors(gno);
-}
 
 void update_all(void)
 {

@@ -665,7 +665,6 @@ static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     } else {
         set_wait_cursor();
-        set_work_pending(TRUE);
  
         type = GetOptionChoice(tui.datatype_item);
         xv_evalexpri(tui.length_item, &len);
@@ -691,7 +690,6 @@ static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
         
         free(selset);
 
-        set_work_pending(FALSE);
         update_set_lists(cg);
         unset_wait_cursor();
         drawgraph();
@@ -715,7 +713,6 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     }
 
     set_wait_cursor();
-    set_work_pending(TRUE);
     
     optype = GetOptionChoice(swapui.optype_item);
     
@@ -785,7 +782,6 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     if (ns2 > 0) {
         free(svalues2);
     }
-    set_work_pending(FALSE);
     if (error == FALSE) {
         update_all();
         drawgraph();
@@ -812,12 +808,10 @@ static void do_drop_points_proc(Widget w, XtPointer client_data, XtPointer call_
 		return;
     }
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 		setno = selsets[i];
 		do_drop_points(setno, startno, endno);
     }
-    set_work_pending(FALSE);
     update_set_lists(cg);
     unset_wait_cursor();
     free(selsets);
@@ -838,9 +832,7 @@ static void do_join_sets_proc(Widget w, XtPointer client_data, XtPointer call_da
 	return;
     }
     set_wait_cursor();
-    set_work_pending(TRUE);
     do_join_sets(cg, j1, cg, j2);
-    set_work_pending(FALSE);
     update_set_lists(cg);
     unset_wait_cursor();
     drawgraph();
@@ -860,12 +852,10 @@ static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call
 	return;
     }
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	reverse_set(get_cg(), setno);
     }
-    set_work_pending(FALSE);
     update_set_lists(cg);
     unset_wait_cursor();
     free(selsets);
@@ -889,16 +879,14 @@ static void do_sort_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	errwin("No sets selected");
 	return;
     }
-    sorton = son[(int) GetChoice(ui->xy_item)];
-    stype = (int) GetChoice(ui->up_down_item);
+    sorton = son[GetChoice(ui->xy_item)];
+    stype = GetChoice(ui->up_down_item);
 
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
 	do_sort(setno, sorton, stype);
     }
-    set_work_pending(FALSE);
     update_set_lists(cg);
     unset_wait_cursor();
     free(selsets);
@@ -922,12 +910,10 @@ static void do_split_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
     }
     xv_evalexpri(ui->len_item, &lpart);
     set_wait_cursor();
-    set_work_pending(TRUE);
     for (i = 0; i < cnt; i++) {
 		setno = selsets[i];
 		do_splitsets(cg, setno, lpart);
     }
-    set_work_pending(FALSE);
     update_set_lists(cg);
     unset_wait_cursor();
     free(selsets);

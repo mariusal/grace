@@ -83,9 +83,6 @@ void loadset(int gno, int selset, int toval, double startno, double stepno)
     }
 
     set_dirtystate();
-#ifndef NONE_GUI
-    update_set_status(gno, selset);
-#endif
 }
 
 /*
@@ -111,10 +108,6 @@ int formula(int gno, int selset, char *sscanstr)
     select_graph(oldcg);
 
     if (!errpos) {
-
-#ifndef NONE_GUI
-    	update_set_status(gno, selset);
-#endif
     	set_dirtystate();
     }
     return (errpos);

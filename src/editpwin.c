@@ -99,7 +99,7 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     del_point(ep->gno, ep->setno, i);
-    update_set_status(ep->gno, ep->setno);
+    update_set_lists(ep->gno);
     if(is_set_active(ep->gno, ep->setno)) {
         update_cells(ep);
     }
@@ -126,10 +126,10 @@ void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
         dpoint.ex[k] = *(getcol(gno, setno, k) + i);
     }
     add_point_at(gno, setno, i + 1, &dpoint);
-    update_set_status(gno, setno);
     if(is_set_active(gno, setno)) {
         update_cells(ep);
     }
+    update_set_lists(gno);
 }
 
 static Widget *editp_col_item;
@@ -306,8 +306,8 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     if (strcmp(buf, cs->value) != 0) {
 	datap[cs->row] = atof(cs->value);
 
-	update_set_status(ep->gno, ep->setno);
-	drawgraph();
+        update_set_lists(ep->gno);
+        drawgraph();
     }
 }
 

@@ -228,10 +228,11 @@ static void do_extract_region(Widget w, XtPointer client_data, XtPointer call_da
 	    return;
 	}
     }
-    regno = (int) GetChoice(extract_region_item);
+    regno = GetChoice(extract_region_item);
     set_wait_cursor();
     extract_region(gno, fromset, setno, regno);
     drawgraph();
+    update_set_lists(gno);
     unset_wait_cursor();
 }
 
@@ -306,6 +307,7 @@ static void do_delete_region(Widget w, XtPointer client_data, XtPointer call_dat
     set_wait_cursor();
     delete_region(gno, setno, regno);
     drawgraph();
+    update_set_lists(get_cg());
     unset_wait_cursor();
 }
 
@@ -409,6 +411,7 @@ static void do_eval_region(Widget w, XtPointer client_data, XtPointer call_data)
 /* TODO add gno to parm list */
     evaluate_region(regno, gno, setno, buf);
     drawgraph();
+    update_set_lists(get_cg());
     unset_wait_cursor();
 }
 

@@ -272,10 +272,6 @@ void extract_region(int gno, int fromset, int toset, int regno)
 	    }
 	}
     }
-
-#ifndef NONE_GUI
-    update_set_status(gno, toset);
-#endif
 }
 
 void delete_region(int gno, int setno, int regno)
@@ -351,10 +347,6 @@ void delete_region(int gno, int setno, int regno)
 			}
 		    }
 		    delete_byindex(k, j, ind);
-
-#ifndef NONE_GUI
-		    update_set_status(k, j);
-#endif
 		}
 	    }
 	}
@@ -419,10 +411,6 @@ void evaluate_region(int regno, int gno, int setno, char *buf)
 		            if (errpos) {
 		                x[0] = tmpx;
 		                y[0] = tmpy;
-
-#ifndef NONE_GUI
-		                update_set_status(k, j);
-#endif
 		                return;
 		            }
 		            if ( i != 0) {
@@ -439,9 +427,6 @@ void evaluate_region(int regno, int gno, int setno, char *buf)
 		    y[0] = tmpy;
 
 		} /* isactive */
-#ifndef NONE_GUI
-	        update_set_status(k, j);
-#endif
 	    } /* j */
 	} /* is_graph_active */
     } /* k */

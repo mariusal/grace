@@ -246,8 +246,6 @@ int get_hotlink_src(int gno, int setno);
 
 void do_breakset(int gno, int setno, int ind);
 void sortset(int gno, int setno, int sorton, int stype);
-void set_work_pending(int d);
-void update_set_lists(int gno);
 void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, int nsteps);
 void do_interp( int yset, int xset, int method );

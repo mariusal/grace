@@ -163,7 +163,6 @@ void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
 void update_status(int gno, int itemno);
 void update_region_status(int rno);
-void update_set_status(int gno, int setno);
 void update_status_auto_redraw(void);
 void clear_status(void);
 void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data);
@@ -171,6 +170,8 @@ void update_stuff_status(void);
 void select_set(Widget w, XtPointer calld, XEvent * e);
 void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data);
+
+void update_set_lists(int gno);
 
 void updatesymbols(int gno, int value);
 void updatelegendstr(int gno);

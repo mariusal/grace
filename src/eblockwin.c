@@ -212,7 +212,6 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
         errmsg("Please select a single graph");
     } else {
         create_set_fromblock(gno, block_curtype, blockcols);
-        update_status_popup(NULL, NULL, NULL);
         update_all();
         drawgraph();
     }

@@ -383,7 +383,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case DEL_POINT:
                 if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
 		    del_point(cg, setno, loc);
-		    update_set_status(cg, setno);
+		    update_set_lists(cg);
                     xdrawgraph();
                 }
                 break;
@@ -420,7 +420,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     sprintf(buf, "G%d.S%d, loc %d, (%f, %f)",
                         cg, track_setno, track_loc, wp.x, wp.y);
 		    xv_setstr(locate_point_item, buf);
-		    update_set_status(cg, track_setno);
+		    update_set_lists(cg);
                     xdrawgraph();
 		    set_action(MOVE_POINT1ST);
                 }
@@ -443,7 +443,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		}
 		add_point_at(cg, add_setno, loc, &dpoint);
 		sprintf(buf, "Set %d, loc %d, (%f, %f)", add_setno, loc, wp.x, wp.y);
-		update_set_status(cg, add_setno);
+		update_set_lists(cg);
                 xdrawgraph();
                 break;
             case PLACE_LEGEND_1ST:

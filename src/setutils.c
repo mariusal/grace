@@ -680,12 +680,6 @@ void packsets(int gno)
 		    }
 		    killset(gno, i);
 		    set_dirtystate();
-#ifndef NONE_GUI
-		    updatesymbols(gno, j);
-		    updatesymbols(gno, i);
-		    update_set_status(gno, j);
-		    update_set_status(gno, i);
-#endif
 		}
 		j++;
 	    }
@@ -1328,9 +1322,6 @@ void do_splitsets(int gno, int setno, int lpart)
 	sprintf(s, "partition %d of set %d", i + 1, setno);
 	setcomment(gno, tmpset, s);
 	log_results(buf);
-#ifndef NONE_GUI
-	update_set_status(gno, tmpset);
-#endif
     }
     if (nleft == 0) {
 	nleft = lpart;
@@ -1352,97 +1343,9 @@ void do_splitsets(int gno, int setno, int lpart)
     sprintf(s, "partition %d of set %d", i + 1, setno);
     setcomment(gno, tmpset, s);
     log_results(buf);
-#ifndef NONE_GUI
-    update_set_status(gno, tmpset);
-#endif
     for (k = 0; k < ncols; k++) {
 	free(xtmp[k]);
     }
-}
-
-/*
- * break a set at a point
- */
-void do_breakset(int gno, int setno, int ind)
-{
-    int j, k, ncols, len, tmpset, stype;
-    int n1, n2;
-    char s[256];
-    double *e1, *e2;
-
-    if (!activeset(gno)) {
-	errmsg("No active sets");
-	return;
-    }
-    if (!is_set_active(gno, setno)) {
-	sprintf(s, "Set %d not active", setno);
-	errmsg(s);
-	return;
-    }
-    if ((len = getsetlength(gno, setno)) < ind + 1) {
-	errmsg("Set length less than point index");
-	return;
-    }
-    /* get number of columns in this set */
-    ncols = getncols(gno, setno);
-    stype = dataset_type(gno, setno);
-
-    n2 = len - ind;		/* upper part of new set */
-    n1 = len - n2;		/* lower part of old set */
-    if (n1 <= 0 || n2 <= 0) {
-	errmsg("Break set length <= 0");
-	return;
-    }
-    tmpset = nextset(gno);
-    if (tmpset == -1) {
-	return;
-    }
-    activateset(gno, tmpset);
-    set_dataset_type(gno, tmpset, stype);
-    setlength(gno, tmpset, n2);
-
-    /* load the data into each column */
-    for (k = 0; k < ncols; k++) {
-	e1 = getcol(gno, setno, k);
-	e2 = getcol(gno, tmpset, k);
-	for (j = ind; j < len; j++) {
-	    e2[j - ind] = e1[j];
-	}
-    }
-
-    setlength(gno, setno, n1);
-
-    sprintf(s, "Break S%d at point %d", setno, ind);
-    setcomment(gno, tmpset, s);
-    log_results(buf);
-#ifndef NONE_GUI
-    update_set_status(gno, setno);
-    update_set_status(gno, tmpset);
-#endif
-}
-
-
-/*
- * activate a set and set its length
- */
-void do_activate(int setno, int type, int len)
-{
-    if (is_set_active(get_cg(), setno)) {
-	sprintf(buf, "Set %d already active", setno);
-	errmsg(buf);
-	return;
-    }
-    if (len <= 0) {
-	sprintf(buf, "Improper set length = %d", len);
-	errmsg(buf);
-	return;
-    }
-    activateset(get_cg(), setno);
-    set_dataset_type(get_cg(), setno, type);
-    setlength(get_cg(), setno, len);
-#ifndef NONE_GUI
-    update_set_status(get_cg(), setno);
-#endif
 }
 
 /*
@@ -1483,9 +1386,6 @@ void do_drop_points(int setno, int startno, int endno)
 	return;
     }
     droppoints(get_cg(), setno, startno, endno, dist);
-#ifndef NONE_GUI
-    update_set_status(get_cg(), setno);
-#endif
 }
 
 /*
@@ -1504,9 +1404,6 @@ void do_join_sets(int gfrom, int j1, int gto, int j2)
 	    if (is_set_active(gfrom, i) && i != j2) {
 		joinsets(gfrom, i, gfrom, j2);
 		killset(gfrom, i);
-#ifndef NONE_GUI
-		update_set_status(gfrom, i);
-#endif
 	    }
 	}
     } else {
@@ -1522,61 +1419,9 @@ void do_join_sets(int gfrom, int j1, int gto, int j2)
 	}
 	joinsets(gfrom, j1, gto, j2);
 	killset(gfrom, j1);
-#ifndef NONE_GUI
-	update_set_status(gfrom, j1);
-#endif
-    }
-#ifndef NONE_GUI
-    update_set_status(gto, j2);
-#endif
-}
-
-/*
- * reverse the order of a set
- */
-/*
- * kill a set
- */
-void do_kill(int gno, int setno, int soft)
-{
-    int i;
-
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return;
-    }
-    
-    if (setno == g[gno].maxplot || setno == -1) {
-	for (i = 0; i < g[gno].maxplot; i++) {
-	    if (is_set_active(gno, i)) {
-		if (soft) {
-		    killsetdata(gno, i);
-		} else {
-		    killset(gno, i);
-		}
-#ifndef NONE_GUI
-		set_lists_dirty(TRUE);
-		update_set_status(gno, i);
-#endif
-	    }
-	}
-    } else {
-	if (!is_set_active(gno, setno)) {
-	    sprintf(buf, "Set %d already dead", setno);
-	    errmsg(buf);
-	    return;
-	} else {
-	    if (soft) {
-		killsetdata(gno, setno);
-	    } else {
-		killset(gno, setno);
-	    }
-#ifndef NONE_GUI
-	    set_lists_dirty(TRUE);
-	    update_set_status(gno, setno);
-#endif
-	}
     }
 }
+
 
 /*
  * sort sets, only works on sets of type XY
@@ -1655,18 +1500,6 @@ void do_update_hotlink(int gno, int setno)
         read_set_fromfile(gno, setno, g[gno].p[setno].hotfile, 
 			g[gno].p[setno].hotsrc, g[gno].p[setno].hotlink);
     }
-}
-
-static int wp = 0;
-
-void set_work_pending(int d)
-{
-    wp = d;
-}
-
-int work_pending(void)
-{
-    return wp;
 }
 
 /*
