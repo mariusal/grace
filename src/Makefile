@@ -86,7 +86,7 @@ depend :
 		| sed 's/\.o:/\$$(O)\ :/g' >> Make.dep
 
 tags : $(GRSRCS) $(GUISRCS) $(PARS_Y)
-	ctags --format=1 $(GRSRCS) $(GUISRCS) $(PARS_Y)
+	ctags $(GRSRCS) $(GUISRCS) $(PARS_Y)
 
 dummy :
 
