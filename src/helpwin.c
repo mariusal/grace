@@ -219,7 +219,7 @@ void create_about_grtool(void *data)
 typedef struct _html_ui {
     Widget top;
     Widget html;
-    TextStructure *track;
+    Widget track;
     TextStructure *input;
     Widget case_sensitive;
     Widget find_backwards;
@@ -303,10 +303,10 @@ static void trackCB(Widget w, XtPointer client_data, XtPointer call_data)
 
     if (href_data->href) {
         /* a valid anchor, eg, moving into an anchor */
-        SetTextString(ui->track, href_data->href);
+        SetLabel(ui->track, href_data->href);
     } else {
         /* a valid anchor, eg, moving away from an anchor */
-        SetTextString(ui->track, "");
+        SetLabel(ui->track, "");
     }
 }
 
@@ -458,7 +458,7 @@ void create_helper_frame(char *fname)
     set_wait_cursor();
     
     if (ui == NULL) {
-        Widget fr1, fr2, menubar, menupane;
+        Widget fr1, fr2, menubar, menupane, rc;
         
 	ui = xmalloc(sizeof(html_ui));
         ui->finder = NULL;
@@ -487,22 +487,21 @@ void create_helper_frame(char *fname)
 	fr1 = CreateFrame(ui->top, NULL);
         AddDialogFormChild(ui->top, fr1);
         ui->html = XtVaCreateManagedWidget("html",
-	   xmHTMLWidgetClass, fr1,
-           XmNimageProc, loadImage,
-           XmNenableBadHTMLWarnings, XmHTML_NONE,
-           XmNanchorButtons, False,
-	   XmNmarginWidth, 20,
-	   XmNmarginHeight, 20,
-	   NULL);
+            xmHTMLWidgetClass, fr1,
+            XmNimageProc, loadImage,
+            XmNenableBadHTMLWarnings, XmHTML_NONE,
+            XmNanchorButtons, False,
+            XmNmarginWidth, 20,
+            XmNmarginHeight, 20,
+            NULL);
 
 	XtAddCallback(ui->html, XmNactivateCallback, anchorCB, NULL);
         XtAddCallback(ui->html, XmNanchorTrackCallback, trackCB, ui);
 
 	fr2 = CreateFrame(ui->top, NULL);
         AddDialogFormChild(ui->top, fr2);
-        ui->track = CreateTextInput(fr2, "Link:");
-        XtVaSetValues(ui->track->text, XmNeditable, False, NULL);
-        SetTextString(ui->track, "Welcome to Gracilla!");
+        rc = CreateVContainer(fr2);
+        ui->track = CreateLabel(rc, "Welcome to Gracilla!");
         
         XtVaSetValues(fr1,
             XmNbottomAttachment, XmATTACH_WIDGET,
@@ -513,6 +512,8 @@ void create_helper_frame(char *fname)
             NULL);
 	
         ManageChild(ui->top);
+        
+        XtVaSetValues(rc, XmNresizeHeight, False, NULL);
     }
     
     if (ui->finder) {
