@@ -295,7 +295,14 @@ int storage_scroll(Storage *sto, int skip, int loop)
         return RETURN_SUCCESS;
     } else if (skip > 0) {
         while (sto->cp) {
-            sto->cp = sto->cp->next ? sto->cp->next : sto->start;
+            if (sto->cp->next) {
+                sto->cp = sto->cp->next;
+            } else
+            if (loop) {
+                    sto->cp = sto->start;
+            } else {
+                return RETURN_FAILURE;
+            }
             skip--;
             if (skip == 0) {
                 return RETURN_SUCCESS;
@@ -307,7 +314,14 @@ int storage_scroll(Storage *sto, int skip, int loop)
     } else {
         /* skip < 0 */
         while (sto->cp) {
-            sto->cp = sto->cp->prev ? sto->cp->prev : sto->start;
+            if (sto->cp->prev) {
+                sto->cp = sto->cp->prev;
+            } else
+            if (loop) {
+                storage_eod(sto);
+            } else {
+                return RETURN_FAILURE;
+            }
             skip++;
             if (skip == 0) {
                 return RETURN_SUCCESS;
