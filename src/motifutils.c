@@ -2310,6 +2310,19 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
     XtManageChild(popup);
 }
 
+static void ss_edit_cb(Widget list, XtPointer client_data, XtPointer call_data)
+{
+    XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
+    ListStructure *plist = (ListStructure *) client_data;
+    SetChoiceData *sdata = (SetChoiceData *) plist->anydata;
+    int gno, setno;
+    
+    gno = sdata->gno;
+    setno = plist->values[cbs->item_position - 1];
+    create_ss_frame(gno, setno);
+}
+
+
 ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
                                         int type, int standalone)
 {
@@ -2337,12 +2350,14 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
                             (XtEventHandler) set_popup, retvalp);
     
+    XtAddCallback(retvalp->list, XmNdefaultActionCallback, ss_edit_cb, retvalp);
+    
     retvalp->anydata = sdata;
     
     if (standalone == TRUE) {
         UpdateSetChoice(retvalp, get_cg());
     }
-    
+
     nset_selectors++;
     set_selectors = xrealloc(set_selectors, 
                                 nset_selectors*sizeof(ListStructure *));
