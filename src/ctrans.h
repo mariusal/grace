@@ -35,6 +35,12 @@
 
 #include "defines.h"
 
+/*
+ * types of coordinate frames
+ */
+#define COORDINATES_XY      0       /* Cartesian coordinates */
+#define COORDINATES_POLAR   1       /* Polar coordinates */
+                                
 /* Types of axis scale mappings */
 typedef enum {
     SCALE_NORMAL,
