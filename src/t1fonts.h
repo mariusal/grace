@@ -79,6 +79,7 @@
 
 #define MARK_NONE   -1
 #define MAX_MARKS   32
+#define MARK_CR     MAX_MARKS
 
 #define UNIT_TM {1.0, 0.0, 0.0, 1.0}
 

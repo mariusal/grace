@@ -519,7 +519,8 @@ static CompositeString *String2Composite(char *string, int *nss)
     int color = BAD_COLOR, new_color = color;
     TextMatrix tm = unit_tm, tm_new = tm;
     double hshift = 0.0, new_hshift = hshift;
-    double vshift = 0.0, new_vshift = vshift;
+    double baseline = 0.0, baseline_old;
+    double vshift = baseline, new_vshift = vshift;
     int underline = FALSE, overline = FALSE;
     int new_underline = underline, new_overline = overline;
     int kerning = FALSE, new_kerning = kerning;
@@ -613,7 +614,7 @@ static CompositeString *String2Composite(char *string, int *nss)
 		    break;
                 }
                 continue;
-            } else if (isoneof(ccode, "cCsSNBxuUoO+-qQ")) {
+            } else if (isoneof(ccode, "cCsSNBxuUoO+-qQn")) {
                 switch (ccode) {
 	        case 's':
                     new_vshift -= tm_size(&tm_new)*SUBSCRIPT_SHIFT;
@@ -626,7 +627,7 @@ static CompositeString *String2Composite(char *string, int *nss)
 	        case 'N':
                     scale = 1.0/tm_size(&tm_new);
                     tm_scale(&tm_new, scale);
-		    new_vshift = 0.0;
+		    new_vshift = baseline;
 		    break;
 	        case 'B':
 		    new_font = BAD_FONT_ID;
@@ -664,9 +665,15 @@ static CompositeString *String2Composite(char *string, int *nss)
 	        case 'Q':
                     tm_slant(&tm_new, -OBLIQUE_FACTOR);
 		    break;
+	        case 'n':
+                    new_gotomark = MARK_CR;
+		    baseline -= 1.0;
+                    new_vshift = baseline;
+		    new_hshift = 0.0;
+		    break;
                 }
                 continue;
-            } else if (isoneof(ccode, "fhvzZmM#rltTR") &&
+            } else if (isoneof(ccode, "fhvVzZmM#rltTR") &&
                        (j = get_escape_args(&(string[i + 1]), buf)) >= 0) {
                 i += (j + 2);
                 switch (ccode) {
@@ -681,11 +688,21 @@ static CompositeString *String2Composite(char *string, int *nss)
                     break;
 	        case 'v':
                     if (j == 0) {
-                        new_vshift = 0.0;
+                        new_vshift = baseline;
                     } else {
                         val = atof(buf);
                         new_vshift += tm_size(&tm_new)*val;
                     }
+                    break;
+	        case 'V':
+                    baseline_old = baseline;
+                    if (j == 0) {
+                        baseline = 0.0;
+                    } else {
+                        val = atof(buf);
+                        baseline += tm_size(&tm_new)*val;
+                    }
+                    new_vshift = baseline;
                     break;
 	        case 'h':
                     val = atof(buf);
@@ -733,7 +750,7 @@ static CompositeString *String2Composite(char *string, int *nss)
                     break;
 	        case 'M':
                     new_gotomark = atoi(buf);
-		    new_vshift = 0.0;
+		    new_vshift = baseline;
 		    new_hshift = 0.0;
                     break;
 	        case 'R':
@@ -1059,8 +1076,10 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             hvpshift.y = cs->tm.cyx*cs->hshift/tm_size(&cs->tm);
 
             if (gotomark >= 0 && gotomark < MAX_MARKS) {
-                rpoint.x = cs_marks[gotomark].x;
-                rpoint.y = cs_marks[gotomark].y;
+                rpoint = cs_marks[gotomark];
+            } else if (gotomark == MARK_CR) {
+                /* carriage return */
+                rpoint = vp;
             }
 
             rpoint.x += hvpshift.x;
