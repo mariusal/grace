@@ -1,6 +1,6 @@
 /* 
   REXX-Script to configure & build GRACE 5.0x for XFree86 OS/2
-  (980807)
+  (990114)
 */
 
 /*
@@ -125,9 +125,9 @@ else
   Building dlopen.a
 */
 
-'cd .\arch\os2'
-'x11make.exe -f dlfcn.mak all'
-'cd ..\..'
+'@cd .\arch\os2'
+'@x11make.exe -f dlfcn.mak all'
+'@cd ..\..'
 
 
 /* Calling x11make.exe cause make.cmd won't work here */

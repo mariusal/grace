@@ -17,7 +17,7 @@ SHELL=sh
 PREFIX=$(X11ROOT)/xfree86
 
 # List of subdirectories
-SUBDIRS=cephes T1lib src doc examples auxiliary
+SUBDIRS=cephes T1lib Xbae src doc examples auxiliary
 
 # Name of executable
 GRACE=xmgrace.exe
@@ -91,7 +91,7 @@ INSTALL_DATA=
 MKINSTALLDIRS=
 
 # C flags
-CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/xfree86/include -D__ST_MT_ERRNO -Zmt
+CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/xfree86/include -I../T1lib/t1lib -D__ST_MT_ERRNO -Zmt
 
 # GUI flags
 GUI_FLAGS=
@@ -103,7 +103,7 @@ LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals -Zbin-files
 NOGUI_LIBS=
 
 # GUI libraries
-GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/xfree86/lib -lhlpclient -lXbae -lXm -lXpm -lXt -lXext -lX11 -lsocket
+GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/xfree86/lib -lhlpclient ../Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lX11 -lsocket
 
 # Commamd used to print
 PRINT_CMD='lp'
