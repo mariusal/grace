@@ -131,7 +131,7 @@ static void xmlio_write_location(XFile *xf, Attributes *attrs,
 {
     attributes_reset(attrs);
     attributes_set_sval(attrs, AStrType, w_or_v(loctype));
-    if (loctype == LOCWORLD) {
+    if (loctype == COORD_WORLD) {
         xmlio_set_world_value(attrs, AStrX, x);
         xmlio_set_world_value(attrs, AStrY, y);
     } else {
