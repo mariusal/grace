@@ -179,6 +179,13 @@ typedef struct {
     Widget rc;
 } FSBStructure;
 
+typedef struct {
+    Widget frame;
+    OptionStructure *r_sel;
+    Widget negate;
+} RestrictionStructure;
+
+
 /* OptionChoice CB procedure */
 typedef void (*OC_CBProc)(
     int value,           /* value */
@@ -286,6 +293,8 @@ OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
 OptionStructure *CreateSetTypeChoice(Widget parent, char *s);
 OptionStructure *CreateColorChoice(Widget parent, char *s);
 OptionStructure *CreateFormatChoice(Widget parent, char *s);
+
+RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s);
 
 ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 

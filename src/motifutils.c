@@ -1176,6 +1176,43 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
         s, 0, NUMBER_OF_SETTYPES, settype_option_items));
 }
 
+RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
+{
+    RestrictionStructure *retval;
+    Widget rc;
+    OptionItem restr_items[7];
+
+    restr_items[0].value = RESTRICT_NONE;
+    restr_items[0].label = "None";
+    restr_items[1].value = RESTRICT_REG0;
+    restr_items[1].label = "Region 0";
+    restr_items[2].value = RESTRICT_REG1;
+    restr_items[2].label = "Region 1";
+    restr_items[3].value = RESTRICT_REG2;
+    restr_items[3].label = "Region 2";
+    restr_items[4].value = RESTRICT_REG3;
+    restr_items[4].label = "Region 3";
+    restr_items[5].value = RESTRICT_REG4;
+    restr_items[5].label = "Region 4";
+    restr_items[6].value = RESTRICT_WORLD;
+    restr_items[6].label = "Inside graph";
+
+    retval = malloc(sizeof(RestrictionStructure));
+
+    retval->frame = CreateFrame(parent, s);
+    rc = XtVaCreateWidget("rc",
+        xmRowColumnWidgetClass, retval->frame,
+        XmNorientation, XmHORIZONTAL,
+        NULL);
+
+    retval->r_sel = CreateOptionChoice(rc,
+        "Restriction:", 1, 7, restr_items);
+    retval->negate = CreateToggleButton(rc, "Negated");
+    XtManageChild(rc);
+
+    return retval;
+}
+
 
 static OptionItem *graph_select_items = NULL;
 static int ngraph_select_items = 0;
