@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.3)
   <author>by the Grace Team
-  <date>03.02.2001
+  <date>20.03.2001
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -881,8 +881,16 @@ XMgrace*fontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
 XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
 </verb></tscreen>
 
+        Try also decreasing margin heights of manager widgets (from the default
+        value of 3), e.g.
+
+<tscreen><verb>
+XMgrace*HContainer.marginHeight: 2
+XMgrace*VContainer.marginHeight: 2
+</verb></tscreen>
+
     <sect1>Can one change the colour selecton for the menu,
-           locator, tool and status bars, and all the popup menues?
+           locator, tool, and status bars, and all the popup menus?
       <p>
 
         As with any X application, use the "-bg &lt;colorname&gt; -fg 

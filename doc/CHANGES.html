@@ -22,6 +22,14 @@
 <H3>Parser</H3>
  *  [ES] added "HELP url" and "HELP" to the parser
 
+<H3>Drivers</H3>
+ *  [MD] produce MIF files with a textflow in which the graph is included, so
+         it can be included in another FrameMaker document
+ *  [ES] list used fonts in %%DocumentNeededResources in the PS output
+         (rep. #956)
+ *  [ES] failure to save project to a file due to wrong permissions didn't
+         produce an error message
+
 <H3>Portability/Compilation</H3>
  *  [AM] allow to specify print command at config time
  *  [AM] fixed problem compiling bundled Xbae (rep. #959)
@@ -37,13 +45,12 @@
          (rep. #946)
  *  [LM] reading in data files with floats when they were explicitly signed
          and positive resulted in parse error
- *  [ES] using non-standard might crash the PDF driver
-
-<H3>Drivers</H3>
- *  [MD] produce MIF files with a textflow in which the graph is included, so
-         it can be included in another FrameMaker document
- *  [ES] list used fonts in %%DocumentNeededResources in the PS output
-         (rep. #956)
+ *  [ES] using non-standard fonts might crash the PDF driver
+ *  [ES] specifing a file-only output device with "-hdevice" didn't actually
+         set the output to file (rep. #899)
+ *  [ES] the "Rescale plot on page size change" option in the
+         "File/Print setup" dialog had no effect if the selected device was
+         X11
 
 
 <H2>5.1.2</H2>
