@@ -985,43 +985,34 @@ int get_recent_gno(void)
  */
 int nextset(int gno)
 {
-    int i;
+    int setno;
     int maxplot;
 
     if (is_valid_gno(gno) != TRUE) {
         return (-1);
     }
     
-    maxplot = number_of_sets(gno);
-
     if ( (target_set.gno == gno) &&
-         (target_set.setno >= 0) &&
-         (target_set.setno < maxplot) &&
+         is_valid_setno(target_set.gno, target_set.setno) &&
          !is_set_active(gno, target_set.setno)) {
-	i = target_set.setno;
+	setno = target_set.setno;
 	target_set.gno = -1;
 	target_set.setno = -1;
-	recent_target.gno = gno;
-	recent_target.setno = i;
-        return (i);
     } else {
-        i = 0;
-        for (i = 0; i < maxplot; i++) {
-            if (!is_set_active(gno, i)) {
-	        recent_target.gno = gno;
-	        recent_target.setno = i;
-                return (i);
+        maxplot = number_of_sets(gno);
+        for (setno = 0; setno < maxplot; setno++) {
+            if (!is_set_active(gno, setno)) {
+                break;
             }
         }
-        /* Allocating new set */
-        if (allocate_set(gno, maxplot) == GRACE_EXIT_SUCCESS) {
-	    recent_target.gno = gno;
-	    recent_target.setno = maxplot;
-            return maxplot;
-        } else {
+        /* if no sets found, try allocating new one */
+        if (setno == maxplot && allocate_set(gno, setno) != GRACE_EXIT_SUCCESS) {
             return (-1);
         }
     }
+    recent_target.gno = gno;
+    recent_target.setno = setno;
+    return (setno);
 }
 
 int is_set_active(int gno, int setno)
