@@ -816,7 +816,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Arrows", '\0', load_example, "arrows.agr");
     CreateMenuButton(sub2menupane, "Symbols and lines", '\0', load_example, "symslines.agr");
     CreateMenuButton(sub2menupane, "Fills", '\0', load_example, "fills.agr");
-    CreateMenuButton(sub2menupane, "World stack", '\0', load_example, "tstack.agr");
     CreateMenuButton(sub2menupane, "Inset graphs", '\0', load_example, "tinset.agr");
     CreateMenuButton(sub2menupane, "Many graphs", '\0', load_example, "manygraphs.agr");
 
