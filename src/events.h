@@ -84,7 +84,7 @@ Quark *next_graph_containing(Quark *cg, VPoint *vp);
 void set_zoom_cb(Widget but, void *data);
 void set_zoomx_cb(Widget but, void *data);
 void set_zoomy_cb(Widget but, void *data);
-void set_locator_cb(Widget but, void *data);
+void atext_add_proc(Widget but, void *data);
 
 /* action routines */
 void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );

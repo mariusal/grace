@@ -117,6 +117,7 @@ static void scroll(Widget w, int up, int horiz)
 
 typedef struct {
     VPoint vp;
+    int include_graphs;
     Quark *q;
     int part;
     view bbox;
@@ -157,6 +158,25 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
 
             if ((l = frame_get_legend(q)) && l->active) {
                 target_consider(ct, q, 1, &l->bb);
+            }
+        }
+        break;
+    case QFlavorGraph:
+        if (ct->include_graphs) {
+            Grace *grace = grace_from_quark(q);
+            Quark *cg = graph_get_current(grace->project);
+            if (cg == q && graph_get_viewport(q, &v) == RETURN_SUCCESS) {
+                VPoint vp;
+                GLocator *locator;
+                
+                target_consider(ct, q, 0, &v);
+                
+                locator = graph_get_locator(cg);
+                Wpoint2Vpoint(cg, &locator->origin, &vp);
+                v.xv1 = v.xv2 = vp.x;
+                v.yv1 = v.yv2 = vp.y;
+                view_extend(&v, 0.01);
+                target_consider(ct, q, 1, &v);
             }
         }
         break;
@@ -250,7 +270,8 @@ static void move_target(canvas_target *ct, const VPoint *vp)
     }
 }
 
-static Widget popup = NULL, poplab, drop_pt_bt, as_set_bt, edit_menu;
+static Widget popup = NULL, poplab, drop_pt_bt, as_set_bt, edit_menu, atext_bt;
+static Widget set_locator_bt, clear_locator_bt;
 static Widget bring_to_front_bt, move_up_bt, move_down_bt, send_to_back_bt;
 
 #define EDIT_CB              0
@@ -381,6 +402,60 @@ static void drop_point_cb(Widget but, void *udata)
     popup_any_cb((canvas_target *) udata, DROP_POINT_CB);
 }
 
+static void atext_cb(Widget but, void *udata)
+{
+    canvas_target *ct = (canvas_target *) udata;
+    APoint ap;
+    Quark *q;
+
+    q = atext_new(ct->q);
+    Vpoint2Apoint(q, &ct->vp, &ap);
+    atext_set_ap(q, &ap);
+    atext_set_pointer(q, TRUE);
+
+    update_all();
+
+    raise_explorer(gui_from_quark(ct->q), q);
+}
+
+/*
+ * clear the locator reference point
+ */
+static void do_clear_point(Widget but, void *udata)
+{
+    canvas_target *ct = (canvas_target *) udata;
+    GLocator *locator;
+    
+    locator = graph_get_locator(ct->q);
+    locator->pointset = FALSE;
+    quark_dirtystate_set(ct->q, TRUE);
+    
+    update_all();
+
+    xdrawgraph(get_parent_project(ct->q), FALSE);
+}
+
+/*
+ * set the locator reference point
+ */
+static void set_locator_cb(Widget but, void *udata)
+{
+    canvas_target *ct = (canvas_target *) udata;
+    GLocator *locator;
+    WPoint wp;
+    
+    Vpoint2Wpoint(ct->q, &ct->vp, &wp);
+
+    locator = graph_get_locator(ct->q);
+    locator->origin = wp;
+    locator->pointset = TRUE;
+    quark_dirtystate_set(ct->q, TRUE);
+
+    update_all();
+
+    xdrawgraph(get_parent_project(ct->q), FALSE);
+}
+
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
     int x, y;                /* pointer coordinates */
@@ -502,6 +577,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             if (!dbl_click) {
                 if (xbe->state & ControlMask) {
                     ct.vp = vp;
+                    ct.include_graphs = FALSE;
                     if (on_focus) {
                         resize_region(grace->gui, xstuff->f_v, on_focus,
                             0, 0, FALSE);
@@ -527,6 +603,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
             } else {
                 ct.vp = vp;
+                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
                 if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
                     raise_explorer(grace->gui, ct.q);
                     ct.found = FALSE;
@@ -555,6 +632,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
             } else {
                 ct.vp = vp;
+                ct.include_graphs = (xbe->state & ControlMask) ? FALSE:TRUE;
                 if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
                     char *s;
                     ct.found = FALSE;
@@ -603,10 +681,18 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         CreateMenuButton(edit_menu, "In text editor", '\0',
     	                    s_editE_cb, &ct);
 
+                        atext_bt = CreateMenuButton(popup,
+                            "Annotate this point", '\0', atext_cb, &ct);
+
                         CreateMenuSeparator(popup);
 
                         drop_pt_bt = CreateMenuButton(popup,
                             "Drop this point", '\0', drop_point_cb, &ct);
+
+                        set_locator_bt = CreateMenuButton(popup,
+                            "Set locator fixed point", '\0', set_locator_cb, &ct);
+                        clear_locator_bt = CreateMenuButton(popup,
+                            "Clear locator fixed point", '\0', do_clear_point, &ct);
                     }
                     s = q_labeling(ct.q);
                     SetLabel(poplab, s);
@@ -625,11 +711,24 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         SetSensitive(send_to_back_bt, TRUE);
                         SetSensitive(move_down_bt, TRUE);
                     }
-                    if (quark_fid_get(ct.q) == QFlavorSet && ct.part >= 0) {
-                        ManageChild(drop_pt_bt);
+                    
+                    if ((quark_fid_get(ct.q) == QFlavorFrame && ct.part == 0) ||
+                        (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 0)) {
+                        ManageChild(atext_bt);
                     } else {
-                        UnmanageChild(drop_pt_bt);
+                        UnmanageChild(atext_bt);
                     }
+                    if (quark_fid_get(ct.q) == QFlavorGraph && ct.part != 1) {
+                        ManageChild(set_locator_bt);
+                    } else {
+                        UnmanageChild(set_locator_bt);
+                    }
+                    if (quark_fid_get(ct.q) == QFlavorGraph && ct.part == 1) {
+                        ManageChild(clear_locator_bt);
+                    } else {
+                        UnmanageChild(clear_locator_bt);
+                    }
+                    
                     if (quark_fid_get(ct.q) == QFlavorSet) {
                         ManageChild(as_set_bt);
                         ManageMenu(edit_menu);
@@ -637,6 +736,12 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         UnmanageChild(as_set_bt);
                         UnmanageMenu(edit_menu);
                     }
+                    if (quark_fid_get(ct.q) == QFlavorSet && ct.part >= 0) {
+                        ManageChild(drop_pt_bt);
+                    } else {
+                        UnmanageChild(drop_pt_bt);
+                    }
+                    
                     XmMenuPosition(popup, xbe);
                     XtManageChild(popup);
                 }
@@ -761,6 +866,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         xstuff->npoints = 0;
         xstuff->collect_points = FALSE;
         set_cursor(grace->gui, -1);
+        set_left_footer(NULL);
     } else
     if (undo_point) {
         /* previous action */
@@ -989,24 +1095,32 @@ static int zoomy_sink(unsigned int npoints, const VPoint *vps, void *data)
     return graph_set_world(cg, &w);
 }
 
-static int locator_sink(unsigned int npoints, const VPoint *vps, void *data)
+static int atext_sink(unsigned int npoints, const VPoint *vps, void *data)
 {
     Grace *grace = (Grace *) data;
-    Quark *cg = graph_get_current(grace->project);
-    GLocator *gl;
+    Quark *cg = graph_get_current(grace->project), *q;
     WPoint wp;
+    APoint ap;
 
     if (!cg || npoints != 1) {
         return RETURN_FAILURE;
     }
     
-    Vpoint2Wpoint(cg, &vps[0], &wp);
-
-    gl = graph_get_locator(cg);
-    gl->origin = wp;
-    gl->pointset = TRUE;
-    quark_dirtystate_set(cg, TRUE);
+    if (Vpoint2Wpoint(cg, &vps[0], &wp) == RETURN_SUCCESS &&
+        is_validWPoint(cg, &wp) == TRUE) {
+        q = atext_new(cg);
+        ap.x = wp.x; ap.y = wp.y;
+        atext_set_ap(q, &ap);
+    } else {
+        q = atext_new(grace->project);
+        ap.x = vps[0].x; ap.y = vps[0].y;
+        atext_set_ap(q, &ap);
+    }
     
+    update_all();
+    
+    raise_explorer(grace->gui, q);
+
     return RETURN_SUCCESS;
 }
 
@@ -1049,11 +1163,13 @@ void set_zoomy_cb(Widget but, void *data)
     set_action(grace->gui, 2, SELECTION_TYPE_HORZ, zoomy_sink, grace);
 }
 
-void set_locator_cb(Widget but, void *data)
+
+void atext_add_proc(Widget but, void *data)
 {
     Grace *grace = (Grace *) data;
-    set_cursor(grace->gui, 0);
-    set_action(grace->gui, 1, SELECTION_TYPE_NONE, locator_sink, grace);
+    set_cursor(grace->gui, 2);
+    set_action(grace->gui, 1, SELECTION_TYPE_NONE, atext_sink, grace);
+    set_left_footer("Select an anchor point");
 }
 
 void autoscale_action(Widget w, XEvent *e, String *p, Cardinal *c)

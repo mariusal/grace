@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -529,21 +529,6 @@ void set_tracker_string(char *s)
 }
 
 /*
- * clear the locator reference point
- */
-static void do_clear_point(Widget but, void *data)
-{
-    Quark *cg = graph_get_current(grace->project);
-    GLocator *locator;
-    
-    locator = graph_get_locator(cg);
-    locator->pointset = FALSE;
-    quark_dirtystate_set(cg, TRUE);
-    
-    xdrawgraph(grace->project, FALSE);
-}
-
-/*
  * set visibility of the toolbars
  */
 static void set_view_items(void)
@@ -701,11 +686,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Arrange frames...", 'r', create_arrange_frame, NULL);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
-    CreateMenuSeparator(menupane);
-
-    CreateMenuButton(menupane, "Set locator fixed point...", 'f', set_locator_cb, (void *) grace);
-    CreateMenuButton(menupane, "Clear locator fixed point", 'C', do_clear_point, NULL);
-    
     CreateMenuSeparator(menupane);
 
     CreateMenuButton(menupane, "Preferences...", 'P', create_props_frame, NULL);
@@ -1023,6 +1003,11 @@ void startup_gui(Grace *grace)
     AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_EXPAND);
     bt = CreateBitmapButton(rcleft, 16, 16, shrink_bits);
     AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_SHRINK);
+
+    CreateSeparator(rcleft);
+
+    bt = CreateBitmapButton(rcleft, 16, 16, atext_bits);
+    AddButtonCB(bt, atext_add_proc, (void *) grace);
 
     CreateSeparator(rcleft);
     CreateSeparator(rcleft);
