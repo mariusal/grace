@@ -613,7 +613,7 @@ AC_DEFUN(ACX_CHECK_ZLIB,
   zlib_library="$withval")
   if test "x$zlib_library" = "x"
   then
-    zlib_library=-lzlib
+    zlib_library=-lz
   fi
 
   AC_CACHE_CHECK( "for zlib \>= $1", acx_cv_zlib,

@@ -845,7 +845,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
 #endif
-#ifde HAVE_NETCDF
+#ifdef HAVE_NETCDF
     fprintf(stream, "-netcdf    [netcdf file]              Assume data file is bnetCDF format\n");
     fprintf(stream, "-netcdfxy  [X var name] [Y var name]  If -netcdf was used previously, read from\n");
     fprintf(stream, "                                        the netCDF file, 'X var name' and 'Y\n");
