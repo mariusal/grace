@@ -21,6 +21,12 @@
 <H3>Portability/Compilation</H3>
  *  [ES] use the bundled Xbae by default to make sure we don't come accross
          a buggy version installed
+ *  [ES] upgraded to T1lib-1.3.1, which fixed several bugs (see below)
+ *  [ES] re-wrote Motif checks; in some rare cases, Motif libraries might
+         be misdetected
+ *  [ES] added a "My Computer" (actually, a list of drives) file selection
+         box chdir entry for the Cygwin port
+ *  [ES] check for FFTW library version &gt;= 2.1.3
 
 <H3>Bug fixes</H3>
  *  [ES] re-loading projects with polygon regions defined might result in
@@ -34,6 +40,12 @@
          reproduced in all but screen outputs (rep. #1092)
  *  [ES] when saving project under the same name, don't warn about file
          overwriting (rep. #1094)
+ *  [ES] there might be problems finding fonts under non-Unix environments
+	 (rep. #1013). This was a T1lib bug, in fact 
+ *  [ES] text overlining didn't work for Symbol font (rep. #1026). This was a
+	 T1lib bug, in fact 
+ *  [ES] fixed calculation of x-correlation. Previously, a broken x-covariance
+         was calculated
 
 <H2>5.1.5</H2>
 
