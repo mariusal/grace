@@ -230,7 +230,6 @@ symtab_entry *key;
 %token <ival> BOTH
 %token <ival> BOTTOM
 %token <ival> BOX
-%token <ival> BOXPLOT
 %token <ival> CD
 %token <ival> CENTER
 %token <ival> CHAR
@@ -488,6 +487,7 @@ symtab_entry *key;
 %token <ival> XMAX
 %token <ival> XMIN
 %token <ival> XY
+%token <ival> XYBOXPLOT
 %token <ival> XYCOLPAT
 %token <ival> XYDX
 %token <ival> XYDXDX
@@ -3694,7 +3694,7 @@ xytype:
 	| XYSYMSIZE { $$ = SET_XYSYMSIZE; }
 	| XYCOLPAT { $$ = SET_XYCOLPAT; }
 	| XYVMAP { $$ = SET_XYVMAP; }
-	| BOXPLOT { $$ = SET_BOXPLOT; }
+	| XYBOXPLOT { $$ = SET_BOXPLOT; }
 	| XYSTRING { $$ = SET_XY; }
 	;
 
@@ -4346,7 +4346,6 @@ symtab_entry ikey[] = {
 	{"BOTH", BOTH, NULL},
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
-	{"BOXPLOT", BOXPLOT, NULL},
 	{"CD", CD, NULL},
 	{"CEIL", FUNC_D, (void *) ceil},
 	{"CENTER", CENTER, NULL},
@@ -4702,6 +4701,7 @@ symtab_entry ikey[] = {
 	{"XMAX", XMAX, NULL},
 	{"XMIN", XMIN, NULL},
 	{"XY", XY, NULL},
+	{"XYBOXPLOT", XYBOXPLOT, NULL},
 	{"XYCOLPAT", XYCOLPAT, NULL},
 	{"XYDX", XYDX, NULL},
 	{"XYDXDX", XYDXDX, NULL},

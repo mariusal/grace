@@ -102,7 +102,7 @@ char *set_types(int it)
 	s = "xyvmap";
 	break;
     case SET_BOXPLOT:
-	s = "boxplot";
+	s = "xyboxplot";
 	break;
     case SET_XYSYMSIZE:
 	s = "xysymsize";
