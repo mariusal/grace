@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -68,7 +68,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     
     if ((dl_type < 0) || (dl_key == NULL) || (dl_function == NULL)) {
         errmsg("Improper call to load_module()");
-	return (1);
+	return GRACE_EXIT_FAILURE;
     }
     
 #if defined(HAVE_DLOPEN)
@@ -85,14 +85,14 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     handle = (void *) dlopen (fname, dlflag);
     if (!handle) {
         errmsg ((char *) dlerror());
-        return (1);
+        return GRACE_EXIT_FAILURE;
     }
     
-    newkey.fnc = (double (*)()) dlsym(handle, dl_function);
+    newkey.data = dlsym(handle, dl_function);
     if ((error = (char *) dlerror()) != NULL) {
         errmsg(error);
         dlclose(handle);
-        return (1);
+        return GRACE_EXIT_FAILURE;
     }
 
 #endif /* end dlopen interface */
@@ -116,10 +116,10 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
         errmsg("DL module initialization failed");
 # endif
 #endif
-        return (1);
+        return GRACE_EXIT_FAILURE;
     }
     
-    if (shl_findsym(handle, dl_function, TYPE_UNDEFINED, &newkey.fnc) != NULL) {
+    if (shl_findsym(handle, dl_function, TYPE_UNDEFINED, &newkey.data) != NULL) {
 #if defined(HAVE_STRERROR)
         errmsg(strerror(errno));
 #else
@@ -130,7 +130,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
 # endif
 #endif
         shl_unload(handle);
-        return (1);
+        return GRACE_EXIT_FAILURE;
     }
 
 #endif /* end shl_load interface */
@@ -140,14 +140,10 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     strcpy(newkey.s, dl_key);
     lowtoupper(newkey.s);
     
-    if (addto_symtab(newkey) != 0){
-        return (1);
-    } else {
-        return (0);
-    }
+    return addto_symtab(newkey);
 
 #else /* no support for DL */
     errmsg("No support for DL modules on your OS");
-    return (1);
+    return GRACE_EXIT_FAILURE;
 #endif
 }
