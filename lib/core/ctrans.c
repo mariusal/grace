@@ -250,7 +250,7 @@ int Vpoint2Wpoint(const Quark *q, const VPoint *vp, WPoint *wp)
 {
     ctrans_data cd;
     if (get_ctrans_data(q, &cd) != RETURN_SUCCESS) {
-        return FALSE;
+        return RETURN_FAILURE;
     }
     
     if (cd.coordinates == COORDINATES_POLAR) {
