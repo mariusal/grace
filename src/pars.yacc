@@ -297,6 +297,7 @@ symtab_entry *key;
 %token <ival> IN
 %token <ival> INCREMENT
 %token <ival> INOUT
+%token <ival> INT
 %token <ival> INTEGRATE
 %token <ival> INTERPOLATE
 %token <ival> INVDFT
@@ -690,6 +691,14 @@ expr:	NUMBER {
                 $$ *= length;
                 break;
 	    }
+	}
+	| INT '(' vexpr ',' vexpr ')' {
+	    if ($3->length != $5->length) {
+		yyerror("X and Y are of different length");
+		return 1;
+            } else {
+                $$ = trapint($3->data, $5->data, NULL, NULL, $3->length);
+            }
 	}
 	| VEC_D '.' LENGTH {
 	    $$ = $1->length;
@@ -4711,6 +4720,7 @@ symtab_entry ikey[] = {
 	{"INCREMENT", INCREMENT, NULL},
 	{"INDEX", INDEX, NULL},
 	{"INOUT", INOUT, NULL},
+	{"INT", INT, NULL},
 	{"INTEGRATE", INTEGRATE, NULL},
 	{"INTERPOLATE", INTERPOLATE, NULL},
 	{"INVDFT", INVDFT, NULL},
