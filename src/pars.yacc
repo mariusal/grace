@@ -3789,38 +3789,54 @@ selectset:
 	selectgraph '.' SETNUM
 	{
 	    int gno = $1, setno = $3;
-            allocate_set(gno, setno);
-            $$ = &trgt_pool[tgtn];
-            $$->gno   = gno;
-            $$->setno = setno;
-            tgtn++;
+            if (allocate_set(gno, setno) == RETURN_SUCCESS) {
+                $$ = &trgt_pool[tgtn];
+                $$->gno   = gno;
+                $$->setno = setno;
+                tgtn++;
+            } else {
+                errmsg("Can't allocate referred set");
+                return 1;
+            }
 	}
 	| selectgraph '.' SET indx
 	{
 	    int gno = $1, setno = $4;
-            allocate_set(gno, setno);
-            $$ = &trgt_pool[tgtn];
-            $$->gno   = gno;
-            $$->setno = setno;
-            tgtn++;
+            if (allocate_set(gno, setno) == RETURN_SUCCESS) {
+                $$ = &trgt_pool[tgtn];
+                $$->gno   = gno;
+                $$->setno = setno;
+                tgtn++;
+            } else {
+                errmsg("Can't allocate referred set");
+                return 1;
+            }
 	}
 	| SETNUM
 	{
 	    int gno = whichgraph, setno = $1;
-            allocate_set(gno, setno);
-	    $$ = &trgt_pool[tgtn];
-            $$->gno   = gno;
-            $$->setno = setno;
-            tgtn++;
+            if (allocate_set(gno, setno) == RETURN_SUCCESS) {
+                $$ = &trgt_pool[tgtn];
+                $$->gno   = gno;
+                $$->setno = setno;
+                tgtn++;
+            } else {
+                errmsg("Can't allocate referred set");
+                return 1;
+            }
 	}
 	| SET indx
 	{
 	    int gno = whichgraph, setno = $2;
-            allocate_set(gno, setno);
-	    $$ = &trgt_pool[tgtn];
-            $$->gno   = gno;
-            $$->setno = setno;
-            tgtn++;
+            if (allocate_set(gno, setno) == RETURN_SUCCESS) {
+                $$ = &trgt_pool[tgtn];
+                $$->gno   = gno;
+                $$->setno = setno;
+                tgtn++;
+            } else {
+                errmsg("Can't allocate referred set");
+                return 1;
+            }
 	}
 	;
 
