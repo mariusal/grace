@@ -102,6 +102,8 @@ static Device_entry dev_x11 = {DEVICE_TERM,
 
 int register_x11_drv(void)
 {
+    dev_x11.pg.dpi = rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
+        DisplayWidthMM(disp, screennumber));
     return register_device(dev_x11);
 }
 
