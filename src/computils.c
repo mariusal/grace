@@ -275,39 +275,47 @@ void do_linearc(int set1, int set2)
  */
 void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
 {
-    int xcorset, i, ierr;
+    int xcorset, i, ierr, len, cg = get_cg();
     double *xtmp;
 
     if (!(is_set_active(gno1, set1) && is_set_active(gno2, set2))) {
 	errmsg("Set not active");
 	return;
     }
-    if (maxlag < 0 || maxlag + 1 > getsetlength(gno1, set1)) {
+    
+    len = getsetlength(gno1, set1);
+    if (getsetlength(gno2, set2) != len) {
+	errmsg("Sets must be of the same length");
+    }
+    if (len < 2) {
+	errmsg("Set length < 2");
+	return;
+    }
+    
+    if (maxlag < 1 || maxlag > len) {
 	errmsg("Lag incorrectly specified");
 	return;
     }
-    if ((getsetlength(gno1, set1) < 3) || (getsetlength(gno2, set2) < 3)) {
-	errmsg("Set length < 3");
-	return;
-    }
-    xcorset = nextset(get_cg());
+    
+    xcorset = nextset(cg);
+    
     if (xcorset != (-1)) {
-	activateset(get_cg(), xcorset);
-	setlength(get_cg(), xcorset, maxlag);
+	activateset(cg, xcorset);
+	setlength(cg, xcorset, maxlag);
 	if (set1 != set2) {
-	    sprintf(buf, "X-correlation of set %d and %d at maximum lag %d",
-                    set1, set2, maxlag);
+	    sprintf(buf, "X-correlation of G%d.S%d and G%d.S%d at maximum lag %d",
+                    gno1, set1, gno2, set2, maxlag);
 	} else {
-	    sprintf(buf, "Autocorrelation of set %d at maximum lag %d",
-                    set1, maxlag);
+	    sprintf(buf, "Autocorrelation of G%d.S%d at maximum lag %d",
+                    gno1, set1, maxlag);
 	}
-	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), getsetlength(gno1, set1),
-                         maxlag, gety(get_cg(), xcorset));
-	xtmp = getx(get_cg(), xcorset);
+	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), len,
+                         maxlag, gety(cg, xcorset));
+	xtmp = getx(cg, xcorset);
 	for (i = 0; i < maxlag; i++) {
 	    xtmp[i] = i;
 	}
-	setcomment(get_cg(), xcorset, buf);
+	setcomment(cg, xcorset, buf);
     }
 }
 

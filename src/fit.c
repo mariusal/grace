@@ -339,7 +339,7 @@ int crosscorr(double *x, double *y, int n, int maxlag, double *xcor)
     double cnorm = 1.0;
     int i, j;
 
-    if (maxlag + 1 > n) {
+    if (!x || !y || !xcor || n < 2 || maxlag > n) {
         return RETURN_FAILURE;
     }
     
