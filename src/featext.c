@@ -206,7 +206,7 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 	switch( abs_src ) {
 		case 0:		/* use index */
 			for( i=0; i<ncurves; i++ )
-				abscissa[i] = i+1;
+				abscissa[i] = i;
 			break;	
 		case 1:		/* use legend label */
 			cs = 0;
@@ -471,7 +471,8 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 			sprintf(tbuf,"integrals of sets of graph %d",cg);
 			break;
 	}
-	setcomment( gto, ns, tbuf );
+	set_set_hidden(gto, ns, FALSE);
+        setcomment( gto, ns, tbuf );
 	free( abscissa );
 }
 
