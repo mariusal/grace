@@ -431,10 +431,27 @@ int store_data(ss_data *ssd, int load_type, char *label)
 
 #define OLD_COL_INDICES
 
-void field_string_to_cols(char *fs, int *nc, int **cols)
+int field_string_to_cols(const char *fs, int *nc, int **cols)
 {
-    int col, coli[MAX_SET_COLS];
-    char *s, buf[256];
+    int col;
+    char *s, *buf;
+
+    buf = copy_string(NULL, fs);
+    if (buf == NULL) {
+        return GRACE_EXIT_FAILURE;
+    }
+
+    s = buf;
+    *nc = 0;
+    while ((s = strtok(s, ":")) != NULL) {
+	(*nc)++;
+	s = NULL;
+    }
+    *cols = malloc((*nc)*SIZEOF_INT);
+    if (*cols == NULL) {
+        free(buf);
+        return GRACE_EXIT_FAILURE;
+    }
 
     strcpy(buf, fs);
     s = buf;
@@ -450,18 +467,14 @@ void field_string_to_cols(char *fs, int *nc, int **cols)
             col = atoi(s);
         }
 #endif
-	if (col < -1) {
-	    errmsg("Column index out of range");
-	}
-        coli[*nc] = col;
+        (*cols)[*nc] = col;
 	(*nc)++;
-        if (*nc > MAX_SET_COLS) {
-            errmsg("Too many columns scanned in column string");
-        }
 	s = NULL;
     }
     
-    *cols = coli;
+    xfree(buf);
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 char *cols_to_field_string(int nc, int *cols)
