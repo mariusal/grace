@@ -196,7 +196,7 @@ static char canvas_table[] = "#override\n\
 	Ctrl <Key>B: draw_box_action()\n\
 	Ctrl <Key>D: delete_object()\n\
 	Ctrl <Key>L: place_legend()\n\
-	Ctrl <Key>N: move_object()\n\
+	Ctrl <Key>M: move_object()\n\
 	Ctrl <Key>P: draw_line_action()\n\
 	Ctrl <Key>T: place_timestamp()\n\
 	Ctrl <Key>U: refresh_hotlink()\n\
@@ -664,8 +664,6 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "dataSets", "Data sets...", 'D',
     	    (XtCallbackProc) create_change_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "dataPoints", "Data points...", 'p',
-    	(XtCallbackProc) create_points_frame, (XtPointer) NULL, 0);
     CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
     	    (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
     CreateMenuSeparator(menupane);
@@ -691,21 +689,19 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
     	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
 
-
-/* Plot menu */
-    menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
-
-    CreateMenuButton(menupane, "plotAppearance", "Plot appearance...", 'p',
-    	(XtCallbackProc) create_plot_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "graphAppearance", "Graph appearance...", 'G',
-    	(XtCallbackProc) create_graphapp_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
-    	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
-    CreateMenuButton(menupane, "axisProperties", "Axis properties...", 'x',
-    	(XtCallbackProc) create_axes_dialog, (XtPointer) NULL, 0);
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "drawingObjects", "Drawing objects...", 'o',
-    	(XtCallbackProc) define_objects_popup, (XtPointer) NULL, 0);
+
+    CreateMenuButton(menupane, "setLocatorFixedPoint", "Set locator fixed point", 'f',
+    	(XtCallbackProc) set_actioncb, (XtPointer) SEL_POINT, 0);
+    CreateMenuButton(menupane, "clearLocatorFixedPoint", "Clear locator fixed point", 'C',
+    	(XtCallbackProc) do_clear_point, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "locatorProps", "Locator props...", 'p',
+    	(XtCallbackProc) create_locator_frame, (XtPointer) NULL, 0);
+    
+    CreateMenuSeparator(menupane);
+
+    CreateMenuButton(menupane, "preferences", "Preferences...", 'r',
+    	(XtCallbackProc) create_props_frame, (XtPointer) NULL, 0);
 
 /*
  * Data menu
@@ -718,16 +714,29 @@ static Widget CreateMainMenuBar(Widget parent)
     	    (XtCallbackProc) create_sort_popup, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "reverse", "Reverse...", 'v',
     	    (XtCallbackProc) create_reverse_popup, (XtPointer) NULL, 0);
-
     CreateMenuSeparator(submenupane);
-
     CreateMenuButton(submenupane, "dropPoints", "Drop points...", 'n',
     	    (XtCallbackProc) create_drop_popup, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
     	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
     	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
+
+    submenupane = CreateMenu(menupane, "regionOperationsMenu", 
+    				"Region operations", 'i', NULL, NULL);
+
+    CreateMenuButton(submenupane, "evaluate", "Evaluate...", 'E',
+    	    (XtCallbackProc) create_evalregion_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "extractPoints", "Extract points...", 'p',
+    	    (XtCallbackProc) create_extract_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "extractSets", "Extract sets...", 's',
+    	    (XtCallbackProc) create_extractsets_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "deletePoints", "Delete points...", 'o',
+    	    (XtCallbackProc) create_delete_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "killSets", "Kill sets...", 'K',
+    	    (XtCallbackProc) create_deletesets_frame, (XtPointer) NULL, 0);
+
+    CreateMenuSeparator(menupane);
     	    
     submenupane = CreateMenu(menupane, "transformationsMenu", "Transformations", 'T', NULL, NULL);
 
@@ -780,67 +789,57 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "featureExtraction", "Feature extraction...", 'x',
     	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
 
+/* Plot menu */
+    menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
+
+    CreateMenuButton(menupane, "plotAppearance", "Plot appearance...", 'p',
+    	create_plot_frame_cb, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "graphAppearance", "Graph appearance...", 'G',
+    	create_graphapp_frame_cb, (XtPointer) -1, 0);
+    CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
+    	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
+    CreateMenuButton(menupane, "axisProperties", "Axis properties...", 'x',
+    	create_axes_dialog_cb, (XtPointer) NULL, 0);
+
+
+/* View menu */
+    menupane = CreateMenu(menubar, "viewMenu", "View", 'V', NULL, NULL);
+   
+    windowbarw[0] = CreateMenuToggle(menupane,
+        "showLocatorBar", "Show locator bar", 'L',
+        (XtCallbackProc) set_locbar, (XtPointer) &frtop, NULL);
+    windowbarw[1] = CreateMenuToggle(menupane,
+        "showStatusBar", "Show status bar", 'S',
+        (XtCallbackProc) set_statusbar, (XtPointer) &frbot, NULL);
+    windowbarw[2] = CreateMenuToggle(menupane,
+        "showToolBar", "Show tool bar", 'T',
+        (XtCallbackProc) set_toolbar, (XtPointer) &frleft, NULL);
+
     CreateMenuSeparator(menupane);
 
-    submenupane = CreateMenu(menupane, "regionOperationsMenu", 
-    				"Region operations", 'i', NULL, NULL);
-
-    CreateMenuButton(submenupane, "evaluate", "Evaluate...", 'E',
-    	    (XtCallbackProc) create_evalregion_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "extractPoints", "Extract points...", 'p',
-    	    (XtCallbackProc) create_extract_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "extractSets", "Extract sets...", 's',
-    	    (XtCallbackProc) create_extractsets_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "deletePoints", "Delete points...", 'o',
-    	    (XtCallbackProc) create_delete_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "killSets", "Kill sets...", 'K',
-    	    (XtCallbackProc) create_deletesets_frame, (XtPointer) NULL, 0);
-
+    CreateMenuButton(menupane, "redraw", "Redraw", 'R',
+    	    (XtCallbackProc) do_drawgraph, (XtPointer) NULL, 0);
 
 /* Window menu */
     menupane = CreateMenu(menubar, "windowMenu", "Window", 'W', NULL, NULL);
    
     CreateMenuButton(menupane, "commands", "Commands...", 'C',
     	(XtCallbackProc) open_command, (XtPointer) NULL, 0);
-
+    CreateMenuButton(menupane, "pointTracking", "Point tracking", 'P',
+    	(XtCallbackProc) create_points_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "drawingObjects", "Drawing objects", 'o',
+    	(XtCallbackProc) define_objects_popup, (XtPointer) NULL, 0);
     CreateMenuButton(menupane, "fontTool", "Font tool", 'F',
        (XtCallbackProc) create_fonttool, (XtPointer) NULL, 0);
 
-    CreateMenuButton(menupane, "areaPerimeter", "Area/perimeter...", 'A',
-    	    (XtCallbackProc) create_area_frame, (XtPointer) NULL, 0);
+/*
+ *     CreateMenuButton(menupane, "areaPerimeter", "Area/perimeter...", 'A',
+ *     	    (XtCallbackProc) create_area_frame, (XtPointer) NULL, 0);
+ */
 
     CreateMenuButton(menupane, "results", "Results...", 'R',
     	(XtCallbackProc) create_monitor_frame, (XtPointer) NULL, 0);
     
-
-
-/* Options menu */
-    menupane = CreateMenu(menubar, "optionsMenu", "Options", 'O', NULL, NULL);
-   
-
-    submenupane = CreateMenu(menupane, "viewMenu", "View", 'V', NULL, NULL);
-
-    windowbarw[0] = CreateMenuToggle(submenupane, "locatorBar", "Locator bar", 'L',
-	    (XtCallbackProc) set_locbar, (XtPointer) &frtop, NULL);
-    windowbarw[1] = CreateMenuToggle(submenupane, "statusBar", "Status bar", 'S',
-	    (XtCallbackProc) set_statusbar, (XtPointer) &frbot, NULL);
-    windowbarw[2] = CreateMenuToggle(submenupane, "toolBar", "Tool bar", 'T',
-	    (XtCallbackProc) set_toolbar, (XtPointer) &frleft, NULL);
-
-    CreateMenuSeparator(submenupane);
-
-    CreateMenuButton(submenupane, "setLocatorFixedPoint", "Set locator fixed point", 'f',
-    	(XtCallbackProc) set_actioncb, (XtPointer) SEL_POINT, 0);
-
-    CreateMenuButton(submenupane, "clearLocatorFixedPoint", "Clear locator fixed point", 'C',
-    	(XtCallbackProc) do_clear_point, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "locatorProps", "Locator props...", 'p',
-    	(XtCallbackProc) create_locator_frame, (XtPointer) NULL, 0);
-    
-    CreateMenuButton(menupane, "misc", "Misc...", 'M',
-    	(XtCallbackProc) create_props_frame, (XtPointer) NULL, 0);
-
 
 /* help menu */
 
