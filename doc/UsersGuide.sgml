@@ -2254,6 +2254,8 @@ integral     | cumulative sum @
         DEVICE <it>"devname"</it> FONT ANTIALIASING onoff | enable/disable font aliasing for device <it>devname</it> @
         DEVICE <it>"devname"</it> OP <it>"options"</it>   | set device specific options (see <ref id="device-settings" name="Device-specific settings">) @
         HARDCOPY DEVICE <it>"devname"</it>                | set device <it>devname</it> as current hardcopy device @
+        PRINT TO <it>"filename"</it>                      | set print output to <it>filename</it> (but do not print) @
+        PRINT TO DEVICE                                   | set print output to hardcopy device (but do not print) @
         <hline>
       </tabular>
       <caption>
@@ -2270,6 +2272,10 @@ integral     | cumulative sum @
         <hline>
         Statement | Description | Types | Example @
         <hline>
+        PRINT |
+          execute print job |
+          &nbsp; |
+          PRINT @
         SLEEP <it>n</it> |
           sleep for <it>n</it> seconds |
           expr <it>n</it> |
