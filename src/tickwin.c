@@ -466,7 +466,7 @@ static int axes_aac_cb(void *data)
     int i, j;
     int applyto;
     int axis_start, axis_stop, graph_start, graph_stop;
-    int invert;
+    int scale, invert;
     tickmarks *t;
     double axestart, axestop;
     char *cp;
@@ -662,35 +662,11 @@ static int axes_aac_cb(void *data)
             }
             set_graph_world(i, w);
             
-            switch (GetOptionChoice(axis_scale)) {
-            case 0:
-                if (is_xaxis(j)) {
-                    set_graph_xscale(i, SCALE_NORMAL);
-                } else {
-                    set_graph_yscale(i, SCALE_NORMAL);
-                }
-                break;
-            case 1:
-                if (is_xaxis(j)) {
-                    set_graph_xscale(i, SCALE_LOG);
-                } else {
-                    set_graph_yscale(i, SCALE_LOG);
-                }
-                break;
-            case 2:
-                if (is_xaxis(j)) {
-                    set_graph_xscale(i, SCALE_REC);
-                } else {
-                    set_graph_yscale(i, SCALE_REC);
-                }
-                break;
-	    case 3:
-                if (is_xaxis(j)) {
-                    set_graph_xscale(i, SCALE_LOGIT);
-                } else {
-                    set_graph_yscale(i, SCALE_LOGIT);
-                }
-                break;	
+            scale = GetOptionChoice(axis_scale);
+            if (is_xaxis(j)) {
+                set_graph_xscale(i, scale);
+            } else {
+                set_graph_yscale(i, scale);
             }
 
             invert = GetToggleButtonState(axis_invert);
