@@ -883,7 +883,10 @@ AC_DEFUN(ACX_CHECK_XPM,
   AC_CACHE_CHECK([for Xpm library >= $1], acx_cv_xpmlib,
     AC_CACHE_VAL(acx_cv_xpm_library, acx_cv_xpm_library=$xpm_library)
     ACX_SAVE_STATE
-    LIBS="$acx_cv_xpm_library $LIBS"
+    LIBS="$acx_cv_xpm_library $GUI_LIBS $LIBS"
+    CFLAGS="$X_CFLAGS $CFLAGS"
+    CPPFLAGS="$X_CFLAGS $CPPFLAGS"
+    LDFLAGS="$X_LIBS $LDFLAGS"
     AC_TRY_RUN([
 #if defined(HAVE_XPM_H)
 #  include <xpm.h>
