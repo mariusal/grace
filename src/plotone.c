@@ -428,7 +428,7 @@ void xyplot(int gno)
     plotarr p;
     int refn;
     double *refx, *refy;
-    double offset;
+    double offset, epsilon;
 
     refn = 0;
     offset = 0.0;
@@ -508,10 +508,39 @@ void xyplot(int gno)
                 return;
             }
         }
+        
+        if (refx) {
+            double xmin, xmax;
+            int imin, imax;
+            minmax(refx, refn, &xmin, &xmax, &imin, &imax);
+            epsilon = 1.0e-3*(xmax - xmin)/refn;
+        } else {
+            epsilon = 0.0;
+        }
 
         for (i = 0; i < number_of_sets(gno); i++) {
+            int x_ok;
+            double *x;
+            
             get_graph_plotarr(gno, i, &p);
             if (is_set_drawable(gno, i)) {
+                /* check that abscissas are identical with refx */
+                x = getcol(gno, i, DATA_X);
+                x_ok = TRUE;
+                for (j = 0; j < getsetlength(gno, i); j++) {
+                    if (fabs(x[j] - refx[j]) > epsilon) {
+                        x_ok = FALSE;
+                        break;
+                    }
+                }
+                if (x_ok != TRUE) {
+                    char buf[128];
+                    sprintf(buf, "Set G%d.S%d has different abscissas, "
+                                 "skipped from the chart.", gno, i);
+                    errmsg(buf);
+                    continue;
+                }
+                
                 if (is_graph_stacked(gno) != TRUE) {
                     offset += 0.5*0.02*p.symsize;
                 }
