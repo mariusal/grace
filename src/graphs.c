@@ -1186,7 +1186,7 @@ void postprocess_project(int version)
         setbgfill(TRUE);
     }
     
-    if (version <= 40102) {
+    if (version <= 40102 && get_pagelayout() == PAGE_FIXED) {
         get_page_viewport(&ext_x, &ext_y);
         rescale_viewport(ext_x, ext_y);
     }
