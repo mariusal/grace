@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -589,10 +589,10 @@ int doclipping(void)
 /*
  * is_vpoint_inside() checks if point vp is inside of viewport rectangle v
  */
-int is_vpoint_inside(view v, VPoint vp)
+int is_vpoint_inside(view v, VPoint vp, double epsilon)
 {
-        return ((vp.x >= v.xv1 - VP_EPSILON) && (vp.x <= v.xv2 + VP_EPSILON) &&
-                (vp.y >= v.yv1 - VP_EPSILON) && (vp.y <= v.yv2 + VP_EPSILON));
+        return ((vp.x >= v.xv1 - epsilon) && (vp.x <= v.xv2 + epsilon) &&
+                (vp.y >= v.yv1 - epsilon) && (vp.y <= v.yv2 + epsilon));
 }
 
 /*
@@ -601,7 +601,7 @@ int is_vpoint_inside(view v, VPoint vp)
 int is_validVPoint(VPoint vp)
 {
     if (doclipping()) {
-        return (is_vpoint_inside(viewport, vp));
+        return (is_vpoint_inside(viewport, vp, VP_EPSILON));
     } else {
         return TRUE;
     }
@@ -1542,7 +1542,7 @@ void update_bbox(int type, VPoint vp)
         return;
     }
     if (bbp->active == TRUE) {
-        if (is_vpoint_inside(bbp->v, vp) == FALSE) {
+        if (is_vpoint_inside(bbp->v, vp, 0.0) == FALSE) {
             if (is_valid_bbox(bbp->v)) {
                 bbp->v.xv1 = MIN2(bbp->v.xv1, vp.x);
                 bbp->v.xv2 = MAX2(bbp->v.xv2, vp.x);
