@@ -300,6 +300,19 @@ diff -u -r pdflib-0.6/p_intern.h pdflib-0.6e/p_intern.h
  
  /* p_util.c */
  char	*pdf_float(float f);
+diff -u -r pdflib-0.6/p_port.h pdflib-0.6e/p_port.h
+--- pdflib-0.6/p_port.h Sat Jun 20 15:29:32 1998
++++ pdflib-0.6e/p_port.h        Thu Mar 18 01:01:04 1999
+@@ -10,7 +10,9 @@
+ /* ---------------------- Windows -------------------*/
+ #ifdef _WIN32
+ #define WIN32
++#ifndef __CYGWIN32__
+ #define PDF_HAS_BOOL
++#endif
+ #endif
+
+ #ifdef WIN32
 diff -u -r pdflib-0.6/p_text.c pdflib-0.6e/p_text.c
 --- pdflib-0.6/p_text.c	Sun May  3 20:26:11 1998
 +++ pdflib-0.6e/p_text.c	Sun Jul 19 17:55:21 1998
