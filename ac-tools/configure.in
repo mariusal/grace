@@ -663,13 +663,13 @@ dnl **** Check for Motif
     AC_MSG_RESULT(--> support for EditRes protocol is disabled)
   fi
 
-  dnl **** check for Xpm lib
-  ACX_CHECK_XPM(30411, GUI_LIBS="$XPM_LIB $GUI_LIBS"; AC_DEFINE(HAVE_XPM),AC_MSG_ERROR(Xpm lib has not been found))
-
   dnl **** some Motif-2.1 variants need the -lXp library
   AC_CHECK_LIB(Xp,main,GUI_LIBS="-lXp $GUI_LIBS")
 
   ACX_RESTORE_STATE
+
+  dnl **** check for Xpm lib
+  ACX_CHECK_XPM(30411, GUI_LIBS="$XPM_LIB $GUI_LIBS"; AC_DEFINE(HAVE_XPM),AC_MSG_ERROR(Xpm lib has not been found))
 
   ACX_CHECK_MOTIF(1002)
   if test "$acx_cv_motif" = "no"; then
