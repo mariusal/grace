@@ -1457,9 +1457,7 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
         xfree(values);
     }
 
-    if (err == TRUE) {
-        errmsg("Internal error in a graph selector callback");
-    } else {
+    if (err == FALSE) {
         update_all();
         drawgraph();
     }
@@ -1544,13 +1542,13 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     graph_popup_menu->kill_item = CreateMenuButton(popup, "Kill", 'K',
     	kill_graph_proc, (void *) listp);
     CreateMenuSeparator(popup);
-    graph_popup_menu->copy12_item = CreateMenuButton(popup, "Copy 1 to 2", 'C',
+    graph_popup_menu->copy12_item = CreateMenuButton(popup, "Copy 1 to 2", '\0',
     	copy12_graph_proc, (void *) listp);
-    graph_popup_menu->copy21_item = CreateMenuButton(popup, "Copy 2 to 1", 'C',
+    graph_popup_menu->copy21_item = CreateMenuButton(popup, "Copy 2 to 1", '\0',
     	copy21_graph_proc, (void *) listp);
-    graph_popup_menu->move12_item = CreateMenuButton(popup, "Move 1 to 2", 'M',
+    graph_popup_menu->move12_item = CreateMenuButton(popup, "Move 1 to 2", '\0',
     	move12_graph_proc, (void *) listp);
-    graph_popup_menu->move21_item = CreateMenuButton(popup, "Move 2 to 1", 'M',
+    graph_popup_menu->move21_item = CreateMenuButton(popup, "Move 2 to 1", '\0',
     	move21_graph_proc, (void *) listp);
     graph_popup_menu->swap_item = CreateMenuButton(popup, "Swap", 'w',
     	swap_graph_proc, (void *) listp);
