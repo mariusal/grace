@@ -70,8 +70,6 @@
 #include "files.h"
 #include "protos.h"
 
-extern int loops_allowed;
-
 static void rereadConfig(void);
 static RETSIGTYPE actOnSignal(int signo);
 static void bugwarn(char *signame);
@@ -540,9 +538,6 @@ static RETSIGTYPE actOnSignal(int signo)
     	rereadConfig();
     	break;
 #endif
-    case SIGALRM:
-        loops_allowed = 0;
-    	break;
 #ifdef SIGINT
     case SIGINT:
 #endif
@@ -617,7 +612,6 @@ void installSignal(void){
     signal(SIGTERM, actOnSignal);   /* software termination signal */
 #endif
     signal(SIGALRM, actOnSignal);  /* timer */
-    alarm((int) ceil((double) timer_delay/1000));
 #ifdef SIGIO
     signal(SIGIO, actOnSignal);     /* input/output ready */
 #endif
@@ -1450,30 +1444,15 @@ int is_dirtystate(void)
 
 int system_wrap(const char *string)
 {
-    int retval;
-    void (*save_handler)(int);
-    
-    save_handler = signal(SIGALRM, SIG_IGN);
-    retval = system(string);
-    signal(SIGALRM, save_handler);
-    alarm((int) ceil((double) timer_delay/1000));
-    
-    return retval;
+    return system(string);
 }
 
-void sleep_wrap(unsigned int nsec)
+void msleep_wrap(unsigned int msec)
 {
-    void (*save_handler)(int);
     struct timeval timeout;
-    
-    save_handler = signal(SIGALRM, SIG_IGN);
-    
-    timeout.tv_sec = nsec;
-    timeout.tv_usec = 0;
-    select(0, NULL, NULL, NULL, &timeout);
-    
-    signal(SIGALRM, save_handler);
-    alarm((int) ceil((double) timer_delay/1000));
+    timeout.tv_sec = msec / 1000;
+    timeout.tv_usec = 1000 * (msec % 1000);
+    select(0, NULL, NULL, NULL, &timeout);    
 }
 
 char *set_locale_num(int flag)

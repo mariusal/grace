@@ -123,7 +123,7 @@ void lock_dirtystate(int flag);
 int is_dirtystate(void);
 
 int system_wrap(const char *string);
-void sleep_wrap(unsigned int nsec);
+void msleep_wrap(unsigned int msec);
 
 char *set_locale_num(int flag);
 
