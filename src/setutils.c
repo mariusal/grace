@@ -210,7 +210,7 @@ int setlength(int gno, int setno, int len)
     ncols = settype_cols(p->type);
     
     if (ncols == 0) {
-	errmsg("Set type not found in setutils.c:allocxy()!!");
+	errmsg("Set type not found in setlength()!");
 	return GRACE_EXIT_FAILURE;
     }
     
@@ -253,12 +253,14 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 	return GRACE_EXIT_FAILURE;
     }
 
-    if (is_valid_setno(gnofrom, setfrom) != TRUE ||
-        is_valid_setno(gnoto, setto) != TRUE ) {
+    if (is_valid_setno(gnofrom, setfrom) != TRUE) {
         return GRACE_EXIT_FAILURE;
     }
 
-    killset(gnoto, setto);
+    if (is_set_active(gnoto, setto)) {
+	killset(gnoto, setto);
+    }
+    activateset(gnoto, setto);
 
     memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
 
