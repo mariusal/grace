@@ -876,7 +876,7 @@ static Widget CreateMainMenuBar(Widget parent)
  */
 void startup_gui(void)
 {
-    Widget bt, rc3, rcleft;
+    Widget bt, rcleft;
     Pixmap icon, shape;
 
 /* 
@@ -993,68 +993,56 @@ void startup_gui(void)
 
     XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
 
-    bt = CreateButton(rcleft, "Draw");
+    /* redraw */
+    bt = CreateBitmapButton(rcleft, 16, 16, redraw_bits);
     AddButtonCB(bt, do_drawgraph, NULL);
+    
+    CreateSeparator(rcleft);
 
-/* zoom and autoscale */
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_COLUMN,
-				  XmNnumColumns, 4,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  NULL);
-    bt = CreateBitmapButton(rc3, 16, 16, zoom_bits);
+    /* zoom */
+    bt = CreateBitmapButton(rcleft, 16, 16, zoom_bits);
     AddButtonCB(bt, set_actioncb, (void *) ZOOM_1ST);
-    bt = CreateBitmapButton(rc3, 16, 16, auto_bits);
-    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_XY);
-
-/* expand/shrink */
-    bt = CreateBitmapButton(rc3, 16, 16, expand_bits);
-    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_EXPAND);
-    bt = CreateBitmapButton(rc3, 16, 16, shrink_bits);
-    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_SHRINK);
-
-/*
- * scrolling buttons
- */
-    bt = CreateBitmapButton(rc3, 16, 16, left_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_LEFT);
-    bt = CreateBitmapButton(rc3, 16, 16, right_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_RIGHT);
-
-    bt = CreateBitmapButton(rc3, 16, 16, down_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_DOWN);
-    bt = CreateBitmapButton(rc3, 16, 16, up_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_UP);
+    bt = CreateBitmapButton(rcleft, 16, 16, zoom_x_bits);
+    AddButtonCB(bt, set_actioncb, (void *) ZOOMX_1ST);
+    bt = CreateBitmapButton(rcleft, 16, 16, zoom_y_bits);
+    AddButtonCB(bt, set_actioncb, (void *) ZOOMY_1ST);
 
     CreateSeparator(rcleft);
 
-    bt = CreateButton(rcleft, "AutoT");
+    /* autoscale */
+    bt = CreateBitmapButton(rcleft, 16, 16, auto_bits);
+    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_XY);
+    bt = CreateBitmapButton(rcleft, 16, 16, auto_x_bits);
+    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
+    bt = CreateBitmapButton(rcleft, 16, 16, auto_y_bits);
+    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
+    bt = CreateBitmapButton(rcleft, 16, 16, auto_on_bits);
+    AddButtonCB(bt, autoon_proc, NULL);
+    bt = CreateBitmapButton(rcleft, 16, 16, auto_tick_bits);
     AddButtonCB(bt, autoticks_proc, NULL);
 
-    bt = CreateButton(rcleft, "AutoO");
-    AddButtonCB(bt, autoon_proc, NULL);
+    CreateSeparator(rcleft);
 
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_COLUMN,
-				  XmNnumColumns, 2,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  NULL);
-    bt = CreateButton(rc3, "ZX");
-    AddButtonCB(bt, set_actioncb, (void *) ZOOMX_1ST);
-    bt = CreateButton(rc3, "ZY");
-    AddButtonCB(bt, set_actioncb, (void *) ZOOMY_1ST);
+    /* scrolling buttons */
+    bt = CreateBitmapButton(rcleft, 16, 16, left_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_LEFT);
+    bt = CreateBitmapButton(rcleft, 16, 16, right_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_RIGHT);
+    bt = CreateBitmapButton(rcleft, 16, 16, up_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_UP);
+    bt = CreateBitmapButton(rcleft, 16, 16, down_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_DOWN);
 
-    bt = CreateButton(rc3, "AX");
-    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
-    bt = CreateButton(rc3, "AY");
-    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
+    CreateSeparator(rcleft);
 
-    bt = CreateButton(rcleft, "Exit");
-    AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
+    /* expand/shrink */
+    bt = CreateBitmapButton(rcleft, 16, 16, expand_bits);
+    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_EXPAND);
+    bt = CreateBitmapButton(rcleft, 16, 16, shrink_bits);
+    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_SHRINK);
+
+    CreateSeparator(rcleft);
+
 
 /*
  * initialize cursors
