@@ -2565,6 +2565,67 @@ void graph_set_selectors(Quark *gr)
     }
 }
 
+static StorageStructure **frame_selectors = NULL;
+static int nframe_selectors = 0;
+
+static char *frame_labeling(Quark *q, unsigned int *rid)
+{
+    char buf[128];
+    
+    if (quark_fid_get(q) == QFlavorFrame) {
+        sprintf(buf, "Frame \"%s\"", QIDSTR(q));
+
+        (*rid)++;
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
+}
+
+StorageStructure *CreateFrameChoice(Widget parent, char *labelstr, int type)
+{
+    StorageStructure *ss;
+    Widget popup;
+    int nvisible;
+    
+    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, frame_labeling);
+    SetStorageChoiceQuark(ss, grace->project);
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#frame-selector");
+
+    nframe_selectors++;
+    frame_selectors =
+        xrealloc(frame_selectors, nframe_selectors*sizeof(StorageStructure *));
+    frame_selectors[nframe_selectors - 1] = ss;
+    
+    popup = ss->popup;
+    
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "Create new", '\0', g_new_cb, ss);
+    
+    CreateMenuSeparator(popup);
+
+    return ss;
+}
+
+void update_frame_selectors(Quark *pr)
+{
+    int i;
+    for (i = 0; i < nframe_selectors; i++) {
+        StorageStructure *ss = frame_selectors[i];
+        if (!ss->q && pr) {
+            ss->q = pr;
+        } else 
+        if (!pr) {
+            ss->q = NULL;
+        }
+        UpdateStorageChoice(ss);
+    }
+}
+
 /* Set selectors */
 static StorageStructure **set_selectors = NULL;
 static int nset_selectors = 0;
@@ -4408,6 +4469,7 @@ void update_all(void)
         sync_canvas_size(grace);
     }
     
+    update_frame_selectors(grace->project);
     update_graph_selectors(grace->project);
     update_set_selectors(NULL);
     update_ss_editors(NULL);
