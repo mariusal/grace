@@ -1369,7 +1369,6 @@ void drawsetavalues(int gno, int setno, plotarr *p,
     
     setcharsize(avalue.size);
     setfont(avalue.font);
-    setcolor(avalue.color);
 
     for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
@@ -1426,6 +1425,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         
         strcat(str, avalue.appstr);
         
+        setcolor(avalue.color);
         WriteString(vp, avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
     } 
 }
