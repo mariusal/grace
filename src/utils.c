@@ -1107,27 +1107,36 @@ void stufftext(char *s, int sp)
 
 char *mybasename(char *s)
 {
-	int start, end;
-	static char basename[256];
-	
-	end = strlen( s )-1;
-	if( end==0 && *s=='/' ){	/* root is a special case */
-		basename[0] = '/';
-		return basename;
-	}
-	
-	/* strip trailing white space and slashes */
-	while( s[end]=='/' || s[end]==' ' || s[end]=='\t' )
-		end--;
-	/* find start of basename */
-	start = end;
-	do{
-		start--;
-	} while( start>=0 && s[start]!='/' );
-	
-	strncpy( basename, s+(start+1), end-start );
-	basename[end-start] = '\0';
-	return basename;
+    int start, end;
+    static char basename[GR_MAXPATHLEN];
+    
+    s = path_translate(s);
+    if (s == NULL) {
+        errmsg("Could not translate basename:");
+        return "???";
+    }
+    
+    end = strlen(s) - 1;
+    
+    /* root is a special case */
+    if (end == 0 && *s == '/'){
+        basename[0] = '/';
+        return basename;
+    }
+
+    /* strip trailing white space and slashes */
+    while (s[end] == '/' || s[end] == ' ' || s[end] == '\t') {
+        end--;
+    }
+    /* find start of basename */
+    start = end;
+    do {
+        start--;
+    } while (start >= 0 && s[start] != '/');
+
+    strncpy(basename, s + (start + 1), end - start);
+    basename[end - start] = '\0';
+    return basename;
 }
 
 static char workingdir[GR_MAXPATHLEN];
