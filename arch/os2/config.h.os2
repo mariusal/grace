@@ -338,11 +338,8 @@
 /* Define if PDFlib library is available */
 #define HAVE_LIBPDF 1
 
-/* Define if you have a Fortran compiler.  */
-#define HAVE_F77
-
-/* Define if the Fortran compiler adds underscore to the symbol names.  */
-#define NEED_F77_UNDERSCORE 1
+/* Define if you want to compile a Fortran wrapper for grace_np lib.  */
+#define WITH_F77_WRAPPER 1
 
 /* Define if the X Window System is missing or not being used.  */
 #undef X_DISPLAY_MISSING
