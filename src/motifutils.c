@@ -906,6 +906,7 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
         char buf[16], *sbuf;
         XmString str;
         
+        ss->values = xrealloc(ss->values, SIZEOF_VOID_P*(ss->nchoices + 1));
         ss->values[ss->nchoices++] = q;
 
         sprintf(buf, "(%c) ", quark_is_active(q) ? '+':'-');
@@ -1274,7 +1275,6 @@ void UpdateStorageChoice(StorageStructure *ss)
     stdata.rid = 0;
     stdata.ss = ss;
     if (ss->q) {
-        ss->values = xrealloc(ss->values, SIZEOF_VOID_P*quark_count_children(ss->q));
         quark_traverse(ss->q, traverse_hook, &stdata);
 
         SelectStorageChoices(ss, nsel, selvalues);
