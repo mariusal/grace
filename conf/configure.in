@@ -36,6 +36,7 @@ AC_SUBST(TIFF_LIB)
 AC_SUBST(PDF_LIB)
 AC_SUBST(PDFDRV_O)
 AC_SUBST(GRACE_EDITOR)
+AC_SUBST(XBAE_INC)
 AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
 
@@ -687,7 +688,8 @@ dnl **** use editres
       dnl **** Use the bundled Xbae library
       AC_MSG_RESULT(--> Bundled version of Xbae library will be used)
       XBAE_LIB='$(TOP)/Xbae/libXbae.a'
-      xbae_dir="Xbae"
+      XBAE_INC='-I$(TOP)/Xbae'
+      xbae_dir="Xbae/Xbae"
     else
       AC_MSG_RESULT(--> Good. Seems you have compatible version of Xbae installed)
     fi
