@@ -376,6 +376,7 @@ symtab_entry *key;
 %token <ival> OFFSETY
 %token <ival> OFILTER
 %token <ival> ON
+%token <ival> ONREAD
 %token <ival> OP
 %token <ival> OPPOSITE
 %token <ival> OUT
@@ -496,6 +497,7 @@ symtab_entry *key;
 %token <ival> XMAX
 %token <ival> XMIN
 %token <ival> XY
+%token <ival> XYAXES
 %token <ival> XYBOXPLOT
 %token <ival> XYCOLOR
 %token <ival> XYCOLPAT
@@ -2612,6 +2614,18 @@ parmset:
 	| YAXES INVERT onoff {
 	    g[whichgraph].yinvert = $3;
 	}
+	| AUTOSCALE ONREAD NONE {
+            autoscale_onread = AUTOSCALE_NONE;
+        }
+	| AUTOSCALE ONREAD XAXES {
+            autoscale_onread = AUTOSCALE_X;
+        }
+	| AUTOSCALE ONREAD YAXES {
+            autoscale_onread = AUTOSCALE_Y;
+        }
+	| AUTOSCALE ONREAD XYAXES {
+            autoscale_onread = AUTOSCALE_XY;
+        }
 
 	| DESCRIPTION CHRSTR {
             char *s;
@@ -4629,6 +4643,7 @@ symtab_entry ikey[] = {
 	{"OFFSETY", OFFSETY, NULL},
 	{"OFILTER", OFILTER, NULL},
 	{"ON", ON, NULL},
+	{"ONREAD", ONREAD, NULL},
 	{"OP", OP, NULL},
 	{"OPPOSITE", OPPOSITE, NULL},
 	{"OR", OR, NULL},
@@ -4771,6 +4786,7 @@ symtab_entry ikey[] = {
 	{"XMAX", XMAX, NULL},
 	{"XMIN", XMIN, NULL},
 	{"XY", XY, NULL},
+	{"XYAXES", XYAXES, NULL},
 	{"XYBOXPLOT", XYBOXPLOT, NULL},
 	{"XYCOLOR", XYCOLOR, NULL},
 	{"XYCOLPAT", XYCOLPAT, NULL},

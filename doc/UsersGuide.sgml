@@ -2437,6 +2437,8 @@ integral     | cumulative sum @
  	          onoff | XAXES INVERT OFF @
 	 YAXES INVERT onoff | If ON, draws ymin to ymax from  top to bottom | 
  	          onoff | YAXES INVERT OFF @
+	 AUTOSCALE ONREAD <it>type</it> | Set automatic scaling on read according to <it>type</it> |
+	          <it>type</it>: one of  NONE, XAXES, YAXES, XYAXES | AUTOSCALE ONREAD NONE @
       </tabular>
       <caption>
         <label id="graphaxis-pars">
