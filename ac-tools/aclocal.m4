@@ -866,3 +866,56 @@ AC_DEFUN(ACX_CHECK_XMHTML,
   fi
 ])dnl
 
+dnl ACX_CHECK_XPM
+dnl --------------
+AC_DEFUN(ACX_CHECK_XPM,
+[
+  AC_ARG_WITH(xpm_library,
+  [  --with-xpm-library=OBJ       use OBJ as XPM library [[-lXpm]]],
+  xpm_library="$withval")
+  if test "x$xpm_library" = "x"
+  then
+    xpm_library=-lXpm
+  fi
+
+  AC_CHECK_HEADERS(xpm.h X11/xpm.h)
+
+  AC_CACHE_CHECK([for Xpm library >= $1], acx_cv_xpmlib,
+    AC_CACHE_VAL(acx_cv_xpm_library, acx_cv_xpm_library=$xpm_library)
+    ACX_SAVE_STATE
+    LIBS="$acx_cv_xpm_library $LIBS"
+    AC_TRY_RUN([
+#if defined(HAVE_XPM_H)
+#  include <xpm.h>
+#else
+#  include <X11/xpm.h>
+#endif
+      int main(void) {
+        int vlibn, vincn;
+        vincn = XpmIncludeVersion;
+        vlibn = XpmLibraryVersion();
+        if (vincn < [$1]) {
+          exit(1);
+        }
+        if (vincn != vlibn) {
+          exit(2);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_xpmlib="yes",
+      acx_cv_xpmlib="no",
+      acx_cv_xpmlib="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_xpmlib" = "yes"
+  then
+    XPM_LIB="$acx_cv_xpm_library"
+    $2
+  else
+    XPM_LIB=
+    $3
+  fi
+])dnl

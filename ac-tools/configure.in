@@ -205,7 +205,7 @@ esac],[xmhtml=true])
 dnl **** define editor
 GRACE_EDITOR="'xterm -e vi'"
 AC_ARG_WITH(editor,
-[  --with-editor=COMMAND        define editor [\"xterm -e vi\"]],
+[  --with-editor=COMMAND        define editor [[\"xterm -e vi\"]]],
 [GRACE_EDITOR="'${withval}'"])
 
 dnl **** define help viewer
@@ -226,7 +226,7 @@ AC_ARG_WITH(printcmd,
 
 dnl **** check if user wants to compile with debugging support
 AC_ARG_ENABLE(debug,
-[  --enable-debug               turn on debugging [[no]]],
+[  --enable-debug               turn on support for debugging [[no]]],
 [case "${enableval}" in
   yes) debug=true ;;
   no)  debug=false ;;
@@ -663,16 +663,12 @@ dnl **** Check for Motif
     AC_MSG_RESULT(--> support for EditRes protocol is disabled)
   fi
 
+  dnl **** check for Xpm lib
+  ACX_CHECK_XPM(30411, GUI_LIBS="$XPM_LIB $GUI_LIBS"; AC_DEFINE(HAVE_XPM),AC_MSG_ERROR(Xpm lib has not been found))
+
   dnl **** some Motif-2.1 variants need the -lXp library
   AC_CHECK_LIB(Xp,main,GUI_LIBS="-lXp $GUI_LIBS")
 
-  dnl **** and some - Xpm lib
-  AC_CHECK_LIB(Xpm,XpmCreatePixmapFromData,GUI_LIBS="-lXpm $GUI_LIBS"; AC_DEFINE(HAVE_XPM))
-
-  if test "$ac_cv_lib_Xpm_XpmCreatePixmapFromData" = yes; then
-    AC_CHECK_HEADERS(xpm.h X11/xpm.h)
-  fi
-  
   ACX_RESTORE_STATE
 
   ACX_CHECK_MOTIF(1002)
