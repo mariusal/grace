@@ -81,7 +81,6 @@
 #include "jbitmaps.h"
 #include "t1fonts.h"
 #include "graphs.h"
-#include "plotone.h"
 #include "utils.h"
 #include "events.h"
 #include "parser.h"
@@ -1508,7 +1507,7 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
 
     if (err == FALSE) {
         update_all();
-        drawgraph();
+        xdrawgraph();
     }
 }
 
@@ -2055,7 +2054,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
 
     if (err == FALSE) {
         update_all();
-        drawgraph();
+        xdrawgraph();
     }
 }
 

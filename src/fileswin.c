@@ -54,7 +54,6 @@
 #include "globals.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "plotone.h"
 #include "utils.h"
 #include "files.h"
 #include "motifinc.h"
@@ -153,7 +152,7 @@ static int open_proc(char *filename, void *data)
 {
     if (load_project(filename) == RETURN_SUCCESS) {
         update_all();
-        drawgraph();
+        xdrawgraph();
         return TRUE;
     } else {
         return FALSE;
@@ -257,7 +256,7 @@ static int read_sets_proc(char *filename, void *data)
             create_eblock_frame(graphno);
         } else {
             update_all();
-            drawgraph();
+            xdrawgraph();
         }
     }
     /* never close the popup */
@@ -378,7 +377,7 @@ static int read_params_proc(char *filename, void *data)
 {
     getparms(filename);
     update_all();
-    drawgraph();
+    xdrawgraph();
 
     /* never close the popup */
     return FALSE;
@@ -517,7 +516,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	retval = readnetcdf(get_cg(), setno, fname, xvar, yvar, -1, -1, 1);
     }
     if (retval) {
-	drawgraph();
+	xdrawgraph();
     }
     unset_wait_cursor();
 }

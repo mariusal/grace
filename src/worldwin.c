@@ -42,7 +42,6 @@
 
 #include "globals.h"
 #include "graphutils.h"
-#include "plotone.h"
 #include "device.h"
 #include "utils.h"
 #include "motifinc.h"
@@ -278,7 +277,7 @@ static int define_overlay_proc(void *data)
     overlay_graphs(g1, g2, type);
 
     update_all();
-    drawgraph();
+    xdrawgraph();
     
     return RETURN_SUCCESS;
 }
@@ -414,5 +413,5 @@ void define_autos(int aon, int au, int ap)
 	}
     }
     update_ticks(cg);
-    drawgraph();
+    xdrawgraph();
 }

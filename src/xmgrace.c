@@ -456,7 +456,7 @@ static void autoscale_proc(void *data)
     
     if (autoscale_graph(cg, (int) data) == RETURN_SUCCESS) {
 	update_ticks(cg);
-        drawgraph();
+        xdrawgraph();
     } else {
 	errmsg("Can't autoscale (no active sets?)");
     }
@@ -475,7 +475,7 @@ void autoticks_proc(void *data)
 {
     autotick_axis(get_cg(), ALL_AXES);
     update_ticks(get_cg());
-    drawgraph();
+    xdrawgraph();
 }
 
 /*
@@ -1164,13 +1164,13 @@ void set_pagelayout(int layout)
 static void graph_scroll_proc(void *data)
 {
     graph_scroll((int) data);
-    drawgraph();
+    xdrawgraph();
 }
 
 static void graph_zoom_proc(void *data)
 {
     graph_zoom((int) data);
-    drawgraph();
+    xdrawgraph();
 }
 
 static void world_stack_proc(void *data)
@@ -1192,7 +1192,7 @@ static void world_stack_proc(void *data)
         return;
     }
     update_all();
-    drawgraph();
+    xdrawgraph();
 }
 
 static void load_example(void *data)
@@ -1205,7 +1205,7 @@ static void load_example(void *data)
     sprintf(buf, "examples/%s", s);
     load_project_file(buf, FALSE);
 
-    drawgraph();
+    xdrawgraph();
 
     unset_wait_cursor();
 }

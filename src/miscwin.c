@@ -41,7 +41,6 @@
 #include "globals.h"
 #include "utils.h"
 #include "graphs.h"
-#include "plotone.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -288,7 +287,7 @@ static int props_define_notify_proc(void *data)
     allow_two_digits_years(GetToggleButtonState(two_digits_years_item));
     set_wrap_year(atoi(xv_getstr(wrap_year_item)));
     
-    drawgraph();
+    xdrawgraph();
     
     return RETURN_SUCCESS;
 }

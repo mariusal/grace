@@ -39,7 +39,6 @@
 
 #include "globals.h"
 #include "utils.h"
-#include "plotone.h"
 #include "protos.h"
 #include "motifinc.h"
 
@@ -141,7 +140,7 @@ static int plot_define_notify_proc(void *data)
     xv_evalexpr(timestamp_x_item, &timestamp.x);
     xv_evalexpr(timestamp_y_item, &timestamp.y);
     set_dirtystate();
-    drawgraph();
+    xdrawgraph();
     
     return RETURN_SUCCESS;
 }

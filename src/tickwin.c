@@ -46,7 +46,6 @@
 #include "utils.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "plotone.h"
 #include "motifinc.h"
 
 #define cg get_cg()
@@ -686,7 +685,7 @@ static int axes_aac_cb(void *data)
     
     free_graph_tickmarks(t);
     
-    drawgraph();
+    xdrawgraph();
 
     update_ticks(cg);
     

@@ -41,7 +41,6 @@
 
 #include "graphs.h"
 #include "utils.h"
-#include "plotone.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -534,7 +533,7 @@ static int setapp_aac_cb(void *data)
         xfree(selset);
     } 
 
-    drawgraph();
+    xdrawgraph();
     
     return RETURN_SUCCESS;
 }
@@ -722,7 +721,7 @@ static void setapp_data_proc(void *data)
         
         UpdateSymbols(cg, cset);
         set_dirtystate();
-        drawgraph();
+        xdrawgraph();
     }
 }
 

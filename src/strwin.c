@@ -46,7 +46,6 @@
 #include "globals.h"
 #include "utils.h"
 #include "graphs.h"
-#include "plotone.h"
 #include "events.h"
 #include "protos.h"
 #include "motifinc.h"
@@ -618,7 +617,7 @@ void ellipse_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     ellip[ellipno].y2 = c + d/2.;
     
     set_dirtystate();
-    drawgraph();
+    xdrawgraph();
 }
 
 
@@ -666,7 +665,7 @@ void box_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xv_evalexpr( ui->y2_item, &boxes[boxno].y2 );
     
     set_dirtystate();
-    drawgraph();
+    xdrawgraph();
 }
 
 void box_edit_popup(int boxno)
@@ -878,7 +877,7 @@ void line_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     lines[lineno].arrow.lL_ff = GetSpinChoice(ui->lL_ff_item);
     
     set_dirtystate();
-    drawgraph();
+    xdrawgraph();
 }
 
 static EditLineUI line_ui;
@@ -1039,7 +1038,7 @@ void string_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     pstr[stringno].rot = GetAngleChoice(ui->rot_item);
     
     set_dirtystate();
-    drawgraph();
+    xdrawgraph();
 }
 
 static EditStringUI string_ui;

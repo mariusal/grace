@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -45,7 +45,6 @@
 
 #include "globals.h"
 #include "graphs.h"
-#include "plotone.h"
 #include "utils.h"
 #include "events.h"
 #include "motifinc.h"
@@ -142,7 +141,7 @@ static void do_clear_region(Widget w, XtPointer client_data, XtPointer call_data
 	kill_region(GetChoice(clear_region_item));
     }
     unset_wait_cursor();
-    drawgraph();
+    xdrawgraph();
 }
 
 void create_clear_frame(void *data)
@@ -227,7 +226,6 @@ static void do_reporton_region(Widget w, XtPointer client_data, XtPointer call_d
     set_wait_cursor();
     reporton_region(get_cg(), regno, type);
     unset_wait_cursor();
-    drawgraph();
 }
 
 void create_reporton_frame(void *data)

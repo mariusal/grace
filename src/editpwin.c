@@ -43,7 +43,6 @@
 #include "graphs.h"
 #include "utils.h"
 #include "files.h"
-#include "plotone.h"
 #include "protos.h"
 
 #include <Xm/Xm.h>
@@ -797,5 +796,5 @@ void do_ext_editor(int gno, int setno)
     autoscale_onread = save_autos;
     unlink(fname);
     update_all();
-    drawgraph();
+    xdrawgraph();
 }

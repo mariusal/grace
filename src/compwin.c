@@ -51,7 +51,6 @@
 
 #include "globals.h"
 #include "graphs.h"
-#include "plotone.h"
 #include "utils.h"
 #include "ssdata.h"
 #include "motifinc.h"
@@ -231,7 +230,7 @@ static void compute_aac(void *data)
         } else {
             update_set_lists(gno1);
         }
-        drawgraph();
+        xdrawgraph();
     }
     unset_wait_cursor();
 }
@@ -727,7 +726,7 @@ static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data
     update_set_lists(gno);
     xfree(selsets);
     unset_wait_cursor();
-    drawgraph();
+    xdrawgraph();
 }
 
 /*
@@ -758,7 +757,7 @@ static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(gno);
     xfree(selsets);
     unset_wait_cursor();
-    drawgraph();
+    xdrawgraph();
 }
 
 /*
@@ -785,7 +784,7 @@ static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(get_cg());
     xfree(selsets);
     unset_wait_cursor();
-    drawgraph();
+    xdrawgraph();
 }
 
 /* running averages */
@@ -902,7 +901,7 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(gno);
     unset_wait_cursor();
     xfree(selsets);
-    drawgraph();
+    xdrawgraph();
 }
 
 /* TODO finish this */
@@ -1131,7 +1130,7 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     update_set_lists(gno);
     unset_wait_cursor();
     xfree(selsets);
-    drawgraph();
+    xdrawgraph();
 }
 
 /* finite differencing */
@@ -1209,7 +1208,7 @@ static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(gno);
     unset_wait_cursor();
     xfree(selsets);
-    drawgraph();
+    xdrawgraph();
 }
 
 /* numerical integration */
@@ -1293,7 +1292,7 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(gno);
     unset_wait_cursor();
     xfree(selsets);
-    drawgraph();
+    xdrawgraph();
 }
 
 /* seasonal differencing */
@@ -1366,7 +1365,7 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
     update_set_lists(get_cg());
     xfree(selsets);
     unset_wait_cursor();
-    drawgraph();
+    xdrawgraph();
 }
 
 
@@ -1440,7 +1439,7 @@ static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     do_xcor(gno, set1, gno, set2, maxlag);
     update_set_lists(gno);
-    drawgraph();
+    xdrawgraph();
     unset_wait_cursor();
 }
 
@@ -1545,7 +1544,7 @@ static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(get_cg());
     unset_wait_cursor();
     xfree(selsets);
-    drawgraph();
+    xdrawgraph();
 }
 
 /* Prune data */
@@ -1745,7 +1744,7 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(get_cg());
     unset_wait_cursor();
     xfree(selsets);
-    drawgraph();
+    xdrawgraph();
 }
 
 /* apply a digital filter in set 2 to set 1 */
@@ -1882,7 +1881,7 @@ static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data
     set_wait_cursor();
     do_linearc(set1, set2);
     update_set_lists(get_cg());
-    drawgraph();
+    xdrawgraph();
     unset_wait_cursor();
 }
 
@@ -2087,7 +2086,7 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xfree(selsets);
     set_dirtystate();
     unset_wait_cursor();
-    drawgraph();
+    xdrawgraph();
 }
 
 static void reset_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)

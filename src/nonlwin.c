@@ -44,7 +44,6 @@
 #include "graphs.h"
 #include "utils.h"
 #include "files.h"
-#include "plotone.h"
 #include "parser.h"
 #include "motifinc.h"
 #include "protos.h"
@@ -637,7 +636,7 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     	
     	update_set_lists(dest_gno);
         SelectListChoice(nonl_set_item->dest->set_sel, dest_setno);
-    	drawgraph();
+    	xdrawgraph();
     }
     
     return RETURN_SUCCESS;

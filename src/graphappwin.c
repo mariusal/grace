@@ -37,7 +37,7 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "utils.h"
-#include "plotone.h"
+#include "draw.h"
 #include "protos.h"
 
 #include "motifinc.h"
@@ -460,7 +460,7 @@ static int graphapp_aac_cb(void *data)
     
     xfree(values);
 
-    drawgraph();
+    xdrawgraph();
     
     return RETURN_SUCCESS;
 }
