@@ -8,10 +8,6 @@
 
 #include "grconvert.h"
 
-#ifdef VMS
-#  include "vms_unix.h"
-#endif
-
 static void put_annotation(int gno, FILE * pp, int embed);
 static void put_region(FILE * pp, int embed);
 
