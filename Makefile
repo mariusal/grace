@@ -48,7 +48,7 @@ CHANGES : doc/CHANGES.html
 	@lynx -dump $? > CHANGES
 
 ChangeLog : 
-	./scripts/cvs2cl.pl
+	./scripts/cvs2cl.pl -F grace-5_1-series
 
 Make.conf : ac-tools/Make.conf.in configure
 	@echo
