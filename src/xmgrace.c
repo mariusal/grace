@@ -110,7 +110,7 @@ Widget stack_depth_item;	/* stack depth item on the main panel */
 Widget curw_item;		/* current world stack item on the main panel */
 
 
-Display *disp;
+Display *disp = NULL;
 Window xwin;
 extern Window root;
 extern GC gc;
