@@ -131,6 +131,9 @@ void grace_rt_free_dicts(RunTime *rt)
 {
     dict_free(rt->graph_type_dict);
     dict_free(rt->set_type_dict);
+    dict_free(rt->inout_placement_dict);
+    dict_free(rt->side_placement_dict);
+    dict_free(rt->spec_ticks_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
