@@ -47,7 +47,7 @@ install : $(LIB)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/include
 	$(INSTALL_DATA) grace_np.h $(GRACE_HOME)/include/grace_np.h
 
-links : $(LIB)
+links : $(GRACE_HOME)/lib/$(LIB) $(GRACE_HOME)/include/grace_np.h
 	$(MKINSTALLDIRS) $(PREFIX)/lib
 	cd $(PREFIX)/lib; $(RM) $(LIB); $(LN_S) $(GRACE_HOME)/lib/$(LIB) $(LIB)
 	$(MKINSTALLDIRS) $(PREFIX)/include

@@ -12,6 +12,8 @@ include $(TOP)/Make.conf
 
 GRBATCH=gracebat$(EXE)
 
+GRACECLI=grace$(EXE)
+
 CEPHES_LIB=$(TOP)/cephes/libcephes.a
 
 CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(T1_INC) $(XBAE_INC) $(CPPFLAGS) $(GUI_FLAGS)
@@ -63,10 +65,11 @@ install : $(GRACE)
 
 tests : dummy
 
-links : $(GRACE)
+links : $(GRACE_HOME)/bin/$(GRACE)
 	$(MKINSTALLDIRS) $(PREFIX)/bin
 	cd $(PREFIX)/bin; $(RM) $(GRACE); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACE)
 	cd $(PREFIX)/bin; $(RM) $(GRBATCH); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRBATCH)
+	cd $(PREFIX)/bin; $(RM) $(GRACECLI); $(LN_S) $(GRACE_HOME)/bin/$(GRACE) $(GRACECLI)
 
 clean : 
 	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo.h buildinfo$(O) buildinfo$(EXE)
