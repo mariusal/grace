@@ -52,7 +52,6 @@
 #define is_set_drawable(gno, setno) (is_set_active(gno, setno) && !is_set_hidden(gno, setno))
 FILE *prstream;
 
-char print_cmd[GR_MAXPATHLEN]  = PRINT_CMD;
 char print_file[GR_MAXPATHLEN] = "";
 
 /*
@@ -108,7 +107,7 @@ void drawgraph(void)
  */
 void do_hardcopy(void)
 {
-    char tbuf[128];
+    char tbuf[128], *s;
     char fname[GR_MAXPATHLEN];
     view v;
     double vx, vy;
@@ -117,6 +116,11 @@ void do_hardcopy(void)
     if (ptofile) {
         strcpy(fname, print_file);
     } else {
+        s = get_print_cmd();
+        if (s == NULL || s[0] == '\0') {
+            errmsg("No print command defined, output aborted");
+            return;
+        }
         tmpnam(fname);
         /* VMS doesn't like extensionless files */
         strcat(fname, ".prn");
@@ -143,7 +147,7 @@ void do_hardcopy(void)
     }
     
     if (ptofile == FALSE) {
-        sprintf(tbuf, "%s %s", print_cmd, fname);
+        sprintf(tbuf, "%s %s", get_print_cmd(), fname);
         if (truncated_out == FALSE ||
             !yesno("Printout is truncated. Abort?", NULL, NULL, NULL)) {
             system_wrap(tbuf);

@@ -89,6 +89,9 @@ void set_grace_home(char *dir);
 char *get_help_viewer(void);
 void set_help_viewer(char *dir);
 
+char *get_print_cmd(void);
+void set_print_cmd(char *cmd);
+
 void errmsg(char *buf);
 void echomsg(char *msg);
 void stufftext(char *s, int sp);

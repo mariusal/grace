@@ -15,8 +15,10 @@ GRBATCH=gracebat$(EXE)
 
 CEPHES_LIB=$(TOP)/cephes/libcephes.a
 
-CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(GUI_FLAGS) -DGRACE_HOME=\"$(GRACE_HOME)\" \
-	$(HELPVIEWER) $(NETCDF) -DPRINT_CMD=\"$(PRINT_CMD)\"
+CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(GUI_FLAGS)
+
+PREFS=-DGRACE_HOME=\"$(GRACE_HOME)\" -DGRACE_PRINT_CMD=\"$(PRINT_CMD)\" \
+	$(HELPVIEWER)
 
 LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
 	$(T1_LIB) $(PDF_LIB) $(GD_LIB) $(NOGUI_LIBS) $(DL_LIB)
@@ -42,6 +44,9 @@ buildinfo$(EXE) : buildinfo.o
 $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $?
 	mv y.tab.c $@
+
+utils$(O) : $(TOP)/Make.conf
+	$(CC) $(CFLAGS) $(PREFS) -c utils.c -o $@
 
 buildinfo.h : buildinfo$(EXE)
 	$? > $@

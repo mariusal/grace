@@ -48,7 +48,6 @@
 #include "protos.h"
 
 
-extern char print_cmd[];
 extern char print_file[];
 
 static int current_page_units = 0;
@@ -283,7 +282,7 @@ static void update_device_setup(int device_id)
             xv_setstr(printfile_item, print_file);
         }
                 
-        xv_setstr(print_fileing_item, print_cmd);
+        xv_setstr(print_fileing_item, get_print_cmd());
         
         switch (dev.type) {
         case DEVICE_TERM:
@@ -382,7 +381,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
         if (ptofile) {
             strcpy(print_file, xv_getstr(printfile_item));
         } else {
-            strcpy(print_cmd, xv_getstr(print_fileing_item));
+            set_print_cmd(xv_getstr(print_fileing_item));
         }
         XtSetSensitive(current_dev_item, False);
     }

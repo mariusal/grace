@@ -1126,6 +1126,22 @@ void set_grace_home(char *dir)
     strncpy(grace_home, dir, GR_MAXPATHLEN - 1);
 }
 
+/* print command */
+#ifndef GRACE_PRINT_CMD
+#  define GRACE_PRINT_CMD ""
+#endif
+static char print_cmd[GR_MAXPATHLEN] = GRACE_PRINT_CMD;	
+
+char *get_print_cmd(void)
+{
+    return print_cmd;
+}
+
+void set_print_cmd(char *cmd)
+{
+    strncpy(print_cmd, cmd, GR_MAXPATHLEN - 1);
+}
+
 #ifndef GRACE_HELPVIEWER
 #  define GRACE_HELPVIEWER "netscape -noraise -remote openURL\\(%s,newwindow\\) >>/dev/null 2>&1 || netscape %s"
 #endif
