@@ -46,6 +46,10 @@
 #define SPIN_TYPE_INT       0
 #define SPIN_TYPE_FLOAT     1
 
+#define ALIGN_BEGINNING     0
+#define ALIGN_CENTER        1
+#define ALIGN_END           2
+
 #define CreateMenuSeparator(w) CreateSeparator(w)
 
 extern Widget app_shell;        /* defined in xmgrace.c */
@@ -262,6 +266,8 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern);
 void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
 void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
 
+Widget CreateLabel(Widget parent, char *s);
+
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
@@ -320,6 +326,7 @@ Widget *CreateFormatChoice(Widget parent, char *s);
 Widget *CreatePrecisionChoice(Widget parent, char *s);
 
 void SetLabel(Widget w, char *s);
+void AlignLabel(Widget w, int alignment);
 void SetFixedFont(Widget w);
 
 Widget CreateMenuBar(Widget parent);

@@ -807,6 +807,7 @@ Widget CreateButton(Widget parent, char *label)
     xmstr = XmStringCreateLocalized(label);
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent, 
+        XmNalignment, XmALIGNMENT_CENTER,
     	XmNlabelString, xmstr,
 /*
  *         XmNmarginLeft, 5,
@@ -1031,6 +1032,38 @@ void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
         XtVaSetValues(fsb->FSB, XmNpattern, xmstr, NULL);
         XmStringFree(xmstr);
     }
+}
+
+Widget CreateLabel(Widget parent, char *s)
+{
+    Widget label;
+    
+    label = XtVaCreateManagedWidget(s, xmLabelWidgetClass, parent, NULL);
+    return label;
+}
+
+void AlignLabel(Widget w, int alignment)
+{
+    unsigned char xm_alignment;
+    
+    switch(alignment) {
+    case ALIGN_BEGINNING:
+        xm_alignment = XmALIGNMENT_BEGINNING;
+        break;
+    case ALIGN_CENTER:
+        xm_alignment = XmALIGNMENT_CENTER;
+        break;
+    case ALIGN_END:
+        xm_alignment = XmALIGNMENT_END;
+        break;
+    default:
+        errmsg("Internal error in AlignLabel()");
+        return;
+        break;
+    }
+    XtVaSetValues(w,
+        XmNalignment, xm_alignment,
+        NULL);
 }
 
 static OptionItem *font_option_items;
