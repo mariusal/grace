@@ -622,6 +622,8 @@ CompositeString *String2Composite(char *string)
                             break;
 	                case 'M':
                             new_gotomark = atoi(buf);
+		            new_vshift = 0.0;
+		            new_hshift = 0.0;
                             break;
                         }
                         i += (j + 2);
