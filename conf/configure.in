@@ -323,6 +323,7 @@ then
   AC_MSG_RESULT(--> Bundled version of T1lib will be used)
 
   T1_LIB='$(TOP)/T1lib/libt1.a'
+  CPPFLAGS='$(CPPFLAGS) -I$(TOP)/T1lib/t1lib'
   SUBDIRS="T1lib $SUBDIRS"
 
   dnl **** Check which ANSI integer type is 16 bit
@@ -629,8 +630,15 @@ dnl **** use editres
     GUI="NONE_GUI"
     GUI_FLAGS=""
     GUI_LIBS=""
-    AC_MSG_WARN(Motif has not been found; building a GUI-less version)
+    AC_MSG_WARN(Motif/LessTif has not been found; building a GUI-less version)
   else
+    AC_DEFINE(HAVE_MOTIF)
+    GUI_LIBS="-lXm $GUI_LIBS"
+    GUI="MOTIF_GUI"
+    GUI_FLAGS="$X_CFLAGS"
+    GRACE=xmgrace
+    TERMDRV_O='x11drv$(O)'
+
     dnl **** Check whether Motif is actually Lesstif
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $X_CFLAGS"
@@ -638,16 +646,18 @@ dnl **** use editres
     CPPFLAGS="$save_CPPFLAGS"
     
     dnl **** check for Xbae widget
-    GUI_LIBS="-lXm $GUI_LIBS"
-    AC_CHECK_LIB(Xbae,main,GUI_LIBS="-lXbae $GUI_LIBS"; AC_DEFINE(HAVE_LIBXBAE),,$X_LIBS $GUI_LIBS)
-    if test $ac_cv_lib_Xbae_main != yes; then
-      AC_MSG_RESULT(--> Xbae not found - spreadsheet editor and fonttool won't be built)
+    AC_CHECK_LIB(Xbae, XbaeMatrixRefreshCell, XBAE_LIB="-lXbae";AC_DEFINE(HAVE_LIBXBAE),,$X_LIBS $GUI_LIBS)
+    if test -z "$XBAE_LIB"
+    then
+      dnl **** Use the bundled Xbae library
+      AC_MSG_RESULT(--> Bundled version of Xbae library will be used)
+      XBAE_LIB='$(TOP)/Xbae/libXbae.a'
+      SUBDIRS="$SUBDIRS Xbae"
+    else
+      AC_MSG_RESULT(--> Good. Seems you have compatible version of Xbae installed)
     fi
-    GUI="MOTIF_GUI"
-    GUI_FLAGS="$X_CFLAGS"
-    AC_DEFINE(HAVE_MOTIF)
-    GRACE=xmgrace
-    TERMDRV_O='x11drv$(O)'
+    GUI_LIBS="$XBAE_LIB $GUI_LIBS"
+
   fi
 fi
 
