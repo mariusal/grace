@@ -201,25 +201,23 @@ int pdfinitgraphics(void)
     return RETURN_SUCCESS;
 }
 
-void pdf_setpen(void)
+void pdf_setpen(const Pen *pen)
 {
-    Pen pen;
     fRGB *frgb;
     
-    pen = getpen();
-    if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
-        frgb = get_frgb(pen.color);
+    if (pen->color != pdf_color || pen->pattern != pdf_pattern) {
+        frgb = get_frgb(pen->color);
         PDF_setcolor(phandle, "both", "rgb",
             (float) frgb->red, (float) frgb->green,(float) frgb->blue, 0.0);     
 
         if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern &&
-            pen.pattern > 1 && pen.pattern < number_of_patterns()) {
+            pen->pattern > 1 && pen->pattern < number_of_patterns()) {
             PDF_setcolor(phandle, "both", "pattern",
-                (float) pdf_pattern_ids[pen.pattern], 0.0, 0.0, 0.0);     
+                (float) pdf_pattern_ids[pen->pattern], 0.0, 0.0, 0.0);     
         }
         
-        pdf_color = pen.color;
-        pdf_pattern = pen.pattern;
+        pdf_color = pen->color;
+        pdf_pattern = pen->pattern;
     }
 }
 
@@ -229,8 +227,11 @@ void pdf_setdrawbrush(void)
     float lw;
     int ls;
     float *darray;
+    Pen pen;
 
-    pdf_setpen();
+    pen=getpen();
+
+    pdf_setpen(&pen);
     
     ls = getlinestyle();
     lw = MAX2(getlinewidth(), pixel_size);
@@ -293,7 +294,10 @@ void pdf_setlineprops(void)
 
 void pdf_drawpixel(VPoint vp)
 {
-    pdf_setpen();
+    Pen pen;
+
+    pen=getpen();
+    pdf_setpen(&pen);
     
     if (pdf_linew != pixel_size) {
         PDF_setlinewidth(phandle, pixel_size);
@@ -338,12 +342,14 @@ void pdf_drawpolyline(VPoint *vps, int n, int mode)
 void pdf_fillpolygon(VPoint *vps, int nc)
 {
     int i;
+    Pen pen;
     
-    if (getpattern() == 0) {
+    pen=getpen();
+    pdf_setpen(&pen);
+    
+    if (pen.pattern == 0) {
         return;
     }
-    
-    pdf_setpen();
 
     if (getfillrule() == FILLRULE_WINDING) {
         PDF_set_parameter(phandle, "fillrule", "winding");
@@ -351,11 +357,26 @@ void pdf_fillpolygon(VPoint *vps, int nc)
         PDF_set_parameter(phandle, "fillrule", "evenodd");
     }
     
+    /* fill bg first if the pattern != solid */
+    if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern && pen.pattern != 1) {
+        Pen solid_pen;
+        solid_pen.color = getbgcolor();
+        solid_pen.pattern = 1;
+        
+        pdf_setpen(&solid_pen);
+        PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
+        for (i = 1; i < nc; i++) {
+            PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
+        }
+        PDF_fill(phandle);
+    }
+
+    pen=getpen();
+    pdf_setpen(&pen);
     PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
     for (i = 1; i < nc; i++) {
         PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
     }
-
     PDF_fill(phandle);
 }
 
@@ -393,12 +414,14 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
+    Pen pen;
     
     if (getpattern() == 0) {
         return;
     }
-    
-    pdf_setpen();
+
+    pen=getpen();
+    pdf_setpen(&pen);
     
     vpc.x = (vp1.x + vp2.x)/2;
     vpc.y = (vp1.y + vp2.y)/2;
@@ -408,7 +431,28 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     if (rx == 0.0 || ry == 0.0) {
         return;
     }
-    
+
+    /* fill bg first if the pattern != solid */
+    if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern && pen.pattern != 1) {
+        Pen solid_pen;
+        solid_pen.color = getbgcolor();
+        solid_pen.pattern = 1;
+        
+        PDF_save(phandle);
+        pdf_setpen(&solid_pen);
+        PDF_scale(phandle, 1.0, ry/rx);
+
+        PDF_moveto(phandle, (float) vpc.x + rx*cos(a1*M_PI/180.0), 
+                            (float) rx/ry*vpc.y + rx*sin(a1*M_PI/180.0));
+        PDF_arc(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
+                                            (float) a1, (float) a2);
+        if (mode == ARCFILL_PIESLICE) {
+            PDF_lineto(phandle, (float) vpc.x, (float) rx/ry*vpc.y);
+        }
+        PDF_fill(phandle);
+        PDF_restore(phandle);
+    }
+
     PDF_save(phandle);
     PDF_scale(phandle, 1.0, ry/rx);
     PDF_moveto(phandle, (float) vpc.x + rx*cos(a1*M_PI/180.0), 
@@ -522,7 +566,10 @@ static int pdf_builtin_font(const char *fname)
 void pdf_puttext(VPoint vp, char *s, int len, int font,
      TextMatrix *tm, int underline, int overline, int kerning)
 {
-    pdf_setpen();
+    Pen pen;
+
+    pen=getpen();
+    pdf_setpen(&pen);
     
     if (pdf_font_ids[font] < 0) {
         char buf[GR_MAXPATHLEN];
