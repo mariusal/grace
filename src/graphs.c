@@ -1198,6 +1198,11 @@ void postprocess_project(int version)
     if (get_project_version() < 50002) {
         setbgfill(TRUE);
     }
+
+    if (get_project_version() < 50003) {
+        allow_two_digits_years(TRUE);
+        set_wrap_year(1900);
+    }
     
     if (version <= 40102 && get_pagelayout() == PAGE_FIXED) {
         get_page_viewport(&ext_x, &ext_y);
