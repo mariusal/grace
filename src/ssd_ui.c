@@ -32,6 +32,7 @@
 #include "explorer.h"
 #include "protos.h"
 #include <Xbae/Matrix.h>
+#include <Xm/RowColumn.h>
 
 /* default cell value precision */
 #define CELL_PREC 8
@@ -232,58 +233,83 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
 
     xbe = (XButtonEvent *) e;
-    if (xbe->button != Button1) {
+
+    if (xbe->button == Button1) {
+        XbaeMatrixCommitEdit(ui->mw, True);
+
+        if (cbs->row_label) {
+            if (xbe->state & ControlMask) {
+                if (XbaeMatrixIsRowSelected(ui->mw, cbs->row)) {
+	            XbaeMatrixDeselectRow(ui->mw, cbs->row);
+	        } else {
+	            XbaeMatrixSelectRow(ui->mw, cbs->row);
+                }
+	        last_row = cbs->row;
+            } else
+            if ((xbe->state & ShiftMask) && last_row >= 0) {
+                for (i = MIN2(last_row, cbs->row); i <= MAX2(last_row, cbs->row); i++) {
+	            XbaeMatrixSelectRow(ui->mw, i);
+                }
+            } else {
+                XbaeMatrixDeselectAll(ui->mw);
+	        XbaeMatrixSelectRow(ui->mw, cbs->row);
+	        last_row = cbs->row;
+            }
+
+	    last_column = -1;
+        } else {
+	    if (xbe->state & ControlMask) {
+	        if (XbaeMatrixIsColumnSelected(ui->mw, cbs->column)) {
+	            XbaeMatrixDeselectColumn(ui->mw, cbs->column);
+	        } else {
+	            XbaeMatrixSelectColumn(ui->mw, cbs->column);
+                }
+	        last_column = cbs->column;
+            } else
+            if ((xbe->state & ShiftMask) && last_column >= 0) {
+                for (i = MIN2(last_column, cbs->column); i <= MAX2(last_column, cbs->column); i++) {
+	            XbaeMatrixSelectColumn(ui->mw, i);
+                }
+            } else {
+                XbaeMatrixDeselectAll(ui->mw);
+	        XbaeMatrixSelectColumn(ui->mw, cbs->column);
+	        last_column = cbs->column;
+            }
+
+	    last_row = -1;
+        }
+    }
+
+    if (xbe->button == Button3) {
+        int nrows, ncolumns;
+        Boolean **selectedCells;
+        XtVaGetValues(ui->mw, XmNrows, &nrows, XmNcolumns, &ncolumns,
+            XmNselectedCells, &selectedCells, NULL);
+        if (selectedCells) {
+            int i, j;
+            for (i = 0; i < nrows; i++) {
+                for (j = 0; j < ncolumns; j++) {
+                    printf("(%d %d) -> %s\n", i, j,
+                        selectedCells[i][j] ? "yes":"no");
+                }
+            }
+        }
+        XmMenuPosition(ui->popup, xbe);
+        XtManageChild(ui->popup);
         return;
     }
-    
-    XbaeMatrixCommitEdit(ui->mw, True);
-    
-    if (cbs->row_label) {
-        if (xbe->state & ControlMask) {
-            if (XbaeMatrixIsRowSelected(ui->mw, cbs->row)) {
-	        XbaeMatrixDeselectRow(ui->mw, cbs->row);
-	    } else {
-	        XbaeMatrixSelectRow(ui->mw, cbs->row);
-            }
-	    last_row = cbs->row;
-        } else
-        if ((xbe->state & ShiftMask) && last_row >= 0) {
-            for (i = MIN2(last_row, cbs->row); i <= MAX2(last_row, cbs->row); i++) {
-	        XbaeMatrixSelectRow(ui->mw, i);
-            }
-        } else {
-            XbaeMatrixDeselectAll(ui->mw);
-	    XbaeMatrixSelectRow(ui->mw, cbs->row);
-	    last_row = cbs->row;
-        }
-        
-	last_column = -1;
-    } else {
-	if (xbe->state & ControlMask) {
-	    if (XbaeMatrixIsColumnSelected(ui->mw, cbs->column)) {
-	        XbaeMatrixDeselectColumn(ui->mw, cbs->column);
-	    } else {
-	        XbaeMatrixSelectColumn(ui->mw, cbs->column);
-            }
-	    last_column = cbs->column;
-        } else
-        if ((xbe->state & ShiftMask) && last_column >= 0) {
-            for (i = MIN2(last_column, cbs->column); i <= MAX2(last_column, cbs->column); i++) {
-	        XbaeMatrixSelectColumn(ui->mw, i);
-            }
-        } else {
-            XbaeMatrixDeselectAll(ui->mw);
-	    XbaeMatrixSelectColumn(ui->mw, cbs->column);
-	    last_column = cbs->column;
-        }
+}
 
-	last_row = -1;
-    }
+static void col_delete_cb(Widget but, void *udata)
+{
+    SSDataUI *ui = (SSDataUI *) udata;
 }
 
 static char tfield_translations[] = "#override\n\
 <Key>osfCancel			:	CancelEdit(True)\n\
 <Key>osfActivate		:	EditCell(Down)\n\
+<Key>osfUp			:	EditCell(Up)\n\
+<Key>osfDown			:	EditCell(Down)\n\
 ~Shift ~Meta ~Alt <Key>Return	:   	EditCell(Down)";
 
 SSDataUI *create_ssd_ui(ExplorerUI *eui)
@@ -365,6 +391,9 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
     XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
+
+    ui->popup = XmCreatePopupMenu(ui->mw, "popupMenu", NULL, 0);
+    CreateMenuButton(ui->popup, "Delete column(s)", '\0', col_delete_cb, ui);
 
     
     /* ------------ Hotlink tab -------------- */

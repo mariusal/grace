@@ -72,6 +72,8 @@ typedef struct {
     Widget          hotlink;
     OptionStructure *hotsrc;
     Widget          hotfile;
+    
+    Widget          popup;
 
     int             cformat[MAX_SET_COLS];
     int             cprec[MAX_SET_COLS];
