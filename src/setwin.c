@@ -172,6 +172,7 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
     if (tui.top == NULL) {
         char *rowlabels[MAX_SET_COLS];
         char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
+        short column_widths[6] = {10, 6, 10, 6, 10, 10};
         unsigned char column_alignments[6] = {
                                                 XmALIGNMENT_CENTER,
                                                 XmALIGNMENT_CENTER,
@@ -245,7 +246,7 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
 	tui.length_item = CreateTextItem2(rc, 6, "Length:");
         XtManageChild(rc);
-	tui.comment_item = CreateTextItem2(dialog, 24, "Comment:");
+	tui.comment_item = CreateTextItem2(dialog, 26, "Comment:");
 
         for (i = 0; i < MAX_SET_COLS; i++) {
             rowlabels[i] = copy_string(NULL, dataset_colname(i));
@@ -262,6 +263,7 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
             XmNvisibleRows, MAX_SET_COLS,
             XmNvisibleColumns, 4,
             XmNcolumnLabels, collabels,
+            XmNcolumnWidths, column_widths,
             XmNcolumnLabelAlignments, column_alignments,
             XmNrowLabels, rowlabels,
 	    XmNrowLabelWidth, 3,
