@@ -764,16 +764,14 @@ static Widget CreateMainMenuBar(Widget parent)
 /* Window menu */
     menupane = CreateMenu(menubar, "Window", 'W', FALSE);
    
-    CreateMenuButton(menupane, "Commands...", 'C', open_command, NULL);
+    CreateMenuButton(menupane, "Commands", 'C', open_command, NULL);
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
     CreateMenuButton(menupane, "Drawing objects", 'o', define_objects_popup, NULL);
     CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
-
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
-
-    CreateMenuButton(menupane, "Results...", 'R', create_monitor_frame, NULL);
+    CreateMenuButton(menupane, "Console", 'l', create_monitor_frame, NULL);
     
 
 /* help menu */
