@@ -180,6 +180,7 @@ char *ssd_get_col_label(const Quark *q, int col)
 int ssd_set_nrows(Quark *q, unsigned int nrows)
 {
     unsigned int i, j;
+    double *dp;
     char  **sp;
     ss_data *ssd = ssd_get_data(q);
     
@@ -201,11 +202,15 @@ int ssd_set_nrows(Quark *q, unsigned int nrows)
             }
             col->data = amem_realloc(q->amem, col->data, nrows*SIZEOF_VOID_P);
             sp = (char **) col->data;
-            for (j = ssd->nrows; j < nrows; j++) {
-                sp[j] = NULL;
+            if (nrows > ssd->nrows) {
+                memset(sp + ssd->nrows, 0, (nrows - ssd->nrows)*SIZEOF_VOID_P);
             }
         } else {
             col->data = amem_realloc(q->amem, col->data, nrows*SIZEOF_DOUBLE);
+            dp = (double *) col->data;
+            if (nrows > ssd->nrows) {
+                memset(dp + ssd->nrows, 0, (nrows - ssd->nrows)*SIZEOF_DOUBLE);
+            }
         }
     }
     ssd->nrows = nrows;
