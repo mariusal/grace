@@ -217,7 +217,7 @@ dnl **** Checks for programs.
 AC_PROG_INSTALL
 case "x$INSTALL" in
    x/*) ;;
-   *) INSTALL=`pwd`/ac-tools/"shtool install" ;
+   *) INSTALL=`pwd`/ac-tools/"shtool install -c" ;
 esac
 
 MKINSTALLDIRS=`pwd`/ac-tools/"shtool mkdir -p -f"
