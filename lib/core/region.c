@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2003 Grace Development Team
+ * Copyright (c) 2003,2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -91,6 +91,8 @@ region *region_data_copy(region *r)
     memcpy(r_new, r, sizeof(region));
 
     /* duplicate allocatable storage */
+    r_new->wps = xmalloc(r->n*sizeof(WPoint));
+    memcpy(r_new->wps, r->wps, r->n*sizeof(WPoint));
     
     return r_new;
 }
