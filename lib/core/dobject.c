@@ -49,9 +49,6 @@ static int object_odata_size(OType type)
     case DO_ARC:
         size = sizeof(DOArcData);
         break;
-    case DO_STRING:
-        size = sizeof(DOStringData);
-        break;
     default:
         size = 0;
     }
@@ -102,11 +99,6 @@ static int object_set_data(DObject *o, void *odata)
 
     memcpy(o->odata, (void *) odata, size);
     
-    if (o->type == DO_STRING) {
-        ((DOStringData *) (o->odata))->s =
-            copy_string(NULL, ((DOStringData *) odata)->s);
-    }
-    
     return RETURN_SUCCESS;
 }
 
@@ -143,10 +135,6 @@ DObject *object_data_copy(DObject *osrc)
 void object_data_free(DObject *o)
 {
     if (o) {
-        if (o->type == DO_STRING) {
-            DOStringData *s = (DOStringData *) o->odata;
-            xfree(s->s);
-        }
         xfree(o->odata);
         xfree(o);
     }
@@ -172,7 +160,8 @@ void *object_odata_new(OType type)
     case DO_LINE:
         {
             DOLineData *l = (DOLineData *) odata;
-            l->length    = 0.0;
+            l->width  = 0.0;
+            l->height = 0.0;
             l->arrow_end = 0; 
             set_default_arrow(&l->arrow);
         }
@@ -192,18 +181,6 @@ void *object_odata_new(OType type)
             e->angle1 =   0.0;
             e->angle2 = 360.0;
             e->fillmode = ARCFILL_CHORD;
-        }
-        break;
-    case DO_STRING:
-        {
-            DOStringData *s = (DOStringData *) odata;
-            s->s    = NULL;
-            s->font = 0;
-            s->just = 0;
-            s->size = 1.0;
-            s->line.width       = 1.0;
-            s->line.pen.color   = 1;
-            s->line.pen.pattern = 1;
         }
         break;
     case DO_NONE:

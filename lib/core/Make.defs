@@ -8,19 +8,21 @@ LIB  = $(GRACE_CORE_LIB)
 SRCS = 	quark.c \
 	project.c \
 	frame.c \
-	axis.c \
+	graph.c \
 	set.c \
+	axis.c \
 	region.c \
 	dobject.c \
-	graph.c \
+	atext.c \
 	ctrans.c
 
 OBJS = 	quark$(O) \
 	project$(O) \
 	frame$(O) \
-	axis$(O) \
+	graph$(O) \
 	set$(O) \
+	axis$(O) \
 	region$(O) \
 	dobject$(O) \
-	graph$(O) \
+	atext$(O) \
 	ctrans$(O)

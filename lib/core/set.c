@@ -264,13 +264,13 @@ static void set_default_set(Quark *pset)
     set *p = set_get_data(pset);
     Quark *gr = get_parent_graph(pset);
     Project *pr = project_get_data(get_parent_project(pset));
-    defaults grdefaults;
+    defaults grdefs;
     
     if (!p || !gr || !pr) {
         return;
     }
     
-    grdefaults = pr->grdefaults;
+    grdefs = pr->grdefaults;
     
     p->active = TRUE;
     p->type = SET_XY;                            /* dataset type */
@@ -278,32 +278,29 @@ static void set_default_set(Quark *pset)
     p->symskip = 0;                              /* How many symbols to skip */
 
     p->sym.type = 0;                             /* set plot symbol */
-    p->sym.size = grdefaults.charsize;           /* size of symbols */
-    p->sym.line = grdefaults.line;
-    p->sym.fillpen = grdefaults.fillpen;
+    p->sym.size = grdefs.charsize;           /* size of symbols */
+    p->sym.line = grdefs.line;
+    p->sym.fillpen = grdefs.fillpen;
     p->sym.symchar = 'A';
-    p->sym.charfont = grdefaults.font;
+    p->sym.charfont = grdefs.font;
 
     p->avalue.active = FALSE;                    /* active or not */
     p->avalue.type = AVALUE_TYPE_Y;              /* type */
-    p->avalue.size = 1.0;                        /* char size */
-    p->avalue.font = grdefaults.font;            /* font */
-    p->avalue.color = grdefaults.line.pen.color; /* color */
-    p->avalue.angle = 0;                         /* rotation angle */
+
+    set_default_textprops(&p->avalue.tprops, &grdefs);
+    
     if (graph_get_type(gr) == GRAPH_PIE) {
-        p->avalue.just  = JUST_CENTER|JUST_MIDDLE;
+        p->avalue.tprops.just = JUST_CENTER|JUST_MIDDLE;
     } else {
-        p->avalue.just  = JUST_CENTER|JUST_BOTTOM;
+        p->avalue.tprops.just = JUST_CENTER|JUST_BOTTOM;
     }
     p->avalue.format = FORMAT_GENERAL;           /* format */
     p->avalue.prec = 3;                          /* precision */
     p->avalue.prestr[0] = '\0';
     p->avalue.appstr[0] = '\0';
-    p->avalue.offset.x = 0.0;
-    p->avalue.offset.y = 0.0;
 
     p->line.type = LINE_TYPE_STRAIGHT;
-    p->line.line = grdefaults.line;
+    p->line.line = grdefs.line;
     
     p->line.baseline_type = BASELINE_TYPE_0;
     p->line.baseline = FALSE;
@@ -311,16 +308,16 @@ static void set_default_set(Quark *pset)
 
     p->line.filltype = SETFILL_NONE;              /* fill type */
     p->line.fillrule = FILLRULE_WINDING;          /* fill rule */
-    p->line.fillpen = grdefaults.fillpen;
+    p->line.fillpen = grdefs.fillpen;
 
     p->errbar.active = TRUE;                      /* on by default */
     p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
-    p->errbar.pen = grdefaults.line.pen;
-    p->errbar.lines = grdefaults.line.style;      /* error bar line width */
-    p->errbar.linew = grdefaults.line.width;      /* error bar line style */
-    p->errbar.riser_linew = grdefaults.line.width;/* riser line width */
-    p->errbar.riser_lines = grdefaults.line.style;/* riser line style */
-    p->errbar.barsize = grdefaults.charsize;      /* size of error bar */
+    p->errbar.pen = grdefs.line.pen;
+    p->errbar.lines = grdefs.line.style;      /* error bar line width */
+    p->errbar.linew = grdefs.line.width;      /* error bar line style */
+    p->errbar.riser_linew = grdefs.line.width;/* riser line width */
+    p->errbar.riser_lines = grdefs.line.style;/* riser line style */
+    p->errbar.barsize = grdefs.charsize;      /* size of error bar */
     p->errbar.arrow_clip = FALSE;                 /* draw arrows if clipped */
     p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
 

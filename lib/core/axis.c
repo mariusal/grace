@@ -35,23 +35,6 @@
 
 #include "grace/core.h"
 
-static void set_default_string(plotstr * s)
-{
-    s->active = FALSE;
-    s->offset.x = s->offset.y = 0.0;
-    s->color = 1;
-    s->angle = 0.0;
-    s->font = 0;
-    s->just = JUST_LEFT|JUST_BLINE;
-    s->charsize = 1.0;
-    s->s = NULL;
-}
-
-void set_plotstr_string(plotstr *pstr, char *s)
-{
-    pstr->s = copy_string(pstr->s, s);
-}
-
 static void set_default_ticks(Quark *q)
 {
     int i;
@@ -72,9 +55,11 @@ static void set_default_ticks(Quark *q)
     t->tl_flag = TRUE;
     t->t_flag = TRUE;
     
-    set_default_string(&t->label);
-    t->label.offset.x = 0.0;
-    t->label.offset.y = 0.08;
+    set_default_textprops(&t->label_tprops, &grdefaults);
+    t->label_active = TRUE;
+    t->label = NULL;
+    t->label_offset.x = 0.0;
+    t->label_offset.y = 0.08;
     
     t->tmajor = 0.5;
     t->nminor = 1;
@@ -87,7 +72,11 @@ static void set_default_ticks(Quark *q)
     t->tl_format = FORMAT_GENERAL;
     t->tl_prec = 5;
     t->tl_formula = NULL;
-    t->tl_angle = 0;
+
+    set_default_textprops(&t->tl_tprops, &grdefaults);
+    t->tl_gap.x = 0.0;
+    t->tl_gap.y = 0.01;
+
     t->tl_skip = 0;
     t->tl_staggered = 0;
     t->tl_starttype = TYPE_AUTO;
@@ -96,11 +85,6 @@ static void set_default_ticks(Quark *q)
     t->tl_stop = 0.0;
     t->tl_op = PLACEMENT_NORMAL;
     t->tl_gaptype = TYPE_AUTO;
-    t->tl_gap.x = 0.0;
-    t->tl_gap.y = 0.01;
-    t->tl_font = grdefaults.font;
-    t->tl_charsize = 1.0;
-    t->tl_color = grdefaults.line.pen.color;
     t->tl_appstr[0] = 0;
     t->tl_prestr[0] = 0;
     t->t_spec = TICKS_SPEC_NONE;
@@ -160,7 +144,7 @@ tickmarks *axis_data_copy(tickmarks *t)
         retval = axis_data_new();
         if (retval != NULL) {
             memcpy(retval, t, sizeof(tickmarks));
-	    retval->label.s = copy_string(NULL, t->label.s);
+	    retval->label = copy_string(NULL, t->label);
 	    retval->tl_formula = copy_string(NULL, t->tl_formula);
             for (i = 0; i < MAX_TICKS; i++) {
                 retval->tloc[i].label = copy_string(NULL, t->tloc[i].label);
@@ -175,7 +159,7 @@ void axis_data_free(tickmarks *t)
     if (t) {
         int i;
 
-        xfree(t->label.s);
+        xfree(t->label);
         xfree(t->tl_formula);
         
         for (i = 0; i < MAX_TICKS; i++) {

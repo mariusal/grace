@@ -205,9 +205,10 @@ enum {
     QFlavorFrame,
     QFlavorGraph,
     QFlavorSet,
-    QFlavorDObject,
     QFlavorAxis,
     QFlavorRegion,
+    QFlavorDObject,
+    QFlavorAText,
     QFlavorContainer
 };
 
@@ -447,16 +448,12 @@ typedef struct {
 } tickprops;
 
 typedef struct {
-    int active;
-    VPoint offset;
     int color;
     double angle;
     int font;
     int just;
     double charsize;
-    char *s;
-    view bb;
-} plotstr;
+} TextProps;
 
 typedef struct {
     int active;                 /* active or not */
@@ -464,10 +461,13 @@ typedef struct {
     int type;                   /* X or Y */
     int zero;                   /* "zero" axis or plain */
 
-    plotstr label;              /* graph axis label */
+    int label_active;
+    char *label;
+    VVector label_offset;       /* axis label offset */
+    TextProps label_tprops;     /* axis label text properties */
     int label_layout;           /* axis label orientation (h or v) */
     int label_place;            /* axis label placement (specfied or auto) */
-    PlacementType label_op;     /* tick labels on opposite side or both */
+    PlacementType label_op;     /* axis labels on opposite side or both */
 
     int t_drawbar;              /* draw a bar connecting tick marks */
     int t_drawbarcolor;         /* color of bar */
@@ -499,10 +499,15 @@ typedef struct {
     tickprops mprops;
 
     int tl_flag;                /* toggle ticmark labels on or off */
-    int tl_angle;               /* angle to draw labels */
+    VVector tl_gap;             /* tick label to tickmark distance
+				   (parallel and perpendicular to axis) */
+    TextProps tl_tprops;        /* tick label text properties */
 
     int tl_format;              /* tickmark label format */
     int tl_prec;                /* places to right of decimal point */
+
+    char tl_appstr[64];         /* append string to tick label */
+    char tl_prestr[64];         /* prepend string to tick label */
 
     char *tl_formula;           /* transformation formula */
 
@@ -516,16 +521,6 @@ typedef struct {
     PlacementType tl_op;        /* tick labels on opposite side or both */
 
     int tl_gaptype;             /* tick label placement auto or specified */
-    VVector tl_gap;             /* tick label to tickmark distance
-				   (parallel and perpendicular to axis) */
-
-    int tl_font;                /* font to use for tick labels */
-    double tl_charsize;         /* character size for tick labels */
-    int tl_color;               /* color of tick labels */
-
-    char tl_appstr[64];         /* append string to tick label */
-    char tl_prestr[64];         /* prepend string to tick label */
-
 } tickmarks;
 
 
@@ -632,21 +627,15 @@ typedef struct {
 typedef struct {
     int active;                 /* active or not */
 
+    TextProps tprops;
+    VVector   offset;           /* offset */
+    
     int type;                   /* type */
-
-    int color;                  /* color */
-    int font;                   /* font */
-    double size;                /* char size */
-    int just;                   /* justification */
-    int angle;                  /* angle */
-
     int format;                 /* format */
     int prec;                   /* precision */
 
     char prestr[64];            /* prepend string */
     char appstr[64];            /* append string */
-
-    VPoint offset;              /* offset related to symbol position */
 } AValue;
 
 typedef struct {
@@ -703,8 +692,7 @@ typedef enum {
     DO_NONE,
     DO_LINE,
     DO_BOX,
-    DO_ARC,
-    DO_STRING
+    DO_ARC
 } OType;
 
 typedef struct _DObject {
@@ -732,7 +720,8 @@ typedef struct {
 } Arrow;
 
 typedef struct _DOLineData {
-    double length;
+    double width;
+    double height;
     int arrow_end;
     Arrow arrow;
 } DOLineData;
@@ -752,19 +741,22 @@ typedef struct _DOArcData {
     int fillmode;
 } DOArcData;
 
-typedef struct _DOStringData {
-    char *s;
-    int font;
-    double size;
-    int just;
+typedef struct _AText {
+    int active;
+
+    APoint ap;
+    VVector offset;
     
+    char *s;
+    TextProps text_props;
+
     int frame_decor;
     double frame_offset;
     Line line;
     Pen fillpen;
     int arrow_flag;
     Arrow arrow;
-} DOStringData;
+} AText;
 
 
 QuarkFactory *qfactory_new(void);
@@ -909,8 +901,6 @@ int axis_is_x(const Quark *q);
 int axis_is_y(const Quark *q);
 void axis_autotick(Quark *q);
 
-void set_plotstr_string(plotstr *pstr, char *s);
-
 /* Set */
 double *copy_data_column(double *src, int nrows);
 char **copy_string_column(char **src, int nrows);
@@ -1010,6 +1000,25 @@ int object_set_location(Quark *q, const APoint *ap);
 
 int object_get_bb(DObject *o, view *bb);
 
+/* AText */
+TextProps *textprops_new(void);
+void set_default_textprops(TextProps *pstr, const defaults *grdefs);
+
+AText *atext_data_new(void);
+void atext_data_free(AText *at);
+AText *atext_data_copy(AText *at);
+Quark *atext_new(Quark *q);
+AText *atext_get_data(const Quark *q);
+int atext_set_active(Quark *q, int flag);
+int atext_set_string(Quark *q, const char *s);
+int atext_set_ap(Quark *q, const APoint *ap);
+int atext_set_offset(Quark *q, const VPoint *offset);
+int atext_set_tprops(Quark *q, const TextProps *tprops);
+int atext_set_font(Quark *q, int font);
+int atext_set_char_size(Quark *q, double size);
+int atext_set_color(Quark *q, int color);
+int atext_set_just(Quark *q, int just);
+int atext_set_angle(Quark *q, double angle);
 
 /* co-ordinate transformation stuff */
 int polar2xy(double phi, double rho, double *x, double *y);
