@@ -60,7 +60,6 @@
 extern Widget loclab;
 extern Widget arealab;
 extern Widget perimlab;
-extern Widget locate_point_item;
 
 int cursortype = 0;
 
@@ -374,9 +373,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 if (find_point(cg, vp, &track_setno, &track_loc) == GRACE_EXIT_SUCCESS) {
                     anchor_point(x, y, vp);
                     get_point(cg, track_setno, track_loc, &wp);
-                    sprintf(buf, "G%d.S%d, loc %d, (%f, %f)",
-                        cg, track_setno, track_loc, wp.x, wp.y);
-		    xv_setstr(locate_point_item, buf);
+                    update_point_locator(cg, track_setno, track_loc);
+
 	            select_line(anchor_x, anchor_y, x, y, 0);
 		    set_action(MOVE_POINT2ND);
                 }
@@ -400,10 +398,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 
                     set_point(cg, track_setno, track_loc, wp);
                     
-                    sprintf(buf, "G%d.S%d, loc %d, (%f, %f)",
-                        cg, track_setno, track_loc, wp.x, wp.y);
-		    xv_setstr(locate_point_item, buf);
-		    update_set_lists(cg);
+                    update_point_locator(cg, track_setno, track_loc);
                     xdrawgraph();
 		    set_action(MOVE_POINT1ST);
                 }
@@ -515,7 +510,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     track_gno = cg;
                     track_point(cg, track_setno, &track_loc, 0);
                 } else {
-                    xv_setstr(locate_point_item, "");
+                    update_point_locator(-1, -1, -1);
                     track_gno = -1;
                 }
                 break;
@@ -801,7 +796,6 @@ void track_point(int gno, int setno, int *loc, int shift)
 {
     int len;
     double *xtmp, *ytmp;
-    char buf[100];
     WPoint wp;
     VPoint vp;
     
@@ -820,8 +814,7 @@ void track_point(int gno, int setno, int *loc, int shift)
         vp = Wpoint2Vpoint(wp);
         setpointer(vp);
 
-        sprintf(buf, "G%d.S%d, loc %d, (%f, %f)", gno, setno, *loc, wp.x, wp.y);
-        xv_setstr(locate_point_item, buf);
+        update_point_locator(gno, setno, *loc);
     }
 }
 
