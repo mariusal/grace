@@ -136,6 +136,16 @@ static void rdata_proc(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
+static void read_nxy_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    if (GetToggleButtonState(read_nxy_item) == TRUE) {
+        SetOptionChoice(read_ftype_item, SET_XY);
+        XtSetSensitive(read_ftype_item->rc, False);
+    } else {
+        XtSetSensitive(read_ftype_item->rc, True);
+    }
+}
+
 void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 {
     int i;
@@ -161,6 +171,8 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	read_ftype_item = CreateSetTypeChoice(rc2, "Set type:");
 	read_nxy_item = CreateToggleButton(rc2, "NXY");
+        XtAddCallback(read_nxy_item, XmNvalueChangedCallback,
+                                (XtCallbackProc) read_nxy_proc, NULL);
 
 	XtManageChild(rc2);
 	XtManageChild(fr);

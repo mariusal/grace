@@ -76,7 +76,7 @@ static Widget stitle_size_item;
 
 static Widget graph_flipxy_item;
 
-static Widget bargap_item;
+static SpinStructure *bargap_item;
 
 static Widget *frame_framestyle_choice_item;
 static OptionStructure *frame_color_choice_item;
@@ -183,7 +183,8 @@ void create_graphapp_frame(int gno)
         rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
 	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
 	stacked_item = CreateToggleButton(rc1, "Stacked chart");
-        bargap_item = CreateTextItem2(rc1, 4, "Inter-bar gap:");
+        bargap_item = CreateSpinChoice(rc1, "Bar gap:", 5,
+            SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
         XtManageChild(rc1);
         
         XtManageChild(rc);
@@ -425,7 +426,7 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
     graphtype = GetChoice(graph_type_choice_item);
     stacked = GetToggleButtonState(stacked_item);
 
-    xv_evalexpr(bargap_item, &bargap);
+    bargap = GetSpinChoice(bargap_item);
     
 /*
  *     flipxy = GetToggleButtonState(graph_flipxy_item);
@@ -508,7 +509,6 @@ void update_graphapp_items(Widget list, XtPointer client_data,
     int n, *values;
     int gno;
     labels labs;
-    char val[24];
     
     listp = (ListStructure *) client_data;
     if (listp == NULL) {
@@ -541,16 +541,9 @@ void update_graphapp_items(Widget list, XtPointer client_data,
             
         SetChoice(graph_type_choice_item, get_graph_type(gno));
 
-        sprintf(val, "%g", get_graph_bargap(gno));
-        xv_setstr(bargap_item, val);
+        SetSpinChoice(bargap_item, get_graph_bargap(gno));
 
-        if (get_graph_type(gno) != GRAPH_CHART) {
-            SetToggleButtonState(stacked_item, FALSE);
-            XtSetSensitive(stacked_item, False);
-        } else {
-            SetToggleButtonState(stacked_item, is_graph_stacked(gno));
-            XtSetSensitive(stacked_item, True);
-        }
+        SetToggleButtonState(stacked_item, is_graph_stacked(gno));
 
         SetCSTextString(label_title_text_item, labs.title.s);
         SetCSTextString(label_subtitle_text_item, labs.stitle.s);
