@@ -2912,8 +2912,11 @@ actions:
 	| FLUSH {
             wipeout();
         }
-	| ARRANGE nexpr ',' nexpr {
-            arrange_graphs_simple($2, $4);
+	| ARRANGE nexpr ',' nexpr ',' expr ',' expr ',' expr ',' onoff ',' onoff ',' onoff {
+            int order = ($12 && GA_ORDER_HV_INV) |
+                        ($14 && GA_ORDER_H_INV ) |
+                        ($16 && GA_ORDER_V_INV );
+            arrange_graphs_simple($2, $4, order, $6, $8, $10);
         }
 	| NONLFIT '(' selectset ',' nexpr ')' {
 	    gotnlfit = TRUE;
