@@ -49,6 +49,7 @@
 #define STORAGE_ETYPE_FATAL 4
 
 typedef void (*Storage_data_free)(void *data); 
+typedef void *(*Storage_data_copy)(void *data); 
 typedef void (*Storage_exception_handler)(int type, const char *msg); 
 
 typedef struct _LLNode {
@@ -65,11 +66,12 @@ typedef struct _Storage {
     int *ids;
     int ierrno;
     Storage_data_free data_free;
+    Storage_data_copy data_copy;
     Storage_exception_handler exception_handler;
 } Storage;
 
 
-Storage *storage_new(Storage_data_free data_free,
+Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
                      Storage_exception_handler exception_handler);
 void storage_free(Storage *sto);
 
@@ -89,6 +91,8 @@ int storage_id_exists(Storage *sto, int id);
 int storage_add(Storage *sto, int id, void *data);
 int storage_insert(Storage *sto, int id, void *data);
 int storage_delete(Storage *sto);
+
+int storage_duplicate(Storage *sto, int id);
 
 int storage_get_id(Storage *sto, int *id);
 

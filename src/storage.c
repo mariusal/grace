@@ -61,6 +61,11 @@ static void _data_free(void *data)
 {
 }
 
+static void *_data_copy(void *data)
+{
+    return data;
+}
+
 static void _exception_handler(int type, const char *msg)
 {
     const char *s;
@@ -87,7 +92,7 @@ static void _exception_handler(int type, const char *msg)
     }
 }
 
-Storage *storage_new(Storage_data_free data_free,
+Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
                      Storage_exception_handler exception_handler)
 {
     Storage *sto;
@@ -106,6 +111,11 @@ Storage *storage_new(Storage_data_free data_free,
         sto->data_free = _data_free;
     } else {
         sto->data_free = data_free;
+    }
+    if (data_copy == NULL) {
+        sto->data_copy = _data_copy;
+    } else {
+        sto->data_copy = data_copy;
     }
     if (exception_handler == NULL) {
         sto->exception_handler = _exception_handler;
@@ -459,6 +469,36 @@ int storage_get_unique_id(Storage *sto)
     }
 }
 
+int storage_duplicate(Storage *sto, int id)
+{
+    int id_new;
+    void *data, *data_new;
+    
+    if (storage_get_data_by_id(sto, id, &data) != RETURN_SUCCESS) {
+        return -1;
+    } else {
+        data_new = sto->data_copy(data);
+        if (data && !data_new) {
+            sto->ierrno = STORAGE_ENOMEM;
+            return -1;
+        } else {
+            id_new = storage_get_unique_id(sto);
+            if (id_new < 0) {
+                sto->data_free(data_new);
+                return -1;
+            } else {
+                storage_eod(sto);
+                if (storage_add(sto, id_new, data_new) != RETURN_SUCCESS) {
+                    sto->data_free(data_new);
+                    return -1;
+                } else {
+                    return id_new;
+                }
+            }
+        }
+    }
+}
+
 /**** convenience functions ****/
 int storage_get_data_next(Storage *sto, void **datap)
 {
@@ -496,7 +536,7 @@ int main(void)
     Storage *sto;
     int i, j;
     
-    sto = storage_new(NULL, NULL);
+    sto = storage_new(NULL, NULL, NULL);
     for (i = 0; i < TEST_LEN/2; i++) {
         storage_add(sto, i, (void *) i);
     }
