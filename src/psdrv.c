@@ -978,7 +978,7 @@ void ps_gui_setup(void)
 	ManageChild(ps_setup_rc);
 	ManageChild(ps_setup_panel);
     }
-    XtRaise(ps_setup_frame);
+    RaiseWindow(ps_setup_frame);
     update_ps_setup_frame();
     unset_wait_cursor();
 }
@@ -1050,7 +1050,7 @@ void eps_gui_setup(void)
 	ManageChild(eps_setup_rc);
 	ManageChild(eps_setup_panel);
     }
-    XtRaise(eps_setup_frame);
+    RaiseWindow(eps_setup_frame);
     update_eps_setup_frame();
     unset_wait_cursor();
 }

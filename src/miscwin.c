@@ -197,7 +197,7 @@ void create_props_frame(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(props_frame);
+    RaiseWindow(props_frame);
     update_props_items();
     unset_wait_cursor();
 }

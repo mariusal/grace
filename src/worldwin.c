@@ -236,7 +236,7 @@ void create_arrange_frame(void *data)
 /*
  *     update_arrange();
  */
-    XtRaise(arrange_frame);
+    RaiseWindow(arrange_frame);
     unset_wait_cursor();
 }
 
@@ -309,7 +309,7 @@ void create_overlay_frame(void *data)
 	ManageChild(overlay_panel);
     }
 
-    XtRaise(overlay_frame);
+    RaiseWindow(overlay_frame);
     unset_wait_cursor();
 }
 
@@ -387,7 +387,7 @@ void create_autos_frame(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(aui.top);
+    RaiseWindow(aui.top);
     unset_wait_cursor();
 }
 

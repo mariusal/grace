@@ -253,7 +253,7 @@ void create_hotlinks_popup(void *data)
 	ManageChild(dialog);
 	hotlink_frame = top;
     }
-    XtRaise(top);
+    RaiseWindow(top);
     update_hotlinks();
     unset_wait_cursor();
 }
@@ -285,7 +285,7 @@ void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
         ManageChild(fsb->FSB);
     }
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }

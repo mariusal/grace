@@ -131,7 +131,7 @@ void create_define_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(top);
+    RaiseWindow(top);
     unset_wait_cursor();
 }
 
@@ -180,7 +180,7 @@ void create_clear_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(top);
+    RaiseWindow(top);
     unset_wait_cursor();
 }
 
@@ -221,7 +221,7 @@ void create_area_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(top);
+    RaiseWindow(top);
     unset_wait_cursor();
 }
 
@@ -271,7 +271,7 @@ void create_reporton_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(top);
+    RaiseWindow(top);
     unset_wait_cursor();
 }
 
@@ -377,7 +377,7 @@ void define_status_popup(void *data)
 	ManageChild(status_panel);
 
     }
-    XtRaise(status_frame);
+    RaiseWindow(status_frame);
     update_status_popup(NULL, NULL, NULL);
     unset_wait_cursor();
 }

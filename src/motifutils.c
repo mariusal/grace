@@ -3190,7 +3190,7 @@ void handle_close(Widget w)
 /*
  * Manage and raise
  */
-void XtRaise(Widget w)
+void RaiseWindow(Widget w)
 {
     XtManageChild(w);
     XMapRaised(XtDisplay(w), XtWindow(w));
@@ -3713,7 +3713,7 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 	XtAddCallback(yesno_popup, XmNcancelCallback, yesnoCB, NULL);
     }
     update_yesno(yesno_popup, msg, help_anchor);
-    XtRaise(yesno_popup);
+    RaiseWindow(yesno_popup);
     
     XtAddGrab(XtParent(yesno_popup), True, False);
     while (keep_grab || XtAppPending(app_con)) {
@@ -3777,7 +3777,7 @@ void errwin(char *s)
         XtVaSetValues(error_popup, XmNmessageString, str, NULL);
 	XmStringFree(str);
     }
-    XtRaise(error_popup);
+    RaiseWindow(error_popup);
 }
 
 Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb)

@@ -393,13 +393,13 @@ void create_graphapp_frame(int gno)
 #ifdef HAVE_LESSTIF
         /* a kludge against Lesstif geometry calculation bug */
         SelectTabPage(graphapp_tab, graphapp_legendbox);
-        XtRaise(graphapp_dialog);
+        RaiseWindow(graphapp_dialog);
         SelectTabPage(graphapp_tab, graphapp_main);
 #endif
     }
     
     SelectListChoice(graph_selector, gno);
-    XtRaise(graphapp_dialog);
+    RaiseWindow(graphapp_dialog);
     unset_wait_cursor();
 }
 

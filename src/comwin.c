@@ -336,7 +336,7 @@ void open_command(void *data)
 	XtOverrideTranslations(XmCommandGetChild(command, XmDIALOG_COMMAND_TEXT),
 	    XtParseTranslationTable(comwin_table));
     }
-    XtRaise(comshell);
+    RaiseWindow(comshell);
     unset_wait_cursor();
 }
 
@@ -385,7 +385,7 @@ void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data)
         ManageChild(fsb->FSB);
     }
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }
@@ -423,7 +423,7 @@ void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		      (XtCallbackProc) destroy_dialog, (XtPointer) whist_frame);
 	ManageChild(whist_panel);
     }
-    XtRaise(whist_frame);
+    RaiseWindow(whist_frame);
     unset_wait_cursor();
 }
 

@@ -613,7 +613,7 @@ void create_axes_dialog(int axisno)
  
         ManageChild(axes_panel);
     }
-    XtRaise(axes_dialog);
+    RaiseWindow(axes_dialog);
     update_ticks(cg);
     unset_wait_cursor();
 }

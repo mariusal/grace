@@ -114,7 +114,7 @@ void create_monitor_frame(void *data)
 	ManageChild(mon_panel);
     }
     SetToggleButtonState(mon_log_item, logwindow);
-    XtRaise(mon_frame);
+    RaiseWindow(mon_frame);
     unset_wait_cursor();
 }
 
@@ -190,7 +190,7 @@ static void create_wmon_frame(void *data)
 
 	ManageChild(wmon_panel);
     }
-    XtRaise(wmon_frame);
+    RaiseWindow(wmon_frame);
     unset_wait_cursor();
 }
 

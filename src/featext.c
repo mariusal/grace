@@ -173,7 +173,7 @@ void create_featext_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(feui.top);
+    RaiseWindow(feui.top);
     unset_wait_cursor();
 }
 

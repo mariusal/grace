@@ -134,7 +134,7 @@ void create_eblock_frame(int gno)
 
 	ManageChild(eblock_panel);
     }
-    XtRaise(eblock_frame);
+    RaiseWindow(eblock_frame);
     update_eblock(gno);
     unset_wait_cursor();
 }

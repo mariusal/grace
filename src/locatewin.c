@@ -136,7 +136,7 @@ void create_locator_frame(void *data)
     }
     
     update_locator_items(get_cg());
-    XtRaise(GetParent(locator_frame));
+    RaiseWindow(GetParent(locator_frame));
     
     unset_wait_cursor();
 }

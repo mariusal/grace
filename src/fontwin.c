@@ -224,7 +224,7 @@ void create_fonttool(Widget cstext)
     }
     enable_edit_cb = TRUE;
     
-    XtRaise(fonttool_frame);
+    RaiseWindow(fonttool_frame);
 }
 
 static T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};

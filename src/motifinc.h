@@ -387,7 +387,7 @@ Boolean xv_evalexpr(Widget w, double *);
 Boolean xv_evalexpri(Widget w, int *);
 void xv_setstr(Widget w, char *s);
 void handle_close(Widget w);
-void XtRaise(Widget w);
+void RaiseWindow(Widget w);
 void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data);
 void destroy_dialog_cb(void *data);
 void savewidget(Widget w);

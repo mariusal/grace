@@ -313,7 +313,7 @@ void create_nonl_frame(void *data)
     }
     update_nonl_frame();
     
-    XtRaise(nonl_frame);
+    RaiseWindow(nonl_frame);
     
     unset_wait_cursor();
 }
@@ -753,7 +753,7 @@ static void create_openfit_popup(void *data)
         ManageChild(fsb->FSB);
     }
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }
@@ -787,7 +787,7 @@ static void create_savefit_popup(void *data)
     
     xv_setstr(title_item, nonl_opts.title);
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }

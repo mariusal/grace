@@ -502,7 +502,7 @@ void define_symbols_popup(void *data)
     }
     
     updatesymbols(cg, cset);
-    XtRaise(setapp_dialog);
+    RaiseWindow(setapp_dialog);
     unset_wait_cursor();
 }
 

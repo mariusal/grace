@@ -233,7 +233,7 @@ void create_points_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(points_frame);
+    RaiseWindow(points_frame);
     unset_wait_cursor();
 }
 

@@ -116,7 +116,7 @@ void create_plot_frame(void)
 
 	ManageChild(panel);
     }
-    XtRaise(plot_frame);
+    RaiseWindow(plot_frame);
     update_plot_items();
     unset_wait_cursor();
 }

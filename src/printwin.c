@@ -247,7 +247,7 @@ void create_printer_setup(void *data)
 	ManageChild(device_panel);
     }
     
-    XtRaise(psetup_frame);
+    RaiseWindow(psetup_frame);
     update_printer_setup(hdevice);
     unset_wait_cursor();
 }
@@ -621,7 +621,7 @@ void create_printfiles_popup(void *data)
     sprintf(buf, "*.%s", dev.fext);
     SetFileSelectionBoxPattern(fsb, buf);
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }

@@ -1040,7 +1040,7 @@ void png_gui_setup(void)
 	ManageChild(png_setup_rc);
 	ManageChild(png_setup_panel);
     }
-    XtRaise(png_setup_frame);
+    RaiseWindow(png_setup_frame);
     update_png_setup_frame();
     unset_wait_cursor();
 }
@@ -1104,7 +1104,7 @@ void pnm_gui_setup(void)
 	ManageChild(pnm_setup_rc);
 	ManageChild(pnm_setup_panel);
     }
-    XtRaise(pnm_setup_frame);
+    RaiseWindow(pnm_setup_frame);
     update_pnm_setup_frame();
     unset_wait_cursor();
 }
@@ -1189,7 +1189,7 @@ void jpg_gui_setup(void)
 	ManageChild(jpg_setup_rc);
 	ManageChild(jpg_setup_panel);
     }
-    XtRaise(jpg_setup_frame);
+    RaiseWindow(jpg_setup_frame);
     update_jpg_setup_frame();
     unset_wait_cursor();
 }

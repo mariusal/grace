@@ -626,7 +626,7 @@ void pdf_gui_setup(void)
 	ManageChild(pdf_setup_rc);
 	ManageChild(pdf_setup_panel);
     }
-    XtRaise(pdf_setup_frame);
+    RaiseWindow(pdf_setup_frame);
     update_pdf_setup_frame();
     unset_wait_cursor();
 }

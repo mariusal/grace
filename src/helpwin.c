@@ -203,6 +203,6 @@ void create_about_grtool(void *data)
 
 	ManageChild(about_panel);
     }
-    XtRaise(about_frame);
+    RaiseWindow(about_frame);
     unset_wait_cursor();
 }

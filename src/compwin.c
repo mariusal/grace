@@ -144,7 +144,7 @@ void create_eval_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(eui.top);
+    RaiseWindow(eui.top);
     unset_wait_cursor();
 }
 
@@ -305,7 +305,7 @@ void create_histo_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(hui.top);
+    RaiseWindow(hui.top);
     unset_wait_cursor();
 }
 
@@ -456,7 +456,7 @@ void create_fourier_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(fui.top);
+    RaiseWindow(fui.top);
     unset_wait_cursor();
 }
 
@@ -630,7 +630,7 @@ void create_run_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(rui.top);
+    RaiseWindow(rui.top);
     unset_wait_cursor();
 }
 
@@ -816,7 +816,7 @@ void create_reg_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(regui.top);
+    RaiseWindow(regui.top);
     unset_wait_cursor();
 }
 
@@ -942,7 +942,7 @@ void create_diff_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(dui.top);
+    RaiseWindow(dui.top);
     unset_wait_cursor();
 }
 
@@ -1021,7 +1021,7 @@ void create_int_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(iui.top);
+    RaiseWindow(iui.top);
     unset_wait_cursor();
 }
 
@@ -1098,7 +1098,7 @@ void create_seasonal_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(sui.top);
+    RaiseWindow(sui.top);
     unset_wait_cursor();
 }
 
@@ -1184,7 +1184,7 @@ void create_interp_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(interpui.top);
+    RaiseWindow(interpui.top);
     unset_wait_cursor();
 }
 
@@ -1256,7 +1256,7 @@ void create_xcor_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(crossui.top);
+    RaiseWindow(crossui.top);
     unset_wait_cursor();
 }
 
@@ -1337,7 +1337,7 @@ void create_spline_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(splineui.top);
+    RaiseWindow(splineui.top);
     unset_wait_cursor();
 }
 
@@ -1442,7 +1442,7 @@ void create_samp_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(sampui.top);
+    RaiseWindow(sampui.top);
     unset_wait_cursor();
 }
 
@@ -1565,7 +1565,7 @@ void create_prune_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(pruneui.top);
+    RaiseWindow(pruneui.top);
     unset_wait_cursor();
 }
 
@@ -1725,7 +1725,7 @@ void create_digf_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(digfui.top);
+    RaiseWindow(digfui.top);
     unset_wait_cursor();
 }
 
@@ -1794,7 +1794,7 @@ void create_lconv_frame(void *data)
 
 	ManageChild(dialog);
     }
-    XtRaise(lconvui.top);
+    RaiseWindow(lconvui.top);
     unset_wait_cursor();
 }
 
@@ -1912,7 +1912,7 @@ void create_geom_frame(void *data)
 	xv_setstr(gui.transx_item, "0.0");
 	xv_setstr(gui.transy_item, "0.0");
     }
-    XtRaise(gui.top);
+    RaiseWindow(gui.top);
     unset_wait_cursor();
 }
 

@@ -107,7 +107,7 @@ void create_saveproject_popup(void)
     }
     
     update_save_gui(&save_gui);
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }
@@ -143,7 +143,7 @@ void create_openproject_popup(void)
 	AddFileSelectionBoxCB(fsb, open_proc, NULL);
         ManageChild(fsb->FSB);
     }
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }
@@ -231,7 +231,7 @@ void create_file_popup(void *data)
     }
     
     
-    XtRaise(rdata_dialog->dialog);
+    RaiseWindow(rdata_dialog->dialog);
     
     unset_wait_cursor();
 }
@@ -320,7 +320,7 @@ void create_write_popup(void *data)
 
         ManageChild(fsb->FSB);
     }
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }
@@ -373,7 +373,7 @@ void create_rparams_popup(void *data)
         ManageChild(rparams_dialog->FSB);
     }
     
-    XtRaise(rparams_dialog->dialog);
+    RaiseWindow(rparams_dialog->dialog);
 
     unset_wait_cursor();
 }
@@ -414,7 +414,7 @@ void create_wparam_frame(void *data)
         ManageChild(fsb->FSB);
     }
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }
@@ -650,7 +650,7 @@ void create_netcdfs_popup(void *data)
 	}
     }
     update_netcdfs();
-    XtRaise(top);
+    RaiseWindow(top);
     unset_wait_cursor();
 }
 
@@ -674,7 +674,7 @@ void create_netcdffiles_popup(Widget w, XtPointer client_data, XtPointer call_da
         ManageChild(fsb->FSB);
     }
     
-    XtRaise(fsb->dialog);
+    RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
 }

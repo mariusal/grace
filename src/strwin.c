@@ -278,7 +278,7 @@ void define_objects_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(objects_frame);
+    RaiseWindow(objects_frame);
     unset_wait_cursor();
 }
 
@@ -325,7 +325,7 @@ static void define_ellip_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(ellip_frame);
+    RaiseWindow(ellip_frame);
     update_ellip();
     unset_wait_cursor();
 }
@@ -375,7 +375,7 @@ static void define_strings_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(strings_frame);
+    RaiseWindow(strings_frame);
     updatestrings();
     unset_wait_cursor();
 }
@@ -447,7 +447,7 @@ static void define_lines_popup(void *data)
 	ManageChild(panel);
     }
     update_lines();
-    XtRaise(lines_frame);
+    RaiseWindow(lines_frame);
     unset_wait_cursor();
 }
 
@@ -494,7 +494,7 @@ static void define_boxes_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(boxes_frame);
+    RaiseWindow(boxes_frame);
     update_boxes();
     unset_wait_cursor();
 }
@@ -719,7 +719,7 @@ void box_edit_popup(int boxno)
     }
     box_ui.boxno = boxno;
     update_box_edit(&box_ui);
-   	XtRaise(box_ui.top);
+   	RaiseWindow(box_ui.top);
     unset_wait_cursor();
 }
 
@@ -779,7 +779,7 @@ void ellipse_edit_popup(int boxno)
     }
     ellip_ui.boxno = boxno;
     update_ellipse_edit(&ellip_ui);
-    XtRaise(ellip_ui.top);
+    RaiseWindow(ellip_ui.top);
     unset_wait_cursor();
 }
 
@@ -955,7 +955,7 @@ void line_edit_popup(int lineno)
 
 	ManageChild(panel);
     }
-    XtRaise(line_ui.top);
+    RaiseWindow(line_ui.top);
     line_ui.lineno = lineno;
     update_line_edit(&line_ui);
     unset_wait_cursor();
@@ -1094,7 +1094,7 @@ void string_edit_popup(int stringno)
 
 	ManageChild(panel);
     }
-    XtRaise(string_ui.top);
+    RaiseWindow(string_ui.top);
     string_ui.stringno = stringno;
     update_string_edit(&string_ui);
     unset_wait_cursor();

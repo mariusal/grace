@@ -291,7 +291,7 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
     XtAddCallback(but1[0], XmNactivateCallback,
     	    (XtCallbackProc) do_accept_props, (XtPointer) ep);
     update_props(ep);
-    XtRaise(top);
+    RaiseWindow(top);
     unset_wait_cursor();
 }
 
@@ -433,7 +433,7 @@ void create_ss_frame(int gno, int setno)
     
     ep = get_ep(gno, setno);
     if (ep != NULL) {
-        XtRaise(ep->top);
+        RaiseWindow(ep->top);
         return;
     }
     
@@ -517,7 +517,7 @@ void create_ss_frame(int gno, int setno)
     	    (XtPointer) ep);
 
     ManageChild(dialog);
-    XtRaise(ep->top);
+    RaiseWindow(ep->top);
     unset_wait_cursor();
 }
 

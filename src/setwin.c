@@ -220,7 +220,7 @@ void create_datasetprop_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(tui.top);
+    RaiseWindow(tui.top);
     unset_wait_cursor();
 }
 
@@ -497,7 +497,7 @@ void create_datasetop_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(datasetopui.top);
+    RaiseWindow(datasetopui.top);
     unset_wait_cursor();
 }
 
@@ -642,7 +642,7 @@ void create_setop_popup(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(setopui.top);
+    RaiseWindow(setopui.top);
     unset_wait_cursor();
 }
 
@@ -880,7 +880,7 @@ void create_leval_frame(void *data)
 
 	ManageChild(panel);
     }
-    XtRaise(levalui.top);
+    RaiseWindow(levalui.top);
     unset_wait_cursor();
 }
 
