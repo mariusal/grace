@@ -95,6 +95,7 @@
 #define DEVICE_TERM	0
 #define DEVICE_FILE	1
 #define DEVICE_PRINT	2
+#define DEVICE_AUX	3
 
 /* Page orientation */
 #define PAGE_ORIENT_LANDSCAPE  0
@@ -524,6 +525,8 @@ int parse_device_options(Canvas *canvas, unsigned int dindex, char *options);
 int number_of_devices(const Canvas *canvas);
 
 int terminal_device(const Canvas *canvas);
+int device_is_aux(const Canvas *canvas, unsigned int dindex);
+int device_set_aux(const Canvas *canvas, unsigned int dindex);
 
 PageFormat get_page_format(const Canvas *canvas, int device);
 

@@ -298,6 +298,27 @@ int terminal_device(const Canvas *canvas)
     }
 }
 
+int device_is_aux(const Canvas *canvas, unsigned int dindex)
+{
+    Device_entry *dev = get_device_props(canvas, dindex);
+    if (dev && dev->type == DEVICE_AUX) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int device_set_aux(const Canvas *canvas, unsigned int dindex)
+{
+    Device_entry *dev = get_device_props(canvas, dindex);
+    if (dev) {
+        dev->type = DEVICE_AUX;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 PageFormat get_page_format(const Canvas *canvas, int device)
 {
     Page_geometry pg;
