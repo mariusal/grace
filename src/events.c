@@ -1285,11 +1285,30 @@ void autoscale_on_near_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
     set_action(AUTO_NEAREST);       
 }
 
+void draw_line_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
+{
+    set_action(DO_NOTHING);
+    set_action(MAKE_LINE_1ST);
+}
+
 void draw_box_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
     set_action(DO_NOTHING);
     set_action(MAKE_BOX_1ST);       
 }
+
+void draw_ellipse_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
+{
+    set_action(DO_NOTHING);
+    set_action(MAKE_ELLIP_1ST);
+}
+
+void write_string_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
+{
+    set_action(DO_NOTHING);
+    set_action(STR_LOC);
+}
+
 
 void delete_object_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
@@ -1315,12 +1334,6 @@ void move_object_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
     set_action(MOVE_OBJECT_1ST);
 }
 
-void draw_line_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
-{
-    set_action(DO_NOTHING);
-    set_action(MAKE_LINE_1ST);
-}
-
 void refresh_hotlink_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
     do_hotupdate_proc( (Widget)NULL, (XtPointer)NULL, (XtPointer)NULL );
@@ -1330,12 +1343,6 @@ void set_viewport_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
     set_action(DO_NOTHING);
     set_action(VIEW_1ST);
-}
-
-void write_string_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
-{
-    set_action(DO_NOTHING);
-    set_action(STR_LOC);
 }
 
 void enable_zoom_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
