@@ -756,12 +756,10 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 
 #define SS_DELETE_CB         0
 #define SS_DUPLICATE_CB      1
-#define SS_CUT_CB            2
-#define SS_COPY_CB           3
-#define SS_BRING_TO_FRONT_CB 4
-#define SS_SEND_TO_BACK_CB   5
-#define SS_MOVE_UP_CB        6
-#define SS_MOVE_DOWN_CB      7
+#define SS_BRING_TO_FRONT_CB 2
+#define SS_SEND_TO_BACK_CB   3
+#define SS_MOVE_UP_CB        4
+#define SS_MOVE_DOWN_CB      5
 
 static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
 {
@@ -821,16 +819,12 @@ static void storage_popup(Widget parent,
         selected = FALSE;
     }
     
-    SetSensitive(ss->popup_cut_bt, selected);
-    SetSensitive(ss->popup_copy_bt, selected);
     SetSensitive(ss->popup_delete_bt, selected);
     SetSensitive(ss->popup_duplicate_bt, selected);
     SetSensitive(ss->popup_bring_to_front_bt, selected);
     SetSensitive(ss->popup_send_to_back_bt, selected);
     SetSensitive(ss->popup_move_up_bt, selected);
     SetSensitive(ss->popup_move_down_bt, selected);
-    
-    SetSensitive(ss->popup_paste_bt, (quark_count_children(ss->clipboard) != 0));
     
     if (ss->popup_cb) {
         ss->popup_cb(ss, n);
@@ -860,33 +854,25 @@ static void ss_any_cb(StorageStructure *ss, int type)
             break;
         }
         
-        if (quark_child_exist(ss->q, q)) {
-            switch (type) {
-            case SS_DELETE_CB:
-                quark_free(q);
-                break;
-            case SS_CUT_CB:
-                quark_reparent(q, ss->clipboard);
-                break;
-            case SS_COPY_CB:
-                quark_copy2(ss->clipboard, q);
-                break;
-            case SS_BRING_TO_FRONT_CB:
-                quark_push(q, TRUE);
-                break;
-            case SS_SEND_TO_BACK_CB:
-                quark_push(q, FALSE);
-                break;
-            case SS_MOVE_UP_CB:
-                quark_move(q, TRUE);
-                break;
-            case SS_MOVE_DOWN_CB:
-                quark_move(q, FALSE);
-                break;
-            case SS_DUPLICATE_CB:
-                quark_copy(q);
-                break;
-            }
+        switch (type) {
+        case SS_DELETE_CB:
+            quark_free(q);
+            break;
+        case SS_BRING_TO_FRONT_CB:
+            quark_push(q, TRUE);
+            break;
+        case SS_SEND_TO_BACK_CB:
+            quark_push(q, FALSE);
+            break;
+        case SS_MOVE_UP_CB:
+            quark_move(q, TRUE);
+            break;
+        case SS_MOVE_DOWN_CB:
+            quark_move(q, FALSE);
+            break;
+        case SS_DUPLICATE_CB:
+            quark_copy(q);
+            break;
         }
     }
     
@@ -907,16 +893,6 @@ static void ss_duplicate_cb(Widget but, void *udata)
     ss_any_cb((StorageStructure *) udata, SS_DUPLICATE_CB);
 }
 
-static void ss_cut_cb(Widget but, void *udata)
-{
-    ss_any_cb((StorageStructure *) udata, SS_CUT_CB);
-}
-
-static void ss_copy_cb(Widget but, void *udata)
-{
-    ss_any_cb((StorageStructure *) udata, SS_COPY_CB);
-}
-
 static void ss_bring_to_front_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_BRING_TO_FRONT_CB);
@@ -935,15 +911,6 @@ static void ss_move_up_cb(Widget but, void *udata)
 static void ss_move_down_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_MOVE_DOWN_CB);
-}
-
-static void ss_paste_cb(Widget but, void *udata)
-{
-    StorageStructure *ss = (StorageStructure *) udata;
-    quark_reparent_children(ss->clipboard, ss->q);
-
-    update_all();
-    xdrawgraph();
 }
 
 static void ss_select_all_cb(Widget but, void *udata)
@@ -975,15 +942,6 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
     ss->popup = popup;
     
-    ss->popup_cut_bt =
-        CreateMenuButton(popup, "Cut", '\0', ss_cut_cb, ss);
-    ss->popup_copy_bt =
-        CreateMenuButton(popup, "Copy", '\0', ss_copy_cb, ss);
-    ss->popup_paste_bt =
-        CreateMenuButton(popup, "Paste", '\0', ss_paste_cb, ss);
-
-    CreateMenuSeparator(popup);
-
     ss->popup_delete_bt =
         CreateMenuButton(popup, "Delete", '\0', ss_delete_cb, ss);
     ss->popup_duplicate_bt =
@@ -1026,8 +984,6 @@ StorageStructure *CreateStorageChoice(Widget parent,
 
     retval = xmalloc(sizeof(StorageStructure));
     memset(retval, 0, sizeof(StorageStructure));
-    
-    retval->clipboard = quark_root(grace, QFlavorContainer);
     
     retval->labeling_proc = default_storage_labeling_proc;
     retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
@@ -2357,8 +2313,8 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
     graph *g = graph_get_data(q);
     
     if (g) {
-        sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
-            g->active ? '+':'-', *rid, graph_types(grace->rt, g->type),
+        sprintf(buf, "(%c) Graph \"%s\" (type: %s, sets: %d)",
+            g->active ? '+':'-', QIDSTR(q), graph_types(grace->rt, g->type),
             number_of_sets(q));
 
         (*rid)++;
@@ -2599,8 +2555,8 @@ static char *set_labeling(Quark *q, unsigned int *rid)
     if (q->fid == QFlavorSet) {
         set *p = set_get_data(q);
 
-        sprintf(buf, "(%c) Set #%d (type: %s, length: %d)",
-            p->active ? '+':'-', *rid, set_types(grace->rt, p->type),
+        sprintf(buf, "(%c) Set \"%s\" (type: %s, length: %d)",
+            p->active ? '+':'-', QIDSTR(q), set_types(grace->rt, p->type),
             getsetlength(q));
 
         (*rid)++;

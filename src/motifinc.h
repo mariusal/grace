@@ -117,16 +117,11 @@ struct _StorageStructure {
     
     Quark *q;
     Storage_LabelingProc labeling_proc;
-    Quark *clipboard;
 
     Widget rc;
     Widget list;
     Widget popup;
     Widget selpopup;
-    
-    Widget popup_cut_bt;
-    Widget popup_copy_bt;
-    Widget popup_paste_bt;
     
     Widget popup_delete_bt;
     Widget popup_duplicate_bt;
