@@ -110,7 +110,6 @@ double fx(double x);
 double vmin(double *x, int n);
 double vmax(double *x, int n);
 void set_prop(int gno,...);
-int checkon(int prop, int old_val, int new_val);
 int getcharstr(void);
 void ungetchstr(void);
 int follow(int expect, int ifyes, int ifno);
@@ -508,7 +507,10 @@ symtab_entry *key;
 %type <pset> graphtype
 %type <pset> inoutchoice
 %type <pset> justchoice
+%type <pset> color_select
+%type <pset> pattern_select
 %type <pset> font_select
+%type <pset> lines_select
 %type <pset> onoff
 %type <pset> opchoice
 %type <pset> pagelayout
@@ -1722,11 +1724,11 @@ regionset:
 	| REGNUM TYPE regiontype {
 	    rg[$1].type = $3;
 	}
-	| REGNUM COLOR NUMBER {
-	    rg[$1].color = checkon(COLOR, rg[$1].color, (int) $3);
+	| REGNUM color_select {
+	    rg[$1].color = (int) $2;
 	}
-	| REGNUM LINESTYLE NUMBER {
-	    rg[$1].lines = checkon(LINESTYLE, rg[$1].lines, (int) $3);
+	| REGNUM lines_select {
+	    rg[$1].lines = (int) $2;
 	}
 	| REGNUM linew_select {
 	    rg[$1].linew = $2;
@@ -1870,8 +1872,8 @@ parmset:
             set_printer_by_name((char *) $3);
             free((char *) $3);
         }
-	| BACKGROUND COLOR NUMBER {
-	    setbgcolor((int) $3);
+	| BACKGROUND color_select {
+	    setbgcolor((int) $2);
 	}
 	| PAGE BACKGROUND FILL onoff {
 	    setbgfill((int) $4);
@@ -1947,20 +1949,20 @@ parmset:
 	| BOX LOCTYPE worldview {
 	    box_loctype = $3;
 	}
-	| BOX LINESTYLE NUMBER {
-	    box_lines = checkon(LINESTYLE, box_lines, (int) $3);
+	| BOX lines_select {
+	    box_lines = (int) $2;
 	}
 	| BOX linew_select {
 	    box_linew = $2;
 	}
-	| BOX COLOR NUMBER {
-	    box_color = checkon(COLOR, box_color, (int) $3);
+	| BOX color_select {
+	    box_color = (int) $2;
 	}
-	| BOX FILL COLOR NUMBER {
-	    box_fillcolor = checkon(COLOR, box_fillcolor, (int) $4);
+	| BOX FILL color_select {
+	    box_fillcolor = (int) $3;
 	}
-	| BOX FILL PATTERN NUMBER {
-	    box_fillpat = checkon(PATTERN, box_fillpat, (int) $4);
+	| BOX FILL pattern_select {
+	    box_fillpat = (int) $3;
 	}
 	| BOX DEF {
 	    if (curbox >= 0 && curbox < number_of_boxes()) {
@@ -2014,20 +2016,20 @@ parmset:
 	| ELLIPSE LOCTYPE worldview {
 	    ellipse_loctype = $3;
 	}
-	| ELLIPSE LINESTYLE NUMBER {
-	    ellipse_lines = checkon(LINESTYLE, ellipse_lines, (int) $3);
+	| ELLIPSE lines_select {
+	    ellipse_lines = (int) $2;
 	}
 	| ELLIPSE linew_select {
 	    ellipse_linew = $2;
 	}
-	| ELLIPSE COLOR NUMBER {
-	    ellipse_color = checkon(COLOR, ellipse_color, (int) $3);
+	| ELLIPSE color_select {
+	    ellipse_color = (int) $2;
 	}
-	| ELLIPSE FILL COLOR NUMBER {
-	    ellipse_fillcolor = checkon(COLOR, ellipse_fillcolor, (int) $4);
+	| ELLIPSE FILL color_select {
+	    ellipse_fillcolor = (int) $3;
 	}
-	| ELLIPSE FILL PATTERN NUMBER {
-	    ellipse_fillpat = checkon(PATTERN, ellipse_fillpat, (int) $4);
+	| ELLIPSE FILL pattern_select {
+	    ellipse_fillpat = (int) $3;
 	}
 	| ELLIPSE DEF {
 	    if (curellipse >= 0 && curellipse < number_of_ellipses()) {
@@ -2082,14 +2084,14 @@ parmset:
 	| LINE linew_select {
 	    line_linew = $2;
 	}
-	| LINE LINESTYLE NUMBER {
-	    line_lines = checkon(LINESTYLE, line_lines, (int) $3);
+	| LINE lines_select {
+	    line_lines = (int) $2;
 	}
-	| LINE COLOR NUMBER {
-	    line_color = checkon(COLOR, line_color, (int) $3);
+	| LINE color_select {
+	    line_color = (int) $2;
 	}
 	| LINE ARROW NUMBER {
-	    line_arrow_end = checkon(ARROW, line_arrow_end, (int) $3);
+	    line_arrow_end = (int) $3;
 	}
 	| LINE ARROW LENGTH expr {
 	    line_asize = $4;
@@ -2135,17 +2137,17 @@ parmset:
 	| STRING LOCTYPE worldview {
             string_loctype = $3;
         }
-	| STRING COLOR NUMBER {
-            string_color = checkon(COLOR, string_color, (int) $3);
+	| STRING color_select {
+            string_color = (int) $2;
         }
 	| STRING ROT NUMBER {
             string_rot = (int) $3;
         }
 	| STRING font_select {
-            string_font = checkon(FONTP, string_font, (int) $2);
+            string_font = (int) $2;
         }
 	| STRING JUST NUMBER {
-            string_just = checkon(JUST, string_just, (int) $3);
+            string_just = (int) $3;
         }
 	| STRING CHAR SIZE NUMBER {
             string_size = $4;
@@ -2166,7 +2168,7 @@ parmset:
             timestamp.active = $2;
         }
 	| TIMESTAMP font_select {
-            timestamp.font = checkon(FONTP, timestamp.font, (int) $2);
+            timestamp.font = (int) $2;
         }
 	| TIMESTAMP CHAR SIZE NUMBER {
             timestamp.charsize = $4;
@@ -2174,8 +2176,8 @@ parmset:
 	| TIMESTAMP ROT NUMBER {
             timestamp.rot = (int) $3;
         }
-	| TIMESTAMP COLOR NUMBER {
-            timestamp.color = checkon(COLOR, timestamp.color, (int) $3);
+	| TIMESTAMP color_select {
+            timestamp.color = (int) $2;
         }
 	| TIMESTAMP NUMBER ',' NUMBER {
 	    timestamp.x = $2;
@@ -2187,17 +2189,17 @@ parmset:
 	}
 
 /* defaults */
-	| DEFAULT LINESTYLE NUMBER {
-	    grdefaults.lines = (int) $3;
+	| DEFAULT lines_select {
+	    grdefaults.lines = (int) $2;
 	}
 	| DEFAULT linew_select {
 	    grdefaults.linew = $2;
 	}
-	| DEFAULT COLOR NUMBER {
-	    grdefaults.color = (int) $3;
+	| DEFAULT color_select {
+	    grdefaults.color = (int) $2;
 	}
-	| DEFAULT PATTERN NUMBER {
-	    grdefaults.pattern = (int) $3;
+	| DEFAULT pattern_select {
+	    grdefaults.pattern = (int) $2;
 	}
 	| DEFAULT CHAR SIZE NUMBER {
 	    grdefaults.charsize = $4;
@@ -2277,26 +2279,26 @@ parmset:
 	    free((char *) $2);
 	}
 	| TITLE font_select {
-	    g[get_cg()].labs.title.font = checkon(FONTP, g[get_cg()].labs.title.font, (int) $2);
+	    g[get_cg()].labs.title.font = (int) $2;
 	}
 	| TITLE SIZE NUMBER {
 	    g[get_cg()].labs.title.charsize = $3;
 	}
-	| TITLE COLOR NUMBER {
-	    g[get_cg()].labs.title.color = checkon(COLOR, g[get_cg()].labs.title.color, (int) $3);
+	| TITLE color_select {
+	    g[get_cg()].labs.title.color = (int) $2;
 	}
 	| SUBTITLE CHRSTR {
 	    set_plotstr_string(&g[get_cg()].labs.stitle, (char *) $2);
 	    free((char *) $2);
 	}
 	| SUBTITLE font_select {
-	    g[get_cg()].labs.stitle.font = checkon(FONTP, g[get_cg()].labs.stitle.font, (int) $2);
+	    g[get_cg()].labs.stitle.font = (int) $2;
 	}
 	| SUBTITLE SIZE NUMBER {
 	    g[get_cg()].labs.stitle.charsize = $3;
 	}
-	| SUBTITLE COLOR NUMBER {
-	    g[get_cg()].labs.stitle.color = checkon(COLOR, g[get_cg()].labs.stitle.color, (int) $3);
+	| SUBTITLE color_select {
+	    g[get_cg()].labs.stitle.color = (int) $2;
 	}
 
 	| DESCRIPTION CHRSTR {
@@ -2330,20 +2332,20 @@ parmset:
 	| LEGEND INVERT onoff {
 	    g[get_cg()].l.invert = (int) $3;
         }
-	| LEGEND BOX FILL COLOR NUMBER {
-	    g[get_cg()].l.boxfillpen.color = (int) $5;
+	| LEGEND BOX FILL color_select {
+	    g[get_cg()].l.boxfillpen.color = (int) $4;
         }
-	| LEGEND BOX FILL PATTERN NUMBER {
-	    g[get_cg()].l.boxfillpen.pattern = (int) $5;
+	| LEGEND BOX FILL pattern_select {
+	    g[get_cg()].l.boxfillpen.pattern = (int) $4;
         }
-	| LEGEND BOX COLOR NUMBER {
-	    g[get_cg()].l.boxpen.color = checkon(COLOR, g[get_cg()].l.boxpen.color, (int) $4);
+	| LEGEND BOX color_select {
+	    g[get_cg()].l.boxpen.color = (int) $3;
 	}
-	| LEGEND BOX PATTERN NUMBER {
-	    g[get_cg()].l.boxpen.pattern = checkon(PATTERN, g[get_cg()].l.boxpen.pattern, (int) $4);
+	| LEGEND BOX pattern_select {
+	    g[get_cg()].l.boxpen.pattern = (int) $3;
 	}
-	| LEGEND BOX LINESTYLE NUMBER {
-	    g[get_cg()].l.boxlines = checkon(LINESTYLE, g[get_cg()].l.boxlines, (int) $4);
+	| LEGEND BOX lines_select {
+	    g[get_cg()].l.boxlines = (int) $3;
 	}
 	| LEGEND BOX linew_select {
 	    g[get_cg()].l.boxlinew = $3;
@@ -2362,10 +2364,10 @@ parmset:
 	    g[get_cg()].l.charsize = $4;
 	}
 	| LEGEND font_select {
-	    g[get_cg()].l.font = checkon(FONTP, g[get_cg()].l.font, (int) $2);
+	    g[get_cg()].l.font = (int) $2;
 	}
-	| LEGEND COLOR NUMBER {
-	    g[get_cg()].l.color = checkon(COLOR, g[get_cg()].l.color, (int) $3);
+	| LEGEND color_select {
+	    g[get_cg()].l.color = (int) $2;
 	}
 	| LEGEND STRING NUMBER CHRSTR {
 	    strcpy(g[get_cg()].p[(int) $3].lstr, (char *) $4);
@@ -2378,25 +2380,25 @@ parmset:
 	| FRAMEP TYPE NUMBER {
 	    g[get_cg()].f.type = (int) $3;
 	}
-	| FRAMEP LINESTYLE NUMBER {
-	    g[get_cg()].f.lines = checkon(LINESTYLE, g[get_cg()].f.lines, (int) $3);
+	| FRAMEP lines_select {
+	    g[get_cg()].f.lines = (int) $2;
 	}
 	| FRAMEP linew_select {
 	    g[get_cg()].f.linew = $2;
 	}
-	| FRAMEP COLOR NUMBER {
-	    g[get_cg()].f.pen.color = (int) $3;
+	| FRAMEP color_select {
+	    g[get_cg()].f.pen.color = (int) $2;
 	}
-	| FRAMEP PATTERN NUMBER {
-	    g[get_cg()].f.pen.pattern = (int) $3;
+	| FRAMEP pattern_select {
+	    g[get_cg()].f.pen.pattern = (int) $2;
 	}
-	| FRAMEP BACKGROUND COLOR NUMBER
+	| FRAMEP BACKGROUND color_select
         { 
-            g[get_cg()].f.fillpen.color = (int) $4;
+            g[get_cg()].f.fillpen.color = (int) $3;
         }
-	| FRAMEP BACKGROUND PATTERN NUMBER
+	| FRAMEP BACKGROUND pattern_select
         {
-            g[get_cg()].f.fillpen.pattern = (int) $4;
+            g[get_cg()].f.fillpen.pattern = (int) $3;
         }
 
 	| GRAPHNO onoff {
@@ -2537,18 +2539,6 @@ actions:
 	    strcpy(print_file, (char *) $3);
             free((char *) $3);
             do_hardcopy();
-	}
-	| COLOR NUMBER {
-		setcolor((int) $2);
-	}
-	| PATTERN NUMBER {
-		setpattern((int) $2);
-	}
-	| linew_select {
-		setlinewidth($1);
-	}
-	| LINESTYLE NUMBER {
-		setlinestyle((int) $2);
 	}
 	| PAGE direction {
 	    switch ((int) $2) {
@@ -2936,23 +2926,23 @@ setprop:
 	| SYMBOL NUMBER {
             set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, TYPE, (int) $2, 0);
 	}
-	| SYMBOL COLOR NUMBER {
-	    g[whichgraph].p[whichset].sympen.color = (int) $3;
+	| SYMBOL color_select {
+	    g[whichgraph].p[whichset].sympen.color = (int) $2;
 	}
-	| SYMBOL PATTERN NUMBER {
-	    g[whichgraph].p[whichset].sympen.pattern = (int) $3;
+	| SYMBOL pattern_select {
+	    g[whichgraph].p[whichset].sympen.pattern = (int) $2;
 	}
 	| SYMBOL linew_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINEWIDTH, $2, 0);
 	}
-	| SYMBOL LINESTYLE NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINESTYLE, (int) $3, 0);
+	| SYMBOL lines_select {
+	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINESTYLE, (int) $2, 0);
 	}
-	| SYMBOL FILL COLOR NUMBER {
-	    g[whichgraph].p[whichset].symfillpen.color = (int) $4;
+	| SYMBOL FILL color_select {
+	    g[whichgraph].p[whichset].symfillpen.color = (int) $3;
 	}
-	| SYMBOL FILL PATTERN NUMBER {
-	    g[whichgraph].p[whichset].symfillpen.pattern = (int) $4;
+	| SYMBOL FILL pattern_select {
+	    g[whichgraph].p[whichset].symfillpen.pattern = (int) $3;
 	}
 	| SYMBOL SIZE expr {
 	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, SIZE, $3, 0);
@@ -2971,21 +2961,21 @@ setprop:
         {
 	    g[whichgraph].p[whichset].linet = (int) $3;
 	}
-	| LINE LINESTYLE NUMBER
+	| LINE lines_select
         {
-	    g[whichgraph].p[whichset].lines = (int) $3;
+	    g[whichgraph].p[whichset].lines = (int) $2;
 	}
 	| LINE linew_select
         {
 	    g[whichgraph].p[whichset].linew = $2;
 	}
-	| LINE COLOR NUMBER
+	| LINE color_select
         {
-	    g[whichgraph].p[whichset].linepen.color = (int) $3;
+	    g[whichgraph].p[whichset].linepen.color = (int) $2;
 	}
-	| LINE PATTERN NUMBER
+	| LINE pattern_select
         {
-	    g[whichgraph].p[whichset].linepen.pattern = (int) $3;
+	    g[whichgraph].p[whichset].linepen.pattern = (int) $2;
 	}
 
 	| FILL NUMBER
@@ -3000,9 +2990,9 @@ setprop:
         {
 	    g[whichgraph].p[whichset].fillrule = (int) $3;
 	}
-	| FILL COLOR NUMBER
+	| FILL color_select
         {
-	    int prop = (int) $3;
+	    int prop = (int) $2;
 
 	    if (get_project_version() <= 40102 && get_project_version() >= 30000) {
                 switch (filltype_obs) {
@@ -3018,9 +3008,9 @@ setprop:
 	    }
 	    g[whichgraph].p[whichset].setfillpen.color = prop;
 	}
-	| FILL PATTERN NUMBER
+	| FILL pattern_select
         {
-	    int prop = (int) $3;
+	    int prop = (int) $2;
 
 	    if (get_project_version() <= 40102) {
                 switch (filltype_obs) {
@@ -3072,9 +3062,9 @@ setprop:
         {
 	    g[whichgraph].p[whichset].avalue.font = (int) $2;
 	}
-	| AVALUE COLOR NUMBER
+	| AVALUE color_select
         {
-	    g[whichgraph].p[whichset].avalue.color = (int) $3;
+	    g[whichgraph].p[whichset].avalue.color = (int) $2;
 	}
 	| AVALUE ROT NUMBER
         {
@@ -3115,8 +3105,8 @@ setprop:
 	| ERRORBAR linew_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINEWIDTH, $2, 0);
 	}
-	| ERRORBAR LINESTYLE NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINESTYLE, (int) $3, 0);
+	| ERRORBAR lines_select {
+	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINESTYLE, (int) $2, 0);
 	}
 	| ERRORBAR RISER onoff {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, ON, $3, 0);
@@ -3124,8 +3114,8 @@ setprop:
 	| ERRORBAR RISER linew_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINEWIDTH, $3, 0);
 	}
-	| ERRORBAR RISER LINESTYLE NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINESTYLE, (int) $4, 0);
+	| ERRORBAR RISER lines_select {
+	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINESTYLE, (int) $3, 0);
 	}
 
 	| COMMENT CHRSTR {
@@ -3222,14 +3212,14 @@ tickattr:
 	| MINOR SIZE NUMBER {
 	    g[get_cg()].t[naxis].mprops.size = $3;
 	}
-	| COLOR NUMBER {
-	    g[get_cg()].t[naxis].props.color = g[get_cg()].t[naxis].mprops.color = (int) $2;
+	| color_select {
+	    g[get_cg()].t[naxis].props.color = g[get_cg()].t[naxis].mprops.color = (int) $1;
 	}
-	| MAJOR COLOR NUMBER {
-	    g[get_cg()].t[naxis].props.color = (int) $3;
+	| MAJOR color_select {
+	    g[get_cg()].t[naxis].props.color = (int) $2;
 	}
-	| MINOR COLOR NUMBER {
-	    g[get_cg()].t[naxis].mprops.color = (int) $3;
+	| MINOR color_select {
+	    g[get_cg()].t[naxis].mprops.color = (int) $2;
 	}
 	| linew_select {
 	    g[get_cg()].t[naxis].props.linew = g[get_cg()].t[naxis].mprops.linew = $1;
@@ -3240,11 +3230,11 @@ tickattr:
 	| MINOR linew_select {
 	    g[get_cg()].t[naxis].mprops.linew = $2;
 	}
-	| MAJOR LINESTYLE NUMBER {
-	    g[get_cg()].t[naxis].props.lines = (int) $3;
+	| MAJOR lines_select {
+	    g[get_cg()].t[naxis].props.lines = (int) $2;
 	}
-	| MINOR LINESTYLE NUMBER {
-	    g[get_cg()].t[naxis].mprops.lines = (int) $3;
+	| MINOR lines_select {
+	    g[get_cg()].t[naxis].mprops.lines = (int) $2;
 	}
 	| MAJOR GRID onoff {
 	    g[get_cg()].t[naxis].props.gridflag = $3;
@@ -3340,8 +3330,8 @@ ticklabelattr:
 	| font_select {
 	    g[get_cg()].t[naxis].tl_font = (int) $1;
 	}
-	| COLOR NUMBER {
-	    g[get_cg()].t[naxis].tl_color = (int) $2;
+	| color_select {
+	    g[get_cg()].t[naxis].tl_color = (int) $1;
 	}
 	| NUMBER ',' CHRSTR {
 	    g[get_cg()].t[naxis].tloc[(int) $1].label = 
@@ -3390,8 +3380,8 @@ axislabeldesc:
 	| font_select {
 	    g[get_cg()].t[naxis].label.font = (int) $1;
 	}
-	| COLOR NUMBER {
-	    g[get_cg()].t[naxis].label.color = (int) $2;
+	| color_select {
+	    g[get_cg()].t[naxis].label.color = (int) $1;
 	}
 	| OP opchoice {
 	    g[get_cg()].t[naxis].label_op = $2;
@@ -3402,11 +3392,11 @@ axisbardesc:
 	onoff {
 	    g[get_cg()].t[naxis].t_drawbar = $1;
 	}
-	| COLOR NUMBER {
-	    g[get_cg()].t[naxis].t_drawbarcolor = (int) $2;
+	| color_select {
+	    g[get_cg()].t[naxis].t_drawbarcolor = (int) $1;
 	}
-	| LINESTYLE NUMBER {
-	    g[get_cg()].t[naxis].t_drawbarlines = (int) $2;
+	| lines_select {
+	    g[get_cg()].t[naxis].t_drawbarlines = (int) $1;
 	}
 	| linew_select {
 	    g[get_cg()].t[naxis].t_drawbarlinew = $1;
@@ -3723,6 +3713,71 @@ font_select:
         }
         ;
 
+lines_select:
+        LINESTYLE NUMBER
+        {
+	    int lines = (int) $2;
+            if (lines >= 0 && lines < number_of_linestyles()) {
+	        $$ = lines;
+	    } else {
+	        errmsg("invalid linestyle");
+	        $$ = 1;
+	    }
+        }
+        ;
+
+pattern_select:
+        PATTERN NUMBER
+        {
+	    int patno = (int) $2;
+            if (patno >= 0 && patno < number_of_patterns()) {
+	        $$ = patno;
+	    } else {
+	        errmsg("invalid pattern number");
+	        $$ = 1;
+	    }
+        }
+        ;
+
+color_select:
+        COLOR NUMBER
+        {
+            int c = (int) $2;
+            if (c >= 0 && c < number_of_colors()) {
+                $$ = c;
+            } else {
+                errmsg("Invalid color ID");
+                $$ = 1;
+            }
+        }
+        | COLOR CHRSTR
+        {
+            int c = get_color_by_name((char *) $2);
+            if (c == BAD_COLOR) {
+                errmsg("Invalid color name");
+                c = 1;
+            }
+            free((char *) $2);
+            $$ = c;
+        }
+        | COLOR '(' NUMBER ',' NUMBER ',' NUMBER ')'
+        {
+            int c;
+            CMap_entry cmap;
+            cmap.rgb.red = (int) $3;
+            cmap.rgb.green = (int) $5;
+            cmap.rgb.blue = (int) $7;
+            cmap.ctype = COLOR_MAIN;
+            cmap.cname = NULL;
+            c = add_color(cmap);
+            if (c == BAD_COLOR) {
+                errmsg("Can't allocate requested color");
+                c = 1;
+            }
+            $$ = c;
+        }
+        ;
+
 linew_select:
         LINEWIDTH NUMBER
         {
@@ -3787,7 +3842,7 @@ parmset_obs:
 	}
 	| LEGEND BOX FILL onoff { }
 	| LEGEND BOX FILL WITH colpat_obs {filltype_obs = (int) $5;}
-	| LEGEND LINESTYLE NUMBER { }
+	| LEGEND lines_select { }
 	| LEGEND linew_select { }
 
 	| GRAPHNO LABEL onoff { }
@@ -3865,14 +3920,14 @@ setprop_obs:
 	}
 	| SYMBOL CENTER onoff {
 	}
-	| LINESTYLE NUMBER {
-	    g[whichgraph].p[whichset].lines = (int) $2;
+	| lines_select {
+	    g[whichgraph].p[whichset].lines = (int) $1;
 	}
 	| linew_select {
 	    g[whichgraph].p[whichset].linew = $1;
 	}
-	| COLOR NUMBER {
-	    g[whichgraph].p[whichset].linepen.color = (int) $2;
+	| color_select {
+	    g[whichgraph].p[whichset].linepen.color = (int) $1;
 	}
 	| FILL WITH colpat_obs {filltype_obs = (int) $3;}
 	|  XYZ expr ',' expr { }
@@ -4953,17 +5008,6 @@ void set_prop(int gno,...)
 		}
 	    }
 	    break;
-	case FONTP:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].avalue.font = prop;
-		}
-	    }
-	    break;
 	case PREC:
 	    prop = va_arg(var, int);
 	    for (i = startg; i <= endg; i++) {
@@ -5004,21 +5048,10 @@ void set_prop(int gno,...)
 		    ends = g[i].maxplot - 1;
 		}
 		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].lines = checkon(LINESTYLE, g[i].p[j].lines, prop);
+		    g[i].p[j].lines = prop;
 		    if (check_err) {
 			return;
 		    }
-		}
-	    }
-	    break;
-	case COLOR:
-	    prop = va_arg(var, int);
-	    for (i = startg; i <= endg; i++) {
-		if (allsets) {
-		    ends = g[i].maxplot - 1;
-		}
-		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].linepen.color = prop;
 		}
 	    }
 	    break;
@@ -5068,17 +5101,6 @@ void set_prop(int gno,...)
 	    case WITH:
 		prop = va_arg(var, int);
                 break;
-	    case COLOR:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].setfillpen.color = prop;
-		    }
-		}
-		break;
 	    case PATTERN:
 		prop = va_arg(var, int);
 		for (i = startg; i <= endg; i++) {
@@ -5172,17 +5194,6 @@ void set_prop(int gno,...)
 		    }
 		    for (j = starts; j <= ends; j++) {
 			g[i].p[j].symchar = prop;
-		    }
-		}
-		break;
-	    case COLOR:
-		prop = va_arg(var, int);
-		for (i = startg; i <= endg; i++) {
-		    if (allsets) {
-			ends = g[i].maxplot - 1;
-		    }
-		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].sympen.color = prop;
 		    }
 		}
 		break;
@@ -5321,85 +5332,6 @@ void set_prop(int gno,...)
     set_dirtystate();
 }
 
-int checkon(int prop, int old_val, int new_val)
-{
-    char buf[256];
-    int retval = old_val;
-    check_err = 0;
-    switch (prop) {
-    case LINESTYLE:
-	if (new_val >= 0 && new_val < number_of_linestyles()) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "LINESTYLE out of bounds, should be from 0 to %d", number_of_linestyles() - 1);
-	    check_err = 1;
-	}
-	break;
-    case COLOR:
-/*
- * 	if (new_val >= 0 && new_val < number_of_colors()) {
- * 	    retval = new_val;
- * 	} else {
- * 	    sprintf(buf, "COLOR out of bounds, should be from 0 to %d", number_of_colors() - 1);
- * 	    check_err = 1;
- * 	}
- */
-	retval = new_val;
-        break;
-    case JUST:
-	if (new_val >= 0 && new_val <= MAX_JUST) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "JUST out of bounds, should be from 0 to %d", MAX_JUST);
-	    check_err = 1;
-	}
-	break;
-    case FONTP:
-	if (new_val >= 0 && new_val < number_of_fonts()) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "FONT out of bounds, should be from 0 to %d", number_of_fonts() - 1);
-	    check_err = 1;
-	}
-	break;
-    case ARROW:
-	if (new_val >= 0 && new_val <= MAX_ARROW) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "ARROW out of bounds, should be from 0 to %d", MAX_ARROW);
-	    check_err = 1;
-	}
-	break;
-    case PATTERN:
-	if (new_val >= 0 && new_val < number_of_patterns()) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "PATTERN out of bounds, should be from 0 to %d", number_of_patterns() - 1);
-	    check_err = 1;
-	}
-	break;
-    case SYMBOL:
-	if (new_val >= 0 && new_val < MAXSYM) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "SYMBOL out of bounds, should be from 0 to %d", MAXSYM - 1);
-	    check_err = 1;
-	}
-	break;
-    case PREC:
-	if (new_val >= 0 && new_val < MAX_PREC) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "PREC out of bounds, should be from 0 to %d", MAX_PREC - 1);
-	    check_err = 1;
-	}
-	break;
-    }
-    if (check_err) {
-	errmsg(buf);
-    }
-    return retval;
-}
 
 /* Wrappers for some functions*/
 
