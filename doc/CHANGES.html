@@ -11,7 +11,7 @@
 
 <H2>5.1.1</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  *  [ES] interpolation now takes into account all data set columns
  *  [ES] option to calculate normalized histograms
  *  [ES] histograms with varying bin widths - abscissas of a set can be used
@@ -19,6 +19,7 @@
  *  [EV/ES] added GraceOpenVA() function to the grace_np API
  *  [ES] \V{} escape code in strings - baseline shift
  *  [ES] \n escape code in strings - new line
+ *  [ES] a region can be linked only to a single graph
  
 <H3>Interface</H3>
  *  [ES] "Edit/Locator props" popup rewritten
@@ -30,10 +31,12 @@
  *  [ES] double click on a set selector entry now pops up the SS editor
  !  [ES] many enhancements in the SS editor
  !  [ES] date/time format in the SS editor
- !  [ES] XmHTML/Gracilla
+ *  [ES] if the XmHTML widget library is available, it will be used for
+         displaying on-line help ("Gracilla"). The libhelp support is
+         scheduled to be withdrawn soon
  *  [ES] removed -[no]logwindow command line options and X resource
  *  [ES] removed -arrange, -cols, and -rows command line options
- !  [ES] "Results" and error message windows merged into "Console"
+ *  [ES] "Results" and error message windows merged into "Console"
  *  [ES] menubar added to the "Graph appearance" dialog
  *  [ES] "File/Read/Parameters" and "File/Write/Parameters" moved to the
          "Graph appearance" menubar
@@ -41,20 +44,25 @@
          and "Data/Export" submenus, respectively
  *  [ES] renamed "File/Device setup" to "File/Print setup" and added
          "View/Page setup" (same dialog but with X11 as the selected device)
- *  [ES] splitted axis/tick label offset input fields into two
+ *  [ES] split axis/tick label offset input fields into two
  
 <H3>Documentation/Info</H3>
- *  [WB] some fixes/additions to the User's guide
- *  [AM] include Xbae version in -version and Help/About
- *  [DP] UG updates
+ *  [WB] some fixes/additions to the User's Guide
+ *  [AM] include Xbae version in -version and "Help/About"
+ *  [DP] User's Guide additions
  *  [EV] Tutorials updated
+ *  [AM] man page corrections
+ *  [ES] re-enabled on-line help for several dialogs
  
 <H3>Parser</H3>
  *  [ES] removed restriction on the max line length (512) in parameter files
- *  [ES] SPLINE, ASPLINE, INTERP -&gt; INTERPOLATE
- *  [ES] added RAND(nexpr)
- *  [ES] HISTO -&gt; HISTOGRAM
- !  [ES] ARRANGE
+ *  [ES] SPLINE, ASPLINE, and INTERP removed and INTERPOLATE added which
+         includes the functionality of the former ones
+ *  [ES] added RAND(N) - creates an array of N random numbers
+ *  [ES] HISTO renamed to HISTOGRAM and syntax changed
+ *  [ES] changed syntax of ARRANGE command
+ *  [ES] removed UNLINK REGNUM FROM selectgraph; now that a region links to a
+         single graph only the command makes no sense
  
 <H3>Portability/Compilation</H3>
  *  [ES] configure checks for netCDF version
@@ -93,12 +101,14 @@
          calculations
  *  [ES] fixed wrong initial canvas size in the free page mode (rep. #821)
  *  [ES] fixed set split crash
+ *  [ES] couldn't use constant expressions in "Load &amp; evaluate" (rep. #828)
  *  [ES] a severe memory leak in "Load &amp; evaluate" fixed
+ *  [ES] regions were displayed wrongly on plots with several graphs
 
 
 <H2>5.1.0</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  *  [ES] VMAP plots implemented (rep. #440)
  *  [ES] BOXPLOT sets re-implemented. The control over appearance details is
          more detailed than in Xmgr (including rep. #188)
@@ -232,7 +242,7 @@
 
 <H2>5.0.5</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  !  [ES] long drawing paths (of polylines and polygons) with length exceeding
          a threshold are transformed to be shorter than the limit; the latter
          is adjustable in "Edit/Preferences" popup. This works around internal
@@ -280,7 +290,7 @@
 
 <H2>5.0.4</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  *  [ES] nonl-fit: added region restrictions (rep. #251)
  *  [ES] nonl-fit: added optional stat weights
  *  [ES] print some basic statistics on the non-linear fit quality
@@ -336,7 +346,7 @@
 
 <H2>5.0.3</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  !  [ES] added "Fixed" graph type (rep. #556)
  *  [ES] XYR set is back
  !  [ES] filled circles in XYR (rep. #206)
@@ -493,7 +503,7 @@
 
 <H2>5.0.2</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  *  [ES] graphs and sets are allocated dynamically; -maxgraph, -maxsets and
          -graphsets removed
  *  [ES] XY chart is back
@@ -665,7 +675,7 @@
 
 <H2>5.0.1</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  !  [ES] added FORMAT_SCIENTIFIC, FORMAT_ENGINEERING
  !  [ES] polar plots (a work in progress - far from being completed, but
          definitely better than nothing :))
@@ -735,7 +745,7 @@
 
 <H2>5.0.0 (since Xmgr-4.1.2):</H2>
 
-<H3>New functionality</H3>
+<H3>Functionality</H3>
  *  [ES] T1 fonts are used for all devices using the T1lib library of Rainer
          Menzner. There should be no discrepancies anymore between characters
          displayed and printed (rep. #16)

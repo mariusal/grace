@@ -2,12 +2,11 @@
 
 <!-- This is the User's Guide for Grace -->
 
-
 <article>
 
 <title>Grace User's Guide (for Grace-5.1.1)
 <author>by the Grace Team
-<date>17.06.2000
+<date>23.06.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1499,7 +1498,8 @@ integral     | cumulative sum @
         &lt;Return&gt; is pressed. The command will be parsed and executed,
         and the command line is placed in the history list. Items in the
         history list can be recalled by simply clicking on them with the
-        left mouse button.
+        left mouse button. For a reference on the Grace command interpreter,
+        see <ref id="command-interpreter" name="Command interpreter">.
       </p>
       <sect2> Point tracking <label id="point-tracking">
       <p>
@@ -1617,7 +1617,7 @@ integral     | cumulative sum @
 <!-- **************************************** -->
 <sect>GUI controls
   <p>
-    <sect1>List selectors
+    <sect1>List selectors <label id="list-selector">
        <p>
        Various selectors are available in several popups. They all display
        lists of objects (graphs, sets, ...) and can be used to perform
@@ -1636,7 +1636,7 @@ integral     | cumulative sum @
          <sect2> Graph selector <label id="graph-selector">
          <p>
          The operations that can be performed on graphs through the graph
-         selector's menu popup are:
+         selector's popup menu are:
          <itemize>
            <item> focus to
            <item> hide
@@ -1655,7 +1655,7 @@ integral     | cumulative sum @
          <sect2> Set selector <label id="set-selector">
          <p>
          The operations that can be performed on sets through the set
-         selector are:
+         selector's popup menu are:
          <itemize>
            <item> hide
            <item> show
@@ -2286,6 +2286,14 @@ integral     | cumulative sum @
 	FOCUS <it>graph</it> | Makes <it>graph</it> current and unhides it if necessary |
 	                      graphsel <it>graph</it> | FOCUS G0 @
 	KILL <it>graph</it> | Kills <it>graph</it> | graphsel <it>graph</it> | KILL G0 @
+	ARRANGE(<it>nrows</it>, <it>ncols</it>, <it>offset</it>, <it>hgap</it>, <it>vgap</it>) |
+         Arrange existing graphs (or add extra if needed) to form an <it>nrows</it> by <it>ncols</it> matrix, leaving <it>offset</it> at each page edge with <it>hgap</it> and <it>vgap</it> relative horizontal and vertical spacings |
+         nexpr <it>nrows</it>, <it>ncols</it>, expr <it>offset</it>, <it>hgap</it>, <it>vgap</it> |
+         ARRANGE(2, 2, 0.1, 0.15, 0.2) @
+	ARRANGE(<it>nrows</it>, <it>ncols</it>, <it>offset</it>, <it>hgap</it>, <it>vgap</it>, <it>hvinv</it>, <it>hinv</it>, <it>vinv</it>) |
+         Same as above, plus additional <it>hvinv</it>, <it>hinv</it>, and <it>vinv</it> flags allowing to alter the order of the matrix filling |
+         nexpr <it>nrows</it>, <it>ncols</it>, expr <it>offset</it>, <it>hgap</it>, <it>vgap</it>, onoff <it>hvinv</it>, <it>hinv</it>, <it>vinv</it> |
+         ARRANGE(2, 2, 0.1, 0.15, 0.2, ON, OFF, ON) @
       </tabular>
       <caption>
         <label id="graph-ops">
@@ -2949,24 +2957,27 @@ C
          In general the method outlined in the examples above can be
 	 used on OS/2, too. However you have to create a
 	 DLL (Dynamic Link Library) which is a bit more tricky on OS/2 than
-	 on some un*x systems. 
-         This document can't explain the whole procedure in detail but roughly
-         describes the way to go.
-         Since Grace was ported with EMX we also use it to create the examples,
-	 however other development environments should work as well.
-         We refer to Example 2, since Example 1 is showing a problem on OS/2:
+	 on most Un*x systems. 
+         This document can't explain the whole procedure in detail, but
+	 tries to describe roughly the way to go.
+         Since Grace was ported by using EMX we also use it to create
+	 the examples; however other development environments should work
+	 as well.
+         We refer to Example 2 as given above, since Example 1 exhibits
+	 a problem on OS/2:
          DLLs might have their entry points (i.e. exported functions)
          callable as ordinals only, so you might not know how to access a
          specific function without some research. 
-         First compile my_func.c to my_func.obj
+         First created a source file "my_func.c" with the content from
+	 Example 2 and compile it to "my_func.obj"
 
          <tscreen>
          gcc -Zomf -Zmt -c my_func.c
          </tscreen>
 
-         Then you need to create a linker definition file my_func.def which
-         gives some basic info about the DLL and declares the exported
-         functions.
+         Then you need to create a linker definition file "my_func.def"
+	 which contains some basic info about the DLL and declares
+	 the exported functions.
 
          <tscreen><code>
          LIBRARY my_func INITINSTANCE TERMINSTANCE
@@ -2987,8 +2998,8 @@ C
          (the -Zno-rte flag depends on the content of the library;
           check out the EMX documentation about this as well as 
 	  the other compiler/linker flags used here!)
-         To use these new library function in Grace you may either put the
-         DLL in the LIBPATH and use the short form:
+         To use these new library function within Grace you may either
+	 put the DLL in the LIBPATH and use the short form:
 
          <tscreen>
          USE "my_function" TYPE f_of_nd FROM "my_func" ALIAS "myf"
@@ -3000,6 +3011,9 @@ C
          <tscreen>
          USE "my_function" TYPE f_of_nd FROM "e:/foo/my_func.dll" ALIAS "myf"
          </tscreen>
+	 
+	 (as for most system-APIs you may use the Un*x-like forward
+ 	 slashs within the path!)
 
 <!-- ****** Appendices/references ************ -->
 <sect> References
