@@ -489,24 +489,24 @@ static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     
     if (nonl_prefs.load == LOAD_FUNCTION) {
-        strcpy(buf, (char *) xv_getstr(nonl_start_item));
-	if (sscanf(buf, "%lf", &nonl_prefs.start) != 1) {
-	    errmsg("Invalid input in start field");
-	    unset_wait_cursor();
-	    return;
-	}
-	strcpy(buf, (char *) xv_getstr(nonl_stop_item));
-	if (sscanf(buf, "%lf", &nonl_prefs.stop) != 1) {
-	    errmsg("Invalid input in stop field");
-	    unset_wait_cursor();
-	    return;
-	}
-	strcpy(buf, (char *) xv_getstr(nonl_npts_item));
-	if (sscanf(buf, "%d", &nonl_prefs.npoints) != 1) {
-	    errmsg("Invalid input in start field");
-	    unset_wait_cursor();
-	    return;
-	}
+		if( xv_evalexpr(nonl_start_item, &nonl_prefs.start) != 
+													GRACE_EXIT_SUCCESS) {
+			errmsg("Invalid input in start field");
+	    	unset_wait_cursor();
+	    	return;
+		}
+		if( xv_evalexpr(nonl_stop_item, &nonl_prefs.stop) != 
+													GRACE_EXIT_SUCCESS) {
+			errmsg("Invalid input in start field");
+	    	unset_wait_cursor();
+	    	return;
+		}
+		if( xv_evalexpri(nonl_npts_item, &nonl_prefs.npoints) != 
+													GRACE_EXIT_SUCCESS) {
+			errmsg("Invalid input in start field");
+	    	unset_wait_cursor();
+	    	return;
+		}
     }
     
     if (nsteps) { /* we are asked to fit */
