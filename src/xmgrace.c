@@ -1042,7 +1042,11 @@ void startup_gui(void)
     AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_SHRINK);
 
     CreateSeparator(rcleft);
+    CreateSeparator(rcleft);
 
+    /* exit */
+    bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
+    AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
 
 /*
  * initialize cursors
