@@ -995,6 +995,28 @@ vexpr:
 	{
             $$ = $1;
 	}
+	| array '[' iexpr ':' iexpr ']'
+	{
+            int start = $3 - index_shift, stop = $5 - index_shift;
+            if (start < 0 || stop < start || stop >= $1->length) {
+		yyerror("Invalid index range");
+            } else {
+                int len = stop - start + 1;
+	        double *ptr = xmalloc(len*SIZEOF_DOUBLE);
+                if ($$->data == NULL) {
+                    yyerror("Not enough memory");
+                } else {
+                    int i;
+                    $$ = &freelist[fcnt++];
+	            $$->data = ptr;
+                    $$->length = len;
+                    $$->type = GRARR_TMP;
+                    for (i = 0; i < len; i++) {
+                        $$->data[i] = $1->data[i + $3];
+                    }
+                }
+            }
+	}
 	| MESH '(' nexpr ')'
 	{
             int len = $3;
