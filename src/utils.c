@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -52,7 +52,6 @@
 #endif
 #include <signal.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/resource.h>
 #ifdef HAVE_SYS_SELECT_H
 #  include <sys/select.h>
@@ -1081,22 +1080,6 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 #endif
 }
  
-
-int fexists(const char *to)
-{
-    struct stat stto;
-    char tbuf[256];
-
-    if (stat(to, &stto) == 0) {
-	sprintf(tbuf, "Overwrite %s?", to);
-	if (!yesno(tbuf, NULL, NULL, NULL)) {
-	    return (1);
-	}
-	return (0);
-    }
-    return (0);
-}
-
 void stufftext(char *s)
 {
 #ifdef NONE_GUI
