@@ -83,11 +83,9 @@ int device_set_procs(Device_entry *d,
     d->puttext       = puttext;
     
     if (d->puttext) {
-        d->devfonts = TRUE;
-        d->fontaa   = FALSE;
+        d->fontrast = FONT_RASTER_DEVICE;
     } else {
-        d->devfonts = FALSE;
-        d->fontaa   = TRUE;
+        d->fontrast = FONT_RASTER_AA;
     }
     
     return RETURN_SUCCESS;
@@ -126,13 +124,12 @@ int device_set_autocrop(Device_entry *d, int autocrop)
     return RETURN_SUCCESS;
 }
 
-int device_set_fontrast(Device_entry *d, int devfonts, int fontaa)
+int device_set_fontrast(Device_entry *d, FontRaster fontrast)
 {
-    if (!d->puttext && devfonts) {
+    if (!d->puttext && fontrast == FONT_RASTER_DEVICE) {
         return RETURN_FAILURE;
     } else {
-        d->devfonts = devfonts;
-        d->fontaa   = fontaa;
+        d->fontrast = fontrast;
         return RETURN_SUCCESS;
     }
 }

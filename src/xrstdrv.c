@@ -95,7 +95,7 @@ int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
         xrst_putpixmap,
         NULL);
     
-    device_set_fontrast(d, FALSE, xdev->fontaa);
+    device_set_fontrast(d, xdev->fontaa ? FONT_RASTER_AA:FONT_RASTER_MONO);
 
     return register_device(canvas, d);
 }

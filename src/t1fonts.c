@@ -1180,7 +1180,8 @@ void WriteString(Canvas *canvas,
         gotomark = cs->gotomark;
         setmark = cs->setmark;
 
-        glyph = GetGlyphString(canvas, cs, page_dpv, dev->fontaa);
+        glyph = GetGlyphString(canvas,
+            cs, page_dpv, dev->fontrast == FONT_RASTER_AA);
         if (glyph != NULL) {
             VPoint hvpshift, vvpshift;
 
@@ -1294,7 +1295,7 @@ void WriteString(Canvas *canvas,
             setpattern(canvas, 1);
             setcolor(canvas, cs->color);
 
-            if (dev->devfonts == TRUE) {
+            if (dev->fontrast == FONT_RASTER_DEVICE) {
                 if (cs->advancing == TEXT_ADVANCING_RL) {
                     vptmp = cs->stop;
                 } else {

@@ -66,8 +66,7 @@ static Widget page_y_item;
 static OptionStructure *page_size_unit_item;
 static Widget dev_res_item;
 static Widget autocrop_item;
-static Widget fontaa_item;
-static Widget devfont_item;
+static OptionStructure *fontrast_item;
 static Widget dsync_item, psync_item;
 
 static void do_pr_toggle(int onoff, void *data);
@@ -211,8 +210,19 @@ void create_printer_setup(void *data)
 
         fr = CreateFrame(psetup_rc, "Fonts");
         rc1 = CreateVContainer(fr);
-	fontaa_item = CreateToggleButton(rc1, "Enable font antialiasing");
-	devfont_item = CreateToggleButton(rc1, "Use device fonts");
+
+
+
+        option_items = xmalloc(3*sizeof(OptionItem));
+        option_items[0].value = FONT_RASTER_DEVICE;
+        option_items[0].label = "Device";
+        option_items[1].value = FONT_RASTER_MONO;
+        option_items[1].label = "Mono";
+        option_items[2].value = FONT_RASTER_AA;
+        option_items[2].label = "Antialiasing";
+	fontrast_item = CreateOptionChoice(rc1,
+            "Font rastering:", 1, 3, option_items);
+        xfree(option_items);
         
 	CreateAACDialog(psetup_frame, psetup_rc, set_printer_proc, NULL);
     }
@@ -346,9 +356,7 @@ static void update_device_setup(int device_id)
         sprintf (buf, "%.2f", page_y); 
         xv_setstr(page_y_item, buf);
         
-        SetToggleButtonState(fontaa_item, dev->fontaa);
-        
-        SetToggleButtonState(devfont_item, dev->devfonts);
+        SetOptionChoice(fontrast_item, dev->fontrast);
     }
 }
 
@@ -376,8 +384,7 @@ static int set_printer_proc(void *data)
         }
     }
     
-    dev->devfonts = GetToggleButtonState(devfont_item);
-    dev->fontaa = GetToggleButtonState(fontaa_item);
+    dev->fontrast = GetOptionChoice(fontrast_item);
     
     if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
         xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ||

@@ -134,6 +134,13 @@ int register_x11_drv(Canvas *canvas)
         xlibfillarc,
         xlibputpixmap,
         NULL);
+
+/*
+ * disable font AA in mono mode
+ */
+    if (grace->gui->monomode == TRUE) {
+        device_set_fontrast(d, FONT_RASTER_MONO);
+    }
     
     return register_device(canvas, d);
 }
@@ -192,15 +199,6 @@ int xlibinit(const Canvas *canvas)
 
     displaybuff = resize_bufpixmap(win_w, win_h);
     
-/*
- * disable font AA in mono mode
- */
-    if (grace->gui->monomode == TRUE) {
-        Device_entry *dev;
-        dev = get_device_props(canvas, grace->rt->tdevice);
-        dev->fontaa = FALSE;
-    }
-
     return RETURN_SUCCESS;
 }
 

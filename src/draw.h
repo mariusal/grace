@@ -360,6 +360,13 @@ typedef enum {
     PAGE_FORMAT_A4
 } PageFormat;
 
+/* Font rasterizing types */
+typedef enum {
+    FONT_RASTER_DEVICE,
+    FONT_RASTER_MONO,
+    FONT_RASTER_AA
+} FontRaster;
+
 typedef struct {
     unsigned long width;
     unsigned long height;
@@ -370,8 +377,7 @@ typedef struct {
     int type;
     char *name;		                   /* name of device */
     char *fext;		                   /* filename extension */
-    int devfonts;                          /* device has its own fonts */
-    int fontaa;                            /* font antialiasing */
+    FontRaster fontrast;                   /* font rasterizing */
     Page_geometry pg;                      /* device defaults */
     
     int twopass;                           /* two-pass mode */
@@ -648,7 +654,7 @@ int device_set_procs(Device_entry *d,
 int device_set_dpi(Device_entry *d, float dpi, int resize);
 int device_set_fext(Device_entry *d, const char *fext);
 int device_set_autocrop(Device_entry *d, int autocrop);
-int device_set_fontrast(Device_entry *d, int devfonts, int fontaa);
+int device_set_fontrast(Device_entry *d, FontRaster fontrast);
 
 int register_device(Canvas *canvas, Device_entry *d);
 

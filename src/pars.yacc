@@ -2038,32 +2038,6 @@ parmset:
             }
             xfree($2);
         }
-        | DEVICE CHRSTR FONTP ANTIALIASING onoff {
-            int device_id;
-            Device_entry *dev;
-            
-            device_id = get_device_by_name(canvas, $2);
-            if (device_id < 0) {
-                yyerror("Unknown device");
-            } else {
-                dev = get_device_props(canvas, device_id);
-                dev->fontaa = $5;
-            }
-            xfree($2);
-        }
-        | DEVICE CHRSTR FONTP onoff {
-            int device_id;
-            Device_entry *dev;
-            
-            device_id = get_device_by_name(canvas, $2);
-            if (device_id < 0) {
-                yyerror("Unknown device");
-            } else {
-                dev = get_device_props(canvas, device_id);
-                dev->devfonts = $4;
-            }
-            xfree($2);
-        }
         | DEVICE CHRSTR OP CHRSTR {
             int device_id;
             
