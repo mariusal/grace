@@ -281,14 +281,15 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
  */
 int copyset(int gfrom, int setfrom, int gto, int setto)
 {
-    int k, len;
+    int i, k, len, ncols;
     double *savec[MAX_SET_COLS];
+    char **saves;
     char buf[256];
 
-    if (!is_graph_active(gto)) {
-	set_graph_active(gto, TRUE);
-    }
     if (!is_set_active(gfrom, setfrom)) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (!is_valid_gno(gto)) {
 	return GRACE_EXIT_FAILURE;
     }
     if (setfrom == setto && gfrom == gto) {
@@ -297,26 +298,84 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
     if (is_set_active(gto, setto)) {
 	killset(gto, setto);
     }
+    len = getsetlength(gfrom, setfrom);
+    ncols = dataset_cols(gfrom, setfrom);
     activateset(gto, setto);
     set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
-    len = getsetlength(gfrom, setfrom);
-    setlength(gto, setto, len);
+    if (setlength(gto, setto, len) != GRACE_EXIT_SUCCESS) {
+	return GRACE_EXIT_FAILURE;
+    }
 
     for (k = 0; k < MAX_SET_COLS; k++) {
 	savec[k] = getcol(gto, setto, k);
     }
+    saves = get_set_strings(gto, setto);
     memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
-    for (k = 0; k < MAX_SET_COLS; k++) {
+    for (k = 0; k < ncols; k++) {
 	g[gto].p[setto].data.ex[k] = savec[k];
-	if (getcol(gfrom, setfrom, k) != NULL &&
-            getcol(gto, setto, k) != NULL) {
-	    memcpy(g[gto].p[setto].data.ex[k],
-                g[gfrom].p[setfrom].data.ex[k],
-                len*SIZEOF_DOUBLE);
-	}
+	memcpy(g[gto].p[setto].data.ex[k],
+               g[gfrom].p[setfrom].data.ex[k],
+               len*SIZEOF_DOUBLE);
+    }
+    if (g[gfrom].p[setfrom].data.s != NULL) {
+        g[gto].p[setto].data.s = saves;
+        for (i = 0; i < len; i++) {
+	     g[gto].p[setto].data.s[i] = copy_string(g[gto].p[setto].data.s[i],
+                g[gfrom].p[setfrom].data.s[i]);
+        }
     }
 
     sprintf(buf, "copy of set G%d.S%d", gfrom, setfrom);
+    setcomment(gto, setto, buf);
+
+    set_dirtystate();
+    
+    return GRACE_EXIT_SUCCESS;
+}
+
+/*
+ * same as copyset(), but doesn't alter the to set appearance
+ */
+int copysetdata(int gfrom, int setfrom, int gto, int setto)
+{
+    int i, k, len, ncols;
+    char buf[256];
+
+    if (!is_set_active(gfrom, setfrom)) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (!is_valid_gno(gto)) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (setfrom == setto && gfrom == gto) {
+	return GRACE_EXIT_FAILURE;
+    }
+    if (is_set_active(gto, setto)) {
+	killsetdata(gto, setto);
+    }
+    len = getsetlength(gfrom, setfrom);
+    ncols = dataset_cols(gfrom, setfrom);
+    activateset(gto, setto);
+    if (dataset_cols(gto, setto) != ncols) {
+        set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
+    }
+    if (setlength(gto, setto, len) != GRACE_EXIT_SUCCESS) {
+        return GRACE_EXIT_FAILURE;
+    }
+
+    for (k = 0; k < ncols; k++) {
+	memcpy(g[gto].p[setto].data.ex[k],
+               g[gfrom].p[setfrom].data.ex[k],
+               len*SIZEOF_DOUBLE);
+    }
+    if (g[gfrom].p[setfrom].data.s != NULL) {
+        for (i = 0; i < len; i++) {
+	     g[gto].p[setto].data.s[i] = copy_string(g[gto].p[setto].data.s[i],
+                g[gfrom].p[setfrom].data.s[i]);
+        }
+    }
+
+    sprintf(buf, "copy of setdata G%d.S%d", gfrom, setfrom);
     setcomment(gto, setto, buf);
 
     set_dirtystate();

@@ -326,6 +326,7 @@ int set_set_colors(int gno, int setno, int color);
 
 int moveset(int gnofrom, int setfrom, int gnoto, int setto);
 int copyset(int gnofrom, int setfrom, int gnoto, int setto);
+int copysetdata(int gnofrom, int setfrom, int gnoto, int setto);
 
 int get_recent_setno(void);
 int get_recent_gno(void);
