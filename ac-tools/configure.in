@@ -438,7 +438,6 @@ AC_STRUCT_TM
 
 dnl **** Checks for library functions.
 AC_TYPE_SIGNAL
-AC_FUNC_VFORK
 AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(getcwd gethostname)
 AC_CHECK_FUNCS(strstr)
