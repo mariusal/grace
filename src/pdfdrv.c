@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -63,10 +63,18 @@
 #  include "motifinc.h"
 #endif
 
-static void pdf_error_handler(int level, const char* fmt, va_list ap);
+static void pdf_error_handler(int level, const char *fmt, va_list ap);
 
 static unsigned long page_scale;
+static float pixel_size;
 static float page_scalef;
+
+static int pdf_color;
+static int pdf_pattern;
+static double pdf_linew;
+static int pdf_lines;
+static int pdf_linecap;
+static int pdf_linejoin;
 
 static int pdf_setup_binary = TRUE;
 
@@ -84,6 +92,7 @@ int pdfinitgraphics(void)
     /* device-dependent routines */
     devupdatecmap   = NULL;
     
+    devdrawpixel    = pdf_drawpixel;
     devdrawpolyline = pdf_drawpolyline;
     devfillpolygon  = pdf_fillpolygon;
     devdrawarc      = pdf_drawarc;
@@ -96,7 +105,16 @@ int pdfinitgraphics(void)
     pg = get_page_geometry();
     
     page_scale = MIN2(pg.height, pg.width);
+    pixel_size = 1.0/page_scale;
     page_scalef = (float) page_scale*72.0/pg.dpi_x;
+
+    /* undefine all graphics state parameters */
+    pdf_color = -1;
+    pdf_pattern = -1;
+    pdf_linew = -1.0;
+    pdf_lines = -1;
+    pdf_linecap = -1;
+    pdf_linejoin = -1;
 
     info = PDF_get_info();
     
@@ -143,10 +161,14 @@ void pdf_setpen(void)
     fRGB *frgb;
     
     pen = getpen();
-    frgb = get_frgb(pen.color);
-    PDF_setrgbcolor(phandle,
+    if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
+        frgb = get_frgb(pen.color);
+        PDF_setrgbcolor(phandle,
                     (float) frgb->red, (float) frgb->green,(float) frgb->blue);     
-    /* TODO: patterns */
+        /* TODO: patterns */
+        pdf_color = pen.color;
+        pdf_pattern = pen.pattern;
+    }
 }
 
 void pdf_setdrawbrush(void)
@@ -154,22 +176,89 @@ void pdf_setdrawbrush(void)
     int i;
     float lw;
     int ls;
-    float *darray = NULL;
+    float *darray;
+
+    pdf_setpen();
     
     ls = getlinestyle();
-    lw = MAX2((float) getlinewidth(), 1.0/page_scale);
-    PDF_setlinewidth(phandle, lw);
+    lw = MAX2(getlinewidth(), pixel_size);
 
-    if (ls == 0 || ls == 1) {
-        PDF_setpolydash(phandle, darray, 0); /* length == 0,1 means solid line */
-    } else {
-        darray = (float *) malloc(dash_array_length[ls]*SIZEOF_FLOAT);
-        for (i = 0; i < dash_array_length[ls]; i++) {
-            darray[i] = lw*dash_array[ls][i];
+    if (ls != pdf_lines || lw != pdf_linew) {    
+        PDF_setlinewidth(phandle, lw);
+
+        if (ls == 0 || ls == 1) {
+            PDF_setpolydash(phandle, NULL, 0); /* length == 0,1 means solid line */
+        } else {
+            darray = malloc(dash_array_length[ls]*SIZEOF_FLOAT);
+            for (i = 0; i < dash_array_length[ls]; i++) {
+                darray[i] = lw*dash_array[ls][i];
+            }
+            PDF_setpolydash(phandle, darray, dash_array_length[ls]);
+            free(darray);
         }
-        PDF_setpolydash(phandle, darray, dash_array_length[ls]);
-        free (darray);
+        pdf_linew = lw;
+        pdf_lines = ls;
     }
+}
+
+void pdf_setlineprops(void)
+{
+    int lc, lj;
+    
+    lc = getlinecap();
+    lj = getlinejoin();
+    
+    if (lc != pdf_linecap) {
+        switch (lc) {
+        case LINECAP_BUTT:
+            PDF_setlinecap(phandle, 0);
+            break;
+        case LINECAP_ROUND:
+            PDF_setlinecap(phandle, 1);
+            break;
+        case LINECAP_PROJ:
+            PDF_setlinecap(phandle, 2);
+            break;
+        }
+        pdf_linecap = lc;
+    }
+
+    if (lj != pdf_linejoin) {
+        switch (lj) {
+        case LINEJOIN_MITER:
+            PDF_setlinejoin(phandle, 0);
+            break;
+        case LINEJOIN_ROUND:
+            PDF_setlinejoin(phandle, 1);
+            break;
+        case LINEJOIN_BEVEL:
+            PDF_setlinejoin(phandle, 2);
+            break;
+        }
+        pdf_linejoin = lj;
+    }
+}
+
+void pdf_drawpixel(VPoint vp)
+{
+    pdf_setpen();
+    
+    if (pdf_linew != pixel_size) {
+        PDF_setlinewidth(phandle, pixel_size);
+        pdf_linew = pixel_size;
+    }
+    if (pdf_linecap != LINECAP_ROUND) {
+        PDF_setlinecap(phandle, 1);
+        pdf_linecap = LINECAP_ROUND;
+    }
+    if (pdf_lines != 1) {
+        PDF_setpolydash(phandle, NULL, 0);
+        pdf_lines = 1;
+    }
+
+    PDF_moveto(phandle, (float) vp.x, (float) vp.y);
+    PDF_lineto(phandle, (float) vp.x, (float) vp.y);
+    PDF_stroke(phandle);
 }
 
 void pdf_drawpolyline(VPoint *vps, int n, int mode)
@@ -180,8 +269,8 @@ void pdf_drawpolyline(VPoint *vps, int n, int mode)
         return;
     }
     
-    pdf_setpen();
     pdf_setdrawbrush();
+    pdf_setlineprops();
     
     PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
     for (i = 1; i < n; i++) {
@@ -225,7 +314,6 @@ void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
         return;
     }
     
-    pdf_setpen();
     pdf_setdrawbrush();
     
     vpc.x = (vp1.x + vp2.x)/2;
@@ -348,7 +436,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     PDF_save(phandle);
 
     PDF_translate(phandle, vp.x, vp.y);
-    PDF_scale(phandle, 1.0/page_scale, 1.0/page_scale);
+    PDF_scale(phandle, pixel_size, pixel_size);
     PDF_translate(phandle, 0.0, - (float) image.height);
      
     PDF_data_source_from_buf(phandle, &image.src, buf, buflen);

@@ -51,12 +51,24 @@
 #define FILLRULE_WINDING    0
 #define FILLRULE_EVENODD    1
 
+/* line cap parameter */
+#define LINECAP_BUTT        0
+#define LINECAP_ROUND       1
+#define LINECAP_PROJ        2
+
+/* line join type */
+#define LINEJOIN_MITER      0
+#define LINEJOIN_ROUND      1
+#define LINEJOIN_BEVEL      2
+
 /* Drawing properties */
 typedef struct {
     Pen pen;
     int bgcolor;
     int lines;
     double linew;
+    int linecap;
+    int linejoin;
     double charsize;
     int font;
     int fillrule;
@@ -128,6 +140,12 @@ int getfont(void);
 
 void setfillrule(int rule);
 int getfillrule(void);
+
+void setlinecap(int type);
+int getlinecap(void);
+
+void setlinejoin(int type);
+int getlinejoin(void);
 
 void symplus(VPoint vp, double s);
 void symx(VPoint vp, double s);
@@ -214,5 +232,6 @@ int number_of_patterns(void);
 int number_of_linestyles(void);
 
 void vpswap(VPoint *vp1, VPoint *vp2);
+int points_overlap(VPoint vp1, VPoint vp2);
 
 #endif /* __DRAW_H_ */

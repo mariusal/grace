@@ -50,6 +50,7 @@ void update_color_selectors(void);
 
 void (*devupdatecmap)();        /* update color map */
 
+void (*devdrawpixel) ();        /* device pixel drawing routine */
 void (*devdrawpolyline) ();     /* device polyline drawing routine */
 void (*devfillpolygon) ();      /* device polygon filling routine */
 void (*devdrawarc) ();          /* device arc drawing routine */
@@ -59,7 +60,7 @@ void (*devleavegraphics) ();    /* device exit */
 
 /* Current drawing properties */
 static DrawProps draw_props =
-{{1, 1}, 0, 1, 0.0, 1.0, 0, FILLRULE_WINDING};
+{{1, 1}, 0, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 
 static world worldwin;
 static view viewport;
@@ -202,6 +203,34 @@ int getfillrule(void)
 }
 
 /*
+ * set/get the current linecap parameter
+ */
+void setlinecap(int type)
+{
+    draw_props.linecap = type;
+    return;
+}
+
+int getlinecap(void)
+{
+    return (draw_props.linecap);
+}
+
+/*
+ * set/get the current linejoin type
+ */
+void setlinejoin(int type)
+{
+    draw_props.linejoin = type;
+    return;
+}
+
+int getlinejoin(void)
+{
+    return (draw_props.linejoin);
+}
+
+/*
  * Convert point's world coordinates to viewport
  */
 VPoint Wpoint2Vpoint(WPoint wp)
@@ -259,6 +288,18 @@ void leavegraphics(void)
     (*devleavegraphics) ();
 }
 
+/*
+ * DrawPixel - put a pixel in the current color at position vp
+ */
+void DrawPixel(VPoint vp)
+{
+     if (is_validVPoint(vp)) {
+         if (get_draw_mode() == TRUE) {
+             (*devdrawpixel)(vp);
+         }
+         update_bboxes(vp);
+     }
+}
 
 /*
  * DrawRect - draw a rectangle using the current color and linestyle
@@ -314,6 +355,10 @@ void DrawPolyline(VPoint *vps, int n, int mode)
         return;
     }
     
+    if (n <= 1) {
+        return;
+    }
+    
     if (mode == POLYLINE_CLOSED) {
         nmax = n + 1;
     } else {
@@ -321,6 +366,7 @@ void DrawPolyline(VPoint *vps, int n, int mode)
     }
     
     if (doclipping()) {
+        
         vpsc = (VPoint *) malloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
             errmsg ("malloc() failed in DrawPolyline()");
@@ -383,7 +429,6 @@ void DrawLine(VPoint vp1, VPoint vp2)
     DrawPolyline(vps, 2, POLYLINE_OPEN);
 }
 
-
 /*
  * DrawPolygon - draw a filled polygon in the current color and pattern
  *      with nodes given by vps[]
@@ -394,6 +439,9 @@ void DrawPolygon(VPoint *vps, int n)
     VPoint *vptmp;
 
     if ((getpen()).pattern == 0) {
+        return;
+    }
+    if (n < 3) {
         return;
     }
     
@@ -452,7 +500,12 @@ void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
     if ((getpen()).pattern == 0) {
         return;
     }
-    
+
+    if (points_overlap(vp1, vp2)) {
+        DrawPixel(vp1);
+        return;
+    }
+        
     /* TODO: clipping!!!*/
     if (get_draw_mode() == TRUE) {
         (*devfillarc)(vp1, vp2, angle1, angle2);
@@ -1566,4 +1619,16 @@ void vpswap(VPoint *vp1, VPoint *vp2)
     vptmp = *vp1;
     *vp1 = *vp2;
     *vp2 = vptmp;
+}
+
+int points_overlap(VPoint vp1, VPoint vp2)
+{
+    double delta;
+    
+    delta = 1.0/MIN2(page_width, page_height);
+    if (fabs(vp2.x - vp1.x) < delta || fabs(vp2.y - vp1.y) < delta) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }

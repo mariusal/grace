@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -30,6 +30,7 @@
 
 int mfinitgraphics(void);
 
+void mf_drawpixel(VPoint vp);
 void mf_drawpolyline(VPoint *vps, int n, int mode);
 void mf_fillpolygon(VPoint *vps, int nc);
 void mf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);

@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -74,13 +74,15 @@ unsigned long xvlibcolors[MAXCOLORS];
 Colormap cmap;
 
 static Pixmap curtile;
-
-static int xlibcolor = BAD_COLOR;
-static int xlibbgcolor = BAD_COLOR;
-static int xlibpatno = -1;
-static int xliblinewidth = -1;
-static int xliblinestyle = -1;
 static Pixmap displaybuff = (Pixmap) NULL;
+
+static int xlibcolor;
+static int xlibbgcolor;
+static int xlibpatno;
+static int xliblinewidth;
+static int xliblinestyle;
+static int xliblinecap;
+static int xliblinejoin;
 
 unsigned int win_h = 0, win_w = 0;
 #define win_scale ((win_h < win_w) ? win_h:win_w)
@@ -270,10 +272,19 @@ int xlibinitgraphics(void)
     if (inwin == FALSE) {
         return GRACE_EXIT_FAILURE;
     }
+
+    xlibcolor = BAD_COLOR;
+    xlibbgcolor = BAD_COLOR;
+    xlibpatno = -1;
+    xliblinewidth = -1;
+    xliblinestyle = -1;
+    xliblinecap   = -1;
+    xliblinejoin  = -1;
     
     /* device-dependent routines */    
     devupdatecmap = xlibupdatecmap;
     
+    devdrawpixel = xlibdrawpixel;
     devdrawpolyline = xlibdrawpolyline;
     devfillpolygon = xlibfillpolygon;
     devdrawarc = xlibdrawarc;
@@ -351,13 +362,43 @@ void xlib_setdrawbrush(void)
 {
     unsigned int iw;
     int style;
+    int lc, lj;
     int i, scale, darr_len;
     char *xdarr;
+
+    xlib_setpen();
     
     iw = (unsigned int) rint(getlinewidth()*win_scale);
     style = getlinestyle();
+    lc = getlinecap();
+    lj = getlinejoin();
     
-    if (iw != xliblinewidth || style != xliblinestyle) {
+    switch (lc) {
+    case LINECAP_BUTT:
+        lc = CapButt;
+        break;
+    case LINECAP_ROUND:
+        lc = CapRound;
+        break;
+    case LINECAP_PROJ:
+        lc = CapProjecting;
+        break;
+    }
+
+    switch (lj) {
+    case LINEJOIN_MITER:
+        lj = JoinMiter;
+        break;
+    case LINEJOIN_ROUND:
+        lj = JoinRound;
+        break;
+    case LINEJOIN_BEVEL:
+        lj = JoinBevel;
+        break;
+    }
+    
+    if (iw != xliblinewidth || style != xliblinestyle ||
+        lc != xliblinecap   || lj    != xliblinejoin) {
         if (style > 1) {
             darr_len = dash_array_length[style];
             xdarr = malloc(darr_len*SIZEOF_CHAR);
@@ -368,27 +409,37 @@ void xlib_setdrawbrush(void)
             for (i = 0; i < darr_len; i++) {
                 xdarr[i] = scale*dash_array[style][i];
             }
-            XSetLineAttributes(disp, gc, iw, LineOnOffDash, CapButt, JoinRound);
+            XSetLineAttributes(disp, gc, iw, LineOnOffDash, lc, lj);
             XSetDashes(disp, gc, 0, xdarr, darr_len);
             free(xdarr);
         } else if (style == 1) {
-            XSetLineAttributes(disp, gc, iw, LineSolid, CapButt, JoinRound);
+            XSetLineAttributes(disp, gc, iw, LineSolid, lc, lj);
         }
  
         xliblinestyle = style;
         xliblinewidth = iw;
+        xliblinecap   = lc;
+        xliblinejoin  = lj;
     }
 
     return;
 }
 
+void xlibdrawpixel(VPoint vp)
+{
+    XPoint xp;
+    
+    xp = VPoint2XPoint(vp);
+    xlib_setpen();
+    XDrawPoint(disp, displaybuff, gc, xp.x, xp.y);
+}
 
 void xlibdrawpolyline(VPoint *vps, int n, int mode)
 {
     int i, xn = n;
     XPoint *p;
     
-    if (n <= 0 || getlinestyle() == 0 || getpattern() == 0) {
+    if (n <= 1 || getlinestyle() == 0 || getpattern() == 0) {
         return;
     }
     
@@ -408,14 +459,9 @@ void xlibdrawpolyline(VPoint *vps, int n, int mode)
         p[n] = p[0];
     }
     
-    xlib_setpen();
     xlib_setdrawbrush();
     
-    if (n == 1) {
-        XDrawPoint(disp, displaybuff, gc, p[0].x, p[0].y);
-    } else {
-        XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
-    }
+    XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
     
     free(p);
 }
@@ -466,7 +512,6 @@ void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2)
         return;
     }
 
-    xlib_setpen();
     xlib_setdrawbrush();
     
     if (x1 != x2 || y1 != y2) {

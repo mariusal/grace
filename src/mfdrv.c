@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -49,6 +49,7 @@ int mfinitgraphics(void)
     /* device-dependent routines */
     devupdatecmap   = NULL;
     
+    devdrawpixel    = mf_drawpixel;
     devdrawpolyline = mf_drawpolyline;
     devfillpolygon  = mf_fillpolygon;
     devdrawarc      = mf_drawarc;
@@ -75,6 +76,13 @@ void mf_setdrawbrush(void)
 {
     fprintf(prstream, "SetLineWidth { %.4f }\n", getlinewidth());
     fprintf(prstream, "SetLineStyle { %3d }\n", getlinestyle());
+}
+
+void mf_drawpixel(VPoint vp)
+{
+    mf_setpen();
+
+    fprintf(prstream, "DrawPixel { ( %.4f , %.4f ) }\n", vp.x, vp.y);
 }
 
 void mf_drawpolyline(VPoint *vps, int n, int mode)

@@ -1199,7 +1199,9 @@ void postprocess_project(int version)
                     break;
                 case SYM_DOT_OBS:
                     g[gno].p[setno].sym = SYM_CIRCLE;
-                    g[gno].p[setno].symsize = 0.01;
+                    g[gno].p[setno].symsize = 0.0;
+                    g[gno].p[setno].symlines = 0;
+                    g[gno].p[setno].symfillpen.pattern = 1;
                     break;
                 default:
                     g[gno].p[setno].sym--;

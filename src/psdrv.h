@@ -39,6 +39,7 @@
 int psprintinitgraphics(void);
 int epsinitgraphics(void);
 
+void ps_drawpixel(VPoint vp);
 void ps_drawpolyline(VPoint *vps, int n, int mode);
 void ps_fillpolygon(VPoint *vps, int nc);
 void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);

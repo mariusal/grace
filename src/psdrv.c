@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -64,10 +64,18 @@ static char *escape_paren(char *s);
 static int curformat = DEFAULT_PS_FORMAT;
 
 static unsigned long page_scale;
+static double pixel_size;
 static float page_scalef;
 static int page_orientation;
 
 static int *psfont_status = NULL;
+
+static int ps_color;
+static int ps_pattern;
+static double ps_linew;
+static int ps_lines;
+static int ps_linecap;
+static int ps_linejoin;
 
 static int ps_grayscale = FALSE;
 static int ps_level2 = TRUE;
@@ -90,6 +98,7 @@ static int ps_initgraphics(int format)
     /* device-dependent routines */
     devupdatecmap = NULL;
     
+    devdrawpixel = ps_drawpixel;
     devdrawpolyline = ps_drawpolyline;
     devfillpolygon = ps_fillpolygon;
     devdrawarc = ps_drawarc;
@@ -102,6 +111,7 @@ static int ps_initgraphics(int format)
     pg = get_page_geometry();
     
     page_scale = MIN2(pg.height, pg.width);
+    pixel_size = 1.0/page_scale;
     page_scalef = (float) page_scale*72.0/pg.dpi_x;
 
     if (pg.height < pg.width) {
@@ -109,12 +119,20 @@ static int ps_initgraphics(int format)
     } else {
         page_orientation = PAGE_ORIENT_PORTRAIT;
     }
+    
+    /* undefine all graphics state parameters */
+    ps_color = -1;
+    ps_pattern = -1;
+    ps_linew = -1.0;
+    ps_lines = -1;
+    ps_linecap = -1;
+    ps_linejoin = -1;
 
     /* Font status table */
     if (psfont_status != NULL) {
         free(psfont_status);
     }
-    psfont_status = (int *) malloc(number_of_fonts()*SIZEOF_INT);
+    psfont_status = malloc(number_of_fonts()*SIZEOF_INT);
     for (i = 0; i < number_of_fonts(); i++) {
         psfont_status[i] = FALSE;
     }
@@ -181,6 +199,7 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "/s {stroke} def\n");
     fprintf(prstream, "/n {newpath} def\n");
     fprintf(prstream, "/c {closepath} def\n");
+    fprintf(prstream, "/pix {n m 0 0 rlineto s} def\n");
     
     for (i = 0; i < number_of_colors(); i++) {
         fprintf(prstream,"/Color%d {\n", i);
@@ -264,28 +283,33 @@ void ps_setpen(void)
     
     pen = getpen();
     
-    if (ps_level2 == TRUE) {
-        if (pen.pattern == 1) {
-            if (ps_grayscale == TRUE) {
-                fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+    if (pen.color != ps_color || pen.pattern != ps_pattern) {
+        if (ps_level2 == TRUE) {
+            if (pen.pattern == 1) {
+                if (ps_grayscale == TRUE) {
+                    fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+                } else {
+                    fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+                }
+                fprintf(prstream, "Color%d setcolor\n", pen.color);
             } else {
-                fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+                if (ps_grayscale == TRUE) {
+                    fprintf(prstream, "[/Pattern /DeviceGray] setcolorspace\n");
+                } else {
+                    fprintf(prstream, "[/Pattern /DeviceRGB] setcolorspace\n");
+                }
+                fprintf(prstream,
+                    "Color%d Pattern%d setcolor\n", pen.color, pen.pattern);
             }
-            fprintf(prstream, "Color%d setcolor\n", pen.color);
         } else {
             if (ps_grayscale == TRUE) {
-                fprintf(prstream, "[/Pattern /DeviceGray] setcolorspace\n");
+                fprintf(prstream, "Color%d setgray\n", pen.color);
             } else {
-                fprintf(prstream, "[/Pattern /DeviceRGB] setcolorspace\n");
+                fprintf(prstream, "Color%d setrgbcolor\n", pen.color);
             }
-            fprintf(prstream, "Color%d Pattern%d setcolor\n", pen.color, pen.pattern);
         }
-    } else {
-        if (ps_grayscale == TRUE) {
-            fprintf(prstream, "Color%d setgray\n", pen.color);
-        } else {
-            fprintf(prstream, "Color%d setrgbcolor\n", pen.color);
-        }
+        ps_color = pen.color;
+        ps_pattern = pen.pattern;
     }
 }
 
@@ -295,18 +319,81 @@ void ps_setdrawbrush(void)
     int ls;
     double lw;
     
+    ps_setpen();
+
     ls = getlinestyle();
-    lw = MAX2(getlinewidth(), 1.0/page_scale);
+    lw = MAX2(getlinewidth(), pixel_size);
+    
+    if (ls != ps_lines || lw != ps_linew) {    
+        fprintf(prstream, "[");
+        if (ls > 1) {
+            for (i = 0; i < dash_array_length[ls]; i++) {
+                fprintf(prstream, "%.4f ", lw*dash_array[ls][i]);
+            }
+        }
+        fprintf(prstream, "] 0 setdash\n");
+        fprintf(prstream, "%.4f setlinewidth\n", lw);
+        ps_linew = lw;
+        ps_lines = ls;
+    }
+}
+
+void ps_setlineprops(void)
+{
+    int lc, lj;
+    
+    lc = getlinecap();
+    lj = getlinejoin();
+    
+    if (lc != ps_linecap) {
+        switch (lc) {
+        case LINECAP_BUTT:
+            fprintf(prstream, "0 setlinecap\n");
+            break;
+        case LINECAP_ROUND:
+            fprintf(prstream, "1 setlinecap\n");
+            break;
+        case LINECAP_PROJ:
+            fprintf(prstream, "2 setlinecap\n");
+            break;
+        }
+        ps_linecap = lc;
+    }
+
+    if (lj != ps_linejoin) {
+        switch (lj) {
+        case LINEJOIN_MITER:
+            fprintf(prstream, "0 setlinejoin\n");
+            break;
+        case LINEJOIN_ROUND:
+            fprintf(prstream, "1 setlinejoin\n");
+            break;
+        case LINEJOIN_BEVEL:
+            fprintf(prstream, "2 setlinejoin\n");
+            break;
+        }
+        ps_linejoin = lj;
+    }
+}
+
+void ps_drawpixel(VPoint vp)
+{
     ps_setpen();
     
-    fprintf(prstream, "[");
-    if (ls > 1) {
-        for (i = 0; i < dash_array_length[ls]; i++) {
-            fprintf(prstream, "%.4f ", lw*dash_array[ls][i]);
-        }
+    if (ps_linew != pixel_size) {
+        fprintf(prstream, "%.4f setlinewidth\n", pixel_size);
+        ps_linew = pixel_size;
     }
-    fprintf(prstream, "] 0 setdash\n");
-    fprintf(prstream, "%.4f setlinewidth\n", lw);
+    if (ps_linecap != LINECAP_ROUND) {
+        fprintf(prstream, "1 setlinecap\n");
+        ps_linecap = LINECAP_ROUND;
+    }
+    if (ps_lines != 1) {
+        fprintf(prstream, "[] 0 setdash\n");
+        ps_lines = 1;
+    }
+    
+    fprintf(prstream, "%.4f %.4f pix\n", vp.x, vp.y);
 }
 
 void ps_drawpolyline(VPoint *vps, int n, int mode)
@@ -314,6 +401,8 @@ void ps_drawpolyline(VPoint *vps, int n, int mode)
     int i;
     
     ps_setdrawbrush();
+    
+    ps_setlineprops();
     
     fprintf(prstream, "n\n");
     fprintf(prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);

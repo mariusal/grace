@@ -115,9 +115,6 @@ void do_hardcopy(void)
     int truncated_out;
     
     if (ptofile) {
-        if (fexists(print_file)) {
-            return;
-        }
         strcpy(fname, print_file);
     } else {
         tmpnam(fname);

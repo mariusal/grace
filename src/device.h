@@ -83,6 +83,8 @@ typedef struct {
 /* device exit */
 extern void (*devleavegraphics) (void);
 
+/* device pixel routine */
+extern void (*devdrawpixel) (VPoint vp);  
 /* device polyline routine */
 extern void (*devdrawpolyline) (VPoint *vps, int n, int mode);  
 /* device polygon routine */

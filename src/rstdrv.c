@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -256,6 +256,7 @@ static int rst_initgraphics(int format)
     /* device-dependent routines */
     devupdatecmap = rst_updatecmap;
     
+    devdrawpixel = rst_drawpixel;
     devdrawpolyline = rst_drawpolyline;
     devfillpolygon = rst_fillpolygon;
     devdrawarc = rst_drawarc;
@@ -277,6 +278,14 @@ static int rst_initgraphics(int format)
     rst_updatecmap();
     
     return GRACE_EXIT_SUCCESS;
+}
+
+void rst_drawpixel(VPoint vp)
+{
+    gdPoint gdp;
+    
+    gdp = VPoint2gdPoint(vp);
+    gdImageSetPixel(ihandle, gdp.x, gdp.y, rst_colors[getcolor()]);
 }
 
 void rst_drawpolyline(VPoint *vps, int n, int mode)
