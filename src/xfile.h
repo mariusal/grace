@@ -32,14 +32,11 @@
 #ifndef __XFILE_H_
 #define __XFILE_H_
 
-typedef struct _XFile {
-    char *fname;
-    FILE *fp;
-    char *root; /* FIXME: keep the whole tree of node names */
-    int indent;
-    char *indstr;
-    int curpos;
-} XFile;
+typedef struct _XStack {
+    int size;
+    int depth;
+    char **stack;
+} XStack;
 
 typedef struct _ElementAttribute {
     char *name;
@@ -52,6 +49,20 @@ typedef struct _Attributes {
     int count;
 } Attributes;
 
+typedef struct _XFile {
+    char *fname;
+    FILE *fp;
+    XStack *tree;
+    int indent;
+    char *indstr;
+    int curpos;
+} XFile;
+
+XStack *xstack_new(void);
+void xstack_free(XStack *xs);
+int xstack_increment(XStack *xs, const char *name);
+int xstack_decrement(XStack *xs, const char *name);
+int xstack_get_first(XStack *xs, char **name);
 
 Attributes *attributes_new(void);
 void attributes_free(Attributes *attrs);

@@ -45,6 +45,76 @@
 
 #define ATTR_CHUNK_SIZE  16
 
+#define XSTACK_CHUNK_SIZE   16
+
+XStack *xstack_new(void)
+{
+    XStack *xs = xmalloc(sizeof(XStack));
+    
+    if (xs) {
+        xs->size  = 0;
+        xs->depth = 0;
+        xs->stack = NULL;
+    }
+    
+    return xs;
+}
+
+void xstack_free(XStack *xs)
+{
+    if (xs) {
+        while (xs->depth) {
+            xs->depth--;
+            xfree(xs->stack[xs->depth]);
+        }
+        
+        xfree(xs);
+    }
+}
+
+int xstack_increment(XStack *xs, const char *name)
+{
+    if (xs->size <= xs->depth) {
+        int new_size = xs->size + XSTACK_CHUNK_SIZE;
+        char **p = xrealloc(xs->stack, new_size*SIZEOF_VOID_P);
+        if (!p) {
+            return RETURN_FAILURE;
+        } else {
+            xs->stack = p;
+            xs->size = new_size;
+        }
+    }
+    xs->stack[xs->depth] = copy_string(NULL, name);
+    xs->depth++;
+    
+    return RETURN_SUCCESS;
+}
+
+int xstack_decrement(XStack *xs, const char *name)
+{
+    if (xs->depth < 1) {
+        return RETURN_FAILURE;
+    } else if (!compare_strings(name, xs->stack[xs->depth - 1])) {
+        return RETURN_FAILURE;
+    } else {
+        xfree(xs->stack[xs->depth - 1]);
+        xs->depth--;
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+int xstack_get_first(XStack *xs, char **name)
+{
+    if (xs && xs->depth > 0) {
+        *name = xs->stack[0];
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 
 Attributes *attributes_new(void)
 {
@@ -102,7 +172,6 @@ int attributes_set_sval(Attributes *attrs, const char *name, const char *value)
         }
     }
     
-    /* FIXME: escape special chars */
     attrs->args[attrs->count].name  =
         copy_string(attrs->args[attrs->count].name, name);
     attrs->args[attrs->count].value =
@@ -178,7 +247,7 @@ void xfile_free(XFile *xf)
 {
     if (xf) {
         xfree(xf->fname);
-        xfree(xf->root);
+        xstack_free(xf->tree);
         xfree(xf->indstr);
         grace_close(xf->fp);
         xfree(xf);
@@ -191,14 +260,14 @@ XFile *xfile_new(char *fname)
 
     xf = xmalloc(sizeof(XFile));
     if (xf) {
-        xf->root   = NULL;
+        xf->tree   = xstack_new();
         xf->indent = 0;
         xf->curpos = 0;
         xf->indstr = copy_string(NULL, DEFAULT_INDENT_STRING);
         xf->fname  = copy_string(NULL, fname);
         xf->fp     = grace_openw(xf->fname);
         
-        if (!xf->indstr || !xf->fname || !xf->fp) {
+        if (!xf->tree || !xf->indstr || !xf->fname || !xf->fp) {
             xfile_free(xf);
             xf = NULL;
         }
@@ -263,6 +332,7 @@ static void xfile_output_attributes(XFile *xf, Attributes *attrs)
         unsigned int i;
         for (i = 0; i < attrs->count; i++) {
             if (attrs->args[i].name) {
+                /* FIXME: escape special chars */
                 xfile_output(xf, " ");
                 xfile_output(xf, attrs->args[i].name);
                 xfile_output(xf, "=\"");
@@ -290,6 +360,10 @@ int xfile_begin_element(XFile *xf, char *name, Attributes *attrs)
     xfile_output(xf, ">\n");
     xfile_indent_increment(xf);
     
+    if (xstack_increment(xf->tree, name) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
     return RETURN_SUCCESS;
 }
 
@@ -300,6 +374,10 @@ int xfile_end_element(XFile *xf, char *name)
     xfile_output(xf, "</");
     xfile_output(xf, name);
     xfile_output(xf, ">\n");
+    
+    if (xstack_decrement(xf->tree, name) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
     
     return RETURN_SUCCESS;
 }
@@ -352,7 +430,6 @@ int xfile_begin(XFile *xf, char *encoding, int standalone,
         xfile_output(xf, "\">\n");
     }
     
-    xf->root = copy_string(xf->root, root);
     xfile_begin_element(xf, root, root_attrs);
     
     return RETURN_SUCCESS;
@@ -360,7 +437,13 @@ int xfile_begin(XFile *xf, char *encoding, int standalone,
 
 int xfile_end(XFile *xf)
 {
-    return xfile_end_element(xf, xf->root);
+    char *root;
+    
+    if (xstack_get_first(xf->tree, &root) == RETURN_SUCCESS) {
+        return xfile_end_element(xf, root);
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 int xfile_comment(XFile *xf, char *comment)
