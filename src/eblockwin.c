@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -152,7 +152,7 @@ static void update_eblock(int gno)
     if (is_valid_gno(gno)) {
         SelectListChoice(eblock_graph_choice_item, gno);
     }
-    sprintf(ncolsbuf, "%d columns of length %d", blockncols, blocklen);
+    sprintf(ncolsbuf, "%d column(s) of length %d", blockncols, blocklen);
     SetLabel(eblock_ncols_item, ncolsbuf);
     if (blockncols != old_blockncols) {
         blockitems = malloc((blockncols + 1)*sizeof(OptionItem));
@@ -168,6 +168,9 @@ static void update_eblock(int gno)
         for (i = 0; i < MAX_SET_COLS; i++) {
             UpdateOptionChoice(eblock_choice_items[i],
                 blockncols + 1, blockitems);
+            if (i < blockncols) {
+                SetOptionChoice(eblock_choice_items[i], i + 1);
+            }
         }
         for (i = 0; i < blockncols + 1; i++) {
             free(blockitems[i].label);
