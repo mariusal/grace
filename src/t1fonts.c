@@ -36,6 +36,7 @@
 #include "draw.h"
 
 #include "utils.h"
+#include "files.h"
 #include "device.h"
 #include "t1fonts.h"
 
@@ -59,20 +60,29 @@ static FontDB *FontDBtable = NULL;
 int init_t1(void)
 {
     int i;
-    char buf[GR_MAXPATHLEN];
+    char buf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
     static char **Encoding = NULL;
     
     /* Set search paths: */
-    sprintf(buf, "%s/fonts/type1", get_grace_home());
-    T1_SetFileSearchPath(T1_PFAB_PATH, buf);
-    T1_SetFileSearchPath(T1_AFM_PATH, buf);
-    sprintf(buf, "%s/fonts/enc", get_grace_home());
-    T1_SetFileSearchPath(T1_ENC_PATH, buf);
+    bufp = grace_path("fonts/type1");
+    if (bufp == NULL) {
+        return (GRACE_EXIT_FAILURE);
+    }
+    T1_SetFileSearchPath(T1_PFAB_PATH, bufp);
+    T1_SetFileSearchPath(T1_AFM_PATH, bufp);
+    bufp = grace_path("fonts/enc");
+    if (bufp == NULL) {
+        return (GRACE_EXIT_FAILURE);
+    }
+    T1_SetFileSearchPath(T1_ENC_PATH, bufp);
     
     /* Set font database: */
-    sprintf(buf, "%s/fonts/FontDataBase", get_grace_home());
-    T1_SetFontDataBase(buf);
+    bufp = grace_path("fonts/FontDataBase");
+    if (bufp == NULL) {
+        return (GRACE_EXIT_FAILURE);
+    }
+    T1_SetFontDataBase(bufp);
 
     /* Set log-level: */
     T1_SetLogLevel(T1LOG_DEBUG);
@@ -93,7 +103,7 @@ int init_t1(void)
         return (GRACE_EXIT_FAILURE);
     }
     
-    fd = fopen(buf, "r");
+    fd = grace_openr(bufp, SOURCE_DISK);
     if (fd == NULL) {
         return (GRACE_EXIT_FAILURE);
     }
