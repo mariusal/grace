@@ -5,7 +5,18 @@
 
 LIB  = $(GRACE_BASE_LIB)
 
-SRCS = memory.c missing.c alloca.c utils.c files.c
+SRCS = 	memory.c \
+	missing.c \
+	alloca.c \
+	utils.c \
+	files.c \
+	dict3.c \
+	storage.c
 
-OBJS = memory$(O) missing$(O) $(ALLOCA) utils$(O) files$(O)
-
+OBJS = 	memory$(O) \
+	missing$(O) \
+	$(ALLOCA) \
+	utils$(O) \
+	files$(O) \
+	dict3$(O) \
+	storage$(O)

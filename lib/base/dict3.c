@@ -34,9 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
-#include "utils.h"
-#include "dict3.h"
+#include "grace/base.h"
 
 Dictionary *dict_new(void)
 {

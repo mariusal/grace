@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001,2002 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -37,14 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef STORAGE_TEST
-# define xmalloc malloc
-# define xrealloc realloc
-# define xfree free
-#endif
-
 #include "grace/base.h"
-#include "storage.h"
 
 #define STORAGE_SAFETY_CHECK(sto, retaction)                            \
     if (!sto) {                                                         \
@@ -919,35 +912,3 @@ int storage_sort(Storage *sto, Storage_comp_proc fcomp, void *udata)
     
     return RETURN_SUCCESS;
 }
-
-#ifdef STORAGE_TEST
-
-#define TEST_LEN    10
-
-int main(void)
-{
-    Storage *sto;
-    int i, j;
-    
-    sto = storage_new(NULL, NULL, NULL);
-    for (i = 0; i < TEST_LEN/2; i++) {
-        storage_add(sto, (void *) i);
-    }
-    storage_rewind(sto);
-    while (storage_get_data_next(sto, (void **) &j) == RETURN_SUCCESS) {
-        printf("%d\n", j);
-    }
-    for (i = 0; i < TEST_LEN; i++) {
-        storage_get_data_by_id(sto, i, (void **) &j);
-        printf("%d\n", j);
-    }
-    storage_rewind(sto);
-    while (storage_delete(sto) == RETURN_SUCCESS) {
-        i = storage_count(sto);
-        printf("count: %d\n", i);
-    }
-    storage_free(sto);
-    exit(0);
-}
-
-#endif

@@ -38,11 +38,6 @@
 /* for XmString; TODO: remove! */
 #include <Xm/Xm.h>
 
-/* for Pen */
-#include "defines.h"
-
-/* for Storage */
-#include "storage.h"
 #include "grace.h"
 
 /* 

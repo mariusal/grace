@@ -34,10 +34,8 @@
 #include <stdio.h>
 
 #include "grace/baseP.h"
-#include "defines.h"
-#include "storage.h"
-#include "dict3.h"
 #include "grace/canvas.h"
+#include "defines.h"
 
 #define QUARK_ETYPE_MODIFY  1
 #define QUARK_ETYPE_DELETE  2

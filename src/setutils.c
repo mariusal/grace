@@ -41,14 +41,12 @@
 
 #include "globals.h"
 #include "ssdata.h"
-#include "storage.h"
 #include "utils.h"
 #include "grace/canvas.h"
 #include "files.h"
 #include "graphs.h"
 #include "protos.h"
 
-#define graphs grace->project->graphs
 #define grdefaults grace->rt->grdefaults
 
 int settype_cols(int type)

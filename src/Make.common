@@ -19,7 +19,7 @@ GRSRCS =  main.c quark.c grace.c project.c \
 	iofilters.c dates.c \
 	dummydrv.c mfdrv.c mifdrv.c psdrv.c pdfdrv.c svgdrv.c \
 	pnmdrv.c jpgdrv.c pngdrv.c \
-	storage.c dict3.c dicts.c mathstuff.c bi.c
+	dicts.c mathstuff.c bi.c
 
 
 GROBJS =  main$(O) quark$(O) grace$(O) project$(O) \
@@ -32,7 +32,7 @@ GROBJS =  main$(O) quark$(O) grace$(O) project$(O) \
 	iofilters$(O) dates$(O) \
 	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) pdfdrv$(O) svgdrv$(O) \
 	pnmdrv$(O) jpgdrv$(O) pngdrv$(O) \
-	storage$(O) dict3$(O) dicts$(O) mathstuff$(O) bi$(O)
+	dicts$(O) mathstuff$(O) bi$(O)
 
 # The following are for a GUI
 #

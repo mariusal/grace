@@ -44,10 +44,8 @@
 #include "grace/canvas.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "storage.h"
 #include "objutils.h"
 #include "parser.h"
-#include "dict3.h"
 
 #include "protos.h"
 
