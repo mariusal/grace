@@ -97,15 +97,15 @@ static Widget menu_bar;
 static Widget frleft, frtop, frbot;	/* dialogs along canvas edge */
 static Widget form;		/* form for magrace->gui->inwindow */
 
-static void MenuCB(void *data);
+static void MenuCB(Widget but, void *data);
 static Widget CreateMainMenuBar(Widget parent);
 
 static Widget windowbarw[3];
 
-static void graph_scroll_proc(void *data);
-static void graph_zoom_proc(void *data);
-static void world_stack_proc(void *data);
-static void load_example(void *data);
+static void graph_scroll_proc(Widget but, void *data);
+static void graph_zoom_proc(Widget but, void *data);
+static void world_stack_proc(Widget but, void *data);
+static void load_example(Widget but, void *data);
 
 #define WSTACK_PUSH         0
 #define WSTACK_POP          1
@@ -447,13 +447,13 @@ int initialize_gui(int *argc, char **argv)
     return RETURN_SUCCESS;
 }
 
-static void do_drawgraph(void *data)
+static void do_drawgraph(Widget but, void *data)
 {
     drawgraph(grace);
 }
 
 
-static void MenuCB(void *data)
+static void MenuCB(Widget but, void *data)
 {
     char *s;
     
@@ -508,7 +508,7 @@ static void MenuCB(void *data)
 /*
  * service the autoscale buttons on the main panel
  */
-static void autoscale_proc(void *data)
+static void autoscale_proc(Widget but, void *data)
 {
     Quark *cg = graph_get_current(grace->project);
     
@@ -520,7 +520,7 @@ static void autoscale_proc(void *data)
     }
 }
 
-void autoon_proc(void *data)
+void autoon_proc(Widget but, void *data)
 {
     set_action(0);
     set_action(AUTO_NEAREST);
@@ -529,7 +529,7 @@ void autoon_proc(void *data)
 /*
  * service the autoticks button on the main panel
  */
-void autoticks_proc(void *data)
+void autoticks_proc(Widget but, void *data)
 {
     autotick_axis(graph_get_current(grace->project), ALL_AXES);
     update_ticks(graph_get_current(grace->project));
@@ -572,7 +572,7 @@ void set_stack_message(void)
 /*
  * clear the locator reference point
  */
-void do_clear_point(void *data)
+void do_clear_point(Widget but, void *data)
 {
     GLocator *locator;
     
@@ -667,19 +667,19 @@ static void set_view_items(void)
 /*
  * service routines for the View pulldown
  */
-void set_statusbar(int onoff, void *data)
+void set_statusbar(Widget but, int onoff, void *data)
 {
     grace->gui->statusbar = onoff;
     set_view_items();
 }
 
-void set_toolbar(int onoff, void *data)
+void set_toolbar(Widget but, int onoff, void *data)
 {
     grace->gui->toolbar = onoff;
     set_view_items();
 }
 
-void set_locbar(int onoff, void *data)
+void set_locbar(Widget but, int onoff, void *data)
 {
     grace->gui->locbar = onoff;
     set_view_items();
@@ -1197,19 +1197,19 @@ void set_pagelayout(int layout)
     }
 }
 
-static void graph_scroll_proc(void *data)
+static void graph_scroll_proc(Widget but, void *data)
 {
     graph_scroll(graph_get_current(grace->project), (int) data);
     xdrawgraph();
 }
 
-static void graph_zoom_proc(void *data)
+static void graph_zoom_proc(Widget but, void *data)
 {
     graph_zoom(graph_get_current(grace->project), (int) data);
     xdrawgraph();
 }
 
-static void world_stack_proc(void *data)
+static void world_stack_proc(Widget but, void *data)
 {
     switch ((int) data) {
     case WSTACK_PUSH_ZOOM:
@@ -1231,7 +1231,7 @@ static void world_stack_proc(void *data)
     xdrawgraph();
 }
 
-static void load_example(void *data)
+static void load_example(Widget but, void *data)
 {
     char *s, buf[128];
     

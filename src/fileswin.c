@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -59,16 +59,16 @@
 #include "motifinc.h"
 #include "protos.h"
 
-static int open_proc(char *filename, void *data);
-static int save_proc(char *filename, void *data);
+static int open_proc(FSBStructure *fsb, char *filename, void *data);
+static int save_proc(FSBStructure *fsb, char *filename, void *data);
 
-static int read_sets_proc(char *filename, void *data);
-static void set_load_proc(int value, void *data);
+static int read_sets_proc(FSBStructure *fsb, char *filename, void *data);
+static void set_load_proc(OptionStructure *opt, int value, void *data);
 static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static int write_sets_proc(char *filename, void *data);
+static int write_sets_proc(FSBStructure *fsb, char *filename, void *data);
 
-static int read_params_proc(char *filename, void *data);
-static int write_params_proc(char *filename, void *data);
+static int read_params_proc(FSBStructure *fsb, char *filename, void *data);
+static int write_params_proc(FSBStructure *fsb, char *filename, void *data);
 
 typedef struct {
     Widget format_item;    /* format */
@@ -112,7 +112,7 @@ void create_saveproject_popup(void)
 /*
  *  save project to a file
  */
-static int save_proc(char *filename, void *data)
+static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
     char *s;
     saveGUI *gui = (saveGUI *) data;
@@ -147,7 +147,7 @@ void create_openproject_popup(void)
 /*
  *  open project from a file
  */
-static int open_proc(char *filename, void *data)
+static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(filename) == RETURN_SUCCESS) {
         update_all();
@@ -166,7 +166,7 @@ typedef struct {
     OptionStructure *auto_item;    /* autoscale on read */
 } rdataGUI;
 
-void create_file_popup(void *data)
+void create_file_popup(Widget but, void *data)
 {
     static FSBStructure *rdata_dialog = NULL;
 
@@ -227,7 +227,7 @@ void create_file_popup(void *data)
     unset_wait_cursor();
 }
 
-static int read_sets_proc(char *filename, void *data)
+static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
 {
     Quark *gr;
     int load;
@@ -267,7 +267,7 @@ static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-static void set_load_proc(int value, void *data)
+static void set_load_proc(OptionStructure *opt, int value, void *data)
 {
     rdataGUI *gui = (rdataGUI *) data;
     
@@ -285,7 +285,7 @@ typedef struct {
     Widget format_item;
 } wdataGUI;
 
-void create_write_popup(void *data)
+void create_write_popup(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -317,7 +317,7 @@ void create_write_popup(void *data)
 /*
  *  write a set or sets to a file
  */
-static int write_sets_proc(char *filename, void *data)
+static int write_sets_proc(FSBStructure *fsb, char *filename, void *data)
 {
     wdataGUI *gui = (wdataGUI *) data;
     int cd, i;
@@ -348,7 +348,7 @@ static int write_sets_proc(char *filename, void *data)
 }
 
 
-void create_rparams_popup(void *data)
+void create_rparams_popup(Widget but, void *data)
 {
     static FSBStructure *rparams_dialog = NULL;
 
@@ -365,7 +365,7 @@ void create_rparams_popup(void *data)
     unset_wait_cursor();
 }
 
-static int read_params_proc(char *filename, void *data)
+static int read_params_proc(FSBStructure *fsb, char *filename, void *data)
 {
     getparms(filename);
     update_all();
@@ -378,7 +378,7 @@ static int read_params_proc(char *filename, void *data)
 /*
  * Create the wparam Frame and the wparam Panel
  */
-void create_wparam_frame(void *data)
+void create_wparam_frame(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -406,7 +406,7 @@ void create_wparam_frame(void *data)
     unset_wait_cursor();
 }
 
-static int write_params_proc(char *filename, void *data)
+static int write_params_proc(FSBStructure *fsb, char *filename, void *data)
 {
     FILE *pp;
 
@@ -574,7 +574,7 @@ static void do_netcdfupdate_proc(Widget w, XtPointer client_data, XtPointer call
     unset_wait_cursor();
 }
 
-void create_netcdfs_popup(void *data)
+void create_netcdfs_popup(Widget but, void *data)
 {
     static Widget top, dialog;
     Widget lab;
@@ -629,7 +629,7 @@ void create_netcdfs_popup(void *data)
     unset_wait_cursor();
 }
 
-static int do_netcdffile_proc(char *filename, void *data)
+static int do_netcdffile_proc(FSBStructure *fsb, char *filename, void *data)
 {
     xv_setstr(netcdf_file_item, filename);
     update_netcdfs();

@@ -51,12 +51,12 @@
 #include "protos.h"
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void changetypeCB(int n, Quark **values, void *data);
+static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data);
 static int datasetprop_aac_cb(void *data);
-static void create_hotfiles_popup(void *data);
+static void create_hotfiles_popup(Widget but, void *data);
 
 static int datasetop_aac_cb(void *data);
-static void datasetoptypeCB(int value, void *data);
+static void datasetoptypeCB(OptionStructure *opt, int value, void *data);
 
 static int leval_aac_cb(void *data);
 
@@ -75,7 +75,7 @@ typedef struct _Type_ui {
 
 static Type_ui tui;
 
-void create_datasetprop_popup(void *data)
+void create_datasetprop_popup(Widget but, void *data)
 {
     set_wait_cursor();
 
@@ -200,7 +200,7 @@ void create_datasetprop_popup(void *data)
     unset_wait_cursor();
 }
 
-static void changetypeCB(int n, Quark **values, void *data)
+static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data)
 {
     int i, j, ncols;
     double *datap;
@@ -330,7 +330,7 @@ static int datasetprop_aac_cb(void *data)
     }
 }
 
-static int do_hotlinkfile_proc(char *filename, void *data)
+static int do_hotlinkfile_proc(FSBStructure *fsb, char *filename, void *data)
 {
     Type_ui *ui = (Type_ui *) data;
     
@@ -342,7 +342,7 @@ static int do_hotlinkfile_proc(char *filename, void *data)
 /*
  * create file selection pop up to choose the file for hotlink
  */
-static void create_hotfiles_popup(void *data)
+static void create_hotfiles_popup(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -382,7 +382,7 @@ static Datasetop_ui datasetopui;
 
 static Widget datasettype_controls[5];
 
-void create_datasetop_popup(void *data)
+void create_datasetop_popup(Widget but, void *data)
 {
     Widget dialog, menubar, menupane, rc;
     OptionItem optype_items[5];
@@ -483,7 +483,7 @@ void create_datasetop_popup(void *data)
     unset_wait_cursor();
 }
 
-static void datasetoptypeCB(int value, void *data)
+static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
 {
     int i;
     dataSetOpType type = value;
@@ -570,7 +570,7 @@ typedef struct _Leval_ui {
     Quark *gr;
 } Leval_ui;
 
-void set_type_cb(int type, void *data)
+void set_type_cb(OptionStructure *opt, int type, void *data)
 {
     int i, nmrows, nscols;
     char *rowlabels[MAX_SET_COLS];
@@ -602,7 +602,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
     XbaeMatrixSetCell(ui->mw, cs->row, cs->column, cs->value);
 }
 
-void create_leval_frame(void *data)
+void create_leval_frame(Widget but, void *data)
 {
     Quark *gr = (Quark *) data;
 

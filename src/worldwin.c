@@ -151,18 +151,18 @@ static int define_arrange_proc(void *data)
     return RETURN_SUCCESS;
 }
 
-void hpack_cb(int onoff, void *data)
+void hpack_cb(Widget but, int onoff, void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
     SetSensitive(ui->hgap->rc, !onoff);
 }
-void vpack_cb(int onoff, void *data)
+void vpack_cb(Widget but, int onoff, void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
     SetSensitive(ui->vgap->rc, !onoff);
 }
 
-void create_arrange_frame(void *data)
+void create_arrange_frame(Widget but, void *data)
 {
     static Arrange_ui *ui = NULL;
     set_wait_cursor();
@@ -287,7 +287,7 @@ static int define_overlay_proc(void *data)
     return RETURN_SUCCESS;
 }
 
-void create_overlay_frame(void *data)
+void create_overlay_frame(Widget but, void *data)
 {
     char *label1[2];
     
@@ -360,7 +360,7 @@ static int define_autos_proc(void *data)
     return RETURN_SUCCESS;
 }
 
-void create_autos_frame(void *data)
+void create_autos_frame(Widget but, void *data)
 {
     static Auto_ui *aui = NULL;
 

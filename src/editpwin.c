@@ -109,7 +109,7 @@ static int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
 /*
  * delete the selected row(s)
  */
-static void del_rows_cb(void *data)
+static void del_rows_cb(Widget but, void *data)
 {
     int i;
     int nrows, ncols, scols, nc, nr;
@@ -170,7 +170,7 @@ static void del_rows_cb(void *data)
  * add a point to a set by copying the row containing the selected cell
  * and placing it after it
  */
-void add_row_cb(void *data)
+void add_row_cb(Widget but, void *data)
 {
     int i, j, k;
     int nrows, ncols, scols;
@@ -296,7 +296,7 @@ void do_props(EditPoints *ep, int column)
     unset_wait_cursor();
 }
 
-static void do_props_cb(void *data)
+static void do_props_cb(Widget but, void *data)
 {
     EditPoints *ep = (EditPoints *) data;
     do_props(ep, -1);
@@ -520,7 +520,7 @@ static void update_cells(EditPoints *ep)
     }
     
     if (get_ep_set_dims(ep, &nrows, &ncols, &scols) != RETURN_SUCCESS) {
-        destroy_dialog_cb(GetParent(ep->top));
+        destroy_dialog_cb(NULL, GetParent(ep->top));
         return;
     }
     

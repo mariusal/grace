@@ -1323,7 +1323,7 @@ int ps_op_parser(const Canvas *canvas, void *data, const char *opstring)
 static void update_ps_setup_frame(PS_data *psdata);
 static int set_ps_setup_proc(void *data);
 
-static void colorspace_cb(int onoff, void *data)
+static void colorspace_cb(Widget but, int onoff, void *data)
 {
     OptionStructure *opt = (OptionStructure *) data;
     
@@ -1424,7 +1424,7 @@ static void update_ps_setup_frame(PS_data *psdata)
     if (psdata->frame) {
         SetToggleButtonState(psdata->level2_item, psdata->level2);
         SetOptionChoice(psdata->colorspace_item, psdata->colorspace);
-        colorspace_cb(psdata->level2, psdata->colorspace_item);
+        colorspace_cb(NULL, psdata->level2, psdata->colorspace_item);
         SetOptionChoice(psdata->fonts_item, psdata->fonts);
         SetOptionChoice(psdata->docdata_item, psdata->docdata);
         if (psdata->format == EPS_FORMAT) {

@@ -62,7 +62,7 @@ static OptionStructure *auto_item;
 /*
  * Event and Notify proc declarations
  */
-static void eblock_type_notify_proc(int value, void *data);
+static void eblock_type_notify_proc(OptionStructure *opt, int value, void *data);
 static int eblock_accept_notify_proc(void *data);
 static void update_eblock(Quark *gr);
 
@@ -201,7 +201,7 @@ static void update_eblock(Quark *gr)
     }
 }
 
-static void eblock_type_notify_proc(int value, void *data)
+static void eblock_type_notify_proc(OptionStructure *opt, int value, void *data)
 {
     block_curtype = value;
 

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -69,22 +69,22 @@ static OptionStructure *fontrast_item;
 static OptionStructure *color_trans_item;
 static Widget dsync_item, psync_item;
 
-static void do_pr_toggle(int onoff, void *data);
-static void do_format_toggle(int value, void *data);
-static void do_orient_toggle(int value, void *data);
+static void do_pr_toggle(Widget tbut, int onoff, void *data);
+static void do_format_toggle(OptionStructure *opt, int value, void *data);
+static void do_orient_toggle(OptionStructure *opt, int value, void *data);
 
 static int set_printer_proc(void *data);
-void create_printfiles_popup(void *data);
-void create_devopts_popup(void *data);
+void create_printfiles_popup(Widget but, void *data);
+void create_devopts_popup(Widget but, void *data);
 
-static void do_device_toggle(int value, void *data);
-static void do_units_toggle(int value, void *data);
+static void do_device_toggle(OptionStructure *opt, int value, void *data);
+static void do_units_toggle(OptionStructure *opt, int value, void *data);
 static void update_printer_setup(int device_id);
 static void update_device_setup(int device_id);
 
-static void do_print_cb(void *data);
+static void do_print_cb(Widget but, void *data);
 
-void create_printer_setup(void *data)
+void create_printer_setup(Widget but, void *data)
 {
     int device;
     
@@ -469,12 +469,12 @@ static int set_printer_proc(void *data)
 /*
  * set the print options
  */
-static void do_device_toggle(int value, void *data)
+static void do_device_toggle(OptionStructure *opt, int value, void *data)
 { 
     update_device_setup(value);
 }
 
-static void do_pr_toggle(int onoff, void *data)
+static void do_pr_toggle(Widget tbut, int onoff, void *data)
 {
     if (onoff == TRUE) {
         SetSensitive(rc_filesel, True);
@@ -485,7 +485,7 @@ static void do_pr_toggle(int onoff, void *data)
     }
 }
 
-static void do_format_toggle(int value, void *data)
+static void do_format_toggle(OptionStructure *opt, int value, void *data)
 {
     int orientation;
     int x, y;
@@ -560,7 +560,7 @@ static void do_format_toggle(int value, void *data)
     }
 }
 
-static void do_orient_toggle(int value, void *data)
+static void do_orient_toggle(OptionStructure *opt, int value, void *data)
 {
     int orientation = value;
     double px, py;
@@ -586,7 +586,7 @@ static void do_orient_toggle(int value, void *data)
     }
 }
 
-static int do_prfilesel_proc(char *filename, void *data)
+static int do_prfilesel_proc(FSBStructure *fsb, char *filename, void *data)
 {
     xv_setstr(printfile_item, filename);
     strcpy(print_file, filename);
@@ -594,7 +594,7 @@ static int do_prfilesel_proc(char *filename, void *data)
     return TRUE;
 }
 
-void create_printfiles_popup(void *data)
+void create_printfiles_popup(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
     int device;
@@ -620,7 +620,7 @@ void create_printfiles_popup(void *data)
     unset_wait_cursor();
 }
 
-void create_devopts_popup(void *data)
+void create_devopts_popup(Widget but, void *data)
 {
     int device_id;
     Device_entry *dev;
@@ -635,7 +635,7 @@ void create_devopts_popup(void *data)
     }
 }
 
-static void do_units_toggle(int value, void *data)
+static void do_units_toggle(OptionStructure *opt, int value, void *data)
 {
     char buf[32];
     double page_x, page_y;
@@ -691,7 +691,7 @@ static void do_units_toggle(int value, void *data)
     xv_setstr(page_y_item, buf);
 }
 
-static void do_print_cb(void *data)
+static void do_print_cb(Widget but, void *data)
 {
     set_wait_cursor();
     do_hardcopy(grace);

@@ -65,50 +65,50 @@ void xregister_rti(Input_buffer *ib);
 
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
 
-void create_file_popup(void *data);
-void create_netcdfs_popup(void *data);
-void create_rparams_popup(void *data);
-void create_wparam_frame(void *data);
+void create_file_popup(Widget but, void *data);
+void create_netcdfs_popup(Widget but, void *data);
+void create_rparams_popup(Widget but, void *data);
+void create_wparam_frame(Widget but, void *data);
 void create_saveproject_popup(void);
 void create_openproject_popup(void);
 void do_hotupdate_proc(void *data);
 
 void create_eblock_frame(Quark *gr);
 
-void create_printer_setup(void *data);
+void create_printer_setup(Widget but, void *data);
 
-void create_eval_frame(void *data);
-void create_load_frame(void *data);
-void create_histo_frame(void *data);
-void create_fourier_frame(void *data);
-void create_run_frame(void *data);
-void create_reg_frame(void *data);
-void create_diff_frame(void *data);
-void create_interp_frame(void *data);
-void create_int_frame(void *data);
-void create_xcor_frame(void *data);
-void create_samp_frame(void *data);
-void create_prune_frame(void *data);
-void create_lconv_frame(void *data);
-void create_leval_frame(void *data);
+void create_eval_frame(Widget but, void *data);
+void create_load_frame(Widget but, void *data);
+void create_histo_frame(Widget but, void *data);
+void create_fourier_frame(Widget but, void *data);
+void create_run_frame(Widget but, void *data);
+void create_reg_frame(Widget but, void *data);
+void create_diff_frame(Widget but, void *data);
+void create_interp_frame(Widget but, void *data);
+void create_int_frame(Widget but, void *data);
+void create_xcor_frame(Widget but, void *data);
+void create_samp_frame(Widget but, void *data);
+void create_prune_frame(Widget but, void *data);
+void create_lconv_frame(Widget but, void *data);
+void create_leval_frame(Widget but, void *data);
 
-void create_write_popup(void *data);
-void create_hotlinks_popup(void *data);
+void create_write_popup(Widget but, void *data);
+void create_hotlinks_popup(Widget but, void *data);
 void update_hotlinks(void);
-void create_saveall_popup(void *data);
+void create_saveall_popup(Widget but, void *data);
 
-void create_points_frame(void *data);
+void create_points_frame(Widget but, void *data);
 
-void create_region_frame(void *data);
-void create_define_frame(void *data);
-void create_clear_frame(void *data);
-void create_reporton_frame(void *data);
-void create_area_frame(void *data);
+void create_region_frame(Widget but, void *data);
+void create_define_frame(Widget but, void *data);
+void create_clear_frame(Widget but, void *data);
+void create_reporton_frame(Widget but, void *data);
+void create_area_frame(Widget but, void *data);
 
 void define_region(int nr, int rtype);
 
-void define_status_popup(void *data);
-void create_about_grtool(void *data);
+void define_status_popup(Widget but, void *data);
+void create_about_grtool(Widget but, void *data);
 
 void update_set_lists(Quark *gr);
 
@@ -116,43 +116,43 @@ void updatesymbols(Quark *pset);
 void updatelegends(Quark *gr);
 void update_view(Quark *gr);
 
-void define_symbols_popup(void *data);
+void define_symbols_popup(Widget but, void *data);
 
 void update_ticks(Quark *gr);
 void create_axes_dialog(int axisno);
-void create_axes_dialog_cb(void *data);
+void create_axes_dialog_cb(Widget but, void *data);
 
-void create_graph_frame(void *data);
+void create_graph_frame(Widget but, void *data);
 
-void create_world_frame(void *data);
-void create_arrange_frame(void *data);
-void create_overlay_frame(void *data);
-void create_autos_frame(void *data);
+void create_world_frame(Widget but, void *data);
+void create_arrange_frame(Widget but, void *data);
+void create_overlay_frame(Widget but, void *data);
+void create_autos_frame(Widget but, void *data);
 
-void define_objects_popup(void *data);
+void define_objects_popup(Widget but, void *data);
 void object_edit_popup(Quark *gr, int id);
 
 void update_locator_items(Quark *gr);
-void create_locator_frame(void *data);
+void create_locator_frame(Widget but, void *data);
 
 void create_graphapp_frame(Quark *gr);
-void create_graphapp_frame_cb(void *data);
+void create_graphapp_frame_cb(Widget but, void *data);
 
-void create_monitor_frame_cb(void *data);
-void define_explorer_popup(void *data);
+void create_monitor_frame_cb(Widget but, void *data);
+void define_explorer_popup(Widget but, void *data);
 void stufftextwin(char *s);
 
-void HelpCB(void *data);
+void HelpCB(Widget w, void *data);
 
-void create_nonl_frame(void *data);
+void create_nonl_frame(Widget but, void *data);
 
 void update_misc_items(void);
 void create_plot_frame(void);
-void create_plot_frame_cb(void *data);
-void create_props_frame(void *data);
+void create_plot_frame_cb(Widget but, void *data);
+void create_props_frame(Widget but, void *data);
 
 void create_fonttool(Widget w);
-void create_fonttool_cb(void *data);
+void create_fonttool_cb(Widget but, void *data);
 
 void set_wait_cursor(void);
 void unset_wait_cursor(void);
@@ -169,11 +169,11 @@ int get_pagelayout(void);
 
 void errwin(char *s);
 
-void create_datasetprop_popup(void *data);
-void create_datasetop_popup(void *data);
+void create_datasetprop_popup(Widget but, void *data);
+void create_datasetop_popup(Widget but, void *data);
 
-void create_featext_frame(void *data);
-void create_cumulative_frame(void *data);
+void create_featext_frame(Widget but, void *data);
+void create_cumulative_frame(Widget but, void *data);
 
 void create_ss_frame(Quark *pset);
 void update_ss_editors(Quark *gr);
@@ -187,7 +187,7 @@ int clean_set_selectors(Quark *gr, int etype, void *data);
 
 void update_props_items(void);
 void update_all(void);
-void update_all_cb(void *data);
+void update_all_cb(Widget but, void *data);
 
 void set_barebones(void);
 

@@ -119,7 +119,7 @@ static int eval_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return RETURN_SUCCESS;
 }
 
-void create_eval_frame(void *data)
+void create_eval_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -161,7 +161,7 @@ typedef struct {
     double *mesh;
 } Interp_pars;
 
-static void sampling_cb(int value, void *data)
+static void sampling_cb(OptionStructure *opt, int value, void *data)
 {
     Interp_ui *ui = (Interp_ui *) data;
     
@@ -296,7 +296,7 @@ static int interp_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     }
 }
 
-void create_interp_frame(void *data)
+void create_interp_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -335,7 +335,7 @@ typedef struct {
     double *bins;
 } Histo_pars;
 
-static void binsampling_cb(int value, void *data)
+static void binsampling_cb(OptionStructure *opt, int value, void *data)
 {
     Histo_ui *ui = (Histo_ui *) data;
     
@@ -462,7 +462,7 @@ static int histo_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     }
 }
 
-void create_histo_frame(void *data)
+void create_histo_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -513,7 +513,7 @@ typedef struct {
     int output;
 } Four_pars;
 
-static void toggle_inverse_cb(int onoff, void *data)
+static void toggle_inverse_cb(Widget but, int onoff, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
     if (onoff) {
@@ -535,7 +535,7 @@ static void toggle_inverse_cb(int onoff, void *data)
     }
 }
 
-static void toggle_complex_cb(int onoff, void *data)
+static void toggle_complex_cb(Widget but, int onoff, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
     if (onoff) {
@@ -547,7 +547,7 @@ static void toggle_complex_cb(int onoff, void *data)
     }
 }
 
-static void option_window_cb(int value, void *data)
+static void option_window_cb(OptionStructure *opt, int value, void *data)
 {
     Four_ui *ui = (Four_ui *) data;
     SetSensitive(ui->winpar->rc, value == FFT_WINDOW_KAISER);
@@ -676,7 +676,7 @@ static int fourier_run_cb(Quark *psrc, Quark *pdest, void *tddata)
 }
 
 
-void create_fourier_frame(void *data)
+void create_fourier_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -767,7 +767,7 @@ static int diff_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_diff_frame(void *data)
+void create_diff_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -805,7 +805,7 @@ typedef struct {
     int xplace;
 } Run_pars;
 
-static void run_type_cb(int value, void *data)
+static void run_type_cb(OptionStructure *opt, int value, void *data)
 {
     Run_ui *ui = (Run_ui *) data;
     char *formula;
@@ -907,7 +907,7 @@ static int run_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_run_frame(void *data)
+void create_run_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -978,7 +978,7 @@ static int int_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_int_frame(void *data)
+void create_int_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -1055,7 +1055,7 @@ static int lconv_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_lconv_frame(void *data)
+void create_lconv_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -1090,7 +1090,7 @@ typedef struct {
     int covar;
 } Cross_pars;
 
-static void xcor_self_toggle(int onoff, void *data)
+static void xcor_self_toggle(Widget but, int onoff, void *data)
 {
     Cross_ui *ui = (Cross_ui *) data;
     
@@ -1167,7 +1167,7 @@ static int cross_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_xcor_frame(void *data)
+void create_xcor_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -1240,7 +1240,7 @@ static int samp_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_samp_frame(void *data)
+void create_samp_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -1364,7 +1364,7 @@ static int prune_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return res;
 }
 
-void create_prune_frame(void *data)
+void create_prune_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -1446,7 +1446,7 @@ static int do_fext_proc(void *data)
     return RETURN_SUCCESS;
 }
 
-void create_featext_frame(void *data)
+void create_featext_frame(Widget but, void *data)
 {
     static Featext_ui *feui = NULL;
  
@@ -1537,7 +1537,7 @@ static int do_cumulative_proc(void *data)
     return RETURN_SUCCESS;
 }
 
-void create_cumulative_frame(void *data)
+void create_cumulative_frame(Widget but, void *data)
 {
     static Cumulative_ui *ui = NULL;
  

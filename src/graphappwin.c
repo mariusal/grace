@@ -110,35 +110,35 @@ static int graphapp_aac_cb(void *data);
 void updatelegends(Quark *gr);
 void update_view(Quark *gr);
 static void update_frame_items(Quark *gr);
-void update_graphapp_items(int n, Quark **values, void *data);
+void update_graphapp_items(StorageStructure *ss, int n, Quark **values, void *data);
 
-static void oc_graph_cb(int a, void *data)
+static void oc_graph_cb(OptionStructure *opt, int a, void *data)
 {
     graphapp_aac_cb(data);
 }
-static void tb_graph_cb(int a, void *data)
+static void tb_graph_cb(Widget tbut, int a, void *data)
 {
     graphapp_aac_cb(data);
 }
-static void scale_graph_cb(int a, void *data)
+static void scale_graph_cb(Widget scale, int a, void *data)
 {
     graphapp_aac_cb(data);
 }
-static void sp_graph_cb(double a, void *data)
+static void sp_graph_cb(SpinStructure *spinp, double a, void *data)
 {
     graphapp_aac_cb(data);
 }
-static void text_graph_cb(char *s, void *data)
+static void text_graph_cb(TextStructure *cst, char *s, void *data)
 {
     graphapp_aac_cb(data);
 }
 
-void create_graphapp_frame_cb(void *data)
+void create_graphapp_frame_cb(Widget but, void *data)
 {
     create_graphapp_frame(data);
 }
 
-static void flipxy_cb(int onoff, void *data)
+static void flipxy_cb(Widget tbut, int onoff, void *data)
 {
     if (onoff) {
         errmsg("Flip XY is not implemented yet.");
@@ -635,7 +635,7 @@ static int graphapp_aac_cb(void *data)
     return RETURN_SUCCESS;
 }
 
-void update_graphapp_items(int n, Quark **values, void *data)
+void update_graphapp_items(StorageStructure *ss, int n, Quark **values, void *data)
 {
     Quark *gr;
     labels *labs;

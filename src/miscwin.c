@@ -85,14 +85,14 @@ static Widget force_external_viewer_item;
  */
 static int props_define_notify_proc(void *data);
 
-static void wrap_year_cb(int onoff, void *data)
+static void wrap_year_cb(Widget but, int onoff, void *data)
 {
     Widget wrap_year = (Widget) data;
     
     SetSensitive(wrap_year, onoff);
 }
 
-void create_props_frame(void *data)
+void create_props_frame(Widget but, void *data)
 {
     set_wait_cursor();
 

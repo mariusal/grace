@@ -75,11 +75,11 @@ static int enable_edit_cb;
 
 static void DrawCB(Widget w,XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs);
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs);
-static void update_fonttool_cb(int value, void *data);
+static void update_fonttool_cb(OptionStructure *opt, int value, void *data);
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs);
-static void fonttool_aac_cb(void *data);
+static void fonttool_aac_cb(Widget but, void *data);
 
-void create_fonttool_cb(void *data)
+void create_fonttool_cb(Widget but, void *data)
 {
     create_fonttool((Widget) data);
 }
@@ -213,7 +213,7 @@ void create_fonttool(Widget cstext)
             XmNbottomWidget, string_item->form,
             NULL);
         
-        update_fonttool_cb(0, font_table);
+        update_fonttool_cb(NULL, 0, font_table);
         ManageChild(fonttool_panel);
     }
 
@@ -316,7 +316,7 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
 }
 
 
-static void update_fonttool_cb(int value, void *data)
+static void update_fonttool_cb(OptionStructure *opt, int value, void *data)
 {
     char *buf;
     int x0, y0, x1, y1, cwidth, cheight;
@@ -410,7 +410,7 @@ static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *c
     }
 }
 
-static void fonttool_aac_cb(void *data)
+static void fonttool_aac_cb(Widget but, void *data)
 {
     int aac_mode;
     

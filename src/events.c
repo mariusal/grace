@@ -570,7 +570,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 /*
  * action callback
  */
-void set_actioncb(void *data)
+void set_actioncb(Widget but, void *data)
 {
     int func = (int) data;
     set_action(DO_NOTHING);

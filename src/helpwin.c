@@ -56,7 +56,7 @@ int force_external_viewer =
     TRUE;
 #endif
 
-void HelpCB(void *data)
+void HelpCB(Widget w, void *data)
 {
     char *URL, *ha;
     int remote;
@@ -141,7 +141,7 @@ void HelpCB(void *data)
  */
 static Widget about_frame;
 
-void create_about_grtool(void *data)
+void create_about_grtool(Widget but, void *data)
 {
     set_wait_cursor();
     
@@ -330,7 +330,7 @@ static void anchorCB(Widget w, XtPointer client_data, XtPointer call_data)
     /* let HelpCB check all other types */
     default:
         turl = translateURL(href_data->href, ui->base);
-        HelpCB(turl);
+        HelpCB(NULL, turl);
         xfree(turl);
         break;
     }
@@ -438,7 +438,7 @@ static int find_cb(void *data)
     return RETURN_SUCCESS;
 }
 
-static void create_find_dialog(void *data)
+static void create_find_dialog(Widget but, void *data)
 {
     static Widget dialog = NULL;
     html_ui *ui = (html_ui *) data;
@@ -462,7 +462,7 @@ static void create_find_dialog(void *data)
     RaiseWindow(GetParent(dialog));
 }
 
-static void refresh_cb(void *data)
+static void refresh_cb(Widget but, void *data)
 {
     html_ui *ui = (html_ui *) data;
     XmHTMLRedisplay(ui->html);
@@ -487,9 +487,9 @@ static XmImageInfo *loadImage(Widget w,
     return image;
 }
 
-void location_cb(char *s, void *data)
+void location_cb(TextStructure *cst, char *s, void *data)
 {
-    HelpCB(s);
+    HelpCB(NULL, s);
 }
 
 void create_helper_frame(char *URL)

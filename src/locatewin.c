@@ -89,7 +89,7 @@ void update_locator_items(Quark *gr)
 /*
  * Create the locator Panel
  */
-void create_locator_frame(void *data)
+void create_locator_frame(Widget but, void *data)
 {
     set_wait_cursor();
     

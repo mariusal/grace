@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -56,16 +56,16 @@ static int plot_define_notify_proc(void *data);
 static void update_plot_items(void);
 
 
-static void oc_plot_cb(int a, void *data)
+static void oc_plot_cb(OptionStructure *opt, int a, void *data)
 {
     plot_define_notify_proc(data);
 }
-static void tb_plot_cb(int a, void *data)
+static void tb_plot_cb(Widget but, int a, void *data)
 {
     plot_define_notify_proc(data);
 }
 
-void create_plot_frame_cb(void *data)
+void create_plot_frame_cb(Widget but, void *data)
 {
     create_plot_frame();
 }

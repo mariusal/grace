@@ -123,37 +123,37 @@ static Widget speclabel[MAX_TICKS];
 static Widget axis_world_start;
 static Widget axis_world_stop;
 
-static void set_axis_proc(int value, void *data);
-static void set_active_proc(int onoff, void *data);
+static void set_axis_proc(OptionStructure *opt, int value, void *data);
+static void set_active_proc(Widget tbut, int onoff, void *data);
 static int axes_aac_cb(void *data);
-static void axis_scale_cb(int value, void *data);
-static void auto_spec_cb(int value, void *data);
+static void axis_scale_cb(OptionStructure *opt, int value, void *data);
+static void auto_spec_cb(OptionStructure *opt, int value, void *data);
 
 static Widget instantupdate_item;
 
-void create_axes_dialog_cb(void *data)
+void create_axes_dialog_cb(Widget but, void *data)
 {
     create_axes_dialog(-1);
 }
 
 
-static void oc_axes_cb(int c, void *data)
+static void oc_axes_cb(OptionStructure *opt, int c, void *data)
 {
     axes_aac_cb(data);
 }
-static void tb_axes_cb(int c, void *data)
+static void tb_axes_cb(Widget tbut, int c, void *data)
 {
     axes_aac_cb(data);
 }
-static void scale_axes_cb(int c, void *data)
+static void scale_axes_cb(Widget scale, int c, void *data)
 {
     axes_aac_cb(data);
 }
-static void sp_axes_cb(double c, void *data)
+static void sp_axes_cb(SpinStructure *spinp, double c, void *data)
 {
     axes_aac_cb(data);
 }
-static void text_axes_cb(char *s, void *data)
+static void text_axes_cb(TextStructure *cst, char *s, void *data)
 {
     axes_aac_cb(data);
 }
@@ -896,7 +896,7 @@ static int axes_aac_cb(void *data)
 /*
  * This CB services the axis "Scale" selector 
  */
-static void axis_scale_cb(int value, void *data)
+static void axis_scale_cb(OptionStructure *opt, int value, void *data)
 {
     int scale = value;
     double major_space, axestart, axestop;
@@ -1121,19 +1121,19 @@ void update_ticks(Quark *gr)
 }
 
 
-static void set_active_proc(int onoff, void *data)
+static void set_active_proc(Widget tbut, int onoff, void *data)
 {
     SetSensitive(axes_tab, onoff);
 }
 
-static void set_axis_proc(int value, void *data)
+static void set_axis_proc(OptionStructure *opt, int value, void *data)
 {
     Quark *cg = graph_get_current(grace->project);
     curaxis = value;
     update_ticks(cg);
 }
 
-static void auto_spec_cb(int value, void *data)
+static void auto_spec_cb(OptionStructure *opt, int value, void *data)
 {
     Widget rc = (Widget) data;
     SetSensitive(rc, value);

@@ -269,29 +269,34 @@ typedef struct {
 
 /* OptionChoice CB procedure */
 typedef void (*OC_CBProc)(
+    OptionStructure *opt,
     int value,           /* value */
     void *               /* data the application registered */
 );
 
 /* ToggleButton CB procedure */
 typedef void (*TB_CBProc)(
+    Widget but,
     int onoff,           /* True/False */
     void *               /* data the application registered */
 );
 
 /* FileSelectionBox CB procedure */
 typedef int (*FSB_CBProc)(
+    FSBStructure *fsbp,
     char *,              /* filename */
     void *               /* data the application registered */
 );
 
 /* Button CB procedure */
 typedef void (*Button_CBProc)(
+    Widget but,
     void *               /* data the application registered */
 );
 
 /* List CB procedure */
 typedef void (*List_CBProc)(
+    ListStructure *listp,
     int n,               /* # of items selected */
     int *values,         /* list of values of the selected items */
     void *               /* data the application registered */
@@ -299,6 +304,7 @@ typedef void (*List_CBProc)(
 
 /* Storage CB procedure */
 typedef void (*Storage_CBProc)(
+    StorageStructure *ss,
     int n,               /* # of items selected */
     Quark **values,      /* list of values of the selected items */
     void *data           /* data the application registered */
@@ -306,18 +312,21 @@ typedef void (*Storage_CBProc)(
 
 /* Storage double click CB procedure */
 typedef void (*Storage_DCCBProc)(
+    StorageStructure *ss,
     Quark *value,        /* list of values of the selected items */
     void *data           /* data the application registered */
 );
 
 /* Spin Button CB procedure */
 typedef void (*Spin_CBProc)(
+    SpinStructure *spinp,
     double,             /* value of spinner                 */
     void *              /* data the application registered */
 );
 
 /* Text input CB procedure */
 typedef void (*Text_CBProc)(
+    TextStructure *cst,
     char *,              /* text string */
     void *               /* data the application registered */
 );
@@ -325,6 +334,7 @@ typedef void (*Text_CBProc)(
 /*
  * Scale input CB procedure */
 typedef void (*Scale_CBProc )(
+    Widget scale,
     int,                /* scale value                     */
     void *              /* data the application registered */
 );
@@ -404,7 +414,7 @@ void SetOptionChoice(OptionStructure *opt, int value);
 int GetOptionChoice(OptionStructure *opt);
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
 
-void AddOptionChoiceCB(OptionStructure *opt, TB_CBProc cbproc, void *anydata);
+void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items);
@@ -546,7 +556,7 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 Widget CreateMenuLabel(Widget parent, char *name);
 
 void AddHelpCB(Widget w, char *ha);
-void ContextHelpCB(void *data);
+void ContextHelpCB(Widget w, void *data);
 
 char *GetStringSimple(XmString xms);
 
@@ -557,7 +567,7 @@ void xv_setstr(Widget w, char *s);
 void handle_close(Widget w);
 void RaiseWindow(Widget w);
 void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data);
-void destroy_dialog_cb(void *data);
+void destroy_dialog_cb(Widget but, void *data);
 void savewidget(Widget w);
 void deletewidget(Widget w);
 

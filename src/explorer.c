@@ -357,13 +357,13 @@ static void update_explorer(ExplorerUI *ui)
     ListTreeRefreshOn(ui->tree);
 }
 
-static void update_explorer_cb(void *data)
+static void update_explorer_cb(Widget but, void *data)
 {
     ExplorerUI *ui = (ExplorerUI *) data;
     update_explorer(ui);
 }
 
-void define_explorer_popup(void *data)
+void define_explorer_popup(Widget but, void *data)
 {
     static ExplorerUI *eui = NULL;
 

@@ -121,31 +121,31 @@ static Widget csync_item;
 static Widget instantupdate_item;
 
 static void UpdateSymbols(Quark *pset);
-static void set_cset_proc(int n, Quark **values, void *data);
+static void set_cset_proc(StorageStructure *ss, int n, Quark **values, void *data);
 static int setapp_aac_cb(void *data);
-static void setapp_data_proc(void *data);
-static void csync_cb(int value, void *data);
+static void setapp_data_proc(Widget but, void *data);
+static void csync_cb(OptionStructure *opt, int value, void *data);
 
 /* 
  * callback functions to do incremental set appearance updates
  */
-static void oc_setapp_cb(int c, void *data)
+static void oc_setapp_cb(OptionStructure *opt, int c, void *data)
 {
     setapp_aac_cb(data);
 }
-static void tb_setapp_cb(int c, void *data)
+static void tb_setapp_cb(Widget tbut, int c, void *data)
 {
     setapp_aac_cb(data);
 }
-static void scale_setapp_cb(int c, void *data)
+static void scale_setapp_cb(Widget scale, int c, void *data)
 {
     setapp_aac_cb(data);
 }
-static void sp_setapp_cb(double a, void *data)
+static void sp_setapp_cb(SpinStructure *spinp, double a, void *data)
 {
     setapp_aac_cb(data);
 }
-static void text_setapp_cb(char *s, void *data)
+static void text_setapp_cb(TextStructure *cst, char *s, void *data)
 {
     setapp_aac_cb(data);
 }
@@ -153,7 +153,7 @@ static void text_setapp_cb(char *s, void *data)
 /*
  * create the symbols popup
  */
-void define_symbols_popup(void *data)
+void define_symbols_popup(Widget but, void *data)
 {
     Quark *pset;
     
@@ -768,7 +768,7 @@ static void UpdateSymbols(Quark *pset)
 }
 
 
-static void set_cset_proc(int n, Quark **values, void *data)
+static void set_cset_proc(StorageStructure *ss, int n, Quark **values, void *data)
 {
     if (n == 1) {
         cset = values[0];
@@ -786,7 +786,7 @@ void updatesymbols(Quark *pset)
 }
 
 
-static void setapp_data_proc(void *data)
+static void setapp_data_proc(Widget but, void *data)
 {
     int proc_type;
     int cd;
@@ -849,7 +849,7 @@ static void setapp_data_proc(void *data)
     }
 }
 
-static void csync_cb(int value, void *data)
+static void csync_cb(OptionStructure *opt, int value, void *data)
 {
     int mask = (int)data;
     

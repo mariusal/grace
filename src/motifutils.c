@@ -438,19 +438,19 @@ int GetOptionChoice(OptionStructure *opt)
 
 typedef struct {
     OptionStructure *opt;
-    void (*cbproc)();
+    OC_CBProc cbproc;
     void *anydata;
 } OC_CBdata;
 
 typedef struct {
     SpinStructure *spin;
-    void (*cbproc)();
+    Spin_CBProc cbproc;
     void *anydata;
 } Spin_CBdata;
 
 typedef struct {
     Widget scale;
-    void (*cbproc)();
+    Scale_CBProc cbproc;
     void *anydata;
 } Scale_CBdata;
 
@@ -461,7 +461,7 @@ static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
     OC_CBdata *cbdata = (OC_CBdata *) client_data;
 
     value = GetOptionChoice(cbdata->opt);
-    cbdata->cbproc(value, cbdata->anydata);
+    cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
 }
 
 void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
@@ -713,7 +713,7 @@ int GetSingleListChoice(ListStructure *listp, int *value)
 
 typedef struct {
     ListStructure *listp;
-    void (*cbproc)();
+    List_CBProc cbproc;
     void *anydata;
 } List_CBdata;
 
@@ -724,7 +724,7 @@ static void list_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_dat
  
     n = GetListChoices(cbdata->listp, &values);
     
-    cbdata->cbproc(n, values, cbdata->anydata);
+    cbdata->cbproc(cbdata->listp, n, values, cbdata->anydata);
 
     if (n > 0) {
         xfree(values);
@@ -892,47 +892,47 @@ static void ss_any_cb(StorageStructure *ss, int type)
     }
 }
 
-static void ss_delete_cb(void *udata)
+static void ss_delete_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_DELETE_CB);
 }
 
-static void ss_duplicate_cb(void *udata)
+static void ss_duplicate_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_DUPLICATE_CB);
 }
 
-static void ss_cut_cb(void *udata)
+static void ss_cut_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_CUT_CB);
 }
 
-static void ss_copy_cb(void *udata)
+static void ss_copy_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_COPY_CB);
 }
 
-static void ss_bring_to_front_cb(void *udata)
+static void ss_bring_to_front_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_BRING_TO_FRONT_CB);
 }
 
-static void ss_send_to_back_cb(void *udata)
+static void ss_send_to_back_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_SEND_TO_BACK_CB);
 }
 
-static void ss_move_up_cb(void *udata)
+static void ss_move_up_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_MOVE_UP_CB);
 }
 
-static void ss_move_down_cb(void *udata)
+static void ss_move_down_cb(Widget but, void *udata)
 {
     ss_any_cb((StorageStructure *) udata, SS_MOVE_DOWN_CB);
 }
 
-static void ss_paste_cb(void *udata)
+static void ss_paste_cb(Widget but, void *udata)
 {
     StorageStructure *ss = (StorageStructure *) udata;
     quark_reparent_children(ss->clipboard, ss->q);
@@ -941,22 +941,22 @@ static void ss_paste_cb(void *udata)
     xdrawgraph();
 }
 
-static void ss_select_all_cb(void *udata)
+static void ss_select_all_cb(Widget but, void *udata)
 {
     list_selectall(((StorageStructure *) udata)->list);
 }
 
-static void ss_unselect_all_cb(void *udata)
+static void ss_unselect_all_cb(Widget but, void *udata)
 {
     list_unselectall(((StorageStructure *) udata)->list);
 }
 
-static void ss_invert_selection_cb(void *udata)
+static void ss_invert_selection_cb(Widget but, void *udata)
 {
     list_invertselection(((StorageStructure *) udata)->list);
 }
 
-static void ss_update_cb(void *udata)
+static void ss_update_cb(Widget but, void *udata)
 {
     StorageStructure *ss = (StorageStructure *) udata;
     
@@ -1199,7 +1199,7 @@ static void storage_int_cb_proc(Widget w,
  
     n = GetStorageChoices(cbdata->ss, &values);
     
-    cbdata->cbproc(n, values, cbdata->anydata);
+    cbdata->cbproc(cbdata->ss, n, values, cbdata->anydata);
 
     if (n > 0) {
         xfree(values);
@@ -1232,7 +1232,7 @@ static void storage_int_dc_cb_proc(Widget w,
  
     value = cbdata->ss->values[cbs->item_position - 1];
     
-    cbdata->cbproc(value, cbdata->anydata);
+    cbdata->cbproc(cbdata->ss, value, cbdata->anydata);
 }
 
 void AddStorageChoiceDblClickCB(StorageStructure *ss,
@@ -1278,7 +1278,7 @@ static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_da
     if (w == cbdata->spin->arrow_up   ||
         w == cbdata->spin->arrow_down ||
         xmcb->reason == XmCR_ACTIVATE) {
-        cbdata->cbproc(GetSpinChoice(cbdata->spin), cbdata->anydata);
+        cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
     }
 }
 
@@ -1491,7 +1491,8 @@ void SetTextString(TextStructure *cst, char *s)
 }
 
 typedef struct {
-    void (*cbproc)();
+    TextStructure *cst;
+    Text_CBProc cbproc;
     void *anydata;
 } Text_CBdata;
 
@@ -1500,7 +1501,7 @@ static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_dat
     char *s;
     Text_CBdata *cbdata = (Text_CBdata *) client_data;
     s = XmTextGetString(w);
-    cbdata->cbproc(s, cbdata->anydata);
+    cbdata->cbproc(cbdata->cst, s, cbdata->anydata);
     XtFree(s);
 }
 
@@ -1509,6 +1510,7 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     Text_CBdata *cbdata;
     
     cbdata = xmalloc(sizeof(Text_CBdata));
+    cbdata->cst = cst;
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
     
@@ -1532,7 +1534,8 @@ void SetTextEditable(TextStructure *cst, int onoff)
 }
 
 typedef struct {
-    void (*cbproc)();
+    Widget but;
+    Button_CBProc cbproc;
     void *anydata;
 } Button_CBdata;
 
@@ -1587,7 +1590,7 @@ Widget CreateBitmapButton(Widget parent,
 static void button_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Button_CBdata *cbdata = (Button_CBdata *) client_data;
-    cbdata->cbproc(cbdata->anydata);
+    cbdata->cbproc(cbdata->but, cbdata->anydata);
 }
 
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
@@ -1595,13 +1598,14 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
     Button_CBdata *cbdata;
     
     cbdata = xmalloc(sizeof(Button_CBdata));
+    cbdata->but = button;
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
     XtAddCallback(button,
         XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
 }
 
-static void fsb_setcwd_cb(void *data)
+static void fsb_setcwd_cb(Widget but, void *data)
 {
     char *bufp;
     XmString directory;
@@ -1621,7 +1625,7 @@ static void fsb_setcwd_cb(void *data)
 #define FSB_ROOT    2
 #define FSB_CYGDRV  3
 
-static void fsb_cd_cb(int value, void *data)
+static void fsb_cd_cb(OptionStructure *opt, int value, void *data)
 {
     char *bufp;
     XmString dir, pattern, dirmask;
@@ -1665,7 +1669,7 @@ static OptionItem fsb_items[] = {
 #define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(OptionItem)
 
 #if XmVersion >= 2000    
-static void show_hidden_cb(int onoff, void *data)
+static void show_hidden_cb(Widget but, int onoff, void *data)
 {
     FSBStructure *fsb = (FSBStructure *) data;
     XtVaSetValues(fsb->FSB, XmNfileFilterStyle,
@@ -1734,7 +1738,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 
 typedef struct {
     FSBStructure *fsb;
-    int (*cbproc)();
+    FSB_CBProc cbproc;
     void *anydata;
 } FSB_CBdata;
 
@@ -1755,7 +1759,7 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
 
     set_wait_cursor();
 
-    ok = cbdata->cbproc(s, cbdata->anydata);
+    ok = cbdata->cbproc(cbdata->fsb, s, cbdata->anydata);
     XtFree(s);
     if (ok) {
         XtUnmanageChild(cbdata->fsb->dialog);
@@ -2161,7 +2165,7 @@ static int pen_choice_aac(void *data)
     return RETURN_SUCCESS;
 }
 
-static void define_pen_choice_dialog(void *data)
+static void define_pen_choice_dialog(Widget but, void *data)
 {
     static PenChoiceDialog *ui = NULL;
     
@@ -2306,17 +2310,17 @@ static void gss_any_cb(void *udata, int cbtype)
     }
 }
 
-static void g_hide_cb(void *udata)
+static void g_hide_cb(Widget but, void *udata)
 {
     gss_any_cb(udata, GSS_HIDE_CB);
 }
 
-static void g_show_cb(void *udata)
+static void g_show_cb(Widget but, void *udata)
 {
     gss_any_cb(udata, GSS_SHOW_CB);
 }
 
-static void g_focus_cb(void *udata)
+static void g_focus_cb(Widget but, void *udata)
 {
     gss_any_cb(udata, GSS_FOCUS_CB);
 }
@@ -2330,14 +2334,14 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
     SetSensitive(gssdata->focus_bt, (nselected == 1));
 }
 
-static void g_new_cb(void *udata)
+static void g_new_cb(Widget but, void *udata)
 {
     graph_next(grace->project);
     update_all();
     xdrawgraph();
 }
 
-static void g_dc_cb(Quark *gr, void *data)
+static void g_dc_cb(StorageStructure *ss, Quark *gr, void *data)
 {
     switch_current_graph(gr);
 }
@@ -2490,7 +2494,7 @@ static void sss_any_cb(void *udata, int cbtype)
     
     switch (cbtype) {
     case SSS_NEWF_CB:
-        create_leval_frame(gr);
+        create_leval_frame(NULL, gr);
         break;
     case SSS_NEWS_CB:
         if ((pset = set_new(gr))) {
@@ -2519,42 +2523,42 @@ static void sss_any_cb(void *udata, int cbtype)
     xdrawgraph();
 }
 
-static void s_hide_cb(void *udata)
+static void s_hide_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_HIDE_CB);
 }
 
-static void s_show_cb(void *udata)
+static void s_show_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_SHOW_CB);
 }
 
-static void s_editS_cb(void *udata)
+static void s_editS_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_EDITS_CB);
 }
 
-static void s_editE_cb(void *udata)
+static void s_editE_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_EDITE_CB);
 }
 
-static void s_newF_cb(void *udata)
+static void s_newF_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_NEWF_CB);
 }
 
-static void s_newS_cb(void *udata)
+static void s_newS_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_NEWS_CB);
 }
 
-static void s_newE_cb(void *udata)
+static void s_newE_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_NEWE_CB);
 }
 
-static void s_newB_cb(void *udata)
+static void s_newB_cb(Widget but, void *udata)
 {
     sss_any_cb(udata, SSS_NEWB_CB);
 }
@@ -2575,7 +2579,7 @@ static void s_popup_cb(StorageStructure *ss, int nselected)
     SetSensitive(sssdata->edit_menu, selected);
 }
 
-static void s_dc_cb(Quark *pset, void *data)
+static void s_dc_cb(StorageStructure *ss, Quark *pset, void *data)
 {
     create_ss_frame(pset);
 }
@@ -2673,7 +2677,7 @@ void update_set_selectors(Quark *gr)
     }
 }
 
-static void update_sets_cb(int n, Quark **values, void *data)
+static void update_sets_cb(StorageStructure *ss, int n, Quark **values, void *data)
 {
     GraphSetStructure *gs = (GraphSetStructure *) data;
 
@@ -2953,7 +2957,7 @@ void scale_int_cb_proc( Widget w, XtPointer client_data, XtPointer call_data)
 {
     Scale_CBdata *cbdata = (Scale_CBdata *) client_data;
  
-    cbdata->cbproc(GetScaleValue(cbdata->scale), cbdata->anydata);
+    cbdata->cbproc(cbdata->scale, GetScaleValue(cbdata->scale), cbdata->anydata);
 }
 
 void AddScaleCB(Widget w, Scale_CBProc cbproc, void *anydata)
@@ -3051,7 +3055,8 @@ void SetToggleButtonState(Widget w, int value)
 }
 
 typedef struct {
-    void (*cbproc)();
+    Widget tbut;
+    TB_CBProc cbproc;
     void *anydata;
 } TB_CBdata;
 
@@ -3062,7 +3067,7 @@ static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
     TB_CBdata *cbdata = (TB_CBdata *) client_data;
 
     onoff = GetToggleButtonState(w);
-    cbdata->cbproc(onoff, cbdata->anydata);
+    cbdata->cbproc(cbdata->tbut, onoff, cbdata->anydata);
 }
 
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
@@ -3071,6 +3076,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
     
     cbdata = xmalloc(sizeof(TB_CBdata));
     
+    cbdata->tbut = w;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
     XtAddCallback(w,
@@ -3162,11 +3168,11 @@ void FixateDialogFormChild(Widget w)
 typedef struct {
     Widget form;
     int close;
-    int (*cbproc)();
+    AACDialog_CBProc cbproc;
     void *anydata;
 } AACDialog_CBdata;
 
-void aacdialog_int_cb_proc(void *data)
+void aacdialog_int_cb_proc(Widget but, void *data)
 {
     AACDialog_CBdata *cbdata;
     int retval;
@@ -3752,7 +3758,7 @@ void destroy_dialog(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * same for AddButtonCB
  */
-void destroy_dialog_cb(void *data)
+void destroy_dialog_cb(Widget but, void *data)
 {
     XtUnmanageChild((Widget) data);
 }
@@ -4039,7 +4045,7 @@ Widget CreateMenuLabel(Widget parent, char *name)
 
 static void help_int_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    HelpCB(client_data);
+    HelpCB(w, client_data);
 }
 
 void AddHelpCB(Widget w, char *ha)
@@ -4052,7 +4058,7 @@ void AddHelpCB(Widget w, char *ha)
     XtAddCallback(w, XmNhelpCallback, help_int_cb, (XtPointer) ha);
 }
 
-void ContextHelpCB(void *data)
+void ContextHelpCB(Widget but, void *data)
 {
     Widget whelp;
     Cursor cursor;
@@ -4070,7 +4076,7 @@ void ContextHelpCB(void *data)
         }
     }
     if (!ok) {
-        HelpCB(NULL);
+        HelpCB(but, NULL);
     }
     XFreeCursor(disp, cursor);
 }
@@ -4233,7 +4239,7 @@ void update_all(void)
     update_app_title(grace->project);
 }
 
-void update_all_cb(void *data)
+void update_all_cb(Widget but, void *data)
 {
     update_all();
 }

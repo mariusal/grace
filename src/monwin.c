@@ -47,13 +47,13 @@
 
 extern XtAppContext app_con;
 
-static void clear_results(void *data);
-static void popup_on(int onoff, void *data);
-static void auto_redraw_cb(int onoff, void *data);
-static void auto_update_cb(int onoff, void *data);
-static void create_wmon_frame(void *data);
-static int save_logs_proc(char *filename, void *data);
-static void cmd_cb(char *s, void *data);
+static void clear_results(Widget but, void *data);
+static void popup_on(Widget tbut, int onoff, void *data);
+static void auto_redraw_cb(Widget tbut, int onoff, void *data);
+static void auto_update_cb(Widget tbut, int onoff, void *data);
+static void create_wmon_frame(Widget but, void *data);
+static int save_logs_proc(FSBStructure *fsb, char *filename, void *data);
+static void cmd_cb(TextStructure *cst, char *s, void *data);
 
 typedef struct _console_ui
 {
@@ -184,25 +184,25 @@ static void create_monitor_frame(int force, char *msg)
     unset_wait_cursor();
 }
 
-static void popup_on(int onoff, void *data)
+static void popup_on(Widget tbut, int onoff, void *data)
 {
     console_ui *ui = (console_ui *) data;
     ui->popup_only_on_errors = onoff;
 }
 
-static void auto_redraw_cb(int onoff, void *data)
+static void auto_redraw_cb(Widget tbut, int onoff, void *data)
 {
     console_ui *ui = (console_ui *) data;
     ui->auto_redraw = onoff;
 }
 
-static void auto_update_cb(int onoff, void *data)
+static void auto_update_cb(Widget tbut, int onoff, void *data)
 {
     console_ui *ui = (console_ui *) data;
     ui->auto_update = onoff;
 }
 
-static void clear_results(void *data)
+static void clear_results(Widget but, void *data)
 {
     console_ui *ui = (console_ui *) data;
     XmTextSetString(ui->monText, "");
@@ -211,7 +211,7 @@ static void clear_results(void *data)
 /*
  * Create the wmon Frame and the wmon Panel
  */
-static void create_wmon_frame(void *data)
+static void create_wmon_frame(Widget but, void *data)
 {
     console_ui *ui = (console_ui *) data;
     
@@ -232,7 +232,7 @@ static void create_wmon_frame(void *data)
     unset_wait_cursor();
 }
 
-static int save_logs_proc(char *filename, void *data)
+static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
 {
     console_ui *ui = (console_ui *) data;
     FILE *pp;
@@ -255,7 +255,7 @@ static int save_logs_proc(char *filename, void *data)
     }
 }
 
-static void cmd_cb(char *s, void *data)
+static void cmd_cb(TextStructure *cst, char *s, void *data)
 {
     console_ui *ui = (console_ui *) data;
     
@@ -299,7 +299,7 @@ void errwin(char *msg)
     xfree(buf);
 }
 
-void create_monitor_frame_cb(void *data)
+void create_monitor_frame_cb(Widget but, void *data)
 {
     create_monitor_frame(TRUE, NULL);
 }

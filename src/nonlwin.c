@@ -107,21 +107,21 @@ typedef struct {
     char *wfunc;
 } Nonl_pars;
 
-static void do_nonl_toggle(int onoff, void *data);
-static void nonl_wf_cb(int value, void *data);
-static void do_constr_toggle(int onoff, void *data);
+static void do_nonl_toggle(OptionStructure *opt, int onoff, void *data);
+static void nonl_wf_cb(OptionStructure *opt, int value, void *data);
+static void do_constr_toggle(Widget tbut, int onoff, void *data);
 
 static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit);
 
-static void reset_frame_cb(void *data);
+static void reset_frame_cb(Widget but, void *data);
 
-static void do_nparm_toggle(int value, void *data);
-static void create_openfit_popup(void *data);
-static void create_savefit_popup(void *data);
-static int do_openfit_proc(char *filename, void *data);
-static int do_savefit_proc(char *filename, void *data);
+static void do_nparm_toggle(OptionStructure *opt, int value, void *data);
+static void create_openfit_popup(Widget but, void *data);
+static void create_savefit_popup(Widget but, void *data);
+static int do_openfit_proc(FSBStructure *fsb, char *filename, void *data);
+static int do_savefit_proc(FSBStructure *fsb, char *filename, void *data);
 
-static void do_nparm_toggle(int value, void *data)
+static void do_nparm_toggle(OptionStructure *opt, int value, void *data)
 {
     Nonl_ui *ui = (Nonl_ui *) data;
     int i;
@@ -134,7 +134,7 @@ static void do_nparm_toggle(int value, void *data)
     }
 }
 
-static void reset_frame_cb(void *data)
+static void reset_frame_cb(Widget but, void *data)
 {
     Nonl_ui *ui = (Nonl_ui *) data;
     NLFit nlfit;
@@ -541,7 +541,7 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
     return RETURN_SUCCESS;
 }
 
-void create_nonl_frame(void *data)
+void create_nonl_frame(Widget but, void *data)
 {
     static TransformStructure *tdialog = NULL;
 
@@ -600,7 +600,7 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
     }
 }
 
-static void nonl_wf_cb(int value, void *data)
+static void nonl_wf_cb(OptionStructure *opt, int value, void *data)
 {
     Widget rc = GetParent((Widget) data);
     
@@ -611,7 +611,7 @@ static void nonl_wf_cb(int value, void *data)
     }
 }
 
-static void do_nonl_toggle(int value, void *data)
+static void do_nonl_toggle(OptionStructure *opt, int value, void *data)
 {
     Widget rc = (Widget) data;
     
@@ -622,7 +622,7 @@ static void do_nonl_toggle(int value, void *data)
     }
 }
 
-static void do_constr_toggle(int onoff, void *data)
+static void do_constr_toggle(Widget tbut, int onoff, void *data)
 {
 #if 0
     int value = (int) data;
@@ -639,7 +639,7 @@ static void do_constr_toggle(int onoff, void *data)
 }
 
 
-static void create_openfit_popup(void *data)
+static void create_openfit_popup(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -656,7 +656,7 @@ static void create_openfit_popup(void *data)
     unset_wait_cursor();
 }
 
-static int do_openfit_proc(char *filename, void *data)
+static int do_openfit_proc(FSBStructure *fsb, char *filename, void *data)
 {
     errwin("Not implemented yet");
     
@@ -664,7 +664,7 @@ static int do_openfit_proc(char *filename, void *data)
 }
 
 
-static void create_savefit_popup(void *data)
+static void create_savefit_popup(Widget but, void *data)
 {
     static FSBStructure *fsb = NULL;
     static Widget title_item = NULL;
@@ -688,7 +688,7 @@ static void create_savefit_popup(void *data)
     unset_wait_cursor();
 }
 
-static int do_savefit_proc(char *filename, void *data)
+static int do_savefit_proc(FSBStructure *fsb, char *filename, void *data)
 {
     FILE *pp;
     // Widget title_item = (Widget) data;

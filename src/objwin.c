@@ -127,7 +127,7 @@ typedef struct {
     DObject *dobject;
 } ObjectUI;
 
-static void changegraphCB(int n, Quark **values, void *data)
+static void changegraphCB(StorageStructure *ss, int n, Quark **values, void *data)
 {
     ObjectUI *ui = (ObjectUI *) data;
 
@@ -341,7 +341,7 @@ static StringUI *create_string_ui(Widget parent)
 
 
 
-static void selectobjectCB(int n, Quark **values, void *data)
+static void selectobjectCB(StorageStructure *ss, int n, Quark **values, void *data)
 {
     ObjectUI *ui = (ObjectUI *) data;
     
@@ -506,7 +506,7 @@ static char *dobject_labeling(Quark *q, unsigned int *rid)
     }
 }
 
-static void loctype_cb(int value, void *data)
+static void loctype_cb(OptionStructure *ss,int value, void *data)
 {
     ObjectUI *ui = (ObjectUI *) data;
     double x, y;
@@ -595,12 +595,12 @@ static void doss_any_cb(void *udata, int cbtype)
     }
 }
 
-static void hide_cb(void *udata)
+static void hide_cb(Widget but, void *udata)
 {
     doss_any_cb(udata, DOSS_HIDE_CB);
 }
 
-static void show_cb(void *udata)
+static void show_cb(Widget but, void *udata)
 {
     doss_any_cb(udata, DOSS_SHOW_CB);
 }
@@ -620,22 +620,22 @@ static void popup_cb(StorageStructure *ss, int nselected)
     SetSensitive(dossdata->show_bt, selected);
 }
 
-static void new_line_cb(void *udata)
+static void new_line_cb(Widget but, void *udata)
 {
     /* StorageStructure *ss = (StorageStructure *) udata; */
     set_action(DO_NOTHING);
     set_action(MAKE_LINE_1ST);
 }
 
-static void new_box_cb(void *udata)
+static void new_box_cb(Widget but, void *udata)
 {
 }
 
-static void new_arc_cb(void *udata)
+static void new_arc_cb(Widget but, void *udata)
 {
 }
 
-static void new_string_cb(void *udata)
+static void new_string_cb(Widget but, void *udata)
 {
 }
 
@@ -669,7 +669,7 @@ StorageStructure *CreateDObjectChoice(Widget parent, char *labelstr, int type)
     return ss;
 }
 
-void define_objects_popup(void *data)
+void define_objects_popup(Widget but, void *data)
 {
     set_wait_cursor();
     
