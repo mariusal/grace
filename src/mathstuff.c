@@ -37,63 +37,63 @@
 
 #include "mathstuff.h"
 
-extern double ai_wrap(double x)
+double ai_wrap(double x)
 {
     double retval, dummy1, dummy2, dummy3;
     (void) airy(x, &retval, &dummy1, &dummy2, &dummy3);
     return retval;
 }
 
-extern double bi_wrap(double x)
+double bi_wrap(double x)
 {
     double retval, dummy1, dummy2, dummy3;
     (void) airy(x, &dummy1, &dummy2, &retval, &dummy3);
     return retval;
 }
 
-extern double ci_wrap(double x)
+double ci_wrap(double x)
 {
     double retval, dummy1;
     (void) sici(x, &dummy1, &retval);
     return retval;
 }
 
-extern double si_wrap(double x)
+double si_wrap(double x)
 {
     double retval, dummy1;
     (void) sici(x, &retval, &dummy1);
     return retval;
 }
 
-extern double chi_wrap(double x)
+double chi_wrap(double x)
 {
     double retval, dummy1;
     (void) shichi(x, &dummy1, &retval);
     return retval;
 }
 
-extern double shi_wrap(double x)
+double shi_wrap(double x)
 {
     double retval, dummy1;
     (void) shichi(x, &retval, &dummy1);
     return retval;
 }
 
-extern double fresnlc_wrap(double x)
+double fresnlc_wrap(double x)
 {
     double retval, dummy1;
     (void) fresnl(x, &dummy1, &retval);
     return retval;
 }
 
-extern double fresnls_wrap(double x)
+double fresnls_wrap(double x)
 {
     double retval, dummy1;
     (void) fresnl(x, &retval, &dummy1);
     return retval;
 }
 
-extern double iv_wrap(double v, double x)
+double iv_wrap(double v, double x)
 {
     double retval;
     if (v == 0) {
@@ -106,7 +106,7 @@ extern double iv_wrap(double v, double x)
     return retval;
 }
 
-extern double jv_wrap(double v, double x)
+double jv_wrap(double v, double x)
 {
     double retval;
     if (v == rint(v)) {
@@ -117,7 +117,7 @@ extern double jv_wrap(double v, double x)
     return retval;
 }
 
-extern double kn_wrap(int n, double x)
+double kn_wrap(int n, double x)
 {
     double retval;
     if (n == 0) {
@@ -130,7 +130,7 @@ extern double kn_wrap(int n, double x)
     return retval;
 }
 
-extern double yv_wrap(double v, double x)
+double yv_wrap(double v, double x)
 {
     double retval;
     if (v == rint(v)) {
@@ -141,37 +141,37 @@ extern double yv_wrap(double v, double x)
     return retval;
 }
 
-extern double sqr_wrap(double x)
+double sqr_wrap(double x)
 {
     return x*x;
 }
 
-extern double max_wrap(double x, double y)
+double max_wrap(double x, double y)
 {
     return MAX2(x, y);
 }
 
-extern double min_wrap(double x, double y)
+double min_wrap(double x, double y)
 {
     return MIN2(x, y);
 }
 
-extern double irand_wrap(int x)
+double irand_wrap(int x)
 {
     return (double) (lrand48() % x);
 }
 
-extern double pi_const(void)
+double pi_const(void)
 {
     return M_PI;
 }
 
-extern double deg_uconst(void)
+double deg_uconst(void)
 {
     return M_PI / 180.0;
 }
 
-extern double rad_uconst(void)
+double rad_uconst(void)
 {
     return 1.0;
 }
@@ -179,14 +179,14 @@ extern double rad_uconst(void)
 #define C1 0.1978977093962766
 #define C2 0.1352915131768107
 
-extern double rnorm(double mean, double sdev)
+double rnorm(double mean, double sdev)
 {
     double u = drand48();
 
     return mean + sdev * (pow(u, C2) - pow(1.0 - u, C2)) / C1;
 }
 
-extern double fx(double x)
+double fx(double x)
 {
     return 1.0 / sqrt(2.0 * M_PI) * exp(-x * x * 0.5);
 }
