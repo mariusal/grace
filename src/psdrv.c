@@ -669,95 +669,46 @@ void ps_putpixmap(VPoint vp, int width, int height,
     fprintf(prstream, "grestore\n");
 }
 
-void ps_puttext(VPoint start, VPoint end, double size, CompositeString *cstring)
+void ps_puttext(VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning)
 {
-    int iglyph;
-    int font;
-    double angle;
-    double length;
     char *fontname;
     char *encscheme;
     
-    size /= page_scalef;
-    
-    angle = (180.0/M_PI) * atan2(end.y - start.y, end.x - start.x);
-    length = hypot (end.x - start.x, end.y - start.y);
-        
-    /* initialize pslength variable */
-    fprintf(prstream, "/pslength 0 def\n");
-    iglyph = 0;
-    while (cstring[iglyph].s != NULL) {
-        font = cstring[iglyph].font;
-        if (psfont_status[font] == FALSE) {
-            fontname = get_fontalias(font);
-            encscheme = get_encodingscheme(font);
-            fprintf(prstream, "/%s findfont\n", fontname);
-            if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
-                fprintf(prstream, "dup length dict begin\n");
-                fprintf(prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
-                fprintf(prstream, " /Encoding ISOLatin1Encoding def\n");
-                fprintf(prstream, " currentdict\n");
-                fprintf(prstream, "end\n");
-            }
-            fprintf(prstream, "/Font%d exch definefont pop\n", font);
-            psfont_status[font] = TRUE;
+    if (psfont_status[font] == FALSE) {
+        fontname = get_fontalias(font);
+        encscheme = get_encodingscheme(font);
+        fprintf(prstream, "/%s findfont\n", fontname);
+        if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
+            fprintf(prstream, "dup length dict begin\n");
+            fprintf(prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
+            fprintf(prstream, " /Encoding ISOLatin1Encoding def\n");
+            fprintf(prstream, " currentdict\n");
+            fprintf(prstream, "end\n");
         }
-        fprintf(prstream, "/Font%d findfont\n", font);
-        fprintf(prstream, "%.4f scalefont\n", size*cstring[iglyph].scale);
-        fprintf(prstream, "setfont\n");
-
-        /* pop removes unneeded Y coordinate from the stack */
-        put_string(prstream, cstring[iglyph].s, cstring[iglyph].len);
-        fprintf(prstream, " stringwidth pop pslength add\n");
-
-        fprintf(prstream, "%.4f add\n", size*cstring[iglyph].hshift);
-        fprintf(prstream, "/pslength exch def\n");
-        iglyph++;
+        fprintf(prstream, "/Font%d exch definefont pop\n", font);
+        psfont_status[font] = TRUE;
     }
+    fprintf(prstream, "/Font%d findfont setfont\n", font);
 
     ps_setpen();
     
+    fprintf(prstream, "%.4f %.4f moveto\n", vp.x, vp.y);
     fprintf(prstream, "gsave\n");
-    fprintf(prstream, "%.4f %.4f translate\n", start.x, start.y);
-    fprintf(prstream, "%.4f rotate\n", angle);
-    /*
-     * Compensate for diffs between PS & T1lib 
-     * (should Y be scaled the same??)
-     * I use higher (.6) precision here since rounding errors may lead to
-     * incorrect BB calculations
-     */
-    fprintf(prstream, "%.6f pslength div %.6f scale\n", 
-                                    length*size, size*72.0/page_dpi);
-
-    fprintf(prstream, "0.0 0.0 moveto\n");
+    fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] concat\n",
+                        tm->cxx, tm->cyx, tm->cxy, tm->cyy);
     
-    iglyph = 0;
-    while (cstring[iglyph].s != NULL) {
-        fprintf(prstream, "/Font%d findfont\n", cstring[iglyph].font);
-        fprintf(prstream, "%.4f scalefont\n", cstring[iglyph].scale);
-        fprintf(prstream, "setfont\n");
-        if (cstring[iglyph].vshift != 0.0 || cstring[iglyph].hshift != 0.0) {
-            fprintf(prstream, "%.4f %.4f rmoveto\n",
-                               cstring[iglyph].hshift, cstring[iglyph].vshift);
-            put_string(prstream, cstring[iglyph].s, cstring[iglyph].len);
-            fprintf(prstream, " show\n");
-            fprintf(prstream, "0.0 %.4f rmoveto\n", -cstring[iglyph].vshift);
-        } else {
-            put_string(prstream, cstring[iglyph].s, cstring[iglyph].len);
-            fprintf(prstream, " show\n");
-        }
-        
-        if (cstring[iglyph].underline == TRUE) {
-            /* TODO */
-        }
-        
-        if (cstring[iglyph].overline == TRUE) {
-            /* TODO */
-        }
-        
-        iglyph++;
+    put_string(prstream, s, len);
+    fprintf(prstream, " show\n");
+    
+    if (underline == TRUE) {
+        /* TODO */
     }
-
+    
+    if (overline == TRUE) {
+        /* TODO */
+    }
+    
     fprintf(prstream, "grestore\n");
 }
 

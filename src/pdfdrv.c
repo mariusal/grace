@@ -433,97 +433,48 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     xfree(buf);
 }
 
-void pdf_puttext(VPoint start, VPoint end, double size, 
-                                            CompositeString *cstring)
+void pdf_puttext(VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning)
 {
-    int iglyph;
-    int font;
-    float angle;
-    float vshift, hshift, fsize;
-    float length, pdfstring_length;
-    
     pdf_setpen();
     
-    size /= page_scale;
-    
-    angle = (float) (180.0/M_PI) * atan2(end.y - start.y, end.x - start.x);
-    length = (float) hypot (end.x - start.x, end.y - start.y);
-    
-    pdfstring_length = 0.0;
-    
-    iglyph = 0;
-    while (cstring[iglyph].s != NULL) {
-        hshift = (float) size*cstring[iglyph].hshift;
-        fsize  = (float) size*cstring[iglyph].scale;
-        font   = cstring[iglyph].font;
-        if (pdf_font_ids[font] < 0) {
-            char buf[GR_MAXPATHLEN];
-            char *fontname, *encscheme;
-            char *pdflibenc;
-            fontname = get_fontalias(font);
-            sprintf(buf, "%s=%s/fonts/type1/%s",
-                fontname, get_grace_home(), get_afmfilename(font));
-            PDF_set_parameter(phandle, "FontAFM", buf);
-            sprintf(buf, "%s=%s/fonts/type1/%s",
-                fontname, get_grace_home(), get_fontfilename(font));
-            PDF_set_parameter(phandle, "FontOutline", buf);
+    if (pdf_font_ids[font] < 0) {
+        char buf[GR_MAXPATHLEN];
+        char *fontname, *encscheme;
+        char *pdflibenc;
+        fontname = get_fontalias(font);
+        sprintf(buf, "%s=%s/fonts/type1/%s",
+            fontname, get_grace_home(), get_afmfilename(font));
+        PDF_set_parameter(phandle, "FontAFM", buf);
+        sprintf(buf, "%s=%s/fonts/type1/%s",
+            fontname, get_grace_home(), get_fontfilename(font));
+        PDF_set_parameter(phandle, "FontOutline", buf);
 
-            encscheme = get_encodingscheme(font);
-            if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
-                pdflibenc = "default";
-            } else if (strcmp(encscheme, "FontSpecific") == 0) {
-                pdflibenc = "builtin";
-            } else {
-                pdflibenc = "pdfdoc";
-            }
-            pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, 1);
-        } 
-        PDF_setfont(phandle, pdf_font_ids[font], fsize);
-        pdfstring_length += hshift;
-        pdfstring_length += PDF_stringwidth(phandle,
-            cstring[iglyph].s, pdf_font_ids[font], fsize);
-        iglyph++;
-    }
-
-    PDF_save(phandle);
-    PDF_translate(phandle, (float) start.x, (float) start.y);
-    PDF_rotate(phandle, angle);
-    /*
-     * Compensate for diffs between PDFlib & T1lib 
-     * (should Y be scaled the same??)
-     */
-    PDF_scale(phandle, (float) size*length/pdfstring_length, (float) size);
-
-    PDF_set_text_pos(phandle, 0.0, 0.0);
-    
-    iglyph = 0;
-    while (cstring[iglyph].s != NULL) {
-        vshift = (float) cstring[iglyph].vshift;
-        hshift = (float) cstring[iglyph].hshift;
-        fsize  = (float) cstring[iglyph].scale;
-        font   = cstring[iglyph].font;
-        PDF_setfont(phandle, pdf_font_ids[font], fsize);
-
-        if (hshift != 0.0 || vshift != 0.0) {
-            PDF_set_text_rise(phandle, vshift);
-            PDF_show(phandle, cstring[iglyph].s);
-            PDF_set_text_rise(phandle, 0.0);
+        encscheme = get_encodingscheme(font);
+        if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
+            pdflibenc = "default";
+        } else if (strcmp(encscheme, "FontSpecific") == 0) {
+            pdflibenc = "builtin";
         } else {
-            PDF_show(phandle, cstring[iglyph].s);
+            pdflibenc = "pdfdoc";
         }
+        pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, 1);
+    } 
+    PDF_setfont(phandle, pdf_font_ids[font], 1.0);
 
-        if (cstring[iglyph].underline == TRUE) {
-            /* TODO */
-        }
-        
-        if (cstring[iglyph].overline == TRUE) {
-            /* TODO */
-        }
-        
-        iglyph++;
+    PDF_set_text_matrix(phandle, (float) tm->cxx, (float) tm->cyx,
+                                 (float) tm->cxy, (float) tm->cyy,
+                                 vp.x, vp.y);
+
+    PDF_show(phandle, s);
+
+    if (underline == TRUE) {
+        /* TODO */
     }
-
-    PDF_restore(phandle);
+    
+    if (overline == TRUE) {
+        /* TODO */
+    }
 }
 
 void pdf_leavegraphics(void)

@@ -211,32 +211,24 @@ void mf_putpixmap(VPoint vp, int width, int height, char *databits,
     fprintf(prstream, "}\n"); 
 }
 
-void mf_puttext (VPoint start, VPoint end, double size, 
-                                            CompositeString *cstring)
+void mf_puttext(VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning)
 {
-    int i, iglyph;
+    int i;
     
     mf_setpen();
     
     fprintf(prstream, "PutText {\n");
-    fprintf(prstream, "\t( %.4f , %.4f ) ( %.4f , %.4f )\n", 
-                                start.x, start.y, end.x, end.y); 
+    fprintf(prstream, "\t( %.4f , %.4f )\n", vp.x, vp.y); 
 
-    iglyph = 0;
-    while (cstring[iglyph].s != NULL) {
-        fprintf(prstream, "\t %d %.4f %.4f %.4f %d %d \"", 
-                            cstring[iglyph].font,
-                            size * cstring[iglyph].scale,
-                            size * cstring[iglyph].hshift,
-                            size * cstring[iglyph].vshift,
-                            cstring[iglyph].underline,
-                            cstring[iglyph].overline);
-        for (i = 0; i < cstring[iglyph].len; i++) {
-            fputc(cstring[iglyph].s[i], prstream);
-        }
-        fprintf(prstream, "\"\n");
-        iglyph++;
+    fprintf(prstream, "\t %d %.4f %.4f %.4f %.4f %d %d %d \"", 
+                        font,
+                        tm->cxx, tm->cxy, tm->cyx, tm->cyy, 
+                        underline, overline, kerning);
+    for (i = 0; i < len; i++) {
+        fputc(s[i], prstream);
     }
+    fprintf(prstream, "\"\n");
 
     fprintf(prstream, "}\n"); 
 }

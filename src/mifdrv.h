@@ -38,7 +38,7 @@ void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
 void mif_putpixmap(VPoint vp, int width, int height, 
                    char *databits, int pixmap_bpp,
                    int bitmap_pad, int pixmap_type);
-void mif_puttext (VPoint start, VPoint end, double size, 
-                  CompositeString *cstring);
+void mif_puttext (VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning);
 
 void mif_leavegraphics(void);

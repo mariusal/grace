@@ -52,7 +52,7 @@ static Device_entry dev_mif = {DEVICE_FILE,
                                NULL,
                                NULL,
                                "mif",
-                               FONTSRC_DEVICE,
+                               TRUE,
                                FALSE,
                                {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
                                NULL
@@ -450,8 +450,46 @@ void mif_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
 
 void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
-    /* FIXME - mode */
+    int old_color;
+    double rx, ry;
+    VPoint vp[3];
+
     mif_arc(FALSE, TRUE, vp1, vp2, a1, a2);
+
+    if (mode == ARCFILL_CHORD) {
+
+        /* compute the associated triangle */
+        rx      = fabs(vp2.x - vp1.x)/2;
+        ry      = fabs(vp2.y - vp1.y)/2;
+        vp[0].x = (vp1.x + vp2.x)/2;
+        vp[0].y = (vp1.y + vp2.y)/2;
+        vp[1].x = vp[0].x + rx * cos(a1*M_PI/180.0);
+        vp[1].y = vp[0].y + ry * sin(a1*M_PI/180.0);
+        vp[2].x = vp[0].x + rx * cos(a2*M_PI/180.0);
+        vp[2].y = vp[0].y + ry * sin(a2*M_PI/180.0);
+
+        if (a2 - a1 > 180) {
+            /* the chord is larger than the default pieslice */
+
+            if (a2 - a1 < 360) {
+                /* the triangle is not degenerated, we need to fill it */
+                mif_fillpolygon(vp, 3);
+            }
+
+        } else {
+            /* the chord is smaller than the default pieslice */
+
+            /* this is a terrible hack ! MIF does not support filling only
+               the chord of an arc so we overwrite with the background
+               color, thus erasing underlying objects ... */
+            old_color = getcolor();
+            setcolor(getbgcolor());
+            mif_fillpolygon(vp, 3);
+            setcolor(old_color);
+
+        }
+
+    }
 }
 
 /*
@@ -551,98 +589,54 @@ void mif_putpixmap(VPoint vp, int width, int height, char *databits,
 /*
  * the mif_puttext does not handle correctly composite strings
  */
-void mif_puttext (VPoint start, VPoint end, double size, 
-                  CompositeString *cstring)
+/* FIXME: tm, len */
+void mif_puttext (VPoint vp, char *s, int len, int font,
+     TextMatrix *tm, int underline, int overline, int kerning)
 {
-    int iglyph;
-    double side, dx, dy, angle, co, si;
-    double scaled_size;
     char *fontalias, *dash, *family;
-    VPoint current;
-    GLYPH *glyph;
 
-    side  = *((double *) get_curdevice_data());
-    dx    = end.x - start.x;
-    dy    = end.y - start.y;
-    angle = atan2(dy, dx);
-    if (angle < 0.0) {
-        angle += M_PI + M_PI;
+    fprintf(prstream, "  <TextLine\n");
+    mif_object_props(FALSE, FALSE);
+    fprintf(prstream, "   <TLOrigin %9.3f pt %9.3f pt>\n", vp.x, vp.y);
+    fprintf(prstream, "   <Font\n");
+    fprintf(prstream, "    <FTag `'>\n");
+
+    fontalias = get_fontalias(font);
+    if ((dash = strchr(fontalias, '-')) == NULL) {
+        family = copy_string(NULL, fontalias);
+    } else {
+        family    = xmalloc(dash - fontalias + 1);
+        strncpy(family, fontalias, dash - fontalias);
+        family[dash - fontalias] = '\0';
     }
-    co      = cos(angle);
-    si      = sin(angle);
-    angle  *= 180.0/M_PI;
-    iglyph  = 0;
-    family  = NULL;
-    current = start;
-    while (cstring[iglyph].s != NULL) {
-        scaled_size = size*cstring[iglyph].scale;
-        fprintf(prstream, "  <TextLine\n");
-        mif_object_props(FALSE, FALSE);
-        fprintf(prstream, "   <TLOrigin %9.3f pt %9.3f pt>\n",
-                current.x*side, (1.0 - current.y)*side);
-        fprintf(prstream, "   <TLAlignment %s>\n",
-                (cstring[iglyph].advancing == TEXT_ADVANCING_LR) ?
-                "Left" : "Right");
-        fprintf(prstream, "   <Angle %5.2f>\n", angle);
-        fprintf(prstream, "   <Font\n");
-        fprintf(prstream, "    <FTag `'>\n");
+    fprintf(prstream, "    <FFamily `%s'>\n", family);
 
-        fontalias = get_fontalias(cstring[iglyph].font);
-        if ((dash = strchr(fontalias, '-')) == NULL) {
-            family = copy_string(family, fontalias);
-        } else {
-            family    = xrealloc(family, dash - fontalias + 1);
-            strncpy(family, fontalias, dash - fontalias);
-            family[dash - fontalias] = '\0';
-        }
-        fprintf(prstream, "    <FFamily `%s'>\n", family);
-
-        if (strstr(fontalias, "Bold") != NULL) {
-            fprintf(prstream, "    <FWeight `Bold'>\n");
-        } else {
-            fprintf(prstream, "    <FWeight `Regular'>\n");
-        }
-
-        if (strstr(fontalias, "Italic") != NULL) {
-            fprintf(prstream, "    <FAngle `Italic'>\n");
-        } else if (strstr(fontalias, "Oblique") != NULL) {
-            fprintf(prstream, "    <FAngle `Oblique'>\n");
-        } else {
-            fprintf(prstream, "    <FAngle `Regular'>\n");
-        }
-
-        fprintf(prstream, "    <FPostScriptName `%s'>\n", fontalias);
-
-        fprintf(prstream, "    <FSize %8.3f pt>\n",
-                size*cstring[iglyph].scale);
-        fprintf(prstream, "    <FUnderlining %s>\n",
-                (cstring[iglyph].underline == TRUE) ? "FSingle" : "FNoUnderlining");
-        fprintf(prstream, "    <FOverline %s>\n",
-                (cstring[iglyph].overline == TRUE) ? "Yes" : "No");
-        fprintf(prstream, "   > # end of Font\n");
-        fprintf(prstream, "   <String `%s'>\n",
-                escape_specials((unsigned char *) cstring[iglyph].s));
-        fprintf(prstream, "  > # end of TextLine\n");
-
-        /* try to find the next origin (this probably don't work when
-           subscripts, superscripts, or things like that occur, a
-           better way would be to have some information from the
-           calling WriteString function) */
-	glyph = GetGlyphString(cstring[iglyph].font, scaled_size, angle,
-                               T1_UNDERLINE * cstring[iglyph].underline |
-                               T1_OVERLINE  * cstring[iglyph].overline,
-                               cstring[iglyph].s);
-        current.x += (co*glyph->metrics.advanceX
-            - si*glyph->metrics.advanceY)/side;
-        current.y += (si*glyph->metrics.advanceX
-            + co*glyph->metrics.advanceY)/side;
-
-        iglyph++;
-
+    if (strstr(fontalias, "Bold") != NULL) {
+        fprintf(prstream, "    <FWeight `Bold'>\n");
+    } else {
+        fprintf(prstream, "    <FWeight `Regular'>\n");
     }
+
+    if (strstr(fontalias, "Italic") != NULL) {
+        fprintf(prstream, "    <FAngle `Italic'>\n");
+    } else if (strstr(fontalias, "Oblique") != NULL) {
+        fprintf(prstream, "    <FAngle `Oblique'>\n");
+    } else {
+        fprintf(prstream, "    <FAngle `Regular'>\n");
+    }
+
+    fprintf(prstream, "    <FPostScriptName `%s'>\n", fontalias);
+
+    fprintf(prstream, "    <FUnderlining %s>\n",
+            (underline == TRUE) ? "FSingle" : "FNoUnderlining");
+    fprintf(prstream, "    <FOverline %s>\n",
+            (overline == TRUE) ? "Yes" : "No");
+    fprintf(prstream, "   > # end of Font\n");
+    fprintf(prstream, "   <String `%s'>\n",
+            escape_specials((unsigned char *) s));
+    fprintf(prstream, "  > # end of TextLine\n");
 
     copy_string(family, NULL);
-
 }
 
 void mif_leavegraphics(void)
