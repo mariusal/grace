@@ -207,6 +207,8 @@ void runtime_free(RunTime *rt);
 Grace *grace_new(void);
 void grace_free(Grace *grace);
 
+int grace_set_project(Grace *grace, Project *pr);
+
 int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale);
 int set_printer(Grace *grace, int device);
 int set_printer_by_name(Grace *grace, const char *dname);

@@ -255,24 +255,23 @@ Grace *grace_new(void)
 #if 0    
     grace->rt = runtime_new(grace);
     if (!grace->rt) {
-        xfree(grace);
+        grace_free(grace);
         return NULL;
     }
     
     grace->gui = gui_new(grace);
     if (!grace->gui) {
-        runtime_free(grace->rt);
-        xfree(grace);
+        grace_free(grace);
         return NULL;
     }
     
-    grace->project = project_new(grace);
-    if (!grace->project) {
-        gui_free(grace->gui);
-        runtime_free(grace->rt);
-        xfree(grace);
+    pr = project_new(grace);
+    if (!pr) {
+        grace_free(grace);
         return NULL;
     }
+
+    grace_set_project(grace, pr);
 #endif    
     return grace;
 }
@@ -288,4 +287,20 @@ void grace_free(Grace *grace)
     runtime_free(grace->rt);
     
     xfree(grace);
+}
+
+int grace_set_project(Grace *grace, Project *pr)
+{
+    if (grace && pr) {
+        project_free(grace->project);
+        project_clear_dirtystate(pr);
+        grace->project = pr;
+        
+        /* Set dimensions of all devices */
+        set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
