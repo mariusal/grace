@@ -790,13 +790,13 @@ void set_help_viewer(Grace *grace, const char *dir)
 
 char *get_docname(const Quark *q)
 {
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(q);
     return pr->docname;
 }
 
 void set_docname(Quark *q, const char *s)
 {
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(q);
     if (!s) {
         s = NONAME;
     }
@@ -1001,6 +1001,7 @@ void update_app_title(Quark *q)
 {
 #ifndef NONE_GUI
     set_title(mybasename(get_docname(q)));
+    update_explorer(q->grace->gui->eui, FALSE);
 #endif
 }
 

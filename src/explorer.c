@@ -157,54 +157,60 @@ static char *q_labeling(Quark *q)
     case QFlavorProject:
         pr = project_get_data(q);
         
-        sprintf(buf, "Project \"%s\" (%d graphs)", QIDSTR(q),
-            number_of_graphs(q));
+        sprintf(buf, "Project \"%s%s\" (%d graphs)", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"" , number_of_graphs(q));
 
         break;
     case QFlavorFrame:
         f = frame_get_data(q);
         
-        sprintf(buf, "(%c) Frame \"%s\"", f->active ? '+':'-', QIDSTR(q));
+        sprintf(buf, "(%c) Frame \"%s%s\"", f->active ? '+':'-', QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
 
         break;
     case QFlavorGraph:
         g = graph_get_data(q);
         
-        sprintf(buf, "(%c) Graph \"%s\" (type: %s, sets: %d)",
-            g->active ? '+':'-', QIDSTR(q), graph_types(q->grace->rt, g->type),
-            number_of_sets(q));
+        sprintf(buf, "(%c) Graph \"%s%s\" (type: %s, sets: %d)",
+            g->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            graph_types(q->grace->rt, g->type), number_of_sets(q));
 
         break;
     case QFlavorSet:
         s = set_get_data(q);
         
-        sprintf(buf, "(%c) Set \"%s\" (%s)",
-            s->active ? '+':'-', QIDSTR(q), set_types(q->grace->rt, s->type));
+        sprintf(buf, "(%c) Set \"%s%s\" (%s)",
+            s->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            set_types(q->grace->rt, s->type));
 
         break;
     case QFlavorAxis:
         t = axis_get_data(q);
         
-        sprintf(buf, "(%c) %c Axis \"%s\"",
-            t->active ? '+':'-', t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q));
+        sprintf(buf, "(%c) %c Axis \"%s%s\"",
+            t->active ? '+':'-', t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
 
         break;
     case QFlavorDObject:
         o = object_get_data(q);
 
-        sprintf(buf, "(%c) DObject \"%s\" (%s)",
-            o->active ? '+':'-', QIDSTR(q), object_types(o->type));
+        sprintf(buf, "(%c) DObject \"%s%s\" (%s)",
+            o->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            object_types(o->type));
         
         break;
     case QFlavorRegion:
         r = region_get_data(q);
 
-        sprintf(buf, "(%c) Region \"%s\" (%d pts)",
-            r->active ? '+':'-', QIDSTR(q), r->n);
+        sprintf(buf, "(%c) Region \"%s%s\" (%d pts)",
+            r->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+            r->n);
         
         break;
     default:
-        sprintf(buf, "??? \"%s\"", QIDSTR(q));
+        sprintf(buf, "??? \"%s%s\"", QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"");
         break;
     }
     
