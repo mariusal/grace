@@ -21,14 +21,14 @@ fit$(O) : fit.c defines.h utils.h protos.h missing.h noxprotos.h graphs.h \
 fourier$(O) : fourier.c defines.h utils.h protos.h missing.h noxprotos.h \
  graphs.h xprotos.h
 graphs$(O) : graphs.c patchlevel.h defines.h utils.h device.h t1fonts.h \
- draw.h graphs.h protos.h missing.h noxprotos.h xprotos.h
+ draw.h graphs.h graphutils.h protos.h missing.h noxprotos.h xprotos.h
 graphutils$(O) : graphutils.c globals.h defines.h graphs.h draw.h utils.h \
  device.h t1fonts.h graphutils.h protos.h missing.h noxprotos.h \
  xprotos.h
 setutils$(O) : setutils.c globals.h defines.h graphs.h draw.h utils.h \
  files.h protos.h missing.h noxprotos.h xprotos.h
 regionutils$(O) : regionutils.c globals.h defines.h graphs.h draw.h \
- utils.h events.h protos.h missing.h noxprotos.h xprotos.h
+ utils.h protos.h missing.h noxprotos.h xprotos.h
 objutils$(O) : objutils.c globals.h defines.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h
 computils$(O) : computils.c globals.h defines.h graphs.h draw.h utils.h \
