@@ -1976,9 +1976,6 @@ parmset:
 
 	| LINK PAGE onoff {
 	}
-	| STACK WORLD expr ',' expr ',' expr ',' expr
-	{
-	}
 
 	| TIMER nexpr {
             grace->rt->timer_delay = $2;
