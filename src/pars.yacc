@@ -3122,15 +3122,15 @@ actions:
 	    xfree($4);
 	}
 	| BLOCK xytype CHRSTR {
-            int nc, *cols;
-            if (field_string_to_cols($3, &nc, &cols) != RETURN_SUCCESS) {
+            int nc, *cols, scol;
+            if (field_string_to_cols($3, &nc, &cols, &scol) != RETURN_SUCCESS) {
                 errmsg("Erroneous field specifications");
 	        xfree($3);
                 return 1;
             } else {
 	        xfree($3);
 	        create_set_fromblock(whichgraph, NEW_SET,
-                    $2, nc, cols, -1, autoscale_onread);
+                    $2, nc, cols, scol, autoscale_onread);
                 xfree(cols);
             }
 	}

@@ -67,7 +67,7 @@ int store_data(ss_data *ssd, int load_type, char *label);
 
 int create_set_fromblock(int gno, int setno,
     int type, int nc, int *coli, int scol, int autoscale);
-char *cols_to_field_string(int nc, int *cols);
-int field_string_to_cols(const char *fs, int *nc, int **cols);
+char *cols_to_field_string(int nc, int *cols, int scol);
+int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 
 #endif /* __SSDATA_H_ */
