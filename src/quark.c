@@ -277,6 +277,7 @@ int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata)
 typedef struct {
     unsigned int depth;
     unsigned int step;
+    int done;
     Quark_traverse_hook hook;
     void *udata;
 } QTHookData;
@@ -315,8 +316,13 @@ static int _quark_traverse(Quark *q, QTHookData *_cbdata)
             res = _cbdata->hook(q, _cbdata->udata, &closure);
         }
         
-        return TRUE;
+        if (_cbdata->done) {
+            return FALSE;
+        } else {
+            return TRUE;
+        }
     } else {
+        _cbdata->done = TRUE;
         return FALSE;
     }
 }
@@ -324,8 +330,14 @@ static int _quark_traverse(Quark *q, QTHookData *_cbdata)
 void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata)
 {
     QTHookData _cbdata;
+
+    if (!q || !hook) {
+        return;
+    }
+    
     _cbdata.depth = 0;
     _cbdata.step  = 0;
+    _cbdata.done  = FALSE;
     _cbdata.hook  = hook;
     _cbdata.udata = udata;
     
