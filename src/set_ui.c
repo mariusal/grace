@@ -148,21 +148,20 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(rc2, "Symbol properties");
     rc = CreateVContainer(fr);
-    ui->symbols = CreatePanelChoice(rc,
-                                    "Type:",
-                                    "None",            /* 0 */
-                                    "Circle",          /* 1 */
-                                    "Square",          /* 2 */
-                                    "Diamond",         /* 3 */
-                                    "Triangle up",     /* 4 */
-                                    "Triangle left",   /* 5 */
-                                    "Triangle down",   /* 6 */
-                                    "Triangle right",  /* 7 */
-                                    "Plus",            /* 8 */
-                                    "X",               /* 9 */
-                                    "Star",            /* 10 */
-                                    "Char",            /* 11 */
-                                    NULL);
+    ui->symbols = CreateOptionChoiceVA(rc, "Type:",
+        "None",           SYM_NONE,
+        "Circle",         SYM_CIRCLE,
+        "Square",         SYM_SQUARE,
+        "Diamond",        SYM_DIAMOND,
+        "Triangle up",    SYM_TRIANG1,
+        "Triangle left",  SYM_TRIANG2,
+        "Triangle down",  SYM_TRIANG3,
+        "Triangle right", SYM_TRIANG4,
+        "Plus",           SYM_PLUS,
+        "X",              SYM_X,
+        "Star",           SYM_SPLAT,
+        "Char",           SYM_CHAR,
+        NULL);
     AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
     ui->symsize = CreateCharSizeChoice(rc, "Size:");
     AddSpinChoiceCB(ui->symsize, sp_explorer_cb, eui);
@@ -173,14 +172,14 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(rc2, "Line properties");
     rc = CreateVContainer(fr);
-    ui->linet = CreatePanelChoice(rc, "Type:",
-                                          "None",
-                                          "Straight",
-                                          "Left stairs",
-                                          "Right stairs",
-                                          "Segments",
-                                          "3-Segments",
-                                          NULL);
+    ui->linet = CreateOptionChoiceVA(rc, "Type:",
+        "None",         LINE_TYPE_NONE,
+        "Straight",     LINE_TYPE_STRAIGHT,
+        "Left stairs",  LINE_TYPE_LEFTSTAIR,
+        "Right stairs", LINE_TYPE_RIGHTSTAIR,
+        "Segments",     LINE_TYPE_SEGMENT2,
+        "3-Segments",   LINE_TYPE_SEGMENT3,
+        NULL);
     AddOptionChoiceCB(ui->linet, oc_explorer_cb, eui); 
     ui->lines = CreateLineStyleChoice(rc, "Style:");
     AddOptionChoiceCB(ui->lines, oc_explorer_cb, eui);
@@ -240,16 +239,16 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->line_tp, "Fill properties");
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
-    ui->filltype = CreatePanelChoice(rc2, "Type:",
-                                         "None",
-                                         "As polygon",
-                                         "To baseline",
-                                         NULL);
+    ui->filltype = CreateOptionChoiceVA(rc2, "Type:",
+        "None",        SETFILL_NONE,
+        "As polygon",  SETFILL_POLYGON,
+        "To baseline", SETFILL_BASELINE,
+        NULL);
     AddOptionChoiceCB(ui->filltype, oc_explorer_cb, eui); 
-    ui->fillrule = CreatePanelChoice(rc2, "Rule:",
-                                         "Winding",
-                                         "Even-Odd",
-                                         NULL);
+    ui->fillrule = CreateOptionChoiceVA(rc2, "Rule:",
+        "Winding",  FILLRULE_WINDING,
+        "Even-Odd", FILLRULE_EVENODD,
+        NULL);
     AddOptionChoiceCB(ui->fillrule, oc_explorer_cb, eui); 
     rc2 = CreateHContainer(rc);
     ui->fillpen = CreatePenChoice(rc2, "Pen:");
@@ -257,13 +256,13 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->line_tp, "Base line");
     rc = CreateHContainer(fr);
-    ui->baselinetype = CreatePanelChoice(rc, "Type:",
-                                         "Zero",
-                                         "Set min",
-                                         "Set max",
-                                         "Graph min",
-                                         "Graph max",
-                                         NULL);
+    ui->baselinetype = CreateOptionChoiceVA(rc, "Type:",
+        "Zero",      BASELINE_TYPE_0,
+        "Set min",   BASELINE_TYPE_SMIN,
+        "Set max",   BASELINE_TYPE_SMAX,
+        "Graph min", BASELINE_TYPE_GMIN,
+        "Graph max", BASELINE_TYPE_GMAX,
+        NULL);
     AddOptionChoiceCB(ui->baselinetype, oc_explorer_cb, eui);
     ui->baseline = CreateToggleButton(rc, "Draw line");
     AddToggleButtonCB(ui->baseline, tb_explorer_cb, eui);
@@ -331,12 +330,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(rc1, "Common");
     rc = CreateVContainer(fr);
-    ui->errbar_ptype = CreatePanelChoice(rc,
-                                         "Placement:",
-                                         "Normal",
-                                         "Opposite",
-                                         "Both",
-                                         NULL);
+    ui->errbar_ptype = CreatePlacementChoice(rc, "Placement:");
     AddOptionChoiceCB(ui->errbar_ptype, oc_explorer_cb, eui); 
     ui->errbar_pen = CreatePenChoice(rc, "Pen:");
     AddPenChoiceCB(ui->errbar_pen, pen_explorer_cb, eui);

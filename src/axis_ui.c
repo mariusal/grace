@@ -132,18 +132,14 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->labelcharsize = CreateCharSizeChoice(rc2, "Size:");
     AddSpinChoiceCB(ui->labelcharsize, sp_explorer_cb, eui);
 
-    ui->labellayout = CreatePanelChoice(rc2, "Layout:",
-                                        "Parallel to ",
-                                        "Perpendicular to ",
-                                        NULL);
+    ui->labellayout = CreateOptionChoiceVA(rc2, "Layout:",
+        "Parallel to",      LAYOUT_PARALLEL,
+        "Perpendicular to", LAYOUT_PERPENDICULAR,
+        NULL);
     AddOptionChoiceCB(ui->labellayout, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->labelop = CreatePanelChoice(rc2, "Side:",
-                                         "Normal",
-                                         "Opposite",
-                                         "Both",
-                                         NULL);
+    ui->labelop = CreatePlacementChoice(rc2, "Side:");
     AddOptionChoiceCB(ui->labelop, oc_explorer_cb, eui);
     opitems[0].value = TYPE_AUTO;
     opitems[0].label = "Auto";
@@ -182,14 +178,10 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateHContainer(fr);
 
     rc2 = CreateVContainer(rc);
-    ui->ticklop = CreatePanelChoice(rc2, "Side:",
-                                "Normal",
-                                "Opposite",
-                                "Both",
-                                NULL);
+    ui->ticklop = CreatePlacementChoice(rc2, "Side:");
     AddOptionChoiceCB(ui->ticklop, oc_explorer_cb, eui);
     ui->tlstagger = CreatePanelChoice(rc2, "Stagger:",
-                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
     AddOptionChoiceCB(ui->tlstagger, oc_explorer_cb, eui);
 
 
@@ -223,7 +215,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     rc2 = CreateHContainer(rc);
     ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
-                    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", NULL);
     AddOptionChoiceCB(ui->tlskip, oc_explorer_cb, eui);
 
     ui->tlformula = CreateTextInput(rc2, "Axis transform:");
@@ -249,28 +241,13 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->tickmark_tp, "Placement");
     rc2 = CreateVContainer(fr);
     rc = CreateHContainer(rc2);
-    ui->tickop = CreatePanelChoice(rc, "Draw on:",
-                               "Normal side",
-                               "Opposite side",
-                               "Both sides",
-                               NULL);
+    ui->tickop = CreatePlacementChoice(rc, "Draw on side:");
     AddOptionChoiceCB(ui->tickop, oc_explorer_cb, eui);
     rc = CreateHContainer(rc2);
     ui->tround = CreateToggleButton(rc, "Place at rounded positions");
     AddToggleButtonCB(ui->tround, tb_explorer_cb, eui);
     ui->autonum = CreatePanelChoice(rc, "Autotick divisions:",
-		                "2",
-                                "3",
-                                "4",
-                                "5",
-                                "6",
-                                "7",
-                                "8",
-                                "9",
-                                "10",
-                                "11",
-                                "12",
-				NULL);
+        "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", NULL);
     AddOptionChoiceCB(ui->autonum, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(ui->tickmark_tp);
@@ -280,8 +257,11 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->tgrid = CreateToggleButton(rc, "Draw grid lines");
     AddToggleButtonCB(ui->tgrid, tb_explorer_cb, eui);
-    ui->tinout = CreatePanelChoice(rc, "Pointing:",
-                                   "In", "Out", "Both", NULL);
+    ui->tinout = CreateOptionChoiceVA(rc, "Pointing:",
+        "In",   TICKS_IN,
+        "Out",  TICKS_OUT,
+        "Both", TICKS_BOTH,
+        NULL);
     AddOptionChoiceCB(ui->tinout, oc_explorer_cb, eui);
     ui->tlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
@@ -297,8 +277,11 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->tmgrid = CreateToggleButton(rc, "Draw grid lines");
     AddToggleButtonCB(ui->tmgrid, tb_explorer_cb, eui);
-    ui->tminout = CreatePanelChoice(rc, "Pointing:",
-                                   "In", "Out", "Both", NULL);
+    ui->tminout = CreateOptionChoiceVA(rc, "Pointing:",
+        "In",   TICKS_IN,
+        "Out",  TICKS_OUT,
+        "Both", TICKS_BOTH,
+        NULL);
     AddOptionChoiceCB(ui->tminout, oc_explorer_cb, eui);
     ui->tmlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);

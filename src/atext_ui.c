@@ -120,11 +120,11 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     AddToggleButtonCB(ui->arrow_flag, tb_explorer_cb, eui);
 
     rc1 = CreateHContainer(rc);
-    ui->a_type = CreatePanelChoice(rc1, "Arrow type:",
-				   "Line",
-				   "Filled",
-				   "Circle",
-				   NULL);
+    ui->a_type = CreateOptionChoiceVA(rc1, "Arrow type:",
+        "Line",   ARROW_TYPE_LINE,
+        "Filled", ARROW_TYPE_FILLED,
+        "Circle", ARROW_TYPE_CIRCLE,
+        NULL);
     AddOptionChoiceCB(ui->a_type, oc_explorer_cb, eui);
     ui->a_length = CreateSpinChoice(rc1, "Length:",
         4, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.5);

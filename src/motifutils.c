@@ -254,6 +254,36 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
     return retval;
 }
 
+OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
+{
+    OptionStructure *retval;
+    int nchoices = 0;
+    OptionItem *oi = NULL;
+    va_list var;
+    char *s;
+    int value;
+
+    va_start(var, labelstr);
+    while ((s = va_arg(var, char *)) != NULL) {
+        value = va_arg(var, int);
+        nchoices++;
+        oi = xrealloc(oi, nchoices*sizeof(OptionItem));
+        oi[nchoices - 1].value = value;
+        oi[nchoices - 1].label = copy_string(NULL, s);
+    }
+    va_end(var);
+
+    retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
+    
+    while (nchoices) {
+        nchoices--;
+	xfree(oi[nchoices].label);
+    }
+    xfree(oi);
+    
+    return retval;
+}
+
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
     int i, nold, ncols, nw;
@@ -2828,7 +2858,6 @@ SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
 }
 
 
-
 OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, ...)
 {
     OptionStructure *retval;
@@ -2922,12 +2951,28 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
 
 OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
 {
-    return CreatePanelChoice(parent, s,
-                          "0", "1", "2", "3", "4",
-                          "5", "6", "7", "8", "9",
-                          NULL);
+    return CreateOptionChoiceVA(parent, s,
+        "0", 0,
+        "1", 1,
+        "2", 2,
+        "3", 3,
+        "4", 4,
+        "5", 5,
+        "6", 6,
+        "7", 7,
+        "8", 8,
+        "9", 9,
+        NULL);
 }
-    
+
+OptionStructure *CreatePlacementChoice(Widget parent, char *s)
+{
+    return CreateOptionChoiceVA(parent, s,
+        "Normal",   PLACEMENT_NORMAL,
+        "Opposite", PLACEMENT_OPPOSITE,
+        "Both",     PLACEMENT_BOTH,
+        NULL);
+}
 
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 {

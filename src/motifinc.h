@@ -411,6 +411,7 @@ Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb);
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
+OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...);
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items);
 void SetOptionChoice(OptionStructure *opt, int value);
@@ -531,6 +532,7 @@ SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
 OptionStructure *CreatePanelChoice(Widget parent, char *labstr, ...);
 OptionStructure *CreatePrecisionChoice(Widget parent, char *s);
+OptionStructure *CreatePlacementChoice(Widget parent, char *s);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);

@@ -99,11 +99,11 @@ void create_props_frame(Widget but, void *data)
 	noask_item = CreateToggleButton(rc1, "Don't ask questions");
 	dc_item = CreateToggleButton(rc1, "Allow double clicks on canvas");
 
-	graph_focus_choice_item = CreatePanelChoice(rc1,
+	graph_focus_choice_item = CreateOptionChoiceVA(rc1,
             "Graph focus switch",
-	    "Button press",
-	    "As set",
-	    "Follows mouse",
+	    "Button press",  FOCUS_CLICK,
+	    "As set",        FOCUS_SET,
+	    "Follows mouse", FOCUS_FOLLOWS,
 	    NULL);
 
         graph_drawfocus_choice_item =

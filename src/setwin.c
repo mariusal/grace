@@ -422,28 +422,25 @@ void create_datasetop_popup(Widget but, void *data)
         CreateMenuHelpButton(menupane, "On dataset operations", 's',
             datasetopui.top, "doc/UsersGuide.html#data-set-operations");
 
-	datasetopui.optype_item = CreateOptionChoice(dialog,
-						"Operation type:",
-						1, 5, optype_items);
+	datasetopui.optype_item = CreateOptionChoice(dialog, "Operation type:",
+            1, 5, optype_items);
    	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
 	rc = CreateHContainer(dialog);
         XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
 	
-        datasetopui.xy_item = CreatePanelChoice(rc,
-					   "Sort on:",
-					   "X",
-					   "Y",
-					   "Y1",
-					   "Y2",
-					   "Y3",
-					   "Y4",
-					   NULL);
-	datasetopui.up_down_item = CreatePanelChoice(rc,
-						"Order:",
-						"Ascending",
-						"Descending",
-						NULL);
+        datasetopui.xy_item = CreateOptionChoiceVA(rc, "Sort on:",
+            "X",  DATA_X ,
+            "Y",  DATA_Y ,
+            "Y1", DATA_Y1,
+            "Y2", DATA_Y2,
+            "Y3", DATA_Y3,
+            "Y4", DATA_Y4,
+            NULL);
+	datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
+            "Ascending", FALSE,
+            "Descending", TRUE,
+            NULL);
         datasettype_controls[0] = rc;
 
 	/* Reverse */

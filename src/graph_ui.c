@@ -65,15 +65,14 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc1 = CreateVContainer(fr);
 
     rc = CreateHContainer(rc1);
-    ui->graph_type = CreatePanelChoice(rc, 
-                                       "Type:",
-		                       "XY graph",
-		                       "XY chart",
-		                       "Polar graph",
-		                       "Smith chart (N/I)",
-		                       "Fixed",
-		                       "Pie chart",
-		                       NULL);
+    ui->graph_type = CreateOptionChoiceVA(rc, "Type:",
+        "XY graph",          GRAPH_XY,
+        "XY chart",          GRAPH_CHART,
+        "Polar graph",       GRAPH_POLAR,
+        "Smith chart (N/I)", GRAPH_SMITH,
+        "Fixed",             GRAPH_FIXED,
+        "Pie chart",         GRAPH_PIE,
+        NULL);
     AddOptionChoiceCB(ui->graph_type, oc_explorer_cb, eui);
     ui->stacked = CreateToggleButton(rc, "Stacked chart");
     AddToggleButtonCB(ui->stacked, tb_explorer_cb, eui);

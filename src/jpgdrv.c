@@ -285,11 +285,11 @@ void jpg_gui_setup(const Canvas *canvas, void *data)
 	jpgdata->smoothing_item = CreateSpinChoice(rc1,
             "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
 	jpgdata->baseline_item = CreateToggleButton(rc1, "Force baseline");
-	jpgdata->dct_item = CreatePanelChoice(rc, "DCT: ",
-					 "Fast integer",
-					 "Slow integer",
-					 "Float",
-                                         NULL);
+	jpgdata->dct_item = CreateOptionChoiceVA(rc, "DCT: ",
+            "Fast integer", JPEG_DCT_IFAST,
+            "Slow integer", JPEG_DCT_ISLOW,
+            "Float",        JPEG_DCT_FLOAT,
+            NULL);
 
 	CreateAACDialog(jpgdata->frame, rc, set_jpg_setup_proc, jpgdata);
     }
