@@ -237,7 +237,7 @@ int getsetminmax(int gno, int setno,
 
     if (setno == ALL_SETS) {
         for (i = 0; i < number_of_sets(gno); i++) {
-            if (is_set_active(gno, i)) {
+            if (is_set_drawable(gno, i)) {
                 minmax(g[gno].p[i].data.ex[0], g[gno].p[i].data.len, &x1, &x2, &imin, &imax);
                 minmax(g[gno].p[i].data.ex[1], g[gno].p[i].data.len, &y1, &y2, &imin, &imax);
                 if (first) {
@@ -299,7 +299,7 @@ int getsetminmax_c(int gno, int setno,
     }
     
     for (i = start; i <= stop; i++) {
-        if (is_set_active(gno, i)) {
+        if (is_set_drawable(gno, i)) {
             
             if (ivec == 1) {
                 bvec = getx(gno, i);
