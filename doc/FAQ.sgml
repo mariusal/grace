@@ -135,6 +135,26 @@
 	  since then, see the file <tt/CHANGES/ in the Grace
 	  distribution.
 
+       <p>
+      Some integral parts of Grace are borrowed from other
+	  packages, namely libraries which are also available
+	  as stand-alone distributions.
+	  In alphabetical order:
+	  
+	  <itemize>
+
+	    <item>
+	    <url url="http://people.ne.mediaone.net/moshier/index.html#Cephes"
+                 name="Cephes math library">
+
+	    <item>
+	    <ref id="t1lib" name="T1lib">
+	    
+	    <item>
+	    <url url="http://www.lesstif.org" name="Xbae">
+	    
+	  </itemize>
+
       <sect1>Is there a Postscript&verbar;LaTeX&verbar;HTML&verbar;SGML
           version of this document?
 	<p>
@@ -320,6 +340,7 @@
       <p>
 
       <sect1>I think I found a bug in Grace! How do I report it?
+      <label id="bugreport">
 	<p>
 
 	  <descrip>
@@ -377,6 +398,15 @@
           will have the fix in it. Reports with fixes incorporated in an
           existing public version are marked as "closed".
 
+
+      <sect1>The bug report #xxx I reported is marked as "ignored" in the w3todo
+             and I even got no reply?!
+	<p>
+             
+          You must have missed something very obvious. Check out how to properly
+          submit a bug report in this document. Most probably your report was
+          incomplete or just redundant to an existing entry.
+
       <sect1>I have got an idea! How do I report a wish?
 	<p>
 
@@ -433,58 +463,15 @@
       <sect1>Compilation
 	<p>
 
-	<sect2>What do I need in order to compile Grace?
+	<sect2>Can I compile Grace myself?
 	  <p>
-
-            Grace usually compiles out of the box on a regular UNIX machine.
-            You need an ANSI C compiler (gcc is just fine), the X11R5 or above
-            libraries and headers, and Motif-1.2 or above (see question
-            <ref id="motif" name="Motif">).
-
-	    You also need certain libraries if you want to export
-	    special file formats (see question <ref id="export"
-	    name="Output Devices">).
-
-	    In order to read/write sets in the netCDF data format, you
-	    will also need the <url name="NetCDF libraries"
-	    url="http://unidata.ucar.edu/packages/netcdf/index.html">.
-
-	    Furthermore, you might use the XPM libraries for the Grace
-	    icon from the <url name="XPM home page"
-	    url="http://www.inria.fr/koala/lehors/xpm.html"> and the
-	    FFTW libraries for fast Fourier transformations from the
-	    <url name="FFTW home page"
-	    url="http://theory.lcs.mit.edu/~fftw/">.
-
-	    If you want to compile your own changes to certain parts
-	    of Grace, you will need a parser generator (<tt/yacc/ or
-	    <tt/bison/).
-
-	    Most of these (except Motif and probably T1lib and FFTW)
-	    are usually part of a regular Linux distribution but
-	    probably not of other UNIXes.
-
-	<sect2>How do I compile Grace?
-	  <p>
-
+            Yes! Actually, this is the preferred method of installation.
 	    After getting the sources (question <ref id="install"
 	    name="Installation">) and un<tt/gzip/ping and un<tt/tar/ing
-	    them (use e.g. <tt/gzip -dc grace-5.0.1.tar.gz | tar xvf -/),
-            change to the Grace directory and have a look at the files
-            <tt/README/ and <tt/README.configure/.
-
-	    Type <tt>./configure</tt>. This checks for the
-	    availability of libraries and other stuff on your
-	    system. If all went well, two new files, <tt/Make.conf/
-            and <tt/config.h/, are created. In very rare cases you may
-            want to manually edit them.
-
-	    Type <tt/make/. When the compilation is finished, you can
-	    test Grace using <tt/make tests/. This will give you a
-	    slide show demonstrating some nice features of Grace. Then
-	    install it to the directory <tt>$GRACE_HOME/</tt> (see
-	    question <ref id="environment" name="Environment
-	    Variables">) using <tt/make install/ (probably as root).
+	    them (use e.g. <tt/gzip -dc grace-5.0.4.tar.gz | tar xvf -/),
+            proceed according to the relevant section of the
+            <ref id="manual" name="User's Guide">, which covers the compilation
+            process.
 
 	<sect2>When I type './configure' I get: ``configure: warning:
             Motif has not been found; building a GUI-less version''
@@ -577,8 +564,7 @@
           one needs an X server for respective platform.
           
           Both OS/2 and Win32 ports lack some of the functionality (notably,
-          direct printing). A Win32 package should be available at
-          <url url="ftp://plasma-gate.weizmann.ac.il/pub/grace/bin/win32/">.
+          direct printing).
 
 	  A port to OS/2 made by <url name="Alexander Mai"
 	    url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
@@ -599,7 +585,7 @@
 	  id="gracebat" name="Gracebat">). A command-line interface mode
           is called <tt/grace/.
 
-	  Both are usually located in <tt>$GRACE_HOME/bin/</tt>.
+	  All three of them are usually located in <tt>$GRACE_HOME/bin/</tt>.
 
       <sect1>Does Grace have an UNDO function?
 	<p>
@@ -869,11 +855,12 @@ XMgrace*background: ...
 
 	    Additionally, the PNG driver can be built if the
             <url name="libpng library"
-            url="http://www.cdrom.com/pub/png/"> is installed.
+            url="http://www.cdrom.com/pub/png/">  (version
+            1.00 or above) is installed.
             
 	    For PDF output, you need pdflib-2.01. The PDFlib
 	    distribution is available at <url name="the PDFlib home
-	    page" url="http://www.ifconnection.de/~tm/pdflib">.
+	    page" url="http://www.pdflib.com">.
 
 	    You can get various other formats using netpbm and pstoedit.
 
@@ -1161,8 +1148,19 @@ XMgrace*background: ...
 	  <ref id="motif" name="Motif">) caused this behaviour. If you
 	  use LessTif, try to get the latest version (see question
 	  <ref id="motif" name="Motif">). If this error persists,
-	  report it as a bug (question <ref id="w3todo" name="Bug
+	  report it as a bug (question <ref id="bugreport" name="Bug
 	    Reports">).
+
+      <sect1>Grace crashes with "Oops Got SIGSEV" (on linux)
+        <p>
+	   Detect whether you are using a version linked against
+	   Lesstif instead of question <ref id="motif" name="Motif">.
+	   "xmgrace -version" and "ldd xmgrace" are 
+	   useful commands for this purpose.
+        <p>
+	   If you're using Lesstif read the according FAQ
+	    <ref id="motif" name="Motif">
+	   else report it as a bug (<ref id="bugreport" name="Bug Reports">).
 
       <sect1>I run Grace and get the following error messages: Warning:
              translation table syntax error: Unknown keysym name: osfPageLeft

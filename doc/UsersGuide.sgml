@@ -76,6 +76,33 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 </verb></tscreen>
 
+<p>
+For certain libraries required to build Grace
+(which are therefore even included in a suitable version)
+there may be different Copyright/License statements. Though their
+License may by chance match the one used for Grace,
+the Grace Copyright holders can not influence or change them.
+
+<p>
+      <table LOC=htbp>
+      <tabular CA="ll">
+          <hline>
+          Library    |  License   @
+          <hline>
+	      cephes     |  "Freely distributable"  @
+          T1lib      |  LGPL @
+	      Xbae       |  own  @
+              <hline>
+      </tabular>
+      <caption>
+              <label id="licenses">
+              licenses.
+      </caption>
+      </table>
+ <P>
+ License terms marked as "own" are given in additional
+ files which are distributed in the according source directories
+ and are not explicitly given in this document.
 
 <sect1>Comments and bug reports
   <p>
@@ -90,12 +117,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <enum>
         <item> Configuration <label id="configuration">
         <itemize>
+          <item> Requirements.
+                 Grace usually compiles out of the box in a regular Unix-like
+                 environment. You need an ANSI C compiler (gcc is just fine),
+                 the X11R5 or above libraries and headers, and Motif-1.2 or
+                 above.
+                 If you want to compile your own changes to certain parts of
+                 Grace, you will need a parser generator (<tt/yacc/ or, better,
+                 <tt/bison/).
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
               <item> The PDF driver requires the PDFlib-2.01 library of Thomas
                      Merz to be installed, which is available
-                     <url name="here" url="http://www.ifconnection.de/~tm/pdflib/">.
+                     <url name="here" url="http://www.pdflib.com/">.
               <item> The JPEG backend needs the IJG's
                      (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
               <item> The PNG backend needs
@@ -109,7 +144,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                      length isn't a power of 2, and DFT will not.
 
                      For more information on this package, see the 
-                     <url name="FFTW Home page" url="http://theory.lcs.mit.edu/~fftw/">.
+                     <url name="FFTW Home page" url="http://www.fftw.org">.
                      In short, this package allows one to do non-power-of-2
                      length FFT's along with the normal ones.  It seems to work
                      very efficiently for any set length which factors into 2^a
@@ -158,6 +193,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     
         <itemize>
           <item> <tt>make tests</tt>
+                   <p>
+                  This will give you a slide show demonstrating some nice
+                  features of Grace.
         </itemize>
         <item> Installation
         <itemize>
@@ -497,7 +535,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                GRACE&lowbar;FFTW&lowbar;RAM&lowbar;WISDOM
                <p>
                These flags control behavior of the FFTW planner (see
-               README.FFTW for detailed info)
+               <ref id="fftw-tuning" name="FFTW tuning"> for detailed info)
                <p>
         </itemize>
     
@@ -1725,7 +1763,7 @@ main(int argc, char* argv[])
 
 </code></tscreen>
 
- <sect1>FFTW tuning
+ <sect1>FFTW tuning<label id="fftw-tuning">
     <p>
      When the FFTW capabilities are compiled in, Grace looks at two environment
      variables to decide what to do with the FFTW 'wisdom' capabilities. 
@@ -2230,12 +2268,12 @@ C
 
       Grace stores dates internally as reals numbers counted from a
       reference date. The default reference date is the one chosen by
-      Scaliger but can modified either for a single session (using the
-      -dateref command line flag, the <ref name="Edit->Preferences"
-      id="preferences"> popup of the GUI). If you often work with a
-      specific reference date you can set it in a REFERENCE DATE
-      command in your configuration file (see <ref name="Default
-      template" id="default-template">).
+      Scaliger, it is a classical reference for astronomical
+      events. It can modified either for a single session using the
+      <ref name="Edit->Preferences" id="preferences"> popup of the
+      GUI. If you often work with a specific reference date you can
+      set it in a REFERENCE DATE command in your configuration file
+      (see <ref name="Default template" id="default-template">).
       
       The following date formats are supported (hour, minutes and
       seconds are always optional):
@@ -2286,13 +2324,6 @@ C
       years is not recommended, we introduce a <it>wrap year +
       100</it> bug here so this feature should be removed at some
       point in the future ...
-      
-      Numerical (Julian) dates are computed according to a
-      customizable reference date.  The default value is given by the
-      REFERENCE DATE command (you can set it in your configuration
-      files). The default value is "-4713-01-01 12:00:00", it is a
-      classical reference for astronomical events (note that the '-'
-      is used here both as a unary minus and as a separator).
       
       The date scanner can be used either for Denys's and Gregorian
       calendars. Inexistent dates are detected, they include year 0,

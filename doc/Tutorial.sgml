@@ -446,9 +446,8 @@
  to it. It will interpret things as though they were entered using the command
  interpreter. 
   <item>For a simple test, we will create a simple graph over the pipe. From your
- command line, type: <tt>echo "read &bsol;"8.2.dat&bsol;"" &gt; pvc</tt><bf>. </bf>(The back slashes
- are needed to escape the quotation marks so that Grace really received the
- command :read "8.2.dat".) This just told Grace to read the file data. Now we
+ command line, type: <tt>echo 'read "8.2.dat"' &gt; pvc</tt><bf>. </bf>
+ This just told Grace to read the file data. Now we
  would like to autoscale. We could simply click on the button but the point
  is to use a named pipe. This time we type <tt>echo</tt> <tt>autoscale &gt; pvc</tt> followed
  by <tt>echo redraw &gt; pvc</tt>. Your graph should now have autoscaled and redrawn.
