@@ -198,7 +198,7 @@ void do_hardcopy(const Quark *project)
     grace_close(prstream);
     
     get_bbox(canvas, BBOX_TYPE_GLOB, &v);
-    get_page_viewport(canvas, &vx, &vy);
+    project_get_viewport(project, &vx, &vy);
     if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy) {
         truncated_out = TRUE;
     } else {

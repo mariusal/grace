@@ -714,12 +714,12 @@ expr:	NUMBER {
 	}
 	| VXMAX {
 	    double vx, vy;
-            get_page_viewport(canvas, &vx, &vy);
+            project_get_viewport(grace->project, &vx, &vy);
             $$ = vx;
 	}
 	| VYMAX {
 	    double vx, vy;
-            get_page_viewport(canvas, &vx, &vy);
+            project_get_viewport(grace->project, &vx, &vy);
             $$ = vy;
 	}
 	| '(' expr ')' {

@@ -710,16 +710,15 @@ int arrange_graphs(Quark **graphs, int ngraphs,
     int i, imax, j, jmax, iw, ih, ng;
     double pw, ph, w, h;
     view v;
-    Quark *gr;
-    RunTime *rt;
+    Quark *gr, *pr;
 
     if (!graphs) {
         return RETURN_FAILURE;
     }
     gr = graphs[0];
     
-    rt = rt_from_quark(gr);
-    if (!rt) {
+    pr = get_parent_project(gr);
+    if (!pr) {
         return RETURN_FAILURE;
     }
     
@@ -738,7 +737,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
         return RETURN_FAILURE;
     }
     
-    get_page_viewport(rt->canvas, &pw, &ph);
+    project_get_viewport(pr, &pw, &ph);
     w = (pw - loff - roff)/(ncols + (ncols - 1)*hgap);
     h = (ph - toff - boff)/(nrows + (nrows - 1)*vgap);
     if (h <= 0.0 || w <= 0.0) {
