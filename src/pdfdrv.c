@@ -101,7 +101,7 @@ static PDF_data *init_pdf_data(void)
 
     memset(data, 0, sizeof(PDF_data));
 
-    data->compat      = PDF_1_3;
+    data->compat      = PDF_1_4;
     data->colorspace  = DEFAULT_COLORSPACE;
     data->compression = 4;
     data->fpprec      = 4;
