@@ -124,8 +124,8 @@ static void drawgrid(Canvas *canvas, Quark *q)
                 wp_grid_stop.y = wtpos;
 	    }
 
-	    vp_grid_start = Wpoint2Vpoint(wp_grid_start);
-	    vp_grid_stop = Wpoint2Vpoint(wp_grid_stop);
+	    Wpoint2Vpoint(gr, &wp_grid_start, &vp_grid_start);
+	    Wpoint2Vpoint(gr, &wp_grid_stop, &vp_grid_stop);
 
 
             if (!axis_is_x(q) && graph_get_type(gr) == GRAPH_POLAR) {
@@ -180,7 +180,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
     
     int tick_dir_sign;
     
-    double (*coord_conv) ();
+    double (*coord_conv) (const Quark *gr, double wx);
     
     t = axis_get_data(q);
     if (!t || t->active != TRUE) {
@@ -239,10 +239,10 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	    wp2_stop.y  = w.yg2;
         }
 
-        vp1_start = Wpoint2Vpoint(wp1_start);
-        vp1_stop  = Wpoint2Vpoint(wp1_stop);
-        vp2_start = Wpoint2Vpoint(wp2_start);
-        vp2_stop  = Wpoint2Vpoint(wp2_stop);
+        Wpoint2Vpoint(gr, &wp1_start, &vp1_start);
+        Wpoint2Vpoint(gr, &wp1_stop,  &vp1_stop);
+        Wpoint2Vpoint(gr, &wp2_start, &vp2_start);
+        Wpoint2Vpoint(gr, &wp2_stop,  &vp2_stop);
 
         if (graph_is_yinvert(gr) == TRUE) {
             vpswap(&vp1_start, &vp2_start);
@@ -306,10 +306,10 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	    wp2_stop.x  = w.xg2;
         }
 
-        vp1_start = Wpoint2Vpoint(wp1_start);
-        vp1_stop  = Wpoint2Vpoint(wp1_stop);
-        vp2_start = Wpoint2Vpoint(wp2_start);
-        vp2_stop  = Wpoint2Vpoint(wp2_stop);
+        Wpoint2Vpoint(gr, &wp1_start, &vp1_start);
+        Wpoint2Vpoint(gr, &wp1_stop,  &vp1_stop);
+        Wpoint2Vpoint(gr, &wp2_start, &vp2_start);
+        Wpoint2Vpoint(gr, &wp2_stop,  &vp2_stop);
 
         if (graph_is_xinvert(gr) == TRUE) {
             vpswap(&vp1_start, &vp2_start);
@@ -456,7 +456,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	            continue;
 	        }
 
-	        vtpos = coord_conv(wtpos);
+	        vtpos = coord_conv(gr, wtpos);
 	        if (t->t_op == PLACEMENT_NORMAL ||
 	            t->t_op == PLACEMENT_BOTH) {
 	            vp_tick1_start.x = vtpos*ort_para.x + vbase1_start*ort_perp.x;
@@ -561,7 +561,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	        strcat(tlabel, t->tl_appstr);
 	    }
 
-	    vtpos = coord_conv(wtpos);
+	    vtpos = coord_conv(gr, wtpos);
 
 	    if (itcur % (t->tl_skip + 1) == 0) {
                 /* Set color before each tick label, since pre/app

@@ -12,7 +12,8 @@ SRCS = 	quark.c \
 	set.c \
 	region.c \
 	dobject.c \
-	graph.c
+	graph.c \
+	ctrans.c
 
 OBJS = 	quark$(O) \
 	project$(O) \
@@ -21,4 +22,5 @@ OBJS = 	quark$(O) \
 	set$(O) \
 	region$(O) \
 	dobject$(O) \
-	graph$(O)
+	graph$(O) \
+	ctrans$(O)

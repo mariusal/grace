@@ -388,6 +388,7 @@ static int project_postprocess_hook(Quark *q,
 
         if (version_id < 50200) {
             DObject *o = object_get_data(q);
+            Quark *gr = get_parent_graph(q);
             if (object_get_loctype(q) == COORD_WORLD) {
                 WPoint wp;
                 VPoint vp1, vp2;
@@ -398,10 +399,10 @@ static int project_postprocess_hook(Quark *q,
                         DOBoxData *b = (DOBoxData *) o->odata;
                         wp.x = o->ap.x - b->width/2;
                         wp.y = o->ap.y - b->height/2;
-                        vp1 = Wpoint2Vpoint(wp);
+                        Wpoint2Vpoint(gr, &wp, &vp1);
                         wp.x = o->ap.x + b->width/2;
                         wp.y = o->ap.y + b->height/2;
-                        vp2 = Wpoint2Vpoint(wp);
+                        Wpoint2Vpoint(gr, &wp, &vp2);
 
                         b->width  = fabs(vp2.x - vp1.x);
                         b->height = fabs(vp2.y - vp1.y);
@@ -412,10 +413,10 @@ static int project_postprocess_hook(Quark *q,
                         DOArcData *a = (DOArcData *) o->odata;
                         wp.x = o->ap.x - a->width/2;
                         wp.y = o->ap.y - a->height/2;
-                        vp1 = Wpoint2Vpoint(wp);
+                        Wpoint2Vpoint(gr, &wp, &vp1);
                         wp.x = o->ap.x + a->width/2;
                         wp.y = o->ap.y + a->height/2;
-                        vp2 = Wpoint2Vpoint(wp);
+                        Wpoint2Vpoint(gr, &wp, &vp2);
 
                         a->width  = fabs(vp2.x - vp1.x);
                         a->height = fabs(vp2.y - vp1.y);
@@ -426,12 +427,12 @@ static int project_postprocess_hook(Quark *q,
                         DOLineData *l = (DOLineData *) o->odata;
                         wp.x = o->ap.x;
                         wp.y = o->ap.y;
-                        vp1 = Wpoint2Vpoint(wp);
+                        Wpoint2Vpoint(gr, &wp, &vp1);
                         wp.x = o->ap.x +
                             l->length*cos(M_PI/180.0*o->angle);
                         wp.y = o->ap.y +
                             l->length*sin(M_PI/180.0*o->angle);
-                        vp2 = Wpoint2Vpoint(wp);
+                        Wpoint2Vpoint(gr, &wp, &vp2);
 
                         l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
                         o->angle  = 180.0/M_PI*atan2(vp2.y - vp1.y,

@@ -50,14 +50,15 @@ void draw_object(Canvas *canvas, Quark *q)
     loctype = object_get_loctype(q);
     if (loctype == COORD_WORLD) {
         WPoint wp;
+        Quark *gr = get_parent_graph(q);
         wp.x = o->ap.x;
         wp.y = o->ap.y;
         
-        if (!is_validWPoint(wp)) {
+        if (!is_validWPoint(gr, &wp)) {
             return;
         }
         
-        anchor = Wpoint2Vpoint(wp);
+        Wpoint2Vpoint(gr, &wp, &anchor);
     } else
     if (loctype == COORD_FRAME) {
         FPoint fp;

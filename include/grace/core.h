@@ -128,6 +128,15 @@
 #define ARROW_TYPE_LINE     0
 #define ARROW_TYPE_FILLED   1
 
+/* types of coordinate frames */
+#define COORDINATES_XY      0       /* Cartesian coordinates */
+#define COORDINATES_POLAR   1       /* Polar coordinates */
+                                
+/* Coordinates */
+#define COORD_VIEW      0
+#define COORD_FRAME     1
+#define COORD_WORLD     2
+
 
 typedef struct _Quark Quark;
 
@@ -374,6 +383,14 @@ typedef enum {
 
 #define NUMBER_OF_FORMATTYPES   FORMAT_BAD
 
+typedef struct {
+    double xv_med;
+    double yv_med;
+    double xv_rc;
+    double yv_rc;
+    double fxg_med;
+    double fyg_med;
+} ctrans_cache;
 
 /*
  * a graph
@@ -396,6 +413,8 @@ typedef struct {
     double bargap;              /* Distance between bars (in bar charts) */
 
     GLocator locator;           /* locator props */
+    
+    ctrans_cache ccache;        /* cached data for coordinate transforms */
 } graph;
 
 
@@ -644,6 +663,18 @@ typedef struct {
     double y;
 } WPoint;
 
+/* A point in frame coordinates */
+typedef struct {
+    double x;
+    double y;
+} FPoint;
+
+/* A 2D point */
+typedef struct {
+    double x;
+    double y;
+} APoint;
+
 typedef struct {
     int active;                 /* region on or off */
     
@@ -654,11 +685,6 @@ typedef struct {
 
     int color;
 } region;
-
-typedef struct {
-    double x;
-    double y;
-} APoint;
 
 /* Object types */
 typedef enum {
@@ -824,29 +850,29 @@ graph *graph_get_data(const Quark *q);
 
 Quark *graph_new(Quark *q);
 
-int graph_get_type(Quark *gr);
+int graph_get_type(const Quark *gr);
 int graph_set_type(Quark *gr, int gtype);
-GLocator *graph_get_locator(Quark *gr);
+GLocator *graph_get_locator(const Quark *gr);
 int graph_set_locator(Quark *gr, const GLocator *locator);
-int graph_get_world(Quark *gr, world *w);
+int graph_get_world(const Quark *gr, world *w);
 int graph_set_world(Quark *gr, const world *w);
-int graph_get_xyflip(Quark *gr);
+int graph_get_xyflip(const Quark *gr);
 int graph_set_xyflip(Quark *gr, int xyflip);
-int graph_is_active(Quark *gr);
+int graph_is_active(const Quark *gr);
 int graph_set_active(Quark *gr, int flag);
-int graph_is_stacked(Quark *gr);
+int graph_is_stacked(const Quark *gr);
 int graph_set_stacked(Quark *gr, int flag);
-double graph_get_bargap(Quark *gr);
+double graph_get_bargap(const Quark *gr);
 int graph_set_bargap(Quark *gr, double bargap);
-int graph_get_xscale(Quark *gr);
+int graph_get_xscale(const Quark *gr);
 int graph_set_xscale(Quark *gr, int scale);
-int graph_get_yscale(Quark *gr);
+int graph_get_yscale(const Quark *gr);
 int graph_set_yscale(Quark *gr, int scale);
-double graph_get_znorm(Quark *gr);
+double graph_get_znorm(const Quark *gr);
 int graph_set_znorm(Quark *gr, double norm);
-int graph_is_xinvert(Quark *gr);
+int graph_is_xinvert(const Quark *gr);
 int graph_set_xinvert(Quark *gr, int flag);
-int graph_is_yinvert(Quark *gr);
+int graph_is_yinvert(const Quark *gr);
 int graph_set_yinvert(Quark *gr, int flag);
 
 Quark *get_parent_graph(const Quark *child);
@@ -966,5 +992,25 @@ int object_set_fillpen(Quark *q, const Pen *pen);
 int object_set_location(Quark *q, const APoint *ap);
 
 int object_get_bb(DObject *o, view *bb);
+
+
+/* co-ordinate transformation stuff */
+int polar2xy(double phi, double rho, double *x, double *y);
+void xy2polar(double x, double y, double *phi, double *rho);
+
+double fscale(double wc, int scale);
+double ifscale(double vc, int scale);
+
+int is_validWPoint(const Quark *q, const WPoint *wp);
+
+double xy_xconv(const Quark *q, double wx);
+double xy_yconv(const Quark *q, double wy);
+
+int Wpoint2Vpoint(const Quark *q, const WPoint *wp, VPoint *vp);
+int Vpoint2Wpoint(const Quark *q, const VPoint *vp, WPoint *wp);
+
+int Fpoint2Vpoint(const Quark *f, const FPoint *fp, VPoint *vp);
+
+int update_graph_ccache(Quark *gr);
 
 #endif /* __CORE_H_ */

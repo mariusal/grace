@@ -66,6 +66,7 @@ char *object_types(OType type)
 
 void move_object(Quark *q, VVector shift)
 {
+#if 0
     DObject *o = object_get_data(q);
     
     if (!o) {
@@ -78,22 +79,27 @@ void move_object(Quark *q, VVector shift)
     } else {
         WPoint wp;
         VPoint vp;
+        Quark *gr = get_parent_graph(q);
         
         wp.x = o->ap.x;
         wp.y = o->ap.y;
         
-        vp = Wpoint2Vpoint(wp);
+        Wpoint2Vpoint(gr, &wp, &vp);
         vp.x += shift.x;
         vp.y += shift.y;
         
-        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
+        Vpoint2Wpoint(gr, &vp, &wp);
+        o->ap.x = wp.x;
+        o->ap.y = wp.y;
     }
     
     quark_dirtystate_set(q, TRUE);
+#endif
 }
 
 int object_place_at_vp(Quark *q, VPoint vp)
 {
+#if 0
     DObject *o = object_get_data(q);
 
     if (!o) {
@@ -104,10 +110,11 @@ int object_place_at_vp(Quark *q, VPoint vp)
         o->ap.x = vp.x;
         o->ap.y = vp.y;
     } else {
-        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
+        Vpoint2Wpoint(vp.x, vp.y, &o->ap.x, &o->ap.y);
     }
     
     quark_dirtystate_set(q, TRUE);
+#endif
     return RETURN_SUCCESS;
 }
 

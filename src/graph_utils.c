@@ -85,33 +85,11 @@ Quark *graph_next(Quark *project)
 
 int select_graph(Quark *gr)
 {
-    graph *g = graph_get_data(gr);
-    int ctrans_type, xyfixed;
-    view v;
-    
-    if (!g) {
+    if (!gr || gr->fid != QFlavorGraph) {
         return RETURN_FAILURE;
     }
     
-    switch (g->type) {
-    case GRAPH_POLAR:
-        ctrans_type = COORDINATES_POLAR;
-        xyfixed = FALSE;
-        break;
-    case GRAPH_FIXED:
-        ctrans_type = COORDINATES_XY;
-        xyfixed = TRUE;
-        break;
-    default: 
-        ctrans_type = COORDINATES_XY;
-        xyfixed = FALSE;
-        break;
-    }
-    
-    graph_get_viewport(gr, &v);
-    if (definewindow(&g->w, &v, ctrans_type, xyfixed,
-            g->xscale,  g->yscale,
-            g->xinvert, g->yinvert) == RETURN_SUCCESS) {
+    if (update_graph_ccache(gr) == RETURN_SUCCESS) {
         Project *pr = project_get_data(get_parent_project(gr));
         if (pr) {
             set_parser_gno(gr);
@@ -928,4 +906,42 @@ void rescale_viewport(Quark *project, double ext_x, double ext_y)
     ext_xy.y = ext_y;
 
     quark_traverse(project, hook, &ext_xy);
+}
+
+
+char *scale_types(ScaleType it)
+{
+    char *s;
+
+    switch (it) {
+    case SCALE_NORMAL:
+	s = "Normal";
+	break;
+    case SCALE_LOG:
+	s = "Logarithmic";
+	break;
+    case SCALE_REC:
+	s = "Reciprocal";
+	break;
+    case SCALE_LOGIT:
+	s = "Logit";
+	break; 	   
+    default:
+        s = "Unknown";
+	break;
+    }
+    
+    return s;
+}
+
+ScaleType get_scale_type_by_name(const char *name)
+{
+    int i;
+    for (i = 0; i < NUMBER_OF_SCALETYPES; i++) {
+        if (!strcmp(scale_types(i), name)) {
+            return i;
+        }
+    }
+    
+    return SCALE_BAD;
 }

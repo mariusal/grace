@@ -62,12 +62,6 @@
 #define INTERP_SPLINE   1
 #define INTERP_ASPLINE  2
 
-/* Coordinates */
-#define COORD_VIEW      0
-#define COORD_FRAME     1
-#define COORD_WORLD     2
-
-
 /* Focus policy */
 #define FOCUS_CLICK     0
 #define FOCUS_SET       1
@@ -160,12 +154,6 @@
 
 /* Zoom step */
 #define ZOOM_STEP sqrt(M_SQRT2)
-
-/* A point in frame coordinates */
-typedef struct {
-    double x;
-    double y;
-} FPoint;
 
 
 typedef struct {

@@ -285,6 +285,7 @@ Quark *next_graph_containing(Quark *q, VPoint *vp)
 void update_locator_lab(Quark *cg, VPoint *vpp)
 {
     static VPoint vp = {0.0, 0.0};
+    WPoint wp;
     view v;
     double wx, wy, xtmp, ytmp;
     short x, y;
@@ -307,7 +308,9 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
         return;
     }
     
-    view2world(vp.x, vp.y, &wx, &wy);
+    Vpoint2Wpoint(cg, &vp, &wp);
+    wx = wp.x;
+    wy = wp.y;
     
     locator = graph_get_locator(cg);
     

@@ -30,7 +30,6 @@
 #define __CORE_UTILS_H_
 
 #include "grace/core.h"
-#include "ctrans.h"
 
 /*
  * axis type masks
@@ -122,6 +121,8 @@ int object_place_at_vp(Quark *q, VPoint vp);
 
 int object_get_loctype(const Quark *q);
 
+char *scale_types(ScaleType it);
+ScaleType get_scale_type_by_name(const char *name);
 
 char *get_format_types(FormatType f);
 FormatType get_format_type_by_name(const char *name);

@@ -209,7 +209,7 @@ int graph_set_type(Quark *gr, int gtype)
     }
 }
 
-GLocator *graph_get_locator(Quark *gr)
+GLocator *graph_get_locator(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -219,7 +219,7 @@ GLocator *graph_get_locator(Quark *gr)
     }
 }
 
-int graph_get_world(Quark *gr, world *w)
+int graph_get_world(const Quark *gr, world *w)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -270,7 +270,7 @@ int graph_set_xyflip(Quark *gr, int xyflip)
     }
 }
 
-int graph_get_xyflip(Quark *gr)
+int graph_get_xyflip(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -281,7 +281,7 @@ int graph_get_xyflip(Quark *gr)
     }
 }
 
-int graph_is_active(Quark *gr)
+int graph_is_active(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -315,7 +315,7 @@ int graph_set_stacked(Quark *gr, int flag)
     }
 }
 
-int graph_is_stacked(Quark *gr)
+int graph_is_stacked(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -325,7 +325,7 @@ int graph_is_stacked(Quark *gr)
     }
 }
 
-double graph_get_bargap(Quark *gr)
+double graph_get_bargap(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -347,7 +347,7 @@ int graph_set_bargap(Quark *gr, double bargap)
     }
 }
 
-int graph_get_type(Quark *gr)
+int graph_get_type(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -357,7 +357,7 @@ int graph_get_type(Quark *gr)
     }
 }
 
-int graph_get_xscale(Quark *gr)
+int graph_get_xscale(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -367,7 +367,7 @@ int graph_get_xscale(Quark *gr)
     }
 }
 
-int graph_get_yscale(Quark *gr)
+int graph_get_yscale(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -461,7 +461,7 @@ int graph_set_znorm(Quark *gr, double norm)
     }
 }
 
-double graph_get_znorm(Quark *gr)
+double graph_get_znorm(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -471,7 +471,7 @@ double graph_get_znorm(Quark *gr)
     }
 }
 
-int graph_is_xinvert(Quark *gr)
+int graph_is_xinvert(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {
@@ -481,7 +481,7 @@ int graph_is_xinvert(Quark *gr)
     }
 }
 
-int graph_is_yinvert(Quark *gr)
+int graph_is_yinvert(const Quark *gr)
 {
     graph *g = graph_get_data(gr);
     if (g) {

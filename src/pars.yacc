@@ -2569,8 +2569,10 @@ parmset:
                 vp.x = $2;
                 vp.y = $4;
             } else {
-                /* FIXME: world2view doesn't know yet about ctrans! */
-                world2view($2, $4, &vp.x, &vp.y);
+                WPoint wp;
+                wp.x = $2;
+                wp.y = $4; 
+                Wpoint2Vpoint(whichgraph, &wp, &vp);
             }
             graph_get_viewport(whichgraph, &gv);
             l->offset.x = vp.x - gv.xv1;
@@ -3766,7 +3768,10 @@ parmset_obs:
                 vp.x = leg_x1_obs;
                 vp.y = $3;
             } else {
-                world2view(leg_x1_obs, $3, &vp.x, &vp.y);
+                WPoint wp;
+                wp.x = leg_x1_obs;
+                wp.y = $3;
+                Wpoint2Vpoint(whichgraph, &wp, &vp);
             }
             graph_get_viewport(whichgraph, &gv);
             l->offset.x = vp.x - gv.xv1;
