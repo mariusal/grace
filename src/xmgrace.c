@@ -224,6 +224,7 @@ String fallbackResourcesHighRes[] = {
     "XMgrace*explorerDialog.form.height: 600",
     "XMgrace*fontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgrace*ListTree.font:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace*HContainer.marginHeight: 3",
     "XMgrace*VContainer.marginHeight: 3",
     NULL
@@ -236,22 +237,11 @@ String fallbackResourcesLowRes[] = {
     "XMgrace*explorerDialog.form.height: 485",
     "XMgrace*fontList:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
     "XMgrace.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgrace*ListTree.font:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
     "XMgrace*HContainer.marginHeight: 1",
     "XMgrace*VContainer.marginHeight: 1",
     NULL
 };
-
-/*
- * main menubar
- */
-/* #define MENU_HELP	200 */
-#define MENU_EXIT	201
-#define MENU_NEW	203
-#define MENU_OPEN	204
-#define MENU_SAVE	205
-#define MENU_SAVEAS	206
-#define MENU_REVERT	207
-#define MENU_PRINT	208
 
 #ifdef HAVE__XMVERSIONSTRING
 extern const char _XmVersionString[];
