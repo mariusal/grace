@@ -94,6 +94,8 @@ Project *project_data_new(void)
 
 void project_data_free(Project *pr)
 {
+    int i;
+    
     if (!pr) {
         return;
     }
@@ -108,6 +110,14 @@ void project_data_free(Project *pr)
     xfree(pr->timestamp);
     
     kill_all_regions();
+
+    for (i = 0; i < pr->nfonts; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        xfree(f->fontname);
+        xfree(f->fallback);
+    }
+    xfree(pr->fontmap);
+    pr->nfonts = 0;
     
     xfree(pr);
 }
