@@ -406,7 +406,7 @@ symtab_entry *key;
 %token <ival> REAL
 %token <ival> RECIPROCAL
 %token <ival> REDRAW
-%token <ival> REFDATE
+%token <ival> REFERENCE
 %token <ival> REGNUM
 %token <ival> REGRESS
 %token <ival> REVERSE
@@ -507,6 +507,7 @@ symtab_entry *key;
 %token <ival> Y2
 %token <ival> Y3
 %token <ival> Y4
+%token <ival> Y2KWRAP
 %token <ival> YAXES
 %token <ival> YAXIS
 %token <ival> YMAX
@@ -1970,8 +1971,11 @@ parmset:
             set_printer_by_name($3);
             free($3);
         }
-        | REFDATE jdate {
-            set_ref_date($2);
+        | REFERENCE JDATE jdate {
+            set_ref_date($3);
+	}
+        | Y2KWRAP onoff {
+            allow_two_digits_years($2);
 	}
 	| BACKGROUND color_select {
 	    setbgcolor($2);
@@ -4475,7 +4479,7 @@ symtab_entry ikey[] = {
 	{"REAL", REAL, NULL},
 	{"RECIPROCAL", RECIPROCAL, NULL},
 	{"REDRAW", REDRAW, NULL},
-	{"REFDATE", REFDATE, NULL},
+	{"REFERENCE", REFERENCE, NULL},
 	{"REGRESS", REGRESS, NULL},
 	{"REVERSE", REVERSE, NULL},
 	{"RGAMMA", FUNC_D, rgamma},
@@ -4589,6 +4593,7 @@ symtab_entry ikey[] = {
 	{"Y0", Y0, NULL},
 	{"Y1", Y1, NULL},
 	{"Y2", Y2, NULL},
+	{"Y2KWRAP", Y2KWRAP, NULL},
 	{"Y3", Y3, NULL},
 	{"Y4", Y4, NULL},
 	{"YAXES", YAXES, NULL},

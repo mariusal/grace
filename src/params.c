@@ -168,7 +168,9 @@ void putparms(int gno, FILE *pp, int embed)
         }
     }
     
-    fprintf(pp, "%srefdate %.12g\n", embedstr, get_ref_date());
+    fprintf(pp, "%sreference jdate %.12g\n", embedstr, get_ref_date());
+    fprintf(pp, "%sy2kwrap %s\n", embedstr,
+        on_or_off(two_digits_years_allowed()));
     
     fprintf(pp, "%sdefault linewidth %.1f\n", embedstr, grdefaults.linew);
     fprintf(pp, "%sdefault linestyle %d\n", embedstr, grdefaults.lines);
