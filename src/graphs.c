@@ -60,7 +60,7 @@
 
 static int cg = -1;
 
-char *graph_types(int it)
+char *graph_types(GraphType it)
 {
     char *s;
     
@@ -88,6 +88,18 @@ char *graph_types(int it)
 	break;
     }
     return s;
+}
+
+GraphType get_graph_type_by_name(const char *name)
+{
+    int i;
+    for (i = 0; i < NUMBER_OF_GRAPHTYPES; i++) {
+        if (!strcmp(graph_types(i), name)) {
+            return i;
+        }
+    }
+    
+    return GRAPH_BAD;
 }
 
 int is_valid_gno(int gno)

@@ -38,8 +38,11 @@ typedef enum {
     GRAPH_POLAR,
     GRAPH_SMITH,
     GRAPH_FIXED,
-    GRAPH_PIE
+    GRAPH_PIE,
+    GRAPH_BAD
 } GraphType;
+
+#define NUMBER_OF_GRAPHTYPES  GRAPH_BAD
 
 /* Set types */
 typedef enum {
@@ -186,7 +189,9 @@ graph *graph_copy(graph *g);
 
 int get_cg(void);
 
-char *graph_types(int it);
+char *graph_types(GraphType it);
+GraphType get_graph_type_by_name(const char *name);
+
 char *set_types(int it);
 int get_settype_by_name(char *s);
 
