@@ -929,6 +929,18 @@ void raise_explorer(GUI *gui, Quark *q)
         PlaceGridChild(panel, eui->scrolled_window, 1, 0);
 #endif
 
+#ifdef HAVE_LESSTIF
+# if !defined(SF_BUG_993209_FIXED) && !defined(SF_BUG_993209_NOT_FIXED)
+#  error "You should check whether SF bug #993209 is fixed in your version of LessTif."
+#  error "Then define either SF_BUG_993209_FIXED or SF_BUG_993209_NOT_FIXED, accordingly."
+#  error "See http://sourceforge.net/tracker/index.php?func=detail&aid=993209&group_id=8596&atid=108596."
+# endif
+# ifdef SF_BUG_993209_NOT_FIXED
+        /* A dirty workaround */
+        eui->scrolled_window = CreateVContainer(eui->scrolled_window);
+# endif
+#endif
+
         eui->project_ui = create_project_ui(eui);
         UnmanageChild(eui->project_ui->top);
 
