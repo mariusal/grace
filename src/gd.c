@@ -636,23 +636,13 @@ void gdImagePolygon(gdImagePtr im, gdPointPtr p, int n, int c)
 	
 int gdCompareInt(const void *a, const void *b);
 	
-/* THANKS to Kirsten Schulz for the polygon fixes! */
-
-/* The intersection finding technique of this code could be improved  */
-/* by remembering the previous intertersection, and by using the slope.*/
-/* That could help to adjust intersections  to produce a nice */
-/* interior_extrema. */
-
 void gdImageFilledPolygon(gdImagePtr im, gdPointPtr p, int n, int c)
 {
 	int i;
 	int y;
-	int miny, maxy;
-	int x1, y1;
-	int x2, y2;
-	int ind1, ind2;
+	int ymin, ymax;
 	int ints;
-	if (!n) {
+	if (n < 1) {
 		return;
 	}
 	if (!im->polyAllocated) {
@@ -666,50 +656,47 @@ void gdImageFilledPolygon(gdImagePtr im, gdPointPtr p, int n, int c)
 		im->polyInts = (int *) realloc(im->polyInts,
 			sizeof(int) * im->polyAllocated);
 	}
-	miny = p[0].y;
-	maxy = p[0].y;
+	ymin = p[0].y;
+	ymax = p[0].y;
 	for (i=1; (i < n); i++) {
-		if (p[i].y < miny) {
-			miny = p[i].y;
+		if (p[i].y < ymin) {
+			ymin = p[i].y;
 		}
-		if (p[i].y > maxy) {
-			maxy = p[i].y;
+		if (p[i].y > ymax) {
+			ymax = p[i].y;
 		}
 	}
-	/* Fix in 1.3: count a vertex only once */
-	for (y=miny; (y < maxy); y++) {
-/*1.4		int interLast = 0; */
-/*		int dirLast = 0; */
-/*		int interFirst = 1; */
+	for (y=ymin; (y < ymax); y++) {
 		ints = 0;
 		for (i=0; (i < n); i++) {
-			if (!i) {
-				ind1 = n-1;
-				ind2 = 0;
-			} else {
-				ind1 = i-1;
-				ind2 = i;
-			}
+			int x1, x2;
+			int y1, y2;
+			int ind1, ind2;
+			ind1 = i;
+			ind2 = (i + 1) % n;
 			y1 = p[ind1].y;
 			y2 = p[ind2].y;
-			if (y1 < y2) {
-				x1 = p[ind1].x;
-				x2 = p[ind2].x;
-			} else if (y1 > y2) {
-				y2 = p[ind1].y;
-				y1 = p[ind2].y;
-				x2 = p[ind1].x;
-				x1 = p[ind2].x;
-			} else {
-				continue;
-			}
-			if ((y >= y1) && (y < y2)) {
-				im->polyInts[ints++] = (y-y1) * (x2-x1) / (y2-y1) + x1;
+			x1 = p[ind1].x;
+			x2 = p[ind2].x;
+			/* intersection exists only if y is between y1 and y2 */
+			if ((y >= y1) && (y <= y2) || (y >= y2) && (y <= y1)) {
+				if (y1 == y2) {
+					/* horizontal edge - just draw it */
+					gdImageLine(im, x1, y, x2, y, c);
+				} else {
+					if ((y == y1 && y1 < y2) || (y == y2 && y2 < y1)) {
+						/* intersecting at min of an edge, ignore 
+						   to avoid double counting! */
+					} else {
+						/* OK, this one we do want to count :) */
+						int inter = (y-y1) * (x2-x1) / (y2-y1) + x1;
+						im->polyInts[ints++] = inter;
+					}
+				}
 			}
 		}
 		qsort(im->polyInts, ints, sizeof(int), gdCompareInt);
-
-		for (i=0; (i < (ints)); i+=2) {
+		for (i=0; (i < (ints-1)); i+=2) {
 			gdImageLine(im, im->polyInts[i], y,
 				im->polyInts[i+1], y, c);
 		}
