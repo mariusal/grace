@@ -810,7 +810,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
 {
     FSBStructure *retval;
     OptionStructure *opt;
-    Widget form, button;
+    Widget w, fr, form, button;
     XmString xmstr;
     char *bufp;
     
@@ -835,8 +835,12 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     XtAddCallback(retval->FSB,
         XmNcancelCallback, (XtCallbackProc) destroy_dialog, retval->dialog);
     
+    w = XmFileSelectionBoxGetChild(retval->FSB, XmDIALOG_HELP_BUTTON);
+    XtSetSensitive(w, FALSE);
+    
     retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
-    form = XtVaCreateWidget("form", xmFormWidgetClass, retval->rc, NULL);
+    fr = CreateFrame(retval->rc, NULL);
+    form = XtVaCreateWidget("form", xmFormWidgetClass, fr, NULL);
     opt = CreateOptionChoice(form, "Chdir to:", 1, 3, fsb_items);
     AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
     button = CreateButton(form, "Set as cwd");
