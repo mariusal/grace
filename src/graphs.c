@@ -1351,7 +1351,8 @@ static int project_postprocess_hook(Quark *q,
         
         break;
     case QFlavorDObject:
-        if (version_id >= 40200 && version_id <= 50005) {
+        if (version_id >= 40200 && version_id <= 50005 &&
+            !compare_strings(q->idstr, "timestamp")) {
             /* BBox type justification was erroneously set */
             DObject *o = object_get_data(q);
             if (o->type == DO_STRING) {
