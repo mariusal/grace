@@ -382,9 +382,6 @@ graph *graph_data_new(void);
 void graph_data_free(graph *g);
 graph *graph_data_copy(graph *g);
 
-void kill_all_graphs(Quark *project);
-Quark *duplicate_graph(Quark *gr);
-
 Quark *get_parent_graph(const Quark *q);
 
 int is_axis_active(tickmarks *t);

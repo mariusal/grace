@@ -244,11 +244,6 @@ Quark *graph_next(Quark *project)
     return g;
 }
 
-void kill_all_graphs(Quark *project)
-{
-    storage_empty(project->children);
-}
-
 /**** Tickmarks ****/
 
 Quark *axis_new(Quark *q)
