@@ -714,6 +714,7 @@ static EditPoints *new_ep(void)
         XmNcellShadowType, XmSHADOW_ETCHED_OUT,
         XmNcellShadowThickness, 2,
         XmNaltRowCount, 0,
+        XmNcalcCursorPosition, True,
         NULL);
 
     for (i = 0; i < MIN_SS_ROWS; i++) {
