@@ -932,7 +932,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     char *scstr;                    /* scanf string */
     char buf[256];
     char *linebuf=NULL;
-    int *linelen=0; /* misleading name */
+    int linelen=0; /* misleading name */
 
     if (is_set_active(gno, setno) && dataset_cols(gno, setno) != 2) {
         errmsg("Only two-column sets are supported in read_xyset_fromfile()");
@@ -960,7 +960,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
         XCFREE(y);
         goto breakout;
     }
-    while (read_long_line(fp, &linebuf, linelen) == RETURN_SUCCESS) {
+    while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
         readline++;
         if (linebuf[strlen(linebuf) - 1] != '\n') { 
             /* must have a newline char at the end of line */
