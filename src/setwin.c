@@ -755,9 +755,8 @@ static int leval_aac_cb(void *data)
     double start, stop;
     int npts;
     char *formula[MAX_SET_COLS];
-    int res, len;
+    int res;
     int setno, gno;
-    double *ex;
     grarr *t;
     
     gno = levalui.gno;
@@ -812,19 +811,30 @@ static int leval_aac_cb(void *data)
         t->length = 0;
         return RETURN_FAILURE;
     }
+    
+    set_parser_setno(gno, setno);
 
     for (i = 0; i < nscols; i++) {
-        res = v_scanner(formula[i], &len, &ex);
-        if (res != RETURN_SUCCESS || len != npts) {
-	    char buf[32];
-            sprintf(buf, "Error in formula for %s", dataset_colname(i));
-            errmsg(buf);
+        char buf[32], *expr;
+        
+        /* preparing the expression */
+        sprintf(buf, "GRAPH[%d].SET[%d].%s = ", gno, setno, dataset_colname(i));
+        expr = copy_string(NULL, buf);
+        expr = concat_strings(expr, formula[i]);
+        
+        /* evaluate the expression */
+        res = scanner(expr);
+        
+        xfree(expr);
+        
+        if (res != RETURN_SUCCESS) {
             killset(gno, setno);
+            
             XCFREE(t->data);
             t->length = 0;
+            
             return RETURN_FAILURE;
         }
-        setcol(gno, setno, i, ex, npts);
     }
     
     XCFREE(t->data);
