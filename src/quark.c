@@ -15,8 +15,9 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
         q->fid = fid;
         q->data = data;
         
-        q->parent = parent;
         if (parent) {
+            q->parent = parent;
+            q->grace = parent->grace;
             parent->refcount++;
         }
     }
