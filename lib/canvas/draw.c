@@ -2249,7 +2249,14 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
         }
         
         if (!canvas->curdevice->autocrop) {
+            VPoint vp;
+            
             activate_bbox(canvas, BBOX_TYPE_GLOB, TRUE);
+
+            vp.x = vp.y = 0.0;
+            update_bbox(canvas, BBOX_TYPE_GLOB, &vp);
+            get_page_viewport(canvas, &vp.x, &vp.y);
+            update_bbox(canvas, BBOX_TYPE_GLOB, &vp);
         }
         
         if (canvas->pagepen.pattern) {
