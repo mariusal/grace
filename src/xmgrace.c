@@ -132,8 +132,18 @@ static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data);
 #define WSTACK_PUSH_ZOOM    3
 
 /*
- * establish action routines
+ * action routines, to be used with translations
  */
+
+/* This is for buggy Motif-2.1 that crashes with Ctrl+<Btn1Down> */
+static void do_nothing_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+}
+
+static XtActionsRec dummy_actions[] = {
+    {"do_nothing", do_nothing_action}
+};
+
 static XtActionsRec canvas_actions[] = {
 	{ "autoscale", (XtActionProc) autoscale_action },	
 	{ "autoscale_on_near", (XtActionProc) autoscale_on_near_action },	
@@ -270,6 +280,11 @@ int initialize_gui(int *argc, char **argv)
         return GRACE_EXIT_FAILURE;
     }
 
+    XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
+    XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
+    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
+    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
+
     app_shell = XtAppCreateShell(NULL, "XMgrace", applicationShellWidgetClass,
         disp, NULL, 0);
     
@@ -283,10 +298,6 @@ int initialize_gui(int *argc, char **argv)
     toolbar_visible = rd.toolbar;
     statusbar_visible = rd.statusbar;
     locbar_visible = rd.locatorbar;
-
-    XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
-    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
-    XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 
     return GRACE_EXIT_SUCCESS;
 }
