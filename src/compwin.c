@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -46,7 +46,6 @@
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Text.h>
 
@@ -59,12 +58,10 @@
 
 extern int nonlflag;		/* true if nonlinear curve fitting module is
 				 * to be included */
-static int pick_set = 0;	/* TODO: remove */
-
 static Widget but1[3];
 static Widget but2[3];
 
-static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void compute_aac(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_compute_proc2(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -85,50 +82,156 @@ static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void set_regr_sensitivity(Widget , XtPointer , XtPointer );
 
+#define RESTRICT_NONE  -1
+#define RESTRICT_WORLD -2
+#define RESTRICT_REG0   0
+#define RESTRICT_REG1   1
+#define RESTRICT_REG2   2
+#define RESTRICT_REG3   3
+#define RESTRICT_REG4   4
+
+static void update_sets_cb(int n, int *values, void *data)
+{
+    int gno;
+    ListStructure *set_listp = (ListStructure *) data;
+    
+    if (n == 1) {
+        gno = values[0];
+    } else {
+        gno = -1;
+    }
+    UpdateSetChoice(set_listp, gno);
+}
+
 typedef struct _Eval_ui {
     Widget top;
-    SetChoiceItem sel;
+    ListStructure *src_graph_item;
+    ListStructure *src_set_item;
+    ListStructure *dest_graph_item;
+    ListStructure *dest_set_item;
     Widget formula_item;
-    Widget *load_item;
-    ListStructure *loadgraph_item;
-    Widget *region_item;
-    Widget rinvert_item;
+    OptionStructure *restr_item;
+    Widget negate_item;
 } Eval_ui;
 
 static Eval_ui eui;
 
 void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget dialog, rc;
     set_wait_cursor();
     if (eui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	eui.top = XmCreateDialogShell(app_shell, "Evaluate expression", NULL, 0);
+        int cg = get_cg();
+        Widget dialog, rc, rc2, rc_trans, fr;
+        OptionItem restr_items[7];
+
+        restr_items[0].value = RESTRICT_NONE;
+        restr_items[0].label = "None";
+        restr_items[1].value = RESTRICT_REG0;
+        restr_items[1].label = "Region 0";
+        restr_items[2].value = RESTRICT_REG1;
+        restr_items[2].label = "Region 1";
+        restr_items[3].value = RESTRICT_REG2;
+        restr_items[3].label = "Region 2";
+        restr_items[4].value = RESTRICT_REG3;
+        restr_items[4].label = "Region 3";
+        restr_items[5].value = RESTRICT_REG4;
+        restr_items[5].label = "Region 4";
+        restr_items[6].value = RESTRICT_WORLD;
+        restr_items[6].label = "Inside graph";
+
+	eui.top = XmCreateDialogShell(app_shell, "evaluateExpression", NULL, 0);
+        XtVaSetValues(eui.top, XmNallowShellResize, True, NULL);
 	handle_close(eui.top);
-	dialog = XmCreateRowColumn(eui.top, "dialog_rc", NULL, 0);
+        dialog = XtVaCreateWidget("dialog",
+            xmFormWidgetClass, eui.top,
+            XmNresizePolicy, XmRESIZE_ANY,
+            NULL);
+	rc = XtVaCreateWidget("rc",
+            xmFormWidgetClass, dialog,
+	    XmNfractionBase, 2,
+	    NULL);
 
-	eui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
+	fr = CreateFrame(rc, "Source");
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_POSITION,
+            XmNrightPosition, 1,
+            NULL);
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+	eui.src_graph_item = CreateGraphChoice(rc2,
+            "Graph:", LIST_TYPE_SINGLE);
+	eui.src_set_item = CreateSetChoice(rc2,
+            "Set:", LIST_TYPE_MULTIPLE, FALSE);
+        AddListChoiceCB(eui.src_graph_item,
+            update_sets_cb, (void *) eui.src_set_item);
+        UpdateSetChoice(eui.src_set_item, cg);
+        XtManageChild(rc2);
 
-	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
-	eui.load_item = CreatePanelChoice(rc,
-					  "Result to:", 3,
-					  "Same set", "New set", NULL, 0);
-	eui.loadgraph_item = CreateGraphChoice(rc, "In graph: ", LIST_TYPE_SINGLE);
-	XtManageChild(rc);
+	fr = CreateFrame(rc, "Destination");
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_POSITION,
+            XmNleftPosition, 1,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+	eui.dest_graph_item = CreateGraphChoice(rc2,
+            "Graph:", LIST_TYPE_SINGLE);
+	eui.dest_set_item = CreateSetChoice(rc2,
+            "Set:", LIST_TYPE_MULTIPLE, FALSE);
+        AddListChoiceCB(eui.dest_graph_item,
+            update_sets_cb, (void *) eui.dest_set_item);
+        UpdateSetChoice(eui.dest_set_item, cg);
+        XtManageChild(rc2);
 
-	eui.formula_item = CreateScrollTextItem2(dialog, 30, 3,"Formula:");
+        XtManageChild(rc);
+        XtVaSetValues(rc,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
 
-	CreateSeparator(dialog);
+	rc_trans = XtVaCreateWidget("rc",
+            xmRowColumnWidgetClass, dialog,
+            XmNrecomputeSize, True,
+            NULL);
 
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_compute_proc, (XtPointer) & eui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) eui.top);
+	CreateSeparator(rc_trans);
+	eui.formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
+	CreateSeparator(rc_trans);
+
+	rc2 = XtVaCreateWidget("rc",
+            xmRowColumnWidgetClass, rc_trans,
+            XmNorientation, XmHORIZONTAL,
+            NULL);
+        eui.restr_item = CreateOptionChoice(rc2,
+	    "Restriction:", 1, 7, restr_items);
+	eui.negate_item = CreateToggleButton(rc2, "Negated");
+        XtManageChild(rc2);
+
+	CreateSeparator(rc_trans);
+        XtManageChild(rc_trans);
+	fr = CreateFrame(dialog, NULL);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_NONE,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+        CreateAACButtons(fr, dialog, compute_aac);
+
+        XtVaSetValues(rc_trans,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, rc,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, fr,
+            NULL);
+
 
 	XtManageChild(dialog);
     }
@@ -136,46 +239,147 @@ void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
+int get_restriction_array(int gno, int setno,
+    int rtype, int negate, char **rarray)
+{
+    int i, n, regno;
+    double *x, *y;
+    world w;
+    WPoint wp;
+    
+    if (rtype == RESTRICT_NONE) {
+        *rarray = NULL;
+        return GRACE_EXIT_SUCCESS;
+    }
+    
+    n = getsetlength(gno, setno);
+    if (n <= 0) {
+        *rarray = NULL;
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    *rarray = malloc(n*SIZEOF_CHAR);
+    if (*rarray == NULL) {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    x = getcol(gno, setno, DATA_X);
+    y = getcol(gno, setno, DATA_Y);
+    
+    switch (rtype) {
+    case RESTRICT_REG0:
+    case RESTRICT_REG1:
+    case RESTRICT_REG2:
+    case RESTRICT_REG3:
+    case RESTRICT_REG4:
+        regno = rtype - RESTRICT_REG0;
+        for (i = 0; i < n; i++) {
+            (*rarray)[i] = inregion(regno, x[i], y[i]) ? !negate : negate;
+        }
+        break;
+    case RESTRICT_WORLD:
+        get_graph_world(gno, &w);
+        for (i = 0; i < n; i++) {
+            wp.x = x[i];
+            wp.y = y[i];
+            (*rarray)[i] = is_wpoint_inside(&wp, &w) ? !negate : negate;
+        }
+        break;
+    default:
+        errmsg("Internal error in get_restriction_array()");
+        cxfree(*rarray);
+        return GRACE_EXIT_FAILURE;
+        break;
+    }
+    return GRACE_EXIT_SUCCESS;
+}
+
 /*
  * evaluate a formula
  */
-static void do_compute_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void compute_aac(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int *selsets;
-    int i, cnt;
-    int setno, loadto, graphto, resno;
+    int aac_mode, error, resno;
+    int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2,
+        gno1, gno2, setno1, setno2;
     char fstr[256];
-    Eval_ui *ui = (Eval_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    int restr_type, restr_negate;
+    char *rarray;
+
+    aac_mode = (int) client_data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(eui.top);
+        return;
     }
-    loadto = GetChoice(ui->load_item);
-    if (GetSingleListChoice(ui->loadgraph_item, &graphto) != GRACE_EXIT_SUCCESS) {
-	errmsg("Please select single graph");
-	return;
-    }
-    strcpy(fstr, xv_getstr(ui->formula_item));
+
     set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	resno = do_compute(setno, loadto, graphto, fstr);
-	if (resno < 0) {
-	    errwin("Error in  do_compute(), check expression");
-	    break;
-	}
+    
+    restr_type = GetOptionChoice(eui.restr_item);
+    restr_negate = GetToggleButtonState(eui.negate_item);
+    
+    g1_ok = GetSingleListChoice(eui.src_graph_item, &gno1);
+    g2_ok = GetSingleListChoice(eui.dest_graph_item, &gno2);
+    ns1 = GetListChoices(eui.src_set_item, &svalues1);
+    ns2 = GetListChoices(eui.dest_set_item, &svalues2);
+    
+    error = FALSE;
+    if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
+        error = TRUE;
+        errmsg("Please select single source and destination graphs");
+    } else if (ns1 == 0) {
+        error = TRUE;
+        errmsg("No source sets selected");
+    } else if (ns1 != ns2 && ns2 != 0) {
+        error = TRUE;
+        errmsg("Different number of source and destination sets");
+    } else {
+        strcpy(fstr, xv_getstr(eui.formula_item));
+        for (i = 0; i < ns1; i++) {
+	    setno1 = svalues1[i];
+	    if (ns2 != 0) {
+                setno2 = svalues2[i];
+            } else {
+                setno2 = nextset(gno2);
+                set_set_hidden(gno2, setno2, FALSE);
+            }
+	    
+            resno = get_restriction_array(gno1, setno1,
+                restr_type, restr_negate, &rarray);
+	    if (resno != GRACE_EXIT_SUCCESS) {
+	        errmsg("Error in evaluation restriction");
+	        break;
+	    }
+            
+            resno = do_compute(gno1, setno1, gno2, setno2, rarray, fstr);
+	    cxfree(rarray);
+	    if (resno != GRACE_EXIT_SUCCESS) {
+	        errmsg("Error in do_compute(), check formula");
+                break;
+	    }
+        }
     }
-    update_set_lists(get_cg());
-    free(selsets);
+    
+    if (aac_mode == AAC_ACCEPT && error == FALSE) {
+        XtUnmanageChild(eui.top);
+    }
+
+    if (ns1 > 0) {
+        free(svalues1);
+    }
+    if (ns2 > 0) {
+        free(svalues2);
+    }
+    if (error == FALSE) {
+        if (gno1 != gno2) {
+            update_set_lists(gno1);
+            update_set_lists(gno2);
+        } else {
+            update_set_lists(gno1);
+        }
+        drawgraph();
+    }
     unset_wait_cursor();
-    drawgraph();
 }
 
 /* histograms */
@@ -261,16 +465,10 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int fromset, toset, tograph, hist_type;
     double binw, xmin, xmax;
     Histo_ui *ui = (Histo_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     toset = SET_SELECT_NEXT;
     if (GetSingleListChoice(ui->graph_item, &tograph) != GRACE_EXIT_SUCCESS) {
@@ -418,16 +616,10 @@ static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data
     int i, cnt;
     int setno, load, loadx, invflag, type, wind;
     Four_ui *ui = (Four_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     wind = GetChoice(ui->window_item);
     load = GetChoice(ui->load_item);
@@ -485,16 +677,10 @@ static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int i, cnt;
     int setno, type, wind;
     Four_ui *ui = (Four_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     wind = GetChoice(ui->window_item);
     type = GetChoice(ui->type_item);
@@ -578,9 +764,7 @@ void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					    0,
 					    0);
 
-	XtVaCreateManagedWidget("Invert region:", xmLabelWidgetClass, rc, NULL);
-	rui.rinvert_item = XmCreateToggleButton(rc, " ", NULL, 0);
-	XtManageChild(rui.rinvert_item);
+	rui.rinvert_item = CreateToggleButton(rc, "Invert region");
 
 	XtManageChild(rc);
 
@@ -606,23 +790,17 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int i, cnt;
     int runlen, runtype, setno, rno, invr;
     Run_ui *ui = (Run_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     if (xv_evalexpri(ui->len_item, &runlen ) != GRACE_EXIT_SUCCESS) {
         return;
     }
     runtype = GetChoice(ui->type_item);
     rno = GetChoice(ui->region_item) - 1;
-    invr = XmToggleButtonGetState(ui->rinvert_item);
+    invr = GetToggleButtonState(ui->rinvert_item);
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
@@ -736,7 +914,7 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
 						 "Function",
 					     0,
 					     0);
-    XtManageChild(rc2);
+        XtManageChild(rc2);
 	for( i=2; i<5; i++ )
 		XtAddCallback( regui.resid_item[i], XmNactivateCallback, 
 					set_regr_sensitivity, (XtPointer)(i-2) );
@@ -760,14 +938,8 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					      "Outside graph",
 					      0,
 					      0);
-	XtManageChild(rc2);
 	
-	rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, rc,
-			      XmNorientation, XmHORIZONTAL,
- 			      NULL);
-	XtVaCreateManagedWidget("Invert region:", xmLabelWidgetClass, rc2, NULL);
-	regui.rinvert_item = XmCreateToggleButton(rc2, " ", NULL, 0);
-	XtManageChild(regui.rinvert_item);
+        regui.rinvert_item = CreateToggleButton(rc2, "Invert region");
 	XtManageChild(rc2);
 	
 	CreateSeparator(rc);
@@ -805,20 +977,14 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     Reg_ui *ui = (Reg_ui *) client_data;
     int setno, ideg, iresid, i, j, k;
     int rno = GetChoice(ui->region_item) - 1;
-    int invr = XmToggleButtonGetState(ui->rinvert_item);
+    int invr = GetToggleButtonState(ui->rinvert_item);
     int nstep = 0, rx, rset = 0;
     double xstart, xstop, stepsize = 0.0, *xr;
 
-    if (w == NULL) {		/* called with "Pick" button */
-		cnt = 1;
-		selsets = (int *) malloc(sizeof(int));
-		selsets[0] = pick_set;
-    } else {
-		cnt = GetSelectedSets(ui->sel, &selsets);
-		if (cnt == SET_SELECT_ERROR) {
-			errwin("No sets selected");
-			return;
-		}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     ideg = (int) GetChoice(ui->degree_item) + 1;
 	switch(rx=GetChoice(ui->resid_item) ){
@@ -936,16 +1102,10 @@ static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int i, cnt;
     int setno, itype;
     Diff_ui *ui = (Diff_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     itype = (int) GetChoice(ui->type_item);
     set_wait_cursor();
@@ -1024,16 +1184,10 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
     Int_ui *ui = (Int_ui *) client_data;
     char buf[32];
     
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     itype = GetChoice(ui->type_item);
     set_wait_cursor();
@@ -1104,16 +1258,10 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
     int setno, period;
     Seas_ui *ui = (Seas_ui *) client_data;
     cnt = GetSelectedSets(ui->sel, &selsets);
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     if(xv_evalexpri(ui->period_item, &period ) != GRACE_EXIT_SUCCESS)
 		return;
@@ -1350,16 +1498,10 @@ static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int stype;
     double start, stop;
     Spline_ui *ui = (Spline_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     if(xv_evalexpr(ui->start_item, &start) != GRACE_EXIT_SUCCESS ||
        xv_evalexpr(ui->stop_item,  &stop)  != GRACE_EXIT_SUCCESS ||
@@ -1460,16 +1602,10 @@ static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
     char exprstr[256];
     int startno, stepno;
     Samp_ui *ui = (Samp_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     typeno = (int) GetChoice(ui->type_item);
 	
@@ -1656,16 +1792,10 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
     double deltax, deltay;
 
     Prune_ui *ui = (Prune_ui *) client_data;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     typeno = (int) GetChoice(ui->type_item);
     deltatypeno = (int) GetChoice(ui->deltatype_item);
@@ -1874,15 +2004,15 @@ void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, dialog,
 			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 6,
+			      XmNnumColumns, 4,
 			      XmNorientation, XmHORIZONTAL,
 			      XmNisAligned, True,
 			      XmNadjustLast, False,
 			      XmNentryAlignment, XmALIGNMENT_END,
 			      NULL);
  
-	levalui.x_item = CreateScrollTextItem2(dialog, 40, 3, "X = ");
-	levalui.y_item = CreateScrollTextItem2(dialog, 40, 3, "Y = ");
+	levalui.x_item = CreateScrollTextItem2(dialog, 3, "X = ");
+	levalui.y_item = CreateScrollTextItem2(dialog, 3, "Y = ");
 
 	XtVaCreateManagedWidget("Load:", xmLabelWidgetClass, rc, NULL);
 	levalui.load_item = CreatePanelChoice(rc,
@@ -2148,16 +2278,10 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
     double cosd, sind;
     Geom_ui *ui = (Geom_ui *) client_data;
     
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
+    cnt = GetSelectedSets(ui->sel, &selsets);
+    if (cnt == SET_SELECT_ERROR) {
+        errwin("No sets selected");
+        return;
     }
     ord = (int) GetChoice(ui->order_item);
     switch (ord) {
