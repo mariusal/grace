@@ -34,6 +34,10 @@
 
 #include <grace/canvas.h>
 
+#define COLOR_NONE      0
+#define COLOR_AUX       1
+#define COLOR_MAIN      2
+
 #if defined(DEBUG_T1LIB)
 #  define T1LOGFILE LOGFILE
 #else
@@ -189,6 +193,8 @@ void canvas_color_trans(Canvas *canvas, CMap_entry *cmap);
 int make_color_scale(Canvas *canvas,
     unsigned int fg, unsigned int bg,
     unsigned int ncolors, unsigned long *colors);
+int get_colortype(const Canvas *canvas, unsigned int cindex);
+int add_color(Canvas *canvas, const RGB *rgb, int ctype);
 
 int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
 int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);

@@ -1288,11 +1288,43 @@ static int RGB2fRGB(const RGB *rgb, fRGB *frgb)
     }
 }
 
-static Color cmap_init[] = {
+static int store_color(Canvas *canvas, unsigned int n, const RGB *rgb, int ctype)
+{
+    if (is_valid_color(rgb) != TRUE) {
+        return RETURN_FAILURE;
+    } else if (n >= canvas->ncolors &&
+        realloc_colors(canvas, n + 1) == RETURN_FAILURE) {
+        return RETURN_FAILURE;
+    } else {
+        CMap_entry *cmap = &canvas->cmap[n];
+        cmap->rgb = *rgb;
+        cmap->ctype = ctype;
+        
+        /* invalidate AA gray levels' cache */       
+        canvas->aacolors_low_ok  = FALSE;
+        canvas->aacolors_high_ok = FALSE;
+        
+        /* inform current device of changes in the cmap database */
+        if (canvas->device_ready) {
+            canvas_color_trans(canvas, cmap);
+            if (canvas->curdevice->updatecmap != NULL) {
+                canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
+            }
+        }
+        return RETURN_SUCCESS;
+    }
+}
+
+int canvas_store_color(Canvas *canvas, unsigned int n, const RGB *rgb)
+{
+    return store_color(canvas, n, rgb, COLOR_MAIN);
+}
+
+static RGB cmap_init[] = {
     /* white */
-    {{255, 255, 255}, "white", COLOR_MAIN},
+    {255, 255, 255},
     /* black */
-    {{  0,   0,   0}, "black", COLOR_MAIN}
+    {  0,   0,   0}
 };
 
 /*
@@ -1303,10 +1335,10 @@ int canvas_cmap_reset(Canvas *canvas)
 {
     unsigned int i, n;
     
-    n = sizeof(cmap_init)/sizeof(Color);
+    n = sizeof(cmap_init)/sizeof(RGB);
     realloc_colors(canvas, n);
     for (i = 0; i < n; i++) {
-        store_color(canvas, i, &cmap_init[i]);
+        store_color(canvas, i, &cmap_init[i], COLOR_MAIN);
     }
     
     return RETURN_SUCCESS;
@@ -1346,29 +1378,13 @@ int find_color(const Canvas *canvas, const RGB *rgb)
     int cindex = BAD_COLOR;
     
     for (i = 0; i < canvas->ncolors; i++) {
-        if (compare_rgb(&canvas->cmap[i].color.rgb, rgb) == TRUE) {
+        if (compare_rgb(&canvas->cmap[i].rgb, rgb) == TRUE) {
             cindex = i;
             break;
         }
     }
     
     return cindex;
-}
-
-int get_color_by_name(const Canvas *canvas, const char *cname)
-{
-    unsigned int i;
-    int cindex = BAD_COLOR;
-    
-    for (i = 0; i < canvas->ncolors; i++) {
-        if (canvas->cmap[i].color.ctype == COLOR_MAIN &&
-            compare_strings(canvas->cmap[i].color.cname, cname) == TRUE) {
-            cindex = i;
-            break;
-        }
-    }
-    
-    return (cindex);
 }
 
 static int realloc_colors(Canvas *canvas, unsigned int n)
@@ -1379,9 +1395,6 @@ static int realloc_colors(Canvas *canvas, unsigned int n)
     if (n > MAXCOLORS) {
         return RETURN_FAILURE;
     } else {
-        for (i = n; i < canvas->ncolors; i++) {
-            XCFREE(canvas->cmap[i].color.cname);
-        }
         cmap_tmp = xrealloc(canvas->cmap, n*sizeof(CMap_entry));
         if (n != 0 && cmap_tmp == NULL) {
             return RETURN_FAILURE;
@@ -1389,7 +1402,7 @@ static int realloc_colors(Canvas *canvas, unsigned int n)
             canvas->cmap = cmap_tmp;
             for (i = canvas->ncolors; i < n; i++) {
                 memset(&canvas->cmap[i], 0, sizeof(CMap_entry));
-                canvas->cmap[i].color.ctype = COLOR_NONE;
+                canvas->cmap[i].ctype = COLOR_NONE;
             }
         }
         canvas->ncolors = n;
@@ -1464,80 +1477,46 @@ void canvas_color_trans(Canvas *canvas, CMap_entry *cmap)
 {
     switch (canvas->curdevice->color_trans) {
     case COLOR_TRANS_BW:
-        rgb_bw(&cmap->color.rgb, &cmap->devrgb);
+        rgb_bw(&cmap->rgb, &cmap->devrgb);
         break;
     case COLOR_TRANS_GREYSCALE:
-        rgb_greyscale(&cmap->color.rgb, &cmap->devrgb);
+        rgb_greyscale(&cmap->rgb, &cmap->devrgb);
         break;
     case COLOR_TRANS_NEGATIVE:
-        rgb_invert(&cmap->color.rgb, &cmap->devrgb);
+        rgb_invert(&cmap->rgb, &cmap->devrgb);
         break;
     case COLOR_TRANS_REVERSE:
-        if (is_rgb_grey(&cmap->color.rgb)) {
-            rgb_invert(&cmap->color.rgb, &cmap->devrgb);
+        if (is_rgb_grey(&cmap->rgb)) {
+            rgb_invert(&cmap->rgb, &cmap->devrgb);
         } else {
-            cmap->devrgb = cmap->color.rgb;
+            cmap->devrgb = cmap->rgb;
         }
         break;
     case COLOR_TRANS_SRGB:
-        rgb_srgb(&cmap->color.rgb, &cmap->devrgb);
+        rgb_srgb(&cmap->rgb, &cmap->devrgb);
         break;
     case COLOR_TRANS_NONE:
     default:
-        cmap->devrgb = cmap->color.rgb;
+        cmap->devrgb = cmap->rgb;
         break;
-    }
-}
-
-int store_color(Canvas *canvas, unsigned int n, const Color *color)
-{
-    if (is_valid_color(&color->rgb) != TRUE) {
-        return RETURN_FAILURE;
-    } else if (n >= canvas->ncolors &&
-        realloc_colors(canvas, n + 1) == RETURN_FAILURE) {
-        return RETURN_FAILURE;
-    } else {
-        CMap_entry *cmap = &canvas->cmap[n];
-        if (is_empty_string(color->cname)) {
-            cmap->color.cname =
-                copy_string(cmap->color.cname, "unnamed");
-        } else {
-            cmap->color.cname =
-                copy_string(cmap->color.cname, color->cname);
-        }
-        cmap->color.rgb = color->rgb;
-        cmap->color.ctype = color->ctype;
-        
-        /* invalidate AA gray levels' cache */       
-        canvas->aacolors_low_ok  = FALSE;
-        canvas->aacolors_high_ok = FALSE;
-        
-        /* inform current device of changes in the cmap database */
-        if (canvas->device_ready) {
-            canvas_color_trans(canvas, cmap);
-            if (canvas->curdevice->updatecmap != NULL) {
-                canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
-            }
-        }
-        return RETURN_SUCCESS;
     }
 }
 
 /*
  * add_color() adds a new entry to the colormap table
  */
-int add_color(Canvas *canvas, const Color *color)
+int add_color(Canvas *canvas, const RGB *rgb, int ctype)
 {
     int cindex;
     
-    if (is_valid_color(&color->rgb) != TRUE) {
+    if (is_valid_color(rgb) != TRUE) {
         cindex = BAD_COLOR;
-    } else if ((cindex = find_color(canvas, &color->rgb)) != BAD_COLOR) {
-        if (color->ctype == COLOR_MAIN && 
-            canvas->cmap[cindex].color.ctype != COLOR_MAIN) {
-            canvas->cmap[cindex].color.ctype = COLOR_MAIN;
+    } else if ((cindex = find_color(canvas, rgb)) != BAD_COLOR) {
+        if (ctype == COLOR_MAIN && canvas->cmap[cindex].ctype != COLOR_MAIN) {
+            canvas->cmap[cindex].ctype = COLOR_MAIN;
         }
-    } else if (store_color(canvas, canvas->ncolors, color) == RETURN_FAILURE) {
+    } else if (store_color(canvas, canvas->ncolors, rgb, ctype)
+        != RETURN_SUCCESS) {
         cindex = BAD_COLOR;
     } else {
         cindex = canvas->ncolors - 1;
@@ -1572,19 +1551,10 @@ int get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb)
     }
 }
 
-Color *get_color_def(const Canvas *canvas, unsigned int cindex)
+CMap_entry *get_color_def(const Canvas *canvas, unsigned int cindex)
 {
     if (cindex < canvas->ncolors) {
-        return &(canvas->cmap[cindex].color);
-    } else {
-        return NULL;
-    }
-}
-
-char *get_colorname(const Canvas *canvas, unsigned int cindex)
-{
-    if (cindex < canvas->ncolors) {
-        return (canvas->cmap[cindex].color.cname);
+        return &canvas->cmap[cindex];
     } else {
         return NULL;
     }
@@ -1593,7 +1563,7 @@ char *get_colorname(const Canvas *canvas, unsigned int cindex)
 int get_colortype(const Canvas *canvas, unsigned int cindex)
 {
     if (cindex < canvas->ncolors) {
-        return (canvas->cmap[cindex].color.ctype);
+        return (canvas->cmap[cindex].ctype);
     } else {
         return (BAD_COLOR);
     }
@@ -1660,7 +1630,7 @@ int make_color_scale(Canvas *canvas,
 {
     unsigned int i;
     fRGB fg_frgb, bg_frgb, delta_frgb;
-    Color *fg_color, *bg_color;
+    CMap_entry *fg_color, *bg_color;
 
     if (ncolors < 2 || !colors) {
         return RETURN_FAILURE;
@@ -1681,16 +1651,14 @@ int make_color_scale(Canvas *canvas,
     colors[0] = bg;
     for (i = 1; i < ncolors - 1; i++) {
     	fRGB frgb;
-        Color color;
+        RGB rgb;
         int c;
         
         frgb.red   = bg_frgb.red   + i*delta_frgb.red;
     	frgb.green = bg_frgb.green + i*delta_frgb.green;
     	frgb.blue  = bg_frgb.blue  + i*delta_frgb.blue;
-    	fRGB2RGB(&frgb, &color.rgb);
-        color.cname = "";
-    	color.ctype = COLOR_AUX;
-    	c = add_color(canvas, &color);
+    	fRGB2RGB(&frgb, &rgb);
+    	c = add_color(canvas, &rgb, COLOR_AUX);
         colors[i] = (c == BAD_COLOR) ? 0:c;
     }
     colors[ncolors - 1] = fg;

@@ -111,10 +111,6 @@
 
 #define BAD_COLOR	-1
 
-#define COLOR_NONE      0
-#define COLOR_AUX       1
-#define COLOR_MAIN      2
-
 #define BBOX_TYPE_GLOB	0
 #define BBOX_TYPE_TEMP	1
 
@@ -295,12 +291,7 @@ typedef int (*CanvasFMapProc)(const Canvas *canvas, int);
 
 typedef struct {
     RGB rgb;
-    char *cname;
     int ctype;
-} Color;
-
-typedef struct {
-    Color color;
     char used;
     RGB devrgb;     /* Converted RGB - for the current device */
 } CMap_entry;
@@ -405,8 +396,6 @@ unsigned int number_of_colors(const Canvas *canvas);
 
 int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
 int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
-Color *get_color_def(const Canvas *canvas, unsigned int cindex);
-char *get_colorname(const Canvas *canvas, unsigned int cindex);
 
 double get_colorintensity(const Canvas *canvas, int cindex);
 
@@ -515,10 +504,7 @@ int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
 int canvas_cmap_reset(Canvas *canvas);
-int get_color_by_name(const Canvas *canvas, const char *cname);
-int store_color(Canvas *canvas, unsigned int n, const Color *color);
-int add_color(Canvas *canvas, const Color *color);
-int get_colortype(const Canvas *canvas, unsigned int cindex);
+int canvas_store_color(Canvas *canvas, unsigned int n, const RGB *rgb);
 
 int canvas_set_encoding(Canvas *canvas, char *encfile);
 int canvas_add_font(Canvas *canvas, char *ffile, const char *alias);
