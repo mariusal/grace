@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -267,6 +267,50 @@ String fallbackResources[] = {
 #define MENU_REVERT	207
 #define MENU_PRINT	208
 
+extern const char _XmVersionString[];
+
+static int is_motif_compatible(void)
+{
+    char *s, buf[128];
+    int bd_lesstif, rt_lesstif;
+    
+    /* First, check for compatible version */
+    if (xmUseVersion < XmVersion) {
+        sprintf(buf,
+            "Run-time Motif library is older than the build, %d < %d",
+            xmUseVersion, XmVersion);
+        errmsg(buf);
+        return FALSE;
+    }
+    
+    /* Then, check whether we are in the Motif/LessTif binary compatibility
+       mode */
+    /* strcpy is dangerous since the sizeof(_XmVersionString) may be different
+       at run time! 13 chars should be safe, though, and enough to distinguish
+       between Motif and LessTif :) */
+    strncpy(buf, _XmVersionString, 13);
+    buf[13] = '\0';
+    rt_lesstif = (strstr(buf, "Motif") == NULL);
+    bd_lesstif = (strstr(bi_gui(), "Motif") == NULL);
+    if (bd_lesstif != rt_lesstif) {
+        sprintf(buf, "The software was built with %s, but is running with %s!",
+            bd_lesstif ? "LessTif":"Motif", rt_lesstif ? "LessTif":"Motif");
+        errmsg(buf);
+        errmsg("We don't support binary Motif/LessTif compatibility.");
+        errmsg("Use a semistatic binary or compile Grace yourself!");
+        return FALSE;
+    }
+    
+    /* Finally, if LessTif is used, check for a reasonably new release */
+    if (rt_lesstif) {
+        s = strstr(_XmVersionString, "Version");
+        if (s == NULL || (strcmp(s, "Version 0.89.9") < 0)) {
+            errmsg("An old version of LessTif, please upgrade to 0.89.9 at least");
+        }
+    }
+    
+    return TRUE;
+}
 
 int initialize_gui(int *argc, char **argv)
 {
@@ -287,6 +331,10 @@ int initialize_gui(int *argc, char **argv)
 
     app_shell = XtAppCreateShell(NULL, "XMgrace", applicationShellWidgetClass,
         disp, NULL, 0);
+
+    if (is_motif_compatible() != TRUE) {
+        return RETURN_FAILURE;
+    }
     
     XtGetApplicationResources(app_shell, &rd,
         resources, XtNumber(resources), NULL, 0);
