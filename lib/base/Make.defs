@@ -6,6 +6,7 @@
 LIB  = $(GRACE_BASE_LIB)
 
 SRCS = 	memory.c \
+	amemory.c \
 	missing.c \
 	alloca.c \
 	utils.c \
@@ -14,6 +15,7 @@ SRCS = 	memory.c \
 	storage.c
 
 OBJS = 	memory$(O) \
+	amemory$(O) \
 	missing$(O) \
 	$(ALLOCA) \
 	utils$(O) \

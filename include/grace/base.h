@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -60,16 +60,49 @@
 /* FIXME! */
 extern void errmsg(const char *msg);
 
-/* generic memory allocation & friend */
+#ifndef ADVANCED_MEMORY_HANDLERS
+/* generic memory allocation & friends */
 void *xmalloc(size_t size);
 void *xcalloc(size_t nmemb, size_t size);
 void *xrealloc(void *ptr, size_t size);
 void xfree(void *ptr);
-#define XCFREE(ptr) xfree(ptr); ptr = NULL
+# define XCFREE(ptr) xfree(ptr); ptr = NULL
 
 /* string (re)allocation */
 char *copy_string(char *dest, const char *src);
 char *concat_strings(char *dest, const char *src);
+#else
+# define xmalloc bad_malloc
+# define xcalloc bad_calloc
+# define xrealloc bad_realloc
+# define xfree bad_free
+# define XCFREE BAD_CFREE
+# define copy_string bad_copy_string
+# define concat_strings bad_concat_strings
+#endif
+
+#define AMEM_MODEL_SIMPLE   0
+#define AMEM_MODEL_LIBUNDO  1
+
+/* advanced memory allocation & friends */
+typedef struct _AMem AMem;
+AMem *amem_amem_new(int model);
+void amem_amem_free(AMem *amem);
+void *amem_malloc(AMem *amem, size_t size);
+void *amem_calloc(AMem *amem, size_t nmemb, size_t size);
+void *amem_realloc(AMem *amem, void *ptr, size_t size);
+void amem_free(AMem *amem, void *ptr);
+# define AMEM_CFREE(amem, ptr) amem_free(amem, ptr); ptr = NULL
+
+int amem_snapshot(AMem *amem);
+int amem_undo(AMem *amem);
+int amem_redo(AMem *amem);
+unsigned int amem_get_undo_count(AMem *amem);
+unsigned int amem_get_redo_count(AMem *amem);
+
+char *amem_strdup(AMem *amem, const char *s);
+char *amem_strcpy(AMem *amem, char *dest, const char *src);
+
 
 /* string comparison etc */
 int compare_strings(const char *s1, const char *s2);
@@ -136,8 +169,8 @@ int dict_get_descr_by_key(const Dictionary *dict, int key, char **descr);
 #define STORAGE_ETYPE_ERROR 3
 #define STORAGE_ETYPE_FATAL 4
 
-typedef void (*Storage_data_free)(void *data); 
-typedef void *(*Storage_data_copy)(void *data); 
+typedef void (*Storage_data_free)(AMem *amem, void *data); 
+typedef void *(*Storage_data_copy)(AMem *amem, void *data); 
 typedef void (*Storage_exception_handler)(int type, const char *msg); 
 typedef int (*Storage_comp_proc)(const void *d1, const void *d2, void *udata); 
 
@@ -149,6 +182,7 @@ typedef struct _LLNode {
 } LLNode;
 
 typedef struct _Storage {
+    AMem *amem;
     LLNode *start;
     LLNode *cp;
     int count;
@@ -160,8 +194,9 @@ typedef struct _Storage {
 
 typedef int (*Storage_traverse_hook)(unsigned int step, void *data, void *udata); 
 
-Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
-                     Storage_exception_handler exception_handler);
+Storage *storage_new(AMem *amem,
+    Storage_data_free data_free, Storage_data_copy data_copy,
+    Storage_exception_handler exception_handler);
 void storage_free(Storage *sto);
 
 Storage *storage_copy(Storage *sto);

@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
+
 #include "grace/base.h"
 
 #define STORAGE_SAFETY_CHECK(sto, retaction)                            \
@@ -48,11 +50,11 @@
         retaction;                                                      \
     }
 
-static void _data_free(void *data)
+static void _data_free(AMem *amem, void *data)
 {
 }
 
-static void *_data_copy(void *data)
+static void *_data_copy(AMem *amem, void *data)
 {
     return data;
 }
@@ -83,15 +85,18 @@ static void _exception_handler(int type, const char *msg)
     }
 }
 
-Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
-                     Storage_exception_handler exception_handler)
+Storage *storage_new(AMem *amem,
+    Storage_data_free data_free, Storage_data_copy data_copy,
+    Storage_exception_handler exception_handler)
 {
     Storage *sto;
     
-    sto = xmalloc(sizeof(Storage));
+    sto = amem_malloc(amem, sizeof(Storage));
     if (sto == NULL) {
         return NULL;
     }
+    
+    sto->amem = amem;
     
     sto->start = NULL;
     sto->cp    = NULL;
@@ -339,7 +344,7 @@ static LLNode *storage_allocate_node(Storage *sto, void *data)
 {
     LLNode *new;
     
-    new = xmalloc(sizeof(LLNode));
+    new = amem_malloc(sto->amem, sizeof(LLNode));
     if (new != NULL) {
         new->data = data;
     } else {
@@ -389,8 +394,8 @@ static void storage_extract_node(Storage *sto, LLNode *llnode)
 static void storage_deallocate_node(Storage *sto, LLNode *llnode)
 {
     storage_extract_node(sto, llnode);
-    sto->data_free(llnode->data);
-    xfree(llnode);
+    sto->data_free(sto->amem, llnode->data);
+    amem_free(sto->amem, llnode);
 }
 
 static void storage_add_node(Storage *sto, LLNode *llnode, int forward)
@@ -480,8 +485,9 @@ void storage_empty(Storage *sto)
 
 void storage_free(Storage *sto)
 {
+    AMem *amem = sto->amem;
     storage_empty(sto);
-    xfree(sto);
+    amem_free(amem, sto);
 }
 
 int storage_get_data(Storage *sto, void **datap)
@@ -567,14 +573,14 @@ void *storage_duplicate(Storage *sto)
         return NULL;
     } else {
         void *data = sto->cp->data;
-        data_new = sto->data_copy(data);
+        data_new = sto->data_copy(sto->amem, data);
         if (data && !data_new) {
             sto->ierrno = STORAGE_ENOMEM;
             return NULL;
         } else {
             storage_eod(sto);
             if (storage_add(sto, data_new) != RETURN_SUCCESS) {
-                sto->data_free(data_new);
+                sto->data_free(sto->amem, data_new);
                 return NULL;
             } else {
                 return data_new;
@@ -599,12 +605,12 @@ int storage_data_copy_by_id(Storage *sto, int id1, int id2)
         return RETURN_FAILURE;
     }
     
-    data = sto->data_copy(llnode1->data);
+    data = sto->data_copy(sto->amem, llnode1->data);
     if (llnode1->data && !data) {
         sto->ierrno = STORAGE_ENOMEM;
         return RETURN_FAILURE;
     } else {
-        sto->data_free(llnode2->data);
+        sto->data_free(sto->amem, llnode2->data);
         llnode2->data = data;
         return RETURN_SUCCESS;
     }
@@ -678,12 +684,12 @@ int storage2_data_copy_by_id(Storage *sto1, int id1, Storage *sto2, int id2)
         return RETURN_FAILURE;
     }
     
-    data = sto1->data_copy(llnode1->data);
+    data = sto1->data_copy(sto2->amem, llnode1->data);
     if (llnode1->data && !data) {
         sto1->ierrno = STORAGE_ENOMEM;
         return RETURN_FAILURE;
     } else {
-        sto2->data_free(llnode2->data);
+        sto2->data_free(sto2->amem, llnode2->data);
         llnode2->data = data;
         return RETURN_SUCCESS;
     }
@@ -740,7 +746,7 @@ int storage2_data_copy(Storage *sto1, Storage *sto2)
         return RETURN_FAILURE;
     }
     
-    data_new = sto1->data_copy(data);
+    data_new = sto1->data_copy(sto2->amem, data);
     if (data_new == NULL) {
         sto1->ierrno = STORAGE_ENOMEM;
         return RETURN_FAILURE;
@@ -791,22 +797,21 @@ Storage *storage_copy(Storage *sto)
     
     STORAGE_SAFETY_CHECK(sto, return NULL)
     
-    sto_new = storage_new(sto->data_free,
-                          sto->data_copy,
-                          sto->exception_handler);
+    sto_new = storage_new(sto->amem,
+        sto->data_free, sto->data_copy, sto->exception_handler);
     
     if (sto_new) {
         LLNode *llnode = sto->start;
         while (llnode) {
             void *data_new;
-            data_new = sto->data_copy(llnode->data);
+            data_new = sto->data_copy(sto->amem, llnode->data);
             if (llnode->data && !data_new) {
                 storage_free(sto_new);
                 return NULL;
             } else {
                 if (storage_add(sto_new, data_new) !=
                     RETURN_SUCCESS) {
-                    sto->data_free(data_new);
+                    sto->data_free(sto->amem, data_new);
                     storage_free(sto_new);
                     return NULL;
                 }
@@ -880,7 +885,7 @@ int storage_extract_data(Storage *sto, void *data)
     if (storage_scroll_to_data(sto, data) == RETURN_SUCCESS) {
         LLNode *llnode = sto->cp;
         storage_extract_node(sto, llnode);
-        xfree(llnode);
+        amem_free(sto->amem, llnode);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

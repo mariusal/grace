@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -39,6 +39,36 @@
 #define MAX2(a, b) (((a) > (b)) ? a : b)
 #define MIN3(a, b, c) (((a) < (b)) ? MIN2(a, c) : MIN2(b, c))
 #define MAX3(a, b, c) (((a) > (b)) ? MAX2(a, c) : MAX2(b, c))
+
+/* AMem stuff */
+typedef void *(*AMemMallocProc) (AMem *amem, size_t size);
+typedef void *(*AMemReallocProc)(AMem *amem, void *ptr, size_t size);
+typedef void  (*AMemFreeProc)   (AMem *amem, void *ptr);
+
+typedef int          (*AMemSnapshotProc) (AMem *amem);
+typedef int          (*AMemUndoProc)     (AMem *amem);
+typedef int          (*AMemRedoProc)     (AMem *amem);
+typedef unsigned int (*AMemUndoCountProc)(AMem *amem);
+typedef unsigned int (*AMemRedoCountProc)(AMem *amem);
+
+
+struct _AMem {
+    int model;
+    void *heap;
+    
+    int undoable;
+    
+    AMemMallocProc    malloc_proc;
+    AMemReallocProc   realloc_proc;
+    AMemFreeProc      free_proc;
+    
+    AMemSnapshotProc  snapshot_proc;
+    AMemUndoProc      undo_proc;
+    AMemRedoProc      redo_proc;
+    AMemUndoCountProc undo_count_proc;
+    AMemRedoCountProc redo_count_proc;
+};
+
 
 /* Replacements for some missing libc functions */
 
