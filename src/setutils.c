@@ -201,6 +201,59 @@ char *dataset_colname(int col)
     return s;
 }
 
+int zero_set_data(Dataset *dsp)
+{
+    int k;
+    
+    if (dsp) {
+        dsp->len = 0;
+        for (k = 0; k < MAX_SET_COLS; k++) {
+	    dsp->ex[k] = NULL;
+        }
+        dsp->s = NULL;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+/*
+ * free set data
+ */
+int free_set_data(Dataset *dsp)
+{
+    int k;
+    
+    if (dsp) {
+        if (dsp->len) {
+            for (k = 0; k < MAX_SET_COLS; k++) {
+	        XCFREE(dsp->ex[k]);
+            }
+            if (dsp->s) {
+	        for (k = 0; k < dsp->len; k++) {
+		    XCFREE(dsp->s[k]);
+	        }
+                XCFREE(dsp->s);
+            }
+            dsp->len = 0;
+	    set_dirtystate();
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+ 
+/*
+ * free set data, but preserve the parameter settings
+ */
+void killsetdata(int gno, int setno)
+{
+    if (is_valid_setno(gno, setno)) {
+        free_set_data(&g[gno].p[setno].data);
+    }
+}
+
 /*
  * (re)allocate data arrays for a set of length len.
  */
@@ -262,8 +315,6 @@ int setlength(int gno, int setno, int len)
  */
 int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 {
-    int k;
-
     if (gnoto == gnofrom && setfrom == setto) {
 	return RETURN_FAILURE;
     }
@@ -279,17 +330,14 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 
     memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
 
-    g[gnofrom].p[setfrom].data.len = 0;
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gnofrom].p[setfrom].data.ex[k] = NULL;
-    }
-    g[gnofrom].p[setfrom].data.s = NULL;
-    
+    zero_set_data(&g[gnofrom].p[setfrom].data);
+        
     g[gnofrom].p[setfrom].hidden = TRUE;
     
     set_dirtystate();
     return RETURN_SUCCESS;
 }
+
 
 /*
  * copy a set to another set, if the to set doesn't exist allocate it
@@ -298,6 +346,7 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
 {
     int i, k, len, ncols;
     double *savec[MAX_SET_COLS];
+    char **saves;
     char buf[256];
 
     if (!is_set_active(gfrom, setfrom)) {
@@ -328,6 +377,7 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
     for (k = 0; k < MAX_SET_COLS; k++) {
 	savec[k] = getcol(gto, setto, k);
     }
+    saves = get_set_strings(gto, setto);
     memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
     for (k = 0; k < ncols; k++) {
 	g[gto].p[setto].data.ex[k] = savec[k];
@@ -335,6 +385,7 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
                g[gfrom].p[setfrom].data.ex[k],
                len*SIZEOF_DOUBLE);
     }
+    g[gto].p[setto].data.s = saves;
     if (g[gfrom].p[setfrom].data.s != NULL) {
         for (i = 0; i < len; i++) {
 	     g[gto].p[setto].data.s[i] =
@@ -427,28 +478,6 @@ int swapset(int gno1, int setno1, int gno2, int setno2)
     set_dirtystate();
     
     return RETURN_SUCCESS;
-}
-
-/*
- * free set data, but preserve the parameter settings
- */
-void killsetdata(int gno, int setno)
-{
-    int i;
-
-    if (is_set_active(gno, setno)) {
-	for (i = 0; i < MAX_SET_COLS; i++) {
-	    XCFREE(g[gno].p[setno].data.ex[i]);
-	}
-	if (get_set_strings(gno, setno) != NULL) {
-	    for (i = 0; i < getsetlength(gno, setno); i++) {
-		XCFREE(g[gno].p[setno].data.s[i]);
-	    }
-	    XCFREE(g[gno].p[setno].data.s);
-	}
-	g[gno].p[setno].data.len = 0;
-	set_dirtystate();
-    }
 }
 
 /*
@@ -1069,6 +1098,7 @@ int number_of_active_sets(int gno)
 void droppoints(int gno, int setno, int startno, int endno, int dist)
 {
     double *x;
+    char **s;
     int i, j, len, ncols;
 
     if (is_valid_setno(gno, setno) != TRUE) {
@@ -1083,6 +1113,11 @@ void droppoints(int gno, int setno, int startno, int endno, int dist)
 	    x[i - dist] = x[i];
 	}
     }
+    if ((s = get_set_strings(gno, setno)) != NULL) {
+	for (i = endno + 1; i < len; i++) {
+	    s[i - dist] = copy_string(s[i - dist], s[i]);
+	}
+    }
     setlength(gno, setno, len - dist);
 }
 
@@ -1093,6 +1128,7 @@ int join_sets(int gno, int *sets, int nsets)
 {
     int i, j, n, setno, setno_final, ncols, old_length, new_length;
     double *x1, *x2;
+    char **s1, **s2;
 
     if (nsets < 2) {
         errmsg("nsets < 2");
@@ -1128,6 +1164,13 @@ int join_sets(int gno, int *sets, int nsets)
                 x1[n] = x2[n - old_length];
             }
         }
+        s1 = get_set_strings(gno, setno_final);
+        s2 = get_set_strings(gno, setno);
+        if (s1 != NULL && s2 != NULL) {
+            for (n = old_length; n < new_length; n++) {
+                s1[n] = copy_string(s1[n], s2[n - old_length]);
+            }
+        }
         killset(gno, setno);
     }
     
@@ -1138,6 +1181,7 @@ void reverse_set(int gno, int setno)
 {
     int n, i, j, k, ncols;
     double *x;
+    char **s;
 
     if (!is_valid_setno(gno, setno)) {
 	return;
@@ -1149,6 +1193,15 @@ void reverse_set(int gno, int setno)
 	for (i = 0; i < n / 2; i++) {
 	    j = (n - 1) - i;
 	    fswap(&x[i], &x[j]);
+	}
+    }
+    if ((s = get_set_strings(gno, setno)) != NULL) {
+	char *stmp;
+        for (i = 0; i < n / 2; i++) {
+	    j = (n - 1) - i;
+	    stmp = s[i];
+            s[i] = s[j];
+            s[j] = stmp;
 	}
     }
     set_dirtystate();
@@ -1199,11 +1252,10 @@ static int compare_points2(const void *p1, const void *p2)
 void sortset(int gno, int setno, int sorton, int stype)
 {
     int i, j, nc, len, *ind;
-    double *dtmp, *stmp;
+    double *x, *xtmp;
+    char **s, **stmp;
 
-/*
- * get the vector to sort on
- */
+    /* get the vector to sort on */
     vptr = getcol(gno, setno, sorton);
     if (vptr == NULL) {
 	errmsg("NULL vector in sort, operation cancelled, check set type");
@@ -1214,49 +1266,71 @@ void sortset(int gno, int setno, int sorton, int stype)
     if (len <= 1) {
 	return;
     }
-/*
- * allocate memory for permuted indices
- */
-    ind = xcalloc(len, SIZEOF_INT);
+    
+    /* allocate memory for permuted indices */
+    ind = xmalloc(len*SIZEOF_INT);
     if (ind == NULL) {
 	return;
     }
-/*
- * allocate memory for temporary array
- */
-    dtmp = xcalloc(len, SIZEOF_DOUBLE);
-    if (dtmp == NULL) {
+    /* allocate memory for temporary array */
+    xtmp = xmalloc(len*SIZEOF_DOUBLE);
+    if (xtmp == NULL) {
 	xfree(ind);
 	return;
     }
-/*
- * initialize indices
- */
+    
+    s = get_set_strings(gno, setno);
+    if (s != NULL) {
+        stmp = xmalloc(len*sizeof(char *));
+        if (stmp == NULL) {
+	    xfree(xtmp);
+	    xfree(ind);
+        }
+    } else {
+        stmp = NULL;
+    }
+    
+    /* initialize indices */
     for (i = 0; i < len; i++) {
 	ind[i] = i;
     }
 
-/*
- * sort
- */
-    qsort(ind, len, SIZEOF_INT,  stype ? compare_points2 : compare_points1);
+    /* sort */
+    qsort(ind, len, SIZEOF_INT, stype ? compare_points2 : compare_points1);
 
-/*
- * straighten things out - done one vector at a time for storage.
- */
+    /* straighten things out - done one vector at a time for storage */
+    
     nc = dataset_cols(gno, setno);
-/* loop over the number of columns */
+    /* loop over the number of columns */
     for (j = 0; j < nc; j++) {
-/* get this vector and put into the temporary vector in the right order */
-	stmp = getcol(gno, setno, j);
+        /* get this vector and put into the temporary vector in the right order */
+	x = getcol(gno, setno, j);
 	for (i = 0; i < len; i++) {
-	    dtmp[i] = stmp[ind[i]];
+	    xtmp[i] = x[ind[i]];
 	}
-/* load it back to the set */
+        
+        /* load it back to the set */
 	for (i = 0; i < len; i++) {
-	    stmp[i] = dtmp[i];
+	    x[i] = xtmp[i];
 	}
     }
+    
+    /* same with strings, if any */
+    if (s != NULL) {
+	for (i = 0; i < len; i++) {
+	    stmp[i] = s[ind[i]];
+	}
+
+	for (i = 0; i < len; i++) {
+	    s[i] = stmp[i];
+	}
+    }
+    
+    /* free allocated temporary arrays */
+    xfree(stmp);
+    xfree(xtmp);
+    xfree(ind);
+
     set_dirtystate();
 }
 
@@ -1518,106 +1592,74 @@ int do_swapset(int gfrom, int setfrom, int gto, int setto)
  */
 void do_splitsets(int gno, int setno, int lpart)
 {
-    int i, j, k, ncols, len, nleft, tmpset, psets, stype;
+    int i, j, k, ncols, len, plen, tmpset, npsets;
+    double *x;
     char s[256];
-    double *x[MAX_SET_COLS], *xtmp[MAX_SET_COLS], *xt[MAX_SET_COLS];
-    plotarr p;
+    plotarr *p;
+    Dataset ds, dstmp;
 
-    if ((len = getsetlength(gno, setno)) < 3) {
-	errmsg("Set length < 3");
+    if ((len = getsetlength(gno, setno)) < 2) {
+	errmsg("Set length < 2");
 	return;
     }
     if (lpart >= len) {
 	errmsg("Split length >= set length");
 	return;
     }
-    if (lpart == 0) {
-	errmsg("Split length = 0");
+    if (lpart <= 0) {
+	errmsg("Split length <= 0");
 	return;
     }
-    psets = len / lpart;
-    nleft = len % lpart;
-    if (nleft) {
-	psets++;
-    }
+
+    npsets = (len - 1)/lpart + 1;
 
     /* get number of columns in this set */
     ncols = dataset_cols(gno, setno);
 
-    /* copy the contents to a temporary buffer */
-    for (j = 0; j < ncols; j++) {
-	x[j] = getcol(gno, setno, j);
-	xtmp[j] = xcalloc(len, SIZEOF_DOUBLE);
-	if (xtmp[j] == NULL) {
-	    for (k = 0; k < j; k++) {
-		XCFREE(xtmp[k]);
-	    }
-	    return;
-	}
-    }
-    for (j = 0; j < ncols; j++) {
-	for (i = 0; i < len; i++) {
-	    xtmp[j][i] = x[j][i];
-	}
-    }
+    p = &g[gno].p[setno];
 
-    /* save the set type */
-    stype = dataset_type(gno, setno);
-    /*
-     * load the props for this set into a temporary set, set the columns to
-     * NULL
-     */
-    p = g[gno].p[setno];
-    p.data.len = 0;
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	p.data.ex[k] = NULL;
-    }
+    /* save the contents to a temporary buffer */
+    memcpy(&ds, &p->data, sizeof(Dataset));
 
-    /* return the set to the heap */
-    killset(gno, setno);
+    /* zero data contents of the original set */
+    zero_set_data(&p->data);
+
     /* now load each set */
+    for (i = 0; i < npsets; i++) {
+	plen = MIN2(lpart, len - i*lpart); 
+        tmpset = nextset(gno);
+	
+        /* set the plot parameters */
+	dstmp = g[gno].p[tmpset].data;
+        g[gno].p[tmpset] = *p;
+	g[gno].p[tmpset].data = dstmp;
 
-    for (i = 0; i < psets - 1; i++) {
-	tmpset = nextset(gno);
-	/* set the plot parameters includes the set type */
-	g[gno].p[tmpset] = p;
-	activateset(gno, tmpset);
-	set_dataset_type(gno, tmpset, stype);
-	setlength(gno, tmpset, lpart);
-	/* load the data into each column */
+	set_set_hidden(gno, tmpset, FALSE);
+	setlength(gno, tmpset, plen);
+        if (ds.s) {
+            g[gno].p[tmpset].data.s = xmalloc(plen*sizeof(char *));
+        }
+        
+        /* load the data into each column */
 	for (k = 0; k < ncols; k++) {
-	    xt[k] = getcol(gno, tmpset, k);
-	    for (j = 0; j < lpart; j++) {
-		xt[k][j] = xtmp[k][i * lpart + j];
+	    x = getcol(gno, tmpset, k);
+	    for (j = 0; j < plen; j++) {
+		x[j] = ds.ex[k][i*lpart + j];
 	    }
 	}
-	sprintf(s, "partition %d of set %d", i + 1, setno);
+        if (ds.s) {
+	    for (j = 0; j < plen; j++) {
+		g[gno].p[tmpset].data.s[j] =
+                    copy_string(NULL, ds.s[i*lpart + j]);
+	    }
+        }
+	
+        sprintf(s, "partition %d of set %d", i + 1, setno);
 	setcomment(gno, tmpset, s);
 	log_results(s);
     }
-    if (nleft == 0) {
-	nleft = lpart;
-    }
-    tmpset = nextset(gno);
-    memcpy(&g[gno].p[tmpset], &p, sizeof(plotarr));
-    activateset(gno, tmpset);
-    set_dataset_type(gno, tmpset, stype);
-    setlength(gno, tmpset, nleft);
-
-    /* load the data into each column */
-    for (k = 0; k < ncols; k++) {
-	xt[k] = getcol(gno, tmpset, k);
-	for (j = 0; j < nleft; j++) {
-	    xt[k][j] = xtmp[k][i * lpart + j];
-	}
-    }
-
-    sprintf(s, "partition %d of set %d", i + 1, setno);
-    setcomment(gno, tmpset, s);
-    log_results(s);
-    for (k = 0; k < ncols; k++) {
-	xfree(xtmp[k]);
-    }
+    
+    free_set_data(&ds);
 }
 
 /*
