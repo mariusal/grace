@@ -254,6 +254,8 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->a_lL_ff) {
             at->arrow.lL_ff  = GetSpinChoice(ui->a_lL_ff);
         }
+        
+        quark_dirtystate_set(q, TRUE);
     
         return RETURN_SUCCESS;
     } else {
