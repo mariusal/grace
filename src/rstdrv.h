@@ -52,6 +52,8 @@
 #define JPEG_DCT_DEFAULT    JPEG_DCT_ISLOW
 #endif
 
+#define INTENSITY(r, g, b) ((299*r + 587*g + 114*b)/1000)
+
 void rst_drawpixel(VPoint vp);
 void rst_drawpolyline(VPoint *vps, int n, int mode);
 void rst_fillpolygon(VPoint *vps, int nc);

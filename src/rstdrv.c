@@ -657,7 +657,7 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
                     }
                     break;
                 case PNM_FORMAT_PGM:
-                    y = (int) (0.299*r + 0.587*g + 0.114*b);
+                    y = INTENSITY(r, g, b);
                     fwrite(&y, 1, 1, prstream);
                     break;
                 case PNM_FORMAT_PPM:
@@ -673,7 +673,7 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
                     fprintf(prstream, "%1d\n", y);
                     break;
                 case PNM_FORMAT_PGM:
-                    y = (int) (0.299*r + 0.587*g + 0.114*b);
+                    y = INTENSITY(r, g, b);
                     fprintf(prstream, "%3d\n", y);
                     break;
                 case PNM_FORMAT_PPM:
@@ -781,7 +781,7 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
             g = gdImageGreen(ihandle, c);
             b = gdImageBlue(ihandle, c);
             if (jpg_setup_grayscale) {
-                y = (int) (0.299*r + 0.587*g + 0.114*b);
+                y = INTENSITY(r, g, b);
                 row_pointer[k++] = y;
             } else {
                 row_pointer[k++] = r;
