@@ -2119,7 +2119,8 @@ void draw_region(int r)
 void dolegend(int gno)
 {
     int i;
-    int maxsymsize;
+    int draw_flag;
+    double maxsymsize;
     double ldist, sdist, yskip;
     
     WPoint wptmp;
@@ -2134,6 +2135,25 @@ void dolegend(int gno)
         return;
     }
     
+    maxsymsize = 0.0;
+    draw_flag = FALSE;
+    for (i = 0; i < number_of_sets(gno); i++) {
+        if (is_set_drawable(gno, i)) {
+            get_graph_plotarr(gno, i, &p);
+            if (p.lstr[0] != '\0') {
+                draw_flag = TRUE;
+            }
+            if (p.symsize > maxsymsize) {
+                maxsymsize = p.symsize;
+            }
+        }  
+    }
+    
+    if (draw_flag == FALSE) {
+        l.bb.xv1 = l.bb.xv2 = l.bb.yv1 = l.bb.yv2 = 0.0;
+        return;
+    }
+        
     setclipping(FALSE);
     
     if (l.loctype == COORD_WORLD) {
@@ -2145,16 +2165,6 @@ void dolegend(int gno)
         vp.y = l.legy;
     }
     
-    maxsymsize = 0;
-    for (i = 0; i < number_of_sets(gno); i++) {
-        if (is_set_drawable(gno, i)) {
-            get_graph_plotarr(gno, i, &p);
-            if (p.symsize > maxsymsize) {
-                maxsymsize = p.symsize;
-            }
-        }  
-    }
-        
     ldist = 0.01*l.len;
     sdist = 0.01*(l.hgap + maxsymsize);
     
