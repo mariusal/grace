@@ -36,19 +36,11 @@
 
 #include <unistd.h>
 
-#include <X11/X.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#include <X11/Shell.h>
-#include <X11/keysym.h>
-#include <X11/StringDefs.h>
-
 #ifdef WITH_EDITRES
 #  include <X11/Xmu/Editres.h>
 #endif
 
 #include <Xm/Xm.h>
-#include <Xm/Protocols.h>
 #include <Xm/MainW.h>
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
@@ -123,8 +115,6 @@ static void graph_scroll_proc(void *data);
 static void graph_zoom_proc(void *data);
 static void world_stack_proc(void *data);
 static void load_example(void *data);
-
-static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 #define WSTACK_PUSH         0
 #define WSTACK_POP          1
@@ -858,7 +848,6 @@ void startup_gui(void)
 {
     Widget bt, rc3, rcleft;
     Pixmap icon, shape;
-    Atom WM_DELETE_WINDOW;
 
 /* 
  * Allow users to change tear off menus with X resources
@@ -871,22 +860,12 @@ void startup_gui(void)
 #endif
 
 /*
- *     XtAddEventHandler(app_shell, StructureNotifyMask, False,
- *         		     (XtEventHandler) resize, NULL);
+ * We handle important WM events ourselves
  */
-
-    savewidget(app_shell);
+    handle_close(app_shell);
     
     xlibinit();
     XtVaSetValues(app_shell, XmNcolormap, cmap, NULL);
-    
-
-/*
- * We handle important WM events ourselves
- */
-    WM_DELETE_WINDOW = XmInternAtom(disp, "WM_DELETE_WINDOW", False);
-    XmAddWMProtocolCallback(app_shell, WM_DELETE_WINDOW, wm_exit_cb, NULL);
-    XtVaSetValues(app_shell, XmNdeleteResponse, XmDO_NOTHING, NULL);
     
 /*
  * build the UI here
@@ -1132,11 +1111,6 @@ void startup_gui(void)
     log_results("Startup");
 
     XtAppMainLoop(app_con);
-}
-
-static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    bailout();
 }
 
 void get_canvas_size(Dimension *w, Dimension *h)
