@@ -312,7 +312,6 @@ int SetSelectedSet(int gno, int setno, SetChoiceItem l);
 
 
 Widget *CreatePanelChoice(Widget parent, char *labstr, int nchoices, ...);
-Widget *CreatePanelChoice0(Widget parent, char *labstr, int ncols, int nchoices, ...);
 void SetChoice(Widget * w, int value);
 int GetChoice(Widget * w);
 

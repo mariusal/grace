@@ -2319,54 +2319,6 @@ SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
 
 
 
-
-Widget *CreatePanelChoice0(Widget parent, char *labelstr, int ncols, int nchoices,...)
-{
-    va_list var;
-    int i = 0;
-    XmString str;
-    char *s;
-    Widget *retval;
-
-    nchoices--;
-
-    retval = (Widget *) XtMalloc((nchoices + 2) * sizeof(Widget));
-
-    retval[1] = XmCreatePulldownMenu(parent, "pulldown", NULL, 0);
-    
-    if (ncols > 0) {
-        XtVaSetValues(retval[1],
-                      XmNorientation, XmVERTICAL,
-                      XmNpacking, XmPACK_COLUMN,
-                      XmNnumColumns, ncols,
-                      NULL);
-    }
-
-    va_start(var, nchoices);
-    i = 0;
-    while ((s = va_arg(var, char *)) != NULL) {
-	retval[i + 2] = XmCreatePushButton(retval[1], s, NULL, 0);
-	i++;
-    }
-    if (i != nchoices) {
-	errmsg("Incorrect number of selections in CreatePanelChoice0()");
-    }
-    va_end(var);
-
-    XtManageChildren(retval + 2, nchoices);
-
-    retval[0] = XmCreateOptionMenu(parent, "optionmenu", NULL, 0);
-    str = XmStringCreateLocalized(labelstr);
-    XtVaSetValues(retval[0],
-		  XmNlabelString, str,
-		  XmNsubMenuId, retval[1],
-		  NULL);
-    XmStringFree(str);
-    XtManageChild(retval[0]);
-
-    return retval;
-}
-
 Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
 {
     va_list var;
