@@ -43,8 +43,10 @@
 
 int formula(int gno, int selset, char *sscanstr);
 
+int filter_set(int gno, int setno, char *rarray);
+
 void do_fourier_command(int gno, int setno, int ftype, int ltype);
-int do_compute(int setno, int loadto, int graphto, char *fstr);
+int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
@@ -257,21 +259,15 @@ int isleft(double x, double y, double x1, double y1, double x2, double y2);
 int isright(double x, double y, double x1, double y1, double x2, double y2);
 int isabove(double x, double y, double x1, double y1, double x2, double y2);
 int isbelow(double x, double y, double x1, double y1, double x2, double y2);
-void extractsets_region(int gfrom, int gto, int rno);
-void deletesets_region(int gno, int rno);
-void reporton_region(int gno, int rno, int type, int strict);
+void reporton_region(int gno, int rno, int type);
 int isactive_region(int regno);
 char *region_types(int it, int which);
 void kill_region(int r);
 void activate_region(int r, int type);
-void extract_region(int gno, int fromset, int toset, int regno);
-void delete_region(int gno, int setno, int regno);
-void evaluate_region(int regno, int gno, int setno, char *buf);
 void load_poly_region(int r, int n, WPoint *wps);
 int inregion(int regno, double x, double y);
 
 void set_plotstr_string(plotstr * pstr, char *buf);
-void my_ellipse(double xc, double yc, double w, double h, int fill);
 
 void cli_loop(void);
 
