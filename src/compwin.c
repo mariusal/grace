@@ -73,7 +73,7 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
 static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_histo_proc(void *data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -292,18 +292,18 @@ void create_interp_frame(void *data)
         opitems[2].label = "Akima spline";
         interpui->method = CreateOptionChoice(rc2, "Method:", 0, 3, opitems);
         
+        interpui->strict =
+            CreateToggleButton(rc2, "Strict (within source set bounds)");
+        
+        CreateSeparator(rc);
+        
         opitems[0].value = SAMPLING_MESH;
         opitems[0].label = "Linear mesh";
         opitems[1].value = SAMPLING_SET;
         opitems[1].label = "Abscissas of another set";
-        interpui->sampling = CreateOptionChoice(rc2, "Sampling:", 0, 2, opitems);
+        interpui->sampling = CreateOptionChoice(rc, "Sampling:", 0, 2, opitems);
         AddOptionChoiceCB(interpui->sampling, sampling_cb, interpui);
 
-        interpui->strict = CreateToggleButton(rc,
-            "Strict (no extrapolation beyond source bounds)");
-        
-        CreateSeparator(rc);
-        
         interpui->mrc = CreateHContainer(rc);
 	interpui->mstart  = CreateTextItem2(interpui->mrc, 10, "Start at:");
 	interpui->mstop   = CreateTextItem2(interpui->mrc, 10, "Stop at:");
@@ -357,11 +357,11 @@ static int do_interp_proc(void *data)
         }
     } else {
         double start, stop;
-        if(xv_evalexpr(ui->mstart, &start)  != RETURN_SUCCESS ||
-           xv_evalexpr(ui->mstop,  &stop)   != RETURN_SUCCESS ||
-           xv_evalexpri(ui->mlength, &meshlen) != RETURN_SUCCESS ) {
-            errmsg("Can't parse mesh settings");
-            error = TRUE;
+        if (xv_evalexpr(ui->mstart, &start)     != RETURN_SUCCESS ||
+            xv_evalexpr(ui->mstop,  &stop)      != RETURN_SUCCESS ||
+            xv_evalexpri(ui->mlength, &meshlen) != RETURN_SUCCESS ) {
+             errmsg("Can't parse mesh settings");
+             error = TRUE;
         } else {
             mesh = allocate_mesh(start, stop, meshlen);
             if (mesh == NULL) {
@@ -379,8 +379,6 @@ static int do_interp_proc(void *data)
         return RETURN_FAILURE;
     }
 
-    set_wait_cursor();
-    
     for (i = 0; i < nssrc; i++) {
 	int setnosrc, setnodest;
         setnosrc = svaluessrc[i];
@@ -412,8 +410,6 @@ static int do_interp_proc(void *data)
     update_set_lists(gdest);
     xdrawgraph();
     
-    unset_wait_cursor();
-    
     if (error) {
         return RETURN_FAILURE;
     } else {
@@ -425,111 +421,170 @@ static int do_interp_proc(void *data)
 /* histograms */
 
 typedef struct _Histo_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget nbins_item;
-    Widget hxmin_item;
-    Widget hxmax_item;
-    Widget *type_item;
-    ListStructure *graph_item;
+    TransformStructure *tdialog;
+    Widget cumulative;
+    Widget normalize;
+    OptionStructure *sampling;
+    Widget mrc;
+    Widget mstart;
+    Widget mstop;
+    Widget mlength;
+    ListStructure *sset_sel;
 } Histo_ui;
 
-static Histo_ui hui;
+static Histo_ui *histoui = NULL;
+
+static void binsampling_cb(int value, void *data)
+{
+    Interp_ui *ui = (Interp_ui *) data;
+    
+    if (value == SAMPLING_MESH) {
+        XtSetSensitive(ui->mrc, True);
+        XtSetSensitive(ui->sset_sel->list, False);
+    } else {
+        XtSetSensitive(ui->mrc, False);
+        XtSetSensitive(ui->sset_sel->list, True);
+    }
+}
 
 void create_histo_frame(void *data)
 {
-    Widget dialog;
-    Widget rc;
-
     set_wait_cursor();
-    if (hui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	hui.top = XmCreateDialogShell(app_shell, "Histograms", NULL, 0);
-	handle_close(hui.top);
-	dialog = XmCreateRowColumn(hui.top, "dialog_rc", NULL, 0);
 
-	hui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, dialog,
-			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 4,
-			      XmNorientation, XmHORIZONTAL,
-			      XmNisAligned, True,
-			      XmNadjustLast, False,
-			      XmNentryAlignment, XmALIGNMENT_END,
-			      NULL);
+    if (histoui == NULL) {
+        Widget fr, rc, rc2;
+        OptionItem opitems[2];
+        
+        histoui = xmalloc(sizeof(Histo_ui));
+        histoui->tdialog = CreateTransformDialogForm(app_shell,
+            "Histograms", LIST_TYPE_MULTIPLE);
+        fr = CreateFrame(histoui->tdialog->form, NULL);
+        rc = CreateVContainer(fr);
+        
+        rc2 = CreateHContainer(rc);
+        histoui->cumulative = CreateToggleButton(rc2, "Cumulative histogram");
+        histoui->normalize = CreateToggleButton(rc2, "Normalize");
+        
+        CreateSeparator(rc);
+        
+        opitems[0].value = SAMPLING_MESH;
+        opitems[0].label = "Linear mesh";
+        opitems[1].value = SAMPLING_SET;
+        opitems[1].label = "Abscissas of another set";
+        histoui->sampling = CreateOptionChoice(rc, "Bin sampling:", 0, 2, opitems);
+        AddOptionChoiceCB(histoui->sampling, binsampling_cb, histoui);
 
-	XtVaCreateManagedWidget("Start value: ", xmLabelWidgetClass, rc, NULL);
-	hui.hxmin_item = XtVaCreateManagedWidget("xmin", xmTextWidgetClass, rc, NULL);
-	XtVaSetValues(hui.hxmin_item, XmNcolumns, 10, NULL);
-	XtVaCreateManagedWidget("Ending value: ", xmLabelWidgetClass, rc, NULL);
-	hui.hxmax_item = XtVaCreateManagedWidget("xmax", xmTextWidgetClass, rc, NULL);
-	XtVaSetValues(hui.hxmax_item, XmNcolumns, 10, NULL);
-	XtVaCreateManagedWidget("Number of bins: ", xmLabelWidgetClass, rc, NULL);
-	hui.nbins_item = XtVaCreateManagedWidget("nbins", xmTextWidgetClass, rc, NULL);
-	XtVaSetValues(hui.nbins_item, XmNcolumns, 10, NULL);
-	ManageChild(rc);
-
-	CreateSeparator(dialog);
-	hui.type_item = CreatePanelChoice(dialog, "Compute: ",
-					  3,
-					  "Histogram",
-					  "Cumulative histogram",
-					  0,
-					  0);
-	hui.graph_item = CreateGraphChoice(dialog, "Load result to graph:", LIST_TYPE_SINGLE);
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_histo_proc, (XtPointer) & hui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) hui.top);
-
-	ManageChild(dialog);
+        histoui->mrc = CreateHContainer(rc);
+	histoui->mstart  = CreateTextItem2(histoui->mrc, 10, "Start at:");
+	histoui->mstop   = CreateTextItem2(histoui->mrc, 10, "Stop at:");
+	histoui->mlength = CreateTextItem2(histoui->mrc, 6, "# of bins");
+        
+        histoui->sset_sel = CreateSetChoice(rc,
+            "Sampling set", LIST_TYPE_SINGLE, TRUE);
+        XtSetSensitive(histoui->sset_sel->list, False);
+        
+        CreateAACDialog(histoui->tdialog->form, fr, do_histo_proc, histoui);
     }
-    RaiseWindow(hui.top);
+    
+    RaiseWindow(GetParent(histoui->tdialog->form));
     unset_wait_cursor();
 }
 
-/*
- * histograms
- */
-static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
+
+static int do_histo_proc(void *data)
 {
-    int *selsets;
-    int i, cnt, nbins;
-    int fromset, toset, tograph, hist_type;
-    double xmin, xmax;
-    Histo_ui *ui = (Histo_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
+    int error, res;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int cumulative, normalize, sampling;
+    int i, nbins;
+    double *bins = NULL;
+    Histo_ui *ui = (Histo_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest,
+        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    toset = SET_SELECT_NEXT;
-    if (GetSingleListChoice(ui->graph_item, &tograph) != RETURN_SUCCESS) {
-	errmsg("Please select single graph");
-	return;
+
+    error = FALSE;
+    
+    cumulative = GetToggleButtonState(ui->cumulative);
+    normalize  = GetToggleButtonState(ui->normalize);
+    sampling   = GetOptionChoice(ui->sampling);
+
+    if (sampling == SAMPLING_SET) {
+        int gsampl, setnosampl;
+        gsampl = get_cg();
+        res = GetSingleListChoice(ui->sset_sel, &setnosampl);
+        if (res != RETURN_SUCCESS) {
+            errmsg("Please select single sampling set");
+            error = TRUE;
+        } else {
+            nbins = getsetlength(gsampl, setnosampl) - 1;
+            bins = getcol(gsampl, setnosampl, DATA_X);
+        }
+    } else {
+        double start, stop;
+        if (xv_evalexpr(ui->mstart, &start)   != RETURN_SUCCESS ||
+            xv_evalexpr(ui->mstop,  &stop)    != RETURN_SUCCESS ||
+            xv_evalexpri(ui->mlength, &nbins) != RETURN_SUCCESS ){
+            errmsg("Can't parse mesh settings");
+            error = TRUE;
+        } else {
+            bins = allocate_mesh(start, stop, nbins + 1);
+            if (bins == NULL) {
+	        errmsg("Can't allocate mesh");
+                error = TRUE;
+            }
+        }
     }
-    if (xv_evalexpri(ui->nbins_item, &nbins) != RETURN_SUCCESS ||
-        xv_evalexpr(ui->hxmin_item, &xmin) != RETURN_SUCCESS ||
-        xv_evalexpr(ui->hxmax_item, &xmax) != RETURN_SUCCESS ) {
-        return;
+    
+    if (error) {
+        xfree(svaluessrc);
+        if (nsdest > 0) {
+            xfree(svaluesdest);
+        }
+        return RETURN_FAILURE;
     }
-    hist_type = GetChoice(ui->type_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	fromset = selsets[i];
-	do_histo(get_cg(), fromset, tograph, toset, xmin, xmax, nbins, hist_type);
+
+    for (i = 0; i < nssrc; i++) {
+	int setnosrc, setnodest;
+        setnosrc = svaluessrc[i];
+	if (nsdest != 0) {
+            setnodest = svaluesdest[i];
+        } else {
+            setnodest = nextset(gdest);
+            set_set_hidden(gdest, setnodest, FALSE);
+        }
+        
+        res = do_histo(gsrc, setnosrc, gdest, setnodest,
+            bins, nbins, cumulative, normalize);
+	
+        if (res != RETURN_SUCCESS) {
+	    errmsg("Error in do_histo()");
+	    error = TRUE;
+            break;
+	}
     }
-    xfree(selsets);
-    update_all();
-    drawgraph();
-    unset_wait_cursor();
+    
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    if (sampling == SAMPLING_MESH) {
+        xfree(bins);
+    }
+
+    update_set_lists(gdest);
+    xdrawgraph();
+    
+    if (error) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
 /* DFTs */
