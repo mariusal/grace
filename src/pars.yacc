@@ -2535,10 +2535,13 @@ actions:
 	| PRINT {
 	    do_hardcopy();
 	}
+	| PRINT TO DEVICE {
+            set_ptofile(FALSE);
+	}
 	| PRINT TO CHRSTR {
+            set_ptofile(TRUE);
 	    strcpy(print_file, (char *) $3);
             free((char *) $3);
-            do_hardcopy();
 	}
 	| PAGE direction {
 	    switch ((int) $2) {
