@@ -153,7 +153,7 @@ void set_title(char *ts)
 {
     static char *buf = NULL;
     
-    if (ts == NULL) {
+    if (!inwin || ts == NULL) {
         return;
     } else if (buf == NULL || strcmp(buf, ts) != 0) {
         buf = copy_string(buf, ts);
