@@ -1,5 +1,5 @@
 #####################################################
-# Makefile for documentation of XMGR                #
+# Makefile for documentation of Grace               #
 #####################################################
 # You should not change anything here.              #
 # Please read INSTALL file in the upper directory   #
