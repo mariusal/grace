@@ -76,7 +76,7 @@ Quark *graph_next(Quark *project)
     
     f = frame_new(project);
     g = graph_new(f);
-    if (number_of_graphs(project) == 1) {
+    if (g && number_of_graphs(project) == 1) {
         Project *pr = project_get_data(project);
         pr->cg = g;
     }
