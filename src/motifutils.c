@@ -371,7 +371,8 @@ void AddOptionChoiceCB(OptionStructure *opt, TB_CBProc cbproc, void *anydata)
 
 static char list_translation_table[] = "\
     Ctrl<Key>A: list_selectall_action()\n\
-    Ctrl<Key>U: list_unselectall_action()";
+    Ctrl<Key>U: list_unselectall_action()\n\
+    Ctrl<Key>I: list_invertselection_action()";
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
@@ -1512,7 +1513,7 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
     XtManageChild(popup);
 }
 
-void list_selectall(Widget list)
+static void list_selectall(Widget list)
 {
     int i, n;
     unsigned char selection_type_save;
@@ -1541,13 +1542,13 @@ void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
     list_selectall(w);
 }
 
-void list_selectall_cb(void *data)
+static void list_selectall_cb(void *data)
 {
     ListStructure *listp = (ListStructure *) data;
     list_selectall(listp->list);
 }
 
-void list_unselectall(Widget list)
+static void list_unselectall(Widget list)
 {
     XmListDeselectAllItems(list);
 }
@@ -1557,10 +1558,43 @@ void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
     list_unselectall(w);
 }
 
-void list_unselectall_cb(void *data)
+static void list_unselectall_cb(void *data)
 {
     ListStructure *listp = (ListStructure *) data;
     list_unselectall(listp->list);
+}
+
+static void list_invertselection(Widget list)
+{
+    int i, n;
+    unsigned char selection_type_save;
+    
+    XtVaGetValues(list,
+        XmNselectionPolicy, &selection_type_save,
+        XmNitemCount, &n,
+        NULL);
+    if (selection_type_save == XmSINGLE_SELECT) {
+        XBell(disp, 50);
+        return;
+    }
+    
+    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+    for (i = 0; i < n; i++) {
+        XmListSelectPos(list, i, False);
+    }
+    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+static void list_invertselection_cb(void *data)
+{
+    ListStructure *listp = (ListStructure *) data;
+    list_invertselection(listp->list);
+}
+
+void list_invertselection_action(Widget w, XEvent *e, String *par,
+				 Cardinal *npar)
+{
+    list_invertselection(w);
 }
 
 void set_graph_selectors(int gno)
@@ -2034,6 +2068,8 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	list_selectall_cb, (void *) listp);
     CreateMenuButton(submenupane, "Unselect all", '\0',
     	list_unselectall_cb, (void *) listp);
+    CreateMenuButton(submenupane, "Invert selection", '\0',
+    	list_invertselection_cb, (void *) listp);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Update", '\0',
     	update_set_proc, (void *) listp);
