@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- LinuxDoc file was created by LyX 1.0 (C) 1995-1999 by <ed> Tue Dec 21 22:16:51 1999
+<!-- LinuxDoc file was created by LyX 1.0 (C) 1995-1999 by <ed> Sun Mar 19 15:07:54 2000
  -->
  <article>
  <title>
@@ -8,10 +8,10 @@ Grace Tutorials
  </title>
  <author>
 Edward Vigmond
-<tt>vigmonde@igb.umontreal.ca</tt>
+<tt>evigmon@mailhost.tcs.tulane.edu</tt>
  </author>
  <date>
-August 21, 1998
+for Grace-5.1.0
  </date>
  <toc>
  <sect>
@@ -105,16 +105,16 @@ The object of this tutorial is to do the most basic function of grace:
 Reading the data from a file
  <p>
 Start by bringing up the set reading widget <em>Main:File/Read/Sets</em>. Select
- the file data.2.1 (both double clicking and hitting return work). You should
+ the file 2.1.dat (both double clicking and hitting return work). You should
  see a black curve drawn on a graph.
  </p>
  <p>
 Now we would like to add some more sets to the graph, but this time the
- data file will be in a slightly different format. Looking at the file "data.2.1"
+ data file will be in a slightly different format. Looking at the file "2.1.dat"
  (with the program of your choice), you can see that its several columns of
  numbers. One way to interpret this file is the first column gives the x-values
  and the rest of the columns are y-values. From grace, again open the "Read Sets"
- widget. This time, check the "NXY" button. Now select the file "data.2.1". At this
+ widget. This time, check the "NXY" button. Now select the file "2.1.dat". At this
  point you will have several differently coloured curves.
  </p>
  <p>
@@ -236,7 +236,7 @@ Specifying the placement of the graph by entering the coordinates can be
 A challenge
  <p>
 I got bored so I took the data files and produced my own, albeit ugly,
- graph. See if you can copy <htmlurl url="mine" name="mygraph.gif"> 
+ graph. See if you can copy <htmlurl url="mine" name="mygraph.png"> 
  </p>
  <sect>
 Block Data
@@ -247,7 +247,7 @@ A block of data is a table of number which are interpreted as columns of
  </p>
  <p>
 We first need to read in a block of data. We do this from Main:File/Read/Block
- data. Select the file "data.3". If the read was successful, a window should pop
+ data. Select the file "3.dat". If the read was successful, a window should pop
  up asking you to create a set from the block data. At the top it will list
  how many columns of data were read.
  </p>
@@ -362,12 +362,139 @@ This creates a new set from a block of data which has been read in. See
  <sect>
 Batch plotting 
  <p>
-Grace can also be invoked from the command line to do plotting without
- bringing up the GUI. This is done by using the grbatch command which is really
- a link to Grace. You might want to use it to quickly print something or use
- it within a script to automatically generate graphs. 
+Grace supports a large number of command line options which allow the user
+ to control the appearance and placement of graphs. This can be very useful
+ if you want to use it to quickly print something without going through the
+ GUI, use it within a script to automatically generate graphs, or have a plot
+ come up already configured which can be much quicker than going through the
+ GUI menus. 
  </p>
- <sect>
+ <sect1>
+Simple nonGUI printing
+ <p>
+Invoking grace with the command "grbatch"from the command line will cause
+ grace to start, produce a plot, send it to the printer (unless a file is specified)
+ and then exit. In its simplest form, to produce a plot of the file a.agr, type
+ </p>
+ <p>
+ <verb>
+gracebat a.agr
+ </verb>
+</p> <p>
+If gracebat is unavailable on your system, the hardcopy option to xmgrace
+ will do the same thing. Assuming the hardcopy device is a postscript printer,
+ one could also type
+ </p>
+ <p>
+ <verb>
+xmgrace -hdevice PostScript -hardcopy a.agr
+ </verb>
+</p> <sect1>
+Multiple graphs
+ <p>
+Often, one wishes to plot several graphs with each graph having different
+ characteristics. This is easily accomplished from the command line. Options
+ specified on the command line are parsed in order and stay in effect until
+ overridden by specifying them again.
+ </p>
+ <p>
+ <enum>
+  <item>
+The first step in plotting multiple graphs is usually telling grace how
+ many graphs we have and how to arrange them. The options -rows, -columns, and
+ arrange will do this. For example, if we want 4 graphs arranged in a simple
+ 2x2 table, use "-arrange 2 2".
+  <item>
+Specify any global options. 
+  <item>
+Specify for each graph, the data to plot and any options. Options should
+ be specified in the following order:
+  <enum>
+   <item>
+"-graph g" where g is the graph number starting at 0. This says to apply
+ all following options to this graph.
+   <item>
+Set any autoscaling options. Autoscaling is performed when the file is
+ read; ergo, the autoscaling must be specified BEFORE the file is read. Remember,
+ this setting is persistent.
+   <item>
+Set the set type. This is also a persistent setting.
+   <item>
+Specify the graph type and the input file.
+   <item>
+If reading in block data, create the sets with the "-bxy" option.
+   <item>
+Specify any world scaling. It is important to do this AFTER sets are read
+ (unless autoscaling is off) as the graph gets rescaled when data is read in.
+   <item>
+Specify anything else
+  </enum>
+ </enum>
+</p> <sect2>
+An example
+ <p>
+Let's try an example. We will assume 5 plots, the first 4 of which are
+ to be stacked vertically, and the fifth inset into the fourth. We wish to plot
+ the files a.dat, b.dat, c.dat and d.dat with the inset graph being a magnified
+ portion of d.dat. Assume a.dat contains multiple columns of data, b.dat is
+ a block of data from which we wish to make a curve from columns 2 and 4 with
+ the error given by column 3, c.dat is to be represented as a bar graph, and
+ for the inset graph, we wish to graph to region (0,0) to (1,1). This can be
+ accomplished by
+ </p>
+ <p>
+ <verb>
+gracebat -rows 4 -nxy a.dat -graph 1 -block b.dat -settype xydy -bxy 2:4:3 -graph 2 -settype bar c.dat -graph 3 -settype xy d.dat -graph 4 d.dat -world 0 0 1 1 -viewport .15 .3 .8 .88
+ </verb>
+</p> <p>
+Note that the graph numbers start at 0 and that 0 is the default so it
+ does not have to be specified for the first graph.
+ </p>
+ <sect1>
+Things for which no command line option exists
+ <p>
+Undoubtedly, you will reach a point where you want to do something for
+ which no command line option exists. This is where Grace's parameter file language
+ is vital. The option "-pexec" will execute the next argument as if it had read
+ it from a parameter file. If you want to do something more complicated than
+ one command, you can use several pexec's or put the commands in a file and
+ run the file with the "-batch" option.
+ </p>
+ <sect2>
+Pexec example
+ <p>
+To read in the files foo.dat and bar.dat and scale foo.dat in Y by 1000,
+ the simplest way is
+ </p>
+ <p>
+ <verb>
+xmgrace foo.dat bar.dat -pexec "s0.y = s0.y * 1000"
+ </verb>
+</p> <sect2>
+Batch example
+ <p>
+To do the same as the previous example but also label the axes and recolour
+ the curves, make a file called "bfile" with the grace commands
+ </p>
+ <p>
+ <code>
+&num;Obligatory descriptive comment
+s0.y = s0.y * 1000
+s0 line color 3
+s1 line color 4
+title "A Gnasty Graph"
+xaxis label "Time ( s )"
+yaxis label "Gnats ( 1000's  )"
+autoscale 
+ </code>
+</p> <p>
+and then run xmgrace with
+ </p>
+ <p>
+ <verb>
+xmgrace foo.dat bar.dat -batch bfile
+ </verb>
+</p> <sect>
 Fitting curves 
  <p>
 This tutorial will explain some of Grace's curve fitting abilities. Grace
@@ -486,7 +613,7 @@ Let us now add the cosine of a set to the sine of another set to create
  <p>
  <enum>
   <item>
-Read in graph.7.1.2
+Read in 7.1.2.agr
   <item>
 Note how the abscissa are different. We begin by using interpolate to produce
  a third set which is the second set sampled at the x values of the first. Call
@@ -536,31 +663,27 @@ Feature extraction is a way of creating one curve from a family of curves.
  <p>
  <enum>
   <item>
-Start off by making a new graph. Bring up the arrange graphs popup by clicking
- on Main:Edit/Arrange_graphs. We want one graph on top of the other so we choose
- 2 rows and then accept.
-  <item>
-Read in a family of curves to graph 0. Make sure you are reading into the
- correct graph. The one you read into is the currently selected one which will
- have the focus markers on the corners. In addition, you will see the currently
- selected graph number, eg. G0, in the locator line.
+Read in graph 7.1.3.agr
   <item>
 Bring up the feature extraction form by clicking on Main:Data/Transformations/Feature_extraction.
  
   <item>
 Select Results to graph 1.
   <item>
-Select the feature you are interested in.
+Select the feature you are interested in. Choose Y maximum.
   <item>
 Select what will determine the x value of the data point. The value of
  the characteristic determines the Y value. The X value can be determined by
  the set number. The x or y values of a specified set can also be used to produce
  the abscissa. Finally, the legend entry of the curve itself can be used to
  produce the x value. In this case, the legend entry must be specified as a
- single number.
+ single number. Choose index for now.
   <item>
 Press accept, click on graph 1 and then click on the autoscale button to
- see your result.
+ see your results.
+  <item>
+Choose another feature, like frequency, this time and get X values from
+ the legend. Make sure that graph 0 has the focus when you hit accept. 
  </enum>
 </p> <sect1>
 Restrictions
@@ -649,9 +772,9 @@ Start up grace in the background using the named pipe option: <tt>xmgrace</tt><t
  interpreter. 
   <item>
 For a simple test, we will create a simple graph over the pipe. From your
- command line, type: <tt>echo "read &bsol;"data.8.2&bsol;"" &gt; pvc</tt><bf>. </bf>(The back slashes
+ command line, type: <tt>echo "read &bsol;"8.2.dat&bsol;"" &gt; pvc</tt><bf>. </bf>(The back slashes
  are needed to escape the quotation marks so that grace really received the
- command :read "data.8.2".) This just told grace to read the file data. Now we
+ command :read "8.2.dat".) This just told grace to read the file data. Now we
  would like to autoscale. We could simply click on the button but the point
  is to use a named pipe. This time we type <tt>echo</tt><em> </em><em><tt></tt></em><tt>autoscale &gt; pvc</tt><em> </em>followed
  by<em> </em><em><tt></tt></em><tt>echo redraw &gt; pvc</tt><em>.</em> Your graph should now have autoscaled and redrawn.
@@ -675,9 +798,9 @@ When multiple graphs are present, a graph is selected by clicking inside
  <p>
 It might be annoying if one is trying to work in a region of overlapping
  graphs. If will not be possible to double click on something because the each
- click will be interpreted as a single click and you will only end u changing
+ click will be interpreted as a single click and you will only end up changing
  the graph focus. In such an instance, turning off the graph selection by clicking
- might be desirable.Choose Main:Edit/Preferences and then set Misc:Graph_focus
+ might be desirable. Choose Main:Edit/Preferences and then set Misc:Graph_focus
  to "As set". This means one must explicitly set the focus. Simply bring up a
  graph list (eg. Main:Edit/Overlay_graphs is but one), select the graph you
  want to work on and then, using the menu under mouse button 3, choose "Focus
@@ -700,7 +823,7 @@ Placing a large number of regularly spaced graphs is most easily done with
  <p>
  <enum>
   <item>
-Choose 2 rows and 2 columns. You should now see 4 graphs.
+Choose3 rows and 2 columns. You should now see 6 graphs.
   <item>
 You realize you need horizontal packing, i.e. no horizontal gap between
  graphs. Select it. to set the intergraph spacing to zero. Now you must recompute
@@ -734,7 +857,7 @@ Overlaying one graph onto another is useful for creating a graph with two
  using the left y axis which is number of gnus sold and one using the right
  y-axis which is the number of gnats exported on a logarithmic scale. Likewise,
  if one is plotting spectral data, one could have one x axis in Hz and another
- one in wavelength. Let's proceed with an example:
+ one in wavelength. Let's proceed with an example:data
  </p>
  <p>
  <enum>
@@ -803,7 +926,7 @@ Pressing the Link button will now create the link and if the update button
  linked and the contents of the Command widget will be executed.
  </p>
  <p>
-For a simple example, read in the set data.10.1 and set up the hot link.
+For a simple example, read in the set 10.1.dat and set up the hot link.
  Now, run the command shiftdata.sh and update the hotlink. You should have seen
  the peak in the graph shift. Try repeating this a couple of more times.
  </p>
