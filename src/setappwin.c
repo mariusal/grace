@@ -381,29 +381,29 @@ void define_symbols_popup(void *data)
         
         rc2 = CreateHContainer(rc);
 	avalue_font_item = CreateFontChoice(rc2, "Font:");
-        AddOptionChoiceCB(avalue_font_item, oc_setapp_cb, avalue_active_item);
+        AddOptionChoiceCB(avalue_font_item, oc_setapp_cb, avalue_font_item);
 	avalue_charsize_item = CreateCharSizeChoice(rc2, "Char size");
 	SetScaleWidth(avalue_charsize_item, 120);
-        AddScaleCB(avalue_charsize_item, scale_setapp_cb, avalue_active_item);
+        AddScaleCB(avalue_charsize_item, scale_setapp_cb, avalue_charsize_item);
         
         rc2 = CreateHContainer(rc);
 	avalue_color_item = CreateColorChoice(rc2, "Color:");
-        AddOptionChoiceCB(avalue_color_item, oc_setapp_cb, avalue_active_item);
+        AddOptionChoiceCB(avalue_color_item, oc_setapp_cb, avalue_color_item);
 	avalue_angle_item = CreateAngleChoice(rc2, "Angle");
 	SetScaleWidth(avalue_angle_item, 180);
-        AddScaleCB(avalue_angle_item, scale_setapp_cb, avalue_active_item);
+        AddScaleCB(avalue_angle_item, scale_setapp_cb, avalue_angle_item);
 
         rc2 = CreateHContainer(rc);
         avalue_prestr = CreateTextItem2(rc2, 10, "Prepend:");
-        AddTextItemCB(avalue_prestr, text_setapp_cb, avalue_active_item);
+        AddTextItemCB(avalue_prestr, text_setapp_cb, avalue_prestr);
         avalue_appstr = CreateTextItem2(rc2, 10, "Append:");
-        AddTextItemCB(avalue_appstr, text_setapp_cb, avalue_active_item);
+        AddTextItemCB(avalue_appstr, text_setapp_cb, avalue_appstr);
         
 	fr = CreateFrame(setapp_avalue, "Format options");
 	rc = CreateVContainer(fr);
         rc2 = CreateHContainer(rc);
 	avalue_format_item = CreateFormatChoice(rc, "Format:");
-        AddOptionChoiceCB(avalue_format_item, oc_setapp_cb, avalue_active_item);
+        AddOptionChoiceCB(avalue_format_item, oc_setapp_cb, avalue_format_item);
         avalue_type_item = CreatePanelChoice(rc2, "Type:",
                                              7,
                                              "None",
@@ -414,16 +414,16 @@ void define_symbols_popup(void *data)
                                              "Z",
                                              NULL,
                                              0);
-        AddOptionChoiceCB(avalue_type_item, oc_setapp_cb, avalue_active_item); 
+        AddOptionChoiceCB(avalue_type_item, oc_setapp_cb, avalue_type_item); 
 	avalue_precision_item = CreatePrecisionChoice(rc2, "Precision:");
-        AddOptionChoiceCB(avalue_precision_item, oc_setapp_cb, avalue_active_item);
+        AddOptionChoiceCB(avalue_precision_item, oc_setapp_cb, avalue_precision_item);
         
 	fr = CreateFrame(setapp_avalue, "Placement");
         rc2 = CreateHContainer(fr);
         avalue_offsetx = CreateTextItem2(rc2, 10, "X offset:");
-        AddTextItemCB(avalue_offsetx, text_setapp_cb, avalue_active_item);
+        AddTextItemCB(avalue_offsetx, text_setapp_cb, avalue_offsetx);
         avalue_offsety = CreateTextItem2(rc2, 10, "Y offset:");
-        AddTextItemCB(avalue_offsety, text_setapp_cb, avalue_active_item);
+        AddTextItemCB(avalue_offsety, text_setapp_cb, avalue_offsety);
         
 
         /* ------------ Errbar tab -------------- */
