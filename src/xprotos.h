@@ -143,7 +143,6 @@ void create_monitor_frame_cb(void *data);
 void stufftextwin(char *s);
 
 void HelpCB(void *data);
-void ContextHelpCB(void *data);
 
 void create_nonl_frame(void *data);
 void update_nonl_frame(void);
