@@ -134,8 +134,6 @@ int pdfinitgraphics(void)
         return RETURN_FAILURE;
     }
 
-    PDF_set_parameter(phandle, "prefix", get_grace_home());
-
     PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
 
     if (pdf_setup_pdf1_3 == TRUE) {
@@ -500,11 +498,11 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
         if (pdf_builtin_font(fontname)) {
             embed = 0;
         } else {
-            sprintf(buf, "%s=fonts/type1/%s",
-                fontname, get_afmfilename(font));
+            sprintf(buf, "%s==%s",
+                fontname, get_afmfilename(font, TRUE));
             PDF_set_parameter(phandle, "FontAFM", buf);
-            sprintf(buf, "%s=fonts/type1/%s",
-                fontname, get_fontfilename(font));
+            sprintf(buf, "%s==%s",
+                fontname, get_fontfilename(font, TRUE));
             PDF_set_parameter(phandle, "FontOutline", buf);
 
             embed = 1;
