@@ -59,8 +59,6 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 #include <stdio.h>
 
-void errmsg(char *buf);
-
 int merror = 0;
 
 /* Notice: the order of appearance of the following
