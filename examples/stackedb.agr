@@ -211,7 +211,7 @@
 @    legend char size 1.000000
 @    legend color 1
 @    legend length 4
-@    legend vgap 3
+@    legend vgap 1
 @    legend hgap 1
 @    frame type 0
 @    frame linestyle 1
@@ -264,7 +264,7 @@
 @    s0 errorbar riser linewidth 1
 @    s0 errorbar riser linestyle 1
 @    s0 comment "stackedb.d"
-@    s0 legend  "stackedb.d"
+@    s0 legend  "Data A"
 @    s1 type bar
 @    s1 symbol 0
 @    s1 symbol size 0.900000
@@ -309,7 +309,7 @@
 @    s1 errorbar riser linewidth 1
 @    s1 errorbar riser linestyle 1
 @    s1 comment "stackedb.d"
-@    s1 legend  "stackedb.d"
+@    s1 legend  "Data B"
 @    s2 type bar
 @    s2 symbol 0
 @    s2 symbol size 0.700000
@@ -354,7 +354,7 @@
 @    s2 errorbar riser linewidth 1
 @    s2 errorbar riser linestyle 1
 @    s2 comment "stackedb.d"
-@    s2 legend  "stackedb.d"
+@    s2 legend  "Data C"
 @target G0.S0
 @type bar
                1           33.946
