@@ -1,2 +1,2 @@
-*.dvi *.aux *.log *.toc *.ps *.pdf
+*.tex *.dvi *.aux *.log *.toc *.ps *.pdf
 FAQ.html UsersGuide.html Tutorial.html
