@@ -49,7 +49,6 @@ double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
 void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
-void do_spline(int gno, int set, double start, double stop, int n, int type);
 double do_int(int gno, int setno, int itype);
 void do_differ(int gno, int setno, int itype);
 void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
@@ -233,7 +232,8 @@ int get_hotlink_src(int gno, int setno);
 void sortset(int gno, int setno, int sorton, int stype);
 void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps);
-void do_interp(int ygno, int yset, int xgno, int xset, int method);
+int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
+    double *mesh, int meshlen, int method, int strict);
 int get_restriction_array(int gno, int setno,
     int rtype, int negate, char **rarray);
 

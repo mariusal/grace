@@ -313,70 +313,6 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
     }
 }
 
-/*
- * splines
- */
-void do_spline(int gno, int set, double start, double stop, int n, int type)
-{
-    int i, splineset, len;
-    double delx, *x, *y, *b, *c, *d, *xtmp, *ytmp;
-
-    if (!is_set_active(gno, set)) {
-	errmsg("Set not active");
-	return;
-    }
-    if ((len = getsetlength(gno, set)) < 3) {
-	errmsg("Improper set length");
-	return;
-    }
-    if (n <= 1) {
-	errmsg("Number of steps must be > 1");
-	return;
-    }
-    delx = (stop - start) / (n - 1);
-    splineset = nextset(gno);
-    if (splineset != -1) {
-	activateset(gno, splineset);
-	setlength(gno, splineset, n);
-	x = getx(gno, set);
-	y = gety(gno, set);
-	b = xcalloc(len, SIZEOF_DOUBLE);
-	c = xcalloc(len, SIZEOF_DOUBLE);
-	d = xcalloc(len, SIZEOF_DOUBLE);
-	if (b == NULL || c == NULL || d == NULL) {
-	    xfree(b);
-	    xfree(c);
-	    xfree(d);
-	    killset(gno, splineset);
-	    return;
-	}
-	if (type == SPLINE_AKIMA) {
-	    aspline(len, x, y, b, c, d);
-	} else {
-	    spline (len, x, y, b, c, d);
-	}
-	xtmp = getx(gno, splineset);
-	ytmp = gety(gno, splineset);
-
-        for (i = 0; i < n; i++) {
-	    xtmp[i] = start + i * delx;
-	}
-	seval(xtmp, ytmp, n, x, y, b, c, d, len);
-	
-        if (type == SPLINE_AKIMA) {
-	    sprintf(buf, "Akima spline fit from set %d", set);
-	} else {
-	    sprintf(buf, "Cubic spline fit from set %d", set);
-	}
-	setcomment(gno, splineset, buf);
-	log_results(buf);
-
-	xfree(b);
-	xfree(c);
-	xfree(d);
-    }
-}
-
 
 /*
  * numerical integration
@@ -1559,8 +1495,8 @@ int interpolate(double *mesh, double *yint, int meshlen,
     int m;
 
     switch (method) {
-    case SPLINE_CUBIC:
-    case SPLINE_AKIMA:
+    case INTERP_SPLINE:
+    case INTERP_ASPLINE:
         b = xcalloc(len, SIZEOF_DOUBLE);
         c = xcalloc(len, SIZEOF_DOUBLE);
         d = xcalloc(len, SIZEOF_DOUBLE);
@@ -1570,7 +1506,7 @@ int interpolate(double *mesh, double *yint, int meshlen,
             xfree(d);
             return RETURN_FAILURE;
         }
-        if (method == SPLINE_AKIMA){
+        if (method == INTERP_ASPLINE){
             /* Akima spline */
             aspline(len, x, y, b, c, d);
         } else {
@@ -1614,59 +1550,81 @@ int interpolate(double *mesh, double *yint, int meshlen,
     return RETURN_SUCCESS;
 }
 
-/* interpolate a set at abscissas from another set
- * (ygno, yset) - set to interpolate
- * (xgno, xset) - set supplying abscissas
+/* interpolate a set at abscissas from mesh
  * method - type of spline (or linear interpolation)
+ * if strict is set, perform interpolation only within source set bounds
+ * (i.e., no extrapolation)
  */
-void do_interp(int ygno, int yset, int xgno, int xset, int method)
+int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
+    double *mesh, int meshlen, int method, int strict)
 {
-    int iset, igno = get_cg();
-    int meshlen, len, i, n;
-    double *x, *xint, *mesh;
+    int len, n, ncols;
+    double *x, *xint;
+    char *s;
 	
-    if (!is_set_active(ygno, yset)) {
-	errmsg("Interpolating set not active");
-	return;
+    if (!is_valid_setno(gno_src, setno_src)) {
+	errmsg("Interpolated set not active");
+	return RETURN_FAILURE;
     }
-    if (!is_set_active(xgno, xset)) {
-        errmsg("Sampling set not active");
-        return;
+    if (mesh == NULL || meshlen < 1) {
+        errmsg("NULL sampling mesh");
+        return RETURN_FAILURE;
     }
     
-    meshlen = getsetlength(xgno, xset);
-    len     = getsetlength(ygno, yset);
+    len = getsetlength(gno_src, setno_src);
+    ncols = dataset_cols(gno_src, setno_src);
 
-    iset = nextset(igno);
-    copyset(ygno, yset, igno, iset);
-    setlength(igno, iset, meshlen);
-    activateset(igno, iset);
-    
-    mesh = getcol(xgno, xset, DATA_X);
-    xint = getcol(igno, iset, DATA_X);
-    
-    for (i = 0; i < meshlen; i++) {
-        xint[i] = mesh[i];
+    if (dataset_cols(gno_dest, setno_dest) != ncols) {
+        copyset(gno_src, setno_src, gno_dest, setno_dest);
     }
-
-    x = getcol(ygno, yset, DATA_X);
-    for (n = 1; n < dataset_cols(igno, iset); n++) {
+    
+    setlength(gno_dest, setno_dest, meshlen);
+    activateset(gno_dest, setno_dest);
+    
+    x = getcol(gno_src, setno_src, DATA_X);
+    for (n = 1; n < ncols; n++) {
         int res;
         double *y, *yint;
         
-        y    = getcol(ygno, yset, n);
-        yint = getcol(igno, iset, n);
+        y    = getcol(gno_src, setno_src, n);
+        yint = getcol(gno_dest, setno_dest, n);
         
         res = interpolate(mesh, yint, meshlen, x, y, len, method);
         if (res != RETURN_SUCCESS) {
-            killset(igno, iset);
-            return;
+            killset(gno_dest, setno_dest);
+            return RETURN_FAILURE;
         }
     }
 
-    sprintf(buf, "Interpolated from G%d.S%d at points from G%d.S%d",
-        ygno, yset, xgno, xset);
-    setcomment(igno, iset, buf);
+    xint = getcol(gno_dest, setno_dest, DATA_X);
+    memcpy(xint, mesh, meshlen*SIZEOF_DOUBLE);
+
+    if (strict) {
+        double xmin, xmax;
+        int i, imin, imax;
+        minmax(x, len, &xmin, &xmax, &imin, &imax);
+        for (i = meshlen - 1; i >= 0; i--) {
+            if (xint[i] < xmin || xint[i] > xmax) {
+                del_point(gno_dest, setno_dest, i);
+            }
+        }
+    }
+    
+    switch (method) {
+    case INTERP_SPLINE:
+        s = "cubic spline";
+        break;
+    case INTERP_ASPLINE:
+        s = "Akima spline";
+        break;
+    default:
+        s = "linear interpolation";
+        break;
+    }
+    sprintf(buf, "Interpolated from G%d.S%d using %s", gno_src, setno_src, s);
+    setcomment(gno_dest, setno_dest, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 int get_restriction_array(int gno, int setno,
