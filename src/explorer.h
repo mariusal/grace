@@ -81,7 +81,7 @@ typedef struct {
     Widget          legends_invert;
     Widget          legends_singlesym;
     OptionStructure *legend_font;
-    Widget          legend_charsize;
+    SpinStructure   *legend_charsize;
     OptionStructure *legend_color;
     SpinStructure   *legend_boxlinew;
     OptionStructure *legend_boxlines;
@@ -137,7 +137,7 @@ typedef struct {
 
     OptionStructure *type;
     OptionStructure *symbols;
-    Widget          symsize;
+    SpinStructure   *symsize;
     SpinStructure   *symskip;
     Widget          sympen;
     Widget          symfillpen;
@@ -162,7 +162,7 @@ typedef struct {
     Widget          errbar_active;
     OptionStructure *errbar_ptype;
     Widget          errbar_pen;
-    Widget          errbar_size;
+    SpinStructure   *errbar_size;
     SpinStructure   *errbar_width;
     OptionStructure *errbar_lines;
     SpinStructure   *errbar_riserlinew;
@@ -174,7 +174,7 @@ typedef struct {
     OptionStructure *avalue_type;
     OptionStructure *avalue_font;
     OptionStructure *avalue_color;
-    Widget          avalue_charsize ;
+    SpinStructure   *avalue_charsize;
     Widget          avalue_angle;
     OptionStructure *avalue_format;
     OptionStructure *avalue_precision;
@@ -211,7 +211,7 @@ typedef struct {
     Widget          labelspec_para;
     Widget          labelspec_perp;
     OptionStructure *labelfont;
-    Widget          labelcharsize;
+    SpinStructure   *labelcharsize;
     OptionStructure *labelcolor;
     OptionStructure *labelop;
     
@@ -223,7 +223,7 @@ typedef struct {
     OptionStructure *tlform;
     OptionStructure *tlprec;
     OptionStructure *tlfont;
-    Widget          tlcharsize;
+    SpinStructure   *tlcharsize;
     OptionStructure *tlcolor;
     Widget          tlappstr;
     Widget          tlprestr;
@@ -251,8 +251,8 @@ typedef struct {
     OptionStructure *tmgridcol;
     SpinStructure   *tmgridlinew;
     OptionStructure *tmgridlines;
-    Widget          tlen;
-    Widget          tmlen;
+    SpinStructure   *tlen;
+    SpinStructure   *tmlen;
     Widget          baronoff;
     OptionStructure *barcolor;
     SpinStructure   *barlinew;
@@ -300,7 +300,7 @@ typedef struct {
     
     TextStructure   *text;
     OptionStructure *font;
-    Widget size;
+    SpinStructure   *size;
     OptionStructure *just;
 
     SpinStructure   *linew;

@@ -149,9 +149,10 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->legend_font = CreateFontChoice(rc, "Font:");
     AddOptionChoiceCB(ui->legend_font, oc_explorer_cb, eui);
-    ui->legend_charsize = CreateCharSizeChoice(rc, "Char size");
-    AddScaleCB(ui->legend_charsize, scale_explorer_cb, eui);
-    ui->legend_color = CreateColorChoice(rc, "Color:");
+    rc1 = CreateHContainer(rc);
+    ui->legend_charsize = CreateCharSizeChoice(rc1, "Size:");
+    AddSpinButtonCB(ui->legend_charsize, sp_explorer_cb, eui);
+    ui->legend_color = CreateColorChoice(rc1, "Color:");
     AddOptionChoiceCB(ui->legend_color, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->legends_tp, "Placement");
@@ -208,7 +209,7 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 	SetOptionChoice(ui->frame_lines_choice, f->outline.style);
 	SetPenChoice(ui->frame_fillpen, &f->fillpen);
  
-        SetCharSizeChoice(ui->legend_charsize, l->charsize);
+        SetSpinChoice(ui->legend_charsize, l->charsize);
 
 	SetToggleButtonState(ui->toggle_legends, l->active == TRUE);
 
@@ -280,7 +281,7 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             GetPenChoice(ui->frame_fillpen, &f->fillpen);
         }
         if (!caller || caller == ui->legend_charsize) {
-            l->charsize = GetCharSizeChoice(ui->legend_charsize);
+            l->charsize = GetSpinChoice(ui->legend_charsize);
         }
         if (!caller || caller == ui->toggle_legends) {
             l->active = GetToggleButtonState(ui->toggle_legends);

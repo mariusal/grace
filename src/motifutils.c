@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -3014,20 +3014,9 @@ void SetAngleChoice(Widget w, int angle)
     SetScaleValue(w, angle);
 }
 
-Widget CreateCharSizeChoice(Widget parent, char *s)
+SpinStructure *CreateCharSizeChoice(Widget parent, char *s)
 {
-    return CreateScale(parent, s, 0, 1000, 25);
-}
-
-double GetCharSizeChoice(Widget w)
-{
-    return ((double) GetScaleValue(w)/100);
-}
-
-void SetCharSizeChoice(Widget w, double size)
-{
-    int value = (int) rint(size*100);
-    SetScaleValue(w, value);
+    return CreateSpinChoice(parent, s, 4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
 }
 
 

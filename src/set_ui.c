@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c)1996-2003 Grace Development Team
+ * Copyright (c)1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -165,8 +165,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
                                              "Char",            /* 11 */
                                              NULL);
     AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
-    ui->symsize = CreateCharSizeChoice(rc, "Size");
-    AddScaleCB(ui->symsize, scale_explorer_cb, eui);
+    ui->symsize = CreateCharSizeChoice(rc, "Size:");
+    AddSpinButtonCB(ui->symsize, sp_explorer_cb, eui);
     ui->sympen = CreatePenChoice(rc, "Outline pen:");
     AddPenChoiceCB(ui->sympen, pen_explorer_cb, eui);
     ui->symchar = CreateTextItem2(rc, 3, "Symbol char:");
@@ -281,18 +281,15 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->avalue_tp, "Text properties");
     rc = CreateVContainer(fr);
 
-    rc2 = CreateHContainer(rc);
-    ui->avalue_font = CreateFontChoice(rc2, "Font:");
+    ui->avalue_font = CreateFontChoice(rc, "Font:");
     AddOptionChoiceCB(ui->avalue_font, oc_explorer_cb, eui);
-    ui->avalue_charsize = CreateCharSizeChoice(rc2, "Char size");
-    SetScaleWidth(ui->avalue_charsize, 120);
-    AddScaleCB(ui->avalue_charsize, scale_explorer_cb, eui);
-
     rc2 = CreateHContainer(rc);
+    ui->avalue_charsize = CreateCharSizeChoice(rc2, "Size:");
+    AddSpinButtonCB(ui->avalue_charsize, sp_explorer_cb, eui);
     ui->avalue_color = CreateColorChoice(rc2, "Color:");
     AddOptionChoiceCB(ui->avalue_color, oc_explorer_cb, eui);
-    ui->avalue_angle = CreateAngleChoice(rc2, "Angle");
-    SetScaleWidth(ui->avalue_angle, 180);
+
+    ui->avalue_angle = CreateAngleChoice(rc, "Angle");
     AddScaleCB(ui->avalue_angle, scale_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
@@ -363,8 +360,9 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     fr = CreateFrame(rc1, "Bar line");
     rc = CreateVContainer(fr);
-    ui->errbar_size = CreateCharSizeChoice(rc, "Size");
-    AddScaleCB(ui->errbar_size, scale_explorer_cb, eui);
+    ui->errbar_size = CreateSpinChoice(rc, "Size",
+        4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+    AddSpinButtonCB(ui->errbar_size, sp_explorer_cb, eui);
     ui->errbar_width = CreateLineWidthChoice(rc, "Width:");
     AddSpinButtonCB(ui->errbar_width, sp_explorer_cb, eui);
     ui->errbar_lines = CreateLineStyleChoice(rc, "Style:");
@@ -404,7 +402,7 @@ void update_set_ui(SetUI *ui, Quark *q)
             }
         }
 
-        SetCharSizeChoice(ui->symsize, p->sym.size);
+        SetSpinChoice(ui->symsize, p->sym.size);
         SetSpinChoice(ui->symskip, p->symskip);
         sprintf(val, "%d", p->sym.symchar);
         xv_setstr(ui->symchar, val);
@@ -451,11 +449,11 @@ void update_set_ui(SetUI *ui, Quark *q)
         SetOptionChoice(ui->errbar_lines, p->errbar.lines);
         SetSpinChoice(ui->errbar_riserlinew, p->errbar.riser_linew);
         SetOptionChoice(ui->errbar_riserlines, p->errbar.riser_lines);
-        SetCharSizeChoice(ui->errbar_size, p->errbar.barsize);
+        SetSpinChoice(ui->errbar_size, p->errbar.barsize);
 
         SetToggleButtonState(ui->avalue_active, p->avalue.active);
         SetOptionChoice(ui->avalue_type, p->avalue.type);
-        SetCharSizeChoice(ui->avalue_charsize, p->avalue.size);
+        SetSpinChoice(ui->avalue_charsize, p->avalue.size);
         SetOptionChoice(ui->avalue_font, p->avalue.font);
         SetOptionChoice(ui->avalue_color, p->avalue.color);
         SetAngleChoice(ui->avalue_angle, p->avalue.angle);
@@ -487,7 +485,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->symskip = GetSpinChoice(ui->symskip);
         }
         if (!caller || caller == ui->symsize) {
-            p->sym.size = GetCharSizeChoice(ui->symsize);
+            p->sym.size = GetSpinChoice(ui->symsize);
         }
         if (!caller || caller == ui->symlinew) {
             p->sym.line.width = GetSpinChoice(ui->symlinew);
@@ -548,7 +546,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->errbar.active = GetToggleButtonState(ui->errbar_active);
         }
         if (!caller || caller == ui->errbar_size) {
-            p->errbar.barsize = GetCharSizeChoice(ui->errbar_size);
+            p->errbar.barsize = GetSpinChoice(ui->errbar_size);
         }
         if (!caller || caller == ui->errbar_width) {
             p->errbar.linew = GetSpinChoice(ui->errbar_width);
@@ -584,7 +582,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->avalue.type = GetOptionChoice(ui->avalue_type);
         }
         if (!caller || caller == ui->avalue_charsize) {
-            p->avalue.size = GetCharSizeChoice(ui->avalue_charsize);
+            p->avalue.size = GetSpinChoice(ui->avalue_charsize);
         }
         if (!caller || caller == ui->avalue_font) {
             p->avalue.font = GetOptionChoice(ui->avalue_font);

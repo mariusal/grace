@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2003 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -309,7 +309,7 @@ static void update_string_ui(StringUI *ui, DOStringData *odata)
     SetTextString(ui->text,     odata->s);
     SetOptionChoice(ui->font,   odata->font);
     SetOptionChoice(ui->just,   odata->just);
-    SetCharSizeChoice(ui->size, odata->size);
+    SetSpinChoice(ui->size,     odata->size);
 
     SetSpinChoice(ui->linew,   odata->line.width);
     SetOptionChoice(ui->lines, odata->line.style);
@@ -332,7 +332,7 @@ static void set_string_odata(StringUI *ui, DOStringData *odata, void *caller)
             odata->just = GetOptionChoice(ui->just);
         }
         if (!caller || caller == ui->size) {
-            odata->size = GetCharSizeChoice(ui->size);
+            odata->size = GetSpinChoice(ui->size);
         }
         if (!caller || caller == ui->linew) {
             odata->line.width = GetSpinChoice(ui->linew);
@@ -364,10 +364,11 @@ static StringUI *create_string_ui(Widget parent, ExplorerUI *eui)
     AddTextInputCB(ui->text, text_explorer_cb, eui);
     ui->font = CreateFontChoice(rc, "Font:");
     AddOptionChoiceCB(ui->font, oc_explorer_cb, eui);
-    ui->just = CreateJustChoice(rc, "Justification:");
+    rc1 = CreateHContainer(rc);
+    ui->size = CreateCharSizeChoice(rc1, "Size:");
+    AddSpinButtonCB(ui->size, sp_explorer_cb, eui);
+    ui->just = CreateJustChoice(rc1, "Justification:");
     AddOptionChoiceCB(ui->just, oc_explorer_cb, eui);
-    ui->size = CreateCharSizeChoice(rc, "Size");
-    AddScaleCB(ui->size, scale_explorer_cb, eui);
 
     fr = CreateFrame(ui->top, "Frame");
     rc = CreateVContainer(fr);

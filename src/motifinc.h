@@ -388,9 +388,7 @@ int GetScaleValue(Widget w);
 void SetScaleWidth(Widget w, int width);
 void AddScaleCB(Widget w, Scale_CBProc cbproc, void *);
 
-Widget CreateCharSizeChoice(Widget parent, char *s);
-double GetCharSizeChoice(Widget w);
-void SetCharSizeChoice(Widget w, double size);
+SpinStructure *CreateCharSizeChoice(Widget parent, char *s);
 
 Widget CreateAngleChoice(Widget parent, char *s);
 int GetAngleChoice(Widget w);

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -129,9 +129,8 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->labelcolor, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
-    ui->labelcharsize = CreateCharSizeChoice(rc2, "Char size");
-    SetScaleWidth(ui->labelcharsize, 180);
-    AddScaleCB(ui->labelcharsize, scale_explorer_cb, eui);
+    ui->labelcharsize = CreateCharSizeChoice(rc2, "Size:");
+    AddSpinButtonCB(ui->labelcharsize, sp_explorer_cb, eui);
 
     ui->labellayout = CreatePanelChoice(rc2, "Layout:",
                                         3,
@@ -179,11 +178,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->ticklabel_tp, "Labels");
     rc2 = CreateHContainer(fr);
     ui->tlcharsize = CreateCharSizeChoice(rc2, "Char size");
-    SetScaleWidth(ui->tlcharsize, 200);
-    AddScaleCB(ui->tlcharsize, scale_explorer_cb, eui);
-    ui->tlangle = CreateAngleChoice(rc2, "Angle");
-    SetScaleWidth(ui->tlangle, 180);
-    AddScaleCB(ui->tlangle, scale_explorer_cb, eui);
+    AddSpinButtonCB(ui->tlcharsize, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->ticklabel_tp, "Placement");
     rc = CreateHContainer(fr);
@@ -222,6 +217,16 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->ticklabel_tp, "Extra");
     rc = CreateVContainer(fr);
 
+    opitems[0].value = TYPE_AUTO;
+    opitems[0].label = "Auto";
+    opitems[1].value = TYPE_SPEC;
+    opitems[1].label = "Specified";
+    rc2 = CreateHContainer(rc);
+    ui->tlgaptype = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
+    ui->tlangle = CreateAngleChoice(rc2, "Angle");
+    SetScaleWidth(ui->tlangle, 200);
+    AddScaleCB(ui->tlangle, scale_explorer_cb, eui);
+
     rc2 = CreateHContainer(rc);
     ui->tlskip = CreatePanelChoice(rc2, "Skip every:",
                                11,
@@ -237,11 +242,6 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->tlappstr = CreateTextItem2(rc2, 13, "Append:");
     AddTextItemCB(ui->tlappstr, titem_explorer_cb, eui);
 
-    opitems[0].value = TYPE_AUTO;
-    opitems[0].label = "Auto";
-    opitems[1].value = TYPE_SPEC;
-    opitems[1].label = "Specified";
-    ui->tlgaptype = CreateOptionChoice(rc, "Location:", 0, 2, opitems);
     ui->tlgap_rc = CreateHContainer(rc);
     AddOptionChoiceCB(ui->tlgaptype, auto_spec_cb, ui->tlgap_rc);
     AddOptionChoiceCB(ui->tlgaptype, oc_explorer_cb, eui);
@@ -266,7 +266,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateHContainer(rc2);
     ui->tround = CreateToggleButton(rc, "Place at rounded positions");
     AddToggleButtonCB(ui->tround, tb_explorer_cb, eui);
-    ui->autonum = CreatePanelChoice(rc, "Autotick divisions",
+    ui->autonum = CreatePanelChoice(rc, "Autotick divisions:",
                                 12,
 		                "2",
                                 "3",
@@ -292,8 +292,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->tinout = CreatePanelChoice(rc, "Pointing:", 4,
                                    "In", "Out", "Both", NULL);
     AddOptionChoiceCB(ui->tinout, oc_explorer_cb, eui);
-    ui->tlen = CreateCharSizeChoice(rc, "Tick length");
-    AddScaleCB(ui->tlen, scale_explorer_cb, eui);
+    ui->tlen = CreateSpinChoice(rc, "Tick length",
+        4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
+    AddSpinButtonCB(ui->tlen, sp_explorer_cb, eui);
     ui->tgridcol = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->tgridcol, oc_explorer_cb, eui);
     ui->tgridlinew = CreateLineWidthChoice(rc, "Line width:");
@@ -308,8 +309,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     ui->tminout = CreatePanelChoice(rc, "Pointing:", 4,
                                    "In", "Out", "Both", NULL);
     AddOptionChoiceCB(ui->tminout, oc_explorer_cb, eui);
-    ui->tmlen = CreateCharSizeChoice(rc, "Tick length");
-    AddScaleCB(ui->tmlen, scale_explorer_cb, eui);
+    ui->tmlen = CreateSpinChoice(rc, "Tick length",
+        4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
+    AddSpinButtonCB(ui->tmlen, sp_explorer_cb, eui);
     ui->tmgridcol = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->tmgridcol, oc_explorer_cb, eui);
     ui->tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
@@ -388,7 +390,7 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         SetSensitive(ui->labelspec_rc, t->label_place == TYPE_SPEC);
         SetOptionChoice(ui->labelfont, t->label.font);
         SetOptionChoice(ui->labelcolor, t->label.color);
-        SetCharSizeChoice(ui->labelcharsize, t->label.charsize);
+        SetSpinChoice(ui->labelcharsize, t->label.charsize);
         SetOptionChoice(ui->labelop, t->label_op);
 
         SetToggleButtonState(ui->tlonoff, t->tl_flag);
@@ -448,7 +450,7 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         xv_setstr(ui->tlgap_perp, buf);
         SetSensitive(ui->tlgap_rc, t->tl_gaptype == TYPE_SPEC);
 
-        SetCharSizeChoice(ui->tlcharsize, t->tl_charsize);
+        SetSpinChoice(ui->tlcharsize, t->tl_charsize);
         SetAngleChoice(ui->tlangle, t->tl_angle);
 
         
@@ -460,7 +462,7 @@ void update_axis_ui(AxisUI *ui, Quark *q)
 
         SetToggleButtonState(ui->tgrid, t->props.gridflag);
         SetOptionChoice(ui->tinout, t->props.inout);
-        SetCharSizeChoice(ui->tlen, t->props.size);
+        SetSpinChoice(ui->tlen, t->props.size);
         SetOptionChoice(ui->tgridcol, t->props.color);
         SetSpinChoice(ui->tgridlinew, t->props.linew);
         SetOptionChoice(ui->tgridlines, t->props.lines);
@@ -470,7 +472,7 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         SetOptionChoice(ui->tmgridcol, t->mprops.color);
         SetSpinChoice(ui->tmgridlinew, t->mprops.linew);
         SetOptionChoice(ui->tmgridlines, t->mprops.lines);
-        SetCharSizeChoice(ui->tmlen, t->mprops.size);
+        SetSpinChoice(ui->tmlen, t->mprops.size);
 
         SetOptionChoice(ui->barcolor, t->t_drawbarcolor);
         SetSpinChoice(ui->barlinew, t->t_drawbarlinew);
@@ -557,7 +559,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->label.color = GetOptionChoice(ui->labelcolor);
         }
         if (!caller || caller == ui->labelcharsize) {
-            t->label.charsize = GetCharSizeChoice(ui->labelcharsize);
+            t->label.charsize = GetSpinChoice(ui->labelcharsize);
         }
         if (!caller || caller == ui->labellayout) {
             t->label_layout = GetOptionChoice(ui->labellayout) ?
@@ -585,7 +587,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->t_drawbarlines = GetOptionChoice(ui->barlines);
         }
         if (!caller || caller == ui->tlcharsize) {
-            t->tl_charsize = GetCharSizeChoice(ui->tlcharsize);
+            t->tl_charsize = GetSpinChoice(ui->tlcharsize);
         }
         if (!caller || caller == ui->tlangle) {
             t->tl_angle = GetAngleChoice(ui->tlangle);
@@ -659,7 +661,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->props.inout = GetOptionChoice(ui->tinout);
         }
         if (!caller || caller == ui->tlen) {
-            t->props.size = GetCharSizeChoice(ui->tlen);
+            t->props.size = GetSpinChoice(ui->tlen);
         }
         if (!caller || caller == ui->tgridcol) {
             t->props.color = GetOptionChoice(ui->tgridcol);
@@ -677,7 +679,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->mprops.inout = GetOptionChoice(ui->tminout);
         }
         if (!caller || caller == ui->tmlen) {
-            t->mprops.size = GetCharSizeChoice(ui->tmlen);
+            t->mprops.size = GetSpinChoice(ui->tmlen);
         }
         if (!caller || caller == ui->tmgridcol) {
             t->mprops.color = GetOptionChoice(ui->tmgridcol);
