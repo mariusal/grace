@@ -742,7 +742,7 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
 
     fprintf(prstream, "\" transform=\"matrix(%.4f,%.4f,%.4f,%.4f,%.4f,%.4f)\">",
             tm->cxx, tm->cyx,
-            tm->cxy, -tm->cyy,
+            -tm->cxy, -tm->cyy,
             scaleval(vp.x), scaleval(vp.y));
 
     fprintf(prstream, escape_specials((unsigned char *) s, len));
