@@ -53,16 +53,12 @@
 #include "protos.h"
 
 
-extern char batchfile[];
-
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 
 static void usage(FILE *stream, char *progname);
 static void VersionInfo(const Grace *grace);
 static void cli_loop(Grace *grace);
-
-int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
 
 #if defined(DEBUG)    
 extern int yydebug;
@@ -219,14 +215,6 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    }
 		}
-	    } else if (argmatch(argv[i], "-batch", 2)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for batch file\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    strcpy(batchfile, argv[i]);
-		}
 	    } else if (argmatch(argv[i], "-datehint", 5)) {
 		i++;
 		if (i == argc) {
@@ -246,8 +234,6 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    }
 		}
-	    } else if (argmatch(argv[i], "-pipe", 5)) {
-		inpipe = TRUE;
 	    } else if (argmatch(argv[i], "-noprint", 8)) {
 		noprint = TRUE;
 	    } else if (argmatch(argv[i], "-dpipe", 6)) {
@@ -484,13 +470,6 @@ int main(int argc, char *argv[])
 	    errmsg("Terminal device can't be used for batch plotting");
 	    exit(1);
 	}
-	if (inpipe == TRUE) {
-            getdata(grace, cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
-	    inpipe = FALSE;
-	}
-	if (batchfile[0]) {
-	    getparms(grace, batchfile);
-	}
         while (real_time_under_monitoring()) {
             monitor_input(grace, ib_tbl, ib_tblsize, 0);
         }
@@ -525,14 +504,6 @@ static void cli_loop(Grace *grace)
     Input_buffer *ib_stdin;
     int previous = -1;
 
-    if (inpipe == TRUE) {
-        getdata(grace, NULL, "stdin", SOURCE_DISK, LOAD_SINGLE);
-        inpipe = FALSE;
-    }
-    if (batchfile[0]) {
-        getparms(grace, batchfile);
-    }
-    
     if (register_real_time_input(grace, STDIN_FILENO, "stdin", 0)
         != RETURN_SUCCESS) {
         exit(1);
@@ -563,7 +534,6 @@ static void usage(FILE *stream, char *progname)
 #ifndef NONE_GUI
     fprintf(stream, "-barebones                            Turn off all toolbars\n");
 #endif
-    fprintf(stream, "-batch     [batch_file]               Execute batch_file on start up\n");
     fprintf(stream, "-block     [block_data]               Assume data file is block data\n");
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
@@ -600,7 +570,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-param     [parameter_file]           Load parameters from parameter_file to the\n");
     fprintf(stream, "                                        current graph\n");
     fprintf(stream, "-pexec     [parameter_string]         Interpret string as a parameter setting\n");
-    fprintf(stream, "-pipe                                 Read data from stdin on startup\n");
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
     fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
     fprintf(stream, "                                        to results_file\n");

@@ -97,13 +97,9 @@ static int interr;
 static grarr freelist[100]; 	/* temporary vectors */
 static int fcnt = 0;		/* number of the temporary vectors allocated */
 
-/* these guys attempt to avoid reentrancy problems */
-static int gotparams = FALSE, gotread = FALSE; 
-int readxformat;
-
-char batchfile[GR_MAXPATHLEN] = "",
-     paramfile[GR_MAXPATHLEN] = "",
-     readfile[GR_MAXPATHLEN] = "";
+/* this one attempts to avoid reentrancy problems */
+static int gotparams = FALSE; 
+static char paramfile[GR_MAXPATHLEN] = "";
 
 static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
 static int pos;
@@ -2690,9 +2686,6 @@ parmset:
 	| SOURCE sourcetype {
 	    grace->rt->cursource = $2;
 	}
-	| FORMAT formatchoice {
-	    readxformat = $2;
-	}
 	;
 
 actions:
@@ -4654,10 +4647,6 @@ int scanner(char *s)
         getparms(grace, paramfile);
     }
     
-    if (gotread) {
-	gotread = FALSE;
-        getdata(grace, whichgraph, readfile, grace->rt->cursource, LOAD_SINGLE);
-    }
     return retval;
 }
 

@@ -49,10 +49,6 @@
 extern Widget app_shell;
 extern XtAppContext app_con;
 
-
-extern int inpipe;
-extern char batchfile[];
-
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 
@@ -376,7 +372,7 @@ void sync_canvas_size(Grace *grace)
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Grace *grace = (Grace *) client_data;
-    static int inc = 0;
+    static int inc = FALSE;
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
 #if defined(DEBUG)
@@ -391,17 +387,8 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     }
     
     if (!inc) {
-	inc++;
+	inc = TRUE;
         
-	if (batchfile[0]) {
-            getparms(grace, batchfile);
-	}
-	
-	if (inpipe == TRUE) {
-	    getdata(grace, graph_get_current(grace->project), "stdin", SOURCE_DISK, LOAD_SINGLE);
-	    inpipe = FALSE;
-	}
-
         update_all();
         xdrawgraph(grace->project, TRUE);
 
