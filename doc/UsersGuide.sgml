@@ -971,7 +971,7 @@ main (int argc, char* argv[])
               &bsol;dl     | LtoR substring direction   @
               &bsol;dr     | RtoL substring direction   @
               &bsol;dL     | LtoR text advancing   @
-              &bsol;dR     | RtoL text advancing (not implemented yet)   @
+              &bsol;dR     | RtoL text advancing   @
               <hline>
               &bsol;x      | switch to Symbol font (same as &bsol;f{Symbol})   @
               &bsol;+      | increase size (same as &bsol;z{1.19} ; 1.19 = sqrt(sqrt(2)))   @
