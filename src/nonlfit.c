@@ -34,6 +34,8 @@
 
 #include <config.h>
 
+#include <cmath.h>
+
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
@@ -153,7 +155,7 @@ void fcn(int * m, int * n, double * x, double * fvec,
     /* apply weigh function, if any */
     if (wts != NULL) {
          for (i = 0; i < *m; ++i) {
-             fvec[i] *= wts[i];
+             fvec[i] *= sqrt(fabs(wts[i]));
          }
     }
     /* apply restriction, if any */
