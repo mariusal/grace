@@ -531,6 +531,7 @@ int main(int argc, char *argv[])
 		    if ((rt->resfp = grace_openw(argv[i])) == NULL) {
 		        exit(1);
 		    }
+		    setvbuf(rt->resfp, NULL, _IOLBF, 0);
 		}
 	    } else if (argmatch(argv[i], "-saveall", 8)) {
 		i++;
