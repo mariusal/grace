@@ -161,6 +161,8 @@ symtab_entry *key;
 %token KEY_FUNC_NND  
 %token KEY_FUNC_PPD  
 %token KEY_FUNC_PPPD 
+%token KEY_FUNC_PPPPD 
+%token KEY_FUNC_PPPPPD 
 
 %token <ival> INDEX
 %token <ival> DATE
@@ -178,6 +180,8 @@ symtab_entry *key;
 %token <ival> FUNC_NND   /* a function of 2 int parameters and 1 double variable    */
 %token <ival> FUNC_PPD   /* a function of 2 double parameters and 1 double variable */
 %token <ival> FUNC_PPPD  /* a function of 3 double parameters and 1 double variable */
+%token <ival> FUNC_PPPPD /* a function of 4 double parameters and 1 double variable */
+%token <ival> FUNC_PPPPPD/* a function of 5 double parameters and 1 double variable */
 
 %token <ival> ABOVE
 %token <ival> ABSOLUTE
@@ -767,6 +771,14 @@ expr:	NUMBER {
 	{
 	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9);
 	}
+	| FUNC_PPPPD '(' expr ',' expr ',' expr ',' expr ',' expr ')'
+	{
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9, $11);
+	}
+	| FUNC_PPPPPD '(' expr ',' expr ',' expr ',' expr ',' expr ',' expr ')'
+	{
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9, $11, $13);
+	}
 	| selectgraph '.' VX1 {
 	    $$ = g[$1].v.xv1;
 	}
@@ -1260,6 +1272,28 @@ vexpr:
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9->data[i]);
+	    }
+	}
+	| FUNC_PPPPD '(' expr ',' expr ',' expr ',' expr ',' vexpr ')'
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $11);
+            $$->type = GRARR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9, $11->data[i]);
+	    }
+	}
+	| FUNC_PPPPPD '(' expr ',' expr ',' expr ',' expr ',' expr ',' vexpr ')'
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $13);
+            $$->type = GRARR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9, $11, $13->data[i]);
 	    }
 	}
 	| vexpr '+' vexpr
@@ -4366,16 +4400,18 @@ axis:
 	;
 
 proctype:
-        KEY_CONST        { $$ = CONSTANT; }
-        | KEY_UNIT      { $$ = UCONSTANT; }
-        | KEY_FUNC_I       { $$ = FUNC_I; }
-	| KEY_FUNC_D       { $$ = FUNC_D; }
-	| KEY_FUNC_ND     { $$ = FUNC_ND; }
-	| KEY_FUNC_NN     { $$ = FUNC_NN; }
-	| KEY_FUNC_DD     { $$ = FUNC_DD; }
-	| KEY_FUNC_NND   { $$ = FUNC_NND; }
-	| KEY_FUNC_PPD   { $$ = FUNC_PPD; }
-	| KEY_FUNC_PPPD { $$ = FUNC_PPPD; }
+        KEY_CONST         { $$ = CONSTANT;  }
+        | KEY_UNIT        { $$ = UCONSTANT; }
+        | KEY_FUNC_I      { $$ = FUNC_I;    }
+	| KEY_FUNC_D      { $$ = FUNC_D;    }
+	| KEY_FUNC_ND     { $$ = FUNC_ND;   }
+	| KEY_FUNC_NN     { $$ = FUNC_NN;   }
+	| KEY_FUNC_DD     { $$ = FUNC_DD;   }
+	| KEY_FUNC_NND    { $$ = FUNC_NND;  }
+	| KEY_FUNC_PPD    { $$ = FUNC_PPD;  }
+	| KEY_FUNC_PPPD   { $$ = FUNC_PPPD; }
+	| KEY_FUNC_PPPPD  { $$ = FUNC_PPPD; }
+	| KEY_FUNC_PPPPPD { $$ = FUNC_PPPD; }
 	;
 
 tickspectype:
@@ -5262,6 +5298,8 @@ symtab_entry ikey[] = {
 	{"F_OF_NND", KEY_FUNC_NND, NULL},
 	{"F_OF_PPD", KEY_FUNC_PPD, NULL},
 	{"F_OF_PPPD", KEY_FUNC_PPPD, NULL},
+	{"F_OF_PPPPD", KEY_FUNC_PPPPD, NULL},
+	{"F_OF_PPPPPD", KEY_FUNC_PPPPPD, NULL},
 	{"GAMMA", FUNC_D, (void *) true_gamma},
 	{"GDTR", FUNC_PPD, (void *) gdtr},
 	{"GDTRC", FUNC_PPD, (void *) gdtrc},
