@@ -279,7 +279,6 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
 {
     int i, k, len, ncols;
     double *savec[MAX_SET_COLS];
-    char **saves;
     char buf[256];
 
     if (!is_set_active(gfrom, setfrom)) {
@@ -301,11 +300,15 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
     if (setlength(gto, setto, len) != GRACE_EXIT_SUCCESS) {
 	return GRACE_EXIT_FAILURE;
     }
+    if (g[gfrom].p[setfrom].data.s != NULL) {
+        if ((g[gto].p[setto].data.s = malloc(len*sizeof(char *))) == NULL) {
+	    return GRACE_EXIT_FAILURE;
+        }
+    }
 
     for (k = 0; k < MAX_SET_COLS; k++) {
 	savec[k] = getcol(gto, setto, k);
     }
-    saves = get_set_strings(gto, setto);
     memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
     for (k = 0; k < ncols; k++) {
 	g[gto].p[setto].data.ex[k] = savec[k];
@@ -314,10 +317,9 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
                len*SIZEOF_DOUBLE);
     }
     if (g[gfrom].p[setfrom].data.s != NULL) {
-        g[gto].p[setto].data.s = saves;
         for (i = 0; i < len; i++) {
-	     g[gto].p[setto].data.s[i] = copy_string(g[gto].p[setto].data.s[i],
-                g[gfrom].p[setfrom].data.s[i]);
+	     g[gto].p[setto].data.s[i] =
+                copy_string(NULL, g[gfrom].p[setfrom].data.s[i]);
         }
     }
 
@@ -358,6 +360,11 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
     if (setlength(gto, setto, len) != GRACE_EXIT_SUCCESS) {
         return GRACE_EXIT_FAILURE;
     }
+    if (g[gfrom].p[setfrom].data.s != NULL) {
+        if ((g[gto].p[setto].data.s = malloc(len*sizeof(char *))) == NULL) {
+	    return GRACE_EXIT_FAILURE;
+        }
+    }
 
     for (k = 0; k < ncols; k++) {
 	memcpy(g[gto].p[setto].data.ex[k],
@@ -366,8 +373,8 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
     }
     if (g[gfrom].p[setfrom].data.s != NULL) {
         for (i = 0; i < len; i++) {
-	     g[gto].p[setto].data.s[i] = copy_string(g[gto].p[setto].data.s[i],
-                g[gfrom].p[setfrom].data.s[i]);
+	     g[gto].p[setto].data.s[i] =
+                copy_string(NULL, g[gfrom].p[setfrom].data.s[i]);
         }
     }
 
