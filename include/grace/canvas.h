@@ -604,6 +604,7 @@ typedef struct _XrstDevice_entry {
 
 
 Device_entry *device_new(const char *name, int type, int twopass, void *data);
+void device_free(Device_entry *d);
 int device_set_procs(Device_entry *d,
     DevInitProc          initgraphics,
     DevLeaveGraphicsProc leavegraphics,
