@@ -985,11 +985,6 @@ void startup_gui(void)
 
     ManageChild(form);
 
-    if (get_pagelayout() == PAGE_FIXED) {
-        unsigned int w, h;
-        sync_canvas_size(&w, &h, FALSE);
-    }
-
     XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
 
     /* redraw */
