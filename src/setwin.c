@@ -736,6 +736,7 @@ void create_leval_frame(void *data)
             XmNcellShadowType, XmSHADOW_ETCHED_OUT,
             XmNcellShadowThickness, 2,
             XmNaltRowCount, 0,
+            XmNallowColumnResize, True,
             NULL);
 
         XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
