@@ -294,6 +294,8 @@ symtab_entry *key;
 %token <ival> HORIZO
 %token <ival> ID
 %token <ival> IFILTER
+%token <ival> IMAX
+%token <ival> IMIN
 %token <ival> IN
 %token <ival> INCREMENT
 %token <ival> INOUT
@@ -668,8 +670,8 @@ expr:	NUMBER {
             $$ = $1->data[$2];
 	}
 	| stattype '(' vexpr ')' {
-	    double dummy;
-            int length = $3->length;
+	    double dummy, dummy2;
+            int idummy, ind, length = $3->length;
 	    if ($3->data == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -690,6 +692,14 @@ expr:	NUMBER {
             case SUM:
 		stasum($3->data, length, &$$, &dummy);
                 $$ *= length;
+                break;
+            case IMIN:
+		minmax($3->data, length, &dummy, &dummy2, &ind, &idummy);
+                $$ = (double) ind;
+                break;
+            case IMAX:
+		minmax($3->data, length, &dummy, &dummy2, &idummy, &ind);
+                $$ = (double) ind;
                 break;
 	    }
 	}
@@ -4589,6 +4599,8 @@ stattype: MINP { $$ = MINP; }
         | AVG { $$ = AVG; }
 	| SD { $$ = SD; }
 	| SUM { $$ = SUM; }
+	| IMIN { $$ = IMIN; }
+	| IMAX { $$ = IMAX; }
 	;
 
 font_select:
@@ -5281,6 +5293,8 @@ symtab_entry ikey[] = {
 	{"IGAM", FUNC_DD, (void *) igam},
 	{"IGAMC", FUNC_DD, (void *) igamc},
 	{"IGAMI", FUNC_DD, (void *) igami},
+	{"IMAX", IMAX, NULL},
+	{"IMIN", IMIN, NULL},
 	{"IN", IN, NULL},
 	{"INCBET", FUNC_PPD, (void *) incbet},
 	{"INCBI", FUNC_PPD, (void *) incbi},
