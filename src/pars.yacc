@@ -2635,21 +2635,26 @@ parmset:
 /* defaults */
 	| DEFAULT lines_select {
 	    grdefaults.lines = $2;
+	    box_lines = ellipse_lines = line_lines = $2;
 	}
 	| DEFAULT linew_select {
 	    grdefaults.linew = $2;
+	    box_linew = ellipse_linew = line_linew = $2;
 	}
 	| DEFAULT color_select {
 	    grdefaults.color = $2;
+	    box_color = ellipse_color = line_color = string_color = $2;
 	}
 	| DEFAULT pattern_select {
 	    grdefaults.pattern = $2;
 	}
 	| DEFAULT CHAR SIZE expr {
 	    grdefaults.charsize = $4;
+	    string_size = $4;
 	}
 	| DEFAULT font_select {
 	    grdefaults.font = $2;
+	    string_font = $2;
 	}
 	| DEFAULT SYMBOL SIZE expr {
 	    grdefaults.symsize = $4;
