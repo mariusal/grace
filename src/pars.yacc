@@ -2936,6 +2936,9 @@ actions:
 	| KILL selectgraph {
             kill_graph($2);
         }
+	| KILL REGNUM {
+            kill_region($2);
+        }
 	| FLUSH {
             wipeout();
         }
