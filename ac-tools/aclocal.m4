@@ -205,62 +205,6 @@ if test "$ac_cv_c_realloc_bug" = "yes"
 fi
 ])
 
-dnl **** Check for F77 or higher compiler
-AC_DEFUN(ACX_PROG_FC,
-[
-AC_PROG_F77
-if test "x$F77" != "x"; then
-  FC=$F77
-else
-  forts="xlf fort77 pgf77 f90 xlf90 pgf90 f95"
-  for fc in $forts
-  do
-    AC_CHECK_PROG(FC, $fc, "$fc")
-    if test "x$FC" != "x"; then
-      break
-    fi
-  done
-fi
-])
-
-dnl **** Check whether Fortran adds underscore to external symbol names ****
-AC_DEFUN(ACX_CHECK_FC_UNDERSCORE,
-[
-AC_REQUIRE([ACX_PROG_FC])
-AC_CACHE_CHECK("whether Fortran adds underscore to external symbol names",
-               ac_cv_c_fc_underscore,
-cat > conftest_fc.f <<EOF
-      CALL ACTEST ()
-      STOP
-      END
-EOF
-
-cat > conftest_c.c <<EOF
-void actest_(void)
-{
-    return;
-}
-EOF
-
-$CC $CFLAGS -c conftest_c.c > /dev/null 2>&1
-$FC conftest_fc.f conftest_c.o -o conftest $LIBS > /dev/null 2>&1
-
-case "$?" in
-  0[)] ac_cv_c_fc_underscore="yes" ;;
-  *[)] ac_cv_c_fc_underscore="no" ;;
-esac
-rm -f conftest*
-)
-
-if test "$ac_cv_c_fc_underscore" = "yes"
-  then
-    :
-    $1
-  else
-    :
-    $2
-fi
-])
 
 dnl ICE_CHECK_DECL (FUNCTION, HEADER-FILE...)
 dnl -----------------------------------------
