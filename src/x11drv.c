@@ -60,7 +60,6 @@ int screennumber;
 GC gc, gcxor;
 int depth;
 
-static int bpp;
 static Visual *visual;
 static int pixel_size;
 
@@ -110,40 +109,33 @@ int xlibinit(void)
 {
     XSetWindowAttributes sw;
     XGCValues gc_val;
-
+    XPixmapFormatValues *pmf;
+    int i, n;
+    
     screennumber = DefaultScreen(disp);
     visual = DefaultVisual(disp, screennumber);
     root = RootWindow(disp, screennumber);
-    bpp = DefaultDepth(disp,screennumber);
  
     sw.backing_store = Always;
     XChangeWindowAttributes(disp, root, CWBackingStore, &sw);
 
-    depth = DisplayPlanes(disp, screennumber);
     gc = DefaultGC(disp, screennumber);
+    
+    depth = DisplayPlanes(disp, screennumber);
 
-    switch (bpp) {
-    case 1:
+    pixel_size = 0;
+    pmf = XListPixmapFormats (disp, &n);
+    if (pmf) {
+        for (i = 0; i < n; i++) {
+            if (pmf[i].depth == depth) {
+                pixel_size = pmf[i].bits_per_pixel/8;
+                break;
+            }
+        }
+        XFree ((char *) pmf);
+    }
+    if (pixel_size == 0) {
         monomode = TRUE;
-        pixel_size = 0;
-        break;
-    case 8:
-    case 16:
-    case 32:
-        pixel_size = bpp/8;
-        break;
-    case 6:
-        pixel_size = 1;
-        break;
-    case 15:
-        pixel_size = 2;
-        break;
-    case 24:
-        pixel_size = 4;
-        break;
-    default:
-        errmsg("X11 with unsupported bpp");
-        exit(1);
     }
 
 /*
@@ -182,7 +174,7 @@ int xlibinit(void)
 /*
  * disable font AA in mono mode
  */
-    if (bpp == 1) {
+    if (monomode == TRUE) {
         Device_entry dev;
         dev = get_device_props(tdevice);
         dev.fontaa = FALSE;
@@ -626,7 +618,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
     xp = VPoint2XPoint(vp);
       
     if (pixmap_bpp != 1) {
-        if (bpp == 1) {
+        if (monomode == TRUE) {
             /* TODO: dither pixmaps on mono displays */
             return;
         }
@@ -648,7 +640,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
         }
 
         ximage=XCreateImage(disp, visual,
-                           bpp, ZPixmap, 0, pixmap_ptr, width, height,
+                           depth, ZPixmap, 0, pixmap_ptr, width, height,
                            bitmap_pad,  /* lines padded to bytes */
                            0 /* number of bytes per line */
                            );
