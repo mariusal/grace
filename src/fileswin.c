@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -45,7 +45,6 @@
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
-#include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
@@ -148,6 +147,7 @@ typedef struct {
     ListStructure *graph_item;     /* graph choice item */
     OptionStructure *ftype_item;   /* set type choice item */
     OptionStructure *load_item;    /* load as single/nxy/block */
+    OptionStructure *auto_item;    /* autoscale on read */
 } rdataGUI;
 
 void create_file_popup(void *data)
@@ -162,13 +162,6 @@ void create_file_popup(void *data)
         rdataGUI *gui;
         OptionItem option_items[3];
         
-	option_items[0].value = LOAD_SINGLE;
-	option_items[0].label = "Single set";
-	option_items[1].value = LOAD_NXY;
-	option_items[1].label = "NXY";
-	option_items[2].value = LOAD_BLOCK;
-	option_items[2].label = "Block data";
- 
         gui = malloc(sizeof(rdataGUI));
         
 	rdata_dialog = CreateFileSelectionBox(app_shell, "Read sets", "*.dat");
@@ -182,6 +175,13 @@ void create_file_popup(void *data)
 
 	rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+ 
+	option_items[0].value = LOAD_SINGLE;
+	option_items[0].label = "Single set";
+	option_items[1].value = LOAD_NXY;
+	option_items[1].label = "NXY";
+	option_items[2].value = LOAD_BLOCK;
+	option_items[2].label = "Block data";
 	gui->load_item = CreateOptionChoice(rc2, "Load as", 1, 3, option_items);
         AddOptionChoiceCB(gui->load_item, set_load_proc, (void *) gui);
 	gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
@@ -189,24 +189,27 @@ void create_file_popup(void *data)
 
 	rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
-	lab = XmCreateLabel(rc2, "Data source:", NULL, 0);
+	lab = CreateLabel(rc2, "Data source:");
 	rb = XmCreateRadioBox(rc2, "radio_box_2", NULL, 0);
 	XtVaSetValues(rb, XmNorientation, XmHORIZONTAL, NULL);
-	w[0] = XmCreateToggleButton(rb, "Disk", NULL, 0);
-	w[1] = XmCreateToggleButton(rb, "Pipe", NULL, 0);
+	w[0] = CreateToggleButton(rb, "Disk");
+	w[1] = CreateToggleButton(rb, "Pipe");
 	for (i = 0; i < 2; i++) {
 	    XtAddCallback(w[i],
                 XmNvalueChangedCallback, set_src_proc, (XtPointer) i);
 	}
-	XtManageChild(lab);
 	XtManageChild(rb);
 	XtManageChildren(w, 2);
-	XmToggleButtonSetState(w[0], True, False);
+	SetToggleButtonState(w[0], TRUE);
 	XtManageChild(rc2);
+
+	gui->auto_item = CreateASChoice(rc, "Autoscale on read:");
 
 	XtManageChild(rc);
         XtManageChild(rdata_dialog->FSB);
     }
+    
+    
     XtRaise(rdata_dialog->dialog);
     
     unset_wait_cursor();
@@ -227,6 +230,8 @@ static int read_sets_proc(char *filename, void *data)
             curtype = GetOptionChoice(gui->ftype_item);
         }
 
+        autoscale_onread = GetOptionChoice(gui->auto_item);
+        
         getdata(graphno, filename, cursource, load);
 
 	if (load == LOAD_BLOCK) {
@@ -648,13 +653,11 @@ void create_netcdfs_popup(void *data)
 	XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
 	XtSetArg(args[1], XmNvisibleItemCount, 5);
 
-	lab = XmCreateLabel(dialog, "Select set X:", NULL, 0);
-	XtManageChild(lab);
+	lab = CreateLabel(dialog, "Select set X:");
 	netcdf_listx_item = XmCreateScrolledList(dialog, "list", args, 2);
 	XtManageChild(netcdf_listx_item);
 
-	lab = XmCreateLabel(dialog, "Select set Y:", NULL, 0);
-	XtManageChild(lab);
+	lab = CreateLabel(dialog, "Select set Y:");
 	netcdf_listy_item = XmCreateScrolledList(dialog, "list", args, 2);
 	XtManageChild(netcdf_listy_item);
 

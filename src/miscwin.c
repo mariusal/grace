@@ -64,7 +64,6 @@ static Widget *debug_item;
 #endif
 static Widget noask_item;
 static Widget dc_item;
-static Widget *auto_item;
 
 static Widget *graph_focus_choice_item;
 static Widget graph_drawfocus_choice_item;
@@ -115,14 +114,6 @@ void create_props_frame(void *data)
 #endif
 	noask_item = CreateToggleButton(panel, "Don't ask questions");
 	dc_item = CreateToggleButton(panel, "Allow double clicks on canvas");
-	auto_item = CreatePanelChoice(panel, "Autoscale type:",
-					 5,
-				  	 "None",
-				  	 "All X-axes",
-				  	 "All Y-axes",
-				  	 "All axes",
-				  	 NULL,
-				  	 NULL);
 
 	CreateSeparator(panel);
 
@@ -216,7 +207,6 @@ void update_props_items(void)
 #endif
 	SetToggleButtonState(noask_item, noask);
 	SetToggleButtonState(dc_item, allow_dc);
-	SetChoice(auto_item, autoscale_onread);
 
 	if (focus_policy == FOCUS_SET) {
 	    itest = 1;
@@ -273,7 +263,6 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 #endif
     noask = GetToggleButtonState(noask_item);
     allow_dc = GetToggleButtonState(dc_item);
-    autoscale_onread = GetChoice(auto_item);
 
     switch (GetChoice(graph_focus_choice_item)) {
     case 0:
