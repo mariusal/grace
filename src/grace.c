@@ -256,6 +256,9 @@ RunTime *runtime_new(Grace *grace)
 	s = bi_helpviewer();
     }
     rt->help_viewer = copy_string(NULL, s);
+    if (!strstr(rt->help_viewer, "%s")) {
+        rt->help_viewer = concat_strings(rt->help_viewer, " %s");
+    }
 
     /* working directory */
     rt->workingdir = xmalloc(GR_MAXPATHLEN);
