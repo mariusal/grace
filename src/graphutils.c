@@ -272,12 +272,14 @@ static void round_axis_limits(double *amin, double *amax, int scale)
     }
     smin = nicenum(smin, nrange, NICE_FLOOR);
     smax = nicenum(smax, nrange, NICE_CEIL);
-    if (smax > 5.0*smin) {
-        smin = 0.0;
-    } else if (smin > 5.0*smax) {
-        smax = 0.0;
+    if (sign(smin) == sign(smax)) {
+        if (smax > 5.0*smin) {
+            smin = 0.0;
+        } else if (smin > 5.0*smax) {
+            smax = 0.0;
+        }
     }
-
+    
     if (scale == SCALE_LOG) {
         *amin = pow(10.0, smin);
         *amax = pow(10.0, smax);
