@@ -1094,6 +1094,7 @@ static int project_postprocess_hook(Quark *q,
     void *udata, QTraverseClosure *closure)
 {
     int version_id = *((int *) udata);
+    Project *pr;
     frame *f;
     graph *g;
     tickmarks *t;
@@ -1102,6 +1103,8 @@ static int project_postprocess_hook(Quark *q,
     
     switch (q->fid) {
     case QFlavorProject:
+        pr = project_get_data(q);
+        
         if (version_id < 50200) {
             quark_sort_children(q, fcomp, NULL);
         }
@@ -1111,13 +1114,12 @@ static int project_postprocess_hook(Quark *q,
         }
 
         if (version_id < 50002) {
-            Project *pr = project_get_data(q);
             pr->bgfill = TRUE;
         }
 
         if (version_id < 50003) {
-            allow_two_digits_years(TRUE);
-            set_wrap_year(1900);
+            pr->two_digits_years = TRUE;
+            pr->wrap_year = 1900;
         }
 
         if (version_id <= 40102) {

@@ -96,24 +96,6 @@
 #include "utils.h"
 #include "protos.h"
 
-static double ref_date = 0.0;
-
-/*
- * store the reference date
- */
-void set_ref_date(double ref)
-{
-    ref_date = ref;
-}
-
-/*
- * get the reference date
- */
-double get_ref_date(void)
-{
-    return ref_date;
-}
-
 static Dates_format date_hint = FMT_nohint;
 
 /*
@@ -132,46 +114,39 @@ Dates_format get_date_hint(void)
     return date_hint;
 }
 
-static int two_digits_years_flag = FALSE;
 
-/*
- * set two digits years handling
- */
-void allow_two_digits_years(int allowed)
-{
-    two_digits_years_flag = allowed ? TRUE : FALSE;
-    set_dirtystate();
-}
-
-/*
- * get two digits years handling
- */
-int two_digits_years_allowed(void)
-{
-    return two_digits_years_flag;
-}
-
-
-static int wrap_year = 1950;
 static int century   = 2000;
 static int wy        = 50;
 
 /*
  * store the wrap year
  */
-void set_wrap_year(int year)
+void project_set_wrap_year(Quark *q, int year)
 {
-    wrap_year = year;
-    century   = 100*(1 + wrap_year/100);
-    wy        = wrap_year - (century - 100);
+    Project *pr = project_get_data(q);
+    
+    if (pr) {
+        pr->wrap_year = year;
+        century   = 100*(1 + pr->wrap_year/100);
+        wy        = pr->wrap_year - (century - 100);
+    }
+}
+void project_set_ref_date(Quark *q, double ref)
+{
+    Project *pr = project_get_data(q);
+    
+    if (pr) {
+        pr->ref_date = ref;
+    }
 }
 
-/*
- * get the wrap year
- */
-int get_wrap_year(void)
+void project_allow_two_digits_years(Quark *q, int flag)
 {
-    return wrap_year;
+    Project *pr = project_get_data(q);
+    
+    if (pr) {
+        pr->two_digits_years = flag;
+    }
 }
 
 /*
@@ -179,14 +154,14 @@ int get_wrap_year(void)
  * [ wrap_year ; 100*(1 + wrap_year/100) - 1 ] -> [wy ; 99]
  * [ 100*(1 + wrap_year/100) ; wrap_year + 99] -> [00 ; wy-1]
  */
-static int reduced_year(int y)
+static int reduced_year(const Project *pr, int y)
 {
-    if (two_digits_years_allowed()) {
-        if (y < wrap_year) {
+    if (pr->two_digits_years) {
+        if (y < pr->wrap_year) {
             return y;
         } else if (y < century) {
             return y - (century - 100);
-        } else if (y < (wrap_year + 100)) {
+        } else if (y < (pr->wrap_year + 100)) {
             return y - century;
         } else {
             return y;
@@ -202,9 +177,9 @@ static int reduced_year(int y)
  * [wy ; 99] -> [ wrap_year ; 100*(1 + wrap_year/100) - 1 ]
  * [00 ; wy-1] -> [ 100*(1 + wrap_year/100) ; wrap_year + 99]
  */
-static int expanded_year(Int_token y)
+static int expanded_year(const Project *pr, Int_token y)
 {
-    if (two_digits_years_allowed()) {
+    if (pr->two_digits_years) {
         if (y.value >= 0 && y.value < wy && y.digits <= 2) {
             return century + y.value;
         } else if (y.value >= wy && y.value < 100 && y.digits <= 2) {
@@ -428,15 +403,16 @@ double cal_and_time_to_jul(int y, int m, int d,
 /*
  * convert julian day to calendar and hourly elements
  */
-void jul_to_cal_and_time(double jday, int rounding,
+void jul_to_cal_and_time(const Quark *q, double jday, int rounding,
                          int *y, int *m, int *d,
                          int *hour, int *min, int *sec)
 {
     long n;
     double tmp;
-
+    Project *pr = project_get_data(q);
+    
     /* compensate for the reference date */
-    jday += get_ref_date();
+    jday += pr->ref_date;
     
     /* find the time of the day */
     n = (long) floor(jday + 0.5);
@@ -494,8 +470,7 @@ void jul_to_cal_and_time(double jday, int rounding,
     }
 
     /* introduce the y2k bug for those who want it :) */
-    *y = reduced_year(*y);
-
+    *y = reduced_year(pr, *y);
 }
 
 /*
@@ -503,11 +478,11 @@ void jul_to_cal_and_time(double jday, int rounding,
  * this includes either number of day in the month
  * and calendars pecularities (year 0 and October 1582)
  */
-static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
+static int check_date(const Project *pr, Int_token y, Int_token m, Int_token d, long *jul)
 {
     int y_expand, y_check, m_check, d_check;
 
-    y_expand = expanded_year (y);
+    y_expand = expanded_year(pr, y);
 
     if (m.digits > 2 || d.digits > 2) {
         /* this should be the year instead of either the month or the day */
@@ -713,9 +688,10 @@ static int parse_calendar_date(const char* s,
 /*
  * parse a date given either in calendar or numerical format
  */
-int parse_date(const char* s, Dates_format preferred, int absolute,
+int parse_date(const Quark *q, const char* s, Dates_format preferred, int absolute,
                double *jul, Dates_format *recognized)
 {
+    Project *pr = project_get_data(q);
     int i, n;
     int ky, km, kd;
     static Dates_format trials [] = {FMT_nohint, FMT_iso, FMT_european, FMT_us};
@@ -768,12 +744,12 @@ int parse_date(const char* s, Dates_format preferred, int absolute,
                   continue;
               }
 
-              if (check_date(tab[ky], tab[km], tab[kd], &j)
+              if (check_date(pr, tab[ky], tab[km], tab[kd], &j)
                   == RETURN_SUCCESS) {
                   *jul =
                       jul_and_time_to_jul(j, tab[3].value, tab[4].value, sec);
                   if (!absolute) {
-                      *jul -= get_ref_date();
+                      *jul -= pr->ref_date;
                   }
 
                   *recognized = trials[i];
@@ -791,12 +767,12 @@ int parse_date(const char* s, Dates_format preferred, int absolute,
     return RETURN_FAILURE;
 }
 
-int parse_date_or_number(const char* s, int absolute, double *value)
+int parse_date_or_number(const Quark *q, const char* s, int absolute, double *value)
 {
     Dates_format dummy;
     const char *sdummy;
     
-    if (parse_date(s, get_date_hint(), absolute, value, &dummy)
+    if (parse_date(q, s, get_date_hint(), absolute, value, &dummy)
         == RETURN_SUCCESS) {
         return RETURN_SUCCESS;
     } else if (parse_float(s, value, &sdummy) == RETURN_SUCCESS) {

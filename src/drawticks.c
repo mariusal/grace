@@ -821,7 +821,8 @@ reenter:
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
 	            t->tloc[itick].label = copy_string(t->tloc[itick].label, 
-                        create_fstring(t->tl_format, t->tl_prec,
+                        create_fstring(get_parent_project(q),
+                            t->tl_format, t->tl_prec,
                             tt[itmaj], LFORMAT_TYPE_EXTENDED));
                     itmaj++;
                 }
@@ -831,7 +832,8 @@ reenter:
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
 	            t->tloc[itick].label = copy_string(t->tloc[itick].label, 
-                        create_fstring(t->tl_format, t->tl_prec,
+                        create_fstring(get_parent_project(q),
+                            t->tl_format, t->tl_prec,
                             t->tloc[itick].wtpos, LFORMAT_TYPE_EXTENDED));
                 }
             }

@@ -1114,6 +1114,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
     Quark *gr = get_parent_graph(pset);
+    Quark *pr = get_parent_project(gr);
     set *p = set_get_data(pset);
     int i;
     int setlen;
@@ -1177,18 +1178,18 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         case AVALUE_TYPE_NONE:
             break;
         case AVALUE_TYPE_X:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.x, 
+            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.x, 
                                                  LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_Y:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.y,
+            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.y,
                                                  LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_XY:
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.x,
+            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.x,
                                                  LFORMAT_TYPE_EXTENDED));
             strcat(str, ", ");
-            strcat(str, create_fstring(avalue.format, avalue.prec, wp.y,
+            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.y,
                                                  LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_STRING:
@@ -1198,7 +1199,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
             break;
         case AVALUE_TYPE_Z:
             if (z != NULL) {
-                strcat(str, create_fstring(avalue.format, avalue.prec, z[i], 
+                strcat(str, create_fstring(pr, avalue.format, avalue.prec, z[i], 
                                                  LFORMAT_TYPE_EXTENDED));
             }
             break;
@@ -1659,10 +1660,11 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     AValue avalue;
     char str[MAX_STRING_LENGTH];
     set *p;
-    Quark *gr;
+    Quark *gr, *pr;
     Canvas *canvas = plot_rt->canvas;
 
     gr = get_parent_graph(pset);
+    pr = get_parent_project(gr);
 
     get_graph_viewport(gr, &v);
     vpc.x = (v.xv1 + v.xv2)/2;
@@ -1763,7 +1765,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
 
             switch (avalue.type) {
             case AVALUE_TYPE_X:
-                strcat(str, create_fstring(avalue.format, avalue.prec, x[i], 
+                strcat(str, create_fstring(pr, avalue.format, avalue.prec, x[i], 
                                                      LFORMAT_TYPE_EXTENDED));
                 break;
             case AVALUE_TYPE_STRING:

@@ -62,7 +62,7 @@ int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);
 void convertchar(char *s);
 
-char *create_fstring(int form, int prec, double loc, int type);
+char *create_fstring(const Quark *q, int form, int prec, double loc, int type);
 char *escapequotes(char *s);
 
 int sign(double a);

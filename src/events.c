@@ -311,9 +311,9 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     default:
         return;
     }
-    s = create_fstring(locator->fx, locator->px, xtmp, LFORMAT_TYPE_PLAIN);
+    s = create_fstring(get_parent_project(cg), locator->fx, locator->px, xtmp, LFORMAT_TYPE_PLAIN);
     strcpy(bufx, s);
-    s = create_fstring(locator->fy, locator->py, ytmp, LFORMAT_TYPE_PLAIN);
+    s = create_fstring(get_parent_project(cg), locator->fy, locator->py, ytmp, LFORMAT_TYPE_PLAIN);
     strcpy(bufy, s);
     sprintf(buf, "%s: %s = [%s, %s]", QIDSTR(cg), typestr[locator->pt_type], bufx, bufy);
 

@@ -105,14 +105,14 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetToggleButtonState(ui->bg_fill, pr->bgfill);
 
     	SetOptionChoice(ui->datehint, get_date_hint());
-	jul_to_cal_and_time(0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
                 y, m, d, h, mm, sec);
         xv_setstr(ui->refdate, date_string);
-        SetToggleButtonState(ui->two_digits_years, two_digits_years_allowed());
-        sprintf(wrap_year_string, "%04d", get_wrap_year());
+        SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
+        sprintf(wrap_year_string, "%04d", pr->wrap_year);
         xv_setstr(ui->wrap_year, wrap_year_string);
-        SetSensitive(ui->wrap_year, two_digits_years_allowed() ? TRUE:FALSE);
+        SetSensitive(ui->wrap_year, pr->two_digits_years ? TRUE:FALSE);
     }
 }
 
@@ -144,19 +144,19 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             set_date_hint(GetOptionChoice(ui->datehint));
         }
         if (!caller || caller == ui->refdate) {
-            if (parse_date_or_number(xv_getstr(ui->refdate), TRUE, &jul) ==
+            if (parse_date_or_number(q, xv_getstr(ui->refdate), TRUE, &jul) ==
                 RETURN_SUCCESS) {
-                set_ref_date(jul);
+                pr->ref_date = jul;
             } else {
                 errmsg("Invalid date");
                 retval = RETURN_FAILURE;
             }
         }
         if (!caller || caller == ui->two_digits_years) {
-            allow_two_digits_years(GetToggleButtonState(ui->two_digits_years));
+            pr->two_digits_years = GetToggleButtonState(ui->two_digits_years);
         }
         if (!caller || caller == ui->wrap_year) {
-            set_wrap_year(atoi(xv_getstr(ui->wrap_year)));
+            pr->wrap_year = atoi(xv_getstr(ui->wrap_year));
         }
 
         quark_dirtystate_set(q, TRUE);

@@ -82,6 +82,10 @@ Project *project_data_new(void)
     /* FIXME: #defines */
     pr->page_wpp = 792;
     pr->page_hpp = 612;
+
+    pr->ref_date = 0.0;
+    pr->wrap_year = 1950;
+    pr->two_digits_years = FALSE;
     
     pr->bgcolor  = 0;
     pr->bgfill   = TRUE;

@@ -116,6 +116,11 @@ typedef struct _Project {
     /* format for saving data sets */
     char *sformat;
 
+    /* dates */
+    double ref_date;
+    int wrap_year;
+    int two_digits_years;
+
     /* project file name */
     char *docname;	
 } Project;
@@ -319,6 +324,10 @@ char *project_get_sformat(const Quark *q);
 void project_set_sformat(Quark *q, const char *s);
 
 Project *project_get_data(const Quark *q);
+
+void project_set_wrap_year(Quark *q, int wrap_year);
+void project_set_ref_date(Quark *q, double ref);
+void project_allow_two_digits_years(Quark *q, int flag);
 
 int project_add_font(Quark *project, const Fontdef *f);
 int get_font_by_name(const Quark *project, const char *name);

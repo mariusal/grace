@@ -185,25 +185,19 @@ int axis_is_y(const Quark *q);
 void kill_blockdata(void);
 void alloc_blockdata(int ncols);
 
-void set_ref_date(double ref);
-double get_ref_date(void);
 void set_date_hint(Dates_format preferred);
 Dates_format get_date_hint(void);
-void allow_two_digits_years(int allowed);
-int two_digits_years_allowed(void);
-void set_wrap_year(int year);
-int get_wrap_year(void);
 long cal_to_jul(int y, int m, int d);
 void jul_to_cal(long n, int *y, int *m, int *d);
 double jul_and_time_to_jul(long jul, int hour, int min, double sec);
 double cal_and_time_to_jul(int y, int m, int d,
                            int hour, int min, double sec);
-void jul_to_cal_and_time(double jday, int rounding,
+void jul_to_cal_and_time(const Quark *q, double jday, int rounding,
                          int *y, int *m, int *d,
                          int *hour, int *min, int *sec);
 int parse_float(const char *s, double *value, const char **after);
-int parse_date(const char* s, Dates_format preferred, int absolute,
+int parse_date(const Quark *q, const char* s, Dates_format preferred, int absolute,
                double *jul, Dates_format *recognized);
-int parse_date_or_number(const char* s, int absolute, double *value);
+int parse_date_or_number(const Quark *q, const char* s, int absolute, double *value);
 
 #endif /* __NOXPROTOS_H_ */

@@ -768,9 +768,9 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrDataFormats, NULL);
         {
             attributes_reset(attrs);
-            xmlio_set_world_value(attrs, AStrReference, get_ref_date());
-            attributes_set_bval(attrs, AStrWrap, two_digits_years_allowed());
-            attributes_set_ival(attrs, AStrWrapYear, get_wrap_year());
+            xmlio_set_world_value(attrs, AStrReference, pr->ref_date);
+            attributes_set_bval(attrs, AStrWrap, pr->two_digits_years);
+            attributes_set_ival(attrs, AStrWrapYear, pr->wrap_year);
             xfile_empty_element(xf, EStrDates, attrs);
 
             attributes_reset(attrs);

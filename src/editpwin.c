@@ -332,11 +332,13 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     if (cs->column < ncols) {
         char *s;
         double *datap = getcol(ep->pset, cs->column);
-        s = create_fstring(ep->cformat[cs->column], ep->cprec[cs->column],
+        s = create_fstring(get_parent_project(ep->pset),
+            ep->cformat[cs->column], ep->cprec[cs->column],
             datap[cs->row], LFORMAT_TYPE_PLAIN);
         if (strcmp(s, cs->value) != 0) {
 	    double value;
-            if (parse_date_or_number(cs->value, FALSE, &value) == RETURN_SUCCESS) {
+            if (parse_date_or_number(get_parent_project(ep->pset),
+                cs->value, FALSE, &value) == RETURN_SUCCESS) {
                 datap[cs->row] = value;
                 changed = TRUE;
             } else {
@@ -385,7 +387,8 @@ static char *get_cell_content(EditPoints *ep, int row, int column)
         double *datap;
         datap = getcol(ep->pset, column);
         strcpy(buf[stackp],
-            create_fstring(ep->cformat[column], ep->cprec[column], datap[row], LFORMAT_TYPE_PLAIN));
+            create_fstring(get_parent_project(ep->pset), ep->cformat[column],
+                ep->cprec[column], datap[row], LFORMAT_TYPE_PLAIN));
         s = buf[stackp];
         stackp++;
         stackp %= STACKLEN;

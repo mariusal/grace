@@ -840,7 +840,7 @@ int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 	    }
 	    return RETURN_FAILURE;
 	} else {
-	    set_dirtystate();
+	    quark_dirtystate_set(pdest, TRUE);
             return RETURN_SUCCESS;
         }
     } else {

@@ -868,13 +868,13 @@ char *utf2iso(const char *s)
     <element name="#EStrDates" type="dummy">
         <!-- Attributes -->
         <attribute name="#AStrReference" type="ival">
-            set_ref_date($?);
+            project_set_ref_date($0, $?);
         </attribute>
         <attribute name="#AStrWrap" type="bval">
-            allow_two_digits_years($?);
+            project_allow_two_digits_years($0, $?);
         </attribute>
         <attribute name="#AStrWrapYear" type="ival">
-            set_wrap_year($?);
+            project_set_wrap_year($0, $?);
         </attribute>
     </element>
     <element name="#EStrWorld" type="dummy">

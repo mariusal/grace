@@ -813,7 +813,7 @@ jdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date($1, get_date_hint(), FALSE, &jul, &dummy)
+            if (parse_date(grace->project, $1, get_date_hint(), FALSE, &jul, &dummy)
                 == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
@@ -831,7 +831,7 @@ jrawdate:  expr {
         | CHRSTR {
             double jul;
             Dates_format dummy;
-            if (parse_date($1, get_date_hint(), TRUE, &jul, &dummy)
+            if (parse_date(grace->project, $1, get_date_hint(), TRUE, &jul, &dummy)
                 == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
@@ -1960,13 +1960,13 @@ parmset:
             xfree($3);
         }
         | REFERENCE DATE jrawdate {
-            set_ref_date($3);
+            project_set_ref_date(grace->project, $3);
 	}
         | DATE WRAP onoff {
-            allow_two_digits_years($3);
+            project_allow_two_digits_years(grace->project, $3);
 	}
         | DATE WRAP YEAR iexpr {
-            set_wrap_year($4);
+            project_set_wrap_year(grace->project, $4);
 	}
 	| BACKGROUND color_select {
 	    Project *pr = project_get_data(grace->project);
