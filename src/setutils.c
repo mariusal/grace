@@ -1387,6 +1387,31 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
     }
 }
 
+int get_datapoint(int gno, int setno, int ind, int *ncols, Datapoint *dpoint)
+{
+    int n, col;
+    double *ex;
+    char **s;
+    
+    n = getsetlength(gno, setno);
+    if (ind < 0 || ind >= n) {
+        return RETURN_FAILURE;
+    } else {
+        *ncols = dataset_cols(gno, setno);
+        for (col = 0; col < *ncols; col++) {
+            ex = getcol(gno, setno, col);
+            dpoint->ex[col] = ex[ind];
+        }
+        s = get_set_strings(gno, setno);
+        if (s != NULL) {
+            dpoint->s = s[ind];
+        } else {
+            dpoint->s = NULL;
+        }
+        return RETURN_SUCCESS;
+    }
+}
+
 void delete_byindex(int gno, int setno, int *ind)
 {
     int i, j, cnt = 0;

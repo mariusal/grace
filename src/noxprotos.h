@@ -185,6 +185,7 @@ double vmin(double *x, int n);
 double vmax(double *x, int n);
 int set_point(int gno, int setn, int seti, WPoint wp);
 int get_point(int gno, int setn, int seti, WPoint *wp);
+int get_datapoint(int gno, int setn, int seti, int *ncols, Datapoint *wp);
 void setcol(int gno, int setno, int col, double *x, int len);
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
