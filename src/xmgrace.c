@@ -197,7 +197,7 @@ static XtResource resources[] =
 {
     {"invertDraw", "InvertDraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, invert), XtRImmediate,
-     (XtPointer) FALSE},
+     (XtPointer) TRUE},
     {"allowDoubleClick", "AllowDoubleClick", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, allow_dc), XtRImmediate,
      (XtPointer) TRUE},

@@ -112,7 +112,7 @@ GLOBAL(hdevice, int, 0);
 /* set mono mode */
 GLOBAL(monomode, int, FALSE);
 /* use GXxor or GXinvert for xor'ing */
-GLOBAL(invert, int, FALSE);
+GLOBAL(invert, int, TRUE);
 /* if true, redraw graph each time action isperformed */
 GLOBAL(auto_redraw, int, TRUE);
 /* allow double click ops */

@@ -15,8 +15,8 @@
 !XMgrace*tearOffModel: XmTEAR_OFF_DISABLED
 ! Use GXinvert rather than GXxor for rubberband lines
 ! if the rubberbanding for zooms and lines, etc. doesn't
-! appear on the canvas, set the following resource to yes.
-!XMgrace.invertDraw: No
+! appear on the canvas, set the following resource to no.
+!XMgrace.invertDraw: True
 ! Allow double clicks on canvas
 !XMgrace.allowDoubleClick: No
 ! Switch toolbar(s) off
