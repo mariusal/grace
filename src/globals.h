@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -28,7 +28,7 @@
 
 /*
  *
- * Global variables of Grace
+ * Global variables of Grace - should be empty :-(
  *
  */
 
@@ -42,67 +42,24 @@
 #include "graphs.h"
 #include "draw.h"
 
-
 #ifdef MAIN
+#  define GLOBAL(var, type, val) type var = val
+#  define GLOBALARR(arr, type, dim, val) type arr[dim] = val
 
-char docname[GR_MAXPATHLEN] = NONAME;
+/* target set */
+target target_set;
+/* timestamp */
+plotstr timestamp;
+/* default properties */
+defaults grdefaults;
 
-int debuglevel = 0;
+/* parameters for non-linear fit */
+nonlparms nonl_parms[MAXPARM];
+nonlopts nonl_opts;
+nonlprefs nonl_prefs;
 
-int ptofile = FALSE;            /* flag to indicate destination of hardcopy
-                                 * output, ptofile = 0 means print to printer
-                                 * non-zero print to file */
-
-char sformat[128] = "%16.8g";   /* format for saving data sets */
-
-int logwindow = FALSE;		/* TRUE if results are displayed in the log window */
-
-/*
- * real-time input delay (prevents getting stuck reading)
- */
-int timer_delay = 1000;         /* timer */
-
-/*
- * scroll amount
- */
-int scrolling_islinked = FALSE;	/* linked scroll */
-double scrollper = 0.05;	/* scroll fraction */
-double shexper = 0.05;		/* expand/shrink fraction */
-
-int tdevice;                    /* terminal device */
-int hdevice;                    /* hardcopy device */
-
-int monomode = FALSE;		/* set mono mode */
-int invert = FALSE;		/* use GXxor or GXinvert for xor'ing */
-int autoscale_onread = AUTOSCALE_XY; /* autoscale after reading in data sets */
-int auto_redraw = TRUE;		/* if true, redraw graph each time action is
-				 * performed */
-int allow_dc = TRUE;		/* allow double click ops */
-int status_auto_redraw = TRUE;	/* if true, redraw graph each time action is
-				 * performed in the status window */
-int force_redraw = FALSE;	/* if no auto draw and re-draw pressed */
-int noask = FALSE;              /* if TRUE, assume yes for everything (dangerous) */
-
-int index_shift = 0; 		/* 0 for C, 1 for F77 index notation */
-
-FILE *resfp;			/* file for results */
-
-int inwin = FALSE;		/* true if running X */
-
-defaults grdefaults;		/* default properties */
-
-
-int curset;
-int focus_policy = FOCUS_CLICK;
-
-int draw_focus_flag = TRUE;
-
-plotstr timestamp;       /* timestamp */
-
-/*
- * used in the parser
- */
-int cursource = SOURCE_DISK, curtype = SET_XY;
+/* region definition */
+region rg[MAXREGION];
 
 int format_types[] = {FORMAT_DECIMAL, FORMAT_EXPONENTIAL, FORMAT_GENERAL, FORMAT_POWER,
                       FORMAT_SCIENTIFIC, FORMAT_ENGINEERING,
@@ -112,200 +69,137 @@ int format_types[] = {FORMAT_DECIMAL, FORMAT_EXPONENTIAL, FORMAT_GENERAL, FORMAT
         	      FORMAT_DEGREESLON, FORMAT_DEGREESMMLON, FORMAT_DEGREESMMSSLON, FORMAT_MMSSLON,
         	      FORMAT_DEGREESLAT, FORMAT_DEGREESMMLAT, FORMAT_DEGREESMMSSLAT, FORMAT_MMSSLAT, FORMAT_INVALID};
 
+#else
+#  define GLOBAL(var, type, val) extern type var
+#  define GLOBALARR(arr, type, dim, val) extern type arr[]
 
-/* block data globals */
-double **blockdata;
-int maxblock = MAXBLOCK;
-int blocklen;
-int blockncols;
+extern target target_set;
+extern defaults grdefaults;
+extern plotstr timestamp;
 
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-int readcdf = FALSE;
-char netcdf_name[512], xvar_name[128], yvar_name[128];
-#endif
-
-/* parameters for non-linear fit */
-nonlparms nonl_parms[MAXPARM];
-nonlopts nonl_opts;
-nonlprefs nonl_prefs;
-
-target target_set; /* target */
-
-
-/* region definition */
-region rg[MAXREGION];
-int nr = 0;			/* the current region */
-
-
-/* drawing objects */
-
-plotstr *pstr;       /* strings */
-boxtype *boxes;    /* boxes */
-linetype *lines;   /* lines */
-ellipsetype *ellip;   /* ellipses */
-
-plotstr defpstr;
-linetype defline;
-boxtype defbox;
-ellipsetype defellip={TRUE,COORD_VIEW,0,0,0,0,0,1,1,1,1,0};
-
-/* lines and ellipses and boxes flags */
-int box_color = 1;
-int box_lines = 1;
-double box_linew = 1;
-int box_fillpat = 0;
-int box_fillcolor = 1;
-int box_loctype = COORD_VIEW;
-
-int ellipse_color = 1;
-int ellipse_lines = 1;
-double ellipse_linew = 1;
-int ellipse_fillpat = 0;
-int ellipse_fillcolor = 1;
-int ellipse_loctype = COORD_VIEW;
-
-int line_color = 1;
-int line_lines = 1;
-double line_linew = 1;
-int line_loctype = COORD_VIEW;
-int line_arrow_end = 0;
-double line_asize = 1.0;
-int line_atype = 0;
-double line_a_dL_ff = 1.0;
-double line_a_lL_ff = 0.0;
-
-/* default string parameters */
-int string_color = 1;
-int string_font = 0;
-int string_rot = 0;
-int string_just = 0;
-int string_loctype = COORD_VIEW;
-double string_size = 1.0;
-
-#endif
-
-#ifndef MAIN
-
-extern char docname[];
-
-extern int debuglevel;
-
-extern int inwin;		/* true if running X */
-extern int ispipe;		/* true if reading from stdin */
-
-extern int ptofile;		/* flag to indicate destination of hardcopy
-                                 * output, ptofile = 0 means print to printer
-                                 * non-zero print to file */
-
-extern char sformat[];
-
-extern int logwindow;		/* TRUE if results are displayed in the log window */
-
-extern FILE *resfp;
-
-extern int tdevice, hdevice;
-
-extern int monomode;		/* set mono mode */
-extern int invert;		/* use GXxor or GXinvert for xor'ing */
-extern int autoscale_onread;	/* autoscale after reading data from fileswin.c */
-extern int noask;		/* if TRUE, assume yes for everything (dangerous) */
-
-extern int index_shift; 	/* 0 for C, 1 for F77 index notation */
-
-extern int timer_delay;		/* timer to interrupt too long reads */
-
-extern int scrolling_islinked;	/* linked scroll */
-extern double scrollper;	/* scroll fraction */
-extern double shexper;		/* expand/shrink fraction */
-
-extern int allow_dc;		/* allow double click ops */
-
-extern defaults grdefaults;	/* default properties */
-
-
-extern int auto_redraw;
-extern int status_auto_redraw;
-extern int force_redraw;
-
-extern double charsize, xlibcharsize;	/* declared in draw.c and xlib.c resp. */
-
-extern int curset;
-extern int focus_policy;
-extern int draw_focus_flag;
-
-extern plotstr timestamp;       /* timestamp */
-
-extern int cursource, curtype;
-extern int format_types[];
-
-extern double **blockdata;
-extern int maxblock;
-extern int blocklen;
-extern int blockncols;
-
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-extern int readcdf;
-extern char netcdf_name[];
-extern char xvar_name[];
-extern char yvar_name[];
-#endif
-
-/* parameters for non-linear fit */
 extern nonlparms nonl_parms[];
 extern nonlopts nonl_opts;
 extern nonlprefs nonl_prefs;
 
-extern target target_set; /* target */
-
-
-/* region definition */
 extern region rg[];
-extern int nr;
+
+extern int format_types[];
+
+#endif
+
+#ifdef DEBUG
+GLOBAL(debuglevel, int, 0);
+#endif
+
+/* TRUE if results are displayed in the log window */
+GLOBAL(logwindow, int, FALSE);
+
+/* real-time input delay (prevents getting stuck reading) */
+GLOBAL(timer_delay, int, 1000);
+
+/* linked scroll */
+GLOBAL(scrolling_islinked, int, FALSE);
+/* scroll fraction */
+GLOBAL(scrollper, double, 0.05);
+/* expand/shrink fraction */
+GLOBAL(shexper, double, 0.05);
+
+/* terminal device */
+GLOBAL(tdevice, int, 0);
+/* hardcopy device */
+GLOBAL(hdevice, int, 0);
+
+/* set mono mode */
+GLOBAL(monomode, int, FALSE);
+/* use GXxor or GXinvert for xor'ing */
+GLOBAL(invert, int, FALSE);
+/* if true, redraw graph each time action isperformed */
+GLOBAL(auto_redraw, int, TRUE);
+/* allow double click ops */
+GLOBAL(allow_dc, int, TRUE);
+/* if TRUE, assume yes for everything */
+GLOBAL(noask, int, FALSE);
+
+/* true if running X */
+GLOBAL(inwin, int, FALSE);
+
+/* autoscale after reading in data sets */
+GLOBAL(autoscale_onread, int, AUTOSCALE_XY);
+
+GLOBAL(focus_policy, int, FOCUS_CLICK);
+GLOBAL(draw_focus_flag, int, TRUE);
+
+/* block data globals */
+GLOBAL(blockdata, double **, NULL);
+GLOBAL(maxblock, int, MAXBLOCK);
+GLOBAL(blocklen, int, 0);
+GLOBAL(blockncols, int, 0);
 
 
-extern plotstr *pstr;		/* strings */
-extern boxtype *boxes;		/* boxes */
-extern linetype *lines;		/* lines */
-extern ellipsetype *ellip;	/* ellipses */
+/* lines */
+GLOBAL(lines, linetype *, NULL);
+/* boxes */
+GLOBAL(boxes, boxtype *, NULL);
+/* ellipses */
+GLOBAL(ellip, ellipsetype *, NULL);
+/* strings */
+GLOBAL(pstr, plotstr *, NULL);
 
-extern plotstr defpstr;
-extern linetype defline;
-extern boxtype defbox;
-extern ellipsetype defellip;
+/* lines, boxes, ellipses and strings flags */
+GLOBAL(box_color, int, 1);
+GLOBAL(box_lines, int, 1);
+GLOBAL(box_linew, double, 1.0);
+GLOBAL(box_fillpat, int, 0);
+GLOBAL(box_fillcolor, int, 1);
+GLOBAL(box_loctype, int, COORD_VIEW);
 
-extern int box_color;
-extern int box_lines;
-extern double box_linew;
-extern int box_fill;
-extern int box_fillpat;
-extern int box_fillcolor;
-extern int box_loctype;
+GLOBAL(ellipse_color, int, 1);
+GLOBAL(ellipse_lines, int, 1);
+GLOBAL(ellipse_linew, double, 1.0);
+GLOBAL(ellipse_fillpat, int, 0);
+GLOBAL(ellipse_fillcolor, int, 1);
+GLOBAL(ellipse_loctype, int, COORD_VIEW);
 
-extern int ellipse_color;
-extern int ellipse_lines;
-extern double ellipse_linew;
-extern int ellipse_fill;
-extern int ellipse_fillpat;
-extern int ellipse_fillcolor;
-extern int ellipse_loctype;
+GLOBAL(line_color, int, 1);
+GLOBAL(line_lines, int, 1);
+GLOBAL(line_linew, double, 1.0);
+GLOBAL(line_arrow_end, int, 0);
+GLOBAL(line_atype, int, 0);
+GLOBAL(line_asize, double, 1.0);
+GLOBAL(line_a_dL_ff, double, 1.0);
+GLOBAL(line_a_lL_ff, double, 1.0);
+GLOBAL(line_loctype, int, COORD_VIEW);
 
-extern int line_color;
-extern int line_lines;
-extern double line_linew;
-extern int line_loctype;
-extern int line_arrow_end;
-extern double line_asize;
-extern int line_atype;
-extern double line_a_dL_ff;
-extern double line_a_lL_ff;
+GLOBAL(string_color, int, 1);
+GLOBAL(string_font, int, 0);
+GLOBAL(string_rot, int, 0);
+GLOBAL(string_just, int, 0);
+GLOBAL(string_size, double, 1.0);
+GLOBAL(string_loctype, int, COORD_VIEW);
 
-extern int string_color;
-extern int string_font;
-extern int string_rot;
-extern int string_just;
-extern int string_loctype;
-extern double string_size;
 
+/* used in the parser */
+GLOBAL(curset, int, 0);
+GLOBAL(curtype, int, SET_XY);
+GLOBAL(cursource, int, SOURCE_DISK);
+
+/* the current region */
+GLOBAL(nr, int, 0);
+
+/* file for results */
+GLOBAL(resfp, FILE *, NULL);
+
+/* project file name */
+GLOBALARR(docname, char, GR_MAXPATHLEN, NONAME);
+
+/* format for saving data sets */
+GLOBALARR(sformat, char, 128, "%16.8g");
+
+#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+GLOBAL(readcdf, int, FALSE);
+GLOBALARR(netcdf_name, char, 512, "");
+GLOBALARR(xvar_name, char, 128, "");
+GLOBALARR(yvar_name, char, 128, "");
 #endif
 
 #endif /* __GLOBALS_H_ */
