@@ -168,7 +168,6 @@ static void yyerror(char *s);
 %token KEY_FUNC_PPD  
 %token KEY_FUNC_PPPD 
 
-%token <ival> INDEX
 %token <ival> DATE
 
 %token <dptr> VAR_D	 /* a (pointer to) double variable                                     */
@@ -192,15 +191,10 @@ static void yyerror(char *s);
 %token <ival> ALTXAXIS
 %token <ival> ALTYAXIS
 %token <ival> ANGLE
-%token <ival> ANTIALIASING
 %token <ival> APPEND
-%token <ival> ARRANGE
 %token <ival> ARROW
-%token <ival> ASCENDING
-%token <ival> ASPLINE
 %token <ival> AUTO
 %token <ival> AUTOSCALE
-%token <ival> AUTOTICKS
 %token <ival> AVALUE
 %token <ival> AVG
 %token <ival> BACKGROUND
@@ -208,16 +202,12 @@ static void yyerror(char *s);
 %token <ival> BARDY
 %token <ival> BARDYDY
 %token <ival> BASELINE
-%token <ival> BATCH
 %token <ival> BEGIN
 %token <ival> BELOW
 %token <ival> BETWEEN
-%token <ival> BLACKMAN
-%token <ival> BLOCK
 %token <ival> BOTH
 %token <ival> BOTTOM
 %token <ival> BOX
-%token <ival> CD
 %token <ival> CENTER
 %token <ival> CHAR
 %token <ival> CHART
@@ -225,13 +215,8 @@ static void yyerror(char *s);
 %token <ival> CLEAR
 %token <ival> CLICK
 %token <ival> CLIP
-%token <ival> CLOSE
 %token <ival> COLOR
 %token <ival> COMMENT
-%token <ival> COMPLEX
-%token <ival> CONSTRAINTS
-%token <ival> COPY
-%token <ival> CYCLE
 %token <ival> DAYMONTH
 %token <ival> DAYOFWEEKL
 %token <ival> DAYOFWEEKS
@@ -250,59 +235,40 @@ static void yyerror(char *s);
 %token <ival> DESCENDING
 %token <ival> DESCRIPTION
 %token <ival> DEVICE
-%token <ival> DIFFERENCE
 %token <ival> DISK
-%token <ival> DOWN
-%token <ival> DPI
-%token <ival> DROP
 %token <ival> DROPLINE
 %token <ival> ECHO
 %token <ival> ELLIPSE
 %token <ival> ENGINEERING
 %token <ival> ERRORBAR
-%token <ival> EXIT
 %token <ival> EXPONENTIAL
-%token <ival> FFT
-%token <ival> FILEP
 %token <ival> FILL
 %token <ival> FIXED
 %token <ival> FIXEDPOINT
-%token <ival> FLUSH
-%token <ival> FOCUS
-%token <ival> FOLLOWS
 %token <ival> FONTP
-%token <ival> FORCE
 %token <ival> FORMAT
 %token <ival> FORMULA
 %token <ival> FRAMEP
 %token <ival> FREE
-%token <ival> FREQUENCY
 %token <ival> FROM
 %token <ival> GENERAL
 %token <ival> GETP
 %token <ival> GRAPH
 %token <ival> GRAPHNO
 %token <ival> GRID
-%token <ival> HAMMING
-%token <ival> HANNING
 %token <ival> HARDCOPY
 %token <ival> HBAR
 %token <ival> HGAP
 %token <ival> HIDDEN
-%token <ival> HISTOGRAM
 %token <ival> HMS
 %token <ival> HORIZI
 %token <ival> HORIZONTAL
 %token <ival> HORIZO
-%token <ival> ID
 %token <ival> IFILTER
 %token <ival> IN
 %token <ival> INCREMENT
 %token <ival> INOUT
-%token <ival> INTEGRATE
-%token <ival> INTERPOLATE
 %token <ival> INVERT
-%token <ival> INVFFT
 %token <ival> JUST
 %token <ival> KILL
 %token <ival> LABEL
@@ -316,7 +282,6 @@ static void yyerror(char *s);
 %token <ival> LINESTYLE
 %token <ival> LINEWIDTH
 %token <ival> LINK
-%token <ival> LOAD
 %token <ival> LOCTYPE
 %token <ival> LOG
 %token <ival> LOGARITHMIC
@@ -325,7 +290,6 @@ static void yyerror(char *s);
 %token <ival> LOGXY
 %token <ival> LOGY
 %token <ival> MAGIC
-%token <ival> MAGNITUDE
 %token <ival> MAJOR
 %token <ival> MAP
 %token <ival> MAXP
@@ -343,12 +307,9 @@ static void yyerror(char *s);
 %token <ival> MONTHL
 %token <ival> MONTHS
 %token <ival> MONTHSY
-%token <ival> MOVE
 %token <ival> NEGATE
-%token <ival> NEW
 %token <ival> NONE
 %token <ival> NORMAL
-%token <ival> NXY
 %token <ival> OFF
 %token <ival> OFFSET
 %token <ival> OFFSETX
@@ -360,42 +321,28 @@ static void yyerror(char *s);
 %token <ival> OUT
 %token <ival> PAGE
 %token <ival> PARA
-%token <ival> PARAMETERS
-%token <ival> PARZEN
 %token <ival> PATTERN
-%token <ival> PERIOD
 %token <ival> PERP
-%token <ival> PHASE
 %token <ival> PIE
 %token <ival> PIPE
 %token <ival> PLACE
-%token <ival> POINT
 %token <ival> POLAR
 %token <ival> POLYI
 %token <ival> POLYO
-%token <ival> POP
 %token <ival> PORTRAIT
 %token <ival> POWER
 %token <ival> PREC
 %token <ival> PREPEND
-%token <ival> PRINT
 %token <ival> PS
-%token <ival> PUSH
 %token <ival> RAND
-%token <ival> READ
-%token <ival> REAL
 %token <ival> RECIPROCAL
-%token <ival> REDRAW
 %token <ival> REFERENCE
 %token <ival> REGNUM
-%token <ival> REVERSE
 %token <ival> RIGHT
 %token <ival> RISER
 %token <ival> ROT
 %token <ival> ROUNDED
 %token <ival> RULE
-%token <ival> RUNPROPERTY
-%token <ival> SAVEALL
 %token <ival> SCALE
 %token <ival> SCIENTIFIC
 %token <ival> SCROLL
@@ -406,13 +353,9 @@ static void yyerror(char *s);
 %token <ival> SIGN
 %token <ival> SIZE
 %token <ival> SKIP
-%token <ival> SLEEP
 %token <ival> SMITH 
-%token <ival> SORT
 %token <ival> SOURCE
 %token <ival> SPEC
-%token <ival> SPLINE
-%token <ival> SPLIT
 %token <ival> STACK
 %token <ival> STACKED
 %token <ival> STACKEDBAR
@@ -422,13 +365,11 @@ static void yyerror(char *s);
 %token <ival> STOP
 %token <ival> STRING
 %token <ival> SUBTITLE
-%token <ival> SWAP
 %token <ival> SYMBOL
 %token <ival> TARGET
 %token <ival> TICKLABEL
 %token <ival> TICKP
 %token <ival> TICKSP
-%token <ival> TIMER
 %token <ival> TIMESTAMP
 %token <ival> TITLE
 %token <ival> TO
@@ -451,7 +392,6 @@ static void yyerror(char *s);
 %token <ival> WITH
 %token <ival> WORLD
 %token <ival> WRAP
-%token <ival> WRITE
 %token <ival> WX1
 %token <ival> WX2
 %token <ival> WY1
@@ -526,7 +466,6 @@ static void yyerror(char *s);
 %type <ival> signchoice
 
 %type <ival> colpat_obs
-%type <ival> direction
 
 %type <ival> formatchoice
 %type <ival> inoutchoice
@@ -1773,66 +1712,7 @@ vasgn:
         ;
 
 defines:
-	DEFINE NEW_TOKEN
-        {
-	    if (define_parser_scalar($2) == NULL) {
-	        yyerror("Keyword already exists");
-	    }
-
-            xfree($2);
-        }
-	| DEFINE NEW_TOKEN '[' ']'
-        {
-	    if (define_parser_arr($2) == NULL) {
-	        yyerror("Keyword already exists");
-	    }
-
-            xfree($2);
-        }
-	| DEFINE NEW_TOKEN '[' nexpr ']'
-        {
-	    grarr *var;
-            if ((var = define_parser_arr($2)) == NULL) {
-	        yyerror("Keyword already exists");
-	    } else {
-                realloc_vrbl(var, $4);
-            }
-
-            xfree($2);
-        }
-	| CLEAR VAR_D
-        {
-            undefine_parser_var((void *) $2);
-            xfree($2);
-        }
-	| CLEAR VEC_D
-        {
-            realloc_vrbl($2, 0);
-            undefine_parser_var((void *) $2);
-            xfree($2);
-        }
-	| ALIAS CHRSTR CHRSTR {
-	    int position;
-
-	    lowtoupper($3);
-	    if ((position = findf(key, $3)) >= 0) {
-	        symtab_entry tmpkey;
-		tmpkey.s = $2;
-		tmpkey.type = key[position].type;
-		tmpkey.data = key[position].data;
-		if (addto_symtab(tmpkey) != RETURN_SUCCESS) {
-		    yyerror("Keyword already exists");
-		}
-	    } else {
-	        yyerror("Aliased keyword not found");
-	    }
-	    xfree($2);
-	    xfree($3);
-	}
-	| ALIAS FORCE onoff {
-	    alias_force = $3;
-	}
-	| USE CHRSTR TYPE proctype FROM CHRSTR {
+	USE CHRSTR TYPE proctype FROM CHRSTR {
 	    if (load_module($6, $2, $2, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
@@ -1904,52 +1784,6 @@ parmset:
         | PAGE SIZE nexpr ',' nexpr {
             set_page_dimensions(grace, $3, $5, FALSE);
         }
-	| DEVICE CHRSTR PAGE SIZE nexpr ',' nexpr {
-            int device_id;
-            Device_entry *dev;
-            
-            device_id = get_device_by_name(canvas, $2);
-            xfree($2);
-            if (device_id < 0) {
-                yyerror("Unknown device");
-            } else {
-                dev = get_device_props(canvas, device_id);
-                dev->pg.width =  (long) ($5*dev->pg.dpi/72);
-                dev->pg.height = (long) ($7*dev->pg.dpi/72);
-            }
-        }
-        | DEVICE CHRSTR DPI expr {
-            int device_id;
-            Device_entry *dev;
-            
-            device_id = get_device_by_name(canvas, $2);
-            if (device_id < 0) {
-                yyerror("Unknown device");
-            } else {
-                dev = get_device_props(canvas, device_id);
-                dev->pg.dpi = $4;
-            }
-            xfree($2);
-        }
-        | DEVICE CHRSTR OP CHRSTR {
-            int device_id;
-            
-            device_id = get_device_by_name(canvas, $2);
-            if (device_id < 0) {
-                yyerror("Unknown device");
-            } else {
-                if (parse_device_options(canvas, device_id, $4) != 
-                                                        RETURN_SUCCESS) {
-                    yyerror("Incorrect device option string");
-                }
-            }
-            xfree($2);
-            xfree($4);
-        }
-        | HARDCOPY DEVICE CHRSTR {
-            set_printer_by_name(grace, $3);
-            xfree($3);
-        }
         | REFERENCE DATE jrawdate {
             project_set_ref_date(grace->project, $3);
 	}
@@ -1975,10 +1809,6 @@ parmset:
 	}
 
 	| LINK PAGE onoff {
-	}
-
-	| TIMER nexpr {
-            grace->rt->timer_delay = $2;
 	}
 
 	| TARGET selectset {
@@ -2580,26 +2410,10 @@ parmset:
 	    xfree($3);
 	    xfree($5);
 	}
-	| CLEAR filtertype {
-	    clear_io_filters($2);
-	}
-
-	| SOURCE sourcetype {
-	    grace->rt->cursource = $2;
-	}
 	;
 
 actions:
-	REDRAW {
-#ifndef NONE_GUI
-	    xdrawgraph(grace->project, TRUE);
-#endif
-	}
-	| CD CHRSTR {
-	    set_workingdir(grace, $2);
-	    xfree($2);
-	}
-	| ECHO CHRSTR {
+	ECHO CHRSTR {
 	    echomsg($2);
 	    xfree($2);
 	}
@@ -2608,56 +2422,6 @@ actions:
             sprintf(buf, "%g", $2);
             echomsg(buf);
 	}
-	| CLOSE {
-	    close_input = copy_string(close_input, "");
-	}
-	| CLOSE CHRSTR {
-	    close_input = copy_string(close_input, $2);
-	}
-	| EXIT {
-	    exit(0);
-	}
-	| EXIT '(' iexpr ')' {
-	    exit($3);
-	}
-	| PRINT {
-	    do_hardcopy(grace->project);
-	}
-	| PRINT TO DEVICE {
-            set_ptofile(grace, FALSE);
-	}
-	| PRINT TO CHRSTR {
-            set_ptofile(grace, TRUE);
-	    strcpy(grace->rt->print_file, $3);
-            xfree($3);
-	}
-	| PAGE direction {
-	    switch ($2) {
-	    case UP:
-		graph_scroll(whichgraph, GSCROLL_UP);
-		break;
-	    case DOWN:
-		graph_scroll(whichgraph, GSCROLL_DOWN);
-		break;
-	    case RIGHT:
-		graph_scroll(whichgraph, GSCROLL_RIGHT);
-		break;
-	    case LEFT:
-		graph_scroll(whichgraph, GSCROLL_LEFT);
-		break;
-	    case IN:
-		graph_zoom(whichgraph, GZOOM_SHRINK);
-		break;
-	    case OUT:
-		graph_zoom(whichgraph, GZOOM_EXPAND);
-		break;
-	    }
-	}
-	| SLEEP expr {
-	    if ($2 > 0) {
-	        msleep_wrap((unsigned int) (1000 * $2));
-	    }
-	}
 	| GETP CHRSTR {
 	    gotparams = TRUE;
 	    strcpy(paramfile, $2);
@@ -2665,12 +2429,6 @@ actions:
 	}
 	| selectset HIDDEN onoff {
 	    set_set_active($1, !$3);
-	}
-	| selectset LENGTH nexpr {
-	    set_set_length($1, $3);
-	}
-	| VEC_D LENGTH nexpr {
-	    realloc_vrbl($1, $3);
 	}
         ;
 
@@ -2681,21 +2439,6 @@ options:
             gui_set_page_free(grace->gui, $3 == FREE);
 #endif
         }
-	| AUTO REDRAW onoff {
-	    grace->gui->auto_redraw = $3;
-	}
-	| FOCUS onoff {
-	    grace->gui->draw_focus_flag = $2;
-	}
-	| FOCUS SET {
-	    grace->gui->focus_policy = FOCUS_SET;
-	}
-	| FOCUS FOLLOWS {
-	    grace->gui->focus_policy = FOCUS_FOLLOWS;
-	}
-	| FOCUS CLICK {
-	    grace->gui->focus_policy = FOCUS_CLICK;
-	}
         ;
 
 
@@ -3492,14 +3235,6 @@ signchoice: NORMAL { $$ = SIGN_NORMAL; }
 	| NEGATE { $$ = SIGN_NEGATE; }
 	;
 
-direction: UP { $$ = UP; }
-	| DOWN { $$ = DOWN; }
-	| RIGHT { $$ = RIGHT; }
-	| LEFT { $$ = LEFT; }
-	| IN { $$ = IN; }
-	| OUT { $$ = OUT; }
-	;
-
 worldview: WORLD { $$ = COORD_WORLD; }
 	| VIEW { $$ = COORD_VIEW; }
 	;
@@ -3775,7 +3510,7 @@ parmset_obs:
             }
 	}
 
-        | HARDCOPY DEVICE expr { }
+        | HARDCOPY DEVICE iexpr { }
         | PS LINEWIDTH BEGIN expr { }
         | PS LINEWIDTH INCREMENT expr { }
         | PS linew_select { }
@@ -3979,20 +3714,15 @@ symtab_entry ikey[] = {
 	{"ALTYAXIS", ALTYAXIS, NULL},
 	{"AND", AND, NULL},
 	{"ANGLE", ANGLE, NULL},
-	{"ANTIALIASING", ANTIALIASING, NULL},
 	{"APPEND", APPEND, NULL},
-	{"ARRANGE", ARRANGE, NULL},
 	{"ARROW", ARROW, NULL},
-	{"ASCENDING", ASCENDING, NULL},
 	{"ASIN", FUNC_D, (void *) asin},
 	{"ASINH", FUNC_D, (void *) asinh},
-	{"ASPLINE", ASPLINE, NULL},
 	{"ATAN", FUNC_D, (void *) atan},
 	{"ATAN2", FUNC_DD, (void *) atan2},
 	{"ATANH", FUNC_D, (void *) atanh},
 	{"AUTO", AUTO, NULL},
 	{"AUTOSCALE", AUTOSCALE, NULL},
-	{"AUTOTICKS", AUTOTICKS, NULL},
 	{"AVALUE", AVALUE, NULL},
 	{"AVG", AVG, NULL},
 	{"BACKGROUND", BACKGROUND, NULL},
@@ -4000,18 +3730,14 @@ symtab_entry ikey[] = {
 	{"BARDY", BARDY, NULL},
 	{"BARDYDY", BARDYDY, NULL},
 	{"BASELINE", BASELINE, NULL},
-	{"BATCH", BATCH, NULL},
         {"BEGIN", BEGIN, NULL},
 	{"BELOW", BELOW, NULL},
 	{"BETA", FUNC_DD, (void *) beta},
 	{"BETWEEN", BETWEEN, NULL},
 	{"BI", FUNC_D, (void *) bi_wrap},
-	{"BLACKMAN", BLACKMAN, NULL},
-	{"BLOCK", BLOCK, NULL},
 	{"BOTH", BOTH, NULL},
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
-	{"CD", CD, NULL},
 	{"CEIL", FUNC_D, (void *) ceil},
 	{"CENTER", CENTER, NULL},
 	{"CHAR", CHAR, NULL},
@@ -4025,16 +3751,11 @@ symtab_entry ikey[] = {
 	{"CLEAR", CLEAR, NULL},
 	{"CLICK", CLICK, NULL},
 	{"CLIP", CLIP, NULL},
-	{"CLOSE", CLOSE, NULL},
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},
-	{"COMPLEX", COMPLEX, NULL},
 	{"CONST", KEY_CONST, NULL},
-	{"CONSTRAINTS", CONSTRAINTS, NULL},
-	{"COPY", COPY, NULL},
 	{"COS", FUNC_D, (void *) cos},
 	{"COSH", FUNC_D, (void *) cosh},
-	{"CYCLE", CYCLE, NULL},
 	{"DATE", DATE, NULL},
 	{"DAWSN", FUNC_D, (void *) dawsn},
 	{"DAYMONTH", DAYMONTH, NULL},
@@ -4056,12 +3777,7 @@ symtab_entry ikey[] = {
 	{"DESCENDING", DESCENDING, NULL},
 	{"DESCRIPTION", DESCRIPTION, NULL},
 	{"DEVICE", DEVICE, NULL},
-	{"DIFF", DIFFERENCE, NULL},
-	{"DIFFERENCE", DIFFERENCE, NULL},
 	{"DISK", DISK, NULL},
-	{"DOWN", DOWN, NULL},
-	{"DPI", DPI, NULL},
-	{"DROP", DROP, NULL},
 	{"DROPLINE", DROPLINE, NULL},
 	{"ECHO", ECHO, NULL},
 	{"ELLIE", FUNC_DD, (void *) ellie},
@@ -4075,7 +3791,6 @@ symtab_entry ikey[] = {
 	{"ERF", FUNC_D, (void *) erf},
 	{"ERFC", FUNC_D, (void *) erfc},
 	{"ERRORBAR", ERRORBAR, NULL},
-	{"EXIT", EXIT, NULL},
 	{"EXP", FUNC_D, (void *) exp},
 	{"EXPN", FUNC_ND, (void *) expn},
 	{"EXPONENTIAL", EXPONENTIAL, NULL},
@@ -4084,22 +3799,15 @@ symtab_entry ikey[] = {
 	{"FDTR", FUNC_NND, (void *) fdtr},
 	{"FDTRC", FUNC_NND, (void *) fdtrc},
 	{"FDTRI", FUNC_NND, (void *) fdtri},
-	{"FFT", FFT, NULL},
-	{"FILE", FILEP, NULL},
 	{"FILL", FILL, NULL},
 	{"FIXED", FIXED, NULL},
 	{"FIXEDPOINT", FIXEDPOINT, NULL},
 	{"FLOOR", FUNC_D, (void *) floor},
-	{"FLUSH", FLUSH, NULL},
-	{"FOCUS", FOCUS, NULL},
-	{"FOLLOWS", FOLLOWS, NULL},
 	{"FONT", FONTP, NULL},
-	{"FORCE", FORCE, NULL},
 	{"FORMAT", FORMAT, NULL},
 	{"FORMULA", FORMULA, NULL},
 	{"FRAME", FRAMEP, NULL},
 	{"FREE", FREE, NULL},
-	{"FREQUENCY", FREQUENCY, NULL},
 	{"FRESNLC", FUNC_D, (void *) fresnlc_wrap},
 	{"FRESNLS", FUNC_D, (void *) fresnls_wrap},
 	{"FROM", FROM, NULL},
@@ -4120,13 +3828,10 @@ symtab_entry ikey[] = {
 	{"GRAPH", GRAPH, NULL},
 	{"GRID", GRID, NULL},
 	{"GT", GT, NULL},
-	{"HAMMING", HAMMING, NULL},
-	{"HANNING", HANNING, NULL},
 	{"HARDCOPY", HARDCOPY, NULL},
 	{"HBAR", HBAR, NULL},
 	{"HGAP", HGAP, NULL},
 	{"HIDDEN", HIDDEN, NULL},
-	{"HISTOGRAM", HISTOGRAM, NULL},
 	{"HMS", HMS, NULL},
 	{"HORIZI", HORIZI, NULL},
 	{"HORIZO", HORIZO, NULL},
@@ -4136,7 +3841,6 @@ symtab_entry ikey[] = {
 	{"HYPOT", FUNC_DD, (void *) hypot},
 	{"I0E", FUNC_D, (void *) i0e},
 	{"I1E", FUNC_D, (void *) i1e},
-	{"ID", ID, NULL},
 	{"IFILTER", IFILTER, NULL},
 	{"IGAM", FUNC_DD, (void *) igam},
 	{"IGAMC", FUNC_DD, (void *) igamc},
@@ -4145,12 +3849,8 @@ symtab_entry ikey[] = {
 	{"INCBET", FUNC_PPD, (void *) incbet},
 	{"INCBI", FUNC_PPD, (void *) incbi},
 	{"INCREMENT", INCREMENT, NULL},
-	{"INDEX", INDEX, NULL},
 	{"INOUT", INOUT, NULL},
-	{"INTEGRATE", INTEGRATE, NULL},
-	{"INTERPOLATE", INTERPOLATE, NULL},
 	{"INVERT", INVERT, NULL},
-	{"INVFFT", INVFFT, NULL},
 	{"IRAND", FUNC_I, (void *) irand_wrap},
 	{"IV", FUNC_DD, (void *) iv_wrap},
 	{"JUST", JUST, NULL},
@@ -4174,7 +3874,6 @@ symtab_entry ikey[] = {
 	{"LINEWIDTH", LINEWIDTH, NULL},
 	{"LINK", LINK, NULL},
 	{"LN", FUNC_D, (void *) log},
-	{"LOAD", LOAD, NULL},
 	{"LOCTYPE", LOCTYPE, NULL},
 	{"LOG", LOG, NULL},
 	{"LOG10", FUNC_D, (void *) log10},
@@ -4186,7 +3885,6 @@ symtab_entry ikey[] = {
 	{"LOGIT", LOGIT, NULL},
 	{"LT", LT, NULL},
 	{"MAGIC", MAGIC, NULL},
-	{"MAGNITUDE", MAGNITUDE, NULL},
 	{"MAJOR", MAJOR, NULL},
 	{"MAP", MAP, NULL},
 	{"MAX", MAXP, NULL},
@@ -4207,17 +3905,14 @@ symtab_entry ikey[] = {
 	{"MONTHL", MONTHL, NULL},
 	{"MONTHS", MONTHS, NULL},
 	{"MONTHSY", MONTHSY, NULL},
-	{"MOVE", MOVE, NULL},
 	{"NDTR", FUNC_D, (void *) ndtr},
 	{"NDTRI", FUNC_D, (void *) ndtri},
 	{"NE", NE, NULL},
 	{"NEGATE", NEGATE, NULL},
-	{"NEW", NEW, NULL},
 	{"NONE", NONE, NULL},
 	{"NORM", FUNC_D, (void *) fx},
 	{"NORMAL", NORMAL, NULL},
 	{"NOT", NOT, NULL},
-	{"NXY", NXY, NULL},
 	{"OFF", OFF, NULL},
 	{"OFFSET", OFFSET, NULL},
 	{"OFFSETX", OFFSETX, NULL},
@@ -4230,40 +3925,28 @@ symtab_entry ikey[] = {
 	{"OUT", OUT, NULL},
 	{"PAGE", PAGE, NULL},
 	{"PARA", PARA, NULL},
-	{"PARAMETERS", PARAMETERS, NULL},
-	{"PARZEN", PARZEN, NULL},
 	{"PATTERN", PATTERN, NULL},
 	{"PDTR", FUNC_ND, (void *) pdtr},
 	{"PDTRC", FUNC_ND, (void *) pdtrc},
 	{"PDTRI", FUNC_ND, (void *) pdtri},
-	{"PERIOD", PERIOD, NULL},
 	{"PERP", PERP, NULL},
-	{"PHASE", PHASE, NULL},
 	{"PI", CONSTANT, (void *) pi_const},
 	{"PIE", PIE, NULL},
 	{"PIPE", PIPE, NULL},
 	{"PLACE", PLACE, NULL},
-	{"POINT", POINT, NULL},
 	{"POLAR", POLAR, NULL},
 	{"POLYI", POLYI, NULL},
 	{"POLYO", POLYO, NULL},
-	{"POP", POP, NULL},
 	{"PORTRAIT", PORTRAIT, NULL},
 	{"POWER", POWER, NULL},
 	{"PREC", PREC, NULL},
 	{"PREPEND", PREPEND, NULL},
-	{"PRINT", PRINT, NULL},
 	{"PS", PS, NULL},
 	{"PSI", FUNC_D, (void *) psi},
-	{"PUSH", PUSH, NULL},
 	{"RAD", UCONSTANT, (void *) rad_uconst},
 	{"RAND", RAND, NULL},
-	{"READ", READ, NULL},
-	{"REAL", REAL, NULL},
 	{"RECIPROCAL", RECIPROCAL, NULL},
-	{"REDRAW", REDRAW, NULL},
 	{"REFERENCE", REFERENCE, NULL},
-	{"REVERSE", REVERSE, NULL},
 	{"RGAMMA", FUNC_D, (void *) rgamma},
 	{"RIGHT", RIGHT, NULL},
 	{"RINT", FUNC_D, (void *) rint},
@@ -4272,8 +3955,6 @@ symtab_entry ikey[] = {
 	{"ROT", ROT, NULL},
 	{"ROUNDED", ROUNDED, NULL},
 	{"RULE", RULE, NULL},
-	{"RUNPROPERTY", RUNPROPERTY, NULL},
-	{"SAVEALL", SAVEALL, NULL},
 	{"SCALE", SCALE, NULL},
 	{"SCIENTIFIC", SCIENTIFIC, NULL},
 	{"SCROLL", SCROLL, NULL},
@@ -4287,14 +3968,10 @@ symtab_entry ikey[] = {
 	{"SINH", FUNC_D, (void *) sinh},
 	{"SIZE", SIZE, NULL},
 	{"SKIP", SKIP, NULL},
-	{"SLEEP", SLEEP, NULL},
 	{"SMITH", SMITH, NULL},
-	{"SORT", SORT, NULL},
 	{"SOURCE", SOURCE, NULL},
 	{"SPEC", SPEC, NULL},
 	{"SPENCE", FUNC_D, (void *) spence},
-	{"SPLINE", SPLINE, NULL},
-	{"SPLIT", SPLIT, NULL},
 	{"SQR", FUNC_D, (void *) sqr_wrap},
 	{"SQRT", FUNC_D, (void *) sqrt},
 	{"STACK", STACK, NULL},
@@ -4309,7 +3986,6 @@ symtab_entry ikey[] = {
 	{"STRING", STRING, NULL},
 	{"STRUVE", FUNC_DD, (void *) struve},
 	{"SUBTITLE", SUBTITLE, NULL},
-	{"SWAP", SWAP, NULL},
 	{"SYMBOL", SYMBOL, NULL},
 	{"TAN", FUNC_D, (void *) tan},
 	{"TANH", FUNC_D, (void *) tanh},
@@ -4317,7 +3993,6 @@ symtab_entry ikey[] = {
 	{"TICK", TICKP, NULL},
 	{"TICKLABEL", TICKLABEL, NULL},
 	{"TICKS", TICKSP, NULL},
-	{"TIMER", TIMER, NULL},
 	{"TIMESTAMP", TIMESTAMP, NULL},
 	{"TITLE", TITLE, NULL},
 	{"TO", TO, NULL},
@@ -4342,7 +4017,6 @@ symtab_entry ikey[] = {
 	{"WITH", WITH, NULL},
 	{"WORLD", WORLD, NULL},
 	{"WRAP", WRAP, NULL},
-	{"WRITE", WRITE, NULL},
 	{"WX1", WX1, NULL},
 	{"WX2", WX2, NULL},
 	{"WY1", WY1, NULL},
