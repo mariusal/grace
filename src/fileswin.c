@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -41,15 +41,19 @@
 #if defined(HAVE_SYS_PARAM_H)
 #  include <sys/param.h>
 #endif
+#include <sys/stat.h>
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/List.h>
+#include <Xm/Text.h>
+#include <Xm/DrawingA.h>
 
 #include "globals.h"
 #include "core_utils.h"
 #include "utils.h"
 #include "files.h"
+#include "devlist.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -91,18 +95,141 @@ static int save_proc(FSBStructure *fsb, char *filename, void *data)
     }
 }
 
+#define PREVIEW_WIDTH   250
+#define PREVIEW_HEIGHT  200
+
+typedef struct {
+    FSBStructure *fsb;
+    Widget canvasw;
+    Pixmap pixmap;
+
+    Canvas *canvas;
+    int idevice;
+
+    int preview_ok;
+    int x_offset, y_offset;
+} openGUI;
+
+static void select_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    openGUI *ui = (openGUI *) client_data;
+    char *filename = XmTextGetString(w);
+    struct stat statb;
+    
+    XClearWindow(XtDisplay(ui->canvasw), XtWindow(ui->canvasw));
+
+    ui->preview_ok = FALSE;
+    
+    if (stat(filename, &statb) == 0 && !S_ISDIR(statb.st_mode)) {
+
+        Quark *project = load_any_project(grace, filename);
+
+        if (project) {
+            int wpp, hpp;
+            float dpi;
+            Device_entry *d = get_device_props(ui->canvas, ui->idevice);
+            Page_geometry *pg = &d->pg;
+            X11stream xstream;
+            
+            project_get_page_dimensions(project, &wpp, &hpp);
+
+            if (wpp > hpp) {
+                dpi = 72.0*PREVIEW_WIDTH/wpp;
+            } else {
+                dpi = 72.0*PREVIEW_HEIGHT/hpp;
+            }
+            
+            pg->dpi = dpi;
+            pg->width  = MIN2((unsigned long) (wpp*dpi/72), PREVIEW_WIDTH);
+            pg->height = MIN2((unsigned long) (hpp*dpi/72), PREVIEW_HEIGHT);
+            ui->x_offset = (PREVIEW_WIDTH - pg->width)/2;
+            ui->y_offset = (PREVIEW_HEIGHT - pg->height)/2;
+
+            select_device(ui->canvas, ui->idevice);
+            
+            xstream.screen = XtScreen(ui->canvasw);
+            xstream.pixmap = ui->pixmap;
+            canvas_set_prstream(ui->canvas, &xstream);
+
+            XSetForeground(XtDisplay(ui->canvasw),
+                DefaultGCOfScreen(xstream.screen),
+                WhitePixelOfScreen(xstream.screen));
+            XSetFillStyle(XtDisplay(ui->canvasw),
+                DefaultGCOfScreen(xstream.screen), FillSolid);
+            XFillRectangle(XtDisplay(ui->canvasw), ui->pixmap,
+                DefaultGCOfScreen(xstream.screen), 0, 0,
+                PREVIEW_WIDTH, PREVIEW_HEIGHT);
+
+	    drawgraph(ui->canvas, project);
+
+            XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, XtWindow(ui->canvasw),
+                DefaultGCOfScreen(XtScreen(ui->canvasw)),
+                0, 0, pg->width, pg->height, ui->x_offset, ui->y_offset);
+            
+            ui->preview_ok = TRUE;
+        }
+    }
+    XtFree(filename);
+}
+
+void exposeCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    openGUI *ui = (openGUI *) client_data;
+    XmDrawingAreaCallbackStruct *cbs =
+        (XmDrawingAreaCallbackStruct *) call_data;
+    if (ui->preview_ok) {
+  	XCopyArea(XtDisplay(ui->canvasw), ui->pixmap, cbs->window,
+            DefaultGCOfScreen(XtScreen(ui->canvasw)),
+            cbs->event->xexpose.x - ui->x_offset,
+            cbs->event->xexpose.y - ui->y_offset,
+            cbs->event->xexpose.width,
+            cbs->event->xexpose.height,
+            cbs->event->xexpose.x,
+            cbs->event->xexpose.y);
+    }
+}
+
 void create_openproject_popup(void)
 {
-    static FSBStructure *fsb = NULL;
+    static openGUI *ui = NULL;
 
     set_wait_cursor();
 
-    if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Open project");
-	AddFileSelectionBoxCB(fsb, open_proc, NULL);
-        ManageChild(fsb->FSB);
+    if (ui == NULL) {
+        X11Stuff *xstuff = grace->gui->xstuff;
+        Widget fr, text;
+        
+        ui = xmalloc(sizeof(openGUI));
+        memset(ui, 0, sizeof(openGUI));
+        ui->canvas = grace->rt->canvas;
+
+        ui->idevice = register_x11_drv(ui->canvas);
+        device_set_aux(ui->canvas, ui->idevice);
+        
+        ui->pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
+            PREVIEW_WIDTH, PREVIEW_HEIGHT, xstuff->depth);
+        
+        ui->fsb = CreateFileSelectionBox(app_shell, "Open project");
+	AddFileSelectionBoxCB(ui->fsb, open_proc, NULL);
+
+        fr = CreateFrame(ui->fsb->rc, "Preview");
+
+        ui->canvasw = XtVaCreateManagedWidget("canvas",
+            xmDrawingAreaWidgetClass, fr,
+            XmNwidth, PREVIEW_WIDTH,
+            XmNheight, PREVIEW_HEIGHT,
+            XmNresizePolicy, XmRESIZE_NONE,
+            XmNbackground, WhitePixel(xstuff->disp, xstuff->screennumber),
+            NULL);
+        XtAddCallback(ui->canvasw, XmNexposeCallback, exposeCB, ui);
+
+        text = XtNameToWidget(ui->fsb->FSB, "Text");
+        XtAddCallback(text, XmNvalueChangedCallback,
+           select_cb, (XtPointer) ui);
+    
+        ManageChild(ui->fsb->FSB);
     }
-    RaiseWindow(fsb->dialog);
+    RaiseWindow(ui->fsb->dialog);
 
     unset_wait_cursor();
 }
