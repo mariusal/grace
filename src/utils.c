@@ -70,7 +70,6 @@
 
 static void rereadConfig(void);
 static RETSIGTYPE actOnSignal(int signo);
-static void bugwarn(char *signame);
 
 /*
  * free and check for NULL pointer
@@ -355,9 +354,10 @@ static void please_report_the_bug(void)
 }
 
 /*
- * Warn about bug (TODO X message)
+ * Warn about a possible bug displaying the passed message, try to save
+ * any unsaved work and abort
  */
-static void bugwarn(char *signame)
+static void bugwarn(char *msg)
 {
 /*
  *  Since we got so far, memory is probably corrupted so it's better to use
@@ -377,7 +377,7 @@ static void bugwarn(char *signame)
     } else {
         grace->rt->emergency_save = TRUE;
         grace->rt->interrupts = 0;
-        fprintf(stderr, "\a\nOops! Got %s\n", signame);
+        fprintf(stderr, "\a\nOops! %s\n", msg);
         if (is_dirtystate()) {
             strcpy(buf, get_docname());
             strcat(buf, "$");
@@ -401,7 +401,7 @@ static void bugwarn(char *signame)
  
 static RETSIGTYPE actOnSignal(int signo)
 {
-    char signame[16];
+    char *signame, buf[32];
      
     installSignal();
     
@@ -424,27 +424,29 @@ static RETSIGTYPE actOnSignal(int signo)
         break;
 #ifdef SIGILL
     case SIGILL:
-        strcpy(signame, "SIGILL");
+        signame = "SIGILL";
 #endif
 #ifdef SIGFPE
     case SIGFPE:
-        strcpy(signame, "SIGFPE");
+        signame = "SIGFPE";
 #endif
 #ifdef SIGBUS
     case SIGBUS:
-        strcpy(signame, "SIGBUS");
+        signame = "SIGBUS";
 #endif
 #ifdef SIGSEGV
     case SIGSEGV:
-        strcpy(signame, "SIGSEGV");
+        signame = "SIGSEGV";
 #endif
 #ifdef SIGSYS
     case SIGSYS:
-        strcpy(signame, "SIGSYS");
+        signame = "SIGSYS";
 #endif
-        bugwarn(signame);
+        sprintf(buf, "Got fatal signal %s!", signame);
+        bugwarn(buf);
         break;
     default:
+        /* ignore the rest */
         break;
     }
 }
