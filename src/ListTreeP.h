@@ -110,8 +110,6 @@ typedef struct {
 
   /* Private stuff ... */
   GC drawGC;
-  GC eraseGC;
-  GC eorGC;
   GC highlightGC;
   Pixinfo ItemPix;              /* temporary storage for GetItemPix */
   int exposeTop, exposeBot;

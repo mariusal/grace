@@ -412,10 +412,6 @@ InitializeGC(ListTreeWidget w)
   mask = GCLineStyle | GCLineWidth | GCFillStyle | GCForeground | GCBackground | GCFont;
   w->list.drawGC = XtGetGC((Widget) w, mask, &values);
 
-  values.function = GXinvert;
-  mask = GCLineStyle | GCLineWidth | GCFillStyle | GCForeground | GCBackground | GCFont | GCFunction;
-  w->list.eorGC = XtGetGC((Widget) w, mask, &values);
-
   values.background = w->list.foreground_pixel;
   values.foreground = w->core.background_pixel;
   mask = GCLineStyle | GCLineWidth | GCFillStyle | GCForeground | GCBackground | GCFont;
@@ -631,8 +627,6 @@ ResizeStuff(ListTreeWidget w)
   clip.width = w->list.viewWidth;
   clip.height = w->list.viewHeight;
   XSetClipRectangles(XtDisplay((Widget) w), w->list.drawGC,
-    0, 0, &clip, 1, Unsorted);
-  XSetClipRectangles(XtDisplay((Widget) w), w->list.eorGC,
     0, 0, &clip, 1, Unsorted);
   XSetClipRectangles(XtDisplay((Widget) w), w->list.highlightGC,
     0, 0, &clip, 1, Unsorted);
