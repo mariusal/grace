@@ -2818,11 +2818,16 @@ actions:
 	    nlfit_warray = NULL;
 	}
 	| NONLFIT '(' selectset ',' vexpr ',' nexpr ')' {
-	    gotnlfit = TRUE;
-	    nlfit_gno = $3->gno;
-	    nlfit_setno = $3->setno;
-	    nlfit_nsteps = $7;
-	    nlfit_warray = copy_data_column($5->data, $5->length);
+	    if (getsetlength($3->gno, $3->setno) != $5->length) {
+                errmsg("Data and weight arrays are of different lengths");
+                return 1;
+            } else {
+	        gotnlfit = TRUE;
+	        nlfit_gno = $3->gno;
+	        nlfit_setno = $3->setno;
+	        nlfit_nsteps = $7;
+	        nlfit_warray = copy_data_column($5->data, $5->length);
+            }
 	}
 	| REGRESS '(' selectset ',' nexpr ')' {
 	    do_regress($3->gno, $3->setno, $5, 0, -1, 0, -1);
