@@ -172,6 +172,8 @@ int wipeout(void)
     set_docname(NULL);
     set_project_description(NULL);
     print_file[0] = '\0';
+    /* a hack! the global "curtype" (as well as all others) should be removed */
+    curtype = SET_XY;
     clear_dirtystate();
     return 0;
 }
