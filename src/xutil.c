@@ -505,8 +505,7 @@ static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 
 void xunregister_rti(XtInputId id)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
-    if (xstuff->disp != (Display *) NULL) {
+    if (grace->gui->inwin) {
         /* the screen has been initialized : we can remove the buffer */
         XtRemoveInput(id);
     }
@@ -514,8 +513,7 @@ void xunregister_rti(XtInputId id)
 
 void xregister_rti(Input_buffer *ib)
 {
-    X11Stuff *xstuff = grace->gui->xstuff;
-    if (xstuff->disp != (Display *) NULL) {
+    if (grace->gui->inwin) {
         /* the screen has been initialized : we can register the buffer */
         ib->id = (unsigned long) XtAppAddInput(app_con,
                                                ib->fd,
