@@ -13,6 +13,7 @@
 #include "utils.h"
 #include "draw.h"
 #include "graphs.h"
+#include "graphutils.h"
 #include "protos.h"
 
 #include "xstrings.h"
@@ -20,6 +21,7 @@
 typedef struct {
     int gid;
     int sid;
+    int axis;
 } ParserData;
 
 typedef struct _Page {
@@ -148,6 +150,230 @@ Scale *scale_new()
     return s;
 }
 
+typedef struct {
+    Pen pen;
+    int style;
+    double width;
+} Line;
+
+typedef struct {
+    Line line;
+    Pen fillpen;
+} Legframe;
+
+legend *legend_new()
+{
+    legend *l;
+    l = xmalloc(sizeof(legend));
+    if (l) {
+        memset(l, 0, sizeof(legend));
+    }
+    return l;
+}
+
+Legframe *legframe_new()
+{
+    Legframe *lf;
+    lf = xmalloc(sizeof(Legframe));
+    if (lf) {
+        memset(lf, 0, sizeof(Legframe));
+    }
+    return lf;
+}
+
+typedef struct {
+    int active;
+    double x;
+    double y;
+} Fixedpoint;
+
+Fixedpoint *fixedpoint_new()
+{
+    Fixedpoint *fp;
+    fp = xmalloc(sizeof(Fixedpoint));
+    if (fp) {
+        memset(fp, 0, sizeof(Fixedpoint));
+    }
+    return fp;
+}
+
+GLocator *glocator_new()
+{
+    GLocator *retval;
+    retval = xmalloc(sizeof(GLocator));
+    if (retval) {
+        memset(retval, 0, sizeof(GLocator));
+    }
+    return retval;
+}
+
+typedef struct {
+    int type;
+    int prec;
+} Format;
+
+Format *format_new()
+{
+    Format *retval;
+    retval = xmalloc(sizeof(Format));
+    if (retval) {
+        memset(retval, 0, sizeof(Format));
+    }
+    return retval;
+}
+
+framep *frame_new()
+{
+    framep *retval;
+    retval = xmalloc(sizeof(framep));
+    if (retval) {
+        memset(retval, 0, sizeof(framep));
+    }
+    return retval;
+}
+
+plotstr *plotstr_new()
+{
+    plotstr *retval;
+    retval = xmalloc(sizeof(plotstr));
+    if (retval) {
+        memset(retval, 0, sizeof(plotstr));
+    }
+    return retval;
+}
+
+typedef struct {
+    int zero;
+    VPoint offset;
+} APlacement;
+
+APlacement *axisplacement_new()
+{
+    APlacement *retval;
+    retval = xmalloc(sizeof(APlacement));
+    if (retval) {
+        memset(retval, 0, sizeof(APlacement));
+    }
+    return retval;
+}
+
+typedef struct {
+    int active;
+    Line line;
+} ABar;
+
+ABar *axisbar_new()
+{
+    ABar *retval;
+    retval = xmalloc(sizeof(ABar));
+    if (retval) {
+        memset(retval, 0, sizeof(ABar));
+    }
+    return retval;
+}
+
+typedef struct {
+    char *s;
+    int font;
+    int color;
+    double charsize;
+    int layout;
+    int sideplacement;
+    int autoplace;
+    VPoint offset;
+} ALabel;
+
+ALabel *axislabel_new()
+{
+    ALabel *retval;
+    retval = xmalloc(sizeof(ALabel));
+    if (retval) {
+        memset(retval, 0, sizeof(ALabel));
+    }
+    return retval;
+}
+
+typedef struct {
+    int active;
+    int sideplacement;
+    int inoutplacement;
+    tickprops props;
+    tickprops mprops;
+} TMarks;
+
+TMarks *tmarks_new()
+{
+    TMarks *retval;
+    retval = xmalloc(sizeof(TMarks));
+    if (retval) {
+        memset(retval, 0, sizeof(TMarks));
+    }
+    return retval;
+}
+
+typedef struct {
+    int active;
+    int sideplacement;
+    char *transform;
+    char *prepend;
+    char *append;
+    int autoplace;
+    VPoint offset;
+    double angle;
+    int skip;
+    int stagger;
+    int autostart;
+    double start;
+    int autostop;
+    double stop;
+    FaceSpec facespec;
+    Format format;
+} TLabels;
+
+TLabels *tlabels_new()
+{
+    TLabels *retval;
+    retval = xmalloc(sizeof(TLabels));
+    if (retval) {
+        memset(retval, 0, sizeof(TLabels));
+    }
+    return retval;
+}
+
+typedef struct {
+    double major;
+    int nminor;
+    int autonum;
+    int round;
+    TMarks tmarks;
+    TLabels tlabels;
+} Ticks;
+
+Ticks *ticks_new()
+{
+    Ticks *retval;
+    retval = xmalloc(sizeof(Ticks));
+    if (retval) {
+        memset(retval, 0, sizeof(Ticks));
+    }
+    return retval;
+}
+
+tickprops *tickprops_new()
+{
+    tickprops *retval;
+    retval = xmalloc(sizeof(tickprops));
+    if (retval) {
+        memset(retval, 0, sizeof(tickprops));
+    }
+    return retval;
+}
+
+typedef struct {
+    int autov;
+    double value;
+} Autoval;
+
     ]]></preamble>
 
     <!-- Attribute types -->
@@ -167,7 +393,64 @@ Scale *scale_new()
         $$ = xmalloc(sizeof(RGB));
         sscanf($?, "#%02x%02x%02x", &($$->red), &($$->green), &($$->blue));
     ]]></attribute-type>
+    <attribute-type name="ftype" ctype="int"><![CDATA[
+        $$ = get_format_type_by_name($?);
+    ]]></attribute-type>
+    <attribute-type name="offset" ctype="VPoint *"><![CDATA[
+        if (!strcmp($?, VStrAuto)) {
+            $$ = NULL;
+        } else {
+            $$ = xmalloc(sizeof(VPoint));
+            sscanf($?, "(%lg, %lg)", &($$->x), &($$->y));
+        }
+    ]]></attribute-type>
+    <attribute-type name="axislayout" ctype="int"><![CDATA[
+        if (!strcmp($?, VStrParallel)) {
+            $$ = LAYOUT_PARALLEL;
+        } else {
+            $$ = LAYOUT_PERPENDICULAR;
+        }
+    ]]></attribute-type>
+    <attribute-type name="sideplacement" ctype="int"><![CDATA[
+        if (!strcmp($?, VStrNormal)) {
+            $$ = PLACEMENT_NORMAL;
+        } else
+        if (!strcmp($?, VStrOpposite)) {
+            $$ = PLACEMENT_OPPOSITE;
+        } else
+        if (!strcmp($?, VStrBoth)) {
+            $$ = PLACEMENT_BOTH;
+        } else {
+            $$ = PLACEMENT_NORMAL;
+            errmsg("Wrong sideplacement");
+        }
+    ]]></attribute-type>
+    <attribute-type name="inoutplacement" ctype="int"><![CDATA[
+        if (!strcmp($?, VStrIn)) {
+            $$ = TICKS_IN;
+        } else
+        if (!strcmp($?, VStrOut)) {
+            $$ = TICKS_OUT;
+        } else
+        if (!strcmp($?, VStrBoth)) {
+            $$ = TICKS_BOTH;
+        } else {
+            $$ = TICKS_IN;
+            errmsg("Wrong inoutplacement");
+        }
+    ]]></attribute-type>
+    <attribute-type name="autoval" ctype="Autoval *"><![CDATA[
+        $$ = xmalloc(sizeof(Autoval));
+        if (!strcmp($?, VStrAuto)) {
+            $$->autov = TRUE;
+            $$->value = 0.0;
+        } else {
+            $$->autov = FALSE;
+            $$->value = atof($?);
+        }
+    ]]></attribute-type>
 
+    
     <!-- Element types -->
     <element-type name="project" ctype="Project *"><![CDATA[
         $$ = project_new();
@@ -183,11 +466,18 @@ Scale *scale_new()
         $$ = xmalloc(sizeof(Pen));
         $$->color = $$->pattern = 1;
     ]]></element-type>
+    <element-type name="line" ctype="Line *"><![CDATA[
+        $$ = xmalloc(sizeof(Line));
+        $$->pen.color = $$->pen.pattern = 1;
+        $$->width = 1.0;
+        $$->style = 1;
+    ]]></element-type>
     <element-type name="dummy" ctype="void *"><![CDATA[
         $$ = NULL;
     ]]></element-type>
     <element-type name="colordef" ctype="Colordef *"><![CDATA[
         $$ = colordef_new();
+        $$->cmap.ctype = COLOR_MAIN;
     ]]></element-type>
     <element-type name="fontdef" ctype="Fontdef *"><![CDATA[
         $$ = fontdef_new();
@@ -210,6 +500,52 @@ Scale *scale_new()
     <element-type name="dptr" ctype="double *"><![CDATA[
         $$ = xcalloc(1, SIZEOF_DOUBLE);
     ]]></element-type>
+    <element-type name="legend" ctype="legend *"><![CDATA[
+        $$ = legend_new();
+    ]]></element-type>
+    <element-type name="legframe" ctype="Legframe *"><![CDATA[
+        $$ = legframe_new();
+    ]]></element-type>
+    <element-type name="glocator" ctype="GLocator *"><![CDATA[
+        $$ = glocator_new();
+    ]]></element-type>
+    <element-type name="fixedpoint" ctype="Fixedpoint *"><![CDATA[
+        $$ = fixedpoint_new();
+    ]]></element-type>
+    <element-type name="format" ctype="Format *"><![CDATA[
+        $$ = format_new();
+    ]]></element-type>
+    <element-type name="frame" ctype="framep *"><![CDATA[
+        $$ = frame_new();
+    ]]></element-type>
+    <element-type name="plotstr" ctype="plotstr *"><![CDATA[
+        $$ = plotstr_new();
+    ]]></element-type>
+    <element-type name="axis" ctype="tickmarks *"><![CDATA[
+        $$ = new_graph_tickmarks();
+    ]]></element-type>
+    <element-type name="axisplacement" ctype="APlacement *"><![CDATA[
+        $$ = axisplacement_new();
+    ]]></element-type>
+    <element-type name="axisbar" ctype="ABar *"><![CDATA[
+        $$ = axisbar_new();
+    ]]></element-type>
+    <element-type name="axislabel" ctype="ALabel *"><![CDATA[
+        $$ = axislabel_new();
+    ]]></element-type>
+    <element-type name="ticks" ctype="Ticks *"><![CDATA[
+        $$ = ticks_new();
+    ]]></element-type>
+    <element-type name="tmarks" ctype="TMarks *"><![CDATA[
+        $$ = tmarks_new();
+    ]]></element-type>
+    <element-type name="tickprops" ctype="tickprops *"><![CDATA[
+        $$ = tickprops_new();
+    ]]></element-type>
+    <element-type name="tlabels" ctype="TLabels *"><![CDATA[
+        $$ = tlabels_new();
+    ]]></element-type>
+
 
     <!-- Now describe the document structure -->
     <element name="project" type="project">
@@ -422,6 +758,33 @@ Scale *scale_new()
             $$->znorm = *($?);
             xfree($?);
         </child>
+        <child name="#EStrLegend">
+            $$->l = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrLocator">
+            $$->locator = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrFrame">
+            $$->f = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrTitle">
+            $$->labs.title = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrSubtitle">
+            $$->labs.stitle = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrAxis"><![CDATA[
+            int axis = ((ParserData *) $U)->axis;
+            if (axis >= 0 && axis < MAXAXES) {
+                free_graph_tickmarks($$->t[axis]);
+                $$->t[axis] = $?;
+            }
+        ]]></child>
     </element>
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
@@ -489,6 +852,453 @@ Scale *scale_new()
             *($$) = $?;
         </attribute>
     </element>
+    <element name="#EStrLegend" type="legend">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <attribute name="#AStrLength" type="ival">
+            $$->len = $?;
+        </attribute>
+        <attribute name="#AStrVgap" type="ival">
+            $$->vgap = $?;
+        </attribute>
+        <attribute name="#AStrHgap" type="ival">
+            $$->hgap = $?;
+        </attribute>
+        <attribute name="#AStrInvert" type="bval">
+            $$->invert = $?;
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrFaceSpec">
+            $$->font     = $?->font;
+            $$->color    = $?->color;
+            $$->charsize = $?->size;
+            facespec_free($?);
+        </child>
+        <child name="#EStrLegframe">
+            $$->boxfillpen = $?->fillpen;
+            $$->boxpen     = $?->line.pen;
+            $$->boxlinew   = $?->line.width;
+            $$->boxlines   = $?->line.style;
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrLegframe" type="legframe">
+        <!-- Child elements -->
+        <child name="#EStrLineSpec">
+            $$->line = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrFillSpec">
+            $$->fillpen = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrLineSpec" type="line">
+        <!-- Attributes -->
+        <attribute name="#AStrColorId" type="ival">
+            $$->pen.color = $?;
+        </attribute>
+        <attribute name="#AStrPatternId" type="ival">
+            $$->pen.pattern = $?;
+        </attribute>
+        <attribute name="#AStrStyleId" type="ival">
+            $$->style = $?;
+        </attribute>
+        <attribute name="#AStrWidth" type="dval">
+            $$->width = $?;
+        </attribute>
+    </element>
+    <element name="#EStrLocator" type="glocator">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="ival">
+            $$->pt_type = $?;
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrFixedpoint">
+            $$->pointset = $?->active;
+            $$->dsx      = $?->x;
+            $$->dsy      = $?->y;
+            xfree($?);
+        </child>
+        <child name="#EStrXformat">
+            $$->fx = $?->type;
+            $$->px = $?->prec;
+            xfree($?);
+        </child>
+        <child name="#EStrYformat">
+            $$->fy = $?->type;
+            $$->py = $?->prec;
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrFixedpoint" type="fixedpoint">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <attribute name="#AStrX" type="dval">
+            $$->x = $?;
+        </attribute>
+        <attribute name="#AStrY" type="dval">
+            $$->y = $?;
+        </attribute>
+    </element>
+    <element name="#EStrXformat" type="format">
+        <!-- Attributes -->
+        <attribute name="#AStrFormat" type="ftype">
+            $$->type = $?;
+        </attribute>
+        <attribute name="#AStrPrec" type="ival">
+            $$->prec = $?;
+        </attribute>
+    </element>
+    <element name="#EStrYformat" type="format">
+        <!-- Attributes -->
+        <attribute name="#AStrFormat" type="ftype">
+            $$->type = $?;
+        </attribute>
+        <attribute name="#AStrPrec" type="ival">
+            $$->prec = $?;
+        </attribute>
+    </element>
+    <element name="#EStrFrame" type="frame">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="ival">
+            $$->type = $?;
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrLineSpec">
+            $$->linew = $?->width;
+            $$->lines = $?->style;
+            $$->pen   = $?->pen;
+            xfree($?);
+        </child>
+        <child name="#EStrFillSpec">
+            $$->fillpen = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrTitle" type="plotstr">
+        <!-- Child elements -->
+        <child name="#EStrFaceSpec">
+            $$->font     = $?->font;
+            $$->color    = $?->color;
+            $$->charsize = $?->size;
+            xfree($?);
+        </child>
+        <child name="#EStrText">
+            $$->s = copy_string(NULL, $?->s);
+            xcc_string_free($?);
+        </child>
+    </element>
+    <element name="#EStrSubtitle" type="plotstr">
+        <!-- Child elements -->
+        <child name="#EStrFaceSpec">
+            $$->font     = $?->font;
+            $$->color    = $?->color;
+            $$->charsize = $?->size;
+            xfree($?);
+        </child>
+        <child name="#EStrText">
+            $$->s = copy_string(NULL, $?->s);
+            xcc_string_free($?);
+        </child>
+    </element>
+    <element name="#EStrAxis" type="axis">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="sval">
+            int axis;
+            if (!strcmp($?, "x")) {
+                axis = 0;
+            } else 
+            if (!strcmp($?, "y")) {
+                axis = 1;
+            } else 
+            if (!strcmp($?, "altx")) {
+                axis = 2;
+            } else 
+            if (!strcmp($?, "alty")) {
+                axis = 3;
+            } else {
+                axis = -1;
+            } 
+            ((ParserData *) $U)->axis = axis;
+        </attribute>
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrPlacement">
+            $$->zero   = $?->zero;
+            $$->offsx  = $?->offset.x;
+            $$->offsy  = $?->offset.y;
+            xfree($?);
+        </child>
+        <child name="#EStrAxisbar">
+            $$->t_drawbar      = $?->active;
+            $$->t_drawbarcolor = $?->line.pen.color;
+            $$->t_drawbarlines = $?->line.style;
+            $$->t_drawbarlinew = $?->line.width;
+            xfree($?);
+        </child>
+        <child name="#EStrAxislabel">
+            $$->label.s        = $?->s;
+            $$->label.font     = $?->font;
+            $$->label.color    = $?->color;
+            $$->label.charsize = $?->charsize;
+            xfree($?);
+        </child>
+        <child name="#EStrTicks">
+            $$->tmajor    = $?->major;
+            $$->nminor    = $?->nminor;
+            $$->t_autonum = $?->autonum;
+            $$->t_round   = $?->round;
+
+            $$->t_flag    = $?->tmarks.active;
+            $$->t_op      = $?->tmarks.sideplacement;
+            $$->props     = $?->tmarks.props;
+            $$->mprops    = $?->tmarks.mprops;
+
+            $$->tl_flag   = $?->tlabels.active;
+    
+            $$->tl_op        = $?->tlabels.sideplacement;
+            $$->tl_formula   = $?->tlabels.transform;
+            $$->tl_font      = $?->tlabels.facespec.font;
+            $$->tl_color     = $?->tlabels.facespec.color;
+            $$->tl_charsize  = $?->tlabels.facespec.size;
+            $$->tl_angle     = $?->tlabels.angle;
+            $$->tl_skip      = $?->tlabels.skip;
+            $$->tl_staggered = $?->tlabels.stagger;
+            $$->tl_format    = $?->tlabels.format.type;
+            $$->tl_prec      = $?->tlabels.format.prec;
+            $$->tl_gaptype   = $?->tlabels.autoplace ? TYPE_AUTO:TYPE_SPEC;
+            $$->tl_gap.x     = $?->tlabels.offset.x;
+            $$->tl_gap.y     = $?->tlabels.offset.y;
+            $$->tl_starttype = $?->tlabels.autostart ? TYPE_AUTO:TYPE_SPEC;
+            $$->tl_start     = $?->tlabels.start;
+            $$->tl_stoptype  = $?->tlabels.autostop ? TYPE_AUTO:TYPE_SPEC;
+            $$->tl_stop      = $?->tlabels.stop;
+            strcpy($$->tl_prestr, $?->tlabels.prepend);
+            strcpy($$->tl_appstr, $?->tlabels.append);
+            
+            xfree($?->tlabels.prepend);
+            xfree($?->tlabels.append);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrPlacement" type="axisplacement">
+        <!-- Attributes -->
+        <attribute name="#AStrZero" type="bval">
+            $$->zero = $?;
+        </attribute>
+        <attribute name="#AStrOffset" type="offset">
+            if ($?) {
+                $$->offset.x = $?->x;
+                $$->offset.y = $?->y;
+                xfree($?);
+            }
+        </attribute>
+    </element>
+    <element name="#EStrAxisbar" type="axisbar">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <child name="#EStrLineSpec">
+            $$->line = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrAxislabel" type="axislabel">
+        <!-- Attributes -->
+        <attribute name="#AStrLayout" type="axislayout">
+            $$->layout = $?;
+        </attribute>
+        <attribute name="#AStrOffset" type="offset">
+            if ($?) {
+                $$->autoplace = FALSE;
+                $$->offset.x  = $?->x;
+                $$->offset.y  = $?->y;
+                xfree($?);
+            } else {
+                $$->autoplace = TRUE;
+            }
+        </attribute>
+        <attribute name="#AStrSidePlacement" type="sideplacement">
+            $$->sideplacement = $?;
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrFaceSpec">
+            $$->font     = $?->font;
+            $$->color    = $?->color;
+            $$->charsize = $?->size;
+            xfree($?);
+        </child>
+        <child name="#EStrText">
+            $$->s = copy_string(NULL, $?->s);
+            xcc_string_free($?);
+        </child>
+    </element>
+    <element name="#EStrTicks" type="ticks">
+        <!-- Attributes -->
+        <attribute name="#AStrMajorStep" type="dval">
+            $$->major = $?;
+        </attribute>
+        <attribute name="#AStrMinorDivisions" type="ival">
+            $$->nminor = $?;
+        </attribute>
+        <attribute name="#AStrAutoTicking" type="ival">
+            $$->autonum = $?;
+        </attribute>
+        <attribute name="#AStrRoundedPosition" type="bval">
+            $$->round = $?;
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrUserticks">
+            /* FIXME */;
+        </child>
+        <child name="#EStrTickmarks">
+            $$->tmarks = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrTicklabels">
+            $$->tlabels = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrUserticks" type="dummy">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="sval">
+            /* FIXME */;
+            xfree($?);
+        </attribute>
+    </element>
+    <element name="#EStrTickmarks" type="tmarks">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <attribute name="#AStrSidePlacement" type="sideplacement">
+            $$->sideplacement = $?;
+        </attribute>
+        <attribute name="#AStrInoutPlacement" type="inoutplacement">
+            $$->inoutplacement = $?;
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrMajor">
+            $$->props = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrMinor">
+            $$->mprops = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrMajor" type="tickprops">
+        <!-- Attributes -->
+        <attribute name="#AStrSize" type="dval">
+            $$->size = $?;
+        </attribute>
+        <attribute name="#AStrGridLines" type="bval">
+            $$->gridflag = $?;
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrLineSpec">
+            $$->color = $?->pen.color;
+            $$->linew = $?->width;
+            $$->lines = $?->style;
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrMinor" type="tickprops">
+        <!-- Attributes -->
+        <attribute name="#AStrSize" type="dval">
+            $$->size = $?;
+        </attribute>
+        <attribute name="#AStrGridLines" type="bval">
+            $$->gridflag = $?;
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrLineSpec">
+            $$->color = $?->pen.color;
+            $$->linew = $?->width;
+            $$->lines = $?->style;
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrTicklabels" type="tlabels">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <attribute name="#AStrSidePlacement" type="sideplacement">
+            $$->sideplacement = $?;
+        </attribute>
+        <attribute name="#AStrTransform" type="sval">
+            $$->transform = $?;
+        </attribute>
+        <attribute name="#AStrPrepend" type="sval">
+            $$->prepend = $?;
+        </attribute>
+        <attribute name="#AStrAppend" type="sval">
+            $$->append = $?;
+        </attribute>
+        <attribute name="#AStrOffset" type="offset">
+            if ($?) {
+                $$->autoplace = FALSE;
+                $$->offset.x  = $?->x;
+                $$->offset.y  = $?->y;
+                xfree($?);
+            } else {
+                $$->autoplace = TRUE;
+            }
+        </attribute>
+        <attribute name="#AStrAngle" type="dval">
+            $$->angle = $?;
+        </attribute>
+        <attribute name="#AStrSkip" type="ival">
+            $$->skip = $?;
+        </attribute>
+        <attribute name="#AStrStagger" type="ival">
+            $$->stagger = $?;
+        </attribute>
+        <attribute name="#AStrStart" type="autoval">
+            $$->autostart = $?->autov;
+            $$->start     = $?->value;
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrStop" type="autoval">
+            $$->autostop = $?->autov;
+            $$->stop     = $?->value;
+            xfree($?);
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrFaceSpec">
+            $$->facespec = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrFormat">
+            $$->format = *($?);
+            xfree($?);
+        </child>
+    </element>
+    <element name="#EStrFormat" type="format">
+        <!-- Attributes -->
+        <attribute name="#AStrFormat" type="ftype">
+            $$->type = $?;
+        </attribute>
+        <attribute name="#AStrPrec" type="ival">
+            $$->prec = $?;
+        </attribute>
+    </element>
 
     <!-- Postamble -->
     <postamble><![CDATA[
@@ -504,8 +1314,9 @@ int load_xgr_project(char *fn)
 	return RETURN_FAILURE;
     }
 
-    udata.gid = -1;
-    udata.sid = -1;
+    udata.gid  = -1;
+    udata.sid  = -1;
+    udata.axis = -1;
     
     ret = xcc_parse(fp, &udata, (void **) &pr, xcc_start_handler, xcc_end_handler);
 
