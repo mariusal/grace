@@ -798,7 +798,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
 #endif
     fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup\n");
-    fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
     fprintf(stream, "-fixed     [width] [height]           Set canvas size fixed to width*height\n");
 #ifndef NONE_GUI
     fprintf(stream, "-free                                 Use free page layout\n");
@@ -807,6 +806,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
+    fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
     fprintf(stream, "-install                              Install private colormap\n");
     fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
