@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.1)
   <author>by the Grace Team
-  <date>30.05.2000
+  <date>13.06.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -24,7 +24,7 @@
 
         Grace is a tool to make two-dimensional plots of scientific
         data. It runs under various (if not all) flavours of UNIX
-        with X11 and Motif. Its capabilities are roughly similar to
+        with X11 and M*tif. Its capabilities are roughly similar to
         GUI-based programs like Sigmaplot or Microcal Origin plus
         script-based tools like gnuplot or Genplot.  Its strength
         lies in the fact that it combines the convenience of a
@@ -478,11 +478,11 @@
         process.
 
     <sect1>When I type './configure' I get: ``configure: warning:
-        Motif has not been found; building a GUI-less version''
+        M*tif has not been found; building a GUI-less version''
       <p>
 
-        Check whether Motif (question <ref id="motif"
-        name="Motif">) is installed on your system. If it is, look
+        Check whether M*tif (question <ref id="motif"
+        name="M*tif">) is installed on your system. If it is, look
         at the file config.log: there is a line like this:
 
         <tt>configure:5569: checking for main in -lXm</tt>
@@ -496,10 +496,10 @@
     <sect1>What is Motif (LessTif)? <label id="motif">
       <p>
 
-        Throughout the Grace docs, saying "Motif" we actually refer to
-        the Motif <it>API</it>, defining a set of functions for building
+        Throughout the Grace docs, saying "M*tif" we actually refer to
+        the M*tif <it>API</it>, defining a set of functions for building
         graphical user interfaces (GUI) via numerous widgets
-        (buttons, boxes, etc). Grace makes heavy use of the Motif API. 
+        (buttons, labels, etc). Grace makes heavy use of the M*tif API. 
         
         There are several <it>implementations</it> of the interface. The
         original OSF Motif (see <url url="http://www.osf.org">) is
@@ -509,13 +509,9 @@
         <url url="http://www.lesstif.org">). LessTif is intended to be a 100%
         source compatible replacement for Motif, but is still under
         development. For the purposes of Grace, try using the latest version
-        of LessTif (at least 0.90 and above) - if you don't mind that it
-        might be a bit slower than commercial versions of Motif and graphical
-        details may be different. Be aware, however, that occasional crashes
-        might occur under certain circumstances. The LessTif people usually
+        of LessTif (at least 0.90 and above). The LessTif people usually
         receive many bug reports from the Grace developers, so you might hope
-        that bugs in LessTif will be fixed rather quickly.
- 
+        that a few remaining bugs in LessTif will be fixed rather quickly.
         
         
     <sect1>While compiling Grace I get error messages about missing include
@@ -530,7 +526,7 @@
               place. Check with your local sys admin.
 
             <item> If the missing files are like Xm/*.h, this means
-              you don't have Motif development kit installed (or
+              you don't have M*tif development kit installed (or
               again, you have to tell explicitly to compiler where
               to look for the header files). This mostly concerns
               GNU/Linux.
@@ -583,15 +579,15 @@
         For certain tasks, Grace needs external libraries which are
         neither provided by Grace nor the operating system. You will
         need to install these libraries yourself. This applies to
-        Motif, PDF (see question <ref id="export" name="Output Devices">)
+        M*tif, PDF (see question <ref id="export" name="Output Devices">)
         and probably other libraries.
         If the message is exactly <tt>Can't find library libXm.so</tt>
-        (usually this happens on GNU/Linux systems ...) then you don't have Motif
-        (the Xm libraries) installed (see question
-        <ref id="motif" name="Motif">), or the linker doesn't
+        (usually this happens on GNU/Linux systems ...) then you don't have
+        M*tif (the Xm libraries) installed (see question
+        <ref id="motif" name="M*tif">), or the linker doesn't
         know where it is.
-        In the first case, try downloading Lesstif. In the second case,
-        you have to tell your linker  where it is this (may be
+        In the first case, try downloading LessTif. In the second case,
+        you have to tell your linker  where it is (may be
         a platform-specific task). On GNU/Linux look at the file
         <tt>/etc/ld.so.conf</tt>. It  contains pathnames of the directories
         where dynamic libraries are stored. Add (as root) your directory
@@ -615,22 +611,21 @@
         This means that Grace made an incorrect access to an X
         library. This is most probably not Grace's fault. Probably a
         not-yet-correctly-implemented LessTif function (see question
-        <ref id="motif" name="Motif">) caused this behaviour. If you
+        <ref id="motif" name="M*tif">) caused this behaviour. If you
         use LessTif, try to get the latest version (see question
-        <ref id="motif" name="Motif">). If this error persists,
+        <ref id="motif" name="M*tif">). If this error persists,
         report it as a bug (question <ref id="bugreport" name="Bug
           Reports">).
 
     <sect1>Grace crashes with "Oops Got SIGSEV" (on GNU/Linux)
       <p>
          Detect whether you are using a version linked against
-         Lesstif instead of <ref id="motif" name="Motif">.
-         "xmgrace -version" and "ldd xmgrace" are 
+         LessTif. "xmgrace -version" and "ldd xmgrace" are 
          useful commands for this purpose.
       <p>
-         If you are using Lesstif, read the according FAQ
-          <ref id="motif" name="Motif">
-         else report it as a bug (<ref id="bugreport" name="Bug Reports">).
+         If you are using LessTif, read the according FAQ
+         <ref id="motif" name="M*tif"> else report it as a bug
+         (<ref id="bugreport" name="Bug Reports">).
 
     <sect1>I run Grace and get the following error messages:
            "Warning:
