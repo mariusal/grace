@@ -161,3 +161,23 @@ int dict_get_name_by_key(const Dictionary *dict, int key, char **name)
     return RETURN_FAILURE;
 }
 
+int dict_get_descr_by_key(const Dictionary *dict, int key, char **descr)
+{
+    unsigned int i;
+    
+    if (!dict) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < dict->size; i++) {
+        DictEntry *e = &dict->entries[i];
+        if (e->key == key) {
+            *descr = e->descr;
+            return RETURN_SUCCESS;
+        }
+    }
+    
+    *descr = dict->defaults.descr;
+    
+    return RETURN_FAILURE;
+}

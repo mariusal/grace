@@ -111,6 +111,7 @@ Dictionary *dict_new_from_array(unsigned int nentries, const DictEntry *entries,
 
 int dict_get_key_by_name(const Dictionary *dict, const char *name, int *key);
 int dict_get_name_by_key(const Dictionary *dict, int key, char **name);
+int dict_get_descr_by_key(const Dictionary *dict, int key, char **descr);
 
 
 /*
