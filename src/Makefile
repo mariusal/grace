@@ -59,6 +59,8 @@ buildinfo.h : buildinfo$(EXE) $(GRSRCS) $(GUISRCS)
 	./buildinfo$(EXE) > t.h
 	mv t.h $@
 
+bi$(O) : buildinfo.h
+
 $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $?
 	mv y.tab.c $@
