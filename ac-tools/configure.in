@@ -103,15 +103,6 @@ AC_ARG_ENABLE(netcdf,
   *) AC_MSG_ERROR(bad value ${enableval} for --enable-netcdf) ;;
 esac],[netcdf=true])
 
-dnl **** use mfhdf  
-AC_ARG_WITH(mfhdf,
-[  --with-mfhdf                 use NCSA combined libs for netCDF [no]],
-[case "${withval}" in
-  yes) mfhdf=true ;;
-  no)  mfhdf=false;;
-  *) AC_MSG_ERROR(bad value ${withval} for --with-mfhdf) ;;
-esac],[mfhdf=false])
-
 dnl **** use FFTW
 AC_ARG_WITH(fftw,
 [  --with-fftw                  use FFTW library for Fourier transforms [yes]],
@@ -526,22 +517,16 @@ else
   PRINT_CMD="${ac_cv_prog_LP_CMD}"
 fi
 
-case $netcdf in
-  true) AC_CHECK_LIB(netcdf,main,NETCDF_LIBS="-lnetcdf"; AC_DEFINE(HAVE_NETCDF))
-        case $mfhdf in
-          true) AC_CHECK_LIB(df,main,NETCDF_LIBS="$NETCDF_LIBS -ldf"; AC_DEFINE(HAVE_MFHDF));;
-          *) ;;
-        esac ;;
-  *) ;;
-esac
-
-if test $ac_cv_lib_netcdf_main != yes; then
-  AC_MSG_RESULT(--> support for NetCDF is disabled)
+if test $netcdf = true
+then
+  ACX_CHECK_NETCDF(AC_DEFINE(HAVE_NETCDF),
+                   AC_MSG_RESULT(--> support for netCDF is disabled))
 fi
 
 if test $fftw = true
 then
-  AC_CHECK_LIB(fftw, main, FFTW_LIB="-lfftw"; AC_DEFINE(HAVE_FFTW))
+  ACX_CHECK_FFTW(AC_DEFINE(HAVE_FFTW),
+                 AC_MSG_RESULT(--> using legacy unoptimized FFT code))
 fi
 
 dnl **** check for libz - needed for PDF and PNG drivers
