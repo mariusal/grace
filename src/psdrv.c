@@ -87,6 +87,7 @@ static int ps_setup_grayscale = FALSE;
 static int ps_setup_level2 = TRUE;
 
 static int eps_setup_grayscale = FALSE;
+static int eps_setup_level2 = TRUE;
 static int eps_setup_tight_bb = TRUE;
 
 static int tight_bb;
@@ -780,7 +781,7 @@ int epsinitgraphics(void)
     int result;
     
     ps_grayscale = eps_setup_grayscale;
-    ps_level2 = TRUE;
+    ps_level2 = eps_setup_level2;
     result = ps_initgraphics(EPS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -818,10 +819,16 @@ int ps_op_parser(char *opstring)
 int eps_op_parser(char *opstring)
 {
     if (!strcmp(opstring, "grayscale")) {
-        ps_setup_grayscale = TRUE;
+        eps_setup_grayscale = TRUE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "color")) {
-        ps_setup_grayscale = FALSE;
+        eps_setup_grayscale = FALSE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "level2")) {
+        eps_setup_level2 = TRUE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "level1")) {
+        eps_setup_level2 = FALSE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "bbox:tight")) {
         eps_setup_tight_bb = TRUE;
@@ -918,6 +925,7 @@ static void update_eps_setup_frame(void);
 static void set_eps_setup_proc(void *data);
 static Widget eps_setup_frame;
 static Widget eps_setup_grayscale_item;
+static Widget eps_setup_level2_item;
 static Widget eps_setup_tight_bb_item;
 
 void eps_gui_setup(void)
@@ -935,6 +943,7 @@ void eps_gui_setup(void)
 	fr = CreateFrame(eps_setup_rc, "EPS options");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
+	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
 	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
 	XtManageChild(rc);
 
@@ -954,6 +963,7 @@ static void update_eps_setup_frame(void)
 {
     if (eps_setup_frame) {
         SetToggleButtonState(eps_setup_grayscale_item, eps_setup_grayscale);
+        SetToggleButtonState(eps_setup_level2_item, eps_setup_level2);
         SetToggleButtonState(eps_setup_tight_bb_item, eps_setup_tight_bb);
     }
 }
@@ -969,6 +979,7 @@ static void set_eps_setup_proc(void *data)
     }
     
     eps_setup_grayscale = GetToggleButtonState(eps_setup_grayscale_item);
+    eps_setup_level2 = GetToggleButtonState(eps_setup_level2_item);
     eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
     
     if (aac_mode == AAC_ACCEPT) {
