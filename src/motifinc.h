@@ -152,6 +152,7 @@ typedef struct {
     Widget label;
     Widget form;
     Widget text;
+    Boolean locked;
 } TextStructure;
 
 typedef struct {
