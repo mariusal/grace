@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -294,8 +294,8 @@ void putparms(int gno, FILE *pp, int embed)
                     break;
                 }
 
-                fprintf(pp, "%s %s\n", buf, on_or_off(t->active));
-                if (t->active == FALSE) {
+                fprintf(pp, "%s %s\n", buf, on_or_off(t && t->active));
+                if (!t || t->active == FALSE) {
                     continue;
                 }
                 
