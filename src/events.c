@@ -235,6 +235,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         object_edit_popup(type, id);
                     } else if (timestamp_clicked(vp, &bb) == TRUE) {
                         create_plot_frame();
+                    } else if (graph_clicked(cg, vp) == TRUE) {
+                        define_symbols_popup(parent, (XtPointer) -1, NULL);
                     }
                 } else {
                     if (focus_policy == FOCUS_CLICK) {
@@ -1018,6 +1020,22 @@ int legend_clicked(int gno, VPoint vp, view *bb)
         get_graph_legend(gno, &l);
 	if (l.active && is_vpoint_inside(l.bb, vp, MAXPICKDIST)) {
 	    *bb = l.bb;
+            return TRUE;
+	} else {
+            return FALSE;
+        }
+    } else {
+        return FALSE;
+    }
+}
+
+int graph_clicked(int gno, VPoint vp)
+{
+    view v;
+
+    if (is_valid_gno(gno)) {
+        get_graph_viewport(gno, &v);
+	if (is_vpoint_inside(v, vp, MAXPICKDIST)) {
             return TRUE;
 	} else {
             return FALSE;

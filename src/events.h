@@ -106,6 +106,7 @@ void do_select_peri(void);
 void do_dist_proc(void);
 void do_select_region(void);
 int next_graph_containing(int cg, VPoint vp);
+int graph_clicked(int gno, VPoint vp);
 int focus_clicked(int cg, VPoint vp, VPoint *avp);
 int legend_clicked(int gno, VPoint vp, view *bb);
 int timestamp_clicked(VPoint vp, view *bb);
