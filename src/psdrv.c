@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -83,6 +83,9 @@ static int ps_level2 = TRUE;
 static int ps_setup_grayscale = FALSE;
 static int ps_setup_level2 = TRUE;
 
+static int eps_setup_grayscale = FALSE;
+static int eps_setup_tight_bb = TRUE;
+
 static int tight_bb;
 
 static int ps_initgraphics(int format)
@@ -144,7 +147,7 @@ static int ps_initgraphics(int format)
         break;
     case EPS_FORMAT:
         fprintf(prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
-        tight_bb = TRUE;
+        tight_bb = eps_setup_tight_bb;
         break;
     default:
         errmsg("Invalid PS format");
@@ -693,7 +696,7 @@ static char *escape_paren(char *s)
         elen++;
     }
     
-    es = (char *) realloc(es, (elen + 1)*sizeof(char));
+    es = xrealloc(es, (elen + 1)*SIZEOF_CHAR);
     
     elen = 0;
     for (i = 0; i < strlen(s); i++) {
@@ -726,7 +729,7 @@ int epsinitgraphics(void)
 {
     int result;
     
-    ps_grayscale = FALSE;
+    ps_grayscale = eps_setup_grayscale;
     ps_level2 = TRUE;
     result = ps_initgraphics(EPS_FORMAT);
     
@@ -750,6 +753,25 @@ int ps_op_parser(char *opstring)
         return GRACE_EXIT_SUCCESS;
     } else if (!strcmp(opstring, "level1")) {
         ps_setup_level2 = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+int eps_op_parser(char *opstring)
+{
+    if (!strcmp(opstring, "grayscale")) {
+        ps_setup_grayscale = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "color")) {
+        ps_setup_grayscale = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "bbox:tight")) {
+        eps_setup_tight_bb = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "bbox:page")) {
+        eps_setup_tight_bb = FALSE;
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
@@ -820,6 +842,70 @@ static void set_ps_setup_proc(Widget w, XtPointer client_data,
     
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(ps_setup_frame);
+    }
+}
+
+static void update_eps_setup_frame(void);
+static void set_eps_setup_proc(Widget w, XtPointer client_data, 
+                                                        XtPointer call_data);
+static Widget eps_setup_frame;
+static Widget eps_setup_grayscale_item;
+static Widget eps_setup_tight_bb_item;
+
+void eps_gui_setup(void)
+{
+    Widget eps_setup_panel, eps_setup_rc, fr, rc;
+    
+    set_wait_cursor();
+    if (eps_setup_frame == NULL) {
+	eps_setup_frame = XmCreateDialogShell(app_shell, "EPS options", NULL, 0);
+	handle_close(eps_setup_frame);
+        eps_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
+                                        eps_setup_frame, NULL, 0);
+        eps_setup_rc = XmCreateRowColumn(eps_setup_panel, "psetup_rc", NULL, 0);
+
+	fr = CreateFrame(eps_setup_rc, "EPS options");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
+	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
+	XtManageChild(rc);
+
+	CreateSeparator(eps_setup_rc);
+
+	CreateAACButtons(eps_setup_rc, eps_setup_panel, set_eps_setup_proc);
+        
+	XtManageChild(eps_setup_rc);
+	XtManageChild(eps_setup_panel);
+    }
+    XtRaise(eps_setup_frame);
+    update_eps_setup_frame();
+    unset_wait_cursor();
+}
+
+static void update_eps_setup_frame(void)
+{
+    if (eps_setup_frame) {
+        SetToggleButtonState(eps_setup_grayscale_item, eps_setup_grayscale);
+        SetToggleButtonState(eps_setup_tight_bb_item, eps_setup_tight_bb);
+    }
+}
+
+static void set_eps_setup_proc(Widget w, XtPointer client_data, 
+                                                        XtPointer call_data)
+{
+    int aac_mode;
+    aac_mode = (int) client_data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(eps_setup_frame);
+        return;
+    }
+    
+    eps_setup_grayscale = GetToggleButtonState(eps_setup_grayscale_item);
+    eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(eps_setup_frame);
     }
 }
 

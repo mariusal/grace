@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -50,10 +50,18 @@ void ps_puttext(VPoint start, VPoint end, double size,
                                             CompositeString *cstring);
 
 void ps_leavegraphics(void);
+
 int ps_op_parser(char *opstring);
+int eps_op_parser(char *opstring);
 
 #if defined(NONE_GUI)
 #  define ps_gui_setup NULL
 #else
 void ps_gui_setup(void);
+#endif
+
+#if defined(NONE_GUI)
+#  define eps_gui_setup NULL
+#else
+void eps_gui_setup(void);
 #endif
