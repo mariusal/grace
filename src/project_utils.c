@@ -219,6 +219,7 @@ static int project_postprocess_hook(Quark *q,
     Project *pr;
     frame *f;
     tickmarks *t;
+    AText *at;
     set *s;
     int gtype;
     
@@ -458,19 +459,19 @@ static int project_postprocess_hook(Quark *q,
 
         break;
     case QFlavorAText:
+        at = atext_get_data(q);
         if (version_id >= 40200 && version_id <= 50005        &&
             !compare_strings(quark_idstr_get(q), "timestamp") &&
             !compare_strings(quark_idstr_get(q), "title")     &&
             !compare_strings(quark_idstr_get(q), "subtitle")  &&
             !compare_strings(quark_idstr_get(q), "label")) {
             /* BBox type justification was erroneously set */
-            AText *at = atext_get_data(q);
             if (at) {
                 at->text_props.just |= JUST_MIDDLE;
             }
         }
         /* kill inactive labels in old projects */
-        if (version_id < 50200 && !quark_is_active(q)) {
+        if (version_id < 50200 && at && is_empty_string(at->s)) {
             quark_free(q);
             closure->descend = FALSE;
         }
