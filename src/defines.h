@@ -298,12 +298,7 @@ typedef enum {
 #define SELECTION_TYPE_SINGLE 0
 #define SELECTION_TYPE_MULTIPLE 1
 
-
-/* for stufftext() in monwin.c used here and there */
-#define STUFF_TEXT  0
-#define STUFF_START 1
-#define STUFF_STOP  2
-
+/* Default document name */
 #define NONAME "Untitled"
 
 /* for data pruning */
