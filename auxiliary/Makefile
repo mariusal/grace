@@ -15,9 +15,10 @@ all : convcal$(EXE)
 
 clean : dummy
 
-distclean : dummy
+distclean : clean
+	$(RM) convcal$(EXE)
 
-devclean : dummy
+devclean : distclean
 
 convcal$(EXE) : convcal.c
 	$(CC) $(CFLAGS0) $(CPPFLAGS) -o $@ convcal.c $(NOGUI_LIBS)
