@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -99,8 +99,8 @@ int register_pdf_drv(void)
     return register_device(dev_pdf);
 }
 
+/* Define Patterns for subsequent calls to PDF_setcolor(). */
 void pdfinitpatterns(void)
-      /* Define Patterns for subsequent calls to PDF_setcolor(). */
 {
     int i;
     
@@ -121,6 +121,12 @@ void pdfinitpatterns(void)
             PDF_end_pattern(phandle);
         }
     }
+}
+
+static size_t pdf_writeproc(PDF *p, void *data, size_t size)
+{
+    FILE *fp = PDF_get_opaque(p);
+    return fwrite(data, 1, size, fp);
 }
 
 int pdfinitgraphics(void)
@@ -156,7 +162,7 @@ int pdfinitgraphics(void)
     pdf_linecap = -1;
     pdf_linejoin = -1;
 
-    phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, NULL);
+    phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, (void *) prstream);
     if (phandle == NULL) {
         return RETURN_FAILURE;
     }
@@ -164,13 +170,11 @@ int pdfinitgraphics(void)
     if (pdf_setup_pdf1_3 == TRUE) {
         s = "1.3";
     } else {
-        s = "1.2";
+        s = "1.4";
     }
     PDF_set_parameter(phandle, "compatibility", s);
 
-    if (PDF_open_fp(phandle, prstream) == -1) {
-        return RETURN_FAILURE;
-    }
+    PDF_open_mem(phandle, pdf_writeproc);
     
     PDF_set_value(phandle, "compress", (float) pdf_setup_compression);
 
@@ -208,21 +212,10 @@ void pdf_setpen(const Pen *pen)
     if (pen->color != pdf_color || pen->pattern != pdf_pattern) {
         frgb = get_frgb(pen->color);
 
-#if 10000*PDFLIB_MAJORVERSION + 100*PDFLIB_MINORVERSION + PDFLIB_REVISION < 40004
-        /* PDFlib-4.0.3 and below can't properly handle switch from
-           patterned colorspace to the same solid color. Let's hope
-           4.0.4 fixes this ;-) */
-        if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern &&
-            pen->color == pdf_color  && pen->pattern == 1) {
-            PDF_setcolor(phandle, "both", "rgb",
-                frgb->red ? 0.0:1.0, 0.0, 0.0, 0.0);     
-        }
-#endif
-
         PDF_setcolor(phandle, "both", "rgb",
             (float) frgb->red, (float) frgb->green,(float) frgb->blue, 0.0);     
 
-        if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern &&
+        if (pdf_setup_pdfpattern &&
             pen->pattern > 1 && pen->pattern < number_of_patterns()) {
             PDF_setcolor(phandle, "both", "pattern",
                 (float) pdf_pattern_ids[pen->pattern], 0.0, 0.0, 0.0);     
@@ -252,7 +245,7 @@ void pdf_setdrawbrush(void)
         PDF_setlinewidth(phandle, lw);
 
         if (ls == 0 || ls == 1) {
-            PDF_setpolydash(phandle, NULL, 0); /* length == 0,1 means solid line */
+            PDF_setdash(phandle, 0, 0);
         } else {
             darray = xmalloc(dash_array_length[ls]*SIZEOF_FLOAT);
             for (i = 0; i < dash_array_length[ls]; i++) {
@@ -370,7 +363,7 @@ void pdf_fillpolygon(VPoint *vps, int nc)
     }
     
     /* fill bg first if the pattern != solid */
-    if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern && pen.pattern != 1) {
+    if (pdf_setup_pdfpattern && pen.pattern != 1) {
         Pen solid_pen;
         solid_pen.color = getbgcolor();
         solid_pen.pattern = 1;
@@ -445,7 +438,7 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     }
 
     /* fill bg first if the pattern != solid */
-    if (pdf_setup_pdf1_3 == TRUE && pdf_setup_pdfpattern && pen.pattern != 1) {
+    if (pdf_setup_pdfpattern && pen.pattern != 1) {
         Pen solid_pen;
         solid_pen.color = getbgcolor();
         solid_pen.pattern = 1;
@@ -661,7 +654,7 @@ int pdf_op_parser(char *opstring)
     if (!strcmp(opstring, "PDF1.3")) {
         pdf_setup_pdf1_3 = TRUE;
         return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "PDF1.2")) {
+    } else if (!strcmp(opstring, "PDF1.4")) {
         pdf_setup_pdf1_3 = FALSE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "patterns:on")) {
