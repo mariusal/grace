@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000,2001 Grace Development Team
+ * Copyright (c) 2000-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -273,7 +273,9 @@ void xfile_free(XFile *xf)
         xfree(xf->fname);
         xstack_free(xf->tree);
         xfree(xf->indstr);
-        grace_close(xf->fp);
+        if (xf->fp) {
+            grace_close(xf->fp);
+        }
         xfree(xf);
     }
 }
