@@ -462,6 +462,56 @@ static char list_translation_table[] = "\
     Ctrl<Key>U: list_unselectall_action()\n\
     Ctrl<Key>I: list_invertselection_action()";
 
+static void list_selectall(Widget list)
+{
+    int i, n;
+    unsigned char selection_type_save;
+    
+    XtVaGetValues(list,
+                  XmNselectionPolicy, &selection_type_save,
+                  XmNitemCount, &n,
+                  NULL);
+    if (selection_type_save == XmSINGLE_SELECT) {
+        XBell(disp, 50);
+        return;
+    }
+    
+    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+                             
+    XmListDeselectAllItems(list);
+    for (i = 1; i <= n; i++) {
+        XmListSelectPos(list, i, False);
+    }
+    
+    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+static void list_unselectall(Widget list)
+{
+    XmListDeselectAllItems(list);
+}
+
+static void list_invertselection(Widget list)
+{
+    int i, n;
+    unsigned char selection_type_save;
+    
+    XtVaGetValues(list,
+        XmNselectionPolicy, &selection_type_save,
+        XmNitemCount, &n,
+        NULL);
+    if (selection_type_save == XmSINGLE_SELECT) {
+        XBell(disp, 50);
+        return;
+    }
+    
+    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+    for (i = 0; i < n; i++) {
+        XmListSelectPos(list, i, False);
+    }
+    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
 {
@@ -658,6 +708,465 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
         XmNmultipleSelectionCallback, list_int_cb_proc, (XtPointer) cbdata);
     XtAddCallback(listp->list,
         XmNextendedSelectionCallback, list_int_cb_proc, (XtPointer) cbdata);
+}
+
+
+
+#define SS_DELETE_CB         0
+#define SS_DUPLICATE_CB      1
+#define SS_CUT_CB            2
+#define SS_COPY_CB           3
+#define SS_BRING_TO_FRONT_CB 4
+#define SS_SEND_TO_BACK_CB   5
+#define SS_MOVE_UP_CB        6
+#define SS_MOVE_DOWN_CB      7
+
+static char *default_storage_labeling_proc(unsigned int step, void *data)
+{
+    char buf[128];
+    
+    sprintf(buf, "Item #%d (data = %p)", step, data);
+    
+    return copy_string(NULL, buf);
+}
+
+static int traverse_hook(unsigned int step, void *data, void *udata)
+{
+    char *s;
+    XmString str;
+    StorageStructure *ss = (StorageStructure *) udata;
+    
+    ss->values[ss->nchoices++] = data;
+
+    s = ss->labeling_proc(step, data);
+    str = XmStringCreateLocalized(s);
+    xfree(s);
+    
+    XmListAddItemUnselected(ss->list, str, 0);
+    XmStringFree(str);
+    
+    return TRUE;
+}
+
+static void storage_popup(Widget parent,
+    XtPointer closure, XEvent *event, Boolean *cont)
+{
+    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
+    StorageStructure *ss = (StorageStructure *) closure;
+    Widget popup = ss->popup;
+    int n, selected;
+    
+    if (e->button != 3) {
+        return;
+    }
+    
+    XtVaGetValues(ss->list, XmNselectedPositionCount, &n, NULL);
+    
+    if (n != 0) {
+        selected = TRUE;
+    } else {
+        selected = FALSE;
+    }
+    
+    SetSensitive(ss->popup_cut_bt, selected);
+    SetSensitive(ss->popup_copy_bt, selected);
+    SetSensitive(ss->popup_delete_bt, selected);
+    SetSensitive(ss->popup_duplicate_bt, selected);
+    SetSensitive(ss->popup_bring_to_front_bt, selected);
+    SetSensitive(ss->popup_send_to_back_bt, selected);
+    SetSensitive(ss->popup_move_up_bt, selected);
+    SetSensitive(ss->popup_move_down_bt, selected);
+    
+    SetSensitive(ss->popup_paste_bt, (storage_count(ss->clipboard) != 0));
+    
+    XmMenuPosition(popup, e);
+    XtManageChild(popup);
+}
+
+static void ss_any_cb(StorageStructure *ss, int type)
+{
+    int i, n;
+    void **values;
+    int id;
+    
+    n = GetStorageChoices(ss, &values);
+    
+    for (i = 0; i < n; i ++) {
+        void *data;
+        
+        switch (type) {
+        case SS_SEND_TO_BACK_CB:
+        case SS_MOVE_UP_CB:
+            data = values[n - i - 1];
+            break;
+        default:
+            data = values[i];
+            break;
+        }
+        
+        if (storage_scroll_to_data(ss->sto, data) == RETURN_SUCCESS) {
+            switch (type) {
+            case SS_DELETE_CB:
+                storage_delete(ss->sto);
+                break;
+            case SS_CUT_CB:
+                storage2_data_move(ss->sto, ss->clipboard);
+                break;
+            case SS_COPY_CB:
+                storage2_data_copy(ss->sto, ss->clipboard);
+                break;
+            case SS_BRING_TO_FRONT_CB:
+                storage_push(ss->sto, TRUE);
+                break;
+            case SS_SEND_TO_BACK_CB:
+                storage_push(ss->sto, FALSE);
+                break;
+            case SS_MOVE_UP_CB:
+                storage_move(ss->sto, TRUE);
+                break;
+            case SS_MOVE_DOWN_CB:
+                storage_move(ss->sto, FALSE);
+                break;
+            case SS_DUPLICATE_CB:
+                id = storage_get_id(ss->sto);
+                storage_duplicate(ss->sto, id);
+                break;
+            }
+        }
+    }
+    
+    if (n > 0) {
+        xfree(values);
+        UpdateStorageChoice(ss);
+        set_dirtystate();
+        xdrawgraph();
+    }
+}
+
+static void ss_delete_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_DELETE_CB);
+}
+
+static void ss_duplicate_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_DUPLICATE_CB);
+}
+
+static void ss_cut_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_CUT_CB);
+}
+
+static void ss_copy_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_COPY_CB);
+}
+
+static void ss_bring_to_front_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_BRING_TO_FRONT_CB);
+}
+
+static void ss_send_to_back_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_SEND_TO_BACK_CB);
+}
+
+static void ss_move_up_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_MOVE_UP_CB);
+}
+
+static void ss_move_down_cb(void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_MOVE_DOWN_CB);
+}
+
+static void ss_paste_cb(void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    storage2_data_flush(ss->clipboard, ss->sto);
+
+    UpdateStorageChoice(ss);
+    set_dirtystate();
+    xdrawgraph();
+}
+
+static void ss_select_all_cb(void *udata)
+{
+    list_selectall(((StorageStructure *) udata)->list);
+}
+
+static void ss_unselect_all_cb(void *udata)
+{
+    list_unselectall(((StorageStructure *) udata)->list);
+}
+
+static void ss_invert_selection_cb(void *udata)
+{
+    list_invertselection(((StorageStructure *) udata)->list);
+}
+
+static void ss_update_cb(void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    
+    UpdateStorageChoice(ss);
+}
+
+static void CreateStorageChoicePopup(StorageStructure *ss)
+{
+    Widget popup;
+    
+    popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
+    ss->popup = popup;
+    
+    ss->popup_cut_bt =
+        CreateMenuButton(popup, "Cut", '\0', ss_cut_cb, ss);
+    ss->popup_copy_bt =
+        CreateMenuButton(popup, "Copy", '\0', ss_copy_cb, ss);
+    ss->popup_paste_bt =
+        CreateMenuButton(popup, "Paste", '\0', ss_paste_cb, ss);
+
+    CreateMenuSeparator(popup);
+
+    ss->popup_delete_bt =
+        CreateMenuButton(popup, "Delete", '\0', ss_delete_cb, ss);
+    ss->popup_duplicate_bt =
+        CreateMenuButton(popup, "Duplicate", '\0', ss_duplicate_cb, ss);
+    
+    CreateMenuSeparator(popup);
+    
+    ss->popup_bring_to_front_bt = CreateMenuButton(popup,
+        "Bring to front", '\0', ss_bring_to_front_cb, ss);
+    ss->popup_move_up_bt =
+        CreateMenuButton(popup, "Move up", '\0', ss_move_up_cb, ss);
+    ss->popup_move_down_bt =
+        CreateMenuButton(popup, "Move down", '\0', ss_move_down_cb, ss);
+    ss->popup_send_to_back_bt =
+        CreateMenuButton(popup, "Send to back", '\0', ss_send_to_back_cb, ss);
+
+    CreateMenuSeparator(popup);
+    
+    ss->popup_select_all_bt =
+        CreateMenuButton(popup, "Select all", '\0', ss_select_all_cb, ss);
+    ss->popup_unselect_all_bt =
+        CreateMenuButton(popup, "Unselect all", '\0', ss_unselect_all_cb, ss);
+    ss->popup_invert_selection_bt = CreateMenuButton(popup,
+        "Invert selection", '\0', ss_invert_selection_cb, ss);
+    
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "Update selector", '\0', ss_update_cb, ss);
+}
+
+StorageStructure *CreateStorageChoice(Widget parent,
+    char *labelstr, int type, int nvisible)
+{
+    Arg args[4];
+    Widget lab;
+    StorageStructure *retval;
+
+    retval = xmalloc(sizeof(StorageStructure));
+    retval->sto = NULL;
+    retval->nchoices = 0;
+    retval->values = NULL;
+    
+    retval->clipboard = storage_new(NULL, NULL, NULL);
+    
+    retval->labeling_proc = default_storage_labeling_proc;
+    retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
+    AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
+
+    lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
+    XtManageChild(lab);
+    
+    XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
+    XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
+    if (type == LIST_TYPE_SINGLE) {
+        XtSetArg(args[2], XmNselectionPolicy, XmSINGLE_SELECT);
+    } else {
+        XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT);
+    }
+    XtSetArg(args[3], XmNvisibleItemCount, nvisible);
+    retval->list = XmCreateScrolledList(retval->rc, "list", args, 4);
+    retval->values = NULL;
+
+    CreateStorageChoicePopup(retval);
+    XtAddEventHandler(retval->list,
+        ButtonPressMask, False, storage_popup, retval);
+
+    XtOverrideTranslations(retval->list, 
+                             XtParseTranslationTable(list_translation_table));
+
+    XtManageChild(retval->list);
+    
+    XtManageChild(retval->rc);
+    
+    return retval;
+}
+
+void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc)
+{
+    ss->labeling_proc = proc;
+}
+
+int GetStorageChoices(StorageStructure *ss, void ***values)
+{
+    int i, n;
+    int *selected;
+    
+    if (XmListGetSelectedPos(ss->list, &selected, &n) != True) {
+        return 0;
+    }
+    
+    *values = xmalloc(n*SIZEOF_VOID_P);
+    for (i = 0; i < n; i++) {
+        (*values)[i] = ss->values[selected[i] - 1];
+    }
+    
+    if (n) {
+        xfree(selected);
+    }
+    
+    return n;
+}
+
+
+void SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices)
+{
+    int i = 0, j;
+    unsigned char selection_type_save;
+    int bottom, visible;
+    
+    XtVaGetValues(ss->list, XmNselectionPolicy, &selection_type_save, NULL);
+    XtVaSetValues(ss->list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+                             
+    XmListDeselectAllItems(ss->list);
+    for (j = 0; j < nchoices; j++) {
+        i = 0;
+        while (i < ss->nchoices && ss->values[i] != choices[j]) {
+            i++;
+        }
+        if (i < ss->nchoices) {
+            i++;
+            XmListSelectPos(ss->list, i, True);
+        }
+    }
+    
+    if (nchoices > 0) {
+        /* Rewind list so the last choice is always visible */
+        XtVaGetValues(ss->list, XmNtopItemPosition, &bottom,
+                                XmNvisibleItemCount, &visible,
+                                NULL);
+        if (i > bottom) {
+            XmListSetBottomPos(ss->list, i);
+        } else if (i <= bottom - visible) {
+            XmListSetPos(ss->list, i);
+        }
+    }
+
+    XtVaSetValues(ss->list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+void UpdateStorageChoice(StorageStructure *ss)
+{
+    void **selvalues;
+    int nsel;
+
+    nsel = GetStorageChoices(ss, &selvalues);
+
+    XmListDeleteAllItems(ss->list);
+    
+    ss->nchoices = 0;
+    if (ss->sto) {
+        ss->values = xrealloc(ss->values, SIZEOF_VOID_P*storage_count(ss->sto));
+        storage_traverse(ss->sto, traverse_hook, ss);
+
+        SelectStorageChoices(ss, nsel, selvalues);
+    }
+    
+    if (nsel > 0) {
+        xfree(selvalues);
+    }
+}   
+
+void SetStorageChoiceStorage(StorageStructure *ss, Storage *sto)
+{
+    ss->sto = sto;
+    UpdateStorageChoice(ss);
+}   
+
+
+typedef struct {
+    StorageStructure *ss;
+    Storage_CBProc cbproc;
+    void *anydata;
+} Storage_CBdata;
+
+typedef struct {
+    StorageStructure *ss;
+    Storage_DCCBProc cbproc;
+    void *anydata;
+} Storage_DCCBdata;
+
+static void storage_int_cb_proc(Widget w,
+    XtPointer client_data, XtPointer call_data)
+{
+    int n;
+    void **values;
+    Storage_CBdata *cbdata = (Storage_CBdata *) client_data;
+ 
+    n = GetStorageChoices(cbdata->ss, &values);
+    
+    cbdata->cbproc(n, values, cbdata->anydata);
+
+    if (n > 0) {
+        xfree(values);
+    }
+}
+
+void AddStorageChoiceCB(StorageStructure *ss,
+    Storage_CBProc cbproc, void *anydata)
+{
+    Storage_CBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(Storage_CBdata));
+    cbdata->ss = ss;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(ss->list,
+        XmNsingleSelectionCallback,   storage_int_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(ss->list,
+        XmNmultipleSelectionCallback, storage_int_cb_proc, (XtPointer) cbdata);
+    XtAddCallback(ss->list,
+        XmNextendedSelectionCallback, storage_int_cb_proc, (XtPointer) cbdata);
+}
+
+static void storage_int_dc_cb_proc(Widget w,
+    XtPointer client_data, XtPointer call_data)
+{
+    void *value;
+    XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
+    Storage_DCCBdata *cbdata = (Storage_DCCBdata *) client_data;
+ 
+    value = cbdata->ss->values[cbs->item_position - 1];
+    
+    cbdata->cbproc(value, cbdata->anydata);
+}
+
+void AddStorageChoiceDblClickCB(StorageStructure *ss,
+    Storage_DCCBProc cbproc, void *anydata)
+{
+    Storage_DCCBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(Storage_DCCBdata));
+    cbdata->ss = ss;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(ss->list,
+        XmNdefaultActionCallback, storage_int_dc_cb_proc, (XtPointer) cbdata);
 }
 
 
@@ -1748,30 +2257,6 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
     XtManageChild(popup);
 }
 
-static void list_selectall(Widget list)
-{
-    int i, n;
-    unsigned char selection_type_save;
-    
-    XtVaGetValues(list,
-                  XmNselectionPolicy, &selection_type_save,
-                  XmNitemCount, &n,
-                  NULL);
-    if (selection_type_save == XmSINGLE_SELECT) {
-        XBell(disp, 50);
-        return;
-    }
-    
-    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
-                             
-    XmListDeselectAllItems(list);
-    for (i = 1; i <= n; i++) {
-        XmListSelectPos(list, i, False);
-    }
-    
-    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
-}
-
 void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     list_selectall(w);
@@ -1783,11 +2268,6 @@ static void list_selectall_cb(void *data)
     list_selectall(listp->list);
 }
 
-static void list_unselectall(Widget list)
-{
-    XmListDeselectAllItems(list);
-}
-
 void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     list_unselectall(w);
@@ -1797,27 +2277,6 @@ static void list_unselectall_cb(void *data)
 {
     ListStructure *listp = (ListStructure *) data;
     list_unselectall(listp->list);
-}
-
-static void list_invertselection(Widget list)
-{
-    int i, n;
-    unsigned char selection_type_save;
-    
-    XtVaGetValues(list,
-        XmNselectionPolicy, &selection_type_save,
-        XmNitemCount, &n,
-        NULL);
-    if (selection_type_save == XmSINGLE_SELECT) {
-        XBell(disp, 50);
-        return;
-    }
-    
-    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
-    for (i = 0; i < n; i++) {
-        XmListSelectPos(list, i, False);
-    }
-    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
 }
 
 static void list_invertselection_cb(void *data)

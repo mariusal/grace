@@ -38,6 +38,8 @@
 /* for XmString; TODO: remove! */
 #include <Xm/Xm.h>
 
+#include "storage.h"
+
 /* 
  * Accept/Apply/Close for aac_cb callbacks
  */
@@ -89,6 +91,43 @@ typedef struct {
     Widget rc;
     Widget list;
 } ListStructure;
+
+/* Storage labeling procedure */
+typedef char * (*Storage_LabelingProc)(
+    unsigned int step,   /* # of the current item */
+    void *data           /* data of the item */
+);
+
+typedef struct {
+    int nchoices;
+    void **values;
+    void *anydata;
+    
+    Storage *sto;
+    Storage_LabelingProc labeling_proc;
+    Storage *clipboard;
+
+    Widget rc;
+    Widget list;
+    Widget popup;
+    
+    Widget popup_cut_bt;
+    Widget popup_copy_bt;
+    Widget popup_paste_bt;
+    
+    Widget popup_delete_bt;
+    Widget popup_duplicate_bt;
+
+    Widget popup_bring_to_front_bt;
+    Widget popup_send_to_back_bt;
+    Widget popup_move_up_bt;
+    Widget popup_move_down_bt;
+
+    Widget popup_select_all_bt;
+    Widget popup_unselect_all_bt;
+    Widget popup_invert_selection_bt;
+
+} StorageStructure;
 
 typedef struct {
     int type;
@@ -218,6 +257,19 @@ typedef void (*List_CBProc)(
     void *               /* data the application registered */
 );
 
+/* Storage CB procedure */
+typedef void (*Storage_CBProc)(
+    int n,               /* # of items selected */
+    void **values,       /* list of values of the selected items */
+    void *data           /* data the application registered */
+);
+
+/* Storage double click CB procedure */
+typedef void (*Storage_DCCBProc)(
+    void *value,         /* list of values of the selected items */
+    void *data           /* data the application registered */
+);
+
 /* Spin Button CB procedure */
 typedef void (*Spin_CBProc)(
     double,             /* value of spinner                 */
@@ -330,6 +382,18 @@ void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_invertselection_action(Widget w, XEvent *e, String *par,
                                  Cardinal *npar);
+
+StorageStructure *CreateStorageChoice(Widget parent,
+    char *labelstr, int type, int nvisible);
+void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc);
+int GetStorageChoices(StorageStructure *ss, void ***values);
+void SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices);
+void UpdateStorageChoice(StorageStructure *ss);
+void SetStorageChoiceStorage(StorageStructure *ss, Storage *sto);
+void AddStorageChoiceCB(StorageStructure *ss,
+    Storage_CBProc cbproc, void *anydata);
+void AddStorageChoiceDblClickCB(StorageStructure *ss,
+    Storage_DCCBProc cbproc, void *anydata);
 
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr);
