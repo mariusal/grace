@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -30,11 +30,13 @@
 
 #define PS_FORMAT   0
 #define EPS_FORMAT  1
-/*
- * #define EPSI_FORMAT  2
- */
+/* #define EPSI_FORMAT  2 */
 
 #define DEFAULT_PS_FORMAT PS_FORMAT
+
+#define MEDIA_FEED_AUTO    0  
+#define MEDIA_FEED_MATCH   1
+#define MEDIA_FEED_MANUAL  2
 
 int psprintinitgraphics(void);
 int epsinitgraphics(void);

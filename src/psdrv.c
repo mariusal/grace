@@ -86,6 +86,9 @@ static int ps_setup_offset_y = 0;
 static int ps_setup_grayscale = FALSE;
 static int ps_setup_level2 = TRUE;
 
+static int ps_setup_feed = MEDIA_FEED_AUTO;
+static int ps_setup_hwres = FALSE;
+
 static int eps_setup_grayscale = FALSE;
 static int eps_setup_level2 = TRUE;
 static int eps_setup_tight_bb = TRUE;
@@ -346,12 +349,32 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "%%%%EndProlog\n");
 
     fprintf(prstream, "%%%%BeginSetup\n");
-    /* page size */
-    if (ps_level2 == TRUE && curformat != EPS_FORMAT) {
-        fprintf(prstream, "%%%%BeginFeature: *PageSize\n");
-        fprintf(prstream, "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
-            width_pp, height_pp);
-        fprintf(prstream, "%%%%EndFeature\n");
+    if (ps_level2 == TRUE && curformat == PS_FORMAT) {
+        /* page size feed */
+        switch (ps_setup_feed) {
+        case MEDIA_FEED_AUTO:
+            break;
+        case MEDIA_FEED_MATCH:
+            fprintf(prstream, "%%%%BeginFeature: *PageSize\n");
+            fprintf(prstream,
+                "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
+                width_pp, height_pp);
+            fprintf(prstream, "%%%%EndFeature\n");
+            break;
+        case MEDIA_FEED_MANUAL:
+            fprintf(prstream, "%%%%BeginFeature: *ManualFeed\n");
+            fprintf(prstream, "<</ManualFeed true>> setpagedevice\n");
+            fprintf(prstream, "%%%%EndFeature\n");
+            break;
+        }
+        
+        /* force HW resolution */
+        if (ps_setup_hwres == TRUE) {
+            fprintf(prstream, "%%%%BeginFeature: *HWResolution\n");
+            fprintf(prstream, "<</HWResolution [%d %d]>> setpagedevice\n",
+                (int) pg.dpi, (int) pg.dpi);
+            fprintf(prstream, "%%%%EndFeature\n");
+        }
     }
     
     /* compensate for printer page offsets */
@@ -851,6 +874,21 @@ int ps_op_parser(char *opstring)
     } else if (!strncmp(opstring, "yoffset:", 8)) {
         ps_setup_offset_y = atoi(opstring + 8);
         return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "hwresolution:on")) {
+        ps_setup_hwres = TRUE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "hwresolution:off")) {
+        ps_setup_hwres = FALSE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "mediafeed:auto")) {
+        ps_setup_feed = MEDIA_FEED_AUTO;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "mediafeed:match")) {
+        ps_setup_feed = MEDIA_FEED_MATCH;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "mediafeed:manual")) {
+        ps_setup_feed = MEDIA_FEED_MANUAL;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -891,6 +929,8 @@ static Widget ps_setup_grayscale_item;
 static Widget ps_setup_level2_item;
 static SpinStructure *ps_setup_offset_x_item;
 static SpinStructure *ps_setup_offset_y_item;
+static OptionStructure *ps_setup_feed_item;
+static Widget ps_setup_hwres_item;
 
 void ps_gui_setup(void)
 {
@@ -898,6 +938,12 @@ void ps_gui_setup(void)
     
     set_wait_cursor();
     if (ps_setup_frame == NULL) {
+        OptionItem op_items[3] = {
+            {MEDIA_FEED_AUTO,   "Automatic" },
+            {MEDIA_FEED_MATCH,  "Match size"},
+            {MEDIA_FEED_MANUAL, "Manual"    }
+        };
+        
 	ps_setup_frame = XmCreateDialogShell(app_shell, "PS options", NULL, 0);
 	handle_close(ps_setup_frame);
         ps_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
@@ -919,6 +965,12 @@ void ps_gui_setup(void)
             "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 	XtManageChild(rc);
 
+	fr = CreateFrame(ps_setup_rc, "Hardware");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	ps_setup_feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
+	ps_setup_hwres_item = CreateToggleButton(rc, "Set hardware resolution");
+	XtManageChild(rc);
+
 	CreateSeparator(ps_setup_rc);
 
 	CreateAACButtons(ps_setup_rc, ps_setup_panel, set_ps_setup_proc);
@@ -938,6 +990,8 @@ static void update_ps_setup_frame(void)
         SetToggleButtonState(ps_setup_level2_item, ps_setup_level2);
         SetSpinChoice(ps_setup_offset_x_item, (double) ps_setup_offset_x);
         SetSpinChoice(ps_setup_offset_y_item, (double) ps_setup_offset_y);
+        SetOptionChoice(ps_setup_feed_item, ps_setup_feed);
+        SetToggleButtonState(ps_setup_hwres_item, ps_setup_hwres);
     }
 }
 
@@ -952,9 +1006,11 @@ static void set_ps_setup_proc(void *data)
     }
     
     ps_setup_grayscale = GetToggleButtonState(ps_setup_grayscale_item);
-    ps_setup_level2 = GetToggleButtonState(ps_setup_level2_item);
-    ps_setup_offset_x = (int) GetSpinChoice(ps_setup_offset_x_item);
-    ps_setup_offset_y = (int) GetSpinChoice(ps_setup_offset_y_item);
+    ps_setup_level2    = GetToggleButtonState(ps_setup_level2_item);
+    ps_setup_offset_x  = (int) GetSpinChoice(ps_setup_offset_x_item);
+    ps_setup_offset_y  = (int) GetSpinChoice(ps_setup_offset_y_item);
+    ps_setup_feed      = GetOptionChoice(ps_setup_feed_item);
+    ps_setup_hwres     = GetToggleButtonState(ps_setup_hwres_item);
     
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(ps_setup_frame);
