@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.1)
+  <title>Grace FAQ (for Grace-5.1.2)
   <author>by the Grace Team
-  <date>28.06.2000
+  <date>18.07.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1131,8 +1131,13 @@ XMgrace*background: ...
       <p>
         
         LaTeX does not do hard clipping of EPS files unless instructed to do
-        so. Use \includegraphics*{} and NOT \includegraphics{}. If using
-        the epsf package, remember to include the \epsfclipon flag.
+        so. Use \includegraphics*{filename} and NOT
+        \includegraphics{filename} (package <tt>graphics</tt>) or
+        \includegraphics[clip]{filename} (package <tt>graphicx</tt>). If
+        using the <tt>epsf</tt> package, remember to include the \epsfclipon
+        flag (but note that the <tt>epsf</tt> package is obsolet and buggy
+        and not maintained by the LaTeX team and in general should not be
+        used).
 
         The erasing comes about because Grace fills the background with the
         page size and not the bbox size. The background filling can be
