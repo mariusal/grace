@@ -440,8 +440,8 @@ static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int cg = get_cg();
     
     set_wait_cursor();
-    curset = nlsetno = GetSelectedSet(nonl_set_item);
-    if (curset == SET_SELECT_ERROR) {
+    nlsetno = GetSelectedSet(nonl_set_item);
+    if (nlsetno == SET_SELECT_ERROR) {
     	errmsg("No set selected");
     	unset_wait_cursor();
     	return;
