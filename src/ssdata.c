@@ -81,6 +81,7 @@ void set_blockdata(ss_data *ssd)
 {
     free_ss_data(&blockdata);
     memcpy(&blockdata, ssd, sizeof(ss_data));
+    blockdata.label = copy_string(NULL, ssd->label);
 }
 
 int get_blockncols(void)
