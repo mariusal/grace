@@ -509,7 +509,15 @@ void drawaxes(Canvas *canvas, int gno)
 	    }
 	}
 	/* End axis ticks stuff */
-
+        
+        /* Make sure we don't end up with an empty BBox if no ticks have
+           been drawn */
+        vp1.x = v.xv1;
+        vp1.y = v.yv1;
+        vp2.x = v.xv2;
+        vp2.y = v.yv2;
+        update_bbox(canvas, BBOX_TYPE_TEMP, &vp1);
+        update_bbox(canvas, BBOX_TYPE_TEMP, &vp2);
 
 	/* Begin tick label stuff */
 
