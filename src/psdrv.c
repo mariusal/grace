@@ -137,7 +137,7 @@ int register_ps_drv(Canvas *canvas)
     
     device_set_fext(d, "ps");
     
-    device_set_dpi(d, 300.0, FALSE);
+    device_set_dpi(d, 300.0);
     
     device_set_procs(d,
         ps_initgraphics,
@@ -174,7 +174,7 @@ int register_eps_drv(Canvas *canvas)
     
     device_set_fext(d, "eps");
     
-    device_set_dpi(d, 300.0, FALSE);
+    device_set_dpi(d, 300.0);
     
     device_set_autocrop(d, TRUE);
     

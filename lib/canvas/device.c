@@ -102,23 +102,16 @@ int device_set_procs(Device_entry *d,
     return RETURN_SUCCESS;
 }
 
-int device_set_dpi(Device_entry *d, float dpi, int resize)
+int device_set_dpi(Device_entry *d, float dpi)
 {
     Page_geometry *pg = &d->pg;
     
     if (dpi <= 0.0) {
         return RETURN_FAILURE;
+    } else {
+        pg->dpi = dpi;
+        return RETURN_SUCCESS;
     }
-    
-    if (resize && pg->dpi) {
-        float rf = dpi/pg->dpi;
-        pg->width  *= rf;
-        pg->height *= rf;
-    }
-    
-    pg->dpi = dpi;
-    
-    return RETURN_SUCCESS;
 }
 
 int device_set_fext(Device_entry *d, const char *fext)

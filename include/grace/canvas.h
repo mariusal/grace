@@ -435,8 +435,6 @@ Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
 unsigned int number_of_linestyles(const Canvas *canvas);
 LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
 
-int device_set_dpi(Device_entry *d, float dpi, int resize);
-
 #if !defined(CANVAS_BACKEND_API) || defined(__CANVASP_H_)
 
 Canvas *canvas_new(void);
@@ -623,6 +621,7 @@ int device_set_procs(Device_entry *d,
 int device_set_fext(Device_entry *d, const char *fext);
 int device_set_autocrop(Device_entry *d, int autocrop);
 int device_set_fontrast(Device_entry *d, FontRaster fontrast);
+int device_set_dpi(Device_entry *d, float dpi);
 
 Page_geometry *get_page_geometry(const Canvas *canvas);
 
