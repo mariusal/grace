@@ -48,8 +48,6 @@
 #include "graphutils.h"
 #include "motifinc.h"
 
-#define cg get_cg()
-
 static int curaxis;
 
 static Widget axes_dialog = NULL;
@@ -140,6 +138,8 @@ void create_axes_dialog_cb(void *data)
  */
 void create_axes_dialog(int axisno)
 {
+    int cg = get_cg();
+    
     set_wait_cursor();
     
     if (axisno >= 0 && axisno < MAXAXES) {
@@ -464,12 +464,13 @@ static int axes_aac_cb(void *data)
 {
     int i, j;
     int applyto;
-    int axis_start, axis_stop, graph_start, graph_stop;
+    int axis_start, axis_stop, ngraphs, *gids;
     int scale, invert;
     tickmarks *t;
     double axestart, axestop;
     char *cp;
     world w;
+    int cg = get_cg();
     
     applyto = GetChoice(axis_applyto);
     
@@ -612,32 +613,30 @@ static int axes_aac_cb(void *data)
     case 0:                     /* current axis */
         axis_start = curaxis;
         axis_stop  = curaxis;
-        graph_start = cg;
-        graph_stop  = cg;
+        ngraphs = 1;
+        gids = &cg;
         break;
     case 1:                     /* all axes, current graph */
         axis_start = 0;
         axis_stop  = MAXAXES - 1;
-        graph_start = cg;
-        graph_stop  = cg;
+        ngraphs = 1;
+        gids = &cg;
         break;
     case 2:                     /* current axis, all graphs */
         axis_start = curaxis;
         axis_stop  = curaxis;
-        graph_start = 0;
-        graph_stop  = number_of_graphs() - 1;
+        ngraphs = get_graph_ids(&gids);
         break;
     case 3:                     /* all axes, all graphs */
         axis_start = 0;
         axis_stop  = MAXAXES - 1;
-        graph_start = 0;
-        graph_stop  = number_of_graphs() - 1;
+        ngraphs = get_graph_ids(&gids);
         break;
     default:
         axis_start = curaxis;
         axis_stop  = curaxis;
-        graph_start = cg;
-        graph_stop  = cg;
+        ngraphs = 1;
+        gids = &cg;
         break;        
     }
         
@@ -648,10 +647,11 @@ static int axes_aac_cb(void *data)
         return RETURN_FAILURE;
     }
 		
-    for (i = graph_start; i <= graph_stop; i++) {
+    for (i = 0; i < ngraphs; i++) {
+        int gno = gids[i];
         for (j = axis_start; j <= axis_stop; j++) {
         
-            get_graph_world(i, &w);
+            get_graph_world(gno, &w);
             if (is_xaxis(j)) {
                	w.xg1 = axestart;
                 w.xg2 = axestop;
@@ -659,27 +659,27 @@ static int axes_aac_cb(void *data)
                 w.yg1 = axestart; 
                	w.yg2 = axestop;
             }
-            set_graph_world(i, w);
+            set_graph_world(gno, w);
             
             scale = GetOptionChoice(axis_scale);
             if (is_xaxis(j)) {
-                set_graph_xscale(i, scale);
+                set_graph_xscale(gno, scale);
             } else {
-                set_graph_yscale(i, scale);
+                set_graph_yscale(gno, scale);
             }
 
             invert = GetToggleButtonState(axis_invert);
             if (is_xaxis(j)) {
-                set_graph_xinvert(i, invert);
+                set_graph_xinvert(gno, invert);
             } else {
-                set_graph_yinvert(i, invert);
+                set_graph_yinvert(gno, invert);
             }
             
             t->tl_op = GetChoice(ticklop);
 
             t->t_op = GetChoice(tickop);
 
-            set_graph_tickmarks(i, j, t);
+            set_graph_tickmarks(gno, j, t);
         }
     }
     
@@ -921,7 +921,6 @@ void update_ticks(int gno)
 }
 
 
-
 static void set_active_proc(int onoff, void *data)
 {
     SetSensitive(axes_tab, onoff);
@@ -929,6 +928,7 @@ static void set_active_proc(int onoff, void *data)
 
 static void set_axis_proc(int value, void *data)
 {
+    int cg = get_cg();
     curaxis = value;
     update_ticks(cg);
 }

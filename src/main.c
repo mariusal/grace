@@ -634,11 +634,15 @@ int main(int argc, char *argv[])
  * load legend
  */
     if (loadlegend) {
-	for (i = 0; i < number_of_graphs(); i++) {
-	    if (is_graph_active(i)) {
-		for (j = 0; j < number_of_sets(i); j++) {
-		    load_comments_to_legend(i, j);
-		}
+	int *gids;
+        int ngraphs = get_graph_ids(&gids);
+        for (i = 0; i < ngraphs; i++) {
+	    int gno = gids[i];
+	    int *sids;
+            int nsets = get_set_ids(gno, &sids);
+	    for (j = 0; j < nsets; j++) {
+	        int setno = sids[j];
+		load_comments_to_legend(gno, setno);
 	    }
 	}
     }

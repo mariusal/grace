@@ -1335,10 +1335,11 @@ void graph_select_cb(Widget list, XtPointer client_data, XtPointer call_data)
 
 void update_graph_selectors(void)
 {
-    int i, new_n = number_of_graphs();
+    int i, *ids, new_n, gno;
     char buf[64];
     OptionItem *p;
     
+    new_n = get_graph_ids(&ids);
     for (i = 0; i < ngraph_select_items; i++) {
         xfree(graph_select_items[i].label);
     }
@@ -1351,12 +1352,13 @@ void update_graph_selectors(void)
     }
 
     for (i = 0; i < new_n; i++) {
-        graph_select_items[i].value = i;
-        sprintf(buf, "G%d (%s, %d sets)", i, 
-                                          is_graph_hidden(i) ? "hidden":"shown",
-                                          number_of_sets(i));
+        gno = ids[i];
+        graph_select_items[i].value = gno;
+        sprintf(buf, "G%d (%s, %d sets)",
+            gno, is_graph_hidden(gno) ? "hidden":"shown", number_of_sets(gno));
         graph_select_items[i].label = copy_string(NULL, buf);
     }
+
     ngraph_select_items = new_n;
     
     for (i = 0; i < ngraph_selectors; i++) {
@@ -1496,7 +1498,9 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
         }
         break;
     case GraphMenuNewCB:
-        set_graph_active(number_of_graphs(), TRUE);
+        if (graph_next() < 0) {
+            err = TRUE;
+        }
         break;
     default:
         err = TRUE;

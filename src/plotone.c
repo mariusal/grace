@@ -59,7 +59,7 @@ char print_file[GR_MAXPATHLEN] = "";
  */
 void drawgraph(void)
 {
-    int i;
+    int i, ngraphs, *gids;
     VPoint vp1, vp2;
     Pen pen;
     int saveg;
@@ -89,8 +89,9 @@ void drawgraph(void)
     activate_bbox(BBOX_TYPE_GLOB, TRUE);
     activate_bbox(BBOX_TYPE_TEMP, FALSE);
     
-    for (i = 0; i < number_of_graphs(); i++) {
-        plotone(i);
+    ngraphs = get_graph_ids(&gids);
+    for (i = 0; i < ngraphs; i++) {
+        plotone(gids[i]);
     }
     
     /* draw objects NOT clipped to a particular graph */

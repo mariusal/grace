@@ -4991,13 +4991,18 @@ int undefine_parser_var(void *ptr)
 
 static int find_set_bydata(double *data, target *tgt)
 {
-    int gno, setno, ncol;
-    
     if (data == NULL) {
         return RETURN_FAILURE;
     } else {
-        for (gno = 0; gno < number_of_graphs(); gno++) {
-            for (setno = 0; setno < number_of_sets(gno); setno++) {
+	int i, *gids;
+        int ngraphs = get_graph_ids(&gids);
+        for (i = 0; i < ngraphs; i++) {
+	    int gno = gids[i];
+	    int j, *sids;
+            int nsets = get_set_ids(gno, &sids);
+	    for (j = 0; j < nsets; j++) {
+	        int setno = sids[j];
+                int ncol;
                 for (ncol = 0; ncol < MAX_SET_COLS; ncol++) {
                     if (getcol(gno, setno, ncol) == data) {
                         tgt->gno   = gno;
@@ -5005,8 +5010,8 @@ static int find_set_bydata(double *data, target *tgt)
                         return RETURN_SUCCESS;
                     }
                 }
-            }
-        }
+	    }
+	}
     }
     return RETURN_FAILURE;
 }

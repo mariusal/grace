@@ -963,27 +963,29 @@ void do_select_region(void)
  */
 int next_graph_containing(int cg, VPoint vp)
 {
-    int i, j, ng, gno = -1;
+    int gno, next = cg;
     view v;
 
-    ng = number_of_graphs();
-
-    if (is_valid_gno(cg) == FALSE) {
-        cg = -1;
+    if (storage_scroll_to_id(grace->project->graphs, cg) != RETURN_SUCCESS) {
+        storage_rewind(grace->project->graphs);
+        if (storage_get_id(grace->project->graphs, &cg) != RETURN_SUCCESS) {
+            return -1;
+        }
     }
 
-    for (i = 0; i < ng ; i++) {
-	j = (i + cg + 1) % ng;
-	if (is_graph_hidden(j)        == FALSE &&
-            get_graph_viewport(j, &v) == RETURN_SUCCESS &&
-            is_vpoint_inside(v, vp, MAXPICKDIST)   == TRUE) {
+    while (storage_scroll(grace->project->graphs, 1, TRUE) == RETURN_SUCCESS &&
+           storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS  &&
+           gno != cg) {
+	if (is_graph_hidden(gno)        == FALSE &&
+            get_graph_viewport(gno, &v) == RETURN_SUCCESS &&
+            is_vpoint_inside(v, vp, MAXPICKDIST) == TRUE) {
 	    
-            gno = j;
+            next = gno;
             break;
 	}
     }
 
-    return gno;
+    return next;
 }
 
 int legend_clicked(int gno, VPoint vp, view *bb)

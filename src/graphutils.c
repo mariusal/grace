@@ -499,22 +499,22 @@ int graph_scroll(int type)
 {
     world w;
     double dwc = 0.0;
-    int gstart, gstop, i;
+    int ngraphs, *gids, i, gno, cg = get_cg();
 
     if (grace->project->scrolling_islinked) {
-        gstart = 0;
-        gstop = number_of_graphs() - 1;
+        ngraphs = get_graph_ids(&gids);
     } else {
-        gstart = get_cg();
-        gstop = gstart;
+        ngraphs = 1;
+        gids = &cg;
     }
     
-    for (i = gstart; i <= gstop; i++) {
-        if (get_graph_world(i, &w) == RETURN_SUCCESS) {
+    for (i = 0; i < ngraphs; i++) {
+        gno = gids[i];
+        if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
             switch (type) {
             case GSCROLL_LEFT:    
             case GSCROLL_RIGHT:    
-                if (islogx(i) == TRUE) {
+                if (islogx(gno) == TRUE) {
                     errmsg("Scrolling of LOG axes is not implemented");
                     return RETURN_FAILURE;
                 }
@@ -522,7 +522,7 @@ int graph_scroll(int type)
                 break;
             case GSCROLL_DOWN:    
             case GSCROLL_UP:    
-                if (islogy(i) == TRUE) {
+                if (islogy(gno) == TRUE) {
                     errmsg("Scrolling of LOG axes is not implemented");
                     return RETURN_FAILURE;
                 }
@@ -548,7 +548,7 @@ int graph_scroll(int type)
                 w.yg2 += dwc;
                 break;
             }
-            set_graph_world(i, w);
+            set_graph_world(gno, w);
         }
     }
     
@@ -559,17 +559,17 @@ int graph_zoom(int type)
 {
     double dx, dy;
     world w;
-    int gstart, gstop, gno;
+    int ngraphs, *gids, i, gno, cg = get_cg();
 
     if (grace->project->scrolling_islinked) {
-        gstart = 0;
-        gstop = number_of_graphs() - 1;
+        ngraphs = get_graph_ids(&gids);
     } else {
-        gstart = get_cg();
-        gstop = gstart;
+        ngraphs = 1;
+        gids = &cg;
     }
     
-    for (gno = gstart; gno <= gstop; gno++) {
+    for (i = 0; i < ngraphs; i++) {
+        gno = gids[i];
         if (!islogx(gno) && !islogy(gno)) {
             if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
                 dx = grace->project->shexper * (w.xg2 - w.xg1);
@@ -703,7 +703,7 @@ int arrange_graphs(int *graphs, int ngraphs,
 int arrange_graphs_simple(int nrows, int ncols,
     int order, double offset, double hgap, double vgap)
 {
-    int *graphs, i, ngraphs, retval;
+    int *graphs, i, ngraphs, ngraphs_old, *gids, retval;
     
     ngraphs = nrows*ncols;
     graphs = xmalloc(ngraphs*SIZEOF_INT);
@@ -715,8 +715,12 @@ int arrange_graphs_simple(int nrows, int ncols,
         graphs[i] = i;
     }
     
-    for (i = number_of_graphs() - 1; i >= ngraphs; i--) {
-        kill_graph(i);
+    ngraphs_old = get_graph_ids(&gids);
+    for (i = 0; i < ngraphs_old; i++) {
+        int gno = gids[i];
+        if (gno >= ngraphs) {
+            kill_graph(gno);
+        }
     }
     
     retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order,
@@ -757,31 +761,31 @@ void move_timestamp(plotstr *timestamp, VVector shift)
 
 void rescale_viewport(double ext_x, double ext_y)
 {
-    int gno;
-    view v;
-    legend leg;
+    int i;
+    graph *g;
     DObject *o;
-    
-    for (gno = 0; gno < number_of_graphs(); gno++) {
-        get_graph_viewport(gno, &v);
-        v.xv1 *= ext_x;
-        v.xv2 *= ext_x;
-        v.yv1 *= ext_y;
-        v.yv2 *= ext_y;
-        set_graph_viewport(gno, v);
+
+    i = 0; storage_rewind(grace->project->graphs);
+    while (storage_get_data(grace->project->graphs, (void **) &g) == RETURN_SUCCESS) {
+        g->v.xv1 *= ext_x;
+        g->v.xv2 *= ext_x;
+        g->v.yv1 *= ext_y;
+        g->v.yv2 *= ext_y;
         
-        get_graph_legend(gno, &leg);
-        if (leg.loctype == COORD_VIEW) {
-            leg.legx *= ext_x;
-            leg.legy *= ext_y;
-            set_graph_legend(gno, &leg);
+        if (g->l.loctype == COORD_VIEW) {
+            g->l.legx *= ext_x;
+            g->l.legy *= ext_y;
         }
         
         /* TODO: tickmark offsets */
+        i++;
+        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
+            break;
+        }
     }
-
-    storage_rewind(grace->project->objects);
-    while (storage_get_data_next(grace->project->objects, (void **) &o) == RETURN_SUCCESS) {
+    
+    i = 0; storage_rewind(grace->project->objects);
+    while (storage_get_data(grace->project->objects, (void **) &o) == RETURN_SUCCESS) {
         if (o->loctype == COORD_VIEW) {
             o->ap.x     *= ext_x;
             o->ap.y     *= ext_y;

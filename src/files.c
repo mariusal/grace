@@ -1110,9 +1110,13 @@ int load_project_file(char *fn, int as_template)
         }
 
         /* try to switch to the first active graph */
-        for (gno = 0; gno < number_of_graphs(); gno++) {
+        storage_rewind(grace->project->graphs);
+        while (storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS) {
             if (is_graph_hidden(gno) == FALSE) {
                 select_graph(gno);
+                break;
+            }
+            if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
                 break;
             }
         }
@@ -1156,6 +1160,7 @@ int save_project(char *fn)
 {
     FILE *cp;
     int gno, setno;
+    graph *g;
     
     if ((cp = grace_openw(fn)) == NULL) {
 	return RETURN_FAILURE;
@@ -1163,9 +1168,18 @@ int save_project(char *fn)
     
     putparms(-1, cp, TRUE);
 
-    for (gno = 0; gno < number_of_graphs(); gno++) {
-        for (setno = 0; setno < number_of_sets(gno); setno++) {
+    storage_rewind(grace->project->graphs);
+    while (storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS) {
+        g = graph_get(gno);
+        storage_rewind(g->sets);
+        while (storage_get_id(g->sets, &setno) == RETURN_SUCCESS) {
             write_set(gno, setno, cp, grace->project->sformat, FALSE);
+            if (storage_next(g->sets) != RETURN_SUCCESS) {
+                break;
+            }
+        }
+        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
+            break;
         }
     }
 

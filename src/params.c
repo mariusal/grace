@@ -53,7 +53,7 @@ static char buf[256];
 
 void putparms(int gno, FILE *pp, int embed)
 {
-    int i, j, k, ming, maxg;
+    int i, j, k, ngraphs, *gids;
     int ps, pt, gh, gt, fx, fy, px, py;
     double dsx, dsy;
     char embedstr[2], tmpstr1[64], tmpstr2[64];
@@ -156,15 +156,14 @@ void putparms(int gno, FILE *pp, int embed)
     put_regions(pp, embed);
     
     if (gno == ALL_GRAPHS) {
-        maxg = number_of_graphs() - 1;
-        ming = 0;
+        ngraphs = get_graph_ids(&gids);
     } else {
-        maxg = gno;
-        ming = gno;
+        ngraphs = 1;
+        gids = &gno;
     }
-    for (k = ming; k <= maxg; k++) {
-        if (is_graph_active(k)) {
-            gno = k;
+    for (k = 0; k < ngraphs; k++) {
+        gno = gids[k];
+        if (is_graph_active(gno)) {
             gh = is_graph_hidden(gno);
             gt = get_graph_type(gno);
             get_graph_locator(gno, &locator);

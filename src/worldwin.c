@@ -121,10 +121,10 @@ static int define_arrange_proc(void *data)
     vpack = GetToggleButtonState(ui->vpack);
 
     if (add && ngraphs < nrows*ncols) {
-        int gno;
+        int i;
         graphs = xrealloc(graphs, nrows*ncols*SIZEOF_INT);
-        for (gno = number_of_graphs(); ngraphs < nrows*ncols; ngraphs++, gno++) {
-            graphs[ngraphs] = gno;
+        for (i = number_of_graphs(); ngraphs < nrows*ncols; ngraphs++, i++) {
+            graphs[ngraphs] = graph_next();
         }
     }
     
@@ -387,7 +387,7 @@ void create_autos_frame(void *data)
 
 void define_autos(int aon, int au, int ap)
 {
-    int i, ming, maxg;
+    int i, gno, ngraphs, *gids;
     int cg = get_cg();
 
     if (au >= 0 && !is_set_active(cg, au)) {
@@ -395,21 +395,15 @@ void define_autos(int aon, int au, int ap)
 	return;
     }
     if (ap) {
-	ming = 0;
-	maxg = number_of_graphs() - 1;
+	ngraphs = get_graph_ids(&gids);
     } else {
-	ming = cg;
-	maxg = cg;
+	ngraphs = 1;
+	gids = &cg;
     }
-    if (ming == cg && maxg == cg) {
-	if (!is_graph_active(cg)) {
-	    errmsg("Current graph is not active!");
-	    return;
-	}
-    }
-    for (i = ming; i <= maxg; i++) {
-	if (is_graph_active(i)) {
-	    autoscale_byset(i, au, aon);
+    for (i = 0; i < ngraphs; i++) {
+	gno = gids[i];
+        if (is_graph_active(gno)) {
+	    autoscale_byset(gno, au, aon);
 	}
     }
     update_ticks(cg);
