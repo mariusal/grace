@@ -165,8 +165,7 @@ void create_props_frame(void *data)
 	CreateSeparator(panel);
 
 	hint_item = CreatePanelChoice(panel, "Date hint",
-                                      6,
-                                      "None",
+                                      5,
                                       "ISO",
                                       "European",
                                       "US",
@@ -240,17 +239,14 @@ void update_props_items(void)
 	XtSetArg(a, XmNvalue, iv);
 	XtSetValues(shexper_item, &a, 1);
         switch (get_date_hint()) {
-        case FMT_none :
+        case FMT_iso :
             itest = 0;
             break;
-        case FMT_iso :
+        case FMT_european :
             itest = 1;
             break;
-        case FMT_european :
-            itest = 2;
-            break;
         case FMT_us :
-            itest = 3;
+            itest = 2;
             break;
         default :
             itest = FMT_nohint;
@@ -304,15 +300,12 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 
     switch (GetChoice(hint_item)) {
       case 0 :
-          set_date_hint(FMT_none);
-          break;
-      case 1 :
           set_date_hint(FMT_iso);
           break;
-      case 2 :
+      case 1 :
           set_date_hint(FMT_european);
           break;
-      case 3 :
+      case 2 :
           set_date_hint(FMT_us);
           break;
       default :
