@@ -843,3 +843,67 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
     $3
   fi
 ])dnl
+
+dnl ACX_CHECK_NETCDF
+dnl --------------
+AC_DEFUN(ACX_CHECK_NETCDF,
+[
+  AC_ARG_WITH(netcdf_libraries,
+  [  --with-netcdf-libraries=OBJ  use OBJ as netCDF libraries [-lnetcdf]],
+  netcdf_libraries="$withval")
+  if test "x$netcdf_libraries" = "x"
+  then
+    netcdf_libraries=-lnetcdf
+  fi
+
+  AC_CACHE_CHECK( "for netCDF", acx_cv_netcdf,
+    AC_CACHE_VAL(acx_cv_netcdf_libraries, acx_cv_netcdf_libraries=$netcdf_libraries)
+    ACX_SAVE_STATE
+    LIBS="$acx_cv_netcdf_libraries $LIBS"
+    AC_TRY_LINK([#include <netcdf.h>],[main();],
+      acx_cv_netcdf="yes",
+      acx_cv_netcdf="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_netcdf" = "yes"
+  then
+    NETCDF_LIBS="$acx_cv_netcdf_libraries"
+    $1
+  else
+    NETCDF_LIBS=
+    $2
+  fi
+])dnl
+
+dnl ACX_CHECK_FFTW
+dnl --------------
+AC_DEFUN(ACX_CHECK_FFTW,
+[
+  AC_ARG_WITH(fftw_library,
+  [  --with-fftw-library=OBJ      use OBJ as FFTW library [-lfftw]],
+  fftw_library="$withval")
+  if test "x$fftw_library" = "x"
+  then
+    fftw_library=-lfftw
+  fi
+
+  AC_CACHE_CHECK( "for FFTW", acx_cv_fftw,
+    AC_CACHE_VAL(acx_cv_fftw_library, acx_cv_fftw_library=$fftw_library)
+    ACX_SAVE_STATE
+    LIBS="$acx_cv_fftw_library $LIBS"
+    AC_TRY_LINK([#include <fftw.h>],[main();],
+      acx_cv_fftw="yes",
+      acx_cv_fftw="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_fftw" = "yes"
+  then
+    FFTW_LIB="$acx_cv_fftw_library"
+    $1
+  else
+    FFTW_LIB=
+    $2
+  fi
+])dnl
