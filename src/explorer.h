@@ -129,6 +129,79 @@ typedef struct {
 } GraphUI;
 
 typedef struct {
+    Widget top;
+    
+    SpinStructure   *length;
+    OptionStructure *arrow_end;
+    
+    OptionStructure *a_type;
+    SpinStructure   *a_length;
+    SpinStructure   *a_dL_ff;
+    SpinStructure   *a_lL_ff;
+} LineUI;
+
+typedef struct {
+    Widget top;
+    
+    SpinStructure   *width;
+    SpinStructure   *height;
+} BoxUI;
+
+typedef struct {
+    Widget top;
+    
+    SpinStructure   *width;
+    SpinStructure   *height;
+    
+    Widget          angle1;
+    Widget          angle2;
+    
+    OptionStructure *fillmode;
+} ArcUI;
+
+typedef struct {
+    Widget          top;
+    
+    TextStructure   *text;
+    OptionStructure *font;
+    Widget size;
+    OptionStructure *just;
+
+    SpinStructure   *linew;
+    OptionStructure *lines;
+    Widget          linepen;
+    Widget          fillpen;
+} StringUI;
+
+typedef struct {
+    Widget          top;
+
+    Widget          main_tp;
+    Widget          odata_tp;
+
+    Widget          active;
+    
+    TextStructure   *x;
+    TextStructure   *y;
+    OptionStructure *loctype;
+    
+    SpinStructure   *offsetx;
+    SpinStructure   *offsety;
+    Widget angle;
+    
+    SpinStructure   *linew;
+    OptionStructure *lines;
+    Widget          linepen;
+    Widget          fillpen;
+    
+    LineUI          *line_ui;
+    BoxUI           *box_ui;
+    ArcUI           *arc_ui;
+    StringUI        *string_ui;
+} ObjectUI;
+
+
+typedef struct {
     Widget       top;
     Widget       tree;
     Widget       instantupdate;
@@ -139,6 +212,7 @@ typedef struct {
     ProjectUI    *project_ui;
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;
+    ObjectUI     *object_ui;
 } ExplorerUI;
 
 void oc_explorer_cb(OptionStructure *opt, int a, void *data);
@@ -159,5 +233,9 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller);
 GraphUI *create_graph_ui(ExplorerUI *eui);
 void update_graph_ui(GraphUI *ui, Quark *q);
 int set_graph_data(GraphUI *ui, Quark *q, void *caller);
+
+ObjectUI *create_object_ui(ExplorerUI *eui);
+void update_object_ui(ObjectUI *ui, Quark *q);
+int set_object_data(ObjectUI *ui, Quark *q, void *caller);
 
 #endif /* __EXPLORER_H_ */

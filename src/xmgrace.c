@@ -796,7 +796,6 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "Set appearance...", 'S', define_symbols_popup, (void *) -1);
     CreateMenuButton(menupane, "Axis properties...", 'x', create_axes_dialog_cb, NULL);
-    CreateMenuButton(menupane, "Drawing objects...", 'o', define_objects_popup, NULL);
 
 
 /* View menu */

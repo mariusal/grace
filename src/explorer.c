@@ -238,6 +238,9 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->aacbuts[1], FALSE);
         
         UnmanageChild(ui->project_ui->top);
+        UnmanageChild(ui->frame_ui->top);
+        UnmanageChild(ui->graph_ui->top);
+        UnmanageChild(ui->object_ui->top);
     } else {
         SetSensitive(ui->aacbuts[0], TRUE);
         SetSensitive(ui->aacbuts[1], TRUE);
@@ -249,6 +252,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             ManageChild(ui->project_ui->top);
             UnmanageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
+            UnmanageChild(ui->object_ui->top);
             break;
         case QFlavorFrame:
             update_frame_ui(ui->frame_ui, q);
@@ -256,6 +260,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->project_ui->top);
             ManageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
+            UnmanageChild(ui->object_ui->top);
             break;
         case QFlavorGraph:
             update_graph_ui(ui->graph_ui, q);
@@ -263,11 +268,21 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->project_ui->top);
             UnmanageChild(ui->frame_ui->top);
             ManageChild(ui->graph_ui->top);
+            UnmanageChild(ui->object_ui->top);
+            break;
+        case QFlavorDObject:
+            update_object_ui(ui->object_ui, q);
+            
+            UnmanageChild(ui->project_ui->top);
+            UnmanageChild(ui->frame_ui->top);
+            UnmanageChild(ui->graph_ui->top);
+            ManageChild(ui->object_ui->top);
             break;
         default:
             UnmanageChild(ui->project_ui->top);
             UnmanageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
+            UnmanageChild(ui->object_ui->top);
             break;
         }
     }
@@ -312,6 +327,11 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             break;
         case QFlavorGraph:
             if (set_graph_data(ui->graph_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorDObject:
+            if (set_object_data(ui->object_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;
             }
             break;
@@ -402,6 +422,9 @@ void define_explorer_popup(Widget but, void *data)
 
 	eui->graph_ui = create_graph_ui(eui);
         UnmanageChild(eui->graph_ui->top);
+
+	eui->object_ui = create_object_ui(eui);
+        UnmanageChild(eui->object_ui->top);
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 

@@ -127,9 +127,6 @@ void create_arrange_frame(Widget but, void *data);
 void create_overlay_frame(Widget but, void *data);
 void create_autos_frame(Widget but, void *data);
 
-void define_objects_popup(Widget but, void *data);
-void object_edit_popup(Quark *gr, int id);
-
 void create_monitor_frame_cb(Widget but, void *data);
 void define_explorer_popup(Widget but, void *data);
 void stufftextwin(char *s);
