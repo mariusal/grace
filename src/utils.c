@@ -377,27 +377,24 @@ static void please_report_the_bug(void)
  */
 static void bugwarn(char *signame)
 {
-    static int emergency_save = FALSE;
 /*
  *  Since we got so far, memory is probably corrupted so it's better to use
  *  a static storage
  */
     static char buf[GR_MAXPATHLEN];
-/* number of interrupts received during the emergency save */
-    static int interrupts;
     
-    if (emergency_save != FALSE) {
+    if (grace->rt->emergency_save != FALSE) {
         /* don't mind signals anymore: we're in emergency save mode already */
-        interrupts++;
-        if (interrupts > 10) {
+        grace->rt->interrupts++;
+        if (grace->rt->interrupts > 10) {
             fprintf(stderr, "oh, no luck :-(\n");
             please_report_the_bug();
             abort();
         }
         return;
     } else {
-        emergency_save = TRUE;
-        interrupts = 0;
+        grace->rt->emergency_save = TRUE;
+        grace->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! Got %s\n", signame);
         if (is_dirtystate()) {
             strcpy(buf, get_docname());
@@ -964,63 +961,52 @@ int compare_strings(const char *s1, const char *s2)
     }
 }
 
-/* location of Grace home directory */
-static char grace_home[GR_MAXPATHLEN] = GRACE_HOME;	
-
 char *get_grace_home(void)
 {
-    return grace_home;
+    return grace->rt->grace_home;
 }
-
-void set_grace_home(const char *dir)
-{
-    strncpy(grace_home, dir, GR_MAXPATHLEN - 1);
-}
-
-/* print command */
-static char print_cmd[GR_MAXPATHLEN] = GRACE_PRINT_CMD;	
 
 char *get_print_cmd(void)
 {
-    return print_cmd;
+    return grace->rt->print_cmd;
 }
 
 void set_print_cmd(const char *cmd)
 {
-    strncpy(print_cmd, cmd, GR_MAXPATHLEN - 1);
+    grace->rt->print_cmd = copy_string(grace->rt->print_cmd, cmd);
 }
-
-/* editor */
-static char grace_editor[GR_MAXPATHLEN] = GRACE_EDITOR;	
 
 char *get_editor(void)
 {
-    return grace_editor;
+    return grace->rt->grace_editor;
 }
 
 void set_editor(const char *cmd)
 {
-    strncpy(grace_editor, cmd, GR_MAXPATHLEN - 1);
+    grace->rt->grace_editor = copy_string(grace->rt->grace_editor, cmd);
 }
-
-static char help_viewer[GR_MAXPATHLEN] = GRACE_HELPVIEWER;	
 
 char *get_help_viewer(void)
 {
-    return help_viewer;
+    return grace->rt->help_viewer;
 }
 
 void set_help_viewer(const char *dir)
 {
-    strncpy(help_viewer, dir, GR_MAXPATHLEN - 1);
+    grace->rt->help_viewer = copy_string(grace->rt->help_viewer, dir);
 }
-
-/* project file name */
-static char docname[GR_MAXPATHLEN] = NONAME;	
 
 char *get_docname(void)
 {
-    return docname;
+    return grace->project->docname;
+}
+
+void set_docname(const char *s)
+{
+    if (!s) {
+        s = NONAME;
+    }
+    grace->project->docname = copy_string(grace->project->docname, s);
 }
 
 char *get_docbname(void)
@@ -1028,22 +1014,13 @@ char *get_docbname(void)
     static char buf[GR_MAXPATHLEN];
     char *bufp;
     
-    strcpy(buf, mybasename(docname)); 
+    strcpy(buf, mybasename(grace->project->docname)); 
     bufp = strrchr(buf, '.');
     if (bufp) {
         *(bufp) = '\0';
     }
     
     return buf;
-}
-
-void set_docname(const char *s)
-{
-    if (s != NULL) {
-        strncpy(docname, s, GR_MAXPATHLEN - 1);
-    } else {
-        strcpy(docname, NONAME);
-    }
 }
 
 
@@ -1149,28 +1126,18 @@ char *mybasename(const char *s)
     return basename;
 }
 
-static char workingdir[GR_MAXPATHLEN];
-
 int set_workingdir(const char *wd)
 {
     char buf[GR_MAXPATHLEN];
-    
-    if (wd == NULL) {
-        getcwd(workingdir, GR_MAXPATHLEN - 1);
-        if (workingdir[strlen(workingdir)-1] != '/') {
-            strcat(workingdir, "/");
-        }
-        return RETURN_SUCCESS;
-    }
     
     strncpy(buf, wd, GR_MAXPATHLEN - 1);
     if (buf[0] == '~') {
         expand_tilde(buf);
     }
     if (chdir(buf) >= 0) {
-        strncpy(workingdir, buf, GR_MAXPATHLEN - 1);
-        if (workingdir[strlen(workingdir)-1] != '/') {
-            strcat(workingdir, "/");
+        grace->rt->workingdir = copy_string(grace->rt->workingdir, buf);
+        if (grace->rt->workingdir[strlen(grace->rt->workingdir) - 1] != '/') {
+            grace->rt->workingdir = concat_strings(grace->rt->workingdir, "/");
         }
 	return RETURN_SUCCESS;
     } else {
@@ -1180,47 +1147,17 @@ int set_workingdir(const char *wd)
 
 char *get_workingdir(void)
 {
-    return workingdir;
-}
-
-static char *username = NULL;
-
-void init_username(void)
-{
-    char *s;
-
-/*
- *     We don't use it for any kind of authentication, so why not let
- *     user to customize her name? :)
- */
-    s = getenv("LOGNAME");
-    if (s == NULL || s[0] == '\0') {
-        s = getlogin();
-        if (s == NULL || s[0] == '\0') {
-            s = "a user";
-        }
-    }
-    username = copy_string(username, s);
+    return grace->rt->workingdir;
 }
 
 char *get_username(void)
 {
-    return username;
-}
-
-static char *userhome = NULL;
-
-void init_userhome(void)
-{
-    userhome = copy_string(NULL, getenv("HOME"));
-    if (userhome == NULL || userhome[strlen(userhome) - 1] != '/') {
-        userhome = concat_strings(userhome, "/");
-    }
+    return grace->rt->username;
 }
 
 char *get_userhome(void)
 {
-    return userhome;
+    return grace->rt->userhome;
 }
 
 /* TODO this needs some work */
@@ -1303,14 +1240,10 @@ void update_app_title(void)
 /*
  * dirtystate routines
  */
-
-static int dirtystate = 0;
-static int dirtystate_lock = FALSE;
-
 void set_dirtystate(void)
 {
-    if (dirtystate_lock == FALSE) {
-        dirtystate++;
+    if (grace->rt->dirtystate_lock == FALSE) {
+        grace->rt->dirtystate++;
         update_timestamp();
         update_app_title();
 
@@ -1326,19 +1259,19 @@ void set_dirtystate(void)
 
 void clear_dirtystate(void)
 {
-    dirtystate = 0;
-    dirtystate_lock = FALSE;
+    grace->rt->dirtystate = 0;
+    grace->rt->dirtystate_lock = FALSE;
     update_app_title();
 }
 
 void lock_dirtystate(flag)
 {
-    dirtystate_lock = flag;
+    grace->rt->dirtystate_lock = flag;
 }
 
 int is_dirtystate(void)
 {
-    return (dirtystate ? TRUE:FALSE);
+    return (grace->rt->dirtystate ? TRUE:FALSE);
 }
 
 int system_wrap(const char *string)
@@ -1354,11 +1287,14 @@ void msleep_wrap(unsigned int msec)
     select(0, NULL, NULL, NULL, &timeout);    
 }
 
+#ifdef HAVE_SETLOCALE
 static int need_locale = FALSE;
 static char *system_locale_string, *posix_locale_string;
+#endif
 
 int init_locale(void)
 {
+#ifdef HAVE_SETLOCALE
     char *s;
     s = setlocale(LC_NUMERIC, "");
     if (s == NULL) {
@@ -1374,6 +1310,9 @@ int init_locale(void)
         need_locale = TRUE;
         return RETURN_SUCCESS;
     }
+#else
+    return RETURN_SUCCESS;
+#endif
 }
 
 void set_locale_num(int flag)
@@ -1435,16 +1374,14 @@ char *bi_ccompiler(void)
 }
 
 #ifdef DEBUG
-static int debuglevel = 0;
-
 void set_debuglevel(int level)
 {
-    debuglevel = level;
+    grace->rt->debuglevel = level;
 }
 
 int get_debuglevel(void)
 {
-    return debuglevel;
+    return grace->rt->debuglevel;
 }
 #endif
 

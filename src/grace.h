@@ -68,6 +68,9 @@ typedef struct _Project {
     char *sformat;
 
     plotstr timestamp; /* timestamp */
+    
+    /* project file name */
+    char *docname;	
 } Project;
 
 typedef struct _GUI {
@@ -105,6 +108,41 @@ typedef struct _RunTime {
     int cursource;
     /* file for results */
     FILE *resfp;
+    
+    /* flag raised on emergency save */
+    int emergency_save;
+    /* number of interrupts received during the emergency save */
+    int interrupts;
+    
+    /* location of the Grace home directory */
+    char *grace_home;
+    
+    /* print command */
+    char *print_cmd;	
+
+    /* editor */
+    char *grace_editor;	
+
+    /* html viewer */
+    char *help_viewer;	
+
+    /* working directory */
+    char *workingdir;	
+
+    /* username */
+    char *username;
+
+    /* $HOME */
+    char *userhome;
+
+    /* dirtystate stuff */
+    int dirtystate;
+    int dirtystate_lock;
+
+    /* debug level */
+#ifdef DEBUG
+    int debuglevel;
+#endif    
 } RunTime;
 
 typedef struct _Grace {

@@ -84,7 +84,6 @@ char *concat_strings(char *dest, const char *src);
 int compare_strings(const char *s1, const char *s2);
 
 char *get_grace_home(void);
-void set_grace_home(const char *dir);
 
 char *get_help_viewer(void);
 void set_help_viewer(const char *dir);
@@ -114,10 +113,8 @@ void expand_tilde(char *buf);
 int set_workingdir(const char *wd);
 char *get_workingdir(void);
 
-void init_username(void);
 char *get_username(void);
 
-void init_userhome(void);
 char *get_userhome(void);
 
 void update_app_title(void);

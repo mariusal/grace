@@ -27,11 +27,18 @@
 
 #include <config.h>
 
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "defines.h"
 #include "grace.h"
 #include "objutils.h"
 #include "utils.h"
 #include "protos.h"
+
+/* FIXME */
+#include "device.h"
+#include "buildinfo.h"
 
 static defaults d_d =
 {1, 0, 1, 1, 1, 1.0, 0, 1.0};
@@ -87,6 +94,8 @@ Project *project_new(void)
     pr->timestamp.offset.x = 0.03;
     pr->timestamp.offset.y = 0.03;
     
+    pr->docname = copy_string(NULL, NONAME);
+    
     return pr;
 }
 
@@ -138,9 +147,91 @@ void gui_free(GUI *gui)
 RunTime *runtime_new(void)
 {
     RunTime *rt;
+    char *s;
     
     rt = xmalloc(sizeof(RunTime));
     if (!rt) {
+        return NULL;
+    }
+
+    /* allocatables */
+    rt->grace_home   = NULL;
+    rt->print_cmd    = NULL;
+    rt->grace_editor = NULL;
+    rt->help_viewer  = NULL;
+    rt->workingdir   = NULL;
+    rt->username     = NULL;
+    rt->userhome     = NULL;
+    
+    rt->nlfit        = NULL;
+    
+    /* grace home directory */
+    if ((s = getenv("GRACE_HOME")) == NULL) {
+	s = GRACE_HOME;
+    }
+    rt->grace_home = copy_string(NULL, s);
+
+    /* print command */
+    if ((s = getenv("GRACE_PRINT_CMD")) == NULL) {
+	s = GRACE_PRINT_CMD;
+    }
+    rt->print_cmd = copy_string(NULL, s);
+    /* if no print command defined, print to file by default */
+    if (rt->print_cmd == NULL || rt->print_cmd[0] == '\0') {
+        set_ptofile(TRUE);
+    } else {
+        set_ptofile(FALSE);
+    }
+
+    /* editor */
+    if ((s = getenv("GRACE_EDITOR")) == NULL) {
+	s = GRACE_EDITOR;
+    }
+    rt->grace_editor = copy_string(NULL, s);
+
+    /* html viewer */
+    if ((s = getenv("GRACE_HELPVIEWER")) == NULL) {
+	s = GRACE_HELPVIEWER;
+    }
+    rt->help_viewer = copy_string(NULL, s);
+
+    /* working directory */
+    rt->workingdir = xmalloc(GR_MAXPATHLEN);
+    getcwd(rt->workingdir, GR_MAXPATHLEN - 1);
+    if (rt->workingdir[strlen(rt->workingdir)-1] != '/') {
+        rt->workingdir = concat_strings(rt->workingdir, "/");
+    }
+
+    /* username */
+    s = getenv("LOGNAME");
+    if (s == NULL || s[0] == '\0') {
+        s = getlogin();
+        if (s == NULL || s[0] == '\0') {
+            s = "a user";
+        }
+    }
+    rt->username = copy_string(NULL, s);
+
+    /* userhome */
+    if ((s = getenv("HOME")) == NULL) {
+        s = "/";
+    }
+    rt->userhome = copy_string(NULL, s);
+    if (rt->userhome[strlen(rt->userhome) - 1] != '/') {
+        rt->userhome = concat_strings(rt->userhome, "/");
+    }
+
+    rt->nlfit = xmalloc(sizeof(NLFit));
+
+    if (!rt->grace_home   ||
+        !rt->print_cmd    ||
+        !rt->grace_editor ||
+        !rt->help_viewer  ||
+        !rt->workingdir   ||
+        !rt->username     ||
+        !rt->userhome     ||
+        !rt->nlfit) {
+        runtime_free(rt);
         return NULL;
     }
     
@@ -150,11 +241,6 @@ RunTime *runtime_new(void)
     rt->target_set.gno   = -1;
     rt->target_set.setno = -1;
     
-    rt->nlfit = xmalloc(sizeof(NLFit));
-    if (!rt->nlfit) {
-        xfree(rt);
-        return NULL;
-    }
     rt->nlfit->title   = NULL;
     rt->nlfit->formula = NULL;
     reset_nonl(rt->nlfit);
@@ -168,13 +254,32 @@ RunTime *runtime_new(void)
     rt->cursource = SOURCE_DISK;
 
     rt->resfp = NULL;
+
+    rt->emergency_save = FALSE;
+    rt->interrupts = 0;
+
+    rt->dirtystate = 0;
+    rt->dirtystate_lock = FALSE;
     
+#ifdef DEBUG
+    rt->debuglevel = 0;
+#endif
+
     return rt;
 }
 
 void runtime_free(RunTime *rt)
 {
+    xfree(rt->grace_home);
+    xfree(rt->print_cmd);
+    xfree(rt->grace_editor);
+    xfree(rt->help_viewer);
+    xfree(rt->workingdir);
+    xfree(rt->username);
+    xfree(rt->userhome);
+    
     /* FIXME nonlfit */
+    xfree(rt->nlfit);
     
     xfree(rt);
 }

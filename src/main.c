@@ -118,51 +118,7 @@ int main(int argc, char *argv[])
      * set version
      */
     reset_project_version();
-    /*
-     * grace home directory
-     */
-    if ((s = getenv("GRACE_HOME")) != NULL) {
-	set_grace_home(s);
-    }
     
-    /* define the user's name */
-    init_username();
-
-    /* define the user's home dir */
-    init_userhome();
-        
-    /* set the starting directory */
-    set_workingdir(NULL);
-
-    /*
-     * print command
-     */
-    if ((s = getenv("GRACE_PRINT_CMD")) != NULL) {
-	set_print_cmd(s);
-    }
-
-    /* if no print command defined, print to file by default */
-    s = get_print_cmd();
-    if (s == NULL || s[0] == '\0') {
-        set_ptofile(TRUE);
-    } else {
-        set_ptofile(FALSE);
-    }
-    
-    /*
-     * editor
-     */
-    if ((s = getenv("GRACE_EDITOR")) != NULL) {
-	set_editor(s);
-    }
-    
-    /*
-     * check for changed help file viewer command
-     */
-    if ((s = getenv("GRACE_HELPVIEWER")) != NULL) {
-	set_help_viewer(s);
-    }
-
     /* initialize the parser symbol table */
     init_symtab();
     
