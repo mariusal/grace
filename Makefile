@@ -55,9 +55,7 @@ Make.conf : ac-tools/Make.conf.in configure
 	@echo 'Please re-run ./configure'
 	@echo
 
-configure : ac-tools/configure.in ac-tools/ice_check_lesstif.m4 \
-	ac-tools/mdw_check_manylibs.m4 ac-tools/ice_find_motif.m4 \
-	ac-tools/ice_check_decl.m4
+configure : ac-tools/configure.in ac-tools/aclocal.m4
 	autoconf ac-tools/configure.in > configure
 	chmod +x configure
 	@echo
