@@ -643,6 +643,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	  currchar->metrics.rightSideBearing = area->xmax;
 	  currchar->metrics.descent          = - area->ymax;
 	  currchar->metrics.ascent           = - area->ymin;
+	  currchar->bpp                      = 1;
 	  
 	  /* By this point, it's clear that the 'area' struct exists,
 	     and that we no longer need it, so free it up. */
