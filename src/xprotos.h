@@ -145,7 +145,6 @@ void define_region(int nr, int regionlinkto, int rtype);
 
 void update_status(int gno, int itemno);
 void update_region_status(int rno);
-void update_status_auto_redraw(void);
 void clear_status(void);
 void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void update_stuff_status(void);
