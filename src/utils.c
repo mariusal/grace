@@ -1383,3 +1383,28 @@ char *bi_version_string(void)
 {
     return BI_VERSION;
 }
+
+char *bi_system(void)
+{
+    return BI_SYSTEM;
+}
+
+char *bi_date(void)
+{
+    return BI_DATE;
+}
+
+char *bi_gui(void)
+{
+    return BI_GUI;
+}
+
+char *bi_t1lib(void)
+{
+    return BI_T1LIB;
+}
+
+char *bi_ccompiler(void)
+{
+    return BI_CCOMPILER;
+}
