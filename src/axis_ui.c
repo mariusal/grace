@@ -148,9 +148,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     opitems[1].value = TYPE_SPEC;
     opitems[1].label = "Specified";
     ui->labelplace = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
-    AddOptionChoiceCB(ui->labelplace, auto_spec_cb, ui->labelspec_rc);
     AddOptionChoiceCB(ui->labelplace, oc_explorer_cb, eui);
     ui->labelspec_rc = CreateHContainer(rc);
+    AddOptionChoiceCB(ui->labelplace, auto_spec_cb, ui->labelspec_rc);
     ui->labelspec_para = CreateTextItem2(ui->labelspec_rc, 5, "Parallel offset:");
     AddTextItemCB(ui->labelspec_para, titem_explorer_cb, eui);
     ui->labelspec_perp = CreateTextItem2(ui->labelspec_rc, 5, "Perpendicular offset:");
