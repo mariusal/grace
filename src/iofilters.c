@@ -42,6 +42,8 @@
 #endif
 
 #include "defines.h"
+#include "utils.h"
+#include "files.h"
 #include "protos.h"
 
 typedef struct filter {
@@ -77,16 +79,16 @@ int add_io_filter( int type, int method, char *id, char *comm )
  */
 int add_input_filter( int method, char *id, char *comm )
 {
-	ifilt = (Filter *)realloc( ifilt, ++numIfilt*sizeof(Filter) );
-	ifilt[numIfilt-1].command = (char *)malloc(strlen(comm)+1 );
+	ifilt = xrealloc( ifilt, ++numIfilt*sizeof(Filter) );
+	ifilt[numIfilt-1].command = copy_string(NULL, comm);
 	strcpy( ifilt[numIfilt-1].command, comm );
 	ifilt[numIfilt-1].method = method;
 	if( method == FILTER_PATTERN ) {
-		ifilt[numIfilt-1].id = (char *)malloc( strlen(id)+1 );
+		ifilt[numIfilt-1].id = malloc( strlen(id)+1 );
 		strcpy( ifilt[numIfilt-1].id, id );
 		ifilt[numIfilt-1].idlen = strlen( ifilt[numIfilt-1].id );
 	} else {
-		ifilt[numIfilt-1].id = (char *)malloc(strlen(id)/2+1);
+		ifilt[numIfilt-1].id = malloc(strlen(id)/2+1);
 		hex2char( &ifilt[numIfilt-1], id );
 	}
 	if( ifilt[numIfilt-1].idlen == 0 ) {
@@ -99,10 +101,10 @@ int add_input_filter( int method, char *id, char *comm )
 
 int add_output_filter( int method, char *id, char *comm )
 {
-	ofilt = (Filter *)realloc( ofilt, ++numOfilt*sizeof(Filter) );
-	ofilt[numOfilt-1].command = (char *)malloc(strlen(comm)+1 );
+	ofilt = xrealloc( ofilt, ++numOfilt*sizeof(Filter) );
+	ofilt[numOfilt-1].command = copy_string(NULL, comm);
 	strcpy( ofilt[numOfilt-1].command, comm );
-	ofilt[numOfilt-1].id = (char *)malloc( strlen(id)+1 );
+	ofilt[numOfilt-1].id = malloc( strlen(id)+1 );
 	strcpy( ofilt[numOfilt-1].id, id );
 	ofilt[numOfilt-1].method = FILTER_PATTERN;
 	return 0;
@@ -158,7 +160,7 @@ FILE *filter_read( char *fn )
 		fclose( in );
 		sprintf( buf, ifilt[i].command, fn );
 		fflush( stdout );
-		return popen(popen_path_translate(buf), "r");
+		return popen(grace_exe_path(buf), "r");
 	} else {
 		return in;
 	}
@@ -190,7 +192,7 @@ FILE *filter_write(  char *fn )
 		fclose( out );
 		sprintf( buf, ofilt[i].command, fn );
 		fflush( stdin );
-		return popen( buf, "w" );
+		return popen(grace_exe_path(buf), "w");
 	} else {
 		return out;
 	}

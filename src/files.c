@@ -168,10 +168,103 @@ FILE *grace_openw(char *fn)
     }
 }
 
+char *grace_path(char *fn)
+{
+    static char buf[GR_MAXPATHLEN];
+    char *home;
+    struct stat statb;
+
+    if (fn == NULL) {
+	return NULL;
+    } else {
+        strcpy(buf, fn);
+        
+        switch (fn[0]) {
+        case '/':
+        case '\0':
+            return buf;
+            break;
+        case '~':
+            expand_tilde(buf);
+            return buf;
+            break;
+        case '.':
+            switch (fn[1]) {
+            case '/':
+                return buf;
+                break;
+            case '.':
+                if (fn[2] == '/') {
+                    return buf;
+                }
+                break;
+            }
+        }
+        /* if we arrived here, the path is relative */
+        if (stat(buf, &statb) == 0) {
+            /* ok, we found it */
+            return buf;
+        }
+        
+	/* second try: in .grace/ in the current dir */
+        strcpy(buf, ".grace/");
+	strcat(buf, fn);
+        if (stat(buf, &statb) == 0) {
+            return buf;
+        }
+        
+	/* third try: in .grace/ in the $HOME dir */
+	home = getenv("HOME");
+	if (home != NULL) {
+	    strcpy(buf, home);
+	    strcat(buf, "/.grace/");
+	    strcat(buf, fn);
+            if (stat(buf, &statb) == 0) {
+                return buf;
+            }
+	}
+
+	/* the last attempt: in $GRACE_HOME */
+        strcpy(buf, get_grace_home());
+	strcat(buf, "/");
+	strcat(buf, fn);
+        if (stat(buf, &statb) == 0) {
+            return buf;
+        }
+        
+	/* giving up... */
+	strcpy(buf, fn);
+        return buf;
+    }
+}
+
+char *grace_exe_path(char *fn)
+{
+    static char buf[GR_MAXPATHLEN];
+    char *cp;
+    
+    if (fn == NULL) {
+        return NULL;
+    } else {
+        cp = strchr(fn, ' ');
+        if (cp == NULL) {
+            return exe_path_translate(grace_path(fn));
+        } else {
+            strcpy(buf, fn);
+            buf[cp - fn] = '\0';
+            strcpy(buf, grace_path(buf));
+            strcat(buf, " ");
+            strcat(buf, cp);
+            return exe_path_translate(buf);
+        }
+    }
+}
+
 /* open a file for read */
 FILE *grace_openr(char *fn, int src)
 {
     struct stat statb;
+    char *tfn;
     char buf[GR_MAXPATHLEN + 50];
 
     if (!fn[0]) {
@@ -180,23 +273,25 @@ FILE *grace_openr(char *fn, int src)
     }
     switch (src) {
     case SOURCE_DISK:
-	/* check to make sure this is a file and not a dir */
-	if (strcmp(fn, "-") == 0 || strcmp(fn, "stdin") == 0) {
+        tfn = grace_path(fn);
+	if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
             return stdin;
-	} else if (stat(fn, &statb)) {
-            sprintf(buf, "Can't stat file %s", fn);
+	} else if (stat(tfn, &statb)) {
+            sprintf(buf, "Can't stat file %s", tfn);
             errmsg(buf);
 	    return NULL;
+	/* check to make sure this is a file and not a dir */
 	} else if (!S_ISREG(statb.st_mode)) {
-            sprintf(buf, "%s is not a regular file", fn);
+            sprintf(buf, "%s is not a regular file", tfn);
             errmsg(buf);
 	    return NULL;
         } else {
-            return filter_read(fn);
+            return filter_read(tfn);
 	}
         break;
     case SOURCE_PIPE:
-	return popen(popen_path_translate(fn), "r");
+        tfn = grace_exe_path(fn);
+	return popen(tfn, "r");
 	break;
     default:
         errmsg("Wrong call to grace_openr()");

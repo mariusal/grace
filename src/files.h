@@ -43,6 +43,9 @@ FILE *filter_write(  char *fn );
 int expand_line_buffer(char **adrPtr);
 int read_long_line(FILE *fp);
 
+char *grace_path(char *fn);
+char *grace_exe_path(char *fn);
+
 FILE *grace_openw(char *fn);
 FILE *grace_openr(char *fn, int src);
 void grace_close(FILE *fp);
