@@ -318,9 +318,9 @@ void pdf_fillpolygon(VPoint *vps, int nc)
         PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
     }
     if (getfillrule() == FILLRULE_WINDING) {
-        PDF_set_fillrule(phandle, "winding");
+        PDF_set_parameter(phandle, "fillrule", "winding");
     } else {
-        PDF_set_fillrule(phandle, "evenodd");
+        PDF_set_parameter(phandle, "fillrule", "evenodd");
     }
     PDF_fill(phandle);
 }
