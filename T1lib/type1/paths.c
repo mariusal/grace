@@ -772,7 +772,7 @@ So, we add "dest" instead of subtracting it:
 */
                        register struct conicsegment *cp = (struct conicsegment *) p;
  
-                       cp->M.x += cp->dest.x;  cp->M.y += cp->dest.y;
+                       cp->M.x += p->dest.x;  cp->M.y += p->dest.y;
                    }
                        break;
  
@@ -780,8 +780,8 @@ So, we add "dest" instead of subtracting it:
                    {
                        register struct beziersegment *bp = (struct beziersegment *) p;
  
-                       bp->B.x += bp->dest.x;  bp->B.y += bp->dest.y;
-                       bp->C.x += bp->dest.x;  bp->C.y += bp->dest.y;
+                       bp->B.x += p->dest.x;  bp->B.y += p->dest.y;
+                       bp->C.x += p->dest.x;  bp->C.y += p->dest.y;
                    }
                        break;
  

@@ -499,7 +499,7 @@ ICE_CHECK_DECL(isnan, math.h)
 dnl **** Check for T1lib installed
 if test $bundled_t1lib = false
 then
-  ACX_CHECK_T1LIB(1.0.1, AC_DEFINE(HAVE_LIBT1), bundled_t1lib=true)
+  ACX_CHECK_T1LIB(1.1.0, AC_DEFINE(HAVE_LIBT1), bundled_t1lib=true)
 fi
 
 if test $bundled_t1lib = true

@@ -17,6 +17,7 @@ OBJS = \
 	t1aaset$(O) \
 	t1afmtool$(O) \
 	t1outline$(O) \
+	t1subset$(O) \
 	parseAFM$(O) 
 
 

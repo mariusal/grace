@@ -46,6 +46,7 @@ T1LIB_OBJS = \
 	t1lib/t1aaset$(O) \
 	t1lib/t1afmtool$(O) \
 	t1lib/t1outline$(O) \
+	t1lib/t1subset$(O) \
 	t1lib/parseAFM$(O) 
 
 

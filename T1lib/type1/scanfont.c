@@ -35,7 +35,9 @@
 #include "token.h"
 #include "fontfcn.h"
 #include "blues.h"
- 
+
+
+/* #define DEBUG_SCANFONT */
  
  
 static int rc;
@@ -1251,6 +1253,9 @@ int scan_font(FontP)
   InPrivateDict = FALSE;
   TwoSubrs      = FALSE;
   rc = BuildFontInfo(FontP);
+#ifdef DEBUG_SCANFONT
+  printf("BuildFontInfo(): retval=%d\n", rc);
+#endif
   if (rc != 0) return(rc);
  
   /* Assume everything will be OK */
@@ -1260,7 +1265,7 @@ int scan_font(FontP)
   do {
     /* Scan the next token */
     scan_token(inputP);
-    
+
     /* ==> tokenLength, tokenTooLong, tokenType, and tokenValue are */
     /* now set */
  
@@ -1285,14 +1290,23 @@ int scan_font(FontP)
             if (InPrivateDict ) {
               if (0== strncmp(tokenStartP,"Subrs",5) ) {
                 rc = BuildSubrs(FontP);
+#ifdef DEBUG_SCANFONT
+		printf("BuildSubrs(): retval=%d\n", rc);
+#endif
                 break;
               }
               if (0== strncmp(tokenStartP,"CharStrings",11) ) {
                 rc = BuildCharStrings(FontP);
+#ifdef DEBUG_SCANFONT
+		printf("BuildCharstrings(): retval=%d\n", rc);
+#endif
                 if ( (rc == SCAN_OK) ||(rc == SCAN_END) ) {
                   fclose(inputP->data.fileP);
                   /* Build the Blues Structure */
 		  rc = GetType1Blues(FontP);
+#ifdef DEBUG_SCANFONT
+		  printf("GetType1Blues(): retval=%d\n", rc);
+#endif
                   /* whatever the return code, return it */
                   /* all the work is done. This is the normal exit.*/
                   return(rc);

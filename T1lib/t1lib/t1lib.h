@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-28
+  ----- Date:        2001-02-08
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
 		     user must deal with.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -26,8 +26,11 @@
 		     independent from X11.
                      Thanks to all people who make free software living!
 --------------------------------------------------------------------------*/
-  
 
+
+#ifndef T1LIB_H_INCLUDED
+
+#define T1LIB_H_INCLUDED
 
 /* type definitions, needed by the user: */
 
@@ -221,6 +224,16 @@ typedef T1_PATHSEGMENT  T1_OUTLINE;
 #define   T1_PATHTYPE_MOVE           0x15
 
 
+/* Definitions for font subsetting */
+#define T1_SUBSET_DEFAULT            0x00
+#define T1_SUBSET_FORCE_REENCODE     0x01
+#define T1_SUBSET_SKIP_REENCODE      0x02
+#define T1_SUBSET_ENCRYPT_BINARY     0x04
+/* This is only for debugging, it does not produce valid font-files!
+   This flag is not in the documented API!. */
+#define T1_SUBSET_ENCRYPT_NONE       0x08
+
+
 
 /* function declarations: */
 
@@ -251,6 +264,8 @@ extern char *T1_GetLibIdent( void);
 extern void T1_SetRasterFlags( int flags);
 extern char *T1_GetAfmFileName( int FontID);
 extern int T1_SetAfmFileName( int FontId, char *afm_name);
+extern char *T1_GetFontFilePath( int FontID);
+extern char *T1_GetAfmFilePath( int FontID);
 
 /* from t1delete.c */
 extern int T1_DeleteSize( int FontID, float size);
@@ -396,8 +411,19 @@ extern T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path);
 extern void T1_FreeOutline( T1_OUTLINE *path);
 
 
+/* from t1subset.c */
+extern char *T1_SubsetFont( int FontID,
+			    char *mask,
+			    unsigned int flags,
+			    int linewidth,
+			    unsigned long maxblocksize,
+			    unsigned long *bufsize);
+extern char *T1_GetCharString( int FontID, char *charname, int *len);
+extern int T1_GetlenIV( int FontID);
+
+
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
 
-
+#endif /* T1LIB_H_INCLUDED */

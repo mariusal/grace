@@ -488,7 +488,7 @@ int stemno;
     if (blues->StdVW != 0)      /* there is an entry for StdVW */
       widthdiff = blues->StdVW - stemwidth;
     for (i = 0; i < blues->numStemSnapV; ++i) { /* now look at StemSnapV */
-      if (blues->StemSnapV[i] - stemwidth < widthdiff)
+      if (FABS(blues->StemSnapV[i] - stemwidth) < FABS(widthdiff))
         /* this standard width is the best match so far for this stem */
         widthdiff = blues->StemSnapV[i] - stemwidth;
     }
@@ -496,7 +496,7 @@ int stemno;
     if (blues->StdHW != 0)      /* there is an entry for StdHW */
       widthdiff = blues->StdHW - stemwidth;
     for (i = 0; i < blues->numStemSnapH; ++i) { /* now look at StemSnapH */
-      if (blues->StemSnapH[i] - stemwidth < widthdiff)
+      if (FABS(blues->StemSnapH[i] - stemwidth) < FABS(widthdiff))
         /* this standard width is the best match so far for this stem */
         widthdiff = blues->StemSnapH[i] - stemwidth;
     }

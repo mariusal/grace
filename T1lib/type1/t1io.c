@@ -46,6 +46,9 @@
 #endif
 #include <stdio.h>
 #include <fcntl.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 #include "t1stdio.h"
 #include "t1hdigit.h"
@@ -53,7 +56,8 @@
 /* we define this to switch to decrypt-debugging mode. The stream of
    decrypted bytes will be written to stdout! This contains binary
    charstring data */
-#define DEBUG_DECRYPTION
+/* #define DEBUG_DECRYPTION  */
+/* #define DEBUG_PFB_BLOCKS  */
 
 /* Constants and variables used in the decryption */
 #define c1 ((unsigned short)52845)
@@ -67,7 +71,9 @@ static int starthex80=0;
 static long pfbblocklen=0;
 static long accu=0;
 static unsigned long bytecnt=0;
-
+static int eexec_startOK=0;
+static int eexec_endOK=0;
+static int in_eexec=0;
 
  
 /* Our single FILE structure and buffer for this package */
@@ -92,6 +98,8 @@ F_FILE *T1Open(fn, mode)
   
  
   Decrypt = 0;
+  eexec_startOK=0;
+  eexec_endOK=0;
  
   /* We know we are only reading */
   /* cygwin32 also needs the binary flag to be set */
@@ -143,6 +151,173 @@ int T1Getc(f)        /* Read one character */
   }
 } /* end Getc */
  
+/*  This function is added by RMz:
+    T1Gets(): Read a line of the file and save it to string. At most,
+    (size-1) bytes are read. The user *must* ensure (by making size large
+    enough) that "eexec" does not get split between two calls because
+    in this case, eexec-encryption does not set in.
+    ------------------------------------------------------------ */
+int T1Gets(char *string,
+	   int size,
+	   F_FILE *f) /* Read a line */
+{
+  int i=0;
+  char *eexecP;
+  
+  if (string == NULL) {
+    return( i);
+  }
+  if (f->b_base == NULL)
+    return( i);  /* already closed */
+  if (size<2)   /* no bytes to be read. For size = 1 we only had
+		   room for the \0-character. */
+    return( i);
+  
+  if (f->flags & UNGOTTENC) { /* there is an ungotten c */
+    f->flags &= ~UNGOTTENC;
+    string[i++]=f->ungotc;
+    size--;
+  }
+
+  size--; /* we have to leave room for one \0-character */
+  
+  while ( size>0) {
+    if (f->b_cnt == 0) { /* Buffer needs to be (re)filled */
+      f->b_cnt = T1Fill(f);
+    }
+    if (f->b_cnt == 0) { /* no more bytes available. Put \0-char
+			    and return. */
+      if ( i==0) { /* we did not already store one single char to string */
+	f->flags |= FIOEOF;
+	return( i);
+      }
+      else {
+	f->flags |= FIOEOF;
+	string[i]='\0';
+	return( i);
+      }
+    }
+
+    /* do not skip white space as required by Adobe spec, because
+       if have found fonts where the first decrypted byte was of
+       white space type. */
+    if ( (eexec_startOK==1) && (eexec_endOK==1)) {
+      T1eexec( f);
+      eexec_startOK=0;
+      eexec_endOK=0;
+      in_eexec=1;
+      /* we are now in the encrypted portion. */
+    }
+    string[i]=*(f->b_ptr);
+    
+    /* Check whether eexec appears in the string just setup */
+    if ( (Decrypt==0) &&
+	 ((eexecP=strstr( string, "eexec"))!=NULL) ) {
+      /* if eexec is an isolated token, start decryption */
+      if ( (eexec_startOK==1) &&
+	   (isspace( (int)string[i])!=0) ) {
+	eexec_endOK=1;
+      }
+      if ( (eexec_startOK==0) &&
+	   (isspace( (int)string[i-5])!=0) ) {
+	eexec_startOK=1;
+      }
+    }
+    i++;
+    /* Under UNIX, '\n' is the accepted newline. For pfb-files it is also
+       common to use '\r' as the newline indicator. I have, however, never
+       seen a pfb-file which uses the sequence '\r''\n' as a newline
+       indicator, as known from DOS. So we don't take care for this case
+       and simply map both single characters \r and \n into \n. Of course,
+       this can only be done in the ASCII section of the font. */
+    if ( *(f->b_ptr)=='\n' || *(f->b_ptr)=='\r') {
+      if (in_eexec==0)
+	string[i-1]='\n';  
+      string[i]='\0'; 
+      f->b_cnt--;
+      f->b_ptr++;
+      return( i);
+    }
+    
+    f->b_cnt--;
+    f->b_ptr++;
+    size--;
+  } /* end of while (size>0) */
+  
+  string[i]='\0'; /* finish string */
+  return( i);
+  
+} /* end of T1Gets() */
+
+
+
+int T1GetDecrypt( void) 
+{
+  return( in_eexec);
+}
+
+
+/* Return the optional contents after the final cleartomark token.
+   There might appear some PostScript code which is not important
+   for t1lib, but which becomes important if subsetted fonts are
+   embedded in PostScript files. */
+int T1GetTrailer(char *string,
+		 int size,
+		 F_FILE *f)
+{
+  unsigned long off_save;
+  char *buf;
+  char *ctmP;
+  int i=0, j;
+  int datasize;
+  
+  datasize=size;
+  
+  off_save=lseek( f->fd, 0, SEEK_CUR);
+  if ((buf=(char *)malloc( size+1))==NULL ) {
+    return( -1);
+  }
+  lseek( f->fd, -size, SEEK_END);
+  read(f->fd, buf, size);
+  buf[size]='\0';   /* to be ablo perform a strstr() on this memory */
+  
+  i=datasize;
+  j=datasize-11;   /* length of "cleartomark" plus terminating white
+		      space or newline */
+   
+  while ((j--)>-1) {
+    if ((unsigned char)buf[i]==0x80) {
+      datasize=i; /* we skip the segment marker of pfb-files */
+    }
+    if ((ctmP=strstr( &(buf[j]), "cleartomark"))!=NULL) {
+      memcpy( string, &(buf[i]), datasize-i);
+      string[datasize-i]='\0';
+      lseek( f->fd, off_save, SEEK_SET);
+      free( buf);
+      return( datasize-i);
+    }
+    i--;
+  }
+  lseek( f->fd, off_save, SEEK_SET);
+  free( buf);
+  return( -1);
+}
+
+
+
+unsigned long T1GetFileSize( F_FILE *f) 
+{
+  unsigned long off_save;
+  unsigned long filesize;
+  
+  off_save=lseek( f->fd, 0, SEEK_CUR);
+  filesize=lseek( f->fd, 0, SEEK_END);
+  lseek( f->fd, off_save, SEEK_SET);
+  return( filesize);
+}
+
+
+
 /* -------------------------------------------------------------- */
 int T1Ungetc(c, f)   /* Put back one character */
   int c;
@@ -203,6 +378,7 @@ int T1Close(f)       /* Close the file */
   return close(f->fd);
 } /* end Close */
  
+
 /* -------------------------------------------------------------- */
 F_FILE *T1eexec(f)   /* Initialization */
   F_FILE *f;         /* Stream descriptor */
@@ -215,6 +391,10 @@ F_FILE *T1eexec(f)   /* Initialization */
  
   r = 55665;  /* initial key */
   asc = 1;    /* indicate ASCII form */
+
+#ifdef DEBUG_DECRYPTION
+  printf("T1eexec(1): first 20 bytes=%.20s, b_cnt=%d\n", f->b_ptr, f->b_cnt);
+#endif
   
   /* Consume the 4 random bytes, determining if we are also to
      ASCIIDecodeHex as we process our input.  (See pages 63-64
@@ -243,7 +423,7 @@ F_FILE *T1eexec(f)   /* Initialization */
       randomP[i] = H | LowHexP[*p++];
     }
   }
- 
+  
   /* Adjust our key */
   for (i=0,p=randomP; i<4; i++) {
     r = (*p++ + r) * c1 + c2;
@@ -252,6 +432,11 @@ F_FILE *T1eexec(f)   /* Initialization */
   /* Decrypt the remaining buffered bytes */
   f->b_cnt = T1Decrypt(f->b_ptr, f->b_cnt);
   Decrypt = 1;
+  
+#ifdef DEBUG_DECRYPTION
+  printf("T1eexec(2): first 120 bytes=%.120s, b_cnt=%d\n", f->b_ptr, f->b_cnt);
+#endif
+  
   return (feof(f))?NULL:f;
 } /* end eexec */
  
@@ -265,6 +450,9 @@ STATIC int T1Decrypt(p, len)
   unsigned char *inp = p;
   unsigned char *tblP;
  
+#ifdef DEBUG_DECRYPTION
+  printf("T1_Decrypt(): called with len=%d\n",len);
+#endif
   if (asc) {
     if (haveextrach) {
       H = extrach;
@@ -273,8 +461,22 @@ STATIC int T1Decrypt(p, len)
     else tblP = HighHexP;
     for (n=0; len>0; len--) {
       L = tblP[*inp++];
-      if (L == HWHITE_SPACE) continue;
-      if (L > LAST_HDIGIT) break;
+#ifdef DEBUG_DECRYPTION
+      printf("L=0x%X, %d, inp=%c (%d)\n", L,L, *(inp-1), *(inp-1));
+#endif
+      if (L == HWHITE_SPACE) {
+#ifdef DEBUG_DECRYPTION	
+	printf("continue\n");
+#endif
+	continue;
+      }
+      if (L > LAST_HDIGIT) {
+#ifdef DEBUG_DECRYPTION
+	printf("L=0x%X, --> break\n", L);
+#endif
+	break;
+      }
+      
       if (tblP == HighHexP) { /* Got first hexit value */
         H = L;
         tblP = LowHexP;
@@ -291,6 +493,9 @@ STATIC int T1Decrypt(p, len)
       extrach = H;
       haveextrach = 1;
     } else haveextrach = 0;
+#ifdef DEBUG_DECRYPTION
+    printf("T1_Decrypt(): Decrypted %d bytes\n",n);
+#endif
     return n;
   } else {
     for (n = len; n>0; n--) {
@@ -332,6 +537,10 @@ STATIC int T1Fill(f) /* Refill stream buffer */
 	pfbblocklen += (hdr_buf[3] & 0xFF)  <<8;
 	pfbblocklen += (hdr_buf[4] & 0xFF)  <<16;
 	pfbblocklen += (hdr_buf[5] & 0xFF)  <<24;
+#ifdef DEBUG_PFB_BLOCKS	
+	printf("t1io: New segment, length=%d, type=%d\n",
+	       pfbblocklen, hdr_buf[1]);
+#endif	
 	accu=0;
       }
       else{
@@ -343,6 +552,10 @@ STATIC int T1Fill(f) /* Refill stream buffer */
 	pfbblocklen += (hdr_buf[3] & 0xFF)  <<8;
 	pfbblocklen += (hdr_buf[4] & 0xFF)  <<16;
 	pfbblocklen += (hdr_buf[5] & 0xFF)  <<24;
+#ifdef DEBUG_PFB_BLOCKS	
+	printf("t1io: New segment, length=%d, type=%d\n",
+	       pfbblocklen, hdr_buf[1]);
+#endif
 	accu=0;
 	/* header read, now fill the buffer */
 	if (pfbblocklen-accu >= F_BUFSIZ){
@@ -375,8 +588,15 @@ STATIC int T1Fill(f) /* Refill stream buffer */
   }
 
   f->b_ptr = f->b_base;
+#ifdef DEBUG_DECRYPTION
+  printf("T1_Fill(): read %d bytes\n", rc);
+#endif
+  
   if (Decrypt){
     rc = T1Decrypt(f->b_base, rc);
+#ifdef DEBUG_DECRYPTION
+    printf("T1_Fill(): decrypted %d bytes\n", rc);
+#endif
   }
   
   return rc;
@@ -388,5 +608,10 @@ void T1io_reset(void)
   pfbblocklen=0;
   accu=0;
   starthex80=0;
+  eexec_startOK=0;
+  eexec_endOK=0;
+  in_eexec=0;
 }
+
+
 

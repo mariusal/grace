@@ -230,20 +230,31 @@ int get_font_by_name(char *fname)
     return(BAD_FONT_ID);
 }
 
-char *get_fontfilename(int font)
+char *get_fontfilename(int font, int abspath)
 {
-    return (T1_GetFontFileName(font));
+    if (abspath) {
+        return (T1_GetFontFilePath(font));
+    } else {
+        return (T1_GetFontFileName(font));
+    }
 }
 
-char *get_afmfilename(int font)
+char *get_afmfilename(int font, int abspath)
 {
-    char *s, *s1;
-    static char buf[64];
-    int len;
+    char *s;
 
-    s = T1_GetAfmFileName(font);
+    if (abspath) {
+        s = T1_GetAfmFilePath(font);
+    } else {
+        s = T1_GetAfmFileName(font);
+    }
+    
     if (s == NULL) {
-        s = T1_GetFontFileName(font);
+        char *s1;
+        static char buf[256];
+        int len;
+        
+        s = get_fontfilename(font, abspath);
         len = strlen(s);
         s1 = s + (len - 1);
         while(s1 && *s1 != '.') {

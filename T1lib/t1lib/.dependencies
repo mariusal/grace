@@ -30,7 +30,8 @@ t1enc.lo: t1enc.c ../type1/ffilest.h ../type1/types.h ../type1/Xstuff.h \
  t1enc.h t1env.h t1base.h t1finfo.h
 t1env.lo: t1env.c ../type1/types.h parseAFM.h ../type1/objects.h \
  ../type1/spaces.h ../type1/util.h ../type1/fontfcn.h \
- ../type1/fontmisc.h t1types.h t1extern.h t1misc.h t1env.h t1base.h
+ ../type1/fontmisc.h sysconf.h t1types.h t1extern.h t1misc.h t1env.h \
+ t1base.h
 t1finfo.lo: t1finfo.c ../type1/ffilest.h ../type1/types.h \
  ../type1/Xstuff.h ../type1/fontmisc.h ../type1/fontstruct.h \
  ../type1/font.h ../type1/fsmasks.h ../type1/fontfile.h \
@@ -57,6 +58,12 @@ t1set.lo: t1set.c ../type1/ffilest.h ../type1/types.h ../type1/Xstuff.h \
  ../type1/objects.h ../type1/spaces.h ../type1/util.h \
  ../type1/fontfcn.h ../type1/regions.h t1types.h t1extern.h t1misc.h \
  t1set.h t1load.h t1finfo.h t1base.h
+t1subset.lo: t1subset.c ../type1/ffilest.h ../type1/types.h \
+ ../type1/Xstuff.h ../type1/fontmisc.h ../type1/fontstruct.h \
+ ../type1/font.h ../type1/fsmasks.h ../type1/fontfile.h \
+ ../type1/fontxlfd.h parseAFM.h ../type1/objects.h ../type1/spaces.h \
+ ../type1/util.h ../type1/fontfcn.h ../type1/regions.h t1types.h \
+ t1extern.h t1misc.h t1finfo.h t1base.h t1subset.h
 t1trans.lo: t1trans.c ../type1/ffilest.h ../type1/types.h \
  ../type1/Xstuff.h ../type1/fontmisc.h ../type1/fontstruct.h \
  ../type1/font.h ../type1/fsmasks.h ../type1/fontfile.h \
