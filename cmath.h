@@ -148,3 +148,6 @@ extern int isfinite ( double x );
 #  endif
 #endif
 
+#ifndef HAVE_ISNAN
+extern double isnan ( double x );
+#endif
