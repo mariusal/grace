@@ -2002,8 +2002,7 @@ int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
     unsigned int npasses, passno;
     CanvasStats *cstats;
     
-    if (canvas->curdevice->twopass ||
-        (canvas->pagepen.pattern && canvas->curdevice->autocrop)) {
+    if (canvas->curdevice->twopass) {
         npasses = 2;
     } else {
         npasses = 1;
