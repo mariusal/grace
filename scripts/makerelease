@@ -12,7 +12,7 @@ YACC=bison -y
 XCC=xcc
 EOF
 
-make CHANGES
+make NEWS
 make ChangeLog
 
 CDIR=`pwd`
