@@ -1640,3 +1640,32 @@ int load_comments_to_legend(int gno, int setno)
 {
     return set_legend_string(gno, setno, getcomment(gno, setno));
 }
+
+int filter_set(int gno, int setno, char *rarray)
+{
+    int i, ip, j, ncols;
+    Dataset *dsp;
+    
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    }
+    if (rarray == NULL) {
+        return GRACE_EXIT_SUCCESS;
+    }
+    ncols = dataset_cols(gno, setno);
+    dsp = &(g[gno].p[setno].data);
+    ip = 0;
+    for (i = 0; i < dsp->len; i++) {
+        if (rarray[i]) {
+            for (j = 0; j < ncols; j++) {
+                dsp->ex[j][ip] = dsp->ex[j][i];
+            }
+            if (dsp->s != NULL) {
+                dsp->s[ip] = copy_string(dsp->s[ip], dsp->s[i]);
+            }
+            ip++;
+        }
+    }
+    setlength(gno, setno, ip);
+    return GRACE_EXIT_SUCCESS;
+}
