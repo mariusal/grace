@@ -278,11 +278,33 @@ typedef struct _Project {
     char *docname;	
 } Project;
 
+/* A point in world coordinates */
+typedef struct {
+    double x;
+    double y;
+} WPoint;
+
+/* A point in frame coordinates */
+typedef struct {
+    double x;
+    double y;
+} FPoint;
+
+/* A 2D point */
+typedef struct {
+    double x;
+    double y;
+} APoint;
+
+#define GLOCATOR_TYPE_NONE  0
+#define GLOCATOR_TYPE_XY    1
+#define GLOCATOR_TYPE_POLAR 2
+
 /* Locator props */
 typedef struct {
-    int pointset;               /* if (dsx, dsy) have been set */
-    int pt_type;                /* type of locator display */
-    double dsx, dsy;            /* locator fixed point */
+    int type;                   /* type of locator display */
+    int pointset;               /* if fixed point has been set */
+    WPoint origin;              /* locator fixed point */
     int fx, fy;                 /* locator format type */
     int px, py;                 /* locator precision */
 } GLocator;
@@ -560,7 +582,6 @@ typedef enum {
 } DataColumn;
 #define MAX_SET_COLS    DATA_BAD
 
-
 typedef struct {
     int len;                    /* dataset length */
     int ncols;                  /* number of data columns */
@@ -657,24 +678,6 @@ typedef struct {
     Dataset *data;              /* dataset */
 } set;
 
-
-/* A point in world coordinates */
-typedef struct {
-    double x;
-    double y;
-} WPoint;
-
-/* A point in frame coordinates */
-typedef struct {
-    double x;
-    double y;
-} FPoint;
-
-/* A 2D point */
-typedef struct {
-    double x;
-    double y;
-} APoint;
 
 typedef struct {
     int active;                 /* region on or off */
