@@ -345,7 +345,7 @@ static Quark *nextset(Quark *gr)
         }
         xfree(psets);
         
-        return set_new(gr);
+        return grace_set_new(gr);
     }
 }
 
@@ -433,7 +433,7 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
         }
         
         for (i = 0; i < ncols - 1; i++) {
-            pset = set_new(gr);
+            pset = grace_set_new(gr);
             if (!pset) {
                 free_ss_data(ssd);
                 return RETURN_FAILURE;

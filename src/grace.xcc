@@ -736,7 +736,7 @@ char *utf2iso(const char *s)
         $$ = arrow_new();
     ]]></element-type>
     <element-type name="set" ctype="Quark *"><![CDATA[
-        $$ = set_new((Quark *)$P);
+        $$ = grace_set_new((Quark *)$P);
     ]]></element-type>
     <element-type name="symbol" ctype="Symbol *"><![CDATA[
         $$ = symbol_new();

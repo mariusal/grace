@@ -2634,14 +2634,14 @@ static void sss_any_cb(void *udata, int cbtype)
         create_leval_frame(NULL, gr);
         break;
     case SSS_NEWS_CB:
-        if ((pset = set_new(gr))) {
+        if ((pset = grace_set_new(gr))) {
             set_set_comment(pset, "Editor");
             set_set_active(pset, TRUE);
             create_ss_frame(pset);
         }
         break;
     case SSS_NEWE_CB:
-        if ((pset = set_new(gr))) {
+        if ((pset = grace_set_new(gr))) {
             set_set_comment(pset, "Editor");
             set_set_active(pset, TRUE);
             do_ext_editor(pset);
@@ -3519,7 +3519,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
         
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
         for (i = 0; i < *nssrc; i++) {
-            (*destsets)[i] = set_new(destgr);
+            (*destsets)[i] = grace_set_new(destgr);
         }
         
         update_set_selectors(destgr);

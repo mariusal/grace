@@ -728,7 +728,7 @@ static int leval_aac_cb(void *data)
     }
     t->length = npts;
     
-    pset = set_new(gr);
+    pset = grace_set_new(gr);
     set_set_type(pset, type);
     set_set_active(pset, TRUE);
     if (set_set_length(pset, npts) != RETURN_SUCCESS) {

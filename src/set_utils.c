@@ -801,7 +801,7 @@ int do_splitsets(Quark *pset, int lpart)
     /* now load each set */
     for (i = 0; i < npsets; i++) {
 	plen = MIN2(lpart, len - i*lpart); 
-        ptmp = set_new(gr);
+        ptmp = grace_set_new(gr);
         if (!ptmp) {
             errmsg("Can't create new set");
             return RETURN_FAILURE;
@@ -941,7 +941,7 @@ int load_comments_to_legend(Quark *pset)
     return set_set_legstr(pset, set_get_comment(pset));
 }
 
-int setcolors(Quark *pset, unsigned int color)
+int set_set_colors(Quark *pset, unsigned int color)
 {
     set *p = set_get_data(pset);
     RunTime *rt = rt_from_quark(pset);
@@ -960,6 +960,24 @@ int setcolors(Quark *pset, unsigned int color)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+Quark *grace_set_new(Quark *gr)
+{
+    Quark *pset = set_new(gr);
+    RunTime *rt = rt_from_quark(pset);
+    if (!pset || !rt) {
+        return NULL;
+    }
+    
+    rt->setcolor++;
+    rt->setcolor %= number_of_colors(rt->canvas);
+    if (rt->setcolor == 0) {
+        rt->setcolor = 1;
+    }
+    set_set_colors(pset, rt->setcolor);
+    
+    return pset;
 }
 
 Datapoint *datapoint_new(void)

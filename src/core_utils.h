@@ -108,7 +108,8 @@ double setybase(Quark *p);
 
 int get_descendant_sets(Quark *q, Quark ***sets);
 
-int set_set_colors(Quark *p, int color);
+int set_set_colors(Quark *p, unsigned int color);
+Quark *grace_set_new(Quark *gr);
 
 int copysetdata(Quark *psrc, Quark *pdest);
 

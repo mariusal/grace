@@ -409,6 +409,9 @@ int grace_set_project(Grace *grace, Quark *project)
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);
         
+        /* Reset set autocolorization index */
+        grace->rt->setcolor = 0;
+        
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

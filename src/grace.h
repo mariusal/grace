@@ -154,6 +154,9 @@ typedef struct _RunTime {
     Dictionary *inout_placement_dict;
     Dictionary *side_placement_dict;
     Dictionary *spec_ticks_dict;
+    
+    /* color index for autocolorization of new sets */
+    unsigned int setcolor;
 
     /* debug level */
 #ifdef DEBUG

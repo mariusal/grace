@@ -1413,7 +1413,7 @@ static int do_fext_proc(void *data)
 	    return RETURN_FAILURE;
         }
         
-        pdest = set_new(destgr);
+        pdest = grace_set_new(destgr);
         
         update_set_selectors(destgr);
         SelectStorageChoice(ui->dest->set_sel, pdest);
@@ -1507,7 +1507,7 @@ static int do_cumulative_proc(void *data)
 	    return RETURN_FAILURE;
         }
         
-        pdest = set_new(destgr);
+        pdest = grace_set_new(destgr);
         
         update_set_selectors(destgr);
         SelectStorageChoice(ui->dest->set_sel, pdest);

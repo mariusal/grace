@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
                         errmsg("Erroneous field specifications");
                         return 1;
                     }
-		    create_set_fromblock(set_new(cur_graph),
+		    create_set_fromblock(grace_set_new(cur_graph),
                         rt->curtype, nc, cols, scol, rt->autoscale_onread);
                     xfree(cols);
                 }

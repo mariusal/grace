@@ -668,7 +668,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             graph_new(q);
             break;
         case ADD_SET_CB:
-            set_new(q);
+            grace_set_new(q);
             break;
         case ADD_AXIS_CB:
             axis_new(q);

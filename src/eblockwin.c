@@ -222,7 +222,7 @@ static int eblock_accept_notify_proc(void *data)
     if (GetSingleStorageChoice(eblock_graphset_item->set_sel, &pset) !=
         RETURN_SUCCESS) {
         /* no set selected; allocate new one */
-    	pset = set_new(gr);
+    	pset = grace_set_new(gr);
     }
     
     nncols = settype_cols(block_curtype);
