@@ -54,7 +54,7 @@ if( sizeof(int) == 4 )
 		return 1;
 #endif
 #ifdef DEC
-	if( (u.s[3] & 0x7fff) != 0)
+	if( (u.i[0] & 0x7fffffff) != 0x7fffffff)
 		return 1;
 #endif
 #ifdef MIEEE
