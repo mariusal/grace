@@ -62,7 +62,6 @@ int isoneof(int c, char *s);
 int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);
 void convertchar(char *s);
-int ilog2(int n);
 double comp_area(int n, double *x, double *y);
 double comp_perimeter(int n, double *x, double *y);
 

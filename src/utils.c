@@ -229,22 +229,6 @@ void convertchar(char *s)
 }
 
 /*
- * log base 2
- */
-int ilog2(int n)
-{
-    int i = 0;
-    int n1 = n;
-
-    while (n1 >>= 1)
-	i++;
-    if (1 << i != n)
-	return -1;
-    else
-	return i;
-}
-
-/*
  * compute the area bounded by the polygon (xi,yi)
  */
 double comp_area(int n, double *x, double *y)
