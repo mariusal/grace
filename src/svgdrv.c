@@ -168,6 +168,11 @@ int register_svg_drv(void)
 
 static void define_pattern(int i, Svg_data *data)
 {
+#ifndef EXPERIMENTAL_SVG_PATTERNS
+    data->pattern_full[i]  = TRUE;
+    data->pattern_defined[i] = TRUE;
+    return;
+#else
     int j, k, l;
 
     if (data->pattern_defined[i] == TRUE) {
@@ -208,6 +213,7 @@ static void define_pattern(int i, Svg_data *data)
     }
 
     data->pattern_defined[i] = TRUE;
+#endif
 }
 
 /*
