@@ -44,53 +44,43 @@
 #include "protos.h"
 
 /*
- * see if (x,y) lies inside the plot
- */
-int inbounds(Quark *gr, double x, double y)
-{
-    WPoint wp;
-    
-    wp.x = x;
-    wp.y = y;
-    return is_validWPoint(wp);
-}
-
-/*
  * routines to determine if a point lies in a polygon
 */
-int intersect_to_left(double x, double y, double x1, double y1, double x2, double y2)
+static int intersect_to_left(const WPoint *wp,
+    const WPoint *wp1, const WPoint *wp2)
 {
     double xtmp, m, b;
 
     /* ignore horizontal lines */
-    if (y1 == y2) {
+    if (wp1->y == wp2->y) {
 	return 0;
     }
     /* not contained vertically */
-    if (((y < y1) && (y < y2)) || ((y > y1) && (y > y2))) {
+    if (((wp->y < wp1->y) && (wp->y < wp2->y)) ||
+        ((wp->y > wp1->y) && (wp->y > wp2->y))) {
 	return 0;
     }
     /* none of the above, compute the intersection */
-    if ((xtmp = x2 - x1) != 0.0) {
-	m = (y2 - y1) / xtmp;
-	b = y1 - m * x1;
-	xtmp = (y - b) / m;
+    if ((xtmp = wp2->x - wp1->x) != 0.0) {
+	m = (wp2->y - wp1->y) / xtmp;
+	b = wp1->y - m * wp1->x;
+	xtmp = (wp->y - b) / m;
     } else {
-	xtmp = x1;
+	xtmp = wp1->x;
     }
-    if (xtmp <= x) {
+    if (xtmp <= wp->x) {
 	/* check for intersections at a vertex */
 	/* if this is the max ordinate then accept */
-	if (y == y1) {
-	    if (y1 > y2) {
+	if (wp->y == wp1->y) {
+	    if (wp1->y > wp2->y) {
 		return 1;
 	    } else {
 		return 0;
 	    }
 	}
 	/* check for intersections at a vertex */
-	if (y == y2) {
-	    if (y2 > y1) {
+	if (wp->y == wp2->y) {
+	    if (wp2->y > wp1->y) {
 		return 1;
 	    } else {
 		return 0;
@@ -105,170 +95,69 @@ int intersect_to_left(double x, double y, double x1, double y1, double x2, doubl
 /*
  * determine if (x,y) is in the polygon xlist[], ylist[]
  */
-int inbound(double x, double y, double *xlist, double *ylist, int n)
+static int inbound(const WPoint *wp, const WPoint *wps, int n)
 {
     int i, l = 0;
 
     for (i = 0; i < n; i++) {
-	l += intersect_to_left(x, y, xlist[i], ylist[i], xlist[(i + 1) % n], ylist[(i + 1) % n]);
+	l += intersect_to_left(wp, &wps[i], &wps[(i + 1) % n]);
     }
     return l % 2;
 }
 
-/*
- * routines to determine if a point lies to the left of an infinite line
-*/
-int isleft(double x, double y, double x1, double y1, double x2, double y2)
+static int isleft(const WPoint *wp, const WPoint *wp1, const WPoint *wp2)
 {
-    double xtmp, m, b;
-
-    /* horizontal lines */
-    if (y1 == y2) {
-	return 0;
-    }
-    /* none of the above, compute the intersection */
-    if ((xtmp = x2 - x1) != 0.0) {
-	m = (y2 - y1) / xtmp;
-	b = y1 - m * x1;
-	xtmp = (y - b) / m;
+    if ((wp2->x - wp1->x)*(wp->y - wp2->y) -
+        (wp2->y - wp1->y)*(wp->x - wp2->x) >= 0) {
+        return TRUE;
     } else {
-	xtmp = x1;
+        return FALSE;
     }
-    if (xtmp >= x) {
-	return 1;
-    }
-    return 0;
 }
 
-/*
- * routines to determine if a point lies to the left of an infinite line
-*/
-int isright(double x, double y, double x1, double y1, double x2, double y2)
+static int inband(const WPoint *wp, const WPoint *wp1, const WPoint *wp2)
 {
-    double xtmp, m, b;
-
-    /* horizontal lines */
-    if (y1 == y2) {
-	return 0;
-    }
-    if ((xtmp = x2 - x1) != 0.0) {
-	m = (y2 - y1) / xtmp;
-	b = y1 - m * x1;
-	xtmp = (y - b) / m;
+    double s, d2;
+    
+    s  = (wp->x - wp1->x)*(wp2->x - wp1->x) +
+         (wp->y - wp1->y)*(wp2->y - wp1->y);
+    d2 = (wp2->x - wp1->x)*(wp2->x - wp1->x) +
+         (wp2->y - wp1->y)*(wp2->y - wp1->y);
+    if (s < 0 || s > d2) {
+        return FALSE;
     } else {
-	xtmp = x1;
+        return TRUE;
     }
-    if (xtmp <= x) {
-	return 1;
-    }
-    return 0;
 }
 
-/*
- * routines to determine if a point lies above an infinite line
-*/
-int isabove(double x, double y, double x1, double y1, double x2, double y2)
+int inregion(const Quark *q, const WPoint *wp)
 {
-    double ytmp, m, b;
-
-    /* vertical lines */
-    if (x1 == x2) {
-	return 0;
+    region *r = region_get_data(q);
+    
+    if (!r) {
+        return FALSE;
     }
-    if ((ytmp = y2 - y1) != 0.0) {
-	m = ytmp / (x2 - x1);
-	b = y1 - m * x1;
-	ytmp = m * x + b;
-    } else {
-	ytmp = y1;
+        
+    switch (r->type) {
+    case REGION_POLYGON:
+	if (r->n > 2) {
+            return inbound(wp, r->wps, r->n);
+        } else
+	if (r->n == 2) {
+            return isleft(wp, &r->wps[0], &r->wps[1]);
+        } else {
+            return FALSE;
+        }
+	break;
+    case REGION_BAND:
+	if (r->n == 2) {
+	    return inband(wp, &r->wps[0], &r->wps[1]);
+	} else {
+            return FALSE;
+        }
+        break;
     }
-    if (ytmp <= y) {
-	return 1;
-    }
-    return 0;
-}
-
-/*
- * routines to determine if a point lies below an infinite line
-*/
-int isbelow(double x, double y, double x1, double y1, double x2, double y2)
-{
-    double ytmp, m, b;
-
-    /* vertical lines */
-    if (x1 == x2) {
-	return 0;
-    }
-    if ((ytmp = y2 - y1) != 0.0) {
-	m = ytmp / (x2 - x1);
-	b = y1 - m * x1;
-	ytmp = m * x + b;
-    } else {
-	ytmp = y1;
-    }
-    if (ytmp >= y) {
-	return 1;
-    }
-    return 0;
-}
-
-int inregion(Quark *gr, int regno, double x, double y)
-{
-#if 0
-    if (regno == MAXREGION) {
-	return (inbounds(gr , x, y));
-    }
-    if (regno == MAXREGION + 1) {
-	return (!inbounds(gr , x, y));
-    }
-    if (rg[regno].active == TRUE) {
-	switch (rg[regno].type) {
-	case REGION_POLYI:
-	    if (inbound(x, y, rg[regno].x, rg[regno].y, rg[regno].n)) {
-		return 1;
-	    }
-	    break;
-	case REGION_POLYO:
-	    if (!inbound(x, y, rg[regno].x, rg[regno].y, rg[regno].n)) {
-		return 1;
-	    }
-	    break;
-	case REGION_TORIGHT:
-	    if (isright(x, y, rg[regno].x1, rg[regno].y1, rg[regno].x2, rg[regno].y2)) {
-		return 1;
-	    }
-	    break;
-	case REGION_TOLEFT:
-	    if (isleft(x, y, rg[regno].x1, rg[regno].y1, rg[regno].x2, rg[regno].y2)) {
-		return 1;
-	    }
-	    break;
-	case REGION_ABOVE:
-	    if (isabove(x, y, rg[regno].x1, rg[regno].y1, rg[regno].x2, rg[regno].y2)) {
-		return 1;
-	    }
-	    break;
-	case REGION_BELOW:
-	    if (isbelow(x, y, rg[regno].x1, rg[regno].y1, rg[regno].x2, rg[regno].y2)) {
-		return 1;
-	    }
-	    break;
-	case REGION_HORIZI:
-	  return (x >= rg[regno].x1) && ( x <= rg[regno].x2);
-	  break;
-	case REGION_VERTI:
-	  return (y >= rg[regno].y1) && ( y <= rg[regno].y2);
-	  break;
-	case REGION_HORIZO:
-	  return !( (x >= rg[regno].x1) && ( x <= rg[regno].x2) );
-	  break;
-	case REGION_VERTO:
-	  return !( (y >= rg[regno].y1) && ( y <= rg[regno].y2) );
-	  break;
-
-	}
-    }
-#endif
+    
     return FALSE;
 }
 
@@ -299,6 +188,7 @@ region *region_data_new(void)
 void region_data_free(region *r)
 {
     if (r) {
+        xfree(r->wps);
         xfree(r);
     }
 }
@@ -356,14 +246,12 @@ int region_set_type(Quark *q, int type)
     }
 }
 
-int region_add_point(Quark *q, double x, double y)
+int region_add_point(Quark *q, const WPoint *wp)
 {
     region *r = region_get_data(q);
     if (r) {
-        r->x = xrealloc(r->x, (r->n + 1)*SIZEOF_DOUBLE);
-        r->y = xrealloc(r->y, (r->n + 1)*SIZEOF_DOUBLE);
-        r->x[r->n] = x;
-        r->y[r->n] = y;
+        r->wps = xrealloc(r->wps, (r->n + 1)*sizeof(WPoint));
+        r->wps[r->n] = *wp;
         r->n++;
         
         quark_dirtystate_set(q, TRUE);

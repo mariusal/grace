@@ -65,7 +65,7 @@ void set_region_defaults(region *r)
     r->type = 0;
     r->color = 1;
     r->n = 0;
-    r->x = r->y = NULL;
+    r->wps = NULL;
 }
 
 void set_default_frame(frame *f)

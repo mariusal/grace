@@ -1863,8 +1863,7 @@ regionset:
 	    region *r = region_get_data($1);
             if (r) {
                 r->active = $2;
-                XCFREE(r->x);
-                XCFREE(r->y);
+                XCFREE(r->wps);
                 r->n = 0;
             }
 	}
@@ -1880,12 +1879,20 @@ regionset:
 	}
 	| selectregion LINE expr ',' expr ',' expr ',' expr
 	{
-	    region_add_point($1, $3, $5);
-	    region_add_point($1, $7, $9);
+	    WPoint wp;
+            wp.x = $3;
+            wp.y = $5;
+            region_add_point($1, &wp);
+            wp.x = $7;
+            wp.y = $9;
+	    region_add_point($1, &wp);
 	}
 	| selectregion XY expr ',' expr
 	{
-	    region_add_point($1, $3, $5);
+	    WPoint wp;
+            wp.x = $3;
+            wp.y = $5;
+	    region_add_point($1, &wp);
 	}
 	| LINK selectregion TO selectgraph {
 	    quark_reparent($2, $4);
@@ -3451,16 +3458,16 @@ pageorient:
         ;
 
 regiontype:
-	ABOVE { $$ = REGION_ABOVE; }
-	|  BELOW { $$ = REGION_BELOW; }
-	|  LEFT { $$ = REGION_TOLEFT; }
-	|  RIGHT { $$ = REGION_TORIGHT; }
-	|  POLYI { $$ = REGION_POLYI; }
-	|  POLYO { $$ = REGION_POLYO; }
-	|  HORIZI { $$ = REGION_HORIZI; }
-	|  VERTI { $$ = REGION_VERTI; }
-	|  HORIZO { $$ = REGION_HORIZO; }
-	|  VERTO { $$ = REGION_VERTO; }
+	ABOVE { $$ = REGION_POLYGON; }
+	|  BELOW { $$ = REGION_POLYGON; }
+	|  LEFT { $$ = REGION_POLYGON; }
+	|  RIGHT { $$ = REGION_POLYGON; }
+	|  POLYI { $$ = REGION_POLYGON; }
+	|  POLYO { $$ = REGION_POLYGON; }
+	|  HORIZI { $$ = REGION_BAND; }
+	|  VERTI { $$ = REGION_BAND; }
+	|  HORIZO { $$ = REGION_BAND; }
+	|  VERTO { $$ = REGION_BAND; }
 	;
 
 scaletype: NORMAL { $$ = SCALE_NORMAL; }

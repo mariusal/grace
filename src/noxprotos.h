@@ -174,21 +174,13 @@ char *get_hotlink_file(Quark *pset);
 int get_hotlink_src(Quark *pset);
 
 void sortset(Quark *pset, int sorton, int stype);
-int get_restriction_array(Quark *pset,
-    int rtype, int negate, char **rarray);
+int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray);
 
 int monotonicity(double *array, int len, int strict);
 int monospaced(double *array, int len, double *space);
 int find_span_index(double *array, int len, int m, double x);
 
-int inbounds(Quark *gr, double x, double y);
-int intersect_to_left(double x, double y, double x1, double y1, double x2, double y2);
-int inbound(double x, double y, double *xlist, double *ylist, int n);
-int isleft(double x, double y, double x1, double y1, double x2, double y2);
-int isright(double x, double y, double x1, double y1, double x2, double y2);
-int isabove(double x, double y, double x1, double y1, double x2, double y2);
-int isbelow(double x, double y, double x1, double y1, double x2, double y2);
-int inregion(Quark *gr, int regno, double x, double y);
+int inregion(const Quark *q, const WPoint *wp);
 char *region_types(int it, int which);
 
 void set_plotstr_string(plotstr * pstr, char *buf);

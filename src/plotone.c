@@ -94,7 +94,7 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         } else {
             XCFREE(plot_rt->refy);
 
-            /* draw regions and mark the reference points only if in interactive mode */
+            /* mark the reference points only if in interactive mode */
             if (terminal_device(plot_rt->canvas) == TRUE) {
                 draw_ref_point(plot_rt->canvas, q);
             }
@@ -114,7 +114,7 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         draw_object(canvas, q);
         break;
     case QFlavorRegion:
-        draw_region(canvas, region_get_data(q));
+        draw_region(canvas, q);
         break;
     }
     
@@ -2079,129 +2079,36 @@ void draw_arrowhead(Canvas *canvas,
     return;
 }
 
-void draw_region(Canvas *canvas, region *this)
+void draw_region(Canvas *canvas, Quark *q)
 {
-    int i;
-    double vshift = 0.05;
-    double xshift = 0.0, yshift = 0.0;
-    
-    int rgndouble=0;
-    Arrow arrow;
-    
-    WPoint wptmp, wp1, wp2, wp3, wp4;
-    VPoint vps[4], *vpstmp;
-    Pen pen;
-    
-    if (terminal_device(canvas) != TRUE || !this->active) {
+    Quark *f = get_parent_frame(q);
+    view *v = frame_get_view(f);
+    region *r = region_get_data(q);
+    VPoint vp;
+    WPoint wp;
+    double dv = 0.003;
+
+    if (terminal_device(canvas) != TRUE || !r->active) {
         return;
     }
     
-    setclipping(canvas, TRUE);
-    
-    setcolor(canvas, this->color);
+    setcolor(canvas, r->color);
     setpattern(canvas, 1);
-    setlinewidth(canvas, 1.0);
-    setlinestyle(canvas, 1);
     
-    set_default_arrow(&arrow);
-
-    getpen(canvas, &pen);
-
-    switch (this->type) {
-    case REGION_POLYI:
-    case REGION_POLYO:
-        if (this->x != NULL && this->y != NULL && this->n > 2) {
-            vpstmp = xmalloc (this->n*sizeof(VPoint));
-            if (vpstmp == NULL) {
-                errmsg("xmalloc error in draw_region()");
-                return;
-            } else {
-                for (i = 0; i < this->n; i++) {
-                    wptmp.x = this->x[i];
-                    wptmp.y = this->y[i];
-                    vpstmp[i] = Wpoint2Vpoint(wptmp);
-                }
-                DrawPolyline(canvas, vpstmp, this->n, POLYLINE_CLOSED);
-		xfree(vpstmp);
+    vp.x = v->xv1;
+    while (vp.x <= v->xv2) {
+        vp.y = v->yv1;
+        while (vp.y <= v->yv2) {
+            view2world(vp.x, vp.y, &wp.x, &wp.y);
+            if (inregion(q, &wp)) {
+                DrawPixel(canvas, &vp);
             }
+            vp.y += dv;
         }
-        return;
-    case REGION_ABOVE:
-        xshift = 0.0;
-        yshift = vshift;
-        break;
-    case REGION_BELOW:
-        xshift = 0.0;
-        yshift = -vshift;
-        break;
-    case REGION_TOLEFT:
-        xshift = -vshift;
-        yshift = 0.0;
-        break;
-    case REGION_TORIGHT:
-        xshift = vshift;
-        yshift = 0.0;
-        break;
-    case REGION_HORIZI:
-    case REGION_HORIZO:
-        wp1.x=this->x[0];
-	wp1.y=this->y[0];
-	wp2.x=this->x[0];
-	wp2.y=this->y[1];
-        wp3.x=this->x[1];
-	wp3.y=this->y[0];
-	wp4.x=this->x[1];
-	wp4.y=this->y[1];
-	rgndouble=1;
-	break;
-    case REGION_VERTI:
-    case REGION_VERTO:
-        wp1.x=this->x[0];
-	wp1.y=this->y[0];
-	wp2.x=this->x[1];
-	wp2.y=this->y[0];
-        wp3.x=this->x[0];
-	wp3.y=this->y[1];
-	wp4.x=this->x[1];
-	wp4.y=this->y[1];
-	rgndouble=1;
-	break;
-    default:
-        errmsg("Internal error in draw_region");
-        return;
-    }
-    
-    if(!rgndouble) {
-        wptmp.x = this->x[0];
-        wptmp.y = this->y[0];
-        vps[1] = Wpoint2Vpoint(wptmp);
-        wptmp.x = this->x[1];
-        wptmp.y = this->y[1];
-        vps[2] = Wpoint2Vpoint(wptmp);
-        vps[0].x = vps[1].x + xshift;
-        vps[0].y = vps[1].y + yshift;
-        vps[3].x = vps[2].x + xshift;
-        vps[3].y = vps[2].y + yshift;
-        DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
-        draw_arrowhead(canvas, &vps[1], &vps[0], &arrow, &pen, &pen);
-        draw_arrowhead(canvas, &vps[2], &vps[3], &arrow, &pen, &pen);
-    } else {
-        vps[0] = Wpoint2Vpoint(wp1);
-        vps[1] = Wpoint2Vpoint(wp2);
-        DrawLine(canvas, &vps[0], &vps[1]);
-        vps[0] = Wpoint2Vpoint(wp3);
-        vps[1] = Wpoint2Vpoint(wp4);
-        DrawLine(canvas, &vps[0], &vps[1]);
-        wp1.x=(wp1.x+wp2.x)/2;
-        wp1.y=(wp1.y+wp2.y)/2;
-        wp3.x=(wp3.x+wp4.x)/2;
-        wp3.y=(wp3.y+wp4.y)/2;
-        vps[0] = Wpoint2Vpoint(wp1);
-        vps[1] = Wpoint2Vpoint(wp3);
-        DrawLine(canvas, &vps[0], &vps[1]);
-        draw_arrowhead(canvas, &vps[0], &vps[1], &arrow, &pen, &pen);
+        vp.x += dv;
     }
 }
+
 
 /* ---------------------- legends ---------------------- */
 

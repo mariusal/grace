@@ -80,7 +80,7 @@ int drawxysym(Canvas *canvas, const VPoint *vp, const Symbol *sym);
 void drawerrorbar(Canvas *canvas,
     const VPoint *vp1,const  VPoint *vp2, Errbar *eb);
 
-void draw_region(Canvas *canvas, region *r);
+void draw_region(Canvas *canvas, Quark *q);
 
 void draw_axis(Canvas *canvas, Quark *q);
 void draw_object(Canvas *canvas, Quark *q);

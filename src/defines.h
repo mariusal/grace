@@ -97,18 +97,6 @@
 #define PAGE_FREE       0
 #define PAGE_FIXED      1
 
-/* Region definitions */
-#define REGION_ABOVE    0
-#define REGION_BELOW    1
-#define REGION_TOLEFT   2
-#define REGION_TORIGHT  3
-#define REGION_POLYI    4
-#define REGION_POLYO    5
-#define REGION_HORIZI   6
-#define REGION_VERTI    7
-#define REGION_HORIZO   8
-#define REGION_VERTO    9
-
 /* Axis label layout */
 #define LAYOUT_PARALLEL         0
 #define LAYOUT_PERPENDICULAR    1

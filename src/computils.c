@@ -1899,16 +1899,13 @@ int do_interp(Quark *psrc, Quark *pdest,
     return RETURN_SUCCESS;
 }
 
-int get_restriction_array(Quark *pset,
-    int rtype, int negate, char **rarray)
+int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray)
 {
-    Quark *gr = get_parent_graph(pset);
-    int i, n, regno;
+    int i, n;
     double *x, *y;
-    world w;
     WPoint wp;
     
-    if (rtype == RESTRICT_NONE) {
+    if (!r) {
         *rarray = NULL;
         return RETURN_SUCCESS;
     }
@@ -1927,31 +1924,12 @@ int get_restriction_array(Quark *pset,
     x = getcol(pset, DATA_X);
     y = getcol(pset, DATA_Y);
     
-    switch (rtype) {
-    case RESTRICT_REG0:
-    case RESTRICT_REG1:
-    case RESTRICT_REG2:
-    case RESTRICT_REG3:
-    case RESTRICT_REG4:
-        regno = rtype - RESTRICT_REG0;
-        for (i = 0; i < n; i++) {
-            (*rarray)[i] = inregion(gr, regno, x[i], y[i]) ? !negate : negate;
-        }
-        break;
-    case RESTRICT_WORLD:
-        get_graph_world(gr, &w);
-        for (i = 0; i < n; i++) {
-            wp.x = x[i];
-            wp.y = y[i];
-            (*rarray)[i] = is_wpoint_inside(&wp, &w) ? !negate : negate;
-        }
-        break;
-    default:
-        errmsg("Internal error in get_restriction_array()");
-        XCFREE(*rarray);
-        return RETURN_FAILURE;
-        break;
+    for (i = 0; i < n; i++) {
+        wp.x = x[i];
+        wp.y = y[i];
+        (*rarray)[i] = inregion(r, &wp) ? !negate : negate;
     }
+
     return RETURN_SUCCESS;
 }
 

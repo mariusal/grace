@@ -88,6 +88,11 @@ typedef enum {
 } DataColumn;
 #define MAX_SET_COLS    DATA_BAD
 
+/* Region types */
+#define REGION_POLYGON  0
+#define REGION_BAND     1
+#define REGION_FORMULA  2
+
 
 typedef struct {
     int len;                    /* dataset length */
@@ -343,9 +348,11 @@ typedef struct {
 
 typedef struct {
     int active;                 /* region on or off */
+    
     int type;                   /* region type */
-    int n;                      /* number of points if type is POLY */
-    double *x, *y;              /* coordinates if type is POLY */
+    
+    int n;                      /* number of points */
+    WPoint *wps;                /* coordinates of points */
 
     int color;
 } region;
@@ -535,7 +542,7 @@ region *region_get_data(const Quark *q);
 Quark *region_new(Quark *gr);
 int region_set_active(Quark *q, int flag);
 int region_set_type(Quark *q, int type);
-int region_add_point(Quark *q, double x, double y);
+int region_add_point(Quark *q, const WPoint *wp);
 int region_set_color(Quark *q, int color);
 
 
