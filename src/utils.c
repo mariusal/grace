@@ -944,15 +944,6 @@ void echomsg(char *msg)
     stufftext("\n");
 }
 
-void update_app_title(Quark *q)
-{
-#ifndef NONE_GUI
-    if (q) {
-        set_title(q);
-    }
-#endif
-}
-
 int system_wrap(const char *string)
 {
     return system(string);

@@ -96,8 +96,6 @@ char *mybasename(const char *s);
 
 void expand_tilde(const Grace *grace, char *buf);
 
-void update_app_title(Quark *q);
-
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);
 

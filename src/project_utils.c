@@ -34,7 +34,7 @@
 #include "core_utils.h"
 #include "protos.h"
 
-static int project_free_cb(Quark *pr, int etype, void *data)
+static int project_cb(Quark *pr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
         Grace *grace = grace_from_quark(pr);
@@ -44,7 +44,6 @@ static int project_free_cb(Quark *pr, int etype, void *data)
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
         project_update_timestamp(pr, NULL);
-        update_app_title(pr);
 
 #if 0
         /* TODO: */
@@ -72,11 +71,11 @@ Quark *project_new(QuarkFactory *qfactory)
     project_set_docname(q, NONAME);
     project_set_fontsize_scale(q, MAGIC_FONT_SCALE);
     project_set_linewidth_scale(q, MAGIC_LINEW_SCALE);
-#ifndef NONE_GUI
+
     if (q) {
-        quark_cb_set(q, project_free_cb, NULL);
+        quark_cb_set(q, project_cb, NULL);
     }
-#endif
+
     return q;
 }
 

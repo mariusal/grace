@@ -159,7 +159,7 @@ void init_cursors(GUI *gui)
 /*
  * put a string in the title bar
  */
-void set_title(const Quark *pr)
+void update_app_title(const Quark *pr)
 {
     GUI *gui = gui_from_quark(pr);
     static char *ts_save = NULL;

@@ -975,7 +975,6 @@ int save_project(Quark *project, char *fn)
     pr->docname = copy_string(pr->docname, fn);
 
     quark_dirtystate_set(project, FALSE);
-    update_app_title(project);
     
     return RETURN_SUCCESS;
 }

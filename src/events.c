@@ -642,8 +642,8 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 }
                 ct.found = FALSE;
 
-                update_explorer(grace->gui->eui, TRUE);
                 xdrawgraph(grace->project, TRUE);
+                update_all();
             }
             if (!xstuff->collect_points) {
                 set_cursor(grace->gui, -1);

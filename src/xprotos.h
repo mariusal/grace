@@ -207,7 +207,7 @@ void unset_wait_cursor(void);
 
 int init_option_menus(void);
 
-void set_title(const Quark *pr);
+void update_app_title(const Quark *pr);
 void set_left_footer(char *s);
 void set_tracker_string(char *s);
 

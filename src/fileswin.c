@@ -85,6 +85,7 @@ void create_saveproject_popup(void)
 static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (save_project(grace->project, filename) == RETURN_SUCCESS) {
+        update_all();
         return TRUE;
     } else {
         return FALSE;

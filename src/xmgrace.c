@@ -455,6 +455,7 @@ static void MenuCB(Widget but, void *data)
 	    set_wait_cursor();
 	    
 	    save_project(grace->project, project_get_docname(grace->project));
+            update_all();
 	    
 	    unset_wait_cursor();
 	} else {
