@@ -43,14 +43,11 @@
 #include "defines.h"
 #include "graphs.h"
 
-void set_lists_dirty(int dirtyflag);
-
 int formula(int gno, int selset, char *sscanstr);
 
 void do_running_command(int type, int setno, int rlen);
 void do_fourier_command(int ftype, int setno, int ltype);
 int do_compute(int setno, int loadto, int graphto, char *fstr);
-void do_load(int setno, int toval,  double start, double step );
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
@@ -229,8 +226,6 @@ void zero_datapoint(Datapoint *dpoint);
 int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint);
 void delete_byindex(int gno, int setno, int *ind);
 
-double *getvptr(int gno, int setno, int v);
-
 int do_copyset(int gfrom, int j1, int gto, int j2);
 int do_moveset(int gfrom, int j1, int gto, int j2);
 int do_swapset(int gno1, int setno1, int gno2, int setno2);
@@ -253,7 +248,6 @@ void do_update_hotlink(int gno, int setno);
 char *get_hotlink_file(int gno, int setno);
 int get_hotlink_src(int gno, int setno);
 
-void do_breakset(int gno, int setno, int ind);
 void sortset(int gno, int setno, int sorton, int stype);
 void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, int nsteps);
@@ -281,9 +275,6 @@ int inregion(int regno, double x, double y);
 
 void set_plotstr_string(plotstr * pstr, char *buf);
 void my_ellipse(double xc, double yc, double w, double h, int fill);
-
-int lists_dirty(void);
-int work_pending(void);
 
 void do_main_loop(void);
 
