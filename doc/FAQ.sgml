@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.2)
+  <title>Grace FAQ (for Grace-5.1.3)
   <author>by the Grace Team
-  <date>18.07.2000
+  <date>03.02.2001
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -22,7 +22,7 @@
     <sect1>What is Grace?
       <p>
 
-        Grace is a tool to make two-dimensional plots of scientific
+        Grace is a tool to make two-dimensional plots of numerical
         data. It runs under various (if not all) flavours of UNIX
         with X11 and M*tif. Its capabilities are roughly similar to
         GUI-based programs like Sigmaplot or Microcal Origin plus
@@ -289,7 +289,7 @@
         </descrip>
 
         There are <url name="mailing list archives"
-          url="http://plasma-gate.weizmann.ac.il/Grace/maillists/">
+          url="http://plasma-gate.weizmann.ac.il/Grace/maillists/grace/">
         available for browsing.
 
     <sect1>How do I subscribe to the mailing lists?<label id="subscription">
@@ -511,7 +511,7 @@
         <url url="http://www.lesstif.org">). LessTif is intended to be a 100%
         source compatible replacement for Motif, but is still under
         development. For the purposes of Grace, try using the latest version
-        of LessTif (at least 0.91.4 and above). The LessTif people usually
+        of LessTif (at least 0.92.6 and above). The LessTif people usually
         receive many bug reports from the Grace developers, so you might hope
         that a few remaining bugs in LessTif will be fixed rather quickly.
         
@@ -567,7 +567,8 @@
         A port to OS/2 made by <url name="Alexander Mai"
           url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
         at <url url="http://www.tu-darmstadt.de/~st002279/os2/">.
-        It requires XFree86.
+        It requires the XFree86 libraries and an X Server (e.g. XFree86,
+	Hob X11, Exceed, etc.).
 
 <!-- **************************************** -->
 
@@ -1260,24 +1261,6 @@ XMgrace*background: ...
 
   <sect>Miscellaneous
     <p>
-
-    <sect1>Is Grace Year 2000 compliant?
-      <p>
-
-        Yes. No warranty, of course. But as far as the treatment of
-        dates as data is concerned, years always have 4 digits. So
-        `98' is the year Trajan became Emperor of Rome, not 1998.
-
-        Concerning an overflow of the system clock: being UNIX
-        software, Grace uses a variable type called <tt>time_t</tt>
-        (count of seconds since New Year's Day 1970) to represent
-        time internally. On a 32-bit OS, this counter will overflow in early
-        2038, or (depending on implementation) in the next century, and
-        <bf>not</bf> 2000. By that time, for sure, everyone will be running
-        a 64- or higher- bit operating system, which would overflow in
-        so distant future, that only cosmologists dare to think of it.
-
-        See also <url url="http://plasma-gate.weizmann.ac.il/Grace/y2k.html">.
 
     <sect1>Does Grace have an UNDO function?
       <p>
