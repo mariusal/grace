@@ -1346,7 +1346,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
     case SetMenuNewFCB:
             create_leval_frame(listp->list, (XtPointer) gno, NULL);
         break;
-#ifdef HAVE_LIBXBAE
     case SetMenuNewSCB:
             if ((setno = nextset(gno)) != -1) {
                 add_point(gno, setno, 0., 0., 0, 0, SET_XY);
@@ -1358,7 +1357,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
                 err = TRUE;
             }
         break;
-#endif
     case SetMenuNewECB:
             if ((setno = nextset(gno)) != -1) {
                 add_point(gno, setno, 0., 0., 0, 0, SET_XY);
@@ -1373,7 +1371,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
     case SetMenuNewBCB:
             create_eblock_frame(listp->list, (XtPointer) gno, NULL);
         break;
-#ifdef HAVE_LIBXBAE
     case SetMenuEditSCB:
         if (n == 1) {
             create_ss_frame(gno, values[0]);
@@ -1381,7 +1378,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
             err = TRUE;
         }
         break;
-#endif
     case SetMenuEditECB:
         if (n == 1) {
             do_ext_editor(gno, values[0]);
@@ -1538,19 +1534,15 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     	swap_set_proc, (XtPointer) listp, 0);
     CreateMenuSeparator(popup);
     set_popup_menu->edit_item = CreateMenu(popup, "edit", "Edit", 'E', NULL, NULL);
-#ifdef HAVE_LIBXBAE
     CreateMenuButton(set_popup_menu->edit_item, "inShpreadsheet", "In spreadsheet", 's',
     	editS_set_proc, (XtPointer) listp, 0);
-#endif
     CreateMenuButton(set_popup_menu->edit_item, "inEditor", "In text editor", 'e',
     	editE_set_proc, (XtPointer) listp, 0);
     submenupane = CreateMenu(popup, "createNew", "Create new", 'n', NULL, NULL);
     CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
     	newF_set_proc, (XtPointer) listp, 0);
-#ifdef HAVE_LIBXBAE
     CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
     	newS_set_proc, (XtPointer) listp, 0);
-#endif
     CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
     	newE_set_proc, (XtPointer) listp, 0);
     CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',

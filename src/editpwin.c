@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -45,9 +45,6 @@
 #include "files.h"
 #include "plotone.h"
 #include "protos.h"
-
-
-#ifdef HAVE_LIBXBAE
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
@@ -448,7 +445,8 @@ void create_ss_frame(int gno, int setno)
         XmNcolumnLabels, collabels,
         XmNgridType, XmGRID_SHADOW_IN,
         XmNcellShadowType, XmSHADOW_ETCHED_OUT,
-        XmNcellShadowThickness, 4,
+        XmNcellShadowThickness, 2,
+        XmNaltRowCount, 0,
         NULL);
 
     update_cells(ep);
@@ -480,7 +478,6 @@ void create_ss_frame(int gno, int setno)
     XtRaise(ep->top);
     unset_wait_cursor();
 }
-#endif
 
 /*
  * Start up editor using GRACE_EDITOR variable
