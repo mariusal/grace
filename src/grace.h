@@ -315,9 +315,6 @@ void project_reset_version(Quark *q);
 void project_set_description(Quark *q, char *descr);
 char *project_get_description(const Quark *q);
 
-void project_set_dirtystate(Quark *q);
-void project_clear_dirtystate(Quark *q);
-
 int project_get_graphs(Quark *q, Quark ***graphs);
 
 char *project_get_sformat(const Quark *q);

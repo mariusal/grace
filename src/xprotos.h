@@ -127,7 +127,7 @@ int init_option_menus(void);
 
 void sync_canvas_size(unsigned int *w, unsigned int *h, int inv);
 
-void set_title(char *ts);
+void set_title(const Quark *pr);
 
 void set_pagelayout(int layout);
 int get_pagelayout(void);

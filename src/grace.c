@@ -288,7 +288,7 @@ int grace_set_project(Grace *grace, Quark *project)
         Project *pr = project_get_data(project);
         quark_free(grace->project);
         grace->project = project;
-        project_clear_dirtystate(grace->project);
+        update_app_title(grace->project);
         
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);

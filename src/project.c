@@ -43,6 +43,18 @@ static int project_free_cb(Quark *pr, int etype, void *data)
         if (pr == grace->project) {
             grace->project = NULL;
         }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+        update_timestamp(NULL);
+        update_app_title(pr);
+
+#if 0
+        /* TODO: */
+	if ((dirtystate > SOME_LIMIT) || 
+            (current_time - autosave_time > ANOTHER_LIMIT) ) {
+	    autosave();
+	}
+#endif
     }
 #ifndef NONE_GUI
     clean_graph_selectors(pr, etype, data);
@@ -159,28 +171,6 @@ char *project_get_description(const Quark *q)
 {
     Project *pr = project_get_data(q);
     return pr->description;
-}
-
-/*
- * dirtystate routines
- */
-void project_set_dirtystate(Quark *q)
-{
-    update_timestamp(NULL);
-    update_app_title(q);
-
-/*
- * TODO:
- * 	if ( (dirtystate > SOME_LIMIT) || 
- *           (current_time - autosave_time > ANOTHER_LIMIT) ) {
- * 	    autosave();
- * 	}
- */
-}
-
-void project_clear_dirtystate(Quark *q)
-{
-    update_app_title(q);
 }
 
 typedef struct {

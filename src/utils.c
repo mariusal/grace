@@ -979,6 +979,10 @@ void update_timestamp(time_t *t)
     time_t time_value;
     char *str;
 
+    if (!pr) {
+        return;
+    }
+    
     if (!t) {
         (void) time(&time_value);
     } else {
@@ -1001,8 +1005,10 @@ char *get_timestamp(void)
 void update_app_title(Quark *q)
 {
 #ifndef NONE_GUI
-    set_title(mybasename(get_docname(q)));
-    update_explorer(q->grace->gui->eui, FALSE);
+    if (q) {
+        set_title(q);
+        update_explorer(q->grace->gui->eui, FALSE);
+    }
 #endif
 }
 

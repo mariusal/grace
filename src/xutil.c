@@ -149,15 +149,20 @@ void init_cursors(void)
 /*
  * put a string in the title bar
  */
-void set_title(char *ts)
+void set_title(const Quark *pr)
 {
     static char *ts_save = NULL;
+    char *ts;
     static int dstate_save = 0;
-    int dstate = quark_dirtystate_get(grace->project);
+    int dstate = quark_dirtystate_get(pr);
     
-    if (!grace->gui->inwin || ts == NULL) {
+    
+    if (!pr || !pr->grace->gui->inwin) {
         return;
-    } else
+    }
+    
+    dstate = quark_dirtystate_get(pr);
+    ts = mybasename(get_docname(pr));
     if (ts_save == NULL || strcmp(ts_save, ts) != 0 || dstate != dstate_save) {
         char *buf1, *buf2;
         ts_save = copy_string(ts_save, ts);
