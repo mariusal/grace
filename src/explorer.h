@@ -36,6 +36,9 @@
 
 typedef struct {
     Widget          top;
+
+    Widget          sformat;
+    Widget          description;
     
     OptionStructure *bg_color;
     Widget          bg_fill;

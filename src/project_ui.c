@@ -28,6 +28,8 @@
 /* Project UI */
 
 #include <stdlib.h>
+
+#include <Xm/Text.h>
        
 #include "explorer.h"
 #include "protos.h"
@@ -54,6 +56,13 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
     form = CreateVContainer(eui->scrolled_window);
     
     ui = xmalloc(sizeof(ProjectUI));
+
+    fr = CreateFrame(form, NULL);
+    rc = CreateVContainer(fr);
+    ui->description  = CreateScrollTextItem2(rc, 5, "Project description:");
+    AddTextItemCB(ui->description, titem_explorer_cb, eui);
+    ui->sformat = CreateTextItem2(rc, 15, "Data format:");
+    AddTextItemCB(ui->sformat, titem_explorer_cb, eui);
     
     fr = CreateFrame(form, "Page background");
     AddDialogFormChild(form, fr);
@@ -88,6 +97,9 @@ void update_project_ui(ProjectUI *ui, Quark *q)
     if (pr) {
         int y, m, d, h, mm, sec;
         char date_string[64], wrap_year_string[64];
+
+        xv_setstr(ui->sformat, project_get_sformat(q));
+        xv_setstr(ui->description, project_get_description(q));
         
         SetOptionChoice(ui->bg_color, pr->bgcolor);
         SetToggleButtonState(ui->bg_fill, pr->bgfill);
@@ -111,6 +123,15 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
     
     if (ui && pr) {
         double jul;
+    
+        if (!caller || caller == ui->sformat) {
+            project_set_sformat(q, xv_getstr(ui->sformat));
+        }
+        if (!caller || caller == ui->description) {
+            char *s = XmTextGetString(ui->description);
+            project_set_description(q, s);
+            XtFree(s);
+        }
         
         if (!caller || caller == ui->bg_color) {
             pr->bgcolor = GetOptionChoice(ui->bg_color);

@@ -44,12 +44,8 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/Form.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/List.h>
-#include <Xm/Text.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -67,19 +63,6 @@ static void set_load_proc(OptionStructure *opt, int value, void *data);
 static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static int write_sets_proc(FSBStructure *fsb, char *filename, void *data);
 
-typedef struct {
-    Widget format_item;    /* format */
-    Widget descr_item;     /* description */
-} saveGUI;
-
-static saveGUI save_gui;
-
-static void update_save_gui(saveGUI *gui)
-{
-    xv_setstr(gui->format_item, project_get_sformat(grace->project));
-    xv_setstr(gui->descr_item, project_get_description(grace->project));
-}
-
 void create_saveproject_popup(void)
 {
     static FSBStructure *fsb = NULL;
@@ -87,20 +70,11 @@ void create_saveproject_popup(void)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        Widget fr, rc;
-	
         fsb = CreateFileSelectionBox(app_shell, "Save project");
-
-	fr = CreateFrame(fsb->rc, NULL);
-	rc = CreateVContainer(fr);
-	save_gui.descr_item  = CreateScrollTextItem2(rc, 5, "Project description:");
-	save_gui.format_item = CreateTextItem2(rc, 15, "Data format:");
-
-	AddFileSelectionBoxCB(fsb, save_proc, &save_gui);
+	AddFileSelectionBoxCB(fsb, save_proc, NULL);
         ManageChild(fsb->FSB);
     }
     
-    update_save_gui(&save_gui);
     RaiseWindow(fsb->dialog);
 
     unset_wait_cursor();
@@ -111,13 +85,6 @@ void create_saveproject_popup(void)
  */
 static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    char *s;
-    saveGUI *gui = (saveGUI *) data;
-    
-    project_set_sformat(grace->project, xv_getstr(gui->format_item));
-    s = XmTextGetString(gui->descr_item);
-    project_set_description(grace->project, s);
-    XtFree(s);
     if (save_project(filename) == RETURN_SUCCESS) {
         return TRUE;
     } else {
