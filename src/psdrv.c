@@ -448,8 +448,14 @@ void ps_fillpolygon(VPoint *vps, int nc)
     if (pen.pattern != 1 && ps_level2 == TRUE) {
         fprintf(prstream, "gsave\n");
         if (ps_grayscale == TRUE) {
+            if (ps_pattern != 1) {
+                fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+            }
             fprintf(prstream, "Color%d setgray\n", getbgcolor());
         } else {
+            if (ps_pattern != 1) {
+                fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+            }
             fprintf(prstream, "Color%d setrgbcolor\n", getbgcolor());
         }
         if (getfillrule() == FILLRULE_WINDING) {
@@ -508,8 +514,14 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
     if (pen.pattern != 1 && ps_level2 == TRUE) {
         fprintf(prstream, "gsave\n");
         if (ps_grayscale == TRUE) {
+            if (ps_pattern != 1) {
+                fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+            }
             fprintf(prstream, "Color%d setgray\n", getbgcolor());
         } else {
+            if (ps_pattern != 1) {
+                fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+            }
             fprintf(prstream, "Color%d setrgbcolor\n", getbgcolor());
         }
         fprintf(prstream, "fill\n");
