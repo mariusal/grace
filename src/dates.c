@@ -71,7 +71,7 @@
  * computation. Another time scale is of possible : counting only the
  * days from a reference. Such a time scale was introduced by
  * Joseph-Juste Scaliger (Josephus Justus Scaliger) in 1583. He
- * decided to use "-4713-01-01 12:00:00" as a reference date because
+ * decided to use "-4713-01-01T12:00:00" as a reference date because
  * it was at the same time a monday, first of January of a leap year,
  * there was an exact number of 19 years Meton cycle between this date
  * and year 1 (for Easter computation), and it was at the beginning of
@@ -628,8 +628,13 @@ static int parse_calendar_date(const char* s,
               negative = 0;
               break;
 
-          case '/' : case ':' : case '.' : /* non-repeatable separator */
+          case '/' : case ':' : case '.' : case 'T' : /* non-repeatable separator */
               if (waiting_separator) {
+                  if ((*s == 'T') && (i != 3)) {
+                      /* the T separator is only allowed between date
+                         and time (mainly for iso8601) */
+                      return -1;
+                  }
                   s++;
                   negative = 0;
                   waiting_separator = 0;
