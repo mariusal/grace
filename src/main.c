@@ -863,7 +863,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-pipe                                 Read data from stdin on startup\n");
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
     fprintf(stream, "-remove                               Remove data file after read\n");
-    fprintf(stream, "-results   [results_file]             Write the results from regression to\n");
+    fprintf(stream, "-results   [results_file]             Write results of some data manipulations to\n");
     fprintf(stream, "                                        results_file\n");
     fprintf(stream, "-rows      [grows]                    Arrange graphs in grows rows \n");
     fprintf(stream, "-rvideo                               Exchange the color indices for black and\n");
