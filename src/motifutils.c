@@ -3747,6 +3747,21 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
     return button;
 }
 
+Widget CreateMenuCloseButton(Widget parent, Widget form)
+{
+    Widget wbut;
+    XmString str;
+    
+    wbut = CreateMenuButton(parent,
+        "Close", 'C', destroy_dialog_cb, XtParent(form));
+    str = XmStringCreateLocalized("Esc");
+    XtVaSetValues(wbut, XmNacceleratorText, str, NULL);
+    XmStringFree(str);
+    XtVaSetValues(form, XmNcancelButton, wbut, NULL);
+    
+    return wbut;
+}
+
 Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 	TB_CBProc cb, void *data)
 {
