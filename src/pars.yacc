@@ -487,6 +487,7 @@ symtab_entry *key;
 %token <ival> XMAX
 %token <ival> XMIN
 %token <ival> XY
+%token <ival> XYCOLPAT
 %token <ival> XYDX
 %token <ival> XYDXDX
 %token <ival> XYDXDXDYDY
@@ -3683,6 +3684,7 @@ xytype:
 	| XYDXDXDYDY { $$ = SET_XYDXDXDYDY; }
 	| XYHILO { $$ = SET_XYHILO; }
 	| XYR { $$ = SET_XYR; }
+	| XYCOLPAT { $$ = SET_XYCOLPAT; }
 	| XYSTRING { $$ = SET_XY; }
 	;
 
@@ -4689,6 +4691,7 @@ symtab_entry ikey[] = {
 	{"XMAX", XMAX, NULL},
 	{"XMIN", XMIN, NULL},
 	{"XY", XY, NULL},
+	{"XYCOLPAT", XYCOLPAT, NULL},
 	{"XYDX", XYDX, NULL},
 	{"XYDXDX", XYDXDX, NULL},
 	{"XYDXDXDYDY", XYDXDXDYDY, NULL},

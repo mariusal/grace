@@ -277,7 +277,7 @@ void draw_pie_chart(int gno)
             }
             
             switch (dataset_type(gno, setno)) {
-            case SET_XYDXDX:
+            case SET_XYCOLPAT:
                 get_graph_plotarr(gno, setno, &p);
                 /* data */
                 x = getcol(gno, setno, DATA_X);
