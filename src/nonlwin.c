@@ -38,9 +38,6 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/Form.h>
-#include <Xm/RowColumn.h>
 #include <Xm/ScrolledW.h>
 
 #include "globals.h"
@@ -77,10 +74,9 @@ static char buf[256];
 static nonlprefs nonl_prefs = {TRUE, LOAD_VALUES, 10, 0.0, 1.0};
 
 static Widget nonl_frame = NULL;
-static Widget nonl_panel;
-Widget nonl_formula_item;
-Widget nonl_title_item;
-SrcDestStructure *nonl_set_item;
+static TextStructure *nonl_formula_item;
+static Widget nonl_title_item;
+static SrcDestStructure *nonl_set_item;
 static Widget nonl_parm_item[MAXPARM];
 static Widget nonl_value_item[MAXPARM];
 static Widget nonl_constr_item[MAXPARM];
@@ -98,13 +94,12 @@ static RestrictionStructure *restr_item;
 static OptionStructure *nonl_weigh_item;
 static Widget nonl_wfunc_item;
 
-static void do_nonl_proc(void *data);
+static int do_nonl_proc(void *data);
 static void do_nonl_toggle(int onoff, void *data);
 static void nonl_wf_cb(int value, void *data);
 static void do_constr_toggle(int onoff, void *data);
 
 static void update_nonl_frame_cb(void *data);
-static void destroy_nonl_frame_cb(void *data);
 static void reset_nonl_frame_cb(void *data);
 
 static void do_nparm_toggle(int value, void *data);
@@ -128,17 +123,15 @@ void create_nonl_frame(void *data)
         Widget nonl_tab, nonl_main, nonl_advanced;
         Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
 
-	nonl_frame = XmCreateDialogShell(app_shell, "Non-linear curve fitting", NULL, 0);
-	handle_close(nonl_frame);
-	nonl_panel = XmCreateForm(nonl_frame, "nonl_frame_rc", NULL, 0);
+	nonl_frame = CreateDialogForm(app_shell, "Non-linear curve fitting");
 
-        menubar = CreateMenuBar(nonl_panel);
+        menubar = CreateMenuBar(nonl_frame);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane, "Open...", 'O', create_openfit_popup, NULL);
         CreateMenuButton(menupane, "Save...", 'S', create_savefit_popup, NULL);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "Close", 'C', destroy_nonl_frame_cb, NULL);
+        CreateMenuButton(menupane, "Close", 'C', destroy_dialog_cb, GetParent(nonl_frame));
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
@@ -158,50 +151,27 @@ void create_nonl_frame(void *data)
         CreateMenuButton(menupane, "On fit", 'f', HelpCB, NULL);
 
         ManageChild(menubar);
-	XtVaSetValues(menubar,
-		      XmNtopAttachment, XmATTACH_FORM,
-		      XmNleftAttachment, XmATTACH_FORM,
-		      XmNrightAttachment, XmATTACH_FORM,
-		      NULL);
+        AddDialogFormChild(nonl_frame, menubar);
         
-        nonl_set_item = CreateSrcDestSelector(nonl_panel, LIST_TYPE_SINGLE);
+        nonl_set_item = CreateSrcDestSelector(nonl_frame, LIST_TYPE_SINGLE);
+        AddDialogFormChild(nonl_frame, nonl_set_item->form);
 	
-	XtVaSetValues(nonl_set_item->form,
-		      XmNtopAttachment, XmATTACH_WIDGET,
-		      XmNtopWidget, menubar,
-		      XmNleftAttachment, XmATTACH_FORM,
-		      XmNrightAttachment, XmATTACH_FORM,
-		      NULL);
-		      
-	
-	title_fr = CreateFrame(nonl_panel, NULL);
+	title_fr = CreateFrame(nonl_frame, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
 	nonl_title_item = CreateLabel(title_fr, nonl_opts.title);
-	XtVaSetValues(title_fr,
-		      XmNtopAttachment, XmATTACH_WIDGET,
-		      XmNtopWidget, nonl_set_item->form,
-		      XmNleftAttachment, XmATTACH_FORM,
-		      XmNrightAttachment, XmATTACH_FORM,
-		      NULL);
+        AddDialogFormChild(nonl_frame, title_fr);
 
         /* ------------ Tabs --------------*/
 
-        nonl_tab = CreateTab(nonl_panel);        
-	XtVaSetValues(nonl_tab,
-		      XmNtopAttachment, XmATTACH_WIDGET,
-		      XmNtopWidget, title_fr,
-		      XmNleftAttachment, XmATTACH_FORM,
-		      XmNrightAttachment, XmATTACH_FORM,
-		      NULL);
+        nonl_tab = CreateTab(nonl_frame);        
 
 
         /* ------------ Main tab --------------*/
         
         nonl_main = CreateTabPage(nonl_tab, "Main");
     	
-	nonl_formula_item = CreateScrollTextItem2(nonl_main, 2, "Formula:");
-	rc1 = XmCreateRowColumn(nonl_main, "nonl_rc", NULL, 0);
-	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
+	nonl_formula_item = CreateTextInput(nonl_main, "Formula:");
+	rc1 = CreateHContainer(nonl_main);
 	
 	for (i = 0; i < MAXPARM + 1; i++) {
 	    np_option_items[i].value = i;
@@ -218,20 +188,15 @@ void create_nonl_frame(void *data)
             SPIN_TYPE_INT, 0.0, 500.0, 5.0);
 	SetSpinChoice(nonl_nsteps_item, 5.0);
         
-	ManageChild(rc1);
-	
 	sw = XtVaCreateManagedWidget("sw",
 				     xmScrolledWindowWidgetClass, nonl_main,
 				     XmNheight, 180,
 				     XmNscrollingPolicy, XmAUTOMATIC,
 				     NULL);
 
-	rc2 = XmCreateRowColumn(sw, "rc2", NULL, 0);
-
-
+	rc2 = CreateVContainer(sw);
 	for (i = 0; i < MAXPARM; i++) {
-	    nonl_parm_item[i] = XmCreateRowColumn(rc2, "rc1", NULL, 0);
-	    XtVaSetValues(nonl_parm_item[i], XmNorientation, XmHORIZONTAL, NULL);
+	    nonl_parm_item[i] = CreateHContainer(rc2);
 	    sprintf(buf, "A%1d: ", i);
 	    nonl_value_item[i] = CreateTextItem2(nonl_parm_item[i], 10, buf);
 
@@ -246,8 +211,6 @@ void create_nonl_frame(void *data)
 	    nonl_uppb_item[i] = CreateTextItem2(nonl_parm_item[i], 6, "");
 	}
 
-	ManageChild(rc2);
-
         /* ------------ Advanced tab --------------*/
 
         nonl_advanced = CreateTabPage(nonl_tab, "Advanced");
@@ -256,10 +219,7 @@ void create_nonl_frame(void *data)
             CreateRestrictionChoice(nonl_advanced, "Source data filtering");
 
 	fr3 = CreateFrame(nonl_advanced, "Weighting");
-        rc3 = XtVaCreateWidget("rc",
-            xmRowColumnWidgetClass, fr3,
-            XmNorientation, XmHORIZONTAL,
-            NULL);
+        rc3 = CreateHContainer(fr3);
         option_items[0].value = WEIGHT_NONE;
         option_items[0].label = "None";
         option_items[1].value = WEIGHT_Y;
@@ -273,12 +233,9 @@ void create_nonl_frame(void *data)
 	nonl_weigh_item = CreateOptionChoice(rc3, "Weights", 1, 5, option_items);
 	nonl_wfunc_item = CreateTextItem2(rc3, 30, "Function:");
 	AddOptionChoiceCB(nonl_weigh_item, nonl_wf_cb, (void *) nonl_wfunc_item);
-        ManageChild(rc3);
-
 
 	fr3 = CreateFrame(nonl_advanced, "Load options");
-        rc3 = XmCreateRowColumn(fr3, "rc3", NULL, 0);
-
+        rc3 = CreateVContainer(fr3);
         option_items[0].value = LOAD_VALUES;
         option_items[0].label = "Fitted values";
         option_items[1].value = LOAD_RESIDUALS;
@@ -286,34 +243,17 @@ void create_nonl_frame(void *data)
         option_items[2].value = LOAD_FUNCTION;
         option_items[2].label = "Function";
 	nonl_load_item = CreateOptionChoice(rc3, "Load", 1, 3, option_items);
-	nonl_fload_rc = XmCreateRowColumn(rc3, "nonl_fload_rc", NULL, 0);
-	XtVaSetValues(nonl_fload_rc, XmNorientation, XmHORIZONTAL, NULL);
+	nonl_fload_rc = CreateHContainer(rc3);
 	nonl_start_item = CreateTextItem2(nonl_fload_rc, 6, "Start load at:");
 	nonl_stop_item = CreateTextItem2(nonl_fload_rc, 6, "Stop load at:");
 	nonl_npts_item = CreateTextItem2(nonl_fload_rc, 4, "# of points:");
-	ManageChild(nonl_fload_rc);
         AddOptionChoiceCB(nonl_load_item, do_nonl_toggle, (void *) nonl_fload_rc);
 
-	ManageChild(rc3);
-
-
-	fr3 = CreateFrame(nonl_panel, NULL);
-
-	CreateAACButtons(fr3, nonl_panel, do_nonl_proc);
-
-	XtVaSetValues(fr3,
-	              XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, nonl_tab,
-		      XmNleftAttachment, XmATTACH_FORM,
-		      XmNrightAttachment, XmATTACH_FORM,
-		      XmNbottomAttachment, XmATTACH_FORM,
-		      NULL);
-
-	ManageChild(nonl_panel);
+	CreateAACDialog(nonl_frame, nonl_tab, do_nonl_proc, NULL);
     }
     update_nonl_frame();
     
-    RaiseWindow(nonl_frame);
+    RaiseWindow(GetParent(nonl_frame));
     
     unset_wait_cursor();
 }
@@ -323,13 +263,9 @@ static void do_nparm_toggle(int value, void *data)
     int i;
     for (i = 0; i < MAXPARM; i++) {
         if (i < value) {
-            if (!XtIsManaged (nonl_parm_item[i])) {
-                ManageChild(nonl_parm_item[i]);
-            }
+            ManageChild(nonl_parm_item[i]);
         } else {
-            if (XtIsManaged (nonl_parm_item[i])) {
-                UnmanageChild(nonl_parm_item[i]);
-            }
+            UnmanageChild(nonl_parm_item[i]);
         }
     }
 }
@@ -359,7 +295,7 @@ void update_nonl_frame(void)
         XtVaSetValues(nonl_title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
         XmStringFree(str);
         
-        xv_setstr(nonl_formula_item, nonl_opts.formula);
+        SetTextString(nonl_formula_item, nonl_opts.formula);
         sprintf(buf, "%g", nonl_opts.tolerance);
         xv_setstr(nonl_tol_item, buf);
         SetOptionChoice(nonl_nparm_item, nonl_opts.parnum);
@@ -446,9 +382,8 @@ static void do_constr_toggle(int onoff, void *data)
 }
 
 /* ARGSUSED */
-static void do_nonl_proc(void *data)
+static int do_nonl_proc(void *data)
 {
-    int aac_mode;
     int i;
     int nsteps;
     int src_gno, src_setno;
@@ -460,28 +395,18 @@ static void do_nonl_proc(void *data)
     int restr_type, restr_negate;
     char *rarray;
     
-    aac_mode = (int) data;
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(nonl_frame);
-        return;
-    }
-    
-    set_wait_cursor();
-
     if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
         RETURN_SUCCESS) {
     	errmsg("No source graph selected");
-	unset_wait_cursor();
-    	return;
+    	return RETURN_FAILURE;
     }
     if (GetSingleListChoice(nonl_set_item->src->set_sel, &src_setno) !=
         RETURN_SUCCESS) {
     	errmsg("No source set selected");
-	unset_wait_cursor();
-    	return;
+    	return RETURN_FAILURE;
     }
     
-    nonl_opts.formula = copy_string(nonl_opts.formula, xv_getstr(nonl_formula_item));
+    nonl_opts.formula = copy_string(nonl_opts.formula, GetTextString(nonl_formula_item));
     nsteps = (int) GetSpinChoice(nonl_nsteps_item);
     nonl_opts.tolerance = atof(xv_getstr(nonl_tol_item));
     
@@ -490,8 +415,7 @@ static void do_nonl_proc(void *data)
 	strcpy(buf, xv_getstr(nonl_value_item[i]));
 	if (sscanf(buf, "%lf", &nonl_parms[i].value) != 1) {
 	    errmsg("Invalid input in parameter field");
-	    unset_wait_cursor();
-	    return;
+	    return RETURN_FAILURE;
 	}
 	
 	nonl_parms[i].constr = GetToggleButtonState(nonl_constr_item[i]);
@@ -499,19 +423,16 @@ static void do_nonl_proc(void *data)
 	    strcpy(buf, xv_getstr(nonl_lowb_item[i]));
 	    if (sscanf(buf, "%lf", &nonl_parms[i].min) != 1) {
 	    	errmsg("Invalid input in low-bound field");
-	    	unset_wait_cursor();
-	    	return;
+	    	return RETURN_FAILURE;
 	    }
 	    strcpy(buf, xv_getstr(nonl_uppb_item[i]));
 	    if (sscanf(buf, "%lf", &nonl_parms[i].max) != 1) {
 	    	errmsg("Invalid input in upper-bound field");
-	    	unset_wait_cursor();
-	    	return;
+	    	return RETURN_FAILURE;
 	    }
 	    if ((nonl_parms[i].value < nonl_parms[i].min) || (nonl_parms[i].value > nonl_parms[i].max)) {
 	    	errmsg("Initial values must be within bounds");
-	    	unset_wait_cursor();
-	    	return;
+	    	return RETURN_FAILURE;
 	    }
 	}
     }
@@ -527,15 +448,13 @@ static void do_nonl_proc(void *data)
             for (i = 0; i < nlen; i++) {
                 if (ytmp[i] == 0.0) {
 	            errmsg("Divide by zero while calculating weights");
-                    unset_wait_cursor();
-                    return;
+                    return RETURN_FAILURE;
                 }
             }
             warray = xmalloc(nlen*SIZEOF_DOUBLE);
             if (warray == NULL) {
 	        errmsg("xmalloc failed in do_nonl_proc()");
-                unset_wait_cursor();
-                return;
+                return RETURN_FAILURE;
             }
             for (i = 0; i < nlen; i++) {
                 if (weight_method == WEIGHT_Y) {
@@ -549,20 +468,17 @@ static void do_nonl_proc(void *data)
             ytmp = getcol(src_gno, src_setno, DATA_Y1);
             if (ytmp == NULL) {
 	        errmsg("The set doesn't have dY data column");
-                unset_wait_cursor();
-                return;
+                return RETURN_FAILURE;
             }
             for (i = 0; i < nlen; i++) {
                 if (ytmp[i] == 0.0) {
 	            errmsg("Divide by zero while calculating weights");
-                    unset_wait_cursor();
-                    return;
+                    return RETURN_FAILURE;
                 }
             }
             warray = xmalloc(nlen*SIZEOF_DOUBLE);
             if (warray == NULL) {
 	        errmsg("xmalloc failed in do_nonl_proc()");
-                unset_wait_cursor();
             }
             for (i = 0; i < nlen; i++) {
                 warray[i] = 1/(ytmp[i]*ytmp[i]);
@@ -571,21 +487,18 @@ static void do_nonl_proc(void *data)
         case WEIGHT_CUSTOM:
             if (set_parser_setno(src_gno, src_setno) != RETURN_SUCCESS) {
                 errmsg("Bad set");
-                unset_wait_cursor();
-                return;
+                return RETURN_FAILURE;
             }
             
             fstr = xv_getstr(nonl_wfunc_item);
             if (v_scanner(fstr, &wlen, &warray) != RETURN_SUCCESS) {
                 errmsg("Error evaluating expression for weights");
-                unset_wait_cursor();
-                return;
+                return RETURN_FAILURE;
             }
             if (wlen != nlen) {
                 errmsg("The array of weights has different length");
                 xfree(warray);
-                unset_wait_cursor();
-                return;
+                return RETURN_FAILURE;
             }
             break;
         default:
@@ -600,9 +513,8 @@ static void do_nonl_proc(void *data)
             restr_type, restr_negate, &rarray);
 	if (resno != RETURN_SUCCESS) {
 	    errmsg("Error in restriction evaluation");
-	    unset_wait_cursor();
 	    xfree(warray);
-            return;
+            return RETURN_FAILURE;
 	}
 
         /* The fit itself! */
@@ -611,8 +523,7 @@ static void do_nonl_proc(void *data)
 	xfree(rarray);
     	if (resno != RETURN_SUCCESS) {
 	    errmsg("Fatal error in do_nonlfit()");  
-	    unset_wait_cursor();
-	    return;  	
+	    return RETURN_FAILURE;  	
     	}
    	    	
     	for (i = 0; i < nonl_opts.parnum; i++) {
@@ -626,11 +537,7 @@ static void do_nonl_proc(void *data)
  */    
     load_nonl_fit(src_gno, src_setno, FALSE);
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(nonl_frame);
-    }
-    
-    unset_wait_cursor();
+    return RETURN_SUCCESS;
 }
 
 static void load_nonl_fit_cb(void *data)
@@ -735,11 +642,6 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     return RETURN_SUCCESS;
 }
 
-
-static void destroy_nonl_frame_cb(void *data)
-{
-    UnmanageChild(nonl_frame);
-}
 
 static void create_openfit_popup(void *data)
 {
