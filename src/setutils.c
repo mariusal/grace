@@ -408,6 +408,7 @@ set *set_new(void)
         xfree(p);
         return NULL;
     }
+    p->data->ncols = 2; /* To be in sync with default SET_XY type */
     
     return p;
 }
