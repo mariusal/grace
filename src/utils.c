@@ -1101,6 +1101,17 @@ void reverse_string(char *s)
     }
 }
 
+int compare_strings(const char *s1, const char *s2)
+{
+    if (s1 == NULL && s2 == NULL) {
+        return TRUE;
+    } else if (s1 == NULL || s2 == NULL) {
+        return FALSE;
+    } else {
+        return (strcmp(s1, s2) == 0);
+    }
+}
+
 /* location of Grace home directory */
 static char grace_home[GR_MAXPATHLEN] = GRACE_HOME;	
 
