@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -138,7 +138,6 @@ void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv)
     double c, s;		/* cosine & sine components of Fourier trans. */
     static double *sintab = NULL;
     static int last_n = 0;
-    double fac;
 
     n2 = n_pts / 2;
     
@@ -201,13 +200,12 @@ void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv)
 * If calculating the inverse transform, must divide the data by the number of
 * data points.
 */
-    if (inv)
-	fac = 1.0 / n_pts;
-    else
-	fac = 1.0;
-    for (k = 0; k != n_pts; k++) {
-	*(real_data + k) *= fac;
-	*(imag_data + k) *= fac;
+    if (inv) {
+        double fac = 1.0 / n_pts;
+        for (k = 0; k != n_pts; k++) {
+	    *(real_data + k) *= fac;
+	    *(imag_data + k) *= fac;
+        }
     }
 }
 
