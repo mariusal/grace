@@ -117,6 +117,7 @@ int get_datapoint(int gno, int setn, int seti, int *ncols, Datapoint *wp);
 Datapoint *datapoint_new(void);
 void datapoint_free(Datapoint *dpoint);
 Dataset *dataset_new(void);
+void dataset_free(Dataset *dsp);
 int set_dataset_nrows(Dataset *data, int nrows);
 int set_dataset_ncols(Dataset *data, int ncols);
 int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
