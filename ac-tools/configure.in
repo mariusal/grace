@@ -265,7 +265,7 @@ then
     dnl **** default settings for gcc
     DEBUG="-g -O2"
     OPTIMIZE="-O2"
-    CFLAGS="-fno-common -Wall -pedantic -Wpointer-arith -Wnested-externs -Wno-implicit-int"
+    CFLAGS="-fno-common -Wall -pedantic -Wpointer-arith -Wnested-externs"
 
     dnl **** check for strength-reduce bug
     ACX_GCC_STRENGTH_REDUCE(CFLAGS="$CFLAGS -fno-strength-reduce")
