@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-11-29
+  ----- Date:        2000-03-29
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2000. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -178,9 +178,6 @@
 #define USES_STANDARD_ENCODING    (short)0x0008
 #define FONT_NOCACHING            (short)0x0100
 
-#ifndef _MSC_VER
-extern int errno;
-#endif
 
 #ifndef PI
 #define PI 3.1415927

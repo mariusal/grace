@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-01
+  ----- Date:        2001-01-04
   ----- Description: This file is part of the t1-library. It contains
                      functions for accessing afm-data and some other
 		     fontinformation data.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -317,7 +317,7 @@ int T1_GetIsFixedPitch( int FontID)
 
 
 /* char *T1_GetFontName( FontID): Get the PostScript FontName of
-   the  font dictionary associated with thre specified font, or NULL if
+   the  font dictionary associated with the specified font, or NULL if
    an error occurs. */
 char *T1_GetFontName( int FontID)
 {
@@ -552,10 +552,18 @@ int T1_QueryLigs( int FontID,  char char1, char **successors,
   if (ligs==NULL)
     return(0);
   
-  while (ligs!=NULL){
+  while (ligs!=NULL) {
     /* Get indices of the two characters: */
-    succ_index=T1_GetEncodingIndex( FontID, (char*) ligs->succ);
-    lig_index=T1_GetEncodingIndex( FontID, (char*) ligs->lig);
+    if ((succ_index=T1_GetEncodingIndex( FontID, (char*) ligs->succ))==-1) {
+      /* successor is not current encoding */
+      ligs=ligs->next;
+      continue;
+    }
+    if ((lig_index=T1_GetEncodingIndex( FontID, (char*) ligs->lig))==-1) {
+      /* Specified ligature is not in current encoding */
+      ligs=ligs->next;
+      continue;
+    }
     succ[j]=(char)succ_index;
     lig[j]=(char)lig_index;
     j++;
@@ -593,7 +601,7 @@ int T1_GetEncodingIndex( int FontID, char *char1)
   /* The default return-value if character is not found: */
   result_index=-1;
 
-  if (extern_enc==NULL){
+  if (extern_enc==NULL) {
     objptr=&(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[0]);
     /* We have to search the fonts internal encoding */
     for (i=0;i<256;i++){
@@ -605,8 +613,9 @@ int T1_GetEncodingIndex( int FontID, char *char1)
 	}
       }
     }
+    
   }
-  else{
+  else {
     /* Take name from explicitly loaded and assigned encoding */
     for (i=0;i<256;i++){
       if (strcmp(extern_enc[i], char1)==0){
@@ -1010,6 +1019,24 @@ int T1_GetNoKernPairs( int FontID)
 
 
 
+/* T1_GetCharStringByName(): retrieve the */ 
+int T1_GetCharStringByName( int FontID, const char *charname,
+			    char **charstring) 
+{
+  return(0);
+}
+
+
+
+
+int T1_GetCharStringByIndex( int FontID, int index,
+			    char **charstring) 
+{
+  return(0);
+}
+
+
+
 /* A function for comparing METRICS_ENTRY structs */
 static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
 {
@@ -1021,3 +1048,7 @@ static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
     return(1);
   return(0); /* This should not happen */
 }
+
+
+
+

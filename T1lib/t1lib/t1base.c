@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-08-26
+  ----- Date:        2001-02-11
   ----- Description: This file is part of the t1-library. It contains basic
-                     basic routines to initialize the data structures used
+                     routines to initialize the data structures used
 		     by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -91,7 +91,7 @@ void *T1_InitLib( int log)
 
   pFontBase->pFontArray = NULL;
   pFontBase->t1lib_flags=0;
-  /* Chek for AA-caching */
+  /* Check for AA-caching */
   if ((log & T1_AA_CACHING)){
     pFontBase->t1lib_flags |= T1_AA_CACHING;
   }
@@ -186,12 +186,12 @@ void *T1_InitLib( int log)
 	   SIZEOF_VOID_P);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
   
-  if (log & IGNORE_CONFIGFILE){
+  if (log & IGNORE_CONFIGFILE) {
     pFontBase->t1lib_flags |= IGNORE_CONFIGFILE;
     T1_PrintLog( "T1_InitLib()", "Skipping configuration file search!",
 		 T1LOG_STATISTIC);
   }
-  else{
+  else {
     if ((result=ScanConfigFile( &T1_PFAB_ptr, &T1_AFM_ptr,
 				&T1_ENC_ptr, &T1_FDB_ptr))==0)
       T1_PrintLog( "T1_InitLib()", "Warning t1lib configuration file not found!",
@@ -274,7 +274,7 @@ int scanFontDBase( char *filename)
   lseek (fd, 0, 0); 
 
   if ((filebuffer=(char *)malloc(filesize*sizeof(char)
-					  )) == NULL){
+				 )) == NULL){
     print_msg( "scanFontDBase()",
 	       "Couldn't allocate memory for loading font database file");
     T1_errno=T1ERR_ALLOC_MEM;
@@ -286,22 +286,22 @@ int scanFontDBase( char *filename)
    
   i=j=m=0;
   
-  while (i<filesize){
+  while (i<filesize) {
     if (filebuffer[i]=='\n'){ /* We are at the end of line */
-      if (j==0){  /* Read the first line as the number of fonts */
+      if (j==0) {  /* Read the first line as the number of fonts */
 	filebuffer[i]=0;
 	sscanf( &filebuffer[0], "%d", &FontBase.no_fonts);
 	filebuffer[i]='\n';  /* Because it gives a better feeling */
 	/* Allocate memory for 'no_fonts' structures: */ 
 	if ((FontBase.pFontArray=(FONTPRIVATE *)
-	     calloc( FontBase.no_fonts, sizeof(FONTPRIVATE))) == NULL){
+	     calloc( FontBase.no_fonts, sizeof(FONTPRIVATE))) == NULL) {
 	  print_msg( "scanFontDBase()", "Failed to allocate memory for FONTPRIVATE-area");
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  return(-1);
 	}
 	located=1; /* In  order to increment m */
       }
-      else{       /* We are in the second or higher line */
+      else {       /* We are in the second or higher line */
 	k=i;
 	while (isspace((int)filebuffer[k])){
 	  k--;
@@ -325,8 +325,8 @@ int scanFontDBase( char *filename)
 	/* We print error string before testing because after the call
 	   to test_for_t1_file() filename is substituted by an emty
 	   string if the file was not found: */
-	sprintf( err_warn_msg_buf, "Type 1 Font file %s.[pfa/pfb] not found (FontID=%d)",
-		 linebuf, m-1);
+	sprintf( err_warn_msg_buf, "Type 1 Font file %s.[pfa/pfb] not found (FontID=%d, SearchPath=%s)",
+		 linebuf, m-1, T1_PFAB_ptr);
 	if ((test_for_t1_file( &linebuf[0]))){
 	  print_msg( "scanFontDBase()", err_warn_msg_buf);
 	  located=0;
@@ -678,7 +678,7 @@ int test_for_t1_file( char *buffer )
 char *T1_GetFontFileName( int FontID)
 {
 
-  static char filename[256];
+  static char filename[MAXPATHLEN+1];
   
   if (CheckForInit())return(NULL);
 
@@ -1158,3 +1158,118 @@ extern void T1_SetRasterFlags( int flags)
   
 }
 
+
+
+/* T1_GetFontFileName(): returns a pointer to the complete path filename
+   of the font, associated with FontID as it is in use by t1lib.
+   */
+char *T1_GetFontFilePath( int FontID)
+{
+
+  static char filepath[MAXPATHLEN+1];
+  char *FileNamePath=NULL;
+  
+  /* is initialzed? */
+  if (CheckForInit()) {
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  /* Check first for valid FontID */
+  if ((FontID<0) || (FontID>FontBase.no_fonts)){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+
+  /* lib is initialized and FontID is valid ->
+     we can really expect a name */
+  if ((FileNamePath=Env_GetCompletePath( pFontBase->pFontArray[FontID].pFontFileName, 
+					 T1_PFAB_ptr))==NULL){ 
+    sprintf( err_warn_msg_buf, "Couldn't locate font file for font %d in %s", 
+	     FontID, T1_PFAB_ptr); 
+    print_msg( "T1_GetFontFilePath()", err_warn_msg_buf); 
+    T1_errno=T1ERR_FILE_OPEN_ERR; 
+    return(NULL); 
+  } 
+  
+  strcpy( filepath, FileNamePath);
+  free( FileNamePath);
+  
+  return( filepath);
+  
+}
+
+
+
+/* We have a function for querying the name. Returns a pointer
+   to the string or NULL if name was not explicitly set .*/
+char *T1_GetAfmFilePath( int FontID)
+{
+
+  static char filepath[MAXPATHLEN+1];
+  char *FontFileName;
+  char *AFMFilePath;
+  int i, j;
+  
+  /* is initialized? */
+  if ((CheckForInit())) {
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+  
+  /* Check first for valid FontID */
+  if ((FontID<0) || (FontID>FontBase.no_fonts)){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+
+  /* Check wether AFM-file loading was suppressed on user's request */
+  if ((pFontBase->t1lib_flags & T1_NO_AFM)!=0) {
+    /* this is no error condition, we simply return (NULL) */
+    return( NULL);
+  }
+  
+  /* Check for explicitly associated metrics filename (via
+     "T1_SetAfmFileName()"). If it exists, we return it! */
+  if (pFontBase->pFontArray[FontID].pAfmFileName!=NULL) {
+    strcpy( filepath, pFontBase->pFontArray[FontID].pAfmFileName);
+    sprintf( err_warn_msg_buf, "Returning explicitly specified path %s for Font %d",
+	     filepath, FontID);
+    T1_PrintLog( "T1_GetAfmFilePath()", err_warn_msg_buf, T1LOG_DEBUG);
+    return( filepath);
+  }
+  
+  /* we have the usual case that the name of the metrics file has to be
+     deduced from the font file name */
+  FontFileName=T1_GetFontFileName( FontID);
+  i=strlen(FontFileName);
+  j=i;
+  strcpy( filepath, FontFileName);
+  while ( filepath[i] != '.'){
+    if (i==0) break;
+    else i--;
+  }
+  if (i==0){
+    /* We have a filename without extension -> append extension */
+    filepath[j]='.';
+    filepath[j+1]='a'; 
+    filepath[j+2]='f'; 
+    filepath[j+3]='m'; 
+    filepath[j+4]='\0'; 
+  }
+  else{
+    /* we found a '.' -> replace extension */
+    filepath[i+1]='a';
+    filepath[i+2]='f';
+    filepath[i+3]='m';
+    filepath[i+4]='\0';
+  }
+  /* Get full path of the afm file (The case of a full path name
+     name specification is valid */
+  AFMFilePath=Env_GetCompletePath( filepath, T1_AFM_ptr);
+  strcpy( filepath, AFMFilePath);
+  free( AFMFilePath);
+  
+  return( filepath);
+  
+}

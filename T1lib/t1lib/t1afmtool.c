@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1afmtool.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-03
+  ----- Date:        2001-02-09
   ----- Description: This file is part of the t1-library. It contains
                      functions for generating a fallback set of afm data
 		     from type 1 font files.
@@ -379,7 +379,7 @@ int T1_WriteAFMFallbackFile( int FontID)
 	  afmfilename, pFontBase->pFontArray[FontID].pFontFileName,
 	  T1LIB_IDENT);
   fprintf(afmfile, "Comment File creation date: %s", ctime(&s_clock));
-  fprintf(afmfile, "Comment t1lib is copyright (c) Rainer Menzner, 1996, 1997, 1998.\n");
+  fprintf(afmfile, "Comment t1lib is copyright (c) Rainer Menzner, 1996-2001.\n");
   fprintf(afmfile, "Comment t1lib is distributed under the GNU General Public Library License (LGPL)\n");
   fprintf(afmfile, "FontName %s\n", T1_GetFontName( FontID));
   fprintf(afmfile, "FullName %s\n", T1_GetFullName( FontID));

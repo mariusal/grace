@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-02-17
+  ----- Date:        2000-04-21
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1base.c
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -53,6 +53,8 @@ char *T1_GetLibIdent( void);
 void T1_SetRasterFlags( int flags);
 char *T1_GetAfmFileName( int FontID);
 int T1_SetAfmFileName( int FontId, char *afm_name);
+char *T1_GetFontFilePath( int FontID);
+char *T1_GetAfmFilePath( int FontID);
 
 extern int T1_Type1OperatorFlags;
 
@@ -84,5 +86,7 @@ extern char *T1_GetLibIdent( void);
 extern void T1_SetRasterFlags( int flags);
 extern char *T1_GetAfmFileName( int FontID);
 extern int T1_SetAfmFileName( int FontId, char *afm_name);
+extern char *T1_GetFontFilePath( int FontID);
+extern char *T1_GetAfmFilePath( int FontID);
 
 #endif

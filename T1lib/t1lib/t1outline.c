@@ -606,8 +606,8 @@ void T1_AbsolutePath( T1_OUTLINE *rpath)
       ((struct beziersegment *)ipath)->B.y +=ycurr;
       ((struct beziersegment *)ipath)->C.x +=xcurr;
       ((struct beziersegment *)ipath)->C.y +=ycurr;
-      ((struct beziersegment *)ipath)->dest.x +=xcurr;
-      ((struct beziersegment *)ipath)->dest.y +=ycurr;
+      ipath->dest.x +=xcurr;
+      ipath->dest.y +=ycurr;
 #ifdef PRINT_PATHS_TO_STDOUT      
       printf("Bezier-Segment: ... (%f,%f) ... (%f,%f) -> (%f,%f)\n",
 	     (((struct beziersegment *)ipath)->B.x)/(double)(0xFFFF),
@@ -664,8 +664,8 @@ void T1_RelativePath( T1_OUTLINE *apath)
 #endif
     }
     if (ipath->type==BEZIERTYPE){
-      ((struct beziersegment *)ipath)->dest.x -=xcurr;
-      ((struct beziersegment *)ipath)->dest.y -=ycurr;
+      ipath->dest.x -=xcurr;
+      ipath->dest.y -=ycurr;
       ((struct beziersegment *)ipath)->C.x -=xcurr;
       ((struct beziersegment *)ipath)->C.y -=ycurr;
       ((struct beziersegment *)ipath)->B.x -=xcurr;
