@@ -752,6 +752,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         set_cursor(grace->gui, -1);
 
         xdrawgraph(grace->project, TRUE);
+        update_all();
     }
 }
 
