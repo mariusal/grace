@@ -2,13 +2,10 @@
 .SUFFIXES:
 
 # Extension of object files
-O=@OBJ_EXT@
+O=@OBJEXT@
 
 # Extension of executables
-EXE=@EXE_EXT@
-
-# Extension of batch files
-BAT=@BAT_EXT@
+EXE=@EXEEXT@
 
 # Bourn shell
 SHELL=/bin/sh
