@@ -77,7 +77,7 @@ void comwin_up_act(Widget w, XKeyEvent *e, String *p, Cardinal *c);
 void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data);
 static int do_rhist_proc(char *filename, void *data);
-void open_command(Widget w, XtPointer client_data, XtPointer call_data);
+void open_command(void *data);
 
 extern XtAppContext app_con;
 
@@ -272,7 +272,7 @@ static void replay_history(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void open_command(Widget w, XtPointer client_data, XtPointer call_data)
+void open_command(void *data)
 {
     Widget form, fr1, fr2, but[6];
     char *labrow1[5] = { "Add", "Delete", "Replace", "Up", "Down"};

@@ -65,8 +65,6 @@ info = 6  tol is too small. no further reduction in the sum of squares is possib
 info = 7  tol is too small. no further improvement in the approximate solution x is possible.
 */
 
-static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data);
-
 #define NONL_CANCEL 0
 #define NONL_ACCEPT 1
 
@@ -87,14 +85,17 @@ static Widget nonl_autol_item;
 static Widget nonl_npts_item;
 static Widget nonl_start_item, nonl_stop_item;
 static Widget nonl_fload_rc;
-static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_nonl_toggle(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_constr_toggle (Widget w, XtPointer client_data, XtPointer call_data);
-static void destroy_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void reset_nonl_frame(void);
+static void do_nonl_proc(void *data);
+static void do_nonl_toggle(int onoff, void *data);
+static void do_constr_toggle(void *data);
+
+static void update_nonl_frame_cb(void *data);
+static void destroy_nonl_frame_cb(void *data);
+static void reset_nonl_frame_cb(void *data);
+
 void do_nparm_toggle(Widget w, XtPointer client_data, XtPointer call_data);
-void create_openfit_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_openfit_popup(void *data);
+void create_savefit_popup(void *data);
 static int do_openfit_proc(char *filename, void *data);
 static int do_savefit_proc(char *filename, void *data);
 
@@ -105,11 +106,11 @@ int nlloadset = -1;
 static char buf[256];
 
 /* ARGSUSED */
-void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_nonl_frame(void *data)
 {
     int i;
     Widget sw, fr, title_fr, fr1, fr3, rc, rc1, rc2, rc3, lab, fitbut[4], but1[2];
-    Widget menubar, menupane, submenupane, cascade;
+    Widget menubar, menupane, submenupane;
     set_wait_cursor();
     if (nonl_frame == NULL) {
 	char *fitlabel[4];
@@ -127,48 +128,37 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	handle_close(nonl_frame);
 	nonl_panel = XmCreateForm(nonl_frame, "nonl_frame_rc", NULL, 0);
 
-        menubar = CreateMenuBar(nonl_panel, "nonlMenuBar", NULL);
+        menubar = CreateMenuBar(nonl_panel);
         
-        menupane = CreateMenu(menubar, "nonlFileMenu", "File", 'F', NULL, NULL);
-        CreateMenuButton(menupane, "open", "Open...", 'O',
-            (XtCallbackProc) create_openfit_popup, (XtPointer) NULL, NULL);
-        CreateMenuButton(menupane, "save", "Save...", 'S',
-            (XtCallbackProc) create_savefit_popup, (XtPointer) NULL, NULL);
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Open...", 'O', create_openfit_popup, NULL);
+        CreateMenuButton(menupane, "Save...", 'S', create_savefit_popup, NULL);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "close", "Close", 'C',
-    	    (XtCallbackProc) destroy_nonl_frame, (XtPointer) NONL_ACCEPT, NULL);
+        CreateMenuButton(menupane, "Close", 'C', destroy_nonl_frame_cb, (void *) NONL_ACCEPT);
 
-        menupane = CreateMenu(menubar, "nonlDataMenu", "Data", 'D', NULL, NULL);
+        menupane = CreateMenu(menubar, "Data", 'D', FALSE);
 
-        CreateMenuButton(menupane, "reset", "Reset", 'R',
-    	    (XtCallbackProc) reset_nonl_frame, (XtPointer) NULL, 0);
-        CreateMenuButton(menupane, "update", "Update", 'U',
-    	    (XtCallbackProc) update_nonl_frame, (XtPointer) NULL, 0);
+        CreateMenuButton(menupane, "Reset", 'R', reset_nonl_frame_cb, NULL);
+        CreateMenuButton(menupane, "Update", 'U', update_nonl_frame_cb, NULL);
 
-        menupane = CreateMenu(menubar, "nonlOptionsMenu", "Options", 'O', NULL, NULL);
+        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
    
-        submenupane = CreateMenu(menupane, "nonlLoadMenu", 
-    				"Load", 'L', NULL, NULL);
+        submenupane = CreateMenu(menupane, "Load", 'L', FALSE);
     
-        nonl_load_item[0] = CreateMenuToggle(submenupane, "values", "Fitted values", 'v',
-	    (XtCallbackProc) do_nonl_toggle, (XtPointer) 0, NULL);
-        nonl_load_item[1] = CreateMenuToggle(submenupane, "residuals", "Residuals", 'R',
-	    (XtCallbackProc) do_nonl_toggle, (XtPointer) 1, NULL);
-        nonl_load_item[2] = CreateMenuToggle(submenupane, "function", "Function", 'F',
-	    (XtCallbackProc) do_nonl_toggle, (XtPointer) 2, NULL);
+        nonl_load_item[0] = CreateMenuToggle(submenupane, "Fitted values", 'v',
+	    do_nonl_toggle, (XtPointer) 0);
+        nonl_load_item[1] = CreateMenuToggle(submenupane, "Residuals", 'R',
+	    do_nonl_toggle, (XtPointer) 1);
+        nonl_load_item[2] = CreateMenuToggle(submenupane, "Function", 'F',
+	    do_nonl_toggle, (XtPointer) 2);
 
-        nonl_autol_item = CreateMenuToggle(menupane, "autoload", "Autoload", 'A',
-	    (XtCallbackProc) NULL, (XtPointer) NULL, NULL);
+        nonl_autol_item = CreateMenuToggle(menupane, "Autoload", 'A',
+	    NULL, NULL);
 
-        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
-        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
-        CreateMenuButton(menupane, "onFit", "On fit", 'f',
-            (XtCallbackProc) HelpCB, (XtPointer) "trans.html#nlcurve", 0);
+        CreateMenuButton(menupane, "On fit", 'f', HelpCB, NULL);
 
-        CreateMenuButton(menupane, "onContext", "On context", 'x',
-            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
-        
         XtManageChild(menubar);
 	XtVaSetValues(menubar,
 		      XmNtopAttachment, XmATTACH_FORM,
@@ -291,10 +281,8 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtSetSensitive(nonl_fload_rc, False);
 
 	CreateCommandButtons(rc3, 2, but1, blabel);
-	XtAddCallback(but1[0], XmNactivateCallback,
-		(XtCallbackProc) destroy_nonl_frame, (XtPointer) NONL_ACCEPT);
-	XtAddCallback(but1[1], XmNactivateCallback,
-		(XtCallbackProc) destroy_nonl_frame, (XtPointer) NONL_CANCEL);
+	AddButtonCB(but1[0], destroy_nonl_frame_cb, (void *) NONL_ACCEPT);
+	AddButtonCB(but1[1], destroy_nonl_frame_cb, (void *) NONL_CANCEL);
 
 	XtManageChild(rc3);
 	XtVaSetValues(fr3,
@@ -331,9 +319,14 @@ void do_nparm_toggle(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void reset_nonl_frame(void)
+static void reset_nonl_frame_cb(void *data)
 {
     reset_nonl();
+    update_nonl_frame();
+}
+
+static void update_nonl_frame_cb(void *data)
+{
     update_nonl_frame();
 }
 
@@ -398,18 +391,18 @@ void update_nonl_frame(void)
 
 }
 
-static void do_nonl_toggle (Widget w, XtPointer client_data, XtPointer call_data)
+static void do_nonl_toggle(int onoff, void *data)
 {
     
     int i;
-    int value = (int) client_data;
+    int value = (int) data;
     for (i = 0; i < 3; i++) {
-	    if (i != value) {
-	        XmToggleButtonSetState(nonl_load_item[i], False, False);
-	    } else {
-	        XmToggleButtonSetState(nonl_load_item[i], True, False);
-	    }
-        }
+	if (i != value) {
+            XmToggleButtonSetState(nonl_load_item[i], False, False);
+	} else {
+            XmToggleButtonSetState(nonl_load_item[i], True, False);
+	}
+    }
     if (value == LOAD_FUNCTION) {
     	XtSetSensitive(nonl_fload_rc, True);
     } else {
@@ -417,9 +410,9 @@ static void do_nonl_toggle (Widget w, XtPointer client_data, XtPointer call_data
     }
 }
 
-static void do_constr_toggle (Widget w, XtPointer client_data, XtPointer call_data)
+static void do_constr_toggle(void *data)
 {
-    int value = (int) client_data;
+    int value = (int) data;
     if (XmToggleButtonGetState(nonl_constr_item[value])) {
     	XtSetSensitive(nonl_lowb_item[value], True);
     	XtSetSensitive(nonl_uppb_item[value], True);
@@ -432,11 +425,11 @@ static void do_constr_toggle (Widget w, XtPointer client_data, XtPointer call_da
 }
 
 /* ARGSUSED */
-static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_nonl_proc(void *data)
 {
     int i, npts = 0, info;
     double delx, *xfit, *y, *yfit;
-    int nsteps = (int) client_data;
+    int nsteps = (int) data;
     int cg = get_cg();
     
     set_wait_cursor();
@@ -655,9 +648,9 @@ static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-static void destroy_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
+static void destroy_nonl_frame_cb(void *data)
 {
-    int value = (int) client_data;
+    int value = (int) data;
     
     if (value == NONL_CANCEL) {
     	if (nlloadset != -1) {
@@ -671,7 +664,7 @@ static void destroy_nonl_frame(Widget w, XtPointer client_data, XtPointer call_d
     XtUnmanageChild(nonl_frame);
 }
 
-void create_openfit_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_openfit_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -698,7 +691,7 @@ static int do_openfit_proc(char *filename, void *data)
 }
 
 
-void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_savefit_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
     static Widget title_item = NULL;

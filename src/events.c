@@ -208,7 +208,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         set_action(VIEW_2ND);
 	                select_region(anchor_x, anchor_y, x, y, 0);
                     } else if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
-                        define_symbols_popup(parent, (XtPointer) setno, NULL);
+                        define_symbols_popup((void *) setno);
                     } else if (axis_clicked(cg, vp, &axisno) == TRUE) {
                         create_axes_dialog(axisno);
                     } else if (title_clicked(cg, vp) == TRUE) {
@@ -220,7 +220,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     } else if (timestamp_clicked(vp, &bb) == TRUE) {
                         create_plot_frame();
                     } else if (graph_clicked(cg, vp) == TRUE) {
-                        define_symbols_popup(parent, (XtPointer) -1, NULL);
+                        define_symbols_popup((void *) -1);
                     }
                 } else {
                     if (focus_policy == FOCUS_CLICK) {
@@ -585,9 +585,9 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 /*
  * action callback
  */
-void set_actioncb(Widget w, XtPointer client_data, XtPointer call_data)
+void set_actioncb(void *data)
 {
-    int func = (int) client_data;
+    int func = (int) data;
     set_action(DO_NOTHING);
     set_action(func);
 }
@@ -1336,7 +1336,7 @@ void move_object_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 
 void refresh_hotlink_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 {
-    do_hotupdate_proc( (Widget)NULL, (XtPointer)NULL, (XtPointer)NULL );
+    do_hotupdate_proc(NULL);
 }
 
 void set_viewport_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )

@@ -81,7 +81,7 @@ static Widget linkscroll_item;
  */
 static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
-void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_props_frame(void *data)
 {
     Widget panel;
     Widget buts[2];

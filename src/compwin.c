@@ -61,7 +61,7 @@ extern int nonlflag;		/* true if nonlinear curve fitting module is
 static Widget but1[3];
 static Widget but2[3];
 
-static void compute_aac(Widget w, XtPointer client_data, XtPointer call_data);
+static void compute_aac(void *data);
 static void do_compute_proc2(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -116,7 +116,7 @@ typedef struct _Eval_ui {
 
 static Eval_ui eui;
 
-void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_eval_frame(void *data)
 {
     set_wait_cursor();
     if (eui.top == NULL) {
@@ -297,7 +297,7 @@ int get_restriction_array(int gno, int setno,
 /*
  * evaluate a formula
  */
-static void compute_aac(Widget w, XtPointer client_data, XtPointer call_data)
+static void compute_aac(void *data)
 {
     int aac_mode, error, resno;
     int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2,
@@ -306,7 +306,7 @@ static void compute_aac(Widget w, XtPointer client_data, XtPointer call_data)
     int restr_type, restr_negate;
     char *rarray;
 
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(eui.top);
@@ -396,7 +396,7 @@ typedef struct _Histo_ui {
 
 static Histo_ui hui;
 
-void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_histo_frame(void *data)
 {
     Widget dialog;
     Widget rc;
@@ -507,7 +507,7 @@ typedef struct _Four_ui {
 
 static Four_ui fui;
 
-void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_fourier_frame(void *data)
 {
     Widget dialog;
     Widget rc;
@@ -708,7 +708,7 @@ typedef struct _Run_ui {
 
 static Run_ui rui;
 
-void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_run_frame(void *data)
 {
     Widget dialog;
     Widget rc;
@@ -848,7 +848,7 @@ static void set_regr_sensitivity(Widget w, XtPointer client_data,
 }
 	
 
-void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_reg_frame(void *data)
 {
     Widget dialog;
     Widget rc, rc2;
@@ -1053,7 +1053,7 @@ typedef struct _Diff_ui {
 
 static Diff_ui dui;
 
-void create_diff_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_diff_frame(void *data)
 {
     Widget dialog;
 
@@ -1132,7 +1132,7 @@ typedef struct _Int_ui {
 
 static Int_ui iui;
 
-void create_int_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_int_frame(void *data)
 {
     Widget dialog;
 
@@ -1216,7 +1216,7 @@ typedef struct _Seas_ui {
 
 static Seas_ui sui;
 
-void create_seasonal_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_seasonal_frame(void *data)
 {
     Widget dialog;
 
@@ -1290,7 +1290,7 @@ typedef struct _Interp_ui {
 
 static Interp_ui interpui;
 
-void create_interp_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_interp_frame(void *data)
 {
     Widget dialog;
 
@@ -1368,7 +1368,7 @@ typedef struct _Cross_ui {
 
 static Cross_ui crossui;
 
-void create_xcor_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_xcor_frame(void *data)
 {
     Widget dialog;
 
@@ -1444,7 +1444,7 @@ typedef struct _Spline_ui {
 
 static Spline_ui splineui;
 
-void create_spline_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_spline_frame(void *data)
 {
     static Widget dialog;
 
@@ -1537,7 +1537,7 @@ typedef struct _Samp_ui {
 
 static Samp_ui sampui;
 
-void create_samp_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_samp_frame(void *data)
 {
     static Widget dialog;
     Widget rc;
@@ -1642,7 +1642,7 @@ typedef struct _Prune_ui {
 
 static Prune_ui pruneui;
 
-void create_prune_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_prune_frame(void *data)
 {
     int i;
     static Widget dialog;
@@ -1838,7 +1838,7 @@ typedef struct _Digf_ui {
 
 static Digf_ui digfui;
 
-void create_digf_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_digf_frame(void *data)
 {
     Widget dialog;
 
@@ -1907,7 +1907,7 @@ typedef struct _Lconv_ui {
 
 static Lconv_ui lconvui;
 
-void create_lconv_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_lconv_frame(void *data)
 {
     Widget dialog;
 
@@ -1982,11 +1982,11 @@ typedef struct _Leval_ui {
 
 static Leval_ui levalui;
 
-void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_leval_frame(void *data)
 {
     Widget dialog;
     Widget rc;
-    int gno = (int) client_data;
+    int gno = (int) data;
 
     set_wait_cursor();
     if (is_valid_gno(gno)) {
@@ -2195,7 +2195,7 @@ static Geom_ui gui;
 static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void reset_geom_proc(Widget, XtPointer, XtPointer);
 
-void create_geom_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_geom_frame(void *data)
 {
     Widget dialog;
     Widget rc;

@@ -93,7 +93,7 @@ void do_fext_toggle (Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_featext_frame(void *data)
 {
     int i;
     Widget dialog;

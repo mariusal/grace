@@ -56,12 +56,12 @@
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void changetypeCB(int n, int *values, void *data);
-static void datasetprop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void datasetprop_aac_cb(void *data);
 
-static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void datasetop_aac_cb(void *data);
 static void update_sets_cb(int n, int *values, void *data);
 static void datasetoptypeCB(int value, void *data);
-static void setop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void setop_aac_cb(void *data);
 
 
 typedef struct _Type_ui {
@@ -76,9 +76,9 @@ typedef struct _Type_ui {
 
 static Type_ui tui;
 
-void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_datasetprop_popup(void *data)
 {
-    Widget panel, menubar, menupane, submenupane, cascade, dialog, rc, fr;
+    Widget panel, menubar, menupane, submenupane, dialog, rc, fr;
     int i, j;
 
     set_wait_cursor();
@@ -107,7 +107,7 @@ void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_da
         panel = XtVaCreateWidget("dataSetPanel",
             xmFormWidgetClass, tui.top, NULL, 0);
 
-        menubar = CreateMenuBar(panel, "dataSetMenuBar", NULL);
+        menubar = CreateMenuBar(panel);
         
         XtManageChild(menubar);
         XtVaSetValues(menubar,
@@ -123,44 +123,38 @@ void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_da
 	AddListChoiceCB(tui.sel, changetypeCB, (void *) tui.sel);
 
 
-        menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
-        CreateMenuButton(menupane, "close", "Close", 'C',
-            (XtCallbackProc) datasetprop_aac_cb, (XtPointer) AAC_CLOSE, NULL);
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Close", 'C', datasetprop_aac_cb, (void *) AAC_CLOSE);
 
-        menupane = CreateMenu(menubar, "dataSetDataMenu", "Edit", 'E', NULL, NULL);
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-        CreateMenuButton(menupane, "duplicate", "Duplicate", 'D',
-            duplicate_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(menupane, "killData", "Kill data", 'a',
-            killd_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(menupane, "Duplicate", 'D',
+            duplicate_set_proc, (void *) tui.sel);
+        CreateMenuButton(menupane, "Kill data", 'a',
+            killd_set_proc, (void *) tui.sel);
         CreateMenuSeparator(menupane);
-        submenupane = CreateMenu(menupane, "editData", "Edit data", 'E', NULL, NULL);
-        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
-            editS_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
-            editE_set_proc, (XtPointer) tui.sel, 0);
-        submenupane = CreateMenu(menupane, "createNew", "Create new", 'n', NULL, NULL);
-        CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
-            newF_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
-            newS_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
-            newE_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',
-            newB_set_proc, (XtPointer) tui.sel, 0);
+        submenupane = CreateMenu(menupane, "Edit data", 'E', FALSE);
+        CreateMenuButton(submenupane, "In spreadsheet", 's',
+            editS_set_proc, (void *) tui.sel);
+        CreateMenuButton(submenupane, "In text editor", 'e',
+            editE_set_proc, (void *) tui.sel);
+        submenupane = CreateMenu(menupane, "Create new", 'n', FALSE);
+        CreateMenuButton(submenupane, "By formula", 'f',
+            newF_set_proc, (void *) tui.sel);
+        CreateMenuButton(submenupane, "In spreadsheet", 's',
+            newS_set_proc, (void *) tui.sel);
+        CreateMenuButton(submenupane, "In text editor", 'e',
+            newE_set_proc, (void *) tui.sel);
+        CreateMenuButton(submenupane, "From block data", 'b',
+            newB_set_proc, (void *) tui.sel);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
-            (XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
-        CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
-                (XtCallbackProc) create_setop_popup, (XtPointer) NULL, 0);
+        CreateMenuButton(menupane, "Set appearance...", 'S',
+            define_symbols_popup, (void *) -1);
+        CreateMenuButton(menupane, "Set operations...", 'o',
+            create_setop_popup, NULL);
  
-
-        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
-        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
-        CreateMenuButton(menupane, "onDataSets", "On data sets", 's',
-            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
-        CreateMenuButton(menupane, "onContext", "On context", 'x',
-            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuButton(menupane, "On data sets", 's', HelpCB, NULL);
 
 	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -308,13 +302,13 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * change dataset properties
  */
-static void datasetprop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void datasetprop_aac_cb(void *data)
 {
     int aac_mode, error = FALSE;
     int *selset, nsets, i, len, setno, type;
     char *s;
     
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(tui.top);
         return;
@@ -381,9 +375,9 @@ static Datasetop_ui datasetopui;
 
 static Widget datasettype_controls[5];
 
-void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_datasetop_popup(void *data)
 {
-    Widget dialog, panel, menubar, menupane, cascade, rc, fr;
+    Widget dialog, panel, menubar, menupane, rc, fr;
     OptionItem optype_items[5];
 
     set_wait_cursor();
@@ -406,7 +400,7 @@ void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data
             xmFormWidgetClass, datasetopui.top, NULL, 0);
         XtVaSetValues(panel, XmNresizePolicy, XmRESIZE_ANY, NULL);
 
-        menubar = CreateMenuBar(panel, "dataSetMenuBar", NULL);
+        menubar = CreateMenuBar(panel);
         
         XtManageChild(menubar);
         XtVaSetValues(menubar,
@@ -421,17 +415,14 @@ void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data
 	datasetopui.sel = CreateSetChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
 
-        menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
-        CreateMenuButton(menupane, "close", "Close", 'C',
-            (XtCallbackProc) datasetop_aac_cb, (XtPointer) AAC_CLOSE, NULL);
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Close", 'C',
+            datasetop_aac_cb, (void *) AAC_CLOSE);
 
 
-        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
-        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
-        CreateMenuButton(menupane, "onDatasetOperations", "On dataset operations", 's',
-            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
-        CreateMenuButton(menupane, "onContext", "On context", 'x',
-            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuButton(menupane, "On dataset operations", 's',
+            HelpCB, NULL);
 
 	datasetopui.optype_item = CreateOptionChoice(dialog,
 						"Operation type:",
@@ -521,7 +512,7 @@ static void datasetoptypeCB(int value, void *data)
     }
 }
 
-static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void datasetop_aac_cb(void *data)
 {
     int aac_mode, error = FALSE;
     int *selset, nsets, i, setno;
@@ -531,7 +522,7 @@ static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_dat
     static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
     dataSetOpType optype;
     
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(datasetopui.top);
         return;
@@ -610,7 +601,7 @@ static Setop_ui setopui;
 #define OPTYPE_MOVE 1
 #define OPTYPE_SWAP 2
 
-void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_setop_popup(void *data)
 {
     Widget panel, rc, rc2, fr;
     OptionItem opitems[3];
@@ -692,12 +683,12 @@ static void update_sets_cb(int n, int *values, void *data)
     UpdateSetChoice(set_listp, gno);
 }
 
-static void setop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void setop_aac_cb(void *data)
 {
     int aac_mode, optype, error;
     int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2, gno1, gno2, setno2;
 
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(setopui.top);

@@ -76,7 +76,7 @@ static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_orient_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 
-static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void set_printer_proc(void *data);
 void create_printfiles_popup(Widget, XtPointer, XtPointer call_data);
 void create_devopts_popup(Widget, XtPointer, XtPointer call_data);
 
@@ -85,7 +85,7 @@ static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data
 static void update_printer_setup(int device_id);
 static void update_device_setup(int device_id);
 
-void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_printer_setup(void *data)
 {
     int i, ndev;
     Widget device_panel, rc, rc1, fr, wbut;
@@ -343,7 +343,7 @@ static void update_device_setup(int device_id)
     }
 }
 
-static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void set_printer_proc(void *data)
 {
     int aac_mode;
     int seldevice;
@@ -353,7 +353,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
     Device_entry dev;
     Page_geometry pg;
     
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(psetup_frame);

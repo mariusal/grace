@@ -90,7 +90,11 @@ static SpinStructure *ellip_linew_item;
 static OptionStructure *ellip_fillpat_item;
 static OptionStructure *ellip_fillcol_item;
 static Widget *ellip_loc_item;
-void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data);
+
+static void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data);
+static void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data);
+static void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data);
+static void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void ellip_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -222,7 +226,7 @@ void clear_objects_cb(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void define_objects_popup(void *data)
 {
     Widget wbut;
     Widget panel, rc;
@@ -312,7 +316,7 @@ void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget rc;
     Widget buts[2];
@@ -360,7 +364,7 @@ void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget rc;
     Widget buts[2];
@@ -416,7 +420,7 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget rc, fr, rc2;
     Widget buts[2];
@@ -487,7 +491,7 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
+static void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget rc;
     Widget buts[2];

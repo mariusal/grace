@@ -54,7 +54,7 @@ extern Display *disp;
 extern Widget app_shell;
 
 
-void HelpCB(Widget w, XtPointer client_data, XtPointer call_data)
+void HelpCB(void *data)
 {
     char URL[256];
     char *help_viewer, *ha;
@@ -64,7 +64,7 @@ void HelpCB(Widget w, XtPointer client_data, XtPointer call_data)
     int len;
 #endif /* WITH_LIBHELP */
 
-    ha = (char *) client_data;
+    ha = (char *) data;
     if (ha == NULL) {
         ha = NO_HELP;
     }
@@ -113,18 +113,15 @@ void HelpCB(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-void ContextHelpCB(Widget w, XtPointer client_data, XtPointer call_data)
+void ContextHelpCB(void *data)
 {
     Widget whelp;
-    XmAnyCallbackStruct *cb_struct;
     Cursor cursor;
     
-    cb_struct = call_data;
     cursor = XCreateFontCursor(disp, XC_question_arrow);
     whelp = XmTrackingLocate(app_shell, cursor, False);
     if (whelp != NULL) {
-        cb_struct->reason = XmCR_HELP;
-        XtCallCallbacks(whelp, XmNhelpCallback, cb_struct);
+        errmsg("Not implemented yet");
     }
     XFreeCursor(disp, cursor);
 }
@@ -135,7 +132,7 @@ void ContextHelpCB(Widget w, XtPointer client_data, XtPointer call_data)
 static Widget about_frame;
 static Widget about_panel;
 
-void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
+void create_about_grtool(void *data)
 {
     Widget wbut, rc;
     char buf[1024];

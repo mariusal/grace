@@ -122,22 +122,22 @@ static Widget avalue_appstr;
 
 static void UpdateSymbols(int gno, int value);
 static void set_cset_proc(int n, int *values, void *data);
-static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
-static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void setapp_aac_cb(void *data);
+static void setapp_data_proc(void *data);
 
 /*
  * create the symbols popup
  */
-void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void define_symbols_popup(void *data)
 {
     int setno;
     Widget setapp_panel, setapp_tab, setapp_main, setapp_symbols, 
            setapp_line, setapp_errbar, setapp_avalue, rc_head, fr, rc, rc1, rc2;
-    Widget menubar, menupane, cascade;
+    Widget menubar, menupane;
 
     set_wait_cursor();
     
-    setno = (int) client_data;
+    setno = (int) data;
     if (is_valid_setno(cg, setno) == TRUE) {
         cset = setno;
     }
@@ -148,47 +148,40 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         setapp_panel = XtVaCreateWidget("setapp_panel", xmFormWidgetClass, 
                                           setapp_dialog, NULL, 0);
 
-        menubar = CreateMenuBar(setapp_panel, "setappMenuBar", NULL);
+        menubar = CreateMenuBar(setapp_panel);
         
-        menupane = CreateMenu(menubar, "setappFileMenu", "File", 'F', NULL, NULL);
-        CreateMenuButton(menupane, "close", "Close", 'C',
-            (XtCallbackProc) setapp_aac_cb, (XtPointer) AAC_CLOSE, NULL);
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Close", 'C',
+            setapp_aac_cb, (void *) AAC_CLOSE);
 
-        menupane = CreateMenu(menubar, "setappEditMenu", "Edit", 'E', NULL, NULL);
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-        CreateMenuButton(menupane, "setDifferentColors", "Set different colors", 'c',
-            setapp_data_proc, (XtPointer) SETAPP_ALL_COLORS, NULL);
-        CreateMenuButton(menupane, "setDifferentSymbols", "Set different symbols", 's',
-            setapp_data_proc, (XtPointer) SETAPP_ALL_SYMBOLS, NULL);
-        CreateMenuButton(menupane, "setDifferentLineWidths", "Set different line widths", 'w',
-            setapp_data_proc, (XtPointer) SETAPP_ALL_LINEW, NULL);
-        CreateMenuButton(menupane, "setDifferentLineStyles", "Set different line styles", 'y',
-            setapp_data_proc, (XtPointer) SETAPP_ALL_LINES, NULL);
-        CreateMenuButton(menupane, "setBW", "Set black & white", 'B',
-            setapp_data_proc, (XtPointer) SETAPP_ALL_BW, NULL);
+        CreateMenuButton(menupane, "Set different colors", 'c',
+            setapp_data_proc, (void *) SETAPP_ALL_COLORS);
+        CreateMenuButton(menupane, "Set different symbols", 's',
+            setapp_data_proc, (void *) SETAPP_ALL_SYMBOLS);
+        CreateMenuButton(menupane, "Set different line widths", 'w',
+            setapp_data_proc, (void *) SETAPP_ALL_LINEW);
+        CreateMenuButton(menupane, "Set different line styles", 'y',
+            setapp_data_proc, (void *) SETAPP_ALL_LINES);
+        CreateMenuButton(menupane, "Set black & white", 'B',
+            setapp_data_proc, (void *) SETAPP_ALL_BW);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "loadComments", "Load comments", 'm',
-            setapp_data_proc, (XtPointer) SETAPP_LOAD_COMMENTS, NULL);
-        CreateMenuButton(menupane, "stripLegends", "Strip legends", 'l',
-            setapp_data_proc, (XtPointer) SETAPP_STRIP_LEGENDS, NULL);
+        CreateMenuButton(menupane, "Load comments", 'm',
+            setapp_data_proc, (void *) SETAPP_LOAD_COMMENTS);
+        CreateMenuButton(menupane, "Strip legends", 'l',
+            setapp_data_proc, (void *) SETAPP_STRIP_LEGENDS);
         
         
-        menupane = CreateMenu(menubar, "setappOptionsMenu", "Options", 'O', NULL, NULL);
+        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
       
         duplegs_item = CreateMenuToggle(menupane,
-            "duplicateLegends", "Duplicate legends", 'D',
-            (XtCallbackProc) NULL, (XtPointer) NULL, NULL);
-        CreateMenuToggle(menupane, "colorSync", "Color sync (N/I)", 's',
-            (XtCallbackProc) NULL, (XtPointer) NULL, NULL);
+            "Duplicate legends", 'D', NULL, NULL);
+        CreateMenuToggle(menupane, "Color sync (N/I)", 's', NULL, NULL);
 
-        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
-        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
-        CreateMenuButton(menupane, "onSetAppearance", "On set appearance", 's',
-            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
-
-        CreateMenuButton(menupane, "onContext", "On context", 'x',
-            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
+        CreateMenuButton(menupane, "On set appearance", 's', HelpCB, NULL);
         
         XtManageChild(menubar);
         XtVaSetValues(menubar,
@@ -507,7 +500,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * define symbols for the current set
  */
-static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void setapp_aac_cb(void *data)
 {
     int aac_mode;
     int i;
@@ -530,7 +523,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     int setno;
     int *selset, cd;
     
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(setapp_dialog);
@@ -756,7 +749,7 @@ void updatesymbols(int gno, int setno)
 }
 
 
-static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void setapp_data_proc(void *data)
 {
     int proc_type;
     int *selset, cd;
@@ -764,7 +757,7 @@ static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_dat
     plotarr p;
     int c = 0, bg = getbgcolor();
     
-    proc_type = (int) client_data;
+    proc_type = (int) data;
 
     cd = GetListChoices(toggle_symset_item, &selset);
     if (cd < 1) {

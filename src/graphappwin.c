@@ -108,13 +108,16 @@ static OptionStructure *legend_boxpattern_item;
 /*
  * Event and Notify proc declarations
  */
-static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void graphapp_aac_cb(void *data);
 static void updatelegends(int gno);
+static void update_view(int gno);
+static void update_frame_items(int gno);
+
 void update_graphapp_items(int n, int *values, void *data);
 
-void create_graphapp_frame_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void create_graphapp_frame_cb(void *data)
 {
-    create_graphapp_frame((int) client_data);
+    create_graphapp_frame((int) data);
 }
 
 /*
@@ -393,7 +396,7 @@ void create_graphapp_frame(int gno)
  * Notify and event procs
  */
 
-static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void graphapp_aac_cb(void *data)
 {
     int j, gno, n, *values;
     int aac_mode;
@@ -408,7 +411,7 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
  *     int flipxy;
  */
     
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(graphapp_dialog);
@@ -557,7 +560,7 @@ void update_graphapp_items(int n, int *values, void *data)
 /*
  * Viewport update
  */
-void update_view(int gno)
+static void update_view(int gno)
 {
     view v;
     char buf[32];
@@ -613,7 +616,7 @@ static void updatelegends(int gno)
     }
 }
 
-void update_frame_items(int gno)
+static void update_frame_items(int gno)
 {
     framep f;
     

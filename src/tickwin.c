@@ -133,10 +133,10 @@ static Widget axis_world_stop;
 
 static void set_axis_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void set_active_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void axes_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void axes_aac_cb(void *data);
 static void axis_scale_cb(int value, void *data);
 
-void create_axes_dialog_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void create_axes_dialog_cb(void *data)
 {
     create_axes_dialog(-1);
 }
@@ -619,7 +619,7 @@ void create_axes_dialog(int axisno)
 /*
  * Callback function for definition of tick marks and axis labels.
  */
-static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_data)
+static void axes_aac_cb(void *data)
 {
     int aac_mode;
     int i, j;
@@ -633,7 +633,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     
     char buf[256];
 
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(axes_dialog);

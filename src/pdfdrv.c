@@ -597,8 +597,7 @@ int pdf_op_parser(char *opstring)
 #ifndef NONE_GUI
 
 static void update_pdf_setup_frame(void);
-static void set_pdf_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data);
+static void set_pdf_setup_proc(void *data);
 
 static Widget pdf_setup_frame;
 static Widget pdf_setup_binary_item;
@@ -641,11 +640,10 @@ static void update_pdf_setup_frame(void)
     }
 }
 
-static void set_pdf_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data)
+static void set_pdf_setup_proc(void *data)
 {
     int aac_mode;
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(pdf_setup_frame);

@@ -170,7 +170,7 @@ void update_hotlinks(void)
 /*
  * update the sets in the current graph
  */
-void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void do_hotupdate_proc(void *data)
 {
     int i, errpos;
     char hotcom[256];
@@ -197,7 +197,7 @@ void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * create the big hot links widget
  */
-void create_hotlinks_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_hotlinks_popup(void *data)
 {
     static Widget top, dialog;
     Arg args[3];

@@ -904,16 +904,14 @@ int pnm_op_parser(char *opstring)
 #ifndef NONE_GUI
 
 static void update_gif_setup_frame(void);
-static void set_gif_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data);
+static void set_gif_setup_proc(void *data);
 
 static Widget gif_setup_frame;
 static Widget gif_setup_interlaced_item;
 static Widget gif_setup_transparent_item;
 
 static void update_pnm_setup_frame(void);
-static void set_pnm_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data);
+static void set_pnm_setup_proc(void *data);
 static Widget pnm_setup_frame;
 static Widget pnm_setup_rawbits_item;
 static Widget *pnm_setup_format_item;
@@ -956,11 +954,10 @@ static void update_gif_setup_frame(void)
     }
 }
 
-static void set_gif_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data)
+static void set_gif_setup_proc(void *data)
 {
     int aac_mode;
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(gif_setup_frame);
@@ -1018,11 +1015,10 @@ static void update_pnm_setup_frame(void)
     }
 }
 
-static void set_pnm_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data)
+static void set_pnm_setup_proc(void *data)
 {
     int aac_mode;
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(pnm_setup_frame);
@@ -1040,8 +1036,7 @@ static void set_pnm_setup_proc(Widget w, XtPointer client_data,
 
 #ifdef HAVE_LIBJPEG
 static void update_jpg_setup_frame(void);
-static void set_jpg_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data);
+static void set_jpg_setup_proc(void *data);
 
 static Widget jpg_setup_frame;
 static Widget jpg_setup_grayscale_item;
@@ -1111,11 +1106,10 @@ static void update_jpg_setup_frame(void)
     }
 }
 
-static void set_jpg_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data)
+static void set_jpg_setup_proc(void *data)
 {
     int aac_mode;
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(jpg_setup_frame);

@@ -150,7 +150,7 @@ typedef struct {
     OptionStructure *load_item;    /* load as single/nxy/block */
 } rdataGUI;
 
-void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
+void create_file_popup(void *data)
 {
     static FSBStructure *rdata_dialog = NULL;
 
@@ -268,7 +268,7 @@ typedef struct {
     Widget format_item;
 } wdataGUI;
 
-void create_write_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_write_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -334,7 +334,7 @@ static int write_sets_proc(char *filename, void *data)
 }
 
 
-void create_rparams_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_rparams_popup(void *data)
 {
     static FSBStructure *rparams_dialog = NULL;
 
@@ -365,7 +365,7 @@ static int read_params_proc(char *filename, void *data)
 /*
  * Create the wparam Frame and the wparam Panel
  */
-void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_wparam_frame(void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -437,7 +437,7 @@ void update_describe_popup(void)
     }
 }
 
-void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_describe_popup(void *data)
 {
     set_wait_cursor();
     if (describe_frame == NULL) {
@@ -625,7 +625,7 @@ static void do_netcdfupdate_proc(Widget w, XtPointer client_data, XtPointer call
     unset_wait_cursor();
 }
 
-void create_netcdfs_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void create_netcdfs_popup(void *data)
 {
     static Widget top, dialog;
     Widget lab;

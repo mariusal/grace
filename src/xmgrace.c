@@ -112,15 +112,9 @@ static Widget menu_bar;
 static Widget frleft, frtop, frbot;	/* dialogs along canvas edge */
 static Widget form;		/* form for mainwindow */
 
-static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data);
+static void MenuCB(void *data);
 static Widget CreateMainMenuBar(Widget parent);
-static void init_pm(Pixel fg, Pixel bg);
-
-/*
- * for buttons on front panel
- */
-static Pixmap zoompm, shrinkpm, expandpm, autopm;
-static Pixmap uppm, leftpm, downpm, rightpm;
+void init_pm(Pixel fg, Pixel bg);
 
 static int toolbar_visible = 1;
 static int statusbar_visible = 1;
@@ -128,9 +122,11 @@ static int locbar_visible = 1;
 
 static Widget windowbarw[3];
 
-static void graph_scroll_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void graph_scroll_proc(void *data);
+static void graph_zoom_proc(void *data);
+static void world_stack_proc(void *data);
+
+static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 #define WSTACK_PUSH         0
 #define WSTACK_POP          1
@@ -296,17 +292,17 @@ int initialize_gui(int *argc, char **argv)
     return GRACE_EXIT_SUCCESS;
 }
 
-static void do_drawgraph(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_drawgraph(void *data)
 {
     drawgraph();
 }
 
 
-static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void MenuCB(void *data)
 {
     char *s;
     
-    switch ((int) client_data) {
+    switch ((int) data) {
     case MENU_EXIT:
 	bailout();
 	break;
@@ -359,12 +355,12 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * service the autoscale buttons on the main panel
  */
-static void autoscale_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void autoscale_proc(void *data)
 {
     int cg = get_cg();
     
     if (activeset(cg)) {
-	autoscale_graph(cg, (int) client_data);
+	autoscale_graph(cg, (int) data);
 	update_ticks(cg);
         drawgraph();
     } else {
@@ -372,7 +368,7 @@ static void autoscale_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void autoon_proc(void)
+void autoon_proc(void *data)
 {
     set_action(0);
     set_action(AUTO_NEAREST);
@@ -381,7 +377,7 @@ void autoon_proc(void)
 /*
  * service the autoticks button on the main panel
  */
-void autoticks_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void autoticks_proc(void *data)
 {
     autotick_axis(get_cg(), ALL_AXES);
     update_ticks(get_cg());
@@ -423,7 +419,7 @@ void set_stack_message(void)
 /*
  * clear the locator reference point
  */
-void do_clear_point(Widget w, XtPointer client_data, XtPointer call_data)
+void do_clear_point(void *data)
 {
     GLocator locator;
     
@@ -519,9 +515,9 @@ static void set_view_items(void)
 /*
  * service routines for the View pulldown
  */
-void set_statusbar(Widget w, XtPointer client_data, XtPointer call_data)
+void set_statusbar(int onoff, void *data)
 {
-    if (XmToggleButtonGetState(w)) {
+    if (onoff) {
 	statusbar_visible = 1;
     } else {
 	statusbar_visible = 0;
@@ -529,9 +525,9 @@ void set_statusbar(Widget w, XtPointer client_data, XtPointer call_data)
     set_view_items();
 }
 
-void set_toolbar(Widget w, XtPointer client_data, XtPointer call_data)
+void set_toolbar(int onoff, void *data)
 {
-    if (XmToggleButtonGetState(w)) {
+    if (onoff) {
 	toolbar_visible = 1;
     } else {
 	toolbar_visible = 0;
@@ -539,9 +535,9 @@ void set_toolbar(Widget w, XtPointer client_data, XtPointer call_data)
     set_view_items();
 }
 
-void set_locbar(Widget w, XtPointer client_data, XtPointer call_data)
+void set_locbar(int onoff, void *data)
 {
-    if (XmToggleButtonGetState(w)) {
+    if (onoff) {
 	locbar_visible = 1;
     } else {
 	locbar_visible = 0;
@@ -557,27 +553,19 @@ static Widget CreateMainMenuBar(Widget parent)
     Widget menubar;
     Widget menupane, submenupane;
 
-    Widget cascade;
-
-    menubar = CreateMenuBar(parent, "menuBar", "main.html#menubar");
+    menubar = CreateMenuBar(parent);
 
 /*
  * File menu
  */
-    menupane = CreateMenu(menubar, "fileMenu", "File", 'F', NULL, NULL);
+    menupane = CreateMenu(menubar, "File", 'F', FALSE);
 
-    CreateMenuButton(menupane, "new", "New", 'N',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_NEW, NULL);
-    CreateMenuButton(menupane, "open", "Open...", 'O',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_OPEN, "file.html#open");
-    CreateMenuButton(menupane, "save", "Save", 'S',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_SAVE, "file.html#save");
-    CreateMenuButton(menupane, "saveAs", "Save as...", 'a',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_SAVEAS, "file.html#saveas");
-    CreateMenuButton(menupane, "revertToSaved", "Revert to saved", 'v',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_REVERT, NULL);
-    CreateMenuButton(menupane, "describe", "Describe...", 'D',
-    	(XtCallbackProc) create_describe_popup, NULL, "file.html#describe");
+    CreateMenuButton(menupane, "New", 'N', MenuCB, (void *) MENU_NEW);
+    CreateMenuButton(menupane, "Open...", 'O', MenuCB, (void *) MENU_OPEN);
+    CreateMenuButton(menupane, "Save", 'S', MenuCB, (void *) MENU_SAVE);
+    CreateMenuButton(menupane, "Save as...", 'a', MenuCB, (void *) MENU_SAVEAS);
+    CreateMenuButton(menupane, "Revert to saved", 'v', MenuCB, (void *) MENU_REVERT);
+    CreateMenuButton(menupane, "Describe...", 'D', create_describe_popup, NULL);
 
     CreateMenuSeparator(menupane);
 
@@ -585,225 +573,154 @@ static Widget CreateMainMenuBar(Widget parent)
  * Read submenu
  */
 
-    submenupane = CreateMenu(menupane, "readMenu", "Read", 'R', NULL, NULL);
+    submenupane = CreateMenu(menupane, "Read", 'R', FALSE);
 
-    CreateMenuButton(submenupane, "sets", "Sets...", 'S',
-    	(XtCallbackProc) create_file_popup, (XtPointer) NULL, "file.html#readsets");
+    CreateMenuButton(submenupane, "Sets...", 'S', create_file_popup, NULL);
 #ifdef HAVE_NETCDF
-    CreateMenuButton(submenupane, "netCDF", "NetCDF...", 'N', 
-    	(XtCallbackProc) create_netcdfs_popup, (XtPointer) NULL, "file.html#readnetcdf");
+    CreateMenuButton(submenupane, "NetCDF...", 'N', create_netcdfs_popup, NULL);
 #endif
-    CreateMenuButton(submenupane, "parameters", "Parameters...", 'P',
-    	(XtCallbackProc) create_rparams_popup, (XtPointer) NULL, "file.html#readpars");
+    CreateMenuButton(submenupane, "Parameters...", 'P', create_rparams_popup, NULL);
    
 /*
  * Write submenu
  */  
-    submenupane = CreateMenu(menupane, "writeMenu", "Write", 'W', NULL, NULL);
+    submenupane = CreateMenu(menupane, "Write", 'W', FALSE);
 
-    CreateMenuButton(submenupane, "sets", "Sets...", 'S',
-    	(XtCallbackProc) create_write_popup, (XtPointer) NULL, "file.html#writesets");
-    CreateMenuButton(submenupane, "parameters", "Parameters...", 'P', 
-    	(XtCallbackProc) create_wparam_frame, (XtPointer) NULL, "file.html#writeparams");
+    CreateMenuButton(submenupane, "Sets...", 'S', create_write_popup, NULL);
+    CreateMenuButton(submenupane, "Parameters...", 'P', create_wparam_frame, NULL);
 
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "print", "Print", 'P',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_PRINT, "file.html#print");
-    CreateMenuButton(menupane, "deviceSetup", "Device setup...", 't',
-    	(XtCallbackProc) create_printer_setup, (XtPointer) NULL, "file.html#printersetup");
+    CreateMenuButton(menupane, "Print", 'P', MenuCB, (void *) MENU_PRINT);
+    CreateMenuButton(menupane, "Device setup...", 't', create_printer_setup, NULL);
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "exit", "Exit", 'x',
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT, "file.html#exit");
+    CreateMenuButton(menupane, "Exit", 'x', MenuCB, (void *) MENU_EXIT);
 
 /*
  * Edit menu
  */
-    menupane = CreateMenu(menubar, "editMenu", "Edit", 'E', NULL, NULL);
+    menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-    CreateMenuButton(menupane, "dataSets", "Data sets...", 'D',
-    	    (XtCallbackProc) create_datasetprop_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
-    	    (XtCallbackProc) create_setop_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Data sets...", 'D', create_datasetprop_popup, NULL);
+    CreateMenuButton(menupane, "Set operations...", 'o', create_setop_popup, NULL);
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "arrangeGraphs", "Arrange graphs...", 'r',
-    	    (XtCallbackProc) create_arrange_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "overlayGraphs", "Overlay graphs...", 'O',
-    	    (XtCallbackProc) create_overlay_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "autoscale", "Autoscale graphs...", 'A',
-    	(XtCallbackProc) create_autos_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Arrange graphs...", 'r', create_arrange_frame, NULL);
+    CreateMenuButton(menupane, "Overlay graphs...", 'O', create_overlay_frame, NULL);
+    CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 
-    submenupane = CreateMenu(menupane, "regionsMenu", 
-    				"Regions", 'i', NULL, NULL);
-    CreateMenuButton(submenupane, "status", "Status...", 'S',
-    	(XtCallbackProc) define_status_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "define", "Define...", 'D',
-    	    (XtCallbackProc) create_define_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "clear", "Clear...", 'C',
-    	    (XtCallbackProc) create_clear_frame, (XtPointer) NULL, 0);
+    submenupane = CreateMenu(menupane, "Regions", 'i', FALSE);
+    CreateMenuButton(submenupane, "Status...", 'S', define_status_popup, NULL);
+    CreateMenuButton(submenupane, "Define...", 'D', create_define_frame, NULL);
+    CreateMenuButton(submenupane, "Clear...", 'C', create_clear_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
-    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Report on...", 'R', create_reporton_frame, NULL);
 
 
-    CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
-    	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Hot links...", 'l', create_hotlinks_popup, NULL);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "setLocatorFixedPoint", "Set locator fixed point", 'f',
-    	(XtCallbackProc) set_actioncb, (XtPointer) SEL_POINT, 0);
-    CreateMenuButton(menupane, "clearLocatorFixedPoint", "Clear locator fixed point", 'C',
-    	(XtCallbackProc) do_clear_point, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "locatorProps", "Locator props...", 'p',
-    	(XtCallbackProc) create_locator_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Set locator fixed point", 'f', set_actioncb, (void *) SEL_POINT);
+    CreateMenuButton(menupane, "Clear locator fixed point", 'C', do_clear_point, NULL);
+    CreateMenuButton(menupane, "Locator props...", 'p', create_locator_frame, NULL);
     
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "preferences", "Preferences...", 'r',
-    	(XtCallbackProc) create_props_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Preferences...", 'r', create_props_frame, NULL);
 
 /*
  * Data menu
  */
-    menupane = CreateMenu(menubar, "dataMenu", "Data", 'D', NULL, NULL);
+    menupane = CreateMenu(menubar, "Data", 'D', FALSE);
 
-    CreateMenuButton(menupane, "dataSetOperationsMenu", "Data set operations...", 'o',
-    	    (XtCallbackProc) create_datasetop_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Data set operations...", 'o', create_datasetop_popup, NULL);
 
-    submenupane = CreateMenu(menupane, "transformationsMenu", "Transformations", 'T', NULL, NULL);
+    submenupane = CreateMenu(menupane, "Transformations", 'T', FALSE);
 
-    CreateMenuButton(submenupane, "evaluateExpression", "Evaluate expression...", 'E',
-    	    (XtCallbackProc) create_eval_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Evaluate expression...", 'E', create_eval_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "histograms", "Histograms...", 'H',
-    	    (XtCallbackProc) create_histo_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "fourierTransforms", "Fourier transforms...", 'u',
-    	    (XtCallbackProc) create_fourier_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Histograms...", 'H', create_histo_frame, NULL);
+    CreateMenuButton(submenupane, "Fourier transforms...", 'u', create_fourier_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "runningAverages", "Running averages...", 'a',
-    	    (XtCallbackProc) create_run_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "differences", "Differences...", 'D',
-    	    (XtCallbackProc) create_diff_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "seasonalDifferences", "Seasonal differences...", 'o',
-    	    (XtCallbackProc) create_seasonal_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "integration", "Integration...", 'I',
-    	    (XtCallbackProc) create_int_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Running averages...", 'a', create_run_frame, NULL);
+    CreateMenuButton(submenupane, "Differences...", 'D', create_diff_frame, NULL);
+    CreateMenuButton(submenupane, "Seasonal differences...", 'o', create_seasonal_frame, NULL);
+    CreateMenuButton(submenupane, "Integration...", 'I', create_int_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "interpolation", "Interpolation...", 't',
-    	    (XtCallbackProc) create_interp_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "splines", "Splines...", 'S',
-    	    (XtCallbackProc) create_spline_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "regression", "Regression...", 'R',
-    	    (XtCallbackProc) create_reg_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "nonLinearFit", "Non-linear curve fitting...", 'N',
-    	    (XtCallbackProc) create_nonl_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Interpolation...", 't', create_interp_frame, NULL);
+    CreateMenuButton(submenupane, "Splines...", 'S', create_spline_frame, NULL);
+    CreateMenuButton(submenupane, "Regression...", 'R', create_reg_frame, NULL);
+    CreateMenuButton(submenupane, "Non-linear curve fitting...", 'N', create_nonl_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "correlation", "Cross/auto correlation...", 'C',
-    	    (XtCallbackProc) create_xcor_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "digitalFilter", "Digital filter...", 'f',
-    	    (XtCallbackProc) create_digf_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "linearConvolution", "Linear convolution...", 'v',
-    	    (XtCallbackProc) create_lconv_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Cross/auto correlation...", 'C', create_xcor_frame, NULL);
+    CreateMenuButton(submenupane, "Digital filter...", 'f', create_digf_frame, NULL);
+    CreateMenuButton(submenupane, "Linear convolution...", 'v', create_lconv_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
-    	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Geometric transforms...", 'G', create_geom_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "samplePoints", "Sample points...", 'm',
-    	    (XtCallbackProc) create_samp_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
-    	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "Sample points...", 'm', create_samp_frame, NULL);
+    CreateMenuButton(submenupane, "Prune data...", 'P', create_prune_frame, NULL);
 
-    CreateMenuButton(menupane, "featureExtraction", "Feature extraction...", 'x',
-    	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Feature extraction...", 'x', create_featext_frame, NULL);
 
 /* Plot menu */
-    menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
+    menupane = CreateMenu(menubar, "Plot", 'P', FALSE);
 
-    CreateMenuButton(menupane, "plotAppearance", "Plot appearance...", 'p',
-    	create_plot_frame_cb, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "graphAppearance", "Graph appearance...", 'G',
-    	create_graphapp_frame_cb, (XtPointer) -1, 0);
-    CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
-    	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
-    CreateMenuButton(menupane, "axisProperties", "Axis properties...", 'x',
-    	create_axes_dialog_cb, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Plot appearance...", 'p', create_plot_frame_cb, NULL);
+    CreateMenuButton(menupane, "Graph appearance...", 'G', create_graphapp_frame_cb, (void *) -1);
+    CreateMenuButton(menupane, "Set appearance...", 'S', define_symbols_popup, (void *) -1);
+    CreateMenuButton(menupane, "Axis properties...", 'x', create_axes_dialog_cb, NULL);
 
 
 /* View menu */
-    menupane = CreateMenu(menubar, "viewMenu", "View", 'V', NULL, NULL);
+    menupane = CreateMenu(menubar, "View", 'V', FALSE);
    
-    windowbarw[0] = CreateMenuToggle(menupane,
-        "showLocatorBar", "Show locator bar", 'L',
-        (XtCallbackProc) set_locbar, (XtPointer) &frtop, NULL);
-    windowbarw[1] = CreateMenuToggle(menupane,
-        "showStatusBar", "Show status bar", 'S',
-        (XtCallbackProc) set_statusbar, (XtPointer) &frbot, NULL);
-    windowbarw[2] = CreateMenuToggle(menupane,
-        "showToolBar", "Show tool bar", 'T',
-        (XtCallbackProc) set_toolbar, (XtPointer) &frleft, NULL);
+    windowbarw[0] = CreateMenuToggle(menupane, "Show locator bar", 'L', set_locbar, NULL);
+    windowbarw[1] = CreateMenuToggle(menupane, "Show status bar", 'S', set_statusbar, NULL);
+    windowbarw[2] = CreateMenuToggle(menupane, "Show tool bar", 'T', set_toolbar, NULL);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "redraw", "Redraw", 'R',
-    	    (XtCallbackProc) do_drawgraph, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Redraw", 'R', do_drawgraph, NULL);
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "updateAll", "Update all", 'U',
-    	    (XtCallbackProc) update_all_cb, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Update all", 'U', update_all_cb, NULL);
 
 /* Window menu */
-    menupane = CreateMenu(menubar, "windowMenu", "Window", 'W', NULL, NULL);
+    menupane = CreateMenu(menubar, "Window", 'W', FALSE);
    
-    CreateMenuButton(menupane, "commands", "Commands...", 'C',
-    	(XtCallbackProc) open_command, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "pointTracking", "Point tracking", 'P',
-    	(XtCallbackProc) create_points_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "drawingObjects", "Drawing objects", 'o',
-    	(XtCallbackProc) define_objects_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "fontTool", "Font tool", 'F',
-        create_fonttool_cb, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Commands...", 'C', open_command, NULL);
+    CreateMenuButton(menupane, "Point tracking", 'P', create_points_frame, NULL);
+    CreateMenuButton(menupane, "Drawing objects", 'o', define_objects_popup, NULL);
+    CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
 
 /*
- *     CreateMenuButton(menupane, "areaPerimeter", "Area/perimeter...", 'A',
- *     	    (XtCallbackProc) create_area_frame, (XtPointer) NULL, 0);
+ *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
 
-    CreateMenuButton(menupane, "results", "Results...", 'R',
-    	(XtCallbackProc) create_monitor_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "Results...", 'R', create_monitor_frame, NULL);
     
 
 /* help menu */
 
-    menupane = CreateMenu(menubar, "helpMenu", "Help", 'H', &cascade, NULL);
-    XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
+    menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
-    CreateMenuButton(menupane, "onContext", "On context", 'x',
-    	(XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
-
-    CreateMenuButton(menupane, "usersGiude", "User's Guide", 'G',
-    	(XtCallbackProc) HelpCB, (XtPointer) "UsersGuide.html", 0);
+    CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, (void *) "UsersGuide.html");
     
-    CreateMenuButton(menupane, "tutorial", "Tutorial", 'T',
-    	(XtCallbackProc) HelpCB, (XtPointer) "Tutorial.html", 0);
+    CreateMenuButton(menupane, "Tutorial", 'T', HelpCB, (void *) "Tutorial.html");
 
-    CreateMenuButton(menupane, "faq", "FAQ", 'Q',
-    	(XtCallbackProc) HelpCB, (XtPointer) "FAQ.html", 0);
+    CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, (void *) "FAQ.html");
 
-    CreateMenuButton(menupane, "changes", "Changes", 'C',
-    	(XtCallbackProc) HelpCB, (XtPointer) "CHANGES.html", 0);
+    CreateMenuButton(menupane, "Changes", 'C', HelpCB, (void *) "CHANGES.html");
 
-    CreateMenuButton(menupane, "comments", "Comments", 'm',
-    	(XtCallbackProc) HelpCB, (XtPointer) "http://plasma-gate.weizmann.ac.il/Grace/comments.html", 0);
+    CreateMenuButton(menupane, "Comments", 'm', HelpCB, (void *) "http://plasma-gate.weizmann.ac.il/Grace/comments.html");
    	    
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "licenseTerms", "License terms", 'L',
-    	(XtCallbackProc) HelpCB, (XtPointer) "GPL.html", 0);
+    CreateMenuButton(menupane, "License terms", 'L', HelpCB, (void *) "GPL.html");
 
-    CreateMenuButton(menupane, "about", "About...", 'A',
-    	(XtCallbackProc) create_about_grtool, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "About...", 'A', create_about_grtool, NULL);
 
 
     return (menubar);
@@ -845,8 +762,7 @@ void startup_gui(void)
  * We handle important WM events ourselves
  */
     WM_DELETE_WINDOW = XmInternAtom(disp, "WM_DELETE_WINDOW", False);
-    XmAddWMProtocolCallback(app_shell, WM_DELETE_WINDOW, 
-    	(XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT);
+    XmAddWMProtocolCallback(app_shell, WM_DELETE_WINDOW, wm_exit_cb, NULL);
     XtVaSetValues(app_shell, XmNdeleteResponse, XmDO_NOTHING, NULL);
     
 /*
@@ -857,8 +773,6 @@ void startup_gui(void)
 					 XmNwidth, 680,
 					 XmNheight, 700,
 					 NULL);
-
-    XtAddCallback(main_frame, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "index.html");
 
     menu_bar = CreateMainMenuBar(main_frame);
     XtManageChild(menu_bar);
@@ -874,7 +788,6 @@ void startup_gui(void)
 				     XmNmarginWidth, 0,
 				     XmNmarginHeight, 0,
 				     NULL);
-    XtAddCallback(rcleft, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#toolbar");
 
     frtop = CreateFrame(form, NULL);
     frbot = CreateFrame(form, NULL);
@@ -883,13 +796,11 @@ void startup_gui(void)
 				      XmNalignment, XmALIGNMENT_BEGINNING,
 				      XmNrecomputeSize, True,
 				      NULL);
-    XtAddCallback(statlab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#statbar");
 
     loclab = XtVaCreateManagedWidget("label Locate", xmLabelWidgetClass, frtop,
 				     XmNalignment, XmALIGNMENT_BEGINNING,
 				     XmNrecomputeSize, True,
 				     NULL);
-    XtAddCallback(loclab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#locbar");
 
     if (get_pagelayout() == PAGE_FIXED) {
 
@@ -924,8 +835,6 @@ void startup_gui(void)
                             (XtCallbackProc) expose_resize, NULL);
     XtAddCallback(canvas, XmNresizeCallback,
                             (XtCallbackProc) expose_resize, NULL);
-    XtAddCallback(canvas, XmNhelpCallback,
-                    (XtCallbackProc) HelpCB, (XtPointer) "main.html#canvas");
 
     XtAddEventHandler(canvas, EnterWindowMask
 		      | LeaveWindowMask
@@ -970,13 +879,8 @@ void startup_gui(void)
 
     XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
 
-
-    bt = XtVaCreateManagedWidget("Draw", xmPushButtonWidgetClass, rcleft,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                        (XtCallbackProc) do_drawgraph, (XtPointer) NULL);
-    XtAddCallback(bt, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#draw");
+    bt = CreateButton(rcleft, "Draw");
+    AddButtonCB(bt, do_drawgraph, NULL);
 
 /*
  * initialize pixmaps for buttons on front
@@ -1000,25 +904,10 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("Zoom", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, zoompm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) ZOOM_1ST);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#zoom");
-
-    bt = XtVaCreateManagedWidget("AS", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, autopm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                                    autoscale_proc, (XtPointer) AUTOSCALE_XY);
-    XtAddCallback(bt, XmNhelpCallback,
-                         (XtCallbackProc) HelpCB, (XtPointer) "main.html#as");
+    bt = CreateBitmapButton(rc3, 16, 16, zoom_bits);
+    AddButtonCB(bt, set_actioncb, (void *) ZOOM_1ST);
+    bt = CreateBitmapButton(rc3, 16, 16, auto_bits);
+    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_XY);
 
 /* expand/shrink */
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
@@ -1029,25 +918,10 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("Z", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, expandpm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                    (XtCallbackProc) graph_zoom_proc, (XtPointer) GZOOM_SHRINK);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#shrink");
-
-    bt = XtVaCreateManagedWidget("z", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, shrinkpm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                (XtCallbackProc) graph_zoom_proc, (XtPointer) GZOOM_EXPAND);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#expand");
+    bt = CreateBitmapButton(rc3, 16, 16, expand_bits);
+    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_EXPAND);
+    bt = CreateBitmapButton(rc3, 16, 16, shrink_bits);
+    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_SHRINK);
 
 /*
  * scrolling buttons
@@ -1060,25 +934,10 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("Left", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, leftpm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback, 
-                (XtCallbackProc) graph_scroll_proc, (XtPointer) GSCROLL_LEFT);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#left");
-
-    bt = XtVaCreateManagedWidget("Right", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, rightpm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                        (XtCallbackProc) graph_scroll_proc, (XtPointer) GSCROLL_RIGHT);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#right");
+    bt = CreateBitmapButton(rc3, 16, 16, left_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_LEFT);
+    bt = CreateBitmapButton(rc3, 16, 16, right_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_RIGHT);
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1088,39 +947,18 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-
-    bt = XtVaCreateManagedWidget("Down", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, downpm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                (XtCallbackProc) graph_scroll_proc, (XtPointer) GSCROLL_DOWN);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#down");
-    
-    bt = XtVaCreateManagedWidget("Up", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtVaSetValues(bt,
-		  XmNlabelType, XmPIXMAP,
-		  XmNlabelPixmap, uppm,
-		  NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                (XtCallbackProc) graph_scroll_proc, (XtPointer) GSCROLL_UP);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#up");
+    bt = CreateBitmapButton(rc3, 16, 16, down_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_DOWN);
+    bt = CreateBitmapButton(rc3, 16, 16, up_bits);
+    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_UP);
 
     CreateSeparator(rcleft);
 
+    bt = CreateButton(rcleft, "AutoT");
+    AddButtonCB(bt, autoticks_proc, NULL);
 
-    bt = XtVaCreateManagedWidget("AutoT", xmPushButtonWidgetClass, rcleft,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) autoticks_proc, NULL);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#autoticks");
-
-    bt = XtVaCreateManagedWidget("AutoO", xmPushButtonWidgetClass, rcleft,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) autoon_proc, NULL);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#autoon");
+    bt = CreateButton(rcleft, "AutoO");
+    AddButtonCB(bt, autoon_proc, NULL);
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1130,15 +968,10 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("ZX", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) ZOOMX_1ST);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#zoomx");
-
-    bt = XtVaCreateManagedWidget("ZY", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) ZOOMY_1ST);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#zoomy");
+    bt = CreateButton(rc3, "ZX");
+    AddButtonCB(bt, set_actioncb, (void *) ZOOMX_1ST);
+    bt = CreateButton(rc3, "ZY");
+    AddButtonCB(bt, set_actioncb, (void *) ZOOMY_1ST);
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1148,19 +981,10 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("AX", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                                     autoscale_proc, (XtPointer) AUTOSCALE_X);
-    XtAddCallback(bt, XmNhelpCallback,
-                      (XtCallbackProc) HelpCB, (XtPointer) "main.html#autox");
-
-    bt = XtVaCreateManagedWidget("AY", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-                                     autoscale_proc, (XtPointer) AUTOSCALE_Y);
-    XtAddCallback(bt, XmNhelpCallback,
-                      (XtCallbackProc) HelpCB, (XtPointer) "main.html#autoy");
+    bt = CreateButton(rc3, "AX");
+    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
+    bt = CreateButton(rc3, "AY");
+    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1170,19 +994,10 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("PZ", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, 
-                            world_stack_proc, (XtPointer) WSTACK_PUSH_ZOOM);
-    XtAddCallback(bt, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#pz");
-
-    bt = XtVaCreateManagedWidget("Pu", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, 
-                                 world_stack_proc, (XtPointer) WSTACK_PUSH);
-    XtAddCallback(bt, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#pu");
+    bt = CreateButton(rc3, "PZ");
+    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_PUSH_ZOOM);
+    bt = CreateButton(rc3, "Pu");
+    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_PUSH);
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1192,38 +1007,20 @@ void startup_gui(void)
 				  XmNmarginWidth, 0,
 				  XmNmarginHeight, 0,
 				  NULL);
-    bt = XtVaCreateManagedWidget("Po", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, 
-                                world_stack_proc, (XtPointer) WSTACK_POP);
-    XtAddCallback(bt, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#po");
-
-    bt = XtVaCreateManagedWidget("Cy", xmPushButtonWidgetClass, rc3,
-				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, 
-                                world_stack_proc, (XtPointer) WSTACK_CYCLE);
-    XtAddCallback(bt, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#cy");
+    bt = CreateButton(rc3, "Po");
+    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_POP);
+    bt = CreateButton(rc3, "Cy");
+    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_CYCLE);
 
     stack_depth_item = XtVaCreateManagedWidget("stackdepth",
                                                xmLabelWidgetClass, rcleft,
 					       NULL);
-    XtAddCallback(stack_depth_item, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#sd");
 
     curw_item = XtVaCreateManagedWidget("curworld", xmLabelWidgetClass, rcleft,
 					NULL);
-    XtAddCallback(curw_item, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#cw");
 
-    bt = XtVaCreateManagedWidget("Exit", xmPushButtonWidgetClass, rcleft,
-				 NULL);
-
-    XtAddCallback(bt, XmNactivateCallback,
-                            (XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT);
-    XtAddCallback(bt, XmNhelpCallback,
-                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#exit");
+    bt = CreateButton(rcleft, "Exit");
+    AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
 
 /*
  * initialize cursors
@@ -1275,27 +1072,9 @@ void startup_gui(void)
     XtAppMainLoop(app_con);
 }
 
-/*
- * initialize pixmaps for buttons on front
- */
-static void init_pm(Pixel fg, Pixel bg)
+static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    zoompm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) zoom_bits, 16, 16, fg, bg, depth);
-    autopm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) auto_bits, 16, 16, fg, bg, depth);
-    shrinkpm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) shrink_bits, 16, 16, fg, bg, depth);
-    expandpm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) expand_bits, 16, 16, fg, bg, depth);
-    rightpm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) right_bits, 16, 16, fg, bg, depth);
-    leftpm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) left_bits, 16, 16, fg, bg, depth);
-    uppm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) up_bits, 16, 16, fg, bg, depth);
-    downpm = XCreatePixmapFromBitmapData(disp, root, 
-                                (char *) down_bits, 16, 16, fg, bg, depth);
+    bailout();
 }
 
 void get_canvas_size(Dimension *w, Dimension *h)
@@ -1349,21 +1128,21 @@ void set_pagelayout(int layout)
  */
 }
 
-static void graph_scroll_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void graph_scroll_proc(void *data)
 {
-    graph_scroll((int) client_data);
+    graph_scroll((int) data);
     drawgraph();
 }
 
-static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void graph_zoom_proc(void *data)
 {
-    graph_zoom((int) client_data);
+    graph_zoom((int) data);
     drawgraph();
 }
 
-static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void world_stack_proc(void *data)
 {
-    switch ((int) client_data) {
+    switch ((int) data) {
     case WSTACK_PUSH_ZOOM:
         push_and_zoom();
         break;

@@ -83,7 +83,7 @@ static void do_define_region(Widget w, XtPointer client_data, XtPointer call_dat
     define_region(nr, regionlinkto, rtype);
 }
 
-void create_define_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_define_frame(void *data)
 {
     static Widget top, dialog;
 
@@ -153,7 +153,7 @@ static void do_clear_region(Widget w, XtPointer client_data, XtPointer call_data
     drawgraph();
 }
 
-void create_clear_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_clear_frame(void *data)
 {
     static Widget top, dialog;
 
@@ -186,7 +186,7 @@ void create_clear_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 Widget arealab, perimlab;
 
-void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_area_frame(void *data)
 {
     static Widget top, dialog;
     XmString str;
@@ -238,7 +238,7 @@ static void do_reporton_region(Widget w, XtPointer client_data, XtPointer call_d
     drawgraph();
 }
 
-void create_reporton_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_reporton_frame(void *data)
 {
     static Widget top, dialog;
 
@@ -312,7 +312,7 @@ void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 
-void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
+void define_status_popup(void *data)
 {
     set_wait_cursor();
     

@@ -70,7 +70,7 @@ Widget timestamp_y_item;
 static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void update_plot_items(void);
 
-void create_plot_frame_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void create_plot_frame_cb(void *data)
 {
     create_plot_frame();
 }

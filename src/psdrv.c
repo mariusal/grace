@@ -884,8 +884,7 @@ int eps_op_parser(char *opstring)
 #ifndef NONE_GUI
 
 static void update_ps_setup_frame(void);
-static void set_ps_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data);
+static void set_ps_setup_proc(void *data);
 
 static Widget ps_setup_frame;
 static Widget ps_setup_grayscale_item;
@@ -942,11 +941,10 @@ static void update_ps_setup_frame(void)
     }
 }
 
-static void set_ps_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data)
+static void set_ps_setup_proc(void *data)
 {
     int aac_mode;
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(ps_setup_frame);
@@ -964,8 +962,7 @@ static void set_ps_setup_proc(Widget w, XtPointer client_data,
 }
 
 static void update_eps_setup_frame(void);
-static void set_eps_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data);
+static void set_eps_setup_proc(void *data);
 static Widget eps_setup_frame;
 static Widget eps_setup_grayscale_item;
 static Widget eps_setup_tight_bb_item;
@@ -1008,11 +1005,10 @@ static void update_eps_setup_frame(void)
     }
 }
 
-static void set_eps_setup_proc(Widget w, XtPointer client_data, 
-                                                        XtPointer call_data)
+static void set_eps_setup_proc(void *data)
 {
     int aac_mode;
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(eps_setup_frame);

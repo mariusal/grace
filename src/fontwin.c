@@ -89,11 +89,11 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
 static void update_fonttool(int font);
 static void update_fonttool_cb(int value, void *data);
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs);
-static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void fonttool_aac_cb(void *data);
 
-void create_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void create_fonttool_cb(void *data)
 {
-    create_fonttool((Widget) client_data);
+    create_fonttool((Widget) data);
 }
 
 void create_fonttool(Widget cstext)
@@ -366,11 +366,11 @@ static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *c
     strcpy(string, GetTextString(string_item));
 }
 
-static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void fonttool_aac_cb(void *data)
 {
     int aac_mode;
     
-    aac_mode = (int) client_data;
+    aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(fonttool_frame);

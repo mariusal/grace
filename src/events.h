@@ -95,7 +95,7 @@ typedef enum {
 
 void anchor_point(int curx, int cury, VPoint curvp);
 void my_proc(Widget parent, XtPointer data, XEvent *event);
-void set_actioncb(Widget w, XtPointer client_data, XtPointer call_data);
+void set_actioncb(void *data);
 void set_action(CanvasAction act);
 void track_point(int gno, int setno, int *loc, int shift);
 void getpoints(VPoint vp);

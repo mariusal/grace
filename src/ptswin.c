@@ -81,7 +81,6 @@ static Widget *addat_item;
 static void do_ptsmove_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_del_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_track_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
 /*
  * set tracker
@@ -196,7 +195,7 @@ static void do_gotopt_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_goto_frame(void *data)
 {
     static Widget top;
     Widget rc, fr, dialog, buts[3];
@@ -239,7 +238,7 @@ void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-void create_add_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_add_frame(void *data)
 {
     static Widget top, dialog;
 
@@ -281,7 +280,7 @@ static void points_done_proc(Widget w, XtPointer client_data, XtPointer call_dat
     XtUnmanageChild((Widget) client_data);
 }
 
-void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_points_frame(void *data)
 {
     Widget dialog, wbut, rc;
     XmString str;

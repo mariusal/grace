@@ -163,7 +163,7 @@ void col_arrange_cb(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 
-void create_arrange_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_arrange_frame(void *data)
 {
     Widget rc;
     int i;
@@ -282,7 +282,7 @@ static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_
     drawgraph();
 }
 
-void create_overlay_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_overlay_frame(void *data)
 {
     char *label1[2];
     
@@ -348,7 +348,7 @@ static void define_autos_proc(Widget w, XtPointer client_data, XtPointer call_da
     define_autos(aon, au, ap);
 }
 
-void create_autos_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_autos_frame(void *data)
 {
     Widget panel;
 

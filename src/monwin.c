@@ -65,7 +65,7 @@ static void wmon_apply_notify_proc(Widget w, XtPointer client_data, XtPointer ca
 /*
  * Create the mon Panel
  */
-void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_monitor_frame(void *data)
 {
     set_wait_cursor();
     if (mon_frame == NULL) {
@@ -151,7 +151,7 @@ void stufftextwin(char *s, int sp)
     static XmTextPosition savepos = 0; /* for this sequence */
 
     if (inwin) {
-	create_monitor_frame(NULL, NULL, NULL);
+	create_monitor_frame(NULL);
 	if (sp == STUFF_START) {
 	    pos = XmTextGetLastPosition(text_w);
 	    savepos = pos;

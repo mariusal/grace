@@ -104,7 +104,7 @@ void update_locator_items(int gno)
 /*
  * Create the locator Panel
  */
-void create_locator_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_locator_frame(void *data)
 {
     Widget rc, fr, rc2;
     Widget buts[3];

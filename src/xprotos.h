@@ -41,16 +41,9 @@
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
 
-void autoon_proc(void);
-void autoticks_proc(Widget w, XtPointer client_data, XtPointer call_data);
 void set_left_footer(char *s);
 
 void xdrawgraph(void);
-void do_zoom(Widget w, XtPointer client_data, XtPointer call_data);
-void do_zoomx(Widget w, XtPointer client_data, XtPointer call_data);
-void do_zoomy(Widget w, XtPointer client_data, XtPointer call_data);
-void do_select_point(Widget w, XtPointer client_data, XtPointer call_data);
-void do_clear_point(Widget w, XtPointer client_data, XtPointer call_data);
 void expose_resize(Widget w, XtPointer client_data, XmDrawingAreaCallbackStruct *cbs);
 
 void setpointer(VPoint vp);
@@ -71,146 +64,102 @@ void xregister_rti(Input_buffer *ib);
 
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
 
-void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data);
-void create_netcdfs_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_rparams_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_file_popup(void *data);
+void create_netcdfs_popup(void *data);
+void create_rparams_popup(void *data);
+void create_wparam_frame(void *data);
 void create_saveproject_popup(void);
 void create_openproject_popup(void);
 void update_describe_popup (void);
-void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data);
+void do_hotupdate_proc(void *data);
 
 void create_eblock_frame(int gno);
 
-void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_printer_setup(void *data);
 
-void open_command(Widget w, XtPointer client_data, XtPointer call_data);
+void open_command(void *data);
 
-void do_pick_compose(Widget w, XtPointer client_data, XtPointer call_data);
-void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_load_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_diff_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_seasonal_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_interp_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_int_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_xcor_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_spline_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_samp_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_prune_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_digf_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_lconv_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_geom_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void execute_pick_compute(int gno, int setno, int function);
+void create_eval_frame(void *data);
+void create_load_frame(void *data);
+void create_histo_frame(void *data);
+void create_fourier_frame(void *data);
+void create_run_frame(void *data);
+void create_reg_frame(void *data);
+void create_diff_frame(void *data);
+void create_seasonal_frame(void *data);
+void create_interp_frame(void *data);
+void create_int_frame(void *data);
+void create_xcor_frame(void *data);
+void create_spline_frame(void *data);
+void create_samp_frame(void *data);
+void create_prune_frame(void *data);
+void create_digf_frame(void *data);
+void create_lconv_frame(void *data);
+void create_leval_frame(void *data);
+void create_geom_frame(void *data);
 
-void create_write_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_hotlinks_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_write_popup(void *data);
+void create_hotlinks_popup(void *data);
 void update_hotlinks(void);
-void create_saveall_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_saveall_popup(void *data);
 
-void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_add_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_points_frame(void *data);
+void create_goto_frame(void *data);
+void create_add_frame(void *data);
 
-void create_editp_frame(Widget w, XtPointer client_data, XtPointer call_data);
-
-void create_region_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_define_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_clear_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_extract_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_delete_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_extractsets_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_deletesets_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_reporton_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_evalregion_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_region_frame(void *data);
+void create_define_frame(void *data);
+void create_clear_frame(void *data);
+void create_reporton_frame(void *data);
+void create_area_frame(void *data);
 
 void define_region(int nr, int regionlinkto, int rtype);
 
-void update_status(int gno, int itemno);
-void update_region_status(int rno);
-void clear_status(void);
-void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void update_stuff_status(void);
-void select_set(Widget w, XtPointer calld, XEvent * e);
-void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data);
+void define_status_popup(void *data);
+void create_about_grtool(void *data);
 
 void update_set_lists(int gno);
 
 void updatesymbols(int gno, int value);
 void updatelegendstr(int gno);
-void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void define_legends_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void legend_loc_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void legend_load_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void define_legend_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void define_errbar_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void define_symbols_popup(void *data);
 
 void update_ticks(int gno);
 void create_axes_dialog(int axisno);
-void create_axes_dialog_cb(Widget w, XtPointer client_data, XtPointer call_data);
+void create_axes_dialog_cb(void *data);
 
-void update_graph_items(void);
-void create_graph_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_image_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_gtype_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_graph_frame(void *data);
 
-void update_world(int gno);
-void update_world_proc(void);
-void create_world_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void update_view(int gno);
-double fround(double x, double r);
-void create_view_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_arrange_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void create_overlay_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void update_autos(int gno);
-void create_autos_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_world_frame(void *data);
+void create_arrange_frame(void *data);
+void create_overlay_frame(void *data);
+void create_autos_frame(void *data);
 
-void boxes_def_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void lines_def_proc(Widget w, XtPointer client_data, XtPointer call_data);
-void updatestrings(void);
-void update_lines(void);
-void update_boxes(void);
-void define_string_defaults(Widget w, XtPointer client_data, XtPointer call_data);
-void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void do_object_function(Widget w, XtPointer client_data, XtPointer call_data);
-
-void update_label_proc(void);
-void create_label_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void update_labelprops_proc(void);
+void define_objects_popup(void *data);
 
 void update_locator_items(int gno);
-void create_locator_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_locator_frame(void *data);
 
-void update_frame_items(int gno);
 void create_graphapp_frame(int gno);
-void create_graphapp_frame_cb(Widget w, XtPointer client_data, XtPointer call_data);
+void create_graphapp_frame_cb(void *data);
 
-void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_monitor_frame(void *data);
 void stufftextwin(char *s, int sp);
 
-void HelpCB(Widget w, XtPointer client_data, XtPointer call_data);
-void ContextHelpCB(Widget w, XtPointer client_data, XtPointer call_data);
+void HelpCB(void *data);
+void ContextHelpCB(void *data);
 
-void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_nonl_frame(void *data);
 void update_nonl_frame(void);
 void update_prune_frame(void);
 
 void update_misc_items(void);
 void create_plot_frame(void);
-void create_plot_frame_cb(Widget w, XtPointer client_data, XtPointer call_data);
-void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_plot_frame_cb(void *data);
+void create_props_frame(void *data);
 
 void create_fonttool(Widget w);
-void create_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data);
+void create_fonttool_cb(void *data);
 
 void set_wait_cursor(void);
 void unset_wait_cursor(void);
@@ -235,13 +184,13 @@ int get_pagelayout(void);
 
 void errwin(char *s);
 
-void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_describe_popup(void *data);
 
-void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_datasetprop_popup(void *data);
+void create_datasetop_popup(void *data);
+void create_setop_popup(void *data);
 
-void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_featext_frame(void *data);
 
 void create_ss_frame(int gno, int setno);
 void do_ext_editor(int gno, int setno);
@@ -250,6 +199,6 @@ void set_graph_selectors(int gno);
 
 void update_props_items(void);
 void update_all(void);
-void update_all_cb(Widget w, XtPointer client_data, XtPointer call_data);
+void update_all_cb(void *data);
 
 #endif /* __XPROTOS_H_ */
