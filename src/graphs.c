@@ -223,7 +223,7 @@ int duplicate_graph(int gno)
         return RETURN_FAILURE;
     }
 
-    if (set_graph_active(new_gno, TRUE) != RETURN_SUCCESS) {
+    if (set_graph_active(new_gno) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
@@ -403,26 +403,18 @@ int get_graph_legend(int gno, legend *leg)
 }
 
 
-int set_graph_active(int gno, int flag)
+int set_graph_active(int gno)
 {
     int retval;
     
-    if (flag == TRUE) {
-        if (gno >= maxgraph) {
-            retval = realloc_graphs(gno + 1);
-            if (retval == RETURN_SUCCESS) {
-                set_graph_hidden(gno, FALSE);
-            }
-            return retval;
-        } else {
-            return RETURN_SUCCESS;
+    if (gno >= maxgraph) {
+        retval = realloc_graphs(gno + 1);
+        if (retval != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
         }
-    } else { 
-        if (is_valid_gno(gno) == TRUE) {
-            set_graph_hidden(gno, TRUE);
-        } 
-        return RETURN_SUCCESS;
     }
+    
+    return set_graph_hidden(gno, FALSE);
 }
 
 void set_graph_framep(int gno, framep * f)

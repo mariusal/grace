@@ -42,7 +42,6 @@
 #include "draw.h"
 #include "device.h"
 #include "graphs.h"
-#include "objutils.h"
 #include "graphutils.h"
 #include "protos.h"
 
@@ -166,7 +165,10 @@ int wipeout(void)
         }
     }
     kill_all_graphs();
-    do_clear_objects();
+    do_clear_lines();
+    do_clear_boxes();
+    do_clear_ellipses();
+    do_clear_text();
     reset_project_version();
     map_fonts(FONT_MAP_DEFAULT);
     set_docname(NULL);
@@ -643,7 +645,7 @@ int arrange_graphs(int *graphs, int ngraphs,
     for (i = 0; i < imax && ng < ngraphs; i++) {
         for (j = 0; j < jmax && ng < ngraphs; j++) {
             gno = graphs[ng];
-            set_graph_active(gno, TRUE);
+            set_graph_active(gno);
             
             if (order & GA_ORDER_HV_INV) {
                 iw = i;
@@ -758,10 +760,13 @@ void move_timestamp(VVector shift)
 
 void rescale_viewport(double ext_x, double ext_y)
 {
-    int gno;
+    int i, gno;
     view v;
     legend leg;
-    DObject *o;
+    linetype l;
+    boxtype b;
+    ellipsetype e;
+    plotstr s;
     
     for (gno = 0; gno < number_of_graphs(); gno++) {
         get_graph_viewport(gno, &v);
@@ -781,16 +786,44 @@ void rescale_viewport(double ext_x, double ext_y)
         /* TODO: tickmark offsets */
     }
 
-    storage_rewind(objects);
-    while (storage_get_data_next(objects, (void **) &o) == RETURN_SUCCESS) {
-        if (o->loctype == COORD_VIEW) {
-            o->ap.x     *= ext_x;
-            o->ap.y     *= ext_y;
-            o->offset.x *= ext_x;
-            o->offset.y *= ext_y;
+    for (i = 0; i < number_of_lines(); i++) {
+        get_graph_line(i, &l);
+        if (l.loctype == COORD_VIEW) {
+            l.x1 *= ext_x;
+            l.x2 *= ext_x;
+            l.y1 *= ext_y;
+            l.y2 *= ext_y;
+            set_graph_line(i, &l);
         }
     }
-
+    for (i = 0; i < number_of_boxes(); i++) {
+        get_graph_box(i, &b);
+        if (b.loctype == COORD_VIEW) {
+            b.x1 *= ext_x;
+            b.x2 *= ext_x;
+            b.y1 *= ext_y;
+            b.y2 *= ext_y;
+            set_graph_box(i, &b);
+        }
+    }
+    for (i = 0; i < number_of_ellipses(); i++) {
+        get_graph_ellipse(i, &e);
+        if (e.loctype == COORD_VIEW) {
+            e.x1 *= ext_x;
+            e.x2 *= ext_x;
+            e.y1 *= ext_y;
+            e.y2 *= ext_y;
+            set_graph_ellipse(i, &e);
+        }
+    }
+    for (i = 0; i < number_of_strings(); i++) {
+        get_graph_string(i, &s);
+        if (s.loctype == COORD_VIEW) {
+            s.x *= ext_x;
+            s.y *= ext_y;
+            set_graph_string(i, &s);
+        }
+    }
 }
 
 int overlay_graphs(int gsec, int gpri, int type)

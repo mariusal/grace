@@ -466,7 +466,7 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
 			sscanf(argv[i], "%d", &gno);
-			if (set_graph_active(gno, TRUE) == RETURN_SUCCESS) {
+			if (set_graph_active(gno) == RETURN_SUCCESS) {
 			    cur_graph = gno;
                             select_graph(gno);
 			} else {

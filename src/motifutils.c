@@ -1496,7 +1496,7 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
         }
         break;
     case GraphMenuNewCB:
-        set_graph_active(number_of_graphs(), TRUE);
+        set_graph_active(number_of_graphs());
         break;
     default:
         err = TRUE;
