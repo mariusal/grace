@@ -333,6 +333,20 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "  GR\n");
     fprintf(prstream, "} def\n");
 
+    /* Kerning stuff */
+    fprintf(prstream, "/KINIT\n");
+    fprintf(prstream, "{\n");
+    fprintf(prstream, " /kvector exch def\n");
+    fprintf(prstream, " /kid 0 def\n");
+    fprintf(prstream, "} def\n");
+    fprintf(prstream, "/KPROC\n");
+    fprintf(prstream, "{\n");
+    fprintf(prstream, " pop pop\n");
+    fprintf(prstream, " kvector kid get\n");
+    fprintf(prstream, " 0 rmoveto\n");
+    fprintf(prstream, " /kid 1 kid add def\n");
+    fprintf(prstream, "} def\n");
+
     /* Default encoding */
     enc = get_default_encoding();
     fprintf(prstream, "/DefEncoding [\n");
@@ -728,6 +742,8 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
 {
     char *fontname;
     char *encscheme;
+    double *kvector;
+    int i;
     
     if (psfont_status[font] == FALSE) {
         fontname = get_fontalias(font);
@@ -752,6 +768,20 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] CC\n",
                         tm->cxx, tm->cyx, tm->cxy, tm->cyy);
     
+    if (kerning) {
+        kvector = get_kerning_vector(s, len, font);
+    } else {
+        kvector = NULL;
+    }
+    if (kvector) {
+        fprintf(prstream, "[");
+        for (i = 0; i < len - 1; i++) {
+            fprintf(prstream, "%.4f ", kvector[i]);
+        }
+        fprintf(prstream, "] KINIT\n");
+        fprintf(prstream, "{KPROC} ");
+    }
+    
     put_string(prstream, s, len);
 
     if (underline | overline) {
@@ -766,7 +796,12 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
         }
     }
     
-    fprintf(prstream, " show\n");
+    if (kvector) {
+        fprintf(prstream, " kshow\n");
+        xfree(kvector);
+    } else {
+        fprintf(prstream, " show\n");
+    }
     
     fprintf(prstream, "GR\n");
 }
