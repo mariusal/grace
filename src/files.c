@@ -1176,7 +1176,7 @@ int new_project(Grace *grace, char *template)
     char *s;
     
     if (is_empty_string(template)) {
-        retval = load_project_file(grace, "templates/Default.agr", TRUE);
+        retval = load_project_file(grace, "templates/Default.xgr", TRUE);
     } else if (template[0] == '/') {
         retval = load_project_file(grace, template, TRUE);
     } else {

@@ -1,0 +1,179 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE grace SYSTEM "grace.dtd">
+<grace version="59900" xmlns:grace="http://plasma-gate.weizmann.ac.il/Grace/">
+  <!-- Description -->
+  <description>
+    <text/>
+  </description>
+  <!-- Definitions -->
+  <definitions>
+    <!-- Color map -->
+    <colormap>
+      <color-def id="0" rgb="#ffffff" name="white"/>
+      <color-def id="1" rgb="#000000" name="black"/>
+      <color-def id="2" rgb="#ff0000" name="red"/>
+      <color-def id="3" rgb="#00ff00" name="green"/>
+      <color-def id="4" rgb="#0000ff" name="blue"/>
+      <color-def id="5" rgb="#ffff00" name="yellow"/>
+      <color-def id="6" rgb="#bc8f8f" name="brown"/>
+      <color-def id="7" rgb="#dcdcdc" name="grey"/>
+      <color-def id="8" rgb="#9400d3" name="violet"/>
+      <color-def id="9" rgb="#00ffff" name="cyan"/>
+      <color-def id="10" rgb="#ff00ff" name="magenta"/>
+      <color-def id="11" rgb="#ffa500" name="orange"/>
+      <color-def id="12" rgb="#7221bc" name="indigo"/>
+      <color-def id="13" rgb="#670748" name="maroon"/>
+      <color-def id="14" rgb="#40e0d0" name="turquoise"/>
+      <color-def id="15" rgb="#008b00" name="green4"/>
+    </colormap>
+    <!-- Font map -->
+    <fontmap>
+      <font-def id="0" name="Times-Roman" fallback="Times-Roman"/>
+      <font-def id="1" name="Times-Italic" fallback="Times-Italic"/>
+      <font-def id="2" name="Times-Bold" fallback="Times-Bold"/>
+      <font-def id="3" name="Times-BoldItalic" fallback="Times-BoldItalic"/>
+      <font-def id="4" name="Helvetica" fallback="Helvetica"/>
+      <font-def id="5" name="Helvetica-Oblique" fallback="Helvetica-Oblique"/>
+      <font-def id="6" name="Helvetica-Bold" fallback="Helvetica-Bold"/>
+      <font-def id="7" name="Helvetica-BoldOblique" fallback="Helvetica-BoldOblique"/>
+      <font-def id="8" name="Courier" fallback="Courier"/>
+      <font-def id="9" name="Courier-Oblique" fallback="Courier-Oblique"/>
+      <font-def id="10" name="Courier-Bold" fallback="Courier-Bold"/>
+      <font-def id="11" name="Courier-BoldOblique" fallback="Courier-BoldOblique"/>
+      <font-def id="12" name="Symbol" fallback="Symbol"/>
+      <font-def id="13" name="ZapfDingbats" fallback="ZapfDingbats"/>
+    </fontmap>
+    <!-- Size scales -->
+    <scales font-size="0.028" line-width="0.0015"/>
+  </definitions>
+  <!-- Page properties -->
+  <page width="792" height="612" fill="yes" color-id="0"/>
+  <!-- Data formats -->
+  <data-formats>
+    <dates reference="               0" wrap="no" wrap-year="1950"/>
+    <world format="%16.8g"/>
+  </data-formats>
+  <frame id="frame" active="yes" type="0">
+    <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+    <fill-spec color-id="0" pattern-id="0"/>
+    <viewport xmin="0.15" xmax="1.15" ymin="0.15" ymax="0.85"/>
+    <legend active="yes" length="0.04" vgap="0.01" hgap="0.01" single-symbol="no" invert="no">
+      <face-spec font-id="0" color-id="1" char-size="1"/>
+      <legframe anchor-corner="1" offset="(0.7, 0.05)">
+        <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        <fill-spec color-id="0" pattern-id="1"/>
+      </legframe>
+    </legend>
+    <graph id="graph" active="yes">
+      <presentation-spec type="xy" stacked="no" bargap="0"/>
+      <xscale min="               0" max="               1" type="Normal" invert="no"/>
+      <yscale min="               0" max="               1" type="Normal" invert="no"/>
+      <zscale norm="1"/>
+      <locator type="1">
+        <fixedpoint active="no" x="               0" y="               0"/>
+        <xformat format="general" prec="6"/>
+        <yformat format="general" prec="6"/>
+      </locator>
+      <axis id="x_axis" type="x" active="yes">
+        <placement zero="no" offset="(0, 0)"/>
+        <axisbar active="yes">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </axisbar>
+        <axislabel layout="parallel" offset="(0, 0.08)" side-placement="normal">
+          <text-properties angle="0" justification="0">
+            <face-spec font-id="0" color-id="1" char-size="1"/>
+          </text-properties>
+          <text/>
+        </axislabel>
+        <ticks major-step="             0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+          <userticks type="none"/>
+          <tickmarks active="yes" side-placement="both">
+            <major size="1" inout-placement="in" grid-lines="no">
+              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+            </major>
+            <minor size="0.5" grid-lines="no" inout-placement="in">
+              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+            </minor>
+          </tickmarks>
+          <ticklabels active="yes" side-placement="normal" transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+            <text-properties angle="0" justification="0">
+              <face-spec font-id="0" color-id="1" char-size="1"/>
+            </text-properties>
+            <format format="general" prec="5"/>
+          </ticklabels>
+        </ticks>
+      </axis>
+      <axis id="y_axis" type="y" active="yes">
+        <placement zero="no" offset="(0, 0)"/>
+        <axisbar active="yes">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </axisbar>
+        <axislabel layout="parallel" offset="(0, 0.08)" side-placement="normal">
+          <text-properties angle="0" justification="0">
+            <face-spec font-id="0" color-id="1" char-size="1"/>
+          </text-properties>
+          <text/>
+        </axislabel>
+        <ticks major-step="             0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+          <userticks type="none"/>
+          <tickmarks active="yes" side-placement="both">
+            <major size="1" inout-placement="in" grid-lines="no">
+              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+            </major>
+            <minor size="0.5" grid-lines="no" inout-placement="in">
+              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+            </minor>
+          </tickmarks>
+          <ticklabels active="yes" side-placement="normal" transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+            <text-properties angle="0" justification="0">
+              <face-spec font-id="0" color-id="1" char-size="1"/>
+            </text-properties>
+            <format format="general" prec="5"/>
+          </ticklabels>
+        </ticks>
+      </axis>
+    </graph>
+    <atext id="title" active="no" offset="(0, 0.06)">
+      <location x="0.5" y="1"/>
+      <text-properties angle="0" justification="6">
+        <face-spec font-id="0" color-id="1" char-size="1.5"/>
+      </text-properties>
+      <text><![CDATA[Title]]></text>
+      <text-frame type="0" offset="0">
+        <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
+      <pointer active="no">
+        <arrow type="0" length="0" dl-ff="0" ll-ff="0"/>
+      </pointer>
+    </atext>
+    <atext id="subtitle" active="no" offset="(0, 0.02)">
+      <location x="0.5" y="1"/>
+      <text-properties angle="0" justification="6">
+        <face-spec font-id="0" color-id="1" char-size="1"/>
+      </text-properties>
+      <text><![CDATA[Subtitle]]></text>
+      <text-frame type="0" offset="0">
+        <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        <fill-spec color-id="0" pattern-id="0"/>
+      </text-frame>
+      <pointer active="no">
+        <arrow type="0" length="0" dl-ff="0" ll-ff="0"/>
+      </pointer>
+    </atext>
+  </frame>
+  <atext id="timestamp" active="no" offset="(0, 0)">
+    <location x="0.03" y="0.03"/>
+    <text-properties angle="0" justification="0">
+      <face-spec font-id="0" color-id="1" char-size="1"/>
+    </text-properties>
+    <text><![CDATA[\${timestamp}]]></text>
+    <text-frame type="0" offset="0">
+      <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+      <fill-spec color-id="0" pattern-id="0"/>
+    </text-frame>
+    <pointer active="no">
+      <arrow type="0" length="0" dl-ff="0" ll-ff="0"/>
+    </pointer>
+  </atext>
+</grace>
