@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -205,8 +205,8 @@ void set_default_legend(int gno, legend * l)
     l->color = grdefaults.color;
     l->boxpen.color = grdefaults.color;
     l->boxpen.pattern = grdefaults.pattern;
-    l->boxfillpen.color = grdefaults.color;
-    l->boxfillpen.pattern = 0;
+    l->boxfillpen.color = 0;
+    l->boxfillpen.pattern = grdefaults.pattern;
     l->boxlinew = grdefaults.linew;     /* set plot sym line width */
     l->boxlines = grdefaults.lines;     /* set plot sym line style */
 }
