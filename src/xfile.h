@@ -61,6 +61,7 @@ typedef struct _XFile {
     int indent;
     char *indstr;
     int curpos;
+    int convert;
 } XFile;
 
 XStack *xstack_new(void);
@@ -87,7 +88,7 @@ int attributes_set_dval_formatted(Attributes *attrs, const char *name,
 XFile *xfile_new(char *fname);
 void xfile_free(XFile *xf);
 
-int xfile_begin(XFile *xf, char *encoding, int standalone,
+int xfile_begin(XFile *xf, int standalone,
     char *dtd_name, char *dtd_uri, char *root, Attributes *root_attrs);
 int xfile_end(XFile *xf);
 

@@ -47,6 +47,12 @@
 
 #define XSTACK_CHUNK_SIZE   16
 
+/* Types of text convert logics */
+#define CONVERT_NONE        0
+#define CONVERT_PCDATA      1
+#define CONVERT_CDATA       2
+#define CONVERT_COMMENTS    3
+
 XStack *xstack_new(void)
 {
     XStack *xs = xmalloc(sizeof(XStack));
@@ -278,12 +284,13 @@ XFile *xfile_new(char *fname)
 
     xf = xmalloc(sizeof(XFile));
     if (xf) {
-        xf->tree   = xstack_new();
-        xf->indent = 0;
-        xf->curpos = 0;
-        xf->indstr = copy_string(NULL, DEFAULT_INDENT_STRING);
-        xf->fname  = copy_string(NULL, fname);
-        xf->fp     = grace_openw(xf->fname);
+        xf->tree    = xstack_new();
+        xf->indent  = 0;
+        xf->curpos  = 0;
+        xf->convert = CONVERT_NONE;
+        xf->indstr  = copy_string(NULL, DEFAULT_INDENT_STRING);
+        xf->fname   = copy_string(NULL, fname);
+        xf->fp      = grace_openw(xf->fname);
         
         if (!xf->tree || !xf->indstr || !xf->fname || !xf->fp) {
             xfile_free(xf);
@@ -294,26 +301,76 @@ XFile *xfile_new(char *fname)
     return xf;
 }
 
+static void xfile_convert(XFile *xf, int flag)
+{
+    xf->convert = flag;
+}
+
 static int xfile_output(XFile *xf, char *str)
 {
-    int i, nb;
+    int i;
+    
+    if (!str) {
+        return RETURN_SUCCESS;
+    }
     
     if (xf->curpos == 0) {
         for (i = 0; i < xf->indent; i++) {
-            if ((nb = fputs(xf->indstr, xf->fp)) >= 0) {
-                xf->curpos += strlen(xf->indstr);
-            } else {
+            if (fputs(xf->indstr, xf->fp) < 0) {
                 return RETURN_FAILURE;
+            } else {
+                xf->curpos += strlen(xf->indstr);
             }
         }
     }
     
-    nb = fputs(str, xf->fp);
-    if (nb >= 0) {
-        xf->curpos += nb;
+    if (xf->convert) {
+        for (i = 0; i < strlen(str); i++) {
+            char buf[8];
+            unsigned char uc = (unsigned char) str[i];
+            if (uc & 0x80) {
+                /* 2-byte UTF-8 */
+                buf[0] = 0xC0 | (uc >> 6);
+                buf[1] = 0xA0 | (uc & 0x3F);
+                buf[2] = '\0';
+            } else {
+                if (xf->convert == CONVERT_PCDATA && uc == '"') {
+                    strcpy(buf, "&quot;");
+                } else
+                if (xf->convert == CONVERT_PCDATA && uc == '&') {
+                    strcpy(buf, "&amp;");
+                } else
+                if (xf->convert == CONVERT_PCDATA && uc == '<') {
+                    strcpy(buf, "&lt;");
+                } else
+                if (uc == '>' &&
+                    i > 1 && str[i - 1] == ']' && str[i - 2] == ']') {
+                    strcpy(buf, "&gt;");
+                } else
+                if (xf->convert == CONVERT_COMMENTS &&
+                    uc == '-' && str[i + 1] == '-') {
+                    continue;
+                } else {
+                    buf[0] = uc;
+                    buf[1] = '\0';
+                }
+            }
+            
+            if (fputs(buf, xf->fp) < 0) {
+                return RETURN_FAILURE;
+            } else {
+                xf->curpos += strlen(buf);
+            }
+        }
+        
         return RETURN_SUCCESS;
     } else {
-        return RETURN_FAILURE;
+        if (fputs(str, xf->fp) < 0) {
+            return RETURN_FAILURE;
+        } else {
+            xf->curpos += strlen(str);
+            return RETURN_SUCCESS;
+        }
     }
 }
 
@@ -355,11 +412,14 @@ static void xfile_output_attributes(XFile *xf, Attributes *attrs)
         unsigned int i;
         for (i = 0; i < attrs->count; i++) {
             if (attrs->args[i].name) {
-                /* FIXME: escape special chars */
                 xfile_output(xf, " ");
                 xfile_output(xf, attrs->args[i].name);
                 xfile_output(xf, "=\"");
-                xfile_output(xf, PSTRING(attrs->args[i].value));
+                
+                xfile_convert(xf, CONVERT_PCDATA);
+                xfile_output(xf, attrs->args[i].value);
+                xfile_convert(xf, CONVERT_NONE);
+                
                 xfile_output(xf, "\"");
             }
         }
@@ -430,10 +490,13 @@ int xfile_text_element(XFile *xf,
         
         if (cdata) {
             xfile_output(xf, "<![CDATA[");
+            xfile_convert(xf, CONVERT_CDATA);
+        } else {
+            xfile_convert(xf, CONVERT_PCDATA);
         }
 
-        /* FIXME: escape special chars */
         xfile_output(xf, text);
+        xfile_convert(xf, CONVERT_NONE);
 
         if (cdata) {
             xfile_output(xf, "]]>");
@@ -448,7 +511,7 @@ int xfile_text_element(XFile *xf,
     }
 }
 
-int xfile_begin(XFile *xf, char *encoding, int standalone,
+int xfile_begin(XFile *xf, int standalone,
     char *dtd_name, char *dtd_uri, char *root, Attributes *root_attrs)
 {
     Attributes *attrs;
@@ -460,10 +523,6 @@ int xfile_begin(XFile *xf, char *encoding, int standalone,
     
     attributes_set_sval(attrs, "version", "1.0");
 
-    if (encoding) {
-        attributes_set_sval(attrs, "encoding", encoding);
-    }
-    
     attributes_set_bval(attrs, "standalone", standalone);
     
     xfile_processing_instruction(xf, attrs);
@@ -507,7 +566,11 @@ int xfile_end(XFile *xf)
 int xfile_comment(XFile *xf, char *comment)
 {
     xfile_output(xf, "<!-- ");
+    
+    xfile_convert(xf, CONVERT_COMMENTS);
     xfile_output(xf, comment);
+    xfile_convert(xf, CONVERT_NONE);
+    
     xfile_output(xf, " -->");
     xfile_crlf(xf);
     

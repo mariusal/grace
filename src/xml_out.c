@@ -851,7 +851,7 @@ int save_project(char *fn)
     
     attributes_reset(attrs);
     attributes_set_ival(attrs, AStrVersion, bi_version_id());
-    xfile_begin(xf, "ISO-8859-1", FALSE, NULL, "grace.dtd", EStrGrace, attrs);
+    xfile_begin(xf, FALSE, NULL, "grace.dtd", EStrGrace, attrs);
 
     xfile_comment(xf, "Description");
     xfile_begin_element(xf, EStrDescription, NULL);
