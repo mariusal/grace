@@ -1262,7 +1262,9 @@ char *T1_GetAfmFilePath( int FontID)
   }
   /* Get full path of the afm file (The case of a full path name
      name specification is valid */
-  AFMFilePath=intT1_Env_GetCompletePath( filepath, T1_AFM_ptr);
+  if ((AFMFilePath=intT1_Env_GetCompletePath( filepath, T1_AFM_ptr)) == NULL) {
+    return NULL;
+  }
   strcpy( filepath, AFMFilePath);
   free( AFMFilePath);
   
