@@ -57,9 +57,7 @@
 #include <Xm/PushB.h>
 #include <Xm/ScrolledW.h>
 #include <Xm/DrawingA.h>
-#if XmVersion >= 1002
-#  include <Xm/RepType.h>
-#endif
+#include <Xm/RepType.h>
 
 #if defined(HAVE_XPM_H)
 #  include <xpm.h>
@@ -82,17 +80,6 @@
 #include "protos.h"
 
 #include "motifinc.h"
-
-/*
- * used to set up XmStrings
- * Seems to be some problems under AIX, the #ifdef is supposed to
- * take care of the problem.
- */
-#ifdef XmFONTLIST_DEFAULT_TAG
-XmStringCharSet charset = (XmStringCharSet) XmFONTLIST_DEFAULT_TAG;
-#else
-XmStringCharSet charset = (XmStringCharSet) XmSTRING_DEFAULT_CHARSET;
-#endif
 
 
 /* used globally */
@@ -245,9 +232,7 @@ String fallbackResources[] = {
     "XMgrace*XmToggleButton.selectColor: #ff0000",
     "XMgrace*XmToggleButton.fillOnSelect: true",
     "XMgrace*XmSeparator.margin: 0",
-#if (XmVersion >= 1002)
     "*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
-#endif
     "*dragInitiatorProtocolStyle: XmDRAG_NONE",
     "*dragReceiverProtocolStyle:  XmDRAG_NONE",
     "*fileMenu.new.acceleratorText: Ctrl+N",
@@ -852,9 +837,7 @@ void startup_gui(void)
 /* 
  * Allow users to change tear off menus with X resources
  */
-#if (XmVersion >= 1002)
     XmRepTypeInstallTearOffModelConverter();
-#endif
 
 #ifdef WITH_EDITRES    
     XtAddEventHandler(app_shell, (EventMask) 0, True,
