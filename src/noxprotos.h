@@ -68,20 +68,11 @@ void set_region_defaults(int i);
 void set_default_framep(framep * f);
 void set_default_world(world * w);
 void set_default_view(view * v);
-void set_default_string(plotstr * s);
-void set_default_arrow(Arrow *arrowp);
-void set_default_line(linetype * l);
-void set_default_box(boxtype * b);
-void set_default_ellipse(ellipsetype * b);
 void set_default_legend(int gno, legend * l);
 void set_default_plotarr(plotarr * p);
 void set_default_graph(int gno);
-int realloc_lines(int n);
-int realloc_boxes(int n);
-int realloc_ellipses(int n);
-int realloc_strings(int n);
-void set_default_ticks(tickmarks *t);
 
+void set_default_ticks(tickmarks *t);
 void calculate_tickgrid(int gno);
 void drawgrid(int gno);
 void drawaxes(int gno);
@@ -115,63 +106,11 @@ void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv);
 void putparms(int gno, FILE * pp, int embed);
 void put_fitparms(FILE * pp, int embed);
 
-void get_graph_box(int i, boxtype * b);
-void get_graph_line(int i, linetype * l);
-void get_graph_ellipse(int i, ellipsetype * e);
-void get_graph_string(int i, plotstr * s);
-void set_graph_box(int i, boxtype *b);
-void set_graph_line(int i, linetype *l);
-void set_graph_string(int i, plotstr *s);
-void set_graph_ellipse(int i, ellipsetype * e);
-
 void pop_world(void);
 
 void define_autos(int aon, int au, int ap);
 
-int find_item(int gno, VPoint vp, view *bb, int *type, int *id);
-
-int is_valid_line(int line);
-int is_valid_box(int box);
-int is_valid_ellipse(int ellipse);
-int is_valid_string(int string);
-
-int isactive_line(int lineno);
-int isactive_box(int boxno);
-int isactive_ellipse(int ellipno);
-int isactive_string(int strno);
-
-int next_line(void);
-int next_box(void);
-int next_ellipse(void);
-int next_string(void);
-
-void kill_box(int boxno);
-void kill_ellipse(int ellipseno);
-void kill_line(int lineno);
-void kill_string(int stringno);
-
-void copy_object(int type, int from, int to);
-int kill_object(int type, int id);
-int next_object(int type);
-int duplicate_object(int type, int id);
-
-int get_object_bb(int type, int id, view *bb);
-void move_object(int type, int id, VVector shift);
-
-int number_of_boxes(void);
-int number_of_ellipses(void);
-int number_of_lines(void);
-int number_of_strings(void);
-
-void init_string(int id, VPoint vp);
-void init_line(int id, VPoint vp1, VPoint vp2);
-void init_box(int id, VPoint vp1, VPoint vp2);
-void init_ellipse(int id, VPoint vp1, VPoint vp2);
-
-void do_clear_lines(void);
-void do_clear_boxes(void);
-void do_clear_text(void);
-void do_clear_ellipses(void);
+int find_item(int gno, VPoint vp, view *bb, int *id);
 
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);

@@ -46,6 +46,7 @@
 #include "graphs.h"
 #include "draw.h"
 #include "device.h"
+#include "objutils.h"
 #include "plotone.h"
 #include "protos.h"
 
@@ -2037,260 +2038,144 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
 }
 
 /* --------------------------------------------------------------- */
-/* Objects ... TODO: move to draw.c or separate file */
+/* Objects */
 
 void draw_objects(int gno)
 {
-    int i;
-
-    setclipping(FALSE);         /* shut down clipping for strings, boxes,
-                                 * lines, and legends */
+    int i, n;
+    DObject *o;
+                                
+    /* disable (?) clipping for object drawing */
+    setclipping(FALSE);
     
-    /* Temporarily; pattern property should be part of object props */
-    setpattern(1);
+    storage_rewind(objects);
+    n = storage_count(objects);
+    for (i = 0; i < n; i++) {
+        if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
+            draw_object(gno, o);
+        } else {
+            break;
+        }
+        storage_next(objects);
+    }
     
-    for (i = 0; i < number_of_boxes(); i++) {
-        if (isactive_box(i)) {
-            draw_box(gno, i);
-        }
-    }
-    for (i = 0; i < number_of_ellipses(); i++) {
-        if (isactive_ellipse(i)) {
-            draw_ellipse(gno, i);
-        }
-    }
-    for (i = 0; i < number_of_lines(); i++) {
-        if (isactive_line(i)) {
-            draw_line(gno, i);
-        }
-    }
-    for (i = 0; i < number_of_strings(); i++) {
-        if (isactive_string(i)) {
-            draw_string(gno, i);
-        }
-    }
     setclipping(TRUE);
 }
 
-
-/*
- * draw annotative text
- */
-void draw_string(int gno, int i)
+void draw_object(int gno, DObject *o)
 {
-    plotstr pstr;
-    VPoint vp;
-    WPoint wptmp;
+    VPoint anchor;
 
-    get_graph_string(i, &pstr);
+    if (o == NULL || o->active == FALSE) {
+        return;
+    }
+    
+    if (o->loctype == COORD_VIEW && gno != -1) {
+        return;
+    }
+    if (o->loctype == COORD_WORLD && o->gno != gno) {
+        return;
+    }
+    
+    if (o->loctype == COORD_WORLD) {
+        WPoint wp;
+        wp.x = o->ap.x;
+        wp.y = o->ap.y;
+        anchor = Wpoint2Vpoint(wp);
+    } else {
+        anchor.x = o->ap.x;
+        anchor.y = o->ap.y;
+    }
+    anchor.x += o->offset.x;
+    anchor.y += o->offset.y;
+    
+    activate_bbox(BBOX_TYPE_TEMP, TRUE);
+    reset_bbox(BBOX_TYPE_TEMP);
 
-    if (gno != -2) {
-        if (pstr.loctype == COORD_WORLD && pstr.gno != gno) {
-            return;
+    switch (o->type) {
+    case DO_BOX:
+        {
+            VPoint vp1, vp2;
+            DOBoxData *b = (DOBoxData *) o->odata;
+            
+            vp1.x = anchor.x - b->width/2;
+            vp2.x = anchor.x + b->width/2;
+            vp1.y = anchor.y - b->height/2;
+            vp2.y = anchor.y + b->height/2;
+
+            setpen(o->fillpen);
+            FillRect(vp1, vp2);
+
+            setpen(o->pen);
+            setlinewidth(o->linew);
+            setlinestyle(o->lines);
+            DrawRect(vp1, vp2);
         }
-        if (pstr.loctype == COORD_VIEW && gno != -1) {
-            return;
+        break;
+    case DO_ARC:
+        {
+            VPoint vp1, vp2;
+            DOArcData *e = (DOArcData *) o->odata;
+            
+            vp1.x = anchor.x - e->width/2;
+            vp2.x = anchor.x + e->width/2;
+            vp1.y = anchor.y - e->height/2;
+            vp2.y = anchor.y + e->height/2;
+
+            setpen(o->fillpen);
+            DrawFilledArc(vp1, vp2, (int) e->angle1, (int) e->angle2, e->fillmode);
+
+            setpen(o->pen);
+            setlinewidth(o->linew);
+            setlinestyle(o->lines);
+            DrawArc(vp1, vp2, (int) e->angle1, (int) e->angle2);
         }
+        break;
+    case DO_STRING:
+        {
+            DOStringData *s = (DOStringData *) o->odata;
+            
+            /* FIXME AA background setpen(o->fillpen); */
+
+            setpen(o->pen);
+            setcharsize(s->size);
+            setfont(s->font);
+
+            WriteString(anchor, (int) rint(180.0/M_PI*o->angle), s->just, s->s);
+        }
+        break;
+    case DO_LINE:
+        {
+            VPoint vp;
+            DOLineData *l = (DOLineData *) o->odata;
+            
+            vp.x = anchor.x + l->length*cos(o->angle);
+            vp.y = anchor.y + l->length*sin(o->angle);
+
+            setpen(o->pen);
+            setlinewidth(o->linew);
+            setlinestyle(o->lines);
+            DrawLine(anchor, vp);
+
+            switch (l->arrow_end) {
+            case 0:
+                break;
+            case 1:
+                draw_arrowhead(vp, anchor, &l->arrow);
+                break;
+            case 2:
+                draw_arrowhead(anchor, vp, &l->arrow);
+                break;
+            case 3:
+                draw_arrowhead(vp, anchor, &l->arrow);
+                draw_arrowhead(anchor, vp, &l->arrow);
+                break;
+            }
+        }
+        break;
     }
 
-    if (strlen(pstr.s) && (pstr.charsize > 0.0) && pstr.active) {
-        if (pstr.loctype == COORD_WORLD) {
-            wptmp.x = pstr.x;
-            wptmp.y = pstr.y;
-            vp = Wpoint2Vpoint(wptmp);
-        } else {
-            vp.x = pstr.x;
-            vp.y = pstr.y;
-        }
-
-        setcolor(pstr.color);
-        setpattern(1);
-        setcharsize(pstr.charsize);
-        setfont(pstr.font);
-
-
-        activate_bbox(BBOX_TYPE_TEMP, TRUE);
-        reset_bbox(BBOX_TYPE_TEMP);
-
-        WriteString(vp, pstr.rot, pstr.just, pstr.s);
-
-        pstr.bb = get_bbox(BBOX_TYPE_TEMP);
-        set_graph_string(i, &pstr);
-    }
-}
-
-/*
- * draw annotative boxes
- */
-void draw_box(int gno, int i)
-{
-    boxtype b;
-    WPoint wptmp;
-    VPoint vp1, vp2;
-
-    get_graph_box(i, &b);
-    if (gno != -2) {
-        if (b.loctype == COORD_WORLD && b.gno != gno) {
-            return;
-        }
-        if (b.loctype == COORD_VIEW && gno != -1) {
-            return;
-        }
-    }
-    if (b.active) {
-        setclipping(FALSE);
-
-        if (b.loctype == COORD_WORLD) {
-            wptmp.x = b.x1;
-            wptmp.y = b.y1;
-            vp1 = Wpoint2Vpoint(wptmp);
-            wptmp.x = b.x2;
-            wptmp.y = b.y2;
-            vp2 = Wpoint2Vpoint(wptmp);
-        } else {
-            vp1.x = b.x1;
-            vp1.y = b.y1;
-            vp2.x = b.x2;
-            vp2.y = b.y2;
-        }
-
-        activate_bbox(BBOX_TYPE_TEMP, TRUE);
-        reset_bbox(BBOX_TYPE_TEMP);
-        
-        setcolor(b.fillcolor);
-        setpattern(b.fillpattern);
-        FillRect(vp1, vp2);
-        
-        setcolor(b.color);
-        setlinewidth(b.linew);
-        setlinestyle(b.lines);
-        setpattern(1);
-        DrawRect(vp1, vp2);
-        
-        b.bb = get_bbox(BBOX_TYPE_TEMP);
-        set_graph_box(i, &b);
-        
-        setclipping(TRUE);
-    }
-}
-
-/* draw annotative ellipses */
-void draw_ellipse(int gno, int i)
-{
-    WPoint wptmp;
-    VPoint vp1, vp2;
-    ellipsetype b;
-
-    b = ellip[i];
-        
-    if (gno != -2) {
-        if (b.loctype == COORD_WORLD && b.gno != gno) {
-            return;
-        }
-        if (b.loctype == COORD_VIEW && gno != -1) {
-            return;
-        }
-    }
-    if (b.active) {
-        setclipping(FALSE);
-
-        if (b.loctype == COORD_WORLD) {
-            wptmp.x = b.x1;
-            wptmp.y = b.y1;
-            vp1 = Wpoint2Vpoint(wptmp);
-            wptmp.x = b.x2;
-            wptmp.y = b.y2;
-            vp2 = Wpoint2Vpoint(wptmp);
-        } else {
-            vp1.x = b.x1;
-            vp1.y = b.y1;
-            vp2.x = b.x2;
-            vp2.y = b.y2;
-        }
-
-        activate_bbox(BBOX_TYPE_TEMP, TRUE);
-        reset_bbox(BBOX_TYPE_TEMP);
-        
-        setcolor(b.fillcolor);
-        setpattern(b.fillpattern);
-        DrawFilledEllipse(vp1, vp2);
-        
-        setcolor(b.color);
-        setlinewidth(b.linew);
-        setlinestyle(b.lines);
-        setpattern(1);
-        DrawEllipse(vp1, vp2);
-        
-        b.bb = get_bbox(BBOX_TYPE_TEMP);
-        set_graph_ellipse(i, &b);
-
-        setclipping(TRUE);
-    }
-}
-
-/*
- * draw annotative lines
- */
-void draw_line(int gno, int i)
-{
-    linetype l;
-    WPoint wptmp;
-    VPoint vp1, vp2;
-
-    get_graph_line(i, &l);
-    if (gno != -2) {
-        if (l.loctype == COORD_WORLD && l.gno != gno) {
-            return;
-        }
-        if (l.loctype == COORD_VIEW && gno != -1) {
-            return;
-        }
-    }
-    if (l.active) {
-        setclipping(FALSE);
-        
-        if (l.loctype == COORD_WORLD) {
-            wptmp.x = l.x1;
-            wptmp.y = l.y1;
-            vp1 = Wpoint2Vpoint(wptmp);
-            wptmp.x = l.x2;
-            wptmp.y = l.y2;
-            vp2 = Wpoint2Vpoint(wptmp);
-        } else {
-            vp1.x = l.x1;
-            vp1.y = l.y1;
-            vp2.x = l.x2;
-            vp2.y = l.y2;
-        }
-
-        activate_bbox(BBOX_TYPE_TEMP, TRUE);
-        reset_bbox(BBOX_TYPE_TEMP);
-        
-        setcolor(l.color);
-        setlinewidth(l.linew);
-        setlinestyle(l.lines);
-        DrawLine(vp1, vp2);
-
-        switch (l.arrow_end) {
-        case 0:
-            break;
-        case 1:
-            draw_arrowhead(vp2, vp1, &l.arrow);
-            break;
-        case 2:
-            draw_arrowhead(vp1, vp2, &l.arrow);
-            break;
-        case 3:
-            draw_arrowhead(vp2, vp1, &l.arrow);
-            draw_arrowhead(vp1, vp2, &l.arrow);
-            break;
-        }
-
-        l.bb = get_bbox(BBOX_TYPE_TEMP);
-        set_graph_line(i, &l);
-
-        setclipping(TRUE);
-    }
+    o->bb = get_bbox(BBOX_TYPE_TEMP);
 }
 
 /*

@@ -45,6 +45,7 @@
 #include "graphs.h"
 #include "draw.h"
 #include "graphutils.h"
+#include "objutils.h"
 #include "x11drv.h"
 #include "plotone.h"
 #include "protos.h"
@@ -207,8 +208,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         create_graphapp_frame(cg);
                     } else if (legend_clicked(cg, vp, &bb) == TRUE) {
                         create_graphapp_frame(cg);
-                    } else if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
-                        object_edit_popup(type, id);
+                    } else if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
+                        object_edit_popup(id);
                     } else if (timestamp_clicked(vp, &bb) == TRUE) {
                         create_plot_frame();
                     } else if (graph_clicked(cg, vp) == TRUE) {
@@ -264,20 +265,20 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		newworld(cg, ALL_Y_AXES, anchor_vp, vp);
                 break;
             case EDIT_OBJECT:
-                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
-                    object_edit_popup(type, id);
+                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
+                    object_edit_popup(id);
                 }
                 break;
             case DEL_OBJECT:
-                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
+                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
                     if (yesno("Kill the object?", NULL, NULL, NULL) == TRUE) {
-                        kill_object(type, id);
+                        kill_object(id);
                         xdrawgraph();
                     }
                 }
                 break;
             case MOVE_OBJECT_1ST:
-                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
+                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
 	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
                     set_action(MOVE_OBJECT_2ND);
@@ -291,7 +292,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(MOVE_OBJECT_1ST);
                 break;
             case COPY_OBJECT1ST:
-                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
+                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
 	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
                     set_action(COPY_OBJECT2ND);
@@ -306,9 +307,9 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(COPY_OBJECT1ST);
                 break;
             case STR_LOC:
-                id = next_string();
+                id = next_object(DO_STRING);
                 init_string(id, vp);
-                object_edit_popup(OBJECT_STRING, id);
+                object_edit_popup(id);
                 break;
             case MAKE_LINE_1ST:
                 anchor_point(x, y, vp);
@@ -317,7 +318,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_LINE_2ND:
 	        select_line(anchor_x, anchor_y, x, y, 0);
-                id = next_line();
+                id = next_object(DO_LINE);
                 init_line(id, anchor_vp, vp);
                 xdrawgraph();
                 set_action(MAKE_LINE_1ST);
@@ -329,7 +330,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_BOX_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
-                id = next_box();
+                id = next_object(DO_BOX);
                 init_box(id, anchor_vp, vp);
                 xdrawgraph();
                 set_action(MAKE_BOX_1ST);
@@ -341,7 +342,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_ELLIP_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
-                id = next_ellipse();
+                id = next_object(DO_ARC);
                 init_ellipse(id, anchor_vp, vp);
                 xdrawgraph();
                 set_action(MAKE_ELLIP_1ST);
@@ -505,8 +506,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             switch (action_flag) {
             case DO_NOTHING:
 /*
- *                 find_item(cg, vp, &anchor_vp, &type, &id);
- *                 sprintf(buf, "type = %d, id = %d", type, id);
+ *                 find_item(cg, vp, &anchor_vp, &id);
+ *                 sprintf(buf, "object id = %d", id);
  *                 set_left_footer(buf);
  */
                 break;
@@ -1156,54 +1157,28 @@ int find_insert_location(int gno, int setno, VPoint vp)
 /*
  * find object containing vp inside its bb
  */
-int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
+int find_item(int gno, VPoint vp, view *bb, int *id)
 {
-    int i;
+    DObject *o;
+    int i, n;
 
-    *type = OBJECT_NONE;
-    for (i = 0; i < number_of_boxes(); i++) {
-	if (isactive_box(i)) {
-            get_object_bb(OBJECT_BOX, i, bb);
-	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
-		*type = OBJECT_BOX;
-		*id = i;
-	    }
-	}
+    storage_rewind(objects);
+    n = storage_count(objects);
+    for (i = 0; i < n; i++) {
+        if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
+	    if (isactive_object(o)) {
+                get_object_bb(o, bb);
+	        if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
+		    storage_get_id(objects, id);
+                    return RETURN_SUCCESS;
+	        }
+            }
+        } else {
+            break;
+        }
     }
-    for (i = 0; i < number_of_ellipses(); i++) {
-	if (isactive_ellipse(i)) {
-            get_object_bb(OBJECT_ELLIPSE, i, bb);
-	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
-		*type = OBJECT_ELLIPSE;
-		*id = i;
-	    }
-	}
-    }
-    for (i = 0; i < number_of_lines(); i++) {
-	if (isactive_line(i)) {
-            get_object_bb(OBJECT_LINE, i, bb);
-	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
-		*type = OBJECT_LINE;
-		*id = i;
-	    }
-	}
-    }
-    for (i = 0; i < number_of_strings(); i++) {
-	if (isactive_string(i)) {
-            get_object_bb(OBJECT_STRING, i, bb);
-	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
-		*type = OBJECT_STRING;
-		*id = i;
-	    }
-	}
-    }
-    
-    if (*type == OBJECT_NONE) {
-        return RETURN_FAILURE;
-    } else {
-        get_object_bb(*type, *id, bb);
-        return RETURN_SUCCESS;
-    }
+
+    return RETURN_FAILURE;
 }
 
 

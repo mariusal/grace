@@ -168,7 +168,7 @@ void box_edit_popup(int no);
 void ellipse_edit_popup(int no);
 void line_edit_popup(int no);
 void string_edit_popup(int no);
-int object_edit_popup(int type, int id);
+int object_edit_popup(int id);
 
 void set_title(char *ts);
 

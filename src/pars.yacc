@@ -58,6 +58,7 @@
 #include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
+#include "objutils.h"
 #include "plotone.h"
 #include "dlmodule.h"
 #include "t1fonts.h"
@@ -85,7 +86,9 @@ static target trgt_pool[100]; 	/* pool of temporary targets */
 static int tgtn = 0;		/* number of the temporary targets used */
 
 int naxis = 0;	/* current axis */
-static int curline, curbox, curellipse, curstring;
+
+static DObject *curobject;
+
 /* these guys attempt to avoid reentrancy problems */
 static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
 int readxformat;
@@ -575,6 +578,8 @@ symtab_entry *key;
 %type <ival> tickspectype
 
 %type <ival> sourcetype
+
+%type <ival> objecttype
 
 %type <ival> interpmethod
 %type <ival> stattype
@@ -2165,297 +2170,209 @@ parmset:
 	    set_hotlink($1->gno, $1->setno, $3, NULL, 0);
 	}
 
-/* boxes */
-	| WITH BOX {
-	    curbox = next_box();
+/* Objects */
+	| WITH objecttype {
+	    int id = next_object($2);
+            curobject = object_get(id);
 	}
-	| WITH BOX nexpr {
-	    curbox = $3;
-	}
-	| BOX onoff {
-	    if (!is_valid_box(curbox)) {
-                yyerror("Box not active");
+	| objecttype onoff {
+	    if (!curobject) {
+                yyerror("No active object");
 	    } else {
-	        boxes[curbox].active = $2;
+	        curobject->active = $2;
             }
 	}
-	| BOX selectgraph {
-	    if (!is_valid_box(curbox)) {
-                yyerror("Box not active");
+	| objecttype selectgraph {
+	    if (!curobject) {
+                yyerror("No active object");
 	    } else {
-	        boxes[curbox].gno = $2;
+	        curobject->gno = $2;
+            }
+	}
+	| objecttype LOCTYPE worldview {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->loctype = $3;
+            }
+	}
+	| objecttype lines_select {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->lines = $2;
+            }
+	}
+	| objecttype linew_select {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->linew = $2;
+            }
+	}
+	| objecttype color_select {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->pen.color = $2;
+            }
+	}
+	| objecttype FILL color_select {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->fillpen.color = $3;
+            }
+	}
+	| objecttype FILL pattern_select {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->fillpen.pattern = $3;
+            }
+	}
+	| objecttype ROT expr {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+                curobject->angle = M_PI/180.0*$3;
+            }
+        }
+	| LINE expr ',' expr ',' expr ',' expr {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_LINE) {
+                yyerror("The object is not a line");
+	    } else {
+	        DOLineData *l = (DOLineData *) curobject->odata;
+                l->length = hypot($6 - $2, $8 - $4);
+                curobject->ap.x  = $2;
+                curobject->ap.y  = $4;
+                curobject->angle = atan2($8 - $4, $6 - $2);
+            }
+	}
+	| LINE ARROW nexpr {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_LINE) {
+                yyerror("The object is not a line");
+	    } else {
+	        DOLineData *l = (DOLineData *) curobject->odata;
+	        l->arrow_end = $3;
+            }
+	}
+	| LINE ARROW LENGTH expr {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_LINE) {
+                yyerror("The object is not a line");
+	    } else {
+	        DOLineData *l = (DOLineData *) curobject->odata;
+	        l->arrow.length = $4;
+            }
+	}
+	| LINE ARROW TYPE nexpr {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_LINE) {
+                yyerror("The object is not a line");
+	    } else {
+	        DOLineData *l = (DOLineData *) curobject->odata;
+	        l->arrow.type = $4;
+            }
+	}
+	| LINE ARROW LAYOUT expr ',' expr {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_LINE) {
+                yyerror("The object is not a line");
+	    } else {
+	        DOLineData *l = (DOLineData *) curobject->odata;
+	        l->arrow.dL_ff = $4;
+	        l->arrow.lL_ff = $6;
             }
 	}
 	| BOX expr ',' expr ',' expr ',' expr {
-	    if (!is_valid_box(curbox)) {
-                yyerror("Box not active");
-	    } else {
-		boxes[curbox].x1 = $2;
-		boxes[curbox].y1 = $4;
-		boxes[curbox].x2 = $6;
-		boxes[curbox].y2 = $8;
-	    }
-	}
-	| BOX LOCTYPE worldview {
-	    box_loctype = $3;
-	}
-	| BOX lines_select {
-	    box_lines = $2;
-	}
-	| BOX linew_select {
-	    box_linew = $2;
-	}
-	| BOX color_select {
-	    box_color = $2;
-	}
-	| BOX FILL color_select {
-	    box_fillcolor = $3;
-	}
-	| BOX FILL pattern_select {
-	    box_fillpat = $3;
-	}
-	| BOX DEF {
-	    if (!is_valid_box(curbox)) {
-                yyerror("Box not active");
-	    } else {
-		boxes[curbox].lines = box_lines;
-		boxes[curbox].linew = box_linew;
-		boxes[curbox].color = box_color;
-		if (get_project_version() <= 40102) {
-                    switch (filltype_obs) {
-                    case COLOR:
-                        boxes[curbox].fillcolor = box_fillcolor;
-		        boxes[curbox].fillpattern = 1;
-                        break;
-                    case PATTERN:
-                        boxes[curbox].fillcolor = 1;
-		        boxes[curbox].fillpattern = box_fillpat;
-                        break;
-                    default: /* NONE */
-                        boxes[curbox].fillcolor = box_fillcolor;
-		        boxes[curbox].fillpattern = 0;
-                        break;
-                    }
-		} else {
-                    boxes[curbox].fillcolor = box_fillcolor;
-		    boxes[curbox].fillpattern = box_fillpat;
-                }
-                boxes[curbox].loctype = box_loctype;
-	    }
-	}
-
-/* ellipses */
-	| WITH ELLIPSE {
-		curellipse = next_ellipse();
-	}
-	| WITH ELLIPSE nexpr {
-	    curellipse = $3;
-	}
-	| ELLIPSE onoff {
-	    if (!is_valid_ellipse(curellipse)) {
-                yyerror("Ellipse not active");
-	    } else {
-	        ellip[curellipse].active = $2;
-            }
-	}
-	| ELLIPSE selectgraph {
-	    if (!is_valid_ellipse(curellipse)) {
-                yyerror("Ellipse not active");
-	    } else {
-	        ellip[curellipse].gno = $2;
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_BOX) {
+                yyerror("The object is not a box");
+            } else {
+	        DOBoxData *b = (DOBoxData *) curobject->odata;
+                b->width  = fabs($6 - $2);
+                b->height = fabs($8 - $4);
+                curobject->ap.x = ($6 + $2)/2;
+                curobject->ap.y = ($8 + $4)/2;
             }
 	}
 	| ELLIPSE expr ',' expr ',' expr ',' expr {
-	    if (!is_valid_ellipse(curellipse)) {
-                yyerror("Ellipse not active");
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_ARC) {
+                yyerror("The object is not an arc");
 	    } else {
-		ellip[curellipse].x1 = $2;
-		ellip[curellipse].y1 = $4;
-		ellip[curellipse].x2 = $6;
-		ellip[curellipse].y2 = $8;
-	    }
-	}
-	| ELLIPSE LOCTYPE worldview {
-	    ellipse_loctype = $3;
-	}
-	| ELLIPSE lines_select {
-	    ellipse_lines = $2;
-	}
-	| ELLIPSE linew_select {
-	    ellipse_linew = $2;
-	}
-	| ELLIPSE color_select {
-	    ellipse_color = $2;
-	}
-	| ELLIPSE FILL color_select {
-	    ellipse_fillcolor = $3;
-	}
-	| ELLIPSE FILL pattern_select {
-	    ellipse_fillpat = $3;
-	}
-	| ELLIPSE DEF {
-	    if (!is_valid_ellipse(curellipse)) {
-                yyerror("Ellipse not active");
-	    } else {
-		ellip[curellipse].lines = ellipse_lines;
-		ellip[curellipse].linew = ellipse_linew;
-		ellip[curellipse].color = ellipse_color;
-		if (get_project_version() <= 40102) {
-                    switch (filltype_obs) {
-                    case COLOR:
-                        ellip[curellipse].fillcolor = ellipse_fillcolor;
-		        ellip[curellipse].fillpattern = 1;
-                        break;
-                    case PATTERN:
-                        ellip[curellipse].fillcolor = 1;
-		        ellip[curellipse].fillpattern = ellipse_fillpat;
-                        break;
-                    default: /* NONE */
-                        ellip[curellipse].fillcolor = ellipse_fillcolor;
-		        ellip[curellipse].fillpattern = 0;
-                        break;
-                    }
-		} else {
-                    ellip[curellipse].fillcolor = ellipse_fillcolor;
-		    ellip[curellipse].fillpattern = ellipse_fillpat;
-                }
-		ellip[curellipse].loctype = ellipse_loctype;
-	    }
-	}
-
-/* lines */
-	| WITH LINE {
-	    curline = next_line();
-	}
-	| WITH LINE nexpr {
-	    curline = $3;
-	}
-	| LINE onoff {
-	    if (!is_valid_line(curline)) {
-                yyerror("Line not active");
-	    } else {
-	        lines[curline].active = $2;
+	        DOArcData *a = (DOArcData *) curobject->odata;
+                a->width  = fabs($6 - $2);
+                a->height = fabs($8 - $4);
+                a->angle1 =   0.0;
+                a->angle2 = 360.0;
+                a->fillmode = ARCFILL_CHORD;
+                curobject->ap.x = ($6 + $2)/2;
+                curobject->ap.y = ($8 + $4)/2;
             }
 	}
-	| LINE selectgraph {
-	    if (!is_valid_line(curline)) {
-                yyerror("Line not active");
-	    } else {
-	        lines[curline].gno = $2;
-            }
-	}
-	| LINE expr ',' expr ',' expr ',' expr {
-	    if (!is_valid_line(curline)) {
-                yyerror("Line not active");
-	    } else {
-	        lines[curline].x1 = $2;
-	        lines[curline].y1 = $4;
-	        lines[curline].x2 = $6;
-	        lines[curline].y2 = $8;
-            }
-	}
-	| LINE LOCTYPE worldview {
-	    line_loctype = $3;
-	}
-	| LINE linew_select {
-	    line_linew = $2;
-	}
-	| LINE lines_select {
-	    line_lines = $2;
-	}
-	| LINE color_select {
-	    line_color = $2;
-	}
-	| LINE ARROW nexpr {
-	    line_arrow_end = $3;
-	}
-	| LINE ARROW LENGTH expr {
-	    line_asize = $4;
-	}
-	| LINE ARROW TYPE nexpr {
-	    line_atype = $4;
-	}
-	| LINE ARROW LAYOUT expr ',' expr {
-	    line_a_dL_ff = $4;
-	    line_a_lL_ff = $6;
-	}
-	| LINE DEF {
-	    if (!is_valid_line(curline)) {
-                yyerror("Line not active");
-	    } else {
-	        lines[curline].lines = line_lines;
-	        lines[curline].linew = line_linew;
-	        lines[curline].color = line_color;
-	        lines[curline].arrow_end = line_arrow_end;
-	        lines[curline].arrow.length = line_asize;
-	        lines[curline].arrow.type = line_atype;
-	        lines[curline].arrow.dL_ff = line_a_dL_ff;
-	        lines[curline].arrow.lL_ff = line_a_lL_ff;
-	        lines[curline].loctype = line_loctype;
-            }
-	}
-
-/* strings */
-	| WITH STRING {
-            curstring = next_string();
-        }
-	| WITH STRING nexpr {
-            curstring = $3;
-        }
-	| STRING onoff {
-	    if (!is_valid_string(curstring)) {
-                yyerror("String not active");
-	    } else {
-                pstr[curstring].active = $2;
-            }
-        }
-	| STRING selectgraph {
-	    if (!is_valid_string(curstring)) {
-                yyerror("String not active");
-	    } else {
-                pstr[curstring].gno = $2;
-            }
-        }
 	| STRING expr ',' expr {
-	    if (!is_valid_string(curstring)) {
-                yyerror("String not active");
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
 	    } else {
-	        pstr[curstring].x = $2;
-	        pstr[curstring].y = $4;
+                curobject->ap.x = $2;
+                curobject->ap.y = $4;
             }
 	}
-	| STRING LOCTYPE worldview {
-            string_loctype = $3;
-        }
-	| STRING color_select {
-            string_color = $2;
-        }
-	| STRING ROT nexpr {
-            string_rot = $3;
-        }
 	| STRING font_select {
-            string_font = $2;
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                s->font = $2;
+            }
         }
 	| STRING JUST nexpr {
-            string_just = $3;
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                s->just = $3;
+            }
         }
 	| STRING CHAR SIZE expr {
-            string_size = $4;
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
+	    } else {
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                s->size = $4;
+            }
         }
 	| STRING DEF CHRSTR {
-	    if (!is_valid_string(curstring)) {
-                yyerror("String not active");
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_STRING) {
+                yyerror("The object is not a string");
 	    } else {
-	        set_plotstr_string(&pstr[curstring], $3);
-	        pstr[curstring].color = string_color;
-	        pstr[curstring].font = string_font;
-	        pstr[curstring].just = string_just;
-	        pstr[curstring].loctype = string_loctype;
-	        pstr[curstring].rot = string_rot;
-	        pstr[curstring].charsize = string_size;
+	        DOStringData *s = (DOStringData *) curobject->odata;
+                s->s = copy_string(s->s, $3);
             }
 	    xfree($3);
 	}
+	| objecttype DEF { }
 
 /* timestamp */
 	| TIMESTAMP onoff {
@@ -3737,7 +3654,14 @@ graphtype:
 	| FIXED { $$ = GRAPH_FIXED; }
 	| PIE   { $$ = GRAPH_PIE;   }
 	;
-        
+
+objecttype:
+	BOX       { $$ = DO_BOX;    }
+	| ELLIPSE { $$ = DO_ARC;    }
+	| LINE    { $$ = DO_LINE;   }
+	| STRING  { $$ = DO_STRING; }
+	;
+
 pagelayout:
         FREE { $$ = PAGE_FREE; }
         | FIXED { $$ = PAGE_FIXED; }
@@ -4042,11 +3966,7 @@ parmset_obs:
 	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
-	| BOX FILL colpat_obs {filltype_obs = $3;}
-
-	| ELLIPSE FILL colpat_obs {filltype_obs = $3;}
-
-	| STRING linew_select { }
+	| objecttype FILL colpat_obs {filltype_obs = $3;}
 
 	| TIMESTAMP linew_select { }
 
@@ -4129,7 +4049,14 @@ parmset_obs:
         }
 
 	| LINE ARROW SIZE expr {
-	    line_asize = 2.0*$4;
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else if (curobject->type != DO_LINE) {
+                yyerror("The object is not a line");
+	    } else {
+	        DOLineData *l = (DOLineData *) curobject->odata;
+	        l->arrow.length = 2.0*$4;
+            }
 	}
 
         | HARDCOPY DEVICE expr { }

@@ -39,6 +39,7 @@
 #include <stdio.h>
 
 #include "defines.h"
+#include "storage.h"
 #include "graphs.h"
 #include "draw.h"
 
@@ -110,47 +111,7 @@ GLOBAL(autoscale_onread, int, AUTOSCALE_XY);
 GLOBAL(focus_policy, int, FOCUS_CLICK);
 GLOBAL(draw_focus_flag, int, TRUE);
 
-/* lines */
-GLOBAL(lines, linetype *, NULL);
-/* boxes */
-GLOBAL(boxes, boxtype *, NULL);
-/* ellipses */
-GLOBAL(ellip, ellipsetype *, NULL);
-/* strings */
-GLOBAL(pstr, plotstr *, NULL);
-
-/* lines, boxes, ellipses and strings flags */
-GLOBAL(box_color, int, 1);
-GLOBAL(box_lines, int, 1);
-GLOBAL(box_linew, double, 1.0);
-GLOBAL(box_fillpat, int, 0);
-GLOBAL(box_fillcolor, int, 1);
-GLOBAL(box_loctype, int, COORD_VIEW);
-
-GLOBAL(ellipse_color, int, 1);
-GLOBAL(ellipse_lines, int, 1);
-GLOBAL(ellipse_linew, double, 1.0);
-GLOBAL(ellipse_fillpat, int, 0);
-GLOBAL(ellipse_fillcolor, int, 1);
-GLOBAL(ellipse_loctype, int, COORD_VIEW);
-
-GLOBAL(line_color, int, 1);
-GLOBAL(line_lines, int, 1);
-GLOBAL(line_linew, double, 1.0);
-GLOBAL(line_arrow_end, int, 0);
-GLOBAL(line_atype, int, 0);
-GLOBAL(line_asize, double, 1.0);
-GLOBAL(line_a_dL_ff, double, 1.0);
-GLOBAL(line_a_lL_ff, double, 1.0);
-GLOBAL(line_loctype, int, COORD_VIEW);
-
-GLOBAL(string_color, int, 1);
-GLOBAL(string_font, int, 0);
-GLOBAL(string_rot, int, 0);
-GLOBAL(string_just, int, 0);
-GLOBAL(string_size, double, 1.0);
-GLOBAL(string_loctype, int, COORD_VIEW);
-
+GLOBAL(objects, Storage *, NULL);
 
 /* used in the parser */
 GLOBAL(curtype, int, SET_XY);

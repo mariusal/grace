@@ -45,9 +45,14 @@
 #include "draw.h"
 #include "graphs.h"
 #include "graphutils.h"
+#include "storage.h"
+#include "objutils.h"
 #include "parser.h"
 
 #include "protos.h"
+
+/* FIXMEOBJ */
+extern Storage *objects;
 
 /* graph definition */
 graph *g = NULL;
@@ -1198,7 +1203,7 @@ extern plotstr *pstr;
 
 void postprocess_project(int version)
 {
-    int gno, setno, naxis, strno;
+    int gno, setno, naxis;
     double ext_x, ext_y;
     
     if (version >= bi_version_id()) {
@@ -1328,9 +1333,91 @@ void postprocess_project(int version)
     }
     
     if (version >= 40200 && version <= 50005) {
+        int i, n;
+        DObject *o;
         /* BBox type justification was erroneously set */
-        for (strno = 0; strno < number_of_strings(); strno++) {
-            pstr[strno].just |= JUST_MIDDLE;
+        storage_rewind(objects);
+        n = storage_count(objects);
+        for (i = 0; i < n; i++) {
+            if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
+                if (o->type == DO_STRING) {
+                    DOStringData *s = (DOStringData *) o->odata;
+                    s->just |= JUST_MIDDLE;
+                }
+            } else {
+                break;
+            }
+            storage_next(objects);
         }
+    }
+    if (version <= 50101) {
+        int i, n, gsave;
+        DObject *o;
+        
+        gsave = get_cg();
+        
+        storage_rewind(objects);
+        n = storage_count(objects);
+        for (i = 0; i < n; i++) {
+            if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
+                if (o->loctype == COORD_WORLD && is_valid_gno(o->gno)) {
+                    WPoint wp;
+                    VPoint vp1, vp2;
+                    
+                    select_graph(o->gno);
+                    
+                    switch (o->type) {
+                    case DO_BOX:
+                        {
+                            DOBoxData *b = (DOBoxData *) o->odata;
+                            wp.x = o->ap.x - b->width/2;
+                            wp.y = o->ap.y - b->height/2;
+                            vp1 = Wpoint2Vpoint(wp);
+                            wp.x = o->ap.x + b->width/2;
+                            wp.y = o->ap.y + b->height/2;
+                            vp2 = Wpoint2Vpoint(wp);
+                            
+                            b->width  = fabs(vp2.x - vp1.x);
+                            b->height = fabs(vp2.y - vp1.y);
+                        }
+                        break;
+                    case DO_ARC:
+                        {
+                            DOArcData *a = (DOArcData *) o->odata;
+                            wp.x = o->ap.x - a->width/2;
+                            wp.y = o->ap.y - a->height/2;
+                            vp1 = Wpoint2Vpoint(wp);
+                            wp.x = o->ap.x + a->width/2;
+                            wp.y = o->ap.y + a->height/2;
+                            vp2 = Wpoint2Vpoint(wp);
+                            
+                            a->width  = fabs(vp2.x - vp1.x);
+                            a->height = fabs(vp2.y - vp1.y);
+                        }
+                        break;
+                    case DO_LINE:
+                        {
+                            DOLineData *l = (DOLineData *) o->odata;
+                            wp.x = o->ap.x;
+                            wp.y = o->ap.y;
+                            vp1 = Wpoint2Vpoint(wp);
+                            wp.x = o->ap.x + l->length*cos(o->angle);
+                            wp.y = o->ap.y + l->length*sin(o->angle);
+                            vp2 = Wpoint2Vpoint(wp);
+                            
+                            l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
+                            o->angle  = atan2(vp2.y - vp1.y, vp2.x - vp1.x);
+                        }
+                        break;
+                    case DO_STRING:
+                        break;
+                    }
+                }
+            } else {
+                break;
+            }
+            storage_next(objects);
+        }
+        select_graph(gsave);
     }
 }
