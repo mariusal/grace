@@ -58,11 +58,7 @@ static char buf[256];
 /* read and interpret single line */
 int read_param(char *stext)
 {
-    int errpos = 0;
-
-    scanner(stext, 1, 0, &errpos);
-
-    return errpos;
+    return scanner(stext);
 }
 
 int getparms(char *plfile)

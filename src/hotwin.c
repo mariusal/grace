@@ -179,17 +179,17 @@ void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
 	/* do links */
     for (i = 0; i < number_of_sets(get_cg()); i++) {
-		if (is_hotlinked(get_cg(), i)) {
-			do_update_hotlink(get_cg(), i);
-		}
+        if (is_hotlinked(get_cg(), i)) {
+            do_update_hotlink(get_cg(), i);
+        }
     }
 
-	/* perform specified command */
-	if( hotlink_command != NULL ) {
-	    strcpy(hotcom, xv_getstr(hotlink_command));
-            scanner(hotcom, getsetlength(get_cg(), curset), curset, &errpos);
-	}
-	
+    /* perform specified command */
+    if( hotlink_command != NULL ) {
+        strcpy(hotcom, xv_getstr(hotlink_command));
+        errpos = scanner(hotcom);
+    }
+
     unset_wait_cursor();
     drawgraph();
 }

@@ -142,13 +142,12 @@ void parms_to_a (double *a)
 void fcn(int * m, int * n, double * x, double * fvec, 
 		int * iflag)
 {
-    static int errpos;
+    int errpos;
     int i;
 
     a_to_parms(x);
 
-    errpos = 0;
-    scanner(nonl_opts.formula, *m, curset, &errpos);
+    errpos = scanner(nonl_opts.formula);
     if (errpos) {
 	errmsg("error in fcn");
 	*iflag = -1;
@@ -168,6 +167,9 @@ int do_nonlfit(int gno, int setno, int nsteps)
     double a[MAXPARM];
     int parnum = nonl_opts.parnum;
 
+    if (set_parser_setno(gno, setno) != GRACE_EXIT_SUCCESS) {
+	return info;
+    }
     n = getsetlength(gno, setno);
     
     lwa = (integer) n * parnum + 5 * parnum + n;

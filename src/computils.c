@@ -52,8 +52,6 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
 
 static char buf[256];
 
-extern double result;
-
 void do_running_command(int type, int setno, int rlen)
 {
     switch (type) {
@@ -1176,18 +1174,27 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
  */
 void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 {
-    int len, npts = 0, i, resset, ier;
-    double *x, *y, tmpx, tmpy;
+    int len, npts = 0, i, resset;
+    double *x, *y;
+    int reslen;
+    double *result;
+    int gno = get_cg();
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gno, setno)) {
 	errmsg("Set not active");
 	return;
     }
-    len = getsetlength(get_cg(), setno);
-    resset = nextset(get_cg());
+
+    len = getsetlength(gno, setno);
+
+    resset = nextset(gno);
     if (resset < 0) {
 	return;
     }
+
+    x = getx(gno, setno);
+    y = gety(gno, setno);
+
     if (typeno == 0) {
 	if (len <= 2) {
 	    errmsg("Set has <= 2 points");
@@ -1201,44 +1208,39 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 	    errmsg("Step < 1");
 	    return;
 	}
-	x = getx(get_cg(), setno);
-	y = gety(get_cg(), setno);
 	for (i = startno - 1; i < len; i += stepno) {
-	    add_point(get_cg(), resset, x[i], y[i]);
+	    add_point(gno, resset, x[i], y[i]);
 	    npts++;
 	}
 	sprintf(buf, "Sample, %d, %d set #%d", startno, stepno, setno);
     } else {
-	if (!strlen(exprstr)) {
-	    errmsg("Enter logical expression first");
+        if (set_parser_setno(gno, setno) != GRACE_EXIT_SUCCESS) {
+	    errmsg("Bad set");
+            killset(gno, resset);
 	    return;
-	}
-	x = getx(get_cg(), setno);
-	y = gety(get_cg(), setno);
-	npts = 0;
+        }
+        if (v_scanner(exprstr, &reslen, &result) != GRACE_EXIT_SUCCESS) {
+            killset(gno, resset);
+	    return;
+        }
+        if (reslen != len) {
+	    errmsg("Internal error");
+            killset(gno, resset);
+	    return;
+        }
+
+        npts = 0;
 	sprintf(buf, "Sample from %d, using '%s'", setno, exprstr);
-	tmpx = x[0];
-	tmpy = y[0];
 	for (i = 0; i < len; i++) {
-	    x[0] = x[i];
-	    y[0] = y[i];
-	    scanner(exprstr, 1, setno, &ier);
-	    if (ier) {
-		killset(get_cg(), resset);
-		x[0] = tmpx;
-		y[0] = tmpy;
-		return;
-	    }
-	    if ((int) result) {
-		add_point(get_cg(), resset, x[i], y[i]);
+	    if ((int) rint(result[i])) {
+		add_point(gno, resset, x[i], y[i]);
 		npts++;
 	    }
 	}
-	x[0] = tmpx;
-	y[0] = tmpy;
+        free(result);
     }
     if (npts > 0) {
-	setcomment(get_cg(), resset, buf);
+	setcomment(gno, resset, buf);
 	log_results(buf);
     }
 }

@@ -75,8 +75,6 @@
 #include "events.h"
 #include "protos.h"
 
-extern double result;
-
 /* lookup table to determine if character is a floating point digit 
  * only allowable char's [0-9.eE]
  */
@@ -2597,6 +2595,7 @@ Boolean xv_evalexpr(Widget w, double *answer )
     char *s;
     static char *buf = NULL;
     int i, len, ier = 0;
+    double result;
 	
     buf = copy_string(buf, s = XmTextGetString(w));
     XtFree(s);
@@ -2622,7 +2621,7 @@ Boolean xv_evalexpr(Widget w, double *answer )
         *answer = atof( buf );
         return GRACE_EXIT_SUCCESS;
     } else {                /* must evaluate an expression */
-        scanner(buf, 1, 0, &ier);
+        ier = s_scanner(buf, &result);
         if( !ier ) {
             *answer = result;
             return GRACE_EXIT_SUCCESS;
@@ -2644,6 +2643,7 @@ Boolean xv_evalexpri(Widget w, int *answer )
     char *s;
     static char *buf = NULL;
     int i, len, ier = 0;
+    double result;
 	
     buf = copy_string(buf, s = XmTextGetString(w));
     XtFree(s);
@@ -2669,7 +2669,7 @@ Boolean xv_evalexpri(Widget w, int *answer )
         *answer = atoi(buf);
         return GRACE_EXIT_SUCCESS;
     } else {                    /* must evaluate an expression */
-        scanner(buf, 1, 0, &ier);
+        ier = s_scanner(buf, &result);
         if( !ier ) {
             *answer = (int)result;
             return GRACE_EXIT_SUCCESS;

@@ -123,18 +123,12 @@ static char comwin_table[] = "#override\n\
 
 static void comcall(Widget w, XtPointer cd, XtPointer calld)
 {
-    static int errpos, errorcount;
-    static char val[256];
     char *ts;
+    
     XmCommandCallbackStruct *s = (XmCommandCallbackStruct *) calld;
-    errorcount = errpos = 0;
     XmStringGetLtoR(s->value, charset, &ts);
-    strcpy(val, ts);
+    scanner(ts);
     XtFree(ts);
-    scanner(val, getsetlength(get_cg(), curset), curset, &errpos);
-    if (errpos) {
-	errorcount++;
-    }
 }
 
 static void delete_com(Widget w, XtPointer client_data, XtPointer call_data)
@@ -242,14 +236,17 @@ static void clear_history(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
+#define MAXERR 5
 static void replay_history(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    static int errpos, errcount;
+    int errpos;
+    static int errcount;
     char buf[256], *ts;
     int i;
     int ac = 0, hc;
     XmStringTable xmstrs;
     Arg al[5];
+    
     ac = 0;
     XtSetArg(al[ac], XmNhistoryItems, &xmstrs);
     ac++;
@@ -262,12 +259,11 @@ static void replay_history(Widget w, XtPointer client_data, XtPointer call_data)
         strcpy(buf, ts);
         XtFree(ts);
 
-        errpos = 0;
-        scanner(buf, getsetlength(get_cg(), curset), curset, &errpos);
+        errpos = scanner(buf);
         if (errpos) {
             errcount++;
         }
-        if (errcount > 3) {
+        if (errcount > MAXERR) {
             if (yesno("Lots of errors, cancel?", NULL, NULL, NULL)) {
             	break;
             } else {

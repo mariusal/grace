@@ -47,18 +47,14 @@
 int formula(int gno, int selset, char *sscanstr)
 {
     char stmp[64];
-    int errpos, lenset, oldcg;
+    int errpos;
 
-    if ((lenset = getsetlength(gno, selset)) <= 0) {
+    if (set_parser_setno(gno, selset) != GRACE_EXIT_SUCCESS) {
 	sprintf(stmp, "Length of set %d = 0", selset);
 	errmsg(stmp);
 	return 0;
     }
-	
-    oldcg = get_cg();         /* kludge to get around not being able to set result graph */ 
-    select_graph(gno);
-    scanner(sscanstr, lenset, selset, &errpos);
-    select_graph(oldcg);
+    errpos = scanner(sscanstr);
 
     if (!errpos) {
     	set_dirtystate();
