@@ -12,7 +12,8 @@
 
 <H3>Drivers</H3>
  *  [MD] implemented patterned fills in the SVG driver
- *  [MD] use the sRGB color space in the SVG driver
+ *  [MD] better font name definitions in the SVG driver
+ *  [MD] updated SVG DTD reference
 
 <H3>Compilation</H3>
  *  [PB] installed binary of convcal now gets stripped
@@ -22,11 +23,20 @@
 
 <H3>Bug fixes</H3>
  *  [SR] -(no)safe flags were missed in the -help output
- *  [ES] some standard Xt flags (-geometry etc) were ignored
+ *  [ES] some standard Xt flags (-geometry etc) were ignored (the bug was
+         introduced in 5.1.8)
  *  [MD] patterned fills were transparent in the PDF output
  *  [MD] font family might be set inconsistently in the MIF driver
  *  [ES] xmgrace was run in the safe mode when invoked from GraceOpen() via
          the grace_np interface (rep. #1179)
+ *  [ES] fixed 1/n error in calculation of correlation coefficient in the
+         non-linear fit (the value was used for information purposes only).
+         The bug was introduced in 5.1.5
+ *  [ES] redrawing canvas in the free mode might in some cases result in
+         modified graph viewport values (rep. #1176)
+ *  [ES] allow trailing semicolon in the batch language (rep. #1193)
+ *  [ES] some fonts couldn't be opened when running under NT4 (rep. #1186).
+	 This was a T1lib bug, in fact
 
 
 <H2>5.1.8</H2>

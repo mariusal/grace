@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.8)
+  <title>Grace FAQ (for Grace-5.1.9)
   <author>by the Grace Team
-  <date>30.04.2002
+  <date>30.07.2002
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -455,7 +455,8 @@
       <p>
     
       You have the choice: either you compile the sources yourself
-      or you download precompiled binaries. You can get both from
+      or you download precompiled binaries (we strongly suggest you take
+      the first route). You can get both from
       the <url url="http://plasma-gate.weizmann.ac.il/Grace/"
       name="Grace Home Page">. Whether binaries for your platforms
       are available (see question <ref id="binaries" name="Binaries">)
@@ -557,9 +558,9 @@
 
         Yes, Grace runs on VMS. Just compile it there.
 
-        As for Win32 (Windows 95/98/NT) and OS/2, there are ports for these
-        platforms, though they are not "native", i.e. in order to run them,
-        one needs an X server for the respective platform.
+        As for Win32 (Windows 95/98/NT/2000/XP) and OS/2, there are ports for
+        these platforms, though they are not "native", i.e. in order to run
+        them, one needs an X server for the respective platform.
         
         Both OS/2 and Win32 ports may lack some of the functionality (notably,
         support for "direct"/native printing; probably you will have to use

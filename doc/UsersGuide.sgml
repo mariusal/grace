@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.9)</title>
 <author>by the Grace Team</author>
-<date>19.06.2002</date>
+<date>12.07.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -23,7 +23,7 @@
      Grace is a WYSIWYG tool to make two-dimensional plots of numerical
      data. It runs under various (if not all) flavors of Unix with X11
      and M*tif (LessTif or Motif). It also runs under VMS, OS/2, and
-     Windows (95/98/NT/2000). Its capabilities are roughly similar to
+     Windows (95/98/NT/2000/XP). Its capabilities are roughly similar to
      GUI-based programs like Sigmaplot or Microcal Origin plus
      script-based tools like Gnuplot or Genplot. Its strength lies in the
      fact that it combines the convenience of a graphical user interface
@@ -3353,13 +3353,11 @@ C
                  <item> bitmapped text strings are not transparent
                </itemize>
         <item> MIF driver:
-               the driver is a brand new one and still in beta test
                <itemize>
                  <item> some of patterned fills not implemented
                  <item> bitmapped text strings not implemented
                </itemize>
         <item> SVG driver:
-               the driver is a brand new one and still in beta test
                <itemize>
                  <item> bitmapped text strings not implemented
                </itemize>
