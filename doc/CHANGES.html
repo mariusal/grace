@@ -15,28 +15,29 @@
  *  [ES] interpolation now takes into account all data set columns
  *  [ES] option to calculate normalized histograms
  *  [ES] histograms with varying bin widths - abscissas of a set can be used
-         as a bin mesh
- *  [EV/ES] GraceOpenVA()
+         as the bin mesh
+ *  [EV/ES] added GraceOpenVA() function to the grace_np API
  *  [ES] \V{} escape code in strings - baseline shift
  *  [ES] \n escape code in strings - new line
  
 <H3>Interface</H3>
  *  [ES] "Edit/Locator props" popup rewritten
  *  [ES] "Spline" popup removed
- *  [ES] "Interpolation" popup rewritten
+ *  [ES] "Interpolation" popup rewritten; now includes the former "Spline"
+         functionality
  *  [ES] "Histograms" popup rewritten
- !  [ES] "Arrange graphs" rewritten (including reps. #368, #592, #735)
+ *  [ES] "Arrange graphs" rewritten (including reps. #368, #592, #735)
  *  [ES] double click on a set selector entry now pops up the SS editor
- !  [ES] SS editor
+ !  [ES] many enhancements in the SS editor
  !  [ES] date/time format in the SS editor
  !  [ES] XmHTML/Gracilla
  *  [ES] removed -[no]logwindow command line options and X resource
  *  [ES] removed -arrange, -cols, and -rows command line options
- !  [ES] Results and errwin merged into Console
+ !  [ES] "Results" and error message windows merged into "Console"
  *  [ES] menubar added to the "Graph appearance" dialog
  *  [ES] "File/Read/Parameters" and "File/Write/Parameters" moved to the
          "Graph appearance" menubar
- *  [ES] "File/Read/Sets" and "File/Write/Setts" moved to the "Data/Import"
+ *  [ES] "File/Read/Sets" and "File/Write/Sets" moved to the "Data/Import"
          and "Data/Export" submenus, respectively
  *  [ES] renamed "File/Device setup" to "File/Print setup" and added
          "View/Page setup" (same dialog but with X11 as the selected device)
@@ -91,6 +92,8 @@
  *  [ES] white space at the beginning of text strings wasn't accounted in bbox
          calculations
  *  [ES] fixed wrong initial canvas size in the free page mode (rep. #821)
+ *  [ES] fixed set split crash
+ *  [ES] a severe memory leak in "Load &amp; evaluate" fixed
 
 
 <H2>5.1.0</H2>

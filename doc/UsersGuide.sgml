@@ -873,18 +873,26 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Arrange graphs <label id="arrange-graphs">
       <p>
       This entry fires up a popup to lay out several graphs in a
-      regular grid given rows and columns. The graphs can be packed
-      together (either horizontally or vertically). New graphs are
-      created if needed. An important note is that reducing the number
-      of graphs never delete any graphs! If you select a 6 by 3 grid
-      and then reduce it to 5 by 3, you will still have 18 graphs on
-      your screen, three of them looking strange in the middle of the
-      other ones. This is a security feature that prevent you from
-      losing data accepting too quickly a wrong setting. If you really
-      want to get rid of some of the graphs, you should hide or kill
-      them using any graph selector you can find around (for example
-      in the set operations presented above).
-
+      regular grid given by <bf>M</bf> rows and <bf>N</bf> columns. 
+      
+      The graph selector at the top allows one to select a number of graphs
+      the arrangement will operate on. If the number of selected graphs
+      isn't equal to <bf>M</bf> times <bf>N</bf>,  new graphs may be created
+      or extra graphs killed if needed. These options are  controlled by the
+      respective checkboxes below the graph selector.
+      
+      The order in which the matrix is filled in with the graphs can be
+      selected (first horizontally then vertically or vise versa, with
+      either of them inverted). 
+      
+      The rest of the controls of the dialog window deal with the matrix
+      spacing: left/right/top/bottom page offsets (in the viewport
+      coordinates) and <it>relative</it> inter-cell distances, vertical
+      and horizontal. Next to each of the vertical/horizontal spacing
+      spinboxes, a "Pack" checkbox is found. Enabling it effectively sets
+      the respective inter-cell distance to zero and alter axis tickmark
+      settings such that only bottom/left-most tickmarks are visible.
+      
       If you don't want the regular layout this arrangement gives you,
       you can change it afterwards using the mouse (select a graph and
       double click on the focus marker, see <ref id="clicks"
