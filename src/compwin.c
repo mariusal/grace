@@ -1357,39 +1357,25 @@ static int do_sample_proc(void *data)
 
 /* Prune data */
 
+/* for data pruning */
+#define PRUNE_TYPE_POINTS       0
+#define PRUNE_TYPE_INTERP       1
+
+#define PRUNE_AREA_RECTANGLE    0
+#define PRUNE_AREA_ELLIPSE      1
+
+#define PRUNE_DELTA_ABSOLUTE    0
+#define PRUNE_DELTA_RELATIVE    1
+
 typedef struct _Prune_ui {
     TransformStructure *tdialog;
     OptionStructure *type;
-    Widget dx_rc;
+    OptionStructure *area;
     Widget dx;
     OptionStructure *dxtype;
-    Widget dy_rc;
     Widget dy;
     OptionStructure *dytype;
 } Prune_ui;
-
-/*
- * Toggle prune type
- */
-static void do_prune_toggle(int value, void *data)
-{
-    Prune_ui *ui = (Prune_ui *) data;
-
-    switch (value) {
-    case PRUNE_CIRCLE:
-	SetSensitive(ui->dx_rc, TRUE);
-	SetSensitive(ui->dy_rc, FALSE);
-	break;
-    case PRUNE_INTERPOLATION:
-	SetSensitive(ui->dx_rc, FALSE);
-	SetSensitive(ui->dy_rc, TRUE);
-	break;
-    default:
-	SetSensitive(ui->dx_rc, TRUE);
-	SetSensitive(ui->dy_rc, TRUE);
-	break;
-    }
-}
 
 void create_prune_frame(void *data)
 {
@@ -1398,16 +1384,18 @@ void create_prune_frame(void *data)
     set_wait_cursor();
 
     if (ui == NULL) {
-	Widget rc;
+	Widget rc, rc2;
         OptionItem topitems[] = {
-            {PRUNE_INTERPOLATION, "Interpolation"},
-            {PRUNE_CIRCLE,        "Circle"       },
-            {PRUNE_RECTANGLE,     "Rectangle"    },
-            {PRUNE_ELLIPSE,       "Ellipse"      }
+            {PRUNE_TYPE_POINTS, "Points"       },
+            {PRUNE_TYPE_INTERP, "Interpolation"}
+        };
+        OptionItem aopitems[] = {
+            {PRUNE_AREA_RECTANGLE, "Rectangle"},
+            {PRUNE_AREA_ELLIPSE,   "Ellipse"  }
         };
         OptionItem dopitems[] = {
-            {PRUNE_ABSOLUTE, "Absolute"},
-            {PRUNE_RELATIVE, "Relative"}
+            {PRUNE_DELTA_ABSOLUTE, "Absolute"},
+            {PRUNE_DELTA_RELATIVE, "Relative"}
         };
         
         ui = xmalloc(sizeof(Prune_ui));
@@ -1417,19 +1405,17 @@ void create_prune_frame(void *data)
 
 	rc = CreateVContainer(ui->tdialog->form);
 
-        ui->type = CreateOptionChoice(rc, "Prune type:", 0, 4, topitems);
-        AddOptionChoiceCB(ui->type, do_prune_toggle, (void *) ui);
+        ui->type = CreateOptionChoice(rc, "Prune type:", 0, 2, topitems);
+        ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
 
-	ui->dx_rc = CreateHContainer(rc);
-	ui->dx = CreateTextItem4(ui->dx_rc, 16, "DX:");
-	ui->dxtype = CreateOptionChoice(ui->dx_rc, "Type:", 0, 2, dopitems);
+	rc2 = CreateHContainer(rc);
+	ui->dx = CreateTextItem4(rc2, 16, "DX:");
+	ui->dxtype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
 	
-	ui->dy_rc = CreateHContainer(rc);
-	ui->dy = CreateTextItem4(ui->dy_rc, 16, "DY:");
-	ui->dytype = CreateOptionChoice(ui->dy_rc, "Type:", 0, 2, dopitems);
+	rc2 = CreateHContainer(rc);
+	ui->dy = CreateTextItem4(rc2, 16, "DY:");
+	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
 
-        do_prune_toggle(PRUNE_INTERPOLATION, (void *) ui);
-        
         CreateAACDialog(ui->tdialog->form, rc, do_prune_proc, (void *) ui);
     }
     
@@ -1446,7 +1432,7 @@ static int do_prune_proc(void *data)
 {
     int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
     int i, res, err = FALSE;
-    int type, dxtype, dytype;
+    int type, area, dxtype, dytype;
     double dx, dy;
     Prune_ui *ui = (Prune_ui *) data;
 
@@ -1459,20 +1445,17 @@ static int do_prune_proc(void *data)
     }
 
     type   = GetOptionChoice(ui->type);
+    area   = GetOptionChoice(ui->area);
     dxtype = GetOptionChoice(ui->dxtype);
     dytype = GetOptionChoice(ui->dytype);
 
-    if (type != PRUNE_INTERPOLATION) {
-        if (xv_evalexpr(ui->dx, &dx) != RETURN_SUCCESS) {
-            errmsg("Can't parse value for X");
-            return RETURN_FAILURE;
-        }
+    if (xv_evalexpr(ui->dx, &dx) != RETURN_SUCCESS) {
+        errmsg("Can't parse value for X");
+        return RETURN_FAILURE;
     }
-    if (type != PRUNE_CIRCLE) {
-        if (xv_evalexpr(ui->dy, &dy) != RETURN_SUCCESS) {
-            errmsg("Can't parse value for Y");
-            return RETURN_FAILURE;
-        }
+    if (xv_evalexpr(ui->dy, &dy) != RETURN_SUCCESS) {
+        errmsg("Can't parse value for Y");
+        return RETURN_FAILURE;
     }
 
     for (i = 0; i < nssrc; i++) {
@@ -1486,7 +1469,8 @@ static int do_prune_proc(void *data)
         }
         
 	res = do_prune(gsrc, setfrom, gdest, setto,
-            type, dx, dxtype, dy, dytype);
+            type == PRUNE_TYPE_INTERP, area == PRUNE_AREA_ELLIPSE,
+            dx, dxtype, dy, dytype);
         
         if (res != RETURN_SUCCESS) {
             err = TRUE;

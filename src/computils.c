@@ -1097,25 +1097,137 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
     return RETURN_SUCCESS;
 }
 
+static int inside_dxdy(double ddx, double ddy, double dx, double dy, int elliptic)
+{
+    if (dx <= 0.0 || dy <= 0.0) {
+        return FALSE;
+    }
+    
+    if (elliptic) {
+        if (hypot(ddx/dx, ddy/dy) <= 1.0) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        if (fabs(ddx) <= dx && fabs(ddy) <= dy) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+}
+
+static int prune_plain_inside(double old_x, double old_y, double x, double y,
+    int elliptic, double dx, int reldx, double dy, int reldy)
+{
+    double ddx, ddy;
+    
+    ddx = x - old_x;
+    ddy = y - old_y;
+    
+    if (reldx) {
+        if (old_x == 0.0) {
+            return FALSE;
+        } else {
+            ddx /= old_x;
+        }
+    }
+    if (reldy) {
+        if (old_y == 0.0) {
+            return FALSE;
+        } else {
+            ddy /= old_y;
+        }
+    }
+    
+    return inside_dxdy(ddx, ddy, dx, dy, elliptic);
+}
+
+static int prune_interp_inside(double *x, double *y, int len,
+    int elliptic, double dx, int reldx, double dy, int reldy)
+{
+    if (len < 3) {
+        return TRUE;
+    } else {
+        int j;
+        double x10, y10, x20, y20;
+        x20 = x[len - 1] - x[0];
+        y20 = y[len - 1] - y[0];
+        for (j = 1; j < len - 1; j++) {
+            double t, den, ddx, ddy;
+            
+            x10 = x[j] - x[0];
+            y10 = y[j] - y[0];
+            
+            den = x20*x20 + y20*y20;
+            if (den == 0.0) {
+                return FALSE;
+            }
+            
+            t = (x10*y20 - x20*y10)/den;
+            ddx =   y20*t;
+            ddy = - x20*t;
+            
+            if (reldx) {
+                if (x[j] == 0.0) {
+                    return FALSE;
+                } else {
+                    ddx /= x[j];
+                }
+            }
+            if (reldy) {
+                if (y[j] == 0.0) {
+                    return FALSE;
+                } else {
+                    ddy /= y[j];
+                }
+            }
+
+            if (!inside_dxdy(ddx, ddy, dx, dy, elliptic)) {
+                return FALSE;
+            }
+        }
+    }
+    
+    return TRUE;
+}
 
 /*
  * Prune data
  */
 int do_prune(int gsrc, int setfrom, int gdest, int setto, 
-    int type, double dx, int dxtype, double dy, int dytype)
+    int interp, int elliptic, double dx, int reldx, double dy, int reldy)
 {
-    int len, newlen, ncols, i, nc;
-    char *stype, *iprune;
-    double *x, *y, old_x, old_y, ddx, ddy;
+    int len, newlen, ncols, i, old_i, nc;
+    char *iprune;
+    double *x, *y, old_x, old_y;
 
+    if (dx <= 0.0) {
+        errmsg("DX <= 0");
+	return RETURN_FAILURE;
+    }
+    if (dy <= 0.0) {
+        errmsg("DY <= 0");
+	return RETURN_FAILURE;
+    }
+    
     if (!is_set_active(gsrc, setfrom)) {
         errmsg("Set not active");
         return RETURN_FAILURE;
     }
     
     len = getsetlength(gsrc, setfrom);
-    if (len <= 2) {
-	errmsg("Set has <= 2 points");
+    if (len < 3) {
+	errmsg("Set length < 3");
+	return RETURN_FAILURE;
+    }
+    
+    x = getx(gsrc, setfrom);
+    y = gety(gsrc, setfrom);
+
+    if (interp && monotonicity(x, len, FALSE) == 0) {
+	errmsg("Can't prune a non-monotonic set using interpolation");
 	return RETURN_FAILURE;
     }
 
@@ -1125,54 +1237,6 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
         set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
     }
     
-    switch (type) {
-    case PRUNE_CIRCLE:
-    case PRUNE_ELLIPSE:
-    case PRUNE_RECTANGLE:
-	dx = fabs(dx);
-	if (dx == 0.0) {
-            errmsg("Zero dx");
-	    return RETURN_FAILURE;
-	}
-        break;
-    }
-    
-    switch (type) {
-    case PRUNE_CIRCLE:
-	dy = dx;
-	break;
-    case PRUNE_ELLIPSE:
-    case PRUNE_RECTANGLE:
-    case PRUNE_INTERPOLATION:
-	dy = fabs(dy);
-	if (dy == 0.0) {
-            errmsg("Zero dy");
-	    return RETURN_FAILURE;
-	}
-        break;
-    }
-    
-    switch (type) {
-    case PRUNE_INTERPOLATION:
-        stype = "interpolation";
-        break;
-    case PRUNE_CIRCLE:
-        stype = "circle";
-        break;
-    case PRUNE_RECTANGLE:
-        stype = "rectangle";
-        break;
-    case PRUNE_ELLIPSE:
-        stype = "ellipse";
-        break;
-    default:
-        errmsg("Internal error, wrong arguments passed to do_prune()");
-        return RETURN_FAILURE;
-    }
-    
-    x = getx(gsrc, setfrom);
-    y = gety(gsrc, setfrom);
-
     iprune = xmalloc(len*SIZEOF_CHAR);
     if (!iprune) {
         return RETURN_FAILURE;
@@ -1180,50 +1244,18 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
     
     newlen = 1;
     iprune[0] = FALSE;
+    old_i = 0;
     old_x = x[0];
     old_y = y[0];
     for (i = 1; i < len; i++) {
         int prune;
         
-        if (type == PRUNE_INTERPOLATION) {
-            /* FIXME! */
-        }
-        
-        ddx = fabs(x[i] - old_x);
-        ddy = fabs(y[i] - old_y);
-        if (dxtype == PRUNE_RELATIVE) {
-            if (old_x != 0.0) {
-                ddx /= old_x;
-            } else {
-                ddx = 2*dx;
-            }
-        }
-        if (dytype == PRUNE_RELATIVE) {
-            if (old_y != 0.0) {
-                ddy /= old_y;
-            } else {
-                ddy = 2*dy;
-            }
-        }
-        
-        prune = FALSE;
-        switch (type) {
-        case PRUNE_INTERPOLATION:
-            if (ddy < dy) {
-                prune = TRUE;
-            }
-            break;
-        case PRUNE_CIRCLE:
-        case PRUNE_ELLIPSE:
-            if (hypot(ddx/dx, ddy/dy) < 1.0) {
-                prune = TRUE;
-            }
-            break;
-        case PRUNE_RECTANGLE:
-            if (ddx < dx && ddy < dy) {
-                prune = TRUE;
-            }
-            break;
+        if (interp) {
+            prune = prune_interp_inside(&x[old_i], &y[old_i], i - old_i + 1,
+                elliptic, dx, reldx, dy, reldy);
+        } else {
+            prune = prune_plain_inside(x[old_i], y[old_i], x[i], y[i],
+                elliptic, dx, reldx, dy, reldy);
         }
         
         if (prune) {
@@ -1231,6 +1263,7 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
         } else {
             iprune[i] = FALSE;
             newlen++;
+            old_i = i;
             old_x = x[i];
             old_y = y[i];
         }
@@ -1257,8 +1290,11 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
     
     xfree(iprune);
 
-    sprintf(buf, "Prune from G%d.S%d, method: %s, dx = %g, dy = %g",
-        gsrc, setfrom, stype, dx, dy);
+    sprintf(buf, "Prune from G%d.S%d, method: %s, area: %s (dx = %g, dy = %g)",
+        gsrc, setfrom,
+        interp ? "interpolation":"plain",
+        elliptic ? "elliptic":"rectangular",
+        dx, dy);
     setcomment(gdest, setto, buf);
     
     return RETURN_SUCCESS;

@@ -263,15 +263,6 @@ typedef enum {
 /* Default document name */
 #define NONAME "Untitled"
 
-/* for data pruning */
-#define PRUNE_INTERPOLATION     0
-#define PRUNE_CIRCLE            1
-#define PRUNE_RECTANGLE         2
-#define PRUNE_ELLIPSE           3
-
-#define PRUNE_ABSOLUTE          0
-#define PRUNE_RELATIVE          1
-
 /* for io filters */
 #define FILTER_INPUT    0
 #define FILTER_OUTPUT   1

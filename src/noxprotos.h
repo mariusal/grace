@@ -66,7 +66,7 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
 
 int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula);
 int do_prune(int gsrc, int setfrom, int gdest, int setto, 
-    int type, double dx, int dxtype, double dy, int dytype);
+    int interp, int elliptic, double dx, int reldx, double dy, int reldy);
 
 void set_region_defaults(region *r);
 void set_default_framep(framep * f);
