@@ -8,7 +8,7 @@ include $(TOP)/Make.conf
 
 include Make.defs
 
-CFLAGS=$(CFLAGS0) -I$(TOP)/include $(CPPFLAGS)
+CFLAGS=$(CFLAGS0) -I$(TOP)/include $(CPPFLAGS) $(EXTRAFLAGS)
 
 all : $(LIB)
 
