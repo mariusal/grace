@@ -233,30 +233,27 @@ static int ps_initgraphics(int format)
     }
        
     if (ps_level2 == TRUE) {
-        frgb = get_frgb(getbgcolor());
+        fprintf(prstream, "/pattern {\n");
+        fprintf(prstream, " /pat_bits exch def \n");
+        fprintf(prstream, " <<\n");
+        fprintf(prstream, "  /PaintType 2\n");
+        fprintf(prstream, "  /PatternType 1 /TilingType 1\n");
+        fprintf(prstream, "  /BBox[0 0 16 16]\n");
+        fprintf(prstream, "  /XStep 16 /YStep 16\n");
+        fprintf(prstream, "  /PaintProc {\n");
+        fprintf(prstream, "   pop\n");
+        fprintf(prstream, "   16 16 true [-1 0 0 -1 16 16] pat_bits imagemask\n");
+        fprintf(prstream, "  }\n");
+        fprintf(prstream, " >>\n");
+        fprintf(prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/page_scalef, 1.0/page_scalef);
+        fprintf(prstream, " makepattern\n");
+        fprintf(prstream, "} def\n");
         for (i = 0; i < number_of_patterns(); i++) {
-            fprintf(prstream, "/Pat%d_bits <", i);
+            fprintf(prstream, "/Pattern%d {<", i);
             for (j = 0; j < 32; j++) {
                 fprintf(prstream, "%02x", pat_bits[i][j]);
             }
-            fprintf(prstream, "> def\n");
-            fprintf(prstream, "<<\n");
-            fprintf(prstream, " /PaintType 2\n");
-            fprintf(prstream, " /PatternType 1 /TilingType 1\n");
-            fprintf(prstream, " /BBox[0 0 16 16]\n");
-            fprintf(prstream, " /XStep 16 /YStep 16\n");
-            fprintf(prstream, " /PaintProc {\n");
-            fprintf(prstream, "  pop\n");
-            if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-                fprintf(prstream, "  16 16 true [0 1 -1 0 16 0] {Pat%d_bits} imagemask\n", i);
-            } else {
-                fprintf(prstream, "  16 16 true [-1 0 0 -1 16 16] {Pat%d_bits} imagemask\n", i);
-            }
-            fprintf(prstream, " }\n");
-            fprintf(prstream, ">>\n");
-            fprintf(prstream, "matrix\n");
-            fprintf(prstream, "makepattern\n");
-            fprintf(prstream, "/Pattern%d exch def\n", i);
+            fprintf(prstream, "> pattern} bind def\n");
         }
     }
     fprintf(prstream, "/ellipsedict 8 dict def\n");
