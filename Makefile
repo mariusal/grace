@@ -48,8 +48,7 @@ Make.conf : ac-tools/Make.conf.in configure
 	@exit 1
 
 configure : ac-tools/configure.in ac-tools/aclocal.m4
-	autoconf -o $@ ac-tools/configure.in
+	WANT_AUTOCONF_2_5=1 autoconf -o $@ ac-tools/configure.in
 	chmod +x $@
 
 dummy :
-
