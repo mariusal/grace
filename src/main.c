@@ -604,9 +604,7 @@ int main(int argc, char *argv[])
 		usage(stderr, argv[0]);
 	    }
 	} else {
-	    if (load_project(argv[i]) == RETURN_SUCCESS) {
-		clear_dirtystate();
-	    }
+	    load_project(argv[i]);
 	} /* end else */
     } /* end for */
     
