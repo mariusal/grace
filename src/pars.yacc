@@ -392,6 +392,7 @@ symtab_entry *key;
 %token <ival> REGNUM
 %token <ival> REGRESS
 %token <ival> RESIZE
+%token <ival> RESTRICT
 %token <ival> REVERSE
 %token <ival> RIGHT
 %token <ival> RISER
@@ -1040,6 +1041,35 @@ vexpr:
             for (i = 0; i < $$->length; i++) {
 		$$->data[i] = drand48();
 	    }
+	}
+	| REGNUM '(' selectset ')'
+	{
+	    int rtype, i, len;
+            char *rarray;
+            
+            rtype = RESTRICT_REG0 + $1;
+            
+	    if (get_restriction_array($3->gno, $3->setno,
+                rtype, FALSE, &rarray) != RETURN_SUCCESS) {
+                errmsg("Error in region evaluation");
+                return 1;
+	    }
+
+            len = getsetlength($3->gno, $3->setno);
+            $$ = &freelist[fcnt++];
+	    $$->data = xmalloc(len*SIZEOF_DOUBLE);
+            if ($$->data == NULL) {
+                errmsg("Not enough memory");
+                return 1;
+            } else {
+                $$->length = len;
+                $$->type = GRARR_TMP;
+            }
+            for (i = 0; i < $$->length; i++) {
+		$$->data[i] = rarray[i];
+	    }
+            
+            xfree(rarray);
 	}
 	| FUNC_I '(' vexpr ')'
 	{
@@ -2983,6 +3013,38 @@ actions:
  	| XCOR '(' selectset ',' selectset ',' nexpr ')' {
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
 	}
+ 	| RESTRICT '(' selectset ',' vexpr ')' {
+            int len = getsetlength($3->gno, $3->setno);
+            if (len != $5->length) {
+		errmsg("Filter expression is of a wrong length");
+            } else {
+                char *rarray;
+                rarray = xmalloc(len*SIZEOF_CHAR);
+                if (rarray) {
+                    int i;
+                    for (i = 0; i < len; i++) {
+                        rarray[i] = CAST_DBL_TO_BOOL($5->data[i]);
+                    }
+                    filter_set($3->gno, $3->setno, rarray);
+                    xfree(rarray);
+                }
+            }
+	}
+ 	| RESTRICT '(' selectset ',' REGNUM ',' onoff ')' {
+            int rtype;
+            char *rarray;
+            
+            rtype = RESTRICT_REG0 + $5;
+
+	    if (get_restriction_array($3->gno, $3->setno,
+                rtype, $7, &rarray) != RETURN_SUCCESS) {
+                errmsg("Error in region evaluation");
+                return 1;
+	    } else {
+                filter_set($3->gno, $3->setno, rarray);
+                xfree(rarray);
+            }
+	}
 	| AUTOSCALE {
 	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
@@ -4659,6 +4721,7 @@ symtab_entry ikey[] = {
 	{"REFERENCE", REFERENCE, NULL},
 	{"REGRESS", REGRESS, NULL},
 	{"RESIZE", RESIZE, NULL},
+	{"RESTRICT", RESTRICT, NULL},
 	{"REVERSE", REVERSE, NULL},
 	{"RGAMMA", FUNC_D, (void *) rgamma},
 	{"RIGHT", RIGHT, NULL},
