@@ -101,6 +101,9 @@ char *set_types(int it)
     case SET_XYVMAP:
 	s = "xyvmap";
 	break;
+    case SET_BOXPLOT:
+	s = "boxplot";
+	break;
     }
     return s;
 }
@@ -145,6 +148,7 @@ int settype_cols(int type)
 	ncols = 5;
 	break;
     case SET_XYDXDXDYDY:
+    case SET_BOXPLOT:
 	ncols = 6;
 	break;
     default:

@@ -58,6 +58,7 @@ typedef enum {
     SET_XYR       ,
     SET_XYCOLPAT  ,
     SET_XYVMAP    ,
+    SET_BOXPLOT   ,
     SET_BAD
 } SetType;
 #define NUMBER_OF_SETTYPES  SET_BAD

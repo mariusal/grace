@@ -230,6 +230,7 @@ symtab_entry *key;
 %token <ival> BOTH
 %token <ival> BOTTOM
 %token <ival> BOX
+%token <ival> BOXPLOT
 %token <ival> CD
 %token <ival> CENTER
 %token <ival> CHAR
@@ -3691,6 +3692,7 @@ xytype:
 	| XYR { $$ = SET_XYR; }
 	| XYCOLPAT { $$ = SET_XYCOLPAT; }
 	| XYVMAP { $$ = SET_XYVMAP; }
+	| BOXPLOT { $$ = SET_BOXPLOT; }
 	| XYSTRING { $$ = SET_XY; }
 	;
 
@@ -4342,6 +4344,7 @@ symtab_entry ikey[] = {
 	{"BOTH", BOTH, NULL},
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
+	{"BOXPLOT", BOXPLOT, NULL},
 	{"CD", CD, NULL},
 	{"CEIL", FUNC_D, (void *) ceil},
 	{"CENTER", CENTER, NULL},

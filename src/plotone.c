@@ -460,6 +460,9 @@ void xyplot(int gno)
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
+                case SET_BOXPLOT:
+                    drawsetboxplot(&p);
+                    break;
                 default:
                     errmsg("Unsupported in XY graph set type");
                     break;
@@ -1457,8 +1460,6 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     
     setclipping(TRUE);
     
-    setpen(p->errbar.pen);
-    
     for (i = 0; i < n; i++) {
         wp1.x = x[i];
         wp1.y = y[i];
@@ -1734,6 +1735,62 @@ void drawsetvmap(int gno, plotarr *p)
     }
 }
 
+void drawsetboxplot(plotarr *p)
+{
+    int i;
+    double *x, *md, *lb, *ub, *lw, *uw;
+    double size = 0.01*p->symsize;
+    WPoint wp;
+    VPoint vp1, vp2;
+
+    x  = p->data.ex[0];
+    md = p->data.ex[1];
+    lb = p->data.ex[2];
+    ub = p->data.ex[3];
+    lw = p->data.ex[4];
+    uw = p->data.ex[5];
+
+    setclipping(TRUE);
+
+    for (i = 0; i < p->data.len; i++) {
+        wp.x =  x[i];
+
+        wp.y = lb[i];
+        vp1 = Wpoint2Vpoint(wp);
+        wp.y = ub[i];
+        vp2 = Wpoint2Vpoint(wp);
+        
+        /* whiskers */
+        if (p->errbar.active == TRUE) {
+            VPoint vp3;
+            wp.y = lw[i];
+            vp3 = Wpoint2Vpoint(wp);
+            drawerrorbar(vp1, vp3, &p->errbar);
+            wp.y = uw[i];
+            vp3 = Wpoint2Vpoint(wp);
+            drawerrorbar(vp2, vp3, &p->errbar);
+        }
+
+        /* box */
+        vp1.x -= size;
+        vp2.x += size;
+        setpen(p->symfillpen);
+        FillRect(vp1, vp2);
+
+        setpen(p->sympen);
+        setlinewidth(p->symlinew);
+        setlinestyle(p->symlines);
+        DrawRect(vp1, vp2);
+
+        /* median line */
+        wp.y = md[i];
+        vp2 = vp1 = Wpoint2Vpoint(wp);
+        vp1.x -= size;
+        vp2.x += size;
+        DrawLine(vp1, vp2);
+    }
+}
+
 int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
 {
     VPoint vps[4];
@@ -1875,6 +1932,8 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
     
     lvv.x /= vlength;
     lvv.y /= vlength;
+    
+    setpen(eb->pen);
     
     if (eb->arrow_clip && is_validVPoint(vp2) == FALSE) {
         vp2.x = vp1.x + eb->cliplen*lvv.x;
