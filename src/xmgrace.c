@@ -505,12 +505,6 @@ static void autoscale_proc(Widget but, void *data)
     }
 }
 
-static void autoon_proc(Widget but, void *data)
-{
-    set_action(0);
-    set_action(AUTO_NEAREST);
-}
-
 /*
  * service the autoticks button on the main panel
  */
@@ -1021,8 +1015,6 @@ void startup_gui(Grace *grace)
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_y_bits);
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
-    bt = CreateBitmapButton(rcleft, 16, 16, auto_on_bits);
-    AddButtonCB(bt, autoon_proc, NULL);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_tick_bits);
     AddButtonCB(bt, autoticks_proc, NULL);
 
