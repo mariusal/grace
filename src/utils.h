@@ -92,6 +92,9 @@ void set_help_viewer(char *dir);
 char *get_print_cmd(void);
 void set_print_cmd(char *cmd);
 
+char *get_editor(void);
+void set_editor(char *cmd);
+
 void errmsg(char *buf);
 void echomsg(char *msg);
 void stufftext(char *s, int sp);

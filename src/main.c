@@ -234,11 +234,20 @@ int main(int argc, char *argv[])
     if ((s = getenv("GRACE_PRINT_CMD")) != NULL) {
 	set_print_cmd(s);
     }
-    
+
     /* if no print command defined, print to file by default */
     s = get_print_cmd();
     if (s == NULL || s[0] == '\0') {
         ptofile = TRUE;
+    } else {
+        ptofile = FALSE;
+    }
+    
+    /*
+     * editor
+     */
+    if ((s = getenv("GRACE_EDITOR")) != NULL) {
+	set_editor(s);
     }
     
     /*

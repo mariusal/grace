@@ -482,13 +482,11 @@ void create_ss_frame(int gno, int setno)
 }
 
 /*
- * Start up editor using GRACE_EDITOR variable
- * Note the change to the GRACE_EDITOR variable: If it requires a text 
- * terminal it must provide it explicitly with an xterm -e prefix 
+ * Start up external editor
  */
 void do_ext_editor(int gno, int setno)
 {
-    char *fname, ebuf[256], *s;
+    char *fname, ebuf[256];
     FILE *cp;
     int save_autos;
 
@@ -501,12 +499,7 @@ void do_ext_editor(int gno, int setno)
     write_set(gno, setno, cp, sformat, FALSE);
     grace_close(cp);
 
-    if ((s = getenv("GRACE_EDITOR")) != NULL) {
-    	strcpy(ebuf, s);
-    } else {
-    	strcpy(ebuf, "xterm -e vi");
-    }
-    sprintf(ebuf, "%s %s", ebuf, fname);
+    sprintf(ebuf, "%s %s", get_editor(), fname);
     system_wrap(ebuf);
 
     /* temporarily disable autoscale */

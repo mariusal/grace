@@ -1,5 +1,5 @@
 #####################################################
-# Makefile for GRACE                                #
+# Makefile for Grace                                #
 #####################################################
 # You should not change anything here.              #
 # Please read INSTALL file in the upper directory   #
@@ -18,7 +18,7 @@ CEPHES_LIB=$(TOP)/cephes/libcephes.a
 CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(T1_INC) $(GUI_FLAGS)
 
 PREFS=-DGRACE_HOME=\"$(GRACE_HOME)\" -DGRACE_PRINT_CMD=\"$(PRINT_CMD)\" \
-	$(HELPVIEWER)
+	-DGRACE_EDITOR=\"$(GRACE_EDITOR)\" $(HELPVIEWER)
 
 LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
 	$(T1_LIB) $(PDF_LIB) $(GD_LIB) $(NOGUI_LIBS) $(DL_LIB)

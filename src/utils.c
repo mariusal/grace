@@ -1113,6 +1113,22 @@ void set_print_cmd(char *cmd)
     strncpy(print_cmd, cmd, GR_MAXPATHLEN - 1);
 }
 
+/* editor */
+#ifndef GRACE_EDITOR
+#  define GRACE_EDITOR "xterm -e vi"
+#endif
+static char grace_editor[GR_MAXPATHLEN] = GRACE_EDITOR;	
+
+char *get_editor(void)
+{
+    return grace_editor;
+}
+
+void set_editor(char *cmd)
+{
+    strncpy(grace_editor, cmd, GR_MAXPATHLEN - 1);
+}
+
 #ifndef GRACE_HELPVIEWER
 #  define GRACE_HELPVIEWER "netscape -noraise -remote openURL\\(%s,newwindow\\) >>/dev/null 2>&1 || netscape %s"
 #endif
