@@ -209,6 +209,18 @@ int Wpoint2Vpoint(const Quark *q, const WPoint *wp, VPoint *vp)
     return world2view(q, wp->x, wp->y, &vp->x, &vp->y);
 }
 
+/* check that FPoint is ok */
+#define FP_EPSILON  0.01
+int is_validFPoint(const FPoint *fp)
+{
+    if (fp->x < 0.0 - FP_EPSILON || fp->x > 1.0 + FP_EPSILON ||
+        fp->y < 0.0 - FP_EPSILON || fp->y > 1.0 + FP_EPSILON) {
+        return FALSE;
+    } else {
+        return TRUE;
+    }
+}
+
 /*
  * Convert point's frame coordinates to viewport
  */
@@ -261,6 +273,10 @@ int Apoint2Vpoint(const Quark *q, const APoint *ap, VPoint *vp)
         Quark *f = get_parent_frame(q);
         fp.x = ap->x;
         fp.y = ap->y;
+        if (!is_validFPoint(&fp)) {
+            return RETURN_FAILURE;
+        }
+        
         Fpoint2Vpoint(f, &fp, vp);
     } else {
         vp->x = ap->x;
