@@ -1948,13 +1948,23 @@ parmset:
 	    curbox = (int) $3;
 	}
 	| BOX onoff {
-	    boxes[curbox].active = $2;
+	    if (!is_valid_box(curbox)) {
+                yyerror("Box not active");
+	    } else {
+	        boxes[curbox].active = $2;
+            }
 	}
 	| BOX GRAPHNO {
-	    boxes[curbox].gno = $2;
+	    if (!is_valid_box(curbox)) {
+                yyerror("Box not active");
+	    } else {
+	        boxes[curbox].gno = $2;
+            }
 	}
 	| BOX expr ',' expr ',' expr ',' expr {
-	    if (curbox >= 0 && curbox < number_of_boxes()) {
+	    if (!is_valid_box(curbox)) {
+                yyerror("Box not active");
+	    } else {
 		boxes[curbox].x1 = $2;
 		boxes[curbox].y1 = $4;
 		boxes[curbox].x2 = $6;
@@ -1980,7 +1990,9 @@ parmset:
 	    box_fillpat = (int) $3;
 	}
 	| BOX DEF {
-	    if (curbox >= 0 && curbox < number_of_boxes()) {
+	    if (!is_valid_box(curbox)) {
+                yyerror("Box not active");
+	    } else {
 		boxes[curbox].lines = box_lines;
 		boxes[curbox].linew = box_linew;
 		boxes[curbox].color = box_color;
@@ -2015,13 +2027,23 @@ parmset:
 	    curellipse = (int) $3;
 	}
 	| ELLIPSE onoff {
-	    ellip[curellipse].active = $2;
+	    if (!is_valid_ellipse(curellipse)) {
+                yyerror("Ellipse not active");
+	    } else {
+	        ellip[curellipse].active = $2;
+            }
 	}
 	| ELLIPSE GRAPHNO {
-	    ellip[curellipse].gno = $2;
+	    if (!is_valid_ellipse(curellipse)) {
+                yyerror("Ellipse not active");
+	    } else {
+	        ellip[curellipse].gno = $2;
+            }
 	}
 	| ELLIPSE expr ',' expr ',' expr ',' expr {
-	    if (curellipse >= 0 && curellipse < number_of_ellipses()) {
+	    if (!is_valid_ellipse(curellipse)) {
+                yyerror("Ellipse not active");
+	    } else {
 		ellip[curellipse].x1 = $2;
 		ellip[curellipse].y1 = $4;
 		ellip[curellipse].x2 = $6;
@@ -2047,7 +2069,9 @@ parmset:
 	    ellipse_fillpat = (int) $3;
 	}
 	| ELLIPSE DEF {
-	    if (curellipse >= 0 && curellipse < number_of_ellipses()) {
+	    if (!is_valid_ellipse(curellipse)) {
+                yyerror("Ellipse not active");
+	    } else {
 		ellip[curellipse].lines = ellipse_lines;
 		ellip[curellipse].linew = ellipse_linew;
 		ellip[curellipse].color = ellipse_color;
@@ -2082,16 +2106,28 @@ parmset:
 	    curline = (int) $3;
 	}
 	| LINE onoff {
-	    lines[curline].active = $2;
+	    if (!is_valid_line(curline)) {
+                yyerror("Line not active");
+	    } else {
+	        lines[curline].active = $2;
+            }
 	}
 	| LINE GRAPHNO {
-	    lines[curline].gno = $2;
+	    if (!is_valid_line(curline)) {
+                yyerror("Line not active");
+	    } else {
+	        lines[curline].gno = $2;
+            }
 	}
 	| LINE expr ',' expr ',' expr ',' expr {
-	    lines[curline].x1 = $2;
-	    lines[curline].y1 = $4;
-	    lines[curline].x2 = $6;
-	    lines[curline].y2 = $8;
+	    if (!is_valid_line(curline)) {
+                yyerror("Line not active");
+	    } else {
+	        lines[curline].x1 = $2;
+	        lines[curline].y1 = $4;
+	        lines[curline].x2 = $6;
+	        lines[curline].y2 = $8;
+            }
 	}
 	| LINE LOCTYPE worldview {
 	    line_loctype = $3;
@@ -2119,17 +2155,19 @@ parmset:
 	    line_a_lL_ff = $6;
 	}
 	| LINE DEF {
-	    if (curline >= 0 && curline < number_of_lines()) {
-		lines[curline].lines = line_lines;
-		lines[curline].linew = line_linew;
-		lines[curline].color = line_color;
-		lines[curline].arrow_end = line_arrow_end;
-		lines[curline].arrow.length = line_asize;
-		lines[curline].arrow.type = line_atype;
-		lines[curline].arrow.dL_ff = line_a_dL_ff;
-		lines[curline].arrow.lL_ff = line_a_lL_ff;
-		lines[curline].loctype = line_loctype;
-	    }
+	    if (!is_valid_line(curline)) {
+                yyerror("Line not active");
+	    } else {
+	        lines[curline].lines = line_lines;
+	        lines[curline].linew = line_linew;
+	        lines[curline].color = line_color;
+	        lines[curline].arrow_end = line_arrow_end;
+	        lines[curline].arrow.length = line_asize;
+	        lines[curline].arrow.type = line_atype;
+	        lines[curline].arrow.dL_ff = line_a_dL_ff;
+	        lines[curline].arrow.lL_ff = line_a_lL_ff;
+	        lines[curline].loctype = line_loctype;
+            }
 	}
 
 /* strings */
@@ -2140,14 +2178,26 @@ parmset:
             curstring = (int) $3;
         }
 	| STRING onoff {
-            pstr[curstring].active = $2;
+	    if (!is_valid_string(curstring)) {
+                yyerror("String not active");
+	    } else {
+                pstr[curstring].active = $2;
+            }
         }
 	| STRING GRAPHNO {
-            pstr[curstring].gno = $2;
+	    if (!is_valid_string(curstring)) {
+                yyerror("String not active");
+	    } else {
+                pstr[curstring].gno = $2;
+            }
         }
 	| STRING expr ',' expr {
-	    pstr[curstring].x = $2;
-	    pstr[curstring].y = $4;
+	    if (!is_valid_string(curstring)) {
+                yyerror("String not active");
+	    } else {
+	        pstr[curstring].x = $2;
+	        pstr[curstring].y = $4;
+            }
 	}
 	| STRING LOCTYPE worldview {
             string_loctype = $3;
@@ -2168,13 +2218,17 @@ parmset:
             string_size = $4;
         }
 	| STRING DEF CHRSTR {
-	    set_plotstr_string(&pstr[curstring], (char *) $3);
-	    pstr[curstring].color = string_color;
-	    pstr[curstring].font = string_font;
-	    pstr[curstring].just = string_just;
-	    pstr[curstring].loctype = string_loctype;
-	    pstr[curstring].rot = string_rot;
-	    pstr[curstring].charsize = string_size;
+	    if (!is_valid_string(curstring)) {
+                yyerror("String not active");
+	    } else {
+	        set_plotstr_string(&pstr[curstring], (char *) $3);
+	        pstr[curstring].color = string_color;
+	        pstr[curstring].font = string_font;
+	        pstr[curstring].just = string_just;
+	        pstr[curstring].loctype = string_loctype;
+	        pstr[curstring].rot = string_rot;
+	        pstr[curstring].charsize = string_size;
+            }
 	    free((char *) $3);
 	}
 
