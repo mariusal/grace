@@ -166,7 +166,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
     retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
 
-    if (ncols > 0) {
+    if (ncols > 1) {
         XtVaSetValues(retval->pulldown,
                       XmNorientation, XmHORIZONTAL,
                       XmNpacking, XmPACK_COLUMN,
