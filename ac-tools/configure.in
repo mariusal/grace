@@ -620,7 +620,7 @@ fi
 
 if test $undo = true
 then
-  ACX_CHECK_LIBUNDO(0.7.0, AC_DEFINE(HAVE_LIBUNDO),
+  ACX_CHECK_LIBUNDO(0.8.0, AC_DEFINE(HAVE_LIBUNDO),
                    AC_MSG_RESULT(--> undo/redo functionality is disabled))
 fi
 

@@ -745,9 +745,25 @@ AC_DEFUN(ACX_CHECK_LIBUNDO,
 
     AC_TRY_RUN([
 #include <stdlib.h>
+#include <stdio.h>
 #include <undo.h>
       int main(void) {
-        undo_new("test");
+        unsigned major, minor, revision, vlib, vinc, vrec;
+
+        sscanf("[$1]", "%u.%u.%u", &major, &minor, &revision);
+        vrec = 10000*major + 100*minor + revision;
+
+        undo_get_version(&major, &minor, &revision);
+        vlib = 10000*major + 100*minor + revision;
+
+        vinc = 10000*UNDO_MAJOR_VERSION + 100*UNDO_MINOR_VERSION + UNDO_REVISION; 
+
+        if (vinc < vrec) {
+          exit(1);
+        }
+        if (vinc != vlib) {
+          exit(2);
+        }
         exit(0);
       }
       ],
