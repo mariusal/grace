@@ -679,7 +679,7 @@ static EditPoints *new_ep(void)
         ep->cformat[i] = CELL_FORMAT;
     }
 
-    ep->top = CreateDialogForm(NULL, "Spreadsheet dataset editor");
+    ep->top = CreateDialogForm(app_shell, "Spreadsheet dataset editor");
     SetDialogFormResizable(ep->top, TRUE);
 
     menubar = CreateMenuBar(ep->top);
