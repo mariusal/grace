@@ -687,7 +687,7 @@ dnl **** use editres
     then
       dnl **** Use the bundled Xbae library
       AC_MSG_RESULT(--> Bundled version of Xbae library will be used)
-      XBAE_LIB='$(TOP)/Xbae/libXbae.a'
+      XBAE_LIB='$(TOP)/Xbae/Xbae/libXbae.a'
       XBAE_INC='-I$(TOP)/Xbae'
       xbae_dir="Xbae/Xbae"
     else
