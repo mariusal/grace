@@ -184,15 +184,11 @@ int wipeout(void)
 /* The following routines determine default axis range and tickmarks */
 
 static void autorange_byset(int gno, int setno, int autos_type);
-static double nicenum(double x, int round);
+static double nicenum(double x, int nrange, int round);
 
 #define NICE_FLOOR   0
 #define NICE_CEIL    1
 #define NICE_ROUND   2
-#define NICE_DOWN    NICE_FLOOR
-#define NICE_UP      NICE_CEIL
-#define WITH_ZERO    0
-#define WITHOUT_ZERO 1
 
 void autotick_axis(int gno, int axis)
 {
@@ -240,9 +236,8 @@ void autoscale_byset(int gno, int setno, int autos_type)
 
 static void round_axis_limits(double *amin, double *amax, int scale)
 {
-/*
- *     double extra_range;
- */
+    double smin, smax;
+    int nrange;
     
     if (*amin == *amax) {
         switch (sign(*amin)) {
@@ -260,16 +255,35 @@ static void round_axis_limits(double *amin, double *amax, int scale)
             break;
         }
     } 
-
-    *amin = nicenum(*amin, NICE_FLOOR);
-    *amax = nicenum(*amax, NICE_CEIL);
     
-    if (scale == SCALE_NORMAL && sign(*amin) == sign(*amax)) {
-        if ((*amax)/(*amin) > 5.0) {
-            *amin = 0.0;
-        } else if ((*amin)/(*amax) > 5.0) {
-            *amax = 0.0;
-        }
+    if (scale == SCALE_LOG) {
+        smin = log10(*amin);
+        smax = log10(*amax);
+    } else {
+        smin = *amin;
+        smax = *amax;
+    }
+
+    if (sign(smin) == sign(smax)) {
+        nrange = -rint(log10(fabs(2*(smax - smin)/(smax + smin))));
+        nrange = MAX2(0, nrange);
+    } else {
+        nrange = 0;
+    }
+    smin = nicenum(smin, nrange, NICE_FLOOR);
+    smax = nicenum(smax, nrange, NICE_CEIL);
+    if (smax > 5.0*smin) {
+        smin = 0.0;
+    } else if (smin > 5.0*smax) {
+        smax = 0.0;
+    }
+
+    if (scale == SCALE_LOG) {
+        *amin = pow(10.0, smin);
+        *amax = pow(10.0, smax);
+    } else {
+        *amin = smin;
+        *amax = smax;
     }
 }
 
@@ -376,7 +390,7 @@ static void auto_ticks(int gno, int axis)
     
     range = tmpmax - tmpmin;
     if (axis_scale != SCALE_LOG) {
-        d = nicenum(range/(t.t_autonum - 1), NICE_ROUND);
+        d = nicenum(range/(t.t_autonum - 1), 0, NICE_ROUND);
 	t.tmajor = d;
     } else {
         d = ceil(range/(t.t_autonum - 1));
@@ -391,59 +405,52 @@ static void auto_ticks(int gno, int axis)
  * nicenum: find a "nice" number approximately equal to x
  */
 
-static double nicenum(double x, int round)
+static double nicenum(double x, int nrange, int round)
 {
     int xsign;
-    double f, y, exp, nnres, smallx;
+    double f, y, fexp, rx, sx;
+    double epsilon;
     double maxf, maxexp;
-
+    
     if (x == 0.0) {
         return(0.0);
     }
 
-    maxf  = MAXNUM/pow(10.0,floor(log10(MAXNUM)));
-    maxexp = floor(log10(MAXNUM));
+    maxexp = floor(log10(MAXNUM)) - nrange + 1;
+    maxf   = MAXNUM/pow(10.0, maxexp);
 
     xsign = sign(x);
     x = fabs(x);
-    exp = floor(log10(x));
-    smallx = pow(10.0, exp);
-    f = x/smallx;	/* fraction between 1 and 10 */
+
+    fexp = floor(log10(x)) - nrange + 1;
+    sx = x/pow(10.0, fexp);                 /* scaled x */
+    rx = floor(sx);                         /* rounded x */
+    f = 10*(sx - rx);                       /* fraction between 0 and 10 */
+    epsilon = pow(10.0, -(nrange + 1));     /* accuracy */
+
     if ((round == NICE_FLOOR && xsign == +1) ||
         (round == NICE_CEIL  && xsign == -1)) {
-	if (f < 2.0)
-	    y = 1.;
-	else if (f < 5.0)
-	    y = 2.;
-	else if (f < 10.0)
-	    y = 5.;
-	else
-	    y = 10.;
+        y = (int) floor(f + epsilon);
     } else if ((round == NICE_FLOOR && xsign == -1) ||
                (round == NICE_CEIL  && xsign == +1)) {
-        if (f <= 1.)
-            y = 1.;
-        else if (f <= 2.)
-            y = 2.;
-        else if (f <= 5.)
-            y = 5.;
-        else
-            y = 10.;
-    } else {
+	y = (int) ceil(f - epsilon);
+    } else {    /* round == NICE_ROUND */
 	if (f < 1.5)
-	    y = 1.;
+	    y = 1;
 	else if (f < 3.)
-	    y = 2.;
+	    y = 2;
 	else if (f < 7.)
-	    y = 5.;
+	    y = 5;
 	else
-	    y = 10.;
+	    y = 10;
     }
-    if (exp==maxexp)
-       nnres = (y > maxf) ? xsign*floor(maxf)*smallx : xsign*y*smallx;
-    else
-       nnres = xsign*y*smallx;
-    return (nnres);
+    
+    sx = rx + (double) y/10.0;
+    if (fexp == maxexp && sx > maxf) {
+        sx = maxf;
+    }
+    
+    return (xsign*sx*pow(10.0, fexp));
 }
 
 /*
