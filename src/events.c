@@ -43,11 +43,13 @@
 #include <X11/Xatom.h>
 #include <X11/Intrinsic.h>
 #include <X11/keysym.h>
+#include <Xm/ScrollBar.h>
 
 #include "motifinc.h"
 #include "protos.h"
 
 extern Widget loclab;
+extern Widget drawing_window;
 
 /*
  * set format string for locator
@@ -62,6 +64,32 @@ static char *typestr[6] = {"X, Y",
 
 int cursortype = 0;
 
+static void scroll(Widget w, int up, int horiz)
+{
+    int value, slider_size, increment, page_increment, maxvalue;
+    Widget vbar;
+    
+    if (horiz) {
+        vbar = XtNameToWidget(w, "HorScrollBar");
+    } else {
+        vbar = XtNameToWidget(w, "VertScrollBar");
+    }
+    XmScrollBarGetValues(vbar, &value, &slider_size,
+        &increment, &page_increment);
+    if (up) {
+        value -= increment;
+        if (value < 0) {
+            value = 0;
+        }
+    } else {
+        XtVaGetValues(vbar, XmNmaximum, &maxvalue, NULL);
+        value += increment;
+        if (value > maxvalue - slider_size) {
+            value = maxvalue - slider_size;
+        }
+    }
+    XmScrollBarSetValues(vbar, value, 0, 0, 0, True);
+}
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 {
@@ -102,13 +130,13 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         update_locator_lab(cg, &vp);
         break;
     case ButtonPress:
+        xbe = (XButtonEvent *) event;
 	x = event->xbutton.x;
 	y = event->xbutton.y;
 	x11_dev2VPoint(x, y, &vp);
 
 	switch (event->xbutton.button) {
 	case Button1:
-            xbe = (XButtonEvent *) event;
             /* first, determine if it's a double click */
             if (xbe->time - lastc_time < CLICK_INT &&
                 abs(x - lastc_x) < CLICK_DIST      &&
@@ -149,10 +177,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             }
             break;
 	case Button4:
-            fprintf(stderr, "Button4\n");
+            scroll(drawing_window, TRUE, xbe->state & Mod1Mask);
             break;
 	case Button5:
-            fprintf(stderr, "Button5\n");
+            scroll(drawing_window, FALSE, xbe->state & Mod1Mask);
             break;
 	default:
             break;

@@ -72,7 +72,7 @@ Widget app_shell;
 
 static Widget canvas;
 
-static Widget drawing_window;		/* container for drawing area */
+Widget drawing_window;		/* container for drawing area */
 
 
 Widget loclab;			/* locator label */
@@ -922,7 +922,6 @@ void startup_gui(void)
     statlab = CreateLabel(frbot, "");
 
     if (get_pagelayout() == PAGE_FIXED) {
-
         drawing_window = XtVaCreateManagedWidget("drawing_window",
 				     xmScrolledWindowWidgetClass, form,
 				     XmNnavigationType, XmEXCLUSIVE_TAB_GROUP,
