@@ -92,25 +92,30 @@ void gauss(int n, double *a, int adim, double *b, double *x)
 /*
 	compute mean and standard dev
 */
-void stasum(double *x, int n, double *xbar, double *sd, int flag)
+void stasum(double *x, int n, double *xbar, double *sd)
 {
     int i;
 
     *xbar = 0;
     *sd = 0;
-    if (n < 1)
-	return;
-    for (i = 0; i < n; i++)
-	*xbar = (*xbar) + x[i];
-    *xbar = (*xbar) / n;
-    for (i = 0; i < n; i++)
-	*sd = (*sd) + (x[i] - *xbar) * (x[i] - *xbar);
-    if (n - flag)
-	*sd = sqrt(*sd / (n - flag));
-    else {
-	errmsg("compmean: (n-flag)==0");
-	*sd = 0;
+    
+    if (x == NULL) {
+        return;
     }
+    
+    if (n < 1) {
+	return;
+    }
+    
+    for (i = 0; i < n; i++) {
+        *xbar = (*xbar) + x[i];
+    }
+    *xbar = (*xbar)/n;
+    
+    for (i = 0; i < n; i++) {
+        *sd = (*sd) + (x[i] - *xbar) * (x[i] - *xbar);
+    }
+    *sd = sqrt(*sd/n);
 }
 
 
@@ -215,10 +220,10 @@ void runstddev(double *x, double *y, double *ax, double *ay, int n, int ilen)
 	sumx = sumx + x[i];
     }
     ax[0] = sumx / ilen;
-    stasum(y, ilen, &ybar, &ysd, 0);
+    stasum(y, ilen, &ybar, &ysd);
     ay[0] = ysd;
     for (i = 1; i < (n - ilen + 1); i++) {
-	stasum(y + i, ilen, &ybar, &ysd, 0);
+	stasum(y + i, ilen, &ybar, &ysd);
 	sumx = x[i + ilen - 1] - x[i - 1] + sumx;
 	ax[i] = sumx / ilen;
 	ay[i] = ysd;
@@ -364,10 +369,10 @@ int crosscorr(double *x, double *y, int n, int maxlag, double *xcov, double *xco
     if (maxlag + 2 > n)
 	return 1;
     for (i = 0; i <= maxlag; i++) {
-        stasum(&x[i], n - i, &xbar, &xsd, 0);
+        stasum(&x[i], n - i, &xbar, &xsd);
         if (xsd == 0.0)
 	    return 2;
-        stasum(y, n - i, &ybar, &ysd, 0);
+        stasum(y, n - i, &ybar, &ysd);
         if (ysd == 0.0)
 	    return 3;
 	xcov[i] = 0.0;

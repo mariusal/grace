@@ -99,7 +99,7 @@ void drawaxes(int gno);
 
 
 void gauss(int n, double *a, int adim, double *b, double *x);
-void stasum(double *x, int n, double *xbar, double *sd, int flag);
+void stasum(double *x, int n, double *xbar, double *sd);
 double leasev(double *c, int degree, double x);
 int fitcurve(double *x, double *y, int n, int ideg, double *fitted);
 void runavg(double *x, double *y, double *ax, double *ay, int n, int ilen);

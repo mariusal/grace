@@ -270,10 +270,10 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 				datum = ymax;		
 				break;
 			case 2: 		/* Y mean    */
-				stasum(gety(cg, cs), getsetlength(cg, cs), &datum, &dummy, 0);
+				stasum(gety(cg, cs), getsetlength(cg, cs), &datum, &dummy);
 				break;
 			case 3:			/* Y std dev */
-				stasum(gety(cg, cs), getsetlength(cg, cs), &dummy, &datum, 0);
+				stasum(gety(cg, cs), getsetlength(cg, cs), &dummy, &datum);
 				break;
 			case 4: 		/* Y median  */
 				getmedian( cg, cs, DATA_Y, &datum );
@@ -285,10 +285,10 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 				datum = xmax;		
 				break;
 			case 7: 		/* X mean    */
-				stasum(getx(cg, cs), getsetlength(cg, cs), &datum, &dummy, 0);
+				stasum(getx(cg, cs), getsetlength(cg, cs), &datum, &dummy);
 				break;
 			case 8:			/* X std dev */
-				stasum(getx(cg, cs), getsetlength(cg, cs), &dummy, &datum, 0);
+				stasum(getx(cg, cs), getsetlength(cg, cs), &dummy, &datum);
 				break;
 			case 9:			/* X median  */
 				getmedian( cg, cs, DATA_X, &datum );
@@ -308,9 +308,9 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 				minmax(gety(cg, fts), getsetlength(cg, fts),&y1,&y2,&iy1,&iy2);
 				x = getx(cg, fts);
 				if( feature == 10 )
-                                        datum = x[iy2-1];
+                                        datum = x[iy2];
 				else
-					datum = 1./x[iy2-1];
+					datum = 1./x[iy2];
 				killset( cg, fts );				/* get rid of Fourier set */
 				break;
 			case 12:		/* first zero crossing */

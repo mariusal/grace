@@ -631,11 +631,11 @@ expr:	NUMBER {
 		$$ = vmax(ptr, g[get_cg()].p[$1].len);
 		break;
             case AVG:
-	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd, 0);
+	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd);
 	        $$ = bar;
                 break;
             case SD:
-	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd, 0);
+	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd);
                 $$ = sd;
                 break;
 	    }
@@ -655,11 +655,11 @@ expr:	NUMBER {
 		$$ = vmax(ptr, g[$1].p[$3].len);
 		break;
             case AVG:
-		stasum(ptr, getsetlength($1, $3), &bar, &sd, 0);
+		stasum(ptr, getsetlength($1, $3), &bar, &sd);
 	        $$ = bar;
                 break;
             case SD:
-		stasum(ptr, getsetlength($1, $3), &bar, &sd, 0);
+		stasum(ptr, getsetlength($1, $3), &bar, &sd);
                 $$ = sd;
                 break;
 	    }
@@ -679,11 +679,11 @@ expr:	NUMBER {
 		$$ = vmax(ptr, g[get_cg()].p[curset].len);
 		break;
             case AVG:;
-		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd, 0);
+		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd);
 	        $$ = bar;
                 break;
             case SD:
-		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd, 0);
+		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd);
                 $$ = sd;
                 break;
 	    }
