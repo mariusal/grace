@@ -30,11 +30,9 @@
 
 #include "grace.h"
 
-static void _quark_free(Quark *q);
-
 static void quark_storage_free(void *data)
 {
-    _quark_free((Quark *) data);
+    quark_free((Quark *) data);
 }
 
 static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
@@ -105,11 +103,16 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     return q;
 }
 
-static void _quark_free(Quark *q)
+void quark_free(Quark *q)
 {
     if (q) {
         QuarkFlavor *qf;
         Quark *parent = q->parent;
+        
+        if (parent) {
+            storage_extract_data(parent->children, q);
+            quark_dirtystate_set(parent, TRUE);
+        }
         
         qf = quark_flavor_get(q->grace, q->fid);
         if (q->cb) {
@@ -127,20 +130,6 @@ static void _quark_free(Quark *q)
             errmsg("Freed a referenced quark!");
         }
         xfree(q);
-    }
-}
-
-void quark_free(Quark *q)
-{
-    if (q) {
-        Quark *parent = q->parent;
-        
-        if (parent) {
-            quark_dirtystate_set(parent, TRUE);
-            storage_extract_data(parent->children, q);
-        }
-        
-        _quark_free(q);
     }
 }
 
