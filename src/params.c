@@ -480,8 +480,7 @@ void putparms(int gno, FILE *pp, int embed)
 
             for (i = 0; i < number_of_sets(gno); i++) {
                 get_graph_plotarr(gno, i, &p);
-                if (is_set_active(gno, i) == TRUE &&
-                    is_set_hidden(gno, i) == FALSE) {
+                if (is_set_active(gno, i) == TRUE) {
                     fprintf(pp, "%s    s%1d hidden %s\n", embedstr, i,
                                             true_or_false(p.hidden));
                     fprintf(pp, "%s    s%1d type %s\n", embedstr, i, set_types(p.type));

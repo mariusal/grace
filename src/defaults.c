@@ -213,7 +213,7 @@ void set_default_legend(int gno, legend * l)
 void set_default_plotarr(plotarr * p)
 {
     int i;
-    p->hidden = TRUE;                           /* hidden set */
+    p->hidden = FALSE;                          /* hidden set */
     p->type = SET_XY;                           /* dataset type */
     p->hotlink = FALSE;                         /* hot linked set */
     p->hotfile[0] = '\0';                       /* hot linked file name */

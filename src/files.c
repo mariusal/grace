@@ -1088,10 +1088,7 @@ int save_project(char *fn)
 
     for (gno = 0; gno < number_of_graphs(); gno++) {
         for (setno = 0; setno < number_of_sets(gno); setno++) {
-            if (is_set_active(gno, setno) == TRUE &&
-                is_set_hidden(gno, setno) == FALSE) {
-                write_set(gno, setno, cp, sformat, FALSE);
-            }
+            write_set(gno, setno, cp, sformat, FALSE);
         }
     }
 

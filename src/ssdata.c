@@ -353,7 +353,6 @@ int store_data(ss_data *ssd, int load_type, char *label)
         }
 
         setno = nextset(gno);
-        set_set_hidden(gno, setno, FALSE);
         set_dataset_type(gno, setno, curtype);
 
         nncols = 0;
@@ -404,7 +403,6 @@ int store_data(ss_data *ssd, int load_type, char *label)
             } else {
                 xdata = (double *) ssd->data[0];
             }
-            set_set_hidden(gno, setno, FALSE);
             set_dataset_type(gno, setno, SET_XY);
             setcol(gno, setno, DATA_X, xdata, nrows);
             setcol(gno, setno, DATA_Y, (double *) ssd->data[i + 1], nrows);
