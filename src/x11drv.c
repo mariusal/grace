@@ -287,7 +287,6 @@ void xlibinitcmap(void)
 
 int xlibinitgraphics(void)
 {
-    Page_geometry pg;
     int i, j;
     double step;
     XPoint xp;
@@ -320,11 +319,11 @@ int xlibinitgraphics(void)
 
     /* init settings specific to X11 driver */    
     
-    pg = get_page_geometry();
-    win_w = (Dimension) pg.width;
-    win_h = (Dimension) pg.height;
-    
-    set_canvas_size((Dimension) win_w, (Dimension) win_h);
+    if (get_pagelayout() == PAGE_FIXED) {
+        sync_canvas_size(&win_w, &win_h, FALSE);
+    } else {
+        sync_canvas_size(&win_w, &win_h, TRUE);
+    }
     
     displaybuff = resize_bufpixmap(win_w, win_h);
     
