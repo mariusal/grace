@@ -313,7 +313,7 @@ static void svg_group_props (int draw, int fill)
 
     /* do we need to redefine a group with new properties ? */
     needs_group = (data->group_is_open == TRUE) ? FALSE : TRUE;
-    lw        = getlinewidth();
+    lw        = data->side*getlinewidth();
     fillrule  = getfillrule();
     linecap   = getlinecap();
     linejoin  = getlinejoin();
@@ -384,7 +384,7 @@ static void svg_group_props (int draw, int fill)
 
             fprintf(prstream, "; stroke:#%2.2X%2.2X%2.2X", red, green, blue);
 
-            fprintf(prstream, "; stroke-width:%8.4f", lw*data->side);
+            fprintf(prstream, "; stroke-width:%8.4f", lw);
 
             switch (linecap) {
             case LINECAP_BUTT :
@@ -421,7 +421,8 @@ static void svg_group_props (int draw, int fill)
             } else {
                 fprintf(prstream, "; stroke-dasharray:");
                 for (i = 0; i < dash_array_length[linestyle]; i++) {
-                    fprintf(prstream, " %d", dash_array[linestyle][i]);
+                    fprintf(prstream,
+                        " %d", (int) rint(lw*dash_array[linestyle][i]));
                 }
             }
         }
@@ -636,13 +637,13 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
 
     if (underline == TRUE) {
         if (overline == TRUE) {
-            fprintf(prstream, "; text-decoration=underline|overline");
+            fprintf(prstream, "; text-decoration:underline|overline");
         } else {
-            fprintf(prstream, "; text-decoration=underline");
+            fprintf(prstream, "; text-decoration:underline");
         }
     } else {
         if (overline == TRUE) {
-            fprintf(prstream, "; text-decoration=overline");
+            fprintf(prstream, "; text-decoration:overline");
         }
     }
 
