@@ -45,7 +45,7 @@ double drand48(void)
 #endif
 
 #ifndef HAVE_POPEN
-#  ifdef VMS
+#  ifdef __VMS
 
 /* drop in popen() / pclose() for VMS
  * originally written for port of perl to vms
@@ -72,9 +72,9 @@ double drand48(void)
 static void
 create_mbx(unsigned short int *chan, struct dsc$descriptor_s *namdsc)
 {
-	static unsigned long int mbxbufsiz;
-		long int syiitm = SYI$_MAXBUF, dviitm = DVI$_DEVNAM;
-	unsigned long sts;  /* for _cksts */
+  static unsigned long int mbxbufsiz;
+  long int syiitm = SYI$_MAXBUF, dviitm = DVI$_DEVNAM;
+  unsigned long sts;  /* for _cksts */
   
   if (!mbxbufsiz) {
     /*
@@ -127,12 +127,12 @@ popen(char *cmd, char *mode)
                                       DSC$K_CLASS_S, mbxname},
                             cmddsc = {0, DSC$K_DTYPE_T,
                                       DSC$K_CLASS_S, 0};
-	unsigned long sts;                            
+        unsigned long sts;                            
 
     if (!(info=malloc(sizeof(struct pipe_details))))
     {
-    	ERROR("Cannot malloc space");
-    	return NULL;
+        ERROR("Cannot malloc space");
+        return NULL;
     }
 
     info->completion=0;  /* I assume this will remain 0 until terminates */
@@ -181,7 +181,7 @@ int pclose(FILE *fp)
     if (info == NULL)
       /* get here => no such pipe open */
       /* FATAL("pclose() - no such pipe open ???"); too extreme, removed*/
-		return -1;								/* standard behaviour */
+                return -1;                                                              /* standard behaviour */
 
     if (!info->completion) { /* Tap them gently on the shoulder . . .*/
       _cksts(sys$forcex(&info->pid,0,&abort));
@@ -250,7 +250,7 @@ waitpid(unsigned long int pid, int *statusp, int flags)
                     
 }  /* end of waitpid() */
 
-#  else /* not VMS */
+#  else /* not __VMS */
 
 /* temporary filename */
 static char tfile[GR_MAXPATHLEN];
@@ -309,7 +309,7 @@ int pclose(FILE *fp)
     return result;
 }
 
-#  endif /* VMS */
+#  endif /* __VMS */
 
 #endif /* HAVE_POPEN */
 
@@ -323,3 +323,215 @@ char *popen_path_translate(char *path)
     return(absfn);
 }
 #endif
+
+#ifdef __VMS
+
+/* this is a "system" function for VMS because 
+   system("spawn/nowait mosaic ...") dosn't work --
+   system creates a subprocess, which runs spawn and
+   creates another subprocess; when the spawn command
+   completes, the first subprocess exits and the second
+   one (which is a subprocess of the subprocess) also
+   exits. */
+
+#include <string.h>
+#include <descrip.h>
+#include <lib$routines.h>
+#include <clidef.h>
+
+int system_spawn(const char *command)
+{
+  $DESCRIPTOR(dstr, ""); int retval;
+  
+  dstr.dsc$a_pointer = malloc(1024);
+  strcpy(dstr.dsc$a_pointer, command);
+  dstr.dsc$w_length = strlen(dstr.dsc$a_pointer);
+
+  retval = lib$spawn(&dstr, 0, 0, &CLI$M_NOWAIT); 
+  
+  free(dstr.dsc$a_pointer);
+  
+  return retval; 
+}
+
+# if __VMS_VER < 70000000 
+
+/* Define a getlogin function for VMS before version 7. */
+
+# include <starlet.h>
+# include <jpidef.h>
+
+  typedef struct
+  {
+    unsigned short buffer_length, item_code;
+    char    *buffer;
+    int     *return_len;
+  } itmlst_item;
+
+  char *getlogin()
+  {
+    int ret, i; itmlst_item itmlst[2];
+    static char username[13];
+
+    itmlst[0].buffer_length = sizeof(username)-1;
+    itmlst[0].item_code = JPI$_USERNAME;
+    itmlst[0].buffer = username;
+    itmlst[0].return_len = NULL;
+
+    itmlst[1].buffer_length = 0;
+    itmlst[1].item_code = 0;
+    itmlst[1].buffer = NULL;
+    itmlst[1].return_len = NULL;
+
+    ret = sys$getjpiw(NULL, NULL, NULL, itmlst, NULL, NULL, NULL);
+
+    if ((ret && 1) == 0) strcpy(username, "");
+    else
+    {
+      for (i=0; i<sizeof(username); i++)
+      {
+        if (username[i] == ' ')
+        {
+          username[i] = '\0'; break;
+        }
+      }
+      if (i == sizeof(username)) username[--i] = '\0';
+    }
+
+    return username; 
+  }
+
+/*
+ *      getpwnam(name) - retrieves a UAF entry
+ *
+ *      Author:         Patrick L. Mahan
+ *      Location:       TGV, Inc
+ *      Date:           15-Nov-1991
+ *
+ *      Purpose:        Provides emulation for the UNIX getpwname routine.
+ *
+ *      Modification History
+ *
+ *      Date        | Who       | Version       | Reason
+ *      ------------+-----------+---------------+---------------------------
+ *      15-Nov-1991 | PLM       | 1.0           | First Write
+ *      20-Nov-1997 | RN        |               | #include <stdlib.h>
+ */
+
+#pragma message save
+#pragma message disable (CVTDIFTYPES,ADDRCONSTEXT,NEEDCONSTEXT)
+
+#include <uaidef.h>
+
+struct uic {
+   unsigned short uid;
+   unsigned short gid;
+};
+
+#define TEST(ptr, str)  { if (ptr == NULL) {    \
+                                fprintf(stderr, "getpwnam: memory allocation failure for \"%s\"\n",     \
+                                        str);   \
+                                exit(-1);       \
+                          } }
+
+struct passwd *getpwnam(name)
+char *name;
+{
+   int  istatus;
+   int  UserNameLen;
+   int  UserOwnerLen;
+   int  UserDeviceLen;
+   int  UserDirLen;
+   char UserName[13];
+   char UserOwner[32];
+   char UserDevice[32];
+   char UserDir[64];
+   char *cptr, *sptr;
+   unsigned long int UserPwd[2];
+   unsigned short int UserSalt;
+   unsigned long int UserEncrypt;
+   struct uic UicValue;
+   struct passwd *entry;
+
+   struct dsc$descriptor_s VMSNAME =
+        {strlen(name), DSC$K_DTYPE_T, DSC$K_CLASS_S, name};
+
+   struct itmlist3 {
+        unsigned short int length;
+        unsigned short int item;
+        unsigned long  int addr;
+        unsigned long  int retaddr;
+   } ItemList[] = {
+        {12, UAI$_USERNAME, &UserName, &UserNameLen},
+        {8,  UAI$_PWD, &UserPwd, 0},
+        {4,  UAI$_UIC, &UicValue, 0},
+        {32, UAI$_OWNER, &UserOwner, &UserOwnerLen},
+        {32, UAI$_DEFDEV, &UserDevice, &UserDeviceLen},
+        {64, UAI$_DEFDIR, &UserDir, &UserDirLen},
+        {2,  UAI$_SALT, &UserSalt, 0},
+        {4,  UAI$_ENCRYPT, &UserEncrypt, 0},
+        {0, 0, 0, 0}
+   };
+
+   UserNameLen = 0;
+   istatus = sys$getuai (0, 0, &VMSNAME, &ItemList, 0, 0, 0);
+
+   if (!(istatus & 1)) {
+#ifdef DEBUG
+        lib$signal(istatus);
+#endif /* DEBUG */
+        fprintf (stderr, "getpwnam: unable to retrieve passwd entry for %s\n",
+                 name);
+        fprintf (stderr, "getpwnam: vms error number is 0x%x\n", istatus);
+        return ((struct passwd *)NULL);
+   }
+
+   entry = (struct passwd *) calloc (1, sizeof(struct passwd));
+   TEST(entry, "PASSWD_ENTRY");
+
+   entry->pw_uid = UicValue.uid;
+   entry->pw_gid = UicValue.gid;
+   entry->pw_salt = UserSalt;
+   entry->pw_encrypt = UserEncrypt;
+
+   sptr = UserName;
+   cptr = calloc (UserNameLen+1, sizeof(char));
+   TEST(cptr, "USERNAME");
+   strncpy (cptr, sptr, UserNameLen);
+   cptr[UserNameLen] = '\0';
+   entry->pw_name = cptr;
+
+   cptr = calloc(8, sizeof(char));
+   TEST(cptr, "PASSWORD");
+   memcpy(cptr, UserPwd, 8);
+   entry->pw_passwd = cptr;
+
+   sptr = UserOwner; sptr++;
+   cptr = calloc ((int)UserOwner[0]+1, sizeof(char));
+   TEST(cptr, "FULLNAME");
+   strncpy (cptr, sptr, (int)UserOwner[0]);
+   cptr[(int)UserOwner[0]] = '\0';
+   entry->pw_gecos = cptr;
+
+   cptr = calloc ((int)UserDevice[0]+(int)UserDir[0]+1, sizeof(char));
+   TEST(cptr, "HOME");
+   sptr = UserDevice; sptr++;
+   strncpy (cptr, sptr, (int)UserDevice[0]);
+   sptr = UserDir; sptr++;
+   strncat (cptr, sptr, (int)UserDir[0]);
+   cptr[(int)UserDevice[0]+(int)UserDir[0]] = '\0';
+   entry->pw_dir = cptr;
+
+   cptr = calloc (strlen("SYS$SYSTEM:LOGINOUT.EXE")+1, sizeof(char));
+   TEST(cptr,"SHELL");
+   strcpy (cptr, "SYS$SYSTEM:LOGINOUT.EXE");
+   entry->pw_shell = cptr;
+
+   return (entry);
+}
+
+#pragma message restore
+
+#  endif  /* __VMS_VER */
+
+#endif  /* __VMS */

@@ -35,13 +35,30 @@
 
 #include <stdio.h>
 
-
 #if defined(__VMS)
+   int system_spawn(const char *command);
 #  if __ALPHA || __DECC_VER >= 60000000
 #    include <builtins.h>
 #  endif
-#  include "vms_unix.h"
-#endif
+#  if __VMS_VER < 70000000 
+#    define O_NONBLOCK O_NDELAY
+struct passwd {
+    char  *pw_name;
+    char  *pw_passwd;
+    int   pw_uid;
+    int   pw_gid;
+    short pw_salt;
+    int   pw_encrypt;
+    char  *pw_age;
+    char  *pw_comment;
+    char  *pw_gecos;
+    char  *pw_dir;
+    char  *pw_shell;
+};
+char *getlogin();
+struct passwd *getpwnam(char *name);
+#  endif /* __VMS_VER */
+#endif /* __VMS */
 
 #ifndef HAVE_MEMMOVE
 #  define memmove(a, b, c) bcopy((b), (a), (c))
@@ -54,7 +71,6 @@
 #ifndef HAVE_GETHOSTNAME
 #  define gethostname(a, n) (strncpy((a), "localhost", n)?0:1)
 #endif
-
 
 #ifndef HAVE_DRAND48
 #  define srand48 srand
