@@ -21,7 +21,7 @@
  * Author: Rob McMullen <rwmcm@mail.ae.utexas.edu>
  *         http://www.ae.utexas.edu/~rwmcm
  *
- * Minor modifications and cleaning-ups by E. Stambulchik
+ * Enhancements and bug fixes by E. Stambulchik
  */
 
 #define _ListTree_
@@ -1416,9 +1416,34 @@ DrawItemHighlightClear(ListTreeWidget w, ListTreeItem *item)
   }
 }
 
+/* TODO: make box size/line width etc dynamic via Xresources */
+static void
+DrawPlusMinusBox(ListTreeWidget w, ListTreeItem *item,
+  int yline, int xroot, int *ystem)
+{
+  int xc;
+  
+  xc = xroot + w->list.XOffset;
+  
+  XSetForeground(XtDisplay(w), w->list.drawGC, w->core.background_pixel);
+  XFillRectangle(XtDisplay(w), XtWindow(w), w->list.drawGC,
+    xc - 5, yline - 5, 10, 10);
+  XSetForeground(XtDisplay(w), w->list.drawGC, w->list.foreground_pixel);
+  XDrawRectangle(XtDisplay(w), XtWindow(w), w->list.drawGC,
+    xc - 3, yline - 3, 6, 6);
+
+  XDrawLine(XtDisplay(w), XtWindow(w), w->list.drawGC,
+    xc - 1, yline, xc + 1, yline);
+  if (!item->open) {
+    XDrawLine(XtDisplay(w), XtWindow(w), w->list.drawGC,
+      xc, yline - 1, xc, yline + 1);
+  }
+  *ystem = yline + 5;
+}
+
 static void
 DrawItem(ListTreeWidget w, ListTreeItem *item,
-  int y, int *xroot, int *yroot,
+  int y, int *xroot, int *yroot, int *ystem,
   int *retwidth, int *retheight)
 {
   int height, xpix, ypix, xbranch, ybranch, xtext, ytext, yline;
@@ -1464,22 +1489,34 @@ DrawItem(ListTreeWidget w, ListTreeItem *item,
   item->height = (Dimension)height;
 
   if ((*xroot >= 0) &&
-    ((*yroot >= w->list.exposeTop && *yroot <= w->list.exposeBot) ||
-      (yline >= w->list.exposeTop && yline <= w->list.exposeBot) ||
-      (*yroot < w->list.exposeTop && yline > w->list.exposeBot)))
+      ((*yroot >= w->list.exposeTop && *yroot <= w->list.exposeBot) ||
+      (yline >= w->list.exposeTop && yline <= w->list.exposeBot)    ||
+      (*yroot < w->list.exposeTop && yline > w->list.exposeBot))) {
     XDrawLine(XtDisplay(w), XtWindow(w), w->list.drawGC,
-      *xroot + w->list.XOffset, *yroot,
+      *xroot + w->list.XOffset, *ystem,
       *xroot + w->list.XOffset, yline);
+  }
+
   if (y >= w->list.exposeTop && y <= w->list.exposeBot) {
-    if (*xroot >= 0)
+
+    if (*xroot >= 0) {
       XDrawLine(XtDisplay(w), XtWindow(w), w->list.drawGC,
 	*xroot + w->list.XOffset, yline,
 	xbranch + w->list.XOffset, yline);
-    if (pix && pix->pix)
+      
+      if (item->firstchild) {
+        DrawPlusMinusBox(w, item, yline, *xroot, ystem);
+      } else {
+        *ystem = yline;
+      }
+    }
+
+    if (pix && pix->pix) {
       XCopyArea(XtDisplay(w), pix->pix, XtWindow(w),
 	w->list.drawGC,
 	0, 0, pix->width, pix->height,
 	xpix + w->list.XOffset, ypix);
+    }
     DrawItemHighlight(w, item);
   }
   *xroot = xbranch;
@@ -1493,12 +1530,13 @@ DrawChildren(ListTreeWidget w, ListTreeItem *item, ListTreeItem **last,
   int y, int xroot, int yroot)
 {
   int width, height;
-  int xbranch, ybranch;
+  int xbranch, ybranch, ystem;
 
-  while (item && y<w->list.exposeBot) {
+  ystem = yroot;
+  while (item) {
     xbranch = xroot;
     ybranch = yroot;
-    DrawItem(w, item, y, &xbranch, &ybranch, &width, &height);
+    DrawItem(w, item, y, &xbranch, &ybranch, &ystem, &width, &height);
 
     width += item->x + (int) w->list.Margin;
 
@@ -1512,45 +1550,17 @@ DrawChildren(ListTreeWidget w, ListTreeItem *item, ListTreeItem **last,
     
     if ((item->firstchild) && (item->open))
       y = DrawChildren(w, item->firstchild, last, y, xbranch, ybranch);
+    
+    if (y > w->list.exposeBot) {
+      XDrawLine(XtDisplay(w), XtWindow(w), w->list.drawGC,
+        xroot + w->list.XOffset, ystem,
+        xroot + w->list.XOffset, w->list.exposeBot);
+      break;
+    }
 
     item = item->nextsibling;
   }
   return y;
-}
-
-/*
- * Draws vertical lines connecting items to their siblings below the last
- * visible item
- */
-static void
-DrawVertical(ListTreeWidget w, ListTreeItem *item)
-{
-  int xroot,yroot, pos;
-
-  pos=item->count;
-  while (item->parent) {
-      /* If this parent has another child, that means that a line extends off
-       * the screen to the bottom. */
-    if (item->nextsibling) {
-      xroot = item->parent->x - (int) w->list.HSpacing - w->list.pixWidth/2;
-      if (item->parent->count<w->list.topItemPos)
-        yroot=0;
-      else
-        yroot=item->parent->y + item->parent->height;
-      
-      DBG(DARG,"parent=%s drawing x=%d y=%d\n",
-        item->parent->text,xroot,yroot);
-      XDrawLine(XtDisplay(w), XtWindow(w), w->list.drawGC,
-        xroot + w->list.XOffset, yroot,
-        xroot + w->list.XOffset, w->list.exposeBot);
-    }
-    else {
-      DBG(DARG,"parent=%s  NOT DRAWING\n",item->parent->text);
-    }
-    
-    
-    item=item->parent;
-  }
 }
 
 /* Draws items starting from topItemPos */
@@ -1585,8 +1595,6 @@ Draw(ListTreeWidget w, int yevent,int hevent, Boolean partial)
   if (!partial) {
       w->list.bottomItemPos=lastdrawn->count;
   }
-
-  DrawVertical(w,lastdrawn);
 
 /*   SetScrollbars(w); */
 
@@ -1972,8 +1980,10 @@ GetPosition(ListTreeWidget w, ListTreeItem *finditem)
 void
 ListTreeRefresh(Widget w)
 {
-  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh)
+  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh) {
     DrawChanged((ListTreeWidget)w);
+    XmUpdateDisplay(w);
+  }
 }
 
 void
