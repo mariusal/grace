@@ -240,6 +240,8 @@ int is_set_active(int gno, int setno);
 int is_set_hidden(int gno, int setno);
 int set_set_hidden(int gno, int setno, int flag);
 
+#define is_set_drawable(gno, setno) (is_set_active(gno, setno) && !is_set_hidden(gno, setno))
+
 int number_of_sets(int gno);
 
 int load_comments_to_legend(int gno, int setno);

@@ -50,7 +50,6 @@
 #include "plotone.h"
 #include "protos.h"
 
-#define is_set_drawable(gno, setno) (is_set_active(gno, setno) && !is_set_hidden(gno, setno))
 FILE *prstream;
 
 char print_file[GR_MAXPATHLEN] = "";
