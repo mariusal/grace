@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.2.0)</title>
 <author>by the Grace Team</author>
-<date>24.08.2000</date>
+<date>01.12.2000</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -2153,7 +2153,7 @@ integral     | cumulative sum @
 	ellik(phi, m)   | incomplete elliptic integral of the first kind @
 	ellpe(m)        | complete elliptic integral of the second kind @
 	ellpk(m)        | complete elliptic integral of the first kind @
-	expn(x)         | exponential integral @
+	expn(n, x)      | exponential integral @
 	fresnlc(x)      | cosine Fresnel integral @
 	fresnls(x)      | sine Fresnel integral @
 	gamma(x)        | gamma function @
