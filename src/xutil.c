@@ -317,7 +317,6 @@ void crosshair_motion(int x, int y)
 void expose_resize(Widget w, XtPointer client_data,
                         XmDrawingAreaCallbackStruct *cbs)
 {
-    Dimension ww, wh;
     static int inc = 0;
 
 #if defined(DEBUG)
@@ -359,8 +358,8 @@ void expose_resize(Widget w, XtPointer client_data,
     }
     
     if (get_pagelayout() == PAGE_FREE) {
-        get_canvas_size(&ww, &wh);
-        set_page_dimensions((int) ww, (int) wh, TRUE);
+        unsigned int w, h;
+        sync_canvas_size(&w, &h, TRUE);
         drawgraph();
     }
 }
