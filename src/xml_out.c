@@ -27,6 +27,8 @@
 
 #include <config.h>
 
+#include <string.h>
+
 #include "grace.h"
 #include "utils.h"
 #include "dicts.h"

@@ -964,9 +964,11 @@ int set_set_colors(Quark *pset, unsigned int color)
 
 static int set_delete_cb(Quark *q, int etype, void *data)
 {
+#ifndef NONE_GUI
     if (etype == QUARK_ETYPE_DELETE) {
         close_ss_editors(q);
     }
+#endif
     return RETURN_SUCCESS;
 }
 
