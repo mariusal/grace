@@ -2076,8 +2076,7 @@ int init_option_menus(void) {
     for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
         settype_option_items[i].value = i;
         settype_option_items[i].label = copy_string(NULL,
-            set_types(grace->rt, i));
-        lowtoupper(settype_option_items[i].label);
+            set_type_descr(grace->rt, i));
     }
 
     return RETURN_SUCCESS;
