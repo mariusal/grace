@@ -3,13 +3,12 @@ main$(O) : main.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h utils.h files.h ssdata.h dicts.h graphs.h ctrans.h graphutils.h \
   plotone.h devlist.h x11drv.h parser.h protos.h noxprotos.h xprotos.h
-quark$(O) : quark.c defines.h ../include/grace/canvas.h \
-  ../include/grace/base.h utils.h grace.h ../include/grace/baseP.h \
-  storage.h dict3.h
+quark$(O) : quark.c grace.h ../include/grace/baseP.h ../include/grace/base.h \
+  defines.h ../include/grace/canvas.h storage.h dict3.h
 grace$(O) : grace.c defines.h ../include/grace/canvas.h \
   ../include/grace/base.h grace.h ../include/grace/baseP.h storage.h \
-  dict3.h utils.h dicts.h graphs.h ctrans.h protos.h noxprotos.h \
-  xprotos.h
+  dict3.h utils.h dicts.h graphs.h ctrans.h graphutils.h protos.h \
+  noxprotos.h xprotos.h
 project$(O) : project.c defines.h ../include/grace/canvas.h \
   ../include/grace/base.h utils.h grace.h ../include/grace/baseP.h \
   storage.h dict3.h objutils.h graphs.h ctrans.h protos.h noxprotos.h \
@@ -145,8 +144,8 @@ bi$(O) : bi.c buildinfo.h
 Tab$(O) : Tab.c TabP.h Tab.h
 ListTree$(O) : ListTree.c ListTreeP.h ListTree.h
 motifutils$(O) : motifutils.c Tab.h motifinc.h defines.h \
-  ../include/grace/canvas.h ../include/grace/base.h storage.h globals.h \
-  grace.h ../include/grace/baseP.h dict3.h jbitmaps.h graphs.h ctrans.h \
+  ../include/grace/canvas.h ../include/grace/base.h storage.h grace.h \
+  ../include/grace/baseP.h dict3.h globals.h jbitmaps.h graphs.h ctrans.h \
   utils.h dicts.h events.h parser.h protos.h noxprotos.h xprotos.h
 compwin$(O) : compwin.c graphs.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
@@ -180,9 +179,9 @@ helpwin$(O) : helpwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h utils.h files.h protos.h noxprotos.h graphs.h ctrans.h \
   xprotos.h motifinc.h
-locatewin$(O) : locatewin.c graphs.h grace.h ../include/grace/baseP.h \
+locatewin$(O) : locatewin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
-  dict3.h ctrans.h protos.h noxprotos.h xprotos.h motifinc.h
+  dict3.h graphs.h ctrans.h protos.h noxprotos.h xprotos.h motifinc.h
 miscwin$(O) : miscwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h utils.h graphs.h ctrans.h motifinc.h protos.h noxprotos.h \
@@ -199,10 +198,7 @@ printwin$(O) : printwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h utils.h graphutils.h plotone.h graphs.h ctrans.h motifinc.h \
   protos.h noxprotos.h xprotos.h
-ptswin$(O) : ptswin.c utils.h grace.h ../include/grace/baseP.h \
-  ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
-  dict3.h graphs.h ctrans.h events.h protos.h noxprotos.h xprotos.h \
-  motifinc.h
+ptswin$(O) : ptswin.c
 regionwin$(O) : regionwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h graphs.h ctrans.h utils.h events.h motifinc.h protos.h \
@@ -211,10 +207,10 @@ setwin$(O) : setwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h graphs.h ctrans.h utils.h plotone.h ssdata.h parser.h \
   motifinc.h protos.h noxprotos.h xprotos.h
-objwin$(O) : objwin.c utils.h grace.h ../include/grace/baseP.h \
+objwin$(O) : objwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
-  dict3.h graphs.h ctrans.h objutils.h events.h motifinc.h protos.h \
-  noxprotos.h xprotos.h
+  dict3.h utils.h graphs.h ctrans.h objutils.h events.h motifinc.h \
+  protos.h noxprotos.h xprotos.h
 setappwin$(O) : setappwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h graphs.h ctrans.h utils.h motifinc.h protos.h noxprotos.h \
@@ -227,10 +223,10 @@ tickwin$(O) : tickwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h utils.h \
   graphutils.h motifinc.h
-worldwin$(O) : worldwin.c mbitmaps.h graphutils.h defines.h \
-  ../include/grace/canvas.h ../include/grace/base.h grace.h \
-  ../include/grace/baseP.h storage.h dict3.h utils.h motifinc.h protos.h \
-  noxprotos.h graphs.h ctrans.h xprotos.h
+worldwin$(O) : worldwin.c mbitmaps.h globals.h grace.h \
+  ../include/grace/baseP.h ../include/grace/base.h defines.h \
+  ../include/grace/canvas.h storage.h dict3.h graphutils.h utils.h \
+  motifinc.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h
 fontwin$(O) : fontwin.c globals.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h ../include/grace/canvas.h storage.h \
   dict3.h utils.h motifinc.h protos.h noxprotos.h graphs.h ctrans.h \
