@@ -115,7 +115,7 @@ void create_locator_frame(void *data)
 						  "[X, Y]",
 						  "[DX, DY]",
 						  "[DISTANCE]",
-						  "[R, Theta]",
+						  "[Phi, Rho]",
 						  "[VX, VY]",
 						  "[SX, SY]",
 						  NULL,

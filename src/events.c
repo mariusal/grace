@@ -880,8 +880,7 @@ void getpoints(VPoint vp)
         break;
     case 3:
         if (dsx - wx != 0.0 || dsy - wy != 0.0) {
-            xtmp = hypot(dsx - wx, dsy - wy);
-            ytmp = 180.0 + 180.0 / M_PI * atan2(dsy - wy, dsx - wx);
+            xy2polar(dsx - wx, dsy - wy, &xtmp, &ytmp);
         } else {
             xtmp = 0.0;
             ytmp = 0.0;
