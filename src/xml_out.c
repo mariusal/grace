@@ -138,6 +138,7 @@ static void xmlio_write_location(XFile *xf, Attributes *attrs,
         attributes_set_dval(attrs, AStrX, x);
         attributes_set_dval(attrs, AStrY, y);
     }
+    xfile_empty_element(xf, EStrLocation, attrs);
 }
 
 static void xmlio_write_format_spec(XFile *xf, Attributes *attrs,
@@ -734,6 +735,8 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
                 attributes_set_dval(attrs, AStrCharSize, s->size);
                 attributes_set_ival(attrs, AStrJustification, s->just); /* FIXME: textual */
             }
+            break;
+        case DO_NONE:
             break;
         }
         sprintf(buf, "%s-data", object_types(o->type));

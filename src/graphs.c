@@ -1472,6 +1472,8 @@ void project_postprocess(Project *pr)
                         break;
                     case DO_STRING:
                         break;
+                    case DO_NONE:
+                        break;
                     }
                 }
             } else {

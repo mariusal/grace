@@ -149,6 +149,8 @@ static void draw_object(int gno, DObject *o)
             }
         }
         break;
+    case DO_NONE:
+        break;
     }
 
     o->bb = get_bbox(BBOX_TYPE_TEMP);

@@ -36,6 +36,7 @@ typedef struct {
 
 /* Object types */
 typedef enum {
+    DO_NONE,
     DO_LINE,
     DO_BOX,
     DO_ARC,
@@ -94,8 +95,12 @@ typedef struct _DOStringData {
 
 char *object_types(OType type);
 
-DObject *object_get(int id);
+void *object_data_new(OType type);
+
+DObject *object_new(void);
 void object_free(DObject *o);
+
+DObject *object_get(int id);
 DObject *object_copy(DObject *o);
 
 int get_object_ids(int **ids);
@@ -111,10 +116,5 @@ int duplicate_object(int id);
 int get_object_bb(DObject *o, view *bb);
 void move_object(int id, VVector shift);
 int object_place_at_vp(int id, VPoint vp);
-
-int init_string(int id, DOStringData *s);
-int init_line(int id, DOLineData *l);
-int init_box(int id, DOBoxData *b);
-int init_arc(int id, DOArcData *a);
 
 #endif /* __OBJUTILS_H_ */
