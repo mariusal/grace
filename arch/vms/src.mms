@@ -5,18 +5,21 @@
 # Rolf Niepraschk, 5/98, niepraschk@ptb.de
 
 TOP = [-]
+INC = "../include/"
+CEPHES_INC = ,[-.CEPHES]
 ECHO = WRITE SYS$OUTPUT
 
 INCLUDE $(TOP)Make.conf
 
 CEPHES_LIB = ,[-.CEPHES]libcephes.olb/LIBRARY
 
-CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP)$(T1_INC)$(LIB_INC)) \
+CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP),$(INC)$(CEPHES_INC)$(T1_INC)$(LIB_INC)) \
   /DEFINE=("xfree=xfree_")
 
-LIBS = $(GUI_LIBS)$(CEPHES_LIB)$(T1_LIB)$(NETCDF_LIBS)$(FFTW_LIB) \
-       $(PDF_LIB)$(TIFF_LIB)$(JPEG_LIB)$(PNG_LIB)$(Z_LIB) \
-       $(NOGUI_LIBS)$(DL_LIB)
+LIBS = $(GUI_LIBS)$(CEPHES_LIB)$(NETCDF_LIBS)$(FFTW_LIB) \
+       ,$(GRACE_CANVAS_LIB)/LIB ,$(GRACE_BASE_LIB)/LIB $(NOGUI_LIBS)$(DL_LIB) \
+       $(T1_LIB) $(XMI_LIB) $(PDF_LIB) $(TIFF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
+       $(XCC_LIB) $(EXPAT_LIB) 
 
 PREFS = /DEFINE=(CCOMPILER="""$(CCOMPILER)""",\
 	  GRACE_HOME="""$(GRACE_HOME)""",\

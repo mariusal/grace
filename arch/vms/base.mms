@@ -1,21 +1,19 @@
 #####################################################
-# Makefile for Cephes math library (VMS)            #
+# Makefile for Grace base library (VMS)             #
 #####################################################
 
 # Rolf Niepraschk, 12/97, niepraschk@ptb.de
+# Richard Brodie, 11/03, R.Brodie@rl.ac.uk
 
-TOP = [-]
-INC = "../include/"
+TOP = [--]
+INC = "../../include/"
 ECHO = WRITE SYS$OUTPUT
 
 INCLUDE $(TOP)Make.conf
 
-CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP), $(INC))
+CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP), $(INC)) /DEFINE=("xfree=xfree_")
 
-LIB = libcephes.olb
-                   
-INCLUDE Make.common
-#INCLUDE Make.dep
+INCLUDE make.defs
 
 all : msg $(LIB)($(OBJS))
 	@ !

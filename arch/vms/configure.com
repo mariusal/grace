@@ -1,7 +1,7 @@
 $! configure for GRACE -- VMS version
 $! Rolf Niepraschk, 12/97, niepraschk@ptb.de
 $! John Hasstedt, 12/98, John.Hasstedt@sunysb.edu
-$!
+$! Richard Brodie 11/2003, R.Brodie@rl.ac.uk
 $ echo := WRITE SYS$OUTPUT
 $!
 $! get versions, hardware type, etc
@@ -56,6 +56,17 @@ $ TIFFINC = ""
 $ TIFFLIB = ""
 $ PDFINC = ""
 $ PDFLIB = ""
+$ XMIINC = ""
+$ XMILIB = ""
+$ XCCINC = ""
+$ XCCLIB = ""
+$ EXPATINC = ""
+$ EXPATLIB = ""
+$ GRACE_BASE_LIB= "[.LIB.BASE]LIBGRACE-BASE.OLB"
+$ GRACE_BASE_LIB= F$PARSE(GRACE_BASE_LIB)
+$ GRACE_CANVAS_LIB= "[.LIB.BASE]LIBGRACE-CANVAS.OLB"
+$ GRACE_CANVAS_LIB= F$PARSE(GRACE_CANVAS_LIB)
+$
 $ FORCECOPY = 0
 $ SAVE = 0
 $!
@@ -234,6 +245,24 @@ $   PDFINC = F$ELEMENT (1, "=", PAR'N')
 $   PDFLIB = F$ELEMENT (2, "=", PAR'N') - "="
 $   GOTO LOOP_PARAM
 $ ENDIF
+$ IF (P .EQS. "XMI")
+$ THEN
+$   XMIINC = F$ELEMENT (1, "=", PAR'N')
+$   XMILIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "XCC")
+$ THEN
+$   XCCINC = F$ELEMENT (1, "=", PAR'N')
+$   XCCLIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "EXPAT")
+$ THEN
+$   EXPATINC = F$ELEMENT (1, "=", PAR'N')
+$   EXPATLIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
 $ IF (P .EQS. "COPY")
 $ THEN
 $   FORCECOPY = 1
@@ -281,6 +310,18 @@ $ ENDIF
 $ IF (PDFINC .NES. "")
 $ THEN
 $   PDFLIB = F$PARSE (PDFLIB, "''PDFINC'PDFLIB.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (XMIINC .NES. "")
+$ THEN
+$   XMILIB = F$PARSE (XMILIB, "''XMIINC'LIBXMI.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (XCCINC .NES. "")
+$ THEN
+$   XCCLIB = F$PARSE (XCCLIB, "''XCCINC'LIBXCC.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (EXPATINC .NES. "")
+$ THEN
+$   EXPATLIB = F$PARSE (EXPATLIB, "''EXPATINC'EXPAT.OLB",,, "SYNTAX_ONLY") - ";"
 $ ENDIF
 $ IF (SAVE)
 $ THEN
@@ -397,6 +438,27 @@ $ ELSE
 $   WRITE OUT "PDF:               Include dir: ", PDFINC
 $   WRITE OUT "                   Library:     ", PDFLIB
 $ ENDIF
+$ IF (XMILIB .EQS. "")
+$ THEN
+$   WRITE OUT "XMI:               Not used"
+$ ELSE
+$   WRITE OUT "XMI:               Include dir: ", XMIINC
+$   WRITE OUT "                   Library:     ", XMILIB
+$ ENDIF
+$ IF (XCCLIB .EQS. "")
+$ THEN
+$   WRITE OUT "XCC:               Not found, required"
+$ ELSE
+$   WRITE OUT "XCC:               Include dir: ", XCCINC
+$   WRITE OUT "                   Library:     ", XCCLIB
+$ ENDIF
+$ IF (EXPATLIB .EQS. "")
+$ THEN
+$   WRITE OUT "EXPAT:             Not found, required"
+$ ELSE
+$   WRITE OUT "EXPAT:             Include dir: ", EXPATINC
+$   WRITE OUT "                   Library:     ", EXPATLIB
+$ ENDIF
 $ CLOSE OUT
 $ echo ""
 $ TYPE/NOPAGE CONFIGURE.LOG
@@ -410,6 +472,8 @@ $ T1LIB_DIR := [--.T1LIB]
 $ T1LIB_T1LIB_DIR := [--.T1LIB.T1LIB]
 $ T1LIB_TYPE1_DIR := [--.T1LIB.TYPE1]
 $ XBAE_DIR := [--.XBAE.XBAE]
+$ BASE_DIR := [--.LIB.BASE]
+$ CANVAS_DIR := [--.LIB.CANVAS]
 $ SRC_DIR := [--.SRC]
 $ GRCONVERT_DIR := [--.GRCONVERT]
 $ EXAMPLES_DIR := [--.EXAMPLES]
@@ -437,6 +501,10 @@ $ IF (FORCECOPY .OR. F$SEARCH("''XBAE_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY XBAE.MMS 'XBAE_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''SRC_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY SRC.MMS 'SRC_DIR'DESCRIP.MMS
+$ IF (FORCECOPY .OR. F$SEARCH("''BASE_DIR'DESCRIP.MMS") .EQS. "") THEN -
+      COPY BASE.MMS 'BASE_DIR'DESCRIP.MMS
+$ IF (FORCECOPY .OR. F$SEARCH("''CANVAS_DIR'DESCRIP.MMS") .EQS. "") THEN -
+      COPY CANVAS.MMS 'CANVAS_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''GRCONVERT_DIR'DESCRIP.MMS") .EQS. "") THEN -
       COPY GRCONVERT.MMS 'GRCONVERT_DIR'DESCRIP.MMS
 $ IF (FORCECOPY .OR. F$SEARCH("''EXAMPLES_DIR'DOTEST.COM") .EQS. "") THEN -
@@ -478,7 +546,7 @@ $ EXE = ".exe"
 $ BAT = ".com"
 $ SHELL = ""
 $ PREFIX = ""
-$ SUBDIRS = "cephes t1lib xbae src"
+$ SUBDIRS = "cephes t1lib xbae base canvas src"
 $ GRACE = "xmgrace$(EXE)"
 $ GRACE_HOME = HOME
 $ IF (HW .EQS. "Alpha" .OR. DECC_MAJOR .GE. 6)
@@ -529,6 +597,24 @@ $   PDFDRV_O = "pdfdrv$(O)"
 $ ELSE
 $   PDF_LIB = ""
 $   PDFDRV_O = ""
+$ ENDIF
+$ IF (XMILIB .NES. "")
+$ THEN
+$   XMI_LIB = "," + XMILIB + "/LIBRARY"
+$ ELSE
+$   XMI_LIB = ""
+$ ENDIF
+$ IF (XCCLIB .NES. "")
+$ THEN
+$   XCC_LIB = "," + XCCLIB + "/LIBRARY"
+$ ELSE
+$   XCC_LIB = ""
+$ ENDIF
+$ IF (EXPATLIB .NES. "")
+$ THEN
+$   EXPAT_LIB = "," + EXPATLIB + "/LIBRARY"
+$ ELSE
+$   EXPAT_LIB = ""
 $ ENDIF
 $ XBAE_INC = "[-.XBAE.XBAE]"
 $ YACC = ""
@@ -607,6 +693,9 @@ $ IF (ZINC      .NES. "") THEN LIB_INC = LIB_INC + "," + ZINC
 $ IF (PNGINC    .NES. "") THEN LIB_INC = LIB_INC + "," + PNGINC
 $ IF (TIFFINC   .NES. "") THEN LIB_INC = LIB_INC + "," + TIFFINC
 $ IF (PDFINC    .NES. "") THEN LIB_INC = LIB_INC + "," + PDFINC
+$ IF (XMIINC    .NES. "") THEN LIB_INC = LIB_INC + "," + XMIINC
+$ IF (XCCINC    .NES. "") THEN LIB_INC = LIB_INC + "," + XCCINC
+$ IF (EXPATINC  .NES. "") THEN LIB_INC = LIB_INC + "," + EXPATINC
 $ WRITE OUT ""
 $ WRITE OUT "# Library include directories"
 $ WRITE OUT "LIB_INC=", LIB_INC
@@ -745,6 +834,7 @@ $ HAVE_FFTW = FFTWLIB .NES. ""
 $ HAVE_LIBPNG = PNGLIB .NES. ""
 $ HAVE_LIBJPEG = JPEGLIB .NES. ""
 $ HAVE_LIBPDF = PDFLIB .NES. ""
+$ HAVE_LIBXMI = XMILIB .NES. ""
 $ WITH_F77_WRAPPER = 1
 $ X_DISPLAY_MISSING = 0
 $ HAVE_MOTIF = 1

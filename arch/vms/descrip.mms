@@ -32,6 +32,16 @@ XBAE :
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
 	 @ $(CD) [--]
 
+BASE :
+	 @ $(CD) [.LIB.BASE]
+	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
+	 @ $(CD) [--]
+
+CANVAS :
+	 @ $(CD) [.LIB.CANVAS]
+	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
+	 @ $(CD) [--]
+
 SRC :
 	 @ $(CD) [.SRC]
 	 @ $(MMS) $(MMSQUALIFIERS) $(MMSTARGETS)
