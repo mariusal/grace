@@ -1003,6 +1003,7 @@ int atext_set_char_size(Quark *q, double size);
 int atext_set_color(Quark *q, int color);
 int atext_set_just(Quark *q, int just);
 int atext_set_angle(Quark *q, double angle);
+int atext_set_pointer(Quark *q, int flag);
 
 int atext_shift(Quark *q, const VVector *vshift);
 int atext_at_shift(Quark *q, const VVector *vshift);

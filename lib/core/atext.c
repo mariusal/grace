@@ -243,6 +243,20 @@ int atext_set_angle(Quark *q, double angle)
     }
 }
 
+int atext_set_pointer(Quark *q, int flag)
+{
+    AText *at = atext_get_data(q);
+    if (at) {
+        
+        at->arrow_flag = flag;
+        
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 int atext_shift(Quark *q, const VVector *vshift)
 {
     AText *at = atext_get_data(q);
