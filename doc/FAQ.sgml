@@ -4,9 +4,9 @@
 
   <article>
 
-      <title>Grace FAQ (v0.6)
+      <title>Grace FAQ (v0.7)
       <author>by the Grace Team
-      <date>29.09.1999
+      <date>08.10.1999
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, a WYSIWYG 2D plotting tool for scientific data.
@@ -33,8 +33,7 @@
 	  or perform automated tasks.
 
 	  Grace is derived from Xmgr (a.k.a. ACE/gr), originally
-	  written by <url name="Paul Turner"
-	  url="mailto:pturner@teleport.com">.
+	  written by Paul Turner.
 
 	  From version number 4.00, the development was taken over by
 	  a team of volunteers under the coordination of Evgeny Stambulchik.
@@ -1125,6 +1124,20 @@ T1_InitLib(): Fatal error scanning Font Database File
           disable this behaviour. Notice that there is nothing specific to
           Grace about locale. Either you want the localization or not. Setting
           by default LANG to anything but C/POSIX assumes you do.
+
+      <sect1>Pressing Ctrl and clicking with the left mouse button on the
+             canvas or dialog panels make Grace crash.
+	<p>
+
+	  This is a known bug in Motif-2.1. Most vendors have fixed it in
+          their ports and/or have a patch ready, but not all, a notable
+          exception being Motif libraries shipped by Red Hat for Linux/Intel.
+          Grace has a workaround for this bug. In order to enable it, add
+          the following lines to the X resources:
+          <tscreen><code>
+XMgrace*translations: #override\n\
+        Ctrl <Btn1Down>: do_nothing()
+          </code></tscreen>
 
 
 <!-- **************************************** -->

@@ -5,9 +5,9 @@
 
 <article>
 
-<title>Grace User's Guide (v0.4)
+<title>Grace User's Guide (v0.5)
 <author>by the Grace Team
-<date>12.09.1999
+<date>08.10.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -158,6 +158,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                      will also need the <url name="NetCDF libraries"
                      url="http://unidata.ucar.edu/packages/netcdf/index.html">.
             </itemize>
+          <item> Decide whether you want to compile in a separate place (thus
+                 leaving the source tree pristine). You most probably would
+                 want it if compiling Grace for more than one OS and keeping
+                 the sources in a central shared (e.g. via NFS) location.
+                 If you don't need it, skip the rest of this paragraph and go
+                 right to the next step. Otherwise, assuming the sources are
+                 in <tt>/usr/local/src/grace-x.y.z</tt> and the compilation
+                 will be performed in <tt>/tmp/grace-obj</tt>, do the following:
+                 <verb>
+  % mkdir /tmp/grace-obj
+  % cd /tmp/grace-obj
+  % /usr/local/src/grace-x.y.z/ac-tools/shtool mkshadow \
+    /usr/local/src/grace-x.y.z .
+                 </verb>
           <item> Consult README.configure for basic notes on the GNU configure
                  usage
           <item> Run <tt>./configure --help</tt>
@@ -165,8 +179,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Run <tt>./configure &lt;options&gt;</tt>. Just an example:
                  <verb>
   % ./configure --enable-grace-home=/opt/grace 
-  --enable-extra-incpath=/usr/local/include:/opt/include \
-  --enable-extra-ldpath=/usr/local/lib:/opt/lib --prefix=/usr
+    --enable-extra-incpath=/usr/local/include:/opt/include \
+    --enable-extra-ldpath=/usr/local/lib:/opt/lib --prefix=/usr
                  </verb>
                  would use <tt>/usr/local/include</tt> and
                  <tt>/opt/include</tt> in addition to the default include path
@@ -573,7 +587,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                <newline>
 
         <item> XMgrace.allowDoubleClick
-
                <newline>
                When Yes, allow double clicks on the canvas to bring up various
                popups depending on  the location of the pointer when the double
@@ -1557,8 +1570,114 @@ integral     | cumulative sum @
 <sect>Advanced topics
   <p>
 
-  <sect1>Adding/replacing fonts
+  <sect1>Fonts
     <p>
+    For all devices, Grace uses Type1 fonts. Both PFA (ascii) and PFB
+    (binary) formats can be used.
+    <p>
+    <sect2>Font configuration
+      <p>
+      The file responsible for the font configurations of Grace is
+      <tt>fonts/FontDataBase</tt>. The first line contains a positive integer
+      specifying the number of fonts declared in that file. All remaining lines
+      contain declarations of one font each, composed out of three fields:
+      <enum>
+        <item> Font name. The name will appear in the font selector controls.
+               Also, backend devices that has built-in fonts, will be given the
+               name as a font identifier.
+        <item> Font fall-back. Grace will try to use this in case the real
+               font is not found.
+        <item> Font filename. The file with the font outline data.
+      </enum>
+    <p>
+      Here is the default <tt>FontDataBase</tt> file:
+      <tscreen><code>
+14
+Times-Roman             Times-Roman             n021003l.pfb
+Times-Italic            Times-Italic            n021023l.pfb
+Times-Bold              Times-Bold              n021004l.pfb
+Times-BoldItalic        Times-BoldItalic        n021024l.pfb
+Helvetica               Helvetica               n019003l.pfb
+Helvetica-Oblique       Helvetica-Oblique       n019023l.pfb
+Helvetica-Bold          Helvetica-Bold          n019004l.pfb
+Helvetica-BoldOblique   Helvetica-BoldOblique   n019024l.pfb
+Courier                 Courier                 n022003l.pfb
+Courier-Oblique         Courier-Oblique         n022023l.pfb
+Courier-Bold            Courier-Bold            n022004l.pfb
+Courier-BoldOblique     Courier-BoldOblique     n022024l.pfb
+Symbol                  Symbol                  s050000l.pfb
+ZapfDingbats            ZapfDingbats            d050000l.pfb
+      </code></tscreen>
+    <p>
+
+    <sect2>Font data files
+    <p>
+      For text rastering, three types of files are used.
+      <enum>
+        <item> <tt>.pfa</tt>-/<tt>.pfb</tt>-files: These contain the character
+               outline descriptions. The files are assumed to be in the
+               <tt>fonts/type1</tt> directory; these are the filenames
+               specified in the <tt>FontDataBase</tt> configuration file.
+        <item> <tt>.afm</tt>-files: These contain high-precision font metric
+               descriptions as well as some extra information, such as kerning
+               and ligature information for a particular font. It is assumed
+               that the filename of a font metric file has same basename as the
+               respective font outline file, but with the <tt>.afm</tt>
+               extension; the metric files are expected to be found in the
+               <tt>fonts/type1</tt> directory, too.
+        <item> <tt>.enc</tt>-files: These contain encoding arrays in a special
+               but simple form. They are only needed if someone wants to load
+               a special encoding to reencode a font. Their place is
+               <tt>fonts/enc</tt>
+      </enum>
+      
+    <sect2>Custom fonts
+      <p>
+      It is possible to use custom fonts with Grace. One mostly needs to use
+      extra fonts for the purpose of localization. For many European
+      languages, the standard fonts supplied with Grace should contain all the
+      characters needed, but encoding may have to be adjusted. This is done by
+      putting a <tt>Default.enc</tt> file with proper encoding scheme into the
+      <tt>fonts/enc</tt> directory. Grace comes with a few encoding files in
+      the directory; more can be easily found on the Internet. (If the
+      <tt>Default.enc</tt> file doesn't exist, the IsoLatin1 encoding will be
+      used). Notice that for fonts having an encoding scheme in themselves
+      (such as the Symbol font, and many nationalized fonts) the default
+      encoding is ignored.
+      <p>
+      If you do need to use extra fonts, you should modify the
+      <tt>FontDataBase</tt> file accordingly, obeying its format. However,
+      if you are going to exchange Grace project files with other people who
+      do not have the extra fonts configured, an important thing is to define
+      reasonable fall-back font names.
+      <p>
+      For example, let us assume I use Hebrew fonts, and the configuration file
+      has lines like these:
+      <tscreen><code>
+    ...
+Courier-Hebrew              Courier                 courh___.pfa
+Courier-Hebrew-Oblique      Courier-Oblique         courho__.pfa
+    ...
+      </code></tscreen>
+      My colleague, who lives in Russia, uses Cyrillic fonts with Grace
+      configured like this:
+      <tscreen><code>
+    ...
+Cronix-Courier              Courier                 croxc.pfb
+Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
+    ...
+      </code></tscreen>
+      The font mapping information (Font name &lt;-&gt; Font fall-back) is
+      stored in the Grace project files. Provided that all the localized fonts
+      have English characters in the lower part of the ascii table unmodified,
+      I can send my friend files (with no Hebrew characters, of course) and be
+      sure they render correctly on his computer.
+      <p>
+      Thus, with properly configured national fonts, you can make localized
+      annotations for plots intended for internal use of your institution,
+      while being able to exchange files with colleagues from abroad. People
+      who ever tried to do this with MS Office applications should appreciate
+      the flexibility :-).
 
   <sect1>Interaction with other applications
     <p>
@@ -1576,91 +1695,78 @@ integral     | cumulative sum @
 
       <table LOC=htbp>
       <tabular CA="lll">
-              <hline>
-Function | Arguments |  Description   @
-              <hline>
-
-int GraceOpen |
-(int <it>buf&lowbar;size</it>) |
-launch a Grace subprocess and open a communication channel with it @
-
-int GraceIsOpen |
-(void) |
-test if a Grace subprocess is currently connected @
-
-int GraceClose |
-(void)  |
-close the communication channel and exit the Grace subprocess @
-
-int GraceClosePipe |
-(void) |
-close the communication channel and leave the Grace subprocess alone @
-
-              <hline>
-
-int GraceFlush |
-(void) |
-flush all the data remaining in the buffer @
-
-int GracePrintf |
-(const char* <it>format</it>, ...) |
-format a command and send it to the Grace subprocess @
-
-int GraceCommand |
-(const char* <it>cmd</it>) |
-send an already formated command to the Grace subprocess @
-              <hline>
-GraceErrorFunctionType <newline> GraceRegisterErrorFunction |
-(GraceErrorFunctionType <it>f</it>) |
-register a user function <it>f</it> to display library errors @
-              <hline>
+        <hline>
+        Function           | Arguments          |  Description                 @
+        <hline>
+        int GraceOpen      | (int <it>buf&lowbar;size</it>)
+                                                | launch a Grace subprocess
+                                                  and open a communication
+                                                  channel with it              @
+        int GraceIsOpen    | (void)             | test if a Grace subprocess
+                                                  is currently connected       @
+        int GraceClose     | (void)             | close the communication
+                                                  channel and exit the Grace
+                                                  subprocess                   @
+        int GraceClosePipe | (void)             | close the communication
+                                                  channel and leave the Grace
+                                                  subprocess alone             @
+        <hline>
+        int GraceFlush     | (void)             | flush all the data remaining
+                                                  in the buffer                @
+        int GracePrintf    | (const char* <it>format</it>, ...)
+                                                | format a command and send it
+                                                  to the Grace subprocess      @
+        int GraceCommand   | (const char* <it>cmd</it>)
+                                                | send an already formated
+                                                  command to the Grace
+                                                  subprocess                   @
+        <hline>
+        GraceErrorFunctionType <newline> GraceRegisterErrorFunction
+                           | (GraceErrorFunctionType <it>f</it>)
+                                                | register a user function
+                                                  <it>f</it> to display
+                                                  library errors               @
+        <hline>
       </tabular>
       <caption>
-              <label id="C functions">
-              grace&lowbar;np library C functions.
+        <label id="C functions"> grace&lowbar;np library C functions.
       </caption>
       </table>
 
       <table LOC=htbp>
       <tabular CA="lll">
-              <hline>
-Function | Arguments |  Description   @
-              <hline>
-
-integer GraceOpenF |
-(integer <it>buf&lowbar;size</it>) |
-launch a Grace subprocess and open a communication channel with it @
-
-integer GraceIsOpenF |
-(void) |
-test if a Grace subprocess is currently connected @
-
-integer GraceCloseF |
-(void)  |
-close the communication channel and exit the Grace subprocess @
-
-integer GraceClosePipeF |
-(void) |
-close the communication channel and leave the Grace subprocess alone @
-
-              <hline>
-
-integer GraceFlushF |
-(void) |
-flush all the data remaining in the buffer @
-
-integer GraceCommandF |
-(character*(*) <it>cmd</it>) |
-send an already formatted command to the Grace subprocess @
-              <hline>
-GraceFortranFunctionType <newline> GraceRegisterErrorFunctionF |
-(GraceFortranFunctionType <it>f</it>) |
-register a user function <it>f</it> to display library errors @
-              <hline>
+        <hline>
+        Function                | Arguments     |  Description                 @
+        <hline>
+        integer GraceOpenF      | (integer <it>buf&lowbar;size</it>)
+                                                | launch a Grace subprocess
+                                                  and open a communication
+                                                  channel with it              @
+        integer GraceIsOpenF    | (void)        | test if a Grace subprocess
+                                                  is currently connected       @
+        integer GraceCloseF     | (void)        | close the communication
+                                                  channel and exit the Grace
+                                                  subprocess                   @
+        integer GraceClosePipeF | (void)        | close the communication
+                                                  channel and leave the Grace
+                                                  subprocess alone             @
+        <hline>
+        integer GraceFlushF     | (void)        | flush all the data remaining
+                                                  in the buffer                @
+        integer GraceCommandF   | (character*(*) <it>cmd</it>)
+                                                | send an already formatted
+                                                  command to the Grace
+                                                  subprocess                   @
+        <hline>
+        GraceFortranFunctionType <newline> GraceRegisterErrorFunctionF
+                                | (GraceFortranFunctionType <it>f</it>)
+                                                | register a user function
+                                                  <it>f</it> to display
+                                                  library errors               @
+        <hline>
       </tabular>
       <caption>
-              <label id="fortran functions">
-              grace&lowbar;np library F77 functions.
+        <label id="fortran functions"> grace&lowbar;np library F77 functions.
       </caption>
       </table>
 
