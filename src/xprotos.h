@@ -183,4 +183,6 @@ void sync_canvas_size(Grace *grace);
 
 void installXErrorHandler(void);
 
+Pixmap char_to_pixmap(Widget w, int font, char c, int csize);
+
 #endif /* __XPROTOS_H_ */

@@ -742,3 +742,42 @@ void x11_dev2VPoint(short x, short y, VPoint *vp)
         vp->y = (double) (xstuff->win_h - y) / xstuff->win_scale;
     }
 }
+
+Pixmap char_to_pixmap(Widget w, int font, char c, int csize)
+{
+    X11Stuff *xstuff = grace->gui->xstuff;
+    CPixmap *pm;
+    Pixmap pixmap = 0;
+    int height, width, hshift, vshift;
+    float fsize = 0.8*(float)csize;
+    
+    pm = canvas_raster_char(font, c, fsize, &vshift, &hshift);
+       
+    if (pm != NULL && pm->bits != NULL) {
+        long bg, fg;
+        Pixmap ptmp;
+        
+        vshift = csize - vshift - 4;
+        height = pm->height;
+        width = pm->width;
+        
+        ptmp = XCreateBitmapFromData(xstuff->disp, xstuff->root,
+                    pm->bits, width, height);
+        pixmap = XCreatePixmap(xstuff->disp, xstuff->root,
+            csize, csize, xstuff->depth);
+        
+        XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
+        XSetForeground(xstuff->disp, xstuff->gc, bg);
+        XFillRectangle(xstuff->disp, pixmap, xstuff->gc, 0, 0, csize, csize);
+        
+        XSetBackground(xstuff->disp, xstuff->gc, bg);
+        XSetForeground(xstuff->disp, xstuff->gc, fg);
+        XCopyPlane(xstuff->disp, ptmp, pixmap, xstuff->gc, 0, 0,
+            width, height, hshift, vshift, 1);
+        
+        XFreePixmap(xstuff->disp, ptmp);
+        canvas_cpixmap_free(pm);
+    }
+    
+    return pixmap;
+}
