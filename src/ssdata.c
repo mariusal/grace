@@ -153,22 +153,24 @@ int realloc_ss_data(ss_data *ssd, int nrows)
 
 void free_ss_data(ss_data *ssd)
 {
-    int i, j;
-    char  **sp;
-    
-    for (i = 0; i < ssd->ncols; i++) {
-        if (ssd->formats[i] == FFORMAT_STRING) {
-            sp = (char **) ssd->data[i];
-            for (j = 0; j < ssd->nrows; j++) {
-                XCFREE(sp[j]);
+    if (ssd) {
+        int i, j;
+        char  **sp;
+
+        for (i = 0; i < ssd->ncols; i++) {
+            if (ssd->formats && ssd->formats[i] == FFORMAT_STRING) {
+                sp = (char **) ssd->data[i];
+                for (j = 0; j < ssd->nrows; j++) {
+                    XCFREE(sp[j]);
+                }
             }
+            XCFREE(ssd->data[i]);
         }
-        XCFREE(ssd->data[i]);
+        XCFREE(ssd->data);
+        XCFREE(ssd->formats);
+        ssd->nrows = 0;
+        ssd->ncols = 0;
     }
-    XCFREE(ssd->data);
-    XCFREE(ssd->formats);
-    ssd->nrows = 0;
-    ssd->ncols = 0;
 }
 
 int init_ss_data(ss_data *ssd, int ncols, int *formats)
@@ -179,7 +181,8 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats)
     for (i = 0; i < ncols; i++) {
         ssd->data[i] = NULL;
     }
-    ssd->formats = formats;
+    ssd->formats = xmalloc(ncols*SIZEOF_INT);
+    memcpy(ssd->formats, formats, ncols*SIZEOF_INT);
     ssd->ncols = ncols;
     ssd->nrows = 0;
 
@@ -409,6 +412,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
         }
         
         XCFREE(ssd->data);
+        XCFREE(ssd->formats);
         break;
     case LOAD_NXY:
         if (nscols != 0) {
@@ -438,6 +442,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
         }
     
         XCFREE(ssd->data);
+        XCFREE(ssd->formats);
         break;
     case LOAD_BLOCK:
         set_blockdata(ssd);

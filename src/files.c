@@ -842,6 +842,8 @@ static int uniread(FILE *fp, int load_type, char *label)
     nrows = 0;
     
     breakon = TRUE;
+    
+    memset(&ssd, 0, sizeof(ssd));
 
     while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
 	linecount++;
