@@ -410,13 +410,17 @@ void set_graph_viewport(int gno, view v)
     set_dirtystate();
 }
 
-void set_graph_labels(int gno, labels * labs)
+void set_graph_labels(int gno, labels *labs)
 {
     if (is_valid_gno(gno) != TRUE) {
         return;
     }
 
+    xfree(g[gno].labs.title.s);
+    xfree(g[gno].labs.stitle.s);
     memcpy(&g[gno].labs, labs, sizeof(labels));
+    g[gno].labs.title.s = copy_string(NULL, labs->title.s);
+    g[gno].labs.stitle.s = copy_string(NULL, labs->stitle.s);
     
     set_dirtystate();
 }
