@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.6 - for Grace-5.1.0)
 <author>by the Grace Team
-<date>20.02.2000
+<date>04.03.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -188,8 +188,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Run <tt>./configure &lt;options&gt;</tt>. Just an example:
                  <verb>
   % ./configure --enable-grace-home=/opt/grace 
-    --enable-extra-incpath=/usr/local/include:/opt/include \
-    --enable-extra-ldpath=/usr/local/lib:/opt/lib --prefix=/usr
+    --with-extra-incpath=/usr/local/include:/opt/include \
+    --with-extra-ldpath=/usr/local/lib:/opt/lib --prefix=/usr
                  </verb>
                  would use <tt>/usr/local/include</tt> and
                  <tt>/opt/include</tt> in addition to the default include path
@@ -199,8 +199,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                  <tt>/usr/bin</tt>, <tt>/usr/lib</tt> and <tt>/usr/include</tt>.
                    <p>
                  <bf>Note</bf>: If you change one of the
-                 <tt>--enable-extra-incpath</tt> or
-                 <tt>--enable-extra-ldpath</tt> options from one run of
+                 <tt>--with-extra-incpath</tt> or
+                 <tt>--with-extra-ldpath</tt> options from one run of
                  configure to another, remember to delete the
                  <tt>config.cache</tt> file!!!
         </itemize>
@@ -498,6 +498,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -autoscale <it>x|y|xy</it> </tag>
                 Override any parameter file settings
+
+          <tag> -barebones </tag>
+                Turn off all toolbars
 
           <tag> -batch <it>batch_file</it> </tag>
                 Execute batch_file on start up
@@ -2377,13 +2380,21 @@ C
                  <item> arcs of angles != 90*n are approximated very roughly
                </itemize>
         <item> MIF driver:
-               the driver is a brand new one and still in alpha test
+               the driver is a brand new one and still in beta test
+               <itemize>
+                 <item> some of patterned fills not implemented
+                 <item> bitmapped text strings not implemented
+               </itemize>
         <item> SVG driver:
-               the driver is a brand new one and still in alpha test, one
+               the driver is a brand new one and still in beta test, one
                should also be aware that SVG is still a W3C working draft,
                not yet a recommendation (see the <url
                url="http://www.w3.org/TR/1999/12/WD-SVG-19991203/"
                name="Scalable Vector Graphics (SVG) 1.0 Specification">)
+               <itemize>
+                 <item> patterned fills not implemented
+                 <item> bitmapped text strings not implemented
+               </itemize>
       </itemize>
       
       <p>
