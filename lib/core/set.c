@@ -296,20 +296,9 @@ char *set_get_legstr(Quark *pset)
     }
 }
 
-int set_get_ncols(Quark *pset)
+int set_get_ncols(const Quark *q)
 {
-    Dataset *dsp = set_get_dataset(pset);
-    if (dsp) {
-        unsigned int i, ncols = 0;
-        for (i = 0; i < MAX_SET_COLS; i++) {
-            if (dsp->cols[i] != COL_NONE) {
-                ncols++;
-            }
-        }
-        return ncols;
-    } else {
-        return -1;
-    }
+    return settype_cols(set_get_type(q));
 }
 
 Dataset *set_get_dataset(Quark *qset)
@@ -475,7 +464,7 @@ int set_set_type(Quark *pset, int type)
     return RETURN_SUCCESS;
 }
 
-int set_get_type(Quark *pset)
+int set_get_type(const Quark *pset)
 { 
     set *p = set_get_data(pset);
     if (p) {

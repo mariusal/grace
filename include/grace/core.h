@@ -957,7 +957,7 @@ set *set_get_data(const Quark *q);
 Dataset *set_get_dataset(Quark *pset);
 int set_set_dataset(Quark *q, const Dataset *dsp);
 
-int set_get_type(Quark *p);
+int set_get_type(const Quark *p);
 int set_set_type(Quark *p, int stype);
 
 char *set_get_legstr(Quark *pset);
@@ -976,7 +976,7 @@ int set_get_length(Quark *p);
 char *set_get_comment(Quark *p);
 int set_set_comment(Quark *p, char *s);
 
-int set_get_ncols(Quark *pset);
+int set_get_ncols(const Quark *pset);
 
 double *set_get_col(Quark *p, unsigned int col);
 char **set_get_strings(Quark *p);
