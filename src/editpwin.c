@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -62,6 +62,7 @@ typedef struct _EditPoints {
     int gno;
     int setno;
     int ncols;
+    int scols;
     int nrows;
     Widget top;
     Widget mw;
@@ -81,6 +82,9 @@ void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data);
 /* default cell width */
 #define CELL_WIDTH 12
 
+/* string cell width */
+#define STRING_CELL_WIDTH 128
+
 char *scformat[3] =
 {"%.*lf", "%.*lg", "%.*le"};
 
@@ -93,7 +97,7 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
     EditPoints *ep = (EditPoints *) client_data;
 
     XbaeMatrixGetCurrentCell(ep->mw, &i, &j);
-    if(i >= ep->nrows || j >= ep->ncols) {
+    if (i >= ep->nrows || j >= ep->ncols + ep->scols) {
         errwin("Selected cell out of range");
         return;
     }
@@ -111,18 +115,22 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
 void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i,j, k;
+    char **s;
     Datapoint dpoint;
     EditPoints *ep = (EditPoints *)client_data;
     int gno = ep->gno, setno = ep->setno;
 
     XbaeMatrixGetCurrentCell(ep->mw, &i, &j);
-    if ( i>= ep->nrows || j >= ep->ncols || i < 0 || j < 0){
+    if (i >= ep->nrows || j >= ep->ncols + ep->scols || i < 0 || j < 0){
         errmsg("Selected cell out of range");
         return;
     }
     zero_datapoint(&dpoint);
     for (k = 0; k < ep->ncols; k++) {
         dpoint.ex[k] = *(getcol(gno, setno, k) + i);
+    }
+    if ((s = get_set_strings(gno, setno)) != NULL) {
+        dpoint.s = s[i];
     }
     add_point_at(gno, setno, i + 1, &dpoint);
     if(is_set_active(gno, setno)) {
@@ -180,14 +188,25 @@ void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data)
 void update_cells(EditPoints *ep)
 {
     int i, nr, nc;
-    short widths[MAX_SET_COLS] =
-       {CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH, CELL_WIDTH};
+    short widths[MAX_SET_COLS + 1];
+    int maxlengths[MAX_SET_COLS + 1];
     short width;
     char buf[32];
     char **rowlabels;
 	
     ep->nrows = getsetlength(ep->gno, ep->setno);
     ep->ncols = dataset_cols(ep->gno, ep->setno);
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        widths[i] = CELL_WIDTH;
+        maxlengths[i] = CELL_WIDTH;
+    }
+    if (get_set_strings(ep->gno, ep->setno) != NULL) {
+        ep->scols = 1;
+        widths[i] = CELL_WIDTH;
+        maxlengths[i] = STRING_CELL_WIDTH;
+    } else {
+        ep->scols = 0;
+    }
     /* get current size of widget and update rows/columns as needed */
     XtVaGetValues(ep->mw,
         XmNcolumns, &nc,
@@ -198,18 +217,17 @@ void update_cells(EditPoints *ep)
     } else if (ep->nrows < nr) {
         XbaeMatrixDeleteRows(ep->mw, 0, nr - ep->nrows);
     }
-    if (ep->ncols > nc) {
-        XbaeMatrixAddColumns(ep->mw, 0, NULL, NULL, widths, NULL, 
-            NULL, NULL, NULL, ep->ncols-nc);
-    } else if (ep->ncols < nc) {
-        XbaeMatrixDeleteColumns(ep->mw, 0, nc - ep->ncols);
+    if (ep->ncols + ep->scols > nc) {
+        XbaeMatrixAddColumns(ep->mw, 0, NULL, NULL, widths, maxlengths, 
+            NULL, NULL, NULL, ep->ncols + ep->scols - nc);
+    } else if (ep->ncols + ep->scols < nc) {
+        XbaeMatrixDeleteColumns(ep->mw, 0, nc - (ep->ncols + ep->scols));
     }
 		
     rowlabels = xmalloc(ep->nrows*sizeof(char *));
     for (i = 0; i < ep->nrows; i++) {
     	sprintf(buf, "%d", i);
-    	rowlabels[i] = xmalloc((sizeof(buf) + 1)*SIZEOF_CHAR);
-    	strcpy(rowlabels[i], buf);
+    	rowlabels[i] = copy_string(NULL, buf);
     }
     width = (short) ceil(log10(i)) + 2;	/* increase row label width by 1 */
 
@@ -278,19 +296,32 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
 static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 {
-    double *datap;
-    char buf[128];
+    int changed = FALSE;
     EditPoints *ep = (EditPoints *) client_data;
     XbaeMatrixLeaveCellCallbackStruct *cs =
     	    (XbaeMatrixLeaveCellCallbackStruct *) calld;
 
-    datap = getcol(ep->gno, ep->setno, cs->column);
-    sprintf(buf, scformat[(ep->cformat[cs->column])], ep->cprec[cs->column],
-    	    datap[cs->row]);
-    if (strcmp(buf, cs->value) != 0) {
-        /* TODO: add edit_point() function to setutils.c */
-	datap[cs->row] = atof(cs->value);
-
+    /* TODO: add edit_point() function to setutils.c */
+    if (cs->column < ep->ncols) {
+        char buf[128];
+        double *datap = getcol(ep->gno, ep->setno, cs->column);
+        sprintf(buf, scformat[(ep->cformat[cs->column])], ep->cprec[cs->column],
+    	        datap[cs->row]);
+        if (strcmp(buf, cs->value) != 0) {
+	    datap[cs->row] = atof(cs->value);
+            changed = TRUE;
+        }
+    } else if (cs->column < ep->ncols + ep->scols) {
+        char **datap = get_set_strings(ep->gno, ep->setno);
+        if (compare_strings(datap[cs->row], cs->value) == 0) {
+	    datap[cs->row] = copy_string(datap[cs->row], cs->value);
+            changed = TRUE;
+        }
+    } else {
+        errmsg("Internal error in leaveCB()");
+    }
+    
+    if (changed) {
         set_dirtystate();
         update_set_lists(ep->gno);
         drawgraph();
@@ -301,18 +332,25 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
 {
     int i, j;
-    double *datap;
     EditPoints *ep = (EditPoints *) client_data;
-    static char buf[128];
     XbaeMatrixDrawCellCallbackStruct *cs =
     	    (XbaeMatrixDrawCellCallbackStruct *) calld;
 
     i = cs->row;
     j = cs->column;
-    datap = getcol(ep->gno, ep->setno, j);
-    sprintf(buf, scformat[(ep->cformat[j])], ep->cprec[j], datap[i]);
+    
     cs->type = XbaeString;
-    cs->string = XtNewString(buf);
+    if (j < ep->ncols) {
+        static char buf[128];
+        double *datap;
+        datap = getcol(ep->gno, ep->setno, j);
+        sprintf(buf, scformat[(ep->cformat[j])], ep->cprec[j], datap[i]);
+        cs->string = copy_string(NULL, buf);
+    } else {
+        char **datap;
+        datap = get_set_strings(ep->gno, ep->setno);
+        cs->string = datap[i];
+    }
 }
 
 static void selectCB(Widget w, XtPointer client_data, XtPointer call_data)
@@ -379,9 +417,10 @@ void destroy_ep(Widget w, XtPointer client_data, XtPointer call_data)
 void create_ss_frame(int gno, int setno)
 {
     int i;
-    char *collabels[MAX_SET_COLS];
-    short cwidths[MAX_SET_COLS];
-    unsigned char column_label_alignments[MAX_SET_COLS];
+    char *collabels[MAX_SET_COLS + 1];
+    short cwidths[MAX_SET_COLS + 1];
+    int maxlengths[MAX_SET_COLS + 1];
+    unsigned char column_label_alignments[MAX_SET_COLS + 1];
     char wname[256];
     char *label1[3] = {"Props...", "Update", "Close"};
     char *label2[2] = {"Delete", "Add"};
@@ -405,13 +444,21 @@ void create_ss_frame(int gno, int setno)
     ep->gno = gno;
     ep->setno = setno;
     ep->ncols = dataset_cols(gno, setno);
+    ep->scols = (get_set_strings(gno, setno) != NULL);
     ep->nrows = getsetlength(gno, setno);
-    for (i = 0; i < MAX_SET_COLS; i++) {
+    for (i = 0; i < ep->ncols; i++) {
         collabels[i] = copy_string(NULL, dataset_colname(i));
         cwidths[i] = CELL_WIDTH;
+        maxlengths[i] = CELL_WIDTH;
         column_label_alignments[i] = XmALIGNMENT_CENTER;
         ep->cprec[i] = CELL_PREC;
         ep->cformat[i] = CELL_FORMAT;
+    }
+    if (ep->scols) {
+        collabels[i] = copy_string(NULL, "String");
+        cwidths[i] = CELL_WIDTH;
+        maxlengths[i] = STRING_CELL_WIDTH;
+        column_label_alignments[i] = XmALIGNMENT_CENTER;
     }
 
     sprintf(wname, "Edit set: S%d of G%d", ep->setno, ep->gno);
@@ -428,10 +475,11 @@ void create_ss_frame(int gno, int setno)
     ep->mw = XtVaCreateManagedWidget("mw",
         xbaeMatrixWidgetClass, dialog,
         XmNrows, ep->nrows,
-        XmNcolumns, ep->ncols,
+        XmNcolumns, ep->ncols + ep->scols,
         XmNvisibleRows, 10,
         XmNvisibleColumns, 2,
         XmNcolumnWidths, cwidths,
+        XmNcolumnMaxLengths, maxlengths,
         XmNcolumnLabels, collabels,
         XmNcolumnLabelAlignments, column_label_alignments,
         XmNallowColumnResize, True,
