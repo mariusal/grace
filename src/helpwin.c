@@ -174,7 +174,7 @@ void create_about_grtool(void *data)
 	CreateLabel(rc,
             "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
 #ifdef HAVE_LIBPDF
-	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-99 Thomas Metz");
+	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-99 Thomas Merz");
 #endif
 	XtManageChild(rc);
 
