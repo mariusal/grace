@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -2857,7 +2857,11 @@ actions:
 	    exit($3);
 	}
 	| PRINT {
-	    do_hardcopy();
+	    if (!safe_mode) {
+                do_hardcopy();
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
 	}
 	| PRINT TO DEVICE {
             set_ptofile(FALSE);
@@ -2915,11 +2919,15 @@ actions:
 	    xfree($2);
 	}
 	| PUTP CHRSTR {
-	    FILE *pp = grace_openw($2);
-	    if (pp != NULL) {
-	        putparms(whichgraph, pp, 0);
-	        grace_close(pp);
-	    }
+	    if (!safe_mode) {
+                FILE *pp = grace_openw($2);
+	        if (pp != NULL) {
+	            putparms(whichgraph, pp, 0);
+	            grace_close(pp);
+	        }
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
 	    xfree($2);
 	}
 	| selectset HIDDEN onoff {
@@ -3178,23 +3186,43 @@ actions:
 	    xfree($4);
 	}
 	| WRITE selectset {
-	    outputset($2->gno, $2->setno, "stdout", NULL);
+	    if (!safe_mode) {
+                outputset($2->gno, $2->setno, "stdout", NULL);
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
 	}
 	| WRITE selectset FORMAT CHRSTR {
-	    outputset($2->gno, $2->setno, "stdout", $4);
+	    if (!safe_mode) {
+	        outputset($2->gno, $2->setno, "stdout", $4);
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
 	    xfree($4);
 	}
 	| WRITE selectset FILEP CHRSTR {
-	    outputset($2->gno, $2->setno, $4, NULL);
+	    if (!safe_mode) {
+	        outputset($2->gno, $2->setno, $4, NULL);
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
 	    xfree($4);
 	}
 	| WRITE selectset FILEP CHRSTR FORMAT CHRSTR {
-	    outputset($2->gno, $2->setno, $4, $6);
+	    if (!safe_mode) {
+	        outputset($2->gno, $2->setno, $4, $6);
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
 	    xfree($4);
 	    xfree($6);
 	}
         | SAVEALL CHRSTR {
-            save_project($2);
+            if (!safe_mode) {
+                save_project($2);
+            } else {
+                yyerror("File modifications are disabled in safe mode");
+            }
             xfree($2);
         }
         | LOAD CHRSTR {
@@ -3901,7 +3929,14 @@ runtype: RUNAVG { $$ = RUN_AVG; }
 
 sourcetype: 
         DISK { $$ = SOURCE_DISK; }
-	| PIPE { $$ = SOURCE_PIPE; }
+	| PIPE {
+            if (!safe_mode) {
+                $$ = SOURCE_PIPE;
+            } else {
+                yyerror("Pipe inputs are disabled in safe mode");
+                $$ = SOURCE_DISK;
+            }
+        }
 	;
 
 justchoice: RIGHT { $$ = JUST_RIGHT; }

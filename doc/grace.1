@@ -1,4 +1,4 @@
-.TH GRACE 1 "March 31, 2001"
+.TH GRACE 1 "May 21, 2002"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -99,6 +99,9 @@ Don't use private colormap
 .B -noprint                              
 In batch mode, do not print
 .TP
+.B -nosafe                              
+Disable safe mode
+.TP
 .B -nosigcatch                           
 Don't catch signals
 .TP
@@ -132,6 +135,9 @@ Write results of some data manipulations to
 .TP
 .B -rvideo
 Exchange the color indices for black and white
+.TP
+.B -safe                              
+Run in the safe mode (default)
 .TP
 .BI "\-saveall "  "file"
 Save all to 

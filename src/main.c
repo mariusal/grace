@@ -634,6 +634,10 @@ int main(int argc, char *argv[])
 		    } else {
 			srand48(atol(argv[i]));	/* note atol() */
 		    }
+		} else if (argmatch(argv[i], "-safe", 5)) {
+		    safe_mode = TRUE;
+		} else if (argmatch(argv[i], "-nosafe", 7)) {
+		    safe_mode = FALSE;
 		} else if (argmatch(argv[i], "-help", 2)) {
 		    usage(stdout, argv[0]);
 		} else if (argmatch(argv[i], "-usage", 5)) {
