@@ -99,6 +99,9 @@ $GRACE mlo.dat -graph 1 brw.dat -p co2.par
 # multiple graphs created with arrange feature
 $GRACE co2.agr 
 #
+# a nice sample
+$GRACE spectrum.agr 
+#
 # a graph with alternate axes
 $GRACE -p altaxis.par test.dat -autoscale xy 
 #

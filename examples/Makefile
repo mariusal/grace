@@ -18,7 +18,8 @@ EXAMPLES = altaxis.par logtest.par times.agr \
 	chartebar.agr charts.agr graphs.par regions.par test1.par tstack.agr \
 	brw.dat hilo.agr test2.agr arrows.agr txyr.agr \
 	co2.agr log.dat stackedb.agr tfonts.agr typeset.agr xyz.agr \
-	co2.par logistic.agr logistic.fit symslines.agr tforms.par polar.agr motif.agr
+	co2.par logistic.agr logistic.fit symslines.agr tforms.par polar.agr \
+	motif.agr spectrum.agr
 
 all : dummy
 
