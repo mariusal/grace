@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -40,9 +40,6 @@
 #include "grace/baseP.h"
 #include "grace/canvasP.h"
 #include "patterns.h"
-
-int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
-                                   a separate module */
 
 static int clip_polygon(VPoint *vps, int n, const view *clipview);
 static int all_points_inside(const view *clipview, const VPoint *vps, int n);
@@ -189,7 +186,7 @@ Canvas *canvas_new(void)
         canvas->max_path_length = MAX_DRAWING_PATH;
         
         /* initialize colormap data */
-        initialize_cmap(canvas);
+        canvas_cmap_reset(canvas);
         /* initialize pattern data */
         initialize_patterns(canvas);
         /* initialize linestyle data */
@@ -1292,53 +1289,27 @@ static int RGB2fRGB(const RGB *rgb, fRGB *frgb)
 }
 
 static Color cmap_init[] = {
-    /* white  */
+    /* white */
     {{255, 255, 255}, "white", COLOR_MAIN},
-    /* black  */
-    {{0, 0, 0}, "black", COLOR_MAIN},
-    /* red    */
-    {{255, 0, 0}, "red", COLOR_MAIN},
-    /* green  */
-    {{0, 255, 0}, "green", COLOR_MAIN},
-    /* blue   */
-    {{0, 0, 255}, "blue", COLOR_MAIN},
-    /* yellow */
-    {{255, 255, 0}, "yellow", COLOR_MAIN},
-    /* brown  */
-    {{188, 143, 143}, "brown", COLOR_MAIN},
-    /* grey   */
-    {{220, 220, 220}, "grey", COLOR_MAIN},
-    /* violet */
-    {{148, 0, 211}, "violet", COLOR_MAIN},
-    /* cyan   */
-    {{0, 255, 255}, "cyan", COLOR_MAIN},
-    /* magenta*/
-    {{255, 0, 255}, "magenta", COLOR_MAIN},
-    /* orange */
-    {{255, 165, 0}, "orange", COLOR_MAIN},
-    /* indigo */
-    {{114, 33, 188}, "indigo", COLOR_MAIN},
-    /* maroon */
-    {{103, 7, 72}, "maroon", COLOR_MAIN},
-    /* turquoise */
-    {{64, 224, 208}, "turquoise", COLOR_MAIN},
-    /* forest green */
-    {{0, 139, 0}, "green4", COLOR_MAIN}
+    /* black */
+    {{  0,   0,   0}, "black", COLOR_MAIN}
 };
 
 /*
- * initialize_cmap()
+ * canvas_cmap_reset()
  *    Initialize the colormap segment data and setup the RGB values.
  */
-void initialize_cmap(Canvas *canvas)
+int canvas_cmap_reset(Canvas *canvas)
 {
-    int i, n;
+    unsigned int i, n;
     
     n = sizeof(cmap_init)/sizeof(Color);
     realloc_colors(canvas, n);
     for (i = 0; i < n; i++) {
         store_color(canvas, i, &cmap_init[i]);
     }
+    
+    return RETURN_SUCCESS;
 }
 
 unsigned int number_of_colors(const Canvas *canvas)
@@ -1548,9 +1519,6 @@ int store_color(Canvas *canvas, unsigned int n, const Color *color)
                 canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
             }
         }
-        if (color->ctype == COLOR_MAIN) {
-            ReqUpdateColorSel = TRUE;
-        }
         return RETURN_SUCCESS;
     }
 }
@@ -1568,7 +1536,6 @@ int add_color(Canvas *canvas, const Color *color)
         if (color->ctype == COLOR_MAIN && 
             canvas->cmap[cindex].color.ctype != COLOR_MAIN) {
             canvas->cmap[cindex].color.ctype = COLOR_MAIN;
-            ReqUpdateColorSel = TRUE;
         }
     } else if (store_color(canvas, canvas->ncolors, color) == RETURN_FAILURE) {
         cindex = BAD_COLOR;

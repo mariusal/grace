@@ -514,6 +514,7 @@ int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
+int canvas_cmap_reset(Canvas *canvas);
 int get_color_by_name(const Canvas *canvas, const char *cname);
 int store_color(Canvas *canvas, unsigned int n, const Color *color);
 int add_color(Canvas *canvas, const Color *color);
