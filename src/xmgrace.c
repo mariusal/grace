@@ -857,10 +857,12 @@ static Widget CreateMainMenuBar(Widget parent)
  
     CreateMenuSeparator(menupane);
 
+    CreateMenuButton(menupane, "Home page", 'H', HelpCB,
+        "http://plasma-gate.weizmann.ac.il/Grace/");
     sprintf(buf,
-        "http://plasma-gate.weizmann.ac.il/Grace/comments.phtml?version_id=%ld",
+        "http://plasma-gate.weizmann.ac.il/Grace/report.php?version_id=%ld",
         bi_version_id());
-    CreateMenuButton(menupane, "Comments", 'm', HelpCB, buf);
+    CreateMenuButton(menupane, "Report an issue", 'R', HelpCB, buf);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "License terms", 'L', HelpCB, "doc/GPL.html");
     CreateMenuButton(menupane, "About...", 'A', create_about_grtool, NULL);
