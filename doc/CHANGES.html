@@ -12,10 +12,15 @@
 
 <H3>Functionality</H3>
  *  [ES] honour X axis start value and invert flag in pie charts
+ *  [ES] extended maximum allowed line width to 20
 
 <H3>Interface</H3>
  *  [ES] automatically adjust Xresources for low-resolution (800x600) displays
          so all dialogs fit in the screen
+ *  [ES] allow for setting via the GUI negative gaps in bar charts (rep. #1059)
+ *  [ES] allow to select font and symbol sizes up to 1000
+ *  [ES] make the size scale controls change by 25 and angle controls by 10
+         when pressing Ctrl+Left/Right arrows on them
 
 <H3>Parser</H3>
  *  [ES] implicitly cast to boolean double arguments used as bool
@@ -43,7 +48,6 @@
 	 coordinates (rep. #1014)
  *  [ES] optimize updating large pulldown selectors (e.g. in the "Edit block
          data" popup)
- *  [ES] allow for setting via the GUI negative gaps in bar charts (rep. #1059)
  *  [ES] fixed broken AA font rendering and potential crash when the color
          palette size exceeded 128 (rep. #1061)
 
