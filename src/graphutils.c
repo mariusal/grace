@@ -773,3 +773,71 @@ void move_timestamp(VVector shift)
     timestamp.y += shift.y;
     set_dirtystate();
 }
+
+void rescale_viewport(double ext_x, double ext_y)
+{
+    int i, gno;
+    view v;
+    legend leg;
+    linetype l;
+    boxtype b;
+    ellipsetype e;
+    plotstr s;
+    
+    for (gno = 0; gno < number_of_graphs(); gno++) {
+        get_graph_viewport(gno, &v);
+        v.xv1 *= ext_x;
+        v.xv2 *= ext_x;
+        v.yv1 *= ext_y;
+        v.yv2 *= ext_y;
+        set_graph_viewport(gno, v);
+        
+        get_graph_legend(gno, &leg);
+        if (leg.loctype == COORD_VIEW) {
+            leg.legx *= ext_x;
+            leg.legy *= ext_y;
+            set_graph_legend(gno, &leg);
+        }
+        
+        /* TODO: tickmark offsets */
+    }
+
+    for (i = 0; i < number_of_lines(); i++) {
+        get_graph_line(i, &l);
+        if (l.loctype == COORD_VIEW) {
+            l.x1 *= ext_x;
+            l.x2 *= ext_x;
+            l.y1 *= ext_y;
+            l.y2 *= ext_y;
+            set_graph_line(i, &l);
+        }
+    }
+    for (i = 0; i < number_of_boxes(); i++) {
+        get_graph_box(i, &b);
+        if (b.loctype == COORD_VIEW) {
+            b.x1 *= ext_x;
+            b.x2 *= ext_x;
+            b.y1 *= ext_y;
+            b.y2 *= ext_y;
+            set_graph_box(i, &b);
+        }
+    }
+    for (i = 0; i < number_of_ellipses(); i++) {
+        get_graph_ellipse(i, &e);
+        if (e.loctype == COORD_VIEW) {
+            e.x1 *= ext_x;
+            e.x2 *= ext_x;
+            e.y1 *= ext_y;
+            e.y2 *= ext_y;
+            set_graph_ellipse(i, &e);
+        }
+    }
+    for (i = 0; i < number_of_strings(); i++) {
+        get_graph_string(i, &s);
+        if (s.loctype == COORD_VIEW) {
+            s.x *= ext_x;
+            s.y *= ext_y;
+            set_graph_string(i, &s);
+        }
+    }
+}

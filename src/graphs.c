@@ -44,6 +44,7 @@
 #include "device.h"
 #include "draw.h"
 #include "graphs.h"
+#include "graphutils.h"
 
 #include "protos.h"
 
@@ -1113,13 +1114,9 @@ void reset_project_version(void)
 
 void postprocess_project(int version)
 {
-    int i, gno, setno, naxis;
+    int gno, setno, naxis;
     double ext_x, ext_y;
     Page_geometry pg;
-    linetype l;
-    boxtype b;
-    ellipsetype e;
-    plotstr s;
     
     if (version >= VERSION_ID) {
         return;
@@ -1138,58 +1135,7 @@ void postprocess_project(int version)
     
     if (version <= 40102) {
         get_page_viewport(&ext_x, &ext_y);
-        for (gno = 0; gno < number_of_graphs(); gno++) {
-            g[gno].v.xv1 *= ext_x;
-            g[gno].v.xv2 *= ext_x;
-            g[gno].v.yv1 *= ext_y;
-            g[gno].v.yv2 *= ext_y;
-            if (g[gno].l.loctype == COORD_VIEW) {
-                g[gno].l.legx *= ext_x;
-                g[gno].l.legy *= ext_y;
-            }
-            
-            /* TODO: tickmark offsets */
-            
-        }
-
-        for (i = 0; i < number_of_lines(); i++) {
-            get_graph_line(i, &l);
-            if (l.loctype == COORD_VIEW) {
-                l.x1 *= ext_x;
-                l.x2 *= ext_x;
-                l.y1 *= ext_y;
-                l.y2 *= ext_y;
-                set_graph_line(i, &l);
-            }
-        }
-        for (i = 0; i < number_of_boxes(); i++) {
-            get_graph_box(i, &b);
-            if (b.loctype == COORD_VIEW) {
-                b.x1 *= ext_x;
-                b.x2 *= ext_x;
-                b.y1 *= ext_y;
-                b.y2 *= ext_y;
-                set_graph_box(i, &b);
-            }
-        }
-        for (i = 0; i < number_of_ellipses(); i++) {
-            get_graph_ellipse(i, &e);
-            if (e.loctype == COORD_VIEW) {
-                e.x1 *= ext_x;
-                e.x2 *= ext_x;
-                e.y1 *= ext_y;
-                e.y2 *= ext_y;
-                set_graph_ellipse(i, &e);
-            }
-        }
-        for (i = 0; i < number_of_strings(); i++) {
-            get_graph_string(i, &s);
-            if (s.loctype == COORD_VIEW) {
-                s.x *= ext_x;
-                s.y *= ext_y;
-                set_graph_string(i, &s);
-            }
-        }
+        rescale_viewport(ext_x, ext_y);
     }
 
     for (gno = 0; gno < number_of_graphs(); gno++) {
