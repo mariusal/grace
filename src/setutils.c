@@ -711,10 +711,8 @@ void set_hotlink(Quark *pset, int onoroff, char *fname, int src)
     dsp = dataset_get(pset);
     if (dsp) {
         dsp->hotlink = onoroff;
-        if (onoroff && fname != NULL) {
-	    dsp->hotfile = copy_string(dsp->hotfile, fname);
-	    dsp->hotsrc = src;
-        }
+	dsp->hotfile = copy_string(dsp->hotfile, fname);
+	dsp->hotsrc = src;
         set_dirtystate();
     }
 }
