@@ -109,6 +109,9 @@ void do_hardcopy(void)
 {
     char tbuf[128];
     char fname[GR_MAXPATHLEN];
+    view v;
+    double vx, vy;
+    int truncated_out;
     
     if (ptofile) {
         if (fexists(print_file)) {
@@ -117,6 +120,8 @@ void do_hardcopy(void)
         strcpy(fname, print_file);
     } else {
         tmpnam(fname);
+        /* VMS doesn't like extensionless files */
+        strcat(fname, ".prn");
     }
     
     prstream = filter_write(fname);
@@ -133,10 +138,25 @@ void do_hardcopy(void)
     
     filter_close(prstream);
     
+    v = get_bbox(BBOX_TYPE_GLOB);
+    get_page_viewport(&vx, &vy);
+    if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy) {
+        truncated_out = TRUE;
+    } else {
+        truncated_out = FALSE;
+    }
+    
     if (ptofile == FALSE) {
         sprintf(tbuf, "%s %s", print_cmd, fname);
-        system(tbuf);
+        if (truncated_out == FALSE ||
+            !yesno("Printout is truncated. Abort?", NULL, NULL, NULL)) {
+            system(tbuf);
+        }
         unlink(fname);
+    } else {
+        if (truncated_out == TRUE) {
+            errmsg("Output is truncated - tune device dimensions");
+        }
     }
     
     select_device(tdevice);
@@ -284,10 +304,9 @@ void xyplot(int gno)
                     drawsethilo(&p);
                     break;
                 case SET_XYZ:
-/*
- *                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
- *                     drawval(&g[gno].p[i]);
- */
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYR:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -1056,7 +1075,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
 {
     int i;
     int setlen;
-    double *x, *y;
+    double *x, *y, *z;
     WPoint wp;
     VPoint vp;
     int skip = p->symskip;
@@ -1079,6 +1098,12 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         setlen = p->len;
     }
     y = p->ex[1];
+    
+    if (dataset_cols(gno, setno) > 2) {
+        z = p->ex[2];
+    } else {
+        z = NULL;
+    }
     
     if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
         stacked_chart = TRUE;
@@ -1129,6 +1154,12 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         case AVALUE_TYPE_STRING:
             if (p->s != NULL && p->s[i] != NULL) {
                 strcat(str, p->s[i]);
+            }
+            break;
+        case AVALUE_TYPE_Z:
+            if (z != NULL) {
+                strcat(str, create_fstring(avalue.format, avalue.prec, z[i], 
+                                                 LFORMAT_TYPE_EXTENDED));
             }
             break;
         default:

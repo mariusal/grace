@@ -1432,7 +1432,6 @@ vasgn:
 	    int i;
 	    double *ptr;
 	    if (!is_set_active(get_cg(), curset)) {
-		activateset(get_cg(), curset);
 		setlength(get_cg(), curset, lxy);
 		setcomment(get_cg(), curset, "Created");
 	    }
@@ -1453,7 +1452,6 @@ vasgn:
 	    int i;
 	    double *ptr;
 	    if (!is_set_active(get_cg(), curset)) {
-		activateset(get_cg(), curset);
 		setlength(get_cg(), curset, lxy);
 		setcomment(get_cg(), curset, "Created");
 	    }
@@ -1473,7 +1471,6 @@ vasgn:
 	    int i;
 	    double *ptr;
 	    if (!is_set_active(get_cg(), $1)) {
-		activateset(get_cg(), $1);
 		setlength(get_cg(), $1, lxy);
 		setcomment(get_cg(), $1, "Created");
 	    }
@@ -1494,7 +1491,6 @@ vasgn:
 	    int i;
 	    double *ptr;
 	    if (!is_set_active(get_cg(), $1)) {
-		activateset(get_cg(), $1);
 		setlength(get_cg(), $1, lxy);
 		setcomment(get_cg(), $1, "Created");
 	    }
@@ -1517,7 +1513,6 @@ vasgn:
 	    double *ptr;
 	    
 	    if (!is_set_active($1, $3)) {
-		activateset($1, $3);
 		setlength($1, $3, lxy);
 		setcomment($1, $3, "Created");
 	    }
@@ -1539,7 +1534,6 @@ vasgn:
 	    double *ptr;
 	    
 	    if (!is_set_active($1, $3)) {
-		activateset($1, $3);
 		setlength($1, $3, lxy);
 		setcomment($1, $3, "Created");
 	    }

@@ -39,6 +39,8 @@
 #define GRAPH_FIXED     4
 
 /* Set types */
+#define SET_BAD        -1
+
 #define SET_XY          0
 #define SET_XYDX        1
 #define SET_XYDY        2
@@ -52,6 +54,8 @@
 #define SET_XYHILO     10
 #define SET_XYZ        11
 #define SET_XYR        12
+
+#define NUMBER_OF_SETTYPES  13
 
 /* TODO: those are NOT really set types */
 #define SET_NXY        13
@@ -170,6 +174,7 @@ int get_cg(void);
 
 char *graph_types(int it);
 char *set_types(int it);
+int get_settype_by_name(char *s);
 
 int kill_graph(int gno);
 void kill_all_graphs(void);
@@ -262,7 +267,7 @@ double *getcol(int gno, int setno, int col);
 char *get_legend_string(int gno, int setno);
 int set_legend_string(int gno, int setno, char *s);
 
-int settype(int gno, int set, int stype);
+int set_dataset_type(int gno, int set, int stype);
 
 char *getcomment(int gno, int setno);
 int setcomment(int gno, int setno, char *s);

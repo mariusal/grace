@@ -51,11 +51,19 @@
 
 #define cg get_cg()
 
+#define SETAPP_STRIP_LEGENDS    0
+#define SETAPP_LOAD_COMMENTS    1
+#define SETAPP_ALL_COLORS       2
+#define SETAPP_ALL_SYMBOLS      3
+#define SETAPP_ALL_LINEW        4
+#define SETAPP_ALL_LINES        5
+#define SETAPP_ALL_BW           6
+
 static int cset = 0;            /* the current set from the symbols panel */
 
 static Widget setapp_dialog = NULL;
 
-static Widget *type_item;
+static OptionStructure *type_item;
 static Widget *toggle_symbols_item;
 static Widget symsize_item;
 static Widget symskip_item;
@@ -105,16 +113,10 @@ static Widget avalue_offsety;
 static Widget avalue_prestr;
 static Widget avalue_appstr;
 
-static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
-static void setall_colors_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void setall_sym_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void setall_linew_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void set_cset_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void setall_linesty_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void set_bw_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void strip_leg_proc( Widget w, XtPointer client_data, XtPointer call_data);
-
 static void UpdateSymbols(int gno, int value);
+static void set_cset_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
 /*
  * create the symbols popup
@@ -148,20 +150,20 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         menupane = CreateMenu(menubar, "setappDataMenu", "Data", 'D', NULL, NULL);
 
         CreateMenuButton(menupane, "allColors", "All colors", 'c',
-            (XtCallbackProc) setall_colors_proc, (XtPointer) NULL, 0);
+            setapp_data_proc, (XtPointer) SETAPP_ALL_COLORS, NULL);
         CreateMenuButton(menupane, "allSymbols", "All symbols", 's',
-            (XtCallbackProc) setall_sym_proc, (XtPointer) NULL, 0);
+            setapp_data_proc, (XtPointer) SETAPP_ALL_SYMBOLS, NULL);
         CreateMenuButton(menupane, "allLineWidths", "All line widths", 'w',
-            (XtCallbackProc) setall_linew_proc, (XtPointer) NULL, 0);
+            setapp_data_proc, (XtPointer) SETAPP_ALL_LINEW, NULL);
         CreateMenuButton(menupane, "allLineStyles", "All line styles", 'y',
-            (XtCallbackProc) setall_linesty_proc, (XtPointer) NULL, 0);
+            setapp_data_proc, (XtPointer) SETAPP_ALL_LINES, NULL);
         CreateMenuButton(menupane, "setBW", "Black & white", 'B',
-            (XtCallbackProc) set_bw_proc, (XtPointer) NULL, 0);
+            setapp_data_proc, (XtPointer) SETAPP_ALL_BW, NULL);
         CreateMenuSeparator(menupane, "sep");
         CreateMenuButton(menupane, "loadComments", "Load comments", 'm',
-            (XtCallbackProc) legend_load_proc, (XtPointer) NULL, 0);
-        CreateMenuButton(menupane, "stripLabels", "Strip labels", 'l',
-            (XtCallbackProc) strip_leg_proc, (XtPointer) NULL, 0);
+            setapp_data_proc, (XtPointer) SETAPP_LOAD_COMMENTS, NULL);
+        CreateMenuButton(menupane, "stripLegends", "Strip legends", 'l',
+            setapp_data_proc, (XtPointer) SETAPP_STRIP_LEGENDS, NULL);
         
         
         menupane = CreateMenu(menubar, "setappOptionsMenu", "Options", 'O', NULL, NULL);
@@ -214,21 +216,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         fr = CreateFrame(setapp_main, "Set presentation");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	type_item = CreatePanelChoice(rc, "Type:", 14,
-				      "XY",
-				      "XY DX",
-				      "XY DY",
-				      "XY DX1 DX2",
-				      "XY DY1 DY2",
-				      "XY DX DY",
-				      "BAR",
-				      "BAR DY",
-				      "BAR DY DY",
-				      "XY STRING",
-				      "XY HILO",
-				      "XY Z",
-				      "XY RADIUS",
-				      NULL, 0);
+	type_item = CreateSetTypeChoice(rc, "Type:");
         XtManageChild(rc);
 
         rc2 = XmCreateRowColumn(setapp_main, "rc", NULL, 0);
@@ -408,12 +396,13 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	avalue_format_item = CreateFormatChoice(rc, "Format:");
         avalue_type_item = CreatePanelChoice(rc2, "Type:",
-                                             6,
+                                             7,
                                              "None",
                                              "X",
                                              "Y",
                                              "X, Y",
                                              "String",
+                                             "Z",
                                              NULL,
                                              0);
 	avalue_precision_item = CreatePrecisionChoice(rc2, "Precision:");
@@ -530,7 +519,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
 
-    type = GetChoice(type_item);
+    type = GetOptionChoice(type_item);
     symsize = GetCharSizeChoice(symsize_item);
     sym = GetChoice(toggle_symbols_item);
     color = GetOptionChoice(toggle_color_item);
@@ -583,7 +572,6 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
         for(i = 0; i < cd; i++) {
             setno = selset[i];
             get_graph_plotarr(get_cg(), setno, &p);
-            p.type = type;
             p.symskip = symskip;
             p.symsize = symsize;
             p.symlinew = symlinew;
@@ -643,6 +631,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.avalue = avalue;
             
             set_graph_plotarr(get_cg(), setno, &p);
+            set_dataset_type(get_cg(), setno, type);
         }
         free(selset);
     } 
@@ -662,14 +651,23 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void UpdateSymbols(int gno, int value)
 {
-    int itmp;
+    int i, itmp;
     char val[24];
     plotarr p;
 
     if ((cset == value) && (value != -1)) {
-    
         get_graph_plotarr(gno, cset, &p);
-        SetChoice(type_item, p.type);
+    
+        SetOptionChoice(type_item, p.type);
+        for (i = 0; i < type_item->nchoices; i++) {
+            if (settype_cols(type_item->options[i].value) ==
+                                            settype_cols(p.type)) {
+                XtSetSensitive(type_item->options[i].widget, True);
+            } else {
+                XtSetSensitive(type_item->options[i].widget, False);
+            }
+        }
+
         SetCharSizeChoice(symsize_item, p.symsize);
         sprintf(val, "%d", p.symskip);
         xv_setstr(symskip_item, val);
@@ -777,142 +775,65 @@ void updatesymbols(int gno, int setno)
     }
 }
 
-/*
- * legends
- */
 
-/*
- * strip leading pathname from comments
- */
-static void strip_leg_proc( Widget w, XtPointer client_data, XtPointer call_data)
+static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i;
-
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if ( is_set_active(cg, i) ) {
-            set_legend_string(cg, i, mybasename(get_legend_string(cg, i)) );
-        }
-    }
-}
-
-/*
- * load legend strings from set comments
- */
-void legend_load_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i;
-
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if (is_set_active(cg, i)) {
-            load_comments_to_legend(cg, i);
-        }
-    }
+    int proc_type;
+    int *selset, cd;
+    int i, setno;
+    plotarr p;
+    int c = 0, bg = getbgcolor();
     
-    xv_setstr(legend_str_panel, get_legend_string(cg, cset));
+    proc_type = (int) client_data;
 
-    set_dirtystate();
-    drawgraph();
-}
-
-
-
-/*
- * define colors incrementally
- */
-void setall_colors_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i, c, bg;
-
-    bg = getbgcolor();
-    c = 0;
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if (is_set_active(cg, i)) {
-            while (c == bg || get_colortype(c) != COLOR_MAIN) {
+    cd = GetListChoices(toggle_symset_item, &selset);
+    if (cd < 1) {
+        errmsg("No set selected");
+        return;
+    } else {
+        for(i = 0; i < cd; i++) {
+            setno = selset[i];
+            switch (proc_type) {
+            case SETAPP_STRIP_LEGENDS:
+                set_legend_string(cg, setno,
+                    mybasename(get_legend_string(cg, setno)));
+                break;
+            case SETAPP_LOAD_COMMENTS:
+                load_comments_to_legend(cg, setno);
+                break;
+            case SETAPP_ALL_COLORS:
+                while (c == bg || get_colortype(c) != COLOR_MAIN) {
+                    c++;
+                    c %= number_of_colors();
+                }
+                set_set_colors(cg, setno, c);
                 c++;
-                c %= number_of_colors();
+                break;
+            case SETAPP_ALL_SYMBOLS:
+                get_graph_plotarr(cg, setno, &p);
+                p.sym = (i % (MAXSYM - 2)) + 1;
+                set_graph_plotarr(cg, setno, &p);
+                break;
+            case SETAPP_ALL_LINEW:
+                get_graph_plotarr(cg, setno, &p);
+                p.linew = (i % (number_of_linewidths() - 1)) + 1;
+                set_graph_plotarr(cg, setno, &p);
+                break;
+            case SETAPP_ALL_LINES:
+                get_graph_plotarr(cg, setno, &p);
+                p.lines = (i % (number_of_linestyles() - 1)) + 1;
+                set_graph_plotarr(cg, setno, &p);
+                break;
+            case SETAPP_ALL_BW:
+                set_set_colors(cg, setno, 1);
+                break;
             }
-            set_set_colors(cg, i, c);
-            c++;
         }
+        
+        free(selset);
+        
+        UpdateSymbols(cg, cset);
+        set_dirtystate();
+        drawgraph();
     }
-    UpdateSymbols(cg, cset);
-    set_dirtystate();
-    drawgraph();
-}
-
-/*
- * define symbols incrementally mod 10
- */
-static void setall_sym_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i;
-    plotarr p;
-
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if (is_set_active(cg, i)) {
-            get_graph_plotarr(cg, i, &p);
-            p.sym = (i % 10) + 1;
-            set_graph_plotarr(cg, i, &p);
-        }
-    }
-    UpdateSymbols(cg, cset);
-    set_dirtystate();
-    drawgraph();
-}
-
-/*
- * define linewidths incrementally mod 7
- */
-static void setall_linew_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i;
-    plotarr p;
-
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if (is_set_active(cg, i)) {
-            get_graph_plotarr(cg, i, &p);
-            p.linew = (i % 7) + 1;
-            set_graph_plotarr(cg, i, &p);
-        }
-    }
-    UpdateSymbols(cg, cset);
-    set_dirtystate();
-    drawgraph();
-}
-
-/*
- * define line styles incrementally mod 5
- */
-static void setall_linesty_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i;
-    plotarr p;
-
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if (is_set_active(cg, i)) {
-            get_graph_plotarr(cg, i, &p);
-            p.lines = (i % (number_of_linestyles() - 1)) + 1;
-            set_graph_plotarr(cg, i, &p);
-        }
-    }
-    UpdateSymbols(cg, cset);
-    set_dirtystate();
-    drawgraph();
-}
-
-/*
- * make all lines black
- */
-static void set_bw_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i;
-
-    for (i = 0; i < number_of_sets(cg); i++) {
-        if (is_set_active(cg, i)) {
-            set_set_colors(cg, i, 1);
-        }
-    }
-    UpdateSymbols(cg, cset);
-    set_dirtystate();
-    drawgraph();
 }

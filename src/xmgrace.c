@@ -672,46 +672,47 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "commands", "Commands...", 'C',
     	(XtCallbackProc) open_command, (XtPointer) NULL, 0);
 
-    CreateMenuSeparator(menupane, "sep1");
+    CreateMenuSeparator(menupane, "sep");
 
 
-    submenupane = CreateMenu(menupane, "transformationsMenu", "Transformations", 'T', NULL, NULL);
+    submenupane = CreateMenu(menupane, "dataSetOperationsMenu", "Data set ops", 'T', NULL, NULL);
 
+    CreateMenuButton(submenupane, "editCreateSet", "Edit/create set...", 'E',
+    	(XtCallbackProc) create_editp_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "loadValues", "Load values...", 'L',
+    	    (XtCallbackProc) create_load_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "loadEvaluate", "Load & evaluate...", '&',
+    	    (XtCallbackProc) create_leval_frame, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "setLength", "Set length...", 'g',
-    	    (XtCallbackProc) create_setlength_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "blockData", "Block data...", 'B',
+    	(XtCallbackProc) create_eblock_frame, (XtPointer) NULL, 0);
+    
+    CreateMenuSeparator(submenupane, "sep");
 
-    CreateMenuButton(submenupane, "dropPoints", "Drop points...", 'n',
-    	    (XtCallbackProc) create_drop_popup, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "join", "Join...", 'J',
-    	    (XtCallbackProc) create_join_popup, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "split", "Split...", 'S',
-    	    (XtCallbackProc) create_split_popup, (XtPointer) NULL, 0);
-    	    
     CreateMenuButton(submenupane, "Sort", "Sort...", 'o',
     	    (XtCallbackProc) create_sort_popup, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "reverse", "Reverse...", 'v',
     	    (XtCallbackProc) create_reverse_popup, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "coalesce", "Coalesce...", 'e',
-    	    (XtCallbackProc) create_coalesce_popup, (XtPointer) NULL, 0);
-
-    CreateMenuButton(menupane, "editCreateSet", "Edit/create set...", 'E',
-    	(XtCallbackProc) create_editp_frame, (XtPointer) NULL, 0);
-
     CreateMenuSeparator(submenupane, "sep");
+
+    CreateMenuButton(submenupane, "dropPoints", "Drop points...", 'n',
+    	    (XtCallbackProc) create_drop_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
+    	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
+
+    CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
+    	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
+    	    
+    submenupane = CreateMenu(menupane, "transformationsMenu", "Transformations", 'T', NULL, NULL);
+
+    CreateMenuButton(submenupane, "join", "Join...", 'J',
+    	    (XtCallbackProc) create_join_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "split", "Split...", 'S',
+    	    (XtCallbackProc) create_split_popup, (XtPointer) NULL, 0);
 
     CreateMenuButton(submenupane, "evaluateExpression", "Evaluate expression...", 'E',
     	    (XtCallbackProc) create_eval_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "loadValues", "Load values...", 'L',
-    	    (XtCallbackProc) create_load_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "loadEvaluate", "Load & evaluate...", '&',
-    	    (XtCallbackProc) create_leval_frame, (XtPointer) NULL, 0);
 
     CreateMenuButton(submenupane, "histograms", "Histograms...", 'H',
     	    (XtCallbackProc) create_histo_frame, (XtPointer) NULL, 0);
@@ -719,21 +720,17 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "fourierTransforms", "Fourier transforms...", 'u',
     	    (XtCallbackProc) create_fourier_frame, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "runningAverages", "Running averages...", 'a',
-    	    (XtCallbackProc) create_run_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "regression", "Regression...", 'R',
     	    (XtCallbackProc) create_reg_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "nonLinearFit", "Non-linear curve fitting...", 'N',
     	    (XtCallbackProc) create_nonl_frame, (XtPointer) NULL, 0);
 
+    CreateMenuButton(submenupane, "runningAverages", "Running averages...", 'a',
+    	    (XtCallbackProc) create_run_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "differences", "Differences...", 'D',
     	    (XtCallbackProc) create_diff_frame, (XtPointer) NULL, 0);
-    	    
     CreateMenuButton(submenupane, "seasonalDifferences", "Seasonal differences...", 'o',
     	    (XtCallbackProc) create_seasonal_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "integration", "Integration...", 'I',
     	    (XtCallbackProc) create_int_frame, (XtPointer) NULL, 0);
 
@@ -749,18 +746,12 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "samplePoints", "Sample points...", 'm',
     	    (XtCallbackProc) create_samp_frame, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
-    	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "digitalFilter", "Digital filter...", 'f',
     	    (XtCallbackProc) create_digf_frame, (XtPointer) NULL, 0);
 
     CreateMenuButton(submenupane, "linearConvolution", "Linear convolution...", 'v',
     	    (XtCallbackProc) create_lconv_frame, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
-    	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
-    	    
     CreateMenuButton(submenupane, "featureExtraction", "Feature extraction...", 'x',
     	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
 
@@ -770,13 +761,13 @@ static Widget CreateMainMenuBar(Widget parent)
     	(XtCallbackProc) create_points_frame, (XtPointer) NULL, 0);
 
 
-    submenupane = CreateMenu(menupane, "setOperationsMenu", "Set operations", 'o', NULL, NULL);
+    submenupane = CreateMenu(menupane, "dataSetPropertiesMenu", "Data set properties", 'o', NULL, NULL);
 
     CreateMenuButton(submenupane, "setComments", "Set comments...", 'C',
     	    (XtCallbackProc) create_change_popup, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "swap", "Swap...", 'w',
-    	    (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "setLength", "Set length...", 'g',
+    	    (XtCallbackProc) create_setlength_popup, (XtPointer) NULL, 0);
 
 
 
@@ -814,10 +805,6 @@ static Widget CreateMainMenuBar(Widget parent)
     	    (XtCallbackProc) create_area_frame, (XtPointer) NULL, 0);
 
 
-
-    CreateMenuButton(menupane, "blockData", "Block data...", 'B',
-    	(XtCallbackProc) create_eblock_frame, (XtPointer) NULL, 0);
-    
     CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
     	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
 
@@ -848,6 +835,10 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
     	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
+
+    CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
+    	    (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
+
 
     CreateMenuSeparator(menupane, "sep2");
 

@@ -292,7 +292,6 @@ void create_split_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_kill_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_sort_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_reverse_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_coalesce_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_gfocus_frame(Widget w, XtPointer client_data, XtPointer call_data);

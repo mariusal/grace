@@ -232,7 +232,6 @@ double *getvptr(int gno, int setno, int v);
 
 void do_copyset(int gfrom, int j1, int gto, int j2);
 void do_moveset(int gfrom, int j1, int gto, int j2);
-void do_activateset(int gno, int setno, int len);
 void do_splitsets(int gno, int setno, int lpart);
 int do_writesets(int gno, int setno, int embed, char *fn, char *format);
 void do_activate(int setno, int type, int len);
@@ -245,7 +244,6 @@ void do_move(int j1, int gfrom, int j2, int gto);
 void do_drop_points(int setno, int startno, int endno);
 void do_join_sets(int gfrom, int j1, int gto, int j2);
 void do_reverse_sets(int setno);
-void do_coalesce_sets(int setno);
 void do_kill(int gno, int setno, int soft);
 void do_sort(int setno, int sorton, int stype);
 void do_kill_nearest(void);

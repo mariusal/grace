@@ -671,7 +671,7 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
 		    return -2;
 		} else {
 		    activateset(gno, j);
-		    settype(gno, j, type);
+		    set_dataset_type(gno, j, type);
 		    setcol(gno, x, j, i, 0);
 		    setcol(gno, y, j, i, 1);
 		    setcol(gno, dx, j, i, 2);
@@ -720,7 +720,7 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
 	    return -2;
 	}
 	activateset(gno, j);
-	settype(gno, j, type);
+	set_dataset_type(gno, j, type);
 	setcol(gno, x, j, i, 0);
 	setcol(gno, y, j, i, 1);
 	setcol(gno, dx, j, i, 2);
@@ -1164,7 +1164,7 @@ void create_set_fromblock(int gno, int type, char *cols)
     }
     
     activateset(gno, setno);
-    settype(gno, setno, type);
+    set_dataset_type(gno, setno, type);
 
     tx = calloc(blocklen, SIZEOF_DOUBLE);
     ty = calloc(blocklen, SIZEOF_DOUBLE);
@@ -1637,7 +1637,7 @@ int readnetcdf(int gno,
  * initialize stuff for the newly created set
  */
     activateset(gno, setno);
-    settype(gno, setno, SET_XY);
+    set_dataset_type(gno, setno, SET_XY);
     setcol(gno, x, setno, n, 0);
     setcol(gno, y, setno, n, 1);
 

@@ -40,7 +40,7 @@
 #if defined (HAVE_LIBT1)
 #  include <t1lib.h>
 #else
-#  include "T1lib/t1lib.h"
+#  include "T1lib/t1lib/t1lib.h"
 #endif
 
 #include "defines.h"

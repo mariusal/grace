@@ -67,7 +67,7 @@ static Widget eblock_panel;
  * Panel item declarations
  */
 static Widget eblock_ncols_item;
-static Widget *eblock_type_choice_item;
+static OptionStructure *eblock_type_choice_item;
 static Widget *eblock_x_choice_item;
 static Widget *eblock_y_choice_item;
 static Widget *eblock_e1_choice_item;
@@ -88,7 +88,6 @@ static void update_eblock(void);
  */
 void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i;
     Widget rc, buts[2];
 
     if (blockncols == 0) {
@@ -107,49 +106,17 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	eblock_ncols_item = XtVaCreateManagedWidget("tmp", xmLabelWidgetClass, eblock_panel,
 						    NULL);
 
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, eblock_panel,
-                              XmNpacking, XmPACK_COLUMN,
-                              XmNnumColumns, 9,
-                              XmNorientation, XmHORIZONTAL,
-                              XmNisAligned, True,
-                              XmNadjustLast, False,
-                              XmNentryAlignment, XmALIGNMENT_END,
-                              NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, eblock_panel, NULL);
 
-	XtVaCreateManagedWidget("Set type: ", xmLabelWidgetClass, rc, NULL);
-	eblock_type_choice_item = CreatePanelChoice(rc, "", 14,
-					    "XY",
-					    "XY DX",
-					    "XY DY",
-					    "XY DX1 DX2",
-					    "XY DY1 DY2",
-					    "XY DX DY",
-					    "BAR",
-					    "BAR DY",
-					    "BAR DY DY",
-					    "XY STRING (N/I)",
-					    "XY HILO",
-					    "XY Z",
-					    "XY RADIUS",
-					    NULL, NULL);
+	eblock_type_choice_item = CreateSetTypeChoice(rc, "Set type:");
+        AddOptionChoiceCB(eblock_type_choice_item, eblock_type_notify_proc);
 
-	for (i = 0; i < 13; i++) {
-	    XtAddCallback(eblock_type_choice_item[2 + i],
-			  XmNactivateCallback, (XtCallbackProc) eblock_type_notify_proc, (XtPointer) i);
-	}
-
-	XtVaCreateManagedWidget("X from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_x_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
-	XtVaCreateManagedWidget("Y from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_y_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
-	XtVaCreateManagedWidget("E1 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e1_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
-	XtVaCreateManagedWidget("E2 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e2_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
-	XtVaCreateManagedWidget("E3 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e3_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
-	XtVaCreateManagedWidget("E4 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e4_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
+	eblock_x_choice_item = CreateBlockChoice(rc, "X from column:", maxblock, 1);
+	eblock_y_choice_item = CreateBlockChoice(rc, "Y from column:", maxblock, 1);
+	eblock_e1_choice_item = CreateBlockChoice(rc, "E1 from column:", maxblock, 1);
+	eblock_e2_choice_item = CreateBlockChoice(rc, "E2 from column:", maxblock, 1);
+	eblock_e3_choice_item = CreateBlockChoice(rc, "E3 from column:", maxblock, 1);
+	eblock_e4_choice_item = CreateBlockChoice(rc, "E4 from column:", maxblock, 1);
 
 	eblock_graph_choice_item = CreateGraphChoice(rc,
                                     "Load to set in graph:", LIST_TYPE_SINGLE);

@@ -1215,7 +1215,7 @@ void postprocess_project(int version)
             }
             
 	    if (version <= 40102 && g[gno].type == GRAPH_CHART) {
-                g[gno].p[setno].type = SET_BAR;
+                set_dataset_type(gno, setno, SET_BAR);
                 g[gno].p[setno].sympen = g[gno].p[setno].linepen;
                 g[gno].p[setno].symlines = g[gno].p[setno].lines;
                 g[gno].p[setno].symlinew = g[gno].p[setno].linew;

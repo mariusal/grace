@@ -67,7 +67,8 @@
 
 static Widget rdata_dialog;	/* read data popup */
 static ListStructure *read_graph_item;	/* graph choice item */
-static Widget *read_ftype_item;	/* set type choice item */
+static OptionStructure *read_ftype_item;	/* set type choice item */
+static Widget read_nxy_item;	/* nxy "set type" */
 static Widget wparam_frame;	/* write params popup */
 static Widget wparam_panel;
 static Widget *wparam_choice_item;
@@ -115,7 +116,11 @@ static void rdata_proc(Widget w, XtPointer client_data, XtPointer call_data)
         errmsg("Please select a single graph");
     } else {
         graphno = values[0];
-        curtype = GetChoice(read_ftype_item);
+        if (GetToggleButtonState(read_nxy_item)) {
+            curtype = SET_NXY;
+        } else {
+            curtype = GetOptionChoice(read_ftype_item);
+        }
         getdata(graphno, s, cursource, curtype);
 
         update_all();
@@ -153,22 +158,8 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 	fr = XmCreateFrame(rc, "frame_1", NULL, 0);
 	rc2 = XmCreateRowColumn(fr, "Read data main RC", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
-	read_ftype_item = CreatePanelChoice(rc2, "Set type:", 15,
-					    "XY",
-					    "XY DX",
-					    "XY DY",
-					    "XY DX1 DX2",
-					    "XY DY1 DY2",
-					    "XY DX DY",
-					    "BAR",
-					    "BAR DY",
-					    "BAR DY DY",
-					    "XY STRING",
-					    "XY HILO",
-					    "XY Z",
-					    "XY RADIUS",
-					    "NXY",
-					    NULL, NULL);
+	read_ftype_item = CreateSetTypeChoice(rc2, "Set type:");
+	read_nxy_item = CreateToggleButton(rc2, "NXY");
 
 	XtManageChild(rc2);
 	XtManageChild(fr);
@@ -176,7 +167,7 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 	fr = XmCreateFrame(rc, "frame_2", NULL, 0);
 	rc2 = XmCreateRowColumn(fr, "Read data main RC", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
-	lab = XmCreateLabel(rc2, "File Source:", NULL, 0);
+	lab = XmCreateLabel(rc2, "Data source:", NULL, 0);
 	rb = XmCreateRadioBox(rc2, "radio_box_2", NULL, 0);
 	XtVaSetValues(rb, XmNorientation, XmHORIZONTAL, NULL);
 	w[0] = XmCreateToggleButton(rb, "Disk", NULL, 0);

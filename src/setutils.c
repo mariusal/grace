@@ -52,7 +52,7 @@ static char buf[256];
  */
 char *set_types(int it)
 {
-    char *s = "XY";
+    char *s = "xy";
 
     switch (it) {
     case SET_XY:
@@ -98,6 +98,18 @@ char *set_types(int it)
     return s;
 }
 
+int get_settype_by_name(char *s)
+{
+    int i;
+    
+    for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
+        if (strcmp(set_types(i), s) == 0) {
+            return i;
+        }
+    }
+    return SET_BAD;
+}
+
 int settype_cols(int type)
 {
     int ncols;
@@ -134,7 +146,6 @@ int settype_cols(int type)
 
 /*
  * allocate arrays for a set of length len.
- * Warning! This function itself does not change the dirtystate flag.
  */
 void allocxy(plotarr *p, int len)
 {
@@ -152,23 +163,24 @@ void allocxy(plotarr *p, int len)
     }
     
     if (p->type == SET_XYSTRING) {
-        p->s = xrealloc(p->s, len * sizeof(char *));
+        p->s = xrealloc(p->s, len*sizeof(char *));
     }
     
     for (i = 0; i < ncols; i++) {
-	if ((p->ex[i] = xrealloc(p->ex[i], len * SIZEOF_DOUBLE)) == NULL) {
+	if ((p->ex[i] = xrealloc(p->ex[i], len*SIZEOF_DOUBLE)) == NULL) {
 	    errmsg("Insufficient memory to allocate for plots");
 	    return;
 	}
     }
     
     p->len = len;
+    set_dirtystate();
     set_lists_dirty(TRUE);
 }
 
 int init_array(double **a, int n)
 {
-    *a = (double *) xrealloc(*a, n * sizeof(double));
+    *a = (double *) xrealloc(*a, n * SIZEOF_DOUBLE);
     
     return *a == NULL ? 1 : 0;
 }
@@ -443,7 +455,6 @@ void setxy(int gno, double **ex, int setno, int len, int ncols)
 void setlength(int gno, int i, int length)
 {
     allocxy(&g[gno].p[i], length);
-    set_dirtystate();
 }
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
@@ -513,7 +524,7 @@ void copyset(int gnofrom, int setfrom, int gnoto, int setto)
     for (k = 0; k < MAX_SET_COLS; k++) {
 	g[gnoto].p[setto].ex[k] = savec[k];
 	if (g[gnofrom].p[setfrom].ex[k] != NULL && g[gnoto].p[setto].ex[k] != NULL) {
-	    memcpy(g[gnoto].p[setto].ex[k], g[gnofrom].p[setfrom].ex[k], len * sizeof(double));
+	    memcpy(g[gnoto].p[setto].ex[k], g[gnofrom].p[setfrom].ex[k], len * SIZEOF_DOUBLE);
 	}
     }
     set_dirtystate();
@@ -547,7 +558,7 @@ void copysetdata(int gnofrom, int setfrom, int gnoto, int setto)
 
     for (k = 0; k < MAX_SET_COLS; k++) {
 	if (g[gnofrom].p[setfrom].ex[k] != NULL && g[gnoto].p[setto].ex[k] != NULL) {
-	    memcpy(g[gnoto].p[setto].ex[k], g[gnofrom].p[setfrom].ex[k], len * sizeof(double));
+	    memcpy(g[gnoto].p[setto].ex[k], g[gnofrom].p[setfrom].ex[k], len * SIZEOF_DOUBLE);
 	}
     }
     set_dirtystate();
@@ -822,7 +833,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 /*
  * allocate memory for temporary array
  */
-    dtmp = (double *) calloc(len, sizeof(double));
+    dtmp = (double *) calloc(len, SIZEOF_DOUBLE);
     if (dtmp == NULL) {
 	free(ind);
 	errmsg("Unable to allocate memory for sort");
@@ -991,24 +1002,16 @@ void del_point(int gno, int setno, int pt)
  */
 void add_point(int gno, int setno, double px, double py, double tx, double ty, int type)
 {
-    int len = 0;
+    int len;
     double *x, *y;
 
-    if (is_set_active(gno, setno)) {
-		len = getsetlength(gno, setno);
-		setlength(gno, setno, len + 1);
-		x = getx(gno, setno);
-		y = gety(gno, setno);
-		x[len] = px;
-		y[len] = py;
-    } else {
-		activateset(gno, setno);
-		g[gno].p[setno].type = type;
-		allocxy(&g[gno].p[setno], 1);
-		x = getx(gno, setno);
-		y = gety(gno, setno);
-		x[0] = px;
-		y[0] = py;
+    if (is_valid_setno(gno, setno)) {
+	 len = getsetlength(gno, setno);
+	 setlength(gno, setno, len + 1);
+	 x = getx(gno, setno);
+	 y = gety(gno, setno);
+	 x[len] = px;
+	 y[len] = py;
     }
 }
 
@@ -1016,73 +1019,63 @@ void add_point(int gno, int setno, double px, double py, double tx, double ty, i
  * add a point to setno after or before ind
  * where: 1 = after, 0 = before
  */
-void add_point_at(int gno, int setno, int ind, int where, double px, double py, double tx, double ty, int type)
+void add_point_at(int gno, int setno, int ind, int where,
+                        double px, double py, double tx, double ty, int type)
 {
-    int i, len = 0, ncols;
+    int i, len, ncols;
     double *x, *y, *dx = NULL, *dy = NULL;
 
-    len = getsetlength(gno, setno);
-    if (is_set_active(gno, setno) && len > 0) {
-		setlength(gno, setno, len + 1);
-		ncols = getncols( gno, setno );
-		x = getx(gno, setno);
-		y = gety(gno, setno);
-		if( ncols >=3 ) {
-			dx = getcol( gno, setno, 2 );
-			if( ncols >= 4 )
-				dy = getcol( gno, setno, 3 );
-		}
-	    for (i = len - 1; i > ind; i--) {
-			x[i + 1] = x[i];
-			y[i + 1] = y[i];
-			if( ncols >=3 ) {
-				dx[i+1] = dx[i];
-				if( ncols >= 4 )
-					dy[i+1] = dy[i];
-	    	}
+    if (is_valid_setno(gno, setno)) {
+        len = getsetlength(gno, setno);
+        setlength(gno, setno, len + 1);
+        ncols = getncols( gno, setno );
+        x = getx(gno, setno);
+        y = gety(gno, setno);
+        if ( ncols >=3 ) {
+            dx = getcol( gno, setno, 2 );
+            if ( ncols >= 4 ) {
+                dy = getcol( gno, setno, 3 );
+            }
+        }
+	for (i = len - 1; i > ind; i--) {
+	    x[i + 1] = x[i];
+	    y[i + 1] = y[i];
+	    if( ncols >=3 ) {
+	        dx[i+1] = dx[i];
+	        if( ncols >= 4 ) {
+	            dy[i+1] = dy[i];
+                }
 	    }
-		if (where) {		/* add after ind */
-	    	x[ind + 1] = px;
-	    	y[ind + 1] = py;
-			if( ncols >=3 ) {
-				dx[ind+1] = tx;
-				if( ncols >= 4 )
-					dy[ind+1] = ty;
-	    	}
-		} else {		/* add point before ind (at ind) */
-			i--;
-			x[i + 1] = x[i];
-			y[i + 1] = y[i];
-			if( ncols >=3 ) {
-				dx[i+1] = dx[i];
-				if( ncols >= 4 )
-					dy[i+1] = dy[i];
-	    	}
-	    	x[ind] = px;
-	    	y[ind] = py;
-			if( ncols >=3 ) {
-				dx[ind] = tx;
-				if( ncols >= 4 )
-					dy[ind] = ty;
-	    	}
-		}
-    } else {
-		activateset(gno, setno);
-		g[gno].p[setno].type = type;
-		allocxy(&g[gno].p[setno], 1);
-		ncols = getncols( gno, setno );
-		x = getx(gno, setno);
-		y = gety(gno, setno);
-		x[0] = px;
-		y[0] = py;
-		if( ncols >=3 ) {
-			dx = getcol( gno, setno, 2 );
-			dx[0] = tx;
-			if( ncols >= 4 )
-				dy = getcol( gno, setno, 3 );
-				dy[0] = ty;
+        }
+	if (where) {		/* add after ind */
+	    x[ind + 1] = px;
+	    y[ind + 1] = py;
+	    if ( ncols >=3 ) {
+	        dx[ind+1] = tx;
+	        if( ncols >= 4 ) {
+	            dy[ind+1] = ty;
+                }
 	    }
-    }
+	} else {		/* add point before ind (at ind) */
+	    i--;
+	    x[i + 1] = x[i];
+	    y[i + 1] = y[i];
+	    if ( ncols >=3 ) {
+	        dx[i+1] = dx[i];
+	        if ( ncols >= 4 ) {
+	            dy[i+1] = dy[i];
+                }
+	    }
+	    x[ind] = px;
+	    y[ind] = py;
+	    if( ncols >=3 ) {
+	        dx[ind] = tx;
+	        if ( ncols >= 4 ) {
+	            dy[ind] = ty;
+                }
+	    }
+	}
+    } 
 }
 
 void delete_byindex(int gno, int setno, int *ind)
@@ -1130,7 +1123,7 @@ void do_copyset(int gfrom, int j1, int gto, int j2)
 	killset(gto, j2);
     }
     activateset(gto, j2);
-    settype(gto, j2, dataset_type(gfrom, j1));
+    set_dataset_type(gto, j2, dataset_type(gfrom, j1));
     setlength(gto, j2, getsetlength(gfrom, j1));
     copyset(gfrom, j1, gto, j2);
     sprintf(buf, "copy of set %d", j1);
@@ -1164,28 +1157,6 @@ int swapset(int gno1, int setno1, int gno2, int setno2)
     set_dirtystate();
     
     return GRACE_EXIT_SUCCESS;
-}
-
-/*
- * activate a set and set its length
- */
-void do_activateset(int gno, int setno, int len)
-{
-    if (is_set_active(gno, setno)) {
-	sprintf(buf, "Set %d already active", setno);
-	errmsg(buf);
-	return;
-    }
-    if (len <= 0) {
-	sprintf(buf, "Improper set length = %d", len);
-	errmsg(buf);
-	return;
-    }
-    activateset(gno, setno);
-    setlength(gno, setno, len);
-#ifndef NONE_GUI
-    update_set_status(gno, setno);
-#endif
 }
 
 /*
@@ -1241,7 +1212,7 @@ void do_splitsets(int gno, int setno, int lpart)
     /* copy the contents to a temporary buffer */
     for (j = 0; j < ncols; j++) {
 	x[j] = getcol(gno, setno, j);
-	xtmp[j] = (double *) calloc(len, sizeof(double));
+	xtmp[j] = (double *) calloc(len, SIZEOF_DOUBLE);
 	if (xtmp[j] == NULL) {
 	    errmsg("Not enough memory for split");
 	    for (k = 0; k < j; k++) {
@@ -1277,7 +1248,7 @@ void do_splitsets(int gno, int setno, int lpart)
 	/* set the plot parameters includes the set type */
 	g[gno].p[tmpset] = p;
 	activateset(gno, tmpset);
-	settype(gno, tmpset, stype);
+	set_dataset_type(gno, tmpset, stype);
 	setlength(gno, tmpset, lpart);
 	/* load the data into each column */
 	for (k = 0; k < ncols; k++) {
@@ -1299,7 +1270,7 @@ void do_splitsets(int gno, int setno, int lpart)
     tmpset = nextset(gno);
     memcpy(&g[gno].p[tmpset], &p, sizeof(plotarr));
     activateset(gno, tmpset);
-    settype(gno, tmpset, stype);
+    set_dataset_type(gno, tmpset, stype);
     setlength(gno, tmpset, nleft);
 
     /* load the data into each column */
@@ -1359,7 +1330,7 @@ void do_breakset(int gno, int setno, int ind)
 	return;
     }
     activateset(gno, tmpset);
-    settype(gno, tmpset, stype);
+    set_dataset_type(gno, tmpset, stype);
     setlength(gno, tmpset, n2);
 
     /* load the data into each column */
@@ -1399,7 +1370,7 @@ void do_activate(int setno, int type, int len)
 	return;
     }
     activateset(get_cg(), setno);
-    settype(get_cg(), setno, type);
+    set_dataset_type(get_cg(), setno, type);
     setlength(get_cg(), setno, len);
 #ifndef NONE_GUI
     update_set_status(get_cg(), setno);
@@ -1458,7 +1429,7 @@ void do_copy(int j1, int gfrom, int j2, int gto)
     if (j2 == SET_SELECT_NEXT) {
 	if ((j2 = nextset(gto)) != -1) {
 	    activateset(gto, j2);
-	    settype(gto, j2, dataset_type(gfrom, j1));
+	    set_dataset_type(gto, j2, dataset_type(gfrom, j1));
 	    setlength(gto, j2, getsetlength(gfrom, j1));
 	} else {
 	    return;
@@ -1474,7 +1445,7 @@ void do_copy(int j1, int gfrom, int j2, int gto)
 	    killset(gto, j2);
 	}
 	activateset(gto, j2);
-	settype(gto, j2, dataset_type(gfrom, j1));
+	set_dataset_type(gto, j2, dataset_type(gfrom, j1));
 	setlength(gto, j2, getsetlength(gfrom, j1));
     }
     copyset(gfrom, j1, gto, j2);
@@ -1637,52 +1608,6 @@ void do_reverse_sets(int setno)
 	}
     }
     set_dirtystate();
-#ifndef NONE_GUI
-    update_set_status(get_cg(), setno);
-#endif
-}
-
-/*
- * coalesce sets
- */
-void do_coalesce_sets(int setno)
-{
-    int i, first = 1;
-
-    if (!activeset(get_cg())) {
-	errmsg("No active sets");
-	return;
-    }
-    if (is_set_active(get_cg(), setno)) {
-	sprintf(buf, "Set %d active, need an inactive set", setno);
-	errmsg(buf);
-	return;
-    } else {
-	if ((setno = nextset(get_cg())) != -1) {
-	    activateset(get_cg(), setno);
-	} else {
-	    return;
-	}
-	for (i = 0; i < g[get_cg()].maxplot; i++) {
-	    if (is_set_active(get_cg(), i) && i != setno) {
-		if (first) {
-		    first = 0;
-		    setlength(get_cg(), setno, getsetlength(get_cg(), i));
-		    copyset(get_cg(), i, get_cg(), setno);
-		    killset(get_cg(), i);
-#ifndef NONE_GUI
-		    update_set_status(get_cg(), i);
-#endif
-		} else {
-		    joinsets(get_cg(), i, get_cg(), setno);
-		    killset(get_cg(), i);
-#ifndef NONE_GUI
-		    update_set_status(get_cg(), i);
-#endif
-		}
-	    }
-	}
-    }
 #ifndef NONE_GUI
     update_set_status(get_cg(), setno);
 #endif
@@ -1946,9 +1871,20 @@ char *get_legend_string(int gno, int setno)
     }
 }
 
-int settype(int gno, int setno, int type)
+int set_dataset_type(int gno, int setno, int type)
 { 
+    int i, len, ncols_old, ncols_new;
+    
     if (is_valid_setno(gno, setno)) {
+        len = getsetlength(gno, setno);
+        ncols_old = dataset_cols(gno, setno);
+        ncols_new = settype_cols(type);
+        for (i = ncols_old; i < ncols_new; i++) {
+            g[gno].p[setno].ex[i] = calloc(len, SIZEOF_DOUBLE);
+        }
+        for (i = ncols_new; i < ncols_old; i++) {
+            cxfree(g[gno].p[setno].ex[i]);
+        }
         g[gno].p[setno].type = type;
         return GRACE_EXIT_SUCCESS;
     } else {

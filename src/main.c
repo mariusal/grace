@@ -597,50 +597,16 @@ int main(int argc, char *argv[])
 		    }
 		    strcpy(blocksetcols, argv[i]);
 		    create_set_fromblock(get_cg(), curtype, blocksetcols);
-		} else if (argmatch(argv[i], "-xy", 3)) {
-		    curtype = SET_XY;
-		} else if (argmatch(argv[i], "-xydx", 5)) {
-		    curtype = SET_XYDX;
-		} else if (argmatch(argv[i], "-xydy", 5)) {
-		    curtype = SET_XYDY;
-		} else if (argmatch(argv[i], "-xydxdx", 7)) {
-		    curtype = SET_XYDXDX;
-		} else if (argmatch(argv[i], "-xydydy", 7)) {
-		    curtype = SET_XYDYDY;
-		} else if (argmatch(argv[i], "-xydxdy", 7)) {
-		    curtype = SET_XYDXDY;
-		} else if (argmatch(argv[i], "-xyz", 4)) {
-		    curtype = SET_XYZ;
-		} else if (argmatch(argv[i], "-xyr", 4)) {
-		    curtype = SET_XYR;
 		} else if (argmatch(argv[i], "-nxy", 4)) {
 		    curtype = SET_NXY;
-		} else if (argmatch(argv[i], "-hilo", 5)) {
-		    curtype = SET_XYHILO;
-		} else if (argmatch(argv[i], "-xystring", 9)) {
-		    curtype = SET_XYSTRING;
-		} else if (argmatch(argv[i], "-type", 2)) {
-		    /* other file types here */
+		} else if (argmatch(argv[i], "-type", 2) ||
+                           argmatch(argv[i], "-settype", 8)) {
+		    /* set types */
 		    i++;
-                    if (argmatch(argv[i], "xydx", 4)) {
-			curtype = SET_XYDX;
-		    } else if (argmatch(argv[i], "xydy", 4)) {
-			curtype = SET_XYDY;
-		    } else if (argmatch(argv[i], "xydxdx", 6)) {
-			curtype = SET_XYDXDX;
-		    } else if (argmatch(argv[i], "xydydy", 6)) {
-			curtype = SET_XYDYDY;
-		    } else if (argmatch(argv[i], "xydxdy", 6)) {
-			curtype = SET_XYDXDY;
-		    } else if (argmatch(argv[i], "xyz", 3)) {
-			curtype = SET_XYZ;
-		    } else if (argmatch(argv[i], "xyr", 3)) {
-			curtype = SET_XYR;
-		    } else if (argmatch(argv[i], "hilo", 4)) {
-			curtype = SET_XYHILO;
-		    } else {
-			fprintf(stderr, "%s: Unknown file type '%s' assuming XY\n", argv[0], argv[i]);
-			curtype = SET_XY;
+                    curtype = get_settype_by_name(argv[i]);
+                    if (curtype == -1) {
+			fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
+			usage(stderr, argv[0]);
 		    }
 		} else if (argmatch(argv[i], "-graphtype", 7)) {
 		    i++;
@@ -1008,22 +974,12 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-source    [disk|pipe|stdin]          Source of next data file\n");
     fprintf(stream, "-timer     [delay]                    Set timer for named pipes to delay ms \n");
     fprintf(stream, "-timestamp                            Add timestamp to plot\n");
-    fprintf(stream, "-type      [xy|xydx|xydy|xydxdx|xydydy|hilo] Set the type of the next data file\n");
+    fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");
     fprintf(stream, "-version                              Show the program version\n");
     fprintf(stream, "-viewport  [xmin ymin xmax ymax]      Set the viewport for the current graph\n");
     fprintf(stream, "-wd        [directory]                Set the working directory\n");
     fprintf(stream, "-world     [xmin ymin xmax ymax]      Set the user coordinate system for the\n");
     fprintf(stream, "                                        current graph\n");
-    fprintf(stream, "-xy        [xy_file]                  Assume data file is in X Y format - sets\n");
-    fprintf(stream, "                                        are separated by lines containing non-\n");
-    fprintf(stream, "                                        numeric data\n");
-    fprintf(stream, "-xydx      [xydx_file]                Assume data file is in X Y DX format\n");
-    fprintf(stream, "-xydxdx    [xydxdx_file]              Assume data file is in X Y DX1 DX2 format\n");
-    fprintf(stream, "-xydxdy    [xydxdy_file]              Assume data file is in X Y DX DY format\n");
-    fprintf(stream, "-xydy      [xydy_file]                Assume data file is in X Y DY format\n");
-    fprintf(stream, "-xydydy    [xydydy_file]              Assume data file is in X Y DY1 DY2 format\n");
-    fprintf(stream, "-xyr       [xyr_file]                 Assume data file is in X Y RADIUS format\n");
-    fprintf(stream, "-xyz       [xyz_file]                 Assume data file is in X Y Z format\n");
 
     fprintf(stream, "-usage|-help                          This message\n");
     fprintf(stream, "\n");

@@ -135,6 +135,7 @@ void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar);
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
+OptionStructure *CreateSetTypeChoice(Widget parent, char *s);
 OptionStructure *CreateColorChoice(Widget parent, char *s);
 
 ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);

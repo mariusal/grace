@@ -468,6 +468,7 @@ void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb)
 
 
 static OptionItem *font_option_items;
+static OptionItem *settype_option_items;
 static BitmapOptionItem *pattern_option_items;
 static BitmapOptionItem *lines_option_items;
 
@@ -538,12 +539,26 @@ int init_option_menus(void) {
         }
     }
 
+    settype_option_items = malloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
+    if (settype_option_items == NULL) {
+        errmsg("Malloc error in init_option_menus()");
+        return GRACE_EXIT_FAILURE;
+    }
+    for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
+        settype_option_items[i].value = i;
+        settype_option_items[i].label = NULL;
+        settype_option_items[i].label =
+            copy_string(settype_option_items[i].label, set_types(i));
+        lowtoupper(settype_option_items[i].label);
+    }
+
     return GRACE_EXIT_SUCCESS;
 }
 
 OptionStructure *CreateFontChoice(Widget parent, char *s)
 {
-    return (CreateOptionChoice(parent, s, 0, number_of_fonts(), font_option_items));
+    return (CreateOptionChoice(parent,
+        s, 0, number_of_fonts(), font_option_items));
 }
 
 OptionStructure *CreatePatternChoice(Widget parent, char *s)
@@ -556,6 +571,12 @@ OptionStructure *CreateLineStyleChoice(Widget parent, char *s)
 {
     return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(), 
                         LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
+}
+
+OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
+{
+    return (CreateOptionChoice(parent,
+        s, 0, NUMBER_OF_SETTYPES, settype_option_items));
 }
 
 

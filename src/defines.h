@@ -468,6 +468,7 @@
 #define AVALUE_TYPE_Y           2
 #define AVALUE_TYPE_XY          3
 #define AVALUE_TYPE_STRING      4
+#define AVALUE_TYPE_Z           5
 
 /* ticks */
 #define TICK_TYPE_MAJOR     0
@@ -477,12 +478,6 @@
 #define LOAD_VALUES         0
 #define LOAD_RESIDUALS      1
 #define LOAD_FUNCTION       2
-
-
-/* toolbars */
-#define BAR_TOOLBAR     0
-#define BAR_LOCATORBAR  1
-#define BAR_STATUSBAR   2
 
 
 /*

@@ -73,7 +73,6 @@ static void do_join_sets_proc(Widget w, XtPointer client_data, XtPointer call_da
 static void do_split_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_sort_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_coalesce_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 
@@ -98,9 +97,6 @@ static void changetypeCB(Widget w, XtPointer clientd, XtPointer calld)
             errwin("No set selected");
             return;
         }
-/*
-	int setno = GetSetFromString(s);
-*/
 	if (setno >= 0) {
 	    xv_setstr(ui->comment_item, getcomment(cg, setno));
 	}
@@ -409,45 +405,6 @@ void create_reverse_popup(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-typedef struct _Coal_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *graph_item;
-} Coal_ui;
-
-static Coal_ui coalui;
-
-void create_coalesce_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (coalui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	coalui.top = XmCreateDialogShell(app_shell, "Coalesce sets", NULL, 0);
-	handle_close(coalui.top);
-	dialog = XmCreateRowColumn(coalui.top, "dialog_rc", NULL, 0);
-
-	coalui.sel = CreateSetSelector(dialog, "Coalesce active sets to set:",
-				       SET_SELECT_ALL,
-				       FILTER_SELECT_NONE,
-				       GRAPH_SELECT_CURRENT,
-				       SELECTION_TYPE_MULTIPLE);
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_coalesce_sets_proc, (XtPointer) & coalui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) coalui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(coalui.top);
-    unset_wait_cursor();
-}
-
 typedef struct _Swap_ui {
     Widget top;
     ListStructure *sel1;
@@ -549,18 +506,6 @@ void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
  * setops - combine, copy sets - callbacks
 */
 
-
-/*
- * change the type of a set
- */
-void do_changetype(int setno, int type)
-{
-    settype(cg, setno, type);
-    setlength(cg, setno, getsetlength(cg, setno));
-
-    update_set_status(cg, setno);
-}
-
 /*
  * change the type of a set
  */
@@ -573,7 +518,7 @@ static void do_changetype_proc(Widget w, XtPointer client_data, XtPointer call_d
         errwin("No set selected");
         return;
     }
-    setcomment(cg, setno, (char *) xv_getstr(ui->comment_item));
+    setcomment(cg, setno, xv_getstr(ui->comment_item));
     set_wait_cursor();
     set_work_pending(TRUE);
     set_work_pending(FALSE);
@@ -770,32 +715,6 @@ static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call
     drawgraph();
 }
 
-/*
- * coalesce sets
- */
-static void do_coalesce_sets_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno;
-    Coal_ui *ui = (Coal_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-	errwin("No sets selected");
-	return;
-    }
-    set_wait_cursor();
-    set_work_pending(TRUE);
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_coalesce_sets(setno);
-    }
-    set_work_pending(FALSE);
-    update_set_lists(cg);
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
-}
 
 /*
  sort sets
