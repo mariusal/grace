@@ -291,3 +291,82 @@ void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata)
     
     _quark_traverse(q, &_cbdata);
 }
+
+int quark_count_children(const Quark *q)
+{
+    return storage_count(q->children);
+}
+
+int quark_child_exist(const Quark *parent, const Quark *child)
+{
+    if (parent && child         &&
+        child->parent == parent &&
+        storage_data_exists(parent->children, child)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int quark_reparent(Quark *q, Quark *newparent)
+{
+    Quark *parent;
+    if (!q || !newparent) {
+        return RETURN_FAILURE;
+    }
+    
+    parent = q->parent;
+    if (parent == newparent) {
+        return RETURN_SUCCESS;
+    } else {
+        storage_extract_data(parent->children, q);
+        
+        parent->refcount--;
+        quark_dirtystate_set(parent, TRUE);
+        
+        q->parent = newparent;
+        newparent->refcount++;
+        storage_add(newparent->children, q);
+        quark_dirtystate_set(newparent, TRUE);
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+static int reparent_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *child = (Quark *) data;
+    Quark *newparent = (Quark *) udata;
+
+    quark_reparent(child, newparent);
+    
+    return TRUE;
+}
+
+int quark_reparent_children(Quark *parent, Quark *newparent)
+{
+    storage_traverse(parent->children, reparent_hook, newparent);
+    
+    return RETURN_SUCCESS;
+}
+
+
+int quark_move(const Quark *q, int forward)
+{
+    Storage *sto = q->parent->children;
+    if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+        return storage_move(sto, forward);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int quark_push(const Quark *q, int forward)
+{
+    Storage *sto = q->parent->children;
+    if (storage_scroll_to_data(sto, q) == RETURN_SUCCESS) {
+        return storage_push(sto, forward);
+    } else {
+        return RETURN_FAILURE;
+    }
+}

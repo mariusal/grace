@@ -237,7 +237,8 @@ enum {
     QFlavorProject,
     QFlavorGraph,
     QFlavorSet,
-    QFlavorDObject
+    QFlavorDObject,
+    QFlavorContainer
 };
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid);
@@ -246,6 +247,7 @@ Quark *quark_root(Grace *grace, unsigned int fid);
 Quark *quark_new(Quark *parent, unsigned int fid);
 void quark_free(Quark *q);
 Quark *quark_copy(const Quark *q);
+Quark *quark_copy2(Quark *newparent, const Quark *q);
 
 void quark_dirtystate_set(Quark *q, int flag);
 int quark_dirtystate_get(const Quark *q);
@@ -256,6 +258,14 @@ Quark *quark_find_child_by_idstr(Quark *q, const char *s);
 
 int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata);
 void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata);
+
+int quark_count_children(const Quark *q);
+int quark_child_exist(const Quark *parent, const Quark *child);
+int quark_reparent(Quark *q, Quark *newparent);
+int quark_reparent_children(Quark *parent, Quark *newparent);
+
+int quark_move(const Quark *q, int forward);
+int quark_push(const Quark *q, int forward);
 
 #define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
 
@@ -295,6 +305,8 @@ Storage *project_get_graphs(const Quark *q);
 
 char *project_get_sformat(const Quark *q);
 void project_set_sformat(Quark *q, const char *s);
+
+Project *project_get_data(Quark *q);
 
 int project_add_font(Quark *project, const Fontdef *f);
 int get_font_by_name(const Quark *project, const char *name);
