@@ -100,7 +100,7 @@ typedef struct {
 /* Storage labeling procedure */
 typedef char * (*Storage_LabelingProc)(
     unsigned int step,   /* # of the current item */
-    void *data           /* data of the item */
+    Quark *q             /* data of the item */
 );
 
 typedef struct _StorageStructure StorageStructure;
@@ -112,12 +112,12 @@ typedef void (*SS_PopupCBProc)(
 
 struct _StorageStructure {
     int nchoices;
-    void **values;
+    Quark **values;
     void *anydata;
     
-    Storage *sto;
+    Quark *q;
     Storage_LabelingProc labeling_proc;
-    Storage *clipboard;
+    Quark *clipboard;
 
     Widget rc;
     Widget list;
@@ -300,13 +300,13 @@ typedef void (*List_CBProc)(
 /* Storage CB procedure */
 typedef void (*Storage_CBProc)(
     int n,               /* # of items selected */
-    void **values,       /* list of values of the selected items */
+    Quark **values,      /* list of values of the selected items */
     void *data           /* data the application registered */
 );
 
 /* Storage double click CB procedure */
 typedef void (*Storage_DCCBProc)(
-    void *value,         /* list of values of the selected items */
+    Quark *value,        /* list of values of the selected items */
     void *data           /* data the application registered */
 );
 
@@ -423,12 +423,12 @@ void list_invertselection_action(Widget w, XEvent *e, String *par,
 StorageStructure *CreateStorageChoice(Widget parent,
     char *labelstr, int type, int nvisible);
 void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc);
-int GetStorageChoices(StorageStructure *ss, void ***values);
-int GetSingleStorageChoice(StorageStructure *ss, void **value);
-int SelectStorageChoice(StorageStructure *ss, void *choice);
-int SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices);
+int GetStorageChoices(StorageStructure *ss, Quark ***values);
+int GetSingleStorageChoice(StorageStructure *ss, Quark **value);
+int SelectStorageChoice(StorageStructure *ss, Quark *choice);
+int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices);
 void UpdateStorageChoice(StorageStructure *ss);
-void SetStorageChoiceStorage(StorageStructure *ss, Storage *sto);
+void SetStorageChoiceQuark(StorageStructure *ss, Quark *q);
 void AddStorageChoiceCB(StorageStructure *ss,
     Storage_CBProc cbproc, void *anydata);
 void AddStorageChoiceDblClickCB(StorageStructure *ss,

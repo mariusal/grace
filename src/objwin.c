@@ -128,9 +128,9 @@ static void changegraphCB(int n, void **values, void *data)
 
     if (n == 1) {
         Quark *gr = (Quark *) values[0];
-        SetStorageChoiceStorage(ui->ss, gr->children); 
+        SetStorageChoiceQuark(ui->ss, gr); 
     } else {
-        SetStorageChoiceStorage(ui->ss, NULL); 
+        SetStorageChoiceQuark(ui->ss, NULL); 
     }
 }
 
@@ -548,7 +548,7 @@ static void doss_any_cb(void *udata, int cbtype)
     for (i = 0; i < n; i ++) {
         void *data = values[i];
         
-        if (storage_data_exists(ss->sto, data) == TRUE) {
+        if (storage_data_exists(ss->q->children, data) == TRUE) {
             DObject *o = object_get_data((Quark *) data);
             switch (cbtype) {
             case DOSS_HIDE_CB:
@@ -738,7 +738,7 @@ void object_edit_popup(Quark *gr, int id)
         graph *g = (graph *) gr->data;
         DObject *o = object_get(gr, id);
         define_objects_popup(NULL);
-        SetStorageChoiceStorage(oui->ss, g->dobjects);
+        SetStorageChoiceQuark(oui->ss, g);
         SelectStorageChoice(oui->ss, o);
     }
 }

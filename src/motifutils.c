@@ -758,11 +758,11 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 #define SS_MOVE_UP_CB        6
 #define SS_MOVE_DOWN_CB      7
 
-static char *default_storage_labeling_proc(unsigned int step, void *data)
+static char *default_storage_labeling_proc(unsigned int step, Quark *data)
 {
     char buf[128];
     
-    sprintf(buf, "Item #%d (data = %p)", step, data);
+    sprintf(buf, "Item #%d (data = %p)", step, (void *) data);
     
     return copy_string(NULL, buf);
 }
@@ -817,7 +817,7 @@ static void storage_popup(Widget parent,
     SetSensitive(ss->popup_move_up_bt, selected);
     SetSensitive(ss->popup_move_down_bt, selected);
     
-    SetSensitive(ss->popup_paste_bt, (storage_count(ss->clipboard) != 0));
+    SetSensitive(ss->popup_paste_bt, (quark_count_children(ss->clipboard) != 0));
     
     if (ss->popup_cb) {
         ss->popup_cb(ss, n);
@@ -830,48 +830,48 @@ static void storage_popup(Widget parent,
 static void ss_any_cb(StorageStructure *ss, int type)
 {
     int i, n;
-    void **values;
+    Quark **values;
     
     n = GetStorageChoices(ss, &values);
     
     for (i = 0; i < n; i ++) {
-        void *data;
+        Quark *q;
         
         switch (type) {
         case SS_SEND_TO_BACK_CB:
         case SS_MOVE_UP_CB:
-            data = values[n - i - 1];
+            q = values[n - i - 1];
             break;
         default:
-            data = values[i];
+            q = values[i];
             break;
         }
         
-        if (storage_scroll_to_data(ss->sto, data) == RETURN_SUCCESS) {
+        if (quark_child_exist(ss->q, q)) {
             switch (type) {
             case SS_DELETE_CB:
-                storage_delete(ss->sto);
+                quark_free(q);
                 break;
             case SS_CUT_CB:
-                storage2_data_move(ss->sto, ss->clipboard);
+                quark_reparent(q, ss->clipboard);
                 break;
             case SS_COPY_CB:
-                storage2_data_copy(ss->sto, ss->clipboard);
+                quark_copy2(ss->clipboard, q);
                 break;
             case SS_BRING_TO_FRONT_CB:
-                storage_push(ss->sto, TRUE);
+                quark_push(q, TRUE);
                 break;
             case SS_SEND_TO_BACK_CB:
-                storage_push(ss->sto, FALSE);
+                quark_push(q, FALSE);
                 break;
             case SS_MOVE_UP_CB:
-                storage_move(ss->sto, TRUE);
+                quark_move(q, TRUE);
                 break;
             case SS_MOVE_DOWN_CB:
-                storage_move(ss->sto, FALSE);
+                quark_move(q, FALSE);
                 break;
             case SS_DUPLICATE_CB:
-                storage_duplicate(ss->sto);
+                quark_copy(q);
                 break;
             }
         }
@@ -929,7 +929,7 @@ static void ss_move_down_cb(void *udata)
 static void ss_paste_cb(void *udata)
 {
     StorageStructure *ss = (StorageStructure *) udata;
-    storage2_data_flush(ss->clipboard, ss->sto);
+    quark_reparent_children(ss->clipboard, ss->q);
 
     UpdateStorageChoice(ss);
     set_dirtystate();
@@ -1017,7 +1017,7 @@ StorageStructure *CreateStorageChoice(Widget parent,
     retval = xmalloc(sizeof(StorageStructure));
     memset(retval, 0, sizeof(StorageStructure));
     
-    retval->clipboard = storage_new(NULL, NULL, NULL);
+    retval->clipboard = quark_root(grace, QFlavorContainer);
     
     retval->labeling_proc = default_storage_labeling_proc;
     retval->rc = XmCreateRowColumn(parent, "rc", NULL, 0);
@@ -1056,7 +1056,7 @@ void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc)
     ss->labeling_proc = proc;
 }
 
-int GetStorageChoices(StorageStructure *ss, void ***values)
+int GetStorageChoices(StorageStructure *ss, Quark ***values)
 {
     int i, n;
     int *selected;
@@ -1077,10 +1077,10 @@ int GetStorageChoices(StorageStructure *ss, void ***values)
     return n;
 }
 
-int GetSingleStorageChoice(StorageStructure *ss, void **value)
+int GetSingleStorageChoice(StorageStructure *ss, Quark **value)
 {
     int n, retval;
-    void **values;
+    Quark **values;
     
     n = GetStorageChoices(ss, &values);
     if (n == 1) {
@@ -1098,7 +1098,7 @@ int GetSingleStorageChoice(StorageStructure *ss, void **value)
 }
 
 
-int SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices)
+int SelectStorageChoices(StorageStructure *ss, int nchoices, Quark **choices)
 {
     int i = 0, j;
     unsigned char selection_type_save;
@@ -1136,14 +1136,14 @@ int SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices)
     return RETURN_SUCCESS;
 }
 
-int SelectStorageChoice(StorageStructure *ss, void *choice)
+int SelectStorageChoice(StorageStructure *ss, Quark *choice)
 {
     return SelectStorageChoices(ss, 1, &choice);
 }
 
 void UpdateStorageChoice(StorageStructure *ss)
 {
-    void **selvalues;
+    Quark **selvalues;
     int nsel;
 
     nsel = GetStorageChoices(ss, &selvalues);
@@ -1151,9 +1151,9 @@ void UpdateStorageChoice(StorageStructure *ss)
     XmListDeleteAllItems(ss->list);
     
     ss->nchoices = 0;
-    if (ss->sto) {
-        ss->values = xrealloc(ss->values, SIZEOF_VOID_P*storage_count(ss->sto));
-        storage_traverse(ss->sto, traverse_hook, ss);
+    if (ss->q) {
+        ss->values = xrealloc(ss->values, SIZEOF_VOID_P*quark_count_children(ss->q));
+        storage_traverse(ss->q->children, traverse_hook, ss);
 
         SelectStorageChoices(ss, nsel, selvalues);
     }
@@ -1163,9 +1163,9 @@ void UpdateStorageChoice(StorageStructure *ss)
     }
 }   
 
-void SetStorageChoiceStorage(StorageStructure *ss, Storage *sto)
+void SetStorageChoiceQuark(StorageStructure *ss, Quark *q)
 {
-    ss->sto = sto;
+    ss->q = q;
     UpdateStorageChoice(ss);
 }   
 
@@ -1186,7 +1186,7 @@ static void storage_int_cb_proc(Widget w,
     XtPointer client_data, XtPointer call_data)
 {
     int n;
-    void **values;
+    Quark **values;
     Storage_CBdata *cbdata = (Storage_CBdata *) client_data;
  
     n = GetStorageChoices(cbdata->ss, &values);
@@ -2269,15 +2269,14 @@ static void gss_any_cb(void *udata, int cbtype)
 {
     StorageStructure *ss = (StorageStructure *) udata;
     int i, n;
-    void **values;
+    Quark **values;
     
     n = GetStorageChoices(ss, &values);
     
     for (i = 0; i < n; i ++) {
-        void *data = values[i];
+        Quark *gr = values[i];
         
-        if (storage_data_exists(ss->sto, data) == TRUE) {
-            Quark *gr = (Quark *) data;
+        if (storage_data_exists(ss->q->children, gr) == TRUE) {
             switch (cbtype) {
             case GSS_HIDE_CB:
                 set_graph_hidden(gr, TRUE);
@@ -2334,15 +2333,14 @@ static void g_new_cb(void *udata)
     xdrawgraph();
 }
 
-static void g_dc_cb(void *value, void *data)
+static void g_dc_cb(Quark *gr, void *data)
 {
-    switch_current_graph((Quark *) value);
+    switch_current_graph(gr);
 }
 
-static char *graph_labeling(unsigned int step, void *data)
+static char *graph_labeling(unsigned int step, Quark *q)
 {
     char buf[128];
-    Quark *q = (Quark *) data;
     graph *g = graph_get_data(q);
     
     sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
@@ -2362,7 +2360,7 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, graph_labeling);
-    SetStorageChoiceStorage(ss, grace->project->children);
+    SetStorageChoiceQuark(ss, grace->project);
     AddStorageChoiceDblClickCB(ss, g_dc_cb, NULL);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
 
@@ -2398,11 +2396,11 @@ void update_graph_selectors(Quark *pr)
     int i;
     for (i = 0; i < ngraph_selectors; i++) {
         StorageStructure *ss = graph_selectors[i];
-        if (!ss->sto && pr) {
-            ss->sto = pr->children;
+        if (!ss->q && pr) {
+            ss->q = pr;
         } else 
         if (!pr) {
-            ss->sto = NULL;
+            ss->q = NULL;
         }
         UpdateStorageChoice(ss);
     }
@@ -2444,7 +2442,7 @@ Quark *get_set_choice_gr(StorageStructure *ss)
     SSSData *sdata = (SSSData *) ss->data;
     
     if (sdata->graphss) {
-        if (GetSingleStorageChoice(sdata->graphss, (void **) &gr) != RETURN_SUCCESS) {
+        if (GetSingleStorageChoice(sdata->graphss, &gr) != RETURN_SUCCESS) {
             gr = NULL;
         }
     } else {
@@ -2459,15 +2457,14 @@ static void sss_any_cb(void *udata, int cbtype)
     StorageStructure *ss = (StorageStructure *) udata;
     Quark *gr = get_set_choice_gr(ss), *pset;
     int i, n;
-    void **values;
+    Quark **values;
     
     n = GetStorageChoices(ss, &values);
     
     for (i = 0; i < n; i ++) {
-        void *data = values[i];
+        Quark *pset = values[i];
         
-        if (storage_data_exists(ss->sto, data) == TRUE) {
-            pset = (Quark *) data;
+        if (storage_data_exists(ss->q->children, pset) == TRUE) {
             switch (cbtype) {
             case SSS_HIDE_CB:
                 set_set_hidden(pset, TRUE);
@@ -2573,15 +2570,14 @@ static void s_popup_cb(StorageStructure *ss, int nselected)
     SetSensitive(sssdata->edit_menu, selected);
 }
 
-static void s_dc_cb(void *value, void *data)
+static void s_dc_cb(Quark *pset, void *data)
 {
-    create_ss_frame((Quark *) value);
+    create_ss_frame(pset);
 }
 
-static char *set_labeling(unsigned int step, void *data)
+static char *set_labeling(unsigned int step, Quark *q)
 {
     char buf[128];
-    Quark *q = (Quark *) data;
     if (q->fid == QFlavorSet) {
         set *p = set_get_data(q);
 
@@ -2644,17 +2640,11 @@ StorageStructure *CreateSetChoice(Widget parent,
 
 void UpdateSetChoice(StorageStructure *ss)
 {
-    Storage *sto;
     Quark *gr;
     
     gr = get_set_choice_gr(ss);
-    if (gr) {
-        sto = gr->children;
-    } else {
-        sto = NULL;
-    }
     
-    SetStorageChoiceStorage(ss, sto);
+    SetStorageChoiceQuark(ss, gr);
 }
 
 
@@ -2676,7 +2666,7 @@ void update_set_selectors(Quark *gr)
     }
 }
 
-static void update_sets_cb(int n, void **values, void *data)
+static void update_sets_cb(int n, Quark **values, void *data)
 {
     GraphSetStructure *gs = (GraphSetStructure *) data;
 
@@ -3328,13 +3318,13 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
 {
     int i, nsdest;
     
-    *nssrc = GetStorageChoices(tdialog->srcdest->src->set_sel, (void ***) srcsets);
+    *nssrc = GetStorageChoices(tdialog->srcdest->src->set_sel, srcsets);
     if (*nssrc == 0) {
         errmsg("No source sets selected");
 	return RETURN_FAILURE;
     }    
     
-    nsdest = GetStorageChoices(tdialog->srcdest->dest->set_sel, (void ***) destsets);
+    nsdest = GetStorageChoices(tdialog->srcdest->dest->set_sel, destsets);
     if (nsdest != 0 && *nssrc != nsdest) {
         errmsg("Different number of source and destination sets");
         xfree(*srcsets);
@@ -3356,8 +3346,8 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
     
     if (nsdest == 0) {
         Quark *destgr;
-        if (GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel,
-            (void **) &destgr) != RETURN_SUCCESS) {
+        if (GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel, &destgr)
+            != RETURN_SUCCESS) {
             xfree(*srcsets);
             errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
@@ -3369,7 +3359,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog,
         }
         
         update_set_selectors(destgr);
-        SelectStorageChoices(tdialog->srcdest->dest->set_sel, *nssrc, (void **) *destsets);
+        SelectStorageChoices(tdialog->srcdest->dest->set_sel, *nssrc, *destsets);
     }
     
     return RETURN_SUCCESS;
@@ -4240,7 +4230,7 @@ int clean_graph_selectors(Quark *pr, int etype, void *data)
     if (etype == QUARK_ETYPE_DELETE) {
         int i;
         for (i = 0; i < ngraph_selectors; i++) {
-            SetStorageChoiceStorage(graph_selectors[i], NULL);
+            SetStorageChoiceQuark(graph_selectors[i], NULL);
         }
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
@@ -4260,7 +4250,7 @@ int clean_set_selectors(Quark *gr, int etype, void *data)
 
             cg = get_set_choice_gr(ss);
             if (!gr || cg == gr) {
-                SetStorageChoiceStorage(ss, NULL);
+                SetStorageChoiceQuark(ss, NULL);
             }
         }
     }
