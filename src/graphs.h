@@ -218,9 +218,6 @@ void set_graph_labels(int gno, labels *labs);
 void set_graph_legend(int gno, legend *leg);
 void set_graph_legend_active(int gno, int flag);
 
-
-int nactive(int gno);
-
 #define is_graph_active(gno) is_valid_gno(gno)
 
 int is_graph_hidden(int gno);
