@@ -35,7 +35,11 @@
 
 #include <stdio.h>
 
+
 #if defined(__VMS)
+#  if defined(__ALPHA || __DECC_VER >= 60000000)
+#    include <builtins.h>
+#  endif
 #  include "vms_unix.h"
 #endif
 
@@ -79,6 +83,13 @@ extern double drand48(void);
 #ifndef HAVE_POPEN
 FILE *popen(char *cmd, char *mode);
 int   pclose(FILE *fp);
+#endif
+
+#ifndef HAVE_ALLOCA
+void *alloca(unsigned int);
+#endif
+#if defined(__VMS) && (__ALPHA || __DECC_VER >= 60000000)
+#  define alloca __ALLOCA
 #endif
 
 #ifdef __EMX__

@@ -52,7 +52,7 @@
 
 #include <config.h>
 
-#if defined(C_ALLOCA)
+#ifndef(HAVE_ALLOCA)
 
 #include <stdlib.h>
 
