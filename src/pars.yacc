@@ -307,6 +307,7 @@ symtab_entry *key;
 %token <pset> INVDFT
 %token <pset> INVERT
 %token <pset> INVFFT
+%token <pset> JOIN
 %token <pset> JUST
 %token <pset> KILL
 %token <pset> LABEL
@@ -389,6 +390,7 @@ symtab_entry *key;
 %token <pset> REDRAW
 %token <pset> REGNUM
 %token <pset> REGRESS
+%token <pset> REVERSE
 %token <pset> RIGHT
 %token <pset> RISER
 %token <pset> ROT
@@ -417,6 +419,7 @@ symtab_entry *key;
 %token <pset> SOURCE
 %token <pset> SPEC
 %token <pset> SPLINE
+%token <pset> SPLIT
 %token <pset> STACK
 %token <pset> STACKED
 %token <pset> STACKEDBAR
@@ -2640,6 +2643,24 @@ actions:
 	| COPY SETNUM TO SETNUM {
 	    do_copyset(get_cg(), $2, get_cg(), $4);
 	}
+	| JOIN SETNUM TO SETNUM {
+		int sets[2];
+		sets[0] = $2;
+		sets[1] = $4;
+		join_sets( get_cg(), sets, 2 );
+	}
+	| REVERSE SETNUM {
+		reverse_set( get_cg(), $2 );
+	}
+	| REVERSE GRAPHNO '.' SETNUM {
+		reverse_set( $2, $4 );
+	}
+	| SPLIT SETNUM NUMBER {
+		do_splitsets( get_cg(), $2, (int)$3 );
+	}
+	| SPLIT GRAPHNO '.' SETNUM NUMBER {
+		do_splitsets( $2, $4, (int)$5 );
+	}	
 	| COPY GRAPHNO '.' SETNUM TO GRAPHNO '.' SETNUM {
 	    do_copyset($2, $4, $6, $8);
 	}
@@ -4259,6 +4280,7 @@ symtab_entry ikey[] = {
 	{"IV", FUNC_DD, iv_wrap},
 	{"JDAY", JDAY, NULL},
 	{"JDAY0", JDAY0, NULL},
+	{"JOIN", JOIN, NULL},
 	{"JUST", JUST, NULL},
 	{"JV", FUNC_DD, jv_wrap},
 	{"K0E", FUNC_D, k0e},
@@ -4368,6 +4390,7 @@ symtab_entry ikey[] = {
 	{"RECIPROCAL", RECIPROCAL, NULL},
 	{"REDRAW", REDRAW, NULL},
 	{"REGRESS", REGRESS, NULL},
+	{"REVERSE", REVERSE, NULL},
 	{"RGAMMA", FUNC_D, rgamma},
 	{"RIGHT", RIGHT, NULL},
 	{"RINT", FUNC_D, rint},
@@ -4403,6 +4426,7 @@ symtab_entry ikey[] = {
 	{"SPEC", SPEC, NULL},
 	{"SPENCE", FUNC_D, spence},
 	{"SPLINE", SPLINE, NULL},
+	{"SPLIT", SPLIT, NULL},
 	{"SQR", FUNC_D, sqr_wrap},
 	{"SQRT", FUNC_D, sqrt},
 	{"STACK", STACK, NULL},
