@@ -1391,9 +1391,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         free(values);
     }
 
-    if (err == TRUE) {
-        errmsg("Internal error in a set selector callback");
-    } else {
+    if (err == FALSE) {
         update_all();
         drawgraph();
     }
@@ -1663,7 +1661,7 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     
     sdata->standalone = standalone;
     sdata->show_hidden = TRUE;
-    sdata->show_nodata = TRUE;
+    sdata->show_nodata = FALSE;
     sdata->menu = CreateSetPopupEntries(retvalp);
     XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
                             (XtEventHandler) set_popup, retvalp);
