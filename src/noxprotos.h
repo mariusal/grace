@@ -87,6 +87,9 @@ int register_real_time_input(int fd, const char *name, int reopen);
 int real_time_under_monitoring(void);
 int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 
+double comp_area(int n, double *x, double *y);
+double comp_perimeter(int n, double *x, double *y);
+
 void stasum(double *x, int n, double *xbar, double *sd);
 void linearconv(double *x, int n, double *h, int m, double *y);
 

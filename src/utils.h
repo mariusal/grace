@@ -76,11 +76,9 @@ int isoneof(int c, char *s);
 int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);
 void convertchar(char *s);
-double comp_area(int n, double *x, double *y);
-double comp_perimeter(int n, double *x, double *y);
 
 char *create_fstring(int form, int prec, double loc, int type);
-char *escapequotes (char *s);
+char *escapequotes(char *s);
 
 int sign(double a);
 double mytrunc(double a);

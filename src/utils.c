@@ -214,34 +214,6 @@ void convertchar(char *s)
     }
 }
 
-/*
- * compute the area bounded by the polygon (xi,yi)
- */
-double comp_area(int n, double *x, double *y)
-{
-    int i;
-    double sum = 0.0;
-
-    for (i = 0; i < n; i++) {
-	sum = sum + x[i] * y[(i + 1) % n] - y[i] * x[(i + 1) % n];
-    }
-    return sum * 0.5;
-}
-
-/*
- * compute the perimeter bounded by the polygon (xi,yi)
- */
-double comp_perimeter(int n, double *x, double *y)
-{
-    int i;
-    double sum = 0.0;
-
-    for (i = 0; i < n - 1; i++) {
-	sum = sum + hypot(x[i] - x[(i + 1) % n], y[i] - y[(i + 1) % n]);
-    }
-    return sum;
-}
-
 char *dayofweekstrs[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 char *dayofweekstrl[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
