@@ -73,9 +73,39 @@ void ssd_data_free(AMem *amem, ss_data *ssd)
 
 ss_data *ssd_data_copy(AMem *amem, ss_data *ssd)
 {
-    /* FIXME! */
-    errmsg("NIY");
-    return NULL;
+    ss_data *ssd_new;
+    unsigned int i;
+    
+    ssd_new = amem_malloc(amem, sizeof(ss_data));
+    if (!ssd_new) {
+        return NULL;
+    }
+
+    ssd_new->ncols = ssd->ncols;
+    ssd_new->nrows = ssd->nrows;
+    
+    ssd_new->label = amem_strdup(amem, ssd->label);
+    
+    ssd_new->data = amem_calloc(amem, ssd->ncols, SIZEOF_VOID_P);
+    ssd_new->formats = amem_malloc(amem, ssd->ncols*SIZEOF_INT);
+
+    memcpy(ssd_new->formats, ssd->formats, ssd->ncols*SIZEOF_INT);
+    
+    for (i = 0; i < ssd->ncols; i++) {
+        if (ssd->formats[i] == FFORMAT_STRING) {
+            ssd_new->data[i] =
+                copy_string_column(amem, ssd->data[i], ssd->nrows);
+        } else {
+            ssd_new->data[i] =
+                copy_data_column(amem, ssd->data[i], ssd->nrows);
+        }
+        if (!ssd_new->data[i]) {
+            ssd_data_free(amem, ssd_new);
+            return NULL;
+        }
+    }
+    
+    return ssd_new;
 }
 
 ss_data *ssd_get_data(const Quark *q)
@@ -212,4 +242,29 @@ int ssd_set_label(Quark *q, const char *label)
     
         return RETURN_SUCCESS;
     }
+}
+
+void *ssd_get_col(const Quark *q, int col, int *format)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd && col >= 0 && col < ssd->ncols) {
+        *format = ssd->formats[col];
+        return ssd->data[col];
+    } else {
+        return NULL;
+    }
+}
+
+Quark *get_parent_ssd(const Quark *q)
+{
+    Quark *p = (Quark *) q;
+    
+    while (p) {
+        if (p->fid == QFlavorSSD) {
+            return p;
+        }
+        p = quark_parent_get(p);
+    }
+    
+    return NULL;
 }

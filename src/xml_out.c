@@ -598,6 +598,7 @@ int save_set_properties(XFile *xf, Quark *pset)
 
 static int save_dataset(XFile *xf, Quark *pset)
 {
+#if 0
     Attributes *attrs;
     int i, nc;
     Dataset *data;
@@ -640,7 +641,7 @@ static int save_dataset(XFile *xf, Quark *pset)
     xfile_end_element(xf, EStrDataset);
 
     attributes_free(attrs);
-
+#endif
     return RETURN_SUCCESS;
 }
 

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -78,15 +78,13 @@ Dataset *dataset_new(AMem *amem)
     if (!dsp) {
         return NULL;
     }
-    
+
     dsp->amem  = amem;
     
-    dsp->len   = 0;
-    dsp->ncols = 0;
     for (k = 0; k < MAX_SET_COLS; k++) {
-        dsp->ex[k] = NULL;
+        dsp->cols[k] = COL_NONE;
     }
-    dsp->s = NULL;
+    dsp->scol = COL_NONE;
     
     dsp->comment = NULL;
     dsp->hotlink = FALSE;
@@ -105,20 +103,13 @@ int dataset_empty(Dataset *dsp)
     int k;
     
     if (dsp) {
-        AMem *amem = dsp->amem;
         
-        if (dsp->len) {
-            for (k = 0; k < dsp->ncols; k++) {
-	        AMEM_CFREE(amem, dsp->ex[k]);
-            }
-            if (dsp->s) {
-	        for (k = 0; k < dsp->len; k++) {
-		    AMEM_CFREE(amem, dsp->s[k]);
-	        }
-                AMEM_CFREE(amem, dsp->s);
-            }
-            dsp->len = 0;
+        for (k = 0; k < MAX_SET_COLS; k++) {
+            dsp->cols[k] = COL_NONE;
         }
+
+        dsp->scol = COL_NONE;
+
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -130,104 +121,11 @@ void dataset_free(Dataset *dsp)
     if (dsp) {
         AMem *amem = dsp->amem;
 
-        dataset_empty(dsp);
         amem_free(amem, dsp->hotfile);
         amem_free(amem, dsp->comment);
         amem_free(amem, dsp);
     }
 }
-
-
-int dataset_set_nrows(Dataset *dsp, int len)
-{
-    int i, j, oldlen;
-    
-    if (!dsp || len < 0) {
-	return RETURN_FAILURE;
-    }
-    
-    oldlen = dsp->len;
-    if (len == oldlen) {
-	return RETURN_SUCCESS;
-    }
-    
-    for (i = 0; i < dsp->ncols; i++) {
-	if ((dsp->ex[i] = amem_realloc(dsp->amem,
-            dsp->ex[i], len*SIZEOF_DOUBLE)) == NULL
-            && len != 0) {
-	    return RETURN_FAILURE;
-	}
-        for (j = oldlen; j < len; j++) {
-            dsp->ex[i][j] = 0.0;
-        }
-    }
-    
-    if (dsp->s != NULL) {
-        for (i = len; i < oldlen; i++) {
-            amem_free(dsp->amem, dsp->s[i]);
-        }
-        dsp->s = amem_realloc(dsp->amem, dsp->s, len*sizeof(char *));
-        for (j = oldlen; j < len; j++) {
-            dsp->s[j] = amem_strdup(dsp->amem, "");
-        }
-    }
-    
-    dsp->len = len;
-
-    return RETURN_SUCCESS;
-}
-
-int dataset_set_ncols(Dataset *dsp, int ncols)
-{
-    if (ncols < 0 || ncols > MAX_SET_COLS) {
-        return RETURN_FAILURE;
-    }
-    
-    if (dsp->ncols == ncols) {
-        /* nothing changed */
-        return RETURN_SUCCESS;
-    } else {
-        int i, ncols_old = dsp->ncols;
-        
-        for (i = ncols_old; i < ncols; i++) {
-            dsp->ex[i] = amem_calloc(dsp->amem, dsp->len, SIZEOF_DOUBLE);
-        }
-        for (i = ncols; i < ncols_old; i++) {
-            AMEM_CFREE(dsp->amem, dsp->ex[i]);
-        }
-
-        dsp->ncols = ncols;
-        
-        return RETURN_SUCCESS;
-    }
-}
-
-int dataset_enable_scol(Dataset *dsp, int yesno)
-{
-    if (yesno) {
-        if (dsp->s) {
-            return RETURN_SUCCESS;
-        } else {
-            dsp->s = amem_calloc(dsp->amem, dsp->len, sizeof(char *));
-            if (dsp->len && !dsp->s) {
-                return RETURN_FAILURE;
-            } else {
-                return RETURN_SUCCESS;
-            }
-        }
-    } else {
-        if (dsp->s) {
-            int i;
-            for (i = 0; i < dsp->len; i++) {
-                amem_free(dsp->amem, dsp->s[i]);
-            }
-            amem_free(dsp->amem, dsp->s);
-        }
-        return RETURN_SUCCESS;
-    }
-}
-
-
 
 Dataset *dataset_copy(AMem *amem, Dataset *data)
 {
@@ -243,24 +141,10 @@ Dataset *dataset_copy(AMem *amem, Dataset *data)
         return NULL;
     }
     
-    data_new->len   = data->len;
-    data_new->ncols = data->ncols;
-    
-    for (k = 0; k < data->ncols; k++) {
-        data_new->ex[k] = copy_data_column(amem, data->ex[k], data->len);
-        if (!data_new->ex[k]) {
-            dataset_free(data_new);
-            return NULL;
-        }
+    for (k = 0; k < MAX_SET_COLS; k++) {
+        data_new->cols[k] = data->cols[k];
     }
-    
-    if (data->s != NULL) {
-        data_new->s = copy_string_column(amem, data->s, data->len);
-        if (!data_new->s) {
-            dataset_free(data_new);
-            return NULL;
-        }
-    }
+    data_new->scol = data->scol;
     
     data_new->hotlink = data->hotlink;
     data_new->hotsrc  = data->hotsrc;
@@ -357,7 +241,7 @@ set *set_data_new(AMem *amem)
         amem_free(amem, p);
         return NULL;
     }
-    p->data->ncols = 2; /* To be in sync with default SET_XY type */
+    /* p->data->ncols = 2; */ /* To be in sync with default SET_XY type */
     
     return p;
 }
@@ -532,7 +416,13 @@ int set_get_ncols(Quark *pset)
 {
     Dataset *dsp = set_get_dataset(pset);
     if (dsp) {
-        return dsp->ncols;
+        unsigned int i, ncols = 0;
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            if (dsp->cols[i] != COL_NONE) {
+                ncols++;
+            }
+        }
+        return ncols;
     } else {
         return -1;
     }
@@ -654,41 +544,26 @@ int set_set_legstr(Quark *pset, const char *s)
 
 char **set_get_strings(Quark *pset)
 {
-    if (pset) {
-        set *p = set_get_data(pset);
-        return p->data->s;
+    Quark *ss = get_parent_ssd(pset);
+    set *p = set_get_data(pset);
+    if (p && ss) {
+        int format;
+        void *pcol = ssd_get_col(ss, p->data->scol, &format);
+        if (format == FFORMAT_STRING) {
+            return (char **) pcol;
+        } else {
+            return NULL;
+        }
     } else {
         return NULL;
     }
 }
 
-int set_set_strings(Quark *pset, unsigned int len, char **s)
-{
-    if (set_set_length(pset, len) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    } else {
-        unsigned int i;
-        set *p = set_get_data(pset);
-        Dataset *dsp = p->data;
-
-        if (dataset_enable_scol(p->data, TRUE) != RETURN_SUCCESS) {
-            return RETURN_FAILURE;
-        }
-
-        for (i = 0; i < len; i++) {
-            dsp->s[i] = amem_strcpy(dsp->amem, dsp->s[i], s[i]);
-        }
-
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    }
-}
-
 int set_get_length(Quark *pset)
 {
-    set *p = set_get_data(pset);
-    if (p) {
-        return p->data->len;
+    Quark *ss = get_parent_ssd(pset);
+    if (ss) {
+        return ssd_get_nrows(ss);
     } else {
         return -1;
     }
@@ -699,15 +574,9 @@ int set_get_length(Quark *pset)
  */
 int set_set_length(Quark *pset, unsigned int len)
 {
-    set *p = set_get_data(pset);
+    Quark *ss = get_parent_ssd(pset);
 
-    if (!p) {
-        return RETURN_FAILURE;
-    }
-    
-    quark_dirtystate_set(pset, TRUE);
-    
-    return dataset_set_nrows(p->data, len);
+    return ssd_set_nrows(ss, len);
 }
 
 int set_set_comment(Quark *pset, char *s)
@@ -738,19 +607,14 @@ char *set_get_comment(Quark *pset)
 
 int set_set_type(Quark *pset, int type)
 { 
-    int ncols_new = settype_cols(type);
     set *p = set_get_data(pset);
     if (!p) {
         return RETURN_FAILURE;
     }
     
-    if (dataset_set_ncols(p->data, ncols_new) == RETURN_SUCCESS) {
-        p->type = type;
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
+    p->type = type;
+    quark_dirtystate_set(pset, TRUE);
+    return RETURN_SUCCESS;
 }
 
 int set_get_type(Quark *pset)
@@ -765,22 +629,17 @@ int set_get_type(Quark *pset)
 
 double *set_get_col(Quark *pset, unsigned int col)
 {
+    Quark *ss = get_parent_ssd(pset);
     set *p = set_get_data(pset);
-    if (p) {
-        return p->data->ex[col];
+    if (p && ss && col < MAX_SET_COLS) {
+        int format;
+        void *pcol = ssd_get_col(ss, p->data->cols[col], &format);
+        if (format != FFORMAT_STRING) {
+            return (double *) pcol;
+        } else {
+            return NULL;
+        }
     } else {
         return NULL;
-    }
-}
-
-int set_set_col(Quark *pset, unsigned int col, const double *x, unsigned int len)
-{
-    if (set_set_length(pset, len) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    } else {
-        set *p = set_get_data(pset);
-        memcpy(p->data->ex[col], x, len*SIZEOF_DOUBLE);
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
     }
 }

@@ -1873,10 +1873,10 @@ char *utf2iso(const char *s)
     <element name="#EStrDataset" type="dataset">
         <!-- Attributes -->
         <attribute name="#AStrCols" type="ival">
-            dataset_set_ncols($$, $?);
+            // dataset_set_ncols($$, $?);
         </attribute>
         <attribute name="#AStrRows" type="ival">
-            dataset_set_nrows($$, $?);
+            // dataset_set_nrows($$, $?);
         </attribute>
         <attribute name="#AStrComment" type="sval">
             $$->comment = $?;
@@ -1884,7 +1884,7 @@ char *utf2iso(const char *s)
         
         <!-- Child elements -->
         <child name="#EStrRow">
-            dataset_set_datapoint($$, $?, ((ParserData *) $U)->nrow);
+            // dataset_set_datapoint($$, $?, ((ParserData *) $U)->nrow);
             datapoint_free($?);
             ((ParserData *) $U)->nrow++;
         </child>

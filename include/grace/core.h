@@ -569,12 +569,12 @@ typedef enum {
 } DataColumn;
 #define MAX_SET_COLS    DATA_BAD
 
+#define COL_NONE    -1
 typedef struct {
-    AMem *amem;                 /* memory allocator */
-    int len;                    /* dataset length */
-    int ncols;                  /* number of data columns */
-    double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
-    char **s;                   /* pointer to strings */
+    AMem *amem;
+    
+    int cols[MAX_SET_COLS];     /* arrays of x, y, z, ... depending on type */
+    int scol;                   /* pointer to string column */
 
     char *comment;              /* how this dataset originated & alike */
 
@@ -836,10 +836,13 @@ Quark *ssd_new(Quark *q);
 unsigned int ssd_get_ncols(const Quark *q);
 unsigned int ssd_get_nrows(const Quark *q);
 int *ssd_get_formats(const Quark *q);
+void *ssd_get_col(const Quark *q, int col, int *format);
 
 int ssd_set_nrows(Quark *q, unsigned int nrows);
 int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
 int ssd_set_label(Quark *q, const char *label);
+
+Quark *get_parent_ssd(const Quark *q);
 
 /* Frame */
 frame *frame_get_data(const Quark *q);
@@ -936,10 +939,6 @@ int dataset_empty(Dataset *dsp);
 void dataset_free(Dataset *dsp);
 Dataset *dataset_copy(AMem *amem, Dataset *data);
 
-int dataset_set_nrows(Dataset *data, int len);
-int dataset_set_ncols(Dataset *data, int ncols);
-int dataset_enable_scol(Dataset *data, int yesno);
-
 Quark *set_new(Quark *gr);
 
 set *set_get_data(const Quark *q);
@@ -964,14 +963,12 @@ int set_is_hotlinked(Quark *pset);
 char *set_get_hotlink_file(Quark *pset);
 int set_get_hotlink_src(Quark *pset);
 
-int set_set_strings(Quark *p, unsigned int len, char **s);
 char **set_get_strings(Quark *p);
 
 int set_set_length(Quark *p, unsigned int length);
 int set_get_length(Quark *p);
 
 double *set_get_col(Quark *p, unsigned int col);
-int set_set_col(Quark *pset, unsigned int col, const double *x, unsigned int len);
 
 int set_get_type(Quark *p);
 int set_set_type(Quark *p, int stype);

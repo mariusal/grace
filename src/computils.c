@@ -940,6 +940,7 @@ int monospaced(double *array, int len, double *space)
 
 int filter_set(Quark *pset, char *rarray)
 {
+#if 0
     int i, ip, j, ncols;
     Dataset *dsp;
     
@@ -964,6 +965,7 @@ int filter_set(Quark *pset, char *rarray)
         }
     }
     set_set_length(pset, ip);
+#endif
     return RETURN_SUCCESS;
 }
 

@@ -810,6 +810,8 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
     if (!q) {
         return RETURN_FAILURE;
     }
+
+    quark_idstr_set(q, label);
     
     while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
 	linecount++;
@@ -835,9 +837,10 @@ static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
                     return RETURN_FAILURE;
                 }
                 
-                /* reset state registers */
                 q = ssd_new(pr);
+                quark_idstr_set(q, label);
 
+                /* reset state registers */
                 nrows = 0;
                 readerror = 0;
                 breakon = TRUE;
@@ -1425,9 +1428,9 @@ int readnetcdf(Quark *pset,
  * initialize stuff for the newly created set
  */
     set_set_type(pset, SET_XY);
-    set_set_col(pset, DATA_X, x, n);
+    // set_set_col(pset, DATA_X, x, n);
     xfree(x);
-    set_set_col(pset, DATA_Y, y, n);
+    // set_set_col(pset, DATA_Y, y, n);
     xfree(y);
 
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);

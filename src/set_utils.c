@@ -615,29 +615,6 @@ void zero_datapoint(Datapoint *dpoint)
     dpoint->s = NULL;
 }
 
-int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind)
-{
-    int col;
-    
-    if (!dsp) {
-        return RETURN_FAILURE;
-    }
-    
-    if (ind < 0 || ind >= dsp->len) {
-        return RETURN_FAILURE;
-    }
-    for (col = 0; col < dsp->ncols; col++) {
-        dsp->ex[col][ind] = dpoint->ex[col];
-    }
-    if (dpoint->s) {
-        dataset_enable_scol(dsp, TRUE);
-    }
-    if (dsp->s) {
-        dsp->s[ind] = copy_string(dsp->s[ind], dpoint->s);
-    }
-    return RETURN_SUCCESS;
-}
-
 /*
  * add a point to setno at ind
  */
@@ -736,6 +713,7 @@ void delete_byindex(Quark *pset, int *ind)
  */
 int do_splitsets(Quark *pset, int lpart)
 {
+#if 0
     int i, j, k, ncols, len, plen, npsets;
     double *x;
     char s[256];
@@ -804,7 +782,7 @@ int do_splitsets(Quark *pset, int lpart)
     
     /* kill the original set */
     killset(pset);
-    
+#endif    
     return RETURN_SUCCESS;
 }
 

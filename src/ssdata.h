@@ -41,14 +41,14 @@ double *copy_data_column_simple(double *src, int nrows);
 double *allocate_index_data(int nrows);
 double *allocate_mesh(double start, double stop, int len);
 
-char *cols_to_field_string(int nc, int *cols, int scol);
+char *cols_to_field_string(int nc, unsigned int *cols, int scol);
 int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 
 int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **formats);
 int insert_data_row(Quark *q, unsigned int row, char *s);
 int store_data(Quark *q, int load_type);
 
-int create_set_fromblock(const Quark *ss, Quark *pset,
-    int type, int nc, int *coli, int scol, int autoscale);
+int create_set_fromblock(Quark *pset, int type,
+    unsigned int nc, unsigned int *coli, int scol);
 
 #endif /* __SSDATA_H_ */

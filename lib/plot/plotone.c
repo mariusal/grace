@@ -417,8 +417,9 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
         if (graph_is_stacked(gr) != TRUE) {
             plot_rt->offset += 0.5*0.02*p->sym.size + graph_get_bargap(gr);
         } else {
+            double *y = set_get_col(pset, DATA_Y);
             for (j = 0; j < set_get_length(pset); j++) {
-                plot_rt->refy[j] += p->data->ex[1][j];
+                plot_rt->refy[j] += y[j];
             }
         }
         
@@ -574,10 +575,10 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
         x = plot_rt->refx;
         setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
-        x = p->data->ex[0];
+        x = set_get_col(pset, DATA_X);
         setlen = set_get_length(pset);
     }
-    y = p->data->ex[1];
+    y = set_get_col(pset, DATA_Y);
     
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
@@ -711,10 +712,10 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
         x = plot_rt->refx;
         setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
-        x = p->data->ex[0];
+        x = set_get_col(pset, DATA_X);
         setlen = set_get_length(pset);
     }
-    y = p->data->ex[1];
+    y = set_get_col(pset, DATA_Y);
     
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
@@ -938,10 +939,10 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
         x = plot_rt->refx;
         setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
-        x = p->data->ex[0];
+        x = set_get_col(pset, DATA_X);
         setlen = set_get_length(pset);
     }
-    y = p->data->ex[1];
+    y = set_get_col(pset, DATA_Y);
     
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
@@ -953,13 +954,13 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
         if (znorm == 0.0) {
             return;
         }
-        z = p->data->ex[2];
+        z = set_get_col(pset, DATA_Y1);
     } else {
         z = NULL;
     }
     
     if (p->type == SET_XYCOLOR) {
-        c = p->data->ex[2];
+        c = set_get_col(pset, DATA_Y1);
     } else {
         c = NULL;
     }
@@ -1034,7 +1035,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     VPoint vp, vprev;
     int skip = p->symskip + 1;
     AValue avalue;
-    char *str, *buf, buf1[MAX_STRING_LENGTH];
+    char **s, *str, *buf, buf1[MAX_STRING_LENGTH];
     int stacked_chart;
 
     avalue = p->avalue;
@@ -1046,13 +1047,14 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         x = plot_rt->refx;
         setlen = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
-        x = p->data->ex[0];
+        x = set_get_col(pset, DATA_X);
         setlen = set_get_length(pset);
     }
-    y = p->data->ex[1];
+    y = set_get_col(pset, DATA_Y);
+    s = set_get_strings(pset);
     
     if (set_get_ncols(pset) > 2) {
-        z = p->data->ex[2];
+        z = set_get_col(pset, DATA_Y1);
     } else {
         z = NULL;
     }
@@ -1105,8 +1107,8 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
             buf = buf1;
             break;
         case AVALUE_TYPE_STRING:
-            if (p->data->s != NULL && p->data->s[i] != NULL) {
-                buf = p->data->s[i];
+            if (s != NULL && s[i] != NULL) {
+                buf = s[i];
             }
             break;
         case AVALUE_TYPE_Z:
@@ -1152,10 +1154,10 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
         x = plot_rt->refx;
         n = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
-        x = p->data->ex[0];
+        x = set_get_col(pset, DATA_X);
         n = set_get_length(pset);
     }
-    y = p->data->ex[1];
+    y = set_get_col(pset, DATA_Y);
     
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
@@ -1169,30 +1171,30 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     dy_minus = NULL;
     switch (p->type) {
     case SET_XYDX:
-        dx_plus = p->data->ex[2];
+        dx_plus = set_get_col(pset, DATA_Y1);
         break;
     case SET_XYDY:
     case SET_BARDY:
-        dy_plus = p->data->ex[2];
+        dy_plus = set_get_col(pset, DATA_Y1);
         break;
     case SET_XYDXDX:
-        dx_plus  = p->data->ex[2];
-        dx_minus = p->data->ex[3];
+        dx_plus  = set_get_col(pset, DATA_Y1);
+        dx_minus = set_get_col(pset, DATA_Y2);
         break;
     case SET_XYDYDY:
     case SET_BARDYDY:
-        dy_plus  = p->data->ex[2];
-        dy_minus = p->data->ex[3];
+        dy_plus  = set_get_col(pset, DATA_Y1);
+        dy_minus = set_get_col(pset, DATA_Y2);
         break;
     case SET_XYDXDY:
-        dx_plus = p->data->ex[2];
-        dy_plus = p->data->ex[3];
+        dx_plus = set_get_col(pset, DATA_Y1);
+        dy_plus = set_get_col(pset, DATA_Y2);
         break;
     case SET_XYDXDXDYDY:
-        dx_plus  = p->data->ex[2];
-        dx_minus = p->data->ex[3];
-        dy_plus  = p->data->ex[4];
-        dy_minus = p->data->ex[5];
+        dx_plus  = set_get_col(pset, DATA_Y1);
+        dx_minus = set_get_col(pset, DATA_Y2);
+        dy_plus  = set_get_col(pset, DATA_Y3);
+        dy_minus = set_get_col(pset, DATA_Y4);
         break;
     default:
         return;
@@ -1275,8 +1277,8 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
     Canvas *canvas = plot_rt->canvas;
     set *p = set_get_data(pset);
     int i;
-    double *x = p->data->ex[0], *y1 = p->data->ex[1];
-    double *y2 = p->data->ex[2], *y3 = p->data->ex[3], *y4 = p->data->ex[4];
+    double *x = set_get_col(pset, DATA_X), *y1 = set_get_col(pset, DATA_Y);
+    double *y2 = set_get_col(pset, DATA_Y1), *y3 = set_get_col(pset, DATA_Y2), *y4 = set_get_col(pset, DATA_Y3);
     double ilen = 0.02*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
@@ -1332,10 +1334,10 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
         x = plot_rt->refx;
         n = MIN2(set_get_length(pset), plot_rt->refn);
     } else {
-        x = p->data->ex[0];
+        x = set_get_col(pset, DATA_X);
         n = set_get_length(pset);
     }
-    y = p->data->ex[1];
+    y = set_get_col(pset, DATA_Y);
     
     if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
@@ -1454,9 +1456,9 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
     setclipping(canvas, TRUE);
     
     setlen = set_get_length(pset);
-    x = p->data->ex[0];
-    y = p->data->ex[1];
-    r = p->data->ex[2];
+    x = set_get_col(pset, DATA_X);
+    y = set_get_col(pset, DATA_Y);
+    r = set_get_col(pset, DATA_Y1);
 
     setfillrule(canvas, p->line.fillrule);
     setline(canvas, &p->line.line);
@@ -1511,10 +1513,10 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
     }
     
     setlen = set_get_length(pset);
-    x = p->data->ex[DATA_X];
-    y = p->data->ex[DATA_Y];
-    vx = p->data->ex[DATA_Y1];
-    vy = p->data->ex[DATA_Y2];
+    x = set_get_col(pset, DATA_X);
+    y = set_get_col(pset, DATA_Y);
+    vx = set_get_col(pset, DATA_Y1);
+    vy = set_get_col(pset, DATA_Y2);
 
     arrow.length = 2*eb.barsize;
 
@@ -1554,12 +1556,12 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
     WPoint wp;
     VPoint vp1, vp2, vprev;
 
-    x  = p->data->ex[0];
-    md = p->data->ex[1];
-    lb = p->data->ex[2];
-    ub = p->data->ex[3];
-    lw = p->data->ex[4];
-    uw = p->data->ex[5];
+    x  = set_get_col(pset, DATA_X);
+    md = set_get_col(pset, DATA_Y);
+    lb = set_get_col(pset, DATA_Y1);
+    ub = set_get_col(pset, DATA_Y2);
+    lw = set_get_col(pset, DATA_Y3);
+    uw = set_get_col(pset, DATA_Y4);
 
     setclipping(canvas, TRUE);
 
@@ -1717,6 +1719,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
 
         if (avalue.active == TRUE) {
             TextProps tprops = avalue.tprops;
+            char **s = set_get_strings(pset);
 
             vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
                 cos((start_angle + stop_angle)/2.0);
@@ -1730,8 +1733,8 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
                                                      LFORMAT_TYPE_EXTENDED);
                 break;
             case AVALUE_TYPE_STRING:
-                if (p->data->s != NULL && p->data->s[i] != NULL) {
-                    buf = p->data->s[i];
+                if (s != NULL && s[i] != NULL) {
+                    buf = s[i];
                 }
                 break;
             default:

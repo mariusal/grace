@@ -221,7 +221,7 @@ static int eblock_accept_notify_proc(void *data)
 {
     int i;
     Quark *ss, *gr, *pset;
-    int cs[MAX_SET_COLS], nncols, scol, autoscale;
+    unsigned int cs[MAX_SET_COLS], nncols, scol, autoscale;
 
     if (GetSingleStorageChoice(ssd_sel, &ss) != RETURN_SUCCESS) {
         errmsg("Please select a single SSD");
@@ -247,7 +247,8 @@ static int eblock_accept_notify_proc(void *data)
 
     autoscale = GetOptionChoice(auto_item);
 
-    create_set_fromblock(ss, pset, block_curtype, nncols, cs, scol, autoscale);
+    create_set_fromblock(pset, block_curtype, nncols, cs, scol);
+    autoscale_graph(gr, autoscale);
 
     update_set_lists(gr);
     
