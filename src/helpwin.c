@@ -105,8 +105,9 @@ void HelpCB(void *data)
     	        i++;
     	    }
         }
-        command = xmalloc(comlen*SIZEOF_CHAR);
-        for (i = 0, j = 0; i < len - 1; i++) {
+        command = xmalloc((comlen + 1)*SIZEOF_CHAR);
+        command[comlen] = '\0';
+        for (i = 0, j = 0; i < len; i++) {
     	    if ((help_viewer[i] == '%') && (help_viewer[i + 1] == 's')){
     	        strcpy (&command[j], URL);
     	        j += urllen;
