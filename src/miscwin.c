@@ -41,7 +41,6 @@
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/Scale.h>
 
@@ -70,6 +69,7 @@ static Widget graph_drawfocus_choice_item;
 
 static Widget autoredraw_type_item;
 static Widget cursor_type_item;
+static SpinStructure *max_path_item;
 static Widget scrollper_item;
 static Widget shexper_item;
 static Widget linkscroll_item;
@@ -96,77 +96,89 @@ void create_props_frame(void *data)
     set_wait_cursor();
 
     if (props_frame == NULL) {
+        Widget panel, fr, rc, rc1, buts[2];
 	char *label1[2];
-        Widget panel, rc, wlabel, buts[2];
-
 	label1[0] = "Accept";
 	label1[1] = "Close";
+
 	props_frame = XmCreateDialogShell(app_shell, "Misc", NULL, 0);
 	handle_close(props_frame);
 	panel = XmCreateRowColumn(props_frame, "props_rc", NULL, 0);
+
+	fr = CreateFrame(panel, "Responsiveness");
+        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
+
 #ifdef DEBUG
-	debug_item = CreatePanelChoice(panel,
+	debug_item = CreatePanelChoice(rc1,
 					"Debug level:",
 					10,
 			      "Off", "1", "2", "3", "4", "5", "6", "7", "8",
 					NULL,
 					NULL);
 #endif
-	noask_item = CreateToggleButton(panel, "Don't ask questions");
-	dc_item = CreateToggleButton(panel, "Allow double clicks on canvas");
+	noask_item = CreateToggleButton(rc1, "Don't ask questions");
+	dc_item = CreateToggleButton(rc1, "Allow double clicks on canvas");
 
-	CreateSeparator(panel);
+	graph_focus_choice_item = CreatePanelChoice(rc1,
+            "Graph focus switch",
+	    4,
+	    "Button press",
+	    "As set",
+	    "Follows mouse",
+	    NULL,
+	    NULL);
 
-	graph_focus_choice_item = CreatePanelChoice(panel, "Graph focus",
-						    4,
-						    "Button press",
-						    "As set",
-						    "Follows mouse",
-						    NULL,
-						    NULL);
-	graph_drawfocus_choice_item =
-            CreateToggleButton(panel, "Display focus markers");
+        graph_drawfocus_choice_item =
+            CreateToggleButton(rc1, "Display focus markers");
+	autoredraw_type_item = CreateToggleButton(rc1, "Auto redraw");
+	cursor_type_item = CreateToggleButton(rc1, "Crosshair cursor");
 
-	CreateSeparator(panel);
+	XtManageChild(rc1);
+        
+	fr = CreateFrame(panel, "Limits");
+	max_path_item = CreateSpinChoice(fr,
+            "Max drawing path length:", 6, SPIN_TYPE_INT, 0.0, 1.0e6, 1000);
+        
+	fr = CreateFrame(panel, "Scroll/zoom");
+        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
 
-	wlabel = XtVaCreateManagedWidget("Scroll %:", xmLabelWidgetClass, panel, NULL);
-	scrollper_item = XtVaCreateManagedWidget("scroll", xmScaleWidgetClass, panel,
-						 XmNwidth, 200,
-						 XmNminimum, 0,
-						 XmNmaximum, 200,
-						 XmNvalue, 0,
-						 XmNshowValue, True,
-				     XmNprocessingDirection, XmMAX_ON_RIGHT,
-					       XmNorientation, XmHORIZONTAL,
-						 NULL);
-	wlabel = XtVaCreateManagedWidget("Zoom %:", xmLabelWidgetClass, panel, NULL);
-	shexper_item = XtVaCreateManagedWidget("shex", xmScaleWidgetClass, panel,
-						 XmNwidth, 200,
-						 XmNminimum, 0,
-						 XmNmaximum, 200,
-						 XmNvalue, 0,
-						 XmNshowValue, True,
-				     XmNprocessingDirection, XmMAX_ON_RIGHT,
-					       XmNorientation, XmHORIZONTAL,
-						 NULL);
-	linkscroll_item = CreateToggleButton(panel, "Linked scrolling");
-	autoredraw_type_item = CreateToggleButton(panel, "Auto redraw");
-	cursor_type_item = CreateToggleButton(panel, "Crosshair cursor");
+	CreateLabel(rc1, "Scroll %:");
+	scrollper_item = XtVaCreateManagedWidget("scroll",
+            xmScaleWidgetClass, rc1,
+	    XmNwidth, 200,
+	    XmNminimum, 0,
+	    XmNmaximum, 200,
+	    XmNvalue, 0,
+	    XmNshowValue, True,
+	    XmNprocessingDirection, XmMAX_ON_RIGHT,
+	    XmNorientation, XmHORIZONTAL,
+	    NULL);
+	CreateLabel(rc1, "Zoom %:");
+	shexper_item = XtVaCreateManagedWidget("shex", xmScaleWidgetClass, rc1,
+	    XmNwidth, 200,
+	    XmNminimum, 0,
+	    XmNmaximum, 200,
+	    XmNvalue, 0,
+	    XmNshowValue, True,
+	    XmNprocessingDirection, XmMAX_ON_RIGHT,
+	    XmNorientation, XmHORIZONTAL,
+	    NULL);
+	linkscroll_item = CreateToggleButton(rc1, "Linked scrolling");
+        XtManageChild(rc1);
 
-	CreateSeparator(panel);
+	fr = CreateFrame(panel, "Dates");
+        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
 
-	hint_item = CreatePanelChoice(panel, "Date hint",
+        hint_item = CreatePanelChoice(rc1, "Date hint",
                                       5,
                                       "ISO",
                                       "European",
                                       "US",
-                                      "Nohint",
+                                      "None",
                                       NULL,
                                       NULL);
-
-	date_item = CreateTextItem2(panel, 20, "Reference date:");
-
-	rc = XmCreateRowColumn(panel, "props_rc", NULL, 0);
+	date_item = CreateTextItem2(rc1, 20, "Reference date:");
+	rc = XmCreateRowColumn(rc1, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         two_digits_years_item = CreateToggleButton(rc, "Two-digit year span");
         wrap_year_item = CreateTextItem2(rc, 4, "Wrap year:");
@@ -174,6 +186,7 @@ void create_props_frame(void *data)
             wrap_year_cb, (void *) wrap_year_item);
         XtManageChild(rc);
 
+        XtManageChild(rc1);
 	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
@@ -199,11 +212,11 @@ void update_props_items(void)
     
     if (props_frame) {
 #ifdef DEBUG
-	if (debuglevel > 8) {
+	if (get_debuglevel() > 8) {
 	    errwin("Debug level > 8, resetting to 0");
-	    debuglevel = 0;
+	    set_debuglevel(0);
 	}
-	SetChoice(debug_item, debuglevel);
+	SetChoice(debug_item, get_debuglevel());
 #endif
 	SetToggleButtonState(noask_item, noask);
 	SetToggleButtonState(dc_item, allow_dc);
@@ -221,6 +234,7 @@ void update_props_items(void)
 	SetToggleButtonState(linkscroll_item, scrolling_islinked);
 	SetToggleButtonState(autoredraw_type_item, auto_redraw);
 	SetToggleButtonState(cursor_type_item, cursortype);
+	SetSpinChoice(max_path_item, (double) get_max_path_limit());
 	iv = (int) rint(100 * scrollper);
 	XtSetArg(a, XmNvalue, iv);
 	XtSetValues(scrollper_item, &a, 1);
@@ -249,6 +263,7 @@ void update_props_items(void)
         SetToggleButtonState(two_digits_years_item, two_digits_years_allowed());
         sprintf(wrap_year_string, "%04d", get_wrap_year());
         xv_setstr(wrap_year_item, wrap_year_string);
+        XtSetSensitive(wrap_year_item, two_digits_years_allowed() ? True:False);
     }
 }
 
@@ -259,7 +274,7 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
     double jul;
     
 #ifdef DEBUG
-    debuglevel = GetChoice(debug_item);
+    set_debuglevel(GetChoice(debug_item));
 #endif
     noask = GetToggleButtonState(noask_item);
     allow_dc = GetToggleButtonState(dc_item);
@@ -280,6 +295,7 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
     scrolling_islinked = GetToggleButtonState(linkscroll_item);
     auto_redraw = GetToggleButtonState(autoredraw_type_item);
     cursortype = GetToggleButtonState(cursor_type_item);
+    set_max_path_limit((int) GetSpinChoice(max_path_item));
     XtSetArg(a, XmNvalue, &value);
     XtGetValues(scrollper_item, &a, 1);
     scrollper = (double) value / 100.0;
