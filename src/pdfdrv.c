@@ -344,16 +344,18 @@ void pdf_fillpolygon(VPoint *vps, int nc)
     }
     
     pdf_setpen();
-    
-    PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
-    for (i = 1; i < nc; i++) {
-        PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
-    }
+
     if (getfillrule() == FILLRULE_WINDING) {
         PDF_set_parameter(phandle, "fillrule", "winding");
     } else {
         PDF_set_parameter(phandle, "fillrule", "evenodd");
     }
+    
+    PDF_moveto(phandle, (float) vps[0].x, (float) vps[0].y);
+    for (i = 1; i < nc; i++) {
+        PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
+    }
+
     PDF_fill(phandle);
 }
 
