@@ -100,76 +100,6 @@ RunTime *runtime_new(Grace *grace)
     RunTime *rt;
     char *s;
 
-    QuarkFlavor project_qf = {
-        QFlavorProject,
-        (Quark_data_new) project_data_new,
-        (Quark_data_free) project_data_free,
-        NULL
-    };
-
-    QuarkFlavor ssd_qf = {
-        QFlavorSSD,
-        (Quark_data_new) ssd_data_new,
-        (Quark_data_free) ssd_data_free,
-        (Quark_data_copy) ssd_data_copy
-    };
-
-    QuarkFlavor frame_qf = {
-        QFlavorFrame,
-        (Quark_data_new) frame_data_new,
-        (Quark_data_free) frame_data_free,
-        (Quark_data_copy) frame_data_copy
-    };
-
-    QuarkFlavor graph_qf = {
-        QFlavorGraph,
-        (Quark_data_new) graph_data_new,
-        (Quark_data_free) graph_data_free,
-        (Quark_data_copy) graph_data_copy
-    };
-
-    QuarkFlavor set_qf = {
-        QFlavorSet,
-        (Quark_data_new) set_data_new,
-        (Quark_data_free) set_data_free,
-        (Quark_data_copy) set_data_copy
-    };
-
-    QuarkFlavor axisgrid_qf = {
-        QFlavorAGrid,
-        (Quark_data_new) axisgrid_data_new,
-        (Quark_data_free) axisgrid_data_free,
-        (Quark_data_copy) axisgrid_data_copy
-    };
-
-    QuarkFlavor axis_qf = {
-        QFlavorAxis,
-        (Quark_data_new) axis_data_new,
-        (Quark_data_free) axis_data_free,
-        (Quark_data_copy) axis_data_copy
-    };
-
-    QuarkFlavor dobject_qf = {
-        QFlavorDObject,
-        (Quark_data_new) object_data_new,
-        (Quark_data_free) object_data_free,
-        (Quark_data_copy) object_data_copy
-    };
-
-    QuarkFlavor atext_qf = {
-        QFlavorAText,
-        (Quark_data_new) atext_data_new,
-        (Quark_data_free) atext_data_free,
-        (Quark_data_copy) atext_data_copy
-    };
-
-    QuarkFlavor region_qf = {
-        QFlavorRegion,
-        (Quark_data_new) region_data_new,
-        (Quark_data_free) region_data_free,
-        (Quark_data_copy) region_data_copy
-    };
-
     QuarkFlavor container_qf = {
         QFlavorContainer,
         container_data_new,
@@ -191,16 +121,19 @@ RunTime *runtime_new(Grace *grace)
         return NULL;
     }
     quark_factory_set_udata(rt->qfactory, grace);
-    quark_flavor_add(rt->qfactory, &project_qf);
-    quark_flavor_add(rt->qfactory, &ssd_qf);
-    quark_flavor_add(rt->qfactory, &frame_qf);
-    quark_flavor_add(rt->qfactory, &graph_qf);
-    quark_flavor_add(rt->qfactory, &set_qf);
-    quark_flavor_add(rt->qfactory, &axisgrid_qf);
-    quark_flavor_add(rt->qfactory, &axis_qf);
-    quark_flavor_add(rt->qfactory, &dobject_qf);
-    quark_flavor_add(rt->qfactory, &atext_qf);
-    quark_flavor_add(rt->qfactory, &region_qf);
+
+    /* register quark flavors */
+    project_qf_register(rt->qfactory);
+    ssd_qf_register(rt->qfactory);
+    frame_qf_register(rt->qfactory);
+    graph_qf_register(rt->qfactory);
+    set_qf_register(rt->qfactory);
+    axisgrid_qf_register(rt->qfactory);
+    axis_qf_register(rt->qfactory);
+    object_qf_register(rt->qfactory);
+    atext_qf_register(rt->qfactory);
+    region_qf_register(rt->qfactory);
+
     quark_flavor_add(rt->qfactory, &container_qf);
 
     rt->canvas = canvas_new();
