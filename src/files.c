@@ -1109,96 +1109,50 @@ int save_project(char *fn)
  */
 int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
 {
-    int i, n, ncols;
-    double *x, *y, *dx, *dy, *dz, *dw;
+    int i, n, col, ncols;
+    double *x[MAX_SET_COLS];
     char **s;
-    char *format_string;
 
     if (cp == NULL) {
 	return GRACE_EXIT_FAILURE;
     }
     
-    if (format == NULL) {
-        format = sformat;
-    }
-
     if (is_set_active(gno, setno) == TRUE) {
+        n = getsetlength(gno, setno);
+        ncols = dataset_cols(gno, setno);
+        for (col = 0; col < ncols; col++) {
+            x[col] = getcol(gno, setno, col);
+        }
+        s = get_set_strings(gno, setno);
+
+        if (format == NULL) {
+            format = sformat;
+        }
+
         if (!rawdata) {
             fprintf(cp, "@target G%d.S%d\n", gno, setno);
             fprintf(cp, "@type %s\n", set_types(dataset_type(gno, setno)));
         }
-        x = getx(gno, setno);
-        y = gety(gno, setno);
-        n = getsetlength(gno, setno);
-        ncols = dataset_cols(gno, setno);
-        /* 2 for "\n" and 4 for "%s" in xystring */
-        format_string = malloc((ncols + 1)*strlen(format) + 6);
-        strcpy(format_string, format);
-        for (i = 1; i < ncols; i++) {
-            strcat(format_string, " ");
-            strcat(format_string, format);
-        }
-        switch (dataset_type(gno, setno)) {
-        case SET_XYSTRING:
-            strcat(format_string, " ");
-            strcat(format_string, "\"%s\"");
-            strcat(format_string, "\n");
-            s = get_set_strings(gno, setno);
-            for (i = 0; i < n; i++) {
-                fprintf(cp, format_string, x[i], y[i], s[i]);
+        
+        for (i = 0; i < n; i++) {
+            for (col = 0; col < ncols; col++) {
+                if (col != 0) {
+                    fputs(" ", cp);
+                }
+                fprintf(cp, format, x[col][i]);
             }
-            break;
-        default:    
-            strcat(format_string, "\n");
-            switch (ncols) {
-            case 2:
-                for (i = 0; i < n; i++) {
-                    fprintf(cp, format_string, x[i], y[i]);
-                }
-                break;
-            case 3:
-                dx = getcol(gno, setno, 2);
-                for (i = 0; i < n; i++) {
-                    fprintf(cp, format_string, x[i], y[i], dx[i]);
-                }
-                break;
-            case 4:
-                dx = getcol(gno, setno, 2);
-                dy = getcol(gno, setno, 3);
-                for (i = 0; i < n; i++) {
-                    fprintf(cp, format_string, x[i], y[i], dx[i], dy[i]);
-                }
-                break;
-            case 5:
-                dx = getcol(gno, setno, 2);
-                dy = getcol(gno, setno, 3);
-                dz = getcol(gno, setno, 4);
-                for (i = 0; i < n; i++) {
-                    fprintf(cp, format_string, x[i], y[i], dx[i], dy[i], dz[i]);
-                }
-                break;
-            case 6:
-                dx = getcol(gno, setno, 2);
-                dy = getcol(gno, setno, 3);
-                dz = getcol(gno, setno, 4);
-                dw = getcol(gno, setno, 5);
-                for (i = 0; i < n; i++) {
-                    fprintf(cp, format_string,
-                        x[i], y[i], dx[i], dy[i], dz[i], dw[i]);
-                }
-                break;
-            default:
-                errmsg("Internal error in write_set()");
-                break;
+            if (s != NULL) {
+                fprintf(cp, " \"%s\"", escapequotes(s[i]));
             }
+            fputs("\n", cp);
         }
         if (rawdata) {
             fprintf(cp, "\n");
         } else {
             fprintf(cp, "&\n");
         }
-        free(format_string);
     }
+    
     return GRACE_EXIT_SUCCESS;
 }
 
