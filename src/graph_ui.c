@@ -171,7 +171,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 
 void update_graph_ui(GraphUI *ui, Quark *q)
 {
-    if (q && q->fid == QFlavorGraph) {
+    if (q && quark_fid_get(q) == QFlavorGraph) {
         char buf[32];
         world w;
         GLocator *locator;
@@ -220,7 +220,7 @@ void update_graph_ui(GraphUI *ui, Quark *q)
 
 int graph_set_data(GraphUI *ui, Quark *q, void *caller)
 {
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         double axislim, znorm;
         world w;
         GLocator *locator;

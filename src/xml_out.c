@@ -710,7 +710,7 @@ static int project_save_hook(Quark *q,
         return RETURN_FAILURE;
     }
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorProject:
         pr = project_get_data(q);
         

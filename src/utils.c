@@ -258,7 +258,7 @@ void emergency_exit(Grace *grace, int is_my_bug, char *msg)
         grace->rt->emergency_save = TRUE;
         grace->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
-        if (grace->project->dirtystate) {
+        if (quark_dirtystate_get(grace->project)) {
             strcpy(buf, project_get_docname(grace->project));
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);

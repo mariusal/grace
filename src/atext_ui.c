@@ -142,7 +142,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
 
 void update_atext_ui(ATextUI *ui, Quark *q)
 {
-    if (q && q->fid == QFlavorAText) {
+    if (q && quark_fid_get(q) == QFlavorAText) {
         char *format, buf[32];
         AText *at = atext_get_data(q);
 
@@ -187,7 +187,7 @@ void update_atext_ui(ATextUI *ui, Quark *q)
 
 int set_atext_data(ATextUI *ui, Quark *q, void *caller)
 {
-    if (ui && q && q->fid == QFlavorAText) {
+    if (ui && q && quark_fid_get(q) == QFlavorAText) {
         AText *at = atext_get_data(q);
 
         if (!caller || caller == ui->active) {

@@ -2486,7 +2486,7 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
 {
     char buf[128];
     
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         sprintf(buf, "(%c) Graph \"%s\" (type: %s, sets: %d)",
             graph_is_active(q) ? '+':'-', QIDSTR(q),
             graph_types(grace->rt, graph_get_type(q)), number_of_sets(q));
@@ -2724,7 +2724,7 @@ static void s_dc_cb(StorageStructure *ss, Quark *pset, void *data)
 static char *set_labeling(Quark *q, unsigned int *rid)
 {
     char buf[128];
-    if (q->fid == QFlavorSet) {
+    if (quark_fid_get(q) == QFlavorSet) {
         set *p = set_get_data(q);
 
         sprintf(buf, "(%c) Set \"%s\" (type: %s, length: %d)",

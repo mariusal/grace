@@ -109,7 +109,7 @@ void UpdateQuarkTree(ListTreeItem *ti)
         ti_data->nchoices = 0;
     }
     if (ti_data->q) {
-        storage_traverse(ti_data->q->children, traverse_hook, ti);
+        storage_traverse(quark_get_children(ti_data->q), traverse_hook, ti);
     }
 }   
 
@@ -174,7 +174,7 @@ static char *q_labeling(Quark *q)
     AText *at;
     region *r;
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorProject:
         pr = project_get_data(q);
         
@@ -278,14 +278,14 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         Quark *parent;
         
         q = ti_data->q;
-        fid = q->fid;
+        fid = quark_fid_get(q);
         parent = quark_parent_get(q);
         
         for (i = 1; i < count; i++) {
             item = ret->items[i];
             ti_data = (TreeItemData *) item->user_data;
             
-            if ((int) ti_data->q->fid != fid) {
+            if ((int) quark_fid_get(ti_data->q) != fid) {
                 ui->homogeneous_selection = FALSE;
             }
             if (quark_parent_get(ti_data->q) != parent) {
@@ -443,7 +443,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     SetSensitive(ui->insert_object_pane, FALSE);
     if (count == 1) {
         SetSensitive(ui->idstr->form, TRUE);
-        SetTextString(ui->idstr, q->idstr);
+        SetTextString(ui->idstr, QIDSTR(q));
         switch (fid) {
         case QFlavorProject:
             SetSensitive(ui->insert_frame_bt,    TRUE);
@@ -504,7 +504,8 @@ static void drop_cb(Widget w, XtPointer client, XtPointer call)
             ti_data = (TreeItemData *) item->user_data;
             parent = quark_parent_get(ti_data->q);
             
-            if (parent && parent != drop_q && parent->fid == drop_q->fid) {
+            if (parent && parent != drop_q &&
+                quark_fid_get(parent) == quark_fid_get(drop_q)) {
                 for (i = 0; i < count; i++) {
                     Quark *q;
                     item = ret.items[i];
@@ -547,7 +548,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             xfree(s);
         }
 
-        switch (q->fid) {
+        switch (quark_fid_get(q)) {
         case QFlavorProject:
             if (set_project_data(ui->project_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;

@@ -1089,7 +1089,7 @@ void startup_gui(Grace *grace)
 
 static int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         int *type = (int *) udata;
         closure->descend = FALSE;
         graph_scroll(q, *type);
@@ -1113,7 +1113,7 @@ static void graph_scroll_proc(Widget but, void *data)
 
 static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         int *type = (int *) udata;
         closure->descend = FALSE;
         graph_zoom(q, *type);

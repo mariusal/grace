@@ -95,7 +95,7 @@ static int graph_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     graph_hook_t *p = (graph_hook_t *) udata;
     
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         p->ngraphs++;
         p->graphs = xrealloc(p->graphs, p->ngraphs*SIZEOF_VOID_P);
         p->graphs[p->ngraphs - 1] = q;
@@ -135,13 +135,13 @@ int get_font_by_name(const Quark *project, const char *name)
 
 static int fcomp(const Quark *q1, const Quark *q2, void *udata)
 {
-    if (q1->fid == QFlavorAText) {
+    if (quark_fid_get(q1) == QFlavorAText) {
         return 1;
     } else
-    if (q2->fid == QFlavorAText) {
+    if (quark_fid_get(q2) == QFlavorAText) {
         return -1;
     } else
-    if (q1->fid == QFlavorDObject && q2->fid == QFlavorDObject) {
+    if (quark_fid_get(q1) == QFlavorDObject && quark_fid_get(q2) == QFlavorDObject) {
         DObject *o1 = object_get_data(q1), *o2 = object_get_data(q2);
         if (o1->type != o2->type) {
             return (o1->type - o2->type);
@@ -149,13 +149,13 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
             return strcmp(QIDSTR(q1), QIDSTR(q2));
         }
     } else
-    if (q1->fid == QFlavorDObject) {
+    if (quark_fid_get(q1) == QFlavorDObject) {
         return 1;
     } else
-    if (q2->fid == QFlavorDObject) {
+    if (quark_fid_get(q2) == QFlavorDObject) {
         return -1;
     } else
-    if (q1->fid == QFlavorAxis) {
+    if (quark_fid_get(q1) == QFlavorAxis) {
         tickmarks *t = axis_get_data(q1);
         if (t->props.gridflag || t->mprops.gridflag) {
             return -1;
@@ -163,7 +163,7 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
             return 1;
         }
     } else
-    if (q2->fid == QFlavorAxis) {
+    if (quark_fid_get(q2) == QFlavorAxis) {
         tickmarks *t = axis_get_data(q2);
         if (t->props.gridflag || t->mprops.gridflag) {
             return 1;
@@ -171,7 +171,7 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
             return -1;
         }
     } else
-    if (q1->fid == q2->fid) {
+    if (quark_fid_get(q1) == quark_fid_get(q2)) {
         return strcmp(QIDSTR(q1), QIDSTR(q2));
     } else {
         return 0;
@@ -188,7 +188,7 @@ static int project_postprocess_hook(Quark *q,
     set *s;
     int gtype;
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorProject:
         pr = project_get_data(q);
         
@@ -437,7 +437,7 @@ static int project_postprocess_hook(Quark *q,
         break;
     case QFlavorAText:
         if (version_id >= 40200 && version_id <= 50005 &&
-            !compare_strings(q->idstr, "timestamp")) {
+            !compare_strings(quark_idstr_get(q), "timestamp")) {
             /* BBox type justification was erroneously set */
             AText *at = atext_get_data(q);
             if (at) {

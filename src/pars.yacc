@@ -49,6 +49,8 @@
 #  include <alloca.h>
 #endif
 
+#include <grace/coreP.h> /* FIXME!!! */
+
 #include "defines.h"
 #include "globals.h"
 #include "grace.h"

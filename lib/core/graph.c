@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#include "grace/core.h"
+#include "grace/coreP.h"
 
 graph *graph_get_data(const Quark *q)
 {

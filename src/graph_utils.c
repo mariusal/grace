@@ -44,7 +44,7 @@ static int graph_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     int *ngraphs = (int *) udata;
     
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         (*ngraphs)++;
     }
     
@@ -104,7 +104,7 @@ static int set_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     int *nsets = (int *) udata;
     
-    if (q->fid == QFlavorSet) {
+    if (quark_fid_get(q) == QFlavorSet) {
         (*nsets)++;
     }
     
@@ -129,7 +129,7 @@ static int set_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     set_hook_t *p = (set_hook_t *) udata;
     
-    if (q->fid == QFlavorSet) {
+    if (quark_fid_get(q) == QFlavorSet) {
         p->sets[p->nsets] = q;
         p->nsets++;
     }
@@ -386,7 +386,7 @@ static int autotick_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     int *amask = (int *) udata;
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorAxis:
         closure->descend = FALSE;
         if (((*amask & AXIS_MASK_X) && axis_is_x(q)) ||
@@ -860,7 +860,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
     AText *at;
     ext_xy_t *ext_xy = (ext_xy_t *) udata;
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorFrame:
         f = frame_get_data(q);
         frame_get_view(q, &v);

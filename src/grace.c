@@ -372,7 +372,7 @@ Grace *grace_from_quark(const Quark *q)
 {
     Grace *grace = NULL;
     if (q) {
-        grace = (Grace *) quark_factory_get_udata(q->qfactory);
+        grace = (Grace *) quark_factory_get_udata(quark_get_qfactory(q));
     }
     
     return grace;

@@ -52,7 +52,7 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
     plot_rt_t *plot_rt = (plot_rt_t *) udata;
     Canvas *canvas = plot_rt->canvas;
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorProject:
         if (!closure->post) {
             set_draw_mode(canvas, TRUE);   

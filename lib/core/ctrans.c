@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#include "grace/core.h"
+#include "grace/coreP.h"
 
 typedef struct {
     int xscale;

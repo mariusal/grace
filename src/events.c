@@ -142,7 +142,7 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
     DObject *o;
     double *x, *y;
     
-    switch (q->fid) {
+    switch (quark_fid_get(q)) {
     case QFlavorFrame:
         if (frame_is_active(q)) {
             legend *l;
@@ -217,7 +217,7 @@ static void move_target(canvas_target *ct, const VPoint *vp)
     vshift.x = vp->x - ct->vp.x;
     vshift.y = vp->y - ct->vp.y;
     
-    switch (ct->q->fid) {
+    switch (quark_fid_get(ct->q)) {
     case QFlavorFrame:
         switch (ct->part) {
         case 0:
@@ -289,12 +289,12 @@ static void popup_any_cb(canvas_target *ct, int type)
         quark_move(q, FALSE);
         break;
     case DROP_POINT_CB:
-        if (q->fid == QFlavorSet && ct->part >= 0) {
+        if (quark_fid_get(q) == QFlavorSet && ct->part >= 0) {
             droppoints(q, ct->part, ct->part);
         }
         break;
     case AUTOSCALE_BY_SET_CB:
-        if (q->fid == QFlavorSet) {
+        if (quark_fid_get(q) == QFlavorSet) {
             autoscale_bysets(&q, 1, AUTOSCALE_XY);
         }
         break;
@@ -580,12 +580,12 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         SetSensitive(send_to_back_bt, TRUE);
                         SetSensitive(move_down_bt, TRUE);
                     }
-                    if (ct.q->fid == QFlavorSet && ct.part >= 0) {
+                    if (quark_fid_get(ct.q) == QFlavorSet && ct.part >= 0) {
                         ManageChild(drop_pt_bt);
                     } else {
                         UnmanageChild(drop_pt_bt);
                     }
-                    if (ct.q->fid == QFlavorSet) {
+                    if (quark_fid_get(ct.q) == QFlavorSet) {
                         ManageChild(as_set_bt);
                     } else {
                         UnmanageChild(as_set_bt);
@@ -747,7 +747,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    if (q->fid == QFlavorGraph) {
+    if (quark_fid_get(q) == QFlavorGraph) {
         Quark *pr = get_parent_project(q);
         VPoint *vp = (VPoint *) udata;
         view v;
@@ -762,7 +762,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
             return FALSE;
         }
     } else
-    if (q->fid == QFlavorFrame && !frame_is_active(q)) {
+    if (quark_fid_get(q) == QFlavorFrame && !frame_is_active(q)) {
         closure->descend = FALSE;
     }
 

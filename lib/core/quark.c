@@ -28,8 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "grace/core.h"
-
+#include "grace/coreP.h"
 
 QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid)
 {
@@ -246,6 +245,15 @@ void *quark_get_udata(const Quark *q)
     }
 }
 
+QuarkFactory *quark_get_qfactory(const Quark *q)
+{
+    if (q) {
+        return q->qfactory;
+    } else {
+        return NULL;
+    }
+}
+
 Quark *quark_copy2(Quark *newparent, const Quark *q);
 
 static int copy_hook(unsigned int step, void *data, void *udata)
@@ -312,17 +320,38 @@ int quark_dirtystate_get(const Quark *q)
     return q->dirtystate;
 }
 
-void quark_idstr_set(Quark *q, const char *s)
+int quark_idstr_set(Quark *q, const char *s)
 {
     if (q) {
         q->idstr = copy_string(q->idstr, s);
         quark_dirtystate_set(q, TRUE);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
     }
 }
 
 char *quark_idstr_get(const Quark *q)
 {
     return q->idstr;
+}
+
+int quark_fid_set(Quark *q, int fid)
+{
+    if (q) {
+        q->fid = fid;
+        quark_dirtystate_set(q, TRUE);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int quark_fid_get(const Quark *q)
+{
+    return q->fid;
 }
 
 typedef struct {
@@ -467,6 +496,11 @@ void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata)
 int quark_count_children(const Quark *q)
 {
     return storage_count(q->children);
+}
+
+Storage *quark_get_children(const Quark *q)
+{
+    return q->children;
 }
 
 int quark_child_exist(const Quark *parent, const Quark *child)

@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#include "grace/core.h"
+#include "grace/coreP.h"
 
 double *copy_data_column(double *src, int nrows)
 {

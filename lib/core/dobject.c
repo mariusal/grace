@@ -33,7 +33,7 @@
 
 #include <string.h>
 
-#include "grace/core.h"
+#include "grace/coreP.h"
 
 static int object_odata_size(OType type)
 {

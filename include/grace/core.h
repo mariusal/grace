@@ -145,6 +145,7 @@
 #define COORD_WORLD     2
 
 
+typedef struct _QuarkFactory QuarkFactory;
 typedef struct _Quark Quark;
 
 typedef void  (*Quark_data_free)(void *data); 
@@ -161,34 +162,6 @@ typedef struct _QuarkFlavor {
     Quark_data_free data_free;
     Quark_data_copy data_copy;
 } QuarkFlavor;
-
-typedef struct _QuarkFactory {
-    unsigned int refcount;
-    
-    QuarkFlavor *qflavours;
-    unsigned int nflavours;
-    
-    void *udata;
-} QuarkFactory;
-
-struct _Quark {
-    QuarkFactory *qfactory;
-    
-    void *udata;
-    
-    unsigned int fid;
-    char *idstr;
-    
-    struct _Quark *parent;
-    Storage *children;
-    unsigned int dirtystate;
-    unsigned int refcount;
-    
-    void *data;
-    
-    Quark_cb cb;
-    void *cbdata;
-};
 
 typedef struct {
     unsigned int depth;
@@ -213,7 +186,7 @@ enum {
     QFlavorContainer
 };
 
-#define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
+#define QIDSTR(q) (quark_idstr_get(q) ? quark_idstr_get(q):"unnamed")
 
 /*
  * graphics defaults
@@ -783,8 +756,13 @@ Quark *quark_parent_get(const Quark *q);
 void quark_dirtystate_set(Quark *q, int flag);
 int quark_dirtystate_get(const Quark *q);
 
-void quark_idstr_set(Quark *q, const char *s);
+int quark_idstr_set(Quark *q, const char *s);
 char *quark_idstr_get(const Quark *q);
+int quark_fid_set(Quark *q, int fid);
+int quark_fid_get(const Quark *q);
+
+QuarkFactory *quark_get_qfactory(const Quark *q);
+
 Quark *quark_find_child_by_idstr(Quark *q, const char *s);
 Quark *quark_find_descendant_by_idstr(Quark *q, const char *s);
 
@@ -795,6 +773,8 @@ int quark_count_children(const Quark *q);
 int quark_child_exist(const Quark *parent, const Quark *child);
 int quark_reparent(Quark *q, Quark *newparent);
 int quark_reparent_children(Quark *parent, Quark *newparent);
+
+Storage *quark_get_children(const Quark *q);
 
 int quark_move(const Quark *q, int forward);
 int quark_push(const Quark *q, int forward);
