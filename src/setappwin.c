@@ -147,17 +147,17 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         CreateMenuButton(menupane, "close", "Close", 'C',
             (XtCallbackProc) setapp_aac_cb, (XtPointer) AAC_CLOSE, NULL);
 
-        menupane = CreateMenu(menubar, "setappDataMenu", "Data", 'D', NULL, NULL);
+        menupane = CreateMenu(menubar, "setappEditMenu", "Edit", 'E', NULL, NULL);
 
-        CreateMenuButton(menupane, "allColors", "All colors", 'c',
+        CreateMenuButton(menupane, "setDifferentColors", "Set different colors", 'c',
             setapp_data_proc, (XtPointer) SETAPP_ALL_COLORS, NULL);
-        CreateMenuButton(menupane, "allSymbols", "All symbols", 's',
+        CreateMenuButton(menupane, "setDifferentSymbols", "Set different symbols", 's',
             setapp_data_proc, (XtPointer) SETAPP_ALL_SYMBOLS, NULL);
-        CreateMenuButton(menupane, "allLineWidths", "All line widths", 'w',
+        CreateMenuButton(menupane, "setDifferentLineWidths", "Set different line widths", 'w',
             setapp_data_proc, (XtPointer) SETAPP_ALL_LINEW, NULL);
-        CreateMenuButton(menupane, "allLineStyles", "All line styles", 'y',
+        CreateMenuButton(menupane, "setDifferentLineStyles", "Set different line styles", 'y',
             setapp_data_proc, (XtPointer) SETAPP_ALL_LINES, NULL);
-        CreateMenuButton(menupane, "setBW", "Black & white", 'B',
+        CreateMenuButton(menupane, "setBW", "Set black & white", 'B',
             setapp_data_proc, (XtPointer) SETAPP_ALL_BW, NULL);
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "loadComments", "Load comments", 'm',
@@ -168,7 +168,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         
         menupane = CreateMenu(menubar, "setappOptionsMenu", "Options", 'O', NULL, NULL);
       
-        /* nonl_autol_item =  */CreateMenuToggle(menupane, "masterSwitch", "Master switch (N/I)", 'M',
+        CreateMenuToggle(menupane, "colorSync", "Color sync (N/I)", 's',
             (XtCallbackProc) NULL, (XtPointer) NULL, NULL);
 
         menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
