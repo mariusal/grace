@@ -342,7 +342,7 @@ char *exe_path_translate(char *path)
 
 #ifdef __VMS
 #  include <unixlib.h>
-char *path_translate(char *path)
+char *path_translate(const char *path)
 {
     char *st;
 
