@@ -239,6 +239,11 @@ DObject *object_get(int id)
     return o;
 }
 
+int get_object_ids(int **ids)
+{
+    return storage_get_all_ids(grace->project->objects, ids);
+}
+
 void do_clear_objects(void)
 {
     Storage *objects = grace->project->objects;

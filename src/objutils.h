@@ -96,6 +96,8 @@ DObject *object_get(int id);
 void object_free(DObject *o);
 DObject *object_copy(DObject *o);
 
+int get_object_ids(int **ids);
+
 void do_clear_objects(void);
 
 int isactive_object(DObject *o);
