@@ -419,10 +419,7 @@ void killsetdata(int gno, int setno)
 
     if (is_set_active(gno, setno)) {
 	for (i = 0; i < MAX_SET_COLS; i++) {
-	    if (getcol(gno, setno, i) != NULL) {
-		free(g[gno].p[setno].data.ex[i]);
-	    }
-	    g[gno].p[setno].data.ex[i] = NULL;
+	    cxfree(g[gno].p[setno].data.ex[i]);
 	}
 	if (get_set_strings(gno, setno) != NULL) {
 	    for (i = 0; i < getsetlength(gno, setno); i++) {
