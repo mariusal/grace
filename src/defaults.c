@@ -139,8 +139,7 @@ void set_default_string(plotstr * s)
     s->font = grdefaults.font;
     s->just = JUST_LEFT|JUST_MIDDLE|JUST_OBJECT;
     s->charsize = grdefaults.charsize;
-    s->s = (char *) malloc(sizeof(char));
-    s->s[0] = 0;
+    s->s = NULL;
 }
 
 void set_default_arrow(Arrow *arrowp)
