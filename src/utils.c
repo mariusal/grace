@@ -1030,6 +1030,20 @@ char *get_docname(void)
     return docname;
 }
 
+char *get_docbname(void)
+{
+    static char buf[GR_MAXPATHLEN];
+    char *bufp;
+    
+    strcpy(buf, mybasename(docname)); 
+    bufp = strrchr(buf, '.');
+    if (bufp) {
+        *(bufp) = '\0';
+    }
+    
+    return buf;
+}
+
 void set_docname(const char *s)
 {
     if (s != NULL) {

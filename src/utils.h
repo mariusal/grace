@@ -95,8 +95,9 @@ void set_print_cmd(const char *cmd);
 char *get_editor(void);
 void set_editor(const char *cmd);
 
-char *get_docname(void);
 void set_docname(const char *s);
+char *get_docname(void);
+char *get_docbname(void);
 
 void errmsg(char *buf);
 void echomsg(char *msg);
