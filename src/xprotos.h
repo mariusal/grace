@@ -44,6 +44,11 @@ typedef int (*CanvasPointSink) (
     void *data
 );
 
+typedef struct {
+    Screen *screen;
+    Pixmap pixmap;
+} X11stream;
+
 struct _X11Stuff {
     Display *disp;
     int screennumber;
@@ -103,6 +108,7 @@ struct _MainWinUI {
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
 void x11_dev2VPoint(short x, short y, VPoint *vp);
 
+int x11_get_pixelsize(const GUI *gui);
 long x11_allocate_color(GUI *gui, const RGB *rgb);
 void x11_redraw(Window window, int x, int y, int widht, int height);
 

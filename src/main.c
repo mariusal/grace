@@ -130,7 +130,28 @@ int main(int argc, char *argv[])
     if (cli == TRUE || gracebat == TRUE) {
         rt->tdevice = register_dummy_drv(canvas);
     } else {
+        Device_entry *d;
+        int pixel_size;
+
         rt->tdevice = register_x11_drv(canvas);
+        
+        d = get_device_props(canvas, rt->tdevice);
+        pixel_size = x11_get_pixelsize(gui);
+        
+        switch (pixel_size) {
+        case 0:
+            /* disable font AA in mono mode */
+            d->fontrast = FONT_RASTER_MONO;
+            break;
+        case 1:
+            /* low AA in pseudocolor mode */
+            d->fontrast = FONT_RASTER_AA_LOW;
+            break;
+        default:
+            d->fontrast = FONT_RASTER_AA_SMART;
+            break;
+        }
+    
     }
 #else
     rt->tdevice = register_dummy_drv(canvas);

@@ -54,6 +54,27 @@ static GC gcxor;
 
 static void resize_drawables(unsigned int w, unsigned int h);
 
+int x11_get_pixelsize(const GUI *gui)
+{
+    Screen *screen = DefaultScreenOfDisplay(gui->xstuff->disp);
+    int i, n;
+    XPixmapFormatValues *pmf;
+    int pixel_size = 0;
+
+    pmf = XListPixmapFormats(DisplayOfScreen(screen), &n);
+    if (pmf) {
+        for (i = 0; i < n; i++) {
+            if (pmf[i].depth == PlanesOfScreen(screen)) {
+                pixel_size = pmf[i].bits_per_pixel/8;
+                break;
+            }
+        }
+        XFree((char *) pmf);
+    }
+    
+    return pixel_size;
+}
+
 long x11_allocate_color(GUI *gui, const RGB *rgb)
 {
     X11Stuff *xstuff = gui->xstuff;
@@ -499,6 +520,7 @@ void xdrawgraph(const Quark *q)
         Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
         Page_geometry *pg = &d->pg;
         float dpi = grace->gui->zoom*xstuff->dpi;
+        X11stream xstream;
         
         set_wait_cursor();
 
@@ -512,6 +534,10 @@ void xdrawgraph(const Quark *q)
         }
         
         resize_drawables(pg->width, pg->height);
+        
+        xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
+        xstream.pixmap = xstuff->bufpixmap;
+        canvas_set_prstream(grace->rt->canvas, &xstream);
 
         select_device(grace->rt->canvas, grace->rt->tdevice);
 	drawgraph(grace->rt->canvas, project);
