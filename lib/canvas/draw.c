@@ -172,6 +172,11 @@ static int fmap_proc_default(const Canvas *canvas, int font)
     return font;
 }
 
+int canvas_init(void)
+{
+    return init_t1();
+}
+
 Canvas *canvas_new(void)
 {
     Canvas *canvas;
@@ -196,13 +201,6 @@ Canvas *canvas_new(void)
         canvas->fmap_proc    = fmap_proc_default;
         canvas->fscale       = 1.0;
         canvas->lscale       = 1.0;
-        
-        /* initialize T1lib */
-        if (init_t1(canvas) != RETURN_SUCCESS) {
-	    canvas_free(canvas);
-            
-            return NULL;
-        }
     }
     
     return canvas;

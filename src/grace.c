@@ -144,6 +144,11 @@ RunTime *runtime_new(Grace *grace)
 
     quark_flavor_add(rt->qfactory, &container_qf);
 
+    if (canvas_init() != RETURN_SUCCESS) {
+        runtime_free(rt);
+        return NULL;
+    }
+    
     rt->canvas = canvas_new();
     if (!rt->canvas) {
         runtime_free(rt);

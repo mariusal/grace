@@ -39,7 +39,7 @@
 # define T1_GetNoFonts T1_Get_no_fonts
 #endif
 
-int init_t1(Canvas *canvas)
+int init_t1(void)
 {
     /* Set log-level */
     T1_SetLogLevel(T1LOG_DEBUG);

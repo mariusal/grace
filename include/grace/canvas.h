@@ -419,6 +419,7 @@ LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
 
 #if !defined(CANVAS_BACKEND_API) || defined(__CANVASP_H_)
 
+int canvas_init(void);
 Canvas *canvas_new(void);
 void canvas_free(Canvas *canvas);
 

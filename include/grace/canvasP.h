@@ -200,7 +200,7 @@ int add_color(Canvas *canvas, const RGB *rgb, int ctype);
 int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
 int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
 
-int init_t1(Canvas *canvas);
+int init_t1(void);
 void initialize_patterns(Canvas *canvas);
 void initialize_linestyles(Canvas *canvas);
 
