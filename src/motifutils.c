@@ -3338,7 +3338,6 @@ OptionStructure *CreateColorChoice(Widget parent, char *s)
 
     color_selectors[ncolor_selectors - 1] = retvalp;
     
-    UpdateOptionChoice(retvalp, ncolor_option_items, color_option_items);
     paint_color_selector(retvalp);
     
     return retvalp;
