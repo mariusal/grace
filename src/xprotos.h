@@ -37,6 +37,7 @@
 #include <Xm/Xm.h>
 
 #include "defines.h"
+#include "graphs.h"
 
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
@@ -129,6 +130,7 @@ void create_overlay_frame(void *data);
 void create_autos_frame(void *data);
 
 void define_objects_popup(void *data);
+void object_edit_popup(graph *g, int id);
 
 void update_locator_items(int gno);
 void create_locator_frame(void *data);
