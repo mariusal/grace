@@ -9,7 +9,7 @@
 
 <PRE>
 
-<H2>5.0.6</H2>
+<H2>5.1.0</H2>
 
  *  [ES] too long text strings (>256) crashed Grace
  *  [LM] MIF driver (alpha)
@@ -18,6 +18,18 @@
  !  [ES] finally, introduced variables (usual and 1D arrays)...
  !  [ES] as a result of the above, removed scratch arrays (A, B, C, D)
  !  [ES] re-designed "Create by formula"; any set type can be defined
+ *  [ES] panned selectors: orientation
+ *  [ES] #710
+ !  [ES] justifications
+ *  [ES] "duplicate graph" caused memory corruption
+ !  [ES] alternative tick labels ("transformed" axes) (rep. #93)
+ !  [ES] user-defined tick labels are no longer allowed without tick mark
+         positions
+ *  [AM] omit a few GUI-specific flags/help strings when compiling a GUI-less
+         exec.
+ *  [RW] #711
+ *  [ES] #715
+ !  [ES] pie charts
 
 
 <H2>5.0.5</H2>
@@ -673,6 +685,7 @@
     [HF]  - Harald Freyer &lt;hf@nike.cup.uni-muenchen.de&gt;
     [JB]  - Jesko Brudermann &lt;jbruder@gwdg.de&gt;
     [OT]  - Ovidiu Toader &lt;ovidiut@ostrich.physics.utoronto.ca&gt;
+    [RW]  - Robin Williams &lt;Robin.Williams@astro.cf.ac.uk&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
