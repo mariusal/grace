@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.11)</title>
+<title>Grace User's Guide (for Grace-5.1.12)</title>
 <author>by the Grace Team</author>
-<date>08.01.2003</date>
+<date>18.02.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -1421,16 +1421,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          can be saved in a file and retrieved as needed using the file
          menu of the popup.
 
-         In the "Advanced" tab, you can additionally apply a restriction to the
-         set(s) to be fitted (thus ignoring points not satisfying the
-         criteria), use one of preset weighting schemes or define your own,
-         and choose whether to load the fitted values, the residuals or
-         the function itself. Choosing to load fitted values or residuals leads
-         to a set of the same length and abscissas as the initial set. Choosing
-         to load the function is almost similar to load the fitted values
-         except that you choose yourself the boundaries and the number of
-         points. This can be used for example to draw the curve outside of the
-         data sample range or to produce an evenly spaced set from an irregular
+         In the "Advanced" tab, you can additionally apply a restriction to
+         the set(s) to be fitted (thus ignoring points not satisfying the
+         criteria), use one of preset weighting schemes or define your own
+         (notice that "dY" in the preset "1/dY^2" one actually refers to the
+         third column of the data set; use the "Custom" function if this
+         doesn't make sense for your data set), and choose whether to load
+         the fitted values, the residuals or the function itself. Choosing
+         to load fitted values or residuals leads to a set of the same
+         length and abscissas as the initial set. Choosing to load the
+         function is almost similar to load the fitted values except that
+         you choose yourself the boundaries and the number of points. This
+         can be used for example to draw the curve outside of the data
+         sample range or to produce an evenly spaced set from an irregular
          one.
 
          <sect3> Correlation/covariance <label id="correlation/covariance">

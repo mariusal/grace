@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.11)
+  <title>Grace FAQ (for Grace-5.1.12)
   <author>by the Grace Team
-  <date>19.01.2003
+  <date>19.02.2003
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -38,9 +38,6 @@
         From version number 4.00, the development was taken over by
         a team of volunteers under the coordination of Evgeny Stambulchik.
 
-        See question <ref id="mailinglist" name="Mailing Lists"> on
-        how to contact the developers.
-        
         When its copyright was changed to GPL, the name was changed to Grace,
         which stands for ``GRaphing, Advanced Computation and Exploration of
         data'' or ``Grace Revamps ACE/gr''. The first version of Grace
