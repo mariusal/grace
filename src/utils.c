@@ -1014,10 +1014,15 @@ int get_debuglevel(Grace *grace)
 char *q_labeling(Quark *q)
 {
     RunTime *rt = rt_from_quark(q);
-    char buf[128];
+    char *buf;
     tickmarks *t;
     DObject *o;
     region *r;
+    
+    buf = xmalloc(strlen(QIDSTR(q)) + 128);
+    if (!buf) {
+        return NULL;
+    }
     
     switch (quark_fid_get(q)) {
     case QFlavorProject:
@@ -1078,5 +1083,5 @@ char *q_labeling(Quark *q)
         break;
     }
     
-    return copy_string(NULL, buf);
+    return buf;
 }
