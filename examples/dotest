@@ -83,10 +83,10 @@ $GRACE typeset.agr
 $GRACE tstack.agr 
 #
 # a graph with a parameter file
-$GRACE -p test1.par -a xy test.dat 
+$GRACE -p test1.par -autoscale xy test.dat 
 #
 # a graph with a parameter file in reverse video
-$GRACE -rvideo -p test1.par -a xy test.dat 
+$GRACE -rvideo -p test1.par -autoscale xy test.dat 
 #
 $GRACE test2.agr 
 #
@@ -97,7 +97,7 @@ $GRACE mlo.dat -graph 1 brw.dat -p co2.par
 $GRACE co2.agr 
 #
 # a graph with alternate axes
-$GRACE -p altaxis.par test.dat -a xy 
+$GRACE -p altaxis.par test.dat -autoscale xy 
 #
 # a graph with error bars
 $GRACE terr.agr
