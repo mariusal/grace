@@ -84,6 +84,16 @@ typedef enum {
     DISLINE2ND
 } CanvasAction;
 
+/* add points at */
+#define ADD_POINT_BEGINNING 0
+#define ADD_POINT_END       1
+#define ADD_POINT_NEAREST   2
+
+/* move points */
+#define MOVE_POINT_XY   0
+#define MOVE_POINT_X    1
+#define MOVE_POINT_Y    2
+
 /*
  * double click detection interval (ms)
  */
@@ -132,5 +142,7 @@ void place_timestamp_action( Widget, XKeyEvent *, String *, Cardinal * );
 void refresh_hotlink_action( Widget, XKeyEvent *, String *, Cardinal * );
 void exit_abruptly_action( Widget, XKeyEvent *, String *, Cardinal * );
 
+void update_point_locator(int gno, int setno, int loc);
+void get_tracking_props(int *setno, int *move_dir, int *add_at);
 
 #endif /* __EVENTS_H_ */

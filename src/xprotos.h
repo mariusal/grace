@@ -104,9 +104,6 @@ void update_hotlinks(void);
 void create_saveall_popup(void *data);
 
 void create_points_frame(void *data);
-void create_goto_frame(void *data);
-void create_add_frame(void *data);
-void update_point_locator(int gno, int setno, int loc);
 
 void create_region_frame(void *data);
 void create_define_frame(void *data);

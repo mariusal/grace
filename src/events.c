@@ -63,14 +63,12 @@ extern Widget perimlab;
 int cursortype = 0;
 
 static VPoint anchor_vp = {0.0, 0.0};
-static int x, y;               /* pointer coordinates */
+static int x, y;                /* pointer coordinates */
 static int anchor_x = 0;
 static int anchor_y = 0;
 static view bb;
 
-int add_setno;			/* set to add points - set in ptswin.c */
-int add_at;			/* where to begin inserting points in the set */
-int move_dir;			/* restriction on point movement */
+static int move_dir;
 
 static int action_flag = 0;
 
@@ -107,17 +105,18 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     VPoint vp;
     VVector shift;
     view v;
-    int cg, newg, setno, loc;
+    int cg, newg, loc;
     static int track_gno = -1;
-    static int track_setno;
+    int track_setno;
     static int track_loc;
+    int add_at;
     static int type, id;   /* for objects */
     int axisno;
-    char buf[100];
     Datapoint dpoint;
     GLocator locator;
     
     cg = get_cg();
+    get_tracking_props(&track_setno, &move_dir, &add_at);
     
     switch (event->type) {
     case MotionNotify:
@@ -163,13 +162,13 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             break;
         case MOVE_POINT2ND:
 	    switch (move_dir) {
-	    case 0:
+	    case MOVE_POINT_XY:
 	        select_line(anchor_x, anchor_y, x, y, 1);
                 break;
-	    case 1:
+	    case MOVE_POINT_X:
 	        select_line(x, anchor_y, anchor_x, anchor_y, 1);
 	        break;
-	    case 2:
+	    case MOVE_POINT_Y:
 	        select_line(anchor_x, anchor_y, anchor_x, y, 1);
 	        break;
 	    }
@@ -202,8 +201,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
 	                select_region(anchor_x, anchor_y, x, y, 0);
-                    } else if (find_point(cg, vp, &setno, &loc) == RETURN_SUCCESS) {
-                        define_symbols_popup((void *) setno);
+                    } else if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS) {
+                        define_symbols_popup((void *) track_setno);
                     } else if (axis_clicked(cg, vp, &axisno) == TRUE) {
                         create_axes_dialog(axisno);
                     } else if (title_clicked(cg, vp) == TRUE) {
@@ -350,8 +349,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(MAKE_ELLIP_1ST);
                 break;
             case AUTO_NEAREST:
-                if (find_point(cg, vp, &setno, &loc) == RETURN_SUCCESS) {
-                    autoscale_byset(cg, setno, AUTOSCALE_XY);
+                if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS) {
+                    autoscale_byset(cg, track_setno, AUTOSCALE_XY);
                     update_ticks(cg);
                     xdrawgraph();
                     set_action(DO_NOTHING);
@@ -363,8 +362,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 }
                 break;
             case DEL_POINT:
-                if (find_point(cg, vp, &setno, &loc) == RETURN_SUCCESS) {
-		    del_point(cg, setno, loc);
+                if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS) {
+		    del_point(cg, track_setno, loc);
 		    update_set_lists(cg);
                     xdrawgraph();
                 }
@@ -373,7 +372,6 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 if (find_point(cg, vp, &track_setno, &track_loc) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
                     get_point(cg, track_setno, track_loc, &wp);
-                    update_point_locator(cg, track_setno, track_loc);
 
 	            select_line(anchor_x, anchor_y, x, y, 0);
 		    set_action(MOVE_POINT2ND);
@@ -409,20 +407,21 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 dpoint.ex[0] = wp.x;
                 dpoint.ex[1] = wp.y;
                 switch (add_at) {
-		case 0: /* at the end */
-		    loc = getsetlength(cg, add_setno);
-		    break;
-		case 1: /* at the beginning */
+		case ADD_POINT_BEGINNING: /* at the beginning */
 		    loc = 0;
 		    break;
-		case 2: /* between nearest points */
-		    loc = find_insert_location(cg, add_setno, vp);
+		case ADD_POINT_END: /* at the end */
+		    loc = getsetlength(cg, track_setno);
+		    break;
+		default: /* between nearest points */
+		    loc = find_insert_location(cg, track_setno, vp);
 		    break;
 		}
-		add_point_at(cg, add_setno, loc, &dpoint);
-		sprintf(buf, "Set %d, loc %d, (%f, %f)", add_setno, loc, wp.x, wp.y);
-		update_set_lists(cg);
-                xdrawgraph();
+		if (add_point_at(cg, track_setno, loc, &dpoint)
+                    == RETURN_SUCCESS) {
+		    update_set_lists(cg);
+                    xdrawgraph();
+                }
                 break;
             case PLACE_LEGEND_1ST:
                 if (legend_clicked(cg, vp, &bb) == TRUE) {
@@ -511,7 +510,6 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                     track_gno = cg;
                     track_point(cg, track_setno, &track_loc, 0);
                 } else {
-                    update_point_locator(-1, -1, -1);
                     track_gno = -1;
                 }
                 break;
@@ -1090,18 +1088,25 @@ int title_clicked(int gno, VPoint vp)
  */
 int find_point(int gno, VPoint vp, int *setno, int *loc)
 {
-    int i, j;
+    int i, start, stop, j, found;
     double *xtmp, *ytmp;
     WPoint wptmp;
     VPoint vptmp;
     double dist, mindist = MAXPICKDIST;
 
-    *setno = -1;
     if (is_valid_gno(gno) != TRUE) {
         return RETURN_FAILURE;
     }
-    
-    for (i = 0; i < number_of_sets(gno); i++) {
+        
+    if (is_valid_setno(gno, *setno)) {
+        start = *setno;
+        stop = *setno;
+    } else {
+        start = 0;
+        stop = number_of_sets(gno) - 1;
+    }
+    found = FALSE;
+    for (i = start; i <= stop; i++) {
 	if (is_set_hidden(gno, i) == FALSE) {
 	    xtmp = getx(gno, i);
 	    ytmp = gety(gno, i);
@@ -1112,7 +1117,8 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
                 
                 dist = MAX2(fabs(vp.x - vptmp.x), fabs(vp.y - vptmp.y));
                 if (dist < mindist) {
-		    *setno = i;
+		    found = TRUE;
+                    *setno = i;
 		    *loc = j;
                     mindist = dist;
 		}
@@ -1120,9 +1126,10 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
 	}
     }
     
-    if (*setno == -1) {
+    if (found == FALSE) {
         return RETURN_FAILURE;
     } else {
+        update_point_locator(gno, *setno, *loc);
         return RETURN_SUCCESS;
     }
 }
