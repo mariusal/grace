@@ -245,6 +245,9 @@
 /* Define if you have the isfinite function.  */
 #undef HAVE_ISFINITE
 
+/* Define if you have the isnan function.  */
+#undef HAVE_ISNAN
+
 /* Define if you have the Bessel j0 function.  */
 #undef HAVE_J0
 
@@ -277,6 +280,9 @@
 
 /* define if GD library is available */
 #undef HAVE_LIBGD
+
+/* define if JPEG library is available */
+#undef HAVE_LIBJPEG
 
 /* Define if you have a Fortran compiler.  */
 #undef HAVE_F77

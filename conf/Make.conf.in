@@ -60,6 +60,9 @@ PDFDRV_O=@PDFDRV_O@
 # GD library
 GD_LIB=@GD_LIB@
 
+# JPEG library
+JPEG_LIB=@JPEG_LIB@
+
 # Generic raster driver
 RSTDRV_O=@RSTDRV_O@
 

@@ -31,6 +31,7 @@ AC_SUBST(FFTW_LIB)
 AC_SUBST(PDF_LIB)
 AC_SUBST(PDFDRV_O)
 AC_SUBST(GD_LIB)
+AC_SUBST(JPEG_LIB)
 AC_SUBST(RSTDRV_O)
 AC_SUBST(GRACE_EDITOR)
 AC_SUBST(HELPVIEWER)
@@ -336,6 +337,7 @@ if test "$ac_cv_lib_m_main" = yes; then
   if test "$ac_cv_lib_m_finite" != yes; then
     AC_CHECK_LIB(m, isfinite, AC_DEFINE(HAVE_ISFINITE))
   fi
+  AC_CHECK_LIB(m, isnan, AC_DEFINE(HAVE_ISNAN))
 fi
 
 dnl **** Check for libgen
@@ -534,6 +536,11 @@ case $rstdrv in
 esac
 if test $ac_cv_lib_gd_gdImageCreate != yes; then
   AC_MSG_RESULT(--> raster driver is disabled)
+else
+  AC_CHECK_LIB(jpeg, jpeg_start_compress, JPEG_LIB="-ljpeg";AC_DEFINE(HAVE_LIBJPEG))
+  if test $ac_cv_lib_jpeg_jpeg_start_compress != yes; then
+    AC_MSG_RESULT(--> JPEG backend is disabled)
+  fi
 fi
 
 dnl **** check if user wants to compile grace_np lib with support for Fortran
