@@ -4817,7 +4817,11 @@ int v_scanner(char *s, int *reslen, double **vres)
         return GRACE_EXIT_FAILURE;
     } else {
         *reslen = v_result->length;
-        *vres = v_result->data;
+        if (v_result->type == GRVAR_TMP) {
+            *vres = v_result->data;
+        } else {
+            *vres = copy_data_column(v_result->data, v_result->length);
+        }
         v_result->length = 0;
         v_result->data = NULL;
         return GRACE_EXIT_SUCCESS;
