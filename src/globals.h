@@ -61,14 +61,6 @@ nonlprefs nonl_prefs;
 /* region definition */
 region rg[MAXREGION];
 
-int format_types[] = {FORMAT_DECIMAL, FORMAT_EXPONENTIAL, FORMAT_GENERAL, FORMAT_POWER,
-                      FORMAT_SCIENTIFIC, FORMAT_ENGINEERING,
-		      FORMAT_DDMMYY, FORMAT_MMDDYY, FORMAT_YYMMDD, FORMAT_MMYY, FORMAT_MMDD,
-        	      FORMAT_MONTHDAY, FORMAT_DAYMONTH, FORMAT_MONTHS, FORMAT_MONTHSY, FORMAT_MONTHL, FORMAT_DAYOFWEEKS,
-        	      FORMAT_DAYOFWEEKL, FORMAT_DAYOFYEAR, FORMAT_HMS, FORMAT_MMDDHMS, FORMAT_MMDDYYHMS, FORMAT_YYMMDDHMS,
-        	      FORMAT_DEGREESLON, FORMAT_DEGREESMMLON, FORMAT_DEGREESMMSSLON, FORMAT_MMSSLON,
-        	      FORMAT_DEGREESLAT, FORMAT_DEGREESMMLAT, FORMAT_DEGREESMMSSLAT, FORMAT_MMSSLAT, FORMAT_INVALID};
-
 #else
 #  define GLOBAL(var, type, val) extern type var
 #  define GLOBALARR(arr, type, dim, val) extern type arr[]
@@ -82,8 +74,6 @@ extern nonlopts nonl_opts;
 extern nonlprefs nonl_prefs;
 
 extern region rg[];
-
-extern int format_types[];
 
 #endif
 
