@@ -305,6 +305,7 @@ void expose_resize(Widget w, XtPointer client_data,
             set_page_geometry(pg);
         }
         
+        update_all();
         drawgraph();
 	
 	if (batchfile[0]) {
