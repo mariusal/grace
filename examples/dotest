@@ -58,7 +58,7 @@ $GRACE times.agr
 # some more tick label formats
 $GRACE -p tforms.par 
 #
-# some more tick label formats
+# Australia map
 $GRACE au.agr 
 #
 # log plots
@@ -69,6 +69,9 @@ $GRACE tlog.agr
 #
 # a log2 example
 $GRACE log2.agr 
+#
+# a logit scale sample
+$GRACE logit.agr 
 #
 # display fonts and font mappings
 $GRACE tfonts.agr 
