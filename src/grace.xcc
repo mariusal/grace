@@ -765,7 +765,7 @@ char *utf2iso(const char *s)
         <child name="#EStrDefinitions">
         </child>
         <child name="#EStrPage">
-            Project *pr  = (Project *) $$->data;
+            Project *pr  = project_get_data($$);
             pr->page_wpp = $?->width;
             pr->page_hpp = $?->height,
             pr->bgfill   = $?->bgfill;
@@ -1708,9 +1708,7 @@ char *utf2iso(const char *s)
             xcc_string_free($?);
         </child>
         <child name="#EStrDataset">
-            set *p = (set *) $$->data;
-            dataset_free(p->data);
-            p->data = $?;
+            set_set_dataset($$, $?);
         </child>
     </element>
     <element name="#EStrSymbol" type="symbol">
