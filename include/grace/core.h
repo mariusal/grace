@@ -794,8 +794,8 @@ Quark *get_parent_project(const Quark *q);
 
 /* Frame */
 frame *frame_data_new(void);
-void frame_data_free(frame *g);
-frame *frame_data_copy(frame *g);
+void frame_data_free(frame *f);
+frame *frame_data_copy(frame *f);
 frame *frame_get_data(const Quark *q);
 
 Quark *frame_new(Quark *project);
@@ -803,11 +803,11 @@ Quark *frame_new(Quark *project);
 int frame_is_active(const Quark *q);
 int frame_set_active(Quark *q, int flag);
 
-view *frame_get_view(Quark *q);
+view *frame_get_view(const Quark *q);
 int frame_set_view(Quark *q, const view *v);
 
 int frame_set_type(Quark *q, int type);
-legend *frame_get_legend(Quark *gr);
+legend *frame_get_legend(const Quark *gr);
 int frame_set_legend(Quark *q, const legend *l);
 int frame_set_outline(Quark *q, const Line *line);
 int frame_set_fillpen(Quark *q, const Pen *pen);

@@ -133,7 +133,7 @@ frame *frame_get_data(const Quark *q)
     }
 }
 
-view *frame_get_view(Quark *q)
+view *frame_get_view(const Quark *q)
 {
     frame *f = frame_get_data(q);
     if (f) {
@@ -143,7 +143,7 @@ view *frame_get_view(Quark *q)
     }
 }
 
-legend *frame_get_legend(Quark *q)
+legend *frame_get_legend(const Quark *q)
 {
     frame *f = frame_get_data(q);
     
