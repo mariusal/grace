@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.99.0)
   <author>by the Grace Team
-  <date>14.08.2004
+  <date>05.09.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -18,34 +18,6 @@
 
   <sect>General Questions
     <p>
-
-    <sect1>What is Grace?
-      <p>
-
-        Grace is a tool to make two-dimensional plots of numerical
-        data. It runs under various (if not all) flavours of UNIX
-        with X11 and M*tif. Its capabilities are roughly similar to
-        GUI-based programs like Sigmaplot or Microcal Origin plus
-        script-based tools like gnuplot or Genplot.  Its strength
-        lies in the fact that it combines the convenience of a
-        graphical user interface with the power of a scripting
-        language which enables it to do sophisticated calculations
-        or perform automated tasks.
-
-        Grace is derived from Xmgr (a.k.a. ACE/gr), originally
-        written by Paul Turner.
-
-        From version number 4.00, the development was taken over by
-        a team of volunteers under the coordination of Evgeny Stambulchik.
-
-        When its copyright was changed to GPL, the name was changed to Grace,
-        which stands for ``GRaphing, Advanced Computation and Exploration of
-        data'' or ``Grace Revamps ACE/gr''. The first version of Grace
-        available is named 5.0.0, while the last public version of Xmgr has
-        the version number 4.1.2.
-
-        Paul still maintains and develops a non-public version of
-        Xmgr for internal use.
 
     <sect1>Where can I get Grace?
       <p>
@@ -71,11 +43,24 @@
     <sect1>What is the difference between Xmgr and Grace?
       <p>
 
+        Grace is derived from Xmgr (a.k.a. ACE/gr), originally
+        written by Paul Turner.
+
+        From version number 4.00, the development was taken over by
+        a team of volunteers under the coordination of Evgeny Stambulchik.
+
+        When its copyright was changed to GPL, the name was changed to Grace,
+        which stands for ``GRaphing, Advanced Computation and Exploration of
+        data'' or ``Grace Revamps ACE/gr''. The first version of Grace
+        available is named 5.0.0, while the last public version of Xmgr has
+        the version number 4.1.2.
+
+        As of now, most of the codebase has been re-written from scratch.
+
         Apart from the licensing, the main difference is that Grace is
         WYSIWYG (What You See Is What You Get). This was achieved through a
         major rewrite of all the mid-level drawing routines and the use of
-        the device-independent Type 1 font rendering library T1lib for
-        typesetting.
+        the device-independent Type 1 font rendering.
         
         For help with changing from Xmgr to Grace see section 
         <tt>Xmgr to Grace migration guide</tt> in the
@@ -111,15 +96,15 @@
 
         Yes. Grace is free in terms of the GNU General Public
         License (GPL) (see the file <tt>LICENSE</tt> which comes with
-        Grace or the <url url="http://www.gnu.org" name="GNU Home
-        Page"> for details).
+        Grace or the <url url="http://www.gnu.org" name="GNU Home Page">
+        for details).
 
     <sect1>Who wrote Grace?
       <p>
 
-        The sources of Grace still contain a significant amount of code from
+        The sources of Grace still contain some amount of code from
         Xmgr by Paul Turner. For a list of those who contributed to Grace
-        since then, see the file <tt>CHANGES</tt> in the Grace distribution.
+        since then, see the file <tt>NEWS</tt> in the Grace distribution.
 
      <p>
         Some integral parts of Grace are borrowed from other
@@ -136,17 +121,6 @@
           <item> <url url="http://www.lesstif.org/Xbae.html" name="Xbae">
           
         </itemize>
-
-    <sect1>Is there a Postscript&verbar;LaTeX&verbar;HTML&verbar;SGML
-        version of this document?
-      <p>
-
-        Yes. It is written in SGML which means that all the above
-        versions can easily be created using <tt>sgml-tools</tt> (see
-        their <url name="home page" url="http://www.sgmltools.org/">).
-        At the Grace home page
-        (see question <ref id="homepage" name="Home Page">), all
-        these versions are available.
 
 <!-- **************************************** -->
 
@@ -282,7 +256,7 @@
         Yes. You can search and browse the database of known bugs in
         Grace at the bug report facility <url name="w3todo"
         url="http://plasma-gate.weizmann.ac.il/w3todo/index.phtml">
-        or using the <tt>"Help/Comments"</tt> menu from within
+        or using the <tt>"Help/Report an issue"</tt> menu from within
         Grace.  The database also keeps track of the status of the
         bug (<tt>Confirmed, Working on, Testing, Fixed, Closed,</tt>
         etc.). This is also the place to submit bug reports and

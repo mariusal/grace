@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.99.0)</title>
 <author>by the Grace Team</author>
-<date>21.08.2004</date>
+<date>29.09.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -45,6 +45,7 @@
      is named 5.0.0, while the last public version of Xmgr has the version
      number 4.1.2.
 
+     As of now, most of the codebase has been re-written from scratch.
      Paul still maintains and develops a non-public version of Xmgr for
      internal use.
 
@@ -1025,20 +1026,113 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
    <sect1> Edit menu <label id="edit-menu">
    <p>
-      <sect2> Data sets <label id="data-sets">
-      <p>
-      Using the data set popup, you can view the properties of
-      datasets. These include its type, length, associated comment and
-      some statistics (min, max, mean, standard deviation). A
-      horizontal scrollbar at the bottom allows to get the two last
-      properties, they are not displayed by default. Also note that if
-      you find some columns are too narrow to show all significant
-      digits, you can drag the vertical rules using Shift+Button 2.
+       <sect2>Explorer<label id="explorer">
+         <p>
+          This is the most complex dialog. It allows to tune presentation
+          properties of any plot element.
 
-      Using the menu on the top of this dialog, you can manipulate existing
-      sets or add new ones. Among the most important entries in the menu,
-      are options to create or modify a set using the spreadsheet data set
-      editor (see <ref name="Spreadsheet data set editor" id="SSEditor">).
+          The left pane of the dialog shows the current project's tree
+          structure. By clicking on a node, a "plugin" dialog corresponding  to
+          the quark selected appears in the right pane. A few quarks of the
+          same type can be selected; in this case, changes will be applied to
+          all of them.
+          
+          <sect3>Project properties<label id="project-properties">
+            <p>
+              The project properties dialog lets you set page dimensions and
+              the background color.
+            </p>
+          </sect3>
+
+          <sect3>Frame properties<label id="frame-properties">
+            <p>
+              The frame properties dialog governs location of the frame
+              rectangle and legend properties.
+            </p>
+          </sect3>
+
+          <sect3>Graph properties<label id="graph-properties">
+            <p>
+              The main tab includes the properties you will need more often, in
+              particular, properties related to the graph's coordinate frame.
+              For each axis, you can define the axis range and a scale types:
+              linear, logarithmic, or reciprocal, and you can invert the axis
+              (which normally increases from left to right and from bottom to
+              top).
+
+              The "Locator" tab allows you to customize the display of the
+              locator, mainly its type and the format and precision of the
+              display.
+            </p>
+          </sect3>
+
+          <sect3>Set properties<label id="set-properties">
+            <p>
+              The main tab gathers the properties you will need more often
+              (line and symbol properties or legend string for example), and
+              other tabs are used to fine tune some less frequently used
+              options (drop lines, fill properties, annotated values and error
+              bars properties for example).
+
+              You should note that, despite the legend string (related to
+              <em>one</em> given set) is entered in the set properties popup,
+              this is not sufficient to display it. Displaying <em>all</em>
+              legends is a frame-level decision, so the toggle is in the main
+              tab of the <ref name="frame properties" id="frame-properties">
+              plugin dialog.
+
+              If you need special characters or special formatting in your
+              legend, you can use Grace escape sequences (the sequence will
+              appear verbatim in the text field but will be rendered on the
+              graph), see <ref name="typesetting" id="typesetting">. If you
+              don't remember the mapping between alphabetic characters and the
+              glyph you need in some specific fonts (mainly symbol and
+              zapfdingbats), you can invoke the font tool from the text field
+              by hitting CTRL-e. You can change fonts and select characters
+              from there, they will be copied back in the text field when you
+              press the "Accept" button.
+            </p>
+          </sect3>
+
+          <sect3>Axis properties<label id="axis-properties">
+            <p>
+              The main tab includes the properties you will need more often
+              (axis label, tick spacing and format for example), and other tabs
+              are used to fine tune some less frequently used options (fonts,
+              sizes, colors, placements, stagger, grid lines, special ticks,
+              ...).
+
+              If you need special characters or special formatting in your
+              label, you can use Grace escape sequences (the sequence will
+              appear verbatim in the text field but will be rendered on the
+              graph), see <ref name="typesetting" id="typesetting">. If you
+              don't remember the mapping between alphabetic characters and the
+              glyph you need in some specific fonts (mainly symbol and
+              zapfdingbats), you can invoke the font tool from the text field
+              by hitting CTRL-e. You can change fonts and select characters
+              from there, they will be copied back in the text field when you
+              press the "Accept" button.
+            </p>
+          </sect3>
+
+          <sect3>Annotated texts<label id="atext-properties">
+            <p>
+              Not written yet...
+            </p>
+          </sect3>
+
+          <sect3>Drawing objects<label id="dobject-properties">
+            <p>
+              Not written yet...
+            </p>
+          </sect3>
+
+          <sect3>Regions<label id="region-properties">
+            <p>
+              This dialog is incomplete as of yet.
+            </p>
+          </sect3>
+      </sect2>
 
       <sect2> Arrange frames <label id="arrange-frames">
       <p>
@@ -1073,17 +1167,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       contains data of different ranges, or if you want to focus your
       attention on one set only while it is displayed with other data
       in a complex graph.
-
-      <sect2> Set locator fixed point <label id="set-locator-fixed-point">
-      <p>
-      After having selected this menu entry, you can select a point on
-      a graph that will be used as the origin of the locator display
-      (just below the menu bar).
-
-      <sect2> Clear locator fixed point <label id="clear-locator-fixed-point">
-      <p>
-      This entry is provided to remove a fixed point set before and
-      use the default again: point [0, 0].
 
       <sect2> Preferences <label id="preferences">
       <p>
@@ -1432,114 +1515,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <sect1>Tools menu<label id="tools-menu">
     <p>
 
-       <sect2>Explorer<label id="explorer">
-         <p>
-          This is the most complex dialog. It allows to tune presentation
-          properties of any plot element.
-
-          The left pane of the dialog shows the current project's tree
-          structure. By clicking on a node, a "plugin" dialog corresponding  to
-          the quark selected appears in the right pane. A few quarks of the
-          same type can be selected; in this case, changes will be applied to
-          all of them.
-          
-          <sect3>Project properties<label id="project-properties">
-            <p>
-              The project properties dialog lets you set page dimensions and
-              the background color.
-            </p>
-          </sect3>
-
-          <sect3>Frame properties<label id="frame-properties">
-            <p>
-              The frame properties dialog governs location of the frame
-              rectangle and legend properties.
-            </p>
-          </sect3>
-
-          <sect3>Graph properties<label id="graph-properties">
-            <p>
-              The main tab includes the properties you will need more often, in
-              particular, properties related to the graph's coordinate frame.
-              For each axis, you can define the axis range and a scale types:
-              linear, logarithmic, or reciprocal, and you can invert the axis
-              (which normally increases from left to right and from bottom to
-              top).
-
-              The "Locator" tab allows you to customize the display of the
-              locator, mainly its type and the format and precision of the
-              display.
-            </p>
-          </sect3>
-
-          <sect3>Set properties<label id="set-properties">
-            <p>
-              The main tab gathers the properties you will need more often
-              (line and symbol properties or legend string for example), and
-              other tabs are used to fine tune some less frequently used
-              options (drop lines, fill properties, annotated values and error
-              bars properties for example).
-
-              You should note that, despite the legend string (related to
-              <em>one</em> given set) is entered in the set properties popup,
-              this is not sufficient to display it. Displaying <em>all</em>
-              legends is a frame-level decision, so the toggle is in the main
-              tab of the <ref name="frame properties" id="frame-properties">
-              plugin dialog.
-
-              If you need special characters or special formatting in your
-              legend, you can use Grace escape sequences (the sequence will
-              appear verbatim in the text field but will be rendered on the
-              graph), see <ref name="typesetting" id="typesetting">. If you
-              don't remember the mapping between alphabetic characters and the
-              glyph you need in some specific fonts (mainly symbol and
-              zapfdingbats), you can invoke the font tool from the text field
-              by hitting CTRL-e. You can change fonts and select characters
-              from there, they will be copied back in the text field when you
-              press the "Accept" button.
-            </p>
-          </sect3>
-
-          <sect3>Axis properties<label id="axis-properties">
-            <p>
-              The main tab includes the properties you will need more often
-              (axis label, tick spacing and format for example), and other tabs
-              are used to fine tune some less frequently used options (fonts,
-              sizes, colors, placements, stagger, grid lines, special ticks,
-              ...).
-
-              If you need special characters or special formatting in your
-              label, you can use Grace escape sequences (the sequence will
-              appear verbatim in the text field but will be rendered on the
-              graph), see <ref name="typesetting" id="typesetting">. If you
-              don't remember the mapping between alphabetic characters and the
-              glyph you need in some specific fonts (mainly symbol and
-              zapfdingbats), you can invoke the font tool from the text field
-              by hitting CTRL-e. You can change fonts and select characters
-              from there, they will be copied back in the text field when you
-              press the "Accept" button.
-            </p>
-          </sect3>
-
-          <sect3>Annotated texts<label id="atext-properties">
-            <p>
-              Not written yet...
-            </p>
-          </sect3>
-
-          <sect3>Drawing objects<label id="dobject-properties">
-            <p>
-              Not written yet...
-            </p>
-          </sect3>
-
-          <sect3>Regions<label id="region-properties">
-            <p>
-              This dialog is incomplete as of yet.
-            </p>
-          </sect3>
-      </sect2>
-
       <sect2>Font tool<label id="font-tool">
         <p>
           Not written yet...
@@ -1569,6 +1544,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         </p>
       </sect2>
 
+      <sect2>Dataset statistics<label id="dataset-statistics">
+        <p>
+          Using the dataset statistics popup, you can view statistical
+          properties of datasets (min, max, mean, standard deviation). A
+          horizontal scrollbar at the bottom allows to get the two last
+          properties, they are not displayed by default. Also note that if you
+          find some columns are too narrow to show all significant digits, you
+          can drag the vertical rules using Shift+Button 2.
+        </p>
+      </sect2>
+
+
    <sect1>Help menu<label id="help-menu">
    <p>
       <sect2>On context<label id="on-context">
@@ -1592,10 +1579,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
         The whole tree of submenus each loading a sample plot.
       </p>      
-      <sect2> Comments <label id="comments">
+      <sect2> Web support
       <p>
-        Use this to send your suggestions or bug reports.
-      </p>        
+        <sect3> Home page
+        <p>
+          Open the official Grace home page.
+        </p>        
+        <sect3> Forums
+        <p>
+          Go to Grace forums, where you can participate in discussions.
+        </p>        
+        <sect3> Report an issue
+        <p>
+          Use this to send your suggestions or bug reports.
+        </p>        
       <sect2> License terms <label id="license-terms">
       <p>
         Grace licensing terms will be displayed (GPL version 2).

@@ -58,7 +58,7 @@ dnl **** Grace version numbers
 MAJOR_REV=5
 MINOR_REV=99
 PATCHLEVEL=0
-BETA_VER="rc2"
+BETA_VER="rc3"
 
 VERSTRING=${MAJOR_REV}.${MINOR_REV}.${PATCHLEVEL}
 if test "x${program_suffix}" = "xNONE"
