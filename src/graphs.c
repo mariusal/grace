@@ -51,26 +51,14 @@
 
 /* graph definition */
 graph *g = NULL;
-static int cg = 0;			/* the current graph */
 static int maxgraph = 0;
 
-static void update_world_stack();
-
+/* the current graph */
+static int cg = -1;
 
 int is_valid_gno(int gno)
 {
     if (gno >= 0 && gno < maxgraph) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
-int is_valid_axis(int gno, int axis)
-{
-    if (is_valid_gno(gno) &&
-        axis >= 0 && axis < MAXAXES &&
-        g[gno].t[axis] != NULL) {
         return TRUE;
     } else {
         return FALSE;
@@ -324,6 +312,18 @@ int get_graph_plotarr(int gno, int i, plotarr *p)
 }
 
 /* Tickmarks */
+
+int is_valid_axis(int gno, int axis)
+{
+    if (is_valid_gno(gno) &&
+        axis >= 0 && axis < MAXAXES &&
+        g[gno].t[axis] != NULL) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 tickmarks *get_graph_tickmarks(int gno, int a)
 {
     if (is_valid_axis(gno, a) == TRUE) {
