@@ -32,7 +32,6 @@
 #include <string.h>
 
 #include "globals.h"
-#include "patchlevel.h"
 #include "graphs.h"
 #include "utils.h"
 #include "protos.h"
@@ -40,14 +39,13 @@
 #include <X11/cursorfont.h>
 #include <Xm/ToggleB.h>
 #include "motifinc.h"
+#include "buildinfo.h"
 
 #define NO_HELP "nohelp.html"
 
 #ifdef WITH_LIBHELP
 #  include <help.h>
 #endif
-
-extern char gui_version[];
 
 extern Display *disp;
 extern Widget app_shell;
@@ -145,15 +143,8 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 	handle_close(about_frame);
 	about_panel = XmCreateRowColumn(about_frame, "about_rc", NULL, 0);
 
-	sprintf(buf, "Grace-%d.%d.%d %s, GUI: %s",
-                       MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER, gui_version);
+	sprintf(buf, "%s", bi_version_string());
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-
-	CreateSeparator(about_panel);
-
-	sprintf(buf, "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-        
 	CreateSeparator(about_panel);
 
 	sprintf(buf, "Copyright (c) 1991-95 Paul J Turner");
@@ -163,6 +154,11 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 	sprintf(buf, "All rights reserved");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "The program is distributed under the terms of the GNU General Public License");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+        
+	CreateSeparator(about_panel);
+
+	sprintf(buf, "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
         
 	CreateSeparator(about_panel);
@@ -194,6 +190,21 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 #endif
 
+	CreateSeparator(about_panel);
+
+	sprintf(buf, "Built on: %s", BI_SYSTEM);
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "Build time: %s", BI_DATE);
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "GUI toolkit: %s ", BI_GUI);
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "T1lib: %s ", BI_T1LIB);
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+#ifdef DEBUG
+	sprintf(buf, "Debugging is enabled");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+#endif
+	
 	CreateSeparator(about_panel);
 
 	sprintf(buf, "Max number of lines = %d", maxlines);

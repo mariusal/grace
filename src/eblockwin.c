@@ -138,7 +138,7 @@ void create_eblock_frame(int gno)
 
 static void update_eblock(int gno)
 {
-    static old_blockncols = 0;
+    static int old_blockncols = 0;
     int i, ncols;
     char buf[16];
     OptionItem *blockitems;

@@ -42,7 +42,6 @@
 #include "device.h"
 #include "patterns.h"
 #include "rstdrv.h"
-#include "patchlevel.h"
 #include "protos.h"
 
 #include <gd.h>
@@ -534,8 +533,7 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
         }
     }
     
-    fprintf(prstream, "#Creator: Grace v%d.%d.%d %s\n",
-                                MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
+    fprintf(prstream, "#Creator: %s\n", bi_version_string());
     
     w = gdImageSX(ihandle);
     h = gdImageSY(ihandle);

@@ -17,18 +17,19 @@ CEPHES_LIB=$(TOP)/cephes/libcephes.a
 
 CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(T1_INC) $(GUI_FLAGS)
 
-PREFS=-DGRACE_HOME=\"$(GRACE_HOME)\" -DGRACE_PRINT_CMD=\"$(PRINT_CMD)\" \
-	-DGRACE_EDITOR=\"$(GRACE_EDITOR)\" $(HELPVIEWER)
-
 LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
 	$(T1_LIB) $(PDF_LIB) $(GD_LIB) $(NOGUI_LIBS) $(DL_LIB)
+
+PREFS=-DGRACE_HOME=\"$(GRACE_HOME)\" -DGRACE_PRINT_CMD=\"$(PRINT_CMD)\" \
+	-DGRACE_EDITOR=\"$(GRACE_EDITOR)\" $(HELPVIEWER) \
+	-DCCOMPILER=\"'$(CC) $(CFLAGS) $(LIBS)'\" 
 
 all : $(GRACE)
 
 
 include Make.common
 
-$(GROBJS) $(GUIOBJS) $(PARS_O) : $(TOP)/config.h
+$(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/config.h
 
 include Make.dep
 
@@ -38,18 +39,20 @@ xmgrace$(EXE) : $(GROBJS) $(PARS_C) $(GUIOBJS) $(CEPHES_LIB)
 grace$(EXE) : $(GROBJS) $(PARS_C) $(CEPHES_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) -o $@ $(LDFLAGS) $(LIBS)
 
-buildinfo$(EXE) : buildinfo.o
+
+buildinfo$(EXE) : buildinfo$(O)
 	$(CC) $(CFLAGS) $? -o $@ $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(NOGUI_LIBS)
+
+buildinfo$(O) : $(TOP)/Make.conf
+	$(CC) $(CFLAGS) $(PREFS) -c buildinfo.c -o $@
+
+buildinfo.h : buildinfo$(EXE)
+	$? > $@
 
 $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $?
 	mv y.tab.c $@
 
-utils$(O) : $(TOP)/Make.conf
-	$(CC) $(CFLAGS) $(PREFS) -c utils.c -o $@
-
-buildinfo.h : buildinfo$(EXE)
-	$? > $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/bin
@@ -75,7 +78,7 @@ devclean :
 	tags *.orig *.*gr .gdb_history t1lib.log $(PARS_C)
 
 depend :
-	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) \
+	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c \
 		| sed 's/\.o:/\$$(O)\ :/g' > Make.dep
 
 tags : $(GRSRCS) $(GUISRCS) $(PARS_Y)

@@ -38,7 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "patchlevel.h"
 #include "defines.h"
 #include "utils.h"
 #include "device.h"
@@ -1138,7 +1137,7 @@ int set_set_colors(int gno, int setno, int color)
     return GRACE_EXIT_SUCCESS;
 }
 
-static int project_version = VERSION_ID;
+static int project_version;
 
 int get_project_version(void)
 {
@@ -1147,8 +1146,8 @@ int get_project_version(void)
 
 int set_project_version(int version)
 {
-    if (version  > VERSION_ID) {
-        project_version = VERSION_ID;
+    if (version  > bi_version_id()) {
+        project_version = bi_version_id();
         return GRACE_EXIT_FAILURE;
     } else {
         project_version = version;
@@ -1158,7 +1157,7 @@ int set_project_version(int version)
 
 void reset_project_version(void)
 {
-    project_version = VERSION_ID;
+    project_version = bi_version_id();
 }
 
 void postprocess_project(int version)
@@ -1167,7 +1166,7 @@ void postprocess_project(int version)
     double ext_x, ext_y;
     Page_geometry pg;
     
-    if (version >= VERSION_ID) {
+    if (version >= bi_version_id()) {
         return;
     }
 

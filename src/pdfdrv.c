@@ -47,8 +47,6 @@
 #include "t1fonts.h"
 #include "pdfdrv.h"
 
-#include "patchlevel.h"
-
 #include "protos.h"
 
 /* uncomment this if the PDFlib was compiled w/ support for TIFF images */
@@ -118,8 +116,7 @@ int pdfinitgraphics(void)
 
     info = PDF_get_info();
     
-    sprintf(buf_cr, "Grace v%d.%d.%d %s\n",
-                                MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
+    sprintf(buf_cr, "%s\n", bi_version_string());
     info->Creator = buf_cr;
     info->Author = get_username();
     info->Title = docname;

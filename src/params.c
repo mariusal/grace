@@ -40,8 +40,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "patchlevel.h"
-
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
@@ -127,13 +125,13 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "#\n");
 
     /* Print some global variables */
-    fprintf(pp, "%sversion %d\n", embedstr, VERSION_ID);
+    fprintf(pp, "%sversion %ld\n", embedstr, bi_version_id());
 
     pg = get_page_geometry();
     fprintf(pp, "%spage size %ld %ld\n", embedstr, pg.width, pg.height);
     
     if (*description) {
-        tmpbuf = (char *) malloc ((size_t) (strlen (description) + 1));
+        tmpbuf = malloc (strlen(description) + 1);
         if (tmpbuf == NULL) {
             errmsg("Unable to malloc in putparms()");
             return;

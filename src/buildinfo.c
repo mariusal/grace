@@ -13,42 +13,76 @@
 
 #include <t1lib.h>
 
-#include "patchlevel.h"
+#define MAJOR_REV 5
+#define MINOR_REV 0
+#define PATCHLEVEL 3
+#define BETA_VER "(990401)"
+
+#ifndef GRACE_HOME
+#  define GRACE_HOME "/usr/local/grace"
+#endif
+
+#ifndef GRACE_PRINT_CMD
+#  define GRACE_PRINT_CMD ""
+#endif
+
+#ifndef GRACE_EDITOR
+#  define GRACE_EDITOR "xterm -e vi"
+#endif
+
+#ifndef GRACE_HELPVIEWER
+#  define GRACE_HELPVIEWER "netscape -noraise -remote openURL\\\\(%s,newwindow\\\\) >>/dev/null 2>&1 || netscape %s"
+#endif
+
 
 static void VersionInfo(FILE *outfile)
 {
 
     struct utsname u_info;
     time_t time_info;
+    char *ctime_string;
 
-    fprintf(outfile, "Version: Grace-%d.%d.%d %s\n",
+    fprintf(outfile, "#define BI_VERSION_ID %d\n",
+            MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL);
+    fprintf(outfile, "#define BI_VERSION \"Grace-%d.%d.%d %s\"\n",
 	    MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
 
 /* We don't want to reproduce the complete config.h,
    but those settings which may be related to problems on runtime */
 
 #ifdef NONE_GUI
-    fprintf(outfile, "GUI: none\n");
+    fprintf(outfile, "#define BI_GUI \"none\"\n");
 #else
-    fprintf(outfile, "GUI: %s\n", XmVERSION_STRING);
+    fprintf(outfile, "#define BI_GUI \"%s\"\n", XmVERSION_STRING);
 #endif
     
-    fprintf(outfile, "T1lib: %s\n", T1_GetLibIdent());
-    
-#ifdef WITH_DEBUG
-    fprintf(outfile, "Debugging is enabled\n");
-#else
-    fprintf(outfile, "Debugging is disabled\n");
-#endif
+    fprintf(outfile, "#define BI_T1LIB \"%s\"\n",
+        T1_GetLibIdent());
 
+    fprintf(outfile, "#define BI_CCOMPILER \"%s\"\n",
+        CCOMPILER);
+    
     uname(&u_info);
-    fprintf(outfile, "Built on: %s %s %s, %s \n", u_info.sysname, u_info.release,
-	    u_info.version, u_info.machine);
+    fprintf(outfile, "#define BI_SYSTEM \"%s %s %s\"\n",
+        u_info.sysname, u_info.release, u_info.machine);
+
     time_info = time(NULL);
-    fprintf(outfile, "Build time: %s", ctime(&time_info));
+    ctime_string = ctime(&time_info);
+    if (ctime_string[strlen(ctime_string) - 1] == '\n') {
+        ctime_string[strlen(ctime_string) - 1] = '\0';
+    }
+    fprintf(outfile, "#define BI_DATE \"%s\"\n", ctime_string);
+
+    fprintf(outfile, "\n");
+
+    fprintf(outfile, "#define GRACE_HOME \"%s\"\n", GRACE_HOME);
+    fprintf(outfile, "#define GRACE_EDITOR \"%s\"\n", GRACE_EDITOR);
+    fprintf(outfile, "#define GRACE_PRINT_CMD \"%s\"\n", GRACE_PRINT_CMD);
+    fprintf(outfile, "#define GRACE_HELPVIEWER \"%s\"\n", GRACE_HELPVIEWER);
 
     return;
 }
+
 
 int main(int argc, char *argv[])
 {
@@ -57,15 +91,16 @@ int main(int argc, char *argv[])
     if (argc == 1) {
 	outfile = stdout;
     } else {
-	outfile = fopen(argv[1], "w");
-        fprintf(stderr, "Failed to open file %s for writing!\a\n", argv[1]);
-    }
-    if (!outfile) {
-        exit(1);
+        if (!(outfile = fopen(argv[1], "w"))) {
+            fprintf(stderr, "Failed to open %s for writing!\a\n", argv[1]);
+            exit(1);
+        }
     }
 
     VersionInfo(outfile);
-
-    fclose(outfile);
+   
+    if (outfile != stdout) {
+        fclose(outfile);
+    }
     exit(0);
 }

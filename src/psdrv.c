@@ -46,7 +46,6 @@
 #include "device.h"
 #include "patterns.h"
 #include "psdrv.h"
-#include "patchlevel.h"
 #include "protos.h"
 
 #ifndef NONE_GUI
@@ -177,8 +176,7 @@ static int ps_initgraphics(int format)
         fprintf(prstream, "%%%%LanguageLevel: 1\n");
     }
     
-    fprintf(prstream, "%%%%Creator: Grace v%d.%d.%d %s\n",
-                                MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
+    fprintf(prstream, "%%%%Creator: %s\n", bi_version_string());
 
     time(&time_value);
     fprintf(prstream, "%%%%CreationDate: %s", ctime(&time_value));

@@ -126,4 +126,7 @@ void sleep_wrap(unsigned int nsec);
 
 char *set_locale_num(int flag);
 
+long bi_version_id(void);
+char *bi_version_string(void);
+
 #endif /* __UTILS_H_*/

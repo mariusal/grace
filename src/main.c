@@ -40,7 +40,6 @@
 #define MAIN
 
 #include "globals.h"
-#include "patchlevel.h"
 
 #include "utils.h"
 #include "files.h"
@@ -66,15 +65,8 @@
 #include "t1fonts.h"
 #include "protos.h"
 
-#ifdef NONE_GUI
-char gui_version[] = "None";
-#else
-#  ifdef HAVE_LESSTIF
-char gui_version[] = "Lesstif";
-#  else
-char gui_version[] = "Motif";
-#  endif
-#endif
+#include "buildinfo.h"
+
 
 extern char batchfile[];
 extern char print_file[];
@@ -216,6 +208,10 @@ int main(int argc, char *argv[])
     Page_geometry pg;
     
     /*
+     * set version
+     */
+    reset_project_version();
+    /*
      * grace home directory
      */
     if ((s = getenv("GRACE_HOME")) != NULL) {
@@ -337,7 +333,7 @@ int main(int argc, char *argv[])
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
 	    if (argv[i][0] == '-' && argv[i][1] != '\0') {
-		if (argmatch(argv[i], "-version", 5)) {
+		if (argmatch(argv[i], "-version", 2)) {
                     VersionInfo();
 		    exit(0);
 		}
@@ -1014,27 +1010,19 @@ void do_main_loop(void)
 
 void VersionInfo(void)
 {
-    fprintf(stdout, "Grace-%d.%d.%d %s\n",  
-            MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
+    fprintf(stdout, "%s\n", bi_version_string());
 
 /* We don't want to reproduce the complete config.h,
-    but those settings which may be related to problems on runtime */
+   but those settings which may be related to problems on runtime */
 
-#ifdef NONE_GUI
-    fprintf(stdout, "GUI: none\n");
-#else
-#  ifdef HAVE_LESSTIF
-    fprintf(stdout, "GUI: %s\n", LesstifVERSION_STRING);
-#  else
-    fprintf(stdout, "GUI: %s\n", XmVERSION_STRING);
-#  endif
-#endif
+    fprintf(stdout, "GUI toolkit: %s\n", BI_GUI);
+    fprintf(stdout, "T1lib: %s\n", BI_T1LIB);
 
-#ifdef WITH_DEBUG
+#ifdef DEBUG
     fprintf(stdout, "Debugging is enabled\n");
-#else
-    fprintf(stdout, "Debugging is disabled\n");
 #endif
+    fprintf(stdout, "Built %s on %s\n", BI_DATE, BI_SYSTEM);
+    fprintf(stdout, "Compiler flags: %s\n", BI_CCOMPILER);
  
     fprintf(stdout, "\n");
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");

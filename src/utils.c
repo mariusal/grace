@@ -63,6 +63,8 @@
 #  include <locale.h>
 #endif
 
+#include "buildinfo.h"
+
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
@@ -1082,9 +1084,6 @@ void reverse_string(char *s)
 }
 
 /* location of Grace home directory */
-#ifndef GRACE_HOME
-#  define GRACE_HOME "/usr/local/grace"
-#endif
 static char grace_home[GR_MAXPATHLEN] = GRACE_HOME;	
 
 char *get_grace_home(void)
@@ -1098,9 +1097,6 @@ void set_grace_home(char *dir)
 }
 
 /* print command */
-#ifndef GRACE_PRINT_CMD
-#  define GRACE_PRINT_CMD ""
-#endif
 static char print_cmd[GR_MAXPATHLEN] = GRACE_PRINT_CMD;	
 
 char *get_print_cmd(void)
@@ -1114,9 +1110,6 @@ void set_print_cmd(char *cmd)
 }
 
 /* editor */
-#ifndef GRACE_EDITOR
-#  define GRACE_EDITOR "xterm -e vi"
-#endif
 static char grace_editor[GR_MAXPATHLEN] = GRACE_EDITOR;	
 
 char *get_editor(void)
@@ -1129,9 +1122,6 @@ void set_editor(char *cmd)
     strncpy(grace_editor, cmd, GR_MAXPATHLEN - 1);
 }
 
-#ifndef GRACE_HELPVIEWER
-#  define GRACE_HELPVIEWER "netscape -noraise -remote openURL\\(%s,newwindow\\) >>/dev/null 2>&1 || netscape %s"
-#endif
 static char help_viewer[GR_MAXPATHLEN] = GRACE_HELPVIEWER;	
 
 char *get_help_viewer(void)
@@ -1471,4 +1461,17 @@ char *set_locale_num(int flag)
         return setlocale(LC_NUMERIC, "C");
     }
 #endif
+}
+
+/*
+ * Build info stuff
+ */
+long bi_version_id(void)
+{
+    return BI_VERSION_ID;
+}
+
+char *bi_version_string(void)
+{
+    return BI_VERSION;
 }
