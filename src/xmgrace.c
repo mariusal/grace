@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1189,11 +1189,11 @@ void startup_gui(void)
 
 void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
 {
+    Page_geometry pg = get_page_geometry();
     if (inv) {
         GetDimensions(canvas, w, h);
-        set_page_dimensions(*w, *h, TRUE);
+        set_page_dimensions(*w*72.0/pg.dpi, *h*72.0/pg.dpi, TRUE);
     } else {
-        Page_geometry pg = get_page_geometry();
         *w = pg.width;
         *h = pg.height;
         SetDimensions(canvas, *w, *h);
