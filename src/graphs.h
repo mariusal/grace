@@ -322,8 +322,6 @@ int graph_world_stack_size(int gno);
 int get_world_stack_current(int gno);
 int get_world_stack_entry(int gno, int n, world_stack *ws);
 
-int overlay_graphs(int g1, int g2, int type);
-
 int set_set_colors(int gno, int setno, int color);
 
 int moveset(int gnofrom, int setfrom, int gnoto, int setto);

@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -43,6 +43,12 @@
 #define GZOOM_SHRINK    0
 #define GZOOM_EXPAND    1
 
+#define GOVERLAY_SMART_AXES_DISABLED  0
+#define GOVERLAY_SMART_AXES_NONE      1
+#define GOVERLAY_SMART_AXES_X         2
+#define GOVERLAY_SMART_AXES_Y         3
+#define GOVERLAY_SMART_AXES_XY        4
+
 char *get_format_types(int f);
 
 int wipeout(void);
@@ -51,6 +57,8 @@ void scroll_proc(int value);
 void scrollinout_proc(int value);
 int graph_scroll(int type);
 int graph_zoom(int type);
+
+int overlay_graphs(int gsec, int gpri, int type);
 
 void arrange_graphs(int grows, int gcols);
 int arrange_graphs2(int grows, int gcols, double vgap, double hgap,

@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -784,4 +784,144 @@ void rescale_viewport(double ext_x, double ext_y)
             set_graph_string(i, &s);
         }
     }
+}
+
+int overlay_graphs(int gsec, int gpri, int type)
+{
+    int i;
+    tickmarks *tsec, *tpri;
+    world wpri, wsec;
+    view v;
+    
+    if (gsec == gpri) {
+        return RETURN_FAILURE;
+    }
+    if (is_valid_gno(gpri) == FALSE || is_valid_gno(gsec) == FALSE) {
+        return RETURN_FAILURE;
+    }
+    
+    get_graph_viewport(gpri, &v);
+    get_graph_world(gpri, &wpri);
+    get_graph_world(gsec, &wsec);
+
+    switch (type) {
+    case GOVERLAY_SMART_AXES_XY:
+        wsec = wpri;
+	for (i = 0; i < MAXAXES; i++) {
+	    tpri = get_graph_tickmarks(gpri, i);
+	    tsec = get_graph_tickmarks(gsec, i);
+            switch(i) {
+            case X_AXIS:
+            case Y_AXIS:
+                tpri->active = TRUE;
+	        tpri->label_op = PLACEMENT_NORMAL;
+	        tpri->t_op = PLACEMENT_BOTH;
+	        tpri->tl_op = PLACEMENT_NORMAL;
+
+	        tsec->active = FALSE;
+                break;
+            default:
+                /* don't touch alternative axes */
+                break;
+            }
+	}
+	break;
+    case GOVERLAY_SMART_AXES_X:
+        wsec.xg1 = wpri.xg1;
+        wsec.xg2 = wpri.xg2;
+	for (i = 0; i < MAXAXES; i++) {
+	    tpri = get_graph_tickmarks(gpri, i);
+	    tsec = get_graph_tickmarks(gsec, i);
+	    switch(i) {
+            case X_AXIS:
+                tpri->active = TRUE;
+	        tpri->label_op = PLACEMENT_NORMAL;
+	        tpri->t_op = PLACEMENT_BOTH;
+	        tpri->tl_op = PLACEMENT_NORMAL;
+
+	        tsec->active = FALSE;
+                break;
+            case Y_AXIS:
+	        tpri->active = TRUE;
+	        tpri->label_op = PLACEMENT_NORMAL;
+	        tpri->t_op = PLACEMENT_NORMAL;
+	        tpri->tl_op = PLACEMENT_NORMAL;
+
+                tsec->active = TRUE;
+	        tsec->label_op = PLACEMENT_OPPOSITE;
+	        tsec->t_op = PLACEMENT_OPPOSITE;
+	        tsec->tl_op = PLACEMENT_OPPOSITE;
+                break;
+            default:
+                /* don't touch alternative axes */
+                break;
+            }
+	}
+	break;
+    case GOVERLAY_SMART_AXES_Y:
+        wsec.yg1 = wpri.yg1;
+        wsec.yg2 = wpri.yg2;
+	for (i = 0; i < MAXAXES; i++) {
+	    tpri = get_graph_tickmarks(gpri, i);
+	    tsec = get_graph_tickmarks(gsec, i);
+	    switch(i) {
+            case X_AXIS:
+	        tpri->active = TRUE;
+	        tpri->label_op = PLACEMENT_NORMAL;
+	        tpri->t_op = PLACEMENT_NORMAL;
+	        tpri->tl_op = PLACEMENT_NORMAL;
+
+                tsec->active = TRUE;
+	        tsec->label_op = PLACEMENT_OPPOSITE;
+	        tsec->t_op = PLACEMENT_OPPOSITE;
+	        tsec->tl_op = PLACEMENT_OPPOSITE;
+                break;
+            case Y_AXIS:
+                tpri->active = TRUE;
+	        tpri->label_op = PLACEMENT_NORMAL;
+	        tpri->t_op = PLACEMENT_BOTH;
+	        tpri->tl_op = PLACEMENT_NORMAL;
+
+	        tsec->active = FALSE;
+                break;
+            default:
+                /* don't touch alternative axes */
+                break;
+            }
+	}
+	break;
+    case GOVERLAY_SMART_AXES_NONE:
+	for (i = 0; i < MAXAXES; i++) {
+	    tpri = get_graph_tickmarks(gpri, i);
+	    tsec = get_graph_tickmarks(gsec, i);
+	    switch(i) {
+            case X_AXIS:
+            case Y_AXIS:
+	        tpri->active = TRUE;
+	        tpri->label_op = PLACEMENT_NORMAL;
+	        tpri->t_op = PLACEMENT_NORMAL;
+	        tpri->tl_op = PLACEMENT_NORMAL;
+
+                tsec->active = TRUE;
+	        tsec->label_op = PLACEMENT_OPPOSITE;
+	        tsec->t_op = PLACEMENT_OPPOSITE;
+	        tsec->tl_op = PLACEMENT_OPPOSITE;
+                break;
+            default:
+                /* don't touch alternative axes */
+                break;
+            }
+	}
+	break;
+    default:
+        break;
+    }
+    
+    /* set identical viewports */
+    set_graph_viewport(gsec, v);
+    
+    /* update world coords */
+    set_graph_world(gsec, wsec);
+
+    return RETURN_SUCCESS;
 }
