@@ -3289,7 +3289,7 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
     char *name;
     
     str = XmStringCreateLocalized(label);
-    name = label_to_resname(label, NULL);
+    name = label_to_resname(label, "Button");
     button = XtVaCreateManagedWidget(name,
         xmPushButtonWidgetClass, parent, 
     	XmNlabelString, str,
