@@ -53,6 +53,15 @@
 
 #include <pdflib.h>
 
+#ifndef NONE_GUI
+#  include <Xm/Xm.h>
+#  include <Xm/Form.h>
+#  include <Xm/RowColumn.h>
+#  include <Xm/DialogS.h>
+
+#  include "motifinc.h"
+#endif
+
 static void pdf_error_handler(PDF *p, int type, const char* msg);
 
 static unsigned long page_scale;
@@ -68,6 +77,9 @@ static int pdf_lines;
 static int pdf_linecap;
 static int pdf_linejoin;
 
+static int pdf_setup_pdf1_3 = TRUE;
+static int pdf_setup_compression = 4;
+
 extern FILE *prstream;
 
 static PDF *phandle;
@@ -75,8 +87,8 @@ static PDF *phandle;
 static Device_entry dev_pdf = {DEVICE_FILE,
           "PDF",
           pdfinitgraphics,
-          NULL,
-          NULL,
+          pdf_op_parser,
+          pdf_gui_setup,
           "pdf",
           TRUE,
           FALSE,
@@ -94,7 +106,7 @@ int pdfinitgraphics(void)
 {
     int i;
     Page_geometry pg;
-    char *s;
+    char *s, buf[32];
    
     /* device-dependent routines */
     devupdatecmap   = NULL;
@@ -127,6 +139,17 @@ int pdfinitgraphics(void)
     if (phandle == NULL) {
         return RETURN_FAILURE;
     }
+
+    sprintf(buf, "%d", pdf_setup_compression);
+    PDF_set_parameter(phandle, "compress", buf);
+
+    if (pdf_setup_pdf1_3 == TRUE) {
+        s = "1.3";
+    } else {
+        s = "1.2";
+    }
+    PDF_set_parameter(phandle, "compatibility", s);
+
     if (PDF_open_fp(phandle, prstream) == -1) {
         return RETURN_FAILURE;
     }
@@ -539,6 +562,98 @@ static void pdf_error_handler(PDF *p, int type, const char* msg)
         return;
     }
 }
+
+int pdf_op_parser(char *opstring)
+{
+    if (!strcmp(opstring, "PDF1.3")) {
+        pdf_setup_pdf1_3 = TRUE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "PDF1.2")) {
+        pdf_setup_pdf1_3 = FALSE;
+        return RETURN_SUCCESS;
+    } else if (!strncmp(opstring, "compression:", 12)) {
+        char *bufp;
+        bufp = strchr(opstring, ':');
+        bufp++;
+        if (bufp != NULL && *bufp != '\0') {
+            pdf_setup_compression = atoi(bufp);
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+#ifndef NONE_GUI
+
+static void update_pdf_setup_frame(void);
+static void set_pdf_setup_proc(void *data);
+
+static Widget pdf_setup_frame;
+static Widget pdf_setup_pdf1_3_item;
+static SpinStructure *pdf_setup_compression_item;
+
+void pdf_gui_setup(void)
+{
+    Widget pdf_setup_panel, pdf_setup_rc, fr, rc;
+    
+    set_wait_cursor();
+    if (pdf_setup_frame == NULL) {
+	pdf_setup_frame = XmCreateDialogShell(app_shell, "PDF options", NULL, 0);
+	handle_close(pdf_setup_frame);
+        pdf_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
+                                        pdf_setup_frame, NULL, 0);
+        pdf_setup_rc = XmCreateRowColumn(pdf_setup_panel, "rc", NULL, 0);
+
+	fr = CreateFrame(pdf_setup_rc, "PDF options");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	pdf_setup_pdf1_3_item = CreateToggleButton(rc, "PDF-1.3");
+	pdf_setup_compression_item = CreateSpinChoice(rc,
+            "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
+
+	XtManageChild(rc);
+
+	CreateSeparator(pdf_setup_rc);
+
+	CreateAACButtons(pdf_setup_rc, pdf_setup_panel, set_pdf_setup_proc);
+        
+	XtManageChild(pdf_setup_rc);
+	XtManageChild(pdf_setup_panel);
+    }
+    XtRaise(pdf_setup_frame);
+    update_pdf_setup_frame();
+    unset_wait_cursor();
+}
+
+static void update_pdf_setup_frame(void)
+{
+    if (pdf_setup_frame) {
+        SetToggleButtonState(pdf_setup_pdf1_3_item, pdf_setup_pdf1_3);
+        SetSpinChoice(pdf_setup_compression_item, (double) pdf_setup_compression);
+    }
+}
+
+static void set_pdf_setup_proc(void *data)
+{
+    int aac_mode;
+    aac_mode = (int) data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(pdf_setup_frame);
+        return;
+    }
+    
+    pdf_setup_pdf1_3 = GetToggleButtonState(pdf_setup_pdf1_3_item);
+    pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(pdf_setup_frame);
+    }
+}
+
+#endif
 
 #else /* No PDFlib */
 void _pdfdrv_c_dummy_func(void) {}
