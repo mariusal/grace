@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -44,7 +44,6 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
 #include <Xm/List.h>
 
 #include "globals.h"
@@ -59,7 +58,7 @@ static int save_proc(FSBStructure *fsb, char *filename, void *data);
 
 static int read_sets_proc(FSBStructure *fsb, char *filename, void *data);
 static void set_load_proc(OptionStructure *opt, int value, void *data);
-static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void set_src_proc(OptionStructure *opt, int value, void *data);
 static int write_sets_proc(FSBStructure *fsb, char *filename, void *data);
 
 void create_saveproject_popup(void)
@@ -124,9 +123,10 @@ static int open_proc(FSBStructure *fsb, char *filename, void *data)
 
 
 typedef struct {
-    StorageStructure *graph_item;     /* graph choice item */
+    StorageStructure *graph_item;  /* graph choice item */
     OptionStructure *ftype_item;   /* set type choice item */
     OptionStructure *load_item;    /* load as single/nxy/block */
+    OptionStructure *src_item;     /* normal/pipe */
     OptionStructure *auto_item;    /* autoscale on read */
     OptionStructure *datehint;
 } rdataGUI;
@@ -138,8 +138,7 @@ void create_file_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (rdata_dialog == NULL) {
-        int i;
-        Widget lab, rc, rc2, fr, rb, w[2];
+        Widget rc, rc2, fr;
         rdataGUI *gui;
         OptionItem option_items[3];
         OptionItem opitems[4] = {
@@ -173,19 +172,11 @@ void create_file_popup(Widget but, void *data)
         gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
 
 	rc2 = CreateHContainer(rc);
-	lab = CreateLabel(rc2, "Data source:");
-	rb = XmCreateRadioBox(rc2, "radio_box_2", NULL, 0);
-	XtVaSetValues(rb, XmNorientation, XmHORIZONTAL, NULL);
-	w[0] = CreateToggleButton(rb, "Disk");
-	w[1] = CreateToggleButton(rb, "Pipe");
-	for (i = 0; i < 2; i++) {
-	    XtAddCallback(w[i],
-                XmNvalueChangedCallback, set_src_proc, (XtPointer) i);
-	}
-	ManageChild(rb);
-	ManageChild(w[0]);
-	ManageChild(w[1]);
-	SetToggleButtonState(w[0], TRUE);
+        gui->src_item = CreateOptionChoiceVA(rc2, "Data source:",
+            "Disk", SOURCE_DISK,
+            "Pipe", SOURCE_PIPE,
+            NULL);
+	AddOptionChoiceCB(gui->src_item, set_src_proc, (void *) gui);
 
 	rc2 = CreateHContainer(rc);
 	gui->auto_item = CreateASChoice(rc2, "Autoscale on read:");
@@ -232,14 +223,9 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
     return FALSE;
 }
 
-static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void set_src_proc(OptionStructure *opt, int value, void *data)
 {
-    int which = (int) client_data;
-    XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
-
-    if (state->set) {
-        grace->rt->cursource = which;
-    }
+    grace->rt->cursource = value;
 }
 
 static void set_load_proc(OptionStructure *opt, int value, void *data)
