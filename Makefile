@@ -39,7 +39,7 @@ distclean : clean
 	$(RM) -r autom4te.cache
 
 devclean : distclean
-	$(RM) configure
+	$(RM) configure NEWS ChangeLog
 
 texts : NEWS ChangeLog
 
