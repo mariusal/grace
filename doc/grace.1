@@ -79,6 +79,16 @@ Set the axis scaling of the current graph to logarithmic
 .B -mono                                 
 Run grace in monochrome mode (affects the display only)
 .TP
+.BI "\-netcdf "  "file"
+Assume data file is in netCDF format. This option is present
+only if the netCDF support was compiled in
+.TP
+.BI "\-netcdfxy " "X_var Y_var"
+If -netcdf was used previously, read from the netCDF file
+X_var and Y_var variables and create a set.
+If X_var is "null" then load the index of Y to X.
+This option is present only if the netCDF support was compiled in
+.TP
 .B -noask
 Assume the answer is yes to all requests, if the operation would overwrite
 a file, grace will do so without prompting

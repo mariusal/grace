@@ -583,6 +583,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <tag> -mono </tag>
                 Run Grace in monochrome mode (affects the display only)
 
+          <tag> -netcdf <it>file</it> </tag>
+                Assume data <it>file</it> is in netCDF format. This option is
+                present only if the netCDF support was compiled in
+
+          <tag> -netcdfxy <it>X_var</it> <it>Y_var</it> </tag>
+                If -netcdf was used previously, read from the netCDF file
+                <it>X_var</it> <it>Y_var</it> variables and create a set. If
+                <it>X_var</it> name is "null" then load the index of Y to X.
+                This option is present only if the netCDF support was compiled
+                in
+ 
+ 
+ 
           <tag> -noask </tag>
                 Assume the answer is yes to all requests - if the operation would
                 overwrite a file, Grace will do so without prompting
