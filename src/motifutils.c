@@ -2388,7 +2388,7 @@ Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
 	i++;
     }
     if (i != nchoices) {
-	errmsg("Incorrect number of selections in CreatePanelChoice0()");
+	errmsg("Incorrect number of selections in CreatePanelChoice()");
     }
     va_end(var);
 
