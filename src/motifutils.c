@@ -3129,6 +3129,24 @@ OptionStructure *CreatePlacementChoice(Widget parent, char *s)
         NULL);
 }
 
+OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s)
+{
+    return CreateOptionChoiceVA(parent, s,
+        "Landscape", PAGE_ORIENT_LANDSCAPE,
+        "Portrait",  PAGE_ORIENT_PORTRAIT,
+        NULL);
+}
+
+OptionStructure *CreatePaperFormatChoice(Widget parent, char *s)
+{
+    return CreateOptionChoiceVA(parent, s,
+        "Custom", PAGE_FORMAT_CUSTOM,
+        "Letter", PAGE_FORMAT_USLETTER,
+        "A4",     PAGE_FORMAT_A4,
+        NULL);
+}
+
+
 Widget CreateScale(Widget parent, char *s, int min, int max, int delta)
 {
     Widget w;

@@ -541,6 +541,8 @@ SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 OptionStructure *CreatePanelChoice(Widget parent, char *labstr, ...);
 OptionStructure *CreatePrecisionChoice(Widget parent, char *s);
 OptionStructure *CreatePlacementChoice(Widget parent, char *s);
+OptionStructure *CreatePaperOrientationChoice(Widget parent, char *s);
+OptionStructure *CreatePaperFormatChoice(Widget parent, char *s);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);
