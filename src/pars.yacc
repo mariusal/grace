@@ -416,7 +416,6 @@ symtab_entry *key;
 %token <ival> REDRAW
 %token <ival> REFERENCE
 %token <ival> REGNUM
-%token <ival> REGRESS
 %token <ival> REVERSE
 %token <ival> RIGHT
 %token <ival> RISER
@@ -2867,9 +2866,6 @@ actions:
 	        nlfit_warray = copy_data_column($5->data, $5->length);
             }
 	}
-	| REGRESS '(' selectset ',' nexpr ')' {
-	    do_regress($3->gno, $3->setno, $5, 0, -1, 0, -1);
-	}
 	| RUNPROPERTY '(' selectset ',' selectset ',' nexpr ',' CHRSTR ')' {
 	    do_runavg($3->gno, $3->setno, $5->gno, $5->setno,
                 $7, $9, RUN_XPLACE_AVERAGE);
@@ -2890,7 +2886,7 @@ actions:
                 $7->data, $7->length - 1, $9, $11);
 	}
 	| DIFFERENCE '(' selectset ',' selectset ',' nexpr ')' {
-	    do_differ($3->gno, $3->setno, $5->gno, $5->setno),
+	    do_differ($3->gno, $3->setno, $5->gno, $5->setno,
                 TRUE, $7, 1);
 	}
 	| INTEGRATE '(' selectset ',' selectset ')' {
@@ -4556,7 +4552,6 @@ symtab_entry ikey[] = {
 	{"RECIPROCAL", RECIPROCAL, NULL},
 	{"REDRAW", REDRAW, NULL},
 	{"REFERENCE", REFERENCE, NULL},
-	{"REGRESS", REGRESS, NULL},
 	{"REVERSE", REVERSE, NULL},
 	{"RGAMMA", FUNC_D, (void *) rgamma},
 	{"RIGHT", RIGHT, NULL},

@@ -52,7 +52,6 @@ int do_int(int gsrc, int setfrom, int gdest, int setto,
     int disponly, double *sum);
 int do_differ(int gsrc, int setfrom, int gdest, int setto,
     int type, int xplace, int period);
-void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
 int do_runavg(int gsrc, int setfrom, int gdest, int setto,
     int runlen, char *formula, int xplace);
 int do_fourier(int gsrc, int setfrom, int gdest, int setto,
@@ -87,13 +86,9 @@ int real_time_under_monitoring(void);
 int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 
 void stasum(double *x, int n, double *xbar, double *sd);
-double leasev(double *c, int degree, double x);
-int fitcurve(double *x, double *y, int n, int ideg, double *fitted);
 void filterser(int n, double *x, double *y, double *resx, double *resy, double *h, int len);
 void linearconv(double *x, double *h, double *y, int n, int m);
 int crosscorr(double *x, double *y, int n, int lag, double *xcor);
-int transfit(int type, int n, double *x, double *y, double *fitted);
-int linear_regression(int n, double *x, double *y, double *fitted);
 
 void spline(int n, double *x, double *y, double *b, double *c, double *d);
 void aspline(int n, double *x, double *y, double *b, double *c, double *d);

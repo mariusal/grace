@@ -729,7 +729,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Integration...", 'I', create_int_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Interpolation/splines...", 't', create_interp_frame, NULL);
-    CreateMenuButton(submenupane, "Regression...", 'R', create_reg_frame, NULL);
     CreateMenuButton(submenupane, "Non-linear curve fitting...", 'N', create_nonl_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Cross/auto correlation...", 'C', create_xcor_frame, NULL);

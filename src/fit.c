@@ -33,12 +33,9 @@
  * Contents:
  *
  * void stasum() - compute mean and variance
- * double leasev() - evaluate least squares polynomial
- * int  fitcurve() - compute coefficients for a polynomial fit of degree >1
  * void filterser() - apply a digital filter
  * void linearconv() - convolve one set with another
  * int crosscorr() - cross/auto correlation
- * int linear_regression() - linear regression
  * void spline() - compute a spline fit
  * int seval() - evaluate the spline computed in spline()
  */
@@ -52,10 +49,6 @@
 #include "defines.h"
 #include "utils.h"
 #include "protos.h"
-
-static char buf[256];
-
-int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c);
 
 
 /*
@@ -88,70 +81,6 @@ void stasum(double *x, int n, double *xbar, double *sd)
 }
 
 
-/*
-	evaluate least squares polynomial
-*/
-double leasev(double *c, int degree, double x)
-{
-    double temp;
-    int i;
-
-    /*
-     * Commented out - refer to "Numerical Methods in C" for the
-     * reason, section 5.2! The revolution has begun.
-    temp = 0.0;
-    for (i = 0; i <= degree; i++) {
-	if ((i == 0) && (x == 0.0)) {
-	    temp = temp + c[i];
-	} else {
-	    temp = temp + c[i] * pow(x, (double) (i));
-        }
-    } */
-    temp = c[degree];
-    for( i=degree-1; i>=0; i-- )
-       temp = c[i] + temp*x;
-		
-    return (temp);
-}
-
-/*
-	polynomial curve fitting
-*/
-int fitcurve(double *x, double *y, int n, int ideg, double *coeff)
-/*
- * x - x values
- * y - y values
- * n - number of points
- * ideg - degree of fit
- * coeff - coefficients of fit
- */
-{
-    int i, ifail;
-
-    ifail = 1;
-    if (ideg > 1) {
-		dofitcurve(n, x, y, ideg, coeff);
-    } else {
-		ifail = linear_regression(n, x, y, coeff);
-		if (ifail == 1) {
-			errmsg("Linear_regression entered with N < 2");
-			return ifail;
-		} else if (ifail == 2) {
-			errmsg("Linear_regression - all values of x or y are the same");
-			return ifail;
-		}
-    }
-	/* check coefficients */
-	for (i = 0; i <= ideg; i++) {
-	    if (!finite(coeff[i])) {
-	        errmsg("Linear_regression - all values of x or y are the same");
-			ifail = 3;
-			return ifail;
-	    }
-	}
-	ifail = 0;
-    return ifail;
-}
 
 /*
 	Apply a digital filter of length len to a set in x, y,
@@ -225,121 +154,6 @@ int crosscorr(double *x, double *y, int n, int maxlag, double *xcor)
     return 0;
 }
 
-/*
-	References,
-
-	_Aplied Linear Regression_, Weisberg
-	_Elements of Statistical Computing_, Thisted
-
-	Fits y = coef*x + intercept + e
-
-	uses a 2 pass method for means and variances
-
-*/
-
-int linear_regression(int n, double *x, double *y, double *coeff)
-{
-    double xbar, ybar;		/* sample means */
-    double sdx, sdy;		/* sample standard deviations */
-    double sxy, rxy;		/* sample covariance and sample correlation */
-    double SXX, SYY, SXY;	/* sums of squares */
-    double RSS;			/* residual sum of squares */
-    double rms;			/* residual mean square */
-    double sereg;		/* standard error of regression */
-    double seslope, seintercept;
-    double slope, intercept;	/* */
-    double SSreg, F, R2;
-    int i;
-
-    if (n < 2) {
-	return 1;
-    } 
-    xbar = ybar = 0.0;
-    SXX = SYY = SXY = 0.0;
-    for (i = 0; i < n; i++) {
-	xbar = xbar + x[i];
-	ybar = ybar + y[i];
-    }
-    xbar = xbar / n;
-    ybar = ybar / n;
-    for (i = 0; i < n; i++) {
-	SXX = SXX + (x[i] - xbar) * (x[i] - xbar);
-	SYY = SYY + (y[i] - ybar) * (y[i] - ybar);
-	SXY = SXY + (x[i] - xbar) * (y[i] - ybar);
-    }
-    sdx = sqrt(SXX / (n - 1));
-    sdy = sqrt(SYY / (n - 1));
-    if (sdx == 0.0) {
-	return 2;
-    }
-    if (sdy == 0.0) {
-	return 2;
-    }
-    sxy = SXY / (n - 1);
-    rxy = sxy / (sdx * sdy);
-    slope = SXY / SXX;
-    intercept = ybar - slope * xbar;
-       
-    RSS = SYY - slope * SXY;
-
-    sprintf(buf, "Number of observations\t\t\t = %d\n", n);
-    stufftext(buf);
-    sprintf(buf, "Mean of independent variable\t\t = %.7g\n", xbar);
-    stufftext(buf);
-    sprintf(buf, "Mean of dependent variable\t\t = %.7g\n", ybar);
-    stufftext(buf);
-    sprintf(buf, "Standard dev. of ind. variable\t\t = %.7g\n", sdx);
-    stufftext(buf);
-    sprintf(buf, "Standard dev. of dep. variable\t\t = %.7g\n", sdy);
-    stufftext(buf);
-    sprintf(buf, "Correlation coefficient\t\t\t = %.7g\n", rxy);
-    stufftext(buf);
-    sprintf(buf, "Regression coefficient (SLOPE)\t\t = %.7g\n", slope);
-    stufftext(buf);
-
-    if (n == 2) {
-        coeff[1] = (y[1] - y[0])/(x[1] - x[0]);
-        coeff[0] = y[0] - coeff[1]*x[0];
-        sprintf(buf, "Regression constant (INTERCEPT)\t\t = %.7g\n", intercept);
-        stufftext(buf);
-        return 0;
-    } 
-    
-    rms = RSS / (n - 2);
-    sereg = sqrt(rms);
-    seintercept = sqrt(rms * (1.0 / n + xbar * xbar / SXX));
-    seslope = sqrt(rms / SXX);
-    SSreg = SYY - RSS;
-    F = SSreg / rms;
-    R2 = SSreg / SYY;
-
-    sprintf(buf, "Standard error of coefficient\t\t = %.7g\n", seslope);
-    stufftext(buf);
-    sprintf(buf, "t - value for coefficient\t\t = %.7g\n", slope / seslope);
-    stufftext(buf);
-    sprintf(buf, "Regression constant (INTERCEPT)\t\t = %.7g\n", intercept);
-    stufftext(buf);
-    sprintf(buf, "Standard error of constant\t\t = %.7g\n", seintercept);
-    stufftext(buf);
-    sprintf(buf, "t - value for constant\t\t\t = %.7g\n", intercept / seintercept);
-    stufftext(buf);
-    sprintf(buf, "\nAnalysis of variance\n");
-    stufftext(buf);
-    sprintf(buf, "Source\t\t d.f\t Sum of squares\t Mean Square\t F\n");
-    stufftext(buf);
-    sprintf(buf, "Regression\t   1\t%.7g\t%.7g\t%.7g\n", SSreg, SSreg, F);
-    stufftext(buf);
-    sprintf(buf, "Residual\t%5d\t%.7g\t%.7g\n", n - 2, RSS, rms);
-    stufftext(buf);
-    sprintf(buf, "Total\t\t%5d\t%.7g\n\n", n - 1, SYY);
-    stufftext(buf);
-
-    for (i = 0; i < n; i++) {
-	coeff[0] = intercept;
-	coeff[1] = slope;
-    }
-    return 0;
-}
 
 /*
 	an almost literal translation of the spline routine in
