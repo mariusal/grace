@@ -7,10 +7,10 @@
 
 <title>Grace User's Guide (v0.2)
 <author>by the Grace Team
-<date>12.03.1999
+<date>19.03.1999
 <abstract>
   This document explains the usage of
-  <bf/Grace/, the OpenSource (TM) 2D plotting tool for scientific data.
+  <bf/Grace/, a 2D plotting tool for scientific data.
 </abstract>
 
 <toc>
@@ -195,6 +195,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           of a polygon, or a half plane defined by a line. Regions are used to
           restrict data transformations to a geometric area occupied by region.
 
+      <sect2>Magic path<label id="magic-path">
+	<p>
+
+          In many cases, when Grace needs to access a file given with a
+          relative <tt>pathname</tt>, it searches for the file along the
+          following path:
+          <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
+
   <sect1>Command line options
     <p>
       <descrip>
@@ -216,6 +224,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <tag> -cols <it>gcols</it> </tag>
             Arrange graphs in gcols columns
+
+      <tag> -dpipe <it>descriptor</it> </tag> 
+            Read data from descriptor (anonymous pipe) on startup
 
       <tag> -hdevice <it>hardcopy_device_name</it> </tag> 
             Set default hardcopy device
@@ -346,10 +357,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
   <sect1>Customization
     <p>
-    
-    <sect2>Init file
-      <p>
-
     <sect2>Environment variables
       <p>
         <itemize>
@@ -380,6 +387,25 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                README.FFTW for detailed info)
                <p>
         </itemize>
+    
+    <sect2>Init file<label id="gracerc">
+      <p>
+        Upon start-up, Grace loads its init file, <tt>gracerc</tt>. The file
+        is searched for in the <ref id="magic-path" name="magic path">; once
+        found, the rest of the path is ignored. It's recommended that in the
+        <tt>gracerc</tt> file, one doesn't use statements which are part of
+        a project file - such defaults, if needed, should be set in the
+        <ref id="default-template" name="default template">.
+
+    <sect2>Default template<label id="default-template">
+      <p>
+        Whenever a new project is started, Grace loads the default template,
+        <tt>templates/Default.agr</tt>. The file
+        is searched for in the <ref id="magic-path" name="magic path">; once
+        found, the rest of the path is ignored. It's recommended that in the
+        default template, one doesn't use statements which are NOT part of
+        a project file - such defaults, if needed, should be set in the
+        <tt>gracerc</tt> <ref id="gracerc" name="init file">.
 
     <sect2>X resources
       <p>
@@ -392,13 +418,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                Use GXinvert rather than GXxor for rubberband lines.
                If the rubberbanding for zooms and lines, etc. doesn't
                appear on the canvas, set this resource to yes.
-               <newline>
-
-        <item> XMgrace.verifyAction
-
-               <newline>
-               Allows an opportunity to accept or cancel any operation
-               performed.
                <newline>
 
         <item> XMgrace.allowDoubleClick
@@ -541,8 +560,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 	* results
 -> helpMenu
 	* onContext
-	* migrationGuide
 	* userGiude
+	* tutorial
 	* faq
 	* changes
 	* comments
@@ -550,10 +569,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 	* licenseTerms
 	* about
 </verb></tscreen>
-
-
-  <sect1>Output devices
-    <p>
 
 
 <!-- **************************************** -->
@@ -565,7 +580,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     just play with Grace to test new features and controls.
     
     <enum>
-    <item> DOCUMENTATION IS LARGELY NOT UPDATED YET!!!
+    <item> DOCUMENTATION IS VERY SPARSE YET!!!
 
     <item> Grace must be explicitly told the version number of the software
            used to create a file. You can manually put "@version VERSIONID"
@@ -609,6 +624,56 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <sect>Guide to menus and popups
   <p>
 
+      Not written yet... Read <url name="Tutorial" url="Tutorial.html">.
+
+<!-- **************************************** -->
+<sect>Canvas actions
+  <p>
+
+  <sect1>Hotkeys
+    <p>
+
+      When the pointer focus is on the canvas (where the graph is drawn), there
+      are some shortcuts to activate several actions. They are:
+
+      <itemize>
+        <item> Ctrl &lt;Key&gt;A: Autoscale
+        <item> Ctrl &lt;Key&gt;B: Draw a box
+        <item> Ctrl &lt;Key&gt;D: Delete an object
+        <item> Ctrl &lt;Key&gt;L: Move current graph legend
+        <item> Ctrl &lt;Key&gt;M: Move an object
+        <item> Ctrl &lt;Key&gt;P: Draw a line
+        <item> Ctrl &lt;Key&gt;T: Place timestamp
+        <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
+        <item> Ctrl &lt;Key&gt;V: Set the viewport with mouse
+        <item> Ctrl &lt;Key&gt;W: Write a string
+        <item> Ctrl &lt;Key&gt;Z: Zoom
+      </itemize>
+
+  <sect1>Clicks and double clicks
+    <p>
+
+      A single click inside a graph switches focus to that graph. This is the
+      default policy, but it can be changed from the "Edit/Preferences"
+      popup.
+
+    <p>
+
+      Double clicking on parts of the canvas will invoke certain actions
+      or raise some popups:
+      
+      <itemize>
+        <item> on a focus marker: move selected viewport corner 
+        <item> on an axis:  "Axis properties" popup
+        <item> on a set:    "Set appearance" popup
+        <item> on a legend: "Graph appearance" popup
+        <item> on a (sub)title: "Graph appearance" popup
+        <item> on an object (box, line, ...): a popup for editing properties of that object
+      </itemize>
+
+      The double clicking actions can be enabled/disabled from the
+      "Edit/Preferences" popup.
+
 <!-- **************************************** -->
 <sect>Command interpreter
   <p>
@@ -616,20 +681,50 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <sect1>Definitions
     <p>
 
+      Not written yet...
+
   <sect1>Graph properties
     <p>
+
+      Not written yet...
 
   <sect1>Set properties
     <p>
 
+      Not written yet...
+
   <sect1>Device parameters
     <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command                                     | Description   @
+              <hline>
+              PAGE SIZE xdim ydim                         | set page dimensions (in pixels) of terminal device (Display)   @
+              DEVICE <it/devname/ PAGE SIZE xdim ydim     | set page dimensions (in pixels) of device <it/devname/  @
+              DEVICE <it/devname/ DPI dpi                 | set device's dpi (dots per pixel) @
+              DEVICE <it/devname/ FONT onoff              | enable/disable usage of built-in fonts for device <it/devname/ @
+              DEVICE <it/devname/ FONT ANTIALIASING onoff | enable/disable font aliasing for device <it/devname/ @
+              DEVICE <it/devname/ OP <it/options/         | set device specific options (see <ref id="device-settings" name="Device-specific settings">) @
+              HARDCOPY DEVICE <it/devname/                | set device <it/devname/ as current hardcopy device @
+              <hline>
+      </tabular>
+      <caption>
+              <label id="device-parameters">
+              Device parameters.
+      </caption>
+      </table>
 
   <sect1>Functions and variables
     <p>
 
+      Not written yet...
+
   <sect1>Procedures
     <p>
+
+      Not written yet...
 
 <!-- **************************************** -->
 <sect>Advanced topics
@@ -654,7 +749,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <sect> References
   <p>
   
-  <sect1>Typesetting <label id="typesetting">
+  <sect1>Typesetting<label id="typesetting">
     <p>
       Grace permits quite complex typesetting on a per string basis.
       Any string displayed (titles, legends, tick marks,...) may contain
@@ -705,7 +800,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       </table>
 
       <p>
-      Example:
+       Example:
       <p>
        F&bsol;sX&bsol;N(&bsol;xe&bsol;f{}) = sin(&bsol;xe&bsol;B)&bsol;c7&bsol;Ce&bsol;S-X&bsol;N&bsol;c7&bsol;Ccos(&bsol;xe&bsol;f{})
       <p>
@@ -718,10 +813,117 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
        using string's initial font and e prints as epsilon from the Symbol font.
       <p>
-      NOTE:
-      Characters from the upper half of the char table can be entered directly from
-      the keyboard, using appropriate <tt>xmodmap(1)</tt> settings.
+       NOTE:
+       Characters from the upper half of the char table can be entered directly
+       from the keyboard, using appropriate <tt>xmodmap(1)</tt> settings, or
+       with the help of the font tool ("Window/Font tool").
       <p>
+
+  <sect1>Device-specific settings<label id="device-settings">
+    <p>
+      
+      Some of the output devices accept several configuration options. You can
+      set the options by passing a respective string to the interpreter
+      using the "DEVICE <it/devname/ OP <it/options/" command (see
+      <ref id="device-parameters" name="Device parameters">). A few options
+      can be passed in one command, separated by commas.
+
+    <p>
+      
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command           | Description                               @
+              <hline>
+              grayscale         | set grayscale output                      @
+              color             | set color output                          @
+              level1            | use only PS Level 1 subset of commands    @
+              level2            | use also PS Level 2 commands if needed    @
+              xoffset:<it/x/    | set page offset in X direction <it/x/ pp  @
+              yoffset:<it/y/    | set page offset in Y direction <it/y/ pp  @
+              <hline>
+      </tabular>
+      <caption>
+              PostScript driver options
+      </caption>
+      </table>
+
+    <p>
+      
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command       | Description                                   @
+              <hline>
+              grayscale     | set grayscale output                          @
+              color         | set color output                              @
+              bbox:tight    | enable "tight" bounding box                   @
+              bbox:page     | bounding box coinsides with page dimensions   @
+              <hline>
+      </tabular>
+      <caption>
+              EPS driver options
+      </caption>
+      </table>
+
+    <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command      | Description        @
+              <hline>
+              binary       | set binary output  @
+              binary:on    | same               @
+              ascii:off    | same               @
+              ascii        | set ASCII output   @
+              ascii:on     | same               @
+              binary:off   | same               @
+              <hline>
+      </tabular>
+      <caption>
+              PDF driver options
+      </caption>
+      </table>
+
+    <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command           | Description                       @
+              <hline>
+              interlaced:on     | make interlaced image             @
+              interlaced:off    | don't make interlaced image       @
+              transparent:on    | produce transparent image         @
+              transparent:off   | don't produce transparent image   @
+              <hline>
+      </tabular>
+      <caption>
+              GIF driver options
+      </caption>
+      </table>
+
+    <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command           | Description               @
+              <hline>
+              format:pbm        | output in PBM format      @
+              format:pgm        | output in PGM format      @
+              format:ppm        | output in PPM format      @          
+              rawbits:on        | "rawbits" (binary) output @          
+              rawbits:off       | ASCII output              @          
+              <hline>
+      </tabular>
+      <caption>
+              PNM driver options
+      </caption>
+      </table>
+
+    <p>
 
 </article>
 
