@@ -358,7 +358,7 @@ void copy_object(int type, int from, int to)
     case OBJECT_STRING:
 	kill_string(to);
 	pstr[to] = pstr[from];
-	pstr[to].s = copy_string(pstr[to].s, pstr[from].s);
+	pstr[to].s = copy_string(NULL, pstr[from].s);
 	break;
     }
     set_dirtystate();
