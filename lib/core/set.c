@@ -197,6 +197,8 @@ static void set_default_set(Quark *pset)
     p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
 
     p->legstr = NULL;                             /* legend string */
+
+    dataset_empty(&p->ds);
 }
 
 Quark *set_new(Quark *gr)
