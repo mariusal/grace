@@ -602,9 +602,15 @@ double GetSpinChoice(SpinStructure *spinp)
 {
     double retval;
     
-    if (xv_evalexpr(spinp->text, &retval) != GRACE_EXIT_SUCCESS &&
-        (retval < spinp->min || retval < spinp->max)) {
-        retval = (spinp->min + spinp->max)/2;
+    xv_evalexpr(spinp->text, &retval);
+    if (retval < spinp->min) {
+        errmsg("Input value below min limit in GetSpinChoice()");
+        retval = spinp->min;
+        SetSpinChoice(spinp, retval);
+    } else if (retval > spinp->max) {
+        errmsg("Input value above max limit in GetSpinChoice()");
+        retval = spinp->max;
+        SetSpinChoice(spinp, retval);
     }
     
     if (spinp->type == SPIN_TYPE_INT) {
