@@ -89,7 +89,7 @@ static Device_entry dev_pdf = {DEVICE_FILE,
           "pdf",
           TRUE,
           FALSE,
-          {612, 792, 72.0},
+          {3300, 2550, 300.0},
           NULL
          };
 
