@@ -348,11 +348,16 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
 	break;
     case MENU_CLEAR:
 	wipeout();
-	set_graph_active(0, TRUE);
+
+/*
+ * 	TODO: The following 3 lines should be replaced by reading in 
+ *            a default template
+ */
+        set_graph_active(0, TRUE);
+	set_graph_hidden(0, FALSE);
 	switch_current_graph(0);
-	set_title(mybasename(docname));
-	update_all();
-	drawgraph();
+
+	xdrawgraph();
 	break;
     case MENU_OPEN:
 	create_openproject_popup();
@@ -1361,18 +1366,17 @@ void initialize_screen()
 
     XtRealizeWidget(app_shell);
     xwin = XtWindow(canvas);
+    inwin = 1;
     
 /*
  * set the title
  */
-    set_title(mybasename(docname));
+    update_app_title();
 
 /*
  * If logging is on, initialize
  */
-    inwin = 1;
     log_results("Startup");
-    inwin = 0;
 }
 
 void do_main_winloop(void)

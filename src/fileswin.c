@@ -886,7 +886,6 @@ static void save_proc(Widget w, XtPointer client_data, XtPointer call_data)
     	strcpy(docname, s);
 
     	clear_dirtystate();
-    	set_title(mybasename(docname));
     	drawgraph();
     }
     XtFree(s);
@@ -965,7 +964,6 @@ static void open_proc(Widget w, XtPointer client_data, XtPointer call_data)
     if (done_ok) {
     	strcpy(docname, s);
     	clear_dirtystate();
-    	set_title(mybasename(docname));
     } else {
         set_dirtystate();
     }
