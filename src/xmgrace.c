@@ -699,7 +699,7 @@ static Widget CreateMainMenuBar(Widget parent)
     menupane = CreateMenu(menubar, "Window", 'W', FALSE);
    
     CreateMenuButton(menupane, "Commands...", 'C', open_command, NULL);
-    CreateMenuButton(menupane, "Point tracking", 'P', create_points_frame, NULL);
+    CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
     CreateMenuButton(menupane, "Drawing objects", 'o', define_objects_popup, NULL);
     CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
 
