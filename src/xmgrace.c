@@ -736,8 +736,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Digital filter...", 'f', create_digf_frame, NULL);
     CreateMenuButton(submenupane, "Linear convolution...", 'v', create_lconv_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "Geometric transforms...", 'G', create_geom_frame, NULL);
-    CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Sample points...", 'm', create_samp_frame, NULL);
     CreateMenuButton(submenupane, "Prune data...", 'P', create_prune_frame, NULL);
 

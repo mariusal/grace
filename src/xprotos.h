@@ -93,7 +93,6 @@ void create_prune_frame(void *data);
 void create_digf_frame(void *data);
 void create_lconv_frame(void *data);
 void create_leval_frame(void *data);
-void create_geom_frame(void *data);
 
 void create_write_popup(void *data);
 void create_hotlinks_popup(void *data);
