@@ -166,6 +166,34 @@ void fcn(int * m, int * n, double * x, double * fvec,
     }
 }
 
+/*
+ * find correlation coefficient
+ */
+int correlation(double *x, double *y, int n, double *cor)
+{
+    double xbar, xsd;
+    double ybar, ysd;
+    int i;
+
+    *cor = 0.0;
+    if (n < 2) {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    stasum(x, n, &xbar, &xsd);
+    stasum(y, n, &ybar, &ysd);
+    if (xsd == 0.0 || ysd == 0.0) {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    for (i = 0; i < n; i++) {
+        *cor += (x[i] - xbar)*(y[i] - ybar);
+    }
+    *cor /= (n*xsd*ysd);
+    
+    return GRACE_EXIT_SUCCESS;
+}
+
 int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
 {
     int info = -1;
@@ -175,6 +203,8 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     double a[MAXPARM];
     int parnum = nonl_opts.parnum;
     char buf[128];
+    double cor, chisq, rms_pe, ysq, theil;
+    int rms_ok;
 
     if (set_parser_setno(gno, setno) != GRACE_EXIT_SUCCESS) {
 	return GRACE_EXIT_FAILURE;
@@ -183,18 +213,18 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     
     lwa = (integer) n * parnum + 5 * parnum + n;
         
-    fvec = (double *) calloc(n, sizeof(double));
+    fvec = calloc(n, SIZEOF_DOUBLE);
     if (fvec == NULL) {
 	return GRACE_EXIT_FAILURE;
     }
       
-    y_saved = (double *) calloc(n, sizeof(double));
+    y_saved = calloc(n, SIZEOF_DOUBLE);
     if (y_saved == NULL) {
 	free(fvec);
 	return GRACE_EXIT_FAILURE;
     }
 
-    wa = (double *) calloc(lwa, sizeof(doublereal));
+    wa = calloc(lwa, sizeof(doublereal));
     if (wa == NULL) {
 	free(y_saved);
 	free(fvec);
@@ -229,6 +259,31 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     
     a_to_parms(a);
     
+    correlation(yp, y_saved, n, &cor);
+    
+    chisq = 0.0;
+    theil = 0.0;
+    ysq = 0.0;
+    rms_ok = TRUE;
+    for (i = 0; i < n; ++i) {
+    	chisq += (yp[i] - y_saved[i])*(yp[i] - y_saved[i]);
+        ysq += (y_saved[i]*y_saved[i]);
+    	theil += (yp[i] - y_saved[i])*(yp[i] - y_saved[i]);
+    	if (y_saved[i] == 0.0) {
+            rms_ok = FALSE;
+        }
+    }
+    theil = sqrt(theil/ysq);
+
+    rms_pe = 0.0;
+    if (rms_ok) {
+        for (i = 0; i < n; ++i) {
+    	    rms_pe += (yp[i] - y_saved[i])*(yp[i] - y_saved[i])/
+                (y_saved[i]*y_saved[i]);
+        }
+        rms_pe = sqrt(rms_pe/n);
+    }
+
     for (i = 0; i < n; ++i) {
     	yp[i] = y_saved[i];
     }
@@ -236,15 +291,6 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     free(y_saved);
     free(fvec);
     free(wa);
-
-    if ((info > 0 && info < 4) || (info == 5)) {
-        sprintf(buf, "Computed values:\n");
-        stufftext(buf, 0);
-        for (i = 0; i < nonl_opts.parnum; i++) {
-            sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
-            stufftext(buf, 0);
-        }
-    }
 
     if (info >= 0 && info <= 7) {
         char *s;
@@ -282,6 +328,27 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         stufftext("\n", 0);
     }
     
+    if ((info > 0 && info < 4) || (info == 5)) {
+        sprintf(buf, "Computed values:\n");
+        stufftext(buf, 0);
+        for (i = 0; i < nonl_opts.parnum; i++) {
+            sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
+            stufftext(buf, 0);
+        }
+        sprintf(buf, "\n");
+        stufftext(buf, 0);
+        sprintf(buf, "Chi-square: %g\n", chisq);
+        stufftext(buf, 0);
+        sprintf(buf, "Correlation coefficient: %f\n", cor);
+        stufftext(buf, 0);
+        if (rms_ok) {
+            sprintf(buf, "RMS per cent error: %g\n", rms_pe);
+            stufftext(buf, 0);
+        }
+        sprintf(buf, "Theil U coefficent: %g\n", theil);
+        stufftext(buf, 0);
+    }
+
     return GRACE_EXIT_SUCCESS;
 }
 
