@@ -761,57 +761,32 @@ int islogy(int gno)
  * Stack manipulation functions
  */
  
-void cycle_world_stack(void)
-{
-    if (g[cg].ws_top < 1) {
-	errmsg("World stack empty");
-    } else {
-	update_world_stack();
-	g[cg].curw = (g[cg].curw + 1) % g[cg].ws_top;
- 	show_world_stack( g[cg].curw );
-    }
-}
-
 void clear_world_stack(void)
 {
     g[cg].ws_top = 1;
     g[cg].curw = 0;
-    g[cg].ws[0].w.xg1 = g[cg].ws[0].w.xg2
-                      = g[cg].ws[0].w.yg1
-                      = g[cg].ws[0].w.yg2 = 0;
+    g[cg].ws[0].w.xg1 = 0.0;
+    g[cg].ws[0].w.xg2 = 0.0;
+    g[cg].ws[0].w.yg1 = 0.0;
+    g[cg].ws[0].w.yg2 = 0.0;
 }
 
-void show_world_stack(int n)
+static void update_world_stack()
 {
-    if (g[cg].ws_top < 1) {
-	errmsg("World stack empty");
-    } else {
-	if (n >= g[cg].ws_top) {
-	    errmsg("Selected view greater than stack depth");
-	} else if (n < 0) {
-	    errmsg("Selected view less than zero");
-	} else {
-	    g[cg].w = g[cg].ws[n].w;
-	    g[cg].curw = n;
-	}
-    }
+    g[cg].ws[g[cg].curw].w = g[cg].w;
 }
 
-/*
- * world stacks
- */
-
-/* add a world view to the stack
- *	if there are no other views stacked, replace the view with the new view 
- *	if there are other views, simply add this one to the bottom of the stack
+/* Add a world window to the stack
+ * If there are other windows, simply add this one to the bottom of the stack
+ * Otherwise, replace the first window with the new window 
  */
 void add_world(int gno, double x1, double x2, double y1, double y2)
 {
     /* see if another entry has been stacked */
-    if( g[cg].ws[0].w.xg1 == 0. &&
-	g[cg].ws[0].w.xg2 == 0. &&
-	g[cg].ws[0].w.yg1 == 0. &&
- 	g[cg].ws[0].w.yg2 == 0. ) {	    
+    if( g[gno].ws[0].w.xg1 == 0.0 &&
+	g[gno].ws[0].w.xg2 == 0.0 &&
+	g[gno].ws[0].w.yg1 == 0.0 &&
+ 	g[gno].ws[0].w.yg2 == 0.0 ) {	    
 	    g[gno].ws_top = 0;
 	}
 		
@@ -824,6 +799,35 @@ void add_world(int gno, double x1, double x2, double y1, double y2)
 	g[gno].ws_top++;
     } else {
 	errmsg("World stack full");
+    }
+}
+
+void cycle_world_stack(void)
+{
+    int neww;
+    
+    if (g[cg].ws_top < 1) {
+	errmsg("World stack empty");
+    } else {
+	update_world_stack();
+	neww = (g[cg].curw + 1) % g[cg].ws_top;
+ 	show_world_stack(neww);
+    }
+}
+
+void show_world_stack(int n)
+{
+    if (g[cg].ws_top < 1) {
+	errmsg("World stack empty");
+    } else {
+	if (n >= g[cg].ws_top) {
+	    errmsg("Selected view greater than stack depth");
+	} else if (n < 0) {
+	    errmsg("Selected view less than zero");
+	} else {
+	    g[cg].curw = n;
+	    g[cg].w = g[cg].ws[n].w;
+	}
     }
 }
 
@@ -842,31 +846,27 @@ void push_world(void)
     }
 }
 
-
-static void update_world_stack()
-{
-    g[cg].ws[g[cg].curw].w = g[cg].w;
-}
-
 /* modified to actually pop the current world view off the stack */
 void pop_world(void)
 {
-    int i;
+    int i, neww;
 
     if (g[cg].ws_top <= 1) {
 	errmsg("World stack empty");
     } else {
-    	if( g[cg].curw != g[cg].ws_top-1 ) {
-    	    for( i=g[cg].curw; i<g[cg].ws_top; i++ ) {
-    			g[cg].ws[i] = g[cg].ws[i+1];
-	    }
+    	if (g[cg].curw != g[cg].ws_top - 1) {
+    	    for (i = g[cg].curw; i < g[cg].ws_top; i++) {
+                g[cg].ws[i] = g[cg].ws[i + 1];
+            }
+            neww = g[cg].curw;
     	} else {
-            g[cg].curw--;
+            neww = g[cg].curw - 1;
         }
         g[cg].ws_top--;
-        show_world_stack( g[cg].curw );
+        show_world_stack(neww);
     }
 }
+
 
 void set_default_graph(int gno)
 {    

@@ -162,6 +162,12 @@ void exit_abruptly( Widget, XKeyEvent *, String *, Cardinal * );
 void enable_zoom( Widget, XKeyEvent *, String *, Cardinal * );
 static void graph_scroll_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void graph_stack_proc(Widget w, XtPointer client_data, XtPointer call_data);
+
+#define STACK_CYCLE     0
+#define STACK_POP       1
+#define STACK_PUSH      2
+#define STACK_PUSHZOOM  3
 
 /*
  * establish action routines
@@ -1326,12 +1332,14 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("PZ", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) push_and_zoom, NULL);
+    XtAddCallback(bt, XmNactivateCallback,
+            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_PUSHZOOM);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#pz");
 
     bt = XtVaCreateManagedWidget("Pu", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) push_world, NULL);
+    XtAddCallback(bt, XmNactivateCallback,
+            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_PUSH);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#pu");
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
@@ -1344,12 +1352,14 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("Po", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) pop_world, NULL);
+    XtAddCallback(bt, XmNactivateCallback,
+            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_POP);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#po");
 
     bt = XtVaCreateManagedWidget("Cy", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) cycle_world_stack, NULL);
+    XtAddCallback(bt, XmNactivateCallback,
+            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_CYCLE);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#cy");
 
     sdstring = XmStringCreateLtoR("SD:1 ", charset);
@@ -1500,3 +1510,24 @@ static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data
     drawgraph();
 }
 
+static void graph_stack_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int action = (int) client_data;
+
+    switch (action) {
+    case STACK_POP:
+        pop_world();
+        break;
+    case STACK_PUSH:
+        push_world();
+        break;
+    case STACK_PUSHZOOM:
+        push_and_zoom();
+        break;
+    case STACK_CYCLE:
+        cycle_world_stack();
+        break;
+    }
+    update_all();
+    drawgraph();
+}
