@@ -314,7 +314,7 @@ void set_default_ticks(tickmarks *t)
     t->tl_gap.x = 0.0;
     t->tl_gap.y = 0.01;
     t->tl_font = grdefaults.font;
-    t->tl_charsize = 1.0;
+    t->tl_charsize = grdefaults.charsize;
     t->tl_color = grdefaults.color;
     t->tl_appstr[0] = 0;
     t->tl_prestr[0] = 0;
