@@ -1528,7 +1528,7 @@ int write_netcdf(char *fname)
 		    strlen(getcomment(i, j)), (void *) getcomment(i, j));
 
 		    sprintf(buf, "g%d_s%d_type", i, j);
-		    strcpy(s, set_types(dataset_type(i, j)));
+		    strcpy(s, set_types(grace->rt, dataset_type(i, j)));
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
 		    sprintf(buf, "g%d_s%d_n", i, j);
