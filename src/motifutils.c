@@ -1641,12 +1641,14 @@ void set_graph_selectors(int gno)
 ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
 {
     ListStructure *retvalp;
+    int nvisible;
         
     ngraph_selectors++;
     graph_selectors = xrealloc(graph_selectors, 
                                     ngraph_selectors*sizeof(ListStructure *));
 
-    retvalp = CreateListChoice(parent, labelstr, type, 4,
+    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
+    retvalp = CreateListChoice(parent, labelstr, type, nvisible,
                                ngraph_select_items, graph_select_items);
     graph_selectors[ngraph_selectors - 1] = retvalp;
     
@@ -2201,8 +2203,10 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
 {
     ListStructure *retvalp;
     SetChoiceData *sdata;
+    int nvisible;
 
-    retvalp = CreateListChoice(parent, labelstr, type, 8, 0, NULL);
+    nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 8; 
+    retvalp = CreateListChoice(parent, labelstr, type, nvisible, 0, NULL);
     if (retvalp == NULL) {
         return NULL;
     }
@@ -3008,7 +3012,7 @@ SetChoiceItem CreateSetSelector(Widget parent,
     lab = XmCreateLabel(rc2, label, NULL, 0);
     XtManageChild(lab);
     XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
-    XtSetArg(args[1], XmNvisibleItemCount, 8);
+    XtSetArg(args[1], XmNvisibleItemCount, 6);
     sel.list = XmCreateScrolledList(rc2, "list", args, 2);
     if (stype == SELECTION_TYPE_MULTIPLE) {	/* multiple select */
 	XtVaSetValues(sel.list,
