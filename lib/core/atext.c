@@ -117,6 +117,19 @@ AText *atext_get_data(const Quark *q)
     }
 }
 
+int atext_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorAText,
+        (Quark_data_new) atext_data_new,
+        (Quark_data_free) atext_data_free,
+        (Quark_data_copy) atext_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
+
 int atext_set_string(Quark *q, const char *s)
 {
     AText *at = atext_get_data(q);

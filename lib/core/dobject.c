@@ -138,6 +138,19 @@ void object_data_free(DObject *o)
     }
 }
 
+int object_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorDObject,
+        (Quark_data_new) object_data_new,
+        (Quark_data_free) object_data_free,
+        (Quark_data_copy) object_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
+
 void set_default_arrow(Arrow *arrowp)
 {
     arrowp->type   = ARROW_TYPE_LINE;

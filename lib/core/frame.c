@@ -134,6 +134,18 @@ frame *frame_get_data(const Quark *q)
     }
 }
 
+int frame_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorFrame,
+        (Quark_data_new) frame_data_new,
+        (Quark_data_free) frame_data_free,
+        (Quark_data_copy) frame_data_copy
+    };
+    
+    return quark_flavor_add(qfactory, &qf);
+}
+
 int frame_get_view(const Quark *q, view *v)
 {
     frame *f = frame_get_data(q);

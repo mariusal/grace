@@ -118,6 +118,18 @@ Project *project_get_data(const Quark *q)
     }
 }
 
+int project_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorProject,
+        (Quark_data_new) project_data_new,
+        (Quark_data_free) project_data_free,
+        NULL
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
 int project_get_version_id(const Quark *q)
 {
     Project *pr = project_get_data(q);

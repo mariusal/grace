@@ -796,9 +796,6 @@ int quark_is_first_child(const Quark *q);
 int quark_is_last_child(const Quark *q);
 
 /* Project */
-Project *project_data_new(void);
-void project_data_free(Project *pr);
-
 Project *project_get_data(const Quark *q);
 
 int project_get_version_id(const Quark *q);
@@ -828,9 +825,6 @@ int project_add_color(Quark *project, const Colordef *c);
 Quark *get_parent_project(const Quark *q);
 
 /* SSData */
-ss_data *ssd_data_new(void);
-void ssd_data_free(ss_data *ssd);
-ss_data *ssd_data_copy(ss_data *ssd);
 ss_data *ssd_get_data(const Quark *q);
 
 Quark *ssd_new(Quark *q);
@@ -840,9 +834,6 @@ int ssd_get_nrows(const Quark *q);
 int *ssd_get_formats(const Quark *q);
 
 /* Frame */
-frame *frame_data_new(void);
-void frame_data_free(frame *f);
-frame *frame_data_copy(frame *f);
 frame *frame_get_data(const Quark *q);
 
 Quark *frame_new(Quark *project);
@@ -862,10 +853,6 @@ int frame_shift(Quark *q, const VVector *vshift);
 int frame_legend_shift(Quark *q, const VVector *vshift);
 
 /* Graph */
-graph *graph_data_new(void);
-void graph_data_free(graph *g);
-graph *graph_data_copy(graph *g);
-
 graph *graph_get_data(const Quark *q);
 
 Quark *graph_new(Quark *q);
@@ -896,10 +883,6 @@ int graph_set_yinvert(Quark *gr, int flag);
 Quark *get_parent_graph(const Quark *child);
 
 /* AxisGrid  */
-tickmarks *axisgrid_data_new(void);
-tickmarks *axisgrid_data_copy(tickmarks *t);
-void axisgrid_data_free(tickmarks *t);
-
 Quark *axisgrid_new(Quark *q);
 
 tickmarks *axisgrid_get_data(const Quark *q);
@@ -913,9 +896,6 @@ Quark *get_parent_axisgrid(const Quark *child);
 
 /* Axis */
 Quark *axis_new(Quark *q);
-Axis *axis_data_new(void);
-Axis *axis_data_copy(Axis *a);
-void axis_data_free(Axis *a);
 Axis *axis_get_data(const Quark *q);
 
 int axis_set_offset(Quark *q, double offset);
@@ -950,9 +930,6 @@ int dataset_set_nrows(Dataset *data, int len);
 int dataset_set_ncols(Dataset *data, int ncols);
 int dataset_enable_scol(Dataset *data, int yesno);
 
-set *set_data_new(void);
-void set_data_free(set *p);
-set *set_data_copy(set *p);
 Quark *set_new(Quark *gr);
 
 set *set_get_data(const Quark *q);
@@ -994,10 +971,6 @@ int set_set_comment(Quark *p, char *s);
 
 
 /* Region */
-region *region_data_new(void);
-void region_data_free(region *r);
-region *region_data_copy(region *r);
-
 region *region_get_data(const Quark *q);
 
 Quark *region_new(Quark *gr);
@@ -1010,10 +983,6 @@ int region_add_point(Quark *q, const WPoint *wp);
 
 /* DObject */
 void *object_odata_new(OType type);
-
-DObject *object_data_new(void);
-void object_data_free(DObject *o);
-DObject *object_data_copy(DObject *o);
 
 DObject *object_data_new_complete(OType type);
 
@@ -1036,9 +1005,6 @@ int object_shift(Quark *q, const VVector *vshift);
 TextProps *textprops_new(void);
 void set_default_textprops(TextProps *pstr, const defaults *grdefs);
 
-AText *atext_data_new(void);
-void atext_data_free(AText *at);
-AText *atext_data_copy(AText *at);
 Quark *atext_new(Quark *q);
 AText *atext_get_data(const Quark *q);
 int atext_set_string(Quark *q, const char *s);
@@ -1054,6 +1020,18 @@ int atext_set_pointer(Quark *q, int flag);
 
 int atext_shift(Quark *q, const VVector *vshift);
 int atext_at_shift(Quark *q, const VVector *vshift);
+
+/* registration of quark flavors */
+int project_qf_register(QuarkFactory *qfactory);
+int ssd_qf_register(QuarkFactory *qfactory);
+int frame_qf_register(QuarkFactory *qfactory);
+int graph_qf_register(QuarkFactory *qfactory);
+int set_qf_register(QuarkFactory *qfactory);
+int axisgrid_qf_register(QuarkFactory *qfactory);
+int axis_qf_register(QuarkFactory *qfactory);
+int object_qf_register(QuarkFactory *qfactory);
+int atext_qf_register(QuarkFactory *qfactory);
+int region_qf_register(QuarkFactory *qfactory);
 
 /* co-ordinate transformation stuff */
 int polar2xy(double phi, double rho, double *x, double *y);

@@ -93,6 +93,18 @@ Quark *ssd_new(Quark *q)
     return ss;
 }
 
+int ssd_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorSSD,
+        (Quark_data_new) ssd_data_new,
+        (Quark_data_free) ssd_data_free,
+        (Quark_data_copy) ssd_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
 int ssd_get_ncols(const Quark *q)
 {
     ss_data *ssd = ssd_get_data(q);

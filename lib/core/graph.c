@@ -104,6 +104,19 @@ graph *graph_data_copy(graph *g)
     return g_new;
 }
 
+int graph_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorGraph,
+        (Quark_data_new) graph_data_new,
+        (Quark_data_free) graph_data_free,
+        (Quark_data_copy) graph_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
+
 Quark *get_parent_graph(const Quark *child)
 {
     Quark *p = (Quark *) child;

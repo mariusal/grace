@@ -390,6 +390,18 @@ set *set_data_copy(set *p)
     return p_new;
 }
 
+int set_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorSet,
+        (Quark_data_new) set_data_new,
+        (Quark_data_free) set_data_free,
+        (Quark_data_copy) set_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
 
 int settype_cols(int type)
 {

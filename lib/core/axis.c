@@ -159,6 +159,18 @@ tickmarks *axisgrid_get_data(const Quark *q)
     }
 }
 
+int axisgrid_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorAGrid,
+        (Quark_data_new) axisgrid_data_new,
+        (Quark_data_free) axisgrid_data_free,
+        (Quark_data_copy) axisgrid_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
 int axisgrid_set_type(Quark *q, int type)
 {
     tickmarks *t = axisgrid_get_data(q);
@@ -318,6 +330,18 @@ Axis *axis_get_data(const Quark *q)
     } else {
         return NULL;
     }
+}
+
+int axis_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorAxis,
+        (Quark_data_new) axis_data_new,
+        (Quark_data_free) axis_data_free,
+        (Quark_data_copy) axis_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
 }
 
 

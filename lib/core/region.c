@@ -105,6 +105,19 @@ region *region_get_data(const Quark *q)
     }
 }
 
+int region_qf_register(QuarkFactory *qfactory)
+{
+    QuarkFlavor qf = {
+        QFlavorRegion,
+        (Quark_data_new) region_data_new,
+        (Quark_data_free) region_data_free,
+        (Quark_data_copy) region_data_copy
+    };
+
+    return quark_flavor_add(qfactory, &qf);
+}
+
+
 int region_set_type(Quark *q, int type)
 {
     region *r = region_get_data(q);
