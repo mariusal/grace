@@ -178,14 +178,14 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     }
 
     switch (pdfdata->compat) {
-    case PDF_1_2:
-        s = "1.2";
-        break;
     case PDF_1_3:
         s = "1.3";
         break;
     case PDF_1_4:
         s = "1.4";
+        break;
+    case PDF_1_5:
+        s = "1.5";
         break;
     default:
         s = "1.3";
@@ -762,16 +762,16 @@ int pdf_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
     PDF_data *pdfdata = (PDF_data *) data;
 
-    if (!strcmp(opstring, "compatibility:PDF-1.2")) {
-        pdfdata->compat = PDF_1_2;
-        return RETURN_SUCCESS;
-    } else
     if (!strcmp(opstring, "compatibility:PDF-1.3")) {
         pdfdata->compat = PDF_1_3;
         return RETURN_SUCCESS;
     } else
     if (!strcmp(opstring, "compatibility:PDF-1.4")) {
         pdfdata->compat = PDF_1_4;
+        return RETURN_SUCCESS;
+    } else
+    if (!strcmp(opstring, "compatibility:PDF-1.5")) {
+        pdfdata->compat = PDF_1_5;
         return RETURN_SUCCESS;
     } else
     if (!strncmp(opstring, "compression:", 12)) {
@@ -826,9 +826,9 @@ void pdf_gui_setup(const Canvas *canvas, void *data)
     if (pdfdata->frame == NULL) {
         Widget fr, rc;
         OptionItem compat_op_items[3] = {
-            {PDF_1_2, "PDF-1.2"},
             {PDF_1_3, "PDF-1.3"},
-            {PDF_1_4, "PDF-1.4"}
+            {PDF_1_4, "PDF-1.4"},
+            {PDF_1_5, "PDF-1.5"}
         };
         OptionItem colorspace_op_items[3] = {
             {COLORSPACE_GRAYSCALE, "Grayscale"},

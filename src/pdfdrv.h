@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -28,9 +28,9 @@
 #include "defines.h"
 
 typedef enum {
-    PDF_1_2,
     PDF_1_3,
-    PDF_1_4
+    PDF_1_4,
+    PDF_1_5
 } PDFCompatibility;
 
 typedef enum {
