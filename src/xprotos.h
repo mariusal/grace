@@ -51,6 +51,8 @@ struct _X11Stuff {
     GC gc;
     int depth;
     Colormap cmap;
+    
+    float dpi;
 
     Pixmap bufpixmap;
 

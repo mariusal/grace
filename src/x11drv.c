@@ -551,10 +551,7 @@ static void x11_leavegraphics(const Canvas *canvas, void *data,
 
 int register_x11_drv(Canvas *canvas)
 {
-    long mrsize;
-    int max_path_limit;
     Device_entry *d;
-    float dpi;
     X11_data *data;
 
     data = init_x11_data();
@@ -567,29 +564,7 @@ int register_x11_drv(Canvas *canvas)
         return -1;
     }
     
-    /* XExtendedMaxRequestSize() appeared in X11R6 */
-#if XlibSpecificationRelease > 5
-    mrsize = XExtendedMaxRequestSize(data->xstuff->disp);
-#else
-    mrsize = 0;
-#endif
-    if (mrsize <= 0) {
-        mrsize = XMaxRequestSize(data->xstuff->disp);
-    }
-    max_path_limit = (mrsize - 3)/2;
-    if (max_path_limit < get_max_path_limit(canvas)) {
-        char buf[128];
-        sprintf(buf,
-            "Setting max drawing path length to %d (limited by the X server)",
-            max_path_limit);
-        errmsg(buf);
-        set_max_path_limit(canvas, max_path_limit);
-    }
-    
-    dpi = (float) rint(MM_PER_INCH*DisplayWidth(data->xstuff->disp, data->xstuff->screennumber)/
-        DisplayWidthMM(data->xstuff->disp, data->xstuff->screennumber));
-    
-    device_set_dpi(d, dpi, FALSE);
+    device_set_dpi(d, data->xstuff->dpi, FALSE);
     
     /* disable font AA in mono mode */
     if (data->monomode == TRUE) {

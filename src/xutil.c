@@ -633,6 +633,8 @@ int x11_init(Grace *grace)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
     XGCValues gc_val;
+    long mrsize;
+    int max_path_limit;
     
     xstuff->screennumber = DefaultScreen(xstuff->disp);
     xstuff->root = RootWindow(xstuff->disp, xstuff->screennumber);
@@ -656,6 +658,28 @@ int x11_init(Grace *grace)
         gc_val.function = GXxor;
     }
     gcxor = XCreateGC(xstuff->disp, xstuff->root, GCFunction, &gc_val);
+
+    /* XExtendedMaxRequestSize() appeared in X11R6 */
+#if XlibSpecificationRelease > 5
+    mrsize = XExtendedMaxRequestSize(xstuff->disp);
+#else
+    mrsize = 0;
+#endif
+    if (mrsize <= 0) {
+        mrsize = XMaxRequestSize(xstuff->disp);
+    }
+    max_path_limit = (mrsize - 3)/2;
+    if (max_path_limit < get_max_path_limit(grace->rt->canvas)) {
+        char buf[128];
+        sprintf(buf,
+            "Setting max drawing path length to %d (limited by the X server)",
+            max_path_limit);
+        errmsg(buf);
+        set_max_path_limit(grace->rt->canvas, max_path_limit);
+    }
+    
+    xstuff->dpi = (float) rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
+        DisplayWidthMM(xstuff->disp, xstuff->screennumber));
 
     return RETURN_SUCCESS;
 }
