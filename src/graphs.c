@@ -250,6 +250,7 @@ Quark *axis_new(Quark *q)
 {
     Quark *a; 
     a = quark_new(q, QFlavorAxis);
+    autotick_axis(a);
     return a;
 }
 
