@@ -11,7 +11,7 @@ include $(TOP)/Make.conf
 AUXILIARIES = README convcal.c magic.grace
 PROGRAMS = fdf2fit convcal$(EXE)
 
-all : convcal
+all : convcal$(EXE)
 
 clean : dummy
 
