@@ -18,8 +18,8 @@ PREFIX=$(X11ROOT)/XFree86
 
 # List of subdirectories
 # I'll comment out if I have a DLL available of the library
-SUBDIRS=cephes T1lib Xbae/Xbae src grace_np templates doc examples auxiliary
-#SUBDIRS=cephes Xbae src grace_np templates doc examples auxiliary
+#SUBDIRS=cephes T1lib Xbae/Xbae src grace_np templates doc examples auxiliary
+SUBDIRS=cephes src grace_np templates doc examples auxiliary
 
 # Name of executable
 GRACE=xmgrace.exe
@@ -31,10 +31,12 @@ GRACE_HOME=$(X11ROOT)/XFree86/lib/grace
 ALLOCA=
 
 # Type1 fonts library
+#T1_LIB=../../T1lib/t1lib.a
 T1_LIB=-lt1
 
 # T1 include path
-T1_INC=-I../../T1lib
+#T1_INC=-I../../T1lib
+T1_INC=
 
 # T1lib defines (if the bundled version to be used)
 T1_AA_TYPE16=short
@@ -72,7 +74,8 @@ PDF_LIB=-lpdf
 PDFDRV_O=pdfdrv.o
 
 # Xbae include path
-XBAE_INC=-I../Xbae
+#XBAE_INC=-I../Xbae
+XBAE_INC=
 
 # Location of yacc (or its substitution)
 YACC=yacc
@@ -118,7 +121,8 @@ LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals
 NOGUI_LIBS=
 
 # GUI libraries
-GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
+#GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
+GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient -lXbae -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
 
 # Commamd used to print
 PRINT_CMD='lp'

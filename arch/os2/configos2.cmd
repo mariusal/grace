@@ -5,10 +5,9 @@
 
 /*
    Todo:
+       - forget about this mess and switch to configure ;-)
        - Ask/check for Xbae, libhelp, g77, ...
-       - Error handling ?
        - distinguish between debug- & production builds
-       - Add OS/2 support to configure script and withdraw this script ;-)
 */
 
 trace n
@@ -126,12 +125,7 @@ else
   Building dlopen.a
 */
 
-/*
-'@cd .\arch\os2'
-'@x11make.exe -f dlfcn.mak all'
-'@cd ..\..'
-*/
-call Execute "cd .\arch\os2 & x11make.exe -f dlfcn.mak all & @cd ..\.."
+call Execute "cd .\arch\os2 && x11make.exe -f dlfcn.mak all & cd ..\.."
 
 
 /* Calling x11make.exe cause make.cmd won't work here
@@ -150,7 +144,7 @@ exit
 
 Execute: procedure
 Parse Arg command
-Address CMD '@'command
+Address CMD ''command
 return
 
 
