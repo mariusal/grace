@@ -1454,7 +1454,10 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
         }
         s = get_set_strings(gno, setno);
         if (s != NULL) {
-            s[ind] = copy_string(s[ind], dpoint->s);
+            if (ind < len - 1) {
+                memmove(s + ind + 1, s + ind, (len - ind - 1)*sizeof(char *));
+            }
+            s[ind] = copy_string(NULL, dpoint->s);
         }
         set_dirtystate();
         return RETURN_SUCCESS;
