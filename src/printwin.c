@@ -61,7 +61,7 @@ static Widget rc_filesel;
 static Widget printfile_item;
 static Widget pdev_rc;
 static Widget *devices_item;
-static Widget current_dev_item;
+static Widget output_frame;
 static Widget *page_orient_item;
 static Widget *page_format_item;
 static Widget page_x_item;
@@ -93,11 +93,14 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     
     if (psetup_frame == NULL) {
-	psetup_frame = XmCreateDialogShell(app_shell, "Device setup", NULL, 0);
-	handle_close(psetup_frame);
+	psetup_frame = XmCreateDialogShell(app_shell, "Device", NULL, 0);
+        XtVaSetValues(psetup_frame, XmNallowShellResize, True, NULL);
+        handle_close(psetup_frame);
         device_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        psetup_frame, NULL, 0);
+                                        psetup_frame, 
+                                        NULL, 0);
 	psetup_rc = XmCreateRowColumn(device_panel, "psetup_rc", NULL, 0);
+        XtVaSetValues(psetup_rc, XmNrecomputeSize, True, NULL);
 
         fr = CreateFrame(psetup_rc, "Device setup");
         rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -132,11 +135,10 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
                             (XtPointer) NULL);
         XtManageChild(pdev_rc);
         
-	current_dev_item = CreateToggleButton(rc1, "Set as current print device");
         XtManageChild(rc1);
         
-        fr = CreateFrame(psetup_rc, "Print options");
-        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
+        output_frame = CreateFrame(psetup_rc, "Output");
+        rc1 = XmCreateRowColumn(output_frame, "rc", NULL, 0);
 	printto_item = CreatePanelChoice(rc1, "Print to: ",
 					 3,
 					 "Printer",
@@ -245,6 +247,7 @@ static void update_device_setup(int device_id)
     int buflen;
     int page_units;
     double page_x, page_y;
+    PageFormat pf;
     
     Page_geometry pg;
     Device_entry dev;
@@ -257,13 +260,6 @@ static void update_device_setup(int device_id)
             XtSetSensitive(device_opts_item, False);
         } else {
             XtSetSensitive(device_opts_item, True);
-        }
-        if (device_id == hdevice) {
-            SetToggleButtonState(current_dev_item, TRUE);
-            XtSetSensitive(current_dev_item, False);
-        } else {
-            SetToggleButtonState(current_dev_item, FALSE);
-            XtSetSensitive(current_dev_item, True);
         }
 
    	strcpy(buf, mybasename(docname)); 
@@ -286,18 +282,17 @@ static void update_device_setup(int device_id)
         
         switch (dev.type) {
         case DEVICE_TERM:
-            XtSetSensitive(current_dev_item, False);
-            XtSetSensitive(printto_item[0], False);
-            XtSetSensitive(XtParent(print_fileing_item), False);
-            XtSetSensitive(rc_filesel, False);
+            XtUnmanageChild(output_frame);
             break;
         case DEVICE_FILE:
+            XtManageChild(output_frame);
             SetChoice(printto_item, TRUE);
             XtSetSensitive(printto_item[0], False);
             XtSetSensitive(XtParent(print_fileing_item), False);
             XtSetSensitive(rc_filesel, True);
             break;
         case DEVICE_PRINT:
+            XtManageChild(output_frame);
             SetChoice(printto_item, ptofile);
             XtSetSensitive(printto_item[0], True);
             if (ptofile == TRUE) {
@@ -316,9 +311,17 @@ static void update_device_setup(int device_id)
             SetChoice(page_orient_item, PAGE_ORIENT_LANDSCAPE);
         }
         
-        /* Always assume custom */
-        SetChoice(page_format_item, PAGE_FORMAT_CUSTOM); 
-        XtSetSensitive(page_orient_item[0], False);
+        pf = get_page_format(device_id);
+        SetChoice(page_format_item, pf); 
+        if (pf == PAGE_FORMAT_CUSTOM) {
+            XtSetSensitive(page_x_item, True);
+            XtSetSensitive(page_y_item, True);
+            XtSetSensitive(page_orient_item[0], False);
+        } else {
+            XtSetSensitive(page_x_item, False);
+            XtSetSensitive(page_y_item, False);
+            XtSetSensitive(page_orient_item[0], True);
+        }
         
         sprintf (buf, "%.0f", pg.dpi_x); 
         xv_setstr(dev_x_res_item, buf);
@@ -373,20 +376,20 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
         return;
     }
     
-    seldevice = (int) GetChoice(devices_item);
+    seldevice = GetChoice(devices_item);
 
-    if (GetToggleButtonState(current_dev_item)) {
+    dev = get_device_props(seldevice);
+
+    if (dev.type != DEVICE_TERM) {
         hdevice = seldevice;
-        ptofile = (int) GetChoice(printto_item);
+        ptofile = GetChoice(printto_item);
         if (ptofile) {
             strcpy(print_file, xv_getstr(printfile_item));
         } else {
             set_print_cmd(xv_getstr(print_fileing_item));
         }
-        XtSetSensitive(current_dev_item, False);
     }
     
-    dev = get_device_props(seldevice);
     dev.devfonts = GetToggleButtonState(devfont_item);
     dev.fontaa = GetToggleButtonState(fontaa_item);
     
