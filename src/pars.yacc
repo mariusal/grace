@@ -4806,9 +4806,11 @@ int yylex(void)
                   c == '_' || c == '$'));
 	ungetchstr();
 	*p = '\0';
+#ifdef DEBUG
         if (debuglevel == 2) {
 	    printf("->%s<-\n", sbuf);
 	}
+#endif
 	found = -1;
 	if ((found = findf(key, sbuf)) >= 0) {
 	    if (key[found].type == SCRARRAY) {
