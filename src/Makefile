@@ -70,7 +70,7 @@ $(PARS_C) : $(PARS_Y)
 	mv y.tab.c $@
 
 xml_in.c : grace.xcc
-	xcc < $? > $@
+	$(XCC) < $? > t.c && mv t.c $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
