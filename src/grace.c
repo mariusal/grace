@@ -316,50 +316,43 @@ void *container_data_copy(void *data)
 static QuarkFlavor project_qf = {
     (Quark_data_new) project_data_new,
     (Quark_data_free) project_data_free,
-    NULL,
     NULL
 };
 
 static QuarkFlavor frame_qf = {
     (Quark_data_new) frame_data_new,
     (Quark_data_free) frame_data_free,
-    (Quark_data_copy) frame_data_copy,
-    NULL
+    (Quark_data_copy) frame_data_copy
 };
 
 static QuarkFlavor graph_qf = {
     (Quark_data_new) graph_data_new,
     (Quark_data_free) graph_data_free,
-    (Quark_data_copy) graph_data_copy,
-    NULL
+    (Quark_data_copy) graph_data_copy
 };
 
 static QuarkFlavor set_qf = {
     (Quark_data_new) set_data_new,
     (Quark_data_free) set_data_free,
-    (Quark_data_copy) set_data_copy,
-    NULL
+    (Quark_data_copy) set_data_copy
 };
 
 static QuarkFlavor axis_qf = {
     (Quark_data_new) axis_data_new,
     (Quark_data_free) axis_data_free,
-    (Quark_data_copy) axis_data_copy,
-    NULL
+    (Quark_data_copy) axis_data_copy
 };
 
 static QuarkFlavor dobject_qf = {
     (Quark_data_new) object_data_new,
     (Quark_data_free) object_data_free,
-    (Quark_data_copy) object_data_copy,
-    NULL
+    (Quark_data_copy) object_data_copy
 };
 
 static QuarkFlavor container_qf = {
     container_data_new,
     container_data_free,
-    container_data_copy,
-    NULL
+    container_data_copy
 };
 
 

@@ -51,7 +51,6 @@ typedef struct _ExplorerUI ExplorerUI;
 typedef void  (*Quark_data_free)(void *data); 
 typedef void *(*Quark_data_new)(void); 
 typedef void *(*Quark_data_copy)(void *data); 
-typedef void  (*Quark_gui)(Quark *q, void *data); 
 
 typedef int (*Quark_cb)(Quark *q, int etype, void *data); 
 
@@ -61,7 +60,6 @@ typedef struct _QuarkFlavor {
     Quark_data_new  data_new;
     Quark_data_free data_free;
     Quark_data_copy data_copy;
-    Quark_gui gui;
 } QuarkFlavor;
 
 struct _Quark {
