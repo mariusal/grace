@@ -11,7 +11,8 @@
 ###############################
 # C flags
 #
-CFLAGS="-fno-common -Wall -pedantic -Wpointer-arith -Wnested-externs"
+CFLAGS="-fno-common \
+-Wall -pedantic -Wpointer-arith -Wnested-externs -Wno-implicit-int"
 #-Wshadow -Wmissing-prototypes -Wwrite-strings -Waggregate-return \
 #-W -Wcast-align -Wcast-qual -Wconversion -Wstrict-prototypes 
 ###############################
