@@ -853,16 +853,16 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->insert_axis_bt = CreateMenuButton(menupane,
             "Axis", '\0', add_axis_cb, eui);
         SetSensitive(eui->insert_axis_bt,   FALSE);
-        eui->insert_object_pane = CreateMenu(menupane, "DObject", 'O', FALSE);
+        eui->insert_object_pane = CreateMenu(menupane, "Annotating objects", 'o', FALSE);
         SetSensitive(eui->insert_object_pane, FALSE);
+        eui->insert_text_bt = CreateMenuButton(eui->insert_object_pane,
+            "Text", '\0', add_object_cb, eui);
         eui->insert_line_bt = CreateMenuButton(eui->insert_object_pane,
             "Line", '\0', add_object_cb, eui);
         eui->insert_box_bt = CreateMenuButton(eui->insert_object_pane,
             "Box", '\0', add_object_cb, eui);
         eui->insert_arc_bt = CreateMenuButton(eui->insert_object_pane,
             "Arc", '\0', add_object_cb, eui);
-        eui->insert_text_bt = CreateMenuButton(eui->insert_object_pane,
-            "Text", '\0', add_object_cb, eui);
 
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         eui->instantupdate = CreateMenuToggle(menupane, "Instantaneous update",
