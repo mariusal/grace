@@ -4,155 +4,180 @@
 
 curdir = Directory()
 curdir = Strip(curdir, 'T', '\') /* handle worst case: root */
+
+/* find binary */
 guess = Stream('..\src\xmgrace.exe', 'C', 'QUERY EXISTS')
-if guess ='' then
+if guess = '' then
   do
   x11root = Value('X11ROOT', , 'OS2ENVIRONMENT')
-  guess = Stream(x11root'\xfree86\bin\xmgrace.exe', 'C', 'QUERY EXISTS')
+  guess = Stream(x11root'/XFree86/bin/xmgrace.exe', 'C', 'QUERY EXISTS')
+  if guess <> '' then 
+    do
+    GRACE = guess
+    end
+  else
+     do
+     say 'No binary found'
+     exit
+     end
   end
-if guess <> '' then 
-  ACEGR = guess
-else
+
+/* find examples */
+gracehome = Value('GRACE_HOME', , 'OS2ENVIRONMENT')
+guess = Stream(gracehome'/examples/explain.agr', 'C', 'QUERY EXISTS')
+if guess = '' then 
   do
-  say 'No binary found'
+  say 'No examples found'
   exit
   end
+else
+  do
+  exampledir = gracehome'/examples'
+  end
 
-guess = Stream(curdir'\..\doc\xmgr.html', 'C', 'QUERY EXISTS')
-if guess <> '' then
-  GR_HOME = Value('X11ROOT', curdir'\..' , 'OS2ENVIRONMENT')
+/* switch to example dir */
+newdir=directory(exampledir)
 
 /* command line parameters */
-call ExecuteCmd ACEGR' -usage'
+call ExecuteCmd GRACE' -usage'
 
 /* call ExecuteCmd sleep 3 */
 
 /* don't ask stupid questions */
-ACEGR = ACEGR' -noask'
+GRACE = "xmgrace -noask"
 
 /* explain the row of single character buttons and a few other things */
-ACEGR' explain.par'
+GRACE" explain.agr"
 
 /* display the various axes available */
-ACEGR' axes.agr'
+GRACE" axes.agr"
 
 /* display the symbols and line styles */
-ACEGR' symslines.dat'
-
-/* display more symbols */
-ACEGR' moresyms.dat'
+GRACE" symslines.agr"
 
 /* display various fill styles */
-ACEGR' fills.dat'
+GRACE" fills.agr"
 
 /* some graph stuff and ticks */
-ACEGR' -p graphs.par'
+GRACE" -p graphs.par"
 
 /* some graph stuff and ticks */
-ACEGR' props.gr'
+GRACE" props.agr"
 
 /* demonstration of many graphs */
-ACEGR' manygraphs.agr'
+GRACE" manygraphs.agr"
 
 /* some graph stuff and ticks */
-ACEGR' brw.dat -p regions.par'
+GRACE" brw.dat -p regions.par"
 
 /* test of a graph inset */
-ACEGR' tinset.d'
+GRACE" tinset.agr"
 
 /* some time and date formats */
-ACEGR' times.dat'
+GRACE" times.agr"
 
 /* some more tick label formats */
-ACEGR' -p tforms.par'
+GRACE" -p tforms.par"
 
-/* some more tick label formats */
-ACEGR' au.d'
-
-/* display fonts and font mappings */
-ACEGR' -p tfonts.par'
-
-/* example of world stack */
-ACEGR' tstack.dat'
-
-/* a graph with a parameter file */
-ACEGR' -p test1.par -a xy test.dat'
-
-/* a graph with a parameter file in reverse video */
-ACEGR' -rvideo -p test1.par -a xy test.dat'
-
-/* ? */
-
-ACEGR' test2.d'
-
-/* multiple graphs with a parameter file */
-ACEGR' mlo.dat -graph 1 brw.dat -p co2.par'
-
-/* multiple graphs created with arrange feature */
-/* $ACEGR co2.all0.dat -graph 1 1.dat -graph 2 2.dat -graph 3 3.dat -graph 4 4.dat -p co2-3.par */
-ACEGR' co2.all'
-
-/* a graph with alternate axes */
-ACEGR' -p altaxis.par test.dat -a xy'
-
-/* a graph with error bars */
-ACEGR' terr.d'
-
-/* a graph with XY RADIUS format */
-ACEGR' txyr.dat'
-
-/* string annotations */
-ACEGR' motif.agr'
-
-/* a graph with hilo data */
-ACEGR' hilo.dat'
+/* Australia map */
+GRACE" au.agr"
 
 /* log plots */
-ACEGR' -p logtest.par log.d -graph 1 log.d'
+GRACE" -autoscale none -p logtest.par log.dat -graph 1 log.dat"
 
 /* more log plots */
-ACEGR' tlog.demo'
+GRACE" tlog.agr"
 
-/* non-linear curve fitting */
-ACEGR' logistic.d'
+/* a log2 example */
+GRACE" log2.agr"
+
+/* a logit scale sample */
+GRACE" logit.agr"
+
+/* display fonts and font mappings */
+GRACE" tfonts.agr"
+
+/* text transforms */
+GRACE" txttrans.agr"
+
+/* advaned typesetting */
+GRACE" typeset.agr"
+
+/* example of world stack */
+GRACE" tstack.agr"
+
+/* a graph with a parameter file */
+GRACE" -p test1.par -autoscale xy test.dat"
+
+/* a graph with a parameter file in reverse video */
+GRACE" -rvideo -p test1.par -autoscale xy test.dat"
+
+GRACE" test2.agr"
+
+/* explanation of arrow shape parameters */
+GRACE" arrows.agr"
+
+/* multiple graphs with a parameter file */
+GRACE" mlo.dat -graph 1 brw.dat -p co2.par"
+
+/* multiple graphs created with arrange feature */
+GRACE" co2.agr"
+
+/* a nice sample */
+GRACE" spectrum.agr"
+
+/* a graph with alternate axes */
+GRACE" -p altaxis.par test.dat -autoscale xy"
+
+/* a graph with error bars */
+GRACE" terr.agr"
+
+/* a fixed graph with XY RADIUS format */
+GRACE" txyr.agr"
+
+/* string annotations */
+GRACE" motif.agr"
+
+/* a graph with an XYZ set */
+GRACE" xyz.agr"
+
+/* a graph with HILO data */
+GRACE" hilo.agr"
+
+/* a graph with BOXPLOT data */
+GRACE" boxplot.agr"
+
+/* polar plots */
+GRACE" polar.agr"
 
 /* bar charts */
 
-/* display all types of bar graphs */
-ACEGR' bars.d'
-
 /* a bar graph demonstrating specified ticks and tick labels */
-ACEGR' bar.d'
+GRACE" bar.agr"
 
-/* a bar graph demonstrating specified ticks and tick labels */
-ACEGR' bar2.d'
-
-/* a bar graph demonstrating patterns */
-ACEGR' tbar3.dat'
-
-/* a stacked bar graph */
-ACEGR' stackedb.d'
+/* a stacked bar chart */
+GRACE" stackedb.agr"
 
 /* a bar chart with error bars */
-ACEGR' chartebar.agr
+GRACE" chartebar.agr"
 
 /* display all types of XY charts */
-ACEGR' charts.agr
+GRACE" charts.agr"
 
 /* pie charts */
-ACEGR' pie.agr
+GRACE" pie.agr"
+
+/* vector map */
+GRACE" vmap.agr"
+
+/* a bubble plot */
+GRACE" xysize.agr"
 
 /* non-linear curve fitting */
-ACEGR' logistic.agr
+GRACE" logistic.agr"
 
 /* some interesting stuff */
-ACEGR' -arrange 2 2 -b test.com'
-
-/* a slideshow demo */
-ACEGR' -pipe  < slideshow.d'
-
-/* Test the -pipe option */
-ACEGR' -pipe < tpipe.d'
+GRACE" -b test.com"
 
 /* need a program */
 /* modified from previous versions, a thank you goes to Bruce Barnett */
@@ -160,7 +185,7 @@ ACEGR' -pipe < tpipe.d'
 /* to run the demos. */
 
 say
-rs = Stream('mc.exe', 'C', 'QUERY EXISTS')
+rs = Stream('tmc.exe', 'C', 'QUERY EXISTS')
 if rs = '' then
   do
   say "Compiling a short program to test the -pipe option"
@@ -171,11 +196,15 @@ if rs = '' then
   end
 
 /* a graph with the -pipe option */
-say "Testing -pipe option, executing './tmc | $ACEGR -pipe' "
-'./tmc | 'ACEGR' -pipe'
+say "Testing -pipe option, executing './tmc | $GRACE -pipe' "
+'.\tmc.exe | 'GRACE' -pipe'
 call ExecuteCmd 'rm -f tmc.exe'
 
+/* switch back */
+newdir=directory(curdir)
+
 exit /* end of main program */
+
 
 /* Procedures */
 
@@ -184,4 +213,3 @@ Parse Arg EC_param
 _silent_pre = "@"
 ADDRESS CMD _silent_pre""EC_param
 return rc
-
