@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1206,6 +1206,7 @@ static void do_interp_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     do_interp(gno, set1, gno, set2, method);
     update_set_lists(gno);
+    drawgraph();
     unset_wait_cursor();
 }
 
