@@ -222,7 +222,8 @@ AC_PROG_MAKE_SET
 dnl **** Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h sys/time.h sys/resource.h)
+AC_CHECK_HEADERS(unistd.h fcntl.h)
+AC_CHECK_HEADERS(sys/param.h sys/time.h sys/resource.h sys/select.h)
 AC_HEADER_TIME
 dnl **** math.h and related
 AC_CHECK_HEADERS(math.h float.h ieeefp.h)
