@@ -391,9 +391,11 @@ static void auto_ticks(int gno, int axis)
     if (axis_scale != SCALE_LOG) {
         d = nicenum(range/(t.t_autonum - 1), 0, NICE_ROUND);
 	t.tmajor = d;
+        t.nminor = 1;
     } else {
         d = ceil(range/(t.t_autonum - 1));
 	t.tmajor = pow(t.tmajor, d);
+        t.nminor = 9;
     }
     
     set_graph_tickmarks(gno, &t, axis);
