@@ -586,20 +586,12 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(submenupane, "sets", "Sets...", 'S',
     	(XtCallbackProc) create_file_popup, (XtPointer) NULL, "file.html#readsets");
-#ifdef HAVE_MFHDF
-    CreateMenuButton(submenupane, "netCDF", "NetCDF/HDF...", 'N',
-    	(XtCallbackProc) create_netcdfs_popup, (XtPointer) NULL, "file.html#readnetcdf");
-#else
 #ifdef HAVE_NETCDF
     CreateMenuButton(submenupane, "netCDF", "NetCDF...", 'N', 
     	(XtCallbackProc) create_netcdfs_popup, (XtPointer) NULL, "file.html#readnetcdf");
 #endif
-
-#endif
     CreateMenuButton(submenupane, "parameters", "Parameters...", 'P',
     	(XtCallbackProc) create_rparams_popup, (XtPointer) NULL, "file.html#readpars");
-    CreateMenuButton(submenupane, "blockData", "Block data...", 'B',
-    	(XtCallbackProc) create_block_popup, (XtPointer) NULL, "file.html#readblock");
    
 /*
  * Write submenu
@@ -616,9 +608,6 @@ static Widget CreateMainMenuBar(Widget parent)
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_PRINT, "file.html#print");
     CreateMenuButton(menupane, "deviceSetup", "Device setup...", 't',
     	(XtCallbackProc) create_printer_setup, (XtPointer) NULL, "file.html#printersetup");
-    CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "workingDirectory", "Working directory...", 'W',
-    	(XtCallbackProc) create_workingdir_popup, (XtPointer) NULL, 0);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "exit", "Exit", 'x',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT, "file.html#exit");
