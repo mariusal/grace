@@ -332,14 +332,14 @@
 /* define if FFTW Fourier transform library is available */
 #undef HAVE_FFTW
 
-/* define if PDFlib library is available */
-#undef HAVE_LIBPDF
-
-/* define if GD library is available */
-#undef HAVE_LIBGD
+/* define if PNG library is available */
+#undef HAVE_LIBPNG
 
 /* define if JPEG library is available */
 #undef HAVE_LIBJPEG
+
+/* define if PDFlib library is available */
+#undef HAVE_LIBPDF
 
 /* Define if you have a Fortran compiler.  */
 #undef HAVE_F77

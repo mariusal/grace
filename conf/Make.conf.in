@@ -51,20 +51,23 @@ FFTW_LIB=@FFTW_LIB@
 # netCDF libraries
 NETCDF_LIBS=@NETCDF_LIBS@
 
+# JPEG library
+JPEG_LIB=@JPEG_LIB@
+
+# libz library
+Z_LIB=@Z_LIB@
+
+# PNG library
+PNG_LIB=@PNG_LIB@
+
+# TIFF library
+TIFF_LIB=@TIFF_LIB@
+
 # PDFlib library
 PDF_LIB=@PDF_LIB@
 
 # PDF driver
 PDFDRV_O=@PDFDRV_O@
-
-# GD library
-GD_LIB=@GD_LIB@
-
-# JPEG library
-JPEG_LIB=@JPEG_LIB@
-
-# Generic raster driver
-RSTDRV_O=@RSTDRV_O@
 
 # Location of yacc (or its substitution)
 YACC=@YACC@

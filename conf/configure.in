@@ -29,11 +29,12 @@ AC_SUBST(DL_LIB)
 AC_SUBST(T1_LIB)
 AC_SUBST(T1_INC)
 AC_SUBST(FFTW_LIB)
+AC_SUBST(Z_LIB)
+AC_SUBST(JPEG_LIB)
+AC_SUBST(PNG_LIB)
+AC_SUBST(TIFF_LIB)
 AC_SUBST(PDF_LIB)
 AC_SUBST(PDFDRV_O)
-AC_SUBST(GD_LIB)
-AC_SUBST(JPEG_LIB)
-AC_SUBST(RSTDRV_O)
 AC_SUBST(GRACE_EDITOR)
 AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
@@ -492,6 +493,24 @@ case $fftw in
   *) ;;
 esac
 
+dnl **** check for libz - needed for PDF and PNG drivers
+AC_CHECK_LIB(z, deflateInit, Z_LIB="-lz")
+
+dnl **** check for IJG's libjpeg - also, for PDF driver
+AC_CHECK_LIB(jpeg, jpeg_start_compress, JPEG_LIB="-ljpeg";AC_DEFINE(HAVE_LIBJPEG))
+if test $ac_cv_lib_jpeg_jpeg_start_compress != yes; then
+  AC_MSG_RESULT(--> JPEG backend is disabled)
+fi
+
+dnl **** check for libpng
+AC_CHECK_LIB(png, png_create_write_struct, PNG_LIB="-lpng";AC_DEFINE(HAVE_LIBPNG),,$Z_LIB)
+if test $ac_cv_lib_png_png_create_write_struct != yes; then
+  AC_MSG_RESULT(--> PNG backend is disabled)
+fi
+
+dnl **** check for libtiff - may be needed for PDF driver
+AC_CHECK_LIB(tiff, main, TIFF_LIB="-ltiff",,$JPEG_LIB $Z_LIB)
+
 dnl **** whether to build PDF driver
 AC_ARG_ENABLE(pdfdrv,
 [  --enable-pdfdrv         build PDF driver (default = yes)],
@@ -502,34 +521,16 @@ AC_ARG_ENABLE(pdfdrv,
 esac],[pdfdrv=true])
 
 case $pdfdrv in
-  true) AC_CHECK_LIB(pdf, PDF_setfillrule, PDF_LIB="-lpdf";PDFDRV_O='pdfdrv$(O)';AC_DEFINE(HAVE_LIBPDF));;
+  true) AC_CHECK_LIB(pdf, PDF_set_fillrule,
+        PDF_LIB="-lpdf";PDFDRV_O='pdfdrv$(O)';AC_DEFINE(HAVE_LIBPDF),,
+        $TIFF_LIB $JPEG_LIB $Z_LIB);;
   *);;
 esac
-if test $ac_cv_lib_pdf_PDF_setfillrule != yes; then
+if test $ac_cv_lib_pdf_PDF_set_fillrule != yes; then
   AC_MSG_RESULT(--> PDF driver is disabled)
 fi
 
-dnl **** whether to build generic raster driver
-AC_ARG_ENABLE(rstdrv,
-[  --enable-rstdrv         build generic raster driver (default = yes)],
-[case "${enableval}" in
-  yes) rstdrv=true ;;
-  no)  rstdrv=false;;
-  *) AC_MSG_ERROR(bad value ${enableval} for --enable-rstdrv) ;;
-esac],[rstdrv=true])
-
-case $rstdrv in
-  true) AC_CHECK_LIB(gd, gdImageCreateFromGifSource, GD_LIB="-lgd";RSTDRV_O='rstdrv$(O)';AC_DEFINE(HAVE_LIBGD));;
-  *);;
-esac
-if test $ac_cv_lib_gd_gdImageCreateFromGifSource != yes; then
-  AC_MSG_RESULT(--> raster driver is disabled)
-else
-  AC_CHECK_LIB(jpeg, jpeg_start_compress, JPEG_LIB="-ljpeg";AC_DEFINE(HAVE_LIBJPEG))
-  if test $ac_cv_lib_jpeg_jpeg_start_compress != yes; then
-    AC_MSG_RESULT(--> JPEG backend is disabled)
-  fi
-fi
+dnl **** TODO: undefine unneeded libraries
 
 dnl **** check if user wants to compile grace_np lib with support for Fortran
 AC_ARG_ENABLE(f77,
