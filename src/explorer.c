@@ -198,6 +198,8 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     int count;
     Quark *q = NULL;
     int fid = -1;
+    int all_shown = TRUE;
+    int all_hidden = TRUE;
 
     ret = (ListTreeMultiReturnStruct *) call;
     count = ret->count;
@@ -214,6 +216,8 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         q = ti_data->q;
         fid = quark_fid_get(q);
         parent = quark_parent_get(q);
+        all_shown  = quark_is_active(q);
+        all_hidden = !all_shown;
         
         for (i = 1; i < count; i++) {
             item = ret->items[i];
@@ -224,6 +228,11 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             }
             if (quark_parent_get(ti_data->q) != parent) {
                 ui->all_siblings = FALSE;
+            }
+            if (quark_is_active(ti_data->q)) {
+                all_hidden = FALSE;
+            } else {
+                all_shown = FALSE;
             }
         }
     }
@@ -360,8 +369,8 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->popup_hide_bt,           FALSE);
         SetSensitive(ui->popup_show_bt,           FALSE);
     } else {
-        SetSensitive(ui->popup_hide_bt,           TRUE);
-        SetSensitive(ui->popup_show_bt,           TRUE);
+        SetSensitive(ui->popup_hide_bt, !all_hidden);
+        SetSensitive(ui->popup_show_bt, !all_shown);
     }
         
     if (!count || !ui->all_siblings || fid == QFlavorProject) {
