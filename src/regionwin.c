@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -75,7 +75,7 @@ static Widget *labx;
 static void do_define_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int rtype = GetOptionChoice(define_type_item);
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
 
     pr->nr = GetOptionChoice(define_region_item);
     define_region(pr->nr, rtype);
@@ -289,7 +289,7 @@ void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int rno;
     if (status_frame) {
-        Project *pr = (Project *) grace->project->data;
+        Project *pr = project_get_data(grace->project);
         clear_status();
         sprintf(buf, " Region # Active  Type");
 	set_status_label(header_w, buf);

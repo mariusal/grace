@@ -2673,7 +2673,7 @@ void update_set_selectors(Quark *gr)
     int i;
     
     if (gr) {
-        update_graph_selectors(gr->parent);
+        update_graph_selectors(graph_get_project(gr));
     }
     
     for (i = 0; i < nset_selectors; i++) {

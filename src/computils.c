@@ -1633,7 +1633,7 @@ int do_histo(Quark *psrc, Quark *pdest,
     
     xfree(hist);
 
-    p = (set *) pdest->data;
+    p = set_get_data(pdest);
     p->sym.type = SYM_NONE;
     p->line.type = LINE_TYPE_LEFTSTAIR;
     p->line.droplines = TRUE;
@@ -1902,7 +1902,7 @@ int do_interp(Quark *psrc, Quark *pdest,
 int get_restriction_array(Quark *pset,
     int rtype, int negate, char **rarray)
 {
-    Quark *gr = pset->parent;
+    Quark *gr = get_parent_graph(pset);
     int i, n, regno;
     double *x, *y;
     world w;

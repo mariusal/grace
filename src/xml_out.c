@@ -542,7 +542,7 @@ int save_set_properties(XFile *xf, Quark *pset)
         return RETURN_FAILURE;
     }
     
-    p = (set *) pset->data;
+    p = set_get_data(pset);
     
     attrs = attributes_new();
     
@@ -924,7 +924,7 @@ int save_project(char *fn)
 {
     XFile *xf;
     Attributes *attrs;
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     
     xf = xfile_new(fn);
     attrs = attributes_new();

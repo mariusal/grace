@@ -365,7 +365,7 @@ Quark *nextset(Quark *gr)
     
     pset = grace->rt->target_set;
     
-    if (pset && pset->parent == gr && !is_set_active(pset)) {
+    if (pset && get_parent_graph(pset) == gr && !is_set_active(pset)) {
         grace->rt->target_set = NULL;
         return pset;
     } else {
@@ -656,7 +656,7 @@ int create_set_fromblock(Quark *pset,
     xfree(s);
     setcomment(pset, buf);
 
-    autoscale_graph(pset->parent, autoscale);
+    autoscale_graph(get_parent_graph(pset), autoscale);
 
     return RETURN_SUCCESS;
 }

@@ -284,7 +284,7 @@ void grace_free(Grace *grace)
 int grace_set_project(Grace *grace, Quark *project)
 {
     if (grace && project) {
-        Project *pr = (Project *) project->data;
+        Project *pr = project_get_data(project);
         quark_free(grace->project);
         grace->project = project;
         project_clear_dirtystate(grace->project);
@@ -447,7 +447,7 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
         return RETURN_FAILURE;
     } else {
         int wpp_old, hpp_old;
-        Project *pr = (Project *) grace->project->data;
+        Project *pr = project_get_data(grace->project);
 	wpp_old = pr->page_wpp;
 	hpp_old = pr->page_hpp;
         

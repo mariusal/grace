@@ -790,13 +790,13 @@ void set_help_viewer(Grace *grace, const char *dir)
 
 char *get_docname(const Quark *q)
 {
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     return pr->docname;
 }
 
 void set_docname(Quark *q, const char *s)
 {
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     if (!s) {
         s = NONAME;
     }
@@ -973,7 +973,7 @@ void echomsg(char *msg)
 
 void update_timestamp(time_t *t)
 {
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     struct tm tm;
     time_t time_value;
     char *str;
@@ -993,7 +993,7 @@ void update_timestamp(time_t *t)
 
 char *get_timestamp(void)
 {
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     return pr->timestamp;
 }
 

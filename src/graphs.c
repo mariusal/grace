@@ -168,15 +168,16 @@ static int hook(unsigned int step, void *data, void *udata)
 
 Quark *graph_get_project(const Quark *gr)
 {
-    Quark *f = NULL, *pr = NULL;
-    if (gr) {
-        f = gr->parent;
-    }
-    if (f) {
-        pr = f->parent;
+    Quark *p = (Quark *) gr;
+    
+    while (p) {
+        p = quark_parent_get(p);
+        if (p->fid == QFlavorProject) {
+            return p;
+        }
     }
     
-    return pr;
+    return NULL;
 }
 
 Quark *get_parent_graph(const Quark *child)
@@ -184,7 +185,7 @@ Quark *get_parent_graph(const Quark *child)
     Quark *p = (Quark *) child;
     
     while (p) {
-        p = p->parent;
+        p = quark_parent_get(p);
         if (p->fid == QFlavorGraph) {
             return p;
         }
@@ -197,7 +198,7 @@ static int graph_free_cb(Quark *gr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
         Quark *pr = graph_get_project(gr);
-        Project *project = (Project *) pr->data;
+        Project *project = project_get_data(pr);
         if (project->cg == gr) {
             storage_traverse(pr->children, hook, project);
         }
@@ -454,7 +455,7 @@ void clear_world_stack(Quark *pr)
     q = graph_get_current(pr);
     
     if (q) {
-        graph *g = (graph *) q->data;
+        graph *g = graph_get_data(q);
         g->ws_top = 1;
         g->curw = 0;
         g->ws[0].w.xg1 = 0.0;
@@ -471,7 +472,7 @@ static void update_world_stack(Quark *pr)
     q = graph_get_current(pr);
     
     if (q) {
-        graph *g = (graph *) q->data;
+        graph *g = graph_get_data(q);
         g->ws[g->curw].w = g->w;
     }
 }
@@ -685,7 +686,7 @@ RiserLine *riserline_new(void)
 int is_set_hidden(Quark *pset)
 {
     if (pset) {
-        set *p = (set *) pset->data;
+        set *p = set_get_data(pset);
         return !(p->active);
     } else {
         return FALSE;
@@ -695,7 +696,7 @@ int is_set_hidden(Quark *pset)
 int set_set_hidden(Quark *pset, int flag)
 {
     if (pset) {
-        set *p = (set *) pset->data;
+        set *p = set_get_data(pset);
         p->active = !flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -763,11 +764,16 @@ int get_descendant_sets(Quark *q, Quark ***sets)
 
 Quark *graph_get_frame(Quark *gr)
 {
-    if (gr) {
-        return gr->parent;
-    } else {
-        return NULL;
+    Quark *p = (Quark *) gr;
+    
+    while (p) {
+        p = quark_parent_get(p);
+        if (p->fid == QFlavorFrame) {
+            return p;
+        }
     }
+    
+    return NULL;
 }
 
 GLocator *get_graph_locator(Quark *gr)
@@ -1170,7 +1176,7 @@ static int project_postprocess_hook(Quark *q,
         }
 
         if (version_id < 50002) {
-            Project *pr = (Project *) q->data;
+            Project *pr = project_get_data(q);
             pr->bgfill = TRUE;
         }
 
@@ -1254,7 +1260,7 @@ static int project_postprocess_hook(Quark *q,
         break;
     case QFlavorSet:
         s = set_get_data(q);
-        gtype = get_graph_type(q->parent);
+        gtype = get_graph_type(get_parent_graph(q));
 
         if (version_id < 50000) {
             switch (s->sym.type) {

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -156,7 +156,7 @@ static void del_rows_cb(Widget but, void *data)
 
         XbaeMatrixDeselectAll(ep->mw);
 
-        update_set_lists(ep->pset->parent);
+        update_set_lists(get_parent_graph(ep->pset));
         update_cells(ep);
 
         xdrawgraph();
@@ -203,7 +203,7 @@ void add_row_cb(Widget but, void *data)
         add_point_at(ep->pset, i, &dpoint);
     }
     
-    update_set_lists(ep->pset->parent);
+    update_set_lists(get_parent_graph(ep->pset));
     update_cells(ep);
     
     xdrawgraph();
@@ -322,7 +322,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     if (cs->row >= nrows) {
         if (!is_empty_string(cs->value)) {
             setlength(ep->pset, cs->row + 1);
-            update_set_lists(ep->pset->parent);
+            update_set_lists(get_parent_graph(ep->pset));
         } else {
             /* empty cell */
             return;
@@ -357,7 +357,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
         
         /* don't refresh this editor */
         ep->update = FALSE;
-        update_set_lists(ep->pset->parent);
+        update_set_lists(get_parent_graph(ep->pset));
         ep->update = TRUE;
         
         xdrawgraph();
@@ -489,7 +489,7 @@ void update_ss_editors(Quark *gr)
     EditPoints *ep = ep_start;
 
     while (ep != NULL) {
-        if (!gr || ep->pset->parent == gr) {
+        if (!gr || get_parent_graph(ep->pset) == gr) {
             /* don't spend time on unmanaged SS editors */
             if (IsManaged(GetParent(ep->top))) {
                 update_cells(ep);
@@ -630,7 +630,7 @@ int ep_aac_proc(void *data)
     
     set_dataset_type(ep->pset, stype);
     setcomment(ep->pset, comment);
-    update_set_lists(ep->pset->parent);
+    update_set_lists(get_parent_graph(ep->pset));
     xdrawgraph();
     
     xfree(comment);
@@ -790,7 +790,7 @@ void do_ext_editor(Quark *pset)
         grace->rt->target_set = pset;
 	killsetdata(pset);	
     }
-    getdata(pset->parent, fname, SOURCE_DISK, LOAD_SINGLE);
+    getdata(get_parent_graph(pset), fname, SOURCE_DISK, LOAD_SINGLE);
     grace->rt->autoscale_onread = save_autos;
     unlink(fname);
     update_all();

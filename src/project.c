@@ -128,13 +128,13 @@ void project_data_free(Project *pr)
 
 int project_get_version_id(const Quark *q)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     return pr->version_id;
 }
 
 int project_set_version_id(Quark *q, int version_id)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     int software_version_id = bi_version_id();
     if (version_id > software_version_id) {
         pr->version_id = software_version_id;
@@ -147,21 +147,21 @@ int project_set_version_id(Quark *q, int version_id)
 
 void project_reset_version(Quark *q)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     pr->version_id = bi_version_id();
 }
 
 
 void project_set_description(Quark *q, char *descr)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     pr->description = copy_string(pr->description, descr);
     set_dirtystate();
 }
 
 char *project_get_description(const Quark *q)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     return pr->description;
 }
 
@@ -221,13 +221,13 @@ int project_get_graphs(Quark *q, Quark ***graphs)
 
 char *project_get_sformat(const Quark *q)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     return pr->sformat;
 }
 
 void project_set_sformat(Quark *q, const char *s)
 {
-    Project *pr = (Project *) q->data;
+    Project *pr = project_get_data(q);
     pr->sformat = copy_string(pr->sformat, s);;
 }
 

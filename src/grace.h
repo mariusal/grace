@@ -260,6 +260,8 @@ void quark_free(Quark *q);
 Quark *quark_copy(const Quark *q);
 Quark *quark_copy2(Quark *newparent, const Quark *q);
 
+Quark *quark_parent_get(const Quark *q);
+
 void quark_dirtystate_set(Quark *q, int flag);
 int quark_dirtystate_get(const Quark *q);
 

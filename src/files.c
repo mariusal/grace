@@ -1217,7 +1217,7 @@ int readnetcdf(Quark *pset,
 	       int nstop,
 	       int nstride)
 {
-    Quark *gr = pset->parent;
+    Quark *gr = get_parent_graph(pset);
     int cdfid;			/* netCDF id */
     int i, n;
     double *x, *y;

@@ -240,7 +240,7 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
             for (setno = 0; setno < nsets; setno++) {
                 Quark *pset = psets[setno];
                 if (is_set_drawable(pset)) {
-                    set *p = (set *) pset->data;
+                    set *p = set_get_data(pset);
                     if (getsetlength(pset) > plot_rt->refn) {
                         plot_rt->refn = getsetlength(pset);
                         plot_rt->refx = getx(pset);
@@ -684,8 +684,8 @@ void fillframe(Canvas *canvas, Quark *q)
 void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int i, len, setlen, polylen;
     int line_type = p->line.type;
     double *x, *y;
@@ -823,8 +823,8 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
 void drawsetline(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int setlen, len;
     int i;
     int line_type = p->line.type;
@@ -1047,8 +1047,8 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
 void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int setlen;
     int i;
     VPoint vp;
@@ -1133,8 +1133,8 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
 void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int i;
     int setlen;
     double *x, *y, *z;
@@ -1238,8 +1238,8 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int i, n;
     double *x, *y;
     double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
@@ -1374,7 +1374,7 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
 void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    set *p = (set *) pset->data;
+    set *p = set_get_data(pset);
     int i;
     double *x = p->data->ex[0], *y1 = p->data->ex[1];
     double *y2 = p->data->ex[2], *y3 = p->data->ex[3], *y4 = p->data->ex[4];
@@ -1412,8 +1412,8 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
 void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int i, n;
     double *x, *y;
     double lw, bw = 0.01*p->sym.size;
@@ -1517,7 +1517,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
 void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    set *p = (set *) pset->data;
+    set *p = set_get_data(pset);
     int i, setlen;
     double *x, *y, *r;
     int skip = p->symskip + 1;
@@ -1560,8 +1560,8 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
 void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    Quark *gr = pset->parent;
-    set *p = (set *) pset->data;
+    Quark *gr = get_parent_graph(pset);
+    set *p = set_get_data(pset);
     int i, setlen;
     double znorm = get_graph_znorm(gr);
     int skip = p->symskip + 1;
@@ -1611,7 +1611,7 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
 void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    set *p = (set *) pset->data;
+    set *p = set_get_data(pset);
     int i;
     double *x, *md, *lb, *ub, *lw, *uw;
     double size = 0.01*p->sym.size;

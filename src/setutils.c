@@ -496,7 +496,7 @@ int set_set_dataset(Quark *q, Dataset *dsp)
 
 Dataset *dataset_get(Quark *pset)
 {
-    set *p = (set *) pset->data;
+    set *p = set_get_data(pset);
     if (p) {
         return p->data;
     } else {
@@ -515,7 +515,7 @@ void killsetdata(Quark *pset)
         return;
     }
     
-    p = (set *) pset->data;
+    p = set_get_data(pset);
     dataset_empty(p->data);
 }
 
@@ -530,7 +530,7 @@ int setlength(Quark *pset, int len)
         return RETURN_FAILURE;
     }
     
-    p = (set *) pset->data;
+    p = set_get_data(pset);
 
     set_dirtystate();
     
@@ -576,7 +576,7 @@ void killset(Quark *pset)
 double *getcol(Quark *pset, int col)
 {
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         return p->data->ex[col];
     } else {
         return NULL;
@@ -586,7 +586,7 @@ double *getcol(Quark *pset, int col)
 void setcol(Quark *pset, int col, double *x, int len)
 {
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         p->data->ex[col] = x;
         p->data->len = len;
         set_dirtystate();
@@ -596,7 +596,7 @@ void setcol(Quark *pset, int col, double *x, int len)
 char **get_set_strings(Quark *pset)
 {
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         return p->data->s;
     } else {
         return NULL;
@@ -606,7 +606,7 @@ char **get_set_strings(Quark *pset)
 int set_set_strings(Quark *pset, int len, char **s)
 {
     if (pset && len > 0 && s!= NULL) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         p->data->s = s;
         p->data->len = len;
         set_dirtystate();
@@ -619,7 +619,7 @@ int set_set_strings(Quark *pset, int len, char **s)
 int getsetlength(Quark *pset)
 {
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         return p->data->len;
     } else {
         return -1;
@@ -655,7 +655,7 @@ char *getcomment(Quark *pset)
 int set_legend_string(Quark *pset, char *s)
 { 
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         p->legstr = copy_string(p->legstr, s);
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -667,7 +667,7 @@ int set_legend_string(Quark *pset, char *s)
 char *get_legend_string(Quark *pset)
 { 
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         return p->legstr;
     } else {
         return NULL;
@@ -683,7 +683,7 @@ int set_dataset_type(Quark *pset, int type)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     if (set_dataset_ncols(p->data, ncols_new) == RETURN_SUCCESS) {
         p->type = type;
         set_dirtystate();
@@ -696,7 +696,7 @@ int set_dataset_type(Quark *pset, int type)
 int dataset_type(Quark *pset)
 { 
     if (pset) {
-        set *p = pset->data;
+        set *p = set_get_data(pset);
         return p->type;
     } else {
         return -1;
@@ -1590,7 +1590,7 @@ int do_splitsets(Quark *pset, int lpart)
     /* get number of columns in this set */
     ncols = dataset_cols(pset);
 
-    gr = pset->parent;
+    gr = get_parent_graph(pset);
     dsp = set_get_dataset(pset);
 
     /* now load each set */
@@ -1701,8 +1701,8 @@ double setybase(Quark *pset)
         return 0.0;
     }
     
-    gr = pset->parent;
-    p = (set *) pset->data;
+    gr = get_parent_graph(pset);
+    p = set_get_data(pset);
     get_graph_world(gr, &w);
     
     getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
@@ -1787,7 +1787,7 @@ set *set_get_data(const Quark *q)
 Dataset *set_get_dataset(Quark *qset)
 {
     if (qset) {
-        set *p = (set *) qset->data;
+        set *p = set_get_data(qset);
         return p->data;
     } else {
         return NULL;
@@ -1801,7 +1801,7 @@ int set_set_colors(Quark *pset, int color)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     if (color < number_of_colors(grace->rt->canvas) && color >= 0) {
         p->line.line.pen.color    = color;
@@ -1823,7 +1823,7 @@ int set_set_symskip(Quark *pset, int symskip)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     p->symskip = symskip;
     
@@ -1837,7 +1837,7 @@ int set_set_symbol(Quark *pset, const Symbol *sym)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     p->sym = *sym;
     
@@ -1851,7 +1851,7 @@ int set_set_line(Quark *pset, const SetLine *sl)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     p->line = *sl;
     
@@ -1865,7 +1865,7 @@ int set_set_avalue(Quark *pset, const AValue *av)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     p->avalue = *av;
     
@@ -1879,7 +1879,7 @@ int set_set_errbar(Quark *pset, const Errbar *ebar)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     p->errbar = *ebar;
     
@@ -1893,7 +1893,7 @@ int set_set_legstr(Quark *pset, const char *s)
         return RETURN_FAILURE;
     }
     
-    p = pset->data;
+    p = set_get_data(pset);
     
     p->legstr = copy_string(p->legstr, s);
     

@@ -344,7 +344,7 @@ static void autorange_bysets(Quark **sets, int nsets, int autos_type)
         return;
     }
     
-    gr = sets[0]->parent;
+    gr = get_parent_graph(sets[0]);
     
     get_graph_world(gr, &w);
     

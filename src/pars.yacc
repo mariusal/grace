@@ -69,7 +69,7 @@
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-#define rg ((Project *) (grace->project->data))->rg
+#define rg (project_get_data(grace->project))->rg
 #define grdefaults grace->rt->grdefaults
 #define canvas grace->rt->canvas
 
@@ -1961,11 +1961,11 @@ parmset:
             set_wrap_year($4);
 	}
 	| BACKGROUND color_select {
-	    Project *pr = (Project *) grace->project->data;
+	    Project *pr = project_get_data(grace->project);
             pr->bgcolor = $2;
 	}
 	| PAGE BACKGROUND FILL onoff {
-	    Project *pr = (Project *) grace->project->data;
+	    Project *pr = project_get_data(grace->project);
 	    pr->bgfill = $4;
 	}
 	| PAGE SCROLL expr '%' {
@@ -2802,89 +2802,89 @@ setprop:
 	}
 
 	| selectset SYMBOL nexpr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->sym.type = $3;
 	}
 	| selectset SYMBOL color_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.line.pen.color = $3;
 	}
 	| selectset SYMBOL pattern_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.line.pen.pattern = $3;
 	}
 	| selectset SYMBOL linew_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.line.width = $3;
 	}
 	| selectset SYMBOL lines_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.line.style = $3;
 	}
 	| selectset SYMBOL FILL color_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.fillpen.color = $4;
 	}
 	| selectset SYMBOL FILL pattern_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.fillpen.pattern = $4;
 	}
 	| selectset SYMBOL SIZE expr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.size = $4;
 	}
 	| selectset SYMBOL CHAR nexpr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.symchar = $4;
 	}
 	| selectset SYMBOL CHAR font_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->sym.charfont = $4;
 	}
 	| selectset SYMBOL SKIP nexpr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->symskip = $4;
 	}
 
 	| selectset LINE TYPE nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.type = $4;
 	}
 	| selectset LINE lines_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.style = $3;
 	}
 	| selectset LINE linew_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.width = $3;
 	}
 	| selectset LINE color_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.pen.color = $3;
 	}
 	| selectset LINE pattern_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.pen.pattern = $3;
 	}
 
 	| selectset FILL TYPE nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.filltype = $4;
 	}
 	| selectset FILL RULE nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.fillrule = $4;
 	}
 	| selectset FILL color_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    int prop = $3;
 
 	    if (project_get_version_id(grace->project) <= 40102 && project_get_version_id(grace->project) >= 30000) {
@@ -2903,7 +2903,7 @@ setprop:
 	}
 	| selectset FILL pattern_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    int prop = $3;
 
 	    if (project_get_version_id(grace->project) <= 40102) {
@@ -2924,121 +2924,121 @@ setprop:
         
 	| selectset BASELINE onoff
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.baseline = $3;
 	}
 	| selectset BASELINE TYPE nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.baseline_type = $4;
 	}
         
 	| selectset DROPLINE onoff
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.droplines = $3;
 	}
 
 	| selectset AVALUE onoff
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.active = $3;
 	}
 	| selectset AVALUE TYPE nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.type = $4;
 	}
 	| selectset AVALUE CHAR SIZE expr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.size = $5;
 	}
 	| selectset AVALUE font_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.font = $3;
 	}
 	| selectset AVALUE color_select
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.color = $3;
 	}
 	| selectset AVALUE ROT nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.angle = $4;
 	}
 	| selectset AVALUE FORMAT formatchoice
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.format = $4;
 	}
 	| selectset AVALUE PREC nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.prec = $4;
 	}
 	| selectset AVALUE OFFSET expr ',' expr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->avalue.offset.x = $4;
 	    p->avalue.offset.y = $6;
 	}
 	| selectset AVALUE PREPEND CHRSTR
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    strcpy(p->avalue.prestr, $4);
 	    xfree($4);
 	}
 	| selectset AVALUE APPEND CHRSTR
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    strcpy(p->avalue.appstr, $4);
 	    xfree($4);
 	}
 
 	| selectset ERRORBAR onoff {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->errbar.active = $3;
 	}
 	| selectset ERRORBAR opchoice_sel {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->errbar.ptype = $3;
 	}
 	| selectset ERRORBAR color_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->errbar.pen.color = $3;
 	}
 	| selectset ERRORBAR pattern_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->errbar.pen.pattern = $3;
 	}
 	| selectset ERRORBAR SIZE expr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.barsize = $4;
 	}
 	| selectset ERRORBAR linew_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.linew = $3;
 	}
 	| selectset ERRORBAR lines_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.lines = $3;
 	}
 	| selectset ERRORBAR RISER linew_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.riser_linew = $4;
 	}
 	| selectset ERRORBAR RISER lines_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.riser_lines = $4;
 	}
 	| selectset ERRORBAR RISER CLIP onoff {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.arrow_clip = $5;
 	}
 	| selectset ERRORBAR RISER CLIP LENGTH expr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.cliplen = $6;
 	}
 
@@ -3713,7 +3713,7 @@ parmset_obs:
 	| LEGEND STRING nexpr CHRSTR {
             int nsets;
             Quark *pset, **psets;
-            nsets = graph_get_sets(whichgraph, &psets);
+            nsets = get_descendant_sets(whichgraph, &psets);
             if ($3 >= 0 && $3 < nsets) {
                 pset = psets[$3];
             } else {
@@ -3811,7 +3811,7 @@ axislabeldesc_obs:
 
 setprop_obs:
 	selectset SYMBOL FILL nexpr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             switch ($4){
 	    case 0:
 	        p->sym.fillpen.pattern = 0;
@@ -3827,12 +3827,12 @@ setprop_obs:
 	}
 	| selectset SKIP nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->symskip = $3;
 	}
 	| selectset FILL nexpr
         {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    switch ($3) {
             case 0:
                 p->line.filltype = SETFILL_NONE;
@@ -3855,7 +3855,7 @@ setprop_obs:
             }
 	}
 	| selectset ERRORBAR TYPE opchoice_obs {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->errbar.ptype = $4;
 	}
 /*
@@ -3865,21 +3865,21 @@ setprop_obs:
  */
 	| selectset SYMBOL CENTER onoff { }
 	| selectset lines_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.style = $2;
 	}
 	| selectset linew_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.width = $2;
 	}
 	| selectset color_select {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
 	    p->line.line.pen.color = $2;
 	}
 	| selectset FILL WITH colpat_obs {filltype_obs = $4;}
 	| selectset XYZ expr ',' expr { }
 	| selectset ERRORBAR LENGTH expr {
-	    set *p = (set *) $1->data;
+	    set *p = set_get_data($1);
             p->errbar.barsize = $4;
 	}
 	| selectset ERRORBAR RISER onoff { }
@@ -4425,7 +4425,7 @@ int set_parser_gno(Quark *gr)
 {
     if (gr) {
         whichgraph = gr;
-        whichframe = gr->parent;
+        whichframe = graph_get_frame(gr);
         return RETURN_SUCCESS;
     } else {
         whichframe = NULL;
@@ -4441,8 +4441,8 @@ Quark *get_parser_setno(void)
 int set_parser_setno(Quark *pset)
 {
     if (pset) {
-        whichgraph = pset->parent;
-        whichframe = whichgraph->parent;
+        whichgraph = get_parent_graph(pset);
+        whichframe = graph_get_frame(whichgraph);
         whichset = pset;
         /* those will usually be overridden except when evaluating
            a _standalone_ vexpr */

@@ -391,6 +391,7 @@ int activate_tick_labels(tickmarks *t, int flag);
 int get_graph_world(Quark *gr, world *w);
 int get_graph_viewport(Quark *gr, view *v);
 
+Quark *graph_get_project(const Quark *gr);
 Quark *graph_get_frame(Quark *gr);
 labels *frame_get_labels(Quark *gr);
 legend *frame_get_legend(Quark *gr);

@@ -364,7 +364,7 @@ void set_plotstr_string(plotstr *pstr, char *s)
 int object_set_active(Quark *q, int flag)
 {
     if (q && q->fid == QFlavorDObject) {
-        DObject *o = (DObject *) q->data;
+        DObject *o = object_get_data(q);
         
         o->active = flag;
         
@@ -377,7 +377,7 @@ int object_set_active(Quark *q, int flag)
 int object_set_angle(Quark *q, double angle)
 {
     if (q && q->fid == QFlavorDObject) {
-        DObject *o = (DObject *) q->data;
+        DObject *o = object_get_data(q);
         
         o->angle = angle;
         
@@ -390,7 +390,7 @@ int object_set_angle(Quark *q, double angle)
 int object_set_offset(Quark *q, const VPoint *offset)
 {
     if (q && q->fid == QFlavorDObject) {
-        DObject *o = (DObject *) q->data;
+        DObject *o = object_get_data(q);
         
         o->offset = *offset;
         
@@ -403,7 +403,7 @@ int object_set_offset(Quark *q, const VPoint *offset)
 int object_set_line(Quark *q, const Line *line)
 {
     if (q && q->fid == QFlavorDObject) {
-        DObject *o = (DObject *) q->data;
+        DObject *o = object_get_data(q);
         
         o->line = *line;
         
@@ -416,7 +416,7 @@ int object_set_line(Quark *q, const Line *line)
 int object_set_fillpen(Quark *q, const Pen *pen)
 {
     if (q && q->fid == QFlavorDObject) {
-        DObject *o = (DObject *) q->data;
+        DObject *o = object_get_data(q);
         
         o->fillpen = *pen;
         
@@ -429,7 +429,7 @@ int object_set_fillpen(Quark *q, const Pen *pen)
 int object_set_location(Quark *q, int loctype, const APoint *ap)
 {
     if (q && q->fid == QFlavorDObject) {
-        DObject *o = (DObject *) q->data;
+        DObject *o = object_get_data(q);
         
         o->loctype = loctype;
         o->ap      = *ap;

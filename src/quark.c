@@ -143,6 +143,15 @@ void quark_free(Quark *q)
     }
 }
 
+Quark *quark_parent_get(const Quark *q)
+{
+    if (q) {
+        return q->parent;
+    } else {
+        return NULL;
+    }
+}
+
 Quark *quark_copy2(Quark *newparent, const Quark *q);
 
 static int copy_hook(unsigned int step, void *data, void *udata)

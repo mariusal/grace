@@ -84,7 +84,7 @@ int init_font_db(Canvas *canvas)
 
 int project_add_font(Quark *project, const Fontdef *f)
 {
-    Project *pr = (Project *) project->data;
+    Project *pr = project_get_data(project);
     Fontdef *fnew;
     pr->fontmap = xrealloc(pr->fontmap, (pr->nfonts + 1)*sizeof(Fontdef));
     fnew = &pr->fontmap[pr->nfonts];
@@ -100,7 +100,7 @@ int project_add_font(Quark *project, const Fontdef *f)
 int fmap_proc(const Canvas *canvas, int font_id)
 {
     Grace *grace = (Grace *) canvas_get_udata(canvas);
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     int font = BAD_FONT_ID;
     unsigned int i;
     
@@ -130,7 +130,7 @@ int fmap_proc(const Canvas *canvas, int font_id)
 
 int get_font_by_name(const Quark *project, const char *name)
 {
-    Project *pr = (Project *) project->data;
+    Project *pr = project_get_data(project);
     int i;
     
     for (i = 0; i < pr->nfonts; i++) {

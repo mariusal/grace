@@ -1440,7 +1440,7 @@ static int do_fext_proc(void *data)
         xfree(srcsets);
     }
     
-    update_set_lists(pdest->parent);
+    update_set_lists(get_parent_graph(pdest));
     xdrawgraph();
     
     return RETURN_SUCCESS;
@@ -1531,7 +1531,7 @@ static int do_cumulative_proc(void *data)
         xfree(srcsets);
     }
     
-    update_set_lists(pdest->parent);
+    update_set_lists(get_parent_graph(pdest));
     xdrawgraph();
     
     return RETURN_SUCCESS;

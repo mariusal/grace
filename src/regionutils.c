@@ -45,7 +45,7 @@
 #include "utils.h"
 #include "protos.h"
 
-#define rg ((Project *) (grace->project->data))->rg
+#define rg (project_get_data(grace->project))->rg
 
 int regiontype = 0;
 
