@@ -331,7 +331,7 @@ void create_axes_dialog(int axisno)
                                                 "Auto",
                                                 "Specified",
                                                 0, 0);
-        axislabelspec = CreateTextItem2(rc2, 7, " ");
+        axislabelspec = CreateTextItem2(rc2, 9, " ");
         XtManageChild(rc2);
 
         XtManageChild(rc);
