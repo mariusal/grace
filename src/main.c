@@ -114,7 +114,10 @@ int main(int argc, char *argv[])
     gui     = grace->gui     = gui_new(grace);
     canvas  = rt->canvas     = canvas_new();
     canvas_set_udata(canvas, grace);
-    init_font_db(canvas);
+    if (init_font_db(canvas)) {
+        errmsg("Broken or incomplete installation - read the FAQ!");
+        exit(1);
+    }
     canvas_set_fmap_proc(canvas, fmap_proc);
     canvas_set_csparse_proc(canvas, csparse_proc);
     

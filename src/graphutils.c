@@ -39,7 +39,6 @@
 
 #include "globals.h"
 #include "utils.h"
-#include "draw.h"
 #include "graphs.h"
 #include "objutils.h"
 #include "graphutils.h"
@@ -812,56 +811,6 @@ void rescale_viewport(Project *pr, double ext_x, double ext_y)
     }
     
     set_dirtystate();
-}
-
-int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
-{
-    int i;
-    Canvas *canvas = grace->rt->canvas;
-    
-    if (wpp <= 0 || hpp <= 0) {
-        return RETURN_FAILURE;
-    } else {
-        int wpp_old, hpp_old;
-        Project *pr = (Project *) grace->project->data;
-	wpp_old = pr->page_wpp;
-	hpp_old = pr->page_hpp;
-        
-        pr->page_wpp = wpp;
-	pr->page_hpp = hpp;
-        if (rescale) {
-            if (hpp*wpp_old - wpp*hpp_old != 0) {
-                /* aspect ratio changed */
-                double ext_x, ext_y;
-                double old_aspectr, new_aspectr;
-                
-                old_aspectr = (double) wpp_old/hpp_old;
-                new_aspectr = (double) wpp/hpp;
-                if (old_aspectr >= 1.0 && new_aspectr >= 1.0) {
-                    ext_x = new_aspectr/old_aspectr;
-                    ext_y = 1.0;
-                } else if (old_aspectr <= 1.0 && new_aspectr <= 1.0) {
-                    ext_x = 1.0;
-                    ext_y = old_aspectr/new_aspectr;
-                } else if (old_aspectr >= 1.0 && new_aspectr <= 1.0) {
-                    ext_x = 1.0/old_aspectr;
-                    ext_y = 1.0/new_aspectr;
-                } else {
-                    ext_x = new_aspectr;
-                    ext_y = old_aspectr;
-                }
-
-                rescale_viewport(pr, ext_x, ext_y);
-            } 
-        }
-        for (i = 0; i < canvas->ndevices; i++) {
-            canvas->device_table[i]->pg.width =
-                (unsigned long) (wpp*(canvas->device_table[i]->pg.dpi/72));
-            canvas->device_table[i]->pg.height =
-                (unsigned long) (hpp*(canvas->device_table[i]->pg.dpi/72));
-        }
-        return RETURN_SUCCESS;
-    }
 }
 
 

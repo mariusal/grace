@@ -38,7 +38,7 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "utils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "cbitmaps.h"
 #include "protos.h"
 

@@ -43,7 +43,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "objutils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "utils.h"
 #include "protos.h"
 

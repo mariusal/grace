@@ -34,7 +34,7 @@
 #define __PLOTONE_H_
 
 #include "defines.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "graphs.h"
 
 void drawgraph(Grace *grace);

@@ -31,7 +31,7 @@
 #include "defines.h"
 #include "utils.h"
 #include "dicts.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "objutils.h"

@@ -36,7 +36,7 @@
 
 #include <config.h>
 
-#include "draw.h"
+#include "grace/canvas.h"
 
 /*
  * some constants
@@ -337,6 +337,9 @@ typedef enum {
 #define SUPSCRIPT_SHIFT 0.6
 #define ENLARGE_SCALE sqrt(M_SQRT2)
 #define OBLIQUE_FACTOR 0.25
+
+#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
+#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
 /*
  * defaults

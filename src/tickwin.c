@@ -44,7 +44,7 @@
 #include "protos.h"
 #include "utils.h"
 #include "graphs.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "graphutils.h"
 #include "motifinc.h"
 

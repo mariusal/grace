@@ -36,7 +36,7 @@
 
 #include "defines.h"
 #include "utils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "devlist.h"
 #include "mfdrv.h"
 

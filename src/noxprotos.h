@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -81,8 +81,10 @@ void set_default_ticks(tickmarks *t);
 void calculate_tickgrid(int gno);
 void drawgrid(Canvas *canvas, int gno);
 void drawaxes(Canvas *canvas, int gno);
+
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
 int fmap_proc(const Canvas *canvas, int font);
+int init_font_db(Canvas *canvas);
 
 void unregister_real_time_input(const char *name);
 int register_real_time_input(int fd, const char *name, int reopen);

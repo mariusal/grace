@@ -3,7 +3,6 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
@@ -28,15 +27,10 @@
 
 #include <config.h>
 
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
-#include "globals.h"
-
-#include "utils.h"
-
-#include "draw.h"
+#include "grace/baseP.h"
+#include "grace/canvas.h"
 
 int init_t1(Canvas *canvas)
 {

@@ -33,7 +33,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "draw.h"
+#include "grace/canvas.h"
 #include "utils.h"
 #include "files.h"
 

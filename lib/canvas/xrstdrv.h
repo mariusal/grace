@@ -36,8 +36,7 @@
 
 #include <xmi.h>
 
-#include "defines.h"
-#include "draw.h"
+#include "grace/canvas.h"
 
 typedef struct _Xrst_data {
     miGC *gc;

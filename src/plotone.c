@@ -44,7 +44,7 @@
 #include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "objutils.h"
 #include "plotone.h"
 #include "protos.h"

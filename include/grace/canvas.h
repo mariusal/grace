@@ -25,8 +25,8 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#ifndef __DRAW_H_
-#define __DRAW_H_
+#ifndef __CANVAS_H_
+#define __CANVAS_H_
 
 #include <stdio.h>
 
@@ -85,9 +85,6 @@
 #endif
 
 #define T1_DEFAULT_BITMAP_PAD  8
-
-#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
-#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
 #define T1_AALEVELS_LOW   5
 #define T1_AALEVELS_HIGH 17
@@ -531,7 +528,6 @@ void canvas_set_docname(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
 
-int init_font_db(Canvas *canvas);
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
 
@@ -781,4 +777,4 @@ int get_string_bbox(Canvas *canvas,
 
 int isvalid_viewport(const view *v);
 
-#endif /* __DRAW_H_ */
+#endif /* __CANVAS_H_ */

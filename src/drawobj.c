@@ -33,7 +33,7 @@
 
 #include <stdlib.h>
 
-#include "draw.h"
+#include "grace/canvas.h"
 #include "plotone.h"
 #include "objutils.h"
 

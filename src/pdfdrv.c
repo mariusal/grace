@@ -42,7 +42,7 @@
 #include <pdflib.h>
 
 #include "utils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "devlist.h"
 #include "pdfdrv.h"
 

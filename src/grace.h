@@ -36,7 +36,7 @@
 #include "grace/baseP.h"
 #include "defines.h"
 #include "storage.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "dict3.h"
 
 typedef struct _Grace Grace;

@@ -75,7 +75,7 @@
 
 #include "defines.h"
 #include "globals.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "jbitmaps.h"
 #include "graphs.h"
 #include "utils.h"

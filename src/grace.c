@@ -36,6 +36,7 @@
 #include "utils.h"
 #include "dicts.h"
 #include "graphs.h"
+#include "graphutils.h"
 #include "protos.h"
 
 static defaults d_d =
@@ -315,10 +316,102 @@ static QuarkFlavor project_qf = {
     (Quark_data_free) project_data_free,
     NULL,
     NULL
-} ;
+};
 
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
 {
     return &project_qf;
+}
+
+
+/*
+ * flag to indicate destination of hardcopy output,
+ * ptofile = 0 means print to printer, otherwise print to file
+ */
+void set_ptofile(Grace *grace, int flag)
+{
+    grace->rt->ptofile = flag;
+}
+
+int get_ptofile(const Grace *grace)
+{
+    return grace->rt->ptofile;
+}
+
+/*
+ * set the current print device
+ */
+int set_printer(Grace *grace, int device)
+{
+    Canvas *canvas = grace->rt->canvas;
+    if (device >= canvas->ndevices || device < 0 ||
+        canvas->device_table[device]->type == DEVICE_TERM) {
+        return RETURN_FAILURE;
+    } else {
+        grace->rt->hdevice = device;
+	if (canvas->device_table[device]->type != DEVICE_PRINT) {
+            set_ptofile(grace, TRUE);
+        }
+        return RETURN_SUCCESS;
+    }
+}
+
+int set_printer_by_name(Grace *grace, const char *dname)
+{
+    int device;
+    
+    device = get_device_by_name(grace->rt->canvas, dname);
+    
+    return set_printer(grace, device);
+}
+
+int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
+{
+    int i;
+    Canvas *canvas = grace->rt->canvas;
+    
+    if (wpp <= 0 || hpp <= 0) {
+        return RETURN_FAILURE;
+    } else {
+        int wpp_old, hpp_old;
+        Project *pr = (Project *) grace->project->data;
+	wpp_old = pr->page_wpp;
+	hpp_old = pr->page_hpp;
+        
+        pr->page_wpp = wpp;
+	pr->page_hpp = hpp;
+        if (rescale) {
+            if (hpp*wpp_old - wpp*hpp_old != 0) {
+                /* aspect ratio changed */
+                double ext_x, ext_y;
+                double old_aspectr, new_aspectr;
+                
+                old_aspectr = (double) wpp_old/hpp_old;
+                new_aspectr = (double) wpp/hpp;
+                if (old_aspectr >= 1.0 && new_aspectr >= 1.0) {
+                    ext_x = new_aspectr/old_aspectr;
+                    ext_y = 1.0;
+                } else if (old_aspectr <= 1.0 && new_aspectr <= 1.0) {
+                    ext_x = 1.0;
+                    ext_y = old_aspectr/new_aspectr;
+                } else if (old_aspectr >= 1.0 && new_aspectr <= 1.0) {
+                    ext_x = 1.0/old_aspectr;
+                    ext_y = 1.0/new_aspectr;
+                } else {
+                    ext_x = new_aspectr;
+                    ext_y = old_aspectr;
+                }
+
+                rescale_viewport(pr, ext_x, ext_y);
+            } 
+        }
+        for (i = 0; i < canvas->ndevices; i++) {
+            canvas->device_table[i]->pg.width =
+                (unsigned long) (wpp*(canvas->device_table[i]->pg.dpi/72));
+            canvas->device_table[i]->pg.height =
+                (unsigned long) (hpp*(canvas->device_table[i]->pg.dpi/72));
+        }
+        return RETURN_SUCCESS;
+    }
 }

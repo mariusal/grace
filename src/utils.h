@@ -49,11 +49,6 @@
 #endif
 #define  PAD(bits, pad)  (((bits)+(pad)-1)&-(pad))
 
-#define MIN2(a, b) (((a) < (b)) ? a : b)
-#define MAX2(a, b) (((a) > (b)) ? a : b)
-#define MIN3(a, b, c) (((a) < (b)) ? MIN2(a, c) : MIN2(b, c))
-#define MAX3(a, b, c) (((a) > (b)) ? MAX2(a, c) : MAX2(b, c))
-
 #define on_or_off(x) ((x)?"on":"off")
 #define true_or_false(x) ((x)?"true":"false")
 

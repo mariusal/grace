@@ -36,7 +36,7 @@
 #include <stdio.h>
 
 #include "utils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "storage.h"
 #include "graphs.h"
 #include "objutils.h"

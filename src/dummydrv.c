@@ -33,7 +33,7 @@
 #include <stdlib.h>
  
 #include "defines.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "devlist.h"
 #include "dummydrv.h"
 

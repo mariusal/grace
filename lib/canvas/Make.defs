@@ -1,0 +1,11 @@
+##################################################
+#     System-independent Make.defs file for      #
+#            grace-canvas library                #
+##################################################
+
+LIB  = $(GRACE_CANVAS_LIB)
+
+SRCS = draw.c t1fonts.c device.c xrstdrv.c
+
+OBJS = draw$(O) t1fonts$(O) device$(O) xrstdrv$(O)
+

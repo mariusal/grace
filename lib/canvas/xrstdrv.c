@@ -35,12 +35,12 @@
 
 #ifdef HAVE_LIBXMI
 
+/* for abs() */
 #include <stdlib.h>
+
 #include <string.h>
 
-#include "utils.h"
-#include "devlist.h"
-
+#include "grace/baseP.h"
 #include "xrstdrv.h"
 
 static int xrst_parser_wrapper(const Canvas *canvas, void *data, const char *s)

@@ -43,7 +43,7 @@
 #include "ssdata.h"
 #include "storage.h"
 #include "utils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "files.h"
 #include "graphs.h"
 #include "protos.h"

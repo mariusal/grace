@@ -38,7 +38,7 @@
 #include <stdlib.h>
 
 #include "utils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "graphs.h"
 #include "events.h"
 #include "protos.h"

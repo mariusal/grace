@@ -34,8 +34,6 @@
 
 #include "grace/base.h"
 
-extern void errmsg(char *msg);
-
 /*
  * free and check for NULL pointer
  */

@@ -34,6 +34,12 @@
 
 #include "grace/base.h"
 
+/* Min/Max useful macros */
+#define MIN2(a, b) (((a) < (b)) ? a : b)
+#define MAX2(a, b) (((a) > (b)) ? a : b)
+#define MIN3(a, b, c) (((a) < (b)) ? MIN2(a, c) : MIN2(b, c))
+#define MAX3(a, b, c) (((a) > (b)) ? MAX2(a, c) : MAX2(b, c))
+
 /* Replacements for some missing libc functions */
 
 #if defined(__VMS)

@@ -42,7 +42,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "devlist.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "graphs.h"
 
 #include "x11drv.h"

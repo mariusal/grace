@@ -3,7 +3,6 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
@@ -31,10 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
-#include "graphutils.h"
-#include "utils.h"
-#include "draw.h"
+#include "grace/baseP.h"
+#include "grace/canvas.h"
 
 Device_entry *device_new(const char *name, int type, int twopass, void *data)
 {
@@ -196,33 +193,6 @@ int select_device(Canvas *canvas, int dindex)
     }
 }
 
-/*
- * set the current print device
- */
-int set_printer(Grace *grace, int device)
-{
-    Canvas *canvas = grace->rt->canvas;
-    if (device >= canvas->ndevices || device < 0 ||
-        canvas->device_table[device]->type == DEVICE_TERM) {
-        return RETURN_FAILURE;
-    } else {
-        grace->rt->hdevice = device;
-	if (canvas->device_table[device]->type != DEVICE_PRINT) {
-            set_ptofile(grace, TRUE);
-        }
-        return RETURN_SUCCESS;
-    }
-}
-
-int set_printer_by_name(Grace *grace, const char *dname)
-{
-    int device;
-    
-    device = get_device_by_name(grace->rt->canvas, dname);
-    
-    return set_printer(grace, device);
-}
-
 int get_device_by_name(const Canvas *canvas, const char *dname)
 {
     int i;
@@ -327,19 +297,4 @@ PageFormat get_page_format(const Canvas *canvas, int device)
     } else {
         return PAGE_FORMAT_CUSTOM;
     }
-}
-
-/*
- * flag to indicate destination of hardcopy output,
- * ptofile = 0 means print to printer, otherwise print to file
- */
-
-void set_ptofile(Grace *grace, int flag)
-{
-    grace->rt->ptofile = flag;
-}
-
-int get_ptofile(const Grace *grace)
-{
-    return grace->rt->ptofile;
 }

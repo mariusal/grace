@@ -48,7 +48,7 @@
 #include <Xbae/Matrix.h>
 
 #include "globals.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "utils.h"
 #include "motifinc.h"
 #include "protos.h"

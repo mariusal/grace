@@ -39,7 +39,7 @@
 #include "utils.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "draw.h"
+#include "grace/canvas.h"
 #include "parser.h"
 #include "protos.h"
 

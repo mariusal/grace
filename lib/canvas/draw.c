@@ -37,10 +37,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "draw.h"
+#include "grace/baseP.h"
+#include "grace/canvas.h"
 #include "patterns.h"
-#include "utils.h"
-#include "graphs.h"
 
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
                                    a separate module */
@@ -198,7 +197,6 @@ Canvas *canvas_new(void)
         
         /* initialize T1lib */
         if (init_t1(canvas) != RETURN_SUCCESS) {
-            errmsg("--> Broken or incomplete installation - read the FAQ!");
 	    canvas_free(canvas);
             
             return NULL;
@@ -529,7 +527,7 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
         
         vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
-            errmsg ("xmalloc() failed in DrawPolyline()");
+            errmsg("xmalloc() failed in DrawPolyline()");
             return;
         }
         
@@ -579,7 +577,7 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
                 npurged = max_purge;
                 vpsc = xmalloc(max_purge*sizeof(VPoint));
                 if (vpsc == NULL) {
-                    errmsg ("xmalloc() failed in DrawPolyline()");
+                    errmsg("xmalloc() failed in DrawPolyline()");
                     return;
                 }
                 purge_dense_points(vps, n, vpsc, &npurged);
@@ -642,7 +640,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
                 npurged = max_purge;
                 vptmp = xmalloc(max_purge*sizeof(VPoint));
                 if (vptmp == NULL) {
-                    errmsg ("xmalloc() failed in DrawPolygon()");
+                    errmsg("xmalloc() failed in DrawPolygon()");
                     return;
                 }
                 purge_dense_points(vps, n, vptmp, &npurged);
@@ -1827,7 +1825,7 @@ void reset_bbox(Canvas *canvas, int type)
         vp = &(canvas->bboxes[1].v);
         break;
     default:
-        errmsg ("Incorrect call of reset_bbox()");
+        errmsg("Incorrect call of reset_bbox()");
         return;
     }
     *vp = invalid_view;
@@ -1851,7 +1849,7 @@ void freeze_bbox(Canvas *canvas, int type)
         bbp = &canvas->bboxes[1];
         break;
     default:
-        errmsg ("Incorrect call of freeze_bbox()");
+        errmsg("Incorrect call of freeze_bbox()");
         return;
     }
     bbp->fv = bbp->v;
@@ -1868,7 +1866,7 @@ int get_bbox(const Canvas *canvas, int type, view *v)
         break;
     default:
         *v = invalid_view;
-        errmsg ("Incorrect call of get_bbox()");
+        errmsg("Incorrect call of get_bbox()");
         return RETURN_FAILURE;
     }
     return RETURN_SUCCESS;
@@ -1925,7 +1923,7 @@ void update_bbox(Canvas *canvas, int type, const VPoint *vp)
         bbp = &canvas->bboxes[1];
         break;
     default:
-        errmsg ("Incorrect call of update_bbox()");
+        errmsg("Incorrect call of update_bbox()");
         return;
     }
     if (bbp->active == TRUE) {
@@ -1963,7 +1961,7 @@ int melt_bbox(Canvas *canvas, int type)
         bbp = &canvas->bboxes[1];
         break;
     default:
-        errmsg ("Incorrect call of melt_bbox()");
+        errmsg("Incorrect call of melt_bbox()");
         return RETURN_FAILURE;
     }
     
@@ -1982,7 +1980,7 @@ void activate_bbox(Canvas *canvas, int type, int status)
         bbp = &canvas->bboxes[1];
         break;
     default:
-        errmsg ("Incorrect call of activate_bbox()");
+        errmsg("Incorrect call of activate_bbox()");
         return;
     }
     bbp->active = status;

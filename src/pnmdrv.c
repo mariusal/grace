@@ -40,7 +40,7 @@
 #include "defines.h"
 #include "utils.h"
 #include "devlist.h"
-#include "draw.h"
+#include "grace/canvas.h"
 
 #ifndef NONE_GUI
 #  include "motifinc.h"
