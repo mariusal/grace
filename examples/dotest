@@ -111,6 +111,9 @@ $GRACE terr2.agr
 # a fixed graph with XY RADIUS format
 $GRACE txyr.agr 
 #
+# a graph with an XYZ set
+$GRACE xyz.agr 
+#
 # a graph with HILO data
 $GRACE hilo.agr 
 #
