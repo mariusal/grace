@@ -420,6 +420,29 @@ void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int c
 	}
 }
 
+void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color)
+{
+	int i, n;
+	int w2, h2;
+	gdPointPtr p;
+	w2 = w/2;
+	h2 = h/2;
+	while (e < s) {
+		e += 360;
+	}
+        n = e - s + 1;
+        p = malloc(n*sizeof(gdPoint));
+        if (p == NULL) {
+            return;
+        }
+        for (i=0; i < n; i++) {
+		int a = i + s;
+		p[i].x = ((long)cost[a % 360] * (long)w2 / costScale) + cx; 
+		p[i].y = ((long)sint[a % 360] * (long)h2 / sintScale) + cy;
+	}
+        gdImageFilledPolygon(im, p, n, color);
+        free(p);
+}
 
 #if 0
 	/* Bresenham octant code, which I should use eventually */
@@ -441,162 +464,6 @@ void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int c
 		gdImageSetPixel(im, cx+x, cy+y, color);
 	}
 #endif
-
-void gdImageFillToBorder(gdImagePtr im, int x, int y, int border, int color)
-{
-	int lastBorder;
-	/* Seek left */
-	int leftLimit, rightLimit;
-	int i;
-	leftLimit = (-1);
-	if (border < 0) {
-		/* Refuse to fill to a non-solid border */
-		return;
-	}
-	for (i = x; (i >= 0); i--) {
-		if (gdImageGetPixel(im, i, y) == border) {
-			break;
-		}
-		gdImageSetPixel(im, i, y, color);
-		leftLimit = i;
-	}
-	if (leftLimit == (-1)) {
-		return;
-	}
-	/* Seek right */
-	rightLimit = x;
-	for (i = (x+1); (i < im->sx); i++) {	
-		if (gdImageGetPixel(im, i, y) == border) {
-			break;
-		}
-		gdImageSetPixel(im, i, y, color);
-		rightLimit = i;
-	}
-	/* Look at lines above and below and start paints */
-	/* Above */
-	if (y > 0) {
-		lastBorder = 1;
-		for (i = leftLimit; (i <= rightLimit); i++) {
-			int c;
-			c = gdImageGetPixel(im, i, y-1);
-			if (lastBorder) {
-				if ((c != border) && (c != color)) {	
-					gdImageFillToBorder(im, i, y-1, 
-						border, color);		
-					lastBorder = 0;
-				}
-			} else if ((c == border) || (c == color)) {
-				lastBorder = 1;
-			}
-		}
-	}
-	/* Below */
-	if (y < ((im->sy) - 1)) {
-		lastBorder = 1;
-		for (i = leftLimit; (i <= rightLimit); i++) {
-			int c;
-			c = gdImageGetPixel(im, i, y+1);
-			if (lastBorder) {
-				if ((c != border) && (c != color)) {	
-					gdImageFillToBorder(im, i, y+1, 
-						border, color);		
-					lastBorder = 0;
-				}
-			} else if ((c == border) || (c == color)) {
-				lastBorder = 1;
-			}
-		}
-	}
-}
-
-void gdImageFill(gdImagePtr im, int x, int y, int color)
-{
-	int lastBorder;
-	int old;
-	int leftLimit, rightLimit;
-	int i;
-	old = gdImageGetPixel(im, x, y);
-	if (color == gdTiled) {
-		/* Tile fill -- got to watch out! */
-		int p, tileColor;	
-		int srcx, srcy;
-		if (!im->tile) {
-			return;
-		}
-		/* Refuse to flood-fill with a transparent pattern --
-			I can't do it without allocating another image */
-		if (gdImageGetTransparent(im->tile) != (-1)) {
-			return;
-		}	
-		srcx = x % gdImageSX(im->tile);
-		srcy = y % gdImageSY(im->tile);
-		p = gdImageGetPixel(im->tile, srcx, srcy);
-		tileColor = im->tileColorMap[p];
-		if (old == tileColor) {
-			/* Nothing to be done */
-			return;
-		}
-	} else {
-		if (old == color) {
-			/* Nothing to be done */
-			return;
-		}
-	}
-	/* Seek left */
-	leftLimit = (-1);
-	for (i = x; (i >= 0); i--) {
-		if (gdImageGetPixel(im, i, y) != old) {
-			break;
-		}
-		gdImageSetPixel(im, i, y, color);
-		leftLimit = i;
-	}
-	if (leftLimit == (-1)) {
-		return;
-	}
-	/* Seek right */
-	rightLimit = x;
-	for (i = (x+1); (i < im->sx); i++) {	
-		if (gdImageGetPixel(im, i, y) != old) {
-			break;
-		}
-		gdImageSetPixel(im, i, y, color);
-		rightLimit = i;
-	}
-	/* Look at lines above and below and start paints */
-	/* Above */
-	if (y > 0) {
-		lastBorder = 1;
-		for (i = leftLimit; (i <= rightLimit); i++) {
-			int c;
-			c = gdImageGetPixel(im, i, y-1);
-			if (lastBorder) {
-				if (c == old) {	
-					gdImageFill(im, i, y-1, color);		
-					lastBorder = 0;
-				}
-			} else if (c != old) {
-				lastBorder = 1;
-			}
-		}
-	}
-	/* Below */
-	if (y < ((im->sy) - 1)) {
-		lastBorder = 1;
-		for (i = leftLimit; (i <= rightLimit); i++) {
-			int c;
-			c = gdImageGetPixel(im, i, y+1);
-			if (lastBorder) {
-				if (c == old) {
-					gdImageFill(im, i, y+1, color);		
-					lastBorder = 0;
-				}
-			} else if (c != old) {
-				lastBorder = 1;
-			}
-		}
-	}
-}
 
 void gdImageRectangle(gdImagePtr im, int x1, int y1, int x2, int y2, int color)
 {
@@ -679,7 +546,7 @@ void gdImageFilledPolygon(gdImagePtr im, gdPointPtr p, int n, int c)
 			x1 = p[ind1].x;
 			x2 = p[ind2].x;
 			/* intersection exists only if y is between y1 and y2 */
-			if ((y >= y1) && (y <= y2) || (y >= y2) && (y <= y1)) {
+			if (((y >= y1) && (y <= y2)) || ((y >= y2) && (y <= y1))) {
 				if (y1 == y2) {
 					/* horizontal edge - just draw it */
 					gdImageLine(im, x1, y, x2, y, c);

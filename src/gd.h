@@ -69,7 +69,6 @@ gdImagePtr gdImageCreate(int sx, int sy);
 void gdImageDestroy(gdImagePtr im);
 
 void gdImageSetPixel(gdImagePtr im, int x, int y, int color);
-int gdImageGetPixel(gdImagePtr im, int x, int y);
 
 void gdImageLine(gdImagePtr im, int x1, int y1, int x2, int y2, int color);
 /* Corners specified (not width and height). Upper left first, lower right
@@ -82,19 +81,21 @@ int gdImageBoundsSafe(gdImagePtr im, int x, int y);
 void gdImagePolygon(gdImagePtr im, gdPointPtr p, int n, int c);
 void gdImageFilledPolygon(gdImagePtr im, gdPointPtr p, int n, int c);
 
+void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
+void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
+
+int gdImageGetPixel(gdImagePtr im, int x, int y);
+
 int gdImageColorAllocate(gdImagePtr im, int r, int g, int b);
 int gdImageColorClosest(gdImagePtr im, int r, int g, int b);
 int gdImageColorExact(gdImagePtr im, int r, int g, int b);
 void gdImageColorDeallocate(gdImagePtr im, int color);
 void gdImageColorTransparent(gdImagePtr im, int color);
 
-void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
-void gdImageFillToBorder(gdImagePtr im, int x, int y, int border, int color);
-void gdImageFill(gdImagePtr im, int x, int y, int color);
-
 void gdImageSetBrush(gdImagePtr im, gdImagePtr brush);
 void gdImageSetTile(gdImagePtr im, gdImagePtr tile);
 void gdImageSetStyle(gdImagePtr im, int *style, int noOfPixels);
+
 /* On or off (1 or 0) */
 void gdImageInterlace(gdImagePtr im, int interlaceArg);
 
