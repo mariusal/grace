@@ -471,7 +471,7 @@ void rst_putpixmap(VPoint vp, int width, int height,
     
     y = gdp.y;
     if (pixmap_bpp == 1) {
-        color = rstpen.color;
+        color = getcolor();
         paddedW = PAD(width, bitmap_pad);
         for (k = 0; k < height; k++) {
             x = gdp.x;
