@@ -35,6 +35,8 @@
 #ifndef __GRAPHUTILS_H_
 #define __GRAPHUTILS_H_
 
+#include "defines.h"
+
 #define GSCROLL_LEFT    0
 #define GSCROLL_RIGHT   1
 #define GSCROLL_DOWN    2

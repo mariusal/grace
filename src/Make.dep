@@ -136,8 +136,8 @@ setappwin$(O) : setappwin.c graphs.h grace.h defines.h storage.h draw.h \
  utils.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 tickwin$(O) : tickwin.c protos.h missing.h noxprotos.h defines.h graphs.h \
  grace.h storage.h xprotos.h utils.h graphutils.h motifinc.h
-worldwin$(O) : worldwin.c mbitmaps.h graphutils.h device.h t1fonts.h \
- defines.h utils.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
+worldwin$(O) : worldwin.c mbitmaps.h graphutils.h defines.h device.h \
+ t1fonts.h utils.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
  grace.h storage.h xprotos.h
 fontwin$(O) : fontwin.c t1fonts.h defines.h utils.h motifinc.h protos.h \
  missing.h noxprotos.h graphs.h grace.h storage.h xprotos.h
@@ -151,8 +151,8 @@ xmgrace$(O) : xmgrace.c globals.h grace.h defines.h storage.h bitmaps.h \
  utils.h files.h device.h t1fonts.h x11drv.h graphs.h graphutils.h \
  plotone.h draw.h events.h protos.h missing.h noxprotos.h xprotos.h \
  motifinc.h
-pars$(O) : pars.c defines.h ../cephes/cephes.h device.h t1fonts.h utils.h \
- files.h graphs.h grace.h storage.h graphutils.h objutils.h plotone.h \
- draw.h dlmodule.h ssdata.h protos.h missing.h noxprotos.h xprotos.h \
- parser.h
+pars$(O) : pars.c defines.h globals.h grace.h storage.h \
+ ../cephes/cephes.h device.h t1fonts.h utils.h files.h graphs.h \
+ graphutils.h objutils.h plotone.h draw.h dlmodule.h ssdata.h protos.h \
+ missing.h noxprotos.h xprotos.h parser.h
 buildinfo$(O) : buildinfo.c
