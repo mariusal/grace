@@ -3843,60 +3843,6 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 }
 
 
-/*
- * close error window and set message to null
- */
-void cancelerrwin( Widget w, XtPointer client_data, XtPointer call_data)
-{
-	XmString empty;
-	
-	empty = XmStringCreateLocalized("");
-	XtVaSetValues( (Widget)client_data, XmNmessageString, empty, NULL );
-	XmStringFree( empty );
-	XtUnmanageChild( (Widget)client_data );
-}	
-
-/*
- * open error window
- * all errors are sent to the same window
- */
-void errwin(char *s)
-{
-    XmString str, str1, str2, nl;
-    static Widget error_popup = NULL;
-
-    keep_grab = True;
-    
-    if (error_popup == NULL) {
-        error_popup = XmCreateErrorDialog(app_shell, "errorDialog", NULL, 0);
-	str = XmStringCreateLocalized(s);
-	XtVaSetValues(error_popup, XmNmessageString, str, NULL);
-	XmStringFree(str);
-	str = XmStringCreateLocalized("Error (you may hit return to cancel)");
-        XtVaSetValues(error_popup,
-	    XmNdialogTitle, str,
-	    XmNdialogStyle, XmDIALOG_APPLICATION_MODAL,
-	    NULL);
-	XmStringFree(str);
-	XtAddCallback(error_popup, XmNokCallback, 
-            cancelerrwin, (XtPointer) error_popup);
-	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
-	    XmDIALOG_CANCEL_BUTTON));
-	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
-	    XmDIALOG_HELP_BUTTON));
-	XtManageChild(error_popup);
-    } else {									/* add new error onto end */
-	nl = XmStringCreateLtoR("\n", charset);
-	XtVaGetValues(error_popup, XmNmessageString, &str, NULL);
-	str1 = XmStringConcatAndFree(str, nl);
-	str2 = XmStringCreateLocalized(s);
-	str = XmStringConcatAndFree(str1, str2);
-        XtVaSetValues(error_popup, XmNmessageString, str, NULL);
-	XmStringFree(str);
-    }
-    RaiseWindow(error_popup);
-}
-
 Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb)
 {
     Widget w;
