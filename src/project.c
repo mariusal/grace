@@ -203,3 +203,12 @@ void project_set_sformat(Quark *q, const char *s)
     Project *pr = (Project *) q->data;
     pr->sformat = copy_string(pr->sformat, s);;
 }
+
+Project *project_get_data(Quark *q)
+{
+    if (q && q->fid == QFlavorProject) {
+        return (Project *) q->data;
+    } else {
+        return NULL;
+    }
+}
