@@ -420,7 +420,7 @@ void xyplot(Canvas *canvas, Quark *gr)
     int j, setno, nsets;
     int refn;
     double *refx, *refy;
-    double offset;
+    double offset, epsilon;
 
     refn = 0;
     offset = 0.0;
@@ -504,10 +504,43 @@ void xyplot(Canvas *canvas, Quark *gr)
             }
         }
 
+        
+        if (refx) {
+            double xmin, xmax;
+            int imin, imax;
+            minmax(refx, refn, &xmin, &xmax, &imin, &imax);
+            epsilon = 1.0e-3*(xmax - xmin)/refn;
+        } else {
+            epsilon = 0.0;
+        }
+
         for (setno = 0; setno < nsets; setno++) {
             Quark *pset = set_get(gr, setno);
+            int x_ok;
+            double *x;
+            
             if (is_set_drawable(pset)) {
-                set *p = (set *) pset->data;
+                set *p = set_get_data(pset);
+
+                /* check that abscissas are identical with refx */
+                x = getcol(pset, DATA_X);
+                x_ok = TRUE;
+                for (j = 0; j < getsetlength(pset); j++) {
+                    if (fabs(x[j] - refx[j]) > epsilon) {
+                        x_ok = FALSE;
+                        break;
+                    }
+                }
+                if (x_ok != TRUE) {
+                    char buf[128];
+                    sprintf(buf, "Set %s has different abscissas, "
+                                 "skipped from the chart.",
+                                 quark_idstr_get(pset));
+                    errmsg(buf);
+                    continue;
+                }
+
+
                 if (is_graph_stacked(gr) != TRUE) {
                     offset += 0.5*0.02*p->sym.size;
                 }
