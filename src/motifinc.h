@@ -38,6 +38,10 @@
 /* for XmString; TODO: remove! */
 #include <Xm/Xm.h>
 
+/* for Pen */
+#include "defines.h"
+
+/* for Storage */
 #include "storage.h"
 
 /* 
@@ -425,6 +429,10 @@ OptionStructure *CreateColorChoice(Widget parent, char *s);
 OptionStructure *CreateFormatChoice(Widget parent, char *s);
 OptionStructure *CreateASChoice(Widget parent, char *s);
 OptionStructure *CreateJustChoice(Widget parent, char *s);
+
+Widget CreatePenChoice(Widget parent, char *s);
+void SetPenChoice(Widget button, Pen *pen);
+int GetPenChoice(Widget pen_button, Pen *pen);
 
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s);
 

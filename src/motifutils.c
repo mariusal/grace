@@ -1887,6 +1887,263 @@ RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
 }
 
 
+
+
+
+
+#define PEN_CHOICE_WIDTH  64
+#define PEN_CHOICE_HEIGHT 16
+
+typedef struct {
+    Pen pen;
+    Widget color_popup;
+    Widget pattern_popup;
+} Button_PData;
+
+static GC gc_pen;
+
+void SetPenChoice(Widget button, Pen *pen)
+{
+    Pixel bg, fg;
+    Pixmap pixtile, pixmap;
+    Button_PData *pdata;
+
+    /* Safety checks */
+    if (!button || !pen ||
+        (pen->pattern < 0 || pen->pattern >= number_of_patterns()) ||
+        (pen->color < 0   || pen->color   >= number_of_colors())) {
+        return;
+    }
+    
+    pdata = GetUserData(button);
+    pdata->pen = *pen;
+    
+    if (!gc_pen) {
+        gc_pen = XCreateGC(disp, root, 0, NULL);
+        XSetFillStyle(disp, gc_pen, FillTiled);
+    }
+    
+    fg = xvlibcolors[pen->color];
+    bg = xvlibcolors[getbgcolor()];
+    
+    pixtile = XCreatePixmapFromBitmapData(disp, root, 
+        (char *) pat_bits[pen->pattern], 16, 16, fg, bg, depth);
+
+    XSetTile(disp, gc_pen, pixtile);
+    
+    pixmap = XCreatePixmap(disp, root, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT, depth);
+    XFillRectangle(disp, pixmap, gc_pen, 0, 0, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT);
+
+    XtVaSetValues(button, XmNlabelPixmap, pixmap, NULL);
+    
+    XFreePixmap(disp, pixtile);
+}
+
+static void pen_popup(Widget parent,
+    XtPointer closure, XEvent *event, Boolean *cont)
+{
+    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
+    Button_PData *pdata;
+    Widget popup;
+    
+    if (e->button != 3) {
+        return;
+    }
+    
+    pdata = GetUserData(parent);
+    
+    if (e->state & ShiftMask) {
+        popup = pdata->pattern_popup;
+    } else {
+        popup = pdata->color_popup;
+    }
+    
+    XmMenuPosition(popup, e);
+    XtManageChild(popup);
+}
+
+static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Pen pen;
+    Widget button = GetParent(GetParent(GetParent(w)));
+    Button_PData *pdata;
+    
+    pdata = GetUserData(button);
+    pen = pdata->pen;
+    pen.color = (int) client_data;
+    
+    SetPenChoice(button, &pen);
+}
+
+static Widget CreateColorChoicePopup(Widget button)
+{
+    Widget popup;
+    int color;
+    
+    popup = XmCreatePopupMenu(button, "colorPopupMenu", NULL, 0);
+    XtVaSetValues(popup,
+                  XmNnumColumns, 4,
+                  XmNpacking, XmPACK_COLUMN,
+                  NULL);
+
+    for (color = 0; color < number_of_colors(); color++) {
+        CMap_entry *pcmap = get_cmap_entry(color);
+        if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
+            long bg, fg;
+            Widget cb;
+            cb = CreateButton(popup, get_colorname(color));
+            XtAddCallback(cb,
+                XmNactivateCallback, cc_cb, (XtPointer) color);
+
+            bg = xvlibcolors[color];
+	    if ((get_colorintensity(color) < 0.5 && is_video_reversed() == FALSE) ||
+                (get_colorintensity(color) > 0.5 && is_video_reversed() == TRUE )) {
+	        fg = xvlibcolors[0];
+	    } else {
+	        fg = xvlibcolors[1];
+	    }
+	    XtVaSetValues(cb, 
+                XmNbackground, bg,
+                XmNforeground, fg,
+                NULL);
+        }
+    }
+    
+    return popup;
+}
+
+static Widget CreatePatternChoicePopup(Widget button)
+{
+    Widget popup;
+    
+    popup = XmCreatePopupMenu(button, "patternPopupMenu", NULL, 0);
+    CreateMenuLabel(popup, "Pattern:");
+    CreateMenuSeparator(popup);
+    
+    return popup;
+}
+
+typedef struct {
+    Widget top;
+    OptionStructure *color;
+    OptionStructure *pattern;
+    
+    Widget pen_button;
+} PenChoiceDialog;
+
+static int pen_choice_aac(void *data)
+{
+    PenChoiceDialog *ui = (PenChoiceDialog *) data;
+    
+    if (ui->pen_button) {
+        Pen pen;
+        pen.color   = GetOptionChoice(ui->color);
+        pen.pattern = GetOptionChoice(ui->pattern);
+        
+        SetPenChoice(ui->pen_button, &pen);
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+static void define_pen_choice_dialog(void *data)
+{
+    static PenChoiceDialog *ui = NULL;
+    
+    set_wait_cursor();
+    
+    if (!ui) {
+        Widget fr, rc;
+
+        ui = xmalloc(sizeof(PenChoiceDialog));
+        
+        ui->top = CreateDialogForm(app_shell, "Pen properties");
+        
+        fr = CreateFrame(ui->top, "Pen");
+        rc = CreateVContainer(fr);
+        ui->color   = CreateColorChoice(rc, "Color");
+        ui->pattern = CreatePatternChoice(rc, "Pattern");
+        
+        CreateAACDialog(ui->top, fr, pen_choice_aac, ui);
+    }
+    
+    ui->pen_button = (Widget) data;
+    
+    if (ui->pen_button) {
+        Button_PData *pdata;
+        Pen pen;
+        
+        pdata = GetUserData(ui->pen_button);
+        
+        pen = pdata->pen;
+        
+        SetOptionChoice(ui->color, pen.color);
+        SetOptionChoice(ui->pattern, pen.pattern);
+    }
+
+    RaiseWindow(GetParent(ui->top));
+    unset_wait_cursor();
+}
+
+Widget CreatePenChoice(Widget parent, char *s)
+{
+    Widget rc, button;
+    Button_PData *pdata;
+    Pen pen;
+    
+    pdata = xmalloc(sizeof(Button_PData));
+    
+    rc = CreateHContainer(parent);
+    CreateLabel(rc, s);
+    button = XtVaCreateWidget("Button",
+        xmPushButtonWidgetClass, rc,
+        XmNlabelType, XmPIXMAP,
+        XmNuserData, pdata,
+        NULL);
+
+    AddButtonCB(button, define_pen_choice_dialog, button);
+    
+    pdata->color_popup   = CreateColorChoicePopup(button);
+    pdata->pattern_popup = CreatePatternChoicePopup(button);
+    
+    XtAddEventHandler(button, ButtonPressMask, False, pen_popup, NULL);
+
+    pen.color   = 0;
+    pen.pattern = 0;
+    SetPenChoice(button, &pen);
+    
+    XtManageChild(button);
+    
+    return button;
+}
+
+int GetPenChoice(Widget pen_button, Pen *pen)
+{
+    Button_PData *pdata = GetUserData(pen_button);
+    if (pdata) {
+        *pen = pdata->pen;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+/*
+void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
+{
+    Pen_CBdata *cbdata;
+    
+    cbdata = xmalloc(sizeof(Pen_CBdata));
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+    XtAddCallback(button,
+        XmNactivateCallback, pen_int_cb_proc, (XtPointer) cbdata);
+}
+*/
+
+
+
+
 static OptionItem *graph_select_items = NULL;
 static int ngraph_select_items = 0;
 static ListStructure **graph_selectors = NULL;
