@@ -732,8 +732,11 @@ CompositeString *String2Composite(char *string)
                     reverse_string(ss);
                 }
 
-	        csbuf[nss].s = xmalloc(isub*SIZEOF_CHAR);
+	        csbuf[nss].s = xmalloc((isub + 1)*SIZEOF_CHAR);
 	        memcpy(csbuf[nss].s, ss, isub);
+	        /* TODO: this is a temporarily hack for devices that can't
+                   handle zero's inside a string anyway (yet) */
+                csbuf[nss].s[isub] = '\0';
 	        csbuf[nss].len = isub;
 	        isub = 0;
 	
