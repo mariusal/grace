@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>18.07.1999
+<date>04.08.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -95,7 +95,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
-              <item> The PDF driver requires the PDFlib-2.0 library of Thomas
+              <item> The PDF driver requires the PDFlib-2.01 library of Thomas
                      Merz to be installed, which is available
                      <url name="here" url="http://www.ifconnection.de/~tm/pdflib/">.
               <item> The JPEG backend needs
@@ -191,6 +191,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <sect>Getting started
   <p>
 
+  For a jump-in start, you can run the demos using the script
+  <tt>GRACE&lowbar;HOME/examples/dotest</tt>. You can also read the
+  <url name="Tutorial" url="Tutorial.html">.
+
   <sect1>General concepts
     <p>
 
@@ -229,6 +233,71 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           Regions are sections of the graph defined by the interior or exterior
           of a polygon, or a half plane defined by a line. Regions are used to
           restrict data transformations to a geometric area occupied by region.
+
+      <sect2>Real Time Input <label id="RTI">
+	<p>
+
+          Real Time Input refers to the ability Grace has to be
+          fed in real time by an external program. The Grace
+          process spawned by the driver program is a full featured
+          Grace process : the user can interact using the GUI at the
+          same time the program sends data and commands. The process
+          will adapt itself to the incoming data rate.
+
+      <sect2>Hotlinks <label id="hotlinks">
+	<p>
+
+          Hotlinks are sources containing varying data. Grace can be
+          instructed a file or a pipe is a hotlink in which case it
+          will provide specific commands to refresh the data on a
+          mouseclick (a later version will probably allow automatic
+          refresh).
+
+      <sect2>File formats <label id="files-formats">
+	<p>
+
+          Grace understands several input files formats. The most
+          basic one is ASCII text files containing space and comma
+          separated columns of data. The data fields can be either
+          numeric (fortran 'd' and 'D' exponant markers are supported)
+          or alphanumeric (with or without quotes). Several calendar
+          date formats are recognized automatically and you can
+          specify your own reference for numeric dates formats. You
+          can select several fields upon reading and even concatenate
+          several fields into one (see <ref id="field-selection"
+          name="field selection"> in the GUI description). Grace also
+          has a command language (see <ref id="command-interpreter"
+          name="command interpreter">), you can include commands in
+          data files using lines having "@" as their first non-blank
+          character. Depending on configuration, Grace can also read
+          NetCDF files (see <ref id="configuration"
+          name="configuration">).
+
+      <sect2>Devices<label id="devices">
+	<p>
+          Grace allows the user to choose between several output
+          devices to produce its graphics. The current list of
+          supported devices is :
+
+          <itemize>
+          <item> X11
+          <item> PostScript (level 1 and level 2)
+          <item> EPS
+          <item> Metafile (which is Grace format)
+          <item> PDF
+          <item> PNM
+          <item> JPEG
+          <item> PNG
+          </itemize>
+
+        <p>
+          Note the Grace does not support GIF anymore due to
+           the copyright policy of Unisys. Grace can also be
+           instructed to launch conversion programs automatically
+           based on file name. As an example you can produce MIF
+           (FrameMaker Interchange Format) or Java applets using
+           pstoedit, or almost any image format using the netpbm suite
+           (see the <url name="FAQ" url="FAQ.html">).
 
       <sect2>Magic path<label id="magic-path">
 	<p>
@@ -273,6 +342,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -cols <it>gcols</it> </tag>
                 Arrange graphs in gcols columns
+
+          <tag> -datehint <it>iso|european|us|days|seconds|nohint</it> </tag>
+                Set the hint for dates analysis
 
           <tag> -dpipe <it>descriptor</it> </tag>
                 Read data from descriptor (anonymous pipe) on startup
@@ -577,7 +649,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          that another popup will allow to select the abscissas and
          ordinates at will. It should be noted that block data are
          stored as long as you do not override them by a new read. You
-         can still retrieve data from a block long after having cloed
+         can still retrieve data from a block long after having closed
          all popups, using the <ref id="set-selector" name="set
          selector">.
 
@@ -593,7 +665,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             <item> BAR
             <item> BARDY
             <item> BARDYDY
-            <item> XYSTRING
             <item> XYHILO
             <item> XYZ
             <item> XYR
@@ -608,20 +679,24 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          that allows is, the command can be a complete sequence of
          programs glued together with pipes.
 
-         If the source contains date fields, they can be
-         specified. Several formats are recognized (see appendix <ref
-         id="dates" name="dates in grace">). Calendar dates are
-         converted to numerical dates upon reading. The user can give
-         an hint about the format ("ISO8601", "european", "us") or let
-         Grace find the format by itself. If the date is spread over
-         several columns (for example first column displying dates
-         like 1999-07-14 and second column displaying hours like
-         21:42:36), you can specify these date fields as "1:2". All
-         such fields will be joined with spaces and parsed. After
-         successful parsing the first field will be overwritten with
-         the numeric date (thus allowing the user to use it as
-         abscissa for the sets for example). The remaining date fields
-         are forced as strings.
+         The "Fields"<label id="field-selection"> entry allows you to
+         select some of the fields you want. The default value is "*"
+         to select all fields (the same effect is achieved using an
+         empty entry). Apart from these special values, the syntax to
+         use is a colon separated list of fields numbers, ranges, or
+         concatenation sequences. A range is specified like this "1~5"
+         and a concatenation sequence like this "9&7&8". Beware that
+         fields are joined with intervening spaces! Concatenation is
+         mainly useful when your input files contains calendar dates
+         scattered in several columns.
+
+         If the source contains date fields, they should be
+         automatically detected. Several formats are recognized (see
+         appendix <ref id="dates" name="dates in grace">). Calendar
+         dates are converted to numerical dates upon reading. The user
+         can give an hint about the format ("ISO8601", "european",
+         "us") using the "Dates hint" choice or let Grace find the
+         format by itself.
 
          <sect3> NetCDF <label id="read-netCDF">
          <p>
@@ -672,32 +747,132 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <p>
       <sect2> Data sets <label id="data-sets">
       <p>
+      Open the data set popup where you can view or change the
+      properties of datasets. This include its type, length,
+      associated comment and main some statistics (min, max, mean,
+      standard deviation). An horizontal scrollbar at bottom alloaws
+      to get the two last properties, they are not displayed by
+      default. Also note that if you find some columns are two narrow
+      to show all significant digits, you can drag the vertical rules
+      using Shift-Button 2.
+
       <sect2> Set operations <label id="set-operations">
       <p>
+      The set operations popup allows you to interact with sets as a
+      whole (and not data within the sets). The popup allows you to
+      select a source (one set within one graph) and a destination and
+      perform some action upon them (copy, move, swap). This popup
+      also give you a quick access to several graph and set selectors
+      if you want to perform some other operation like hiding a graph
+      or creating a new set from block data.
+
       <sect2> Arrange graphs <label id="arrange-graphs">
       <p>
+      This entry fires up a popup to lay out sevral graphs in a
+      regular grid given rows and columns. The graphs can be packed
+      together (either horizontally or vertically). New graphs are
+      created if needed. An important note is that reducing the number
+      of graphs neve delete any grahps! If you select a 6 by 3 grid
+      and then reduce it to 5 by 3, you will still have 18 graphs on
+      your screen, three of them looking strange in the middle of the
+      other ones. This is a security feature that prevent you from
+      losing data accepting too quickly a wrong setting. If you really
+      wan to get rid of some of the graphs, you should hide or kill
+      them using any graph selector you can find around (for example
+      in the set operations presented above).
+
+      If you don't want the regular layout this arrangement gives you,
+      you can change it afterwards using the mouse (select a graph and
+      double click on the focus marker, see <ref id="clicks"
+      name="clicks and double clicks">).
+
       <sect2> Overlay graphs <label id="overlay-graphs">
       <p>
+      You can also overlay a graph on top of another one. The main use
+      of this feature is to plot several curves using different scales
+      on the same (apparently) graph. The main difficulty is to be
+      sure you operate on the graph you want at all times (you can
+      hide one for a moment if this becomes too difficult).
+
       <sect2> Autoscale <label id="autoscale">
       <p>
+      Using this entry, you can autoscale one graph or all graphs
+      according to the specified sets only. This is useful if you need
+      either to have truly comparable graphs despite every one
+      contains data of different ranges, or if you want to focus your
+      attention on one set only while it is displayed with other data
+      in a complex graph.
+
       <sect2> Regions menu <label id="regions-menu">
       <p>
          <sect3> Status <label id="status">
          <p>
+         This small popup only display the current state (type and
+         wether it is active or not) of the existing regions.
+
          <sect3> Define <label id="define">
          <p>
+         You can define a new region (or redefine an existing one),
+         the allowed region types are :
+
+         <itemize>
+         <item> Inside polygon
+         <item> Outside polygon
+         <item> Above line
+         <item> Below line
+         <item> Left of line
+         <item> Right of line
+         <item> In horizontal range
+         <item> In vertical range
+         <item> Out of horizontal range
+         <item> Out of vertical range
+         </itemize>
+
+         A region can be either linked to the current graph only or to
+         all graphs.
+
          <sect3> Clear <label id="clear">
          <p>
+         This allows to disable a region.
+
+         <sect3> Report on <label id="report-on">
+         <p>
+         This popup reports you which sets or points are inside or
+         outside of a region.
+
       <sect2> Hot links <label id="hot-links">
       <p>
+      You can link a set to a file or a pipe using this feature. Once
+      a link has been established, you can update it (i.e., read data
+      again) by clicking on the update button. If you have specified a
+      command (using grace language) in the corresponding text field
+      of the popup, it will be executed after each update. Note that
+      you can use several commands separated by ';' characters.
+
       <sect2> Set locator fixed point <label id="set-locator-fixed-point">
       <p>
+      After having selected this menu entry, you can select a point on
+      a graph that will be used as the origin of the locator display
+      (just below the menu bar).
+
       <sect2> Clear locator fixed point <label id="clear-locator-fixed-point">
       <p>
+      This entry is provided to remove a fixed point set before and
+      use the default again : point [0, 0].
+
       <sect2> Locator props <label id="locator-props">
       <p>
+      The locator props popup allows you to customize the display of
+      the locator, mainly its type and the format and precision of the
+      display. You can use all the formats that are allowed in the
+      graphs scales.
+
       <sect2> Preferences <label id="preferences">
       <p>
+      The preferences popup allows you to set miscellaneous properties
+      of your grace session, such as debugging level, GUI behaviour,
+      cursor type, date reading hint and reference date used for
+      calendar conversions.
 
    <sect1> Data menu <label id="data-menu">
    <p>
@@ -844,7 +1019,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
        <sect1> Set selector <label id="set-selector">
        <p>
-       The operationss that can be performed on sets through the set
+       The operations that can be performed on sets through the set
        selector are :
        <itemize>
          <item> hide
@@ -905,7 +1080,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <item> Ctrl Alt &lt;Key&gt;T: Write a text string
       </itemize>
 
-  <sect1>Clicks and double clicks
+  <sect1>Clicks and double clicks<label id="clicks">
     <p>
 
       A single click inside a graph switches focus to that graph. This is the
@@ -930,7 +1105,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       "Edit/Preferences" popup.
 
 <!-- **************************************** -->
-<sect>Command interpreter
+<sect>Command interpreter <label id="command-interpreter">
   <p>
 
   <sect1>Definitions
@@ -1312,9 +1487,8 @@ main(int argc, char* argv[])
         <item> X11, PostScript and EPS are full-featured devices
         <item> Raster drivers (PNM/JPEG/PNG):
                <itemize>
-                 <item> patterned fills of ellipses cause crash
                  <item> only even-odd fill rule is supported
-                 <item> patterned lines are not supported
+                 <item> patterned lines are not implemented
                </itemize>
         <item> PDF driver:
                <itemize>
@@ -1500,40 +1674,40 @@ main(int argc, char* argv[])
       <item>iso8601   : 1999-12-31 23:59:59.999
       <item>european  : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999
       <item>us        : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999
-      <item>days      : 123456.789
-      <item>seconds   : 123456.789
+      <item>Julian    : 123456.789
       </enum>
       
       The formats are tried in the following order : iso, european and
       us (there is no ambiguity between calendar formats and numerical
       formats and therefore no order is specified for them). The
       separators between various fields can be any characters in the
-      set : " :/-" (one or more spaces act as one separator, other
-      characters can not be repeated), so the string "1999-12 31:23-59"
-      is allowed (but not recommended).  The '-' character
+      set : " :/.-" (one or more spaces act as one separator, other
+      characters can not be repeated), so the string "1999-12
+      31:23-59" is allowed (but not recommended).  The '-' character
       is used both as a separator (it is traditionally used in iso8601
       format) and as the unary minus (for dates in the far past or for
-      numerical dates). When the year is between 0 and 99 and is
-      written with two or less digits, it is mapped to the present era
-      as follows :
+      numerical dates). By default years are left untouched, so 99 is
+      a date far away in the past. This behaviour can be changed with
+      the "Edit->preferences" popup, or with the <tt>Y2KWRAP
+      on</tt> command. In such a situation, if the year is between 0
+      and 99 and is written with two or less digits, it is mapped to
+      the present era as follows :
 
        range [00 ; 49] is mapped to [2000 ; 2049]
        range [50 ; 99] is mapped to [1950 ; 1999]
 
-      this is Y2K compliant and is consistent with current use.
+      this is reasonably Y2K compliant and is consistent with current use.
       Specifying year 1 is still possible using more than two digits
       as follows : "0001-03-04" is unambiguously March the 4th, year
-      1. However using two digits only is not recommended (we
-      introduce a 2050 bug here so this feature should be removed at
-      some point in the future).
+      1. The inverse transform is applied for dates written by Grace,
+      for example as tick labels. Using two digits only for years is
+      not recommended, we introduce a 2050 bug here so this feature
+      should be removed at some point in the future ...
       
-      Numerical dates (days and seconds formats) can be specified
-      using integral, real or exponential formats (the 'd' and 'D'
-      exponant markers from fortran are supported in addition to 'e'
-      and 'E').  They are computed according to a customizable
+      Numerical (julian) dates are computed according to a customizable
       reference date.  The default value is given by the REFDATE
       command (you can set it in your configuration files). The
-      default value in the distributed file is "-4713-01-01 12:00:00",
+      default value is "-4713-01-01 12:00:00",
       it is a classical reference for astronomical events (note that
       the '-' is used here both as a unary minus and as a separator).
       
@@ -1542,7 +1716,7 @@ main(int argc, char* argv[])
       dates between 1582-10-05 and 1582-10-14, February 29th of non
       leap years, months below 1 or above 12, ...  the parser does not
       take into account leap seconds : you can think it works only in
-      International Atomic Time (TAI) and not in Unified Time
+      International Atomic Time (IAT) and not in Unified Time
       Coordinate (UTC). If you find yourself in a situation were you
       need UTC, a very precise scale, and should take into account
       leap seconds ... you should convert your data yourself (for

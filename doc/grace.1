@@ -26,7 +26,7 @@ data.
 .BI "\-arrange "  "rows cols"
 Arrange the graphs in a grid rows by cols
 .TP
-.B \-autoscale x|y|xy|none
+.B "\-autoscale" "x|y|xy|none"
 Set autoscale type
 .TP
 .BI "\-batch "    "file"
@@ -39,15 +39,15 @@ Assume the data
 .I file
 is block data
 .TP
-.B -bxy       x:y:etc.
+.B "\-bxy"       "x:y:etc."
 Form a set from the current block data set using the current set type
 from columns given in the argument
 .TP
 .BI "\-cols "     "gcols"                    
 Arrange graphs in gcols columns
 .TP
-.BI "\-debug "    "debug_level"              
-Set debugging options
+.BI "\-datehint "    "iso|european|us|days|seconds|nohint"              
+Set the hint for dates analysis
 .TP
 .BI "\-dpipe "    "descriptor"               
 Read data from descriptor on startup
@@ -83,7 +83,7 @@ Set the axis scaling of the current graph to logarithmic
 Open the log window
 .TP
 .B -mono                                 
-Run xmgrace in monochrome mode (affects the display only)
+Run grace in monochrome mode (affects the display only)
 .TP
 .B -noask
 Assume the answer is yes to all requests, if the operation would overwrite
@@ -131,7 +131,8 @@ Write the results from regression to
 .TP
 .BI "\-rows "     "grows"                    
 Arrange graphs in grows rows 
--rvideo
+.TP
+.B -rvideo
 Exchange the color indices for black and white
 .TP
 .BI "\-saveall "  "file"
