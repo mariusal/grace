@@ -235,7 +235,7 @@ static int read_sets_proc(char *filename, void *data)
     rdataGUI *gui = (rdataGUI *) data;
     
     load = GetOptionChoice(gui->load_item);
-    if (GetSingleStorageChoice(gui->graph_item, (void **) &gr) != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(gui->graph_item, &gr) != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
     } else {
         if (load == LOAD_SINGLE) {
@@ -330,7 +330,7 @@ static int write_sets_proc(char *filename, void *data)
         return FALSE;
     }
 
-    cd = GetStorageChoices(gui->sel, (void ***) &selset);
+    cd = GetStorageChoices(gui->sel, &selset);
     if (cd < 1) {
         errmsg("No set selected");
     } else {

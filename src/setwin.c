@@ -51,7 +51,7 @@
 #include "protos.h"
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void changetypeCB(int n, void **values, void *data);
+static void changetypeCB(int n, Quark **values, void *data);
 static int datasetprop_aac_cb(void *data);
 static void create_hotfiles_popup(void *data);
 
@@ -102,7 +102,7 @@ void create_datasetprop_popup(void *data)
 
 	tui.sel = CreateSetChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE, NULL);
-	AddStorageChoiceCB(tui.sel, changetypeCB, (void *) tui.sel);
+	AddStorageChoiceCB(tui.sel, changetypeCB, tui.sel);
 
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -200,7 +200,7 @@ void create_datasetprop_popup(void *data)
     unset_wait_cursor();
 }
 
-static void changetypeCB(int n, void **values, void *data)
+static void changetypeCB(int n, Quark **values, void *data)
 {
     int i, j, ncols;
     double *datap;
@@ -288,7 +288,7 @@ static int datasetprop_aac_cb(void *data)
     char *s, *hotfile;
     Quark *pset, **selset;
     
-    nsets = GetStorageChoices(tui.sel, (void ***) &selset);
+    nsets = GetStorageChoices(tui.sel, &selset);
     
     if (nsets < 1) {
         errmsg("No set selected");
@@ -507,7 +507,7 @@ static int datasetop_aac_cb(void *data)
     dataSetOpType optype;
     Quark *pset, **selset;
        
-    nsets = GetStorageChoices(datasetopui.sel, (void ***) &selset);
+    nsets = GetStorageChoices(datasetopui.sel, &selset);
     if (nsets < 1) {
         errmsg("No set selected");
         return RETURN_FAILURE;

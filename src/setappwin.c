@@ -121,7 +121,7 @@ static Widget csync_item;
 static Widget instantupdate_item;
 
 static void UpdateSymbols(Quark *pset);
-static void set_cset_proc(int n, void **values, void *data);
+static void set_cset_proc(int n, Quark **values, void *data);
 static int setapp_aac_cb(void *data);
 static void setapp_data_proc(void *data);
 static void csync_cb(int value, void *data);
@@ -504,7 +504,7 @@ static int setapp_aac_cb(void *data)
     
     duplegs = GetToggleButtonState(duplegs_item);
 
-    cd = GetStorageChoices(toggle_symset_item, (void ***) &selset);
+    cd = GetStorageChoices(toggle_symset_item, &selset);
     if (cd < 1) {
         errwin("No set selected");
         return RETURN_FAILURE;
@@ -768,7 +768,7 @@ static void UpdateSymbols(Quark *pset)
 }
 
 
-static void set_cset_proc(int n, void **values, void *data)
+static void set_cset_proc(int n, Quark **values, void *data)
 {
     if (n == 1) {
         cset = values[0];
@@ -797,7 +797,7 @@ static void setapp_data_proc(void *data)
     
     proc_type = (int)data;
 
-    cd = GetStorageChoices(toggle_symset_item, (void ***) &selset);
+    cd = GetStorageChoices(toggle_symset_item, &selset);
     if (cd < 1) {
         errmsg("No set selected");
         return;

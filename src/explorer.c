@@ -53,11 +53,11 @@ typedef struct {
     Storage_CreateProc create_proc;
 } TreeItemData;
 
-static char *default_storage_labeling_proc(unsigned int step, void *data)
+static char *default_storage_labeling_proc(unsigned int step, Quark *data)
 {
     char buf[128];
     
-    sprintf(buf, "Item #%d (data = %p)", step, data);
+    sprintf(buf, "Item #%d (data = %p)", step, (void *) data);
     
     return copy_string(NULL, buf);
 }
@@ -147,20 +147,20 @@ typedef struct {
     ListTreeItem *graphs;
 } ExplorerUI;
 
-static char *graph_labeling(unsigned int step, void *data)
+static char *graph_labeling(unsigned int step, Quark *data)
 {
     char buf[128];
-    graph *g = graph_get_data((Quark *) data);
+    graph *g = graph_get_data(data);
     
     sprintf(buf, "(%c) Graph #%d", !g->hidden ? '+':'-', step);
     
     return copy_string(NULL, buf);
 }
 
-static char *set_labeling(unsigned int step, void *data)
+static char *set_labeling(unsigned int step, Quark *data)
 {
     char buf[128];
-    set *s = set_get_data((Quark *) data);
+    set *s = set_get_data(data);
     
     sprintf(buf, "(%c) Set #%d (%s)",
         !s->hidden ? '+':'-', step, set_types(grace->rt, s->type));
@@ -168,10 +168,10 @@ static char *set_labeling(unsigned int step, void *data)
     return copy_string(NULL, buf);
 }
 
-static char *dobject_labeling(unsigned int step, void *data)
+static char *dobject_labeling(unsigned int step, Quark *data)
 {
     char buf[128];
-    DObject *o = object_get_data((Quark *) data);
+    DObject *o = object_get_data(data);
     
     sprintf(buf, "(%c) DObject #%d (%s)",
         o->active ? '+':'-', step, object_types(o->type));

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -100,7 +100,7 @@ static int define_arrange_proc(void *data)
 	return RETURN_FAILURE;
     }
     
-    ngraphs = GetStorageChoices(ui->graphs, (void ***) &graphs);
+    ngraphs = GetStorageChoices(ui->graphs, &graphs);
     if (ngraphs == 0) {
         graphs = NULL;
     }
@@ -143,7 +143,7 @@ static int define_arrange_proc(void *data)
     
     update_all();
     
-    SelectStorageChoices(ui->graphs, ngraphs, (void **) graphs);
+    SelectStorageChoices(ui->graphs, ngraphs, graphs);
     xfree(graphs);
     
     xdrawgraph();
@@ -264,12 +264,12 @@ static int define_overlay_proc(void *data)
     Quark *g1, *g2;
     int type = GetOptionChoice(graph_overlaytype_item);
     
-    if (GetSingleStorageChoice(graph_overlay1_choice_item, (void **) &g1) != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(graph_overlay1_choice_item, &g1) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
 	return RETURN_FAILURE;
     }
     
-    if (GetSingleStorageChoice(graph_overlay2_choice_item, (void **) &g2) != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(graph_overlay2_choice_item, &g2) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
 	return RETURN_FAILURE;
     }
@@ -342,7 +342,7 @@ static int define_autos_proc(void *data)
     Auto_ui *ui = (Auto_ui *) data;
     Quark **sets;
     
-    nsets = GetStorageChoices(ui->sel, (void ***) &sets);
+    nsets = GetStorageChoices(ui->sel, &sets);
     if (nsets <= 0) {
         errmsg("No sets selected");
         return RETURN_FAILURE;

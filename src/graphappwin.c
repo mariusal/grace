@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -110,7 +110,7 @@ static int graphapp_aac_cb(void *data);
 void updatelegends(Quark *gr);
 void update_view(Quark *gr);
 static void update_frame_items(Quark *gr);
-void update_graphapp_items(int n, void **values, void *data);
+void update_graphapp_items(int n, Quark **values, void *data);
 
 static void oc_graph_cb(int a, void *data)
 {
@@ -461,7 +461,7 @@ static int graphapp_aac_cb(void *data)
 {
     int j, n;
     Quark *gr;
-    void **values;
+    Quark **values;
     view v;
     labels *labs;
     framep *f;
@@ -635,7 +635,7 @@ static int graphapp_aac_cb(void *data)
     return RETURN_SUCCESS;
 }
 
-void update_graphapp_items(int n, void **values, void *data)
+void update_graphapp_items(int n, Quark **values, void *data)
 {
     Quark *gr;
     labels *labs;

@@ -122,12 +122,12 @@ typedef struct {
     DObject *dobject;
 } ObjectUI;
 
-static void changegraphCB(int n, void **values, void *data)
+static void changegraphCB(int n, Quark **values, void *data)
 {
     ObjectUI *ui = (ObjectUI *) data;
 
     if (n == 1) {
-        Quark *gr = (Quark *) values[0];
+        Quark *gr = values[0];
         SetStorageChoiceQuark(ui->ss, gr); 
     } else {
         SetStorageChoiceQuark(ui->ss, NULL); 
@@ -316,7 +316,7 @@ static StringUI *create_string_ui(Widget parent)
 
 
 
-static void selectobjectCB(int n, void **values, void *data)
+static void selectobjectCB(int n, Quark **values, void *data)
 {
     ObjectUI *ui = (ObjectUI *) data;
     
@@ -324,7 +324,7 @@ static void selectobjectCB(int n, void **values, void *data)
         DObject *o;
         char *format, buf[32];
         
-        o = object_get_data((Quark *) values[0]);
+        o = object_get_data(values[0]);
         
         ui->dobject = o;
         
@@ -406,14 +406,14 @@ static int objects_aac(void *data)
 {
     ObjectUI *ui = (ObjectUI *) data;
     int i, n;
-    void **values;
+    Quark **values;
     DObject *o;
     int olist_need_update = FALSE;
     
     n = GetStorageChoices(ui->ss, &values);
     for (i = 0; i < n; i++) {
         int active;
-        o = object_get_data((Quark *) values[i]) ;
+        o = object_get_data(values[i]) ;
         
         active = GetToggleButtonState(ui->active);
         if (o->active != active) {
@@ -436,7 +436,7 @@ static int objects_aac(void *data)
     }
 
     if (n == 1) {
-        o = object_get_data((Quark *) values[0]);
+        o = object_get_data(values[0]);
         switch (o->type) {
         case DO_LINE:
             set_line_odata(ui->line_ui, (DOLineData *) o->odata);
@@ -464,9 +464,9 @@ static int objects_aac(void *data)
     return RETURN_SUCCESS;
 }
 
-static char *dobject_labeling(unsigned int step, void *data)
+static char *dobject_labeling(unsigned int step, Quark *data)
 {
-    Quark *q = (Quark *) data;
+    Quark *q = data;
     char buf[128];
     if (q->fid == QFlavorDObject) {
         DObject *o = object_get_data(q);
@@ -541,7 +541,7 @@ static void doss_any_cb(void *udata, int cbtype)
 {
     StorageStructure *ss = (StorageStructure *) udata;
     int i, n;
-    void **values;
+    Quark **values;
     
     n = GetStorageChoices(ss, &values);
     
@@ -549,7 +549,7 @@ static void doss_any_cb(void *udata, int cbtype)
         void *data = values[i];
         
         if (storage_data_exists(ss->q->children, data) == TRUE) {
-            DObject *o = object_get_data((Quark *) data);
+            DObject *o = object_get_data(data);
             switch (cbtype) {
             case DOSS_HIDE_CB:
                 o->active = FALSE;

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -214,12 +214,12 @@ static int eblock_accept_notify_proc(void *data)
     Quark *gr, *pset;
     int cs[MAX_SET_COLS], nncols, scol, autoscale;
 
-    if (GetSingleStorageChoice(eblock_graphset_item->graph_sel, (void **) &gr)
+    if (GetSingleStorageChoice(eblock_graphset_item->graph_sel, &gr)
         != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
         return RETURN_FAILURE;
     }
-    if (GetSingleStorageChoice(eblock_graphset_item->set_sel, (void **) &pset) !=
+    if (GetSingleStorageChoice(eblock_graphset_item->set_sel, &pset) !=
         RETURN_SUCCESS) {
         /* no set selected; allocate new one */
     	pset = set_new(gr);

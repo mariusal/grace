@@ -246,7 +246,7 @@ static void *interp_get_cb(void *gui)
             Quark *psampl;
             int res;
             
-            res = GetSingleStorageChoice(ui->sset_sel, (void **) &psampl);
+            res = GetSingleStorageChoice(ui->sset_sel, &psampl);
             if (res != RETURN_SUCCESS) {
                 errmsg("Please select a single sampling set");
                 error = TRUE;
@@ -412,7 +412,7 @@ static void *histo_get_cb(void *gui)
             Quark *psampl;
             int res;
             
-            res = GetSingleStorageChoice(ui->sset_sel, (void **) &psampl);
+            res = GetSingleStorageChoice(ui->sset_sel, &psampl);
             if (res != RETURN_SUCCESS) {
                 errmsg("Please select a single sampling set");
                 error = TRUE;
@@ -1034,7 +1034,7 @@ static void *lconv_get_cb(void *gui)
     
     pars = xmalloc(sizeof(Lconv_pars));
     if (pars) {
-        if (GetSingleStorageChoice(ui->convsel->set_sel, (void **) &pars->pconv)
+        if (GetSingleStorageChoice(ui->convsel->set_sel, &pars->pconv)
             != RETURN_SUCCESS) {
             errmsg("Please select a single set to be convoluted with");
             lconv_free_cb(pars);
@@ -1140,7 +1140,7 @@ static void *cross_get_cb(void *gui)
         pars->covar   = GetToggleButtonState(ui->covar);
 
         if (!pars->autocor &&
-            GetSingleStorageChoice(ui->corsel->set_sel, (void **) &pars->pcor)
+            GetSingleStorageChoice(ui->corsel->set_sel, &pars->pcor)
             != RETURN_SUCCESS) {
             errmsg("Please select a single set to be correlated with");
             cross_free_cb(pars);
@@ -1399,17 +1399,17 @@ static int do_fext_proc(void *data)
 
     Featext_ui *ui = (Featext_ui *) data;
 
-    nsrc = GetStorageChoices(ui->src->set_sel, (void ***) &srcsets);
+    nsrc = GetStorageChoices(ui->src->set_sel, &srcsets);
     if (nsrc < 1) {
         errmsg("No source sets selected");
         return RETURN_FAILURE;
     }
 
-    ndest = GetStorageChoices(ui->dest->set_sel, (void ***) &destsets);
+    ndest = GetStorageChoices(ui->dest->set_sel, &destsets);
     if (ndest == 0) {
         Quark *destgr;
-        if (GetSingleStorageChoice(ui->dest->graph_sel,
-            (void **) &destgr) != RETURN_SUCCESS) {
+        if (GetSingleStorageChoice(ui->dest->graph_sel, &destgr)
+            != RETURN_SUCCESS) {
             xfree(*srcsets);
             errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
@@ -1418,7 +1418,7 @@ static int do_fext_proc(void *data)
         pdest = set_new(destgr);
         
         update_set_selectors(destgr);
-        SelectStorageChoice(ui->dest->set_sel, (void *) pdest);
+        SelectStorageChoice(ui->dest->set_sel, pdest);
     } else if (ndest == 1) {
         pdest = destsets[0];
         xfree(destsets);
@@ -1493,17 +1493,17 @@ static int do_cumulative_proc(void *data)
     int nsrc, ndest;
     Quark **srcsets, **destsets, *pdest;
 
-    nsrc = GetStorageChoices(ui->src->set_sel, (void ***) &srcsets);
+    nsrc = GetStorageChoices(ui->src->set_sel, &srcsets);
     if (nsrc < 1) {
         errmsg("No source sets selected");
         return RETURN_FAILURE;
     }
 
-    ndest = GetStorageChoices(ui->dest->set_sel, (void ***) &destsets);
+    ndest = GetStorageChoices(ui->dest->set_sel, &destsets);
     if (ndest == 0) {
         Quark *destgr;
-        if (GetSingleStorageChoice(ui->dest->graph_sel,
-            (void **) &destgr) != RETURN_SUCCESS) {
+        if (GetSingleStorageChoice(ui->dest->graph_sel, &destgr)
+            != RETURN_SUCCESS) {
             xfree(*srcsets);
             errmsg("No destination graph selected");
 	    return RETURN_FAILURE;
@@ -1512,7 +1512,7 @@ static int do_cumulative_proc(void *data)
         pdest = set_new(destgr);
         
         update_set_selectors(destgr);
-        SelectStorageChoice(ui->dest->set_sel, (void *) pdest);
+        SelectStorageChoice(ui->dest->set_sel, pdest);
     } else if (ndest == 1) {
         pdest = destsets[0];
         xfree(destsets);
