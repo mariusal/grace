@@ -162,6 +162,29 @@ typedef struct {
     SetPopupMenu *menu;
 } SetChoiceData;
 
+typedef struct {
+    Widget dialog;
+    Widget FSB;
+    Widget rc;
+} FSBStructure;
+
+/* OptionChoice CB procedure */
+typedef void (*OC_CBProc)(
+    int value,           /* value */
+    void *               /* data the application registered */
+);
+
+/* ToggleButton CB procedure */
+typedef void (*TB_CBProc)(
+    int onoff,           /* True/False */
+    void *               /* data the application registered */
+);
+
+/* FileSelectionBox CB procedure */
+typedef int (*FSB_CBProc)(
+    char *,              /* filename */
+    void *               /* data the application registered */
+);
 
 
 Widget CreateFrame(Widget parent, char *s);
@@ -183,6 +206,7 @@ void SetAngleChoice(Widget w, int angle);
 Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
+void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
 
 Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb);
 
@@ -194,7 +218,7 @@ void SetOptionChoice(OptionStructure *opt, int value);
 int GetOptionChoice(OptionStructure *opt);
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
 
-void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb);
+void AddOptionChoiceCB(OptionStructure *opt, TB_CBProc cbproc, void *anydata);
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items);
@@ -224,6 +248,10 @@ void SetCSTextString(CSTextStructure *cst, char *s);
 int GetCSTextCursorPos(CSTextStructure *cst);
 void CSTextInsert(CSTextStructure *cst, int pos, char *s);
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
+
+FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern);
+void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
+void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
 
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);

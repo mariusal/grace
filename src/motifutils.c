@@ -46,6 +46,7 @@
 #include <Xm/BulletinB.h>
 #include <Xm/MessageB.h>
 #include <Xm/DialogS.h>
+#include <Xm/FileSB.h>
 #include <Xm/Frame.h>
 #include <Xm/Form.h>
 #include <Xm/Scale.h>
@@ -293,13 +294,35 @@ int GetOptionChoice(OptionStructure *opt)
     return 0;
 }
 
-void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb)
+typedef struct {
+    OptionStructure *opt;
+    void (*cbproc)();
+    void *anydata;
+} OC_CBdata;
+
+static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int value;
+    
+    OC_CBdata *cbdata = (OC_CBdata *) client_data;
+
+    value = GetOptionChoice(cbdata->opt);
+    cbdata->cbproc(value, cbdata->anydata);
+}
+
+void AddOptionChoiceCB(OptionStructure *opt, TB_CBProc cbproc, void *anydata)
+{
+    OC_CBdata *cbdata;
     int i;
     
+    cbdata = malloc(sizeof(OC_CBdata));
+    
+    cbdata->opt = opt;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
     for (i = 0; i < opt->nchoices; i++) {
         XtAddCallback(opt->options[i].widget, XmNactivateCallback, 
-                                    cb, (XtPointer) opt->options[i].value);
+                                    oc_int_cb_proc, (XtPointer) cbdata);
     }
 }
 
@@ -689,6 +712,160 @@ int GetCSTextCursorPos(CSTextStructure *cst)
 void CSTextInsert(CSTextStructure *cst, int pos, char *s)
 {
     XmTextInsert(cst->cstext, pos, s);
+}
+
+
+typedef struct {
+    int type;
+    Widget FSB;
+} fsb_cd_cb_data;
+
+static void fsb_setcwd_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *bufp;
+    XmString directory;
+    Widget fsb = (Widget) client_data;
+    
+    XtVaGetValues(fsb, XmNdirectory, &directory, NULL);
+    XmStringGetLtoR(directory, charset, &bufp);
+    XmStringFree(directory);
+    set_workingdir(bufp);
+    XtFree(bufp);
+}
+
+#define FSB_CWD  0
+#define FSB_HOME 1
+#define FSB_ROOT 2
+
+static void fsb_cd_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *bufp;
+    XmString dir, pattern, dirmask;
+    fsb_cd_cb_data *cb_datap = (fsb_cd_cb_data *) client_data;
+    
+    switch (cb_datap->type) {
+    case FSB_CWD:
+        bufp = get_workingdir();
+        break;
+    case FSB_HOME:
+	bufp = get_userhome();
+        break;
+    case FSB_ROOT:
+        bufp = "/";
+        break;
+    default:
+        return;
+    }
+    
+    XtVaGetValues(cb_datap->FSB, XmNpattern, &pattern, NULL);
+    
+    dir = XmStringCreateSimple(bufp);
+    dirmask = XmStringConcatAndFree(dir, pattern);
+
+    XmFileSelectionDoSearch(cb_datap->FSB, dirmask);
+    XmStringFree(dirmask);
+}
+
+FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
+{
+    FSBStructure *retval;
+    Widget fr, buts[4];
+    XmString xmstr;
+    char *labels[4] = {"CWD", "Home", "/", "Set CWD"};
+    fsb_cd_cb_data *cb_data;
+    
+    retval = malloc(sizeof(FSBStructure));
+    cb_data = malloc(3*sizeof(fsb_cd_cb_data));
+    retval->FSB = XmCreateFileSelectionDialog(parent, "FSB", NULL, 0);
+    retval->dialog = XtParent(retval->FSB);
+    XtVaSetValues(retval->dialog, XmNtitle, s, NULL);
+    
+    if (pattern != NULL) {
+        xmstr = XmStringCreateSimple(pattern);
+        XtVaSetValues(retval->FSB, XmNpattern, xmstr, NULL);
+        XmStringFree(xmstr);
+    }
+    
+    xmstr = XmStringCreateSimple(get_workingdir());
+    XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
+    XmStringFree(xmstr);
+    
+    XtAddCallback(retval->FSB,
+        XmNcancelCallback, (XtCallbackProc) destroy_dialog, retval->dialog);
+    
+    retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
+    fr = CreateFrame(retval->rc, "Change directory");
+    CreateCommandButtons(fr, 4, buts, labels);
+    cb_data[0].FSB = retval->FSB;
+    cb_data[0].type = FSB_CWD;
+    XtAddCallback(buts[0],
+        XmNactivateCallback, fsb_cd_cb, (XtPointer) &cb_data[0]);
+    cb_data[1].FSB = retval->FSB;
+    cb_data[1].type = FSB_HOME;
+    XtAddCallback(buts[1],
+        XmNactivateCallback, fsb_cd_cb, (XtPointer) &cb_data[1]);
+    cb_data[2].FSB = retval->FSB;
+    cb_data[2].type = FSB_ROOT;
+    XtAddCallback(buts[2],
+        XmNactivateCallback, fsb_cd_cb, (XtPointer) &cb_data[2]);
+
+    XtAddCallback(buts[3], XmNactivateCallback, fsb_setcwd_cb, retval->FSB);
+    XtManageChild(retval->rc);
+        
+    return retval;
+}
+
+typedef struct {
+    FSBStructure *fsb;
+    int (*cbproc)();
+    void *anydata;
+} FSB_CBdata;
+
+static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    char *s;
+    int ok;
+    
+    FSB_CBdata *cbdata = (FSB_CBdata *) client_data;
+    XmFileSelectionBoxCallbackStruct *cbs =
+        (XmFileSelectionBoxCallbackStruct *) call_data;
+
+    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
+	errmsg("Error converting XmString to char string");
+	return;
+    }
+
+    set_wait_cursor();
+
+    ok = cbdata->cbproc(s, cbdata->anydata);
+    XtFree(s);
+    if (ok) {
+        XtUnmanageChild(cbdata->fsb->dialog);
+    }
+    unset_wait_cursor();
+}
+
+void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
+{
+    FSB_CBdata *cbdata;
+    
+    cbdata = malloc(sizeof(FSB_CBdata));
+    cbdata->fsb = fsb;
+    cbdata->cbproc = (FSB_CBProc) cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(fsb->FSB,
+        XmNokCallback, fsb_int_cb_proc, (XtPointer) cbdata);
+}
+
+void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
+{
+    XmString xmstr;
+    
+    if (pattern != NULL) {
+        xmstr = XmStringCreateSimple(pattern);
+        XtVaSetValues(fsb->FSB, XmNpattern, xmstr, NULL);
+        XmStringFree(xmstr);
+    }
 }
 
 static OptionItem *font_option_items;
@@ -2091,18 +2268,6 @@ Widget CreateCharSizeChoice(Widget parent, char *s)
     Widget w;
     XmString str;
     
-/*
- *     rc = XmCreateRowColumn(parent, "rcCharSize", NULL, 0);
- *     XtVaSetValues(rc, 
- *                   XmNorientation, XmHORIZONTAL,
- *                   XmNisAligned, True,
- *                   XmNentryAlignment, XmALIGNMENT_END,
- *                   XmNadjustLast, True,
- *                   NULL);
- * 
- *     XtVaCreateManagedWidget(s, xmLabelWidgetClass, rc, NULL);
- */
-
     str = XmStringCreate(s, charset);
     w = XtVaCreateManagedWidget("charSize", xmScaleWidgetClass, parent,
 				XmNtitleString, str,
@@ -2117,10 +2282,7 @@ Widget CreateCharSizeChoice(Widget parent, char *s)
 				XmNorientation, XmHORIZONTAL,
 				NULL);
     XmStringFree(str);
-/*
- *     XtManageChild(rc);
- */
-    
+
     return w;
 }
 
@@ -2214,6 +2376,33 @@ void SetToggleButtonState(Widget w, int value)
     XmToggleButtonSetState(w, value ? True:False, False);
     
     return;
+}
+
+typedef struct {
+    void (*cbproc)();
+    void *anydata;
+} TB_CBdata;
+
+static void tb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int onoff;
+    
+    TB_CBdata *cbdata = (TB_CBdata *) client_data;
+
+    onoff = GetToggleButtonState(w);
+    cbdata->cbproc(onoff, cbdata->anydata);
+}
+
+void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
+{
+    TB_CBdata *cbdata;
+    
+    cbdata = malloc(sizeof(TB_CBdata));
+    
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    XtAddCallback(w,
+        XmNvalueChangedCallback, tb_int_cb_proc, (XtPointer) cbdata);
 }
 
 
@@ -3165,4 +3354,3 @@ void update_all_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     update_all();
 }
-
