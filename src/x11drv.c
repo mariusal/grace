@@ -98,7 +98,8 @@ static Device_entry dev_x11 = {DEVICE_TERM,
           "",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          NULL
          };
 
 int register_x11_drv(void)

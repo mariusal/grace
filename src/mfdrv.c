@@ -52,7 +52,8 @@ static Device_entry dev_mf = {DEVICE_FILE,
           "gmf",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          NULL
          };
 
 int register_mf_drv(void)

@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -171,6 +171,16 @@ char *get_device_name(int device)
     return (device_table[device].name);
 }
 
+void *get_curdevice_data(void)
+{
+    return (device_table[curdevice].data);
+}
+
+void set_curdevice_data(void *data)
+{
+    device_table[curdevice].data = data;
+}
+
 void set_device_props(int deviceid, Device_entry device)
 {
     device_table[deviceid].type = device.type;
@@ -182,6 +192,8 @@ void set_device_props(int deviceid, Device_entry device)
     device_table[deviceid].devfonts = device.devfonts;
     device_table[deviceid].fontaa = device.fontaa;
     device_table[deviceid].pg = device.pg;
+    device_table[deviceid].data = device.data;
+
 }
 
 void set_curdevice_props(Device_entry device)

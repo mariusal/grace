@@ -79,6 +79,7 @@ typedef struct {
     int devfonts;           /* Bitmap fonts or provided by device */
     int fontaa;             /* Font antialiasing */
     Page_geometry pg;       /* device defaults */
+    void *data;             /* device private data */
 } Device_entry;
 
 /* device exit */
@@ -112,6 +113,9 @@ Device_entry get_device_props(int device);
 Device_entry get_curdevice_props(void);
 
 char *get_device_name(int device);
+
+void *get_curdevice_data(void);
+void set_curdevice_data(void *data);
 
 void set_device_props(int device, Device_entry dev);
 void set_curdevice_props(Device_entry dev);

@@ -78,7 +78,8 @@ static Device_entry dev_pdf = {DEVICE_FILE,
           "pdf",
           TRUE,
           FALSE,
-          {612, 792, 72.0}
+          {612, 792, 72.0},
+          NULL
          };
 
 int register_pdf_drv(void)

@@ -99,7 +99,8 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           "ps",
           TRUE,
           FALSE,
-          {3300, 2550, 300.0}
+          {3300, 2550, 300.0},
+          NULL
          };
 
 static Device_entry dev_eps = {DEVICE_FILE,
@@ -110,7 +111,8 @@ static Device_entry dev_eps = {DEVICE_FILE,
           "eps",
           TRUE,
           FALSE,
-          {2500, 2500, 300.0}
+          {2500, 2500, 300.0},
+          NULL
          };
 
 int register_ps_drv(void)
