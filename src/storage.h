@@ -101,6 +101,8 @@ int storage_get_data(Storage *sto, void **datap);
 int storage_push(Storage *sto, int forward);
 int storage_push_id(Storage *sto, int id, int forward);
 
+int storage_move(Storage *sto, int forward);
+
 int storage_get_id(Storage *sto);
 
 int storage_get_data_next(Storage *sto, void **datap);

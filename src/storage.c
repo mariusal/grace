@@ -510,6 +510,39 @@ int storage_push_id(Storage *sto, int id, int forward)
     }
 }
 
+int storage_move(Storage *sto, int forward)
+{
+    LLNode *llnode1, *llnode2;
+    
+    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
+    
+    llnode1 = sto->cp;
+    if (!llnode1) {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+    
+    if (forward) {
+        llnode2 = llnode1->next;
+    } else {
+        llnode2 = llnode1->prev;
+    }
+    
+    if (!llnode2) {
+        sto->ierrno = STORAGE_ENOENT;
+    
+        return RETURN_FAILURE;
+    } else {
+        void *databuf;
+        
+        databuf = llnode1->data;
+        llnode1->data = llnode2->data;
+        llnode2->data = databuf;
+    
+        return RETURN_SUCCESS;
+    }
+}
+
 void *storage_duplicate(Storage *sto, int id)
 {
     void *data, *data_new;
