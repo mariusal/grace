@@ -792,6 +792,7 @@ int project_set_sformat(Quark *q, const char *s);
 char *project_get_docname(const Quark *q);
 int project_set_docname(Quark *q, char *s);
 
+int project_get_page_dimensions(const Quark *q, int *wpp, int *hpp);
 int project_set_page_dimensions(Quark *q, int wpp, int hpp);
 
 int project_set_fontsize_scale(Quark *q, double fscale);

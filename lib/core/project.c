@@ -201,6 +201,18 @@ int project_set_docname(Quark *q, char *s)
     }
 }
 
+int project_get_page_dimensions(const Quark *q, int *wpp, int *hpp)
+{
+    Project *pr = project_get_data(q);
+    if (pr) {
+        *wpp = pr->page_wpp;
+	*hpp = pr->page_hpp;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 int project_set_page_dimensions(Quark *q, int wpp, int hpp)
 {
     Project *pr = project_get_data(q);
