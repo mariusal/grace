@@ -239,7 +239,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         fid = q->fid;
         parent = quark_parent_get(q);
         
-        for (i = 0; i < count; i++) {
+        for (i = 1; i < count; i++) {
             item = ret->items[i];
             ti_data = (TreeItemData *) item->user_data;
             
@@ -352,6 +352,29 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         SetSensitive(ui->popup_send_to_back_bt,   TRUE);
         SetSensitive(ui->popup_move_up_bt,        TRUE);
         SetSensitive(ui->popup_move_down_bt,      TRUE);
+    }
+    
+    SetSensitive(ui->insert_frame_bt,    FALSE);
+    SetSensitive(ui->insert_graph_bt,    FALSE);
+    SetSensitive(ui->insert_set_bt,      FALSE);
+    SetSensitive(ui->insert_axis_bt,     FALSE);
+    SetSensitive(ui->insert_object_pane, FALSE);
+    if (count == 1) {
+        switch (fid) {
+        case QFlavorProject:
+            SetSensitive(ui->insert_frame_bt,    TRUE);
+            SetSensitive(ui->insert_object_pane, TRUE);
+            break;
+        case QFlavorFrame:
+            SetSensitive(ui->insert_graph_bt,    TRUE);
+            SetSensitive(ui->insert_object_pane, TRUE);
+            break;
+        case QFlavorGraph:
+            SetSensitive(ui->insert_set_bt,      TRUE);
+            SetSensitive(ui->insert_axis_bt,     TRUE);
+            SetSensitive(ui->insert_object_pane, TRUE);
+            break;
+        }
     }
 }
 
@@ -515,6 +538,14 @@ static void update_explorer_cb(Widget but, void *data)
 #define SEND_TO_BACK_CB   3
 #define MOVE_UP_CB        4
 #define MOVE_DOWN_CB      5
+#define ADD_FRAME_CB      6
+#define ADD_GRAPH_CB      7
+#define ADD_SET_CB        8
+#define ADD_AXIS_CB       9
+#define ADD_LINE_CB      10
+#define ADD_BOX_CB       11
+#define ADD_ARC_CB       12
+#define ADD_TEXT_CB      13
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
@@ -561,6 +592,30 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         case DUPLICATE_CB:
             quark_copy(q);
             break;
+        case ADD_FRAME_CB:
+            frame_new(q);
+            break;
+        case ADD_GRAPH_CB:
+            graph_new(q);
+            break;
+        case ADD_SET_CB:
+            set_new(q);
+            break;
+        case ADD_AXIS_CB:
+            axis_new(q);
+            break;
+        case ADD_LINE_CB:
+            object_new_complete(q, DO_LINE);
+            break;
+        case ADD_BOX_CB:
+            object_new_complete(q, DO_BOX);
+            break;
+        case ADD_ARC_CB:
+            object_new_complete(q, DO_ARC);
+            break;
+        case ADD_TEXT_CB:
+            object_new_complete(q, DO_STRING);
+            break;
         }
     }
     
@@ -599,6 +654,43 @@ static void move_down_cb(Widget but, void *udata)
     popup_any_cb((ExplorerUI *) udata, MOVE_DOWN_CB);
 }
 
+static void add_frame_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, ADD_FRAME_CB);
+}
+
+static void add_graph_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, ADD_GRAPH_CB);
+}
+
+static void add_set_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, ADD_SET_CB);
+}
+
+static void add_axis_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, ADD_AXIS_CB);
+}
+
+static void add_object_cb(Widget but, void *udata)
+{
+    ExplorerUI *eui = (ExplorerUI *) udata;
+    if (but == eui->insert_line_bt) {
+        popup_any_cb(eui, ADD_LINE_CB);
+    } else
+    if (but == eui->insert_box_bt) {
+        popup_any_cb(eui, ADD_BOX_CB);
+    } else
+    if (but == eui->insert_arc_bt) {
+        popup_any_cb(eui, ADD_ARC_CB);
+    } else
+    if (but == eui->insert_text_bt) {
+        popup_any_cb(eui, ADD_TEXT_CB);
+    }
+}
+
 
 void define_explorer_popup(Widget but, void *data)
 {
@@ -622,8 +714,29 @@ void define_explorer_popup(Widget but, void *data)
         CreateMenuButton(menupane,
             "Close", 'C', destroy_dialog_cb, GetParent(eui->top));
 
-        eui->editmenu = CreateMenu(menubar, "Edit", 'E', FALSE);
-        CreateMenuButton(eui->editmenu, "Update", 'U', update_explorer_cb, eui);
+        menupane = CreateMenu(menubar, "Insert", 'I', FALSE);
+        eui->insert_frame_bt = CreateMenuButton(menupane,
+            "Frame", '\0', add_frame_cb, eui);
+        SetSensitive(eui->insert_frame_bt,  FALSE);
+        eui->insert_graph_bt = CreateMenuButton(menupane,
+            "Graph", '\0', add_graph_cb, eui);
+        SetSensitive(eui->insert_graph_bt,  FALSE);
+        eui->insert_set_bt = CreateMenuButton(menupane,
+            "Set", '\0', add_set_cb, eui);
+        SetSensitive(eui->insert_set_bt,    FALSE);
+        eui->insert_axis_bt = CreateMenuButton(menupane,
+            "Axis", '\0', add_axis_cb, eui);
+        SetSensitive(eui->insert_axis_bt,   FALSE);
+        eui->insert_object_pane = CreateMenu(menupane, "DObject", 'O', FALSE);
+        SetSensitive(eui->insert_object_pane, FALSE);
+        eui->insert_line_bt = CreateMenuButton(eui->insert_object_pane,
+            "Line", '\0', add_object_cb, eui);
+        eui->insert_box_bt = CreateMenuButton(eui->insert_object_pane,
+            "Box", '\0', add_object_cb, eui);
+        eui->insert_arc_bt = CreateMenuButton(eui->insert_object_pane,
+            "Arc", '\0', add_object_cb, eui);
+        eui->insert_text_bt = CreateMenuButton(eui->insert_object_pane,
+            "Text", '\0', add_object_cb, eui);
 
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         eui->instantupdate = CreateMenuToggle(menupane, "Instantaneous update",
@@ -692,6 +805,11 @@ void define_explorer_popup(Widget but, void *data)
             "Move down", '\0', move_down_cb, eui);
         eui->popup_send_to_back_bt = CreateMenuButton(eui->popup,
             "Send to back", '\0', send_to_back_cb, eui);
+
+        CreateMenuSeparator(eui->popup);
+
+        CreateMenuButton(eui->popup,
+            "Update tree", '\0', update_explorer_cb, eui);
         
         gui->eui = eui;
     }

@@ -209,6 +209,8 @@ typedef struct {
     Widget          special_tp;
 
     Widget          active;
+
+    OptionStructure *type;
     
     Widget          zero;
     Widget          offx;
@@ -355,8 +357,6 @@ struct _ExplorerUI {
     Widget       scrolled_window;
     ListTreeItem *project;
     
-    Widget       editmenu;
-    
     ProjectUI    *project_ui;
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;
@@ -373,6 +373,16 @@ struct _ExplorerUI {
     Widget       popup_send_to_back_bt;
     Widget       popup_move_up_bt;
     Widget       popup_move_down_bt;
+    
+    Widget       insert_frame_bt;
+    Widget       insert_graph_bt;
+    Widget       insert_set_bt;
+    Widget       insert_axis_bt;
+    Widget       insert_object_pane;
+    Widget       insert_line_bt;
+    Widget       insert_box_bt;
+    Widget       insert_arc_bt;
+    Widget       insert_text_bt;
 };
 
 void oc_explorer_cb(OptionStructure *opt, int a, void *data);
