@@ -181,7 +181,7 @@ symtab_entry *key;
 }
 
 %token <ival> INDEX
-%token <ival> JDATE
+%token <ival> DATE
 
 %token <ival> CONSTANT	 /* a (double) constant                                     */
 %token <ival> UCONSTANT	 /* a (double) unit constant                                */
@@ -477,6 +477,7 @@ symtab_entry *key;
 %token <ival> WELCH
 %token <ival> WITH
 %token <ival> WORLD
+%token <ival> WRAP
 %token <ival> WRITE
 %token <ival> WX1
 %token <ival> WX2
@@ -507,9 +508,9 @@ symtab_entry *key;
 %token <ival> Y2
 %token <ival> Y3
 %token <ival> Y4
-%token <ival> Y2KWRAP
 %token <ival> YAXES
 %token <ival> YAXIS
+%token <ival> YEAR
 %token <ival> YMAX
 %token <ival> YMIN
 %token <ival> YYMMDD
@@ -756,13 +757,13 @@ expr:	NUMBER {
 	| selectgraph '.' WY2 {
 	    $$ = g[$1].w.yg2;
 	}
-	| JDATE '(' jdate ')' {
+	| DATE '(' jdate ')' {
             $$ = $3;
 	}
-	| JDATE '(' iexpr ',' nexpr ',' nexpr ')' { /* yr, mo, day */
+	| DATE '(' iexpr ',' nexpr ',' nexpr ')' { /* yr, mo, day */
 	    $$ = cal_and_time_to_jul($3, $5, $7, 12, 0, 0.0);
 	}
-	| JDATE '(' iexpr ',' nexpr ',' nexpr ',' nexpr ',' nexpr ',' expr ')' 
+	| DATE '(' iexpr ',' nexpr ',' nexpr ',' nexpr ',' nexpr ',' expr ')' 
 	{ /* yr, mo, day, hr, min, sec */
 	    $$ = cal_and_time_to_jul($3, $5, $7, $9, $11, $13);
 	}
@@ -1971,11 +1972,14 @@ parmset:
             set_printer_by_name($3);
             free($3);
         }
-        | REFERENCE JDATE jdate {
+        | REFERENCE DATE jdate {
             set_ref_date($3);
 	}
-        | Y2KWRAP onoff {
-            allow_two_digits_years($2);
+        | DATE WRAP onoff {
+            allow_two_digits_years($3);
+	}
+        | DATE WRAP YEAR iexpr {
+            set_wrap_year($4);
 	}
 	| BACKGROUND color_select {
 	    setbgcolor($2);
@@ -4251,6 +4255,7 @@ symtab_entry ikey[] = {
 	{"COSH", FUNC_D, cosh},
 	{"CYCLE", CYCLE, NULL},
 	{"D", SCRARRAY, NULL},
+	{"DATE", DATE, NULL},
 	{"DAWSN", FUNC_D, dawsn},
 	{"DAYMONTH", DAYMONTH, NULL},
 	{"DAYOFWEEKL", DAYOFWEEKL, NULL},
@@ -4371,7 +4376,6 @@ symtab_entry ikey[] = {
 	{"INVFFT", INVFFT, NULL},
 	{"IRAND", FUNC_I, irand_wrap},
 	{"IV", FUNC_DD, iv_wrap},
-	{"JDATE", JDATE, NULL},
 	{"JUST", JUST, NULL},
 	{"JV", FUNC_DD, jv_wrap},
 	{"K0E", FUNC_D, k0e},
@@ -4565,6 +4569,7 @@ symtab_entry ikey[] = {
 	{"WELCH", WELCH, NULL},
 	{"WITH", WITH, NULL},
 	{"WORLD", WORLD, NULL},
+	{"WRAP", WRAP, NULL},
 	{"WRITE", WRITE, NULL},
 	{"WX1", WX1, NULL},
 	{"WX2", WX2, NULL},
@@ -4593,11 +4598,11 @@ symtab_entry ikey[] = {
 	{"Y0", Y0, NULL},
 	{"Y1", Y1, NULL},
 	{"Y2", Y2, NULL},
-	{"Y2KWRAP", Y2KWRAP, NULL},
 	{"Y3", Y3, NULL},
 	{"Y4", Y4, NULL},
 	{"YAXES", YAXES, NULL},
 	{"YAXIS", YAXIS, NULL},
+	{"YEAR", YEAR, NULL},
 	{"YMAX", YMAX, NULL},
 	{"YMIN", YMIN, NULL},
 	{"YV", FUNC_DD, yv_wrap},
