@@ -57,6 +57,34 @@ Page_geometry get_page_geometry(void)
     return (device_table[curdevice].pg);
 }
 
+int set_page_dimensions(int wpp, int hpp)
+{
+    int i;
+    
+    if (wpp <= 0 || hpp <= 0) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+	for (i = 0; i < ndevices; i++) {
+            device_table[i].pg.width =
+                (unsigned long) (wpp*(device_table[i].pg.dpi/72));
+            device_table[i].pg.height =
+                (unsigned long) (hpp*(device_table[i].pg.dpi/72));
+        }
+        return GRACE_EXIT_SUCCESS;
+    }
+}
+
+int get_device_page_dimensions(int dindex, int *wpp, int *hpp)
+{
+    if (dindex >= ndevices || dindex < 0) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+	*wpp = device_table[dindex].pg.width*72/device_table[dindex].pg.dpi;
+	*hpp = device_table[dindex].pg.height*72/device_table[dindex].pg.dpi;
+        return GRACE_EXIT_SUCCESS;
+    }
+}
+
 int register_device(Device_entry device)
 {
     int dindex;
