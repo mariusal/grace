@@ -281,6 +281,9 @@ ss_column *ssd_add_col(Quark *q, int format)
             col->format = format;
             col->label = NULL;
             ssd->ncols++;
+
+            quark_dirtystate_set(q, TRUE);
+
             return col;
         }
     } else {
