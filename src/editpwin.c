@@ -47,12 +47,6 @@
 #include "protos.h"
 
 #include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/Frame.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Protocols.h>
 #include <Xbae/Matrix.h>
 #include "motifinc.h"
 
@@ -66,6 +60,7 @@ typedef struct _EditPoints {
     int nrows;
     Widget top;
     Widget mw;
+    Widget label;
     int cformat[MAX_SET_COLS];
     int cprec[MAX_SET_COLS];
 } EditPoints;
@@ -159,10 +154,10 @@ static void update_props(EditPoints *ep)
     SetChoice(editp_precision_item, ep->cprec[col]);
 }
 
-static void do_accept_props(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_accept_props(void *data)
 {
     int i, col, cformat, cprec;
-    EditPoints *ep = (EditPoints *) client_data;
+    EditPoints *ep = *((EditPoints **) data);
 
     col = GetChoice(editp_col_item);
     cformat = GetChoice(editp_format_item);
@@ -176,7 +171,11 @@ static void do_accept_props(Widget w, XtPointer client_data, XtPointer call_data
     	    ep->cformat[i] = cformat;
     	    ep->cprec[i] = cprec;
         }
-    } 	
+    }
+    
+    update_cells(ep);
+    
+    return RETURN_SUCCESS;
 }
 
 void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data)
@@ -195,6 +194,9 @@ void update_cells(EditPoints *ep)
     short width;
     char buf[32];
     char **rowlabels;
+
+    sprintf(buf, "Set G%d.S%d", ep->gno, ep->setno);
+    SetLabel(ep->label, buf);
 	
     ep->nrows = getsetlength(ep->gno, ep->setno);
     ep->ncols = dataset_cols(ep->gno, ep->setno);
@@ -247,19 +249,16 @@ void update_cells(EditPoints *ep)
 
 void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    static Widget top, dialog;
-    EditPoints *ep;
-    static Widget but1[2];
+    static Widget top;
+    static EditPoints *ep;
 
     set_wait_cursor();
     ep = (EditPoints *) client_data;
+    
     if (top == NULL) {
-        char *label1[2];
-        label1[0] = "Accept";
-        label1[1] = "Close";
-	top = XmCreateDialogShell(app_shell, "Edit set props", NULL, 0);
-	handle_close(top);
-	dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
+        Widget dialog;
+	top = CreateDialogForm(app_shell, "Edit set properties");
+	dialog = CreateVContainer(top);
 
 	editp_col_item = CreatePanelChoice(dialog, "Apply to column:",
 				    8, "1", "2", "3", "4", "5", "6", "All",
@@ -279,19 +278,11 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 						 "10", "11", "12", "13", "14",
 						 NULL, 0);
 
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[1], XmNactivateCallback,
-	    	(XtCallbackProc) destroy_dialog, (XtPointer) top);
-	ManageChild(dialog);
+	CreateAACDialog(top, dialog, do_accept_props, &ep);
     }
-    /* TODO: remove the dirty stuff */
-    XtRemoveAllCallbacks(but1[0], XmNactivateCallback);
-    XtAddCallback(but1[0], XmNactivateCallback,
-    	    (XtCallbackProc) do_accept_props, (XtPointer) ep);
     update_props(ep);
-    RaiseWindow(top);
+    
+    RaiseWindow(GetParent(top));
     unset_wait_cursor();
 }
 
@@ -407,13 +398,17 @@ EditPoints *get_ep(int gno, int setno)
     return ep_tmp;
 }
 
-void destroy_ep(Widget w, XtPointer client_data, XtPointer call_data)
+EditPoints *get_unused_ep()
 {
-    EditPoints *ep;
-    
-    ep = (EditPoints *) client_data;
-    deletewidget(ep->top);
-    delete_ep(ep);
+    EditPoints *ep_tmp = ep_start;
+
+    while (ep_tmp != NULL) {
+        if (XtIsManaged(GetParent(ep_tmp->top)) == False) {
+            break;
+        }
+        ep_tmp = ep_tmp->next;
+    }
+    return ep_tmp;
 }
 
 void create_ss_frame(int gno, int setno)
@@ -423,17 +418,22 @@ void create_ss_frame(int gno, int setno)
     short cwidths[MAX_SET_COLS + 1];
     int maxlengths[MAX_SET_COLS + 1];
     unsigned char column_label_alignments[MAX_SET_COLS + 1];
-    char wname[256];
     char *label1[3] = {"Props...", "Update", "Close"};
     char *label2[2] = {"Delete", "Add"};
     EditPoints *ep;
-    Atom WM_DELETE_WINDOW;
-    Widget dialog;
-    Widget but1[3], but2[2];
+    Widget dialog, fr, but1[3], but2[2];
     
+    /* first, try a previously opened editor with the same set */
     ep = get_ep(gno, setno);
+    if (ep == NULL) {
+        /* if failed, a first unmanaged one */
+        ep = get_unused_ep();
+    }
     if (ep != NULL) {
-        RaiseWindow(ep->top);
+        ep->gno = gno;
+        ep->setno = setno;
+        update_cells(ep);
+        RaiseWindow(GetParent(ep->top));
         return;
     }
     
@@ -463,16 +463,12 @@ void create_ss_frame(int gno, int setno)
         column_label_alignments[i] = XmALIGNMENT_CENTER;
     }
 
-    sprintf(wname, "Edit set: S%d of G%d", ep->setno, ep->gno);
-    ep->top = XmCreateDialogShell(app_shell, wname, NULL, 0);
-    XtVaSetValues(ep->top, XmNdeleteResponse, XmDO_NOTHING, NULL);
-    WM_DELETE_WINDOW = XmInternAtom(XtDisplay(app_shell),
-        "WM_DELETE_WINDOW", False);
-    XmAddProtocolCallback(ep->top,
-        XM_WM_PROTOCOL_ATOM(ep->top), WM_DELETE_WINDOW,
-        destroy_ep, (XtPointer) ep);
+    ep->top = CreateDialogForm(app_shell, "Spreadsheet set editor");
+    fr = CreateFrame(ep->top, NULL);
+    AddDialogFormChild(ep->top, fr);
+    ep->label = CreateLabel(fr, "");
 
-    dialog = XmCreateRowColumn(ep->top, "dialog_rc", NULL, 0);
+    dialog = CreateVContainer(ep->top);
 
     ep->mw = XtVaCreateManagedWidget("mw",
         xbaeMatrixWidgetClass, dialog,
@@ -501,23 +497,21 @@ void create_ss_frame(int gno, int setno)
     CreateSeparator(dialog);
     
     CreateCommandButtons(dialog, 2, but2, label2);
-    XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) del_point_cb,
-    	    (XtPointer) ep);
-    XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) add_pt_cb,
-    	    (XtPointer) ep);
+    XtAddCallback(but2[0], XmNactivateCallback, del_point_cb, (XtPointer) ep);
+    XtAddCallback(but2[1], XmNactivateCallback, add_pt_cb, (XtPointer) ep);
     
     CreateSeparator(dialog);
 
     CreateCommandButtons(dialog, 3, but1, label1);
-    XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_props_proc,
+    XtAddCallback(but1[0], XmNactivateCallback, do_props_proc,
     	    (XtPointer) ep);
-    XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) do_update_cells,
+    XtAddCallback(but1[1], XmNactivateCallback, do_update_cells,
     	    (XtPointer) ep);
-    XtAddCallback(but1[2], XmNactivateCallback, (XtCallbackProc) destroy_ep,
-    	    (XtPointer) ep);
+    XtAddCallback(but1[2], XmNactivateCallback, destroy_dialog,
+    	    (XtPointer) GetParent(ep->top));
 
-    ManageChild(dialog);
-    RaiseWindow(ep->top);
+    ManageChild(ep->top);
+    RaiseWindow(GetParent(ep->top));
     unset_wait_cursor();
 }
 
