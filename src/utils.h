@@ -111,5 +111,6 @@ void lock_dirtystate(void);
 int is_dirtystate(void);
 
 int system_wrap(const char *string);
+unsigned int sleep_wrap(unsigned int nsec);
 
 #endif /* __UTILS_H_*/

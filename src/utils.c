@@ -1382,3 +1382,16 @@ int system_wrap(const char *string)
     
     return retval;
 }
+
+unsigned int sleep_wrap(unsigned int nsec)
+{
+    unsigned int retval;
+    void (*save_handler)(int);
+    
+    save_handler = signal(SIGALRM, SIG_IGN);
+    retval = sleep(nsec);
+    signal(SIGALRM, save_handler);
+    alarm((int) ceil((double) timer_delay/1000));
+    
+    return retval;
+}

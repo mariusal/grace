@@ -2389,7 +2389,7 @@ actions:
 	    }
 	}
 	| SLEEP NUMBER {
-	    sleep((int) $2);
+	    sleep_wrap((int) $2);
 	}
 	| GETP CHRSTR {
 	    gotparams = TRUE;
