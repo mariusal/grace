@@ -1477,6 +1477,13 @@ int interpolate(double *mesh, double *yint, int meshlen,
     int i, ifound;
     int m;
 
+    /* For linear interpolation, non-strict monotonicity is fine */
+    m = monotonicity(x, len, method == INTERP_LINEAR ? FALSE:TRUE);
+    if (m == 0) {
+        errmsg("Can't interpolate a set with non-monotonic abscissas");
+        return RETURN_FAILURE;
+    }
+
     switch (method) {
     case INTERP_SPLINE:
     case INTERP_ASPLINE:
@@ -1505,12 +1512,6 @@ int interpolate(double *mesh, double *yint, int meshlen,
         break;
     default:
         /* linear interpolation */
-
-        m = monotonicity(x, len, FALSE);
-        if (m == 0) {
-            errmsg("Can't interpolate a set with non-monotonic abscissas");
-            return RETURN_FAILURE;
-        }
 
         for (i = 0; i < meshlen; i++) {
             ifound = find_span_index(x, len, m, mesh[i]);
