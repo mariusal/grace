@@ -127,6 +127,9 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
         s = data->labeling_proc(q);
     }
     
+    if (parent) {
+        parent->open = True;
+    }
     item = ListTreeAdd(tree, parent, s);
     xfree(s);
     item->user_data = data;
