@@ -35,15 +35,13 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "core_utils.h"
 #include "ssdata.h"
 #include "utils.h"
-#include "grace/canvas.h"
 #include "files.h"
-#include "core_utils.h"
 #include "protos.h"
 
 /*
@@ -79,95 +77,6 @@ char *dataset_colname(int col)
     }
     return s;
 }
-
-int dataset_set_nrows(Dataset *data, int len)
-{
-    int i, j, oldlen;
-    
-    if (!data || len < 0) {
-	return RETURN_FAILURE;
-    }
-    
-    oldlen = data->len;
-    if (len == oldlen) {
-	return RETURN_SUCCESS;
-    }
-    
-    for (i = 0; i < data->ncols; i++) {
-	if ((data->ex[i] = xrealloc(data->ex[i], len*SIZEOF_DOUBLE)) == NULL
-            && len != 0) {
-	    return RETURN_FAILURE;
-	}
-        for (j = oldlen; j < len; j++) {
-            data->ex[i][j] = 0.0;
-        }
-    }
-    
-    if (data->s != NULL) {
-        for (i = len; i < oldlen; i++) {
-            xfree(data->s[i]);
-        }
-        data->s = xrealloc(data->s, len*sizeof(char *));
-        for (j = oldlen; j < len; j++) {
-            data->s[j] = copy_string(NULL, "");
-        }
-    }
-    
-    data->len = len;
-
-    return RETURN_SUCCESS;
-}
-
-int dataset_set_ncols(Dataset *data, int ncols)
-{
-    if (ncols < 0 || ncols > MAX_SET_COLS) {
-        return RETURN_FAILURE;
-    }
-    
-    if (data->ncols == ncols) {
-        /* nothing changed */
-        return RETURN_SUCCESS;
-    } else {
-        int i, ncols_old = data->ncols;
-        
-        for (i = ncols_old; i < ncols; i++) {
-            data->ex[i] = xcalloc(data->len, SIZEOF_DOUBLE);
-        }
-        for (i = ncols; i < ncols_old; i++) {
-            XCFREE(data->ex[i]);
-        }
-
-        data->ncols = ncols;
-        
-        return RETURN_SUCCESS;
-    }
-}
-
-int set_dataset_scol(Dataset *data, int yesno)
-{
-    if (yesno) {
-        if (data->s) {
-            return RETURN_SUCCESS;
-        } else {
-            data->s = xcalloc(data->len, sizeof(char *));
-            if (data->len && !data->s) {
-                return RETURN_FAILURE;
-            } else {
-                return RETURN_SUCCESS;
-            }
-        }
-    } else {
-        if (data->s) {
-            int i;
-            for (i = 0; i < data->len; i++) {
-                xfree(data->s[i]);
-            }
-            xfree(data->s);
-        }
-        return RETURN_SUCCESS;
-    }
-}
-
 
 int zero_set_data(Dataset *dsp)
 {
@@ -642,6 +551,7 @@ int vmedian(double *x, int n, double *med)
         }
 
         if (d != x) {
+            /* FIXME (no direct use of *alloc/free) !!! */
             xfree(d);
         }
     }
@@ -1016,21 +926,6 @@ void zero_datapoint(Datapoint *dpoint)
     dpoint->s = NULL;
 }
 
-Datapoint *datapoint_new(void)
-{
-    Datapoint *dpoint;
-    dpoint = xmalloc(sizeof(Datapoint));
-    zero_datapoint(dpoint);
-    
-    return dpoint;
-}
-
-void datapoint_free(Datapoint *dpoint)
-{
-    xfree(dpoint->s);
-    xfree(dpoint);
-}
-
 int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind)
 {
     int col;
@@ -1046,7 +941,7 @@ int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind)
         dsp->ex[col][ind] = dpoint->ex[col];
     }
     if (dpoint->s) {
-        set_dataset_scol(dsp, TRUE);
+        dataset_enable_scol(dsp, TRUE);
     }
     if (dsp->s) {
         dsp->s[ind] = copy_string(dsp->s[ind], dpoint->s);
@@ -1197,6 +1092,7 @@ int do_splitsets(Quark *pset, int lpart)
             return RETURN_FAILURE;
         }
         if (dsp->s) {
+            /* FIXME (no direct use of *alloc/free) !!! */
             dsptmp->s = xmalloc(plen*sizeof(char *));
         }
         
@@ -1370,6 +1266,21 @@ int set_set_colors(Quark *pset, int color)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+Datapoint *datapoint_new(void)
+{
+    Datapoint *dpoint;
+    dpoint = xmalloc(sizeof(Datapoint));
+    zero_datapoint(dpoint);
+    
+    return dpoint;
+}
+
+void datapoint_free(Datapoint *dpoint)
+{
+    xfree(dpoint->s);
+    xfree(dpoint);
 }
 
 Symbol *symbol_new()

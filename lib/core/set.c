@@ -126,6 +126,97 @@ void dataset_free(Dataset *dsp)
     }
 }
 
+
+int dataset_set_nrows(Dataset *data, int len)
+{
+    int i, j, oldlen;
+    
+    if (!data || len < 0) {
+	return RETURN_FAILURE;
+    }
+    
+    oldlen = data->len;
+    if (len == oldlen) {
+	return RETURN_SUCCESS;
+    }
+    
+    for (i = 0; i < data->ncols; i++) {
+	if ((data->ex[i] = xrealloc(data->ex[i], len*SIZEOF_DOUBLE)) == NULL
+            && len != 0) {
+	    return RETURN_FAILURE;
+	}
+        for (j = oldlen; j < len; j++) {
+            data->ex[i][j] = 0.0;
+        }
+    }
+    
+    if (data->s != NULL) {
+        for (i = len; i < oldlen; i++) {
+            xfree(data->s[i]);
+        }
+        data->s = xrealloc(data->s, len*sizeof(char *));
+        for (j = oldlen; j < len; j++) {
+            data->s[j] = copy_string(NULL, "");
+        }
+    }
+    
+    data->len = len;
+
+    return RETURN_SUCCESS;
+}
+
+int dataset_set_ncols(Dataset *data, int ncols)
+{
+    if (ncols < 0 || ncols > MAX_SET_COLS) {
+        return RETURN_FAILURE;
+    }
+    
+    if (data->ncols == ncols) {
+        /* nothing changed */
+        return RETURN_SUCCESS;
+    } else {
+        int i, ncols_old = data->ncols;
+        
+        for (i = ncols_old; i < ncols; i++) {
+            data->ex[i] = xcalloc(data->len, SIZEOF_DOUBLE);
+        }
+        for (i = ncols; i < ncols_old; i++) {
+            XCFREE(data->ex[i]);
+        }
+
+        data->ncols = ncols;
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+int dataset_enable_scol(Dataset *data, int yesno)
+{
+    if (yesno) {
+        if (data->s) {
+            return RETURN_SUCCESS;
+        } else {
+            data->s = xcalloc(data->len, sizeof(char *));
+            if (data->len && !data->s) {
+                return RETURN_FAILURE;
+            } else {
+                return RETURN_SUCCESS;
+            }
+        }
+    } else {
+        if (data->s) {
+            int i;
+            for (i = 0; i < data->len; i++) {
+                xfree(data->s[i]);
+            }
+            xfree(data->s);
+        }
+        return RETURN_SUCCESS;
+    }
+}
+
+
+
 Dataset *dataset_copy(Dataset *data)
 {
     Dataset *data_new;

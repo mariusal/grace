@@ -871,6 +871,10 @@ int dataset_empty(Dataset *dsp);
 void dataset_free(Dataset *dsp);
 Dataset *dataset_copy(Dataset *data);
 
+int dataset_set_nrows(Dataset *data, int len);
+int dataset_set_ncols(Dataset *data, int ncols);
+int dataset_enable_scol(Dataset *data, int yesno);
+
 set *set_data_new(void);
 void set_data_free(set *p);
 set *set_data_copy(set *p);
