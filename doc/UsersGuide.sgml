@@ -1,0 +1,581 @@
+<!doctype linuxdoc system>
+
+<!-- This is the User's Guide for Grace -->
+
+
+<article>
+
+<title>Grace Users's Guide (v0.2)
+<author>by the Grace Team
+<date>31.01.1999
+<abstract>
+  This document explains the usage of
+  <bf/Grace/, the OpenSource (TM) 2D plotting tool for scientific data.
+</abstract>
+
+<toc>
+
+<!-- **************************************** -->
+<sect>Introduction
+<p>
+
+<sect1>What is Grace?
+  <p>
+     Grace is a tool to make two-dimensional plots of scientific data. It runs
+     under various (if not all) flavours of UNIX with X11 and Motif. Its
+     capabilities are roughly similar to GUI-based programs like Sigmaplot or
+     Microcal Origin plus script-based tools like Gnuplot or Genplot.  Its
+     strength lies in the fact that it combines the convenience of a graphical
+     user interface with the power of a scripting language which enables it to
+     do sophisticated calculations or perform automated tasks.
+
+     Grace is derived from Xmgr (a.k.a. ACE/gr), originally written by <url
+     name="Paul Turner" url="mailto:pturner@teleport.com">.
+
+     From version number 4.00, the development was taken over by a team of
+     volunteers under the coordination of <url name="Evgeny Stambulchik"
+     url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">.
+
+     When its copyright was changed to GPL, the name was changed to Grace,
+     which stands for ``GRaphing, Advanced Computation and Exploration of
+     data'' or ``Grace Revamps ACE/gr''. The first version of Grace available
+     is named 5.0.0, while the last public version of Xmgr has the version
+     number 4.1.2.
+
+     Paul still maintains and develops a non-public version of Xmgr for
+     internal use.
+
+<sect1>Copyright statement
+  <p>
+
+<tscreen><verb>
+Copyright (&copy;) 1991-95 Paul J Turner, Portland, OR
+Copyright (&copy;) 1996-99 Grace Development Team
+
+Maintained by Evgeny Stambulchik
+
+
+                         All Rights Reserved
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+</verb></tscreen>
+
+
+<sect1>Comments and bug reports
+  <p>
+
+
+<!-- **************************************** -->
+<sect>Getting started
+  <p>
+
+  <sect1>Installing from sources
+    <p>
+      <enum>
+        <item> Configuration
+        <itemize>
+          <item> Consult README.configure for basic notes on the GNU configure
+                 usage
+          <item> Extra libraries. Some features will be available only if
+                 additional libraries are installed. See README.FFTW,
+                 README.PDF and README.GIF
+          <item> Run <tt>./configure --help</tt>
+                 to get list of additional switches specific to Grace
+          <item> Run <tt>./configure &lt;options&gt;</tt>. Just an example:
+                 <verb>
+  % ./configure --enable-grace-home=/opt/grace 
+  --enable-extra-incpath=/usr/local/include:/opt/include \
+  --enable-extra-ldpath=/usr/local/lib:/opt/lib --prefix=/usr
+                 </verb>
+                 would use <tt>/usr/local/include</tt> and
+                 <tt>/opt/include</tt> in addition to the default include path
+                 and <tt>/usr/local/lib</tt> and <tt>/opt/lib</tt> in addition
+                 to the default ld path. As well, all stuff would be put under
+                 the /opt/grace directory and soft links made to
+                 <tt>/usr/bin</tt>, <tt>/usr/lib</tt> and <tt>/usr/include</tt>.
+                   <p>
+                 <bf>Note</bf>: If you change one of the
+                 <tt>--enable-extra-incpath</tt> or
+                 <tt>--enable-extra-ldpath</tt> options from one run of
+                 configure to another, remember to delete the
+                 <tt>config.cache</tt> file!!!
+                   <p>
+                 There is one configure switch which must be paid a special
+                 attention to: <tt>--enable-config</tt>. Some pre-defined
+                 configurations exist: look in the <tt>conf</tt> direcory for
+                 the list. Some OS/hardware combinations have more than one
+                 configuration file - you'll have to use the switch to choose
+                 an alternative one.
+        </itemize>
+        <item> Compilation
+        <itemize>
+          <item> Issue <tt>make</tt>
+                   <p>
+                 If something goes wrong, try to see if the problem has been
+                 described already in the <bf>Grace FAQ</bf> (in the
+                 <tt>doc</tt> directory).
+        </itemize>
+        <item> Testing
+        <itemize>
+          <item> <tt>make tests</tt>
+        </itemize>
+        <item> Installation
+        <itemize>
+          <item> <tt>make install</tt>
+          <item> <tt>make links</tt>
+                   <p>
+                 The later (optional) step will make soft links from some files
+                 under the Grace home directory to the system-wide default
+                 locations (can be changed by the <tt>--prefix</tt> option
+                 during the configuration, see above).
+        </itemize>
+      </enum>
+
+  <sect1>Binary installation
+    <p>
+       <enum>
+       <item> Getting pre-built packages
+       <item> Installation
+       <item> Running tests
+       </enum>
+
+  <sect1>Alternative packaging schemes (RPM, ...)
+    <p>
+
+
+  <sect1>General concepts
+    <p>
+
+      <sect2>Project files
+	<p>
+
+          A project file contains all information necessary to restore a plot
+          created by Grace, as well as some of preferences. Each plot is
+          represented on a single page, but may have an unlimited number of
+          graphs.
+
+      <sect2>Graphs
+	<p>
+
+          A graph consists of (every element is optional): a graph frame, axes,
+          a title and a subtitle, a number of sets and additional annotative
+          objects (time stamp string, text strings, lines, boxes and ellipses).
+
+      <sect2>Sets
+	<p>
+
+	  A set is a way of representing numerical data (datasets). It consists
+          of a pointer to a dataset plus a collection of parameters describing
+          the visual appearance of the data (like color, line dash pattern etc).
+
+      <sect2>Datasets
+	<p>
+
+          A dataset is a collection of points with x and y coordinates, up to
+          four optional data values (which, depending on the set type, can be
+          displayed as error bars or like) and one optional character string.
+
+      <sect2>Regions
+	<p>
+
+          Regions are sections of the graph defined by the interior or exterior
+          of a polygon, or a half plane defined by a line. Regions are used to
+          restrict data transformations to a geometric area occupied by region.
+
+  <sect1>Command line options
+    <p>
+      <descrip>
+      <tag> -arrange <it>rows</it> <it>cols</it> </tag> 
+            Arrange the graphs in a grid rows by cols
+
+      <tag> -autoscale <it>x|y|xy</it> </tag>
+            Override any parameter file settings
+
+      <tag> -batch <it>batch_file</it> </tag> 
+            Execute batch_file on start up
+
+      <tag> -block <it>block_data</it> </tag> 
+            Assume data file is block data
+
+      <tag> -bxy <it>x:y:etc.</it> </tag> 
+            Form a set from the current block data set using the current set
+            type from columns given in the argument
+
+      <tag> -cols <it>gcols</it> </tag>
+            Arrange graphs in gcols columns
+
+      <tag> -dc </tag>
+            Allow double click operations on the canvas
+
+      <tag> -debug <it>debug_level</it> </tag> 
+            Set debugging options
+
+      <tag> -hdevice <it>hardcopy_device_name</it> </tag> 
+            Set default hardcopy device
+
+      <tag> -fixed <it>width</it> <it>height</it> </tag>
+            Set canvas size fixed to width*height
+
+      <tag> -free </tag> Use free page layout
+
+      <tag> -graph <it>graph_number</it> </tag> 
+            Set the current graph number
+
+      <tag> -graphtype <it>graph_type</it> </tag> 
+            Set the type of the current graph
+
+      <tag> -GXxor </tag> 
+            Use xor to draw rubberband lines and graph focus markers
+
+      <tag> -GXinvert </tag> 
+            Use invert to draw rubberband lines and graph focus markers
+
+      <tag> -hardcopy </tag> 
+            No interactive session, just print and quit
+
+      <tag> -hilo <it>hilo_file</it> </tag>
+            Assume data is in X HI LO OPEN CLOSE format
+
+      <tag> -install </tag>
+            Install private colormap
+
+      <tag> -legend <it>load</it> </tag> 
+            Turn the graph legend on
+
+      <tag> -log <it>x|y|xy</it> </tag> 
+            Set the axis scaling of the current graph to logarithmic
+
+      <tag> -logwindow </tag>
+            Open the log window
+
+      <tag> -maxblock <it>number_of_columns</it> </tag> 
+            Set the number of columns for block data (default is 30)
+
+      <tag> -maxboxes <it>number_of_boxes</it> </tag>
+            Set the number of boxes
+
+      <tag> -maxellipses <it>number_of_ellipses</it> </tag> 
+            Set the number of ellipses
+
+      <tag> -maxlines <it>number_of_lines</it> </tag> 
+            Set the number of lines
+
+      <tag> -maxstr <it>number_of_strings</it> </tag> 
+            Set the number of strings
+
+      <tag> -mono </tag> 
+            Run Grace in monochrome mode (affects the display only)
+
+      <tag> -noask </tag> 
+            Assume the answer is yes to all requests - if the operation would
+            overwrite a file, Grace will do so without prompting
+
+      <tag> -nodc </tag>
+            Ignore double clicks on the canvas
+
+      <tag> -noinstall </tag> 
+            Don't use private colormap
+
+      <tag> -nologwindow </tag> 
+            No log window, overrides resource setting
+
+      <tag> -noprint </tag> 
+            In batch mode, do not print
+
+      <tag> -noredraw </tag> 
+            Don't do a redraw for refreshing the canvas when the server doesn't
+            do backing store
+
+      <tag> -nosigcatch </tag> 
+            Don't catch signals
+
+      <tag> -npipe <it>file</it> </tag> 
+            Read data from named pipe on startup
+
+      <tag> -nxy <it>nxy_file</it> </tag> 
+            Assume data file is in X Y1 Y2 Y3 ... format
+
+      <tag> -param <it>parameter_file</it> </tag> 
+            Load parameters from parameter_file to the current graph
+
+      <tag> -pexec <it>parameter_string</it> </tag> 
+            Interpret string as a parameter setting
+
+      <tag> -pipe </tag> 
+            Read data from stdin on startup
+
+      <tag> -printfile </tag> <it>file</it> 
+            Save print output to file
+
+      <tag> -redraw </tag> 
+            Do a redraw for refreshing the canvas when the server doesn't do
+            backing store
+
+      <tag> -remove </tag> 
+            Remove data file after read
+
+      <tag> -results <it>results_file</it> </tag> 
+            Write the results from regression to results_file
+
+      <tag> -rows <it>grows</it> </tag> 
+            Arrange graphs in grows rows
+
+      <tag> -rvideo </tag> 
+            Exchange the color indices for black and white
+
+      <tag> -saveall <it>save_file</it> </tag> 
+            Save all graphs to save_file
+
+      <tag> -seed <it>seed_value</it> </tag> 
+            Integer seed for random number generator
+
+      <tag> -source <it>disk|pipe</it> </tag> 
+            Source type of next data file
+
+      <tag> -timer <it>delay</it> </tag> 
+            Set timer for named pipes to delay ms
+
+      <tag> -timestamp </tag> Add timestamp to plot
+
+      <tag> -settype <it>xy|xydx|...</it> </tag> 
+            Set the type of the next data file
+
+      <tag> -version </tag> 
+            Show the program version
+
+      <tag> -viewport <it>xmin ymin xmax ymax</it> </tag> 
+            Set the viewport for the current graph
+
+      <tag> -wd <it>directory</it> </tag> 
+            Set the working directory
+
+      <tag> -world <it>xmin ymin xmax ymax</it> </tag> 
+            Set the world coordinates for the current graph
+
+      <tag> -usage|-help </tag>
+            This message
+      
+      </descrip>
+
+  <sect1>Customization
+    <p>
+    
+    <sect2>Init file
+      <p>
+
+    <sect2>Environment variables
+      <p>
+        <itemize>
+        <item> GRACE&lowbar;HOME
+               <p>
+               Set the location of Grace. This will be where help files,
+               auxiliary programs, and examples are located. If you are unable
+               to find the location of this directory, contact your system
+               administrator.
+               <p>
+        <item> GRACE&lowbar;EDITOR
+               <p>
+               The editor used for manual editing of dataset values.
+               <p>
+        <item> GRACE&lowbar;HELPVIEWER
+               <p>
+               The HTML viewer for on-line browsing of help documents
+               <p>
+        <item> GRACE&lowbar;FFTW&lowbar;WISDOM&lowbar;FILE and
+               GRACE&lowbar;FFTW&lowbar;RAM&lowbar;WISDOM
+               <p>
+               These flags control behavior of the FFTW planner (see
+               README.FFTW for detailed info)
+               <p>
+        </itemize>
+
+    <sect2>X resources
+      <p>
+
+
+  <sect1>Output devices
+    <p>
+
+
+<!-- **************************************** -->
+<sect>Xmgr to Grace migration guide
+  <p>
+
+    This is a very brief guide describing problems and workarounds for
+    reading in project files saved with Xmgr. You should read the docs or
+    just play with Grace to test new features and controls.
+    
+    <enum>
+    <item> DOCUMENTATION IS LARGELY NOT UPDATED YET!!!
+
+    <item> Grace must be explicitly told the version number of the software
+           used to create a file. You can manually put "@version VERSIONID"
+           string in the beginning of the file. The VERSIONID is built as
+           MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL; so 40101 corresponds
+           to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
+           since they already have the version string in them.
+
+    <item> The above relates to the ascii projects only. The old binary
+           projects (saved with xmgr-4.0.*) are not automatically converted
+           anymore. An input filter must be defined to make the conversion work
+           on-the-fly. Add the following line to ~/.gracerc or the system-wide
+           $GRACE_HOME/gracerc resource file: DEFINE IFILTER "grconvert %s -"
+           MAGIC "00000031" See docs for more info on the I/O filters.
+ 
+    <item> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
+           WYSIWYG'ness led to the situation when graphs with objects carefully
+           aligned under Xmgr may not look so under Grace. Grace tries its best
+           to compensate for the differences, but sometimes you may have to
+           adjust such graphs manually.
+
+    <item> Smith plots don't work now. They'll be put back soon.
+
+    <item> A lot of symbol types (all except *real* symbols) are removed.
+           "Location *" types can be replaced (with much higher comfort) by
+           A(nnotating)values. "Impulse *", "Histogram *" and "Stair steps *"
+           effects can be achieved using the connecting line parameters (Type,
+           Drop lines). "Dot" symbol is removed as well; use the filled circle
+           symbol of the zero size with no outline to get the same effect.
+
+    <item> Default page layout switched from free (allowing to resize canvas
+           with mouse) to fixed. For the old behaviour, put "PAGE LAYOUT FREE"
+           in the Grace resource file or use the "-free" command line switch.
+
+    <item> System variables GR_* renamed to GRACE_*
+
+    </enum>
+
+
+<!-- **************************************** -->
+<sect>Guide to menus and popups
+  <p>
+
+<!-- **************************************** -->
+<sect>Command interpreter
+  <p>
+
+  <sect1>Definitions
+    <p>
+
+  <sect1>Graph properties
+    <p>
+
+  <sect1>Set properties
+    <p>
+
+  <sect1>Device parameters
+    <p>
+
+  <sect1>Functions and variables
+    <p>
+
+  <sect1>Procedures
+    <p>
+
+<!-- **************************************** -->
+<sect>Advanced topics
+  <p>
+
+  <sect1>Adding/replacing fonts
+    <p>
+
+  <sect1>Interaction with other applications
+    <p>
+
+    <sect2>Using pipes
+      <p>
+
+    <sect2>Using grace_np library
+      <p>
+
+  <sect1>DL modules
+    <p>
+
+<!-- ****** Appendicies/references ************ -->
+<sect> References
+  <p>
+  
+  <sect1>Typesetting <label id="typesetting">
+    <p>
+      Grace permits quite complex typesetting on a per string basis.
+      Any string displayed (titles, legends, tick marks,...) may contain
+      special control codes to display subscripts, change fonts within the
+      string etc.
+       <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Control code | Description   @
+              <hline>
+              &bsol;f{x}   | switch to font named "x"   @
+              &bsol;f{n}   | switch to font number n (not recommended)   @
+              &bsol;f{}    | return to original font   @
+              &bsol;u      | begin underline   @
+              &bsol;U      | stop underline   @
+              &bsol;o      | begin overline   @
+              &bsol;O      | stop overline   @
+              &bsol;c      | begin using upper 128 characters of set   @
+              &bsol;C      | stop using upper 128 characters of set   @
+              &bsol;z{x}   | zoom x times   @
+              &bsol;z{}    | return to original zoom   @
+              &bsol;v{x}   | shift vertically by x   @
+              &bsol;v{}    | return to unshifted baseline   @
+              &bsol;h{x}   | horizontal shift by x   @
+              &bsol;m{n}   | mark current position as n   @
+              &bsol;M{n}   | return to saved position n   @
+              &bsol;dl     | LtoR substring direction   @
+              &bsol;dr     | RtoL substring direction   @
+              &bsol;dL     | LtoR text advancing   @
+              &bsol;dR     | RtoL text advancing (not implemented yet)   @
+              <hline>
+              &bsol;x      | switch to Symbol font (same as &bsol;f{Symbol})   @
+              &bsol;+      | increase size (same as &bsol;z{1.19} ; 1.19 = sqrt(sqrt(2)))   @
+              &bsol;-      | decrease size (same as &bsol;z{0.84} ; 0.84 = 1/sqrt(sqrt(2)))   @
+              &bsol;s      | begin subscripting (same as &bsol;v{-0.4}&bsol;z{0.71})   @
+              &bsol;S      | begin superscripting (same as &bsol;v{0.6}&bsol;z{0.71})   @
+              &bsol;N      | return to normal style (same as &bsol;v{}&bsol;z{})   @
+              <hline>
+              &bsol;&bsol; | print &bsol;   @
+              <hline>
+      </tabular>
+      <caption>
+              <label id="control-codes">
+              Control codes.
+      </caption>
+      </table>
+
+      <p>
+      Example:
+      <p>
+       F&bsol;sX&bsol;N(&bsol;xe&bsol;f{}) = sin(&bsol;xe&bsol;B)&bsol;c7&bsol;Ce&bsol;S-X&bsol;N&bsol;c7&bsol;Ccos(&bsol;xe&bsol;f{})
+      <p>
+       prints roughly
+       <tscreen><verb>
+                       -x
+       F (e) = sin(e)&middot;e  &middot;cos(e)
+        x
+       </verb></tscreen>
+      <p>
+       using string's initial font and e prints as epsilon from the Symbol font.
+      <p>
+      NOTE:
+      Characters from the upper half of the char table can be entered directly from
+      the keyboard, using appropriate <tt>xmodmap(1)</tt> settings.
+      <p>
+
+</article>
+
+<!-- End of USerGuide.sgml -->

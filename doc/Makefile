@@ -7,28 +7,41 @@
 
 TOP=..
 
+SGML2HTML = sgml2html --split=0
+SGML2DVI = sgml2latex
+
+%.html : %.sgml
+	$(SGML2HTML) $<
+
+%.dvi : %.sgml
+	$(SGML2DVI) $<
+
 include $(TOP)/Make.conf
 
-DOCS = CHANGES.html dblclick.html intro.html plot.html trans.html \
-	FAQ.html edcrset.html main.html points.html usage.html \
-	file.html nohelp.html regions.html view.html \
-	acegr_np.html fonts.html npipe.html sets.html guide.html \
-	commands.html graphops.html options.html test_np.c \
-	data.html hotkeys.html page.html testf_np.f dlmodule.html \
-	MIGRATION.html GPL.html philosophical-gnu-sm.jpg
+SGMLS = FAQ.sgml UsersGuide.sgml
 
-all : dummy
+HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg \
+	FAQ.html UsersGuide.html
 
-clean : dummy
+DVIDOCS = FAQ.dvi UsersGuide.dvi
+
+all : html dvi
+
+html : $(HTMLDOCS)
+
+dvi : $(DVIDOCS)
+
+clean :
+	$(RM) *.aux *.log
 
 distclean : 
 	$(RM) *.orig
 
 devclean : dummy
 
-install : $(DOCS)
+install : $(HTMLDOCS) $(DVIDOCS)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/doc
-	for i in $(DOCS); do $(INSTALL_DATA) $$i $(GRACE_HOME)/doc; done
+	for i in $(HTMLDOCS) $(DVIDOCS); do $(INSTALL_DATA) $$i $(GRACE_HOME)/doc; done
 
 links : dummy
 
