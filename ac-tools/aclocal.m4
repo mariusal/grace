@@ -501,15 +501,15 @@ AC_DEFUN(ACX_CHECK_XMVERSIONSTRING,
                 [acx_cv__xmversionstring="yes"],
                 [acx_cv__xmversionstring="no"]
     )
-    if test "$acx_cv__xmversionstring" = "yes"
-    then
-      AC_DEFINE(HAVE__XMVERSIONSTRING)
-      $1
-    else
-      :
-      $2
-    fi
   )
+  if test "$acx_cv__xmversionstring" = "yes"
+  then
+    AC_DEFINE(HAVE__XMVERSIONSTRING)
+    $1
+  else
+    :
+    $2
+  fi
 ])dnl
 
 dnl ACX_CHECK_T1LIB
