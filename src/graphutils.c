@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -613,7 +613,7 @@ int graph_zoom(int type)
  *  Arrange graphs
  */
 int arrange_graphs(int *graphs, int ngraphs,
-                   int nrows, int ncols, int order,
+                   int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
                    int hpack, int vpack)
@@ -661,9 +661,15 @@ int arrange_graphs(int *graphs, int ngraphs,
             if (order & GA_ORDER_HV_INV) {
                 iw = i;
                 ih = j;
+                if (snake && (iw % 2)) {
+                    ih = nrows - ih - 1;
+                }
             } else {
                 iw = j;
                 ih = i;
+                if (snake && (ih % 2)) {
+                    iw = ncols - iw - 1;
+                }
             }
             if (order & GA_ORDER_H_INV) {
                 iw = ncols - iw - 1;
@@ -715,7 +721,7 @@ int arrange_graphs(int *graphs, int ngraphs,
 }
 
 int arrange_graphs_simple(int nrows, int ncols,
-    int order, double offset, double hgap, double vgap)
+    int order, int snake, double offset, double hgap, double vgap)
 {
     int *graphs, i, gno, ngraphs, ngraphs_old, retval;
     
@@ -736,7 +742,7 @@ int arrange_graphs_simple(int nrows, int ncols,
         }
     }
     
-    retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order,
+    retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order, snake,
         offset, offset, offset, offset, vgap, hgap, FALSE, FALSE);
     
     xfree(graphs);
