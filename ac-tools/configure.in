@@ -464,9 +464,6 @@ if test "$ac_cv_lib_m_finite" != yes; then
 fi
 ICE_CHECK_DECL(isnan, math.h)
 
-dnl **** Check for libgen
-AC_CHECK_LIB(gen, main)
-
 dnl **** Check for T1lib installed
 if test $bundled_t1lib = false
 then
