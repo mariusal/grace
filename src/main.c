@@ -192,7 +192,7 @@ Device_entry dev_pnm = {DEVICE_FILE,
 
 int main(int argc, char *argv[])
 {
-    FILE *fp;
+    char *s;
     int i, j;
     int gno;
     world w;
@@ -205,10 +205,7 @@ int main(int argc, char *argv[])
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
 
-    char gracerc_file[GR_MAXPATHLEN], *s;
-    
     Page_geometry pg;
-
     
     /*
      * grace home directory
@@ -297,27 +294,8 @@ int main(int argc, char *argv[])
     /* default is POSIX */
     set_locale_num(FALSE);
     
-    /* check for system wide startup file */
-    if ((fp = fopen(strcat(strcpy(gracerc_file, get_grace_home()),"/gracerc"), "r")) != NULL) {
-	fclose(fp);
-	getparms(gracerc_file);
-    }
- 
-    /* check for startup file in local directory */
-    if ((fp = fopen(".gracerc", "r")) != NULL) {
-        fclose(fp);
-        getparms(".gracerc");
-    } else {
-        /* check for startup file in effective user's home dir */
-        if ((s = getenv("HOME")) != NULL) {
-            strcpy(gracerc_file, s);
-            strcat(gracerc_file, "/.gracerc");
-            if ((fp = fopen(gracerc_file, "r")) != NULL) {
-        	fclose(fp);
-        	getparms(gracerc_file);
-            }
-        } 
-    }
+    /* check for startup file */
+    getparms("gracerc");
 
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
