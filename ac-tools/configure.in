@@ -100,12 +100,12 @@ esac],[bundled_t1lib=false])
 
 dnl **** use bundled Xbae  
 AC_ARG_WITH(bundled_xbae,
-[  --with-bundled-xbae          use bundled Xbae [no]],
+[  --with-bundled-xbae          use bundled Xbae [yes]],
 [case "${withval}" in
   yes) bundled_xbae=true ;;
   no)  bundled_xbae=false;;
   *) AC_MSG_ERROR(bad value ${withval} for --with-bundled-xbae) ;;
-esac],[bundled_xbae=false])
+esac],[bundled_xbae=true])
 
 dnl **** use netcdf  
 AC_ARG_ENABLE(netcdf,
