@@ -259,7 +259,6 @@ Quark *quark_find_descendant_by_idstr(Quark *q, const char *s)
     _cbdata.child = NULL;
     if (q && s) {
         quark_traverse(q, find_hook2, &_cbdata);
-        
     }
     return _cbdata.child;
 }
@@ -300,15 +299,18 @@ static int _quark_traverse(Quark *q, QTHookData *_cbdata)
     int res;
     QTraverseClosure closure;
     
-    closure.depth = _cbdata->depth;
-    closure.step  = _cbdata->step;
-    closure.pass2 = FALSE;
+    closure.depth   = _cbdata->depth;
+    closure.step    = _cbdata->step;
+    closure.pass2   = FALSE;
+    closure.descend = TRUE;
     
     res = _cbdata->hook(q, _cbdata->udata, &closure);
     if (res) {
         _cbdata->depth++;
 
-        storage_traverse(q->children, hook, _cbdata);
+        if (closure.descend) {
+            storage_traverse(q->children, hook, _cbdata);
+        }
         
         if (closure.pass2) {
             res = _cbdata->hook(q, _cbdata->udata, &closure);

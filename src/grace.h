@@ -80,6 +80,7 @@ typedef struct {
     unsigned int depth;
     unsigned int step;
     int pass2;
+    int descend;
 } QTraverseClosure;
 
 typedef int (*Quark_traverse_hook)(Quark *q,
