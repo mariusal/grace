@@ -81,7 +81,7 @@ static Widget glyph_item;
 
 static int FontID;
 static BBox bbox;
-static float Size = 20.0;
+static float Size = 16.8;
 
 static void DrawCB(Widget w,XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs);
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs);

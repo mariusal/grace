@@ -1,8 +1,8 @@
 !
 ! X defaults for xmgrace
 !
-!XMgrace*fontList: -adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*
-!XMgrace*tabFontList: -adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*
+!XMgrace*fontList: -adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*
+!XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*
 !XMgrace*background: #e5e5e5e5e5e5
 !XMgrace*XmPushButton*background: #b0b0c4c4dede
 !XMgrace*XmArrowButton*background: #b0b0c4c4dede
