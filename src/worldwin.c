@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -44,7 +44,6 @@
 #include <Xm/RowColumn.h>
 
 #include "globals.h"
-#include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
 #include "device.h"
@@ -75,12 +74,9 @@ static Widget *arrange_packed_item;
 
 static ListStructure *graph_overlay1_choice_item;
 static ListStructure *graph_overlay2_choice_item;
-static Widget *graph_overlaytype_item;
+static OptionStructure *graph_overlaytype_item;
 
 static Widget but1[2];
-
-int maxmajorticks = 500;
-int maxminorticks = 1000;
 
 static void define_arrange_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -193,7 +189,7 @@ void create_arrange_frame(void *data)
 					      NULL, NULL);
 	for( i=2; i<12; i++ )
 	XtAddCallback(arrange_rows_item[i], XmNactivateCallback, 
-			(XtCallbackProc) row_arrange_cb, (XtPointer) (i-1));
+			row_arrange_cb, (XtPointer) (i-1));
 			
 	XtVaCreateManagedWidget("Columns: ", xmLabelWidgetClass, rc, NULL);
 	arrange_cols_item = CreatePanelChoice(rc, " ",
@@ -202,7 +198,7 @@ void create_arrange_frame(void *data)
 					      NULL, NULL);
 	for( i=2; i<12; i++ )
 	XtAddCallback(arrange_cols_item[i], XmNactivateCallback, 
-			(XtCallbackProc) col_arrange_cb, (XtPointer) (i-1));
+			col_arrange_cb, (XtPointer) (i-1));
 
 	XtVaCreateManagedWidget("Packing: ", xmLabelWidgetClass, rc, NULL);
 	arrange_packed_item = CreatePanelChoice(rc, " ",
@@ -232,8 +228,8 @@ void create_arrange_frame(void *data)
 	CreateSeparator(arrange_panel);
 
 	CreateCommandButtons(arrange_panel, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) define_arrange_proc, (XtPointer) NULL);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) arrange_frame);
+	XtAddCallback(but1[0], XmNactivateCallback, define_arrange_proc, (XtPointer) NULL);
+	XtAddCallback(but1[1], XmNactivateCallback, destroy_dialog, (XtPointer) arrange_frame);
 
 	XtManageChild(arrange_panel);
     }
@@ -249,25 +245,18 @@ void create_arrange_frame(void *data)
  */
 static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int n, *values;
     int g1, g2;
-    int type = GetChoice(graph_overlaytype_item);
+    int type = GetOptionChoice(graph_overlaytype_item);
     
-    n = GetListChoices(graph_overlay1_choice_item, &values);
-    if (n != 1) {
+    if (GetSingleListChoice(graph_overlay1_choice_item, &g1) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
 	return;
     }
-    g1 = values[0];
-    xfree(values);
     
-    n = GetListChoices(graph_overlay2_choice_item, &values);
-    if (n != 1) {
+    if (GetSingleListChoice(graph_overlay2_choice_item, &g2) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
 	return;
     }
-    g2 = values[0];
-    xfree(values);
 
     if (g1 == g2) {
 	errmsg("Can't overlay a graph onto itself");
@@ -275,8 +264,6 @@ static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_
     }
 
     overlay_graphs(g1, g2, type);
-
-    set_dirtystate();
 
     update_all();
     drawgraph();
@@ -288,8 +275,10 @@ void create_overlay_frame(void *data)
     
     set_wait_cursor();
     if (overlay_frame == NULL) {
+        OptionItem opitems[5];
 	label1[0] = "Accept";
 	label1[1] = "Close";
+        
 	overlay_frame = XmCreateDialogShell(app_shell, "Overlay graphs", NULL, 0);
 	handle_close(overlay_frame);
 	overlay_panel = XmCreateRowColumn(overlay_frame, "overlay_rc", NULL, 0);
@@ -297,20 +286,25 @@ void create_overlay_frame(void *data)
             "Overlay graph:", LIST_TYPE_SINGLE);
 	graph_overlay2_choice_item = CreateGraphChoice(overlay_panel,
             "Onto graph:", LIST_TYPE_SINGLE);
-	graph_overlaytype_item = CreatePanelChoice(overlay_panel,
-            "Overlay type:",
-	    5,
-	    "Same axes scaling along X and Y",
-	    "X-axes same, Y-axes different:",
-	    "Y-axes same, X-axes different:",
-	    "X and Y axes different:",
-	    NULL, NULL);
+	
+        opitems[0].value = GOVERLAY_SMART_AXES_DISABLED;
+        opitems[0].label = "Disabled";
+        opitems[1].value = GOVERLAY_SMART_AXES_NONE;
+        opitems[1].label = "X and Y axes different";
+        opitems[2].value = GOVERLAY_SMART_AXES_X;
+        opitems[2].label = "Same X axis scaling";
+        opitems[3].value = GOVERLAY_SMART_AXES_Y;
+        opitems[3].label = "Same Y axis scaling";
+        opitems[4].value = GOVERLAY_SMART_AXES_XY;
+        opitems[4].label = "Same X and Y axis scaling";
+        graph_overlaytype_item = CreateOptionChoice(overlay_panel,
+            "Smart axis hints:", 0, 5, opitems);
 
 	CreateSeparator(overlay_panel);
 
 	CreateCommandButtons(overlay_panel, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) define_overlay_proc, (XtPointer) NULL);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) overlay_frame);
+	XtAddCallback(but1[0], XmNactivateCallback, define_overlay_proc, NULL);
+	XtAddCallback(but1[1], XmNactivateCallback, destroy_dialog, (XtPointer) overlay_frame);
 
 	XtManageChild(overlay_panel);
     }
@@ -387,9 +381,9 @@ void create_autos_frame(void *data)
 
 	CreateCommandButtons(panel, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, 
-	              (XtCallbackProc) define_autos_proc, (XtPointer) &aui);
+	              define_autos_proc, (XtPointer) &aui);
 	XtAddCallback(but1[1], XmNactivateCallback,
-	              (XtCallbackProc) destroy_dialog, (XtPointer) aui.top);
+	              destroy_dialog, (XtPointer) aui.top);
 
 	XtManageChild(panel);
     }
