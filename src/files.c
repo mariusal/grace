@@ -398,7 +398,7 @@ static int process_complete_lines(Input_buffer *ib)
 
         }
 
-    } while (loops_allowed && end_of_line != NULL);
+    } while (end_of_line != NULL);
 
     if (end_of_line != NULL) {
         /* the line has just been processed */
@@ -441,19 +441,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
        the loops later to remind us we should return */
     loops_allowed = 1;
     first_time    = 1;
-
-    for (ib = tbl; ib < tbl + tblsize; ib++) {
-        /* first process the already read data */
-        /* (it is possible no more data will arrive here) */
-        if (process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
-#ifndef NONE_GUI
-            unset_wait_cursor();
-#endif
-            return GRACE_EXIT_FAILURE;
-        }
-    }
-
-    retsel = 1;
+    retsel        = 1;
     while ((loops_allowed || first_time) && retsel > 0) {
 
         /* register all the monitored descriptors */
@@ -507,7 +495,9 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
                         /* we should reset the input buffer, in case
                            the peer also reopens it */
                         if (reopen_real_time_input(ib) != GRACE_EXIT_SUCCESS) {
+#ifndef NONE_GUI
                             unset_wait_cursor();
+#endif
                             return GRACE_EXIT_FAILURE;
                         }
                     } else {
