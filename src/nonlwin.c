@@ -705,7 +705,8 @@ static int do_savefit_proc(char *filename, void *data)
     pp = grace_openw(filename);
     if (pp != NULL) {
         grace->rt->nlfit->title = copy_string(grace->rt->nlfit->title, xv_getstr(title_item));
-        put_fitparms(pp, 0);
+        errwin("Not implemented yet");
+        /* FIXME */;
         grace_close(pp);
     }
     return TRUE;

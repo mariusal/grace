@@ -97,9 +97,6 @@ int seval(double *u, double *v, int ulen,
 
 int fourier(double *jr, double *ji, int n, int iflag);
 
-void putparms(int gno, FILE * pp, int embed);
-void put_fitparms(FILE * pp, int embed);
-
 void pop_world(void);
 
 int find_item(int gno, VPoint vp, view *bb, int *id);

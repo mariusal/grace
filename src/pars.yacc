@@ -409,7 +409,6 @@ symtab_entry *key;
 %token <ival> PRINT
 %token <ival> PS
 %token <ival> PUSH
-%token <ival> PUTP
 %token <ival> RAND
 %token <ival> READ
 %token <ival> REAL
@@ -2770,14 +2769,6 @@ actions:
 	    strcpy(paramfile, $2);
 	    xfree($2);
 	}
-	| PUTP CHRSTR {
-	    FILE *pp = grace_openw($2);
-	    if (pp != NULL) {
-	        putparms(whichgraph, pp, 0);
-	        grace_close(pp);
-	    }
-	    xfree($2);
-	}
 	| selectset HIDDEN onoff {
 	    set_set_hidden($1->gno, $1->setno, $3);
 	}
@@ -4546,7 +4537,6 @@ symtab_entry ikey[] = {
 	{"PS", PS, NULL},
 	{"PSI", FUNC_D, (void *) psi},
 	{"PUSH", PUSH, NULL},
-	{"PUTP", PUTP, NULL},
 	{"RAD", UCONSTANT, (void *) rad_uconst},
 	{"RAND", RAND, NULL},
 	{"READ", READ, NULL},

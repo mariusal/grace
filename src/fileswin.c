@@ -421,7 +421,8 @@ static int write_params_proc(char *filename, void *data)
     
     pp = grace_openw(filename);
     if (pp != NULL) {
-        putparms(gno, pp, 0);
+        errwin("Not implemented yet");
+        /* FIXME */;
         grace_close(pp);
     }
 
