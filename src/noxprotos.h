@@ -119,6 +119,9 @@ void setcol(int gno, int setno, int col, double *x, int len);
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
 
 void packsets(int gno);
+
+set *set_new(void);
+
 int nextset(int gno);
 void killset(int gno, int setno);
 void killsetdata(int gno, int setno);
