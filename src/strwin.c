@@ -126,12 +126,7 @@ void boxes_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
 void lines_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Arg a;
-    int value;
-    
-    XtSetArg(a, XmNvalue, &value);
-    XtGetValues(lines_asize_item, &a, 1);
-    line_asize = value / 50.0;
+    line_asize = GetCharSizeChoice(lines_asize_item);
     line_color = GetChoice(lines_pen_item);
     line_arrow = GetChoice(lines_arrow_item);
     line_atype = GetChoice(lines_atype_item);
@@ -154,17 +149,13 @@ void updatestrings(void)
 
 void update_lines(void)
 {
-    Arg a;
-    int iv;
     if (lines_frame) {
 	SetChoice(lines_pen_item, line_color);
 	SetOptionChoice(lines_style_item, line_lines);
 	SetChoice(lines_width_item, line_linew);
 	SetChoice(lines_arrow_item, line_arrow);
 	SetChoice(lines_atype_item, line_atype);
-	iv = (int) (50 * line_asize);
-	XtSetArg(a, XmNvalue, iv);
-	XtSetValues(lines_asize_item, &a, 1);
+	SetCharSizeChoice(lines_asize_item, line_asize);
 	SetChoice(lines_loc_item, line_loctype == COORD_VIEW ? 1 : 0);
     }
 }
@@ -213,10 +204,6 @@ void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	wbut = XtVaCreateManagedWidget("Text at angle", xmPushButtonWidgetClass, rc,
 				       NULL);
 	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) STR_LOC1ST);
-
-	wbut = XtVaCreateManagedWidget("Edit Text", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) STR_EDIT);
 
 	wbut = XtVaCreateManagedWidget("Text props...", xmPushButtonWidgetClass, rc,
 				       NULL);
@@ -316,8 +303,7 @@ void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	ellip_fillpat_item = CreatePatternChoice(rc, "Fill pattern:");
 	ellip_fillcol_item = CreateColorChoice(rc, "Fill color: ");
-	XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	ellip_loc_item = CreatePanelChoice(rc, " ",
+	ellip_loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
 					   "Viewport coordinates",
@@ -361,8 +347,7 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	strings_pen_item = CreateColorChoice(rc, "Color: ");
 
-        XtVaCreateManagedWidget("Justification:", xmLabelWidgetClass, rc, NULL);
-	strings_just_item = CreatePanelChoice(rc, " ",
+	strings_just_item = CreatePanelChoice(rc, "Justification:",
 					      4,
 					      "Left",
 					      "Right",
@@ -370,8 +355,7 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					      0,
 					      0);
 
-        XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	strings_loc_item = CreatePanelChoice(rc, " ",
+	strings_loc_item = CreatePanelChoice(rc, "Position in:",
 					     3,
 					     "World coordinates",
 					     "Viewport coordinates",
@@ -379,9 +363,9 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					     0);
 	XtManageChild(rc);
 
-	strings_rot_item = CreateAngleChoice(panel, "Rotation:");
+	strings_rot_item = CreateAngleChoice(panel, "Rotation");
 
-	strings_size_item = CreateCharSizeChoice(panel, "Size:");
+	strings_size_item = CreateCharSizeChoice(panel, "Size");
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
 
@@ -417,17 +401,11 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	lines_pen_item = CreateColorChoice(rc, "Color: ");
 
-	XtVaCreateManagedWidget("Width:", xmLabelWidgetClass, rc, NULL);
-	lines_width_item = (Widget *) CreatePanelChoice(rc, " ",
-							10,
-				"1", "2", "3", "4", "5", "6", "7", "8", "9",
-							NULL,
-							NULL);
+	lines_width_item = CreateLineWidthChoice(rc, "Width:");
 
 	lines_style_item = CreateLineStyleChoice(rc, "Style:");
 
-	XtVaCreateManagedWidget("Arrow:", xmLabelWidgetClass, rc, NULL);
-	lines_arrow_item = CreatePanelChoice(rc, " ",
+	lines_arrow_item = CreatePanelChoice(rc, "Arrow:",
 					     5,
 					     "None",
 					     "At start",
@@ -436,8 +414,7 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					     0,
 					     0);
 
-	XtVaCreateManagedWidget("Arrow type:", xmLabelWidgetClass, rc, NULL);
-	lines_atype_item = CreatePanelChoice(rc, " ",
+	lines_atype_item = CreatePanelChoice(rc, "Arrow type:",
 					     4,
 					     "Line",
 					     "Filled",
@@ -445,18 +422,9 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					     0,
 					     0);
 
-	XtVaCreateManagedWidget("Arrow head size:", xmLabelWidgetClass, rc, NULL);
-	lines_asize_item = XtVaCreateManagedWidget("arrowsize", xmScaleWidgetClass, rc,
-						   XmNminimum, 0,
-						   XmNmaximum, 400,
-						   XmNvalue, 100,
-						   XmNshowValue, True,
-				     XmNprocessingDirection, XmMAX_ON_RIGHT,
-					       XmNorientation, XmHORIZONTAL,
-						   NULL);
+	lines_asize_item = CreateCharSizeChoice(rc, "Arrow head size");
 
-	XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	lines_loc_item = CreatePanelChoice(rc, " ",
+	lines_loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
 					   "Viewport coordinates",
@@ -504,8 +472,7 @@ void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	boxes_fillpat_item = CreatePatternChoice(rc, "Fill pattern:");
 	boxes_fillcol_item = CreateColorChoice(rc, "Fill color: ");
-	XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	boxes_loc_item = CreatePanelChoice(rc, " ",
+	boxes_loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
 					   "Viewport coordinates",
@@ -714,12 +681,9 @@ void box_edit_popup(int boxno)
 
 	box_ui.lines_item = CreateLineStyleChoice(rc, "Line style:");
 
-	XtVaCreateManagedWidget("Fill:", xmLabelWidgetClass, rc, NULL);
-
 	box_ui.fill_pattern_item = CreatePatternChoice(rc, "Fill pattern:");
 	box_ui.fill_color_item = CreateColorChoice(rc, "Fill color: ");
-	XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	box_ui.loc_item = CreatePanelChoice(rc, " ",
+	box_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
 					   "Viewport coordinates",
@@ -732,10 +696,10 @@ void box_edit_popup(int boxno)
                (XtCallbackProc) swap_boxwv_coords, (XtPointer) &box_ui);
 
 
-	box_ui.x1_item = CreateTextItem4(rc, 8, "Xmin = ");
-	box_ui.y1_item = CreateTextItem4(rc, 8, "Ymin = ");
-	box_ui.x2_item = CreateTextItem4(rc, 8, "Xmax = ");
-	box_ui.y2_item = CreateTextItem4(rc, 8, "Ymax = ");
+	box_ui.x1_item = CreateTextItem2(rc, 12, "Xmin = ");
+	box_ui.y1_item = CreateTextItem2(rc, 12, "Ymin = ");
+	box_ui.x2_item = CreateTextItem2(rc, 12, "Xmax = ");
+	box_ui.y2_item = CreateTextItem2(rc, 12, "Ymax = ");
 	XtManageChild(rc);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
@@ -779,8 +743,7 @@ void ellipse_edit_popup(int boxno)
 
 	ellip_ui.fill_pattern_item = CreatePatternChoice(rc, "Fill pattern:");
 	ellip_ui.fill_color_item = CreateColorChoice(rc, "Fill color: ");
-	XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	ellip_ui.loc_item = CreatePanelChoice(rc, " ",
+	ellip_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
 					   "Viewport coordinates",
@@ -792,10 +755,10 @@ void ellipse_edit_popup(int boxno)
                (XtCallbackProc) swap_ellipwv_coords, (XtPointer) &ellip_ui );
 
 
-	ellip_ui.x1_item = CreateTextItem4(rc, 8, "Xcentre = ");
-	ellip_ui.y1_item = CreateTextItem4(rc, 8, "Ycentre = ");
-	ellip_ui.x2_item = CreateTextItem4(rc, 8, "Width = ");
-	ellip_ui.y2_item = CreateTextItem4(rc, 8, "Height = ");
+	ellip_ui.x1_item = CreateTextItem2(rc, 12, "Xcentre = ");
+	ellip_ui.y1_item = CreateTextItem2(rc, 12, "Ycentre = ");
+	ellip_ui.x2_item = CreateTextItem2(rc, 12, "Width = ");
+	ellip_ui.y2_item = CreateTextItem2(rc, 12, "Height = ");
     	XtManageChild(rc);
 
     	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
@@ -927,8 +890,7 @@ void line_edit_popup(int lineno)
 	line_ui.linew_item = CreateLineWidthChoice(rc, "Line width:");
 
 	line_ui.lines_item = CreateLineStyleChoice(rc, "Line style:");
-	XtVaCreateManagedWidget("Arrow:", xmLabelWidgetClass, rc, NULL);
-	line_ui.arrow_item = CreatePanelChoice(rc, " ",
+	line_ui.arrow_item = CreatePanelChoice(rc, "Arrow:",
 					     5,
 					     "None",
 					     "At start",
@@ -937,8 +899,7 @@ void line_edit_popup(int lineno)
 					     0,
 					     0);
 
-	XtVaCreateManagedWidget("Arrow type:", xmLabelWidgetClass, rc, NULL);
-	line_ui.atype_item = CreatePanelChoice(rc, " ",
+	line_ui.atype_item = CreatePanelChoice(rc, "Arrow type:",
 					     4,
 					     "Line",
 					     "Filled",
@@ -946,17 +907,8 @@ void line_edit_popup(int lineno)
 					     0,
 					     0);
 
-	XtVaCreateManagedWidget("Arrow head size:", xmLabelWidgetClass, rc, NULL);
-	line_ui.asize_item = XtVaCreateManagedWidget("arrowsize", xmScaleWidgetClass, rc,
-						   XmNminimum, 0,
-						   XmNmaximum, 400,
-						   XmNvalue, 100,
-						   XmNshowValue, True,
-				     XmNprocessingDirection, XmMAX_ON_RIGHT,
-					       XmNorientation, XmHORIZONTAL,
-						   NULL);
-	XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-	line_ui.loc_item = CreatePanelChoice(rc, " ",
+	line_ui.asize_item = CreateCharSizeChoice(rc, "Arrow head size");
+	line_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
 					   "Viewport coordinates",
@@ -968,10 +920,10 @@ void line_edit_popup(int lineno)
                    (XtCallbackProc) swap_linewv_coords, (XtPointer) &line_ui);
 
 
-	line_ui.x1_item = CreateTextItem4(rc, 8, "X1 = ");
-	line_ui.y1_item = CreateTextItem4(rc, 8, "Y1 = ");
-	line_ui.x2_item = CreateTextItem4(rc, 8, "X2 = ");
-	line_ui.y2_item = CreateTextItem4(rc, 8, "Y2 = ");
+	line_ui.x1_item = CreateTextItem2(rc, 12, "X1 = ");
+	line_ui.y1_item = CreateTextItem2(rc, 12, "Y1 = ");
+	line_ui.x2_item = CreateTextItem2(rc, 12, "X2 = ");
+	line_ui.y2_item = CreateTextItem2(rc, 12, "Y2 = ");
 	XtManageChild(rc);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
@@ -1081,8 +1033,7 @@ void string_edit_popup(int stringno)
 	handle_close(string_ui.top);
 	panel = XmCreateRowColumn(string_ui.top, "strings_rc", NULL, 0);
 
-        XtVaCreateManagedWidget("String:", xmLabelWidgetClass, panel, NULL);
-	string_ui.string_item = CreateTextItem2(panel, 40, "");
+	string_ui.string_item = CreateTextItem2(panel, 30, "String:");
 
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel, NULL);
 
@@ -1091,8 +1042,7 @@ void string_edit_popup(int stringno)
 	
 	string_ui.font_item = CreateFontChoice(rc, "Font:");
 
-        XtVaCreateManagedWidget("Justification:", xmLabelWidgetClass, rc, NULL);
-		string_ui.just_item = CreatePanelChoice(rc, " ",
+        string_ui.just_item = CreatePanelChoice(rc, "Justification:",
 					      4,
 					      "Left",
 					      "Right",
@@ -1100,8 +1050,7 @@ void string_edit_popup(int stringno)
 					      0,
 					      0);
 
-        XtVaCreateManagedWidget("Position in:", xmLabelWidgetClass, rc, NULL);
-		string_ui.loc_item = CreatePanelChoice(rc, " ",
+        string_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					     3,
 					     "World coordinates",
 					     "Viewport coordinates",
@@ -1112,14 +1061,14 @@ void string_edit_popup(int stringno)
         XtAddCallback(string_ui.loc_item[3], XmNactivateCallback,
                   (XtCallbackProc) swap_stringwv_coords, (XtPointer) &string_ui);
 					     
-	string_ui.x1_item = CreateTextItem4(rc, 8, "X = ");
-	string_ui.y1_item = CreateTextItem4(rc, 8, "Y = ");	
+	string_ui.x1_item = CreateTextItem2(rc, 12, "X = ");
+	string_ui.y1_item = CreateTextItem2(rc, 12, "Y = ");	
 
 	XtManageChild(rc);
 
-	string_ui.rot_item = CreateAngleChoice(panel, "Rotation:");
+	string_ui.rot_item = CreateAngleChoice(panel, "Rotation");
 
-	string_ui.size_item = CreateCharSizeChoice(panel, "Size:");
+	string_ui.size_item = CreateCharSizeChoice(panel, "Size");
 						    
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
 
