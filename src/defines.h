@@ -421,12 +421,9 @@ typedef struct {
 
 typedef struct {
     int active;
-    int loctype;
-    int gno;
-    double x;
-    double y;
+    VPoint offset;
     int color;
-    int rot;
+    double angle;
     int font;
     int just;
     double charsize;

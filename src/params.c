@@ -142,9 +142,10 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
             
     fprintf(pp, "%stimestamp %s\n", embedstr, on_or_off(timestamp.active));
-    fprintf(pp, "%stimestamp %.12g, %.12g\n", embedstr, timestamp.x, timestamp.y);
+    fprintf(pp, "%stimestamp %.12g, %.12g\n", embedstr,
+                 timestamp.offset.x, timestamp.offset.y);
     fprintf(pp, "%stimestamp color %d\n", embedstr, timestamp.color);
-    fprintf(pp, "%stimestamp rot %d\n", embedstr, timestamp.rot);
+    fprintf(pp, "%stimestamp rot %f\n", embedstr, timestamp.angle);
     fprintf(pp, "%stimestamp font %d\n", embedstr, get_font_mapped_id(timestamp.font));
     fprintf(pp, "%stimestamp char size %f\n", embedstr, timestamp.charsize);
     fprintf(pp, "%stimestamp def \"%s\"\n", embedstr, PSTRING(timestamp.s));
@@ -277,7 +278,8 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s label place auto\n", buf);
                 } else {
                     fprintf(pp, "%s label place spec\n", buf);
-                    fprintf(pp, "%s label place %f, %f\n", buf, t->label.x, t->label.y);
+                    fprintf(pp, "%s label place %f, %f\n", buf,
+                                 t->label.offset.x, t->label.offset.y);
                 }
                 fprintf(pp, "%s label char size %f\n", buf, t->label.charsize);
                 fprintf(pp, "%s label font %d\n", buf, get_font_mapped_id(t->label.font));

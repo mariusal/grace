@@ -71,6 +71,9 @@ void set_default_legend(legend * l);
 void set_default_plotarr(plotarr * p);
 void set_default_graph(int gno);
 
+void set_default_string(plotstr *s);
+void set_default_arrow(Arrow *arrowp);
+
 void set_default_ticks(tickmarks *t);
 void calculate_tickgrid(int gno);
 void drawgrid(int gno);

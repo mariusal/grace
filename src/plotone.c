@@ -2401,13 +2401,12 @@ void draw_timestamp(plotstr *timestamp)
         setfont(timestamp->font);
         setcharsize(timestamp->charsize);
         setcolor(timestamp->color);
-        vp.x = timestamp->x;
-        vp.y = timestamp->y;
+        vp = timestamp->offset;
 
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, timestamp->rot, timestamp->just, timestamp->s);
+        WriteString(vp, (int) timestamp->angle, timestamp->just, timestamp->s);
 
         timestamp->bb = get_bbox(BBOX_TYPE_TEMP);
     }

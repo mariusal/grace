@@ -627,11 +627,9 @@ void drawaxes(int gno)
 	if (t->label.s && t->label.s[0]) {
 	    
 	    if (t->label_place == TYPE_SPEC) {
-	        vp_label_offset.x = t->label.x;
-		vp_label_offset.y = t->label.y;
+	        vp_label_offset = t->label.offset;
 	    } else {
-		t->label.x = vp_label_offset.x;
-		t->label.y = vp_label_offset.y;
+		t->label.offset = vp_label_offset;
 	    }
 
 	    setcharsize(t->label.charsize);

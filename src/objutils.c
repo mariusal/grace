@@ -45,6 +45,7 @@
 #include "draw.h"
 #include "utils.h"
 #include "objutils.h"
+#include "protos.h"
 
 static int object_data_size(OType type)
 {

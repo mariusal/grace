@@ -2409,15 +2409,15 @@ parmset:
 	| TIMESTAMP CHAR SIZE expr {
             grace->project->timestamp.charsize = $4;
         }
-	| TIMESTAMP ROT nexpr {
-            grace->project->timestamp.rot = $3;
+	| TIMESTAMP ROT expr {
+            grace->project->timestamp.angle = $3;
         }
 	| TIMESTAMP color_select {
             grace->project->timestamp.color = $2;
         }
 	| TIMESTAMP expr ',' expr {
-	    grace->project->timestamp.x = $2;
-	    grace->project->timestamp.y = $4;
+	    grace->project->timestamp.offset.x = $2;
+	    grace->project->timestamp.offset.y = $4;
 	}
 	| TIMESTAMP DEF CHRSTR {
 	    set_plotstr_string(&grace->project->timestamp, $3);
@@ -3494,8 +3494,8 @@ axislabeldesc:
 	    g[whichgraph].t[naxis]->label_place = TYPE_SPEC;
 	}
 	| PLACE expr ',' expr {
-	    g[whichgraph].t[naxis]->label.x = $2;
-	    g[whichgraph].t[naxis]->label.y = $4;
+	    g[whichgraph].t[naxis]->label.offset.x = $2;
+	    g[whichgraph].t[naxis]->label.offset.y = $4;
 	}
 	| JUST justchoice {
 	    g[whichgraph].t[naxis]->label.just = $2;

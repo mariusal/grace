@@ -2,7 +2,7 @@
 main$(O) : main.c globals.h grace.h defines.h storage.h graphs.h utils.h \
  files.h ssdata.h graphutils.h plotone.h draw.h device.h t1fonts.h \
  devlist.h x11drv.h parser.h protos.h missing.h noxprotos.h xprotos.h
-grace$(O) : grace.c grace.h defines.h storage.h graphs.h objutils.h \
+grace$(O) : grace.c defines.h grace.h storage.h graphs.h objutils.h \
  utils.h protos.h missing.h noxprotos.h xprotos.h
 draw$(O) : draw.c defines.h device.h t1fonts.h graphs.h utils.h draw.h
 drawticks$(O) : drawticks.c globals.h grace.h defines.h storage.h \
@@ -39,7 +39,7 @@ setutils$(O) : setutils.c globals.h grace.h defines.h storage.h graphs.h \
 regionutils$(O) : regionutils.c globals.h grace.h defines.h storage.h \
  graphs.h draw.h utils.h protos.h missing.h noxprotos.h xprotos.h
 objutils$(O) : objutils.c globals.h grace.h defines.h storage.h graphs.h \
- draw.h utils.h objutils.h
+ draw.h utils.h objutils.h protos.h missing.h noxprotos.h xprotos.h
 computils$(O) : computils.c globals.h grace.h defines.h storage.h \
  graphs.h utils.h draw.h ssdata.h parser.h protos.h missing.h \
  noxprotos.h xprotos.h

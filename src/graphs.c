@@ -1327,9 +1327,10 @@ void postprocess_project(int version)
                 /* in xmgr, axis label placement was in x,y coordinates */
 	        /* in Grace, it's parallel/perpendicular */
 	        if(!is_xaxis(naxis)) {
-	            fswap(&g[gno].t[naxis]->label.x, &g[gno].t[naxis]->label.y);
+	            fswap(&g[gno].t[naxis]->label.offset.x,
+                          &g[gno].t[naxis]->label.offset.y);
 	        }
-	        g[gno].t[naxis]->label.y *= -1;
+	        g[gno].t[naxis]->label.offset.y *= -1;
 	    }
         }
     }

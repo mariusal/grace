@@ -500,8 +500,8 @@ static int axes_aac_cb(void *data)
     t->label_layout = GetChoice(axislabellayout) ? LAYOUT_PERPENDICULAR : LAYOUT_PARALLEL;
     t->label_place = GetOptionChoice(axislabelplace);
     if (t->label_place == TYPE_SPEC) {
-        xv_evalexpr(axislabelspec_para, &t->label.x);
-        xv_evalexpr(axislabelspec_perp, &t->label.y);
+        xv_evalexpr(axislabelspec_para, &t->label.offset.x);
+        xv_evalexpr(axislabelspec_perp, &t->label.offset.y);
     }
     t->label.font = GetOptionChoice(axislabelfont);
     t->label.color = GetOptionChoice(axislabelcolor);
@@ -803,9 +803,9 @@ void update_ticks(int gno)
 
         SetChoice(axislabellayout, t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
         SetOptionChoice(axislabelplace, t->label_place);
-        sprintf(buf, "%.2f", t->label.x);
+        sprintf(buf, "%.2f", t->label.offset.x);
         xv_setstr(axislabelspec_para, buf);
-        sprintf(buf, "%.2f", t->label.y);
+        sprintf(buf, "%.2f", t->label.offset.y);
         xv_setstr(axislabelspec_perp, buf);
         SetSensitive(axislabelspec_rc, t->label_place == TYPE_SPEC);
         SetOptionChoice(axislabelfont, t->label.font);

@@ -84,8 +84,8 @@ Project *project_new(void)
     pr->sformat = copy_string(NULL, "%16.8g");
 
     set_default_string(&pr->timestamp);
-    pr->timestamp.x = 0.03;
-    pr->timestamp.y = 0.03;
+    pr->timestamp.offset.x = 0.03;
+    pr->timestamp.offset.y = 0.03;
     
     return pr;
 }

@@ -750,8 +750,8 @@ void move_legend(int gno, VVector shift)
 
 void move_timestamp(plotstr *timestamp, VVector shift)
 {
-    timestamp->x += shift.x;
-    timestamp->y += shift.y;
+    timestamp->offset.x += shift.x;
+    timestamp->offset.y += shift.y;
     set_dirtystate();
 }
 

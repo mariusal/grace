@@ -98,11 +98,9 @@ void set_default_view(view * v)
 void set_default_string(plotstr * s)
 {
     s->active = FALSE;
-    s->loctype = COORD_VIEW;
-    s->gno = -1;
-    s->x = s->y = 0.0;
+    s->offset.x = s->offset.y = 0.0;
     s->color = 1;
-    s->rot = 0;
+    s->angle = 0.0;
     s->font = 0;
     s->just = JUST_LEFT|JUST_BLINE;
     s->charsize = 1.0;
@@ -223,9 +221,11 @@ void set_default_ticks(tickmarks *t)
     t->zero = FALSE;
     t->tl_flag = TRUE;
     t->t_flag = TRUE;
+    
     set_default_string(&t->label);
-    t->label.x = 0.0;
-    t->label.y = 0.08;
+    t->label.offset.x = 0.0;
+    t->label.offset.y = 0.08;
+    
     t->tmajor = 0.5;
     t->nminor = 1;
     t->t_round = TRUE;

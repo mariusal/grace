@@ -112,7 +112,4 @@ int init_line(int id, DOLineData *l);
 int init_box(int id, DOBoxData *b);
 int init_arc(int id, DOArcData *a);
 
-void set_default_string(plotstr *s);
-void set_default_arrow(Arrow *arrowp);
-
 #endif /* __OBJUTILS_H_ */

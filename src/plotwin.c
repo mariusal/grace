@@ -117,11 +117,11 @@ static void update_plot_items(void)
 
 	SetCharSizeChoice(timestamp_size_item, timestamp.charsize);
 
-	SetAngleChoice(timestamp_rotate_item, timestamp.rot);
+	SetAngleChoice(timestamp_rotate_item, (int) timestamp.angle);
 
-	sprintf(buf, "%g", timestamp.x);
+	sprintf(buf, "%g", timestamp.offset.x);
 	xv_setstr(timestamp_x_item, buf);
-	sprintf(buf, "%g", timestamp.y);
+	sprintf(buf, "%g", timestamp.offset.y);
 	xv_setstr(timestamp_y_item, buf);
     }
 }
@@ -139,10 +139,10 @@ static int plot_define_notify_proc(void *data)
     
     timestamp->charsize = GetCharSizeChoice(timestamp_size_item);
     
-    timestamp->rot = GetAngleChoice(timestamp_rotate_item);
+    timestamp->angle = (double) GetAngleChoice(timestamp_rotate_item);
     
-    xv_evalexpr(timestamp_x_item, &timestamp->x);
-    xv_evalexpr(timestamp_y_item, &timestamp->y);
+    xv_evalexpr(timestamp_x_item, &timestamp->offset.x);
+    xv_evalexpr(timestamp_y_item, &timestamp->offset.y);
     set_dirtystate();
     xdrawgraph();
     
