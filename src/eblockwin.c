@@ -40,7 +40,6 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/Label.h>
 #include <Xm/RowColumn.h>
 
 #include "globals.h"
@@ -66,7 +65,8 @@ static OptionStructure *eblock_nchoice_items[MAX_SET_COLS];
 static OptionStructure *eblock_schoice_item;
 static Widget eblock_ncols_item;
 static OptionStructure *eblock_type_choice_item;
-static ListStructure *eblock_graph_choice_item;
+static GraphSetStructure *eblock_graphset_item;
+static OptionStructure *auto_item;
 
 /*
  * Event and Notify proc declarations
@@ -80,31 +80,36 @@ static void update_eblock(int gno);
  */
 void create_eblock_frame(int gno)
 {
-    int i, blockncols;
-    char buf[32];
-    Widget rc, buts[2];
-
-    blockncols = get_blockncols();
-    if (blockncols == 0) {
+    if (get_blockncols() == 0) {
 	errmsg("Need to read block data first");
 	return;
     }
+    
     set_wait_cursor();
     if (eblock_frame == NULL) {
+        int i;
+        char buf[32];
+        Widget rc, fr, buts[2];
         OptionItem blockitem;
 	char *label1[2];
+
 	label1[0] = "Accept";
 	label1[1] = "Close";
         blockitem.value = 0;
         blockitem.label = "Index";
+
 	eblock_frame = XmCreateDialogShell(app_shell, "Edit block data", NULL, 0);
 	handle_close(eblock_frame);
 	eblock_panel = XmCreateRowColumn(eblock_frame, "eblock_rc", NULL, 0);
 
-	eblock_ncols_item = XtVaCreateManagedWidget("tmp", xmLabelWidgetClass, eblock_panel,
-						    NULL);
+	fr = CreateFrame(eblock_panel, NULL);
+        eblock_ncols_item = CreateLabel(fr, "tmp");
 
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, eblock_panel, NULL);
+	eblock_graphset_item =
+            CreateGraphSetSelector(eblock_panel, "Load to:", LIST_TYPE_SINGLE);
+
+        fr = CreateFrame(eblock_panel, NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 
 	eblock_type_choice_item = CreateSetTypeChoice(rc, "Set type:");
         AddOptionChoiceCB(eblock_type_choice_item, eblock_type_notify_proc, NULL);
@@ -114,13 +119,12 @@ void create_eblock_frame(int gno)
             eblock_nchoice_items[i] = CreateOptionChoice(rc,
                 buf, 3, 1, &blockitem);
         }
-        eblock_schoice_item = CreateOptionChoice(rc, "Strings from column:",
-            1, 1, &blockitem);
+        eblock_schoice_item = CreateOptionChoice(rc,
+            "Strings from column:", 1, 1, &blockitem);
 
 	XtManageChild(rc);
 
-	eblock_graph_choice_item = CreateGraphChoice(eblock_panel,
-                                    "Load to a new set in graph:", LIST_TYPE_SINGLE);
+	auto_item = CreateASChoice(eblock_panel, "Autoscale graph on load:");
 
 	CreateSeparator(eblock_panel);
 
@@ -160,9 +164,10 @@ static void update_eblock(int gno)
     blocklen = get_blocknrows();
     blockformats = get_blockformats();
     if (is_valid_gno(gno)) {
-        SelectListChoice(eblock_graph_choice_item, gno);
+        SelectListChoice(eblock_graphset_item->graph_sel, gno);
     }
-    sprintf(ncolsbuf, "%d column(s) of length %d", blockncols, blocklen);
+    sprintf(ncolsbuf, "Block data: %d column(s) of length %d",
+        blockncols, blocklen);
     SetLabel(eblock_ncols_item, ncolsbuf);
     
     /* TODO: check if new data arrived */
@@ -221,13 +226,18 @@ static void eblock_type_notify_proc(int value, void *data)
 
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i, gno;
-    int cs[MAX_SET_COLS], nncols, scol;
+    int i, gno, setno;
+    int cs[MAX_SET_COLS], nncols, scol, autoscale;
 
-    if (GetSingleListChoice(eblock_graph_choice_item, &gno)
+    if (GetSingleListChoice(eblock_graphset_item->graph_sel, &gno)
         != GRACE_EXIT_SUCCESS) {
         errmsg("Please select a single graph");
         return;
+    }
+    if (GetSingleListChoice(eblock_graphset_item->set_sel, &setno) !=
+        GRACE_EXIT_SUCCESS) {
+    	/* no set selected; allocate new one */
+    	setno = NEW_SET;
     }
     
     nncols = settype_cols(block_curtype);
@@ -235,8 +245,12 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
         cs[i] = GetOptionChoice(eblock_nchoice_items[i]);
     }
     scol = GetOptionChoice(eblock_schoice_item);
-    
-    create_set_fromblock(gno, block_curtype, nncols, cs, scol);
+
+    autoscale = GetOptionChoice(auto_item);
+
+    create_set_fromblock(gno, setno,
+        block_curtype, nncols, cs, scol, autoscale);
+
     update_all();
     drawgraph();
 }
