@@ -667,11 +667,12 @@ int get_hotlink_src(int gno, int setno)
 
 void do_update_hotlink(int gno, int setno)
 {
-    if (is_valid_setno(gno, setno) != TRUE) {
+    if (is_hotlinked(gno, setno) != TRUE) {
         return;
     } else {
-        read_xyset_fromfile(gno, setno, g[gno].p[setno].hotfile, 
-			g[gno].p[setno].hotsrc, g[gno].p[setno].hotlink);
+        plotarr *p;
+        p = &g[gno].p[setno];
+        update_set_from_file(gno, setno, p->hotfile, p->hotsrc);
     }
 }
 

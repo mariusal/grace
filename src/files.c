@@ -81,8 +81,6 @@
 
 char *close_input;		/* name of real-time input to close */
 
-static int readerror = 0;	/* number of errors */
-
 struct timeval read_begin = {0l, 0l};	/* used to check too long inputs */
 
 static Input_buffer dummy_ib = {-1, 0, 0, 0, 0, NULL, 0, 0, NULL, 0l};
@@ -990,108 +988,26 @@ int getdata(int gno, char *fn, int src, int load_type)
 
 
 /*
- * read an XY set from a file
- * assume the first column is x and take y form the col'th column
- * if only 1 column, use index for x
+ * read data to the set from a file overriding the current contents
  */
-int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
+int update_set_from_file(int gno, int setno, char *fn, int src)
 {
-    FILE *fp;
-    int readline = 0;
-    int i = 0, pstat, retval = 0;
-    double *x, *y, tmp;
-    char *scstr;                    /* scanf string */
-    char buf[256];
-    char *linebuf=NULL;
-    int linelen=0; /* misleading name */
+    int retval;
+    
+    if (set_parser_setno(gno, setno) != RETURN_SUCCESS) {
+        retval = RETURN_FAILURE;
+    } else {
+        FILE *fp;
+        
+        fp = grace_openr(fn, src);
+        
+        killsetdata(gno, setno);
+        curtype = dataset_type(gno, setno);
+        retval = uniread(fp, LOAD_SINGLE, fn);
 
-    if (is_set_active(gno, setno) && dataset_cols(gno, setno) != 2) {
-        errmsg("Only two-column sets are supported in read_xyset_fromfile()");
-	return 0;
+        grace_close(fp);
     }
     
-    fp = grace_openr(fn, src);
-    if (fp == NULL) {
-	return 0;
-    }
-
-    scstr = xmalloc( (col+1)*5 );
-    scstr[0] = '\0';
-    for( i=0; i<=col; i++ )
-        if( !i || i==col-1 || i==col )
-            strcat( scstr, "%lf " );
-        else
-            strcat( scstr, "%*lf " );
-    i = 0;
-    killsetdata(gno, setno);
-    x = xcalloc(BUFSIZE, SIZEOF_DOUBLE);
-    y = xcalloc(BUFSIZE, SIZEOF_DOUBLE);
-    if (x == NULL || y == NULL) {
-        XCFREE(x);
-        XCFREE(y);
-        goto breakout;
-    }
-    while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
-        readline++;
-        if (linebuf[strlen(linebuf) - 1] != '\n') { 
-            /* must have a newline char at the end of line */
-            readerror++;
-            sprintf(buf, "No newline at line #%1d: %s", readline, linebuf);
-            errmsg(buf);
-            continue;
-        }
-        if (linebuf[0] == '#') {
-            continue;
-        }
-        if (linebuf[0] == '@') {
-            continue;
-        }
-        convertchar(linebuf);
-        /* count the number of items scanned */
-        if( col==1 ) {
-            if ((pstat = sscanf(linebuf, "%lf %lf", &x[i], &y[i])) >= 1) {
-                /* supply x if missing (y winds up in x) */
-                if (pstat == 1) {
-                    y[i] = x[i];
-                    x[i] = i;
-                }
-                i++;
-                if (i % BUFSIZE == 0) {
-                    x = xrealloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
-                    y = xrealloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
-                }
-            }
-        } else {
-            if ((pstat = sscanf(linebuf, scstr, &x[i], &tmp, &y[i])) >= 2) {
-                /* if there are only as many columns as the column
-                 * specified, use the index for the x value
-                 */
-                if (pstat == 2) {
-                    y[i] = tmp;
-                    x[i] = i;
-                }
-                i++;
-                if (i % BUFSIZE == 0) {
-                    x = xrealloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
-                    y = xrealloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
-                }
-            }
-        }
-    }
-    activateset(gno, setno);
-    setcol(gno, setno, 0, x, i);
-    setcol(gno, setno, 1, y, i);
-    if (!strlen(getcomment(gno, setno))) {
-        setcomment(gno, setno, fn);
-    }
-    retval = 1;
-
-  breakout:;
-
-    grace_close(fp);
-    
-    xfree(scstr);
-    xfree(linebuf);
     return retval;
 }
 

@@ -56,7 +56,7 @@ void grace_close(FILE *fp);
 
 int getparms(char *plfile);
 int getdata(int gno, char *fn, int src, int type);
-int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col);
+int update_set_from_file(int gno, int setno, char *fn, int src);
 
 int readblockdata(int gno, char *fn, FILE * fp);
 
