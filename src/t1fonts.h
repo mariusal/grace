@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -111,8 +111,8 @@ typedef struct {
 
 typedef struct {
     int mapped_id;
-    char alias[32];
-    char fallback[32];
+    char *alias;
+    char *fallback;
 } FontDB;
 
 int init_t1(void);

@@ -315,7 +315,7 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
 
 static void update_fonttool_cb(int value, void *data)
 {
-    char buf[32];
+    char *buf;
     Widget font_table = (Widget) data;
     
     FontID = value;
@@ -340,8 +340,11 @@ static void update_fonttool_cb(int value, void *data)
     bbox.ury = bbox.ury*Size/1000;
     
     XbaeMatrixRefresh(font_table);
-    sprintf(buf, "\\f{%s}", get_fontalias(FontID));
+    buf = copy_string(NULL, "\\f{");
+    buf = concat_strings(buf, get_fontalias(FontID));
+    buf = concat_strings(buf, "}");
     insert_into_string(buf);
+    xfree(buf);
 }
 
 

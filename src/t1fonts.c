@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -56,7 +56,7 @@ void (*devputtext) (VPoint vp, char *s, int len, int font,
 int init_t1(void)
 {
     int i;
-    char buf[GR_MAXPATHLEN], *bufp;
+    char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
     
     /* Set search paths: */
@@ -103,12 +103,13 @@ int init_t1(void)
     grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
     for (i = 0; i < nfonts; i++) {
         grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
-        if (sscanf(buf, "%s %s %*s", FontDBtable[i].alias, 
-                                     FontDBtable[i].fallback) != 2) {
+        if (sscanf(buf, "%s %s %*s", abuf, fbuf) != 2) {
             fclose(fd);
             return (RETURN_FAILURE);
         }
         FontDBtable[i].mapped_id = i;
+        FontDBtable[i].alias     = copy_string(NULL, abuf);
+        FontDBtable[i].fallback  = copy_string(NULL, fbuf);
     }
     fclose(fd);
     
