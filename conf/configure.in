@@ -519,10 +519,10 @@ AC_ARG_ENABLE(rstdrv,
 esac],[rstdrv=true])
 
 case $rstdrv in
-  true) AC_CHECK_LIB(gd, gdImageCreate, GD_LIB="-lgd";RSTDRV_O='rstdrv$(O)';AC_DEFINE(HAVE_LIBGD));;
+  true) AC_CHECK_LIB(gd, gdImageCreateFromGifSource, GD_LIB="-lgd";RSTDRV_O='rstdrv$(O)';AC_DEFINE(HAVE_LIBGD));;
   *);;
 esac
-if test $ac_cv_lib_gd_gdImageCreate != yes; then
+if test $ac_cv_lib_gd_gdImageCreateFromGifSource != yes; then
   AC_MSG_RESULT(--> raster driver is disabled)
 else
   AC_CHECK_LIB(jpeg, jpeg_start_compress, JPEG_LIB="-ljpeg";AC_DEFINE(HAVE_LIBJPEG))
