@@ -499,6 +499,7 @@ char *canvas_get_docname(const Canvas *canvas);
 void canvas_set_pagepen(Canvas *canvas, const Pen *pen);
 
 void setclipping(Canvas *canvas, int flag);
+int canvas_set_clipview(Canvas *canvas, const view *v);
 
 void setbgcolor(Canvas *canvas, int bgcolor);
 void setpen(Canvas *canvas, const Pen *pen);

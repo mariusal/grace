@@ -207,6 +207,16 @@ void setclipping(Canvas *canvas, int flag)
     canvas->clipflag = flag;
 }
 
+int canvas_set_clipview(Canvas *canvas, const view *v)
+{
+    if (isvalid_viewport(v)) {
+        canvas->clipview = *v;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 void canvas_set_username(Canvas *canvas, const char *s)
 {
     canvas->username = copy_string(canvas->username, s);
