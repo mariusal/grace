@@ -203,12 +203,7 @@ static XtResource resources[] =
      (XtPointer) FALSE},
 };
 
-String fallbackResources[] = {
-    "XMgrace*mainWin.width: 680",
-    "XMgrace*mainWin.height: 700",
-    "XMgrace*fontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
-    "XMgrace*tabFontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
-    "XMgrace.consoleDialog*text.fontList:-adobe-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
+String fallbackResourcesCommon[] = {
     "XMgrace.consoleDialog*text.columns: 72",
     "XMgrace.consoleDialog*text.rows: 5",
     "XMgrace*background: #e5e5e5",
@@ -257,6 +252,28 @@ String fallbackResources[] = {
     "XMgrace*selectHotLinkFileFSB*pattern: *.dat",
     "XMgrace*openFitParameterFileFSB*pattern: *.fit",
     "XMgrace*saveFitParameterFileFSB*pattern: *.fit",
+    NULL
+};
+
+String fallbackResourcesHighRes[] = {
+    "XMgrace*mainWin.width: 680",
+    "XMgrace*mainWin.height: 700",
+    "XMgrace*fontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgrace*tabFontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgrace.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
+    "XMgrace*HContainer.marginHeight: 3",
+    "XMgrace*VContainer.marginHeight: 3",
+    NULL
+};
+
+String fallbackResourcesLowRes[] = {
+    "XMgrace*mainWin.width: 530",
+    "XMgrace*mainWin.height: 545",
+    "XMgrace*fontList:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgrace*tabFontList:-*-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgrace.consoleDialog*text.fontList:-*-courier-medium-r-normal-*-8-*-*-*-*-*-*-*",
+    "XMgrace*HContainer.marginHeight: 1",
+    "XMgrace*VContainer.marginHeight: 1",
     NULL
 };
 
@@ -352,6 +369,10 @@ static int is_motif_compatible(void)
 int initialize_gui(int *argc, char **argv)
 {
     ApplicationData rd;
+    String *allResources, *resolResources;
+    int lowres = FALSE;
+    unsigned int i, n_common, n_resol;
+    char *display_name = NULL;
 
     installXErrorHandler();
     
@@ -360,7 +381,43 @@ int initialize_gui(int *argc, char **argv)
     
     XtToolkitInitialize();
     app_con = XtCreateApplicationContext();
-    XtAppSetFallbackResources(app_con, fallbackResources);
+    
+    /* Check if we're running in the low-resolution X */
+    for (i = 1; i < *argc - 1; i++) {
+        /* See if display name was specified in the args */
+        char *pattern = "-display";
+        if (strstr(pattern, argv[i]) == pattern) {
+            display_name = argv[i + 1];
+        }
+    }
+    disp = XOpenDisplay(display_name);
+    if (disp) {
+        Screen *screen;
+        screen = DefaultScreenOfDisplay(disp);
+        if (HeightOfScreen(screen) < 740) {
+            lowres = TRUE;
+        }
+        XCloseDisplay(disp);
+    }
+    
+    n_common = sizeof(fallbackResourcesCommon)/sizeof(String) - 1;
+    if (lowres) {
+        n_resol  = sizeof(fallbackResourcesLowRes)/sizeof(String) - 1;
+        resolResources = fallbackResourcesLowRes;
+    } else {
+        n_resol  = sizeof(fallbackResourcesHighRes)/sizeof(String) - 1;
+        resolResources = fallbackResourcesHighRes;
+    }
+    allResources = xmalloc((n_common + n_resol + 1)*sizeof(String));
+    for (i = 0; i < n_common; i++) {
+        allResources[i] = fallbackResourcesCommon[i];
+    }
+    for (i = 0; i < n_resol; i++) {
+        allResources[n_common + i] = resolResources[i];
+    }
+    allResources[n_common + n_resol] = NULL;
+    XtAppSetFallbackResources(app_con, allResources);
+    
     disp = XtOpenDisplay(app_con, NULL, NULL, "XMgrace", NULL, 0, argc, argv);
     if (disp == NULL) {
 	errmsg("Can't open display");
