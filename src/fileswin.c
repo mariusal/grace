@@ -95,10 +95,9 @@ void create_saveproject_popup(void)
         fsb = CreateFileSelectionBox(app_shell, "Save project");
 
 	fr = CreateFrame(fsb->rc, NULL);
-	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	rc = CreateVContainer(fr);
 	save_gui.descr_item  = CreateScrollTextItem2(rc, 5, "Project description:");
 	save_gui.format_item = CreateTextItem2(rc, 15, "Data format:");
-        ManageChild(rc);
 
 	AddFileSelectionBoxCB(fsb, save_proc, &save_gui);
         ManageChild(fsb->FSB);
@@ -185,13 +184,12 @@ void create_file_popup(void *data)
 	AddFileSelectionBoxCB(rdata_dialog, read_sets_proc, (void *) gui);
 
 	fr = CreateFrame(rdata_dialog->rc, NULL);
-	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	rc = CreateVContainer(fr);
 
 	gui->graph_item = CreateGraphChoice(rc,
             "Read to graph:", LIST_TYPE_SINGLE);
 
-	rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	rc2 = CreateHContainer(rc);
  
 	option_items[0].value = LOAD_SINGLE;
 	option_items[0].label = "Single set";
@@ -202,10 +200,8 @@ void create_file_popup(void *data)
 	gui->load_item = CreateOptionChoice(rc2, "Load as", 1, 3, option_items);
         AddOptionChoiceCB(gui->load_item, set_load_proc, (void *) gui);
 	gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
-	ManageChild(rc2);
 
-	rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
+	rc2 = CreateHContainer(rc);
 	lab = CreateLabel(rc2, "Data source:");
 	rb = XmCreateRadioBox(rc2, "radio_box_2", NULL, 0);
 	XtVaSetValues(rb, XmNorientation, XmHORIZONTAL, NULL);
@@ -219,11 +215,9 @@ void create_file_popup(void *data)
 	ManageChild(w[0]);
 	ManageChild(w[1]);
 	SetToggleButtonState(w[0], TRUE);
-	ManageChild(rc2);
 
 	gui->auto_item = CreateASChoice(rc, "Autoscale on read:");
 
-	ManageChild(rc);
         ManageChild(rdata_dialog->FSB);
     }
     
@@ -307,12 +301,11 @@ void create_write_popup(void *data)
 	AddFileSelectionBoxCB(fsb, write_sets_proc, (void *) gui);
 	
 	fr = CreateFrame(fsb->rc, NULL);
-	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	rc = CreateVContainer(fr);
         gui->sel = CreateSetChoice(rc,
             "Write set(s):", LIST_TYPE_MULTIPLE, TRUE);
 	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
         xv_setstr(gui->format_item, grace->project->sformat);
-        ManageChild(rc);
 
         ManageChild(fsb->FSB);
     }
@@ -608,7 +601,7 @@ void create_netcdfs_popup(void *data)
 	label1[4] = "Close";
 	top = XmCreateDialogShell(app_shell, "netCDF", NULL, 0);
 	handle_close(top);
-	dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
+	dialog = CreateVContainer(top);
 
 	XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
 	XtSetArg(args[1], XmNvisibleItemCount, 5);
