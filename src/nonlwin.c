@@ -51,75 +51,80 @@
 #include "protos.h"
 #include "motifinc.h"
 
-/* info strings
-info = 0  improper input parameters.
-info = 1  algorithm estimates that the relative error in the sum of squares is at most tol.
-info = 2  algorithm estimates that the relative error between x and the solution is at most tol.
-info = 3  conditions for info = 1 and info = 2 both hold.
-info = 4  fvec is orthogonal to the columns of the jacobian to machine precision.
-info = 5  number of calls to fcn has reached or exceeded the asked value (OK).
-info = 6  tol is too small. no further reduction in the sum of squares is possible.
-info = 7  tol is too small. no further improvement in the approximate solution x is possible.
-*/
+/* nonlprefs.load possible values */
+#define LOAD_VALUES         0
+#define LOAD_RESIDUALS      1
+#define LOAD_FUNCTION       2
 
-#define NONL_CANCEL 0
-#define NONL_ACCEPT 1
+#define  WEIGHT_NONE    0
+#define  WEIGHT_Y       1
+#define  WEIGHT_DY      2
+#define  WEIGHT_CUSTOM  3
+
+/* prefs for non-linear fit */
+typedef struct {
+    int autoload;       /* do autoload */
+    int load;           /* load to... */
+    int npoints;        /* # of points to evaluate function at */
+    double start;       /* start... */
+    double stop;        /* stop ... */
+} nonlprefs;
+
+static char buf[256];
+
+static nonlprefs nonl_prefs = {TRUE, LOAD_VALUES, 10, 0.0, 1.0};
 
 static Widget nonl_frame = NULL;
 static Widget nonl_panel;
 Widget nonl_formula_item;
 Widget nonl_title_item;
-SetChoiceItem nonl_set_item;
-static Widget nonl_load_item[3];
+SrcDestStructure *nonl_set_item;
 static Widget nonl_parm_item[MAXPARM];
 static Widget nonl_value_item[MAXPARM];
 static Widget nonl_constr_item[MAXPARM];
 static Widget nonl_lowb_item[MAXPARM];
 static Widget nonl_uppb_item[MAXPARM];
 static Widget nonl_tol_item;
-static Widget *nonl_nparm_item;
+static OptionStructure *nonl_nparm_item;
+static SpinStructure *nonl_nsteps_item;
+static OptionStructure *nonl_load_item;
 static Widget nonl_autol_item;
 static Widget nonl_npts_item;
 static Widget nonl_start_item, nonl_stop_item;
 static Widget nonl_fload_rc;
+static RestrictionStructure *restr_item;
+static OptionStructure *nonl_weigh_item;
+static Widget nonl_wfunc_item;
+
 static void do_nonl_proc(void *data);
 static void do_nonl_toggle(int onoff, void *data);
+static void nonl_wf_cb(int value, void *data);
 static void do_constr_toggle(int onoff, void *data);
 
 static void update_nonl_frame_cb(void *data);
 static void destroy_nonl_frame_cb(void *data);
 static void reset_nonl_frame_cb(void *data);
 
-void do_nparm_toggle(Widget w, XtPointer client_data, XtPointer call_data);
-void create_openfit_popup(void *data);
-void create_savefit_popup(void *data);
+static void do_nparm_toggle(int value, void *data);
+static void create_openfit_popup(void *data);
+static void create_savefit_popup(void *data);
 static int do_openfit_proc(char *filename, void *data);
 static int do_savefit_proc(char *filename, void *data);
 
-int nsteps;
-int nlsetno;
-int nlloadset = -1;
+static int load_nonl_fit(int src_gno, int src_setno, int force);
+static void load_nonl_fit_cb(void *data);
 
-static char buf[256];
 
 /* ARGSUSED */
 void create_nonl_frame(void *data)
 {
-    int i;
-    Widget sw, fr, title_fr, fr1, fr3, rc, rc1, rc2, rc3, lab, fitbut[4], but1[2];
-    Widget menubar, menupane, submenupane;
     set_wait_cursor();
     if (nonl_frame == NULL) {
-	char *fitlabel[4];
-	char *blabel[2];
-
-	fitlabel[0] = "Load as is";
-	fitlabel[1] = "Run 5 steps";
-	fitlabel[2] = "Run 20 steps";
-	fitlabel[3] = "Run 100 steps";
-	
-	blabel[0] = "Accept";
-	blabel[1] = "Cancel";
+        int i;
+        OptionItem np_option_items[MAXPARM + 1], option_items[4];
+        Widget menubar, menupane;
+        Widget nonl_tab, nonl_main, nonl_advanced;
+        Widget sw, fr, title_fr, fr3, rc, rc1, rc2, rc3, lab;
 
 	nonl_frame = XmCreateDialogShell(app_shell, "Non-linear curve fitting", NULL, 0);
 	handle_close(nonl_frame);
@@ -131,26 +136,20 @@ void create_nonl_frame(void *data)
         CreateMenuButton(menupane, "Open...", 'O', create_openfit_popup, NULL);
         CreateMenuButton(menupane, "Save...", 'S', create_savefit_popup, NULL);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "Close", 'C', destroy_nonl_frame_cb, (void *) NONL_ACCEPT);
+        CreateMenuButton(menupane, "Close", 'C', destroy_nonl_frame_cb, NULL);
 
-        menupane = CreateMenu(menubar, "Data", 'D', FALSE);
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-        CreateMenuButton(menupane, "Reset", 'R', reset_nonl_frame_cb, NULL);
-        CreateMenuButton(menupane, "Update", 'U', update_nonl_frame_cb, NULL);
+        CreateMenuButton(menupane, "Reset fit parameters", 'R', reset_nonl_frame_cb, NULL);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane, "Load current fit", 'L', load_nonl_fit_cb, NULL);
 
-        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
+        menupane = CreateMenu(menubar, "View", 'V', FALSE);
    
-        submenupane = CreateMenu(menupane, "Load", 'L', FALSE);
-    
-        nonl_load_item[0] = CreateMenuToggle(submenupane, "Fitted values", 'v',
-	    do_nonl_toggle, (XtPointer) 0);
-        nonl_load_item[1] = CreateMenuToggle(submenupane, "Residuals", 'R',
-	    do_nonl_toggle, (XtPointer) 1);
-        nonl_load_item[2] = CreateMenuToggle(submenupane, "Function", 'F',
-	    do_nonl_toggle, (XtPointer) 2);
-
         nonl_autol_item = CreateMenuToggle(menupane, "Autoload", 'A',
 	    NULL, NULL);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane, "Update", 'U', update_nonl_frame_cb, NULL);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
@@ -163,14 +162,9 @@ void create_nonl_frame(void *data)
 		      XmNrightAttachment, XmATTACH_FORM,
 		      NULL);
         
-        fr1 = CreateFrame(nonl_panel, NULL);
-        nonl_set_item  = CreateSetSelector(fr1, "Apply to set:",
-                                    SET_SELECT_ACTIVE,
-                                    FILTER_SELECT_NONE,
-                                    GRAPH_SELECT_CURRENT,
-                                    SELECTION_TYPE_SINGLE);
+        nonl_set_item = CreateSrcDestSelector(nonl_panel, LIST_TYPE_SINGLE);
 	
-	XtVaSetValues(fr1,
+	XtVaSetValues(nonl_set_item->form,
 		      XmNtopAttachment, XmATTACH_WIDGET,
 		      XmNtopWidget, menubar,
 		      XmNleftAttachment, XmATTACH_FORM,
@@ -183,38 +177,39 @@ void create_nonl_frame(void *data)
 	title_fr = CreateFrame(rc, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
 	nonl_title_item = CreateLabel(title_fr, nonl_opts.title);
+
+        /* ------------ Tabs --------------*/
+
+        nonl_tab = CreateTab(rc);        
+
+
+        /* ------------ Main tab --------------*/
+        
+        nonl_main = CreateTabPage(nonl_tab, "Main");
     	
-	nonl_formula_item = CreateScrollTextItem2(rc, 2, "Formula:");
-	rc1 = XmCreateRowColumn(rc, "nonl_rc", NULL, 0);
+	nonl_formula_item = CreateScrollTextItem2(nonl_main, 2, "Formula:");
+	rc1 = XmCreateRowColumn(nonl_main, "nonl_rc", NULL, 0);
 	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
 	
-	nonl_nparm_item = CreatePanelChoice(rc1,
-				   "Number of parameters:",
-				   12,
-				   "0",
-				   "1",
-				   "2",
-				   "3",
-				   "4",
-				   "5",
-				   "6",
-				   "7",
-				   "8",
-				   "9",
-				  "10",
-				   NULL, NULL);
-
 	for (i = 0; i < MAXPARM + 1; i++) {
-	    XtAddCallback(nonl_nparm_item[2 + i], XmNactivateCallback,
-			do_nparm_toggle, (XtPointer) i);
-	}
-	
-	nonl_tol_item = CreateTextItem2(rc1, 10, "Tolerance:");
-	
+	    np_option_items[i].value = i;
+            sprintf(buf, "%d", i);
+	    np_option_items[i].label = copy_string(NULL, buf);
+        }
+	nonl_nparm_item = CreateOptionChoice(rc1,
+            "Parameters:", 1, MAXPARM + 1, np_option_items);
+        AddOptionChoiceCB(nonl_nparm_item, do_nparm_toggle, NULL);
+        
+	nonl_tol_item = CreateTextItem2(rc1, 8, "Tolerance:");
+        
+	nonl_nsteps_item = CreateSpinChoice(rc1, "Iterations:", 3,
+            SPIN_TYPE_INT, 0.0, 500.0, 5.0);
+	SetSpinChoice(nonl_nsteps_item, 5.0);
+        
 	XtManageChild(rc1);
 	
 	sw = XtVaCreateManagedWidget("sw",
-				     xmScrolledWindowWidgetClass, rc,
+				     xmScrolledWindowWidgetClass, nonl_main,
 				     XmNheight, 180,
 				     XmNscrollingPolicy, XmAUTOMATIC,
 				     NULL);
@@ -240,39 +235,67 @@ void create_nonl_frame(void *data)
 	}
 
 	XtManageChild(rc2);
-	XtManageChild(rc);
 
-        XtVaSetValues(fr,
-                      XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, fr1,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      NULL);
-                      
-	fr3 = CreateFrame(nonl_panel, NULL);
-	rc3 = XmCreateRowColumn(fr3, "rc3", NULL, 0);
-	
-	CreateCommandButtons(rc3, 4, fitbut, fitlabel);
-	AddButtonCB(fitbut[0], do_nonl_proc, (void *) 0);
-	AddButtonCB(fitbut[1], do_nonl_proc, (void *) 5);
-	AddButtonCB(fitbut[2], do_nonl_proc, (void *) 20);
-	AddButtonCB(fitbut[3], do_nonl_proc, (void *) 100);
-	
-	CreateSeparator(rc3);	
-	
+        /* ------------ Advanced tab --------------*/
+
+        nonl_advanced = CreateTabPage(nonl_tab, "Advanced");
+
+	restr_item =
+            CreateRestrictionChoice(nonl_advanced, "Source data filtering");
+
+	fr3 = CreateFrame(nonl_advanced, "Weighting");
+        rc3 = XtVaCreateWidget("rc",
+            xmRowColumnWidgetClass, fr3,
+            XmNorientation, XmHORIZONTAL,
+            NULL);
+        option_items[0].value = WEIGHT_NONE;
+        option_items[0].label = "None";
+        option_items[1].value = WEIGHT_Y;
+        option_items[1].label = "1/Y";
+        option_items[2].value = WEIGHT_DY;
+        option_items[2].label = "1/dY";
+        option_items[3].value = WEIGHT_CUSTOM;
+        option_items[3].label = "Custom";
+	nonl_weigh_item = CreateOptionChoice(rc3, "Weights", 1, 4, option_items);
+	nonl_wfunc_item = CreateTextItem2(rc3, 30, "Function:");
+	AddOptionChoiceCB(nonl_weigh_item, nonl_wf_cb, (void *) nonl_wfunc_item);
+        XtManageChild(rc3);
+
+
+	fr3 = CreateFrame(nonl_advanced, "Load options");
+        rc3 = XmCreateRowColumn(fr3, "rc3", NULL, 0);
+
+        option_items[0].value = LOAD_VALUES;
+        option_items[0].label = "Fitted values";
+        option_items[1].value = LOAD_RESIDUALS;
+        option_items[1].label = "Residuals";
+        option_items[2].value = LOAD_FUNCTION;
+        option_items[2].label = "Function";
+	nonl_load_item = CreateOptionChoice(rc3, "Load", 1, 3, option_items);
 	nonl_fload_rc = XmCreateRowColumn(rc3, "nonl_fload_rc", NULL, 0);
 	XtVaSetValues(nonl_fload_rc, XmNorientation, XmHORIZONTAL, NULL);
 	nonl_start_item = CreateTextItem2(nonl_fload_rc, 6, "Start load at:");
 	nonl_stop_item = CreateTextItem2(nonl_fload_rc, 6, "Stop load at:");
 	nonl_npts_item = CreateTextItem2(nonl_fload_rc, 4, "# of points:");
 	XtManageChild(nonl_fload_rc);
-	XtSetSensitive(nonl_fload_rc, False);
-
-	CreateCommandButtons(rc3, 2, but1, blabel);
-	AddButtonCB(but1[0], destroy_nonl_frame_cb, (void *) NONL_ACCEPT);
-	AddButtonCB(but1[1], destroy_nonl_frame_cb, (void *) NONL_CANCEL);
+        AddOptionChoiceCB(nonl_load_item, do_nonl_toggle, (void *) nonl_fload_rc);
 
 	XtManageChild(rc3);
+
+
+	XtManageChild(rc);
+
+        XtVaSetValues(fr,
+                      XmNtopAttachment, XmATTACH_WIDGET,
+                      XmNtopWidget, nonl_set_item->form,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      NULL);
+                      
+	fr3 = CreateFrame(nonl_panel, NULL);
+
+	CreateAACButtons(fr3, nonl_panel, do_nonl_proc);
+
 	XtVaSetValues(fr3,
 	              XmNtopAttachment, XmATTACH_WIDGET,
                       XmNtopWidget, fr,
@@ -290,10 +313,9 @@ void create_nonl_frame(void *data)
     unset_wait_cursor();
 }
 
-void do_nparm_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_nparm_toggle(int value, void *data)
 {
     int i;
-    int value = (int) client_data;
     for (i = 0; i < MAXPARM; i++) {
         if (i < value) {
             if (!XtIsManaged (nonl_parm_item[i])) {
@@ -335,7 +357,7 @@ void update_nonl_frame(void)
         xv_setstr(nonl_formula_item, nonl_opts.formula);
         sprintf(buf, "%g", nonl_opts.tolerance);
         xv_setstr(nonl_tol_item, buf);
-        SetChoice(nonl_nparm_item, nonl_opts.parnum);
+        SetOptionChoice(nonl_nparm_item, nonl_opts.parnum);
         for (i = 0; i < MAXPARM; i++) {
             sprintf(buf, "%g", nonl_parms[i].value);
             xv_setstr(nonl_value_item[i], buf);
@@ -358,15 +380,18 @@ void update_nonl_frame(void)
         }
         
         SetToggleButtonState(nonl_autol_item, nonl_prefs.autoload);
-        for (i = 0; i < 3; i++) {
-	    SetToggleButtonState(nonl_load_item[i], FALSE);
-        }
-        SetToggleButtonState(nonl_load_item[nonl_prefs.load], TRUE);
+        SetOptionChoice(nonl_load_item, nonl_prefs.load);
         
         if (nonl_prefs.load == LOAD_FUNCTION) {
             XtSetSensitive(nonl_fload_rc, True);
         } else {
             XtSetSensitive(nonl_fload_rc, False);
+        }
+
+        if (GetOptionChoice(nonl_weigh_item) == WEIGHT_CUSTOM) {
+            XtSetSensitive(XtParent(nonl_wfunc_item), True);
+        } else {
+            XtSetSensitive(XtParent(nonl_wfunc_item), False);
         }
         
         sprintf(buf, "%g", nonl_prefs.start);
@@ -379,22 +404,25 @@ void update_nonl_frame(void)
 
 }
 
-static void do_nonl_toggle(int onoff, void *data)
+static void nonl_wf_cb(int value, void *data)
 {
+    Widget rc = XtParent((Widget) data);
     
-    int i;
-    int value = (int) data;
-    for (i = 0; i < 3; i++) {
-	if (i != value) {
-            SetToggleButtonState(nonl_load_item[i], FALSE);
-	} else {
-            SetToggleButtonState(nonl_load_item[i], TRUE);
-	}
-    }
-    if (value == LOAD_FUNCTION) {
-    	XtSetSensitive(nonl_fload_rc, True);
+    if (value == WEIGHT_CUSTOM) {
+    	XtSetSensitive(rc, True);
     } else {
-    	XtSetSensitive(nonl_fload_rc, False);
+    	XtSetSensitive(rc, False);
+    }
+}
+
+static void do_nonl_toggle(int value, void *data)
+{
+    Widget rc = (Widget) data;
+    
+    if (value == LOAD_FUNCTION) {
+    	XtSetSensitive(rc, True);
+    } else {
+    	XtSetSensitive(rc, False);
     }
 }
 
@@ -415,22 +443,43 @@ static void do_constr_toggle(int onoff, void *data)
 /* ARGSUSED */
 static void do_nonl_proc(void *data)
 {
-    int i, npts = 0, info;
-    double delx, *xfit, *y, *yfit;
-    int nsteps = (int) data;
-    int cg = get_cg();
+    int aac_mode;
+    int i;
+    int nsteps;
+    int src_gno, src_setno;
+    int resno;
+    char *fstr;
+    int nlen, wlen;
+    double *ytmp, *warray;
+    int restr_type, restr_negate;
+    char *rarray;
+    
+    aac_mode = (int) data;
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(nonl_frame);
+        return;
+    }
     
     set_wait_cursor();
-    nlsetno = GetSelectedSet(nonl_set_item);
-    if (nlsetno == SET_SELECT_ERROR) {
-    	errmsg("No set selected");
-    	unset_wait_cursor();
+
+    if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
+        GRACE_EXIT_SUCCESS) {
+    	errmsg("No source graph selected");
+	unset_wait_cursor();
+    	return;
+    }
+    if (GetSingleListChoice(nonl_set_item->src->set_sel, &src_setno) !=
+        GRACE_EXIT_SUCCESS) {
+    	errmsg("No source set selected");
+	unset_wait_cursor();
     	return;
     }
     
-    nonl_opts.tolerance = atof(xv_getstr(nonl_tol_item));
-    nonl_opts.parnum = GetChoice(nonl_nparm_item);
     strcpy(nonl_opts.formula, xv_getstr(nonl_formula_item));
+    nsteps = (int) GetSpinChoice(nonl_nsteps_item);
+    nonl_opts.tolerance = atof(xv_getstr(nonl_tol_item));
+    
+    nonl_opts.parnum = GetOptionChoice(nonl_nparm_item);
     for (i = 0; i < nonl_opts.parnum; i++) {
 	strcpy(buf, xv_getstr(nonl_value_item[i]));
 	if (sscanf(buf, "%lf", &nonl_parms[i].value) != 1) {
@@ -461,53 +510,90 @@ static void do_nonl_proc(void *data)
 	}
     }
     
-    nonl_prefs.autoload = GetToggleButtonState(nonl_autol_item);
-    for (i = 0; i < 3; i++) {
-        if (GetToggleButtonState(nonl_load_item[i])) {
-            nonl_prefs.load = i;
+    if (nsteps) {
+        /* apply weigh function */
+    	nlen = getsetlength(src_gno, src_setno);
+	switch (GetOptionChoice(nonl_weigh_item)) {
+        case WEIGHT_Y:
+            ytmp = getcol(src_gno, src_setno, DATA_Y);
+            warray = malloc(nlen*SIZEOF_DOUBLE);
+            if (warray == NULL) {
+	        errmsg("malloc failed in do_nonl_proc()");
+                unset_wait_cursor();
+                return;
+            }
+            for (i = 0; i < nlen; i++) {
+                if (ytmp[i] == 0.0) {
+	            errmsg("Divide by zero while calculating weights");
+                    unset_wait_cursor();
+                    return;
+                }
+                warray[i] = 1/ytmp[i];
+            }
+            break;
+        case WEIGHT_DY:
+            ytmp = getcol(src_gno, src_setno, DATA_Y1);
+            if (ytmp == NULL) {
+	        errmsg("The set doesn't have dY data column");
+                unset_wait_cursor();
+                return;
+            }
+            warray = malloc(nlen*SIZEOF_DOUBLE);
+            if (warray == NULL) {
+	        errmsg("malloc failed in do_nonl_proc()");
+                unset_wait_cursor();
+            }
+            for (i = 0; i < nlen; i++) {
+                if (ytmp[i] == 0.0) {
+	            errmsg("Divide by zero while calculating weights");
+                    unset_wait_cursor();
+                    return;
+                }
+                warray[i] = 1/ytmp[i];
+            }
+            break;
+        case WEIGHT_CUSTOM:
+            if (set_parser_setno(src_gno, src_setno) != GRACE_EXIT_SUCCESS) {
+                errmsg("Bad set");
+                unset_wait_cursor();
+                return;
+            }
+            
+            fstr = xv_getstr(nonl_wfunc_item);
+            if (v_scanner(fstr, &wlen, &warray) != GRACE_EXIT_SUCCESS) {
+                errmsg("Error evaluating expression for weights");
+                unset_wait_cursor();
+                return;
+            }
+            if (wlen != nlen) {
+                errmsg("The array of weights has different length");
+                xfree(warray);
+                unset_wait_cursor();
+                return;
+            }
+            break;
+        default:
+            warray = NULL;
             break;
         }
-    }
-    
-    if (nonl_prefs.load == LOAD_FUNCTION) {
-		if( xv_evalexpr(nonl_start_item, &nonl_prefs.start) != 
-													GRACE_EXIT_SUCCESS) {
-			errmsg("Invalid input in start field");
-	    	unset_wait_cursor();
-	    	return;
-		}
-		if( xv_evalexpr(nonl_stop_item, &nonl_prefs.stop) != 
-													GRACE_EXIT_SUCCESS) {
-			errmsg("Invalid input in start field");
-	    	unset_wait_cursor();
-	    	return;
-		}
-		if( xv_evalexpri(nonl_npts_item, &nonl_prefs.npoints) != 
-													GRACE_EXIT_SUCCESS) {
-			errmsg("Invalid input in start field");
-	    	unset_wait_cursor();
-	    	return;
-		}
-    }
-    
-    if (nsteps) { /* we are asked to fit */
-    	sprintf(buf, "Fitting with formula: %s\n", nonl_opts.formula);
-    	stufftext(buf, 0);
-    	sprintf(buf, "Initial guesses:\n");
-    	stufftext(buf, 0);
-    	for (i = 0; i < nonl_opts.parnum; i++) {
-	    sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
-	    stufftext(buf, 0);
-    	}
-    	sprintf(buf, "Tolerance = %g\n", nonl_opts.tolerance);
-    	stufftext(buf, 0);
 
-/*
- * The fit itself!
- */    	
+        /* apply restriction */
+        restr_type = GetOptionChoice(restr_item->r_sel);
+        restr_negate = GetToggleButtonState(restr_item->negate);
+        resno = get_restriction_array(src_gno, src_setno,
+            restr_type, restr_negate, &rarray);
+	if (resno != GRACE_EXIT_SUCCESS) {
+	    errmsg("Error in restriction evaluation");
+	    unset_wait_cursor();
+	    xfree(warray);
+            return;
+	}
 
-    	info = do_nonlfit(cg, nlsetno, nsteps);
-    	if (info == -1) {
+        /* The fit itself! */
+    	resno = do_nonlfit(src_gno, src_setno, warray, rarray, nsteps);
+	xfree(warray);
+	xfree(rarray);
+    	if (resno != GRACE_EXIT_SUCCESS) {
 	    errmsg("Fatal error in do_nonlfit()");  
 	    unset_wait_cursor();
 	    return;  	
@@ -517,142 +603,130 @@ static void do_nonl_proc(void *data)
 	    sprintf(buf, "%g", nonl_parms[i].value);
 	    xv_setstr(nonl_value_item[i], buf);
     	}
-
-    	if ((info > 0 && info < 4) || (info == 5)) {
-	    sprintf(buf, "Computed values:\n");
-	    stufftext(buf, 0);
-	    for (i = 0; i < nonl_opts.parnum; i++) {
-		sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
-		stufftext(buf, 0);
-	    }
-    	}
-
-
-    	if (info >= 0 && info <= 7) {
-    	    char *s;
-    	    switch (info) {
-    	    case 0:
-    		s = "Improper input parameters.\n";
-    		break;
-    	    case 1:
-    		s = "Relative error in the sum of squares is at most tol.\n";
-    		break;
-    	    case 2:
-    		s = "Relative error between A and the solution is at most tol.\n";
-    		break;
-    	    case 3:
-    		s = "Relative error in the sum of squares and A and the solution is at most tol.\n";
-    		break;
-    	    case 4:
-    		s = "Fvec is orthogonal to the columns of the jacobian to machine precision.\n";
-    		break;
-    	    case 5:
-    		s = "\n";
-    		break;
-    	    case 6:
-    		s = "Tol is too small. No further reduction in the sum of squares is possible.\n";
-    		break;
-    	    case 7:
-    		s = "Tol is too small. No further improvement in the approximate solution A is possible.\n";
-    		break;
-    	    default:
-    		s = "\n";
-    		errmsg("Internal error in do_nonl_proc(), please report");
-    		break;
-    	    }
-    	    stufftext(s, 0);
-    	    stufftext("\n", 0);
-    	}
-    } /* endif (nsteps) */
+    }
 
 /*
  * Select & activate a set to load results to
  */    
-    if (!nsteps || nonl_prefs.autoload) {
-    	/* check if the set is already allocated */
-    	if ((nlloadset == -1) || (nlloadset == nlsetno) || !getsetlength(cg, nlloadset)) {
-    	    nlloadset = nextset(cg);
-    	    if (nlloadset == -1) {
-    	      errmsg("No more sets!");
-    	      unset_wait_cursor();
-    	      return;
-    	    } else {
-    		activateset(cg, nlloadset);
-    		setlength(cg, nlloadset, 1);
-    	    }
-    	}
-    	    	
-    	switch (nonl_prefs.load) {
-    	case LOAD_VALUES:
-    	  sprintf(buf, "Evaluating fitted values and loading result to set %d:\n", nlloadset);
-    	  stufftext(buf, 0);
-    	  npts = getsetlength(cg, nlsetno);
-    	  setlength(cg, nlloadset, npts);
-    	  copycol2(cg, nlsetno, cg, nlloadset, 0);
-    	  break;
-    	case LOAD_RESIDUALS:
-    	  sprintf(buf, "Evaluating fitted values and loading residuals to set %d:\n", nlloadset);
-    	  stufftext(buf, 0);
-    	  npts = getsetlength(cg, nlsetno);
-    	  setlength(cg, nlloadset, npts);
-    	  copycol2(cg, nlsetno, cg, nlloadset, 0);
-    	  break;
-    	case LOAD_FUNCTION:
-    	  sprintf(buf, "Computing fitting function and loading result to set %d:\n", nlloadset);
-    	  stufftext(buf, 0);
-    	  
-    	  npts  = nonl_prefs.npoints;
-    	  if (npts <= 1) {
-    	      errmsg("Number of points must be > 1");
-    	      unset_wait_cursor();
-    	      return;
-    	  }
-    	  
-    	  setlength(cg, nlloadset, npts);
-    	  
-    	  delx = (nonl_prefs.stop - nonl_prefs.start)/(npts - 1);
-    	  xfit = getx(cg, nlloadset);
-	  for (i = 0; i < npts; i++) {
-	      xfit[i] = nonl_prefs.start + i * delx;
-	  }
-    	  break;
-    	}
-    	
-    	setcomment(cg, nlloadset, nonl_opts.formula);
-    	
-    	do_compute(cg, nlloadset, cg, nlloadset, NULL, nonl_opts.formula);
-    	
-    	if (nonl_prefs.load == LOAD_RESIDUALS) { /* load residuals */
-    	    y = gety(cg, nlsetno);
-    	    yfit = gety(cg, nlloadset);
-    	    for (i = 0; i < npts; i++) {
-	      yfit[i] -= y[i];
-	    }
-    	}
-    	
-    	update_set_lists(cg);
-    	drawgraph();
+    load_nonl_fit(src_gno, src_setno, FALSE);
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(nonl_frame);
     }
+    
     unset_wait_cursor();
 }
 
-static void destroy_nonl_frame_cb(void *data)
+static void load_nonl_fit_cb(void *data)
 {
-    int value = (int) data;
+    int src_gno, src_setno;
     
-    if (value == NONL_CANCEL) {
-    	if (nlloadset != -1) {
-	    killset(get_cg(), nlloadset);
+    if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
+        GRACE_EXIT_SUCCESS) {
+    	errmsg("No source graph selected");
+    	return;
+    }
+    if (GetSingleListChoice(nonl_set_item->src->set_sel, &src_setno) !=
+        GRACE_EXIT_SUCCESS) {
+    	errmsg("No source set selected");
+    	return;
+    }
+    load_nonl_fit(src_gno, src_setno, TRUE);
+}
+
+static int load_nonl_fit(int src_gno, int src_setno, int force)
+{
+    int dest_gno, dest_setno;
+    int i, npts = 0;
+    double delx, *xfit, *y, *yfit;
+    
+    if (GetSingleListChoice(nonl_set_item->dest->graph_sel, &dest_gno) !=
+        GRACE_EXIT_SUCCESS) {
+    	errmsg("No destination graph selected");
+	return GRACE_EXIT_FAILURE;
+    }
+    if (GetSingleListChoice(nonl_set_item->dest->set_sel, &dest_setno) !=
+        GRACE_EXIT_SUCCESS) {
+    	/* no dest sel selected; allocate new one */
+    	dest_setno = nextset(dest_gno);
+    	if (dest_setno == -1) {
+    	    errmsg("Can't allocate a new set!");
+	    return GRACE_EXIT_FAILURE;
+    	} else {
+    	    activateset(dest_gno, dest_setno);
     	}
-	update_all();
+    }
+
+    nonl_prefs.autoload = GetToggleButtonState(nonl_autol_item);
+    nonl_prefs.load = GetOptionChoice(nonl_load_item);
+    
+    if (nonl_prefs.load == LOAD_FUNCTION) {
+	if (xv_evalexpr(nonl_start_item, &nonl_prefs.start) != GRACE_EXIT_SUCCESS) {
+	    errmsg("Invalid input in start field");
+	    return GRACE_EXIT_FAILURE;
+	}
+	if (xv_evalexpr(nonl_stop_item, &nonl_prefs.stop) != GRACE_EXIT_SUCCESS) {
+	    errmsg("Invalid input in start field");
+	    return GRACE_EXIT_FAILURE;
+	}
+	if (xv_evalexpri(nonl_npts_item, &nonl_prefs.npoints) != GRACE_EXIT_SUCCESS) {
+	    errmsg("Invalid input in start field");
+	    return GRACE_EXIT_FAILURE;
+	}
+    	if (nonl_prefs.npoints <= 1) {
+    	    errmsg("Number of points must be > 1");
+	    return GRACE_EXIT_FAILURE;
+    	}
+    }
+    
+    if (force || nonl_prefs.autoload) {
+    	switch (nonl_prefs.load) {
+    	case LOAD_VALUES:
+    	case LOAD_RESIDUALS:
+    	    npts = getsetlength(src_gno, src_setno);
+    	    setlength(dest_gno, dest_setno, npts);
+    	    copycol2(src_gno, src_setno, dest_gno, dest_setno, DATA_X);
+    	    break;
+    	case LOAD_FUNCTION:
+    	    npts  = nonl_prefs.npoints;
+ 
+    	    setlength(dest_gno, dest_setno, npts);
+ 
+    	    delx = (nonl_prefs.stop - nonl_prefs.start)/(npts - 1);
+    	    xfit = getx(dest_gno, dest_setno);
+	    for (i = 0; i < npts; i++) {
+	        xfit[i] = nonl_prefs.start + i * delx;
+	    }
+    	    break;
+    	}
+    	
+    	setcomment(dest_gno, dest_setno, nonl_opts.formula);
+    	
+    	do_compute(dest_gno, dest_setno, dest_gno, dest_setno, NULL, nonl_opts.formula);
+    	
+    	if (nonl_prefs.load == LOAD_RESIDUALS) { /* load residuals */
+    	    y = gety(src_gno, src_setno);
+    	    yfit = gety(dest_gno, dest_setno);
+    	    for (i = 0; i < npts; i++) {
+	        yfit[i] -= y[i];
+	    }
+    	}
+    	
+    	update_set_lists(dest_gno);
+        SelectListChoice(nonl_set_item->dest->set_sel, dest_setno);
     	drawgraph();
     }
     
-    nlloadset = -1;
+    return GRACE_EXIT_SUCCESS;
+}
+
+
+static void destroy_nonl_frame_cb(void *data)
+{
     XtUnmanageChild(nonl_frame);
 }
 
-void create_openfit_popup(void *data)
+static void create_openfit_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
 
@@ -679,7 +753,7 @@ static int do_openfit_proc(char *filename, void *data)
 }
 
 
-void create_savefit_popup(void *data)
+static void create_savefit_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
     static Widget title_item = NULL;
