@@ -527,14 +527,14 @@ void draw_titles(int gno)
     vp1.x = (v.xv2 + v.xv1) / 2;
     vp1.y = (v.yv2 < v.yv1)? v.yv1 : v.yv2;
     vp2 = vp1;
-    if (lab.title.s[0]) {
+    if (lab.title.s && lab.title.s[0]) {
         setcolor(lab.title.color);
         setcharsize(lab.title.charsize);
         setfont(lab.title.font);
         vp1.y += 0.06;
         WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM|JUST_BBOX, lab.title.s);
     }
-    if (lab.stitle.s[0]) {
+    if (lab.stitle.s && lab.stitle.s[0]) {
         setcolor(lab.stitle.color);
         setcharsize(lab.stitle.charsize);
         setfont(lab.stitle.font);

@@ -612,7 +612,7 @@ void drawaxes(int gno)
 	vp_label_offset.x = 0.00; /* parallel */
 	vp_label_offset.y = 0.08; /* perpendicular */
 
-	if (t.label.s[0]) {
+	if (t.label.s && t.label.s[0]) {
 	    
 	    if (t.label_place == TYPE_SPEC) {
 	        vp_label_offset.x = t.label.x;
