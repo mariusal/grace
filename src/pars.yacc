@@ -340,6 +340,7 @@ symtab_entry *key;
 %token <pset> MONTHSY
 %token <pset> MOVE
 %token <pset> NEGATE
+%token <pset> NEW
 %token <pset> NONE
 %token <pset> NONLFIT
 %token <pset> NORMAL
@@ -2483,8 +2484,9 @@ actions:
         }
 	| KILL SETS SAVEALL {
 	    int i;
-	    for (i = 0; i < g[get_cg()].maxplot; i++) {
-		killsetdata(get_cg(), i);
+            int cg = get_cg();
+	    for (i = 0; i < number_of_sets(cg); i++) {
+		killsetdata(cg, i);
 	    }
 	}
 	| KILL GRAPHNO {
@@ -2667,6 +2669,17 @@ actions:
         | SAVEALL CHRSTR {
             save_project((char *) $2);
             free((char *) $2);
+        }
+        | LOAD CHRSTR {
+            load_project((char *) $2);
+            free((char *) $2);
+        }
+        | NEW {
+            new_project(NULL);
+        }
+        | NEW FROM CHRSTR {
+            new_project((char *) $3);
+            free((char *) $3);
         }
 	| PUSH {
 	    push_world();
@@ -4011,6 +4024,7 @@ symtab_entry ikey[] = {
 	{"NDTRI", FUNC_D, ndtri},
 	{"NE", NE, NULL},
 	{"NEGATE", NEGATE, NULL},
+	{"NEW", NEW, NULL},
 	{"NONE", NONE, NULL},
 	{"NONLFIT", NONLFIT, NULL},
 	{"NORM", FUNC_D, fx},
