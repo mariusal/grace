@@ -30,6 +30,12 @@
          colors defined
  *  [ES] fonttool might crash on fonts with an invalid FontBBox entry
          (rep. #1202)
+ *  [ES] some font glyphs might not fit in the fonttool matrix cells,
+         especially on low-resolution displays
+ *  [ES] canvas wasn't refreshed after a region started to be re-defined
+         (rep. #1211)
+ *  [ES] provided workaround for a PDFlib bug, resulting, in rare cases,
+         in wrong colorspace settings in the PDF output (rep. #1209)
 
 
 <H2>5.1.9</H2>
