@@ -1077,8 +1077,7 @@ SelectSingle(XtPointer client_data, XtIntervalId * idp)
     else {
       HighlightAll(w, False, True);
       HighlightItem(w, w->list.timer_item, True, True);
-      if (w->list.timer_type != TIMER_CLEAR && w->list.DoIncrementalHighlightCallback)
-        HighlightDoCallback(w);
+      HighlightDoCallback(w);
       w->list.timer_type = TIMER_SINGLE;
     }
   }
@@ -1131,7 +1130,7 @@ extend_select_start(Widget aw, XEvent *event, String *params, Cardinal *num_para
   w->list.timer_type = TIMER_WAITING;
   w->list.timer_item = GetItem(w, event->xbutton.y);
   w->list.timer_id = (XtIntervalId) 0;
-  HighlightItem(w, w->list.timer_item, True, True);
+  HighlightItem(w, w->list.timer_item, !w->list.timer_item->highlighted, True);
   if (w->list.timer_type != TIMER_CLEAR &&
       w->list.DoIncrementalHighlightCallback)
     HighlightDoCallback(w);
