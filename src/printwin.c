@@ -212,15 +212,19 @@ void create_printer_setup(void *data)
         fr = CreateFrame(psetup_rc, "Fonts & Colors");
         rc1 = CreateVContainer(fr);
 
-        option_items = xmalloc(3*sizeof(OptionItem));
+        option_items = xmalloc(5*sizeof(OptionItem));
         option_items[0].value = FONT_RASTER_DEVICE;
         option_items[0].label = "Device";
         option_items[1].value = FONT_RASTER_MONO;
         option_items[1].label = "Mono";
-        option_items[2].value = FONT_RASTER_AA;
-        option_items[2].label = "Antialiasing";
+        option_items[2].value = FONT_RASTER_AA_LOW;
+        option_items[2].label = "AA-low";
+        option_items[3].value = FONT_RASTER_AA_HIGH;
+        option_items[3].label = "AA-high";
+        option_items[4].value = FONT_RASTER_AA_SMART;
+        option_items[4].label = "AA-smart";
 	fontrast_item = CreateOptionChoice(rc1,
-            "Font rastering:", 1, 3, option_items);
+            "Font rastering:", 1, 5, option_items);
         xfree(option_items);
 
         option_items = xmalloc(6*sizeof(OptionItem));

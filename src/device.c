@@ -86,7 +86,7 @@ int device_set_procs(Device_entry *d,
     if (d->puttext) {
         d->fontrast = FONT_RASTER_DEVICE;
     } else {
-        d->fontrast = FONT_RASTER_AA;
+        d->fontrast = FONT_RASTER_AA_LOW;
     }
     
     return RETURN_SUCCESS;

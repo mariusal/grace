@@ -411,8 +411,8 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
-GLYPH *GetGlyphString(Canvas *canvas,
-    CompositeString *cs, double dpv, int fontaa)
+static GLYPH *GetGlyphString(Canvas *canvas,
+    CompositeString *cs, double dpv, FontRaster fontrast)
 {
     int i;
     
@@ -424,8 +424,10 @@ GLYPH *GetGlyphString(Canvas *canvas,
     
     GLYPH *glyph;
     
-    static int aacolors[T1_AALEVELS];
-    unsigned int fg, bg;
+    static unsigned long aacolors_low[T1_AALEVELS_LOW],
+                         aacolors_high[T1_AALEVELS_HIGH];
+    int mono, t1aa;
+    unsigned long fg, bg;
     static unsigned long last_bg = 0, last_fg = 0;
 
     int modflag;
@@ -463,12 +465,32 @@ GLYPH *GetGlyphString(Canvas *canvas,
         matrixP = &matrix;
     }
 
-    if (fontaa == TRUE) {
+    t1aa = T1_AA_LOW;
+    mono = FALSE;
+    switch (fontrast) {
+    case FONT_RASTER_DEVICE:
+        mono = TRUE;
+        break;
+    case FONT_RASTER_MONO:
+        mono = TRUE;
+        break;
+    case FONT_RASTER_AA_HIGH:
+        t1aa = T1_AA_HIGH;
+        break;
+    case FONT_RASTER_AA_SMART:
+        if (Size < 18.0) {
+            t1aa = T1_AA_HIGH;
+        } else
+        if (Size > 72.0) {
+            mono = TRUE;
+        }
+        break;
+    default:
+        break;
+    }
+    if (mono != TRUE) {
     	fg = cs->color;
     	bg = getbgcolor(canvas);
-
-    	aacolors[0] = bg;
-    	aacolors[T1_AALEVELS - 1] = fg;
 
     	if ((fg != last_fg) || (bg != last_bg)) {
     	    Color *cp;
@@ -485,30 +507,49 @@ GLYPH *GetGlyphString(Canvas *canvas,
     	    }
             bg_rgb = cp->rgb;
  
-    	    delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)   / (T1_AALEVELS - 1);
-    	    delta_rgb.green = (fg_rgb.green - bg_rgb.green) / (T1_AALEVELS - 1);
-    	    delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue)  / (T1_AALEVELS - 1);
- 
-    	    for (i = 1; i < T1_AALEVELS - 1; i++) {
-    		color.rgb.red   = bg_rgb.red + i*delta_rgb.red;
-    		color.rgb.green = bg_rgb.green + i*delta_rgb.green;
-    		color.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
-    		color.cname = "";
-    		color.ctype = COLOR_AUX;
-    		aacolors[i] = add_color(canvas, &color);
-    	    }
- 
-    	    last_fg = fg;
-    	    last_bg = bg;
-    	}
- 
-    	/* Set the colors for Anti-Aliasing */
-    	T1_AASetGrayValues(aacolors[0],
-    			   aacolors[1],
-    			   aacolors[2],
-    			   aacolors[3],
-    			   aacolors[4]);
+            /* Set the colors for Anti-Aliasing */
+    	    if (t1aa == FONT_RASTER_AA_LOW) {
+                delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)  /(T1_AALEVELS_LOW - 1);
+    	        delta_rgb.green = (fg_rgb.green - bg_rgb.green)/(T1_AALEVELS_LOW - 1);
+    	        delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue) /(T1_AALEVELS_LOW - 1);
+    	        for (i = 1; i < T1_AALEVELS_LOW - 1; i++) {
+    		    color.rgb.red   = bg_rgb.red + i*delta_rgb.red;
+    		    color.rgb.green = bg_rgb.green + i*delta_rgb.green;
+    		    color.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
+    		    color.cname = "";
+    		    color.ctype = COLOR_AUX;
+    		    aacolors_low[i] = add_color(canvas, &color);
+    	        }
+    	        aacolors_low[0] = bg;
+    	        aacolors_low[T1_AALEVELS_LOW - 1] = fg;
+    	        
+                T1_AASetGrayValues(aacolors_low[0],
+    			           aacolors_low[1],
+    			           aacolors_low[2],
+    			           aacolors_low[3],
+    			           aacolors_low[4]);
+            } else {
+    	        delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)  /(T1_AALEVELS_HIGH - 1);
+    	        delta_rgb.green = (fg_rgb.green - bg_rgb.green)/(T1_AALEVELS_HIGH - 1);
+    	        delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue) /(T1_AALEVELS_HIGH - 1);
+    	        for (i = 1; i < T1_AALEVELS_HIGH - 1; i++) {
+    		    color.rgb.red   = bg_rgb.red + i*delta_rgb.red;
+    		    color.rgb.green = bg_rgb.green + i*delta_rgb.green;
+    		    color.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
+    		    color.cname = "";
+    		    color.ctype = COLOR_AUX;
+    		    aacolors_high[i] = add_color(canvas, &color);
+    	        }
+    	        aacolors_high[0] = bg;
+    	        aacolors_high[T1_AALEVELS_HIGH - 1] = fg;
 
+    	        last_fg = fg;
+    	        last_bg = bg;
+    	    
+    	        T1_AAHSetGrayValues(aacolors_high);
+            }
+    	}
+        T1_AASetLevel(t1aa);
     	glyph = T1_AASetString(FontID, cs->s, len,
     				   Space, modflag, Size, matrixP);
     } else {
@@ -1114,7 +1155,7 @@ static int postprocess_cs(Canvas *canvas,
         gotomark = cs->gotomark;
         setmark = cs->setmark;
 
-        glyph = GetGlyphString(canvas, cs, dpv, fontrast == FONT_RASTER_AA);
+        glyph = GetGlyphString(canvas, cs, dpv, fontrast);
         if (glyph != NULL) {
             VPoint hvpshift, vvpshift;
 

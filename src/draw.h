@@ -92,7 +92,8 @@
 #define T1_DEFAULT_ENCODING_FILE  "Default.enc"
 #define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
-#define T1_AALEVELS 5
+#define T1_AALEVELS_LOW   5
+#define T1_AALEVELS_HIGH 17
 
 
 #define BAD_FONT_ID     -1
@@ -367,7 +368,9 @@ typedef enum {
 typedef enum {
     FONT_RASTER_DEVICE,
     FONT_RASTER_MONO,
-    FONT_RASTER_AA
+    FONT_RASTER_AA_LOW,
+    FONT_RASTER_AA_HIGH,
+    FONT_RASTER_AA_SMART
 } FontRaster;
 
 typedef struct {
