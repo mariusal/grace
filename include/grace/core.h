@@ -755,6 +755,8 @@ typedef struct _AText {
     Pen fillpen;
     int arrow_flag;
     Arrow arrow;
+    
+    view bb;
 } AText;
 
 
