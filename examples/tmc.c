@@ -14,8 +14,10 @@ int main(int argc, char **argv)
     double t;
 
     printf("@focus off\n"); 		    /* turn of the focus markers (annoying) */
+    printf("@g0 on\n");                     /* Activate graph 0 */
     printf("@with g0\n");                   /* reset the current graph to graph 0 */
     printf("@view 0.1, 0.1, 0.9, 0.4\n");   /* set the viewport for this graph */
+    printf("@g1 on\n");                     /* Activate graph 1 */
     printf("@with g1\n");		    /* reset the current graph to graph 1 */
     printf("@view 0.1, 0.5, 0.9, 0.9\n");   /* set the viewport for graph 1 */
     printf("@subtitle \"Spectrum\"\n");     /* set the subtitle */
