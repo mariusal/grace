@@ -333,6 +333,7 @@ int xlibinitgraphics(const Canvas *canvas, void *data,
     xlibupdatecmap(canvas, data);
     
     XSetForeground(disp, gc, xvlibcolors[0]);
+    XSetFillStyle(disp, gc, FillSolid);
     XFillRectangle(disp, displaybuff, gc, 0, 0, win_w, win_h);
     XSetForeground(disp, gc, xvlibcolors[1]);
     
