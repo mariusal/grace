@@ -193,7 +193,7 @@ void set_default_ellipse(ellipsetype * e)
 
 void set_default_legend(int gno, legend * l)
 {
-    l->active = FALSE;
+    l->active = TRUE;
     l->loctype = COORD_VIEW;
     l->vgap = 1;
     l->hgap = 1;
