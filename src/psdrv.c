@@ -128,7 +128,7 @@ static int ps_initgraphics(int format)
     int i, j;
     Page_geometry pg;
     fRGB *frgb;
-    int page_offset_x, page_offset_y;
+    int width_pp, height_pp, page_offset_x, page_offset_y;
     
     time_t time_value;
     
@@ -194,22 +194,20 @@ static int ps_initgraphics(int format)
         return GRACE_EXIT_FAILURE;
     }
     
+    if (page_orientation == PAGE_ORIENT_PORTRAIT) {
+        width_pp  = (int) rint(72.0*pg.width/pg.dpi);
+        height_pp = (int) rint(72.0*pg.height/pg.dpi);
+    } else {
+        width_pp  = (int) rint(72.0*pg.height/pg.dpi);
+        height_pp = (int) rint(72.0*pg.width/pg.dpi);
+    }
+    
     if (tight_bb == TRUE) {
         fprintf(prstream, "%%%%BoundingBox: (atend)\n");
     } else {
-        if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-            fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
-                page_offset_x,
-                page_offset_y,
-                (int) (72.0*pg.height/pg.dpi) + page_offset_x,
-                (int) (72.0*pg.width/pg.dpi)  + page_offset_y);
-        } else {
-            fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
-                page_offset_x,
-                page_offset_y,
-                (int) (72.0*pg.width/pg.dpi)  + page_offset_x,
-                (int) (72.0*pg.height/pg.dpi) + page_offset_y);
-        }
+        fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
+            page_offset_x, page_offset_y,
+            width_pp + page_offset_x, height_pp + page_offset_y);
     }
     
     if (ps_level2 == TRUE) {
@@ -310,11 +308,19 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "%%%%EndProlog\n");
 
     fprintf(prstream, "%%%%BeginSetup\n");
+    /* page size */
+    if (ps_level2 == TRUE) {
+        fprintf(prstream, "%%%%BeginFeature: *PageSize\n");
+        fprintf(prstream, "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
+            width_pp, height_pp);
+        fprintf(prstream, "%%%%EndFeature\n");
+    }
+    
     /* compensate for printer page offsets */
     if (curformat == PS_FORMAT) {
         fprintf(prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
     }
-    fprintf(prstream, "%.4f %.4f scale\n", page_scalef, page_scalef);
+    fprintf(prstream, "%.2f %.2f scale\n", page_scalef, page_scalef);
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(prstream, "90 rotate\n");
         fprintf(prstream, "0.0 -1.0 translate\n");
