@@ -294,6 +294,7 @@ symtab_entry *key;
 %token <pset> HORIZI
 %token <pset> HORIZONTAL
 %token <pset> HORIZO
+%token <pset> ID
 %token <pset> IFILTER
 %token <pset> IN
 %token <pset> INCREMENT
@@ -709,13 +710,13 @@ expr:	NUMBER {
 	| LENGTH {
 	    $$ = getsetlength(get_cg(), curset);
 	}
-	| GRAPHNO '.' SETNUM '.' INDEX {
+	| GRAPHNO '.' SETNUM '.' ID {
 	    $$ = $3;
 	}
-	| SETNUM '.' INDEX {
+	| SETNUM '.' ID {
 	    $$ = $1;
 	}
-	| GRAPHNO '.' INDEX {
+	| GRAPHNO '.' ID {
 	    $$ = $1;
 	}
 	| CONSTANT
@@ -3968,6 +3969,7 @@ symtab_entry ikey[] = {
 	{"HYPOT", FUNC_DD, hypot},
 	{"I0E", FUNC_D, i0e},
 	{"I1E", FUNC_D, i1e},
+	{"ID", ID, NULL},
 	{"IFILTER", IFILTER, NULL},
 	{"IGAM", FUNC_DD, igam},
 	{"IGAMC", FUNC_DD, igamc},
@@ -4297,7 +4299,7 @@ void scanner(char *s, int len, int setno, int *errpos)
     char *seekpos;
     int i;
     
-    if (s == NULL) {
+    if (s == NULL || s[0] == '\0') {
         return;
     }
     
