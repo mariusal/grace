@@ -745,3 +745,31 @@ void define_arrange(int nrows, int ncols, int pack,
     }
     set_dirtystate();
 }
+
+void move_legend(int gno, VVector shift)
+{
+    double xtmp, ytmp;
+    legend l;
+
+    if (is_valid_gno(gno)) {
+        get_graph_legend(gno, &l);
+        if (l.loctype == COORD_VIEW) {
+            l.legx += shift.x;
+            l.legy += shift.y;
+        } else {
+            world2view(l.legx, l.legy, &xtmp, &ytmp);
+            xtmp += shift.x;
+            ytmp += shift.y;
+            view2world(xtmp, ytmp, &l.legx, &l.legy);
+        }
+        set_graph_legend(gno, &l);
+        set_dirtystate();
+    }
+}
+
+void move_timestamp(VVector shift)
+{
+    timestamp.x += shift.x;
+    timestamp.y += shift.y;
+    set_dirtystate();
+}

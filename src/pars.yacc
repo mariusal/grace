@@ -625,10 +625,10 @@ expr:	NUMBER {
 	    }
 	    switch ((int) $5) {
 	    case MINP:
-		$$ = vmin(ptr, g[get_cg()].p[$1].len);
+		$$ = vmin(ptr, getsetlength(get_cg(), $1));
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, g[get_cg()].p[$1].len);
+		$$ = vmax(ptr, getsetlength(get_cg(), $1));
 		break;
             case AVG:
 	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd);
@@ -649,10 +649,10 @@ expr:	NUMBER {
 	    }
 	    switch ((int) $7) {
 	    case MINP:
-		$$ = vmin(ptr, g[$1].p[$3].len);
+		$$ = vmin(ptr, getsetlength($1, $3));
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, g[$1].p[$3].len);
+		$$ = vmax(ptr, getsetlength($1, $3));
 		break;
             case AVG:
 		stasum(ptr, getsetlength($1, $3), &bar, &sd);
@@ -673,10 +673,10 @@ expr:	NUMBER {
 	    }
 	    switch ((int) $3) {
 	    case MINP:
-		$$ = vmin(ptr, g[get_cg()].p[curset].len);
+		$$ = vmin(ptr, getsetlength(get_cg(), curset));
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, g[get_cg()].p[curset].len);
+		$$ = vmax(ptr, getsetlength(get_cg(), curset));
 		break;
             case AVG:;
 		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd);
@@ -689,13 +689,13 @@ expr:	NUMBER {
 	    }
 	}
 	| GRAPHNO '.' SETNUM '.' LENGTH {
-	    $$ = g[$1].p[$3].len;
+	    $$ = getsetlength($1, $3);
 	}
 	| SETNUM '.' LENGTH {
-	    $$ = g[get_cg()].p[$1].len;
+	    $$ = getsetlength(get_cg(), $1);
 	}
 	| LENGTH {
-	    $$ = g[get_cg()].p[curset].len;
+	    $$ = getsetlength(get_cg(), curset);
 	}
 	| CONSTANT
 	{
@@ -2417,10 +2417,10 @@ actions:
 	    setlength($1, $3, (int) $5);
 	}
 	| SETNUM POINT expr ',' expr {
-	    add_point(get_cg(), $1, $3, $5, 0.0, 0.0, SET_XY);
+	    add_point(get_cg(), $1, $3, $5);
 	}
 	| GRAPHNO '.' SETNUM POINT expr ',' expr {
-	    add_point($1, $3, $5, $7, 0.0, 0.0, SET_XY);
+	    add_point($1, $3, $5, $7);
 	}
 
 	| SETNUM DROP NUMBER ',' NUMBER {

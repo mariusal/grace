@@ -73,10 +73,6 @@ static Cursor move_cursor;
 static Cursor text_cursor;
 static Cursor kill_cursor;
 static int cur_cursor = -1;
-static int waitcursoron = FALSE;
-
-int cursortype = 0;
-static int cursor_oldx = -1, cursor_oldy = -1;
 
 void DefineDialogCursor(Cursor c);
 void UndefineDialogCursor();
@@ -88,7 +84,6 @@ void set_wait_cursor()
     }
     
     DefineDialogCursor(wait_cursor);
-    waitcursoron = TRUE;
 }
 
 void unset_wait_cursor()
@@ -101,7 +96,6 @@ void unset_wait_cursor()
     if (cur_cursor >= 0) {
         set_cursor(cur_cursor);
     }
-    waitcursoron = FALSE;
 }
 
 void set_cursor(int c)
@@ -111,35 +105,7 @@ void set_cursor(int c)
     }
 
     XUndefineCursor(disp, xwin);
-    cur_cursor = -1;
-    switch (c) {
-    case 0:
-        XDefineCursor(disp, xwin, line_cursor);
-        cur_cursor = 0;
-        break;
-    case 1:
-        XDefineCursor(disp, xwin, find_cursor);
-        cur_cursor = 1;
-        break;
-    case 2:
-        XDefineCursor(disp, xwin, text_cursor);
-        cur_cursor = 2;
-        break;
-    case 3:
-        XDefineCursor(disp, xwin, kill_cursor);
-        cur_cursor = 3;
-        break;
-    case 4:
-        XDefineCursor(disp, xwin, move_cursor);
-        cur_cursor = 4;
-        break;
-    }
-    XFlush(disp);
-}
-
-void set_window_cursor(Window xwin, int c)
-{
-    XUndefineCursor(disp, xwin);
+    cur_cursor = c;
     switch (c) {
     case 0:
         XDefineCursor(disp, xwin, line_cursor);
@@ -156,8 +122,8 @@ void set_window_cursor(Window xwin, int c)
     case 4:
         XDefineCursor(disp, xwin, move_cursor);
         break;
-    case 5:
-        XDefineCursor(disp, xwin, wait_cursor);
+    default:
+        cur_cursor = -1;
         break;
     }
     XFlush(disp);
@@ -218,19 +184,29 @@ void draw_focus(int gno)
 }
 
 /*
- * rubber band line
+ * rubber band line (optionally erasing previous one)
  */
-void select_line(int x1, int y1, int x2, int y2)
+void select_line(int x1, int y1, int x2, int y2, int erase)
 {
+    static int x1_old, y1_old, x2_old, y2_old;
+
+    if (erase) {
+        XDrawLine(disp, xwin, gcxor, x1_old, y1_old, x2_old, y2_old);
+    }
+    x1_old = x1;
+    y1_old = y1;
+    x2_old = x2;
+    y2_old = y2;
     XDrawLine(disp, xwin, gcxor, x1, y1, x2, y2);
 }
 
 
 /*
- * draw an xor'ed box
+ * draw an xor'ed box (optionally erasing previous one)
  */
-void select_region(int x1, int y1, int x2, int y2)
+void select_region(int x1, int y1, int x2, int y2, int erase)
 {
+    static int x1_old, y1_old, dx_old, dy_old;
     int dx = x2 - x1;
     int dy = y2 - y1;
 
@@ -242,27 +218,57 @@ void select_region(int x1, int y1, int x2, int y2)
 	iswap(&y1, &y2);
 	dy = -dy;
     }
+    if (erase) {
+        XDrawRectangle(disp, xwin, gcxor, x1_old, y1_old, dx_old, dy_old);
+    }
+    x1_old = x1;
+    y1_old = y1;
+    dx_old = dx;
+    dy_old = dy;
     XDrawRectangle(disp, xwin, gcxor, x1, y1, dx, dy);
+}
+
+/*
+ * slide an xor'ed bbox shifted by shift_*, (optionally erasing previous one)
+ */
+void slide_region(view bb, int shift_x, int shift_y, int erase)
+{
+    int x1, x2;
+    int y1, y2;
+    VPoint vp;
+
+    vp.x = bb.xv1;
+    vp.y = bb.yv1;
+    xlibVPoint2dev(vp, &x1, &y1);
+    x1 += shift_x;
+    y1 += shift_y;
+    
+    vp.x = bb.xv2;
+    vp.y = bb.yv2;
+    xlibVPoint2dev(vp, &x2, &y2);
+    x2 += shift_x;
+    y2 += shift_y;
+    
+    select_region(x1, y1, x2, y2, erase);
 }
 
 
 /*
  * draw a crosshair cursor
  */
-void motion(XMotionEvent * e)
+void crosshair_motion(int x, int y)
 {
-    if (e->type != MotionNotify || cursortype == 0) {
-	return;
-    }
+    static int cursor_oldx = -1, cursor_oldy = -1;
+    
     /* Erase the previous crosshair */
     XDrawLine(disp, xwin, gcxor, 0, cursor_oldy, win_w, cursor_oldy);
     XDrawLine(disp, xwin, gcxor, cursor_oldx, 0, cursor_oldx, win_h);
 
     /* Draw the new crosshair */
-    cursor_oldx = e->x;
-    cursor_oldy = e->y;
-    XDrawLine(disp, xwin, gcxor, 0, cursor_oldy, win_w, cursor_oldy);
-    XDrawLine(disp, xwin, gcxor, cursor_oldx, 0, cursor_oldx, win_h);
+    XDrawLine(disp, xwin, gcxor, 0, y, win_w, y);
+    XDrawLine(disp, xwin, gcxor, x, 0, x, win_h);
+    cursor_oldx = x;
+    cursor_oldy = y;
 }
 
 
@@ -335,14 +341,11 @@ void expose_resize(Widget w, XtPointer client_data,
 }
 
 /* 
- * draw all active graphs, when graphs are drawn, draw the focus markers
+ * redraw all
  */
 void xdrawgraph(void)
 {
     if (inwin && (auto_redraw)) {
-	if (cursortype) {
-	    cursor_oldx = cursor_oldy = -1;
-	}
 	set_wait_cursor();
 	drawgraph();
 	unset_wait_cursor();
@@ -396,6 +399,25 @@ void switch_current_graph(int gno)
         update_all();
         set_graph_selectors(gno);
     }
+}
+
+/*
+ * for the goto point feature
+ */
+void setpointer(VPoint vp)
+{
+    int x, y;
+    
+    xlibVPoint2dev(vp, &x, &y);
+/*
+ *     getpoints(x, y);
+ */
+    XWarpPointer(disp, None, xwin, 0, None, win_w, win_h, x, y);
+}
+
+char *display_name(void)
+{
+    return DisplayString(disp);
 }
 
 /**********************************************************************

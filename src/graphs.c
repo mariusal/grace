@@ -182,7 +182,7 @@ int copy_graph(int from, int to)
     
     for (i = 0; i < g[from].maxplot; i++) {
 	for (j = 0; j < MAX_SET_COLS; j++) {
-	    g[to].p[i].ex[j] = NULL;
+	    g[to].p[i].data.ex[j] = NULL;
 	}
 	if (is_set_active(from, i)) {
 	    do_copyset(from, i, to, i);
@@ -1038,6 +1038,15 @@ int graph_world_stack_size(int gno)
 {
     if (is_valid_gno(gno) == TRUE) {
         return g[gno].ws_top;
+    } else {
+        return -1;
+    }
+}
+
+int get_world_stack_current(int gno)
+{
+    if (is_valid_gno(gno) == TRUE) {
+        return g[gno].curw;
     } else {
         return -1;
     }

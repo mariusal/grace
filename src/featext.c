@@ -396,7 +396,7 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 				break;
 		}
 		if( !extract_err )
-			add_point( gto, ns, abscissa[i], datum, 0, 0, SET_XY );
+			add_point( gto, ns, abscissa[i], datum);
 		cs++;
 	}
 

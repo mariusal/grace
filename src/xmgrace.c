@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -86,6 +86,7 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
+#include "events.h"
 #include "protos.h"
 
 #include "motifinc.h"
@@ -154,19 +155,6 @@ static int locbar_visible = 1;
 
 static Widget windowbarw[3];
 
-/* action routines */
-void autoscale( Widget, XKeyEvent *, String *, Cardinal * );
-void autoscale_on_near( Widget, XKeyEvent *, String *, Cardinal * );
-void draw_box_action( Widget, XKeyEvent *, String *, Cardinal * );
-void delete_object( Widget, XKeyEvent *, String *, Cardinal * );
-void place_legend( Widget, XKeyEvent *, String *, Cardinal * );
-void move_object( Widget, XKeyEvent *, String *, Cardinal * );
-void draw_line_action( Widget, XKeyEvent *, String *, Cardinal * );
-void refresh_hotlink( Widget, XKeyEvent *, String *, Cardinal * );
-void set_viewport( Widget, XKeyEvent *, String *, Cardinal * );
-void write_string( Widget, XKeyEvent *, String *, Cardinal * );
-void exit_abruptly( Widget, XKeyEvent *, String *, Cardinal * );
-void enable_zoom( Widget, XKeyEvent *, String *, Cardinal * );
 static void graph_scroll_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -180,18 +168,19 @@ static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_dat
  * establish action routines
  */
 static XtActionsRec canvas_actions[] = {
-	{ "autoscale", (XtActionProc) autoscale },	
-	{ "autoscale_on_near", (XtActionProc) autoscale_on_near },	
+	{ "autoscale", (XtActionProc) autoscale_action },	
+	{ "autoscale_on_near", (XtActionProc) autoscale_on_near_action },	
 	{ "draw_box_action", (XtActionProc) draw_box_action },	
-	{ "delete_object", (XtActionProc) delete_object },	
-	{ "place_legend", (XtActionProc) place_legend },	
-	{ "move_object", (XtActionProc) move_object },	
+	{ "delete_object", (XtActionProc) delete_object_action },	
+	{ "place_legend", (XtActionProc) place_legend_action },	
+	{ "place_timestamp", (XtActionProc) place_timestamp_action },	
+	{ "move_object", (XtActionProc) move_object_action },	
 	{ "draw_line_action", (XtActionProc) draw_line_action },	
-	{ "refresh_hotlink", (XtActionProc) refresh_hotlink },
-	{ "set_viewport", (XtActionProc) set_viewport },	
-	{ "write_string", (XtActionProc) write_string },	
-	{ "exit_abruptly", (XtActionProc) exit_abruptly },	
-	{ "enable_zoom", (XtActionProc) enable_zoom }
+	{ "refresh_hotlink", (XtActionProc) refresh_hotlink_action },
+	{ "set_viewport", (XtActionProc) set_viewport_action },	
+	{ "write_string", (XtActionProc) write_string_action },	
+	{ "exit_abruptly", (XtActionProc) exit_abruptly_action },	
+	{ "enable_zoom", (XtActionProc) enable_zoom_action }
 };
 
 static XtActionsRec graph_select_actions[] = {
@@ -209,6 +198,7 @@ static char canvas_table[] = "#override\n\
 	Ctrl <Key>L: place_legend()\n\
 	Ctrl <Key>N: move_object()\n\
 	Ctrl <Key>P: draw_line_action()\n\
+	Ctrl <Key>T: place_timestamp()\n\
 	Ctrl <Key>U: refresh_hotlink()\n\
 	Ctrl <Key>V: set_viewport()\n\
 	Ctrl <Key>W: write_string()\n\
@@ -450,10 +440,7 @@ void do_clear_point(Widget w, XtPointer client_data, XtPointer call_data)
     get_graph_locator(get_cg(), &locator);
     locator.pointset = FALSE;
     set_graph_locator(get_cg(), &locator);
-/*
- *     g[cg].pt_type = 0;
- *     g[cg].dsx = g[cg].dsy = 0.0;
- */
+    xdrawgraph();
 }
 
 /*

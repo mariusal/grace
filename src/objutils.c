@@ -60,166 +60,100 @@ int number_of_strings(void) {
     return maxstr;
 }
 
-/*
- * find the nearest object to (x,y)
- */
-void find_item(int gno, double xin, double yin, int *type, int *numb)
+void move_object(int type, int id, VVector shift)
 {
-    int i;
-    double x, y;
-    double tmp, xtmp1, ytmp1, xtmp2, ytmp2, m = MAXNUM;
+    double xtmp, ytmp;
     boxtype box;
     ellipsetype ellipse;
     linetype line;
     plotstr str;
-    
-    world2view(xin, yin, &x, &y);
-    *type = -1;
-    for (i = 0; i < maxboxes; i++) {
-	get_graph_box(i, &box);
-	if (isactive_box(i)) {
+
+    switch (type) {
+    case OBJECT_BOX:
+	if (isactive_box(id)) {
+	    get_graph_box(id, &box);
 	    if (box.loctype == COORD_VIEW) {
-		xtmp1 = box.x1;
-		ytmp1 = box.y1;
-		xtmp2 = box.x2;
-		ytmp2 = box.y2;
+		box.x1 += shift.x;
+		box.y1 += shift.y;
+		box.x2 += shift.x;
+		box.y2 += shift.y;
 	    } else {
-		if (gno == box.gno || box.gno < 0 ) {
-		    world2view(box.x1, box.y1, &xtmp1, &ytmp1);
-		    world2view(box.x2, box.y2, &xtmp2, &ytmp2);
-		} else {
-		    continue;
-		}
+		world2view(box.x1, box.y1, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &box.x1, &box.y1);
+		world2view(box.x2, box.y2, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &box.x2, &box.y2);
 	    }
-	    tmp = hypot((x - xtmp1), (y - ytmp1));
-	    if (m > tmp) {
-		*type = OBJECT_BOX;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp1), (y - ytmp2));
-	    if (m > tmp) {
-		*type = OBJECT_BOX;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp2), (y - ytmp1));
-	    if (m > tmp) {
-		*type = OBJECT_BOX;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp2), (y - ytmp2));
-	    if (m > tmp) {
-		*type = OBJECT_BOX;
-		*numb = i;
-		m = tmp;
-	    }
-	}
-    }
-    for (i = 0; i < maxboxes; i++) {
-	get_graph_ellipse(i, &ellipse);
-	if (isactive_ellipse(i)) {
+            set_graph_box(id, &box);
+            set_dirtystate();
+        }
+	break;
+    case OBJECT_ELLIPSE:
+	if (isactive_ellipse(id)) {
+	    get_graph_ellipse(id, &ellipse);
 	    if (ellipse.loctype == COORD_VIEW) {
-		xtmp1 = ellipse.x1;
-		ytmp1 = ellipse.y1;
-		xtmp2 = ellipse.x2;
-		ytmp2 = ellipse.y2;
+		ellipse.x1 += shift.x;
+		ellipse.y1 += shift.y;
+		ellipse.x2 += shift.x;
+		ellipse.y2 += shift.y;
 	    } else {
-		if (gno == ellipse.gno || ellipse.gno < 0 ) {
-		    world2view(ellipse.x1, ellipse.y1, &xtmp1, &ytmp1);
-		    world2view(ellipse.x2, ellipse.y2, &xtmp2, &ytmp2);
-		} else {
-		    continue;
-		}
+		world2view(ellipse.x1, ellipse.y1, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &ellipse.x1, &ellipse.y1);
+		world2view(ellipse.x2, ellipse.y2, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &ellipse.x2, &ellipse.y2);
 	    }
-	    tmp = hypot((x - xtmp1), (y - ytmp1));
-	    if (m > tmp) {
-		*type = OBJECT_ELLIPSE;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp1), (y - ytmp2));
-	    if (m > tmp) {
-		*type = OBJECT_ELLIPSE;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp2), (y - ytmp1));
-	    if (m > tmp) {
-		*type = OBJECT_ELLIPSE;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp2), (y - ytmp2));
-	    if (m > tmp) {
-		*type = OBJECT_ELLIPSE;
-		*numb = i;
-		m = tmp;
-	    }
-	}
-    }
-    for (i = 0; i < maxlines; i++) {
-	get_graph_line(i, &line);
-	if (isactive_line(i)) {
+            set_graph_ellipse(id, &ellipse);
+            set_dirtystate();
+        }
+	break;
+    case OBJECT_LINE:
+	if (isactive_line(id)) {
+	    get_graph_line(id, &line);
 	    if (line.loctype == COORD_VIEW) {
-		xtmp1 = line.x1;
-		ytmp1 = line.y1;
-		xtmp2 = line.x2;
-		ytmp2 = line.y2;
+		line.x1 += shift.x;
+		line.y1 += shift.y;
+		line.x2 += shift.x;
+		line.y2 += shift.y;
 	    } else {
-		if (gno == line.gno || line.gno<0) {
-		    world2view(line.x1, line.y1, &xtmp1, &ytmp1);
-		    world2view(line.x2, line.y2, &xtmp2, &ytmp2);
-		} else {
-		    continue;
-		}
+		world2view(line.x1, line.y1, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &line.x1, &line.y1);
+		world2view(line.x2, line.y2, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &line.x2, &line.y2);
 	    }
-	    tmp = hypot((x - xtmp1), (y - ytmp1));
-	    if (m > tmp) {
-		*type = OBJECT_LINE;
-		*numb = i;
-		m = tmp;
-	    }
-	    tmp = hypot((x - xtmp2), (y - ytmp2));
-	    if (m > tmp) {
-		*type = OBJECT_LINE;
-		*numb = i;
-		m = tmp;
-	    }
-	}
-    }
-    for (i = 0; i < maxstr; i++) {
-	get_graph_string(i, &str);
-	if (isactive_string(i)) {
+            set_graph_line(id, &line);
+            set_dirtystate();
+        }
+	break;
+    case OBJECT_STRING:
+	if (isactive_string(id)) {
+	    get_graph_string(id, &str);
 	    if (str.loctype == COORD_VIEW) {
-		xtmp1 = str.x;
-		ytmp1 = str.y;
+		str.x += shift.x;
+		str.y += shift.y;
 	    } else {
-		if (gno == str.gno || str.gno<0 ) {
-		    world2view(str.x, str.y, &xtmp1, &ytmp1);
-		} else {
-		    continue;
-		}
+		world2view(str.x, str.y, &xtmp, &ytmp);
+		xtmp += shift.x;
+		ytmp += shift.y;
+                view2world(xtmp, ytmp, &str.x, &str.y);
 	    }
-	    tmp = hypot((x - xtmp1), (y - ytmp1));
-	    if (m > tmp) {
-		*type = OBJECT_STRING;
-		*numb = i;
-		m = tmp;
-	    }
-	}
+            set_graph_string(id, &str);
+            set_dirtystate();
+        }
+	break;
     }
-    
-    /* Ensure that the pointer is reasonably close to the object to
-     * eliminate the "MUST" kill behaviour
-     */
-#ifndef MAXPICKDIST
-#define	MAXPICKDIST 0.1
-#endif
-	if( m > MAXPICKDIST )
-		*type = -1;
 }
+
 
 int isactive_line(int lineno)
 {
@@ -304,8 +238,51 @@ int next_ellipse(void)
 	    return (i);
 	}
     }
-    errmsg("Error - no ellipes available");
+    errmsg("Error - no ellipses available");
     return (-1);
+}
+
+int next_object(int type)
+{
+    switch (type) {
+    case OBJECT_BOX:
+        return next_box();
+        break;
+    case OBJECT_ELLIPSE:
+        return next_ellipse();
+        break;
+    case OBJECT_LINE:
+        return next_line();
+        break;
+    case OBJECT_STRING:
+        return next_string();
+        break;
+    default:
+        return -1;
+        break;
+    }
+}
+
+int kill_object(int type, int id)
+{
+    switch (type) {
+    case OBJECT_BOX:
+        kill_box(id);
+        break;
+    case OBJECT_ELLIPSE:
+        kill_ellipse(id);
+        break;
+    case OBJECT_LINE:
+        kill_line(id);
+        break;
+    case OBJECT_STRING:
+        kill_string(id);
+        break;
+    default:
+        return GRACE_EXIT_FAILURE;
+        break;
+    }
+    return GRACE_EXIT_SUCCESS;
 }
 
 void copy_object(int type, int from, int to)
@@ -331,6 +308,19 @@ void copy_object(int type, int from, int to)
 	break;
     }
     set_dirtystate();
+}
+
+int duplicate_object(int type, int id)
+{
+    int newid;
+    
+    if ((newid = next_object(type)) >= 0) {
+        copy_object(type, id, newid);
+    } else {
+        newid = -1;
+    }
+    
+    return newid;
 }
 
 plotstr copy_plotstr(plotstr p)
@@ -384,6 +374,28 @@ void kill_string(int stringno)
     set_dirtystate();
 }
 
+int get_object_bb(int type, int id, view *bb)
+{
+    switch (type) {
+    case OBJECT_BOX:
+        *bb = boxes[id].bb;
+        break;
+    case OBJECT_ELLIPSE:
+        *bb = ellip[id].bb;
+        break;
+    case OBJECT_LINE:
+        *bb = lines[id].bb;
+        break;
+    case OBJECT_STRING:
+        *bb = pstr[id].bb;
+        break;
+    default:
+        return GRACE_EXIT_FAILURE;
+        break;
+    }
+    return GRACE_EXIT_SUCCESS;
+}
+
 void set_plotstr_string(plotstr * pstr, char *buf)
 {
     int n;
@@ -406,41 +418,107 @@ void set_plotstr_string(plotstr * pstr, char *buf)
     }
 }
 
-int define_string(char *s, double wx, double wy)
+void init_line(int id, VPoint vp1, VPoint vp2)
 {
-    int i;
-
-    i = next_string();
-    if (i >= 0) {
-	if (s != NULL) {
-	    free(pstr[i].s);
-	}
-	if (s != NULL) {
-	    pstr[i].s = (char *) malloc(sizeof(char) * (strlen(s) + 1));
-	    strcpy(pstr[i].s, s);
-	} else {
-	    pstr[i].s = (char *) malloc(sizeof(char));
-	    pstr[i].s[0] = 0;
-	}
-	pstr[i].font = string_font;
-	pstr[i].color = string_color;
-	pstr[i].rot = string_rot;
-	pstr[i].charsize = string_size;
-	pstr[i].loctype = string_loctype;
-	pstr[i].just = string_just;
-	pstr[i].active = TRUE;
-	if (string_loctype == COORD_VIEW) {
-	    world2view(wx, wy, &pstr[i].x, &pstr[i].y);
-	    pstr[i].gno = -1;
-	} else {
-	    pstr[i].x = wx;
-	    pstr[i].y = wy;
-	    pstr[i].gno = get_cg();
-	}
-	set_dirtystate();
-	return i;
+    if (id < 0 || id > number_of_lines()) {
+        return;
     }
-    return -1;
+    lines[id].color = line_color;
+    lines[id].lines = line_lines;
+    lines[id].linew = line_linew;
+    lines[id].loctype = line_loctype;
+    lines[id].arrow = line_arrow;
+    lines[id].asize = line_asize;
+    lines[id].atype = line_atype;
+    lines[id].active = TRUE;
+    if (line_loctype == COORD_VIEW) {
+        lines[id].x1 = vp1.x;
+        lines[id].y1 = vp1.y;
+        lines[id].x2 = vp2.x;
+        lines[id].y2 = vp2.y;
+        lines[id].gno = -1;
+    } else {
+        lines[id].gno = get_cg();
+        view2world(vp1.x, vp1.y, &lines[id].x1, &lines[id].y1);
+        view2world(vp2.x, vp2.y, &lines[id].x2, &lines[id].y2);
+    }
+    set_dirtystate();
+}
+
+void init_box(int id, VPoint vp1, VPoint vp2)
+{
+    if (id < 0 || id > number_of_boxes()) {
+        return;
+    }
+    boxes[id].color = box_color;
+    boxes[id].fillcolor = box_fillcolor;
+    boxes[id].fillpattern = box_fillpat;
+    boxes[id].lines = box_lines;
+    boxes[id].linew = box_linew;
+    boxes[id].loctype = box_loctype;
+    boxes[id].active = TRUE;
+    if (box_loctype == COORD_VIEW) {
+        boxes[id].x1 = vp1.x;
+        boxes[id].y1 = vp1.y;
+        boxes[id].x2 = vp2.x;
+        boxes[id].y2 = vp2.y;
+        boxes[id].gno = -1;
+    } else {
+        boxes[id].gno = get_cg();
+        view2world(vp1.x, vp1.y, &boxes[id].x1, &boxes[id].y1);
+        view2world(vp2.x, vp2.y, &boxes[id].x2, &boxes[id].y2);
+    }
+    set_dirtystate();
+}
+
+void init_ellipse(int id, VPoint vp1, VPoint vp2)
+{
+    if (id < 0 || id > number_of_ellipses()) {
+        return;
+    }
+    ellip[id].color = ellipse_color;
+    ellip[id].fillcolor = ellipse_fillcolor;
+    ellip[id].fillpattern = ellipse_fillpat;
+    ellip[id].lines = ellipse_lines;
+    ellip[id].linew = ellipse_linew;
+    ellip[id].loctype = ellipse_loctype;
+    ellip[id].active = TRUE;
+    if (ellipse_loctype == COORD_VIEW) {
+        ellip[id].x1 = vp1.x;
+        ellip[id].y1 = vp1.y;
+        ellip[id].x2 = vp2.x;
+        ellip[id].y2 = vp2.y;
+        ellip[id].gno = -1;
+    } else {
+        ellip[id].gno = get_cg();
+        view2world(vp1.x, vp1.y, &ellip[id].x1, &ellip[id].y1);
+        view2world(vp2.x, vp2.y, &ellip[id].x2, &ellip[id].y2);
+    }
+    set_dirtystate();
+}
+
+void init_string(int id, VPoint vp)
+{
+    if (id < 0 || id > number_of_strings()) {
+        return;
+    }
+    pstr[id].s = copy_string(NULL, "\0");
+    pstr[id].font = string_font;
+    pstr[id].color = string_color;
+    pstr[id].rot = string_rot;
+    pstr[id].charsize = string_size;
+    pstr[id].loctype = string_loctype;
+    pstr[id].just = string_just;
+    pstr[id].active = TRUE;
+    if (string_loctype == COORD_VIEW) {
+        pstr[id].x = vp.x;
+        pstr[id].y = vp.y;
+        pstr[id].gno = -1;
+    } else {
+        pstr[id].gno = get_cg();
+        view2world(vp.x, vp.y, &pstr[id].x, &pstr[id].y);
+    }
+    set_dirtystate();
 }
 
 void do_clear_lines(void)

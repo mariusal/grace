@@ -65,7 +65,6 @@ void do_main_winloop(void);
 
 void xlibprocess_args(int *argc, char **argv);
 void initialize_screen(void);
-void set_actioncb(Widget w, XtPointer client_data, XtPointer call_data);
 void autoon_proc(void);
 void autoticks_proc(Widget w, XtPointer client_data, XtPointer call_data);
 void set_left_footer(char *s);
@@ -77,23 +76,18 @@ void do_zoomy(Widget w, XtPointer client_data, XtPointer call_data);
 void do_select_point(Widget w, XtPointer client_data, XtPointer call_data);
 void do_clear_point(Widget w, XtPointer client_data, XtPointer call_data);
 void expose_resize(Widget w, XtPointer client_data, XmDrawingAreaCallbackStruct *cbs);
-void setpointer(int x, int y);
-void getpoints(int x, int y);
-void set_stack_message(void);
-void select_line(int x1, int y1, int x2, int y2);
-void draw_rectangle(int x1, int y1, int x2, int y2);
-void select_region(int x1, int y1, int x2, int y2);
+
+void setpointer(VPoint vp);
+
+void select_line(int x1, int y1, int x2, int y2, int erase);
+void select_region(int x1, int y1, int x2, int y2, int erase);
+void slide_region(view bbox, int shift_x, int shift_y, int erase);
+void crosshair_motion(int x, int y);
+
 void draw_focus(int gno);
-void update_text_cursor(char *s, int x, int y, char *);
-void set_action(int act);
-void do_text_string(int op, int c);
-void my_proc(Widget w, XtPointer data, XEvent * event);
-void do_select_area(void);
-void do_select_peri(void);
-void do_select_region(void);
-void motion(XMotionEvent * e);
-int double_click(XButtonEvent * e);
 void switch_current_graph(int gto);
+
+char *display_name(void);
 
 void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason);
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
@@ -247,17 +241,19 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data);
 void set_wait_cursor(void);
 void unset_wait_cursor(void);
 void set_cursor(int c);
-void set_window_cursor(Window xwin, int c);
 void init_cursors(void);
 int init_option_menus(void);
 
 void get_canvas_size(Dimension *w, Dimension *h);
 void set_canvas_size(Dimension w, Dimension h);
 void get_scrolled_canvas_size(Dimension *w, Dimension *h);
+
 void box_edit_popup(int no);
 void ellipse_edit_popup(int no);
 void line_edit_popup(int no);
 void string_edit_popup(int no);
+int object_edit_popup(int type, int id);
+
 void set_title(char *ts);
 
 void set_pagelayout(int layout);
@@ -285,9 +281,5 @@ void set_graph_selectors(int gno);
 
 void update_props_items(void);
 void update_all(void);
-
-int focus_clicked(int cg, int x, int y);
-void get_corner_clicked(int cg, int x, int y, double *xc, double *yc);
-void push_and_zoom(void);
 
 #endif /* __XPROTOS_H_ */

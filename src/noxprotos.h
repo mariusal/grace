@@ -125,9 +125,6 @@ int read_param(char *pbuf);
 void putparms(int gno, FILE * pp, int embed);
 void put_fitparms(FILE * pp, int embed);
 
-int iscontained(int gno, double wx, double wy);
-int nextcontained(int gno, double wx, double wy);
-
 void get_graph_box(int i, boxtype * b);
 void get_graph_line(int i, linetype * l);
 void get_graph_ellipse(int i, ellipsetype * e);
@@ -137,44 +134,49 @@ void set_graph_line(int i, linetype *l);
 void set_graph_string(int i, plotstr *s);
 void set_graph_ellipse(int i, ellipsetype * e);
 
-void newworld(int gno, int lz, int axes, double wx1, double wy1, double wx2, double wy2);
-
 void pop_world(void);
 
 void define_autos(int aon, int au, int ap);
 
-void find_item(int gno, double x, double y, int *type, int *numb);
+int find_item(int gno, VPoint vp, view *bb, int *type, int *id);
+
 int isactive_line(int lineno);
 int isactive_box(int boxno);
+int isactive_ellipse(int ellipno);
 int isactive_string(int strno);
+
 int next_line(void);
 int next_box(void);
 int next_ellipse(void);
 int next_string(void);
-void copy_object(int type, int from, int to);
+
 void kill_box(int boxno);
+void kill_ellipse(int ellipseno);
 void kill_line(int lineno);
 void kill_string(int stringno);
-void do_boxes_proc(void);
-void do_lines_proc(void);
-void do_move_proc(void);
-void do_delete_object_proc(void);
-void do_copy_object_proc(void);
-void do_cut_object_proc(void);
-void edit_objects_proc(void);
-int define_string(char *s, double wx, double wy);
-void strings_loc_proc(void);
-void strings_ang_proc(void);
-void strings_edit_proc(void);
-void do_clear_lines(void);
-void do_clear_boxes(void);
-void do_clear_text(void);
-void do_clear_ellipses(void);
+
+void copy_object(int type, int from, int to);
+int kill_object(int type, int id);
+int next_object(int type);
+int duplicate_object(int type, int id);
+
+int get_object_bb(int type, int id, view *bb);
+void move_object(int type, int id, VVector shift);
 
 int number_of_boxes(void);
 int number_of_ellipses(void);
 int number_of_lines(void);
 int number_of_strings(void);
+
+void init_string(int id, VPoint vp);
+void init_line(int id, VPoint vp1, VPoint vp2);
+void init_box(int id, VPoint vp1, VPoint vp2);
+void init_ellipse(int id, VPoint vp1, VPoint vp2);
+
+void do_clear_lines(void);
+void do_clear_boxes(void);
+void do_clear_text(void);
+void do_clear_ellipses(void);
 
 void scanner(char *s, double *x, double *y, int len, double *a, double *b, double *c, double *d, int lenscr, int i, int setno, int *errpos);
 double rnorm(double mean, double sdev);
@@ -190,12 +192,16 @@ int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin,
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
 int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
               	   double *vmin, double *vmax);
-void set_point(int gno, int setn, int seti, double wx, double wy);
-void get_point(int gno, int setn, int seti, double *wx, double *wy);
+int set_point(int gno, int setn, int seti, WPoint wp);
+int get_point(int gno, int setn, int seti, WPoint *wp);
 void setcol(int gno, double *x, int setno, int len, int col);
 int getncols(int gno, int setno);
 void setxy(int gno, double **ex, int setno, int len, int ncols);
+
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
+#define copyx(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 0)
+#define copyy(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 1)
+
 void packsets(int gno);
 int nextset(int gno);
 void killset(int gno, int setno);
@@ -207,10 +213,10 @@ void joinsets(int g1, int j1, int g2, int j2);
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
 void reverse_set(int gno, int setno);
 
-void findpoint(int gno, double x, double y, double *xs, double *ys, int *setno, int *loc);
 void del_point(int gno, int setno, int pt);
-void add_point(int gno, int setno, double px, double py, double tx, double ty, int type);
-void add_point_at(int gno, int setno, int ind, int where, double px, double py, double tx, double ty, int type);
+void add_point(int gno, int setno, double px, double py);
+void zero_datapoint(Datapoint *dpoint);
+int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint);
 void delete_byindex(int gno, int setno, int *ind);
 
 double *getvptr(int gno, int setno, int v);
@@ -240,7 +246,6 @@ int get_hotlink_src(int gno, int setno);
 
 void do_breakset(int gno, int setno, int ind);
 void sortset(int gno, int setno, int sorton, int stype);
-void findpoint_inset(int gno, int setno, double x, double y, int *loc);
 void set_work_pending(int d);
 void update_set_lists(int gno);
 void do_seasonal_diff(int setno, int period);
@@ -265,12 +270,10 @@ void define_region(int nr, int regionlinkto, int rtype);
 void extract_region(int gno, int fromset, int toset, int regno);
 void delete_region(int gno, int setno, int regno);
 void evaluate_region(int regno, int gno, int setno, char *buf);
-void load_poly_region(int r, int n, double *x, double *y);
+void load_poly_region(int r, int n, WPoint *wps);
 int inregion(int regno, double x, double y);
 
 void set_plotstr_string(plotstr * pstr, char *buf);
-int isactive_ellipse(int ellipno);
-void kill_ellipse(int ellipseno);
 void my_ellipse(double xc, double yc, double w, double h, int fill);
 
 int lists_dirty(void);

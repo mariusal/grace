@@ -43,11 +43,13 @@
 #include "draw.h"
 #include "graphs.h"
 #include "utils.h"
+#ifndef NONE_GUI
+#  include "events.h"
+#endif
 #include "protos.h"
 
 int regiontype = 0;
-
-extern int regionlinkto;
+int regionlinkto = 0;
 
 /*
  * see if (x,y) lies inside the plot
@@ -239,11 +241,11 @@ void extract_region(int gno, int fromset, int toset, int regno)
 		for (i = 0; i < getsetlength(get_cg() , j); i++) {
 		    if (regno == MAXREGION) {
 			if (inbounds(get_cg() , x[i], y[i])) {
-			    add_point(gno, toset, x[i], y[i], 0.0, 0.0, SET_XY);
+			    add_point(gno, toset, x[i], y[i]);
 			}
 		    } else {
 			if (!inbounds(get_cg() , x[i], y[i])) {
-			    add_point(gno, toset, x[i], y[i], 0.0, 0.0, SET_XY);
+			    add_point(gno, toset, x[i], y[i]);
 			}
 		    }
 		}
@@ -264,7 +266,7 @@ void extract_region(int gno, int fromset, int toset, int regno)
 	    if (is_set_active(get_cg() , j) && (toset != j || gno != get_cg() )) {
 		for (i = 0; i < getsetlength(get_cg() , j); i++) {
 		    if (inregion(regno, x[i], y[i])) {
-			add_point(gno, toset, x[i], y[i], 0.0, 0.0, SET_XY);
+			add_point(gno, toset, x[i], y[i]);
 		    }
 		}
 	    }
@@ -534,18 +536,18 @@ void reporton_region(int gno, int rno, int type, int strict)
     stufftext(buf, STUFF_STOP);
 }
 
-void load_poly_region(int r, int n, double *x, double *y)
+void load_poly_region(int r, int n, WPoint *wps)
 {
     int i;
 
     if (n > 2) {
 	activate_region(r, regiontype);
 	rg[r].n = n;
-	rg[r].x = (double *) calloc(n, sizeof(double));
-	rg[r].y = (double *) calloc(n, sizeof(double));
+	rg[r].x = calloc(n, SIZEOF_DOUBLE);
+	rg[r].y = calloc(n, SIZEOF_DOUBLE);
 	for (i = 0; i < n; i++) {
-	    rg[r].x[i] = x[i];
-	    rg[r].y[i] = y[i];
+	    rg[r].x[i] = wps[i].x;
+	    rg[r].y[i] = wps[i].y;
 	}
     }
 }

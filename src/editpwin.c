@@ -98,7 +98,7 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
         errwin("Selected cell out of range");
         return;
     }
-    del_point( ep->gno, ep->setno, i+1 );
+    del_point(ep->gno, ep->setno, i);
     update_set_status(ep->gno, ep->setno);
     if(is_set_active(ep->gno, ep->setno)) {
         update_cells(ep);
@@ -112,21 +112,20 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
 void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i,j, k;
-    double vals[MAX_SET_COLS];
+    Datapoint dpoint;
     EditPoints *ep = (EditPoints *)client_data;
     int gno = ep->gno, setno = ep->setno;
 
-    XbaeMatrixGetCurrentCell( ep->mw, &i, &j );
-    if( i>=ep->nrows || j>=ep->ncols || i<0 || j<0 ){
-            errwin( "Selected cell out of range" );
-            return;
+    XbaeMatrixGetCurrentCell(ep->mw, &i, &j);
+    if ( i>= ep->nrows || j >= ep->ncols || i < 0 || j < 0){
+        errmsg("Selected cell out of range");
+        return;
     }
-    for( k=0; k<ep->ncols; k++ )
-            vals[k] = *(getcol( gno, setno, k )+i );
-    for( ;k<MAX_SET_COLS; k++ )
-            vals[k] = 0.;
-    add_point_at(gno, setno, i, 1, 
-        vals[0], vals[1], vals[2], vals[3], dataset_type(gno, setno));
+    zero_datapoint(&dpoint);
+    for (k = 0; k < ep->ncols; k++) {
+        dpoint.ex[k] = *(getcol(gno, setno, k) + i);
+    }
+    add_point_at(gno, setno, i + 1, &dpoint);
     update_set_status(gno, setno);
     if(is_set_active(gno, setno)) {
         update_cells(ep);

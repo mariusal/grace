@@ -513,7 +513,7 @@ static int readnxy(int gno, char *fn, FILE * fp)
 	cnt++;
 	s = NULL;
     }
-    if (cnt > MAXPLOT) {
+    if (cnt > MAXSETN) {
 	errmsg("Maximum number of columns exceeded, reading first 31");
 	cnt = 31;
     }

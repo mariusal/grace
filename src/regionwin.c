@@ -48,8 +48,9 @@
 #include "graphs.h"
 #include "plotone.h"
 #include "utils.h"
-#include "protos.h"
+#include "events.h"
 #include "motifinc.h"
+#include "protos.h"
 
 static Widget but1[2];
 static Widget but2[2];

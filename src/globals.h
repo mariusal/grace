@@ -77,8 +77,6 @@ int scrolling_islinked = FALSE;	/* linked scroll */
 double scrollper = 0.05;	/* scroll fraction */
 double shexper = 0.05;		/* expand/shrink fraction */
 
-int linked_zoom = FALSE;	/* when zooming, apply to all graphs */
-
 /* char fname[GR_MAXPATHLEN];*/	    /* last data file read */
 
 int device;			/* graphics device */
@@ -131,7 +129,7 @@ int format_types[] = {FORMAT_DECIMAL, FORMAT_EXPONENTIAL, FORMAT_GENERAL, FORMAT
 
 /* block data globals */
 double **blockdata;
-int maxblock = MAXPLOT;
+int maxblock = MAXBLOCK;
 int blocklen;
 int blockncols;
 
@@ -245,7 +243,6 @@ extern char pipe_name[];	/* path to named pipe */
 extern int scrolling_islinked;	/* linked scroll */
 extern double scrollper;	/* scroll fraction */
 extern double shexper;		/* expand/shrink fraction */
-extern int linked_zoom;		/* when zooming, apply to all graphs */
 
 /*
  * extern char fname[];

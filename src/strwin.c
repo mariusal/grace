@@ -49,6 +49,7 @@
 #include "utils.h"
 #include "graphs.h"
 #include "plotone.h"
+#include "events.h"
 #include "protos.h"
 #include "motifinc.h"
 
@@ -184,6 +185,40 @@ void define_string_defaults(Widget w, XtPointer client_data, XtPointer call_data
     }
 }
 
+void clear_objects_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int type = (int) client_data;
+    
+    switch (type) {
+    case OBJECT_LINE:
+        if (yesno("Delete all lines?", NULL, NULL, NULL)) {
+            do_clear_lines();
+            xdrawgraph();
+        }
+        break;
+    case OBJECT_BOX:
+        if (yesno("Delete all boxes?", NULL, NULL, NULL)) {
+            do_clear_boxes();
+            xdrawgraph();
+        }
+        break;
+    case OBJECT_ELLIPSE:
+        if (yesno("Delete all ellipses?", NULL, NULL, NULL)) {
+            do_clear_ellipses();
+            xdrawgraph();
+        }
+        break;
+    case OBJECT_STRING:
+        if (yesno("Delete all text strings?", NULL, NULL, NULL)) {
+            do_clear_text();
+            xdrawgraph();
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget wbut;
@@ -200,10 +235,6 @@ void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	wbut = XtVaCreateManagedWidget("Text", xmPushButtonWidgetClass, rc,
 				       NULL);
 	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) STR_LOC);
-
-	wbut = XtVaCreateManagedWidget("Text at angle", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) set_actioncb, (XtPointer) STR_LOC1ST);
 
 	wbut = XtVaCreateManagedWidget("Text props...", xmPushButtonWidgetClass, rc,
 				       NULL);
@@ -254,19 +285,19 @@ void define_objects_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	wbut = XtVaCreateManagedWidget("Clear all text", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) do_clear_text, (XtPointer) NULL);
+	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_STRING);
 
 	wbut = XtVaCreateManagedWidget("Clear all lines", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) do_clear_lines, (XtPointer) NULL);
+	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_LINE);
 
 	wbut = XtVaCreateManagedWidget("Clear all boxes", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) do_clear_boxes, (XtPointer) NULL);
+	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_BOX);
 
-	wbut = XtVaCreateManagedWidget("Clear all ellip", xmPushButtonWidgetClass, rc,
+	wbut = XtVaCreateManagedWidget("Clear all ellipses", xmPushButtonWidgetClass, rc,
 				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) do_clear_ellipses, (XtPointer) NULL);
+	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) clear_objects_cb, (XtPointer) OBJECT_ELLIPSE);
 
 	wbut = XtVaCreateManagedWidget("Close", xmPushButtonWidgetClass, rc,
 				       NULL);
@@ -607,6 +638,7 @@ void ellipse_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     ellip[ellipno].y1 = c - d/2.;
     ellip[ellipno].y2 = c + d/2.;
     
+    set_dirtystate();
     drawgraph();
 }
 
@@ -654,6 +686,7 @@ void box_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xv_evalexpr( ui->y1_item, &boxes[boxno].y1 );
     xv_evalexpr( ui->y2_item, &boxes[boxno].y2 );
     
+    set_dirtystate();
     drawgraph();
 }
 
@@ -863,6 +896,7 @@ void line_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     lines[lineno].arrow = GetChoice(ui->arrow_item);
     lines[lineno].atype = GetChoice(ui->atype_item);
     
+    set_dirtystate();
     drawgraph();
 }
 
@@ -1013,6 +1047,7 @@ void string_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     pstr[stringno].charsize = GetCharSizeChoice(ui->size_item);
     pstr[stringno].rot = GetAngleChoice(ui->rot_item);
     
+    set_dirtystate();
     drawgraph();
 }
 
@@ -1084,4 +1119,26 @@ void string_edit_popup(int stringno)
     string_ui.stringno = stringno;
     update_string_edit(&string_ui);
     unset_wait_cursor();
+}
+
+int object_edit_popup(int type, int id)
+{
+    switch (type) {
+    case OBJECT_BOX:
+        box_edit_popup(id);
+        break;
+    case OBJECT_ELLIPSE:
+        ellipse_edit_popup(id);
+        break;
+    case OBJECT_LINE:
+        line_edit_popup(id);
+        break;
+    case OBJECT_STRING:
+        string_edit_popup(id);
+        break;
+    default:
+        return GRACE_EXIT_FAILURE;
+        break;
+    }
+    return GRACE_EXIT_SUCCESS;
 }

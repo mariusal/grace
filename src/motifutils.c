@@ -67,6 +67,7 @@
 #include "graphs.h"
 #include "plotone.h"
 #include "utils.h"
+#include "events.h"
 #include "protos.h"
 
 extern double result;
@@ -1345,7 +1346,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuNewSCB:
             if ((setno = nextset(gno)) != -1) {
-                add_point(gno, setno, 0., 0., 0, 0, SET_XY);
+                add_point(gno, setno, 0.0, 0.0);
                 setcomment(gno, setno, "Editor");
                 set_set_hidden(gno, setno, FALSE);
                 update_set_status(gno, setno);
@@ -1356,7 +1357,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuNewECB:
             if ((setno = nextset(gno)) != -1) {
-                add_point(gno, setno, 0., 0., 0, 0, SET_XY);
+                add_point(gno, setno, 0.0, 0.0);
                 setcomment(gno, setno, "Editor");
                 set_set_hidden(gno, setno, FALSE);
                 update_set_status(gno, setno);

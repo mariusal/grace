@@ -48,11 +48,11 @@
 #define MAX_STRING_LENGTH 512
 
 
-#define MAXPLOT 30              /* max number of sets in a graph */
 #define MAX_SET_COLS 6          /* max number of data columns for a set */
-#define MAXREGION 5             /* max number of regions */
+#define MAXBLOCK 30             /* max number of cols in a block data */
 #define MAXAXES 4               /* max number of axes per graph */
 #define MAX_TICKS 100           /* max number of ticks/labels per axis */
+#define MAXREGION 5             /* max number of regions */
 
 /* max number of different objects */
 #define MAXLINES 50             /* max number of lines */
@@ -61,6 +61,7 @@
 #define MAXSTR 100              /* max number of strings */
 
 #define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
+
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
@@ -75,11 +76,6 @@
 #ifndef MAXARR
 #  define MAXARR 20000          /* max elements in an array */
 #endif
-
-#ifndef MAXPICKDIST
-#  define MAXPICKDIST 0.1       /* the maximum distance away from an object */
-#endif                          /* you may be when picking it (in viewport  */
-                                /* coordinates)                             */  
 
 /* symbol types */
 
@@ -161,6 +157,7 @@
 #define PAGE_FIXED      1
 
 /* Strings and things */
+#define OBJECT_NONE    -1
 #define OBJECT_LINE     0
 #define OBJECT_BOX      1
 #define OBJECT_ELLIPSE  2
@@ -315,98 +312,6 @@
 #define SELECTION_TYPE_SINGLE 0
 #define SELECTION_TYPE_MULTIPLE 1
 
-/* for canvas event proc */
-#define ZOOM_1ST 1
-#define ZOOM_2ND 2
-#define VIEW_1ST 3
-#define VIEW_2ND 4
-#define STR_LOC 5
-#define LEG_LOC 6
-#define FIND_POINT 7
-#define DEL_POINT 8
-#define MOVE_POINT1ST 9
-#define MOVE_POINT2ND 10
-#define ADD_POINT 11
-#define DEL_OBJECT 12
-#define MOVE_OBJECT_1ST 13
-#define MOVE_OBJECT_2ND 14
-#define MAKE_BOX_1ST 15
-#define MAKE_BOX_2ND 16
-#define MAKE_LINE_1ST 17
-#define MAKE_LINE_2ND 18
-#define MAKE_CIRC_1ST 19
-#define MAKE_CIRC_2ND 20
-#define MAKE_ARC_1ST 21
-#define MAKE_ARC_2ND 22
-#define MAKE_ELLIP_1ST 23
-#define MAKE_ELLIP_2ND 24
-#define SEL_POINT 25
-#define STR_EDIT 26
-#define COMP_AREA 27
-#define COMP_PERIMETER 28
-#define STR_LOC1ST 29
-#define STR_LOC2ND 30
-#define GRAPH_FOCUS 31
-#define TRACKER 32
-#define DEF_REGION 43
-#define DEF_REGION1ST 44
-#define DEF_REGION2ND 45
-#define PAINT_POINTS 46
-#define KILL_NEAREST 47
-#define COPY_NEAREST1ST 48
-#define COPY_NEAREST2ND 49
-#define MOVE_NEAREST1ST 50
-#define MOVE_NEAREST2ND 51
-#define REVERSE_NEAREST 52
-#define JOIN_NEAREST1ST 53
-#define JOIN_NEAREST2ND 54
-#define DEACTIVATE_NEAREST 55
-#define EXTRACT_NEAREST1ST 56
-#define EXTRACT_NEAREST2ND 57
-#define DELETE_NEAREST1ST 58
-#define DELETE_NEAREST2ND 59
-#define INSERT_POINTS 60
-#define INSERT_SET 61
-#define EDIT_OBJECT 62
-#define PLACE_TIMESTAMP 63
-#define COPY_OBJECT1ST 64
-#define COPY_OBJECT2ND 65
-#define CUT_OBJECT 66
-#define PASTE_OBJECT 67
-#define AUTO_NEAREST 68
-#define ZOOMX_1ST 69
-#define ZOOMX_2ND 70
-#define ZOOMY_1ST 71
-#define ZOOMY_2ND 72
-#define PICK_SET 73
-#define PICK_SET1 74
-#define PICK_SET2 75
-#define PICK_EXPR 76
-#define PICK_HISTO 77
-#define PICK_FOURIER 78
-#define PICK_RUNAVG 79
-#define PICK_RUNSTD 80
-#define PICK_RUNMIN 81
-#define PICK_RUNMAX 82
-#define PICK_DIFF 83
-#define PICK_INT 84
-#define PICK_REG 85
-#define PICK_XCOR 86
-#define PICK_SAMP 87
-#define PICK_PRUNE 88
-#define PICK_FILTER 89
-#define PICK_EXPR2 90
-#define PICK_SPLINE 91
-#define PICK_INTERP 92
-#define PICK_SAMPLE 93
-#define PICK_SEASONAL 94
-#define PICK_BREAK 95
-#define ADD_POINT1ST 96
-#define ADD_POINT2ND 97
-#define ADD_POINT3RD 98
-#define ADD_POINT_INTERIOR 99
-#define DISLINE1ST 100
-#define DISLINE2ND 101
 
 /* for stufftext() in monwin.c used here and there */
 #define STUFF_TEXT  0
@@ -526,6 +431,15 @@ typedef struct {
     double y;
 } VVector;
 
+typedef struct {
+    double xg1, xg2, yg1, yg2;  /* window into world coords */
+} world;
+
+typedef struct {
+    double xv1, xv2, yv1, yv2;  /* viewport */
+} view;
+
+
 /*
  * typedefs for objects
  */
@@ -542,6 +456,7 @@ typedef struct {
     int color;
     int fillcolor;
     int fillpattern;
+    view bb;
 } boxtype;
 
 typedef struct {
@@ -558,6 +473,7 @@ typedef struct {
     int arrow;
     int atype;
     double asize;
+    view bb;
 } linetype;
 
 typedef struct {
@@ -573,6 +489,7 @@ typedef struct {
     int color;
     int fillcolor;
     int fillpattern;
+    view bb;
 } ellipsetype;
 
 typedef struct {
@@ -587,16 +504,9 @@ typedef struct {
     int just;
     double charsize;
     char *s;
+    view bb;
 } plotstr;
 
-
-typedef struct {
-    double xg1, xg2, yg1, yg2;  /* window into world coords */
-} world;
-
-typedef struct {
-    double xv1, xv2, yv1, yv2;  /* device viewport */
-} view;
 
 /*
  * world stack
@@ -755,8 +665,9 @@ typedef struct {
     int color;
     Pen boxpen;
     Pen boxfillpen;
-    double boxlinew;               /* legend frame line width */
+    double boxlinew;            /* legend frame line width */
     int boxlines;               /* legend frame line style */
+    view bb;
 } legend;
 
 typedef struct {
@@ -764,7 +675,7 @@ typedef struct {
     int type;                   /* region type */
     int color;                  /* region color */
     int lines;                  /* region linestyle */
-    double linew;                  /* region line width */
+    double linew;               /* region line width */
     int *linkto;                /* associated with graphs in linkto */
     int n;                      /* number of points if type is POLY */
     double *x, *y;              /* coordinates if type is POLY */
@@ -812,7 +723,15 @@ typedef struct {
     int setno;  /* set # */
 } target;
 
-#define copyx(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 0)
-#define copyy(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 1)
+typedef struct {
+    int len;                    /* dataset length */
+    double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
+    char **s;                   /* pointer to strings */
+} Dataset;
+
+typedef struct {
+    double ex[MAX_SET_COLS];   /* x, y, dx, z, ... depending on dataset type */
+    char *s;                   /* string */
+} Datapoint;
 
 #endif /* __DEFINES_H_ */

@@ -1329,7 +1329,7 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 	x = getx(get_cg(), setno);
 	y = gety(get_cg(), setno);
 	for (i = startno - 1; i < len; i += stepno) {
-	    add_point(get_cg(), resset, x[i], y[i], 0.0, 0.0, SET_XY);
+	    add_point(get_cg(), resset, x[i], y[i]);
 	    npts++;
 	}
 	sprintf(buf, "Sample, %d, %d set #%d", startno, stepno, setno);
@@ -1355,7 +1355,7 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 		return;
 	    }
 	    if ((int) result) {
-		add_point(get_cg(), resset, x[i], y[i], 0.0, 0.0, SET_XY);
+		add_point(get_cg(), resset, x[i], y[i]);
 		npts++;
 	    }
 	}
@@ -1456,7 +1456,7 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
     if (resset < 0) {
         return;
     }
-    add_point(get_cg(), resset, x[0], y[0], 0.0, 0.0, SET_XY);
+    add_point(get_cg(), resset, x[0], y[0]);
     npts++;
     resx = getx(get_cg(), resset);
     resy = gety(get_cg(), resset);
@@ -1512,7 +1512,7 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
 		}
 	    }
 	    if (drop == FALSE) {
-		add_point(get_cg(), resset, xtmp, ytmp, 0.0, 0.0, SET_XY);
+		add_point(get_cg(), resset, xtmp, ytmp);
 		npts++;
 		resx = getx(get_cg(), resset);
 		resy = gety(get_cg(), resset);
@@ -1569,7 +1569,7 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
 		}
 	    }
 	    if (drop == FALSE) {
-		add_point(get_cg(), resset, xtmp, ytmp, 0.0, 0.0, SET_XY);
+		add_point(get_cg(), resset, xtmp, ytmp);
 		npts++;
 		resx = getx(get_cg(), resset);
 		resy = gety(get_cg(), resset);
@@ -1663,13 +1663,13 @@ void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay
 	    k = i;
 	    prune_xconv(xjm, x[k], dxtype);
 	    prune_yconv(yjm, y[k], dytype);
-	    add_point(get_cg(), resset, x[k], y[k], 0.0, 0.0, SET_XY);
+	    add_point(get_cg(), resset, x[k], y[k]);
 	    npts++;
 	    resx = getx(get_cg(), resset);
 	    resy = gety(get_cg(), resset);
 	}
 	if (k == len - 2) {
-	    add_point(get_cg(), resset, x[len-1], y[len-1], 0.0, 0.0, SET_XY);
+	    add_point(get_cg(), resset, x[len-1], y[len-1]);
 	    npts++;
 	}
 	sprintf(buf, "Prune from %d, %s dy = %g", setno, 
@@ -1800,7 +1800,7 @@ void do_interp( int yset, int xset, int method )
 		}
 		for (i = 0; i < j; i++) {
 		    add_point(get_cg(), iset, newx[i], seval(ysetlength, newx[i], x1, y,
-		               b, c, d), 0.0, 0.0, SET_XY);
+		               b, c, d));
 		}
 		
     }else {				          /* linear interpolation */
@@ -1813,7 +1813,7 @@ void do_interp( int yset, int xset, int method )
     		else 
     			newy =
     			(newx[j]-x1[i])*(y[i+1]-y[i])/(x1[i+1]-x1[i])+y[i];
-    		add_point(get_cg(), iset, newx[j], newy, 0.0, 0.0, SET_XY);
+    		add_point(get_cg(), iset, newx[j], newy);
     	}
     }
     /* activate new set and update sets */

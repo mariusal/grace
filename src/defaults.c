@@ -266,20 +266,20 @@ void set_default_plotarr(plotarr * p)
     p->errbar.type = PLACE_BOTH;        /* type of error bar */
     p->errbar.lines = grdefaults.lines; /* error bar line width */
     p->errbar.linew = grdefaults.linew; /* error bar line style */
-    p->errbar.riser_linew = 1;  /* connecting line between error limits line
-                                 * width */
-    p->errbar.riser_lines = 1;  /* connecting line between error limits line
-                                 * style */
-    p->errbar.length = 1.0;     /* length of error bar */
+    p->errbar.riser_linew = 1;          /* connecting line between error limits line
+                                         * width */
+    p->errbar.riser_lines = 1;          /* connecting line between error limits line
+                                         * style */
+    p->errbar.length = 1.0;             /* length of error bar */
 
-    p->comments[0] = 0;         /* how did this set originate */
-    p->lstr[0] = 0;             /* legend string */
+    p->comments[0] = 0;                 /* how did this set originate */
+    p->lstr[0] = 0;                     /* legend string */
 
-    p->len = 0;                 /* set length */
+    p->data.len = 0;                    /* dataset length */
     for (i = 0; i < MAX_SET_COLS; i++) {
-        p->ex[i] = NULL;
+        p->data.ex[i] = NULL;
     }
-    p->s = NULL;                /* pointer to strings */
+    p->data.s = NULL;                   /* pointer to strings */
 }
 
 void set_default_annotation(void)

@@ -186,7 +186,7 @@ static int allocxy(plotarr *p, int len)
 {
     int i, ncols;
 
-    if (len == p->len) {
+    if (len == p->data.len) {
 	return GRACE_EXIT_SUCCESS;
     }
     if (len < 0) {
@@ -202,16 +202,16 @@ static int allocxy(plotarr *p, int len)
     
     /* TODO: memory leak! */
     if (p->type == SET_XYSTRING) {
-        p->s = xrealloc(p->s, len*sizeof(char *));
+        p->data.s = xrealloc(p->data.s, len*sizeof(char *));
     } else {
-        cxfree(p->s);
+        cxfree(p->data.s);
     }
     
-    p->len = len;
+    p->data.len = len;
 
     for (i = 0; i < ncols; i++) {
 	if (len != 0 &&
-            (p->ex[i] = xrealloc(p->ex[i], len*SIZEOF_DOUBLE)) == NULL) {
+            (p->data.ex[i] = xrealloc(p->data.ex[i], len*SIZEOF_DOUBLE)) == NULL) {
 	    errmsg("Insufficient memory to allocate for plots");
 	    return GRACE_EXIT_FAILURE;
 	}
@@ -261,8 +261,8 @@ int getsetminmax(int gno, int setno,
     if (setno == ALL_SETS) {
         for (i = 0; i < g[gno].maxplot; i++) {
             if (is_set_active(gno, i)) {
-                minmax(g[gno].p[i].ex[0], g[gno].p[i].len, &x1, &x2, &imin, &imax);
-                minmax(g[gno].p[i].ex[1], g[gno].p[i].len, &y1, &y2, &imin, &imax);
+                minmax(g[gno].p[i].data.ex[0], g[gno].p[i].data.len, &x1, &x2, &imin, &imax);
+                minmax(g[gno].p[i].data.ex[1], g[gno].p[i].data.len, &y1, &y2, &imin, &imax);
                 if (first) {
                     *xmin = x1;
                     *xmax = x2;
@@ -278,8 +278,8 @@ int getsetminmax(int gno, int setno,
             }
         }
     } else if (is_valid_setno(gno, setno)) {
-        minmax(g[gno].p[setno].ex[0], g[gno].p[setno].len, xmin, xmax, &imin, &imax);
-        minmax(g[gno].p[setno].ex[1], g[gno].p[setno].len, ymin, ymax, &imin, &imax);
+        minmax(g[gno].p[setno].data.ex[0], g[gno].p[setno].data.len, xmin, xmax, &imin, &imax);
+        minmax(g[gno].p[setno].data.ex[1], g[gno].p[setno].data.len, ymin, ymax, &imin, &imax);
         first = FALSE;
     }
     
@@ -456,23 +456,31 @@ double vmax(double *x, int n)
     return xmax;
 }
 
-void set_point(int gno, int setno, int seti, double wx, double wy)
+int set_point(int gno, int setno, int seti, WPoint wp)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
-        return;
+        return GRACE_EXIT_FAILURE;
     }
-    g[gno].p[setno].ex[0][seti] = wx;
-    g[gno].p[setno].ex[1][seti] = wy;
+    if (seti >= getsetlength(gno, setno) || seti < 0) {
+        return GRACE_EXIT_FAILURE;
+    }
+    g[gno].p[setno].data.ex[0][seti] = wp.x;
+    g[gno].p[setno].data.ex[1][seti] = wp.y;
     set_dirtystate();
+    return GRACE_EXIT_SUCCESS;
 }
 
-void get_point(int gno, int setno, int seti, double *wx, double *wy)
+int get_point(int gno, int setno, int seti, WPoint *wp)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
-        return;
+        return GRACE_EXIT_FAILURE;
     }
-    *wx = g[gno].p[setno].ex[0][seti];
-    *wy = g[gno].p[setno].ex[1][seti];
+    if (seti >= getsetlength(gno, setno) || seti < 0) {
+        return GRACE_EXIT_FAILURE;
+    }
+    wp->x = g[gno].p[setno].data.ex[0][seti];
+    wp->y = g[gno].p[setno].data.ex[1][seti];
+    return GRACE_EXIT_SUCCESS;
 }
 
 void setcol(int gno, double *x, int setno, int len, int col)
@@ -480,8 +488,8 @@ void setcol(int gno, double *x, int setno, int len, int col)
     if (is_valid_setno(gno, setno) != TRUE) {
         return;
     }
-    g[gno].p[setno].ex[col] = x;
-    g[gno].p[setno].len = len;
+    g[gno].p[setno].data.ex[col] = x;
+    g[gno].p[setno].data.len = len;
     set_dirtystate();
 }
 
@@ -494,7 +502,7 @@ int getncols(int gno, int setno)
     }
 
     for (i = 0; i < MAX_SET_COLS; i++) {
-        if (g[gno].p[setno].ex[i] == NULL) {
+        if (g[gno].p[setno].data.ex[i] == NULL) {
             return i;
         }
     }
@@ -513,9 +521,9 @@ void setxy(int gno, double **ex, int setno, int len, int ncols)
     }
 
     for (i = 0; i < ncols; i++) {
-	g[gno].p[setno].ex[i] = ex[i];
+	g[gno].p[setno].data.ex[i] = ex[i];
     }
-    g[gno].p[setno].len = len;
+    g[gno].p[setno].data.len = len;
     set_dirtystate();
 }
 
@@ -536,7 +544,7 @@ void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
         is_valid_setno(gto, setto) != TRUE) {
         return;
     }
-    n = g[gfrom].p[setfrom].len;
+    n = g[gfrom].p[setfrom].data.len;
     x1 = getcol(gfrom, setfrom, col);
     x2 = getcol(gto, setto, col);
     for (i = 0; i < n; i++) {
@@ -565,15 +573,15 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
     killset(gnoto, setto);
 
 /*
- *     setlength(gnoto, setto, g[gnofrom].p[setfrom].len);
+ *     setlength(gnoto, setto, g[gnofrom].p[setfrom].data.len);
  */
     memcpy(&g[gnoto].p[setto], &g[gnofrom].p[setfrom], sizeof(plotarr));
 
-    g[gnofrom].p[setfrom].len = 0;
+    g[gnofrom].p[setfrom].data.len = 0;
     for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gnofrom].p[setfrom].ex[k] = NULL;
+	g[gnofrom].p[setfrom].data.ex[k] = NULL;
     }
-    g[gnofrom].p[setfrom].s = NULL;
+    g[gnofrom].p[setfrom].data.s = NULL;
     
     g[gnofrom].p[setfrom].hidden = TRUE;
     
@@ -607,15 +615,15 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
     setlength(gto, setto, len);
 
     for (k = 0; k < MAX_SET_COLS; k++) {
-	savec[k] = g[gto].p[setto].ex[k];
+	savec[k] = g[gto].p[setto].data.ex[k];
     }
     memcpy(&g[gto].p[setto], &g[gfrom].p[setfrom], sizeof(plotarr));
     for (k = 0; k < MAX_SET_COLS; k++) {
-	g[gto].p[setto].ex[k] = savec[k];
-	if (g[gfrom].p[setfrom].ex[k] != NULL &&
-            g[gto].p[setto].ex[k] != NULL) {
-	    memcpy(g[gto].p[setto].ex[k],
-                g[gfrom].p[setfrom].ex[k],
+	g[gto].p[setto].data.ex[k] = savec[k];
+	if (g[gfrom].p[setfrom].data.ex[k] != NULL &&
+            g[gto].p[setto].data.ex[k] != NULL) {
+	    memcpy(g[gto].p[setto].data.ex[k],
+                g[gfrom].p[setfrom].data.ex[k],
                 len*SIZEOF_DOUBLE);
 	}
     }
@@ -668,7 +676,7 @@ void packsets(int gno)
 		if (!is_set_active(gno, j) && !g[gno].p[j].hidden) {
 		    memcpy(&g[gno].p[j], &g[gno].p[i], sizeof(plotarr));
 		    for (k = 0; k < MAX_SET_COLS; k++) {
-			g[gno].p[i].ex[k] = NULL;
+			g[gno].p[i].data.ex[k] = NULL;
 		    }
 		    killset(gno, i);
 		    set_dirtystate();
@@ -757,19 +765,19 @@ void killsetdata(int gno, int setno)
 
     if (is_set_active(gno, setno)) {
 	for (i = 0; i < MAX_SET_COLS; i++) {
-	    if (g[gno].p[setno].ex[i] != NULL) {
-		free(g[gno].p[setno].ex[i]);
+	    if (g[gno].p[setno].data.ex[i] != NULL) {
+		free(g[gno].p[setno].data.ex[i]);
 	    }
-	    g[gno].p[setno].ex[i] = NULL;
+	    g[gno].p[setno].data.ex[i] = NULL;
 	}
-	if (dataset_type(gno, setno) == SET_XYSTRING && g[gno].p[setno].s != NULL) {
+	if (dataset_type(gno, setno) == SET_XYSTRING && g[gno].p[setno].data.s != NULL) {
 	    for (i = 0; i < getsetlength(gno, setno); i++) {
-		cxfree(g[gno].p[setno].s[i]);
+		cxfree(g[gno].p[setno].data.s[i]);
 	    }
-	    cxfree(g[gno].p[setno].s[i]);
-	    g[gno].p[setno].s = NULL;
+	    cxfree(g[gno].p[setno].data.s[i]);
+	    g[gno].p[setno].data.s = NULL;
 	}
-	g[gno].p[setno].len = 0;
+	g[gno].p[setno].data.len = 0;
 	g[gno].p[setno].hidden = TRUE;
 	set_lists_dirty(TRUE);
 	set_dirtystate();
@@ -789,7 +797,7 @@ void killset(int gno, int setno)
 
 int is_set_active(int gno, int setno)
 {
-    if (is_valid_setno(gno, setno) && g[gno].p[setno].len > 0) {
+    if (is_valid_setno(gno, setno) && g[gno].p[setno].data.len > 0) {
         return TRUE;
     } else {
         return FALSE;
@@ -1041,62 +1049,6 @@ void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype)
 }
 
 /*
- * locate a point and the set the point is in
- */
-void findpoint(int gno, double x, double y, double *xs, double *ys, int *setno, int *loc)
-{
-    double dx = g[gno].w.xg2 - g[gno].w.xg1, dy = g[gno].w.yg2 - g[gno].w.yg1,
-    *xtmp, *ytmp, tmp, tmin = MAXNUM;
-    int i, j, len;
-
-    *setno = -1;
-    if (is_valid_gno(gno) != TRUE) {
-        return;
-    }
-    
-    for (i = 0; i < g[gno].maxplot; i++) {
-	if (is_set_active(gno, i)) {
-	    xtmp = getx(gno, i);
-	    ytmp = gety(gno, i);
-	    len = getsetlength(gno, i);
-	    for (j = 0; j < len; j++) {
-		if ((tmp = hypot((x - xtmp[j]) / dx, (y - ytmp[j]) / dy)) < tmin) {
-		    *setno = i;
-		    *loc = j + 1;
-		    *xs = xtmp[j];
-		    *ys = ytmp[j];
-		    tmin = tmp;
-		}
-	    }
-	}
-    }
-}
-
-/*
- * locate a point in setno nearest (x, y)
- */
-void findpoint_inset(int gno, int setno, double x, double y, int *loc)
-{
-    double dx = g[gno].w.xg2 - g[gno].w.xg1, dy = g[gno].w.yg2 - g[gno].w.yg1,
-    *xtmp, *ytmp, tmp, tmin = MAXNUM;
-    int j, len;
-
-    if (is_set_active(gno, setno)) {
-	xtmp = getx(gno, setno);
-	ytmp = gety(gno, setno);
-	len = getsetlength(gno, setno);
-	for (j = 0; j < len; j++) {
-	    if ((tmp = hypot((x - xtmp[j]) / dx, (y - ytmp[j]) / dy)) < tmin) {
-		*loc = j + 1;
-		tmin = tmp;
-	    }
-	}
-    } else {
-	*loc = -1;
-    }
-}
-
-/*
  * delete the point pt in setno
  */
 void del_point(int gno, int setno, int pt)
@@ -1110,19 +1062,19 @@ void del_point(int gno, int setno, int pt)
     
     ncols = getncols(gno, setno);
     len = getsetlength(gno, setno);
-    if (pt > len) {
+    if (pt >= len || pt < 0) {
 	return;
-    }
-    if (pt != len) {
-	for (i = pt - 1; i < len - 1; i++) {
+    } else {
+	for (i = pt; i < len - 1; i++) {
 	    for (j = 0; j < ncols; j++) {
-		tmp = g[gno].p[setno].ex[j];
+		tmp = g[gno].p[setno].data.ex[j];
 		tmp[i] = tmp[i + 1];
 	    }
 	}
+        len--;
     }
-    if (len > 1) {
-	setlength(gno, setno, len - 1);
+    if (len > 0) {
+	setlength(gno, setno, len);
     } else {
 	killsetdata(gno, setno);
     }
@@ -1131,7 +1083,7 @@ void del_point(int gno, int setno, int pt)
 /*
  * add a point to setno
  */
-void add_point(int gno, int setno, double px, double py, double tx, double ty, int type)
+void add_point(int gno, int setno, double px, double py)
 {
     int len;
     double *x, *y;
@@ -1146,67 +1098,48 @@ void add_point(int gno, int setno, double px, double py, double tx, double ty, i
     }
 }
 
-/*
- * add a point to setno after or before ind
- * where: 1 = after, 0 = before
- */
-void add_point_at(int gno, int setno, int ind, int where,
-                        double px, double py, double tx, double ty, int type)
+void zero_datapoint(Datapoint *dpoint)
 {
-    int i, len, ncols;
-    double *x, *y, *dx = NULL, *dy = NULL;
+    int k;
+    
+    for (k = 0; k < MAX_SET_COLS; k++) {
+        dpoint->ex[k] = 0.0;
+    }
+    dpoint->s = NULL;
+}
+
+/*
+ * add a point to setno at ind
+ */
+int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
+{
+    int len, col, ncols;
+    double *ex;
+    char **s;
 
     if (is_valid_setno(gno, setno)) {
         len = getsetlength(gno, setno);
-        setlength(gno, setno, len + 1);
-        ncols = getncols( gno, setno );
-        x = getx(gno, setno);
-        y = gety(gno, setno);
-        if ( ncols >=3 ) {
-            dx = getcol( gno, setno, 2 );
-            if ( ncols >= 4 ) {
-                dy = getcol( gno, setno, 3 );
+        if (ind < 0 || ind > len) {
+            return GRACE_EXIT_FAILURE;
+        }
+        len++;
+        setlength(gno, setno, len);
+        ncols = getncols(gno, setno);
+        for (col = 0; col < ncols; col++) {
+            ex = getcol(gno, setno, col);
+            if (ind < len - 1) {
+                memmove(ex + ind + 1, ex + ind, (len - ind - 1)*SIZEOF_DOUBLE);
             }
+            ex[ind] = dpoint->ex[col];
         }
-	for (i = len - 1; i > ind; i--) {
-	    x[i + 1] = x[i];
-	    y[i + 1] = y[i];
-	    if( ncols >=3 ) {
-	        dx[i+1] = dx[i];
-	        if( ncols >= 4 ) {
-	            dy[i+1] = dy[i];
-                }
-	    }
+        s = get_set_strings(gno, setno);
+        if (s != NULL) {
+            s[ind] = copy_string(s[ind], dpoint->s);
         }
-	if (where) {		/* add after ind */
-	    x[ind + 1] = px;
-	    y[ind + 1] = py;
-	    if ( ncols >=3 ) {
-	        dx[ind+1] = tx;
-	        if( ncols >= 4 ) {
-	            dy[ind+1] = ty;
-                }
-	    }
-	} else {		/* add point before ind (at ind) */
-	    i--;
-	    x[i + 1] = x[i];
-	    y[i + 1] = y[i];
-	    if ( ncols >=3 ) {
-	        dx[i+1] = dx[i];
-	        if ( ncols >= 4 ) {
-	            dy[i+1] = dy[i];
-                }
-	    }
-	    x[ind] = px;
-	    y[ind] = py;
-	    if( ncols >=3 ) {
-	        dx[ind] = tx;
-	        if ( ncols >= 4 ) {
-	            dy[ind] = ty;
-                }
-	    }
-	}
-    } 
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
 }
 
 void delete_byindex(int gno, int setno, int *ind)
@@ -1231,7 +1164,7 @@ void delete_byindex(int gno, int setno, int *ind)
     for (i = 0; i < getsetlength(gno, setno); i++) {
 	if (ind[i] == 0) {
 	    for (j = 0; j < ncols; j++) {
-		g[gno].p[setno].ex[j][cnt] = g[gno].p[setno].ex[j][i];
+		g[gno].p[setno].data.ex[j][cnt] = g[gno].p[setno].data.ex[j][i];
 	    }
 	    cnt++;
 	}
@@ -1369,9 +1302,9 @@ void do_splitsets(int gno, int setno, int lpart)
      * NULL
      */
     p = g[gno].p[setno];
-    p.len = 0;
+    p.data.len = 0;
     for (k = 0; k < MAX_SET_COLS; k++) {
-	p.ex[k] = NULL;
+	p.data.ex[k] = NULL;
     }
 
     /* return the set to the heap */
@@ -1747,22 +1680,22 @@ double *getvptr(int gno, int setno, int v)
     
     switch (v) {
     case DATA_X:
-	return g[gno].p[setno].ex[0];
+	return g[gno].p[setno].data.ex[0];
 	break;
     case DATA_Y:
-	return g[gno].p[setno].ex[1];
+	return g[gno].p[setno].data.ex[1];
 	break;
     case DATA_Y1:
-	return g[gno].p[setno].ex[2];
+	return g[gno].p[setno].data.ex[2];
 	break;
     case DATA_Y2:
-	return g[gno].p[setno].ex[3];
+	return g[gno].p[setno].data.ex[3];
 	break;
     case DATA_Y3:
-	return g[gno].p[setno].ex[4];
+	return g[gno].p[setno].data.ex[4];
 	break;
     case DATA_Y4:
-	return g[gno].p[setno].ex[5];
+	return g[gno].p[setno].data.ex[5];
 	break;
     default:
 	errmsg ("Internal error in function getvptr()");
@@ -1807,7 +1740,7 @@ double setybase(int gno, int setno)
 double *getcol(int gno, int setno, int col)
 {
     if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].ex[col];
+        return g[gno].p[setno].data.ex[col];
     } else {
         return NULL;
     }
@@ -1816,7 +1749,7 @@ double *getcol(int gno, int setno, int col)
 char **get_set_strings(int gno, int setno)
 {
     if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].s;
+        return g[gno].p[setno].data.s;
     } else {
         return NULL;
     }
@@ -1825,8 +1758,8 @@ char **get_set_strings(int gno, int setno)
 int set_set_strings(int gno, int setno, int len, char **s)
 {
     if (is_valid_setno(gno, setno) && len > 0 && s!= NULL) {
-        g[gno].p[setno].s = s;
-        g[gno].p[setno].len = len;
+        g[gno].p[setno].data.s = s;
+        g[gno].p[setno].data.len = len;
         set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
@@ -1837,7 +1770,7 @@ int set_set_strings(int gno, int setno, int len, char **s)
 int getsetlength(int gno, int setno)
 {
     if (is_valid_setno(gno, setno)) {
-        return g[gno].p[setno].len;
+        return g[gno].p[setno].data.len;
     } else {
         return -1;
     }
@@ -1890,10 +1823,10 @@ int set_dataset_type(int gno, int setno, int type)
         ncols_old = dataset_cols(gno, setno);
         ncols_new = settype_cols(type);
         for (i = ncols_old; i < ncols_new; i++) {
-            g[gno].p[setno].ex[i] = calloc(len, SIZEOF_DOUBLE);
+            g[gno].p[setno].data.ex[i] = calloc(len, SIZEOF_DOUBLE);
         }
         for (i = ncols_new; i < ncols_old; i++) {
-            cxfree(g[gno].p[setno].ex[i]);
+            cxfree(g[gno].p[setno].data.ex[i]);
         }
         switch (type) {
         case SET_XYSTRING:
@@ -1964,8 +1897,8 @@ void alloc_blockdata(int ncols)
     if (blockdata != NULL) {
 	kill_blockdata();
     }
-    if (ncols < MAXPLOT) {
-	ncols = MAXPLOT;
+    if (ncols < MAXBLOCK) {
+	ncols = MAXBLOCK;
     }
     blockdata = malloc(ncols * sizeof(double *));
     if (blockdata != NULL) {

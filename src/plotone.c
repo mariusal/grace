@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -201,6 +201,11 @@ void plotone(int gno)
         xyplot(gno);
     }
 
+    /* draw regions if in interactive mode */
+    if (terminal_device()) {
+        draw_regions(gno);
+    }
+
     /* plot axes and tickmarks */
     drawaxes(gno);
     
@@ -244,18 +249,6 @@ void draw_polar_graph(int gno)
             }
         }
     }
-
-    /* draw any defined regions for this graph */
-/*
- *     for (i = 0; i < MAXREGION; i++) {
- *         if (rg[i].active && rg[i].linkto[gno]) {
- *             setcolor(rg[i].color);
- *             setlinewidth(rg[i].linew);
- *             setlinestyle(rg[i].lines);
- *             draw_region(i);
- *         }
- *     }
- */
 }
 
 void xyplot(int gno)
@@ -330,9 +323,9 @@ void xyplot(int gno)
         for (i = 0; i < number_of_sets(gno); i++) {
             get_graph_plotarr(gno, i, &p);
             if (is_set_drawable(gno, i)) {
-                if (p.len > refn) {
-                    refn = p.len;
-                    refx = p.ex[0];
+                if (p.data.len > refn) {
+                    refn = p.data.len;
+                    refx = p.data.ex[0];
                 }
                 if (is_graph_stacked(gno) != TRUE) {
                     offset -= 0.5*0.02*p.symsize;
@@ -395,8 +388,8 @@ void xyplot(int gno)
                 if (is_graph_stacked(gno) != TRUE) {
                     offset += 0.5*0.02*p.symsize + get_graph_bargap(gno);
                 } else {
-                    for (j = 0; j < p.len; j++) {
-                        refy[j] += p.ex[1][j];
+                    for (j = 0; j < p.data.len; j++) {
+                        refy[j] += p.data.ex[1][j];
                     }
                 }
             }
@@ -433,8 +426,8 @@ void xyplot(int gno)
                         break;
                     }
                     
-                    for (j = 0; j < p.len; j++) {
-                        refy[j] += p.ex[1][j];
+                    for (j = 0; j < p.data.len; j++) {
+                        refy[j] += p.data.ex[1][j];
                     }
                 }
             }
@@ -446,6 +439,14 @@ void xyplot(int gno)
         break;
     } /* end g.type */
 
+}
+
+void draw_regions(int gno)
+{
+    int i;
+
+    setclipping(TRUE);
+    
     /* draw any defined regions for this graph */
     for (i = 0; i < MAXREGION; i++) {
         if (rg[i].active && rg[i].linkto[gno]) {
@@ -628,12 +629,12 @@ void drawsetfill(int gno, int setno, plotarr *p,
     
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->len, refn);
+        setlen = MIN2(p->data.len, refn);
     } else {
-        x = p->ex[0];
-        setlen = p->len;
+        x = p->data.ex[0];
+        setlen = p->data.len;
     }
-    y = p->ex[1];
+    y = p->data.ex[1];
     
     if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
         stacked_chart = TRUE;
@@ -778,12 +779,12 @@ void drawsetline(int gno, int setno, plotarr *p,
     
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->len, refn);
+        setlen = MIN2(p->data.len, refn);
     } else {
-        x = p->ex[0];
-        setlen = p->len;
+        x = p->data.ex[0];
+        setlen = p->data.len;
     }
-    y = p->ex[1];
+    y = p->data.ex[1];
     
     if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
         stacked_chart = TRUE;
@@ -1021,12 +1022,12 @@ void drawsetsyms(int gno, int setno, plotarr *p,
     
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->len, refn);
+        setlen = MIN2(p->data.len, refn);
     } else {
-        x = p->ex[0];
-        setlen = p->len;
+        x = p->data.ex[0];
+        setlen = p->data.len;
     }
-    y = p->ex[1];
+    y = p->data.ex[1];
     
     if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
         stacked_chart = TRUE;
@@ -1090,15 +1091,15 @@ void drawsetavalues(int gno, int setno, plotarr *p,
     
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->len, refn);
+        setlen = MIN2(p->data.len, refn);
     } else {
-        x = p->ex[0];
-        setlen = p->len;
+        x = p->data.ex[0];
+        setlen = p->data.len;
     }
-    y = p->ex[1];
+    y = p->data.ex[1];
     
     if (dataset_cols(gno, setno) > 2) {
-        z = p->ex[2];
+        z = p->data.ex[2];
     } else {
         z = NULL;
     }
@@ -1154,8 +1155,8 @@ void drawsetavalues(int gno, int setno, plotarr *p,
                                                  LFORMAT_TYPE_EXTENDED));
             break;
         case AVALUE_TYPE_STRING:
-            if (p->s != NULL && p->s[i] != NULL) {
-                strcat(str, p->s[i]);
+            if (p->data.s != NULL && p->data.s[i] != NULL) {
+                strcat(str, p->data.s[i]);
             }
             break;
         case AVALUE_TYPE_Z:
@@ -1193,12 +1194,12 @@ void drawseterrbars(int gno, int setno, plotarr *p,
 
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
-        n = MIN2(p->len, refn);
+        n = MIN2(p->data.len, refn);
     } else {
-        x = p->ex[0];
-        n = p->len;
+        x = p->data.ex[0];
+        n = p->data.len;
     }
-    y = p->ex[1];
+    y = p->data.ex[1];
     
     if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
         stacked_chart = TRUE;
@@ -1210,15 +1211,15 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     case SET_XYDX:
     case SET_XYDY:
     case SET_BARDY:
-        dx = p->ex[2];
-        dy = p->ex[2];
+        dx = p->data.ex[2];
+        dy = p->data.ex[2];
         break;
     case SET_XYDXDX:
     case SET_XYDYDY:
     case SET_XYDXDY:
     case SET_BARDYDY:
-        dx = p->ex[2];
-        dy = p->ex[3];
+        dx = p->data.ex[2];
+        dy = p->data.ex[3];
         break;
     default:
         return;
@@ -1402,8 +1403,8 @@ void drawseterrbars(int gno, int setno, plotarr *p,
 void drawsethilo(plotarr *p)
 {
     int i;
-    double *x = p->ex[0], *y1 = p->ex[1];
-    double *y2 = p->ex[2], *y3 = p->ex[3], *y4 = p->ex[4];
+    double *x = p->data.ex[0], *y1 = p->data.ex[1];
+    double *y2 = p->data.ex[2], *y3 = p->data.ex[3], *y4 = p->data.ex[4];
     double ilen = 0.02*p->symsize;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1412,7 +1413,7 @@ void drawsethilo(plotarr *p)
         setpen(p->sympen);
         setlinewidth(p->symlinew);
         setlinestyle(p->symlines);
-        for (i = 0; i < p->len; i++) {
+        for (i = 0; i < p->data.len; i++) {
             wp.x = x[i];
             wp.y = y1[i];
             vp1 = Wpoint2Vpoint(wp);
@@ -1449,12 +1450,12 @@ void drawsetbars(int gno, int setno, plotarr *p,
     
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
-        n = MIN2(p->len, refn);
+        n = MIN2(p->data.len, refn);
     } else {
-        x = p->ex[0];
-        n = p->len;
+        x = p->data.ex[0];
+        n = p->data.len;
     }
-    y = p->ex[1];
+    y = p->data.ex[1];
     
     if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
         stacked_chart = TRUE;
@@ -1754,7 +1755,15 @@ void draw_string(int gno, int i)
         setpattern(1);
         setcharsize(pstr.charsize);
         setfont(pstr.font);
+
+
+        activate_bbox(BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
+
         WriteString(vp, pstr.rot, pstr.just|JUST_MIDDLE|JUST_BBOX, pstr.s);
+
+        pstr.bb = get_bbox(BBOX_TYPE_TEMP);
+        set_graph_string(i, &pstr);
     }
 }
 
@@ -1792,6 +1801,9 @@ void draw_box(int gno, int i)
             vp2.x = b.x2;
             vp2.y = b.y2;
         }
+
+        activate_bbox(BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
         
         setcolor(b.fillcolor);
         setpattern(b.fillpattern);
@@ -1802,6 +1814,9 @@ void draw_box(int gno, int i)
         setlinestyle(b.lines);
         setpattern(1);
         DrawRect(vp1, vp2);
+        
+        b.bb = get_bbox(BBOX_TYPE_TEMP);
+        set_graph_box(i, &b);
         
         setclipping(TRUE);
     }
@@ -1840,6 +1855,9 @@ void draw_ellipse(int gno, int i)
             vp2.x = b.x2;
             vp2.y = b.y2;
         }
+
+        activate_bbox(BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
         
         setcolor(b.fillcolor);
         setpattern(b.fillpattern);
@@ -1851,6 +1869,9 @@ void draw_ellipse(int gno, int i)
         setpattern(1);
         DrawEllipse(vp1, vp2);
         
+        b.bb = get_bbox(BBOX_TYPE_TEMP);
+        set_graph_ellipse(i, &b);
+
         setclipping(TRUE);
     }
 }
@@ -1889,6 +1910,9 @@ void draw_line(int gno, int i)
             vp2.x = l.x2;
             vp2.y = l.y2;
         }
+
+        activate_bbox(BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
         
         setcolor(l.color);
         setlinewidth(l.linew);
@@ -1909,6 +1933,10 @@ void draw_line(int gno, int i)
             draw_arrowhead(vp1, vp2, l.asize, l.atype);
             break;
         }
+
+        l.bb = get_bbox(BBOX_TYPE_TEMP);
+        set_graph_line(i, &l);
+
         setclipping(TRUE);
     }
 }
@@ -1980,7 +2008,7 @@ void draw_region(int r)
     case REGION_POLYI:
     case REGION_POLYO:
         if (this->x != NULL && this->y != NULL && this->n > 2) {
-            vpstmp = (VPoint *) malloc (this->n*sizeof(VPoint));
+            vpstmp = malloc (this->n*sizeof(VPoint));
             if (vpstmp == NULL) {
                 errmsg("malloc error in draw_region()");
                 return;
@@ -2132,6 +2160,12 @@ void dolegend(int gno)
     
     vp2.x = vp.x + (v.xv2 - v.xv1) + 2*0.01*l.hgap;
     vp2.y = vp.y - (v.yv2 - v.yv1) - 2*0.01*l.vgap;
+
+    l.bb.xv1 = vp.x;
+    l.bb.yv1 = vp2.y;
+    l.bb.xv2 = vp2.x;
+    l.bb.yv2 = vp.y;
+    set_graph_legend(gno, &l);
     
     set_draw_mode(TRUE);
     
@@ -2149,11 +2183,9 @@ void dolegend(int gno)
     vp.x += (vp.x - v.xv1) + 0.01*l.hgap;
     vp.y += (vp.y - v.yv2) - 0.01*l.vgap;
    
-    
-    
     reset_bbox(BBOX_TYPE_TEMP);
     update_bbox(BBOX_TYPE_TEMP, vp);
-    
+
     putlegends(gno, vp, ldist, sdist, yskip);
 }
 
@@ -2231,6 +2263,12 @@ void draw_timestamp(void)
         setcolor(timestamp.color);
         vp.x = timestamp.x;
         vp.y = timestamp.y;
+
+        activate_bbox(BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(BBOX_TYPE_TEMP);
+
         WriteString(vp, timestamp.rot, timestamp.just|JUST_BOTTOM|JUST_OBJECT, timestamp.s);
+
+        timestamp.bb = get_bbox(BBOX_TYPE_TEMP);
     }
 }

@@ -81,13 +81,12 @@ typedef struct {
 
 
 typedef struct {
+    Dataset data;               /* dataset */
+    
     int hidden;                 /* hidden set */
 
     int type;                   /* dataset type */
 
-    int len;                    /* set length */
-    double *ex[MAX_SET_COLS];   /* x, y, dx, z, r, hi depending on dataset type */
-    char **s;                   /* pointer to strings */
     char comments[MAX_STRING_LENGTH];   /* how did this set originate */
 
     int hotlink;                /* hot linked set */
@@ -121,11 +120,7 @@ typedef struct {
     char lstr[MAX_STRING_LENGTH];       /* legend for this set */
 
     AValue avalue;              /* Parameters for annotative string */
-    
     Errbar errbar;              /* error bar properties */
-
-    Regression *r;              /* coefs from any regression performed on this set */
-    Spline *spl;                /* coefs from any spline performed on this set */
 } plotarr;
 
 /*
@@ -301,6 +296,7 @@ int get_graph_locator(int gno, GLocator *locator);
 void set_graph_locator(int gno, GLocator *locator);
 
 int graph_world_stack_size(int gno);
+int get_world_stack_current(int gno);
 int get_world_stack_entry(int gno, int n, world_stack *ws);
 
 int overlay_graphs(int g1, int g2, int type);

@@ -64,6 +64,9 @@ void define_arrange(int nrows, int ncols, int pack,
 void autotick_axis(int gno, int axis);
 void autoscale_byset(int gno, int setno, int autos_type);
 
+void move_legend(int gno, VVector shift);
+void move_timestamp(VVector shift);
+
 #define autoscale_graph(gno, axis) autoscale_byset(gno, ALL_SETS, axis)
 
 #endif /* __GRAPHUTILS_H_ */

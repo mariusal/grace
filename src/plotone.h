@@ -87,4 +87,6 @@ void draw_ref_point(int gno);
 
 void draw_timestamp(void);
 
+void draw_regions(int gno);
+
 #endif /* __PLOTONE_H_ */

@@ -893,7 +893,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        to logarithmic\n");
     fprintf(stream, "-logwindow                            Open the log window\n");
     fprintf(stream, "-maxblock  [number_of_columns]        Set the number of columns for block data\n");
-    fprintf(stream, "                                        (default is %d)\n", MAXPLOT);
+    fprintf(stream, "                                        (default is %d)\n", MAXBLOCK);
     fprintf(stream, "-maxboxes  [number_of_boxes]          Set the number of boxes\n");
     fprintf(stream, "-maxellipses  [number_of_ellipses]    Set the number of ellipses\n");
     fprintf(stream, "-maxlines  [number_of_lines]          Set the number of lines\n");

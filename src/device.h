@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -126,6 +126,8 @@ int set_printer_by_name(char *dname);
 int number_of_devices(void);
 
 void get_page_viewport(double *vx, double *vy);
+
+int terminal_device(void);
 
 /* some useful macros */
 #define page_dpi_x     ((get_page_geometry()).dpi_x)
