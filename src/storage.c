@@ -541,6 +541,49 @@ int storage_get_all_ids(Storage *sto, int **ids)
     }
 }
 
+int storage_pack_ids(Storage *sto)
+{
+    LLNode *cllnode;
+    int id;
+    
+    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
+    
+    id = 0;
+    cllnode = sto->start;
+    while (cllnode) {
+        cllnode->id = id;
+        sto->ids[id] = id;
+        cllnode = cllnode->next;
+        id++;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int storage_push_id(Storage *sto, int id, int forward)
+{
+    LLNode *cllnode1, *cllnode2;
+    
+    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
+    
+    if (storage_scroll_to_id(sto, id) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    } else {
+        cllnode1 = sto->cp;
+        cllnode2 = sto->start;
+        while (cllnode2) {
+            if ((forward  && cllnode2->id > cllnode1->id) ||
+                (!forward && cllnode2->id < cllnode1->id)) {
+                int id = cllnode2->id;
+                cllnode2->id = cllnode1->id;
+                cllnode1->id = id;
+            }
+            cllnode2 = cllnode2->next;
+        }
+        return RETURN_SUCCESS;
+    }
+}
+
 int storage_duplicate(Storage *sto, int id)
 {
     int id_new;

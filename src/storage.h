@@ -112,6 +112,8 @@ int storage_get_data(Storage *sto, void **datap);
 int storage_get_unique_id(Storage *sto);
 
 int storage_get_all_ids(Storage *sto, int **ids);
+int storage_pack_ids(Storage *sto);
+int storage_push_id(Storage *sto, int id, int forward);
 
 int storage_get_data_next(Storage *sto, void **datap);
 int storage_get_data_by_id(Storage *sto, int id, void **datap);
