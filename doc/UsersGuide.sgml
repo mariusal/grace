@@ -5,9 +5,9 @@
 
 <article>
 
-<title>Grace Users's Guide (v0.2)
+<title>Grace User's Guide (v0.2)
 <author>by the Grace Team
-<date>14.02.1999
+<date>12.03.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, the OpenSource (TM) 2D plotting tool for scientific data.
@@ -217,12 +217,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <tag> -cols <it>gcols</it> </tag>
             Arrange graphs in gcols columns
 
-      <tag> -dc </tag>
-            Allow double click operations on the canvas
-
-      <tag> -debug <it>debug_level</it> </tag> 
-            Set debugging options
-
       <tag> -hdevice <it>hardcopy_device_name</it> </tag> 
             Set default hardcopy device
 
@@ -237,17 +231,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <tag> -graphtype <it>graph_type</it> </tag> 
             Set the type of the current graph
 
-      <tag> -GXxor </tag> 
-            Use xor to draw rubberband lines and graph focus markers
-
-      <tag> -GXinvert </tag> 
-            Use invert to draw rubberband lines and graph focus markers
-
       <tag> -hardcopy </tag> 
             No interactive session, just print and quit
-
-      <tag> -hilo <it>hilo_file</it> </tag>
-            Assume data is in X HI LO OPEN CLOSE format
 
       <tag> -install </tag>
             Install private colormap
@@ -283,9 +268,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             Assume the answer is yes to all requests - if the operation would
             overwrite a file, Grace will do so without prompting
 
-      <tag> -nodc </tag>
-            Ignore double clicks on the canvas
-
       <tag> -noinstall </tag> 
             Don't use private colormap
 
@@ -294,10 +276,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <tag> -noprint </tag> 
             In batch mode, do not print
-
-      <tag> -noredraw </tag> 
-            Don't do a redraw for refreshing the canvas when the server doesn't
-            do backing store
 
       <tag> -nosigcatch </tag> 
             Don't catch signals
@@ -319,10 +297,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <tag> -printfile </tag> <it>file</it> 
             Save print output to file
-
-      <tag> -redraw </tag> 
-            Do a redraw for refreshing the canvas when the server doesn't do
-            backing store
 
       <tag> -remove </tag> 
             Remove data file after read
