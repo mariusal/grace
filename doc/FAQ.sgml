@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.16)
+  <title>Grace FAQ (for Grace-5.1.17)
   <author>by the Grace Team
-  <date>24.06.2004
+  <date>12.08.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -674,6 +674,17 @@ XMgrace*XmMessageBox.translations: #override\n\
         previous entry for a remedy.
 
 
+    <sect1>All of the text in the menus and dialog boxes are represented as
+           squares.
+      <p>
+
+        This happens when a Unicode font is picked by the X/Motif and, for a
+        reason, is treated as a wchar one (so you see one "square" glyph for
+        every two chars). Try different font settings; for starters, run
+        <tscreen><code>
+    xmgrace -xrm "XMgrace*fontList:fixed"
+        </code></tscreen>
+
 <!-- **************************************** -->
 
   <sect>Basic Concepts
@@ -698,14 +709,8 @@ XMgrace*XmMessageBox.translations: #override\n\
       <p>
 
         You can read in several kinds of files where data is
-        arranged in columns separated by spaces or tabs.
-
-        Files which are not in simple x y format must have a line
-        <tt>@TYPE xytype</tt> before the actual data, where xytype
-        stands for the set type.  Refer to the User's Guide (question
-        <ref id="manual" name="User's Guide">) for details.
-        Alternatively, the file format can be set with a command
-        line switch.
+        arranged in columns separated by spaces or tabs. Lines beginnig
+        with "#" are ignored.
 
     <sect1>What is block data?
       <p>

@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.16)</title>
+<title>Grace User's Guide (for Grace-5.1.17)</title>
 <author>by the Grace Team</author>
-<date>26.06.2004</date>
+<date>13.08.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -294,21 +294,23 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           from the "Plot/Graph appearance popup". You can load the settings
           contained in a parameter file with File/Open.
 
-      <sect2>Input File formats <label id="files-formats">
+      <sect2>Input file formats <label id="files-formats">
 	<p>
 
-          Grace understands several input files formats. The most
-          basic one is ASCII text files containing space and comma
-          separated columns of data. The data fields can be either
-          numeric (Fortran 'd' and 'D' exponent markers are supported)
-          or alphanumeric (with or without quotes). Several calendar
-          date formats are recognized automatically and you can
-          specify your own reference for numeric dates formats. Grace also
-          has a command language (see <ref id="command-interpreter"
-          name="command interpreter">), you can include commands in
-          data files using lines having "@" as their first non-blank
-          character. Depending on configuration, Grace can also read
-          NetCDF files (see <ref id="configuration" name="configuration">).
+          Grace understands several input files formats. The most basic one
+          is ASCII text files containing space and comma separated columns
+          of data. The data fields can be either numeric (Fortran 'd' and
+          'D' exponent markers are also supported) or alphanumeric (with or
+          without quotes). Several calendar date formats are recognized
+          automatically and you can specify your own reference for numeric
+          date formats. Lines beginnig with "#" are ignored. Blank lines
+          indicate new dataset.
+          Grace also has a command language (see <ref
+          id="command-interpreter" name="command interpreter">), you can
+          include commands in data files using lines having "@" as their
+          first non-blank character, though this is not recommended.
+          Depending on configuration, Grace can also read NetCDF files (see
+          <ref id="configuration" name="configuration">).
 
       <sect2>Graphs <label id="graph">
 	<p>
@@ -1913,7 +1915,7 @@ integral     | cumulative sum @
           <it>nn</it>: 0-99 |
           S1 @
         S&lowbar; |
-          the last allocated set in the current graph|
+          the last implicitly (i.e. as a result of a data transformation) allocated set in the current graph|
           - |
           S&lowbar; @
         S$ |
@@ -2030,7 +2032,7 @@ integral     | cumulative sum @
         <hline>
         Variable        | Description      @
         <hline>
-        datacolumn      | data column of current set @
+        datacolumn      | data column of current ("active") set @
         set.datacolumn  | data column of set @
         <hline>
         vvar            | user-defined array @
@@ -2603,6 +2605,8 @@ integral     | cumulative sum @
 	          expr <it>ymin</it>| VIEW YMIN .25 @
          VIEW YMAX <it>ymax</it> | Sets top edge of current graph at y=<it>ymax</it> in the viewport | 
 	          expr <it>ymax</it>| VIEW YMAX .75 @
+	 VIEW <it>xmin</it>, <it>ymin</it>, <it>xmax</it>, <it>ymax</it>| Sets graph's viewport |
+	          expr <it>xmin</it>, <it>ymin</it>, <it>xmax</it>, <it>ymax</it>| VIEW 0.15, 0.15, 1.15, 0.85 @
 	 XAXES SCALE <it>type</it>  | Set scaling of the x axes to <it>type</it> |
 	          <it>type</it>: one of NORMAL, LOGARITHMIC, or RECIPROCAL | XAXES SCALE NORMAL @
 	 YAXES SCALE <it>type</it>  | Set scaling of the y axes to <it>type</it>  |
