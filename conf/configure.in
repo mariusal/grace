@@ -33,7 +33,6 @@ AC_SUBST(PDFDRV_O)
 AC_SUBST(MISSING_O)
 AC_SUBST(GD_LIB)
 AC_SUBST(RSTDRV_O)
-AC_SUBST(TERMDRV_O)
 AC_SUBST(GRACE_EDITOR)
 AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
@@ -626,7 +625,6 @@ dnl **** Choose a GUI *****
 
 dnl **** default is gui-less
 GRACE=grace
-TERMDRV_O='dummydrv$(O)'
 
 AC_PATH_XTRA
 if test "$no_x" = yes; then
@@ -673,7 +671,6 @@ dnl **** use editres
     GUI="MOTIF_GUI"
     GUI_FLAGS="$X_CFLAGS"
     GRACE=xmgrace
-    TERMDRV_O='x11drv$(O)'
 
     dnl **** Check whether Motif is actually Lesstif
     save_CPPFLAGS="$CPPFLAGS"

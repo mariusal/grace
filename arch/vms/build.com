@@ -89,8 +89,7 @@ $ SRCS = "Tab motifutils " -
        + "locatewin miscwin monwin " -
        + "nonlwin printwin ptswin regionwin " -
        + "setwin strwin setappwin " -
-       + "tickwin worldwin fontwin xutil xmgrace"
-$ IF (TERMDRV_O .NES. "") THEN SRCS = SRCS + " " + F$ELEMENT (0, "$", TERMDRV_O)
+       + "tickwin worldwin fontwin xutil x11drv xmgrace"
 $ GOSUB COMPILE
 $ SRC2 = SRCL
 $ GUI_LIBS = F$ELEMENT (1, ")", GUI_LIBS)

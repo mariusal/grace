@@ -66,9 +66,6 @@ GD_LIB=@GD_LIB@
 # Generic raster driver
 RSTDRV_O=@RSTDRV_O@
 
-# Terminal driver
-TERMDRV_O=@TERMDRV_O@
-
 # Location of yacc (or its substitution)
 YACC=@YACC@
 
