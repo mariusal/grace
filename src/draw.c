@@ -1124,10 +1124,8 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
     pvps[j++] = vps[n - 1];
     
     *np = j;
-#ifdef DEBUG    
-    if (get_debuglevel() == 6) {
-        printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
-    }
+#if 0
+    printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
 #endif
 }
 
