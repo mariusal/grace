@@ -10,11 +10,19 @@
 <PRE>
 <H2>5.1.5</H2>
 
+<H3>Documentation</H3>
+ *  [JS] added man page for convcal
+
 <H3>Bug fixes</H3>
  *  [ES] PS output might be broken for plots containing XYCOLOR sets
  *  [ES] when Line type:left/right stairs was selected, drawing with a
          dashed line of multiple short steps broke the dash pattern (rep.
          #1024)
+ *  [PM] the argument of --with-printcmd configure switch wasn't quoted
+ *  [ES] make result file output line-buffered instead of block-buffered
+ *  [LM] date format hint was ignored in the parser
+ *  [ES] legend and viewport dialog were not updated when moving legend or
+         resizing graph from canvas
 
 
 <H2>5.1.4</H2>
@@ -1028,6 +1036,8 @@
     [DB]  - Dominique Bissieres &lt;dominique.bissieres@turbomeca.fr&gt;
     [RL]  - R. Lahaye &lt;lahaye@postech.edu&gt;
     [MD]  - Matthias Dillier &lt;Matthias.Dillier@snb.ch&gt;
+    [PM]  - Petrie L M &lt;lmp@ornl.gov&gt;
+    [JS]  - Jan Schaumann &lt;jschauma@netmeister.org&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
