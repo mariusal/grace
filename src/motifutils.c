@@ -1390,7 +1390,7 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
     case GraphMenuKillCB:
         if (n > 0) {
             if (yesno("Kill selected graph(s)?", NULL, NULL, NULL)) {
-                for (i = 0; i < n; i++) {
+                for (i = n - 1; i >= 0; i--) {
                     kill_graph(values[i]);
                 }
             }
@@ -1957,7 +1957,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuNewSCB:
             if ((setno = nextset(gno)) != -1) {
-                add_point(gno, setno, 0.0, 0.0);
                 setcomment(gno, setno, "Editor");
                 set_set_hidden(gno, setno, FALSE);
                 create_ss_frame(gno, setno);
@@ -1967,7 +1966,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
         break;
     case SetMenuNewECB:
             if ((setno = nextset(gno)) != -1) {
-                add_point(gno, setno, 0.0, 0.0);
                 setcomment(gno, setno, "Editor");
                 set_set_hidden(gno, setno, FALSE);
                 do_ext_editor(gno, setno);
@@ -3616,14 +3614,17 @@ void update_set_list(int gno, SetChoiceItem l)
     xfree(xms);
 }
 
+
 void update_set_lists(int gno)
 {
     int i;
 
     if (gno == GRAPH_SELECT_CURRENT) {
         update_set_selectors(get_cg());
+        update_ss_editors(get_cg());
     } else {
         update_set_selectors(gno);
+        update_ss_editors(gno);
     }
 
     if (inwin) {
@@ -3936,6 +3937,7 @@ void update_all(void)
     update_set_lists(gno);
 
     update_set_selectors(ALL_GRAPHS);
+    update_ss_editors(ALL_GRAPHS);
 
     if (ReqUpdateColorSel == TRUE) {
         update_color_selectors();
