@@ -162,7 +162,7 @@ static XtResource resources[] =
      (XtPointer) TRUE},
     {"instantUpdate", "InstantUpdate", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, instantupdate), XtRImmediate,
-     (XtPointer) FALSE},
+     (XtPointer) TRUE},
 };
 
 String fallbackResourcesCommon[] = {
