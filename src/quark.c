@@ -175,6 +175,15 @@ Quark *quark_copy(const Quark *q)
     return quark_copy2(q->parent, q);
 }
 
+static int dirtystate_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *q = (Quark *) data;
+
+    quark_dirtystate_set(q, FALSE);
+        
+    return TRUE;
+}
+
 void quark_dirtystate_set(Quark *q, int flag)
 {
     if (flag) {
@@ -187,7 +196,7 @@ void quark_dirtystate_set(Quark *q, int flag)
         }
     } else {
         q->dirtystate = 0;
-        /* FIXME: for i in q->children do i->dirtystate = 0 */
+        storage_traverse(q->children, dirtystate_hook, NULL);
     }
 }
 
