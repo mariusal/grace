@@ -171,3 +171,4 @@ links : dummy
 tests : dummy
 
 dummy :
+	@ !

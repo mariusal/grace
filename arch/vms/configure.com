@@ -290,7 +290,7 @@ $   ALLOCA = ""
 $ ELSE
 $   ALLOCA = "alloca.obj"
 $ ENDIF
-$ T1_LIB = ""
+$ T1_LIB = ",$(T1LIBDIR)libt1lib.olb/LIBRARY"
 $ T1_AA_TYPE16 = "short"
 $ T1_AA_TYPE32 = "int"
 $ T1_AA_TYPE64 = ""
@@ -393,6 +393,10 @@ $! defined to the value of the DCL symbol.  I define all values in DCL
 $! (instead of just those that need to be defined in config.h) so I can
 $! check when symbols are added to config.h_in.
 $!
+$ _ALL_SOURCE = 0
+$ _POSIX_SOURCE = 0
+$ STDC_HEADERS = 1
+$ __CHAR_UNSIGNED__ = 0
 $ SIZEOF_CHAR = "sizeof(char)"
 $ SIZEOF_SHORT = "sizeof(short)"
 $ SIZEOF_INT = "sizeof(int)"
@@ -412,10 +416,6 @@ $ ELSE
 $   SIZEOF_LONG_DOUBLE = "0"
 $ ENDIF
 $ SIZEOF_VOID_P = "sizeof(void *)"
-$ _ALL_SOURCE = 0
-$ _POSIX_SOURCE = 0
-$ STDC_HEADERS = 1
-$ __CHAR_UNSIGNED__ = 0
 $ const = 0
 $ pid_t = 0
 $ size_t = 0
@@ -428,7 +428,9 @@ $ RETSIGTYPE = "void"
 $ HAVE_SYS_WAIT_H = 1
 $ HAVE_FCNTL_H = 1
 $ HAVE_SYS_PARAM_H = 0
+$ HAVE_SYS_TIME_H = 1
 $ TM_IN_SYS_TIME = 1
+$ TIME_WITH_SYS_TIME = 1
 $ HAVE_VFORK_H = 0
 $ vfork = 0
 $ HAVE_GETCWD = 1
@@ -451,8 +453,8 @@ $ HAVE_LIEEE_FPU = (.NOT. HAVE_DEC_FPU) .AND. 1
 $ HAVE_BIEEE_FPU = 0
 $ REALLOC_IS_BUGGY = 0
 $ HAVE_DRAND48 = VMS_MAJOR .GE. 7
-$ HAVE_DRAND48_IN_STDLIB_H = HAVE_DRAND48
 $ HAVE_SETLOCALE = 1
+$ HAVE_DRAND48_IN_STDLIB_H = HAVE_DRAND48
 $ HAVE_LIBM = 1
 $ HAVE_MATH_H = 1
 $ HAVE_FLOAT_H = 1

@@ -19,6 +19,7 @@ OBJS = \
 	parseAFM$(O) 
 
 all : $(OBJS)
+	@ !
 
 clean : dummy
 	$(RM) *$(O);*

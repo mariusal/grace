@@ -1,4 +1,4 @@
-README for GRACE on VMS -- 17-Dec-1998
+README for GRACE on VMS -- 17-Feb-1999
 
 Rolf Niepraschk (niepraschk@ptb.de)
 John Hasstedt (John.Hasstedt@sunysb.edu)
@@ -18,12 +18,6 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
     VMS Alpha V6.2    DECC V5.6     Motif 1.2-4   (John)
  We have received a report that xmgr compiled with
     VMS Alpha V6.1    DECC V5.7     Motif 1.2-3
-
- You need mms or mmk to compile it.  You can get mmk from
-
-     ftp://ftp.madgoat.com/madgoat/mmk.zip
-
- In the current release, the sleep command does not work.
 
  Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
  problem report in case there is a guru lurking:
@@ -47,7 +41,22 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
  In the top directory, do
 
     @[.arch.vms]configure [options]
-    mms               (or mmk)
+
+ Then do one of the following:
+
+    mmk   
+    mms /ignore=warning
+    @[.arch.vms]build
+
+ mmk is MadGoat's make utility; you can get it from
+
+     ftp://ftp.madgoat.com/madgoat/mmk.zip
+
+ mms is Compaq's make utility; the /ignore=warning is necessary with
+ mms to get the t1 library to build.
+
+ If you don't have either make utility, the build.com command file will
+ compile and link it.
 
  Configure accepts options as parameters on the command line.  Separate
  multiple options with spaces.  Note that you CANNOT put spaces around the
@@ -102,32 +111,32 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
       GRACE_HOME: instead of the device and directory because GRACE_HOME
       is defined in Unix format.
 
-    NETCDF=<header>=<libraries> -- Compile and link in the netcdf library.
-      <header> is the directory containing the netcdf.h header file (may
-      be omitted).  <libraries> is a list of the netcdf object libraries,
-      separated by commas.   You can find the NETCDF package at
-      ftp://ftp.ncsa.uiuc.edu/HDF/, including precompiled binaries for
-      VAX and Alpha.
+    NETCDF=<header>=<libraries> -- Include the netcdf library.  <header>
+      is the directory containing the netcdf.h header file (which may be
+      omitted if you copy netcdf.h to the [.src] directory).  <libraries>
+      is a list of the netcdf object libraries, separated by commas.   You
+      can find the NETCDF package at ftp://ftp.ncsa.uiuc.edu/HDF/, including
+      precompiled binaries for VAX and Alpha.
 
-    COPY -- Copy the build files to the other directories even if the
-      files already exist in the other directories.  This can be used
-      when debugging the build procedures to make sure the version in
-      the other directories is the same as the version in this directory.
+    COPY -- Copy the build files from [.arch.vms] to the other directories
+      even if the files already exist in the other directories.  This option
+      is used when debugging the build procedures to make sure the version in
+      the other directories is the same as the version in [.arch.vms].
 
     SAVE -- Save the command line parameters in SAVED.DAT.  If this file
-      exists when you run configure, reads the file and processes the
-      parameters in it before processing the command line parameters.  If
-      you specify SAVE and SAVED.DAT exists, the new parameters are appended
-      to the file; if you specify a parameter that is already in the save
-      file, the original parameter will remain in the file, but the new
-      parameter will override it.  For example, if you run configure with
-      parameters QUEUE="psprinter" and SAVE, in future runs of configure,
-      QUEUE will default to psprinter.  However, any value for QUEUE on the
-      command line will override this, and if you specify QUEUE and SAVE on
-      a later run, the new value of QUEUE will override the old one.  You
-      can also edit SAVED.DAT to add or delete parameters.  The file is just
-      the parameters you specify on the command line, one on each line of
-      the file.
+      exists when you execute configure.com, configure.com reads the file
+      and processes the parameters in it before processing the command line
+      parameters.  If you specify SAVE and SAVED.DAT exists, the new command
+      line parameters are appended to the file; if you specify a parameter
+      that is already in the save file, the original parameter will remain
+      in the file, but the new parameter will override it.  For example, if
+      you run configure with parameters QUEUE="psprinter" and SAVE, in future
+      runs of configure.com, QUEUE will default to psprinter.  However, any
+      value for QUEUE on the command line will override this, and if you
+      specify QUEUE and SAVE on a later run, the new value of QUEUE will
+      override the old one.  You can also edit SAVED.DAT to add or delete
+      parameters.  The file is just the parameters you specify on the
+      command line, one on each line of the file.
 
  If you get an error on linking about gethostname being undefined, edit
  config.h and #undef HAVE_GETHOSTNAME.  I am not sure when gethostname
@@ -159,13 +168,13 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
   copy this file to XMGRACE.DAT in either DECW$SYSTEM_DEFAULTS and/or
   DECW$USER_DEFAULTS to customize the program.
 
-4. Test
+4. Testing
 
   $ set default [.examples]
   $ @dotest
 
- Since the sleep command does not work, test.com and slideshow.d run
- faster than they should.
+ Click exit after each test except slideshow.d (the last one) to display
+ the next test.
 
 5. Bugs
 

@@ -24,6 +24,7 @@ OBJS = \
 	util$(O) 
 
 all : $(OBJS)
+	@ !
 
 clean : dummy
 	$(RM) *$(O);*

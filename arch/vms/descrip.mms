@@ -11,6 +11,7 @@ TOP = [-]
 ECHO = WRITE SYS$OUTPUT
 
 ALL : $(SUBDIRS)
+         @ !
 
 .LAST
 	 @ $(ECHO) ""
