@@ -1986,14 +1986,8 @@ regionset:
 	}
 	| REGNUM XY expr ',' expr
 	{
-	    if (rg[$1].x == NULL || rg[$1].n == 0) {
-		rg[$1].n = 0;
-		rg[$1].x = xcalloc(1, SIZEOF_DOUBLE);
-		rg[$1].y = xcalloc(1, SIZEOF_DOUBLE);
-	    } else {
-		rg[$1].x = xrealloc(rg[$1].x, (rg[$1].n + 1) * SIZEOF_DOUBLE);
-		rg[$1].y = xrealloc(rg[$1].y, (rg[$1].n + 1) * SIZEOF_DOUBLE);
-	    }
+	    rg[$1].x = xrealloc(rg[$1].x, (rg[$1].n + 1) * SIZEOF_DOUBLE);
+	    rg[$1].y = xrealloc(rg[$1].y, (rg[$1].n + 1) * SIZEOF_DOUBLE);
 	    rg[$1].x[rg[$1].n] = $3;
 	    rg[$1].y[rg[$1].n] = $5;
 	    rg[$1].n++;

@@ -105,7 +105,7 @@ void project_free(Project *pr)
     
     xfree(pr->timestamp);
     
-    /* FIXME regions */
+    kill_all_regions();
     
     xfree(pr);
 }

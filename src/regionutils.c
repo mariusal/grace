@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -121,7 +121,16 @@ void kill_region(int r)
 	XCFREE(rg[r].x);
 	XCFREE(rg[r].y);
         rg[r].active = FALSE;
+        rg[r].n = 0;
         set_dirtystate();
+    }
+}
+
+void kill_all_regions(void)
+{
+    int r;
+    for (r = 0; r < MAXREGION; r++) {
+        kill_region(r);
     }
 }
 
