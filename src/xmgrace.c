@@ -662,26 +662,68 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
+    CreateMenuButton(menupane, "workingDirectory", "Working directory...", 'W',
+    	(XtCallbackProc) create_workingdir_popup, (XtPointer) NULL, 0);
+
+    CreateMenuSeparator(menupane);
+
     CreateMenuButton(menupane, "exit", "Exit", 'x',
     	(XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT, "file.html#exit");
 
+/*
+ * Edit menu
+ */
+    menupane = CreateMenu(menubar, "editMenu", "Edit", 'E', NULL, NULL);
+
+    CreateMenuButton(menupane, "dataSets", "Data sets...", 'D',
+    	    (XtCallbackProc) create_change_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "dataPoints", "Data points...", 'p',
+    	(XtCallbackProc) create_points_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
+    	    (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
+    CreateMenuSeparator(menupane);
+    CreateMenuButton(menupane, "arrangeGraphs", "Arrange graphs...", 'r',
+    	    (XtCallbackProc) create_arrange_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "overlayGraphs", "Overlay graphs...", 'O',
+    	    (XtCallbackProc) create_overlay_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "autoscale", "Autoscale graphs...", 'A',
+    	(XtCallbackProc) create_autos_frame, (XtPointer) NULL, 0);
+    CreateMenuSeparator(menupane);
+
+    submenupane = CreateMenu(menupane, "regionsMenu", 
+    				"Regions", 'i', NULL, NULL);
+    CreateMenuButton(submenupane, "status", "Status...", 'S',
+    	(XtCallbackProc) define_status_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "define", "Define...", 'D',
+    	    (XtCallbackProc) create_define_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "clear", "Clear...", 'C',
+    	    (XtCallbackProc) create_clear_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
+    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
+
+    CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
+    	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
+
+
+/* Plot menu */
+    menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
+
+    CreateMenuButton(menupane, "plotAppearance", "Plot appearance...", 'p',
+    	(XtCallbackProc) create_plot_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "graphAppearance", "Graph appearance...", 'G',
+    	(XtCallbackProc) create_graphapp_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
+    	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
+    CreateMenuButton(menupane, "axisProperties", "Axis properties...", 'x',
+    	(XtCallbackProc) create_axes_dialog, (XtPointer) NULL, 0);
+    CreateMenuSeparator(menupane);
+    CreateMenuButton(menupane, "drawingObjects", "Drawing objects...", 'o',
+    	(XtCallbackProc) define_objects_popup, (XtPointer) NULL, 0);
 
 /*
  * Data menu
  */
     menupane = CreateMenu(menubar, "dataMenu", "Data", 'D', NULL, NULL);
-
-    CreateMenuButton(menupane, "results", "Results...", 'R',
-    	(XtCallbackProc) create_monitor_frame, (XtPointer) NULL, 0);
-    
-    CreateMenuButton(menupane, "commands", "Commands...", 'C',
-    	(XtCallbackProc) open_command, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
-
-
-    CreateMenuButton(menupane, "dataSetProperties", "Data set properties...", 'o',
-    	    (XtCallbackProc) create_change_popup, (XtPointer) NULL, 0);
 
     submenupane = CreateMenu(menupane, "dataSetOperationsMenu", "Data set operations", 't', NULL, NULL);
 
@@ -753,87 +795,37 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "pointOperations", "Point operations...", 'P',
-    	(XtCallbackProc) create_points_frame, (XtPointer) NULL, 0);
-
-
     submenupane = CreateMenu(menupane, "regionOperationsMenu", 
     				"Region operations", 'i', NULL, NULL);
 
-    CreateMenuButton(submenupane, "status", "Status...", 'S',
-    	(XtCallbackProc) define_status_popup, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "define", "Define...", 'D',
-    	    (XtCallbackProc) create_define_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "clear", "Clear...", 'C',
-    	    (XtCallbackProc) create_clear_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "evaluate", "Evaluate...", 'E',
     	    (XtCallbackProc) create_evalregion_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "extractPoints", "Extract points...", 'p',
     	    (XtCallbackProc) create_extract_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "extractSets", "Extract sets...", 's',
     	    (XtCallbackProc) create_extractsets_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "deletePoints", "Delete points...", 'o',
     	    (XtCallbackProc) create_delete_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "killSets", "Kill sets...", 'K',
     	    (XtCallbackProc) create_deletesets_frame, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
-    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
 
-    CreateMenuButton(submenupane, "areaPerimeter", "Area/perimeter...", 'A',
-    	    (XtCallbackProc) create_area_frame, (XtPointer) NULL, 0);
-
-
-    CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
-    	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
-
-
-
-/* Plot menu */
-    menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
-
-    CreateMenuButton(menupane, "plotAppearance", "Plot appearance...", 'p',
-    	(XtCallbackProc) create_plot_frame, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
-
-    CreateMenuButton(menupane, "graphAppearance", "Graph appearance...", 'G',
-    	(XtCallbackProc) create_graphapp_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "arrangeGraphs", "Arrange graphs...", 'r',
-    	    (XtCallbackProc) create_arrange_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "overlayGraphs", "Overlay graphs...", 'O',
-    	    (XtCallbackProc) create_overlay_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(menupane, "autoscale", "Autoscale graphs...", 'A',
-    	(XtCallbackProc) create_autos_frame, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
-
-    CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
-    	(XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
-    CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
-    	    (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
-
-    CreateMenuButton(menupane, "axisProperties", "Axis properties...", 'x',
-    	(XtCallbackProc) create_axes_dialog, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
-
-    CreateMenuButton(menupane, "drawingObjects", "Drawing objects...", 'o',
-    	(XtCallbackProc) define_objects_popup, (XtPointer) NULL, 0);
-
-    CreateMenuSeparator(menupane);
+/* Window menu */
+    menupane = CreateMenu(menubar, "windowMenu", "Window", 'W', NULL, NULL);
+   
+    CreateMenuButton(menupane, "commands", "Commands...", 'C',
+    	(XtCallbackProc) open_command, (XtPointer) NULL, 0);
 
     CreateMenuButton(menupane, "fontTool", "Font tool", 'F',
        (XtCallbackProc) create_fonttool, (XtPointer) NULL, 0);
+
+    CreateMenuButton(menupane, "areaPerimeter", "Area/perimeter...", 'A',
+    	    (XtCallbackProc) create_area_frame, (XtPointer) NULL, 0);
+
+    CreateMenuButton(menupane, "results", "Results...", 'R',
+    	(XtCallbackProc) create_monitor_frame, (XtPointer) NULL, 0);
+    
+
 
 /* Options menu */
     menupane = CreateMenu(menubar, "optionsMenu", "Options", 'O', NULL, NULL);
@@ -859,9 +851,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "locatorProps", "Locator props...", 'p',
     	(XtCallbackProc) create_locator_frame, (XtPointer) NULL, 0);
     
-    CreateMenuButton(menupane, "workingDirectory", "Working directory...", 'W',
-    	(XtCallbackProc) create_workingdir_popup, (XtPointer) NULL, 0);
-
     CreateMenuButton(menupane, "misc", "Misc...", 'M',
     	(XtCallbackProc) create_props_frame, (XtPointer) NULL, 0);
 
