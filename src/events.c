@@ -1112,7 +1112,7 @@ int title_clicked(int gno, VPoint vp)
  */
 int find_point(int gno, VPoint vp, int *setno, int *loc)
 {
-    int i, start, stop, j, found;
+    int i, nsets, *sids, j, found;
     double *xtmp, *ytmp;
     WPoint wptmp;
     VPoint vptmp;
@@ -1123,18 +1123,18 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
     }
         
     if (is_valid_setno(gno, *setno)) {
-        start = *setno;
-        stop = *setno;
+        nsets = 1;
+        sids = setno;
     } else {
-        start = 0;
-        stop = number_of_sets(gno) - 1;
+        nsets = get_set_ids(gno, &sids);
     }
     found = FALSE;
-    for (i = start; i <= stop; i++) {
-	if (is_set_hidden(gno, i) == FALSE) {
-	    xtmp = getx(gno, i);
-	    ytmp = gety(gno, i);
-	    for (j = 0; j < getsetlength(gno, i); j++) {
+    for (i = 0; i < nsets; i++) {
+	int setno1 = sids[i];
+        if (is_set_hidden(gno, setno1) == FALSE) {
+	    xtmp = getx(gno, setno1);
+	    ytmp = gety(gno, setno1);
+	    for (j = 0; j < getsetlength(gno, setno1); j++) {
 		wptmp.x = xtmp[j];
 		wptmp.y = ytmp[j];
                 vptmp = Wpoint2Vpoint(wptmp);
@@ -1142,7 +1142,7 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
                 dist = MAX2(fabs(vp.x - vptmp.x), fabs(vp.y - vptmp.y));
                 if (dist < mindist) {
 		    found = TRUE;
-                    *setno = i;
+                    *setno = setno1;
 		    *loc = j;
                     mindist = dist;
 		}

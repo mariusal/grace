@@ -859,33 +859,24 @@ int get_graph_legend(int gno, legend *leg)
 }
 
 
-int set_graph_active(int gno, int flag)
+int set_graph_active(int gno, int show)
 {
     graph *g = graph_get(gno);
-    if (g) {
-        if (flag) {
-            g->hidden = FALSE;
-            return RETURN_SUCCESS;
-        } else {
-            return kill_graph(gno);
-        }
-    } else {
-        if (flag) {
-            g = graph_new();
-            if (g) {
-                if (storage_add(graphs, gno, g) == RETURN_SUCCESS) {
-                    return RETURN_SUCCESS;
-                } else {
-                    graph_free(g);
-                    return RETURN_FAILURE;
-                }
-            } else {
+    if (!g) {
+        g = graph_new();
+        if (g) {
+            if (storage_add(graphs, gno, g) != RETURN_SUCCESS) {
+                graph_free(g);
                 return RETURN_FAILURE;
             }
         } else {
-            return RETURN_SUCCESS;
+            return RETURN_FAILURE;
         }
     }
+    if (show) {
+        g->hidden = FALSE;
+    }
+    return RETURN_SUCCESS;
 }
 
 void set_graph_framep(int gno, framep * f)

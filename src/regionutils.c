@@ -141,31 +141,34 @@ void activate_region(int r, int type, int linkto)
 void reporton_region(int gno, int rno, int type)
 {
     char buf[256];
-    int i, j, first, contained;
+    int i, j, first, contained, nsets, *sids;
     double *x, *y;
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
     stufftext(buf);
-    for (j = 0; j < number_of_sets(gno); j++) {
-	if (is_set_active(gno, j)) {
-	    x = getx(gno, j);
-	    y = gety(gno, j);
+    
+    nsets = get_set_ids(gno, &sids);
+    for (j = 0; j < nsets; j++) {
+	int setno = sids[j];
+        if (is_set_active(gno, setno)) {
+	    x = getx(gno, setno);
+	    y = gety(gno, setno);
 	    first = 1;
 	    contained = 0;
-	    for (i = 0; i < getsetlength(gno, j); i++) {
+	    for (i = 0; i < getsetlength(gno, setno); i++) {
 		if (inregion(rno, x[i], y[i])) {
 		    contained = 1;
 		    switch (type) {
 		    case 0:	/* report on sets */
 			if (first) {
 			    first = 0;
-			    sprintf(buf, "  Set S%1d\n", j);
+			    sprintf(buf, "  Set S%1d\n", setno);
 			    stufftext(buf);
 			}
 			break;
 		    case 1:	/* points */
 			if (first) {
 			    first = 0;
-			    sprintf(buf, "  Set S%1d\n", j);
+			    sprintf(buf, "  Set S%1d\n", setno);
 			    stufftext(buf);
 			}
 			sprintf(buf, "    %d %f %f\n", i + 1, x[i], y[i]);

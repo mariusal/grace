@@ -2640,7 +2640,7 @@ parmset:
         }
 
 	| selectgraph onoff {
-            set_graph_active($1, $2);
+            set_graph_hidden($1, !$2);
         }
 	| selectgraph HIDDEN onoff {
             set_graph_hidden($1, $3);
@@ -5201,7 +5201,8 @@ static int yylex(void)
                 } else {
                     gn = atoi(sbuf);
                 }
-		if (set_graph_active(gn, TRUE) == RETURN_SUCCESS) {
+		if (is_valid_gno(gn) ||
+                    set_graph_active(gn, FALSE) == RETURN_SUCCESS) {
 		    yylval.ival = gn;
 		    return GRAPHNO;
 		}

@@ -255,7 +255,7 @@ void draw_smith_chart(int gno)
 
 void draw_pie_chart(int gno)
 {
-    int i, setno, nsets = 0;
+    int i, j, nsets, *sids, ndsets = 0;
     set *p;
     view v;
     VPoint vpc, vp1, vp2, vps[3], vpa;
@@ -270,10 +270,13 @@ void draw_pie_chart(int gno)
     vpc.x = (v.xv1 + v.xv2)/2;
     vpc.y = (v.yv1 + v.yv2)/2;
 
-    for (setno = 0; setno < number_of_sets(gno); setno++) {
+    nsets = get_set_ids(gno, &sids);
+    
+    for (j = 0; j < nsets; j++) {
+        int setno = sids[j];
         if (is_set_drawable(gno, setno)) {
-            nsets++;
-            if (nsets > 1) {
+            ndsets++;
+            if (ndsets > 1) {
                 errmsg("Only one set per pie chart can be drawn");
                 return;
             }
@@ -401,19 +404,22 @@ void draw_pie_chart(int gno)
 
 void draw_polar_graph(int gno)
 {
-    int i;
+    int j, nsets, *sids;
     set *p;
 
-    for (i = 0; i < number_of_sets(gno); i++) {
-        if (is_set_drawable(gno, i)) {
-            p = set_get(gno, i);
-            switch (dataset_type(gno, i)) {
+    nsets = get_set_ids(gno, &sids);
+    
+    for (j = 0; j < nsets; j++) {
+        int setno = sids[j];
+        if (is_set_drawable(gno, setno)) {
+            p = set_get(gno, setno);
+            switch (dataset_type(gno, setno)) {
             case SET_XY:
             case SET_XYSIZE:
             case SET_XYCOLOR:
-                drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                 break;
             default:
                 errmsg("Unsupported in polar graph set type");
@@ -425,7 +431,7 @@ void draw_polar_graph(int gno)
 
 void xyplot(int gno)
 {
-    int i, j;
+    int i, j, nsets, *sids;
     set *p;
     int refn;
     double *refx, *refy;
@@ -436,24 +442,27 @@ void xyplot(int gno)
     refx = NULL;
     refy = NULL;
 
+    nsets = get_set_ids(gno, &sids);
+
     /* draw sets */
     switch (get_graph_type(gno)) {
     case GRAPH_XY:
-        for (i = 0; i < number_of_sets(gno); i++) {
-            if (is_set_drawable(gno, i)) {
-                p = set_get(gno, i);
-                switch (dataset_type(gno, i)) {
+        for (i = 0; i < nsets; i++) {
+            int setno = sids[i];
+            if (is_set_drawable(gno, setno)) {
+                p = set_get(gno, setno);
+                switch (dataset_type(gno, setno)) {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BAR:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetbars(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetbars(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -461,29 +470,29 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawseterrbars(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawseterrbars(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYHILO:
                     drawsethilo(p);
                     break;
                 case SET_XYZ:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetvmap(gno, p);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BOXPLOT:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetboxplot(p);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -493,9 +502,10 @@ void xyplot(int gno)
         }
         break;
     case GRAPH_CHART:
-        for (i = 0; i < number_of_sets(gno); i++) {
-            p = set_get(gno, i);
-            if (is_set_drawable(gno, i)) {
+        for (i = 0; i < nsets; i++) {
+            int setno = sids[i];
+            p = set_get(gno, setno);
+            if (is_set_drawable(gno, setno)) {
                 if (p->data->len > refn) {
                     refn = p->data->len;
                     refx = p->data->ex[0];
@@ -505,7 +515,7 @@ void xyplot(int gno)
                 }
             }
         }
-        offset -= 0.5*(nactive(gno) - 1)*get_graph_bargap(gno);
+        offset -= 0.5*(number_of_active_sets(gno) - 1)*get_graph_bargap(gno);
         
         if (is_graph_stacked(gno) == TRUE) {
             refy = xcalloc(refn, SIZEOF_DOUBLE);
@@ -514,45 +524,46 @@ void xyplot(int gno)
             }
         }
 
-        for (i = 0; i < number_of_sets(gno); i++) {
-            p = set_get(gno, i);
-            if (is_set_drawable(gno, i)) {
+        for (i = 0; i < nsets; i++) {
+            int setno = sids[i];
+            p = set_get(gno, setno);
+            if (is_set_drawable(gno, setno)) {
                 if (is_graph_stacked(gno) != TRUE) {
                     offset += 0.5*0.02*p->symsize;
                 }
-                switch (dataset_type(gno, i)) {
+                switch (dataset_type(gno, setno)) {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(gno, i, p, refn, refx, refy, offset);
+                    drawsetline(gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawsetsyms(gno, i, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 case SET_BAR:
-                    drawsetline(gno, i, p, refn, refx, refy, offset);
-                    drawsetbars(gno, i, p, refn, refx, refy, offset);
+                    drawsetline(gno, setno, p, refn, refx, refy, offset);
+                    drawsetbars(gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 case SET_BARDY:
                 case SET_BARDYDY:
-                    drawsetline(gno, i, p, refn, refx, refy, offset);
-                    drawsetbars(gno, i, p, refn, refx, refy, offset);
+                    drawsetline(gno, setno, p, refn, refx, refy, offset);
+                    drawsetbars(gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawseterrbars(gno, i, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 case SET_XYDY:
                 case SET_XYDYDY:
-                    drawsetline(gno, i, p, refn, refx, refy, offset);
+                    drawsetline(gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawseterrbars(gno, i, p, refn, refx, refy, offset);
-                        drawsetsyms(gno, i, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 default:
@@ -576,29 +587,30 @@ void xyplot(int gno)
                 refy[j] = 0.0;
             }
             
-            for (i = 0; i < number_of_sets(gno); i++) {
-                p = set_get(gno, i);
-                if (is_set_drawable(gno, i)) {
-                    switch (dataset_type(gno, i)) {
+            for (i = 0; i < nsets; i++) {
+                int setno = sids[i];
+                p = set_get(gno, setno);
+                if (is_set_drawable(gno, setno)) {
+                    switch (dataset_type(gno, setno)) {
                     case SET_XY:
                     case SET_XYSIZE:
                     case SET_XYCOLOR:
-                        drawsetsyms(gno, i, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                         break;
                     case SET_BAR:
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                         break;
                     case SET_BARDY:
                     case SET_BARDYDY:
-                        drawseterrbars(gno, i, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                         break;
                     case SET_XYDY:
                     case SET_XYDYDY:
-                        drawseterrbars(gno, i, p, refn, refx, refy, offset);
-                        drawsetsyms(gno, i, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, i, p, refn, refx, refy, offset);
+                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
                         break;
                     }
                     
@@ -614,16 +626,17 @@ void xyplot(int gno)
         }
         break;
     case GRAPH_FIXED:
-        for (i = 0; i < number_of_sets(gno); i++) {
-            if (is_set_drawable(gno, i)) {
-                p = set_get(gno, i);
-                switch (dataset_type(gno, i)) {
+        for (i = 0; i < nsets; i++) {
+            int setno = sids[i];
+            if (is_set_drawable(gno, setno)) {
+                p = set_get(gno, setno);
+                switch (dataset_type(gno, setno)) {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -631,26 +644,26 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawseterrbars(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawseterrbars(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYZ:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYR:
                     drawcirclexy(p);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetvmap(gno, p);
-                    drawsetsyms(gno, i, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -2224,7 +2237,7 @@ void draw_region(region *this)
  */
 void dolegend(int gno)
 {
-    int i;
+    int i, nsets, *sids;
     int draw_flag;
     double maxsymsize;
     double ldist, sdist, yskip;
@@ -2243,9 +2256,11 @@ void dolegend(int gno)
     
     maxsymsize = 0.0;
     draw_flag = FALSE;
-    for (i = 0; i < number_of_sets(gno); i++) {
-        if (is_set_drawable(gno, i)) {
-            p = set_get(gno, i);
+    nsets = get_set_ids(gno, &sids);
+    for (i = 0; i < nsets; i++) {
+        int setno = sids[i];
+        if (is_set_drawable(gno, setno)) {
+            p = set_get(gno, setno);
             if (p->legstr && p->legstr[0] != '\0') {
                 draw_flag = TRUE;
             }
@@ -2324,7 +2339,7 @@ void dolegend(int gno)
 
 void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
 {
-    int i, setno;
+    int i, setno, nsets, *sids;
     VPoint vp2, vpstr;
     set *p;
     legend l;
@@ -2336,11 +2351,12 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
     
     get_graph_legend(gno, &l);
     
-    for (i = 0; i < number_of_sets(gno); i++) {
+    nsets = get_set_ids(gno, &sids);
+    for (i = 0; i < nsets; i++) {
         if (l.invert == FALSE) {
-            setno = i;
+            setno = sids[i];
         } else {
-            setno = number_of_sets(gno) - i - 1;
+            setno = sids[nsets - i - 1];
         }
         if (is_set_drawable(gno, setno)) {
             p = set_get(gno, setno);

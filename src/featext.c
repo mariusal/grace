@@ -220,7 +220,7 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 		errwin("Choose a new graph or kill sets!");
 	    return;
 	}
-	ncurves = nactive(get_cg());
+	ncurves = number_of_active_sets(cg);
 	switch( abs_src ) {
 		case 0:		/* use index */
 			for( i=0; i<ncurves; i++ )
@@ -229,9 +229,9 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 		case 1:		/* use legend label */
 			cs = 0;
 			for( i=0; i<ncurves; i++ ){
-				while( !is_set_active( get_cg(), cs ) )
+				while( !is_set_active( cg, cs ) )
 					cs++;
-				if(!sscanf( get_legend_string(get_cg(), cs), "%f", &abscissa[i]))
+				if(!sscanf( get_legend_string(cg, cs), "%f", &abscissa[i]))
 					break;
 				cs++;
 			}
@@ -271,11 +271,11 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 	cs = 0;
 	tbuf[0] = '\0';
 	for( i=0; i<ncurves; i++ ) {
-		while( !is_set_active( get_cg(), cs ) )
+		while( !is_set_active( cg, cs ) )
 			cs++;
 		extract_err = 0;
 			
-		getsetminmax(get_cg(), cs, &xmin, &xmax, &ymin, &ymax);
+		getsetminmax(cg, cs, &xmin, &xmax, &ymin, &ymax);
                 switch( feature ) {
 			case 0:			/* Y minimum */
 				datum = ymin;		

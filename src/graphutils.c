@@ -792,8 +792,11 @@ void rescale_viewport(double ext_x, double ext_y)
             o->offset.x *= ext_x;
             o->offset.y *= ext_y;
         }
+        i++;
+        if (storage_next(grace->project->objects) != RETURN_SUCCESS) {
+            break;
+        }
     }
-
 }
 
 int overlay_graphs(int gsec, int gpri, int type)

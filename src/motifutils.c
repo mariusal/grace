@@ -1824,7 +1824,7 @@ static int nset_selectors = 0;
 
 void UpdateSetChoice(ListStructure *listp, int gno)
 {
-    int i, j, n = number_of_sets(gno);
+    int i, j, nsets, *sids;
     char buf[64];
     OptionItem *set_select_items;
     SetChoiceData *sdata;
@@ -1832,30 +1832,32 @@ void UpdateSetChoice(ListStructure *listp, int gno)
     sdata = (SetChoiceData *) listp->anydata;
     sdata->gno = gno;
     
-    if (n <= 0) {
+    nsets = get_set_ids(gno, &sids);
+    if (nsets <= 0) {
         UpdateListChoice(listp, 0, NULL);
         return;
     }
     
-    set_select_items = xmalloc(n*sizeof(OptionItem));
+    set_select_items = xmalloc(nsets*sizeof(OptionItem));
     if (set_select_items == NULL) {
         return;
     }
     
-    for (i = 0, j = 0; i < n; i++) {
-        if ((sdata->show_nodata == TRUE || is_set_active(gno, i) == TRUE) &&
-            (sdata->show_hidden == TRUE || is_set_hidden(gno, i) != TRUE )) {
-            set_select_items[j].value = i;
+    for (i = 0, j = 0; i < nsets; i++) {
+        int setno = sids[i];
+        if ((sdata->show_nodata == TRUE || is_set_active(gno, setno) == TRUE) &&
+            (sdata->show_hidden == TRUE || is_set_hidden(gno, setno) != TRUE )) {
+            set_select_items[j].value = setno;
             sprintf(buf, "(%c) G%d.S%d[%d][%d]",
-                is_set_hidden(gno, i) ? '-':'+',
-                gno, i, dataset_cols(gno, i), getsetlength(gno, i));
+                is_set_hidden(gno, setno) ? '-':'+',
+                gno, setno, dataset_cols(gno, setno), getsetlength(gno, setno));
             set_select_items[j].label = copy_string(NULL, buf);
             if (sdata->view_comments == TRUE) {
                 set_select_items[j].label =
                     concat_strings(set_select_items[j].label, " \"");
                 set_select_items[j].label =
                     concat_strings(set_select_items[j].label,
-                    getcomment(gno, i));
+                    getcomment(gno, setno));
                 set_select_items[j].label =
                     concat_strings(set_select_items[j].label, "\"");
             }
@@ -3682,7 +3684,7 @@ int GetSelectedSets(SetChoiceItem l, int **sets)
 		    } else {
 			gno = l.gno;
 		    }
-		    retval = nactive(gno);
+		    retval = number_of_active_sets(gno);
 		    *sets = xrealloc(*sets, retval * SIZEOF_INT);
 		    ptr = *sets;
 		    for (j = 0; j < number_of_sets(gno); j++) {

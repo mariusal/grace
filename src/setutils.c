@@ -906,36 +906,39 @@ int getsetminmax(int gno, int setno,
     double x1, x2, y1, y2;
     int i, first = TRUE;
     int imin, imax; /* dummy */
+    int nsets, *sids;
+
 
     if (setno == ALL_SETS) {
-        for (i = 0; i < number_of_sets(gno); i++) {
-            if (is_set_drawable(gno, i)) {
-                x = getcol(gno, i, 0);
-                y = getcol(gno, i, 1);
-                len = getsetlength(gno, i);
-                minmax(x, len, &x1, &x2, &imin, &imax);
-                minmax(y, len, &y1, &y2, &imin, &imax);
-                if (first) {
-                    *xmin = x1;
-                    *xmax = x2;
-                    *ymin = y1;
-                    *ymax = y2;
-                    first = FALSE;
-                } else {
-                    *xmin = (x1 < *xmin) ? x1 : *xmin;
-                    *xmax = (x2 > *xmax) ? x2 : *xmax;
-                    *ymin = (y1 < *ymin) ? y1 : *ymin;
-                    *ymax = (y2 > *ymax) ? y2 : *ymax;
-                }
+        nsets = get_set_ids(gno, &sids);
+    } else if (is_valid_setno(gno, setno)) {
+        nsets = 1;
+        sids = &setno;
+    } else {
+        return RETURN_FAILURE;
+    }
+
+    for (i = 0; i < nsets; i++) {
+        int cs = sids[i];
+        if (is_set_drawable(gno, cs)) {
+            x = getcol(gno, cs, DATA_X);
+            y = getcol(gno, cs, DATA_Y);
+            len = getsetlength(gno, cs);
+            minmax(x, len, &x1, &x2, &imin, &imax);
+            minmax(y, len, &y1, &y2, &imin, &imax);
+            if (first) {
+                *xmin = x1;
+                *xmax = x2;
+                *ymin = y1;
+                *ymax = y2;
+                first = FALSE;
+            } else {
+                *xmin = (x1 < *xmin) ? x1 : *xmin;
+                *xmax = (x2 > *xmax) ? x2 : *xmax;
+                *ymin = (y1 < *ymin) ? y1 : *ymin;
+                *ymax = (y2 > *ymax) ? y2 : *ymax;
             }
         }
-    } else if (is_valid_setno(gno, setno)) {
-        x = getcol(gno, setno, 0);
-        y = getcol(gno, setno, 1);
-        len = getsetlength(gno, setno);
-        minmax(x, len, xmin, xmax, &imin, &imax);
-        minmax(y, len, ymin, ymax, &imin, &imax);
-        first = FALSE;
     }
     
     if (first == FALSE) {
@@ -952,7 +955,7 @@ int getsetminmax_c(int gno, int setno,
             double *xmin, double *xmax, double *ymin, double *ymax, int ivec)
 {
     double vmin_t, vmax_t, *vmin, *vmax, bvmin, bvmax, *vec, *bvec;
-    int i, start, stop, n;
+    int i, nsets, *sids, n;
     int first = TRUE, hits;
 
     if (ivec == 1) {    
@@ -967,27 +970,27 @@ int getsetminmax_c(int gno, int setno,
         vmax  = xmax;
     }
     if (setno == ALL_SETS) {
-        start = 0;
-        stop  = number_of_sets(gno) - 1;
+        nsets = get_set_ids(gno, &sids);
     } else if (is_valid_setno(gno, setno)) {
-        start = setno;
-        stop  = setno;
+        nsets = 1;
+        sids = &setno;
     } else {
         return RETURN_FAILURE;
     }
     
-    for (i = start; i <= stop; i++) {
-        if (is_set_drawable(gno, i)) {
+    for (i = 0; i < nsets; i++) {
+        int cs = sids[i];
+        if (is_set_drawable(gno, cs)) {
             
             if (ivec == 1) {
-                bvec = getx(gno, i);
-                vec  = gety(gno, i);
+                bvec = getx(gno, cs);
+                vec  = gety(gno, cs);
             } else {
-                bvec = gety(gno, i);
-                vec  = getx(gno, i);
+                bvec = gety(gno, cs);
+                vec  = getx(gno, cs);
             }
             
-            n = getsetlength(gno, i);
+            n = getsetlength(gno, cs);
             hits = minmaxrange(bvec, vec, n, bvmin, bvmax, &vmin_t, &vmax_t);
             if (hits == RETURN_SUCCESS) {
                 if (first) {
@@ -1167,69 +1170,24 @@ void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
 
 int pushset(int gno, int setno, int push_type)
 {
-    int i, newsetno;
-    
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return RETURN_FAILURE;
+    graph *g = graph_get(gno);
+    if (g) {
+        return storage_push_id(g->sets, setno, push_type == PUSH_SET_TOFRONT);
     } else {
-        switch (push_type) {
-        case PUSH_SET_TOFRONT:
-            newsetno = number_of_sets(gno) - 1;
-            for (i = setno; i < newsetno; i++) {
-                if (swapset(gno, i, gno, i + 1) != RETURN_SUCCESS) {
-                    return RETURN_FAILURE;
-                }
-            }
-            break;
-        case PUSH_SET_TOBACK:
-            newsetno = 0;
-            for (i = setno; i > newsetno; i--) {
-                if (swapset(gno, i, gno, i - 1) != RETURN_SUCCESS) {
-                    return RETURN_FAILURE;
-                }
-            }
-            break;
-        default:
-            return RETURN_FAILURE;
-            break;
-        }
-        return RETURN_SUCCESS;
+        return RETURN_FAILURE;
     }
 }
 
 
 /*
- * pack all sets leaving no gaps in the set structure
+ * pack all sets leaving no gaps in the set ids
  */
 void packsets(int gno)
 {
-    int i, j;
-
-    for (i = 0; i < number_of_sets(gno); i++) {
-	if (is_set_active(gno, i)) {
-	    for (j = 0; j < i; j++) {
-		if (is_set_active(gno, j) != TRUE) {
-		    moveset(gno, i, gno, j);
-		}
-	    }
-	}
+    graph *g = graph_get(gno);
+    if (g) {
+        storage_pack_ids(g->sets);
     }
-}
-
-/*
- * Count the number of active sets in graph gno
- */
-int nactive(int gno)
-{
-    int i, cnt = 0;
-
-    for (i = 0; i < number_of_sets(gno); i++) {
-	if (is_set_active(gno, i)) {
-	    cnt++;
-	}
-    }
-
-    return cnt;
 }
 
 int allocate_set(int gno, int setno)
@@ -1280,6 +1238,31 @@ int get_recent_gno(void)
     return recent_target.gno;
 }
 
+int set_next(int gno)
+{
+    int setno;
+    graph *g;
+    
+    g = graph_get(gno);
+    if (g) {
+        set *p = set_new();
+        if (p) {
+            setno = storage_get_unique_id(g->sets);
+            if (storage_add(g->sets, setno, p) == RETURN_SUCCESS) {
+                set_dirtystate();
+                return setno;
+            } else {
+                set_free(p);
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
 /*
  * return the next available set in graph gno
  * If target is allocated but with no data, choose it (used for loading sets
@@ -1287,29 +1270,30 @@ int get_recent_gno(void)
  */
 int nextset(int gno)
 {
-    int setno;
-    int maxplot;
+    int setno = -1;
 
     if (is_valid_gno(gno) != TRUE) {
-        return (-1);
+        return setno;
     }
     
-    if ( (grace->rt->target_set.gno == gno) &&
+    if ((grace->rt->target_set.gno == gno) &&
          is_valid_setno(grace->rt->target_set.gno, grace->rt->target_set.setno) &&
          !is_set_active(gno, grace->rt->target_set.setno)) {
 	setno = grace->rt->target_set.setno;
 	grace->rt->target_set.gno = -1;
 	grace->rt->target_set.setno = -1;
     } else {
-        maxplot = number_of_sets(gno);
-        for (setno = 0; setno < maxplot; setno++) {
+        int i, nsets, *sids;
+        nsets = get_set_ids(gno, &sids);
+        for (i = 0; i < nsets; i++) {
+            setno = sids[i];
             if (!is_set_active(gno, setno)) {
                 break;
             }
         }
         /* if no sets found, try allocating new one */
-        if (setno == maxplot && allocate_set(gno, setno) != RETURN_SUCCESS) {
-            return (-1);
+        if (setno == -1) {
+            setno = set_next(gno);
         }
     }
     recent_target.gno = gno;
@@ -1331,15 +1315,12 @@ int is_set_active(int gno, int setno)
  */
 int number_of_active_sets(int gno)
 {
-    int setno, na;
+    int i, nsets, *sids, na = 0;
 
-    if (is_valid_gno(gno) != TRUE) {
-        return -1;
-    }
-    
-    na = 0;
-    for (setno = 0; setno < number_of_sets(gno); setno++) {
-	if (is_set_active(gno, setno) == TRUE) {
+    nsets = get_set_ids(gno, &sids);
+    for (i = 0; i < nsets; i++) {
+	int setno = sids[i];
+        if (is_set_active(gno, setno) == TRUE) {
 	    na++;
 	}
     }
@@ -1947,27 +1928,19 @@ void do_drop_points(int gno, int setno, int startno, int endno)
 
 
 /*
- * sort sets, only works on sets of type XY
+ * sort sets
  */
 void do_sort(int setno, int sorton, int stype)
 {
-    int i, gno = get_cg();
-    char buf[256];
+    int gno = get_cg();
 
-    if (setno == -1) {
-	for (i = 0; i < number_of_sets(gno); i++) {
-	    if (is_set_active(gno, i)) {
-		sortset(gno, i, sorton, stype);
-	    }
-	}
+    if (!is_set_active(gno, setno)) {
+        char buf[256];
+	sprintf(buf, "Set %d not active", setno);
+	errmsg(buf);
+	return;
     } else {
-	if (!is_set_active(gno, setno)) {
-	    sprintf(buf, "Set %d not active", setno);
-	    errmsg(buf);
-	    return;
-	} else {
-	    sortset(gno, setno, sorton, stype);
-	}
+	sortset(gno, setno, sorton, stype);
     }
 }
 

@@ -116,28 +116,27 @@ static void do_hotlink_proc(Widget w, XtPointer client_data, XtPointer call_data
 static void do_hotunlink_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     XmString *s, cs;
-    int  cnt, setno;
+    int  cnt, setno, gno = get_cg();
     char *cstr;
 
     set_wait_cursor();
 
-	XtVaGetValues(hotlink_list_item, XmNselectedItemCount, &cnt,
-							  XmNselectedItems, &s,
-							  NULL);
-    if( cnt ) {
-		for( ; cnt; cnt-- ) {
-			cs = XmStringCopy(s[cnt-1]);
-			if ((cstr = GetStringSimple(cs))) {
-				sscanf(cstr, "G%*d.S%d", &setno);
-				if (setno >= 0 && setno < number_of_sets(get_cg())) {
-					set_hotlink(get_cg(), setno, FALSE, NULL, 0);
-				}
-			}
-			XmStringFree(cs);
-			XtFree(cstr);
-		}
-		update_hotlinks();
+    XtVaGetValues(hotlink_list_item,
+        XmNselectedItemCount, &cnt,
+        XmNselectedItems, &s,
+        NULL);
+    if (cnt) {
+        for( ; cnt; cnt-- ) {
+	    cs = XmStringCopy(s[cnt-1]);
+	    if ((cstr = GetStringSimple(cs))) {
+	        sscanf(cstr, "G%*d.S%d", &setno);
+		set_hotlink(gno, setno, FALSE, NULL, 0);
+	    }
+	    XmStringFree(cs);
+	    XtFree(cstr);
 	}
+	update_hotlinks();
+    }
     unset_wait_cursor();
 }
 
@@ -149,21 +148,25 @@ void update_hotlinks(void)
     int j;
     char buf[256];
     XmString xms;
+    int gno = get_cg();
 
     if (hotlink_frame != NULL) {
-		set_wait_cursor();
-		XmListDeleteAllItems(hotlink_list_item);
-		for (j = 0; j < number_of_sets(get_cg()); j++) {
-			if (is_hotlinked(get_cg(), j)) {
-				sprintf(buf, "G%d.S%d -> %s -> %s:%d", get_cg(), j, 
-					get_hotlink_src(get_cg(), j) == SOURCE_DISK ? "DISK" : "PIPE", 
-					get_hotlink_file(get_cg(), j), is_hotlinked(get_cg(),j) );
-				xms = XmStringCreateLocalized(buf);
-				XmListAddItemUnselected(hotlink_list_item, xms, 0);
-				XmStringFree(xms);
-			}
-		}
-		unset_wait_cursor();
+	int nsets, *sids;
+	set_wait_cursor();
+	XmListDeleteAllItems(hotlink_list_item);
+        nsets = get_set_ids(gno, &sids);
+        for (j = 0; j < nsets; j++) {
+	    int setno = sids[j];
+            if (is_hotlinked(gno, setno)) {
+		sprintf(buf, "G%d.S%d -> %s -> %s:%d", gno, setno, 
+			get_hotlink_src(gno, setno) == SOURCE_DISK ? "DISK" : "PIPE", 
+			get_hotlink_file(gno, setno), is_hotlinked(gno,setno) );
+		xms = XmStringCreateLocalized(buf);
+		XmListAddItemUnselected(hotlink_list_item, xms, 0);
+		XmStringFree(xms);
+	    }
+	}
+	unset_wait_cursor();
     }
 }
 
@@ -174,13 +177,17 @@ void do_hotupdate_proc(void *data)
 {
     int i, errpos;
     char hotcom[256];
+    int gno = get_cg();
+    int nsets, *sids;
 
     set_wait_cursor();
 
-	/* do links */
-    for (i = 0; i < number_of_sets(get_cg()); i++) {
-        if (is_hotlinked(get_cg(), i)) {
-            do_update_hotlink(get_cg(), i);
+    /* do links */
+    nsets = get_set_ids(gno, &sids);
+    for (i = 0; i < nsets; i++) {
+        int setno = sids[i];
+        if (is_hotlinked(gno, setno)) {
+            do_update_hotlink(gno, setno);
         }
     }
 
