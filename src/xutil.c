@@ -457,7 +457,6 @@ void switch_current_graph(int gno)
         select_graph(gno);
         draw_focus(saveg);
         draw_focus(gno);
-        make_format(gno);
         update_all();
         set_graph_selectors(gno);
     }
