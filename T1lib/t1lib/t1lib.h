@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2001-02-08
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-10-03
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
@@ -118,6 +118,7 @@ typedef struct
 #define T1_PFAB_PATH        0x01
 #define T1_AFM_PATH         0x02
 #define T1_ENC_PATH         0x04
+#define T1_FDB_PATH         0x08
 #define T1_APPEND_PATH      0x00
 #define T1_PREPEND_PATH     0x01
 
@@ -163,6 +164,7 @@ extern int T1_errno;
 #define T1ERR_UNSPECIFIED             15
 #define T1ERR_NO_AFM_DATA             16
 #define T1ERR_X11                     17
+#define T1ERR_COMPOSITE_CHAR          18
 
 
 /* Flags to control the rasterizer */
@@ -234,16 +236,33 @@ typedef T1_PATHSEGMENT  T1_OUTLINE;
 #define T1_SUBSET_ENCRYPT_NONE       0x08
 
 
+/* Two structures for handling composite character data */
+/* One structure for each symbol of the composite character */
+typedef struct
+{
+  int piece;               /* the index of the current symbol */
+  int deltax;              /* horizontal displacement of current symbol in CS */ 
+  int deltay;              /* vertical displacement of current symbol in CS */ 
+} T1_COMP_PIECE;
+
+/* This one defines the composite character, the number of pieces and how to
+   access their data. */
+typedef struct 
+{
+  int compchar;             /* the base character in the current encoding */
+  int numPieces;            /* the number of defined pieces including the base char */
+  T1_COMP_PIECE *pieces;   /* a pointer to the pieces' information */
+} T1_COMP_CHAR_INFO;
+
+
 
 /* function declarations: */
 
 /* from t1base.c */
 extern void *T1_InitLib( int log);
-extern int scanFontDBase( char *filename);
 extern int T1_CloseLib( void);
 extern int T1_AddFont( char *fontfilename);
-extern void print_msg( char *func_ident, char *msg_txt);
-extern void T1_PrintLog( char *func_ident, char *msg_txt, int level);
+extern void T1_PrintLog( char *func_ident, char *msg_txt, int level, ...);
 extern void T1_SetLogLevel( int level);
 extern int CheckForInit(void);
 extern int CheckForFontID( int FontID);
@@ -259,7 +278,6 @@ extern void bin_dump_l(unsigned long value);
 extern int T1_CheckEndian(void);
 extern int T1_SetBitmapPad( int pad);
 extern int T1_GetBitmapPad( void);
-extern int T1_SetFontDataBase( char *filename);
 extern char *T1_GetLibIdent( void);
 extern void T1_SetRasterFlags( int flags);
 extern char *T1_GetAfmFileName( int FontID);
@@ -271,10 +289,10 @@ extern char *T1_GetAfmFilePath( int FontID);
 extern int T1_DeleteSize( int FontID, float size);
 extern int T1_DeleteAllSizes( int FontID);
 extern int T1_FreeGlyph( GLYPH *glyph);
+extern int T1_FreeCompCharData( T1_COMP_CHAR_INFO *cci);
 extern int T1_DeleteFont( int FontID);
 
 /* from t1enc.c */
-extern char **ScanEncodingFile( char *FileName);
 extern char **T1_LoadEncoding( char *FileName);
 extern int T1_DeleteEncoding( char **encoding);
 extern int T1_ReencodeFont( int FontID, char **Encoding);
@@ -282,12 +300,11 @@ extern int T1_SetDefaultEncoding( char **encoding);
 extern char *T1_GetEncodingScheme( int FontID);
 
 /* from t1env.c */
-extern int ScanConfigFile( char **pfabenv_ptr, char **afmenv_ptr,
-			   char **encenv_ptr, char **fontdatabase_ptr);
-extern char *Env_GetCompletePath( char *FileName, char *env_ptr );
 extern int T1_SetFileSearchPath( int type, char *pathname);
 extern int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 extern char *T1_GetFileSearchPath( int type);
+extern int T1_SetFontDataBase( char *filename);
+extern int T1_AddFontDataBase( int mode, char *filename);
 
 /* from t1finfo.c */
 extern int T1_GetKerning( int FontID, char char1,
@@ -310,6 +327,7 @@ extern int T1_QueryLigs( int FontID,
 			 char **successors,
 			 char **ligatures);
 extern int T1_GetEncodingIndex( int FontID, char *char1);
+extern int *T1_GetEncodingIndices( int FontID, char *char1);
 extern int T1_GetStringWidth( int FontID, char *string,
 			      int len,  long spaceoff, int kerning);
 extern BBox T1_GetStringBBox( int FontID, char *string,
@@ -319,6 +337,11 @@ extern METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 extern BBox T1_GetFontBBox( int FontID);
 extern char **T1_GetAllCharNames( int FontID);
 extern int T1_GetNoKernPairs( int FontID);
+extern int T1_GetNoCompositeChars( int FontID);
+extern int T1_QueryCompositeChar( int FontID, char char1);
+extern T1_COMP_CHAR_INFO *T1_GetCompCharData( int FontID, char char1);
+extern T1_COMP_CHAR_INFO *T1_GetCompCharDataByIndex( int FontID, int index);
+extern int T1_IsInternalChar( int FontID, char char1);
 
 /* from t1load.c */
 extern int T1_LoadFont( int FontID);

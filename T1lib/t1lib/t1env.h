@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        02/24/1998
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-09-26
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1env.c
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -28,21 +28,27 @@
 
 #ifdef T1ENV_C
 
-int ScanConfigFile( char **pfabenv_ptr, char **afmenv_ptr,
-		    char **encenv_ptr, char **fontdatabase_ptr);
-char *Env_GetCompletePath( char *FileName, char *env_ptr );
+void intT1_FreeSearchPaths( void);
+void intT1_SetupDefaultSearchPaths( void);
+int intT1_ScanConfigFile( void);
+char *intT1_Env_GetCompletePath( char *FileName, char **env_ptr );
 int T1_SetFileSearchPath( int type, char *pathname);
 int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 char *T1_GetFileSearchPath( int type);
+int T1_SetFontDataBase( char *filename);
+int T1_AddFontDataBase( int mode, char *filename);
 
 #else
 
-extern int ScanConfigFile( char **pfabenv_ptr, char **afmenv_ptr,
-			   char **encenv_ptr, char **fontdatabase_ptr);
-extern char *Env_GetCompletePath( char *FileName, char *env_ptr );
+extern void intT1_FreeSearchPaths( void);
+extern void intT1_SetupDefaultSearchPaths( void);
+extern int intT1_ScanConfigFile( void);
+extern char *intT1_Env_GetCompletePath( char *FileName, char **env_ptr );
 extern int T1_SetFileSearchPath( int type, char *pathname);
 extern int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 extern char *T1_GetFileSearchPath( int type);
+extern int T1_SetFontDataBase( char *filename);
+extern int T1_AddFontDataBase( int mode, char *filename);
 
 #endif
 

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        parseAFM.h
   ----- Author:      Adobe Systems Inc., modifications by
-                     Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/03/1998
+                     Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-04-01
   ----- Description: This file is part of the t1-library. It is the original
                      parseAFM.h modified at a few points.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -297,12 +297,17 @@ typedef struct
  * For an explanation about each key and its value please refer to the 
  * Composite Character section of the AFM documentation (full title
  * & version given above).  
+ 
+ structure extended for use with t1lib. The fields "width" and bbox store
+ the composite characters escapement and its bounding box (2001-05-027, RMz)
  */
 typedef struct
 {
-    char *ccName;
-    int numOfPieces;
-    Pcc *pieces;
+  int  wx;   /* these two will be filled by T1_LoadFont() */
+  BBox charBBox;
+  char *ccName;
+  int numOfPieces;
+  Pcc *pieces;
 } CompCharData;
 
 

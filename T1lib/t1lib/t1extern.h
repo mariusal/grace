@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1extern.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-20
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-10-03
   ----- Description: This file is part of the t1-library. It contains
                      external declarations used by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -85,19 +85,13 @@ extern struct XYspace *IDENTITY;
 
 extern int errornumber;  /* for debugging purposes */
  
-/* The following pointer should be set to path-strings--used for locating
-   type1, afm and encoding files */
-extern char T1_pfab[];
-extern char T1_afm[];
-extern char T1_enc[];
-extern char T1_fontdatabase[];
-extern char *T1_PFAB_ptr;
-extern char *T1_AFM_ptr;
-extern char *T1_ENC_ptr;
-extern char *T1_FDB_ptr;
+extern char **T1_PFAB_ptr;
+extern char **T1_AFM_ptr;
+extern char **T1_ENC_ptr;
+extern char **T1_FDB_ptr;
 
 /* We use a uchar buffer for error and warning messages: */
-extern char err_warn_msg_buf[256];
+extern char err_warn_msg_buf[1024];
 
 /* file pointer for log-file */
 extern FILE *t1lib_log_file;

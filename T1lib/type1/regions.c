@@ -246,8 +246,10 @@ void KillRegion(area)
                next = p->link;
                Free(p);
         }
+	/* KillPicture-macro removed from sources (RMz, 2001-04-01)
         if (area->thresholded != NULL)
                  KillPicture(area->thresholded);
+	*/
         Free(area);
 }
 /*

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2001-01-04
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-06-10
   ----- Description: This file is part of the t1-library. It contains
                      functions for accessing afm-data and some other
 		     fontinformation data.
@@ -101,13 +101,13 @@ int T1_GetKerning( int FontID, char char1, char char2)
   }
 
   /* if there's no kerning info, return immediately */
-  if (pFontBase->pFontArray[FontID].pAFMData->numOfPairs==0)
+  if (pFontBase->pFontArray[FontID].KernMapSize==0)
     return( 0);
   
   entry.chars=(char1<<8) | char2;
   if ((target_pair=(METRICS_ENTRY *)
        bsearch( &entry, pFontBase->pFontArray[FontID].pKernMap,
-		(size_t) pFontBase->pFontArray[FontID].pAFMData->numOfPairs,
+		(size_t) pFontBase->pFontArray[FontID].KernMapSize,
 		sizeof(METRICS_ENTRY),
 		&cmp_METRICS_ENTRY))==NULL)
     return(0);
@@ -142,11 +142,16 @@ int T1_GetCharWidth( int FontID, char char1)
     return( 0);
   }
   
-  /* Check if character is encoded */
-  if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]==-1)
+  /* return appriate value */
+  if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]>0) { /* ordinary character */
+    return((int) ((pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]-1].wx) * pFontBase->pFontArray[FontID].extend));
+  }
+  else if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]<0) { /* composite character */
+    return((int) ((pFontBase->pFontArray[FontID].pAFMData->ccd[-(pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]+1)].wx) * pFontBase->pFontArray[FontID].extend));
+  }
+  else { /* undefined or .notdef */
     return(0);
-  
-  return((int) ((pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]].wx) * pFontBase->pFontArray[FontID].extend));
+  }
   
 }
 
@@ -201,9 +206,6 @@ BBox T1_GetCharBBox( int FontID, char char1)
     return( NullBBox);
   }
   
-  /* Check if character is encoded */
-  if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]==-1)
-    return(NullBBox);
   
   /* Check for a font slant */
   if ((pFontBase->pFontArray[FontID].slant!=0.0)
@@ -244,8 +246,17 @@ BBox T1_GetCharBBox( int FontID, char char1)
     return(ResultBox);
   }
   else{
-    /* Assign bounding box ... */
-    ResultBox=(pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]].charBBox);
+    /* Assign bounding box for the different cases: */
+    /* Check if character is  */
+    if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]>0) { /* ordinary char */
+      ResultBox=(pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]-1].charBBox);
+    }
+    else if (pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]<0) { /* composite char */
+      ResultBox=(pFontBase->pFontArray[FontID].pAFMData->ccd[-(pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]+1)].charBBox);
+    }
+    else { /* undefined char */
+      return(NullBBox);
+    }
     
     /* .. and apply transformations: */
     ResultBox.llx *=pFontBase->pFontArray[FontID].extend;
@@ -253,8 +264,8 @@ BBox T1_GetCharBBox( int FontID, char char1)
     
     return(ResultBox);
   }
-    
 }
+
 
 
 /* int T1_GetUnderlinePosition(): Return underline position of specified
@@ -461,8 +472,8 @@ char *T1_GetCharName( int FontID, char char1)
   if (CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
-  } 
-  
+  }
+
   if (pFontBase->pFontArray[FontID].pFontEnc==NULL){
     /* We have to get the names from the fonts internal encoding */
     c1= (char *)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[(unsigned char)char1].data.arrayP;
@@ -626,6 +637,55 @@ int T1_GetEncodingIndex( int FontID, char *char1)
   }
 
   return(result_index);
+}
+
+
+/* T1_GetEncodingIndices(): Return all indices of char1 in the current
+   encoding vector of font FontID. */
+int *T1_GetEncodingIndices( int FontID, char *char1)
+{
+  int i;
+  int endmark=0;
+  int len1;
+  char **extern_enc;
+  psobj *objptr;
+  /* the following array suffices for the extreme unlikely case of a font
+     where one single fillsthe whole encoding vector */
+  static int indices[257];
+
+  
+  if (CheckForFontID(FontID)!=1) {
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+
+  extern_enc=pFontBase->pFontArray[FontID].pFontEnc;
+
+  len1=strlen( char1);
+  
+  if (extern_enc==NULL) {
+    objptr=&(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP[0]);
+    /* We have to search the fonts internal encoding */
+    for (i=0;i<256;i++){
+      if (len1==objptr[i].len){
+	if (strncmp((char *)objptr[i].data.arrayP,
+		    char1, objptr[i].len)==0){ 
+	  indices[endmark++]=i; 
+	}
+      }
+    }
+  }
+  else {
+    /* Take name from explicitly loaded and assigned encoding */
+    for (i=0;i<256;i++){
+      if (strcmp(extern_enc[i], char1)==0){
+	indices[endmark++]=i; 
+      }
+    }
+  }
+
+  indices[endmark]=-1;
+  return((int *)indices);
 }
 
 
@@ -914,17 +974,32 @@ BBox T1_GetFontBBox( int FontID)
 {
   
   BBox outbox= { 0, 0, 0, 0}; 
+  struct ps_obj *obj;
 
   /* return Null-box if font not loaded */
   if (CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(outbox);
   }
-  
-  outbox.llx=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[0].data.integer; 
-  outbox.lly=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[1].data.integer;
-  outbox.urx=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[2].data.integer;
-  outbox.ury=pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[3].data.integer;
+
+  /* As suggested by Derek B. Noonburg (xpdf-Author), we allow the
+     FontBBox also to be specified by real numbers. */
+  obj = &(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[0]);
+  outbox.llx =
+    objPIsInteger(obj) ? obj->data.integer : obj->data.real > 0 ?
+    (int) ceil(obj->data.real) : (int) floor(obj->data.real);
+  obj = &(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[1]);
+  outbox.lly =
+    objPIsInteger(obj) ? obj->data.integer : obj->data.real > 0 ?
+    (int) ceil(obj->data.real) : (int) floor(obj->data.real);
+  obj = &(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[2]);
+  outbox.urx =
+    objPIsInteger(obj) ? obj->data.integer : obj->data.real > 0 ?
+    (int) ceil(obj->data.real) : (int) floor(obj->data.real);
+  obj = &(pFontBase->pFontArray[FontID].pType1Data->fontInfoP[FONTBBOX].value.data.arrayP[3]);
+  outbox.ury =
+    objPIsInteger(obj) ? obj->data.integer : obj->data.real > 0 ?
+    (int) ceil(obj->data.real) : (int) floor(obj->data.real);
   
   return( outbox);
 }
@@ -1019,24 +1094,6 @@ int T1_GetNoKernPairs( int FontID)
 
 
 
-/* T1_GetCharStringByName(): retrieve the */ 
-int T1_GetCharStringByName( int FontID, const char *charname,
-			    char **charstring) 
-{
-  return(0);
-}
-
-
-
-
-int T1_GetCharStringByIndex( int FontID, int index,
-			    char **charstring) 
-{
-  return(0);
-}
-
-
-
 /* A function for comparing METRICS_ENTRY structs */
 static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
 {
@@ -1051,4 +1108,234 @@ static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
 
 
 
+/* A few functions for accessing composite character data: */
+/* T1_GetNoCompositeChars(): Return the number of characters for
+   for which composite character information is available
+   for font FontID */
+int T1_GetNoCompositeChars( int FontID)
+{
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( -1);
+  }
 
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( -1);
+  }
+
+  return( pFontBase->pFontArray[FontID].pAFMData->numOfComps);
+  
+}
+
+
+
+/* T1_QueryCompositeChar(): Query whether char1 from font FontID
+   is a composite character. If so, the index of the composite
+   character data within the afm array is returned. The index can
+   be used to retrieve the retrieve the composite character data.
+
+   retval>=0:    index into AFM-array where the corresponding
+                 composite char data is located
+   retval=-1:    No composite character, but result is valid,
+   retval=-2:    No composite character, but result is invalid.
+                 T1_errno indicated the reason.
+*/
+int T1_QueryCompositeChar( int FontID, char char1) 
+{
+  unsigned char uchar1;
+
+  uchar1=char1;
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( -2);
+  }
+
+  /* If no AFM info is present, we return -2 */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( -2);
+  }
+
+  if (pFontBase->pFontArray[FontID].pEncMap[ uchar1]<0) { /* composite char */
+    return( -(pFontBase->pFontArray[FontID].pEncMap[(int) uchar1]+1));
+  }
+
+  return(-1);
+  
+}
+
+
+
+/* T1_GetCompCharData(): Retrieve data to construct composite
+   character char1 from font FontID. In case of an error NULL is returned
+   and T1_errno is set appropriately. */
+T1_COMP_CHAR_INFO *T1_GetCompCharData( int FontID, char char1)
+{
+  T1_COMP_CHAR_INFO *cci=NULL;
+  CompCharData *ccd=NULL;
+  int afmind=-1;
+  int i;
+  unsigned char uchar1;
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( cci);
+  }
+
+  /* If no AFM info is present, we return -2 */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( cci);
+  }
+
+  if ((cci=(T1_COMP_CHAR_INFO*)malloc( sizeof(T1_COMP_CHAR_INFO)))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return( cci);
+  }
+  
+  uchar1=(unsigned char)char1;
+  
+  /* set default values */
+  cci->compchar=uchar1;
+  cci->numPieces=1;
+  cci->pieces=NULL;
+
+  /* check char1 */
+  if ((afmind=pFontBase->pFontArray[FontID].pEncMap[uchar1]) >= 0) {
+    /* char is no composite char */
+    return(cci);
+  }
+  
+  /* character is a composite char-> retrieve index and pointer into
+     AFM data */
+  afmind=-(afmind+1);
+  ccd=&(pFontBase->pFontArray[FontID].pAFMData->ccd[afmind]);
+
+  /* cci->compchar is already setup correctly because char1 is a
+     composite character */
+  cci->numPieces=ccd->numOfPieces;
+  /* we expect numPieces to be >1 */
+  if ((cci->pieces=(T1_COMP_PIECE *)malloc( sizeof(T1_COMP_PIECE)*
+					    cci->numPieces))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    free( cci);
+    return( NULL);
+  }
+  /* Copy information */
+  for (i=0; i<cci->numPieces; i++) {
+    cci->pieces[i].piece=T1_GetEncodingIndex( FontID, ccd->pieces[i].pccName);
+    cci->pieces[i].deltax=ccd->pieces[i].deltax;
+    cci->pieces[i].deltay=ccd->pieces[i].deltay;
+  }
+  return( cci);
+  
+}
+
+
+
+/* T1_GetCompCharDataByIndex(): Retrieve data to construct composite
+   characters form font FontID. The data is addressed by index which
+   may, for example, have been obtained by a call to
+   T1_QueryCompositeChar().
+   In case of error NULL is returned and T1_errno is set appropriately.
+*/
+T1_COMP_CHAR_INFO *T1_GetCompCharDataByIndex( int FontID, int index)
+{
+  T1_COMP_CHAR_INFO *cci=NULL;
+  CompCharData *ccd=NULL;
+  int i;
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( cci);
+  }
+
+  /* If no AFM info is present, we return -2 */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( cci);
+  }
+
+  /* range check for index */
+  if ((index < 0) ||
+      (index >= pFontBase->pFontArray[FontID].pAFMData->numOfComps)) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return( cci);
+  }
+
+  /* Alloc mem */
+  if ((cci=(T1_COMP_CHAR_INFO*)malloc( sizeof(T1_COMP_CHAR_INFO)))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return( cci);
+  }
+  
+  /* set source pointer */
+  ccd=&(pFontBase->pFontArray[FontID].pAFMData->ccd[index]);
+  /* and copy information */
+  cci->compchar=T1_GetEncodingIndex( FontID, ccd->ccName);
+  cci->numPieces=ccd->numOfPieces;
+  /* we expect numPieces to be >1 */
+  if ((cci->pieces=(T1_COMP_PIECE *)malloc( sizeof(T1_COMP_PIECE)*
+					    cci->numPieces))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    free( cci);
+    return( NULL);
+  }
+  /* Copy information */
+  for (i=0; i<cci->numPieces; i++) {
+    cci->pieces[i].piece=T1_GetEncodingIndex( FontID, ccd->pieces[i].pccName);
+    cci->pieces[i].deltax=ccd->pieces[i].deltax;
+    cci->pieces[i].deltay=ccd->pieces[i].deltay;
+  }
+  return( cci);
+  
+}
+
+
+
+/* T1_IsInternalChar(): Query whether the character in encoding slot
+   char1 of font FontID has an internal definition (CharString) or
+   whether it is constructed by t1lib from elementary units */
+int T1_IsInternalChar( int FontID, char char1)
+{
+  unsigned char uchar1;
+  char *charname;
+  psdict *pCharStrings;
+  int len, i, j;
+  
+  /* return NULL if font not loaded */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( -1);
+  }
+  
+  pCharStrings=pFontBase->pFontArray[FontID].pType1Data->CharStringsP;
+  uchar1=(unsigned char)char1;
+
+  charname=T1_GetCharName( FontID, uchar1);
+  
+  /* First, get the maximum number of charstrings: */
+  len=pCharStrings[0].key.len;
+
+  /* Check all CharString definitions */
+  for ( i=1; i<=len; i++) {
+    /* if len=0, then the CharStrings dict is larger that required which
+       is valid and allowed by the spec.*/ 
+    if ((j=pCharStrings[i].key.len)!=0) {
+      if ( (j==strlen(charname)) &&
+	   (strncmp( charname, pCharStrings[i].key.data.nameP, j)==0) ) {
+	/* we have found an internal definition */
+	return( 1);
+      }
+    }
+  }
+  return( 0);
+}

@@ -43,7 +43,8 @@
 #include "../t1lib/t1types.h"
 #include "../t1lib/t1extern.h"
 #include "../t1lib/t1misc.h"
-
+#include "../t1lib/t1base.h"
+#include "../t1lib/t1finfo.h"
 
 extern xobject Type1Char(psfont *env, struct XYspace *S,
 			 psobj *charstrP, psobj *subrsP,
@@ -59,12 +60,16 @@ void objFormatName(psobj *objP, int length, char *valueP);
   
 extern void T1io_reset( void);
 
+#define BEZIERTYPE 0x10+0x02
+#define LINETYPE   0x10+0x00
+#define MOVETYPE   0x10+0x05
 
 
 /***================================================================***/
 /*   GLOBALS                                                          */
 /***================================================================***/
 static char CurCharName[257]="";
+static char BaseCharName[257]="";
 char CurFontName[120];
 char *CurFontEnv;
 char *vm_base = NULL;
@@ -77,8 +82,7 @@ char *vm_used = NULL;
 extern int vm_init_count;
 extern int vm_init_amount;
 
-
-psfont *FontP = NULL;
+static psfont *FontP = NULL;
 psfont TheCurrentFont;
  
  
@@ -168,6 +172,62 @@ char *env;
 }
 
 
+static int isCompositeChar( int FontID,
+			    char *charname) 
+{
+  int i;
+  FontInfo *pAFMData;
+  
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    /* No AFM data present */
+    return( -1);
+  }
+
+  pAFMData=pFontBase->pFontArray[FontID].pAFMData;
+  for ( i=0; i<pAFMData->numOfComps; i++) {
+    if (strcmp( pAFMData->ccd[i].ccName, charname)==0)
+      return( i);
+  }
+  
+  return( -1);
+  
+}
+
+
+
+/* dump a description of path elements to stdout */
+static T1_PATHPOINT getDisplacement( struct segment *path)
+{
+
+  register struct segment *ipath;
+  register struct beziersegment *ibpath;
+  T1_PATHPOINT point={0,0};
+  
+  /* Step through the path list */
+  ipath=(struct segment *)path;
+  
+  do {
+    if (ipath->type==LINETYPE) {
+      point.x+=ipath->dest.x;
+      point.y+=ipath->dest.y;
+    }
+    else if (ipath->type==MOVETYPE) {
+      point.x+=ipath->dest.x;
+      point.y+=ipath->dest.y;
+    }
+    else if (ipath->type==BEZIERTYPE) {
+      ibpath=(struct beziersegment *)ipath;
+      point.x+=ibpath->dest.x;
+      point.y+=ibpath->dest.y;
+    }
+    ipath=ipath->link;
+  } while (ipath!=NULL);
+  return( point);
+  
+}
+
+
+
 /***================================================================***/
 /* RMz: instead of code, which is a character pointer to the name
         of the character, we use "ev" which is a pointer to a desired
@@ -185,70 +245,175 @@ xobject fontfcnB(int FontID, int modflag,
 {
  
   psobj *charnameP; /* points to psobj that is name of character*/
-  int   N;
+  FontInfo *pAFMData=NULL;
+  int i=-1;
+  int j=0;
+  int numPieces=1;
+  int N;
+  T1_PATHPOINT currdisp;
+  int basechar;
+  
   psdict *CharStringsDictP; /* dictionary with char strings     */
   psobj   CodeName;   /* used to store the translation of the name*/
   psobj  *SubrsArrayP;
   psobj  *theStringP;
   int localmode=0;
   
-  struct segment *charpath;   /* the path for this character   */           
+  struct segment *charpath=NULL;   /* the path for this character   */           
+  struct segment *tmppath1=NULL;
+  struct segment *tmppath2=NULL;
+  struct segment *tmppath3=NULL;
+  struct segment *tmppath4=NULL;
   
+   
   /* set the global font pointer to the address of already allocated
-     structure */
+     structure and setup pointers*/
   FontP=Font_Ptr;
+  CharStringsDictP =  FontP->CharStringsP;
+  SubrsArrayP = &(FontP->Subrs);
+  charnameP = &CodeName;
 
   if (ev==NULL){  /* font-internal encoding should be used */
-    charnameP = &CodeName;
     charnameP->len = FontP->fontInfoP[ENCODING].value.data.arrayP[index].len;
     charnameP->data.stringP = (unsigned char *) FontP->fontInfoP[ENCODING].value.data.arrayP[index].data.arrayP;
   }
-  else{           /* some user-supplied encoding is yo be used */
-    charnameP = &CodeName;
+  else{           /* some user-supplied encoding is to be used */
     charnameP->len = strlen(ev[index]);
     charnameP->data.stringP = (unsigned char *) ev[index];
   }
+  strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+  CurCharName[charnameP->len]='\0';
   
-  CharStringsDictP =  FontP->CharStringsP;
  
   /* search the chars string for this charname as key */
-  N = SearchDictName(CharStringsDictP,charnameP);
-  if (N<=0) {
-    /* Instead of returning an error, we substitute .notdef (RMz) */
+  basechar = SearchDictName(CharStringsDictP,charnameP);
+  if (basechar<=0) {
+    /* Check first, whether a char in question is a composite char */
+    if ((i=isCompositeChar( FontID, CurCharName))>-1) {
+      /* i is now the index of the composite char definitions
+	 (starting at 0). At this point it is clear that AFM-info
+	 must be present -> fetch first component of composite char. */
+      pAFMData=pFontBase->pFontArray[FontID].pAFMData;
+      charnameP->len=strlen( pAFMData->ccd[i].pieces[0].pccName);
+      charnameP->data.stringP=(unsigned char*)pAFMData->ccd[i].pieces[0].pccName;
+      numPieces=pAFMData->ccd[i].numOfPieces;
+      
+      if ((basechar=SearchDictName(CharStringsDictP,charnameP))<=0) {
+	/* this is bad, AFM-file and font file do not match. This 
+	   will most probably lead to errors or inconsistencies later.
+	   However, we substitute .notdef and inform the user via
+	   logfile and T1_errno. */
+	sprintf( err_warn_msg_buf,
+		 "Charstring \"%s\" needed to construct composite char \"%s\" not defined (FontID=%d)",
+		 pAFMData->ccd[i].pieces[0].pccName,
+		 pAFMData->ccd[i].ccName, FontID);
+	T1_PrintLog( "fontfcnB():", err_warn_msg_buf, T1LOG_WARNING);
+	T1_errno=T1ERR_COMPOSITE_CHAR;
+      }
+    }
+  }
+  
+  if (basechar<=0) { /* This  means the requested char is unknown or the
+			base char of a composite is not found ->
+			we substitute .notdef */
     charnameP = &CodeName;
     charnameP->len = 7;
     charnameP->data.stringP = (unsigned char *) notdef;
-    N = SearchDictName(CharStringsDictP,charnameP);
+    basechar = SearchDictName(CharStringsDictP,charnameP);
+    localmode=FF_NOTDEF_SUBST;
     /* Font must be completely damaged if it doesn't define a .notdef */
-    if (N<=0) {
+    if (basechar<=0) {
       *mode=FF_PARSE_ERROR;
       return(NULL);
     }
-  }
+  } /* if (basechar<=0) */
+  /* basechar is now the index of the base character in the CharStrings
+     dictionary */
+
   /* we provide the Type1Char() procedure with the name of the character
      to rasterize for debugging purposes */
   strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
   CurCharName[charnameP->len]='\0';
-  /* tell the calling function about rastering .notdef */
-  if (strcmp( CurCharName, ".notdef")==0) {
-    localmode=FF_NOTDEF_SUBST;
+  /* get CharString and character path */
+  theStringP = &(CharStringsDictP[basechar].value);
+  tmppath2 = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
+					  FontP->BluesP,mode,CurCharName);
+  /* if Type1Char reported an error, then return */
+  if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
+    return(NULL);
+  
+  /* Defer rastering to later, we first have to handle the composite
+     symbols */
+  for (j=1; j<numPieces; j++) {
+    /* get composite symbol name */
+    charnameP->len=strlen( pAFMData->ccd[i].pieces[j].pccName);
+    charnameP->data.stringP=(unsigned char*)pAFMData->ccd[i].pieces[j].pccName;
+    /* get CharString definition */
+    if ((N=SearchDictName(CharStringsDictP,charnameP))<=0) {
+      /* handling of errors, see comments above ... */
+      sprintf( err_warn_msg_buf,
+	       "Charstring \"%s\" needed to construct composite char \"%s\" not defined (FontID=%d)",
+	       pAFMData->ccd[i].pieces[j].pccName,
+	       pAFMData->ccd[i].ccName, FontID);
+      T1_PrintLog( "fontfcnB():", err_warn_msg_buf, T1LOG_WARNING);
+      charnameP = &CodeName;
+      charnameP->len = 7;
+      charnameP->data.stringP = (unsigned char *) notdef;
+      N = SearchDictName(CharStringsDictP,charnameP);
+      localmode=FF_NOTDEF_SUBST;
+      /* damaged Font */
+      if (N<=0) {
+	*mode=FF_PARSE_ERROR;
+	if (charpath!=NULL) {
+	  KillPath( charpath);
+	}
+	return(NULL);
+      }
+    }
+    theStringP = &(CharStringsDictP[N].value);
+    tmppath1=(struct segment *)ILoc(S,
+				    pAFMData->ccd[i].pieces[j].deltax,
+				    pAFMData->ccd[i].pieces[j].deltay);
+    
+    strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+    CurCharName[charnameP->len]='\0';
+    charpath=(struct segment *)Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
+					 FontP->BluesP,mode,CurCharName);
+    /* return if Type1Char reports an error */
+    if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
+      return(NULL);
+    /* get escapement of current symbol */
+    currdisp=getDisplacement( charpath);
+    /* concat displacement and symbol path */
+    charpath=(struct segment *)Join(tmppath1,charpath);
+    /* for composite symbols we have to step back the char escapement.
+       this is, in order to be able to use accents that cause a
+       non zero displacement of the current point! We further have to
+       step back the displacement from composite char data. */
+    tmppath1=(struct segment *)t1_PathSegment( MOVETYPE, -currdisp.x, -currdisp.y);
+    tmppath3=(struct segment *)ILoc(S,
+				    -pAFMData->ccd[i].pieces[j].deltax,
+				    -pAFMData->ccd[i].pieces[j].deltay);
+    tmppath3=(struct segment *)Join(tmppath1,tmppath3);
+    /* create path, or, respectively, append to existing path */
+    if (tmppath4==NULL) {
+      tmppath4=(struct segment *)Join(charpath,tmppath3);
+    }
+    else {
+      charpath=(struct segment *)Join(charpath,tmppath3);
+      tmppath4=(struct segment *)Join(tmppath4,charpath);
+    }
+  }
+
+  /* concat composite symbols and base char */
+  if (tmppath4==NULL) { /* no previous composite symbols */
+    charpath=tmppath2; /* a simple char */
+  }
+  else { 
+    charpath=(struct segment *)Join(tmppath4,tmppath2);
   }
   
-  /* ok, the nth item is the psobj that is the string for this char */
-  theStringP = &(CharStringsDictP[N].value);
- 
-  /* get the dictionary pointers to the Subrs  */
- 
-  SubrsArrayP = &(FontP->Subrs);
-
-  /* call the type 1 routine to rasterize the character     */
-  charpath = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					  FontP->BluesP,mode,CurCharName);
   
-  /* if Type1Char reported an error, then return */
-
-  if ( *mode == FF_PARSE_ERROR)  return(NULL);
-  if ( *mode == FF_PATH_ERROR)  return(NULL);
   if (do_raster) { 
     /* fill with winding rule unless path was requested */
     if (*mode != FF_PATH) {
@@ -423,7 +588,6 @@ int  *rcodeP;
 	The user thus has the opportunity of supplying whatever encoding
 	he wants. Font_Ptr is the pointer to the local psfont-structure. 
 	*/
-
 xobject fontfcnB_string( int FontID, int modflag,
 			 struct XYspace *S, char **ev,
 			 unsigned char *string, int no_chars,
@@ -433,97 +597,276 @@ xobject fontfcnB_string( int FontID, int modflag,
 {
  
   psobj *charnameP; /* points to psobj that is name of character*/
-  int   N;
+  FontInfo *pAFMData=NULL;
+  int i=-1;
+  int j=0;
+  int k=0;
+  long acc_width=0;
+  int numPieces=1;
+  int N;
+  T1_PATHPOINT currdisp;
+  int basechar;
+  
   psdict *CharStringsDictP; /* dictionary with char strings     */
   psobj   CodeName;   /* used to store the translation of the name*/
   psobj  *SubrsArrayP;
   psobj  *theStringP;
-  long   acc_width=0;
-  int    i;
-  struct segment  *charpath, *tmppath1, *tmppath2;
   int localmode=0;
   
+  struct segment *charpath=NULL;   /* the path for this character   */           
+  struct segment *tmppath1=NULL;
+  struct segment *tmppath2=NULL;
+  struct segment *tmppath3=NULL;
+  struct segment *tmppath4=NULL;
+  struct segment *tmppath5=NULL;
+  
+   
   /* set the global font pointer to the address of already allocated
-     structure */
+     structure and setup pointers*/
   FontP=Font_Ptr;
-  /* get pointers to CharStrings and Subroutines */
   CharStringsDictP =  FontP->CharStringsP;
   SubrsArrayP = &(FontP->Subrs);
-  
-  charpath=NULL;
+  charnameP = &CodeName;
+
   
   /* In the following for-loop, all characters are processed, one after
-     the other. Between them, the amount of kerning is inserted: */
-  for (i=0; i<no_chars;i++) {
+     the other. Between them, the amount of kerning is inserted.
+     The number of path variables used is somewhat numerous. We use the
+     follwing conventions:
+
+     charpath:  the overall path of the string.
+     tmppath5:  the overall path of one component (possibly a composite symbol)
+     tmppath2:  the path of a simple char or base char of a composite
+     tmppath4:  the path of all "accents" of a composite symbol
+  */
+  for (k=0; k<no_chars;k++) {
     if (ev==NULL){  /* font-internal encoding should be used */
       charnameP = &CodeName;
-      charnameP->len = FontP->fontInfoP[ENCODING].value.data.arrayP[string[i]].len;
-      charnameP->data.stringP = (unsigned char *) FontP->fontInfoP[ENCODING].value.data.arrayP[string[i]].data.arrayP;
+      charnameP->len = FontP->fontInfoP[ENCODING].value.data.arrayP[string[k]].len;
+      charnameP->data.stringP = (unsigned char *) FontP->fontInfoP[ENCODING].value.data.arrayP[string[k]].data.arrayP;
     }
     else {           /* some user-supplied encoding is to be used */
       charnameP = &CodeName;
-      charnameP->len = strlen(ev[string[i]]);
-      charnameP->data.stringP = (unsigned char*) ev[string[i]];
+      charnameP->len = strlen(ev[string[k]]);
+      charnameP->data.stringP = (unsigned char*) ev[string[k]];
     }
     
     /* Spacing is to be under users control: => if space is the charname, don't
        raster it. Rather, generate a horizontal movement of spacewidth: */
     if (strcmp((char *)charnameP->data.stringP, "space")==0){
-      tmppath1=(struct segment *)ILoc(S, spacewidth,0);
+      tmppath5=(struct segment *)ILoc(S, spacewidth,0);
       acc_width += spacewidth;
-      
     }
     else {
-      /* search the chars string for this charname as key */
-      N = SearchDictName(CharStringsDictP,charnameP);
-      if (N<=0) {
-	/* Instead of returning an error, we substitute .notdef (RMz) */
+      /* here a character or composite character is to be constructed */
+      strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+      CurCharName[charnameP->len]='\0';
+      
+      /* search the CharString for this charname as key */
+      basechar = SearchDictName(CharStringsDictP,charnameP);
+      if (basechar<=0) {
+	/* Check first, whether a char in question is a composite char */
+	if ((i=isCompositeChar( FontID, CurCharName))>-1) {
+	  /* i is now the index of the composite char definitions
+	     (starting at 0). At this point it is clear that AFM-info
+	     must be present -> fetch first component of composite char. */
+	  pAFMData=pFontBase->pFontArray[FontID].pAFMData;
+	  charnameP->len=strlen( pAFMData->ccd[i].pieces[0].pccName);
+	  charnameP->data.stringP=(unsigned char*)pAFMData->ccd[i].pieces[0].pccName;
+	  numPieces=pAFMData->ccd[i].numOfPieces;
+	  
+	  if ((basechar=SearchDictName(CharStringsDictP,charnameP))<=0) {
+	    /* this is bad, AFM-file and font file do not match. This 
+	       will most probably lead to errors or inconsistencies later.
+	       However, we substitute .notdef and inform the user via
+	       logfile and T1_errno. */
+	    sprintf( err_warn_msg_buf,
+		     "Charstring \"%s\" needed to construct composite char \"%s\" not defined (FontID=%d)",
+		     pAFMData->ccd[i].pieces[0].pccName,
+		     pAFMData->ccd[i].ccName, FontID);
+	    T1_PrintLog( "fontfcnB():", err_warn_msg_buf, T1LOG_WARNING);
+	    T1_errno=T1ERR_COMPOSITE_CHAR;
+	  }
+	}
+      }
+      
+      if (basechar<=0) { /* This  means the requested char is unknown or the
+			    base char of a composite is not found ->
+			    we substitute .notdef */
 	charnameP = &CodeName;
 	charnameP->len = 7;
 	charnameP->data.stringP = (unsigned char *) notdef;
-	N = SearchDictName(CharStringsDictP,charnameP);
+	basechar = SearchDictName(CharStringsDictP,charnameP);
+	localmode=FF_NOTDEF_SUBST;
 	/* Font must be completely damaged if it doesn't define a .notdef */
-	if (N<=0) {
+	if (basechar<=0) {
 	  *mode=FF_PARSE_ERROR;
-	  if (charpath!=NULL)
-	    KillPath(charpath);
 	  return(NULL);
 	}
-      }
-
+      } /* if (basechar<=0) */
+      /* basechar is now the index of the base character in the CharStrings
+	 dictionary */
+      
       /* we provide the Type1Char() procedure with the name of the character
 	 to rasterize for debugging purposes */
       strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
       CurCharName[charnameP->len]='\0';
-      /* tell the calling function about rastering .notdef */
-      if (strcmp( CurCharName, ".notdef")==0) {
-	localmode=FF_NOTDEF_SUBST;
+      /* get CharString and character path */
+      theStringP = &(CharStringsDictP[basechar].value);
+      tmppath2 = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
+					      FontP->BluesP,mode,CurCharName);
+      strcpy( BaseCharName, CurCharName);
+      /* if Type1Char reports an error, clean up and return */
+      if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR) {
+	if (charpath!=NULL) {
+	  KillPath( charpath);
+	}
+	if (tmppath1!=NULL) {
+	  KillPath( tmppath1);
+	}
+	if (tmppath2!=NULL) {
+	  KillPath( tmppath2);
+	}
+	if (tmppath3!=NULL) {
+	  KillPath( tmppath3);
+	}
+	if (tmppath4!=NULL) {
+	  KillPath( tmppath4);
+	}
+	if (tmppath5!=NULL) {
+	  KillPath( tmppath5);
+	}
+	return(NULL);
       }
-  
-      acc_width += (int) ((pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) string[i]]].wx));
-      
-      
-      /* ok, the nth item is the psobj that is the string for this char */
-      theStringP = &(CharStringsDictP[N].value);
-      
-      /* call the type 1 routine to rasterize the character     */
-      tmppath1=(struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
-					    FontP->BluesP,mode,CurCharName);
-    }
+	
+      /* Defer rastering to later, we first have to handle the composite
+	 symbols */
+      for (j=1; j<numPieces; j++) {
+	/* get composite symbol name */
+	charnameP->len=strlen( pAFMData->ccd[i].pieces[j].pccName);
+	charnameP->data.stringP=(unsigned char*)pAFMData->ccd[i].pieces[j].pccName;
+	/* get CharString definition */
+	if ((N=SearchDictName(CharStringsDictP,charnameP))<=0) {
+	  /* handling of errors, see comments above ... */
+	  sprintf( err_warn_msg_buf,
+		   "Charstring \"%s\" needed to construct composite char \"%s\" not defined (FontID=%d)",
+		   pAFMData->ccd[i].pieces[j].pccName,
+		   pAFMData->ccd[i].ccName, FontID);
+	  T1_PrintLog( "fontfcnB():", err_warn_msg_buf, T1LOG_WARNING);
+	  charnameP = &CodeName;
+	  charnameP->len = 7;
+	  charnameP->data.stringP = (unsigned char *) notdef;
+	  N = SearchDictName(CharStringsDictP,charnameP);
+	  localmode=FF_NOTDEF_SUBST;
+	  /* an undefined .notdef is fatal -> clean up and return */
+	  if (N<=0) {
+	    *mode=FF_PARSE_ERROR;
+	    if (charpath!=NULL) {
+	      KillPath( charpath);
+	    }
+	    if (tmppath1!=NULL) {
+	      KillPath( tmppath1);
+	    }
+	    if (tmppath2!=NULL) {
+	      KillPath( tmppath2);
+	    }
+	    if (tmppath3!=NULL) {
+	      KillPath( tmppath3);
+	    }
+	    if (tmppath4!=NULL) {
+	      KillPath( tmppath4);
+	    }
+	    if (tmppath5!=NULL) {
+	      KillPath( tmppath5);
+	    }
+	    return(NULL);
+	  }
+	}
+	theStringP = &(CharStringsDictP[N].value);
+	tmppath1=(struct segment *)ILoc(S,
+					pAFMData->ccd[i].pieces[j].deltax,
+					pAFMData->ccd[i].pieces[j].deltay);
     
-    if (i<no_chars-1){
-      tmppath2=(struct segment *)ILoc(S,kern_pairs[i],0); 
-      tmppath1=(struct segment *)Join(tmppath1,tmppath2);
-      acc_width += kern_pairs[i];
+	strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+	CurCharName[charnameP->len]='\0';
+	tmppath5=(struct segment *)Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
+					     FontP->BluesP,mode,CurCharName);
+	/* return if Type1Char reports an error */
+	if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
+	  return(NULL);
+	/* get escapement of current symbol */
+	currdisp=getDisplacement( tmppath5);
+	/* concat displacement and symbol path */
+	tmppath5=(struct segment *)Join(tmppath1,tmppath5);
+	/* for composite symbols we have to step back the char escapement.
+	   this is, in order to be able to use accents that cause a
+	   non zero displacement of the current point! We further have to
+	   step back the displacement from composite char data. */
+	tmppath1=(struct segment *)t1_PathSegment( MOVETYPE, -currdisp.x, -currdisp.y);
+	tmppath3=(struct segment *)ILoc(S,
+					-pAFMData->ccd[i].pieces[j].deltax,
+					-pAFMData->ccd[i].pieces[j].deltay);
+	tmppath3=(struct segment *)Join(tmppath1,tmppath3);
+	/* create path, or, respectively, append to existing path */
+	if (tmppath4==NULL) {
+	  tmppath4=(struct segment *)Join(tmppath5,tmppath3);
+	}
+	else {
+	  tmppath5=(struct segment *)Join(tmppath5,tmppath3);
+	  tmppath4=(struct segment *)Join(tmppath4,tmppath5);
+	}
+      }
+      
+      /* concat composite symbols and base char. We use tmppath5 to store
+	 the path of the resulting (possibly composite) character. */
+      if (tmppath4==NULL) { /* no previous composite symbols */
+	tmppath5=tmppath2; /* a simple char */
+      }
+      else { 
+	tmppath5=(struct segment *)Join(tmppath4,tmppath2);
+      }
+      
+
+      /* Accumulate displacement, but be careful: In case of composite
+	 characters, we have to take the escapement of the base char only
+	 into account, because accents do not cause spacing. The path is
+	 constructed in a way that this automatically matches.
+      */
+      if (numPieces>1) { /* composite character */
+	acc_width +=pFontBase->pFontArray[FontID].pAFMData->ccd[-(pFontBase->pFontArray[FontID].pEncMap[string[k]]+1)].wx;
+      }
+      else { /* ordinary character */
+	acc_width +=pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[string[k]]-1].wx;
+      }
+      
+    } /* else (if (char==space) */
+
+    /* character path is now stored in tmppath5. It may be a composite character.
+       Insert kerning amount, if it is not the last character of the string. */
+    if (k<no_chars-1){
+      tmppath2=(struct segment *)ILoc(S,kern_pairs[k],0); 
+      tmppath5=(struct segment *)Join(tmppath5,tmppath2);
+      acc_width += kern_pairs[k];
     }
     if (charpath!=NULL){
-      charpath=(struct segment *)Join(charpath,tmppath1);
+      charpath=(struct segment *)Join(charpath,tmppath5);
     }
     else{
-      charpath=(struct segment *)tmppath1;
+      charpath=(struct segment *)tmppath5;
     }
-  }
-
+    /* reset the temporary paths so that constructing composite
+       characters wiil continue to work properly in the next interation. */
+    tmppath1=NULL;
+    tmppath2=NULL;
+    tmppath3=NULL;
+    tmppath4=NULL;
+    tmppath5=NULL;
+    /* reset composition parameters */
+    i=-1;
+    numPieces=1;
+    
+  } /* for (k<no_chars) */
+  
   
   /* Take care for underlining and such */
   if (modflag & T1_UNDERLINE){
@@ -548,14 +891,10 @@ xobject fontfcnB_string( int FontID, int modflag,
     charpath=(struct segment *)Join(charpath,tmppath2);
   }
   
-
-  
-  
   /*
   printf("charpath->type: %x\n",charpath->type);
   printf("path1->type: %x\n",path1->type);
   printf("path2->type: %x\n",path2->type);
-
   */
 
   /* if Type1Char reported an error, then return */
@@ -584,60 +923,183 @@ xobject fontfcnB_ByName( int FontID, int modflag,
 			 int *mode, psfont *Font_Ptr,
 			 int do_raster)
 {
-
+ 
   psobj *charnameP; /* points to psobj that is name of character*/
-  int   N;
+  FontInfo *pAFMData=NULL;
+  int i=-1;
+  int j=0;
+  int numPieces=1;
+  int N;
+  T1_PATHPOINT currdisp;
+  int basechar;
+  
   psdict *CharStringsDictP; /* dictionary with char strings     */
   psobj   CodeName;   /* used to store the translation of the name*/
   psobj  *SubrsArrayP;
   psobj  *theStringP;
- 
-  struct segment *charpath;   /* the path for this character   */           
+  int localmode=0;
   
+  struct segment *charpath=NULL;   /* the path for this character   */           
+  struct segment *tmppath1=NULL;
+  struct segment *tmppath2=NULL;
+  struct segment *tmppath3=NULL;
+  struct segment *tmppath4=NULL;
+  
+   
   /* set the global font pointer to the address of already allocated
-     structure */
+     structure and setup pointers*/
   FontP=Font_Ptr;
-
-  charnameP = &CodeName;
-  charnameP->len = strlen((char *)charname);
-  charnameP->data.stringP = (unsigned char*) charname;
-  
   CharStringsDictP =  FontP->CharStringsP;
-  
-  /* search the chars string for this charname as key */
-  N = SearchDictName(CharStringsDictP,charnameP);
-  if (N<=0) {
-    *mode = FF_PARSE_ERROR;
-    return(NULL);
-  }
-  /* we provide the Type1Char() procedure with the name of the character
-     to rasterize for debigging purposes */
+  SubrsArrayP = &(FontP->Subrs);
+  charnameP = &CodeName;
+
+  charnameP->len = strlen((char*)charname);
+  charnameP->data.stringP = charname;
+
   strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
   CurCharName[charnameP->len]='\0';
   
-  /* ok, the nth item is the psobj that is the string for this char */
-  theStringP = &(CharStringsDictP[N].value);
  
-  /* get the dictionary pointers to the Subrs  */
- 
-  SubrsArrayP = &(FontP->Subrs);
+  /* search the chars string for this charname as key */
+  basechar = SearchDictName(CharStringsDictP,charnameP);
+  if (basechar<=0) {
+    /* Check first, whether a char in question is a composite char */
+    if ((i=isCompositeChar( FontID, CurCharName))>-1) {
+      /* i is now the index of the composite char definitions
+	 (starting at 0). At this point it is clear that AFM-info
+	 must be present -> fetch first component of composite char. */
+      pAFMData=pFontBase->pFontArray[FontID].pAFMData;
+      charnameP->len=strlen( pAFMData->ccd[i].pieces[0].pccName);
+      charnameP->data.stringP=(unsigned char*)pAFMData->ccd[i].pieces[0].pccName;
+      numPieces=pAFMData->ccd[i].numOfPieces;
+      
+      if ((basechar=SearchDictName(CharStringsDictP,charnameP))<=0) {
+	/* this is bad, AFM-file and font file do not match. This 
+	   will most probably lead to errors or inconsistencies later.
+	   However, we substitute .notdef and inform the user via
+	   logfile and T1_errno. */
+	sprintf( err_warn_msg_buf,
+		 "Charstring \"%s\" needed to construct composite char \"%s\" not defined (FontID=%d)",
+		 pAFMData->ccd[i].pieces[0].pccName,
+		 pAFMData->ccd[i].ccName, FontID);
+	T1_PrintLog( "fontfcnB():", err_warn_msg_buf, T1LOG_WARNING);
+	T1_errno=T1ERR_COMPOSITE_CHAR;
+      }
+    }
+  }
+  
+  if (basechar<=0) { /* This  means the requested char is unknown or the
+			base char of a composite is not found ->
+			we substitute .notdef */
+    charnameP = &CodeName;
+    charnameP->len = 7;
+    charnameP->data.stringP = (unsigned char *) notdef;
+    basechar = SearchDictName(CharStringsDictP,charnameP);
+    localmode=FF_NOTDEF_SUBST;
+    /* Font must be completely damaged if it doesn't define a .notdef */
+    if (basechar<=0) {
+      *mode=FF_PARSE_ERROR;
+      return(NULL);
+    }
+  } /* if (basechar<=0) */
+  /* basechar is now the index of the base character in the CharStrings
+     dictionary */
 
-  /* call the type 1 routine to rasterize the character     */
-  charpath = (struct segment *)Type1Char(FontP,S,theStringP,
-					 SubrsArrayP,NULL,
-					 FontP->BluesP,mode,CurCharName);
-
+  /* we provide the Type1Char() procedure with the name of the character
+     to rasterize for debugging purposes */
+  strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+  CurCharName[charnameP->len]='\0';
+  /* get CharString and character path */
+  theStringP = &(CharStringsDictP[basechar].value);
+  tmppath2 = (struct segment *) Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
+					  FontP->BluesP,mode,CurCharName);
   /* if Type1Char reported an error, then return */
-
-  if ( *mode == FF_PARSE_ERROR)  return(NULL);
-  if ( *mode == FF_PATH_ERROR)  return(NULL);
-  if (do_raster) { 
-    /* fill with winding rule unless path was requested */
-    if (*mode != FF_PATH) {
-      charpath = (struct segment *) Interior(charpath,WINDINGRULE+CONTINUITY);
+  if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
+    return(NULL);
+  
+  /* Defer rastering to later, we first have to handle the composite
+     symbols */
+  for (j=1; j<numPieces; j++) {
+    /* get composite symbol name */
+    charnameP->len=strlen( pAFMData->ccd[i].pieces[j].pccName);
+    charnameP->data.stringP=(unsigned char*)pAFMData->ccd[i].pieces[j].pccName;
+    /* get CharString definition */
+    if ((N=SearchDictName(CharStringsDictP,charnameP))<=0) {
+      /* handling of errors, see comments above ... */
+      sprintf( err_warn_msg_buf,
+	       "Charstring \"%s\" needed to construct composite char \"%s\" not defined (FontID=%d)",
+	       pAFMData->ccd[i].pieces[j].pccName,
+	       pAFMData->ccd[i].ccName, FontID);
+      T1_PrintLog( "fontfcnB():", err_warn_msg_buf, T1LOG_WARNING);
+      charnameP = &CodeName;
+      charnameP->len = 7;
+      charnameP->data.stringP = (unsigned char *) notdef;
+      N = SearchDictName(CharStringsDictP,charnameP);
+      localmode=FF_NOTDEF_SUBST;
+      /* damaged Font */
+      if (N<=0) {
+	*mode=FF_PARSE_ERROR;
+	if (charpath!=NULL) {
+	  KillPath( charpath);
+	}
+	return(NULL);
+      }
+    }
+    theStringP = &(CharStringsDictP[N].value);
+    tmppath1=(struct segment *)ILoc(S,
+				    pAFMData->ccd[i].pieces[j].deltax,
+				    pAFMData->ccd[i].pieces[j].deltay);
+    
+    strncpy( (char *)CurCharName, (char *)charnameP->data.stringP, charnameP->len);
+    CurCharName[charnameP->len]='\0';
+    charpath=(struct segment *)Type1Char(FontP,S,theStringP,SubrsArrayP,NULL,
+					 FontP->BluesP,mode,CurCharName);
+    /* return if Type1Char reports an error */
+    if ( *mode == FF_PARSE_ERROR || *mode==FF_PATH_ERROR)
+      return(NULL);
+    /* get escapement of current symbol */
+    currdisp=getDisplacement( charpath);
+    /* concat displacement and symbol path */
+    charpath=(struct segment *)Join(tmppath1,charpath);
+    /* for composite symbols we have to step back the char escapement.
+       this is, in order to be able to use accents that cause a
+       non zero displacement of the current point! We further have to
+       step back the displacement from composite char data. */
+    tmppath1=(struct segment *)t1_PathSegment( MOVETYPE, -currdisp.x, -currdisp.y);
+    tmppath3=(struct segment *)ILoc(S,
+				    -pAFMData->ccd[i].pieces[j].deltax,
+				    -pAFMData->ccd[i].pieces[j].deltay);
+    tmppath3=(struct segment *)Join(tmppath1,tmppath3);
+    /* create path, or, respectively, append to existing path */
+    if (tmppath4==NULL) {
+      tmppath4=(struct segment *)Join(charpath,tmppath3);
+    }
+    else {
+      charpath=(struct segment *)Join(charpath,tmppath3);
+      tmppath4=(struct segment *)Join(tmppath4,charpath);
     }
   }
 
+  /* concat composite symbols and base char */
+  if (tmppath4==NULL) { /* no previous composite symbols */
+    charpath=tmppath2; /* a simple char */
+  }
+  else { 
+    charpath=(struct segment *)Join(tmppath4,tmppath2);
+  }
+  
+  
+  if (do_raster) { 
+    /* fill with winding rule unless path was requested */
+    if (*mode != FF_PATH) {
+      charpath =  (struct segment *)Interior(charpath,WINDINGRULE+CONTINUITY);
+    }
+  }
+
+  if (*mode==0)
+    *mode=localmode;
+  
   return((xobject) charpath);
+
 }
 

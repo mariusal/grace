@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1types.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-02-17
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-06-04
   ----- Description: This file is part of the t1-library. It contains
                      type definitions used by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -52,6 +52,7 @@ typedef struct
   int *pEncMap;           /* For fast mapping from charnames to encoding
 			     indices */
   METRICS_ENTRY *pKernMap;   /* dito */
+  int KernMapSize;
   char **pFontEnc;        /* This is the pointer to the encoding array
 			     associated with that particular font. If
 			     FontEnc=NULL, it means the internal
@@ -198,4 +199,23 @@ typedef struct bezierpathsegment {
 } T1_BEZIERSEGMENT;
 
 typedef T1_PATHSEGMENT  T1_OUTLINE;
+
+
+/* Two structures for handling composite character data */
+/* One structure for each symbol of the composite character */
+typedef struct
+{
+  int piece;               /* the index of the current symbol */
+  int deltax;              /* horizontal displacement of current symbol in CS */ 
+  int deltay;              /* vertical displacement of current symbol in CS */ 
+} T1_COMP_PIECE;
+
+/* This one defines the composite character, the number of pieces and how to
+   access their data. */
+typedef struct 
+{
+  int compchar;             /* the base character in the current encoding */
+  int numPieces;            /* the number of defined pieces including the base char */
+  T1_COMP_PIECE *pieces;   /* a pointer to the pieces' information */
+} T1_COMP_CHAR_INFO;
 

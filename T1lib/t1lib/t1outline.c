@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1outline.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-01
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-05-27
   ----- Description: This file is part of the t1-library. It contains
                      functions for getting glyph outline descriptions of
 		     strings and characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -322,7 +322,8 @@ T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len,
       kern_pairs[i]=T1_GetKerning( FontID, ustring[i], ustring[i+1]);
   charpath=(T1_PATHSEGMENT *) fontfcnB_string( FontID, modflag, Current_S,
 					       fontarrayP->pFontEnc,
-					       string, no_chars, &mode,
+					       (unsigned char *)string,
+					       no_chars, &mode,
 					       fontarrayP->pType1Data,
 					       kern_pairs, spacewidth,
 					       DO_NOT_RASTER);

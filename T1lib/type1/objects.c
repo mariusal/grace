@@ -600,9 +600,11 @@ struct xobject *Destroy(obj) /* non-ANSI avoids overly strict type checking  */
                        KillFont(obj);
                        break;
                    case PICTURETYPE:
+		       /* KillPicture macro removed from sources (RMz, 2001-04-01)
                        KillPicture(obj);
+		       */
                        break;
-                   case STROKEPATHTYPE:
+	           case STROKEPATHTYPE:
                        KillStrokePath(obj);
                        break;
                    case CLUTTYPE:

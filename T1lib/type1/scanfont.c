@@ -268,11 +268,10 @@ static psobj *MakeEncodingArrayP(encodingTable)
 boolean Init_BuiltInEncoding()
 {
   StdEncArrayP = MakeEncodingArrayP(StdEnc);
-  if (StdEncArrayP) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
+  if (StdEncArrayP==NULL)
+    return( FALSE);
+  else
+    return( TRUE);
 }
  
 /********************************************************************/

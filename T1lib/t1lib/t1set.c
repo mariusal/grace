@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-09-29
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-05-27
   ----- Description: This file is part of the t1-library. It contains
                      functions for setting characters and strings of
 		     characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -377,6 +377,8 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   int overline_startx, overline_starty, overline_endx, overline_endy;
   int overstrike_startx, overstrike_starty, overstrike_endx, overstrike_endy;
   int start, middle;
+  int afm_ind;
+  
   char startmask, endmask;
   static unsigned char *r2lstring;
   static int r2l_len=0;
@@ -672,11 +674,13 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
     overallascent=-30000;
     overalldescent=30000;
     for (i=0;i<no_chars;i++){
+      /* first get index into AFM-tables */
+      afm_ind=pFontBase->pFontArray[FontID].pEncMap[(int) ustring[i]];
       /* Advance to next character in high resolution */
       if (ustring[i]==fontarrayP->space_position)
 	h_anchor +=(int)spacewidth;
       /* check for a substituted char or notdef and get missing escapement */
-      else if (pFontBase->pFontArray[FontID].pEncMap[ustring[i]] < 0) {
+      else if (afm_ind==0) {
 	/* Setup apropriate charspace matrix */
 	S=(struct XYspace *)IDENTITY;
 	/* Make this permanent so that scaling it in fontfcnB_ByName will
@@ -695,7 +699,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 		   "Could not get charspace representation of \".notdef\", Font %d, mode=%d!",
 		   FontID, mode);
 	  T1_PrintLog( "T1_SetString()", err_warn_msg_buf,
-		       T1LOG_WARNING);
+		       T1LOG_ERROR);
 	  T1_errno=mode;
 	  return( NULL);
 	}
@@ -723,8 +727,12 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	}
 	/* Advance by current chars width */
 	/*	h_anchor +=T1_GetCharWidth( FontID, ustring[i]); */
-	h_anchor +=(fontarrayP->pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) ustring[i]]].wx) * fontarrayP->extend;
-	
+	if (afm_ind>0) { /* we have a standard character */
+	  h_anchor +=(fontarrayP->pAFMData->cmi[afm_ind-1].wx) * fontarrayP->extend;
+	}
+	else { /* afm_ind must be negative so that we have a composite char */
+	  h_anchor +=(fontarrayP->pAFMData->ccd[-(afm_ind+1)].wx) * fontarrayP->extend;
+	}
 	/* If kerning, insert kerning amount */
 	if ((i<no_chars -1) && (modflag & T1_KERNING))
 	  h_anchor +=T1_GetKerning( FontID, ustring[i], ustring[i+1]);

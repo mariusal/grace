@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------
   ----- File:        parseAFM.c
   ----- Author:      Adobe Systems Inc., modifications by
-                     Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-08-16
+                     Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-11-01
   ----- Description: This file is part of the t1-library. It is the original
                      parseAFM.h modified at a few points, especially for
 		     reading MSDOS-style AFM files..
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -346,12 +346,12 @@ static BOOL parseGlobals(fp, gfi)
                     keyword = linetoken(fp);
                     break;
                 case FONTNAME:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->fontName = (char *) malloc(strlen(keyword) + 1);
                     strcpy(gfi->fontName, keyword);
                     break;
                 case ENCODINGSCHEME:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->encodingScheme = (char *) 
                     	malloc(strlen(keyword) + 1);
                     strcpy(gfi->encodingScheme, keyword);
@@ -367,7 +367,7 @@ static BOOL parseGlobals(fp, gfi)
                     strcpy(gfi->familyName, keyword);
                     break; 
                 case WEIGHT:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->weight = (char *) malloc(strlen(keyword) + 1);
                     strcpy(gfi->weight, keyword);
                     break;
@@ -385,14 +385,14 @@ static BOOL parseGlobals(fp, gfi)
                     break; 
 	            case UNDERLINEPOSITION:
                     keyword = token(fp);
-	                gfi->underlinePosition = atoi(keyword);
+	            gfi->underlinePosition = atoi(keyword);
                     break; 
                 case UNDERLINETHICKNESS:
                     keyword = token(fp);
                     gfi->underlineThickness = atoi(keyword);
                     break;
                 case VERSION:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->version = (char *) malloc(strlen(keyword) + 1);
                     strcpy(gfi->version, keyword);
                     break; 
@@ -1203,80 +1203,86 @@ int T1lib_parseFile (fp, fi, flags)
     /* for the data (if the data is to be saved) and call the */
     /* appropriate parsing routine to parse the section. */
     
-    while ((code != normalEOF) && (code != earlyEOF))
-    {
-        keyword = token(fp);
-        if (keyword == NULL)
-          /* Have reached an early and unexpected EOF. */
-          /* Set flag and stop parsing */
+    while ((code != normalEOF) && (code != earlyEOF)) {
+      keyword = token(fp);
+      if (keyword == NULL)
+	/* Have reached an early and unexpected EOF. */
+	/* Set flag and stop parsing */
         {
-            code = earlyEOF;
-            break; /* get out of loop */
+	  code = earlyEOF;
+	  break; /* get out of loop */
         }
-        switch(recognize(keyword))
+      switch(recognize(keyword))
         {
-            case STARTKERNDATA:
-                break;
-            case ENDKERNDATA:
-                break;
-            case STARTTRACKKERN:
-                keyword = token(fp);
-                if (flags & P_T)
-                {
-                    (*fi)->numOfTracks = atoi(keyword);
-                    (*fi)->tkd = (TrackKernData *) 
-                        calloc((*fi)->numOfTracks, sizeof(TrackKernData));
-                    if ((*fi)->tkd == NULL) 
-                    {
-                    	error = storageProblem; 
-                    	return(error);
-                    }
-                } /* if */
-                code = parseTrackKernData(fp, *fi);
-                break;
-            case STARTKERNPAIRS:
-                keyword = token(fp);
-                if (flags & P_P)
-                {
-                    (*fi)->numOfPairs = atoi(keyword);
-                    (*fi)->pkd = (PairKernData *) 
-                        calloc((*fi)->numOfPairs, sizeof(PairKernData));
-                    if ((*fi)->pkd == NULL) 
-                    {
-                    	error = storageProblem; 
-                    	return(error);
-                    }
-                } /* if */
-                code = parsePairKernData(fp, *fi);
-                break;
-            case STARTCOMPOSITES:
-                keyword = token(fp);
-                if (flags & P_C)
-                { 
-                    (*fi)->numOfComps = atoi(keyword);
-                    (*fi)->ccd = (CompCharData *) 
-                        calloc((*fi)->numOfComps, sizeof(CompCharData));
-                    if ((*fi)->ccd == NULL) 
-                    {
-                    	error = storageProblem; 
-                    	return(error);
-                    }
-                } /* if */
-                code = parseCompCharData(fp, *fi); 
-                break;    
-            case ENDFONTMETRICS:
-                code = normalEOF;
-                break;
-            case NOPE:
-            default:
-                code = parseError;
-                break;
+	  /* this case has been added for t1lib because otherwise comment line
+	     between (i.e., outside) the main sections would lead to parse
+	     errors. The Adobe spec does not seem to forbid comments at
+	     such locations (2001-05-14, RMz) */
+	case COMMENT:
+	  keyword = linetoken(fp);
+	  break;
+	case STARTKERNDATA:
+	  break;
+	case ENDKERNDATA:
+	  break;
+	case STARTTRACKKERN:
+	  keyword = token(fp);
+	  if (flags & P_T)
+	    {
+	      (*fi)->numOfTracks = atoi(keyword);
+	      (*fi)->tkd = (TrackKernData *) 
+		calloc((*fi)->numOfTracks, sizeof(TrackKernData));
+	      if ((*fi)->tkd == NULL) 
+		{
+		  error = storageProblem; 
+		  return(error);
+		}
+	    } /* if */
+	  code = parseTrackKernData(fp, *fi);
+	  break;
+	case STARTKERNPAIRS:
+	  keyword = token(fp);
+	  if (flags & P_P)
+	    {
+	      (*fi)->numOfPairs = atoi(keyword);
+	      (*fi)->pkd = (PairKernData *) 
+		calloc((*fi)->numOfPairs, sizeof(PairKernData));
+	      if ((*fi)->pkd == NULL) 
+		{
+		  error = storageProblem; 
+		  return(error);
+		}
+	    } /* if */
+	  code = parsePairKernData(fp, *fi);
+	  break;
+	case STARTCOMPOSITES:
+	  keyword = token(fp);
+	  if (flags & P_C)
+	    { 
+	      (*fi)->numOfComps = atoi(keyword);
+	      (*fi)->ccd = (CompCharData *) 
+		calloc((*fi)->numOfComps, sizeof(CompCharData));
+	      if ((*fi)->ccd == NULL) 
+		{
+		  error = storageProblem; 
+		  return(error);
+		}
+	    } /* if */
+	  code = parseCompCharData(fp, *fi); 
+	  break;    
+	case ENDFONTMETRICS:
+	  code = normalEOF;
+	  break;
+	case NOPE:
+	default:
+	  code = parseError;
+	  break;
         } /* switch */
-        
-        if ((error != earlyEOF) && (code < 0)) error = code;
-        
+      
+      if ((error != earlyEOF) && (code < 0)) error = code;
+      
     } /* while */
-  
+    
     if ((error != earlyEOF) && (code < 0)) error = code;
     
     if (ident != NULL) { free(ident); ident = NULL; }

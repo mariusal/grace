@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1global.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-11-29
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-04-01
   ----- Description: This file is part of the t1-library. It contains
                      global declarations used by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -93,22 +93,12 @@ extern struct XYspace *IDENTITY;
 
 int errornumber;  /* for debugging purposes */
  
-/* The following pointer should be set to path-strings--used for locating
+/* The following pointers should be set to path-strings--used for locating
    type1, afm and encoding files */
-#ifndef VMS
-char T1_pfab[]=".";
-char T1_afm[]=".";
-char T1_enc[]=".";
-#else
-char T1_pfab[]="sys$disk:[]";
-char T1_afm[]="sys$disk:[]";
-char T1_enc[]="sys$disk:[]";
-#endif
-char T1_fontdatabase[]="FontDataBase";
-char *T1_PFAB_ptr=T1_pfab;
-char *T1_AFM_ptr=T1_afm;
-char *T1_ENC_ptr=T1_enc;
-char *T1_FDB_ptr=T1_fontdatabase;
+char** T1_PFAB_ptr=NULL;
+char** T1_AFM_ptr=NULL;
+char** T1_ENC_ptr=NULL;
+char** T1_FDB_ptr=NULL;
 
 /* We use a uchar buffer for error and warning messages: */
 char err_warn_msg_buf[1024];
