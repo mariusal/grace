@@ -40,7 +40,7 @@
 
 #include "motifinc.h"
 
-#define NO_HELP "nohelp.html"
+#define NO_HELP "doc/nohelp.html"
 
 #ifdef WITH_LIBHELP
 #  include <help.h>
@@ -585,6 +585,8 @@ void create_helper_frame(char *URL)
         ManageChild(ui->top);
         
         XtVaSetValues(rc, XmNresizeHeight, False, NULL);
+        
+        ManageChild(GetParent(ui->top));
     }
     
     ui->url  = copy_string(ui->url, URL);
