@@ -710,8 +710,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Seasonal differences...", 'o', create_seasonal_frame, NULL);
     CreateMenuButton(submenupane, "Integration...", 'I', create_int_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "Interpolation...", 't', create_interp_frame, NULL);
-    CreateMenuButton(submenupane, "Splines...", 'S', create_spline_frame, NULL);
+    CreateMenuButton(submenupane, "Interpolation/splines...", 't', create_interp_frame, NULL);
     CreateMenuButton(submenupane, "Regression...", 'R', create_reg_frame, NULL);
     CreateMenuButton(submenupane, "Non-linear curve fitting...", 'N', create_nonl_frame, NULL);
     CreateMenuSeparator(submenupane);
