@@ -955,7 +955,8 @@ void startup_gui(void)
 		      (XtEventHandler) my_proc, NULL);
 		      
     XtOverrideTranslations(canvas, XtParseTranslationTable(canvas_table));
-		      
+    
+    AddHelpCB(canvas, "doc/UsersGuide.html#canvas");
 
     XtVaSetValues(frtop,
 		  XmNtopAttachment, XmATTACH_FORM,
