@@ -70,13 +70,9 @@ static int anchor_x = 0;
 static int anchor_y = 0;
 static view bb;
 
-int go_locateflag = TRUE;	/* locator */
-
 int add_setno;			/* set to add points - set in ptswin.c */
 int add_at;			/* where to begin inserting points in the set */
 int move_dir;			/* restriction on point movement */
-
-extern char locator_format[];
 
 static int action_flag = 0;
 
@@ -830,6 +826,15 @@ void track_point(int gno, int setno, int *loc, int shift)
 }
 
 
+/*
+ * set format string for locator
+ */
+static char *typestr[6] = {"X, Y",
+                           "DX, DY",
+			   "DIST",
+			   "Phi, Rho",
+			   "VX, VY",
+                           "SX, SY"};
 
 /*
  * locator on main_panel
@@ -840,7 +845,7 @@ void getpoints(VPoint vp)
     double wx, wy, xtmp, ytmp;
     int x, y;
     double dsx = 0.0, dsy = 0.0;
-    char buf[256];
+    char buf[256], bufx[64], bufy[64], *s;
     GLocator locator;
 
     view2world(vp.x, vp.y, &wx, &wy);
@@ -850,10 +855,6 @@ void getpoints(VPoint vp)
 	dsy = locator.dsy;
     }
     
-    if (go_locateflag == FALSE) {
-	return;
-    }
-
     switch (locator.pt_type) {
     case 0:
         if (get_graph_type(cg) == GRAPH_POLAR) {
@@ -898,7 +899,11 @@ void getpoints(VPoint vp)
     default:
         return;
     }
-    sprintf(buf, locator_format, cg, xtmp, ytmp);
+    s = create_fstring(locator.fx, locator.px, xtmp, LFORMAT_TYPE_PLAIN);
+    strcpy(bufx, s);
+    s = create_fstring(locator.fy, locator.py, ytmp, LFORMAT_TYPE_PLAIN);
+    strcpy(bufy, s);
+    sprintf(buf, "G%1d: %s = [%s, %s]", cg, typestr[locator.pt_type], bufx, bufy);
 
     SetLabel(loclab, buf);
 }
