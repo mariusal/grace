@@ -259,16 +259,11 @@ int register_real_time_input(int fd, const char *name, int reopen)
     }
 
 #ifdef HAVE_FCNTL
-    switch (fcntl(fd, F_GETFL)) {
-    case O_RDONLY:
-    case O_RDWR:
-        break;
-    default:
+    if (fcntl(fd, F_GETFL) & O_WRONLY) {
         fprintf(stderr,
                 "Descriptor %d not open for reading\n",
                 fd);
         return GRACE_EXIT_FAILURE;
-        break;
     }
 #endif
 
