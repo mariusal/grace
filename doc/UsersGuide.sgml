@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.1)
 <author>by the Grace Team
-<date>05.06.2000
+<date>14.06.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -22,12 +22,12 @@
 <sect1>What is Grace?
   <p>
      Grace is a WYSIWYG tool to make two-dimensional plots of scientific
-     data. It runs under various (if not all) flavors of Unix with
-     X11 and Motif (LessTif). It also runs under VMS, OS/2, and Windows
-     (95/98/NT). Its capabilities are roughly similar to GUI-based
-     programs like Sigmaplot or Microcal Origin plus script-based
-     tools like Gnuplot or Genplot. Its strength lies in the fact
-     that it combines the convenience of a graphical user interface
+     data. It runs under various (if not all) flavors of Unix with X11
+     and M*tif (LessTif or Motif). It also runs under VMS, OS/2, and
+     Windows (95/98/NT). Its capabilities are roughly similar to
+     GUI-based programs like Sigmaplot or Microcal Origin plus
+     script-based tools like Gnuplot or Genplot. Its strength lies in the
+     fact that it combines the convenience of a graphical user interface
      with the power of a scripting language which enables it to do
      sophisticated calculations or perform automated tasks.
 
@@ -93,6 +93,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
        T1lib      |  LGPL     @
        Xbae       |  BSD-like @
        Tab        |  BSD-like @
+       T1lib      |  LGPL     @
        <hline>
      </tabular>
      <caption>
@@ -100,9 +101,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
      </caption>
    </table>
  <P>
-
-<sect1>Comments and bug reports
-  <p>
 
 
 <!-- **************************************** -->
@@ -117,8 +115,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Requirements.
                  Grace usually compiles out of the box in a regular Unix-like
                  environment. You need an ANSI C compiler (gcc is just fine),
-                 the X11R5 or above libraries and headers, and Motif-1.2 or
-                 above.
+                 the X11R5 or above libraries and headers, and an
+                 implementaion of the M*tif API, version 1.2 or above.
                  If you want to compile your own changes to certain parts of
                  Grace, you will need a parser generator (<tt/yacc/ or, better,
                  <tt/bison/).
@@ -820,10 +818,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       last save. A confirmation popup is fired to allow the user
       canceling the operation.
 
-      <sect2> Print <label id="print">
-      <p>
-      Print the project using the current printer settings
-
       <sect2> Print setup <label id="print-setup">
       <p>
       Set the properties of the printing device. Each device has its
@@ -839,6 +833,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       size cannot easily be changed because, for example, you want to
       print on letter size paper, you need to adjust the size of
       your graph ('Viewport' in Plot/Graph Appearance).
+
+      <sect2> Print <label id="print">
+      <p>
+      Print the project using the current printer settings
 
       <sect2> Exit <label id="exit">
       <p>
@@ -1480,57 +1478,77 @@ integral     | cumulative sum @
 
 
    <sect1> Window menu <label id="window-menu">
-   <p>
+    <p>
       <sect2> Commands <label id="commands">
       <p>
+        Command driven version of the interface to Grace. Here, commands
+        are typed at the "Command:" text item and executed when
+        &lt;Return&gt; is pressed. The command will be parsed and executed,
+        and the command line is placed in the history list. Items in the
+        history list can be recalled by simply clicking on them with the
+        left mouse button.
+      </p>
       <sect2> Point tracking <label id="point-tracking">
       <p>
+        Not written yet...
+      </p>
       <sect2> Drawing objects <label id="drawing-objects">
       <p>
+        Not written yet...
+      </p>
       <sect2> Font tool <label id="font-tool">
       <p>
+        Not written yet...
+      </p>
       <sect2> Console <label id="console">
       <p>
+        The console window displays errors and results of some numerical
+        operations, e.g. nonlinear fit (see <ref id="non-linear-fit"
+        name="Non-linear fit">). The window is popped up automatically
+        whenever an error occurs or new result messages appear. This can
+        be altered by checking the "Options/Popup only on errors" option.
+      </p>
 
    <sect1> Help menu <label id="help-menu">
    <p>
       <sect2> On context <label id="on-context">
       <p>
         This function is not implemented yet.
-
+      </p>
       <sect2> User's guide <label id="users-guide">
       <p>
         Browse the Grace user's guide.
-      
+      </p>      
       <sect2> Tutorial <label id="tutorial">
       <p>
         Browse the Grace tutorial.
-      
+      </p>      
       <sect2> FAQ <label id="faq">
       <p>
         Frequently Asked Questions with answers.
-      
+      </p>      
       <sect2> Changes <label id="changes">
       <p>
         The list of changes during the Grace development.
- 
+      </p> 
       <sect2> Examples <label id="examples">
       <p>
         The whole tree of submenus each loading a sample plot.
-      
+      </p>      
       <sect2> Comments <label id="comments">
       <p>
         Use this to send your suggestions or bug reports.
-        
+      </p>        
       <sect2> License terms <label id="license-terms">
       <p>
         Grace licensing terms will be displayed (GPL version 2).
-      
+      </p>      
       <sect2> About <label id="about">
       <p>
         A popup with basic info on the software, including some
         configuration details. More details can be found when running Grace
         with the "-version" command line flag.
+      </p>
 
   <sect1>Toolbar Buttons<label id="toolbar">
     <p>
@@ -2245,6 +2263,7 @@ integral     | cumulative sum @
     </p>
 
   <sect1>Graph properties
+  <sect2>Command Operations
     <p>
       <table loc="htbp">
       <tabular ca="lp{6cm}ll">
@@ -2257,18 +2276,14 @@ integral     | cumulative sum @
       </tabular>
       <caption>
         <label id="graph-ops">
-        Graph operations
+        Graph Operations
       </caption>
       </table>
     </p>
-<p>
-In the following table, when <it>graph</it> is the first item it is
-optional.  If  omitted, the settings will be applied to the
-current graph.
-</p>
+   <sect2>Parameter Settings
     <p>
       <table loc="htbp">
-      <tabular ca="lp{7cm}ll">
+      <tabular ca="p{3.25cm}p{4.5cm}p{3.5cm}p{3.25cm}">
         <hline>
         Statement | Description | Types | Example @
         <hline>
@@ -2276,34 +2291,118 @@ current graph.
 	                    <ref id="graph-sel" name="graphsel"> <it>graph</it> | WITH G0 @
 	TYPE <it>type</it>  | Sets <it>type</it> of current graph |
 	                   graphtype <it>type</it> |TYPE XY @
-	 <it>graph</it> onoff| (De)Activates selected graph | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G0 ON @
-	 <it>graph</it> HIDDEN onoff | Hides selected graph | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G1 HIDDEN TRUE @
+	 <it>graph</it> onoff| (De)Activates selected <it>graph</it> | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G0 ON @
+	 <it>graph</it> HIDDEN onoff | Hides selected <it>graph</it> | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G1 HIDDEN TRUE @
 	 <it>graph</it> TYPE <it>type</it> | Sets <it>type</it> of <it>graph</it>  |
 	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, graphtype <it>type</it> | G0 TYPE XYDY @
-	 <it>graph</it> WORLD XMIN <it>xmin</it> | Sets minimum value of  <it>graph</it>'s x axis to <it>xmin</it> |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmin</it> | G0 WORLD XMIN -10 @
-	 <it>graph</it> WORLD XMAX <it>xmax</it> | Sets maximum value of  <it>graph</it>'s x axis to <it>xmin</it> |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmax</it> | G0 WORLD XMAX 22.5 @
-	 <it>graph</it> WORLD YMIN <it>ymin</it> | Sets minimum value of  <it>graph</it>'s y axis to <it>xmin</it> |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymin</it> | G0 WORLD YMIN 0 @
-	 <it>graph</it> WORLD YMAX <it>ymax</it> | Sets maximum value of  <it>graph</it>'s y axis to <it>xmin</it> |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymax</it> | G0 WORLD YMAX 1e4 @
-	 <it>graph</it> VIEW XMIN <it>xmin</it> | Sets left edge of <it>graph</it> at x=<it>xmin</it> in the viewport |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmin</it>| G0 VIEW XMIN .2 @
-	 <it>graph</it> VIEW XMAX <it>xmax</it> | Sets right edge of <it>graph</it> at x=<it>xmax</it> in the viewport |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmax</it>| G0 VIEW XMAX 1.0 @
-	 <it>graph</it> VIEW YMIN <it>ymin</it> | Sets bottom edge of <it>graph</it> at x=<it>ymin</it> in the viewport |
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymin</it>| G0 VIEW YMIN .25 @
-	 <it>graph</it> VIEW YMAX <it>ymax</it> | Sets top edge of <it>graph</it> at x=<it>ymax</it> in the viewport | 
-	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymax</it>| G0 VIEW YMAX .75 @
       </tabular>
       <caption>
-        <label id="graph-pars">
-        Graph parameters
+        Graph Selection Parameters
+      </caption>
+      </table>
+      </p>
+      <p>
+      <table loc="htbp">
+      <tabular ca="p{3.25cm}p{4.5cm}p{3.5cm}p{3.25cm}">
+        <hline>
+        Statement | Description | Types | Example @
+        <hline>
+	 WORLD XMIN <it>xmin</it> | Sets minimum value of  current graph's x axis to <it>xmin</it> |
+	          <ref id="types" name="expr"> <it>xmin</it> | WORLD XMIN -10 @
+	 WORLD XMAX <it>xmax</it> | Sets maximum value of  current graph's x axis to <it>xmin</it> |
+	          <ref id="types" name="expr"> <it>xmax</it> | WORLD XMAX 22.5 @
+	 WORLD YMIN <it>ymin</it> | Sets minimum value of current graph's y axis to <it>ymin</it> |
+	          <ref id="types" name="expr"> <it>ymin</it> | WORLD YMIN 0 @
+	 WORLD YMAX <it>ymax</it> | Sets maximum value of current graph's y axis to <it>ymax</it> |
+	          <ref id="types" name="expr"> <it>ymax</it> | WORLD YMAX 1e4 @
+	 VIEW XMIN <it>xmin</it> | Sets left edge of current graph at x=<it>xmin</it> in the viewport |
+	          <ref id="types" name="expr"> <it>xmin</it>| VIEW XMIN .2 @
+	 VIEW XMAX <it>xmax</it> | Sets right edge of current graph at x=<it>xmax</it> in the viewport |
+	          <ref id="types" name="expr"> <it>xmax</it>| VIEW XMAX 1.0 @
+	 VIEW YMIN <it>ymin</it> | Sets bottom edge of current graph at y=<it>ymin</it> in the viewport |
+	          <ref id="types" name="expr"> <it>ymin</it>| VIEW YMIN .25 @
+         VIEW YMAX <it>ymax</it> | Sets top edge of current graph at y=<it>ymax</it> in the viewport | 
+	          <ref id="types" name="expr"> <it>ymax</it>| VIEW YMAX .75 @
+	 XAXES SCALE <it>type</it>  | Set scaling of the x axes to <it>type</it> |
+	          <it>type</it>: one of NORMAL, LOGARITHMIC, or RECIPROCAL | XAXES SCALE NORMAL @
+	 YAXES SCALE <it>type</it>  | Set scaling of the y axes to <it>type</it>  |
+	          <it>type</it>: one of NORMAL, LOGARITHMIC, or RECIPROCAL | YAXES SCALE LOGARITHMIC @
+	 XAXES INVERT onoff | If ON, draws xmin to xmax from right to left | 
+ 	          onoff | XAXES INVERT OFF @
+	 YAXES INVERT onoff | If ON, draws ymin to ymax from  top to bottom | 
+ 	          onoff | YAXES INVERT OFF @
+      </tabular>
+      <caption>
+        Axis Parameters
+      </caption>
+      </table>
+      </p>
+      <p>
+      <table loc="htbp">
+      <tabular ca="p{3.5cm}p{4.5cm}p{3.25cm}p{3.25cm}">
+        <hline>
+        Statement | Description | Types | Example @
+        <hline>
+	 TITLE <it>title</it>       | Sets the title of current graph |
+	          <ref id="types" name="qstr"> <it>title</it> | TITLE "Foo" @
+	 TITLE FONT <it>font</it>  | Selects font of title string |
+	          fontsel <it>font</it> | TITLE FONT 1 @
+	 TITLE SIZE <it>size</it>  | Sets size of title string |
+	          <ref id="types" name="expr"> <it>size</it> | TITLE SIZE 1.5 @
+	 TITLE COLOR <it>color</it> | Sets color of title string | 
+	          <ref id="color-sel" name="colorsel"> <it>color</it> | TITLE COLOR 1 @
+	 SUBTITLE <it>subtitle</it> | Sets the subtitle of current graph |
+	          <ref id="types" name="qstr"> <it>subtitle</it> | SUBTITLE "Bar" @
+	 SUBTITLE FONT <it>font</it>  | Selects font of subtitle string |
+	          fontsel <it>font</it> | SUBTITLE FONT "Times-Italic" @
+	 SUBTITLE SIZE <it>size</it>  | Sets size of subtitle string |
+	          <ref id="types" name="expr"> <it>size</it> | SUBTITLE SIZE .60 @
+	 SUBTITLE COLOR <it>color</it> | Sets color of subtitle string |
+	          <ref id="color-sel" name="colorsel"> <it>color</it> | SUBTITLE COLOR "blue" @
+	 LEGEND onoff | Toggle legend display |onoff | LEGEND ON @
+	 LEGEND LOCTYPE <it>type</it> | Posistion legend in <it>type</it> coordinates |
+	   <it>type</it>: either WORLD or VIEW | LEGEND LOCTYPE WORLD @
+	 LEGEND <it>xloc,yloc</it> | Set location of legend | 
+	   <ref id="types" name="expr">: <it>xloc,yloc</it> | LEGEND .5,.75 @
+	 LEGEND X1 <it>xloc</it>| Set x position of legend |
+	   <ref id="types" name="expr"> <it>xloc</it> | LEGEND X1 0.80 @
+	 LEGEND Y1 <it>yloc</it>| Set y position of legend |
+	   <ref id="types" name="expr"> <it>yloc</it> | LEGEND Y1 100 @
+	 LEGEND FONT <it>font</it>| Set legend font type |
+	   fontsel <it>font</it> | LEGEND FONT "Helvetica" @
+	 LEGEND CHAR SIZE <it>size</it> | Sets size of legend label characters |<ref id="types" name="expr"> <it>size</it> | @
+	 LEGEND <it>color</it>| Set color of legend text |
+	   <ref id="color-sel" name="colorsel"> <it>color</it> | LEGEND COLOR 1 @
+	 LEGEND VGAP <it>gap</it> | Sets vertical gap between legend entries |
+	   <ref id="types" name="nexpr"> <it>gap</it> | LEGEND VGAP 1 @
+	 LEGEND HGAP <it>gap</it> | Sets horizontal gap between symbol and description |
+	   <ref id="types" name="nexpr"> <it>gap</it> | LEGEND VGAP 4 @
+	 LEGEND LENGTH <it>length</it>| Sets <it>length</it> of legend| 
+ 	   <ref id="types" name="nexpr"> <it>length</it> | LEGEND LENGTH 5 @
+	 LEGEND INVERT onoff | Determines relationship between order of sets and order of legend labels |
+	   onoff | LEGEND INVERT true @
+	 LEGEND BOX onoff | Determines if the legend bounding box is drawn |
+	   onoff | LEGEND BOX off @
+	 LEGEND BOX COLOR <it>color</it>  | Sets color of legend bounding box | <ref id="color-sel" name="colorsel"> <it>color</it> |
+	   LEGEND BOX COLOR 1@
+	 LEGEND BOX PATTERN <it>pattern</it>| Sets pattern of legend bounding box | <ref id="pattern-sel" name="patternsel"> <it>pattern</it> |
+	   LEGEND BOX PATTERN 2@
+	 LEGEND BOX LINESTYLE <it>style</it>| Sets line style of bounding box |<ref id="types" name="nexpr"> <it>style</it> |
+	   LEGEND BOX LINESTYLE 1 @
+	 LEGEND BOX LINEWIDTH <it>width</it>| Sets line width of bounding box|<ref id="types" name="nexpr"> <it>width</it> | 
+	   LEGEND BOX LINEWIDTH 2 @
+	 LEGEND BOX FILL onoff | Determines if the legend bounding box is filled |
+	   onoff | LEGEND BOX FILL false @
+	 LEGEND BOX FILL COLOR <it>color</it>  | Sets color of legend box fill | <ref id="color-sel" name="colorsel"> <it>color</it> | 
+	   LEGEND BOX COLOR 3 @
+	 LEGEND BOX FILL <it>pattern</it>| Sets pattern of legend box fill |<ref id="pattern-sel" name="patternsel"> <it>pattern</it> |
+	   LEGEND BOX FILL PATTERN 1@
+      </tabular>
+      <caption>
+        Titles and Legends
       </caption>
       </table>
     </p>
-
    <p>
    Not finished yet...
    </p>
@@ -2317,7 +2416,7 @@ current graph.
 <sect>Advanced topics
   <p>
 
-  <sect1>Fonts
+  <sect1>Fonts<label id="fonts">
     <p>
     For all devices, Grace uses Type1 fonts. Both PFA (ASCII) and PFB
     (binary) formats can be used.
