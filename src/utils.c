@@ -810,7 +810,7 @@ char *get_docbname(const Quark *q)
 }
 
 
-void errmsg(char *buf)
+void errmsg(const char *buf)
 {
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);

@@ -132,7 +132,7 @@ void set_title(const Quark *pr);
 void set_pagelayout(int layout);
 int get_pagelayout(void);
 
-void errwin(char *s);
+void errwin(const char *s);
 
 void create_datasetprop_popup(Widget but, void *data);
 void create_datasetop_popup(Widget but, void *data);

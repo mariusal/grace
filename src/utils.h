@@ -94,7 +94,7 @@ void set_docname(Quark *q, const char *s);
 char *get_docname(const Quark *q);
 char *get_docbname(const Quark *q);
 
-void errmsg(char *msg);
+void errmsg(const char *msg);
 void echomsg(char *msg);
 void stufftext(char *msg);
 

@@ -53,7 +53,7 @@
 #define RETURN_FAILURE (1)
 
 /* FIXME! */
-extern void errmsg(char *msg);
+extern void errmsg(const char *msg);
 
 /* generic memory allocation & friend */
 void *xmalloc(size_t size);

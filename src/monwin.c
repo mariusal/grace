@@ -286,7 +286,7 @@ void stufftextwin(char *msg)
     create_monitor_frame(FALSE, msg);
 }
 
-void errwin(char *msg)
+void errwin(const char *msg)
 {
     char *buf;
     
