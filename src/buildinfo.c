@@ -16,7 +16,7 @@
 #define MAJOR_REV 5
 #define MINOR_REV 0
 #define PATCHLEVEL 3
-#define BETA_VER "(gamma pre2)"
+#define BETA_VER "(gamma)"
 
 #ifndef GRACE_HOME
 #  define GRACE_HOME "/usr/local/grace"
@@ -48,7 +48,7 @@ static void VersionInfo(FILE *outfile)
 	    MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
 
 /* We don't want to reproduce the complete config.h,
-   but those settings which may be related to problems on runtime */
+   but those settings which may be related to problems at runtime */
 
 #ifdef NONE_GUI
     fprintf(outfile, "#define BI_GUI \"none\"\n");

@@ -6,7 +6,7 @@
 
       <title>Grace FAQ (v0.5)
       <author>by the Grace Team
-      <date>17.08.1999
+      <date>22.08.1999
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, a WYSIWYG 2D plotting tool for scientific data.
@@ -330,10 +330,10 @@
 	      and that the failure is not caused by another piece of
 	      software.
 
-	    <tag/Third/ Consider upgrading to the newest release of
-	      Grace (see question <ref id="current" name="Current
-	      Release">). The development of Grace is currently rather
-	      fast, so your bug might already be fixed.
+	    <tag/Third/ Make sure you are running the newest official
+              release of Grace (see question <ref id="current" 
+              name="Current Release">). The development of Grace is
+              rather fast, so your bug might already be fixed.
 
 	    <tag/Fourth/ Try to find out if the bug is already known
 	      (see question <ref id="w3todo" name="Known Bugs">).
@@ -341,17 +341,17 @@
 	    <tag/Fifth/ OK: You <em/have/ found a new bug. Use
 	      <bf/w3todo/ (question <ref id="w3todo" name="Known
 	      Bugs">) to report it. Follow the instructions on the
-	      page and try to be as precise as possible. It won't be
+	      page and try to be as precise as possible. It won't be of
 	      much help if you write ``The program crashes.'' Try to
 	      find a simple reproducible case. Mention the version of
 	      Grace and where you got the build and the operating system
 	      you use. You should submit the system info as provided by
 	      ``uname -a'' (if on a un*x system) and the output of
-	      ``xmgrace -version'' (this works only for recent versions).
+	      ``xmgrace -version''.
 	      Once you submit the bug report, it will be automatically
-	      sent to the mailing list. You will usually be notified when
-	      the bug is fixed or if we need more information, so don't forget
-	      to give your correct e-mail address.
+	      relayed to the mailing list. You will usually be notified when
+	      the bug is fixed or if we need more information, so please
+              don't forget to give your correct e-mail address.
 
 	  </descrip>
 
@@ -681,6 +681,9 @@
 	  <p>
 
 	    Quite a few. You can display them with <tt/xmgrace -help/.
+	    
+	    Or check for the man page xmgrace(1). However it may
+	    not always be uptodate.
 
 	<sect2>I work with the 800x600 screen resolution and several popups are
             too large to fit in my desktop.
@@ -749,7 +752,7 @@ XMgrace*background: ...
 	<sect2>What is T1lib good for? <label id="t1lib">
 	  <p>
 
-	    T1lib is a font rasterer library which permits to use nice
+	    T1lib is a font rastering library which permits to use nice
 	    Type1 fonts within Grace on all output media. Usually, the
 	    newest version of T1lib comes bundled with Grace, so you
 	    don't need to take care of it. If you're interested: the
@@ -868,7 +871,7 @@ XMgrace*background: ...
             <url name="libpng library"
             url="http://www.cdrom.com/pub/png/"> is installed.
             
-	    For PDF output, you need pdflib-2.0. The PDFlib
+	    For PDF output, you need pdflib-2.01. The PDFlib
 	    distribution is available at <url name="the PDFlib home
 	    page" url="http://www.ifconnection.de/~tm/pdflib">.
 
@@ -882,12 +885,12 @@ XMgrace*background: ...
 
             Notice that the direct support of the GIF format is impossible
             due to the copyright policy of Unisys - it's not a technical
-            problem.
+            problem. In fact it was supported in earlier versions but
+	    to avoid any legal problems this feature has been removed.
 
-	    One can use <tt/pstoedit/ (available at several places,
-	    e.g. <url
-	    url="ftp://ftp.x.org/contrib/applications/pstoedit/">) to
-	    convert PS to a lot of other vector formats: MIF, CGM,
+	    One can use <url name="pstoedit"
+	    url="http://www.geocities.com/SiliconValley/Network/1958/pstoedit/">
+            to convert PS to a lot of other vector formats: MIF, CGM,
 	    xfig's, tgif's, Windoze and OS/2 metafiles,... even Java
 	    applets!
 
@@ -1009,15 +1012,13 @@ XMgrace*background: ...
       <sect1>How can I input data in date/time formats?
 	<p>
 
-	  Currently, you can't.
-
-	  The <url name="ISO8601 date format"
-	  url="http://www.cl.cam.ac.uk/~mgk25/iso-time.html"> is
-	  currently being implemented into Grace and should appear
-          soon.
+          You can use several date/time formats in input data files.
+          Make sure, however, that the time fields don't contain space
+          separators inside, e.g. 1999-12-31-23:59:59.5
           
-          Please use an external program to convert the data into the
-          Julian Date format, like the one that is supplied with Grace.
+          Also, you can use an external program to convert the data into the
+          Julian Date format, like the one (convcal) that is supplied
+          with Grace.
 
       <sect1>What is the Julian Date?
 	<p>
@@ -1025,7 +1026,7 @@ XMgrace*background: ...
 	  The Julian Date, not to be confused with the Julian
 	  calendar, is a format to represent the time in a single
 	  number. Julian Date 0 is a day way in the past, namely the
-	  1st January 4713 before Christ (don't ask me why).  The
+	  1st January 4713 before Christ (don't ask me why). The
 	  following days are numbered sequentially, each day starting
 	  at noon.
 
@@ -1033,8 +1034,8 @@ XMgrace*background: ...
 	  astronomy, and is used for the internal representation of
 	  dates in Grace.
 
-	  Look at the files <tt/jul2greg.c/ and <tt/greg2jul.c/ in
-	  <tt>$GRACE_HOME/auxiliary/</tt>.
+	  The <tt/convcal/ utility in <tt>$GRACE_HOME/auxiliary/</tt> can
+          be used for about any to Julian date convertion.
 
 <!-- **************************************** -->
 
@@ -1139,7 +1140,9 @@ XMgrace*background: ...
 	    contains pathnames of the directories where dynamic
 	    libraries are stored. Add (as root) your directory to this
 	    file and run <tt>ldconfig -v</tt>. Now the libraries
-	    should be in the list.
+	    should be in the list. If you're not root you may try
+	    to adjust the environment variable <tt>LD_LIBRARY_PATH</tt>
+	    to include the required pathname.
 
 	    For some versions of Motif, the ``soname'' (which
 	    identifies the version of the library and is stored
@@ -1189,9 +1192,9 @@ XMgrace*background: ...
 	  just after compilation. You got the following message :
 
 <tscreen><verb>
-scanFontDBase(): Font Database
-File not found T1_InitLib(): Fatal error scanning Font
-Database File Initialization of t1-library failed!
+scanFontDBase(): Font Database File not found
+T1_InitLib(): Fatal error scanning Font Database File
+--> Broken or incomplete installation - read the FAQ!
 </verb></tscreen>
 
           Grace uses either the <tt/GRACE_HOME/ environment variable
@@ -1218,7 +1221,8 @@ Database File Initialization of t1-library failed!
 	<p>
           
           LaTeX does not do hard clipping of EPS files unless instructed to do
-          so. Use \includegraphics*{} and NOT \includegraphics{}. 
+          so. Use \includegraphics*{} and NOT \includegraphics{}. If using
+          the epsf package, remember to use the \epsfclipon flag.
 
           The erasing comes about because Grace fills the background with the
           page size and not the bbox size. The background filling can be

@@ -19,6 +19,7 @@
  !  [ES] extended options for line arrows - see "examples/arrows.agr"
  *  [ES] automatic allocation of drawing objects; -maxlines and like
          command line options removed
+ *  [LM] RTI is processed also when running in gui-less or batch mode
  *  [LM] millisecond resolution of timer
  !  [ES] added XYdXdXdYdY set type
  !  [ES] color &amp; pattern of error bars can be selected independently from
@@ -34,6 +35,11 @@
  *  [ES] canvas page dimensions, as saved in the project file, set the
          page dimensions of all devices (which afterwards can be adjusted
          separately)
+ *  [LM] Grace now can parse input data in several date/time formats,
+         including the recommended ISO8601
+ *  [LM] reference date for date conversions is adjustable
+ *  [LM] 2-digit format for years for the current century is now optional and
+         the wrap year is adjustable
 
 <H3>Interface</H3>
  *  [ES] start in the command line interface (CLI) mode if the exec's 
@@ -44,76 +50,78 @@
          (rep. #625)
  !  [ES] all file selection box (FSB) dialogs replaced (fixing reps. #465,
          #549, #568)
- !  [ES] "File/Working dir" removed, since this option is in any FSB now
- !  [ES] "File/Read/Block data" removed - it's in the "File/Read/Sets" now
+ *  [ES] "File/Working dir" removed, since this option is in any FSB now
+ *  [ES] "File/Read/Block data" removed - it's in the "File/Read/Sets" now
  *  [EV] in the non-linear fit popup, allow to use expressions when giving
          bounds for the loaded function
  !  [ES] applying changes in "Set appearance" for multiple sets selected
          doesn't act on legends by default; this can be changed from the
          "Options" menu (rep. #588)
- !  [ES] added "File/Revert to saved" 
+ *  [ES] added "File/Revert to saved" 
  *  [ES] -nxy command line flag requires a filename immediately after it
  *  [ES] use GXinvert rather than GXxor for rubberband lines by default
  !  [ES] "Evaluate expression" rewritten
- !  [HS] invert selection in set/graph lists
+ *  [HS] invert selection in set/graph lists
  !  [ES] removed column width controls from SS editor; the spreadsheet 
          columns may be resized with Shift+middle button
  !  [ES] option to select set string column from block data
- *  [LM] -datehint
 
 <H3>Documentation/Info</H3>
- *  [AM/ES] buildinfo
- *  [LM] added section to the UG on the grace_np usage
- *  [ES] more details added to the -version output
- *  [LM] docs
- *  [AM/ES] grace.1
- !  [ES] "Help/Examples"
+ *  [AM/ES] many more buildinfo details are displayed by "-version" command
+         line option
+ *  [LM] many User's Guide additions/updates
+ *  [AM/ES] added man page for grace/xmgrace/gracebat
+ *  [AM] added man page for grconvert
+ *  [ES] "Help/Examples" menu tree
 
 <H3>Parser</H3>
  *  [HS/ES] several logical constructs of mixed type arguments (vector and
          scalar) didn't work
  *  [ES] added '?' and ':' to the operator precedence list; no conflicts in the
          parser anymore
+ *  [ES] no need for () around boolean expressions
  !  [ES] new color selection options: COLOR "name", COLOR (R, G, B)
  !  [ES] PRINT TO DEVICE added; PRINT TO "filename" doesn't actually
-         print, only sets the output to file (rep. #605)
- !  [LM] TIMER NUMBER
- !  [ES] op/placement in parser
+         print, only sets the output to a file (rep. #605)
+ !  [LM] TIMER NUMBER - set timer's resolution
+ !  [ES] G.S can be used anywhere
+ !  [ES] allow to use SET[index] amd GRAPH[index] for set &amp; graph
+         selections
  !  [EV] REVERSE setselect
          APPEND setselect TO setselect
          SPLIT setselect number
- !  [ES] G.S can be used anywere
- *  [ES] no need for () around boolean expressions
  !  [ES] no setno.extremetype
  !  [ES] extremetype(vexpr)
- !  [ES] allow to use SET[index] amd GRAPH[index] for set &amp; graph selections
- !  [ES] NUMBER -&gt; expr
- !  [ES] JDAY -&gt; DATE
+ !  [ES] expressions can be used virtually in any statement (where only numbers
+         were allowed formerly)
+ !  [ES] checks for expression types
+ !  [ES] JDAY function (has been never documented) renamed to DATE
  !  [ES] removed INDEX and LOAD SCRARRAY
  !  [ES] added MESH (a la linspace)
  !  [ES] several statements per line are allowed, separated by ';'
  *  [ES] PAGE SIZE x y -&gt; PAGE SIZE x, y
  !  [LM] REFERENCE DATE, DATE WRAP onoff, DATE WRAP YEAR iexpr
- *  [ES] problems with operations with sets of different lengths (rep. #227)
- !  [ES] strict length checks
+ !  [ES] strict array length checks
 
 <H3>Defaults</H3>
  !  [LM] the default value for the timer has been reduced from 1000 to
          200ms 
- !  [ES] sformat is saved in projects
+ *  [ES] sformat is saved in projects
 
 <H3>Portability</H3>
- *  [ES] configure honours $CC
+ *  [ES] configure honours $CC; if available and not overridden, gcc will
+         be picked
  *  [ES] motif find fix
  *  [ES] Irix-6.5 config fix (rep. #558)
  *  [ES] compilation errors when using some weird old versions of make 
          fixed (rep. #583)
  *  [ES] configure checks for declarations of all math functions
  *  [ES] removed the remnants of support for Motif-1.1
- *  [ES] pdflib-2.01
- *  [ES] Xbae-4.7 (which fixed rep. #560)
- *  [ES] T1lib-0.9.1
- *  [ES] no need for gdlib
+ *  [ES] PDF driver updated to use pdflib-2.01
+ *  [ES] updated to Xbae-4.7 (which fixed rep. #560)
+ *  [ES] T1 font machinery updated to T1lib-0.9.1
+ *  [ES] no need for GD lib (for raster drivers); a customized version is
+         included
  *  [AM] OS/2 updates
  *  [JH] VMS updates
 
@@ -126,30 +134,34 @@
  *  [ES] description length was limited to 2K (rep. #575)
  *  [ES] setting negative offsets for PS driver was impossible via
          GUI (rep. #579)
- *  [ES] AA (by default) text strings were invisible on mono X terminals
+ *  [ES] antialiased (default) text strings were invisible on mono X terminals
          (rep. #582)
- *  [ES] join sets (rep. #513)
+ *  [ES] join sets is working now (rep. #513)
  *  [ES] error bar clipping wasn't enabled
- *  [ES] error bars were drawn after symbols
+ *  [ES] error bars were drawn above symbols
  *  [ES] settings from "Ellipse props..." were ignored
  *  [ES] Bitmapped strings with no AA were broken in the PDF output
- *  [ES] locale + ann. values &amp; PS output fixed
+ *  [ES] non-POSIX locales caused invalid PS output in rare cases
  *  [LM] detect cases of accesses beyond array bounds of drawing objects
+ *  [ES] problems with operations with sets of different lengths (rep. #227)
+         resolved
  *  [HS] "Start load at" of the regression window was ignored
- *  [ES] non-linear fit didn't work in batch mode for any set but S0
+ *  [ES] non-linear fit didn't work in batch mode for any but S0 set
  *  [ES] fixed crashes with log axes (rep. #282, #525)
- *  [AM/ES] fixed crashes when major tick spacing equal to 0 (rep. #591)
+ *  [AM/ES] fixed crashes when major tick spacing was equal to 0 (rep. #591)
  *  [AM] the default filename of hardcopy output was truncated at first
          period (rep. #593)
+ *  [LM] several bugs in date formats fixed
  *  [ES] locator properties didn't work; changing the locator format
          caused chaotic behavior (rep. #621)
- *  [ES] (rep. #616)
+ *  [ES] patterned fills of ellipses gave segmentation fault (rep. #616). This
+         was a GD library's bug, in fact
 
 <H3>Misc</H3>
- *  [LM] date/time jumbo patch
- *  [LM] dates parsing
- *  [ES] removed GD and GIF backends
- *  [LM] RTI in CLI
+ *  [ES] removed GD and GIF backends (the latter due to patent issues)
+ *  [LM] an auxiliary utility added (convcal) to convert between "usual"
+         and julian day date formats. This obsoletes the former greg2jul.c 
+         and jul2greg.c utilities.
 
 
 <H2>5.0.2</H2>

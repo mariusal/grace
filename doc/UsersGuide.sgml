@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>17.08.1999
+<date>22.08.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -21,26 +21,24 @@
 
 <sect1>What is Grace?
   <p>
-     Grace is a tool to make two-dimensional plots of scientific
-     data. It runs under various (if not all) flavours of UNIX with
+     Grace is a WYSIWYG tool to make two-dimensional plots of scientific
+     data. It runs under various (if not all) flavors of Unix with
      X11 and Motif (LessTif). It also runs under VMS, OS/2, and Windows
      (95/98/NT). Its capabilities are roughly similar to GUI-based
      programs like Sigmaplot or Microcal Origin plus script-based
-     tools like Gnuplot or Genplot.  Its strength lies in the fact
+     tools like Gnuplot or Genplot. Its strength lies in the fact
      that it combines the convenience of a graphical user interface
      with the power of a scripting language which enables it to do
      sophisticated calculations or perform automated tasks.
 
-     Grace is derived from Xmgr (a.k.a. ACE/gr), originally written by <url
-     name="Paul Turner" url="mailto:pturner@teleport.com">.
+     Grace is derived from Xmgr (a.k.a. ACE/gr), originally written by
+     Paul Turner.
 
      From version number 4.00, the development was taken over by a
-     team of volunteers under the coordination of <url name="Evgeny
-     Stambulchik" url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">.
+     team of volunteers under the coordination of Evgeny Stambulchik.
      You can get the newest information about Grace and download the
      latest version at the <url
-     url="http://plasma-gate.weizmann.ac.il/Grace/"
-     name="Grace home page">.
+     url="http://plasma-gate.weizmann.ac.il/Grace/" name="Grace home page">.
 
      When its copyright was changed to GPL, the name was changed to Grace,
      which stands for ``GRaphing, Advanced Computation and Exploration of
@@ -70,7 +68,7 @@ the Free Software Foundation; either version 2 of the License, or
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
@@ -98,8 +96,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <item> The PDF driver requires the PDFlib-2.01 library of Thomas
                      Merz to be installed, which is available
                      <url name="here" url="http://www.ifconnection.de/~tm/pdflib/">.
-              <item> The JPEG backend needs
-                     the IJG's (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
+              <item> The JPEG backend needs the IJG's
+                     (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
               <item> The PNG backend needs
                      the (<url name="libpng" url="http://www.cdrom.com/pub/png/">) library.
               <item> If your computer has the FFTW library installed when
@@ -191,9 +189,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 <sect>Getting started
   <p>
 
-  For a jump-in start, you can run the demos using the script
-  <tt>GRACE&lowbar;HOME/examples/dotest</tt>. You can also read the
-  <url name="Tutorial" url="Tutorial.html">.
+  For a jump-in start, you can browse the demos ("Help/Examples" menu tree).
+  Also, read the <url name="Tutorial" url="Tutorial.html">.
 
   <sect1>General concepts
     <p>
@@ -240,7 +237,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           Real Time Input refers to the ability Grace has to be
           fed in real time by an external program. The Grace
           process spawned by the driver program is a full featured
-          Grace process : the user can interact using the GUI at the
+          Grace process: the user can interact using the GUI at the
           same time the program sends data and commands. The process
           will adapt itself to the incoming data rate.
 
@@ -250,7 +247,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           Hotlinks are sources containing varying data. Grace can be
           instructed a file or a pipe is a hotlink in which case it
           will provide specific commands to refresh the data on a
-          mouseclick (a later version will probably allow automatic
+          mouse click (a later version will probably allow automatic
           refresh).
 
       <sect2>File formats <label id="files-formats">
@@ -259,7 +256,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           Grace understands several input files formats. The most
           basic one is ASCII text files containing space and comma
           separated columns of data. The data fields can be either
-          numeric (fortran 'd' and 'D' exponant markers are supported)
+          numeric (Fortran 'd' and 'D' exponent markers are supported)
           or alphanumeric (with or without quotes). Several calendar
           date formats are recognized automatically and you can
           specify your own reference for numeric dates formats. Grace also
@@ -273,13 +270,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 	<p>
           Grace allows the user to choose between several output
           devices to produce its graphics. The current list of
-          supported devices is :
+          supported devices is:
 
           <itemize>
           <item> X11
           <item> PostScript (level 1 and level 2)
           <item> EPS
-          <item> Metafile (which is Grace format)
+          <item> Metafile (which is Grace format, used at the moment mostly
+                 for debugging purposes)
           <item> PDF (depends on extra libraries,
                       see <ref name="configuration" id="configuration">)
           <item> PNM
@@ -290,7 +288,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           </itemize>
 
         <p>
-          Note the Grace does not support GIF anymore due to
+          Note that Grace no longer supports GIF due to
            the copyright policy of Unisys. Grace can also be
            instructed to launch conversion programs automatically
            based on file name. As an example you can produce MIF
@@ -531,8 +529,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <itemize>
         <item> XMgrace.invertDraw
                <newline>
-               Use GXinvert rather than GXxor for rubberband lines.
-               If the rubberbanding for zooms and lines, etc. doesn't
+               Use GXinvert rather than GXxor for rubber-band lines.
+               If the rubber-banding for zooms and lines, etc. doesn't
                appear on the canvas, set this resource to yes.
                <newline>
 
@@ -579,9 +577,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         by pressing Control+F, you would add the following two lines
 
         <tt>
-          XMgrace*transformationsMenu.nonLinearCurveFitttingButton.acceleratorText: Ctrl+F
+          XMgrace*transformationsMenu.nonLinearCurveFittingButton.acceleratorText: Ctrl+F
           <newline>
-          XMgrace*transformationsMenu.nonLinearCurveFitttingButton.accelerator: Ctrl&lt;Key&gt;f
+          XMgrace*transformationsMenu.nonLinearCurveFittingButton.accelerator: Ctrl&lt;Key&gt;f
         </tt>
 
 
@@ -602,14 +600,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> New <label id="new">
       <p>
       Reset the state of Grace as if it had just started (one empty
-      graph ranging from 0 to 1 along both axises). If some work has
+      graph ranging from 0 to 1 along both axes). If some work has
       been done and not yet saved, a warning popup is displayed to
-      allow cancelling the operation.
+      allow canceling the operation.
 
       <sect2> Open <label id="open">
       <p>
       Open an existing <ref id="project-file" name="project file">. A
-      popup is displayed that allow to browse the filesystem.
+      popup is displayed that allow to browse the file system.
 
       <sect2> Save <label id="save">
       <p>
@@ -621,7 +619,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Save as <label id="save-as">
       <p>
       Save the current work in a project file with a new name. A popup
-      allows to browse the filesystem and set the name and the format
+      allows to browse the file system and set the name and the format
       to use for saving data points (the default value is "%16.8g"). A
       warning is displayed if a file with the same name already
       exists.
@@ -630,7 +628,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
       Abandon all modifications performed on the project since the
       last save. A confirmation popup is fired to allow the user
-      cancelling the operation.
+      canceling the operation.
 
       <sect2> Describe <label id="describe">
       <p>
@@ -644,7 +642,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          Read new sets of data in a graph. A <ref id="graph-selector"
          name="graph selector"> is used to specify the graph where the
          data should go (except when reading block data, which are
-         copied to graphs later-on).
+         copied to graphs later on).
 
          Reading as "Single set" means that if the source contains
          only one column of numeric data, one set will be created
@@ -662,7 +660,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          all popups, using the <ref id="set-selector" name="set
          selector">.
 
-         The set type can be any of :
+         The set type can be any of:
          <itemize>
             <item> XY
             <item> XYDX
@@ -743,16 +741,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
       Using the data set popup, you can view the properties of
       datasets. This include its type, length, associated comment and
-      main some statistics (min, max, mean, standard deviation). An
-      horizontal scrollbar at bottom allows to get the two last
+      main some statistics (min, max, mean, standard deviation). A
+      horizontal scrollbar at the bottom allows to get the two last
       properties, they are not displayed by default. Also note that if
-      you find some columns are two narrow to show all significant
-      digits, you can drag the vertical rules using Shift-Button 2.
+      you find some columns are too narrow to show all significant
+      digits, you can drag the vertical rules using Shift+Button 2.
 
       <sect2> Set operations <label id="set-operations">
       <p>
       The set operations popup allows you to interact with sets as a
-      whole. If you want to operate on the data orderinf of the sets,
+      whole. If you want to operate on the data ordering of the sets,
       you should use the <ref name="data set operations"
       id="data-set-operations"> popup from the Data menu. The popup
       allows you to select a source (one set within one graph) and a
@@ -763,16 +761,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <sect2> Arrange graphs <label id="arrange-graphs">
       <p>
-      This entry fires up a popup to lay out sevral graphs in a
+      This entry fires up a popup to lay out several graphs in a
       regular grid given rows and columns. The graphs can be packed
       together (either horizontally or vertically). New graphs are
       created if needed. An important note is that reducing the number
-      of graphs neve delete any grahps! If you select a 6 by 3 grid
+      of graphs never delete any graphs! If you select a 6 by 3 grid
       and then reduce it to 5 by 3, you will still have 18 graphs on
       your screen, three of them looking strange in the middle of the
       other ones. This is a security feature that prevent you from
       losing data accepting too quickly a wrong setting. If you really
-      wan to get rid of some of the graphs, you should hide or kill
+      want to get rid of some of the graphs, you should hide or kill
       them using any graph selector you can find around (for example
       in the set operations presented above).
 
@@ -802,13 +800,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <p>
          <sect3> Status <label id="status">
          <p>
-         This small popup only display the current state (type and
-         wether it is active or not) of the existing regions.
+         This small popup only displays the current state (type and
+         whether it is active or not) of the existing regions.
 
          <sect3> Define <label id="define">
          <p>
          You can define a new region (or redefine an existing one),
-         the allowed region types are :
+         the allowed region types are:
 
          <itemize>
          <item> Inside polygon
@@ -828,7 +826,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
          <sect3> Clear <label id="clear">
          <p>
-         This allows to disable a region.
+         This kills a region.
 
          <sect3> Report on <label id="report-on">
          <p>
@@ -843,6 +841,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       command (using grace language) in the corresponding text field
       of the popup, it will be executed after each update. Note that
       you can use several commands separated by ';' characters.
+      <p>
+      Currently, only simple XY sets can be used for hotlinks.
 
       <sect2> Set locator fixed point <label id="set-locator-fixed-point">
       <p>
@@ -854,7 +854,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Clear locator fixed point <label id="clear-locator-fixed-point">
       <p>
       This entry is provided to remove a fixed point set before and
-      use the default again : point [0, 0].
+      use the default again: point [0, 0].
 
       <sect2> Locator props <label id="locator-props">
       <p>
@@ -866,9 +866,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Preferences <label id="preferences">
       <p>
       The preferences popup allows you to set miscellaneous properties
-      of your grace session, such as debugging level, GUI behaviour,
-      cursor type, date reading hint and reference date used for
-      calendar conversions.
+      of your grace session, such as GUI behavior, cursor type,
+      date reading hint and reference date used for calendar conversions.
 
    <sect1> Data menu <label id="data-menu">
    <p>
@@ -884,11 +883,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       others of equal lengths, or drop a range of points from a
       set. The <ref name="set selector" id="set-selector"> of the
       popup shows the number of points in each set in square brackets
-      like this : G0.S0[63], the points are numbered from 0 to n-1.
+      like this: G0.S0[63], the points are numbered from 0 to n-1.
 
       <sect2> Transformations menu <label id="transformations-menu">
       <p>
-      The transformations submenu gives you access to all data-mining
+      The transformations sub-menu gives you access to all data-mining
       features of Grace.
 
          <sect3> Evaluate expression <label id="evaluate-expression">
@@ -907,7 +906,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
          In the formula, you can use X, Y, Y1, ..., Y4 to denote any
          coordinate you like from the source set. An implicit loop
-         will be used around your formula so if you say :
+         will be used around your formula so if you say:
 
          <tscreen><verb>
          x = x - 4966.5
@@ -915,7 +914,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
          you will shift all points of your set 4966.5 units to the left.
 
-         You can use more than one set in the same formula, like this :
+         You can use more than one set in the same formula, like this:
 
          <tscreen><verb>
          y = y - 0.653 * sin (x deg) + s2.y
@@ -927,13 +926,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          expression should therefore have the same number of points
          and point i of one set should really be related to point i of
          the other set. If your sets do not follow these requirements,
-         you should homogeneize them before using <ref
-         name="interpolation" id="interpolation">.
+         you should first homogenize them using
+         <ref name="interpolation" id="interpolation">.
 
          <sect3> Histograms <label id="histograms">
          <p>
          The histograms popup allows you to compute either standard
-         histograms and cumulative histograms from the Y coordinate of
+         or cumulative histograms from the Y coordinates of
          your data. You can select only a range using the start and
          end fields and you can specify the bin width.
 
@@ -973,12 +972,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          The differences popup is used to compute approximations of
          the first derivative of a function with finite
          differences. The only choice (apart from the source set of
-         course) is the type of differences to use : forward, backward
+         course) is the type of differences to use: forward, backward
          or centered.
 
          <sect3> Seasonal differences <label id="seasonal-differences">
          <p>
-         The seasonal differences popup is used to substract data from
+         The seasonal differences popup is used to subtract data from
          a period to data of the preceding period (namely y[i] - y[i +
          period]). Beware that the period is entered in terms of index
          in the set and not in terms of abscissa!
@@ -986,7 +985,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          <sect3> Integration <label id="integration">
          <p>
          The integration popup is used to compute the integral of a
-         set and optionaly to load it. The numerical value of the
+         set and optionally to load it. The numerical value of the
          integral is shown in the text field after
          computation. Selecting "cumulative sum" in the choice item
          will create and load a new set with the integral and compute
@@ -1000,13 +999,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          set. This is mainly used before performing some complex
          operations between the two sets with the <ref name="evaluate
          expression" id="evaluate-expression"> popup. Several
-         interpolation methods can be used : linear, spline or Akima
+         interpolation methods can be used: linear, spline or Akima
          splines. Note that if the interpolated set is not wider than
          the reference set, some extremal points will be missing. You
          can check this with the number of points of each set (it
          appears in the set selectors of the popup). In this case you
          can perform a second run interpolating the reference set at
-         the abscissas of the newly created set, this will removbe the
+         the abscissas of the newly created set, this will remove the
          extra points.
 
          <sect3> Splines <label id="splines">
@@ -1085,7 +1084,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          <p>
          This popups provides two sampling methods. The first one is
          to choose a starting point and a step, the second one is to
-         select only the points that verify a boolean expression you
+         select only the points that satisfy a boolean expression you
          specify.
 
          <sect3> Prune data <label id="prune-data">
@@ -1156,8 +1155,7 @@ integral     | cumulative sum @
       The plot appearance popup let you set the time stamp properties
       and the background color of the page. The color is used outside
       of graphs and also on graphs were no specific background color
-      is set. The time stamp is taken each time you click on the
-      accept button.
+      is set. The time stamp is updated every time the project is modified.
 
       <sect2> Graph appearance <label id="graph-appearance">
       <p>
@@ -1167,8 +1165,8 @@ integral     | cumulative sum @
       id="clicks">). The graph selector at the top allows to choose
       the graph you want to operate on, it also allows certain common
       actions through its popup menu (see <ref name="graph selector"
-      id="graph-selector">). The main tab gathers the properties you
-      will need the more often (title for example), the other tabs are
+      id="graph-selector">). The main tab includes the properties you
+      will need more often (title for example), and other tabs are
       used to fine tune some less frequently used options (fonts,
       sizes, colors, placements).
 
@@ -1178,13 +1176,13 @@ integral     | cumulative sum @
       rendered on the graph), see <ref name="typesetting"
       id="typesetting">. If you don't remember the mapping between
       alphabetic characters and the glyph you need in some specific
-      fonts (mainly symbol and zapfdingbats), you can invoque the font
-      tool from the texte field by typing CTRL-e. You can change fonts
+      fonts (mainly symbol and zapfdingbats), you can invoke the font
+      tool from the text field by hitting CTRL-e. You can change fonts
       and select characters from there, they will be copied back in
-      the text field when you will press the accept button. Beware of
+      the text field when you press the "Accept" button. Beware of
       the position of the cursor as you enter text or change font in
       the font tool, the character or command will be inserted at this
-      position, not at the end of the string !
+      position, not at the end of the string!
 
       <sect2> Set appearance <label id="set-appearance">
       <p>
@@ -1194,8 +1192,8 @@ integral     | cumulative sum @
       at the top allows to choose the set you want to operate on, it
       also allows certain common actions through its popup menu (see
       <ref name="set selector" id="set-selector">). The main tab
-      gathers the properties you will need the more often (line and
-      symbol properties or legend string for example), the other tabs
+      gathers the properties you will need more often (line and
+      symbol properties or legend string for example), and other tabs
       are used to fine tune some less frequently used options (drop
       lines, fill properties, annotated values and error bars
       properties for example).
@@ -1212,28 +1210,28 @@ integral     | cumulative sum @
       graph), see <ref name="typesetting" id="typesetting">. If you
       don't remember the mapping between alphabetic characters and the
       glyph you need in some specific fonts (mainly symbol and
-      zapfdingbats), you can invoque the font tool from the texte
-      field by typing CTRL-e. You can change fonts and select
+      zapfdingbats), you can invoke the font tool from the text
+      field by hitting CTRL-e. You can change fonts and select
       characters from there, they will be copied back in the text
-      field when you will press the accept button. Beware of the
+      field when you press the "Accept" button. Beware of the
       position of the cursor as you enter text or change font in the
       font tool, the character or command will be inserted at this
-      position, not at the end of the string !
+      position, not at the end of the string!
 
       <sect2> Axis properties <label id="axis-properties">
       <p>
-      The axis properties popup can be displayed from both the plot
+      The axis properties popup can be displayed from both the "Plot"
       menu and by double-clicking exactly on an axis (see <ref
-      name="Clicks and double clicks" id="clicks">). The choice button
+      name="Clicks and double clicks" id="clicks">). The pulldown menu
       at the top allows to select the axis you want to operate on. The
-      active toggle globally activates or deactivates the axis (all
-      GUI elements are unselectable on deactivated axes). The start
-      and stop fields depicts the displayed range. Three types of
-      scales are available : linear, logarithmic or reciprocal, and
+      "Active" toggle globally activates or deactivates the axis (all
+      GUI elements are insensitive for deactivated axes). The start
+      and stop fields depict the displayed range. Three types of
+      scales are available: linear, logarithmic or reciprocal, and
       you can invert the axis (which normally increases from left to
-      right and from bottom to top).  The main tab gathers the
-      properties you will need the more often (axis label, tick
-      spacing and format for example), the other tabs are used to fine
+      right and from bottom to top).  The main tab includes the
+      properties you will need more often (axis label, tick
+      spacing and format for example), and other tabs are used to fine
       tune some less frequently used options (fonts, sizes, colors,
       placements, stagger, grid lines, special ticks, ...).
 
@@ -1243,35 +1241,35 @@ integral     | cumulative sum @
       rendered on the graph), see <ref name="typesetting"
       id="typesetting">. If you don't remember the mapping between
       alphabetic characters and the glyph you need in some specific
-      fonts (mainly symbol and zapfdingbats), you can invoque the font
-      tool from the texte field by typing CTRL-e. You can change fonts
+      fonts (mainly symbol and zapfdingbats), you can invoke the font
+      tool from the text field by hitting CTRL-e. You can change fonts
       and select characters from there, they will be copied back in
-      the text field when you will press the accept button. Beware of
+      the text field when you press the "Accept" button. Beware of
       the position of the cursor as you enter text or change font in
       the font tool, the character or command will be inserted at this
-      position, not at the end of the string !
+      position, not at the end of the string!
 
       Once you have set the options as you want, you can apply
-      them. One usefull feature is that you can set several axes at
-      once with the bottom choice button (current axis, all axes
+      them. One useful feature is that you can set several axes at
+      once with the bottom pulldown menu (current axis, all axes
       current graph, current axis all graphs, all axes all
       graphs). Beware that you always apply the properties of all
-      tabs, not anly the selected one.
+      tabs, not only the selected one.
 
    <sect1> View menu <label id="view-menu">
    <p>
       <sect2> Show locator bar <label id="show-locator-bar">
       <p>
-      This toggle item show or hides the locator below the menu bar.
+      This toggle item shows or hides the locator below the menu bar.
 
       <sect2> Show status bar <label id="show-status-bar">
       <p>
-       This toggle item show or hides the status string below the
+       This toggle item shows or hides the status string below the
        canvas.
 
      <sect2> Show tool bar <label id="show-tool-bar">
       <p>
-      This toggle item show or hides the tool bar at the left of the
+      This toggle item shows or hides the tool bar at the left of the
       canvas.
 
       <sect2> Redraw <label id="redraw">
@@ -1280,9 +1278,9 @@ integral     | cumulative sum @
 
       <sect2> Update all <label id="update-all">
       <p>
-      This menu item triggers an update of all data that could need
-      resynchronizing (hotlinks, set and graph selectors in some
-      popups, ...).
+      This menu item causes an update of all GUI controls. Usually, everything
+      is updated automatically, unless one makes modifications by entering
+      commands in the <ref name="Command" id="commands"> tool.
 
 
    <sect1> Window menu <label id="window-menu">
@@ -1302,20 +1300,41 @@ integral     | cumulative sum @
    <p>
       <sect2> On context <label id="on-context">
       <p>
-      <sect2> User guide <label id="user-guide">
+        This function is not implemented yet.
+
+      <sect2> User's guide <label id="users-guide">
       <p>
+        Browse the Grace user's guide.
+      
       <sect2> Tutorial <label id="tutorial">
       <p>
+        Browse the Grace tutorial.
+      
       <sect2> FAQ <label id="faq">
       <p>
+        Frequently Asked Questions with answers.
+      
       <sect2> Changes <label id="changes">
       <p>
+        The list of changes during the Grace development.
+ 
+      <sect2> Examples <label id="examples">
+      <p>
+        The whole tree of submenus each loading a sample plot.
+      
       <sect2> Comments <label id="comments">
       <p>
+        Use this to send your suggestions or bug reports.
+        
       <sect2> License terms <label id="license-terms">
       <p>
+        Grace licensing terms will be displayed (GPL version 2).
+      
       <sect2> About <label id="about">
       <p>
+        A popup with basic info on the software, including some
+        configuration details. More details can be found when running Grace
+        with the "-version" command line flag.
 
 <!-- **************************************** -->
 <sect>GUI controls
@@ -1324,65 +1343,73 @@ integral     | cumulative sum @
        <p>
        Various selectors are available in several popups. They all display
        lists of objects (graphs, sets, ...) and can be used to perform
-       simple operations on this objects (copying, deleting, ...). The
-       operations are triggered by a popup menu that appear when pressing
-       mouse button 3 on them.
-
-       <sect1> Graph selector <label id="graph-selector">
-       <p>
-       The operations that can be performed on graphs through the graph
-       selector's menu popup are :
+       simple operations on these objects (copying, deleting, ...). The
+       operations are available from a popup menu that appears when pressing
+       mouse button 3 on them. Depending on the required functionality, they
+       may allow multiple choices or not. The following
+       shortcuts are enabled (if the result of an action would contradict the
+       list's selection policy, this would be ignored):
        <itemize>
-         <item> focus to
-         <item> hide
-         <item> show
-         <item> duplicate
-         <item> kill
-         <item> swap
-         <item> create new
+         <item> Ctrl+a select all
+         <item> Ctrl+u unselect all
+         <item> Ctrl+i invert selection
        </itemize>
-       All this operations are not available in every instance of the
-       selector. For example in the "read sets" popup only one graph can
-       be selected at a time, and the swap operation is disabled.
-       
-       Double-clicking on a list entry will switch the focus to that graph.
 
-       <sect1> Set selector <label id="set-selector">
-       <p>
-       The operations that can be performed on sets through the set
-       selector are :
-       <itemize>
-         <item> hide
-         <item> show
-         <item> bring to front
-         <item> send to back
-         <item> duplicate
-         <item> kill
-         <item> kill data
-         <item> swap
-         <item> edit
+         <sect2> Graph selector <label id="graph-selector">
+         <p>
+         The operations that can be performed on graphs through the graph
+         selector's menu popup are:
          <itemize>
-           <item> in spreadsheet
-           <item> in text editor
+           <item> focus to
+           <item> hide
+           <item> show
+           <item> duplicate
+           <item> kill
+           <item> swap
+           <item> create new
          </itemize>
-         <item> create new
+         All this operations are not available in every instance of the
+         selector. For example in the "read sets" popup only one graph can
+         be selected at a time, and the swap operation is disabled.
+ 
+         Double-clicking on a list entry will switch the focus to that graph.
+
+         <sect2> Set selector <label id="set-selector">
+         <p>
+         The operations that can be performed on sets through the set
+         selector are:
          <itemize>
-           <item> by formula
-           <item> in spreadsheet
-           <item> in text editor
-           <item> from block data
+           <item> hide
+           <item> show
+           <item> bring to front
+           <item> send to back
+           <item> duplicate
+           <item> kill
+           <item> kill data
+           <item> swap
+           <item> edit
+           <itemize>
+             <item> in spreadsheet
+             <item> in text editor
+           </itemize>
+           <item> create new
+           <itemize>
+             <item> by formula
+             <item> in spreadsheet
+             <item> in text editor
+             <item> from block data
+           </itemize>
+           <item> pack all sets
+           <item> selectors operations
+           <itemize>
+             <item> show data-less
+             <item> show hidden
+             <item> select all
+             <item> unselect all
+             <item> invert selection
+             <item> update
+           </itemize>
          </itemize>
-         <item> pack all sets
-         <item> selectors operations
-         <itemize>
-           <item> show data-less
-           <item> show hidden
-           <item> select all
-           <item> unselect all
-           <item> invert selection
-           <item> update
-         </itemize>
-       </itemize>
 
 
 <!-- **************************************** -->
@@ -1637,7 +1664,7 @@ register a user function <it>f</it> to display library errors @
 
 void my_error_function(const char *msg)
 {
-    fprintf(stderr, "library message : \"%s\"\n", msg);
+    fprintf(stderr, "library message: \"%s\"\n", msg);
 }
 
 int
@@ -1708,7 +1735,7 @@ main(int argc, char* argv[])
      so that if a transform of a given size is to be repeated, it is does not
      have to re-adapt.  The good news is that this seems to work very well. 
      The bad news is that, the first time a transform of a given size is
-     computed, if it is not a submultiple of one already known, it takes a LONG
+     computed, if it is not a sub-multiple of one already known, it takes a LONG
      time (seconds to minutes).
     <p>
      The first environment variable is GRACE_FFTW_WISDOM_FILE. If this is set
@@ -1936,7 +1963,7 @@ C
        USE "myfunc_wrapper" TYPE f_of_nd FROM "/tmp/myfunc.so" ALIAS "myfunc"
        </tscreen>
 
-<!-- ****** Appendicies/references ************ -->
+<!-- ****** Appendices/references ************ -->
 <sect> References
   <p>
   
@@ -2072,7 +2099,7 @@ C
               grayscale     | set grayscale output                          @
               color         | set color output                              @
               bbox:tight    | enable "tight" bounding box                   @
-              bbox:page     | bounding box coinsides with page dimensions   @
+              bbox:page     | bounding box coincides with page dimensions   @
               <hline>
       </tabular>
       <caption>
@@ -2148,40 +2175,40 @@ C
     <sect1>Dates in Grace <label id="dates">
     
     <p>
-      We use two calendars in Grace : the one that was established in
+      We use two calendars in Grace: the one that was established in
       532 by Denys and lasted until 1582, and the one that was created
       by Luigi Lilio (Alyosius Lilius) and Christoph Klau
       (Christophorus Clavius) for pope Gregorius XIII. Both use the
       same months (they were introduced under emperor Augustus, a few
-      years after julian calendar introduction, both Julius and
-      Augustus were honored by a month beeing named after each one).
+      years after Julian calendar introduction, both Julius and
+      Augustus were honored by a month being named after each one).
       
-      The leap years occured regularly in Denys's calendar : once
+      The leap years occurred regularly in Denys's calendar: once
       every four years, there is no year 0 in this calendar (the leap
       year -1 was just before year 1). This calendar was not compliant
       with earth motion and the dates were slowly shifting with regard
       to astronomical events.
       
-      This was corrected in 1582 by introducing gregorian
+      This was corrected in 1582 by introducing Gregorian
       calendar. First a ten days shift was introduced to reset correct
       dates (Thursday October the 4th was followed by Friday October
-      the 15th). The rules for leap years were also changed : three
+      the 15th). The rules for leap years were also changed: three
       leap years are removed every four centuries. These years are
-      those that are multiple of 100 but not multiple of 400 : 1700,
+      those that are multiple of 100 but not multiple of 400: 1700,
       1800, and 1900 were not leap years, but 1600 and 2000 were (will
       be) leap years.
       
-      We still use gregorian calendar today, but we now have several
+      We still use Gregorian calendar today, but we now have several
       time scales for increased accuracy. The International Atomic
-      Time is a linear scale : the best scale to use for scientific
+      Time is a linear scale: the best scale to use for scientific
       reference. The Universal Time Coordinate (often confused with
-      Greenwhich Mean Time) is a legal time that is almost
+      Greenwich Mean Time) is a legal time that is almost
       synchronized with earth motion. However, since the earth is
       slightly slowing down, leap seconds are introduced from time to
-      time in UTC (about one second every 18 monthes). UTC is not a
+      time in UTC (about one second every 18 months). UTC is not a
       continuous scale ! When a leap second is introduced by
       International Earth Rotation Service, this is published in
-      advance and the legal time sequence is as follows : 23:59:59
+      advance and the legal time sequence is as follows: 23:59:59
       followed one second later by 23:59:60 followed one second later
       by 00:00:00. At the time of this writing (1999-01-05) the
       difference between IAT and UTC was 32 seconds, and the last leap
@@ -2189,17 +2216,17 @@ C
       
       These calendars allow to represent any date from the mist of the
       past to the fog of the future, but they are not convenient for
-      computation. Another time scale is possible : counting only the
+      computation. Another time scale is possible: counting only the
       days from a reference. Such a time scale was introduced by
       Joseph-Juste Scaliger (Josephus Justus Scaliger) in 1583. He
       decided to use "-4713-01-01 12:00:00" as a reference date
-      because it was at the same time a monday, first of January of a
+      because it was at the same time a Monday, first of January of a
       leap year, there was an exact number of 19 years Meton cycle
       between this date and year 1 (for Easter computation), and it
-      was at the beginning of a 15 years <it>roman indiction</it>
+      was at the beginning of a 15 years <it>Roman indiction</it>
       cycle. The day number counted from this reference is
-      traditionally called <it>julian day</it>, but it has really
-      nothing to do with the julian calendar.
+      traditionally called <it>Julian day</it>, but it has really
+      nothing to do with the Julian calendar.
 
       Grace stores dates internally as reals numbers counted from a
       reference date. The default reference date is the one chosen by
@@ -2214,38 +2241,38 @@ C
       seconds are always optional):
       
       <enum>
-      <item>iso8601   : 1999-12-31 23:59:59.999
-      <item>european  : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999
-      <item>us        : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999
-      <item>Julian    : 123456.789
+      <item>iso8601  : 1999-12-31 23:59:59.999
+      <item>european : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999
+      <item>us       : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999
+      <item>Julian   : 123456.789
       </enum>
       
-      You can also provide an hint about the format ("ISO8601",
+      You can also provide a hint about the format ("ISO8601",
       "european", "us") using the -datehint command line flag or the
       ref name="Edit->Preferences" id="preferences"> popup of the GUI.
       The formats are tried in the following order: first the hint
       given by the user, then iso, european and us (there is no
       ambiguity between calendar formats and numerical formats and
       therefore no order is specified for them). The separators
-      between various fields can be any characters in the set : "
-      :/.-" (one or more spaces act as one separator, other characters
+      between various fields can be any characters in the set: "
+     :/.-" (one or more spaces act as one separator, other characters
       can not be repeated), so the string "1999-12 31:23/59" is
       allowed (but not recommended).  The '-' character is used both
       as a separator (it is traditionally used in iso8601 format) and
       as the unary minus (for dates in the far past or for numerical
       dates). By default years are left untouched, so 99 is a date far
-      away in the past. This behaviour can be changed with the <ref
+      away in the past. This behavior can be changed with the <ref
       name="Edit->preferences" id="preferences"> popup, or with the
       <tt>DATE WRAP on</tt> and <tt>DATE WRAP YEAR year</tt> commands. Suppose
       for example that the wrap year is chosen as 1950, if the year is
       between 0 and 99 and is written with two or less digits, it is
-      mapped to the present era as follows :
+      mapped to the present era as follows:
 
        range [00 ; 49] is mapped to [2000 ; 2049]
 
        range [50 ; 99] is mapped to [1950 ; 1999]
 
-      with a wrap year set to 1970, the mapping would have been :
+      with a wrap year set to 1970, the mapping would have been:
 
        range [00 ; 69] is mapped to [2000 ; 2069]
 
@@ -2253,25 +2280,25 @@ C
 
       this is reasonably Y2K compliant and is consistent with current
       use.  Specifying year 1 is still possible using more than two
-      digits as follows : "0001-03-04" is unambiguously March the 4th,
+      digits as follows: "0001-03-04" is unambiguously March the 4th,
       year 1. The inverse transform is applied for dates written by
       Grace, for example as tick labels. Using two digits only for
       years is not recommended, we introduce a <it>wrap year +
       100</it> bug here so this feature should be removed at some
       point in the future ...
       
-      Numerical (julian) dates are computed according to a
+      Numerical (Julian) dates are computed according to a
       customizable reference date.  The default value is given by the
       REFERENCE DATE command (you can set it in your configuration
       files). The default value is "-4713-01-01 12:00:00", it is a
       classical reference for astronomical events (note that the '-'
       is used here both as a unary minus and as a separator).
       
-      The date scanner can be used either for Denys's and gregorian
-      calendars. Inexistant dates are detected, they include year 0,
+      The date scanner can be used either for Denys's and Gregorian
+      calendars. Inexistent dates are detected, they include year 0,
       dates between 1582-10-05 and 1582-10-14, February 29th of non
       leap years, months below 1 or above 12, ...  the scanner does not
-      take into account leap seconds : you can think it works only in
+      take into account leap seconds: you can think it works only in
       International Atomic Time (IAT) and not in Unified Time
       Coordinate (UTC). If you find yourself in a situation were you
       need UTC, a very precise scale, and should take into account
@@ -2298,7 +2325,7 @@ C
              to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
              since they already have the version string in them.
  
-      <item> The above relates to the ascii projects only. The old binary
+      <item> The above relates to the ASCII projects only. The old binary
              projects (saved with xmgr-4.0.*) are not automatically converted
              anymore. An input filter must be defined to make the conversion work
              on-the-fly. Add the following line to ~/.gracerc or the system-wide
@@ -2321,7 +2348,7 @@ C
              symbol of the zero size with no outline to get the same effect.
  
       <item> Default page layout switched from free (allowing to resize canvas
-             with mouse) to fixed. For the old behaviour, put "PAGE LAYOUT FREE"
+             with mouse) to fixed. For the old behavior, put "PAGE LAYOUT FREE"
              in the Grace resource file or use the "-free" command line switch.
              The use of the "free" page layout is in general deprecated, though.
  
