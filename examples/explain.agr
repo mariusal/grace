@@ -83,7 +83,7 @@
 @    string font 4
 @    string just 0
 @    string char size 0.800000
-@    string def "Locator (see Options/View/Locator props...) - The G0: indicates which graph is current"
+@    string def "Locator (see Edit/Locator props...) - The G0: indicates which graph is current"
 @with string
 @    string on
 @    string loctype view
