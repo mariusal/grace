@@ -420,7 +420,7 @@ int initialize_gui(int *argc, char **argv)
     allResources[n_common + n_resol] = NULL;
     XtAppSetFallbackResources(app_con, allResources);
     
-    XtDisplayInitialize(app_con, disp, NULL, "XMgrace", NULL, 0, argc, argv);
+    XtDisplayInitialize(app_con, disp, "xmgrace", "XMgrace", NULL, 0, argc, argv);
 
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
