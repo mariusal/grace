@@ -494,7 +494,7 @@ case $fftw in
 esac
 
 dnl **** check for libz - needed for PDF and PNG drivers
-AC_CHECK_LIB(z, deflateInit, Z_LIB="-lz")
+AC_CHECK_LIB(z, deflate, Z_LIB="-lz")
 
 dnl **** check for IJG's libjpeg - also, for PDF driver
 AC_CHECK_LIB(jpeg, jpeg_start_compress, JPEG_LIB="-ljpeg";AC_DEFINE(HAVE_LIBJPEG))
