@@ -86,6 +86,9 @@ char *set_types(int it)
     case SET_XYDXDY:
 	s = "xydxdy";
 	break;
+    case SET_XYDXDXDYDY:
+	s = "xydxdxdydy";
+	break;
     case SET_XYHILO:
 	s = "xyhilo";
 	break;
@@ -136,6 +139,9 @@ int settype_cols(int type)
 	break;
     case SET_XYHILO:
 	ncols = 5;
+	break;
+    case SET_XYDXDXDYDY:
+	ncols = 6;
 	break;
     default:
         ncols = 0;
@@ -806,25 +812,6 @@ int get_point(int gno, int setno, int seti, WPoint *wp)
     return GRACE_EXIT_SUCCESS;
 }
 
-int getncols(int gno, int setno)
-{
-    int i;
-
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return 0;
-    }
-
-    for (i = 0; i < MAX_SET_COLS; i++) {
-        if (getcol(gno, setno, i) == NULL) {
-            return i;
-        }
-    }
-    
-    /* should never come here */
-    errmsg("Internal error in getncols()!");
-    return 0;
-}
-
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
 {
     int i, n;
@@ -1017,7 +1004,7 @@ void droppoints(int gno, int setno, int startno, int endno, int dist)
     }
 
     len = getsetlength(gno, setno);
-    ncols = getncols(gno, setno);
+    ncols = dataset_cols(gno, setno);
     for (j = 0; j < ncols; j++) {
 	x = getcol(gno, setno, j);
 	for (i = endno + 1; i < len; i++) {
@@ -1041,14 +1028,14 @@ int join_sets(int gno, int *sets, int nsets)
     }
     
     setno_final = sets[0];
-    ncols = getncols(gno, setno_final);
+    ncols = dataset_cols(gno, setno_final);
     for (i = 0; i < nsets; i++) {
         setno = sets[i];
         if (is_valid_setno(gno, setno) != TRUE) {
             errmsg("Invalid setno in the list");
             return GRACE_EXIT_FAILURE;
         }
-        if (getncols(gno, setno) != ncols) {
+        if (dataset_cols(gno, setno) != ncols) {
             errmsg("Can't join datasets with different number of cols");
             return GRACE_EXIT_FAILURE;
         }
@@ -1085,7 +1072,7 @@ void reverse_set(int gno, int setno)
 	return;
     }
     n = getsetlength(gno, setno);
-    ncols = getncols(gno, setno);
+    ncols = dataset_cols(gno, setno);
     for (k = 0; k < ncols; k++) {
 	x = getcol(gno, setno, k);
 	for (i = 0; i < n / 2; i++) {
@@ -1188,7 +1175,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 /*
  * straighten things out - done one vector at a time for storage.
  */
-    nc = getncols(gno, setno);
+    nc = dataset_cols(gno, setno);
 /* loop over the number of columns */
     for (j = 0; j < nc; j++) {
 /* get this vector and put into the temporary vector in the right order */
@@ -1263,7 +1250,7 @@ void del_point(int gno, int setno, int pt)
         return;
     }
     
-    ncols = getncols(gno, setno);
+    ncols = dataset_cols(gno, setno);
     len = getsetlength(gno, setno);
     if (pt >= len || pt < 0) {
 	return;
@@ -1328,7 +1315,7 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
         }
         len++;
         setlength(gno, setno, len);
-        ncols = getncols(gno, setno);
+        ncols = dataset_cols(gno, setno);
         for (col = 0; col < ncols; col++) {
             ex = getcol(gno, setno, col);
             if (ind < len - 1) {
@@ -1350,7 +1337,7 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
 void delete_byindex(int gno, int setno, int *ind)
 {
     int i, j, cnt = 0;
-    int ncols = getncols(gno, setno);
+    int ncols = dataset_cols(gno, setno);
 
     if (is_valid_setno(gno, setno) != TRUE) {
         return;
@@ -1461,7 +1448,7 @@ void do_splitsets(int gno, int setno, int lpart)
     }
 
     /* get number of columns in this set */
-    ncols = getncols(gno, setno);
+    ncols = dataset_cols(gno, setno);
 
     /* copy the contents to a temporary buffer */
     for (j = 0; j < ncols; j++) {
