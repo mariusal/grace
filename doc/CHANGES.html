@@ -12,48 +12,87 @@
 <H2>5.0.2</H2>
 
 <H3>New functionality</H3>
- !  [ES] graphs and sets are allocated dynamically; -maxgraph, -maxsets and
+ *  [ES] graphs and sets are allocated dynamically; -maxgraph, -maxsets and
          -graphsets removed
+ *  [ES] XY chart is back
+ *  [ES] XYZ set type is back
+ !  [ES] new chart set presentations: stacked line and scatter
+ !  [ES] new options for charts (different bar border/fill colors and
+         patterns etc)
+ !  [ES] inter-bar gap for bar charts is adjustable (rep. #198)
+ !  [ES] new set type: BarDY (bar charts with error bars)
+ *  [ES] precision can be used for XYZ sets (rep. #519)
  *  [ES] new set autocoloring is back
  *  [ES] added 16 new patterns
  *  [ES] added a few more line styles (rep. #305)
- *  [ES] XY chart is back
- !  [ES] new chart set presentations: stacked line and scatter
- !  [ES] new options for charts (...)
- !  [ES] bar charts with error bars
  !  [ES] legends can be displayed in reverse order (rep. #205)
+ *  [ES] legends are drawn by default
  *  [ES] enhanced backward compatibility with Xmgr
+ *  [ES] in free mode, auto-rescale all the plot objects (imitating Xmgr)
  !  [ES] color map stuff (rep. #512)
  !  [AM] autoscaling with range restrictions
- *  [ES] XYZ is back
- *  [ES] precision can be used for XYZ (rep. #519)
- *  [ES] warning on truncated printout
+ *  [LM] added internals for RT (real time) input monitoring 
+ !  [LM] grace_np library now uses anonymous instead of named pipes
  !  [ES] write format is used for all dataset types
  !  [ES] FP line widths (rep. #483)
- *  [ES] PS and PDF drivers optimized
- !  [ES] locale for numeric labels
- *  [ES] $GRACE_PRINT_CMD (rep. #522)
- *  [ES] in free mode, auto-rescale all the plot objects (imitating xmgr)
+ !  [ES] locale, if available and set, is used for numeric labels
  !  [ES] added an option to fill (or not to) the page background
- !  [ES] added color/grayscle and bbox:tight/page options to the EPS driver
- *  [ES] legends are drawn by default
+ *  [ES] Grace honours $GRACE_PRINT_CMD environment variable (rep. #522)
+ *  [ES] PS and PDF drivers optimized for speed and file size
+ !  [ES] added color/grayscale and bbox:tight/page options to the EPS driver
+ *  [ES] in case of crash, Grace tries to save the project anyway
+ *  [ES] warning issued on truncated printout (if display and hardcopy
+         device aspect ratio doesn't coinside, for example)
+
+<H3>Interface</H3>
+ !  [ES] menu shuffles
+ !  [ES] new graph selectors - with many operations available from the popup
+         menu (right mouse button)
+ !  [ES] new set selectors - with many operations available from the popup
+         menu (right mouse button). Set selectors in the Data/* popups are
+         of the old style yet
+ *  [ES] pattern selectors have pattern bitmaps displayed
+ *  [ES] line style selectors have dash bitmaps displayed
+ *  [ES] graph number for ops is automatically graph that has focus
+         (rep. #104)
+ !  [ES] (approximate) number of tick divisions for autoticking is set in 
+         "Axis properties" now instead of "Autoscale"
+ !  [ES] a simplistic (by now) fonttool added
+ *  [ES] removed all set pick operations
+ !  [ES] "Set appearance/Edit/*" now act on selected sets only
  *  [HS] it's possible to refer to the index of blockdata as column 0
          via commandline (rep. #464)
- !  [ES] inter-bar gap for bar charts (rep. #198)
- !  [LM] jumbo RTI patch
-
+ *  [ES] removed -xy, -xydy etc command line flags; use -(set)type instead
+ *  [ES] -source stdin removed
+ !  [ES] "-" and "stdin/stdout" can be used anywhere (rep. #486)
+ *  [ES] Block data window reworked
+ !  [ES] canvas events redone
+ *  [ES] immediate feedback for drawing object reposition/editing is
+         back (rep. #532)
+ !  [ES] Activate/Edit/Create/Reactivate Set menu confusion eliminated
+         (rep. #136)
+ *  [ES] print popup fixes
+ !  [ES] in the X11 driver, put dots every 0.1 viewport (visible only
+         if the page bg is not filled)
+ !  [ES] &lt;Ctrl+E&gt; from text inputs fires up font tool
+ *  [ES] xwindow title has "Grace: " prefix prepended and, if project is
+         modified, "(modified)" suffix
+ !  [ES] removed "Clear all" and added "New" instead
+ !  [ES] removed "Verify Pick sets operations" option, added "Don't 
+         ask questions" (same as -noask)
+ !  [LM] added -dpipe command line switch for monitoring an already open
+         file descriptor
+ *  [ES] removed -symcolorbug command line option
+ *  [ES] removed -dc/-nodc, -redraw/-noredraw, -GXxor/-GXinvert command
+         line options
+ *  [ES] max error count upon reading in reduced from 50 to 5
 
 <H3>Documentation/Info</H3>
- *  [EV] Tutorials
- *  [AM] -version additions
  *  [ES] old html docs removed; a draft version of User's Guide added
-
-
-<H3>Portability</H3>
- *  [ES] configure issued wrong messages
- *  [JH] VMS updates
- *  [AM] OS/2 updates
-
+ *  [EV] written Tutorials. It's a recommended reading not only for newbies,
+         especially taking into account the rudimentary state of the User's
+         Guide
+ *  [AM] -version additions
 
 <H3>Parser</H3>
  !  [ES] *ACTIVATE -> HIDDEN torf
@@ -62,53 +101,24 @@
  !  [ES] TRUE/FALSE and ON/OFF are interchangable
  !  [ES] NEW *
  !  [ES] MAP COLOR
-
-
-<H3>Interface</H3>
- *  [ES] pattern selectors have pattern bitmaps displayed
- *  [ES] line style selectors have dash bitmaps displayed
- !  [ES] (approximate) number of tick divisions for autoticking is set in 
-         "Axis properties" now instead of "Autoscale"
- !  [ES] new graph selectors
- *  [ES] graph number for ops is automatically graph that has focus
-         (rep. #104)
- !  [ES] new set selectors
- !  [ES] fonttool
- !  [ES] removed sets from the "Status" popup; what's left moved to "Graph ops"
- !  [ES] "Set appearance/Data/*" now act on selected sets only
- !  [ES] removed -xy, -xydy etc command line flags; use -(set)type instead
- !  [ES] -pipe and -source stdin removed
- !  [ES] "-" and "stdin/stdout" can be used anywhere (rep. #486)
- *  [ES] eblockwin
- !  [ES] removed all set pick operations
- !  [ES] canvas events redone
- !  [ES] menu shuffles
- !  [ES] Activate/Edit/Create/Reactivate Set menu confusion (rep. #136)
- !  [ES] print popup fixes
- !  [ES] in the X11 driver, put reper dots every 0.1 viewport (visible only
-         if the page bg is not filled)
- !  [ES] &lt;Ctrl+E&gt; from text inputs fires up font tool
- *  [ES] xwindow title has "Grace: " prefix prepended and, if project is
-         modified, "(modified)" suffix
- *  [ES] in case of crash, Grace tries to save the project anyway
- !  [ES] removed "Clear all" and added "New" instead
- !  [ES] removed "Verify Pick sets operations" option, added "Don't 
-         ask questions"
- !  [ES] removed -symcolorbug
- !  [ES] removed -dc/-nodc, -redraw/-noredraw, -GXxor/-GXinvert command
-         line options
- *  [ES] max error count upon reading in reduced from 50 to 5
-
+ !  [ES] PRINT TO CHRSTR
 
 <H3>Defaults</H3>
  !  [ES] toolbar X resources
- !  [ES] use IsoLatin1 if Default.enc is not found
- !  [ES] ~/.grace/gracerc
+ !  [ES] use IsoLatin1 encoding if Default.enc is not found
+ !  [ES] gracerc magic path
  !  [ES] gracerc re-read upon SIGHUP
  !  [ES] templates (rep. #520)
 
+<H3>Portability</H3>
+ *  [LM] grace_np library now compiles (and hopefully works correctly)
+         on VMS, OS/2 and Win32 (in addition to all Unices, of course)
+ *  [ES] added configuration for use of lcc as compiler
+ *  [JH] VMS updates
+ *  [AM] OS/2 updates
 
 <H3>Bug fixes</H3>
+ *  [ES] configure issued wrong messages
  *  [ES] drawing objects might not be drawn sometimes
  *  [ES] fixed patterns #7, #14 and #15
  *  [ES] fixed rounding errors in clipping routines (in particular, rep. #476
@@ -120,30 +130,28 @@
  *  [ES] npipe "buffer overflow" fixed
  *  [ES] npipe load bug fixed
  *  [LM] linear regression on a two-point set was performed wrongly
- *  [ES] SS fixes and clean-ups (rep. #203, #259, #409)
+ *  [ES] spreadsheet fixes and clean-ups (rep. #203, #259, #409)
  *  [ES] autoscale fixes (rep. #510)
- *  [LM] config fixes
+ *  [LM] configure fixes
  *  [LM] updated several explanation strings on example files with the new
          GUI layout
  *  [LM] the correct stack depth was displayed only after cycling
- !  [ES] regions and graph fixed points not drawn in hardcopy output
+ *  [ES] regions and graph fixed points not drawn in hardcopy output anymore
  *  [ES] if no set has a legend string defined, the empty legend box is not
-         drawn
+         drawn (even when legends are enabled)
  *  [ES] Disk/Pipe selector was broken (rep. #454)
  *  [ES] Set appearance/Data/Load comments didn't update GUI settings
          for the currently selected set (rep. #474)
  *  [ES] ignore non-printable characters in formulae (rep. #241)
- *  [ES] #470 (working dir not initialized)
+ *  [ES] working dir not initialized (rep. #470)
  *  [ES] `make tests' failed if ran before `make install' (rep. #491)
- *  [ES] #341, #410 (postscript of bar charts)
- *  [ES] #204, #427 (-eps, -nops2)
+ *  [ES] incorrect postscript output of bar charts fixed (rep. #341, #410) 
  *  [ES] fixed crash if applying axis settings to all graphs (rep. #503)
  *  [ES] warning popup on exit sometimes appeared even after no changes 
          have meen made (rep. #274)
  *  [ES] autoscale didn't work if specified from the command line together
          with some other arguments (rep. #385, #441)
- *  [ES] File/Write/Sets didn't work for multiple set selection (todo
-         rep. #394)
+ *  [ES] File/Write/Sets didn't work for multiple set selection (rep. #394)
  *  [ES] strange font size decrement (rep. #242)
  *  [ES] crashes on SGI when accents are used in the legends (rep. #268)
  *  [ES] Strings & Things : Default size is zero on HP (rep. #288)
@@ -151,14 +159,14 @@
          tick marks or labels to be displayed on any of the graphs except for
          graph 0 (rep. #339)
  *  [ES] Core dump in SetSelectedSet if optimized (rep. #366)
- *  [ES] immediate feedback for drawing objects (rep. #532)
-
+ *  [ES] misc other bug fixes
 
 <H3>Misc</H3>
-
- *  [ES] buffered npipe read
- !  [ES] removed coalesce
- !  [ES] no input date/time formats
+ *  [ES] memory consumption reduced (typically, 0.5 MB less than that
+         of 5.0.1 and about same as of Xmgr-4.1.2)
+ *  [ES] removed "Coalesce sets" (will be back in 5.0.3)
+ *  [ES] no input date/time formats (a smart input data filter is planned
+         for 5.0.3). Please use Julian dates for a time being
 
 
 <H2>5.0.1</H2>
