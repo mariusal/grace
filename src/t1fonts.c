@@ -43,6 +43,8 @@
 
 #include "protos.h"
 
+extern int AAGrayLevelsOK;
+
 static int nfonts = 0;
 static FontDB *FontDBtable = NULL;
 static char **DefEncoding = NULL;
@@ -474,7 +476,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
     	aacolors[0] = bg;
     	aacolors[T1_AALEVELS - 1] = fg;
 
-    	if ((fg != last_fg) || (bg != last_bg)) {
+    	if (!AAGrayLevelsOK || (fg != last_fg) || (bg != last_bg)) {
     	    /* Get RGB values for fore- and background */
     	    prgb = get_rgb(fg);
     	    if (prgb == NULL) {
@@ -503,6 +505,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
  
     	    last_fg = fg;
     	    last_bg = bg;
+    	    AAGrayLevelsOK = TRUE;
     	}
  
     	/* Set the colors for Anti-Aliasing */

@@ -48,6 +48,8 @@
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
                                    a separate module */
 
+int AAGrayLevelsOK = FALSE;     /* used to invalidate AA gray levels' cache */
+
 void (*devupdatecmap)();        /* update color map */
 
 void (*devdrawpixel) ();        /* device pixel drawing routine */
@@ -1041,6 +1043,9 @@ int store_color(int n, CMap_entry cmap)
         cmap_table[n].ctype = cmap.ctype;
         cmap_table[n].tstamp = 1;
                 
+        /* invalidate AA gray levels' cache */
+        AAGrayLevelsOK = FALSE;
+        
         /* inform current device of changes in the cmap database */
         if (devupdatecmap != NULL) {
             (*devupdatecmap)();
