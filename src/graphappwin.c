@@ -34,6 +34,7 @@
 
 #include <config.h>
 
+#include "globals.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "utils.h"
@@ -195,7 +196,8 @@ void create_graphapp_frame(int gno)
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         instantupdate_item =
             CreateMenuToggle(menupane, "Instantaneous update", 'u', NULL, NULL);
-
+        SetToggleButtonState(instantupdate_item, grace->gui->instant_update);
+        
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On graph appearance", 'g',
             graphapp_dialog, "doc/UsersGuide.html#graph-appearance");

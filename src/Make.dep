@@ -108,9 +108,9 @@ fileswin$(O) : fileswin.c globals.h grace.h defines.h storage.h graphs.h \
  noxprotos.h xprotos.h
 plotwin$(O) : plotwin.c globals.h grace.h defines.h storage.h draw.h \
  utils.h protos.h missing.h noxprotos.h graphs.h xprotos.h motifinc.h
-graphappwin$(O) : graphappwin.c graphs.h grace.h defines.h storage.h \
- graphutils.h utils.h draw.h protos.h missing.h noxprotos.h xprotos.h \
- motifinc.h
+graphappwin$(O) : graphappwin.c globals.h grace.h defines.h storage.h \
+ graphs.h graphutils.h utils.h draw.h protos.h missing.h noxprotos.h \
+ xprotos.h motifinc.h
 helpwin$(O) : helpwin.c utils.h files.h protos.h missing.h noxprotos.h \
  defines.h graphs.h grace.h storage.h xprotos.h motifinc.h
 hotwin$(O) : hotwin.c utils.h graphs.h grace.h defines.h storage.h \
@@ -136,10 +136,12 @@ setwin$(O) : setwin.c globals.h grace.h defines.h storage.h graphs.h \
  utils.h plotone.h draw.h ssdata.h parser.h motifinc.h protos.h \
  missing.h noxprotos.h xprotos.h
 objwin$(O) : objwin.c
-setappwin$(O) : setappwin.c graphs.h grace.h defines.h storage.h draw.h \
- utils.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
-tickwin$(O) : tickwin.c protos.h missing.h noxprotos.h defines.h graphs.h \
- grace.h storage.h xprotos.h utils.h graphutils.h motifinc.h
+setappwin$(O) : setappwin.c globals.h grace.h defines.h storage.h \
+ graphs.h draw.h utils.h motifinc.h protos.h missing.h noxprotos.h \
+ xprotos.h
+tickwin$(O) : tickwin.c globals.h grace.h defines.h storage.h protos.h \
+ missing.h noxprotos.h graphs.h xprotos.h utils.h graphutils.h \
+ motifinc.h
 worldwin$(O) : worldwin.c mbitmaps.h graphutils.h defines.h device.h \
  t1fonts.h utils.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
  grace.h storage.h xprotos.h

@@ -91,13 +91,27 @@ void create_plot_frame(void)
     set_wait_cursor();
     
     if (plot_frame == NULL) {
-        Widget panel, fr, rc;
+        Widget panel, fr, rc, menubar, menupane;
     
         plot_frame = CreateDialogForm(app_shell, "Plot appearance");
 
-        panel = CreateVContainer(plot_frame);
+        menubar = CreateMenuBar(plot_frame);
+        AddDialogFormChild(plot_frame, menubar);
+        ManageChild(menubar);
 
-        instantupdate_item = CreateToggleButton(panel, "Instant update");
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuCloseButton(menupane, plot_frame);
+
+        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
+        instantupdate_item = CreateMenuToggle(menupane, "Instantaneous update",
+                            'u', NULL, NULL);
+        SetToggleButtonState(instantupdate_item, grace->gui->instant_update);
+
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuHelpButton(menupane, "On plot appearance", 'p',
+            plot_frame, "doc/UsersGuide.html#plot-appearance");
+
+        panel = CreateVContainer(plot_frame);
 
 	fr = CreateFrame(panel, "Page background");
         rc = CreateHContainer(fr);

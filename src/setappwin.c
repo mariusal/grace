@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "globals.h"
 #include "graphs.h"
 #include "draw.h"
 #include "utils.h"
@@ -201,6 +202,7 @@ void define_symbols_popup(void *data)
         SetToggleButtonState(csync_item, TRUE);
         instantupdate_item = CreateMenuToggle(menupane, "Instantaneous update",
                             'u', NULL, NULL);
+        SetToggleButtonState(instantupdate_item, grace->gui->instant_update);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On set appearance", 's',

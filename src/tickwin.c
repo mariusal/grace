@@ -41,6 +41,7 @@
 #include <Xm/Xm.h>
 #include <Xm/ScrolledW.h>
 
+#include "globals.h"
 #include "protos.h"
 #include "utils.h"
 #include "graphs.h"
@@ -176,10 +177,26 @@ void create_axes_dialog(int axisno)
         int i;
         char buf[32];
         OptionItem opitems[MAXAXES];
-        Widget rc_head, rc, rc2, rc3, rc4, fr, sw, axes_main, axes_label,
-            axes_ticklabel, axes_tickmark,axes_special;
+        Widget rc_head, rc, rc2, rc3, fr, sw, axes_main, axes_label,
+            axes_ticklabel, axes_tickmark, axes_special, menubar, menupane;
 
         axes_dialog = CreateDialogForm(app_shell, "Axes");
+
+        menubar = CreateMenuBar(axes_dialog);
+        AddDialogFormChild(axes_dialog, menubar);
+        ManageChild(menubar);
+
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuCloseButton(menupane, axes_dialog);
+
+        menupane = CreateMenu(menubar, "Options", 'O', FALSE);
+        instantupdate_item = CreateMenuToggle(menupane, "Instantaneous update",
+                            'u', NULL, NULL);
+        SetToggleButtonState(instantupdate_item, grace->gui->instant_update);
+
+        menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+        CreateMenuHelpButton(menupane, "On axis properties", 'a',
+            axes_dialog, "doc/UsersGuide.html#axis-properties");
 
         rc_head = CreateVContainer(axes_dialog);
         AddDialogFormChild(axes_dialog, rc_head);
@@ -526,8 +543,7 @@ void create_axes_dialog(int axisno)
 
          
         rc = CreateVContainer(axes_dialog);
-        rc4 = CreateHContainer(rc);
-        axis_applyto = CreatePanelChoice(rc4,
+        axis_applyto = CreatePanelChoice(rc,
                                          "Apply to:",
                                          5,
                                          "Current axis",
@@ -536,7 +552,6 @@ void create_axes_dialog(int axisno)
                                          "All axes, all graphs",
                                          NULL,
                                          NULL);
-        instantupdate_item = CreateToggleButton(rc4, "instantly");
 
         CreateAACDialog(axes_dialog, rc, axes_aac_cb, NULL);
     }
