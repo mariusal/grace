@@ -445,14 +445,14 @@ void create_ss_frame(int gno, int setno)
         XmNvisibleRows, 10,
         XmNvisibleColumns, 2,
         XmNcolumnLabels, collabels,
-        XmNgridType, XmGRID_SHADOW_IN,
+        XmNgridType, XmGRID_CELL_SHADOW,
         XmNcellShadowType, XmSHADOW_ETCHED_OUT,
         XmNcellShadowThickness, 2,
         XmNaltRowCount, 0,
         NULL);
 
     update_cells(ep);
-    				     
+
     XtAddCallback(ep->mw, XmNselectCellCallback, selectCB, ep);	
     XtAddCallback(ep->mw, XmNdrawCellCallback, drawcellCB, ep);	
     XtAddCallback(ep->mw, XmNleaveCellCallback, leaveCB, ep);

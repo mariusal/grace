@@ -143,7 +143,7 @@ void create_fonttool(Widget cstext)
             XmNfill, True,
             XmNcolumnWidths, widths,
             XmNcolumnAlignments, column_alignments,
-	    XmNgridType, XmGRID_SHADOW_IN,
+	    XmNgridType, XmGRID_CELL_SHADOW,
 	    XmNcellShadowType, XmSHADOW_ETCHED_OUT,
 	    XmNcellShadowThickness, 2,
             XmNaltRowCount, 0,
