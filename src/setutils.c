@@ -1762,10 +1762,10 @@ int filter_set(Quark *pset, char *rarray)
     return RETURN_SUCCESS;
 }
 
-set *set_get_data(Quark *qset)
+set *set_get_data(Quark *q)
 {
-    if (qset) {
-        return qset->data;
+    if (q && q->fid == QFlavorSet) {
+        return q->data;
     } else {
         return NULL;
     }

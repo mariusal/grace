@@ -82,10 +82,10 @@ Quark *graph_get_current(const Quark *project)
     }
 }
 
-graph *graph_get_data(Quark *gr)
+graph *graph_get_data(Quark *q)
 {
-    if (gr) {
-        return (graph *) gr->data;
+    if (q && q->fid == QFlavorGraph) {
+        return (graph *) q->data;
     } else {
         return NULL;
     }
@@ -368,12 +368,15 @@ int select_graph(Quark *gr)
     if (definewindow(&g->w, &g->v, ctrans_type, xyfixed,
             g->xscale,  g->yscale,
             g->xinvert, g->yinvert) == RETURN_SUCCESS) {
-        Project *pr = (Project *) gr->parent->data;
+        Project *pr = project_get_data(gr->parent);
+        if (pr) {
+            set_parser_gno(gr);
+            pr->cg = gr;
 
-        set_parser_gno(gr);
-        pr->cg = gr;
-
-        return RETURN_SUCCESS;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     } else {
         return RETURN_FAILURE;
     }
