@@ -1665,19 +1665,19 @@ void do_splitsets(int gno, int setno, int lpart)
 /*
  * drop points from an active set
  */
-void do_drop_points(int setno, int startno, int endno)
+void do_drop_points(int gno, int setno, int startno, int endno)
 {
     int dist;
     int setlength;
     char buf[256];
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gno, setno)) {
 	sprintf(buf, "Set %d not active", setno);
 	errmsg(buf);
 	return;
     }
 
-    setlength = getsetlength(get_cg(), setno);
+    setlength = getsetlength(gno, setno);
     if (startno < 0) startno = setlength + 1 + startno;
     if (endno   < 0) endno   = setlength + 1 + endno;
 
@@ -1700,7 +1700,7 @@ void do_drop_points(int setno, int startno, int endno)
 	errmsg("# of points to drop = set length, use kill");
 	return;
     }
-    droppoints(get_cg(), setno, startno, endno, dist);
+    droppoints(gno, setno, startno, endno, dist);
 }
 
 

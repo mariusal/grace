@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -220,7 +220,7 @@ void do_showset(int gno, int setno);
 void do_changetype(int setno, int type);
 void do_copy(int j1, int gfrom, int j2, int gto);
 void do_move(int j1, int gfrom, int j2, int gto);
-void do_drop_points(int setno, int startno, int endno);
+void do_drop_points(int gno, int setno, int startno, int endno);
 void do_kill(int gno, int setno, int soft);
 void do_sort(int setno, int sorton, int stype);
 void do_cancel_pickop(void);

@@ -571,7 +571,7 @@ static void datasetop_aac_cb(void *data)
             xv_evalexpri(datasetopui.stop_item, &endno);
             for (i = 0; i < nsets; i++) {
                 setno = selset[i];
-		do_drop_points(setno, startno, endno);
+		do_drop_points(cg, setno, startno, endno);
             }
             break;
         }
