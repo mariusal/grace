@@ -38,7 +38,6 @@
 
 #include "utils.h"
 #include "files.h"
-#include "device.h"
 
 #include "protos.h"
 

@@ -40,7 +40,6 @@
 #include "cmath.h"
 #include "draw.h"
 #include "graphs.h"
-#include "device.h"
 #include "devlist.h"
 #include "patterns.h"
 #include "svgdrv.h"

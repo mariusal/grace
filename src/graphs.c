@@ -42,7 +42,6 @@
 #include "globals.h"
 #include "defines.h"
 #include "utils.h"
-#include "device.h"
 #include "draw.h"
 #include "graphs.h"
 #include "graphutils.h"

@@ -58,7 +58,6 @@
 #include "bitmaps.h"
 #include "utils.h"
 #include "files.h"
-#include "device.h"
 #include "x11drv.h"
 #include "graphs.h"
 #include "graphutils.h"

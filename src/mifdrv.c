@@ -39,7 +39,6 @@
 #include "utils.h"
 #include "cmath.h"
 #include "draw.h"
-#include "device.h"
 #include "devlist.h"
 #include "patterns.h"
 #include "mifdrv.h"

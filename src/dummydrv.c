@@ -34,7 +34,6 @@
  
 #include "defines.h"
 #include "draw.h"
-#include "device.h"
 #include "devlist.h"
 #include "dummydrv.h"
 

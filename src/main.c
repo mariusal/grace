@@ -50,7 +50,6 @@
 #include "graphutils.h"
 #include "plotone.h"
 
-#include "device.h"
 #include "devlist.h"
 #ifndef NONE_GUI
 #  include "x11drv.h"

@@ -38,7 +38,6 @@
 #include "utils.h"
 #include "draw.h"
 #include "patterns.h"
-#include "device.h"
 #include "devlist.h"
 #include "mfdrv.h"
 

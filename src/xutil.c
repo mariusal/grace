@@ -43,7 +43,6 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
-#include "device.h"
 
 #include "x11drv.h"
 

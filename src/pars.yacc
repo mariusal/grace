@@ -54,7 +54,6 @@
 #include "globals.h"
 #include "grace.h"
 #include "cephes/cephes.h"
-#include "device.h"
 #include "utils.h"
 #include "files.h"
 #include "graphs.h"

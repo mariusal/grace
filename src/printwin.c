@@ -36,7 +36,6 @@
 
 #include "cmath.h"
 #include "globals.h"
-#include "device.h"
 #include "utils.h"
 #include "graphutils.h"
 #include "plotone.h"

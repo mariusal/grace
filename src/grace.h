@@ -207,6 +207,12 @@ void runtime_free(RunTime *rt);
 Grace *grace_new(void);
 void grace_free(Grace *grace);
 
+int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale);
+int set_printer(Grace *grace, int device);
+int set_printer_by_name(Grace *grace, const char *dname);
+void set_ptofile(Grace *grace, int flag);
+int get_ptofile(const Grace *grace);
+
 int project_get_version_id(Project *pr);
 int project_set_version_id(Project *pr, int version_id);
 void project_reset_version(Project *pr);

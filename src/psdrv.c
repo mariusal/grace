@@ -41,7 +41,6 @@
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"
-#include "device.h"
 #include "devlist.h"
 #include "patterns.h"
 #include "psdrv.h"

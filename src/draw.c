@@ -40,7 +40,6 @@
 #include <string.h>
 
 #include "defines.h"
-#include "device.h"
 #include "graphs.h"
 #include "utils.h"
 #include "draw.h"

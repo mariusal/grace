@@ -46,7 +46,6 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "draw.h"
-#include "device.h"
 #include "objutils.h"
 #include "plotone.h"
 #include "protos.h"

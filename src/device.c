@@ -35,7 +35,7 @@
 #include "defines.h"
 #include "graphutils.h"
 #include "utils.h"
-#include "device.h"
+#include "draw.h"
 
 int is_valid_page_geometry(const Page_geometry *pg)
 {

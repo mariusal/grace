@@ -40,7 +40,6 @@
 #include "globals.h"
 #include "utils.h"
 #include "draw.h"
-#include "device.h"
 #include "graphs.h"
 #include "objutils.h"
 #include "graphutils.h"
