@@ -3048,6 +3048,82 @@ Widget CreateFrame(Widget parent, char *s)
     return (fr);   
 }
 
+
+typedef struct {
+    int ncols;
+    int nrows;
+} GridData;
+
+Widget CreateGrid(Widget parent, int ncols, int nrows)
+{
+    Widget w;
+    int nfractions;
+    GridData *gd;
+    
+    if (ncols <= 0 || nrows <= 0) {
+        errmsg("Wrong call to CreateGrid()");
+        ncols = 1;
+        nrows = 1;
+    }
+    
+    nfractions = 0;
+    do {
+        nfractions++;
+    } while (nfractions % ncols || nfractions % nrows);
+    
+    gd = xmalloc(sizeof(GridData));
+    gd->ncols = ncols;
+    gd->nrows = nrows;
+    
+    w = XmCreateForm(parent, "grid_form", NULL, 0);
+    XtVaSetValues(w,
+        XmNfractionBase, nfractions,
+        XmNuserData, gd,
+        NULL);
+
+    XtManageChild(w);
+    return w;
+}
+
+void PlaceGridChild(Widget grid, Widget w, int col, int row)
+{
+    int nfractions, w1, h1;
+    GridData *gd;
+    
+    XtVaGetValues(grid,
+        XmNfractionBase, &nfractions,
+        XmNuserData, &gd,
+        NULL);
+    
+    if (gd == NULL) {
+        errmsg("PlaceGridChild() called with a non-grid widget");
+        return;
+    }
+    if (col < 0 || col >= gd->ncols) {
+        errmsg("PlaceGridChild() called with wrong `col' argument");
+        return;
+    }
+    if (row < 0 || row >= gd->nrows) {
+        errmsg("PlaceGridChild() called with wrong `row' argument");
+        return;
+    }
+    
+    w1 = nfractions/gd->ncols;
+    h1 = nfractions/gd->nrows;
+    
+    XtVaSetValues(w,
+        XmNleftAttachment  , XmATTACH_POSITION,
+        XmNleftPosition    , col*w1           ,
+        XmNrightAttachment , XmATTACH_POSITION,
+        XmNrightPosition   , (col + 1)*w1     ,
+        XmNtopAttachment   , XmATTACH_POSITION,
+        XmNtopPosition     , row*h1           ,
+        XmNbottomAttachment, XmATTACH_POSITION,
+        XmNbottomPosition  , (row + 1)*h1     ,
+        NULL);
+}
+
+
 Widget CreateTab(Widget parent)
 {
     Widget tab;
