@@ -48,8 +48,9 @@
 #include "utils.h"
 #include "files.h"
 #include "plotone.h"
-#include "protos.h"
+#include "parser.h"
 #include "motifinc.h"
+#include "protos.h"
 
 /* nonlprefs.load possible values */
 #define LOAD_VALUES         0

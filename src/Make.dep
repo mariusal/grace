@@ -1,21 +1,22 @@
 # Generated automatically by `make depend'
 main$(O) : main.c globals.h defines.h graphs.h draw.h utils.h files.h \
  ssdata.h graphutils.h plotone.h device.h t1fonts.h devlist.h x11drv.h \
- protos.h missing.h noxprotos.h xprotos.h
+ parser.h protos.h missing.h noxprotos.h xprotos.h
 plotone$(O) : plotone.c globals.h defines.h graphs.h draw.h utils.h \
  files.h t1fonts.h device.h plotone.h protos.h missing.h noxprotos.h \
  xprotos.h
 files$(O) : files.c globals.h defines.h graphs.h draw.h utils.h files.h \
- ssdata.h graphutils.h protos.h missing.h noxprotos.h xprotos.h
+ ssdata.h graphutils.h parser.h protos.h missing.h noxprotos.h \
+ xprotos.h
 ssdata$(O) : ssdata.c defines.h globals.h graphs.h draw.h utils.h \
- graphutils.h files.h ssdata.h protos.h missing.h noxprotos.h \
+ graphutils.h files.h ssdata.h parser.h protos.h missing.h noxprotos.h \
  xprotos.h
 utils$(O) : utils.c buildinfo.h globals.h defines.h graphs.h draw.h \
  utils.h files.h protos.h missing.h noxprotos.h xprotos.h
 drawticks$(O) : drawticks.c globals.h defines.h graphs.h draw.h utils.h \
  graphutils.h t1fonts.h protos.h missing.h noxprotos.h xprotos.h
 nonlfit$(O) : nonlfit.c globals.h defines.h graphs.h draw.h utils.h \
- protos.h missing.h noxprotos.h xprotos.h f2c.h
+ parser.h protos.h missing.h noxprotos.h xprotos.h f2c.h
 lmdif$(O) : lmdif.c f2c.h
 as274c$(O) : as274c.c as274c.h utils.h protos.h missing.h noxprotos.h \
  defines.h graphs.h xprotos.h
@@ -24,7 +25,8 @@ fit$(O) : fit.c defines.h utils.h protos.h missing.h noxprotos.h graphs.h \
 fourier$(O) : fourier.c defines.h utils.h protos.h missing.h noxprotos.h \
  graphs.h xprotos.h
 graphs$(O) : graphs.c defines.h utils.h device.h t1fonts.h draw.h \
- graphs.h graphutils.h protos.h missing.h noxprotos.h xprotos.h
+ graphs.h graphutils.h parser.h protos.h missing.h noxprotos.h \
+ xprotos.h
 graphutils$(O) : graphutils.c globals.h defines.h graphs.h draw.h utils.h \
  device.h t1fonts.h graphutils.h protos.h missing.h noxprotos.h \
  xprotos.h
@@ -35,17 +37,17 @@ regionutils$(O) : regionutils.c globals.h defines.h graphs.h draw.h \
 objutils$(O) : objutils.c globals.h defines.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h
 computils$(O) : computils.c globals.h defines.h graphs.h draw.h utils.h \
- protos.h missing.h noxprotos.h xprotos.h
+ parser.h protos.h missing.h noxprotos.h xprotos.h
 defaults$(O) : defaults.c defines.h globals.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h
 params$(O) : params.c globals.h defines.h graphs.h draw.h utils.h files.h \
- graphutils.h device.h t1fonts.h protos.h missing.h noxprotos.h \
- xprotos.h
+ graphutils.h device.h t1fonts.h parser.h protos.h missing.h \
+ noxprotos.h xprotos.h
 compute$(O) : compute.c globals.h defines.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h
 draw$(O) : draw.c defines.h device.h t1fonts.h graphs.h utils.h draw.h
 dlmodule$(O) : dlmodule.c dlmodule.h defines.h globals.h graphs.h draw.h \
- utils.h protos.h missing.h noxprotos.h xprotos.h
+ utils.h parser.h
 missing$(O) : missing.c defines.h missing.h
 alloca$(O) : alloca.c
 iofilters$(O) : iofilters.c defines.h utils.h files.h protos.h missing.h \
@@ -75,7 +77,7 @@ dummydrv$(O) : dummydrv.c defines.h draw.h device.h t1fonts.h devlist.h \
 Tab$(O) : Tab.c TabP.h Tab.h
 motifutils$(O) : motifutils.c Tab.h motifinc.h defines.h globals.h \
  graphs.h draw.h patterns.h t1fonts.h plotone.h utils.h events.h \
- protos.h missing.h noxprotos.h xprotos.h
+ parser.h protos.h missing.h noxprotos.h xprotos.h
 compwin$(O) : compwin.c globals.h defines.h graphs.h draw.h plotone.h \
  utils.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 comwin$(O) : comwin.c globals.h defines.h graphs.h draw.h utils.h files.h \
@@ -101,7 +103,7 @@ graphappwin$(O) : graphappwin.c Tab.h graphs.h defines.h graphutils.h \
 helpwin$(O) : helpwin.c globals.h defines.h graphs.h draw.h utils.h \
  protos.h missing.h noxprotos.h xprotos.h motifinc.h
 hotwin$(O) : hotwin.c globals.h defines.h graphs.h draw.h plotone.h \
- protos.h missing.h noxprotos.h xprotos.h motifinc.h
+ parser.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 locatewin$(O) : locatewin.c globals.h defines.h graphs.h draw.h \
  graphutils.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
 miscwin$(O) : miscwin.c globals.h defines.h graphs.h draw.h utils.h \
@@ -109,7 +111,8 @@ miscwin$(O) : miscwin.c globals.h defines.h graphs.h draw.h utils.h \
 monwin$(O) : monwin.c globals.h defines.h graphs.h draw.h utils.h files.h \
  motifinc.h protos.h missing.h noxprotos.h xprotos.h
 nonlwin$(O) : nonlwin.c globals.h defines.h graphs.h draw.h utils.h \
- files.h plotone.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
+ files.h plotone.h parser.h motifinc.h protos.h missing.h noxprotos.h \
+ xprotos.h
 printwin$(O) : printwin.c globals.h defines.h graphs.h draw.h device.h \
  t1fonts.h utils.h plotone.h motifinc.h protos.h missing.h noxprotos.h \
  xprotos.h
@@ -118,7 +121,8 @@ ptswin$(O) : ptswin.c globals.h defines.h graphs.h draw.h plotone.h \
 regionwin$(O) : regionwin.c globals.h defines.h graphs.h draw.h plotone.h \
  utils.h events.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
 setwin$(O) : setwin.c globals.h defines.h graphs.h draw.h utils.h \
- plotone.h motifinc.h protos.h missing.h noxprotos.h xprotos.h
+ plotone.h ssdata.h parser.h motifinc.h protos.h missing.h noxprotos.h \
+ xprotos.h
 strwin$(O) : strwin.c globals.h defines.h graphs.h draw.h utils.h \
  plotone.h events.h protos.h missing.h noxprotos.h xprotos.h \
  motifinc.h
@@ -143,5 +147,5 @@ xmgrace$(O) : xmgrace.c globals.h defines.h graphs.h draw.h bitmaps.h \
  events.h protos.h missing.h noxprotos.h xprotos.h motifinc.h
 pars$(O) : pars.c defines.h globals.h graphs.h draw.h ../cephes/cephes.h \
  device.h t1fonts.h utils.h files.h graphutils.h plotone.h dlmodule.h \
- ssdata.h protos.h missing.h noxprotos.h xprotos.h
+ ssdata.h protos.h missing.h noxprotos.h xprotos.h parser.h
 buildinfo$(O) : buildinfo.c

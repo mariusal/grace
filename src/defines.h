@@ -383,15 +383,6 @@ typedef enum {
 
 
 /*
- * symbol table entry type
- */
-typedef struct {
-    char *s;
-    int type;
-    void *data;
-} symtab_entry;
-
-/*
  * defaults
  */
 typedef struct {

@@ -54,6 +54,7 @@
 #ifndef NONE_GUI
 #  include "x11drv.h"
 #endif
+#include "parser.h"
 #include "protos.h"
 
 

@@ -39,6 +39,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
+#include "parser.h"
 #include "protos.h"
 
 /* Needed only for `integer' and `doublereal' definitions */

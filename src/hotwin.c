@@ -47,8 +47,9 @@
 #include "globals.h"
 #include "graphs.h"
 #include "plotone.h"
-#include "protos.h"
+#include "parser.h"
 #include "motifinc.h"
+#include "protos.h"
 
 static Widget hotlink_frame = (Widget) NULL;
 static SetChoiceItem hotlink_set_item;

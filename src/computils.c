@@ -43,6 +43,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "graphs.h"
+#include "parser.h"
 #include "protos.h"
 
 static void forwarddiff(double *x, double *y, double *resx, double *resy, int n);

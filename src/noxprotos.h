@@ -179,18 +179,6 @@ void do_clear_boxes(void);
 void do_clear_text(void);
 void do_clear_ellipses(void);
 
-int   scanner(char *s);
-int s_scanner(char *s, double *res);
-int v_scanner(char *s, int *reslen, double **res);
-int get_parser_gno(void);
-int set_parser_gno(int gno);
-int get_parser_setno(void);
-int set_parser_setno(int gno, int setno);
-void init_symtab(void);
-int addto_symtab(symtab_entry newkey);
-
-double *realloc_scratch(int ind, int len);
-
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);

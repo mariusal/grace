@@ -46,6 +46,7 @@
 #include "graphs.h"
 #include "graphutils.h"
 #include "device.h"
+#include "parser.h"
 #include "protos.h"
 
 #define MAXERR 5

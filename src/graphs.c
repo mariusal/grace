@@ -44,6 +44,7 @@
 #include "draw.h"
 #include "graphs.h"
 #include "graphutils.h"
+#include "parser.h"
 
 #include "protos.h"
 

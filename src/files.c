@@ -51,17 +51,19 @@
 #  include <fcntl.h>
 #endif
 
+#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+#  include <netcdf.h>
+#endif
+
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
 #include "ssdata.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "protos.h"
+#include "parser.h"
 
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-#  include <netcdf.h>
-#endif
+#include "protos.h"
 
 #define MAXERR 5
 

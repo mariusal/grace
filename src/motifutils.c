@@ -78,6 +78,7 @@
 #include "plotone.h"
 #include "utils.h"
 #include "events.h"
+#include "parser.h"
 #include "protos.h"
 
 /*
@@ -351,7 +352,7 @@ static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
     cbdata->cbproc(value, cbdata->anydata);
 }
 
-void AddOptionChoiceCB(OptionStructure *opt, TB_CBProc cbproc, void *anydata)
+void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
 {
     OC_CBdata *cbdata;
     int i;

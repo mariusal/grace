@@ -52,7 +52,7 @@
 #include "defines.h"
 #include "globals.h"
 #include "utils.h"
-#include "protos.h"
+#include "parser.h"
 
 int dl_load_fast = TRUE; /* controls type of DL module load */
 /* TODO: make it tunable through a command */
@@ -65,6 +65,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     void *handle;
     char *error;
     symtab_entry newkey;
+    int retval;
     
     if ((dl_type < 0) || (dl_key == NULL) || (dl_function == NULL)) {
         errmsg("Improper call to load_module()");
@@ -136,11 +137,11 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
 #endif /* end shl_load interface */
 
     newkey.type = dl_type;
-    newkey.s = malloc(strlen(dl_key) + 1);
-    strcpy(newkey.s, dl_key);
-    lowtoupper(newkey.s);
+    newkey.s = copy_string(NULL, dl_key);
     
-    return addto_symtab(newkey);
+    retval = addto_symtab(newkey);
+    free(newkey.s);
+    return retval;
 
 #else /* no support for DL */
     errmsg("No support for DL modules on your OS");
