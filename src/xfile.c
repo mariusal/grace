@@ -52,9 +52,9 @@ XStack *xstack_new(void)
     XStack *xs = xmalloc(sizeof(XStack));
     
     if (xs) {
-        xs->size  = 0;
-        xs->depth = 0;
-        xs->stack = NULL;
+        xs->size    = 0;
+        xs->depth   = 0;
+        xs->entries = NULL;
     }
     
     return xs;
@@ -65,26 +65,27 @@ void xstack_free(XStack *xs)
     if (xs) {
         while (xs->depth) {
             xs->depth--;
-            xfree(xs->stack[xs->depth]);
+            xfree(xs->entries[xs->depth].name);
         }
         
         xfree(xs);
     }
 }
 
-int xstack_increment(XStack *xs, const char *name)
+int xstack_increment(XStack *xs, const char *name, void *data)
 {
     if (xs->size <= xs->depth) {
         int new_size = xs->size + XSTACK_CHUNK_SIZE;
-        char **p = xrealloc(xs->stack, new_size*SIZEOF_VOID_P);
+        XStackEntry *p = xrealloc(xs->entries, new_size*sizeof(XStackEntry));
         if (!p) {
             return RETURN_FAILURE;
         } else {
-            xs->stack = p;
+            xs->entries = p;
             xs->size = new_size;
         }
     }
-    xs->stack[xs->depth] = copy_string(NULL, name);
+    xs->entries[xs->depth].data = data;
+    xs->entries[xs->depth].name = copy_string(NULL, name);
     xs->depth++;
     
     return RETURN_SUCCESS;
@@ -94,20 +95,21 @@ int xstack_decrement(XStack *xs, const char *name)
 {
     if (xs->depth < 1) {
         return RETURN_FAILURE;
-    } else if (!compare_strings(name, xs->stack[xs->depth - 1])) {
+    } else if (!compare_strings(name, xs->entries[xs->depth - 1].name)) {
         return RETURN_FAILURE;
     } else {
-        xfree(xs->stack[xs->depth - 1]);
+        xfree(xs->entries[xs->depth - 1].name);
         xs->depth--;
         
         return RETURN_SUCCESS;
     }
 }
 
-int xstack_get_first(XStack *xs, char **name)
+int xstack_get_first(XStack *xs, char **name, void **data)
 {
     if (xs && xs->depth > 0) {
-        *name = xs->stack[0];
+        *data = xs->entries[0].data;
+        *name = xs->entries[0].name;
         
         return RETURN_SUCCESS;
     } else {
@@ -115,6 +117,22 @@ int xstack_get_first(XStack *xs, char **name)
     }
 }
 
+int xstack_get_last(XStack *xs, char **name, void **data)
+{
+    if (xs && xs->depth > 0) {
+        *data = xs->entries[xs->depth - 1].data;
+        *name = xs->entries[xs->depth - 1].name;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int xstack_is_empty(XStack *xs)
+{
+    return !(xs->depth);
+}
 
 Attributes *attributes_new(void)
 {
@@ -360,7 +378,7 @@ int xfile_begin_element(XFile *xf, char *name, Attributes *attrs)
     xfile_output(xf, ">\n");
     xfile_indent_increment(xf);
     
-    if (xstack_increment(xf->tree, name) != RETURN_SUCCESS) {
+    if (xstack_increment(xf->tree, name, NULL) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
@@ -459,8 +477,9 @@ int xfile_begin(XFile *xf, char *encoding, int standalone,
 int xfile_end(XFile *xf)
 {
     char *root;
+    void *dummy;
     
-    if (xstack_get_first(xf->tree, &root) == RETURN_SUCCESS) {
+    if (xstack_get_first(xf->tree, &root, &dummy) == RETURN_SUCCESS) {
         return xfile_end_element(xf, root);
     } else {
         return RETURN_FAILURE;

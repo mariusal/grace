@@ -32,10 +32,15 @@
 #ifndef __XFILE_H_
 #define __XFILE_H_
 
+typedef struct _XStackEntry {
+    char *name;
+    void *data;
+} XStackEntry;
+
 typedef struct _XStack {
     int size;
     int depth;
-    char **stack;
+    XStackEntry *entries;
 } XStack;
 
 typedef struct _ElementAttribute {
@@ -60,9 +65,11 @@ typedef struct _XFile {
 
 XStack *xstack_new(void);
 void xstack_free(XStack *xs);
-int xstack_increment(XStack *xs, const char *name);
+int xstack_increment(XStack *xs, const char *name, void *data);
 int xstack_decrement(XStack *xs, const char *name);
-int xstack_get_first(XStack *xs, char **name);
+int xstack_get_first(XStack *xs, char **name, void **data);
+int xstack_get_last(XStack *xs, char **name, void **data);
+int xstack_is_empty(XStack *xs);
 
 Attributes *attributes_new(void);
 void attributes_free(Attributes *attrs);
