@@ -50,8 +50,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-#define cg get_cg()
-
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void changetypeCB(int n, int *values, void *data);
 static int datasetprop_aac_cb(void *data);
@@ -292,10 +290,11 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 static int datasetprop_aac_cb(void *data)
 {
     int error = FALSE;
-    int *selset, nsets, i, len, setno, type, hotlink, hotsrc;
+    int *selset, nsets, i, len, gno, setno, type, hotlink, hotsrc;
     char *s, *hotfile;
     
     nsets = GetListChoices(tui.sel, &selset);
+    gno = get_cg();
     
     if (nsets < 1) {
         errmsg("No set selected");
@@ -316,17 +315,17 @@ static int datasetprop_aac_cb(void *data)
         if (error == FALSE) {
             for (i = 0; i < nsets; i++) {
                 setno = selset[i];
-                set_dataset_type(cg, setno, type);
-                setlength(cg, setno, len);
-                setcomment(cg, setno, s);
-                set_hotlink(cg, setno, hotlink, hotfile, hotsrc);
+                set_dataset_type(gno, setno, type);
+                setlength(gno, setno, len);
+                setcomment(gno, setno, s);
+                set_hotlink(gno, setno, hotlink, hotfile, hotsrc);
             }
         }
  
         xfree(selset);
 
         if (error == FALSE) {
-            update_set_lists(cg);
+            update_set_lists(gno);
             xdrawgraph();
             return RETURN_SUCCESS;
         } else {
@@ -504,13 +503,15 @@ static void datasetoptypeCB(int value, void *data)
 
 static int datasetop_aac_cb(void *data)
 {
-    int *selset, nsets, i, setno;
+    int *selset, nsets, i, gno, setno;
     int sorton, stype;
     int lpart;
     int startno, endno;
     static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
     dataSetOpType optype;
        
+    gno = get_cg();
+    
     nsets = GetListChoices(datasetopui.sel, &selset);
     if (nsets < 1) {
         errmsg("No set selected");
@@ -531,17 +532,17 @@ static int datasetop_aac_cb(void *data)
         case DATASETOP_REVERSE:
             for (i = 0; i < nsets; i++) {
                 setno = selset[i];
-	        reverse_set(cg, setno);
+	        reverse_set(gno, setno);
             }
             break;
         case DATASETOP_JOIN:
-            join_sets(cg, selset, nsets);
+            join_sets(gno, selset, nsets);
             break;
         case DATASETOP_SPLIT:
             xv_evalexpri(datasetopui.length_item, &lpart);
             for (i = 0; i < nsets; i++) {
                 setno = selset[i];
-                do_splitsets(cg, setno, lpart);
+                do_splitsets(gno, setno, lpart);
             }
             break;
         case DATASETOP_DROP:
@@ -549,14 +550,14 @@ static int datasetop_aac_cb(void *data)
             xv_evalexpri(datasetopui.stop_item, &endno);
             for (i = 0; i < nsets; i++) {
                 setno = selset[i];
-		do_drop_points(cg, setno, startno, endno);
+		do_drop_points(gno, setno, startno, endno);
             }
             break;
         }
         
         xfree(selset);
 
-        update_set_lists(cg);
+        update_set_lists(gno);
         xdrawgraph();
         
         return RETURN_SUCCESS;
