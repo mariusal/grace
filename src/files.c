@@ -91,7 +91,7 @@ char *close_input;		/* name of real-time input to close */
 static int readerror = 0;	/* number of errors */
 static int readline = 0;	/* line number in file */
 
-int loops_allowed = 0;		/* periodically reset to stop long inputs */
+struct timeval read_begin = {0l, 0l};	/* used to check too long inputs */
 
 static Input_buffer dummy_ib = {-1, 0, 0, 0, 0, NULL, 0, 0, NULL, 0l};
 
@@ -99,6 +99,7 @@ int nb_rt = 0;		        /* number of real time file descriptors */
 Input_buffer *ib_tbl = 0;	/* table for each open input */
 int ib_tblsize = 0;		/* number of elements in ib_tbl */
 
+static int time_spent();
 static int expand_ib_tbl(void);
 static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
 static int reopen_real_time_input(Input_buffer *ib);
@@ -109,6 +110,21 @@ static int read_long_line(FILE * fp);
 static int readxyany(int gno, char *fn, FILE * fp, int type);
 static int readxystring(int gno, char *fn, FILE * fp);
 static int readnxy(int gno, char *fn, FILE * fp);
+
+/*
+ * part of the time sliced already spent in milliseconds
+ */
+int time_spent()
+{
+    struct timeval now;
+
+    gettimeofday(&now, NULL);
+
+    return 1000 * (now.tv_sec - read_begin.tv_sec)
+        + (now.tv_usec - read_begin.tv_usec) / 1000;
+
+}
+
 
 /*
  * expand the table of monitored real time inputs
@@ -464,6 +480,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 
     Input_buffer *ib;
     fd_set rfds;
+    int remaining;
     struct timeval timeout;
     int highest, first_time, retsel;
 
@@ -471,12 +488,12 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
     set_wait_cursor();
 #endif
 
-    /* we don't want to get stuck here, a timer will disable
-       the loops later to remind us we should return */
-    loops_allowed = 1;
+    /* we don't want to get stuck here, we memorize the start date
+       and will check we do not exceed our allowed time slice */
+    gettimeofday(&read_begin, NULL);
     first_time    = 1;
     retsel        = 1;
-    while ((loops_allowed || first_time) && retsel > 0) {
+    while (((time_spent() < timer_delay) || first_time) && retsel > 0) {
 
         /* register all the monitored descriptors */
         highest = -1;
@@ -500,16 +517,20 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 
         if (no_wait) {
             /* just check for available data without waiting */
-            timeout.tv_sec = 0;
-            timeout.tv_usec = 0;
-            retsel = select(highest + 1, &rfds, NULL, NULL, &timeout);
+            remaining = 0;
         } else {
-            /* wait until data or signal arrive */
-            retsel = select(highest + 1, &rfds, NULL, NULL, NULL);
+            /* wait until data or end of time slice arrive */
+            remaining = timer_delay - time_spent();
+            if (remaining < 0) {
+                remaining = 0;
+            }
         }
+        timeout.tv_sec = remaining / 1000;
+        timeout.tv_usec = 1000l * (remaining % 1000);
+        retsel = select(highest + 1, &rfds, NULL, NULL, &timeout);
 
         for (ib = tbl;
-             (loops_allowed || first_time) && ib < tbl + tblsize;
+             ((time_spent() < timer_delay) || first_time) && ib < tbl + tblsize;
              ib++) {
             if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
                 /* there is pending input */
