@@ -492,9 +492,9 @@ void FreeCompositeString(CompositeString *cs)
 
 CompositeString *String2Composite(char *string)
 {
-    static CompositeString *csbuf = NULL;
+    CompositeString *csbuf = NULL;
 
-    char ss[MAX_STRING_LENGTH], buf[MAX_STRING_LENGTH];
+    char *ss, *buf;
     int slen;
     int nss;
     int i, isub, j;
@@ -522,15 +522,18 @@ CompositeString *String2Composite(char *string)
     
     slen = strlen(string);
     
-    if ((slen == 0) || slen > (MAX_STRING_LENGTH - 1)) {
+    if (slen == 0) {
+        return NULL;
+    }
+    
+    ss = malloc(slen + 1);
+    buf = malloc(slen + 1);
+    if (ss == NULL || buf == NULL) {
+        xfree(ss);
+        xfree(buf);
         return NULL;
     }
      
-    if (csbuf != NULL) {
-        FreeCompositeString(csbuf);
-	csbuf = NULL;
-    }
-    
     nss = 0;
     
     isub = 0;
@@ -739,6 +742,8 @@ CompositeString *String2Composite(char *string)
     csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
     csbuf[nss].s = NULL;
     
+    free(buf);
+    free(ss);
     return (csbuf);
 }
 
@@ -850,6 +855,9 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     }
     
     cstring = String2Composite(theString);
+    if (cstring == NULL) {
+        return;
+    }
     
     first = FALSE;
     iglyph = 0;
@@ -900,11 +908,13 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 	iglyph++;
     }
     if (CSglyph == NULL) {
+        FreeCompositeString(cstring);
         return;
     }
     if (CSglyph->bits == NULL) {
         /* a string containing only spaces or unrasterizable chars */
         T1_FreeGlyph(CSglyph);
+        FreeCompositeString(cstring);
         return;
     }
     
@@ -934,6 +944,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         break;
     default:
         errmsg("Wrong justification type of string");
+        FreeCompositeString(cstring);
         return;
     }
 
@@ -950,6 +961,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         break;
     default:
         errmsg("Wrong justification type of string");
+        FreeCompositeString(cstring);
         return;
     }
  
@@ -969,6 +981,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         break;
     default:
         errmsg("Wrong justification type of string");
+        FreeCompositeString(cstring);
         return;
     }
  
@@ -1007,6 +1020,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     }
 
     T1_FreeGlyph(CSglyph);
+    FreeCompositeString(cstring);
     
     update_bboxes(vptmp);
     vptmp.x += (double) pwidth/page_dpv;
