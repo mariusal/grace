@@ -33,7 +33,8 @@
 #include "grace/baseP.h"
 #include "grace/canvasP.h"
 
-Device_entry *device_new(const char *name, int type, int twopass, void *data)
+Device_entry *device_new(const char *name, int type, int twopass,
+    void *data, DevFreeDataProc freedata)
 {
     Device_entry *d;
     
@@ -43,10 +44,11 @@ Device_entry *device_new(const char *name, int type, int twopass, void *data)
         d->pg.dpi      = 72.0;
         d->color_trans = COLOR_TRANS_NONE;
         
-        d->type    = type;
-        d->twopass = twopass;
-        d->name    = copy_string(NULL, name);
-        d->data    = data;
+        d->type     = type;
+        d->twopass  = twopass;
+        d->name     = copy_string(NULL, name);
+        d->data     = data;
+        d->freedata = freedata;
     }
     
     return d;
@@ -55,9 +57,11 @@ Device_entry *device_new(const char *name, int type, int twopass, void *data)
 void device_free(Device_entry *d)
 {
     if (d) {
-        /* FIXME: d->data!!! */
         xfree(d->name);
         xfree(d->fext);
+        if (d->freedata) {
+            d->freedata(d->data);
+        }
         xfree(d);
     }
 }

@@ -55,6 +55,17 @@ static void xrst_setup_wrapper(const Canvas *canvas, void *data)
     ddata->setup(canvas, ddata->data);
 }
 
+static void xrst_data_free(void *data)
+{
+    Xrst_data *ddata = (Xrst_data *) data;
+    if (ddata) {
+        if (ddata->freedata) {
+            ddata->freedata(ddata->data);
+        }
+        xfree(ddata);
+    }
+}
+
 int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
 {
     Device_entry *d;
@@ -66,12 +77,14 @@ int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev)
     }
     memset(ddata, 0, sizeof(Xrst_data));
     
-    ddata->dump   = xdev->dump;
-    ddata->data   = xdev->data;
-    ddata->setup  = xdev->setup;
-    ddata->parser = xdev->parser;
+    ddata->dump       = xdev->dump;
+    ddata->setup      = xdev->setup;
+    ddata->parser     = xdev->parser;
+    ddata->data       = xdev->data;
+    ddata->freedata   = xdev->freedata;
     
-    d = device_new(xdev->name, xdev->type, FALSE, (void *) ddata);
+    d = device_new(xdev->name, xdev->type, FALSE,
+        (void *) ddata, xrst_data_free);
     if (!d) {
         xfree(ddata);
         return -1;

@@ -60,6 +60,7 @@ typedef struct _Xrst_data {
     DevSetupProc  setup;
     
     void *data;
+    DevFreeDataProc freedata;
 } Xrst_data;
 
 

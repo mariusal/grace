@@ -249,6 +249,8 @@ typedef struct {
 
 typedef struct _Canvas Canvas;
 
+typedef void (*DevFreeDataProc)(void *data);
+
 /* function to initialize device */
 typedef int (*DevInitProc)(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
@@ -376,7 +378,8 @@ typedef struct {
     DevPutPixmapProc     putpixmap;
     DevPutTextProc       puttext;
     
-    void *data;                            /* device private data */
+    void                 *data;            /* device private data */
+    DevFreeDataProc      freedata;         /* freeing private data */
 } Device_entry;
 
 char *canvas_get_username(const Canvas *canvas);
@@ -590,20 +593,22 @@ typedef int (*XrstDumpProc)(const Canvas *canvas, void *data,
     unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm);
 
 typedef struct _XrstDevice_entry {
-    int           type;
-    char          *name;
-    char          *fext;
-    int           fontaa;
-    DevParserProc parser;
-    DevSetupProc  setup;
+    int             type;
+    char            *name;
+    char            *fext;
+    int             fontaa;
+    DevParserProc   parser;
+    DevSetupProc    setup;
     
-    XrstDumpProc  dump;
+    XrstDumpProc    dump;
     
-    void          *data; /* device private data */
+    void            *data;      /* device private data */
+    DevFreeDataProc freedata;   /* freeing private data */
 } XrstDevice_entry;
 
 
-Device_entry *device_new(const char *name, int type, int twopass, void *data);
+Device_entry *device_new(const char *name, int type, int twopass,
+    void *data, DevFreeDataProc freedata);
 void device_free(Device_entry *d);
 int device_set_procs(Device_entry *d,
     DevInitProc          initgraphics,
