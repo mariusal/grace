@@ -267,13 +267,18 @@ String fallbackResources[] = {
 #define MENU_REVERT	207
 #define MENU_PRINT	208
 
+#ifdef HAVE__XMVERSIONSTRING
 extern const char _XmVersionString[];
+#endif
 
 static int is_motif_compatible(void)
 {
-    char *s, buf[128];
+    char buf[128];
+#ifdef HAVE__XMVERSIONSTRING
+    char *s;
     int bd_lesstif, rt_lesstif;
-    
+#endif
+
     /* First, check for compatible version */
     if (xmUseVersion < XmVersion) {
         sprintf(buf,
@@ -283,6 +288,7 @@ static int is_motif_compatible(void)
         return FALSE;
     }
     
+#ifdef HAVE__XMVERSIONSTRING
     /* Then, check whether we are in the Motif/LessTif binary compatibility
        mode */
     /* strcpy is dangerous since the sizeof(_XmVersionString) may be different
@@ -308,6 +314,7 @@ static int is_motif_compatible(void)
             errmsg("An old version of LessTif, please upgrade to 0.89.9 at least");
         }
     }
+#endif
     
     return TRUE;
 }
