@@ -1344,28 +1344,42 @@ void project_postprocess(Project *pr)
             storage_next(sets);
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
-	    if (pr->version_id <= 40102) {
+	    tickmarks *t = g->t[naxis];
+            if (!t) {
+                continue;
+            }
+            
+            if (pr->version_id <= 40102) {
                 if ((is_xaxis(naxis) && g->xscale == SCALE_LOG) ||
                     (is_yaxis(naxis) && g->yscale == SCALE_LOG)) {
-                    g->t[naxis]->tmajor = pow(10.0, g->t[naxis]->tmajor);
+                    t->tmajor = pow(10.0, t->tmajor);
                 }
                 
                 /* TODO : world/view translation */
-                g->t[naxis]->offsx = 0.0;
-                g->t[naxis]->offsy = 0.0;
+                t->offsx = 0.0;
+                t->offsy = 0.0;
             }
 	    if (pr->version_id < 50000) {
 	        /* There was no label_op in Xmgr */
-                g->t[naxis]->label_op = g->t[naxis]->tl_op;
+                t->label_op = t->tl_op;
 	        
                 /* in xmgr, axis label placement was in x,y coordinates */
 	        /* in Grace, it's parallel/perpendicular */
 	        if (is_yaxis(naxis)) {
-	            fswap(&g->t[naxis]->label.offset.x,
-                          &g->t[naxis]->label.offset.y);
+	            fswap(&t->label.offset.x,
+                          &t->label.offset.y);
 	        }
-	        g->t[naxis]->label.offset.y *= -1;
+	        t->label.offset.y *= -1;
 	    }
+	    if (pr->version_id >= 50000 && pr->version_id < 50103) {
+	        /* Autoplacement of axis labels wasn't implemented 
+                   in early versions of Grace */
+                if (t->label_place == TYPE_AUTO) {
+                    t->label.offset.x = 0.0;
+                    t->label.offset.y = 0.08;
+                    t->label_place = TYPE_SPEC;
+                }
+            }
         }
         
         if (pr->version_id >= 40200 && pr->version_id <= 50005) {
