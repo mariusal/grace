@@ -342,23 +342,20 @@ static void storage_deallocate_node(Storage *sto, LLNode *llnode)
 
 static void storage_add_node(Storage *sto, LLNode *llnode)
 {
-    LLNode *prev, *next;
+    LLNode *prev;
+    
+    storage_eod(sto);
+    
     prev = sto->cp;
     
     if (prev) {
-        next = prev->next;
         prev->next = llnode;
     } else {
         sto->start = llnode;
-        next = NULL;
     }
 
     llnode->prev = prev;
-    llnode->next = next;
-
-    if (next) {
-        next->prev = llnode;
-    }
+    llnode->next = NULL;
 
     sto->cp = llnode;
     sto->count++;
