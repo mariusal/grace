@@ -38,44 +38,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "graphutils.h"
+#include "core_utils.h"
 #include "files.h"
 #include "ssdata.h"
 #include "parser.h"
 
 #include "protos.h"
-
-double *copy_data_column(double *src, int nrows)
-{
-    double *dest;
-    
-    if (!src) {
-        return NULL;
-    }
-    
-    dest = xmalloc(nrows*SIZEOF_DOUBLE);
-    if (dest != NULL) {
-        memcpy(dest, src, nrows*SIZEOF_DOUBLE);
-    }
-    return dest;
-}
-
-char **copy_string_column(char **src, int nrows)
-{
-    char **dest;
-    int i;
-
-    if (!src) {
-        return NULL;
-    }
-    
-    dest = xmalloc(nrows*sizeof(char *));
-    if (dest != NULL) {
-        for (i = 0; i < nrows; i++)
-            dest[i] = copy_string(NULL, src[i]);
-    }
-    return dest;
-}
 
 /* TODO: index_shift */
 double *allocate_index_data(int nrows)
@@ -362,7 +330,7 @@ Quark *nextset(Quark *gr)
     
     pset = rt->target_set;
     
-    if (pset && get_parent_graph(pset) == gr && !is_set_active(pset)) {
+    if (pset && get_parent_graph(pset) == gr && is_set_dataless(pset)) {
         rt->target_set = NULL;
         return pset;
     } else {
@@ -371,7 +339,7 @@ Quark *nextset(Quark *gr)
         nsets = get_descendant_sets(gr, &psets);
         for (i = 0; i < nsets; i++) {
             pset = psets[i];
-            if (!is_set_active(pset) == TRUE) {
+            if (is_set_dataless(pset) == TRUE) {
 	        return pset;
 	    }
         }

@@ -706,7 +706,7 @@ void xlibleavegraphics(const Canvas *canvas, void *data,
 {
     Quark *gr = graph_get_current(grace->project);
     
-    if (is_graph_hidden(gr) == FALSE) {
+    if (graph_is_active(gr)) {
         draw_focus(gr);
     }
     reset_crosshair(FALSE);

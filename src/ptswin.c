@@ -39,7 +39,7 @@
 
 #include "utils.h"
 #include "grace/canvas.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "events.h"
 #include "protos.h"
 #include "motifinc.h"
@@ -140,7 +140,7 @@ static void do_gotopt_proc(void *data)
     VPoint vp;
     int cg = get_cg();
 
-    if (!is_set_active(cg, track_setno)) {
+    if (is_set_dataless(cg, track_setno)) {
         errmsg("No or inactive set selected");
         return;
     }

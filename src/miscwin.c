@@ -40,7 +40,7 @@
 #include "globals.h"
 #include "grace/canvas.h"
 #include "utils.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "motifinc.h"
 #include "protos.h"
 

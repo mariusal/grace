@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "graphs.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "files.h"
 #include "protos.h"
@@ -94,7 +94,7 @@ static int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
     }
     
     *nrows = getsetlength(ep->pset);
-    *ncols = dataset_cols(ep->pset);
+    *ncols = set_get_dataset_ncols(ep->pset);
     if (get_set_strings(ep->pset) != NULL) {
         *scols = 1;
     } else {
@@ -789,7 +789,7 @@ void do_ext_editor(Quark *pset)
     /* temporarily disable autoscale */
     save_autos = grace->rt->autoscale_onread;
     grace->rt->autoscale_onread = AUTOSCALE_NONE;
-    if (is_set_active(pset)) {
+    if (!is_set_dataless(pset)) {
         grace->rt->curtype = dataset_type(pset);
         grace->rt->target_set = pset;
 	killsetdata(pset);	

@@ -55,9 +55,7 @@
 #include "cephes.h"
 #include "utils.h"
 #include "files.h"
-#include "graphs.h"
-#include "graphutils.h"
-#include "objutils.h"
+#include "core_utils.h"
 #include "plotone.h"
 #include "dlmodule.h"
 #include "grace/canvas.h"
@@ -2006,11 +2004,11 @@ parmset:
 
 /* Hot links */
 	| selectset LINK sourcetype CHRSTR {
-	    set_hotlink($1, 1, $4, $3);
+	    set_set_hotlink($1, 1, $4, $3);
 	    xfree($4);
 	}
 	| selectset LINK onoff {
-	    set_hotlink($1, $3, NULL, 0);
+	    set_set_hotlink($1, $3, NULL, 0);
 	}
 
 /* Objects */
@@ -2407,34 +2405,34 @@ parmset:
 	    w.yg1 = $4;
 	    w.xg2 = $6;
 	    w.yg2 = $8;
-            set_graph_world(whichgraph, &w);
+            graph_set_world(whichgraph, &w);
 	}
 	| WORLD XMIN expr {
 	    world w;
-            get_graph_world(whichgraph, &w);
+            graph_get_world(whichgraph, &w);
 	    w.xg1 = $3;
-            set_graph_world(whichgraph, &w);
+            graph_set_world(whichgraph, &w);
 	}
 	| WORLD XMAX expr {
 	    world w;
-            get_graph_world(whichgraph, &w);
+            graph_get_world(whichgraph, &w);
 	    w.xg2 = $3;
-            set_graph_world(whichgraph, &w);
+            graph_set_world(whichgraph, &w);
 	}
 	| WORLD YMIN expr {
 	    world w;
-            get_graph_world(whichgraph, &w);
+            graph_get_world(whichgraph, &w);
 	    w.yg1 = $3;
-            set_graph_world(whichgraph, &w);
+            graph_set_world(whichgraph, &w);
 	}
 	| WORLD YMAX expr {
 	    world w;
-            get_graph_world(whichgraph, &w);
+            graph_get_world(whichgraph, &w);
 	    w.yg2 = $3;
-            set_graph_world(whichgraph, &w);
+            graph_set_world(whichgraph, &w);
 	}
 	| ZNORM expr {
-	    set_graph_znorm(whichgraph, $2);
+	    graph_set_znorm(whichgraph, $2);
 	}
 	| VIEW expr ',' expr ',' expr ',' expr {
 	    view v;
@@ -2446,25 +2444,25 @@ parmset:
 	}
 	| VIEW XMIN expr {
 	    view v;
-            get_graph_viewport(whichgraph, &v);
+            graph_get_viewport(whichgraph, &v);
 	    v.xv1 = $3;
             frame_set_view(whichframe, &v);
 	}
 	| VIEW XMAX expr {
 	    view v;
-            get_graph_viewport(whichgraph, &v);
+            graph_get_viewport(whichgraph, &v);
 	    v.xv2 = $3;
             frame_set_view(whichframe, &v);
 	}
 	| VIEW YMIN expr {
 	    view v;
-            get_graph_viewport(whichgraph, &v);
+            graph_get_viewport(whichgraph, &v);
 	    v.yv1 = $3;
             frame_set_view(whichframe, &v);
 	}
 	| VIEW YMAX expr {
 	    view v;
-            get_graph_viewport(whichgraph, &v);
+            graph_get_viewport(whichgraph, &v);
 	    v.yv2 = $3;
             frame_set_view(whichframe, &v);
 	}
@@ -2499,16 +2497,16 @@ parmset:
 	}
 
 	| XAXES SCALE scaletype {
-	    set_graph_xscale(whichgraph, $3);
+	    graph_set_xscale(whichgraph, $3);
 	}
 	| YAXES SCALE scaletype {
-	    set_graph_yscale(whichgraph, $3);
+	    graph_set_yscale(whichgraph, $3);
 	}
 	| XAXES INVERT onoff {
-	    set_graph_xinvert(whichgraph, $3);
+	    graph_set_xinvert(whichgraph, $3);
 	}
 	| YAXES INVERT onoff {
-	    set_graph_yinvert(whichgraph, $3);
+	    graph_set_yinvert(whichgraph, $3);
 	}
 
 	| DESCRIPTION CHRSTR {
@@ -2579,7 +2577,7 @@ parmset:
                 /* FIXME: world2view doesn't know yet about ctrans! */
                 world2view($2, $4, &vp.x, &vp.y);
             }
-            get_graph_viewport(whichgraph, &gv);
+            graph_get_viewport(whichgraph, &gv);
             l->offset.x = vp.x - gv.xv1;
             l->offset.y = gv.yv2 - vp.y;
 	}
@@ -2632,45 +2630,45 @@ parmset:
         }
 
 	| selectgraph onoff {
-            set_graph_hidden($1, !$2);
+            graph_set_active($1, $2);
             frame_set_active(get_parent_frame($1), $2);
         }
 	| selectgraph HIDDEN onoff {
-            set_graph_hidden($1, $3);
+            graph_set_active($1, !$3);
             frame_set_active(get_parent_frame($1), !$3);
         }
 	| selectgraph TYPE graphtype {
-            set_graph_type($1, $3);
+            graph_set_type($1, $3);
         }
 	| selectgraph STACKED onoff {
-            set_graph_stacked($1, $3);
+            graph_set_stacked($1, $3);
         }
 
 	| selectgraph BAR HGAP expr {
-	    set_graph_bargap($1, $4);
+	    graph_set_bargap($1, $4);
 	}
         
 	| selectgraph FIXEDPOINT onoff {
-            GLocator *gloc = get_graph_locator($1);
+            GLocator *gloc = graph_get_locator($1);
             gloc->pointset = $3;
         }
 	| selectgraph FIXEDPOINT FORMAT formatchoice formatchoice {
-            GLocator *gloc = get_graph_locator($1);
+            GLocator *gloc = graph_get_locator($1);
 	    gloc->fx = $4;
 	    gloc->fy = $5;
 	}
 	| selectgraph FIXEDPOINT PREC expr ',' expr {
-            GLocator *gloc = get_graph_locator($1);
+            GLocator *gloc = graph_get_locator($1);
 	    gloc->px = $4;
 	    gloc->py = $6;
 	}
 	| selectgraph FIXEDPOINT XY expr ',' expr {
-            GLocator *gloc = get_graph_locator($1);
+            GLocator *gloc = graph_get_locator($1);
 	    gloc->dsx = $4;
 	    gloc->dsy = $6;
 	}
 	| selectgraph FIXEDPOINT TYPE nexpr {
-            GLocator *gloc = get_graph_locator($1);
+            GLocator *gloc = graph_get_locator($1);
             gloc->pt_type = $4;
         }
         
@@ -2771,7 +2769,7 @@ actions:
 	    xfree($2);
 	}
 	| selectset HIDDEN onoff {
-	    set_set_hidden($1, $3);
+	    set_set_active($1, !$3);
 	}
 	| selectset LENGTH nexpr {
 	    setlength($1, $3);
@@ -2813,7 +2811,7 @@ set_setprop:
 
 setprop:
 	selectset onoff {
-	    set_set_hidden($1, !$2);
+	    set_set_active($1, $2);
 	}
 	| selectset TYPE xytype {
 	    set_dataset_type($1, $3);
@@ -3066,7 +3064,7 @@ setprop:
 	}
         
 	| selectset LEGEND CHRSTR {
-	    set_legend_string($1, $3);
+	    set_set_legstr($1, $3);
 	    xfree($3);
 	}
 	;
@@ -3776,7 +3774,7 @@ parmset_obs:
             } else {
                 world2view(leg_x1_obs, $3, &vp.x, &vp.y);
             }
-            get_graph_viewport(whichgraph, &gv);
+            graph_get_viewport(whichgraph, &gv);
             l->offset.x = vp.x - gv.xv1;
             l->offset.y = gv.yv2 - vp.y;
 	}
@@ -3789,7 +3787,7 @@ parmset_obs:
             } else {
                 pset = NULL;
             }
-            if (set_legend_string(pset, $4) != RETURN_SUCCESS) {
+            if (set_set_legstr(pset, $4) != RETURN_SUCCESS) {
                 yyerror("Unallocated set");
             }
             xfree(psets);
@@ -3803,42 +3801,42 @@ parmset_obs:
 	| selectgraph LABEL onoff { }
 
 	| selectgraph TYPE LOGX { 
-	    set_graph_type($1, GRAPH_XY);
-            set_graph_xscale($1, SCALE_LOG);
+	    graph_set_type($1, GRAPH_XY);
+            graph_set_xscale($1, SCALE_LOG);
 	}
 	| selectgraph TYPE LOGY { 
-	    set_graph_type($1, GRAPH_XY);
-            set_graph_yscale($1, SCALE_LOG);
+	    graph_set_type($1, GRAPH_XY);
+            graph_set_yscale($1, SCALE_LOG);
 	}
 	| selectgraph TYPE LOGXY
 	{ 
-	    set_graph_type($1, GRAPH_XY);
-            set_graph_xscale($1, SCALE_LOG);
-            set_graph_yscale($1, SCALE_LOG);
+	    graph_set_type($1, GRAPH_XY);
+            graph_set_xscale($1, SCALE_LOG);
+            graph_set_yscale($1, SCALE_LOG);
 	}
 	| selectgraph TYPE BAR
 	{ 
-	    set_graph_type($1, GRAPH_CHART);
-	    set_graph_stacked($1, FALSE);
-	    set_graph_xyflip($1, FALSE);
+	    graph_set_type($1, GRAPH_CHART);
+	    graph_set_stacked($1, FALSE);
+	    graph_set_xyflip($1, FALSE);
 	}
 	| selectgraph TYPE HBAR
 	{ 
-	    set_graph_type($1, GRAPH_CHART);
-	    set_graph_stacked($1, FALSE);
-	    set_graph_xyflip($1, TRUE);
+	    graph_set_type($1, GRAPH_CHART);
+	    graph_set_stacked($1, FALSE);
+	    graph_set_xyflip($1, TRUE);
 	}
 	| selectgraph TYPE STACKEDBAR
 	{ 
-	    set_graph_type($1, GRAPH_CHART);
-	    set_graph_stacked($1, TRUE);
-	    set_graph_xyflip($1, FALSE);
+	    graph_set_type($1, GRAPH_CHART);
+	    graph_set_stacked($1, TRUE);
+	    graph_set_xyflip($1, FALSE);
 	}
 	| selectgraph TYPE STACKEDHBAR
 	{ 
-	    set_graph_type($1, GRAPH_CHART);
-	    set_graph_stacked($1, TRUE);
-	    set_graph_xyflip($1, TRUE);
+	    graph_set_type($1, GRAPH_CHART);
+	    graph_set_stacked($1, TRUE);
+	    graph_set_xyflip($1, TRUE);
 	}
 
 	| LEGEND LAYOUT expr {

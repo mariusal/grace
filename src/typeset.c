@@ -83,20 +83,6 @@ int init_font_db(Canvas *canvas)
     return RETURN_SUCCESS;
 }
 
-int project_add_font(Quark *project, const Fontdef *f)
-{
-    Project *pr = project_get_data(project);
-    Fontdef *fnew;
-    pr->fontmap = xrealloc(pr->fontmap, (pr->nfonts + 1)*sizeof(Fontdef));
-    fnew = &pr->fontmap[pr->nfonts];
-    fnew->id = f->id;
-    fnew->fontname = copy_string(NULL, f->fontname);
-    fnew->fallback = copy_string(NULL, f->fallback);
-    pr->nfonts++;
-    
-    return RETURN_SUCCESS;
-}
-
 /* TODO: optimize, e.g. via a hashed array */
 int fmap_proc(const Canvas *canvas, int font_id)
 {
@@ -127,21 +113,6 @@ int fmap_proc(const Canvas *canvas, int font_id)
     }
     
     return font;
-}
-
-int get_font_by_name(const Quark *project, const char *name)
-{
-    Project *pr = project_get_data(project);
-    int i;
-    
-    for (i = 0; i < pr->nfonts; i++) {
-        Fontdef *f = &pr->fontmap[i];
-        if (!strcmp(f->fontname, name)) {
-            return f->id;
-        }
-    }
-    
-    return BAD_FONT_ID;
 }
 
 static const TextMatrix unit_tm = UNIT_TM;
@@ -187,7 +158,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
         if (s[i] == '\\' && s[i + 1] == '$' &&
             (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
             if (!strcmp(macro, "timestamp")) {
-                subst = get_timestamp(grace->project);
+                subst = project_get_timestamp(grace->project);
             } else
             if (!strcmp(macro, "filename")) {
                 subst = get_docname(grace->project);
@@ -216,7 +187,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
         if (s[i] == '\\' && s[i + 1] == '$' &&
             (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
             if (!strcmp(macro, "timestamp")) {
-                subst = get_timestamp(grace->project);
+                subst = project_get_timestamp(grace->project);
             } else
             if (!strcmp(macro, "filename")) {
                 subst = get_docname(grace->project);

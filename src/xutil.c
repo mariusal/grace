@@ -40,8 +40,7 @@
 
 #include "utils.h"
 #include "files.h"
-#include "graphs.h"
-#include "graphutils.h"
+#include "core_utils.h"
 #include "plotone.h"
 
 #include "x11drv.h"
@@ -219,7 +218,7 @@ void draw_focus(Quark *gr)
     VPoint vp;
     
     if (grace->gui->draw_focus_flag == TRUE) {
-        get_graph_viewport(gr, &v);
+        graph_get_viewport(gr, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
         xlibVPoint2dev(&vp, &ix1, &iy1);

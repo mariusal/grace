@@ -33,7 +33,7 @@
 
 #include "grace.h"
 #include "defines.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "dicts.h"
 #include "xstrings.h"
 
@@ -142,7 +142,7 @@ char *graph_types(RunTime *rt, GraphType it)
     return s;
 }
 
-GraphType get_graph_type_by_name(RunTime *rt, const char *name)
+GraphType graph_get_type_by_name(RunTime *rt, const char *name)
 {
     int retval;
     

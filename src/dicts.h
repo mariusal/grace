@@ -33,12 +33,12 @@
 #define __DICTS_H_
 
 #include "defines.h"
-#include "graphs.h"
+#include "core_utils.h"
 
 int grace_rt_init_dicts(RunTime *rt);
 void grace_rt_free_dicts(RunTime *rt);
 char *graph_types(RunTime *rt, GraphType it);
-GraphType get_graph_type_by_name(RunTime *rt, const char *name);
+GraphType graph_get_type_by_name(RunTime *rt, const char *name);
 char *set_types(RunTime *rt, SetType it);
 SetType get_settype_by_name(RunTime *rt, const char *name);
 char *inout_placement_name(RunTime *rt, int inout);

@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "grace/base.h"
+#include "grace/baseP.h"
 
 int compare_strings(const char *s1, const char *s2)
 {
@@ -107,3 +107,58 @@ unsigned char reversebits(unsigned char inword)
     
     return (result);
 }
+
+/*
+ * nicenum: find a "nice" number approximately equal to x
+ */
+
+double nicenum(double x, int nrange, int round)
+{
+    int xsign;
+    double f, y, fexp, rx, sx;
+    
+    if (x == 0.0) {
+        return(0.0);
+    }
+
+    xsign = sign(x);
+    x = fabs(x);
+
+    fexp = floor(log10(x)) - nrange;
+    sx = x/pow(10.0, fexp)/10.0;            /* scaled x */
+    rx = floor(sx);                         /* rounded x */
+    f = 10*(sx - rx);                       /* fraction between 0 and 10 */
+
+    if ((round == NICE_FLOOR && xsign == +1) ||
+        (round == NICE_CEIL  && xsign == -1)) {
+        y = (int) floor(f);
+    } else if ((round == NICE_FLOOR && xsign == -1) ||
+               (round == NICE_CEIL  && xsign == +1)) {
+	y = (int) ceil(f);
+    } else {    /* round == NICE_ROUND */
+	if (f < 1.5)
+	    y = 1;
+	else if (f < 3.)
+	    y = 2;
+	else if (f < 7.)
+	    y = 5;
+	else
+	    y = 10;
+    }
+    
+    sx = rx + (double) y/10.0;
+    
+    return (xsign*sx*10.0*pow(10.0, fexp));
+}
+
+int sign(double a)
+{
+    if (a > 0.0) {
+        return +1;
+    } else if (a < 0.0) {
+        return -1;
+    } else {
+        return 0;
+    }
+}
+

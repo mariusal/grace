@@ -27,7 +27,7 @@
 
 /* Graph UI */
 
-#include "graphs.h"
+#include "core_utils.h"
 #include "explorer.h"
 
 static void axis_scale_cb(OptionStructure *opt, int value, void *data);
@@ -183,33 +183,33 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         world w;
         GLocator *locator;
         
-        get_graph_world(q, &w);
-        locator = get_graph_locator(q);
+        graph_get_world(q, &w);
+        locator = graph_get_locator(q);
 
         SetToggleButtonState(ui->active, g->active);
 
-        SetOptionChoice(ui->graph_type, get_graph_type(q));
-        SetToggleButtonState(ui->stacked, is_graph_stacked(q));
-        SetToggleButtonState(ui->flip_xy, get_graph_xyflip(q));
+        SetOptionChoice(ui->graph_type, graph_get_type(q));
+        SetToggleButtonState(ui->stacked, graph_is_stacked(q));
+        SetToggleButtonState(ui->flip_xy, graph_get_xyflip(q));
 
         sprintf(buf, "%.9g", w.xg1);
         xv_setstr(ui->start_x, buf);
         sprintf(buf, "%.9g", w.xg2);
         xv_setstr(ui->stop_x, buf);
-        SetOptionChoice(ui->scale_x, get_graph_xscale(q));
-        SetToggleButtonState(ui->invert_x, is_graph_xinvert(q));
+        SetOptionChoice(ui->scale_x, graph_get_xscale(q));
+        SetToggleButtonState(ui->invert_x, graph_is_xinvert(q));
 
         sprintf(buf, "%.9g", w.yg1);
         xv_setstr(ui->start_y, buf);
         sprintf(buf, "%.9g", w.yg2);
         xv_setstr(ui->stop_y, buf);
-        SetOptionChoice(ui->scale_y, get_graph_yscale(q));
-        SetToggleButtonState(ui->invert_y, is_graph_yinvert(q));
+        SetOptionChoice(ui->scale_y, graph_get_yscale(q));
+        SetToggleButtonState(ui->invert_y, graph_is_yinvert(q));
 
-        sprintf(buf, "%g", get_graph_znorm(q));
+        sprintf(buf, "%g", graph_get_znorm(q));
         xv_setstr(ui->znorm, buf);
 
-        SetSpinChoice(ui->bargap, get_graph_bargap(q));
+        SetSpinChoice(ui->bargap, graph_get_bargap(q));
 
 
 	SetToggleButtonState(ui->fixedp, locator->pointset);
@@ -225,7 +225,7 @@ void update_graph_ui(GraphUI *ui, Quark *q)
     }
 }
 
-int set_graph_data(GraphUI *ui, Quark *q, void *caller)
+int graph_set_data(GraphUI *ui, Quark *q, void *caller)
 {
     graph *g = graph_get_data(q);
     
@@ -234,21 +234,21 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller)
         world w;
         GLocator *locator;
 
-        get_graph_world(q, &w);
-        locator = get_graph_locator(q);
+        graph_get_world(q, &w);
+        locator = graph_get_locator(q);
 
         if (!caller || caller == ui->active) {
             g->active = GetToggleButtonState(ui->active);
         }
 
         if (!caller || caller == ui->graph_type) {
-            set_graph_type(q, GetOptionChoice(ui->graph_type));
+            graph_set_type(q, GetOptionChoice(ui->graph_type));
         }
         if (!caller || caller == ui->stacked) {
-            set_graph_stacked(q, GetToggleButtonState(ui->stacked));
+            graph_set_stacked(q, GetToggleButtonState(ui->stacked));
         }
         if (!caller || caller == ui->flip_xy) {
-            set_graph_xyflip(q, GetToggleButtonState(ui->flip_xy));
+            graph_set_xyflip(q, GetToggleButtonState(ui->flip_xy));
         }
 
         if (!caller || caller == ui->start_x) {
@@ -266,10 +266,10 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller)
             w.xg2 = axislim;
         }
         if (!caller || caller == ui->scale_x) {
-            set_graph_xscale(q, GetOptionChoice(ui->scale_x));
+            graph_set_xscale(q, GetOptionChoice(ui->scale_x));
         }
         if (!caller || caller == ui->invert_x)  {
-            set_graph_xinvert(q, GetToggleButtonState(ui->invert_x));
+            graph_set_xinvert(q, GetToggleButtonState(ui->invert_x));
         }
 
         if (!caller || caller == ui->start_y) {
@@ -287,24 +287,24 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller)
             w.yg2 = axislim;
         }
         if (!caller || caller == ui->scale_y) {
-            set_graph_yscale(q, GetOptionChoice(ui->scale_y));
+            graph_set_yscale(q, GetOptionChoice(ui->scale_y));
         }
         if (!caller || caller == ui->invert_y)  {
-            set_graph_yinvert(q, GetToggleButtonState(ui->invert_y));
+            graph_set_yinvert(q, GetToggleButtonState(ui->invert_y));
         }
 
         if (!caller ||
             caller == ui->start_x || caller == ui->stop_x ||
             caller == ui->start_y || caller == ui->stop_y) {
-            set_graph_world(q, &w);
+            graph_set_world(q, &w);
         }
 
         if (!caller || caller == ui->bargap) {
-            set_graph_bargap(q, GetSpinChoice(ui->bargap));
+            graph_set_bargap(q, GetSpinChoice(ui->bargap));
         }
         if (!caller || caller == ui->znorm) {
             xv_evalexpr(ui->znorm, &znorm);
-            set_graph_znorm(q, znorm);
+            graph_set_znorm(q, znorm);
         }
 
 

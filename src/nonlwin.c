@@ -42,7 +42,7 @@
 
 #include "globals.h"
 #include "defines.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "files.h"
 #include "parser.h"

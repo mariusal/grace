@@ -193,17 +193,6 @@ char *escapequotes (char *s)
     return es;
 }
 
-int sign(double a)
-{
-    if (a > 0.0) {
-        return +1;
-    } else if (a < 0.0) {
-        return -1;
-    } else {
-        return 0;
-    }
-}
-
 double mytrunc(double a)
 {
     if (a > 0.0) {
@@ -970,36 +959,6 @@ void echomsg(char *msg)
 {
     stufftext(msg);
     stufftext("\n");
-}
-
-void update_timestamp(Quark *project, time_t *t)
-{
-    Project *pr = project_get_data(project);
-    struct tm tm;
-    time_t time_value;
-    char *str;
-
-    if (!pr) {
-        return;
-    }
-    
-    if (!t) {
-        (void) time(&time_value);
-    } else {
-        time_value = *t;
-    }
-    tm = *localtime(&time_value);
-    str = asctime(&tm);
-    if (str[strlen(str) - 1] == '\n') {
-        str[strlen(str) - 1]= '\0';
-    }
-    pr->timestamp = copy_string(pr->timestamp, str);
-}
-
-char *get_timestamp(Quark *project)
-{
-    Project *pr = project_get_data(project);
-    return pr->timestamp;
 }
 
 void update_app_title(Quark *q)

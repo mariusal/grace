@@ -27,18 +27,13 @@
 
 /*
  *
- * operations on objects (strings, lines, boxes, and arcs)
+ * DObject stuff
  *
  */
 
-#include <config.h>
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "grace/canvas.h"
-#include "objutils.h"
+#include "grace/core.h"
 
 static int object_odata_size(OType type)
 {
@@ -62,30 +57,6 @@ static int object_odata_size(OType type)
     }
     
     return size;
-}
-
-char *object_types(OType type)
-{
-    char *s = "";
-    switch (type) {
-    case DO_LINE:
-        s = "line";
-        break;
-    case DO_BOX:
-        s = "box";
-        break;
-    case DO_ARC:
-        s = "arc";
-        break;
-    case DO_STRING:
-        s = "string";
-        break;
-    case DO_NONE:
-        s = "none";
-        break;
-    }
-    
-    return s;
 }
 
 DObject *object_data_new(void)
@@ -300,7 +271,7 @@ DObject *object_get_data(const Quark *q)
     return o;
 }
 
-int get_object_bb(DObject *o, view *bb)
+int object_get_bb(DObject *o, view *bb)
 {
     if (o) {
         *bb = o->bb;
@@ -310,76 +281,6 @@ int get_object_bb(DObject *o, view *bb)
     }
 }
 
-#if 0
-void move_object(Quark *q, VVector shift)
-{
-    DObject *o = object_get_data(q);
-    
-    if (!o) {
-        return;
-    }
-
-    if (object_get_loctype(q) == COORD_VIEW) {
-        o->ap.x += shift.x;
-        o->ap.y += shift.y;
-    } else {
-        WPoint wp;
-        VPoint vp;
-        
-        wp.x = o->ap.x;
-        wp.y = o->ap.y;
-        
-        vp = Wpoint2Vpoint(wp);
-        vp.x += shift.x;
-        vp.y += shift.y;
-        
-        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
-    }
-    
-    quark_dirtystate_set(q, TRUE);
-}
-
-int object_place_at_vp(Quark *q, VPoint vp)
-{
-    DObject *o = object_get_data(q);
-
-    if (!o) {
-        return RETURN_FAILURE;
-    }
-    
-    if (object_get_loctype(q) == COORD_VIEW) {
-        o->ap.x = vp.x;
-        o->ap.y = vp.y;
-    } else {
-        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
-    }
-    
-    quark_dirtystate_set(q, TRUE);
-    return RETURN_SUCCESS;
-}
-#endif
-
-int isactive_object(DObject *o)
-{
-    return o->active;
-}
-
-void set_plotstr_string(plotstr *pstr, char *s)
-{
-    pstr->s = copy_string(pstr->s, s);
-}
-
-void set_default_string(plotstr * s)
-{
-    s->active = FALSE;
-    s->offset.x = s->offset.y = 0.0;
-    s->color = 1;
-    s->angle = 0.0;
-    s->font = 0;
-    s->just = JUST_LEFT|JUST_BLINE;
-    s->charsize = 1.0;
-    s->s = NULL;
-}
 
 int object_set_active(Quark *q, int flag)
 {
@@ -457,25 +358,4 @@ int object_set_location(Quark *q, const APoint *ap)
     } else {
         return RETURN_FAILURE;
     }
-}
-
-int object_get_loctype(const Quark *q)
-{
-    Quark *p = (Quark *) q;
-    
-    while (p) {
-        p = quark_parent_get(p);
-        if (p->fid == QFlavorGraph) {
-            return COORD_WORLD;
-        } else
-        if (p->fid == QFlavorFrame) {
-            return COORD_FRAME;
-        } else
-        if (p->fid == QFlavorProject) {
-            return COORD_VIEW;
-        }
-    }
-    
-    /* default */
-    return COORD_VIEW;
 }

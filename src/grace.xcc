@@ -11,9 +11,7 @@
 #include "utils.h"
 #include "dicts.h"
 #include "grace/canvas.h"
-#include "graphs.h"
-#include "graphutils.h"
-#include "objutils.h"
+#include "core_utils.h"
 #include "protos.h"
 
 #include "xstrings.h"
@@ -945,42 +943,42 @@ char *utf2iso(const char *s)
             xfree($?);
         </attribute>
         <attribute name="#AStrActive" type="bval">
-            set_graph_hidden($$, !$?);
+            graph_set_active($$, $?);
         </attribute>
 
         <!-- Child elements -->
         <child name="#EStrPresentationSpec">
-            set_graph_type($$, $?->type);
-            set_graph_bargap($$, $?->bargap);
-            set_graph_stacked($$, $?->stacked);
+            graph_set_type($$, $?->type);
+            graph_set_bargap($$, $?->bargap);
+            graph_set_stacked($$, $?->stacked);
             presentationspec_free($?);
         </child>
         <child name="#EStrXscale"><![CDATA[
             world w;
-            set_graph_xscale($$, $?->type);
-            set_graph_xinvert($$, $?->invert);
-            get_graph_world($$, &w);
+            graph_set_xscale($$, $?->type);
+            graph_set_xinvert($$, $?->invert);
+            graph_get_world($$, &w);
             w.xg1 = $?->min;
             w.xg2 = $?->max;
-            set_graph_world($$, &w);
+            graph_set_world($$, &w);
             xfree($?);
         ]]></child>
         <child name="#EStrYscale"><![CDATA[
             world w;
-            set_graph_yscale($$, $?->type);
-            set_graph_yinvert($$, $?->invert);
-            get_graph_world($$, &w);
+            graph_set_yscale($$, $?->type);
+            graph_set_yinvert($$, $?->invert);
+            graph_get_world($$, &w);
             w.yg1 = $?->min;
             w.yg2 = $?->max;
-            set_graph_world($$, &w);
+            graph_set_world($$, &w);
             xfree($?);
         ]]></child>
         <child name="#EStrZscale">
-            set_graph_znorm($$, *($?));
+            graph_set_znorm($$, *($?));
             xfree($?);
         </child>
         <child name="#EStrLocator">
-            set_graph_locator($$, $?);
+            graph_set_locator($$, $?);
             xfree($?);
         </child>
         <child name="#EStrAxis">
@@ -994,7 +992,7 @@ char *utf2iso(const char *s)
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
             RunTime *rt = ((ParserData *)$U)->rt;
-            $$->type = get_graph_type_by_name(rt, $?);
+            $$->type = graph_get_type_by_name(rt, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrStacked" type="bval">
@@ -1661,7 +1659,7 @@ char *utf2iso(const char *s)
             xfree($?);
         </attribute>
         <attribute name="#AStrActive" type="bval">
-            set_set_hidden($$, !$?);
+            set_set_active($$, $?);
         </attribute>
         <attribute name="#AStrType" type="settype">
             set_dataset_type($$, $?);
@@ -1853,10 +1851,10 @@ char *utf2iso(const char *s)
     <element name="#EStrDataset" type="dataset">
         <!-- Attributes -->
         <attribute name="#AStrCols" type="ival">
-            set_dataset_ncols($$, $?);
+            dataset_set_ncols($$, $?);
         </attribute>
         <attribute name="#AStrRows" type="ival">
-            set_dataset_nrows($$, $?);
+            dataset_set_nrows($$, $?);
         </attribute>
         <attribute name="#AStrComment" type="sval">
             $$->comment = $?;

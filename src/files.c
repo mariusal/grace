@@ -58,8 +58,7 @@
 #include "dicts.h"
 #include "files.h"
 #include "ssdata.h"
-#include "graphs.h"
-#include "graphutils.h"
+#include "core_utils.h"
 #include "parser.h"
 
 #include "protos.h"
@@ -1002,7 +1001,7 @@ int update_set_from_file(Quark *pset)
     int retval;
     Dataset *dsp;
     
-    dsp = dataset_get(pset);
+    dsp = set_get_dataset(pset);
     
     if (!dsp) {
         retval = RETURN_FAILURE;
@@ -1048,9 +1047,9 @@ int write_set(Quark *pset, FILE *cp, char *format)
 	return RETURN_FAILURE;
     }
     
-    if (is_set_active(pset) == TRUE) {
+    if (is_set_dataless(pset) == FALSE) {
         n = getsetlength(pset);
-        ncols = dataset_cols(pset);
+        ncols = set_get_dataset_ncols(pset);
         for (col = 0; col < ncols; col++) {
             x[col] = getcol(pset, col);
         }
@@ -1132,7 +1131,7 @@ int load_project_file(Grace *grace, char *fn, int as_template)
             time(&mtime);
         }
 
-        update_timestamp(grace->project, &mtime);
+        project_update_timestamp(grace->project, &mtime);
 
         strcpy(buf, mybasename(fn)); 
         bufp = strrchr(buf, '.');
@@ -1149,7 +1148,7 @@ int load_project_file(Grace *grace, char *fn, int as_template)
     ngraphs = project_get_graphs(grace->project, &graphs);
     for (i = 0; i < ngraphs; i++) {
         gr = graphs[i];
-        if (is_graph_hidden(gr) == FALSE) {
+        if (graph_is_active(gr)) {
             select_graph(gr);
             break;
         }
@@ -1476,7 +1475,7 @@ int write_netcdf(Quark *pr, char *fname)
             int nsets = get_descendant_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
-                if (is_set_active(pset)) {
+                if (!is_set_dataless(pset)) {
 		    char s[64];
 
 		    sprintf(buf, "comment");
@@ -1519,7 +1518,7 @@ int write_netcdf(Quark *pr, char *fname)
             int nsets = get_descendant_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
-                if (is_set_active(pset)) {
+                if (!is_set_dataless(pset)) {
 		    len[0] = getsetlength(pset);
 		    x = getx(pset);
 		    y = gety(pset);

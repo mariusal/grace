@@ -59,8 +59,7 @@
 #include "utils.h"
 #include "files.h"
 #include "x11drv.h"
-#include "graphs.h"
-#include "graphutils.h"
+#include "core_utils.h"
 #include "plotone.h"
 #include "events.h"
 #include "protos.h"
@@ -557,7 +556,7 @@ void do_clear_point(Widget but, void *data)
 {
     GLocator *locator;
     
-    locator = get_graph_locator(graph_get_current(grace->project));
+    locator = graph_get_locator(graph_get_current(grace->project));
     locator->pointset = FALSE;
     xdrawgraph();
 }

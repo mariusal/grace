@@ -34,14 +34,261 @@
 
 #include <config.h>
 
-#include <stdio.h>
 #include <string.h>
 
-#include "utils.h"
-#include "graphs.h"
-#include "objutils.h"
-#include "graphutils.h"
+#include "core_utils.h"
+#include "parser.h"
 #include "protos.h"
+
+static int graph_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    int *ngraphs = (int *) udata;
+    
+    if (q->fid == QFlavorGraph) {
+        (*ngraphs)++;
+    }
+    
+    return TRUE;
+}
+
+int number_of_graphs(Quark *project)
+{
+    int ngraphs = 0;
+    
+    quark_traverse(project, graph_count_hook, &ngraphs);
+    
+    return ngraphs;
+}
+
+Quark *graph_get_current(const Quark *project)
+{
+    if (project) {
+        Project *pr = project_get_data(project);
+        return pr->cg;
+    } else {
+        return NULL;
+    }
+}
+
+Quark *graph_next(Quark *project)
+{
+    Quark *f, *g;
+    
+    f = frame_new(project);
+    g = graph_new(f);
+    if (number_of_graphs(project) == 1) {
+        Project *pr = project_get_data(project);
+        pr->cg = g;
+    }
+    return g;
+}
+
+int select_graph(Quark *gr)
+{
+    graph *g = graph_get_data(gr);
+    int ctrans_type, xyfixed;
+    view v;
+    
+    if (!g) {
+        return RETURN_FAILURE;
+    }
+    
+    switch (g->type) {
+    case GRAPH_POLAR:
+        ctrans_type = COORDINATES_POLAR;
+        xyfixed = FALSE;
+        break;
+    case GRAPH_FIXED:
+        ctrans_type = COORDINATES_XY;
+        xyfixed = TRUE;
+        break;
+    default: 
+        ctrans_type = COORDINATES_XY;
+        xyfixed = FALSE;
+        break;
+    }
+    
+    graph_get_viewport(gr, &v);
+    if (definewindow(&g->w, &v, ctrans_type, xyfixed,
+            g->xscale,  g->yscale,
+            g->xinvert, g->yinvert) == RETURN_SUCCESS) {
+        Project *pr = project_get_data(get_parent_project(gr));
+        if (pr) {
+            set_parser_gno(gr);
+            pr->cg = gr;
+
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static int set_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    int *nsets = (int *) udata;
+    
+    if (q->fid == QFlavorSet) {
+        (*nsets)++;
+    }
+    
+    return TRUE;
+}
+
+int number_of_sets(Quark *q)
+{
+    int nsets = 0;
+    
+    quark_traverse(q, set_count_hook, &nsets);
+    
+    return nsets;
+}
+
+typedef struct {
+    int nsets;
+    Quark **sets;
+} set_hook_t;
+
+static int set_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    set_hook_t *p = (set_hook_t *) udata;
+    
+    if (q->fid == QFlavorSet) {
+        p->sets[p->nsets] = q;
+        p->nsets++;
+    }
+    
+    return TRUE;
+}
+
+int get_descendant_sets(Quark *q, Quark ***sets)
+{
+    set_hook_t p;
+    
+    if (q) {
+        p.nsets = 0;
+        p.sets  = xmalloc(number_of_sets(q)*SIZEOF_VOID_P);
+
+        if (p.sets) {
+            quark_traverse(q, set_hook, &p);
+        }
+        
+        *sets = p.sets;
+
+        return p.nsets;
+    } else {
+        return 0;
+    }
+}
+
+int graph_get_viewport(Quark *gr, view *v)
+{
+    if (gr) {
+        view *vv;
+        Quark *fr = get_parent_frame(gr);
+        
+        vv = frame_get_view(fr);
+        memcpy(v, vv, sizeof(view));
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int is_refpoint_active(Quark *gr)
+{
+    graph *g = graph_get_data(gr);
+    if (g) {
+        return g->locator.pointset;
+    } else {
+        return FALSE;
+    }
+}
+
+
+int is_axis_active(tickmarks *t)
+{
+    if (t) {
+        return t->active;
+    } else {
+        return FALSE;
+    }
+}
+
+int is_zero_axis(tickmarks *t)
+{
+    if (t) {
+        return t->zero;
+    } else {
+        return FALSE;
+    }
+}
+
+
+int is_log_axis(const Quark *q)
+{
+    Quark *gr = get_parent_graph(q);
+    if ((axis_is_x(q) && islogx(gr)) ||
+        (axis_is_y(q) && islogy(gr))) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int is_logit_axis(const Quark *q)
+{
+    Quark *gr = get_parent_graph(q);
+    if ((axis_is_x(q) && islogitx(gr)) ||
+        (axis_is_y(q) && islogity(gr))) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int islogx(Quark *gr)
+{
+    graph *g = graph_get_data(gr);
+    if (g) {
+        return (g->xscale == SCALE_LOG);
+    } else {
+        return FALSE;
+    }
+}
+
+int islogy(Quark *gr)
+{
+    graph *g = graph_get_data(gr);
+    if (g) {
+        return (g->yscale == SCALE_LOG);
+    } else {
+        return FALSE;
+    }
+}
+
+int islogitx(Quark *gr)
+{
+    graph *g = graph_get_data(gr);
+    if (g) {
+        return (g->xscale == SCALE_LOGIT);
+    } else {
+        return FALSE;
+    }
+}
+
+int islogity(Quark *gr)
+{
+    graph *g = graph_get_data(gr);
+    if (g) {
+        return (g->yscale == SCALE_LOGIT);
+    } else {
+        return FALSE;
+    }
+}
+
 
 char *get_format_types(FormatType f)
 {
@@ -166,11 +413,6 @@ FormatType get_format_type_by_name(const char *name)
 /* The following routines determine default axis range and tickmarks */
 
 static void autorange_bysets(Quark **sets, int nsets, int autos_type);
-static double nicenum(double x, int nrange, int round);
-
-#define NICE_FLOOR   0
-#define NICE_CEIL    1
-#define NICE_ROUND   2
 
 static int autotick_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
@@ -314,9 +556,9 @@ static void autorange_bysets(Quark **sets, int nsets, int autos_type)
     
     gr = get_parent_graph(sets[0]);
     
-    get_graph_world(gr, &w);
+    graph_get_world(gr, &w);
     
-    if (get_graph_type(gr) == GRAPH_SMITH) {
+    if (graph_get_type(gr) == GRAPH_SMITH) {
         if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
             w.xg1 = -1.0;
             w.yg1 = -1.0;
@@ -325,7 +567,7 @@ static void autorange_bysets(Quark **sets, int nsets, int autos_type)
             w.xg2 = 1.0;
             w.yg2 = 1.0;
 	}
-        set_graph_world(gr, &w);
+        graph_set_world(gr, &w);
         return;
     }
 
@@ -342,130 +584,20 @@ static void autorange_bysets(Quark **sets, int nsets, int autos_type)
     }
 
     if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
-        scale = get_graph_xscale(gr);
+        scale = graph_get_xscale(gr);
         round_axis_limits(&xmin, &xmax, scale);
         w.xg1 = xmin;
         w.xg2 = xmax;
     }
 
     if (autos_type == AUTOSCALE_Y || autos_type == AUTOSCALE_XY) {
-        scale = get_graph_yscale(gr);
+        scale = graph_get_yscale(gr);
         round_axis_limits(&ymin, &ymax, scale);
         w.yg1 = ymin;
         w.yg2 = ymax;
     }
 
-    set_graph_world(gr, &w);
-}
-
-void autotick_axis(Quark *q)
-{
-    Quark *gr;
-    tickmarks *t;
-    world w;
-    double range, d, tmpmax, tmpmin;
-    int axis_scale;
-
-    t = axis_get_data(q);
-    if (t == NULL) {
-        return;
-    }
-    gr = get_parent_graph(q);
-    get_graph_world(gr, &w);
-
-    if (axis_is_x(q)) {
-        tmpmin = w.xg1;
-        tmpmax = w.xg2;
-        axis_scale = get_graph_xscale(gr);
-    } else {
-        tmpmin = w.yg1;
-        tmpmax = w.yg2;
-        axis_scale = get_graph_yscale(gr);
-    }
-
-    if (axis_scale == SCALE_LOG) {
-	if (t->tmajor <= 1.0) {
-            t->tmajor = 10.0;
-        }
-        tmpmax = log10(tmpmax)/log10(t->tmajor);
-	tmpmin = log10(tmpmin)/log10(t->tmajor);
-    } else if (axis_scale == SCALE_LOGIT) {
-    	if (t->tmajor >= 0.5) {
-            t->tmajor = 0.4;
-        }
-        tmpmax = log(tmpmax/(1-tmpmax))/log(t->tmajor/(1-t->tmajor));
-	tmpmin = log(tmpmin/(1-tmpmin))/log(t->tmajor/(1-t->tmajor)); 
-    } else if (t->tmajor <= 0.0) {
-        t->tmajor = 1.0;
-    }
-    
-    range = tmpmax - tmpmin;
-    if (axis_scale == SCALE_LOG) {
-	d = ceil(range/(t->t_autonum - 1));
-	t->tmajor = pow(t->tmajor, d);
-    } 
-    else if (axis_scale == SCALE_LOGIT ){
-        d = ceil(range/(t->t_autonum - 1));
-	t->tmajor = exp(d)/(1.0 + exp(d));
-    } 
-    else {
-	d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
-	t->tmajor = d;
-    }
-
-    /* alter # of minor ticks only if the current value is anomalous */
-    if (t->nminor < 0 || t->nminor > 10) {
-        if (axis_scale != SCALE_LOG) {
-	    t->nminor = 1;
-        } else {
-            t->nminor = 8;
-        }
-    }
-    
-    quark_dirtystate_set(q, TRUE);
-}
-
-/*
- * nicenum: find a "nice" number approximately equal to x
- */
-
-static double nicenum(double x, int nrange, int round)
-{
-    int xsign;
-    double f, y, fexp, rx, sx;
-    
-    if (x == 0.0) {
-        return(0.0);
-    }
-
-    xsign = sign(x);
-    x = fabs(x);
-
-    fexp = floor(log10(x)) - nrange;
-    sx = x/pow(10.0, fexp)/10.0;            /* scaled x */
-    rx = floor(sx);                         /* rounded x */
-    f = 10*(sx - rx);                       /* fraction between 0 and 10 */
-
-    if ((round == NICE_FLOOR && xsign == +1) ||
-        (round == NICE_CEIL  && xsign == -1)) {
-        y = (int) floor(f);
-    } else if ((round == NICE_FLOOR && xsign == -1) ||
-               (round == NICE_CEIL  && xsign == +1)) {
-	y = (int) ceil(f);
-    } else {    /* round == NICE_ROUND */
-	if (f < 1.5)
-	    y = 1;
-	else if (f < 3.)
-	    y = 2;
-	else if (f < 7.)
-	    y = 5;
-	else
-	    y = 10;
-    }
-    
-    sx = rx + (double) y/10.0;
-    
-    return (xsign*sx*10.0*pow(10.0, fexp));
+    graph_set_world(gr, &w);
 }
 
 /*
@@ -478,7 +610,7 @@ int graph_scroll(Quark *gr, int type)
     double xmax, xmin, ymax, ymin;
     double dwc;
 
-    if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
+    if (graph_get_world(gr, &w) == RETURN_SUCCESS) {
 	if (islogx(gr) == TRUE) {
 	    xmin = log10(w.xg1);
 	    xmax = log10(w.xg2);
@@ -529,7 +661,7 @@ int graph_scroll(Quark *gr, int type)
 	    w.yg2 = ymax;
 	}
        
-        set_graph_world(gr, &w);
+        graph_set_world(gr, &w);
         
         return RETURN_SUCCESS;
     } else {
@@ -544,7 +676,7 @@ int graph_zoom(Quark *gr, int type)
     double xmax, xmin, ymax, ymin;
     world w;
 
-    if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
+    if (graph_get_world(gr, &w) == RETURN_SUCCESS) {
 
 	if (islogx(gr) == TRUE) {
 	    xmin = log10(w.xg1);
@@ -590,7 +722,7 @@ int graph_zoom(Quark *gr, int type)
 	    w.yg2 = ymax;
 	}
 
-        set_graph_world(gr, &w);
+        graph_set_world(gr, &w);
         
         return RETURN_SUCCESS;
     } else {
@@ -684,10 +816,10 @@ int arrange_graphs(Quark **graphs, int ngraphs,
             v.yv1 = boff + ih*h*(1.0 + vgap);
             v.yv2 = v.yv1 + h;
 #if 0
-            set_graph_viewport(gr, &v);
+            graph_set_viewport(gr, &v);
             
             if (hpack) {
-	        tickmarks *t = get_graph_tickmarks(gr, Y_AXIS);
+	        tickmarks *t = graph_get_tickmarks(gr, Y_AXIS);
                 if (iw == 0) {
 	            if (!t) {
                         continue;
@@ -701,7 +833,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
                 }
             }
             if (vpack) {
-	        tickmarks *t = get_graph_tickmarks(gr, X_AXIS);
+	        tickmarks *t = graph_get_tickmarks(gr, X_AXIS);
                 if (ih == 0) {
 	            if (!t) {
                         continue;

@@ -41,7 +41,7 @@
 #include "mbitmaps.h"
 
 #include "globals.h"
-#include "graphutils.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "motifinc.h"
 #include "protos.h"

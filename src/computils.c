@@ -45,7 +45,7 @@
 #include "utils.h"
 #include "grace/canvas.h"
 #include "ssdata.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "parser.h"
 #include "protos.h"
 
@@ -826,7 +826,7 @@ int monospaced(double *array, int len, double *space)
  */
 int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 {
-    if (is_set_active(psrc)) {
+    if (!is_set_dataless(psrc)) {
 	if (psrc != pdest) {
 	    if (copysetdata(psrc, pdest) != RETURN_SUCCESS) {
 	        return RETURN_FAILURE;
@@ -858,7 +858,7 @@ int do_differ(Quark *psrc, Quark *pdest,
     double *x1, *x2;
     char *stype, pbuf[32], buf[256];
     
-    if (!is_set_active(psrc)) {
+    if (is_set_dataless(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -892,8 +892,8 @@ int do_differ(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    ncols = dataset_cols(psrc);
-    if (dataset_cols(pdest) != ncols) {
+    ncols = set_get_dataset_ncols(psrc);
+    if (set_get_dataset_ncols(pdest) != ncols) {
         set_dataset_type(pdest, dataset_type(psrc));
     }
     
@@ -999,8 +999,8 @@ int do_linearc(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    ncols = dataset_cols(psrc);
-    if (dataset_cols(pdest) != ncols) {
+    ncols = set_get_dataset_ncols(psrc);
+    if (set_get_dataset_ncols(pdest) != ncols) {
         set_dataset_type(pdest, dataset_type(psrc));
     }
     
@@ -1046,7 +1046,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    if (!is_set_active(psrc)) {
+    if (is_set_dataless(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -1075,7 +1075,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
     }
 
     if (!autocor) {
-        if (!is_set_active(pcor)) {
+        if (is_set_dataless(pcor)) {
 	    errmsg("Set not active");
 	    return RETURN_FAILURE;
         }
@@ -1105,10 +1105,10 @@ int do_xcor(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    ncols1 = dataset_cols(psrc);
-    ncols2 = dataset_cols(pcor);
+    ncols1 = set_get_dataset_ncols(psrc);
+    ncols2 = set_get_dataset_ncols(pcor);
     ncols = MIN2(ncols1, ncols2);
-    if (dataset_cols(pdest) != ncols) {
+    if (set_get_dataset_ncols(pdest) != ncols) {
         set_dataset_type(pdest, dataset_type(psrc));
     }
 
@@ -1246,7 +1246,7 @@ int do_int(Quark *psrc, Quark *pdest,
     
     *sum = 0.0;
 
-    if (!is_set_active(psrc)) {
+    if (is_set_dataless(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -1307,8 +1307,8 @@ int do_runavg(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    ncols = dataset_cols(psrc);
-    if (dataset_cols(pdest) != ncols) {
+    ncols = set_get_dataset_ncols(psrc);
+    if (set_get_dataset_ncols(pdest) != ncols) {
         set_dataset_type(pdest, dataset_type(psrc));
     }
     
@@ -1508,7 +1508,7 @@ int do_fourier(Quark *psrc, Quark *pdest,
         break;
     }
     
-    if (dataset_cols(pdest) != ncols) {
+    if (set_get_dataset_ncols(pdest) != ncols) {
         if (set_dataset_type(pdest, settype) != RETURN_SUCCESS) {
             xfree(buf_re);
             xfree(buf_im);
@@ -1686,8 +1686,8 @@ int do_sample(Quark *psrc, Quark *pdest, char *formula)
 	}
     }
 
-    ncols = dataset_cols(psrc);
-    if (dataset_cols(pdest) != ncols) {
+    ncols = set_get_dataset_ncols(psrc);
+    if (set_get_dataset_ncols(pdest) != ncols) {
         set_dataset_type(pdest, dataset_type(psrc));
     }
     
@@ -1738,7 +1738,7 @@ int do_prune(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    if (!is_set_active(psrc)) {
+    if (is_set_dataless(psrc)) {
         errmsg("Set not active");
         return RETURN_FAILURE;
     }
@@ -1757,8 +1757,8 @@ int do_prune(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    ncols = dataset_cols(psrc);
-    if (dataset_cols(pdest) != ncols) {
+    ncols = set_get_dataset_ncols(psrc);
+    if (set_get_dataset_ncols(pdest) != ncols) {
         set_dataset_type(pdest, dataset_type(psrc));
     }
     
@@ -1845,9 +1845,9 @@ int do_interp(Quark *psrc, Quark *pdest,
     }
     
     len = getsetlength(psrc);
-    ncols = dataset_cols(psrc);
+    ncols = set_get_dataset_ncols(psrc);
 
-    if (dataset_cols(pdest) != ncols) {
+    if (set_get_dataset_ncols(pdest) != ncols) {
         copysetdata(psrc, pdest);
     }
     
@@ -1941,7 +1941,7 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     char *tbuf;
     double *x, *y;
 
-    if (dataset_cols(pdest) != 2) {
+    if (set_get_dataset_ncols(pdest) != 2) {
         set_dataset_type(pdest, SET_XY);
     }
     
@@ -1978,7 +1978,7 @@ int cumulative(Quark **sets, int nsrc, Quark *pdest)
     for (is = 0; is < nsrc; is++) {
         Quark *pset = sets[is];
         int len   = getsetlength(pset);
-        int ncols = dataset_cols(pset);
+        int ncols = set_get_dataset_ncols(pset);
         if (maxlen < len) {
             maxlen = len;
         }
@@ -1992,7 +1992,7 @@ int cumulative(Quark **sets, int nsrc, Quark *pdest)
         return RETURN_FAILURE;
     }
     
-    if (dataset_cols(pdest) != maxncols) {
+    if (set_get_dataset_ncols(pdest) != maxncols) {
         set_dataset_type(pdest, settype);
     }
     

@@ -35,7 +35,7 @@
 
 #include <stdlib.h>
 
-#include "graphs.h"
+#include "core_utils.h"
 #include "explorer.h"
 
 #if 0
@@ -62,8 +62,8 @@ static void setapp_data_proc(Widget but, void *data)
         p = pset->data;
         switch (proc_type) {
         case SETAPP_STRIP_LEGENDS:
-            set_legend_string(pset,
-                mybasename(get_legend_string(pset)));
+            set_set_legstr(pset,
+                mybasename(set_get_legstr(pset)));
             break;
         case SETAPP_LOAD_COMMENTS:
             load_comments_to_legend(pset);

@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "graphs.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "ssdata.h"
 #include "motifinc.h"

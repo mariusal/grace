@@ -31,9 +31,7 @@
 #include "utils.h"
 #include "dicts.h"
 #include "files.h"
-#include "graphs.h"
-#include "graphutils.h"
-#include "objutils.h"
+#include "core_utils.h"
 #include "xfile.h"
 #include "xstrings.h"
 #include "protos.h"
@@ -784,7 +782,7 @@ static int project_save_hook(Quark *q,
     case QFlavorGraph:
         if (!closure->post) {
             attributes_set_sval(attrs, AStrId, QIDSTR(q));
-            xmlio_set_active(attrs, !is_graph_hidden(q));
+            xmlio_set_active(attrs, graph_is_active(q));
 
             xfile_begin_element(xf, EStrGraph, attrs);
             save_graph_properties(xf, q);

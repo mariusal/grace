@@ -34,7 +34,6 @@
 #include <config.h>
 
 #include "explorer.h"
-#include "objutils.h"
 
 static void update_line_ui(LineUI *ui, DOLineData *odata);
 static void set_line_odata(LineUI *ui, DOLineData *odata, void *caller);

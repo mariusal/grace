@@ -1,0 +1,24 @@
+##################################################
+#     System-independent Make.defs file for      #
+#             grace-core library                 #
+##################################################
+
+LIB  = $(GRACE_CORE_LIB)
+
+SRCS = 	quark.c \
+	project.c \
+	frame.c \
+	axis.c \
+	set.c \
+	region.c \
+	dobject.c \
+	graph.c
+
+OBJS = 	quark$(O) \
+	project$(O) \
+	frame$(O) \
+	axis$(O) \
+	set$(O) \
+	region$(O) \
+	dobject$(O) \
+	graph$(O)

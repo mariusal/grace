@@ -31,13 +31,9 @@
  *
  */
 
-#include <config.h>
-
 #include <string.h>
 
-#include "grace.h"
-#include "graphs.h"
-#include "protos.h"
+#include "grace/core.h"
 
 static void set_default_legend(legend *l, const defaults *grdefaults)
 {
@@ -250,4 +246,18 @@ int frame_set_legend(Quark *q, const legend *leg)
     } else {
         return RETURN_FAILURE;
     }
+}
+
+Quark *get_parent_frame(const Quark *q)
+{
+    Quark *p = (Quark *) q;
+    
+    while (p) {
+        p = quark_parent_get(p);
+        if (p->fid == QFlavorFrame) {
+            return p;
+        }
+    }
+    
+    return NULL;
 }

@@ -30,9 +30,9 @@
 #include "globals.h"
 #include "utils.h"
 #include "dicts.h"
-#include "objutils.h"
 
 #include "explorer.h"
+
 #include <Xm/ScrolledW.h>
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
@@ -441,7 +441,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             }
             break;
         case QFlavorGraph:
-            if (set_graph_data(ui->graph_ui, q, caller) != RETURN_SUCCESS) {
+            if (graph_set_data(ui->graph_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;
             }
             break;

@@ -77,7 +77,7 @@
 #include "globals.h"
 #include "grace/canvas.h"
 #include "jbitmaps.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "dicts.h"
 #include "events.h"
@@ -2251,10 +2251,10 @@ static void gss_any_cb(void *udata, int cbtype)
         
         switch (cbtype) {
         case GSS_HIDE_CB:
-            set_graph_hidden(gr, TRUE);
+            graph_set_active(gr, FALSE);
             break;
         case GSS_SHOW_CB:
-            set_graph_hidden(gr, FALSE);
+            graph_set_active(gr, TRUE);
             break;
         case GSS_FOCUS_CB:
             switch_current_graph(gr);
@@ -2379,7 +2379,7 @@ void update_graph_selectors(Quark *pr)
     }
 }
 
-void set_graph_selectors(Quark *gr)
+void graph_set_selectors(Quark *gr)
 {
     int i;
     
@@ -2439,10 +2439,10 @@ static void sss_any_cb(void *udata, int cbtype)
         
         switch (cbtype) {
         case SSS_HIDE_CB:
-            set_set_hidden(pset, TRUE);
+            set_set_active(pset, FALSE);
             break;
         case SSS_SHOW_CB:
-            set_set_hidden(pset, FALSE);
+            set_set_active(pset, TRUE);
             break;
         case SSS_EDITS_CB:
             create_ss_frame(pset);
@@ -2460,14 +2460,14 @@ static void sss_any_cb(void *udata, int cbtype)
     case SSS_NEWS_CB:
         if ((pset = set_new(gr))) {
             setcomment(pset, "Editor");
-            set_set_hidden(pset, FALSE);
+            set_set_active(pset, TRUE);
             create_ss_frame(pset);
         }
         break;
     case SSS_NEWE_CB:
         if ((pset = set_new(gr))) {
             setcomment(pset, "Editor");
-            set_set_hidden(pset, FALSE);
+            set_set_active(pset, TRUE);
             do_ext_editor(pset);
         }
         break;

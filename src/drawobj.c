@@ -35,7 +35,7 @@
 
 #include "grace/canvas.h"
 #include "plotone.h"
-#include "objutils.h"
+#include "core_utils.h"
 
 void draw_object(Canvas *canvas, Quark *q)
 {

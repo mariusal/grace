@@ -33,7 +33,7 @@
 
 #include <config.h>
 
-#include "graphs.h"
+#include "core_utils.h"
 #include <Xm/ScrolledW.h>
 #include "explorer.h"
 #include "protos.h"

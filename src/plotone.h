@@ -35,7 +35,7 @@
 
 #include "defines.h"
 #include "grace/canvas.h"
-#include "graphs.h"
+#include "core_utils.h"
 
 typedef struct {
     Canvas *canvas;

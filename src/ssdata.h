@@ -50,8 +50,6 @@ typedef struct _ss_data
     char *label;
 } ss_data;
 
-double *copy_data_column(double *src, int nrows);
-char **copy_string_column(char **src, int nrows);
 double *allocate_index_data(int nrows);
 double *allocate_mesh(double start, double stop, int len);
 

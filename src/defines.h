@@ -79,12 +79,6 @@
 #define MAX_LINEWIDTH 20.0
 
 /*
- * axis types
- */
-#define AXIS_TYPE_X    0
-#define AXIS_TYPE_Y    1
-
-/*
  * axis type masks
  */
 #define AXIS_MASK_X  1
@@ -100,17 +94,6 @@
 #define PAGE_FREE       0
 #define PAGE_FIXED      1
 
-/* Axis label layout */
-#define LAYOUT_PARALLEL         0
-#define LAYOUT_PERPENDICULAR    1
-
-/* Placement (axis labels, ticks, error bars */
-typedef enum {
-    PLACEMENT_NORMAL,
-    PLACEMENT_OPPOSITE,
-    PLACEMENT_BOTH
-} PlacementType;
-
 /* Tick label placement */
 #define LABEL_ONTICK    0
 #define LABEL_BETWEEN   1
@@ -121,66 +104,10 @@ typedef enum {
 #define COORD_WORLD     2
 
 
-/* Tick label/display formats */
-typedef enum {
-    FORMAT_DECIMAL,
-    FORMAT_EXPONENTIAL,
-    FORMAT_GENERAL,
-    FORMAT_POWER,
-    FORMAT_SCIENTIFIC,
-    FORMAT_ENGINEERING,
-    FORMAT_DDMMYY,
-    FORMAT_MMDDYY,
-    FORMAT_YYMMDD,
-    FORMAT_MMYY,
-    FORMAT_MMDD,
-    FORMAT_MONTHDAY,
-    FORMAT_DAYMONTH,
-    FORMAT_MONTHS,
-    FORMAT_MONTHSY,
-    FORMAT_MONTHL,
-    FORMAT_DAYOFWEEKS,
-    FORMAT_DAYOFWEEKL,
-    FORMAT_DAYOFYEAR,
-    FORMAT_HMS,
-    FORMAT_MMDDHMS,
-    FORMAT_MMDDYYHMS,
-    FORMAT_YYMMDDHMS,
-    FORMAT_DEGREESLON,
-    FORMAT_DEGREESMMLON,
-    FORMAT_DEGREESMMSSLON,
-    FORMAT_MMSSLON,
-    FORMAT_DEGREESLAT,
-    FORMAT_DEGREESMMLAT,
-    FORMAT_DEGREESMMSSLAT,
-    FORMAT_MMSSLAT,
-    FORMAT_BAD
-} FormatType;
-
-#define NUMBER_OF_FORMATTYPES   FORMAT_BAD
-
 /* Focus policy */
 #define FOCUS_CLICK     0
 #define FOCUS_SET       1
 #define FOCUS_FOLLOWS   2
-
-/* Placement of labels etc */
-#define TYPE_AUTO       0
-#define TYPE_SPEC       1
-
-/* User-defined tickmarks/labels */
-#define TICKS_SPEC_NONE     0
-#define TICKS_SPEC_MARKS    1
-#define TICKS_SPEC_BOTH     2
-
-/* Tick direction */
-#define TICKS_IN        0
-#define TICKS_OUT       1
-#define TICKS_BOTH      2
-
-/* Data source type */
-#define SOURCE_DISK     0
-#define SOURCE_PIPE     1
 
 
 /* Types of running command */
@@ -205,34 +132,6 @@ typedef enum {
 
 #define FILTER_MAGIC    0
 #define FILTER_PATTERN  1
-
-/* set line types */
-#define LINE_TYPE_NONE          0
-#define LINE_TYPE_STRAIGHT      1
-#define LINE_TYPE_LEFTSTAIR     2
-#define LINE_TYPE_RIGHTSTAIR    3
-#define LINE_TYPE_SEGMENT2      4
-#define LINE_TYPE_SEGMENT3      5
-
-/* baseline types */
-#define BASELINE_TYPE_0         0
-#define BASELINE_TYPE_SMIN      1
-#define BASELINE_TYPE_SMAX      2
-#define BASELINE_TYPE_GMIN      3
-#define BASELINE_TYPE_GMAX      4
-
-/* set fill types */
-#define SETFILL_NONE            0
-#define SETFILL_POLYGON         1
-#define SETFILL_BASELINE        2
-
-/* types of ann. values */
-#define AVALUE_TYPE_NONE        0
-#define AVALUE_TYPE_X           1
-#define AVALUE_TYPE_Y           2
-#define AVALUE_TYPE_XY          3
-#define AVALUE_TYPE_STRING      4
-#define AVALUE_TYPE_Z           5
 
 /* ticks */
 #define TICK_TYPE_MAJOR     0
@@ -302,61 +201,12 @@ typedef enum {
 #define T1_DEFAULT_ENCODING_FILE  "Default.enc"
 #define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
-/*
- * defaults
- */
-typedef struct {
-    Line line;
-    Pen fillpen;
-
-    int font;
-    double charsize;
-} defaults;
-
-typedef struct {
-    int id;
-    char *fontname;
-    char *fallback;
-} Fontdef;
-
-/* A point in world coordinates */
-typedef struct {
-    double x;
-    double y;
-} WPoint;
-
 /* A point in frame coordinates */
 typedef struct {
     double x;
     double y;
 } FPoint;
 
-
-typedef struct {
-    double xg1, xg2, yg1, yg2;  /* window into world coords */
-} world;
-
-/*
- * typedefs for objects
- */
-typedef struct {
-    int type;
-    double length;  /* head length (L) */
-    double dL_ff;   /* d/L form factor */
-    double lL_ff;   /* l/L form factor */
-} Arrow;
-
-typedef struct {
-    int active;
-    VPoint offset;
-    int color;
-    double angle;
-    int font;
-    int just;
-    double charsize;
-    char *s;
-    view bb;
-} plotstr;
 
 
 typedef struct {

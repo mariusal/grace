@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "grace.h"
+#include "grace/core.h"
 
 
 QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid)

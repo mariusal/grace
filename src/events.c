@@ -36,7 +36,7 @@
 #include <stdlib.h>
 
 #include "utils.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "events.h"
 
 #include <X11/X.h>
@@ -203,8 +203,8 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
         
         closure->descend = FALSE;
         
-	if (is_graph_hidden(q)        == FALSE &&
-            get_graph_viewport(q, &v) == RETURN_SUCCESS &&
+	if (graph_is_active(q)        == TRUE &&
+            graph_get_viewport(q, &v) == RETURN_SUCCESS &&
             is_vpoint_inside(&v, vp, 0.0) == TRUE &&
             graph_get_current(pr) != q) {
             switch_current_graph(q);
@@ -248,12 +248,12 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
         vp = *vpp;
     }
 
-    if (is_graph_hidden(cg)) {
+    if (!graph_is_active(cg)) {
         SetLabel(loclab, "[No graphs]");
         return;
     }
     
-    get_graph_viewport(cg, &v);
+    graph_get_viewport(cg, &v);
     if (!is_vpoint_inside(&v, &vp, 0.0)) {
         SetLabel(loclab, "[Out of frame]");
         return;
@@ -261,7 +261,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     
     view2world(vp.x, vp.y, &wx, &wy);
     
-    locator = get_graph_locator(cg);
+    locator = graph_get_locator(cg);
     
     if (locator->pointset) {
 	dsx = locator->dsx;
@@ -270,7 +270,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     
     switch (locator->pt_type) {
     case 0:
-        if (get_graph_type(cg) == GRAPH_POLAR) {
+        if (graph_get_type(cg) == GRAPH_POLAR) {
             polar2xy(wx, wy, &xtmp, &ytmp);
         } else {
             xtmp = wx;
@@ -282,7 +282,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
         ytmp = wy - dsy;
         break;
     case 2:
-        if (get_graph_type(cg) == GRAPH_POLAR) {
+        if (graph_get_type(cg) == GRAPH_POLAR) {
             polar2xy(wx, wy, &xtmp, &ytmp);
         } else {
             xtmp = wx;
@@ -323,7 +323,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
 void switch_current_graph(Quark *gr)
 {
     
-    if (is_graph_hidden(gr) == FALSE) {
+    if (graph_is_active(gr)) {
         Grace *grace = grace_from_quark(gr);
         Quark *cg = graph_get_current(grace->project);
         
@@ -331,7 +331,7 @@ void switch_current_graph(Quark *gr)
         draw_focus(cg);
         draw_focus(gr);
         update_all();
-        set_graph_selectors(gr);
+        graph_set_selectors(gr);
         update_locator_lab(cg, NULL);
     }
 }

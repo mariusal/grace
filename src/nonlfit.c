@@ -34,7 +34,7 @@
 
 #include <config.h>
 
-#include "graphs.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "parser.h"
 #include "protos.h"

@@ -65,7 +65,6 @@ void convertchar(char *s);
 char *create_fstring(const Quark *q, int form, int prec, double loc, int type);
 char *escapequotes(char *s);
 
-int sign(double a);
 double mytrunc(double a);
 
 void bailout(Grace *grace);
@@ -104,8 +103,6 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 char *mybasename(const char *s);
 
 void expand_tilde(const Grace *grace, char *buf);
-void update_timestamp(Quark *project, time_t *t);
-char *get_timestamp(Quark *project);
 
 void update_app_title(Quark *q);
 

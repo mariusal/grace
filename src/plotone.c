@@ -43,7 +43,7 @@
 
 #include "utils.h"
 #include "files.h"
-#include "graphs.h"
+#include "core_utils.h"
 #include "plotone.h"
 #include "protos.h"
 
@@ -234,7 +234,7 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
 
     if (plot_rt->first_pass) {
         
-        gtype = get_graph_type(gr);
+        gtype = graph_get_type(gr);
 
         if (gtype == GRAPH_CHART) {
             int setno, nsets;
@@ -249,14 +249,14 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
                         plot_rt->refn = getsetlength(pset);
                         plot_rt->refx = getx(pset);
                     }
-                    if (is_graph_stacked(gr) != TRUE) {
+                    if (graph_is_stacked(gr) != TRUE) {
                         plot_rt->offset -= 0.5*0.02*p->sym.size;
                     }
                 }
             }
-            plot_rt->offset -= 0.5*(number_of_active_sets(gr) - 1)*get_graph_bargap(gr);
+            plot_rt->offset -= 0.5*(number_of_active_sets(gr) - 1)*graph_get_bargap(gr);
 
-            if (is_graph_stacked(gr) == TRUE) {
+            if (graph_is_stacked(gr) == TRUE) {
                 plot_rt->refy = xcalloc(plot_rt->refn, SIZEOF_DOUBLE);
                 if (plot_rt->refy == NULL) {
                     return FALSE;
@@ -305,7 +305,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
     p = set_get_data(pset);
 
     /* draw sets */
-    gtype = get_graph_type(gr);
+    gtype = graph_get_type(gr);
     switch (gtype) {
     case GRAPH_XY:
         switch (dataset_type(pset)) {
@@ -436,7 +436,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
             return;
         }
 
-        if (is_graph_stacked(gr) != TRUE) {
+        if (graph_is_stacked(gr) != TRUE) {
             plot_rt->offset += 0.5*0.02*p->sym.size;
         }
 
@@ -490,8 +490,8 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
             break;
         }
 
-        if (is_graph_stacked(gr) != TRUE) {
-            plot_rt->offset += 0.5*0.02*p->sym.size + get_graph_bargap(gr);
+        if (graph_is_stacked(gr) != TRUE) {
+            plot_rt->offset += 0.5*0.02*p->sym.size + graph_get_bargap(gr);
         } else {
             for (j = 0; j < getsetlength(pset); j++) {
                 plot_rt->refy[j] += p->data->ex[1][j];
@@ -509,7 +509,7 @@ void draw_ref_point(Canvas *canvas, Quark *gr)
     VPoint vp;
     
     if (is_refpoint_active(gr)) {      
-        locator = get_graph_locator(gr);
+        locator = graph_get_locator(gr);
         wp.x = locator->dsx;
         wp.y = locator->dsy;
         vp = Wpoint2Vpoint(wp);
@@ -649,7 +649,7 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
         return;
     }
     
-    if (get_graph_type(gr) == GRAPH_CHART) {
+    if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
         setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
@@ -658,7 +658,7 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
+    if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -666,7 +666,7 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
     
     setclipping(canvas, TRUE);
     
-    get_graph_world(gr, &w);
+    graph_get_world(gr, &w);
 
     switch (line_type) {
     case LINE_TYPE_STRAIGHT:
@@ -785,7 +785,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     double xmin, xmax, ymin, ymax;
     int stacked_chart;
     
-    if (get_graph_type(gr) == GRAPH_CHART) {
+    if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
         setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
@@ -794,7 +794,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
+    if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1005,9 +1005,9 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
     double *x, *y, *z, *c;
     int skip = p->symskip + 1;
     int stacked_chart;
-    double znorm = get_graph_znorm(gr);
+    double znorm = graph_get_znorm(gr);
     
-    if (get_graph_type(gr) == GRAPH_CHART) {
+    if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
         setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
@@ -1016,7 +1016,7 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
+    if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1100,7 +1100,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         return;
     }
 
-    if (get_graph_type(gr) == GRAPH_CHART) {
+    if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
         setlen = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
@@ -1109,13 +1109,13 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     }
     y = p->data->ex[1];
     
-    if (dataset_cols(pset) > 2) {
+    if (set_get_dataset_ncols(pset) > 2) {
         z = p->data->ex[2];
     } else {
         z = NULL;
     }
     
-    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
+    if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1203,7 +1203,7 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
         return;
     }
     
-    if (get_graph_type(gr) == GRAPH_CHART) {
+    if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
         n = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
@@ -1212,7 +1212,7 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
+    if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1373,7 +1373,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     VPoint vp1, vp2;
     int stacked_chart;
     
-    if (get_graph_type(gr) == GRAPH_CHART) {
+    if (graph_get_type(gr) == GRAPH_CHART) {
         x = plot_rt->refx;
         n = MIN2(getsetlength(pset), plot_rt->refn);
     } else {
@@ -1382,7 +1382,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
+    if (graph_get_type(gr) == GRAPH_CHART && graph_is_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1397,7 +1397,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     }
 
     setline(canvas, &p->sym.line);
-    if (get_graph_type(gr) == GRAPH_CHART &&
+    if (graph_get_type(gr) == GRAPH_CHART &&
         p->sym.line.style != 0 && p->sym.line.pen.pattern != 0) {
         lw = getlinewidth(canvas);
     } else {
@@ -1513,7 +1513,7 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
     Quark *gr = get_parent_graph(pset);
     set *p = set_get_data(pset);
     int i, setlen;
-    double znorm = get_graph_znorm(gr);
+    double znorm = graph_get_znorm(gr);
     int skip = p->symskip + 1;
     double *x, *y, *vx, *vy;
     WPoint wp;
@@ -1635,12 +1635,12 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     gr = get_parent_graph(pset);
     pr = get_parent_project(gr);
 
-    get_graph_viewport(gr, &v);
+    graph_get_viewport(gr, &v);
     vpc.x = (v.xv1 + v.xv2)/2;
     vpc.y = (v.yv1 + v.yv2)/2;
 
-    get_graph_world(gr, &w);
-    sgn = is_graph_xinvert(gr) ? -1:1;
+    graph_get_world(gr, &w);
+    sgn = graph_is_xinvert(gr) ? -1:1;
     
     p = set_get_data(pset);
     
@@ -2091,7 +2091,7 @@ void draw_legend_syms(Quark *pset,
 
     if (is_set_drawable(pset) &&
         !is_empty_string(p->legstr) &&
-        get_graph_type(gr) != GRAPH_PIE) {
+        graph_get_type(gr) != GRAPH_PIE) {
         
         Canvas *canvas = plot_rt->canvas;
         double symvshift;
@@ -2187,8 +2187,8 @@ static int is_legend_drawable(Quark *pset)
     
     if (is_set_drawable(pset)       &&
         !is_empty_string(p->legstr) &&
-        !is_graph_hidden(gr)        &&
-        get_graph_type(gr) != GRAPH_PIE) {
+        graph_is_active(gr)         &&
+        graph_get_type(gr) != GRAPH_PIE) {
         
         return TRUE;
     } else {

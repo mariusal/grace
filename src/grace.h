@@ -35,111 +35,12 @@
 
 #include "grace/baseP.h"
 #include "grace/canvas.h"
+#include "grace/core.h"
 #include "defines.h"
-
-#define QUARK_ETYPE_MODIFY  1
-#define QUARK_ETYPE_DELETE  2
 
 typedef struct _Grace Grace;
 
-typedef struct _Quark Quark;
-
 typedef struct _ExplorerUI ExplorerUI;
-
-typedef void  (*Quark_data_free)(void *data); 
-typedef void *(*Quark_data_new)(void); 
-typedef void *(*Quark_data_copy)(void *data); 
-
-typedef int (*Quark_cb)(Quark *q, int etype, void *data); 
-
-typedef int (*Quark_comp_proc)(const Quark *q1, const Quark *q2, void *udata); 
-
-typedef struct _QuarkFlavor {
-    unsigned int    fid;
-    Quark_data_new  data_new;
-    Quark_data_free data_free;
-    Quark_data_copy data_copy;
-} QuarkFlavor;
-
-typedef struct _QuarkFactory {
-    unsigned int refcount;
-    
-    QuarkFlavor *qflavours;
-    unsigned int nflavours;
-    
-    void *udata;
-} QuarkFactory;
-
-struct _Quark {
-    QuarkFactory *qfactory;
-    
-    void *udata;
-    
-    unsigned int fid;
-    char *idstr;
-    
-    struct _Quark *parent;
-    Storage *children;
-    unsigned int dirtystate;
-    unsigned int refcount;
-    
-    void *data;
-    
-    Quark_cb cb;
-    void *cbdata;
-};
-
-typedef struct {
-    unsigned int depth;
-    unsigned int step;
-    int post;
-    int descend;
-} QTraverseClosure;
-
-typedef int (*Quark_traverse_hook)(Quark *q,
-    void *udata, QTraverseClosure *closure); 
-
-typedef struct _Project {
-    /* Version ID */
-    int version_id;
-    
-    /* textual description */
-    char *description;
-    
-#if 0
-    Storage *blockdata;
-#endif
-    /* (pointer to) current graph */
-    Quark *cg;
-    
-    /* timestamp */
-    char *timestamp;
-    
-    /* page size */
-    int page_wpp, page_hpp;
-    
-    /* font map */
-    unsigned int nfonts;
-    Fontdef *fontmap;
-    
-    /* page fill */
-    int bgcolor;
-    int bgfill;
-    
-    /* format for saving data sets */
-    char *sformat;
-
-    /* dates */
-    double ref_date;
-    int wrap_year;
-    int two_digits_years;
-
-    /* default graphics properties */
-    defaults grdefaults;
-    
-    /* project file name */
-    char *docname;	
-} Project;
 
 typedef struct _GUI {
     /* Parent */
@@ -257,61 +158,7 @@ struct _Grace {
     Quark *project;
 };
 
-enum {
-    QFlavorProject,
-    QFlavorFrame,
-    QFlavorGraph,
-    QFlavorSet,
-    QFlavorDObject,
-    QFlavorAxis,
-    QFlavorRegion,
-    QFlavorContainer
-};
-
-QuarkFactory *qfactory_new(void);
-int quark_flavor_add(QuarkFactory *qfactory, const QuarkFlavor *qf);
-QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid);
-int quark_factory_set_udata(QuarkFactory *qfactory, void *udata);
-void *quark_factory_get_udata(const QuarkFactory *qfactory);
-
-Quark *quark_root(QuarkFactory *qfactory, unsigned int fid);
-Quark *quark_new(Quark *parent, unsigned int fid);
-void quark_free(Quark *q);
-Quark *quark_copy(const Quark *q);
-Quark *quark_copy2(Quark *newparent, const Quark *q);
-
-Quark *quark_parent_get(const Quark *q);
-
-void quark_dirtystate_set(Quark *q, int flag);
-int quark_dirtystate_get(const Quark *q);
-
-void quark_idstr_set(Quark *q, const char *s);
-char *quark_idstr_get(const Quark *q);
-Quark *quark_find_child_by_idstr(Quark *q, const char *s);
-Quark *quark_find_descendant_by_idstr(Quark *q, const char *s);
-
-int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata);
-void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata);
-
-int quark_count_children(const Quark *q);
-int quark_child_exist(const Quark *parent, const Quark *child);
-int quark_reparent(Quark *q, Quark *newparent);
-int quark_reparent_children(Quark *parent, Quark *newparent);
-
-int quark_move(const Quark *q, int forward);
-int quark_push(const Quark *q, int forward);
-
-int quark_sort_children(Quark *q, Quark_comp_proc fcomp, void *udata);
-
-int quark_set_udata(Quark *q, void *udata);
-void *quark_get_udata(const Quark *q);
-
-#define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
-
-Project *project_data_new(void);
-void project_data_free(Project *pr);
 Quark *project_new(QuarkFactory *qfactory);
-void project_free(Quark *q);
 
 GUI *gui_new(Grace *grace);
 void gui_free(GUI *gui);
@@ -334,25 +181,12 @@ int set_printer_by_name(Grace *grace, const char *dname);
 void set_ptofile(Grace *grace, int flag);
 int get_ptofile(const Grace *grace);
 
-int project_get_version_id(const Quark *q);
-int project_set_version_id(Quark *q, int version_id);
 void project_reset_version(Quark *q);
-
-void project_set_description(Quark *q, char *descr);
-char *project_get_description(const Quark *q);
 
 int project_get_graphs(Quark *q, Quark ***graphs);
 
-char *project_get_sformat(const Quark *q);
-void project_set_sformat(Quark *q, const char *s);
-
-Project *project_get_data(const Quark *q);
-
 void project_set_wrap_year(Quark *q, int wrap_year);
-void project_set_ref_date(Quark *q, double ref);
-void project_allow_two_digits_years(Quark *q, int flag);
 
-int project_add_font(Quark *project, const Fontdef *f);
 int get_font_by_name(const Quark *project, const char *name);
 
 #endif /* __GRACE_H_ */

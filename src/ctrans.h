@@ -33,7 +33,7 @@
 #ifndef __CTRANS_H_
 #define __CTRANS_H_
 
-#include "graphs.h"
+#include "core_utils.h"
 
 /*
  * types of coordinate frames
@@ -41,17 +41,6 @@
 #define COORDINATES_XY      0       /* Cartesian coordinates */
 #define COORDINATES_POLAR   1       /* Polar coordinates */
                                 
-/* Types of axis scale mappings */
-typedef enum {
-    SCALE_NORMAL,
-    SCALE_LOG,
-    SCALE_REC,
-    SCALE_LOGIT,
-    SCALE_BAD
-} ScaleType;
-
-#define NUMBER_OF_SCALETYPES  SCALE_BAD
-
 char *scale_types(ScaleType it);
 ScaleType get_scale_type_by_name(const char *name);
 

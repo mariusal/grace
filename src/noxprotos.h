@@ -39,7 +39,7 @@
 #include <stdio.h>
 
 #include "defines.h"
-#include "graphs.h"
+#include "core_utils.h"
 
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 int apply_window(double *v, int ilen, int window, double beta);
@@ -77,8 +77,6 @@ int featext(Quark **sets, int nsets, Quark *pdest,
     char *formula);
 int cumulative(Quark **sets, int nsets, Quark *pdest);
 
-void set_default_string(plotstr *s);
-
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
 int fmap_proc(const Canvas *canvas, int font);
 int init_font_db(Canvas *canvas);
@@ -115,11 +113,8 @@ int get_point(Quark *pset, int seti, WPoint *wp);
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
 Datapoint *datapoint_new(void);
 void datapoint_free(Datapoint *dpoint);
-Dataset *dataset_new(void);
-void dataset_free(Dataset *dsp);
-Dataset *set_get_dataset(Quark *qset);
-int set_dataset_nrows(Dataset *data, int nrows);
-int set_dataset_ncols(Dataset *data, int ncols);
+int dataset_set_nrows(Dataset *data, int nrows);
+int dataset_set_ncols(Dataset *data, int ncols);
 int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
 void setcol(Quark *pset, int col, double *x, int len);
 
@@ -155,12 +150,7 @@ void do_kill(Quark *pset, int soft);
 void do_sort(Quark *pset, int sorton, int stype);
 void do_cancel_pickop(void);
 
-
-void set_hotlink(Quark *pset, int onoroff, char *fname, int src);
-int is_hotlinked(Quark *pset);
 void do_update_hotlink(Quark *pset);
-char *get_hotlink_file(Quark *pset);
-int get_hotlink_src(Quark *pset);
 
 void sortset(Quark *pset, int sorton, int stype);
 int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray);
@@ -171,8 +161,6 @@ int find_span_index(double *array, int len, int m, double x);
 
 int inregion(const Quark *q, const WPoint *wp);
 char *region_types(int it, int which);
-
-void set_plotstr_string(plotstr * pstr, char *buf);
 
 void cli_loop(void);
 

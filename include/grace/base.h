@@ -52,6 +52,11 @@
 #define RETURN_SUCCESS (0)
 #define RETURN_FAILURE (1)
 
+#define NICE_FLOOR   0
+#define NICE_CEIL    1
+#define NICE_ROUND   2
+
+
 /* FIXME! */
 extern void errmsg(const char *msg);
 
@@ -76,6 +81,10 @@ unsigned char reversebits(unsigned char inword);
 
 /* file i/o */
 char *grace_fgets(char *s, int size, FILE *stream);
+
+/* misc numerics */
+int sign(double a);
+double nicenum(double x, int nrange, int round);
 
 /* dict3 stuff */
 typedef struct {

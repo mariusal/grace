@@ -131,23 +131,6 @@ void project_set_wrap_year(Quark *q, int year)
         wy        = pr->wrap_year - (century - 100);
     }
 }
-void project_set_ref_date(Quark *q, double ref)
-{
-    Project *pr = project_get_data(q);
-    
-    if (pr) {
-        pr->ref_date = ref;
-    }
-}
-
-void project_allow_two_digits_years(Quark *q, int flag)
-{
-    Project *pr = project_get_data(q);
-    
-    if (pr) {
-        pr->two_digits_years = flag;
-    }
-}
 
 /*
  * reduce years according to the following rules :

@@ -29,7 +29,7 @@
 #define __EXPLORER_H_
 
 /* for MAX_TICKS */
-#include "graphs.h"
+#include "core_utils.h"
 
 #include "motifinc.h"
 #include "ListTree.h"
@@ -393,7 +393,7 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller);
 
 GraphUI *create_graph_ui(ExplorerUI *eui);
 void update_graph_ui(GraphUI *ui, Quark *q);
-int set_graph_data(GraphUI *ui, Quark *q, void *caller);
+int graph_set_data(GraphUI *ui, Quark *q, void *caller);
 
 SetUI *create_set_ui(ExplorerUI *eui);
 void update_set_ui(SetUI *ui, Quark *q);

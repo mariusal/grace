@@ -37,7 +37,7 @@
 #include <Xm/Xm.h>
 
 #include "defines.h"
-#include "graphs.h"
+#include "core_utils.h"
 
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
@@ -146,7 +146,7 @@ void do_ext_editor(Quark *pset);
 
 void update_set_selectors(Quark *gr);
 
-void set_graph_selectors(Quark *gr);
+void graph_set_selectors(Quark *gr);
 int clean_graph_selectors(Quark *pr, int etype, void *data);
 int clean_set_selectors(Quark *gr, int etype, void *data);
 

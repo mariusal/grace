@@ -35,9 +35,7 @@
 #include "grace.h"
 #include "utils.h"
 #include "dicts.h"
-#include "graphs.h"
-#include "graphutils.h"
-#include "objutils.h"
+#include "core_utils.h"
 #include "protos.h"
 
 GUI *gui_new(Grace *grace)

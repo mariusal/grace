@@ -37,8 +37,7 @@
 #include <string.h>
 
 #include "utils.h"
-#include "graphs.h"
-#include "graphutils.h"
+#include "core_utils.h"
 #include "grace/canvas.h"
 #include "parser.h"
 #include "protos.h"
@@ -71,8 +70,8 @@ static void drawgrid(Canvas *canvas, Quark *q)
     /* TODO: add Pen to ticks and remove the following */
     setpattern(canvas, 1);
     
-    get_graph_viewport(gr, &v);
-    get_graph_world(gr, &w);
+    graph_get_viewport(gr, &v);
+    graph_get_world(gr, &w);
     
     /* graph center; for polar plots */
     vpc.x = (v.xv1 + v.xv2)/2.0;
@@ -129,7 +128,7 @@ static void drawgrid(Canvas *canvas, Quark *q)
 	    vp_grid_stop = Wpoint2Vpoint(wp_grid_stop);
 
 
-            if (!axis_is_x(q) && get_graph_type(gr) == GRAPH_POLAR) {
+            if (!axis_is_x(q) && graph_get_type(gr) == GRAPH_POLAR) {
                 xy2polar(vp_grid_start.x - vpc.x, vp_grid_start.y - vpc.y,
                          &phi_start, &rho);
                 xy2polar(vp_grid_stop.x - vpc.x, vp_grid_stop.y - vpc.y,
@@ -138,7 +137,7 @@ static void drawgrid(Canvas *canvas, Quark *q)
                 vp1.y = vpc.y + rho;
                 vp2.x = vpc.x + rho;
                 vp2.y = vpc.y - rho;
-                if (is_graph_xinvert(gr) == TRUE) {
+                if (graph_is_xinvert(gr) == TRUE) {
                     fswap(&phi_start, &phi_stop);
                 }
                 if (phi_stop < phi_start) {
@@ -195,8 +194,8 @@ static void drawaxis(Canvas *canvas, Quark *q)
 
     gr = get_parent_graph(q);
     
-    get_graph_viewport(gr, &v);
-    get_graph_world(gr, &w);
+    graph_get_viewport(gr, &v);
+    graph_get_world(gr, &w);
 
     /* graph center; for polar plots */
     vpc.x = (v.xv1 + v.xv2)/2.0;
@@ -245,13 +244,13 @@ static void drawaxis(Canvas *canvas, Quark *q)
         vp2_start = Wpoint2Vpoint(wp2_start);
         vp2_stop  = Wpoint2Vpoint(wp2_stop);
 
-        if (is_graph_yinvert(gr) == TRUE) {
+        if (graph_is_yinvert(gr) == TRUE) {
             vpswap(&vp1_start, &vp2_start);
             vpswap(&vp1_stop, &vp2_stop);
         }
 
         /* TODO axis offset for polar plots */
-        if (get_graph_type(gr) != GRAPH_POLAR) {
+        if (graph_get_type(gr) != GRAPH_POLAR) {
              vp1_start.y -= t->offsx;
              vp1_stop.y  -= t->offsx;
              vp2_start.y += t->offsy;
@@ -312,12 +311,12 @@ static void drawaxis(Canvas *canvas, Quark *q)
         vp2_start = Wpoint2Vpoint(wp2_start);
         vp2_stop  = Wpoint2Vpoint(wp2_stop);
 
-        if (is_graph_xinvert(gr) == TRUE) {
+        if (graph_is_xinvert(gr) == TRUE) {
             vpswap(&vp1_start, &vp2_start);
             vpswap(&vp1_stop, &vp2_stop);
         }
 
-        if (get_graph_type(gr) != GRAPH_POLAR) {
+        if (graph_get_type(gr) != GRAPH_POLAR) {
             vp1_start.x -= t->offsx;
             vp1_stop.x  -= t->offsx;
             vp2_start.x += t->offsy;
@@ -349,7 +348,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	setlinewidth(canvas, t->t_drawbarlinew);
 	setlinestyle(canvas, t->t_drawbarlines);
 	if (t->t_op == PLACEMENT_NORMAL || t->t_op == PLACEMENT_BOTH) {
-            if (axis_is_x(q) && get_graph_type(gr) == GRAPH_POLAR) {
+            if (axis_is_x(q) && graph_get_type(gr) == GRAPH_POLAR) {
                 xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
                          &phi_start, &rho);
                 xy2polar(vp1_stop.x - vpc.x, vp1_stop.y - vpc.y,
@@ -358,7 +357,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
                 vp1.y = vpc.y + rho;
                 vp2.x = vpc.x + rho;
                 vp2.y = vpc.y - rho;
-                if (is_graph_xinvert(gr) == TRUE) {
+                if (graph_is_xinvert(gr) == TRUE) {
                     fswap(&phi_start, &phi_stop);
                 }
                 if (phi_stop < phi_start) {
@@ -371,7 +370,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
             }
 	}
 	if (t->t_op == PLACEMENT_OPPOSITE || t->t_op == PLACEMENT_BOTH) {
-            if (axis_is_x(q) && get_graph_type(gr) == GRAPH_POLAR) {
+            if (axis_is_x(q) && graph_get_type(gr) == GRAPH_POLAR) {
                 xy2polar(vp2_start.x - vpc.x, vp2_start.y - vpc.y,
                          &phi_start, &rho);
                 xy2polar(vp2_stop.x - vpc.x, vp2_stop.y - vpc.y,
@@ -380,7 +379,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
                 vp1.y = vpc.y + rho;
                 vp2.x = vpc.x + rho;
                 vp2.y = vpc.y - rho;
-                if (is_graph_xinvert(gr) == TRUE) {
+                if (graph_is_xinvert(gr) == TRUE) {
                     fswap(&phi_start, &phi_stop);
                 }
                 if (phi_stop < phi_start) {
@@ -397,7 +396,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 
 
     /* TODO ticks, labels and axis labels for polar plots */
-    if (get_graph_type(gr) == GRAPH_POLAR) {
+    if (graph_get_type(gr) == GRAPH_POLAR) {
         return;
     }
 
@@ -690,12 +689,12 @@ static void calculate_tickgrid(Quark *q)
 
     gr = get_parent_graph(q);
 
-    get_graph_world(gr, &w);
+    graph_get_world(gr, &w);
     
 reenter:
     if (t->t_spec == TICKS_SPEC_NONE) {
         if (axis_is_x(q)) {
-            scale = get_graph_xscale(gr);
+            scale = graph_get_xscale(gr);
             if (scale == SCALE_LOG) {
                 swc_start = fscale(w.xg1, scale);
                 swc_stop  = fscale(w.xg2, scale);
@@ -704,7 +703,7 @@ reenter:
                 swc_stop  = w.xg2;
             }
         } else {
-            scale = get_graph_yscale(gr);
+            scale = graph_get_yscale(gr);
             if (scale == SCALE_LOG) {
                 swc_start = fscale(w.yg1, scale);
                 swc_stop  = fscale(w.yg2, scale);
@@ -845,7 +844,7 @@ void draw_axis(Canvas *canvas, Quark *q)
 {
     tickmarks *t = axis_get_data(q);
     if (t && t->active &&
-        get_graph_type(get_parent_graph(q)) != GRAPH_PIE) {
+        graph_get_type(get_parent_graph(q)) != GRAPH_PIE) {
         /* calculate tick mark positions */
         calculate_tickgrid(q);
         

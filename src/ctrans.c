@@ -312,7 +312,7 @@ int definewindow(const world *w, const view *v, int ctrans_type, int xyfixed,
         }
         break;
     default:
-        /* FIXME: set_graph_type() should worry that for GRAPH_FIXED,  */
+        /* FIXME: graph_set_type() should worry that for GRAPH_FIXED,  */
         /*        the scalings, world window etc are set appropriately */
         if (xyfixed) {
             if ((xscale != SCALE_NORMAL) ||

@@ -41,7 +41,7 @@
 
 #include <Xbae/Matrix.h>
 
-#include "graphs.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "plotone.h"
 #include "ssdata.h"
@@ -217,14 +217,14 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
     
     if (n == 1) {
 	pset = values[0];
-        ncols = dataset_cols(pset);
+        ncols = set_get_dataset_ncols(pset);
         SetTextString(tui.comment_item, getcomment(pset));
 	sprintf(buf, "%d", getsetlength(pset));
         xv_setstr(tui.length_item, buf);
         SetOptionChoice(tui.datatype_item, dataset_type(pset));
-        SetToggleButtonState(tui.hotlink_item, is_hotlinked(pset));
-        SetOptionChoice(tui.hotsrc_item, get_hotlink_src(pset));
-        xv_setstr(tui.hotfile_item, get_hotlink_file(pset));
+        SetToggleButtonState(tui.hotlink_item, set_is_hotlinked(pset));
+        SetOptionChoice(tui.hotsrc_item, set_get_hotlink_src(pset));
+        xv_setstr(tui.hotfile_item, set_get_hotlink_file(pset));
     } else {
 	pset = NULL;
         ncols = 0;
@@ -312,7 +312,7 @@ static int datasetprop_aac_cb(void *data)
                 set_dataset_type(pset, type);
                 setlength(pset, len);
                 setcomment(pset, s);
-                set_hotlink(pset, hotlink, hotfile, hotsrc);
+                set_set_hotlink(pset, hotlink, hotfile, hotsrc);
             }
         }
  
@@ -732,7 +732,7 @@ static int leval_aac_cb(void *data)
     
     pset = set_new(gr);
     set_dataset_type(pset, type);
-    set_set_hidden(pset, FALSE);
+    set_set_active(pset, TRUE);
     if (setlength(pset, npts) != RETURN_SUCCESS) {
         killset(pset);
         XCFREE(t->data);

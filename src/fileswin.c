@@ -48,8 +48,7 @@
 #include <Xm/List.h>
 
 #include "globals.h"
-#include "graphs.h"
-#include "graphutils.h"
+#include "core_utils.h"
 #include "utils.h"
 #include "files.h"
 #include "motifinc.h"
