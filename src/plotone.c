@@ -409,6 +409,7 @@ void draw_polar_graph(int gno)
             case SET_XY:
             case SET_XYSIZE:
             case SET_XYCOLOR:
+            case SET_XYZ:
                 drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -444,6 +445,7 @@ void xyplot(int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
+                case SET_XYZ:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -466,11 +468,6 @@ void xyplot(int gno)
                     break;
                 case SET_XYHILO:
                     drawsethilo(&p);
-                    break;
-                case SET_XYZ:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -619,6 +616,7 @@ void xyplot(int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
+                case SET_XYZ:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -631,11 +629,6 @@ void xyplot(int gno)
                 case SET_XYDXDXDYDY:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYZ:
-                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
