@@ -140,9 +140,6 @@ $GRACE logistic.agr
 # some interesting stuff
 $GRACE -arrange 2 2 -b test.com
 #
-# a slideshow demo
-$GRACE -pipe < slideshow.d
-#
 # need a program
 # modified from previous versions, a thank you goes to Bruce Barnett
 # this modification allows others without write permission
