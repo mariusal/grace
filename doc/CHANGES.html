@@ -20,6 +20,9 @@
  *  [ES] implemented optional snake-like matrix fill in graph arranging
          (rep. #1119)
 
+<H3>Interface</H3>
+ *  [ES] accept non-ASCII characters from nationalized keyboards
+
 <H3>Documentation/Info</H3>
  *  [ES] added compile-time $(LDFLAGS) to the `-version' output
 
@@ -45,9 +48,11 @@
          instead of splitting the set (rep. #831)
  *  [ES] honour symskip for error bars (rep. #936)
  *  [ES] when enabling log axis scaling on the command line, set reasonable
-         major/minor settings and world bounds (reps. #732, #1021)
+         major/minor settings and world bounds (reps. #723, #1021)
  *  [ES] under very rare circumstances, Grace might cause a (probably buggy)
          X window manager misbehave
+ *  [MD] make sure the EPS/PS output lines don't exceed 255 chars in lenth
+         (rep. #1100)
 
 <H2>5.1.6</H2>
 
