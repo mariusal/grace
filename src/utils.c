@@ -498,7 +498,7 @@ static void bugwarn(char *signame)
         fprintf(stderr, "\a\nOops! Got %s\n", signame);
         if (is_dirtystate()) {
             strcpy(buf, docname);
-            strcat(buf, "#");
+            strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             noask = TRUE;
             if (save_project(buf) == GRACE_EXIT_SUCCESS) {
