@@ -94,12 +94,16 @@ static Widget *baselinetype_item;
 static CSTextStructure *legend_str_item;
 
 static Widget errbar_active_item;
+static Widget *errbar_ptype_item;
+static OptionStructure *errbar_color_item;
+static OptionStructure *errbar_pattern_item;
 static Widget errbar_size_item;
 static SpinStructure *errbar_width_item;
 static OptionStructure *errbar_lines_item;
-static Widget *errbar_ptype_item;
 static SpinStructure *errbar_riserlinew_item;
 static OptionStructure *errbar_riserlines_item;
+static Widget errbar_aclip_item;
+static SpinStructure *errbar_cliplen_item;
 
 static Widget avalue_active_item;
 static Widget *avalue_type_item;
@@ -423,29 +427,46 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         rc2 = XmCreateRowColumn(setapp_errbar, "rc", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 
-        fr = CreateFrame(rc2, "Bar line");
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        errbar_size_item = CreateCharSizeChoice(rc, "Size");
-        errbar_width_item = CreateLineWidthChoice(rc, "Width:");
-        errbar_lines_item = CreateLineStyleChoice(rc, "Style:");
-        XtManageChild(rc);
-
         rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc2, NULL);
-        fr = CreateFrame(rc1, "Placement");
-        errbar_ptype_item = CreatePanelChoice(fr,
-                                             "Type:",
+
+        fr = CreateFrame(rc1, "Common");
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        errbar_ptype_item = CreatePanelChoice(rc,
+                                             "Placement:",
                                              4,
                                              "Normal",
                                              "Opposite",
                                              "Both",
                                              NULL,
                                              0);
-        
+	errbar_color_item = CreateColorChoice(rc, "Color:");
+	errbar_pattern_item = CreatePatternChoice(rc, "Pattern:");
+        XtManageChild(rc);
+
+        fr = CreateFrame(rc1, "Clipping");
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+	errbar_aclip_item = CreateToggleButton(rc, "Arrow clip");
+	errbar_cliplen_item = CreateSpinChoice(rc, "Max riser length",
+            3, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+        XtManageChild(rc);
+
+        XtManageChild(rc1);
+
+        rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc2, NULL);
+
+        fr = CreateFrame(rc1, "Bar line");
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        errbar_size_item = CreateCharSizeChoice(rc, "Size");
+        errbar_width_item = CreateLineWidthChoice(rc, "Width:");
+        errbar_lines_item = CreateLineStyleChoice(rc, "Style:");
+        XtManageChild(rc);
+
         fr = CreateFrame(rc1, "Riser line");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
         errbar_riserlinew_item = CreateLineWidthChoice(rc, "Width:");
         errbar_riserlines_item = CreateLineStyleChoice(rc, "Style:");
         XtManageChild(rc);
+
         XtManageChild(rc1);
         
         XtManageChild(rc2);
@@ -537,7 +558,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     charfont = GetOptionChoice(char_font_item);
     
     errbar.active = GetToggleButtonState(errbar_active_item);
-    errbar.length = GetCharSizeChoice(errbar_size_item);
+    errbar.barsize = GetCharSizeChoice(errbar_size_item);
     errbar.linew = GetSpinChoice(errbar_width_item);
     errbar.lines = GetOptionChoice(errbar_lines_item);
     errbar.riser_linew = GetSpinChoice(errbar_riserlinew_item);
@@ -590,6 +611,10 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.baseline_type = baselinetype;
 
             errbar.ptype = GetChoice(errbar_ptype_item);
+            errbar.pen.color = GetOptionChoice(errbar_color_item);
+            errbar.pen.pattern = GetOptionChoice(errbar_pattern_item);
+            errbar.arrow_clip = GetToggleButtonState(errbar_aclip_item);
+            errbar.cliplen = GetSpinChoice(errbar_cliplen_item);
     
             p.errbar = errbar;
             p.avalue = avalue;
@@ -666,11 +691,15 @@ static void UpdateSymbols(int gno, int value)
         
         SetToggleButtonState(errbar_active_item, p.errbar.active);
         SetChoice(errbar_ptype_item, p.errbar.ptype);
+        SetOptionChoice(errbar_color_item, p.errbar.pen.color);
+        SetOptionChoice(errbar_pattern_item, p.errbar.pen.pattern);
+        SetToggleButtonState(errbar_aclip_item, p.errbar.arrow_clip);
+        SetSpinChoice(errbar_cliplen_item, p.errbar.cliplen);
         SetSpinChoice(errbar_width_item, p.errbar.linew);
         SetOptionChoice(errbar_lines_item, p.errbar.lines);
         SetSpinChoice(errbar_riserlinew_item, p.errbar.riser_linew);
         SetOptionChoice(errbar_riserlines_item, p.errbar.riser_lines);
-        SetCharSizeChoice(errbar_size_item, p.errbar.length);
+        SetCharSizeChoice(errbar_size_item, p.errbar.barsize);
 
         SetToggleButtonState(avalue_active_item, p.avalue.active);
         SetChoice(avalue_type_item, p.avalue.type);

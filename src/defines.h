@@ -545,11 +545,14 @@ typedef struct {
 typedef struct {
     int active;          /* on/off */
     PlacementType ptype; /* placement type */
+    Pen pen;             /* pen */
     double linew;        /* error bar line width */
     int lines;           /* error bar line style */
     double riser_linew;  /* connecting line between error limits line width */
     int riser_lines;     /* connecting line between error limits line style */
-    double length;       /* length of error bar */
+    double barsize;      /* size of error bar */
+    int arrow_clip;      /* draw arrows if clipped */
+    double cliplen;      /* riser clipped length (v.p.) */
 } Errbar;
 
 /* Annotative strings for data values */

@@ -537,11 +537,15 @@ void putparms(int gno, FILE *pp, int embed)
                         fprintf(pp, "%s    s%1d errorbar place both\n", embedstr, i);
                         break;
                     }
-                    fprintf(pp, "%s    s%1d errorbar length %f\n", embedstr, i, p.errbar.length);
+                    fprintf(pp, "%s    s%1d errorbar color %d\n", embedstr, i, p.errbar.pen.color);
+                    fprintf(pp, "%s    s%1d errorbar pattern %d\n", embedstr, i, p.errbar.pen.pattern);
+                    fprintf(pp, "%s    s%1d errorbar size %f\n", embedstr, i, p.errbar.barsize);
                     fprintf(pp, "%s    s%1d errorbar linewidth %.1f\n", embedstr, i, p.errbar.linew);
                     fprintf(pp, "%s    s%1d errorbar linestyle %d\n", embedstr, i, p.errbar.lines);
                     fprintf(pp, "%s    s%1d errorbar riser linewidth %.1f\n", embedstr, i, p.errbar.riser_linew);
                     fprintf(pp, "%s    s%1d errorbar riser linestyle %d\n", embedstr, i, p.errbar.riser_lines);
+                    fprintf(pp, "%s    s%1d errorbar riser clip %s\n", embedstr, i, on_or_off(p.errbar.arrow_clip));
+                    fprintf(pp, "%s    s%1d errorbar riser clip length %f\n", embedstr, i, p.errbar.cliplen);
 
                     if (is_hotlinked(gno, i)) {
                         fprintf(pp, "%s    s%1d link %s \"%s\"\n", embedstr, i,

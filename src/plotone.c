@@ -1236,8 +1236,7 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     double *x, *y;
     double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
     PlacementType ptype = p->errbar.ptype;
-    double ebarlen = p->errbar.length;
-    WPoint wp1, wp2, wp3, wp4;
+    WPoint wp1, wp2;
     VPoint vp1, vp2;
     int stacked_chart;
     
@@ -1318,89 +1317,48 @@ void drawseterrbars(int gno, int setno, plotarr *p,
     
     setclipping(TRUE);
     
-    setcolor(p->sympen.color);
-    setpattern(1);
+    setpen(p->errbar.pen);
     
-/*
- * draw the riser
- */
-    if (p->errbar.riser_lines != 0) {
-        setlinewidth(p->errbar.riser_linew);
-        setlinestyle(p->errbar.riser_lines);
-        for (i = 0; i < n; i++) {
-            wp1.x = x[i];
-            wp1.y = y[i];
-            if (stacked_chart == TRUE) {
-                wp1.y += refy[i];
-            }
-            if (is_validWPoint(wp1) == FALSE) {
-                continue;
-            }
-            wp4 = wp3 = wp2 = wp1;
-
-            if (dx_plus != NULL || dx_minus != NULL) {
-                if (dx_plus != NULL) {
-                    wp1.x += fabs(dx_plus[i]);
-                }
-                if (dx_minus != NULL) {
-                    wp2.x -= fabs(dx_minus[i]);
-                }
-                vp1 = Wpoint2Vpoint(wp1);
-                vp2 = Wpoint2Vpoint(wp2);
-    	        vp1.x += offset;
-    	        vp2.x += offset;
-                DrawLine(vp1, vp2);
-            }
-
-            if (dy_plus != NULL || dy_minus != NULL) {
-                if (dy_plus != NULL) {
-                    wp3.y += fabs(dy_plus[i]);
-                }
-                if (dy_minus != NULL) {
-                    wp4.y -= fabs(dy_minus[i]);
-                }
-                vp1 = Wpoint2Vpoint(wp3);
-                vp2 = Wpoint2Vpoint(wp4);
-    	        vp1.x += offset;
-    	        vp2.x += offset;
-                DrawLine(vp1, vp2);
-            }
+    for (i = 0; i < n; i++) {
+        wp1.x = x[i];
+        wp1.y = y[i];
+        if (stacked_chart == TRUE) {
+            wp1.y += refy[i];
         }
-    }
-/*
- * draw the bar
- */
-    if (p->errbar.lines != 0) {
-        setlinewidth(p->errbar.linew);
-        setlinestyle(p->errbar.lines);
-        for (i = 0; i < n; i++) {
-            wp1.x = x[i];
-            wp1.y = y[i];
-            if (stacked_chart == TRUE) {
-                wp1.y += refy[i];
-            }
-            if (is_validWPoint(wp1) == FALSE) {
-                continue;
-            }
-            wp4 = wp3 = wp2 = wp1;
+        if (is_validWPoint(wp1) == FALSE) {
+            continue;
+        }
 
-            if (dx_plus != NULL) {
-                wp1.x += fabs(dx_plus[i]);
-                drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-            }
-            if (dx_minus != NULL) {
-                wp2.x -= fabs(dx_minus[i]);
-                drawerrorbar(wp2, offset, ebarlen, BAR_VERTICAL);
-            }
+        vp1 = Wpoint2Vpoint(wp1);
+        vp1.x += offset;
 
-            if (dy_plus != NULL) {
-                wp3.y += fabs(dy_plus[i]);
-                drawerrorbar(wp3, offset, ebarlen, BAR_HORIZONTAL);
-            }
-            if (dy_minus != NULL) {
-                wp4.y -= fabs(dy_minus[i]);
-                drawerrorbar(wp4, offset, ebarlen, BAR_HORIZONTAL);
-            }
+        if (dx_plus != NULL) {
+            wp2 = wp1;
+            wp2.x += fabs(dx_plus[i]);
+            vp2 = Wpoint2Vpoint(wp2);
+            vp2.x += offset;
+            drawerrorbar(vp1, vp2, &p->errbar);
+        }
+        if (dx_minus != NULL) {
+            wp2 = wp1;
+            wp2.x -= fabs(dx_minus[i]);
+            vp2 = Wpoint2Vpoint(wp2);
+            vp2.x += offset;
+            drawerrorbar(vp1, vp2, &p->errbar);
+        }
+        if (dy_plus != NULL) {
+            wp2 = wp1;
+            wp2.y += fabs(dy_plus[i]);
+            vp2 = Wpoint2Vpoint(wp2);
+            vp2.x += offset;
+            drawerrorbar(vp1, vp2, &p->errbar);
+        }
+        if (dy_minus != NULL) {
+            wp2 = wp1;
+            wp2.y -= fabs(dy_minus[i]);
+            vp2 = Wpoint2Vpoint(wp2);
+            vp2.x += offset;
+            drawerrorbar(vp1, vp2, &p->errbar);
         }
     }
 }
@@ -1711,23 +1669,48 @@ int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
     return GRACE_EXIT_SUCCESS;
 }
 
-void drawerrorbar(WPoint wp, double offset, double ebarlen, int orient)
+void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
 {
     double ilen;
-    VPoint vp, vp1, vp2;
-    
-    ilen = 0.01*ebarlen;
-    vp = Wpoint2Vpoint(wp);
-    vp.x += offset;
-    vp2 = vp1 = vp;
-    if (orient == BAR_HORIZONTAL) {
-        vp1.x -= ilen;
-        vp2.x += ilen;
-    } else {
-        vp1.y -= ilen;
-        vp2.y += ilen;
+    VPoint vp_plus, vp_minus;
+    VVector lvv;
+    double vlength;
+    static Arrow arrow = {0, 1.0, 1.0, 0.0};
+
+    lvv.x = vp2.x - vp1.x;
+    lvv.y = vp2.y - vp1.y;
+
+    vlength = hypot(lvv.x, lvv.y);
+    if (vlength == 0.0) {
+        return;
     }
-    DrawLine(vp1, vp2);
+    
+    lvv.x /= vlength;
+    lvv.y /= vlength;
+    
+    if (eb->arrow_clip && is_validVPoint(vp2) == FALSE) {
+        vp2.x = vp1.x + eb->cliplen*lvv.x;
+        vp2.y = vp1.y + eb->cliplen*lvv.y;
+        setlinewidth(eb->riser_linew);
+        setlinestyle(eb->riser_lines);
+        DrawLine(vp1, vp2);
+        arrow.length = 2*eb->barsize;
+        setlinewidth(eb->linew);
+        setlinestyle(eb->lines);
+        draw_arrowhead(vp1, vp2, &arrow);
+    } else {
+        setlinewidth(eb->riser_linew);
+        setlinestyle(eb->riser_lines);
+        DrawLine(vp1, vp2);
+        setlinewidth(eb->linew);
+        setlinestyle(eb->lines);
+        ilen = 0.01*eb->barsize;
+        vp_minus.x = vp2.x - ilen*lvv.y;
+        vp_minus.y = vp2.y + ilen*lvv.x;
+        vp_plus.x  = vp2.x + ilen*lvv.y;
+        vp_plus.y  = vp2.y - ilen*lvv.x;
+        DrawLine(vp_minus, vp_plus);
+    }
 }
 
 /* --------------------------------------------------------------- */

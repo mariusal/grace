@@ -263,20 +263,22 @@ void set_default_plotarr(plotarr * p)
     p->setfillpen.color = grdefaults.color;     /* fill color */
     p->setfillpen.pattern = grdefaults.pattern; /* fill pattern */
 
-    p->errbar.active = TRUE;            /* on by default */
-    p->errbar.ptype = PLACEMENT_BOTH;   /* type of error bar */
-    p->errbar.lines = grdefaults.lines; /* error bar line width */
-    p->errbar.linew = grdefaults.linew; /* error bar line style */
-    p->errbar.riser_linew = 1;          /* connecting line between error limits line
-                                         * width */
-    p->errbar.riser_lines = 1;          /* connecting line between error limits line
-                                         * style */
-    p->errbar.length = 1.0;             /* length of error bar */
+    p->errbar.active = TRUE;                      /* on by default */
+    p->errbar.ptype = PLACEMENT_BOTH;             /* type of error bar */
+    p->errbar.pen.color = grdefaults.color;       /* color */
+    p->errbar.pen.pattern = grdefaults.pattern;   /* pattern */
+    p->errbar.lines = grdefaults.lines;           /* error bar line width */
+    p->errbar.linew = grdefaults.linew;           /* error bar line style */
+    p->errbar.riser_linew = 1;                    /* riser line width */
+    p->errbar.riser_lines = 1;                    /* riser line style */
+    p->errbar.barsize = 1.0;                      /* size of error bar */
+    p->errbar.arrow_clip = FALSE;                 /* draw arrows if clipped */
+    p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
 
-    p->comments[0] = 0;                 /* how did this set originate */
-    p->lstr[0] = 0;                     /* legend string */
+    p->comments[0] = 0;                           /* how did this set originate */
+    p->lstr[0] = 0;                               /* legend string */
 
-    p->data.len = 0;                    /* dataset length */
+    p->data.len = 0;                              /* dataset length */
     for (i = 0; i < MAX_SET_COLS; i++) {
         p->data.ex[i] = NULL;
     }

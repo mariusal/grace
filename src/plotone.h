@@ -67,7 +67,7 @@ void drawsethilo(plotarr *p);
 void drawcirclexy(plotarr *p);
 
 int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s);
-void drawerrorbar(WPoint wp, double offset, double ebarlen, int orient);
+void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
 
 void draw_region(int r);
 

@@ -1213,6 +1213,8 @@ void postprocess_project(int version)
 	for (setno = 0; setno < number_of_sets(gno); setno++) {
             if (version < 50003) {
                 g[gno].p[setno].errbar.active = TRUE;
+                g[gno].p[setno].errbar.pen.color = g[gno].p[setno].sympen.color;
+                g[gno].p[setno].errbar.pen.pattern = 1;
                 switch (g[gno].p[setno].errbar.ptype) {
                 case PLACEMENT_NORMAL:
                     g[gno].p[setno].errbar.ptype = PLACEMENT_OPPOSITE;
@@ -1225,7 +1227,7 @@ void postprocess_project(int version)
                 }
             }
             if (version < 50002) {
-                g[gno].p[setno].errbar.length *= 2;
+                g[gno].p[setno].errbar.barsize *= 2;
             }
             if (version < 50000) {
                 switch (g[gno].p[setno].sym) {

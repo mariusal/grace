@@ -224,6 +224,7 @@ symtab_entry *key;
 %token <pset> CHRSTR
 %token <pset> CLEAR
 %token <pset> CLICK
+%token <pset> CLIP
 %token <pset> CLOSE
 %token <pset> COEFFICIENTS
 %token <pset> COLOR
@@ -3112,11 +3113,17 @@ setprop:
 	| ERRORBAR onoff {
 	    g[whichgraph].p[whichset].errbar.active = (int) $2;
 	}
-	| ERRORBAR LENGTH NUMBER {
-            g[whichgraph].p[whichset].errbar.length = $3;
-	}
 	| ERRORBAR opchoice_sel {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $2, 0);
+	    g[whichgraph].p[whichset].errbar.ptype = (int) $2;
+	}
+	| ERRORBAR color_select {
+	    g[whichgraph].p[whichset].errbar.pen.color = (int) $2;
+	}
+	| ERRORBAR pattern_select {
+	    g[whichgraph].p[whichset].errbar.pen.pattern = (int) $2;
+	}
+	| ERRORBAR SIZE NUMBER {
+            g[whichgraph].p[whichset].errbar.barsize = $3;
 	}
 	| ERRORBAR linew_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINEWIDTH, $2, 0);
@@ -3124,14 +3131,17 @@ setprop:
 	| ERRORBAR lines_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINESTYLE, (int) $2, 0);
 	}
-	| ERRORBAR RISER onoff {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, ON, $3, 0);
-	}
 	| ERRORBAR RISER linew_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINEWIDTH, $3, 0);
 	}
 	| ERRORBAR RISER lines_select {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINESTYLE, (int) $3, 0);
+	}
+	| ERRORBAR RISER CLIP onoff {
+            g[whichgraph].p[whichset].errbar.arrow_clip = (int) $4;
+	}
+	| ERRORBAR RISER CLIP LENGTH NUMBER {
+            g[whichgraph].p[whichset].errbar.cliplen = $5;
 	}
 
 	| COMMENT CHRSTR {
@@ -3932,8 +3942,7 @@ setprop_obs:
 	| SYMBOL COLOR '-' NUMBER {
 	    g[whichgraph].p[whichset].sympen.color = -1;
 	}
-	| SYMBOL CENTER onoff {
-	}
+	| SYMBOL CENTER onoff { }
 	| lines_select {
 	    g[whichgraph].p[whichset].lines = (int) $1;
 	}
@@ -3948,6 +3957,10 @@ setprop_obs:
 	| ERRORBAR TYPE opchoice_obs {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $3, 0);
 	}
+	| ERRORBAR LENGTH NUMBER {
+            g[whichgraph].p[whichset].errbar.barsize = $3;
+	}
+	| ERRORBAR RISER onoff { }
         ;
         
 
@@ -4111,6 +4124,7 @@ symtab_entry ikey[] = {
 	{"CI", FUNC_D, ci_wrap},
 	{"CLEAR", CLEAR, NULL},
 	{"CLICK", CLICK, NULL},
+	{"CLIP", CLIP, NULL},
 	{"CLOSE", CLOSE, NULL},
 	{"COEFFICIENTS", COEFFICIENTS, NULL},
 	{"COLOR", COLOR, NULL},
@@ -5289,7 +5303,7 @@ void set_prop(int gno,...)
 			ends = g[i].maxplot - 1;
 		    }
 		    for (j = starts; j <= ends; j++) {
-			g[i].p[j].errbar.length = dprop;
+			g[i].p[j].errbar.barsize = dprop;
 		    }
 		}
 		break;
