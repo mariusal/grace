@@ -137,6 +137,10 @@ SetUI *create_set_ui(ExplorerUI *eui)
 
     ui->main_tp = CreateTabPage(tab, "Main");
 
+    rc = CreateHContainer(ui->main_tp);
+    ui->active = CreateToggleButton(rc, "Active");
+    AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
+
     fr = CreateFrame(ui->main_tp, "Set presentation");
     ui->type = CreateSetTypeChoice(fr, "Type:");
     AddOptionChoiceCB(ui->type, oc_explorer_cb, eui);
@@ -403,6 +407,8 @@ void update_set_ui(SetUI *ui, Quark *q)
         int i;
         char val[32];
 
+        SetToggleButtonState(ui->active, p->active);
+        
         SetOptionChoice(ui->type, p->type);
         for (i = 0; i < ui->type->nchoices; i++) {
             if (settype_cols(ui->type->options[i].value)==
@@ -491,6 +497,10 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
     set *p = set_get_data(q);
     
     if (p && ui) {
+        if (!caller || caller == ui->active) {
+            p->active = GetToggleButtonState(ui->active);
+        }
+
         if (!caller || caller == ui->symskip) {
             p->symskip = GetSpinChoice(ui->symskip);
         }

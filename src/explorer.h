@@ -55,6 +55,8 @@ typedef struct {
     Widget          legends_tp;
     Widget          legendbox_tp;
 
+    Widget          active;
+
     Widget          view_xv1;
     Widget          view_xv2;
     Widget          view_yv1;
@@ -103,6 +105,8 @@ typedef struct {
     Widget          main_tp;
     Widget          locator_tp;
 
+    Widget          active;
+
     OptionStructure *graph_type;
     Widget          stacked;
 
@@ -138,6 +142,8 @@ typedef struct {
     Widget          line_tp;
     Widget          errbar_tp;
     Widget          avalue_tp;
+
+    Widget          active;
 
     OptionStructure *type;
     OptionStructure *symbols;

@@ -57,6 +57,10 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 
     ui->main_tp = CreateTabPage(tab, "Main");
 
+    rc = CreateHContainer(ui->main_tp);
+    ui->active = CreateToggleButton(rc, "Active");
+    AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
+
     fr = CreateFrame(ui->main_tp, "Presentation");
     rc1 = CreateVContainer(fr);
 
@@ -184,6 +188,8 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         get_graph_world(q, &w);
         locator = get_graph_locator(q);
 
+        SetToggleButtonState(ui->active, g->active);
+
         SetOptionChoice(ui->graph_type, get_graph_type(q));
         SetToggleButtonState(ui->stacked, is_graph_stacked(q));
         SetToggleButtonState(ui->flip_xy, get_graph_xyflip(q));
@@ -232,6 +238,10 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller)
 
         get_graph_world(q, &w);
         locator = get_graph_locator(q);
+
+        if (!caller || caller == ui->active) {
+            g->active = GetToggleButtonState(ui->active);
+        }
 
         if (!caller || caller == ui->graph_type) {
             set_graph_type(q, GetOptionChoice(ui->graph_type));

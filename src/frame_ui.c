@@ -58,6 +58,10 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
 
     ui->main_tp = CreateTabPage(tab, "Main");
 
+    rc = CreateHContainer(ui->main_tp);
+    ui->active = CreateToggleButton(rc, "Active");
+    AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
+
     fr = CreateFrame(ui->main_tp, "Titles");
     rc = CreateVContainer(fr);
     ui->label_title_text = CreateCSText(rc, "Title: ");
@@ -239,6 +243,7 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 	l = frame_get_legend(q);
         labs = frame_get_labels(q);
         
+        SetToggleButtonState(ui->active, frame_is_active(q));
         
         sprintf(buf, "%.9g", v->xv1);
 	xv_setstr(ui->view_xv1, buf);
@@ -305,6 +310,10 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
         v    = frame_get_view(q);
         labs = frame_get_labels(q);
         l    = frame_get_legend(q);
+
+        if (!caller || caller == ui->active) {
+            f->active = GetToggleButtonState(ui->active);
+        }
 
         vtmp = *v;
         if (!caller || caller == ui->view_xv1) {
