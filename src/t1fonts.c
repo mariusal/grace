@@ -441,12 +441,6 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
  
     free(ligtheString);
  
-    if ((glyph == NULL) ||
-  	(glyph->metrics.ascent - glyph->metrics.descent == 0) ||
-  	(glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing == 0)) {
-        return NULL;
-    }
-
     return glyph;
 }
 
@@ -672,11 +666,10 @@ CompositeString *String2Composite(char *string)
 	        csbuf[nss].setmark = setmark;
                 setmark = MARK_NONE;
 	        csbuf[nss].gotomark = gotomark;
-	        csbuf[nss].s = malloc(strlen(ss) + 1);
 	        if (direction == STRING_DIRECTION_RL) {
                     reverse_string(ss);
                 }
-                strcpy(csbuf[nss].s, ss);
+	        csbuf[nss].s = copy_string(NULL, ss);
 	
                 nss++;
             }
@@ -715,9 +708,11 @@ CompositeString *String2Composite(char *string)
 /*
  * Convenience wrapper for T1_ConcatGlyphs()
  */
-GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph, int x_off, int y_off)
+GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
+    int x_off, int y_off, int advancing)
 {
     GLYPH *buf_glyph;
+    int mode;
     
     if (src_glyph == NULL) {
         /* even if T1lib fails for some reason, don't miss the offsets! */
@@ -729,7 +724,12 @@ GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph, int x_off, int y_off)
     }
     
     if (dest_glyph != NULL) {
-        buf_glyph = T1_ConcatGlyphs(dest_glyph, src_glyph, x_off, y_off);
+        if (advancing == TEXT_ADVANCING_RL) {
+            mode = T1_RIGHT_TO_LEFT;
+        } else {
+            mode = T1_DEFAULT;
+        }
+        buf_glyph = T1_ConcatGlyphs(dest_glyph, src_glyph, x_off, y_off, mode);
         if (buf_glyph != NULL) {
             T1_FreeGlyph(dest_glyph);
             dest_glyph = T1_CopyGlyph(buf_glyph);
@@ -754,6 +754,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     double Size, Angle = 0.0;
     int FontID;
     int modflag;
+    int text_advancing;
 
     int iglyph;
     GLYPH *glyph;
@@ -822,6 +823,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     while (cstring[iglyph].s != NULL) {
         Size = scale_factor * cstring[iglyph].scale;
   	FontID = cstring[iglyph].font;
+        text_advancing = cstring[iglyph].advancing;
         modflag = T1_UNDERLINE * cstring[iglyph].underline |
                   T1_OVERLINE  * cstring[iglyph].overline;
 	glyph = GetGlyphString(FontID, Size, Angle, modflag, cstring[iglyph].s);
@@ -856,7 +858,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         v_off_last = v_off_buf;
         x_off = (int) rint(h_off*co - v_off*si);
         y_off = (int) rint(v_off*co + h_off*si);
-        CSglyph = CatGlyphs(CSglyph, glyph, x_off, y_off);
+        CSglyph = CatGlyphs(CSglyph, glyph, x_off, y_off, text_advancing);
         setmark = cstring[iglyph].setmark;
         if (CSglyph != NULL && setmark >= 0 && setmark < MAX_MARKS) {
             cs_marks[setmark].x = CSglyph->metrics.advanceX;

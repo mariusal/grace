@@ -110,7 +110,8 @@ void map_fonts(int map);
 
 GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
                                                             char *theString);
-GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph, int x_off, int y_off);
+GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
+                    int x_off, int y_off, int advancing);
 void FreeCompositeString(CompositeString *cs);
 CompositeString *String2Composite(char *string);
 void WriteString(VPoint vp, int rot, int just, char *theString);
