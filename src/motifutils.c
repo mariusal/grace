@@ -156,6 +156,8 @@ static char *label_to_resname(const char *s, const char *suffix)
     return retval;
 }
 
+#define MAX_PULLDOWN_LENGTH 30
+
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items)
 {
@@ -167,6 +169,11 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
     retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
 
+    /* Don't create too tall pulldowns */
+    if (nchoices > MAX_PULLDOWN_LENGTH && ncols == 0) {
+        ncols = MAX_PULLDOWN_LENGTH;
+    }
+    
     if (ncols > 1) {
         XtVaSetValues(retval->pulldown,
                       XmNorientation, XmHORIZONTAL,
