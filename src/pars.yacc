@@ -442,6 +442,7 @@ symtab_entry *key;
 %token <ival> STOP
 %token <ival> STRING
 %token <ival> SUBTITLE
+%token <ival> SWAP
 %token <ival> SYMBOL
 %token <ival> TARGET
 %token <ival> TICKLABEL
@@ -2771,6 +2772,9 @@ actions:
 	| EXIT {
 	    exit(0);
 	}
+	| EXIT '(' iexpr ')' {
+	    exit($3);
+	}
 	| PRINT {
 	    do_hardcopy();
 	}
@@ -2869,6 +2873,9 @@ actions:
 	}
 	| MOVE selectset TO selectset {
 	    do_moveset($2->gno, $2->setno, $4->gno, $4->setno);
+	}
+	| SWAP selectset AND selectset {
+	    do_swapset($2->gno, $2->setno, $4->gno, $4->setno);
 	}
 	| KILL selectset {
 	    killset($2->gno, $2->setno);
@@ -4654,6 +4661,7 @@ symtab_entry ikey[] = {
 	{"STRING", STRING, NULL},
 	{"STRUVE", FUNC_DD, (void *) struve},
 	{"SUBTITLE", SUBTITLE, NULL},
+	{"SWAP", SWAP, NULL},
 	{"SYMBOL", SYMBOL, NULL},
 	{"TAN", FUNC_D, (void *) tan},
 	{"TANH", FUNC_D, (void *) tanh},
