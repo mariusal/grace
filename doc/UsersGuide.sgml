@@ -1797,7 +1797,7 @@ main(int argc, char* argv[])
 
   <sect1>DL modules <label id="dl-modules">
     <p>
-    Since version 4.1.1, Grace can access external functions present
+    Grace can access external functions present
     in either system or third-party shared libraries or modules
     specially compiled for use with Grace.
 
@@ -2000,6 +2000,60 @@ C
        <tscreen>
        USE "myfunc_wrapper" TYPE f_of_nd FROM "/tmp/myfunc.so" ALIAS "myfunc"
        </tscreen>
+
+       <sect2>Operating system issues
+         <p>
+         <sect3>OS/2
+          <p>
+         In general the examples above describe the method to be used on OS/2,
+         too. However you have to create a DLL (Dynamic Link Library) which is
+         a bit more tricky on OS/2 than on some un*x systems. This document
+         can't explain the whole procedure in detail but outline the way to go.
+         Since Grace was ported with EMX I also use it to create the examples.
+         We refer to Example 2, since Example 1 is showing the problem on OS/2:
+         DLLs are likely to have their entry points (i.e. exported functions)
+         as ordinals only, so you may not know how to access a specific
+         function without a bit of research. Compile my_func.c
+
+         <tscreen>
+         gcc -Zomf -c my_func.c
+         </tscreen>
+
+         Then you need to create a linker definition file my_func.def which
+         gives some basic info about the DLL and declares the exported
+         functions.
+
+         <tscreen><code>
+         LIBRARY my_func
+         INITINSTANCE TERMINSTANCE
+         CODE LOADONCALL
+         DATA LOADONCALL MULTIPLE NONSHARED
+         DESCRIPTION 'This is a test DLL: my_func.dll'
+         EXPORTS
+         my_function
+         </code></tscreen>
+
+         (don't forget about the 8 characters limit on the DLL name!).
+         Finally link the DLL:
+
+         <tscreen>
+         gcc my_func.obj my_func.def -o my_func.dll -Zdll -Zno-rte -Zomf
+         </tscreen>
+
+         (the -Zno-rte depends on the content of the library; check out the
+          EMX documentation when you may use it)
+         To actually use the function in Grace you may either put the
+         DLL in the LIBPATH and use the short form:
+
+         <tscreen>
+         USE "my_function" TYPE f_of_nd FROM "my_func" ALIAS "myf"
+         </tscreen>
+
+         or have it in an arbitrary path which you need to specify:
+
+         <tscreen>
+         USE "my_function" TYPE f_of_nd FROM "e:/foo/my_func.dll" ALIAS "myf"
+         </tscreen>
 
 <!-- ****** Appendices/references ************ -->
 <sect> References
@@ -2238,18 +2292,18 @@ C
       
       We still use Gregorian calendar today, but we now have several
       time scales for increased accuracy. The International Atomic
-      Time is a linear scale: the best scale to use for scientific
-      reference. The Universal Time Coordinate (often confused with
-      Greenwich Mean Time) is a legal time that is almost
-      synchronized with earth motion. However, since the earth is
-      slightly slowing down, leap seconds are introduced from time to
-      time in UTC (about one second every 18 months). UTC is not a
+      Time (TAI) is a linear scale: the best scale to use for
+      scientific reference. The Coordinated Universal Time (UTC, often
+      confused with Greenwich Mean Time) is a legal time that is
+      almost synchronized with earth motion. However, since the earth
+      is slightly slowing down, leap seconds are introduced from time
+      to time in UTC (about one second every 18 months). UTC is not a
       continuous scale ! When a leap second is introduced by
       International Earth Rotation Service, this is published in
       advance and the legal time sequence is as follows: 23:59:59
       followed one second later by 23:59:60 followed one second later
       by 00:00:00. At the time of this writing (1999-01-05) the
-      difference between IAT and UTC was 32 seconds, and the last leap
+      difference between TAI and UTC was 32 seconds, and the last leap
       second was introduced in 1998-12-31.
       
       These calendars allow to represent any date from the mist of the
@@ -2269,11 +2323,12 @@ C
       Grace stores dates internally as reals numbers counted from a
       reference date. The default reference date is the one chosen by
       Scaliger, it is a classical reference for astronomical
-      events. It can modified either for a single session using the
-      <ref name="Edit->Preferences" id="preferences"> popup of the
-      GUI. If you often work with a specific reference date you can
-      set it in a REFERENCE DATE command in your configuration file
-      (see <ref name="Default template" id="default-template">).
+      events. It can modified for a single session using the <ref
+      name="Edit->Preferences" id="preferences"> popup of the GUI. If
+      you often work with a specific reference date you can set it for
+      every sessions with a REFERENCE DATE command in your
+      configuration file (see <ref name="Default template"
+      id="default-template">).
       
       The following date formats are supported (hour, minutes and
       seconds are always optional):
@@ -2292,19 +2347,19 @@ C
       given by the user, then iso, european and us (there is no
       ambiguity between calendar formats and numerical formats and
       therefore no order is specified for them). The separators
-      between various fields can be any characters in the set: "
-     :/.-" (one or more spaces act as one separator, other characters
-      can not be repeated), so the string "1999-12 31:23/59" is
-      allowed (but not recommended).  The '-' character is used both
-      as a separator (it is traditionally used in iso8601 format) and
-      as the unary minus (for dates in the far past or for numerical
+      between various fields can be any characters in the set: " :/.-"
+      (one or more spaces act as one separator, other characters can
+      not be repeated), so the string "1999-12 31:23/59" is allowed
+      (but not recommended).  The '-' character is used both as a
+      separator (it is traditionally used in iso8601 format) and as
+      the unary minus (for dates in the far past or for numerical
       dates). By default years are left untouched, so 99 is a date far
       away in the past. This behavior can be changed with the <ref
       name="Edit->preferences" id="preferences"> popup, or with the
-      <tt>DATE WRAP on</tt> and <tt>DATE WRAP YEAR year</tt> commands. Suppose
-      for example that the wrap year is chosen as 1950, if the year is
-      between 0 and 99 and is written with two or less digits, it is
-      mapped to the present era as follows:
+      <tt>DATE WRAP on</tt> and <tt>DATE WRAP YEAR year</tt>
+      commands. Suppose for example that the wrap year is chosen as
+      1950, if the year is between 0 and 99 and is written with two or
+      less digits, it is mapped to the present era as follows:
 
        range [00 ; 49] is mapped to [2000 ; 2049]
 
@@ -2328,10 +2383,10 @@ C
       The date scanner can be used either for Denys's and Gregorian
       calendars. Inexistent dates are detected, they include year 0,
       dates between 1582-10-05 and 1582-10-14, February 29th of non
-      leap years, months below 1 or above 12, ...  the scanner does not
-      take into account leap seconds: you can think it works only in
-      International Atomic Time (IAT) and not in Unified Time
-      Coordinate (UTC). If you find yourself in a situation were you
+      leap years, months below 1 or above 12, ...  the scanner does
+      not take into account leap seconds: you can think it works only
+      in International Atomic Time (TAI) and not in Coordinated
+      Unified Time (UTC). If you find yourself in a situation were you
       need UTC, a very precise scale, and should take into account
       leap seconds ... you should convert your data yourself (for
       example using International Atomic Time). But if you bother with
@@ -2391,3 +2446,4 @@ C
 </article>
 
 <!-- End of USerGuide.sgml -->
+
