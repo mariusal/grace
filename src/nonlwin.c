@@ -185,10 +185,10 @@ static void *nonl_build_cb(TransformStructure *tdialog)
 
         ManageChild(menubar);
         
-	// title_fr = CreateFrame(frame, NULL);
-	// XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
-	// ui->title_item = CreateLabel(title_fr, NULL);
-        // AddDialogFormChild(frame, title_fr);
+	title_fr = CreateFrame(frame, NULL);
+	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
+	ui->title_item = CreateLabel(title_fr, NULL);
+        AddDialogFormChild(frame, title_fr);
 
         /* ------------ Tabs --------------*/
 
@@ -314,7 +314,7 @@ static void *nonl_get_cb(void *gui)
         int i;
         NLFit *nlfit = &pars->nlfit;
         
-        // pars->nlfit.title   = NULL;
+        pars->nlfit.title   = NULL;
         nlfit->formula = GetTextString(ui->formula_item);
         nlfit->tolerance = atof(xv_getstr(ui->tol_item));
         nlfit->parnum = GetOptionChoice(ui->nparm_item);
@@ -495,7 +495,7 @@ static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
 	    return RETURN_FAILURE;  	
     	}
    	    	
-        // update_nonl_frame(ui, &pars->nlfit);
+        /* update_nonl_frame(ui, &pars->nlfit); */
     }
 
 /*
@@ -565,12 +565,12 @@ static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
     
     if (ui) {
         char buf[256];
-        // SetLabel(ui->title_item, nlfit->title);
+        SetLabel(ui->title_item, nlfit->title);
 /* 
  * If I define only XmALIGNMENT_CENTER (default!) then it's ignored - bug in Motif???
  */
-    	// XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_BEGINNING, NULL);
-        // XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
+    	XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_BEGINNING, NULL);
+        XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
         
         SetTextString(ui->formula_item, nlfit->formula);
         sprintf(buf, "%g", nlfit->tolerance);
@@ -681,7 +681,7 @@ static void create_savefit_popup(Widget but, void *data)
         ManageChild(fsb->FSB);
     }
     
-    // xv_setstr(title_item, ui->nlfit.title);
+    /* xv_setstr(title_item, ui->nlfit.title); */
     
     RaiseWindow(fsb->dialog);
 
@@ -691,7 +691,7 @@ static void create_savefit_popup(Widget but, void *data)
 static int do_savefit_proc(FSBStructure *fsb, char *filename, void *data)
 {
     FILE *pp;
-    // Widget title_item = (Widget) data;
+    /* Widget title_item = (Widget) data; */
     
     pp = grace_openw(filename);
     if (pp != NULL) {

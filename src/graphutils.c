@@ -696,9 +696,9 @@ int arrange_graphs(Quark **graphs, int ngraphs,
             v.xv2 = v.xv1 + w;
             v.yv1 = boff + ih*h*(1.0 + vgap);
             v.yv2 = v.yv1 + h;
-            // set_graph_viewport(gr, &v);
-            
 #if 0
+            set_graph_viewport(gr, &v);
+            
             if (hpack) {
 	        tickmarks *t = get_graph_tickmarks(gr, Y_AXIS);
                 if (iw == 0) {
@@ -947,7 +947,7 @@ int overlay_graphs(Quark *gsec, Quark *gpri, int type)
     }
     
     /* set identical viewports */
-    // set_graph_viewport(gsec, &v);
+    set_graph_viewport(gsec, &v);
     
     /* update world coords */
     set_graph_world(gsec, &wsec);

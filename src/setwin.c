@@ -80,7 +80,7 @@ void create_datasetprop_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (tui.top == NULL) {
-        Widget menubar, menupane, submenupane, dialog, rc, rc1, fr, wbut;
+        Widget menubar, menupane, dialog, rc, rc1, fr, wbut;
         int i, j;
         char *rowlabels[MAX_SET_COLS];
         char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};

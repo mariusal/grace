@@ -4243,7 +4243,7 @@ int clean_graph_selectors(Quark *pr, int etype, void *data)
         }
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
-        // update_graph_selectors(pr);
+        /* update_graph_selectors(pr); */
     }
     
     return RETURN_SUCCESS;
