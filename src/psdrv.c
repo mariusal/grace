@@ -309,7 +309,7 @@ static int ps_initgraphics(int format)
 
     fprintf(prstream, "%%%%BeginSetup\n");
     /* page size */
-    if (ps_level2 == TRUE) {
+    if (ps_level2 == TRUE && curformat != EPS_FORMAT) {
         fprintf(prstream, "%%%%BeginFeature: *PageSize\n");
         fprintf(prstream, "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
             width_pp, height_pp);
