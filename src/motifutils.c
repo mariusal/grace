@@ -563,6 +563,7 @@ typedef struct {
     SpinStructure *spin;
     Spin_CBProc cbproc;
     void *anydata;
+    XtIntervalId timeout_id;
 } Spin_CBdata;
 
 typedef struct {
@@ -1384,22 +1385,49 @@ static void sp_double_cb_proc(Widget w, XtPointer client_data, XtPointer call_da
     }
 }
 
+static void sp_timer_proc(XtPointer client_data, XtIntervalId *id)
+{
+    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
+
+    cbdata->cbproc(cbdata->spin, GetSpinChoice(cbdata->spin), cbdata->anydata);
+    cbdata->timeout_id = (XtIntervalId) 0;
+}
+
+static void sp_ev_proc(Widget w,
+    XtPointer client_data, XEvent *event, Boolean *cont)
+{
+    XButtonPressedEvent *e = (XButtonPressedEvent *) event;
+    Spin_CBdata *cbdata = (Spin_CBdata *) client_data;
+
+    if (e->button == 4 || e->button == 5) {
+        /* we count elapsed time since the last event, so first remove
+           an existing timeout, if there is one */
+        if (cbdata->timeout_id) {
+            XtRemoveTimeOut(cbdata->timeout_id);
+        }
+        cbdata->timeout_id = XtAppAddTimeOut(app_con,
+            250 /* 0.25 second */, sp_timer_proc, client_data);
+    }
+}
 
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *anydata)
 {
     Spin_CBdata *cbdata;
     
-    cbdata = xmalloc(sizeof(OC_CBdata));
+    cbdata = xmalloc(sizeof(Spin_CBdata));
     
     cbdata->spin = spinp;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
+    cbdata->timeout_id = (XtIntervalId) 0;
     XtAddCallback(spinp->text,
         XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
     XtAddCallback(spinp->arrow_up,
         XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
     XtAddCallback(spinp->arrow_down,
         XmNactivateCallback, sp_double_cb_proc, (XtPointer) cbdata);
+    XtAddEventHandler(spinp->text,
+        ButtonPressMask, False, sp_ev_proc, (XtPointer) cbdata);
 }
 
 static void spin_updown(Widget parent,
