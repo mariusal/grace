@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.1)
   <author>by the Grace Team
-  <date>13.06.2000
+  <date>25.06.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -137,7 +137,7 @@
 
           <item> <url url="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib.html" name="T1lib">
           
-          <item> <url url="http://www.lesstif.org/Xbae.html/" name="Xbae">
+          <item> <url url="http://www.lesstif.org/Xbae.html" name="Xbae">
           
         </itemize>
 
