@@ -225,7 +225,7 @@ String fallbackResourcesCommon[] = {
 String fallbackResourcesHighRes[] = {
     "XMgrace*mainWin.width: 680",
     "XMgrace*mainWin.height: 700",
-    "XMgrace*explorerDialog.form.width: 680",
+    "XMgrace*explorerDialog.form.width: 650",
     "XMgrace*explorerDialog.form.height: 600",
     "XMgrace*fontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace*tabFontList:-*-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
@@ -714,12 +714,12 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Set locator fixed point", 'f', set_locator_cb, (void *) grace);
+    CreateMenuButton(menupane, "Set locator fixed point...", 'f', set_locator_cb, (void *) grace);
     CreateMenuButton(menupane, "Clear locator fixed point", 'C', do_clear_point, NULL);
     
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Preferences...", 'r', create_props_frame, NULL);
+    CreateMenuButton(menupane, "Preferences...", 'P', create_props_frame, NULL);
 
     /* Data menu */
     menupane = CreateMenu(menubar, "Data", 'D', FALSE);
