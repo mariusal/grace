@@ -761,7 +761,6 @@ static Widget CreateMainMenuBar(Widget parent)
 
     submenupane = CreateMenu(menupane, "Transformations", 'T', FALSE);
     CreateMenuButton(submenupane, "Evaluate expression...", 'E', create_eval_frame, NULL);
-#if 0
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Histograms...", 'H', create_histo_frame, NULL);
     CreateMenuButton(submenupane, "Fourier transforms...", 'u', create_fourier_frame, NULL);
@@ -779,11 +778,12 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Sample points...", 'm', create_samp_frame, NULL);
     CreateMenuButton(submenupane, "Prune data...", 'P', create_prune_frame, NULL);
 
+#if 0
     CreateMenuButton(menupane, "Feature extraction...", 'x', create_featext_frame, NULL);
     CreateMenuButton(menupane, "Cumulative properties...", 'C', create_cumulative_frame, NULL);
+#endif
 
     CreateMenuSeparator(menupane);
-#endif
     submenupane = CreateMenu(menupane, "Import", 'I', FALSE);
     CreateMenuButton(submenupane, "ASCII...", 'A', create_file_popup, NULL);
 #ifdef HAVE_NETCDF

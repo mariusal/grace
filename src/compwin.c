@@ -30,9 +30,6 @@
  *
  * transformations, curve fitting, etc.
  *
- * formerly, this was all one big popup, now it is several.
- * All are created as needed
- *
  */
 
 #include <config.h>
@@ -46,122 +43,106 @@
 #include "motifinc.h"
 #include "protos.h"
 
-static int compute_aac(void *data);
-static int do_histo_proc(void *data);
-static int do_fourier_proc(void *data);
-static int do_interp_proc(void *data);
-static int do_runavg_proc(void *data);
-static int do_differ_proc(void *data);
-static int do_int_proc(void *data);
-static int do_linearc_proc(void *data);
-static int do_xcor_proc(void *data);
-static int do_sample_proc(void *data);
-static int do_prune_proc(void *data);
-
-typedef struct _Eval_ui {
-    TransformStructure *tdialog;
+typedef struct {
     Widget formula_item;
     RestrictionStructure *restr_item;
 } Eval_ui;
 
-void create_eval_frame(void *data)
+typedef struct {
+    char *fstr;
+    int restr_type;
+    int restr_negate;
+} Eval_pars;
+
+static void *eval_build_cb(TransformStructure *tdialog)
 {
-    static Eval_ui *eui = NULL;
-    
-    set_wait_cursor();
-    
-    if (eui == NULL) {
+    Eval_ui *ui;
+
+    ui = xmalloc(sizeof(Eval_ui));
+    if (ui) {
         Widget rc_trans;
-
-	eui = xmalloc(sizeof(Eval_ui));
         
-        eui->tdialog = CreateTransformDialogForm(app_shell,
-            "Evaluate expression", LIST_TYPE_MULTIPLE);
+        rc_trans = CreateVContainer(tdialog->frame);
+        ui->formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
+        ui->restr_item = CreateRestrictionChoice(rc_trans, "Source data filtering");
+    }
 
-	rc_trans = CreateVContainer(eui->tdialog->form);
+    return (void *) ui;
+}
 
-	eui->formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
-
-        eui->restr_item =
-            CreateRestrictionChoice(rc_trans, "Source data filtering");
-
-        CreateAACDialog(eui->tdialog->form, rc_trans, compute_aac, (void *) eui);
+static void *eval_get_cb(void *gui)
+{
+    Eval_ui *ui = (Eval_ui *) gui;
+    Eval_pars *pars;
+    
+    pars = xmalloc(sizeof(Eval_pars));
+    if (pars) {
+        pars->restr_type = GetOptionChoice(ui->restr_item->r_sel);
+        pars->restr_negate = GetToggleButtonState(ui->restr_item->negate);
+        pars->fstr = copy_string(NULL, xv_getstr(ui->formula_item));
     }
     
-    RaiseWindow(GetParent(eui->tdialog->form));
-    
-    unset_wait_cursor();
+    return (void *) pars;
+}
+
+static void eval_free_cb(void *tddata)
+{
+    Eval_pars *pars = (Eval_pars *) tddata;
+    if (pars) {
+        xfree(pars->fstr);
+        xfree(pars);
+    }
 }
 
 /*
  * evaluate a formula
  */
-static int compute_aac(void *data)
+static int eval_run_cb(Quark *psrc, Quark *pdest, void *tddata)
 {
-    int error, res;
-    int i, nssrc;
-    Quark *psrc, *pdest, **srcsets, **destsets;
-    char fstr[256];
-    int restr_type, restr_negate;
+    int res;
     char *rarray;
-    Eval_ui *ui = (Eval_ui *) data;
+    Eval_pars *pars = (Eval_pars *) tddata;
 
-    restr_type = GetOptionChoice(ui->restr_item->r_sel);
-    restr_negate = GetToggleButtonState(ui->restr_item->negate);
-    strcpy(fstr, xv_getstr(ui->formula_item));
-
-    res = GetTransformDialogSettings(ui->tdialog, FALSE,
-        &nssrc, &srcsets, &destsets);
-    
+    res = get_restriction_array(psrc, pars->restr_type, pars->restr_negate, &rarray);
     if (res != RETURN_SUCCESS) {
+	errmsg("Error in evaluation of restriction");
+        return RETURN_FAILURE;
+    }
+
+    res = do_compute(psrc, pdest, rarray, pars->fstr);
+    xfree(rarray);
+    if (res != RETURN_SUCCESS) {
+	errmsg("Error in do_compute(), check formula");
         return RETURN_FAILURE;
     }
     
-    error = FALSE;
-    
-    for (i = 0; i < nssrc; i++) {
-	psrc  = srcsets[i];
-	pdest = destsets[i];
-
-        res = get_restriction_array(psrc, restr_type, restr_negate, &rarray);
-	if (res != RETURN_SUCCESS) {
-	    errmsg("Error in evaluation of restriction");
-	    break;
-	}
-
-        res = do_compute(psrc, pdest, rarray, fstr);
-	XCFREE(rarray);
-	if (res != RETURN_SUCCESS) {
-	    errmsg("Error in do_compute(), check formula");
-            break;
-	}
-    }
-    
-    if (nssrc > 0) {
-        xfree(srcsets);
-        xfree(destsets);
-    }
-    
-    UpdateSrcDestSelector(ui->tdialog->srcdest);
-    
-    xdrawgraph();
-    
-    if (error == FALSE) {
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
+    return RETURN_SUCCESS;
 }
 
-#if 0
+void create_eval_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = eval_build_cb;
+        cbs.get_cb   = eval_get_cb;
+        cbs.free_cb  = eval_free_cb;
+        cbs.run_cb   = eval_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Evaluate expression", LIST_TYPE_MULTIPLE, FALSE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
+}
 
 #define SAMPLING_MESH   0
 #define SAMPLING_SET    1
 
 /* interpolation */
 
-typedef struct _Interp_ui {
-    TransformStructure *tdialog;
+typedef struct {
     OptionStructure *method;
     OptionStructure *sampling;
     Widget strict;
@@ -169,39 +150,41 @@ typedef struct _Interp_ui {
     Widget mstart;
     Widget mstop;
     Widget mlength;
-    ListStructure *sset_sel;
+    StorageStructure *sset_sel;
 } Interp_ui;
 
+typedef struct {
+    int method;
+    int strict;
+    int sampling;
+    int meshlen;
+    double *mesh;
+} Interp_pars;
 
 static void sampling_cb(int value, void *data)
 {
     Interp_ui *ui = (Interp_ui *) data;
     
     if (value == SAMPLING_MESH) {
-        SetSensitive(ui->mrc, True);
-        SetSensitive(ui->sset_sel->list, False);
+        SetSensitive(ui->mrc, TRUE);
+        SetSensitive(ui->sset_sel->list, FALSE);
     } else {
-        SetSensitive(ui->mrc, False);
-        SetSensitive(ui->sset_sel->list, True);
+        SetSensitive(ui->mrc, FALSE);
+        SetSensitive(ui->sset_sel->list, TRUE);
     }
 }
 
-void create_interp_frame(void *data)
+static void *interp_build_cb(TransformStructure *tdialog)
 {
-    static Interp_ui *interpui = NULL;
-    
-    set_wait_cursor();
+    Interp_ui *ui;
 
-    if (interpui == NULL) {
-        Widget fr, rc, rc2;
+    ui = xmalloc(sizeof(Interp_ui));
+    if (ui) {
+        Widget rc, rc2;
         OptionItem opitems[3];
         
-        interpui = xmalloc(sizeof(Interp_ui));
-        interpui->tdialog = CreateTransformDialogForm(app_shell,
-            "Interpolation", LIST_TYPE_MULTIPLE);
-        fr = CreateFrame(interpui->tdialog->form, NULL);
-        rc = CreateVContainer(fr);
-        
+        rc = CreateVContainer(tdialog->frame);
+
         rc2 = CreateHContainer(rc);
         opitems[0].value = INTERP_LINEAR;
         opitems[0].label = "Linear";
@@ -209,137 +192,131 @@ void create_interp_frame(void *data)
         opitems[1].label = "Cubic spline";
         opitems[2].value = INTERP_ASPLINE;
         opitems[2].label = "Akima spline";
-        interpui->method = CreateOptionChoice(rc2, "Method:", 0, 3, opitems);
-        
-        interpui->strict =
+        ui->method = CreateOptionChoice(rc2, "Method:", 0, 3, opitems);
+
+        ui->strict =
             CreateToggleButton(rc2, "Strict (within source set bounds)");
-        
+
         CreateSeparator(rc);
-        
+
         opitems[0].value = SAMPLING_MESH;
         opitems[0].label = "Linear mesh";
         opitems[1].value = SAMPLING_SET;
         opitems[1].label = "Abscissas of another set";
-        interpui->sampling = CreateOptionChoice(rc, "Sampling:", 0, 2, opitems);
-        AddOptionChoiceCB(interpui->sampling, sampling_cb, interpui);
+        ui->sampling = CreateOptionChoice(rc, "Sampling:", 0, 2, opitems);
+        AddOptionChoiceCB(ui->sampling, sampling_cb, ui);
 
-        interpui->mrc = CreateHContainer(rc);
-	interpui->mstart  = CreateTextItem2(interpui->mrc, 10, "Start at:");
-	interpui->mstop   = CreateTextItem2(interpui->mrc, 10, "Stop at:");
-	interpui->mlength = CreateTextItem2(interpui->mrc, 6, "Length:");
-        
-        interpui->sset_sel = CreateSetChoice(rc,
-            "Sampling set", LIST_TYPE_SINGLE, TRUE);
-        SetSensitive(interpui->sset_sel->list, False);
-        
-        CreateAACDialog(interpui->tdialog->form, fr, do_interp_proc, interpui);
+        ui->mrc = CreateHContainer(rc);
+        ui->mstart  = CreateTextItem2(ui->mrc, 10, "Start at:");
+        ui->mstop   = CreateTextItem2(ui->mrc, 10, "Stop at:");
+        ui->mlength = CreateTextItem2(ui->mrc,  6, "Length:");
+
+        ui->sset_sel = CreateSetChoice(rc,
+            "Sampling set", LIST_TYPE_SINGLE, NULL);
+        SetSensitive(ui->sset_sel->list, FALSE);
     }
-    
-    RaiseWindow(GetParent(interpui->tdialog->form));
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-
-static int do_interp_proc(void *data)
+static void interp_free_cb(void *tddata)
 {
-    int error, res;
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int method, sampling, strict;
-    int i, meshlen;
-    double *mesh = NULL;
-    Interp_ui *ui = (Interp_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest,
-        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
+    Interp_pars *pars = (Interp_pars *) tddata;
+    if (pars) {
+        xfree(pars->mesh);
+        xfree(pars);
     }
+}
 
-    error = FALSE;
+static void *interp_get_cb(void *gui)
+{
+    Interp_ui *ui = (Interp_ui *) gui;
+    Interp_pars *pars;
+    int error = FALSE;
     
-    method = GetOptionChoice(ui->method);
-    sampling = GetOptionChoice(ui->sampling);
-    strict = GetToggleButtonState(ui->strict);
-
-    if (sampling == SAMPLING_SET) {
-        int gsampl, setnosampl;
-        gsampl = get_cg();
-        res = GetSingleListChoice(ui->sset_sel, &setnosampl);
-        if (res != RETURN_SUCCESS) {
-            errmsg("Please select single sampling set");
-            error = TRUE;
-        } else {
-            meshlen = getsetlength(gsampl, setnosampl);
-            mesh = getcol(gsampl, setnosampl, DATA_X);
-        }
-    } else {
-        double start, stop;
-        if (xv_evalexpr(ui->mstart, &start)     != RETURN_SUCCESS ||
-            xv_evalexpr(ui->mstop,  &stop)      != RETURN_SUCCESS ||
-            xv_evalexpri(ui->mlength, &meshlen) != RETURN_SUCCESS ) {
-             errmsg("Can't parse mesh settings");
-             error = TRUE;
-        } else {
-            mesh = allocate_mesh(start, stop, meshlen);
-            if (mesh == NULL) {
-	        errmsg("Can't allocate mesh");
+    pars = xmalloc(sizeof(Interp_pars));
+    if (pars) {
+        pars->method   = GetOptionChoice(ui->method);
+        pars->sampling = GetOptionChoice(ui->sampling);
+        pars->strict   = GetToggleButtonState(ui->strict);
+        pars->mesh     = NULL;
+        pars->meshlen  = 0;
+        
+        if (pars->sampling == SAMPLING_SET) {
+            Quark *psampl;
+            int res;
+            
+            res = GetSingleStorageChoice(ui->sset_sel, (void **) &psampl);
+            if (res != RETURN_SUCCESS) {
+                errmsg("Please select a single sampling set");
                 error = TRUE;
+            } else {
+                pars->meshlen = getsetlength(psampl);
+                pars->mesh =
+                    copy_data_column(getcol(psampl, DATA_X), pars->meshlen);
+            }
+        } else {
+            double start, stop;
+            if (xv_evalexpr(ui->mstart, &start)     != RETURN_SUCCESS ||
+                xv_evalexpr(ui->mstop,  &stop)      != RETURN_SUCCESS ||
+                xv_evalexpri(ui->mlength, &pars->meshlen) != RETURN_SUCCESS ) {
+                 errmsg("Can't parse mesh settings");
+                 error = TRUE;
+            } else {
+                pars->mesh = allocate_mesh(start, stop, pars->meshlen);
             }
         }
+        if (pars->mesh == NULL) {
+	    errmsg("Can't allocate mesh array");
+            error = TRUE;
+        }
     }
     
     if (error) {
-        xfree(svaluessrc);
-        if (nsdest > 0) {
-            xfree(svaluesdest);
-        }
-        return RETURN_FAILURE;
+        interp_free_cb(pars);
+        return NULL;
+    } else {
+        return (void *) pars;
     }
+}
 
-    for (i = 0; i < nssrc; i++) {
-	int setnosrc, setnodest;
-        setnosrc = svaluessrc[i];
-	if (nsdest != 0) {
-            setnodest = svaluesdest[i];
-        } else {
-            setnodest = NEW_SET;
-        }
-        
-        res = do_interp(gsrc, setnosrc, gdest, setnodest,
-            mesh, meshlen, method, strict);
-	
-        if (res != RETURN_SUCCESS) {
-	    errmsg("Error in do_interp()");
-	    error = TRUE;
-            break;
-	}
-    }
-    
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    if (sampling == SAMPLING_MESH) {
-        xfree(mesh);
-    }
+static int interp_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Interp_pars *pars = (Interp_pars *) tddata;
 
-    update_set_lists(gdest);
-    xdrawgraph();
-    
-    if (error) {
+    res = do_interp(psrc, pdest,
+        pars->mesh, pars->meshlen, pars->method, pars->strict);
+
+    if (res != RETURN_SUCCESS) {
+	errmsg("Error in do_interp()");
         return RETURN_FAILURE;
     } else {
         return RETURN_SUCCESS;
     }
 }
 
+void create_interp_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = interp_build_cb;
+        cbs.get_cb   = interp_get_cb;
+        cbs.free_cb  = interp_free_cb;
+        cbs.run_cb   = interp_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Interpolation", LIST_TYPE_MULTIPLE, TRUE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
+}
 
 /* histograms */
 
-typedef struct _Histo_ui {
-    TransformStructure *tdialog;
+typedef struct {
     Widget cumulative;
     Widget normalize;
     OptionStructure *sampling;
@@ -347,41 +324,44 @@ typedef struct _Histo_ui {
     Widget mstart;
     Widget mstop;
     Widget mlength;
-    ListStructure *sset_sel;
+    StorageStructure *sset_sel;
 } Histo_ui;
+
+typedef struct {
+    int cumulative;
+    int normalize;
+    int sampling;
+    int nbins;
+    double *bins;
+} Histo_pars;
 
 static void binsampling_cb(int value, void *data)
 {
-    Interp_ui *ui = (Interp_ui *) data;
+    Histo_ui *ui = (Histo_ui *) data;
     
     if (value == SAMPLING_MESH) {
-        SetSensitive(ui->mrc, True);
-        SetSensitive(ui->sset_sel->list, False);
+        SetSensitive(ui->mrc, TRUE);
+        SetSensitive(ui->sset_sel->list, FALSE);
     } else {
-        SetSensitive(ui->mrc, False);
-        SetSensitive(ui->sset_sel->list, True);
+        SetSensitive(ui->mrc, FALSE);
+        SetSensitive(ui->sset_sel->list, TRUE);
     }
 }
 
-void create_histo_frame(void *data)
+static void *histo_build_cb(TransformStructure *tdialog)
 {
-    static Histo_ui *histoui = NULL;
+    Histo_ui *ui;
 
-    set_wait_cursor();
+    ui = xmalloc(sizeof(Histo_ui));
+    if (ui) {
+        Widget rc, rc2;
+        OptionItem opitems[3];
+        
+        rc = CreateVContainer(tdialog->frame);
 
-    if (histoui == NULL) {
-        Widget fr, rc, rc2;
-        OptionItem opitems[2];
-        
-        histoui = xmalloc(sizeof(Histo_ui));
-        histoui->tdialog = CreateTransformDialogForm(app_shell,
-            "Histograms", LIST_TYPE_MULTIPLE);
-        fr = CreateFrame(histoui->tdialog->form, NULL);
-        rc = CreateVContainer(fr);
-        
         rc2 = CreateHContainer(rc);
-        histoui->cumulative = CreateToggleButton(rc2, "Cumulative histogram");
-        histoui->normalize = CreateToggleButton(rc2, "Normalize");
+        ui->cumulative = CreateToggleButton(rc2, "Cumulative histogram");
+        ui->normalize = CreateToggleButton(rc2, "Normalize");
         
         CreateSeparator(rc);
         
@@ -389,125 +369,120 @@ void create_histo_frame(void *data)
         opitems[0].label = "Linear mesh";
         opitems[1].value = SAMPLING_SET;
         opitems[1].label = "Abscissas of another set";
-        histoui->sampling = CreateOptionChoice(rc, "Bin sampling:", 0, 2, opitems);
-        AddOptionChoiceCB(histoui->sampling, binsampling_cb, histoui);
+        ui->sampling = CreateOptionChoice(rc, "Bin sampling:", 0, 2, opitems);
+        AddOptionChoiceCB(ui->sampling, binsampling_cb, ui);
 
-        histoui->mrc = CreateHContainer(rc);
-	histoui->mstart  = CreateTextItem2(histoui->mrc, 10, "Start at:");
-	histoui->mstop   = CreateTextItem2(histoui->mrc, 10, "Stop at:");
-	histoui->mlength = CreateTextItem2(histoui->mrc, 6, "# of bins");
+        ui->mrc = CreateHContainer(rc);
+	ui->mstart  = CreateTextItem2(ui->mrc, 10, "Start at:");
+	ui->mstop   = CreateTextItem2(ui->mrc, 10, "Stop at:");
+	ui->mlength = CreateTextItem2(ui->mrc,  6, "# of bins");
         
-        histoui->sset_sel = CreateSetChoice(rc,
-            "Sampling set", LIST_TYPE_SINGLE, TRUE);
-        SetSensitive(histoui->sset_sel->list, False);
-        
-        CreateAACDialog(histoui->tdialog->form, fr, do_histo_proc, histoui);
+        ui->sset_sel = CreateSetChoice(rc,
+            "Sampling set", LIST_TYPE_SINGLE, NULL);
+        SetSensitive(ui->sset_sel->list, FALSE);
     }
-    
-    RaiseWindow(GetParent(histoui->tdialog->form));
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-
-static int do_histo_proc(void *data)
+static void histo_free_cb(void *tddata)
 {
-    int error, res;
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int cumulative, normalize, sampling;
-    int i, nbins;
-    double *bins = NULL;
-    Histo_ui *ui = (Histo_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest,
-        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
+    Histo_pars *pars = (Histo_pars *) tddata;
+    if (pars) {
+        xfree(pars->bins);
+        xfree(pars);
     }
+}
 
-    error = FALSE;
+static void *histo_get_cb(void *gui)
+{
+    Histo_ui *ui = (Histo_ui *) gui;
+    Histo_pars *pars;
+    int error = FALSE;
     
-    cumulative = GetToggleButtonState(ui->cumulative);
-    normalize  = GetToggleButtonState(ui->normalize);
-    sampling   = GetOptionChoice(ui->sampling);
-
-    if (sampling == SAMPLING_SET) {
-        int gsampl, setnosampl;
-        gsampl = get_cg();
-        res = GetSingleListChoice(ui->sset_sel, &setnosampl);
-        if (res != RETURN_SUCCESS) {
-            errmsg("Please select single sampling set");
-            error = TRUE;
-        } else {
-            nbins = getsetlength(gsampl, setnosampl) - 1;
-            bins = getcol(gsampl, setnosampl, DATA_X);
-        }
-    } else {
-        double start, stop;
-        if (xv_evalexpr(ui->mstart, &start)   != RETURN_SUCCESS ||
-            xv_evalexpr(ui->mstop,  &stop)    != RETURN_SUCCESS ||
-            xv_evalexpri(ui->mlength, &nbins) != RETURN_SUCCESS ){
-            errmsg("Can't parse mesh settings");
-            error = TRUE;
-        } else {
-            bins = allocate_mesh(start, stop, nbins + 1);
-            if (bins == NULL) {
-	        errmsg("Can't allocate mesh");
+    pars = xmalloc(sizeof(Histo_pars));
+    if (pars) {
+        pars->cumulative = GetToggleButtonState(ui->cumulative);
+        pars->normalize  = GetToggleButtonState(ui->normalize);
+        pars->sampling   = GetOptionChoice(ui->sampling);
+        pars->bins       = NULL;
+        pars->nbins     = 0;
+        
+        if (pars->sampling == SAMPLING_SET) {
+            Quark *psampl;
+            int res;
+            
+            res = GetSingleStorageChoice(ui->sset_sel, (void **) &psampl);
+            if (res != RETURN_SUCCESS) {
+                errmsg("Please select a single sampling set");
                 error = TRUE;
+            } else {
+                pars->nbins = getsetlength(psampl) - 1;
+                pars->bins =
+                    copy_data_column(getcol(psampl, DATA_X), pars->nbins + 1);
+            }
+        } else {
+            double start, stop;
+            if (xv_evalexpr(ui->mstart, &start)     != RETURN_SUCCESS ||
+                xv_evalexpr(ui->mstop,  &stop)      != RETURN_SUCCESS ||
+                xv_evalexpri(ui->mlength, &pars->nbins) != RETURN_SUCCESS ) {
+                 errmsg("Can't parse mesh settings");
+                 error = TRUE;
+            } else {
+                pars->bins = allocate_mesh(start, stop, pars->nbins + 1);
             }
         }
+        if (pars->bins == NULL) {
+	    errmsg("Can't allocate mesh array");
+            error = TRUE;
+        }
     }
     
     if (error) {
-        xfree(svaluessrc);
-        if (nsdest > 0) {
-            xfree(svaluesdest);
-        }
-        return RETURN_FAILURE;
+        histo_free_cb(pars);
+        return NULL;
+    } else {
+        return (void *) pars;
     }
+}
 
-    for (i = 0; i < nssrc; i++) {
-	int setnosrc, setnodest;
-        setnosrc = svaluessrc[i];
-	if (nsdest != 0) {
-            setnodest = svaluesdest[i];
-        } else {
-            setnodest = NEW_SET;
-        }
-        
-        res = do_histo(gsrc, setnosrc, gdest, setnodest,
-            bins, nbins, cumulative, normalize);
-	
-        if (res != RETURN_SUCCESS) {
-	    errmsg("Error in do_histo()");
-	    error = TRUE;
-            break;
-	}
-    }
-    
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    if (sampling == SAMPLING_MESH) {
-        xfree(bins);
-    }
+static int histo_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Histo_pars *pars = (Histo_pars *) tddata;
 
-    update_set_lists(gdest);
-    xdrawgraph();
-    
-    if (error) {
+    res = do_histo(psrc, pdest,
+        pars->bins, pars->nbins, pars->cumulative, pars->normalize);
+
+    if (res != RETURN_SUCCESS) {
+	errmsg("Error in do_histo()");
         return RETURN_FAILURE;
     } else {
         return RETURN_SUCCESS;
     }
 }
 
-/* DFTs */
+void create_histo_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
 
-typedef struct _Four_ui {
-    TransformStructure *tdialog;
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = histo_build_cb;
+        cbs.get_cb   = histo_get_cb;
+        cbs.free_cb  = histo_free_cb;
+        cbs.run_cb   = histo_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Histograms", LIST_TYPE_MULTIPLE, TRUE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
+}
+
+/* FFTs */
+
+typedef struct {
     Widget inverse;
     OptionStructure *xscale;
     OptionStructure *norm;
@@ -520,6 +495,23 @@ typedef struct _Four_ui {
     Widget halflen;
     OptionStructure *output;
 } Four_ui;
+
+typedef struct {
+    int invflag;
+    int xscale;
+    int norm;
+
+    int complexin;
+    int dcdump;
+    double oversampling;
+
+    int round2n;
+    int window;
+    double beta;
+    
+    int halflen;
+    int output;
+} Four_pars;
 
 static void toggle_inverse_cb(int onoff, void *data)
 {
@@ -561,13 +553,12 @@ static void option_window_cb(int value, void *data)
     SetSensitive(ui->winpar->rc, value == FFT_WINDOW_KAISER);
 }
 
-void create_fourier_frame(void *data)
+static void *fourier_build_cb(TransformStructure *tdialog)
 {
-    static Four_ui *fui = NULL;
+    Four_ui *ui;
 
-    set_wait_cursor();
-
-    if (fui == NULL) {
+    ui = xmalloc(sizeof(Four_ui));
+    if (ui) {
         Widget rc, fr, rc1, rc2;
         OptionItem window_opitems[] = {
             {FFT_WINDOW_NONE,       "None (Rectangular)"},
@@ -600,145 +591,133 @@ void create_fourier_frame(void *data)
             {FFT_NORM_BACKWARD,  "Backward" }
         };
         
-        fui = xmalloc(sizeof(Four_ui));
-        
-	fui->tdialog = CreateTransformDialogForm(app_shell,
-            "Fourier transform", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(fui->tdialog->form);
+	rc = CreateVContainer(tdialog->frame);
 
         fr = CreateFrame(rc, "General");
 	rc1 = CreateVContainer(fr);
-	fui->inverse = CreateToggleButton(rc1, "Perform backward transform");
-        AddToggleButtonCB(fui->inverse, toggle_inverse_cb, (void *) fui);
+	ui->inverse = CreateToggleButton(rc1, "Perform backward transform");
+        AddToggleButtonCB(ui->inverse, toggle_inverse_cb, (void *) ui);
 	rc2 = CreateHContainer(rc1);
-	fui->xscale = CreateOptionChoice(rc2, "X scale:", 0, 3, xscale_opitems);
-	fui->norm = CreateOptionChoice(rc2, "Normalize:", 0, 4, norm_opitems);
+	ui->xscale = CreateOptionChoice(rc2, "X scale:", 0, 3, xscale_opitems);
+	ui->norm = CreateOptionChoice(rc2, "Normalize:", 0, 4, norm_opitems);
         
         fr = CreateFrame(rc, "Input");
 	rc1 = CreateVContainer(fr);
-	fui->complexin = CreateToggleButton(rc1, "Complex data");
-        AddToggleButtonCB(fui->complexin, toggle_complex_cb, (void *) fui);
-	fui->dcdump = CreateToggleButton(rc1, "Dump DC component");
+	ui->complexin = CreateToggleButton(rc1, "Complex data");
+        AddToggleButtonCB(ui->complexin, toggle_complex_cb, (void *) ui);
+	ui->dcdump = CreateToggleButton(rc1, "Dump DC component");
 	rc2 = CreateHContainer(rc1);
-	fui->window = CreateOptionChoice(rc2,
+	ui->window = CreateOptionChoice(rc2,
             "Apply window:", 0, 9, window_opitems);
-        AddOptionChoiceCB(fui->window, option_window_cb, (void *) fui);
-        fui->winpar = CreateSpinChoice(rc2,
+        AddOptionChoiceCB(ui->window, option_window_cb, (void *) ui);
+        ui->winpar = CreateSpinChoice(rc2,
             "Parameter", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
 	rc2 = CreateHContainer(rc1);
-        fui->oversampling = CreateSpinChoice(rc2,
+        ui->oversampling = CreateSpinChoice(rc2,
             "Zero padding", 2, SPIN_TYPE_FLOAT, 1.0, 99.0, 1.0);
-	fui->round2n = CreateToggleButton(rc2, "Round to 2^N");
+	ui->round2n = CreateToggleButton(rc2, "Round to 2^N");
 
         fr = CreateFrame(rc, "Output");
 	rc1 = CreateHContainer(fr);
-        fui->output = CreateOptionChoice(rc1,
+        ui->output = CreateOptionChoice(rc1,
             "Load:", 0, 6, output_opitems);
-	fui->halflen = CreateToggleButton(rc1, "Half length");
-
-	CreateAACDialog(fui->tdialog->form, rc, do_fourier_proc, (void *) fui);
+	ui->halflen = CreateToggleButton(rc1, "Half length");
         
         /* Default values */
-        SetOptionChoice(fui->xscale, FFT_XSCALE_NU);
-        SetOptionChoice(fui->norm, FFT_NORM_FORWARD);
-        SetSpinChoice(fui->winpar, 1.0);
-        SetSensitive(fui->winpar->rc, FALSE);
-        SetToggleButtonState(fui->halflen, TRUE);
-        SetSpinChoice(fui->oversampling, 1.0);
+        SetOptionChoice(ui->xscale, FFT_XSCALE_NU);
+        SetOptionChoice(ui->norm, FFT_NORM_FORWARD);
+        SetSpinChoice(ui->winpar, 1.0);
+        SetSensitive(ui->winpar->rc, FALSE);
+        SetToggleButtonState(ui->halflen, TRUE);
+        SetSpinChoice(ui->oversampling, 1.0);
 #ifndef HAVE_FFTW
-        SetToggleButtonState(fui->round2n, TRUE);
+        SetToggleButtonState(ui->round2n, TRUE);
 #endif
     }
-    
-    RaiseWindow(GetParent(fui->tdialog->form));
-    
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-/*
- * Fourier
- */
-static int do_fourier_proc(void *data)
+static void *fourier_get_cb(void *gui)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int invflag, xscale, norm;
-    int complexin, dcdump, window, round2n, halflen, output;
-    double oversampling, beta;
-    Four_ui *ui = (Four_ui *) data;
-    
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
+    Four_ui *ui = (Four_ui *) gui;
+    Four_pars *pars;
 
-    invflag   = GetToggleButtonState(ui->inverse);
-    xscale    = GetOptionChoice(ui->xscale);
-    norm      = GetOptionChoice(ui->norm);
-    
-    complexin = GetToggleButtonState(ui->complexin);
-    dcdump    = GetToggleButtonState(ui->dcdump);
-    oversampling   = GetSpinChoice(ui->oversampling);
-    round2n   = GetToggleButtonState(ui->round2n);
-    window    = GetOptionChoice(ui->window);
-    beta      = GetSpinChoice(ui->winpar);
-    
-    halflen   = GetToggleButtonState(ui->halflen);
-    output    = GetOptionChoice(ui->output);
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-	if (do_fourier(gsrc, setfrom, gdest, setto,
-            invflag, xscale, norm, complexin, dcdump, oversampling, round2n,
-            window, beta, halflen, output) != RETURN_SUCCESS) {
-            err = TRUE;
-        }
-    }
+    pars = xmalloc(sizeof(Four_pars));
+    if (pars) {
+        pars->invflag      = GetToggleButtonState(ui->inverse);
+        pars->xscale       = GetOptionChoice(ui->xscale);
+        pars->norm         = GetOptionChoice(ui->norm);
 
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
+        pars->complexin    = GetToggleButtonState(ui->complexin);
+        pars->dcdump       = GetToggleButtonState(ui->dcdump);
+        pars->oversampling = GetSpinChoice(ui->oversampling);
+        pars->round2n      = GetToggleButtonState(ui->round2n);
+        pars->window       = GetOptionChoice(ui->window);
+        pars->beta         = GetSpinChoice(ui->winpar);
+
+        pars->halflen      = GetToggleButtonState(ui->halflen);
+        pars->output       = GetOptionChoice(ui->output);
     }
     
-    update_set_lists(gdest);
-    xdrawgraph();
+    return (void *) pars;
+}
     
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
+static int fourier_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Four_pars *pars = (Four_pars *) tddata;
+    
+    res = do_fourier(psrc, pdest,
+        pars->invflag, pars->xscale, pars->norm, pars->complexin, pars->dcdump, pars->oversampling, pars->round2n,
+        pars->window, pars->beta, pars->halflen, pars->output);
+        
+    return res;
+}
+
+
+void create_fourier_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = fourier_build_cb;
+        cbs.get_cb   = fourier_get_cb;
+        cbs.free_cb  = xfree;
+        cbs.run_cb   = fourier_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Fourier transform", LIST_TYPE_MULTIPLE, TRUE, &cbs);
     }
+    
+    RaiseTransformationDialog(tdialog);
 }
 
 /* finite differencing */
 
-typedef struct _Diff_ui {
-    TransformStructure *tdialog;
+typedef struct {
     OptionStructure *type;
     OptionStructure *xplace;
     SpinStructure *period;
 } Diff_ui;
 
+typedef struct {
+    int type;
+    int xplace;
+    int period;
+} Diff_pars;
+
 #define DIFF_TYPE_PLAIN         0
 #define DIFF_TYPE_DERIVATIVE    1
 
-void create_diff_frame(void *data)
+static void *diff_build_cb(TransformStructure *tdialog)
 {
-    static Diff_ui *dui = NULL;
+    Diff_ui *ui;
 
-    set_wait_cursor();
-    
-    if (dui == NULL) {
-        Widget rc;
+    ui = xmalloc(sizeof(Diff_ui));
+    if (ui) {
+        Widget rc, rc2;
         OptionItem topitems[] = {
             {DIFF_TYPE_PLAIN,      "Plain differences"},
             {DIFF_TYPE_DERIVATIVE, "Derivative"       }
@@ -749,76 +728,62 @@ void create_diff_frame(void *data)
             {DIFF_XPLACE_RIGHT,  "Right" }
         };
 	
-        dui = xmalloc(sizeof(Diff_ui));
-        
-        dui->tdialog = CreateTransformDialogForm(app_shell,
-            "Differences", LIST_TYPE_MULTIPLE);
-	
-        rc = CreateVContainer(dui->tdialog->form);
-        dui->type   = CreateOptionChoice(rc, "Type:", 0, 2, topitems);
-        dui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
-        dui->period = CreateSpinChoice(rc, "Period", 6, SPIN_TYPE_INT,
+        rc = CreateVContainer(tdialog->frame);
+        ui->type   = CreateOptionChoice(rc, "Type:", 0, 2, topitems);
+        rc2 = CreateHContainer(rc);
+        ui->period = CreateSpinChoice(rc2, "Period", 6, SPIN_TYPE_INT,
             (double) 1, (double) 999999, (double) 1);
-        SetSpinChoice(dui->period, (double) 1);
-	
-        CreateAACDialog(dui->tdialog->form, rc, do_differ_proc, (void *) dui);
+        ui->xplace = CreateOptionChoice(rc2, "X placement:", 0, 3, xopitems);
+        
+        SetSpinChoice(ui->period, (double) 1);
     }
-    
-    RaiseWindow(GetParent(dui->tdialog->form));
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-/*
- * finite differences
- */
-static int do_differ_proc(void *data)
+static void *diff_get_cb(void *gui)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int type, xplace, period;
-    Diff_ui *ui = (Diff_ui *) data;
+    Diff_ui *ui = (Diff_ui *) gui;
+    Diff_pars *pars;
+    
+    pars = xmalloc(sizeof(Diff_pars));
+    if (pars) {
+        pars->type   = GetOptionChoice(ui->type);
+        pars->xplace = GetOptionChoice(ui->xplace);
+        pars->period = GetSpinChoice(ui->period);
+    }
+    
+    return (void *) pars;
+}
+    
+static int diff_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Diff_pars *pars = (Diff_pars *) tddata;
 
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
+    res = do_differ(psrc, pdest,
+        pars->type == DIFF_TYPE_DERIVATIVE, pars->xplace, pars->period);
 
-    type   = GetOptionChoice(ui->type);
-    xplace = GetOptionChoice(ui->xplace);
-    period = GetSpinChoice(ui->period);
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-	res = do_differ(gsrc, setfrom, gdest, setto,
-            type == DIFF_TYPE_DERIVATIVE, xplace, period);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
-        }
-    }
-
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    
-    update_set_lists(gdest);
-    xdrawgraph();
-    
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
+    return res;
 }
 
+void create_diff_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = diff_build_cb;
+        cbs.get_cb   = diff_get_cb;
+        cbs.free_cb  = xfree;
+        cbs.run_cb   = diff_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Differences", LIST_TYPE_MULTIPLE, TRUE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
+}
 
 /* running averages */
 
@@ -828,12 +793,17 @@ static int do_differ_proc(void *data)
 #define RUN_TYPE_MIN        3
 #define RUN_TYPE_MAX        4
 
-typedef struct _Run_ui {
-    TransformStructure *tdialog;
+typedef struct {
     SpinStructure *length;
     TextStructure *formula;
     OptionStructure *xplace;
 } Run_ui;
+
+typedef struct {
+    int length;
+    char *formula;
+    int xplace;
+} Run_pars;
 
 static void run_type_cb(int value, void *data)
 {
@@ -866,13 +836,12 @@ static void run_type_cb(int value, void *data)
     }
 }
 
-void create_run_frame(void *data)
+static void *run_build_cb(TransformStructure *tdialog)
 {
-    static Run_ui *rui = NULL;
-    
-    set_wait_cursor();
+    Run_ui *ui;
 
-    if (rui == NULL) {
+    ui = xmalloc(sizeof(Run_ui));
+    if (ui) {
         Widget rc;
         OptionStructure *type;
         OptionItem topitems[] = {
@@ -888,264 +857,238 @@ void create_run_frame(void *data)
             {RUN_XPLACE_RIGHT,   "Right"  }
         };
 	
-        rui = xmalloc(sizeof(Run_ui));
-        
-        rui->tdialog = CreateTransformDialogForm(app_shell,
-            "Running properties", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(rui->tdialog->form);
+	rc = CreateVContainer(tdialog->frame);
         type = CreateOptionChoice(rc, "Type:", 0, 5, topitems);
-        AddOptionChoiceCB(type, run_type_cb, (void *) rui);
-	rui->formula = CreateTextInput(rc, "Formula:");
-	rui->length = CreateSpinChoice(rc, "Length of sample", 6, SPIN_TYPE_INT,
+        AddOptionChoiceCB(type, run_type_cb, (void *) ui);
+	ui->formula = CreateTextInput(rc, "Formula:");
+	ui->length = CreateSpinChoice(rc, "Length of sample", 6, SPIN_TYPE_INT,
             (double) 1, (double) 999999, (double) 1);
-        rui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
+        ui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
         
         /* default settings */
-        SetSpinChoice(rui->length, 1);
-        SetOptionChoice(rui->xplace, RUN_XPLACE_AVERAGE);
-        
-        CreateAACDialog(rui->tdialog->form, rc, do_runavg_proc, (void *) rui);
+        SetSpinChoice(ui->length, 1);
+        SetOptionChoice(ui->xplace, RUN_XPLACE_AVERAGE);
     }
-    
-    RaiseWindow(GetParent(rui->tdialog->form));
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-/*
- * evaluation of running properties
- */
-static int do_runavg_proc(void *data)
+static void *run_get_cb(void *gui)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int length, xplace;
-    char *formula;
-    Run_ui *ui = (Run_ui *) data;
+    Run_ui *ui = (Run_ui *) gui;
+    Run_pars *pars;
+    
+    pars = xmalloc(sizeof(Run_pars));
+    if (pars) {
+        pars->length  = (int) GetSpinChoice(ui->length);
+        pars->formula = GetTextString(ui->formula);
+        pars->xplace  = GetOptionChoice(ui->xplace);
+    }
+    
+    return (void *) pars;
+}
 
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+static void run_free_cb(void *tddata)
+{
+    Run_pars *pars = (Run_pars *) tddata;
+    if (pars) {
+        xfree(pars->formula);
+        xfree(pars);
+    }
+}
+
+static int run_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Run_pars *pars = (Run_pars *) tddata;
+
+    res = do_runavg(psrc, pdest, pars->length, pars->formula, pars->xplace);
     
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
+    return res;
+}
+
+void create_run_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = run_build_cb;
+        cbs.get_cb   = run_get_cb;
+        cbs.free_cb  = run_free_cb;
+        cbs.run_cb   = run_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Running properties", LIST_TYPE_MULTIPLE, TRUE, &cbs);
     }
     
-    length = (int) GetSpinChoice(ui->length);
-    formula = GetTextString(ui->formula);
-    xplace = GetOptionChoice(ui->xplace);
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-	res = do_runavg(gsrc, setfrom, gdest, setto, length, formula, xplace);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
-        }
-    }
-    
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    
-    update_set_lists(gdest);
-    xdrawgraph();
-    
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
+    RaiseTransformationDialog(tdialog);
 }
 
 /* numerical integration */
 
-typedef struct _Int_ui {
-    TransformStructure *tdialog;
+typedef struct {
     Widget disponly;
 } Int_ui;
 
+typedef struct {
+    int disponly;
+} Int_pars;
+
+
+static void *int_build_cb(TransformStructure *tdialog)
+{
+    Int_ui *ui;
+
+    ui = xmalloc(sizeof(Int_ui));
+    if (ui) {
+	ui->disponly =
+            CreateToggleButton(tdialog->frame, "Display integral value only");
+    }
+
+    return (void *) ui;
+}
+
+static void *int_get_cb(void *gui)
+{
+    Int_ui *ui = (Int_ui *) gui;
+    Int_pars *pars;
+    
+    pars = xmalloc(sizeof(Int_pars));
+    if (pars) {
+        pars->disponly = GetToggleButtonState(ui->disponly);
+    }
+    
+    return (void *) pars;
+}
+
+static int int_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    double sum;
+    Int_pars *pars = (Int_pars *) tddata;
+
+    res = do_int(psrc, pdest, pars->disponly, &sum);
+    if (res == RETURN_SUCCESS) {
+        char buf[64];
+        sprintf(buf, "Integral of set %s: %g\n", quark_idstr_get(psrc), sum);
+        stufftext(buf);
+    }
+    
+    return res;
+}
 
 void create_int_frame(void *data)
 {
-    static Int_ui *iui = NULL;
+    static TransformStructure *tdialog = NULL;
 
-    set_wait_cursor();
-    
-    if (iui == NULL) {
-        Widget rc;
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = int_build_cb;
+        cbs.get_cb   = int_get_cb;
+        cbs.free_cb  = xfree;
+        cbs.run_cb   = int_run_cb;
         
-        iui = xmalloc(sizeof(Run_ui));
-        iui->tdialog = CreateTransformDialogForm(app_shell,
-            "Integrate", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(iui->tdialog->form);
-
-	iui->disponly = CreateToggleButton(rc, "Display integral value only");
-
-        CreateAACDialog(iui->tdialog->form, rc, do_int_proc, (void *) iui);
-
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Integrate", LIST_TYPE_MULTIPLE, TRUE, &cbs);
     }
     
-    RaiseWindow(GetParent(iui->tdialog->form));
-    unset_wait_cursor();
-}
-
-/*
- * numerical integration
- */
-static int do_int_proc(void *data)
-{
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int disponly;
-    double sum;
-    Int_ui *ui = (Int_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    disponly = GetToggleButtonState(ui->disponly);
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-	res = do_int(gsrc, setfrom, gdest, setto, disponly, &sum);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
-        } else {
-            char buf[64];
-            sprintf(buf, "Integral of set G%d.S%d: %g\n", gsrc, setfrom, sum);
-            stufftext(buf);
-        }
-    }
-    
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    
-    if (!disponly) {
-        update_set_lists(gdest);
-        xdrawgraph();
-    }
-    
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
+    RaiseTransformationDialog(tdialog);
 }
 
 /* linear convolution */
 
-typedef struct _Lconv_ui {
-    TransformStructure *tdialog;
+typedef struct {
     GraphSetStructure *convsel;
 } Lconv_ui;
 
-void create_lconv_frame(void *data)
+typedef struct {
+    Quark *pconv;
+} Lconv_pars;
+
+static void *lconv_build_cb(TransformStructure *tdialog)
 {
-    static Lconv_ui *ui = NULL;
+    Lconv_ui *ui;
 
-    set_wait_cursor();
-
-    if (ui == NULL) {
-        Widget rc;
-
-        ui = xmalloc(sizeof(Lconv_ui));
-        
-        ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Linear convolution", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(ui->tdialog->form);
-	ui->convsel = CreateGraphSetSelector(rc,
+    ui = xmalloc(sizeof(Lconv_ui));
+    if (ui) {
+	ui->convsel = CreateGraphSetSelector(tdialog->frame,
             "Convolve with:", LIST_TYPE_SINGLE);
-
-        CreateAACDialog(ui->tdialog->form, rc, do_linearc_proc, (void *) ui);
     }
-    
-    RaiseWindow(GetParent(ui->tdialog->form));
-    
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-/*
- * linear convolution
- */
-static int do_linearc_proc(void *data)
+static void lconv_free_cb(void *tddata)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int gconv, setconv;
-    Lconv_ui *ui = (Lconv_ui *) data;
+    Lconv_pars *pars = (Lconv_pars *) tddata;
+    if (pars) {
+        xfree(pars);
+    }
+}
 
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+static void *lconv_get_cb(void *gui)
+{
+    Lconv_ui *ui = (Lconv_ui *) gui;
+    Lconv_pars *pars;
     
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    if (GetSingleListChoice(ui->convsel->graph_sel, &gconv) != RETURN_SUCCESS ||
-        GetSingleListChoice(ui->convsel->set_sel, &setconv) != RETURN_SUCCESS) {
-        errmsg("Please select a single set to be convoluted with");
-        return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-        res = do_linearc(gsrc, setfrom, gdest, setto, gconv, setconv);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
+    pars = xmalloc(sizeof(Lconv_pars));
+    if (pars) {
+        if (GetSingleStorageChoice(ui->convsel->set_sel, (void **) &pars->pconv)
+            != RETURN_SUCCESS) {
+            errmsg("Please select a single set to be convoluted with");
+            lconv_free_cb(pars);
+            return NULL;
         }
     }
+    
+    return (void *) pars;
+}
 
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
+static int lconv_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Lconv_pars *pars = (Lconv_pars *) tddata;
+
+    res = do_linearc(psrc, pdest, pars->pconv);
+    
+    return res;
+}
+
+void create_lconv_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = lconv_build_cb;
+        cbs.get_cb   = lconv_get_cb;
+        cbs.free_cb  = lconv_free_cb;
+        cbs.run_cb   = lconv_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Linear convolution", LIST_TYPE_MULTIPLE, TRUE, &cbs);
     }
     
-    update_set_lists(gdest);
-    xdrawgraph();
-
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
+    RaiseTransformationDialog(tdialog);
 }
 
 
 /* cross correlation */
 
-typedef struct _Cross_ui {
-    TransformStructure *tdialog;
+typedef struct {
     Widget autocor;
     GraphSetStructure *corsel;
     SpinStructure *maxlag;
     Widget covar;
 } Cross_ui;
+
+typedef struct {
+    int autocor;
+    Quark *pcor;
+    int maxlag;
+    int covar;
+} Cross_pars;
 
 static void xcor_self_toggle(int onoff, void *data)
 {
@@ -1154,21 +1097,14 @@ static void xcor_self_toggle(int onoff, void *data)
     SetSensitive(ui->corsel->frame, !onoff);
 }
 
-void create_xcor_frame(void *data)
+static void *cross_build_cb(TransformStructure *tdialog)
 {
-    static Cross_ui *ui = NULL;
+    Cross_ui *ui;
 
-    set_wait_cursor();
-    
-    if (ui == NULL) {
-        Widget rc;
-
-        ui = xmalloc(sizeof(Cross_ui));
-        
-        ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Correlation/covariance", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(ui->tdialog->form);
+    ui = xmalloc(sizeof(Cross_ui));
+    if (ui) {
+	Widget rc;
+        rc = CreateVContainer(tdialog->frame);
 	ui->autocor = CreateToggleButton(rc, "Auto-correlation");
         AddToggleButtonCB(ui->autocor, xcor_self_toggle, (void *) ui);
         ui->corsel = CreateGraphSetSelector(rc,
@@ -1178,161 +1114,148 @@ void create_xcor_frame(void *data)
         ui->covar = CreateToggleButton(rc, "Calculate covariance");
         
         /* default settings */
-        SetSpinChoice(ui->maxlag, 1);
-
-        CreateAACDialog(ui->tdialog->form, rc, do_xcor_proc, (void *) ui);
+        SetSpinChoice(ui->maxlag, (double) 1);
     }
-    
-    RaiseWindow(GetParent(ui->tdialog->form));
-    
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-/*
- * cross correlation
- */
-static int do_xcor_proc(void *data)
+static void cross_free_cb(void *tddata)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int gcor, setcor;
-    int maxlag, autocor, covar;
-    Cross_ui *ui = (Cross_ui *) data;
+    Cross_pars *pars = (Cross_pars *) tddata;
+    if (pars) {
+        xfree(pars);
+    }
+}
 
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+static void *cross_get_cb(void *gui)
+{
+    Cross_ui *ui = (Cross_ui *) gui;
+    Cross_pars *pars;
     
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    maxlag  = (int) GetSpinChoice(ui->maxlag);
-    autocor = GetToggleButtonState(ui->autocor);
-    covar   = GetToggleButtonState(ui->covar);
-    
-    if (!autocor &&
-        (GetSingleListChoice(ui->corsel->graph_sel, &gcor) != RETURN_SUCCESS ||
-         GetSingleListChoice(ui->corsel->set_sel, &setcor) != RETURN_SUCCESS)) {
-        errmsg("Please select a single set to be correlated with");
-        return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-        if (autocor) {
-            gcor = gsrc;
-            setcor = setfrom;
-        }
-        res = do_xcor(gsrc, setfrom, gdest, setto, gcor, setcor, maxlag, covar);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
+    pars = xmalloc(sizeof(Cross_pars));
+    if (pars) {
+        pars->maxlag  = (int) GetSpinChoice(ui->maxlag);
+        pars->autocor = GetToggleButtonState(ui->autocor);
+        pars->covar   = GetToggleButtonState(ui->covar);
+
+        if (!pars->autocor &&
+            GetSingleStorageChoice(ui->corsel->set_sel, (void **) &pars->pcor)
+            != RETURN_SUCCESS) {
+            errmsg("Please select a single set to be correlated with");
+            cross_free_cb(pars);
+            return NULL;
         }
     }
-
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
     
-    update_set_lists(gdest);
-    xdrawgraph();
+    return (void *) pars;
+}
 
-    if (err) {
-        return RETURN_FAILURE;
+static int cross_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Quark *pcor;
+    Cross_pars *pars = (Cross_pars *) tddata;
+
+    if (pars->autocor) {
+        pcor = psrc;
     } else {
-        return RETURN_SUCCESS;
+        pcor = pars->pcor;
     }
+    res = do_xcor(psrc, pdest, pcor, pars->maxlag, pars->covar);
+    
+    return res;
+}
+
+void create_xcor_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = cross_build_cb;
+        cbs.get_cb   = cross_get_cb;
+        cbs.free_cb  = cross_free_cb;
+        cbs.run_cb   = cross_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Correlation/covariance", LIST_TYPE_MULTIPLE, TRUE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
 }
 
 
 /* sample a set */
 
-typedef struct _Samp_ui {
-    TransformStructure *tdialog;
+typedef struct {
     TextStructure *formula;
 } Samp_ui;
 
-void create_samp_frame(void *data)
+typedef struct {
+    char *formula;
+} Samp_pars;
+
+static void *samp_build_cb(TransformStructure *tdialog)
 {
-    static Samp_ui *ui = NULL;
+    Samp_ui *ui;
 
-    set_wait_cursor();
-
-    if (ui == NULL) {
-        Widget rc;
-	
-        ui = xmalloc(sizeof(Samp_ui));
-        
-        ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Sample points", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(ui->tdialog->form);
-	ui->formula = CreateTextInput(rc, "Logical expression:");
-
-        CreateAACDialog(ui->tdialog->form, rc, do_sample_proc, (void *) ui);
+    ui = xmalloc(sizeof(Samp_ui));
+    if (ui) {
+	ui->formula = CreateTextInput(tdialog->frame, "Logical expression:");
     }
-    
-    RaiseWindow(GetParent(ui->tdialog->form));
-    
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-/*
- * sample a set by a logical expression
- */
-static int do_sample_proc(void *data)
+static void samp_free_cb(void *tddata)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    char *formula;
-    Samp_ui *ui = (Samp_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest,
-        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
+    Samp_pars *pars = (Samp_pars *) tddata;
+    if (pars) {
+        xfree(pars->formula);
+        xfree(pars);
     }
+}
+
+static void *samp_get_cb(void *gui)
+{
+    Samp_ui *ui = (Samp_ui *) gui;
+    Samp_pars *pars;
     
-    formula = GetTextString(ui->formula);
-
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-        
-        res = do_sample(gsrc, setfrom, gdest, setto, formula);
-        
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
-        }
-    }
-
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
+    pars = xmalloc(sizeof(Samp_pars));
+    if (pars) {
+        pars->formula = GetTextString(ui->formula);
     }
     
-    update_set_lists(gdest);
-    xdrawgraph();
+    return (void *) pars;
+}
 
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
+static int samp_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Samp_pars *pars = (Samp_pars *) tddata;
+
+    res = do_sample(psrc, pdest, pars->formula);
+    
+    return res;
+}
+
+void create_samp_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = samp_build_cb;
+        cbs.get_cb   = samp_get_cb;
+        cbs.free_cb  = samp_free_cb;
+        cbs.run_cb   = samp_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Sample points", LIST_TYPE_MULTIPLE, TRUE, &cbs);
     }
+    
+    RaiseTransformationDialog(tdialog);
 }
 
 /* Prune data */
@@ -1347,8 +1270,7 @@ static int do_sample_proc(void *data)
 #define PRUNE_DELTA_ABSOLUTE    0
 #define PRUNE_DELTA_RELATIVE    1
 
-typedef struct _Prune_ui {
-    TransformStructure *tdialog;
+typedef struct {
     OptionStructure *type;
     OptionStructure *area;
     Widget dx;
@@ -1357,13 +1279,21 @@ typedef struct _Prune_ui {
     OptionStructure *dytype;
 } Prune_ui;
 
-void create_prune_frame(void *data)
-{
-    static Prune_ui *ui;
-    
-    set_wait_cursor();
+typedef struct {
+    int type;
+    int area;
+    double dx;
+    int dxtype;
+    double dy;
+    int dytype;
+} Prune_pars;
 
-    if (ui == NULL) {
+static void *prune_build_cb(TransformStructure *tdialog)
+{
+    Prune_ui *ui;
+
+    ui = xmalloc(sizeof(Prune_ui));
+    if (ui) {
 	Widget rc, rc2;
         OptionItem topitems[] = {
             {PRUNE_TYPE_POINTS, "Points"       },
@@ -1378,12 +1308,7 @@ void create_prune_frame(void *data)
             {PRUNE_DELTA_RELATIVE, "Relative"}
         };
         
-        ui = xmalloc(sizeof(Prune_ui));
-
-        ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Prune data", LIST_TYPE_MULTIPLE);
-
-	rc = CreateVContainer(ui->tdialog->form);
+	rc = CreateVContainer(tdialog->frame);
 
         ui->type = CreateOptionChoice(rc, "Prune type:", 0, 2, topitems);
         ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
@@ -1395,82 +1320,69 @@ void create_prune_frame(void *data)
 	rc2 = CreateHContainer(rc);
 	ui->dy = CreateTextItem4(rc2, 16, "DY:");
 	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
-
-        CreateAACDialog(ui->tdialog->form, rc, do_prune_proc, (void *) ui);
     }
-    
-    RaiseWindow(GetParent(ui->tdialog->form));
-    
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-
-/*
- * Prune data
- */
-static int do_prune_proc(void *data)
+static void *prune_get_cb(void *gui)
 {
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int type, area, dxtype, dytype;
-    double dx, dy;
-    Prune_ui *ui = (Prune_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest,
-        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    Prune_ui *ui = (Prune_ui *) gui;
+    Prune_pars *pars;
     
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
+    pars = xmalloc(sizeof(Prune_pars));
+    if (pars) {
+        pars->type   = GetOptionChoice(ui->type);
+        pars->area   = GetOptionChoice(ui->area);
+        pars->dxtype = GetOptionChoice(ui->dxtype);
+        pars->dytype = GetOptionChoice(ui->dytype);
 
-    type   = GetOptionChoice(ui->type);
-    area   = GetOptionChoice(ui->area);
-    dxtype = GetOptionChoice(ui->dxtype);
-    dytype = GetOptionChoice(ui->dytype);
-
-    if (xv_evalexpr(ui->dx, &dx) != RETURN_SUCCESS) {
-        errmsg("Can't parse value for X");
-        return RETURN_FAILURE;
-    }
-    if (xv_evalexpr(ui->dy, &dy) != RETURN_SUCCESS) {
-        errmsg("Can't parse value for Y");
-        return RETURN_FAILURE;
-    }
-
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
+        if (xv_evalexpr(ui->dx, &pars->dx) != RETURN_SUCCESS) {
+            errmsg("Can't parse value for X");
+            xfree(pars);
+            return NULL;
         }
-        
-	res = do_prune(gsrc, setfrom, gdest, setto,
-            type == PRUNE_TYPE_INTERP, area == PRUNE_AREA_ELLIPSE,
-            dx, dxtype, dy, dytype);
-        
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
+        if (xv_evalexpr(ui->dy, &pars->dy) != RETURN_SUCCESS) {
+            errmsg("Can't parse value for Y");
+            xfree(pars);
+            return NULL;
         }
     }
-
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
     
-    update_set_lists(gdest);
-    xdrawgraph();
-
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
+    return (void *) pars;
 }
+
+static int prune_run_cb(Quark *psrc, Quark *pdest, void *tddata)
+{
+    int res;
+    Prune_pars *pars = (Prune_pars *) tddata;
+
+    res = do_prune(psrc, pdest,
+        pars->type == PRUNE_TYPE_INTERP, pars->area == PRUNE_AREA_ELLIPSE,
+        pars->dx, pars->dxtype, pars->dy, pars->dytype);
+    
+    return res;
+}
+
+void create_prune_frame(void *data)
+{
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = prune_build_cb;
+        cbs.get_cb   = prune_get_cb;
+        cbs.free_cb  = xfree;
+        cbs.run_cb   = prune_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Prune data", LIST_TYPE_MULTIPLE, TRUE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
+}
+
+#if 0
 
 
 typedef struct _Featext_ui {

@@ -70,7 +70,6 @@ typedef struct {
 } nonlprefs;
 
 typedef struct {
-    TransformStructure *tdialog;
     TextStructure *formula_item;
     Widget title_item;
     Widget parm_item[MAXPARM];
@@ -89,20 +88,31 @@ typedef struct {
     RestrictionStructure *restr_item;
     OptionStructure *weigh_item;
     Widget wfunc_item;
-    
+} Nonl_ui;
+
+typedef struct {
     NLFit nlfit;
-} NonL_ui;
+    nonlprefs prefs;
+    int nsteps;
+    
+    int autol;
+    
+    int npts;
+    double start, stop;
 
-static nonlprefs nonl_prefs = {TRUE, LOAD_VALUES, 10, 0.0, 1.0};
+    int restr_type;
+    int restr_negate;
 
-static int do_nonl_proc(void *data);
+    int weight_method;
+    char *wfunc;
+} Nonl_pars;
+
 static void do_nonl_toggle(int onoff, void *data);
 static void nonl_wf_cb(int value, void *data);
 static void do_constr_toggle(int onoff, void *data);
 
-static void update_nonl_frame(NonL_ui *ui);
+static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit);
 
-static void update_nonl_frame_cb(void *data);
 static void reset_frame_cb(void *data);
 
 static void do_nparm_toggle(int value, void *data);
@@ -111,34 +121,47 @@ static void create_savefit_popup(void *data);
 static int do_openfit_proc(char *filename, void *data);
 static int do_savefit_proc(char *filename, void *data);
 
-
-/* ARGSUSED */
-void create_nonl_frame(void *data)
+static void do_nparm_toggle(int value, void *data)
 {
-    static NonL_ui *ui = NULL;
+    Nonl_ui *ui = (Nonl_ui *) data;
+    int i;
+    for (i = 0; i < MAXPARM; i++) {
+        if (i < value) {
+            ManageChild(ui->parm_item[i]);
+        } else {
+            UnmanageChild(ui->parm_item[i]);
+        }
+    }
+}
+
+static void reset_frame_cb(void *data)
+{
+    Nonl_ui *ui = (Nonl_ui *) data;
+    NLFit nlfit;
     
-    set_wait_cursor();
-    
-    if (!ui) {
+    memset(&nlfit, 0, sizeof(NLFit));
+
+    reset_nonl(&nlfit);
+
+    update_nonl_frame(ui, &nlfit);
+}
+
+static void *nonl_build_cb(TransformStructure *tdialog)
+{
+    Nonl_ui *ui;
+
+    ui = xmalloc(sizeof(Nonl_ui));
+    if (ui) {
         int i;
         char buf[256];
         OptionItem np_option_items[MAXPARM + 1], option_items[5];
         Widget frame, menubar, menupane;
         Widget nonl_tab, nonl_main, nonl_advanced;
         Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
-        
-        ui = xmalloc(sizeof(NonL_ui));
-        memset(ui, 0, sizeof(NonL_ui));
 
-        ui->nlfit.title   = NULL;
-        ui->nlfit.formula = NULL;
-        reset_nonl(&ui->nlfit);
+        frame = tdialog->frame;
 
-	ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Non-linear curve fitting", LIST_TYPE_SINGLE);
-        frame = ui->tdialog->form;
-
-        menubar = ui->tdialog->menubar;
+        menubar = tdialog->menubar;
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane, "Open...", 'O', create_openfit_popup, (void *) ui);
@@ -148,14 +171,12 @@ void create_nonl_frame(void *data)
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-        CreateMenuButton(menupane, "Reset fit parameters", 'R', reset_frame_cb, NULL);
+        CreateMenuButton(menupane, "Reset fit parameters", 'R', reset_frame_cb, (void *) ui);
 
         menupane = CreateMenu(menubar, "View", 'V', FALSE);
    
         ui->autol_item = CreateMenuToggle(menupane, "Autoload", 'A',
 	    NULL, NULL);
-        CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "Update", 'U', update_nonl_frame_cb, NULL);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
@@ -164,10 +185,10 @@ void create_nonl_frame(void *data)
 
         ManageChild(menubar);
         
-	title_fr = CreateFrame(frame, NULL);
-	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
-	ui->title_item = CreateLabel(title_fr, NULL);
-        AddDialogFormChild(frame, title_fr);
+	// title_fr = CreateFrame(frame, NULL);
+	// XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
+	// ui->title_item = CreateLabel(title_fr, NULL);
+        // AddDialogFormChild(frame, title_fr);
 
         /* ------------ Tabs --------------*/
 
@@ -205,6 +226,7 @@ void create_nonl_frame(void *data)
 	rc2 = CreateVContainer(sw);
 	for (i = 0; i < MAXPARM; i++) {
 	    ui->parm_item[i] = CreateHContainer(rc2);
+            UnmanageChild(ui->parm_item[i]);
 	    sprintf(buf, "A%1d: ", i);
 	    ui->value_item[i] = CreateTextItem2(ui->parm_item[i], 10, buf);
 
@@ -257,55 +279,298 @@ void create_nonl_frame(void *data)
 	ui->npts_item = CreateTextItem2(ui->fload_rc, 4, "# of points:");
         AddOptionChoiceCB(ui->load_item, do_nonl_toggle, (void *) ui->fload_rc);
 
-	CreateAACDialog(frame, nonl_tab, do_nonl_proc, (void *) ui);
+        /* defaults */
+        SetToggleButtonState(ui->autol_item, TRUE);
+        SetOptionChoice(ui->load_item, LOAD_VALUES);
+        SetSensitive(ui->fload_rc, FALSE);
+        SetSensitive(GetParent(ui->wfunc_item), FALSE);
+        xv_setstr(ui->start_item, "0.0");
+        xv_setstr(ui->stop_item,  "1.0");
+        xv_setstr(ui->npts_item,  "10");
     }
-    
-    update_nonl_frame(ui);
-    
-    RaiseWindow(GetParent(ui->tdialog->form));
-    
-    unset_wait_cursor();
+
+    return (void *) ui;
 }
 
-static void do_nparm_toggle(int value, void *data)
+static void nonl_free_cb(void *tddata)
 {
-    NonL_ui *ui = (NonL_ui *) data;
-    int i;
-    for (i = 0; i < MAXPARM; i++) {
-        if (i < value) {
-            ManageChild(ui->parm_item[i]);
-        } else {
-            UnmanageChild(ui->parm_item[i]);
+    Nonl_pars *pars = (Nonl_pars *) tddata;
+    if (pars) {
+        xfree(pars->nlfit.title);
+        xfree(pars->nlfit.formula);
+
+        xfree(pars->wfunc);
+        xfree(pars);
+    }
+}
+
+static void *nonl_get_cb(void *gui)
+{
+    Nonl_ui *ui = (Nonl_ui *) gui;
+    Nonl_pars *pars;
+    
+    pars = xmalloc(sizeof(Nonl_pars));
+    if (pars) {
+        int i;
+        NLFit *nlfit = &pars->nlfit;
+        
+        // pars->nlfit.title   = NULL;
+        nlfit->formula = GetTextString(ui->formula_item);
+        nlfit->tolerance = atof(xv_getstr(ui->tol_item));
+        nlfit->parnum = GetOptionChoice(ui->nparm_item);
+        
+        pars->nsteps = (int) GetSpinChoice(ui->nsteps_item);
+
+        for (i = 0; i < nlfit->parnum; i++) {
+            char buf[256];
+	    nonlparm *nlp = &nlfit->parms[i];
+            strcpy(buf, xv_getstr(ui->value_item[i]));
+	    if (sscanf(buf, "%lf", &nlp->value) != 1) {
+	        errmsg("Invalid input in parameter field");
+	        nonl_free_cb(pars);
+                return NULL;
+	    }
+
+	    nlp->constr = GetToggleButtonState(ui->constr_item[i]);
+	    if (nlp->constr) {
+	        strcpy(buf, xv_getstr(ui->lowb_item[i]));
+	        if (sscanf(buf, "%lf", &nlp->min) != 1) {
+	    	    errmsg("Invalid input in low-bound field");
+	            nonl_free_cb(pars);
+                    return NULL;
+	        }
+	        strcpy(buf, xv_getstr(ui->uppb_item[i]));
+	        if (sscanf(buf, "%lf", &nlp->max) != 1) {
+	    	    errmsg("Invalid input in upper-bound field");
+	            nonl_free_cb(pars);
+                    return NULL;
+	        }
+	        if ((nlp->value < nlp->min) || (nlp->value > nlp->max)) {
+	    	    errmsg("Initial values must be within bounds");
+	            nonl_free_cb(pars);
+                    return NULL;
+	        }
+	    }
         }
+
+        pars->prefs.autoload = GetToggleButtonState(ui->autol_item);
+        pars->prefs.load     = GetOptionChoice(ui->load_item);
+
+        if (pars->prefs.load == LOAD_FUNCTION) {
+	    if (xv_evalexpr(ui->start_item, &pars->prefs.start) != RETURN_SUCCESS) {
+	        errmsg("Invalid input in start field");
+	        nonl_free_cb(pars);
+                return NULL;
+	    }
+	    if (xv_evalexpr(ui->stop_item, &pars->prefs.stop) != RETURN_SUCCESS) {
+	        errmsg("Invalid input in stop field");
+	        nonl_free_cb(pars);
+                return NULL;
+	    }
+	    if (xv_evalexpri(ui->npts_item, &pars->prefs.npoints) != RETURN_SUCCESS) {
+	        errmsg("Invalid input in npoints field");
+	        nonl_free_cb(pars);
+                return NULL;
+	    }
+    	    if (pars->prefs.npoints <= 1) {
+    	        errmsg("Number of points must be > 1");
+	        nonl_free_cb(pars);
+                return NULL;
+    	    }
+        }
+
+
+        for (i = 0; i < nlfit->parnum; i++) {
+            nonlparm *nlp = &nlfit->parms[i];
+            double *var;
+
+            var = define_parser_scalar(nlp->name);
+            if (var) {
+                *var = nlp->value;
+            }
+        }
+	
+        pars->weight_method = GetOptionChoice(ui->weigh_item);
+        pars->restr_type    = GetOptionChoice(ui->restr_item->r_sel);
+        pars->restr_negate  = GetToggleButtonState(ui->restr_item->negate);
     }
+    
+    return (void *) pars;
 }
 
-static void reset_frame_cb(void *data)
+static int nonl_run_cb(Quark *psrc, Quark *pdest, void *tddata)
 {
-    NonL_ui *ui = (NonL_ui *) data;
-    reset_nonl(&ui->nlfit);
-    update_nonl_frame(ui);
+    int i, res;
+    Nonl_pars *pars = (Nonl_pars *) tddata;
+
+    if (pars->nsteps) {
+        int nlen, wlen;
+        double *ytmp, *warray;
+        char *rarray;
+        
+        /* apply weigh function */
+    	nlen = getsetlength(psrc);
+        switch (pars->weight_method) {
+        case WEIGHT_Y:
+        case WEIGHT_Y2:
+            ytmp = getcol(psrc, DATA_Y);
+            for (i = 0; i < nlen; i++) {
+                if (ytmp[i] == 0.0) {
+	            errmsg("Divide by zero while calculating weights");
+                    return RETURN_FAILURE;
+                }
+            }
+            warray = xmalloc(nlen*SIZEOF_DOUBLE);
+            if (warray == NULL) {
+	        errmsg("xmalloc failed in nonl_run_cb()");
+                return RETURN_FAILURE;
+            }
+            for (i = 0; i < nlen; i++) {
+                if (pars->weight_method == WEIGHT_Y) {
+                    warray[i] = 1/ytmp[i];
+                } else {
+                    warray[i] = 1/(ytmp[i]*ytmp[i]);
+                }
+            }
+            break;
+        case WEIGHT_DY:
+            ytmp = getcol(psrc, DATA_Y1);
+            if (ytmp == NULL) {
+	        errmsg("The set doesn't have dY data column");
+                return RETURN_FAILURE;
+            }
+            for (i = 0; i < nlen; i++) {
+                if (ytmp[i] == 0.0) {
+	            errmsg("Divide by zero while calculating weights");
+                    return RETURN_FAILURE;
+                }
+            }
+            warray = xmalloc(nlen*SIZEOF_DOUBLE);
+            if (warray == NULL) {
+	        errmsg("xmalloc failed in nonl_run_cb()");
+            }
+            for (i = 0; i < nlen; i++) {
+                warray[i] = 1/(ytmp[i]*ytmp[i]);
+            }
+            break;
+        case WEIGHT_CUSTOM:
+            if (set_parser_setno(psrc) != RETURN_SUCCESS) {
+                errmsg("Bad set");
+                return RETURN_FAILURE;
+            }
+
+            if (v_scanner(pars->wfunc, &wlen, &warray) != RETURN_SUCCESS) {
+                errmsg("Error evaluating expression for weights");
+                return RETURN_FAILURE;
+            }
+            if (wlen != nlen) {
+                errmsg("The array of weights has different length");
+                xfree(warray);
+                return RETURN_FAILURE;
+            }
+            break;
+        default:
+            warray = NULL;
+            break;
+        }
+
+        /* Apply restrictions */
+        res = get_restriction_array(psrc,
+            pars->restr_type, pars->restr_negate, &rarray);
+	if (res != RETURN_SUCCESS) {
+	    errmsg("Error in restriction evaluation");
+	    xfree(warray);
+            return RETURN_FAILURE;
+	}
+
+        /* The fit itself! */
+    	res = do_nonlfit(psrc, &pars->nlfit, warray, rarray, pars->nsteps);
+	
+        /* Free temp arrays */
+        xfree(warray);
+	xfree(rarray);
+    	
+        if (res != RETURN_SUCCESS) {
+	    errmsg("Fatal error in do_nonlfit()");  
+	    return RETURN_FAILURE;  	
+    	}
+   	    	
+        // update_nonl_frame(ui, &pars->nlfit);
+    }
+
+/*
+ * Select & activate a set to load results to
+ */    
+    if (pars->prefs.autoload) {
+        int npts = 0;
+        double delx, *xfit, *y, *yfit;
+    	
+        switch (pars->prefs.load) {
+    	case LOAD_VALUES:
+    	case LOAD_RESIDUALS:
+    	    npts = getsetlength(psrc);
+    	    setlength(pdest, npts);
+    	    copycol2(psrc, pdest, DATA_X);
+    	    break;
+    	case LOAD_FUNCTION:
+    	    npts  = pars->prefs.npoints;
+ 
+    	    setlength(pdest, npts);
+ 
+    	    delx = (pars->prefs.stop - pars->prefs.start)/(npts - 1);
+    	    xfit = getx(pdest);
+	    for (i = 0; i < npts; i++) {
+	        xfit[i] = pars->prefs.start + i * delx;
+	    }
+    	    break;
+    	}
+    	
+    	setcomment(pdest, pars->nlfit.formula);
+    	
+    	do_compute(pdest, pdest, NULL, pars->nlfit.formula);
+    	
+    	if (pars->prefs.load == LOAD_RESIDUALS) { /* load residuals */
+    	    y = gety(psrc);
+    	    yfit = gety(pdest);
+    	    for (i = 0; i < npts; i++) {
+	        yfit[i] -= y[i];
+	    }
+    	}
+    }
+    
+    return RETURN_SUCCESS;
 }
 
-static void update_nonl_frame_cb(void *data)
+void create_nonl_frame(void *data)
 {
-    NonL_ui *ui = (NonL_ui *) data;
-    update_nonl_frame(ui);
+    static TransformStructure *tdialog = NULL;
+
+    if (!tdialog) {
+        TD_CBProcs cbs;
+        cbs.build_cb = nonl_build_cb;
+        cbs.get_cb   = nonl_get_cb;
+        cbs.free_cb  = nonl_free_cb;
+        cbs.run_cb   = nonl_run_cb;
+        
+        tdialog = CreateTransformDialogForm(app_shell,
+            "Non-linear curve fitting", LIST_TYPE_SINGLE, TRUE, &cbs);
+    }
+    
+    RaiseTransformationDialog(tdialog);
 }
 
-static void update_nonl_frame(NonL_ui *ui)
+static void update_nonl_frame(Nonl_ui *ui, NLFit *nlfit)
 {
     int i;
     
     if (ui) {
         char buf[256];
-        NLFit *nlfit = &ui->nlfit;
-        SetLabel(ui->title_item, nlfit->title);
+        // SetLabel(ui->title_item, nlfit->title);
 /* 
  * If I define only XmALIGNMENT_CENTER (default!) then it's ignored - bug in Motif???
  */
-    	XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_BEGINNING, NULL);
-        XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
+    	// XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_BEGINNING, NULL);
+        // XtVaSetValues(ui->title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
         
         SetTextString(ui->formula_item, nlfit->formula);
         sprintf(buf, "%g", nlfit->tolerance);
@@ -332,260 +597,7 @@ static void update_nonl_frame(NonL_ui *ui)
                 }
             }
         }
-        
-        SetToggleButtonState(ui->autol_item, nonl_prefs.autoload);
-        SetOptionChoice(ui->load_item, nonl_prefs.load);
-        
-        if (nonl_prefs.load == LOAD_FUNCTION) {
-            SetSensitive(ui->fload_rc, True);
-        } else {
-            SetSensitive(ui->fload_rc, False);
-        }
-
-        if (GetOptionChoice(ui->weigh_item) == WEIGHT_CUSTOM) {
-            SetSensitive(GetParent(ui->wfunc_item), True);
-        } else {
-            SetSensitive(GetParent(ui->wfunc_item), False);
-        }
-        
-        sprintf(buf, "%g", nonl_prefs.start);
-        xv_setstr(ui->start_item, buf);
-        sprintf(buf, "%g", nonl_prefs.stop);
-        xv_setstr(ui->stop_item, buf);
-        sprintf(buf, "%d", nonl_prefs.npoints);
-        xv_setstr(ui->npts_item, buf);
     }
-}
-
-static int do_nonl_proc(void *data)
-{
-    NonL_ui *ui = (NonL_ui *) data;
-    NLFit *nlfit = &ui->nlfit;
-    int i;
-    int nsteps;
-    int resno;
-    char *fstr;
-    int nlen, wlen;
-    int weight_method;
-    double *ytmp, *warray;
-    int restr_type, restr_negate;
-    char *rarray;
-    int nssrc;
-    Quark *psrc, *pdest, **srcsets, **destsets;
-    char buf[256];
-    
-    if (GetTransformDialogSettings(ui->tdialog, TRUE, &nssrc, &srcsets, &destsets)
-        != RETURN_SUCCESS) {
-    	return RETURN_FAILURE;
-    }
-    
-    psrc  = srcsets[0];
-    pdest = destsets[0];
-    
-    nlfit->formula = copy_string(nlfit->formula, GetTextString(ui->formula_item));
-    nsteps = (int) GetSpinChoice(ui->nsteps_item);
-    nlfit->tolerance = atof(xv_getstr(ui->tol_item));
-    
-    nlfit->parnum = GetOptionChoice(ui->nparm_item);
-    for (i = 0; i < nlfit->parnum; i++) {
-	nonlparm *nlp = &nlfit->parms[i];
-        strcpy(buf, xv_getstr(ui->value_item[i]));
-	if (sscanf(buf, "%lf", &nlp->value) != 1) {
-	    errmsg("Invalid input in parameter field");
-	    return RETURN_FAILURE;
-	}
-	
-	nlp->constr = GetToggleButtonState(ui->constr_item[i]);
-	if (nlp->constr) {
-	    strcpy(buf, xv_getstr(ui->lowb_item[i]));
-	    if (sscanf(buf, "%lf", &nlp->min) != 1) {
-	    	errmsg("Invalid input in low-bound field");
-	    	return RETURN_FAILURE;
-	    }
-	    strcpy(buf, xv_getstr(ui->uppb_item[i]));
-	    if (sscanf(buf, "%lf", &nlp->max) != 1) {
-	    	errmsg("Invalid input in upper-bound field");
-	    	return RETURN_FAILURE;
-	    }
-	    if ((nlp->value < nlp->min) || (nlp->value > nlp->max)) {
-	    	errmsg("Initial values must be within bounds");
-	    	return RETURN_FAILURE;
-	    }
-	}
-    }
-
-    nonl_prefs.autoload = GetToggleButtonState(ui->autol_item);
-    nonl_prefs.load = GetOptionChoice(ui->load_item);
-    
-    if (nonl_prefs.load == LOAD_FUNCTION) {
-	if (xv_evalexpr(ui->start_item, &nonl_prefs.start) != RETURN_SUCCESS) {
-	    errmsg("Invalid input in start field");
-	    return RETURN_FAILURE;
-	}
-	if (xv_evalexpr(ui->stop_item, &nonl_prefs.stop) != RETURN_SUCCESS) {
-	    errmsg("Invalid input in stop field");
-	    return RETURN_FAILURE;
-	}
-	if (xv_evalexpri(ui->npts_item, &nonl_prefs.npoints) != RETURN_SUCCESS) {
-	    errmsg("Invalid input in npoints field");
-	    return RETURN_FAILURE;
-	}
-    	if (nonl_prefs.npoints <= 1) {
-    	    errmsg("Number of points must be > 1");
-	    return RETURN_FAILURE;
-    	}
-    }
-    
-    
-    for (i = 0; i < nlfit->parnum; i++) {
-        nonlparm *nlp = &nlfit->parms[i];
-        double *var;
-        
-        var = define_parser_scalar(nlp->name);
-        if (var) {
-            *var = nlp->value;
-        }
-    }
-    
-    if (nsteps) {
-        /* apply weigh function */
-    	nlen = getsetlength(psrc);
-	weight_method = GetOptionChoice(ui->weigh_item);
-        switch (weight_method) {
-        case WEIGHT_Y:
-        case WEIGHT_Y2:
-            ytmp = getcol(psrc, DATA_Y);
-            for (i = 0; i < nlen; i++) {
-                if (ytmp[i] == 0.0) {
-	            errmsg("Divide by zero while calculating weights");
-                    return RETURN_FAILURE;
-                }
-            }
-            warray = xmalloc(nlen*SIZEOF_DOUBLE);
-            if (warray == NULL) {
-	        errmsg("xmalloc failed in do_nonl_proc()");
-                return RETURN_FAILURE;
-            }
-            for (i = 0; i < nlen; i++) {
-                if (weight_method == WEIGHT_Y) {
-                    warray[i] = 1/ytmp[i];
-                } else {
-                    warray[i] = 1/(ytmp[i]*ytmp[i]);
-                }
-            }
-            break;
-        case WEIGHT_DY:
-            ytmp = getcol(psrc, DATA_Y1);
-            if (ytmp == NULL) {
-	        errmsg("The set doesn't have dY data column");
-                return RETURN_FAILURE;
-            }
-            for (i = 0; i < nlen; i++) {
-                if (ytmp[i] == 0.0) {
-	            errmsg("Divide by zero while calculating weights");
-                    return RETURN_FAILURE;
-                }
-            }
-            warray = xmalloc(nlen*SIZEOF_DOUBLE);
-            if (warray == NULL) {
-	        errmsg("xmalloc failed in do_nonl_proc()");
-            }
-            for (i = 0; i < nlen; i++) {
-                warray[i] = 1/(ytmp[i]*ytmp[i]);
-            }
-            break;
-        case WEIGHT_CUSTOM:
-            if (set_parser_setno(psrc) != RETURN_SUCCESS) {
-                errmsg("Bad set");
-                return RETURN_FAILURE;
-            }
-            
-            fstr = xv_getstr(ui->wfunc_item);
-            if (v_scanner(fstr, &wlen, &warray) != RETURN_SUCCESS) {
-                errmsg("Error evaluating expression for weights");
-                return RETURN_FAILURE;
-            }
-            if (wlen != nlen) {
-                errmsg("The array of weights has different length");
-                xfree(warray);
-                return RETURN_FAILURE;
-            }
-            break;
-        default:
-            warray = NULL;
-            break;
-        }
-
-        /* apply restriction */
-        restr_type = GetOptionChoice(ui->restr_item->r_sel);
-        restr_negate = GetToggleButtonState(ui->restr_item->negate);
-        resno = get_restriction_array(psrc,
-            restr_type, restr_negate, &rarray);
-	if (resno != RETURN_SUCCESS) {
-	    errmsg("Error in restriction evaluation");
-	    xfree(warray);
-            return RETURN_FAILURE;
-	}
-
-        /* The fit itself! */
-    	resno = do_nonlfit(psrc, nlfit, warray, rarray, nsteps);
-	xfree(warray);
-	xfree(rarray);
-    	if (resno != RETURN_SUCCESS) {
-	    errmsg("Fatal error in do_nonlfit()");  
-	    return RETURN_FAILURE;  	
-    	}
-   	    	
-    	for (i = 0; i < nlfit->parnum; i++) {
-	    sprintf(buf, "%g", nlfit->parms[i].value);
-	    xv_setstr(ui->value_item[i], buf);
-    	}
-    }
-
-/*
- * Select & activate a set to load results to
- */    
-    if (nonl_prefs.autoload) {
-        int npts = 0;
-        double delx, *xfit, *y, *yfit;
-    	
-        switch (nonl_prefs.load) {
-    	case LOAD_VALUES:
-    	case LOAD_RESIDUALS:
-    	    npts = getsetlength(psrc);
-    	    setlength(pdest, npts);
-    	    copycol2(psrc, pdest, DATA_X);
-    	    break;
-    	case LOAD_FUNCTION:
-    	    npts  = nonl_prefs.npoints;
- 
-    	    setlength(pdest, npts);
- 
-    	    delx = (nonl_prefs.stop - nonl_prefs.start)/(npts - 1);
-    	    xfit = getx(pdest);
-	    for (i = 0; i < npts; i++) {
-	        xfit[i] = nonl_prefs.start + i * delx;
-	    }
-    	    break;
-    	}
-    	
-    	setcomment(pdest, nlfit->formula);
-    	
-    	do_compute(pdest, pdest, NULL, nlfit->formula);
-    	
-    	if (nonl_prefs.load == LOAD_RESIDUALS) { /* load residuals */
-    	    y = gety(psrc);
-    	    yfit = gety(pdest);
-    	    for (i = 0; i < npts; i++) {
-	        yfit[i] -= y[i];
-	    }
-    	}
-    	
-    	update_set_lists(pdest->parent);
-    	xdrawgraph();
-    }
-    
-    return RETURN_SUCCESS;
 }
 
 static void nonl_wf_cb(int value, void *data)
@@ -646,10 +658,7 @@ static void create_openfit_popup(void *data)
 
 static int do_openfit_proc(char *filename, void *data)
 {
-    NonL_ui *ui = (NonL_ui *) data;
-    reset_nonl(&ui->nlfit);
     errwin("Not implemented yet");
-    update_nonl_frame(ui);
     
     return FALSE;
 }
@@ -657,7 +666,6 @@ static int do_openfit_proc(char *filename, void *data)
 
 static void create_savefit_popup(void *data)
 {
-    NonL_ui *ui = (NonL_ui *) data;
     static FSBStructure *fsb = NULL;
     static Widget title_item = NULL;
 
@@ -673,7 +681,7 @@ static void create_savefit_popup(void *data)
         ManageChild(fsb->FSB);
     }
     
-    xv_setstr(title_item, ui->nlfit.title);
+    // xv_setstr(title_item, ui->nlfit.title);
     
     RaiseWindow(fsb->dialog);
 
@@ -683,7 +691,7 @@ static void create_savefit_popup(void *data)
 static int do_savefit_proc(char *filename, void *data)
 {
     FILE *pp;
-    Widget title_item = (Widget) data;
+    // Widget title_item = (Widget) data;
     
     pp = grace_openw(filename);
     if (pp != NULL) {
