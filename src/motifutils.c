@@ -1070,7 +1070,11 @@ Widget CreateLabel(Widget parent, char *s)
 {
     Widget label;
     
-    label = XtVaCreateManagedWidget(s, xmLabelWidgetClass, parent, NULL);
+    label = XtVaCreateManagedWidget(s,
+        xmLabelWidgetClass, parent,
+        XmNalignment, XmALIGNMENT_BEGINNING,
+        XmNrecomputeSize, True,
+        NULL);
     return label;
 }
 
