@@ -321,7 +321,7 @@ static void popup_any_cb(canvas_target *ct, int type)
         break;
     case DROP_POINT_CB:
         if (quark_fid_get(q) == QFlavorSet && ct->part >= 0) {
-            droppoints(q, ct->part, ct->part);
+            del_point(q, ct->part);
         }
         break;
     case AUTOSCALE_BY_SET_CB:
