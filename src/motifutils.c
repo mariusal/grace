@@ -2176,11 +2176,6 @@ RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
     return retval;
 }
 
-
-
-
-
-
 #define PEN_CHOICE_WIDTH  64
 #define PEN_CHOICE_HEIGHT 16
 
@@ -2297,12 +2292,13 @@ static Widget CreateColorChoicePopup(Widget button)
         Colordef *c = &pr->colormap[ci];
         long bg, fg;
         Widget cb;
+        int color = c->id;
         cb = CreateButton(popup, c->cname);
         XtAddCallback(cb,
-            XmNactivateCallback, cc_cb, (XtPointer) ci);
+            XmNactivateCallback, cc_cb, (XtPointer) color);
 
-        bg = xvlibcolors[ci];
-	if (get_colorintensity(canvas, ci) < 0.5) {
+        bg = xvlibcolors[color];
+	if (get_rgb_intensity(&c->rgb) < 0.5) {
 	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
 	} else {
 	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
@@ -2945,13 +2941,14 @@ void UpdateSrcDestSelector(SrcDestStructure *srcdest)
 void paint_color_selector(OptionStructure *optp)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
-    unsigned int i, color;
+    unsigned int i;
     long bg, fg;
+    Project *pr = project_get_data(grace->project);
     
-    for (i = 0; i < ncolor_option_items; i++) {
-        color = color_option_items[i].value;
-        bg = xvlibcolors[color];
-	if (get_colorintensity(canvas, color) < 0.5) {
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        bg = xvlibcolors[c->id];
+	if (get_rgb_intensity(&c->rgb) < 0.5) {
 	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
 	} else {
 	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
