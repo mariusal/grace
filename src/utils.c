@@ -1308,6 +1308,21 @@ static void update_timestamp(void)
     set_plotstr_string(&timestamp, str);
 }
 
+void update_app_title(void)
+{
+#ifndef NONE_GUI
+    char buf[100];
+    
+    strcpy(buf, "Grace: ");
+    strncat(buf, mybasename(docname), 80);
+    if (is_dirtystate()) {
+        strcat(buf, " (modified)");
+    }
+
+    set_title(buf);
+#endif
+}
+
 /*
  * dirtystate routines
  */
@@ -1319,6 +1334,8 @@ void set_dirtystate(void)
     if (dirtystate >= 0) {
         dirtystate++;
         update_timestamp();
+        update_app_title();
+
 /*
  * TODO:
  * 	if ( (dirtystate > SOME_LIMIT) || 
@@ -1332,6 +1349,7 @@ void set_dirtystate(void)
 void clear_dirtystate(void)
 {
     dirtystate = 0;
+    update_app_title();
 }
 
 void lock_dirtystate(void)

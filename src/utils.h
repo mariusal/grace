@@ -108,6 +108,8 @@ void expand_tilde(char *buf);
 int set_workingdir(char *wd);
 char *get_workingdir(void);
 
+void update_app_title(void);
+
 void set_dirtystate(void);
 void clear_dirtystate(void);
 void lock_dirtystate(void);
