@@ -663,6 +663,7 @@ static int setapp_aac_cb(void *data)
         xfree(selset);
     } 
 
+    set_dirtystate();
     xdrawgraph();
     
     return RETURN_SUCCESS;
