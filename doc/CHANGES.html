@@ -44,15 +44,18 @@
 
 <H3>Interface</H3>
  !  [ES] re-designed "Create by formula"; any set type can be defined
- !  [ES] justifications
- !  [ES] combined point ops dialogs into one
+ !  [ES] controls for justifications of strings cover all possibilities
+         (vertical and horizontal alignments)
+ !  [ES] combined point ops dialogs into one, "Window/Point explorer"
  *  [ES] print all point data (was only x, y) during point tracking
- !  [ES] (optional) set comments in set selectors
+ *  [ES] (optional) set comments in set selectors
  *  [ES] "File/Describe" merged with "File/Save as"
  *  [ES] reading in block data no longer resets set column selectors
  *  [ES] implemented the color sync option in the "set app." dialog
  *  [EV] "-barebones" command line switch (switch all tool bars off)
  *  [ES] annotated strings can be modified in the spreadsheet editor
+ *  [ES] in "File/Device setup", introduced options to sync page size of all
+         devices and rescale plot on page size change
 
 <H3>Drivers</H3>
  *  [LM] FrameMaker MIF driver added (rep. #590)
@@ -66,6 +69,7 @@
          level
  *  [ES] use "thin" lines in X11 driver if the line width &lt;= 1 pixel
  *  [ES] list fonts, colors and other resources in the metafile driver
+ *  [ES] don't rotate output in EPS landscape mode
 
 <H3>Documentation/Info</H3>
  *  [AM] omit a few GUI-specific flags/help strings when compiling a GUI-less
@@ -74,15 +78,16 @@
          by formula
  *  [LM] added usage help for convcal
  *  [HS] updated instructions for Motif-2.1 bug work-around
-         (&lt;Ctrl&gt;+&lt;left mouse button&gt = crash) in the FAQ
+         (&lt;Ctrl&gt;+&lt;left mouse button&gt; = crash) in the FAQ
  *  [ES] re-structured the FAQ
+ *  [ES] documented numeric operators and functions
 
 <H3>Parser</H3>
- !  [ES] finally, introduced variables (usual and 1D arrays)...
- !  [ES] as a result of the above, removed scratch arrays (A, B, C, D)
+ *  [ES] finally, introduced variables (usual and 1D arrays)...
+ *  [ES] as a result of the above, removed scratch arrays (A, B, C, D)
  !  [DP] SWAP selectset AND selectset
- !  [ES] EXIT(iexpr)
- !  [ES] enlarged parser buffer to 4K
+ *  [ES] EXIT(iexpr)
+ *  [ES] enlarged parser buffer to 4K
 
 <H3>Portability/Compilation</H3>
  *  [ES] new configure options (including rep. #757)
@@ -90,6 +95,8 @@
          (rep. #758)
  *  [ES] checks for proper versions and consistency of libs and includes
  *  [AM/ES] checks for Motif/LessTif run-time clash
+ *  [ES] the grace_np Fortran wrapper is compiled independently of whether a
+         F77 compiler has been found
  *  [JH] VMS updates
  *  [AM] OS/2 updates
 
@@ -100,7 +107,7 @@
          caused crash
  *  [ES] using very long formulae (&gt;~100) in the non-linear fit caused
          memory corruption
- *  [ES] text string were justified by the lower edge of the bounding box
+ *  [ES] text strings were justified by the lower edge of the bounding box
          instead of the baseline (rep. #710)
  *  [ES] "-" in PS output was squeezed (rep. #711)
  *  [RW] empty src/buildinfo.h prevented further compilation (rep. #717)
@@ -117,10 +124,11 @@
  *  [AH] on some platforms, "make install" moved files instead of copying
          (rep. #743)
  *  [AM] feature extraction didn't update set lists (rep. #731)
- *  [ES] fixed triangle symbols
- *  [ES] X11/24bits
+ *  [ES] fixed triangle symbols (now correctly centered)
+ *  [ES] font antialising was broken on X displays with 24 bits per pixel
+         format of pixmaps
  *  [EV] feature extraction/FFT was incorrectly determining if the set length
-         was a power of 2
+         was a power of 2 (unimportant if FFTW was used)
  *  [ES] upon loading a project, set print file name automatically (rep. #641)
  *  [ES] fixed a memory leak in set sort
  *  [ES] fixed bugs in set and point operations with sets containing annotated
