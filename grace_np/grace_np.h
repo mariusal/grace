@@ -46,7 +46,7 @@ GraceErrorFunctionType GraceRegisterErrorFunction(GraceErrorFunctionType f);
 int GraceOpen(const int);
 
 /* test if a grace subprocess is currently connected */
-int GraceIsOpen();
+int GraceIsOpen(void);
 
 /* close the communication channel and exit the grace subprocess */
 int GraceClose(void);

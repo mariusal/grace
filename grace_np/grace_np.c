@@ -254,7 +254,7 @@ GraceOpen(const int arg)
 }
 
 int
-GraceIsOpen(const int arg)
+GraceIsOpen(void)
 {
     return (fd_pipe >= 0) ? 1 : 0;
 }
