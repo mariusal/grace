@@ -552,7 +552,7 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_move(g1->sets, setfrom, g1->sets, setto, FALSE);
+    res = storage2_data_move(g1->sets, setfrom, g2->sets, setto, FALSE);
 
     if (res == RETURN_SUCCESS) {
         set_dirtystate();
@@ -580,7 +580,7 @@ int copyset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_copy(g1->sets, setfrom, g1->sets, setto, FALSE);
+    res = storage2_data_copy(g1->sets, setfrom, g2->sets, setto, FALSE);
 
     if (res == RETURN_SUCCESS) {
         char buf[64];
@@ -646,7 +646,7 @@ int swapset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_swap(g1->sets, setfrom, g1->sets, setto, FALSE);
+    res = storage2_data_swap(g1->sets, setfrom, g2->sets, setto, FALSE);
 
     if (res == RETURN_SUCCESS) {
         set_dirtystate();
@@ -1116,6 +1116,69 @@ double vmax(double *x, int n)
 	}
     }
     return xmax;
+}
+
+static int dbl_comp(const void *a, const void *b)
+{
+    if (*(double *)a < *(double *)b) {
+        return -1;
+    } else if (*(double *)a > *(double *)b) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/* get the median of a vector */
+int vmedian(double *x, int n, double *med)
+{
+    double *d;
+
+    if (n < 1) {
+        return RETURN_FAILURE;
+    } else if (n == 1) {
+        *med = x[0];
+    } else {
+        if (monotonicity(x, n, FALSE) == 0) {
+            d = copy_data_column(x, n);
+            if (!d) {
+                return RETURN_FAILURE;
+            }
+            qsort(d, n, SIZEOF_DOUBLE, dbl_comp);
+        } else {
+            d = x;
+        }
+        if (n % 2) {
+            /* odd length */
+            *med = d[(n + 1)/2 - 1];
+        } else {
+            *med = (d[n/2 - 1] + d[n/2])/2;
+        }
+
+        if (d != x) {
+            xfree(d);
+        }
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+
+int vbarycenter(double *x, double *y, int n, double *barycenter)
+{
+    int i;
+    double wsum = 0.0, xsum = 0.0;
+
+    if (n < 1 || !x || !y) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < n; i++) {
+        wsum += x[i]*y[i];
+        xsum += x[i];
+    }
+    *barycenter = wsum/xsum;
+    return RETURN_SUCCESS;
 }
 
 int set_point(int gno, int setno, int seti, WPoint wp)
