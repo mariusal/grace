@@ -46,6 +46,10 @@ char *set_types(RunTime *rt, SetType it);
 char *set_type_descr(RunTime *rt, SetType it);
 SetType get_settype_by_name(RunTime *rt, const char *name);
 
+char *object_types(RunTime *rt, OType it);
+char *object_type_descr(RunTime *rt, OType it);
+OType get_objecttype_by_name(RunTime *rt, const char *name);
+
 char *inout_placement_name(RunTime *rt, int inout);
 int get_inout_placement_by_name(RunTime *rt, const char *name);
 char *side_placement_name(RunTime *rt, int inout);

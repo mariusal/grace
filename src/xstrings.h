@@ -188,12 +188,15 @@
 #define AStrYmin                "ymin"
 
 /* Attribute value names */
+#define VStrArc                 "arc"
 #define VStrAuto                "auto"
 #define VStrBand                "band"
 #define VStrBoth                "both"
+#define VStrBox                 "box"
 #define VStrEvenodd             "evenodd"
 #define VStrIn                  "in"
 #define VStrFormula             "formula"
+#define VStrLine                "line"
 #define VStrMajor               "major"
 #define VStrMinor               "minor"
 #define VStrNone                "none"

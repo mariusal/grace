@@ -39,28 +39,6 @@
 #include "grace/core.h"
 #include "core_utils.h"
 
-char *object_types(OType type)
-{
-    char *s = "";
-    switch (type) {
-    case DO_LINE:
-        s = "line";
-        break;
-    case DO_BOX:
-        s = "box";
-        break;
-    case DO_ARC:
-        s = "arc";
-        break;
-    case DO_NONE:
-        s = "none";
-        break;
-    }
-    
-    return s;
-}
-
-
 void move_object(Quark *q, VVector shift)
 {
 #if 0

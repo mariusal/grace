@@ -868,7 +868,7 @@ static int project_save_hook(Quark *q,
             case DO_NONE:
                 break;
             }
-            sprintf(buf, "%s-data", object_types(o->type));
+            sprintf(buf, "%s-data", object_types(rt_from_quark(q), o->type));
             if (o->type == DO_LINE) {
                 xfile_begin_element(xf, buf, attrs);
                 {

@@ -1070,7 +1070,7 @@ char *q_labeling(Quark *q)
     case QFlavorAGrid:
         t = axisgrid_get_data(q);
         
-        sprintf(buf, "%c Axis grid \"%s%s\"",
+        sprintf(buf, "%c AGrid \"%s%s\"",
             t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"");
 
@@ -1085,9 +1085,9 @@ char *q_labeling(Quark *q)
     case QFlavorDObject:
         o = object_get_data(q);
 
-        sprintf(buf, "DObject \"%s%s\" (%s)",
-            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
-            object_types(o->type));
+        sprintf(buf, "%s \"%s%s\"",
+            object_type_descr(rt, o->type),
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"");
         
         break;
     case QFlavorAText:

@@ -76,6 +76,15 @@ int grace_rt_init_dicts(RunTime *rt)
             {SET_BOXPLOT,    "boxplot",    "BoxPlot"   }
         };
 
+    const DictEntry object_type_defaults =
+        {DO_NONE, VStrNone, "Unknown"};
+    const DictEntry object_type_entries[] = 
+        {
+            {DO_LINE, VStrLine, "Line"},
+            {DO_BOX,  VStrBox,  "Box" },
+            {DO_ARC,  VStrArc,  "Arc" }
+        };
+
     const DictEntry inout_placement_defaults =
         {TICKS_IN, VStrIn, "In"};
     const DictEntry inout_placement_entries[] = 
@@ -129,6 +138,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(set_type_entries, &set_type_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->object_type_dict =
+        DICT_NEW_STATIC(object_type_entries, &object_type_defaults))) {
+        return RETURN_FAILURE;
+    }
     if (!(rt->inout_placement_dict =
         DICT_NEW_STATIC(inout_placement_entries, &inout_placement_defaults))) {
         return RETURN_FAILURE;
@@ -157,6 +170,7 @@ void grace_rt_free_dicts(RunTime *rt)
 {
     dict_free(rt->graph_type_dict);
     dict_free(rt->set_type_dict);
+    dict_free(rt->object_type_dict);
     dict_free(rt->inout_placement_dict);
     dict_free(rt->side_placement_dict);
     dict_free(rt->axis_position_dict);
@@ -215,6 +229,33 @@ SetType get_settype_by_name(RunTime *rt, const char *name)
     int retval;
     
     dict_get_key_by_name(rt->set_type_dict, name, &retval);
+    
+    return retval;
+}
+
+char *object_types(RunTime *rt, OType it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->object_type_dict, it, &s);
+    
+    return s;
+}
+
+char *object_type_descr(RunTime *rt, OType it)
+{
+    char *s;
+    
+    dict_get_descr_by_key(rt->object_type_dict, it, &s);
+    
+    return s;
+}
+
+OType get_objecttype_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->object_type_dict, name, &retval);
     
     return retval;
 }

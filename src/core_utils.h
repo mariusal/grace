@@ -114,8 +114,6 @@ int copysetdata(Quark *psrc, Quark *pdest);
 void project_postprocess(Quark *pr);
 int project_get_viewport(const Quark *project, double *vx, double *vy);
 
-char *object_types(OType type);
-
 void move_object(Quark *q, VVector shift);
 int object_place_at_vp(Quark *q, VPoint vp);
 

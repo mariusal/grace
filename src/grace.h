@@ -183,6 +183,7 @@ typedef struct _RunTime {
     /* Misc dictionaries */
     Dictionary *graph_type_dict;
     Dictionary *set_type_dict;
+    Dictionary *object_type_dict;
     Dictionary *inout_placement_dict;
     Dictionary *side_placement_dict;
     Dictionary *spec_ticks_dict;
