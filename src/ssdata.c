@@ -157,45 +157,86 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats)
     return GRACE_EXIT_SUCCESS;
 }
 
+static char *next_token(char *s, char **token, int *quoted)
+{
+    *quoted = FALSE;
+    *token = NULL;
+    
+    if (s == NULL) {
+        return NULL;
+    }
+    
+    while (*s == ' ' || *s == '\t') {
+        s++;
+    }
+    if (*s == '"') {
+        s++;
+        *token = s;
+        while (*s != '\0' && (*s != '"' || (*s == '"' && *(s - 1) == '\\'))) {
+            s++;
+        }
+        if (*s == '"') {
+            /* successfully identified a quoted string */
+            *quoted = TRUE;
+        }
+    } else {
+        *token = s;
+        while (*s != '\n' && *s != '\0' && *s != ' ' && *s != '\t') {
+            s++;
+        }
+    }
+    
+    if (*s != '\0') {
+        *s = '\0';
+        s++;
+        return s;
+    } else {
+        return NULL;
+    }
+}
+
 int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
 {
     int ncols;
-    char *tmpbuf, *s1, *ssend;
-    
-    tmpbuf = copy_string(NULL, s);
-    if (tmpbuf == NULL) {
-        errmsg("Insufficient memory for string");
-        return GRACE_EXIT_FAILURE;
-    }
+    int quoted;
+    char *buf, *s1, *token;
+    double value;
+    Dates_format df_pref, df_rec;
 
-    s1 = tmpbuf;
     *nscols = 0;
     *nncols = 0;
     *formats = NULL;
-    while ((s1 = strtok(s1, " \t\n")) != NULL) {
+    df_pref = get_date_hint();
+    buf = copy_string(NULL, s);
+    s1 = buf;
+    while ((s1 = next_token(s1, &token, &quoted)) != NULL) {
+        if (token == NULL) {
+            *nscols = 0;
+            *nncols = 0;
+            cxfree(*formats);
+            free(buf);
+            return GRACE_EXIT_FAILURE;
+        }
+        
         ncols = *nncols + *nscols;
         /* reallocate the formats array */
         if (ncols % 10 == 0) {
             *formats = xrealloc(*formats, (ncols + 10)*SIZEOF_INT);
         }
-        if (*s1 == '"') {
-            s1++;
-            if ((ssend = strrchr(s1, '"')) != NULL) {
-                (*formats)[ncols] = FFORMAT_STRING;
-                (*nscols)++;
-            } else {
-                *nscols = 0;
-                *nncols = 0;
-                cxfree(*formats);
-                return GRACE_EXIT_FAILURE;
-            }
+
+        if (quoted) {
+            (*formats)[ncols] = FFORMAT_STRING;
+            (*nscols)++;
+        } else if (parse_date(token, df_pref, &value, &df_rec) ==
+            GRACE_EXIT_SUCCESS) {
+            (*formats)[ncols] = FFORMAT_DATE;
+            (*nncols)++;
         } else {
             (*formats)[ncols] = FFORMAT_NUMBER;
             (*nncols)++;
         }
-        s1 = NULL;
     }
-    free(tmpbuf);
+    free(buf);
     
     return GRACE_EXIT_SUCCESS;
 }
@@ -206,13 +247,16 @@ int insert_data_row(ss_data *ssd, int row, char *s)
 {
     int i, j;
     int ncols = ssd->ncols;
-    int len;
+    char *token;
+    int quoted;
     char  **sp;
     double *np;
+    Dates_format df_pref, df_rec;
     
+    df_pref = get_date_hint();
     for (i = 0; i < ncols; i++) {
-        s = strtok(s, " \t\n");
-        if (s == NULL) {
+        s = next_token(s, &token, &quoted);
+        if (s == NULL || token == NULL) {
             /* invalid line: free the already allocated string fields */
             for (j = 0; j < i; j++) {
                 if (ssd->formats[j] == FFORMAT_STRING) {
@@ -224,15 +268,15 @@ int insert_data_row(ss_data *ssd, int row, char *s)
         } else {
             if (ssd->formats[i] == FFORMAT_STRING) {
                 sp = (char **) ssd->data[i];
-                sp[row] = copy_string(NULL, s + 1);
-                len = strlen(sp[row]);
-                sp[row][len - 1] = '\0';
+                sp[row] = copy_string(NULL, token);
+            } else if (ssd->formats[i] == FFORMAT_DATE) {
+                np = (double *) ssd->data[i];
+                parse_date(token, df_pref, &np[row], &df_rec);
             } else {
                 np = (double *) ssd->data[i];
-                np[row] = atof(s);
+                np[row] = atof(token);
             }
         }
-        s = NULL;
     }
     
     return GRACE_EXIT_SUCCESS;
@@ -346,12 +390,6 @@ int store_data(ss_data *ssd, int load_type, char *label)
         cxfree(ssd->data);
         break;
     case LOAD_BLOCK:
-        if (nscols != 0) {
-            errmsg("Internal error");
-            free_ss_data(ssd);
-            return GRACE_EXIT_FAILURE;
-        }
-        
         set_blockdata(ssd);
         log_results(label);
         break;
@@ -365,13 +403,61 @@ int store_data(ss_data *ssd, int load_type, char *label)
 }
 
 
-void create_set_fromblock(int gno, int type, char *cols)
+void field_string_to_cols(char *fs, int *nc, int **cols)
 {
-    int ncols, blockncols, blocklen, column;
-    int setno;
-    int nc, coli[MAX_SET_COLS];
+    int col, coli[MAX_SET_COLS];
     char *s, buf[256];
+
+    strcpy(buf, fs);
+    s = buf;
+    *nc = 0;
+    while ((s = strtok(s, ":")) != NULL) {
+	if (!strcmp(s, "i")) {
+            col = -1;
+        } else {
+            col = atoi(s);
+        }
+	if (col < -1) {
+	    errmsg("Column index out of range");
+	}
+        coli[*nc] = col;
+	(*nc)++;
+        if (*nc > MAX_SET_COLS) {
+            errmsg("Too many columns scanned in column string");
+        }
+	s = NULL;
+    }
+    
+    *cols = coli;
+}
+
+char *cols_to_field_string(int nc, int *cols)
+{
+    int i;
+    char *s, buf[32];
+    
+    s = NULL;
+    for (i = 0; i < nc; i++) {
+        if (cols[i] == -1) {
+            strcpy(buf, "i");
+        } else {
+            sprintf(buf, "%d", cols[i]);
+        }
+        if (i != 0) {
+            s = concat_strings(s, ":");
+        }
+        s = concat_strings(s, buf);
+    }
+    
+    return s;
+}
+
+void create_set_fromblock(int gno, int type, int nc, int *coli, int scol)
+{
+    int i, ncols, blockncols, blocklen, column;
+    int setno;
     double *cdata;
+    char buf[256];
 
     blockncols = get_blockncols();
     if (blockncols <= 0) {
@@ -382,29 +468,27 @@ void create_set_fromblock(int gno, int type, char *cols)
     blocklen = get_blocknrows();
     
     ncols = settype_cols(type);
-    
-    strcpy(buf, cols);
-    s = buf;
-    nc = 0;
-    while ((s = strtok(s, ":")) != NULL) {
-	coli[nc] = atoi(s);
-	coli[nc]--;
-	if (coli[nc] < -1 || coli[nc] >= blockncols) {
-	    errmsg("Column index out of range");
-	    return;
-	}
-	nc++;
-        if (nc > ncols) {
-            errmsg("Too many columns scanned in column string");
-            return;
-        }
-	s = NULL;
+    if (nc > ncols) {
+        errmsg("Too many columns scanned in column string");
+        return;
     }
     if (nc < ncols) {
 	errmsg("Too few columns scanned in column string");
 	return;
     }
-
+    
+    for (i = 0; i < nc; i++) {
+	if (coli[i] < -1 || coli[i] >= blockncols) {
+	    errmsg("Column index out of range");
+	    return;
+	}
+    }
+    
+    if (scol >= blockncols) {
+	errmsg("String column index out of range");
+	return;
+    }
+    
     setno = nextset(gno);
     if (setno == -1) {
 	return;
@@ -413,21 +497,39 @@ void create_set_fromblock(int gno, int type, char *cols)
     activateset(gno, setno);
     set_dataset_type(gno, setno, type);
 
-    for (nc = 0; nc < ncols; nc++) {
-        column = coli[nc];
+    for (i = 0; i < nc; i++) {
+        column = coli[i];
         if (column == -1) {
             cdata = allocate_index_data(blocklen);
         } else {
-            cdata = copy_data_column((double *) blockdata.data[column], blocklen);
+            if (blockdata.formats[column] != FFORMAT_STRING) {
+                cdata = copy_data_column((double *) blockdata.data[column], blocklen);
+            } else {
+                errmsg("Tried to read doubles from strings!");
+                killsetdata(gno, setno);
+                return;
+            }
         }
         if (cdata == NULL) {
             errmsg("Can't allocate more sets!");
             killsetdata(gno, setno);
+            return;
         }
-        setcol(gno, setno, nc, cdata, blocklen);
+        setcol(gno, setno, i, cdata, blocklen);
     }
 
-    sprintf(buf, "Cols %s", cols);
+    /* strings, if any */
+    if (scol >= 0) {
+        if (blockdata.formats[scol] != FFORMAT_STRING) {
+            errmsg("Tried to read strings from doubles!");
+            killsetdata(gno, setno);
+            return;
+        } else {
+            set_set_strings(gno, setno, blocklen, (char **) blockdata.data[scol]);
+        }
+    }
+
+    sprintf(buf, "Cols %s", cols_to_field_string(nc, coli));
     setcomment(gno, setno, buf);
 
     autoscale_graph(gno, autoscale_onread);
