@@ -35,7 +35,7 @@
 #define __XRSTDRV_H_
 
 #include <xmi.h>
-
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
 typedef struct _Xrst_data {

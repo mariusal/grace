@@ -179,11 +179,16 @@ int update_bboxes_with_view(Canvas *canvas, const view *v);
 int update_bboxes_with_vpoints(Canvas *canvas,
     const VPoint *vps, int n, double lw);
 
+int is_valid_color(const RGB *rgb);
+int find_color(const Canvas *canvas, const RGB *rgb);
 int realloc_color(Canvas *canvas, int n);
 void canvas_color_trans(Canvas *canvas, CMap_entry *cmap);
 int make_color_scale(Canvas *canvas,
     unsigned int fg, unsigned int bg,
     unsigned int ncolors, unsigned long *colors);
+
+int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
+int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
 
 void initialize_cmap(Canvas *canvas);
 int init_t1(Canvas *canvas);

@@ -79,7 +79,6 @@
 #define JUST_TOP        8
 #define JUST_MIDDLE    12
 
-
 #define BAD_FONT_ID     -1
 
 /* TODO */
@@ -129,6 +128,9 @@
 
 #define BBOX_TYPE_GLOB	0
 #define BBOX_TYPE_TEMP	1
+
+/* The default max drawing path limit */
+#define MAX_DRAWING_PATH  20000
 
 
 /* A point in viewport coordinates */
@@ -381,31 +383,67 @@ typedef struct {
     void *data;                            /* device private data */
 } Device_entry;
 
-typedef struct {
-    unsigned int width;
-    unsigned int height;
-    unsigned int **matrix;
-} Xrst_pixmap;
+char *canvas_get_username(const Canvas *canvas);
+char *canvas_get_docname(const Canvas *canvas);
+char *canvas_get_description(const Canvas *canvas);
 
-typedef int (*XrstDumpProc)(const Canvas *canvas, void *data,
-    unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm);
-
-typedef struct _XrstDevice_entry {
-    int           type;
-    char          *name;
-    char          *fext;
-    int           fontaa;
-    DevParserProc parser;
-    DevSetupProc  setup;
-    
-    XrstDumpProc  dump;
-    
-    void          *data; /* device private data */
-} XrstDevice_entry;
+void getpen(const Canvas *canvas, Pen *pen);
+int getcolor(const Canvas *canvas);
+int getbgcolor(const Canvas *canvas);
+int getpattern(const Canvas *canvas);
+int getlinestyle(const Canvas *canvas);
+int getlinecap(const Canvas *canvas);
+int getlinejoin(const Canvas *canvas);
+int getfillrule(const Canvas *canvas);
+double getlinewidth(const Canvas *canvas);
+double getcharsize(const Canvas *canvas);
+int getfont(const Canvas *canvas);
 
 
-/* The default max drawing path limit */
-#define MAX_DRAWING_PATH  20000
+void canvas_set_prstream(Canvas *canvas, FILE *prstream);
+FILE *canvas_get_prstream(const Canvas *canvas);
+
+void set_max_path_limit(Canvas *canvas, int limit);
+int get_max_path_limit(const Canvas *canvas);
+
+unsigned int number_of_colors(const Canvas *canvas);
+
+int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
+int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
+Color *get_color_def(const Canvas *canvas, unsigned int cindex);
+char *get_colorname(const Canvas *canvas, unsigned int cindex);
+
+double get_colorintensity(const Canvas *canvas, int cindex);
+
+int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
+int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
+int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
+
+unsigned int number_of_fonts(const Canvas *canvas);
+char *get_fontname(const Canvas *canvas, int font);
+char *get_fontfullname(const Canvas *canvas, int font);
+char *get_fontfamilyname(const Canvas *canvas, int font);
+char *get_fontweight(const Canvas *canvas, int font);
+char *get_fontfilename(const Canvas *canvas, int font, int abspath);
+char *get_afmfilename(const Canvas *canvas, int font, int abspath);
+char *get_fontalias(const Canvas *canvas, int font);
+char *get_encodingscheme(const Canvas *canvas, int font);
+char **get_default_encoding(const Canvas *canvas);
+double get_textline_width(const Canvas *canvas, int font);
+double get_underline_pos(const Canvas *canvas, int font);
+double get_overline_pos(const Canvas *canvas, int font);
+double get_italic_angle(const Canvas *canvas, int font);
+
+unsigned int number_of_patterns(const Canvas *canvas);
+Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
+
+unsigned int number_of_linestyles(const Canvas *canvas);
+LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
+
+Page_geometry *get_page_geometry(const Canvas *canvas);
+
+
+#if !defined(CANVAS_BACKEND_API) || defined(__CANVASP_H_)
 
 Canvas *canvas_new(void);
 void canvas_free(Canvas *canvas);
@@ -416,12 +454,6 @@ void *canvas_get_udata(const Canvas *canvas);
 void canvas_set_username(Canvas *canvas, const char *s);
 void canvas_set_docname(Canvas *canvas, const char *s);
 void canvas_set_description(Canvas *canvas, const char *s);
-char *canvas_get_username(const Canvas *canvas);
-char *canvas_get_docname(const Canvas *canvas);
-char *canvas_get_description(const Canvas *canvas);
-
-void canvas_set_prstream(Canvas *canvas, FILE *prstream);
-FILE *canvas_get_prstream(const Canvas *canvas);
 
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
@@ -443,18 +475,6 @@ void setfont(Canvas *canvas, int font);
 void setfillrule(Canvas *canvas, int rule);
 void setlinecap(Canvas *canvas, int type);
 void setlinejoin(Canvas *canvas, int type);
-
-void getpen(const Canvas *canvas, Pen *pen);
-int getcolor(const Canvas *canvas);
-int getbgcolor(const Canvas *canvas);
-int getpattern(const Canvas *canvas);
-int getlinestyle(const Canvas *canvas);
-int getlinecap(const Canvas *canvas);
-int getlinejoin(const Canvas *canvas);
-int getfillrule(const Canvas *canvas);
-double getlinewidth(const Canvas *canvas);
-double getcharsize(const Canvas *canvas);
-int getfont(const Canvas *canvas);
 
 void DrawPixel(Canvas *canvas, const VPoint *vp);
 void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -481,6 +501,8 @@ int tm_rotate(TextMatrix *tm, double angle);
 int tm_slant(TextMatrix *tm, double slant);
 int tm_product(TextMatrix *tm, const TextMatrix *p);
 
+void set_draw_mode(Canvas *canvas, int mode);
+int get_draw_mode(const Canvas *canvas);
 
 int is_validVPoint(const Canvas *canvas, const VPoint *vp);
 
@@ -491,12 +513,6 @@ void update_bbox(Canvas *canvas, int type, const VPoint *vp);
 int melt_bbox(Canvas *canvas, int type);
 void activate_bbox(Canvas *canvas, int type, int status);
 
-void set_draw_mode(Canvas *canvas, int mode);
-int get_draw_mode(const Canvas *canvas);
-
-void set_max_path_limit(Canvas *canvas, int limit);
-int get_max_path_limit(const Canvas *canvas);
-
 int view_extend(view *v, double w);
 int merge_bboxes(const view *v1, const view *v2, view *v);
 void vpswap(VPoint *vp1, VPoint *vp2);
@@ -504,56 +520,92 @@ int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
-unsigned int number_of_colors(const Canvas *canvas);
-int is_valid_color(const RGB *rgb);
-int find_color(const Canvas *canvas, const RGB *rgb);
 int get_color_by_name(const Canvas *canvas, const char *cname);
 int store_color(Canvas *canvas, int n, const Color *color);
 int add_color(Canvas *canvas, const Color *color);
-int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
-int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
-Color *get_color_def(const Canvas *canvas, unsigned int cindex);
-char *get_colorname(const Canvas *canvas, unsigned int cindex);
 int get_colortype(const Canvas *canvas, unsigned int cindex);
-
-double get_colorintensity(const Canvas *canvas, int cindex);
-
-int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
-int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
-int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 
 int canvas_set_encoding(Canvas *canvas, char *encfile);
 int canvas_add_font(Canvas *canvas, char *ffile, const char *alias);
 
-unsigned int number_of_fonts(const Canvas *canvas);
-char *get_fontname(const Canvas *canvas, int font);
-char *get_fontfullname(const Canvas *canvas, int font);
-char *get_fontfamilyname(const Canvas *canvas, int font);
-char *get_fontweight(const Canvas *canvas, int font);
-char *get_fontfilename(const Canvas *canvas, int font, int abspath);
-char *get_afmfilename(const Canvas *canvas, int font, int abspath);
-char *get_fontalias(const Canvas *canvas, int font);
-char *get_encodingscheme(const Canvas *canvas, int font);
-char **get_default_encoding(const Canvas *canvas);
-double get_textline_width(const Canvas *canvas, int font);
-double get_underline_pos(const Canvas *canvas, int font);
-double get_overline_pos(const Canvas *canvas, int font);
-double get_italic_angle(const Canvas *canvas, int font);
-double *get_kerning_vector(const Canvas *canvas,
-    const char *str, int len, int font);
-
 int canvas_get_font_by_name(const Canvas *canvas, const char *fname);
 
-char *font_subset(const Canvas *canvas,
-    int font, char *mask, unsigned long *datalen);
+int select_device(Canvas *canvas, int dindex);
 
-unsigned int number_of_patterns(const Canvas *canvas);
-int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
-Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
+Device_entry *get_device_props(const Canvas *canvas, int device);
+Device_entry *get_curdevice_props(const Canvas *canvas);
 
-unsigned int number_of_linestyles(const Canvas *canvas);
-int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
-LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
+char *get_device_name(const Canvas *canvas, int device);
+
+int is_valid_page_geometry(const Page_geometry *pg);
+int set_page_geometry(Canvas *canvas, const Page_geometry *pg);
+
+int get_device_page_dimensions(const Canvas *canvas,
+    int dindex, int *wpp, int *hpp);
+
+int get_device_by_name(const Canvas *canvas, const char *dname);
+
+int parse_device_options(Canvas *canvas, int dindex, char *options);
+
+int number_of_devices(const Canvas *canvas);
+
+void get_page_viewport(const Canvas *canvas, double *vx, double *vy);
+
+int terminal_device(const Canvas *canvas);
+
+PageFormat get_page_format(const Canvas *canvas, int device);
+
+int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
+
+int get_string_bbox(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *s, view *bbox);
+
+int isvalid_viewport(const view *v);
+
+#endif
+
+#if defined(CANVAS_BACKEND_API) || defined(__CANVASP_H_)
+
+/* Some useful macros */
+#define page_dpi(canvas)       ((get_page_geometry(canvas))->dpi)
+
+#define page_width(canvas)     ((get_page_geometry(canvas))->width)
+#define page_height(canvas)    ((get_page_geometry(canvas))->height)
+
+#define page_width_in(canvas)  ((double) page_width(canvas)/page_dpi(canvas))
+#define page_height_in(canvas) ((double) page_height(canvas)/page_dpi(canvas))
+
+#define page_width_mm(canvas)  (MM_PER_INCH*page_width_in(canvas))
+#define page_height_mm(canvas) (MM_PER_INCH*page_height_in(canvas))
+
+#define page_width_cm(canvas)  (CM_PER_INCH*page_width_in(canvas))
+#define page_height_cm(canvas) (CM_PER_INCH*page_height_in(canvas))
+
+#define page_width_pp(canvas)  (72*page_width_in(canvas))
+#define page_height_pp(canvas) (72*page_height_in(canvas))
+
+typedef struct {
+    unsigned int width;
+    unsigned int height;
+    unsigned int **matrix;
+} Xrst_pixmap;
+
+typedef int (*XrstDumpProc)(const Canvas *canvas, void *data,
+    unsigned int ncolors, unsigned int *colors, Xrst_pixmap *pm);
+
+typedef struct _XrstDevice_entry {
+    int           type;
+    char          *name;
+    char          *fext;
+    int           fontaa;
+    DevParserProc parser;
+    DevSetupProc  setup;
+    
+    XrstDumpProc  dump;
+    
+    void          *data; /* device private data */
+} XrstDevice_entry;
+
 
 Device_entry *device_new(const char *name, int type, int twopass, void *data);
 int device_set_procs(Device_entry *d,
@@ -578,55 +630,12 @@ int register_device(Canvas *canvas, Device_entry *d);
 
 int register_xrst_device(Canvas *canvas, const XrstDevice_entry *xdev);
 
-int select_device(Canvas *canvas, int dindex);
+char *font_subset(const Canvas *canvas,
+    int font, char *mask, unsigned long *datalen);
 
-Device_entry *get_device_props(const Canvas *canvas, int device);
-Device_entry *get_curdevice_props(const Canvas *canvas);
+double *get_kerning_vector(const Canvas *canvas,
+    const char *str, int len, int font);
 
-char *get_device_name(const Canvas *canvas, int device);
-
-int is_valid_page_geometry(const Page_geometry *pg);
-int set_page_geometry(Canvas *canvas, const Page_geometry *pg);
-Page_geometry *get_page_geometry(const Canvas *canvas);
-
-int get_device_page_dimensions(const Canvas *canvas,
-    int dindex, int *wpp, int *hpp);
-
-int get_device_by_name(const Canvas *canvas, const char *dname);
-
-int parse_device_options(Canvas *canvas, int dindex, char *options);
-
-int number_of_devices(const Canvas *canvas);
-
-void get_page_viewport(const Canvas *canvas, double *vx, double *vy);
-
-int terminal_device(const Canvas *canvas);
-
-PageFormat get_page_format(const Canvas *canvas, int device);
-
-/* some useful macros */
-#define page_dpi(canvas)       ((get_page_geometry(canvas))->dpi)
-
-#define page_width(canvas)     ((get_page_geometry(canvas))->width)
-#define page_height(canvas)    ((get_page_geometry(canvas))->height)
-
-#define page_width_in(canvas)  ((double) page_width(canvas)/page_dpi(canvas))
-#define page_height_in(canvas) ((double) page_height(canvas)/page_dpi(canvas))
-
-#define page_width_mm(canvas)  (MM_PER_INCH*page_width_in(canvas))
-#define page_height_mm(canvas) (MM_PER_INCH*page_height_in(canvas))
-
-#define page_width_cm(canvas)  (CM_PER_INCH*page_width_in(canvas))
-#define page_height_cm(canvas) (CM_PER_INCH*page_height_in(canvas))
-
-#define page_width_pp(canvas)  (72*page_width_in(canvas))
-#define page_height_pp(canvas) (72*page_height_in(canvas))
-
-int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
-
-int get_string_bbox(Canvas *canvas,
-    const VPoint *vp, double angle, int just, const char *s, view *bbox);
-
-int isvalid_viewport(const view *v);
+#endif
 
 #endif /* __CANVAS_H_ */
