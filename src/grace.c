@@ -59,6 +59,11 @@ static void wrap_object_free(void *data)
     object_free((DObject *) data);
 }
 
+static void *wrap_object_copy(void *data)
+{
+    return (void *) object_copy((DObject *) data);
+}
+
 Project *project_new(void)
 {
     Project *pr;
@@ -71,7 +76,7 @@ Project *project_new(void)
     
     pr->graphs  = NULL;
     
-    pr->objects = storage_new(wrap_object_free, NULL);
+    pr->objects = storage_new(wrap_object_free, wrap_object_copy, NULL);
     if (!pr->objects) {
         xfree(pr);
         return NULL;
