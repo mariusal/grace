@@ -860,31 +860,52 @@ void droppoints(int gno, int setno, int startno, int endno, int dist)
 }
 
 /*
- * join 2 sets together
+ * join several sets together; all but the first set in the list will be killed 
  */
-void joinsets(int g1, int j1, int g2, int j2)
+int join_sets(int gno, int *sets, int nsets)
 {
-    int i, j, len1, len2, ncols1, ncols2, ncols;
+    int i, j, n, setno, setno_final, ncols, old_length, new_length;
     double *x1, *x2;
 
-    if (is_valid_setno(g1, j1) != TRUE ||
-        is_valid_setno(g2, j2) != TRUE) {
-        return;
+    if (nsets < 2) {
+        errmsg("nsets < 2");
+        return GRACE_EXIT_FAILURE;
     }
     
-    len1 = getsetlength(g1, j1);
-    len2 = getsetlength(g2, j2);
-    setlength(g2, j2, len1 + len2);
-    ncols1 = getncols(g1, j1);
-    ncols2 = getncols(g2, j2);
-    ncols = (ncols2 < ncols1) ? ncols2 : ncols1;
-    for (j = 0; j < ncols; j++) {
-	x1 = getcol(g1, j1, j);
-	x2 = getcol(g2, j2, j);
-	for (i = len2; i < len2 + len1; i++) {
-	    x2[i] = x1[i - len2];
-	}
+    setno_final = sets[0];
+    ncols = getncols(gno, setno_final);
+    for (i = 0; i < nsets; i++) {
+        setno = sets[i];
+        if (is_valid_setno(gno, setno) != TRUE) {
+            errmsg("Invalid setno in the list");
+            return GRACE_EXIT_FAILURE;
+        }
+        if (getncols(gno, setno) != ncols) {
+            errmsg("Can't join datasets with different number of cols");
+            return GRACE_EXIT_FAILURE;
+        }
     }
+    
+    new_length = getsetlength(gno, setno_final);
+    for (i = 1; i < nsets; i++) {
+        setno = sets[i];
+        old_length = new_length;
+        new_length += getsetlength(gno, setno);
+        if (setlength(gno, setno_final, new_length) != GRACE_EXIT_SUCCESS) {
+            errmsg("Can't allocate intermediate dataset");
+            return GRACE_EXIT_FAILURE;
+        }
+        for (j = 0; j < ncols; j++) {
+            x1 = getcol(gno, setno_final, j);
+            x2 = getcol(gno, setno, j);
+            for (n = old_length; n < new_length; n++) {
+                x1[n] = x2[n - old_length];
+            }
+        }
+        killset(gno, setno);
+    }
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 void reverse_set(int gno, int setno)
@@ -1389,40 +1410,6 @@ void do_drop_points(int setno, int startno, int endno)
 	return;
     }
     droppoints(get_cg(), setno, startno, endno, dist);
-}
-
-/*
- * append one set to another
- */
-void do_join_sets(int gfrom, int j1, int gto, int j2)
-{
-    int i;
-
-    if (j1 == -1) {
-	if (!is_set_active(gfrom, j2)) {
-	    activateset(gfrom, j2);
-	    setlength(gfrom, j2, 0);
-	}
-	for (i = 0; i < g[gfrom].maxplot; i++) {
-	    if (is_set_active(gfrom, i) && i != j2) {
-		joinsets(gfrom, i, gfrom, j2);
-		killset(gfrom, i);
-	    }
-	}
-    } else {
-	if (!is_set_active(gfrom, j1)) {
-	    sprintf(buf, "Set %d not active", j1);
-	    errmsg(buf);
-	    return;
-	}
-	if (!is_set_active(gto, j2)) {
-	    sprintf(buf, "Set %d not active", j2);
-	    errmsg(buf);
-	    return;
-	}
-	joinsets(gfrom, j1, gto, j2);
-	killset(gfrom, j1);
-    }
 }
 
 

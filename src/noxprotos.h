@@ -219,7 +219,7 @@ int activeset(int gno);
 int swapset(int gfrom, int j1, int gto, int j2);
 int pushset(int gno, int setno, int push_type);
 void droppoints(int gno, int setno, int startno, int endno, int dist);
-void joinsets(int g1, int j1, int g2, int j2);
+int join_sets(int gno, int *sets, int nsets);
 void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
 void reverse_set(int gno, int setno);
 
@@ -242,7 +242,6 @@ void do_changetype(int setno, int type);
 void do_copy(int j1, int gfrom, int j2, int gto);
 void do_move(int j1, int gfrom, int j2, int gto);
 void do_drop_points(int setno, int startno, int endno);
-void do_join_sets(int gfrom, int j1, int gto, int j2);
 void do_kill(int gno, int setno, int soft);
 void do_sort(int setno, int sorton, int stype);
 void do_cancel_pickop(void);
