@@ -2838,7 +2838,7 @@ Widget CreateDialogForm(Widget parent, char *s)
         NULL);
     xfree(bufp);
 
-    w = XmCreateForm(dialog, "dialog_form", NULL, 0);
+    w = XmCreateForm(dialog, "form", NULL, 0);
     XtVaSetValues(w,
         XmNresizePolicy, XmRESIZE_ANY,
         XmNuserData, NULL,
