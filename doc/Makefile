@@ -44,7 +44,7 @@ PDFLATEX    = pdflatex
 	$(PDFLATEX) $<
 
 SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
-HTMLS    = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html
+HTMLS    = NEWS.html GPL.html philosophical-gnu-sm.jpg nohelp.html
 
 HTMLDOCS = FAQ.html Tutorial.html UsersGuide.html
 
