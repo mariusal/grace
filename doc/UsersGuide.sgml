@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>13.05.1999
+<date>31.05.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -78,7 +78,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 <!-- **************************************** -->
-<sect>Getting started
+<sect>Installation guide
   <p>
 
   <sect1>Installing from sources
@@ -86,11 +86,57 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <enum>
         <item> Configuration
         <itemize>
+          <item> Extra libraries. Some features will be available only if
+                 additional libraries are installed. Those are:
+            <itemize>
+              <item> The PDF driver requires the PDFlib-0.6 library of Thomas
+                     Merz to be installed, which is available
+                     <url name="here" url="http://www.ifconnection.de/~tm/software/pdflib/index.html">.
+                     Furthermore, prior to the library compilation, you must
+                     apply the patch which can be found in the "patches"
+                     directory of the Grace distribution tree.
+
+                     Please pay attention to the following: the library can be
+                     compiled with or without the support for TIFF images. If
+                     you enable the TIFF support (off by default), make sure to
+                     uncomment the "define USE_TIFF" line at the top of the
+                     pdfdrv.c file in the "src" directory of the Grace
+                     distribution tree. Sorry, there is no way to detect it
+                     automagically.
+              <item> All backends of the raster driver (GIF/GD/PNM/JPEG) use the
+                     GD-1.3 library of Thomas Boutell. The home page of the
+                     library is 
+                     <url name="http://www.boutell.com/gd/" url="http://www.boutell.com/gd/">.
+                     Prior to the library compilation, you must apply the patch
+                     which can be found in the "patches" directory of the Grace
+                     distribution tree; otherwise, complex polygons will be
+                     filled incorrectly. In addition, the JPEG backend needs
+                     the IJG (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
+              <item> If your computer has the FFTW library installed when
+                     Grace is compiled, Grace will link itself to this, and
+                     drop all conventional FFT's and DFT's. All transforms
+                     will be routed through this package. Note that there is
+                     then no difference between pushing the "FFT" button and
+                     the "DFT" button, except that FFT will complain if the
+                     length isn't a power of 2, and DFT will not.
+
+                     For more information on this package, see the 
+                     <url name="FFTW Home page" url="http://theory.lcs.mit.edu/~fftw/">.
+                     In short, this package allows one to do non-power-of-2
+                     length FFT's along with the normal ones.  It seems to work
+                     very efficiently for any set length which factors into 2^a
+                     3^b 5^c 7^d for integer a, b, c, d. The great feature here
+                     is that set lengths which are powers of 10 (e.g. 1000,
+                     10000) and integer multiples of these (500, 2000, 2500,
+                     5000, etc.) can be computed with no significant penalty
+                     (maybe 20%) over power-of-2 transforms. Very often, real
+                     datasets come in these sizes, and not in powers of 2.
+              <item> In order to read/write sets in the NetCDF data format, you
+                     will also need the <url name="NetCDF libraries"
+                     url="http://unidata.ucar.edu/packages/netcdf/index.html">.
+            </itemize>
           <item> Consult README.configure for basic notes on the GNU configure
                  usage
-          <item> Extra libraries. Some features will be available only if
-                 additional libraries are installed. See README.FFTW,
-                 README.PDF and README.GIF
           <item> Run <tt>./configure --help</tt>
                  to get list of additional switches specific to Grace
           <item> Run <tt>./configure &lt;options&gt;</tt>. Just an example:
@@ -148,6 +194,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <p>
       
       Not written yet...
+
+
+<!-- **************************************** -->
+<sect>Getting started
+  <p>
 
   <sect1>General concepts
     <p>
@@ -553,59 +604,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 <!-- **************************************** -->
-<sect>Xmgr to Grace migration guide
-  <p>
-
-    This is a very brief guide describing problems and workarounds for
-    reading in project files saved with Xmgr. You should read the docs or
-    just play with Grace to test new features and controls.
-    
-    <enum>
-    <item> DOCUMENTATION IS VERY SPARSE YET!!!
-
-    <item> Grace must be explicitly told the version number of the software
-           used to create a file. You can manually put "@version VERSIONID"
-           string in the beginning of the file. The VERSIONID is built as
-           MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL; so 40101 corresponds
-           to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
-           since they already have the version string in them.
-
-    <item> The above relates to the ascii projects only. The old binary
-           projects (saved with xmgr-4.0.*) are not automatically converted
-           anymore. An input filter must be defined to make the conversion work
-           on-the-fly. Add the following line to ~/.gracerc or the system-wide
-           $GRACE_HOME/gracerc resource file: DEFINE IFILTER "grconvert %s -"
-           MAGIC "00000031" See docs for more info on the I/O filters.
- 
-    <item> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
-           WYSIWYG'ness led to the situation when graphs with objects carefully
-           aligned under Xmgr may not look so under Grace. Grace tries its best
-           to compensate for the differences, but sometimes you may have to
-           adjust such graphs manually.
-
-    <item> Smith plots don't work now. They'll be put back soon.
-
-    <item> A lot of symbol types (all except *real* symbols) are removed.
-           "Location *" types can be replaced (with much higher comfort) by
-           A(nnotating)values. "Impulse *", "Histogram *" and "Stair steps *"
-           effects can be achieved using the connecting line parameters (Type,
-           Drop lines). "Dot" symbol is removed as well; use the filled circle
-           symbol of the zero size with no outline to get the same effect.
-
-    <item> Default page layout switched from free (allowing to resize canvas
-           with mouse) to fixed. For the old behaviour, put "PAGE LAYOUT FREE"
-           in the Grace resource file or use the "-free" command line switch.
-
-    <item> System variables GR_* renamed to GRACE_*
-
-    </enum>
-
-
-<!-- **************************************** -->
 <sect>Guide to menus and popups
   <p>
 
-      Not written yet... Read <url name="Tutorial" url="Tutorial.html">.
+      Not written yet... Read the <url name="Tutorial" url="Tutorial.html">.
 
 <!-- **************************************** -->
 <sect>Canvas actions
@@ -681,15 +683,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <table LOC=htbp>
       <tabular CA="ll">
               <hline>
-              Command                                     | Description   @
+              Command                                       | Description   @
               <hline>
-              PAGE SIZE xdim ydim                         | set page dimensions (in pixels) of terminal device (Display)   @
-              DEVICE <it/devname/ PAGE SIZE xdim ydim     | set page dimensions (in pixels) of device <it/devname/  @
-              DEVICE <it/devname/ DPI dpi                 | set device's dpi (dots per pixel) @
-              DEVICE <it/devname/ FONT onoff              | enable/disable usage of built-in fonts for device <it/devname/ @
-              DEVICE <it/devname/ FONT ANTIALIASING onoff | enable/disable font aliasing for device <it/devname/ @
-              DEVICE <it/devname/ OP <it/options/         | set device specific options (see <ref id="device-settings" name="Device-specific settings">) @
-              HARDCOPY DEVICE <it/devname/                | set device <it/devname/ as current hardcopy device @
+              PAGE SIZE xdim ydim                           | set page dimensions (in pixels) of terminal device (Display)   @
+              DEVICE <it/"devname"/ PAGE SIZE xdim ydim     | set page dimensions (in pixels) of device <it/devname/  @
+              DEVICE <it/"devname"/ DPI dpi                 | set device's dpi (dots per pixel) @
+              DEVICE <it/"devname"/ FONT onoff              | enable/disable usage of built-in fonts for device <it/devname/ @
+              DEVICE <it/"devname"/ FONT ANTIALIASING onoff | enable/disable font aliasing for device <it/devname/ @
+              DEVICE <it/"devname"/ OP <it/"options"/       | set device specific options (see <ref id="device-settings" name="Device-specific settings">) @
+              HARDCOPY DEVICE <it/"devname"/                | set device <it/devname/ as current hardcopy device @
               <hline>
       </tabular>
       <caption>
@@ -730,7 +732,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       from it.
 
       <table LOC=htbp>
-      <tabular CA="ccl">
+      <tabular CA="lll">
               <hline>
 Function | Arguments |  Description   @
               <hline>
@@ -765,7 +767,7 @@ int GraceCommand |
 (const char* <it>cmd</it>) |
 send an already formated command to the Grace subprocess @
               <hline>
-GraceErrorFunctionType GraceRegisterErrorFunction |
+GraceErrorFunctionType <newline> GraceRegisterErrorFunction |
 (GraceErrorFunctionType <it>f</it>) |
 register a user function <it>f</it> to display library errors @
               <hline>
@@ -777,7 +779,7 @@ register a user function <it>f</it> to display library errors @
       </table>
 
       <table LOC=htbp>
-      <tabular CA="ccl">
+      <tabular CA="lll">
               <hline>
 Function | Arguments |  Description   @
               <hline>
@@ -808,7 +810,7 @@ integer GraceCommandF |
 (character*(*) <it>cmd</it>) |
 send an already formatted command to the Grace subprocess @
               <hline>
-GraceFortranFunctionType GraceRegisterErrorFunctionF |
+GraceFortranFunctionType <newline> GraceRegisterErrorFunctionF |
 (GraceFortranFunctionType <it>f</it>) |
 register a user function <it>f</it> to display library errors @
               <hline>
@@ -921,6 +923,38 @@ main (int argc, char* argv[])
 
 </verb></tscreen>
 
+  <sect1>FFTW tuning
+    <p>
+     When the FFTW capabilities are compiled in, Grace looks at two environment
+     variables to decide what to do with the FFTW 'wisdom' capabilities. 
+     First, a quick summary of what this is. The FFTW package is capable of
+     adaptively determining the most efficient factorization of a set to give
+     the fastest computation.  It can store these factorizations as 'wisdom',
+     so that if a transform of a given size is to be repeated, it is does not
+     have to re-adapt.  The good news is that this seems to work very well. 
+     The bad news is that, the first time a transform of a given size is
+     computed, if it is not a submultiple of one already known, it takes a LONG
+     time (seconds to minutes).
+    <p>
+     The first environment variable is GRACE_FFTW_WISDOM_FILE. If this is set
+     to the name of a file which can be read and written (e.g.,
+     $HOME/.grace_fftw_wisdom) then Grace will automatically create this file
+     (if needed) and maintain it. If the file is read-only, it will be read,
+     but not updated with new wisdom. If the symbol GRACE_FFTW_WISDOM_FILE
+     either doesn't exist, or evaluates to an empty string, Grace will drop the
+     use of wisdom, and will use the fftw estimator (FFTW_ESTIMATE flag sent to
+     the planner) to guess a good factorization, instead of adaptively
+     determining it.
+    <p>
+     The second variable is GRACE_FFTW_RAM_WISDOM. If this variable is defined
+     to be non-zero, and GRACE_FFTW_WISDOM_FILE variable is not defined (or is
+     an empty string), Grace will use wisdom internally, but maintain no
+     persistent cache of it. This will result in very slow execution times the
+     first time a transform is executed after Grace is started, but very fast
+     repeats. I am not sure why anyone would want to use wisdom without
+     writing it to disk, but if you do, you can use this flag to enable it.
+    <p>
+
   <sect1>DL modules
     <p>
 
@@ -998,12 +1032,36 @@ main (int argc, char* argv[])
        with the help of the font tool ("Window/Font tool").
       <p>
 
+  <sect1>Device-specific limitations<label id="device-limitations">
+    <p>
+      
+      Grace can output plots using several device backends. The list of
+      available devices can be seen (among other stuff) by specifying the
+      "-version" command line switch.
+      <itemize>
+        <item> X11, PostScript and EPS are full-featured devices
+        <item> Raster drivers (GIF/PNM/JPEG):
+               <itemize>
+                 <item> patterned fills of ellipses cause crash
+                 <item> only even-odd fill rule is supported
+                 <item> patterned lines are not supported
+               </itemize>
+        <item> PDF driver:
+               <itemize>
+                 <item> patterned fills are not implemented
+                 <item> bitmapped text strings are not transparent
+                 <item> arcs of angles != 90*n are approximated very roughly
+               </itemize>
+      </itemize>
+      
+      <p>
+
   <sect1>Device-specific settings<label id="device-settings">
     <p>
       
       Some of the output devices accept several configuration options. You can
       set the options by passing a respective string to the interpreter
-      using the "DEVICE <it/devname/ OP <it/options/" command (see
+      using the "DEVICE <it/"devname"/ OP <it/"options"/" command (see
       <ref id="device-parameters" name="Device parameters">). A few options
       can be passed in one command, separated by commas.
 
@@ -1103,6 +1161,79 @@ main (int argc, char* argv[])
       </table>
 
     <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
+              Command               | Description                           @
+              <hline>
+              grayscale             | set grayscale output                  @
+              color                 | set color output                      @
+              optimize:on/off       | enable/disable optimization           @
+              quality:value         | set compression quality (0 - 100)     @
+              smoothing:value       | set smoothing (0 - 100)               @
+              baseline:on/off       | do/don't force baseline output        @
+              progressive:on/off    | do/don't output in progressive format @
+              dct:ifast             | use fast integer DCT method           @
+              dct:islow             | use slow integer DCT method           @
+              dct:float             | use floating-point DCT method         @
+              <hline>
+      </tabular>
+      <caption>
+              JPEG driver options
+      </caption>
+      </table>
+
+    <p>
+
+    <sect1>Xmgr to Grace migration guide
+    
+    <p>
+      
+      This is a very brief guide describing problems and workarounds for
+      reading in project files saved with Xmgr. You should read the docs or
+      just play with Grace to test new features and controls.
+ 
+      <enum>
+      <item> DOCUMENTATION IS VERY SPARSE YET!!!
+ 
+      <item> Grace must be explicitly told the version number of the software
+             used to create a file. You can manually put "@version VERSIONID"
+             string in the beginning of the file. The VERSIONID is built as
+             MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL; so 40101 corresponds
+             to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
+             since they already have the version string in them.
+ 
+      <item> The above relates to the ascii projects only. The old binary
+             projects (saved with xmgr-4.0.*) are not automatically converted
+             anymore. An input filter must be defined to make the conversion work
+             on-the-fly. Add the following line to ~/.gracerc or the system-wide
+             $GRACE_HOME/gracerc resource file: DEFINE IFILTER "grconvert %s -"
+             MAGIC "00000031" See docs for more info on the I/O filters.
+ 
+      <item> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
+             WYSIWYG'ness led to the situation when graphs with objects carefully
+             aligned under Xmgr may not look so under Grace. Grace tries its best
+             to compensate for the differences, but sometimes you may have to
+             adjust such graphs manually.
+ 
+      <item> Smith plots don't work now. They'll be put back soon.
+ 
+      <item> A lot of symbol types (all except *real* symbols) are removed.
+             "Location *" types can be replaced (with much higher comfort) by
+             A(nnotating)values. "Impulse *", "Histogram *" and "Stair steps *"
+             effects can be achieved using the connecting line parameters (Type,
+             Drop lines). "Dot" symbol is removed as well; use the filled circle
+             symbol of the zero size with no outline to get the same effect.
+ 
+      <item> Default page layout switched from free (allowing to resize canvas
+             with mouse) to fixed. For the old behaviour, put "PAGE LAYOUT FREE"
+             in the Grace resource file or use the "-free" command line switch.
+ 
+      <item> System variables GR_* renamed to GRACE_*
+ 
+      </enum>
+    
 
 </article>
 

@@ -369,6 +369,15 @@
 	  etc.). This is also the place to submit bug reports and
 	  wishes.
 
+      <sect1>The bug report #xxx is marked as "fixed" in the w3todo, but I
+             checked the last version of Grace and the bug is still there!
+	<p>
+             
+          The term "fixed" means the bug is fixed in the current 
+          <it>development</it> version, and the next <it>public</it> version
+          will have it. Reports with fixes incorporated in an existing
+          public version are marked as "closed".
+
       <sect1>I have got an idea! How do I report a wish?
 	<p>
 
@@ -417,8 +426,8 @@
 	  has access to the respective platform and has had time to do
 	  it.
 
-	  It is always a good idea to read the <tt/INSTALL/ file and
-	  the <tt/README/s which come with Grace.
+	  It is always a good idea to read the <tt/README/s that accompany
+          the downloading packages of Grace.
 
 <!-- **************************************** -->
 
@@ -463,7 +472,7 @@
 	    name="Installation">) and un<tt/gzip/ping and un<tt/tar/ing
 	    them (use e.g. <tt/gzip -dc grace-5.0.1.tar.gz | tar xvf -/),
             change to the Grace directory and have a look at the files
-            <tt/INSTALL/ and <tt/README.configure/.
+            <tt/README/ and <tt/README.configure/.
 
 	    Type <tt>./configure</tt>. This checks for the
 	    availability of libraries and other stuff on your
@@ -478,7 +487,8 @@
 	    question <ref id="environment" name="Environment
 	    Variables">) using <tt/make install/ (probably as root).
 
-	<sect2>When I type './configure' I get: ``configure: warning: Motif has not been found; building a GUI-less version''
+	<sect2>When I type './configure' I get: ``configure: warning:
+            Motif has not been found; building a GUI-less version''
 	  <p>
 
 	    Check whether Motif (question <ref id="motif"
@@ -662,6 +672,34 @@
 	  <p>
 
 	    Quite a few. You can display them with <tt/xmgrace -help/.
+
+	<sect2>I work with the 800x600 screen resolution and several popups are
+            too large to fit in my desktop.
+	  <p>
+
+            The window sizes are proportional to the font size used which by
+            default is set to be optimal for the resolution most people are
+            using, i.e. 1024x768. For a lower resolution, set font sizes to a
+            smaller value, e.g. put it in your .Xresources (or like) file:
+
+<tscreen><verb>
+XMgrace*fontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
+XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
+</verb></tscreen>
+
+	<sect2>Can one change the colour selecton for the menu,
+               locator, tool and status bars, and all the popup menues?
+	  <p>
+
+            As with any X application, use the "-bg &lt;colorname&gt; -fg 
+            &lt;another_colorname&gt;" command line flags. Or, define the
+            relevant X resources:
+
+<tscreen><verb>
+XMgrace*foreground: ...
+XMgrace*background: ...
+</verb></tscreen>
+            
 
       <sect1>Plotting
 	<p>
@@ -1157,7 +1195,6 @@ File not found T1_InitLib(): Fatal error scanning Font
 Database File Initialization of t1-library failed!
 </verb></tscreen>
 
-
           Grace uses either the <tt/GRACE_HOME/ environment variable
 	  or a compiled in default path to find the font database. If
 	  the variable is not set and you have not installed the
@@ -1170,6 +1207,12 @@ Database File Initialization of t1-library failed!
 	  <tt/make install/. See question <ref id="environment"
 	  name="Environment Variables"> on how to set environment
 	  variables.
+          
+          If you get this message after installing a prebuilt executable,
+          then you have either forgotten to download the platform-independent
+          part of the installation (named like grace-x.y.zz.common.tar.gz) or
+          not set the <tt/GRACE_HOME/ environment variable, see few lines 
+          above.
 
 <!-- **************************************** -->
 
