@@ -1105,78 +1105,6 @@ void outputset(int gno, int setno, char *fname, char *dformat)
     }
 }
 
-int load_project_file(char *fn, int as_template)
-{    
-    int gno;
-    int retval;
-    
-    if (wipeout()) {
-	return RETURN_FAILURE;
-    } else {
-        if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
-            if (as_template == FALSE) {
-                set_docname(fn);
-            }
-            clear_dirtystate();
-            retval = RETURN_SUCCESS;
-        } else {
- 	    retval = RETURN_FAILURE;
-        }
-
-        /* try to switch to the first active graph */
-        storage_rewind(grace->project->graphs);
-        while ((gno = storage_get_id(grace->project->graphs)) >= 0) {
-            if (is_graph_hidden(gno) == FALSE) {
-                select_graph(gno);
-                break;
-            }
-            if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
-                break;
-            }
-        }
-
-#ifndef NONE_GUI
-   	update_all();
-#endif
-        return retval;
-    }
-}
-
-extern int load_xgr_project(char *fn);
-
-int load_project(char *fn)
-{
-    /* A temporary hack */
-    if (fn && strstr(fn, ".xgr")) {
-        return load_xgr_project(fn);
-    } else {
-        return load_project_file(fn, FALSE);
-    }
-}
-
-int new_project(char *template)
-{
-    int retval;
-    char *s;
-    
-    if (is_empty_string(template)) {
-        retval = load_project_file("templates/Default.agr", TRUE);
-    } else if (template[0] == '/') {
-        retval = load_project_file(template, TRUE);
-    } else {
-        s = xmalloc(strlen("templates/") + strlen(template) + 1);
-        if (s == NULL) {
-            retval = RETURN_FAILURE;
-        } else {
-            sprintf(s, "templates/%s", template);
-            retval = load_project_file(s, TRUE);
-            xfree(s);
-        }
-    }
-    
-    return retval;
-}
-
 /*
  * write out a set
  */
@@ -1229,6 +1157,78 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
     return RETURN_SUCCESS;
 }
 
+extern int load_xgr_project(char *fn);
+
+int load_project_file(char *fn, int as_template)
+{    
+    int gno;
+    int retval;
+
+    if (project_is_dirtystate(grace->project) &&
+        !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
+	return RETURN_FAILURE;
+    }
+    
+    /* A temporary hack */
+    if (fn && strstr(fn, ".xgr")) {
+        retval = load_xgr_project(fn);
+    } else {
+        wipeout();
+        retval = getdata(0, fn, SOURCE_DISK, LOAD_SINGLE);
+    }
+
+    if (retval == RETURN_SUCCESS) {
+        if (as_template == FALSE) {
+            set_docname(fn);
+        }
+        clear_dirtystate();
+    }
+
+    /* try to switch to the first active graph */
+    storage_rewind(grace->project->graphs);
+    while ((gno = storage_get_id(grace->project->graphs)) >= 0) {
+        if (is_graph_hidden(gno) == FALSE) {
+            select_graph(gno);
+            break;
+        }
+        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
+            break;
+        }
+    }
+
+#ifndef NONE_GUI
+    update_all();
+#endif
+    return retval;
+}
+
+int load_project(char *fn)
+{
+    return load_project_file(fn, FALSE);
+}
+
+int new_project(char *template)
+{
+    int retval;
+    char *s;
+    
+    if (is_empty_string(template)) {
+        retval = load_project_file("templates/Default.agr", TRUE);
+    } else if (template[0] == '/') {
+        retval = load_project_file(template, TRUE);
+    } else {
+        s = xmalloc(strlen("templates/") + strlen(template) + 1);
+        if (s == NULL) {
+            retval = RETURN_FAILURE;
+        } else {
+            sprintf(s, "templates/%s", template);
+            retval = load_project_file(s, TRUE);
+            xfree(s);
+        }
+    }
+    
+    return retval;
+}
 
 #ifdef HAVE_NETCDF
 

@@ -172,10 +172,6 @@ FormatType get_format_type_by_name(const char *name)
 
 int wipeout(void)
 {
-    if (project_is_dirtystate(grace->project) &&
-        !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
-        return 1;
-    }
     project_free(grace->project);
     grace->project = project_new();
     
