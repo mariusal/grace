@@ -15,7 +15,14 @@ all : $(subdirs)
 install : $(subdirs)
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) install) || exit 1; done
 	$(MKINSTALLDIRS) $(GRACE_HOME)
-	$(INSTALL_DATA) gracerc.sample $(GRACE_HOME)
+	@if test -f $(GRACE_HOME)/gracerc; then \
+		echo "	$(GRACE_HOME)/gracerc exists"; \
+		echo "	Installing only $(GRACE_HOME)/gracerc.sample"; \
+		$(INSTALL_DATA) gracerc $(GRACE_HOME)/gracerc.sample; \
+	else \
+		$(INSTALL_DATA) gracerc $(GRACE_HOME); \
+	fi
+	$(INSTALL_DATA) gracerc.user $(GRACE_HOME)
 
 tests : $(subdirs)
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) tests) || exit 1; done
