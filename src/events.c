@@ -169,7 +169,17 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
     case QFlavorAText:
         at = atext_get_data(q);
         if (at->active) {
+            VPoint vp;
             target_consider(ct, q, 0, &at->bb);
+            
+            if (at->arrow_flag &&
+                Apoint2Vpoint(q, &at->ap, &vp) == RETURN_SUCCESS) {
+                double arrsize = MAX2(0.01*at->arrow.length, 0.005);
+                v.xv1 = v.xv2 = vp.x;
+                v.yv1 = v.yv2 = vp.y;
+                view_extend(&v, arrsize);
+                target_consider(ct, q, 1, &v);
+            }
         }
         break;
     case QFlavorDObject:
@@ -230,7 +240,14 @@ static void move_target(canvas_target *ct, const VPoint *vp)
         }
         break;
     case QFlavorAText:
-        atext_shift(ct->q, &vshift);
+        switch (ct->part) {
+        case 0:
+            atext_shift(ct->q, &vshift);
+            break;
+        case 1:
+            atext_at_shift(ct->q, &vshift);
+            break;
+        }
         break;
     case QFlavorDObject:
         object_shift(ct->q, &vshift);
