@@ -106,7 +106,7 @@ $GRACE terr.agr
 $GRACE terr2.agr
 #
 # a graph with XY RADIUS format
-$GRACE txyr.agr 
+#$GRACE txyr.agr 
 #
 # a graph with HILO data
 $GRACE hilo.agr 
