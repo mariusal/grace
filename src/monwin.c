@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -35,14 +35,12 @@
 #include <config.h>
 
 #include <stdio.h>
+
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/ToggleB.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -50,17 +48,15 @@
 #include "motifinc.h"
 #include "protos.h"
 
-extern Display *disp;
-
 static Widget mon_frame, mon_panel, text_w;
 static Widget wmon_text_item;
 static Widget mon_log_item;
 static Widget wmon_frame;
 
-static void clear_results(Widget w, XtPointer client_data, XtPointer call_data);
-static void log_resultsCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void create_wmon_frame(Widget w, XtPointer client_data, XtPointer call_data);
-static void wmon_apply_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void clear_results(void *data);
+static void log_resultsCB(int state, void *data);
+static void create_wmon_frame(void *data);
+static void wmon_apply_notify_proc(void *data);
 
 /*
  * Create the mon Panel
@@ -70,37 +66,35 @@ void create_monitor_frame(void *data)
     set_wait_cursor();
     if (mon_frame == NULL) {
         Widget wbut, rc, fr;
+        int ac;
+        Arg args[5];
 
 	mon_frame = XmCreateDialogShell(app_shell, "Results", NULL, 0);
 	handle_close(mon_frame);
 	mon_panel = XmCreateForm(mon_frame, "mon_form", NULL, 0);
 	fr = CreateFrame(mon_panel, NULL);
-	text_w = XmCreateScrolledText(fr, "text_w", NULL, 0);
+        ac = 0;
+        XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
+        XtSetArg(args[ac], XmNrows, 10); ac++;
+        XtSetArg(args[ac], XmNcolumns, 80); ac++;
+        XtSetArg(args[ac], XmNwordWrap, True); ac++;
+        XtSetArg(args[ac], XmNeditable, False); ac++;
+	text_w = XmCreateScrolledText(fr, "text_w", args, ac);
 	SetFixedFont(text_w);
-	XtVaSetValues(text_w,
-		      XmNrows, 10,
-		      XmNcolumns, 80,
-		      XmNeditMode, XmMULTI_LINE_EDIT,
-		      XmNwordWrap, True,
-		      NULL);
         XtManageChild(text_w);
 
 	rc = XmCreateRowColumn(mon_panel, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-	wbut = XtVaCreateManagedWidget("Save...", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, create_wmon_frame, (XtPointer) NULL);
-	wbut = XtVaCreateManagedWidget("Clear", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, clear_results, (XtPointer) NULL);
-	mon_log_item = XtVaCreateManagedWidget("Log", xmToggleButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(mon_log_item, XmNvalueChangedCallback, log_resultsCB, (XtPointer) NULL);
-	wbut = XtVaCreateManagedWidget("Close", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) mon_frame);
-	wbut = XtVaCreateManagedWidget("Help", xmPushButtonWidgetClass, rc,
-				       NULL);
+
+	wbut = CreateButton(rc, "Save...");
+	AddButtonCB(wbut, create_wmon_frame, NULL);
+	wbut = CreateButton(rc, "Clear");
+	AddButtonCB(wbut, clear_results, NULL);
+	mon_log_item = CreateToggleButton(rc, "Log");
+	AddToggleButtonCB(mon_log_item, log_resultsCB, NULL);
+	wbut = CreateButton(rc, "Close");
+	AddButtonCB(wbut, destroy_dialog_cb, mon_frame);
+	wbut = CreateButton(rc, "Help");
 	AddButtonCB(wbut, HelpCB, NULL);
 
 	XtManageChild(rc);
@@ -120,19 +114,19 @@ void create_monitor_frame(void *data)
 
 	XtManageChild(mon_panel);
     }
-    XmToggleButtonSetState(mon_log_item, logwindow ? True : False, False);
+    SetToggleButtonState(mon_log_item, logwindow);
     XtRaise(mon_frame);
     unset_wait_cursor();
 }
 
-static void clear_results(Widget w, XtPointer client_data, XtPointer call_data)
+static void clear_results(void *data)
 {
     XmTextSetString(text_w, "");
 }
 
-static void log_resultsCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void log_resultsCB(int state, void *data)
 {
-    logwindow = XmToggleButtonGetState(mon_log_item);
+    logwindow = state;
 }
 
 /*
@@ -174,7 +168,7 @@ void stufftextwin(char *s, int sp)
 /*
  * Create the wmon Frame and the wmon Panel
  */
-static void create_wmon_frame(Widget w, XtPointer client_data, XtPointer call_data)
+static void create_wmon_frame(void *data)
 {
     Widget wmon_panel;
     Widget buts[2];
@@ -192,10 +186,8 @@ static void create_wmon_frame(Widget w, XtPointer client_data, XtPointer call_da
 	CreateSeparator(wmon_panel);
 
 	CreateCommandButtons(wmon_panel, 2, buts, label1);
-	XtAddCallback(buts[0], XmNactivateCallback,
-		    wmon_apply_notify_proc, (XtPointer) 0);
-	XtAddCallback(buts[1], XmNactivateCallback,
-		   destroy_dialog, (XtPointer) wmon_frame);
+	AddButtonCB(buts[0], wmon_apply_notify_proc, NULL);
+	AddButtonCB(buts[1], destroy_dialog_cb, wmon_frame);
 
 	XtManageChild(wmon_panel);
     }
@@ -203,7 +195,7 @@ static void create_wmon_frame(Widget w, XtPointer client_data, XtPointer call_da
     unset_wait_cursor();
 }
 
-static void wmon_apply_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void wmon_apply_notify_proc(void *data)
 {
     int len;
     char s[256];
