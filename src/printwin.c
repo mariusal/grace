@@ -34,11 +34,6 @@
 
 #include <stdio.h>
 
-#include <Xm/Xm.h>
-#include <Xm/Form.h>
-#include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
-
 #include "cmath.h"
 #include "globals.h"
 #include "device.h"
@@ -57,33 +52,33 @@ static int current_page_units = 0;
 static Widget psetup_frame;
 static Widget psetup_rc;
 static Widget device_opts_item;
-static Widget *printto_item;
+static Widget printto_item;
 static Widget print_string_item;
 static Widget rc_filesel;
 static Widget printfile_item;
 static Widget pdev_rc;
 static OptionStructure *devices_item;
 static Widget output_frame;
-static Widget *page_orient_item;
-static Widget *page_format_item;
+static OptionStructure *page_orient_item;
+static OptionStructure *page_format_item;
 static Widget page_x_item;
 static Widget page_y_item;
-static Widget *page_size_unit_item;
+static OptionStructure *page_size_unit_item;
 static Widget dev_res_item;
 static Widget fontaa_item;
 static Widget devfont_item;
 static Widget dsync_item, psync_item;
 
-static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_orient_toggle(Widget w, XtPointer client_data, XtPointer call_data);
+static void do_pr_toggle(int onoff, void *data);
+static void do_format_toggle(int value, void *data);
+static void do_orient_toggle(int value, void *data);
 
-static void set_printer_proc(void *data);
+static int set_printer_proc(void *data);
 void create_printfiles_popup(void *data);
 void create_devopts_popup(void *data);
 
 static void do_device_toggle(int value, void *data);
-static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data);
+static void do_units_toggle(int value, void *data);
 static void update_printer_setup(int device_id);
 static void update_device_setup(int device_id);
 
@@ -91,10 +86,7 @@ static void do_print_cb(void *data);
 
 void create_printer_setup(void *data)
 {
-    int i, device, ndev;
-    Widget device_panel, rc, rc1, fr, wbut;
-    Widget menubar, menupane;
-    OptionItem *option_items;
+    int device;
     
     set_wait_cursor();
     
@@ -105,20 +97,21 @@ void create_printer_setup(void *data)
     }
     
     if (psetup_frame == NULL) {
-	psetup_frame = XmCreateDialogShell(app_shell, "Device", NULL, 0);
-        XtVaSetValues(psetup_frame, XmNallowShellResize, True, NULL);
-        handle_close(psetup_frame);
-        device_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        psetup_frame, 
-                                        NULL, 0);
+        int i, ndev;
+        Widget rc, rc1, fr, wbut;
+        Widget menubar, menupane;
+        OptionItem *option_items;
 
-        menubar = CreateMenuBar(device_panel);
+	psetup_frame = CreateDialogForm(app_shell, "Device setup");
+        SetDialogFormResizable(psetup_frame, TRUE);
+
+        menubar = CreateMenuBar(psetup_frame);
+        AddDialogFormChild(psetup_frame, menubar);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane, "Print", 'P', do_print_cb, NULL);
         CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "Close", 'C',
-            set_printer_proc, (void *) AAC_CLOSE);
+        CreateMenuCloseButton(menupane, psetup_frame);
 
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         dsync_item = CreateMenuToggle(menupane,
@@ -132,25 +125,12 @@ void create_printer_setup(void *data)
         CreateMenuButton(menupane, "On device setup", 'd', HelpCB, NULL);
 
         ManageChild(menubar);
-        XtVaSetValues(menubar,
-                      XmNtopAttachment, XmATTACH_FORM,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      NULL);
 
-	psetup_rc = XmCreateRowColumn(device_panel, "psetup_rc", NULL, 0);
-        XtVaSetValues(psetup_rc,
-            XmNrecomputeSize, True,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, menubar,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
+	psetup_rc = CreateVContainer(psetup_frame);
 
         fr = CreateFrame(psetup_rc, "Device setup");
-        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
-	pdev_rc = XmCreateRowColumn(rc1, "pdev_rc", NULL, 0);
-        XtVaSetValues(pdev_rc, XmNorientation, XmHORIZONTAL, NULL);
+        rc1 = CreateVContainer(fr);
+	pdev_rc = CreateHContainer(rc1);
 
 	ndev = number_of_devices();
         option_items = xmalloc(ndev*sizeof(OptionItem));
@@ -158,104 +138,85 @@ void create_printer_setup(void *data)
             option_items[i].value = i;
             option_items[i].label = get_device_name(i);
         }
-        devices_item = CreateOptionChoice(pdev_rc, "Device: ",
-					    1, ndev, option_items);
+        devices_item =
+            CreateOptionChoice(pdev_rc, "Device: ", 1, ndev, option_items);
 	AddOptionChoiceCB(devices_item, do_device_toggle, NULL);
         xfree(option_items);
         
         device_opts_item = CreateButton(pdev_rc, "Device options...");
 	AddButtonCB(device_opts_item, create_devopts_popup, NULL);
-        ManageChild(pdev_rc);
-        
-        ManageChild(rc1);
         
         output_frame = CreateFrame(psetup_rc, "Output");
-        rc1 = XmCreateRowColumn(output_frame, "rc", NULL, 0);
-	printto_item = CreatePanelChoice(rc1, "Print to: ",
-					 3,
-					 "Printer",
-					 "File", 0, 0);
-	for (i = 0; i < 2; i++) {
-	    XtAddCallback(printto_item[2 + i], XmNactivateCallback,
-			  (XtCallbackProc) do_pr_toggle, (XtPointer) i);
-	}
+        rc1 = CreateVContainer(output_frame);
+	printto_item = CreateToggleButton(rc1, "Print to file");
+        AddToggleButtonCB(printto_item, do_pr_toggle, NULL);
 
 	print_string_item = CreateTextItem2(rc1, 25, "Print command:");
 
-	rc_filesel = XmCreateRowColumn(rc1, "rc", NULL, 0);
-        XtVaSetValues(rc_filesel, XmNorientation, XmHORIZONTAL, NULL);
-
+	rc_filesel = CreateHContainer(rc1);
 	printfile_item = CreateTextItem2(rc_filesel, 20, "File name:");
-
 	wbut = CreateButton(rc_filesel, "Browse...");
 	AddButtonCB(wbut, create_printfiles_popup, NULL);
-	ManageChild(rc_filesel);
 
-	ManageChild(rc1);
 	
         fr = CreateFrame(psetup_rc, "Page");
-        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc1 = CreateVContainer(fr);
         
-	rc = XmCreateRowColumn(rc1, "rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-        page_orient_item = CreatePanelChoice(rc, "Orientation: ",
-					 3,
-					 "Landscape",
-					 "Portrait",
-					 0, 0);
-	for (i = 0; i < 2; i++) {
-	    XtAddCallback(page_orient_item[2 + i], XmNactivateCallback,
-			  (XtCallbackProc) do_orient_toggle, (XtPointer) i);
-	}
-	page_format_item = CreatePanelChoice(rc, "Size: ",
-			      4,
-			      "Custom",
-			      "Letter",
-			      "A4",
-			      0, 0);
-	for (i = 0; i < 3; i++) {
-	    XtAddCallback(page_format_item[2 + i], XmNactivateCallback,
-			  (XtCallbackProc) do_format_toggle, (XtPointer) i);
-	}
-        ManageChild(rc);
+	rc = CreateHContainer(rc1);
 
-	rc = XmCreateRowColumn(rc1, "rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        option_items = xmalloc(2*sizeof(OptionItem));
+        option_items[0].value = PAGE_ORIENT_LANDSCAPE;
+        option_items[0].label = "Landscape";
+        option_items[1].value = PAGE_ORIENT_PORTRAIT;
+        option_items[1].label = "Portrait";
+        page_orient_item =
+            CreateOptionChoice(rc, "Orientation: ", 1, 2, option_items);
+	AddOptionChoiceCB(page_orient_item, do_orient_toggle, NULL);
+        xfree(option_items);
+
+
+        option_items = xmalloc(3*sizeof(OptionItem));
+        option_items[0].value = PAGE_FORMAT_CUSTOM;
+        option_items[0].label = "Custom";
+        option_items[1].value = PAGE_FORMAT_USLETTER;
+        option_items[1].label = "Letter";
+        option_items[2].value = PAGE_FORMAT_A4;
+        option_items[2].label = "A4";
+        page_format_item =
+            CreateOptionChoice(rc, "Size: ", 1, 3, option_items);
+	AddOptionChoiceCB(page_format_item, do_format_toggle, NULL);
+        xfree(option_items);
+
+	rc = CreateHContainer(rc1);
         page_x_item = CreateTextItem2(rc, 7, "Dimensions:");
         page_y_item = CreateTextItem2(rc, 7, "x ");
-	page_size_unit_item = CreatePanelChoice(rc, " ",
-			                        4,
-			                        "pix",
-			                        "in",
-			                        "cm",
-			                        0, 0);
-	for (i = 0; i < 3; i++) {
-	    XtAddCallback(page_size_unit_item[2 + i], XmNactivateCallback,
-			  (XtCallbackProc) do_units_toggle, (XtPointer) i);
-	}
-        SetChoice(page_size_unit_item, current_page_units);
-        ManageChild(rc);
+        option_items = xmalloc(3*sizeof(OptionItem));
+        option_items[0].value = 0;
+        option_items[0].label = "pix";
+        option_items[1].value = 1;
+        option_items[1].label = "in";
+        option_items[2].value = 2;
+        option_items[2].label = "cm";
+        page_size_unit_item =
+            CreateOptionChoice(rc, " ", 1, 3, option_items);
+	AddOptionChoiceCB(page_size_unit_item, do_units_toggle, NULL);
+        xfree(option_items);
+        SetOptionChoice(page_size_unit_item, current_page_units);
 
         dev_res_item = CreateTextItem2(rc1, 4, "Resolution (dpi):");
 
-        ManageChild(rc1);
 
         fr = CreateFrame(psetup_rc, "Fonts");
-        rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc1 = CreateVContainer(fr);
 	fontaa_item = CreateToggleButton(rc1, "Enable font antialiasing");
 	devfont_item = CreateToggleButton(rc1, "Use device fonts");
-        ManageChild(rc1);
         
-	CreateSeparator(psetup_rc);
-
-	CreateAACButtons(psetup_rc, device_panel, set_printer_proc);
-	ManageChild(psetup_rc);
-	ManageChild(device_panel);
+	CreateAACDialog(psetup_frame, psetup_rc, set_printer_proc, NULL);
     }
     
     update_printer_setup(device);
     
-    RaiseWindow(psetup_frame);
+    RaiseWindow(GetParent(psetup_frame));
     unset_wait_cursor();
 }
 
@@ -310,15 +271,15 @@ static void update_device_setup(int device_id)
             break;
         case DEVICE_FILE:
             ManageChild(output_frame);
-            SetChoice(printto_item, TRUE);
-            SetSensitive(printto_item[0], False);
+            SetToggleButtonState(printto_item, TRUE);
+            SetSensitive(printto_item, False);
             SetSensitive(GetParent(print_string_item), False);
             SetSensitive(rc_filesel, True);
             break;
         case DEVICE_PRINT:
             ManageChild(output_frame);
-            SetChoice(printto_item, get_ptofile());
-            SetSensitive(printto_item[0], True);
+            SetToggleButtonState(printto_item, get_ptofile());
+            SetSensitive(printto_item, True);
             if (get_ptofile() == TRUE) {
                 SetSensitive(rc_filesel, True);
                 SetSensitive(GetParent(print_string_item), False);
@@ -329,28 +290,25 @@ static void update_device_setup(int device_id)
             break;
         }
         
-        if (pg.width < pg.height) {
-            SetChoice(page_orient_item, PAGE_ORIENT_PORTRAIT);
-        } else {
-            SetChoice(page_orient_item, PAGE_ORIENT_LANDSCAPE);
-        }
+        SetOptionChoice(page_orient_item, pg.width < pg.height ?
+            PAGE_ORIENT_PORTRAIT : PAGE_ORIENT_LANDSCAPE);
         
         pf = get_page_format(device_id);
-        SetChoice(page_format_item, pf); 
+        SetOptionChoice(page_format_item, pf); 
         if (pf == PAGE_FORMAT_CUSTOM) {
             SetSensitive(page_x_item, True);
             SetSensitive(page_y_item, True);
-            SetSensitive(page_orient_item[0], False);
+            SetSensitive(page_orient_item->menu, False);
         } else {
             SetSensitive(page_x_item, False);
             SetSensitive(page_y_item, False);
-            SetSensitive(page_orient_item[0], True);
+            SetSensitive(page_orient_item->menu, True);
         }
         
         sprintf (buf, "%.0f", pg.dpi); 
         xv_setstr(dev_res_item, buf);
         
-        page_units = GetChoice(page_size_unit_item);
+        page_units = GetOptionChoice(page_size_unit_item);
         
         switch (page_units) {
         case 0:     /* pixels */
@@ -381,9 +339,8 @@ static void update_device_setup(int device_id)
     }
 }
 
-static void set_printer_proc(void *data)
+static int set_printer_proc(void *data)
 {
-    int aac_mode;
     int seldevice;
     double page_x, page_y;
     double dpi;
@@ -392,20 +349,13 @@ static void set_printer_proc(void *data)
     Page_geometry pg;
     int do_redraw = FALSE;
     
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(psetup_frame);
-        return;
-    }
-    
     seldevice = GetOptionChoice(devices_item);
 
     dev = get_device_props(seldevice);
 
     if (dev.type != DEVICE_TERM) {
         hdevice = seldevice;
-        set_ptofile(GetChoice(printto_item));
+        set_ptofile(GetToggleButtonState(printto_item));
         if (get_ptofile()) {
             strcpy(print_file, xv_getstr(printfile_item));
         } else {
@@ -419,15 +369,15 @@ static void set_printer_proc(void *data)
     if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
         xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS  ) {
         errmsg("Invalid page dimension(s)");
-        return;
+        return RETURN_FAILURE;
     }
 
     if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS) {
         errmsg("Invalid dpi");
-        return;
+        return RETURN_FAILURE;
     }
 
-    page_units = GetChoice(page_size_unit_item);
+    page_units = GetOptionChoice(page_size_unit_item);
 
     switch (page_units) {
     case 0: 
@@ -444,7 +394,7 @@ static void set_printer_proc(void *data)
         break;
     default:
         errmsg("Internal error");
-        return;
+        return RETURN_FAILURE;
     }
     
     pg.dpi = dpi;
@@ -453,6 +403,7 @@ static void set_printer_proc(void *data)
     
     if (set_device_props(seldevice, dev) != RETURN_SUCCESS) {
         errmsg("Invalid page dimensions or DPI");
+        return RETURN_FAILURE;
     }
     
     if (GetToggleButtonState(dsync_item) == TRUE) {
@@ -466,13 +417,11 @@ static void set_printer_proc(void *data)
         do_redraw = TRUE;
     }
     
-    if (aac_mode == AAC_ACCEPT) {
-        UnmanageChild(psetup_frame);
-    }
-    
     if (do_redraw) {
         drawgraph();
     }
+    
+    return RETURN_SUCCESS;
 }
 
 
@@ -484,11 +433,9 @@ static void do_device_toggle(int value, void *data)
     update_device_setup(value);
 }
 
-static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_pr_toggle(int onoff, void *data)
 {
-    int value = (int) client_data;
-    
-    if (value == TRUE) {
+    if (onoff == TRUE) {
         SetSensitive(rc_filesel, True);
         SetSensitive(GetParent(print_string_item), False);
     } else {
@@ -497,9 +444,8 @@ static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_format_toggle(int value, void *data)
 {
-    int value = (int) client_data;
     int orientation;
     int x, y;
     double px, py;
@@ -510,11 +456,11 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     if (value == PAGE_FORMAT_CUSTOM) {
         SetSensitive(page_x_item, True);
         SetSensitive(page_y_item, True);
-        SetSensitive(page_orient_item[0], False);
+        SetSensitive(page_orient_item->menu, False);
     } else {
         SetSensitive(page_x_item, False);
         SetSensitive(page_y_item, False);
-        SetSensitive(page_orient_item[0], True);
+        SetSensitive(page_orient_item->menu, True);
     }
     
     
@@ -533,7 +479,7 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     }
 
     
-    page_units = GetChoice(page_size_unit_item);
+    page_units = GetOptionChoice(page_size_unit_item);
     
     switch (page_units) {
     case 0:      /* pixels */
@@ -557,7 +503,7 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
         return;
     }
     
-    orientation = GetChoice(page_orient_item);
+    orientation = GetOptionChoice(page_orient_item);
     
     if ((orientation == PAGE_ORIENT_LANDSCAPE && px > py) ||
         (orientation == PAGE_ORIENT_PORTRAIT  && px < py) ) {
@@ -573,9 +519,9 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     }
 }
 
-static void do_orient_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_orient_toggle(int value, void *data)
 {
-    int orientation = (int) client_data;
+    int orientation = value;
     double px, py;
     char buf[32];
 
@@ -648,12 +594,12 @@ void create_devopts_popup(void *data)
     }
 }
 
-static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_units_toggle(int value, void *data)
 {
     char buf[32];
     double page_x, page_y;
     double dev_res;
-    int page_units = (int) client_data;
+    int page_units = value;
     
     if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
         xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ) {
