@@ -50,8 +50,8 @@
   <page width="792" height="612" fill="yes" color-id="0"/>
   <!-- Data formats -->
   <data-formats>
-    <dates reference="               0" wrap="no" wrap-year="1950"/>
-    <world format="%16.8g"/>
+    <dates reference="0" wrap="no" wrap-year="1950"/>
+    <world format="%.8g"/>
   </data-formats>
   <frame id="frame" active="yes" type="0">
     <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
@@ -66,11 +66,11 @@
     </legend>
     <graph id="graph" active="yes">
       <presentation-spec type="xy" stacked="no" bargap="0"/>
-      <xscale min="               0" max="               1" type="Normal" invert="no"/>
-      <yscale min="               0" max="               1" type="Normal" invert="no"/>
+      <xscale min="0" max="1" type="Normal" invert="no"/>
+      <yscale min="0" max="1" type="Normal" invert="no"/>
       <zscale norm="1"/>
       <locator type="1">
-        <fixedpoint active="no" x="               0" y="               0"/>
+        <fixedpoint active="no" x="0" y="0"/>
         <xformat format="general" prec="6"/>
         <yformat format="general" prec="6"/>
       </locator>
@@ -85,7 +85,7 @@
           </text-properties>
           <text/>
         </axislabel>
-        <ticks major-step="             0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+        <ticks major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
           <userticks type="none"/>
           <tickmarks active="yes" side-placement="both">
             <major size="1" inout-placement="in" grid-lines="no">
@@ -114,7 +114,7 @@
           </text-properties>
           <text/>
         </axislabel>
-        <ticks major-step="             0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+        <ticks major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
           <userticks type="none"/>
           <tickmarks active="yes" side-placement="both">
             <major size="1" inout-placement="in" grid-lines="no">
