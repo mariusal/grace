@@ -1999,11 +1999,14 @@ typedef struct {
     Pen pen;
     Widget color_popup;
     Widget pattern_popup;
+    
+    Pen_CBProc cb_proc;
+    void *cb_data;
 } Button_PData;
 
 static GC gc_pen;
 
-void SetPenChoice(Widget button, Pen *pen)
+static void SetPenChoice_int(Widget button, Pen *pen, int call_cb)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
     Pixel bg, fg;
@@ -2041,6 +2044,15 @@ void SetPenChoice(Widget button, Pen *pen)
     XtVaSetValues(button, XmNlabelPixmap, pixmap, NULL);
     
     XFreePixmap(xstuff->disp, pixtile);
+    
+    if (call_cb && pdata->cb_proc) {
+        pdata->cb_proc(button, pen, pdata->cb_data);
+    }
+}
+
+void SetPenChoice(Widget button, Pen *pen)
+{
+    SetPenChoice_int(button, pen, FALSE);
 }
 
 static void pen_popup(Widget parent,
@@ -2076,7 +2088,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
     pen = pdata->pen;
     pen.color = (int) client_data;
     
-    SetPenChoice(button, &pen);
+    SetPenChoice_int(button, &pen, TRUE);
 }
 
 static Widget CreateColorChoicePopup(Widget button)
@@ -2144,7 +2156,7 @@ static int pen_choice_aac(void *data)
         pen.color   = GetOptionChoice(ui->color);
         pen.pattern = GetOptionChoice(ui->pattern);
         
-        SetPenChoice(ui->pen_button, &pen);
+        SetPenChoice_int(ui->pen_button, &pen, TRUE);
     }
     
     return RETURN_SUCCESS;
@@ -2214,7 +2226,7 @@ Widget CreatePenChoice(Widget parent, char *s)
 
     pen.color   = 0;
     pen.pattern = 0;
-    SetPenChoice(button, &pen);
+    SetPenChoice_int(button, &pen, FALSE);
     
     XtManageChild(button);
     
@@ -2232,19 +2244,17 @@ int GetPenChoice(Widget pen_button, Pen *pen)
     }
 }
 
-/*
 void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
 {
-    Pen_CBdata *cbdata;
+    Button_PData *pdata = GetUserData(button);
     
-    cbdata = xmalloc(sizeof(Pen_CBdata));
-    cbdata->anydata = data;
-    cbdata->cbproc = cbproc;
-    XtAddCallback(button,
-        XmNactivateCallback, pen_int_cb_proc, (XtPointer) cbdata);
+    if (pdata->cb_proc) {
+        errmsg("AddPenChoiceCB: only one callback is supported");
+    } else {
+        pdata->cb_proc = cbproc;
+        pdata->cb_data = anydata;
+    }
 }
-*/
-
 
 
 

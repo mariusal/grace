@@ -328,8 +328,7 @@ typedef void (*TItem_CBProc)(
     void *               /* data the application registered */
 );
 
-/*
- * Scale input CB procedure */
+/* Scale input CB procedure */
 typedef void (*Scale_CBProc )(
     Widget scale,
     int,                /* scale value                     */
@@ -340,6 +339,14 @@ typedef void (*Scale_CBProc )(
 typedef int (*AACDialog_CBProc)(
     void *               /* data the application registered */
 );
+
+/* PenChoice input CB procedure */
+typedef void (*Pen_CBProc )(
+    Widget,
+    const Pen*,         /* pen value                       */
+    void *              /* data the application registered */
+);
+
 
 void ManageChild(Widget w);
 void UnmanageChild(Widget w);
@@ -476,6 +483,7 @@ OptionStructure *CreateJustChoice(Widget parent, char *s);
 Widget CreatePenChoice(Widget parent, char *s);
 void SetPenChoice(Widget button, Pen *pen);
 int GetPenChoice(Widget pen_button, Pen *pen);
+void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata);
 
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s);
 
