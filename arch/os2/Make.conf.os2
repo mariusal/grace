@@ -105,21 +105,19 @@ MKINSTALLDIRS=
 CPPFLAGS= -I$(X11ROOT)/XFree86/include
 
 # C flags
-#CFLAGS0= -Wall -Wno-unused -ansi -O3 -m486 -Zmt
-CFLAGS0= -Wall -Wno-unused -O3 -m486 -Zmt
+CFLAGS0= -Wall -Wno-unused -O4 -mpentium -Zmt
 
 # GUI flags
 GUI_FLAGS=
 
 # LDFLAGS
 # -Zbin-files is removed. Not sure where this will hurt us (fftw, ?! ) ...
-LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals -Zstack 0x4000
+LDFLAGS=-s -Zmt -Zcrtdll -Zbsd-signals -Zstack 0x4000
 
 # Libraries (all but GUI)
 NOGUI_LIBS=
 
 # GUI libraries
-#GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
 GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient -lXbae -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
 
 # Commamd used to print

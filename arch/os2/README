@@ -1,5 +1,5 @@
-                           Grace 5.x for XFree86 OS/2
-			   ==========================
+                          Grace 5.1x for XFree86 OS/2
+                          ===========================
 
 
                           Contents of this document:
@@ -46,7 +46,7 @@
   - XFree86 for OS/2, including its development package(s)
       http://borneo.gmd.de/~veit/os2/xf86os2.html
 
-  - LessTif for XFree/2
+  - LessTif for XFree/2 (version 0.91.8 or above)
       http://www.tu-darmstadt.de/~st002279/os2/lesstif.html
 
   - libXbae (for LessTif)
