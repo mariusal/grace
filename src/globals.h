@@ -179,7 +179,6 @@ GLOBAL(string_loctype, int, COORD_VIEW);
 
 
 /* used in the parser */
-GLOBAL(curset, int, 0);
 GLOBAL(curtype, int, SET_XY);
 GLOBAL(cursource, int, SOURCE_DISK);
 
