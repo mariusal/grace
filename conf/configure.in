@@ -37,6 +37,8 @@ AC_SUBST(TERMDRV_O)
 AC_SUBST(HELPVIEWER)
 AC_SUBST(SUBDIRS)
 
+AC_SUBST(PRINT_CMD)
+
 dnl **** Those are for T1lib
 
 AC_SUBST(T1_AA_TYPE16)
@@ -446,7 +448,17 @@ if test "${DL_LIB}" = "NONE"; then
 fi
 
 dnl **** Check how to print
-AC_CHECK_PROG(PRINT_CMD, lpr, 'lpr', 'lp -c')
+AC_CHECK_PROG(LP_CMD, lp, 'lp -c', "NONE")
+if test "${ac_cv_prog_LP_CMD}" = "NONE"; then
+  AC_CHECK_PROG(LPR_CMD, lpr, 'lpr', "NONE")
+  if test "${ac_cv_prog_LPR_CMD}" = "NONE"; then
+    PRINT_CMD=
+  else
+    PRINT_CMD="${ac_cv_prog_LPR_CMD}"
+  fi
+else
+  PRINT_CMD="${ac_cv_prog_LP_CMD}"
+fi
 
 dnl **** use netcdf  
 AC_ARG_ENABLE(netcdf,
