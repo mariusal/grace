@@ -50,11 +50,10 @@ FILE *filter_read(Grace *grace, char *fn);
 FILE *filter_write(Grace *grace, char *fn);
 
 int getdata(Quark *pr, char *fn, int src, int type);
-int update_set_from_file(Quark *pset);
 
 int readblockdata(Quark *gr, char *fn, FILE * fp);
 
-int load_project_file(Grace *grace, char *fn, int as_template);
+Quark *load_any_project(Grace *grace, char *fn);
 
 int new_project(Grace *grace, char *template);
 int load_project(Grace *grace, char *fn);

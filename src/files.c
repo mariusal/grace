@@ -1054,9 +1054,9 @@ int write_set(Quark *pset, FILE *cp, char *format)
     return RETURN_SUCCESS;
 }
 
-extern int load_xgr_project(Grace *grace, char *fn);
+extern Quark *load_xgr_project(Grace *grace, const char *fn);
 
-int load_agr_project(Grace *grace, char *fn)
+Quark *load_agr_project(Grace *grace, char *fn)
 {
     Quark *project = project_new(grace->rt->qfactory);
 
@@ -1064,20 +1064,32 @@ int load_agr_project(Grace *grace, char *fn)
     grace->rt->curtype = SET_XY;
 
     if (getdata(project, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
-        return grace_set_project(grace, project);
+        return project;
     } else {
         parser_state_reset(grace->project);
         quark_free(project);
         
-        return RETURN_FAILURE;
+        return NULL;
     }
 }
 
-int load_project_file(Grace *grace, char *fn, int as_template)
+Quark *load_any_project(Grace *grace, char *fn)
+{
+    Quark *project;
+    
+    /* A temporary hack */
+    if (fn && strstr(fn, ".xgr")) {
+        project = load_xgr_project(grace, fn);
+    } else {
+        project = load_agr_project(grace, fn);
+    }
+    
+    return project;
+}
+
+static int load_project_file(Grace *grace, char *fn, int as_template)
 {    
-    Quark *gr;
-    int retval;
-    Quark **graphs;
+    Quark *project, *gr, **graphs;
     int i, ngraphs;
 
     if (grace->project &&
@@ -1086,20 +1098,17 @@ int load_project_file(Grace *grace, char *fn, int as_template)
 	return RETURN_FAILURE;
     }
     
-    /* A temporary hack */
-    if (fn && strstr(fn, ".xgr")) {
-        retval = load_xgr_project(grace, fn);
-    } else {
-        retval = load_agr_project(grace, fn);
-    }
-
-    if (retval == RETURN_SUCCESS) {
+    project = load_any_project(grace, fn);
+    
+    if (project) {
         char *tfn;
         struct stat statb;
         time_t mtime;
         static char buf[GR_MAXPATHLEN];
         char *bufp;
         AMem *amem;
+
+        grace_set_project(grace, project);
         
         if (as_template == FALSE) {
             project_set_docname(grace->project, fn);
@@ -1149,7 +1158,11 @@ int load_project_file(Grace *grace, char *fn, int as_template)
 #ifndef NONE_GUI
     update_all();
 #endif
-    return retval;
+    if (project) {
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 int load_project(Grace *grace, char *fn)

@@ -2009,7 +2009,7 @@ char *utf2iso(const char *s)
 
     <!-- Postamble -->
     <postamble><![CDATA[
-int load_xgr_project(Grace *grace, char *fn)
+Quark *load_xgr_project(Grace *grace, char *fn)
 {
     ParserData udata;
     void *p;
@@ -2019,7 +2019,7 @@ int load_xgr_project(Grace *grace, char *fn)
 
     fp = grace_openr(grace, fn, SOURCE_DISK);
     if (fp == NULL) {
-	return RETURN_FAILURE;
+	return NULL;
     }
 
     udata.rt = grace->rt;
@@ -2033,11 +2033,11 @@ int load_xgr_project(Grace *grace, char *fn)
     grace_close(fp);
     
     if (ret == XCC_RETURN_SUCCESS) {
-        return grace_set_project(grace, project);
+        return project;
     } else {
         quark_free(project);
         
-        return RETURN_FAILURE;
+        return NULL;
     }
 }
     ]]></postamble>
