@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2002,2003 Grace Development Team
+ * Copyright (c) 2002-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -415,10 +415,13 @@ static int _quark_traverse(Quark *q, QTHookData *_cbdata)
     
     res = _cbdata->hook(q, _cbdata->udata, &closure);
     if (res) {
-        _cbdata->depth++;
 
         if (closure.descend) {
+            _cbdata->depth++;
+            
             storage_traverse(q->children, hook, _cbdata);
+            
+            _cbdata->depth--;
         }
         
         if (closure.post) {
