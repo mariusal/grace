@@ -101,8 +101,8 @@ static void VersionInfo(FILE *outfile)
         CCOMPILER);
     
     uname(&u_info);
-    fprintf(outfile, "#define BI_SYSTEM \"%s %s %s\"\n",
-        u_info.sysname, u_info.release, u_info.machine);
+    fprintf(outfile, "#define BI_SYSTEM \"%s %s %s %s\"\n",
+        u_info.sysname, u_info.version, u_info.release, u_info.machine);
 
     time_info = time(NULL);
     ctime_string = ctime(&time_info);
