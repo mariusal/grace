@@ -69,6 +69,7 @@ static int ps_linejoin;
 static int ps_level2 = TRUE;
 static PSColorSpace ps_colorspace = DEFAULT_COLORSPACE;
 static int docdata = DOCDATA_8BIT;
+static int ps_fonts = FONT_EMBED_BUT35;
 
 static int ps_setup_offset_x = 0;
 static int ps_setup_offset_y = 0;
@@ -76,6 +77,7 @@ static int ps_setup_offset_y = 0;
 static int ps_setup_level2 = TRUE;
 static int ps_setup_colorspace = DEFAULT_COLORSPACE;
 static int ps_setup_docdata = DOCDATA_8BIT;
+static int ps_setup_fonts = FONT_EMBED_BUT35;
 
 static int ps_setup_feed = MEDIA_FEED_AUTO;
 static int ps_setup_hwres = FALSE;
@@ -83,6 +85,7 @@ static int ps_setup_hwres = FALSE;
 static int eps_setup_level2 = TRUE;
 static int eps_setup_colorspace = DEFAULT_COLORSPACE;
 static int eps_setup_docdata = DOCDATA_8BIT;
+static int eps_setup_fonts = FONT_EMBED_BUT35;
 
 static Device_entry dev_ps = {
     DEVICE_PRINT,
@@ -232,7 +235,7 @@ static int ps_embedded_font(const char *fname, int embed_type)
     case FONT_EMBED_NONE:
         return FALSE;
         break;
-    case FONT_EMBED_13:
+    case FONT_EMBED_BUT13:
         for (i = 0; i < number_of_ps_standard_fonts13; i++) {
             if (strcmp(ps_standard_fonts13[i], fname) == 0) {
                 return FALSE;
@@ -240,7 +243,7 @@ static int ps_embedded_font(const char *fname, int embed_type)
         }
         return TRUE;
         break;
-    case FONT_EMBED_35:
+    case FONT_EMBED_BUT35:
         for (i = 0; i < number_of_ps_standard_fonts35; i++) {
             if (strcmp(ps_standard_fonts35[i], fname) == 0) {
                 return FALSE;
@@ -375,7 +378,7 @@ static int ps_initgraphics(const Canvas *canvas,
     for (i = 0; i < cstats->nfonts; i++) {
         int font = cstats->fonts[i].font;
         char *fontalias = get_fontalias(canvas, font);
-        if (ps_embedded_font(fontalias, FONT_EMBED_35)) {
+        if (ps_embedded_font(fontalias, ps_fonts)) {
             char *fontname = get_fontname(canvas, font);
             psfonts[i].embed = TRUE;
             psfonts[i].name  = copy_string(NULL, fontname);
@@ -1150,6 +1153,7 @@ int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     ps_level2     = ps_setup_level2;
     ps_colorspace = ps_setup_colorspace;
     docdata       = ps_setup_docdata;
+    ps_fonts      = ps_setup_fonts;
     result = ps_initgraphics(canvas, cstats, PS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -1166,6 +1170,7 @@ int epsinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
     ps_level2     = eps_setup_level2;
     ps_colorspace = eps_setup_colorspace;
     docdata       = eps_setup_docdata;
+    ps_fonts      = eps_setup_fonts;
     result = ps_initgraphics(canvas, cstats, EPS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
@@ -1222,6 +1227,18 @@ int ps_op_parser(const Canvas *canvas, const char *opstring)
     } else if (!strcmp(opstring, "mediafeed:manual")) {
         ps_setup_feed = MEDIA_FEED_MANUAL;
         return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:none")) {
+        ps_setup_fonts = FONT_EMBED_NONE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:but13")) {
+        ps_setup_fonts = FONT_EMBED_BUT13;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:but35")) {
+        ps_setup_fonts = FONT_EMBED_BUT35;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:all")) {
+        ps_setup_fonts = FONT_EMBED_ALL;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -1253,6 +1270,18 @@ int eps_op_parser(const Canvas *canvas, const char *opstring)
     } else if (!strcmp(opstring, "docdata:binary")) {
         eps_setup_docdata = DOCDATA_BINARY;
         return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:none")) {
+        eps_setup_fonts = FONT_EMBED_NONE;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:but13")) {
+        eps_setup_fonts = FONT_EMBED_BUT13;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:but35")) {
+        eps_setup_fonts = FONT_EMBED_BUT35;
+        return RETURN_SUCCESS;
+    } else if (!strcmp(opstring, "embedfonts:all")) {
+        eps_setup_fonts = FONT_EMBED_ALL;
+        return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
@@ -1265,12 +1294,13 @@ static int set_ps_setup_proc(void *data);
 
 static Widget ps_setup_frame;
 static Widget ps_setup_level2_item;
+static OptionStructure *ps_setup_docdata_item;
+static OptionStructure *ps_setup_fonts_item;
 static OptionStructure *ps_setup_colorspace_item;
 static SpinStructure *ps_setup_offset_x_item;
 static SpinStructure *ps_setup_offset_y_item;
 static OptionStructure *ps_setup_feed_item;
 static Widget ps_setup_hwres_item;
-static OptionStructure *ps_setup_docdata_item;
 
 static void colorspace_cb(int onoff, void *data)
 {
@@ -1310,6 +1340,12 @@ void ps_gui_setup(const Canvas *canvas)
             {MEDIA_FEED_MATCH,  "Match size"},
             {MEDIA_FEED_MANUAL, "Manual"    }
         };
+        OptionItem font_op_items[4] = {
+            {FONT_EMBED_NONE,  "None"               },
+            {FONT_EMBED_BUT13, "All but 13 standard"},
+            {FONT_EMBED_BUT35, "All but 35 standard"},
+            {FONT_EMBED_ALL,   "All"                }
+        };
         
 	ps_setup_frame = CreateDialogForm(app_shell, "PS options");
 
@@ -1324,6 +1360,8 @@ void ps_gui_setup(const Canvas *canvas)
             colorspace_cb, ps_setup_colorspace_item);
 	ps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
+	ps_setup_fonts_item =
+            CreateOptionChoice(rc, "Embed fonts:", 1, 4, font_op_items);
 
 	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
         rc = CreateHContainer(fr);
@@ -1351,6 +1389,7 @@ static void update_ps_setup_frame(void)
         SetToggleButtonState(ps_setup_level2_item, ps_setup_level2);
         SetOptionChoice(ps_setup_colorspace_item, ps_setup_colorspace);
         colorspace_cb(ps_setup_level2, ps_setup_colorspace_item);
+        SetOptionChoice(ps_setup_fonts_item, ps_setup_fonts);
         SetSpinChoice(ps_setup_offset_x_item, (double) ps_setup_offset_x);
         SetSpinChoice(ps_setup_offset_y_item, (double) ps_setup_offset_y);
         SetOptionChoice(ps_setup_feed_item, ps_setup_feed);
@@ -1362,12 +1401,13 @@ static void update_ps_setup_frame(void)
 static int set_ps_setup_proc(void *data)
 {
     ps_setup_level2     = GetToggleButtonState(ps_setup_level2_item);
+    ps_setup_docdata    = GetOptionChoice(ps_setup_docdata_item);
     ps_setup_colorspace = GetOptionChoice(ps_setup_colorspace_item);
+    ps_setup_fonts      = GetOptionChoice(ps_setup_fonts_item);
     ps_setup_offset_x   = (int) GetSpinChoice(ps_setup_offset_x_item);
     ps_setup_offset_y   = (int) GetSpinChoice(ps_setup_offset_y_item);
     ps_setup_feed       = GetOptionChoice(ps_setup_feed_item);
     ps_setup_hwres      = GetToggleButtonState(ps_setup_hwres_item);
-    ps_setup_docdata    = GetOptionChoice(ps_setup_docdata_item);
     
     return RETURN_SUCCESS;
 }
@@ -1378,6 +1418,7 @@ static Widget eps_setup_frame;
 static Widget eps_setup_level2_item;
 static OptionStructure *eps_setup_colorspace_item;
 static OptionStructure *eps_setup_docdata_item;
+static OptionStructure *eps_setup_fonts_item;
 
 void eps_gui_setup(const Canvas *canvas)
 {
@@ -1395,6 +1436,12 @@ void eps_gui_setup(const Canvas *canvas)
             {DOCDATA_8BIT,   "8bit"  },
             {DOCDATA_BINARY, "Binary"}
         };
+        OptionItem font_op_items[4] = {
+            {FONT_EMBED_NONE,  "None"               },
+            {FONT_EMBED_BUT13, "All but 13 standard"},
+            {FONT_EMBED_BUT35, "All but 35 standard"},
+            {FONT_EMBED_ALL,   "All"                }
+        };
 	
         eps_setup_frame = CreateDialogForm(app_shell, "EPS options");
 
@@ -1407,6 +1454,8 @@ void eps_gui_setup(const Canvas *canvas)
             colorspace_cb, eps_setup_colorspace_item);
 	eps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
+	eps_setup_fonts_item =
+            CreateOptionChoice(rc, "Embed fonts:", 1, 4, font_op_items);
 	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
     }
     update_eps_setup_frame();
@@ -1422,6 +1471,7 @@ static void update_eps_setup_frame(void)
         SetOptionChoice(eps_setup_colorspace_item, eps_setup_colorspace);
         colorspace_cb(eps_setup_level2, eps_setup_colorspace_item);
         SetOptionChoice(eps_setup_docdata_item, eps_setup_docdata);
+        SetOptionChoice(eps_setup_fonts_item, eps_setup_fonts);
     }
 }
 
@@ -1430,6 +1480,7 @@ static int set_eps_setup_proc(void *data)
     eps_setup_level2     = GetToggleButtonState(eps_setup_level2_item);
     eps_setup_colorspace = GetOptionChoice(eps_setup_colorspace_item);
     eps_setup_docdata    = GetOptionChoice(eps_setup_docdata_item);
+    eps_setup_fonts      = GetOptionChoice(eps_setup_fonts_item);
     
     return RETURN_SUCCESS;
 }

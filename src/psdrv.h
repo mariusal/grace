@@ -55,8 +55,8 @@ typedef struct {
 #define DOCDATA_BINARY  2  
 
 #define FONT_EMBED_NONE    0
-#define FONT_EMBED_13      1
-#define FONT_EMBED_35      2
+#define FONT_EMBED_BUT13   1
+#define FONT_EMBED_BUT35   2
 #define FONT_EMBED_ALL     3
 
 int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
