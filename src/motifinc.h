@@ -82,7 +82,6 @@ typedef struct {
 
 typedef struct {
     int nchoices;
-    Widget rc;
     Widget menu;
     Widget pulldown;
     OptionWidgetItem *options;

@@ -179,7 +179,7 @@ static void update_eblock(int gno)
 
     ncols = settype_cols(block_curtype);
     for (i = 0; i < MAX_SET_COLS; i++) {
-        XtSetSensitive(eblock_choice_items[i]->rc, (i < ncols));
+        XtSetSensitive(eblock_choice_items[i]->menu, (i < ncols));
     }
 }
 

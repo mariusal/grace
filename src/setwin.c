@@ -696,7 +696,7 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
         opitems[2].label = "Swap";
         setopui.optype_item = CreateOptionChoice(panel,
             "Type of operation:", 0, 3, opitems);
-        XtVaSetValues(setopui.optype_item->rc,
+        XtVaSetValues(setopui.optype_item->menu,
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, rc,
             XmNleftAttachment, XmATTACH_FORM,
@@ -706,7 +706,7 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	fr = CreateFrame(panel, NULL);
         XtVaSetValues(fr,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, setopui.optype_item->rc,
+            XmNtopWidget, setopui.optype_item->menu,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNbottomAttachment, XmATTACH_FORM,

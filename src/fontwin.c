@@ -124,7 +124,7 @@ void create_fonttool(Widget cstext)
         font_select_item = CreateFontChoice(fonttool_panel, "Font:");
         AddOptionChoiceCB(font_select_item, update_fonttool_cb);
         SetOptionChoice(font_select_item, 0);
-        XtVaSetValues(font_select_item->rc,
+        XtVaSetValues(font_select_item->menu,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_FORM,
@@ -150,7 +150,7 @@ void create_fonttool(Widget cstext)
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, font_select_item->rc,
+            XmNtopWidget, font_select_item->menu,
             NULL);
             
         XtAddCallback(font_table, XmNdrawCellCallback, (XtCallbackProc) DrawCB, NULL);

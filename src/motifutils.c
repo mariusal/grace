@@ -116,10 +116,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
     retval = malloc(sizeof(OptionStructure));
 
-    retval->rc = XmCreateRowColumn(parent, "rcOption", NULL, 0);
-    XtVaSetValues(retval->rc, XmNorientation, XmHORIZONTAL, NULL);
-
-    retval->pulldown = XmCreatePulldownMenu(retval->rc, "pulldownMenu", NULL, 0);
+    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
 
     if (ncols > 0) {
         XtVaSetValues(retval->pulldown,
@@ -133,7 +130,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
     retval->options = NULL;
     UpdateOptionChoice(retval, nchoices, items);
 
-    retval->menu = XmCreateOptionMenu(retval->rc, "optionMenu", NULL, 0);
+    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
     str = XmStringCreate(labelstr, charset);
     XtVaSetValues(retval->menu,
 		  XmNlabelString, str,
@@ -141,8 +138,6 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                   NULL);
     XmStringFree(str);
     XtManageChild(retval->menu);
-
-    XtManageChild(retval->rc);
     
     return retval;
 }
@@ -200,10 +195,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     }
 
 
-    retval->rc = XmCreateRowColumn(parent, "rcOption", NULL, 0);
-    XtVaSetValues(retval->rc, XmNorientation, XmHORIZONTAL, NULL);
-
-    retval->pulldown = XmCreatePulldownMenu(retval->rc, "pulldownMenu", NULL, 0);
+    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
     XtVaSetValues(retval->pulldown, 
                   XmNentryAlignment, XmALIGNMENT_CENTER,
                   NULL);
@@ -243,7 +235,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
         XtManageChild(retval->options[i].widget);
     }
 
-    retval->menu = XmCreateOptionMenu(retval->rc, "optionMenu", NULL, 0);
+    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
     str = XmStringCreate(labelstr, charset);
     XtVaSetValues(retval->menu,
 		  XmNlabelString, str,
@@ -251,8 +243,6 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
 		  NULL);
     XmStringFree(str);
     XtManageChild(retval->menu);
-
-    XtManageChild(retval->rc);
     
     return retval;
 }

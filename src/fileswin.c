@@ -140,9 +140,9 @@ static void read_nxy_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     if (GetToggleButtonState(read_nxy_item) == TRUE) {
         SetOptionChoice(read_ftype_item, SET_XY);
-        XtSetSensitive(read_ftype_item->rc, False);
+        XtSetSensitive(read_ftype_item->menu, False);
     } else {
-        XtSetSensitive(read_ftype_item->rc, True);
+        XtSetSensitive(read_ftype_item->menu, True);
     }
 }
 
