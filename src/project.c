@@ -74,6 +74,9 @@ Quark *project_new(QuarkFactory *qfactory)
     return q;
 }
 
+static defaults d_d =
+{{{1, 1}, 1, 1.0}, {0, 0}, 1, 1.0};
+
 Project *project_data_new(void)
 {
     Project *pr;
@@ -101,6 +104,8 @@ Project *project_data_new(void)
     
     pr->bgcolor  = 0;
     pr->bgfill   = TRUE;
+
+    pr->grdefaults = d_d;
     
     pr->docname = copy_string(NULL, NONAME);
 

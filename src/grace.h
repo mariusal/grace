@@ -134,6 +134,9 @@ typedef struct _Project {
     int wrap_year;
     int two_digits_years;
 
+    /* default graphics properties */
+    defaults grdefaults;
+    
     /* project file name */
     char *docname;	
 } Project;
@@ -195,9 +198,6 @@ typedef struct _RunTime {
     int cursource;
     /* file for results */
     FILE *resfp;
-    
-    /* default graphics properties */
-    defaults grdefaults;
     
     /* scroll fraction */
     double scrollper;

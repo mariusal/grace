@@ -69,7 +69,6 @@
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-#define grdefaults grace->rt->grdefaults
 #define canvas grace->rt->canvas
 
 /* Tick sign type (obsolete) */
@@ -2351,22 +2350,28 @@ parmset:
 
 /* defaults */
 	| DEFAULT lines_select {
-	    grdefaults.line.style = $2;
+            Project *pr = project_get_data(grace->project);
+	    pr->grdefaults.line.style = $2;
 	}
 	| DEFAULT linew_select {
-	    grdefaults.line.width = $2;
+            Project *pr = project_get_data(grace->project);
+	    pr->grdefaults.line.width = $2;
 	}
 	| DEFAULT color_select {
-	    grdefaults.line.pen.color = $2;
+            Project *pr = project_get_data(grace->project);
+	    pr->grdefaults.line.pen.color = $2;
 	}
 	| DEFAULT pattern_select {
-	    grdefaults.line.pen.pattern = $2;
+            Project *pr = project_get_data(grace->project);
+	    pr->grdefaults.line.pen.pattern = $2;
 	}
 	| DEFAULT CHAR SIZE expr {
-	    grdefaults.charsize = $4;
+            Project *pr = project_get_data(grace->project);
+	    pr->grdefaults.charsize = $4;
 	}
 	| DEFAULT font_select {
-	    grdefaults.font = $2;
+            Project *pr = project_get_data(grace->project);
+	    pr->grdefaults.font = $2;
 	}
 	| DEFAULT SYMBOL SIZE expr {
 	}

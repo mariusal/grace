@@ -68,13 +68,14 @@ static void set_default_frame(Quark *q)
     frame *f = frame_get_data(q);
     defaults grdefaults;
     static const view d_v = {0.15, 0.85, 0.15, 0.85};
-    RunTime *rt = rt_from_quark(q);
+    Project *pr = project_get_data(get_parent_project(q));
     
-    if (!f || !rt) {
+    if (!f || !pr) {
         return;
     }
     
-    grdefaults = rt->grdefaults;
+    pr = project_get_data(get_parent_project(q));
+    grdefaults = pr->grdefaults;
     
     f->active = TRUE;
     f->type = 0;                /* frame type */

@@ -251,13 +251,13 @@ static void set_default_ticks(Quark *q)
 
     tickmarks *t = axis_get_data(q);
     defaults grdefaults;
-    RunTime *rt = rt_from_quark(q);
+    Project *pr = project_get_data(get_parent_project(q));
     
-    if (!t || !rt) {
+    if (!t || !pr) {
         return;
     }
     
-    grdefaults = rt->grdefaults;
+    grdefaults = pr->grdefaults;
     
     t->active = TRUE;
     t->type = AXIS_TYPE_X;

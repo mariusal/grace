@@ -325,15 +325,15 @@ int zero_set_data(Dataset *dsp)
 
 static void set_default_set(Quark *pset)
 {
-    RunTime *rt = rt_from_quark(pset);
     set *p = set_get_data(pset);
+    Project *pr = project_get_data(get_parent_project(pset));
     defaults grdefaults;
     
-    if (!p || !rt) {
+    if (!p || !pr) {
         return;
     }
     
-    grdefaults = rt->grdefaults;
+    grdefaults = pr->grdefaults;
     
     p->active = TRUE;
     p->type = SET_XY;                            /* dataset type */

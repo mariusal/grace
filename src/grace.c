@@ -40,21 +40,6 @@
 #include "objutils.h"
 #include "protos.h"
 
-static defaults d_d =
-{{{1, 1}, 1, 1.0}, {0, 0}, 1, 1.0};
-
-/* defaults layout
-    int color;
-    int bgcolor;
-    int pattern;
-    int lines;
-    double linew;
-    double charsize;
-    int font;
-    double symsize;
-*/
-
-
 GUI *gui_new(Grace *grace)
 {
     GUI *gui;
@@ -296,8 +281,6 @@ RunTime *runtime_new(Grace *grace)
     rt->curtype   = SET_XY;
     rt->cursource = SOURCE_DISK;
 
-    rt->grdefaults = d_d;
-        
     rt->scrollper = 0.05;
     rt->shexper = 0.05;
     
