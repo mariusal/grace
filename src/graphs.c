@@ -228,6 +228,26 @@ void graph_free(graph *g)
     }
 }
 
+int graph_next(void)
+{
+    graph *g;
+    int gno;
+    
+    g = graph_new();
+    if (g) {
+        gno = storage_get_unique_id(graphs);
+        if (storage_add(graphs, gno, g) == RETURN_SUCCESS) {
+            set_dirtystate();
+            return gno;
+        } else {
+            graph_free(g);
+            return -1;
+        }
+    } else {
+        return -1;
+    }
+}
+
 void kill_all_graphs(void)
 {
     storage_empty(graphs);

@@ -190,6 +190,7 @@ char *graph_types(int it);
 char *set_types(int it);
 int get_settype_by_name(char *s);
 
+int graph_next(void);
 int kill_graph(int gno);
 void kill_all_graphs(void);
 int copy_graph(int from, int to);
