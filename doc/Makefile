@@ -8,20 +8,28 @@ TOP=..
 
 include $(TOP)/Make.conf
 
-.SUFFIXES : .sgml .html .dvi .ps
+.SUFFIXES : .dvi .html .pdf .ps .tex .sgml
 
-SGML2HTML = sgml2html --split=0
-SGML2DVI  = sgml2latex
-DVI2PS    = dvips
+SGML2HTML   = sgml2html --split=0
+SGML2DVI    = sgml2latex
+SGML2LATEX  = sgml2latex --output=tex
+DVI2PS      = dvips
+PDFLATEX    = pdflatex
 
 .sgml.html :
 	$(SGML2HTML) $<
 
 .sgml.dvi :
 	$(SGML2DVI) $<
+	
+.sgml.tex :
+	$(SGML2LATEX) $<
 
 .dvi.ps :
 	$(DVI2PS) $<
+
+.tex.pdf :
+	$(PDFLATEX) $<
 
 SGMLS = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
 
@@ -31,6 +39,8 @@ HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html \
 DVIDOCS = FAQ.dvi Tutorial.dvi UsersGuide.dvi
 
 PSDOCS = FAQ.ps Tutorial.ps UsersGuide.ps
+
+PDFDOCS = FAQ.pdf Tutorial.pdf UsersGuide.pdf
 
 TUTDATA = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
 	10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
@@ -44,6 +54,8 @@ all : html dvi
 html : $(HTMLDOCS)
 
 dvi : $(DVIDOCS)
+
+pdf : $(PDFDOCS)
 
 ps : $(PSDOCS)
 
