@@ -45,7 +45,7 @@ void startup_gui(void);
 void set_left_footer(char *s);
 
 void xdrawgraph(void);
-void expose_resize(Widget w, XtPointer client_data, XmDrawingAreaCallbackStruct *cbs);
+void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
 
 void setpointer(VPoint vp);
 

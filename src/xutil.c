@@ -332,10 +332,10 @@ void crosshair_motion(int x, int y)
 /*
  * expose/resize proc
  */
-void expose_resize(Widget w, XtPointer client_data,
-                        XmDrawingAreaCallbackStruct *cbs)
+void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 {
     static int inc = 0;
+    XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
 #if defined(DEBUG)
     if (get_debuglevel() == 7) {

@@ -954,10 +954,8 @@ void startup_gui(void)
         drawing_window = canvas;
     }
     
-    XtAddCallback(canvas, XmNexposeCallback,
-                            (XtCallbackProc) expose_resize, NULL);
-    XtAddCallback(canvas, XmNresizeCallback,
-                            (XtCallbackProc) expose_resize, NULL);
+    XtAddCallback(canvas, XmNexposeCallback, expose_resize, NULL);
+    XtAddCallback(canvas, XmNresizeCallback, expose_resize, NULL);
 
     XtAddEventHandler(canvas, ButtonPressMask
 		      | PointerMotionMask
