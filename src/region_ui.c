@@ -40,7 +40,7 @@ RegionUI *create_region_ui(ExplorerUI *eui)
     form = CreateVContainer(eui->scrolled_window);
     AddHelpCB(form, "doc/UsersGuide.html#region-properties");
     
-    ui = xmalloc(sizeof(ProjectUI));
+    ui = xmalloc(sizeof(RegionUI));
 
     ui->top = form;
     
