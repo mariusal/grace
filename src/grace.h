@@ -35,9 +35,15 @@
 
 #include "defines.h"
 #include "storage.h"
+#include "draw.h"
 #include "dict3.h"
 
+typedef struct _Grace Grace;
+
 typedef struct _Project {
+    /* Parent */
+    Grace *P;
+    
     /* Version ID */
     int version_id;
     
@@ -63,6 +69,9 @@ typedef struct _Project {
     /* page size */
     int page_wpp, page_hpp;
     
+    /* page fill */
+    Pen bgpen;
+    
     /* format for saving data sets */
     char *sformat;
 
@@ -75,6 +84,9 @@ typedef struct _Project {
 } Project;
 
 typedef struct _GUI {
+    /* Parent */
+    Grace *P;
+
     /* true if running X */
     int inwin;
     /* use GXxor or GXinvert for xor'ing */
@@ -98,6 +110,9 @@ typedef struct _GUI {
 } GUI;
 
 typedef struct _RunTime {
+    /* Parent */
+    Grace *P;
+    
     /* terminal device */
     int tdevice;
     /* hardcopy device */
@@ -156,6 +171,8 @@ typedef struct _RunTime {
     /* $HOME */
     char *userhome;
     
+    Canvas *canvas;
+    
     /* Misc dictionaries */
     Dictionary *graph_type_dict;
     Dictionary *set_type_dict;
@@ -169,22 +186,22 @@ typedef struct _RunTime {
 #endif    
 } RunTime;
 
-typedef struct _Grace {
+struct _Grace {
 #if 0
     Preferences *prefs;
 #endif
     RunTime *rt;
     GUI *gui;
     Project *project;
-} Grace;
+};
 
-Project *project_new(void);
+Project *project_new(Grace *grace);
 void project_free(Project *pr);
 
-GUI *gui_new(void);
+GUI *gui_new(Grace *grace);
 void gui_free(GUI *gui);
 
-RunTime *runtime_new(void);
+RunTime *runtime_new(Grace *grace);
 void runtime_free(RunTime *rt);
 
 Grace *grace_new(void);

@@ -1156,7 +1156,7 @@ int islogity(int gno)
 
 int set_set_colors(set *p, int color)
 {
-    if (p && color < number_of_colors() && color >= 0) {
+    if (p && color < number_of_colors(grace->rt->canvas) && color >= 0) {
         p->linepen.color    = color;
         p->sympen.color     = color;
         p->symfillpen.color = color;
@@ -1186,11 +1186,11 @@ void project_postprocess(Project *pr)
     }
 
     if (pr->version_id < 40005) {
-        set_page_dimensions(792, 612, FALSE);
+        set_page_dimensions(grace, 792, 612, FALSE);
     }
 
     if (pr->version_id < 50002) {
-        setbgfill(TRUE);
+        pr->bgpen.pattern = 1;
     }
 
     if (pr->version_id < 50003) {
@@ -1202,7 +1202,7 @@ void project_postprocess(Project *pr)
 #ifndef NONE_GUI
         set_pagelayout(PAGE_FIXED);
 #endif
-        get_page_viewport(&ext_x, &ext_y);
+        get_page_viewport(grace->rt->canvas, &ext_x, &ext_y);
         rescale_viewport(pr, ext_x, ext_y);
     }
     

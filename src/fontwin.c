@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -47,7 +47,8 @@
 
 #include <Xbae/Matrix.h>
 
-#include "t1fonts.h"
+#include "globals.h"
+#include "draw.h"
 #include "utils.h"
 #include "motifinc.h"
 #include "protos.h"
@@ -340,7 +341,7 @@ static void update_fonttool_cb(int value, void *data)
     bbox.ury = bbox.ury*Size/1000;
     
     XbaeMatrixRefresh(font_table);
-    sprintf(buf, "\\f{%s}", get_fontalias(FontID));
+    sprintf(buf, "\\f{%s}", get_fontalias(grace->rt->canvas, FontID));
     insert_into_string(buf);
 }
 

@@ -50,74 +50,75 @@
 #include "plotone.h"
 #include "protos.h"
 
-FILE *prstream;
-
 char print_file[GR_MAXPATHLEN] = "";
 
 /*
  * draw all active graphs
  */
-void drawgraph(void)
+void drawgraph(Grace *grace)
 {
+    Canvas *canvas = grace->rt->canvas;
     int i, ngraphs;
     VPoint vp1, vp2;
-    Pen pen;
     int saveg;
 
     saveg = get_cg();
     
-    if (initgraphics() == RETURN_FAILURE) {
+    canvas_set_docname(canvas, get_docname(grace->project));
+    canvas_set_username(canvas, get_username(grace));
+    
+    if (initgraphics(canvas) == RETURN_FAILURE) {
         errmsg("Device wasn't properly initialized");
         return;
     }
     
-    setclipping(FALSE);
+    setclipping(canvas, FALSE);
 
-    if (getbgfill() == TRUE) {
-        pen.color = getbgcolor();
-        pen.pattern = 1;
-        setpen(pen);
+    if (grace->project->bgpen.pattern) {
+        setpen(canvas, &grace->project->bgpen);
  
         vp1.x = 0.0;
         vp1.y = 0.0;
-        get_page_viewport(&vp2.x, &vp2.y);
+        get_page_viewport(canvas, &vp2.x, &vp2.y);
  
-        FillRect(vp1, vp2);
+        FillRect(canvas, &vp1, &vp2);
     }
     
-    reset_bboxes();
-    activate_bbox(BBOX_TYPE_GLOB, TRUE);
-    activate_bbox(BBOX_TYPE_TEMP, FALSE);
+    reset_bboxes(canvas);
+    activate_bbox(canvas, BBOX_TYPE_GLOB, TRUE);
+    activate_bbox(canvas, BBOX_TYPE_TEMP, FALSE);
     
     ngraphs = number_of_graphs();
     for (i = 0; i < ngraphs; i++) {
-        plotone(i);
+        plotone(canvas, i);
     }
     
     select_graph(saveg);
 
-    leavegraphics();
+    leavegraphics(canvas);
 }
 
 /*
  * If writing to a file, check to see if it exists
  */
-void do_hardcopy(void)
+void do_hardcopy(Grace *grace)
 {
+    Canvas *canvas = grace->rt->canvas;
     char tbuf[128], *s;
     char fname[GR_MAXPATHLEN];
     view v;
     double vx, vy;
     int truncated_out;
     
-    if (get_ptofile()) {
+    if (get_ptofile(grace)) {
         if (is_empty_string(print_file)) {
-            Device_entry dev = get_device_props(grace->rt->hdevice);
-            sprintf(print_file, "%s.%s", get_docbname(), dev.fext);
+            Device_entry *dev = get_device_props(canvas, grace->rt->hdevice);
+            sprintf(print_file, "%s.%s",
+                get_docbname(grace->project), dev->fext);
         }
         strcpy(fname, print_file);
     } else {
-        s = get_print_cmd();
+        s = get_print_cmd(grace);
         if (is_empty_string(s)) {
             errmsg("No print command defined, output aborted");
             return;
@@ -127,28 +128,28 @@ void do_hardcopy(void)
         strcat(fname, ".prn");
     }
     
-    prstream = grace_openw(fname);
+    canvas->prstream = grace_openw(fname);
     
-    if (prstream == NULL) {
+    if (canvas->prstream == NULL) {
         return;
     }
     
-    select_device(grace->rt->hdevice);
+    select_device(canvas, grace->rt->hdevice);
     
-    drawgraph();
+    drawgraph(grace);
     
-    grace_close(prstream);
+    grace_close(canvas->prstream);
     
-    v = get_bbox(BBOX_TYPE_GLOB);
-    get_page_viewport(&vx, &vy);
+    get_bbox(canvas, BBOX_TYPE_GLOB, &v);
+    get_page_viewport(canvas, &vx, &vy);
     if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy) {
         truncated_out = TRUE;
     } else {
         truncated_out = FALSE;
     }
     
-    if (get_ptofile() == FALSE) {
-        sprintf(tbuf, "%s %s", get_print_cmd(), fname);
+    if (get_ptofile(grace) == FALSE) {
+        sprintf(tbuf, "%s %s", get_print_cmd(grace), fname);
         if (truncated_out == FALSE ||
             yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
             system_wrap(tbuf);
@@ -162,11 +163,11 @@ void do_hardcopy(void)
         }
     }
     
-    select_device(grace->rt->tdevice);
+    select_device(canvas, grace->rt->tdevice);
 }
 
 
-void plotone(int gno)
+void plotone(Canvas *canvas, int gno)
 {
     GraphType gtype;
     
@@ -183,14 +184,14 @@ void plotone(int gno)
         return;
     }
    
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
-    set_draw_mode(TRUE);
+    set_draw_mode(canvas, TRUE);
     
     select_graph(gno);
     
     /* fill frame */
-    fillframe(gno);
+    fillframe(canvas, gno);
     
     gtype = get_graph_type(gno);
     
@@ -199,56 +200,56 @@ void plotone(int gno)
         calculate_tickgrid(gno);
     
         /* draw grid lines */
-        drawgrid(gno);
+        drawgrid(canvas, gno);
     }
     
     /* plot type specific routines */
-    switch(gtype) {
+    switch (gtype) {
     case GRAPH_POLAR:
-        draw_polar_graph(gno);
+        draw_polar_graph(canvas, gno);
         break;
     case GRAPH_SMITH:
-        draw_smith_chart(gno);
+        draw_smith_chart(canvas, gno);
         break;
     case GRAPH_PIE:
-        draw_pie_chart(gno);
+        draw_pie_chart(canvas, gno);
         break;
     default:
-        xyplot(gno);
+        xyplot(canvas, gno);
         break;
     }
 
     if (gtype != GRAPH_PIE) {
         /* plot axes and tickmarks */
-        drawaxes(gno);
+        drawaxes(canvas, gno);
     }
     
     /* plot frame */
-    drawframe(gno);
+    drawframe(canvas, gno);
 
     /* plot objects */
-    draw_objects(gno);
+    draw_objects(canvas, gno);
     
     if (gtype != GRAPH_PIE) {
         /* plot legends */
-        dolegend(gno);
+        dolegend(canvas, gno);
     }
     
     /* draw title and subtitle */
-    draw_titles(gno);
+    draw_titles(canvas, gno);
 
     /* draw regions and mark the reference points only if in interactive mode */
-    if (terminal_device() == TRUE) {
-        draw_regions(gno);
-        draw_ref_point(gno);
+    if (terminal_device(canvas) == TRUE) {
+        draw_regions(canvas, gno);
+        draw_ref_point(canvas, gno);
     }
 }
 
-void draw_smith_chart(int gno)
+void draw_smith_chart(Canvas *canvas, int gno)
 {
 }
 
-void draw_pie_chart(int gno)
+void draw_pie_chart(Canvas *canvas, int gno)
 {
     int i, setno, nsets, ndsets = 0;
     set *p;
@@ -339,17 +340,17 @@ void draw_pie_chart(int gno)
                     } else {
                         pen.pattern = p->symfillpen.pattern;
                     }
-                    setpen(pen);
-                    DrawFilledArc(vp1, vp2,
+                    setpen(canvas, &pen);
+                    DrawFilledArc(canvas, &vp1, &vp2,
                         (int) rint(180.0/M_PI*start_angle),
                         (int) rint(180.0/M_PI*stop_angle),
                         ARCFILL_PIESLICE);
                     
-                    setpen(p->sympen);
-                    setlinewidth(p->symlinew);
-                    setlinestyle(p->symlines);
-                    DrawPolyline(vps, 3, POLYLINE_OPEN);
-                    DrawArc(vp1, vp2,
+                    setpen(canvas, &p->sympen);
+                    setlinewidth(canvas, p->symlinew);
+                    setlinestyle(canvas, p->symlines);
+                    DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
+                    DrawArc(canvas, &vp1, &vp2,
                         (int) rint(180.0/M_PI*start_angle),
                         (int) rint(180.0/M_PI*stop_angle));
 
@@ -364,7 +365,7 @@ void draw_pie_chart(int gno)
 
                         strcpy(str, avalue.prestr);
 
-                        switch(avalue.type) {
+                        switch (avalue.type) {
                         case AVALUE_TYPE_X:
                             strcat(str, create_fstring(avalue.format, avalue.prec, x[i], 
                                                                  LFORMAT_TYPE_EXTENDED));
@@ -380,11 +381,12 @@ void draw_pie_chart(int gno)
 
                         strcat(str, avalue.appstr);
 
-                        setcharsize(avalue.size);
-                        setfont(avalue.font);
-                        setcolor(avalue.color);
+                        setcharsize(canvas, avalue.size);
+                        setfont(canvas, avalue.font);
+                        setcolor(canvas, avalue.color);
 
-                        WriteString(vpa, (double) avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
+                        WriteString(canvas, &vpa,
+                            (double) avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
                     }
                 }
                 break;
@@ -396,7 +398,7 @@ void draw_pie_chart(int gno)
     }
 }
 
-void draw_polar_graph(int gno)
+void draw_polar_graph(Canvas *canvas, int gno)
 {
     int setno, nsets;
     set *p;
@@ -410,9 +412,9 @@ void draw_polar_graph(int gno)
             case SET_XY:
             case SET_XYSIZE:
             case SET_XYCOLOR:
-                drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                 break;
             default:
                 errmsg("Unsupported in polar graph set type");
@@ -422,7 +424,7 @@ void draw_polar_graph(int gno)
     }
 }
 
-void xyplot(int gno)
+void xyplot(Canvas *canvas, int gno)
 {
     int j, setno, nsets;
     set *p;
@@ -447,14 +449,14 @@ void xyplot(int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BAR:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetbars(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -462,29 +464,29 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawseterrbars(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawseterrbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYHILO:
-                    drawsethilo(p);
+                    drawsethilo(canvas, p);
                     break;
                 case SET_XYZ:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetvmap(gno, p);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetvmap(canvas, gno, p);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BOXPLOT:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetboxplot(p);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetboxplot(canvas, p);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -525,35 +527,35 @@ void xyplot(int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 case SET_BAR:
-                    drawsetline(gno, setno, p, refn, refx, refy, offset);
-                    drawsetbars(gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
+                    drawsetbars(canvas, gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 case SET_BARDY:
                 case SET_BARDYDY:
-                    drawsetline(gno, setno, p, refn, refx, refy, offset);
-                    drawsetbars(gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
+                    drawsetbars(canvas, gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 case SET_XYDY:
                 case SET_XYDYDY:
-                    drawsetline(gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
-                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                     }
                     break;
                 default:
@@ -584,22 +586,22 @@ void xyplot(int gno)
                     case SET_XY:
                     case SET_XYSIZE:
                     case SET_XYCOLOR:
-                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                         break;
                     case SET_BAR:
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                         break;
                     case SET_BARDY:
                     case SET_BARDYDY:
-                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                         break;
                     case SET_XYDY:
                     case SET_XYDYDY:
-                        drawseterrbars(gno, setno, p, refn, refx, refy, offset);
-                        drawsetsyms(gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(gno, setno, p, refn, refx, refy, offset);
+                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
                         break;
                     }
                     
@@ -622,9 +624,9 @@ void xyplot(int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -632,26 +634,26 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawseterrbars(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawseterrbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYZ:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYR:
-                    drawcirclexy(p);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawcirclexy(canvas, p);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetvmap(gno, p);
-                    drawsetsyms(gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetvmap(canvas, gno, p);
+                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -664,26 +666,26 @@ void xyplot(int gno)
 
 }
 
-void draw_regions(int gno)
+void draw_regions(Canvas *canvas, int gno)
 {
     int i;
 
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
     /* draw any defined regions for this graph */
     for (i = 0; i < MAXREGION; i++) {
         region r = grace->project->rg[i];
         if (r.active && r.linkto == gno) {
-            setcolor(r.color);
-            setpattern(1);
-            setlinewidth(r.linew);
-            setlinestyle(r.lines);
-            draw_region(&r);
+            setcolor(canvas, r.color);
+            setpattern(canvas, 1);
+            setlinewidth(canvas, r.linew);
+            setlinestyle(canvas, r.lines);
+            draw_region(canvas, &r);
         }
     }
 }
 
-void draw_ref_point(int gno)
+void draw_ref_point(Canvas *canvas, int gno)
 {
     GLocator locator;
     WPoint wp;
@@ -694,18 +696,18 @@ void draw_ref_point(int gno)
         wp.x = locator.dsx;
         wp.y = locator.dsy;
         vp = Wpoint2Vpoint(wp);
-        setcolor(1);
-        setpattern(1);
-        setlinewidth(1.0);
-        setlinestyle(1);
-        symplus(vp, 0.01);
-        DrawCircle (vp, 0.01);
+        setcolor(canvas, 1);
+        setpattern(canvas, 1);
+        setlinewidth(canvas, 1.0);
+        setlinestyle(canvas, 1);
+        symplus(canvas, &vp, 0.01);
+        DrawCircle(canvas, &vp, 0.01);
     }
 }
 
 
 /* draw title and subtitle */
-void draw_titles(int gno)
+void draw_titles(Canvas *canvas, int gno)
 {
     view v;
     labels lab;
@@ -718,25 +720,25 @@ void draw_titles(int gno)
     vp1.y = (v.yv2 < v.yv1)? v.yv1 : v.yv2;
     vp2 = vp1;
     if (lab.title.s && lab.title.s[0]) {
-        setcolor(lab.title.color);
-        setcharsize(lab.title.charsize);
-        setfont(lab.title.font);
+        setcolor(canvas, lab.title.color);
+        setcharsize(canvas, lab.title.charsize);
+        setfont(canvas, lab.title.font);
         vp1.y += 0.06;
-        WriteString(vp1, 0.0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
+        WriteString(canvas, &vp1, 0.0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
     }
     if (lab.stitle.s && lab.stitle.s[0]) {
-        setcolor(lab.stitle.color);
-        setcharsize(lab.stitle.charsize);
-        setfont(lab.stitle.font);
+        setcolor(canvas, lab.stitle.color);
+        setcharsize(canvas, lab.stitle.charsize);
+        setfont(canvas, lab.stitle.font);
         vp2.y += 0.02;
-        WriteString(vp2, 0.0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
+        WriteString(canvas, &vp2, 0.0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
     }
 }
 
 /*
  * draw the graph frame
  */
-void drawframe(int gno)
+void drawframe(Canvas *canvas, int gno)
 {
     view v;
     framep f;
@@ -745,9 +747,9 @@ void drawframe(int gno)
     get_graph_viewport(gno, &v);
     get_graph_framep(gno, &f);
 
-    setpen(f.pen);
-    setlinewidth(f.linew);
-    setlinestyle(f.lines);
+    setpen(canvas, &f.pen);
+    setlinewidth(canvas, f.linew);
+    setlinestyle(canvas, f.lines);
 
     switch (f.type) {
     case 0:
@@ -755,7 +757,7 @@ void drawframe(int gno)
         vps[0].y = v.yv1;
         vps[1].x = v.xv2;
         vps[1].y = v.yv2;
-        DrawRect(vps[0], vps[1]);
+        DrawRect(canvas, &vps[0], &vps[1]);
         break;
     case 1:                     /* half open */
         vps[0].x = v.xv1;
@@ -764,7 +766,7 @@ void drawframe(int gno)
         vps[1].y = v.yv1;
         vps[2].x = v.xv2;
         vps[2].y = v.yv1;
-        DrawPolyline(vps, 3, POLYLINE_OPEN);
+        DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
         break;
     case 2:                     /* break top */
         vps[0].x = v.xv1;
@@ -775,7 +777,7 @@ void drawframe(int gno)
         vps[2].y = v.yv1;
         vps[3].x = v.xv2;
         vps[3].y = v.yv2;
-        DrawPolyline(vps, 4, POLYLINE_OPEN);
+        DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 3:                     /* break bottom */
         vps[0].x = v.xv1;
@@ -786,7 +788,7 @@ void drawframe(int gno)
         vps[2].y = v.yv2;
         vps[3].x = v.xv2;
         vps[3].y = v.yv1;
-        DrawPolyline(vps, 4, POLYLINE_OPEN);
+        DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 4:                     /* break left */
         vps[0].x = v.xv1;
@@ -797,7 +799,7 @@ void drawframe(int gno)
         vps[2].y = v.yv2;
         vps[3].x = v.xv1;
         vps[3].y = v.yv2;
-        DrawPolyline(vps, 4, POLYLINE_OPEN);
+        DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 5:                     /* break right */
         vps[0].x = v.xv2;
@@ -808,12 +810,12 @@ void drawframe(int gno)
         vps[2].y = v.yv2;
         vps[3].x = v.xv2;
         vps[3].y = v.yv2;
-        DrawPolyline(vps, 4, POLYLINE_OPEN);
+        DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     }
 }
 
-void fillframe(int gno)
+void fillframe(Canvas *canvas, int gno)
 {
     view v;
     framep f;
@@ -824,19 +826,19 @@ void fillframe(int gno)
     
     /* fill coordinate frame with background color */
     if (f.fillpen.pattern != 0) {
-        setpen(f.fillpen);
+        setpen(canvas, &f.fillpen);
         vp1.x = v.xv1;
         vp1.y = v.yv1;
         vp2.x = v.xv2;
         vp2.y = v.yv2;
-        FillRect(vp1, vp2);
+        FillRect(canvas, &vp1, &vp2);
     }
 }    
 
 /*
  * draw a set filling polygon
  */
-void drawsetfill(int gno, int setno, set *p,
+void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int i, len, setlen, polylen;
@@ -868,7 +870,7 @@ void drawsetfill(int gno, int setno, set *p,
         stacked_chart = FALSE;
     }
     
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
     get_graph_world(gno, &w);
 
@@ -963,9 +965,9 @@ void drawsetfill(int gno, int setno, set *p,
         return;
     }
     
-    setpen(p->setfillpen);
-    setfillrule(p->fillrule);
-    DrawPolygon(vps, polylen);
+    setpen(canvas, &p->setfillpen);
+    setfillrule(canvas, p->fillrule);
+    DrawPolygon(canvas, vps, polylen);
     
     xfree(vps);
 }
@@ -973,7 +975,7 @@ void drawsetfill(int gno, int setno, set *p,
 /*
  * draw set's connecting line
  */
-void drawsetline(int gno, int setno, set *p,
+void drawsetline(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int setlen, len;
@@ -1008,16 +1010,16 @@ void drawsetline(int gno, int setno, set *p,
         ybase = setybase(gno, setno);
     }
     
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
 
-    drawsetfill(gno, setno, p, refn, refx, refy, offset);
+    drawsetfill(canvas, gno, setno, p, refn, refx, refy, offset);
 
-    setpen(p->linepen);
-    setlinewidth(p->linew);
-    setlinestyle(ly);
+    setpen(canvas, &p->linepen);
+    setlinewidth(canvas, p->linew);
+    setlinestyle(canvas, ly);
 
     if (stacked_chart == TRUE) {
-        lw = getlinewidth();
+        lw = getlinewidth(canvas);
     } else {
         lw = 0.0;
     }
@@ -1045,7 +1047,7 @@ void drawsetline(int gno, int setno, set *p,
                 
                 vpstmp[i].y -= lw/2.0;
             }
-            DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
+            DrawPolyline(canvas, vpstmp, setlen, POLYLINE_OPEN);
             xfree(vpstmp);
             break;
         case LINE_TYPE_SEGMENT2:
@@ -1068,7 +1070,7 @@ void drawsetline(int gno, int setno, set *p,
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
                 
-                DrawLine(vps[0], vps[1]);
+                DrawLine(canvas, &vps[0], &vps[1]);
             }
             break;
         case LINE_TYPE_SEGMENT3:
@@ -1094,7 +1096,7 @@ void drawsetline(int gno, int setno, set *p,
                 }
                 vps[2] = Wpoint2Vpoint(wp);
     	        vps[2].x += offset;
-                DrawPolyline(vps, 3, POLYLINE_OPEN);
+                DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
                 
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
@@ -1119,7 +1121,7 @@ void drawsetline(int gno, int setno, set *p,
                 vps[0].y -= lw/2.0;
                 vps[1].y -= lw/2.0;
                 
-                DrawLine(vps[0], vps[1]);
+                DrawLine(canvas, &vps[0], &vps[1]);
             }
             break;
         case LINE_TYPE_LEFTSTAIR:
@@ -1148,7 +1150,7 @@ void drawsetline(int gno, int setno, set *p,
                     vpstmp[i].y = vpstmp[i - 1].y;
                 }
             }
-            DrawPolyline(vpstmp, len, POLYLINE_OPEN);
+            DrawPolyline(canvas, vpstmp, len, POLYLINE_OPEN);
             xfree(vpstmp);
             break;
         default:
@@ -1177,7 +1179,7 @@ void drawsetline(int gno, int setno, set *p,
             
             vps[1].y -= lw/2.0;
  
-            DrawLine(vps[0], vps[1]);
+            DrawLine(canvas, &vps[0], &vps[1]);
         }
     }
     
@@ -1192,12 +1194,12 @@ void drawsetline(int gno, int setno, set *p,
         vps[1] = Wpoint2Vpoint(wp);
     	vps[1].x += offset;
  
-        DrawLine(vps[0], vps[1]);
+        DrawLine(canvas, &vps[0], &vps[1]);
     }
 }    
 
 /* draw the symbols */
-void drawsetsyms(int gno, int setno, set *p,
+void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int setlen;
@@ -1242,16 +1244,16 @@ void drawsetsyms(int gno, int setno, set *p,
     
     skip++;
     
-    setclipping(FALSE);
+    setclipping(canvas, FALSE);
     
     if ((p->sympen.pattern != 0 && p->symlines != 0) ||
                         (p->symfillpen.pattern != 0)) {
               
         Pen fillpen;
         
-        setlinewidth(p->symlinew);
-        setlinestyle(p->symlines);
-        setfont(p->charfont);
+        setlinewidth(canvas, p->symlinew);
+        setlinestyle(canvas, p->symlines);
+        setfont(canvas, p->charfont);
         for (i = 0; i < setlen; i += skip) {
             wp.x = x[i];
             wp.y = y[i];
@@ -1273,14 +1275,15 @@ void drawsetsyms(int gno, int setno, set *p,
             }
             if (c) {
                 fillpen.color = (int) rint(c[i]);
-                if (get_colortype(fillpen.color) != COLOR_MAIN) {
+                if (get_colortype(canvas, fillpen.color) != COLOR_MAIN) {
                     fillpen.color = 1;
                 }
             } else {
                 fillpen.color = p->symfillpen.color;
             }
             fillpen.pattern = p->symfillpen.pattern;
-            if (drawxysym(vp, symsize, sy, p->sympen, fillpen, p->symchar)
+            if (drawxysym(canvas,
+                &vp, symsize, sy, &p->sympen, &fillpen, p->symchar)
                 != RETURN_SUCCESS) {
                 return;
             }
@@ -1290,7 +1293,7 @@ void drawsetsyms(int gno, int setno, set *p,
 
 
 /* draw the annotative values */
-void drawsetavalues(int gno, int setno, set *p,
+void drawsetavalues(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int i;
@@ -1331,8 +1334,8 @@ void drawsetavalues(int gno, int setno, set *p,
         stacked_chart = FALSE;
     }
     
-    setcharsize(avalue.size);
-    setfont(avalue.font);
+    setcharsize(canvas, avalue.size);
+    setfont(canvas, avalue.font);
 
     for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
@@ -1389,12 +1392,13 @@ void drawsetavalues(int gno, int setno, set *p,
         
         strcat(str, avalue.appstr);
         
-        setcolor(avalue.color);
-        WriteString(vp, (double) avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
+        setcolor(canvas, avalue.color);
+        WriteString(canvas,
+            &vp, (double) avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
     } 
 }
 
-void drawseterrbars(int gno, int setno, set *p,
+void drawseterrbars(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int i, n;
@@ -1478,7 +1482,7 @@ void drawseterrbars(int gno, int setno, set *p,
         break;
     }
     
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
     for (i = 0; i < n; i++) {
         wp1.x = x[i];
@@ -1498,28 +1502,28 @@ void drawseterrbars(int gno, int setno, set *p,
             wp2.x += fabs(dx_plus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
-            drawerrorbar(vp1, vp2, &p->errbar);
+            drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
         if (dx_minus != NULL) {
             wp2 = wp1;
             wp2.x -= fabs(dx_minus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
-            drawerrorbar(vp1, vp2, &p->errbar);
+            drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
         if (dy_plus != NULL) {
             wp2 = wp1;
             wp2.y += fabs(dy_plus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
-            drawerrorbar(vp1, vp2, &p->errbar);
+            drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
         if (dy_minus != NULL) {
             wp2 = wp1;
             wp2.y -= fabs(dy_minus[i]);
             vp2 = Wpoint2Vpoint(wp2);
             vp2.x += offset;
-            drawerrorbar(vp1, vp2, &p->errbar);
+            drawerrorbar(canvas, &vp1, &vp2, &p->errbar);
         }
     }
 }
@@ -1527,7 +1531,7 @@ void drawseterrbars(int gno, int setno, set *p,
 /*
  * draw hi/lo-open/close
  */
-void drawsethilo(set *p)
+void drawsethilo(Canvas *canvas, set *p)
 {
     int i;
     double *x = p->data->ex[0], *y1 = p->data->ex[1];
@@ -1537,26 +1541,26 @@ void drawsethilo(set *p)
     VPoint vp1, vp2;
 
     if (p->symlines != 0) {
-        setpen(p->sympen);
-        setlinewidth(p->symlinew);
-        setlinestyle(p->symlines);
+        setpen(canvas, &p->sympen);
+        setlinewidth(canvas, p->symlinew);
+        setlinestyle(canvas, p->symlines);
         for (i = 0; i < p->data->len; i++) {
             wp.x = x[i];
             wp.y = y1[i];
             vp1 = Wpoint2Vpoint(wp);
             wp.y = y2[i];
             vp2 = Wpoint2Vpoint(wp);
-            DrawLine(vp1, vp2);
+            DrawLine(canvas, &vp1, &vp2);
             wp.y = y3[i];
             vp1 = Wpoint2Vpoint(wp);
             vp2 = vp1;
             vp2.x -= ilen;
-            DrawLine(vp1, vp2);
+            DrawLine(canvas, &vp1, &vp2);
             wp.y = y4[i];
             vp1 = Wpoint2Vpoint(wp);
             vp2 = vp1;
             vp2.x += ilen;
-            DrawLine(vp1, vp2);
+            DrawLine(canvas, &vp1, &vp2);
         }
     }
 }
@@ -1564,7 +1568,7 @@ void drawsethilo(set *p)
 /*
  * draw 2D bars
  */
-void drawsetbars(int gno, int setno, set *p,
+void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int i, n;
@@ -1598,17 +1602,17 @@ void drawsetbars(int gno, int setno, set *p,
         ybase = setybase(gno, setno);
     }
 
-    setlinewidth(p->symlinew);
-    setlinestyle(p->symlines);
+    setlinewidth(canvas, p->symlinew);
+    setlinestyle(canvas, p->symlines);
     if (get_graph_type(gno) == GRAPH_CHART &&
         p->symlines != 0 && p->sympen.pattern != 0) {
-        lw = getlinewidth();
+        lw = getlinewidth(canvas);
     } else {
         lw = 0.0;
     }
 
     if (p->symfillpen.pattern != 0) {
-	setpen(p->symfillpen);
+	setpen(canvas, &p->symfillpen);
         for (i = 0; i < n; i++) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1633,11 +1637,11 @@ void drawsetbars(int gno, int setno, set *p,
             vp2.x -= lw/2.0;
             vp1.y += lw/2.0;
             
-            FillRect(vp1, vp2);
+            FillRect(canvas, &vp1, &vp2);
         }
     }
     if (p->symlines != 0 && p->sympen.pattern != 0) {
-        setpen(p->sympen);
+        setpen(canvas, &p->sympen);
         for (i = 0; i < n; i++) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1662,28 +1666,28 @@ void drawsetbars(int gno, int setno, set *p,
             vp2.x -= lw/2.0;
             vp1.y += lw/2.0;
 
-    	    DrawRect(vp1, vp2);
+    	    DrawRect(canvas, &vp1, &vp2);
         }
     }
 }
 
-void drawcirclexy(set *p)
+void drawcirclexy(Canvas *canvas, set *p)
 {
     int i, setlen;
     double *x, *y, *r;
     WPoint wp;
     VPoint vp1, vp2;
 
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
     setlen = p->data->len;
     x = p->data->ex[0];
     y = p->data->ex[1];
     r = p->data->ex[2];
 
-    setfillrule(p->fillrule);
-    setlinewidth(p->linew);
-    setlinestyle(p->lines);
+    setfillrule(canvas, p->fillrule);
+    setlinewidth(canvas, p->linew);
+    setlinestyle(canvas, p->lines);
 
     for (i = 0; i < setlen; i++) {
         wp.x = x[i];
@@ -1699,16 +1703,16 @@ void drawcirclexy(set *p)
         wp.y = y[i] + r[i];
         vp2 = Wpoint2Vpoint(wp);
         if (p->filltype != SETFILL_NONE) {
-            setpen(p->setfillpen);
-            DrawFilledEllipse(vp1, vp2);
+            setpen(canvas, &p->setfillpen);
+            DrawFilledEllipse(canvas, &vp1, &vp2);
         }
-        setpen(p->linepen);
-        DrawEllipse(vp1, vp2);
+        setpen(canvas, &p->linepen);
+        DrawEllipse(canvas, &vp1, &vp2);
     }
 }
 
 /* Arrows for vector map plots */
-void drawsetvmap(int gno, set *p)
+void drawsetvmap(Canvas *canvas, int gno, set *p)
 {
     int i, setlen;
     double znorm = get_graph_znorm(gno);
@@ -1719,7 +1723,7 @@ void drawsetvmap(int gno, set *p)
     
     Errbar eb = p->errbar;
     
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
     if (znorm == 0.0) {
         return;
@@ -1733,7 +1737,7 @@ void drawsetvmap(int gno, set *p)
 
     arrow.length = 2*eb.barsize;
 
-    setpen(p->errbar.pen);
+    setpen(canvas, &p->errbar.pen);
 
     for (i = 0; i < setlen; i++) {
         wp.x = x[i];
@@ -1745,17 +1749,17 @@ void drawsetvmap(int gno, set *p)
         vp2.x = vp1.x + vx[i]/znorm;
         vp2.y = vp1.y + vy[i]/znorm;
 
-        setlinewidth(eb.riser_linew);
-        setlinestyle(eb.riser_lines);
-        DrawLine(vp1, vp2);
+        setlinewidth(canvas, eb.riser_linew);
+        setlinestyle(canvas, eb.riser_lines);
+        DrawLine(canvas, &vp1, &vp2);
 
-        setlinewidth(eb.linew);
-        setlinestyle(eb.lines);
-        draw_arrowhead(vp1, vp2, &arrow, &p->errbar.pen, &p->errbar.pen);
+        setlinewidth(canvas, eb.linew);
+        setlinestyle(canvas, eb.lines);
+        draw_arrowhead(canvas, &vp1, &vp2, &arrow, &p->errbar.pen, &p->errbar.pen);
     }
 }
 
-void drawsetboxplot(set *p)
+void drawsetboxplot(Canvas *canvas, set *p)
 {
     int i;
     double *x, *md, *lb, *ub, *lw, *uw;
@@ -1770,7 +1774,7 @@ void drawsetboxplot(set *p)
     lw = p->data->ex[4];
     uw = p->data->ex[5];
 
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
 
     for (i = 0; i < p->data->len; i++) {
         wp.x =  x[i];
@@ -1785,34 +1789,34 @@ void drawsetboxplot(set *p)
             VPoint vp3;
             wp.y = lw[i];
             vp3 = Wpoint2Vpoint(wp);
-            drawerrorbar(vp1, vp3, &p->errbar);
+            drawerrorbar(canvas, &vp1, &vp3, &p->errbar);
             wp.y = uw[i];
             vp3 = Wpoint2Vpoint(wp);
-            drawerrorbar(vp2, vp3, &p->errbar);
+            drawerrorbar(canvas, &vp2, &vp3, &p->errbar);
         }
 
         /* box */
         vp1.x -= size;
         vp2.x += size;
-        setpen(p->symfillpen);
-        FillRect(vp1, vp2);
+        setpen(canvas, &p->symfillpen);
+        FillRect(canvas, &vp1, &vp2);
 
-        setpen(p->sympen);
-        setlinewidth(p->symlinew);
-        setlinestyle(p->symlines);
-        DrawRect(vp1, vp2);
+        setpen(canvas, &p->sympen);
+        setlinewidth(canvas, p->symlinew);
+        setlinestyle(canvas, p->symlines);
+        DrawRect(canvas, &vp1, &vp2);
 
         /* median line */
         wp.y = md[i];
         vp2 = vp1 = Wpoint2Vpoint(wp);
         vp1.x -= size;
         vp2.x += size;
-        DrawLine(vp1, vp2);
+        DrawLine(canvas, &vp1, &vp2);
     }
 }
 
-int drawxysym(VPoint vp, double size, int symtype,
-    Pen sympen, Pen symfillpen, char s)
+int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
+    const Pen *sympen, const Pen *symfillpen, char s)
 {
     double symsize;
     VPoint vps[4];
@@ -1824,112 +1828,112 @@ int drawxysym(VPoint vp, double size, int symtype,
     case SYM_NONE:
         break;
     case SYM_CIRCLE:
-        setpen(symfillpen);
-        DrawFilledCircle (vp, symsize);
-        setpen(sympen);
-        DrawCircle (vp, symsize);
+        setpen(canvas, symfillpen);
+        DrawFilledCircle(canvas, vp, symsize);
+        setpen(canvas, sympen);
+        DrawCircle(canvas, vp, symsize);
         break;
     case SYM_SQUARE:
         symsize *= 0.85;
-        vps[0].x = vp.x - symsize;
-        vps[0].y = vp.y - symsize;
+        vps[0].x = vp->x - symsize;
+        vps[0].y = vp->y - symsize;
         vps[1].x = vps[0].x;
-        vps[1].y = vp.y + symsize;
-        vps[2].x = vp.x + symsize;
+        vps[1].y = vp->y + symsize;
+        vps[2].x = vp->x + symsize;
         vps[2].y = vps[1].y;
         vps[3].x = vps[2].x;
         vps[3].y = vps[0].y;
         
-        setpen(symfillpen);
-        DrawPolygon (vps, 4);
-        setpen(sympen);
-        DrawPolyline (vps, 4, POLYLINE_CLOSED);
+        setpen(canvas, symfillpen);
+        DrawPolygon(canvas, vps, 4);
+        setpen(canvas, sympen);
+        DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
         break;
     case SYM_DIAMOND:
-        vps[0].x = vp.x;
-        vps[0].y = vp.y + symsize;
-        vps[1].x = vp.x - symsize;
-        vps[1].y = vp.y;
+        vps[0].x = vp->x;
+        vps[0].y = vp->y + symsize;
+        vps[1].x = vp->x - symsize;
+        vps[1].y = vp->y;
         vps[2].x = vps[0].x;
-        vps[2].y = vp.y - symsize;
-        vps[3].x = vp.x + symsize;
+        vps[2].y = vp->y - symsize;
+        vps[3].x = vp->x + symsize;
         vps[3].y = vps[1].y;
         
-        setpen(symfillpen);
-        DrawPolygon (vps, 4);
-        setpen(sympen);
-        DrawPolyline (vps, 4, POLYLINE_CLOSED);
+        setpen(canvas, symfillpen);
+        DrawPolygon(canvas, vps, 4);
+        setpen(canvas, sympen);
+        DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG1:
-        vps[0].x = vp.x;
-        vps[0].y = vp.y + 2*M_SQRT1_3*symsize;
-        vps[1].x = vp.x - symsize;
-        vps[1].y = vp.y - M_SQRT1_3*symsize;
-        vps[2].x = vp.x + symsize;
+        vps[0].x = vp->x;
+        vps[0].y = vp->y + 2*M_SQRT1_3*symsize;
+        vps[1].x = vp->x - symsize;
+        vps[1].y = vp->y - M_SQRT1_3*symsize;
+        vps[2].x = vp->x + symsize;
         vps[2].y = vps[1].y;
         
-        setpen(symfillpen);
-        DrawPolygon (vps, 3);
-        setpen(sympen);
-        DrawPolyline (vps, 3, POLYLINE_CLOSED);
+        setpen(canvas, symfillpen);
+        DrawPolygon(canvas, vps, 3);
+        setpen(canvas, sympen);
+        DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG2:
-        vps[0].x = vp.x - 2*M_SQRT1_3*symsize;
-        vps[0].y = vp.y;
-        vps[1].x = vp.x + M_SQRT1_3*symsize;
-        vps[1].y = vp.y - symsize;
+        vps[0].x = vp->x - 2*M_SQRT1_3*symsize;
+        vps[0].y = vp->y;
+        vps[1].x = vp->x + M_SQRT1_3*symsize;
+        vps[1].y = vp->y - symsize;
         vps[2].x = vps[1].x;
-        vps[2].y = vp.y + symsize;
+        vps[2].y = vp->y + symsize;
         
-        setpen(symfillpen);
-        DrawPolygon (vps, 3);
-        setpen(sympen);
-        DrawPolyline (vps, 3, POLYLINE_CLOSED);
+        setpen(canvas, symfillpen);
+        DrawPolygon(canvas, vps, 3);
+        setpen(canvas, sympen);
+        DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG3:
-        vps[0].x = vp.x - symsize;
-        vps[0].y = vp.y + M_SQRT1_3*symsize;
-        vps[1].x = vp.x;
-        vps[1].y = vp.y - 2*M_SQRT1_3*symsize;
-        vps[2].x = vp.x + symsize;
+        vps[0].x = vp->x - symsize;
+        vps[0].y = vp->y + M_SQRT1_3*symsize;
+        vps[1].x = vp->x;
+        vps[1].y = vp->y - 2*M_SQRT1_3*symsize;
+        vps[2].x = vp->x + symsize;
         vps[2].y = vps[0].y;
         
-        setpen(symfillpen);
-        DrawPolygon (vps, 3);
-        setpen(sympen);
-        DrawPolyline (vps, 3, POLYLINE_CLOSED);
+        setpen(canvas, symfillpen);
+        DrawPolygon(canvas, vps, 3);
+        setpen(canvas, sympen);
+        DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG4:
-        vps[0].x = vp.x - M_SQRT1_3*symsize;
-        vps[0].y = vp.y + symsize;
+        vps[0].x = vp->x - M_SQRT1_3*symsize;
+        vps[0].y = vp->y + symsize;
         vps[1].x = vps[0].x;
-        vps[1].y = vp.y - symsize;
-        vps[2].x = vp.x + 2*M_SQRT1_3*symsize;
-        vps[2].y = vp.y;
+        vps[1].y = vp->y - symsize;
+        vps[2].x = vp->x + 2*M_SQRT1_3*symsize;
+        vps[2].y = vp->y;
         
-        setpen(symfillpen);
-        DrawPolygon (vps, 3);
-        setpen(sympen);
-        DrawPolyline (vps, 3, POLYLINE_CLOSED);
+        setpen(canvas, symfillpen);
+        DrawPolygon(canvas, vps, 3);
+        setpen(canvas, sympen);
+        DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_PLUS:
-        setpen(sympen);
-        symplus(vp, symsize);
+        setpen(canvas, sympen);
+        symplus(canvas, vp, symsize);
         break;
     case SYM_X:
-        setpen(sympen);
-        symx(vp, symsize);
+        setpen(canvas, sympen);
+        symx(canvas, vp, symsize);
         break;
     case SYM_SPLAT:
-        setpen(sympen);
-        symsplat(vp, symsize);
+        setpen(canvas, sympen);
+        symsplat(canvas, vp, symsize);
         break;
     case SYM_CHAR:
-        setcolor(sympen.color);
+        setcolor(canvas, sympen->color);
         buf[0] = s;
         buf[1] = '\0';
-        setcharsize(size);
-        WriteString(vp, 0.0, JUST_CENTER|JUST_MIDDLE, buf);
+        setcharsize(canvas, size);
+        WriteString(canvas, vp, 0.0, JUST_CENTER|JUST_MIDDLE, buf);
         break;
     default:
         errmsg("Invalid symbol type");
@@ -1938,26 +1942,28 @@ int drawxysym(VPoint vp, double size, int symtype,
     return RETURN_SUCCESS;
 }
 
-static void drawlegbarsym(VPoint vp, double size, Pen sympen, Pen symfillpen)
+static void drawlegbarsym(Canvas *canvas,
+    const VPoint *vp, double size, const Pen *sympen, const Pen *symfillpen)
 {
     double width, height;
     VPoint vps[4];
 
     width  = 0.02*size;
-    height = 0.02*getcharsize();
+    height = 0.02*getcharsize(canvas);
     
-    vps[0].x = vps[1].x = vp.x - width/2;
-    vps[2].x = vps[3].x = vp.x + width/2;
-    vps[0].y = vps[3].y = vp.y - height/2;
-    vps[1].y = vps[2].y = vp.y + height/2;
+    vps[0].x = vps[1].x = vp->x - width/2;
+    vps[2].x = vps[3].x = vp->x + width/2;
+    vps[0].y = vps[3].y = vp->y - height/2;
+    vps[1].y = vps[2].y = vp->y + height/2;
     
-    setpen(symfillpen);
-    DrawPolygon (vps, 4);
-    setpen(sympen);
-    DrawPolyline (vps, 4, POLYLINE_CLOSED);
+    setpen(canvas, symfillpen);
+    DrawPolygon(canvas, vps, 4);
+    setpen(canvas, sympen);
+    DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
 }
 
-void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
+void drawerrorbar(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, Errbar *eb)
 {
     double ilen;
     VPoint vp_plus, vp_minus;
@@ -1965,8 +1971,8 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
     double vlength;
     static Arrow arrow = {0, 1.0, 1.0, 0.0};
 
-    lvv.x = vp2.x - vp1.x;
-    lvv.y = vp2.y - vp1.y;
+    lvv.x = vp2->x - vp1->x;
+    lvv.y = vp2->y - vp1->y;
 
     vlength = hypot(lvv.x, lvv.y);
     if (vlength == 0.0) {
@@ -1976,57 +1982,58 @@ void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
     lvv.x /= vlength;
     lvv.y /= vlength;
     
-    setpen(eb->pen);
+    setpen(canvas, &eb->pen);
     
-    if (eb->arrow_clip && is_validVPoint(vp2) == FALSE) {
-        vp2.x = vp1.x + eb->cliplen*lvv.x;
-        vp2.y = vp1.y + eb->cliplen*lvv.y;
-        setlinewidth(eb->riser_linew);
-        setlinestyle(eb->riser_lines);
-        DrawLine(vp1, vp2);
+    if (eb->arrow_clip && is_validVPoint(canvas, vp2) == FALSE) {
+        vp_plus.x = vp1->x + eb->cliplen*lvv.x;
+        vp_plus.y = vp1->y + eb->cliplen*lvv.y;
+        setlinewidth(canvas, eb->riser_linew);
+        setlinestyle(canvas, eb->riser_lines);
+        DrawLine(canvas, vp1, &vp_plus);
         arrow.length = 2*eb->barsize;
-        setlinewidth(eb->linew);
-        setlinestyle(eb->lines);
-        draw_arrowhead(vp1, vp2, &arrow, &eb->pen, &eb->pen);
+        setlinewidth(canvas, eb->linew);
+        setlinestyle(canvas, eb->lines);
+        draw_arrowhead(canvas, vp1, &vp_plus, &arrow, &eb->pen, &eb->pen);
     } else {
-        setlinewidth(eb->riser_linew);
-        setlinestyle(eb->riser_lines);
-        DrawLine(vp1, vp2);
-        setlinewidth(eb->linew);
-        setlinestyle(eb->lines);
+        setlinewidth(canvas, eb->riser_linew);
+        setlinestyle(canvas, eb->riser_lines);
+        DrawLine(canvas, vp1, vp2);
+        setlinewidth(canvas, eb->linew);
+        setlinestyle(canvas, eb->lines);
         ilen = 0.01*eb->barsize;
-        vp_minus.x = vp2.x - ilen*lvv.y;
-        vp_minus.y = vp2.y + ilen*lvv.x;
-        vp_plus.x  = vp2.x + ilen*lvv.y;
-        vp_plus.y  = vp2.y - ilen*lvv.x;
-        DrawLine(vp_minus, vp_plus);
+        vp_minus.x = vp2->x - ilen*lvv.y;
+        vp_minus.y = vp2->y + ilen*lvv.x;
+        vp_plus.x  = vp2->x + ilen*lvv.y;
+        vp_plus.y  = vp2->y - ilen*lvv.x;
+        DrawLine(canvas, &vp_minus, &vp_plus);
     }
 }
 
 /*
  * draw arrow head
  */
-void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp,
+void draw_arrowhead(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, const Arrow *arrowp,
     const Pen *pen, const Pen *fill)
 {
     double L, l, d, vlength;
     VVector vnorm;
     VPoint vpc, vpl, vpr, vps[4];
     
-    vlength = hypot((vp2.x - vp1.x), (vp2.y - vp1.y));
+    vlength = hypot((vp2->x - vp1->x), (vp2->y - vp1->y));
     if (vlength == 0.0) {
         return;
     }
 
-    vnorm.x = (vp2.x - vp1.x)/vlength;
-    vnorm.y = (vp2.y - vp1.y)/vlength;
+    vnorm.x = (vp2->x - vp1->x)/vlength;
+    vnorm.y = (vp2->y - vp1->y)/vlength;
     
     L = 0.01*arrowp->length;
     d = L*arrowp->dL_ff;
     l = L*arrowp->lL_ff;
 
-    vpc.x = vp2.x - L*vnorm.x;
-    vpc.y = vp2.y - L*vnorm.y;
+    vpc.x = vp2->x - L*vnorm.x;
+    vpc.y = vp2->y - L*vnorm.y;
     vpl.x = vpc.x + 0.5*d*vnorm.y;
     vpl.y = vpc.y - 0.5*d*vnorm.x;
     vpr.x = vpc.x - 0.5*d*vnorm.y;
@@ -2035,22 +2042,22 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp,
     vpc.y += l*vnorm.y;
     
     vps[0] = vpl;
-    vps[1] = vp2;
+    vps[1] = *vp2;
     vps[2] = vpr;
     vps[3] = vpc;
     
-    setlinestyle(1);
+    setlinestyle(canvas, 1);
     
     switch (arrowp->type) {
     case ARROW_TYPE_LINE:
-        setpen(*pen);
-        DrawPolyline(vps, 3, POLYLINE_OPEN);
+        setpen(canvas, pen);
+        DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
         break;
     case ARROW_TYPE_FILLED:
-        setpen(*fill);
-        DrawPolygon(vps, 4);
-        setpen(*pen);
-        DrawPolyline(vps, 4, POLYLINE_CLOSED);
+        setpen(canvas, fill);
+        DrawPolygon(canvas, vps, 4);
+        setpen(canvas, pen);
+        DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
         break;
     default:
         errmsg("Internal error in draw_arrowhead()");
@@ -2060,7 +2067,7 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp,
     return;
 }
 
-void draw_region(region *this)
+void draw_region(Canvas *canvas, region *this)
 {
     int i;
     double vshift = 0.05;
@@ -2071,7 +2078,8 @@ void draw_region(region *this)
     
     WPoint wptmp, wp1, wp2, wp3, wp4;
     VPoint vps[4], *vpstmp;
-    Pen pen = getpen();
+    Pen pen;
+    getpen(canvas, &pen);
 
     set_default_arrow(&arrow);
     
@@ -2089,7 +2097,7 @@ void draw_region(region *this)
                     wptmp.y = this->y[i];
                     vpstmp[i] = Wpoint2Vpoint(wptmp);
                 }
-                DrawPolyline(vpstmp, this->n, POLYLINE_CLOSED);
+                DrawPolyline(canvas, vpstmp, this->n, POLYLINE_CLOSED);
 		xfree(vpstmp);
             }
         }
@@ -2150,24 +2158,24 @@ void draw_region(region *this)
         vps[0].y = vps[1].y + yshift;
         vps[3].x = vps[2].x + xshift;
         vps[3].y = vps[2].y + yshift;
-        DrawPolyline(vps, 4, POLYLINE_OPEN);
-        draw_arrowhead(vps[1], vps[0], &arrow, &pen, &pen);
-        draw_arrowhead(vps[2], vps[3], &arrow, &pen, &pen);
+        DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
+        draw_arrowhead(canvas, &vps[1], &vps[0], &arrow, &pen, &pen);
+        draw_arrowhead(canvas, &vps[2], &vps[3], &arrow, &pen, &pen);
     } else {
         vps[0] = Wpoint2Vpoint(wp1);
         vps[1] = Wpoint2Vpoint(wp2);
-        DrawLine(vps[0], vps[1]);
+        DrawLine(canvas, &vps[0], &vps[1]);
         vps[0] = Wpoint2Vpoint(wp3);
         vps[1] = Wpoint2Vpoint(wp4);
-        DrawLine(vps[0], vps[1]);
+        DrawLine(canvas, &vps[0], &vps[1]);
         wp1.x=(wp1.x+wp2.x)/2;
         wp1.y=(wp1.y+wp2.y)/2;
         wp3.x=(wp3.x+wp4.x)/2;
         wp3.y=(wp3.y+wp4.y)/2;
         vps[0] = Wpoint2Vpoint(wp1);
         vps[1] = Wpoint2Vpoint(wp3);
-        DrawLine(vps[0], vps[1]);
-        draw_arrowhead(vps[0], vps[1], &arrow, &pen, &pen);
+        DrawLine(canvas, &vps[0], &vps[1]);
+        draw_arrowhead(canvas, &vps[0], &vps[1], &arrow, &pen, &pen);
     }
 }
 
@@ -2177,7 +2185,7 @@ void draw_region(region *this)
 /*
  * draw the legend
  */
-void dolegend(int gno)
+void dolegend(Canvas *canvas, int gno)
 {
     int setno, nsets;
     int draw_flag;
@@ -2220,7 +2228,7 @@ void dolegend(int gno)
         return;
     }
         
-    setclipping(FALSE);
+    setclipping(canvas, FALSE);
     
     if (l.loctype == COORD_WORLD) {
         wptmp.x = l.legx;
@@ -2236,13 +2244,13 @@ void dolegend(int gno)
     
     yskip = 0.01*l.vgap;
     
-    activate_bbox(BBOX_TYPE_TEMP, TRUE);
-    reset_bbox(BBOX_TYPE_TEMP);
-    update_bbox(BBOX_TYPE_TEMP, vp);
+    activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
+    reset_bbox(canvas, BBOX_TYPE_TEMP);
+    update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
     
-    set_draw_mode(FALSE);
-    putlegends(gno, vp, ldist, sdist, yskip);
-    v = get_bbox(BBOX_TYPE_TEMP);
+    set_draw_mode(canvas, FALSE);
+    putlegends(canvas, gno, &vp, ldist, sdist, yskip);
+    get_bbox(canvas, BBOX_TYPE_TEMP, &v);
     
     vp2.x = vp.x + (v.xv2 - v.xv1) + 2*0.01*l.hgap;
     vp2.y = vp.y - (v.yv2 - v.yv1) - 2*0.01*l.vgap;
@@ -2256,38 +2264,39 @@ void dolegend(int gno)
     set_graph_legend(gno, &l);
     lock_dirtystate(FALSE);
     
-    set_draw_mode(TRUE);
+    set_draw_mode(canvas, TRUE);
     
-    setpen(l.boxfillpen);
-    FillRect(vp, vp2);
+    setpen(canvas, &l.boxfillpen);
+    FillRect(canvas, &vp, &vp2);
 
     if (l.boxlines != 0 && l.boxpen.pattern != 0) {
-        setpen(l.boxpen);
-        setlinewidth(l.boxlinew);
-        setlinestyle(l.boxlines);
-        DrawRect(vp, vp2);
+        setpen(canvas, &l.boxpen);
+        setlinewidth(canvas, l.boxlinew);
+        setlinestyle(canvas, l.boxlines);
+        DrawRect(canvas, &vp, &vp2);
     }
     
     /* correction */
     vp.x += (vp.x - v.xv1) + 0.01*l.hgap;
     vp.y += (vp.y - v.yv2) - 0.01*l.vgap;
    
-    reset_bbox(BBOX_TYPE_TEMP);
-    update_bbox(BBOX_TYPE_TEMP, vp);
+    reset_bbox(canvas, BBOX_TYPE_TEMP);
+    update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
 
-    putlegends(gno, vp, ldist, sdist, yskip);
+    putlegends(canvas, gno, &vp, ldist, sdist, yskip);
 }
 
-void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
+void putlegends(Canvas *canvas,
+    int gno, const VPoint *vp, double ldist, double sdist, double yskip)
 {
     int i, setno, nsets;
-    VPoint vp2, vpstr;
+    VPoint vp1, vp2, vpstr;
     set *p;
     legend l;
     
-    vp2.y = vp.y;
-    vp2.x = vp.x + ldist;
-    vpstr.y = vp.y;
+    vp2.y = vp->y;
+    vp2.x = vp->x + ldist;
+    vpstr.y = vp->y;
     vpstr.x = vp2.x + sdist;
     
     get_graph_legend(gno, &l);
@@ -2300,50 +2309,62 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             setno = nsets - i - 1;
         }
         if (is_set_drawable(gno, setno)) {
+            view vtmp;
+            
             p = set_get(gno, setno);
             
             if (is_empty_string(p->legstr)) {
                 continue;
             }
             
-            setcharsize(l.charsize);
-            setfont(l.font);
-            setcolor(l.color);
-            WriteString(vpstr, 0.0, JUST_LEFT|JUST_TOP, p->legstr);
-            vp.y = (vpstr.y + get_bbox(BBOX_TYPE_TEMP).yv1)/2;
-            vp2.y = vp.y;
-            vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
+            setcharsize(canvas, l.charsize);
+            setfont(canvas, l.font);
+            setcolor(canvas, l.color);
+            WriteString(canvas, &vpstr, 0.0, JUST_LEFT|JUST_TOP, p->legstr);
+            get_bbox(canvas, BBOX_TYPE_TEMP, &vtmp);
+            vp1.x = vp->x;
+            vp1.y = (vpstr.y + vtmp.yv1)/2;
+            vp2.y = vp1.y;
+            vpstr.y = vtmp.yv1 - yskip;
             
-            setfont(p->charfont);
+            setfont(canvas, p->charfont);
             
             if (l.len != 0 && p->lines != 0 && p->linet != 0) { 
-                setpen(p->linepen);
-                setlinewidth(p->linew);
-                setlinestyle(p->lines);
-                DrawLine(vp, vp2);
+                setpen(canvas, &p->linepen);
+                setlinewidth(canvas, p->linew);
+                setlinestyle(canvas, p->lines);
+                DrawLine(canvas, &vp1, &vp2);
         
-                setlinewidth(p->symlinew);
-                setlinestyle(p->symlines);
+                setlinewidth(canvas, p->symlinew);
+                setlinestyle(canvas, p->symlines);
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
-                    drawlegbarsym(vp, p->symsize, p->sympen, p->symfillpen);
-                    drawlegbarsym(vp2, p->symsize, p->sympen, p->symfillpen);
+                    drawlegbarsym(canvas,
+                        &vp1, p->symsize, &p->sympen, &p->symfillpen);
+                    drawlegbarsym(canvas,
+                        &vp2, p->symsize, &p->sympen, &p->symfillpen);
                 } else {
-                    drawxysym(vp, p->symsize, p->sym, p->sympen, p->symfillpen, p->symchar);
-                    drawxysym(vp2, p->symsize, p->sym, p->sympen, p->symfillpen, p->symchar);
+                    drawxysym(canvas,
+                        &vp1, p->symsize, p->sym,
+                        &p->sympen, &p->symfillpen, p->symchar);
+                    drawxysym(canvas,
+                        &vp2, p->symsize, p->sym,
+                        &p->sympen, &p->symfillpen, p->symchar);
                 }
             } else {
                 VPoint vptmp;
-                vptmp.x = (vp.x + vp2.x)/2;
-                vptmp.y = vp.y;
+                vptmp.x = (vp1.x + vp2.x)/2;
+                vptmp.y = vp1.y;
                 
-                setlinewidth(p->symlinew);
-                setlinestyle(p->symlines);
+                setlinewidth(canvas, p->symlinew);
+                setlinestyle(canvas, p->symlines);
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
-                    drawlegbarsym(vptmp, p->symsize, p->sympen, p->symfillpen);
+                    drawlegbarsym(canvas,
+                        &vptmp, p->symsize, &p->sympen, &p->symfillpen);
                 } else {
-                    drawxysym(vptmp, p->symsize, p->sym, p->sympen, p->symfillpen, p->symchar);
+                    drawxysym(canvas,
+                        &vptmp, p->symsize, p->sym, &p->sympen, &p->symfillpen, p->symchar);
                 }
             }
         }

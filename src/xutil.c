@@ -217,10 +217,10 @@ void draw_focus(int gno)
         get_graph_viewport(gno, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
-        xlibVPoint2dev(vp, &ix1, &iy1);
+        xlibVPoint2dev(&vp, &ix1, &iy1);
         vp.x = v.xv2;
         vp.y = v.yv2;
-        xlibVPoint2dev(vp, &ix2, &iy2);
+        xlibVPoint2dev(&vp, &ix2, &iy2);
         aux_XFillRectangle(ix1 - 5, iy1 - 5, 10, 10);
         aux_XFillRectangle(ix1 - 5, iy2 - 5, 10, 10);
         aux_XFillRectangle(ix2 - 5, iy2 - 5, 10, 10);
@@ -284,13 +284,13 @@ void slide_region(view bb, int shift_x, int shift_y, int erase)
 
     vp.x = bb.xv1;
     vp.y = bb.yv1;
-    xlibVPoint2dev(vp, &x1, &y1);
+    xlibVPoint2dev(&vp, &x1, &y1);
     x1 += shift_x;
     y1 += shift_y;
     
     vp.x = bb.xv2;
     vp.y = bb.yv2;
-    xlibVPoint2dev(vp, &x2, &y2);
+    xlibVPoint2dev(&vp, &x2, &y2);
     x2 += shift_x;
     y2 += shift_y;
     
@@ -359,7 +359,7 @@ void expose_resize(Widget w, XtPointer client_data,
 	}
 
         update_all();
-        drawgraph();
+        drawgraph(grace);
 
         return;
     }
@@ -375,7 +375,7 @@ void expose_resize(Widget w, XtPointer client_data,
     if (get_pagelayout() == PAGE_FREE) {
         unsigned int w, h;
         sync_canvas_size(&w, &h, TRUE);
-        drawgraph();
+        drawgraph(grace);
     }
 }
 
@@ -386,7 +386,7 @@ void xdrawgraph(void)
 {
     if (grace->gui->inwin && (grace->gui->auto_redraw)) {
 	set_wait_cursor();
-	drawgraph();
+	drawgraph(grace);
 	unset_wait_cursor();
     }
 }
@@ -462,7 +462,7 @@ void setpointer(VPoint vp)
 {
     int x, y;
     
-    xlibVPoint2dev(vp, &x, &y);
+    xlibVPoint2dev(&vp, &x, &y);
     
     /* Make sure we remain inside the DA widget dimensions */
     x = MAX2(x, 0);
@@ -541,7 +541,7 @@ static int HandleXError(Display *dpy, XErrorEvent *event)
     output = concat_strings(output, buffer);
     output = concat_strings(output, ".");
     
-    emergency_exit(TRUE, output);
+    emergency_exit(grace, TRUE, output);
     xfree(output);
     
     /* return value is ignored anyway */
@@ -561,7 +561,7 @@ static int HandleXIOError(Display *d)
         sprintf(msg, "Fatal IO error on X server %s.", DisplayString(d));
     }
 
-    emergency_exit(FALSE, msg);
+    emergency_exit(grace, FALSE, msg);
     
     /* Ideally, we don't reach this anyway ... */
     return 1;

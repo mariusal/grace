@@ -48,23 +48,13 @@ static Widget plot_frame;
 /*
  * Panel item declarations
  */
-static OptionStructure *bg_color_item;
-static Widget bg_fill_item;
+static Widget bgpen_item;
 
 static Widget instantupdate_item;
 
 static int plot_define_notify_proc(void *data);
 static void update_plot_items(void);
 
-
-static void oc_plot_cb(int a, void *data)
-{
-    plot_define_notify_proc(data);
-}
-static void tb_plot_cb(int a, void *data)
-{
-    plot_define_notify_proc(data);
-}
 
 void create_plot_frame_cb(void *data)
 {
@@ -100,10 +90,9 @@ void create_plot_frame(void)
 
 	fr = CreateFrame(panel, "Page background");
         rc = CreateHContainer(fr);
-        bg_color_item = CreateColorChoice(rc, "Color:");
-        AddOptionChoiceCB(bg_color_item, oc_plot_cb, bg_color_item);
-	bg_fill_item = CreateToggleButton(rc, "Fill");
-        AddToggleButtonCB(bg_fill_item, tb_plot_cb, bg_fill_item);
+	bgpen_item = CreatePenChoice(rc, "Fill");
+        /* FIXME:!!! */
+        /* AddPenChoiceCB(bgpen_item, tb_plot_cb, bgpen_item); */
 
 	CreateAACDialog(plot_frame, panel, plot_define_notify_proc, NULL);
     }
@@ -116,8 +105,7 @@ void create_plot_frame(void)
 static void update_plot_items(void)
 {
     if (plot_frame) {
-        SetOptionChoice(bg_color_item, getbgcolor());
-	SetToggleButtonState(bg_fill_item, getbgfill());
+	SetPenChoice(bgpen_item, &grace->project->bgpen);
     }
 }
 
@@ -127,11 +115,8 @@ static int plot_define_notify_proc(void *data)
         return RETURN_SUCCESS;
     }
     
-    if (data == bg_color_item || data == NULL) {
-        setbgcolor(GetOptionChoice(bg_color_item));
-    }
-    if (data == bg_fill_item || data == NULL) {
-        setbgfill(GetToggleButtonState(bg_fill_item));
+    if (data == bgpen_item || data == NULL) {
+        GetPenChoice(bgpen_item, &grace->project->bgpen);
     }
     
     set_dirtystate();

@@ -669,7 +669,7 @@ char *grace_path(char *fn)
             return buf;
             break;
         case '~':
-            expand_tilde(buf);
+            expand_tilde(grace, buf);
             return buf;
             break;
         case '.':
@@ -698,7 +698,7 @@ char *grace_path(char *fn)
         }
         
 	/* third try: in .grace/ in the $HOME dir */
-	strcpy(buf, get_userhome());
+	strcpy(buf, get_userhome(grace));
 	strcat(buf, ".grace/");
 	strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
@@ -706,7 +706,7 @@ char *grace_path(char *fn)
         }
 
 	/* the last attempt: in $GRACE_HOME */
-        strcpy(buf, get_grace_home());
+        strcpy(buf, get_grace_home(grace));
 	strcat(buf, "/");
 	strcat(buf, fn);
         if (stat(buf, &statb) == 0) {
@@ -1186,7 +1186,7 @@ int load_project_file(char *fn, int as_template)
         time_t mtime;
         
         if (as_template == FALSE) {
-            set_docname(fn);
+            set_docname(grace->project, fn);
         }
         
         /* Set timestamp */

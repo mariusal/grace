@@ -29,6 +29,10 @@
 #ifndef __DRAW_H_
 #define __DRAW_H_
 
+#include <stdio.h>
+
+#include <t1lib.h>
+
 #include "defines.h"
 
 /* bpp that Grace uses internally ( = 256 colors) */
@@ -40,6 +44,8 @@
 #define MAXLINESTYLES 9
 
 #define MAX_LINEWIDTH 10.0        /* max width of drawn lines */
+
+#define MAGIC_LINEW_SCALE 0.0015
 
 /* polyline drawing modes */
 #define POLYLINE_OPEN	    0
@@ -79,31 +85,47 @@
 #define JUST_TOP        8
 #define JUST_MIDDLE    12
 
+#if defined(DEBUG_T1LIB)
+#  define T1LOGFILE LOGFILE
+#else
+#  define T1LOGFILE NO_LOGFILE
+#endif
 
-/* Types of axis scale mappings */
-typedef enum {
-    SCALE_NORMAL,
-    SCALE_LOG,
-    SCALE_REC,
-    SCALE_LOGIT,
-    SCALE_BAD
-} ScaleType;
+#define T1_DEFAULT_BITMAP_PAD  8
 
-#define NUMBER_OF_SCALETYPES  SCALE_BAD
+#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
+#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
-/* Drawing properties */
-typedef struct {
-    Pen pen;
-    int bgcolor;
-    int bgfilled;
-    int lines;
-    double linew;
-    int linecap;
-    int linejoin;
-    double charsize;
-    int font;
-    int fillrule;
-} DrawProps;
+#define T1_AALEVELS 5
+
+
+#define BAD_FONT_ID     -1
+
+/* Font mappings */
+#define FONT_MAP_DEFAULT    0
+#define FONT_MAP_ACEGR      1
+
+/* TODO */
+#define MAGIC_FONT_SCALE	0.028
+
+#define SSCRIPT_SCALE M_SQRT1_2
+#define SUBSCRIPT_SHIFT 0.4
+#define SUPSCRIPT_SHIFT 0.6
+#define ENLARGE_SCALE sqrt(M_SQRT2)
+#define OBLIQUE_FACTOR 0.25
+
+#define TEXT_ADVANCING_LR   0
+#define TEXT_ADVANCING_RL   1
+
+#define STRING_DIRECTION_LR 0
+#define STRING_DIRECTION_RL 1
+
+#define MARK_NONE   -1
+#define MAX_MARKS   32
+#define MARK_CR     MAX_MARKS
+
+#define UNIT_TM {1.0, 0.0, 0.0, 1.0}
+
 
 typedef struct {
     int red;
@@ -149,11 +171,93 @@ typedef struct {
     double black;
 } fCMYK;
 
-#define BAD_COLOR	-1
+/* Types of axis scale mappings */
+typedef enum {
+    SCALE_NORMAL,
+    SCALE_LOG,
+    SCALE_REC,
+    SCALE_LOGIT,
+    SCALE_BAD
+} ScaleType;
 
-#define COLOR_NONE      0
-#define COLOR_AUX       1
-#define COLOR_MAIN      2
+#define NUMBER_OF_SCALETYPES  SCALE_BAD
+
+/* Drawing properties */
+typedef struct {
+    Pen pen;
+    int bgcolor;
+    int lines;
+    double linew;
+    int linecap;
+    int linejoin;
+    double charsize;
+    int font;
+    int fillrule;
+} DrawProps;
+
+typedef struct {
+    double cxx, cxy;
+    double cyx, cyy;
+} TextMatrix;
+
+typedef struct {
+    char *s;
+    int len;
+    int font;
+    int color;
+    TextMatrix tm;
+    double hshift;
+    double vshift;
+    int underline;
+    int overline;
+    int setmark;
+    int gotomark;
+    int direction;
+    int advancing;
+    int ligatures;
+    int kerning;
+    VPoint start;
+    VPoint stop;
+    GLYPH *glyph;
+} CompositeString;
+
+typedef struct {
+    int mapped_id;
+    char alias[32];
+    char fallback[32];
+} FontDB;
+
+
+typedef struct _Canvas Canvas;
+
+/* device pixel routine */
+typedef void (*DevDrawPixelProc)(const Canvas *canvas, const VPoint *vp);
+/* device polyline routine */
+typedef void (*DevDrawPolyLineProc)(const Canvas *canvas,
+    const VPoint *vps, int n, int mode);
+/* device polygon routine */
+typedef void (*DevFillPolygonProc)(const Canvas *canvas,
+    const VPoint *vps, int nc);
+/* device arc routine */
+typedef void (*DevDrawArcProc)(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+/* device fill arc routine */
+typedef void (*DevFillArcProc)(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+/* device pixmap drawing */
+typedef void (*DevPutPixmapProc)(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+/* device text typesetting */
+typedef void (*DevPutTextProc)(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning);
+
+/* update color map */
+typedef void (*DevUpdateCmapProc)(const Canvas *canvas);
+
+/* device exit */
+typedef void (*DevLeaveGraphicsProc)(const Canvas *canvas);
 
 typedef struct {
     RGB rgb;
@@ -161,6 +265,12 @@ typedef struct {
     int ctype;
     int tstamp;
 } CMap_entry;
+
+#define BAD_COLOR	-1
+
+#define COLOR_NONE      0
+#define COLOR_AUX       1
+#define COLOR_MAIN      2
 
 #define BBOX_TYPE_GLOB	0
 #define BBOX_TYPE_TEMP	1
@@ -171,103 +281,232 @@ typedef struct {
     view fv;
 } BBox_type;
 
+/* Standard formats */
+typedef enum {
+    PAGE_FORMAT_CUSTOM, 
+    PAGE_FORMAT_USLETTER,
+    PAGE_FORMAT_A4     
+} PageFormat;
+
+typedef struct {
+    unsigned long width;
+    unsigned long height;
+    float dpi;
+} Page_geometry;
+
+typedef struct {
+    int type;
+    char *name;		                   /* name of device */
+    int (*init)(Canvas *);	           /* function to initialize device */
+    int (*parser)(Canvas *, const char *); /* function to parse device-specific commands */
+    void (*setup)(Canvas *);               /* function (GUI interface) to setup device */
+    char *fext;		                   /* filename extension */
+    int devfonts;                          /* device has its own fonts */
+    int fontaa;                            /* font antialiasing */
+    Page_geometry pg;                      /* device defaults */
+    void *data;                            /* device private data */
+} Device_entry;
+
+
+/* Canvas */
+struct _Canvas {
+    DrawProps            draw_props;
+    
+    DevDrawPixelProc     devdrawpixel;
+    DevDrawPolyLineProc  devdrawpolyline;
+    DevFillPolygonProc   devfillpolygon;
+    DevDrawArcProc       devdrawarc;
+    DevFillArcProc       devfillarc;
+    DevPutPixmapProc     devputpixmap;
+    DevPutTextProc       devputtext;
+    DevUpdateCmapProc    devupdatecmap;
+    DevLeaveGraphicsProc devleavegraphics;
+    void                 *devdata;
+    
+    int clipflag;
+    
+    int draw_mode;
+
+    /* colors */
+    int maxcolors;
+    CMap_entry *cmap_table;
+    int revflag;
+
+    /* fonts */
+    int nfonts;
+    FontDB *FontDBtable;
+    char **DefEncoding;
+
+    BBox_type bboxes[2];
+
+    int max_path_length;
+
+    /* devices */
+    unsigned int ndevices;
+    int curdevice;
+    Device_entry **device_table;
+    
+    FILE *prstream;
+    
+    char *username;
+    char *docname;
+};
+
+
 /* The default max drawing path limit */
 #define MAX_DRAWING_PATH  20000
 
-void setpen(Pen pen);
-Pen getpen(void);
+Canvas *canvas_new(void);
+void canvas_free(Canvas *canvas);
 
-void setline(Line *line);
+void canvas_set_username(Canvas *canvas, const char *s);
+void canvas_set_docname(Canvas *canvas, const char *s);
+char *canvas_get_username(const Canvas *canvas);
+char *canvas_get_docname(const Canvas *canvas);
 
-void setcolor(int color);
-int getcolor(void);
+void setbgcolor(Canvas *canvas, int bgcolor);
+void setpen(Canvas *canvas, const Pen *pen);
+void setline(Canvas *canvas, const Line *line);
+void setcolor(Canvas *canvas, int color);
+void setlinestyle(Canvas *canvas, int lines);
+void setlinewidth(Canvas *canvas, double linew);
+void setpattern(Canvas *canvas, int pattern);
+void setcharsize(Canvas *canvas, double charsize);
+void setfont(Canvas *canvas, int font);
+void setfillrule(Canvas *canvas, int rule);
+void setlinecap(Canvas *canvas, int type);
+void setlinejoin(Canvas *canvas, int type);
 
-void setbgcolor(int bgcolor);
-int getbgcolor(void);
+void getpen(const Canvas *canvas, Pen *pen);
+int getcolor(const Canvas *canvas);
+int getbgcolor(const Canvas *canvas);
+int getpattern(const Canvas *canvas);
+int getlinestyle(const Canvas *canvas);
+int getlinecap(const Canvas *canvas);
+int getlinejoin(const Canvas *canvas);
+int getfillrule(const Canvas *canvas);
+double getlinewidth(const Canvas *canvas);
+double getcharsize(const Canvas *canvas);
+int getfont(const Canvas *canvas);
 
-void setbgfill(int flag);
-int getbgfill(void);
+void leavegraphics(Canvas *canvas);
 
-void setlinestyle(int lines);
-int getlinestyle(void);
+void DrawPixel(Canvas *canvas, const VPoint *vp);
+void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
+void DrawPolygon(Canvas *canvas, const VPoint *vps, int n);
+void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
+    int angle1, int angle2);
+void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
+    int angle1, int angle2, int mode);
+void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void DrawCircle(Canvas *canvas, const VPoint *vp, double radius);
+void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius);
+void WriteString(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *s);
 
-void setlinewidth(double linew);
-double getlinewidth(void);
+void setclipping(Canvas *canvas, int fl);
+int  getclipping(const Canvas *canvas);
 
-void setpattern(int pattern);
-int getpattern(void);
+void symplus(Canvas *canvas, const VPoint *vp, double s);
+void symx(Canvas *canvas, const VPoint *vp, double s);
+void symsplat(Canvas *canvas, const VPoint *vp, double s);
 
-void setcharsize(double charsize);
-double getcharsize(void);
+int is_validVPoint(const Canvas *canvas, const VPoint *vp);
 
-void setfont(int font);
-int getfont(void);
+void reset_bbox(Canvas *canvas, int type);
+void reset_bboxes(Canvas *canvas);
+void freeze_bbox(Canvas *canvas, int type);
+int get_bbox(const Canvas *canvas, int type, view *v);
+void update_bbox(Canvas *canvas, int type, const VPoint *vp);
+void update_bboxes(Canvas *canvas, const VPoint *vp);
+int melt_bbox(Canvas *canvas, int type);
+void activate_bbox(Canvas *canvas, int type, int status);
+int update_bboxes_with_view(Canvas *canvas, view *v);
+int update_bboxes_with_vpoints(Canvas *canvas,
+    const VPoint *vps, int n, double lw);
 
-void setfillrule(int rule);
-int getfillrule(void);
+void set_draw_mode(Canvas *canvas, int mode);
+int get_draw_mode(const Canvas *canvas);
 
-void setlinecap(int type);
-int getlinecap(void);
+void set_max_path_limit(Canvas *canvas, int limit);
+int get_max_path_limit(const Canvas *canvas);
 
-void setlinejoin(int type);
-int getlinejoin(void);
+int clip_line(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, VPoint *vp1c, VPoint *vp2c);
 
-void symplus(VPoint vp, double s);
-void symx(VPoint vp, double s);
-void symsplat(VPoint vp, double s);
+int points_overlap(const Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 
-void leavegraphics(void);
-
-void DrawRect(VPoint vp1, VPoint vp2);
-void FillRect(VPoint vp1, VPoint vp2);
-void DrawLine(VPoint vp1, VPoint vp2);
-void DrawPolyline(VPoint *vps, int n, int mode);
-void DrawPolygon(VPoint *vps, int n);
-void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2);
-void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode);
-void DrawEllipse(VPoint vp1, VPoint vp2);
-void DrawFilledEllipse(VPoint vp1, VPoint vp2);
-void DrawCircle(VPoint vp, double radius);
-void DrawFilledCircle(VPoint vp, double radius);
-
-void WriteString(VPoint vp, double angle, int just, char *theString);
+int view_extend(view *v, double w);
+int is_valid_bbox(const view *v);
+int merge_bboxes(const view *v1, const view *v2, view *v);
+void vpswap(VPoint *vp1, VPoint *vp2);
+int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 
 int is_wpoint_inside(WPoint *wp, world *w);
-int is_vpoint_inside(view v, VPoint vp, double epsilon);
+int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
-void setclipping(int fl);
-int doclipping(void);
-int is_validVPoint(VPoint vp);
 int is_validWPoint(WPoint wp);
-VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mode);
-int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c);
-int intersect_polygon(VPoint *vps, int n, VPoint vp1p, VPoint vp2p);
+VPoint *line_intersect(const VPoint *vp1, const VPoint *vp2,
+    const VPoint *vp1p, const VPoint *vp2p, int mode);
+int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p);
 int clip_polygon(VPoint *vps, int n);
 
 int is_valid_color(const RGB *rgb);
-int find_color(RGB rgb);
-int get_color_by_name(char *cname);
-int realloc_color(int n);
-int store_color(int n, CMap_entry cmap);
-int add_color(CMap_entry cmap);
-int get_rgb(unsigned int cindex, RGB *rgb);
-int  get_frgb(unsigned int cindex, fRGB *frgb);
-CMap_entry *get_cmap_entry(unsigned int cindex);
-char *get_colorname(unsigned int cindex);
-int get_colortype(unsigned int cindex);
+int find_color(const Canvas *canvas, const RGB *rgb);
+int get_color_by_name(const Canvas *canvas, const char *cname);
+int realloc_color(Canvas *canvas, int n);
+int store_color(Canvas *canvas, int n, const CMap_entry *cmap);
+int add_color(Canvas *canvas, const CMap_entry *cmap);
+int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
+int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
+CMap_entry *get_cmap_entry(const Canvas *canvas, unsigned int cindex);
+char *get_colorname(const Canvas *canvas, unsigned int cindex);
+int get_colortype(const Canvas *canvas, unsigned int cindex);
 
 int RGB2YIQ(const RGB *rgb, YIQ *yiq);
 int RGB2CMY(const RGB *rgb, CMY *cmy);
 
-double get_colorintensity(int cindex);
+double get_colorintensity(const Canvas *canvas, int cindex);
 
-int get_cmy(unsigned int cindex, CMY *cmy);
-int get_cmyk(unsigned int cindex, CMYK *cmyk);
-int get_fcmyk(unsigned int cindex, fCMYK *fcmyk);
+int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
+int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
+int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 
-void initialize_cmap(void);
-void reverse_video(void);
-int is_video_reversed(void);
+void initialize_cmap(Canvas *canvas);
+void reverse_video(Canvas *canvas);
+int is_video_reversed(const Canvas *canvas);
+
+
+int init_t1(Canvas *canvas);
+
+int map_font(Canvas *canvas, int font, int mapped_id);
+int map_font_by_name(Canvas *canvas, const char *fname, int mapped_id);
+void map_fonts(Canvas *canvas, int map);
+
+int number_of_fonts(const Canvas *canvas);
+char *get_fontname(const Canvas *canvas, int font);
+char *get_fontfilename(const Canvas *canvas, int font, int abspath);
+char *get_afmfilename(const Canvas *canvas, int font, int abspath);
+char *get_fontalias(const Canvas *canvas, int font);
+char *get_fontfallback(const Canvas *canvas, int font);
+char *get_encodingscheme(const Canvas *canvas, int font);
+char **get_default_encoding(const Canvas *canvas);
+double get_textline_width(const Canvas *canvas, int font);
+double get_underline_pos(const Canvas *canvas, int font);
+double get_overline_pos(const Canvas *canvas, int font);
+double *get_kerning_vector(const Canvas *canvas,
+    const char *str, int len, int font);
+
+int get_font_by_name(const Canvas *canvas, const char *fname);
+int get_font_mapped_id(const Canvas *canvas, int font);
+int get_mapped_font(const Canvas *canvas, int mapped_id);
+
+
+
 
 char *scale_types(ScaleType it);
 ScaleType get_scale_type_by_name(const char *name);
@@ -292,32 +531,8 @@ int definewindow(world w, view v, int gtype,
                  int xscale, int yscale,
                  int xinv, int yinv);
 
-void reset_bbox(int type);
-void reset_bboxes(void);
-void freeze_bbox(int type);
-view get_bbox(int type);
-int is_valid_bbox(view v);
-view merge_bboxes(view v1, view v2);
-void update_bbox(int type, VPoint vp);
-void update_bboxes(VPoint vp);
-void melt_bbox(int type);
-void activate_bbox(int type, int status);
-int view_extend(view *v, double w);
-int update_bboxes_with_view(view *v);
-int update_bboxes_with_vpoints(VPoint *vps, int n, double lw);
-int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb);
-
-void set_draw_mode(int mode);
-int get_draw_mode(void);
-
-int number_of_colors(void);
-int number_of_patterns(void);
-int number_of_linestyles(void);
-
-void vpswap(VPoint *vp1, VPoint *vp2);
-int points_overlap(VPoint vp1, VPoint vp2);
-
-void set_max_path_limit(int limit);
-int get_max_path_limit(void);
+int number_of_colors(const Canvas *canvas);
+int number_of_patterns(const Canvas *canvas);
+int number_of_linestyles(const Canvas *canvas);
 
 #endif /* __DRAW_H_ */

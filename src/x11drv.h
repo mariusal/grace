@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -34,23 +34,27 @@
 #define CMAP_INSTALL_ALWAYS     1
 #define CMAP_INSTALL_AUTO       2
 
-int xlibinit(void);
-int xlibinitgraphics(void);
-void drawxlib(int x, int y, int mode);
-void xlibupdatecmap(void);
-void xlibinitcmap(void);
-void xlibdrawpixel(VPoint vp);
-void xlibdrawpolyline(VPoint *vps, int n, int mode);
-void xlibfillpolygon(VPoint *vps, int npoints);
-void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2);
-void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode);
+int xlibinit(const Canvas *canvas);
 void xlibredraw(Window window, int x, int y, int widht, int height);
-void xlibputpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
+int xlibinitgraphics(Canvas *canvas);
+void drawxlib(int x, int y, int mode);
+void xlibupdatecmap(const Canvas *canvas);
+void xlibinitcmap(const Canvas *canvas);
 
-void xlibleavegraphics(void);
+void xlibdrawpixel(const Canvas *canvas, const VPoint *vp);
+void xlibdrawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
+void xlibfillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
+void xlibdrawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+void xlibfillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+void xlibputpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+
+void xlibleavegraphics(const Canvas *canvas);
      
 int xconvxlib(double x);
 int yconvxlib(double y);
-void xlibVPoint2dev(VPoint vp, int *x, int *y);
-VPoint xlibdev2VPoint(int x, int y);
+void xlibVPoint2dev(const VPoint *vp, int *x, int *y);
+void xlibdev2VPoint(int x, int y, VPoint *vp);

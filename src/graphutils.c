@@ -173,9 +173,9 @@ FormatType get_format_type_by_name(const char *name)
 int wipeout(void)
 {
     project_free(grace->project);
-    grace->project = project_new();
+    grace->project = project_new(grace);
     
-    map_fonts(FONT_MAP_DEFAULT);
+    map_fonts(grace->rt->canvas, FONT_MAP_DEFAULT);
     print_file[0] = '\0';
     /* a hack! the global "curtype" (as well as all others) should be removed */
     grace->rt->curtype = SET_XY;
@@ -638,7 +638,7 @@ int arrange_graphs(int *graphs, int ngraphs,
         return RETURN_FAILURE;
     }
     
-    get_page_viewport(&pw, &ph);
+    get_page_viewport(grace->rt->canvas, &pw, &ph);
     w = (pw - loff - roff)/(ncols + (ncols - 1)*hgap);
     h = (ph - toff - boff)/(nrows + (nrows - 1)*vgap);
     if (h <= 0.0 || w <= 0.0) {

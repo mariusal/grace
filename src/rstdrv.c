@@ -3,7 +3,6 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
  * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
@@ -31,11 +30,11 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "cmath.h"
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"
@@ -60,9 +59,8 @@
 #  include "motifinc.h"
 #endif
 
-static void rstImagePnm(gdImagePtr ihandle, FILE *prstream);
-
-extern FILE *prstream;
+static void rstImagePnm(const Canvas *canvas,
+    gdImagePtr ihandle, FILE *prstream);
 
 /* Declare the image */
 static gdImagePtr ihandle = NULL;
@@ -80,7 +78,8 @@ static int rst_dash_array_length;
 static unsigned long page_scale;
 
 #ifdef HAVE_LIBJPEG
-static void rstImageJpg(gdImagePtr ihandle, FILE *prstream);
+static void rstImageJpg(const Canvas *canvas,
+    gdImagePtr ihandle, FILE *prstream);
 
 static int jpg_setup_quality = 75;
 static int jpg_setup_grayscale = FALSE;
@@ -92,7 +91,8 @@ static int jpg_setup_dct = JPEG_DCT_DEFAULT;
 #endif
 
 #ifdef HAVE_LIBPNG
-static void rstImagePng(gdImagePtr ihandle, FILE *prstream);
+static void rstImagePng(const Canvas *canvas,
+    gdImagePtr ihandle, FILE *prstream);
 
 static int png_setup_interlaced = FALSE;
 static int png_setup_transparent = FALSE;
@@ -139,26 +139,26 @@ static Device_entry dev_png = {DEVICE_FILE,
          };
 #endif
 
-int register_pnm_drv(void)
+int register_pnm_drv(Canvas *canvas)
 {
-    return register_device(dev_pnm);
+    return register_device(canvas, &dev_pnm);
 }
 
 #ifdef HAVE_LIBJPEG
-int register_jpg_drv(void)
+int register_jpg_drv(Canvas *canvas)
 {
-    return register_device(dev_jpg);
+    return register_device(canvas, &dev_jpg);
 }
 #endif
 
 #ifdef HAVE_LIBPNG
-int register_png_drv(void)
+int register_png_drv(Canvas *canvas)
 {
-    return register_device(dev_png);
+    return register_device(canvas, &dev_png);
 }
 #endif
 
-static void rst_updatecmap(void)
+static void rst_updatecmap(const Canvas *canvas)
 {
     int i, c;
     RGB rgb;
@@ -168,8 +168,8 @@ static void rst_updatecmap(void)
         return;
     }
     
-    for (i = 0; i < number_of_colors(); i++) {
-        if (get_rgb(i, &rgb) == RETURN_SUCCESS) {
+    for (i = 0; i < number_of_colors(canvas); i++) {
+        if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
             red   = rgb.red   >> (GRACE_BPP - 8);
             green = rgb.green >> (GRACE_BPP - 8);
             blue  = rgb.blue  >> (GRACE_BPP - 8);
@@ -183,29 +183,27 @@ static void rst_updatecmap(void)
     }
 }
 
-static gdPoint VPoint2gdPoint(VPoint vp)
+static void VPoint2gdPoint(const Canvas *canvas, const VPoint *vp, gdPoint *gdp)
 {
-    gdPoint gdp;
-    
-    gdp.x = (int) rint(page_scale * vp.x);
-    gdp.y = (int) rint(page_height - page_scale * vp.y);
-    
-    return (gdp);
+    gdp->x = (int) rint(page_scale * vp->x);
+    gdp->y = (int) rint(page_height(canvas) - page_scale * vp->y);
 }
 
-void rst_setdrawbrush(void)
+void rst_setdrawbrush(const Canvas *canvas)
 {
     static gdImagePtr brush = NULL;
     int i, j, k;
     int *tmp_dash_array;
+    Pen pen;
     RGB rgb;
     int red, green, blue, bcolor;
     int scale;
     int on, off;
 
-    rstpen = getpen();
-    rstlinew = MAX2((int) rint(getlinewidth()*page_scale), 1);
-    rstlines = getlinestyle();
+    getpen(canvas, &pen);
+    rstpen = pen;
+    rstlinew = MAX2((int) rint(getlinewidth(canvas)*page_scale), 1);
+    rstlines = getlinestyle(canvas);
     
     if (rstlines == 0 || rstpen.pattern == 0) {
         /* Should never come to here */
@@ -219,7 +217,7 @@ void rst_setdrawbrush(void)
         }
         brush = gdImageCreate(rstlinew, rstlinew);
 
-        get_rgb(rstpen.color, &rgb);
+        get_rgb(canvas, rstpen.color, &rgb);
         red   = rgb.red   >> (GRACE_BPP - 8);
         green = rgb.green >> (GRACE_BPP - 8);
         blue  = rgb.blue  >> (GRACE_BPP - 8);
@@ -279,15 +277,17 @@ void rst_setdrawbrush(void)
     }
 }
 
-void rst_setfillbrush(void)
+void rst_setfillbrush(const Canvas *canvas)
 {
     static gdImagePtr brush = NULL;
     int i, j, k;
+    Pen pen;
     RGB rgb;
     int red, green, blue, fgcolor, bgcolor;
     unsigned char p;
     
-    rstpen = getpen();
+    getpen(canvas, &pen);
+    rstpen = pen;
 
     if (rstpen.pattern == 0) {
         /* Should never come to here */
@@ -301,13 +301,13 @@ void rst_setfillbrush(void)
         }
         brush = gdImageCreate(16, 16);
         
-        get_rgb(rstpen.color, &rgb);
+        get_rgb(canvas, rstpen.color, &rgb);
         red   = rgb.red   >> (GRACE_BPP - 8);
         green = rgb.green >> (GRACE_BPP - 8);
         blue  = rgb.blue  >> (GRACE_BPP - 8);
         fgcolor = gdImageColorAllocate(brush, red, green, blue);
         
-        get_rgb(getbgcolor(), &rgb);
+        get_rgb(canvas, getbgcolor(canvas), &rgb);
         red   = rgb.red   >> (GRACE_BPP - 8);
         green = rgb.green >> (GRACE_BPP - 8);
         blue  = rgb.blue  >> (GRACE_BPP - 8);
@@ -331,48 +331,48 @@ void rst_setfillbrush(void)
     }
 }
 
-static int rst_initgraphics(int format)
+static int rst_initgraphics(Canvas *canvas, int format)
 {
-    Page_geometry pg;
+    Page_geometry *pg;
     
     curformat = format;
     
     /* device-dependent routines */
-    devupdatecmap = rst_updatecmap;
+    canvas->devupdatecmap    = rst_updatecmap;
     
-    devdrawpixel = rst_drawpixel;
-    devdrawpolyline = rst_drawpolyline;
-    devfillpolygon = rst_fillpolygon;
-    devdrawarc = rst_drawarc;
-    devfillarc = rst_fillarc;
-    devputpixmap = rst_putpixmap;
+    canvas->devdrawpixel     = rst_drawpixel;
+    canvas->devdrawpolyline  = rst_drawpolyline;
+    canvas->devfillpolygon   = rst_fillpolygon;
+    canvas->devdrawarc       = rst_drawarc;
+    canvas->devfillarc       = rst_fillarc;
+    canvas->devputpixmap     = rst_putpixmap;
     
-    devleavegraphics = rst_leavegraphics;
+    canvas->devleavegraphics = rst_leavegraphics;
     
-    pg = get_page_geometry();
+    pg = get_page_geometry(canvas);
     
-    page_scale = MIN2(pg.height,pg.width);
+    page_scale = MIN2(pg->height, pg->width);
 
     /* Allocate the image */
-    ihandle = gdImageCreate(pg.width, pg.height);
+    ihandle = gdImageCreate(pg->width, pg->height);
     if (ihandle == NULL) {
         return RETURN_FAILURE;
     }
     
-    rst_updatecmap();
+    rst_updatecmap(canvas);
     
     return RETURN_SUCCESS;
 }
 
-void rst_drawpixel(VPoint vp)
+void rst_drawpixel(const Canvas *canvas, const VPoint *vp)
 {
     gdPoint gdp;
     
-    gdp = VPoint2gdPoint(vp);
-    gdImageSetPixel(ihandle, gdp.x, gdp.y, rst_colors[getcolor()]);
+    VPoint2gdPoint(canvas, vp, &gdp);
+    gdImageSetPixel(ihandle, gdp.x, gdp.y, rst_colors[getcolor(canvas)]);
 }
 
-void rst_drawpolyline(VPoint *vps, int n, int mode)
+void rst_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 {
     int i;
     gdPointPtr gdps;
@@ -383,10 +383,10 @@ void rst_drawpolyline(VPoint *vps, int n, int mode)
     }
     
     for (i = 0; i < n; i++) {
-        gdps[i] = VPoint2gdPoint(vps[i]);
+         VPoint2gdPoint(canvas, &vps[i], &gdps[i]);
     }
     
-    rst_setdrawbrush();
+    rst_setdrawbrush(canvas);
     
     if (mode == POLYLINE_CLOSED) {
         gdImagePolygon(ihandle, gdps, n, rst_drawbrush);
@@ -401,7 +401,7 @@ void rst_drawpolyline(VPoint *vps, int n, int mode)
     xfree(gdps);
 }
 
-void rst_fillpolygon(VPoint *vps, int nc)
+void rst_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 {
     int i;
     gdPointPtr gdps;
@@ -412,51 +412,54 @@ void rst_fillpolygon(VPoint *vps, int nc)
     }
     
     for (i = 0; i < nc; i++) {
-        gdps[i] = VPoint2gdPoint(vps[i]);
+        VPoint2gdPoint(canvas, &vps[i], &gdps[i]);
     }
     
-    rst_setfillbrush();
+    rst_setfillbrush(canvas);
     gdImageFilledPolygon(ihandle, gdps, nc, rst_fillbrush);
     
     xfree(gdps);
 }
 
-void rst_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void rst_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
 {
     gdPoint gdp1, gdp2, gdc;
     int w, h;
     
-    gdp1 = VPoint2gdPoint(vp1);
-    gdp2 = VPoint2gdPoint(vp2);
+    VPoint2gdPoint(canvas, vp1, &gdp1);
+    VPoint2gdPoint(canvas, vp2, &gdp2);
     gdc.x = (gdp1.x + gdp2.x)/2;
     gdc.y = (gdp1.y + gdp2.y)/2;
     w = (gdp2.x - gdp1.x);
     h = (gdp2.y - gdp1.y);
     
-    rst_setdrawbrush();
+    rst_setdrawbrush(canvas);
     
     gdImageArc(ihandle, gdc.x, gdc.y, w, h, a1, a2, rst_drawbrush);
 }
 
-void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
+void rst_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
 {
     gdPoint gdp1, gdp2, gdc;
     int w, h;
     
-    gdp1 = VPoint2gdPoint(vp1);
-    gdp2 = VPoint2gdPoint(vp2);
+    VPoint2gdPoint(canvas, vp1, &gdp1);
+    VPoint2gdPoint(canvas, vp2, &gdp2);
     gdc.x = (gdp1.x + gdp2.x)/2;
     gdc.y = (gdp1.y + gdp2.y)/2;
     w = (gdp2.x - gdp1.x);
     h = (gdp2.y - gdp1.y);
     
-    rst_setfillbrush();
+    rst_setfillbrush(canvas);
     gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, a1, a2,
         mode == ARCFILL_CHORD ? gdArcFillChord:gdArcFillPieSlice, rst_fillbrush);
 }
 
-void rst_putpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
+void rst_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     int cindex, bg;
     int color, bgcolor;
@@ -467,14 +470,14 @@ void rst_putpixmap(VPoint vp, int width, int height,
     gdPoint gdp;
     int x, y;
     
-    bg = getbgcolor();
+    bg = getbgcolor(canvas);
     bgcolor = rst_colors[bg];
     
-    gdp = VPoint2gdPoint(vp);
+    VPoint2gdPoint(canvas, vp, &gdp);
     
     y = gdp.y;
     if (pixmap_bpp == 1) {
-        color = getcolor();
+        color = getcolor(canvas);
         paddedW = PAD(width, bitmap_pad);
         for (k = 0; k < height; k++) {
             x = gdp.x;
@@ -508,25 +511,25 @@ void rst_putpixmap(VPoint vp, int width, int height,
     }
 }
      
-void rst_leavegraphics(void)
+void rst_leavegraphics(const Canvas *canvas)
 {
     /* Output the image to the disk file. */
     switch (curformat) {
     case RST_FORMAT_PNM:
-        rstImagePnm(ihandle, prstream);
+        rstImagePnm(canvas, ihandle, canvas->prstream);
         break;   
 #ifdef HAVE_LIBJPEG
     case RST_FORMAT_JPG:
-        rstImageJpg(ihandle, prstream);
+        rstImageJpg(canvas, ihandle, canvas->prstream);
         break;   
 #endif
 #ifdef HAVE_LIBPNG
     case RST_FORMAT_PNG:
         if (png_setup_transparent == TRUE) {
-            gdImageColorTransparent(ihandle, rst_colors[getbgcolor()]);
+            gdImageColorTransparent(ihandle, rst_colors[getbgcolor(canvas)]);
         }
         gdImageInterlace(ihandle, png_setup_interlaced);
-        rstImagePng(ihandle, prstream);
+        rstImagePng(canvas, ihandle, canvas->prstream);
         break;
 #endif
     default:
@@ -539,11 +542,11 @@ void rst_leavegraphics(void)
     ihandle = NULL;
 }
 
-int pnminitgraphics(void)
+int pnminitgraphics(Canvas *canvas)
 {
     int result;
     
-    result = rst_initgraphics(RST_FORMAT_PNM);
+    result = rst_initgraphics(canvas, RST_FORMAT_PNM);
     
     if (result == RETURN_SUCCESS) {
         curformat = RST_FORMAT_PNM;
@@ -555,7 +558,8 @@ int pnminitgraphics(void)
 static int pnm_setup_format = DEFAULT_PNM_FORMAT;
 static int pnm_setup_rawbits = TRUE;
 
-static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
+static void rstImagePnm(const Canvas *canvas,
+    gdImagePtr ihandle, FILE *prstream)
 {
     int w, h;
     int i, j, k;
@@ -566,37 +570,37 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
     if (pnm_setup_rawbits == TRUE) {
         switch (pnm_setup_format) {
         case PNM_FORMAT_PBM:
-            fprintf(prstream, "P4\n");
+            fprintf(canvas->prstream, "P4\n");
             break;
         case PNM_FORMAT_PGM:
-            fprintf(prstream, "P5\n");
+            fprintf(canvas->prstream, "P5\n");
             break;
         case PNM_FORMAT_PPM:
-            fprintf(prstream, "P6\n");
+            fprintf(canvas->prstream, "P6\n");
             break;
         }
     } else {
         switch (pnm_setup_format) {
         case PNM_FORMAT_PBM:
-            fprintf(prstream, "P1\n");
+            fprintf(canvas->prstream, "P1\n");
             break;
         case PNM_FORMAT_PGM:
-            fprintf(prstream, "P2\n");
+            fprintf(canvas->prstream, "P2\n");
             break;
         case PNM_FORMAT_PPM:
-            fprintf(prstream, "P3\n");
+            fprintf(canvas->prstream, "P3\n");
             break;
         }
     }
     
-    fprintf(prstream, "#Creator: %s\n", bi_version_string());
+    fprintf(canvas->prstream, "#Creator: %s\n", bi_version_string());
     
     w = gdImageSX(ihandle);
     h = gdImageSY(ihandle);
-    fprintf(prstream, "%d %d\n", w, h);
+    fprintf(canvas->prstream, "%d %d\n", w, h);
     
     if (pnm_setup_format != PNM_FORMAT_PBM) {
-        fprintf(prstream, "255\n");
+        fprintf(canvas->prstream, "255\n");
     }
     
     k = 0;
@@ -615,33 +619,33 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
                     k++;
                     /* completed byte or padding line */
                     if (k == 8 || j == w - 1) {
-                        fwrite(&pbm_buf, 1, 1, prstream);
+                        fwrite(&pbm_buf, 1, 1, canvas->prstream);
                         k = 0;
                         pbm_buf = 0;
                     }
                     break;
                 case PNM_FORMAT_PGM:
                     y = INTENSITY(r, g, b);
-                    fwrite(&y, 1, 1, prstream);
+                    fwrite(&y, 1, 1, canvas->prstream);
                     break;
                 case PNM_FORMAT_PPM:
-                    fwrite(&r, 1, 1, prstream);
-                    fwrite(&g, 1, 1, prstream);
-                    fwrite(&b, 1, 1, prstream);
+                    fwrite(&r, 1, 1, canvas->prstream);
+                    fwrite(&g, 1, 1, canvas->prstream);
+                    fwrite(&b, 1, 1, canvas->prstream);
                     break;
                 }
             } else {
                 switch (pnm_setup_format) {
                 case PNM_FORMAT_PBM:
                     y = (r == 255 &&  g == 255 && b == 255 ? 0:1);
-                    fprintf(prstream, "%1d\n", y);
+                    fprintf(canvas->prstream, "%1d\n", y);
                     break;
                 case PNM_FORMAT_PGM:
                     y = INTENSITY(r, g, b);
-                    fprintf(prstream, "%3d\n", y);
+                    fprintf(canvas->prstream, "%3d\n", y);
                     break;
                 case PNM_FORMAT_PPM:
-                    fprintf(prstream, "%3d %3d %3d\n", r, g, b);
+                    fprintf(canvas->prstream, "%3d %3d %3d\n", r, g, b);
                     break;
                 }
             }
@@ -651,11 +655,11 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
 
 
 #ifdef HAVE_LIBJPEG
-int jpginitgraphics(void)
+int jpginitgraphics(Canvas *canvas)
 {
     int result;
     
-    result = rst_initgraphics(RST_FORMAT_JPG);
+    result = rst_initgraphics(canvas, RST_FORMAT_JPG);
     
     if (result == RETURN_SUCCESS) {
         curformat = RST_FORMAT_JPG;
@@ -664,7 +668,8 @@ int jpginitgraphics(void)
     return (result);
 }
 
-static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
+static void rstImageJpg(const Canvas *canvas,
+    gdImagePtr ihandle, FILE *prstream)
 {
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -681,7 +686,7 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
-    jpeg_stdio_dest(&cinfo, prstream);
+    jpeg_stdio_dest(&cinfo, canvas->prstream);
     
     cinfo.image_width  = w;
     cinfo.image_height = h;
@@ -761,7 +766,7 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
     jpeg_destroy_compress(&cinfo);
 }
 
-int jpg_op_parser(char *opstring)
+int jpg_op_parser(Canvas *canvas, const char *opstring)
 {
     char *bufp;
     
@@ -822,7 +827,7 @@ int jpg_op_parser(char *opstring)
 }
 #endif
 
-int pnm_op_parser(char *opstring)
+int pnm_op_parser(Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "rawbits:on")) {
         pnm_setup_rawbits = TRUE;
@@ -845,11 +850,11 @@ int pnm_op_parser(char *opstring)
 }
 
 #ifdef HAVE_LIBPNG
-int pnginitgraphics(void)
+int pnginitgraphics(Canvas *canvas)
 {
     int result;
     
-    result = rst_initgraphics(RST_FORMAT_PNG);
+    result = rst_initgraphics(canvas, RST_FORMAT_PNG);
     
     if (result == RETURN_SUCCESS) {
         curformat = RST_FORMAT_PNG;
@@ -858,7 +863,8 @@ int pnginitgraphics(void)
     return (result);
 }
 
-static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
+static void rstImagePng(const Canvas *canvas,
+    gdImagePtr ihandle, FILE *prstream)
 {
     png_structp png_ptr;
     png_infop info_ptr;
@@ -888,7 +894,7 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
         return;
     }
 
-    png_init_io(png_ptr, prstream);
+    png_init_io(png_ptr, canvas->prstream);
 
     /* set the zlib compression level */
     png_set_compression_level(png_ptr, png_setup_compression);
@@ -932,10 +938,10 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     
 #if (defined(PNG_WRITE_tEXt_SUPPORTED) || defined(PNG_WRITE_zTXt_SUPPORTED))
     text_ptr[0].key         = "Title";
-    text_ptr[0].text        = get_docname();
+    text_ptr[0].text        = canvas_get_docname(canvas);
     text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
     text_ptr[1].key         = "Author";
-    text_ptr[1].text        = get_username();
+    text_ptr[1].text        = canvas_get_username(canvas);
     text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
     text_ptr[2].key         = "Software";
     text_ptr[2].text        = bi_version_string();
@@ -963,7 +969,7 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     xfree(palette);
 }
 
-int png_op_parser(char *opstring)
+int png_op_parser(Canvas *canvas, const char *opstring)
 {
     char *bufp;
 
@@ -1011,7 +1017,7 @@ static Widget png_setup_interlaced_item;
 static Widget png_setup_transparent_item;
 static SpinStructure *png_setup_compression_item;
 
-void png_gui_setup(void)
+void png_gui_setup(Canvas *canvas)
 {
     set_wait_cursor();
     
@@ -1055,7 +1061,7 @@ static int set_png_setup_proc(void *data)
 }
 #endif
 
-void pnm_gui_setup(void)
+void pnm_gui_setup(Canvas *canvas)
 {
     set_wait_cursor();
     
@@ -1111,7 +1117,7 @@ static SpinStructure *jpg_setup_quality_item;
 static SpinStructure *jpg_setup_smoothing_item;
 static OptionStructure *jpg_setup_dct_item;
 
-void jpg_gui_setup(void)
+void jpg_gui_setup(Canvas *canvas)
 {
     set_wait_cursor();
     

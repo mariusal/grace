@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -28,17 +27,20 @@
 
 #include "defines.h"
 
-int mifinitgraphics(void);
+int mifinitgraphics(Canvas *canvas);
 
-void mif_drawpixel(VPoint vp);
-void mif_drawpolyline(VPoint *vps, int n, int mode);
-void mif_fillpolygon(VPoint *vps, int nc);
-void mif_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
-void mif_putpixmap(VPoint vp, int width, int height, 
-                   char *databits, int pixmap_bpp,
-                   int bitmap_pad, int pixmap_type);
-void mif_puttext (VPoint vp, char *s, int len, int font,
-     TextMatrix *tm, int underline, int overline, int kerning);
+void mif_drawpixel(const Canvas *canvas, const VPoint *vp);
+void mif_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
+void mif_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
+void mif_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+void mif_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+void mif_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void mif_puttext(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning);
 
-void mif_leavegraphics(void);
+void mif_leavegraphics(const Canvas *canvas);

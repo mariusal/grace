@@ -128,7 +128,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	if (cursortype != 0) {
             crosshair_motion(x, y);
         }
-	vp = xlibdev2VPoint(x, y);
+	xlibdev2VPoint(x, y, &vp);
         getpoints(&vp);
 
         if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
@@ -184,7 +184,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     case ButtonPress:
 	x = event->xbutton.x;
 	y = event->xbutton.y;
-	vp = xlibdev2VPoint(x, y);
+	xlibdev2VPoint(x, y, &vp);
 	getpoints(&vp);
 	switch (event->xbutton.button) {
 	case Button1:
@@ -201,7 +201,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 if (dbl_click == True && grace->gui->allow_dc == TRUE) {
                     track_setno = -1;
                     if (focus_clicked(cg, vp, &anchor_vp) == TRUE) {
-                        xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
+                        xlibVPoint2dev(&anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
 	                select_region(anchor_x, anchor_y, x, y, 0);
                     } else if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS) {
@@ -880,7 +880,7 @@ void getpoints(VPoint *vpp)
         ytmp = vp.y;
         break;
     case 5:
-        xlibVPoint2dev(vp, &x, &y);
+        xlibVPoint2dev(&vp, &x, &y);
         xtmp = x;
         ytmp = y;
         break;
@@ -953,7 +953,7 @@ int next_graph_containing(int cg, VPoint vp)
            gno != cg) {
 	if (is_graph_hidden(gno)        == FALSE &&
             get_graph_viewport(gno, &v) == RETURN_SUCCESS &&
-            is_vpoint_inside(v, vp, MAXPICKDIST) == TRUE) {
+            is_vpoint_inside(&v, &vp, MAXPICKDIST) == TRUE) {
 	    
             next = gno;
             break;
@@ -969,7 +969,7 @@ int legend_clicked(int gno, VPoint vp, view *bb)
 
     if (is_graph_hidden(gno) == FALSE) {
         get_graph_legend(gno, &l);
-	if (l.active && is_vpoint_inside(l.bb, vp, MAXPICKDIST)) {
+	if (l.active && is_vpoint_inside(&l.bb, &vp, MAXPICKDIST)) {
 	    *bb = l.bb;
             return TRUE;
 	} else {
@@ -986,7 +986,7 @@ int graph_clicked(int gno, VPoint vp)
 
     if (is_graph_hidden(gno) == FALSE) {
         get_graph_viewport(gno, &v);
-	if (is_vpoint_inside(v, vp, MAXPICKDIST)) {
+	if (is_vpoint_inside(&v, &vp, MAXPICKDIST)) {
             return TRUE;
 	} else {
             return FALSE;
@@ -1184,7 +1184,7 @@ int find_item(graph *g, VPoint vp, view *bb, int *id)
         if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
 	    if (isactive_object(o)) {
                 get_object_bb(o, bb);
-	        if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
+	        if (is_vpoint_inside(bb, &vp, MAXPICKDIST)) {
 		    *id = storage_get_id(objects);
                     return RETURN_SUCCESS;
 	        }

@@ -33,27 +33,16 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "globals.h"
 #include "defines.h"
-#include "draw.h"
 
 #include "utils.h"
 #include "files.h"
 #include "device.h"
-#include "t1fonts.h"
 
 #include "protos.h"
 
-static int nfonts = 0;
-static FontDB *FontDBtable = NULL;
-static char **DefEncoding = NULL;
-
-void (*devputpixmap) (VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void (*devputtext) (VPoint vp, char *s, int len, int font,
-     TextMatrix *tm, int underline, int overline, int kerning);
-
-
-int init_t1(void)
+int init_t1(Canvas *canvas)
 {
     int i;
     char buf[GR_MAXPATHLEN], *bufp;
@@ -87,8 +76,8 @@ int init_t1(void)
         return (RETURN_FAILURE);
     }
     
-    nfonts = T1_Get_no_fonts();
-    if (nfonts < 1) {
+    canvas->nfonts = T1_Get_no_fonts();
+    if (canvas->nfonts < 1) {
         return (RETURN_FAILURE);
     }
     
@@ -97,29 +86,29 @@ int init_t1(void)
         return (RETURN_FAILURE);
     }
     
-    FontDBtable = xmalloc(nfonts*sizeof(FontDB));
+    canvas->FontDBtable = xmalloc(canvas->nfonts*sizeof(FontDB));
     
     /* skip the first line */
     grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
-    for (i = 0; i < nfonts; i++) {
+    for (i = 0; i < canvas->nfonts; i++) {
         grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
-        if (sscanf(buf, "%s %s %*s", FontDBtable[i].alias, 
-                                     FontDBtable[i].fallback) != 2) {
+        if (sscanf(buf, "%s %s %*s", canvas->FontDBtable[i].alias, 
+                                     canvas->FontDBtable[i].fallback) != 2) {
             fclose(fd);
             return (RETURN_FAILURE);
         }
-        FontDBtable[i].mapped_id = i;
+        canvas->FontDBtable[i].mapped_id = i;
     }
     fclose(fd);
     
     T1_SetDeviceResolutions(72.0, 72.0);
     
-    DefEncoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
-    if (DefEncoding == NULL) {
-        DefEncoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
+    canvas->DefEncoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
+    if (canvas->DefEncoding == NULL) {
+        canvas->DefEncoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
     }
-    if (DefEncoding != NULL) {
-        T1_SetDefaultEncoding(DefEncoding);
+    if (canvas->DefEncoding != NULL) {
+        T1_SetDefaultEncoding(canvas->DefEncoding);
     } else {
         return (RETURN_FAILURE);
     }
@@ -131,46 +120,46 @@ int init_t1(void)
     return (RETURN_SUCCESS);
 }
 
-void map_fonts(int map)
+void map_fonts(Canvas *canvas, int map)
 {
     int i;
     
     if (map == FONT_MAP_ACEGR) {
-        for (i = 0; i < nfonts; i++) {
-            FontDBtable[i].mapped_id = BAD_FONT_ID;
+        for (i = 0; i < canvas->nfonts; i++) {
+            canvas->FontDBtable[i].mapped_id = BAD_FONT_ID;
         }
-        map_font_by_name("Times-Roman", 0);
-        map_font_by_name("Times-Bold", 1);
-        map_font_by_name("Times-Italic", 2);
-        map_font_by_name("Times-BoldItalic", 3);
-        map_font_by_name("Helvetica", 4);
-        map_font_by_name("Helvetica-Bold", 5);
-        map_font_by_name("Helvetica-Oblique", 6);
-        map_font_by_name("Helvetica-BoldOblique", 7);
-        map_font_by_name("Symbol", 8);
-        map_font_by_name("ZapfDingbats", 9);
+        map_font_by_name(canvas, "Times-Roman", 0);
+        map_font_by_name(canvas, "Times-Bold", 1);
+        map_font_by_name(canvas, "Times-Italic", 2);
+        map_font_by_name(canvas, "Times-BoldItalic", 3);
+        map_font_by_name(canvas, "Helvetica", 4);
+        map_font_by_name(canvas, "Helvetica-Bold", 5);
+        map_font_by_name(canvas, "Helvetica-Oblique", 6);
+        map_font_by_name(canvas, "Helvetica-BoldOblique", 7);
+        map_font_by_name(canvas, "Symbol", 8);
+        map_font_by_name(canvas, "ZapfDingbats", 9);
     } else {
-        for (i = 0; i < nfonts; i++) {
-            FontDBtable[i].mapped_id = i;
+        for (i = 0; i < canvas->nfonts; i++) {
+            canvas->FontDBtable[i].mapped_id = i;
         }
     }
 }
 
-int get_font_mapped_id(int font)
+int get_font_mapped_id(const Canvas *canvas, int font)
 {
-    if (font >= nfonts || font < 0) {
+    if (font >= canvas->nfonts || font < 0) {
         return(BAD_FONT_ID);
     } else {
-        return(FontDBtable[font].mapped_id);
+        return(canvas->FontDBtable[font].mapped_id);
     }
 }
 
-int get_mapped_font(int mapped_id)
+int get_mapped_font(const Canvas *canvas, int mapped_id)
 {
     int i;
     
-    for (i = 0; i < nfonts; i++) {
-        if (FontDBtable[i].mapped_id == mapped_id) {
+    for (i = 0; i < canvas->nfonts; i++) {
+        if (canvas->FontDBtable[i].mapped_id == mapped_id) {
             return(i);
         }
     }
@@ -178,51 +167,51 @@ int get_mapped_font(int mapped_id)
     return(BAD_FONT_ID);
 }
 
-int map_font(int font, int mapped_id)
+int map_font(Canvas *canvas, int font, int mapped_id)
 {
     int i;
     
-    if (font >= nfonts || font < 0) {
+    if (font >= canvas->nfonts || font < 0) {
         return RETURN_FAILURE;
     }
     
     /* make sure the mapping is unique */
-    for (i = 0; i < nfonts; i++) {
-        if (FontDBtable[i].mapped_id == mapped_id) {
-            FontDBtable[i].mapped_id = BAD_FONT_ID;
+    for (i = 0; i < canvas->nfonts; i++) {
+        if (canvas->FontDBtable[i].mapped_id == mapped_id) {
+            canvas->FontDBtable[i].mapped_id = BAD_FONT_ID;
         }
     }
-    FontDBtable[font].mapped_id = mapped_id;
+    canvas->FontDBtable[font].mapped_id = mapped_id;
 
     return RETURN_SUCCESS;
 }
 
-int map_font_by_name(char *fname, int mapped_id)
+int map_font_by_name(Canvas *canvas, const char *fname, int mapped_id)
 {
-    return(map_font(get_font_by_name(fname), mapped_id));
+    return map_font(canvas, get_font_by_name(canvas, fname), mapped_id);
 }
 
-int number_of_fonts(void)
+int number_of_fonts(const Canvas *canvas)
 {
-    return (nfonts);
+    return canvas->nfonts;
 }
 
-int get_font_by_name(char *fname)
+int get_font_by_name(const Canvas *canvas, const char *fname)
 {
     int i;
     
     if (fname == NULL) {
-        return(BAD_FONT_ID);
+        return BAD_FONT_ID;
     }
     
-    for (i = 0; i < nfonts; i++) {
-        if (strcmp(get_fontalias(i), fname) == 0) {
-            return(i);
+    for (i = 0; i < canvas->nfonts; i++) {
+        if (strcmp(get_fontalias(canvas, i), fname) == 0) {
+            return i;
         }
     }
 
-    for (i = 0; i < nfonts; i++) {
-        if (strcmp(get_fontfallback(i), fname) == 0) {
+    for (i = 0; i < canvas->nfonts; i++) {
+        if (strcmp(get_fontfallback(canvas, i), fname) == 0) {
             return(i);
         }
     }
@@ -230,7 +219,7 @@ int get_font_by_name(char *fname)
     return(BAD_FONT_ID);
 }
 
-char *get_fontfilename(int font, int abspath)
+char *get_fontfilename(const Canvas *canvas, int font, int abspath)
 {
     if (abspath) {
         return (T1_GetFontFilePath(font));
@@ -239,7 +228,7 @@ char *get_fontfilename(int font, int abspath)
     }
 }
 
-char *get_afmfilename(int font, int abspath)
+char *get_afmfilename(const Canvas *canvas, int font, int abspath)
 {
     char *s;
 
@@ -254,7 +243,7 @@ char *get_afmfilename(int font, int abspath)
         static char buf[256];
         int len;
         
-        s = get_fontfilename(font, abspath);
+        s = get_fontfilename(canvas, font, abspath);
         len = strlen(s);
         s1 = s + (len - 1);
         while(s1 && *s1 != '.') {
@@ -270,47 +259,48 @@ char *get_afmfilename(int font, int abspath)
     }
 }
 
-char *get_fontname(int font)
+char *get_fontname(const Canvas *canvas, int font)
 {
     return (T1_GetFontName(font));
 }
 
-char *get_fontalias(int font)
+char *get_fontalias(const Canvas *canvas, int font)
 {
-    return (FontDBtable[font].alias);
+    return (canvas->FontDBtable[font].alias);
 }
 
-char *get_fontfallback(int font)
+char *get_fontfallback(const Canvas *canvas, int font)
 {
-    return (FontDBtable[font].fallback);
+    return (canvas->FontDBtable[font].fallback);
 }
 
-char *get_encodingscheme(int font)
+char *get_encodingscheme(const Canvas *canvas, int font)
 {
     return (T1_GetEncodingScheme(font));
 }
 
-char **get_default_encoding(void)
+char **get_default_encoding(const Canvas *canvas)
 {
-    return (DefEncoding);
+    return (canvas->DefEncoding);
 }
 
-double get_textline_width(int font)
+double get_textline_width(const Canvas *canvas, int font)
 {
     return (double) T1_GetUnderlineThickness(font)/1000.0;
 }
 
-double get_underline_pos(int font)
+double get_underline_pos(const Canvas *canvas, int font)
 {
     return (double) T1_GetLinePosition(font, T1_UNDERLINE)/1000.0;
 }
 
-double get_overline_pos(int font)
+double get_overline_pos(const Canvas *canvas, int font)
 {
     return (double) T1_GetLinePosition(font, T1_OVERLINE)/1000.0;
 }
 
-double *get_kerning_vector(char *str, int len, int font)
+double *get_kerning_vector(const Canvas *canvas,
+    const char *str, int len, int font)
 {
     if (len < 2 || T1_GetNoKernPairs(font) <= 0) {
         return NULL;
@@ -395,7 +385,8 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
-GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
+GLYPH *GetGlyphString(Canvas *canvas,
+    CompositeString *cs, double dpv, int fontaa)
 {
     int i;
     
@@ -448,18 +439,18 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 
     if (fontaa == TRUE) {
     	fg = cs->color;
-    	bg = getbgcolor();
+    	bg = getbgcolor(canvas);
 
     	aacolors[0] = bg;
     	aacolors[T1_AALEVELS - 1] = fg;
 
     	if ((fg != last_fg) || (bg != last_bg)) {
     	    /* Get RGB values for fore- and background */
-    	    if (get_rgb(fg, &fg_rgb) != RETURN_SUCCESS) {
+    	    if (get_rgb(canvas, fg, &fg_rgb) != RETURN_SUCCESS) {
     		return NULL;
     	    }
  
-    	    if (get_rgb(bg, &bg_rgb) != RETURN_SUCCESS) {
+    	    if (get_rgb(canvas, bg, &bg_rgb) != RETURN_SUCCESS) {
     		return NULL;
     	    }
  
@@ -473,7 +464,7 @@ GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
     		cmap.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
     		cmap.cname = "";
     		cmap.ctype = COLOR_AUX;
-    		aacolors[i] = add_color(cmap);
+    		aacolors[i] = add_color(canvas, &cmap);
     	    }
  
     	    last_fg = fg;
@@ -510,7 +501,7 @@ static void FreeCompositeString(CompositeString *cs, int nss)
     xfree(cs);
 }
 
-static int get_escape_args(char *s, char *buf)
+static int get_escape_args(const char *s, char *buf)
 {
     int i = 0;
     
@@ -530,7 +521,7 @@ static int get_escape_args(char *s, char *buf)
     return -1;
 }
 
-static char *expand_macros(char *s)
+static char *expand_macros(const char *s)
 {
     char *es, *macro, *subst;
     int i, j, k, slen, extra_len = 0;
@@ -550,10 +541,10 @@ static char *expand_macros(char *s)
                 subst = get_timestamp();
             } else
             if (!strcmp(macro, "filename")) {
-                subst = get_docname();
+                subst = get_docname(grace->project);
             } else
             if (!strcmp(macro, "filebname")) {
-                subst = get_docbname();
+                subst = get_docbname(grace->project);
             } else {
                 subst = "";
             }
@@ -578,10 +569,10 @@ static char *expand_macros(char *s)
                 subst = get_timestamp();
             } else
             if (!strcmp(macro, "filename")) {
-                subst = get_docname();
+                subst = get_docname(grace->project);
             } else
             if (!strcmp(macro, "filebname")) {
-                subst = get_docbname();
+                subst = get_docbname(grace->project);
             } else {
                 subst = "";
             }
@@ -599,7 +590,8 @@ static char *expand_macros(char *s)
 
 static const TextMatrix unit_tm = UNIT_TM;
 
-static CompositeString *String2Composite(char *s, int *nss)
+static CompositeString *String2Composite(Canvas *canvas,
+    const char *s, int *nss)
 {
     CompositeString *csbuf;
 
@@ -671,7 +663,7 @@ static CompositeString *String2Composite(char *s, int *nss)
             inside_escape = FALSE;
             
             if (isdigit(ccode)) {
-	        new_font = get_mapped_font(ccode - '0');
+	        new_font = get_mapped_font(canvas, ccode - '0');
 	        continue;
 	    } else if (ccode == 'd') {
                 i++;
@@ -734,7 +726,7 @@ static CompositeString *String2Composite(char *s, int *nss)
 		    new_font = BAD_FONT_ID;
 		    break;
 	        case 'x':
-		    new_font = get_font_by_name("Symbol");
+		    new_font = get_font_by_name(canvas, "Symbol");
 		    break;
 	        case 'c':
 	            upperset = TRUE;
@@ -782,9 +774,9 @@ static CompositeString *String2Composite(char *s, int *nss)
                     if (j == 0) {
                         new_font = BAD_FONT_ID;
                     } else if (isdigit(buf[0])) {
-                        new_font = get_mapped_font(atoi(buf));
+                        new_font = get_mapped_font(canvas, atoi(buf));
                     } else {
-                        new_font = get_font_by_name(buf);
+                        new_font = get_font_by_name(canvas, buf);
                     }
                     break;
 	        case 'v':
@@ -860,7 +852,7 @@ static CompositeString *String2Composite(char *s, int *nss)
                     } else if (isdigit(buf[0])) {
                             new_color = atof(buf);
                     } else {
-                        new_color = get_color_by_name(buf);
+                        new_color = get_color_by_name(canvas, buf);
                     }
                     break;
 	        case '#':
@@ -1033,17 +1025,18 @@ static void process_ligatures(CompositeString *cs)
     cs->len = m;
 }
 
-void WriteString(VPoint vp, double angle, int just, char *theString)
+void WriteString(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *theString)
 {    
     VPoint vptmp;
  
     double page_ipv, page_dpv;
     
-    int def_font = getfont();
-    int def_color = getcolor();
+    int def_font = getfont(canvas);
+    int def_color = getcolor(canvas);
  
     /* charsize (in VP units) */
-    double charsize = MAGIC_FONT_SCALE*getcharsize();
+    double charsize = MAGIC_FONT_SCALE*getcharsize(canvas);
 
     int text_advancing;
 
@@ -1061,7 +1054,7 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
     
     VPoint rpoint, baseline_start, baseline_stop, bbox_ll, bbox_ur, offset;
     
-    Device_entry dev;
+    Device_entry *dev;
  
     if (is_empty_string(theString)) {
 	return;
@@ -1071,13 +1064,13 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
         return;
     }
 
-    dev = get_curdevice_props();
+    dev = get_curdevice_props(canvas);
     
     /* inches per 1 unit of viewport */
-    page_ipv = MIN2(page_width_in, page_height_in);
+    page_ipv = MIN2(page_width_in(canvas), page_height_in(canvas));
 
     /* dots per 1 unit of viewport */
-    page_dpv = page_ipv*page_dpi;
+    page_dpv = page_ipv*page_dpi(canvas);
 
     hjust = just & 03;
     switch (hjust) {
@@ -1116,17 +1109,17 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
         return;
     }
 
-    cstring = String2Composite(theString, &nss);
+    cstring = String2Composite(canvas, theString, &nss);
     if (cstring == NULL) {
         return;
     }
     
     /* zero marks */
     for (gotomark = 0; gotomark < MAX_MARKS; gotomark++) {
-        cs_marks[gotomark] = vp;
+        cs_marks[gotomark] = *vp;
     }
     
-    rpoint = vp;
+    rpoint = *vp;
     baseline_start = rpoint;
     bbox_ll = rpoint;
     bbox_ur = rpoint;
@@ -1156,7 +1149,7 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
         gotomark = cs->gotomark;
         setmark = cs->setmark;
 
-        glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
+        glyph = GetGlyphString(canvas, cs, page_dpv, dev->fontaa);
         if (glyph != NULL) {
             VPoint hvpshift, vvpshift;
 
@@ -1179,7 +1172,7 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
                 rpoint = cs_marks[gotomark];
             } else if (gotomark == MARK_CR) {
                 /* carriage return */
-                rpoint = vp;
+                rpoint = *vp;
             }
 
             rpoint.x += hvpshift.x;
@@ -1222,14 +1215,14 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
     
     if (vjust == JUST_BLINE) {
         offset.x = baseline_start.x + 
-            hfudge*(baseline_stop.x - baseline_start.x) - vp.x;
+            hfudge*(baseline_stop.x - baseline_start.x) - vp->x;
         offset.y = baseline_start.y + 
-            hfudge*(baseline_stop.y - baseline_start.y) - vp.y;
+            hfudge*(baseline_stop.y - baseline_start.y) - vp->y;
     } else {
         offset.x = bbox_ll.x + 
-            hfudge*(bbox_ur.x - bbox_ll.x) - vp.x;
+            hfudge*(bbox_ur.x - bbox_ll.x) - vp->x;
         offset.y = bbox_ll.y + 
-            vfudge*(bbox_ur.y - bbox_ll.y) - vp.y;
+            vfudge*(bbox_ur.y - bbox_ll.y) - vp->y;
     }
     
     /* justification corrections */
@@ -1249,8 +1242,8 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
     bbox_ll.y -= offset.y;
     bbox_ur.x -= offset.x;
     bbox_ur.y -= offset.y;
-    update_bboxes(bbox_ll);
-    update_bboxes(bbox_ur);
+    update_bboxes(canvas, &bbox_ll);
+    update_bboxes(canvas, &bbox_ur);
         
     for (iss = 0; iss < nss; iss++) {
         CompositeString *cs = &cstring[iss];
@@ -1265,21 +1258,21 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
             continue;
         }
         
-        if (get_draw_mode() == TRUE) {
+        if (get_draw_mode(canvas) == TRUE) {
             /* No patterned texts yet */
-            setpattern(1);
-            setcolor(cs->color);
+            setpattern(canvas, 1);
+            setcolor(canvas, cs->color);
 
-            if (dev.devfonts == TRUE) {
+            if (dev->devfonts == TRUE) {
                 if (cs->advancing == TEXT_ADVANCING_RL) {
                     vptmp = cs->stop;
                 } else {
                     vptmp = cs->start;
                 }
-                if (devputtext == NULL) {
+                if (canvas->devputtext == NULL) {
                     errmsg("Device has no built-in fonts");
                 } else {
-                    (*devputtext) (vptmp, cs->s, cs->len, cs->font,
+                    canvas->devputtext(canvas, &vptmp, cs->s, cs->len, cs->font,
                         &cs->tm, cs->underline, cs->overline, cs->kerning);
                 }
             } else {
@@ -1288,7 +1281,7 @@ void WriteString(VPoint vp, double angle, int just, char *theString)
                 vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
                 vptmp.y += (double) glyph->metrics.ascent/page_dpv;
 
-                (*devputpixmap) (vptmp, pwidth, pheight, glyph->bits, 
+                canvas->devputpixmap(canvas, &vptmp, pwidth, pheight, glyph->bits, 
                     glyph->bpp, T1_DEFAULT_BITMAP_PAD, PIXMAP_TRANSPARENT);
             }
         }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -44,6 +44,7 @@
 #include "motifinc.h"
 #include "protos.h"
 
+#define canvas grace->rt->canvas
 
 extern char print_file[];
 
@@ -133,11 +134,11 @@ void create_printer_setup(void *data)
         rc1 = CreateVContainer(fr);
 	pdev_rc = CreateHContainer(rc1);
 
-	ndev = number_of_devices();
+	ndev = number_of_devices(canvas);
         option_items = xmalloc(ndev*sizeof(OptionItem));
         for (i = 0; i < ndev; i++) {
             option_items[i].value = i;
-            option_items[i].label = get_device_name(i);
+            option_items[i].label = get_device_name(canvas, i);
         }
         devices_item =
             CreateOptionChoice(pdev_rc, "Device: ", 1, ndev, option_items);
@@ -237,20 +238,20 @@ static void update_device_setup(int device_id)
     PageFormat pf;
     
     Page_geometry pg;
-    Device_entry dev;
+    Device_entry *dev;
     
     if (psetup_frame) {
-	dev = get_device_props(device_id);
-        pg = dev.pg;
+	dev = get_device_props(canvas, device_id);
+        pg = dev->pg;
         	
-        if (dev.setup == NULL) {
+        if (dev->setup == NULL) {
             SetSensitive(device_opts_item, False);
         } else {
             SetSensitive(device_opts_item, True);
         }
 
         if (is_empty_string(print_file)) {
-            strcpy(print_file, mybasename(get_docname())); 
+            strcpy(print_file, mybasename(get_docname(grace->project))); 
         }
         
         /* Replace existing filename extension */
@@ -260,13 +261,13 @@ static void update_device_setup(int device_id)
         } else {
             strcat(print_file, ".");
         }
-        strcat(print_file, dev.fext);
+        strcat(print_file, dev->fext);
         
         xv_setstr(printfile_item, print_file);
                 
-        xv_setstr(print_string_item, get_print_cmd());
+        xv_setstr(print_string_item, get_print_cmd(grace));
         
-        switch (dev.type) {
+        switch (dev->type) {
         case DEVICE_TERM:
             UnmanageChild(output_frame);
             break;
@@ -279,9 +280,9 @@ static void update_device_setup(int device_id)
             break;
         case DEVICE_PRINT:
             ManageChild(output_frame);
-            SetToggleButtonState(printto_item, get_ptofile());
+            SetToggleButtonState(printto_item, get_ptofile(grace));
             SetSensitive(printto_item, True);
-            if (get_ptofile() == TRUE) {
+            if (get_ptofile(grace) == TRUE) {
                 SetSensitive(rc_filesel, True);
                 SetSensitive(GetParent(print_string_item), False);
             } else {
@@ -294,7 +295,7 @@ static void update_device_setup(int device_id)
         SetOptionChoice(page_orient_item, pg.width < pg.height ?
             PAGE_ORIENT_PORTRAIT : PAGE_ORIENT_LANDSCAPE);
         
-        pf = get_page_format(device_id);
+        pf = get_page_format(canvas, device_id);
         SetOptionChoice(page_format_item, pf); 
         if (pf == PAGE_FORMAT_CUSTOM) {
             SetSensitive(page_x_item, True);
@@ -334,9 +335,9 @@ static void update_device_setup(int device_id)
         sprintf (buf, "%.2f", page_y); 
         xv_setstr(page_y_item, buf);
         
-        SetToggleButtonState(fontaa_item, dev.fontaa);
+        SetToggleButtonState(fontaa_item, dev->fontaa);
         
-        SetToggleButtonState(devfont_item, dev.devfonts);
+        SetToggleButtonState(devfont_item, dev->devfonts);
     }
 }
 
@@ -346,34 +347,36 @@ static int set_printer_proc(void *data)
     double page_x, page_y;
     double dpi;
     int page_units;
-    Device_entry dev;
+    Device_entry *dev;
     Page_geometry pg;
     int do_redraw = FALSE;
     
     seldevice = GetOptionChoice(devices_item);
 
-    dev = get_device_props(seldevice);
+    dev = get_device_props(canvas, seldevice);
 
-    if (dev.type != DEVICE_TERM) {
+    if (dev->type != DEVICE_TERM) {
         grace->rt->hdevice = seldevice;
-        set_ptofile(GetToggleButtonState(printto_item));
-        if (get_ptofile()) {
+        set_ptofile(grace, GetToggleButtonState(printto_item));
+        if (get_ptofile(grace)) {
             strcpy(print_file, xv_getstr(printfile_item));
         } else {
-            set_print_cmd(xv_getstr(print_string_item));
+            set_print_cmd(grace, xv_getstr(print_string_item));
         }
     }
     
-    dev.devfonts = GetToggleButtonState(devfont_item);
-    dev.fontaa = GetToggleButtonState(fontaa_item);
+    dev->devfonts = GetToggleButtonState(devfont_item);
+    dev->fontaa = GetToggleButtonState(fontaa_item);
     
     if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
-        xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS  ) {
+        xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ||
+        page_x <= 0.0 || page_y <= 0.0) {
         errmsg("Invalid page dimension(s)");
         return RETURN_FAILURE;
     }
 
-    if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS) {
+    if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS ||
+        dpi <= 0.0) {
         errmsg("Invalid dpi");
         return RETURN_FAILURE;
     }
@@ -400,17 +403,13 @@ static int set_printer_proc(void *data)
     
     pg.dpi = dpi;
     
-    dev.pg = pg;
-    
-    if (set_device_props(seldevice, dev) != RETURN_SUCCESS) {
-        errmsg("Invalid page dimensions or DPI");
-        return RETURN_FAILURE;
-    }
+    dev->pg = pg;
     
     if (GetToggleButtonState(dsync_item) == TRUE) {
-        set_page_dimensions((int) rint(72.0*pg.width/pg.dpi),
-                            (int) rint(72.0*pg.height/pg.dpi),
-                            GetToggleButtonState(psync_item) == TRUE);
+        set_page_dimensions(grace,
+            (int) rint(72.0*pg.width/pg.dpi),
+            (int) rint(72.0*pg.height/pg.dpi),
+            GetToggleButtonState(psync_item) == TRUE);
         do_redraw = TRUE;
     }
     
@@ -419,7 +418,7 @@ static int set_printer_proc(void *data)
     }
     
     if (do_redraw) {
-        drawgraph();
+        drawgraph(grace);
     }
     
     return RETURN_SUCCESS;
@@ -558,7 +557,7 @@ void create_printfiles_popup(void *data)
 {
     static FSBStructure *fsb = NULL;
     int device;
-    Device_entry dev;
+    Device_entry *dev;
     char buf[16];
 
     set_wait_cursor();
@@ -570,9 +569,9 @@ void create_printfiles_popup(void *data)
     }
 
     device = GetOptionChoice(devices_item);
-    dev = get_device_props(device);
+    dev = get_device_props(canvas, device);
 
-    sprintf(buf, "*.%s", dev.fext);
+    sprintf(buf, "*.%s", dev->fext);
     SetFileSelectionBoxPattern(fsb, buf);
     
     RaiseWindow(fsb->dialog);
@@ -583,15 +582,15 @@ void create_printfiles_popup(void *data)
 void create_devopts_popup(void *data)
 {
     int device_id;
-    Device_entry dev;
+    Device_entry *dev;
     
     device_id = GetOptionChoice(devices_item);
-    dev = get_device_props(device_id);
-    if (dev.setup == NULL) {
+    dev = get_device_props(canvas, device_id);
+    if (dev->setup == NULL) {
         /* Should never come to here */
         errmsg("No options can be set for this device");
     } else {
-        (dev.setup)();
+        (dev->setup)(canvas);
     }
 }
 
@@ -654,6 +653,6 @@ static void do_units_toggle(int value, void *data)
 static void do_print_cb(void *data)
 {
     set_wait_cursor();
-    do_hardcopy();
+    do_hardcopy(grace);
     unset_wait_cursor();
 }

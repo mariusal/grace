@@ -100,12 +100,12 @@ static Device_entry dev_x11 = {DEVICE_TERM,
           NULL
          };
 
-int register_x11_drv(void)
+int register_x11_drv(Canvas *canvas)
 {
-    return register_device(dev_x11);
+    return register_device(canvas, &dev_x11);
 }
 
-int xlibinit(void)
+int xlibinit(const Canvas *canvas)
 {
     XSetWindowAttributes sw;
     XGCValues gc_val;
@@ -147,7 +147,7 @@ int xlibinit(void)
         cmap = XCopyColormapAndFree(disp, cmap);
         private_cmap = TRUE;
     }
-    xlibinitcmap();
+    xlibinitcmap(canvas);
     
 /*
  * set GCs
@@ -175,10 +175,9 @@ int xlibinit(void)
  * disable font AA in mono mode
  */
     if (grace->gui->monomode == TRUE) {
-        Device_entry dev;
-        dev = get_device_props(grace->rt->tdevice);
-        dev.fontaa = FALSE;
-        set_device_props(grace->rt->tdevice, dev);
+        Device_entry *dev;
+        dev = get_device_props(canvas, grace->rt->tdevice);
+        dev->fontaa = FALSE;
     }
 
     return RETURN_SUCCESS;
@@ -195,52 +194,44 @@ int yconvxlib(double y)
     return ((int) rint(win_h - win_scale * y));
 }
 
-void xlibVPoint2dev(VPoint vp, int *x, int *y)
+void xlibVPoint2dev(const VPoint *vp, int *x, int *y)
 {
-    *x = xconvxlib(vp.x);
-    *y = yconvxlib(vp.y);
+    *x = xconvxlib(vp->x);
+    *y = yconvxlib(vp->y);
 }
 
-XPoint VPoint2XPoint(VPoint vp)
+void VPoint2XPoint(const VPoint *vp, XPoint *xp)
 {
-    XPoint xp;
-    
-    xp.x = xconvxlib(vp.x);
-    xp.y = yconvxlib(vp.y);
-    
-    return(xp);
+    xp->x = xconvxlib(vp->x);
+    xp->y = yconvxlib(vp->y);
 }
 
 /*
  * xlibdev2VPoint - given (x,y) in screen coordinates, return the 
  * viewport coordinates
  */
-VPoint xlibdev2VPoint(int x, int y)
+void xlibdev2VPoint(int x, int y, VPoint *vp)
 {
-    VPoint vp;
-
     if (win_scale == 0) {
-        vp.x = (double) 0.0;
-        vp.y = (double) 0.0;
+        vp->x = (double) 0.0;
+        vp->y = (double) 0.0;
     } else {
-        vp.x = (double) x / win_scale;
-        vp.y = (double) (win_h - y) / win_scale;
+        vp->x = (double) x / win_scale;
+        vp->y = (double) (win_h - y) / win_scale;
     }
-
-    return (vp);        
 }
 
 
-void xlibupdatecmap(void)
+void xlibupdatecmap(const Canvas *canvas)
 {
     /* TODO: replace!!! */
     if (grace->gui->inwin) {
-        xlibinitcmap();
+        xlibinitcmap(canvas);
     }
 }
 
 
-void xlibinitcmap(void)
+void xlibinitcmap(const Canvas *canvas)
 {
     int i;
     RGB rgb;
@@ -251,10 +242,10 @@ void xlibinitcmap(void)
         xc[i].flags = DoRed | DoGreen | DoBlue;
     }
     
-    for (i = 0; i < number_of_colors(); i++) {
+    for (i = 0; i < number_of_colors(canvas); i++) {
         /* even in mono, b&w must be allocated */
         if (grace->gui->monomode == FALSE || i < 2) { 
-            if (get_rgb(i, &rgb) == RETURN_SUCCESS) {
+            if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
                 xc[i].red   = rgb.red << (16 - GRACE_BPP);
                 xc[i].green = rgb.green << (16 - GRACE_BPP);
                 xc[i].blue  = rgb.blue << (16 - GRACE_BPP);
@@ -284,7 +275,7 @@ void xlibinitcmap(void)
     }
 }
 
-int xlibinitgraphics(void)
+int xlibinitgraphics(Canvas *canvas)
 {
     int i, j;
     double step;
@@ -305,16 +296,16 @@ int xlibinitgraphics(void)
     xliblinejoin  = -1;
     
     /* device-dependent routines */    
-    devupdatecmap = xlibupdatecmap;
+    canvas->devupdatecmap = xlibupdatecmap;
     
-    devdrawpixel = xlibdrawpixel;
-    devdrawpolyline = xlibdrawpolyline;
-    devfillpolygon = xlibfillpolygon;
-    devdrawarc = xlibdrawarc;
-    devfillarc = xlibfillarc;
-    devputpixmap = xlibputpixmap;
+    canvas->devdrawpixel     = xlibdrawpixel;
+    canvas->devdrawpolyline  = xlibdrawpolyline;
+    canvas->devfillpolygon   = xlibfillpolygon;
+    canvas->devdrawarc       = xlibdrawarc;
+    canvas->devfillarc       = xlibfillarc;
+    canvas->devputpixmap     = xlibputpixmap;
     
-    devleavegraphics = xlibleavegraphics;
+    canvas->devleavegraphics = xlibleavegraphics;
 
     /* init settings specific to X11 driver */    
     
@@ -326,7 +317,7 @@ int xlibinitgraphics(void)
     
     displaybuff = resize_bufpixmap(win_w, win_h);
     
-    xlibupdatecmap();
+    xlibupdatecmap(canvas);
     
     XSetForeground(disp, gc, xvlibcolors[0]);
     XFillRectangle(disp, displaybuff, gc, 0, 0, win_w, win_h);
@@ -347,14 +338,14 @@ int xlibinitgraphics(void)
 }
 
 
-void xlib_setpen(void)
+void xlib_setpen(const Canvas *canvas)
 {
     int fg, bg, p;
     Pixmap ptmp;
     
-    fg = getcolor();
-    bg = getbgcolor();
-    p = getpattern();
+    fg = getcolor(canvas);
+    bg = getbgcolor(canvas);
+    p = getpattern(canvas);
     
     if ((fg == xlibcolor) && (bg == xlibbgcolor) && (p == xlibpatno)) {
         return;
@@ -370,7 +361,7 @@ void xlib_setpen(void)
         xlibbgcolor = bg;
     }
 
-    if (p >= number_of_patterns() || p < 0) {
+    if (p >= number_of_patterns(canvas) || p < 0) {
         p = 0;
     }
     xlibpatno = p;
@@ -396,7 +387,7 @@ void xlib_setpen(void)
     }
 }
 
-void xlib_setdrawbrush(void)
+void xlib_setdrawbrush(const Canvas *canvas)
 {
     unsigned int iw;
     int style;
@@ -404,15 +395,15 @@ void xlib_setdrawbrush(void)
     int i, scale, darr_len;
     char *xdarr;
 
-    xlib_setpen();
+    xlib_setpen(canvas);
     
-    iw = (unsigned int) rint(getlinewidth()*win_scale);
+    iw = (unsigned int) rint(getlinewidth(canvas)*win_scale);
     if (iw == 1) {
         iw = 0;
     }
-    style = getlinestyle();
-    lc = getlinecap();
-    lj = getlinejoin();
+    style = getlinestyle(canvas);
+    lc = getlinecap(canvas);
+    lj = getlinejoin(canvas);
     
     switch (lc) {
     case LINECAP_BUTT:
@@ -466,21 +457,21 @@ void xlib_setdrawbrush(void)
     return;
 }
 
-void xlibdrawpixel(VPoint vp)
+void xlibdrawpixel(const Canvas *canvas, const VPoint *vp)
 {
     XPoint xp;
     
-    xp = VPoint2XPoint(vp);
-    xlib_setpen();
+    VPoint2XPoint(vp, &xp);
+    xlib_setpen(canvas);
     XDrawPoint(disp, displaybuff, gc, xp.x, xp.y);
 }
 
-void xlibdrawpolyline(VPoint *vps, int n, int mode)
+void xlibdrawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 {
     int i, xn = n;
     XPoint *p;
     
-    if (n <= 1 || getlinestyle() == 0 || getpattern() == 0) {
+    if (n <= 1 || getlinestyle(canvas) == 0 || getpattern(canvas) == 0) {
         return;
     }
     
@@ -494,13 +485,13 @@ void xlibdrawpolyline(VPoint *vps, int n, int mode)
     }
     
     for (i = 0; i < n; i++) {
-        p[i] = VPoint2XPoint(vps[i]);
+        VPoint2XPoint(&vps[i], &p[i]);
     }
     if (mode == POLYLINE_CLOSED) {
         p[n] = p[0];
     }
     
-    xlib_setdrawbrush();
+    xlib_setdrawbrush(canvas);
     
     XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
     
@@ -508,36 +499,36 @@ void xlibdrawpolyline(VPoint *vps, int n, int mode)
 }
 
 
-void xlibfillpolygon(VPoint *vps, int npoints)
+void xlibfillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 {
     int i;
     XPoint *p;
     
-    if (npoints < 3 || getpattern() == 0) {
+    if (nc < 3 || getpattern(canvas) == 0) {
         return;
     }
     
-    p = (XPoint *) xmalloc(npoints*sizeof(XPoint));
+    p = (XPoint *) xmalloc(nc*sizeof(XPoint));
     if (p == NULL) {
         return;
     }
     
-    for (i = 0; i < npoints; i++) {
-        p[i] = VPoint2XPoint(vps[i]);
+    for (i = 0; i < nc; i++) {
+        VPoint2XPoint(&vps[i], &p[i]);
     }
     
-    xlib_setpen();
+    xlib_setpen(canvas);
 
-    if (getfillrule() != xlibfillrule) {
-        xlibfillrule = getfillrule();
-        if (getfillrule() == FILLRULE_WINDING) {
+    if (getfillrule(canvas) != xlibfillrule) {
+        xlibfillrule = getfillrule(canvas);
+        if (getfillrule(canvas) == FILLRULE_WINDING) {
             XSetFillRule(disp, gc, WindingRule);
         } else {
             XSetFillRule(disp, gc, EvenOddRule);
         }
     }
 
-    XFillPolygon(disp, displaybuff, gc, p, npoints, Complex, CoordModeOrigin);
+    XFillPolygon(disp, displaybuff, gc, p, nc, Complex, CoordModeOrigin);
     
     xfree(p);
 }
@@ -545,22 +536,23 @@ void xlibfillpolygon(VPoint *vps, int npoints)
 /*
  *  xlibdrawarc
  */
-void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2)
+void xlibdrawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
 {
     int x1, y1, x2, y2;
     
     xlibVPoint2dev(vp1, &x1, &y2);
     xlibVPoint2dev(vp2, &x2, &y1);
 
-    if (getlinestyle() == 0 || getpattern() == 0) {
+    if (getlinestyle(canvas) == 0 || getpattern(canvas) == 0) {
         return;
     }
 
-    xlib_setdrawbrush();
+    xlib_setdrawbrush(canvas);
     
     if (x1 != x2 || y1 != y2) {
         XDrawArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-              abs(x2 - x1), abs(y2 - y1), 64 * angle1, 64 * (angle2 - angle1));
+              abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * (a2 - a1));
     } else { /* zero radius */
         XDrawPoint(disp, displaybuff, gc, x1, y1);
     }
@@ -569,15 +561,16 @@ void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 /*
  *  xlibfillarc
  */
-void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
+void xlibfillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
 {
     int x1, y1, x2, y2;
     
     xlibVPoint2dev(vp1, &x1, &y2);
     xlibVPoint2dev(vp2, &x2, &y1);
     
-    if (getpattern() != 0) {
-        xlib_setpen();
+    if (getpattern(canvas) != 0) {
+        xlib_setpen(canvas);
         if (x1 != x2 || y1 != y2) {
             if (xlibarcfillmode != mode) {
                 xlibarcfillmode = mode;
@@ -588,7 +581,7 @@ void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
                 }
             }
             XFillArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-               abs(x2 - x1), abs(y2 - y1), 64 * angle1, 64 * (angle2 - angle1));
+               abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * (a2 - a1));
         } else { /* zero radius */
             XDrawPoint(disp, displaybuff, gc, x1, y1);
         }
@@ -596,8 +589,9 @@ void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
 }
 
 
-void xlibputpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
+void xlibputpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     int j, k, l;
     
@@ -613,7 +607,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
 
     int cindex, fg, bg;
     
-    xp = VPoint2XPoint(vp);
+    VPoint2XPoint(vp, &xp);
       
     if (pixmap_bpp != 1) {
         if (grace->gui->monomode == TRUE) {
@@ -651,7 +645,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
                 return;
             } else {
                 /* Note: We pad the clipmask always to byte boundary */
-                bg = getbgcolor();
+                bg = getbgcolor(canvas);
                 for (k = 0; k < height; k++) {
                     line_off = k*(PAD(width, 8) >> 3);
                     for (j = 0; j < width; j++) {
@@ -676,7 +670,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
         }
         memcpy(pixmap_ptr, databits, ((PAD(width, bitmap_pad)>>3) * height));
 
-        fg = getcolor();
+        fg = getcolor(canvas);
         if (fg != xlibcolor) {
             XSetForeground(disp, gc, xvlibcolors[fg]);
             xlibcolor = fg;
@@ -713,7 +707,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
     }    
 }
 
-void xlibleavegraphics(void)
+void xlibleavegraphics(const Canvas *canvas)
 {
     int cg = get_cg();
     

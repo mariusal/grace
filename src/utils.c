@@ -313,9 +313,10 @@ double mytrunc(double a)
 /*
  * exit grace
  */
-void bailout(void)
+void bailout(Grace *grace)
 {
-    if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+    if (!is_dirtystate() ||
+         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
          if (grace->rt->resfp) {
              grace_close(grace->rt->resfp);
          }
@@ -346,7 +347,7 @@ static void please_report_the_bug(void)
  * Warn about a possible bug displaying the passed message, try to save
  * any unsaved work and abort
  */
-void emergency_exit(int is_my_bug, char *msg)
+void emergency_exit(Grace *grace, int is_my_bug, char *msg)
 {
 /*
  *  Since we got so far, memory is probably corrupted so it's better to use
@@ -368,7 +369,7 @@ void emergency_exit(int is_my_bug, char *msg)
         grace->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
         if (is_dirtystate()) {
-            strcpy(buf, get_docname());
+            strcpy(buf, get_docname(grace->project));
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
@@ -411,7 +412,7 @@ static RETSIGTYPE actOnSignal(int signo)
 #ifdef SIGTERM
     case SIGTERM:
 #endif
-        bailout();
+        bailout(grace);
         break;
 #ifdef SIGILL
     case SIGILL:
@@ -434,7 +435,7 @@ static RETSIGTYPE actOnSignal(int signo)
         signame = "SIGSYS";
 #endif
         sprintf(buf, "Got fatal signal %s!", signame);
-        emergency_exit(TRUE, buf);
+        emergency_exit(grace, TRUE, buf);
         break;
     default:
         /* ignore the rest */
@@ -945,60 +946,60 @@ int is_empty_string(const char *s)
     }
 }
 
-char *get_grace_home(void)
+char *get_grace_home(const Grace *grace)
 {
     return grace->rt->grace_home;
 }
 
-char *get_print_cmd(void)
+char *get_print_cmd(const Grace *grace)
 {
     return grace->rt->print_cmd;
 }
 
-void set_print_cmd(const char *cmd)
+void set_print_cmd(Grace *grace, const char *cmd)
 {
     grace->rt->print_cmd = copy_string(grace->rt->print_cmd, cmd);
 }
 
-char *get_editor(void)
+char *get_editor(const Grace *grace)
 {
     return grace->rt->grace_editor;
 }
 
-void set_editor(const char *cmd)
+void set_editor(Grace *grace, const char *cmd)
 {
     grace->rt->grace_editor = copy_string(grace->rt->grace_editor, cmd);
 }
 
-char *get_help_viewer(void)
+char *get_help_viewer(const Grace *grace)
 {
     return grace->rt->help_viewer;
 }
 
-void set_help_viewer(const char *dir)
+void set_help_viewer(Grace *grace, const char *dir)
 {
     grace->rt->help_viewer = copy_string(grace->rt->help_viewer, dir);
 }
 
-char *get_docname(void)
+char *get_docname(const Project *pr)
 {
-    return grace->project->docname;
+    return pr->docname;
 }
 
-void set_docname(const char *s)
+void set_docname(Project *pr, const char *s)
 {
     if (!s) {
         s = NONAME;
     }
-    grace->project->docname = copy_string(grace->project->docname, s);
+    pr->docname = copy_string(pr->docname, s);
 }
 
-char *get_docbname(void)
+char *get_docbname(const Project *pr)
 {
     static char buf[GR_MAXPATHLEN];
     char *bufp;
     
-    strcpy(buf, mybasename(grace->project->docname)); 
+    strcpy(buf, mybasename(pr->docname)); 
     bufp = strrchr(buf, '.');
     if (bufp) {
         *(bufp) = '\0';
@@ -1094,13 +1095,13 @@ char *mybasename(const char *s)
     return basename;
 }
 
-int set_workingdir(const char *wd)
+int set_workingdir(Grace *grace, const char *wd)
 {
     char buf[GR_MAXPATHLEN];
     
     strncpy(buf, wd, GR_MAXPATHLEN - 1);
     if (buf[0] == '~') {
-        expand_tilde(buf);
+        expand_tilde(grace, buf);
     }
     if (chdir(buf) >= 0) {
         grace->rt->workingdir = copy_string(grace->rt->workingdir, buf);
@@ -1113,36 +1114,36 @@ int set_workingdir(const char *wd)
     }
 }
 
-char *get_workingdir(void)
+char *get_workingdir(const Grace *grace)
 {
     return grace->rt->workingdir;
 }
 
-char *get_username(void)
+char *get_username(const Grace *grace)
 {
     return grace->rt->username;
 }
 
-char *get_userhome(void)
+char *get_userhome(const Grace *grace)
 {
     return grace->rt->userhome;
 }
 
 /* TODO this needs some work */
-void expand_tilde(char *buf)
+void expand_tilde(const Grace *grace, char *buf)
 {
     char buf2[GR_MAXPATHLEN];
 
     if (buf[0] == '~') {
 	if (strlen(buf) == 1) {
-            strcpy(buf, get_userhome());
+            strcpy(buf, get_userhome(grace));
 	} else if (buf[1] == '/') {
             if (strlen(buf) > 2) {
-                strcpy(buf2, get_userhome());
+                strcpy(buf2, get_userhome(grace));
 	        strcat(buf2, buf + 1);
 	        strcpy(buf, buf2);
             } else {
-                strcpy(buf, get_userhome());
+                strcpy(buf, get_userhome(grace));
             }
 	} else {
 	    char tmp[128], *pp = tmp, *q = buf + 1;
@@ -1199,10 +1200,10 @@ char *get_timestamp(void)
     return grace->project->timestamp;
 }
 
-void update_app_title(void)
+void update_app_title(Project *pr)
 {
 #ifndef NONE_GUI
-    set_title(mybasename(get_docname()));
+    set_title(mybasename(get_docname(pr)));
 #endif
 }
 

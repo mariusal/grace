@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -40,54 +40,56 @@
 #define BAR_HORIZONTAL  0
 #define BAR_VERTICAL    1
 
-void drawgraph(void);
-void do_hardcopy(void);
+void drawgraph(Grace *grace);
+void do_hardcopy(Grace *grace);
 
-void plotone(int gno);
+void plotone(Canvas *canvas, int gno);
 
-void xyplot(int gno);
-void draw_polar_graph(int gno);
-void draw_smith_chart(int gno);
-void draw_pie_chart(int gno);
+void xyplot(Canvas *canvas, int gno);
+void draw_polar_graph(Canvas *canvas, int gno);
+void draw_smith_chart(Canvas *canvas, int gno);
+void draw_pie_chart(Canvas *canvas, int gno);
 
-void drawframe(int gno);
-void fillframe(int gno);
+void drawframe(Canvas *canvas, int gno);
+void fillframe(Canvas *canvas, int gno);
 
-void drawsetfill(int gno, int setno, set *s,
+void drawsetfill(Canvas *canvas, int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetline(int gno, int setno, set *s,
+void drawsetline(Canvas *canvas, int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetbars(int gno, int setno, set *s,
+void drawsetbars(Canvas *canvas, int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetsyms(int gno, int setno, set *s,
+void drawsetsyms(Canvas *canvas, int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsetavalues(int gno, int setno, set *s,
+void drawsetavalues(Canvas *canvas, int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawseterrbars(int gno, int setno, set *s,
+void drawseterrbars(Canvas *canvas, int gno, int setno, set *s,
                  int refn, double *refx, double *refy, double offset);
-void drawsethilo(set *s);
-void drawcirclexy(set *s);
-void drawsetvmap(int gno, set *s);
-void drawsetboxplot(set *s);
+void drawsethilo(Canvas *canvas, set *s);
+void drawcirclexy(Canvas *canvas, set *s);
+void drawsetvmap(Canvas *canvas, int gno, set *s);
+void drawsetboxplot(Canvas *canvas, set *s);
 
-int drawxysym(VPoint vp, double size, int symtype,
-    Pen sympen, Pen symfillpen, char s);
-void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
+int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
+    const Pen *sympen, const Pen *symfillpen, char s);
+void drawerrorbar(Canvas *canvas,
+    const VPoint *vp1,const  VPoint *vp2, Errbar *eb);
 
-void draw_region(region *r);
+void draw_region(Canvas *canvas, region *r);
 
-void draw_objects(int gno);
+void draw_objects(Canvas *canvas, int gno);
 
-void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp,
-    const Pen *pen, const Pen *fill);
+void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
+    const Arrow *arrowp, const Pen *pen, const Pen *fill);
 
-void dolegend(int gno);
-void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip);
+void dolegend(Canvas *canvas, int gno);
+void putlegends(Canvas *canvas,
+    int gno, const VPoint *vp, double ldist, double sdist, double yskip);
 
-void draw_titles(int gno);
+void draw_titles(Canvas *canvas, int gno);
 
-void draw_ref_point(int gno);
+void draw_ref_point(Canvas *canvas, int gno);
 
-void draw_regions(int gno);
+void draw_regions(Canvas *canvas, int gno);
 
 #endif /* __PLOTONE_H_ */

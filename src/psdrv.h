@@ -49,32 +49,36 @@ typedef enum {
 #define DOCDATA_8BIT    1  
 #define DOCDATA_BINARY  2  
 
-int psprintinitgraphics(void);
-int epsinitgraphics(void);
+int psprintinitgraphics(Canvas *canvas);
+int epsinitgraphics(Canvas *canvas);
 
-void ps_drawpixel(VPoint vp);
-void ps_drawpolyline(VPoint *vps, int n, int mode);
-void ps_fillpolygon(VPoint *vps, int nc);
-void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
-void ps_putpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void ps_puttext(VPoint vp, char *s, int len, int font,
-     TextMatrix *tm, int underline, int overline, int kerning);
+void ps_drawpixel(const Canvas *canvas, const VPoint *vp);
+void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
+void ps_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
+void ps_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+void ps_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+void ps_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void ps_puttext(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning);
 
-void ps_leavegraphics(void);
+void ps_leavegraphics(const Canvas *canvas);
 
-int ps_op_parser(char *opstring);
-int eps_op_parser(char *opstring);
+int ps_op_parser(Canvas *canvas, const char *opstring);
+int eps_op_parser(Canvas *canvas, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define ps_gui_setup NULL
 #else
-void ps_gui_setup(void);
+void ps_gui_setup(Canvas *canvas);
 #endif
 
 #if defined(NONE_GUI)
 #  define eps_gui_setup NULL
 #else
-void eps_gui_setup(void);
+void eps_gui_setup(Canvas *canvas);
 #endif

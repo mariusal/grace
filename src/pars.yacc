@@ -62,7 +62,7 @@
 #include "objutils.h"
 #include "plotone.h"
 #include "dlmodule.h"
-#include "t1fonts.h"
+#include "draw.h"
 #include "ssdata.h"
 #include "protos.h"
 #include "parser.h"
@@ -75,6 +75,7 @@
 #define grdefaults grace->rt->grdefaults
 #define nlfit grace->rt->nlfit
 #define nonl_parms nlfit->parms
+#define canvas grace->rt->canvas
 
 /* Types of Fourier transforms */
 #define FFT_FFT         0
@@ -798,12 +799,12 @@ expr:	NUMBER {
 	}
 	| VXMAX {
 	    double vx, vy;
-            get_page_viewport(&vx, &vy);
+            get_page_viewport(canvas, &vx, &vy);
             $$ = vx;
 	}
 	| VYMAX {
 	    double vx, vy;
-            get_page_viewport(&vx, &vy);
+            get_page_viewport(canvas, &vx, &vy);
             $$ = vy;
 	}
 	| '(' expr ')' {
@@ -2008,79 +2009,75 @@ parmset:
                 errmsg("Project version is newer than software!");
             }
             if (project_get_version_id(grace->project) < 50001) {
-                map_fonts(FONT_MAP_ACEGR);
+                map_fonts(canvas, FONT_MAP_ACEGR);
             } else {
-                map_fonts(FONT_MAP_DEFAULT);
+                map_fonts(canvas, FONT_MAP_DEFAULT);
             }
         }
         | PAGE SIZE nexpr ',' nexpr {
-            set_page_dimensions($3, $5, FALSE);
+            set_page_dimensions(grace, $3, $5, FALSE);
         }
 	| DEVICE CHRSTR PAGE SIZE nexpr ',' nexpr {
             int device_id;
-            Device_entry dev;
+            Device_entry *dev;
             
-            device_id = get_device_by_name($2);
+            device_id = get_device_by_name(canvas, $2);
             xfree($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
-                dev = get_device_props(device_id);
-                dev.pg.width =  (long) ($5*dev.pg.dpi/72);
-                dev.pg.height = (long) ($7*dev.pg.dpi/72);
-                set_device_props(device_id, dev);
+                dev = get_device_props(canvas, device_id);
+                dev->pg.width =  (long) ($5*dev->pg.dpi/72);
+                dev->pg.height = (long) ($7*dev->pg.dpi/72);
             }
         }
         | DEVICE CHRSTR DPI expr {
             int device_id;
-            Device_entry dev;
+            Device_entry *dev;
             
-            device_id = get_device_by_name($2);
+            device_id = get_device_by_name(canvas, $2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
-                dev = get_device_props(device_id);
-                dev.pg.dpi = $4;
-                set_device_props(device_id, dev);
+                dev = get_device_props(canvas, device_id);
+                dev->pg.dpi = $4;
             }
             xfree($2);
         }
         | DEVICE CHRSTR FONTP ANTIALIASING onoff {
             int device_id;
-            Device_entry dev;
+            Device_entry *dev;
             
-            device_id = get_device_by_name($2);
+            device_id = get_device_by_name(canvas, $2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
-                dev = get_device_props(device_id);
-                dev.fontaa = $5;
-                set_device_props(device_id, dev);
+                dev = get_device_props(canvas, device_id);
+                dev->fontaa = $5;
             }
             xfree($2);
         }
         | DEVICE CHRSTR FONTP onoff {
             int device_id;
-            Device_entry dev;
+            Device_entry *dev;
             
-            device_id = get_device_by_name($2);
+            device_id = get_device_by_name(canvas, $2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
-                dev = get_device_props(device_id);
-                dev.devfonts = $4;
-                set_device_props(device_id, dev);
+                dev = get_device_props(canvas, device_id);
+                dev->devfonts = $4;
             }
             xfree($2);
         }
         | DEVICE CHRSTR OP CHRSTR {
             int device_id;
             
-            device_id = get_device_by_name($2);
+            device_id = get_device_by_name(canvas, $2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
-                if (parse_device_options(device_id, $4) != 
+                if (parse_device_options(canvas, device_id, $4) != 
                                                         RETURN_SUCCESS) {
                     yyerror("Incorrect device option string");
                 }
@@ -2089,7 +2086,7 @@ parmset:
             xfree($4);
         }
         | HARDCOPY DEVICE CHRSTR {
-            set_printer_by_name($3);
+            set_printer_by_name(grace, $3);
             xfree($3);
         }
         | REFERENCE DATE jrawdate {
@@ -2102,10 +2099,10 @@ parmset:
             set_wrap_year($4);
 	}
 	| BACKGROUND color_select {
-	    setbgcolor($2);
+	    setbgcolor(canvas, $2);
 	}
 	| PAGE BACKGROUND FILL onoff {
-	    setbgfill($4);
+	    grace->project->bgpen.pattern = $4;
 	}
 	| PAGE SCROLL expr '%' {
 	    scroll_proc((int) $3);
@@ -2270,7 +2267,7 @@ parmset:
                 case 2:
                     l->arrow.type = ARROW_TYPE_FILLED;
                     curobject->fillpen.pattern = 1;
-                    curobject->fillpen.color = getbgcolor();
+                    curobject->fillpen.color = getbgcolor(canvas);
                     break;
                 }
             }
@@ -2490,8 +2487,8 @@ parmset:
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
-	    if ((map_font_by_name($5, $3) != RETURN_SUCCESS) && 
-                (map_font_by_name($7, $3) != RETURN_SUCCESS)) {
+	    if ((map_font_by_name(canvas, $5, $3) != RETURN_SUCCESS) && 
+                (map_font_by_name(canvas,$7, $3) != RETURN_SUCCESS)) {
                 errmsg("Failed mapping a font");
             }
             xfree($5);
@@ -2504,7 +2501,7 @@ parmset:
             cmap.rgb.blue  = $10;
             cmap.ctype = COLOR_MAIN;
             cmap.cname = $13;
-            if (store_color($3, cmap) == RETURN_FAILURE) {
+            if (store_color(canvas, $3, &cmap) == RETURN_FAILURE) {
                 errmsg("Failed mapping a color");
             }
 	    xfree($13);
@@ -2745,10 +2742,10 @@ parmset:
 
 actions:
 	REDRAW {
-	    drawgraph();
+	    drawgraph(grace);
 	}
 	| CD CHRSTR {
-	    set_workingdir($2);
+	    set_workingdir(grace, $2);
 	    xfree($2);
 	}
 	| ECHO CHRSTR {
@@ -2773,13 +2770,13 @@ actions:
 	    exit($3);
 	}
 	| PRINT {
-	    do_hardcopy();
+	    do_hardcopy(grace);
 	}
 	| PRINT TO DEVICE {
-            set_ptofile(FALSE);
+            set_ptofile(grace, FALSE);
 	}
 	| PRINT TO CHRSTR {
-            set_ptofile(TRUE);
+            set_ptofile(grace, TRUE);
 	    strcpy(print_file, $3);
             xfree($3);
 	}
@@ -3854,11 +3851,11 @@ stattype: MINP { $$ = MINP; }
 font_select:
         FONTP nexpr
         {
-            $$ = get_mapped_font($2);
+            $$ = get_mapped_font(canvas, $2);
         }
         | FONTP CHRSTR
         {
-            $$ = get_font_by_name($2);
+            $$ = get_font_by_name(canvas, $2);
             xfree($2);
         }
         ;
@@ -3867,7 +3864,7 @@ lines_select:
         LINESTYLE nexpr
         {
 	    int lines = $2;
-            if (lines >= 0 && lines < number_of_linestyles()) {
+            if (lines >= 0 && lines < number_of_linestyles(canvas)) {
 	        $$ = lines;
 	    } else {
 	        errmsg("invalid linestyle");
@@ -3880,7 +3877,7 @@ pattern_select:
         PATTERN nexpr
         {
 	    int patno = $2;
-            if (patno >= 0 && patno < number_of_patterns()) {
+            if (patno >= 0 && patno < number_of_patterns(canvas)) {
 	        $$ = patno;
 	    } else {
 	        errmsg("invalid pattern number");
@@ -3893,7 +3890,7 @@ color_select:
         COLOR nexpr
         {
             int c = $2;
-            if (c >= 0 && c < number_of_colors()) {
+            if (c >= 0 && c < number_of_colors(canvas)) {
                 $$ = c;
             } else {
                 errmsg("Invalid color ID");
@@ -3902,7 +3899,7 @@ color_select:
         }
         | COLOR CHRSTR
         {
-            int c = get_color_by_name($2);
+            int c = get_color_by_name(canvas, $2);
             if (c == BAD_COLOR) {
                 errmsg("Invalid color name");
                 c = 1;
@@ -3919,7 +3916,7 @@ color_select:
             cmap.rgb.blue = $7;
             cmap.ctype = COLOR_MAIN;
             cmap.cname = NULL;
-            c = add_color(cmap);
+            c = add_color(canvas, &cmap);
             if (c == BAD_COLOR) {
                 errmsg("Can't allocate requested color");
                 c = 1;
@@ -3967,10 +3964,10 @@ parmset_obs:
                 wpp = 612;
                 hpp = 792;
             }
-            set_page_dimensions(wpp, hpp, FALSE);
+            set_page_dimensions(grace, wpp, hpp, FALSE);
         }
         | PAGE SIZE NUMBER NUMBER {
-            set_page_dimensions((int) $3, (int) $4, FALSE);
+            set_page_dimensions(grace, (int) $3, (int) $4, FALSE);
         }
 	| PAGE nexpr {
 	    scroll_proc($2);
@@ -4103,7 +4100,8 @@ setprop_obs:
 	        break;
 	    case 2:
 	        (set_get($1->gno, $1->setno))->symfillpen.pattern = 1;
-	        (set_get($1->gno, $1->setno))->symfillpen.color = getbgcolor();
+	        (set_get($1->gno, $1->setno))->symfillpen.color =
+                    getbgcolor(canvas);
 	        break;
 	    }
 	}

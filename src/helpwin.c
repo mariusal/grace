@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
 #include "utils.h"
 #include "files.h"
 #include "protos.h"
@@ -96,7 +97,7 @@ void HelpCB(void *data)
         char *help_viewer, *command;
         int i, j, len, urllen, comlen;
         
-        help_viewer = get_help_viewer();
+        help_viewer = get_help_viewer(grace);
         len = strlen(help_viewer);
         urllen = strlen(URL);
         for (i = 0, comlen = len; i < len - 1; i++) {

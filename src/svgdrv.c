@@ -45,21 +45,6 @@
 #include "patterns.h"
 #include "svgdrv.h"
 
-extern FILE *prstream;
-
-static Device_entry dev_svg = {
-    DEVICE_FILE,
-    "SVG",
-    svginitgraphics,
-    NULL,
-    NULL,
-    "svg",
-    TRUE,
-    FALSE,
-    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-    NULL
-};
-
 typedef struct {
     double side;
     int   *pattern_defined;
@@ -76,52 +61,32 @@ typedef struct {
     int    fill;
 } Svg_data;
 
-static int init_svg_data(void)
+static Device_entry dev_svg = {
+    DEVICE_FILE,
+    "SVG",
+    svginitgraphics,
+    NULL,
+    NULL,
+    "svg",
+    TRUE,
+    FALSE,
+    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+    NULL
+};
+
+static Svg_data *init_svg_data(const Canvas *canvas)
 {
     Svg_data *data;
-    int i;
 
-    data = (Svg_data *) get_curdevice_data();
+    /* we need to perform the allocations */
+    data = (Svg_data *) xmalloc(sizeof(Svg_data));
     if (data == NULL) {
-        /* we need to perform the allocations */
-        data = (Svg_data *) xrealloc(NULL, sizeof(Svg_data));
-        if (data == NULL) {
-            return RETURN_FAILURE;
-        }
-
-        data->pattern_defined = NULL;
-        data->pattern_empty = NULL;
-        data->pattern_full = NULL;
-
-        set_curdevice_data((void *) data);
+        return NULL;
     }
 
-    data->side = MIN2(page_width_pp, page_height_pp);
-
-    data->pattern_defined = 
-        xrealloc(data->pattern_defined, number_of_patterns()*SIZEOF_INT);
-    data->pattern_empty   =
-        xrealloc(data->pattern_empty,   number_of_patterns()*SIZEOF_INT);
-    data->pattern_full    =
-        xrealloc(data->pattern_full,    number_of_patterns()*SIZEOF_INT);
-    for (i = 0; i < number_of_patterns(); i++) {
-        data->pattern_defined[i] = FALSE;
-        data->pattern_empty[i]   = FALSE;
-        data->pattern_full[i]    = FALSE;
-    }
-
-    data->group_is_open = FALSE;
-    data->line_width    = 0.0;
-    data->pen.color     = 0;
-    data->pen.pattern   = 0;
-    data->fillrule      = 0;
-    data->linecap       = 0;
-    data->linejoin      = 0;
-    data->linestyle     = 0;
-    data->draw          = FALSE;
-    data->fill          = FALSE;
-
-    return RETURN_SUCCESS;
+    memset(data, 0, sizeof(Svg_data));
+    
+    return data;
 }
 
 /*
@@ -133,40 +98,40 @@ static int init_svg_data(void)
 /*
  * convert coordinate system
  */
-static double convertX (double x)
+static double convertX (const Svg_data *data, double x)
 {
-    Svg_data *data;
-    data = get_curdevice_data();
     return x*data->side;
 }
 
-static double convertY (double y)
+static double convertY (const Svg_data *data, double y)
 {
-    Svg_data *data;
-    data = get_curdevice_data();
     return (1.0 - y)*data->side;
 }
 
-static double convertW (double width)
+static double convertW (const Svg_data *data, double width)
 {
-    Svg_data *data;
-    data = get_curdevice_data();
     return width*data->side;
 }
 
-static double convertH (double height)
+static double convertH (const Svg_data *data, double height)
 {
-    Svg_data *data;
-    data = get_curdevice_data();
     return height*data->side;
 }
 
-int register_svg_drv(void)
+int register_svg_drv(Canvas *canvas)
 {
-    return register_device(dev_svg);
+    Svg_data *data;
+    
+    data = init_svg_data(canvas);
+    if (!data) {
+        return RETURN_FAILURE;
+    }
+    dev_svg.data = data;
+
+    return register_device(canvas, &dev_svg);
 }
 
-static void define_pattern(int i, Svg_data *data)
+static void define_pattern(Svg_data *data, int i)
 {
 #ifndef EXPERIMENTAL_SVG_PATTERNS
     data->pattern_full[i]  = TRUE;
@@ -194,7 +159,7 @@ static void define_pattern(int i, Svg_data *data)
     if (data->pattern_empty[i] != TRUE && data->pattern_full[i] != TRUE) {
         /* this is an horrible hack ! */
         /* we define pixels as squares in vector graphics */
-        fprintf(prstream,
+        fprintf(canvas->prstream,
                 "  <defs>\n   <pattern id=\"pattern%d\""
                 " width=\"%d\" height=\"%d\">\n",
                 i, 16, 16);
@@ -203,13 +168,13 @@ static void define_pattern(int i, Svg_data *data)
             l = j%16;
             if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
                 /* the bit is set */
-                fprintf(prstream,
+                fprintf(canvas->prstream,
                         "     <rect x=\"%d\" y=\"%d\""
                         " width=\"1\" height=\"1\"/>\n",
                         l, 15 - k);
             }
         }
-        fprintf(prstream, "   </pattern>\n  </defs>\n");
+        fprintf(canvas->prstream, "   </pattern>\n  </defs>\n");
     }
 
     data->pattern_defined[i] = TRUE;
@@ -263,43 +228,77 @@ static char *escape_specials(unsigned char *s, int len)
     return (es);
 }
 
-int svginitgraphics(void)
+int svginitgraphics(Canvas *canvas)
 {
+    Svg_data *data;
+    int i;
+
     /* device-dependent routines */
-    devupdatecmap   = NULL;
+    canvas->devupdatecmap    = NULL;
     
-    devdrawpixel    = svg_drawpixel;
-    devdrawpolyline = svg_drawpolyline;
-    devfillpolygon  = svg_fillpolygon;
-    devdrawarc      = svg_drawarc;
-    devfillarc      = svg_fillarc;
-    devputpixmap    = svg_putpixmap;
-    devputtext      = svg_puttext;
+    canvas->devdrawpixel     = svg_drawpixel;
+    canvas->devdrawpolyline  = svg_drawpolyline;
+    canvas->devfillpolygon   = svg_fillpolygon;
+    canvas->devdrawarc       = svg_drawarc;
+    canvas->devfillarc       = svg_fillarc;
+    canvas->devputpixmap     = svg_putpixmap;
+    canvas->devputtext       = svg_puttext;
 
-    devleavegraphics = svg_leavegraphics;
+    canvas->devleavegraphics = svg_leavegraphics;
 
-    if (init_svg_data() != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
+    data = get_curdevice_data(canvas);
+    
+    data->pattern_defined = NULL;
+    data->pattern_empty = NULL;
+    data->pattern_full = NULL;
+
+    data->side = MIN2(page_width_pp(canvas), page_height_pp(canvas));
+
+    data->pattern_defined = 
+        xrealloc(data->pattern_defined, number_of_patterns(canvas)*SIZEOF_INT);
+    data->pattern_empty   =
+        xrealloc(data->pattern_empty,   number_of_patterns(canvas)*SIZEOF_INT);
+    data->pattern_full    =
+        xrealloc(data->pattern_full,    number_of_patterns(canvas)*SIZEOF_INT);
+    for (i = 0; i < number_of_patterns(canvas); i++) {
+        data->pattern_defined[i] = FALSE;
+        data->pattern_empty[i]   = FALSE;
+        data->pattern_full[i]    = FALSE;
     }
 
-    fprintf(prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
-    fprintf(prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20000303 Stylable//EN\"");
-    fprintf(prstream, " \"http://www.w3.org/TR/2000/03/WD-SVG-20000303/DTD/svg-20000303-stylable.dtd\">\n");
-    fprintf(prstream, "<!-- generated by %s -->\n", bi_version_string());
-    fprintf(prstream, "<svg xml:space=\"preserve\" ");
-    fprintf(prstream, "width=\"%.4fin\" height=\"%.4fin\" viewBox=\"%.4f %.4f %.4f %.4f\">\n",
-            page_width_in, page_height_in,
-            0.0, 0.0, page_width_pp, page_height_pp);
+    data->group_is_open = FALSE;
+    data->line_width    = 0.0;
+    data->pen.color     = 0;
+    data->pen.pattern   = 0;
+    data->fillrule      = 0;
+    data->linecap       = 0;
+    data->linejoin      = 0;
+    data->linestyle     = 0;
+    data->draw          = FALSE;
+    data->fill          = FALSE;
+
+
+    fprintf(canvas->prstream, "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n");
+    fprintf(canvas->prstream, "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 20000303 Stylable//EN\"");
+    fprintf(canvas->prstream, " \"http://www.w3.org/TR/2000/03/WD-SVG-20000303/DTD/svg-20000303-stylable.dtd\">\n");
+    fprintf(canvas->prstream,
+        "<!-- generated by %s -->\n", bi_version_string());
+    fprintf(canvas->prstream, "<svg xml:space=\"preserve\" ");
+    fprintf(canvas->prstream,
+        "width=\"%.4fin\" height=\"%.4fin\" viewBox=\"%.4f %.4f %.4f %.4f\">\n",
+        page_width_in(canvas), page_height_in(canvas),
+        0.0, 0.0, page_width_pp(canvas), page_height_pp(canvas));
 
     /* project description */
     if (get_project_description() != NULL) {
-        fprintf(prstream, " <desc>%s</desc>\n", get_project_description());
+        fprintf(canvas->prstream,
+            " <desc>%s</desc>\n", get_project_description());
     }
     
     return RETURN_SUCCESS;
 }
 
-static void svg_group_props (int draw, int fill)
+static void svg_group_props(const Canvas *canvas, int draw, int fill)
 {
     int i, needs_group;
     double lw;
@@ -309,19 +308,19 @@ static void svg_group_props (int draw, int fill)
     int red, green, blue;
     Svg_data *data;
 
-    data = (Svg_data *) get_curdevice_data();
+    data = (Svg_data *) get_curdevice_data(canvas);
 
     /* do we need to redefine a group with new properties ? */
     needs_group = (data->group_is_open == TRUE) ? FALSE : TRUE;
-    lw        = data->side*getlinewidth();
-    fillrule  = getfillrule();
-    linecap   = getlinecap();
-    linejoin  = getlinejoin();
-    linestyle = getlinestyle();
+    lw        = data->side*getlinewidth(canvas);
+    fillrule  = getfillrule(canvas);
+    linecap   = getlinecap(canvas);
+    linejoin  = getlinejoin(canvas);
+    linestyle = getlinestyle(canvas);
     if (fabs(lw - data->line_width) >= 1.0e-6*(1.0 + fabs(data->line_width))) {
         needs_group = TRUE;
     }
-    pen = getpen();
+    getpen(canvas, &pen);
     if ((pen.color != data->pen.color) || (pen.pattern != data->pen.pattern)) {
         needs_group = TRUE;
     }
@@ -346,12 +345,12 @@ static void svg_group_props (int draw, int fill)
 
         if (data->group_is_open == TRUE) {
             /* first, we should close the preceding group */
-            fprintf(prstream, "  </g>\n");
+            fprintf(canvas->prstream, "  </g>\n");
             data->group_is_open = FALSE;
         }
 
-        define_pattern(pen.pattern, data);
-        if (get_rgb(pen.color, &rgb) == RETURN_SUCCESS) {
+        define_pattern(data, pen.pattern);
+        if (get_rgb(canvas, pen.color, &rgb) == RETURN_SUCCESS) {
             red   = rgb.red   >> (GRACE_BPP - 8);
             green = rgb.green >> (GRACE_BPP - 8);
             blue  = rgb.blue  >> (GRACE_BPP - 8);
@@ -363,70 +362,73 @@ static void svg_group_props (int draw, int fill)
 
         if (fill && data->pattern_empty[pen.pattern] != TRUE) {
             if (data->pattern_full[pen.pattern] == TRUE) {
-                fprintf(prstream, "  <g style=\"fill:#%2.2X%2.2X%2.2X",
-                        red, green, blue);
+                fprintf(canvas->prstream,
+                    "  <g style=\"fill:#%2.2X%2.2X%2.2X", red, green, blue);
             } else {
-                fprintf(prstream, "  <g style=\"color:#%2.2X%2.2X%2.2X",
+                fprintf(canvas->prstream,
+                    "  <g style=\"color:#%2.2X%2.2X%2.2X",
                         red, green, blue);
-                fprintf(prstream, "; fill:url(#pattern%d)", pen.pattern);
+                fprintf(canvas->prstream,
+                    "; fill:url(#pattern%d)", pen.pattern);
             }
-            if (getfillrule() == FILLRULE_WINDING) {
-                fprintf(prstream, "; fill-rule:nonzero");
+            if (getfillrule(canvas) == FILLRULE_WINDING) {
+                fprintf(canvas->prstream, "; fill-rule:nonzero");
             } else {
-                fprintf(prstream, "; fill-rule:evenodd");
+                fprintf(canvas->prstream, "; fill-rule:evenodd");
             }
         } else {
-            fprintf(prstream, "  <g style=\"fill:none");
+            fprintf(canvas->prstream, "  <g style=\"fill:none");
         }
 
         if (draw) {
 
-            fprintf(prstream, "; stroke:#%2.2X%2.2X%2.2X", red, green, blue);
+            fprintf(canvas->prstream,
+                "; stroke:#%2.2X%2.2X%2.2X", red, green, blue);
 
-            fprintf(prstream, "; stroke-width:%8.4f", lw);
+            fprintf(canvas->prstream, "; stroke-width:%8.4f", lw);
 
             switch (linecap) {
             case LINECAP_BUTT :
-                fprintf(prstream, "; stroke-linecap:butt");
+                fprintf(canvas->prstream, "; stroke-linecap:butt");
                 break;
             case LINECAP_ROUND :
-                fprintf(prstream, "; stroke-linecap:round");
+                fprintf(canvas->prstream, "; stroke-linecap:round");
                 break;
             case LINECAP_PROJ :
-                fprintf(prstream, "; stroke-linecap:square");
+                fprintf(canvas->prstream, "; stroke-linecap:square");
                 break;
             default :
-                fprintf(prstream, "; stroke-linecap:inherit");
+                fprintf(canvas->prstream, "; stroke-linecap:inherit");
                 break;
             }
 
             switch (linejoin) {
             case LINEJOIN_MITER :
-                fprintf(prstream, "; stroke-linejoin:miter");
+                fprintf(canvas->prstream, "; stroke-linejoin:miter");
                 break;
             case LINEJOIN_ROUND :
-                fprintf(prstream, "; stroke-linejoin:round");
+                fprintf(canvas->prstream, "; stroke-linejoin:round");
                 break;
             case LINEJOIN_BEVEL :
-                fprintf(prstream, "; stroke-linejoin:bevel");
+                fprintf(canvas->prstream, "; stroke-linejoin:bevel");
                 break;
             default :
-                fprintf(prstream, "; stroke-linejoin:inherit");
+                fprintf(canvas->prstream, "; stroke-linejoin:inherit");
                 break;
             }
 
             if (linestyle <= 1) {
-                fprintf(prstream, "; stroke-dasharray:none");
+                fprintf(canvas->prstream, "; stroke-dasharray:none");
             } else {
-                fprintf(prstream, "; stroke-dasharray:");
+                fprintf(canvas->prstream, "; stroke-dasharray:");
                 for (i = 0; i < dash_array_length[linestyle]; i++) {
-                    fprintf(prstream,
+                    fprintf(canvas->prstream,
                         " %d", (int) rint(lw*dash_array[linestyle][i]));
                 }
             }
         }
 
-        fprintf(prstream, "\">\n");
+        fprintf(canvas->prstream, "\">\n");
 
 
         data->group_is_open = TRUE;
@@ -441,62 +443,69 @@ static void svg_group_props (int draw, int fill)
     }
 }
 
-void svg_drawpixel(VPoint vp)
+void svg_drawpixel(const Canvas *canvas, const VPoint *vp)
 {
-    svg_group_props(FALSE, TRUE);
-    fprintf(prstream,
+    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
+    svg_group_props(canvas, FALSE, TRUE);
+    fprintf(canvas->prstream,
             "   <rect x=\"%.4f\" y=\"%.4f\" width=\"%.4f\" height=\"%.4f\"/>\n",
-            convertX(vp.x), convertY (vp.y),
-            convertW(1.0), convertH(1.0));
+            convertX(data, vp->x), convertY(data, vp->y),
+            convertW(data, 1.0), convertH(data, 1.0));
 }
 
-void svg_drawpolyline(VPoint *vps, int n, int mode)
+void svg_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 {
+    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     int i;
 
     if (n <= 0) {
         return;
     }
 
-    svg_group_props(TRUE, FALSE);
-    fprintf(prstream, "   <path d=\"M%.4f,%.4f",
-            convertX(vps[0].x), convertY(vps[0].y));
+    svg_group_props(canvas, TRUE, FALSE);
+    fprintf(canvas->prstream, "   <path d=\"M%.4f,%.4f",
+            convertX(data, vps[0].x), convertY(data, vps[0].y));
     for (i = 1; i < n; i++) {
         if (i%10 == 0) {
-            fprintf(prstream, "\n            ");
+            fprintf(canvas->prstream, "\n            ");
         }
-        fprintf(prstream, "L%.4f,%.4f", convertX(vps[i].x), convertY(vps[i].y));
+        fprintf(canvas->prstream,
+            "L%.4f,%.4f", convertX(data, vps[i].x), convertY(data, vps[i].y));
     }
     if (mode == POLYLINE_CLOSED) {
-        fprintf(prstream, "z\"/>\n");
+        fprintf(canvas->prstream, "z\"/>\n");
     } else {
-        fprintf(prstream, "\"/>\n");
+        fprintf(canvas->prstream, "\"/>\n");
     }
 
 }
 
-void svg_fillpolygon(VPoint *vps, int nc)
+void svg_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 {
+    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     int i;
 
     if (nc <= 0) {
         return;
     }
 
-    svg_group_props(FALSE, TRUE);
-    fprintf(prstream, "   <path  d=\"M%.4f,%.4f",
-            convertX(vps[0].x), convertY(vps[0].y));
+    svg_group_props(canvas, FALSE, TRUE);
+    fprintf(canvas->prstream, "   <path  d=\"M%.4f,%.4f",
+            convertX(data, vps[0].x), convertY(data, vps[0].y));
     for (i = 1; i < nc; i++) {
         if (i%10 == 0) {
-            fprintf(prstream, "\n             ");
+            fprintf(canvas->prstream, "\n             ");
         }
-        fprintf(prstream, "L%.4f,%.4f", convertX(vps[i].x), convertY(vps[i].y));
+        fprintf(canvas->prstream,
+            "L%.4f,%.4f", convertX(data, vps[i].x), convertY(data, vps[i].y));
     }
-    fprintf(prstream, "z\"/>\n");
+    fprintf(canvas->prstream, "z\"/>\n");
 }
 
-void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void svg_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
 {
+    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     VPoint center;
     double rx, ry;
 
@@ -504,18 +513,18 @@ void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
         return;
     }
     
-    center.x = 0.5*(vp1.x + vp2.x);
-    center.y = 0.5*(vp1.y + vp2.y);
-    rx       = 0.5*fabs(vp2.x - vp1.x);
-    ry       = 0.5*fabs(vp2.y - vp1.y);
+    center.x = 0.5*(vp1->x + vp2->x);
+    center.y = 0.5*(vp1->y + vp2->y);
+    rx       = 0.5*fabs(vp2->x - vp1->x);
+    ry       = 0.5*fabs(vp2->y - vp1->y);
 
-    svg_group_props(TRUE, FALSE);
+    svg_group_props(canvas, TRUE, FALSE);
 
     if ((a1 - a2)%360 == 0) {
-        fprintf(prstream,
+        fprintf(canvas->prstream,
             "   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
-            convertW(rx), convertH(ry),
-            convertX(center.x), convertY(center.y));
+            convertW(data, rx), convertH(data, ry),
+            convertX(data, center.x), convertY(data, center.y));
     } else {
         VPoint start, end;
         
@@ -524,19 +533,21 @@ void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
         end.x   = center.x + rx*cos((M_PI/180.0)*a2);
         end.y   = center.y + ry*sin((M_PI/180.0)*a2);
 
-        fprintf(prstream,
+        fprintf(canvas->prstream,
             "   <path  d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4f\"/>\n",
-            convertX(start.x), convertY(start.y),
-            convertW(rx), convertH(ry),
+            convertX(data, start.x), convertY(data, start.y),
+            convertW(data, rx), convertH(data, ry),
             0,
             (abs(a2 - a1) > 180) ? 1 : 0,
             (a2 > a1) ? 0 : 1,
-            convertX(end.x), convertY(end.y));
+            convertX(data, end.x), convertY(data, end.y));
     }
 }
 
-void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
+void svg_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
 {
+    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     VPoint center;
     double rx, ry;
 
@@ -544,18 +555,18 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
         return;
     }
 
-    center.x = 0.5*(vp1.x + vp2.x);
-    center.y = 0.5*(vp1.y + vp2.y);
-    rx       = 0.5*fabs(vp2.x - vp1.x);
-    ry       = 0.5*fabs(vp2.y - vp1.y);
+    center.x = 0.5*(vp1->x + vp2->x);
+    center.y = 0.5*(vp1->y + vp2->y);
+    rx       = 0.5*fabs(vp2->x - vp1->x);
+    ry       = 0.5*fabs(vp2->y - vp1->y);
 
-    svg_group_props(FALSE, TRUE);
+    svg_group_props(canvas, FALSE, TRUE);
 
     if ((a1 - a2)%360 == 0) {
-        fprintf(prstream,
+        fprintf(canvas->prstream,
             "   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
-            convertW(rx), convertH(ry),
-            convertX(center.x), convertY(center.y));
+            convertW(data, rx), convertH(data, ry),
+            convertX(data, center.x), convertY(data, center.y));
     } else {
         VPoint start, end;
         
@@ -565,47 +576,49 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
         end.y   = center.y + ry*sin((M_PI/180.0)*a2);
 
         if (mode == ARCFILL_CHORD) {
-            fprintf(prstream,
+            fprintf(canvas->prstream,
                 "   <path  d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4fz\"/>\n",
-                convertX(start.x), convertY(start.y),
-                convertW(rx), convertH(ry),
+                convertX(data, start.x), convertY(data, start.y),
+                convertW(data, rx), convertH(data, ry),
                 0,
                 (abs(a2 - a1) > 180) ? 1 : 0,
                 (a2 > a1) ? 0 : 1,
-                convertX(end.x), convertY(end.y));
+                convertX(data, end.x), convertY(data, end.y));
         } else {
-            fprintf(prstream,
+            fprintf(canvas->prstream,
                 "   <path  d=\"M%.4f,%.4fL%.4f,%.4fA%.4f,%.4f %d %d %d %.4f,%.4fz\"/>\n",
-                convertX(center.x), convertY(center.y),
-                convertX(start.x), convertY(start.y),
-                convertW(rx), convertH(ry),
+                convertX(data, center.x), convertY(data, center.y),
+                convertX(data, start.x), convertY(data, start.y),
+                convertW(data, rx), convertH(data, ry),
                 0,
                 (abs(a2 - a1) > 180) ? 1 : 0,
                 (a2 > a1) ? 0 : 1,
-                convertX(end.x), convertY(end.y));
+                convertX(data, end.x), convertY(data, end.y));
         }
     }
 }
 
-void svg_putpixmap(VPoint vp, int width, int height, char *databits, 
-                   int pixmap_bpp, int bitmap_pad, int pixmap_type)
+void svg_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     /* not implemented yet */
 }
 
-void svg_puttext(VPoint vp, char *s, int len, int font,
-                 TextMatrix *tm, int underline, int overline, int kerning)
+void svg_puttext(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning)
 {
     char *fontalias, *dash, *family;
-    Svg_data *data = get_curdevice_data();
+    Svg_data *data = get_curdevice_data(canvas);
     double fsize = data->side;
 
-    svg_group_props(FALSE, TRUE);
+    svg_group_props(canvas, FALSE, TRUE);
     
-    fprintf(prstream, "   <text  ");
+    fprintf(canvas->prstream, "   <text  ");
 
     family  = NULL;
-    fontalias = get_fontalias(font);
+    fontalias = get_fontalias(canvas, font);
     if ((dash = strchr(fontalias, '-')) == NULL) {
         family = copy_string(family, fontalias);
     } else {
@@ -613,56 +626,55 @@ void svg_puttext(VPoint vp, char *s, int len, int font,
         strncpy(family, fontalias, dash - fontalias);
         family[dash - fontalias] = '\0';
     }
-    fprintf(prstream, " style=\"font-family:%s", family);
+    fprintf(canvas->prstream, " style=\"font-family:%s", family);
     copy_string(family, NULL);
 
     if (strstr(fontalias, "Italic") != NULL) {
-        fprintf(prstream, "; font-style:italic");
+        fprintf(canvas->prstream, "; font-style:italic");
     } else {
         if (strstr(fontalias, "Oblique") != NULL) {
-            fprintf(prstream, "; font-style:oblique");
+            fprintf(canvas->prstream, "; font-style:oblique");
         } else {
-            fprintf(prstream, "; font-style:normal");
+            fprintf(canvas->prstream, "; font-style:normal");
         }
     }
 
     if (strstr(fontalias, "Bold") != NULL) {
-        fprintf(prstream, "; font-weight:bold");
+        fprintf(canvas->prstream, "; font-weight:bold");
     } else {
-        fprintf(prstream, "; font-weight:normal");
+        fprintf(canvas->prstream, "; font-weight:normal");
     }
 
-    fprintf(prstream, "; font-size:%.4f", fsize);
+    fprintf(canvas->prstream, "; font-size:%.4f", fsize);
 
     if (underline == TRUE) {
         if (overline == TRUE) {
-            fprintf(prstream, "; text-decoration:underline|overline");
+            fprintf(canvas->prstream, "; text-decoration:underline|overline");
         } else {
-            fprintf(prstream, "; text-decoration:underline");
+            fprintf(canvas->prstream, "; text-decoration:underline");
         }
     } else {
         if (overline == TRUE) {
-            fprintf(prstream, "; text-decoration:overline");
+            fprintf(canvas->prstream, "; text-decoration:overline");
         }
     }
 
-    fprintf(prstream, "\" transform=\"matrix(%.4f,%.4f,%.4f,%.4f,%.4f,%.4f)\">",
+    fprintf(canvas->prstream, "\" transform=\"matrix(%.4f,%.4f,%.4f,%.4f,%.4f,%.4f)\">",
             tm->cxx, -tm->cyx,
             -tm->cxy, tm->cyy,
-            convertX(vp.x), convertY(vp.y));
+            convertX(data, vp->x), convertY(data, vp->y));
 
-    fprintf(prstream, escape_specials((unsigned char *) s, len));
+    fprintf(canvas->prstream, escape_specials((unsigned char *) s, len));
 
-    fprintf(prstream, "</text>\n");
+    fprintf(canvas->prstream, "</text>\n");
 }
 
-void svg_leavegraphics(void)
+void svg_leavegraphics(const Canvas *canvas)
 {
-    Svg_data *data;
-    data = (Svg_data *) get_curdevice_data();
+    Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     if (data->group_is_open == TRUE) {
-        fprintf(prstream, "  </g>\n");
+        fprintf(canvas->prstream, "  </g>\n");
         data->group_is_open = FALSE;
     }
-    fprintf(prstream, "</svg>\n");
+    fprintf(canvas->prstream, "</svg>\n");
 }

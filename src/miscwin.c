@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -202,7 +202,8 @@ void update_props_items(void)
 #if defined WITH_XMHTML || defined WITH_LIBHELP
 	SetToggleButtonState(force_external_viewer_item, force_external_viewer);
 #endif
-	SetSpinChoice(max_path_item, (double) get_max_path_limit());
+	SetSpinChoice(max_path_item,
+            (double) get_max_path_limit(grace->rt->canvas));
 	iv = (int) rint(100*grace->rt->scrollper);
 	SetScaleValue(scrollper_item, iv);
 	iv = (int) rint(100*grace->rt->shexper);
@@ -263,7 +264,7 @@ static int props_define_notify_proc(void *data)
 #if defined WITH_XMHTML || defined WITH_LIBHELP
     force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
-    set_max_path_limit((int) GetSpinChoice(max_path_item));
+    set_max_path_limit(grace->rt->canvas, (int) GetSpinChoice(max_path_item));
     grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
 

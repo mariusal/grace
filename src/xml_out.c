@@ -32,7 +32,6 @@
 #include "utils.h"
 #include "dicts.h"
 #include "draw.h"
-#include "t1fonts.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "objutils.h"
@@ -97,7 +96,8 @@ static void xmlio_set_angle(Attributes *attrs, double angle)
 
 static void xmlio_set_font_ref(Attributes *attrs, int font)
 {
-    attributes_set_ival(attrs, AStrFontId, get_font_mapped_id(font));
+    attributes_set_ival(attrs, AStrFontId,
+        get_font_mapped_id(grace->rt->canvas, font));
 }
 
 static void xmlio_set_color_ref(Attributes *attrs, int color)
@@ -187,7 +187,7 @@ static void xmlio_write_arrow(XFile *xf, Attributes *attrs, Arrow *arrow)
     xfile_empty_element(xf, EStrArrow, attrs);
 }
 
-int save_fontmap(XFile *xf)
+int save_fontmap(XFile *xf, const Canvas *canvas)
 {
     int i;
     Attributes *attrs;
@@ -199,12 +199,12 @@ int save_fontmap(XFile *xf)
     }
 
     xfile_begin_element(xf, EStrFontmap, NULL);
-    for (i = 0; i < number_of_fonts(); i++) {
-        if (get_font_mapped_id(i) != BAD_FONT_ID) {
+    for (i = 0; i < number_of_fonts(canvas); i++) {
+        if (get_font_mapped_id(canvas, i) != BAD_FONT_ID) {
             attributes_reset(attrs);
-            attributes_set_ival(attrs, AStrId, get_font_mapped_id(i));
-            attributes_set_sval(attrs, AStrName, get_fontalias(i));
-            attributes_set_sval(attrs, AStrFallback, get_fontfallback(i));
+            attributes_set_ival(attrs, AStrId, get_font_mapped_id(canvas, i));
+            attributes_set_sval(attrs, AStrName, get_fontalias(canvas, i));
+            attributes_set_sval(attrs, AStrFallback, get_fontfallback(canvas, i));
             xfile_empty_element(xf, EStrFontDef, attrs);
         }
     }
@@ -215,7 +215,7 @@ int save_fontmap(XFile *xf)
     return RETURN_SUCCESS;
 }
 
-int save_colormap(XFile *xf)
+int save_colormap(XFile *xf, const Canvas *canvas)
 {
     int i;
     Attributes *attrs;
@@ -227,9 +227,9 @@ int save_colormap(XFile *xf)
     }
 
     xfile_begin_element(xf, EStrColormap, NULL);
-    for (i = 0; i < number_of_colors(); i++) {
+    for (i = 0; i < number_of_colors(canvas); i++) {
         CMap_entry *cmap;
-        cmap = get_cmap_entry(i);
+        cmap = get_cmap_entry(canvas, i);
         if (cmap != NULL && cmap->ctype == COLOR_MAIN) {
             char buf[16];
             attributes_reset(attrs);
@@ -860,9 +860,9 @@ int save_project(char *fn)
     xfile_begin_element(xf, EStrDefinitions, NULL);
     {
         xfile_comment(xf, "Color map");
-        save_colormap(xf);
+        save_colormap(xf, grace->rt->canvas);
         xfile_comment(xf, "Font map");
-        save_fontmap(xf);
+        save_fontmap(xf, grace->rt->canvas);
     }
     xfile_end_element(xf, EStrDefinitions);
 
@@ -872,10 +872,7 @@ int save_project(char *fn)
     attributes_set_ival(attrs, AStrHeight, grace->project->page_hpp);
     xfile_begin_element(xf, EStrPage, attrs);
     {
-        Pen pen;
-        pen.color = getbgcolor();
-        pen.pattern = getbgfill() ? 1:0;
-        xmlio_write_fill_spec(xf, attrs, &pen);
+        xmlio_write_fill_spec(xf, attrs, &grace->project->bgpen);
     }
     xfile_end_element(xf, EStrPage);
 

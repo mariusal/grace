@@ -38,7 +38,7 @@
 #include "plotone.h"
 #include "objutils.h"
 
-static void draw_object(DObject *o)
+static void draw_object(Canvas *canvas, DObject *o)
 {
     VPoint anchor;
 
@@ -58,8 +58,8 @@ static void draw_object(DObject *o)
     anchor.x += o->offset.x;
     anchor.y += o->offset.y;
     
-    activate_bbox(BBOX_TYPE_TEMP, TRUE);
-    reset_bbox(BBOX_TYPE_TEMP);
+    activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
+    reset_bbox(canvas, BBOX_TYPE_TEMP);
 
     switch (o->type) {
     case DO_BOX:
@@ -73,11 +73,11 @@ static void draw_object(DObject *o)
                 vp1.y = anchor.y - b->height/2;
                 vp2.y = anchor.y + b->height/2;
 
-                setpen(o->fillpen);
-                FillRect(vp1, vp2);
+                setpen(canvas, &o->fillpen);
+                FillRect(canvas, &vp1, &vp2);
 
-                setline(&o->line);
-                DrawRect(vp1, vp2);
+                setline(canvas, &o->line);
+                DrawRect(canvas, &vp1, &vp2);
             } else {
                 VPoint vps[4];
                 double x, y, co, si;
@@ -97,11 +97,11 @@ static void draw_object(DObject *o)
                 vps[3].x = anchor.x + x*co + y*si;
                 vps[3].y = anchor.y + x*si - y*co;
 
-                setpen(o->fillpen);
-                DrawPolygon(vps, 4);
+                setpen(canvas, &o->fillpen);
+                DrawPolygon(canvas, vps, 4);
 
-                setline(&o->line);
-                DrawPolyline(vps, 4, POLYLINE_CLOSED);
+                setline(canvas, &o->line);
+                DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
             }
         }
         break;
@@ -115,14 +115,14 @@ static void draw_object(DObject *o)
             vp1.y = anchor.y - e->height/2;
             vp2.y = anchor.y + e->height/2;
 
-            setpen(o->fillpen);
+            setpen(canvas, &o->fillpen);
             /* FIXME: implement true ellipse rotation! */
-            DrawFilledArc(vp1, vp2,
+            DrawFilledArc(canvas, &vp1, &vp2,
                 (int) (e->angle1 + o->angle), (int) (e->angle2 + o->angle),
                 e->fillmode);
 
-            setline(&o->line);
-            DrawArc(vp1, vp2,
+            setline(canvas, &o->line);
+            DrawArc(canvas, &vp1, &vp2,
                 (int) (e->angle1 + o->angle), (int) (e->angle2 + o->angle));
         }
         break;
@@ -132,11 +132,11 @@ static void draw_object(DObject *o)
             
             /* FIXME AA background setpen(o->fillpen); */
 
-            setpen(o->line.pen);
-            setcharsize(s->size);
-            setfont(s->font);
+            setpen(canvas, &o->line.pen);
+            setcharsize(canvas, s->size);
+            setfont(canvas, s->font);
 
-            WriteString(anchor, o->angle, s->just, s->s);
+            WriteString(canvas, &anchor, o->angle, s->just, s->s);
         }
         break;
     case DO_LINE:
@@ -147,24 +147,24 @@ static void draw_object(DObject *o)
             vp.x = anchor.x + l->length*cos(M_PI/180.0*o->angle);
             vp.y = anchor.y + l->length*sin(M_PI/180.0*o->angle);
 
-            setline(&o->line);
-            DrawLine(anchor, vp);
+            setline(canvas, &o->line);
+            DrawLine(canvas, &anchor, &vp);
 
             switch (l->arrow_end) {
             case 0:
                 break;
             case 1:
-                draw_arrowhead(vp, anchor, &l->arrow,
+                draw_arrowhead(canvas, &vp, &anchor, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
             case 2:
-                draw_arrowhead(anchor, vp, &l->arrow,
+                draw_arrowhead(canvas, &anchor, &vp, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
             case 3:
-                draw_arrowhead(vp, anchor, &l->arrow,
+                draw_arrowhead(canvas, &vp, &anchor, &l->arrow,
                     &o->line.pen, &o->fillpen);
-                draw_arrowhead(anchor, vp, &l->arrow,
+                draw_arrowhead(canvas, &anchor, &vp, &l->arrow,
                     &o->line.pen, &o->fillpen);
                 break;
             }
@@ -174,19 +174,21 @@ static void draw_object(DObject *o)
         break;
     }
 
-    o->bb = get_bbox(BBOX_TYPE_TEMP);
+    get_bbox(canvas, BBOX_TYPE_TEMP, &o->bb);
 }
 
 
 static int object_draw_hook(unsigned int step, void *data, void *udata)
 {
     DObject *o = (DObject *) data;
-    draw_object(o);
+    Canvas *canvas = (Canvas *) udata;
+    
+    draw_object(canvas, o);
     
     return TRUE;
 }
 
-void draw_objects(int gno)
+void draw_objects(Canvas *canvas, int gno)
 {
     graph *g = graph_get(gno);
     if (!g) {
@@ -194,9 +196,9 @@ void draw_objects(int gno)
     }
     
     /* disable (?) clipping for object drawing */
-    setclipping(FALSE);
+    setclipping(canvas, FALSE);
     
-    storage_traverse(g->dobjects, object_draw_hook, NULL);
+    storage_traverse(g->dobjects, object_draw_hook, canvas);
     
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
 }

@@ -44,7 +44,7 @@ static void *wrap_graph_copy(void *data)
     return (void *) graph_copy((graph *) data);
 }
 
-Project *project_new(void)
+Project *project_new(Grace *grace)
 {
     Project *pr;
     int i;
@@ -53,6 +53,9 @@ Project *project_new(void)
     if (!pr) {
         return NULL;
     }
+    memset(pr, 0, sizeof(Project));
+    
+    pr->P = grace;
     
     pr->version_id  = bi_version_id();
     pr->description = NULL;
@@ -75,6 +78,9 @@ Project *project_new(void)
     /* FIXME: #defines */
     pr->page_wpp = 792;
     pr->page_hpp = 612;
+    
+    pr->bgpen.color   = 0;
+    pr->bgpen.pattern = 1;
     
     pr->docname = copy_string(NULL, NONAME);
 
@@ -147,7 +153,7 @@ void project_set_dirtystate(Project *pr)
     if (pr->dirtystate_lock == FALSE) {
         pr->dirtystate++;
         update_timestamp(NULL);
-        update_app_title();
+        update_app_title(pr);
 
 /*
  * TODO:
@@ -163,7 +169,7 @@ void project_clear_dirtystate(Project *pr)
 {
     pr->dirtystate = 0;
     pr->dirtystate_lock = FALSE;
-    update_app_title();
+    update_app_title(pr);
 }
 
 void project_lock_dirtystate(Project *pr, int flag)

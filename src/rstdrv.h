@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -53,39 +52,42 @@ typedef enum {
 
 #define INTENSITY(r, g, b) ((299*r + 587*g + 114*b)/1000)
 
-void rst_drawpixel(VPoint vp);
-void rst_drawpolyline(VPoint *vps, int n, int mode);
-void rst_fillpolygon(VPoint *vps, int nc);
-void rst_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
-void rst_putpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void rst_leavegraphics(void);
+void rst_drawpixel(const Canvas *canvas, const VPoint *vp);
+void rst_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
+void rst_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
+void rst_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a);
+void rst_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+void rst_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void rst_leavegraphics(const Canvas *canvas);
 
-int pnminitgraphics(void);
-int pnm_op_parser(char *opstring);
+int pnminitgraphics(Canvas *canvas);
+int pnm_op_parser(Canvas *canvas, const char *opstring);
 #ifdef NONE_GUI
 #  define pnm_gui_setup NULL
 #else
-void pnm_gui_setup(void);
+void pnm_gui_setup(Canvas *canvas);
 #endif
 
 #ifdef HAVE_LIBJPEG
-int jpginitgraphics(void);
-int jpg_op_parser(char *opstring);
+int jpginitgraphics(Canvas *canvas);
+int jpg_op_parser(Canvas *canvas, const char *opstring);
 #  ifdef NONE_GUI
 #    define jpg_gui_setup NULL
 #  else
-void jpg_gui_setup(void);
+void jpg_gui_setup(Canvas *canvas);
 #  endif
 #endif
 
 #ifdef HAVE_LIBPNG
-int pnginitgraphics(void);
-int png_op_parser(char *opstring);
+int pnginitgraphics(Canvas *canvas);
+int png_op_parser(Canvas *canvas, const char *opstring);
 #  ifdef NONE_GUI
 #    define png_gui_setup NULL
 #  else
-void png_gui_setup(void);
+void png_gui_setup(Canvas *canvas);
 #  endif
 #endif

@@ -79,8 +79,8 @@ void set_default_arrow(Arrow *arrowp);
 
 void set_default_ticks(tickmarks *t);
 void calculate_tickgrid(int gno);
-void drawgrid(int gno);
-void drawaxes(int gno);
+void drawgrid(Canvas *canvas, int gno);
+void drawaxes(Canvas *canvas, int gno);
 
 void unregister_real_time_input(const char *name);
 int register_real_time_input(int fd, const char *name, int reopen);

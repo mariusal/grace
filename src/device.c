@@ -31,45 +31,42 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cmath.h"
 #include "defines.h"
-#include "globals.h"
 #include "graphutils.h"
 #include "utils.h"
 #include "device.h"
 
-static unsigned int ndevices = 0;
-static int curdevice = 0;
-static Device_entry *device_table = NULL;
-
-int is_valid_page_geometry(Page_geometry pg)
+int is_valid_page_geometry(const Page_geometry *pg)
 {
-    if (pg.width  > 0 &&
-	pg.height > 0 &&
-        pg.dpi > 0.0) {
+    if (pg->width  > 0 &&
+	pg->height > 0 &&
+        pg->dpi > 0.0) {
 	return TRUE;
     } else {
         return FALSE;
     }
 }
 
-int set_page_geometry(Page_geometry pg)
+int set_page_geometry(Canvas *canvas, const Page_geometry *pg)
 {
     if (is_valid_page_geometry(pg) == TRUE) {
-        device_table[curdevice].pg = pg;
+        canvas->device_table[canvas->curdevice]->pg = *pg;
 	return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-Page_geometry get_page_geometry(void)
+Page_geometry *get_page_geometry(const Canvas *canvas)
 {
-    return (device_table[curdevice].pg);
+    return &canvas->device_table[canvas->curdevice]->pg;
 }
 
-int set_page_dimensions(int wpp, int hpp, int rescale)
+int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
 {
     int i;
+    Canvas *canvas = grace->rt->canvas;
     
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
@@ -105,48 +102,48 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
                 rescale_viewport(grace->project, ext_x, ext_y);
             } 
         }
-        for (i = 0; i < ndevices; i++) {
-            device_table[i].pg.width =
-                (unsigned long) (wpp*(device_table[i].pg.dpi/72));
-            device_table[i].pg.height =
-                (unsigned long) (hpp*(device_table[i].pg.dpi/72));
+        for (i = 0; i < canvas->ndevices; i++) {
+            canvas->device_table[i]->pg.width =
+                (unsigned long) (wpp*(canvas->device_table[i]->pg.dpi/72));
+            canvas->device_table[i]->pg.height =
+                (unsigned long) (hpp*(canvas->device_table[i]->pg.dpi/72));
         }
         return RETURN_SUCCESS;
     }
 }
 
-int get_device_page_dimensions(int dindex, int *wpp, int *hpp)
+int get_device_page_dimensions(const Canvas *canvas,
+    int dindex, int *wpp, int *hpp)
 {
-    if (dindex >= ndevices || dindex < 0) {
+    if (dindex >= canvas->ndevices || dindex < 0) {
         return RETURN_FAILURE;
     } else {
-	*wpp = device_table[dindex].pg.width*72/device_table[dindex].pg.dpi;
-	*hpp = device_table[dindex].pg.height*72/device_table[dindex].pg.dpi;
+	*wpp = canvas->device_table[dindex]->pg.width*72/canvas->device_table[dindex]->pg.dpi;
+	*hpp = canvas->device_table[dindex]->pg.height*72/canvas->device_table[dindex]->pg.dpi;
         return RETURN_SUCCESS;
     }
 }
 
-int register_device(Device_entry device)
+int register_device(Canvas *canvas, Device_entry *device)
 {
     int dindex;
     
-    ndevices++;
-    dindex = ndevices - 1;
-    device_table = xrealloc(device_table, ndevices*sizeof(Device_entry));
+    canvas->ndevices++;
+    dindex = canvas->ndevices - 1;
+    canvas->device_table = xrealloc(canvas->device_table,
+        canvas->ndevices*SIZEOF_VOID_P);
 
-    device_table[dindex] = device;
-    device_table[dindex].name = copy_string(NULL, device.name);
-    device_table[dindex].fext = copy_string(NULL, device.fext);
+    canvas->device_table[dindex] = device;
     
     return dindex;
 }
 
-int select_device(int dindex)
+int select_device(Canvas *canvas, int dindex)
 {
-    if (dindex >= ndevices || dindex < 0) {
+    if (dindex >= canvas->ndevices || dindex < 0) {
         return RETURN_FAILURE;
     } else {
-        curdevice = dindex;
+        canvas->curdevice = dindex;
 	return RETURN_SUCCESS;
     }
 }
@@ -154,111 +151,81 @@ int select_device(int dindex)
 /*
  * set the current print device
  */
-int set_printer(int device)
+int set_printer(Grace *grace, int device)
 {
-    if (device >= ndevices || device < 0 ||
-        device_table[device].type == DEVICE_TERM) {
+    Canvas *canvas = grace->rt->canvas;
+    if (device >= canvas->ndevices || device < 0 ||
+        canvas->device_table[device]->type == DEVICE_TERM) {
         return RETURN_FAILURE;
     } else {
         grace->rt->hdevice = device;
-	if (device_table[device].type != DEVICE_PRINT) {
-            set_ptofile(TRUE);
+	if (canvas->device_table[device]->type != DEVICE_PRINT) {
+            set_ptofile(grace, TRUE);
         }
         return RETURN_SUCCESS;
     }
 }
 
-int set_printer_by_name(char *dname)
+int set_printer_by_name(Grace *grace, const char *dname)
 {
     int device;
     
-    device = get_device_by_name(dname);
+    device = get_device_by_name(grace->rt->canvas, dname);
     
-    return set_printer(device);
+    return set_printer(grace, device);
 }
 
-int get_device_by_name(char *dname)
+int get_device_by_name(const Canvas *canvas, const char *dname)
 {
     int i;
     
     i = 0;
-    while (i < ndevices) {
-        if (strncmp(device_table[i].name, dname, strlen(dname)) == 0) {
+    while (i < canvas->ndevices) {
+        if (strncmp(canvas->device_table[i]->name, dname, strlen(dname)) == 0) {
             break;
         } else {
             i++;
         }
     }
-    if (i >= ndevices) {
+    if (i >= canvas->ndevices) {
         return -1;
     } else {
 	return i;
     }
 }
 
-int initgraphics(void)
+int initgraphics(Canvas *canvas)
 {
-    return ((*device_table[curdevice].init)());
+    return canvas->device_table[canvas->curdevice]->init(canvas);
 }
 
-Device_entry get_device_props(int device)
+Device_entry *get_device_props(const Canvas *canvas, int device)
 {
-    return (device_table[device]);
+    return canvas->device_table[device];
 }
 
-Device_entry get_curdevice_props()
+Device_entry *get_curdevice_props(const Canvas *canvas)
 {
-    return (device_table[curdevice]);
+    return canvas->device_table[canvas->curdevice];
 }
 
-char *get_device_name(int device)
+char *get_device_name(const Canvas *canvas, int device)
 {
-    return (device_table[device].name);
+    return canvas->device_table[device]->name;
 }
 
-void *get_curdevice_data(void)
+void *get_curdevice_data(const Canvas *canvas)
 {
-    return (device_table[curdevice].data);
+    return canvas->device_table[canvas->curdevice]->data;
 }
 
-void set_curdevice_data(void *data)
-{
-    device_table[curdevice].data = data;
-}
-
-int set_device_props(int deviceid, Device_entry device)
-{
-    if (deviceid >= ndevices || deviceid < 0 ||
-        is_valid_page_geometry(device.pg) != TRUE) {
-        return RETURN_FAILURE;
-    }
-    
-    device_table[deviceid].type = device.type;
-/*
- *     device_table[deviceid].init = device.init;
- *     device_table[deviceid].parser = device.parser;
- *     device_table[deviceid].setup = device.setup;
- */
-    device_table[deviceid].devfonts = device.devfonts;
-    device_table[deviceid].fontaa = device.fontaa;
-    device_table[deviceid].pg = device.pg;
-    device_table[deviceid].data = device.data;
-
-    return RETURN_SUCCESS;
-}
-
-void set_curdevice_props(Device_entry device)
-{
-    set_device_props(curdevice, device);
-}
-
-int parse_device_options(int dindex, char *options)
+int parse_device_options(Canvas *canvas, int dindex, char *options)
 {
     char *p, *oldp, opstring[64];
     int n;
         
-    if (dindex >= ndevices || dindex < 0 || 
-            device_table[dindex].parser == NULL) {
+    if (dindex >= canvas->ndevices || dindex < 0 || 
+            canvas->device_table[dindex]->parser == NULL) {
         return RETURN_FAILURE;
     } else {
         oldp = options;
@@ -266,24 +233,25 @@ int parse_device_options(int dindex, char *options)
 	    n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
-            if (device_table[dindex].parser(opstring) != RETURN_SUCCESS) {
+            if (canvas->device_table[dindex]->parser(canvas, opstring) !=
+                RETURN_SUCCESS) {
                 return RETURN_FAILURE;
             }
             oldp = p + 1;
         }
-        return device_table[dindex].parser(oldp);
+        return canvas->device_table[dindex]->parser(canvas, oldp);
     }
 }
 
-int number_of_devices(void)
+int number_of_devices(const Canvas *canvas)
 {
-    return (ndevices);
+    return (canvas->ndevices);
 }
 
-void get_page_viewport(double *vx, double *vy)
+void get_page_viewport(const Canvas *canvas, double *vx, double *vy)
 {
-    *vx = device_table[curdevice].pg.width/device_table[curdevice].pg.dpi;
-    *vy = device_table[curdevice].pg.height/device_table[curdevice].pg.dpi;
+    *vx = canvas->device_table[canvas->curdevice]->pg.width/canvas->device_table[canvas->curdevice]->pg.dpi;
+    *vy = canvas->device_table[canvas->curdevice]->pg.height/canvas->device_table[canvas->curdevice]->pg.dpi;
     if (*vx < *vy) {
         *vy /= *vx;
         *vx = 1.0;
@@ -293,21 +261,21 @@ void get_page_viewport(double *vx, double *vy)
     }
 }
 
-int terminal_device(void)
+int terminal_device(const Canvas *canvas)
 {
-    if (device_table[curdevice].type == DEVICE_TERM) {
+    if (canvas->device_table[canvas->curdevice]->type == DEVICE_TERM) {
         return TRUE;
     } else {
         return FALSE;
     }
 }
 
-PageFormat get_page_format(int device)
+PageFormat get_page_format(const Canvas *canvas, int device)
 {
     Page_geometry pg;
     int width_pp, height_pp;
     
-    pg = device_table[device].pg;
+    pg = canvas->device_table[device]->pg;
     width_pp  = (int) rint((double) 72*pg.width/pg.dpi);
     height_pp = (int) rint((double) 72*pg.height/pg.dpi);
     
@@ -327,12 +295,12 @@ PageFormat get_page_format(int device)
  * ptofile = 0 means print to printer, otherwise print to file
  */
 
-void set_ptofile(int flag)
+void set_ptofile(Grace *grace, int flag)
 {
     grace->rt->ptofile = flag;
 }
 
-int get_ptofile(void)
+int get_ptofile(const Grace *grace)
 {
     return grace->rt->ptofile;
 }

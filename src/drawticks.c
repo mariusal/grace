@@ -74,7 +74,7 @@ int is_logit_axis(int gno, int axis)
     }
 }
 
-void drawgrid(int gno)
+void drawgrid(Canvas *canvas, int gno)
 {
     int caxis;
     tickmarks *t;
@@ -90,10 +90,10 @@ void drawgrid(int gno)
     double wc_start, wc_stop; /* world coordinates */
     int ittype_loop, itick;
         
-    setclipping(TRUE);
+    setclipping(canvas, TRUE);
     
     /* TODO: add Pen to ticks and remove the following */
-    setpattern(1);
+    setpattern(canvas, 1);
     
     get_graph_viewport(gno, &v);
     get_graph_world(gno, &w);
@@ -131,9 +131,9 @@ void drawgrid(int gno)
 	        continue;
 	    }
 
-            setcolor(tprops.color);
-	    setlinewidth(tprops.linew);
-	    setlinestyle(tprops.lines);
+            setcolor(canvas, tprops.color);
+	    setlinewidth(canvas, tprops.linew);
+	    setlinestyle(canvas, tprops.lines);
 	    
 	    for (itick = 0; itick < t->nticks; itick++) {
 	    	if (t->tloc[itick].type != ttype) {
@@ -173,17 +173,17 @@ void drawgrid(int gno)
                     if (phi_stop < phi_start) {
                         phi_stop += 2*M_PI;
                     } 
-                    DrawArc(vp1, vp2, (int) rint(180.0/M_PI*phi_start),
+                    DrawArc(canvas, &vp1, &vp2, (int) rint(180.0/M_PI*phi_start),
                                       (int) rint(180.0/M_PI*phi_stop));
                 } else {
-		    DrawLine(vp_grid_start, vp_grid_stop);
+		    DrawLine(canvas, &vp_grid_start, &vp_grid_stop);
                 }
 	    }
 	}
     }
 }
 
-void drawaxes(int gno)
+void drawaxes(Canvas *canvas, int gno)
 {
     int caxis;
     tickmarks *t;
@@ -214,10 +214,10 @@ void drawaxes(int gno)
     double (*coord_conv) ();
     
     
-    setclipping(FALSE);
+    setclipping(canvas, FALSE);
 
     /* TODO: add Pen to ticks and remove the following */
-    setpattern(1);
+    setpattern(canvas, 1);
     
     get_graph_viewport(gno, &v);
     get_graph_world(gno, &w);
@@ -375,9 +375,9 @@ void drawaxes(int gno)
 	
 	/* Begin axis bar stuff */
 	if (t->t_drawbar) {
-	    setcolor(t->t_drawbarcolor);
-	    setlinewidth(t->t_drawbarlinew);
-	    setlinestyle(t->t_drawbarlines);
+	    setcolor(canvas, t->t_drawbarcolor);
+	    setlinewidth(canvas, t->t_drawbarlinew);
+	    setlinestyle(canvas, t->t_drawbarlines);
 	    if (t->t_op == PLACEMENT_NORMAL || t->t_op == PLACEMENT_BOTH) {
                 if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
                     xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
@@ -394,10 +394,10 @@ void drawaxes(int gno)
                     if (phi_stop < phi_start) {
                         phi_stop += 2*M_PI;
                     } 
-                    DrawArc(vp1, vp2, (int) rint(180.0/M_PI*phi_start),
+                    DrawArc(canvas, &vp1, &vp2, (int) rint(180.0/M_PI*phi_start),
                                       (int) rint(180.0/M_PI*phi_stop));
                 } else {
-	    	    DrawLine(vp1_start, vp1_stop);
+	    	    DrawLine(canvas, &vp1_start, &vp1_stop);
                 }
 	    }
 	    if (t->t_op == PLACEMENT_OPPOSITE || t->t_op == PLACEMENT_BOTH) {
@@ -416,10 +416,10 @@ void drawaxes(int gno)
                     if (phi_stop < phi_start) {
                         phi_stop += 2*M_PI;
                     } 
-                    DrawArc(vp1, vp2, (int) rint(180.0/M_PI*phi_start),
+                    DrawArc(canvas, &vp1, &vp2, (int) rint(180.0/M_PI*phi_start),
                                       (int) rint(180.0/M_PI*phi_stop));
                 } else {
-	    	    DrawLine(vp2_start, vp2_stop);
+	    	    DrawLine(canvas, &vp2_start, &vp2_stop);
                 }
 	    }
 	}
@@ -431,8 +431,8 @@ void drawaxes(int gno)
             continue;
         }
 
-        activate_bbox(BBOX_TYPE_TEMP, TRUE);
-        reset_bbox(BBOX_TYPE_TEMP);
+        activate_bbox(canvas, BBOX_TYPE_TEMP, TRUE);
+        reset_bbox(canvas, BBOX_TYPE_TEMP);
 
 	/* Begin axis tick stuff */
 	if (t->t_flag) {
@@ -471,9 +471,9 @@ void drawaxes(int gno)
 	            return;
 	        }
 
-                setcolor(tprops.color);
-                setlinewidth(tprops.linew);
-	        setlinestyle(tprops.lines);
+                setcolor(canvas, tprops.color);
+                setlinewidth(canvas, tprops.linew);
+	        setlinestyle(canvas, tprops.lines);
 	
 	        itcur = 0;
                 for (itick = 0; itick < t->nticks; itick++) {
@@ -494,7 +494,7 @@ void drawaxes(int gno)
 	                vp_tick1_start.y = vtpos*ort_para.y + vbase1_start*ort_perp.y;
 	                vp_tick1_stop.x  = vtpos*ort_para.x + vbase1_stop*ort_perp.x;
 	                vp_tick1_stop.y  = vtpos*ort_para.y + vbase1_stop*ort_perp.y;
-	                DrawLine(vp_tick1_start, vp_tick1_stop);
+	                DrawLine(canvas, &vp_tick1_start, &vp_tick1_stop);
 	            }
 	            if (t->t_op == PLACEMENT_OPPOSITE ||
 	                t->t_op == PLACEMENT_BOTH) {
@@ -502,7 +502,7 @@ void drawaxes(int gno)
 	                vp_tick2_start.y = vtpos*ort_para.y + vbase2_start*ort_perp.y;
 	                vp_tick2_stop.x  = vtpos*ort_para.x + vbase2_stop*ort_perp.x;
 	                vp_tick2_stop.y  = vtpos*ort_para.y + vbase2_stop*ort_perp.y;
-	                DrawLine(vp_tick2_start, vp_tick2_stop);
+	                DrawLine(canvas, &vp_tick2_start, &vp_tick2_stop);
 	            }
                     itcur++;
 	        }
@@ -557,8 +557,8 @@ void drawaxes(int gno)
 	        return;
 	    }
 
-	    setfont(t->tl_font);
-	    setcharsize(t->tl_charsize);
+	    setfont(canvas, t->tl_font);
+	    setcharsize(canvas, t->tl_charsize);
 	
 	    itcur = 0;
             for (itick = 0; itick < t->nticks; itick++) {
@@ -589,7 +589,7 @@ void drawaxes(int gno)
 	        if (itcur % (t->tl_skip + 1) == 0) {
                     /* Set color before each tick label, since pre/app
                        strings may change it */
-	            setcolor(t->tl_color);
+	            setcolor(canvas, t->tl_color);
 		    
                     /* Tick labels on normal side */
 	            if (t->tl_op == PLACEMENT_NORMAL ||
@@ -600,7 +600,7 @@ void drawaxes(int gno)
                                                        vbase_tlabel*ort_perp.x;
 	                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                        vbase_tlabel*ort_perp.y;
-	                WriteString(vp_tlabel, (double) t->tl_angle, tlabel1_just, tlabel);
+	                WriteString(canvas, &vp_tlabel, (double) t->tl_angle, tlabel1_just, tlabel);
 	            }
 		    /* Tick labels on opposite side */
 	            if (t->tl_op == PLACEMENT_OPPOSITE ||
@@ -611,7 +611,7 @@ void drawaxes(int gno)
                                                        vbase_tlabel*ort_perp.x;
 	                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                        vbase_tlabel*ort_perp.y;
-	                WriteString(vp_tlabel, (double) t->tl_angle, tlabel2_just, tlabel);
+	                WriteString(canvas, &vp_tlabel, (double) t->tl_angle, tlabel2_just, tlabel);
 	            }
 	        }
                 itcur++;
@@ -620,7 +620,7 @@ void drawaxes(int gno)
 
         /* End tick label stuff */
 
-        bb = get_bbox(BBOX_TYPE_TEMP);
+        get_bbox(canvas, BBOX_TYPE_TEMP, &bb);
 
 	/* Begin axis label stuff */
 	
@@ -654,9 +654,9 @@ void drawaxes(int gno)
 
 	if (t->label.s && t->label.s[0]) {
 	    
-	    setcharsize(t->label.charsize);
-	    setfont(t->label.font);
-	    setcolor(t->label.color);
+	    setcharsize(canvas, t->label.charsize);
+	    setfont(canvas, t->label.font);
+	    setcolor(canvas, t->label.color);
 
 	    /* Axis label on normal side */
 	    if (t->label_op == PLACEMENT_NORMAL ||
@@ -669,7 +669,7 @@ void drawaxes(int gno)
                     + vp_label_offset1.x*ort_para.y
                     - vp_label_offset1.y*ort_perp.y;
 
-	        WriteString(vp_label, (double) langle, label1_just, t->label.s);
+	        WriteString(canvas, &vp_label, (double) langle, label1_just, t->label.s);
 	    }
 
 	    /* Axis label on opposite side */
@@ -683,7 +683,7 @@ void drawaxes(int gno)
                     + vp_label_offset2.x*ort_para.y
                     + vp_label_offset2.y*ort_perp.y ;
 
-	        WriteString(vp_label, (double) langle, label2_just, t->label.s);
+	        WriteString(canvas, &vp_label, (double) langle, label2_just, t->label.s);
 	    }
 	}
         

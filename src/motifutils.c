@@ -79,13 +79,14 @@
 #include "draw.h"
 #include "patterns.h"
 #include "jbitmaps.h"
-#include "t1fonts.h"
 #include "graphs.h"
 #include "utils.h"
 #include "dicts.h"
 #include "events.h"
 #include "parser.h"
 #include "protos.h"
+
+#define canvas grace->rt->canvas
 
 static XmStringCharSet charset = XmFONTLIST_DEFAULT_TAG;
 
@@ -1530,7 +1531,7 @@ static void fsb_setcwd_cb(void *data)
     bufp = GetStringSimple(directory);
     XmStringFree(directory);
     if (bufp != NULL) {
-        set_workingdir(bufp);
+        set_workingdir(grace, bufp);
         XtFree(bufp);
     }
 }
@@ -1547,10 +1548,10 @@ static void fsb_cd_cb(int value, void *data)
     
     switch (value) {
     case FSB_CWD:
-        bufp = get_workingdir();
+        bufp = get_workingdir(grace);
         break;
     case FSB_HOME:
-	bufp = get_userhome();
+	bufp = get_userhome(grace);
         break;
     case FSB_ROOT:
         bufp = "/";
@@ -1593,7 +1594,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
     xfree(bufp);
     
-    xmstr = XmStringCreateLocalized(get_workingdir());
+    xmstr = XmStringCreateLocalized(get_workingdir(grace));
     XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
     XmStringFree(xmstr);
     
@@ -1729,7 +1730,7 @@ static BitmapOptionItem *lines_option_items;
 int init_option_menus(void) {
     int i, j, k, l, n;
     
-    n = number_of_fonts();
+    n = number_of_fonts(canvas);
     font_option_items = xmalloc(n*sizeof(OptionItem));
     if (font_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
@@ -1737,10 +1738,10 @@ int init_option_menus(void) {
     }
     for (i = 0; i < n; i++) {
         font_option_items[i].value = i;
-        font_option_items[i].label = get_fontalias(i);
+        font_option_items[i].label = get_fontalias(canvas, i);
     }
     
-    n = number_of_patterns();
+    n = number_of_patterns(canvas);
     pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
     if (pattern_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
@@ -1756,7 +1757,7 @@ int init_option_menus(void) {
         }
     }
     
-    n = number_of_linestyles();
+    n = number_of_linestyles(canvas);
     lines_option_items = xmalloc(n*sizeof(BitmapOptionItem));
     if (lines_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
@@ -1808,18 +1809,18 @@ int init_option_menus(void) {
 OptionStructure *CreateFontChoice(Widget parent, char *s)
 {
     return (CreateOptionChoice(parent,
-        s, 0, number_of_fonts(), font_option_items));
+        s, 0, number_of_fonts(canvas), font_option_items));
 }
 
 OptionStructure *CreatePatternChoice(Widget parent, char *s)
 {
-    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(), 
+    return (CreateBitmapOptionChoice(parent, s, 4, number_of_patterns(canvas), 
                                      16, 16, pattern_option_items));
 }
 
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s)
 {
-    return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(), 
+    return (CreateBitmapOptionChoice(parent, s, 0, number_of_linestyles(canvas), 
                         LINES_BM_WIDTH, LINES_BM_HEIGHT, lines_option_items));
 }
 
@@ -1912,8 +1913,8 @@ void SetPenChoice(Widget button, Pen *pen)
 
     /* Safety checks */
     if (!button || !pen ||
-        (pen->pattern < 0 || pen->pattern >= number_of_patterns()) ||
-        (pen->color < 0   || pen->color   >= number_of_colors())) {
+        (pen->pattern < 0 || pen->pattern >= number_of_patterns(canvas)) ||
+        (pen->color < 0   || pen->color   >= number_of_colors(canvas))) {
         return;
     }
     
@@ -1926,7 +1927,7 @@ void SetPenChoice(Widget button, Pen *pen)
     }
     
     fg = xvlibcolors[pen->color];
-    bg = xvlibcolors[getbgcolor()];
+    bg = xvlibcolors[getbgcolor(canvas)];
     
     pixtile = XCreatePixmapFromBitmapData(disp, root, 
         (char *) pat_bits[pen->pattern], 16, 16, fg, bg, depth);
@@ -1988,18 +1989,20 @@ static Widget CreateColorChoicePopup(Widget button)
                   XmNpacking, XmPACK_COLUMN,
                   NULL);
 
-    for (color = 0; color < number_of_colors(); color++) {
-        CMap_entry *pcmap = get_cmap_entry(color);
+    for (color = 0; color < number_of_colors(canvas); color++) {
+        CMap_entry *pcmap = get_cmap_entry(canvas, color);
         if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
             long bg, fg;
             Widget cb;
-            cb = CreateButton(popup, get_colorname(color));
+            cb = CreateButton(popup, get_colorname(canvas, color));
             XtAddCallback(cb,
                 XmNactivateCallback, cc_cb, (XtPointer) color);
 
             bg = xvlibcolors[color];
-	    if ((get_colorintensity(color) < 0.5 && is_video_reversed() == FALSE) ||
-                (get_colorintensity(color) > 0.5 && is_video_reversed() == TRUE )) {
+	    if ((get_colorintensity(canvas, color) < 0.5 &&
+                 is_video_reversed(canvas) == FALSE) ||
+                (get_colorintensity(canvas, color) > 0.5 &&
+                 is_video_reversed(canvas) == TRUE )) {
 	        fg = xvlibcolors[0];
 	    } else {
 	        fg = xvlibcolors[1];
@@ -3261,8 +3264,10 @@ void paint_color_selector(OptionStructure *optp)
     for (i = 0; i < ncolor_option_items; i++) {
         color = color_option_items[i].value;
         bg = xvlibcolors[color];
-	if ((get_colorintensity(color) < 0.5 && is_video_reversed() == FALSE) ||
-            (get_colorintensity(color) > 0.5 && is_video_reversed() == TRUE )) {
+	if ((get_colorintensity(canvas, color) < 0.5 &&
+             is_video_reversed(canvas) == FALSE) ||
+            (get_colorintensity(canvas, color) > 0.5 &&
+             is_video_reversed(canvas) == TRUE )) {
 	    fg = xvlibcolors[0];
 	} else {
 	    fg = xvlibcolors[1];
@@ -3279,8 +3284,8 @@ void update_color_selectors(void)
     int i, j;
     CMap_entry *pcmap;
     
-    for (i = 0, j = 0; i < number_of_colors(); i++) {
-        pcmap = get_cmap_entry(i);
+    for (i = 0, j = 0; i < number_of_colors(canvas); i++) {
+        pcmap = get_cmap_entry(canvas, i);
         if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
             j++;
         }
@@ -3289,11 +3294,11 @@ void update_color_selectors(void)
 
     color_option_items = xrealloc(color_option_items,
                                     ncolor_option_items*sizeof(OptionItem));
-    for (i = 0, j = 0; i < number_of_colors(); i++) {
-        pcmap = get_cmap_entry(i);
+    for (i = 0, j = 0; i < number_of_colors(canvas); i++) {
+        pcmap = get_cmap_entry(canvas, i);
         if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
             color_option_items[j].value = i;
-            color_option_items[j].label = get_colorname(i);
+            color_option_items[j].label = get_colorname(canvas, i);
             j++;
         }
     }
@@ -4174,7 +4179,7 @@ void destroy_dialog_cb(void *data)
 /* if user tried to close from WM */
 static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    bailout();
+    bailout(grace);
 }
 
 /*

@@ -396,7 +396,7 @@ int initialize_gui(int *argc, char **argv)
 
 static void do_drawgraph(void *data)
 {
-    drawgraph();
+    drawgraph(grace);
 }
 
 
@@ -406,7 +406,7 @@ static void MenuCB(void *data)
     
     switch ((int) data) {
     case MENU_EXIT:
-	bailout();
+	bailout(grace);
 	break;
     case MENU_NEW:
 	new_project(NULL);
@@ -417,10 +417,10 @@ static void MenuCB(void *data)
 	create_openproject_popup();
 	break;
     case MENU_SAVE:
-	if (strcmp (get_docname(), NONAME) != 0) {
+	if (strcmp (get_docname(grace->project), NONAME) != 0) {
 	    set_wait_cursor();
 	    
-	    save_project(get_docname());
+	    save_project(get_docname(grace->project));
 	    
 	    unset_wait_cursor();
 	} else {
@@ -432,7 +432,7 @@ static void MenuCB(void *data)
 	break;
     case MENU_REVERT:
 	set_wait_cursor();
-	s = copy_string(NULL, get_docname());
+	s = copy_string(NULL, get_docname(grace->project));
 	if (strcmp (s, NONAME) != 0) {
             load_project(s);
         } else {
@@ -444,7 +444,7 @@ static void MenuCB(void *data)
 	break;
     case MENU_PRINT:
 	set_wait_cursor();
-	do_hardcopy();
+	do_hardcopy(grace);
 	unset_wait_cursor();
 	break;
     default:
@@ -492,7 +492,8 @@ void set_left_footer(char *s)
         char hbuf[64];
         char buf[GR_MAXPATHLEN + 100];
         gethostname(hbuf, 63);
-        sprintf(buf, "%s, %s, %s", hbuf, display_name(), get_docname());
+        sprintf(buf, "%s, %s, %s",
+            hbuf, display_name(), get_docname(grace->project));
         SetLabel(statlab, buf);
     } else {
         SetLabel(statlab, s);
@@ -884,7 +885,7 @@ void startup_gui(void)
  */
     handle_close(app_shell);
     
-    xlibinit();
+    xlibinit(grace->rt->canvas);
     XtVaSetValues(app_shell, XmNcolormap, cmap, NULL);
     
 /*
@@ -1109,7 +1110,7 @@ void startup_gui(void)
 /*
  * set the title
  */
-    update_app_title();
+    update_app_title(grace->project);
 
     XtAppMainLoop(app_con);
 }
@@ -1118,11 +1119,11 @@ void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
 {
     if (inv) {
         GetDimensions(canvas, w, h);
-        set_page_dimensions(*w, *h, TRUE);
+        set_page_dimensions(grace, *w, *h, TRUE);
     } else {
-        Page_geometry pg = get_page_geometry();
-        *w = pg.width;
-        *h = pg.height;
+        Page_geometry *pg = get_page_geometry(grace->rt->canvas);
+        *w = pg->width;
+        *h = pg->height;
         SetDimensions(canvas, *w, *h);
     }
 }

@@ -782,7 +782,7 @@ void do_ext_editor(int gno, int setno)
     write_set(gno, setno, cp, grace->project->sformat, FALSE);
     grace_close(cp);
 
-    sprintf(ebuf, "%s %s", get_editor(), fname);
+    sprintf(ebuf, "%s %s", get_editor(grace), fname);
     system_wrap(ebuf);
 
     /* temporarily disable autoscale */

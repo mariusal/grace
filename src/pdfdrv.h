@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,24 +41,28 @@ typedef enum {
 
 #define DEFAULT_COLORSPACE  COLORSPACE_RGB
 
-int pdfinitgraphics(void);
+int pdfinitgraphics(Canvas *canvas);
 
-void pdf_drawpixel(VPoint vp);
-void pdf_drawpolyline(VPoint *vps, int n, int mode);
-void pdf_fillpolygon(VPoint *vps, int nc);
-void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
-void pdf_putpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void pdf_puttext(VPoint vp, char *s, int len, int font,
-     TextMatrix *tm, int underline, int overline, int kerning);
+void pdf_drawpixel(const Canvas *canvas, const VPoint *vp);
+void pdf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
+void pdf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc);
+void pdf_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+void pdf_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+void pdf_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void pdf_puttext(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning);
 
-void pdf_leavegraphics(void);
+void pdf_leavegraphics(const Canvas *canvas);
 
-int pdf_op_parser(char *opstring);
+int pdf_op_parser(Canvas *canvas, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define pdf_gui_setup NULL
 #else
-void pdf_gui_setup(void);
+void pdf_gui_setup(Canvas *canvas);
 #endif

@@ -48,22 +48,8 @@
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
                                    a separate module */
 
-void (*devupdatecmap)();        /* update color map */
-
-void (*devdrawpixel) ();        /* device pixel drawing routine */
-void (*devdrawpolyline) ();     /* device polyline drawing routine */
-void (*devfillpolygon) ();      /* device polygon filling routine */
-void (*devdrawarc) ();          /* device arc drawing routine */
-void (*devfillarc) ();          /* device arc filling routine */
-
-void (*devleavegraphics) ();    /* device exit */
-
-static int all_points_inside(VPoint *vps, int n);
+static int all_points_inside(Canvas *canvas, const VPoint *vps, int n);
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
-
-/* Current drawing properties */
-static DrawProps draw_props =
-{{1, 1}, 0, TRUE, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 
 static world worldwin;
 static view viewport;
@@ -77,294 +63,315 @@ static double yv_rc;
 static double fxg_med;
 static double fyg_med;
 
+/* Default drawing properties */
+static DrawProps default_draw_props = 
+{{1, 1}, 0, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 
-static int clipflag = TRUE;        /* whether clipping must be in force */
+Canvas *canvas_new(void)
+{
+    Canvas *canvas;
+    
+    canvas = xmalloc(sizeof(Canvas));
+    if (canvas) {
+        memset(canvas, 0, sizeof(Canvas));
+        
+        canvas->draw_props      = default_draw_props;
+        canvas->clipflag        = TRUE;
+        canvas->draw_mode       = TRUE;
+        canvas->max_path_length = MAX_DRAWING_PATH;
+        
+        /* initialize colormap data */
+        initialize_cmap(canvas);
 
-static int revflag = FALSE;
+        /* initialize T1lib */
+        if (init_t1(canvas) != RETURN_SUCCESS) {
+            errmsg("--> Broken or incomplete installation - read the FAQ!");
+	    canvas_free(canvas);
+            
+            return NULL;
+        }
+    }
+    
+    return canvas;
+}
+
+void canvas_free(Canvas *canvas)
+{
+    if (canvas) {
+        /* FIXME!!! */
+        /* free_cmap(); */
+        xfree(canvas);
+    }
+}
+
+void canvas_set_username(Canvas *canvas, const char *s)
+{
+    canvas->username = copy_string(canvas->username, s);
+}
+
+void canvas_set_docname(Canvas *canvas, const char *s)
+{
+    canvas->docname = copy_string(canvas->docname, s);
+}
+
+char *canvas_get_username(const Canvas *canvas)
+{
+    return canvas->username;
+}
+
+char *canvas_get_docname(const Canvas *canvas)
+{
+    return canvas->docname;
+}
+
 
 /*
  * set pen properties
  */
-void setpen(Pen pen)
+void setpen(Canvas *canvas, const Pen *pen)
 {
-    draw_props.pen = pen;
-    return;
-}
-
-Pen getpen(void)
-{
-    return (draw_props.pen);
+    canvas->draw_props.pen = *pen;
 }
 
 /*
  * set line drawing properties
  */
-void setline(Line *line)
+void setline(Canvas *canvas, const Line *line)
 {
-    draw_props.pen   = line->pen;
-    draw_props.linew = line->width;
-    draw_props.lines = line->style;
-    return;
+    canvas->draw_props.pen   = line->pen;
+    canvas->draw_props.linew = line->width;
+    canvas->draw_props.lines = line->style;
 }
 
 /*
  * make the current color color
  */
-void setcolor(int color)
+void setcolor(Canvas *canvas, int color)
 {
-    draw_props.pen.color = color;
-    return;
+    canvas->draw_props.pen.color = color;
 }
 
-int getcolor(void)
+void setpattern(Canvas *canvas, int pattern)
 {
-    return (draw_props.pen.color);
+    canvas->draw_props.pen.pattern = pattern;
 }
 
 /*
  * set the background color of the canvas
  */
-void setbgcolor(int bgcolor)
+void setbgcolor(Canvas *canvas, int bgcolor)
 {
-    draw_props.bgcolor = bgcolor;
-}
-
-int getbgcolor(void)
-{
-    return (draw_props.bgcolor);
-}
-
-/*
- * determines whether page background is filled
- */
-void setbgfill(int flag)
-{
-    draw_props.bgfilled = flag;
-}
-
-int getbgfill(void)
-{
-    return (draw_props.bgfilled);
+    canvas->draw_props.bgcolor = bgcolor;
 }
 
 /*
  * make the current linestyle lines
  */
-void setlinestyle(int lines)
+void setlinestyle(Canvas *canvas, int lines)
 {
-    draw_props.lines = lines;
-    return;
+    canvas->draw_props.lines = lines;
 }
 
-int getlinestyle(void)
-{
-    return (draw_props.lines);
-}
-
-#define MAGIC_LINEW_SCALE 0.0015
 /*
  * make the current line width linew
  */
-void setlinewidth(double linew)
+void setlinewidth(Canvas *canvas, double linew)
 {
-    draw_props.linew = linew;
-    return;
-}
-
-double getlinewidth(void)
-{
-    return ((double) MAGIC_LINEW_SCALE*draw_props.linew);
-}
-
-void setpattern(int pattern)
-{
-    draw_props.pen.pattern = pattern;
-    return;
-}
-
-int getpattern(void)
-{
-    return (draw_props.pen.pattern);
+    canvas->draw_props.linew = linew;
 }
 
 /*
  * set the current character size to size
  */
-void setcharsize(double charsize)
+void setcharsize(Canvas *canvas, double charsize)
 {
-    draw_props.charsize = charsize;
-    return;
-}
-
-double getcharsize(void)
-{
-    return (draw_props.charsize);
+    canvas->draw_props.charsize = charsize;
 }
 
 /*
  * setfont - make font the current font to use for writing strings
  */
-void setfont(int font)
+void setfont(Canvas *canvas, int font)
 {
-    draw_props.font = font;
-    return;
-}
-
-int getfont(void)
-{
-    return (draw_props.font);
+    canvas->draw_props.font = font;
 }
 
 /*
  * set the current fillrule
  */
-void setfillrule(int rule)
+void setfillrule(Canvas *canvas, int rule)
 {
-    draw_props.fillrule = rule;
-    return;
-}
-
-int getfillrule(void)
-{
-    return (draw_props.fillrule);
+    canvas->draw_props.fillrule = rule;
 }
 
 /*
- * set/get the current linecap parameter
+ * set the current linecap parameter
  */
-void setlinecap(int type)
+void setlinecap(Canvas *canvas, int type)
 {
-    draw_props.linecap = type;
-    return;
-}
-
-int getlinecap(void)
-{
-    return (draw_props.linecap);
+    canvas->draw_props.linecap = type;
 }
 
 /*
- * set/get the current linejoin type
+ * set the current linejoin type
  */
-void setlinejoin(int type)
+void setlinejoin(Canvas *canvas, int type)
 {
-    draw_props.linejoin = type;
-    return;
+    canvas->draw_props.linejoin = type;
 }
 
-int getlinejoin(void)
+void getpen(const Canvas *canvas, Pen *pen)
 {
-    return (draw_props.linejoin);
+    *pen = canvas->draw_props.pen;
 }
 
-/*
- * Convert point's world coordinates to viewport
- */
-VPoint Wpoint2Vpoint(WPoint wp)
+int getcolor(const Canvas *canvas)
 {
-    VPoint vp;
-    world2view(wp.x, wp.y, &vp.x, &vp.y);
-    return (vp);
+    return canvas->draw_props.pen.color;
+}
+
+int getbgcolor(const Canvas *canvas)
+{
+    return canvas->draw_props.bgcolor;
+}
+
+int getpattern(const Canvas *canvas)
+{
+    return canvas->draw_props.pen.pattern;
+}
+
+int getlinestyle(const Canvas *canvas)
+{
+    return canvas->draw_props.lines;
+}
+
+int getlinecap(const Canvas *canvas)
+{
+    return canvas->draw_props.linecap;
+}
+
+int getlinejoin(const Canvas *canvas)
+{
+    return canvas->draw_props.linejoin;
+}
+
+int getfillrule(const Canvas *canvas)
+{
+    return canvas->draw_props.fillrule;
+}
+
+double getlinewidth(const Canvas *canvas)
+{
+    return MAGIC_LINEW_SCALE*canvas->draw_props.linew;
+}
+
+double getcharsize(const Canvas *canvas)
+{
+    return canvas->draw_props.charsize;
+}
+
+int getfont(const Canvas *canvas)
+{
+    return canvas->draw_props.font;
 }
 
 
-void symplus(VPoint vp, double s)
+void symplus(Canvas *canvas, const VPoint *vp, double s)
 {
     VPoint vp1, vp2;
-    vp1.x = vp.x - s;
-    vp1.y = vp.y;
-    vp2.x = vp.x + s;
-    vp2.y = vp.y;
+    vp1.x = vp->x - s;
+    vp1.y = vp->y;
+    vp2.x = vp->x + s;
+    vp2.y = vp->y;
     
-    DrawLine(vp1, vp2);
-    vp1.x = vp.x;
-    vp1.y = vp.y - s;
-    vp2.x = vp.x;
-    vp2.y = vp.y + s;
-    DrawLine(vp1, vp2);
+    DrawLine(canvas, &vp1, &vp2);
+    vp1.x = vp->x;
+    vp1.y = vp->y - s;
+    vp2.x = vp->x;
+    vp2.y = vp->y + s;
+    DrawLine(canvas, &vp1, &vp2);
 }
 
-void symx(VPoint vp, double s)
+void symx(Canvas *canvas, const VPoint *vp, double s)
 {
     VPoint vp1, vp2;
     double side = M_SQRT1_2*s;
     
-    vp1.x = vp.x - side;
-    vp1.y = vp.y - side;
-    vp2.x = vp.x + side;
-    vp2.y = vp.y + side;
-    DrawLine(vp1, vp2);
+    vp1.x = vp->x - side;
+    vp1.y = vp->y - side;
+    vp2.x = vp->x + side;
+    vp2.y = vp->y + side;
+    DrawLine(canvas, &vp1, &vp2);
     
-    vp1.x = vp.x - side;
-    vp1.y = vp.y + side;
-    vp2.x = vp.x + side;
-    vp2.y = vp.y - side;
-    DrawLine(vp1, vp2);
+    vp1.x = vp->x - side;
+    vp1.y = vp->y + side;
+    vp2.x = vp->x + side;
+    vp2.y = vp->y - side;
+    DrawLine(canvas, &vp1, &vp2);
 }
 
-void symsplat(VPoint vp, double s)
+void symsplat(Canvas *canvas, const VPoint *vp, double s)
 {
-    symplus(vp, s);
-    symx(vp, s);
+    symplus(canvas, vp, s);
+    symx(canvas, vp, s);
 }
 
 
-void leavegraphics(void)
+void leavegraphics(Canvas *canvas)
 {
-/*    devsymreset(); */
-    (*devleavegraphics) ();
+    canvas->devleavegraphics(canvas);
 }
 
 
 /*
  * DrawPixel - put a pixel in the current color at position vp
  */
-void DrawPixel(VPoint vp)
+void DrawPixel(Canvas *canvas, const VPoint *vp)
 {
-     if (is_validVPoint(vp)) {
-         if (get_draw_mode() == TRUE) {
-             (*devdrawpixel)(vp);
+     if (is_validVPoint(canvas, vp)) {
+         if (canvas->draw_mode) {
+             canvas->devdrawpixel(canvas, vp);
          }
-         update_bboxes(vp);
+         update_bboxes(canvas, vp);
      }
 }
 
 /*
  * DrawRect - draw a rectangle using the current color and linestyle
  */
-void DrawRect(VPoint vp1, VPoint vp2)
+void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
     VPoint vps[4];
     
-    vps[0].x = vp1.x;
-    vps[0].y = vp1.y;
-    vps[1].x = vp1.x;
-    vps[1].y = vp2.y;
-    vps[2].x = vp2.x;
-    vps[2].y = vp2.y;
-    vps[3].x = vp2.x;
-    vps[3].y = vp1.y;
+    vps[0].x = vp1->x;
+    vps[0].y = vp1->y;
+    vps[1].x = vp1->x;
+    vps[1].y = vp2->y;
+    vps[2].x = vp2->x;
+    vps[2].y = vp2->y;
+    vps[3].x = vp2->x;
+    vps[3].y = vp1->y;
     
-    DrawPolyline(vps, 4, POLYLINE_CLOSED);
+    DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
 }
 
 /*
  * DrawRect - draw a rectangle using the current color and linestyle
  */
-void FillRect(VPoint vp1, VPoint vp2)
+void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
     VPoint vps[4];
     
-    vps[0].x = vp1.x;
-    vps[0].y = vp1.y;
-    vps[1].x = vp1.x;
-    vps[1].y = vp2.y;
-    vps[2].x = vp2.x;
-    vps[2].y = vp2.y;
-    vps[3].x = vp2.x;
-    vps[3].y = vp1.y;
+    vps[0].x = vp1->x;
+    vps[0].y = vp1->y;
+    vps[1].x = vp1->x;
+    vps[1].y = vp2->y;
+    vps[2].x = vp2->x;
+    vps[2].y = vp2->y;
+    vps[3].x = vp2->x;
+    vps[3].y = vp1->y;
     
-    DrawPolygon(vps, 4);
+    DrawPolygon(canvas, vps, 4);
 }
 
 
@@ -372,14 +379,14 @@ void FillRect(VPoint vp1, VPoint vp2)
  * DrawPolyline - draw a connected line in the current color and linestyle
  *            with nodes given by vps[]
  */
-void DrawPolyline(VPoint *vps, int n, int mode)
+void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
 {
     int i, nmax, nc, max_purge, npurged;
     VPoint vp1, vp2;
     VPoint vp1c, vp2c;
     VPoint *vpsc;
     
-    if (getlinestyle() == 0 || (getpen()).pattern == 0) {
+    if (getlinestyle(canvas) == 0 || getpattern(canvas) == 0) {
         return;
     }
     
@@ -393,13 +400,13 @@ void DrawPolyline(VPoint *vps, int n, int mode)
         nmax = n;
     }
     
-    max_purge = get_max_path_limit();
+    max_purge = get_max_path_limit(canvas);
     
 /*
  *  in most real cases, all points of a set are inside the viewport;
  *  so we check it prior to going into compilated clipping mode
  */
-    if (doclipping() && !all_points_inside(vps, n)) {
+    if (getclipping(canvas) && !all_points_inside(canvas, vps, n)) {
         
         vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
@@ -415,7 +422,7 @@ void DrawPolyline(VPoint *vps, int n, int mode)
             } else {
                 vp2 = vps[0];
             }
-            if (clip_line(vp1, vp2, &vp1c, &vp2c)) {
+            if (clip_line(canvas, &vp1, &vp2, &vp1c, &vp2c)) {
                 if (nc == 0) {
                     vpsc[nc] = vp1c;
                     nc++;
@@ -424,9 +431,10 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                 nc++;
                 
                 if (vp2.x != vp2c.x || vp2.y != vp2c.y || i == nmax - 2) {
-                    update_bboxes_with_vpoints(vpsc, nc, getlinewidth());
+                    update_bboxes_with_vpoints(canvas,
+                        vpsc, nc, getlinewidth(canvas));
                     
-                    if (get_draw_mode() == TRUE) {
+                    if (get_draw_mode(canvas) == TRUE) {
                         if (nc != nmax) {
                             mode = POLYLINE_OPEN;
                         }
@@ -436,7 +444,7 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                         } else {
                             npurged = nc;
                         }
-                        (*devdrawpolyline)(vpsc, npurged, mode);
+                        canvas->devdrawpolyline(canvas, vpsc, npurged, mode);
                     }
                     
                     nc = 0;
@@ -445,9 +453,9 @@ void DrawPolyline(VPoint *vps, int n, int mode)
         }
         xfree(vpsc);
     } else {
-        update_bboxes_with_vpoints(vps, n, getlinewidth());
+        update_bboxes_with_vpoints(canvas, vps, n, getlinewidth(canvas));
 
-        if (get_draw_mode() == TRUE) {
+        if (get_draw_mode(canvas) == TRUE) {
             if (max_purge && n > max_purge) {
                 npurged = max_purge;
                 vpsc = xmalloc(max_purge*sizeof(VPoint));
@@ -456,10 +464,10 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                     return;
                 }
                 purge_dense_points(vps, n, vpsc, &npurged);
-                (*devdrawpolyline)(vpsc, npurged, mode);
+                canvas->devdrawpolyline(canvas, vpsc, npurged, mode);
                 xfree(vpsc);
             } else {
-                (*devdrawpolyline)(vps, n, mode);
+                canvas->devdrawpolyline(canvas, vps, n, mode);
             }
         }
     }
@@ -469,35 +477,35 @@ void DrawPolyline(VPoint *vps, int n, int mode)
  * DrawLine - draw a straight line in the current color and linestyle
  *            with nodes given by vp1 and vp2
  */
-void DrawLine(VPoint vp1, VPoint vp2)
+void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
     VPoint vps[2];
     
-    vps[0] = vp1;
-    vps[1] = vp2;
+    vps[0] = *vp1;
+    vps[1] = *vp2;
     
-    DrawPolyline(vps, 2, POLYLINE_OPEN);
+    DrawPolyline(canvas, vps, 2, POLYLINE_OPEN);
 }
 
 /*
  * DrawPolygon - draw a filled polygon in the current color and pattern
  *      with nodes given by vps[]
  */
-void DrawPolygon(VPoint *vps, int n)
+void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
 {
     int nc, max_purge, npurged;
     VPoint *vptmp;
 
-    if ((getpen()).pattern == 0) {
+    if (getpattern(canvas) == 0) {
         return;
     }
     if (n < 3) {
         return;
     }
 
-    max_purge = get_max_path_limit();
+    max_purge = get_max_path_limit(canvas);
     
-    if (doclipping() && !all_points_inside(vps, n)) {
+    if (getclipping(canvas) && !all_points_inside(canvas, vps, n)) {
         /* In the worst case, the clipped polygon may have twice more vertices */
         vptmp = xmalloc((2*n) * sizeof(VPoint));
         if (vptmp == NULL) {
@@ -507,24 +515,24 @@ void DrawPolygon(VPoint *vps, int n)
             memcpy(vptmp, vps, n * sizeof(VPoint));
             nc = clip_polygon(vptmp, n);
             if (nc > 2) {
-                update_bboxes_with_vpoints(vptmp, nc, 0.0);
+                update_bboxes_with_vpoints(canvas, vptmp, nc, 0.0);
                 
-                if (get_draw_mode() == TRUE) {
+                if (get_draw_mode(canvas) == TRUE) {
                     if (max_purge && nc > max_purge) {
                         npurged = max_purge;
                         purge_dense_points(vptmp, nc, vptmp, &npurged);
                     } else {
                         npurged = nc;
                     }
-                    (*devfillpolygon) (vptmp, npurged);
+                    canvas->devfillpolygon(canvas, vptmp, npurged);
                 }
             }
             xfree(vptmp);
         }
     } else {
-        update_bboxes_with_vpoints(vps, n, 0.0);
+        update_bboxes_with_vpoints(canvas, vps, n, 0.0);
 
-        if (get_draw_mode() == TRUE) {
+        if (get_draw_mode(canvas) == TRUE) {
             if (max_purge && n > max_purge) {
                 npurged = max_purge;
                 vptmp = xmalloc(max_purge*sizeof(VPoint));
@@ -533,10 +541,10 @@ void DrawPolygon(VPoint *vps, int n)
                     return;
                 }
                 purge_dense_points(vps, n, vptmp, &npurged);
-                (*devfillpolygon) (vptmp, npurged);
+                canvas->devfillpolygon(canvas, vptmp, npurged);
                 xfree(vptmp);
             } else {
-                (*devfillpolygon) (vps, n);
+                canvas->devfillpolygon(canvas, vps, n);
             }
         }
     }
@@ -545,92 +553,92 @@ void DrawPolygon(VPoint *vps, int n)
 /*
  * DrawArc - draw an arc line 
  */
-void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
+void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2, int angle1, int angle2)
 {
     view v;
     
-    if (getlinestyle() == 0 || (getpen()).pattern == 0) {
+    if (getlinestyle(canvas) == 0 || getpattern(canvas) == 0) {
         return;
     }
     
     /* TODO: clipping!!!*/
-    if (get_draw_mode() == TRUE) {
-        (*devdrawarc)(vp1, vp2, angle1, angle2);
+    if (get_draw_mode(canvas) == TRUE) {
+        canvas->devdrawarc(canvas, vp1, vp2, angle1, angle2);
     }
     
     /* TODO: consider open arcs! */
-    VPoints2bbox(&vp1, &vp2, &v);
-    view_extend(&v, getlinewidth()/2);
-    update_bboxes_with_view(&v);
+    VPoints2bbox(vp1, vp2, &v);
+    view_extend(&v, getlinewidth(canvas)/2);
+    update_bboxes_with_view(canvas, &v);
 }
 
 /*
  * DrawFilledArc - draw a filled arc 
  */
-void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
+void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2, int angle1, int angle2, int mode)
 {
-    if ((getpen()).pattern == 0) {
+    if (getpattern(canvas) == 0) {
         return;
     }
 
-    if (points_overlap(vp1, vp2)) {
-        DrawPixel(vp1);
+    if (points_overlap(canvas, vp1, vp2)) {
+        DrawPixel(canvas, vp1);
         return;
     }
         
     /* TODO: clipping!!!*/
-    if (get_draw_mode() == TRUE) {
-        (*devfillarc)(vp1, vp2, angle1, angle2, mode);
+    if (get_draw_mode(canvas) == TRUE) {
+        canvas->devfillarc(canvas, vp1, vp2, angle1, angle2, mode);
     }
     /* TODO: consider open arcs! */
-    update_bboxes(vp1);
-    update_bboxes(vp2);
+    update_bboxes(canvas, vp1);
+    update_bboxes(canvas, vp2);
 }
 
 /*
  * DrawEllipse - draw an ellipse
  */
-void DrawEllipse(VPoint vp1, VPoint vp2)
+void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    DrawArc(vp1, vp2, 0, 360);
+    DrawArc(canvas, vp1, vp2, 0, 360);
 }
 
 /*
  * DrawFilledEllipse - draw a filled ellipse
  */
-void DrawFilledEllipse(VPoint vp1, VPoint vp2)
+void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    DrawFilledArc(vp1, vp2, 0, 360, ARCFILL_CHORD);
+    DrawFilledArc(canvas, vp1, vp2, 0, 360, ARCFILL_CHORD);
 }
 
 /*
  * DrawCircle - draw a circle
  */
-void DrawCircle(VPoint vp, double radius)
+void DrawCircle(Canvas *canvas, const VPoint *vp, double radius)
 {
     VPoint vp1, vp2;
     
-    vp1.x = vp.x - radius;
-    vp1.y = vp.y - radius;
-    vp2.x = vp.x + radius;
-    vp2.y = vp.y + radius;
+    vp1.x = vp->x - radius;
+    vp1.y = vp->y - radius;
+    vp2.x = vp->x + radius;
+    vp2.y = vp->y + radius;
     
-    DrawArc(vp1, vp2, 0, 360);
+    DrawArc(canvas, &vp1, &vp2, 0, 360);
 }
 
 /*
  * DrawFilledCircle - draw a filled circle
  */
-void DrawFilledCircle(VPoint vp, double radius)
+void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius)
 {
     VPoint vp1, vp2;
     
-    vp1.x = vp.x - radius;
-    vp1.y = vp.y - radius;
-    vp2.x = vp.x + radius;
-    vp2.y = vp.y + radius;
+    vp1.x = vp->x - radius;
+    vp1.y = vp->y - radius;
+    vp2.x = vp->x + radius;
+    vp2.y = vp->y + radius;
     
-    DrawFilledArc(vp1, vp2, 0, 360, ARCFILL_CHORD);
+    DrawFilledArc(canvas, &vp1, &vp2, 0, 360, ARCFILL_CHORD);
 }
 
 
@@ -641,17 +649,28 @@ void DrawFilledCircle(VPoint vp, double radius)
 /*
  * clip if clipflag = TRUE
  */
-void setclipping(int flag)
+void setclipping(Canvas *canvas, int flag)
 {
-    clipflag = flag ? TRUE:FALSE;
+    canvas->clipflag = flag ? TRUE:FALSE;
 }
 
 /*
  * 
  */
-int doclipping(void)
+int getclipping(const Canvas *canvas)
 {
-    return(clipflag ? TRUE:FALSE);
+    return (canvas->clipflag ? TRUE:FALSE);
+}
+
+
+/*
+ * Convert point's world coordinates to viewport
+ */
+VPoint Wpoint2Vpoint(WPoint wp)
+{
+    VPoint vp;
+    world2view(wp.x, wp.y, &vp.x, &vp.y);
+    return (vp);
 }
 
 /*
@@ -669,18 +688,18 @@ int is_wpoint_inside(WPoint *wp, world *w)
 /*
  * is_vpoint_inside() checks if point vp is inside of viewport rectangle v
  */
-int is_vpoint_inside(view v, VPoint vp, double epsilon)
+int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon)
 {
-    return ((vp.x >= v.xv1 - epsilon) && (vp.x <= v.xv2 + epsilon) &&
-            (vp.y >= v.yv1 - epsilon) && (vp.y <= v.yv2 + epsilon));
+    return ((vp->x >= v->xv1 - epsilon) && (vp->x <= v->xv2 + epsilon) &&
+            (vp->y >= v->yv1 - epsilon) && (vp->y <= v->yv2 + epsilon));
 }
 
-static int all_points_inside(VPoint *vps, int n)
+static int all_points_inside(Canvas *canvas, const VPoint *vps, int n)
 {
     int i;
     
     for (i = 0; i < n; i++) {
-        if (is_vpoint_inside(viewport, vps[i], VP_EPSILON) != TRUE) {
+        if (is_vpoint_inside(&viewport, &vps[i], VP_EPSILON) != TRUE) {
             return FALSE;
         }
     }
@@ -690,10 +709,10 @@ static int all_points_inside(VPoint *vps, int n)
 /*
  * is_validVPoint() checks if a point is inside of (current) graph viewport
  */
-int is_validVPoint(VPoint vp)
+int is_validVPoint(const Canvas *canvas, const VPoint *vp)
 {
-    if (doclipping()) {
-        return (is_vpoint_inside(viewport, vp, VP_EPSILON));
+    if (getclipping(canvas)) {
+        return (is_vpoint_inside(&viewport, vp, VP_EPSILON));
     } else {
         return TRUE;
     }
@@ -737,29 +756,31 @@ int is_validWPoint(WPoint wp)
  * The routine uses the Liang-Barsky algorithm, slightly modified for the
  * sake of generality (but for the price of performance) 
  */
-VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mode) {
+VPoint *line_intersect(const VPoint *vp1, const VPoint *vp2,
+    const VPoint *vp1p, const VPoint *vp2p, int mode)
+{
     static VPoint vpbuf;
     double vprod, t, tp;
     
-    vprod = (vp2p.x - vp1p.x)*(vp2.y - vp1.y) -
-            (vp2.x - vp1.x)*(vp2p.y - vp1p.y);
+    vprod = (vp2p->x - vp1p->x)*(vp2->y - vp1->y) -
+            (vp2->x - vp1->x)*(vp2p->y - vp1p->y);
     if (vprod == 0) {
         return NULL;
     } else {
-        t = ((vp1.x - vp1p.x)*vp2p.y + 
-             (vp2p.x - vp1.x)*vp1p.y - 
-             (vp2p.x - vp1p.x)*vp1.y)/vprod;
+        t = ((vp1->x - vp1p->x)*vp2p->y + 
+             (vp2p->x - vp1->x)*vp1p->y - 
+             (vp2p->x - vp1p->x)*vp1->y)/vprod;
         if ((t >= 0.0 - FPCMP_EPS) && (t <= 1.0 + FPCMP_EPS)) {
-            vpbuf.x = vp1.x + t*(vp2.x - vp1.x);
-            vpbuf.y = vp1.y + t*(vp2.y - vp1.y);
+            vpbuf.x = vp1->x + t*(vp2->x - vp1->x);
+            vpbuf.y = vp1->y + t*(vp2->y - vp1->y);
             
             if (mode == LINE_INFINITE) {
                 return &vpbuf;
             } else {
-                if (vp1p.x != vp2p.x) {
-                    tp = (vpbuf.x - vp1p.x)/(vp2p.x - vp1p.x);
+                if (vp1p->x != vp2p->x) {
+                    tp = (vpbuf.x - vp1p->x)/(vp2p->x - vp1p->x);
                 } else {
-                    tp = (vpbuf.y - vp1p.y)/(vp2p.y - vp1p.y);
+                    tp = (vpbuf.y - vp1p->y)/(vp2p->y - vp1p->y);
                 }
                 
                 if ((tp >= 0.0 - FPCMP_EPS) && (tp <= 1.0 + FPCMP_EPS)) {
@@ -780,26 +801,27 @@ VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mod
  * vp1c and vp2c, and the function itself returns TRUE if (a part of) the line
  * should be drawn and FALSE otherwise
  */
-int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c)
+int clip_line(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, VPoint *vp1c, VPoint *vp2c)
 {
     int ends_found = 0;
     int na;
     int vp1_ok = FALSE, vp2_ok = FALSE;
     VPoint *vpp, vptmp[2], vpsa[5];
     
-    if (is_validVPoint(vp1)) {
+    if (is_validVPoint(canvas, vp1)) {
         vp1_ok = TRUE;
         ends_found++;
     }
     
-    if (is_validVPoint(vp2)) {
+    if (is_validVPoint(canvas, vp2)) {
         vp2_ok = TRUE;
         ends_found++;
     }
     
     if (vp1_ok && vp2_ok) {
-        *vp1c = vp1;
-        *vp2c = vp2;
+        *vp1c = *vp1;
+        *vp2c = *vp2;
         return (TRUE);
     } else {
         vpsa[0].x = viewport.xv1 - VP_EPSILON;
@@ -814,7 +836,7 @@ int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c)
         
         na = 0;
         while ((ends_found < 2) && na < 4) {
-            if ((vpp = line_intersect(vp1, vp2, vpsa[na], vpsa[na + 1], LINE_FINITE)) != NULL) {
+            if ((vpp = line_intersect(vp1, vp2, &vpsa[na], &vpsa[na + 1], LINE_FINITE)) != NULL) {
                 vptmp[ends_found] = *vpp;
                 ends_found++;
             }
@@ -824,11 +846,11 @@ int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c)
             return (FALSE);
         } else if (ends_found == 2) {
             if (vp1_ok) {
-                *vp1c = vp1;
+                *vp1c = *vp1;
                 *vp2c = vptmp[1];
             } else if (vp2_ok) {
                 *vp1c = vptmp[1];
-                *vp2c = vp2;
+                *vp2c = *vp2;
             } else {
                 *vp1c = vptmp[0];
                 *vp2c = vptmp[1];
@@ -848,12 +870,12 @@ int clip_line(VPoint vp1, VPoint vp2, VPoint *vp1c, VPoint *vp2c)
     }
 }
 
-static int is_inside_boundary(VPoint vp, VPoint vp1c, VPoint vp2c)
+static int is_inside_boundary(const VPoint *vp, const VPoint *vp1c, const VPoint *vp2c)
 {
     /* vector product should be positive if vp1c, vp2c and vp lie 
      * counter-clockwise
      */
-    if ((vp2c.x - vp1c.x)*(vp.y - vp2c.y) - (vp.x - vp2c.x)*(vp2c.y - vp1c.y) >= 0.0){
+    if ((vp2c->x - vp1c->x)*(vp->y - vp2c->y) - (vp->x - vp2c->x)*(vp2c->y - vp1c->y) >= 0.0){
         return TRUE;
     } else {
         return FALSE;
@@ -863,7 +885,7 @@ static int is_inside_boundary(VPoint vp, VPoint vp1c, VPoint vp2c)
 /* size of buffer array used in polygon clipping */
 static int polybuf_length;
 
-int intersect_polygon(VPoint *vps, int n, VPoint vp1p, VPoint vp2p)
+int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p)
 {
     int i, nc, ishift;
     VPoint vp1, vp2, *vpp;
@@ -876,12 +898,12 @@ int intersect_polygon(VPoint *vps, int n, VPoint vp1p, VPoint vp2p)
     vp1 = vps[polybuf_length - 1];
     for (i = ishift; i < polybuf_length; i++) {
         vp2 = vps[i];
-        if (is_inside_boundary(vp2, vp1p, vp2p)) {
-            if (is_inside_boundary(vp1, vp1p, vp2p)) {
+        if (is_inside_boundary(&vp2, vp1p, vp2p)) {
+            if (is_inside_boundary(&vp1, vp1p, vp2p)) {
                 vps[nc] = vp2;
                 nc++;
             } else {
-                vpp = line_intersect(vp1, vp2, vp1p, vp2p, LINE_INFINITE);
+                vpp = line_intersect(&vp1, &vp2, vp1p, vp2p, LINE_INFINITE);
                 if (vpp != NULL) {
                     vps[nc] = *vpp;
                     nc++;
@@ -889,8 +911,8 @@ int intersect_polygon(VPoint *vps, int n, VPoint vp1p, VPoint vp2p)
                 vps[nc] = vp2;
                 nc++;
             }
-        } else if (is_inside_boundary(vp1, vp1p, vp2p)) {
-            vpp = line_intersect(vp1, vp2, vp1p, vp2p, LINE_INFINITE);
+        } else if (is_inside_boundary(&vp1, vp1p, vp2p)) {
+            vpp = line_intersect(&vp1, &vp2, vp1p, vp2p, LINE_INFINITE);
             if (vpp != NULL) {
                 vps[nc] = *vpp;
                 nc++;
@@ -921,7 +943,7 @@ int clip_polygon(VPoint *vps, int n)
     
     nc = n;
     for (na = 0; na < 4; na++) {
-        nc = intersect_polygon(vps, nc, vpsa[na], vpsa[na + 1]);
+        nc = intersect_polygon(vps, nc, &vpsa[na], &vpsa[na + 1]);
         if (nc < 2) {
             break;
         }
@@ -934,12 +956,9 @@ int clip_polygon(VPoint *vps, int n)
  * ------------------ Colormap routines ---------------
  */
 
-static CMap_entry *cmap_table;
-static int maxcolors = 0;
-
-int number_of_colors(void)
+int number_of_colors(const Canvas *canvas)
 {
-    return maxcolors;
+    return canvas->maxcolors;
 }
 
 int is_valid_color(const RGB *rgb)
@@ -954,7 +973,7 @@ int is_valid_color(const RGB *rgb)
     }
 }
 
-int compare_rgb(RGB *rgb1, RGB *rgb2)
+static int compare_rgb(const RGB *rgb1, const RGB *rgb2)
 {
     if ((rgb1->red   == rgb2->red)   &&
         (rgb1->green == rgb2->green) &&
@@ -965,13 +984,29 @@ int compare_rgb(RGB *rgb1, RGB *rgb2)
     }
 }
 
-int find_color(RGB rgb)
+int find_color(const Canvas *canvas, const RGB *rgb)
 {
     int i;
     int cindex = BAD_COLOR;
     
-    for (i = 0; i < maxcolors; i++) {
-        if (compare_rgb(&cmap_table[i].rgb, &rgb) == TRUE) {
+    for (i = 0; i < canvas->maxcolors; i++) {
+        if (compare_rgb(&canvas->cmap_table[i].rgb, rgb) == TRUE) {
+            cindex = i;
+            break;
+        }
+    }
+    
+    return cindex;
+}
+
+int get_color_by_name(const Canvas *canvas, const char *cname)
+{
+    int i;
+    int cindex = BAD_COLOR;
+    
+    for (i = 0; i < canvas->maxcolors; i++) {
+        if (canvas->cmap_table[i].ctype == COLOR_MAIN &&
+            compare_strings(canvas->cmap_table[i].cname, cname) == TRUE) {
             cindex = i;
             break;
         }
@@ -980,23 +1015,7 @@ int find_color(RGB rgb)
     return (cindex);
 }
 
-int get_color_by_name(char *cname)
-{
-    int i;
-    int cindex = BAD_COLOR;
-    
-    for (i = 0; i < maxcolors; i++) {
-        if (cmap_table[i].ctype == COLOR_MAIN &&
-            compare_strings(cmap_table[i].cname, cname) == TRUE) {
-            cindex = i;
-            break;
-        }
-    }
-    
-    return (cindex);
-}
-
-int realloc_colors(int n)
+static int realloc_colors(Canvas *canvas, int n)
 {
     int i;
     CMap_entry *cmap_tmp;
@@ -1004,52 +1023,53 @@ int realloc_colors(int n)
     if (n > MAXCOLORS) {
         return RETURN_FAILURE;
     } else {
-        for (i = n; i < maxcolors; i++) {
-            XCFREE(cmap_table[i].cname);
+        for (i = n; i < canvas->maxcolors; i++) {
+            XCFREE(canvas->cmap_table[i].cname);
         }
-        cmap_tmp = xrealloc(cmap_table, n*sizeof(CMap_entry));
+        cmap_tmp = xrealloc(canvas->cmap_table, n*sizeof(CMap_entry));
         if (cmap_tmp == NULL) {
             return RETURN_FAILURE;
         } else {
-            cmap_table = cmap_tmp;
-            for (i = maxcolors; i < n; i++) {
-                cmap_table[i].rgb.red = 0;
-                cmap_table[i].rgb.green = 0;
-                cmap_table[i].rgb.blue = 0;
-                cmap_table[i].cname = NULL;
-                cmap_table[i].ctype = COLOR_NONE;
-                cmap_table[i].tstamp = 0;
+            canvas->cmap_table = cmap_tmp;
+            for (i = canvas->maxcolors; i < n; i++) {
+                canvas->cmap_table[i].rgb.red = 0;
+                canvas->cmap_table[i].rgb.green = 0;
+                canvas->cmap_table[i].rgb.blue = 0;
+                canvas->cmap_table[i].cname = NULL;
+                canvas->cmap_table[i].ctype = COLOR_NONE;
+                canvas->cmap_table[i].tstamp = 0;
             }
         }
-        maxcolors = n;
+        canvas->maxcolors = n;
     }
     
     return RETURN_SUCCESS;
 }
 
-int store_color(int n, CMap_entry cmap)
+int store_color(Canvas *canvas, int n, const CMap_entry *cmap)
 {
-    if (is_valid_color(&cmap.rgb) != TRUE) {
+    if (is_valid_color(&cmap->rgb) != TRUE) {
         return RETURN_FAILURE;
-    } else if (n >= maxcolors && realloc_colors(n + 1) == RETURN_FAILURE) {
+    } else if (n >= canvas->maxcolors &&
+        realloc_colors(canvas, n + 1) == RETURN_FAILURE) {
         return RETURN_FAILURE;
     } else {
-        if (is_empty_string(cmap.cname)) {
-            cmap_table[n].cname =
-                copy_string(cmap_table[n].cname, "unnamed");
+        if (is_empty_string(cmap->cname)) {
+            canvas->cmap_table[n].cname =
+                copy_string(canvas->cmap_table[n].cname, "unnamed");
         } else {
-            cmap_table[n].cname =
-                copy_string(cmap_table[n].cname, cmap.cname);
+            canvas->cmap_table[n].cname =
+                copy_string(canvas->cmap_table[n].cname, cmap->cname);
         }
-        cmap_table[n].rgb = cmap.rgb;
-        cmap_table[n].ctype = cmap.ctype;
-        cmap_table[n].tstamp = 1;
+        canvas->cmap_table[n].rgb = cmap->rgb;
+        canvas->cmap_table[n].ctype = cmap->ctype;
+        canvas->cmap_table[n].tstamp = 1;
                 
         /* inform current device of changes in the cmap database */
-        if (devupdatecmap != NULL) {
-            (*devupdatecmap)();
+        if (canvas->devupdatecmap != NULL) {
+            canvas->devupdatecmap(canvas);
         }
-        if (cmap.ctype == COLOR_MAIN) {
+        if (cmap->ctype == COLOR_MAIN) {
             ReqUpdateColorSel = TRUE;
         }
         return RETURN_SUCCESS;
@@ -1059,22 +1079,22 @@ int store_color(int n, CMap_entry cmap)
 /*
  * add_color() adds a new entry to the colormap table
  */
-int add_color(CMap_entry cmap)
+int add_color(Canvas *canvas, const CMap_entry *cmap)
 {
     int cindex;
     
-    if (is_valid_color(&cmap.rgb) != TRUE) {
+    if (is_valid_color(&cmap->rgb) != TRUE) {
         cindex = BAD_COLOR;
-    } else if ((cindex = find_color(cmap.rgb)) != BAD_COLOR) {
-        if (cmap.ctype == COLOR_MAIN && 
-            cmap_table[cindex].ctype != COLOR_MAIN) {
-            cmap_table[cindex].ctype = COLOR_MAIN;
+    } else if ((cindex = find_color(canvas, &cmap->rgb)) != BAD_COLOR) {
+        if (cmap->ctype == COLOR_MAIN && 
+            canvas->cmap_table[cindex].ctype != COLOR_MAIN) {
+            canvas->cmap_table[cindex].ctype = COLOR_MAIN;
             ReqUpdateColorSel = TRUE;
         }
-    } else if (store_color(maxcolors, cmap) == RETURN_FAILURE) {
+    } else if (store_color(canvas, canvas->maxcolors, cmap) == RETURN_FAILURE) {
         cindex = BAD_COLOR;
     } else {
-        cindex = maxcolors - 1;
+        cindex = canvas->maxcolors - 1;
     }
     
     return (cindex);
@@ -1086,50 +1106,50 @@ int add_color(CMap_entry cmap)
  * }
  */
 
-int get_rgb(unsigned int cindex, RGB *rgb)
+int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb)
 {
-    if (rgb && cindex < maxcolors) {
-        *rgb = cmap_table[cindex].rgb;
+    if (rgb && cindex < canvas->maxcolors) {
+        *rgb = canvas->cmap_table[cindex].rgb;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-int get_frgb(unsigned int cindex, fRGB *frgb)
+int get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb)
 {
-    if (frgb && cindex < maxcolors) {
-        frgb->red   = (double) cmap_table[cindex].rgb.red   / (MAXCOLORS - 1);
-        frgb->green = (double) cmap_table[cindex].rgb.green / (MAXCOLORS - 1);
-        frgb->blue  = (double) cmap_table[cindex].rgb.blue  / (MAXCOLORS - 1);
+    if (frgb && cindex < canvas->maxcolors) {
+        frgb->red   = (double) canvas->cmap_table[cindex].rgb.red   / (MAXCOLORS - 1);
+        frgb->green = (double) canvas->cmap_table[cindex].rgb.green / (MAXCOLORS - 1);
+        frgb->blue  = (double) canvas->cmap_table[cindex].rgb.blue  / (MAXCOLORS - 1);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-CMap_entry *get_cmap_entry(unsigned int cindex)
+CMap_entry *get_cmap_entry(const Canvas *canvas, unsigned int cindex)
 {
-    if (cindex < maxcolors) {
-        return &(cmap_table[cindex]);
+    if (cindex < canvas->maxcolors) {
+        return &(canvas->cmap_table[cindex]);
     } else {
         return NULL;
     }
 }
 
-char *get_colorname(unsigned int cindex)
+char *get_colorname(const Canvas *canvas, unsigned int cindex)
 {
-    if (cindex < maxcolors) {
-        return (cmap_table[cindex].cname);
+    if (cindex < canvas->maxcolors) {
+        return (canvas->cmap_table[cindex].cname);
     } else {
         return NULL;
     }
 }
 
-int get_colortype(unsigned int cindex)
+int get_colortype(const Canvas *canvas, unsigned int cindex)
 {
-    if (cindex < maxcolors) {
-        return (cmap_table[cindex].ctype);
+    if (cindex < canvas->maxcolors) {
+        return (canvas->cmap_table[cindex].ctype);
     } else {
         return (BAD_COLOR);
     }
@@ -1162,12 +1182,12 @@ int RGB2CMY(const RGB *rgb, CMY *cmy)
     }
 }
 
-double get_colorintensity(int cindex)
+double get_colorintensity(const Canvas *canvas, int cindex)
 {
     RGB rgb;
     YIQ yiq;
     
-    if (get_rgb(cindex, &rgb) == RETURN_SUCCESS &&
+    if (get_rgb(canvas, cindex, &rgb) == RETURN_SUCCESS &&
         RGB2YIQ(&rgb, &yiq)    == RETURN_SUCCESS) {
         return yiq.y;
     } else {
@@ -1175,11 +1195,11 @@ double get_colorintensity(int cindex)
     }
 }
 
-int get_cmy(unsigned int cindex, CMY *cmy)
+int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy)
 {
     RGB rgb;
     
-    if (get_rgb(cindex, &rgb) == RETURN_SUCCESS &&
+    if (get_rgb(canvas, cindex, &rgb) == RETURN_SUCCESS &&
         RGB2CMY(&rgb, cmy)     == RETURN_SUCCESS) {
         return RETURN_SUCCESS;
     } else {
@@ -1187,11 +1207,11 @@ int get_cmy(unsigned int cindex, CMY *cmy)
     }
 }
 
-int get_cmyk(unsigned int cindex, CMYK *cmyk)
+int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk)
 {
     CMY cmy;
     
-    if (get_cmy(cindex, &cmy)     == RETURN_SUCCESS) {
+    if (get_cmy(canvas, cindex, &cmy)     == RETURN_SUCCESS) {
         cmyk->black   = MIN3(cmy.cyan, cmy.magenta, cmy.yellow);
         cmyk->cyan    = cmy.cyan    - cmyk->black;
         cmyk->magenta = cmy.magenta - cmyk->black;
@@ -1202,11 +1222,11 @@ int get_cmyk(unsigned int cindex, CMYK *cmyk)
     }
 }
 
-int get_fcmyk(unsigned int cindex, fCMYK *fcmyk)
+int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk)
 {
     CMYK cmyk;
     
-    if (get_cmyk(cindex, &cmyk) == RETURN_SUCCESS) {
+    if (get_cmyk(canvas, cindex, &cmyk) == RETURN_SUCCESS) {
         fcmyk->cyan    = (double) cmyk.cyan    /(MAXCOLORS - 1);
         fcmyk->magenta = (double) cmyk.magenta /(MAXCOLORS - 1);
         fcmyk->yellow  = (double) cmyk.yellow  /(MAXCOLORS - 1);
@@ -1256,37 +1276,37 @@ static CMap_entry cmap_init[] = {
  * initialize_cmap()
  *    Initialize the colormap segment data and setup the RGB values.
  */
-void initialize_cmap(void)
+void initialize_cmap(Canvas *canvas)
 {
     int i, n;
     
     n = sizeof(cmap_init)/sizeof(CMap_entry);
-    realloc_colors(n);
+    realloc_colors(canvas, n);
     for (i = 0; i < n; i++) {
-        store_color(i, cmap_init[i]);
+        store_color(canvas, i, &cmap_init[i]);
     }
 }
 
-void reverse_video(void)
+void reverse_video(Canvas *canvas)
 {
     CMap_entry ctmp;
     
-    memcpy(&ctmp, &cmap_table[0], sizeof(CMap_entry));
-    memcpy(&cmap_table[0], &cmap_table[1], sizeof(CMap_entry));
-    memcpy(&cmap_table[1], &ctmp, sizeof(CMap_entry));
-    revflag = !revflag;
+    memcpy(&ctmp, &canvas->cmap_table[0], sizeof(CMap_entry));
+    memcpy(&canvas->cmap_table[0], &canvas->cmap_table[1], sizeof(CMap_entry));
+    memcpy(&canvas->cmap_table[1], &ctmp, sizeof(CMap_entry));
+    canvas->revflag = !canvas->revflag;
 }
 
-int is_video_reversed(void)
+int is_video_reversed(const Canvas *canvas)
 {
-    return revflag;
+    return canvas->revflag;
 }
 
 /* 
  * ------------------ Pattern routines ---------------
  */
 
-int number_of_patterns(void)
+int number_of_patterns(const Canvas *canvas)
 {
     return MAXPATTERNS;
 }
@@ -1295,7 +1315,7 @@ int number_of_patterns(void)
  * ------------------ Line style routines ---------------
  */
 
-int number_of_linestyles(void)
+int number_of_linestyles(const Canvas *canvas)
 {
     return MAXLINESTYLES;
 }
@@ -1675,19 +1695,18 @@ int checkon_viewport(int gno)
  * ---------------- bbox utilities --------------------
  */
 
-static BBox_type bboxes[2];
 static const view invalid_view = {0.0, 0.0, 0.0, 0.0};
 
-void reset_bbox(int type)
+void reset_bbox(Canvas *canvas, int type)
 {
     view *vp;
     
     switch(type) {
     case BBOX_TYPE_GLOB:
-        vp = &(bboxes[0].v);
+        vp = &(canvas->bboxes[0].v);
         break;
     case BBOX_TYPE_TEMP:
-        vp = &(bboxes[1].v);
+        vp = &(canvas->bboxes[1].v);
         break;
     default:
         errmsg ("Incorrect call of reset_bbox()");
@@ -1696,22 +1715,22 @@ void reset_bbox(int type)
     *vp = invalid_view;
 }
 
-void reset_bboxes(void)
+void reset_bboxes(Canvas *canvas)
 {
-    reset_bbox(BBOX_TYPE_GLOB);
-    reset_bbox(BBOX_TYPE_TEMP);
+    reset_bbox(canvas, BBOX_TYPE_GLOB);
+    reset_bbox(canvas, BBOX_TYPE_TEMP);
 }
 
-void freeze_bbox(int type)
+void freeze_bbox(Canvas *canvas, int type)
 {
     BBox_type *bbp;
     
-    switch(type) {
+    switch (type) {
     case BBOX_TYPE_GLOB:
-        bbp = &bboxes[0];
+        bbp = &canvas->bboxes[0];
         break;
     case BBOX_TYPE_TEMP:
-        bbp = &bboxes[1];
+        bbp = &canvas->bboxes[1];
         break;
     default:
         errmsg ("Incorrect call of freeze_bbox()");
@@ -1720,129 +1739,129 @@ void freeze_bbox(int type)
     bbp->fv = bbp->v;
 }
 
-view get_bbox(int type)
+int get_bbox(const Canvas *canvas, int type, view *v)
 {
-    view v;
-    
-    switch(type) {
+    switch (type) {
     case BBOX_TYPE_GLOB:
-        v = bboxes[0].v;
+        *v = canvas->bboxes[0].v;
         break;
     case BBOX_TYPE_TEMP:
-        v = bboxes[1].v;
+        *v = canvas->bboxes[1].v;
         break;
     default:
-        v = invalid_view;
+        *v = invalid_view;
         errmsg ("Incorrect call of get_bbox()");
-        break;
+        return RETURN_FAILURE;
     }
-    return (v);
+    return RETURN_SUCCESS;
 }
 
-int is_valid_bbox(view v)
+int is_valid_bbox(const view *v)
 {
-    if ((v.xv1 == invalid_view.xv1) &&
-        (v.xv2 == invalid_view.xv2) &&
-        (v.yv1 == invalid_view.yv1) &&
-        (v.yv2 == invalid_view.yv2)) {
+    if ((v->xv1 == invalid_view.xv1) &&
+        (v->xv2 == invalid_view.xv2) &&
+        (v->yv1 == invalid_view.yv1) &&
+        (v->yv2 == invalid_view.yv2)) {
         return (FALSE);
     } else {
         return (TRUE);
     }
 }
 
-view merge_bboxes(view v1, view v2)
+int merge_bboxes(const view *v1, const view *v2, view *v)
 {
-    view vtmp;
-    
     if (!is_valid_bbox(v1)) {
         if (is_valid_bbox(v2)) {
-            return (v2);
+            *v = *v2;
+            return RETURN_SUCCESS;
         } else {
-            return (invalid_view);
+            *v = invalid_view;
+            return RETURN_FAILURE;
         }
     } else if (!is_valid_bbox(v2)) {
-        return (v1);
+        *v = *v1;
+        return RETURN_SUCCESS;
     } else {
-        vtmp.xv1 = MIN2(v1.xv1, v2.xv1);
-        vtmp.xv2 = MAX2(v1.xv2, v2.xv2);
-        vtmp.yv1 = MIN2(v1.yv1, v2.yv1);
-        vtmp.yv2 = MAX2(v1.yv2, v2.yv2);
+        v->xv1 = MIN2(v1->xv1, v2->xv1);
+        v->xv2 = MAX2(v1->xv2, v2->xv2);
+        v->yv1 = MIN2(v1->yv1, v2->yv1);
+        v->yv2 = MAX2(v1->yv2, v2->yv2);
         
-        return (vtmp);
+        return RETURN_SUCCESS;
     }
 }
 
-void update_bbox(int type, VPoint vp)
+void update_bbox(Canvas *canvas, int type, const VPoint *vp)
 {
     BBox_type *bbp;
     
-    switch(type) {
+    switch (type) {
     case BBOX_TYPE_GLOB:
         /* Global bbox is updated only with real drawings */
-        if (get_draw_mode() == FALSE) {
+        if (get_draw_mode(canvas) == FALSE) {
             return;
         }
-        bbp = &bboxes[0];
+        bbp = &canvas->bboxes[0];
         break;
     case BBOX_TYPE_TEMP:
-        bbp = &bboxes[1];
+        bbp = &canvas->bboxes[1];
         break;
     default:
         errmsg ("Incorrect call of update_bbox()");
         return;
     }
     if (bbp->active == TRUE) {
-        if (is_vpoint_inside(bbp->v, vp, 0.0) == FALSE) {
-            if (is_valid_bbox(bbp->v)) {
-                bbp->v.xv1 = MIN2(bbp->v.xv1, vp.x);
-                bbp->v.xv2 = MAX2(bbp->v.xv2, vp.x);
-                bbp->v.yv1 = MIN2(bbp->v.yv1, vp.y);
-                bbp->v.yv2 = MAX2(bbp->v.yv2, vp.y);
+        if (is_vpoint_inside(&bbp->v, vp, 0.0) == FALSE) {
+            if (is_valid_bbox(&bbp->v)) {
+                bbp->v.xv1 = MIN2(bbp->v.xv1, vp->x);
+                bbp->v.xv2 = MAX2(bbp->v.xv2, vp->x);
+                bbp->v.yv1 = MIN2(bbp->v.yv1, vp->y);
+                bbp->v.yv2 = MAX2(bbp->v.yv2, vp->y);
             } else {
-                bbp->v.xv1 = vp.x;
-                bbp->v.xv2 = vp.x;
-                bbp->v.yv1 = vp.y;
-                bbp->v.yv2 = vp.y;
+                bbp->v.xv1 = vp->x;
+                bbp->v.xv2 = vp->x;
+                bbp->v.yv1 = vp->y;
+                bbp->v.yv2 = vp->y;
             }
         }
     }
 }
 
-void update_bboxes(VPoint vp)
+void update_bboxes(Canvas *canvas, const VPoint *vp)
 {
-    update_bbox(BBOX_TYPE_GLOB, vp);
-    update_bbox(BBOX_TYPE_TEMP, vp);
+    update_bbox(canvas, BBOX_TYPE_GLOB, vp);
+    update_bbox(canvas, BBOX_TYPE_TEMP, vp);
 }
 
-void melt_bbox(int type)
+int melt_bbox(Canvas *canvas, int type)
 {
     BBox_type *bbp;
     
     switch(type) {
     case BBOX_TYPE_GLOB:
-        bbp = &bboxes[0];
+        bbp = &canvas->bboxes[0];
         break;
     case BBOX_TYPE_TEMP:
-        bbp = &bboxes[1];
+        bbp = &canvas->bboxes[1];
         break;
     default:
         errmsg ("Incorrect call of melt_bbox()");
-        return;
+        return RETURN_FAILURE;
     }
-    bbp->v = merge_bboxes(bbp->v, bbp->fv);
+    
+    return merge_bboxes(&bbp->v, &bbp->fv, &bbp->v);
 }
 
-void activate_bbox(int type, int status)
+void activate_bbox(Canvas *canvas, int type, int status)
 {
     BBox_type *bbp;
     
     switch(type) {
     case BBOX_TYPE_GLOB:
-        bbp = &bboxes[0];
+        bbp = &canvas->bboxes[0];
         break;
     case BBOX_TYPE_TEMP:
-        bbp = &bboxes[1];
+        bbp = &canvas->bboxes[1];
         break;
     default:
         errmsg ("Incorrect call of activate_bbox()");
@@ -1865,7 +1884,7 @@ int view_extend(view *v, double w)
     }
 }
 
-int update_bboxes_with_view(view *v)
+int update_bboxes_with_view(Canvas *canvas, view *v)
 {
     if (!v) {
         return RETURN_FAILURE;
@@ -1874,16 +1893,16 @@ int update_bboxes_with_view(view *v)
         
         vp.x = v->xv1;
         vp.y = v->yv1;
-        update_bboxes(vp);
+        update_bboxes(canvas, &vp);
         vp.x = v->xv2;
         vp.y = v->yv2;
-        update_bboxes(vp);
+        update_bboxes(canvas, &vp);
         
         return RETURN_SUCCESS;
     }
 }
 
-int update_bboxes_with_vpoints(VPoint *vps, int n, double lw)
+int update_bboxes_with_vpoints(Canvas *canvas, const VPoint *vps, int n, double lw)
 {
     if (!vps || n < 1) {
         return RETURN_FAILURE;
@@ -1918,13 +1937,13 @@ int update_bboxes_with_vpoints(VPoint *vps, int n, double lw)
         
         view_extend(&v, lw/2);
         
-        update_bboxes_with_view(&v);
+        update_bboxes_with_view(canvas, &v);
         
         return RETURN_SUCCESS;
     }
 }
 
-int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb)
+int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb)
 {
     if (!bb || !vp1 || !vp2) {
         return RETURN_FAILURE;
@@ -1948,16 +1967,14 @@ int VPoints2bbox(VPoint *vp1, VPoint *vp2, view *bb)
     }
 }
 
-static int draw_mode = TRUE;
-
-void set_draw_mode(int mode)
+void set_draw_mode(Canvas *canvas, int mode)
 {
-    draw_mode = mode ? TRUE:FALSE;
+    canvas->draw_mode = mode ? TRUE:FALSE;
 }
 
-int get_draw_mode(void)
+int get_draw_mode(const Canvas *canvas)
 {
-    return (draw_mode);
+    return (canvas->draw_mode);
 }
 
 void vpswap(VPoint *vp1, VPoint *vp2)
@@ -1969,12 +1986,12 @@ void vpswap(VPoint *vp1, VPoint *vp2)
     *vp2 = vptmp;
 }
 
-int points_overlap(VPoint vp1, VPoint vp2)
+int points_overlap(const Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
     double delta;
     
-    delta = 1.0/MIN2(page_width, page_height);
-    if (fabs(vp2.x - vp1.x) < delta || fabs(vp2.y - vp1.y) < delta) {
+    delta = 1.0/MIN2(page_width(canvas), page_height(canvas));
+    if (fabs(vp2->x - vp1->x) < delta || fabs(vp2->y - vp1->y) < delta) {
         return TRUE;
     } else {
         return FALSE;
@@ -1982,16 +1999,14 @@ int points_overlap(VPoint vp1, VPoint vp2)
 }
 
 
-static int max_path_length = MAX_DRAWING_PATH;
-
-void set_max_path_limit(int limit)
+void set_max_path_limit(Canvas *canvas, int limit)
 {
-    max_path_length = limit;
+    canvas->max_path_length = limit;
 }
 
-int get_max_path_limit(void)
+int get_max_path_limit(const Canvas *canvas)
 {
-    return max_path_length;
+    return canvas->max_path_length;
 }
 
 #define PURGE_INIT_FACTOR   1.0

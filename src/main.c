@@ -67,7 +67,7 @@ extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 
 static void usage(FILE *stream, char *progname);
-static void VersionInfo(void);
+static void VersionInfo(const Grace *grace);
 
 int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
 
@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
     Project *project;
     RunTime *rt;
     GUI *gui;
+    Canvas *canvas;
     
 #ifdef HAVE_NETCDF
     char netcdf_name[512] = "";
@@ -110,9 +111,10 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    project = grace->project;
-    rt      = grace->rt;
-    gui     = grace->gui;
+    project = grace->project = project_new(grace);
+    rt      = grace->rt      = runtime_new(grace);
+    gui     = grace->gui     = gui_new(grace);
+    canvas  = rt->canvas     = canvas_new();
     
     /* initialize the parser symbol table */
     init_symtab();
@@ -120,15 +122,6 @@ int main(int argc, char *argv[])
     /* initialize the rng */
     srand48(100L);
     
-    /* initialize T1lib */
-    if (init_t1() != RETURN_SUCCESS) {
-        errmsg("--> Broken or incomplete installation - read the FAQ!");
-	exit (1);
-    }
-
-    /* initialize colormap data */
-    initialize_cmap();
-
     /*
      * if program name is gracebat* then don't initialize the X toolkit
      */
@@ -154,32 +147,32 @@ int main(int argc, char *argv[])
     /* initialize devices */
 #ifndef NONE_GUI
     if (cli == TRUE || gracebat == TRUE) {
-        rt->tdevice = register_dummy_drv();
+        rt->tdevice = register_dummy_drv(canvas);
     } else {
-        rt->tdevice = register_x11_drv();
+        rt->tdevice = register_x11_drv(canvas);
     }
 #else
-    rt->tdevice = register_dummy_drv();
+    rt->tdevice = register_dummy_drv(canvas);
 #endif
-    select_device(rt->tdevice);
+    select_device(grace->rt->canvas, rt->tdevice);
 
-    rt->hdevice = register_ps_drv();
-    register_eps_drv();
+    rt->hdevice = register_ps_drv(canvas);
+    register_eps_drv(canvas);
 
 #ifdef HAVE_LIBPDF
-    register_pdf_drv();
+    register_pdf_drv(canvas);
 #endif
-    register_mif_drv();
-    register_svg_drv();
-    register_pnm_drv();
+    register_mif_drv(canvas);
+    register_svg_drv(canvas);
+    register_pnm_drv(canvas);
 #ifdef HAVE_LIBJPEG
-    register_jpg_drv();
+    register_jpg_drv(canvas);
 #endif
 #ifdef HAVE_LIBPNG
-    register_png_drv();
+    register_png_drv(canvas);
 #endif
 
-    register_mf_drv();
+    register_mf_drv(canvas);
 
     /* check whether locale is correctly set */
     if (init_locale() != RETURN_SUCCESS) {
@@ -199,7 +192,7 @@ int main(int argc, char *argv[])
     for (i = 1; i < argc; i++) {
 	if (argv[i][0] == '-' && argv[i][1] != '\0') {
 	    if (argmatch(argv[i], "-version", 2)) {
-                VersionInfo();
+                VersionInfo(grace);
 		exit(0);
 	    }
 #if defined(DEBUG)
@@ -357,7 +350,7 @@ int main(int argc, char *argv[])
                         wpp = atoi(argv[i]);
 		    	i++;
 		    	hpp = atoi(argv[i]);
-                        set_page_dimensions(wpp, hpp, FALSE);
+                        set_page_dimensions(grace, wpp, hpp, FALSE);
 #ifndef NONE_GUI
 		    	set_pagelayout(PAGE_FIXED);
 #endif
@@ -379,7 +372,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing argument for hardcopy device select flag\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
+		    if (set_printer_by_name(grace, argv[i]) != RETURN_SUCCESS) {
                         errmsg("Unknown or unsupported device");
                         exit(1);
                     }
@@ -406,7 +399,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing file name for printing\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    set_ptofile(TRUE);
+		    set_ptofile(grace, TRUE);
                     strcpy(print_file, argv[i]);
 		}
 	    } else if (argmatch(argv[i], "-hardcopy", 6)) {
@@ -510,7 +503,7 @@ int main(int argc, char *argv[])
 		    }
 		}
 	    } else if (argmatch(argv[i], "-rvideo", 7)) {
-		reverse_video();
+		reverse_video(canvas);
 	    } else if (argmatch(argv[i], "-param", 2)) {
 		i++;
 		if (i == argc) {
@@ -547,7 +540,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing parameters for working directory\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (set_workingdir(argv[i]) != RETURN_SUCCESS) {
+		    if (set_workingdir(grace, argv[i]) != RETURN_SUCCESS) {
 			fprintf(stderr, "Can't change to directory %s, fatal error", argv[i]);
 			exit(1);
 		    }
@@ -649,10 +642,10 @@ int main(int argc, char *argv[])
             monitor_input(ib_tbl, ib_tblsize, 0);
         }
 	if (!noprint) {
-	    do_hardcopy();
+	    do_hardcopy(grace);
 	}
         
-	bailout();
+	bailout(grace);
     } else {
 /*
  * go main loop
@@ -794,7 +787,7 @@ static void usage(FILE *stream, char *progname)
     exit(0);
 }
 
-static void VersionInfo(void)
+static void VersionInfo(const Grace *grace)
 {
     int i;
     
@@ -828,8 +821,8 @@ static void VersionInfo(void)
     fprintf(stdout, "\n");
     
     fprintf(stdout, "Registered devices:\n");
-    for (i = 0; i < number_of_devices(); i++) {
-        fprintf(stdout, "%s ", get_device_name(i));
+    for (i = 0; i < number_of_devices(grace->rt->canvas); i++) {
+        fprintf(stdout, "%s ", get_device_name(grace->rt->canvas, i));
     }
     fprintf(stdout, "\n\n");
     

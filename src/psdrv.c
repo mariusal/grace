@@ -51,9 +51,7 @@
 #  include "motifinc.h"
 #endif
 
-extern FILE *prstream;
-
-static void put_string(FILE *fp, char *s, int len);
+static void put_string(FILE *fp, const char *s, int len);
 
 static int curformat = DEFAULT_PS_FORMAT;
 
@@ -116,20 +114,20 @@ static Device_entry dev_eps = {DEVICE_FILE,
           NULL
          };
 
-int register_ps_drv(void)
+int register_ps_drv(Canvas *canvas)
 {
-    return register_device(dev_ps);
+    return register_device(canvas, &dev_ps);
 }
 
-int register_eps_drv(void)
+int register_eps_drv(Canvas *canvas)
 {
-    return register_device(dev_eps);
+    return register_device(canvas, &dev_eps);
 }
 
-static int ps_initgraphics(int format)
+static int ps_initgraphics(Canvas *canvas, int format)
 {
     int i, j;
-    Page_geometry pg;
+    Page_geometry *pg;
     int width_pp, height_pp, page_offset_x, page_offset_y;
     char **enc;
     
@@ -138,25 +136,25 @@ static int ps_initgraphics(int format)
     curformat = format;
     
     /* device-dependent routines */
-    devupdatecmap = NULL;
+    canvas->devupdatecmap = NULL;
     
-    devdrawpixel = ps_drawpixel;
-    devdrawpolyline = ps_drawpolyline;
-    devfillpolygon = ps_fillpolygon;
-    devdrawarc = ps_drawarc;
-    devfillarc = ps_fillarc;
-    devputpixmap = ps_putpixmap;
-    devputtext = ps_puttext;
+    canvas->devdrawpixel     = ps_drawpixel;
+    canvas->devdrawpolyline  = ps_drawpolyline;
+    canvas->devfillpolygon   = ps_fillpolygon;
+    canvas->devdrawarc       = ps_drawarc;
+    canvas->devfillarc       = ps_fillarc;
+    canvas->devputpixmap     = ps_putpixmap;
+    canvas->devputtext       = ps_puttext;
     
-    devleavegraphics = ps_leavegraphics;
+    canvas->devleavegraphics = ps_leavegraphics;
 
-    pg = get_page_geometry();
+    pg = get_page_geometry(canvas);
     
-    page_scale = MIN2(pg.height, pg.width);
+    page_scale = MIN2(pg->height, pg->width);
     pixel_size = 1.0/page_scale;
-    page_scalef = (float) page_scale*72.0/pg.dpi;
+    page_scalef = (float) page_scale*72.0/pg->dpi;
 
-    if (curformat == PS_FORMAT && pg.height < pg.width) {
+    if (curformat == PS_FORMAT && pg->height < pg->width) {
         page_orientation = PAGE_ORIENT_LANDSCAPE;
     } else {
         page_orientation = PAGE_ORIENT_PORTRAIT;
@@ -179,20 +177,20 @@ static int ps_initgraphics(int format)
     if (psfont_status != NULL) {
         xfree(psfont_status);
     }
-    psfont_status = xmalloc(number_of_fonts()*SIZEOF_INT);
-    for (i = 0; i < number_of_fonts(); i++) {
+    psfont_status = xmalloc(number_of_fonts(canvas)*SIZEOF_INT);
+    for (i = 0; i < number_of_fonts(canvas); i++) {
         psfont_status[i] = FALSE;
     }
     
     switch (curformat) {
     case PS_FORMAT:
-        fprintf(prstream, "%%!PS-Adobe-3.0\n");
+        fprintf(canvas->prstream, "%%!PS-Adobe-3.0\n");
         tight_bb = FALSE;
         page_offset_x = ps_setup_offset_x;
         page_offset_y = ps_setup_offset_y;
         break;
     case EPS_FORMAT:
-        fprintf(prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
+        fprintf(canvas->prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
         tight_bb = eps_setup_tight_bb;
         page_offset_x = 0;
         page_offset_y = 0;
@@ -203,97 +201,97 @@ static int ps_initgraphics(int format)
     }
     
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-        width_pp  = (int) rint(72.0*pg.height/pg.dpi);
-        height_pp = (int) rint(72.0*pg.width/pg.dpi);
+        width_pp  = (int) rint(72.0*pg->height/pg->dpi);
+        height_pp = (int) rint(72.0*pg->width/pg->dpi);
     } else {
-        width_pp  = (int) rint(72.0*pg.width/pg.dpi);
-        height_pp = (int) rint(72.0*pg.height/pg.dpi);
+        width_pp  = (int) rint(72.0*pg->width/pg->dpi);
+        height_pp = (int) rint(72.0*pg->height/pg->dpi);
     }
     
     if (tight_bb == TRUE) {
-        fprintf(prstream, "%%%%BoundingBox: (atend)\n");
+        fprintf(canvas->prstream, "%%%%BoundingBox: (atend)\n");
     } else {
-        fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
+        fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n", 
             page_offset_x, page_offset_y,
             width_pp + page_offset_x, height_pp + page_offset_y);
     }
     
     if (ps_level2 == TRUE) {
-        fprintf(prstream, "%%%%LanguageLevel: 2\n");
+        fprintf(canvas->prstream, "%%%%LanguageLevel: 2\n");
     } else {
-        fprintf(prstream, "%%%%LanguageLevel: 1\n");
+        fprintf(canvas->prstream, "%%%%LanguageLevel: 1\n");
     }
     
-    fprintf(prstream, "%%%%Creator: %s\n", bi_version_string());
+    fprintf(canvas->prstream, "%%%%Creator: %s\n", bi_version_string());
 
     time(&time_value);
-    fprintf(prstream, "%%%%CreationDate: %s", ctime(&time_value));
+    fprintf(canvas->prstream, "%%%%CreationDate: %s", ctime(&time_value));
     switch (docdata) {
     case DOCDATA_7BIT:
-        fprintf(prstream, "%%%%DocumentData: Clean7Bit\n");
+        fprintf(canvas->prstream, "%%%%DocumentData: Clean7Bit\n");
         break;
     case DOCDATA_8BIT:
-        fprintf(prstream, "%%%%DocumentData: Clean8Bit\n");
+        fprintf(canvas->prstream, "%%%%DocumentData: Clean8Bit\n");
         break;
     default:
-        fprintf(prstream, "%%%%DocumentData: Binary\n");
+        fprintf(canvas->prstream, "%%%%DocumentData: Binary\n");
         break;
     }
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-        fprintf(prstream, "%%%%Orientation: Landscape\n");
+        fprintf(canvas->prstream, "%%%%Orientation: Landscape\n");
     } else {
-        fprintf(prstream, "%%%%Orientation: Portrait\n");
+        fprintf(canvas->prstream, "%%%%Orientation: Portrait\n");
     }
     
     if (curformat == PS_FORMAT) {
-        fprintf(prstream, "%%%%Pages: 1\n");
-        fprintf(prstream, "%%%%PageOrder: Ascend\n");
+        fprintf(canvas->prstream, "%%%%Pages: 1\n");
+        fprintf(canvas->prstream, "%%%%PageOrder: Ascend\n");
     }
-    fprintf(prstream, "%%%%Title: %s\n", get_docname());
-    fprintf(prstream, "%%%%For: %s\n", get_username());
-    fprintf(prstream, "%%%%DocumentNeededResources: (atend)\n");
-    fprintf(prstream, "%%%%EndComments\n");
+    fprintf(canvas->prstream, "%%%%Title: %s\n", canvas_get_docname(canvas));
+    fprintf(canvas->prstream, "%%%%For: %s\n", canvas_get_username(canvas));
+    fprintf(canvas->prstream, "%%%%DocumentNeededResources: (atend)\n");
+    fprintf(canvas->prstream, "%%%%EndComments\n");
 
     /* Definitions */
-    fprintf(prstream, "%%%%BeginProlog\n");
+    fprintf(canvas->prstream, "%%%%BeginProlog\n");
     if (curformat == PS_FORMAT) {
-        fprintf(prstream, "/PAGE_OFFSET_X %d def\n", page_offset_x);
-        fprintf(prstream, "/PAGE_OFFSET_Y %d def\n", page_offset_y);
+        fprintf(canvas->prstream, "/PAGE_OFFSET_X %d def\n", page_offset_x);
+        fprintf(canvas->prstream, "/PAGE_OFFSET_Y %d def\n", page_offset_y);
     }
-    fprintf(prstream, "/m {moveto} def\n");
-    fprintf(prstream, "/l {lineto} def\n");
-    fprintf(prstream, "/s {stroke} def\n");
-    fprintf(prstream, "/n {newpath} def\n");
-    fprintf(prstream, "/c {closepath} def\n");
-    fprintf(prstream, "/RL {rlineto} def\n");
-    fprintf(prstream, "/SLW {setlinewidth} def\n");
-    fprintf(prstream, "/GS {gsave} def\n");
-    fprintf(prstream, "/GR {grestore} def\n");
-    fprintf(prstream, "/SC {setcolor} def\n");
-    fprintf(prstream, "/SGRY {setgray} def\n");
-    fprintf(prstream, "/SRGB {setrgbcolor} def\n");
+    fprintf(canvas->prstream, "/m {moveto} def\n");
+    fprintf(canvas->prstream, "/l {lineto} def\n");
+    fprintf(canvas->prstream, "/s {stroke} def\n");
+    fprintf(canvas->prstream, "/n {newpath} def\n");
+    fprintf(canvas->prstream, "/c {closepath} def\n");
+    fprintf(canvas->prstream, "/RL {rlineto} def\n");
+    fprintf(canvas->prstream, "/SLW {setlinewidth} def\n");
+    fprintf(canvas->prstream, "/GS {gsave} def\n");
+    fprintf(canvas->prstream, "/GR {grestore} def\n");
+    fprintf(canvas->prstream, "/SC {setcolor} def\n");
+    fprintf(canvas->prstream, "/SGRY {setgray} def\n");
+    fprintf(canvas->prstream, "/SRGB {setrgbcolor} def\n");
     if (ps_colorspace == COLORSPACE_CMYK) {
-        fprintf(prstream, "/SCMYK {setcmykcolor} def\n");
+        fprintf(canvas->prstream, "/SCMYK {setcmykcolor} def\n");
     }
-    fprintf(prstream, "/SD {setdash} def\n");
-    fprintf(prstream, "/SLC {setlinecap} def\n");
-    fprintf(prstream, "/SLJ {setlinejoin} def\n");
-    fprintf(prstream, "/SCS {setcolorspace} def\n");
-    fprintf(prstream, "/FFSF {findfont setfont} def\n");
-    fprintf(prstream, "/CC {concat} def\n");
-    fprintf(prstream, "/PXL {n m 0 0 RL s} def\n");
+    fprintf(canvas->prstream, "/SD {setdash} def\n");
+    fprintf(canvas->prstream, "/SLC {setlinecap} def\n");
+    fprintf(canvas->prstream, "/SLJ {setlinejoin} def\n");
+    fprintf(canvas->prstream, "/SCS {setcolorspace} def\n");
+    fprintf(canvas->prstream, "/FFSF {findfont setfont} def\n");
+    fprintf(canvas->prstream, "/CC {concat} def\n");
+    fprintf(canvas->prstream, "/PXL {n m 0 0 RL s} def\n");
     
-    for (i = 0; i < number_of_colors(); i++) {
-        fprintf(prstream,"/Color%d {", i);
+    for (i = 0; i < number_of_colors(canvas); i++) {
+        fprintf(canvas->prstream,"/Color%d {", i);
         switch (ps_colorspace) {
         case COLORSPACE_GRAYSCALE:
-            fprintf(prstream,"%.4f", get_colorintensity(i));
+            fprintf(canvas->prstream,"%.4f", get_colorintensity(canvas, i));
             break;
         case COLORSPACE_RGB:
             {
                 fRGB frgb;
-                if (get_frgb(i, &frgb) == RETURN_SUCCESS) {
-                    fprintf(prstream, "%.4f %.4f %.4f",
+                if (get_frgb(canvas, i, &frgb) == RETURN_SUCCESS) {
+                    fprintf(canvas->prstream, "%.4f %.4f %.4f",
                                       frgb.red, frgb.green, frgb.blue);
                 }
             }
@@ -301,231 +299,233 @@ static int ps_initgraphics(int format)
         case COLORSPACE_CMYK:
             {
                 fCMYK fcmyk;
-                if (get_fcmyk(i, &fcmyk) == RETURN_SUCCESS) {
-                    fprintf(prstream, "%.4f %.4f %.4f %.4f",
+                if (get_fcmyk(canvas, i, &fcmyk) == RETURN_SUCCESS) {
+                    fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f",
                                       fcmyk.cyan, fcmyk.magenta,
                                       fcmyk.yellow, fcmyk.black);
                 }
             }
             break;
         }
-        fprintf(prstream,"} def\n");
+        fprintf(canvas->prstream,"} def\n");
     }
        
     if (ps_level2 == TRUE) {
-        fprintf(prstream, "/PTRN {\n");
-        fprintf(prstream, " /pat_bits exch def \n");
-        fprintf(prstream, " <<\n");
-        fprintf(prstream, "  /PaintType 2\n");
-        fprintf(prstream, "  /PatternType 1 /TilingType 1\n");
-        fprintf(prstream, "  /BBox[0 0 16 16]\n");
-        fprintf(prstream, "  /XStep 16 /YStep 16\n");
-        fprintf(prstream, "  /PaintProc {\n");
-        fprintf(prstream, "   pop\n");
-        fprintf(prstream, "   16 16 true [-1 0 0 -1 16 16] pat_bits imagemask\n");
-        fprintf(prstream, "  }\n");
-        fprintf(prstream, " >>\n");
-        fprintf(prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/page_scalef, 1.0/page_scalef);
-        fprintf(prstream, " makepattern\n");
-        fprintf(prstream, "} def\n");
-        for (i = 0; i < number_of_patterns(); i++) {
-            fprintf(prstream, "/Pattern%d {<", i);
+        fprintf(canvas->prstream, "/PTRN {\n");
+        fprintf(canvas->prstream, " /pat_bits exch def \n");
+        fprintf(canvas->prstream, " <<\n");
+        fprintf(canvas->prstream, "  /PaintType 2\n");
+        fprintf(canvas->prstream, "  /PatternType 1 /TilingType 1\n");
+        fprintf(canvas->prstream, "  /BBox[0 0 16 16]\n");
+        fprintf(canvas->prstream, "  /XStep 16 /YStep 16\n");
+        fprintf(canvas->prstream, "  /PaintProc {\n");
+        fprintf(canvas->prstream, "   pop\n");
+        fprintf(canvas->prstream, "   16 16 true [-1 0 0 -1 16 16] pat_bits imagemask\n");
+        fprintf(canvas->prstream, "  }\n");
+        fprintf(canvas->prstream, " >>\n");
+        fprintf(canvas->prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/page_scalef, 1.0/page_scalef);
+        fprintf(canvas->prstream, " makepattern\n");
+        fprintf(canvas->prstream, "} def\n");
+        for (i = 0; i < number_of_patterns(canvas); i++) {
+            fprintf(canvas->prstream, "/Pattern%d {<", i);
             for (j = 0; j < 32; j++) {
-                fprintf(prstream, "%02x", pat_bits[i][j]);
+                fprintf(canvas->prstream, "%02x", pat_bits[i][j]);
             }
-            fprintf(prstream, "> PTRN} bind def\n");
+            fprintf(canvas->prstream, "> PTRN} bind def\n");
         }
     }
     
     /* Elliptic arc */
-    fprintf(prstream, "/ellipsedict 8 dict def\n");
-    fprintf(prstream, "ellipsedict /mtrx matrix put\n");
-    fprintf(prstream, "/EARC {\n");
-    fprintf(prstream, " ellipsedict begin\n");
-    fprintf(prstream, "  /endangle exch def\n");
-    fprintf(prstream, "  /startangle exch def\n");
-    fprintf(prstream, "  /yrad exch def\n");
-    fprintf(prstream, "  /xrad exch def\n");
-    fprintf(prstream, "  /y exch def\n");
-    fprintf(prstream, "  /x exch def\n");
-    fprintf(prstream, "  /savematrix mtrx currentmatrix def\n");
-    fprintf(prstream, "  x y translate\n");
-    fprintf(prstream, "  xrad yrad scale\n");
-    fprintf(prstream, "  0 0 1 startangle endangle arc\n");
-    fprintf(prstream, "  savematrix setmatrix\n");
-    fprintf(prstream, " end\n");
-    fprintf(prstream, "} def\n");
+    fprintf(canvas->prstream, "/ellipsedict 8 dict def\n");
+    fprintf(canvas->prstream, "ellipsedict /mtrx matrix put\n");
+    fprintf(canvas->prstream, "/EARC {\n");
+    fprintf(canvas->prstream, " ellipsedict begin\n");
+    fprintf(canvas->prstream, "  /endangle exch def\n");
+    fprintf(canvas->prstream, "  /startangle exch def\n");
+    fprintf(canvas->prstream, "  /yrad exch def\n");
+    fprintf(canvas->prstream, "  /xrad exch def\n");
+    fprintf(canvas->prstream, "  /y exch def\n");
+    fprintf(canvas->prstream, "  /x exch def\n");
+    fprintf(canvas->prstream, "  /savematrix mtrx currentmatrix def\n");
+    fprintf(canvas->prstream, "  x y translate\n");
+    fprintf(canvas->prstream, "  xrad yrad scale\n");
+    fprintf(canvas->prstream, "  0 0 1 startangle endangle arc\n");
+    fprintf(canvas->prstream, "  savematrix setmatrix\n");
+    fprintf(canvas->prstream, " end\n");
+    fprintf(canvas->prstream, "} def\n");
 
     /* Text under/overlining etc */
-    fprintf(prstream, "/TL {\n");
-    fprintf(prstream, "  /kcomp exch def\n");
-    fprintf(prstream, "  /linewidth exch def\n");
-    fprintf(prstream, "  /offset exch def\n");
-    fprintf(prstream, "  GS\n");
-    fprintf(prstream, "  0 offset rmoveto\n");
-    fprintf(prstream, "  linewidth SLW\n");
-    fprintf(prstream, "  dup stringwidth exch kcomp add exch RL s\n");
-    fprintf(prstream, "  GR\n");
-    fprintf(prstream, "} def\n");
+    fprintf(canvas->prstream, "/TL {\n");
+    fprintf(canvas->prstream, "  /kcomp exch def\n");
+    fprintf(canvas->prstream, "  /linewidth exch def\n");
+    fprintf(canvas->prstream, "  /offset exch def\n");
+    fprintf(canvas->prstream, "  GS\n");
+    fprintf(canvas->prstream, "  0 offset rmoveto\n");
+    fprintf(canvas->prstream, "  linewidth SLW\n");
+    fprintf(canvas->prstream, "  dup stringwidth exch kcomp add exch RL s\n");
+    fprintf(canvas->prstream, "  GR\n");
+    fprintf(canvas->prstream, "} def\n");
 
     /* Kerning stuff */
-    fprintf(prstream, "/KINIT\n");
-    fprintf(prstream, "{\n");
-    fprintf(prstream, " /kvector exch def\n");
-    fprintf(prstream, " /kid 0 def\n");
-    fprintf(prstream, "} def\n");
-    fprintf(prstream, "/KPROC\n");
-    fprintf(prstream, "{\n");
-    fprintf(prstream, " pop pop\n");
-    fprintf(prstream, " kvector kid get\n");
-    fprintf(prstream, " 0 rmoveto\n");
-    fprintf(prstream, " /kid 1 kid add def\n");
-    fprintf(prstream, "} def\n");
+    fprintf(canvas->prstream, "/KINIT\n");
+    fprintf(canvas->prstream, "{\n");
+    fprintf(canvas->prstream, " /kvector exch def\n");
+    fprintf(canvas->prstream, " /kid 0 def\n");
+    fprintf(canvas->prstream, "} def\n");
+    fprintf(canvas->prstream, "/KPROC\n");
+    fprintf(canvas->prstream, "{\n");
+    fprintf(canvas->prstream, " pop pop\n");
+    fprintf(canvas->prstream, " kvector kid get\n");
+    fprintf(canvas->prstream, " 0 rmoveto\n");
+    fprintf(canvas->prstream, " /kid 1 kid add def\n");
+    fprintf(canvas->prstream, "} def\n");
 
     /* Default encoding */
-    enc = get_default_encoding();
-    fprintf(prstream, "/DefEncoding [\n");
+    enc = get_default_encoding(canvas);
+    fprintf(canvas->prstream, "/DefEncoding [\n");
     for (i = 0; i < 256; i++) {
-        fprintf(prstream, " /%s\n", enc[i]);
+        fprintf(canvas->prstream, " /%s\n", enc[i]);
     }
-    fprintf(prstream, "] def\n");
+    fprintf(canvas->prstream, "] def\n");
 
-    fprintf(prstream, "%%%%EndProlog\n");
+    fprintf(canvas->prstream, "%%%%EndProlog\n");
 
-    fprintf(prstream, "%%%%BeginSetup\n");
+    fprintf(canvas->prstream, "%%%%BeginSetup\n");
     if (ps_level2 == TRUE && curformat == PS_FORMAT) {
         /* page size feed */
         switch (ps_setup_feed) {
         case MEDIA_FEED_AUTO:
             break;
         case MEDIA_FEED_MATCH:
-            fprintf(prstream, "%%%%BeginFeature: *PageSize\n");
-            fprintf(prstream,
+            fprintf(canvas->prstream, "%%%%BeginFeature: *PageSize\n");
+            fprintf(canvas->prstream,
                 "<</PageSize [%d %d] /ImagingBBox null>> setpagedevice\n",
                 width_pp, height_pp);
-            fprintf(prstream, "%%%%EndFeature\n");
+            fprintf(canvas->prstream, "%%%%EndFeature\n");
             break;
         case MEDIA_FEED_MANUAL:
-            fprintf(prstream, "%%%%BeginFeature: *ManualFeed\n");
-            fprintf(prstream, "<</ManualFeed true>> setpagedevice\n");
-            fprintf(prstream, "%%%%EndFeature\n");
+            fprintf(canvas->prstream, "%%%%BeginFeature: *ManualFeed\n");
+            fprintf(canvas->prstream, "<</ManualFeed true>> setpagedevice\n");
+            fprintf(canvas->prstream, "%%%%EndFeature\n");
             break;
         }
         
         /* force HW resolution */
         if (ps_setup_hwres == TRUE) {
-            fprintf(prstream, "%%%%BeginFeature: *HWResolution\n");
-            fprintf(prstream, "<</HWResolution [%d %d]>> setpagedevice\n",
-                (int) pg.dpi, (int) pg.dpi);
-            fprintf(prstream, "%%%%EndFeature\n");
+            fprintf(canvas->prstream, "%%%%BeginFeature: *HWResolution\n");
+            fprintf(canvas->prstream, "<</HWResolution [%d %d]>> setpagedevice\n",
+                (int) pg->dpi, (int) pg->dpi);
+            fprintf(canvas->prstream, "%%%%EndFeature\n");
         }
     }
     
     /* compensate for printer page offsets */
     if (curformat == PS_FORMAT) {
-        fprintf(prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
+        fprintf(canvas->prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
     }
-    fprintf(prstream, "%.2f %.2f scale\n", page_scalef, page_scalef);
+    fprintf(canvas->prstream, "%.2f %.2f scale\n", page_scalef, page_scalef);
     /* rotate to get landscape on hardcopy */
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-        fprintf(prstream, "90 rotate\n");
-        fprintf(prstream, "0.0 -1.0 translate\n");
+        fprintf(canvas->prstream, "90 rotate\n");
+        fprintf(canvas->prstream, "0.0 -1.0 translate\n");
     }
-    fprintf(prstream, "%%%%EndSetup\n");
+    fprintf(canvas->prstream, "%%%%EndSetup\n");
 
     if (curformat == PS_FORMAT) {
-        fprintf(prstream, "%%%%Page: 1 1\n");
+        fprintf(canvas->prstream, "%%%%Page: 1 1\n");
     }
 
     return RETURN_SUCCESS;
 }
 
-void ps_setpen(Pen pen)
+void ps_setpen(const Canvas *canvas, const Pen *pen)
 {
-    if (pen.color != ps_color || pen.pattern != ps_pattern) {
+    if (pen->color != ps_color || pen->pattern != ps_pattern) {
         if (ps_level2 == TRUE) {
-            if (pen.pattern == 1) {
+            if (pen->pattern == 1) {
                 switch (ps_colorspace) {
                 case COLORSPACE_GRAYSCALE:
-                    fprintf(prstream, "[/DeviceGray] SCS\n");
+                    fprintf(canvas->prstream, "[/DeviceGray] SCS\n");
                     break;
                 case COLORSPACE_RGB:
-                    fprintf(prstream, "[/DeviceRGB] SCS\n");
+                    fprintf(canvas->prstream, "[/DeviceRGB] SCS\n");
                     break;
                 case COLORSPACE_CMYK:
-                    fprintf(prstream, "[/DeviceCMYK] SCS\n");
+                    fprintf(canvas->prstream, "[/DeviceCMYK] SCS\n");
                     break;
                 }
-                fprintf(prstream, "Color%d SC\n", pen.color);
+                fprintf(canvas->prstream, "Color%d SC\n", pen->color);
             } else {
                 switch (ps_colorspace) {
                 case COLORSPACE_GRAYSCALE:
-                    fprintf(prstream, "[/Pattern /DeviceGray] SCS\n");
+                    fprintf(canvas->prstream, "[/Pattern /DeviceGray] SCS\n");
                     break;
                 case COLORSPACE_RGB:
-                    fprintf(prstream, "[/Pattern /DeviceRGB] SCS\n");
+                    fprintf(canvas->prstream, "[/Pattern /DeviceRGB] SCS\n");
                     break;
                 case COLORSPACE_CMYK:
-                    fprintf(prstream, "[/Pattern /DeviceCMYK] SCS\n");
+                    fprintf(canvas->prstream, "[/Pattern /DeviceCMYK] SCS\n");
                     break;
                 }
-                fprintf(prstream,
-                    "Color%d Pattern%d SC\n", pen.color, pen.pattern);
+                fprintf(canvas->prstream,
+                    "Color%d Pattern%d SC\n", pen->color, pen->pattern);
             }
         } else {
             if (ps_colorspace == COLORSPACE_GRAYSCALE) {
-                fprintf(prstream, "Color%d SGRY\n", pen.color);
+                fprintf(canvas->prstream, "Color%d SGRY\n", pen->color);
             } else {
-                fprintf(prstream, "Color%d SRGB\n", pen.color);
+                fprintf(canvas->prstream, "Color%d SRGB\n", pen->color);
             }
         }
-        ps_color = pen.color;
-        ps_pattern = pen.pattern;
+        ps_color = pen->color;
+        ps_pattern = pen->pattern;
     }
 }
 
-void ps_setdrawbrush(void)
+void ps_setdrawbrush(const Canvas *canvas)
 {
     int i;
     int ls;
     double lw;
+    Pen pen;
     
-    ps_setpen(getpen());
+    getpen(canvas, &pen);
+    ps_setpen(canvas, &pen);
 
-    ls = getlinestyle();
-    lw = MAX2(getlinewidth(), pixel_size);
+    ls = getlinestyle(canvas);
+    lw = MAX2(getlinewidth(canvas), pixel_size);
     
     if (ls != ps_lines || lw != ps_linew) {    
-        fprintf(prstream, "[");
+        fprintf(canvas->prstream, "[");
         if (ls > 1) {
             for (i = 0; i < dash_array_length[ls]; i++) {
-                fprintf(prstream, "%.4f ", lw*dash_array[ls][i]);
+                fprintf(canvas->prstream, "%.4f ", lw*dash_array[ls][i]);
             }
         }
-        fprintf(prstream, "] 0 SD\n");
-        fprintf(prstream, "%.4f SLW\n", lw);
+        fprintf(canvas->prstream, "] 0 SD\n");
+        fprintf(canvas->prstream, "%.4f SLW\n", lw);
         ps_linew = lw;
         ps_lines = ls;
     }
 }
 
-void ps_setlineprops(void)
+void ps_setlineprops(const Canvas *canvas)
 {
     int lc, lj;
     
-    lc = getlinecap();
-    lj = getlinejoin();
+    lc = getlinecap(canvas);
+    lj = getlinejoin(canvas);
     
     if (lc != ps_linecap) {
         switch (lc) {
         case LINECAP_BUTT:
-            fprintf(prstream, "0 SLC\n");
+            fprintf(canvas->prstream, "0 SLC\n");
             break;
         case LINECAP_ROUND:
-            fprintf(prstream, "1 SLC\n");
+            fprintf(canvas->prstream, "1 SLC\n");
             break;
         case LINECAP_PROJ:
-            fprintf(prstream, "2 SLC\n");
+            fprintf(canvas->prstream, "2 SLC\n");
             break;
         }
         ps_linecap = lc;
@@ -534,150 +534,159 @@ void ps_setlineprops(void)
     if (lj != ps_linejoin) {
         switch (lj) {
         case LINEJOIN_MITER:
-            fprintf(prstream, "0 SLJ\n");
+            fprintf(canvas->prstream, "0 SLJ\n");
             break;
         case LINEJOIN_ROUND:
-            fprintf(prstream, "1 SLJ\n");
+            fprintf(canvas->prstream, "1 SLJ\n");
             break;
         case LINEJOIN_BEVEL:
-            fprintf(prstream, "2 SLJ\n");
+            fprintf(canvas->prstream, "2 SLJ\n");
             break;
         }
         ps_linejoin = lj;
     }
 }
 
-void ps_drawpixel(VPoint vp)
+void ps_drawpixel(const Canvas *canvas, const VPoint *vp)
 {
-    ps_setpen(getpen());
+    Pen pen;
+    getpen(canvas, &pen);
+    ps_setpen(canvas, &pen);
     
     if (ps_linew != pixel_size) {
-        fprintf(prstream, "%.4f SLW\n", pixel_size);
+        fprintf(canvas->prstream, "%.4f SLW\n", pixel_size);
         ps_linew = pixel_size;
     }
     if (ps_linecap != LINECAP_ROUND) {
-        fprintf(prstream, "1 SLC\n");
+        fprintf(canvas->prstream, "1 SLC\n");
         ps_linecap = LINECAP_ROUND;
     }
     if (ps_lines != 1) {
-        fprintf(prstream, "[] 0 SD\n");
+        fprintf(canvas->prstream, "[] 0 SD\n");
         ps_lines = 1;
     }
     
-    fprintf(prstream, "%.4f %.4f PXL\n", vp.x, vp.y);
+    fprintf(canvas->prstream, "%.4f %.4f PXL\n", vp->x, vp->y);
 }
 
-void ps_drawpolyline(VPoint *vps, int n, int mode)
+void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 {
     int i;
     
-    ps_setdrawbrush();
+    ps_setdrawbrush(canvas);
     
-    ps_setlineprops();
+    ps_setlineprops(canvas);
     
-    fprintf(prstream, "n\n");
-    fprintf(prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);
+    fprintf(canvas->prstream, "n\n");
+    fprintf(canvas->prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);
     for (i = 1; i < n; i++) {
-        fprintf(prstream, "%.4f %.4f l\n", vps[i].x, vps[i].y);
+        fprintf(canvas->prstream, "%.4f %.4f l\n", vps[i].x, vps[i].y);
     }
     if (mode == POLYLINE_CLOSED) {
-        fprintf(prstream, "%.4f %.4f l\n", vps[0].x, vps[0].y);
-        fprintf(prstream, "c\n");
+        fprintf(canvas->prstream, "%.4f %.4f l\n", vps[0].x, vps[0].y);
+        fprintf(canvas->prstream, "c\n");
     }
-    fprintf(prstream, "s\n");
+    fprintf(canvas->prstream, "s\n");
 }
 
-void ps_fillpolygon(VPoint *vps, int nc)
+void ps_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 {
     int i;
-    Pen pen = getpen();
+    Pen pen;
+    getpen(canvas, &pen);
     
     if (pen.pattern == 0 || nc < 3) {
         return;
     }
     
-    fprintf(prstream, "n\n");
-    fprintf(prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);
+    fprintf(canvas->prstream, "n\n");
+    fprintf(canvas->prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);
     for (i = 1; i < nc; i++) {
-        fprintf(prstream, "%.4f %.4f l\n", vps[i].x, vps[i].y);
+        fprintf(canvas->prstream, "%.4f %.4f l\n", vps[i].x, vps[i].y);
     }
-    fprintf(prstream, "c\n");
+    fprintf(canvas->prstream, "c\n");
 
     /* fill bg first if the pattern != solid */
     if (pen.pattern != 1 && ps_level2 == TRUE) {
         Pen bgpen;
-        bgpen.color   = getbgcolor();
+        bgpen.color   = getbgcolor(canvas);
         bgpen.pattern = 1;
-        fprintf(prstream, "GS\n");
-        ps_setpen(bgpen);
-        fprintf(prstream, "fill\n");
-        fprintf(prstream, "GR\n");
+        fprintf(canvas->prstream, "GS\n");
+        ps_setpen(canvas, &bgpen);
+        fprintf(canvas->prstream, "fill\n");
+        fprintf(canvas->prstream, "GR\n");
     }
     
-    ps_setpen(getpen());
-    if (getfillrule() == FILLRULE_WINDING) {
-        fprintf(prstream, "fill\n");
+    getpen(canvas, &pen);
+    ps_setpen(canvas, &pen);
+    if (getfillrule(canvas) == FILLRULE_WINDING) {
+        fprintf(canvas->prstream, "fill\n");
     } else {
-        fprintf(prstream, "eofill\n");
+        fprintf(canvas->prstream, "eofill\n");
     }
 }
 
-void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void ps_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
 {
     VPoint vpc;
     double rx, ry;
     
-    ps_setdrawbrush();
+    ps_setdrawbrush(canvas);
 
-    vpc.x = (vp1.x + vp2.x)/2;
-    vpc.y = (vp1.y + vp2.y)/2;
-    rx = fabs(vp2.x - vp1.x)/2;
-    ry = fabs(vp2.y - vp1.y)/2;
+    vpc.x = (vp1->x + vp2->x)/2;
+    vpc.y = (vp1->y + vp2->y)/2;
+    rx = fabs(vp2->x - vp1->x)/2;
+    ry = fabs(vp2->y - vp1->y)/2;
     
-    fprintf(prstream, "n %.4f %.4f %.4f %.4f %d %d EARC s\n",
+    fprintf(canvas->prstream, "n %.4f %.4f %.4f %.4f %d %d EARC s\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 }
 
-void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
+void ps_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
-    Pen pen = getpen();
+    Pen pen;
+    getpen(canvas, &pen);
     
     if (pen.pattern == 0) {
         return;
     }
 
-    vpc.x = (vp1.x + vp2.x)/2;
-    vpc.y = (vp1.y + vp2.y)/2;
-    rx = fabs(vp2.x - vp1.x)/2;
-    ry = fabs(vp2.y - vp1.y)/2;
+    vpc.x = (vp1->x + vp2->x)/2;
+    vpc.y = (vp1->y + vp2->y)/2;
+    rx = fabs(vp2->x - vp1->x)/2;
+    ry = fabs(vp2->y - vp1->y)/2;
     
-    fprintf(prstream, "n\n");
+    fprintf(canvas->prstream, "n\n");
     
     if (mode == ARCFILL_PIESLICE) {
-        fprintf(prstream, "%.4f %.4f m\n", vpc.x, vpc.y);
+        fprintf(canvas->prstream, "%.4f %.4f m\n", vpc.x, vpc.y);
     }
-    fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d EARC c\n",
+    fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f %d %d EARC c\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 
     /* fill bg first if the pattern != solid */
     if (pen.pattern != 1 && ps_level2 == TRUE) {
         Pen bgpen;
-        bgpen.color   = getbgcolor();
+        bgpen.color   = getbgcolor(canvas);
         bgpen.pattern = 1;
-        fprintf(prstream, "GS\n");
-        ps_setpen(bgpen);
-        fprintf(prstream, "fill\n");
-        fprintf(prstream, "GR\n");
+        fprintf(canvas->prstream, "GS\n");
+        ps_setpen(canvas, &bgpen);
+        fprintf(canvas->prstream, "fill\n");
+        fprintf(canvas->prstream, "GR\n");
     }
 
-    ps_setpen(getpen());
-    fprintf(prstream, "fill\n");
+    getpen(canvas, &pen);
+    ps_setpen(canvas, &pen);
+    fprintf(canvas->prstream, "fill\n");
 }
 
-void ps_putpixmap(VPoint vp, int width, int height, 
-     char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type)
+void ps_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     int j, k;
     int cindex;
@@ -685,12 +694,14 @@ void ps_putpixmap(VPoint vp, int width, int height,
     fRGB frgb;
     fCMYK fcmyk;
     unsigned char tmpbyte;
+    Pen pen;
 
-    ps_setpen(getpen());
+    getpen(canvas, &pen);
+    ps_setpen(canvas, &pen);
     
-    fprintf(prstream, "GS\n");
-    fprintf(prstream, "%.4f %.4f translate\n", vp.x, vp.y);
-    fprintf(prstream, "%.4f %.4f scale\n", (float) width/page_scale, 
+    fprintf(canvas->prstream, "GS\n");
+    fprintf(canvas->prstream, "%.4f %.4f translate\n", vp->x, vp->y);
+    fprintf(canvas->prstream, "%.4f %.4f scale\n", (float) width/page_scale, 
                                            (float) height/page_scale);    
     if (pixmap_bpp != 1) {
         int layers = 1, bpp = 8;
@@ -711,143 +722,148 @@ void ps_putpixmap(VPoint vp, int width, int height,
             bpp = GRACE_BPP;
             break;
         }
-        fprintf(prstream, "/picstr %d string def\n", width*layers);
-        fprintf(prstream, "%d %d %d\n", width, height, bpp);
-        fprintf(prstream, "[%d 0 0 %d 0 0]\n", width, -height);
-        fprintf(prstream, "{currentfile picstr readhexstring pop}\n");
+        fprintf(canvas->prstream, "/picstr %d string def\n", width*layers);
+        fprintf(canvas->prstream, "%d %d %d\n", width, height, bpp);
+        fprintf(canvas->prstream, "[%d 0 0 %d 0 0]\n", width, -height);
+        fprintf(canvas->prstream, "{currentfile picstr readhexstring pop}\n");
         if (ps_colorspace == COLORSPACE_GRAYSCALE || ps_level2 == FALSE) {
             /* No color images in Level1 */
-            fprintf(prstream, "image\n");
+            fprintf(canvas->prstream, "image\n");
         } else {
-            fprintf(prstream, "false %d\n", layers);
-            fprintf(prstream, "colorimage\n");
+            fprintf(canvas->prstream, "false %d\n", layers);
+            fprintf(canvas->prstream, "colorimage\n");
         }
         for (k = 0; k < height; k++) {
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width+j];
                 if (ps_colorspace == COLORSPACE_GRAYSCALE ||
                     ps_level2 == FALSE) {
-                    fprintf(prstream,"%02x",
-                                      (int) (255*get_colorintensity(cindex)));
+                    fprintf(canvas->prstream,"%02x",
+                        (int) (255*get_colorintensity(canvas, cindex)));
                 } else {
                     if (ps_colorspace == COLORSPACE_CMYK) {
                         CMYK cmyk;
-                        get_cmyk(cindex, &cmyk);
-                        fprintf(prstream, "%02x%02x%02x%02x",
+                        get_cmyk(canvas, cindex, &cmyk);
+                        fprintf(canvas->prstream, "%02x%02x%02x%02x",
                                           cmyk.cyan, cmyk.magenta,
                                           cmyk.yellow, cmyk.black);
                     } else {
                         RGB rgb;
-                        get_rgb(cindex, &rgb);
-                        fprintf(prstream, "%02x%02x%02x",
+                        get_rgb(canvas, cindex, &rgb);
+                        fprintf(canvas->prstream, "%02x%02x%02x",
                                            rgb.red, rgb.green, rgb.blue);
                     }
                 }
             }
-            fprintf(prstream, "\n");
+            fprintf(canvas->prstream, "\n");
         }
     } else { /* monocolor bitmap */
         paddedW = PAD(width, bitmap_pad);
         if (pixmap_type == PIXMAP_OPAQUE) {
-            cindex = getbgcolor();
+            cindex = getbgcolor(canvas);
             switch (ps_colorspace) {
             case COLORSPACE_GRAYSCALE:
-                fprintf(prstream,"%.4f SGRY\n", get_colorintensity(cindex));
+                fprintf(canvas->prstream,"%.4f SGRY\n",
+                    get_colorintensity(canvas, cindex));
                 break;
             case COLORSPACE_RGB:
-                get_frgb(cindex, &frgb);
-                fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
+                get_frgb(canvas, cindex, &frgb);
+                fprintf(canvas->prstream,"%.4f %.4f %.4f SRGB\n",
                                   frgb.red, frgb.green, frgb.blue);
                 break;
             case COLORSPACE_CMYK:
-                get_fcmyk(cindex, &fcmyk);
-                fprintf(prstream, "%.4f %.4f %.4f %.4f SCMYK\n",
+                get_fcmyk(canvas, cindex, &fcmyk);
+                fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f SCMYK\n",
                                   fcmyk.cyan, fcmyk.magenta,
                                   fcmyk.yellow, fcmyk.black);
                 break;
             }
-            fprintf(prstream, "0 0 1 -1 rectfill\n");
+            fprintf(canvas->prstream, "0 0 1 -1 rectfill\n");
         }
-        cindex = getcolor();
+        cindex = getcolor(canvas);
         switch (ps_colorspace) {
         case COLORSPACE_GRAYSCALE:
-            fprintf(prstream,"%.4f SGRY\n", get_colorintensity(cindex));
+            fprintf(canvas->prstream,"%.4f SGRY\n",
+                get_colorintensity(canvas, cindex));
             break;
         case COLORSPACE_RGB:
-            get_frgb(cindex, &frgb);
-            fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
+            get_frgb(canvas, cindex, &frgb);
+            fprintf(canvas->prstream,"%.4f %.4f %.4f SRGB\n",
                               frgb.red, frgb.green, frgb.blue);
             break;
         case COLORSPACE_CMYK:
-            get_fcmyk(cindex, &fcmyk);
-            fprintf(prstream, "%.4f %.4f %.4f %.4f SCMYK\n",
+            get_fcmyk(canvas, cindex, &fcmyk);
+            fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f SCMYK\n",
                               fcmyk.cyan, fcmyk.magenta,
                               fcmyk.yellow, fcmyk.black);
             break;
         }
-        fprintf(prstream, "/picstr %d string def\n", paddedW/8);
-        fprintf(prstream, "%d %d true\n", paddedW, height);
-        fprintf(prstream, "[%d 0 0 %d 0 0]\n", paddedW, -height);
-        fprintf(prstream, "{currentfile picstr readhexstring pop}\n");
-        fprintf(prstream, "imagemask\n");
+        fprintf(canvas->prstream, "/picstr %d string def\n", paddedW/8);
+        fprintf(canvas->prstream, "%d %d true\n", paddedW, height);
+        fprintf(canvas->prstream, "[%d 0 0 %d 0 0]\n", paddedW, -height);
+        fprintf(canvas->prstream, "{currentfile picstr readhexstring pop}\n");
+        fprintf(canvas->prstream, "imagemask\n");
         for (k = 0; k < height; k++) {
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 tmpbyte = reversebits((unsigned char) (databits)[k*paddedW/bitmap_pad + j]);
-                fprintf(prstream, "%02x", tmpbyte);
+                fprintf(canvas->prstream, "%02x", tmpbyte);
             }
-            fprintf(prstream, "\n");
+            fprintf(canvas->prstream, "\n");
         }
     }
-    fprintf(prstream, "GR\n");
+    fprintf(canvas->prstream, "GR\n");
 }
 
-void ps_puttext(VPoint vp, char *s, int len, int font,
-     TextMatrix *tm, int underline, int overline, int kerning)
+void ps_puttext(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning)
 {
     char *fontname;
     char *encscheme;
     double *kvector;
     int i;
+    Pen pen;
     
     if (psfont_status[font] == FALSE) {
-        fontname = get_fontalias(font);
-        encscheme = get_encodingscheme(font);
-        fprintf(prstream, "/%s findfont\n", fontname);
+        fontname = get_fontalias(canvas, font);
+        encscheme = get_encodingscheme(canvas, font);
+        fprintf(canvas->prstream, "/%s findfont\n", fontname);
         if (strcmp(encscheme, "FontSpecific") != 0) {
-            fprintf(prstream, "dup length dict begin\n");
-            fprintf(prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
-            fprintf(prstream, " /Encoding DefEncoding def\n");
-            fprintf(prstream, " currentdict\n");
-            fprintf(prstream, "end\n");
+            fprintf(canvas->prstream, "dup length dict begin\n");
+            fprintf(canvas->prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
+            fprintf(canvas->prstream, " /Encoding DefEncoding def\n");
+            fprintf(canvas->prstream, " currentdict\n");
+            fprintf(canvas->prstream, "end\n");
         }
-        fprintf(prstream, "/Font%d exch definefont pop\n", font);
+        fprintf(canvas->prstream, "/Font%d exch definefont pop\n", font);
         psfont_status[font] = TRUE;
     }
-    fprintf(prstream, "/Font%d FFSF\n", font);
+    fprintf(canvas->prstream, "/Font%d FFSF\n", font);
 
-    ps_setpen(getpen());
+    getpen(canvas, &pen);
+    ps_setpen(canvas, &pen);
     
-    fprintf(prstream, "%.4f %.4f m\n", vp.x, vp.y);
-    fprintf(prstream, "GS\n");
-    fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] CC\n",
+    fprintf(canvas->prstream, "%.4f %.4f m\n", vp->x, vp->y);
+    fprintf(canvas->prstream, "GS\n");
+    fprintf(canvas->prstream, "[%.4f %.4f %.4f %.4f 0 0] CC\n",
                         tm->cxx, tm->cyx, tm->cxy, tm->cyy);
     
     if (kerning) {
-        kvector = get_kerning_vector(s, len, font);
+        kvector = get_kerning_vector(canvas, s, len, font);
     } else {
         kvector = NULL;
     }
     
     if (kvector) {
-        fprintf(prstream, "[");
+        fprintf(canvas->prstream, "[");
         for (i = 0; i < len - 1; i++) {
-            fprintf(prstream, "%.4f ", kvector[i]);
+            fprintf(canvas->prstream, "%.4f ", kvector[i]);
         }
-        fprintf(prstream, "] KINIT\n");
-        fprintf(prstream, "{KPROC} ");
+        fprintf(canvas->prstream, "] KINIT\n");
+        fprintf(canvas->prstream, "{KPROC} ");
     }
     
-    put_string(prstream, s, len);
+    put_string(canvas->prstream, s, len);
 
     if (underline | overline) {
         double w, pos, kcomp;
@@ -857,49 +873,49 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
         } else {
             kcomp = 0.0;
         }
-        w = get_textline_width(font);
+        w = get_textline_width(canvas, font);
         if (underline) {
-            pos = get_underline_pos(font);
-            fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
+            pos = get_underline_pos(canvas, font);
+            fprintf(canvas->prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
         }
         if (overline) {
-            pos = get_overline_pos(font);
-            fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
+            pos = get_overline_pos(canvas, font);
+            fprintf(canvas->prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
         }
     }
     
     if (kvector) {
-        fprintf(prstream, " kshow\n");
+        fprintf(canvas->prstream, " kshow\n");
         xfree(kvector);
     } else {
-        fprintf(prstream, " show\n");
+        fprintf(canvas->prstream, " show\n");
     }
     
-    fprintf(prstream, "GR\n");
+    fprintf(canvas->prstream, "GR\n");
 }
 
 
-void ps_leavegraphics(void)
+void ps_leavegraphics(const Canvas *canvas)
 {
     view v;
     int i, first;
     
     if (curformat == PS_FORMAT) {
-        fprintf(prstream, "showpage\n");
-        fprintf(prstream, "%%%%PageTrailer\n");
+        fprintf(canvas->prstream, "showpage\n");
+        fprintf(canvas->prstream, "%%%%PageTrailer\n");
     }
-    fprintf(prstream, "%%%%Trailer\n");
+    fprintf(canvas->prstream, "%%%%Trailer\n");
     
     if (tight_bb == TRUE) {
-        v = get_bbox(BBOX_TYPE_GLOB);
+        get_bbox(canvas, BBOX_TYPE_GLOB, &v);
         if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-            fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n",
+            fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n",
                                          (int) (page_scalef*(1.0 - v.yv2)) - 1,
                                          (int) (page_scalef*v.xv1) - 1,
                                          (int) (page_scalef*(1.0 - v.yv1)) + 2,
                                          (int) (page_scalef*v.xv2) + 2);
         } else {
-            fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n",
+            fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n",
                                          (int) (page_scalef*v.xv1) - 1,
                                          (int) (page_scalef*v.yv1) - 1,
                                          (int) (page_scalef*v.xv2) + 2,
@@ -908,19 +924,20 @@ void ps_leavegraphics(void)
     }
     
     first = TRUE;
-    for (i = 0; i < number_of_fonts(); i++) {
+    for (i = 0; i < number_of_fonts(canvas); i++) {
         if (psfont_status[i] == TRUE) {
             if (first) {
-                fprintf(prstream, "%%%%DocumentNeededResources: font %s\n",
-                    get_fontalias(i));
+                fprintf(canvas->prstream, "%%%%DocumentNeededResources: font %s\n",
+                    get_fontalias(canvas, i));
                 first = FALSE;
             } else {
-                fprintf(prstream, "%%%%+ font %s\n", get_fontalias(i));
+                fprintf(canvas->prstream, "%%%%+ font %s\n",
+                    get_fontalias(canvas, i));
             }
         }
     }
 
-    fprintf(prstream, "%%%%EOF\n");
+    fprintf(canvas->prstream, "%%%%EOF\n");
 }
 
 static int is7bit(unsigned char uc)
@@ -944,7 +961,7 @@ static int is8bit(unsigned char uc)
 /*
  * Put a NOT NULL-terminated string escaping parentheses and backslashes
  */
-static void put_string(FILE *fp, char *s, int len)
+static void put_string(FILE *fp, const char *s, int len)
 {
     int i;
     
@@ -965,14 +982,14 @@ static void put_string(FILE *fp, char *s, int len)
     fputc(')', fp);
 }
 
-int psprintinitgraphics(void)
+int psprintinitgraphics(Canvas *canvas)
 {
     int result;
     
     ps_level2     = ps_setup_level2;
     ps_colorspace = ps_setup_colorspace;
     docdata       = ps_setup_docdata;
-    result = ps_initgraphics(PS_FORMAT);
+    result = ps_initgraphics(canvas, PS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
         curformat = PS_FORMAT;
@@ -981,14 +998,14 @@ int psprintinitgraphics(void)
     return (result);
 }
 
-int epsinitgraphics(void)
+int epsinitgraphics(Canvas *canvas)
 {
     int result;
     
     ps_level2     = eps_setup_level2;
     ps_colorspace = eps_setup_colorspace;
     docdata       = eps_setup_docdata;
-    result = ps_initgraphics(EPS_FORMAT);
+    result = ps_initgraphics(canvas, EPS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
         curformat = EPS_FORMAT;
@@ -997,7 +1014,7 @@ int epsinitgraphics(void)
     return (result);
 }
 
-int ps_op_parser(char *opstring)
+int ps_op_parser(Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "level2")) {
         ps_setup_level2 = TRUE;
@@ -1049,7 +1066,7 @@ int ps_op_parser(char *opstring)
     }
 }
 
-int eps_op_parser(char *opstring)
+int eps_op_parser(Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "level2")) {
         eps_setup_level2 = TRUE;
@@ -1117,7 +1134,7 @@ static void colorspace_cb(int onoff, void *data)
     }
 }
 
-void ps_gui_setup(void)
+void ps_gui_setup(Canvas *canvas)
 {
     set_wait_cursor();
     
@@ -1208,7 +1225,7 @@ static OptionStructure *eps_setup_colorspace_item;
 static Widget eps_setup_tight_bb_item;
 static OptionStructure *eps_setup_docdata_item;
 
-void eps_gui_setup(void)
+void eps_gui_setup(Canvas *canvas)
 {
     set_wait_cursor();
     

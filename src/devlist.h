@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -37,24 +36,24 @@
 
 #include <config.h>
 
-int register_dummy_drv(void);
+int register_dummy_drv(Canvas *canvas);
 #ifndef NONE_GUI
-int register_x11_drv(void);
+int register_x11_drv(Canvas *canvas);
 #endif
-int register_ps_drv(void);
-int register_eps_drv(void);
-int register_mf_drv(void);
-int register_mif_drv(void);
-int register_svg_drv(void);
+int register_ps_drv(Canvas *canvas);
+int register_eps_drv(Canvas *canvas);
+int register_mf_drv(Canvas *canvas);
+int register_mif_drv(Canvas *canvas);
+int register_svg_drv(Canvas *canvas);
 #ifdef HAVE_LIBPDF
-int register_pdf_drv(void);
+int register_pdf_drv(Canvas *canvas);
 #endif
-int register_pnm_drv(void);
+int register_pnm_drv(Canvas *canvas);
 #ifdef HAVE_LIBJPEG
-int register_jpg_drv(void);
+int register_jpg_drv(Canvas *canvas);
 #endif
 #ifdef HAVE_LIBPNG
-int register_png_drv(void);
+int register_png_drv(Canvas *canvas);
 #endif
 
 #endif /* __DEVLIST_H_ */

@@ -26,14 +26,12 @@
  */
 
 /*
- * GRACE PDF driver
+ * Grace PDF driver
  */
 
 #include <config.h>
 
 #ifdef HAVE_LIBPDF
-
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +41,7 @@
 
 #include <pdflib.h>
 
+#include "cmath.h"
 #include "defines.h"
 #include "utils.h"
 #include "draw.h"
@@ -79,8 +78,6 @@ static int pdf_setup_tight_bb = FALSE;
 static int pdf_setup_compression = 4;
 static int pdf_setup_fpprec = 4;
 
-extern FILE *prstream;
-
 static PDF *phandle;
 
 static Device_entry dev_pdf = {DEVICE_FILE,
@@ -95,36 +92,36 @@ static Device_entry dev_pdf = {DEVICE_FILE,
           NULL
          };
 
-int register_pdf_drv(void)
+int register_pdf_drv(Canvas *canvas)
 {
     PDF_boot();
-    return register_device(dev_pdf);
+    return register_device(canvas, &dev_pdf);
 }
 
-int pdfinitgraphics(void)
+int pdfinitgraphics(Canvas *canvas)
 {
     int i;
-    Page_geometry pg;
+    Page_geometry *pg;
     char *s;
    
     /* device-dependent routines */
-    devupdatecmap   = NULL;
+    canvas->devupdatecmap    = NULL;
     
-    devdrawpixel    = pdf_drawpixel;
-    devdrawpolyline = pdf_drawpolyline;
-    devfillpolygon  = pdf_fillpolygon;
-    devdrawarc      = pdf_drawarc;
-    devfillarc      = pdf_fillarc;
-    devputpixmap    = pdf_putpixmap;
-    devputtext      = pdf_puttext;
+    canvas->devdrawpixel     = pdf_drawpixel;
+    canvas->devdrawpolyline  = pdf_drawpolyline;
+    canvas->devfillpolygon   = pdf_fillpolygon;
+    canvas->devdrawarc       = pdf_drawarc;
+    canvas->devfillarc       = pdf_fillarc;
+    canvas->devputpixmap     = pdf_putpixmap;
+    canvas->devputtext       = pdf_puttext;
     
-    devleavegraphics = pdf_leavegraphics;
+    canvas->devleavegraphics = pdf_leavegraphics;
     
-    pg = get_page_geometry();
+    pg = get_page_geometry(canvas);
     
-    page_scale = MIN2(pg.height, pg.width);
+    page_scale = MIN2(pg->height, pg->width);
     pixel_size = 1.0/page_scale;
-    page_scalef = (float) page_scale*72.0/pg.dpi;
+    page_scalef = (float) page_scale*72.0/pg->dpi;
 
     /* undefine all graphics state parameters */
     pdf_color = -1;
@@ -155,7 +152,7 @@ int pdfinitgraphics(void)
     }
     PDF_set_parameter(phandle, "compatibility", s);
 
-    if (PDF_open_fp(phandle, prstream) == -1) {
+    if (PDF_open_fp(phandle, canvas->prstream) == -1) {
         return RETURN_FAILURE;
     }
     
@@ -163,17 +160,17 @@ int pdfinitgraphics(void)
     PDF_set_value(phandle, "floatdigits", (float) pdf_setup_fpprec);
 
     PDF_set_info(phandle, "Creator", bi_version_string());
-    PDF_set_info(phandle, "Author", get_username());
-    PDF_set_info(phandle, "Title", get_docname());
+    PDF_set_info(phandle, "Author", canvas_get_username(canvas));
+    PDF_set_info(phandle, "Title", canvas_get_docname(canvas));
         
-    pdf_font_ids = xmalloc(number_of_fonts()*SIZEOF_INT);
-    for (i = 0; i < number_of_fonts(); i++) {
+    pdf_font_ids = xmalloc(number_of_fonts(canvas)*SIZEOF_INT);
+    for (i = 0; i < number_of_fonts(canvas); i++) {
         pdf_font_ids[i] = -1;
     }
     
     if (pdf_setup_compat >= PDF_1_3) {
-        pdf_pattern_ids = xmalloc(number_of_patterns()*SIZEOF_INT);
-        for (i = 1; i < number_of_patterns(); i++) {
+        pdf_pattern_ids = xmalloc(number_of_patterns(canvas)*SIZEOF_INT);
+        for (i = 1; i < number_of_patterns(canvas); i++) {
 /* Unfortunately, there is no way to open a _masked_ image from memory */
 #if 0
             int im;
@@ -202,7 +199,7 @@ int pdfinitgraphics(void)
         }
     }
 
-    PDF_begin_page(phandle, pg.width*72.0/pg.dpi, pg.height*72.0/pg.dpi);
+    PDF_begin_page(phandle, pg->width*72.0/pg->dpi, pg->height*72.0/pg->dpi);
     
     if (pdf_setup_compat >= PDF_1_3) {
         s = get_project_description();
@@ -222,9 +219,9 @@ int pdfinitgraphics(void)
     return RETURN_SUCCESS;
 }
 
-void pdf_setpen(Pen pen)
+void pdf_setpen(const Canvas *canvas, const Pen *pen)
 {
-    if (pen.color != pdf_color || pen.pattern != pdf_pattern) {
+    if (pen->color != pdf_color || pen->pattern != pdf_pattern) {
         float c1, c2, c3, c4;
         char *cstype;
         switch (pdf_setup_colorspace) {
@@ -232,7 +229,7 @@ void pdf_setpen(Pen pen)
             {
                 cstype = "gray";
                 
-                c1 = (float) get_colorintensity(pen.color);
+                c1 = (float) get_colorintensity(canvas, pen->color);
                 c2 = c3 = c4 = 0.0;
             }
             break;
@@ -242,7 +239,7 @@ void pdf_setpen(Pen pen)
                 
                 cstype = "cmyk";
                 
-                get_fcmyk(pen.color, &fcmyk);
+                get_fcmyk(canvas, pen->color, &fcmyk);
                 c1 = (float) fcmyk.cyan;
                 c2 = (float) fcmyk.magenta;
                 c3 = (float) fcmyk.yellow;
@@ -256,7 +253,7 @@ void pdf_setpen(Pen pen)
                 
                 cstype = "rgb";
                 
-                get_frgb(pen.color, &frgb);
+                get_frgb(canvas, pen->color, &frgb);
                 c1 = (float) frgb.red;
                 c2 = (float) frgb.green;
                 c3 = (float) frgb.blue;
@@ -267,26 +264,28 @@ void pdf_setpen(Pen pen)
 
         PDF_setcolor(phandle, "both", cstype, c1, c2, c3, c4);     
         if (pdf_setup_compat >= PDF_1_3 &&
-            pen.pattern > 1 && pdf_pattern_ids[pen.pattern] >= 0) {
+            pen->pattern > 1 && pdf_pattern_ids[pen->pattern] >= 0) {
             PDF_setcolor(phandle, "both", "pattern",
-                (float) pdf_pattern_ids[pen.pattern], 0.0, 0.0, 0.0);     
+                (float) pdf_pattern_ids[pen->pattern], 0.0, 0.0, 0.0);     
         }
-        pdf_color = pen.color;
-        pdf_pattern = pen.pattern;
+        pdf_color = pen->color;
+        pdf_pattern = pen->pattern;
     }
 }
 
-void pdf_setdrawbrush(void)
+void pdf_setdrawbrush(const Canvas *canvas)
 {
     int i;
     float lw;
     int ls;
     float *darray;
+    Pen pen;
 
-    pdf_setpen(getpen());
+    getpen(canvas, &pen);
+    pdf_setpen(canvas, &pen);
     
-    ls = getlinestyle();
-    lw = MAX2(getlinewidth(), pixel_size);
+    ls = getlinestyle(canvas);
+    lw = MAX2(getlinewidth(canvas), pixel_size);
 
     if (ls != pdf_lines || lw != pdf_linew) {    
         PDF_setlinewidth(phandle, lw);
@@ -306,12 +305,12 @@ void pdf_setdrawbrush(void)
     }
 }
 
-void pdf_setlineprops(void)
+void pdf_setlineprops(const Canvas *canvas)
 {
     int lc, lj;
     
-    lc = getlinecap();
-    lj = getlinejoin();
+    lc = getlinecap(canvas);
+    lj = getlinejoin(canvas);
     
     if (lc != pdf_linecap) {
         switch (lc) {
@@ -344,9 +343,12 @@ void pdf_setlineprops(void)
     }
 }
 
-void pdf_drawpixel(VPoint vp)
+void pdf_drawpixel(const Canvas *canvas, const VPoint *vp)
 {
-    pdf_setpen(getpen());
+    Pen pen;
+
+    getpen(canvas, &pen);
+    pdf_setpen(canvas, &pen);
     
     if (pdf_linew != pixel_size) {
         PDF_setlinewidth(phandle, pixel_size);
@@ -361,12 +363,12 @@ void pdf_drawpixel(VPoint vp)
         pdf_lines = 1;
     }
 
-    PDF_moveto(phandle, (float) vp.x, (float) vp.y);
-    PDF_lineto(phandle, (float) vp.x, (float) vp.y);
+    PDF_moveto(phandle, (float) vp->x, (float) vp->y);
+    PDF_lineto(phandle, (float) vp->x, (float) vp->y);
     PDF_stroke(phandle);
 }
 
-void pdf_poly_path(VPoint *vps, int n)
+void pdf_poly_path(const VPoint *vps, int n)
 {
     int i;
     
@@ -376,14 +378,14 @@ void pdf_poly_path(VPoint *vps, int n)
     }
 }
 
-void pdf_drawpolyline(VPoint *vps, int n, int mode)
+void pdf_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
 {
-    if (getlinestyle() == 0) {
+    if (getlinestyle(canvas) == 0) {
         return;
     }
     
-    pdf_setdrawbrush();
-    pdf_setlineprops();
+    pdf_setdrawbrush(canvas);
+    pdf_setlineprops(canvas);
     
     pdf_poly_path(vps, n);
     
@@ -394,17 +396,17 @@ void pdf_drawpolyline(VPoint *vps, int n, int mode)
     }
 }
 
-void pdf_fillpolygon(VPoint *vps, int nc)
+void pdf_fillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 {
     Pen pen;
-    
-    pen = getpen();
+
+    getpen(canvas, &pen);
     
     if (pen.pattern == 0) {
         return;
     }
     
-    if (getfillrule() == FILLRULE_WINDING) {
+    if (getfillrule(canvas) == FILLRULE_WINDING) {
         PDF_set_parameter(phandle, "fillrule", "winding");
     } else {
         PDF_set_parameter(phandle, "fillrule", "evenodd");
@@ -412,28 +414,30 @@ void pdf_fillpolygon(VPoint *vps, int nc)
     
     if (pdf_setup_compat >= PDF_1_3 && pen.pattern > 1) {
         Pen solid_pen;
-        solid_pen.color = getbgcolor();
+        solid_pen.color = getbgcolor(canvas);
         solid_pen.pattern = 1;
         
-        pdf_setpen(solid_pen);
+        pdf_setpen(canvas, &solid_pen);
         pdf_poly_path(vps, nc);
         PDF_fill(phandle);
     }
     
-    pdf_setpen(pen);
+    getpen(canvas, &pen);
+    pdf_setpen(canvas, &pen);
     pdf_poly_path(vps, nc);
     PDF_fill(phandle);
 }
 
-void pdf_arc_path(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
+void pdf_arc_path(const VPoint *vp1, const VPoint *vp2,
+    int a1, int a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
 
-    vpc.x = (vp1.x + vp2.x)/2;
-    vpc.y = (vp1.y + vp2.y)/2;
-    rx = fabs(vp2.x - vp1.x)/2;
-    ry = fabs(vp2.y - vp1.y)/2;
+    vpc.x = (vp1->x + vp2->x)/2;
+    vpc.y = (vp1->y + vp2->y)/2;
+    rx = fabs(vp2->x - vp1->x)/2;
+    ry = fabs(vp2->y - vp1->y)/2;
     
     if (rx == 0.0 || ry == 0.0) {
         return;
@@ -450,24 +454,26 @@ void pdf_arc_path(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     }
 }
 
-void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void pdf_drawarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
 {
-    if (getlinestyle() == 0) {
+    if (getlinestyle(canvas) == 0) {
         return;
     }
     
-    pdf_setdrawbrush();
+    pdf_setdrawbrush(canvas);
     PDF_save(phandle);
     pdf_arc_path(vp1, vp2, a1, a2, ARCFILL_CHORD);
     PDF_stroke(phandle);
     PDF_restore(phandle);
 }
 
-void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
+void pdf_fillarc(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
 {
     Pen pen;
-    
-    pen = getpen();
+
+    getpen(canvas, &pen);
     
     if (pen.pattern == 0) {
         return;
@@ -475,26 +481,27 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     
     if (pdf_setup_compat >= PDF_1_3 && pen.pattern > 1) {
         Pen solid_pen;
-        solid_pen.color = getbgcolor();
+        solid_pen.color = getbgcolor(canvas);
         solid_pen.pattern = 1;
         
         PDF_save(phandle);
-        pdf_setpen(solid_pen);
+        pdf_setpen(canvas, &solid_pen);
         pdf_arc_path(vp1, vp2, a1, a2, mode);
         PDF_fill(phandle);
         PDF_restore(phandle);
     }
 
     PDF_save(phandle);
-    pdf_setpen(pen);
+    pdf_setpen(canvas, &pen);
     pdf_arc_path(vp1, vp2, a1, a2, mode);
     PDF_fill(phandle);
     PDF_restore(phandle);
 }
 
 /* TODO: transparent pixmaps */
-void pdf_putpixmap(VPoint vp, int width, int height, char *databits, 
-                             int pixmap_bpp, int bitmap_pad, int pixmap_type)
+void pdf_putpixmap(const Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
     char *buf, *bp;
     int image;
@@ -514,8 +521,8 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
     bp = buf;
     if (pixmap_bpp == 1) {
         paddedW = PAD(width, bitmap_pad);
-        get_rgb(getcolor(), &fg);
-        get_rgb(getbgcolor(), &bg);
+        get_rgb(canvas, getcolor(canvas), &fg);
+        get_rgb(canvas, getbgcolor(canvas), &bg);
         for (k = 0; k < height; k++) {
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
@@ -535,7 +542,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         for (k = 0; k < height; k++) {
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width + j];
-                get_rgb(cindex, &fg);
+                get_rgb(canvas, cindex, &fg);
                 *bp++ = (char) fg.red;
                 *bp++ = (char) fg.green;
                 *bp++ = (char) fg.blue;
@@ -552,7 +559,8 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         return;
     }
 
-    PDF_place_image(phandle, image, vp.x, vp.y - height*pixel_size, pixel_size);
+    PDF_place_image(phandle,
+        image, vp->x, vp->y - height*pixel_size, pixel_size);
     PDF_close_image(phandle, image);
     
     xfree(buf);
@@ -589,10 +597,14 @@ static int pdf_builtin_font(const char *fname)
     return FALSE;
 }
 
-void pdf_puttext(VPoint vp, char *s, int len, int font,
-     TextMatrix *tm, int underline, int overline, int kerning)
+void pdf_puttext(const Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning)
 {
-    pdf_setpen(getpen());
+    Pen pen;
+
+    getpen(canvas, &pen);
+    pdf_setpen(canvas, &pen);
     
     if (pdf_font_ids[font] < 0) {
         char buf[GR_MAXPATHLEN];
@@ -600,22 +612,22 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
         char *pdflibenc;
         int embed;
         
-        fontname = get_fontalias(font);
+        fontname = get_fontalias(canvas, font);
         
         if (pdf_builtin_font(fontname)) {
             embed = 0;
         } else {
             sprintf(buf, "%s==%s",
-                fontname, get_afmfilename(font, TRUE));
+                fontname, get_afmfilename(canvas, font, TRUE));
             PDF_set_parameter(phandle, "FontAFM", buf);
             sprintf(buf, "%s==%s",
-                fontname, get_fontfilename(font, TRUE));
+                fontname, get_fontfilename(canvas, font, TRUE));
             PDF_set_parameter(phandle, "FontOutline", buf);
 
             embed = 1;
         }
 
-        encscheme = get_encodingscheme(font);
+        encscheme = get_encodingscheme(canvas, font);
         if (strcmp(encscheme, "FontSpecific") == 0) {
             pdflibenc = "builtin";
         } else {
@@ -633,17 +645,18 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
     PDF_set_parameter(phandle, "overline",  true_or_false(overline));
     PDF_concat(phandle, (float) tm->cxx, (float) tm->cyx,
                         (float) tm->cxy, (float) tm->cyy,
-                        vp.x, vp.y);
+                        vp->x, vp->y);
 
     PDF_show2(phandle, s, len);
 
     PDF_restore(phandle);
 }
 
-void pdf_leavegraphics(void)
+void pdf_leavegraphics(const Canvas *canvas)
 {
     if (pdf_setup_tight_bb) {
-        view v = get_bbox(BBOX_TYPE_GLOB);
+        view v;
+        get_bbox(canvas, BBOX_TYPE_GLOB, &v);
         
         PDF_set_value(phandle, "CropBox/llx", page_scalef*v.xv1 - 1);
         PDF_set_value(phandle, "CropBox/lly", page_scalef*v.yv1 - 1);
@@ -676,7 +689,7 @@ static void pdf_error_handler(PDF *p, int type, const char *msg)
     }
 }
 
-int pdf_op_parser(char *opstring)
+int pdf_op_parser(Canvas *canvas, const char *opstring)
 {
     if (!strcmp(opstring, "compatibility:PDF-1.2")) {
         pdf_setup_compat = PDF_1_2;
@@ -748,7 +761,7 @@ static SpinStructure *pdf_setup_fpprec_item;
 static Widget pdf_setup_tight_bb_item;
 static OptionStructure *pdf_setup_colorspace_item;
 
-void pdf_gui_setup(void)
+void pdf_gui_setup(Canvas *canvas)
 {
     set_wait_cursor();
     

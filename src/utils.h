@@ -44,6 +44,8 @@
 #  endif
 #endif
 
+#include "grace.h"
+
 #define  PAD(bits, pad)  (((bits)+(pad)-1)&-(pad))
 
 #define MIN2(a, b) (((a) < (b)) ? a : b)
@@ -83,10 +85,10 @@ char *escapequotes (char *s);
 int sign(double a);
 double mytrunc(double a);
 
-void bailout(void);
+void bailout(Grace *grace);
 
 void installSignal(void);
-void emergency_exit(int is_my_bug, char *msg);
+void emergency_exit(Grace *grace, int is_my_bug, char *msg);
 
 int bin_dump(char *value, int i, int pad);
 unsigned char reversebits(unsigned char inword);
@@ -96,20 +98,26 @@ char *concat_strings(char *dest, const char *src);
 int compare_strings(const char *s1, const char *s2);
 int is_empty_string(const char *s);
 
-char *get_grace_home(void);
+char *get_grace_home(const Grace *grace);
 
-char *get_help_viewer(void);
-void set_help_viewer(const char *dir);
+char *get_help_viewer(const Grace *grace);
+void set_help_viewer(Grace *grace,const char *dir);
 
-char *get_print_cmd(void);
-void set_print_cmd(const char *cmd);
+char *get_print_cmd(const Grace *grace);
+void set_print_cmd(Grace *grace, const char *cmd);
 
-char *get_editor(void);
-void set_editor(const char *cmd);
+char *get_editor(const Grace *grace);
+void set_editor(Grace *grace, const char *cmd);
 
-void set_docname(const char *s);
-char *get_docname(void);
-char *get_docbname(void);
+int set_workingdir(Grace *grace, const char *wd);
+char *get_workingdir(const Grace *grace);
+
+char *get_username(const Grace *grace);
+char *get_userhome(const Grace *grace);
+
+void set_docname(Project *pr, const char *s);
+char *get_docname(const Project *pr);
+char *get_docbname(const Project *pr);
 
 void errmsg(char *msg);
 void echomsg(char *msg);
@@ -120,18 +128,11 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 
 char *mybasename(const char *s);
 
-void expand_tilde(char *buf);
-int set_workingdir(const char *wd);
-char *get_workingdir(void);
-
-char *get_username(void);
-
-char *get_userhome(void);
-
+void expand_tilde(const Grace *grace, char *buf);
 void update_timestamp(time_t *t);
 char *get_timestamp(void);
 
-void update_app_title(void);
+void update_app_title(Project *pr);
 
 void set_dirtystate(void);
 void clear_dirtystate(void);

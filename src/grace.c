@@ -52,7 +52,7 @@ static defaults d_d =
 */
 
 
-GUI *gui_new(void)
+GUI *gui_new(Grace *grace)
 {
     GUI *gui;
     
@@ -60,6 +60,9 @@ GUI *gui_new(void)
     if (!gui) {
         return NULL;
     }
+    memset(gui, 0, sizeof(GUI));
+    
+    gui->P = grace;
 
     gui->inwin           = FALSE;
     gui->invert          = TRUE;
@@ -84,7 +87,7 @@ void gui_free(GUI *gui)
 }
 
 
-RunTime *runtime_new(void)
+RunTime *runtime_new(Grace *grace)
 {
     RunTime *rt;
     char *s;
@@ -93,7 +96,10 @@ RunTime *runtime_new(void)
     if (!rt) {
         return NULL;
     }
+    memset(rt, 0, sizeof(RunTime));
 
+    rt->P = grace;
+    
     /* allocatables */
     rt->grace_home   = NULL;
     rt->print_cmd    = NULL;
@@ -227,6 +233,8 @@ void runtime_free(RunTime *rt)
     xfree(rt->username);
     xfree(rt->userhome);
     
+    canvas_free(rt->canvas);
+    
     /* FIXME nonlfit */
     xfree(rt->nlfit);
     
@@ -243,28 +251,29 @@ Grace *grace_new(void)
     if (!grace) {
         return NULL;
     }
-    
-    grace->rt = runtime_new();
+    memset(grace, 0, sizeof(grace));
+#if 0    
+    grace->rt = runtime_new(grace);
     if (!grace->rt) {
         xfree(grace);
         return NULL;
     }
     
-    grace->gui = gui_new();
+    grace->gui = gui_new(grace);
     if (!grace->gui) {
         runtime_free(grace->rt);
         xfree(grace);
         return NULL;
     }
     
-    grace->project = project_new();
+    grace->project = project_new(grace);
     if (!grace->project) {
         gui_free(grace->gui);
         runtime_free(grace->rt);
         xfree(grace);
         return NULL;
     }
-    
+#endif    
     return grace;
 }
 

@@ -1227,7 +1227,7 @@ int allocate_set(int gno, int setno)
     }
         
     if (new) {
-        ncolors = number_of_colors();
+        ncolors = number_of_colors(grace->rt->canvas);
         if (ncolors > 1) {
             color = setno % (ncolors - 1) + 1;
         } else {

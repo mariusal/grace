@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c)1991-1995 Paul J Turner, Portland, OR
- * Copyright (c)1996-2000 Grace Development Team
+ * Copyright (c)1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -798,7 +798,7 @@ static void setapp_data_proc(void *data)
     int *selset, cd;
     int i, setno;
     set *p;
-    int c = 0, bg = getbgcolor();
+    int c = 0, bg = getbgcolor(grace->rt->canvas);
     
     proc_type = (int)data;
 
@@ -822,9 +822,10 @@ static void setapp_data_proc(void *data)
                 load_comments_to_legend(cg, setno);
                 break;
             case SETAPP_ALL_COLORS:
-                while (c == bg || get_colortype(c)!= COLOR_MAIN) {
+                while (c == bg ||
+                       get_colortype(grace->rt->canvas, c) != COLOR_MAIN) {
                     c++;
-                    c %= number_of_colors();
+                    c %= number_of_colors(grace->rt->canvas);
                 }
                 set_set_colors(p, c);
                 c++;
@@ -836,7 +837,8 @@ static void setapp_data_proc(void *data)
                 p->linew = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
                 break;
             case SETAPP_ALL_LINES:
-                p->lines = (i % (number_of_linestyles()- 1))+ 1;
+                p->lines = (i % (number_of_linestyles(grace->rt->canvas)- 1))
+                    + 1;
                 break;
             case SETAPP_ALL_BW:
                 set_set_colors(p, 1);

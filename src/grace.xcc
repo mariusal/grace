@@ -28,14 +28,27 @@ typedef struct {
 typedef struct _Page {
     int width;
     int height;
+    Pen bgpen;
 } Page;
+
+Page *page_new(void)
+{
+    Page *retval;
+    
+    retval = xmalloc(sizeof(Page));
+    if (retval) {
+        memset(retval, 0, sizeof(Page));
+    }
+    
+    return retval;
+}
 
 typedef struct {
     int id;
     CMap_entry cmap;
 } Colordef;
 
-Colordef *colordef_new()
+Colordef *colordef_new(void)
 {
     Colordef *retval;
     retval = xmalloc(sizeof(Colordef));
@@ -562,7 +575,7 @@ char *utf2iso(const char *s)
         $$ = get_format_type_by_name($?);
     ]]></attribute-type>
     <attribute-type name="fontid" ctype="int"><![CDATA[
-        $$ = get_mapped_font(atoi($?));
+        $$ = get_mapped_font(grace->rt->canvas, atoi($?));
     ]]></attribute-type>
     <attribute-type name="offset" ctype="VPoint *"><![CDATA[
         if (!strcmp($?, VStrAuto)) {
@@ -662,11 +675,10 @@ char *utf2iso(const char *s)
     
     <!-- Element types -->
     <element-type name="project" ctype="Project *"><![CDATA[
-        $$ = project_new();
+        $$ = project_new(grace);
     ]]></element-type>
     <element-type name="page" ctype="Page *"><![CDATA[
-        $$ = xmalloc(sizeof(Page));
-        $$->width = $$->height = 0;
+        $$ = page_new();
     ]]></element-type>
     <element-type name="string" ctype="XCCString *"><![CDATA[
         $$ = xcc_string_new();
@@ -828,7 +840,8 @@ char *utf2iso(const char *s)
         <child name="#EStrDefinitions">
         </child>
         <child name="#EStrPage">
-            set_page_dimensions($?->width, $?->height, FALSE);
+            set_page_dimensions(grace, $?->width, $?->height, FALSE);
+            $?->bgpen = $?->bgpen;
             xfree($?);
         </child>
         <child name="#EStrDataFormats">
@@ -846,16 +859,18 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
-        <child name="#EStrColorDef">
-            store_color($?->id, $?->cmap);
+        <child name="#EStrColorDef"><![CDATA[
+            store_color(grace->rt->canvas, $?->id, &$?->cmap);
             colordef_free($?);
-        </child>
+        ]]></child>
     </element>
     <element name="#EStrFontmap" type="dummy">
         <!-- Child elements -->
         <child name="#EStrFontDef"><![CDATA[
-            if ((map_font_by_name($?->fontname, $?->id) != RETURN_SUCCESS) && 
-                (map_font_by_name($?->fallback, $?->id) != RETURN_SUCCESS)) {
+            if ((map_font_by_name(grace->rt->canvas,
+                    $?->fontname, $?->id) != RETURN_SUCCESS) && 
+                (map_font_by_name(grace->rt->canvas,
+                    $?->fallback, $?->id) != RETURN_SUCCESS)) {
                 errmsg("Failed mapping a font");
             }
             fontdef_free($?);
@@ -895,8 +910,7 @@ char *utf2iso(const char *s)
             $$->height = $?;
         </attribute>
         <child name="#EStrFillSpec">
-            setbgcolor($?->color);
-            setbgfill($?->pattern);
+            $$->bgpen = *$?;
             xfree($?);
         </child>
     </element>
