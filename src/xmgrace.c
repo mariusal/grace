@@ -226,6 +226,12 @@ String fallbackResources[] = {
     "XMgrace*XmToggleButton.selectColor: #ff0000",
     "XMgrace*XmToggleButton.fillOnSelect: true",
     "XMgrace*XmSeparator.margin: 0",
+#ifdef WITH_XMHTML
+    "XMgrace*XmHTML.background: #ffffff",
+    "XMgrace*XmHTML.foreground: #000000",
+    "XMgrace*XmHTML.width: 600",
+    "XMgrace*XmHTML.height: 500",
+#endif
     "*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
     "*dragInitiatorProtocolStyle: XmDRAG_NONE",
     "*dragReceiverProtocolStyle:  XmDRAG_NONE",
