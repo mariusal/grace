@@ -63,6 +63,8 @@ void dict_free(Dictionary *dict)
         e = &dict->defaults;
         xfree(e->name);
         xfree(e->descr);
+        
+        xfree(dict);
     }
 }
 
