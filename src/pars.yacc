@@ -2094,16 +2094,16 @@ parmset:
 	    g[get_cg()].v.xv2 = $6;
 	    g[get_cg()].v.yv2 = $8;
 	}
-	| VIEW XMIN NUMBER {
+	| VIEW XMIN expr {
 	    g[get_cg()].v.xv1 = $3;
 	}
-	| VIEW XMAX NUMBER {
+	| VIEW XMAX expr {
 	    g[get_cg()].v.xv2 = $3;
 	}
-	| VIEW YMIN NUMBER {
+	| VIEW YMIN expr {
 	    g[get_cg()].v.yv1 = $3;
 	}
-	| VIEW YMAX NUMBER {
+	| VIEW YMAX expr {
 	    g[get_cg()].v.yv2 = $3;
 	}
 	| TITLE CHRSTR {
