@@ -33,6 +33,8 @@
 #ifndef __FILES_H_
 #define __FILES_H_
 
+#include <stdio.h>
+
 int add_io_filter( int type, int method, char *id, char *comm );
 int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );
