@@ -186,6 +186,11 @@ typedef int (*FSB_CBProc)(
     void *               /* data the application registered */
 );
 
+/* Button CB procedure */
+typedef void (*Button_CBProc)(
+    void *               /* data the application registered */
+);
+
 
 Widget CreateFrame(Widget parent, char *s);
 
@@ -207,6 +212,9 @@ Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
 void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata);
+
+Widget CreateButton(Widget parent, char *label);
+void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 
 Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb);
 
