@@ -229,8 +229,8 @@ void create_axes_dialog(int axisno)
         fr = CreateFrame(axes_main, "Axis placement");
         rc = CreateHContainer(fr);
 	axis_zero = CreateToggleButton(rc, "Zero axis");
-        offx = CreateTextItem2(rc, 5, "Offsets - Left/bottom:");
-        offy = CreateTextItem2(rc, 5, "Right/top:");
+        offx = CreateTextItem2(rc, 7, "Offsets - Left/bottom:");
+        offy = CreateTextItem2(rc, 7, "Right/top:");
 
         fr = CreateFrame(axes_main, "Tick label properties");
         rc = CreateHContainer(fr);
@@ -272,8 +272,8 @@ void create_axes_dialog(int axisno)
         opitems[1].label = "Specified";
         axislabelplace = CreateOptionChoice(rc2, "Location:", 0, 2, opitems);
         axislabelspec_rc = CreateHContainer(rc);
-        axislabelspec_para = CreateTextItem2(axislabelspec_rc, 5, "Parallel offset:");
-        axislabelspec_perp = CreateTextItem2(axislabelspec_rc, 5, "Perpendicular offset:");
+        axislabelspec_para = CreateTextItem2(axislabelspec_rc, 7, "Parallel offset:");
+        axislabelspec_perp = CreateTextItem2(axislabelspec_rc, 7, "Perpendicular offset:");
         AddOptionChoiceCB(axislabelplace, auto_spec_cb, axislabelspec_rc);
 
 
@@ -348,8 +348,8 @@ void create_axes_dialog(int axisno)
         opitems[1].label = "Specified";
         tlgaptype = CreateOptionChoice(rc, "Location:", 0, 2, opitems);
         tlgap_rc = CreateHContainer(rc);
-        tlgap_para = CreateTextItem2(tlgap_rc, 5, "Parallel offset:");
-        tlgap_perp = CreateTextItem2(tlgap_rc, 5, "Perpendicular offset:");
+        tlgap_para = CreateTextItem2(tlgap_rc, 7, "Parallel offset:");
+        tlgap_perp = CreateTextItem2(tlgap_rc, 7, "Perpendicular offset:");
         AddOptionChoiceCB(tlgaptype, auto_spec_cb, tlgap_rc);
 
 
@@ -796,16 +796,16 @@ void update_ticks(int gno)
             SetToggleButtonState(axis_invert, is_graph_yinvert(gno));
         }
 
-        sprintf(buf, "%.2f", t->offsx);
+        sprintf(buf, "%.4f", t->offsx);
         xv_setstr(offx, buf);
-        sprintf(buf, "%.2f", t->offsy);
+        sprintf(buf, "%.4f", t->offsy);
         xv_setstr(offy, buf);
 
         SetChoice(axislabellayout, t->label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
         SetOptionChoice(axislabelplace, t->label_place);
-        sprintf(buf, "%.2f", t->label.x);
+        sprintf(buf, "%.4f", t->label.x);
         xv_setstr(axislabelspec_para, buf);
-        sprintf(buf, "%.2f", t->label.y);
+        sprintf(buf, "%.4f", t->label.y);
         xv_setstr(axislabelspec_perp, buf);
         SetSensitive(axislabelspec_rc, t->label_place == TYPE_SPEC);
         SetOptionChoice(axislabelfont, t->label.font);
@@ -864,9 +864,9 @@ void update_ticks(int gno)
         SetChoice(tlprec, t->tl_prec);
 
         SetOptionChoice(tlgaptype, t->tl_gaptype);
-        sprintf(buf, "%.2f", t->tl_gap.x);
+        sprintf(buf, "%.4f", t->tl_gap.x);
         xv_setstr(tlgap_para, buf);
-        sprintf(buf, "%.2f", t->tl_gap.y);
+        sprintf(buf, "%.4f", t->tl_gap.y);
         xv_setstr(tlgap_perp, buf);
         SetSensitive(tlgap_rc, t->tl_gaptype == TYPE_SPEC);
 
