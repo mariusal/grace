@@ -393,17 +393,18 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
                          int *hour, int *min, double *sec)
 {
     long n;
+    double tmp;
 
     /* compensate for the reference date */
     jday += get_ref_date();
     
     /* find the time of the day */
     n = (long) floor(jday - 0.5);
-    *sec = 24.0*(jday - 0.5 - n);
-    *hour = (int) floor(*sec);
-    *sec = 60.0*(*sec - *hour);
-    *min = (int) floor(*sec);
-    *sec = 60.0*(*sec - *min);
+    tmp = 24.0*(jday - 0.5 - n);
+    *hour = (int) floor(tmp);
+    tmp = 60.0*(tmp - *hour);
+    *min = (int) floor(tmp);
+    *sec = 60.0*(tmp - *min);
     if (*sec + rounding_tol >= 60.0) {
         /* we should round to next minute */
         *sec = 0.0;
@@ -420,6 +421,8 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
 
     /* now find the date */
     jul_to_cal(n, y, m, d);
+    
+    /* introduce the y2k bug for those who want it :) */
     *y = reduced_year(*y);
 }
 
@@ -650,7 +653,6 @@ int parse_date(const char* s, Dates_format preferred,
     Int_token tab [5];
     long j;
     double sec;
-    const char *after;
 
     /* first guess : is it a date in calendar format ? */
     n = parse_calendar_date(s, tab, &sec);
@@ -708,27 +710,10 @@ int parse_date(const char* s, Dates_format preferred,
           break;
 
       default :
-          /* probably a julian date (integer if n == 1, real otherwise) */
+          /* probably a julian date */
           break;
 
     }
 
-    /* second guess : is it a date in numerical format ? */
-    if (parse_float(s, jul, &after) == GRACE_EXIT_SUCCESS) {
-        while (isspace(*after)) {
-            after++;
-        }
-        if (*after == '\0') {
-            if (preferred == FMT_seconds) {
-                *recognized = FMT_seconds;
-                *jul /= 86400.0;
-            } else {
-                *recognized = FMT_days;
-            }
-            return GRACE_EXIT_SUCCESS;
-        }
-    }
-
     return GRACE_EXIT_FAILURE;
-
 }

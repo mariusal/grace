@@ -172,14 +172,12 @@ void create_props_frame(void *data)
 	CreateSeparator(panel);
 
 	hint_item = CreatePanelChoice(panel, "Date hint",
-                                      8,
-                                      "NONE",
+                                      6,
+                                      "None",
                                       "ISO",
-                                      "EUROPEAN",
+                                      "European",
                                       "US",
-                                      "DAYS",
-                                      "SECONDS",
-                                      "NOHINT",
+                                      "Nohint",
                                       NULL,
                                       NULL);
 
@@ -247,27 +245,21 @@ void update_props_items(void)
 	XtSetArg(a, XmNvalue, iv);
 	XtSetValues(shexper_item, &a, 1);
         switch (get_date_hint()) {
-          case FMT_none :
-              itest = 0;
-              break;
-          case FMT_iso :
-              itest = 1;
-              break;
-          case FMT_european :
-              itest = 2;
-              break;
-          case FMT_us :
-              itest = 3;
-              break;
-          case FMT_days :
-              itest = 4;
-              break;
-          case FMT_seconds :
-              itest = 5;
-              break;
-          default :
-              itest = FMT_nohint;
-              break;
+        case FMT_none :
+            itest = 0;
+            break;
+        case FMT_iso :
+            itest = 1;
+            break;
+        case FMT_european :
+            itest = 2;
+            break;
+        case FMT_us :
+            itest = 3;
+            break;
+        default :
+            itest = FMT_nohint;
+            break;
         }
     	SetChoice(hint_item, itest);
 	jul_to_cal_and_time(0.0, 0.5, &y, &m, &d, &h, &mm, &sec);
@@ -327,12 +319,6 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
           break;
       case 3 :
           set_date_hint(FMT_us);
-          break;
-      case 4 :
-          set_date_hint(FMT_days);
-          break;
-      case 5 :
-          set_date_hint(FMT_seconds);
           break;
       default :
           set_date_hint(FMT_nohint);

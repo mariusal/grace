@@ -741,8 +741,6 @@ typedef enum   { FMT_none,
                  FMT_iso,
                  FMT_european,
                  FMT_us,
-                 FMT_days,
-                 FMT_seconds,
                  FMT_nohint
                } Dates_format;
 
