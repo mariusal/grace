@@ -956,6 +956,8 @@ static void leval_aac_cb(void *data)
     if (setlength(gno, setno, npts) != GRACE_EXIT_SUCCESS) {
 	errmsg("Can't allocate more sets");
         killset(gno, setno);
+        cxfree(t->data);
+        t->length = 0;
         unset_wait_cursor();
         return;
     }
@@ -967,11 +969,16 @@ static void leval_aac_cb(void *data)
             sprintf(buf, "Error in formula for %s", dataset_colname(i));
             errmsg(buf);
             killset(gno, setno);
+            cxfree(t->data);
+            t->length = 0;
             unset_wait_cursor();
             return;
         }
         setcol(gno, setno, i, ex, npts);
     }
+    
+    cxfree(t->data);
+    t->length = 0;
     
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(levalui.top);
