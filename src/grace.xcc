@@ -1249,6 +1249,11 @@ char *utf2iso(const char *s)
                 t->label.font     = $?->font;
                 t->label.color    = $?->color;
                 t->label.charsize = $?->charsize;
+            
+                t->label_layout   = $?->layout;
+                t->label_place    = $?->autoplace;
+                t->label.offset   = $?->offset;
+                t->label_op       = $?->sideplacement;
             }
             xfree($?);
         </child>
