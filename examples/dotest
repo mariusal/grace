@@ -153,7 +153,7 @@ $GRACE xysize.agr
 $GRACE logistic.agr
 #
 # some interesting stuff
-$GRACE -arrange 2 2 -b test.com
+$GRACE -b test.com
 #
 # need a program
 # modified from previous versions, a thank you goes to Bruce Barnett
