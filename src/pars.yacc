@@ -119,7 +119,6 @@ static Quark *vasgn_pset;
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
 
-extern char print_file[];
 extern char *close_input;
 
 static int filltype_obs;
@@ -2729,7 +2728,7 @@ actions:
 	}
 	| PRINT TO CHRSTR {
             set_ptofile(grace, TRUE);
-	    strcpy(print_file, $3);
+	    strcpy(grace->rt->print_file, $3);
             xfree($3);
 	}
 	| PAGE direction {

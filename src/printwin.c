@@ -44,8 +44,6 @@
 
 #define canvas grace->rt->canvas
 
-extern char print_file[];
-
 static int current_page_units = 0;
 
 static Widget psetup_frame;
@@ -280,22 +278,22 @@ static void update_device_setup(int device_id)
             SetSensitive(device_opts_item, True);
         }
 
-        if (is_empty_string(print_file)) {
-            strcpy(print_file, mybasename(get_docname(grace->project))); 
+        if (is_empty_string(grace->rt->print_file)) {
+            strcpy(grace->rt->print_file, mybasename(get_docname(grace->project))); 
         }
         
         /* Replace existing filename extension */
-        bufptr = strrchr(print_file, '.');
+        bufptr = strrchr(grace->rt->print_file, '.');
         if (bufptr) {
             *(bufptr + 1) = '\0';
         } else {
-            strcat(print_file, ".");
+            strcat(grace->rt->print_file, ".");
         }
         if (dev->fext) {
-            strcat(print_file, dev->fext);
+            strcat(grace->rt->print_file, dev->fext);
         }
         
-        xv_setstr(printfile_item, print_file);
+        xv_setstr(printfile_item, grace->rt->print_file);
                 
         xv_setstr(print_string_item, get_print_cmd(grace));
         
@@ -398,7 +396,7 @@ static int set_printer_proc(void *data)
         grace->rt->hdevice = seldevice;
         set_ptofile(grace, GetToggleButtonState(printto_item));
         if (get_ptofile(grace)) {
-            strcpy(print_file, xv_getstr(printfile_item));
+            strcpy(grace->rt->print_file, xv_getstr(printfile_item));
         } else {
             set_print_cmd(grace, xv_getstr(print_string_item));
         }
@@ -589,7 +587,7 @@ static void do_orient_toggle(OptionStructure *opt, int value, void *data)
 static int do_prfilesel_proc(FSBStructure *fsb, char *filename, void *data)
 {
     xv_setstr(printfile_item, filename);
-    strcpy(print_file, filename);
+    strcpy(grace->rt->print_file, filename);
     XtVaSetValues(printfile_item, XmNcursorPosition, strlen(filename), NULL);
     return TRUE;
 }

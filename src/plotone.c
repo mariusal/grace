@@ -49,8 +49,6 @@
 #include "plotone.h"
 #include "protos.h"
 
-char print_file[GR_MAXPATHLEN] = "";
-
 static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     plot_rt_t *plot_rt = (plot_rt_t *) udata;
@@ -161,12 +159,12 @@ void do_hardcopy(Grace *grace)
     FILE *prstream;
     
     if (get_ptofile(grace)) {
-        if (is_empty_string(print_file)) {
+        if (is_empty_string(grace->rt->print_file)) {
             Device_entry *dev = get_device_props(canvas, grace->rt->hdevice);
-            sprintf(print_file, "%s.%s",
+            sprintf(grace->rt->print_file, "%s.%s",
                 get_docbname(grace->project), dev->fext);
         }
-        strcpy(fname, print_file);
+        strcpy(fname, grace->rt->print_file);
     } else {
         s = get_print_cmd(grace);
         if (is_empty_string(s)) {

@@ -44,8 +44,6 @@
 #include "graphutils.h"
 #include "protos.h"
 
-extern char print_file[];
-
 char *get_format_types(FormatType f)
 {
     char *s;
@@ -171,7 +169,7 @@ int wipeout(void)
     quark_free(grace->project);
     grace->project = project_new(grace);
     
-    print_file[0] = '\0';
+    grace->rt->print_file[0] = '\0';
     grace->rt->curtype = SET_XY;
     
     return 0;

@@ -59,7 +59,6 @@
 
 
 extern char batchfile[];
-extern char print_file[];
 extern int install_cmap;
 
 extern Input_buffer *ib_tbl;
@@ -352,7 +351,7 @@ int main(int argc, char *argv[])
 		    usage(stderr, argv[0]);
 		} else {
 		    set_ptofile(grace, TRUE);
-                    strcpy(print_file, argv[i]);
+                    strcpy(rt->print_file, argv[i]);
 		}
 	    } else if (argmatch(argv[i], "-hardcopy", 6)) {
 		gracebat = TRUE;

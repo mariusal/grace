@@ -187,6 +187,8 @@ RunTime *runtime_new(Grace *grace)
         return NULL;
     }
 
+    rt->print_file[0] = '\0';
+
     rt->tdevice = 0;
     rt->hdevice = 0;
     

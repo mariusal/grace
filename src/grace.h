@@ -222,6 +222,9 @@ typedef struct _RunTime {
     /* $HOME */
     char *userhome;
     
+    /* printout */
+    char print_file[GR_MAXPATHLEN];
+
     Canvas *canvas;
     
     /* Misc dictionaries */
