@@ -131,63 +131,69 @@ static Widget about_panel;
 
 void create_about_grtool(void *data)
 {
-    Widget wbut;
-    char buf[1024];
-
     set_wait_cursor();
     
     if (about_frame == NULL) {
+        Widget wbut, fr, rc;
+        char buf[1024];
+        
 	about_frame = XmCreateDialogShell(app_shell, "About", NULL, 0);
 	handle_close(about_frame);
 	about_panel = XmCreateRowColumn(about_frame, "about_rc", NULL, 0);
 
-	CreateLabel(about_panel, bi_version_string());
+	fr = CreateFrame(about_panel, NULL);
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	CreateLabel(rc, bi_version_string());
+#ifdef DEBUG
+	CreateLabel(rc, "Debugging is enabled");
+#endif
+	XtManageChild(rc);
 
-	CreateSeparator(about_panel);
-
-	CreateLabel(about_panel, "Copyright (c) 1991-95 Paul J Turner");
-	CreateLabel(about_panel, "Copyright (c) 1996-99 Grace Development Team");
-	CreateLabel(about_panel, "All rights reserved");
-	CreateLabel(about_panel,
+	fr = CreateFrame(about_panel, "Legal stuff");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	CreateLabel(rc, "Copyright (c) 1991-95 Paul J Turner");
+	CreateLabel(rc, "Copyright (c) 1996-99 Grace Development Team");
+	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
+	CreateLabel(rc, "All rights reserved");
+	CreateLabel(rc,
             "The program is distributed under the terms of the GNU General Public License");
+	XtManageChild(rc);
 
-	CreateSeparator(about_panel);
-
-	CreateLabel(about_panel,
-            "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
-
-	CreateSeparator(about_panel);
-
-	CreateLabel(about_panel,
-            "Contains Tab widget, Copyright (c) 1997 Pralay Dakua");
-	CreateLabel(about_panel, "May contain Xbae widget,");
-	CreateLabel(about_panel,
+	fr = CreateFrame(about_panel, "Third party copyrights");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	CreateLabel(rc,
+            "Tab widget, Copyright (c) 1997 Pralay Dakua");
+	CreateLabel(rc, "Xbae widget,");
+	CreateLabel(rc,
             "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
-	CreateLabel(about_panel,
-            "      Copyright (c) 1995-97 Andrew Lister");
-	CreateLabel(about_panel, "Raster driver based on the GD-1.3 library,");
-	CreateLabel(about_panel,
+	CreateLabel(rc,
+            "      Copyright (c) 1995-99 Andrew Lister");
+	CreateLabel(rc, "Raster driver based on the GD-1.3 library,");
+	CreateLabel(rc,
             "      Portions copyright (c) 1994-98 Cold Spring Harbor Laboratory");
-	CreateLabel(about_panel,
+	CreateLabel(rc,
             "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
 #ifdef HAVE_LIBPDF
-	CreateLabel(about_panel,
-            "May contain PDFlib library, Copyright (c) 1997-99 Thomas Metz");
+	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-99 Thomas Metz");
 #endif
+	XtManageChild(rc);
 
-	CreateSeparator(about_panel);
-
-	sprintf(buf, "Built on: %s", bi_system());
-	CreateLabel(about_panel, buf);
-	sprintf(buf, "Build time: %s", bi_date());
-	CreateLabel(about_panel, buf);
+	fr = CreateFrame(about_panel, "Build info");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        sprintf(buf, "Host: %s", bi_system());
+	CreateLabel(rc, buf);
+	sprintf(buf, "Time: %s", bi_date());
+	CreateLabel(rc, buf);
 	sprintf(buf, "GUI toolkit: %s ", bi_gui());
-	CreateLabel(about_panel, buf);
+	CreateLabel(rc, buf);
 	sprintf(buf, "T1lib: %s ", bi_t1lib());
-	CreateLabel(about_panel, buf);
-#ifdef DEBUG
-	CreateLabel(about_panel, "Debugging is enabled");
-#endif
+	CreateLabel(rc, buf);
+	XtManageChild(rc);
+
+	fr = CreateFrame(about_panel, "Home page");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	CreateLabel(rc, "http://plasma-gate.weizmann.ac.il/Grace/");
+	XtManageChild(rc);
 	
 	CreateSeparator(about_panel);
 
