@@ -947,7 +947,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     XmStringFree(xmstr);
     
     XtAddCallback(retval->FSB,
-        XmNcancelCallback, (XtCallbackProc) destroy_dialog, retval->dialog);
+        XmNcancelCallback, destroy_dialog, retval->dialog);
     
     w = XmFileSelectionBoxGetChild(retval->FSB, XmDIALOG_HELP_BUTTON);
     XtSetSensitive(w, FALSE);
@@ -1219,12 +1219,12 @@ static int ngraph_select_items = 0;
 static ListStructure **graph_selectors = NULL;
 static int ngraph_selectors = 0;
 
-void graph_select_cb(Widget list, XtPointer client_data, XmListCallbackStruct *cbs)
+void graph_select_cb(Widget list, XtPointer client_data, XtPointer call_data)
 {
-    ListStructure *plist;
+    XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
+    ListStructure *plist = (ListStructure *) client_data;
     int gno;
     
-    plist = (ListStructure *) client_data;
     gno = plist->values[cbs->item_position - 1];
     switch_current_graph(gno);
 }
@@ -1690,7 +1690,7 @@ ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     graph_selectors[ngraph_selectors - 1] = retvalp;
     
     XtAddCallback(retvalp->list, XmNdefaultActionCallback,
-                               (XtCallbackProc) graph_select_cb, retvalp);
+                               graph_select_cb, retvalp);
     retvalp->anydata = CreateGraphPopupEntries(retvalp);
     
     XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
@@ -3451,11 +3451,13 @@ Widget CreateMenuLabel(Widget parent, char *name)
 static int yesno_retval = 0;
 static Boolean keep_grab = True;
 
-void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason)
+void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int why = reason->reason;
+    XmAnyCallbackStruct *cbs = (XmAnyCallbackStruct *) call_data;
+    int why = cbs->reason;
 
-    *keep_grab = False;
+    keep_grab = False;
+    
     XtRemoveGrab(XtParent(w));
     XtUnmanageChild(w);
     switch (why) {
@@ -3472,7 +3474,8 @@ void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason)
 
 int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 {
-    Widget yesno_popup = NULL;
+    static Widget yesno_popup = NULL;
+    Widget hb;
     XmString str;
     XEvent event;
 
@@ -3504,15 +3507,13 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 	XtVaSetValues(yesno_popup, str, XmNcancelLabelString, NULL);
 	XmStringFree(str);
 	
-	XtAddCallback(yesno_popup, XmNokCallback, (XtCallbackProc) yesnoCB,
-	(XtPointer) & keep_grab);
-	XtAddCallback(yesno_popup, XmNcancelCallback, (XtCallbackProc) yesnoCB,
-	(XtPointer) & keep_grab);
+	XtAddCallback(yesno_popup, XmNokCallback, yesnoCB, NULL);
+	XtAddCallback(yesno_popup, XmNcancelCallback, yesnoCB, NULL);
 
 	if (help_anchor) {
-	    XtAddCallback(yesno_popup, XmNhelpCallback, (XtCallbackProc) HelpCB,
-	    (XtPointer) help_anchor);
-	    XtSetSensitive(XtNameToWidget(yesno_popup, "Help"), True);
+	    hb = XtNameToWidget(yesno_popup, "Help");
+            AddButtonCB(yesno_popup, HelpCB, help_anchor);
+	    XtSetSensitive(hb, True);
 	} else {    
 	    XtSetSensitive(XtNameToWidget(yesno_popup, "Help"), False);
 	}
@@ -3566,8 +3567,8 @@ void errwin(char *s)
 	    NULL);
 	XmStringFree(str);
 	XtAddCallback(error_popup, XmNokCallback, 
-            (XtCallbackProc) cancelerrwin, (XtPointer) error_popup);
-	XtAddCallback(error_popup, XmNhelpCallback, (XtCallbackProc) HelpCB,
+            cancelerrwin, (XtPointer) error_popup);
+	AddButtonCB(error_popup, HelpCB,
 	    (XtPointer) NULL);
 	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
 	    XmDIALOG_CANCEL_BUTTON));
