@@ -280,19 +280,6 @@ typedef struct {
 } APoint;
 
 
-#define FFORMAT_NUMBER  0
-#define FFORMAT_STRING  1
-#define FFORMAT_DATE    2
-
-/* Spread-sheet data */
-typedef struct {
-    int ncols;
-    int nrows;
-    int *formats;
-    void **data;
-    char *label;
-} ss_data;
-
 #define GLOCATOR_TYPE_NONE  0
 #define GLOCATOR_TYPE_XY    1
 #define GLOCATOR_TYPE_POLAR 2
@@ -571,16 +558,10 @@ typedef enum {
 
 #define COL_NONE    -1
 typedef struct {
-    AMem *amem;
-    
     int cols[MAX_SET_COLS];     /* arrays of x, y, z, ... depending on type */
     int scol;                   /* pointer to string column */
 
     char *comment;              /* how this dataset originated & alike */
-
-    int hotlink;                /* hot linked set */
-    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
-    char *hotfile;              /* hot linked filename */
 } Dataset;
 
 typedef struct {
@@ -662,7 +643,7 @@ typedef struct {
 
     char *legstr;               /* legend for this set */
     
-    Dataset *data;              /* dataset */
+    Dataset ds;                 /* dataset */
 } set;
 
 
@@ -829,18 +810,46 @@ int project_add_color(Quark *project, const Colordef *c);
 Quark *get_parent_project(const Quark *q);
 
 /* SSData */
+#define FFORMAT_UNKNOWN -1
+#define FFORMAT_NUMBER   0
+#define FFORMAT_STRING   1
+#define FFORMAT_DATE     2
+
+typedef struct {
+    int format;
+    char *label;
+    void *data;
+} ss_column;
+
+/* Spread-sheet data */
+typedef struct {
+    int ncols;
+    int nrows;
+    ss_column *cols;
+    char *label;
+
+    int hotlink;                /* hot linked set */
+    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
+    char *hotfile;              /* hot linked filename */
+} ss_data;
+
 ss_data *ssd_get_data(const Quark *q);
 
 Quark *ssd_new(Quark *q);
 
 unsigned int ssd_get_ncols(const Quark *q);
 unsigned int ssd_get_nrows(const Quark *q);
-int *ssd_get_formats(const Quark *q);
-void *ssd_get_col(const Quark *q, int col, int *format);
+ss_column *ssd_get_col(const Quark *q, int col);
+int ssd_get_format(const Quark *q, int col);
 
 int ssd_set_nrows(Quark *q, unsigned int nrows);
 int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
 int ssd_set_label(Quark *q, const char *label);
+
+int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src);
+int ssd_is_hotlinked(const Quark *q);
+char *ssd_get_hotlink_file(const Quark *q);
+int ssd_get_hotlink_src(const Quark *q);
 
 Quark *get_parent_ssd(const Quark *q);
 
@@ -936,20 +945,20 @@ int settype_cols(int type);
 
 Dataset *dataset_new(AMem *amem);
 int dataset_empty(Dataset *dsp);
-void dataset_free(Dataset *dsp);
-Dataset *dataset_copy(AMem *amem, Dataset *data);
+void dataset_free(AMem *amem, Dataset *dsp);
 
 Quark *set_new(Quark *gr);
 
 set *set_get_data(const Quark *q);
 
 Dataset *set_get_dataset(Quark *pset);
-int set_set_dataset(Quark *q, Dataset *dsp);
+int set_set_dataset(Quark *q, const Dataset *dsp);
+
+int set_get_type(Quark *p);
+int set_set_type(Quark *p, int stype);
 
 char *set_get_legstr(Quark *pset);
 int set_set_legstr(Quark *pset, const char *s);
-
-int set_get_ncols(Quark *pset);
 
 int set_set_symskip(Quark *pset, int symskip);
 int set_set_symskipmindist(Quark *pset, double symskipmindist);
@@ -958,23 +967,16 @@ int set_set_line(Quark *pset, const SetLine *sl);
 int set_set_avalue(Quark *pset, const AValue *av);
 int set_set_errbar(Quark *pset, const Errbar *ebar);
 
-void set_set_hotlink(Quark *pset, int onoroff, char *fname, int src);
-int set_is_hotlinked(Quark *pset);
-char *set_get_hotlink_file(Quark *pset);
-int set_get_hotlink_src(Quark *pset);
-
-char **set_get_strings(Quark *p);
-
 int set_set_length(Quark *p, unsigned int length);
 int set_get_length(Quark *p);
 
-double *set_get_col(Quark *p, unsigned int col);
-
-int set_get_type(Quark *p);
-int set_set_type(Quark *p, int stype);
-
 char *set_get_comment(Quark *p);
 int set_set_comment(Quark *p, char *s);
+
+int set_get_ncols(Quark *pset);
+
+double *set_get_col(Quark *p, unsigned int col);
+char **set_get_strings(Quark *p);
 
 int quark_get_number_of_descendant_sets(Quark *q);
 int quark_get_descendant_sets(Quark *q, Quark ***sets);

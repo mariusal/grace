@@ -1828,11 +1828,11 @@ parmset:
 
 /* Hot links */
 	| selectset LINK sourcetype CHRSTR {
-	    set_set_hotlink($1, 1, $4, $3);
+	    ssd_set_hotlink(get_parent_ssd($1), 1, $4, $3);
 	    xfree($4);
 	}
 	| selectset LINK onoff {
-	    set_set_hotlink($1, $3, NULL, 0);
+	    ssd_set_hotlink(get_parent_ssd($1), $3, NULL, 0);
 	}
 
 /* Objects */

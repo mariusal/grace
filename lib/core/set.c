@@ -36,60 +36,22 @@
 #define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
-double *copy_data_column(AMem *amem, double *src, int nrows)
-{
-    double *dest;
-    
-    if (!src) {
-        return NULL;
-    }
-    
-    dest = amem_malloc(amem, nrows*SIZEOF_DOUBLE);
-    if (dest != NULL) {
-        memcpy(dest, src, nrows*SIZEOF_DOUBLE);
-    }
-    return dest;
-}
-
-char **copy_string_column(AMem *amem, char **src, int nrows)
-{
-    char **dest;
-    int i;
-
-    if (!src) {
-        return NULL;
-    }
-    
-    dest = amem_malloc(amem, nrows*sizeof(char *));
-    if (dest != NULL) {
-        for (i = 0; i < nrows; i++)
-            dest[i] = amem_strdup(amem, src[i]);
-    }
-    return dest;
-}
-
-
 Dataset *dataset_new(AMem *amem)
 {
     Dataset *dsp;
-    int k;
+    unsigned int k;
     
     dsp = amem_malloc(amem, sizeof(Dataset));
     if (!dsp) {
         return NULL;
     }
 
-    dsp->amem  = amem;
-    
     for (k = 0; k < MAX_SET_COLS; k++) {
         dsp->cols[k] = COL_NONE;
     }
     dsp->scol = COL_NONE;
     
     dsp->comment = NULL;
-    dsp->hotlink = FALSE;
-    dsp->hotsrc  = SOURCE_DISK;
-    dsp->hotfile = NULL;
     
     return dsp;
 }
@@ -116,44 +78,62 @@ int dataset_empty(Dataset *dsp)
     }
 }
 
-void dataset_free(Dataset *dsp)
+void dataset_free(AMem *amem, Dataset *dsp)
 {
     if (dsp) {
-        AMem *amem = dsp->amem;
-
-        amem_free(amem, dsp->hotfile);
         amem_free(amem, dsp->comment);
         amem_free(amem, dsp);
     }
 }
 
-Dataset *dataset_copy(AMem *amem, Dataset *data)
+set *set_data_new(AMem *amem)
 {
-    Dataset *data_new;
-    int k;
-
-    if (!data) {
+    set *p;
+    
+    p = amem_malloc(amem, sizeof(set));
+    if (!p) {
         return NULL;
     }
+    memset(p, 0, sizeof(set));
     
-    data_new = dataset_new(amem);
-    if (!data_new) {
-        return NULL;
-    }
-    
-    for (k = 0; k < MAX_SET_COLS; k++) {
-        data_new->cols[k] = data->cols[k];
-    }
-    data_new->scol = data->scol;
-    
-    data_new->hotlink = data->hotlink;
-    data_new->hotsrc  = data->hotsrc;
-    data_new->comment = amem_strdup(amem, data->comment);
-    data_new->hotfile = amem_strdup(amem, data->hotfile);
-    
-    return data_new;
+    return p;
 }
 
+
+void set_data_free(AMem *amem, set *p)
+{
+    if (p) {
+        amem_free(amem, p->legstr);
+        amem_free(amem, p->avalue.prestr);
+        amem_free(amem, p->avalue.appstr);
+        amem_free(amem, p);
+    }
+}
+
+set *set_data_copy(AMem *amem, set *p)
+{
+    set *p_new;
+    
+    if (!p) {
+        return NULL;
+    }
+    
+    p_new = amem_malloc(amem, sizeof(set));
+    if (!p_new) {
+        return NULL;
+    }
+    
+    memcpy(p_new, p, sizeof(set));
+    
+    /* allocatables */
+    p_new->ds.comment = amem_strdup(amem, p->ds.comment);
+
+    p->legstr  = amem_strdup(amem, p->legstr);
+    p->avalue.prestr = amem_strdup(amem, p->avalue.prestr);
+    p->avalue.appstr = amem_strdup(amem, p->avalue.appstr);
+
+    return p_new;
+}
 
 static void set_default_set(Quark *pset)
 {
@@ -227,65 +207,6 @@ Quark *set_new(Quark *gr)
     return pset;
 }
 
-set *set_data_new(AMem *amem)
-{
-    set *p;
-    
-    p = amem_malloc(amem, sizeof(set));
-    if (!p) {
-        return NULL;
-    }
-    memset(p, 0, sizeof(set));
-    p->data = dataset_new(amem);
-    if (!p->data) {
-        amem_free(amem, p);
-        return NULL;
-    }
-    /* p->data->ncols = 2; */ /* To be in sync with default SET_XY type */
-    
-    return p;
-}
-
-
-void set_data_free(AMem *amem, set *p)
-{
-    if (p) {
-        dataset_free(p->data);
-        amem_free(amem, p->legstr);
-        amem_free(amem, p->avalue.prestr);
-        amem_free(amem, p->avalue.appstr);
-        amem_free(amem, p);
-    }
-}
-
-set *set_data_copy(AMem *amem, set *p)
-{
-    set *p_new;
-    
-    if (!p) {
-        return NULL;
-    }
-    
-    p_new = amem_malloc(amem, sizeof(set));
-    if (!p_new) {
-        return NULL;
-    }
-    
-    memcpy(p_new, p, sizeof(set));
-    
-    /* allocatables */
-    p_new->data = dataset_copy(amem, p->data);
-    if (!p_new->data) {
-        amem_free(amem, p_new);
-        return NULL;
-    }
-    p->legstr  = amem_strdup(amem, p->legstr);
-    p->avalue.prestr = amem_strdup(amem, p->avalue.prestr);
-    p->avalue.appstr = amem_strdup(amem, p->avalue.appstr);
-
-    return p_new;
-}
-
 int set_qf_register(QuarkFactory *qfactory)
 {
     QuarkFlavor qf = {
@@ -296,6 +217,15 @@ int set_qf_register(QuarkFactory *qfactory)
     };
 
     return quark_flavor_add(qfactory, &qf);
+}
+
+set *set_get_data(const Quark *q)
+{
+    if (q && q->fid == QFlavorSet) {
+        return q->data;
+    } else {
+        return NULL;
+    }
 }
 
 
@@ -340,12 +270,15 @@ int settype_cols(int type)
     return ncols;
 }
 
-int set_set_dataset(Quark *q, Dataset *dsp)
+int set_set_dataset(Quark *q, const Dataset *dsp)
 {
     set *pset = set_get_data(q);
     if (pset) {
-        dataset_free(pset->data);
-        pset->data = dsp;
+        AMem *amem = quark_get_amem(q);
+        memcpy(&pset->ds, dsp, sizeof(Dataset));
+        pset->ds.comment = amem_strcpy(amem, pset->ds.comment, dsp->comment);
+
+        quark_dirtystate_set(q, TRUE);
     
         return RETURN_SUCCESS;
     } else {
@@ -360,55 +293,6 @@ char *set_get_legstr(Quark *pset)
         return p->legstr;
     } else {
         return NULL;
-    }
-}
-
-void set_set_hotlink(Quark *pset, int onoroff, char *fname, int src)
-{
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        dsp->hotlink = onoroff;
-	dsp->hotfile = amem_strcpy(pset->amem, dsp->hotfile, fname);
-	dsp->hotsrc = src;
-        quark_dirtystate_set(pset, TRUE);
-    }
-}
-
-int set_is_hotlinked(Quark *pset)
-{
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp && dsp->hotlink && dsp->hotfile) {
-        return TRUE;
-    } else { 
-        return FALSE;
-    }
-}
-
-char *set_get_hotlink_file(Quark *pset)
-{
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        return dsp->hotfile;
-    } else {
-        return NULL;
-    }
-}
-
-int set_get_hotlink_src(Quark *pset)
-{
-    Dataset *dsp;
-    
-    dsp = set_get_dataset(pset);
-    if (dsp) {
-        return dsp->hotsrc;
-    } else {
-        return -1;
     }
 }
 
@@ -428,20 +312,11 @@ int set_get_ncols(Quark *pset)
     }
 }
 
-set *set_get_data(const Quark *q)
-{
-    if (q && q->fid == QFlavorSet) {
-        return q->data;
-    } else {
-        return NULL;
-    }
-}
-
 Dataset *set_get_dataset(Quark *qset)
 {
     set *p = set_get_data(qset);
     if (p) {
-        return p->data;
+        return &p->ds;
     } else {
         return NULL;
     }
@@ -542,23 +417,6 @@ int set_set_legstr(Quark *pset, const char *s)
     return RETURN_SUCCESS;
 }
 
-char **set_get_strings(Quark *pset)
-{
-    Quark *ss = get_parent_ssd(pset);
-    set *p = set_get_data(pset);
-    if (p && ss) {
-        int format;
-        void *pcol = ssd_get_col(ss, p->data->scol, &format);
-        if (format == FFORMAT_STRING) {
-            return (char **) pcol;
-        } else {
-            return NULL;
-        }
-    } else {
-        return NULL;
-    }
-}
-
 int set_get_length(Quark *pset)
 {
     Quark *ss = get_parent_ssd(pset);
@@ -632,10 +490,25 @@ double *set_get_col(Quark *pset, unsigned int col)
     Quark *ss = get_parent_ssd(pset);
     set *p = set_get_data(pset);
     if (p && ss && col < MAX_SET_COLS) {
-        int format;
-        void *pcol = ssd_get_col(ss, p->data->cols[col], &format);
-        if (format != FFORMAT_STRING) {
-            return (double *) pcol;
+        ss_column *pcol = ssd_get_col(ss, p->ds.cols[col]);
+        if (pcol && pcol->format != FFORMAT_STRING) {
+            return (double *) pcol->data;
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
+}
+
+char **set_get_strings(Quark *pset)
+{
+    Quark *ss = get_parent_ssd(pset);
+    set *p = set_get_data(pset);
+    if (p && ss) {
+        ss_column *pcol = ssd_get_col(ss, p->ds.scol);
+        if (pcol && pcol->format == FFORMAT_STRING) {
+            return (char **) pcol->data;
         } else {
             return NULL;
         }

@@ -970,6 +970,7 @@ int getdata(Quark *pr, char *fn, int src, int load_type)
 }
 
 
+#if 0
 /*
  * read data to the set from a file overriding the current contents
  */
@@ -997,7 +998,7 @@ int update_set_from_file(Quark *pset)
     
     return retval;
 }
-
+#endif
 
 void outputset(Quark *pset, char *fname, char *dformat)
 {

@@ -422,7 +422,6 @@ void update_set_ui(SetUI *ui, Quark *q)
         int i;
         char val[32];
         int blocklen, blockncols;
-        int *blockformats;
         OptionItem *blockitems, *sblockitems;
         unsigned int nncols, nscols;
 
@@ -430,7 +429,6 @@ void update_set_ui(SetUI *ui, Quark *q)
 
         blockncols   = ssd_get_ncols(ss);
         blocklen     = ssd_get_nrows(ss);
-        blockformats = ssd_get_formats(ss);
 
         blockitems  = xmalloc((blockncols + 1)*sizeof(OptionItem));
         sblockitems = xmalloc((blockncols + 1)*sizeof(OptionItem));
@@ -442,8 +440,9 @@ void update_set_ui(SetUI *ui, Quark *q)
         nscols = 0;
         for (i = 0; i < blockncols; i++) {
             char buf[32];
+            int fformat = ssd_get_format(ss, i);
             sprintf(buf, "%d", i + 1);
-            if (blockformats[i] != FFORMAT_STRING) {
+            if (fformat != FFORMAT_STRING) {
                 nncols++;
                 blockitems[nncols].value = i;
                 blockitems[nncols].label = copy_string(NULL, buf);
@@ -455,10 +454,10 @@ void update_set_ui(SetUI *ui, Quark *q)
         }
         for (i = 0; i < MAX_SET_COLS; i++) {
             UpdateOptionChoice(ui->cols[i], nncols + 1, blockitems);
-            SetOptionChoice(ui->cols[i], p->data->cols[i]);
+            SetOptionChoice(ui->cols[i], p->ds.cols[i]);
         }
         UpdateOptionChoice(ui->scol, nscols + 1, sblockitems);
-        SetOptionChoice(ui->scol, p->data->scol);
+        SetOptionChoice(ui->scol, p->ds.scol);
 
         for (i = 0; i < nncols + 1; i++) {
             xfree(blockitems[i].label);
@@ -560,11 +559,11 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         
         for (i = 0; i < nncols; i++) {
             if (!caller || caller == ui->cols[i]) {
-                p->data->cols[i] = GetOptionChoice(ui->cols[i]);
+                p->ds.cols[i] = GetOptionChoice(ui->cols[i]);
             }
         }
         if (!caller || caller == ui->scol) {
-            p->data->scol = GetOptionChoice(ui->scol);
+            p->ds.scol = GetOptionChoice(ui->scol);
         }
 
         if (!caller || caller == ui->symskip) {

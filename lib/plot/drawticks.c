@@ -559,12 +559,6 @@ reenter:
             goto reenter;
 	}
 
-/*
- *         if (t->nticks > MAX_TICKS) {
- *             t->nticks = MAX_TICKS;
- *         }
- */
-
         itick = 0;
         itmaj = 0;
         while (itick < t->nticks) {

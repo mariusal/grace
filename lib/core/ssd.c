@@ -51,21 +51,24 @@ ss_data *ssd_data_new(AMem *amem)
 void ssd_data_free(AMem *amem, ss_data *ssd)
 {
     if (ssd) {
-        int i, j;
+        unsigned int i, j;
         char **sp;
 
         for (i = 0; i < ssd->ncols; i++) {
-            if (ssd->formats[i] == FFORMAT_STRING) {
-                sp = (char **) ssd->data[i];
+            ss_column *col = &ssd->cols[i];
+            if (col->format == FFORMAT_STRING) {
+                sp = (char **) col->data;
                 for (j = 0; j < ssd->nrows; j++) {
                     amem_free(amem, sp[j]);
                 }
             }
-            amem_free(amem, ssd->data[i]);
+            amem_free(amem, col->data);
+            amem_free(amem, col->label);
         }
-        amem_free(amem, ssd->data);
-        amem_free(amem, ssd->formats);
+        amem_free(amem, ssd->cols);
         amem_free(amem, ssd->label);
+
+        amem_free(amem, ssd->hotfile);
         
         amem_free(amem, ssd);
     }
@@ -85,21 +88,22 @@ ss_data *ssd_data_copy(AMem *amem, ss_data *ssd)
     ssd_new->nrows = ssd->nrows;
     
     ssd_new->label = amem_strdup(amem, ssd->label);
-    
-    ssd_new->data = amem_calloc(amem, ssd->ncols, SIZEOF_VOID_P);
-    ssd_new->formats = amem_malloc(amem, ssd->ncols*SIZEOF_INT);
 
-    memcpy(ssd_new->formats, ssd->formats, ssd->ncols*SIZEOF_INT);
+    ssd_new->hotfile = amem_strdup(amem, ssd->hotfile);
     
+    ssd_new->cols = amem_calloc(amem, ssd->ncols, sizeof(ss_column));
+
     for (i = 0; i < ssd->ncols; i++) {
-        if (ssd->formats[i] == FFORMAT_STRING) {
-            ssd_new->data[i] =
-                copy_string_column(amem, ssd->data[i], ssd->nrows);
+        ss_column *col     = &ssd->cols[i];
+        ss_column *col_new = &ssd_new->cols[i];
+        col_new->format = col->format;
+        col_new->label  = amem_strdup(amem, col->label);
+        if (col->format == FFORMAT_STRING) {
+            col_new->data = copy_string_column(amem, col->data, ssd->nrows);
         } else {
-            ssd_new->data[i] =
-                copy_data_column(amem, ssd->data[i], ssd->nrows);
+            col_new->data = copy_data_column(amem, col->data, ssd->nrows);
         }
-        if (!ssd_new->data[i]) {
+        if (!col_new->data) {
             ssd_data_free(amem, ssd_new);
             return NULL;
         }
@@ -156,13 +160,13 @@ unsigned int ssd_get_nrows(const Quark *q)
     }
 }
 
-int *ssd_get_formats(const Quark *q)
+int ssd_get_format(const Quark *q, int col)
 {
     ss_data *ssd = ssd_get_data(q);
-    if (ssd) {
-        return ssd->formats;
+    if (ssd && col >= 0 && col < ssd->ncols) {
+        return ssd->cols[col].format;
     } else {
-        return NULL;
+        return FFORMAT_UNKNOWN;
     }
 }
 
@@ -171,7 +175,6 @@ int ssd_set_nrows(Quark *q, unsigned int nrows)
     unsigned int i, j;
     char  **sp;
     ss_data *ssd = ssd_get_data(q);
-    AMem *amem = quark_get_amem(q);
     
     if (!ssd) {
         return RETURN_FAILURE;
@@ -183,20 +186,19 @@ int ssd_set_nrows(Quark *q, unsigned int nrows)
     }
     
     for (i = 0; i < ssd->ncols; i++) {
-        if (ssd->formats[i] == FFORMAT_STRING) {
-            sp = (char **) ssd->data[i];
+        ss_column *col = &ssd->cols[i];
+        if (col->format == FFORMAT_STRING) {
+            sp = (char **) col->data;
             for (j = nrows; j < ssd->nrows; j++) {
-                AMEM_CFREE(amem, sp[j]);
+                AMEM_CFREE(q->amem, sp[j]);
             }
-            ssd->data[i] =
-                amem_realloc(amem, ssd->data[i], nrows*SIZEOF_VOID_P);
-            sp = (char **) ssd->data[i];
+            col->data = amem_realloc(q->amem, col->data, nrows*SIZEOF_VOID_P);
+            sp = (char **) col->data;
             for (j = ssd->nrows; j < nrows; j++) {
                 sp[j] = NULL;
             }
         } else {
-            ssd->data[i] =
-                amem_realloc(amem, ssd->data[i], nrows*SIZEOF_DOUBLE);
+            col->data = amem_realloc(q->amem, col->data, nrows*SIZEOF_DOUBLE);
         }
     }
     ssd->nrows = nrows;
@@ -209,16 +211,22 @@ int ssd_set_nrows(Quark *q, unsigned int nrows)
 int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats)
 {
     ss_data *ssd = ssd_get_data(q);
-    AMem *amem = quark_get_amem(q);
+    unsigned int i;
     
     if (!ssd) {
         return RETURN_FAILURE;
     }
     
-    ssd->data = amem_calloc(amem, ncols, SIZEOF_VOID_P);
+    ssd->cols = amem_calloc(q->amem, ncols, sizeof(ss_column));
+    if (!ssd->cols) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < ncols; i++) {
+        ss_column *col = &ssd->cols[i];
+        col->format = formats[i];
+    }
 
-    ssd->formats = amem_malloc(amem, ncols*SIZEOF_INT);
-    memcpy(ssd->formats, formats, ncols*SIZEOF_INT);
     ssd->ncols = ncols;
     ssd->nrows = 0;
     
@@ -234,9 +242,7 @@ int ssd_set_label(Quark *q, const char *label)
     if (!ssd) {
         return RETURN_FAILURE;
     } else {
-        AMem *amem = quark_get_amem(q);
-
-        ssd->label = amem_strcpy(amem, ssd->label, label);
+        ssd->label = amem_strcpy(q->amem, ssd->label, label);
 
         quark_dirtystate_set(q, TRUE);
     
@@ -244,12 +250,11 @@ int ssd_set_label(Quark *q, const char *label)
     }
 }
 
-void *ssd_get_col(const Quark *q, int col, int *format)
+ss_column *ssd_get_col(const Quark *q, int col)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd && col >= 0 && col < ssd->ncols) {
-        *format = ssd->formats[col];
-        return ssd->data[col];
+        return &ssd->cols[col];
     } else {
         return NULL;
     }
@@ -267,4 +272,51 @@ Quark *get_parent_ssd(const Quark *q)
     }
     
     return NULL;
+}
+
+
+int ssd_set_hotlink(Quark *q, int onoroff, const char *fname, int src)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        ssd->hotlink = onoroff;
+	ssd->hotfile = amem_strcpy(q->amem, ssd->hotfile, fname);
+	ssd->hotsrc = src;
+        
+        quark_dirtystate_set(q, TRUE);
+    
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int ssd_is_hotlinked(const Quark *q)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd && ssd->hotlink && ssd->hotfile) {
+        return TRUE;
+    } else { 
+        return FALSE;
+    }
+}
+
+char *ssd_get_hotlink_file(const Quark *q)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        return ssd->hotfile;
+    } else {
+        return NULL;
+    }
+}
+
+int ssd_get_hotlink_src(const Quark *q)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        return ssd->hotsrc;
+    } else {
+        return -1;
+    }
 }

@@ -264,7 +264,6 @@ int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **forma
 int insert_data_row(Quark *q, unsigned int row, char *s)
 {
     unsigned int i, ncols = ssd_get_ncols(q);
-    int *formats = ssd_get_formats(q);
     char *token;
     int quoted;
     char  **sp;
@@ -273,29 +272,29 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
     const char *sdummy;
     int res;
     AMem *amem = quark_get_amem(q);
-    ss_data *ssd = ssd_get_data(q);
     Quark *pr = get_parent_project(q); 
     
     df_pref = get_date_hint();
     for (i = 0; i < ncols; i++) {
+        ss_column *pcol = ssd_get_col(q, i);
         s = next_token(s, &token, &quoted);
         if (s == NULL || token == NULL) {
             /* invalid line */
             return RETURN_FAILURE;
         } else {
-            if (formats[i] == FFORMAT_STRING) {
-                sp = (char **) ssd->data[i];
+            if (pcol->format == FFORMAT_STRING) {
+                sp = (char **) pcol->data;
                 sp[row] = amem_strcpy(amem, sp[row], token);
                 if (sp[row] != NULL) {
                     res = RETURN_SUCCESS;
                 } else {
                     res = RETURN_FAILURE;
                 }
-            } else if (formats[i] == FFORMAT_DATE) {
-                np = (double *) ssd->data[i];
+            } else if (pcol->format == FFORMAT_DATE) {
+                np = (double *) pcol->data;
                 res = parse_date(pr, token, df_pref, FALSE, &np[row], &ddummy);
             } else {
-                np = (double *) ssd->data[i];
+                np = (double *) pcol->data;
                 res = parse_float(token, &np[row], &sdummy);
             }
             if (res != RETURN_SUCCESS) {
@@ -337,7 +336,6 @@ int store_data(Quark *q, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
-    int *formats;
     unsigned int coli[MAX_SET_COLS];
     int scol;
     Quark *gr, *pset;
@@ -350,14 +348,14 @@ int store_data(Quark *q, int load_type)
     }
     ncols = ssd_get_ncols(q);
     nrows = ssd_get_nrows(q);
-    formats = ssd_get_formats(q);
     if (ncols <= 0 || nrows <= 0) {
         return RETURN_FAILURE;
     }
 
     nncols = 0;
     for (j = 0; j < ncols; j++) {
-        if (formats[j] != FFORMAT_STRING) {
+        ss_column *pcol = ssd_get_col(q, j);
+        if (pcol->format != FFORMAT_STRING) {
             nncols++;
         }
     }
@@ -390,7 +388,8 @@ int store_data(Quark *q, int load_type)
         nncols = 0;
         scol = -1;
         for (j = 0; j < ncols; j++) {
-            if (formats[j] == FFORMAT_STRING) {
+            ss_column *pcol = ssd_get_col(q, j);
+            if (pcol->format == FFORMAT_STRING) {
                 scol = j;
             } else {
                 coli[nncols] = j;
@@ -437,7 +436,6 @@ int create_set_fromblock(Quark *pset, int type,
     ss_data *blockdata = ssd_get_data(ss);
     int i, ncols, blockncols, blocklen, column;
     char buf[256], *s;
-    int *formats;
 
     if (!blockdata || !dsp) {
         return RETURN_FAILURE;
@@ -468,8 +466,6 @@ int create_set_fromblock(Quark *pset, int type,
 	return RETURN_FAILURE;
     }
 
-    formats = ssd_get_formats(ss);
-    
     /* clear data stored in the set, if any */
     killsetdata(pset);
     
@@ -477,7 +473,7 @@ int create_set_fromblock(Quark *pset, int type,
 
     for (i = 0; i < nc; i++) {
         column = coli[i];
-        if (formats[column] != FFORMAT_STRING) {
+        if (ssd_get_format(ss, column) != FFORMAT_STRING) {
             dsp->cols[i] = column;
         } else {
             errmsg("Tried to read doubles from strings!");
@@ -488,7 +484,7 @@ int create_set_fromblock(Quark *pset, int type,
 
     /* strings, if any */
     if (scol >= 0) {
-        if (formats[scol] != FFORMAT_STRING) {
+        if (ssd_get_format(ss, scol) != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
             killsetdata(pset);
             return RETURN_FAILURE;

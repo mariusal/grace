@@ -78,34 +78,6 @@ char *dataset_colname(int col)
     return s;
 }
 
-int copy_set_params(Quark *src, Quark *dest)
-{
-    if (!src || !dest) {
-        return RETURN_FAILURE;
-    } else {
-        Dataset *data;
-        int type;
-        char *legstr;
-        set *p1, *p2;
-        
-        p1 = set_get_data(src);
-        p2 = set_get_data(dest);
-        
-        /* preserve allocatables and related stuff */
-        type    = p2->type;
-        data    = p2->data;
-        legstr  = p2->legstr;
-        
-        memcpy(p2, p1, sizeof(set));
-        
-        p2->type    = type;
-        p2->data    = data;
-        p2->legstr  = legstr;
-        
-        return RETURN_SUCCESS;
-    }
-}
-
 /*
  * free set data, but preserve the parameter settings
  */
@@ -113,7 +85,7 @@ void killsetdata(Quark *pset)
 {
     set *p = set_get_data(pset);
     if (p) {
-        dataset_empty(p->data);
+        dataset_empty(&p->ds);
         quark_dirtystate_set(pset, TRUE);
     }
 }
@@ -123,27 +95,9 @@ void killsetdata(Quark *pset)
  */
 int copysetdata(Quark *psrc, Quark *pdest)
 {
-    set *p1, *p2;
+    Dataset *dsp = set_get_dataset(psrc);
     
-    p1 = set_get_data(psrc);
-    p2 = set_get_data(pdest);
-    
-    if (!p1 || !p2 || p1 == p2) {
-	return RETURN_FAILURE;
-    }
-    
-    dataset_free(p2->data);
-    p2->data = dataset_copy(quark_get_amem(pdest), p1->data);
-    
-    if (p2->data) {
-        if (set_get_ncols(pdest) != set_get_ncols(psrc)) {
-            p2->type = p1->type;
-        }
-        quark_dirtystate_set(pdest, TRUE);
-	return RETURN_SUCCESS;
-    } else {
-	return RETURN_FAILURE;
-    }
+    return set_set_dataset(pdest, dsp);
 }
 
 /*
@@ -157,7 +111,7 @@ void killset(Quark *pset)
 
 void do_update_hotlink(Quark *pset)
 {
-    update_set_from_file(pset);
+    // update_set_from_file(pset);
 }
 
 

@@ -31,8 +31,9 @@
  *
  */
 
-#include "grace/coreP.h"
+#include <string.h>
 
+#include "grace/coreP.h"
 
 /* convenience function */
 int graph_get_viewport(Quark *gr, view *v)
@@ -183,4 +184,36 @@ double set_get_ybase(Quark *pset)
     }
     
     return ybase;
+}
+
+double *copy_data_column(AMem *amem, double *src, int nrows)
+{
+    double *dest;
+    
+    if (!src) {
+        return NULL;
+    }
+    
+    dest = amem_malloc(amem, nrows*SIZEOF_DOUBLE);
+    if (dest != NULL) {
+        memcpy(dest, src, nrows*SIZEOF_DOUBLE);
+    }
+    return dest;
+}
+
+char **copy_string_column(AMem *amem, char **src, int nrows)
+{
+    char **dest;
+    unsigned int i;
+
+    if (!src) {
+        return NULL;
+    }
+    
+    dest = amem_malloc(amem, nrows*sizeof(char *));
+    if (dest != NULL) {
+        for (i = 0; i < nrows; i++)
+            dest[i] = amem_strdup(amem, src[i]);
+    }
+    return dest;
 }

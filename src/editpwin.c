@@ -546,9 +546,9 @@ static void update_cells(EditPoints *ep)
     xv_setstr(ep->length, buf);
     SetTextString(ep->comment, set_get_comment(ep->pset));
 
-    SetToggleButtonState(ep->hotlink, set_is_hotlinked(ep->pset));
-    SetOptionChoice(ep->hotsrc, set_get_hotlink_src(ep->pset));
-    xv_setstr(ep->hotfile, set_get_hotlink_file(ep->pset));
+    // SetToggleButtonState(ep->hotlink, set_is_hotlinked(ep->pset));
+    // SetOptionChoice(ep->hotsrc, set_get_hotlink_src(ep->pset));
+    // xv_setstr(ep->hotfile, set_get_hotlink_file(ep->pset));
     
     /* get current size of widget and update rows/columns as needed */
     get_ep_dims(ep, &nr, &nc);
@@ -664,7 +664,7 @@ int ep_aac_proc(void *data)
     hotlink = GetToggleButtonState(ep->hotlink);
     hotsrc  = GetOptionChoice(ep->hotsrc);
     hotfile = xv_getstr(ep->hotfile);
-    set_set_hotlink(ep->pset, hotlink, hotfile, hotsrc);
+    // set_set_hotlink(ep->pset, hotlink, hotfile, hotsrc);
 
     /* commit the last entered cell changes */
     XbaeMatrixGetCurrentCell(ep->mw, &cur_row, &cur_col);
