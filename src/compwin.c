@@ -67,7 +67,7 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static int do_differ_proc(void *data);
 static int do_interp_proc(void *data);
 static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_runavg_proc(void *data);
 static int do_fourier_proc(void *data);
 static int do_histo_proc(void *data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -758,127 +758,248 @@ static int do_fourier_proc(void *data)
     }
 }
 
+/* finite differencing */
 
-/* running averages */
+typedef struct _Diff_ui {
+    TransformStructure *tdialog;
+    OptionStructure *type;
+    OptionStructure *xplace;
+    SpinStructure *period;
+} Diff_ui;
 
-typedef struct _Run_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget len_item;
-    Widget *type_item;
-    Widget *region_item;
-    Widget rinvert_item;
-} Run_ui;
+#define DIFF_TYPE_PLAIN         0
+#define DIFF_TYPE_DERIVATIVE    1
 
-static Run_ui rui;
-
-void create_run_frame(void *data)
+void create_diff_frame(void *data)
 {
-    Widget dialog;
-    Widget rc;
+    static Diff_ui *dui = NULL;
 
     set_wait_cursor();
-    if (rui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	rui.top = XmCreateDialogShell(app_shell, "Running averages", NULL, 0);
-	handle_close(rui.top);
-	dialog = XmCreateRowColumn(rui.top, "dialog_rc", NULL, 0);
-
-	rui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, dialog,
-			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 5,
-			      XmNorientation, XmHORIZONTAL,
-			      XmNisAligned, True,
-			      XmNadjustLast, False,
-			      XmNentryAlignment, XmALIGNMENT_END,
-			      NULL);
-
-	XtVaCreateManagedWidget("Running:", xmLabelWidgetClass, rc, NULL);
-	rui.type_item = CreatePanelChoice(rc,
-					  " ",
-					  6,
-					  "Average",
-					  "Median",
-					  "Minimum",
-					  "Maximum",
-					  "Std. dev.", 0,
-					  0);
-	rui.len_item = CreateTextItem4(rc, 10, "Length of average:");
-
-	XtVaCreateManagedWidget("Restrictions:", xmLabelWidgetClass, rc, NULL);
-	rui.region_item = CreatePanelChoice(rc,
-					    " ",
-					    9,
-					    "None",
-					    "Region 0",
-					    "Region 1",
-					    "Region 2",
-					    "Region 3",
-					    "Region 4",
-					    "Inside graph",
-					    "Outside graph",
-					    0,
-					    0);
-
-	rui.rinvert_item = CreateToggleButton(rc, "Invert region");
-
-	ManageChild(rc);
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_runavg_proc, (XtPointer) & rui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) rui.top);
-
-	ManageChild(dialog);
+    
+    if (dui == NULL) {
+        Widget rc;
+        OptionItem topitems[] = {
+            {DIFF_TYPE_PLAIN,      "Plain differences"},
+            {DIFF_TYPE_DERIVATIVE, "Derivative"       }
+        };
+        OptionItem xopitems[] = {
+            {DIFF_XPLACE_LEFT,   "Left"  },
+            {DIFF_XPLACE_CENTER, "Center"},
+            {DIFF_XPLACE_RIGHT,  "Right" }
+        };
+	
+        dui = xmalloc(sizeof(Diff_ui));
+        
+        dui->tdialog = CreateTransformDialogForm(app_shell,
+            "Differences", LIST_TYPE_MULTIPLE);
+	
+        rc = CreateVContainer(dui->tdialog->form);
+        dui->type   = CreateOptionChoice(rc, "Type:", 0, 2, topitems);
+        dui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
+        dui->period = CreateSpinChoice(rc, "Period", 6, SPIN_TYPE_INT,
+            (double) 1, (double) 999999, (double) 1);
+        SetSpinChoice(dui->period, (double) 1);
+	
+        CreateAACDialog(dui->tdialog->form, rc, do_differ_proc, (void *) dui);
     }
-    RaiseWindow(rui.top);
+    
+    RaiseWindow(GetParent(dui->tdialog->form));
     unset_wait_cursor();
 }
 
 /*
- * running averages, medians, min, max, std. deviation
+ * finite differences
  */
-static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_differ_proc(void *data)
 {
-    int gno = get_cg();
-    int *selsets;
-    int i, cnt;
-    int runlen, runtype, setno, rno, invr;
-    Run_ui *ui = (Run_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int type, xplace, period;
+    Diff_ui *ui = (Diff_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    if (xv_evalexpri(ui->len_item, &runlen ) != RETURN_SUCCESS) {
-        return;
+
+    type   = GetOptionChoice(ui->type);
+    xplace = GetOptionChoice(ui->xplace);
+    period = GetSpinChoice(ui->period);
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+	res = do_differ(gsrc, setfrom, gdest, setto,
+            type == DIFF_TYPE_DERIVATIVE, xplace, period);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
     }
-    runtype = GetChoice(ui->type_item);
-    rno = GetChoice(ui->region_item) - 1;
-    invr = GetToggleButtonState(ui->rinvert_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_runavg(gno, setno, runlen, runtype, rno, invr);
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
     }
-    update_set_lists(gno);
-    unset_wait_cursor();
-    xfree(selsets);
+    
+    update_set_lists(gdest);
     xdrawgraph();
+    
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
-/* TODO finish this */
-void do_eval_regress()
+
+/* running averages */
+
+#define RUN_TYPE_CUSTOM     0
+#define RUN_TYPE_AVERAGE    1
+#define RUN_TYPE_STDDEV     2
+#define RUN_TYPE_MIN        3
+#define RUN_TYPE_MAX        4
+
+typedef struct _Run_ui {
+    TransformStructure *tdialog;
+    SpinStructure *length;
+    TextStructure *formula;
+    OptionStructure *xplace;
+} Run_ui;
+
+static void run_type_cb(int value, void *data)
 {
+    Run_ui *ui = (Run_ui *) data;
+    char *formula;
+    
+    switch (value) {
+    case RUN_TYPE_AVERAGE:
+        formula = "AVG($t)";
+        break;
+    case RUN_TYPE_STDDEV:
+        formula = "SD($t)";
+        break;
+    case RUN_TYPE_MIN:
+        formula = "MIN($t)";
+        break;
+    case RUN_TYPE_MAX:
+        formula = "MAX($t)";
+        break;
+    default:
+        formula = NULL;
+        break;
+    }
+    
+    if (formula) {
+        SetTextString(ui->formula, formula);
+        SetTextEditable(ui->formula, FALSE);
+    } else {
+        SetTextEditable(ui->formula, TRUE);
+    }
+}
+
+void create_run_frame(void *data)
+{
+    static Run_ui *rui = NULL;
+    
+    set_wait_cursor();
+
+    if (rui == NULL) {
+        Widget rc;
+        OptionStructure *type;
+        OptionItem topitems[] = {
+            {RUN_TYPE_CUSTOM,  "Custom"   },
+            {RUN_TYPE_AVERAGE, "Average"  },
+            {RUN_TYPE_STDDEV,  "Std. dev."},
+            {RUN_TYPE_MIN,     "Minimum"  },
+            {RUN_TYPE_MAX,     "Maximum"  }
+        };
+        OptionItem xopitems[] = {
+            {RUN_XPLACE_LEFT,    "Left"   },
+            {RUN_XPLACE_AVERAGE, "Average"},
+            {RUN_XPLACE_RIGHT,   "Right"  }
+        };
+	
+        rui = xmalloc(sizeof(Run_ui));
+        
+        rui->tdialog = CreateTransformDialogForm(app_shell,
+            "Running properties", LIST_TYPE_MULTIPLE);
+
+	rc = CreateVContainer(rui->tdialog->form);
+        type = CreateOptionChoice(rc, "Type:", 0, 5, topitems);
+        AddOptionChoiceCB(type, run_type_cb, (void *) rui);
+	rui->formula = CreateTextInput(rc, "Formula:");
+	rui->length = CreateSpinChoice(rc, "Length of sample", 6, SPIN_TYPE_INT,
+            (double) 1, (double) 999999, (double) 1);
+        rui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
+        
+        /* default settings */
+        SetSpinChoice(rui->length, 1);
+        SetOptionChoice(rui->xplace, RUN_XPLACE_AVERAGE);
+        
+        CreateAACDialog(rui->tdialog->form, rc, do_runavg_proc, (void *) rui);
+    }
+    
+    RaiseWindow(GetParent(rui->tdialog->form));
+    unset_wait_cursor();
+}
+
+/*
+ * evaluation of running properties
+ */
+static int do_runavg_proc(void *data)
+{
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int length, xplace;
+    char *formula;
+    Run_ui *ui = (Run_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    length = (int) GetSpinChoice(ui->length);
+    formula = GetTextString(ui->formula);
+    xplace = GetOptionChoice(ui->xplace);
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+	res = do_runavg(gsrc, setfrom, gdest, setto, length, formula, xplace);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
+    }
+    
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
+    xdrawgraph();
+    
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
 typedef struct _Reg_ui {
@@ -892,7 +1013,7 @@ typedef struct _Reg_ui {
     Widget start_item;
     Widget stop_item;
     Widget step_item;
-	Widget fload_rc;
+    Widget fload_rc;
     Widget method_item;
 } Reg_ui;
 
@@ -1105,105 +1226,6 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     xdrawgraph();
 }
 
-/* finite differencing */
-
-typedef struct _Diff_ui {
-    TransformStructure *tdialog;
-    OptionStructure *type;
-    OptionStructure *xplace;
-    SpinStructure *period;
-} Diff_ui;
-
-#define DIFF_TYPE_PLAIN         0
-#define DIFF_TYPE_DERIVATIVE    1
-
-void create_diff_frame(void *data)
-{
-    static Diff_ui *dui = NULL;
-
-    set_wait_cursor();
-    
-    if (dui == NULL) {
-        Widget rc;
-        OptionItem topitems[] = {
-            {DIFF_TYPE_PLAIN,      "Plain differences"},
-            {DIFF_TYPE_DERIVATIVE, "Derivative"       }
-        };
-        OptionItem xopitems[] = {
-            {DIFF_XPLACE_LEFT,   "Left"  },
-            {DIFF_XPLACE_CENTER, "Center"},
-            {DIFF_XPLACE_RIGHT,  "Right" }
-        };
-	
-        dui = xmalloc(sizeof(Diff_ui));
-        
-        dui->tdialog = CreateTransformDialogForm(app_shell,
-            "Differences", LIST_TYPE_MULTIPLE);
-	
-        rc = CreateVContainer(dui->tdialog->form);
-        dui->type   = CreateOptionChoice(rc, "Type:", 0, 2, topitems);
-        dui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
-        dui->period = CreateSpinChoice(rc, "Period", 6, SPIN_TYPE_INT,
-            (double) 1, (double) 999999, (double) 1);
-        SetSpinChoice(dui->period, (double) 1);
-	
-        CreateAACDialog(dui->tdialog->form, rc, do_differ_proc, (void *) dui);
-    }
-    
-    RaiseWindow(GetParent(dui->tdialog->form));
-    unset_wait_cursor();
-}
-
-/*
- * finite differences
- */
-static int do_differ_proc(void *data)
-{
-    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
-    int i, res, err = FALSE;
-    int type, xplace, period;
-    Diff_ui *ui = (Diff_ui *) data;
-
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
-    
-    if (res != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-
-    type   = GetOptionChoice(ui->type);
-    xplace = GetOptionChoice(ui->xplace);
-    period = GetSpinChoice(ui->period);
-    
-    for (i = 0; i < nssrc; i++) {
-	int setfrom, setto;
-        setfrom = svaluessrc[i];
-	if (nsdest) {
-            setto = svaluesdest[i];
-        } else {
-            setto = nextset(gdest);
-        }
-	res = do_differ(gsrc, setfrom, gdest, setto,
-            type == DIFF_TYPE_DERIVATIVE, xplace, period);
-        if (res != RETURN_SUCCESS) {
-            err = TRUE;
-        }
-    }
-
-    xfree(svaluessrc);
-    if (nsdest > 0) {
-        xfree(svaluesdest);
-    }
-    
-    update_set_lists(gdest);
-    xdrawgraph();
-    
-    if (err) {
-        return RETURN_FAILURE;
-    } else {
-        return RETURN_SUCCESS;
-    }
-}
 
 /* numerical integration */
 

@@ -724,7 +724,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Histograms...", 'H', create_histo_frame, NULL);
     CreateMenuButton(submenupane, "Fourier transforms...", 'u', create_fourier_frame, NULL);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "Running averages...", 'a', create_run_frame, NULL);
+    CreateMenuButton(submenupane, "Running properties...", 's', create_run_frame, NULL);
     CreateMenuButton(submenupane, "Differences/derivatives...", 'D', create_diff_frame, NULL);
     CreateMenuButton(submenupane, "Integration...", 'I', create_int_frame, NULL);
     CreateMenuSeparator(submenupane);

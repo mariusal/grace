@@ -569,79 +569,95 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 }
 
 /*
- * running averages, medians, min, max, std. deviation
+ * running properties
  */
-void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr)
+int do_runavg(int gsrc, int setfrom, int gdest, int setto,
+    int runlen, char *formula, int xplace)
 {
-    int runset;
-    int len, cnt = 0;
-    double *x, *y, *xt = NULL, *yt = NULL, *xr, *yr;
+    int i, nc, ncols, len, newlen;
+    double *x1, *x2;
+    grarr *t;
 
-    if (!is_set_active(gno, setno)) {
-	errmsg("Set not active");
-	return;
+    if (!is_valid_setno(gsrc, setfrom)) {
+	errmsg("Source set not active");
+	return RETURN_FAILURE;
     }
-    if (runlen < 2) {
-	errmsg("Length of running average < 2");
-	return;
+    
+    if (runlen < 1) {
+	errmsg("Length of running average < 1");
+	return RETURN_FAILURE;
     }
-    len = getsetlength(gno, setno);
-    x = getx(gno, setno);
-    y = gety(gno, setno);
-    if (rno == -1) {
-	xt = x;
-	yt = y;
-    } else if (isactive_region(rno)) {
-	if (!get_points_inregion(rno, invr, len, x, y, &cnt, &xt, &yt)) {
-	    if (cnt == 0) {
-		errmsg("No points found in region, operation cancelled");
-	    }
-	    return;
-	}
-	len = cnt;
-    } else {
-	errmsg("Selected region is not active");
-	return;
-    }
-    if (runlen >= len) {
+
+    len = getsetlength(gsrc, setfrom);
+    if (runlen > len) {
 	errmsg("Length of running average > set length");
-	goto bustout;
+	return RETURN_FAILURE;
     }
-    runset = nextset(gno);
-    if (runset != (-1)) {
-	activateset(gno, runset);
-	setlength(gno, runset, len - runlen + 1);
-	xr = getx(gno, runset);
-	yr = gety(gno, runset);
-	switch (runtype) {
-	case 0:
-	    runavg(xt, yt, xr, yr, len, runlen);
-	    sprintf(buf, "%d-pt. avg. on set %d ", runlen, setno);
-	    break;
-	case 1:
-	    runmedian(xt, yt, xr, yr, len, runlen);
-	    sprintf(buf, "%d-pt. median on set %d ", runlen, setno);
-	    break;
-	case 2:
-	    runminmax(xt, yt, xr, yr, len, runlen, 0);
-	    sprintf(buf, "%d-pt. min on set %d ", runlen, setno);
-	    break;
-	case 3:
-	    runminmax(xt, yt, xr, yr, len, runlen, 1);
-	    sprintf(buf, "%d-pt. max on set %d ", runlen, setno);
-	    break;
-	case 4:
-	    runstddev(xt, yt, xr, yr, len, runlen);
-	    sprintf(buf, "%d-pt. std dev., set %d ", runlen, setno);
-	    break;
-	}
-	setcomment(gno, runset, buf);
+
+    newlen = len - runlen + 1;
+    activateset(gdest, setto);
+    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
     }
-  bustout:;
-    if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
-	xfree(xt);
-	xfree(yt);
+    
+    ncols = dataset_cols(gsrc, setfrom);
+    if (dataset_cols(gdest, setto) != ncols) {
+        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
     }
+    
+    t = get_parser_arr_by_name("$t");
+    if (t == NULL) {
+        t = define_parser_arr("$t");
+        if (t == NULL) {
+            errmsg("Internal error");
+            return RETURN_FAILURE;
+        }
+    }
+    
+    if (t->length != 0) {
+        XCFREE(t->data);
+    }
+    t->length = runlen;
+
+    for (nc = 1; nc < ncols; nc++) {
+        double *d1, *d2;
+        d1 = getcol(gsrc, setfrom, nc);
+        d2 = getcol(gdest, setto, nc);
+        for (i = 0; i < newlen; i++) {
+            t->data = &(d1[i]);
+            if (s_scanner(formula, &(d2[i])) != RETURN_SUCCESS) {
+                t->length = 0;
+                t->data = NULL;
+                return RETURN_FAILURE;
+            }
+        }
+    }
+    
+    /* undefine the virtual array */
+    t->length = 0;
+    t->data = NULL;
+
+    x1 = getcol(gsrc, setfrom, DATA_X);
+    x2 = getcol(gdest, setto, DATA_X);
+    for (i = 0; i < newlen; i++) {
+        double dummy;
+        switch (xplace) {
+        case RUN_XPLACE_LEFT:
+            x2[i] = x1[i];
+            break;
+        case RUN_XPLACE_RIGHT:
+            x2[i] = x1[i + runlen - 1];
+            break;
+        default:
+            stasum(&(x1[i]), runlen, &(x2[i]), &dummy);
+            break;
+        }
+    }
+    
+    sprintf(buf, "%d-pt. running %s on G%d.S%d", runlen, formula, gsrc, setfrom);
+    setcomment(gdest, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 int dump_dc(double *v, int len)

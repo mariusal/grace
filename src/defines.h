@@ -384,6 +384,10 @@ typedef enum {
 #define DIFF_XPLACE_CENTER  1
 #define DIFF_XPLACE_RIGHT   2
 
+/* Running properties */
+#define RUN_XPLACE_LEFT    0
+#define RUN_XPLACE_AVERAGE 1
+#define RUN_XPLACE_RIGHT   2
 
 /*
  * defaults
