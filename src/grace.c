@@ -298,6 +298,19 @@ int grace_set_project(Grace *grace, Quark *project)
     }
 }
 
+void *container_data_new(void)
+{
+    return NULL;
+}
+
+void container_data_free(void *data)
+{
+}
+
+void *container_data_copy(void *data)
+{
+    return data;
+}
 
 static QuarkFlavor project_qf = {
     (Quark_data_new) project_data_new,
@@ -327,6 +340,13 @@ static QuarkFlavor dobject_qf = {
     NULL
 };
 
+static QuarkFlavor container_qf = {
+    container_data_new,
+    container_data_free,
+    container_data_copy,
+    NULL
+};
+
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
 {
@@ -344,6 +364,9 @@ QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
         break;
     case QFlavorDObject:
         qf = &dobject_qf;
+        break;
+    case QFlavorContainer:
+        qf = &container_qf;
         break;
     default:
         qf = NULL;
