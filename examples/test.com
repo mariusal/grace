@@ -22,7 +22,7 @@ sleep 1
 s0.x = index
 s1.x = index
 g2.s1.x = index
-focus g0
+with g0
 echo "Back to graph g0 to load s0.y"
 sleep 1
 s0.y = 2*cos(2*pi*x/100) + 5 * sin(2*pi*x/35)
@@ -71,7 +71,7 @@ sleep 1
 s0.y = s0.y + rand
 echo "Spline fit of g0.s0, 100 points"
 sleep 1
-spline(s0, s0.x.min, s0.x.max, 100)
+spline(s0, min(s0.x), max(s0.x), 100)
 redraw
 frame fill on
 frame background color 7
