@@ -635,8 +635,7 @@ void svg_fillarc(const Canvas *canvas, void *data,
 }
 
 void svg_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     /* not implemented yet */
 }

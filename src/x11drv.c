@@ -420,8 +420,7 @@ static void x11_fillarc(const Canvas *canvas, void *data,
 
 
 static void x11_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     X11_data *x11data = (X11_data *) data;
     int j, k, l;
@@ -440,47 +439,48 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
     
     VPoint2XPoint(vp, &xp);
       
-    if (pixmap_bpp != 1) {
+    if (pm->bpp != 1) {
         if (x11data->monomode == TRUE) {
             /* TODO: dither pixmaps on mono displays */
             return;
         }
-        pixmap_ptr = xcalloc(PADBITS(width, 8) * height, x11data->pixel_size);
+        pixmap_ptr = xcalloc(PADBITS(pm->width, 8) * pm->height, x11data->pixel_size);
         if (pixmap_ptr == NULL) {
             errmsg("xmalloc failed in x11_putpixmap()");
             return;
         }
  
         /* re-index pixmap */
-        for (k = 0; k < height; k++) {
-            for (j = 0; j < width; j++) {
-                cindex = (unsigned char) (databits)[k*width+j];
+        for (k = 0; k < pm->height; k++) {
+            for (j = 0; j < pm->width; j++) {
+                cindex = (unsigned char) (pm->bits)[k*pm->width+j];
                 for (l = 0; l < x11data->pixel_size; l++) {
-                    pixmap_ptr[x11data->pixel_size*(k*width+j) + l] =
+                    pixmap_ptr[x11data->pixel_size*(k*pm->width+j) + l] =
                         (char) (x11data->pixels[cindex] >> (8*l));
                 }
             }
         }
 
         ximage=XCreateImage(x11data->xstuff->disp, x11data->visual,
-                           x11data->xstuff->depth, ZPixmap, 0, pixmap_ptr, width, height,
-                           bitmap_pad,  /* lines padded to bytes */
+                           x11data->xstuff->depth, ZPixmap, 0,
+                           pixmap_ptr, pm->width, pm->height,
+                           pm->pad,  /* lines padded to bytes */
                            0 /* number of bytes per line */
                            );
 
-        if (pixmap_type == PIXMAP_TRANSPARENT) {
-            clipmask_ptr = xcalloc((PADBITS(width, 8)>>3)
-                                              * height, SIZEOF_CHAR);
+        if (pm->type == PIXMAP_TRANSPARENT) {
+            clipmask_ptr = xcalloc((PADBITS(pm->width, 8)>>3)
+                                              * pm->height, SIZEOF_CHAR);
             if (clipmask_ptr == NULL) {
                 errmsg("xmalloc failed in x11_putpixmap()");
                 return;
             } else {
                 /* Note: We pad the clipmask always to byte boundary */
                 bg = getbgcolor(canvas);
-                for (k = 0; k < height; k++) {
-                    line_off = k*(PADBITS(width, 8) >> 3);
-                    for (j = 0; j < width; j++) {
-                        cindex = (unsigned char) (databits)[k*width+j];
+                for (k = 0; k < pm->height; k++) {
+                    line_off = k*(PADBITS(pm->width, 8) >> 3);
+                    for (j = 0; j < pm->width; j++) {
+                        cindex = (unsigned char) (pm->bits)[k*pm->width+j];
                         if (cindex != bg) {
                             clipmask_ptr[line_off+(j>>3)] |= (0x01 << (j%8));
                         }
@@ -488,18 +488,18 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                 }
         
                 clipmask = XCreateBitmapFromData(x11data->xstuff->disp,
-                    x11data->xstuff->root, clipmask_ptr, width, height);
+                    x11data->xstuff->root, clipmask_ptr, pm->width, pm->height);
                 xfree(clipmask_ptr);
             }
         }
     } else {
-        pixmap_ptr = xcalloc((PADBITS(width, bitmap_pad)>>3) * height,
+        pixmap_ptr = xcalloc((PADBITS(pm->width, pm->pad)>>3) * pm->height,
                                                         sizeof(unsigned char));
         if (pixmap_ptr == NULL) {
             errmsg("xmalloc failed in x11_putpixmap()");
             return;
         }
-        memcpy(pixmap_ptr, databits, ((PADBITS(width, bitmap_pad)>>3) * height));
+        memcpy(pixmap_ptr, pm->bits, ((PADBITS(pm->width, pm->pad)>>3) * pm->height));
 
         fg = getcolor(canvas);
         if (fg != x11data->color) {
@@ -507,17 +507,18 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
             x11data->color = fg;
         }
         ximage = XCreateImage(x11data->xstuff->disp, x11data->visual,
-                            1, XYBitmap, 0, pixmap_ptr, width, height,
-                            bitmap_pad, /* lines padded to bytes */
+                            1, XYBitmap, 0, pixmap_ptr, pm->width, pm->height,
+                            pm->pad, /* lines padded to bytes */
                             0 /* number of bytes per line */
                             );
-        if (pixmap_type == PIXMAP_TRANSPARENT) {
+        if (pm->type == PIXMAP_TRANSPARENT) {
             clipmask = XCreateBitmapFromData(x11data->xstuff->disp,
-                x11data->xstuff->root, pixmap_ptr, PADBITS(width, bitmap_pad), height);
+                x11data->xstuff->root, pixmap_ptr,
+                PADBITS(pm->width, pm->pad), pm->height);
         }
     }
 
-    if (pixmap_type == PIXMAP_TRANSPARENT) {
+    if (pm->type == PIXMAP_TRANSPARENT) {
         XSetClipMask(x11data->xstuff->disp, x11data->xstuff->gc, clipmask);
         XSetClipOrigin(x11data->xstuff->disp, x11data->xstuff->gc, xp.x, xp.y);
     }
@@ -526,7 +527,8 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
     ximage->bitmap_bit_order = LSBFirst;
     ximage->byte_order       = LSBFirst;
     
-    XPutImage(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, ximage, 0, 0, xp.x, xp.y, width, height);
+    XPutImage(x11data->xstuff->disp, x11data->xstuff->bufpixmap,
+        x11data->xstuff->gc, ximage, 0, 0, xp.x, xp.y, pm->width, pm->height);
     
     /* XDestroyImage free's the image data - which is VERY wrong since we
        allocated (and hence, want to free) it ourselves. So, the trick is
@@ -535,7 +537,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
     ximage->data = NULL;
     XDestroyImage(ximage);
      
-    if (pixmap_type == PIXMAP_TRANSPARENT) {
+    if (pm->type == PIXMAP_TRANSPARENT) {
         XFreePixmap(x11data->xstuff->disp, clipmask);
         clipmask = 0;
         XSetClipMask(x11data->xstuff->disp, x11data->xstuff->gc, None);

@@ -643,8 +643,7 @@ void pdf_fillarc(const Canvas *canvas, void *data,
 
 /* TODO: transparent pixmaps */
 void pdf_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     PDF_data *pdfdata = (PDF_data *) data;
     char *buf, *bp;
@@ -656,21 +655,21 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
 
     int components    = 3;
         
-    buf = xmalloc(width*height*components);
+    buf = xmalloc(pm->width*pm->height*components);
     if (buf == NULL) {
         errmsg("xmalloc failed in pdf_putpixmap()");
         return;
     }
     
     bp = buf;
-    if (pixmap_bpp == 1) {
-        paddedW = PADBITS(width, bitmap_pad);
+    if (pm->bpp == 1) {
+        paddedW = PADBITS(pm->width, pm->pad);
         get_rgb(canvas, getcolor(canvas), &fg);
         get_rgb(canvas, getbgcolor(canvas), &bg);
-        for (k = 0; k < height; k++) {
-            for (j = 0; j < paddedW/bitmap_pad; j++) {
-                for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
-                    if (bin_dump(&(databits)[k*paddedW/bitmap_pad + j], i, bitmap_pad)) {
+        for (k = 0; k < pm->height; k++) {
+            for (j = 0; j < paddedW/pm->pad; j++) {
+                for (i = 0; i < pm->pad && j*pm->pad + i < pm->width; i++) {
+                    if (bin_dump(&(pm->bits)[k*paddedW/pm->pad + j], i, pm->pad)) {
                         *bp++ = (char) fg.red;
                         *bp++ = (char) fg.green;
                         *bp++ = (char) fg.blue;
@@ -683,9 +682,9 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
             }
         }
     } else {
-        for (k = 0; k < height; k++) {
-            for (j = 0; j < width; j++) {
-                cindex = (databits)[k*width + j];
+        for (k = 0; k < pm->height; k++) {
+            for (j = 0; j < pm->width; j++) {
+                cindex = (pm->bits)[k*pm->width + j];
                 get_rgb(canvas, cindex, &fg);
                 *bp++ = (char) fg.red;
                 *bp++ = (char) fg.green;
@@ -695,8 +694,8 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
     }
     
     image = PDF_open_image(pdfdata->phandle, "raw", "memory",
-        buf, width*height*components,
-        width, height, components, GRACE_BPP, "");
+        buf, pm->width*pm->height*components,
+        pm->width, pm->height, components, GRACE_BPP, "");
     if (image == -1) {
         errmsg("Not enough memory for image!");
         xfree(buf);
@@ -704,7 +703,7 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
     }
 
     PDF_place_image(pdfdata->phandle,
-        image, vp->x, vp->y - height*pdfdata->pixel_size, pdfdata->pixel_size);
+        image, vp->x, vp->y - pm->height*pdfdata->pixel_size, pdfdata->pixel_size);
     PDF_close_image(pdfdata->phandle, image);
     
     xfree(buf);

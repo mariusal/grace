@@ -216,8 +216,7 @@ void mf_fillarc(const Canvas *canvas, void *data,
 }
 
 void mf_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     int i, j, k;
     long paddedW;
@@ -225,36 +224,36 @@ void mf_putpixmap(const Canvas *canvas, void *data,
     char buf[16];
     FILE *prstream = canvas_get_prstream(canvas);
     
-    if (pixmap_bpp == 1) {
+    if (pm->bpp == 1) {
         strcpy(buf, "Bitmap");
     } else {
         strcpy(buf, "Pixmap");
     }
     fprintf(prstream, "Put%s {\n", buf);
    
-    if (pixmap_type == PIXMAP_TRANSPARENT) {
+    if (pm->type == PIXMAP_TRANSPARENT) {
         strcpy(buf, "Transparent");
     } else {
         strcpy(buf, "Opaque");
     }
     
     fprintf(prstream, "\t( %.4f , %.4f ) %dx%d %s\n", 
-                           vp->x, vp->y, width, height, buf);
-    if (pixmap_bpp != 1) {
-        for (k = 0; k < height; k++) {
+                           vp->x, vp->y, pm->width, pm->height, buf);
+    if (pm->bpp != 1) {
+        for (k = 0; k < pm->height; k++) {
             fprintf(prstream, "\t");
-            for (j = 0; j < width; j++) {
-                fprintf(prstream, "%02x", (databits)[k*width+j]);
+            for (j = 0; j < pm->width; j++) {
+                fprintf(prstream, "%02x", (pm->bits)[k*pm->width+j]);
             }
             fprintf(prstream, "\n");
         }
     } else {
-        paddedW = PADBITS(width, bitmap_pad);
-        for (k = 0; k < height; k++) {
+        paddedW = PADBITS(pm->width, pm->pad);
+        for (k = 0; k < pm->height; k++) {
             fprintf(prstream, "\t");
-            for (j = 0; j < paddedW/bitmap_pad; j++) {
-                for (i = 0; i < bitmap_pad; i++) {
-                    bit = bin_dump(&databits[k*paddedW/bitmap_pad + j], i, bitmap_pad);
+            for (j = 0; j < paddedW/pm->pad; j++) {
+                for (i = 0; i < pm->pad; i++) {
+                    bit = bin_dump(&pm->bits[k*paddedW/pm->pad + j], i, pm->pad);
                     if (bit) {
                         fprintf(prstream, "X");
                     } else {

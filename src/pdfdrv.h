@@ -54,8 +54,7 @@ void pdf_drawarc(const Canvas *canvas, void *data,
 void pdf_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
 void pdf_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+    const VPoint *vp, const CPixmap *pm);
 void pdf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);

@@ -959,8 +959,7 @@ void ps_fillarc(const Canvas *canvas, void *data,
 }
 
 void ps_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     PS_data *psdata = (PS_data *) data;
     int j, k;
@@ -979,10 +978,11 @@ void ps_putpixmap(const Canvas *canvas, void *data,
     fprintf(prstream, "GS\n");
     fprintf(prstream, "%.4f %.4f translate\n", vp->x, vp->y);
     fprintf(prstream, "%.4f %.4f scale\n",
-        (float) width/psdata->page_scale, (float) height/psdata->page_scale);    
-    if (pixmap_bpp != 1) {
+        (float) pm->width/psdata->page_scale,
+        (float) pm->height/psdata->page_scale);    
+    if (pm->bpp != 1) {
         int layers = 1, bpp = 8;
-        if (pixmap_type == PIXMAP_TRANSPARENT) {
+        if (pm->type == PIXMAP_TRANSPARENT) {
             /* TODO: mask */
         }
         switch (psdata->colorspace) {
@@ -999,9 +999,9 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             bpp = GRACE_BPP;
             break;
         }
-        fprintf(prstream, "/picstr %d string def\n", width*layers);
-        fprintf(prstream, "%d %d %d\n", width, height, bpp);
-        fprintf(prstream, "[%d 0 0 %d 0 0]\n", width, -height);
+        fprintf(prstream, "/picstr %d string def\n", pm->width*layers);
+        fprintf(prstream, "%d %d %d\n", pm->width, pm->height, bpp);
+        fprintf(prstream, "[%d 0 0 %d 0 0]\n", pm->width, -pm->height);
         fprintf(prstream, "{currentfile picstr readhexstring pop}\n");
         if (psdata->colorspace == COLORSPACE_GRAYSCALE || psdata->level2 == FALSE) {
             /* No color images in Level1 */
@@ -1010,10 +1010,10 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             fprintf(prstream, "false %d\n", layers);
             fprintf(prstream, "colorimage\n");
         }
-        for (k = 0; k < height; k++) {
+        for (k = 0; k < pm->height; k++) {
             linelen = 0;
-            for (j = 0; j < width; j++) {
-                cindex = (databits)[k*width+j];
+            for (j = 0; j < pm->width; j++) {
+                cindex = (pm->bits)[k*pm->width+j];
                 if (psdata->colorspace == COLORSPACE_GRAYSCALE ||
                     psdata->level2 == FALSE) {
                     linelen += fprintf(prstream,"%02x",
@@ -1038,8 +1038,8 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             fprintf(prstream, "\n");
         }
     } else { /* monocolor bitmap */
-        paddedW = PADBITS(width, bitmap_pad);
-        if (pixmap_type == PIXMAP_OPAQUE) {
+        paddedW = PADBITS(pm->width, pm->pad);
+        if (pm->type == PIXMAP_OPAQUE) {
             cindex = getbgcolor(canvas);
             switch (psdata->colorspace) {
             case COLORSPACE_GRAYSCALE:
@@ -1079,14 +1079,14 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             break;
         }
         fprintf(prstream, "/picstr %d string def\n", paddedW/8);
-        fprintf(prstream, "%d %d true\n", paddedW, height);
-        fprintf(prstream, "[%d 0 0 %d 0 0]\n", paddedW, -height);
+        fprintf(prstream, "%d %d true\n", paddedW, pm->height);
+        fprintf(prstream, "[%d 0 0 %d 0 0]\n", paddedW, -pm->height);
         fprintf(prstream, "{currentfile picstr readhexstring pop}\n");
         fprintf(prstream, "imagemask\n");
-        for (k = 0; k < height; k++) {
+        for (k = 0; k < pm->height; k++) {
             linelen = 0;
-            for (j = 0; j < paddedW/bitmap_pad; j++) {
-                tmpbyte = reversebits((unsigned char) (databits)[k*paddedW/bitmap_pad + j]);
+            for (j = 0; j < paddedW/pm->pad; j++) {
+                tmpbyte = reversebits((unsigned char) (pm->bits)[k*paddedW/pm->pad + j]);
                 linelen += fprintf(prstream, "%02x", tmpbyte);
                 if (linelen >= MAX_PS_LINELEN) {
                     fprintf(prstream, "\n");

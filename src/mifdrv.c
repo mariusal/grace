@@ -577,8 +577,7 @@ void mif_fillarc(const Canvas *canvas, void *data,
  * the following function does not work yet :-(
  */
 void mif_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     int i, j, k, paddedW;
     double side;
@@ -586,7 +585,7 @@ void mif_putpixmap(const Canvas *canvas, void *data,
     unsigned char tmpbyte;
     FILE *prstream = canvas_get_prstream(canvas);
 
-    if (pixmap_bpp != 1 && pixmap_bpp != 8) {
+    if (pm->bpp != 1 && pm->bpp != 8) {
         /* MIF supports only black and white or 256 colors images */
         return;
     }
@@ -599,7 +598,7 @@ void mif_putpixmap(const Canvas *canvas, void *data,
     fprintf(prstream,
             "   <ShapeRect %8.3f pt %8.3f pt %8.3f pt %8.3f pt>\n",
             vp->x*side + MIF_MARGIN, (1.0 - vp->y)*side + MIF_MARGIN,
-            72.0*width/page_dpi(canvas), 72.0*height/page_dpi(canvas));
+            72.0*pm->width/page_dpi(canvas), 72.0*pm->height/page_dpi(canvas));
     fprintf(prstream, "   <ImportObFixedSize Yes>\n");
     fprintf(prstream, "=FrameImage\n");
     fprintf(prstream, "&%%v\n");
@@ -607,22 +606,22 @@ void mif_putpixmap(const Canvas *canvas, void *data,
 
     /* image header */
     fprintf(prstream, "&59a66a95\n");
-    fprintf(prstream, "&%.8x\n", (unsigned int) width);
-    fprintf(prstream, "&%.8x\n", (unsigned int) height);
-    fprintf(prstream, "&%.8x\n", (unsigned int) pixmap_bpp);
+    fprintf(prstream, "&%.8x\n", (unsigned int) pm->width);
+    fprintf(prstream, "&%.8x\n", (unsigned int) pm->height);
+    fprintf(prstream, "&%.8x\n", (unsigned int) pm->bpp);
     fprintf(prstream, "&00000000\n");
     fprintf(prstream, "&00000001\n");
-    if (pixmap_bpp == 1) {
+    if (pm->bpp == 1) {
         fprintf(prstream, "&00000000\n");
         fprintf(prstream, "&00000000\n");
 
         /* image data */
-        paddedW = PADBITS(width, bitmap_pad);
+        paddedW = PADBITS(pm->width, pm->pad);
 
-        for (k = 0; k < height; k++) {
+        for (k = 0; k < pm->height; k++) {
             fprintf(prstream, "&");
-            for (j = 0; j < paddedW/bitmap_pad; j++) {
-                tmpbyte =reversebits((unsigned char) (databits)[k*paddedW/bitmap_pad + j]);
+            for (j = 0; j < paddedW/pm->pad; j++) {
+                tmpbyte =reversebits((unsigned char) (pm->bits)[k*paddedW/pm->pad + j]);
                 fprintf(prstream, "%.2x", tmpbyte);
             }
             fprintf(prstream, "\n");
@@ -649,11 +648,11 @@ void mif_putpixmap(const Canvas *canvas, void *data,
         }
 
         /* image data */
-        for (k = 0; k < height; k++) {
+        for (k = 0; k < pm->height; k++) {
             fprintf(prstream, "&");
-            for (j = 0; j < width; j++) {
+            for (j = 0; j < pm->width; j++) {
                 fprintf(prstream, "%.2x",
-                        (unsigned int) (databits)[k*width+j]);
+                        (unsigned int) (pm->bits)[k*pm->width+j]);
             }
             fprintf(prstream, "\n");
         }
