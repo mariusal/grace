@@ -9,10 +9,23 @@
 
 <PRE>
 
-<H2>5.1.2</H2>
+<H2>5.2.0</H2>
 
+<H3>Functionality</H3>
+ !  [ES] objects...
+
+<H3>Interface</H3>
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
-         them via X resources instead
+         them via X resources instead (rep. #671)
+
+<H3>Drivers</H3>
+ *  [ES] implemented font kerning in the (E)PS output
+
+<H3>Bug fixes</H3>
+ *  [ES] "-saveall" filename argument was ignored (rep. #841)
+ *  [ES] not enough arguments to "-world" or "-viewport" could cause crash
+ *  [ES] with "Auto redraw" disabled, several operations still caused an
+         immediate redraw
 
 
 <H2>5.1.1</H2>
