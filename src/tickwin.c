@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -724,9 +724,8 @@ static void axis_scale_cb(int value, void *data)
             sprintf(buf, "%g", axestart);
             xv_setstr(axis_world_start, buf);
         }
-        if (major_space <= 1.0) {
-            xv_setstr(tmajor, "10");
-        }
+        xv_setstr(tmajor, "10");
+        SetSpinChoice(nminor, 9);
         break;
      case SCALE_LOGIT:
         if (axestart <= 0.0 && axestop <= 0.0) {
