@@ -873,6 +873,13 @@ static void VersionInfo(void)
 #ifdef HAVE_LIBPNG
 fprintf(stdout, "libpng: %s\n", bi_pnglib());
 #endif
+#ifdef HAVE_LIBJPEG
+fprintf(stdout, "libjpeg: %s\n", bi_libjpeg());
+#endif
+#ifdef HAVE_LIBPDF
+fprintf(stdout, "PDFlib: %s\n", bi_libpdf());
+#endif
+
 
 #ifdef DEBUG
     fprintf(stdout, "Debugging: enabled\n");

@@ -202,6 +202,14 @@ void create_about_grtool(void *data)
 	sprintf(buf, "libpng: %s ", bi_pnglib());
 	CreateLabel(rc, buf);
 #endif
+#ifdef HAVE_LIBJPEG
+	sprintf(buf, "libjpeg: %s ", bi_libjpeg());
+	CreateLabel(rc, buf);
+#endif
+#ifdef HAVE_LIBPDF
+	sprintf(buf, "PDFlib: %s ", bi_libpdf());
+	CreateLabel(rc, buf);
+#endif
 	fr = CreateFrame(about_panel, "Home page");
         rc = CreateVContainer(fr);
 	CreateLabel(rc, "http://plasma-gate.weizmann.ac.il/Grace/");

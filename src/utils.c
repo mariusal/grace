@@ -1411,6 +1411,20 @@ char *bi_pnglib(void)
 }
 #endif
 
+#ifdef HAVE_LIBJPEG
+char *bi_libjpeg(void)
+{
+    return BI_LIBJPEG;
+}
+#endif
+
+#ifdef HAVE_LIBPDF
+char *bi_libpdf(void)
+{
+    return BI_LIBPDF;
+}
+#endif
+
 char *bi_ccompiler(void)
 {
     return BI_CCOMPILER;

@@ -17,6 +17,12 @@
 #ifdef HAVE_LIBPNG
 #include <png.h>
 #endif
+#ifdef HAVE_LIBJPEG
+#include <jpeglib.h>
+#endif
+#ifdef HAVE_LIBPDF
+#include <pdflib.h>
+#endif
 
 #define MAJOR_REV 5
 #define MINOR_REV 1
@@ -75,6 +81,20 @@ static void VersionInfo(FILE *outfile)
         PNG_LIBPNG_VER_STRING);
 #else
     fprintf(outfile, "#define BI_PNGLIB \"\"\n");
+#endif
+
+#ifdef HAVE_LIBJPEG
+    fprintf(outfile, "#define BI_LIBJPEG \"%i\"\n",
+        JPEG_LIB_VERSION);
+#else
+    fprintf(outfile, "#define BI_LIBJPEG \"\"\n");
+#endif
+
+#ifdef HAVE_LIBPDF
+    fprintf(outfile, "#define BI_LIBPDF \"%s\"\n",
+        PDFLIB_VERSIONSTRING);
+#else
+    fprintf(outfile, "#define BI_LIBPDF \"\"\n");
 #endif
 
     fprintf(outfile, "#define BI_CCOMPILER \"%s\"\n",

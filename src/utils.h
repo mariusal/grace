@@ -144,6 +144,12 @@ char *bi_t1lib(void);
 #ifdef HAVE_LIBPNG
 char *bi_pnglib(void);
 #endif
+#ifdef HAVE_LIBJPEG
+char *bi_libjpeg(void);
+#endif
+#ifdef HAVE_LIBPDF
+char *bi_libpdf(void);
+#endif
 
 
 #ifdef DEBUG
