@@ -3708,6 +3708,16 @@ void AddDialogFormChild(Widget form, Widget child)
     SetUserData(form, child);
 }
 
+void FixateDialogFormChild(Widget w)
+{
+    Widget prev;
+    XtVaGetValues(w, XmNtopWidget, &prev, NULL);
+    XtVaSetValues(prev, XmNbottomAttachment, XmATTACH_WIDGET,
+        XmNbottomWidget, w,
+        NULL);
+    XtVaSetValues(w, XmNtopAttachment, XmATTACH_NONE, NULL);
+}
+
 typedef struct {
     Widget form;
     int close;

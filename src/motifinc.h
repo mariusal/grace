@@ -330,6 +330,8 @@ void SetUserData(Widget w, void *udata);
 Widget CreateDialogForm(Widget parent, char *s);
 void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);
+void FixateDialogFormChild(Widget w);
+
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateSeparator(Widget parent);
