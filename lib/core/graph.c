@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
 graph *graph_get_data(const Quark *q)
@@ -69,11 +70,11 @@ static void set_default_graph(graph *g)
     memcpy(&g->w, &d_w, sizeof(world));
 }
 
-graph *graph_data_new(void)
+graph *graph_data_new(AMem *amem)
 {
     graph *g;
     
-    g = xmalloc(sizeof(graph));
+    g = amem_malloc(amem, sizeof(graph));
     if (g) {
         memset(g, 0, sizeof(graph));
         set_default_graph(g);
@@ -81,12 +82,12 @@ graph *graph_data_new(void)
     return g;
 }
 
-void graph_data_free(graph *g)
+void graph_data_free(AMem *amem, graph *g)
 {
-    xfree(g);
+    amem_free(amem, g);
 }
 
-graph *graph_data_copy(graph *g)
+graph *graph_data_copy(AMem *amem, graph *g)
 {
     graph *g_new;
     
@@ -94,7 +95,7 @@ graph *graph_data_copy(graph *g)
         return NULL;
     }
     
-    g_new = xmalloc(sizeof(graph));
+    g_new = amem_malloc(amem, sizeof(graph));
     if (!g_new) {
         return NULL;
     }

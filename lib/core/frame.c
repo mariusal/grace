@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
 static void set_default_legend(legend *l, const defaults *grdefaults)
@@ -91,23 +92,23 @@ Quark *frame_new(Quark *project)
     return f;
 }
 
-frame *frame_data_new(void)
+frame *frame_data_new(AMem *amem)
 {
     frame *f;
     
-    f = xmalloc(sizeof(frame));
+    f = amem_malloc(amem, sizeof(frame));
     if (f) {
         memset(f, 0, sizeof(frame));
     }
     return f;
 }
 
-void frame_data_free(frame *f)
+void frame_data_free(AMem *amem, frame *f)
 {
-    xfree(f);
+    amem_free(amem, f);
 }
 
-frame *frame_data_copy(frame *f)
+frame *frame_data_copy(AMem *amem, frame *f)
 {
     frame *f_new;
     
@@ -115,7 +116,7 @@ frame *frame_data_copy(frame *f)
         return NULL;
     }
     
-    f_new = xmalloc(sizeof(frame));
+    f_new = amem_malloc(amem, sizeof(frame));
     if (!f_new) {
         return NULL;
     }

@@ -28,111 +28,35 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
-QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid)
-{
-    unsigned int i;
-    
-    if (!qfactory) {
-        return NULL;
-    }
-    
-    for (i = 0; i < qfactory->nflavours; i++) {
-        QuarkFlavor *qf = &qfactory->qflavours[i];
-        if (qf->fid == fid) {
-            return qf;
-        }
-    }
-    
-    return NULL;
-}
-
-QuarkFactory *qfactory_new(void)
-{
-    QuarkFactory *qfactory;
-    
-    qfactory = xmalloc(sizeof(QuarkFactory));
-    if (qfactory) {
-        memset(qfactory, 0, sizeof(QuarkFactory));
-    }
-    
-    return qfactory;
-}
-
-void qfactory_free(QuarkFactory *qfactory)
-{
-    if (qfactory) {
-        xfree(qfactory->qflavours);
-        xfree(qfactory);
-    }
-}
-
-int quark_factory_set_udata(QuarkFactory *qfactory, void *udata)
-{
-    if (qfactory) {
-        qfactory->udata = udata;
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-void *quark_factory_get_udata(const QuarkFactory *qfactory)
-{
-    if (qfactory) {
-        return qfactory->udata;
-    } else {
-        return NULL;
-    }
-}
-
-
-int quark_flavor_add(QuarkFactory *qfactory, const QuarkFlavor *qf)
-{
-    void *p;
-    
-    if (!qfactory || !qf) {
-        return RETURN_FAILURE;
-    }
-    
-    p = xrealloc(qfactory->qflavours,
-        (qfactory->nflavours + 1)*sizeof(QuarkFlavor));
-    if (!p) {
-        return RETURN_FAILURE;
-    } else {
-        qfactory->qflavours = p;
-    }
-    
-    qfactory->qflavours[qfactory->nflavours] = *qf;
-    qfactory->nflavours++;
-    
-    return RETURN_SUCCESS;
-}
-
-static void quark_storage_free(void *data)
+static void quark_storage_free(AMem *amem, void *data)
 {
     quark_free((Quark *) data);
 }
 
-static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
+static Quark *quark_new_raw(AMem *amem,
+    Quark *parent, unsigned int fid, void *data)
 {
     Quark *q;
 
-    q = xmalloc(sizeof(Quark));
+    q = amem_malloc(amem, sizeof(Quark));
     if (q) {
         char buf[32];
         memset(q, 0, sizeof(Quark));
+        
+        q->amem = amem;
         
         q->fid = fid;
         q->data = data;
         
         q->active = TRUE;
         
-        q->children = storage_new(quark_storage_free, NULL, NULL);
+        q->children = storage_new(amem, quark_storage_free, NULL, NULL);
         
         if (!q->children) {
-            xfree(q);
+            amem_free(amem, q);
             return NULL;
         }
         
@@ -152,16 +76,19 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
     return q;
 }
 
-Quark *quark_root(QuarkFactory *qfactory, unsigned int fid)
+Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid)
 {
+    AMem *amem;
     Quark *q;
     QuarkFlavor *qf;
     void *data;
     
+    amem = amem_amem_new(mmodel);
+    
     qf = quark_flavor_get(qfactory, fid);
     
-    data = qf->data_new();
-    q = quark_new_raw(NULL, fid, data);
+    data = qf->data_new(amem);
+    q = quark_new_raw(amem, NULL, fid, data);
     q->qfactory = qfactory;
     
     return q;
@@ -183,8 +110,8 @@ Quark *quark_new(Quark *parent, unsigned int fid)
         return NULL;
     }
     
-    data = qf->data_new();
-    q = quark_new_raw(parent, fid, data);
+    data = qf->data_new(parent->amem);
+    q = quark_new_raw(parent->amem, parent, fid, data);
     
     return q;
 }
@@ -194,6 +121,7 @@ void quark_free(Quark *q)
     if (q) {
         QuarkFlavor *qf;
         Quark *parent = q->parent;
+        AMem *amem = q->amem;
         
         if (parent) {
             storage_extract_data(parent->children, q);
@@ -210,12 +138,16 @@ void quark_free(Quark *q)
         
         storage_free(q->children);
         
-        qf->data_free(q->data);
-        xfree(q->idstr);
+        qf->data_free(amem, q->data);
+        amem_free(amem, q->idstr);
         if (q->refcount != 0) {
             errmsg("Freed a referenced quark!");
         }
-        xfree(q);
+        amem_free(amem, q);
+        if (!parent) {
+            /* Root quark -> clean up memory allocator */
+            amem_amem_free(amem);
+        }
     }
 }
 
@@ -256,6 +188,15 @@ QuarkFactory *quark_get_qfactory(const Quark *q)
     }
 }
 
+AMem *quark_get_amem(const Quark *q)
+{
+    if (q) {
+        return q->amem;
+    } else {
+        return NULL;
+    }
+}
+
 static int copy_hook(unsigned int step, void *data, void *udata)
 {
     Quark *child = (Quark *) data;
@@ -274,8 +215,8 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     void *data;
     
     qf = quark_flavor_get(q->qfactory, q->fid);
-    data = qf->data_copy(q->data);
-    new = quark_new_raw(newparent, q->fid, data);
+    data = qf->data_copy(q->amem, q->data);
+    new = quark_new_raw(newparent->amem, newparent, q->fid, data);
     new->active = q->active;
 
     new->cb     = q->cb;
@@ -356,7 +297,7 @@ int quark_is_active(const Quark *q)
 int quark_idstr_set(Quark *q, const char *s)
 {
     if (q) {
-        q->idstr = copy_string(q->idstr, s);
+        q->idstr = amem_strcpy(q->amem, q->idstr, s);
         quark_dirtystate_set(q, TRUE);
         
         return RETURN_SUCCESS;

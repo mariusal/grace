@@ -33,13 +33,14 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
-ss_data *ssd_data_new(void)
+ss_data *ssd_data_new(AMem *amem)
 {
     ss_data *ssd;
     
-    ssd = xmalloc(sizeof(ss_data));
+    ssd = amem_malloc(amem, sizeof(ss_data));
     if (ssd) {
         memset(ssd, 0, sizeof(ss_data));
     }
@@ -47,7 +48,7 @@ ss_data *ssd_data_new(void)
     return ssd;
 }
 
-void ssd_data_free(ss_data *ssd)
+void ssd_data_free(AMem *amem, ss_data *ssd)
 {
     if (ssd) {
         int i, j;
@@ -57,20 +58,20 @@ void ssd_data_free(ss_data *ssd)
             if (ssd->formats[i] == FFORMAT_STRING) {
                 sp = (char **) ssd->data[i];
                 for (j = 0; j < ssd->nrows; j++) {
-                    xfree(sp[j]);
+                    amem_free(amem, sp[j]);
                 }
             }
-            xfree(ssd->data[i]);
+            amem_free(amem, ssd->data[i]);
         }
-        xfree(ssd->data);
-        xfree(ssd->formats);
-        xfree(ssd->label);
+        amem_free(amem, ssd->data);
+        amem_free(amem, ssd->formats);
+        amem_free(amem, ssd->label);
         
-        xfree(ssd);
+        amem_free(amem, ssd);
     }
 }
 
-ss_data *ssd_data_copy(ss_data *ssd)
+ss_data *ssd_data_copy(AMem *amem, ss_data *ssd)
 {
     /* FIXME! */
     errmsg("NIY");

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -42,6 +42,8 @@ struct _QuarkFactory {
 };
 
 struct _Quark {
+    AMem *amem;
+    
     QuarkFactory *qfactory;
     
     unsigned int fid;
@@ -62,44 +64,44 @@ struct _Quark {
     void *udata;
 };
 
-Project *project_data_new(void);
-void project_data_free(Project *pr);
+Project *project_data_new(AMem *amem);
+void project_data_free(AMem *amem, Project *pr);
 
-ss_data *ssd_data_new(void);
-void ssd_data_free(ss_data *ssd);
-ss_data *ssd_data_copy(ss_data *ssd);
+ss_data *ssd_data_new(AMem *amem);
+void ssd_data_free(AMem *amem, ss_data *ssd);
+ss_data *ssd_data_copy(AMem *amem, ss_data *ssd);
 
-frame *frame_data_new(void);
-void frame_data_free(frame *f);
-frame *frame_data_copy(frame *f);
+frame *frame_data_new(AMem *amem);
+void frame_data_free(AMem *amem, frame *f);
+frame *frame_data_copy(AMem *amem, frame *f);
 
-graph *graph_data_new(void);
-void graph_data_free(graph *g);
-graph *graph_data_copy(graph *g);
+graph *graph_data_new(AMem *amem);
+void graph_data_free(AMem *amem, graph *g);
+graph *graph_data_copy(AMem *amem, graph *g);
 
-tickmarks *axisgrid_data_new(void);
-tickmarks *axisgrid_data_copy(tickmarks *t);
-void axisgrid_data_free(tickmarks *t);
+tickmarks *axisgrid_data_new(AMem *amem);
+tickmarks *axisgrid_data_copy(AMem *amem, tickmarks *t);
+void axisgrid_data_free(AMem *amem, tickmarks *t);
 
-Axis *axis_data_new(void);
-Axis *axis_data_copy(Axis *a);
-void axis_data_free(Axis *a);
+Axis *axis_data_new(AMem *amem);
+Axis *axis_data_copy(AMem *amem, Axis *a);
+void axis_data_free(AMem *amem, Axis *a);
 
-set *set_data_new(void);
-void set_data_free(set *p);
-set *set_data_copy(set *p);
+set *set_data_new(AMem *amem);
+void set_data_free(AMem *amem, set *p);
+set *set_data_copy(AMem *amem, set *p);
 
-region *region_data_new(void);
-void region_data_free(region *r);
-region *region_data_copy(region *r);
+region *region_data_new(AMem *amem);
+void region_data_free(AMem *amem, region *r);
+region *region_data_copy(AMem *amem, region *r);
 
-DObject *object_data_new(void);
-void object_data_free(DObject *o);
-DObject *object_data_copy(DObject *o);
+DObject *object_data_new(AMem *amem);
+void object_data_free(AMem *amem, DObject *o);
+DObject *object_data_copy(AMem *amem, DObject *o);
 
-AText *atext_data_new(void);
-void atext_data_free(AText *at);
-AText *atext_data_copy(AText *at);
+AText *atext_data_new(AMem *amem);
+void atext_data_free(AMem *amem, AText *at);
+AText *atext_data_copy(AMem *amem, AText *at);
 
 
 void set_default_arrow(Arrow *arrowp);

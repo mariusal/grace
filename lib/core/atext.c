@@ -33,17 +33,8 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
-
-TextProps *textprops_new(void)
-{
-    TextProps *retval;
-    retval = xmalloc(sizeof(TextProps));
-    if (retval) {
-        memset(retval, 0, sizeof(TextProps));
-    }
-    return retval;
-}
 
 void set_default_textprops(TextProps *pstr, const defaults *grdefs)
 {
@@ -54,10 +45,10 @@ void set_default_textprops(TextProps *pstr, const defaults *grdefs)
     pstr->charsize = 1.0;
 }
 
-AText *atext_data_new(void)
+AText *atext_data_new(AMem *amem)
 {
     AText *at;
-    at = xmalloc(sizeof(AText));
+    at = amem_malloc(amem, sizeof(AText));
     if (at) {
         memset(at, 0, sizeof(AText));
         set_default_arrow(&at->arrow);
@@ -67,24 +58,24 @@ AText *atext_data_new(void)
     return at;
 }
 
-void atext_data_free(AText *at)
+void atext_data_free(AMem *amem, AText *at)
 {
     if (at) {
-        xfree(at->s);
-        xfree(at);
+        amem_free(amem, at->s);
+        amem_free(amem, at);
     }
 }
 
-AText *atext_data_copy(AText *at)
+AText *atext_data_copy(AMem *amem, AText *at)
 {
     AText *retval;
     if (at == NULL) {
         return NULL;
     } else {
-        retval = atext_data_new();
+        retval = atext_data_new(amem);
         if (retval) {
             memcpy(retval, at, sizeof(AText));
-            retval->s = copy_string(NULL, at->s);
+            retval->s = amem_strdup(amem, at->s);
         }
     }
     
@@ -135,7 +126,7 @@ int atext_set_string(Quark *q, const char *s)
     AText *at = atext_get_data(q);
     if (at) {
         
-        at->s = copy_string(at->s, s);
+        at->s = amem_strcpy(q->amem, at->s, s);
         
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;

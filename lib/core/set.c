@@ -33,9 +33,10 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
-double *copy_data_column(double *src, int nrows)
+double *copy_data_column(AMem *amem, double *src, int nrows)
 {
     double *dest;
     
@@ -43,14 +44,14 @@ double *copy_data_column(double *src, int nrows)
         return NULL;
     }
     
-    dest = xmalloc(nrows*SIZEOF_DOUBLE);
+    dest = amem_malloc(amem, nrows*SIZEOF_DOUBLE);
     if (dest != NULL) {
         memcpy(dest, src, nrows*SIZEOF_DOUBLE);
     }
     return dest;
 }
 
-char **copy_string_column(char **src, int nrows)
+char **copy_string_column(AMem *amem, char **src, int nrows)
 {
     char **dest;
     int i;
@@ -59,21 +60,27 @@ char **copy_string_column(char **src, int nrows)
         return NULL;
     }
     
-    dest = xmalloc(nrows*sizeof(char *));
+    dest = amem_malloc(amem, nrows*sizeof(char *));
     if (dest != NULL) {
         for (i = 0; i < nrows; i++)
-            dest[i] = copy_string(NULL, src[i]);
+            dest[i] = amem_strdup(amem, src[i]);
     }
     return dest;
 }
 
 
-Dataset *dataset_new(void)
+Dataset *dataset_new(AMem *amem)
 {
     Dataset *dsp;
     int k;
     
-    dsp = xmalloc(sizeof(Dataset));
+    dsp = amem_malloc(amem, sizeof(Dataset));
+    if (!dsp) {
+        return NULL;
+    }
+    
+    dsp->amem  = amem;
+    
     dsp->len   = 0;
     dsp->ncols = 0;
     for (k = 0; k < MAX_SET_COLS; k++) {
@@ -98,15 +105,17 @@ int dataset_empty(Dataset *dsp)
     int k;
     
     if (dsp) {
+        AMem *amem = dsp->amem;
+        
         if (dsp->len) {
             for (k = 0; k < dsp->ncols; k++) {
-	        XCFREE(dsp->ex[k]);
+	        AMEM_CFREE(amem, dsp->ex[k]);
             }
             if (dsp->s) {
 	        for (k = 0; k < dsp->len; k++) {
-		    XCFREE(dsp->s[k]);
+		    AMEM_CFREE(amem, dsp->s[k]);
 	        }
-                XCFREE(dsp->s);
+                AMEM_CFREE(amem, dsp->s);
             }
             dsp->len = 0;
         }
@@ -119,97 +128,100 @@ int dataset_empty(Dataset *dsp)
 void dataset_free(Dataset *dsp)
 {
     if (dsp) {
+        AMem *amem = dsp->amem;
+
         dataset_empty(dsp);
-        xfree(dsp->hotfile);
-        xfree(dsp->comment);
-        xfree(dsp);
+        amem_free(amem, dsp->hotfile);
+        amem_free(amem, dsp->comment);
+        amem_free(amem, dsp);
     }
 }
 
 
-int dataset_set_nrows(Dataset *data, int len)
+int dataset_set_nrows(Dataset *dsp, int len)
 {
     int i, j, oldlen;
     
-    if (!data || len < 0) {
+    if (!dsp || len < 0) {
 	return RETURN_FAILURE;
     }
     
-    oldlen = data->len;
+    oldlen = dsp->len;
     if (len == oldlen) {
 	return RETURN_SUCCESS;
     }
     
-    for (i = 0; i < data->ncols; i++) {
-	if ((data->ex[i] = xrealloc(data->ex[i], len*SIZEOF_DOUBLE)) == NULL
+    for (i = 0; i < dsp->ncols; i++) {
+	if ((dsp->ex[i] = amem_realloc(dsp->amem,
+            dsp->ex[i], len*SIZEOF_DOUBLE)) == NULL
             && len != 0) {
 	    return RETURN_FAILURE;
 	}
         for (j = oldlen; j < len; j++) {
-            data->ex[i][j] = 0.0;
+            dsp->ex[i][j] = 0.0;
         }
     }
     
-    if (data->s != NULL) {
+    if (dsp->s != NULL) {
         for (i = len; i < oldlen; i++) {
-            xfree(data->s[i]);
+            amem_free(dsp->amem, dsp->s[i]);
         }
-        data->s = xrealloc(data->s, len*sizeof(char *));
+        dsp->s = amem_realloc(dsp->amem, dsp->s, len*sizeof(char *));
         for (j = oldlen; j < len; j++) {
-            data->s[j] = copy_string(NULL, "");
+            dsp->s[j] = amem_strdup(dsp->amem, "");
         }
     }
     
-    data->len = len;
+    dsp->len = len;
 
     return RETURN_SUCCESS;
 }
 
-int dataset_set_ncols(Dataset *data, int ncols)
+int dataset_set_ncols(Dataset *dsp, int ncols)
 {
     if (ncols < 0 || ncols > MAX_SET_COLS) {
         return RETURN_FAILURE;
     }
     
-    if (data->ncols == ncols) {
+    if (dsp->ncols == ncols) {
         /* nothing changed */
         return RETURN_SUCCESS;
     } else {
-        int i, ncols_old = data->ncols;
+        int i, ncols_old = dsp->ncols;
         
         for (i = ncols_old; i < ncols; i++) {
-            data->ex[i] = xcalloc(data->len, SIZEOF_DOUBLE);
+            dsp->ex[i] = amem_calloc(dsp->amem, dsp->len, SIZEOF_DOUBLE);
         }
         for (i = ncols; i < ncols_old; i++) {
-            XCFREE(data->ex[i]);
+            AMEM_CFREE(dsp->amem, dsp->ex[i]);
         }
 
-        data->ncols = ncols;
+        dsp->ncols = ncols;
         
         return RETURN_SUCCESS;
     }
 }
 
-int dataset_enable_scol(Dataset *data, int yesno)
+int dataset_enable_scol(Dataset *dsp, int yesno)
 {
     if (yesno) {
-        if (data->s) {
+        if (dsp->s) {
             return RETURN_SUCCESS;
         } else {
-            data->s = xcalloc(data->len, sizeof(char *));
-            if (data->len && !data->s) {
+            dsp->s = amem_calloc(dsp->amem, dsp->len, sizeof(char *));
+            if (dsp->len && !dsp->s) {
                 return RETURN_FAILURE;
             } else {
                 return RETURN_SUCCESS;
             }
         }
     } else {
-        if (data->s) {
+        if (dsp->s) {
             int i;
-            for (i = 0; i < data->len; i++) {
-                xfree(data->s[i]);
+            for (i = 0; i < dsp->len; i++) {
+                amem_free(dsp->amem, dsp->s[i]);
             }
-            xfree(data->s);
+            amem_free(dsp->amem, dsp->s);
         }
         return RETURN_SUCCESS;
     }
@@ -217,7 +229,7 @@ int dataset_enable_scol(Dataset *data, int yesno)
 
 
 
-Dataset *dataset_copy(Dataset *data)
+Dataset *dataset_copy(AMem *amem, Dataset *data)
 {
     Dataset *data_new;
     int k;
@@ -226,7 +238,7 @@ Dataset *dataset_copy(Dataset *data)
         return NULL;
     }
     
-    data_new = dataset_new();
+    data_new = dataset_new(amem);
     if (!data_new) {
         return NULL;
     }
@@ -235,7 +247,7 @@ Dataset *dataset_copy(Dataset *data)
     data_new->ncols = data->ncols;
     
     for (k = 0; k < data->ncols; k++) {
-        data_new->ex[k] = copy_data_column(data->ex[k], data->len);
+        data_new->ex[k] = copy_data_column(amem, data->ex[k], data->len);
         if (!data_new->ex[k]) {
             dataset_free(data_new);
             return NULL;
@@ -243,7 +255,7 @@ Dataset *dataset_copy(Dataset *data)
     }
     
     if (data->s != NULL) {
-        data_new->s = copy_string_column(data->s, data->len);
+        data_new->s = copy_string_column(amem, data->s, data->len);
         if (!data_new->s) {
             dataset_free(data_new);
             return NULL;
@@ -252,8 +264,8 @@ Dataset *dataset_copy(Dataset *data)
     
     data_new->hotlink = data->hotlink;
     data_new->hotsrc  = data->hotsrc;
-    data_new->comment = copy_string(NULL, data->comment);
-    data_new->hotfile = copy_string(NULL, data->hotfile);
+    data_new->comment = amem_strdup(amem, data->comment);
+    data_new->hotfile = amem_strdup(amem, data->hotfile);
     
     return data_new;
 }
@@ -331,18 +343,18 @@ Quark *set_new(Quark *gr)
     return pset;
 }
 
-set *set_data_new(void)
+set *set_data_new(AMem *amem)
 {
     set *p;
     
-    p = xmalloc(sizeof(set));
+    p = amem_malloc(amem, sizeof(set));
     if (!p) {
         return NULL;
     }
     memset(p, 0, sizeof(set));
-    p->data = dataset_new();
+    p->data = dataset_new(amem);
     if (!p->data) {
-        xfree(p);
+        amem_free(amem, p);
         return NULL;
     }
     p->data->ncols = 2; /* To be in sync with default SET_XY type */
@@ -351,18 +363,18 @@ set *set_data_new(void)
 }
 
 
-void set_data_free(set *p)
+void set_data_free(AMem *amem, set *p)
 {
     if (p) {
         dataset_free(p->data);
-        xfree(p->legstr);
-        xfree(p->avalue.prestr);
-        xfree(p->avalue.appstr);
-        xfree(p);
+        amem_free(amem, p->legstr);
+        amem_free(amem, p->avalue.prestr);
+        amem_free(amem, p->avalue.appstr);
+        amem_free(amem, p);
     }
 }
 
-set *set_data_copy(set *p)
+set *set_data_copy(AMem *amem, set *p)
 {
     set *p_new;
     
@@ -370,7 +382,7 @@ set *set_data_copy(set *p)
         return NULL;
     }
     
-    p_new = xmalloc(sizeof(set));
+    p_new = amem_malloc(amem, sizeof(set));
     if (!p_new) {
         return NULL;
     }
@@ -378,14 +390,14 @@ set *set_data_copy(set *p)
     memcpy(p_new, p, sizeof(set));
     
     /* allocatables */
-    p_new->data = dataset_copy(p->data);
+    p_new->data = dataset_copy(amem, p->data);
     if (!p_new->data) {
-        xfree(p_new);
+        amem_free(amem, p_new);
         return NULL;
     }
-    p->legstr  = copy_string(NULL, p->legstr);
-    p->avalue.prestr = copy_string(NULL, p->avalue.prestr);
-    p->avalue.appstr = copy_string(NULL, p->avalue.appstr);
+    p->legstr  = amem_strdup(amem, p->legstr);
+    p->avalue.prestr = amem_strdup(amem, p->avalue.prestr);
+    p->avalue.appstr = amem_strdup(amem, p->avalue.appstr);
 
     return p_new;
 }
@@ -474,7 +486,7 @@ void set_set_hotlink(Quark *pset, int onoroff, char *fname, int src)
     dsp = set_get_dataset(pset);
     if (dsp) {
         dsp->hotlink = onoroff;
-	dsp->hotfile = copy_string(dsp->hotfile, fname);
+	dsp->hotfile = amem_strcpy(pset->amem, dsp->hotfile, fname);
 	dsp->hotsrc = src;
         quark_dirtystate_set(pset, TRUE);
     }
@@ -610,11 +622,11 @@ int set_set_avalue(Quark *pset, const AValue *av)
     
     p = set_get_data(pset);
     
-    XCFREE(p->avalue.prestr);
-    XCFREE(p->avalue.appstr);
+    AMEM_CFREE(pset->amem, p->avalue.prestr);
+    AMEM_CFREE(pset->amem, p->avalue.appstr);
     p->avalue = *av;
-    p->avalue.prestr = copy_string(NULL, av->prestr);
-    p->avalue.appstr = copy_string(NULL, av->appstr);
+    p->avalue.prestr = amem_strdup(pset->amem, av->prestr);
+    p->avalue.appstr = amem_strdup(pset->amem, av->appstr);
     
     return RETURN_SUCCESS;
 }
@@ -642,7 +654,7 @@ int set_set_legstr(Quark *pset, const char *s)
     
     p = set_get_data(pset);
     
-    p->legstr = copy_string(p->legstr, s);
+    p->legstr = amem_strcpy(pset->amem, p->legstr, s);
     
     return RETURN_SUCCESS;
 }
@@ -702,7 +714,7 @@ int set_set_comment(Quark *pset, char *s)
     
     dsp = set_get_dataset(pset);
     if (dsp) {
-        dsp->comment = copy_string(dsp->comment, s);
+        dsp->comment = amem_strcpy(pset->amem, dsp->comment, s);
         quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {

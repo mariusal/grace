@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
 static void set_region_defaults(region *r)
@@ -54,11 +55,11 @@ Quark *region_new(Quark *gr)
     return r;
 }
 
-region *region_data_new(void)
+region *region_data_new(AMem *amem)
 {
     region *r;
     
-    r = xmalloc(sizeof(region));
+    r = amem_malloc(amem, sizeof(region));
     if (r) {
         memset(r, 0, sizeof(region));
         set_region_defaults(r);
@@ -66,15 +67,15 @@ region *region_data_new(void)
     return r;
 }
 
-void region_data_free(region *r)
+void region_data_free(AMem *amem, region *r)
 {
     if (r) {
-        xfree(r->wps);
-        xfree(r);
+        amem_free(amem, r->wps);
+        amem_free(amem, r);
     }
 }
 
-region *region_data_copy(region *r)
+region *region_data_copy(AMem *amem, region *r)
 {
     region *r_new;
     
@@ -82,7 +83,7 @@ region *region_data_copy(region *r)
         return NULL;
     }
     
-    r_new = xmalloc(sizeof(region));
+    r_new = amem_malloc(amem, sizeof(region));
     if (!r_new) {
         return NULL;
     }
@@ -90,7 +91,7 @@ region *region_data_copy(region *r)
     memcpy(r_new, r, sizeof(region));
 
     /* duplicate allocatable storage */
-    r_new->wps = xmalloc(r->n*sizeof(WPoint));
+    r_new->wps = amem_malloc(amem, r->n*sizeof(WPoint));
     memcpy(r_new->wps, r->wps, r->n*sizeof(WPoint));
     
     return r_new;
@@ -134,7 +135,7 @@ int region_add_point(Quark *q, const WPoint *wp)
 {
     region *r = region_get_data(q);
     if (r) {
-        r->wps = xrealloc(r->wps, (r->n + 1)*sizeof(WPoint));
+        r->wps = amem_realloc(q->amem, r->wps, (r->n + 1)*sizeof(WPoint));
         r->wps[r->n] = *wp;
         r->n++;
         

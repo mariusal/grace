@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
 static int object_odata_size(OType type)
@@ -56,11 +57,11 @@ static int object_odata_size(OType type)
     return size;
 }
 
-DObject *object_data_new(void)
+DObject *object_data_new(AMem *amem)
 {
     DObject *o;
 
-    o = xmalloc(sizeof(DObject));
+    o = amem_malloc(amem, sizeof(DObject));
     memset(o, 0, sizeof(DObject));
     if (o) {
         o->type = DO_NONE;
@@ -100,7 +101,7 @@ static int object_set_data(DObject *o, void *odata)
     return RETURN_SUCCESS;
 }
 
-DObject *object_data_copy(DObject *osrc)
+DObject *object_data_copy(AMem *amem, DObject *osrc)
 {
     DObject *odest;
     void *odata;
@@ -109,7 +110,7 @@ DObject *object_data_copy(DObject *osrc)
         return NULL;
     }
     
-    odest = object_data_new_complete(osrc->type);
+    odest = object_data_new_complete(amem, osrc->type);
     if (!odest) {
         return NULL;
     }
@@ -123,18 +124,18 @@ DObject *object_data_copy(DObject *osrc)
     odest->odata = odata;
     
     if (object_set_data(odest, osrc->odata) != RETURN_SUCCESS) {
-        object_data_free(odest);
+        object_data_free(amem, odest);
         return NULL;
     }
     
     return odest;
 }
 
-void object_data_free(DObject *o)
+void object_data_free(AMem *amem, DObject *o)
 {
     if (o) {
-        xfree(o->odata);
-        xfree(o);
+        amem_free(amem, o->odata);
+        amem_free(amem, o);
     }
 }
 
@@ -159,10 +160,10 @@ void set_default_arrow(Arrow *arrowp)
     arrowp->lL_ff  = 0.0;
 }
 
-void *object_odata_new(OType type)
+void *object_odata_new(AMem *amem, OType type)
 {
     void *odata;
-    odata = xmalloc(object_odata_size(type));
+    odata = amem_malloc(amem, object_odata_size(type));
     if (odata == NULL) {
         return NULL;
     }
@@ -207,16 +208,16 @@ Quark *object_new(Quark *gr)
     return o;
 }
 
-DObject *object_data_new_complete(OType type)
+DObject *object_data_new_complete(AMem *amem, OType type)
 {
     DObject *o;
     
-    o = object_data_new();
+    o = object_data_new(amem);
     if (o) {
         o->type   = type;
-        o->odata  = object_odata_new(type);
+        o->odata  = object_odata_new(amem, type);
         if (o->odata == NULL) {
-            xfree(o);
+            amem_free(amem, o);
             return NULL;
         }
     }
@@ -233,9 +234,9 @@ Quark *object_new_complete(Quark *gr, OType type)
     o = object_get_data(q);
     if (o) {
         o->type   = type;
-        o->odata  = object_odata_new(type);
+        o->odata  = object_odata_new(q->amem, type);
         if (o->odata == NULL) {
-            xfree(o);
+            amem_free(q->amem, o);
             return NULL;
         }
     }

@@ -38,16 +38,17 @@
 #  endif
 #endif
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
 static defaults d_d =
 {{{1, 1}, 1, 1.0}, {0, 0}, 0, 1.0};
 
-Project *project_data_new(void)
+Project *project_data_new(AMem *amem)
 {
     Project *pr;
     
-    pr = xmalloc(sizeof(Project));
+    pr = amem_malloc(amem, sizeof(Project));
     if (!pr) {
         return NULL;
     }
@@ -55,9 +56,9 @@ Project *project_data_new(void)
     
     pr->description = NULL;
     
-    pr->sformat = copy_string(NULL, "%.8g");
+    pr->sformat = amem_strdup(amem, "%.8g");
 
-    pr->timestamp = copy_string(NULL, "");
+    pr->timestamp = amem_strdup(amem, "");
 
     /* FIXME: #defines */
     pr->page_wpp = 792;
@@ -78,7 +79,7 @@ Project *project_data_new(void)
     return pr;
 }
 
-void project_data_free(Project *pr)
+void project_data_free(AMem *amem, Project *pr)
 {
     unsigned int i;
     
@@ -86,27 +87,27 @@ void project_data_free(Project *pr)
         return;
     }
     
-    xfree(pr->description);
+    amem_free(amem, pr->description);
     
-    xfree(pr->sformat);
-    xfree(pr->docname);
+    amem_free(amem, pr->sformat);
+    amem_free(amem, pr->docname);
     
-    xfree(pr->timestamp);
+    amem_free(amem, pr->timestamp);
     
     for (i = 0; i < pr->nfonts; i++) {
         Fontdef *f = &pr->fontmap[i];
-        xfree(f->fontname);
-        xfree(f->fallback);
+        amem_free(amem, f->fontname);
+        amem_free(amem, f->fallback);
     }
-    xfree(pr->fontmap);
+    amem_free(amem, pr->fontmap);
     
     for (i = 0; i < pr->ncolors; i++) {
         Colordef *c = &pr->colormap[i];
-        xfree(c->cname);
+        amem_free(amem, c->cname);
     }
-    xfree(pr->colormap);
+    amem_free(amem, pr->colormap);
     
-    xfree(pr);
+    amem_free(amem, pr);
 }
 
 Project *project_get_data(const Quark *q)
@@ -166,7 +167,7 @@ int project_set_description(Quark *q, char *descr)
 {
     Project *pr = project_get_data(q);
     if (pr) {
-        pr->description = copy_string(pr->description, descr);
+        pr->description = amem_strcpy(q->amem, pr->description, descr);
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
@@ -188,7 +189,7 @@ int project_set_sformat(Quark *q, const char *s)
 {
     Project *pr = project_get_data(q);
     if (pr) {
-        pr->sformat = copy_string(pr->sformat, s);;
+        pr->sformat = amem_strcpy(q->amem, pr->sformat, s);;
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
@@ -210,7 +211,7 @@ int project_set_docname(Quark *q, char *s)
 {
     Project *pr = project_get_data(q);
     if (pr) {
-        pr->docname = copy_string(pr->docname, s);
+        pr->docname = amem_strcpy(q->amem, pr->docname, s);
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
@@ -315,7 +316,7 @@ int project_update_timestamp(Quark *q, time_t *t)
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1]= '\0';
     }
-    pr->timestamp = copy_string(pr->timestamp, str);
+    pr->timestamp = amem_strcpy(q->amem, pr->timestamp, str);
     
     return RETURN_SUCCESS;
 }
@@ -335,11 +336,12 @@ int project_add_font(Quark *project, const Fontdef *f)
 {
     Project *pr = project_get_data(project);
     Fontdef *fnew;
-    pr->fontmap = xrealloc(pr->fontmap, (pr->nfonts + 1)*sizeof(Fontdef));
+    pr->fontmap = amem_realloc(project->amem,
+        pr->fontmap, (pr->nfonts + 1)*sizeof(Fontdef));
     fnew = &pr->fontmap[pr->nfonts];
     fnew->id = f->id;
-    fnew->fontname = copy_string(NULL, f->fontname);
-    fnew->fallback = copy_string(NULL, f->fallback);
+    fnew->fontname = amem_strdup(project->amem, f->fontname);
+    fnew->fallback = amem_strdup(project->amem, f->fallback);
     pr->nfonts++;
     
     return RETURN_SUCCESS;
@@ -356,18 +358,19 @@ int project_add_color(Quark *project, const Colordef *c)
         cbuf = &pr->colormap[i];
         if (cbuf->id == c->id) {
             cbuf->rgb = c->rgb;
-            cbuf->cname = copy_string(cbuf->cname, c->cname);
+            cbuf->cname = amem_strcpy(project->amem, cbuf->cname, c->cname);
             
             return RETURN_SUCCESS;
         }
     }
     
     /* If id not found */
-    pr->colormap = xrealloc(pr->colormap, (pr->ncolors + 1)*sizeof(Colordef));
+    pr->colormap = amem_realloc(project->amem,
+        pr->colormap, (pr->ncolors + 1)*sizeof(Colordef));
     cbuf = &pr->colormap[pr->ncolors];
     cbuf->id = c->id;
     cbuf->rgb = c->rgb;
-    cbuf->cname = copy_string(NULL, c->cname);
+    cbuf->cname = amem_strdup(project->amem, c->cname);
     pr->ncolors++;
     
     return RETURN_SUCCESS;

@@ -148,9 +148,9 @@
 typedef struct _QuarkFactory QuarkFactory;
 typedef struct _Quark Quark;
 
-typedef void  (*Quark_data_free)(void *data); 
-typedef void *(*Quark_data_new)(void); 
-typedef void *(*Quark_data_copy)(void *data); 
+typedef void  (*Quark_data_free)(AMem *amem, void *data); 
+typedef void *(*Quark_data_new)(AMem *amem); 
+typedef void *(*Quark_data_copy)(AMem *amem, void *data); 
 
 typedef int (*Quark_cb)(Quark *q, int etype, void *data); 
 
@@ -570,6 +570,7 @@ typedef enum {
 #define MAX_SET_COLS    DATA_BAD
 
 typedef struct {
+    AMem *amem;                 /* memory allocator */
     int len;                    /* dataset length */
     int ncols;                  /* number of data columns */
     double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
@@ -750,7 +751,7 @@ QuarkFlavor *quark_flavor_get(const QuarkFactory *qfactory, unsigned int fid);
 int quark_factory_set_udata(QuarkFactory *qfactory, void *udata);
 void *quark_factory_get_udata(const QuarkFactory *qfactory);
 
-Quark *quark_root(QuarkFactory *qfactory, unsigned int fid);
+Quark *quark_root(int mmodel, QuarkFactory *qfactory, unsigned int fid);
 Quark *quark_new(Quark *parent, unsigned int fid);
 void quark_free(Quark *q);
 Quark *quark_copy(const Quark *q);
@@ -770,6 +771,8 @@ int quark_set_active(Quark *q, int onoff);
 int quark_is_active(const Quark *q);
 
 QuarkFactory *quark_get_qfactory(const Quark *q);
+
+AMem *quark_get_amem(const Quark *q);
 
 Quark *quark_find_child_by_idstr(Quark *q, const char *s);
 Quark *quark_find_descendant_by_idstr(Quark *q, const char *s);
@@ -916,15 +919,15 @@ int axis_set_bb(const Quark *q, const view *bbox);
 int axis_shift(Quark *q, const VVector *vshift);
 
 /* Set */
-double *copy_data_column(double *src, int nrows);
-char **copy_string_column(char **src, int nrows);
+double *copy_data_column(AMem *amem, double *src, int nrows);
+char **copy_string_column(AMem *amem, char **src, int nrows);
 
 int settype_cols(int type);
 
-Dataset *dataset_new(void);
+Dataset *dataset_new(AMem *amem);
 int dataset_empty(Dataset *dsp);
 void dataset_free(Dataset *dsp);
-Dataset *dataset_copy(Dataset *data);
+Dataset *dataset_copy(AMem *amem, Dataset *data);
 
 int dataset_set_nrows(Dataset *data, int len);
 int dataset_set_ncols(Dataset *data, int ncols);
@@ -982,9 +985,9 @@ int region_add_point(Quark *q, const WPoint *wp);
 
 
 /* DObject */
-void *object_odata_new(OType type);
+void *object_odata_new(AMem *amem, OType type);
 
-DObject *object_data_new_complete(OType type);
+DObject *object_data_new_complete(AMem *amem, OType type);
 
 Quark *object_new(Quark *gr);
 Quark *object_new_complete(Quark *gr, OType type);
@@ -1002,7 +1005,6 @@ int object_get_bb(DObject *o, view *bb);
 int object_shift(Quark *q, const VVector *vshift);
 
 /* AText */
-TextProps *textprops_new(void);
 void set_default_textprops(TextProps *pstr, const defaults *grdefs);
 
 Quark *atext_new(Quark *q);

@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#define ADVANCED_MEMORY_HANDLERS
 #include "grace/coreP.h"
 
 static void set_default_ticks(Quark *q)
@@ -100,18 +101,18 @@ Quark *axisgrid_new(Quark *q)
     return a;
 }
 
-tickmarks *axisgrid_data_new(void)
+tickmarks *axisgrid_data_new(AMem *amem)
 {
     tickmarks *retval;
     
-    retval = xmalloc(sizeof(tickmarks));
+    retval = amem_malloc(amem, sizeof(tickmarks));
     if (retval != NULL) {
         memset(retval, 0, sizeof(tickmarks));
     }
     return retval;
 }
 
-tickmarks *axisgrid_data_copy(tickmarks *t)
+tickmarks *axisgrid_data_copy(AMem *amem, tickmarks *t)
 {
     tickmarks *retval;
     int i;
@@ -119,34 +120,34 @@ tickmarks *axisgrid_data_copy(tickmarks *t)
     if (t == NULL) {
         return NULL;
     } else {
-        retval = axisgrid_data_new();
+        retval = axisgrid_data_new(amem);
         if (retval != NULL) {
             memcpy(retval, t, sizeof(tickmarks));
-	    retval->tl_formula = copy_string(NULL, t->tl_formula);
-	    retval->tl_prestr = copy_string(NULL, t->tl_prestr);
-	    retval->tl_appstr = copy_string(NULL, t->tl_appstr);
+	    retval->tl_formula = amem_strdup(amem, t->tl_formula);
+	    retval->tl_prestr = amem_strdup(amem, t->tl_prestr);
+	    retval->tl_appstr = amem_strdup(amem, t->tl_appstr);
             for (i = 0; i < MAX_TICKS; i++) {
-                retval->tloc[i].label = copy_string(NULL, t->tloc[i].label);
+                retval->tloc[i].label = amem_strdup(amem, t->tloc[i].label);
             }
         }
         return retval;
     }
 }
 
-void axisgrid_data_free(tickmarks *t)
+void axisgrid_data_free(AMem *amem, tickmarks *t)
 {
     if (t) {
         int i;
 
-        xfree(t->tl_formula);
-        xfree(t->tl_prestr);
-        xfree(t->tl_appstr);
+        amem_free(amem, t->tl_formula);
+        amem_free(amem, t->tl_prestr);
+        amem_free(amem, t->tl_appstr);
         
         for (i = 0; i < MAX_TICKS; i++) {
-            xfree(t->tloc[i].label);
+            amem_free(amem, t->tloc[i].label);
         }
         
-        xfree(t);
+        amem_free(amem, t);
     }
 }
 
@@ -290,25 +291,25 @@ Quark *axis_new(Quark *q)
     return a;
 }
 
-Axis *axis_data_new(void)
+Axis *axis_data_new(AMem *amem)
 {
     Axis *retval;
     
-    retval = xmalloc(sizeof(Axis));
+    retval = amem_malloc(amem, sizeof(Axis));
     if (retval != NULL) {
         memset(retval, 0, sizeof(Axis));
     }
     return retval;
 }
 
-Axis *axis_data_copy(Axis *a)
+Axis *axis_data_copy(AMem *amem, Axis *a)
 {
     Axis *retval;
     
     if (a == NULL) {
         return NULL;
     } else {
-        retval = axis_data_new();
+        retval = axis_data_new(amem);
         if (retval != NULL) {
             memcpy(retval, a, sizeof(Axis));
         }
@@ -316,10 +317,10 @@ Axis *axis_data_copy(Axis *a)
     }
 }
 
-void axis_data_free(Axis *a)
+void axis_data_free(AMem *amem, Axis *a)
 {
     if (a) {
-        xfree(a);
+        amem_free(amem, a);
     }
 }
 

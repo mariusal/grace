@@ -5,7 +5,8 @@
 
 LIB  = $(GRACE_CORE_LIB)
 
-SRCS = 	quark.c \
+SRCS = 	qfactory.c \
+	quark.c \
 	project.c \
 	ssd.c \
 	frame.c \
@@ -17,7 +18,8 @@ SRCS = 	quark.c \
 	atext.c \
 	ctrans.c
 
-OBJS = 	quark$(O) \
+OBJS = 	qfactory$(O) \
+	quark$(O) \
 	project$(O) \
 	ssd$(O) \
         frame$(O) \
