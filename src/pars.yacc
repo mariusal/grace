@@ -1734,12 +1734,7 @@ defines:
 
 regionset:
 	selectregion onoff {
-	    region *r = region_get_data($1);
-            if (r) {
-                quark_set_active($1, $2);
-                XCFREE(r->wps);
-                r->n = 0;
-            }
+            quark_set_active($1, $2);
 	}
 	| selectregion TYPE regiontype {
 	    region_set_type($1, $3);
