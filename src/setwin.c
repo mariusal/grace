@@ -226,9 +226,8 @@ typedef enum {
 
 typedef struct _Datasetop_ui {
     Widget top;
-    GraphSetStructure *sel;
+    StorageStructure *sel;
     OptionStructure *optype_item;
-    OptionStructure *xy_item;
     OptionStructure *up_down_item;
     Widget length_item;
     Widget start_item;
@@ -242,20 +241,9 @@ static Widget datasettype_controls[5];
 void create_datasetop_popup(Widget but, void *data)
 {
     Widget dialog, menubar, menupane, rc;
-    OptionItem optype_items[5];
 
     set_wait_cursor();
     if (datasetopui.top == NULL) {
-        optype_items[0].value = DATASETOP_SORT;
-        optype_items[0].label = "Sort";
-        optype_items[1].value = DATASETOP_REVERSE;
-        optype_items[1].label = "Reverse";
-        optype_items[2].value = DATASETOP_JOIN;
-        optype_items[2].label = "Join";
-        optype_items[3].value = DATASETOP_SPLIT;
-        optype_items[3].label = "Split";
-        optype_items[4].value = DATASETOP_DROP;
-        optype_items[4].label = "Drop points";
         
 	datasetopui.top = CreateDialogForm(app_shell, "Data set operations");
         SetDialogFormResizable(datasetopui.top, TRUE);
@@ -268,7 +256,7 @@ void create_datasetop_popup(Widget but, void *data)
 	dialog = CreateVContainer(datasetopui.top);
         XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
 
-	datasetopui.sel = CreateGraphSetSelector(dialog,
+	datasetopui.sel = CreateSSDChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -279,21 +267,21 @@ void create_datasetop_popup(Widget but, void *data)
         CreateMenuHelpButton(menupane, "On dataset operations", 's',
             datasetopui.top, "doc/UsersGuide.html#data-set-operations");
 
-	datasetopui.optype_item = CreateOptionChoice(dialog, "Operation type:",
-            1, 5, optype_items);
+	datasetopui.optype_item =
+            CreateOptionChoiceVA(dialog, "Operation type:",
+            "Reverse",   DATASETOP_REVERSE, 
+#if 0
+            "Sort",      DATASETOP_SORT,    
+            "Join",      DATASETOP_JOIN,    
+            "Split",     DATASETOP_SPLIT,   
+#endif
+            "Drop rows", DATASETOP_DROP,    
+            NULL);
    	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB, NULL);
 
 	rc = CreateHContainer(dialog);
         XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
 	
-        datasetopui.xy_item = CreateOptionChoiceVA(rc, "Sort on:",
-            "X",  DATA_X ,
-            "Y",  DATA_Y ,
-            "Y1", DATA_Y1,
-            "Y2", DATA_Y2,
-            "Y3", DATA_Y3,
-            "Y4", DATA_Y4,
-            NULL);
 	datasetopui.up_down_item = CreateOptionChoiceVA(rc, "Order:",
             "Ascending", FALSE,
             "Descending", TRUE,
@@ -328,7 +316,7 @@ void create_datasetop_popup(Widget but, void *data)
 	UnmanageChild(datasettype_controls[4]);
 
         CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb,
-            datasetopui.sel->set_sel);
+            &datasetopui);
     }
     
     RaiseWindow(GetParent(datasetopui.top));
@@ -352,62 +340,64 @@ static void datasetoptypeCB(OptionStructure *opt, int value, void *data)
 
 static int datasetop_aac_cb(void *data)
 {
-    int nsets, i;
-    int sorton, stype;
+    int n, i;
+    int stype;
     int lpart;
     int startno, endno;
-    static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
     dataSetOpType optype;
-    Quark *pset, **selset, *gr;
+    Quark *ss, **selssd;
        
-    nsets = GetStorageChoices(datasetopui.sel->set_sel, &selset);
-    if (nsets < 1) {
-        errmsg("No set selected");
+    n = GetStorageChoices(datasetopui.sel, &selssd);
+    if (n < 1) {
+        errmsg("No SSD selected");
         return RETURN_FAILURE;
     } else {
         optype = GetOptionChoice(datasetopui.optype_item);
  
         switch (optype) {
-        case DATASETOP_SORT:
-            sorton = son[GetOptionChoice(datasetopui.xy_item)];
-            stype = GetOptionChoice(datasetopui.up_down_item);
-
-            for (i = 0; i < nsets; i++) {
-                pset = selset[i];
-	        do_sort(pset, sorton, stype);
+        case DATASETOP_REVERSE:
+            for (i = 0; i < n; i++) {
+                ss = selssd[i];
+	        ssd_reverse(ss);
             }
             break;
-        case DATASETOP_REVERSE:
-            for (i = 0; i < nsets; i++) {
-                pset = selset[i];
-	        reverse_set(pset);
+#if 0
+        case DATASETOP_SORT:
+            stype = GetOptionChoice(datasetopui.up_down_item);
+
+            for (i = 0; i < n; i++) {
+                ss = selssd[i];
+	        ssd_sort(ss, stype);
             }
             break;
         case DATASETOP_JOIN:
-            join_sets(selset, nsets);
+            ssd_join(selssd, n);
             break;
         case DATASETOP_SPLIT:
             xv_evalexpri(datasetopui.length_item, &lpart);
-            for (i = 0; i < nsets; i++) {
-                pset = selset[i];
-                do_splitsets(pset, lpart);
+            for (i = 0; i < n; i++) {
+                ss = selssd[i];
+                ssd_split(ss, lpart);
             }
             break;
+#endif
         case DATASETOP_DROP:
             xv_evalexpri(datasetopui.start_item, &startno);
             xv_evalexpri(datasetopui.stop_item, &endno);
-            for (i = 0; i < nsets; i++) {
-                pset = selset[i];
-		do_drop_points(pset, startno, endno);
+            for (i = 0; i < n; i++) {
+                ss = selssd[i];
+		ssd_delete_rows(ss, startno, endno);
             }
             break;
+        default:
+            xfree(selssd);
+            return RETURN_FAILURE;
         }
         
-        xfree(selset);
-
-        gr = get_set_choice_gr((StorageStructure *) data);
-        update_set_lists(gr);
+        snapshot_and_update(get_parent_project(selssd[0]), TRUE);
         
+        xfree(selssd);
+
         return RETURN_SUCCESS;
     }
 }
