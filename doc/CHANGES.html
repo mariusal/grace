@@ -8,6 +8,25 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.8</H2>
+
+<H3>Functionality</H3>
+*  [ES] use leading zeros in axis year formats so to make up to 2 or 4
+        digits in total (depending on whether the two-digit year span is
+	enabled in the project preferences)
+
+<H3>Interface</H3>
+ *  [ES] simplified X initialization - the resolution detection introduced
+         in 5.1.5 prevented Grace from starting up with some buggy X servers
+	 (notably, StarNet's X-win32) (rep. #1138)
+
+<H3>Portability/Compilation</H3>
+ *  [ES] use strchr() instead of BSD-ish index() which broke compilation
+         under newer IRIX boxes (rep. #1139)
+ *  [ES] stop with error (instead of warning as used to be) if Motif can't be
+	 found by configure
+
+
 <H2>5.1.7</H2>
 
 <H3>Functionality</H3>
@@ -54,6 +73,7 @@
  *  [MD] make sure the EPS/PS output lines don't exceed 255 chars in lenth
          (rep. #1100)
 
+
 <H2>5.1.6</H2>
 
 <H3>Parser</H3>
@@ -95,6 +115,7 @@
          was calculated
  *  [ES] lines starting with spaces weren't parsed  by the command interpreter
          (rep. #1101)
+
 
 <H2>5.1.5</H2>
 

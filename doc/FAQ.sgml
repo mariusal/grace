@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.7)
+  <title>Grace FAQ (for Grace-5.1.8)
   <author>by the Grace Team
-  <date>16.03.2002
+  <date>30.04.2002
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -502,8 +502,8 @@
           </item>
         </itemize>
 
-    <sect1>When I type './configure' I get: ``configure: warning:
-        M*tif has not been found; building a GUI-less version''
+    <sect1>When I type './configure' I get: ``configure: error
+        M*tif has not been found''
       <p>
 
         Check whether M*tif (question <ref id="motif"
