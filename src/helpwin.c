@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
 #include "utils.h"
 #include "files.h"
 #include "protos.h"
@@ -49,10 +48,17 @@
 void create_helper_frame(char *fname);
 #endif
 
+int force_external_viewer =
+#if defined WITH_XMHTML || defined WITH_LIBHELP
+    FALSE;
+#else
+    TRUE;
+#endif
+
 void HelpCB(void *data)
 {
     char *URL, *ha;
-    int remote, force_external_viewer = FALSE;
+    int remote;
 
     ha = (char *) data;
     
