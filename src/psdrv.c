@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -674,6 +674,7 @@ void ps_putpixmap(VPoint vp, int width, int height,
     RGB *rgb;
     fRGB *frgb;
     unsigned char tmpbyte;
+    int linelen;
 
     ps_setpen();
     
@@ -702,15 +703,20 @@ void ps_putpixmap(VPoint vp, int width, int height,
             fprintf(prstream, "colorimage\n");
         }
         for (k = 0; k < height; k++) {
+            linelen = 0;
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width+j];
                 if (ps_grayscale == TRUE || ps_level2 == FALSE) {
-                    fprintf(prstream,"%02x",
+                    linelen += fprintf(prstream,"%02x",
                                       (int) (255*get_colorintensity(cindex)));
                 } else {
                     rgb = get_rgb(cindex);
-                    fprintf(prstream, "%02x%02x%02x",
+                    linelen += fprintf(prstream, "%02x%02x%02x",
                                        rgb->red, rgb->green, rgb->blue);
+                }
+                if (linelen >= MAX_PS_LINELEN) {
+                    fprintf(prstream, "\n");
+                    linelen = 0;
                 }
             }
             fprintf(prstream, "\n");
@@ -741,9 +747,14 @@ void ps_putpixmap(VPoint vp, int width, int height,
         fprintf(prstream, "{currentfile picstr readhexstring pop}\n");
         fprintf(prstream, "imagemask\n");
         for (k = 0; k < height; k++) {
+            linelen = 0;
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 tmpbyte = reversebits((unsigned char) (databits)[k*paddedW/bitmap_pad + j]);
-                fprintf(prstream, "%02x", tmpbyte);
+                linelen += fprintf(prstream, "%02x", tmpbyte);
+                if (linelen >= MAX_PS_LINELEN) {
+                    fprintf(prstream, "\n");
+                    linelen = 0;
+                }
             }
             fprintf(prstream, "\n");
         }
@@ -758,6 +769,7 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     char *encscheme;
     double *kvector;
     int i;
+    int linelen;
     
     if (psfont_status[font] == FALSE) {
         fontname = get_fontalias(font);
@@ -789,12 +801,17 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     }
     
     if (kvector) {
-        fprintf(prstream, "[");
+        linelen = 0;
+        linelen += fprintf(prstream, "[");
         for (i = 0; i < len - 1; i++) {
-            fprintf(prstream, "%.4f ", kvector[i]);
+            linelen += fprintf(prstream, "%.4f ", kvector[i]);
+            if (linelen >= MAX_PS_LINELEN) {
+                fprintf(prstream, "\n");
+                linelen = 0;
+            }
         }
         fprintf(prstream, "] KINIT\n");
-        fprintf(prstream, "{KPROC} ");
+        fprintf(prstream, "{KPROC}\n");
     }
     
     put_string(prstream, s, len);
@@ -896,20 +913,27 @@ static int is8bit(unsigned char uc)
  */
 static void put_string(FILE *fp, char *s, int len)
 {
-    int i;
+    int i, linelen = 0;
     
     fputc('(', fp);
+    linelen++;
     for (i = 0; i < len; i++) {
         char c = s[i];
         unsigned char uc = (unsigned char) c;
         if (c == '(' || c == ')' || c == '\\') {
             fputc('\\', fp);
+            linelen++;
         }
         if ((docdata == DOCDATA_7BIT && !is7bit(uc)) ||
             (docdata == DOCDATA_8BIT && !is8bit(uc))) {
-            fprintf(fp, "\\%03o", uc);
+            linelen += fprintf(fp, "\\%03o", uc);
         } else {
             fputc(c, fp);
+            linelen++;
+        }
+        if (linelen >= MAX_PS_LINELEN) {
+            fprintf(prstream, "\\\n");
+            linelen = 0;
         }
     }
     fputc(')', fp);

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,6 +41,8 @@
 #define DOCDATA_7BIT    0  
 #define DOCDATA_8BIT    1  
 #define DOCDATA_BINARY  2  
+
+#define MAX_PS_LINELEN   70
 
 int psprintinitgraphics(void);
 int epsinitgraphics(void);
