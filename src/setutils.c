@@ -600,6 +600,8 @@ int set_dataset_type(int gno, int setno, int type)
             break;
         }
         g[gno].p[setno].type = type;
+        
+        set_dirtystate();
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
