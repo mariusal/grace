@@ -106,7 +106,6 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     VVector shift;
     view v;
     int cg, newg, loc;
-    static int track_gno = -1;
     int track_setno;
     static int track_loc;
     int add_at;
@@ -197,6 +196,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             switch (action_flag) {
             case 0:
                 if (dbl_click == True && allow_dc == TRUE) {
+                    track_setno = -1;
                     if (focus_clicked(cg, vp, &anchor_vp) == TRUE) {
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
@@ -357,9 +357,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 }
                 break;
             case TRACKER:
-                if (track_gno == cg) {
-                    track_point(cg, track_setno, &track_loc, -1);
-                }
+                track_point(cg, track_setno, &track_loc, -1);
                 break;
             case DEL_POINT:
                 if (find_point(cg, vp, &track_setno, &loc) == RETURN_SUCCESS) {
@@ -506,11 +504,11 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	case Button2:
             switch (action_flag) {
             case TRACKER:
+                track_setno = -1;
                 if (find_point(cg, vp, &track_setno, &track_loc) == RETURN_SUCCESS) {
-                    track_gno = cg;
                     track_point(cg, track_setno, &track_loc, 0);
                 } else {
-                    track_gno = -1;
+                    update_point_locator(cg, track_setno, track_loc);
                 }
                 break;
             default:
@@ -527,9 +525,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
  */
                 break;
             case TRACKER:
-                if (track_gno == cg) {
-                    track_point(cg, track_setno, &track_loc, +1);
-                }
+                track_point(cg, track_setno, &track_loc, +1);
                 break;
             case DEF_REGION:
 		/* end region definition */
