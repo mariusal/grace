@@ -612,6 +612,9 @@ static char *expand_macros(const char *s)
     
     slen = strlen(s);
     macro = xmalloc(slen*SIZEOF_CHAR);
+    if (!macro) {
+        return NULL;
+    }
     
     i = 0;
     while (i < slen) {
@@ -638,6 +641,7 @@ static char *expand_macros(const char *s)
     
     es = xmalloc((slen + extra_len + 1)*SIZEOF_CHAR);
     if (!es) {
+        xfree(macro);
         return NULL;
     }
     
@@ -664,6 +668,8 @@ static char *expand_macros(const char *s)
         }
     }
     es[j] = '\0';
+    
+    xfree(macro);
     
     return es;
 }

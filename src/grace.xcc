@@ -1302,6 +1302,7 @@ char *utf2iso(const char *s)
                 axis = -1;
             } 
             ((ParserData *) $U)->axis = axis;
+            xfree($?);
         </attribute>
         <attribute name="#AStrActive" type="bval">
             $$->active = $?;

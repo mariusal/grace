@@ -2090,6 +2090,8 @@ static void canvas_stats_free(CanvasStats *cstats)
 {
     if (cstats) {
         xfree(cstats->colors);
+        xfree(cstats->patterns);
+        xfree(cstats->linestyles);
         xfree(cstats->fonts);
         xfree(cstats);
     }
