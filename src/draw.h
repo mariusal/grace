@@ -252,9 +252,18 @@ typedef struct {
     int advancing;
     int ligatures;
     int kerning;
+} CStringSegment;
+
+typedef struct {
     VPoint start;
     VPoint stop;
     GLYPH *glyph;
+} CSGlyphCache;
+
+typedef struct {
+    unsigned int nsegs;
+    CStringSegment *segs;
+    CSGlyphCache *cglyphs;
 } CompositeString;
 
 typedef struct {
