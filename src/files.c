@@ -1111,6 +1111,8 @@ int load_project_file(Grace *grace, char *fn, int as_template)
 
         /* Clear dirtystate */
         quark_dirtystate_set(grace->project, FALSE);
+    } else {
+        errmsg("Failed loading project file");
     }
 
     /* try to switch to the first active graph */
