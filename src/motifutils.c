@@ -1753,6 +1753,7 @@ void update_set_selectors(int gno)
     SetChoiceData *sdata;
     
     cg = get_cg();
+    update_graph_selectors();
     for (i = 0; i < nset_selectors; i++) {
         sdata = (SetChoiceData *) set_selectors[i]->anydata;
         if (sdata->standalone == TRUE && (gno == cg || gno == ALL_GRAPHS)) {
@@ -3623,7 +3624,6 @@ void update_all(void)
     
     update_set_lists(gno);
 
-    update_graph_selectors();
     update_set_selectors(ALL_GRAPHS);
 
     if (ReqUpdateColorSel == TRUE) {
