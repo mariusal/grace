@@ -2,7 +2,6 @@
 # Makefile for auxiliary stuff of Grace             #
 #####################################################
 # You should not change anything here.              #
-# Please read INSTALL file in the upper directory   #
 #####################################################
 
 TOP=..

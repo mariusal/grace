@@ -1,8 +1,7 @@
 #####################################################
-# Makefile for the fonts directory of GRACE         #
+# Makefile for the fonts directory of Grace         #
 #####################################################
 # You should not change anything here.              #
-# Please read INSTALL file in the upper directory   #
 #####################################################
 
 TOP=..

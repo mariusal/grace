@@ -1,8 +1,7 @@
 #####################################################
-# Makefile for Xbae matrix widget                   #
+# Makefile for Xbae widget (bundled with Grace)     #
 #####################################################
 # You should not change anything here.              #
-# Please read INSTALL file in the upper directory   #
 #####################################################
 
 TOP=..

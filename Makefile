@@ -2,7 +2,6 @@
 # Top-level Makefile for Grace                      #
 #####################################################
 # You should not change anything here.              #
-# Please read INSTALL file in the current directory #
 #####################################################
 
 include Make.conf

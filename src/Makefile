@@ -2,7 +2,6 @@
 # Makefile for Grace                                #
 #####################################################
 # You should not change anything here.              #
-# Please read INSTALL file in the upper directory   #
 #####################################################
 
 TOP=..
