@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.2.0)
   <author>by the Grace Team
-  <date>01.08.2000
+  <date>09.10.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1260,24 +1260,6 @@ XMgrace*background: ...
 
   <sect>Miscellaneous
     <p>
-
-    <sect1>Is Grace Year 2000 compliant?
-      <p>
-
-        Yes. No warranty, of course. But as far as the treatment of
-        dates as data is concerned, years always have 4 digits. So
-        `98' is the year Trajan became Emperor of Rome, not 1998.
-
-        Concerning an overflow of the system clock: being UNIX
-        software, Grace uses a variable type called <tt>time_t</tt>
-        (count of seconds since New Year's Day 1970) to represent
-        time internally. On a 32-bit OS, this counter will overflow in early
-        2038, or (depending on implementation) in the next century, and
-        <bf>not</bf> 2000. By that time, for sure, everyone will be running
-        a 64- or higher- bit operating system, which would overflow in
-        so distant future, that only cosmologists dare to think of it.
-
-        See also <url url="http://plasma-gate.weizmann.ac.il/Grace/y2k.html">.
 
     <sect1>Does Grace have an UNDO function?
       <p>
