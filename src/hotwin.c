@@ -55,7 +55,6 @@ static SetChoiceItem hotlink_set_item;
 static Widget hotlink_list_item;
 static Widget hotlink_file_item;
 static Widget *hotlink_source_item;
-static Widget hotlink_command=NULL;
 
 void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
