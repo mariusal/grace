@@ -213,11 +213,53 @@ static LLNode *storage_get_node_by_id(Storage *sto, int id)
     return cllnode;
 }
 
+static LLNode *storage_get_node_by_data(Storage *sto, const void *data)
+{
+    LLNode *cllnode;
+    
+    STORAGE_SAFETY_CHECK(sto, return NULL)
+    
+    cllnode = sto->cp;
+    while (cllnode) {
+        if (cllnode->data == data) {
+            return cllnode;
+        } else {
+            cllnode = cllnode->next;
+        }
+    }
+
+    cllnode = sto->start;
+    while (cllnode && cllnode != sto->cp) {
+        if (cllnode->data == data) {
+            return cllnode;
+        } else {
+            cllnode = cllnode->next;
+        }
+    }
+
+    sto->ierrno = STORAGE_ENOENT;
+    return NULL;
+}
+
 int storage_scroll_to_id(Storage *sto, int id)
 {
     LLNode *cllnode;
     
     cllnode = storage_get_node_by_id(sto, id);
+    if (cllnode) {
+        sto->cp = cllnode;
+        return RETURN_SUCCESS;
+    } else {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+}
+
+int storage_scroll_to_data(Storage *sto, const void *data)
+{
+    LLNode *cllnode;
+    
+    cllnode = storage_get_node_by_data(sto, data);
     if (cllnode) {
         sto->cp = cllnode;
         return RETURN_SUCCESS;

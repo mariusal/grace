@@ -87,6 +87,7 @@ int storage_eod(Storage *sto);
 
 int storage_scroll(Storage *sto, int skip, int loop);
 int storage_scroll_to_id(Storage *sto, int id);
+int storage_scroll_to_data(Storage *sto, const void *data);
 
 int storage_id_exists(Storage *sto, int id);
 
