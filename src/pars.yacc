@@ -2913,7 +2913,7 @@ actions:
             wipeout();
         }
 	| ARRANGE nexpr ',' nexpr {
-            arrange_graphs($2, $4);
+            arrange_graphs_simple($2, $4);
         }
 	| NONLFIT '(' selectset ',' nexpr ')' {
 	    gotnlfit = TRUE;

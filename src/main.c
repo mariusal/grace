@@ -720,7 +720,7 @@ int main(int argc, char *argv[])
  * arrange graphs
  */
     if (grows > 0 || gcols > 0) {
-        arrange_graphs(grows, gcols);
+        arrange_graphs_simple(grows, gcols);
     }
 
 /*
