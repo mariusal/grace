@@ -562,6 +562,7 @@ static Widget CreateMainMenuBar(Widget parent)
 {
     Widget menubar;
     Widget menupane, submenupane, sub2menupane;
+    static char buf[128];
 
     menubar = CreateMenuBar(parent);
 
@@ -769,7 +770,10 @@ static Widget CreateMainMenuBar(Widget parent)
  
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Comments", 'm', HelpCB, (void *) "http://plasma-gate.weizmann.ac.il/Grace/comments.html");
+    sprintf(buf,
+        "http://plasma-gate.weizmann.ac.il/Grace/comments.phtml?version_id=%ld",
+        bi_version_id());
+    CreateMenuButton(menupane, "Comments", 'm', HelpCB, buf);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "License terms", 'L', HelpCB, (void *) "GPL.html");
     CreateMenuButton(menupane, "About...", 'A', create_about_grtool, NULL);
