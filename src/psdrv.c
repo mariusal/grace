@@ -40,7 +40,6 @@
 #include <time.h>
 
 #include "defines.h"
-#include "globals.h"
 #include "utils.h"
 #include "draw.h"
 #include "device.h"
