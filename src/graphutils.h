@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -36,6 +36,7 @@
 #define __GRAPHUTILS_H_
 
 #include "defines.h"
+#include "grace.h"
 
 #define GSCROLL_LEFT    0
 #define GSCROLL_RIGHT   1
@@ -87,6 +88,6 @@ int autoscale_graph(int gno, int autos_type);
 void move_legend(int gno, VVector shift);
 void move_timestamp(plotstr *timestamp, VVector shift);
 
-void rescale_viewport(double ext_x, double ext_y);
+void rescale_viewport(Project *pr, double ext_x, double ext_y);
 
 #endif /* __GRAPHUTILS_H_ */

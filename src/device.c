@@ -102,7 +102,7 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
                     ext_y = old_aspectr;
                 }
 
-                rescale_viewport(ext_x, ext_y);
+                rescale_viewport(grace->project, ext_x, ext_y);
             } 
         }
         for (i = 0; i < ndevices; i++) {

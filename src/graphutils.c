@@ -773,13 +773,13 @@ void move_timestamp(plotstr *timestamp, VVector shift)
     set_dirtystate();
 }
 
-void rescale_viewport(double ext_x, double ext_y)
+void rescale_viewport(Project *pr, double ext_x, double ext_y)
 {
     graph *g;
     DObject *o;
 
-    storage_rewind(grace->project->graphs);
-    while (storage_get_data(grace->project->graphs, (void **) &g) == RETURN_SUCCESS) {
+    storage_rewind(pr->graphs);
+    while (storage_get_data(pr->graphs, (void **) &g) == RETURN_SUCCESS) {
         g->v.xv1 *= ext_x;
         g->v.xv2 *= ext_x;
         g->v.yv1 *= ext_y;
@@ -805,11 +805,12 @@ void rescale_viewport(double ext_x, double ext_y)
             }
         }
         
-        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
+        if (storage_next(pr->graphs) != RETURN_SUCCESS) {
             break;
         }
     }
     
+    set_dirtystate();
 }
 
 int overlay_graphs(int gsec, int gpri, int type)

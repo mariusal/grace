@@ -1240,7 +1240,7 @@ void project_postprocess(Project *pr)
         set_pagelayout(PAGE_FIXED);
 #endif
         get_page_viewport(&ext_x, &ext_y);
-        rescale_viewport(ext_x, ext_y);
+        rescale_viewport(pr, ext_x, ext_y);
     }
     
     gsave = get_cg();

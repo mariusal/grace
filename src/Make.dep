@@ -21,9 +21,9 @@ files$(O) : files.c globals.h grace.h defines.h storage.h utils.h files.h \
  ssdata.h graphs.h graphutils.h parser.h protos.h missing.h \
  noxprotos.h xprotos.h
 xfile$(O) : xfile.c defines.h utils.h files.h xfile.h
-xml_in$(O) : xml_in.c globals.h grace.h defines.h storage.h utils.h \
- objutils.h device.h t1fonts.h files.h xfile.h xstrings.h protos.h \
- missing.h noxprotos.h graphs.h xprotos.h
+xml_in$(O) : xml_in.c globals.h grace.h defines.h storage.h device.h \
+ t1fonts.h files.h utils.h draw.h graphs.h graphutils.h objutils.h \
+ protos.h missing.h noxprotos.h xprotos.h xstrings.h
 xml_out$(O) : xml_out.c globals.h grace.h defines.h storage.h utils.h \
  draw.h t1fonts.h graphs.h graphutils.h objutils.h files.h xfile.h \
  xstrings.h protos.h missing.h noxprotos.h xprotos.h
@@ -132,16 +132,18 @@ regionwin$(O) : regionwin.c globals.h grace.h defines.h storage.h \
 setwin$(O) : setwin.c globals.h grace.h defines.h storage.h graphs.h \
  utils.h plotone.h draw.h ssdata.h parser.h motifinc.h protos.h \
  missing.h noxprotos.h xprotos.h
-objwin$(O) : objwin.c
+objwin$(O) : objwin.c ../cmath.h utils.h draw.h defines.h patterns.h \
+ storage.h graphs.h grace.h objutils.h motifinc.h protos.h missing.h \
+ noxprotos.h xprotos.h
 setappwin$(O) : setappwin.c globals.h grace.h defines.h storage.h \
  graphs.h draw.h utils.h motifinc.h protos.h missing.h noxprotos.h \
  xprotos.h
 tickwin$(O) : tickwin.c globals.h grace.h defines.h storage.h protos.h \
- missing.h noxprotos.h graphs.h xprotos.h utils.h graphutils.h \
+ missing.h noxprotos.h graphs.h xprotos.h utils.h draw.h graphutils.h \
  motifinc.h
-worldwin$(O) : worldwin.c mbitmaps.h graphutils.h defines.h device.h \
- t1fonts.h utils.h motifinc.h protos.h missing.h noxprotos.h graphs.h \
- grace.h storage.h xprotos.h
+worldwin$(O) : worldwin.c mbitmaps.h graphutils.h defines.h grace.h \
+ storage.h device.h t1fonts.h utils.h motifinc.h protos.h missing.h \
+ noxprotos.h graphs.h xprotos.h
 fontwin$(O) : fontwin.c t1fonts.h defines.h utils.h motifinc.h protos.h \
  missing.h noxprotos.h graphs.h grace.h storage.h xprotos.h
 xutil$(O) : xutil.c defines.h globals.h grace.h storage.h utils.h files.h \
