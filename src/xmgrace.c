@@ -370,6 +370,7 @@ static int is_motif_compatible(void)
 
 int initialize_gui(int *argc, char **argv)
 {
+    Screen *screen;
     ApplicationData rd;
     String *allResources, *resolResources;
     int lowres = FALSE;
@@ -391,13 +392,14 @@ int initialize_gui(int *argc, char **argv)
         }
     }
     disp = XOpenDisplay(display_name);
-    if (disp) {
-        Screen *screen;
-        screen = DefaultScreenOfDisplay(disp);
-        if (HeightOfScreen(screen) < 740) {
-            lowres = TRUE;
-        }
-        XCloseDisplay(disp);
+    if (disp == NULL) {
+	errmsg("Can't open display");
+        return RETURN_FAILURE;
+    }
+
+    screen = DefaultScreenOfDisplay(disp);
+    if (HeightOfScreen(screen) < 740) {
+        lowres = TRUE;
     }
     
     n_common = sizeof(fallbackResourcesCommon)/sizeof(String) - 1;
@@ -418,11 +420,7 @@ int initialize_gui(int *argc, char **argv)
     allResources[n_common + n_resol] = NULL;
     XtAppSetFallbackResources(app_con, allResources);
     
-    disp = XtOpenDisplay(app_con, NULL, NULL, "XMgrace", NULL, 0, argc, argv);
-    if (disp == NULL) {
-	errmsg("Can't open display");
-        return RETURN_FAILURE;
-    }
+    XtDisplayInitialize(app_con, disp, NULL, "XMgrace", NULL, 0, argc, argv);
 
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
