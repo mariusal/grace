@@ -137,8 +137,8 @@ void create_props_frame(void *data)
 	fr = CreateFrame(props_frame, "Scroll/zoom");
         AddDialogFormChild(props_frame, fr);
         rc1 = CreateVContainer(fr);
-	scrollper_item = CreateScale(rc1, "Scroll %", 0, 200);
-	shexper_item   = CreateScale(rc1, "Zoom %",   0, 200);
+	scrollper_item = CreateScale(rc1, "Scroll %", 0, 200, 20);
+	shexper_item   = CreateScale(rc1, "Zoom %",   0, 200, 20);
 	linkscroll_item = CreateToggleButton(rc1, "Linked scrolling");
 
 	fr = CreateFrame(props_frame, "Dates");

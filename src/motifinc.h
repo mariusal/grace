@@ -334,7 +334,7 @@ Widget CreateTab(Widget parent);
 Widget CreateTabPage(Widget parent, char *s);
 void SelectTabPage(Widget tab, Widget w);
 
-Widget CreateScale(Widget parent, char *s, int min, int max);
+Widget CreateScale(Widget parent, char *s, int min, int max, int delta);
 void SetScaleValue(Widget w, int value);
 int GetScaleValue(Widget w);
 void SetScaleWidth(Widget w, int width);
