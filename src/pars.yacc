@@ -1,11 +1,11 @@
 %{
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1937,7 +1937,7 @@ parmset:
 	    boxes[curbox].gno = $2;
 	}
 	| BOX expr ',' expr ',' expr ',' expr {
-	    if (curbox >= 0 && curbox < maxboxes) {
+	    if (curbox >= 0 && curbox < number_of_boxes()) {
 		boxes[curbox].x1 = $2;
 		boxes[curbox].y1 = $4;
 		boxes[curbox].x2 = $6;
@@ -1963,7 +1963,7 @@ parmset:
 	    box_fillpat = checkon(PATTERN, box_fillpat, (int) $4);
 	}
 	| BOX DEF {
-	    if (curbox >= 0 && curbox < maxboxes) {
+	    if (curbox >= 0 && curbox < number_of_boxes()) {
 		boxes[curbox].lines = box_lines;
 		boxes[curbox].linew = box_linew;
 		boxes[curbox].color = box_color;
@@ -2004,7 +2004,7 @@ parmset:
 	    ellip[curellipse].gno = $2;
 	}
 	| ELLIPSE expr ',' expr ',' expr ',' expr {
-	    if (curellipse >= 0 && curellipse < maxellipses) {
+	    if (curellipse >= 0 && curellipse < number_of_ellipses()) {
 		ellip[curellipse].x1 = $2;
 		ellip[curellipse].y1 = $4;
 		ellip[curellipse].x2 = $6;
@@ -2030,7 +2030,7 @@ parmset:
 	    ellipse_fillpat = checkon(PATTERN, ellipse_fillpat, (int) $4);
 	}
 	| ELLIPSE DEF {
-	    if (curellipse >= 0 && curellipse < maxellipses) {
+	    if (curellipse >= 0 && curellipse < number_of_ellipses()) {
 		ellip[curellipse].lines = ellipse_lines;
 		ellip[curellipse].linew = ellipse_linew;
 		ellip[curellipse].color = ellipse_color;
@@ -2089,7 +2089,7 @@ parmset:
 	    line_color = checkon(COLOR, line_color, (int) $3);
 	}
 	| LINE ARROW NUMBER {
-	    line_arrow = checkon(ARROW, line_arrow, (int) $3);
+	    line_arrow_end = checkon(ARROW, line_arrow_end, (int) $3);
 	}
 	| LINE ARROW SIZE NUMBER {
 	    line_asize = $4;
@@ -2097,14 +2097,20 @@ parmset:
 	| LINE ARROW TYPE NUMBER {
 	    line_atype = (int) $4;
 	}
+	| LINE ARROW LAYOUT expr ',' expr {
+	    line_a_dL_ff = $4;
+	    line_a_lL_ff = $6;
+	}
 	| LINE DEF {
-	    if (curline >= 0 && curline < maxlines) {
+	    if (curline >= 0 && curline < number_of_lines()) {
 		lines[curline].lines = line_lines;
 		lines[curline].linew = line_linew;
 		lines[curline].color = line_color;
-		lines[curline].arrow = line_arrow;
-		lines[curline].asize = line_asize;
-		lines[curline].atype = line_atype;
+		lines[curline].arrow_end = line_arrow_end;
+		lines[curline].arrow.length = line_asize;
+		lines[curline].arrow.type = line_atype;
+		lines[curline].arrow.dL_ff = line_a_dL_ff;
+		lines[curline].arrow.lL_ff = line_a_lL_ff;
 		lines[curline].loctype = line_loctype;
 	    }
 	}

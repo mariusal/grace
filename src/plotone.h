@@ -77,7 +77,7 @@ void draw_box(int gno, int i);
 void draw_ellipse(int gno, int i);
 void draw_line(int gno, int i);
 
-void draw_arrowhead(VPoint vp1, VPoint vp2, double size, int type);
+void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp);
 
 void dolegend(int gno);
 void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip);

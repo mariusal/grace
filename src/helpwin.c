@@ -210,13 +210,13 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 	
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "Max number of lines = %d", maxlines);
+	sprintf(buf, "Max number of lines = %d", number_of_lines());
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "Max number of boxes = %d", maxboxes);
+	sprintf(buf, "Max number of boxes = %d", number_of_boxes());
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "Max number of ellipses = %d", maxellipses);
+	sprintf(buf, "Max number of ellipses = %d", number_of_ellipses());
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "Max number of strings = %d", maxstr);
+	sprintf(buf, "Max number of strings = %d", number_of_strings());
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
         
 	CreateSeparator(about_panel);

@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -594,7 +594,7 @@ static void put_objects(int gno, FILE * pp, int embed)
     } else {
         embedstr[0] = 0;
     }
-    for (i = 0; i < maxboxes; i++) {
+    for (i = 0; i < number_of_boxes(); i++) {
         get_graph_box(i, &b);
         if (b.active == TRUE) {
             fprintf(pp, "%swith box\n", embedstr);
@@ -613,7 +613,7 @@ static void put_objects(int gno, FILE * pp, int embed)
         }
     }
 
-    for (i = 0; i < maxellipses; i++) {
+    for (i = 0; i < number_of_ellipses(); i++) {
         get_graph_ellipse(i, &e);
         if (e.active == TRUE) {
             fprintf(pp, "%swith ellipse\n", embedstr);
@@ -631,7 +631,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             fprintf(pp, "%sellipse def\n", embedstr);
         }
     }
-   for (i = 0; i < maxlines; i++) {
+   for (i = 0; i < number_of_lines(); i++) {
         get_graph_line(i, &l);
         if (l.active == TRUE) {
             fprintf(pp, "%swith line\n", embedstr);
@@ -644,14 +644,15 @@ static void put_objects(int gno, FILE * pp, int embed)
             fprintf(pp, "%s    line linewidth %.1f\n", embedstr, l.linew);
             fprintf(pp, "%s    line linestyle %d\n", embedstr, l.lines);
             fprintf(pp, "%s    line color %d\n", embedstr, l.color);
-            fprintf(pp, "%s    line arrow %d\n", embedstr, l.arrow);
-            fprintf(pp, "%s    line arrow size %f\n", embedstr, l.asize);
-            fprintf(pp, "%s    line arrow type %d\n", embedstr, l.atype);
+            fprintf(pp, "%s    line arrow %d\n", embedstr, l.arrow_end);
+            fprintf(pp, "%s    line arrow type %d\n", embedstr, l.arrow.type);
+            fprintf(pp, "%s    line arrow size %f\n", embedstr, l.arrow.length);
+            fprintf(pp, "%s    line arrow layout %f, %f\n", embedstr, l.arrow.dL_ff, l.arrow.lL_ff);
             fprintf(pp, "%sline def\n", embedstr);
         }
     }
 
-    for (i = 0; i < maxstr; i++) {
+    for (i = 0; i < number_of_strings(); i++) {
         get_graph_string(i, &s);
         if (s.active == TRUE && s.s[0]) {
             fprintf(pp, "%swith string\n", embedstr);

@@ -72,6 +72,7 @@ void set_default_world(world * w);
 void set_default_view(view * v);
 void set_default_string(plotstr * s);
 plotstr copy_plotstr(plotstr p);
+void set_default_arrow(Arrow *arrowp);
 void set_default_line(linetype * l);
 void set_default_box(boxtype * b);
 void set_default_ellipse(ellipsetype * b);

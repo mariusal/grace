@@ -138,10 +138,6 @@ int nr = 0;			/* the current region */
 
 
 /* drawing objects */
-int maxboxes = MAXBOXES;
-int maxlines = MAXLINES;
-int maxstr = MAXSTR;
-int maxellipses = MAXELLIPSES;
 
 plotstr *pstr;       /* strings */
 boxtype *boxes;    /* boxes */
@@ -169,12 +165,14 @@ int ellipse_fillcolor = 1;
 int ellipse_loctype = COORD_VIEW;
 
 int line_color = 1;
-int line_arrow = 0;
 int line_lines = 1;
 double line_linew = 1;
 int line_loctype = COORD_VIEW;
+int line_arrow_end = 0;
 double line_asize = 1.0;
 int line_atype = 0;
+double line_a_dL_ff = 1.0;
+double line_a_lL_ff = 0.0;
 
 /* default string parameters */
 int string_color = 1;
@@ -194,11 +192,6 @@ extern int debuglevel;
 
 extern int inwin;		/* true if running X */
 extern int ispipe;		/* true if reading from stdin */
-
-extern int maxboxes;
-extern int maxlines;
-extern int maxstr;
-extern int maxellipses;
 
 extern int ptofile;		/* flag to indicate destination of hardcopy
                                  * output, ptofile = 0 means print to printer
@@ -297,12 +290,14 @@ extern int ellipse_fillcolor;
 extern int ellipse_loctype;
 
 extern int line_color;
-extern int line_arrow;
 extern int line_lines;
 extern double line_linew;
 extern int line_loctype;
+extern int line_arrow_end;
 extern double line_asize;
 extern int line_atype;
+extern double line_a_dL_ff;
+extern double line_a_lL_ff;
 
 extern int string_color;
 extern int string_font;

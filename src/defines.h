@@ -463,6 +463,13 @@ typedef struct {
 } boxtype;
 
 typedef struct {
+    int type;
+    double length;  /* head length (L) */
+    double dL_ff;   /* d/L form factor */
+    double lL_ff;   /* l/L form factor */
+} Arrow;
+
+typedef struct {
     int active;
     int loctype;
     int gno;
@@ -473,9 +480,8 @@ typedef struct {
     int lines;
     double linew;
     int color;
-    int arrow;
-    int atype;
-    double asize;
+    int arrow_end;
+    Arrow arrow;
     view bb;
 } linetype;
 

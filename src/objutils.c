@@ -44,6 +44,11 @@
 #include "utils.h"
 #include "protos.h"
 
+static int maxboxes = 0;
+static int maxlines = 0;
+static int maxstr = 0;
+static int maxellipses = 0;
+
 int number_of_boxes(void) {
     return maxboxes;
 }
@@ -423,14 +428,11 @@ void init_line(int id, VPoint vp1, VPoint vp2)
     if (id < 0 || id > number_of_lines()) {
         return;
     }
+    lines[id].active = TRUE;
     lines[id].color = line_color;
     lines[id].lines = line_lines;
     lines[id].linew = line_linew;
     lines[id].loctype = line_loctype;
-    lines[id].arrow = line_arrow;
-    lines[id].asize = line_asize;
-    lines[id].atype = line_atype;
-    lines[id].active = TRUE;
     if (line_loctype == COORD_VIEW) {
         lines[id].x1 = vp1.x;
         lines[id].y1 = vp1.y;
@@ -442,6 +444,8 @@ void init_line(int id, VPoint vp1, VPoint vp2)
         view2world(vp1.x, vp1.y, &lines[id].x1, &lines[id].y1);
         view2world(vp2.x, vp2.y, &lines[id].x2, &lines[id].y2);
     }
+    lines[id].arrow_end = line_arrow_end;
+    set_default_arrow(&lines[id].arrow);
     set_dirtystate();
 }
 
@@ -561,7 +565,7 @@ void realloc_lines(int n)
 {
     int i;
     if (n > maxlines) {
-	lines = (linetype *) realloc(lines, n * sizeof(linetype));
+	lines = (linetype *) xrealloc(lines, n * sizeof(linetype));
 	for (i = maxlines; i < n; i++) {
 	    set_default_line(&lines[i]);
 	}
@@ -573,7 +577,7 @@ void realloc_boxes(int n)
 {
     int i;
     if (n > maxboxes) {
-	boxes = (boxtype *) realloc(boxes, n * sizeof(boxtype));
+	boxes = (boxtype *) xrealloc(boxes, n * sizeof(boxtype));
 	for (i = maxboxes; i < n; i++) {
 	    set_default_box(&boxes[i]);
 	}
@@ -585,7 +589,7 @@ void realloc_ellipses(int n)
 {
     int i;
     if (n > maxellipses) {
-	ellip = (ellipsetype *) realloc(ellip, n * sizeof(ellipsetype));
+	ellip = (ellipsetype *) xrealloc(ellip, n * sizeof(ellipsetype));
 	for (i = maxellipses; i < n; i++) {
 	    set_default_ellipse(&ellip[i]);
 	}
@@ -597,7 +601,7 @@ void realloc_strings(int n)
 {
     int i;
     if (n > maxstr) {
-	pstr = (plotstr *) realloc(pstr, n * sizeof(plotstr));
+	pstr = (plotstr *) xrealloc(pstr, n * sizeof(plotstr));
 	for (i = maxstr; i < n; i++) {
 	    set_default_string(&pstr[i]);
 	}

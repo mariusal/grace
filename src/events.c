@@ -1167,7 +1167,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
     int i;
 
     *type = OBJECT_NONE;
-    for (i = 0; i < maxboxes; i++) {
+    for (i = 0; i < number_of_boxes(); i++) {
 	if (isactive_box(i)) {
             get_object_bb(OBJECT_BOX, i, bb);
 	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
@@ -1176,7 +1176,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
 	    }
 	}
     }
-    for (i = 0; i < maxboxes; i++) {
+    for (i = 0; i < number_of_ellipses(); i++) {
 	if (isactive_ellipse(i)) {
             get_object_bb(OBJECT_ELLIPSE, i, bb);
 	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
@@ -1185,7 +1185,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
 	    }
 	}
     }
-    for (i = 0; i < maxlines; i++) {
+    for (i = 0; i < number_of_lines(); i++) {
 	if (isactive_line(i)) {
             get_object_bb(OBJECT_LINE, i, bb);
 	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
@@ -1194,7 +1194,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
 	    }
 	}
     }
-    for (i = 0; i < maxstr; i++) {
+    for (i = 0; i < number_of_strings(); i++) {
 	if (isactive_string(i)) {
             get_object_bb(OBJECT_STRING, i, bb);
 	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {

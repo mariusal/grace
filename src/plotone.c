@@ -1789,7 +1789,7 @@ void draw_objects(int gno)
     if (debuglevel == 5) {
         printf("Boxes\n");
     }
-    for (i = 0; i < maxboxes; i++) {
+    for (i = 0; i < number_of_boxes(); i++) {
         if (isactive_box(i)) {
             draw_box(gno, i);
         }
@@ -1797,7 +1797,7 @@ void draw_objects(int gno)
     if (debuglevel == 5) {
         printf("Ellipses\n");
     }
-    for (i = 0; i < maxellipses; i++) {
+    for (i = 0; i < number_of_ellipses(); i++) {
         if (isactive_ellipse(i)) {
             draw_ellipse(gno, i);
         }
@@ -1805,7 +1805,7 @@ void draw_objects(int gno)
     if (debuglevel == 5) {
         printf("Lines\n");
     }
-    for (i = 0; i < maxlines; i++) {
+    for (i = 0; i < number_of_lines(); i++) {
         if (isactive_line(i)) {
             draw_line(gno, i);
         }
@@ -1813,7 +1813,7 @@ void draw_objects(int gno)
     if (debuglevel == 5) {
         printf("Strings\n");
     }
-    for (i = 0; i < maxstr; i++) {
+    for (i = 0; i < number_of_strings(); i++) {
         if (isactive_string(i)) {
             if (debuglevel == 5) {
                 printf("String %d\n", i);
@@ -2023,18 +2023,18 @@ void draw_line(int gno, int i)
         setlinestyle(l.lines);
         DrawLine(vp1, vp2);
 
-        switch (l.arrow) {
+        switch (l.arrow_end) {
         case 0:
             break;
         case 1:
-            draw_arrowhead(vp2, vp1, l.asize, l.atype);
+            draw_arrowhead(vp2, vp1, &l.arrow);
             break;
         case 2:
-            draw_arrowhead(vp1, vp2, l.asize, l.atype);
+            draw_arrowhead(vp1, vp2, &l.arrow);
             break;
         case 3:
-            draw_arrowhead(vp2, vp1, l.asize, l.atype);
-            draw_arrowhead(vp1, vp2, l.asize, l.atype);
+            draw_arrowhead(vp2, vp1, &l.arrow);
+            draw_arrowhead(vp1, vp2, &l.arrow);
             break;
         }
 
@@ -2048,47 +2048,68 @@ void draw_line(int gno, int i)
 /*
  * draw arrow head
  */
-void draw_arrowhead(VPoint vp1, VPoint vp2, double size, int type)
+void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
 {
-    double asize, length;
-    VPoint vpc, vpl, vpr, vps[3];
-    int polylinetype;
+    double L, l, d, vlength;
+    VVector vnorm;
+    VPoint vpc, vpl, vpr, vps[4];
+    int lines;
+    int fg;
     
-    length = hypot((vp2.x - vp1.x), (vp2.y - vp1.y));
-    if (length == 0.0) {
-        errmsg("Can't draw arrow, length = 0.0");
+    vlength = hypot((vp2.x - vp1.x), (vp2.y - vp1.y));
+    if (vlength == 0.0) {
         return;
     }
+
+    vnorm.x = (vp2.x - vp1.x)/vlength;
+    vnorm.y = (vp2.y - vp1.y)/vlength;
     
-    asize = 0.02*size;
-    vpc.x = vp2.x - asize * (vp2.x - vp1.x)/length;
-    vpc.y = vp2.y - asize * (vp2.y - vp1.y)/length;
-    vpl.x = vpc.x + 0.5*asize * (vp2.y - vp1.y)/length;
-    vpl.y = vpc.y - 0.5*asize * (vp2.x - vp1.x)/length;
-    vpr.x = vpc.x - 0.5*asize * (vp2.y - vp1.y)/length;
-    vpr.y = vpc.y + 0.5*asize * (vp2.x - vp1.x)/length;
+    L = 0.02*arrowp->length;
+    d = L*arrowp->dL_ff;
+    l = L*arrowp->lL_ff;
+
+    vpc.x = vp2.x - L*vnorm.x;
+    vpc.y = vp2.y - L*vnorm.y;
+    vpl.x = vpc.x + 0.5*d*vnorm.y;
+    vpl.y = vpc.y - 0.5*d*vnorm.x;
+    vpr.x = vpc.x - 0.5*d*vnorm.y;
+    vpr.y = vpc.y + 0.5*d*vnorm.x;
+    vpc.x += l*vnorm.x;
+    vpc.y += l*vnorm.y;
     
     vps[0] = vpl;
     vps[1] = vp2;
     vps[2] = vpr;
+    vps[3] = vpc;
     
-    switch (type) {
+    lines = getlinestyle();
+    setlinestyle(1);
+    
+    switch (arrowp->type) {
     case 0:
-        polylinetype = POLYLINE_OPEN;
+        DrawPolyline(vps, 3, POLYLINE_OPEN);
         break;
     case 1:
         setpattern(1);
-        DrawPolygon(vps, 3);
-        polylinetype = POLYLINE_CLOSED;
+        DrawPolygon(vps, 4);
+        DrawPolyline(vps, 4, POLYLINE_CLOSED);
         break;
     case 2:
-        polylinetype = POLYLINE_CLOSED;
+        fg = getcolor();
+        setcolor(getbgcolor());
+        setpattern(1);
+        DrawPolygon(vps, 4);
+        setcolor(fg);
+        DrawPolyline(vps, 4, POLYLINE_CLOSED);
         break;
     default:
         errmsg("Internal error in draw_arrowhead()");
-        return;
+        break;
     }
-    DrawPolyline(vps, 3, polylinetype);
+
+    setlinestyle(lines);
+    
+    return;
 }
 
 void draw_region(int r)
@@ -2099,13 +2120,14 @@ void draw_region(int r)
     
     region *this;
 
-    int atype = 0;
-    double asize = 1.0;
-    
     int rgndouble=0;
+    Arrow arrow;
+    
     WPoint wptmp, wp1, wp2, wp3, wp4;
     VPoint vps[4], *vpstmp;
 
+    set_default_arrow(&arrow);
+    
     this=&rg[r];
     
     switch (this->type) {
@@ -2184,8 +2206,8 @@ void draw_region(int r)
         vps[3].x = vps[2].x + xshift;
         vps[3].y = vps[2].y + yshift;
         DrawPolyline(vps, 4, POLYLINE_OPEN);
-        draw_arrowhead(vps[1], vps[0], asize, atype);
-        draw_arrowhead(vps[2], vps[3], asize, atype);
+        draw_arrowhead(vps[1], vps[0], &arrow);
+        draw_arrowhead(vps[2], vps[3], &arrow);
     } else {
         vps[0] = Wpoint2Vpoint(wp1);
         vps[1] = Wpoint2Vpoint(wp2);
@@ -2200,7 +2222,7 @@ void draw_region(int r)
         vps[0] = Wpoint2Vpoint(wp1);
         vps[1] = Wpoint2Vpoint(wp3);
         DrawLine(vps[0], vps[1]);
-        draw_arrowhead(vps[0], vps[1], asize, atype);
+        draw_arrowhead(vps[0], vps[1], &arrow);
     }
 }
 

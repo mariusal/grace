@@ -147,6 +147,14 @@ void set_default_string(plotstr * s)
     s->s[0] = 0;
 }
 
+void set_default_arrow(Arrow *arrowp)
+{
+    arrowp->type = line_atype;
+    arrowp->length = line_asize;
+    arrowp->dL_ff = line_a_dL_ff;
+    arrowp->lL_ff = line_a_lL_ff;
+}
+
 void set_default_line(linetype * l)
 {
     l->active = FALSE;
@@ -156,9 +164,8 @@ void set_default_line(linetype * l)
     l->lines = grdefaults.lines;
     l->linew = grdefaults.linew;
     l->color = grdefaults.color;
-    l->arrow = 0;
-    l->atype = 0;
-    l->asize = 1.0;
+    l->arrow_end = 0;
+    set_default_arrow(&l->arrow);
 }
 
 void set_default_box(boxtype * b)
@@ -282,21 +289,21 @@ void set_default_annotation(void)
 {
     int i;
 
-    lines = (linetype *) malloc(maxlines * sizeof(linetype));
-    boxes = (boxtype *) malloc(maxboxes * sizeof(boxtype));    
-    pstr = (plotstr *) malloc(maxstr * sizeof(plotstr));
-    ellip = (ellipsetype *) malloc(maxellipses * sizeof(ellipsetype));
+    realloc_lines(MAXLINES);
+    realloc_boxes(MAXBOXES);
+    realloc_ellipses(MAXELLIPSES);
+    realloc_strings(MAXSTR);
 
-    for (i = 0; i < maxboxes; i++) {
-        set_default_box(&boxes[i]);
-    }
-    for (i = 0; i < maxlines; i++) {
+    for (i = 0; i < number_of_lines(); i++) {
         set_default_line(&lines[i]);
     }
-    for (i = 0; i < maxellipses; i++) {
+    for (i = 0; i < number_of_boxes(); i++) {
+        set_default_box(&boxes[i]);
+    }
+    for (i = 0; i < number_of_ellipses(); i++) {
         set_default_ellipse(&ellip[i]);
     }
-    for (i = 0; i < maxstr; i++) {
+    for (i = 0; i < number_of_strings(); i++) {
         set_default_string(&pstr[i]);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -66,16 +66,17 @@ static Widget strings_size_item;
 static Widget *strings_loc_item;
 static OptionStructure *strings_color_item;
 static Widget *strings_just_item;
-Widget strings_x_item;
-Widget strings_y_item;
 
 static Widget *lines_arrow_item;
 static Widget lines_asize_item;
 static Widget *lines_atype_item;
+static SpinStructure *lines_a_dL_ff_item;
+static SpinStructure *lines_a_lL_ff_item;
 static OptionStructure *lines_color_item;
 static OptionStructure *lines_style_item;
 static SpinStructure *lines_width_item;
 static Widget *lines_loc_item;
+
 static OptionStructure *boxes_color_item;
 static OptionStructure *boxes_lines_item;
 static SpinStructure *boxes_linew_item;
@@ -128,8 +129,10 @@ void lines_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     line_asize = GetCharSizeChoice(lines_asize_item);
     line_color = GetOptionChoice(lines_color_item);
-    line_arrow = GetChoice(lines_arrow_item);
+    line_arrow_end = GetChoice(lines_arrow_item);
     line_atype = GetChoice(lines_atype_item);
+    line_a_dL_ff = GetSpinChoice(lines_a_dL_ff_item);
+    line_a_lL_ff = GetSpinChoice(lines_a_lL_ff_item);
     line_lines = GetOptionChoice(lines_style_item);
     line_linew = GetSpinChoice(lines_width_item);
     line_loctype = GetChoice(lines_loc_item) ? COORD_VIEW : COORD_WORLD;
@@ -153,9 +156,11 @@ void update_lines(void)
 	SetOptionChoice(lines_color_item, line_color);
 	SetOptionChoice(lines_style_item, line_lines);
 	SetSpinChoice(lines_width_item, line_linew);
-	SetChoice(lines_arrow_item, line_arrow);
+	SetChoice(lines_arrow_item, line_arrow_end);
 	SetChoice(lines_atype_item, line_atype);
 	SetCharSizeChoice(lines_asize_item, line_asize);
+        SetSpinChoice(lines_a_dL_ff_item, line_a_dL_ff);
+        SetSpinChoice(lines_a_lL_ff_item, line_a_lL_ff);
 	SetChoice(lines_loc_item, line_loctype == COORD_VIEW ? 1 : 0);
     }
 }
@@ -414,7 +419,7 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget rc;
+    Widget rc, fr, rc2;
     Widget buts[2];
     Widget panel;
 
@@ -431,28 +436,33 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	lines_color_item = CreateColorChoice(rc, "Color: ");
 
-	lines_width_item = CreateLineWidthChoice(rc, "Width:");
+	lines_width_item = CreateLineWidthChoice(rc, "Line width:");
 
-	lines_style_item = CreateLineStyleChoice(rc, "Style:");
+	lines_style_item = CreateLineStyleChoice(rc, "Line style:");
 
-	lines_arrow_item = CreatePanelChoice(rc, "Arrow:",
+	fr = CreateFrame(rc, "Arrow");
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+        lines_arrow_item = CreatePanelChoice(rc2, "Place at:",
 					     5,
 					     "None",
-					     "At start",
-					     "At end",
+					     "Start",
+					     "End",
 					     "Both ends",
 					     0,
 					     0);
-
-	lines_atype_item = CreatePanelChoice(rc, "Arrow type:",
+	lines_atype_item = CreatePanelChoice(rc2, "Type:",
 					     4,
 					     "Line",
 					     "Filled",
-					     "Hollow",
+					     "Opaque",
 					     0,
 					     0);
-
-	lines_asize_item = CreateCharSizeChoice(rc, "Arrow head size");
+	lines_asize_item = CreateCharSizeChoice(rc2, "Length");
+	lines_a_dL_ff_item = CreateSpinChoice(rc2, "d/L form factor",
+            4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+	lines_a_lL_ff_item = CreateSpinChoice(rc2, "l/L form factor",
+            4, SPIN_TYPE_FLOAT, -1.0, 1.0, 0.1);
+	XtManageChild(rc2);
 
 	lines_loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
@@ -818,6 +828,8 @@ typedef struct {
     Widget *arrow_item;
     Widget *atype_item;
     Widget asize_item;
+    SpinStructure *dL_ff_item;
+    SpinStructure *lL_ff_item;
     Widget x1_item;
     Widget y1_item;
     Widget x2_item;
@@ -827,16 +839,16 @@ typedef struct {
 
 void update_line_edit(EditLineUI *ui)
 {
-    int iv;
     if (ui->top) {
 	int lineno = ui->lineno;
 	SetOptionChoice(ui->color_item, lines[lineno].color);
 	SetOptionChoice(ui->lines_item, lines[lineno].lines);
 	SetSpinChoice(ui->linew_item, lines[lineno].linew);
-	SetChoice(ui->arrow_item, lines[lineno].arrow);
-	SetChoice(ui->atype_item, lines[lineno].atype);
-	iv = (int) (50 * lines[lineno].asize);
-	XtVaSetValues(ui->asize_item, XmNvalue, iv, NULL);
+	SetChoice(ui->arrow_item, lines[lineno].arrow_end);
+	SetChoice(ui->atype_item, lines[lineno].arrow.type);
+	SetCharSizeChoice(ui->asize_item, lines[lineno].arrow.length);
+	SetSpinChoice(ui->dL_ff_item, lines[lineno].arrow.dL_ff);
+	SetSpinChoice(ui->lL_ff_item, lines[lineno].arrow.lL_ff);
 	SetChoice(ui->loc_item, lines[lineno].loctype == COORD_VIEW ? 1 : 0);
 	sprintf(buf, "%.12f", lines[lineno].x1);
 	xv_setstr(ui->x1_item, buf);
@@ -879,7 +891,6 @@ void swap_linewv_coords(Widget w, XtPointer client_data, XtPointer call_data)
 void line_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     EditLineUI *ui = (EditLineUI *) client_data;
-    int value;
     int lineno = ui->lineno;
 
     lines[lineno].color = GetOptionChoice(ui->color_item);
@@ -890,10 +901,11 @@ void line_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xv_evalexpr(ui->y1_item, &lines[lineno].y1);
     xv_evalexpr(ui->x2_item, &lines[lineno].x2);
     xv_evalexpr(ui->y2_item, &lines[lineno].y2);
-    XtVaGetValues(ui->asize_item, XmNvalue, &value, NULL);
-    lines[lineno].asize = value / 50.0;
-    lines[lineno].arrow = GetChoice(ui->arrow_item);
-    lines[lineno].atype = GetChoice(ui->atype_item);
+    lines[lineno].arrow_end = GetChoice(ui->arrow_item);
+    lines[lineno].arrow.type = GetChoice(ui->atype_item);
+    lines[lineno].arrow.length = GetCharSizeChoice(ui->asize_item);
+    lines[lineno].arrow.dL_ff = GetSpinChoice(ui->dL_ff_item);
+    lines[lineno].arrow.lL_ff = GetSpinChoice(ui->lL_ff_item);
     
     set_dirtystate();
     drawgraph();
@@ -903,7 +915,7 @@ static EditLineUI line_ui;
 
 void line_edit_popup(int lineno)
 {
-    Widget rc;
+    Widget rc, fr, rc2;
     Widget panel;
     Widget buts[2];
 
@@ -923,24 +935,33 @@ void line_edit_popup(int lineno)
 	line_ui.linew_item = CreateLineWidthChoice(rc, "Line width:");
 
 	line_ui.lines_item = CreateLineStyleChoice(rc, "Line style:");
-	line_ui.arrow_item = CreatePanelChoice(rc, "Arrow:",
+
+	fr = CreateFrame(rc, "Arrow");
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+        line_ui.arrow_item = CreatePanelChoice(rc2, "Place at:",
 					     5,
 					     "None",
-					     "At start",
-					     "At end",
+					     "Start",
+					     "End",
 					     "Both ends",
 					     0,
 					     0);
 
-	line_ui.atype_item = CreatePanelChoice(rc, "Arrow type:",
+	line_ui.atype_item = CreatePanelChoice(rc2, "Type:",
 					     4,
 					     "Line",
 					     "Filled",
-					     "Hollow",
+					     "Opaque",
 					     0,
 					     0);
 
-	line_ui.asize_item = CreateCharSizeChoice(rc, "Arrow head size");
+	line_ui.asize_item = CreateCharSizeChoice(rc2, "Length");
+	line_ui.dL_ff_item = CreateSpinChoice(rc2, "d/L form factor",
+            4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+	line_ui.lL_ff_item = CreateSpinChoice(rc2, "l/L form factor",
+            4, SPIN_TYPE_FLOAT, -1.0, 1.0, 0.1);
+	XtManageChild(rc2);
+
 	line_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
 					   "World coordinates",
