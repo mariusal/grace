@@ -66,6 +66,8 @@
 #include "ssdata.h"
 #include "protos.h"
 #include "parser.h"
+#include "mathstuff.h"
+
 
 #define MAX_PARS_STRING_LENGTH  4096
 
@@ -136,30 +138,6 @@ static int find_set_bydata(double *data, target *tgt);
 static int getcharstr(void);
 static void ungetchstr(void);
 static int follow(int expect, int ifyes, int ifno);
-
-static double ai_wrap(double x);
-static double bi_wrap(double x);
-static double ci_wrap(double x);
-static double si_wrap(double x);
-static double chi_wrap(double x);
-static double shi_wrap(double x);
-static double fresnlc_wrap(double x);
-static double fresnls_wrap(double x);
-static double iv_wrap(double v, double x);
-static double jv_wrap(double v, double x);
-static double kn_wrap(int n, double x);
-static double yv_wrap(double v, double x);
-static double sqr_wrap(double x);
-static double max_wrap(double x, double y);
-static double min_wrap(double x, double y);
-static double irand_wrap(int x);
-static double rnorm(double mean, double sdev);
-static double fx(double x);
-
-/* constants */
-static double pi_const(void);
-static double deg_uconst(void);
-static double rad_uconst(void);
 
 static int yylex(void);
 static int yyparse(void);
@@ -5342,159 +5320,3 @@ static void yyerror(char *s)
     interr = 1;
 }
 
-
-/* Wrappers for some functions*/
-
-static double ai_wrap(double x)
-{
-    double retval, dummy1, dummy2, dummy3;
-    (void) airy(x, &retval, &dummy1, &dummy2, &dummy3);
-    return retval;
-}
-
-static double bi_wrap(double x)
-{
-    double retval, dummy1, dummy2, dummy3;
-    (void) airy(x, &dummy1, &dummy2, &retval, &dummy3);
-    return retval;
-}
-
-static double ci_wrap(double x)
-{
-    double retval, dummy1;
-    (void) sici(x, &dummy1, &retval);
-    return retval;
-}
-
-static double si_wrap(double x)
-{
-    double retval, dummy1;
-    (void) sici(x, &retval, &dummy1);
-    return retval;
-}
-
-static double chi_wrap(double x)
-{
-    double retval, dummy1;
-    (void) shichi(x, &dummy1, &retval);
-    return retval;
-}
-
-static double shi_wrap(double x)
-{
-    double retval, dummy1;
-    (void) shichi(x, &retval, &dummy1);
-    return retval;
-}
-
-static double fresnlc_wrap(double x)
-{
-    double retval, dummy1;
-    (void) fresnl(x, &dummy1, &retval);
-    return retval;
-}
-
-static double fresnls_wrap(double x)
-{
-    double retval, dummy1;
-    (void) fresnl(x, &retval, &dummy1);
-    return retval;
-}
-
-static double iv_wrap(double v, double x)
-{
-    double retval;
-    if (v == 0) {
-	retval = i0(x);
-    } else if (v == 1) {
-	retval = i1(x);
-    } else {
-	retval = iv(v, x);
-    }
-    return retval;
-}
-
-static double jv_wrap(double v, double x)
-{
-    double retval;
-    if (v == rint(v)) {
-	retval = jn((int) v, x);
-    } else {
-	retval = jv(v, x);
-    }
-    return retval;
-}
-
-static double kn_wrap(int n, double x)
-{
-    double retval;
-    if (n == 0) {
-	retval = k0(x);
-    } else if (n == 1) {
-	retval = k1(x);
-    } else {
-	retval = kn(n, x);
-    }
-    return retval;
-}
-
-static double yv_wrap(double v, double x)
-{
-    double retval;
-    if (v == rint(v)) {
-	retval = yn((int) v, x);
-    } else {
-	retval = yv(v, x);
-    }
-    return retval;
-}
-
-static double sqr_wrap(double x)
-{
-    return x*x;
-}
-
-static double max_wrap(double x, double y)
-{
-    return MAX2(x, y);
-}
-
-static double min_wrap(double x, double y)
-{
-    return MIN2(x, y);
-}
-
-static double irand_wrap(int x)
-{
-    return (double) (lrand48() % x);
-}
-
-static double pi_const(void)
-{
-    return M_PI;
-}
-
-static double deg_uconst(void)
-{
-    return M_PI / 180.0;
-}
-
-static double rad_uconst(void)
-{
-    return 1.0;
-}
-
-#define C1 0.1978977093962766
-#define C2 0.1352915131768107
-
-static double rnorm(double mean, double sdev)
-{
-    double u = drand48();
-
-    return mean + sdev * (pow(u, C2) - pow(1.0 - u, C2)) / C1;
-}
-
-static double fx(double x)
-{
-    return 1.0 / sqrt(2.0 * M_PI) * exp(-x * x * 0.5);
-}
