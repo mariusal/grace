@@ -58,7 +58,7 @@ static Widget psetup_frame;
 static Widget psetup_rc;
 static Widget device_opts_item;
 static Widget *printto_item;
-static Widget print_fileing_item;
+static Widget print_string_item;
 static Widget rc_filesel;
 static Widget printfile_item;
 static Widget pdev_rc;
@@ -150,7 +150,7 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
 			  (XtCallbackProc) do_pr_toggle, (XtPointer) i);
 	}
 
-	print_fileing_item = CreateTextItem2(rc1, 25, "Print command:");
+	print_string_item = CreateTextItem2(rc1, 25, "Print command:");
 
 	rc_filesel = XmCreateRowColumn(rc1, "rc", NULL, 0);
         XtVaSetValues(rc_filesel, XmNorientation, XmHORIZONTAL, NULL);
@@ -245,8 +245,7 @@ static void update_printer_setup(int device_id)
 
 static void update_device_setup(int device_id)
 {
-    char buf[GR_MAXPATHLEN];
-    int buflen;
+    char buf[GR_MAXPATHLEN], *bufptr;
     int page_units;
     double page_x, page_y;
     PageFormat pf;
@@ -264,14 +263,13 @@ static void update_device_setup(int device_id)
             XtSetSensitive(device_opts_item, True);
         }
 
-   	strcpy(buf, mybasename(docname)); 
-   	buflen = 0;
-        while (buf[buflen] != '\0' && buf[buflen] != '.') {
-            buflen++;
+        strcpy(buf, mybasename(docname)); 
+        bufptr = strrchr(buf, '.');
+        if (bufptr) {
+            *(bufptr+1)='\0';
+        } else {
+            strcat(buf, ".");
         }
-        
-        buf[buflen] = '.';
-        buf[buflen + 1] = '\0';
         
         if (print_file == NULL || print_file[0] == '\0' || strstr(print_file, buf)) {
             strcat(buf, dev.fext);
@@ -280,7 +278,7 @@ static void update_device_setup(int device_id)
             xv_setstr(printfile_item, print_file);
         }
                 
-        xv_setstr(print_fileing_item, get_print_cmd());
+        xv_setstr(print_string_item, get_print_cmd());
         
         switch (dev.type) {
         case DEVICE_TERM:
@@ -290,7 +288,7 @@ static void update_device_setup(int device_id)
             XtManageChild(output_frame);
             SetChoice(printto_item, TRUE);
             XtSetSensitive(printto_item[0], False);
-            XtSetSensitive(XtParent(print_fileing_item), False);
+            XtSetSensitive(XtParent(print_string_item), False);
             XtSetSensitive(rc_filesel, True);
             break;
         case DEVICE_PRINT:
@@ -299,10 +297,10 @@ static void update_device_setup(int device_id)
             XtSetSensitive(printto_item[0], True);
             if (get_ptofile() == TRUE) {
                 XtSetSensitive(rc_filesel, True);
-                XtSetSensitive(XtParent(print_fileing_item), False);
+                XtSetSensitive(XtParent(print_string_item), False);
             } else {
                 XtSetSensitive(rc_filesel, False);
-                XtSetSensitive(XtParent(print_fileing_item), True);
+                XtSetSensitive(XtParent(print_string_item), True);
             }
             break;
         }
@@ -388,7 +386,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
         if (get_ptofile()) {
             strcpy(print_file, xv_getstr(printfile_item));
         } else {
-            set_print_cmd(xv_getstr(print_fileing_item));
+            set_print_cmd(xv_getstr(print_string_item));
         }
     }
     
@@ -459,10 +457,10 @@ static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (value == TRUE) {
         XtSetSensitive(rc_filesel, True);
-        XtSetSensitive(XtParent(print_fileing_item), False);
+        XtSetSensitive(XtParent(print_string_item), False);
     } else {
         XtSetSensitive(rc_filesel, False);
-        XtSetSensitive(XtParent(print_fileing_item), True);
+        XtSetSensitive(XtParent(print_string_item), True);
     }
 }
 
