@@ -163,9 +163,7 @@ void set_cursor(int c);
 void init_cursors(void);
 int init_option_menus(void);
 
-void get_canvas_size(Dimension *w, Dimension *h);
-void set_canvas_size(Dimension w, Dimension h);
-void get_scrolled_canvas_size(Dimension *w, Dimension *h);
+void sync_canvas_size(unsigned int *w, unsigned int *h, int inv);
 
 void box_edit_popup(int no);
 void ellipse_edit_popup(int no);
