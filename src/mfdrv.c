@@ -289,7 +289,6 @@ void mf_leavegraphics(const Canvas *canvas, void *data,
 {
     view v = cstats->bbox;
     
-    get_bbox(canvas, BBOX_TYPE_GLOB, &v);
     fprintf(canvas->prstream, "LeaveGraphics { %.4f %.4f %.4f %.4f }\n",
         v.xv1, v.yv1, v.xv2, v.yv2);
 }
