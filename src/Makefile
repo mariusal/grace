@@ -43,7 +43,7 @@ grace$(EXE) : $(GROBJS) $(PARS_C) $(CEPHES_LIB)
 
 
 buildinfo$(EXE) : buildinfo$(O)
-	$(CC) $(CFLAGS) $? -o $@ $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(NOGUI_LIBS)
+	$(CC) $(CFLAGS) $? -o $@ $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) $(NOGUI_LIBS)
 
 buildinfo$(O) : $(TOP)/Make.conf
 	$(CC) $(CFLAGS) $(PREFS) -c buildinfo.c -o $@
