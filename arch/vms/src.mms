@@ -9,13 +9,14 @@ ECHO = WRITE SYS$OUTPUT
 
 INCLUDE $(TOP)Make.conf
 
-CEPHES_LIB = ,[-.CEPHES]libcephes.olb/LIB
+CEPHES_LIB = ,[-.CEPHES]libcephes.olb/LIBRARY
 
 CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP)$(T1_INC)$(LIB_INC)) \
   /DEFINE=("xfree=xfree_")
 
 LIBS = $(GUI_LIBS)$(CEPHES_LIB)$(T1_LIB)$(NETCDF_LIBS)$(FFTW_LIB) \
-       $(PDF_LIB)$(GD_LIB)$(JPEG_LIB)$(NOGUI_LIBS)$(DL_LIB)
+       $(PDF_LIB)$(TIFF_LIB)$(JPEG_LIB)$(PNG_LIB)$(Z_LIB) \
+       $(NOGUI_LIBS)$(DL_LIB)
 
 PREFS = /DEFINE=(CCOMPILER="""$(CCOMPILER)""",\
 	  GRACE_HOME="""$(GRACE_HOME)""",\
@@ -44,8 +45,8 @@ logicals :
 
 #INCLUDE Make.dep
 
-$(GRACE) : $(GROBJS) $(GUIOBJS)
-	LINK /EXECUTABLE=$@ $(LDFLAGS) $+ $(LIBS)
+$(GRACE) : xmgrace.olb($(GROBJS) $(GUIOBJS))
+	LINK /EXECUTABLE=$@ $(LDFLAGS) xmgrace.olb/LIBRARY/INCLUDE=main $(LIBS)
 
 buildinfo$(EXE) : buildinfo$(O)
 	LINK /EXECUTABLE=$@ $? $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(NOGUI_LIBS)

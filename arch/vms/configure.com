@@ -44,10 +44,12 @@ $ EDIT = "edit/tpu/display=motif"
 $ HELP = "mosaic"
 $ NETCDFINC = ""
 $ NETCDFLIB = ""
-$ GDINC = ""
-$ GDLIB = ""
 $ JPEGINC = ""
 $ JPEGLIB = ""
+$ ZINC = ""
+$ ZLIB = ""
+$ PNGINC = ""
+$ PNGLIB = ""
 $ FORCECOPY = 0
 $ SAVE = 0
 $!
@@ -190,16 +192,22 @@ $   NETCDFINC = F$ELEMENT (1, "=", PAR'N')
 $   NETCDFLIB = F$ELEMENT (2, "=", PAR'N') - "="
 $   GOTO LOOP_PARAM
 $ ENDIF
-$ IF (P .EQS. "GD")
-$ THEN
-$   GDINC = F$ELEMENT (1, "=", PAR'N')
-$   GDLIB = F$ELEMENT (2, "=", PAR'N') - "="
-$   GOTO LOOP_PARAM
-$ ENDIF
 $ IF (P .EQS. "JPEG")
 $ THEN
 $   JPEGINC = F$ELEMENT (1, "=", PAR'N')
 $   JPEGLIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "ZLIB")
+$ THEN
+$   ZINC = F$ELEMENT (1, "=", PAR'N')
+$   ZLIB = F$ELEMENT (2, "=", PAR'N') - "="
+$   GOTO LOOP_PARAM
+$ ENDIF
+$ IF (P .EQS. "PNG")
+$ THEN
+$   PNGINC = F$ELEMENT (1, "=", PAR'N')
+$   PNGLIB = F$ELEMENT (2, "=", PAR'N') - "="
 $   GOTO LOOP_PARAM
 $ ENDIF
 $ IF (P .EQS. "COPY")
@@ -221,18 +229,22 @@ $   echo "You must specify both the include directory and the libraries"
 $   echo "with the NETCDF option."
 $   EXIT
 $ ENDIF
-$ IF (GDINC .NES. "")
-$ THEN
-$   GDLIB = F$PARSE (GDLIB, "''GDINC'LIBGD.OLB",,, "SYNTAX_ONLY") - ";"
-$ ENDIF
-$ IF (GDLIB .EQS. "" .AND. JPEGLIB .NES. "")
-$ THEN
-$   echo "You must have the GD library to use the JPEG library."
-$   EXIT
-$ ENDIF
 $ IF (JPEGINC .NES. "")
 $ THEN
 $   JPEGLIB = F$PARSE (JPEGLIB, "''JPEGINC'LIBJPEG.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (ZINC .NES. "")
+$ THEN
+$   ZLIB = F$PARSE (ZLIB, "''ZINC'LIBZ.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (PNGINC .NES. "")
+$ THEN
+$   PNGLIB = F$PARSE (PNGLIB, "''PNGINC'LIBPNG.OLB",,, "SYNTAX_ONLY") - ";"
+$ ENDIF
+$ IF (ZLIB .EQS. "" .AND. PNGLIB .NES. "")
+$ THEN
+$   echo "You must include ZLIB if you want PNG."
+$   EXIT
 $ ENDIF
 $ IF (SAVE)
 $ THEN
@@ -246,7 +258,7 @@ $   IF (P1 .NES. "" .AND. P1 .NES. "SAVE") THEN WRITE OUT P1
 $   IF (P2 .NES. "" .AND. P2 .NES. "SAVE") THEN WRITE OUT P2
 $   IF (P3 .NES. "" .AND. P3 .NES. "SAVE") THEN WRITE OUT P3
 $   IF (P4 .NES. "" .AND. P4 .NES. "SAVE") THEN WRITE OUT P4
-$   IF (P5 .NES. "" .AND. P5 .NES. "SAVE") THEN WRITE OUT P6
+$   IF (P5 .NES. "" .AND. P5 .NES. "SAVE") THEN WRITE OUT P5
 $   IF (P6 .NES. "" .AND. P6 .NES. "SAVE") THEN WRITE OUT P6
 $   IF (P7 .NES. "" .AND. P7 .NES. "SAVE") THEN WRITE OUT P7
 $   IF (P8 .NES. "" .AND. P8 .NES. "SAVE") THEN WRITE OUT P8
@@ -307,19 +319,26 @@ $ ELSE
 $   WRITE OUT "NetCDF:            Include dir: ", NETCDFINC
 $   WRITE OUT "                   Libraries:   ", NETCDFLIB
 $ ENDIF
-$ IF (GDLIB .EQS. "")
-$ THEN
-$   WRITE OUT "GD:                Not used"
-$ ELSE
-$   WRITE OUT "GD:                Include dir: ", GDINC
-$   WRITE OUT "                   Libraries:   ", GDLIB
-$ ENDIF
 $ IF (JPEGLIB .EQS. "")
 $ THEN
 $   WRITE OUT "JPEG:              Not used"
 $ ELSE
 $   WRITE OUT "JPEG:              Include dir: ", JPEGINC
 $   WRITE OUT "                   Libraries:   ", JPEGLIB
+$ ENDIF
+$ IF (ZLIB .EQS. "")
+$ THEN
+$   WRITE OUT "ZLIB:              Not used"
+$ ELSE
+$   WRITE OUT "ZLIB:              Include dir: ", ZINC
+$   WRITE OUT "                   Libraries:   ", ZLIB
+$ ENDIF
+$ IF (PNGLIB .EQS. "")
+$ THEN
+$   WRITE OUT "PNG:               Not used"
+$ ELSE
+$   WRITE OUT "PNG:               Include dir: ", PNGINC
+$   WRITE OUT "                   Library:     ", PNGLIB
 $ ENDIF
 $ CLOSE OUT
 $ echo ""
@@ -386,7 +405,7 @@ $ IF (HW .EQS. "Alpha" .OR. DECC_MAJOR .GE. 6)
 $ THEN ALLOCA = ""
 $ ELSE ALLOCA = "alloca$(O)"
 $ ENDIF
-$ T1_LIB = ",[-.T1LIB]libt1lib.olb/LIB"
+$ T1_LIB = ",[-.T1LIB]libt1lib.olb/LIBRARY"
 $ T1_INC = ",[-.T1LIB.T1LIB]"
 $ T1_AA_TYPE16 = "short"
 $ T1_AA_TYPE32 = "int"
@@ -400,24 +419,25 @@ $ N = 0
 $LOOP_NETCDF_LIBS:
 $ LIB = F$ELEMENT (N, ",", NETCDFLIB)
 $ IF (LIB .EQS. ",") THEN GOTO DONE_NETCDF_LIBS
-$ NETCDF_LIBS = NETCDF_LIBS + "," + LIB + "/LIB"
+$ NETCDF_LIBS = NETCDF_LIBS + "," + LIB + "/LIBRARY"
 $ N = N + 1
 $ GOTO LOOP_NETCDF_LIBS
 $DONE_NETCDF_LIBS:
-$ PDF_LIB = ""
-$ PDFDRV_O = ""
-$ IF (GDLIB .NES. "")
-$ THEN GD_LIB = "," + GDLIB + "/LIB"
-$ ELSE GD_LIB = ""
-$ ENDIF
 $ IF (JPEGLIB .NES. "")
-$ THEN JPEG_LIB = "," + JPEGLIB + "/LIB"
+$ THEN JPEG_LIB = "," + JPEGLIB + "/LIBRARY"
 $ ELSE JPEG_LIB = ""
 $ ENDIF
-$ IF (GDLIB .NES. "")
-$ THEN RSTDRV_O = "rstdrv$(O)"
-$ ELSE RSTDRV_O = ""
+$ IF (ZLIB .NES. "")
+$ THEN Z_LIB = "," + ZLIB + "/LIBRARY"
+$ ELSE Z_LIB = ""
 $ ENDIF
+$ IF (PNGLIB .NES. "")
+$ THEN PNG_LIB = "," + PNGLIB + "/LIBRARY"
+$ ELSE PNG_LIB = ""
+$ ENDIF
+$ TIFF_LIB = ""
+$ PDF_LIB = ""
+$ PDFDRV_O = ""
 $ YACC = ""
 $ CC = "cc"
 $ FC = "fortran"
@@ -442,17 +462,13 @@ $ GUI_FLAGS = ""
 $ LDFLAGS = ""
 $ IF (DECC$CRTL)
 $ THEN
-$   NOGUI_LIBS = ",sys$library:decc$crtl.olb/LIB"
+$   NOGUI_LIBS = ",sys$library:decc$crtl.olb/LIBRARY"
 $   IF (HW .EQS. "VAX") THEN -
-        NOGUI_LIBS = NOGUI_LIBS + ",sys$library:vaxc$lcl.opt/OPT"
+        NOGUI_LIBS = NOGUI_LIBS + ",sys$library:vaxc$lcl.opt/OPTION"
 $ ELSE
 $   NOGUI_LIBS = ""
 $ ENDIF
-$ IF (DECW_MAJOR .EQS. "V1.1")
-$ THEN OPT = "motif1_1.opt"
-$ ELSE OPT = "motif1_2.opt"
-$ ENDIF
-$ GUI_LIBS = ",[-.XBAE]libxbae.olb/LIB,[-.ARCH.VMS]''OPT'/OPT"
+$ GUI_LIBS = ",[-.XBAE]libxbae.olb/LIBRARY,[-.ARCH.VMS]motif1_2.opt/OPTION"
 $ PRINT_CMD = F$ELEMENT (0, """", PRINT)
 $ N = 1
 $LOOP_PRINT_CMD:
@@ -491,8 +507,9 @@ $DONE_MAKE_CONF:
 $ CLOSE IN
 $ LIB_INC = ""
 $ IF (NETCDFINC .NES. "") THEN LIB_INC = LIB_INC + "," + NETCDFINC
-$ IF (GDINC     .NES. "") THEN LIB_INC = LIB_INC + "," + GDINC
 $ IF (JPEGINC   .NES. "") THEN LIB_INC = LIB_INC + "," + JPEGINC
+$ IF (ZINC   .NES. "") THEN LIB_INC = LIB_INC + "," + ZINC
+$ IF (PNGINC   .NES. "") THEN LIB_INC = LIB_INC + "," + PNGINC
 $ WRITE OUT ""
 $ WRITE OUT "# Library include directories"
 $ WRITE OUT "LIB_INC=", LIB_INC
@@ -631,9 +648,9 @@ $ HAVE_YN_DECL = HAVE_YN
 $ HAVE_NETCDF = NETCDFLIB .NES. ""
 $ HAVE_MFHDF = 0
 $ HAVE_FFTW = 0
-$ HAVE_LIBPDF = 0
-$ HAVE_LIBGD = GDLIB .NES. ""
+$ HAVE_LIBPNG = PNGLIB .NES. ""
 $ HAVE_LIBJPEG = JPEGLIB .NES. ""
+$ HAVE_LIBPDF = 0
 $ HAVE_F77 = 1
 $ NEED_F77_UNDERSCORE = 0
 $ X_DISPLAY_MISSING = 0

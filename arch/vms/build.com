@@ -100,19 +100,17 @@ $ XBAE = F$PARSE("[-]","","","DEVICE") + F$PARSE("[-]","","","DIRECTORY") -
 $ DEFINE/NOLOG XBAE 'XBAE'
 $ CFLAGS = CFLAGS0 + "/INCLUDE=([-],[-.T1LIB.T1LIB]''LIB_INC')" -
          + "/DEFINE=(""xfree=xfree_"")"
-$ LIB = ""
+$ LIB = "xmgrace.olb"
 $ SRCS = "main plotone files ssdata utils drawticks " -
        + "nonlfit lmdif as274c fit fourier " -
        + "graphs graphutils setutils regionutils " -
        + "objutils computils defaults params " -
        + "compute draw dlmodule pars missing " -
        + "iofilters dates t1fonts device " -
-       + "dummydrv mfdrv psdrv"
+       + "dummydrv mfdrv psdrv gd rstdrv"
 $ IF (ALLOCA .NES. "") THEN SRCS = SRCS + " alloca"
-$ IF (RSTDRV_O .NES. "") THEN SRCS = SRCS + " rstdrv"
 $ IF (PDFDRV_O .NES. "") THEN SRCS = SRCS + " pdfdrv"
 $ GOSUB COMPILE
-$ SRC1 = SRCL
 $ SRCS = "Tab motifutils " -
        + "compwin comwin eblockwin " -
        + "editpwin events featext fileswin plotwin " -
@@ -122,12 +120,12 @@ $ SRCS = "Tab motifutils " -
        + "setwin strwin setappwin " -
        + "tickwin worldwin fontwin xutil x11drv xmgrace"
 $ GOSUB COMPILE
-$ SRC2 = SRCL
 $ CEPHES_LIB = ",[-.CEPHES]LIBCEPHES.OLB/LIB"
 $ V = F$VERIFY(1)
-$ LINK /EXECUTABLE=xmgrace.exe 'LDFLAGS' 'SRC1','SRC2' -
+$ LINK /EXECUTABLE=xmgrace.exe 'LDFLAGS' xmgrace.olb/lib/inc=main -
     'GUI_LIBS''CEPHES_LIB''T1_LIB''NETCDF_LIBS''FFT1_LIB' -
-    'PDF_LIB''GD_LIB''JPEG_LIB''NOGUI_LIBS''DL_LIB'
+    'PDF_LIB''TIFF_LIB''JPEG_LIB''PNG_LIB''Z_LIB' -
+    'NOGUI_LIBS''DL_LIB'
 $ V = 'F$VERIFY(0)'
 $ DEASSIGN CEPHES
 $ DEASSIGN XBAE
@@ -139,7 +137,6 @@ $ EXIT
 $ !
 $COMPILE:
 $ IF (LIB .NES. "" .AND. F$SEARCH(LIB) .EQS. "") THEN LIBRARY/CREATE/LOG 'LIB'
-$ SRCL = ""
 $ N = 0
 $LOOP_COMPILE:
 $ FILE = F$ELEMENT (N, " ", SRCS)
@@ -149,13 +146,7 @@ $ IF (FILE .EQS. "") THEN GOTO LOOP_COMPILE
 $ V = F$VERIFY(1)
 $ 'CC''CFLAGS' 'FILE'.C
 $ V = 'F$VERIFY(0)'
-$ IF (LIB .EQS. "")
-$ THEN
-$   IF (SRCL .NES. "") THEN SRCL = SRCL + ","
-$   SRCL = SRCL + FILE + ".OBJ"
-$ ELSE
-$   LIBRARY/LOG 'LIB' 'FILE'.OBJ
-$ ENDIF
+$ IF (LIB .NES. "") THEN LIBRARY/LOG 'LIB' 'FILE'.OBJ
 $ GOTO LOOP_COMPILE
 $ !
 $BUILDINFO:

@@ -29,27 +29,13 @@ People who have worked on Grace for VMS:
  and older of VMS, you must do @[.ARCH.VMS]BUILD BUILDINFO before building
  with MMK or MMS.
 
- Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
- problem report in case there is a guru lurking:
-  >>
-  >>  I have apply your patch for Tab.c and I get the next problems:
-  >>
-  >>          XFontSet *font_set;
-  >>          ^
-  >>  %CC-E-UNDECLARED, In this statement, "XFontSet" is not declared.
-  >> ...
-  >
-  >I see. It seems that all problems are related to the font stuff. Since no
-  >advanced features like localization etc are really needed for xmgr, I'm
-  >sure it can be solved. However, I have no experience with backward porting
-  >to X11R4 and Motif-1.1 :). Probably, there is a guru lurking around you
-  >(I mean who is using the same OS). Such a guy would definitly be familiar
-  >with the issue.
+ Grace requires Motif 1.2; it uses the Tab widget and Xbae, which are not
+ supported with Motif 1.1.
 
 2. Other software
 
  There are three libraries that can be included with Grace: NetCDF allows
- you to read files in the HDF format; GD allows you to write GIF files;
+ you to read files in the HDF format; PNG allows you to write PNG files;
  and JPEG allows you to write JPEG files.  When you compile the libraries,
  you should use the same floating point format (IEEE, G_FLOAT, or D_FLOAT)
  as you use with Grace.
@@ -57,18 +43,11 @@ People who have worked on Grace for VMS:
  You can find the NETCDF package at ftp://ftp.ncsa.uiuc.edu/HDF/, including
  precompiled binaries for VAX and Alpha.
 
- You can get a VMS specific version of GD from
- http://www.decus.de:8080/www/vms/sw/gd.htmlx.  Alternatively, you can get
- the Unix version of GD from http://www.boutell.com/gd/ and comile GD.C,
- GDFONTG.C, GDFONTL.C, GDFONTMB.C, GDFONTS.C, and GDFONTT.C with the command
- CC/FLOAT=<float>/WARNING=(DISABLE=(PTRMISMATCH)) and create the library
- from the objects.  <float> is the floating point format used for Grace.
-
- You can get the JPEG library from the Ghostscript distribution at
+ You can get the JPEG library, the PNG library, and the ZLIB library
+ (required if you want PNG) from the Ghostscript distribution at
  http://www.cs.wisc.edu/~ghost/index.html.  You will need to modify
- makefile.vms to use the floating point format you use with Grace.  There is
- also a precompiled version of the library in the netcdf distribution.  You
- must include GD if you want to include JPEG.
+ the make file to use the floating point format you use with Grace.  There
+ is also a precompiled version of the JPEG library in the netcdf distribution.
 
 3. Compilation
 
@@ -166,16 +145,20 @@ People who have worked on Grace for VMS:
       is the directory containing the netcdf header files.  <libraries> is
       a list of the netcdf object libraries, separated by commas.
 
-    GD=<header>=<library> -- Include the GD library for GIF.  <header>
-      is the directory containing the GD header files.  <library> is the
-      GD object library.  The default library is libgd.olb in the <header>
-      directory; you can omit the second equal sign if you use the default.
-
     JPEG=<header>=<library> -- Include the JPEG library.  <header> is the
       directory containing the JPEG header files.  <library> is the JPEG
       object library.  The default library is libjpeg.olb in the <header>
       directory; you can omit the second equal sign if you use the default.
-      You must include the GD library if you want to include the JPEG library.
+
+    ZLIB=<header>=<library> -- Include the ZLIB library.  <header> is the
+      directory containing the ZLIB header files.  <library> is the ZLIB
+      object library.  The default library is libz.olb in the <header>
+      directory; you can omit the second equal sign if you use the default.
+
+    PNG=<header>=<library> -- Include the PNG library.  <header> is the
+      directory containing the PNG header files.  <library> is the PNG
+      object library.  The default library is libpng.olb in the <header>
+      directory; you can omit the second equal sign if you use the default.
 
     COPY -- Copy the build files from [.arch.vms] to the other directories
       even if the files already exist in the other directories.  This option
