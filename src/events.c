@@ -125,7 +125,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             crosshair_motion(x, y);
         }
 	vp = xlibdev2VPoint(x, y);
-        getpoints(vp);
+        getpoints(&vp);
 
         if (focus_policy == FOCUS_FOLLOWS) {
             if ((newg = next_graph_containing(-1, vp)) != cg) {
@@ -182,7 +182,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	x = event->xbutton.x;
 	y = event->xbutton.y;
 	vp = xlibdev2VPoint(x, y);
-	getpoints(vp);
+	getpoints(&vp);
 	switch (event->xbutton.button) {
 	case Button1:
             /* first, determine if it's double click */
@@ -832,15 +832,20 @@ static char *typestr[6] = {"X, Y",
 /*
  * locator on main_panel
  */
-void getpoints(VPoint vp)
+void getpoints(VPoint *vpp)
 {
+    static VPoint vp = {0.0, 0.0};
     int cg = get_cg();
     double wx, wy, xtmp, ytmp;
     int x, y;
     double dsx = 0.0, dsy = 0.0;
     char buf[256], bufx[64], bufy[64], *s;
     GLocator locator;
-
+    
+    if (vpp != NULL) {
+        vp = *vpp;
+    }
+    
     view2world(vp.x, vp.y, &wx, &wy);
     if (get_graph_locator(cg, &locator) != RETURN_SUCCESS) {
         SetLabel(loclab, "[No graphs]");
@@ -1290,7 +1295,7 @@ void switch_current_graph(int gno)
         draw_focus(gno);
         update_all();
         set_graph_selectors(gno);
-        getpoints(anchor_vp);
+        getpoints(NULL);
     }
 }
 
