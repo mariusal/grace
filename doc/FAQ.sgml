@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- $Id: FAQ.sgml,v 1.1 1998-11-24 22:08:51 fnevgeny Exp $ -->
+<!-- $Id: FAQ.sgml,v 1.2 1999-02-18 01:13:36 fnevgeny Exp $ -->
 
 <!-- This is the FAQ for Grace, the 2d plotting tool -->
 
@@ -1215,6 +1215,31 @@
 
 	  This is a known bug of Motif implementation on Solaris
 	  2.5.1 (both Sparc and Intel hardware). Ask your vendor for patch.
+
+      <sect1>Grace cannot find font database and initialize t1-library
+	<p>
+	  You have probably tried to run Grace without installing it,
+	  just after compilation. You got the following message :
+
+<tscreen><verb>
+scanFontDBase(): Font Database
+File not found T1_InitLib(): Fatal error scanning Font
+Database File Initialization of t1-library failed!
+</verb></tscreen>
+
+
+          Grace uses either the <tt/GRACE_HOME/ environment variable
+	  or a compiled in default path to find the font database. If
+	  the variable is not set and you have not installed the
+	  database with <tt/make install/ it cannot find it. If you
+	  want to test Grace before installing it, you should set the
+	  environment variable to the distribution directory (the one
+	  where the file <tt/configure/ lies), this is what the
+	  <tt/dotest/ script does when you run <tt/make check/. The
+	  easiest thing to do however is to install everything with
+	  <tt/make install/. See question <ref id="environment"
+	  name="Environment Variables"> on how to set environment
+	  variables.
 
 <!-- **************************************** -->
 

@@ -7,7 +7,7 @@
 
 <title>Grace Users's Guide (v0.2)
 <author>by the Grace Team
-<date>31.01.1999
+<date>14.02.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, the OpenSource (TM) 2D plotting tool for scientific data.
@@ -384,6 +384,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                auxiliary programs, and examples are located. If you are unable
                to find the location of this directory, contact your system
                administrator.
+               <p>
+        <item> GRACE&lowbar;PRINT&lowbar;CMD
+               <p>
+               Print command.
                <p>
         <item> GRACE&lowbar;EDITOR
                <p>
