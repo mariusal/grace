@@ -49,6 +49,8 @@
 #include "graphs.h"
 #include "utils.h"
 #include "plotone.h"
+#include "ssdata.h"
+#include "parser.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -62,6 +64,7 @@ static void datasetop_aac_cb(void *data);
 static void datasetoptypeCB(int value, void *data);
 static void setop_aac_cb(void *data);
 
+static void leval_aac_cb(void *data);
 
 typedef struct _Type_ui {
     Widget top;
@@ -729,5 +732,253 @@ static void setop_aac_cb(void *data)
         update_all();
         drawgraph();
     }
+    unset_wait_cursor();
+}
+
+typedef struct _Leval_ui {
+    Widget top;
+    OptionStructure *set_type;
+    Widget start;
+    Widget stop;
+    Widget npts;
+    Widget mw;
+    int gno;
+} Leval_ui;
+
+void set_type_cb(int type, void *data)
+{
+    int i, nmrows, nscols;
+    char *rowlabels[MAX_SET_COLS];
+    Leval_ui *ui = (Leval_ui *) data;
+    
+    nmrows = XbaeMatrixNumRows(ui->mw);
+    nscols = settype_cols(type);
+    
+    if (nmrows > nscols) {
+        XbaeMatrixDeleteRows(ui->mw, nscols, nmrows - nscols);
+    } else if (nmrows < nscols) {
+	for (i = nmrows; i < nscols; i++) {
+            rowlabels[i - nmrows] = copy_string(NULL, dataset_colname(i));
+            rowlabels[i - nmrows] = concat_strings(rowlabels[i - nmrows], " = ");
+        }
+        XbaeMatrixAddRows(ui->mw, nmrows, NULL, rowlabels, NULL, nscols - nmrows);
+    }
+}
+
+static Leval_ui levalui;
+
+static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Leval_ui *ui = (Leval_ui *) client_data;
+    
+    XbaeMatrixLeaveCellCallbackStruct *cs =
+    	    (XbaeMatrixLeaveCellCallbackStruct *) call_data;
+
+    XbaeMatrixSetCell(ui->mw, cs->row, cs->column, cs->value);
+}
+
+void create_leval_frame(void *data)
+{
+    int gno = (int) data;
+
+    set_wait_cursor();
+
+    if (is_valid_gno(gno)) {
+        levalui.gno = gno;
+    } else {
+        levalui.gno = get_cg();
+    }
+
+    if (levalui.top == NULL) {
+        int i;
+        Widget panel, fr, rc1;
+        int nscols;
+        char *rows[MAX_SET_COLS][1];
+        char **cells[MAX_SET_COLS];
+        char *rowlabels[MAX_SET_COLS];
+        short column_widths[1] = {50};
+
+	levalui.top = XmCreateDialogShell(app_shell, "Load & evaluate", NULL, 0);
+	handle_close(levalui.top);
+	panel = XmCreateForm(levalui.top, "form", NULL, 0);
+
+	fr = CreateFrame(panel, "Parameter mesh");
+        rc1 = XtVaCreateWidget("rc1",
+            xmRowColumnWidgetClass, fr,
+            XmNorientation, XmHORIZONTAL,
+            NULL);
+	levalui.start = CreateTextItem2(rc1, 10, "Start at:");
+	levalui.stop = CreateTextItem2(rc1, 10, "Stop at:");
+	levalui.npts = CreateTextItem2(rc1, 6, "Length:");
+	XtManageChild(rc1);
+
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+
+ 
+	levalui.set_type = CreateSetTypeChoice(panel, "Set type:");
+        AddOptionChoiceCB(levalui.set_type, set_type_cb, (void *) &levalui);
+        XtVaSetValues(levalui.set_type->menu,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, fr,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+	
+        nscols = settype_cols(curtype);
+	for (i = 0; i < nscols; i++) {
+            rowlabels[i] = copy_string(NULL, dataset_colname(i));
+            rowlabels[i] = concat_strings(rowlabels[i], " = ");
+            if (i == 0) {
+                rows[i][0] = "$t";
+            } else {
+                rows[i][0] = "";
+            }
+            cells[i] = &rows[i][0];
+        }
+
+        levalui.mw = XtVaCreateManagedWidget("mw",
+            xbaeMatrixWidgetClass, panel,
+            XmNrows, nscols,
+            XmNcolumns, 1,
+            XmNvisibleRows, MAX_SET_COLS,
+            XmNvisibleColumns, 1,
+            XmNcolumnWidths, column_widths,
+            XmNrowLabels, rowlabels,
+	    XmNrowLabelWidth, 6,
+            XmNrowLabelAlignment, XmALIGNMENT_CENTER,
+            XmNcells, cells,
+            XmNgridType, XmGRID_CELL_SHADOW,
+            XmNcellShadowType, XmSHADOW_ETCHED_OUT,
+            XmNcellShadowThickness, 2,
+            XmNaltRowCount, 0,
+            NULL);
+
+        XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
+        
+        XtVaSetValues(levalui.mw,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, levalui.set_type->menu,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+
+	fr = CreateFrame(panel, NULL);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, levalui.mw,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+        CreateAACButtons(fr, panel, leval_aac_cb);
+
+	XtManageChild(panel);
+    }
+    XtRaise(levalui.top);
+    unset_wait_cursor();
+}
+
+static void leval_aac_cb(void *data)
+{
+    int aac_mode;
+    int i, nscols, type;
+    double start, stop;
+    int npts;
+    char *formula[MAX_SET_COLS];
+    int res, len;
+    int setno, gno;
+    double *ex;
+    grarr *t;
+    
+    aac_mode = (int) data;
+
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(levalui.top);
+        return;
+    }
+
+    
+    gno = levalui.gno;
+    type = GetOptionChoice(levalui.set_type);
+    nscols = settype_cols(type);
+
+    if (xv_evalexpr(levalui.start, &start) != GRACE_EXIT_SUCCESS) {
+	errmsg("Start item undefined");
+        return;
+    }
+
+    if (xv_evalexpr(levalui.stop, &stop) != GRACE_EXIT_SUCCESS) {
+	errmsg("Stop item undefined");
+        return;
+    }
+
+    if (xv_evalexpri(levalui.npts, &npts) != GRACE_EXIT_SUCCESS) {
+	errmsg("Number of points undefined");
+        return;
+    }
+
+    XbaeMatrixCommitEdit(levalui.mw, False);
+    for (i = 0; i < nscols; i++) {
+        formula[i] = XbaeMatrixGetCell(levalui.mw, i, 0);
+    }
+    
+    set_wait_cursor();
+
+    t = get_parser_arr_by_name("$t");
+    if (t == NULL) {
+        t = define_parser_arr("$t");
+        if (t == NULL) {
+	    errmsg("Internal error");
+            unset_wait_cursor();
+            return;
+        }
+    }
+    
+    if (t->length != 0) {
+        free(t->data);
+        t->length = 0;
+    }
+    t->data = allocate_mesh(start, stop, npts);
+    if (t->data == NULL) {
+	errmsg("Not enough memory");
+        unset_wait_cursor();
+        return;
+    }
+    t->length = npts;
+    
+    setno = nextset(gno);
+    set_dataset_type(gno, setno, type);
+    set_set_hidden(gno, setno, FALSE);
+    if (setlength(gno, setno, npts) != GRACE_EXIT_SUCCESS) {
+	errmsg("Can't allocate more sets");
+        killset(gno, setno);
+        unset_wait_cursor();
+        return;
+    }
+
+    for (i = 0; i < nscols; i++) {
+        res = v_scanner(formula[i], &len, &ex);
+        if (res != GRACE_EXIT_SUCCESS || len != npts) {
+	    char buf[32];
+            sprintf(buf, "Error in formula for %s", dataset_colname(i));
+            errmsg(buf);
+            killset(gno, setno);
+            unset_wait_cursor();
+            return;
+        }
+        setcol(gno, setno, i, ex, npts);
+    }
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(levalui.top);
+    }
+
+    update_set_lists(gno);
+    drawgraph();
+
     unset_wait_cursor();
 }
