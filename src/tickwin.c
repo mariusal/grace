@@ -249,7 +249,7 @@ void create_axes_dialog(int axisno)
         
         rc2 = CreateHContainer(rc);
         axislabelcharsize = CreateCharSizeChoice(rc2, "Char size");
-	XtVaSetValues(axislabelcharsize, XmNscaleWidth, 180, NULL);
+	SetScaleWidth(axislabelcharsize, 180);
         
         axislabellayout = CreatePanelChoice(rc2, "Layout:",
                                             3,
@@ -291,9 +291,9 @@ void create_axes_dialog(int axisno)
         fr = CreateFrame(axes_ticklabel, "Labels");
         rc2 = CreateHContainer(fr);
         tlcharsize = CreateCharSizeChoice(rc2, "Char size");
-	XtVaSetValues(tlcharsize, XmNscaleWidth, 200, NULL);
+	SetScaleWidth(tlcharsize, 200);
         tlangle = CreateAngleChoice(rc2, "Angle");
-	XtVaSetValues(tlangle, XmNscaleWidth, 180, NULL);
+	SetScaleWidth(tlangle, 180);
 
         fr = CreateFrame(axes_ticklabel, "Placement");
         rc = CreateHContainer(fr);

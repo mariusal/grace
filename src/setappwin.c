@@ -326,12 +326,12 @@ void define_symbols_popup(void *data)
         rc2 = CreateHContainer(rc);
 	avalue_font_item = CreateFontChoice(rc2, "Font:");
 	avalue_charsize_item = CreateCharSizeChoice(rc2, "Char size");
-	XtVaSetValues(avalue_charsize_item, XmNscaleWidth, 120, NULL);
+	SetScaleWidth(avalue_charsize_item, 120);
         
         rc2 = CreateHContainer(rc);
 	avalue_color_item = CreateColorChoice(rc2, "Color:");
 	avalue_angle_item = CreateAngleChoice(rc2, "Angle");
-	XtVaSetValues(avalue_angle_item, XmNscaleWidth, 180, NULL);
+	SetScaleWidth(avalue_angle_item, 180);
 
         rc2 = CreateHContainer(rc);
         avalue_prestr = CreateTextItem2(rc2, 10, "Prepend:");
