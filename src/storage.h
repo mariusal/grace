@@ -39,7 +39,8 @@
 #define STORAGE_ENOMEM  2
 #define STORAGE_ENULLP  3
 #define STORAGE_EEXIST  4
-#define STORAGE_EFATAL  5
+#define STORAGE_EPARAM  5
+#define STORAGE_EFATAL  6
 
 /* error types */
 #define STORAGE_ETYPE_DEBUG 0
@@ -105,5 +106,13 @@ int storage_get_unique_id(Storage *sto);
 int storage_get_data_next(Storage *sto, void **datap);
 int storage_get_data_by_id(Storage *sto, int id, void **datap);
 int storage_delete_by_id(Storage *sto, int id);
+
+int storage_data_copy(Storage *sto, int id1, int id2, int create);
+int storage_data_move(Storage *sto, int id1, int id2, int create);
+int storage_data_swap(Storage *sto, int id1, int id2, int create);
+
+int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2, int create);
+int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2, int create);
+int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2, int create);
 
 #endif /* __STORAGE_H_ */

@@ -174,9 +174,9 @@ int storage_eod(Storage *sto)
     
     cllnode = sto->cp;
     while (cllnode) {
+        sto->cp = cllnode;
         cllnode = cllnode->next;
     }
-    sto->cp = cllnode;
     
     return RETURN_SUCCESS;
 }
@@ -188,17 +188,16 @@ int storage_count(Storage *sto)
     return sto->count;
 }
 
-int storage_scroll_to_id(Storage *sto, int id)
+static LLNode *storage_get_node_by_id(Storage *sto, int id)
 {
     LLNode *cllnode;
     
-    STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
-    
+    STORAGE_SAFETY_CHECK(sto, return NULL)
+
     cllnode = sto->cp;
     while (cllnode) {
         if (cllnode->id == id) {
-            sto->cp = cllnode;
-            return RETURN_SUCCESS;
+            return cllnode;
         }
         cllnode = cllnode->next;
     }
@@ -206,14 +205,26 @@ int storage_scroll_to_id(Storage *sto, int id)
     cllnode = sto->cp;
     while (cllnode) {
         if (cllnode->id == id) {
-            sto->cp = cllnode;
-            return RETURN_SUCCESS;
+            return cllnode;
         }
         cllnode = cllnode->prev;
     }
+    
+    return NULL;
+}
 
-    sto->ierrno = STORAGE_ENOENT;
-    return RETURN_FAILURE;
+int storage_scroll_to_id(Storage *sto, int id)
+{
+    LLNode *cllnode;
+    
+    cllnode = storage_get_node_by_id(sto, id);
+    if (cllnode) {
+        sto->cp = cllnode;
+        return RETURN_SUCCESS;
+    } else {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
 }
 
 int storage_id_exists(Storage *sto, int id)
@@ -371,8 +382,16 @@ int storage_delete(Storage *sto)
         }
         if (prev) {
             prev->next = next;
-        } else {
-            sto->start = next;
+        }
+        if (sto->start == sto->cp) {
+            if (next) {
+                sto->start = next;
+            } else if (prev) {
+                sto->start = prev;
+            } else {
+                /* empty storage */
+                sto->start = NULL;
+            }
         }
         if (next) {
             sto->cp = next;
@@ -498,6 +517,177 @@ int storage_duplicate(Storage *sto, int id)
         }
     }
 }
+
+int storage_data_copy(Storage *sto, int id1, int id2, int create)
+{
+    LLNode *llnode1, *llnode2;
+    void *data;
+    
+    if (id1 == id2) {
+        sto->ierrno = STORAGE_EPARAM;
+        return RETURN_FAILURE;
+    }
+    
+    llnode1 = storage_get_node_by_id(sto, id1);
+    if (!llnode1) {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+    llnode2 = storage_get_node_by_id(sto, id2);
+    if (!llnode2) {
+        if (create) {
+            data = sto->data_copy(llnode1->data);
+            if (llnode1->data && !data) {
+                sto->ierrno = STORAGE_ENOMEM;
+                return RETURN_FAILURE;
+            } else {
+                return storage_add(sto, id2, data);
+            }
+        } else {
+            sto->ierrno = STORAGE_ENOENT;
+        }
+        return RETURN_FAILURE;
+    } else {
+        data = sto->data_copy(llnode1->data);
+        if (llnode1->data && !data) {
+            sto->ierrno = STORAGE_ENOMEM;
+            return RETURN_FAILURE;
+        } else {
+            sto->data_free(llnode2->data);
+            llnode2->data = data;
+            return RETURN_SUCCESS;
+        }
+    }
+}
+
+int storage_data_move(Storage *sto, int id1, int id2, int create)
+{
+    /* FIXME */
+    if (storage_data_copy(sto, id1, id2, create) == RETURN_SUCCESS) {
+        storage_delete_by_id(sto, id1);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int storage_data_swap(Storage *sto, int id1, int id2, int create)
+{
+    LLNode *llnode1, *llnode2;
+    void *data;
+    
+    if (id1 == id2) {
+        sto->ierrno = STORAGE_EPARAM;
+        return RETURN_FAILURE;
+    }
+    
+    llnode1 = storage_get_node_by_id(sto, id1);
+    llnode2 = storage_get_node_by_id(sto, id2);
+    if (!llnode1 && !llnode2) {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    } else if (!llnode2 && create) {
+        return storage_data_move(sto, id1, id2, TRUE);
+    } else if (!llnode1 && create) {
+        return storage_data_move(sto, id2, id1, TRUE);
+    } else if (llnode1 && llnode2) {
+        data = llnode1->data;
+        llnode1->data = llnode2->data;
+        llnode2->data = data;
+        return RETURN_SUCCESS;
+    } else {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+}
+
+
+int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2, int create)
+{
+    LLNode *llnode1, *llnode2;
+    void *data;
+    
+    if (sto1 == sto2) {
+        return storage_data_copy(sto1, id1, id2, create);
+    }
+    
+    llnode1 = storage_get_node_by_id(sto1, id1);
+    if (!llnode1) {
+        sto1->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+    llnode2 = storage_get_node_by_id(sto2, id2);
+    if (!llnode2) {
+        if (create) {
+            data = sto1->data_copy(llnode1->data);
+            if (llnode1->data && !data) {
+                sto1->ierrno = STORAGE_ENOMEM;
+                return RETURN_FAILURE;
+            } else {
+                return storage_add(sto2, id2, data);
+            }
+        } else {
+            sto2->ierrno = STORAGE_ENOENT;
+        }
+        return RETURN_FAILURE;
+    } else {
+        data = sto1->data_copy(llnode1->data);
+        if (llnode1->data && !data) {
+            sto1->ierrno = STORAGE_ENOMEM;
+            return RETURN_FAILURE;
+        } else {
+            sto2->data_free(llnode2->data);
+            llnode2->data = data;
+            return RETURN_SUCCESS;
+        }
+    }
+}
+
+int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2, int create)
+{
+    if (sto1 == sto2) {
+        return storage_data_move(sto1, id1, id2, create);
+    }
+    
+    /* FIXME */
+    if (storage2_data_copy(sto1, id1, sto2, id2, create) == RETURN_SUCCESS) {
+        storage_delete_by_id(sto1, id1);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2, int create)
+{
+    LLNode *llnode1, *llnode2;
+    void *data;
+
+    if (sto1 == sto2) {
+        return storage_data_swap(sto1, id1, id2, create);
+    }
+    
+    llnode1 = storage_get_node_by_id(sto1, id1);
+    llnode2 = storage_get_node_by_id(sto2, id2);
+    if (!llnode1 && !llnode2) {
+        sto1->ierrno = STORAGE_ENOENT;
+        sto2->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    } else if (!llnode2 && create) {
+        return storage2_data_move(sto1, id1, sto2, id2, TRUE);
+    } else if (!llnode1 && create) {
+        return storage2_data_move(sto2, id2, sto1, id1, TRUE);
+    } else if (llnode1 && llnode2) {
+        data = llnode1->data;
+        llnode1->data = llnode2->data;
+        llnode2->data = data;
+        return RETURN_SUCCESS;
+    } else {
+        sto1->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+}
+
 
 Storage *storage_copy(Storage *sto)
 {
