@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -28,7 +28,7 @@
 
 /*
  *
- * setops - operations on sets
+ * setwin - GUI for operations on sets and datasets
  *
  */
 
@@ -38,18 +38,9 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/FileSB.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Text.h>
-#include <Xm/List.h>
-#include <Xm/Separator.h>
-#include <Xm/Protocols.h>
 
 #include <Xbae/Matrix.h>
 
@@ -62,14 +53,12 @@
 
 #define cg get_cg()
 
-static Widget but1[2];
+static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
+static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data);
+static void datasetprop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
-static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_drop_points_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_join_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_split_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_sort_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void datasetoptypeCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 
@@ -84,6 +73,160 @@ typedef struct _Type_ui {
 } Type_ui;
 
 static Type_ui tui;
+
+void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Widget panel, menubar, menupane, submenupane, cascade, dialog, rc, fr;
+    int i, j;
+
+    set_wait_cursor();
+    if (tui.top == NULL) {
+        char *rowlabels[MAX_SET_COLS];
+        char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
+        short column_widths[6] = {10, 6, 10, 6, 10, 10};
+        unsigned char column_alignments[6] = {
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END
+                                             };
+        unsigned char column_label_alignments[6] = {
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER
+                                                   };
+	tui.top = XmCreateDialogShell(app_shell, "dataSetProps", NULL, 0);
+	handle_close(tui.top);
+        panel = XtVaCreateWidget("dataSetPanel",
+            xmFormWidgetClass, tui.top, NULL, 0);
+
+        menubar = CreateMenuBar(panel, "dataSetMenuBar", NULL);
+        
+        XtManageChild(menubar);
+        XtVaSetValues(menubar,
+                      XmNtopAttachment, XmATTACH_FORM,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      NULL);
+
+	dialog = XmCreateRowColumn(panel, "dialog_rc", NULL, 0);
+
+	tui.sel = CreateSetChoice(dialog,
+            "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
+	AddListChoiceCB(tui.sel, changetypeCB);
+
+
+        menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
+        CreateMenuButton(menupane, "close", "Close", 'C',
+            (XtCallbackProc) datasetprop_aac_cb, (XtPointer) AAC_CLOSE, NULL);
+
+        menupane = CreateMenu(menubar, "dataSetDataMenu", "Edit", 'E', NULL, NULL);
+
+        CreateMenuButton(menupane, "duplicate", "Duplicate", 'D',
+            duplicate_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(menupane, "killData", "Kill data", 'a',
+            killd_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuSeparator(menupane);
+        submenupane = CreateMenu(menupane, "editData", "Edit data", 'E', NULL, NULL);
+        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
+            editS_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
+            editE_set_proc, (XtPointer) tui.sel, 0);
+        submenupane = CreateMenu(menupane, "createNew", "Create new", 'n', NULL, NULL);
+        CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
+            newF_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
+            newS_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
+            newE_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',
+            newB_set_proc, (XtPointer) tui.sel, 0);
+        CreateMenuSeparator(menupane);
+        CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
+            (XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
+        CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
+                (XtCallbackProc) create_setop_popup, (XtPointer) NULL, 0);
+ 
+
+        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
+        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
+        CreateMenuButton(menupane, "onDataSets", "On data sets", 's',
+            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
+        CreateMenuButton(menupane, "onContext", "On context", 'x',
+            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
+
+	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
+	tui.length_item = CreateTextItem2(rc, 6, "Length:");
+        XtManageChild(rc);
+	tui.comment_item = CreateTextItem2(dialog, 26, "Comment:");
+
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            rowlabels[i] = copy_string(NULL, dataset_colname(i));
+            for (j = 0; j < 6; j++) {
+                tui.rows[i][j] = NULL;
+            }
+        }
+
+	fr = CreateFrame(dialog, "Statistics");
+        tui.mw = XtVaCreateManagedWidget("mw",
+            xbaeMatrixWidgetClass, fr,
+            XmNrows, MAX_SET_COLS,
+            XmNcolumns, 6,
+            XmNvisibleRows, MAX_SET_COLS,
+            XmNvisibleColumns, 4,
+            XmNcolumnLabels, collabels,
+            XmNcolumnWidths, column_widths,
+            XmNcolumnAlignments, column_alignments,
+            XmNcolumnLabelAlignments, column_label_alignments,
+            XmNrowLabels, rowlabels,
+	    XmNrowLabelWidth, 3,
+            XmNrowLabelAlignment, XmALIGNMENT_CENTER,
+            XmNshowArrows, True,
+            XmNallowColumnResize, True,
+            XmNgridType, XmGRID_COLUMN_SHADOW,
+            XmNcellShadowType, XmSHADOW_OUT,
+            XmNcellShadowThickness, 1,
+            XmNaltRowCount, 1,
+            XmNtraversalOn, False,
+            NULL);
+
+/*
+ *         XtUninstallTranslations(tui.mw);
+ */
+        XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
+
+	XtManageChild(dialog);
+        XtVaSetValues(dialog,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, menubar,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+
+	fr = CreateFrame(panel, NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        CreateAACButtons(rc, panel, datasetprop_aac_cb);
+        XtManageChild(rc);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, dialog,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+
+	XtManageChild(panel);
+    }
+    XtRaise(tui.top);
+    unset_wait_cursor();
+}
 
 static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -154,7 +297,7 @@ static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
     XtVaSetValues(tui.mw, XmNcells, cells, NULL);
 }
 
-void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     XbaeMatrixEnterCellCallbackStruct *cbs =
         (XbaeMatrixEnterCellCallbackStruct *) call_data;
@@ -162,504 +305,10 @@ void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
     cbs->doit = False;
 }
 
-
-void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget panel, menubar, menupane, submenupane, cascade, dialog, rc, fr;
-    int i, j;
-
-    set_wait_cursor();
-    if (tui.top == NULL) {
-        char *rowlabels[MAX_SET_COLS];
-        char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
-        short column_widths[6] = {10, 6, 10, 6, 10, 10};
-        unsigned char column_alignments[6] = {
-                                                XmALIGNMENT_END,
-                                                XmALIGNMENT_END,
-                                                XmALIGNMENT_END,
-                                                XmALIGNMENT_END,
-                                                XmALIGNMENT_END,
-                                                XmALIGNMENT_END
-                                             };
-        unsigned char column_label_alignments[6] = {
-                                                      XmALIGNMENT_CENTER,
-                                                      XmALIGNMENT_CENTER,
-                                                      XmALIGNMENT_CENTER,
-                                                      XmALIGNMENT_CENTER,
-                                                      XmALIGNMENT_CENTER,
-                                                      XmALIGNMENT_CENTER
-                                                   };
-	tui.top = XmCreateDialogShell(app_shell, "Data set props", NULL, 0);
-	handle_close(tui.top);
-        panel = XtVaCreateWidget("dataSetPanel",
-            xmFormWidgetClass, tui.top, NULL, 0);
-
-        menubar = CreateMenuBar(panel, "dataSetMenuBar", NULL);
-        
-        XtManageChild(menubar);
-        XtVaSetValues(menubar,
-                      XmNtopAttachment, XmATTACH_FORM,
-                      XmNleftAttachment, XmATTACH_FORM,
-                      XmNrightAttachment, XmATTACH_FORM,
-                      NULL);
-
-	dialog = XmCreateRowColumn(panel, "dialog_rc", NULL, 0);
-
-	tui.sel = CreateSetChoice(dialog,
-            "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
-	AddListChoiceCB(tui.sel, changetypeCB);
-
-
-        menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
-        CreateMenuButton(menupane, "close", "Close", 'C',
-            (XtCallbackProc) dataset_aac_cb, (XtPointer) AAC_CLOSE, NULL);
-
-        menupane = CreateMenu(menubar, "dataSetDataMenu", "Edit", 'E', NULL, NULL);
-
-        CreateMenuButton(menupane, "duplicate", "Duplicate", 'D',
-            duplicate_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(menupane, "killData", "Kill data", 'a',
-            killd_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuSeparator(menupane);
-        submenupane = CreateMenu(menupane, "editData", "Edit data", 'E', NULL, NULL);
-        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
-            editS_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
-            editE_set_proc, (XtPointer) tui.sel, 0);
-        submenupane = CreateMenu(menupane, "createNew", "Create new", 'n', NULL, NULL);
-        CreateMenuButton(submenupane, "byFormula", "By formula", 'f',
-            newF_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "inShpreadsheet", "In spreadsheet", 's',
-            newS_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "inEditor", "In text editor", 'e',
-            newE_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuButton(submenupane, "fromBlockData", "From block data", 'b',
-            newB_set_proc, (XtPointer) tui.sel, 0);
-        CreateMenuSeparator(menupane);
-        CreateMenuButton(menupane, "setAppearance", "Set appearance...", 'S',
-            (XtCallbackProc) define_symbols_popup, (XtPointer) -1, 0);
-        CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
-                (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
- 
-
-        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
-        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
-        CreateMenuButton(menupane, "onDataSets", "On data sets", 's',
-            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
-        CreateMenuButton(menupane, "onContext", "On context", 'x',
-            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
-
-	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
-	tui.length_item = CreateTextItem2(rc, 6, "Length:");
-        XtManageChild(rc);
-	tui.comment_item = CreateTextItem2(dialog, 26, "Comment:");
-
-        for (i = 0; i < MAX_SET_COLS; i++) {
-            rowlabels[i] = copy_string(NULL, dataset_colname(i));
-            for (j = 0; j < 6; j++) {
-                tui.rows[i][j] = NULL;
-            }
-        }
-
-	fr = CreateFrame(dialog, "Statistics");
-        tui.mw = XtVaCreateManagedWidget("mw",
-            xbaeMatrixWidgetClass, fr,
-            XmNrows, MAX_SET_COLS,
-            XmNcolumns, 6,
-            XmNvisibleRows, MAX_SET_COLS,
-            XmNvisibleColumns, 4,
-            XmNcolumnLabels, collabels,
-            XmNcolumnWidths, column_widths,
-            XmNcolumnAlignments, column_alignments,
-            XmNcolumnLabelAlignments, column_label_alignments,
-            XmNrowLabels, rowlabels,
-	    XmNrowLabelWidth, 3,
-            XmNrowLabelAlignment, XmALIGNMENT_CENTER,
-            XmNshowArrows, True,
-            XmNallowColumnResize, True,
-            XmNgridType, XmGRID_COLUMN_SHADOW,
-            XmNcellShadowType, XmSHADOW_OUT,
-            XmNcellShadowThickness, 1,
-            XmNaltRowCount, 1,
-            XmNtraversalOn, False,
-            NULL);
-
 /*
- *         XtUninstallTranslations(tui.mw);
+ * change dataset properties
  */
-        XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
-
-	XtManageChild(dialog);
-        XtVaSetValues(dialog,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, menubar,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
-
-	fr = CreateFrame(panel, NULL);
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        CreateAACButtons(rc, panel, dataset_aac_cb);
-        XtManageChild(rc);
-        XtVaSetValues(fr,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, dialog,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_FORM,
-            NULL);
-
-	XtManageChild(panel);
-    }
-    XtRaise(tui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Drop_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget start_item;
-    Widget stop_item;
-} Drop_ui;
-
-static Drop_ui dui;
-
-void create_drop_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (dui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	dui.top = XmCreateDialogShell(app_shell, "Drop points", NULL, 0);
-	handle_close(dui.top);
-	dialog = XmCreateRowColumn(dui.top, "dialog_rc", NULL, 0);
-
-	dui.sel = CreateSetSelector(dialog, "Drop points from set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	dui.start_item = CreateTextItem2(dialog, 6, "Start drop at:");
-	dui.stop_item = CreateTextItem2(dialog, 6, "End drop at:");
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_drop_points_proc, (XtPointer) & dui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) dui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(dui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Join_ui {
-    Widget top;
-    SetChoiceItem sel1;
-    SetChoiceItem sel2;
-} Join_ui;
-
-static Join_ui jui;
-
-void create_join_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (jui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	jui.top = XmCreateDialogShell(app_shell, "Join sets", NULL, 0);
-	handle_close(jui.top);
-	dialog = XmCreateRowColumn(jui.top, "dialog_rc", NULL, 0);
-
-	jui.sel1 = CreateSetSelector(dialog, "Join set:",
-				     SET_SELECT_ACTIVE,
-				     FILTER_SELECT_NONE,
-				     GRAPH_SELECT_CURRENT,
-				     SELECTION_TYPE_SINGLE);
-	jui.sel2 = CreateSetSelector(dialog, "To the end of set:",
-				     SET_SELECT_ACTIVE,
-				     FILTER_SELECT_NONE,
-				     GRAPH_SELECT_CURRENT,
-				     SELECTION_TYPE_SINGLE);
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_join_sets_proc, (XtPointer) & jui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) jui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(jui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Split_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget len_item;
-} Split_ui;
-
-static Split_ui sui;
-
-void create_split_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (sui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	sui.top = XmCreateDialogShell(app_shell, "Split sets", NULL, 0);
-	handle_close(sui.top);
-	dialog = XmCreateRowColumn(sui.top, "dialog_rc", NULL, 0);
-
-	sui.sel = CreateSetSelector(dialog, "Split set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	sui.len_item = CreateTextItem2(dialog, 10, "Length:");
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_split_sets_proc, (XtPointer) & sui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(sui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Sort_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *xy_item;
-    Widget *up_down_item;
-} Sort_ui;
-
-static Sort_ui sortui;
-
-void create_sort_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (sortui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	sortui.top = XmCreateDialogShell(app_shell, "Sort sets", NULL, 0);
-	handle_close(sortui.top);
-	dialog = XmCreateRowColumn(sortui.top, "dialog_rc", NULL, 0);
-
-	sortui.sel = CreateSetSelector(dialog, "Sort set:",
-				       SET_SELECT_ACTIVE,
-				       FILTER_SELECT_NONE,
-				       GRAPH_SELECT_CURRENT,
-				       SELECTION_TYPE_MULTIPLE);
-	sortui.xy_item = CreatePanelChoice(dialog,
-					   "Sort on:",
-					   7,
-					   "X",
-					   "Y",
-					   "Y1",
-					   "Y2",
-					   "Y3",
-					   "Y4",
-					   0, 0);
-	sortui.up_down_item = CreatePanelChoice(dialog,
-						"Order:",
-						3,
-						"Ascending",
-						"Descending", 0,
-						0);
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_sort_proc, (XtPointer) & sortui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sortui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(sortui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Reverse_ui {
-    Widget top;
-    SetChoiceItem sel;
-} Reverse_ui;
-
-static Reverse_ui rui;
-
-void create_reverse_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (rui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	rui.top = XmCreateDialogShell(app_shell, "Reverse sets", NULL, 0);
-	handle_close(rui.top);
-	dialog = XmCreateRowColumn(rui.top, "dialog_rc", NULL, 0);
-
-	rui.sel = CreateSetSelector(dialog, "Reverse set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_reverse_sets_proc, (XtPointer) & rui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) rui.top);
-
-	XtManageChild(dialog);
-    }
-    XtRaise(rui.top);
-    unset_wait_cursor();
-}
-
-typedef struct _Swap_ui {
-    Widget top;
-    ListStructure *sel1;
-    ListStructure *sel2;
-    ListStructure *graph1_item;
-    ListStructure *graph2_item;
-    OptionStructure *optype_item;
-} Swap_ui;
-
-static Swap_ui swapui;
-
-void source_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    ListStructure *listp;
-    int gno;
-    
-    listp = (ListStructure *) client_data;
-    if (listp == NULL) {
-        return;
-    }
-    
-    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
-        UpdateSetChoice(swapui.sel1, gno);
-    } else {
-        UpdateSetChoice(swapui.sel1, -1);
-    }
-}
-
-void target_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    ListStructure *listp;
-    int gno;
-    
-    listp = (ListStructure *) client_data;
-    if (listp == NULL) {
-        return;
-    }
-    
-    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
-        UpdateSetChoice(swapui.sel2, gno);
-    } else {
-        UpdateSetChoice(swapui.sel2, -1);
-    }
-}
-
-#define OPTYPE_COPY 0
-#define OPTYPE_MOVE 1
-#define OPTYPE_SWAP 2
-
-void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    Widget panel, rc, rc2, fr;
-    OptionItem opitems[3];
-
-    set_wait_cursor();
-    if (swapui.top == NULL) {
-	swapui.top = XmCreateDialogShell(app_shell, "SwapSets", NULL, 0);
-	handle_close(swapui.top);
-        panel = XtVaCreateWidget("panel", xmFormWidgetClass, 
-                                          swapui.top, NULL, 0);
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel,
-			      XmNorientation, XmHORIZONTAL,
-			      NULL);
-
-	fr = CreateFrame(rc, "Source");
-        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-	swapui.graph1_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
-	swapui.sel1 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(swapui.graph1_item, source_cb);
-        UpdateSetChoice(swapui.sel1, cg);
-        XtManageChild(rc2);
-
-	fr = CreateFrame(rc, "Destination");
-        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-	swapui.graph2_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
-	swapui.sel2 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(swapui.graph2_item, target_cb);
-        UpdateSetChoice(swapui.sel2, cg);
-        XtManageChild(rc2);
-
-        XtManageChild(rc);
-        XtVaSetValues(rc,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
-        
-        opitems[0].value = OPTYPE_COPY;
-        opitems[0].label = "Copy";
-        opitems[1].value = OPTYPE_MOVE;
-        opitems[1].label = "Move";
-        opitems[2].value = OPTYPE_SWAP;
-        opitems[2].label = "Swap";
-        swapui.optype_item = CreateOptionChoice(panel,
-            "Type of operation:", 0, 3, opitems);
-        XtVaSetValues(swapui.optype_item->rc,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, rc,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
-        
-	fr = CreateFrame(panel, NULL);
-        XtVaSetValues(fr,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, swapui.optype_item->rc,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_FORM,
-            NULL);
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        CreateAACButtons(rc, panel, swap_aac_cb);
-        XtManageChild(rc);
-
-	XtManageChild(panel);
-    }
-    XtRaise(swapui.top);
-    unset_wait_cursor();
-}
-
-/*
- * change the type of a set
- */
-static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void datasetprop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int aac_mode, error = FALSE;
     int *selset, nsets, i, len, setno, type;
@@ -709,6 +358,370 @@ static void dataset_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 
+typedef enum {
+    DATASETOP_SORT,
+    DATASETOP_REVERSE,
+    DATASETOP_JOIN,
+    DATASETOP_SPLIT,
+    DATASETOP_DROP
+}dataSetOpType;
+
+typedef struct _Datasetop_ui {
+    Widget top;
+    ListStructure *sel;
+    OptionStructure *optype_item;
+    Widget *xy_item;
+    Widget *up_down_item;
+    Widget length_item;
+    Widget start_item;
+    Widget stop_item;
+} Datasetop_ui;
+
+static Datasetop_ui datasetopui;
+
+static Widget datasettype_controls[5];
+
+void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Widget dialog, panel, menubar, menupane, cascade, rc, fr;
+    OptionItem optype_items[5];
+
+    set_wait_cursor();
+    if (datasetopui.top == NULL) {
+        optype_items[0].value = DATASETOP_SORT;
+        optype_items[0].label = "Sort";
+        optype_items[1].value = DATASETOP_REVERSE;
+        optype_items[1].label = "Reverse";
+        optype_items[2].value = DATASETOP_JOIN;
+        optype_items[2].label = "Join";
+        optype_items[3].value = DATASETOP_SPLIT;
+        optype_items[3].label = "Split";
+        optype_items[4].value = DATASETOP_DROP;
+        optype_items[4].label = "Drop points";
+        
+	datasetopui.top = XmCreateDialogShell(app_shell, "dataSetOperations", NULL, 0);
+        XtVaSetValues(datasetopui.top, XmNallowShellResize, True, NULL);
+	handle_close(datasetopui.top);
+        panel = XtVaCreateWidget("dataSetPanel",
+            xmFormWidgetClass, datasetopui.top, NULL, 0);
+        XtVaSetValues(panel, XmNresizePolicy, XmRESIZE_ANY, NULL);
+
+        menubar = CreateMenuBar(panel, "dataSetMenuBar", NULL);
+        
+        XtManageChild(menubar);
+        XtVaSetValues(menubar,
+                      XmNtopAttachment, XmATTACH_FORM,
+                      XmNleftAttachment, XmATTACH_FORM,
+                      XmNrightAttachment, XmATTACH_FORM,
+                      NULL);
+
+	dialog = XmCreateRowColumn(panel, "dialog_rc", NULL, 0);
+        XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
+
+	datasetopui.sel = CreateSetChoice(dialog,
+            "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
+/*
+ * 	AddListChoiceCB(datasetopui.sel, changetypeCB);
+ */
+
+
+        menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
+        CreateMenuButton(menupane, "close", "Close", 'C',
+            (XtCallbackProc) datasetop_aac_cb, (XtPointer) AAC_CLOSE, NULL);
+
+
+        menupane = CreateMenu(menubar, "nonlHelpMenu", "Help", 'H', &cascade, NULL);
+        XtVaSetValues(menubar, XmNmenuHelpWidget, cascade, NULL);
+        CreateMenuButton(menupane, "onDatasetOperations", "On dataset operations", 's',
+            (XtCallbackProc) HelpCB, (XtPointer) NULL, 0);
+        CreateMenuButton(menupane, "onContext", "On context", 'x',
+            (XtCallbackProc) ContextHelpCB, (XtPointer) NULL, 0);
+
+	datasetopui.optype_item = CreateOptionChoice(dialog,
+						"Operation type:",
+						1, 5, optype_items);
+   	AddOptionChoiceCB(datasetopui.optype_item, datasetoptypeCB);
+
+	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        XtVaSetValues(rc, XmNrecomputeSize, True, NULL);
+	datasetopui.xy_item = CreatePanelChoice(rc,
+					   "Sort on:",
+					   7,
+					   "X",
+					   "Y",
+					   "Y1",
+					   "Y2",
+					   "Y3",
+					   "Y4",
+					   0, 0);
+	datasetopui.up_down_item = CreatePanelChoice(rc,
+						"Order:",
+						3,
+						"Ascending",
+						"Descending", 0,
+						0);
+        datasettype_controls[0] = rc;
+
+	/* Reverse */
+        rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        CreateSeparator(rc);
+        datasettype_controls[1] = rc;
+
+	/* Join */
+	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        CreateSeparator(rc);
+        datasettype_controls[2] = rc;
+
+	/* Split */
+	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        datasetopui.length_item = CreateTextItem2(rc, 6, "Length:");
+        datasettype_controls[3] = rc;
+
+	/* Drop points */
+	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        datasetopui.start_item = CreateTextItem2(rc, 6, "Start at:");
+        datasetopui.stop_item  = CreateTextItem2(rc, 6, "Stop at:");
+        datasettype_controls[4] = rc;
+
+	XtManageChild(datasettype_controls[0]);
+
+	XtManageChild(dialog);
+        XtVaSetValues(dialog,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, menubar,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+
+	fr = CreateFrame(panel, NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        CreateAACButtons(rc, panel, datasetop_aac_cb);
+        XtManageChild(rc);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, dialog,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+
+	XtManageChild(panel);
+    }
+    XtRaise(datasetopui.top);
+    unset_wait_cursor();
+}
+
+static void datasetoptypeCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int i;
+    dataSetOpType type = (int) client_data;
+    
+    for (i = 0; i < 5; i++) {
+        if (i == type) {
+            XtManageChild(datasettype_controls[i]);
+        } else {
+            XtUnmanageChild(datasettype_controls[i]);
+        }
+    }
+}
+
+static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int aac_mode, error = FALSE;
+    int *selset, nsets, i, setno;
+    int sorton, stype;
+    int lpart;
+    int startno, endno;
+    static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
+    dataSetOpType optype;
+    
+    aac_mode = (int) client_data;
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(datasetopui.top);
+        return;
+    }
+    
+    nsets = GetListChoices(datasetopui.sel, &selset);
+    if (nsets < 1) {
+        errmsg("No set selected");
+        return;
+    } else {
+        set_wait_cursor();
+ 
+        optype = GetOptionChoice(datasetopui.optype_item);
+ 
+        switch (optype) {
+        case DATASETOP_SORT:
+            sorton = son[GetChoice(datasetopui.xy_item)];
+            stype = GetChoice(datasetopui.up_down_item);
+
+            for (i = 0; i < nsets; i++) {
+                setno = selset[i];
+	        do_sort(setno, sorton, stype);
+            }
+            break;
+        case DATASETOP_REVERSE:
+            for (i = 0; i < nsets; i++) {
+                setno = selset[i];
+	        reverse_set(cg, setno);
+            }
+            break;
+        case DATASETOP_JOIN:
+            join_sets(cg, selset, nsets);
+            break;
+        case DATASETOP_SPLIT:
+            xv_evalexpri(datasetopui.length_item, &lpart);
+            for (i = 0; i < nsets; i++) {
+                setno = selset[i];
+                do_splitsets(cg, setno, lpart);
+            }
+            break;
+        case DATASETOP_DROP:
+            xv_evalexpri(datasetopui.start_item, &startno);
+            xv_evalexpri(datasetopui.stop_item, &endno);
+            for (i = 0; i < nsets; i++) {
+                setno = selset[i];
+		do_drop_points(setno, startno, endno);
+            }
+            break;
+        }
+ 
+        if (aac_mode == AAC_ACCEPT && error == FALSE) {
+            XtUnmanageChild(datasetopui.top);
+        }
+        
+        free(selset);
+
+        update_set_lists(cg);
+        unset_wait_cursor();
+        drawgraph();
+    }
+}
+
+
+typedef struct _Setop_ui {
+    Widget top;
+    ListStructure *sel1;
+    ListStructure *sel2;
+    ListStructure *graph1_item;
+    ListStructure *graph2_item;
+    OptionStructure *optype_item;
+} Setop_ui;
+
+static Setop_ui setopui;
+
+void source_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp;
+    int gno;
+    
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
+        return;
+    }
+    
+    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
+        UpdateSetChoice(setopui.sel1, gno);
+    } else {
+        UpdateSetChoice(setopui.sel1, -1);
+    }
+}
+
+void target_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp;
+    int gno;
+    
+    listp = (ListStructure *) client_data;
+    if (listp == NULL) {
+        return;
+    }
+    
+    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
+        UpdateSetChoice(setopui.sel2, gno);
+    } else {
+        UpdateSetChoice(setopui.sel2, -1);
+    }
+}
+
+#define OPTYPE_COPY 0
+#define OPTYPE_MOVE 1
+#define OPTYPE_SWAP 2
+
+void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Widget panel, rc, rc2, fr;
+    OptionItem opitems[3];
+
+    set_wait_cursor();
+    if (setopui.top == NULL) {
+	setopui.top = XmCreateDialogShell(app_shell, "setOperations", NULL, 0);
+	handle_close(setopui.top);
+        panel = XtVaCreateWidget("panel", xmFormWidgetClass, 
+                                          setopui.top, NULL, 0);
+	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel,
+			      XmNorientation, XmHORIZONTAL,
+			      NULL);
+
+	fr = CreateFrame(rc, "Source");
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+	setopui.graph1_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
+	setopui.sel1 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
+        AddListChoiceCB(setopui.graph1_item, source_cb);
+        UpdateSetChoice(setopui.sel1, cg);
+        XtManageChild(rc2);
+
+	fr = CreateFrame(rc, "Destination");
+        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
+	setopui.graph2_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
+	setopui.sel2 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
+        AddListChoiceCB(setopui.graph2_item, target_cb);
+        UpdateSetChoice(setopui.sel2, cg);
+        XtManageChild(rc2);
+
+        XtManageChild(rc);
+        XtVaSetValues(rc,
+            XmNtopAttachment, XmATTACH_FORM,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+        
+        opitems[0].value = OPTYPE_COPY;
+        opitems[0].label = "Copy";
+        opitems[1].value = OPTYPE_MOVE;
+        opitems[1].label = "Move";
+        opitems[2].value = OPTYPE_SWAP;
+        opitems[2].label = "Swap";
+        setopui.optype_item = CreateOptionChoice(panel,
+            "Type of operation:", 0, 3, opitems);
+        XtVaSetValues(setopui.optype_item->rc,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, rc,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            NULL);
+        
+	fr = CreateFrame(panel, NULL);
+        XtVaSetValues(fr,
+            XmNtopAttachment, XmATTACH_WIDGET,
+            XmNtopWidget, setopui.optype_item->rc,
+            XmNleftAttachment, XmATTACH_FORM,
+            XmNrightAttachment, XmATTACH_FORM,
+            XmNbottomAttachment, XmATTACH_FORM,
+            NULL);
+        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        CreateAACButtons(rc, panel, swap_aac_cb);
+        XtManageChild(rc);
+
+	XtManageChild(panel);
+    }
+    XtRaise(setopui.top);
+    unset_wait_cursor();
+}
+
+
 /*
  * swap a set with another set
  */
@@ -720,18 +733,18 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     aac_mode = (int) client_data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(swapui.top);
+        XtUnmanageChild(setopui.top);
         return;
     }
 
     set_wait_cursor();
     
-    optype = GetOptionChoice(swapui.optype_item);
+    optype = GetOptionChoice(setopui.optype_item);
     
-    g1_ok = GetSingleListChoice(swapui.graph1_item, &gno1);
-    g2_ok = GetSingleListChoice(swapui.graph2_item, &gno2);
-    ns1 = GetListChoices(swapui.sel1, &svalues1);
-    ns2 = GetListChoices(swapui.sel2, &svalues2);
+    g1_ok = GetSingleListChoice(setopui.graph1_item, &gno1);
+    g2_ok = GetSingleListChoice(setopui.graph2_item, &gno2);
+    ns1 = GetListChoices(setopui.sel1, &svalues1);
+    ns2 = GetListChoices(setopui.sel2, &svalues2);
     
     error = FALSE;
     if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
@@ -785,7 +798,7 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     }
     
     if (aac_mode == AAC_ACCEPT && error == FALSE) {
-        XtUnmanageChild(swapui.top);
+        XtUnmanageChild(setopui.top);
     }
 
     if (ns1 > 0) {
@@ -800,135 +813,3 @@ static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     }
     unset_wait_cursor();
 }
-
-/*
- * drop points from an active set
- */
-static void do_drop_points_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int i, *selsets;
-    int cnt;
-    int startno, endno, setno;
-    Drop_ui *ui = (Drop_ui *) client_data;
-    xv_evalexpri(ui->start_item, &startno);
-    xv_evalexpri(ui->stop_item, &endno);
-	startno -= 1;
-	endno -= 1;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-		errwin("No sets selected");
-		return;
-    }
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-		setno = selsets[i];
-		do_drop_points(setno, startno, endno);
-    }
-    update_set_lists(cg);
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
-}
-
-/*
- * append one set to another
- */
-static void do_join_sets_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int j1, j2;
-    Join_ui *ui = (Join_ui *) client_data;
-    j1 = GetSelectedSet(ui->sel1);
-    j2 = GetSelectedSet(ui->sel2);
-    if (j1 == SET_SELECT_ERROR || j2 == SET_SELECT_ERROR) {
-	errwin("Select 2 sets");
-	return;
-    }
-    set_wait_cursor();
-    do_join_sets(cg, j1, cg, j2);
-    update_set_lists(cg);
-    unset_wait_cursor();
-    drawgraph();
-}
-
-/*
- * reverse the order of a set
- */
-static void do_reverse_sets_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int setno;
-    int cnt, i, *selsets;
-    Reverse_ui *ui = (Reverse_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-	errwin("No sets selected");
-	return;
-    }
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	reverse_set(get_cg(), setno);
-    }
-    update_set_lists(cg);
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
-}
-
-
-/*
- sort sets
-*/
-static void do_sort_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno, sorton, stype;
-    Sort_ui *ui = (Sort_ui *) client_data;
-    static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
-
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-	errwin("No sets selected");
-	return;
-    }
-    sorton = son[GetChoice(ui->xy_item)];
-    stype = GetChoice(ui->up_down_item);
-
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_sort(setno, sorton, stype);
-    }
-    update_set_lists(cg);
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
-}
-
-
-/*
- * split sets split by itmp, remainder in last set.
- */
-static void do_split_sets_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno, lpart;
-    Split_ui *ui = (Split_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-		errwin("No sets selected");
-		return;
-    }
-    xv_evalexpri(ui->len_item, &lpart);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-		setno = selsets[i];
-		do_splitsets(cg, setno, lpart);
-    }
-    update_set_lists(cg);
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
-}
-

@@ -630,9 +630,9 @@ static Widget CreateMainMenuBar(Widget parent)
     menupane = CreateMenu(menubar, "editMenu", "Edit", 'E', NULL, NULL);
 
     CreateMenuButton(menupane, "dataSets", "Data sets...", 'D',
-    	    (XtCallbackProc) create_change_popup, (XtPointer) NULL, 0);
+    	    (XtCallbackProc) create_datasetprop_popup, (XtPointer) NULL, 0);
     CreateMenuButton(menupane, "setOperations", "Set operations...", 'o',
-    	    (XtCallbackProc) create_swap_popup, (XtPointer) NULL, 0);
+    	    (XtCallbackProc) create_setop_popup, (XtPointer) NULL, 0);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "arrangeGraphs", "Arrange graphs...", 'r',
     	    (XtCallbackProc) create_arrange_frame, (XtPointer) NULL, 0);
@@ -650,8 +650,6 @@ static Widget CreateMainMenuBar(Widget parent)
     	    (XtCallbackProc) create_define_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "clear", "Clear...", 'C',
     	    (XtCallbackProc) create_clear_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
-    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
 
     CreateMenuButton(menupane, "hotLinks", "Hot links...", 'l',
     	(XtCallbackProc) create_hotlinks_popup, (XtPointer) NULL, 0);
@@ -675,32 +673,17 @@ static Widget CreateMainMenuBar(Widget parent)
  */
     menupane = CreateMenu(menubar, "dataMenu", "Data", 'D', NULL, NULL);
 
-    submenupane = CreateMenu(menupane, "dataSetOperationsMenu", "Data set operations", 't', NULL, NULL);
-
-    CreateMenuButton(submenupane, "Sort", "Sort...", 'o',
-    	    (XtCallbackProc) create_sort_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "reverse", "Reverse...", 'v',
-    	    (XtCallbackProc) create_reverse_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "join", "Join...", 'J',
-    	    (XtCallbackProc) create_join_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "split", "Split...", 'S',
-    	    (XtCallbackProc) create_split_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "dropPoints", "Drop points...", 'n',
-    	    (XtCallbackProc) create_drop_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(menupane, "dataSetOperationsMenu", "Data set operations...", 'o',
+    	    (XtCallbackProc) create_datasetop_popup, (XtPointer) NULL, 0);
 
     submenupane = CreateMenu(menupane, "regionOperationsMenu", 
     				"Region operations", 'i', NULL, NULL);
-
-    CreateMenuButton(submenupane, "evaluate", "Evaluate...", 'E',
-    	    (XtCallbackProc) create_evalregion_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "extractPoints", "Extract points...", 'p',
-    	    (XtCallbackProc) create_extract_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "extractSets", "Extract sets...", 's',
     	    (XtCallbackProc) create_extractsets_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "deletePoints", "Delete points...", 'o',
-    	    (XtCallbackProc) create_delete_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "killSets", "Kill sets...", 'K',
     	    (XtCallbackProc) create_deletesets_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "reportOn", "Report on...", 'R',
+    	    (XtCallbackProc) create_reporton_frame, (XtPointer) NULL, 0);
 
     CreateMenuSeparator(menupane);
     	    
@@ -709,6 +692,8 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(submenupane, "evaluateExpression", "Evaluate expression...", 'E',
     	    (XtCallbackProc) create_eval_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "evaluate", "Evaluate in R...", 'E',
+    	    (XtCallbackProc) create_evalregion_frame, (XtPointer) NULL, 0);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "histograms", "Histograms...", 'H',
     	    (XtCallbackProc) create_histo_frame, (XtPointer) NULL, 0);
@@ -742,8 +727,14 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
     	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
+    CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "samplePoints", "Sample points...", 'm',
     	    (XtCallbackProc) create_samp_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "extractPoints", "Extract points in R...", 'p',
+    	    (XtCallbackProc) create_extract_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "deletePoints", "Delete points in R...", 'o',
+    	    (XtCallbackProc) create_delete_frame, (XtPointer) NULL, 0);
+    CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "featureExtraction", "Feature extraction...", 'x',
     	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',

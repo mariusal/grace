@@ -274,15 +274,9 @@ void errwin(char *s);
 
 void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
-void define_pickops_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_drop_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_join_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_split_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_kill_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_sort_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_reverse_popup(Widget w, XtPointer client_data, XtPointer call_data);
-void create_swap_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data);
+void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
