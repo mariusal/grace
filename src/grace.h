@@ -213,8 +213,6 @@ int project_get_graphs(Quark *q, Quark ***graphs);
 
 void project_set_wrap_year(Quark *q, int wrap_year);
 
-int get_font_by_name(const Quark *project, const char *name);
-
 
 char *grace_path(Grace *grace, char *fn);
 char *grace_path2(Grace *grace, const char *prefix, char *fn);

@@ -145,4 +145,7 @@ void move_legend(Quark *gr, const VVector *shift);
 
 void rescale_viewport(Quark *pr, double ext_x, double ext_y);
 
+int get_font_by_name(const Quark *project, const char *name);
+int get_color_by_name(const Quark *project, const char *name);
+
 #endif /* __CORE_UTILS_H_ */

@@ -69,11 +69,13 @@ static void setapp_data_proc(Widget but, void *data)
             load_comments_to_legend(pset);
             break;
         case SETAPP_ALL_COLORS:
+            /* FIXME!!!
             while (c == bg ||
                    get_colortype(grace->rt->canvas, c) != COLOR_MAIN) {
                 c++;
                 c %= number_of_colors(grace->rt->canvas);
             }
+            */
             setcolors(pset, c);
             c++;
             break;

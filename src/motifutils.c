@@ -1962,20 +1962,19 @@ static BitmapOptionItem *lines_option_items;
 static void init_xvlibcolors(void)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
+    Project *pr = project_get_data(grace->project);
     unsigned int i;
     
-    for (i = 0; i < number_of_colors(canvas); i++) {
-        long pixel = -1;
-        Color *color = get_color_def(canvas, i);
+    for (i = 0; i < pr->ncolors; i++) {
+        long pixel;
+        Colordef *c = &pr->colormap[i];
         
-        if (color != NULL && color->ctype == COLOR_MAIN) {
-            pixel = x11_allocate_color(grace->gui, &color->rgb);
-        }
+        pixel = x11_allocate_color(grace->gui, &c->rgb);
         
         if (pixel >= 0) {
-            xvlibcolors[i] = pixel;
+            xvlibcolors[c->id] = pixel;
         } else {
-            xvlibcolors[i] = BlackPixel(xstuff->disp, xstuff->screennumber);
+            xvlibcolors[c->id] = BlackPixel(xstuff->disp, xstuff->screennumber);
         }
     }
 }
@@ -2284,6 +2283,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 static Widget CreateColorChoicePopup(Widget button)
 {
     X11Stuff *xstuff = grace->gui->xstuff;
+    Project *pr = project_get_data(grace->project);
     Widget popup;
     unsigned int ci;
     
@@ -2293,26 +2293,24 @@ static Widget CreateColorChoicePopup(Widget button)
                   XmNpacking, XmPACK_COLUMN,
                   NULL);
 
-    for (ci = 0; ci < number_of_colors(canvas); ci++) {
-        Color *color = get_color_def(canvas, ci);
-        if (color != NULL && color->ctype == COLOR_MAIN) {
-            long bg, fg;
-            Widget cb;
-            cb = CreateButton(popup, color->cname);
-            XtAddCallback(cb,
-                XmNactivateCallback, cc_cb, (XtPointer) ci);
+    for (ci = 0; ci < pr->ncolors; ci++) {
+        Colordef *c = &pr->colormap[ci];
+        long bg, fg;
+        Widget cb;
+        cb = CreateButton(popup, c->cname);
+        XtAddCallback(cb,
+            XmNactivateCallback, cc_cb, (XtPointer) ci);
 
-            bg = xvlibcolors[ci];
-	    if (get_colorintensity(canvas, ci) < 0.5) {
-	        fg = WhitePixel(xstuff->disp, xstuff->screennumber);
-	    } else {
-	        fg = BlackPixel(xstuff->disp, xstuff->screennumber);
-	    }
-	    XtVaSetValues(cb, 
-                XmNbackground, bg,
-                XmNforeground, fg,
-                NULL);
-        }
+        bg = xvlibcolors[ci];
+	if (get_colorintensity(canvas, ci) < 0.5) {
+	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
+	} else {
+	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
+	}
+	XtVaSetValues(cb, 
+            XmNbackground, bg,
+            XmNforeground, fg,
+            NULL);
     }
     
     return popup;
@@ -2967,26 +2965,17 @@ void paint_color_selector(OptionStructure *optp)
 
 void update_color_selectors(void)
 {
-    unsigned int i, j;
-    Color *color;
+    unsigned int i;
+    Project *pr = project_get_data(grace->project);
     
-    for (i = 0, j = 0; i < number_of_colors(canvas); i++) {
-        color = get_color_def(canvas, i);
-        if (color != NULL && color->ctype == COLOR_MAIN) {
-            j++;
-        }
-    }
-    ncolor_option_items = j;
+    ncolor_option_items = pr->ncolors;
 
     color_option_items = xrealloc(color_option_items,
                                     ncolor_option_items*sizeof(OptionItem));
-    for (i = 0, j = 0; i < number_of_colors(canvas); i++) {
-        color = get_color_def(canvas, i);
-        if (color != NULL && color->ctype == COLOR_MAIN) {
-            color_option_items[j].value = i;
-            color_option_items[j].label = get_colorname(canvas, i);
-            j++;
-        }
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        color_option_items[i].value = c->id;
+        color_option_items[i].label = c->cname;
     }
     
     for (i = 0; i < ncolor_selectors; i++) {
@@ -2994,7 +2983,6 @@ void update_color_selectors(void)
                             ncolor_option_items, color_option_items);
         paint_color_selector(color_selectors[i]);
     }
-    
 }
 
 OptionStructure *CreateColorChoice(Widget parent, char *s)

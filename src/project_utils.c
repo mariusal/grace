@@ -133,6 +133,21 @@ int get_font_by_name(const Quark *project, const char *name)
     return BAD_FONT_ID;
 }
 
+int get_color_by_name(const Quark *project, const char *name)
+{
+    Project *pr = project_get_data(project);
+    unsigned int i;
+    
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        if (!strcmp(c->cname, name)) {
+            return c->id;
+        }
+    }
+    
+    return BAD_COLOR;
+}
+
 static int fcomp(const Quark *q1, const Quark *q2, void *udata)
 {
     if (quark_fid_get(q1) == QFlavorAText && quark_fid_get(q2) == QFlavorAText) {

@@ -33,8 +33,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "grace/canvas.h"
 #include "utils.h"
+#include "core_utils.h"
 #include "files.h"
 
 int init_font_db(Canvas *canvas)
@@ -470,7 +470,7 @@ int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
                     } else if (isdigit(buf[0])) {
                             new_color = atof(buf);
                     } else {
-                        new_color = get_color_by_name(canvas, buf);
+                        new_color = get_color_by_name(grace->project, buf);
                     }
                     break;
 	        case '#':

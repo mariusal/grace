@@ -40,24 +40,19 @@ Page *page_new(void)
     return retval;
 }
 
-typedef struct {
-    int id;
-    Color color;
-} Colordef;
-
 Colordef *colordef_new(void)
 {
     Colordef *retval;
     retval = xmalloc(sizeof(Colordef));
     retval->id = -1;
-    retval->color.cname = NULL;
+    retval->cname = NULL;
     return retval;
 }
 
 void colordef_free(Colordef *cd)
 {
     if (cd) {
-        xfree(cd->color.cname);
+        xfree(cd->cname);
         xfree(cd);
     }
 }
@@ -638,7 +633,6 @@ char *utf2iso(const char *s)
     ]]></element-type>
     <element-type name="colordef" ctype="Colordef *"><![CDATA[
         $$ = colordef_new();
-        $$->color.ctype = COLOR_MAIN;
     ]]></element-type>
     <element-type name="fontdef" ctype="Fontdef *"><![CDATA[
         $$ = fontdef_new();
@@ -817,8 +811,7 @@ char *utf2iso(const char *s)
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
         <child name="#EStrColorDef"><![CDATA[
-            RunTime *rt = ((ParserData *)$U)->rt;
-            store_color(rt->canvas, $?->id, &$?->color);
+            project_add_color($0, $?);
             colordef_free($?);
         ]]></child>
     </element>
@@ -844,11 +837,11 @@ char *utf2iso(const char *s)
             $$->id = $?;
         </attribute>
         <attribute name="#AStrRgb" type="rgb">
-            $$->color.rgb = *($?);
+            $$->rgb = *($?);
             xfree($?);
         </attribute>
         <attribute name="#AStrName" type="sval">
-            $$->color.cname = $?;
+            $$->cname = $?;
         </attribute>
     </element>
     <element name="#EStrFontDef" type="fontdef">

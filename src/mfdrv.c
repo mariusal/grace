@@ -89,8 +89,8 @@ int mf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
         int cindex = cstats->colors[i];
         RGB rgb;
         get_rgb(canvas, cindex, &rgb);
-        fprintf(prstream, "\t( %d , \"%s\" , %d , %d , %d )\n", 
-            cindex, get_colorname(canvas, cindex), rgb.red, rgb.green, rgb.blue);
+        fprintf(prstream, "\t( %d , %d , %d , %d )\n", 
+            cindex, rgb.red, rgb.green, rgb.blue);
     }
     fprintf(prstream, "}\n");
 

@@ -1073,9 +1073,6 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
             }
             if (c) {
                 int color = (int) rint(c[i]);
-                if (get_colortype(canvas, color) != COLOR_MAIN) {
-                    color = 1;
-                }
                 sym.fillpen.color = color;
             }
             if (drawxysym(canvas, &vp, &sym) != RETURN_SUCCESS) {

@@ -225,7 +225,7 @@ int save_fontmap(XFile *xf, const Project *pr)
     return RETURN_SUCCESS;
 }
 
-int save_colormap(XFile *xf, const Canvas *canvas)
+int save_colormap(XFile *xf, const Project *pr)
 {
     unsigned int i;
     Attributes *attrs;
@@ -237,19 +237,16 @@ int save_colormap(XFile *xf, const Canvas *canvas)
     }
 
     xfile_begin_element(xf, EStrColormap, NULL);
-    for (i = 0; i < number_of_colors(canvas); i++) {
-        Color *color;
-        color = get_color_def(canvas, i);
-        if (color != NULL && color->ctype == COLOR_MAIN) {
-            char buf[16];
-            attributes_reset(attrs);
-            attributes_set_ival(attrs, AStrId, i);
-            sprintf(buf, "#%02x%02x%02x",
-                color->rgb.red, color->rgb.green, color->rgb.blue);
-            attributes_set_sval(attrs, AStrRgb, buf);
-            attributes_set_sval(attrs, AStrName, color->cname);
-            xfile_empty_element(xf, EStrColorDef, attrs);
-        }
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        char buf[16];
+
+        attributes_reset(attrs);
+        attributes_set_ival(attrs, AStrId, c->id);
+        sprintf(buf, "#%02x%02x%02x", c->rgb.red, c->rgb.green, c->rgb.blue);
+        attributes_set_sval(attrs, AStrRgb, buf);
+        attributes_set_sval(attrs, AStrName, c->cname);
+        xfile_empty_element(xf, EStrColorDef, attrs);
     }
     xfile_end_element(xf, EStrColormap);
 
@@ -725,7 +722,7 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrDefinitions, NULL);
         {
             xfile_comment(xf, "Color map");
-            save_colormap(xf, rt_from_quark(q)->canvas);
+            save_colormap(xf, pr);
             xfile_comment(xf, "Font map");
             save_fontmap(xf, pr);
             attributes_reset(attrs);
@@ -999,34 +996,3 @@ int save_project(Quark *project, char *fn)
     
     return RETURN_SUCCESS;
 }
-
-
-/*
-save_prefs()
-{
-    xfile_comment(xf, "Defaults");
-    xfile_begin_element(xf, "defaults", NULL);
-    {
-        Pen pen;
-        defaults grdefaults = grace->rt->grdefaults;
-        pen.color = grdefaults.color;
-        pen.pattern = grdefaults.pattern;
-        xmlio_write_line_spec(xf, attrs,
-            &pen, grdefaults.linew, grdefaults.lines);
-        xmlio_write_fill_spec(xf, attrs, &pen);
-        xmlio_write_face_spec(xf, attrs,
-            grdefaults.font, grdefaults.charsize, grdefaults.color);
-    }
-    xfile_end_element(xf, "defaults");
-
-    xfile_comment(xf, "Preferences");
-    xfile_begin_element(xf, "preferences", attrs);
-    {
-        (int) rint(grace->rt->scrollper * 100);
-        (int) rint(grace->rt->shexper * 100);
-        grace->rt->scrolling_islinked ? "on" : "off";
-    }
-    xfile_end_element(xf, "preferences");
-
-}
-*/

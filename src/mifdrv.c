@@ -274,8 +274,7 @@ int mif_initgraphics(const Canvas *canvas, void *data,
             }
 
             fprintf(prstream, " <Color\n");
-            fprintf(prstream, "  <ColorTag `%s'>\n",
-                get_colorname(canvas, i));
+            fprintf(prstream, "  <ColorTag `Color%d'>\n", i);
             fprintf(prstream, "  <ColorCyan %10.6f>\n", c);
             fprintf(prstream, "  <ColorMagenta %10.6f>\n", m);
             fprintf(prstream, "  <ColorYellow %10.6f>\n", y);
@@ -397,8 +396,7 @@ void mif_object_props(const Canvas *canvas, double side, int draw, int fill)
     } else {
         fprintf(prstream, "   <Fill 15>\n");
     }
-    fprintf(prstream, "   <ObColor `%s'>\n",
-        get_colorname(canvas, pen.color));
+    fprintf(prstream, "   <ObColor `Color%d'>\n", pen.color);
     fprintf(prstream, "   <GroupID 1>\n");
 
 }
@@ -754,8 +752,7 @@ void mif_puttext(const Canvas *canvas, void *data,
             (overline == TRUE) ? "Yes" : "No");
     fprintf(prstream, "    <FPairKern %s>\n",
             (kerning == TRUE) ? "Yes" : "No");
-    fprintf(prstream, "    <FColor `%s'>\n",
-        get_colorname(canvas, pen.color));
+    fprintf(prstream, "    <FColor `Color%d'>\n", pen.color);
     fprintf(prstream, "   > # end of Font\n");
     fprintf(prstream, "   <String `%s'>\n",
             escape_specials((unsigned char *) s, len));

@@ -402,11 +402,17 @@ int grace_set_project(Grace *grace, Quark *project)
 {
     if (grace && project) {
         Project *pr = project_get_data(project);
+        int i;
+        
         quark_free(grace->project);
         grace->project = project;
         
         /* Reset colormap */
-        /* canvas_cmap_reset(grace->rt->canvas); */
+        canvas_cmap_reset(grace->rt->canvas);
+        for (i = 0; i < pr->ncolors; i++) {
+            Colordef *c = &pr->colormap[i];
+            canvas_store_color(grace->rt->canvas, c->id, &c->rgb);
+        }
         
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);
