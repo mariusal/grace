@@ -328,8 +328,8 @@ typedef struct {
     Widget          main_tp;
     Widget          frame_tp;
     
-    TextStructure   *x;
-    TextStructure   *y;
+    Widget          x;
+    Widget          y;
     
     SpinStructure   *offsetx;
     SpinStructure   *offsety;
