@@ -725,8 +725,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Fourier transforms...", 'u', create_fourier_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Running averages...", 'a', create_run_frame, NULL);
-    CreateMenuButton(submenupane, "Differences...", 'D', create_diff_frame, NULL);
-    CreateMenuButton(submenupane, "Seasonal differences...", 'o', create_seasonal_frame, NULL);
+    CreateMenuButton(submenupane, "Differences/derivatives...", 'D', create_diff_frame, NULL);
     CreateMenuButton(submenupane, "Integration...", 'I', create_int_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Interpolation/splines...", 't', create_interp_frame, NULL);

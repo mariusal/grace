@@ -50,9 +50,6 @@
 #include "parser.h"
 #include "protos.h"
 
-static void forwarddiff(double *x, double *y, double *resx, double *resy, int n);
-static void backwarddiff(double *x, double *y, double *resx, double *resy, int n);
-static void centereddiff(double *x, double *y, double *resx, double *resy, int n);
 int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *cnt, double **xt, double **yt);
 
 static char buf[256];
@@ -85,79 +82,112 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 }
 
 /*
- * forward, backward and centered differences
+ * difference a set
  */
-static void forwarddiff(double *x, double *y, double *resx, double *resy, int n)
+int do_differ(int gsrc, int setfrom, int gdest, int setto,
+    int derivative, int xplace, int period)
 {
-    int i, eflag = 0;
-    double h;
-
-    for (i = 1; i < n; i++) {
-	resx[i - 1] = x[i - 1];
-	h = x[i - 1] - x[i];
-	if (h == 0.0) {
-	    resy[i - 1] = - MAXNUM;
-	    eflag = 1;
-	} else {
-	    resy[i - 1] = (y[i - 1] - y[i]) / h;
-	}
+    int i, ncols, nc, len, newlen;
+    double *x1, *x2;
+    char *stype, pbuf[32];
+    
+    if (!is_set_active(gsrc, setfrom)) {
+	errmsg("Set not active");
+	return RETURN_FAILURE;
     }
-    if (eflag) {
-	errmsg("Warning: infinite slope, check set status before proceeding");
+    
+    if (period < 1) {
+	errmsg("Non-positive period");
+	return RETURN_FAILURE;
     }
+    
+    len = getsetlength(gsrc, setfrom);
+    newlen = len - period;
+    if (newlen <= 0) {
+	errmsg("Source set length <= differentiation period");
+	return RETURN_FAILURE;
+    }
+    
+    x1 = getcol(gsrc, setfrom, DATA_X);
+    if (derivative) {
+        for (i = 0; i < newlen; i++) {
+            if (x1[i + period] - x1[i] == 0.0) {
+	        sprintf(buf, "Can't evaluate derivative, x1[%d] = x1[%d]",
+                    i, i + period);
+                errmsg(buf);
+                return RETURN_FAILURE;
+            }
+        }
+    }
+    
+    activateset(gdest, setto);
+    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
+    }
+    
+    ncols = dataset_cols(gsrc, setfrom);
+    if (dataset_cols(gdest, setto) != ncols) {
+        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    }
+    
+    for (nc = 1; nc < ncols; nc++) {
+        double h, *d1, *d2;
+        d1 = getcol(gsrc, setfrom, nc);
+        d2 = getcol(gdest, setto, nc);
+        for (i = 0; i < newlen; i++) {
+            d2[i] = d1[i + period] - d1[i];
+            if (derivative) {
+                h = x1[i + period] - x1[i];
+                d2[i] /= h;
+            }
+        }
+    }
+    
+    x2 = getcol(gdest, setto, DATA_X);
+    for (i = 0; i < newlen; i++) {
+        switch (xplace) {
+        case DIFF_XPLACE_LEFT:
+            x2[i] = x1[i];
+	    break;
+        case DIFF_XPLACE_RIGHT:
+            x2[i] = x1[i + period];
+	    break;
+        case DIFF_XPLACE_CENTER:
+            x2[i] = (x1[i + period] + x1[i])/2;
+	    break;
+        }
+    }
+    
+    /* Prepare set comments */
+    switch (xplace) {
+    case DIFF_XPLACE_LEFT:
+	stype = "Left";
+	break;
+    case DIFF_XPLACE_RIGHT:
+	stype = "Right";
+	break;
+    case DIFF_XPLACE_CENTER:
+	stype = "Centered";
+	break;
+    default:
+	errmsg("Wrong parameters passed to do_differ()");
+	return RETURN_FAILURE;
+        break;
+    }
+    
+    if (period != 1) {
+        sprintf(pbuf, " (period = %d)", period);
+    } else {
+        pbuf[0] = '\0';
+    }
+    sprintf(buf, "%s %s%s of set G%d.S%d", stype, pbuf,
+        derivative ? "derivative":"difference", gsrc, setfrom);
+    
+    setcomment(gdest, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
-static void backwarddiff(double *x, double *y, double *resx, double *resy, int n)
-{
-    int i, eflag = 0;
-    double h;
-
-    for (i = 0; i < n - 1; i++) {
-	resx[i] = x[i];
-	h = x[i + 1] - x[i];
-	if (h == 0.0) {
-	    resy[i] = - MAXNUM;
-	    eflag = 1;
-	} else {
-	    resy[i] = (y[i + 1] - y[i]) / h;
-	}
-    }
-    if (eflag) {
-	errmsg("Warning: infinite slope, check set status before proceeding");
-    }
-}
-
-static void centereddiff(double *x, double *y, double *resx, double *resy, int n)
-{
-    int i, eflag = 0;
-    double h1, h2;
-
-    for (i = 1; i < n - 1; i++) {
-	resx[i - 1] = x[i];
-	h1 = x[i] - x[i - 1];
-	h2 = x[i + 1] - x[i];
-	if (h1 + h2 == 0.0) {
-	    resy[i - 1] = - MAXNUM;
-	    eflag = 1;
-	} else {
-	    resy[i - 1] = (y[i + 1] - y[i - 1]) / (h1 + h2);
-	}
-    }
-    if (eflag) {
-	errmsg("Warning: infinite slope, check set status before proceeding");
-    }
-}
-
-static void seasonaldiff(double *x, double *y,
-			 double *resx, double *resy, int n, int period)
-{
-    int i;
-
-    for (i = 0; i < n - period; i++) {
-	resx[i] = x[i];
-	resy[i] = y[i] - y[i + period];
-    }
-}
 
 /*
  * trapezoidal rule
@@ -323,76 +353,6 @@ double do_int(int gno, int setno, int itype)
 	sum = trapint(getx(gno, setno), gety(gno, setno), NULL, NULL, getsetlength(gno, setno));
     }
     return sum;
-}
-
-/*
- * difference a set
- * itype means
- *  0 - forward
- *  1 - backward
- *  2 - centered difference
- */
-void do_differ(int gno, int setno, int itype)
-{
-    int diffset;
-
-    if (!is_set_active(gno, setno)) {
-	errmsg("Set not active");
-	return;
-    }
-    if (getsetlength(gno, setno) < 3) {
-	errmsg("Set length < 3");
-	return;
-    }
-    diffset = nextset(gno);
-    if (diffset != (-1)) {
-	activateset(gno, diffset);
-	switch (itype) {
-	case 0:
-	    sprintf(buf, "Forward difference of set %d", setno);
-	    setlength(gno, diffset, getsetlength(gno, setno) - 1);
-	    forwarddiff(getx(gno, setno), gety(gno, setno), getx(gno, diffset), gety(gno, diffset), getsetlength(gno, setno));
-	    break;
-	case 1:
-	    sprintf(buf, "Backward difference of set %d", setno);
-	    setlength(gno, diffset, getsetlength(gno, setno) - 1);
-	    backwarddiff(getx(gno, setno), gety(gno, setno), getx(gno, diffset), gety(gno, diffset), getsetlength(gno, setno));
-	    break;
-	case 2:
-	    sprintf(buf, "Centered difference of set %d", setno);
-	    setlength(gno, diffset, getsetlength(gno, setno) - 2);
-	    centereddiff(getx(gno, setno), gety(gno, setno), getx(gno, diffset), gety(gno, diffset), getsetlength(gno, setno));
-	    break;
-	}
-	setcomment(gno, diffset, buf);
-    }
-}
-
-/*
- * seasonally difference a set
- */
-void do_seasonal_diff(int setno, int period)
-{
-    int diffset;
-
-    if (!is_set_active(get_cg(), setno)) {
-	errmsg("Set not active");
-	return;
-    }
-    if (getsetlength(get_cg(), setno) < 2) {
-	errmsg("Set length < 2");
-	return;
-    }
-    diffset = nextset(get_cg());
-    if (diffset != (-1)) {
-	activateset(get_cg(), diffset);
-	setlength(get_cg(), diffset, getsetlength(get_cg(), setno) - period);
-	seasonaldiff(getx(get_cg(), setno), gety(get_cg(), setno),
-		     getx(get_cg(), diffset), gety(get_cg(), diffset),
-		     getsetlength(get_cg(), setno), period);
-	sprintf(buf, "Seasonal difference of set %d, period %d", setno, period);
-	setcomment(get_cg(), diffset, buf);
-    }
 }
 
 /*

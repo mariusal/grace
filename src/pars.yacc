@@ -2880,7 +2880,7 @@ actions:
 	}
         | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
                       fourierloadx ','  fourierloady ')' {
-            do_fourier($3->gno, $3->setno, $3->gno, nextset($3->gno),
+            do_fourier($3->gno, $3->setno, get_cg(), nextset($3->gno),
                 ($1 == FFT_INVFFT), $9, FFT_NORM_FORWARD,
                 $5, FALSE, 1.0, FALSE, $7, 1.0,
                 $5 ? FALSE:TRUE, $11);
@@ -2894,7 +2894,8 @@ actions:
                 $5->data, $5->length - 1, $7, $9);
 	}
 	| DIFFERENCE '(' selectset ',' nexpr ')' {
-	    do_differ($3->gno, $3->setno, $5);
+	    do_differ($3->gno, $3->setno, get_cg(), nextset(get_cg()),
+                TRUE, $5, 1);
 	}
 	| INTEGRATE '(' selectset ')' {
 	    do_int($3->gno, $3->setno, 0);

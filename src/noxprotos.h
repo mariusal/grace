@@ -49,7 +49,8 @@ void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
 void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
 double do_int(int gno, int setno, int itype);
-void do_differ(int gno, int setno, int itype);
+int do_differ(int gsrc, int setfrom, int gdest, int setto,
+    int type, int xplace, int period);
 void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
 void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr);
 int do_fourier(int gsrc, int setfrom, int gdest, int setto,
@@ -165,7 +166,6 @@ char *get_hotlink_file(int gno, int setno);
 int get_hotlink_src(int gno, int setno);
 
 void sortset(int gno, int setno, int sorton, int stype);
-void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps);
 int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
     double *mesh, int meshlen, int method, int strict);

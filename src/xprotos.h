@@ -85,7 +85,6 @@ void create_fourier_frame(void *data);
 void create_run_frame(void *data);
 void create_reg_frame(void *data);
 void create_diff_frame(void *data);
-void create_seasonal_frame(void *data);
 void create_interp_frame(void *data);
 void create_int_frame(void *data);
 void create_xcor_frame(void *data);

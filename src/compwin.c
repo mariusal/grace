@@ -64,8 +64,7 @@ static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_da
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_differ_proc(void *data);
 static int do_interp_proc(void *data);
 static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -1109,79 +1108,101 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
 /* finite differencing */
 
 typedef struct _Diff_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *type_item;
-    Widget *region_item;
-    Widget rinvert_item;
+    TransformStructure *tdialog;
+    OptionStructure *type;
+    OptionStructure *xplace;
+    SpinStructure *period;
 } Diff_ui;
 
-static Diff_ui dui;
+#define DIFF_TYPE_PLAIN         0
+#define DIFF_TYPE_DERIVATIVE    1
 
 void create_diff_frame(void *data)
 {
-    Widget dialog;
+    static Diff_ui *dui = NULL;
 
     set_wait_cursor();
-    if (dui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	dui.top = XmCreateDialogShell(app_shell, "Differences", NULL, 0);
-	handle_close(dui.top);
-	dialog = XmCreateRowColumn(dui.top, "dialog_rc", NULL, 0);
-
-	dui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	dui.type_item = CreatePanelChoice(dialog,
-					  "Method:",
-					  4,
-					  "Forward difference",
-					  "Backward difference",
-					  "Centered difference",
-					  0,
-					  0);
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_differ_proc, (XtPointer) & dui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) dui.top);
-
-	ManageChild(dialog);
+    
+    if (dui == NULL) {
+        Widget rc;
+        OptionItem topitems[] = {
+            {DIFF_TYPE_PLAIN,      "Plain differences"},
+            {DIFF_TYPE_DERIVATIVE, "Derivative"       }
+        };
+        OptionItem xopitems[] = {
+            {DIFF_XPLACE_LEFT,   "Left"  },
+            {DIFF_XPLACE_CENTER, "Center"},
+            {DIFF_XPLACE_RIGHT,  "Right" }
+        };
+	
+        dui = xmalloc(sizeof(Diff_ui));
+        
+        dui->tdialog = CreateTransformDialogForm(app_shell,
+            "Differences", LIST_TYPE_MULTIPLE);
+	
+        rc = CreateVContainer(dui->tdialog->form);
+        dui->type   = CreateOptionChoice(rc, "Type:", 0, 2, topitems);
+        dui->xplace = CreateOptionChoice(rc, "X placement:", 0, 3, xopitems);
+        dui->period = CreateSpinChoice(rc, "Period", 6, SPIN_TYPE_INT,
+            (double) 1, (double) 999999, (double) 1);
+        SetSpinChoice(dui->period, (double) 1);
+	
+        CreateAACDialog(dui->tdialog->form, rc, do_differ_proc, (void *) dui);
     }
-    RaiseWindow(dui.top);
+    
+    RaiseWindow(GetParent(dui->tdialog->form));
     unset_wait_cursor();
 }
 
 /*
  * finite differences
  */
-static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_differ_proc(void *data)
 {
-    int gno = get_cg();
-    int *selsets;
-    int i, cnt;
-    int setno, itype;
-    Diff_ui *ui = (Diff_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int type, xplace, period;
+    Diff_ui *ui = (Diff_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    itype = (int) GetChoice(ui->type_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_differ(gno, setno, itype);
+
+    type   = GetOptionChoice(ui->type);
+    xplace = GetOptionChoice(ui->xplace);
+    period = GetSpinChoice(ui->period);
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+	res = do_differ(gsrc, setfrom, gdest, setto,
+            type == DIFF_TYPE_DERIVATIVE, xplace, period);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
     }
-    update_set_lists(gno);
-    unset_wait_cursor();
-    xfree(selsets);
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
     xdrawgraph();
+    
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
 /* numerical integration */
@@ -1267,80 +1288,6 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xfree(selsets);
     xdrawgraph();
 }
-
-/* seasonal differencing */
-
-typedef struct _Seas_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *type_item;
-    Widget period_item;
-    Widget *region_item;
-    Widget rinvert_item;
-} Seas_ui;
-
-static Seas_ui sui;
-
-void create_seasonal_frame(void *data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (sui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	sui.top = XmCreateDialogShell(app_shell, "Seasonal differences", NULL, 0);
-	handle_close(sui.top);
-	dialog = XmCreateRowColumn(sui.top, "dialog_rc", NULL, 0);
-
-	sui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-	sui.period_item = CreateTextItem2(dialog, 10, "Period:");
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_seasonal_proc, (XtPointer) & sui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sui.top);
-
-	ManageChild(dialog);
-    }
-    RaiseWindow(sui.top);
-    unset_wait_cursor();
-}
-
-/*
- * seasonal differences
- */
-static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno, period;
-    Seas_ui *ui = (Seas_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
-    }
-    if(xv_evalexpri(ui->period_item, &period ) != RETURN_SUCCESS)
-		return;
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-		setno = selsets[i];
-		do_seasonal_diff(setno, period);
-    }
-    update_set_lists(get_cg());
-    xfree(selsets);
-    unset_wait_cursor();
-    xdrawgraph();
-}
-
 
 /* cross correlation */
 

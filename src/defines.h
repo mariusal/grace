@@ -379,6 +379,11 @@ typedef enum {
 #define FFT_OUTPUT_REIM        4
 #define FFT_OUTPUT_APHI        5
 
+/* Differentiation */
+#define DIFF_XPLACE_LEFT    0
+#define DIFF_XPLACE_CENTER  1
+#define DIFF_XPLACE_RIGHT   2
+
 
 /*
  * defaults
