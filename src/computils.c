@@ -52,6 +52,732 @@
 
 static char buf[256];
 
+/* compute mean and standard dev */
+void stasum(double *x, int n, double *xbar, double *sd)
+{
+    int i;
+
+    *xbar = 0;
+    *sd = 0;
+    
+    if (x == NULL) {
+        return;
+    }
+    
+    if (n < 1) {
+	return;
+    }
+    
+    for (i = 0; i < n; i++) {
+        *xbar = (*xbar) + x[i];
+    }
+    *xbar = (*xbar)/n;
+    
+    for (i = 0; i < n; i++) {
+        *sd = (*sd) + (x[i] - *xbar) * (x[i] - *xbar);
+    }
+    *sd = sqrt(*sd/n);
+}
+
+/*
+ * trapezoidal rule
+ */
+double trapint(double *x, double *y, double *resx, double *resy, int n)
+{
+    int i;
+    double sum = 0.0;
+    double h;
+
+    if (n < 2) {
+        return 0.0;
+    }
+    
+    if (resx != NULL) {
+        resx[0] = x[0];
+    }
+    if (resy != NULL) {
+        resy[0] = 0.0;
+    }
+    for (i = 1; i < n; i++) {
+	h = (x[i] - x[i - 1]);
+	if (resx != NULL) {
+	    resx[i] = x[i];
+	}
+	sum = sum + h * (y[i - 1] + y[i]) * 0.5;
+	if (resy != NULL) {
+	    resy[i] = sum;
+	}
+    }
+    return sum;
+}
+
+/*
+ * linear convolution of set x (length n) with h (length m) and
+ * result to y (length n + m - 1).
+ */
+void linearconv(double *x, int n, double *h, int m, double *y)
+{
+    int i, j, itmp;
+
+    for (i = 0; i < n + m - 1; i++) {
+	y[i] = 0.0;
+        for (j = 0; j < m; j++) {
+	    itmp = i - j;
+	    if ((itmp >= 0) && (itmp < n)) {
+		y[i] = y[i] + h[j] * x[itmp];
+	    }
+	}
+    }
+}
+
+
+/*
+ * an almost literal translation of the spline routine in
+ * Forsyth, Malcolm, and Moler
+ */
+void spline(int n, double *x, double *y, double *b, double *c, double *d)
+{
+/*
+c
+c  the coefficients b(i), c(i), and d(i), i=1,2,...,n are computed
+c  for a cubic interpolating spline
+c
+c    s(x) = y(i) + b(i)*(x-x(i)) + c(i)*(x-x(i))**2 + d(i)*(x-x(i))**3
+c
+c    for  x(i) .le. x .le. x(i+1)
+c
+c  input..
+c
+c    n = the number of data points or knots (n.ge.2)
+c    x = the abscissas of the knots in strictly increasing order
+c    y = the ordinates of the knots
+c
+c  output..
+c
+c    b, c, d  = arrays of spline coefficients as defined above.
+c
+c  using  p  to denote differentiation,
+c
+c    y(i) = s(x(i))
+c    b(i) = sp(x(i))
+c    c(i) = spp(x(i))/2
+c    d(i) = sppp(x(i))/6  (derivative from the right)
+c
+c  the accompanying function subprogram  seval	can be used
+c  to evaluate the spline.
+c
+c
+*/
+
+    int ib, i;
+    double t;
+
+    if (n < 2) {
+        return;
+    }
+    
+    if (n < 3) {
+        b[0] = (y[1] - y[0]) / (x[1] - x[0]);
+        c[0] = 0.0;
+        d[0] = 0.0;
+        b[1] = b[0];
+        c[1] = 0.0;
+        d[1] = 0.0;
+        return;
+    }
+
+/*
+c
+c  set up tridiagonal system
+c
+c  b = diagonal, d = offdiagonal, c = right hand side.
+c
+*/
+    d[0] = x[1] - x[0];
+    c[1] = (y[1] - y[0]) / d[0];
+    for (i = 1; i < n - 1; i++) {
+	d[i] = x[i + 1] - x[i];
+	b[i] = 2.0 * (d[i - 1] + d[i]);
+	c[i + 1] = (y[i + 1] - y[i]) / d[i];
+	c[i] = c[i + 1] - c[i];
+    }
+/*
+c
+c  end conditions.  third derivatives at  x(1)	and  x(n)
+c  obtained from divided differences
+c
+*/
+    b[0] = -d[0];
+    b[n - 1] = -d[n - 2];
+    c[0] = 0.0;
+    c[n - 1] = 0.0;
+
+    if (n != 3) { /* i.e. n > 3 here */
+	c[0] = c[2] / (x[3] - x[1]) - c[1] / (x[2] - x[0]);
+	c[n - 1] = c[n - 2] / (x[n - 1] - x[n - 3]) - c[n - 3] / (x[n - 2] - x[n - 4]);
+	c[0] = c[0] * d[0] * d[0] / (x[3] - x[0]);
+	c[n - 1] = -c[n - 1] * d[n - 2] * d[n - 2] / (x[n - 1] - x[n - 4]);
+    }
+/*
+c
+c  forward elimination
+c
+*/
+    for (i = 1; i < n; i++) {
+	t = d[i - 1] / b[i - 1];
+	b[i] = b[i] - t * d[i - 1];
+	c[i] = c[i] - t * c[i - 1];
+    }
+/*
+c
+c  back substitution
+c
+*/
+    c[n - 1] = c[n - 1] / b[n - 1];
+    for (ib = 1; ib <= n - 1; ib++) {
+	i = n - ib - 1;
+	c[i] = (c[i] - d[i] * c[i + 1]) / b[i];
+    }
+/*
+c
+c  c(i) is now the sigma(i) of the text
+c
+c  compute polynomial coefficients
+c
+*/
+    b[n - 1] = (y[n - 1] - y[n - 2]) / d[n - 2] + d[n - 2] * (c[n - 2] + 2.0 * c[n - 1]);
+    for (i = 0; i < n - 1; i++) {
+	b[i] = (y[i + 1] - y[i]) / d[i] - d[i] * (c[i + 1] + 2.0 * c[i]);
+	d[i] = (c[i + 1] - c[i]) / d[i];
+	c[i] = 3.0 * c[i];
+    }
+    c[n - 1] = 3.0 * c[n - 1];
+    d[n - 1] = d[n - 2];
+    return;
+}
+
+/***************************************************************************
+ * aspline - modified version of David Frey's spline.c                     *
+ *                                                                         *    
+ * aspline does an Akima spline interpolation.                             *
+ ***************************************************************************/
+
+void aspline(int n, double *x, double *y, double *b, double *c, double *d)
+{
+  int i;
+ 	
+  double num, den;
+  double m_m1, m_m2, m_p1, m_p2;
+  double x_m1, x_m2, x_p1, x_p2;
+  double y_m1, y_m2, y_p1, y_p2;
+
+#define dx(i) (x[i+1]-x[i])
+#define dy(i) (y[i+1]-y[i])
+#define  m(i) (dy(i)/dx(i))
+
+  if (n > 0)		     /* we have data to process */
+  {
+
+      /*
+       * calculate the coefficients of the spline 
+       * (the Akima interpolation itself)                      
+       */
+
+      /* b) interpolate the missing points: */
+
+      x_m1 = x[0] + x[1] - x[2]; 
+      y_m1 = (x[0]-x_m1) * (m(1) - 2 * m(0)) + y[0];
+
+      m_m1 = (y[0]-y_m1)/(x[0]-x_m1);
+       
+      x_m2 = 2 * x[0] - x[2];
+      y_m2 = (x_m1-x_m2) * (m(0) - 2 * m_m1) + y_m1;
+       
+      m_m2 = (y_m1-y_m2)/(x_m1-x_m2);
+
+      x_p1 = x[n-1] + x[n-2] - x[n-3];
+      y_p1 = (2 * m(n-2) - m(n-3)) * (x_p1 - x[n-1]) + y[n-1];
+
+      m_p1 = (y_p1-y[n-1])/(x_p1-x[n-1]);
+      
+      x_p2 = 2 * x[n-1] - x[n-3];
+      y_p2 = (2 * m_p1 - m(n-2)) * (x_p2 - x_p1) + y_p1;
+      
+      m_p2 = (y_p2-y_p1)/(x_p2-x_p1);
+           
+      /* i = 0 */
+      num=fabs(m(1) - m(0)) * m_m1 + fabs(m_m1 - m_m2) * m(0);
+      den=fabs(m(1) - m(0)) + fabs(m_m1 - m_m2);
+    	
+      if (den != 0.0) b[0]=num / den;
+      else            b[0]=0.0;
+		
+      /* i = 1 */
+      num=fabs(m(2) - m(1)) * m(0) + fabs(m(0) - m_m1) * m(1);
+      den=fabs(m(2) - m(1)) + fabs(m(0) - m_m1);
+
+      if (den != 0.0) b[1]=num / den;
+      else            b[1]=0.0;
+			
+      for (i=2; i < n-2; i++)
+      {
+
+	num=fabs(m(i+1) - m(i)) * m(i-1) + fabs(m(i-1) - m(i-2)) * m(i);
+	den=fabs(m(i+1) - m(i)) + fabs(m(i-1) - m(i-2));
+
+	if (den != 0.0) b[i]=num / den;
+	else            b[i]=0.0;
+      }
+
+      /* i = n - 2 */
+      num=fabs(m_p1 - m(n-2)) * m(n-3) + fabs(m(n-3) - m(n-4)) * m(n-2);
+      den=fabs(m_p1 - m(n-2)) + fabs(m(n-3) - m(n-4));
+
+      if (den != 0.0) b[n-2]=num / den;
+      else	      b[n-2]=0.0;
+ 
+      /* i = n - 1 */
+      num=fabs(m_p2 - m_p1) * m(n-2) + fabs(m(n-2) - m(n-3)) * m_p1;
+      den=fabs(m_p2 - m_p1) + fabs(m(n-2) - m(n-3));
+
+      if (den != 0.0) b[n-1]=num / den;
+      else	      b[n-1]=0.0;
+ 
+      for (i=0; i < n-1; i++)
+      {
+  	   double dxv = dx(i);
+  	   c[i]=(3 * m(i) - 2 * b[i] - b[i+1]) / dxv;
+	   d[i]=(b[i] + b[i+1] - 2 * m(i)) / (dxv * dxv);
+      }
+  }
+#undef dx
+#undef dy
+#undef  m
+}
+
+int seval(double *u, double *v, int ulen,
+    double *x, double *y, double *b, double *c, double *d, int n)
+{
+
+/*
+ * 
+ *  this subroutine evaluates the cubic spline function on a mesh
+ * 
+ *    seval = y(i) + b(i)*(u-x(i)) + c(i)*(u-x(i))**2 + d(i)*(u-x(i))**3
+ * 
+ *    where  x(i) .lt. u .lt. x(i+1), using horner's rule
+ * 
+ *  if  u .lt. x(1) then  i = 1  is used.
+ *  if  u .ge. x(n) then  i = n  is used.
+ * 
+ *  input..
+ * 
+ *    u = the array of abscissas at which the spline is to be evaluated
+ *    ulen = length of the mesh
+ * 
+ *    x,y = the arrays of data abscissas and ordinates
+ *    b,c,d = arrays of spline coefficients computed by spline
+ *    n = the number of data points
+ * 
+ *  output..
+ * 
+ *    v = the array of evaluated values
+ */
+
+    int j, m;
+
+    m = monotonicity(x, n, FALSE);
+    if (m == 0) {
+        errmsg("seval() called with a non-monotonic array");
+        return RETURN_FAILURE;
+    }
+    
+    for (j = 0; j < ulen; j++) {
+        double dx;
+        int ifound;
+        
+        ifound = find_span_index(x, n, m, u[j]);
+        if (ifound < 0) {
+            ifound = 0;
+        } else if (ifound > n - 2) {
+            ifound = n - 1;
+        }
+        dx = u[j] - x[ifound];
+        v[j] = y[ifound] + dx*(b[ifound] + dx*(c[ifound] + dx*d[ifound]));
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int find_span_index(double *array, int len, int m, double x)
+{
+    int ind, low = 0, high = len - 1;
+    
+    if (len < 2 || m == 0) {
+        errmsg("find_span_index() called with a non-monotonic array");
+        return -2;
+    } else if (m > 0) {
+        /* ascending order */
+        if (x < array[0]) {
+            return -1;
+        } else if (x > array[len - 1]) {
+            return len - 1;
+        } else {
+            while (low <= high) {
+	        ind = (low + high) / 2;
+	        if (x < array[ind]) {
+	            high = ind - 1;
+	        } else if (x > array[ind + 1]) {
+	            low = ind + 1;
+	        } else {
+	            return ind;
+	        }
+            }
+        }
+    } else {
+        /* descending order */
+        if (x > array[0]) {
+            return -1;
+        } else if (x < array[len - 1]) {
+            return len - 1;
+        } else {
+            while (low <= high) {
+	        ind = (low + high) / 2;
+	        if (x > array[ind]) {
+	            high = ind - 1;
+	        } else if (x < array[ind + 1]) {
+	            low = ind + 1;
+	        } else {
+	            return ind;
+	        }
+            }
+        }
+    }
+
+    /* should never happen */
+    errmsg("internal error in find_span_index()");
+    return -2;
+}
+
+int dump_dc(double *v, int len)
+{
+    int i;
+    double avg, dummy;
+    
+    if (len < 1 || !v) {
+        return RETURN_FAILURE;
+    }
+    
+    stasum(v, len, &avg, &dummy);
+    for (i = 0; i < len; i++) {
+        v[i] -= avg;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int apply_window(double *v, int len, int window, double beta)
+{
+    int i;
+
+    if (len < 2 || !v) {
+        return RETURN_FAILURE;
+    }
+    
+    if (window == FFT_WINDOW_NONE) {
+        return RETURN_SUCCESS;
+    }
+    
+    for (i = 0; i < len; i++) {
+	double c, w, tmp;
+        w = 2*M_PI*i/(len - 1);
+        switch (window) {
+	case FFT_WINDOW_TRIANGULAR:
+	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len - 1)));
+	    break;
+	case FFT_WINDOW_PARZEN:
+	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len + 1)));
+	    break;
+	case FFT_WINDOW_WELCH:
+	    tmp = (i - 0.5*(len - 1))/(0.5*(len + 1));
+            c = 1.0 - tmp*tmp;
+	    break;
+	case FFT_WINDOW_HANNING:
+	    c = 0.5 - 0.5*cos(w);
+	    break;
+	case FFT_WINDOW_HAMMING:
+	    c = 0.54 - 0.46*cos(w);
+	    break;
+	case FFT_WINDOW_BLACKMAN:
+	    c = 0.42 - 0.5*cos(w) + 0.08*cos(2*w);
+	    break;
+	case FFT_WINDOW_FLATTOP:
+	    c = 0.2810639 - 0.5208972*cos(w) + 0.1980399*cos(2*w);
+	    break;
+	case FFT_WINDOW_KAISER:
+	    tmp = (i - 0.5*(len - 1))/(0.5*(len - 1));
+            c = i0(beta*sqrt(1.0 - tmp*tmp))/i0(beta);
+	    break;
+	default:	/* should never happen */
+            c = 0.0;
+            return RETURN_FAILURE;
+	    break;
+        }
+    
+        v[i] *= c;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
+{
+    int i, j, bsign;
+    double minval, maxval;
+    
+    if (nbins < 1) {
+        errmsg("Number of bins < 1");
+        return RETURN_FAILURE;
+    }
+    
+    bsign = monotonicity(bins, nbins + 1, TRUE);
+    if (bsign == 0) {
+        errmsg("Non-monotonic bins");
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < nbins; i++) {
+        hist[i] = 0;
+    }
+    
+    /* TODO: binary search */
+    for (i = 0; i < ndata; i++) {
+        for (j = 0; j < nbins; j++) {
+            if (bsign > 0) {
+                minval = bins[j];
+                maxval = bins[j + 1];
+            } else {
+                minval = bins[j + 1];
+                maxval = bins[j];
+            }
+            if (data[i] >= minval && data[i] <= maxval) {
+                hist[j] += 1;
+                break;
+            }
+        }
+    }
+    return RETURN_SUCCESS;
+}
+
+static int inside_dxdy(double ddx, double ddy, double dx, double dy, int elliptic)
+{
+    if (dx <= 0.0 || dy <= 0.0) {
+        return FALSE;
+    }
+    
+    if (elliptic) {
+        if (hypot(ddx/dx, ddy/dy) <= 1.0) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        if (fabs(ddx) <= dx && fabs(ddy) <= dy) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+}
+
+static int prune_plain_inside(double old_x, double old_y, double x, double y,
+    int elliptic, double dx, int reldx, double dy, int reldy)
+{
+    double ddx, ddy;
+    
+    ddx = x - old_x;
+    ddy = y - old_y;
+    
+    if (reldx) {
+        if (old_x == 0.0) {
+            return FALSE;
+        } else {
+            ddx /= old_x;
+        }
+    }
+    if (reldy) {
+        if (old_y == 0.0) {
+            return FALSE;
+        } else {
+            ddy /= old_y;
+        }
+    }
+    
+    return inside_dxdy(ddx, ddy, dx, dy, elliptic);
+}
+
+static int prune_interp_inside(double *x, double *y, int len,
+    int elliptic, double dx, int reldx, double dy, int reldy)
+{
+    if (len < 3) {
+        return TRUE;
+    } else {
+        int j;
+        double x10, y10, x20, y20;
+        x20 = x[len - 1] - x[0];
+        y20 = y[len - 1] - y[0];
+        for (j = 1; j < len - 1; j++) {
+            double t, den, ddx, ddy;
+            
+            x10 = x[j] - x[0];
+            y10 = y[j] - y[0];
+            
+            den = x20*x20 + y20*y20;
+            if (den == 0.0) {
+                return FALSE;
+            }
+            
+            t = (x10*y20 - x20*y10)/den;
+            ddx =   y20*t;
+            ddy = - x20*t;
+            
+            if (reldx) {
+                if (x[j] == 0.0) {
+                    return FALSE;
+                } else {
+                    ddx /= x[j];
+                }
+            }
+            if (reldy) {
+                if (y[j] == 0.0) {
+                    return FALSE;
+                } else {
+                    ddy /= y[j];
+                }
+            }
+
+            if (!inside_dxdy(ddx, ddy, dx, dy, elliptic)) {
+                return FALSE;
+            }
+        }
+    }
+    
+    return TRUE;
+}
+
+int interpolate(double *mesh, double *yint, int meshlen,
+    double *x, double *y, int len, int method)
+{
+    double *b, *c, *d;
+    double dx;
+    int i, ifound;
+    int m;
+
+    /* For linear interpolation, non-strict monotonicity is fine */
+    m = monotonicity(x, len, method == INTERP_LINEAR ? FALSE:TRUE);
+    if (m == 0) {
+        errmsg("Can't interpolate a set with non-monotonic abscissas");
+        return RETURN_FAILURE;
+    }
+
+    switch (method) {
+    case INTERP_SPLINE:
+    case INTERP_ASPLINE:
+        b = xcalloc(len, SIZEOF_DOUBLE);
+        c = xcalloc(len, SIZEOF_DOUBLE);
+        d = xcalloc(len, SIZEOF_DOUBLE);
+        if (b == NULL || c == NULL || d == NULL) {
+            xfree(b);
+            xfree(c);
+            xfree(d);
+            return RETURN_FAILURE;
+        }
+        if (method == INTERP_ASPLINE){
+            /* Akima spline */
+            aspline(len, x, y, b, c, d);
+        } else {
+            /* Plain cubic spline */
+            spline(len, x, y, b, c, d);
+        }
+
+	seval(mesh, yint, meshlen, x, y, b, c, d, len);
+
+        xfree(b);
+        xfree(c);
+        xfree(d);
+        break;
+    default:
+        /* linear interpolation */
+
+        for (i = 0; i < meshlen; i++) {
+            ifound = find_span_index(x, len, m, mesh[i]);
+            if (ifound < 0) {
+                ifound = 0;
+            } else if (ifound > len - 2) {
+                ifound = len - 2;
+            }
+            dx = x[ifound + 1] - x[ifound];
+            if (dx) {
+                yint[i] = y[ifound] + (mesh[i] - x[ifound])*
+                    ((y[ifound + 1] - y[ifound])/dx);
+            } else {
+                yint[i] = (y[ifound] + y[ifound + 1])/2;
+            }
+        }
+        break;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+int monotonicity(double *array, int len, int strict)
+{
+    int i;
+    int s0, s1;
+    
+    if (len < 2) {
+        errmsg("Monotonicity of an array of length < 2 is meaningless");
+        return 0;
+    }
+    
+    s0 = sign(array[1] - array[0]);
+    for (i = 2; i < len; i++) {
+        s1 = sign(array[i] - array[i - 1]);
+        if (s1 != s0) {
+            if (strict) {
+                return 0;
+            } else if (s0 == 0) {
+                s0 = s1;
+            } else if (s1 != 0) {
+                return 0;
+            }
+        }
+    }
+    
+    return s0;
+}
+
+int monospaced(double *array, int len, double *space)
+{
+    int i;
+    double eps;
+    
+    if (len < 2) {
+        errmsg("Monospacing of an array of length < 2 is meaningless");
+        return FALSE;
+    }
+    
+    *space = array[1] - array[0];
+    eps = fabs((array[len - 1] - array[0]))*1.0e-6; /* FIXME */
+    for (i = 2; i < len; i++) {
+        if (fabs(array[i] - array[i - 1] - *space) > eps) {
+            return FALSE;
+        }
+    }
+    
+    return TRUE;
+}
+
 /*
  * evaluate a formula
  */
@@ -184,39 +910,6 @@ int do_differ(int gsrc, int setfrom, int gdest, int setto,
     setcomment(gdest, setto, buf);
     
     return RETURN_SUCCESS;
-}
-
-
-/*
- * trapezoidal rule
- */
-double trapint(double *x, double *y, double *resx, double *resy, int n)
-{
-    int i;
-    double sum = 0.0;
-    double h;
-
-    if (n < 2) {
-        return 0.0;
-    }
-    
-    if (resx != NULL) {
-        resx[0] = x[0];
-    }
-    if (resy != NULL) {
-        resy[0] = 0.0;
-    }
-    for (i = 1; i < n; i++) {
-	h = (x[i] - x[i - 1]);
-	if (resx != NULL) {
-	    resx[i] = x[i];
-	}
-	sum = sum + h * (y[i - 1] + y[i]) * 0.5;
-	if (resy != NULL) {
-	    resy[i] = sum;
-	}
-    }
-    return sum;
 }
 
 /*
@@ -618,76 +1311,6 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
     return RETURN_SUCCESS;
 }
 
-int dump_dc(double *v, int len)
-{
-    int i;
-    double avg, dummy;
-    
-    if (len < 1 || !v) {
-        return RETURN_FAILURE;
-    }
-    
-    stasum(v, len, &avg, &dummy);
-    for (i = 0; i < len; i++) {
-        v[i] -= avg;
-    }
-    
-    return RETURN_SUCCESS;
-}
-
-int apply_window(double *v, int len, int window, double beta)
-{
-    int i;
-
-    if (len < 2 || !v) {
-        return RETURN_FAILURE;
-    }
-    
-    if (window == FFT_WINDOW_NONE) {
-        return RETURN_SUCCESS;
-    }
-    
-    for (i = 0; i < len; i++) {
-	double c, w, tmp;
-        w = 2*M_PI*i/(len - 1);
-        switch (window) {
-	case FFT_WINDOW_TRIANGULAR:
-	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len - 1)));
-	    break;
-	case FFT_WINDOW_PARZEN:
-	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len + 1)));
-	    break;
-	case FFT_WINDOW_WELCH:
-	    tmp = (i - 0.5*(len - 1))/(0.5*(len + 1));
-            c = 1.0 - tmp*tmp;
-	    break;
-	case FFT_WINDOW_HANNING:
-	    c = 0.5 - 0.5*cos(w);
-	    break;
-	case FFT_WINDOW_HAMMING:
-	    c = 0.54 - 0.46*cos(w);
-	    break;
-	case FFT_WINDOW_BLACKMAN:
-	    c = 0.42 - 0.5*cos(w) + 0.08*cos(2*w);
-	    break;
-	case FFT_WINDOW_FLATTOP:
-	    c = 0.2810639 - 0.5208972*cos(w) + 0.1980399*cos(2*w);
-	    break;
-	case FFT_WINDOW_KAISER:
-	    tmp = (i - 0.5*(len - 1))/(0.5*(len - 1));
-            c = i0(beta*sqrt(1.0 - tmp*tmp))/i0(beta);
-	    break;
-	default:	/* should never happen */
-            c = 0.0;
-            return RETURN_FAILURE;
-	    break;
-        }
-    
-        v[i] *= c;
-    }
-    
-    return RETURN_SUCCESS;
-}
 
 /*
  * Fourier transform
@@ -983,45 +1606,6 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     return RETURN_SUCCESS;
 }
 
-int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
-{
-    int i, j, bsign;
-    double minval, maxval;
-    
-    if (nbins < 1) {
-        errmsg("Number of bins < 1");
-        return RETURN_FAILURE;
-    }
-    
-    bsign = monotonicity(bins, nbins + 1, TRUE);
-    if (bsign == 0) {
-        errmsg("Non-monotonic bins");
-        return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < nbins; i++) {
-        hist[i] = 0;
-    }
-    
-    /* TODO: binary search */
-    for (i = 0; i < ndata; i++) {
-        for (j = 0; j < nbins; j++) {
-            if (bsign > 0) {
-                minval = bins[j];
-                maxval = bins[j + 1];
-            } else {
-                minval = bins[j + 1];
-                maxval = bins[j];
-            }
-            if (data[i] >= minval && data[i] <= maxval) {
-                hist[j] += 1;
-                break;
-            }
-        }
-    }
-    return RETURN_SUCCESS;
-}
-
 
 /*
  * sample a set by a logical expression
@@ -1095,102 +1679,6 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
     setcomment(gdest, setto, buf);
     
     return RETURN_SUCCESS;
-}
-
-static int inside_dxdy(double ddx, double ddy, double dx, double dy, int elliptic)
-{
-    if (dx <= 0.0 || dy <= 0.0) {
-        return FALSE;
-    }
-    
-    if (elliptic) {
-        if (hypot(ddx/dx, ddy/dy) <= 1.0) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    } else {
-        if (fabs(ddx) <= dx && fabs(ddy) <= dy) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
-}
-
-static int prune_plain_inside(double old_x, double old_y, double x, double y,
-    int elliptic, double dx, int reldx, double dy, int reldy)
-{
-    double ddx, ddy;
-    
-    ddx = x - old_x;
-    ddy = y - old_y;
-    
-    if (reldx) {
-        if (old_x == 0.0) {
-            return FALSE;
-        } else {
-            ddx /= old_x;
-        }
-    }
-    if (reldy) {
-        if (old_y == 0.0) {
-            return FALSE;
-        } else {
-            ddy /= old_y;
-        }
-    }
-    
-    return inside_dxdy(ddx, ddy, dx, dy, elliptic);
-}
-
-static int prune_interp_inside(double *x, double *y, int len,
-    int elliptic, double dx, int reldx, double dy, int reldy)
-{
-    if (len < 3) {
-        return TRUE;
-    } else {
-        int j;
-        double x10, y10, x20, y20;
-        x20 = x[len - 1] - x[0];
-        y20 = y[len - 1] - y[0];
-        for (j = 1; j < len - 1; j++) {
-            double t, den, ddx, ddy;
-            
-            x10 = x[j] - x[0];
-            y10 = y[j] - y[0];
-            
-            den = x20*x20 + y20*y20;
-            if (den == 0.0) {
-                return FALSE;
-            }
-            
-            t = (x10*y20 - x20*y10)/den;
-            ddx =   y20*t;
-            ddy = - x20*t;
-            
-            if (reldx) {
-                if (x[j] == 0.0) {
-                    return FALSE;
-                } else {
-                    ddx /= x[j];
-                }
-            }
-            if (reldy) {
-                if (y[j] == 0.0) {
-                    return FALSE;
-                } else {
-                    ddy /= y[j];
-                }
-            }
-
-            if (!inside_dxdy(ddx, ddy, dx, dy, elliptic)) {
-                return FALSE;
-            }
-        }
-    }
-    
-    return TRUE;
 }
 
 /*
@@ -1300,71 +1788,6 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
     return RETURN_SUCCESS;
 }
 
-
-int interpolate(double *mesh, double *yint, int meshlen,
-    double *x, double *y, int len, int method)
-{
-    double *b, *c, *d;
-    double dx;
-    int i, ifound;
-    int m;
-
-    /* For linear interpolation, non-strict monotonicity is fine */
-    m = monotonicity(x, len, method == INTERP_LINEAR ? FALSE:TRUE);
-    if (m == 0) {
-        errmsg("Can't interpolate a set with non-monotonic abscissas");
-        return RETURN_FAILURE;
-    }
-
-    switch (method) {
-    case INTERP_SPLINE:
-    case INTERP_ASPLINE:
-        b = xcalloc(len, SIZEOF_DOUBLE);
-        c = xcalloc(len, SIZEOF_DOUBLE);
-        d = xcalloc(len, SIZEOF_DOUBLE);
-        if (b == NULL || c == NULL || d == NULL) {
-            xfree(b);
-            xfree(c);
-            xfree(d);
-            return RETURN_FAILURE;
-        }
-        if (method == INTERP_ASPLINE){
-            /* Akima spline */
-            aspline(len, x, y, b, c, d);
-        } else {
-            /* Plain cubic spline */
-            spline(len, x, y, b, c, d);
-        }
-
-	seval(mesh, yint, meshlen, x, y, b, c, d, len);
-
-        xfree(b);
-        xfree(c);
-        xfree(d);
-        break;
-    default:
-        /* linear interpolation */
-
-        for (i = 0; i < meshlen; i++) {
-            ifound = find_span_index(x, len, m, mesh[i]);
-            if (ifound < 0) {
-                ifound = 0;
-            } else if (ifound > len - 2) {
-                ifound = len - 2;
-            }
-            dx = x[ifound + 1] - x[ifound];
-            if (dx) {
-                yint[i] = y[ifound] + (mesh[i] - x[ifound])*
-                    ((y[ifound + 1] - y[ifound])/dx);
-            } else {
-                yint[i] = (y[ifound] + y[ifound + 1])/2;
-            }
-        }
-        break;
-    }
-    
-    return RETURN_SUCCESS;
-}
 
 /* interpolate a set at abscissas from mesh
  * method - type of spline (or linear interpolation)
@@ -1504,104 +1927,6 @@ int get_restriction_array(int gno, int setno,
         break;
     }
     return RETURN_SUCCESS;
-}
-
-int monotonicity(double *array, int len, int strict)
-{
-    int i;
-    int s0, s1;
-    
-    if (len < 2) {
-        errmsg("Monotonicity of an array of length < 2 is meaningless");
-        return 0;
-    }
-    
-    s0 = sign(array[1] - array[0]);
-    for (i = 2; i < len; i++) {
-        s1 = sign(array[i] - array[i - 1]);
-        if (s1 != s0) {
-            if (strict) {
-                return 0;
-            } else if (s0 == 0) {
-                s0 = s1;
-            } else if (s1 != 0) {
-                return 0;
-            }
-        }
-    }
-    
-    return s0;
-}
-
-int monospaced(double *array, int len, double *space)
-{
-    int i;
-    double eps;
-    
-    if (len < 2) {
-        errmsg("Monospacing of an array of length < 2 is meaningless");
-        return FALSE;
-    }
-    
-    *space = array[1] - array[0];
-    eps = fabs((array[len - 1] - array[0]))*1.0e-6; /* FIXME */
-    for (i = 2; i < len; i++) {
-        if (fabs(array[i] - array[i - 1] - *space) > eps) {
-            return FALSE;
-        }
-    }
-    
-    return TRUE;
-}
-
-int find_span_index(double *array, int len, int m, double x)
-{
-    int ind, low = 0, high = len - 1;
-    
-    if (len < 2 || m == 0) {
-        errmsg("find_span_index() called with a non-monotonic array");
-        return -2;
-    } else if (m > 0) {
-        /* ascending order */
-        if (x < array[0]) {
-            return -1;
-        } else if (x > array[len - 1]) {
-            return len - 1;
-        } else {
-            while (low <= high) {
-	        ind = (low + high) / 2;
-	        if (x < array[ind]) {
-	            high = ind - 1;
-	        } else if (x > array[ind + 1]) {
-	            low = ind + 1;
-	        } else {
-	            return ind;
-	        }
-            }
-        }
-    } else {
-        /* descending order */
-        if (x > array[0]) {
-            return -1;
-        } else if (x < array[len - 1]) {
-            return len - 1;
-        } else {
-            while (low <= high) {
-	        ind = (low + high) / 2;
-	        if (x > array[ind]) {
-	            high = ind - 1;
-	        } else if (x < array[ind + 1]) {
-	            low = ind + 1;
-	        } else {
-	            return ind;
-	        }
-            }
-        }
-    }
-
-    /* should never happen */
-    errmsg("internal error in find_span_index()");
-    return -2;
 }
 
 /* feature extraction */

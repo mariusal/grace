@@ -11,7 +11,7 @@ PARS_O = pars$(O)
 
 GRSRCS =  main.c grace.c draw.c drawticks.c drawobj.c plotone.c \
 	utils.c files.c ssdata.c \
-	nonlfit.c lmdif.c fit.c fourier.c \
+	nonlfit.c lmdif.c fourier.c \
 	graphs.c graphutils.c setutils.c regionutils.c \
 	objutils.c computils.c defaults.c params.c \
 	dlmodule.c missing.c alloca.c \
@@ -22,7 +22,7 @@ GRSRCS =  main.c grace.c draw.c drawticks.c drawobj.c plotone.c \
 
 GROBJS =  main$(O) grace$(O) draw$(O) drawticks$(O) drawobj$(O) plotone$(O) \
 	utils$(O) files$(O) ssdata$(O) \
-	nonlfit$(O) lmdif$(O) fit$(O) fourier$(O) \
+	nonlfit$(O) lmdif$(O) fourier$(O) \
 	graphs$(O) graphutils$(O) setutils$(O) regionutils$(O) \
 	objutils$(O) computils$(O) defaults$(O) params$(O) \
 	dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
