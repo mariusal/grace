@@ -135,7 +135,7 @@ void create_about_grtool(Widget but, void *data);
 void create_monitor_frame_cb(Widget but, void *data);
 
 void update_set_lists(Quark *gr);
-void update_ticks(Quark *gr);
+void update_ticks(void);
 void update_props_items(void);
 void update_all(void);
 void update_all_cb(Widget but, void *data);

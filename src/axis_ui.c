@@ -707,6 +707,6 @@ static void auto_spec_cb(OptionStructure *opt, int value, void *data)
     SetSensitive(rc, value);
 }
 
-void update_ticks(Quark *gr)
+void update_ticks(void)
 {
 }
