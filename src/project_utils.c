@@ -135,6 +135,9 @@ int get_font_by_name(const Quark *project, const char *name)
 
 static int fcomp(const Quark *q1, const Quark *q2, void *udata)
 {
+    if (quark_fid_get(q1) == QFlavorAText && quark_fid_get(q2) == QFlavorAText) {
+        return strcmp(QIDSTR(q1), QIDSTR(q2));
+    } else
     if (quark_fid_get(q1) == QFlavorAText) {
         return 1;
     } else
