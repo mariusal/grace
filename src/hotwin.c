@@ -38,7 +38,6 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/FileSB.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
@@ -264,19 +263,10 @@ void create_hotlinks_popup(Widget w, XtPointer client_data, XtPointer call_data)
  * this routine copies the selected file into the text widget on the main
  * hot links widget
  */
-static void do_hotlinkfile_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_hotlinkfile_proc(char *filename, void *data)
 {
-    Widget dialog = (Widget) client_data;
-    char *s;
-    XmFileSelectionBoxCallbackStruct *cbs =
-        (XmFileSelectionBoxCallbackStruct *) call_data;
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-        errwin("Error converting XmString to char string in do_hotlinkfile_proc()");
-        return;
-    }
-    xv_setstr(hotlink_file_item, s);
-    XtFree(s);
-    XtUnmanageChild(dialog);
+    xv_setstr(hotlink_file_item, filename);
+    return TRUE;
 }
 
 /*
@@ -284,16 +274,17 @@ static void do_hotlinkfile_proc(Widget w, XtPointer client_data, XtPointer call_
  */
 void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    static Widget top;
+    static FSBStructure *fsb = NULL;
 
     set_wait_cursor();
-    if (top == NULL) {
-	top = XmCreateFileSelectionDialog(app_shell, "hotlinks", NULL, 0);
-	XtVaSetValues(XtParent(top), XmNtitle, "Select hot link file", NULL);
 
-	XtAddCallback(top, XmNokCallback, (XtCallbackProc) do_hotlinkfile_proc, (XtPointer) top);
-	XtAddCallback(top, XmNcancelCallback, (XtCallbackProc) destroy_dialog, (XtPointer) top);
+    if (fsb == NULL) {
+        fsb = CreateFileSelectionBox(app_shell, "Select hot link file", "*.dat");
+	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, NULL);
+        XtManageChild(fsb->FSB);
     }
-    XtRaise(top);
+    
+    XtRaise(fsb->dialog);
+
     unset_wait_cursor();
 }

@@ -38,7 +38,6 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
@@ -46,7 +45,6 @@
 #include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/ScrolledW.h>
-#include <Xm/FileSB.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -88,7 +86,6 @@ static Widget *nonl_nparm_item;
 static Widget nonl_autol_item;
 static Widget nonl_npts_item;
 static Widget nonl_start_item, nonl_stop_item;
-static Widget save_title_item;
 static Widget nonl_fload_rc;
 static void do_nonl_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_nonl_toggle(Widget w, XtPointer client_data, XtPointer call_data);
@@ -98,8 +95,8 @@ void reset_nonl_frame(void);
 void do_nparm_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 void create_openfit_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_openfit_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_savefit_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_openfit_proc(char *filename, void *data);
+static int do_savefit_proc(char *filename, void *data);
 
 int nsteps;
 int nlsetno;
@@ -674,107 +671,65 @@ static void destroy_nonl_frame(Widget w, XtPointer client_data, XtPointer call_d
     XtUnmanageChild(nonl_frame);
 }
 
-static Widget openfit_dialog = NULL;
-
 void create_openfit_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XmString dirmask;
-    
+    static FSBStructure *fsb = NULL;
+
     set_wait_cursor();
-    
-    if (openfit_dialog == NULL) {
-	openfit_dialog = XmCreateFileSelectionDialog(app_shell, "openfit_dialog", NULL, 0);
-	XtVaSetValues(XtParent(openfit_dialog), XmNtitle, "Open fit parameter file", NULL);
-	XtAddCallback(openfit_dialog, XmNcancelCallback, (XtCallbackProc) destroy_dialog, openfit_dialog);
-	XtAddCallback(openfit_dialog, XmNokCallback, (XtCallbackProc) do_openfit_proc, 0);
-	XtAddCallback(openfit_dialog, XmNhelpCallback, (XtCallbackProc) HelpCB, 
-	              (XtPointer) NULL);
+
+    if (fsb == NULL) {
+        fsb = CreateFileSelectionBox(app_shell, "Open fit parameter file", "*.fit");
+	AddFileSelectionBoxCB(fsb, do_openfit_proc, NULL);
+        XtManageChild(fsb->FSB);
     }
     
-    XtManageChild(openfit_dialog);
-    XtRaise(XtParent(openfit_dialog));
-
-    dirmask = XmStringCreateSimple(get_workingdir());
-    XmFileSelectionDoSearch(openfit_dialog, dirmask);
-    XmStringFree(dirmask);
+    XtRaise(fsb->dialog);
 
     unset_wait_cursor();
 }
 
-static void do_openfit_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_openfit_proc(char *filename, void *data)
 {
-    char *s;
-    XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-	errmsg("Error converting XmString to char string in do_openfit_proc()");
-	return;
-    }
-    
-    set_wait_cursor();
-    
     reset_nonl();
-    getparms(s);
-    XtFree(s);
+    getparms(filename);
     update_nonl_frame();
     
-    unset_wait_cursor();
+    return FALSE;
 }
 
-static Widget savefit_dialog = NULL;
 
 void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget fr, dialog;
-    XmString dirmask;
-    
+    static FSBStructure *fsb = NULL;
+    static Widget title_item = NULL;
+
     set_wait_cursor();
-    
-    if (savefit_dialog == NULL) {
-	savefit_dialog = XmCreateFileSelectionDialog(app_shell, "savefit_dialog", NULL, 0);
-	XtVaSetValues(XtParent(savefit_dialog), XmNtitle, "Save fit parameter file", NULL);
-	XtAddCallback(savefit_dialog, XmNcancelCallback, (XtCallbackProc) destroy_dialog, savefit_dialog);
-	XtAddCallback(savefit_dialog, XmNokCallback, (XtCallbackProc) do_savefit_proc, 0);
-	XtAddCallback(savefit_dialog, XmNhelpCallback, (XtCallbackProc) HelpCB, 
-	              (XtPointer) NULL);
-	fr = CreateFrame(savefit_dialog, NULL);
-	dialog = XmCreateRowColumn(fr, "dialog_rc", NULL, 0);
 
-	save_title_item = CreateTextItem2(dialog, 25, "Title: ");
-
-	XtManageChild(dialog);
+    if (fsb == NULL) {
+        Widget fr;
+        
+        fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file", "*.nc");
+	fr = CreateFrame(fsb->rc, NULL);
+	title_item = CreateTextItem2(fr, 25, "Title: ");
+	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);
+        XtManageChild(fsb->FSB);
     }
     
-    XtManageChild(savefit_dialog);
-    XtRaise(XtParent(savefit_dialog));
+    xv_setstr(title_item, nonl_opts.title);
     
-    xv_setstr(save_title_item, nonl_opts.title);
-
-    dirmask = XmStringCreateSimple(get_workingdir());
-    XmFileSelectionDoSearch(savefit_dialog, dirmask);
-    XmStringFree(dirmask);
-
-    unset_wait_cursor();
+    XtRaise(fsb->dialog);
 }
 
-static void do_savefit_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_savefit_proc(char *filename, void *data)
 {
-    char *s;
     FILE *pp;
+    Widget title_item = (Widget) data;
     
-    XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-		errmsg("Error converting XmString to char string in do_savefit_proc()");
-		return;
-    }
-    
-    pp = grace_openw(s);
+    pp = grace_openw(filename);
     if (pp != NULL) {
-        set_wait_cursor();
-        strcpy(nonl_opts.title, (char *) xv_getstr(save_title_item));
+        strcpy(nonl_opts.title, (char *) xv_getstr(title_item));
         put_fitparms(pp, 0);
         grace_close(pp);
-        unset_wait_cursor();
     }
-    
-    XtFree(s);
+    return TRUE;
 }

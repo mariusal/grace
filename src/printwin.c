@@ -39,7 +39,6 @@
 #include <Xm/DialogS.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/FileSB.h>
 
 #include "globals.h"
 #include "device.h"
@@ -82,7 +81,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
 void create_printfiles_popup(Widget, XtPointer, XtPointer call_data);
 void create_devopts_popup(Widget, XtPointer, XtPointer call_data);
 
-static void do_device_toggle(Widget w, XtPointer client_data, XtPointer call_data);
+static void do_device_toggle(int value, void *data);
 static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void update_printer_setup(int device_id);
 static void update_device_setup(int device_id);
@@ -118,7 +117,7 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
         }
         devices_item = CreateOptionChoice(pdev_rc, "Device: ",
 					    1, ndev, option_items);
-	AddOptionChoiceCB(devices_item, do_device_toggle);
+	AddOptionChoiceCB(devices_item, do_device_toggle, NULL);
         free(option_items);
         
         device_opts_item = XtVaCreateManagedWidget("Device options...",
@@ -437,10 +436,9 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
 /*
  * set the print options
  */
-static void do_device_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_device_toggle(int value, void *data)
 { 
-    int device_id = (int) client_data;
-    update_device_setup(device_id);
+    update_device_setup(value);
 }
 
 static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data)
@@ -559,48 +557,37 @@ static void do_orient_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     }
 }
 
-static void do_prfilesel_proc(Widget w, XtPointer client_data,
-                                        XtPointer call_data)
+static int do_prfilesel_proc(char *filename, void *data)
 {
-    Widget dialog = (Widget) client_data;
-    char *s;
-    XmFileSelectionBoxCallbackStruct *cbs =
-        (XmFileSelectionBoxCallbackStruct *) call_data;
-
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-        errwin("do_prfilesel_proc(): Error converting XmString to char string");
-        return;
-    }
-    xv_setstr(printfile_item, s);
-    strcpy(print_file, s);
-    XtVaSetValues(printfile_item, XmNcursorPosition, strlen(s), NULL);
-    XtFree(s);
-    XtUnmanageChild(dialog);
+    xv_setstr(printfile_item, filename);
+    strcpy(print_file, filename);
+    XtVaSetValues(printfile_item, XmNcursorPosition, strlen(filename), NULL);
+    return TRUE;
 }
-
 
 void create_printfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    static Widget top;
+    static FSBStructure *fsb = NULL;
     int device;
     Device_entry dev;
     char buf[16];
 
     set_wait_cursor();
-    if (top == NULL) {
-        top = XmCreateFileSelectionDialog(app_shell, "prfilsel", NULL, 0);
-        XtVaSetValues(XtParent(top), XmNtitle, "Select print file", NULL);
-        XtAddCallback(top, XmNokCallback, (XtCallbackProc) do_prfilesel_proc,
-                                                    (XtPointer) top);
-        XtAddCallback(top, XmNcancelCallback, (XtCallbackProc) destroy_dialog,
-                                                    (XtPointer) top);
+
+    if (fsb == NULL) {
+        fsb = CreateFileSelectionBox(app_shell, "Select print file", "*");
+	AddFileSelectionBoxCB(fsb, do_prfilesel_proc, NULL);
+        XtManageChild(fsb->FSB);
     }
-    
+
     device = GetOptionChoice(devices_item);
     dev = get_device_props(device);
+
     sprintf(buf, "*.%s", dev.fext);
-    XtVaSetValues(top, XmNdirMask, XmStringCreate(buf, charset), NULL );
-    XtRaise(top);
+    SetFileSelectionBoxPattern(fsb, buf);
+    
+    XtRaise(fsb->dialog);
+
     unset_wait_cursor();
 }
 

@@ -39,7 +39,6 @@
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
-#include <Xm/FileSB.h>
 #include <Xm/Command.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
@@ -77,7 +76,7 @@ void comwin_replace_act(Widget w, XKeyEvent *e, String *p, Cardinal *c);
 void comwin_up_act(Widget w, XKeyEvent *e, String *p, Cardinal *c);
 void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data);
-void do_rhist_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_rhist_proc(char *filename, void *data);
 void open_command(Widget w, XtPointer client_data, XtPointer call_data);
 
 extern XtAppContext app_con;
@@ -357,24 +356,15 @@ void close_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data)
     XtUnmanageChild(rhist_dialog);
 }
 
-void do_rhist_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_rhist_proc(char *filename, void *data)
 {
     char buf[512];
-    char *s;
     int sl;
     FILE *fp;
     XmString list_item;
     Widget h = XmCommandGetChild(command, XmDIALOG_HISTORY_LIST);
-    XmFileSelectionBoxCallbackStruct *cbs =
-        (XmFileSelectionBoxCallbackStruct *) call_data;
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
-        errwin("Error converting XmString to char string in rdata_proc()");
-        return;
-    }
 
-    strcpy(buf, s);
-    XtFree(s);
-    if ((fp = grace_openr(buf, SOURCE_DISK)) != NULL) {
+    if ((fp = grace_openr(filename, SOURCE_DISK)) != NULL) {
 	while (fgets(buf, 255, fp) != NULL) {
 	    sl = strlen(buf);
 	    buf[sl - 1] = 0;
@@ -386,23 +376,26 @@ void do_rhist_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	    XmStringFree(list_item);
 	}
 	grace_close(fp);
+        return TRUE;
+    } else {
+        return FALSE;
     }
-    XtUnmanageChild(rhist_dialog);
 }
 
 void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    static FSBStructure *fsb = NULL;
+
     set_wait_cursor();
-    if (rhist_dialog == NULL) {
-	rhist_dialog = XmCreateFileSelectionDialog(app_shell, "Read history", 
-	                                           NULL, 0);
-	XtAddCallback(rhist_dialog, XmNcancelCallback, 
-	              (XtCallbackProc) close_rhist_popup, (XtPointer) NULL);
-	XtAddCallback(rhist_dialog, XmNokCallback, 
-	              (XtCallbackProc) do_rhist_proc, (XtPointer) NULL);
-	XtManageChild(rhist_dialog);
+
+    if (fsb == NULL) {
+        fsb = CreateFileSelectionBox(app_shell, "Read history", "*.com");
+	AddFileSelectionBoxCB(fsb, do_rhist_proc, NULL);
+        XtManageChild(fsb->FSB);
     }
-    XtRaise(rhist_dialog);
+    
+    XtRaise(fsb->dialog);
+
     unset_wait_cursor();
 }
 
