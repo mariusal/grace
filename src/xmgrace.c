@@ -734,6 +734,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Date/time axis formats", '\0', load_example, "times.agr");
     CreateMenuButton(sub2menupane, "Australia map", '\0', load_example, "au.agr");
     CreateMenuButton(sub2menupane, "A CO2 analysis", '\0', load_example, "co2.agr");
+    CreateMenuButton(sub2menupane, "Motif stats", '\0', load_example, "motif.agr");
 
     sub2menupane = CreateMenu(submenupane, "XY charts", 'c', FALSE);
     CreateMenuButton(sub2menupane, "Bar chart", '\0', load_example, "bar.agr");
