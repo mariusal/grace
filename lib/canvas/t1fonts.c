@@ -425,6 +425,11 @@ static GLYPH *GetGlyphString(Canvas *canvas,
     default:
         break;
     }
+
+    /* set monomode for B/W color transformation */
+    if (canvas->curdevice->color_trans == COLOR_TRANS_BW) {
+        mono = TRUE;
+    }
     
     if (mono != TRUE) {
         fg = cs->color;
