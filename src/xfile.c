@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2000,2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -393,7 +393,6 @@ int xfile_begin_element(XFile *xf, char *name, Attributes *attrs)
 
 int xfile_end_element(XFile *xf, char *name)
 {
-    /* FIXME: check that the current element corresponds to name */
     xfile_indent_decrement(xf);
     xfile_output(xf, "</");
     xfile_output(xf, name);
@@ -418,7 +417,8 @@ int xfile_empty_element(XFile *xf, char *name, Attributes *attrs)
     return RETURN_SUCCESS;
 }
 
-int xfile_text_element(XFile *xf, char *name, Attributes *attrs, char *text)
+int xfile_text_element(XFile *xf,
+    char *name, Attributes *attrs, char *text, int cdata)
 {
     if (is_empty_string(text)) {
         return xfile_empty_element(xf, name, attrs);
@@ -427,9 +427,17 @@ int xfile_text_element(XFile *xf, char *name, Attributes *attrs, char *text)
         xfile_output(xf, name);
         xfile_output_attributes(xf, attrs);
         xfile_output(xf, ">");
+        
+        if (cdata) {
+            xfile_output(xf, "<![CDATA[");
+        }
 
         /* FIXME: escape special chars */
         xfile_output(xf, text);
+
+        if (cdata) {
+            xfile_output(xf, "]]>");
+        }
 
         xfile_output(xf, "</");
         xfile_output(xf, name);

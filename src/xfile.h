@@ -94,7 +94,8 @@ int xfile_end(XFile *xf);
 int xfile_begin_element(XFile *xf, char *name, Attributes *attrs);
 int xfile_end_element(XFile *xf, char *name);
 int xfile_empty_element(XFile *xf, char *name, Attributes *attrs);
-int xfile_text_element(XFile *xf, char *name, Attributes *attrs, char *text);
+int xfile_text_element(XFile *xf,
+    char *name, Attributes *attrs, char *text, int cdata);
 
 int xfile_comment(XFile *xf, char *comment);
 
