@@ -616,26 +616,39 @@ static int read_long_line(FILE * fp, char **linebuf, int *buflen)
     return retval;
 }
 
+
 /* open a file for write */
 FILE *grace_openw(char *fn)
 {
     struct stat statb;
     char buf[GR_MAXPATHLEN + 50];
+    FILE *retval;
 
     if (!fn || !fn[0]) {
         errmsg("No file name given");
 	return NULL;
     } else if (strcmp(fn, "-") == 0 || strcmp(fn, "stdout") == 0) {
         return stdout;
-    /* check to make sure this is a file and not a dir */
-    } else if (stat(fn, &statb) == 0 && !S_ISREG(statb.st_mode)) {
-        sprintf(buf, "%s is not a regular file", fn);
-        errmsg(buf);
-	return NULL;
-    } else if (fexists(fn)) {
-	return NULL;
     } else {
-        return filter_write(fn);
+        if (stat(fn, &statb) == 0) {
+            /* check to make sure this is a file and not a dir */
+            if (S_ISREG(statb.st_mode)) {
+	        sprintf(buf, "Overwrite %s?", fn);
+	        if (!yesno(buf, NULL, NULL, NULL)) {
+	            return NULL;
+	        }
+            } else {
+                sprintf(buf, "%s is not a regular file!", fn);
+                errmsg(buf);
+	        return NULL;
+            }
+        }
+        retval = filter_write(fn);
+        if (!retval) {
+	    sprintf(buf, "Can't write to file %s, check permissions!", fn);
+            errmsg(buf);
+        }
+        return retval;
     }
 }
 

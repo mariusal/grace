@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -105,8 +105,6 @@ void stufftext(char *msg);
 
 int yesnoterm(char *msg);
 int yesno(char *msg, char *s1, char *s2, char *help_anchor);
-
-int fexists(const char *to);
 
 char *mybasename(const char *s);
 
