@@ -80,6 +80,9 @@ static int ps_linejoin;
 static int ps_grayscale = FALSE;
 static int ps_level2 = TRUE;
 
+static int ps_setup_offset_x = 0;
+static int ps_setup_offset_y = 0;
+
 static int ps_setup_grayscale = FALSE;
 static int ps_setup_level2 = TRUE;
 
@@ -197,6 +200,10 @@ static int ps_initgraphics(int format)
 
     /* Definitions */
     fprintf(prstream, "%%%%BeginProlog\n");
+    if (curformat == PS_FORMAT) {
+        fprintf(prstream, "/PAGE_OFFSET_X %d def\n", ps_setup_offset_x);
+        fprintf(prstream, "/PAGE_OFFSET_Y %d def\n", ps_setup_offset_y);
+    }
     fprintf(prstream, "/m {moveto} def\n");
     fprintf(prstream, "/l {lineto} def\n");
     fprintf(prstream, "/s {stroke} def\n");
@@ -266,6 +273,10 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "%%%%EndProlog\n");
 
     fprintf(prstream, "%%%%BeginSetup\n");
+    /* compensate for printer page offsets */
+    if (curformat == PS_FORMAT) {
+        fprintf(prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
+    }
     fprintf(prstream, "%.4f %.4f scale\n", page_scalef, page_scalef);
     if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(prstream, "90 rotate\n");
@@ -754,6 +765,12 @@ int ps_op_parser(char *opstring)
     } else if (!strcmp(opstring, "level1")) {
         ps_setup_level2 = FALSE;
         return GRACE_EXIT_SUCCESS;
+    } else if (!strncmp(opstring, "xoffset:", 8)) {
+        ps_setup_offset_x = atoi(opstring + 8);
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strncmp(opstring, "yoffset:", 8)) {
+        ps_setup_offset_y = atoi(opstring + 8);
+        return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
     }
@@ -787,6 +804,8 @@ static void set_ps_setup_proc(Widget w, XtPointer client_data,
 static Widget ps_setup_frame;
 static Widget ps_setup_grayscale_item;
 static Widget ps_setup_level2_item;
+static SpinStructure *ps_setup_offset_x_item;
+static SpinStructure *ps_setup_offset_y_item;
 
 void ps_gui_setup(void)
 {
@@ -806,6 +825,15 @@ void ps_gui_setup(void)
 	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
 	XtManageChild(rc);
 
+	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL);
+	ps_setup_offset_x_item = CreateSpinChoice(rc,
+            "X: ", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
+	ps_setup_offset_y_item = CreateSpinChoice(rc,
+            "Y: ", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
+	XtManageChild(rc);
+
 	CreateSeparator(ps_setup_rc);
 
 	CreateAACButtons(ps_setup_rc, ps_setup_panel, set_ps_setup_proc);
@@ -823,6 +851,8 @@ static void update_ps_setup_frame(void)
     if (ps_setup_frame) {
         SetToggleButtonState(ps_setup_grayscale_item, ps_setup_grayscale);
         SetToggleButtonState(ps_setup_level2_item, ps_setup_level2);
+        SetSpinChoice(ps_setup_offset_x_item, (double) ps_setup_offset_x);
+        SetSpinChoice(ps_setup_offset_y_item, (double) ps_setup_offset_y);
     }
 }
 
@@ -839,6 +869,8 @@ static void set_ps_setup_proc(Widget w, XtPointer client_data,
     
     ps_setup_grayscale = GetToggleButtonState(ps_setup_grayscale_item);
     ps_setup_level2 = GetToggleButtonState(ps_setup_level2_item);
+    ps_setup_offset_x = (int) GetSpinChoice(ps_setup_offset_x_item);
+    ps_setup_offset_y = (int) GetSpinChoice(ps_setup_offset_y_item);
     
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(ps_setup_frame);
