@@ -85,8 +85,12 @@ char batchfile[GR_MAXPATHLEN] = "",
 
 static char f_string[MAX_STRING_LENGTH]; /* buffer for string to parse */
 static int pos = 0;
-static double *aa, *bb, *cc, *dd;
-static int setindex, lxy, ls;
+
+/* scratch arrays used in scanner */
+static int maxarr = 0;
+static double *ax = NULL, *bx = NULL, *cx = NULL, *dx = NULL;
+
+static int lxy;
 static int whichgraph;
 static int whichset;
 
@@ -483,7 +487,7 @@ symtab_entry *key;
 %token <pset> YYMMDDHMS
 %token <pset> ZERO
 
-%token <ptr> SCRARRAY
+%token <ival> SCRARRAY
 
 %token <val> FITPARM
 %token <val> FITPMAX
@@ -585,7 +589,14 @@ expr:	NUMBER {
 	    $$ = nonl_parms[(int) $1].min;
 	}
 	|  SCRARRAY '[' expr ']' {
-	    $$ = $1[(int) $3 - index_shift];
+	    int itmp = (int) $3 - index_shift;
+	    if (itmp >= maxarr || itmp < 0) {
+		yyerror("Access beyond array bounds");
+		return 1;
+	    } else {
+	        double *ptr = get_scratch((int) $1);
+                $$ = ptr[itmp];
+            }
 	}
 	| vector '[' expr ']' {
 	    double *ptr = getvptr(get_cg(), curset, $1);
@@ -697,6 +708,15 @@ expr:	NUMBER {
 	}
 	| LENGTH {
 	    $$ = getsetlength(get_cg(), curset);
+	}
+	| GRAPHNO '.' SETNUM '.' INDEX {
+	    $$ = $3;
+	}
+	| SETNUM '.' INDEX {
+	    $$ = $1;
+	}
+	| GRAPHNO '.' INDEX {
+	    $$ = $1;
 	}
 	| CONSTANT
 	{
@@ -872,19 +892,18 @@ expr:	NUMBER {
 vexpr:
 	SCRARRAY
 	{
-	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
-	    freelist[fcnt++] = $$;
-	    if (lxy < 0) {
-		yyerror("Length of array < 0");
+	    if (lxy > maxarr) {
+		yyerror("Access beyond array bounds");
 		return 1;
-	    } else if (lxy > maxarr) {
-		maxarr = lxy;
-		init_scratch_arrays(lxy);
-	    }
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i];
-	    }
+	    } else {
+	        int i;
+	        double *ptr = get_scratch((int) $1);
+	        $$ = calloc(lxy, SIZEOF_DOUBLE);
+	        freelist[fcnt++] = $$;
+	        for (i = 0; i < lxy; i++) {
+	            $$[i] = ptr[i];
+	        }
+            }
 	}
 	| vector
 	{
@@ -894,7 +913,7 @@ vexpr:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = ptr[i];
@@ -908,7 +927,7 @@ vexpr:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = ptr[i];
@@ -922,7 +941,7 @@ vexpr:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = ptr[i];
@@ -931,7 +950,7 @@ vexpr:
 	| FUNC_I '(' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc((int) $3[i]);
@@ -940,7 +959,7 @@ vexpr:
 	| FUNC_D '(' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc($3[i]);
@@ -949,7 +968,7 @@ vexpr:
 	| FUNC_DD '(' vexpr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc($3[i], $5[i]);
@@ -958,7 +977,7 @@ vexpr:
 	| FUNC_DD '(' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc($3, $5[i]);
@@ -967,7 +986,7 @@ vexpr:
 	| FUNC_DD '(' vexpr ',' expr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc($3[i], $5);
@@ -976,7 +995,7 @@ vexpr:
 	| FUNC_ND '(' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc((int) $3, $5[i]);
@@ -985,7 +1004,7 @@ vexpr:
 	| FUNC_NND '(' expr ',' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc((int) $3, (int) $5, $7[i]);
@@ -994,7 +1013,7 @@ vexpr:
 	| FUNC_PPD '(' expr ',' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc($3, $5, $7[i]);
@@ -1003,7 +1022,7 @@ vexpr:
 	| FUNC_PPPD '(' expr ',' expr ',' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = key[$1].fnc($3, $5, $7, $9[i]);
@@ -1012,7 +1031,7 @@ vexpr:
 	| INDEX
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = i + index_shift;
@@ -1021,7 +1040,7 @@ vexpr:
 	| vexpr '+' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] + $3[i];
@@ -1030,7 +1049,7 @@ vexpr:
 	| vexpr '+' expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] + $3;
@@ -1039,7 +1058,7 @@ vexpr:
 	| expr '+' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1 + $3[i];
@@ -1048,7 +1067,7 @@ vexpr:
 	| vexpr '-' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] - $3[i];
@@ -1057,7 +1076,7 @@ vexpr:
 	| vexpr '-' expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] - $3;
@@ -1066,7 +1085,7 @@ vexpr:
 	| expr '-' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1 - $3[i];
@@ -1075,7 +1094,7 @@ vexpr:
 	| vexpr '*' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] * $3[i];
@@ -1084,7 +1103,7 @@ vexpr:
 	| vexpr '*' expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] * $3;
@@ -1093,7 +1112,7 @@ vexpr:
 	| expr '*' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1 * $3[i];
@@ -1102,7 +1121,7 @@ vexpr:
 	| vexpr '/' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		if ($3[i] == 0.0) {
@@ -1117,7 +1136,7 @@ vexpr:
 	| vexpr '/' expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		if ($3 == 0.0) {
@@ -1132,7 +1151,7 @@ vexpr:
 	| expr '/' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		if ($3[i] == 0.0) {
@@ -1147,7 +1166,7 @@ vexpr:
 	| vexpr '^' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = pow($1[i], $3[i]);
@@ -1156,7 +1175,7 @@ vexpr:
 	| vexpr '^' expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = pow($1[i], $3);
@@ -1165,7 +1184,7 @@ vexpr:
 	| expr '^' vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = pow($1, $3[i]);
@@ -1174,7 +1193,7 @@ vexpr:
 	| vexpr UCONSTANT
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] * key[$2].fnc();
@@ -1182,7 +1201,7 @@ vexpr:
 	}
 	| vexpr '?' vexpr ':' vexpr {
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 	        if ((int) $1[i]) {
@@ -1195,7 +1214,7 @@ vexpr:
 	| '(' vexpr GT vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] > $4[i];
@@ -1204,7 +1223,7 @@ vexpr:
 	| '(' vexpr LT vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] < $4[i];
@@ -1213,7 +1232,7 @@ vexpr:
 	| '(' vexpr LE vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] <= $4[i];
@@ -1222,7 +1241,7 @@ vexpr:
 	| '(' vexpr GE vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] >= $4[i];
@@ -1231,7 +1250,7 @@ vexpr:
 	| '(' vexpr EQ vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] == $4[i];
@@ -1240,7 +1259,7 @@ vexpr:
 	| '(' vexpr NE vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i] != $4[i];
@@ -1249,7 +1268,7 @@ vexpr:
 	| vexpr AND vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] && $3[i];
@@ -1258,7 +1277,7 @@ vexpr:
 	| vexpr AND expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] && $3;
@@ -1267,7 +1286,7 @@ vexpr:
 	| expr AND vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1 && $3[i];
@@ -1276,7 +1295,7 @@ vexpr:
 	| vexpr OR vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] || $3[i];
@@ -1285,7 +1304,7 @@ vexpr:
 	| vexpr OR expr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1[i] || $3;
@@ -1294,7 +1313,7 @@ vexpr:
 	| expr OR vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $1 || $3[i];
@@ -1303,7 +1322,7 @@ vexpr:
 	| NOT vexpr
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = !($2[i]);
@@ -1312,7 +1331,7 @@ vexpr:
 	| '(' vexpr ')'
 	{
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = $2[i];
@@ -1320,7 +1339,7 @@ vexpr:
 	}
 	| '-' vexpr %prec UMINUS {
 	    int i;
-	    $$ = (double *) calloc(lxy, sizeof(double));
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
 		$$[i] = -$2[i];
@@ -1344,14 +1363,17 @@ asgn:
 	}
 	| SCRARRAY '[' expr ']' '=' expr
 	{
+	    double *ptr;
 	    int itmp = (int) $3 - index_shift;
-	    if (itmp >= ls) {
-		yyerror("Subscript out of range");
-		return 1;
-	    } else {
-		$1[itmp] = $6;
-		result = $6;
+	    if (itmp < 0) {
+		yyerror("Access beyond array bounds");
+                return 1;
+	    } else if (itmp >= maxarr) {
+		init_scratch_arrays(itmp + 1);
 	    }
+	    ptr = get_scratch((int) $1);
+	    ptr[itmp] = $6;
+	    result = $6;
 	}
 	| vector '[' expr ']' '=' expr
 	{
@@ -1399,30 +1421,26 @@ vasgn:
 	SCRARRAY '=' vexpr
 	{
 	    int i;
-	    if (ls < 0) {
-		yyerror("Length of array < 0");
-		return 1;
-	    } else if (ls > maxarr) {
-		maxarr = ls;
-		init_scratch_arrays(ls);
+	    double *ptr;
+	    if (lxy > maxarr) {
+		init_scratch_arrays(lxy);
 	    }
-	    for (i = 0; i < lxy; i++) {
-		$1[i] = $3[i];
+	    ptr = get_scratch((int) $1);
+            for (i = 0; i < lxy; i++) {
+		ptr[i] = $3[i];
 	    }
 	    result = $3[0];
 	}
 	| SCRARRAY '=' expr
 	{
 	    int i;
-	    if (ls < 0) {
-		yyerror("Length of array < 0");
-		return 1;
-	    } else if (ls > maxarr) {
-		maxarr = ls;
-		init_scratch_arrays(ls);
+	    double *ptr;
+	    if (lxy > maxarr) {
+		init_scratch_arrays(lxy);
 	    }
+	    ptr = get_scratch((int) $1);
 	    for (i = 0; i < lxy; i++) {
-		$1[i] = $3;
+		ptr[i] = $3;
 	    }
 	    result = $3;
 	}
@@ -1577,11 +1595,11 @@ regionset:
 	{
 	    if (rg[$1].x == NULL || rg[$1].n == 0) {
 		rg[$1].n = 0;
-		rg[$1].x = (double *) calloc(1, sizeof(double));
-		rg[$1].y = (double *) calloc(1, sizeof(double));
+		rg[$1].x = calloc(1, SIZEOF_DOUBLE);
+		rg[$1].y = calloc(1, SIZEOF_DOUBLE);
 	    } else {
-		rg[$1].x = (double *) realloc(rg[$1].x, (rg[$1].n + 1) * sizeof(double));
-		rg[$1].y = (double *) realloc(rg[$1].y, (rg[$1].n + 1) * sizeof(double));
+		rg[$1].x = xrealloc(rg[$1].x, (rg[$1].n + 1) * SIZEOF_DOUBLE);
+		rg[$1].y = xrealloc(rg[$1].y, (rg[$1].n + 1) * SIZEOF_DOUBLE);
 	    }
 	    rg[$1].x[rg[$1].n] = $3;
 	    rg[$1].y[rg[$1].n] = $5;
@@ -2498,15 +2516,16 @@ actions:
         }
 	| LOAD SCRARRAY NUMBER ',' expr ',' expr {
 	    int i, ilen = (int) $3;
+            double *ptr;
 	    if (ilen < 0) {
 		yyerror("Length of array < 0");
 		return 1;
 	    } else if (ilen > maxarr) {
-		maxarr = ilen;
 		init_scratch_arrays(ilen);
 	    }
+            ptr = get_scratch((int) $2);
 	    for (i = 0; i < ilen; i++) {
-		$2[i] = $5 + $7 * i;
+		ptr[i] = $5 + $7 * i;
 	    }
 	}
 	| NONLFIT '(' SETNUM ',' NUMBER ')' {
@@ -4227,9 +4246,56 @@ void set_parser_setno(int setno)
     }
 }
 
-void scanner(char *s, double *x, double *y, int len, double *a, double *b, double *c, double *d, int lenscr, int i, int setno, int *errpos)
+int init_array(double **a, int n)
+{
+    *a = xrealloc(*a, n * SIZEOF_DOUBLE);
+    
+    return *a == NULL ? 1 : 0;
+}
+
+int init_scratch_arrays(int n)
+{
+    if (!init_array(&ax, n)) {
+	if (!init_array(&bx, n)) {
+	    if (!init_array(&cx, n)) {
+		if (!init_array(&dx, n)) {
+		    maxarr = n;
+		    return 0;
+		}
+		free(cx);
+	    }
+	    free(bx);
+	}
+	free(ax);
+    }
+    return 1;
+}
+
+double *get_scratch(int ind)
+{
+    switch (ind) {
+    case 0:
+        return ax;
+        break;
+    case 1:
+        return bx;
+        break;
+    case 2:
+        return cx;
+        break;
+    case 3:
+        return dx;
+        break;
+    default:
+        return NULL;
+        break;
+    }
+}
+
+void scanner(char *s, int len, int setno, int *errpos)
 {
     char *seekpos;
+    int i;
     
     if (s == NULL) {
         return;
@@ -4255,13 +4321,7 @@ void scanner(char *s, double *x, double *y, int len, double *a, double *b, doubl
     whichset = setno;
     curset = setno;
     pos = 0;
-    aa = a;
-    bb = b;
-    cc = c;
-    dd = d;
     lxy = len;
-    ls = lenscr;
-    setindex = i + 1;
 
     fcnt = 0;
     log_results(s);
@@ -4408,7 +4468,7 @@ int yylex(void)
 	    return 0;
 	}
 	s[i] = '\0';
-	str = (char *) malloc(strlen(s) + 1);
+	str = malloc(strlen(s) + 1);
 	strcpy(str, s);
 	yylval.str = str;
 	return CHRSTR;
@@ -4469,9 +4529,9 @@ int yylex(void)
 	    ungetchstr();
 	    if (ctmp == 'G') {
 	        stmp[i] = '\0';
-		if (i == 1 && stmp[0] == '$') {
+		if (i == 1 && stmp[0] == '_') {
                     gn = get_recent_gno();
-                } else if (i == 1 && stmp[0] == '_') {
+                } else if (i == 1 && stmp[0] == '$') {
                     gn = whichgraph;
                 } else {
                     gn = atoi(stmp);
@@ -4483,9 +4543,9 @@ int yylex(void)
 		}
 	    } else if (ctmp == 'S') {
 	        stmp[i] = '\0';
-		if (i == 1 && stmp[0] == '$') {
+		if (i == 1 && stmp[0] == '_') {
                     sn = get_recent_setno();
-                } else if (i == 1 && stmp[0] == '_') {
+                } else if (i == 1 && stmp[0] == '$') {
                     sn = whichset;
                 } else {
 		    sn = atoi(stmp);
@@ -4523,16 +4583,16 @@ int yylex(void)
 	    if (key[found].type == SCRARRAY) {
 		switch (sbuf[0]) {
 		case 'A':
-		    yylval.ptr = aa;
+		    yylval.ival = 0;
 		    return SCRARRAY;
 		case 'B':
-		    yylval.ptr = bb;
+		    yylval.ival = 1;
 		    return SCRARRAY;
 		case 'C':
-		    yylval.ptr = cc;
+		    yylval.ival = 2;
 		    return SCRARRAY;
 		case 'D':
-		    yylval.ptr = dd;
+		    yylval.ival = 3;
 		    return SCRARRAY;
 		}
 	    }
