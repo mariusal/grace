@@ -72,10 +72,12 @@ void stasum(double *x, int n, double *xbar, double *sd)
     }
     *xbar = (*xbar)/n;
     
-    for (i = 0; i < n; i++) {
-        *sd = (*sd) + (x[i] - *xbar) * (x[i] - *xbar);
+    if (n > 1) {
+        for (i = 0; i < n; i++) {
+            *sd = (*sd) + (x[i] - *xbar) * (x[i] - *xbar);
+        }
+        *sd = sqrt(*sd/(n - 1));
     }
-    *sd = sqrt(*sd/n);
 }
 
 /*
