@@ -51,102 +51,106 @@ static void auto_ticks(int gno, int axis);
 
 char *get_format_types(int f)
 {
-    static char s[128];
+    char *s;
 
-    strcpy(s, "decimal");
+    s = "decimal";
     switch (f) {
     case FORMAT_DECIMAL:
-	strcpy(s, "decimal");
+	s = "decimal";
 	break;
     case FORMAT_EXPONENTIAL:
-	strcpy(s, "exponential");
+	s = "exponential";
 	break;
     case FORMAT_GENERAL:
-	strcpy(s, "general");
+	s = "general";
 	break;
     case FORMAT_POWER:
-	strcpy(s, "power");
+	s = "power";
 	break;
     case FORMAT_SCIENTIFIC:
-	strcpy(s, "scientific");
+	s = "scientific";
 	break;
     case FORMAT_ENGINEERING:
-	strcpy(s, "engineering");
+	s = "engineering";
 	break;
     case FORMAT_DDMMYY:
-	strcpy(s, "ddmmyy");
+	s = "ddmmyy";
 	break;
     case FORMAT_MMDDYY:
-	strcpy(s, "mmddyy");
+	s = "mmddyy";
 	break;
     case FORMAT_YYMMDD:
-	strcpy(s, "yymmdd");
+	s = "yymmdd";
 	break;
     case FORMAT_MMYY:
-	strcpy(s, "mmyy");
+	s = "mmyy";
 	break;
     case FORMAT_MMDD:
-	strcpy(s, "mmdd");
+	s = "mmdd";
 	break;
     case FORMAT_MONTHDAY:
-	strcpy(s, "monthday");
+	s = "monthday";
 	break;
     case FORMAT_DAYMONTH:
-	strcpy(s, "daymonth");
+	s = "daymonth";
 	break;
     case FORMAT_MONTHS:
-	strcpy(s, "months");
+	s = "months";
 	break;
     case FORMAT_MONTHSY:
-	strcpy(s, "monthsy");
+	s = "monthsy";
 	break;
     case FORMAT_MONTHL:
-	strcpy(s, "monthl");
+	s = "monthl";
 	break;
     case FORMAT_DAYOFWEEKS:
-	strcpy(s, "dayofweeks");
+	s = "dayofweeks";
 	break;
     case FORMAT_DAYOFWEEKL:
-	strcpy(s, "dayofweekl");
+	s = "dayofweekl";
 	break;
     case FORMAT_DAYOFYEAR:
-	strcpy(s, "dayofyear");
+	s = "dayofyear";
 	break;
     case FORMAT_HMS:
-	strcpy(s, "hms");
+	s = "hms";
 	break;
     case FORMAT_MMDDHMS:
-	strcpy(s, "mmddhms");
+	s = "mmddhms";
 	break;
     case FORMAT_MMDDYYHMS:
-	strcpy(s, "mmddyyhms");
+	s = "mmddyyhms";
 	break;
     case FORMAT_YYMMDDHMS:
-	strcpy(s, "yymmddhms");
+	s = "yymmddhms";
 	break;
     case FORMAT_DEGREESLON:
-	strcpy(s, "degreeslon");
+	s = "degreeslon";
 	break;
     case FORMAT_DEGREESMMLON:
-	strcpy(s, "degreesmmlon");
+	s = "degreesmmlon";
 	break;
     case FORMAT_DEGREESMMSSLON:
-	strcpy(s, "degreesmmsslon");
+	s = "degreesmmsslon";
 	break;
     case FORMAT_MMSSLON:
-	strcpy(s, "mmsslon");
+	s = "mmsslon";
 	break;
     case FORMAT_DEGREESLAT:
-	strcpy(s, "degreeslat");
+	s = "degreeslat";
 	break;
     case FORMAT_DEGREESMMLAT:
-	strcpy(s, "degreesmmlat");
+	s = "degreesmmlat";
 	break;
     case FORMAT_DEGREESMMSSLAT:
-	strcpy(s, "degreesmmsslat");
+	s = "degreesmmsslat";
 	break;
     case FORMAT_MMSSLAT:
-	strcpy(s, "mmsslat");
+	s = "mmsslat";
+	break;
+    default:
+	s = "unknown";
+        errmsg("Internal error in get_format_types()");
 	break;
     }
     return s;
