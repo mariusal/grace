@@ -447,6 +447,7 @@ Quark *get_set_choice_gr(StorageStructure *ss);
 
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
+void UpdateSrcDestSelector(SrcDestStructure *srcdest);
 
 void switch_focus_proc(void *data);
 void hide_graph_proc(void *data);

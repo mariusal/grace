@@ -2394,12 +2394,6 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     return ss;
 }
 
-void graph_select_cb(Widget list, XtPointer client_data, XtPointer call_data)
-{
-    Quark *gr = (Quark *) client_data;
-    switch_current_graph(gr);
-}
-
 void update_graph_selectors(void)
 {
     int i;
@@ -2726,6 +2720,19 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
     XtManageChild(retval->form);
 
     return retval;
+}
+
+void UpdateSrcDestSelector(SrcDestStructure *srcdest)
+{
+    Quark *grsrc, *grdest;
+    
+    grsrc  = get_set_choice_gr(srcdest->src->set_sel);
+    grdest = get_set_choice_gr(srcdest->dest->set_sel);
+    
+    update_set_lists(grsrc);
+    if (grsrc != grdest) {
+        update_set_lists(grdest);
+    }
 }
 
 
@@ -3278,7 +3285,7 @@ int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
         
         *destsets = xmalloc((*nssrc)*sizeof(Quark *));
         for (i = 0; i < *nssrc; i++) {
-            *destsets[i] = set_new(destgr);
+            (*destsets)[i] = set_new(destgr);
         }
         
         update_set_selectors(destgr);
