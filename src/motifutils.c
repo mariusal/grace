@@ -151,20 +151,17 @@ static char *label_to_resname(const char *s, const char *suffix)
 
 void ManageChild(Widget w)
 {
-    if (w) {
-        XtManageChild(w);
-    } else {
-        errmsg("Internal error: ManageChild() called with NULL widget");
-    }
+    XtManageChild(w);
 }
 
 void UnmanageChild(Widget w)
 {
-    if (w) {
-        XtUnmanageChild(w);
-    } else {
-        errmsg("Internal error: UnmanageChild() called with NULL widget");
-    }
+    XtUnmanageChild(w);
+}
+
+void SetSensitive(Widget w, int onoff)
+{
+    XtSetSensitive(w, onoff ? True : False);
 }
 
 Widget GetParent(Widget w)
