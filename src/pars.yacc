@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -305,6 +305,7 @@ symtab_entry *key;
 %token <ival> HANNING
 %token <ival> HARDCOPY
 %token <ival> HBAR
+%token <ival> HELP
 %token <ival> HGAP
 %token <ival> HIDDEN
 %token <ival> HISTOGRAM
@@ -2833,6 +2834,21 @@ actions:
 	        msleep_wrap((unsigned int) (1000 * $2));
 	    }
 	}
+	| HELP CHRSTR {
+#ifndef NONE_GUI
+            if (inwin) {
+                HelpCB($2);
+            }
+            xfree($2);
+#endif
+	}
+	| HELP {
+#ifndef NONE_GUI
+            if (inwin) {
+                HelpCB("doc/UsersGuide.html");
+            }
+#endif
+	}
 	| GETP CHRSTR {
 	    gotparams = TRUE;
 	    strcpy(paramfile, $2);
@@ -4510,6 +4526,7 @@ symtab_entry ikey[] = {
 	{"HANNING", HANNING, NULL},
 	{"HARDCOPY", HARDCOPY, NULL},
 	{"HBAR", HBAR, NULL},
+	{"HELP", HELP, NULL},
 	{"HGAP", HGAP, NULL},
 	{"HIDDEN", HIDDEN, NULL},
 	{"HISTOGRAM", HISTOGRAM, NULL},
