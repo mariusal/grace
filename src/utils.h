@@ -108,4 +108,6 @@ void clear_dirtystate(void);
 void lock_dirtystate(void);
 int is_dirtystate(void);
 
+int system_wrap(const char *string);
+
 #endif /* __UTILS_H_*/

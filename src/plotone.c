@@ -149,7 +149,7 @@ void do_hardcopy(void)
         sprintf(tbuf, "%s %s", print_cmd, fname);
         if (truncated_out == FALSE ||
             !yesno("Printout is truncated. Abort?", NULL, NULL, NULL)) {
-            system(tbuf);
+            system_wrap(tbuf);
         }
 #ifndef PRINT_CMD_UNLINKS
         unlink(fname);

@@ -104,7 +104,7 @@ void HelpCB(Widget w, XtPointer client_data, XtPointer call_data)
     system_spawn(command);
 #else
     strcat(command, "&");    
-    system(command);
+    system_wrap(command);
 #endif
 
 #endif /* WITH_LIBHELP */

@@ -1382,3 +1382,16 @@ int is_dirtystate(void)
 {
     return (dirtystate);
 }
+
+int system_wrap(const char *string)
+{
+    int retval;
+    void (*save_handler)(int);
+    
+    save_handler = signal(SIGALRM, SIG_IGN);
+    retval = system(string);
+    signal(SIGALRM, save_handler);
+    alarm((int) ceil((double) timer_delay/1000));
+    
+    return retval;
+}

@@ -512,6 +512,7 @@ void do_ext_editor(int gno, int setno)
 {
     char *fname, ebuf[256], *s;
     FILE *cp;
+    int save_autos;
 
     fname = tmpnam(NULL);
     cp = grace_openw(fname);
@@ -528,14 +529,18 @@ void do_ext_editor(int gno, int setno)
     	strcpy(ebuf, "xterm -e vi");
     }
     sprintf(ebuf, "%s %s", ebuf, fname);
-    system(ebuf);
+    system_wrap(ebuf);
 
+    /* temporarily disable autoscale */
+    save_autos = autoscale_onread;
+    autoscale_onread = AUTOSCALE_NONE;
     if (is_set_active(gno, setno)) {
 	killsetdata(gno, setno);	
         getdata(gno, fname, SOURCE_DISK, dataset_type(gno, setno));
     } else {
         getdata(gno, fname, SOURCE_DISK, SET_XY);
     }
+    autoscale_onread = save_autos;
     unlink(fname);
     update_all();
     drawgraph();
