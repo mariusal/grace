@@ -64,7 +64,6 @@ typedef struct _EditPoints {
 } EditPoints;
 
 void update_cells(EditPoints *ep);
-void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data);
 
 /* default cell value precision */
 #define CELL_PREC 8
@@ -180,13 +179,15 @@ static Widget *editp_col_item;
 static Widget *editp_format_item;
 static Widget *editp_precision_item;
 
-static void update_props(EditPoints *ep)
+static void update_props(EditPoints *ep, int col)
 {
-    int col;
-
-    col = GetChoice(editp_col_item);
-    if (col >= MAX_SET_COLS) {
-    	col = 0;
+    if (col >= 0 && col < MAX_SET_COLS) {
+        SetChoice(editp_col_item, col);
+    } else {
+        col = GetChoice(editp_col_item);
+        if (col >= MAX_SET_COLS) {
+    	    col = 0;
+        }
     }
 
     SetChoice(editp_format_item, ep->cformat[col]); 
@@ -218,18 +219,14 @@ static int do_accept_props(void *data)
     return RETURN_SUCCESS;
 }
 
-void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    update_cells((EditPoints *) client_data);
-}
-
-void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
+void do_props(EditPoints *ep, int column)
 {
     static Widget top;
-    static EditPoints *ep;
+    static EditPoints *sep;
+    
+    sep = ep;
 
     set_wait_cursor();
-    ep = (EditPoints *) client_data;
     
     if (top == NULL) {
         Widget dialog;
@@ -254,12 +251,18 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 						 "10", "11", "12", "13", "14",
 						 NULL, 0);
 
-	CreateAACDialog(top, dialog, do_accept_props, &ep);
+	CreateAACDialog(top, dialog, do_accept_props, &sep);
     }
-    update_props(ep);
+    update_props(sep, column);
     
     RaiseWindow(GetParent(top));
     unset_wait_cursor();
+}
+
+static void do_props_cb(void *data)
+{
+    EditPoints *ep = (EditPoints *) data;
+    do_props(ep, -1);
 }
 
 
@@ -309,11 +312,18 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     }
 }
 
+/*
+ * We use a stack of static buffers to work around asynchronous
+ * refresh/redraw events
+ */
+#define STACKLEN    10
 
 static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
 {
     int i, j;
     int ncols, nrows, scols;
+    static char buf[STACKLEN][32];
+    static int stackp = 0;
     
     EditPoints *ep = (EditPoints *) client_data;
     XbaeMatrixDrawCellCallbackStruct *cs =
@@ -334,11 +344,12 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
     }
     
     if (j < ncols) {
-        static char buf[128];
         double *datap;
         datap = getcol(ep->gno, ep->setno, j);
-        sprintf(buf, scformat[(ep->cformat[j])], ep->cprec[j], datap[i]);
-        cs->string = buf;
+        sprintf(buf[stackp], scformat[(ep->cformat[j])], ep->cprec[j], datap[i]);
+        cs->string = buf[stackp];
+        stackp++;
+        stackp %= STACKLEN;
     } else {
         char **datap;
         datap = get_set_strings(ep->gno, ep->setno);
@@ -346,16 +357,21 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
     }
 }
 
-static void selectCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XbaeMatrixSelectCellCallbackStruct *sc =
-        (XbaeMatrixSelectCellCallbackStruct *) call_data;
+    EditPoints *ep = (EditPoints *) client_data;
+    XbaeMatrixLabelActivateCallbackStruct *cbs =
+	(XbaeMatrixLabelActivateCallbackStruct *) call_data;
 
-    XbaeMatrixSelectCell(w, sc->row, sc->column);
-}
-
-static void writeCB(Widget w, XtPointer client_data, XtPointer call_data)
-{
+    if (cbs->row_label) {
+	if (XbaeMatrixIsRowSelected(ep->mw, cbs->row)) {
+	    XbaeMatrixDeselectRow(ep->mw, cbs->row);
+	} else {
+	    XbaeMatrixSelectRow(ep->mw, cbs->row);
+        }
+    } else {
+        do_props(ep, cbs->column);
+    }
 }
 
 
@@ -469,10 +485,13 @@ void update_cells(EditPoints *ep)
     delta_nr = new_nr - nr;
     delta_nc = new_nc - nc;
     
+#if 0
+    /* Doesn't work as expected - the cell with focus on is NOT updated ... */
     if (delta_nr == 0 && delta_nc == 0) {
         XbaeMatrixRefresh(ep->mw);
         return;
     }
+#endif
     
     for (i = 0; i < ncols; i++) {
         widths[i] = CELL_WIDTH;
@@ -539,15 +558,20 @@ void update_cells(EditPoints *ep)
     }
 }
 
+int ep_aac_proc(void *data)
+{
+    return RETURN_SUCCESS;
+}
+
+
 static EditPoints *new_ep(void)
 {
     int i;
     short widths[MIN_SS_COLS];
     char *rowlabels[MIN_SS_ROWS];
-    char *label1[3] = {"Props...", "Update", "Close"};
     char *label2[2] = {"Delete", "Add"};
     EditPoints *ep;
-    Widget dialog, fr, but1[3], but2[2];
+    Widget dialog, fr, but2[2];
     
     ep = xmalloc(sizeof(EditPoints));
     ep->next = ep_start;
@@ -578,6 +602,7 @@ static EditPoints *new_ep(void)
         xbaeMatrixWidgetClass, ep->top,
         XmNrows, MIN_SS_ROWS,
         XmNvisibleRows, MIN_SS_ROWS,
+        XmNbuttonLabels, True,
         XmNrowLabels, rowlabels,
         XmNcolumns, MIN_SS_COLS,
         XmNvisibleColumns, MIN_SS_COLS,
@@ -593,32 +618,20 @@ static EditPoints *new_ep(void)
 	xfree(rowlabels[i]);
     }
 
-    XtAddCallback(ep->mw, XmNselectCellCallback, selectCB, ep);	
     XtAddCallback(ep->mw, XmNdrawCellCallback, drawcellCB, ep);	
     XtAddCallback(ep->mw, XmNleaveCellCallback, leaveCB, ep);
-    XtAddCallback(ep->mw, XmNwriteCellCallback, writeCB, ep);  
+    XtAddCallback(ep->mw, XmNlabelActivateCallback, labelCB, ep);
 
     AddDialogFormChild(ep->top, ep->mw);
 
     dialog = CreateVContainer(ep->top);
-    AddDialogFormChild(ep->top, dialog);
 
     CreateCommandButtons(dialog, 2, but2, label2);
     XtAddCallback(but2[0], XmNactivateCallback, del_point_cb, (XtPointer) ep);
     XtAddCallback(but2[1], XmNactivateCallback, add_pt_cb, (XtPointer) ep);
-    
-    CreateSeparator(dialog);
 
-    CreateCommandButtons(dialog, 3, but1, label1);
-    XtAddCallback(but1[0], XmNactivateCallback, do_props_proc,
-    	    (XtPointer) ep);
-    XtAddCallback(but1[1], XmNactivateCallback, do_update_cells,
-    	    (XtPointer) ep);
-    XtAddCallback(but1[2], XmNactivateCallback, destroy_dialog,
-    	    (XtPointer) GetParent(ep->top));
+    CreateAACDialog(ep->top, dialog, ep_aac_proc, ep);
 
-    ManageChild(ep->top);
-    
     return ep;
 }
 
