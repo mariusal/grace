@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -40,10 +40,9 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
+#include <Xm/RowColumn.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
-#include <Xm/RowColumn.h>
 #include <Xm/Scale.h>
 
 #include "globals.h"
@@ -78,6 +77,7 @@ static Widget linkscroll_item;
 
 static Widget *hint_item;
 static Widget date_item;
+static Widget wrap_year_item;
 static Widget two_digits_years_item;
 
 /*
@@ -85,15 +85,21 @@ static Widget two_digits_years_item;
  */
 static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
+static void wrap_year_cb(int onoff, void *data)
+{
+    Widget wrap_year = (Widget) data;
+    
+    XtSetSensitive(wrap_year, onoff);
+}
+
 void create_props_frame(void *data)
 {
-    Widget panel;
-    Widget buts[2];
-    Widget wlabel;
-
     set_wait_cursor();
+
     if (props_frame == NULL) {
 	char *label1[2];
+        Widget panel, rc, wlabel, buts[2];
+
 	label1[0] = "Accept";
 	label1[1] = "Close";
 	props_frame = XmCreateDialogShell(app_shell, "Misc", NULL, 0);
@@ -107,12 +113,8 @@ void create_props_frame(void *data)
 					NULL,
 					NULL);
 #endif
-	noask_item = XtVaCreateManagedWidget("Don't ask questions",
-					   xmToggleButtonWidgetClass, panel,
-					      NULL);
-	dc_item = XtVaCreateManagedWidget("Allow double clicks on canvas",
-					  xmToggleButtonWidgetClass, panel,
-					  NULL);
+	noask_item = CreateToggleButton(panel, "Don't ask questions");
+	dc_item = CreateToggleButton(panel, "Allow double clicks on canvas");
 	auto_item = CreatePanelChoice(panel, "Autoscale type:",
 					 5,
 				  	 "None",
@@ -132,9 +134,7 @@ void create_props_frame(void *data)
 						    NULL,
 						    NULL);
 	graph_drawfocus_choice_item =
-                    XtVaCreateManagedWidget("Display focus markers",
-					    xmToggleButtonWidgetClass, panel,
-                                            NULL);
+            CreateToggleButton(panel, "Display focus markers");
 
 	CreateSeparator(panel);
 
@@ -158,15 +158,9 @@ void create_props_frame(void *data)
 				     XmNprocessingDirection, XmMAX_ON_RIGHT,
 					       XmNorientation, XmHORIZONTAL,
 						 NULL);
-	linkscroll_item = XtVaCreateManagedWidget("Linked scrolling",
-				      xmToggleButtonWidgetClass, panel,
-						  NULL);
-	autoredraw_type_item = XtVaCreateManagedWidget("Auto redraw",
-				      xmToggleButtonWidgetClass, panel,
-						       NULL);
-	cursor_type_item = XtVaCreateManagedWidget("Crosshair cursor",
-				      xmToggleButtonWidgetClass, panel,
-						   NULL);
+	linkscroll_item = CreateToggleButton(panel, "Linked scrolling");
+	autoredraw_type_item = CreateToggleButton(panel, "Auto redraw");
+	cursor_type_item = CreateToggleButton(panel, "Crosshair cursor");
 
 	CreateSeparator(panel);
 
@@ -181,11 +175,14 @@ void create_props_frame(void *data)
                                       NULL);
 
 	date_item = CreateTextItem2(panel, 20, "Reference date:");
-        xv_setstr(date_item, "");
-	two_digits_years_item =
-                    XtVaCreateManagedWidget("Allow two-digit year format",
-					    xmToggleButtonWidgetClass, panel,
-                                            NULL);
+
+	rc = XmCreateRowColumn(panel, "props_rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        two_digits_years_item = CreateToggleButton(rc, "Two-digit year span");
+        wrap_year_item = CreateTextItem2(rc, 4, "Wrap year:");
+	AddToggleButtonCB(two_digits_years_item,
+            wrap_year_cb, (void *) wrap_year_item);
+        XtManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -209,7 +206,7 @@ void update_props_items(void)
     int iv;
     int y, m, d, h, mm;
     double sec;
-    char date_string [21];
+    char date_string[64], wrap_year_string[64];
     
     if (props_frame) {
 #ifdef DEBUG
@@ -219,8 +216,8 @@ void update_props_items(void)
 	}
 	SetChoice(debug_item, debuglevel);
 #endif
-	XmToggleButtonSetState(noask_item, noask, False);
-	XmToggleButtonSetState(dc_item, allow_dc, False);
+	SetToggleButtonState(noask_item, noask);
+	SetToggleButtonState(dc_item, allow_dc);
 	SetChoice(auto_item, autoscale_onread);
 
 	if (focus_policy == FOCUS_SET) {
@@ -231,12 +228,11 @@ void update_props_items(void)
 	    itest = 2;
 	}
 	SetChoice(graph_focus_choice_item, itest);
-	XmToggleButtonSetState(graph_drawfocus_choice_item,
-			       draw_focus_flag == TRUE ? True : False, False);
+	SetToggleButtonState(graph_drawfocus_choice_item, draw_focus_flag);
 
-	XmToggleButtonSetState(linkscroll_item, scrolling_islinked == TRUE, False);
-	XmToggleButtonSetState(autoredraw_type_item, auto_redraw == TRUE, False);
-	XmToggleButtonSetState(cursor_type_item, cursortype == TRUE, False);
+	SetToggleButtonState(linkscroll_item, scrolling_islinked);
+	SetToggleButtonState(autoredraw_type_item, auto_redraw);
+	SetToggleButtonState(cursor_type_item, cursortype);
 	iv = (int) rint(100 * scrollper);
 	XtSetArg(a, XmNvalue, iv);
 	XtSetValues(scrollper_item, &a, 1);
@@ -265,8 +261,9 @@ void update_props_items(void)
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
                 y, m, d, h, mm, (int) sec);
         xv_setstr(date_item, date_string);
-        XmToggleButtonSetState(two_digits_years_item,
-                               two_digits_years_allowed(), False);
+        SetToggleButtonState(two_digits_years_item, two_digits_years_allowed());
+        sprintf(wrap_year_string, "%04d", get_wrap_year());
+        xv_setstr(wrap_year_item, wrap_year_string);
     }
 }
 
@@ -279,8 +276,8 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 #ifdef DEBUG
     debuglevel = GetChoice(debug_item);
 #endif
-    noask = XmToggleButtonGetState(noask_item);
-    allow_dc = XmToggleButtonGetState(dc_item);
+    noask = GetToggleButtonState(noask_item);
+    allow_dc = GetToggleButtonState(dc_item);
     autoscale_onread = GetChoice(auto_item);
 
     switch (GetChoice(graph_focus_choice_item)) {
@@ -294,11 +291,11 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 	focus_policy = FOCUS_FOLLOWS;
 	break;
     }
-    draw_focus_flag = (int) XmToggleButtonGetState(graph_drawfocus_choice_item) ? TRUE : FALSE;
+    draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item) ? TRUE : FALSE;
 
-    scrolling_islinked = XmToggleButtonGetState(linkscroll_item);
-    auto_redraw = XmToggleButtonGetState(autoredraw_type_item);
-    cursortype = XmToggleButtonGetState(cursor_type_item);
+    scrolling_islinked = GetToggleButtonState(linkscroll_item);
+    auto_redraw = GetToggleButtonState(autoredraw_type_item);
+    cursortype = GetToggleButtonState(cursor_type_item);
     XtSetArg(a, XmNvalue, &value);
     XtGetValues(scrollper_item, &a, 1);
     scrollper = (double) value / 100.0;
@@ -327,7 +324,8 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
     } else {
         errmsg("Invalid date");
     }
-    allow_two_digits_years(XmToggleButtonGetState(two_digits_years_item));
+    allow_two_digits_years(GetToggleButtonState(two_digits_years_item));
+    set_wrap_year(atoi(xv_getstr(wrap_year_item)));
     
     drawgraph();
 }
