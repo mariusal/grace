@@ -53,8 +53,6 @@
 #include <Xm/Form.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Label.h>
-#include <Xm/ToggleB.h>
-#include <Xm/PushB.h>
 #include <Xm/ScrolledW.h>
 #include <Xm/DrawingA.h>
 #include <Xm/RepType.h>
@@ -114,7 +112,6 @@ static Widget form;		/* form for mainwindow */
 
 static void MenuCB(void *data);
 static Widget CreateMainMenuBar(Widget parent);
-void init_pm(Pixel fg, Pixel bg);
 
 static int toolbar_visible = 1;
 static int statusbar_visible = 1;
@@ -435,7 +432,7 @@ void do_clear_point(void *data)
 static void set_view_items(void)
 {
     if (statusbar_visible) {
-	XmToggleButtonSetState(windowbarw[1], True, False);
+	SetToggleButtonState(windowbarw[1], TRUE);
 	XtManageChild(frbot);
 	XtVaSetValues(drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
@@ -448,7 +445,7 @@ static void set_view_items(void)
 			  NULL);
 	}
     } else {
-	XmToggleButtonSetState(windowbarw[1], False, False);
+	SetToggleButtonState(windowbarw[1], FALSE);
 	XtVaSetValues(drawing_window,
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
@@ -460,7 +457,7 @@ static void set_view_items(void)
 	}
     }
     if (toolbar_visible) {
-	XmToggleButtonSetState(windowbarw[2], True, False);
+	SetToggleButtonState(windowbarw[2], TRUE);
 	XtManageChild(frleft);
 	if (statusbar_visible) {
 	    XtVaSetValues(frleft,
@@ -479,14 +476,14 @@ static void set_view_items(void)
 		      XmNleftWidget, frleft,
 		      NULL);
     } else {
-	XmToggleButtonSetState(windowbarw[2], False, False);
+	SetToggleButtonState(windowbarw[2], FALSE);
 	XtUnmanageChild(frleft);
 	XtVaSetValues(drawing_window,
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
     }
     if (locbar_visible) {
-	XmToggleButtonSetState(windowbarw[0], True, False);
+	SetToggleButtonState(windowbarw[0], TRUE);
 	XtManageChild(frtop);
 	XtVaSetValues(drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
@@ -499,7 +496,7 @@ static void set_view_items(void)
 			  NULL);
 	}
     } else {
-	XmToggleButtonSetState(windowbarw[0], False, False);
+	SetToggleButtonState(windowbarw[0], FALSE);
 	XtUnmanageChild(frtop);
 	XtVaSetValues(drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,
@@ -735,7 +732,6 @@ void startup_gui(void)
     Widget bt, rc3, rcleft;
     Pixmap icon, shape;
     Atom WM_DELETE_WINDOW;
-    Pixel fg, bg;
 
 /* 
  * Allow users to change tear off menus with X resources
@@ -882,27 +878,13 @@ void startup_gui(void)
     bt = CreateButton(rcleft, "Draw");
     AddButtonCB(bt, do_drawgraph, NULL);
 
-/*
- * initialize pixmaps for buttons on front
- */
-/*
- * We need it to get right (same) background color for pixmaps.
- * There should be more clever way of doing that, of course.
- */    
-    XtVaGetValues(bt,
-		  XmNforeground, &fg,
-		  XmNbackground, &bg,
-		  NULL);
-    init_pm(fg, bg);
-
 /* zoom and autoscale */
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
+				  XmNpacking, XmPACK_COLUMN,
+				  XmNnumColumns, 4,
 				  XmNspacing, 0,
 				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
 				  NULL);
     bt = CreateBitmapButton(rc3, 16, 16, zoom_bits);
     AddButtonCB(bt, set_actioncb, (void *) ZOOM_1ST);
@@ -910,14 +892,6 @@ void startup_gui(void)
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_XY);
 
 /* expand/shrink */
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
-				  NULL);
     bt = CreateBitmapButton(rc3, 16, 16, expand_bits);
     AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_EXPAND);
     bt = CreateBitmapButton(rc3, 16, 16, shrink_bits);
@@ -926,27 +900,11 @@ void startup_gui(void)
 /*
  * scrolling buttons
  */
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
-				  NULL);
     bt = CreateBitmapButton(rc3, 16, 16, left_bits);
     AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_LEFT);
     bt = CreateBitmapButton(rc3, 16, 16, right_bits);
     AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_RIGHT);
 
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
-				  NULL);
     bt = CreateBitmapButton(rc3, 16, 16, down_bits);
     AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_DOWN);
     bt = CreateBitmapButton(rc3, 16, 16, up_bits);
@@ -962,51 +920,26 @@ void startup_gui(void)
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
+				  XmNpacking, XmPACK_COLUMN,
+				  XmNnumColumns, 4,
 				  XmNspacing, 0,
 				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
 				  NULL);
     bt = CreateButton(rc3, "ZX");
     AddButtonCB(bt, set_actioncb, (void *) ZOOMX_1ST);
     bt = CreateButton(rc3, "ZY");
     AddButtonCB(bt, set_actioncb, (void *) ZOOMY_1ST);
 
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
-				  NULL);
     bt = CreateButton(rc3, "AX");
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
     bt = CreateButton(rc3, "AY");
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
 
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
-				  NULL);
     bt = CreateButton(rc3, "PZ");
     AddButtonCB(bt, world_stack_proc, (void *) WSTACK_PUSH_ZOOM);
     bt = CreateButton(rc3, "Pu");
     AddButtonCB(bt, world_stack_proc, (void *) WSTACK_PUSH);
 
-    rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
-				  XmNorientation, XmHORIZONTAL,
-				  XmNpacking, XmPACK_TIGHT,
-				  XmNspacing, 0,
-				  XmNentryBorder, 0,
-				  XmNmarginWidth, 0,
-				  XmNmarginHeight, 0,
-				  NULL);
     bt = CreateButton(rc3, "Po");
     AddButtonCB(bt, world_stack_proc, (void *) WSTACK_POP);
     bt = CreateButton(rc3, "Cy");
@@ -1048,10 +981,12 @@ void startup_gui(void)
     XpmCreatePixmapFromData(disp, root,
 			    grace_icon_xpm, &icon, &shape, NULL);
 #else
-    icon = XCreatePixmapFromBitmapData(disp, root, 
-                    (char *) grace_icon_bits, grace_icon_width, grace_icon_height,
-		                                                 fg, bg, depth);
-    shape = icon;
+    icon = XCreateBitmapFromData(disp,
+        RootWindowOfScreen(XtScreen(app_shell)), (char *)grace_icon_bits,
+        grace_icon_width, grace_icon_height);
+    shape = XCreateBitmapFromData(disp,
+        RootWindowOfScreen(XtScreen(app_shell)), (char *)grace_mask_bits,
+        grace_icon_width, grace_icon_height);
 #endif
     XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
 
