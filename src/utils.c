@@ -851,6 +851,10 @@ char *mybasename(const char *s)
     int start, end;
     static char basename[GR_MAXPATHLEN];
     
+    if (!s) {
+        return NULL;
+    }
+    
     s = path_translate(s);
     if (s == NULL) {
         errmsg("Could not translate basename:");
@@ -1029,6 +1033,10 @@ char *q_labeling(Quark *q)
     tickmarks *t;
     DObject *o;
     region *r;
+    
+    if (!q) {
+        return NULL;
+    }
     
     buf = xmalloc(strlen(QIDSTR(q)) + 128);
     if (!buf) {

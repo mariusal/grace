@@ -467,12 +467,15 @@ static void autoticks_cb(Widget but, void *data)
 void set_left_footer(char *s)
 {
     if (s == NULL) {
-        char hbuf[64];
-        char buf[GR_MAXPATHLEN + 100];
+        char hbuf[64], buf[GR_MAXPATHLEN + 100], *prname;
         gethostname(hbuf, 63);
-        sprintf(buf, "%s, %s, %s, %d%%",
-            hbuf, display_name(grace->gui), project_get_docname(grace->project),
-            (int) rint(100*grace->gui->zoom));
+        prname = project_get_docname(grace->project);
+        if (prname) {
+            sprintf(buf, "%s, %s, %s, %d%%", hbuf, display_name(grace->gui),
+                prname, (int) rint(100*grace->gui->zoom));
+        } else {
+            sprintf(buf, "%s, %s", hbuf, display_name(grace->gui));
+        }
         SetLabel(statlab, buf);
     } else {
         SetLabel(statlab, s);

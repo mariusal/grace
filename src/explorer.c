@@ -128,6 +128,10 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     char *s;
     GUI *gui;
     
+    if (!q) {
+        return NULL;
+    }
+    
     gui = gui_from_quark(q);
     
     data = xmalloc(sizeof(TreeItemData));
@@ -640,7 +644,9 @@ void update_explorer(ExplorerUI *ui, int reselect)
     }
     
     ListTreeRefreshOff(ui->tree);
-    ListTreeDelete(ui->tree, ui->project);
+    if (ui->project) {
+        ListTreeDelete(ui->tree, ui->project);
+    }
     ui->project = CreateQuarkTree(ui->tree, NULL,
         grace->project, NULL, q_labeling);
 

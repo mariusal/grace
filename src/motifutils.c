@@ -2463,25 +2463,27 @@ static Widget CreateColorChoicePopup(Widget button)
                   XmNpacking, XmPACK_COLUMN,
                   NULL);
 
-    for (ci = 0; ci < pr->ncolors; ci++) {
-        Colordef *c = &pr->colormap[ci];
-        long bg, fg;
-        Widget cb;
-        int color = c->id;
-        cb = CreateButton(popup, c->cname);
-        XtAddCallback(cb,
-            XmNactivateCallback, cc_cb, (XtPointer) color);
+    if (pr) {
+        for (ci = 0; ci < pr->ncolors; ci++) {
+            Colordef *c = &pr->colormap[ci];
+            long bg, fg;
+            Widget cb;
+            int color = c->id;
+            cb = CreateButton(popup, c->cname);
+            XtAddCallback(cb,
+                XmNactivateCallback, cc_cb, (XtPointer) color);
 
-        bg = xvlibcolors[color];
-	if (get_rgb_intensity(&c->rgb) < 0.5) {
-	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
-	} else {
-	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
-	}
-	XtVaSetValues(cb, 
-            XmNbackground, bg,
-            XmNforeground, fg,
-            NULL);
+            bg = xvlibcolors[color];
+	    if (get_rgb_intensity(&c->rgb) < 0.5) {
+	        fg = WhitePixel(xstuff->disp, xstuff->screennumber);
+	    } else {
+	        fg = BlackPixel(xstuff->disp, xstuff->screennumber);
+	    }
+	    XtVaSetValues(cb, 
+                XmNbackground, bg,
+                XmNforeground, fg,
+                NULL);
+        }
     }
     
     return popup;
@@ -3122,6 +3124,10 @@ void paint_color_selector(OptionStructure *optp)
     unsigned int i;
     long bg, fg;
     Project *pr = project_get_data(grace->project);
+    
+    if (!pr) {
+        return;
+    }
     
     for (i = 0; i < pr->ncolors; i++) {
         Colordef *c = &pr->colormap[i];
