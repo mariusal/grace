@@ -186,7 +186,7 @@ return(0);
 
 #endif /* HAVE_ISNAN */
 
-#if !defined(HAVE_FINITE) && !defined(HAVE_ISFINITE)
+#if !defined(HAVE_FINITE) && !defined(HAVE_ISFINITE) && !defined(HAVE_ISFINITE_MACRO)
 
 /* Return 1 if x is not infinite and is not a NaN.  */
 
