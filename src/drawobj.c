@@ -106,7 +106,7 @@ static void draw_object(DObject *o)
             setcharsize(s->size);
             setfont(s->font);
 
-            WriteString(anchor, 180.0/M_PI*o->angle, s->just, s->s);
+            WriteString(anchor, o->angle, s->just, s->s);
         }
         break;
     case DO_LINE:
@@ -114,8 +114,8 @@ static void draw_object(DObject *o)
             VPoint vp;
             DOLineData *l = (DOLineData *) o->odata;
             
-            vp.x = anchor.x + l->length*cos(o->angle);
-            vp.y = anchor.y + l->length*sin(o->angle);
+            vp.x = anchor.x + l->length*cos(M_PI/180.0*o->angle);
+            vp.y = anchor.y + l->length*sin(M_PI/180.0*o->angle);
 
             setline(&o->line);
             DrawLine(anchor, vp);

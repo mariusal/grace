@@ -2237,7 +2237,7 @@ parmset:
 	    if (!curobject) {
                 yyerror("No active object");
 	    } else {
-                curobject->angle = M_PI/180.0*$3;
+                curobject->angle = $3;
             }
         }
 	| LINE expr ',' expr ',' expr ',' expr {
@@ -2250,7 +2250,7 @@ parmset:
                 l->length = hypot($6 - $2, $8 - $4);
                 curobject->ap.x  = $2;
                 curobject->ap.y  = $4;
-                curobject->angle = atan2($8 - $4, $6 - $2);
+                curobject->angle = 180.0/M_PI*atan2($8 - $4, $6 - $2);
             }
 	}
 	| LINE ARROW nexpr {
