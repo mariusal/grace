@@ -51,8 +51,11 @@
 #define MAGIC_FONT_SCALE	0.028
 
 #define SSCRIPT_SCALE M_SQRT1_2
+#define SUBSCRIPT_SHIFT 0.4
+#define SUPSCRIPT_SHIFT 0.6
 #define ENLARGE_SCALE sqrt(M_SQRT2)
 #define OBLIQUE_FACTOR 0.25
+
 
 #define T1_DEFAULT_ENCODING_FILE  "Default.enc"
 #define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
@@ -95,12 +98,10 @@ typedef struct {
     int overline;
     int kerning;
     CSAux aux;
+    GLYPH *glyph;
+    VPoint start;
+    VPoint stop;
 } CompositeString;
-
-typedef struct {
-    int x;
-    int y;
-} CSMark;
 
 typedef struct {
     int mapped_id;
@@ -125,11 +126,5 @@ int get_mapped_font(int mapped_id);
 int map_font(int font, int mapped_id);
 int map_font_by_name(char *fname, int mapped_id);
 void map_fonts(int map);
-
-GLYPH *GetGlyphString(CompositeString *cs);
-GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
-                    int x_off, int y_off, int advancing);
-void FreeCompositeString(CompositeString *cs);
-CompositeString *String2Composite(char *string);
 
 #endif /* __T1_FONTS_H_ */

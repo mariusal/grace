@@ -50,8 +50,7 @@ static int bitmap_pad;
 
 void (*devputpixmap) (VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void (*devputtext) (VPoint start, VPoint end, double size, 
-                                            CompositeString *cstring);
+void (*devputtext) (CompositeString *cs);
 
 static int nfonts = 0;
 static FontDB *FontDBtable = NULL;
@@ -354,9 +353,16 @@ static int tm_scale(TextMatrix *tm, double s)
     }
 }
 
+/* determinant */
 static double tm_det(TextMatrix *tm)
 {
     return tm->cxx*tm->cyy - tm->cxy*tm->cyx;
+}
+
+/* vertical size */
+static double tm_size(TextMatrix *tm)
+{
+    return tm_det(tm)/sqrt(tm->cxx*tm->cxx + tm->cyx*tm->cyx);
 }
 
 static int tm_product(TextMatrix *tm, TextMatrix *p)
@@ -383,7 +389,7 @@ static void tm_rotate(TextMatrix *tm, double angle)
 
         si = sin(M_PI/180.0*angle);
         co = cos(M_PI/180.0*angle);
-        tmp.cxx = co; tmp.cyy = co; tmp.cxy = si; tmp.cyx = -si;
+        tmp.cxx = co; tmp.cyy = co; tmp.cxy = -si; tmp.cyx = si;
         tm_product(tm, &tmp);
     }
 }
@@ -393,20 +399,19 @@ static void tm_slant(TextMatrix *tm, double slant)
     if (slant != 0.0) {
         TextMatrix tmp;
 
-        tmp.cxx = 1.0; tmp.cyy = 1.0; tmp.cxy = 0.0; tmp.cyx = slant;
+        tmp.cxx = 1.0; tmp.cyy = 1.0; tmp.cxy = slant; tmp.cyx = 0.0;
         tm_product(tm, &tmp);
     }
 }
 
-GLYPH *GetGlyphString(CompositeString *cs)
+GLYPH *GetGlyphString(CompositeString *cs, double dpv, int fontaa)
 {
     int i;
     
     int len = cs->len;
     int FontID = cs->font;
-    
     float Size;
-
+    
     long Space = 0;
     
     GLYPH *glyph;
@@ -416,34 +421,41 @@ GLYPH *GetGlyphString(CompositeString *cs)
     static unsigned long last_bg = 0, last_fg = 0;
 
     int modflag;
-    T1_TMATRIX matrix;
+    T1_TMATRIX matrix, *matrixP;
 
     RGB fg_rgb, bg_rgb, delta_rgb, *prgb;
     CMap_entry cmap;
     
-    Device_entry dev;
-
     if (cs->len == 0) {
         return NULL;
     }
 
-    Size = (float) fabs(cs->tm.cyy);
+    /* T1lib doesn't like negative sizes */
+    Size = (float) fabs(tm_size(&cs->tm));
     if (Size == 0.0) {
-        errmsg("t1lib: Zero font size!");
         return NULL;
     }
 
+    /* NB: T1lib uses counter-intuitive names for off-diagonal terms */
     matrix.cxx = (float) cs->tm.cxx/Size;
-    matrix.cxy = (float) cs->tm.cxy/Size;
-    matrix.cyx = (float) cs->tm.cyx/Size;
+    matrix.cxy = (float) cs->tm.cyx/Size;
+    matrix.cyx = (float) cs->tm.cxy/Size;
     matrix.cyy = (float) cs->tm.cyy/Size;
+
+    Size *= dpv;
 
     modflag = T1_UNDERLINE * cs->underline |
               T1_OVERLINE  * cs->overline  |
               T1_KERNING   * cs->kerning;
 
-    dev = get_curdevice_props();
-    if (dev.fontaa == TRUE) {
+    if (fabs(matrix.cxx - 1) < 0.01 && fabs(matrix.cyy - 1) < 0.01 &&
+        fabs(matrix.cxy) < 0.01 && fabs(matrix.cyx) < 0.01) {
+        matrixP = NULL;
+    } else {
+        matrixP = &matrix;
+    }
+
+    if (fontaa == TRUE) {
     	fg = cs->color;
     	bg = getbgcolor();
 
@@ -489,21 +501,24 @@ GLYPH *GetGlyphString(CompositeString *cs)
     			   aacolors[4]);
 
     	glyph = T1_AASetString(FontID, cs->s, len,
-    				   Space, modflag, Size, &matrix);
+    				   Space, modflag, Size, matrixP);
     } else {
     	glyph = T1_SetString(FontID, cs->s, len,
-    				   Space, modflag, Size, &matrix);
+    				   Space, modflag, Size, matrixP);
     }
  
     return glyph;
 }
 
-void FreeCompositeString(CompositeString *cs)
+static void FreeCompositeString(CompositeString *cs)
 {
     int i = 0;
     
     while (cs[i].s != NULL) {
 	xfree(cs[i].s);
+	if (cs[i].glyph != NULL) {
+            T1_FreeGlyph(cs[i].glyph);
+        }
 	i++;
     }
     xfree(cs);
@@ -511,7 +526,7 @@ void FreeCompositeString(CompositeString *cs)
 
 static const TextMatrix unit_tm = UNIT_TM;
 
-CompositeString *String2Composite(char *string)
+static CompositeString *String2Composite(char *string)
 {
     CompositeString *csbuf = NULL;
 
@@ -539,6 +554,8 @@ CompositeString *String2Composite(char *string)
 
     int setmark = MARK_NONE;
     int gotomark = MARK_NONE, new_gotomark = gotomark;
+    
+    double val;
 
     slen = strlen(string);
     
@@ -649,15 +666,17 @@ CompositeString *String2Composite(char *string)
                             if (j == 0) {
                                 new_vshift = 0.0;
                             } else {
-                                new_vshift += tm_new.cyy*atof(buf);
+                                val = atof(buf);
+                                new_vshift += tm_size(&tm_new)*val;
                             }
                             break;
 	                case 'h':
-                            new_hshift = tm_new.cyy*atof(buf);
+                            val = atof(buf);
+                            new_hshift = tm_size(&tm_new)*val;
                             break;
 	                case 'z':
                             if (j == 0) {
-                                scale = 1.0/tm_new.cyy;
+                                scale = 1.0/tm_size(&tm_new);
                                 tm_scale(&tm_new, scale);
                             } else {
                                 scale = atof(buf);
@@ -665,7 +684,7 @@ CompositeString *String2Composite(char *string)
                             }
                             break;
 	                case 'Z':
-                            scale = atof(buf)/tm_new.cyy;
+                            scale = atof(buf)/tm_size(&tm_new);
                             tm_scale(&tm_new, scale);
                             break;
 	                case 'r':
@@ -728,15 +747,16 @@ CompositeString *String2Composite(char *string)
                 }
 		break;
 	    case 's':
+                new_vshift -= tm_size(&tm_new)*SUBSCRIPT_SHIFT;
                 tm_scale(&tm_new, SSCRIPT_SCALE);
-		new_vshift -= 0.4*tm_new.cyy;
 		break;
 	    case 'S':
+                new_vshift += tm_size(&tm_new)*SUPSCRIPT_SHIFT;
                 tm_scale(&tm_new, SSCRIPT_SCALE);
-		new_vshift += 0.6*tm_new.cyy;
 		break;
 	    case 'N':
-		tm_new = unit_tm;
+                scale = 1.0/tm_size(&tm_new);
+                tm_scale(&tm_new, scale);
 		new_vshift = 0.0;
 		break;
 	    case 'B':
@@ -870,42 +890,6 @@ CompositeString *String2Composite(char *string)
     return (csbuf);
 }
 
-/*
- * Convenience wrapper for T1_ConcatGlyphs()
- */
-GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
-    int x_off, int y_off, int advancing)
-{
-    GLYPH *buf_glyph;
-    int mode;
-    
-    if (src_glyph == NULL) {
-        /* even if T1lib fails for some reason, don't miss the offsets! */
-        if (dest_glyph != NULL) {
-            dest_glyph->metrics.advanceX += x_off;
-            dest_glyph->metrics.advanceY += y_off;
-        }
-        return (dest_glyph);
-    }
-    
-    if (dest_glyph != NULL) {
-        if (advancing == TEXT_ADVANCING_RL) {
-            mode = T1_RIGHT_TO_LEFT;
-        } else {
-            mode = T1_DEFAULT;
-        }
-        buf_glyph = T1_ConcatGlyphs(dest_glyph, src_glyph, x_off, y_off, mode);
-        if (buf_glyph != NULL) {
-            T1_FreeGlyph(dest_glyph);
-            dest_glyph = T1_CopyGlyph(buf_glyph);
-        }
-    } else {
-        dest_glyph = T1_CopyGlyph(src_glyph);
-    }
-    
-    return (dest_glyph);
-}
-
 static void reverse_string(char *s, int len)
 {
     char cbuf;
@@ -964,43 +948,31 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 {    
     VPoint vptmp;
  
-    int hjust, vjust;
-    float hfudge;
-    
     double page_ipv, page_dpv;
     
     int def_font = getfont();
     int def_color = getcolor();
  
-    double Angle = 0.0;
+    double Angle = (double) rot;
+
+    /* charsize (in VP units) */
+    double charsize = MAGIC_FONT_SCALE*getcharsize();
+
     int text_advancing;
 
-    int iglyph;
+    int iglyph, nglyphs, first = TRUE;
     GLYPH *glyph;
-    GLYPH *CSglyph = NULL;
  
     CompositeString *cstring;
  
-    double scale_factor;
-    
     int pheight, pwidth;
-    
-    double si, co;
-    float h_off, v_off, v_off_buf, v_off_first = 0.0, v_off_last = 0.0;
-    int x_off = 0, y_off = 0;
-    
-    int first;
-    
-    int baseline_start_x, baseline_start_y, baseline_end_x, baseline_end_y;
-    int bbox_left_x, bbox_right_x, bbox_lower_y, bbox_upper_y;
-    int pinpoint_x, pinpoint_y, justpoint_x, justpoint_y;
-
-    int xshift, yshift;
+    int hjust, vjust;
+    double hfudge, vfudge;
     
     int setmark, gotomark;
-    CSMark cs_marks[MAX_MARKS];
+    VPoint cs_marks[MAX_MARKS];
     
-    VPoint vp_baseline_start, vp_baseline_end;
+    VPoint rpoint, baseline_start, baseline_stop, bbox_ll, bbox_ur, offset;
     
     Device_entry dev;
  
@@ -1008,6 +980,10 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 	return;
     }
     
+    if (charsize <= 0.0) {
+        return;
+    }
+
     dev = get_curdevice_props();
     
     /* inches per 1 unit of viewport */
@@ -1016,110 +992,6 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     /* dots per 1 unit of viewport */
     page_dpv = page_ipv*page_dpi;
 
-    scale_factor = page_dpv * MAGIC_FONT_SCALE * getcharsize();
-    if (scale_factor <= 0.0) {
-        return;
-    }
-
-    cstring = String2Composite(theString);
-    if (cstring == NULL) {
-        return;
-    }
-    
-    Angle = (double) rot;
-    si = sin(M_PI/180.0*Angle);
-    co = cos(M_PI/180.0*Angle);
-    
-    /* zero marks */
-    for (gotomark = 0; gotomark < MAX_MARKS; gotomark++) {
-        cs_marks[gotomark].x = 0;
-        cs_marks[gotomark].y = 0;
-    }
-    
-    first = FALSE;
-    iglyph = 0;
-    while (cstring[iglyph].s != NULL) {
-	/* Post-process the CS */
-        if (cstring[iglyph].font == BAD_FONT_ID) {
-            cstring[iglyph].font = def_font;
-        }
-        if (cstring[iglyph].color == BAD_COLOR) {
-            cstring[iglyph].color = def_color;
-        }
-        if (cstring[iglyph].aux.ligatures == TRUE) {
-            process_ligatures(&cstring[iglyph]);
-        }
-        if (cstring[iglyph].aux.direction == STRING_DIRECTION_RL) {
-            reverse_string(cstring[iglyph].s, cstring[iglyph].len);
-        }
-        tm_scale(&cstring[iglyph].tm, scale_factor);
-        tm_rotate(&cstring[iglyph].tm, Angle);
-
-        text_advancing = cstring[iglyph].aux.advancing;
-
-        glyph = GetGlyphString(&cstring[iglyph]);
-
-        gotomark = cstring[iglyph].aux.gotomark;
-        if (CSglyph != NULL && gotomark >= 0 && gotomark < MAX_MARKS) {
-            cstring[iglyph].hshift += 
-                (co*(cs_marks[gotomark].x - CSglyph->metrics.advanceX) +
-                 si*(cs_marks[gotomark].y - CSglyph->metrics.advanceY)
-                )/scale_factor;
-            cstring[iglyph].vshift += 
-                (-si*(cs_marks[gotomark].x - CSglyph->metrics.advanceX) +
-                  co*(cs_marks[gotomark].y - CSglyph->metrics.advanceY) +
-                  v_off_last
-                )/scale_factor;
-/*
- *             v_off_last = 0.0;
- */
-        }
-
-        v_off = scale_factor * cstring[iglyph].vshift;
-        if (first == FALSE) {
-            v_off_first = v_off;
-            first = TRUE;
-        }
-        h_off = scale_factor * cstring[iglyph].hshift;
-        v_off_buf = v_off;
-        v_off -= v_off_last;
-        v_off_last = v_off_buf;
-        x_off = (int) rint(h_off*co - v_off*si);
-        y_off = (int) rint(v_off*co + h_off*si);
-
-        CSglyph = CatGlyphs(CSglyph, glyph, x_off, y_off, text_advancing);
-
-        setmark = cstring[iglyph].aux.setmark;
-        if (CSglyph != NULL && setmark >= 0 && setmark < MAX_MARKS) {
-            cs_marks[setmark].x = CSglyph->metrics.advanceX;
-            cs_marks[setmark].y = CSglyph->metrics.advanceY;
-        }
-	iglyph++;
-    }
-    if (CSglyph == NULL) {
-        FreeCompositeString(cstring);
-        return;
-    }
-    if (CSglyph->bits == NULL) {
-        /* a string containing only spaces or unrasterizable chars */
-        T1_FreeGlyph(CSglyph);
-        FreeCompositeString(cstring);
-        return;
-    }
-    
-    pinpoint_x = CSglyph->metrics.leftSideBearing;
-    pinpoint_y = CSglyph->metrics.ascent;
-    
-    baseline_start_x = 0 + (int) rint(v_off_first*si);
-    baseline_start_y = 0 - (int) rint(v_off_first*co);
-    baseline_end_x = CSglyph->metrics.advanceX + (int) rint(v_off_last*si);
-    baseline_end_y = CSglyph->metrics.advanceY - (int) rint(v_off_last*co);
-
-    bbox_left_x =  MIN3(baseline_start_x, CSglyph->metrics.leftSideBearing,  baseline_end_x);
-    bbox_right_x = MAX3(baseline_start_x, CSglyph->metrics.rightSideBearing, baseline_end_x);
-    bbox_lower_y = MIN3(baseline_start_y, CSglyph->metrics.descent, baseline_end_y);
-    bbox_upper_y = MAX3(baseline_start_y, CSglyph->metrics.ascent,  baseline_end_y);
-    
     hjust = just & 03;
     switch (hjust) {
     case JUST_LEFT:
@@ -1133,79 +1005,193 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         break;
     default:
         errmsg("Wrong justification type of string");
-        FreeCompositeString(cstring);
         return;
     }
 
     vjust = just & 014;
     switch (vjust) {
     case JUST_BOTTOM:
-        justpoint_x = (int) rint(bbox_left_x + 
-                                hfudge*(bbox_right_x - bbox_left_x));
-        justpoint_y = bbox_lower_y;
+        vfudge = 0.0;
         break;
     case JUST_TOP:
-        justpoint_x =
-            (int) rint(bbox_left_x + hfudge*(bbox_right_x - bbox_left_x));
-        justpoint_y = bbox_upper_y;
+        vfudge = 1.0;
         break;
     case JUST_MIDDLE:
-        justpoint_x = 
-            (int) rint(bbox_left_x + hfudge*(bbox_right_x - bbox_left_x));
-        justpoint_y = (int) rint(0.5*(bbox_lower_y + bbox_upper_y));
+        vfudge = 0.5;
         break;
     case JUST_BLINE:
-        justpoint_x = (int) rint(baseline_start_x + 
-            hfudge*(baseline_end_x - baseline_start_x));
-        justpoint_y = (int) rint(baseline_start_y + 
-            hfudge*(baseline_end_y - baseline_start_y));
+        /* Not used; to make compiler happy */
+        vfudge = 0.0;
         break;
     default:
         /* This can't happen; to make compiler happy */
         errmsg("Internal error");
-        FreeCompositeString(cstring);
         return;
     }
- 
-    pheight = CSglyph->metrics.ascent - CSglyph->metrics.descent;
-    pwidth = CSglyph->metrics.rightSideBearing - CSglyph->metrics.leftSideBearing;
 
-    xshift = pinpoint_x - justpoint_x;
-    yshift = pinpoint_y - justpoint_y;
+    cstring = String2Composite(theString);
+    if (cstring == NULL) {
+        return;
+    }
     
-    vptmp.x = vp.x + (double) xshift/page_dpv;
-    vptmp.y = vp.y + (double) yshift/page_dpv;
+    /* zero marks */
+    for (gotomark = 0; gotomark < MAX_MARKS; gotomark++) {
+        cs_marks[gotomark] = vp;
+    }
+    
+    iglyph = 0;
+    rpoint = vp;
+    baseline_start = rpoint;
+    while (cstring[iglyph].s != NULL) {
+	CompositeString *cs = &cstring[iglyph];
+        
+        /* Post-process the CS */
+        if (cs->font == BAD_FONT_ID) {
+            cs->font = def_font;
+        }
+        if (cs->color == BAD_COLOR) {
+            cs->color = def_color;
+        }
+        if (cs->aux.ligatures == TRUE) {
+            process_ligatures(cs);
+        }
+        if (cs->aux.direction == STRING_DIRECTION_RL) {
+            reverse_string(cs->s, cs->len);
+        }
+        tm_rotate(&cs->tm, Angle);
+        
+        tm_scale(&cs->tm, charsize);
+        cs->vshift *= charsize;
+        cs->hshift *= charsize;
+        
+        text_advancing = cs->aux.advancing;
+        gotomark = cs->aux.gotomark;
+        setmark = cs->aux.setmark;
 
-    if (get_draw_mode() == TRUE) {
-        /* No patterned texts */
-        setpattern(1);
-    
-        if (dev.devfonts == FALSE) {
-            (*devputpixmap) (vptmp, pwidth, pheight, CSglyph->bits, 
-                                CSglyph->bpp, bitmap_pad, PIXMAP_TRANSPARENT);
-        } else {
-            if (devputtext == NULL) {
-                errmsg("Device has no built-in fonts");
+        glyph = GetGlyphString(cs, page_dpv, dev.fontaa);
+        if (glyph != NULL) {
+            VPoint hvpshift, vvpshift;
+
+            vvpshift.x = cs->tm.cxy*cs->vshift/tm_size(&cs->tm);
+            vvpshift.y = cs->tm.cyy*cs->vshift/tm_size(&cs->tm);
+            
+            hvpshift.x = cs->tm.cxx*cs->hshift/tm_size(&cs->tm);
+            hvpshift.y = cs->tm.cyx*cs->hshift/tm_size(&cs->tm);
+
+            if (gotomark >= 0 && gotomark < MAX_MARKS) {
+                rpoint.x = cs_marks[gotomark].x;
+                rpoint.y = cs_marks[gotomark].y;
+            }
+
+            rpoint.x += hvpshift.x;
+            rpoint.y += hvpshift.y;
+            
+            cs->start = rpoint;
+            cs->start.x += vvpshift.x;
+            cs->start.y += vvpshift.y;
+
+            /* update bbox */
+            vptmp.x = cs->start.x + (double) glyph->metrics.leftSideBearing/page_dpv;
+            vptmp.y = cs->start.y + (double) glyph->metrics.descent/page_dpv;
+            if (first == TRUE) {
+                bbox_ll = vptmp;
+                bbox_ur = vptmp;
+                first = FALSE;
             } else {
-                vp_baseline_start.x = vptmp.x + 
-                    (double) (baseline_start_x - bbox_left_x)/page_dpv;
-                vp_baseline_start.y = vptmp.y +
-                    (double) (baseline_start_y - bbox_upper_y)/page_dpv;
-                vp_baseline_end.x   = vptmp.x + 
-                    (double) (baseline_end_x - bbox_left_x)/page_dpv;
-                vp_baseline_end.y   = vptmp.y +
-                    (double) (baseline_end_y - bbox_upper_y)/page_dpv;
-                (*devputtext) (vp_baseline_start, vp_baseline_end, 
-                                                scale_factor, cstring);
+                bbox_ll.x = MIN2(bbox_ll.x, vptmp.x);
+                bbox_ll.y = MIN2(bbox_ll.y, vptmp.y);
+            }
+
+            vptmp.x = cs->start.x + (double) glyph->metrics.rightSideBearing/page_dpv;
+            vptmp.y = cs->start.y + (double) glyph->metrics.ascent/page_dpv;
+            bbox_ur.x = MAX2(bbox_ur.x, vptmp.x);
+            bbox_ur.y = MAX2(bbox_ur.y, vptmp.y);
+            
+            rpoint.x += (double) glyph->metrics.advanceX/page_dpv;
+            rpoint.y += (double) glyph->metrics.advanceY/page_dpv;
+
+            if (setmark >= 0 && setmark < MAX_MARKS) {
+                cs_marks[setmark].x = rpoint.x;
+                cs_marks[setmark].y = rpoint.y;
+            }
+            
+            cs->stop = rpoint;
+            cs->stop.x += vvpshift.x;
+            cs->stop.y += vvpshift.y;
+
+            cs->glyph = T1_CopyGlyph(glyph);
+        } else {
+            cs->glyph = NULL;
+        }
+
+	iglyph++;
+    }
+    nglyphs = iglyph;
+
+    baseline_stop = rpoint;
+    
+    if (vjust == JUST_BLINE) {
+        offset.x = baseline_start.x + 
+            hfudge*(baseline_stop.x - baseline_start.x) - vp.x;
+        offset.y = baseline_start.y + 
+            hfudge*(baseline_stop.y - baseline_start.y) - vp.y;
+    } else {
+        offset.x = bbox_ll.x + 
+            hfudge*(bbox_ur.x - bbox_ll.x) - vp.x;
+        offset.y = bbox_ll.y + 
+            vfudge*(bbox_ur.y - bbox_ll.y) - vp.y;
+    }
+    
+    /* justification corrections */
+    for (iglyph = 0; iglyph < nglyphs; iglyph++) {
+        glyph = cstring[iglyph].glyph;
+        if (glyph == NULL) {
+            continue;
+        }
+        cstring[iglyph].start.x -= offset.x;
+        cstring[iglyph].start.y -= offset.y;
+        cstring[iglyph].stop.x  -= offset.x;
+        cstring[iglyph].stop.y  -= offset.y;
+    }
+        
+    /* update BB */
+    bbox_ll.x -= offset.x;
+    bbox_ll.y -= offset.y;
+    bbox_ur.x -= offset.x;
+    bbox_ur.y -= offset.y;
+    update_bboxes(bbox_ll);
+    update_bboxes(bbox_ur);
+        
+    for (iglyph = 0; iglyph < nglyphs; iglyph++) {
+        glyph = cstring[iglyph].glyph;
+        if (glyph == NULL) {
+            continue;
+        }
+        pheight = glyph->metrics.ascent - glyph->metrics.descent;
+        pwidth  = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
+        
+        /* upper left corner of bitmap */
+        vptmp = cstring[iglyph].start;
+        vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
+        vptmp.y += (double) glyph->metrics.ascent/page_dpv;
+        
+        if (get_draw_mode() == TRUE) {
+            /* No patterned texts yet */
+            setpattern(1);
+            setcolor(cstring[iglyph].color);
+
+            if (dev.devfonts == TRUE) {
+                if (devputtext == NULL) {
+                    errmsg("Device has no built-in fonts");
+                } else {
+                    (*devputtext) (&cstring[iglyph]);
+                }
+            } else {
+                (*devputpixmap) (vptmp, pwidth, pheight, glyph->bits, 
+                                    glyph->bpp, bitmap_pad, PIXMAP_TRANSPARENT);
             }
         }
     }
 
-    T1_FreeGlyph(CSglyph);
     FreeCompositeString(cstring);
-    
-    update_bboxes(vptmp);
-    vptmp.x += (double) pwidth/page_dpv;
-    vptmp.y -= (double) pheight/page_dpv;
-    update_bboxes(vptmp);
 }
