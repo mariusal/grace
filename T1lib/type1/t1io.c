@@ -69,7 +69,7 @@ STATIC F_FILE TheFile;
 STATIC unsigned char TheBuffer[F_BUFSIZ];
  
 /* Our routines */
-F_FILE *T1Open();
+F_FILE *T1Open(), *T1eexec();
 int T1Close();
 int T1Read(), T1Getc(), T1Ungetc();
 void T1io_reset(void);

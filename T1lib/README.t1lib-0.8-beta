@@ -4,7 +4,7 @@
   --------------------------------------------------------------------------
 
 /*--------------------------------------------------------------------------
-  ----- File:        REAMDE.t1lib-0.7-beta
+  ----- File:        REAMDE.t1lib-0.8-beta
   ----- Author:      Rainer Menzner 
 		     (Rainer.Menzner@neuroinformatik.ruhr-uni-bochum.de)
 
@@ -12,7 +12,7 @@
 		     from:
                                 Raph Levien (raph@acm.org) and 
 				Fred L. Drake, Jr. (fdrake@acm.org)
-  ----- Date:        05/13/1998
+  ----- Date:        10/30/1998
   ----- Description: This is file README.t1lib of the t1lib-package. It
                      contains an overview and brief installation
                      instructions for the t1-library.
@@ -70,19 +70,18 @@ of the features:
 
 - a program to generate afm-files from Type 1 font files is included
 
-- rotation is supported at any angles
+- rotation and arbitrary affine transformation is supported
 
-- there's support for extending and slanting fonts
+- there's support for extending and slanting fonts 
 
 - underlining, overlining and overstriking is supported
 
 - new encoding vectors may be loaded at runtime and fonts may be
   reencoded using these encoding vectors 
 
-- antialiasing is implemented using three gray-levels between black and
-  white
+- antialiasing is implemented in low (2x) and high (4x) rsolution
 
-- An interactive test program called "xglyph" is included in the
+- an interactive test program called "xglyph" is included in the
   distribution. This program allows to test all of the features of the
   library. It requires X11.
 
@@ -176,11 +175,11 @@ How to get it:
 
 t1lib is available at
 
-ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-0.7-beta.tar.gz
+ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-0.8-beta.tar.gz
 
 and 
 
-ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-0.7-beta.tar.gz
+ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-0.8-beta.tar.gz
 
 
 Closing:

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        10/21/1998
+  ----- Date:        11/13/1998
   ----- Description: This file is part of the t1-library. It contains
                      functions for setting characters and strings of
 		     characters.
@@ -234,6 +234,8 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
 	     "No black pixels found for character %d from font %d, returning NULL",
 	     ucharcode, FontID);
     T1_PrintLog( "T1_SetChar()", err_warn_msg_buf, T1LOG_WARNING);
+    /* make sure to get rid of 'area' before leaving! */
+    KillRegion (area);
     return(NULL);
   }
   if (h > 0 && w > 0) {
@@ -244,6 +246,8 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
     glyph.bits = (char *)malloc(memsize*sizeof( char));
     if (glyph.bits == NULL){
       T1_errno=T1ERR_ALLOC_MEM;
+      /* make sure to get rid of 'area' before leaving! */
+      KillRegion (area);
       return(NULL);
     }
     
@@ -266,7 +270,9 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
     (void) memset(glyph.bits, 0, memsize);
     fill(glyph.bits, h, paddedW, area, T1_byte, T1_bit, T1_wordsize );
   }
-  
+
+  /* make sure to get rid of 'area' before leaving! */
+  KillRegion (area);
   
   /* Cache glyph if requested */
   if (cache_flag){
@@ -289,9 +295,6 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
     memcpy( font_ptr->pFontCache[ucharcode].bits, glyph.bits, memsize);
   }
 
-  /* make sure to get rid of 'area' before leaving! */
-  KillRegion (area);
-  
   return(&glyph);
 }
 
@@ -536,6 +539,9 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
 		       i, ustring[i], FontID);
 	      T1_PrintLog( "T1_SetString()", err_warn_msg_buf, T1LOG_WARNING);
 	      flags[i]=1;
+	      /* make sure to get rid of 'area' before leaving! */
+	      KillRegion (area);
+	      continue;
 	    }
 	  }
 	  paddedW = PAD(w, T1_pad);

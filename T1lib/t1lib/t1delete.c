@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1delete.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/26/1998
+  ----- Date:        11/13/1998
   ----- Description: This file is part of the t1-library. It contains
                      functions for giving free previously allocated
 		     memory areas and similar things.
@@ -310,8 +310,11 @@ int FreeAFMData( FontInfo *pAFMData)
     }
       
     if (pAFMData->pkd != NULL){
-      free(pAFMData->pkd->name1); pAFMData->pkd->name1 = NULL;
-      free(pAFMData->pkd->name2); pAFMData->pkd->name2 = NULL;
+      int i = 0;
+      for (i = 0; i < pAFMData->numOfPairs; ++i){
+	free(pAFMData->pkd[i].name1); pAFMData->pkd[i].name1 = NULL;
+	free(pAFMData->pkd[i].name2); pAFMData->pkd[i].name2 = NULL;
+      }
       free(pAFMData->pkd); pAFMData->pkd = NULL;
     }
 
