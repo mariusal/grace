@@ -10,9 +10,12 @@ include $(TOP)/Make.conf
 
 .SUFFIXES : .sgml .dvi .html .pdf .ps .tex
 
-SGML2HTML   = sgml2html --split=0
-SGML2DVI    = sgml2latex --output=dvi
-SGML2LATEX  = sgml2latex --output=tex
+# NB: the language and papersize options should be made `configure'able
+LINUXDOC    = linuxdoc --language=english --papersize=letter
+
+SGML2HTML   = $(LINUXDOC) --backend=html  --split=0 --toc=2
+SGML2LATEX  = $(LINUXDOC) --backend=latex --output=tex
+SGML2DVI    = $(LINUXDOC) --backend=latex --output=dvi
 DVI2PS      = dvips
 LATEX       = latex
 PDFLATEX    = pdflatex
