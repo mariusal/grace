@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -55,6 +55,8 @@
 #include "motifinc.h"
 
 #define cg get_cg()
+
+static int curaxis;
 
 static Widget axes_dialog = NULL;
 
@@ -132,10 +134,15 @@ static void axes_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 static Widget axis_world_start;
 static Widget axis_world_stop;
 
+void create_axes_dialog_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    create_axes_dialog(-1);
+}
+
 /*
  * Create the ticks popup
  */
-void create_axes_dialog(Widget w, XtPointer client_data, XtPointer call_data)
+void create_axes_dialog(int axisno)
 {
     Widget axes_main, axes_label, axes_ticklabel, 
            axes_tickmark, axes_special;
@@ -145,6 +152,10 @@ void create_axes_dialog(Widget w, XtPointer client_data, XtPointer call_data)
     char buf[32];
     
     set_wait_cursor();
+    
+    if (axisno >= 0 && axisno < MAXAXES) {
+        curaxis = axisno;
+    }
     
     if (axes_dialog == NULL) {
         axes_dialog = XmCreateDialogShell(app_shell, "Axes", NULL, 0);
