@@ -2847,7 +2847,8 @@ actions:
                         ($17 * GA_ORDER_V_INV );
             arrange_graphs_simple($3, $5, order, $7, $9, $11);
         }
-	| NONLFIT '(' selectset ',' nexpr ')' {
+	
+        | NONLFIT '(' selectset ',' nexpr ')' {
 	    gotnlfit = TRUE;
 	    nlfit_gno = $3->gno;
 	    nlfit_setno = $3->setno;
@@ -2873,24 +2874,24 @@ actions:
 	    do_runavg($3->gno, $3->setno, $5->gno, $5->setno,
                 $7, $9, RUN_XPLACE_AVERAGE);
 	}
-        | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
+        | ffttype '(' selectset ',' selectset ',' fourierdata ',' windowtype ',' 
                       fourierloadx ','  fourierloady ')' {
-            do_fourier($3->gno, $3->setno, get_cg(), nextset($3->gno),
-                ($1 == FFT_INVFFT), $9, FFT_NORM_FORWARD,
-                $5, FALSE, 1.0, FALSE, $7, 1.0,
-                $5 ? FALSE:TRUE, $11);
+            do_fourier($3->gno, $3->setno, $5->gno, $5->setno,
+                ($1 == FFT_INVFFT), $11, FFT_NORM_FORWARD,
+                $7, FALSE, 1.0, FALSE, $9, 1.0,
+                $7 ? FALSE:TRUE, $13);
         }
-	| INTERPOLATE '(' selectset ',' vexpr ',' interpmethod ',' onoff ')' {
-            do_interp($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
-                $5->data, $5->length, $7, $9);
+	| INTERPOLATE '(' selectset ',' selectset ',' vexpr ',' interpmethod ',' onoff ')' {
+            do_interp($3->gno, $3->setno, $5->gno, $5->setno,
+                $7->data, $7->length, $9, $11);
 	}
-	| HISTOGRAM '(' selectset ',' vexpr ',' onoff ',' onoff ')' {
-            do_histo($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
-                $5->data, $5->length - 1, $7, $9);
+	| HISTOGRAM '(' selectset ',' selectset ',' vexpr ',' onoff ',' onoff ')' {
+            do_histo($3->gno, $3->setno, $5->gno, $5->setno,
+                $7->data, $7->length - 1, $9, $11);
 	}
-	| DIFFERENCE '(' selectset ',' nexpr ')' {
-	    do_differ($3->gno, $3->setno, get_cg(), nextset(get_cg()),
-                TRUE, $5, 1);
+	| DIFFERENCE '(' selectset ',' selectset ',' nexpr ')' {
+	    do_differ($3->gno, $3->setno, $5->gno, $5->setno),
+                TRUE, $7, 1);
 	}
 	| INTEGRATE '(' selectset ',' selectset ')' {
 	    double dummy;
@@ -2899,7 +2900,8 @@ actions:
  	| XCOR '(' selectset ',' selectset ',' nexpr ')' {
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
 	}
-	| AUTOSCALE {
+	
+        | AUTOSCALE {
 	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
