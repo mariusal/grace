@@ -66,7 +66,7 @@ static Widget props_frame;
 #ifdef DEBUG
 static Widget *debug_item;
 #endif
-static Widget verify_item;
+static Widget noask_item;
 static Widget dc_item;
 static Widget *auto_item;
 
@@ -107,7 +107,7 @@ void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					NULL,
 					NULL);
 #endif
-	verify_item = XtVaCreateManagedWidget("Verify Pick sets operations",
+	noask_item = XtVaCreateManagedWidget("Don't ask questions",
 					   xmToggleButtonWidgetClass, panel,
 					      NULL);
 	dc_item = XtVaCreateManagedWidget("Allow double clicks on canvas",
@@ -204,7 +204,7 @@ void update_props_items(void)
 	}
 	SetChoice(debug_item, debuglevel);
 #endif
-	XmToggleButtonSetState(verify_item, verify_action, False);
+	XmToggleButtonSetState(noask_item, noask, False);
 	XmToggleButtonSetState(dc_item, allow_dc, False);
 	SetChoice(auto_item, autoscale_onread);
 
@@ -239,7 +239,7 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 #ifdef DEBUG
     debuglevel = GetChoice(debug_item);
 #endif
-    verify_action = XmToggleButtonGetState(verify_item);
+    noask = XmToggleButtonGetState(noask_item);
     allow_dc = XmToggleButtonGetState(dc_item);
     autoscale_onread = GetChoice(auto_item);
 
