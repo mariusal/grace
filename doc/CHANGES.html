@@ -28,10 +28,8 @@
  *  [ES] #571
  *  [LM] added section to the UG on the grace_np usage
  *  [ES] #579
- *  [AM] OS/2 updates
  *  [ES] #582
  !  [ES] dataset operations GUI
- !  [ES] gui-less mode fallback if X is not available
  *  [ES] motif find fix
  *  [ES] RtoL text advancing (not yet if using device fonts)
  *  [ES] error bar clipping enabled (as in Xmgr)
@@ -61,6 +59,25 @@
  *  [ES] more details added to the -version output
  *  [AM/ES] #591
  *  [ES] changind axis scale to Log updates world min if necessary
+ !  [ES] new FSB stuff
+ !  [ES] "File/Read/Block data" removed - it's in the "File/Read/Sets" now
+ !  [ES] "File/Working dir" removed
+ !  [EV] REVERSE SETNUM
+         REVERSE GRAPHNO.SETNUM
+         APPEND SETNUM TO SETNUM
+         SPLIT SETNUM number
+         SPLIT GRAPHNO.SETNUM number
+ *  [EV] in the non-linear fit popup, allow to use expressions when giving
+         bounds for the loaded function
+ !  [ES] added "File/Revert to saved" 
+ *  [LM] detect cases of accesses beyond array bounds of drawing objects
+ *  [AM] OS/2 updates
+ *  [JH] VMS updates
+ *  [HS] "Start load at" of the regression window was ignored
+ *  [ES] start in the CLI mode if the exec's name is "grace"
+ !  [ES] #588
+ *  [ES] non-linear fit didn't work in batch mode for any set but S0
+
 
 <H2>5.0.2</H2>
 

@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>31.05.1999
+<date>14.06.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -247,145 +247,159 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           following path:
           <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
 
-  <sect1>Command line options
+  <sect1>Invocation
     <p>
-      <descrip>
-      <tag> -arrange <it>rows</it> <it>cols</it> </tag> 
-            Arrange the graphs in a grid rows by cols
 
-      <tag> -autoscale <it>x|y|xy</it> </tag>
-            Override any parameter file settings
+      <sect2>Operational mode
+        <p>
 
-      <tag> -batch <it>batch_file</it> </tag> 
-            Execute batch_file on start up
+	  With respect to the user interface, there are three modes of
+          operation that Grace can be invoked in. The full-featured
+	  GUI-based version is called <tt/xmgrace/. A batch-printing
+	  version is called <tt/gracebat/. A command-line interface mode
+          is called <tt/grace/. Usually, a single executable is called in all
+          cases, with two of the three files being (symbolic) links to a
+          "real" one.
 
-      <tag> -block <it>block_data</it> </tag> 
-            Assume data file is block data
+      <sect2>Command line options
+        <p>
+          <descrip>
+          <tag> -arrange <it>rows</it> <it>cols</it> </tag>
+                Arrange the graphs in a grid rows by cols
 
-      <tag> -bxy <it>x:y:etc.</it> </tag> 
-            Form a set from the current block data set using the current set
-            type from columns given in the argument
+          <tag> -autoscale <it>x|y|xy</it> </tag>
+                Override any parameter file settings
 
-      <tag> -cols <it>gcols</it> </tag>
-            Arrange graphs in gcols columns
+          <tag> -batch <it>batch_file</it> </tag>
+                Execute batch_file on start up
 
-      <tag> -dpipe <it>descriptor</it> </tag> 
-            Read data from descriptor (anonymous pipe) on startup
+          <tag> -block <it>block_data</it> </tag>
+                Assume data file is block data
 
-      <tag> -hdevice <it>hardcopy_device_name</it> </tag> 
-            Set default hardcopy device
+          <tag> -bxy <it>x:y:etc.</it> </tag>
+                Form a set from the current block data set using the current set
+                type from columns given in the argument
 
-      <tag> -fixed <it>width</it> <it>height</it> </tag>
-            Set canvas size fixed to width*height
+          <tag> -cols <it>gcols</it> </tag>
+                Arrange graphs in gcols columns
 
-      <tag> -free </tag> Use free page layout
+          <tag> -dpipe <it>descriptor</it> </tag>
+                Read data from descriptor (anonymous pipe) on startup
 
-      <tag> -graph <it>graph_number</it> </tag> 
-            Set the current graph number
+          <tag> -hdevice <it>hardcopy_device_name</it> </tag>
+                Set default hardcopy device
 
-      <tag> -graphtype <it>graph_type</it> </tag> 
-            Set the type of the current graph
+          <tag> -fixed <it>width</it> <it>height</it> </tag>
+                Set canvas size fixed to width*height
 
-      <tag> -hardcopy </tag> 
-            No interactive session, just print and quit
+          <tag> -free </tag> Use free page layout
 
-      <tag> -install </tag>
-            Install private colormap
+          <tag> -graph <it>graph_number</it> </tag>
+                Set the current graph number
 
-      <tag> -legend <it>load</it> </tag> 
-            Turn the graph legend on
+          <tag> -graphtype <it>graph_type</it> </tag>
+                Set the type of the current graph
 
-      <tag> -log <it>x|y|xy</it> </tag> 
-            Set the axis scaling of the current graph to logarithmic
+          <tag> -hardcopy </tag>
+                No interactive session, just print and quit
 
-      <tag> -logwindow </tag>
-            Open the log window
+          <tag> -install </tag>
+                Install private colormap
 
-      <tag> -maxblock <it>number_of_columns</it> </tag> 
-            Set the number of columns for block data (default is 30)
+          <tag> -legend <it>load</it> </tag>
+                Turn the graph legend on
 
-      <tag> -mono </tag> 
-            Run Grace in monochrome mode (affects the display only)
+          <tag> -log <it>x|y|xy</it> </tag>
+                Set the axis scaling of the current graph to logarithmic
 
-      <tag> -noask </tag> 
-            Assume the answer is yes to all requests - if the operation would
-            overwrite a file, Grace will do so without prompting
+          <tag> -logwindow </tag>
+                Open the log window
 
-      <tag> -noinstall </tag> 
-            Don't use private colormap
+          <tag> -maxblock <it>number_of_columns</it> </tag>
+                Set the number of columns for block data (default is 30)
 
-      <tag> -nologwindow </tag> 
-            No log window, overrides resource setting
+          <tag> -mono </tag>
+                Run Grace in monochrome mode (affects the display only)
 
-      <tag> -noprint </tag> 
-            In batch mode, do not print
+          <tag> -noask </tag>
+                Assume the answer is yes to all requests - if the operation would
+                overwrite a file, Grace will do so without prompting
 
-      <tag> -nosigcatch </tag> 
-            Don't catch signals
+          <tag> -noinstall </tag>
+                Don't use private colormap
 
-      <tag> -npipe <it>file</it> </tag> 
-            Read data from named pipe on startup
+          <tag> -nologwindow </tag>
+                No log window, overrides resource setting
 
-      <tag> -nxy <it>nxy_file</it> </tag> 
-            Assume data file is in X Y1 Y2 Y3 ... format
+          <tag> -noprint </tag>
+                In batch mode, do not print
 
-      <tag> -param <it>parameter_file</it> </tag> 
-            Load parameters from parameter_file to the current graph
+          <tag> -nosigcatch </tag>
+                Don't catch signals
 
-      <tag> -pexec <it>parameter_string</it> </tag> 
-            Interpret string as a parameter setting
+          <tag> -npipe <it>file</it> </tag>
+                Read data from named pipe on startup
 
-      <tag> -pipe </tag> 
-            Read data from stdin on startup
+          <tag> -nxy <it>nxy_file</it> </tag>
+                Assume data file is in X Y1 Y2 Y3 ... format
 
-      <tag> -printfile </tag> <it>file</it> 
-            Save print output to file
+          <tag> -param <it>parameter_file</it> </tag>
+                Load parameters from parameter_file to the current graph
 
-      <tag> -remove </tag> 
-            Remove data file after read
+          <tag> -pexec <it>parameter_string</it> </tag>
+                Interpret string as a parameter setting
 
-      <tag> -results <it>results_file</it> </tag> 
-            Write the results from regression to results_file
+          <tag> -pipe </tag>
+                Read data from stdin on startup
 
-      <tag> -rows <it>grows</it> </tag> 
-            Arrange graphs in grows rows
+          <tag> -printfile </tag> <it>file</it>
+                Save print output to file
 
-      <tag> -rvideo </tag> 
-            Exchange the color indices for black and white
+          <tag> -remove </tag>
+                Remove data file after read
 
-      <tag> -saveall <it>save_file</it> </tag> 
-            Save all graphs to save_file
+          <tag> -results <it>results_file</it> </tag>
+                Write the results from regression to results_file
 
-      <tag> -seed <it>seed_value</it> </tag> 
-            Integer seed for random number generator
+          <tag> -rows <it>grows</it> </tag>
+                Arrange graphs in grows rows
 
-      <tag> -source <it>disk|pipe</it> </tag> 
-            Source type of next data file
+          <tag> -rvideo </tag>
+                Exchange the color indices for black and white
 
-      <tag> -timer <it>delay</it> </tag> 
-            Set allowed time slice for real time inputs to delay ms
+          <tag> -saveall <it>save_file</it> </tag>
+                Save all graphs to save_file
 
-      <tag> -timestamp </tag> Add timestamp to plot
+          <tag> -seed <it>seed_value</it> </tag>
+                Integer seed for random number generator
 
-      <tag> -settype <it>xy|xydx|...</it> </tag> 
-            Set the type of the next data file
+          <tag> -source <it>disk|pipe</it> </tag>
+                Source type of next data file
 
-      <tag> -version </tag> 
-            Show the program version
+          <tag> -timer <it>delay</it> </tag>
+                Set allowed time slice for real time inputs to delay ms
 
-      <tag> -viewport <it>xmin ymin xmax ymax</it> </tag> 
-            Set the viewport for the current graph
+          <tag> -timestamp </tag> Add timestamp to plot
 
-      <tag> -wd <it>directory</it> </tag> 
-            Set the working directory
+          <tag> -settype <it>xy|xydx|...</it> </tag>
+                Set the type of the next data file
 
-      <tag> -world <it>xmin ymin xmax ymax</it> </tag> 
-            Set the world coordinates for the current graph
+          <tag> -version </tag>
+                Show the program version
 
-      <tag> -usage|-help </tag>
-            This message
-      
-      </descrip>
+          <tag> -viewport <it>xmin ymin xmax ymax</it> </tag>
+                Set the viewport for the current graph
+
+          <tag> -wd <it>directory</it> </tag>
+                Set the working directory
+
+          <tag> -world <it>xmin ymin xmax ymax</it> </tag>
+                Set the world coordinates for the current graph
+
+          <tag> -usage|-help </tag>
+                This message
+ 
+          </descrip>
 
   <sect1>Customization
     <p>

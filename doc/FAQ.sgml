@@ -2,15 +2,11 @@
 
 <!-- This is the FAQ for Grace, the 2d plotting tool -->
 
-<!-- Note to the FAQ maintainer: -->
-<!-- Before checking in: Verify the current date, FAQ version number -->
-<!-- and Grace version number -->
-
   <article>
 
-      <title>Grace FAQ
+      <title>Grace FAQ (v0.5)
       <author>by the Grace Team
-      <date>v0.5  1999/05/13
+      <date>14.06.1999
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, the free 2d plotting tool for scientific data.
@@ -348,10 +344,13 @@
 	      page and try to be as precise as possible. It won't be
 	      much help if you write ``The program crashes.'' Try to
 	      find a simple reproducible case. Mention the version of
-	      Grace and the operating system you use. Once you submit
-	      the bug report, it will be automatically sent to the
-	      mailing list. You will usually be notified when the bug
-	      is fixed or if we need more information, so don't forget
+	      Grace and where you got the build and the operating system
+	      you use. You should submit the system info as provided by
+	      ``uname -a'' (if on a un*x system) and the output of
+	      ``xmgrace -version'' (this works only for recent versions).
+	      Once you submit the bug report, it will be automatically
+	      sent to the mailing list. You will usually be notified when
+	      the bug is fixed or if we need more information, so don't forget
 	      to give your correct e-mail address.
 
 	  </descrip>
@@ -585,10 +584,11 @@
       <sect1>How do I start Grace?
 	<p>
 
-	  There are two ways to invoke Grace. The full-featured
+	  There are three ways to invoke Grace. The full-featured
 	  GUI-based version is called <tt/xmgrace/. A batch-printing
 	  version is called <tt/gracebat/ (see question <ref
-	  id="gracebat" name="Gracebat">).
+	  id="gracebat" name="Gracebat">). A command-line interface mode
+          is called <tt/grace/.
 
 	  Both are usually located in <tt>$GRACE_HOME/bin/</tt>.
 
@@ -844,7 +844,7 @@ XMgrace*background: ...
 	    Well, not yet. The import of GIF files will be implemented
 	    in a future release.
 
-	<sect2>Can I export Grace graphs to GIF&verbar;JPEG&verbar;PostScript&verbar;PDF etc? <label id="export">
+	<sect2>Can I export Grace graphs to GIF&verbar;TIFF&verbar;PostScript&verbar;PDF etc? <label id="export">
 	  <p>
 
 	    Postscript (for printing) and EPS (encapsulated
@@ -858,7 +858,10 @@ XMgrace*background: ...
 	    <tt/README.GIF/ for details
 
 	    The support for the PNM (PBM/PGM/PPM) format (both ASCII
-	    and rawbits) depends on GD, too.
+	    and rawbits) depends on GD, too. Additionally, if the 
+            <url name="IJG's JPEG library 6.x"
+            url="ftp://ftp.uu.net/graphics/jpeg/">
+            is installed, the JPEG backend will be built as well.
 
 	    For PDF output, you need pdflib-0.6. The PDFlib
 	    distribution is available at <url name="the PDFlib home
@@ -877,7 +880,7 @@ XMgrace*background: ...
 	    Bitmaps: Using PNM device + the <tt/netpbm/ utils
 	    (available at e.g. <url
 	    url="ftp://ftp.x.org/contrib/utilities/"> one can get
-	    JPEG, TIFF, G3, BMP, PCX,...  (conversion can be done on
+	    TIFF, G3, BMP, PCX,...  (conversion can be done on
 	    the fly with appropriate filter definitions).
 
 
@@ -897,8 +900,17 @@ XMgrace*background: ...
 
 	    This can be done using the <tt>"Plot/Plot appearance"</tt> popup.
 
-	    This changes the background of the entire canvas, not only
+            This changes the background of the entire canvas, not only
 	    the background of graphs.
+
+        <sect2>How do I use more than 16 colors for objects/lines in grace?
+          <p>
+
+           You may edit your Default.agr file in
+           <tt>$GRACE_HOME/templates</tt>. Just add lines similar to
+           <verb> @map color 2 to (255, 0, 0), "red" </verb> defining a RGB
+           value and an according name for that color triplet.
+
 
 <!-- **************************************** -->
 
