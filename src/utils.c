@@ -248,8 +248,8 @@ char *monthl[] = {"January", "February", "March", "April", "May", "June",
 
 int dayofweek(double j)
 {
-    j += 0.5;
-    return (int) (j + 1) % 7;
+    int i = (int) floor(j + 1.5);
+    return (i <= 0) ? 6 - (6 - i)%7 : i%7;
 }
 
 /*
@@ -476,7 +476,6 @@ char *create_fstring(int form, int prec, double loc, int type)
     double tmp;
     int m, d, y, h, mm;
     double sec;
-    int itmp;
     int exponent;
     double mantissa;
 
@@ -682,19 +681,11 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFWEEKS:
 	strcpy(format, "%s");
-	itmp = dayofweek(loc);
-	if ((itmp < 0) | (itmp > 6)) {
-	} else {
-	    sprintf(s, format, dayofweekstrs[dayofweek(loc)]);
-	}
+	sprintf(s, format, dayofweekstrs[dayofweek(loc + get_ref_date())]);
 	break;
     case FORMAT_DAYOFWEEKL:
 	strcpy(format, "%s");
-	itmp = dayofweek(loc);
-	if ((itmp < 0) | (itmp > 6)) {
-	} else {
-	    sprintf(s, format, dayofweekstrl[dayofweek(loc)]);
-	}
+	sprintf(s, format, dayofweekstrl[dayofweek(loc + get_ref_date())]);
 	break;
     case FORMAT_DAYOFYEAR:
 	strcpy(format, "%d");

@@ -96,8 +96,6 @@
 #include "utils.h"
 #include "protos.h"
 
-#define BUGGY_GLOBAL_DATE_OFFSET    1.0
-
 static double ref_date = 0.0;
 
 /*
@@ -156,6 +154,7 @@ int two_digits_years_allowed(void)
 
 static int wrap_year = 1950;
 static int century   = 2000;
+static int wy        = 50;
 
 /*
  * store the wrap year
@@ -164,6 +163,7 @@ void set_wrap_year(int year)
 {
     wrap_year = year;
     century   = 100*(1 + wrap_year/100);
+    wy        = wrap_year - (century - 100);
 }
 
 /*
@@ -196,6 +196,26 @@ static int reduced_year(int y)
     }
 }
 
+
+/*
+ * expand years according to the following rules :
+ * [wy ; 99] -> [ wrap_year ; 100*(1 + wrap_year/100) - 1 ]
+ * [00 ; wy-1] -> [ 100*(1 + wrap_year/100) ; wrap_year + 99]
+ */
+static int expanded_year(Int_token y)
+{
+    if (two_digits_years_allowed()) {
+        if (y.value >= 0 && y.value < wy && y.digits <= 2) {
+            return century + y.value;
+        } else if (y.value >= wy && y.value < 100 && y.digits <= 2) {
+            return century - 100 + y.value;
+        } else {
+            return y.value;
+        }
+    } else {
+        return y.value;
+    }
+}
 
 /*
  * set of functions to convert julian calendar elements
@@ -390,7 +410,7 @@ void jul_to_cal(long n, int *y, int *m, int *d)
 double jul_and_time_to_jul(long jul, int hour, int min, double sec)
 {
     return ((double) jul)
-        + (((double) (((hour + 12)*60 + min)*60)) + sec)/86400.0;
+        + (((double) (((hour - 12)*60 + min)*60)) + sec)/86400.0;
 
 }
 
@@ -420,11 +440,11 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
     double tmp;
 
     /* compensate for the reference date */
-    jday += get_ref_date() + BUGGY_GLOBAL_DATE_OFFSET;
+    jday += get_ref_date();
     
     /* find the time of the day */
-    n = (long) floor(jday - 0.5);
-    tmp = 24.0*(jday - 0.5 - n);
+    n = (long) floor(jday + 0.5);
+    tmp = 24.0*(jday + 0.5 - n);
     *hour = (int) floor(tmp);
     tmp = 60.0*(tmp - *hour);
     *min = (int) floor(tmp);
@@ -459,18 +479,7 @@ static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
 {
     int y_expand, y_check, m_check, d_check;
 
-    if (two_digits_years_allowed()) {
-        /* expands years written with two digits only */
-        if (y.value >= 0 && y.value < 50 && y.digits <= 2) {
-            y_expand = 2000 + y.value;
-        } else if (y.value >= 50 && y.value < 100 && y.digits <= 2) {
-            y_expand = 1900 + y.value;
-        } else {
-            y_expand = y.value;
-        }
-    } else {
-        y_expand = y.value;
-    }
+    y_expand = expanded_year (y);
 
     if (m.digits > 2 || d.digits > 2) {
         /* this should be the year instead of either the month or the day */
@@ -726,7 +735,9 @@ int parse_date(const char* s, Dates_format preferred,
               if (check_date(tab[ky], tab[km], tab[kd], &j)
                   == GRACE_EXIT_SUCCESS) {
                   *jul = jul_and_time_to_jul(j, tab[3].value, tab[4].value,
-                                             sec) - BUGGY_GLOBAL_DATE_OFFSET;
+                                             sec)
+                      - get_ref_date();
+
                   *recognized = trials[i];
                   return GRACE_EXIT_SUCCESS;
               }
