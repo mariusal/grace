@@ -446,7 +446,7 @@ FILE *canvas_get_prstream(const Canvas *canvas);
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
 void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
 
-void canvas_set_pagepen(Canvas *canvas, const Pen *pen);
+void canvas_set_pagefill(Canvas *canvas, int flag);
 
 void setclipping(Canvas *canvas, int flag);
 int canvas_set_clipview(Canvas *canvas, const view *v);

@@ -65,7 +65,7 @@ struct _Canvas {
     DrawProps draw_props;
     
     /* page background fill */
-    Pen pagepen;
+    int pagefill;
     
     /* colors */
     unsigned int ncolors;
