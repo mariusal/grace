@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.6)</title>
+<title>Grace User's Guide (for Grace-5.1.7)</title>
 <author>by the Grace Team</author>
-<date>03.01.2002</date>
+<date>12.03.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -23,7 +23,7 @@
      Grace is a WYSIWYG tool to make two-dimensional plots of numerical
      data. It runs under various (if not all) flavors of Unix with X11
      and M*tif (LessTif or Motif). It also runs under VMS, OS/2, and
-     Windows (95/98/NT). Its capabilities are roughly similar to
+     Windows (95/98/NT/2000). Its capabilities are roughly similar to
      GUI-based programs like Sigmaplot or Microcal Origin plus
      script-based tools like Gnuplot or Genplot. Its strength lies in the
      fact that it combines the convenience of a graphical user interface
@@ -397,7 +397,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             BARDY             |     -    |    +     |   -   |   -   |  -  @
             BARDYDY           |     -    |    +     |   -   |   -   |  -  @
             XYHILO            |     +    |    -     |   -   |   -   |  -  @
-            XYZ               |     +    |    -     |   +   |   -   |  -  @
+            XYZ               |     +    |    -     |   +   |   +   |  -  @
             XYR               |     -    |    -     |   +   |   -   |  -  @
             XYSIZE            |     +    |    +     |   +   |   +   |  -  @
             XYCOLOR           |     +    |    +     |   +   |   +   |  +  @
@@ -2272,9 +2272,13 @@ integral     | cumulative sum @
           vexpr <it>mesh</it>, <it>method</it>: one of LINEAR, SPLINE, and ASPLINE, onoff <it>strict</it> |
           INTERPOLATE (S0, S1.X, ASPLINE, OFF) @
         HISTOGRAM (set, bins, cumulative, normalize) |
-          calculate Histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively.  Data points are placed at upper limit of the bin |
+          calculate histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively.  Data points are placed at upper limit of the bin |
           vexpr <it>bins</it>, onoff <it>cumulative</it>, onoff <it>normalize</it> |
           HISTOGRAM (S0, MESH(0, 1, 11), OFF, ON) @
+        XCOR (set1, set2, maxlag, covar) |
+          calculate cross-correlation (or -covariance if the <it>covar</it> flag is set) of <it>set1</it> with <it>set2</it> with maximum lag <it>maxlag</it>. |
+          nexpr <it>maxlag</it>, onoff <it>covar</it> |
+          XCOR (S0, S0, 50, OFF) @
         RESTRICT (set, restriction) |
           filter <it>set</it> according to logical <it>restriction</it>. The original set will be overwritten |
           vexpr <it>restriction</it> |
@@ -3346,11 +3350,7 @@ C
                  <item> bitmapped text strings not implemented
                </itemize>
         <item> SVG driver:
-               the driver is a brand new one and still in beta test, one
-               should also be aware that SVG is still a W3C working draft,
-               not yet a recommendation (see the <url
-               url="http://www.w3.org/TR/1999/12/WD-SVG-19991203/"
-               name="Scalable Vector Graphics (SVG) 1.0 Specification">)
+               the driver is a brand new one and still in beta test
                <itemize>
                  <item> patterned fills not implemented
                  <item> bitmapped text strings not implemented

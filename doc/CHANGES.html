@@ -8,6 +8,39 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.7</H2>
+
+<H3>Functionality</H3>
+ *  [ES] allow XYZ sets in polar graphs
+ *  [ES] allow defining string columns when creating sets from block data
+         via the command line or parser, e.g. -bxy "1:2:{3}" (rep. #978)
+ *  [ES] honour symskip for all set types (it wasn't for BAR, BARDY,
+	 BARDYDY, XYHILO, XYR, XYVMAP, and BOXPLOT)
+ *  [ES] extended x-correlation routines to calculate x-covariance if desired
+
+<H3>Documentation/Info</H3>
+ *  [ES] added compile-time $(LDFLAGS) to the `-version' output
+
+<H3>Parser</H3>
+ *  [ES] added an extra flag to the XCOR function to switch between
+         x-correlation/x-covariance
+
+<H3>Drivers</H3>
+ *  [ES] set resolution of the X11 device from the X server props
+ *  [ES] detect max request size of the X server and set max drawing path
+         length accordingly
+
+<H3>Portability/Compilation</H3>
+ *  [ES] fixed new Motif checks introduced in 5.1.6 (rep. #1107)
+
+<H3>Bug fixes</H3>
+ *  [ES] applying graph properties reset axis limits of polar graphs
+ *  [ES] simply ignore comments (lines beginning with '#') in data files
+         instead of splitting the set (rep. #831)
+ *  [ES] honour symskip for error bars (rep. #936)
+ *  [ES] when enabling log axis scaling on the command line, set reasonable
+         major/minor settings and world bounds (reps. #732, #1021)
+
 <H2>5.1.6</H2>
 
 <H3>Parser</H3>

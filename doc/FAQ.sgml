@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.6)
+  <title>Grace FAQ (for Grace-5.1.7)
   <author>by the Grace Team
-  <date>15.12.2001
+  <date>11.02.2002
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -132,8 +132,7 @@
         
         <itemize>
 
-          <item> <url url="http://people.ne.mediaone.net/moshier/index.html"
-               name="Cephes math library">
+          <item> <url url="http://www.moshier.net/" name="Cephes math library">
 
           <item> <url url="http://www.neuroinformatik.ruhr-uni-bochum.de/ini/PEOPLE/rmz/t1lib.html" name="T1lib">
           
@@ -485,13 +484,9 @@
         name="M*tif">) is installed on your system. If it is, look
         at the file config.log: there is a line like this:
 
-        <tt>configure:5569: checking for main in -lXm</tt>
+        <tt>configure:8900: checking for a Motif &gt;= 1002 compatible API</tt>
 
         What comes directly after it? Could be a hint.
-
-        Use configure with the special
-        <tt>--with-motif-includes=DIR</tt> and
-        <tt>--with-motif-libraries=DIR</tt> options.
 
     <sect1>What is Motif (LessTif)? <label id="motif">
       <p>
@@ -526,12 +521,6 @@
 
             <item> The include files are there but in a non-standard
               place. Check with your local sys admin.
-
-            <item> If the missing files are like Xm/*.h, this means
-              you don't have M*tif development kit installed (or
-              again, you have to tell explicitly to compiler where
-              to look for the header files). This mostly concerns
-              GNU/Linux.
 
           </itemize>
 
