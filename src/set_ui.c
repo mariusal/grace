@@ -149,21 +149,20 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(rc2, "Symbol properties");
     rc = CreateVContainer(fr);
     ui->symbols = CreatePanelChoice(rc,
-                                             "Type:",
-                                             13,
-                                             "None",            /* 0 */
-                                             "Circle",          /* 1 */
-                                             "Square",          /* 2 */
-                                             "Diamond",         /* 3 */
-                                             "Triangle up",     /* 4 */
-                                             "Triangle left",   /* 5 */
-                                             "Triangle down",   /* 6 */
-                                             "Triangle right",  /* 7 */
-                                             "Plus",            /* 8 */
-                                             "X",               /* 9 */
-                                             "Star",            /* 10 */
-                                             "Char",            /* 11 */
-                                             NULL);
+                                    "Type:",
+                                    "None",            /* 0 */
+                                    "Circle",          /* 1 */
+                                    "Square",          /* 2 */
+                                    "Diamond",         /* 3 */
+                                    "Triangle up",     /* 4 */
+                                    "Triangle left",   /* 5 */
+                                    "Triangle down",   /* 6 */
+                                    "Triangle right",  /* 7 */
+                                    "Plus",            /* 8 */
+                                    "X",               /* 9 */
+                                    "Star",            /* 10 */
+                                    "Char",            /* 11 */
+                                    NULL);
     AddOptionChoiceCB(ui->symbols, oc_explorer_cb, eui);
     ui->symsize = CreateCharSizeChoice(rc, "Size:");
     AddSpinChoiceCB(ui->symsize, sp_explorer_cb, eui);
@@ -175,7 +174,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(rc2, "Line properties");
     rc = CreateVContainer(fr);
     ui->linet = CreatePanelChoice(rc, "Type:",
-                                          7,
                                           "None",
                                           "Straight",
                                           "Left stairs",
@@ -243,14 +241,12 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     rc2 = CreateHContainer(rc);
     ui->filltype = CreatePanelChoice(rc2, "Type:",
-                                         4,
                                          "None",
                                          "As polygon",
                                          "To baseline",
                                          NULL);
     AddOptionChoiceCB(ui->filltype, oc_explorer_cb, eui); 
     ui->fillrule = CreatePanelChoice(rc2, "Rule:",
-                                         3,
                                          "Winding",
                                          "Even-Odd",
                                          NULL);
@@ -262,7 +258,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->line_tp, "Base line");
     rc = CreateHContainer(fr);
     ui->baselinetype = CreatePanelChoice(rc, "Type:",
-                                         6,
                                          "Zero",
                                          "Set min",
                                          "Set max",
@@ -304,7 +299,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->avalue_format = CreateFormatChoice(rc, "Format:");
     AddOptionChoiceCB(ui->avalue_format, oc_explorer_cb, eui);
     ui->avalue_type = CreatePanelChoice(rc2, "Type:",
-                                         7,
                                          "None",
                                          "X",
                                          "Y",
@@ -339,7 +333,6 @@ SetUI *create_set_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->errbar_ptype = CreatePanelChoice(rc,
                                          "Placement:",
-                                         4,
                                          "Normal",
                                          "Opposite",
                                          "Both",

@@ -101,7 +101,6 @@ void create_props_frame(Widget but, void *data)
 
 	graph_focus_choice_item = CreatePanelChoice(rc1,
             "Graph focus switch",
-	    4,
 	    "Button press",
 	    "As set",
 	    "Follows mouse",

@@ -67,7 +67,6 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     rc = CreateHContainer(rc1);
     ui->graph_type = CreatePanelChoice(rc, 
                                        "Type:",
-		                       7,
 		                       "XY graph",
 		                       "XY chart",
 		                       "Polar graph",
@@ -132,7 +131,6 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 
     ui->locator_tp = CreateTabPage(tab, "Locator");
     ui->delta = CreatePanelChoice(ui->locator_tp, "Locator display type:",
-	                          7,
 	                          "[X, Y]",
 	                          "[DX, DY]",
 	                          "[DISTANCE]",

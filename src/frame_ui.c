@@ -80,7 +80,6 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->main_tp, "Frame box");
     rc = CreateVContainer(fr);
     ui->frame_framestyle_choice = CreatePanelChoice(rc, "Frame type:",
-						     7,
 						     "Closed",
 						     "Half open",
 						     "Break top",

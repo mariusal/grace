@@ -121,7 +121,6 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
 
     rc1 = CreateHContainer(rc);
     ui->a_type = CreatePanelChoice(rc1, "Arrow type:",
-				   4,
 				   "Line",
 				   "Filled",
 				   "Circle",

@@ -432,7 +432,6 @@ void create_datasetop_popup(Widget but, void *data)
 	
         datasetopui.xy_item = CreatePanelChoice(rc,
 					   "Sort on:",
-					   7,
 					   "X",
 					   "Y",
 					   "Y1",
@@ -442,7 +441,6 @@ void create_datasetop_popup(Widget but, void *data)
 					   NULL);
 	datasetopui.up_down_item = CreatePanelChoice(rc,
 						"Order:",
-						3,
 						"Ascending",
 						"Descending",
 						NULL);

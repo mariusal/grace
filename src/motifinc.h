@@ -529,7 +529,7 @@ void editE_set_proc(void *data);
 
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
-OptionStructure *CreatePanelChoice(Widget parent, char *labstr, int nchoices, ...);
+OptionStructure *CreatePanelChoice(Widget parent, char *labstr, ...);
 OptionStructure *CreatePrecisionChoice(Widget parent, char *s);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);

@@ -160,16 +160,15 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
     fr = CreateFrame(ui->top, "Vector");
     rc = CreateHContainer(fr);
     ui->v_x = CreateSpinChoice(rc, "X: ",
-        8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
+        8, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
     AddSpinChoiceCB(ui->v_x, sp_explorer_cb, eui);
     ui->v_y = CreateSpinChoice(rc, "Y:",
-        8, SPIN_TYPE_FLOAT, 0, 10.0, 0.05);
+        8, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
     AddSpinChoiceCB(ui->v_y, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->top, "Arrows");
     rc = CreateVContainer(fr);
     ui->arrow_end = CreatePanelChoice(rc, "Place at:",
-				      5,
 				      "None",
 				      "Start",
 				      "End",
@@ -179,7 +178,6 @@ static LineUI *create_line_ui(Widget parent, ExplorerUI *eui)
 
     rc1 = CreateHContainer(rc);
     ui->a_type = CreatePanelChoice(rc1, "Type:",
-				   4,
 				   "Line",
 				   "Filled",
 				   "Circle",

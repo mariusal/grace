@@ -286,7 +286,6 @@ void jpg_gui_setup(const Canvas *canvas, void *data)
             "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
 	jpgdata->baseline_item = CreateToggleButton(rc1, "Force baseline");
 	jpgdata->dct_item = CreatePanelChoice(rc, "DCT: ",
-					 4,
 					 "Fast integer",
 					 "Slow integer",
 					 "Float",

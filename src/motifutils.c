@@ -2829,30 +2829,28 @@ SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
 
 
 
-OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
+OptionStructure *CreatePanelChoice(Widget parent, char *labelstr, ...)
 {
-    OptionItem *oi;
-    va_list var;
-    int i = 0;
-    char *s;
     OptionStructure *retval;
+    int nchoices = 0;
+    OptionItem *oi = NULL;
+    va_list var;
+    char *s;
 
-    nchoices--;
-
-    oi = xcalloc(nchoices, sizeof(OptionItem));
-    va_start(var, nchoices);
-    i = 0;
+    va_start(var, labelstr);
     while ((s = va_arg(var, char *)) != NULL) {
-        oi[i].value = i;
-        oi[i].label = copy_string(NULL, s);
-	i++;
+        nchoices++;
+        oi = xrealloc(oi, nchoices*sizeof(OptionItem));
+        oi[nchoices - 1].value = nchoices - 1;
+        oi[nchoices - 1].label = copy_string(NULL, s);
     }
+    va_end(var);
 
     retval = CreateOptionChoice(parent, labelstr, 1, nchoices, oi);
     
-    while (i) {
-	xfree(oi[i - 1].label);
-        i--;
+    while (nchoices) {
+        nchoices--;
+	xfree(oi[nchoices].label);
     }
     xfree(oi);
     
@@ -2925,7 +2923,6 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
 OptionStructure *CreatePrecisionChoice(Widget parent, char *s)
 {
     return CreatePanelChoice(parent, s,
-                          11,
                           "0", "1", "2", "3", "4",
                           "5", "6", "7", "8", "9",
                           NULL);

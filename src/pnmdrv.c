@@ -222,7 +222,6 @@ void pnm_gui_setup(const Canvas *canvas, void *data)
 	fr = CreateFrame(pnmdata->frame, "PNM options");
         rc = CreateVContainer(fr);
 	pnmdata->format_item = CreatePanelChoice(rc, "Format: ",
-					 4,
 					 "1-bit mono (PBM)",
 					 "8-bit grayscale (PGM)",
 					 "8-bit color (PPM)",
