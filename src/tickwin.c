@@ -151,7 +151,7 @@ void create_axes_dialog(int axisno)
         char buf[32];
         OptionItem opitems[MAXAXES];
         Widget rc_head, rc, rc2, rc3, fr, sw, axes_main, axes_label,
-            axes_ticklabel, axes_tickmark,axes_special;
+            axes_ticklabel, axes_tickmark, axes_special, vbar;
 
         axes_dialog = CreateDialogForm(app_shell, "Axes");
 
@@ -447,6 +447,14 @@ void create_axes_dialog(int axisno)
                                          NULL);
 
         CreateAACDialog(axes_dialog, rc, axes_aac_cb, NULL);
+        
+        /* set reasonable scrolling */
+        vbar = XtNameToWidget(sw, "VertScrollBar");
+        if (vbar) {
+            int maxval;
+            XtVaGetValues(vbar, XmNmaximum, &maxval, NULL);
+            XtVaSetValues(vbar, XmNincrement, (int) rint(maxval/MAX_TICKS), NULL);
+        }
     }
     update_ticks(cg);
     
