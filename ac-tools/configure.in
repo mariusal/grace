@@ -208,7 +208,7 @@ dnl **** define print command
 AC_ARG_WITH(printcmd,
 [  --with-printcmd=PROG         use PROG for printing],
 [if test "x${withval}" != "x"; then
-    PRINT_CMD="${withval}"
+    PRINT_CMD="'${withval}'"
  else
     PRINT_CMD=NONE
  fi],
