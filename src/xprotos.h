@@ -187,6 +187,7 @@ void create_setop_popup(void *data);
 void create_featext_frame(void *data);
 
 void create_ss_frame(int gno, int setno);
+void update_ss_editors(int gno);
 void do_ext_editor(int gno, int setno);
 
 void set_graph_selectors(int gno);
