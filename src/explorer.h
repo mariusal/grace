@@ -396,6 +396,9 @@ struct _ExplorerUI {
     Widget       insert_box_bt;
     Widget       insert_arc_bt;
     Widget       insert_text_bt;
+    
+    Pixmap       a_icon;
+    Pixmap       h_icon;
 };
 
 void oc_explorer_cb(OptionStructure *opt, int a, void *data);

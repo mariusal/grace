@@ -32,6 +32,13 @@
 #include "dicts.h"
 
 #include "explorer.h"
+#include "qbitmaps.h"
+
+#if defined(HAVE_XPM_H)
+#  include <xpm.h>
+#else
+#  include <X11/xpm.h>
+#endif
 
 #include <Xm/ScrolledW.h>
 #include <Xm/Form.h>
@@ -89,19 +96,13 @@ static int traverse_hook(unsigned int step, void *data, void *udata)
     
     s = ti_data->labeling_proc(q);
     if (s) {
-        char buf[16], *sbuf;
-
-        sprintf(buf, "(%c) ", quark_is_active(q) ? '+':'-');
-        sbuf = copy_string(NULL, buf);
-        sbuf = concat_strings(sbuf, s);
-        xfree(s);
         if (step >= ti_data->nchoices) {
-            q_create(ti_data->tree, ti, sbuf, data);
+            q_create(ti_data->tree, ti, s, data);
             ti_data->nchoices++;
         } else {
-            ListTreeRenameItem(ti_data->tree, ti, sbuf);
+            ListTreeRenameItem(ti_data->tree, ti, s);
         }
-        xfree(sbuf);
+        xfree(s);
     }
     
     return TRUE;
@@ -125,6 +126,9 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     ListTreeItem *item;
     TreeItemData *data;
     char *s;
+    GUI *gui;
+    
+    gui = gui_from_quark(q);
     
     data = xmalloc(sizeof(TreeItemData));
     data->q = q;
@@ -149,6 +153,12 @@ ListTreeItem *CreateQuarkTree(Widget tree, ListTreeItem *parent,
     item = ListTreeAdd(tree, parent, s);
     xfree(s);
     item->user_data = data;
+
+    if (quark_is_active(q)) {
+        ListTreeSetItemPixmaps(tree, item, gui->eui->a_icon, gui->eui->a_icon);
+    } else {
+        ListTreeSetItemPixmaps(tree, item, gui->eui->h_icon, gui->eui->h_icon);
+    }
     
     UpdateQuarkTree(item);
     
@@ -794,10 +804,28 @@ void raise_explorer(GUI *gui, Quark *q)
     
     if (!gui->eui) {
         ExplorerUI *eui;
-        
         Widget menubar, menupane, panel, form, fr;
+        X11Stuff *xstuff = grace->gui->xstuff;
+        Pixel bg;
+        XpmColorSymbol transparent;
+        XpmAttributes attrib;
 
         eui = xmalloc(sizeof(ExplorerUI));
+        gui->eui = eui;
+
+        /* Create pixmaps */
+        XtVaGetValues(app_shell, XtNbackground, &bg, NULL);
+        transparent.name  = NULL;
+        transparent.value = "None";
+        transparent.pixel = bg;
+        attrib.colorsymbols = &transparent;
+        attrib.valuemask    = XpmColorSymbols;
+        attrib.numsymbols   = 1;
+        XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+            active_xpm, &eui->a_icon, NULL, &attrib);
+        XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
+            hidden_xpm, &eui->h_icon, NULL, &attrib);
+        
         
         eui->top = CreateDialogForm(app_shell, "Explorer");
         menubar = CreateMenuBar(eui->top);
@@ -959,8 +987,6 @@ void raise_explorer(GUI *gui, Quark *q)
 
         CreateMenuButton(eui->popup,
             "Update tree", '\0', update_explorer_cb, eui);
-        
-        gui->eui = eui;
     }
 
     RaiseWindow(GetParent(gui->eui->top));
