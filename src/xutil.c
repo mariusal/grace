@@ -195,6 +195,22 @@ void set_title(const Quark *pr)
     }
 }
 
+void page_zoom_inout(Grace *grace, int inout)
+{
+    if (!gui_is_page_free(grace->gui)) {
+        if (inout > 0) {
+            grace->gui->zoom *= ZOOM_STEP;
+        } else
+        if (inout < 0) {
+            grace->gui->zoom /= ZOOM_STEP;
+        } else {
+            grace->gui->zoom = 1.0;
+        }
+        xdrawgraph(grace->project, TRUE);
+        set_left_footer(NULL);
+    }
+}
+
 /*
  *  Auxiliary routines for simultaneous drawing on display and pixmap
  */
@@ -417,11 +433,14 @@ void xdrawgraph(const Quark *q, int force)
     Quark *project = get_parent_project(q);
     Grace *grace = grace_from_quark(q);
     X11Stuff *xstuff = grace->gui->xstuff;
+    
     if (grace && grace->gui->inwin && (force || grace->gui->auto_redraw)) {
         Quark *gr = graph_get_current(project);
         Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
-	
+        
         set_wait_cursor();
+
+        device_set_dpi(d, grace->gui->zoom*xstuff->dpi, TRUE);
         
         resize_drawables(d->pg.width, d->pg.height);
 
@@ -678,7 +697,7 @@ int x11_init(Grace *grace)
         set_max_path_limit(grace->rt->canvas, max_path_limit);
     }
     
-    xstuff->dpi = (float) rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
+    xstuff->dpi = rint(MM_PER_INCH*DisplayWidth(xstuff->disp, xstuff->screennumber)/
         DisplayWidthMM(xstuff->disp, xstuff->screennumber));
 
     return RETURN_SUCCESS;

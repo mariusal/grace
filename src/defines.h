@@ -158,6 +158,9 @@
 #define CMAP_INSTALL_ALWAYS     1
 #define CMAP_INSTALL_AUTO       2
 
+/* Zoom step */
+#define ZOOM_STEP sqrt(M_SQRT2)
+
 /* A point in frame coordinates */
 typedef struct {
     double x;

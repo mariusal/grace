@@ -50,6 +50,8 @@ GUI *gui_new(Grace *grace)
     
     gui->P = grace;
 
+    gui->zoom            = 1.0;
+
     gui->inwin           = FALSE;
     gui->invert          = TRUE;
     gui->auto_redraw     = TRUE;

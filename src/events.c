@@ -193,10 +193,27 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     case KeyPress:
 	xke = (XKeyEvent *) event;
         keybuf = XLookupKeysym(xke, 0);
-        if (keybuf == XK_Escape) { /* Esc */
+        switch (keybuf) {
+        case XK_Escape: /* Esc */
             fprintf(stderr, "Esc\n");
             abort_action = TRUE;
             return;
+            break;
+        case XK_KP_Add: /* "Grey" plus */
+            if (xke->state & ControlMask) {
+                page_zoom_inout(grace, +1);
+            }
+            break;
+        case XK_KP_Subtract: /* "Grey" minus */
+            if (xke->state & ControlMask) {
+                page_zoom_inout(grace, -1);
+            }
+            break;
+        case XK_1:
+            if (xke->state & ControlMask) {
+                page_zoom_inout(grace, 0);
+            }
+            break;
         }
         break;
     case KeyRelease:

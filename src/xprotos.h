@@ -52,7 +52,7 @@ struct _X11Stuff {
     int depth;
     Colormap cmap;
     
-    float dpi;
+    double dpi;
 
     Pixmap bufpixmap;
 
@@ -175,6 +175,8 @@ int init_option_menus(void);
 void set_title(const Quark *pr);
 void set_left_footer(char *s);
 void set_tracker_string(char *s);
+
+void page_zoom_inout(Grace *grace, int inout);
 
 void sync_canvas_size(Grace *grace);
 

@@ -212,6 +212,12 @@ String fallbackResourcesCommon[] = {
     "XMgrace*fileMenu.printButton.accelerator: Ctrl<Key>p",
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
     "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
+    "XMgrace*pageZoomMenu.smallerButton.acceleratorText: Ctrl+-",
+    "XMgrace*pageZoomMenu.smallerButton.accelerator: Ctrl<Key>minus",
+    "XMgrace*pageZoomMenu.largerButton.acceleratorText: Ctrl++",
+    "XMgrace*pageZoomMenu.largerButton.accelerator: Ctrl<Key>plus",
+    "XMgrace*pageZoomMenu.originalSizeButton.acceleratorText: Ctrl+1",
+    "XMgrace*pageZoomMenu.originalSizeButton.accelerator: Ctrl<Key>1",
     "XMgrace*saveLogsFSB*pattern: *.log",
     "XMgrace*openProjectFSB*pattern: *.*gr",
     "XMgrace*saveProjectFSB*pattern: *.xgr",
@@ -528,8 +534,9 @@ void set_left_footer(char *s)
         char hbuf[64];
         char buf[GR_MAXPATHLEN + 100];
         gethostname(hbuf, 63);
-        sprintf(buf, "%s, %s, %s",
-            hbuf, display_name(grace->gui), get_docname(grace->project));
+        sprintf(buf, "%s, %s, %s, %d%%",
+            hbuf, display_name(grace->gui), get_docname(grace->project),
+            (int) rint(100*grace->gui->zoom));
         SetLabel(statlab, buf);
     } else {
         SetLabel(statlab, s);
@@ -662,6 +669,24 @@ static void set_locbar(Widget but, int onoff, void *data)
     set_view_items();
 }
 
+static void zoom_in_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    page_zoom_inout(grace, +1);
+}
+
+static void zoom_out_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    page_zoom_inout(grace, -1);
+}
+
+static void zoom_1_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    page_zoom_inout(grace, 0);
+}
+
 /*
  * create the main menubar
  */
@@ -673,9 +698,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     menubar = CreateMenuBar(parent);
 
-/*
- * File menu
- */
+    /* File menu */
     menupane = CreateMenu(menubar, "File", 'F', FALSE);
 
     CreateMenuButton(menupane, "New", 'N', MenuCB, (void *) MENU_NEW);
@@ -691,9 +714,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Exit", 'x', MenuCB, (void *) MENU_EXIT);
 
-/*
- * Edit menu
- */
+    /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
     CreateMenuButton(menupane, "Data sets...", 'D', create_datasetprop_popup, NULL);
@@ -710,9 +731,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "Preferences...", 'r', create_props_frame, NULL);
 
-/*
- * Data menu
- */
+    /* Data menu */
     menupane = CreateMenu(menubar, "Data", 'D', FALSE);
 
     CreateMenuButton(menupane, "Data set operations...", 'o', create_datasetop_popup, NULL);
@@ -749,12 +768,21 @@ static Widget CreateMainMenuBar(Widget parent)
     submenupane = CreateMenu(menupane, "Export", 'E', FALSE);
     CreateMenuButton(submenupane, "ASCII...", 'A', create_write_popup, NULL);
 
-/* View menu */
+    /* View menu */
     menupane = CreateMenu(menubar, "View", 'V', FALSE);
-   
-    windowbarw[0] = CreateMenuToggle(menupane, "Show locator bar", 'L', set_locbar, NULL);
-    windowbarw[1] = CreateMenuToggle(menupane, "Show status bar", 'S', set_statusbar, NULL);
-    windowbarw[2] = CreateMenuToggle(menupane, "Show tool bar", 'T', set_toolbar, NULL);
+
+    submenupane = CreateMenu(menupane, "Show/Hide", 'w', FALSE);
+    windowbarw[0] = CreateMenuToggle(submenupane, "Locator bar", 'L', set_locbar, NULL);
+    windowbarw[1] = CreateMenuToggle(submenupane, "Status bar", 'S', set_statusbar, NULL);
+    windowbarw[2] = CreateMenuToggle(submenupane, "Tool bar", 'T', set_toolbar, NULL);
+
+    if (!gui_is_page_free(grace->gui)) {
+        submenupane = CreateMenu(menupane, "Page zoom", 'z', FALSE);
+        CreateMenuButton(submenupane, "Smaller", 'S', zoom_out_cb, grace);
+        CreateMenuButton(submenupane, "Larger", 'L', zoom_in_cb, grace);
+        CreateMenuSeparator(submenupane);
+        CreateMenuButton(submenupane, "Original size", 'O', zoom_1_cb, grace);
+    }
 
     CreateMenuSeparator(menupane);
 
@@ -768,7 +796,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "Update all", 'U', update_all_cb, NULL);
 
-/* Window menu */
+    /* Window menu */
     menupane = CreateMenu(menubar, "Tools", 'T', FALSE);
    
     CreateMenuButton(menupane, "Explorer", 'E', define_explorer_popup, grace->gui);
@@ -782,8 +810,7 @@ static Widget CreateMainMenuBar(Widget parent)
  */
     
 
-/* help menu */
-
+    /* Help menu */
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
     CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, "doc/UsersGuide.html");

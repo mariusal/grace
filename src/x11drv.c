@@ -564,7 +564,7 @@ int register_x11_drv(Canvas *canvas)
         return -1;
     }
     
-    device_set_dpi(d, data->xstuff->dpi, FALSE);
+    device_set_dpi(d, (float) data->xstuff->dpi, FALSE);
     
     /* disable font AA in mono mode */
     if (data->monomode == TRUE) {
