@@ -2208,6 +2208,7 @@ Widget CreatePenChoice(Widget parent, char *s)
     Pen pen;
     
     pdata = xmalloc(sizeof(Button_PData));
+    memset(pdata, 0, sizeof(Button_PData));
     
     rc = CreateHContainer(parent);
     CreateLabel(rc, s);
