@@ -107,7 +107,7 @@ struct edgelist {
 /***================================================================***/
 static char CurCharName[257]="";
 static char BaseCharName[257]="";
-char CurFontName[MAXPATHLEN];
+char CurFontName[T1_MAXPATHLEN];
 char *CurFontEnv;
 char *vm_base = NULL;
 
@@ -176,8 +176,8 @@ char *env;
   FontP->fontInfoP = NULL;
   FontP->BluesP = NULL;
   /* This will load the font into the FontP */
-  strncpy(CurFontName,env, MAXPATHLEN);
-  CurFontName[MAXPATHLEN-1] = '\0';
+  strncpy(CurFontName,env, T1_MAXPATHLEN);
+  CurFontName[T1_MAXPATHLEN-1] = '\0';
   FontP->FontFileName.len = strlen(CurFontName);
   FontP->FontFileName.data.nameP = CurFontName;
   T1io_reset();

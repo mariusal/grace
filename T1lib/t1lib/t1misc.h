@@ -55,7 +55,7 @@
 
 /* The maximum length of a PostScript name of a font: */
 #define MAXPSNAMELEN 256
-#define MAXPATHLEN   4096
+#define T1_MAXPATHLEN   4096
 
 /* The default resolution used by the library */
 #define DEFAULT_RES           72.0

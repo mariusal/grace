@@ -1218,7 +1218,7 @@ int scan_font(FontP)
 {
  
  
-  char   filename[MAXPATHLEN];
+  char   filename[T1_MAXPATHLEN];
   FILE   *fileP;
   char   *nameP;
   int    namelen;
@@ -1235,9 +1235,9 @@ int scan_font(FontP)
     while ((namelen>0) && ( nameP[namelen-1] == ' ')) {
       namelen--;
     }
-    if ( namelen >= MAXPATHLEN ) {
+    if ( namelen >= T1_MAXPATHLEN ) {
       /* Hopefully, this will lead to a file open error */
-      namelen = MAXPATHLEN;
+      namelen = T1_MAXPATHLEN;
     }
     strncpy(filename,nameP,namelen);
     filename[namelen] = '\0';
