@@ -35,22 +35,13 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 
-#include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-
-#include "globals.h"
 #include "graphs.h"
-#include "graphutils.h"
 #include "protos.h"
 #include "motifinc.h"
 
+
 static Widget locator_frame;
-static Widget locator_panel;
 
 /*
  * Panel item declarations
@@ -62,27 +53,25 @@ static Widget *loc_precx;
 static Widget *loc_precy;
 static Widget locx_item;
 static Widget locy_item;
-static Widget *fixedp_item;
+static Widget fixedp_item;
 
 /*
  * Event and Notify proc declarations
  */
 
-static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void locator_reset_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int locator_define_notify_proc(void *data);
 
 void update_locator_items(int gno)
 {
-    char buf[32];
-    
-    GLocator locator;
-    
-    if (get_graph_locator(gno, &locator) != RETURN_SUCCESS) {
-        return;
-    }
-    
     if (locator_frame) {
-	SetChoice(fixedp_item, locator.pointset);
+        GLocator locator;
+        char buf[32];
+
+        if (get_graph_locator(gno, &locator) != RETURN_SUCCESS) {
+            return;
+        }
+        
+	SetToggleButtonState(fixedp_item, locator.pointset);
 	SetChoice(delta_item, locator.pt_type);
 	SetOptionChoice(loc_formatx, locator.fx);
 	SetOptionChoice(loc_formaty, locator.fy);
@@ -95,109 +84,89 @@ void update_locator_items(int gno)
     }
 }
 
+
 /*
  * Create the locator Panel
  */
 void create_locator_frame(void *data)
 {
-    Widget rc, fr, rc2;
-    Widget buts[3];
     set_wait_cursor();
+    
     if (locator_frame == NULL) {
-	char *label1[3];
-	label1[0] = "Accept";
-	label1[1] = "Reset";
-	label1[2] = "Cancel";
-	locator_frame = XmCreateDialogShell(app_shell, "Locator props", NULL, 0);
-	handle_close(locator_frame);
-	locator_panel = XmCreateRowColumn(locator_frame, "ticks_rc", NULL, 0);
+        Widget rc, rc2, fr, locator_panel;
+	
+        locator_frame = CreateDialogForm(app_shell, "Locator props");
 
+        locator_panel = CreateVContainer(locator_frame);
+	
 	delta_item = CreatePanelChoice(locator_panel, "Locator display type:",
-						  7,
-						  "[X, Y]",
-						  "[DX, DY]",
-						  "[DISTANCE]",
-						  "[Phi, Rho]",
-						  "[VX, VY]",
-						  "[SX, SY]",
-						  NULL,
-						  NULL);
-	fixedp_item = CreatePanelChoice(locator_panel, "Fixed point:",
-					3, "OFF", "ON", NULL,
-					NULL);
+				       7,
+				       "[X, Y]",
+				       "[DX, DY]",
+				       "[DISTANCE]",
+				       "[Phi, Rho]",
+				       "[VX, VY]",
+				       "[SX, SY]",
+				       NULL,
+				       NULL);
+	
+	fr = CreateFrame(locator_panel, "X properties");
+	rc = CreateVContainer(fr);
+	loc_formatx = CreateFormatChoice(rc, "Format:");
+	loc_precx = CreatePrecisionChoice(rc, "Precision:");
+	ManageChild(rc);
 
-	rc2 = XmCreateRowColumn(locator_panel, "rc2", NULL, 0);
-	fr = CreateFrame(rc2, NULL);
-	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	fr = CreateFrame(locator_panel, "Y properties");
+	rc = CreateVContainer(fr);
+	loc_formaty = CreateFormatChoice(rc, "Format:");
+	loc_precy = CreatePrecisionChoice(rc, "Precision:");
+	ManageChild(rc);
 
-	loc_formatx = CreateFormatChoice(rc, "Format X:");
-	loc_precx = CreatePrecisionChoice(rc, "Precision X:");
-	locx_item = (Widget) CreateTextItem2(rc, 10, "Fixed point X:");
-	XtManageChild(rc);
+        fr = CreateFrame(locator_panel, "Fixed point");
+	rc = CreateVContainer(fr);
+	fixedp_item = CreateToggleButton(rc, "Enable");
+	rc2 = CreateHContainer(rc);
+	locx_item = CreateTextItem2(rc2, 10, "X:");
+	locy_item = CreateTextItem2(rc2, 10, "Y:");
+	ManageChild(rc2);
+	ManageChild(rc);
 
-	fr = CreateFrame(rc2, NULL);
-	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	loc_formaty = CreateFormatChoice(rc, "Format Y:");
-	loc_precy = CreatePrecisionChoice(rc, "Precision Y:");
-
-	locy_item = (Widget) CreateTextItem2(rc, 10, "Fixed point Y:");
-	XtManageChild(rc);
-	XtManageChild(rc2);
-
-	CreateSeparator(locator_panel);
-
-	CreateCommandButtons(locator_panel, 3, buts, label1);
-	XtAddCallback(buts[0], XmNactivateCallback,
-		(XtCallbackProc) locator_define_notify_proc, (XtPointer) 0);
-	XtAddCallback(buts[1], XmNactivateCallback,
-		 (XtCallbackProc) locator_reset_notify_proc, (XtPointer) 0);
-	XtAddCallback(buts[2], XmNactivateCallback,
-		(XtCallbackProc) destroy_dialog, (XtPointer) locator_frame);
-
-	XtManageChild(locator_panel);
+	CreateAACDialog(locator_frame,
+            locator_panel, locator_define_notify_proc, NULL);
     }
-    XtRaise(locator_frame);
+    
     update_locator_items(get_cg());
+    XtRaise(GetParent(locator_frame));
+    
     unset_wait_cursor();
-}				/* end create_locator_panel */
+}
 
 /*
  * Notify and event procs
  */
 
-static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int locator_define_notify_proc(void *data)
 {
     GLocator locator;
-    int gno = get_cg();
+    int gno;
+
+    gno = get_cg();
     
-    get_graph_locator(gno, &locator);
+    if (get_graph_locator(gno, &locator) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
     
     locator.pt_type = GetChoice(delta_item);
     locator.fx = GetOptionChoice(loc_formatx);
     locator.fy = GetOptionChoice(loc_formaty);
     locator.px = GetChoice(loc_precx);
     locator.py = GetChoice(loc_precy);
-    locator.pointset = GetChoice(fixedp_item);
+    locator.pointset = GetToggleButtonState(fixedp_item);
     xv_evalexpr(locx_item, &locator.dsx ); 
     xv_evalexpr(locy_item, &locator.dsy ); 
     set_graph_locator(gno, &locator);
     
     xdrawgraph();
     
-    XtUnmanageChild(locator_frame);
-}
-
-static void locator_reset_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    GLocator locator;
-    
-    locator.dsx = locator.dsy = 0.0;
-    locator.pointset = FALSE;
-    locator.pt_type = 0;
-    locator.fx = FORMAT_GENERAL;
-    locator.fy = FORMAT_GENERAL;
-    locator.px = 6;
-    locator.py = 6;
-    set_graph_locator(get_cg(), &locator);
-    update_locator_items(get_cg());
+    return RETURN_SUCCESS;
 }
