@@ -1294,6 +1294,7 @@ RiserLine *riserline_new(void)
             $$->t_round   = $?->round;
 
             $$->t_flag    = $?->tmarks.active;
+            $$->t_inout   = $?->tmarks.inoutplacement;
             $$->t_op      = $?->tmarks.sideplacement;
             $$->props     = $?->tmarks.props;
             $$->mprops    = $?->tmarks.mprops;
