@@ -932,7 +932,8 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     }
 
     drawgraph();
-    set_dirtystate();
+
+    update_ticks(cg);
 }
 
 /*
