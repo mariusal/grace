@@ -35,6 +35,11 @@
 
 #include <stdio.h>
 
+/* data load types */
+#define LOAD_SINGLE 0
+#define LOAD_NXY    1
+#define LOAD_BLOCK  2
+
 int add_io_filter( int type, int method, char *id, char *comm );
 int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );

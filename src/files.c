@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -54,6 +54,7 @@
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
+#include "ssdata.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "protos.h"
@@ -63,33 +64,27 @@
 #endif
 
 #define MAXERR 5
+
 /*
- * number of doubles to allocate for each call to realloc
+ * number of rows to allocate for each call to realloc
  */
 #define BUFSIZE  512
+
 /*
  * number of bytes in each line chunk
  * (should be related to system pipe size, typically 4K)
  */
-
 #ifndef PIPE_BUF
 #  define PIPE_BUF 4096
 #endif
 #define CHUNKSIZE 2*PIPE_BUF
 
-static char buf[256];
-
-static char *linebuf = 0;
+static char *linebuf = NULL;
 static int   linelen = 0;
-
-static int cur_gno;		/* if the graph number changes on read in */
-int change_type;		/* current set type */
-static int cur_type;		/* current set type */
 
 char *close_input;		/* name of real-time input to close */
 
 static int readerror = 0;	/* number of errors */
-static int readline = 0;	/* line number in file */
 
 struct timeval read_begin = {0l, 0l};	/* used to check too long inputs */
 
@@ -105,11 +100,10 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
 static int reopen_real_time_input(Input_buffer *ib);
 static int read_real_time_lines(Input_buffer *ib);
 static int process_complete_lines(Input_buffer *ib);
-static int read_long_line(FILE * fp);
 
-static int readxyany(int gno, char *fn, FILE * fp, int type);
-static int readxystring(int gno, char *fn, FILE * fp);
-static int readnxy(int gno, char *fn, FILE * fp);
+static int read_long_line(FILE *fp);
+
+static int uniread(FILE *fp, int load_type, char *label);
 
 /*
  * part of the time sliced already spent in milliseconds
@@ -137,8 +131,7 @@ static int expand_ib_tbl(void)
     new_size = (ib_tblsize > 0) ? 2*ib_tblsize : 5;
     new_tbl  = (Input_buffer *) calloc(new_size, sizeof(Input_buffer));
     if (new_tbl == NULL) {
-        sprintf(buf, "Insufficient memory for real time inputs table");
-        errmsg(buf);
+        errmsg("Insufficient memory for real time inputs table");
         return GRACE_EXIT_FAILURE;
     }
 
@@ -168,8 +161,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
     newsize = *ptrSize + CHUNKSIZE;
     newbuf = (char *) malloc(newsize);
     if (newbuf == 0) {
-        sprintf(buf, "Insufficient memory for line");
-        errmsg(buf);
+        errmsg("Insufficient memory for line");
         return GRACE_EXIT_FAILURE;
     }
 
@@ -200,6 +192,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
 static int reopen_real_time_input(Input_buffer *ib)
 {
     int fd;
+    char buf[256];
 
     /* in order to avoid race conditions (broken pipe on the write
        side), we open a new file descriptor before closing the
@@ -267,8 +260,8 @@ void unregister_real_time_input(const char *name)
  */
 int register_real_time_input(int fd, const char *name, int reopen)
 {
-
     Input_buffer *ib;
+    char buf[256];
 
     /* some safety checks */
     if (fd < 0) {
@@ -335,6 +328,7 @@ static int read_real_time_lines(Input_buffer *ib)
 {
     char *cursor;
     int   available, nbread;
+    char buf[256];
 
     cursor     = ib->buf  + ib->used;
     available  = ib->size - ib->used;
@@ -378,6 +372,7 @@ static int process_complete_lines(Input_buffer *ib)
 {
     int line_corrupted;
     char *begin_of_line, *end_of_line;
+    char buf[256];
 
     if (ib->used <= 0) {
         return GRACE_EXIT_SUCCESS;
@@ -770,56 +765,151 @@ void grace_close(FILE *fp)
 }
 
 
-int getdata(int gno, char *fn, int src, int type)
+static int uniread(FILE *fp, int load_type, char *label)
+{
+    int nrows, ncols, nncols, nscols, nncols_req;
+    int *formats;
+    int breakon, readerror;
+    ss_data ssd;
+    char *s, tbuf[128];
+    int linecount;
+
+    linecount = 0;
+    readerror = 0;
+    nrows = 0;
+    
+    breakon = TRUE;
+
+    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
+	linecount++;
+        s = linebuf;
+        while (*s == ' ' || *s == '\t' || *s == '\n') {
+            s++;
+        }
+	/*   command      comment    end-of-set      EOL   */
+        if (*s == '@' || *s == '#' || *s == '&' || *s == '\0') {
+	    /* a data break line */
+            if (breakon != TRUE) {
+		/* free excessive storage */
+                realloc_ss_data(&ssd, nrows);
+
+                /* store accumulated data in set(s) */
+                if (store_data(&ssd, load_type, label) != GRACE_EXIT_SUCCESS) {
+		    return GRACE_EXIT_FAILURE;
+                }
+                
+                /* reset state registers */
+                nrows = 0;
+                readerror = 0;
+                breakon = TRUE;
+            }
+	    if (linebuf[0] == '@') {
+                read_param(linebuf + 1);
+	        continue;
+            }
+	} else {
+	    convertchar(linebuf);
+	    if (breakon) {
+		/* parse the data line */
+                if (parse_ss_row(s, &nncols, &nscols, &formats) != GRACE_EXIT_SUCCESS) {
+		    errmsg("Can't parse data");
+		    return GRACE_EXIT_FAILURE;
+                }
+                
+                if (load_type == LOAD_SINGLE) {
+                    nncols_req = settype_cols(curtype);
+                    if (nncols_req <= nncols) {
+                        nncols = nncols_req;
+                    } else if (nncols_req == nncols + 1) {
+                        /* X from index, OK */
+                        ;
+                    } else {
+		        errmsg("Column count incorrect");
+		        return GRACE_EXIT_FAILURE;
+                    }
+                }
+
+                ncols = nncols + nscols;
+
+                /* init the data storage */
+                if (init_ss_data(&ssd, ncols, formats) != GRACE_EXIT_SUCCESS) {
+		    errmsg("Malloc failed in uniread()");
+		    return 0;
+                }
+                
+		breakon = FALSE;
+	    }
+	    if (nrows % BUFSIZE == 0) {
+		if (realloc_ss_data(&ssd, nrows + BUFSIZE) != GRACE_EXIT_SUCCESS) {
+		    errmsg("Malloc failed in uniread()");
+                    free_ss_data(&ssd);
+		    return GRACE_EXIT_FAILURE;
+		}
+	    }
+
+            if (insert_data_row(&ssd, nrows, s) != GRACE_EXIT_SUCCESS) {
+                sprintf(tbuf, "Error parsing line %d, skipped", linecount);
+                errmsg(tbuf);
+                readerror++;
+                if (readerror > MAXERR) {
+                    if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
+                        free_ss_data(&ssd);
+                        return GRACE_EXIT_FAILURE;
+                    } else {
+                        readerror = 0;
+                    }
+                }
+            } else {
+	        nrows++;
+            }
+	}
+    }
+
+    if (nrows > 0) {
+        /* free excessive storage */
+        realloc_ss_data(&ssd, nrows);
+
+        /* store accumulated data in set(s) */
+        if (store_data(&ssd, load_type, label) != GRACE_EXIT_SUCCESS) {
+	    return GRACE_EXIT_FAILURE;
+        }
+    }
+
+    return GRACE_EXIT_SUCCESS;
+}
+
+
+int getdata(int gno, char *fn, int src, int load_type)
 {
     FILE *fp;
-    int retval = -1;
+    int retval;
     int save_version, cur_version;
-    
+
     fp = grace_openr(fn, src);
     if (fp == NULL) {
 	return GRACE_EXIT_FAILURE;
     }
     
-    readline = 0;
-    cur_gno = gno;
-    change_type = cur_type = type;
     save_version = get_project_version();
     set_project_version(0);
 
-    while (retval == -1) {
-	retval = 0;
-	switch (cur_type) {
-	case SET_XYSTRING:
-	    retval = readxystring(cur_gno, fn, fp);
-	    break;
-	case SET_NXY:
-	    retval = readnxy(cur_gno, fn, fp);
-	    break;
-	case SET_BLOCK:
-	    retval = readblockdata(cur_gno, fn, fp);
-	    break;
-	default:
-	    retval = readxyany(cur_gno, fn, fp, cur_type);
-	    break;
-	}
-    }
+    set_parser_gno(gno);
+    
+    retval = uniread(fp, load_type, fn);
 
     grace_close(fp);
     
     cur_version = get_project_version();
-    if (cur_version != 0) {         /* a complete project */
+    if (cur_version != 0) {
+        /* a complete project */
         postprocess_project(cur_version);
-    } else if (type != SET_BLOCK) { /* just a few sets */
-        autoscale_graph(cur_gno, autoscale_onread);
+    } else if (load_type != LOAD_BLOCK) {
+        /* just a few sets */
+        autoscale_graph(gno, autoscale_onread);
     }
     set_project_version(save_version);
 
-    if (retval < 0) {
-        return GRACE_EXIT_FAILURE;
-    } else {
-        return GRACE_EXIT_SUCCESS;
-    }
+    return retval;
 }
 
 
@@ -835,6 +925,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     int i = 0, pstat, retval = 0;
     double *x, *y, tmp;
     char *scstr;                    /* scanf string */
+    char buf[256];
 
     if (is_set_active(gno, setno) && dataset_cols(gno, setno) != 2) {
         errmsg("Only two-column sets are supported in read_xyset_fromfile()");
@@ -911,8 +1002,8 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
         }
     }
     activateset(gno, setno);
-    setcol(gno, x, setno, i, 0);
-    setcol(gno, y, setno, i, 1);
+    setcol(gno, setno, 0, x, i);
+    setcol(gno, setno, 1, y, i);
     if (!strlen(getcomment(gno, setno))) {
         setcomment(gno, setno, fn);
     }
@@ -927,980 +1018,6 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     return retval;
 }
 
-/*
- * read x1 y1 y2 ... y30 formatted files
- * note that the maximum number of sets is 30
- */
-#define MAXSETN 30
-
-static int readnxy(int gno, char *fn, FILE * fp)
-{
-    int i, j, pstat, cnt, scnt[MAXSETN], setn[MAXSETN], retval = 0;
-    double *x[MAXSETN], *y[MAXSETN], xval, yr[MAXSETN];
-    char *s, buf[1024], *tmpbuf;
-    int do_restart = 0;
-
-    set_parser_gno(gno);
-
-/* if more than one set of nxy data is in the file,
- * leap to here after each is read - the goto is at the
- * bottom of this module.
- */
-  restart:;
-
-    while ((read_long_line(fp) == GRACE_EXIT_SUCCESS)
-           && ((linebuf[0] == '#') || (linebuf[0] == '@'))) {
-	readline++;
-	if (linebuf[0] == '@') {
-	    read_param(linebuf + 1);
-	}
-    }
-    cur_gno = gno = get_parser_gno();
-    
-    convertchar(linebuf);
-
-    /*
-     * count the columns
-     */
-    tmpbuf = copy_string(NULL, linebuf);
-    s = tmpbuf;
-    cnt = 0;
-    while ((s = strtok(s, " \t\n")) != NULL) {
-	cnt++;
-	s = NULL;
-    }
-    if (cnt > MAXSETN) {
-	errmsg("Maximum number of columns exceeded, reading first 31");
-	cnt = 31;
-    }
-    free(tmpbuf);
-    s = linebuf;
-    s = strtok(s, " \t\n");
-    if (s == NULL) {
-	errmsg("Read ended by a blank line at or near the beginning of file");
-	return 0;
-    }
-    pstat = sscanf(s, "%lf", &xval);
-    if (pstat == 0) {
-	errmsg("Read ended, non-numeric found on line at or near beginning of file");
-	return 0;
-    }
-    s = NULL;
-    for (j = 0; j < cnt - 1; j++) {
-	s = strtok(s, " \t\n");
-	if (s == NULL) {
-	    yr[j] = 0.0;
-	    errmsg("Number of items in column incorrect");
-	} else {
-	    yr[j] = atof(s);
-	}
-	s = NULL;
-    }
-    if (cnt > 1) {
-	for (i = 0; i < cnt - 1; i++) {
-	    x[i] = calloc(BUFSIZE, SIZEOF_DOUBLE);
-	    y[i] = calloc(BUFSIZE, SIZEOF_DOUBLE);
-	    if (x[i] == NULL || y[i] == NULL) {
-		errmsg("Insufficient memory for set");
-		cxfree(x[i]);
-		cxfree(y[i]);
-		return (0);
-	    }
-	    *(x[i]) = xval;
-	    *(y[i]) = yr[i];
-	    scnt[i] = 1;
-	}
-	while (!do_restart && read_long_line(fp) == GRACE_EXIT_SUCCESS) {
-	    readline++;
-	    if (linebuf[0] == '#') {
-		continue;
-	    }
-	    if (strlen(linebuf) < 2) {
-		continue;
-	    }
-	    if (linebuf[0] == '@') {
-		change_type = cur_type;
-		read_param(linebuf + 1);
-                cur_gno = gno = get_parser_gno();
-		if (change_type != cur_type) {
-		    cur_type = change_type;
-		    retval = -1;
-		    break;	/* exit this module and store any set */
-		}
-		continue;
-	    }
-	    convertchar(linebuf);
-	    s = linebuf;
-	    s = strtok(s, " \t\n");
-	    if (s == NULL) {
-		continue;
-	    }
-/* check for set separator */
-	    pstat = sscanf(s, "%lf", &xval);
-	    if (pstat == 0) {
-		do_restart = 1;
-		continue;
-	    } else {
-		s = NULL;
-		for (j = 0; j < cnt - 1; j++) {
-		    s = strtok(s, " \t\n");
-		    if (s == NULL) {
-			yr[j] = 0.0;
-			errmsg("Number of items in column incorrect");
-		    } else {
-			yr[j] = atof(s);
-		    }
-		    s = NULL;
-		}
-		for (i = 0; i < cnt - 1; i++) {
-		    *(x[i] + scnt[i]) = xval;
-		    *(y[i] + scnt[i]) = yr[i];
-		    scnt[i]++;
-		    if (scnt[i] % BUFSIZE == 0) {
-			x[i] = realloc(x[i], (scnt[i] + BUFSIZE) * SIZEOF_DOUBLE);
-			y[i] = realloc(y[i], (scnt[i] + BUFSIZE) * SIZEOF_DOUBLE);
-		    }
-		}
-	    }
-	}
-	for (i = 0; i < cnt - 1; i++) {
-	    setn[i] = nextset(gno);
-            if ((setn[i]) == -1) {
-		errmsg("Can't allocate more sets in readnxy()");
-                for (j = 0; j < i; j++) {
-		    killsetdata(gno, setn[j]);
-		}
-                return 0;
-	    }
-	    set_set_hidden(gno, setn[i], FALSE);
-
-	    setcol(gno, x[i], setn[i], scnt[i], 0);
-	    setcol(gno, y[i], setn[i], scnt[i], 1);
-	    sprintf( buf, "%s:%d", fn, i+1 );	/* identify column # in comment */
-	    setcomment(gno, setn[i], buf);
-	    log_results(fn);
-	}
-	if (!do_restart) {
-	    if (retval == -1) {
-		return retval;
-	    } else {
-		return 1;
-	    }
-	} else {
-	    do_restart = 0;
-	    goto restart;
-	}
-    }
-    return 0;
-}
-
-
-/*
- * read in any "plain" (but NXY, XYSTRING and BLOCK) set types
- */
-static int readxyany(int gno, char *fn, FILE * fp, int type)
-{
-    int i = 0, j = 0, readset = 0, pstat, retval = 0;
-    double *x, *y, *dx, *dy, *dz, *dw;
-    double xtmp, ytmp, dxtmp, dytmp, dztmp, dwtmp;
-    int ncols;  /* columns of numbers */
-    long alloclen;
-
-    set_parser_gno(gno);
-
-    retval = 0;
-    
-    alloclen = 0;
-    x = y = dx = dy = dz = dw = NULL;
-    
-    ncols = settype_cols(type);
-   
-    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
-	readline++;
-	/* ignore comments or empty lines: */
-        if (linebuf[0] == '#' || strlen(linebuf) < 2) {
-	    continue;
-	}
-        
-	if (linebuf[0] == '@') {
-	    change_type = type;
-	    if (read_param(linebuf + 1) != 0) {
-                retval = -2;
-            }
-            cur_gno = gno = get_parser_gno();
-	    if (change_type != type) {
-	        cur_type = change_type;
-                retval = -1;
-	        break;      /* exit this module and store any set */
-	    }
-	    continue;
-	}
-        
-	convertchar(linebuf);
-        
-	/* count the number of items scanned */
-	pstat = sscanf(linebuf, "%lf %lf %lf %lf %lf %lf", 
-                                &xtmp, &ytmp, &dxtmp, &dytmp, &dztmp, &dwtmp);
-        /* pstat == ncols - 1 corresponds to dummy X (index) */
-        if (pstat >= ncols - 1) {
-            if (i >= alloclen) {
-                switch (ncols) {
-                case 2:
-                    x = xrealloc(x, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    y = xrealloc(y, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    if (x == NULL || y == NULL) {
-                        errmsg("Insufficient memory for set");
-                        cxfree(x);
-                        cxfree(y);
-                        return -2;
-                    }
-                    break;
-                case 3:
-                    x  = xrealloc(x,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    y  = xrealloc(y,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dx = xrealloc(dx, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    if (x == NULL || y == NULL || dx == NULL) {
-                        errmsg("Insufficient memory for set");
-                        cxfree(x);
-                        cxfree(y);
-                        cxfree(dx);
-                        return -2;
-                    }
-                    break;
-                case 4:
-                    x  = xrealloc(x,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    y  = xrealloc(y,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dx = xrealloc(dx, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dy = xrealloc(dy, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    if (x == NULL || y == NULL || dx == NULL || dy == NULL) {
-                        errmsg("Insufficient memory for set");
-                        cxfree(x);
-                        cxfree(y);
-                        cxfree(dx);
-                        cxfree(dy);
-                        return -2;
-                    }
-                    break;
-                case 5:
-                    x  = xrealloc(x,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    y  = xrealloc(y,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dx = xrealloc(dx, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dy = xrealloc(dy, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dz = xrealloc(dz, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    if (x == NULL || y == NULL || dx == NULL || dy == NULL || dz == NULL) {
-                        errmsg("Insufficient memory for set");
-                        cxfree(x);
-                        cxfree(y);
-                        cxfree(dx);
-                        cxfree(dy);
-                        cxfree(dz);
-                        return -2;
-                    }
-                    break;
-                case 6:
-                    x  = xrealloc(x,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    y  = xrealloc(y,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dx = xrealloc(dx, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dy = xrealloc(dy, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dz = xrealloc(dz, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    dw = xrealloc(dw, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
-                    if (x == NULL || y == NULL || dx == NULL || dy == NULL || dz == NULL || dw == NULL) {
-                        errmsg("Insufficient memory for set");
-                        cxfree(x);
-                        cxfree(y);
-                        cxfree(dx);
-                        cxfree(dy);
-                        cxfree(dz);
-                        cxfree(dw);
-                        return -2;
-                    }
-                    break;
-                default:
-                    errmsg("Internal error in readxyany");
-                    return -3;
-                }
-                alloclen += BUFSIZE;
-            }
-
-	    if (pstat == ncols - 1) {
-                dwtmp = dztmp;
-                dztmp = dytmp;
-                dytmp = dxtmp;
-                dxtmp = ytmp;
-                ytmp  = xtmp;
-                xtmp  = i;
-            }
-            
-            /* got x and y so increment */
-	    switch (ncols) {
-            case 2:
-	        x[i] = xtmp;
-	        y[i] = ytmp;
-                break;
-            case 3:
-	        x[i] = xtmp;
-	        y[i] = ytmp;
-		dx[i] = dxtmp;
-                break;
-            case 4:
-	        x[i] = xtmp;
-	        y[i] = ytmp;
-		dx[i] = dxtmp;
-		dy[i] = dytmp;
-                break;
-            case 5:
-	        x[i] = xtmp;
-	        y[i] = ytmp;
-		dx[i] = dxtmp;
-		dy[i] = dytmp;
-		dz[i] = dztmp;
-                break;
-            case 6:
-	        x[i] = xtmp;
-	        y[i] = ytmp;
-		dx[i] = dxtmp;
-		dy[i] = dytmp;
-		dz[i] = dztmp;
-		dw[i] = dwtmp;
-                break;
-            }
-	    i++;
-	} else {
-	    if (i != 0) {
-		if ((j = nextset(gno)) == -1) {
-		    cxfree(x);
-		    cxfree(y);
-		    cxfree(dx);
-		    cxfree(dy);
-		    cxfree(dz);
-		    cxfree(dw);
-		    return -2;
-		} else {
-		    activateset(gno, j);
-		    set_dataset_type(gno, j, type);
-		    setcol(gno, x, j, i, 0);
-		    setcol(gno, y, j, i, 1);
-		    setcol(gno, dx, j, i, 2);
-		    setcol(gno, dy, j, i, 3);
-		    setcol(gno, dz, j, i, 4);
-		    setcol(gno, dw, j, i, 5);
-		    if (!strlen(getcomment(gno, j))) {
-		        setcomment(gno, j, fn);
-		    }
-		    log_results(fn);
-		    readset++;
-
-                    i = 0;
-                    alloclen = 0;
-                    x = y = dx = dy = dz = dw = NULL;
-                }
-	    } else {
-		readerror++;
-		sprintf(buf, "Error at line #%1d: %s", readline, linebuf);
-		errmsg(buf);
-		if (readerror > MAXERR) {
-		    if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-			cxfree(x);
-			cxfree(y);
-			cxfree(dx);
-			cxfree(dy);
-			cxfree(dz);
-			cxfree(dw);
-			return -2;
-		    } else {
-			readerror = 0;
-		    }
-		}
-	    }
-	}
-    }
-
-    if (i != 0) {
-	if ((j = nextset(gno)) == -1) {
-	    cxfree(x);
-	    cxfree(y);
-	    cxfree(dx);
-	    cxfree(dy);
-	    cxfree(dz);
-	    cxfree(dw);
-	    return -2;
-	}
-	activateset(gno, j);
-	set_dataset_type(gno, j, type);
-	setcol(gno, x, j, i, 0);
-	setcol(gno, y, j, i, 1);
-	setcol(gno, dx, j, i, 2);
-	setcol(gno, dy, j, i, 3);
-	setcol(gno, dz, j, i, 4);
-	setcol(gno, dw, j, i, 5);
-	if (!strlen(getcomment(gno, j))) {
-	    setcomment(gno, j, fn);
-	}
-	log_results(fn);
-	readset++;
-    } else {
-	cxfree(x);
-	cxfree(y);
-	cxfree(dx);
-	cxfree(dy);
-	cxfree(dz);
-	cxfree(dw);
-    }
-    
-    return retval;
-}
-
-static int readxystring(int gno, char *fn, FILE * fp)
-{
-    int i = 0, ll, j, pstat, readset = 0, retval = 0;
-    double *x, *y;
-    char *s, *s1, *s2, **strs;
-
-    set_parser_gno(gno);
-
-    x = calloc(BUFSIZE, SIZEOF_DOUBLE);
-    y = calloc(BUFSIZE, SIZEOF_DOUBLE);
-    strs = calloc(BUFSIZE, sizeof(char *));
-    if (x == NULL || y == NULL || strs == NULL) {
-	errmsg("Insufficient memory for set");
-	cxfree(x);
-	cxfree(y);
-	cxfree(strs);
-	return retval;
-    }
-    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
-	readline++;
-	ll = strlen(linebuf);
-	if ((ll > 0) && (linebuf[ll - 1] != '\n')) {	/* must have a newline
-							 * char at end of line */
-	    readerror++;
-            sprintf(buf, "No newline at line #%1d: %s", readline, linebuf);
-            errmsg(buf);
-	    if (readerror > MAXERR) {
-		if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-		    cxfree(x);
-		    cxfree(y);
-		    cxfree(strs);
-		    return retval;
-		} else {
-		    readerror = 0;
-		}
-	    }
-	    continue;
-	}
-	if (linebuf[0] == '#') {
-	    continue;
-	}
-	if (strlen(linebuf) < 2) {	/* blank line */
-	    continue;
-	}
-	if (linebuf[0] == '@') {
-	    change_type = cur_type;
-	    read_param(linebuf + 1);
-            cur_gno = gno = get_parser_gno();
-	    if (change_type != cur_type) {
-		cur_type = change_type;
-		retval = -1;
-		break;		/* exit this module and store any set */
-	    }
-	    continue;
-	}
-	/* count the number of items scanned */
-	if ((pstat = sscanf(linebuf, "%lf %lf", &x[i], &y[i])) >= 1) {
-	    /* supply x if missing (y winds up in x) */
-	    if (pstat == 1) {
-		y[i] = x[i];
-		x[i] = i;
-	    }
-	    /* get the string portion */
-	    linebuf[strlen(linebuf) - 1] = 0;	/* remove newline */
-	    s1 = strrchr(linebuf, '"');	/* find last quote */
-	    s2 = strchr(linebuf, '"');	/* find first quote */
-	    if (s1 != s2) { /* a quoted string */
-	        s = s1;
-	        s[0] = 0;           /* terminate the string here */
-	        s = s2;
-	        s++;                /* increment to the first char */
-	        strs[i] = malloc((strlen(s) + 1) * sizeof(char));
-	        strcpy(strs[i], s);
-	        /* got x and y so increment */
-	        i++;
-	        if (i % BUFSIZE == 0) {
-	            x = realloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
-	            y = realloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
-	            strs = realloc(strs, (i + BUFSIZE) * sizeof(char *));
-	        }
-	    } else {
-	        readerror++;
-		sprintf(buf, "Error at line #%1d: %s", readline, linebuf);
-		errmsg(buf);
-	        if (readerror > MAXERR) {
-	            if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-	                cxfree(x);
-	                cxfree(y);
-	                cxfree(strs);
-	                return (0);
-	            } else {
-	                readerror = 0;
-	            }
-	        }
-	    }
-	} else {
-	    if (i != 0) {
-		if ((j = nextset(gno)) == -1) {
-		    cxfree(x);
-		    cxfree(y);
-		    return (readset);
-		}
-		activateset(gno, j);
-                set_dataset_type(gno, j, SET_XYSTRING);
-		setcol(gno, x, j, i, 0);
-		setcol(gno, y, j, i, 1);
-		set_set_strings(gno, j, i, strs);
-		if (!strlen(getcomment(gno, j))) {
-		    setcomment(gno, j, fn);
-		}
-		log_results(fn);
-		readset++;
-	    } else {
-		readerror++;
-		sprintf(buf, "Error at line #%1d: %s", readline, linebuf);
-		errmsg(buf);
-		if (readerror > MAXERR) {
-		    if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-			cxfree(x);
-			cxfree(y);
-			cxfree(strs);
-			return (0);
-		    } else {
-			readerror = 0;
-		    }
-		}
-	    }
-	    i = 0;
-	    x = calloc(BUFSIZE, SIZEOF_DOUBLE);
-	    y = calloc(BUFSIZE, SIZEOF_DOUBLE);
-	    strs = calloc(BUFSIZE, sizeof(char *));
-	    if (x == NULL || y == NULL) {
-		errmsg("Insufficient memory for set");
-		cxfree(x);
-		cxfree(y);
-		return (readset);
-	    }
-	}
-    }
-
-    if (i != 0) {
-	if ((j = nextset(gno)) == -1) {
-	    cxfree(x);
-	    cxfree(y);
-	    cxfree(strs);
-	    return (readset);
-	}
-	activateset(gno, j);
-        set_dataset_type(gno, j, SET_XYSTRING);
-	setcol(gno, x, j, i, 0);
-	setcol(gno, y, j, i, 1);
-	set_set_strings(gno, j, i, strs);
-	if (!strlen(getcomment(gno, j))) {
-	    setcomment(gno, j, fn);
-	}
-	log_results(fn);
-	readset++;
-    } else {
-	cxfree(x);
-	cxfree(y);
-	cxfree(strs);
-    }
-
-    if (retval == -1) {
-	return retval;
-    } else {
-	return readset;
-    }
-}
-
-/*
- * read block data
- */
-int readblockdata(int gno, char *fn, FILE * fp)
-{
-    int i = 0, j, k, ncols = 0, pstat;
-    int first = 1, readerror = 0;
-    double **data = NULL;
-    char *tmpbuf, *s, tbuf[256];
-    int linecount = 0;
-
-    i = 0;
-    pstat = 0;
-    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
-        s = linebuf;
-	readline++;
-	linecount++;
-	if (linebuf[0] == '#') {
-	    continue;
-	}
-	if (linebuf[0] == '@') {
-	    read_param(linebuf + 1);
-	    continue;
-	}
-	if (strlen(linebuf) > 1) {
-	    convertchar(linebuf);
-	    if (first) {	/* count the number of columns */
-		ncols = 0;
-		tmpbuf = copy_string(NULL, linebuf);
-                if (tmpbuf == NULL) {
-                    errmsg("Insufficient memory for string");
-                    return 0;
-                }
-		s = tmpbuf;
-		while (*s == ' ' || *s == '\t' || *s == '\n') {
-		    s++;
-		}
-		while ((s = strtok(s, " \t\n")) != NULL) {
-		    ncols++;
-		    s = NULL;
-		}
-		if (ncols < 1 || ncols > maxblock) {
-		    errmsg("Column count incorrect");
-                    free (tmpbuf);
-		    return 0;
-		}
-		data = malloc(sizeof(double *) * maxblock);
-		if (data == NULL) {
-		    errmsg("Can't allocate memory for block data");
-                    free (tmpbuf);
-		    return 0;
-		}
-		for (j = 0; j < ncols; j++) {
-		    data[j] = calloc(BUFSIZE, SIZEOF_DOUBLE);
-		    if (data[j] == NULL) {
-			errmsg("Insufficient memory for block data");
-			for (k = 0; k < j; k++) {
-			    cxfree(data[k]);
-			}
-			cxfree(data);
-                        free (tmpbuf);
-			return 0;
-		    }
-		}
-                free (tmpbuf);
-		first = 0;
-	    }
-	    s = linebuf;
-	    while (*s == ' ' || *s == '\t' || *s == '\n') {
-		s++;
-	    }
-	    for (j = 0; j < ncols; j++) {
-		s = strtok(s, " \t\n");
-		if (s == NULL) {
-		    data[j][i] = 0.0;
-		    sprintf(tbuf, "Number of items in column incorrect at line %d, line skipped", linecount);
-		    errmsg(tbuf);
-		    readerror++;
-		    if (readerror > MAXERR) {
-			if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-			    for (k = 0; k < ncols; k++) {
-				cxfree(data[k]);
-			    }
-			    cxfree(data);
-			    return (0);
-			} else {
-			    readerror = 0;
-			}
-		    }
-		    /* skip the rest */
-		    goto bustout;
-		} else {
-		    data[j][i] = atof(s);
-		}
-		s = NULL;
-	    }
-	    i++;
-	    if (i % BUFSIZE == 0) {
-		for (j = 0; j < ncols; j++) {
-		    data[j] = realloc(data[j], (i + BUFSIZE) * SIZEOF_DOUBLE);
-		    if (data[j] == NULL) {
-			errmsg("Insufficient memory for block data");
-			for (k = 0; k < j; k++) {
-			    cxfree(data[k]);
-			}
-			cxfree(data);
-			return 0;
-		    }
-		}
-	    }
-	}
-      bustout:;
-    }
-    for (j = 0; j < ncols; j++) {
-	blockdata[j] = data[j];
-    }
-    cxfree(data);
-    blocklen = i;
-    blockncols = ncols;
-    return 1;
-}
-
-void create_set_fromblock(int gno, int type, char *cols)
-{
-    int i;
-    int setno;
-    int cx, cy, c2, c3, c4, c5;
-    double *tx, *ty, *t2, *t3, *t4, *t5;
-    int nc, *coli;
-    char *s, buf[256];
-
-    if (blockncols <= 0) {
-        errmsg("No block data read");
-        return;
-    }
-    
-    strcpy(buf, cols);
-    s = buf;
-    c2 = c3 = c4 = c5 = nc = 0;
-    coli = malloc(maxblock * sizeof(int *));
-    while ((s = strtok(s, ":")) != NULL) {
-	coli[nc] = atoi(s);
-	coli[nc]--;
-	nc++;
-	s = NULL;
-    }
-    if (nc == 0) {
-	errmsg("No columns scanned in column string");
-	free(coli);
-	return;
-    }
-    for (i = 0; i < nc; i++) {
-	if (coli[i] < -1) {
-	    errmsg("Incorrect column specification");
-	    free(coli);
-	    return;
-	}
-    }
-
-    cx = coli[0];
-    cy = coli[1];
-    if (cx >= blockncols) {
-	errmsg("Column for X exceeds the number of columns in block data");
-	free(coli);
-	return;
-    }
-    if (cy >= blockncols) {
-	errmsg("Column for Y exceeds the number of columns in block data");
-	free(coli);
-	return;
-    }
-    switch (settype_cols(type)) {
-    case 2:
-	break;
-    case 3:
-	c2 = coli[2];
-	if (c2 >= blockncols) {
-	    errmsg("Column for E1 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	break;
-    case 4:
-	c2 = coli[2];
-	c3 = coli[3];
-	if (c2 >= blockncols) {
-	    errmsg("Column for E1 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	if (c3 >= blockncols) {
-	    errmsg("Column for E2 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	break;
-    case 5:
-	c2 = coli[2];
-	c3 = coli[3];
-	c4 = coli[4];
-	if (c2 >= blockncols) {
-	    errmsg("Column for E1 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	if (c3 >= blockncols) {
-	    errmsg("Column for E2 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	if (c4 >= blockncols) {
-	    errmsg("Column for E3 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	break;
-    case 6:
-	c2 = coli[2];
-	c3 = coli[3];
-	c4 = coli[4];
-	c5 = coli[5];
-	if (c2 >= blockncols) {
-	    errmsg("Column for E1 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	if (c3 >= blockncols) {
-	    errmsg("Column for E2 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	if (c4 >= blockncols) {
-	    errmsg("Column for E3 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	if (c5 >= blockncols) {
-	    errmsg("Column for E4 exceeds the number of columns in block data");
-	    free(coli);
-	    return;
-	}
-	break;
-    }
-
-    if (!is_graph_active(gno)) {
-	set_graph_active(gno, TRUE);
-    }
-    setno = nextset(gno);
-    if (setno == -1) {
-	return;
-    }
-    
-    activateset(gno, setno);
-    set_dataset_type(gno, setno, type);
-
-    tx = calloc(blocklen, SIZEOF_DOUBLE);
-    ty = calloc(blocklen, SIZEOF_DOUBLE);
-    for (i = 0; i < blocklen; i++) {
-        if (cx == -1) {
-            tx[i] = i + 1;
-        }
-        else {
-            tx[i] = blockdata[cx][i];
-        }
-        if (cy == -1) {
-            ty[i] = i + 1;
-        }
-        else {
-            ty[i] = blockdata[cy][i];
-        }
-    }
-    setcol(gno, tx, setno, blocklen, 0);
-    setcol(gno, ty, setno, blocklen, 1);
-
-    switch (settype_cols(type)) {
-    case 2:
-	sprintf(buf, "Cols %d %d", cx + 1, cy + 1);
-	break;
-    case 3:
-	sprintf(buf, "Cols %d %d %d", cx + 1, cy + 1, c2 + 1);
-	t2 = calloc(blocklen, SIZEOF_DOUBLE);
-	for (i = 0; i < blocklen; i++) {
-	    if (c2 == -1) {
-		t2[i] = i + 1;
-	    }
-	    else {
-		t2[i] = blockdata[c2][i];
-	    }
-	}
-	setcol(gno, t2, setno, blocklen, 2);
-	break;
-    case 4:
-	sprintf(buf, "Cols %d %d %d %d", cx + 1, cy + 1, c2 + 1, c3 + 1);
-	t2 = calloc(blocklen, SIZEOF_DOUBLE);
-	t3 = calloc(blocklen, SIZEOF_DOUBLE);
-	for (i = 0; i < blocklen; i++) {
-	    if (c2 == -1) {
-		t2[i] = i + 1;
-	    }
-	    else {
-		t2[i] = blockdata[c2][i];
-	    }
-	    if (c3 == -1) {
-		t3[i] = i + 1;
-	    }
-	    else {
-		t3[i] = blockdata[c3][i];
-	    }
-	}
-	setcol(gno, t2, setno, blocklen, 2);
-	setcol(gno, t3, setno, blocklen, 3);
-	break;
-    case 5:
-	sprintf(buf, "Cols %d %d %d %d %d", cx + 1, cy + 1, c2 + 1, c3 + 1, c4 + 1);
-	t2 = calloc(blocklen, SIZEOF_DOUBLE);
-	t3 = calloc(blocklen, SIZEOF_DOUBLE);
-	t4 = calloc(blocklen, SIZEOF_DOUBLE);
-	for (i = 0; i < blocklen; i++) {
-	    if (c2 == -1) {
-		t2[i] = i + 1;
-	    }
-	    else {
-		t2[i] = blockdata[c2][i];
-	    }
-	    if (c3 == -1) {
-		t3[i] = i + 1;
-	    }
-	    else {
-		t3[i] = blockdata[c3][i];
-	    }
-	    if (c4 == -1) {
-		t4[i] = i + 1;
-	    }
-	    else {
-		t4[i] = blockdata[c4][i];
-	    }
-	}
-	setcol(gno, t2, setno, blocklen, 2);
-	setcol(gno, t3, setno, blocklen, 3);
-	setcol(gno, t4, setno, blocklen, 4);
-	break;
-    case 6:
-	sprintf(buf, "Cols %d %d %d %d %d %d",
-            cx + 1, cy + 1, c2 + 1, c3 + 1, c4 + 1, c5 + 1);
-	t2 = calloc(blocklen, SIZEOF_DOUBLE);
-	t3 = calloc(blocklen, SIZEOF_DOUBLE);
-	t4 = calloc(blocklen, SIZEOF_DOUBLE);
-	t5 = calloc(blocklen, SIZEOF_DOUBLE);
-	for (i = 0; i < blocklen; i++) {
-	    if (c2 == -1) {
-		t2[i] = i + 1;
-	    } else {
-		t2[i] = blockdata[c2][i];
-	    }
-	    if (c3 == -1) {
-		t3[i] = i + 1;
-	    } else {
-		t3[i] = blockdata[c3][i];
-	    }
-	    if (c4 == -1) {
-		t4[i] = i + 1;
-	    } else {
-		t4[i] = blockdata[c4][i];
-	    }
-	    if (c5 == -1) {
-		t5[i] = i + 1;
-	    } else {
-		t5[i] = blockdata[c5][i];
-	    }
-	}
-	setcol(gno, t2, setno, blocklen, 2);
-	setcol(gno, t3, setno, blocklen, 3);
-	setcol(gno, t4, setno, blocklen, 4);
-	setcol(gno, t5, setno, blocklen, 5);
-	break;
-    }
-
-    free(coli);
-    setcomment(gno, setno, buf);
-    log_results(buf);   
-}
 
 void outputset(int gno, int setno, char *fname, char *dformat)
 {
@@ -1920,7 +1037,7 @@ int load_project_file(char *fn, int as_template)
 	return GRACE_EXIT_FAILURE;
     }
     
-    if (getdata(0, fn, SOURCE_DISK, SET_XY) == GRACE_EXIT_SUCCESS) {
+    if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == GRACE_EXIT_SUCCESS) {
         if (as_template == FALSE) {
             strcpy(docname, fn);
         }
@@ -2111,6 +1228,7 @@ int readnetcdf(int gno,
     float *xf, *yf;
     short *xs, *ys;
     long *xl, *yl;
+    char buf[256];
 
     /* variable ids */
     int x_id = -1, y_id;
@@ -2290,8 +1408,8 @@ int readnetcdf(int gno,
  */
     activateset(gno, setno);
     set_dataset_type(gno, setno, SET_XY);
-    setcol(gno, x, setno, n, 0);
-    setcol(gno, y, setno, n, 1);
+    setcol(gno, setno, 0, x, n);
+    setcol(gno, setno, 1, y, n);
 
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
     setcomment(gno, setno, buf);
