@@ -626,11 +626,19 @@ dnl **** Check for Motif
     GUI_FLAGS="$X_CFLAGS"
     GRACE=xmgrace
 
-    dnl **** Check whether Motif is actually Lesstif
+    dnl **** Special Motif checks
     save_CPPFLAGS="$CPPFLAGS"
-    CPPFLAGS="$CPPFLAGS $X_CFLAGS"
+    save_LIBS="$LIBS"
+    CPPFLAGS="$CPPFLAGS $GUI_FLAGS"
+    LIBS="$X_LIBS $GUI_LIBS $LIBS"
+
+    dnl **** Check whether Motif is actually Lesstif
     ICE_CHECK_LESSTIF
+    dnl **** Check whether _XmVersionString[] can be referred to
+    ACX_CHECK_XMVERSIONSTRING
+
     CPPFLAGS="$save_CPPFLAGS"
+    LIBS="$save_LIBS"
     
     dnl **** Check for Xbae widget
     if test $bundled_xbae = false

@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -355,6 +355,9 @@
 
 /* Define if Motif library is actually Lesstif.  */
 #undef HAVE_LESSTIF
+
+/* Define if Motif library includes _XmVersionString[] string.  */
+#undef HAVE__XMVERSIONSTRING
 
 /* Define if you have the Xpm library (-lXpm).  */
 #undef HAVE_XPM

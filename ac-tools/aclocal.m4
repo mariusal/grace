@@ -773,3 +773,25 @@ AC_DEFUN(ACX_CHECK_PDFLIB,
     $3
   fi
 ])dnl
+
+dnl ACX_CHECK_XMVERSIONSTRING
+dnl --------------
+AC_DEFUN(ACX_CHECK_XMVERSIONSTRING,
+[
+  AC_CACHE_CHECK( "whether _XmVersionString[] can be referred to",
+    acx_cv__xmversionstring,
+    AC_TRY_LINK([#include <stdio.h>],
+                [extern char _XmVersionString[[]]; printf("%s\n", _XmVersionString);],
+                [acx_cv__xmversionstring="yes"],
+                [acx_cv__xmversionstring="no"]
+    )
+    if test "$acx_cv__xmversionstring" = "yes"
+    then
+      AC_DEFINE(HAVE__XMVERSIONSTRING)
+      $1
+    else
+      :
+      $2
+    fi
+  )
+])dnl
