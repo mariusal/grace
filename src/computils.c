@@ -1654,8 +1654,8 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     p->dropline = TRUE;
     p->baseline = FALSE;
     p->baseline_type = BASELINE_TYPE_0;
-    p->lines = 1;
-    p->symlines = 1;
+    p->line.style = 1;
+    p->symline.style = 1;
     sprintf(buf, "Histogram from G%d.S%d", fromgraph, fromset);
     setcomment(tograph, toset, buf);
 

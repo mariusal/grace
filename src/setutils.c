@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -336,11 +336,11 @@ static void set_default_set(set *p)
     p->type = SET_XY;                           /* dataset type */
 
     p->sym = 0;                                 /* set plot symbol */
-    p->symlines = grdefaults.lines;             /* set plot sym line style */
     p->symsize = grdefaults.symsize;            /* size of symbols */
-    p->symlinew = grdefaults.linew;             /* set plot sym line width */
-    p->sympen.color = grdefaults.color;         /* color for symbol line */
-    p->sympen.pattern = grdefaults.pattern;     /* pattern */
+    p->symline.pen.color = grdefaults.color;    /* color for symbol line */
+    p->symline.pen.pattern = grdefaults.pattern;/* pattern */
+    p->symline.style = grdefaults.lines;        /* set plot sym line style */
+    p->symline.width = grdefaults.linew;        /* set plot sym line width */
     p->symfillpen.color = grdefaults.color;     /* color for symbol fill */
     p->symfillpen.pattern = 0;                  /* pattern for symbol fill */
 
@@ -363,10 +363,10 @@ static void set_default_set(set *p)
     p->avalue.offset.y = 0.0;
 
     p->linet = LINE_TYPE_STRAIGHT;
-    p->lines = grdefaults.lines;
-    p->linew = grdefaults.linew;
-    p->linepen.color = grdefaults.color;
-    p->linepen.pattern = grdefaults.pattern;
+    p->line.style = grdefaults.lines;
+    p->line.width = grdefaults.linew;
+    p->line.pen.color = grdefaults.color;
+    p->line.pen.pattern = grdefaults.pattern;
     
     p->baseline_type = BASELINE_TYPE_0;
     p->baseline = FALSE;

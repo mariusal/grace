@@ -570,7 +570,8 @@ int save_set_properties(XFile *xf, set *p)
     xmlio_set_font_ref(attrs, p->charfont);
     xfile_begin_element(xf, EStrSymbol, attrs);
     {
-        xmlio_write_line_spec(xf, attrs, &(p->sympen), p->symlinew, p->symlines);
+        xmlio_write_line_spec(xf, attrs,
+            &(p->symline.pen), p->symline.width, p->symline.style);
         xmlio_write_fill_spec(xf, attrs, &(p->symfillpen));
     }
     xfile_end_element(xf, EStrSymbol);
@@ -585,7 +586,8 @@ int save_set_properties(XFile *xf, set *p)
     attributes_set_bval(attrs, AStrDrawDroplines, p->dropline);
     xfile_begin_element(xf, EStrLine, attrs);
     {
-        xmlio_write_line_spec(xf, attrs, &(p->linepen), p->linew, p->lines);
+        xmlio_write_line_spec(xf, attrs,
+            &(p->line.pen), p->line.width, p->line.style);
         xmlio_write_fill_spec(xf, attrs, &(p->setfillpen));
     }
     xfile_end_element(xf, EStrLine);

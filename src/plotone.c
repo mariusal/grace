@@ -330,9 +330,7 @@ void draw_pie_chart(Canvas *canvas, int gno)
                         180.0/M_PI*(stop_angle - start_angle),
                         ARCFILL_PIESLICE);
                     
-                    setpen(canvas, &p->sympen);
-                    setlinewidth(canvas, p->symlinew);
-                    setlinestyle(canvas, p->symlines);
+                    setline(canvas, &p->symline);
                     DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
                     DrawArc(canvas, &vp1, &vp2,
                         180.0/M_PI*start_angle,
@@ -957,7 +955,7 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int setlen, len;
-    int i, ly = p->lines;
+    int i;
     int line_type = p->linet;
     VPoint vps[4], *vpstmp;
     WPoint wp;
@@ -992,9 +990,7 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
 
     drawsetfill(canvas, gno, setno, p, refn, refx, refy, offset);
 
-    setpen(canvas, &p->linepen);
-    setlinewidth(canvas, p->linew);
-    setlinestyle(canvas, ly);
+    setline(canvas, &p->line);
 
     if (stacked_chart == TRUE) {
         lw = getlinewidth(canvas);
@@ -1003,7 +999,7 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
     }
     
 /* draw the line */
-    if (ly != 0 && p->linepen.pattern != 0) {
+    if (p->line.style != 0 && p->line.pen.pattern != 0) {
         
         switch (line_type) {
         case LINE_TYPE_NONE:
@@ -1222,13 +1218,12 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
     
     setclipping(canvas, FALSE);
     
-    if ((p->sympen.pattern != 0 && p->symlines != 0) ||
+    if ((p->symline.pen.pattern != 0 && p->symline.style != 0) ||
                         (p->symfillpen.pattern != 0)) {
               
         Pen fillpen;
         
-        setlinewidth(canvas, p->symlinew);
-        setlinestyle(canvas, p->symlines);
+        setline(canvas, &p->symline);
         setfont(canvas, p->charfont);
         for (i = 0; i < setlen; i += skip) {
             wp.x = x[i];
@@ -1259,7 +1254,7 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
             }
             fillpen.pattern = p->symfillpen.pattern;
             if (drawxysym(canvas,
-                &vp, symsize, sy, &p->sympen, &fillpen, p->symchar)
+                &vp, symsize, sy, &p->symline.pen, &fillpen, p->symchar)
                 != RETURN_SUCCESS) {
                 return;
             }
@@ -1516,10 +1511,8 @@ void drawsethilo(Canvas *canvas, set *p)
     WPoint wp;
     VPoint vp1, vp2;
 
-    if (p->symlines != 0) {
-        setpen(canvas, &p->sympen);
-        setlinewidth(canvas, p->symlinew);
-        setlinestyle(canvas, p->symlines);
+    if (p->symline.style != 0) {
+        setline(canvas, &p->symline);
         for (i = 0; i < p->data->len; i += skip) {
             wp.x = x[i];
             wp.y = y1[i];
@@ -1579,10 +1572,9 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
         ybase = setybase(gno, setno);
     }
 
-    setlinewidth(canvas, p->symlinew);
-    setlinestyle(canvas, p->symlines);
+    setline(canvas, &p->symline);
     if (get_graph_type(gno) == GRAPH_CHART &&
-        p->symlines != 0 && p->sympen.pattern != 0) {
+        p->symline.style != 0 && p->symline.pen.pattern != 0) {
         lw = getlinewidth(canvas);
     } else {
         lw = 0.0;
@@ -1617,8 +1609,8 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
             FillRect(canvas, &vp1, &vp2);
         }
     }
-    if (p->symlines != 0 && p->sympen.pattern != 0) {
-        setpen(canvas, &p->sympen);
+    if (p->symline.style != 0 && p->symline.pen.pattern != 0) {
+        setpen(canvas, &p->symline.pen);
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1664,8 +1656,7 @@ void drawcirclexy(Canvas *canvas, set *p)
     r = p->data->ex[2];
 
     setfillrule(canvas, p->fillrule);
-    setlinewidth(canvas, p->linew);
-    setlinestyle(canvas, p->lines);
+    setline(canvas, &p->line);
 
     for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
@@ -1684,7 +1675,7 @@ void drawcirclexy(Canvas *canvas, set *p)
             setpen(canvas, &p->setfillpen);
             DrawFilledEllipse(canvas, &vp1, &vp2);
         }
-        setpen(canvas, &p->linepen);
+        setpen(canvas, &p->line.pen);
         DrawEllipse(canvas, &vp1, &vp2);
     }
 }
@@ -1781,9 +1772,7 @@ void drawsetboxplot(Canvas *canvas, set *p)
         setpen(canvas, &p->symfillpen);
         FillRect(canvas, &vp1, &vp2);
 
-        setpen(canvas, &p->sympen);
-        setlinewidth(canvas, p->symlinew);
-        setlinestyle(canvas, p->symlines);
+        setline(canvas, &p->symline);
         DrawRect(canvas, &vp1, &vp2);
 
         /* median line */
@@ -2341,42 +2330,38 @@ void putlegends(Canvas *canvas,
             
             setfont(canvas, p->charfont);
             
-            if (l->len != 0 && p->lines != 0 && p->linet != 0) { 
-                setpen(canvas, &p->linepen);
-                setlinewidth(canvas, p->linew);
-                setlinestyle(canvas, p->lines);
+            if (l->len != 0 && p->line.style != 0 && p->linet != 0) { 
+                setline(canvas, &p->line);
                 DrawLine(canvas, &vp1, &vp2);
         
-                setlinewidth(canvas, p->symlinew);
-                setlinestyle(canvas, p->symlines);
+                setline(canvas, &p->symline);
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(canvas,
-                        &vp1, p->symsize, &p->sympen, &p->symfillpen);
+                        &vp1, p->symsize, &p->symline.pen, &p->symfillpen);
                     drawlegbarsym(canvas,
-                        &vp2, p->symsize, &p->sympen, &p->symfillpen);
+                        &vp2, p->symsize, &p->symline.pen, &p->symfillpen);
                 } else {
                     drawxysym(canvas,
                         &vp1, p->symsize, p->sym,
-                        &p->sympen, &p->symfillpen, p->symchar);
+                        &p->symline.pen, &p->symfillpen, p->symchar);
                     drawxysym(canvas,
                         &vp2, p->symsize, p->sym,
-                        &p->sympen, &p->symfillpen, p->symchar);
+                        &p->symline.pen, &p->symfillpen, p->symchar);
                 }
             } else {
                 VPoint vptmp;
                 vptmp.x = (vp1.x + vp2.x)/2;
                 vptmp.y = vp1.y;
                 
-                setlinewidth(canvas, p->symlinew);
-                setlinestyle(canvas, p->symlines);
+                setline(canvas, &p->symline);
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(canvas,
-                        &vptmp, p->symsize, &p->sympen, &p->symfillpen);
+                        &vptmp, p->symsize, &p->symline.pen, &p->symfillpen);
                 } else {
                     drawxysym(canvas,
-                        &vptmp, p->symsize, p->sym, &p->sympen, &p->symfillpen, p->symchar);
+                        &vptmp, p->symsize, p->sym, &p->symline.pen, &p->symfillpen, p->symchar);
                 }
             }
         }

@@ -3076,16 +3076,16 @@ setprop:
 	    (set_get($1->gno, $1->setno))->sym = $3;
 	}
 	| selectset SYMBOL color_select {
-	    (set_get($1->gno, $1->setno))->sympen.color = $3;
+	    (set_get($1->gno, $1->setno))->symline.pen.color = $3;
 	}
 	| selectset SYMBOL pattern_select {
-	    (set_get($1->gno, $1->setno))->sympen.pattern = $3;
+	    (set_get($1->gno, $1->setno))->symline.pen.pattern = $3;
 	}
 	| selectset SYMBOL linew_select {
-	    (set_get($1->gno, $1->setno))->symlinew = $3;
+	    (set_get($1->gno, $1->setno))->symline.width = $3;
 	}
 	| selectset SYMBOL lines_select {
-	    (set_get($1->gno, $1->setno))->symlines = $3;
+	    (set_get($1->gno, $1->setno))->symline.style = $3;
 	}
 	| selectset SYMBOL FILL color_select {
 	    (set_get($1->gno, $1->setno))->symfillpen.color = $4;
@@ -3112,19 +3112,19 @@ setprop:
 	}
 	| selectset LINE lines_select
         {
-	    (set_get($1->gno, $1->setno))->lines = $3;
+	    (set_get($1->gno, $1->setno))->line.style = $3;
 	}
 	| selectset LINE linew_select
         {
-	    (set_get($1->gno, $1->setno))->linew = $3;
+	    (set_get($1->gno, $1->setno))->line.width = $3;
 	}
 	| selectset LINE color_select
         {
-	    (set_get($1->gno, $1->setno))->linepen.color = $3;
+	    (set_get($1->gno, $1->setno))->line.pen.color = $3;
 	}
 	| selectset LINE pattern_select
         {
-	    (set_get($1->gno, $1->setno))->linepen.pattern = $3;
+	    (set_get($1->gno, $1->setno))->line.pen.pattern = $3;
 	}
 
 	| selectset FILL TYPE nexpr
@@ -4121,13 +4121,13 @@ setprop_obs:
  */
 	| selectset SYMBOL CENTER onoff { }
 	| selectset lines_select {
-	    (set_get($1->gno, $1->setno))->lines = $2;
+	    (set_get($1->gno, $1->setno))->line.style = $2;
 	}
 	| selectset linew_select {
-	    (set_get($1->gno, $1->setno))->linew = $2;
+	    (set_get($1->gno, $1->setno))->line.width = $2;
 	}
 	| selectset color_select {
-	    (set_get($1->gno, $1->setno))->linepen.color = $2;
+	    (set_get($1->gno, $1->setno))->line.pen.color = $2;
 	}
 	| selectset FILL WITH colpat_obs {filltype_obs = $4;}
 	| selectset XYZ expr ',' expr { }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1211,8 +1211,8 @@ int islogity(int gno)
 int set_set_colors(set *p, int color)
 {
     if (p && color < number_of_colors(grace->rt->canvas) && color >= 0) {
-        p->linepen.color    = color;
-        p->sympen.color     = color;
+        p->line.pen.color    = color;
+        p->symline.pen.color     = color;
         p->symfillpen.color = color;
         p->errbar.pen.color = color;
 
@@ -1295,7 +1295,7 @@ void project_postprocess(Quark *q)
                 case SYM_DOT_OBS:
                     s->sym = SYM_CIRCLE;
                     s->symsize = 0.0;
-                    s->symlines = 0;
+                    s->symline.style = 0;
                     s->symfillpen.pattern = 1;
                     break;
                 default:
@@ -1304,38 +1304,36 @@ void project_postprocess(Quark *q)
                 }
             }
             if ((pr->version_id < 40004 && g->type != GRAPH_CHART) ||
-                s->sympen.color == -1) {
-                s->sympen.color = s->linepen.color;
+                s->symline.pen.color == -1) {
+                s->symline.pen.color = s->line.pen.color;
             }
             if (pr->version_id < 40200 || s->symfillpen.color == -1) {
-                s->symfillpen.color = s->sympen.color;
+                s->symfillpen.color = s->symline.pen.color;
             }
             
 	    if (pr->version_id <= 40102 && g->type == GRAPH_CHART) {
-                s->type     = SET_BAR;
-                s->sympen   = s->linepen;
-                s->symlines = s->lines;
-                s->symlinew = s->linew;
-                s->lines    = 0;
+                s->type       = SET_BAR;
+                s->symline    = s->line;
+                s->line.style = 0;
                 
                 s->symfillpen = s->setfillpen;
                 s->setfillpen.pattern = 0;
             }
 	    if (pr->version_id <= 40102 && s->type == SET_XYHILO) {
-                s->symlinew = s->linew;
+                s->symline.width = s->line.width;
             }
 	    if (pr->version_id < 50100 && s->type == SET_BOXPLOT) {
-                s->symlinew = s->linew;
-                s->symlines = s->lines;
+                s->symline.width = s->line.width;
+                s->symline.style = s->line.style;
                 s->symsize = 2.0;
-                s->errbar.riser_linew = s->linew;
-                s->errbar.riser_lines = s->lines;
-                s->lines = 0;
+                s->errbar.riser_linew = s->line.width;
+                s->errbar.riser_lines = s->line.style;
+                s->line.style = 0;
                 s->errbar.barsize = 0.0;
             }
             if (pr->version_id < 50003) {
                 s->errbar.active = TRUE;
-                s->errbar.pen.color = s->sympen.color;
+                s->errbar.pen.color = s->symline.pen.color;
                 s->errbar.pen.pattern = 1;
                 switch (s->errbar.ptype) {
                 case PLACEMENT_NORMAL:

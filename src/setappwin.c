@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c)1991-1995 Paul J Turner, Portland, OR
- * Copyright (c)1996-2001 Grace Development Team
+ * Copyright (c)1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -519,10 +519,10 @@ static int setapp_aac_cb(void *data)
                 p->symsize = GetCharSizeChoice(symsize_item);
             }
             if (data == symlinew_item || data  ==  NULL) {
-                p->symlinew = GetSpinChoice(symlinew_item);
+                p->symline.width = GetSpinChoice(symlinew_item);
             }
             if (data == symlines_item || data  ==  NULL) {
-                p->symlines = GetOptionChoice(symlines_item);
+                p->symline.style = GetOptionChoice(symlines_item);
             }
             if (data == symchar_item || data == NULL) {
                 p->symchar = atoi(xv_getstr(symchar_item));
@@ -555,22 +555,22 @@ static int setapp_aac_cb(void *data)
                 p->linet = GetOptionChoice(toggle_linet_item);
             }
             if (data == toggle_lines_item || data == NULL) {
-                p->lines = GetOptionChoice(toggle_lines_item);
+                p->line.style = GetOptionChoice(toggle_lines_item);
             }
             if (data == toggle_width_item || data == NULL) {
-                p->linew = GetSpinChoice(toggle_width_item);
+                p->line.width = GetSpinChoice(toggle_width_item);
             }
             if (data == toggle_color_item || data == NULL) {
-                p->linepen.color = GetOptionChoice(toggle_color_item);
+                p->line.pen.color = GetOptionChoice(toggle_color_item);
             }
             if (data == toggle_pattern_item || data == NULL) {
-                p->linepen.pattern = GetOptionChoice(toggle_pattern_item);
+                p->line.pen.pattern = GetOptionChoice(toggle_pattern_item);
             }
             if (data == symcolor_item || data == NULL) {
-                p->sympen.color = GetOptionChoice(symcolor_item);
+                p->symline.pen.color = GetOptionChoice(symcolor_item);
             }
             if (data == sympattern_item || data == NULL) {
-                p->sympen.pattern = GetOptionChoice(sympattern_item);
+                p->symline.pen.pattern = GetOptionChoice(sympattern_item);
             }
             if (data == symfillcolor_item || data == NULL) {
                 p->symfillpen.color = GetOptionChoice(symfillcolor_item);
@@ -702,20 +702,20 @@ static void UpdateSymbols(int gno, int value)
         xv_setstr(symchar_item, val);
         SetOptionChoice(toggle_symbols_item, p->sym);
         
-        SetOptionChoice(symcolor_item, p->sympen.color);
-        SetOptionChoice(sympattern_item, p->sympen.pattern);
+        SetOptionChoice(symcolor_item, p->symline.pen.color);
+        SetOptionChoice(sympattern_item, p->symline.pen.pattern);
         SetOptionChoice(symfillcolor_item, p->symfillpen.color);
         SetOptionChoice(symfillpattern_item, p->symfillpen.pattern);
-        SetSpinChoice(symlinew_item, p->symlinew);
-        SetOptionChoice(symlines_item, p->symlines);
+        SetSpinChoice(symlinew_item, p->symline.width);
+        SetOptionChoice(symlines_item, p->symline.style);
         
         SetOptionChoice(char_font_item, p->charfont);        
         
-        SetOptionChoice(toggle_color_item, p->linepen.color);
-        SetOptionChoice(toggle_pattern_item, p->linepen.pattern);
-        SetSpinChoice(toggle_width_item, p->linew);
+        SetOptionChoice(toggle_color_item, p->line.pen.color);
+        SetOptionChoice(toggle_pattern_item, p->line.pen.pattern);
+        SetSpinChoice(toggle_width_item, p->line.width);
         SetToggleButtonState(dropline_item, p->dropline);
-        SetOptionChoice(toggle_lines_item, p->lines);
+        SetOptionChoice(toggle_lines_item, p->line.style);
         SetOptionChoice(toggle_linet_item, p->linet);
         SetOptionChoice(toggle_filltype_item, p->filltype);
         SetOptionChoice(toggle_fillrule_item, p->fillrule);
@@ -834,10 +834,10 @@ static void setapp_data_proc(void *data)
                 p->sym = (i % (MAXSYM - 2))+ 1;
                 break;
             case SETAPP_ALL_LINEW:
-                p->linew = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
+                p->line.width = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
                 break;
             case SETAPP_ALL_LINES:
-                p->lines = (i % (number_of_linestyles(grace->rt->canvas)- 1))
+                p->line.style = (i % (number_of_linestyles(grace->rt->canvas)- 1))
                     + 1;
                 break;
             case SETAPP_ALL_BW:

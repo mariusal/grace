@@ -1745,10 +1745,8 @@ char *utf2iso(const char *s)
         <child name="#EStrSymbol">
             $$->sym        = $?->type;
             $$->symsize    = $?->size;
-            $$->sympen     = $?->line.pen;
+            $$->symline    = $?->line;
             $$->symfillpen = $?->fillpen;
-            $$->symlines   = $?->line.style;
-            $$->symlinew   = $?->line.width;
             $$->symskip    = $?->skip;
             $$->symchar    = $?->symchar;
             $$->charfont   = $?->charfont;
@@ -1756,9 +1754,7 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrLine">
             $$->linet         = $?->type;
-            $$->lines         = $?->line.style;
-            $$->linew         = $?->line.width;
-            $$->linepen       = $?->line.pen;
+            $$->line          = $?->line;
             $$->filltype      = $?->filltype;
             $$->fillrule      = $?->fillrule;
             $$->setfillpen    = $?->fillpen;

@@ -108,18 +108,14 @@ typedef struct {
 
     int sym;                    /* set plot symbol type */
     double symsize;             /* size of symbols */
-    Pen sympen;                 /* pen props of symbol line */
+    Line symline;               /* symbol linestyle */
     Pen symfillpen;             /* pen props of symbol filling */
-    int symlines;               /* symbol linestyle */
-    double symlinew;            /* symbol linewidth */
     int symskip;                /* number of symbols to skip */
     unsigned char symchar;      /* char used if sym == SYM_CHAR */
     int charfont;               /* font for symchar if sym == SYM_CHAR */
 
     int linet;                  /* set line type */
-    int lines;                  /* set line style */
-    double linew;               /* line width */
-    Pen linepen;                /* pen for connecting line */
+    Line line;                  /* set line props */
 
     int baseline_type;          /* type of baseline */
     int baseline;               /* should the baseline be drawn */
