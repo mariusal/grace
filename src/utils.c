@@ -1200,6 +1200,11 @@ void update_timestamp(void)
     set_plotstr_string(&grace->project->timestamp, str);
 }
 
+char *get_timestamp(void)
+{
+    return grace->project->timestamp.s;
+}
+
 void update_app_title(void)
 {
 #ifndef NONE_GUI
