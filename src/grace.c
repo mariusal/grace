@@ -340,13 +340,30 @@ void runtime_free(RunTime *rt)
 {
     int i;
     
-    xfree(rt->grace_home);
     for (i = 0; i < rt->num_print_dests; i++) {
-        xfree(rt->print_dests[i].name);
-        xfree(rt->print_dests[i].inst);
-        xfree(rt->print_dests[i].printer);
+        PrintDest *pd = &rt->print_dests[i];
+        int j;
+        xfree(pd->name);
+        xfree(pd->inst);
+        xfree(pd->printer);
+        for (j = 0; j < pd->nogroups; j++) {
+            PrintOptGroup *og = &pd->ogroups[j];
+            int k;
+            xfree(og->name);
+            xfree(og->text);
+            for (k = 0; k < og->nopts; k++) {
+                PrintOption *po = &og->opts[k];
+                xfree(po->name);
+                xfree(po->text);
+                dict_free(po->choices);
+            }
+            xfree(og->opts);
+        }
+        xfree(pd->ogroups);
     }
     xfree(rt->print_dests);
+    
+    xfree(rt->grace_home);
     xfree(rt->print_cmd);
     xfree(rt->grace_editor);
     xfree(rt->help_viewer);
@@ -598,8 +615,8 @@ static void parse_group(PrintDest *pd, ppd_group_t *group)
             DictEntry de;
             
             de.key   = j;
-            de.name  = copy_string(NULL, choice->choice);
-            de.descr = copy_string(NULL, choice->text);
+            de.name  = choice->choice;
+            de.descr = choice->text;
             dict_entry_copy(&po->choices->entries[j], &de);
 
             if (choice->marked) {
@@ -611,6 +628,10 @@ static void parse_group(PrintDest *pd, ppd_group_t *group)
             og->nopts++;
             po++;
             pd->nopts++;
+        } else {
+            xfree(po->name);
+            xfree(po->text);
+            dict_free(po->choices);
         }
     }
 
