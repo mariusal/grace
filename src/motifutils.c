@@ -2903,19 +2903,6 @@ SetChoiceItem CreateSetSelector(Widget parent,
     return sel;
 }
 
-int GetSetFromString(char *buf)
-{
-    int retval = SET_SELECT_ERROR;
-    if (strcmp(buf, "New set") == 0) {
-	retval = SET_SELECT_NEXT;
-    } else if (strcmp(buf, "All sets") == 0) {
-	retval = SET_SELECT_ALL;
-    } else {
-	sscanf(buf, "S%d", &retval);
-    }
-    return retval;
-}
-
 int GetSelectedSet(SetChoiceItem l)
 {
     int retval = SET_SELECT_ERROR;
@@ -2948,17 +2935,6 @@ int GetSelectedSet(SetChoiceItem l)
     }
     
     return retval;
-}
-
-int SetSelectedSet(int gno, int setno, SetChoiceItem l)
-{
-    char buf[1024];
-    XmString xms;
-    sprintf(buf, "S%d (N=%d, %s)", setno, getsetlength(gno, setno), getcomment(gno, setno));
-    xms = XmStringCreateLocalized(buf);
-    XmListSelectItem(l.list, xms, True);
-    XmStringFree(xms);
-    return 0;
 }
 
 /*
@@ -3350,7 +3326,7 @@ void errwin(char *s)
 	    XmDIALOG_HELP_BUTTON));
 	XtManageChild(error_popup);
     } else {									/* add new error onto end */
-	nl = XmStringCreateLocalized("\n");
+	nl = XmStringCreateLtoR("\n", charset);
 	XtVaGetValues(error_popup, XmNmessageString, &str, NULL);
 	str1 = XmStringConcatAndFree(str, nl);
 	str2 = XmStringCreateLocalized(s);
