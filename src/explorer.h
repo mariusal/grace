@@ -422,6 +422,7 @@ struct _ExplorerUI {
    
     Widget       insert_frame_bt;
     Widget       insert_graph_bt;
+    Widget       insert_ssd_bt;
     Widget       insert_set_bt;
     Widget       insert_axisgrid_bt;
     Widget       insert_axis_bt;

@@ -383,6 +383,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     SetSensitive(ui->insert_frame_bt,    FALSE);
     SetSensitive(ui->insert_graph_bt,    FALSE);
     SetSensitive(ui->insert_set_bt,      FALSE);
+    SetSensitive(ui->insert_ssd_bt,      FALSE);
     SetSensitive(ui->insert_axisgrid_bt, FALSE);
     SetSensitive(ui->insert_axis_bt,     FALSE);
     SetSensitive(ui->insert_object_pane, FALSE);
@@ -399,6 +400,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
         case QFlavorGraph:
+            SetSensitive(ui->insert_ssd_bt, TRUE);
             SetSensitive(ui->insert_axisgrid_bt, TRUE);
             SetSensitive(ui->insert_object_pane, TRUE);
             break;
@@ -651,13 +653,14 @@ static void update_explorer_cb(Widget but, void *data)
 #define MOVE_DOWN_CB      7
 #define ADD_FRAME_CB      8
 #define ADD_GRAPH_CB      9
-#define ADD_SET_CB       10
-#define ADD_AXISGRID_CB  11
-#define ADD_AXIS_CB      12
-#define ADD_LINE_CB      13
-#define ADD_BOX_CB       14
-#define ADD_ARC_CB       15
-#define ADD_TEXT_CB      16
+#define ADD_SSD_CB       10
+#define ADD_SET_CB       11
+#define ADD_AXISGRID_CB  12
+#define ADD_AXIS_CB      13
+#define ADD_LINE_CB      14
+#define ADD_BOX_CB       15
+#define ADD_ARC_CB       16
+#define ADD_TEXT_CB      17
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
@@ -716,6 +719,9 @@ static void popup_any_cb(ExplorerUI *eui, int type)
             break;
         case ADD_GRAPH_CB:
             qnew = graph_new(q);
+            break;
+        case ADD_SSD_CB:
+            qnew = ssd_new(q);
             break;
         case ADD_SET_CB:
             qnew = grace_set_new(q);
@@ -798,6 +804,11 @@ static void add_frame_cb(Widget but, void *udata)
 static void add_graph_cb(Widget but, void *udata)
 {
     popup_any_cb((ExplorerUI *) udata, ADD_GRAPH_CB);
+}
+
+static void add_ssd_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, ADD_SSD_CB);
 }
 
 static void add_set_cb(Widget but, void *udata)
@@ -885,6 +896,9 @@ void raise_explorer(GUI *gui, Quark *q)
         eui->insert_graph_bt = CreateMenuButton(menupane,
             "Graph", '\0', add_graph_cb, eui);
         SetSensitive(eui->insert_graph_bt,  FALSE);
+        eui->insert_ssd_bt = CreateMenuButton(menupane,
+            "SSData", '\0', add_ssd_cb, eui);
+        SetSensitive(eui->insert_ssd_bt,    FALSE);
         eui->insert_set_bt = CreateMenuButton(menupane,
             "Set", '\0', add_set_cb, eui);
         SetSensitive(eui->insert_set_bt,    FALSE);
