@@ -29,14 +29,6 @@
 extern "C" {
 #endif
 
-#ifndef EXIT_SUCCESS
-#  define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-#  define EXIT_FAILURE -1
-#endif
-
 /* register a user function to print errors */
 /* (the default function appends a newline and prints to standard error) */
 typedef void (*GraceErrorFunctionType) (const char *);
