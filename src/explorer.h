@@ -215,6 +215,15 @@ typedef struct {
     Widget          tmajor;
     SpinStructure   *nminor;
     
+    Widget          tgrid;
+    Widget          tgridpen;
+    SpinStructure   *tgridlinew;
+    OptionStructure *tgridlines;
+    Widget          tmgrid;
+    Widget          tmgridpen;
+    SpinStructure   *tmgridlinew;
+    OptionStructure *tmgridlines;
+
     OptionStructure *tlform;
     OptionStructure *tlprec;
     OptionStructure *tlfont;
@@ -236,16 +245,14 @@ typedef struct {
     TextStructure   *tlformula;
     OptionStructure *autonum;
     Widget          tround;
-    Widget          tgrid;
     OptionStructure *tinout;
-    Widget          tgridpen;
-    SpinStructure   *tgridlinew;
-    OptionStructure *tgridlines;
-    Widget          tmgrid;
+    Widget          tpen;
+    SpinStructure   *tlinew;
+    OptionStructure *tlines;
     OptionStructure *tminout;
-    Widget          tmgridpen;
-    SpinStructure   *tmgridlinew;
-    OptionStructure *tmgridlines;
+    Widget          tmpen;
+    SpinStructure   *tmlinew;
+    OptionStructure *tmlines;
     SpinStructure   *tlen;
     SpinStructure   *tmlen;
     Widget          baronoff;

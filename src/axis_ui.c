@@ -82,6 +82,53 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->autonum, oc_explorer_cb, eui);
 
 
+
+
+
+
+
+
+    rc2 = CreateHContainer(ui->main_tp);
+
+    /* major grid lines */
+    fr = CreateFrame(rc2, "Major grid lines");
+    rc = CreateVContainer(fr);
+    ui->tgrid = CreateToggleButton(rc, "Enabled");
+    AddToggleButtonCB(ui->tgrid, tb_explorer_cb, eui);
+    ui->tgridpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->tgridpen, pen_explorer_cb, eui);
+    ui->tgridlinew = CreateLineWidthChoice(rc, "Line width:");
+    AddSpinChoiceCB(ui->tgridlinew, sp_explorer_cb, eui);
+    ui->tgridlines = CreateLineStyleChoice(rc, "Line style:");
+    AddOptionChoiceCB(ui->tgridlines, oc_explorer_cb, eui);
+
+    /* minor grid lines */
+    fr = CreateFrame(rc2, "Minor grid lines");
+    rc = CreateVContainer(fr);
+    ui->tmgrid = CreateToggleButton(rc, "Enabled");
+    AddToggleButtonCB(ui->tmgrid, tb_explorer_cb, eui);
+    ui->tmgridpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->tmgridpen, pen_explorer_cb, eui);
+    ui->tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
+    AddSpinChoiceCB(ui->tmgridlinew, sp_explorer_cb, eui);
+    ui->tmgridlines = CreateLineStyleChoice(rc, "Line style:");
+    AddOptionChoiceCB(ui->tmgridlines, oc_explorer_cb, eui);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     ui->label_tp = CreateTabPage(tab, "Axis bar");
 
     fr = CreateFrame(ui->label_tp, "Bar properties");
@@ -104,8 +151,6 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     /* major tick marks */
     fr = CreateFrame(rc2, "Major ticks");
     rc = CreateVContainer(fr);
-    ui->tgrid = CreateToggleButton(rc, "Draw grid lines");
-    AddToggleButtonCB(ui->tgrid, tb_explorer_cb, eui);
     ui->tinout = CreateOptionChoiceVA(rc, "Pointing:",
         "In",   TICKS_IN,
         "Out",  TICKS_OUT,
@@ -115,17 +160,15 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     ui->tlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
     AddSpinChoiceCB(ui->tlen, sp_explorer_cb, eui);
-    ui->tgridpen = CreatePenChoice(rc, "Pen:");
-    AddPenChoiceCB(ui->tgridpen, pen_explorer_cb, eui);
-    ui->tgridlinew = CreateLineWidthChoice(rc, "Line width:");
-    AddSpinChoiceCB(ui->tgridlinew, sp_explorer_cb, eui);
-    ui->tgridlines = CreateLineStyleChoice(rc, "Line style:");
-    AddOptionChoiceCB(ui->tgridlines, oc_explorer_cb, eui);
+    ui->tpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->tpen, pen_explorer_cb, eui);
+    ui->tlinew = CreateLineWidthChoice(rc, "Line width:");
+    AddSpinChoiceCB(ui->tlinew, sp_explorer_cb, eui);
+    ui->tlines = CreateLineStyleChoice(rc, "Line style:");
+    AddOptionChoiceCB(ui->tlines, oc_explorer_cb, eui);
 
     fr = CreateFrame(rc2, "Minor ticks");
     rc = CreateVContainer(fr);
-    ui->tmgrid = CreateToggleButton(rc, "Draw grid lines");
-    AddToggleButtonCB(ui->tmgrid, tb_explorer_cb, eui);
     ui->tminout = CreateOptionChoiceVA(rc, "Pointing:",
         "In",   TICKS_IN,
         "Out",  TICKS_OUT,
@@ -135,12 +178,12 @@ AGridUI *create_axisgrid_ui(ExplorerUI *eui)
     ui->tmlen = CreateSpinChoice(rc, "Tick length",
         4, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.25);
     AddSpinChoiceCB(ui->tmlen, sp_explorer_cb, eui);
-    ui->tmgridpen = CreatePenChoice(rc, "Pen:");
-    AddPenChoiceCB(ui->tmgridpen, pen_explorer_cb, eui);
-    ui->tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
-    AddSpinChoiceCB(ui->tmgridlinew, sp_explorer_cb, eui);
-    ui->tmgridlines = CreateLineStyleChoice(rc, "Line style:");
-    AddOptionChoiceCB(ui->tmgridlines, oc_explorer_cb, eui);
+    ui->tmpen = CreatePenChoice(rc, "Pen:");
+    AddPenChoiceCB(ui->tmpen, pen_explorer_cb, eui);
+    ui->tmlinew = CreateLineWidthChoice(rc, "Line width:");
+    AddSpinChoiceCB(ui->tmlinew, sp_explorer_cb, eui);
+    ui->tmlines = CreateLineStyleChoice(rc, "Line style:");
+    AddOptionChoiceCB(ui->tmlines, oc_explorer_cb, eui);
 
 
     ui->ticklabel_tp = CreateTabPage(tab, "Tick labels");
@@ -335,23 +378,31 @@ void update_axisgrid_ui(AGridUI *ui, Quark *q)
 
         SetToggleButtonState(ui->tround, t->t_round);
 
-        SetToggleButtonState(ui->tgrid, t->props.gridflag);
-        SetOptionChoice(ui->tinout, t->props.inout);
-        SetSpinChoice(ui->tlen, t->props.size);
-        SetPenChoice(ui->tgridpen, &t->props.line.pen);
-        SetSpinChoice(ui->tgridlinew, t->props.line.width);
-        SetOptionChoice(ui->tgridlines, t->props.line.style);
-        
-        SetToggleButtonState(ui->tmgrid, t->mprops.gridflag);
-        SetOptionChoice(ui->tminout, t->mprops.inout);
-        SetPenChoice(ui->tmgridpen, &t->mprops.line.pen);
-        SetSpinChoice(ui->tmgridlinew, t->mprops.line.width);
-        SetOptionChoice(ui->tmgridlines, t->mprops.line.style);
-        SetSpinChoice(ui->tmlen, t->mprops.size);
+        SetToggleButtonState(ui->tgrid, t->gprops.onoff);
+        SetPenChoice(ui->tgridpen, &t->gprops.line.pen);
+        SetSpinChoice(ui->tgridlinew, t->gprops.line.width);
+        SetOptionChoice(ui->tgridlines, t->gprops.line.style);
+
+        SetToggleButtonState(ui->tmgrid, t->mgprops.onoff);
+        SetPenChoice(ui->tmgridpen, &t->mgprops.line.pen);
+        SetSpinChoice(ui->tmgridlinew, t->mgprops.line.width);
+        SetOptionChoice(ui->tmgridlines, t->mgprops.line.style);
 
         SetPenChoice(ui->barpen, &t->bar.pen);
         SetSpinChoice(ui->barlinew, t->bar.width);
         SetOptionChoice(ui->barlines, t->bar.style);
+
+        SetOptionChoice(ui->tinout, t->props.inout);
+        SetSpinChoice(ui->tlen, t->props.size);
+        SetPenChoice(ui->tpen, &t->props.line.pen);
+        SetSpinChoice(ui->tlinew, t->props.line.width);
+        SetOptionChoice(ui->tlines, t->props.line.style);
+        
+        SetOptionChoice(ui->tminout, t->mprops.inout);
+        SetSpinChoice(ui->tmlen, t->mprops.size);
+        SetPenChoice(ui->tmpen, &t->mprops.line.pen);
+        SetSpinChoice(ui->tmlinew, t->mprops.line.width);
+        SetOptionChoice(ui->tmlines, t->mprops.line.style);
 
         SetOptionChoice(ui->specticks, t->t_spec);
         SetSpinChoice(ui->nspec, t->nticks);
@@ -483,9 +534,34 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->t_autonum = GetOptionChoice(ui->autonum) + 2;
         }
 
+
         if (!caller || caller == ui->tgrid) {
-            t->props.gridflag = GetToggleButtonState(ui->tgrid);
+            t->gprops.onoff = GetToggleButtonState(ui->tgrid);
         }
+        if (!caller || caller == ui->tgridpen) {
+            GetPenChoice(ui->tgridpen, &t->gprops.line.pen);
+        }
+        if (!caller || caller == ui->tgridlinew) {
+            t->gprops.line.width = GetSpinChoice(ui->tgridlinew);
+        }
+        if (!caller || caller == ui->tgridlines) {
+            t->gprops.line.style = GetOptionChoice(ui->tgridlines);
+        }
+
+        if (!caller || caller == ui->tmgrid) {
+            t->mgprops.onoff = GetToggleButtonState(ui->tmgrid);
+        }
+        if (!caller || caller == ui->tmgridpen) {
+            GetPenChoice(ui->tmgridpen, &t->mgprops.line.pen);
+        }
+        if (!caller || caller == ui->tmgridlinew) {
+            t->mgprops.line.width = GetSpinChoice(ui->tmgridlinew);
+        }
+        if (!caller || caller == ui->tmgridlines) {
+            t->mgprops.line.style = GetOptionChoice(ui->tmgridlines);
+        }
+
+
         if (!caller || caller == ui->tinout) {
             t->props.inout = GetOptionChoice(ui->tinout);
         }
@@ -493,16 +569,13 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->props.size = GetSpinChoice(ui->tlen);
         }
         if (!caller || caller == ui->tgridpen) {
-            GetPenChoice(ui->tgridpen, &t->props.line.pen);
+            GetPenChoice(ui->tpen, &t->props.line.pen);
         }
         if (!caller || caller == ui->tgridlinew) {
-            t->props.line.width = GetSpinChoice(ui->tgridlinew);
+            t->props.line.width = GetSpinChoice(ui->tlinew);
         }
         if (!caller || caller == ui->tgridlines) {
-            t->props.line.style = GetOptionChoice(ui->tgridlines);
-        }
-        if (!caller || caller == ui->tmgrid) {
-            t->mprops.gridflag = GetToggleButtonState(ui->tmgrid);
+            t->props.line.style = GetOptionChoice(ui->tlines);
         }
         if (!caller || caller == ui->tminout) {
             t->mprops.inout = GetOptionChoice(ui->tminout);
@@ -511,13 +584,13 @@ int set_axisgrid_data(AGridUI *ui, Quark *q, void *caller)
             t->mprops.size = GetSpinChoice(ui->tmlen);
         }
         if (!caller || caller == ui->tmgridpen) {
-            GetPenChoice(ui->tmgridpen, &t->mprops.line.pen);
+            GetPenChoice(ui->tmpen, &t->mprops.line.pen);
         }
         if (!caller || caller == ui->tmgridlinew) {
-            t->mprops.line.width = GetSpinChoice(ui->tmgridlinew);
+            t->mprops.line.width = GetSpinChoice(ui->tmlinew);
         }
         if (!caller || caller == ui->tmgridlines) {
-            t->mprops.line.style = GetOptionChoice(ui->tmgridlines);
+            t->mprops.line.style = GetOptionChoice(ui->tmlines);
         }
         if (!caller ||
             caller == ui->specticks || caller == ui->nspec || caller == ui->specloc) {

@@ -78,8 +78,10 @@ static void set_default_ticks(Quark *q)
     t->props.size = grdefaults.charsize;
     t->mprops.size = grdefaults.charsize / 2;
     t->bar = grdefaults.line;
-    t->props.gridflag = FALSE;
-    t->mprops.gridflag = FALSE;
+    t->gprops.onoff = FALSE;
+    t->gprops.line = grdefaults.line;
+    t->mgprops.onoff = FALSE;
+    t->mgprops.line = grdefaults.line;
     t->props.line = grdefaults.line;
     t->mprops.line = grdefaults.line;
     t->nticks = 0;

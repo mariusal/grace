@@ -278,6 +278,7 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
 {
     Attributes *attrs;
     tickmarks *t = axisgrid_get_data(q);
+    char *s;
     
     if (!t) {
         return RETURN_SUCCESS;
@@ -289,99 +290,98 @@ int save_axisgrid_properties(XFile *xf, Quark *q)
     }
 
     attributes_reset(attrs);
+    xmlio_set_active(attrs, t->gprops.onoff);
+    xfile_begin_element(xf, EStrMajorGridlines, attrs);
+    {
+        xmlio_write_line_spec(xf, attrs, &t->gprops.line);
+    }
+    xfile_end_element(xf, EStrMajorGridlines);
+
+    attributes_reset(attrs);
+    xmlio_set_active(attrs, t->mgprops.onoff);
+    xfile_begin_element(xf, EStrMinorGridlines, attrs);
+    {
+        xmlio_write_line_spec(xf, attrs, &t->mgprops.line);
+    }
+    xfile_end_element(xf, EStrMinorGridlines);
+
+    attributes_reset(attrs);
     xfile_begin_element(xf, EStrAxisbar, attrs);
     {
         xmlio_write_line_spec(xf, attrs, &t->bar);
     }
     xfile_end_element(xf, EStrAxisbar);
 
+    s = spec_tick_name(rt_from_quark(q), t->t_spec);
+
     attributes_reset(attrs);
-    xmlio_set_world_value(q, attrs, AStrMajorStep, t->tmajor);
-    attributes_set_ival(attrs, AStrMinorDivisions, t->nminor);
-    attributes_set_ival(attrs, AStrAutoTicking, t->t_autonum);
-    attributes_set_bval(attrs, AStrRoundedPosition, t->t_round);
-    xfile_begin_element(xf, EStrTicks, attrs);
-    {
-        char *s;
-        
-        s = spec_tick_name(rt_from_quark(q), t->t_spec);
-        
-        attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrType, s);
-        if (t->t_spec == TICKS_SPEC_NONE) {
-            xfile_empty_element(xf, EStrUserticks, attrs);
-        } else {
-            xfile_begin_element(xf, EStrUserticks, attrs);
-            {
-                int i;
-                for (i = 0; i < MIN2(t->nticks, MAX_TICKS); i++) {
-                    attributes_reset(attrs);
-                    attributes_set_sval(attrs, AStrType,
-                        t->tloc[i].type == TICK_TYPE_MAJOR ? VStrMajor:VStrMinor);
-                    xmlio_set_world_value(q, attrs,
-                        AStrPosition, t->tloc[i].wtpos);
-                    if (t->t_spec == TICKS_SPEC_BOTH) {
-                        attributes_set_sval(attrs, AStrLabel, t->tloc[i].label);
-                    }
-                    xfile_empty_element(xf, EStrTick, attrs);
+    attributes_set_sval(attrs, AStrType, s);
+    if (t->t_spec == TICKS_SPEC_NONE) {
+        xfile_empty_element(xf, EStrUserticks, attrs);
+    } else {
+        xfile_begin_element(xf, EStrUserticks, attrs);
+        {
+            int i;
+            for (i = 0; i < MIN2(t->nticks, MAX_TICKS); i++) {
+                attributes_reset(attrs);
+                attributes_set_sval(attrs, AStrType,
+                    t->tloc[i].type == TICK_TYPE_MAJOR ? VStrMajor:VStrMinor);
+                xmlio_set_world_value(q, attrs,
+                    AStrPosition, t->tloc[i].wtpos);
+                if (t->t_spec == TICKS_SPEC_BOTH) {
+                    attributes_set_sval(attrs, AStrLabel, t->tloc[i].label);
                 }
+                xfile_empty_element(xf, EStrTick, attrs);
             }
-            xfile_end_element(xf, EStrUserticks);
         }
-
-        attributes_reset(attrs);
-        xfile_begin_element(xf, EStrTickmarks, attrs);
-        {
-            attributes_reset(attrs);
-            attributes_set_dval(attrs, AStrSize, t->props.size);
-            xmlio_set_inout_placement(rt_from_quark(q), attrs, t->props.inout);
-            attributes_set_bval(attrs, AStrGridLines, t->props.gridflag);
-            xfile_begin_element(xf, EStrMajor, attrs);
-            {
-                xmlio_write_line_spec(xf, attrs, &t->props.line);
-            }
-            xfile_end_element(xf, EStrMajor);
-
-            attributes_reset(attrs);
-            attributes_set_dval(attrs, AStrSize, t->mprops.size);
-            attributes_set_bval(attrs, AStrGridLines, t->mprops.gridflag);
-            xmlio_set_inout_placement(rt_from_quark(q), attrs, t->mprops.inout);
-            xfile_begin_element(xf, EStrMinor, attrs);
-            {
-                xmlio_write_line_spec(xf, attrs, &t->mprops.line);
-            }
-            xfile_end_element(xf, EStrMinor);
-        }
-        xfile_end_element(xf, EStrTickmarks);
-
-        attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrTransform, t->tl_formula);
-        attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
-        attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
-        xmlio_set_offset_placement(attrs,
-            t->tl_gaptype == TYPE_AUTO, t->tl_gap.x, t->tl_gap.y);
-        
-        attributes_set_ival(attrs, AStrSkip, t->tl_skip);
-        attributes_set_ival(attrs, AStrStagger, t->tl_staggered);
-        if (t->tl_starttype == TYPE_AUTO) {
-            attributes_set_sval(attrs, AStrStart, VStrAuto);
-        } else {
-            xmlio_set_world_value(q, attrs, AStrStart, t->tl_start);
-        }
-        if (t->tl_stoptype == TYPE_AUTO) {
-            attributes_set_sval(attrs, AStrStop, VStrAuto);
-        } else {
-            xmlio_set_world_value(q, attrs, AStrStop, t->tl_stop);
-        }
-        xfile_begin_element(xf, EStrTicklabels, attrs);
-        {
-            xmlio_write_text_props(xf, attrs, &t->tl_tprops);
-            xmlio_write_format_spec(xf, attrs,
-                EStrFormat, t->tl_format, t->tl_prec);
-        }
-        xfile_end_element(xf, EStrTicklabels);
+        xfile_end_element(xf, EStrUserticks);
     }
-    xfile_end_element(xf, EStrTicks);
+
+
+    attributes_reset(attrs);
+    attributes_set_dval(attrs, AStrSize, t->props.size);
+    xmlio_set_inout_placement(rt_from_quark(q), attrs, t->props.inout);
+    xfile_begin_element(xf, EStrMajorTickmarks, attrs);
+    {
+        xmlio_write_line_spec(xf, attrs, &t->props.line);
+    }
+    xfile_end_element(xf, EStrMajorTickmarks);
+
+    attributes_reset(attrs);
+    attributes_set_dval(attrs, AStrSize, t->mprops.size);
+    xmlio_set_inout_placement(rt_from_quark(q), attrs, t->mprops.inout);
+    xfile_begin_element(xf, EStrMinorTickmarks, attrs);
+    {
+        xmlio_write_line_spec(xf, attrs, &t->mprops.line);
+    }
+    xfile_end_element(xf, EStrMinorTickmarks);
+
+    attributes_reset(attrs);
+    attributes_set_sval(attrs, AStrTransform, t->tl_formula);
+    attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
+    attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
+    xmlio_set_offset_placement(attrs,
+        t->tl_gaptype == TYPE_AUTO, t->tl_gap.x, t->tl_gap.y);
+
+    attributes_set_ival(attrs, AStrSkip, t->tl_skip);
+    attributes_set_ival(attrs, AStrStagger, t->tl_staggered);
+    if (t->tl_starttype == TYPE_AUTO) {
+        attributes_set_sval(attrs, AStrStart, VStrAuto);
+    } else {
+        xmlio_set_world_value(q, attrs, AStrStart, t->tl_start);
+    }
+    if (t->tl_stoptype == TYPE_AUTO) {
+        attributes_set_sval(attrs, AStrStop, VStrAuto);
+    } else {
+        xmlio_set_world_value(q, attrs, AStrStop, t->tl_stop);
+    }
+    xfile_begin_element(xf, EStrTicklabels, attrs);
+    {
+        xmlio_write_text_props(xf, attrs, &t->tl_tprops);
+        xmlio_write_format_spec(xf, attrs,
+            EStrFormat, t->tl_format, t->tl_prec);
+    }
+    xfile_end_element(xf, EStrTicklabels);
 
     attributes_free(attrs);
     
@@ -792,11 +792,18 @@ static int project_save_hook(Quark *q,
         break;
     case QFlavorAGrid:
         if (!closure->post) {
+            tickmarks *t = axisgrid_get_data(q);
+            
             attributes_set_sval(attrs, AStrId, QIDSTR(q));
+            xmlio_set_active(attrs, quark_is_active(q));
 
             attributes_set_sval(attrs, AStrType, axisgrid_is_x(q) ? "x":"y");
-            xmlio_set_active(attrs, quark_is_active(q));
+            xmlio_set_world_value(q, attrs, AStrMajorStep, t->tmajor);
+            attributes_set_ival(attrs, AStrMinorDivisions, t->nminor);
+            attributes_set_ival(attrs, AStrAutoTicking, t->t_autonum);
+            attributes_set_bval(attrs, AStrRoundedPosition, t->t_round);
             xfile_begin_element(xf, EStrAGrid, attrs);
+            
             save_axisgrid_properties(xf, q);
             
             closure->post = TRUE;
@@ -958,6 +965,10 @@ int save_project(Quark *project, char *fn)
     int noask_save;
     static int save_unsupported = FALSE;
 
+    if (!pr) {
+        return RETURN_FAILURE;
+    }
+    
     if (fn && strstr(fn, ".agr")) {
         errmsg("Cowardly refusing to overwrite an agr file");
         return RETURN_FAILURE;

@@ -191,7 +191,7 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
     } else
     if (quark_fid_get(q1) == QFlavorAGrid) {
         tickmarks *t = axisgrid_get_data(q1);
-        if (t->props.gridflag || t->mprops.gridflag) {
+        if (t->gprops.onoff || t->mgprops.onoff) {
             return -1;
         } else {
             return 1;
@@ -199,7 +199,7 @@ static int fcomp(const Quark *q1, const Quark *q2, void *udata)
     } else
     if (quark_fid_get(q2) == QFlavorAGrid) {
         tickmarks *t = axisgrid_get_data(q2);
-        if (t->props.gridflag || t->mprops.gridflag) {
+        if (t->gprops.onoff || t->mgprops.onoff) {
             return 1;
         } else {
             return -1;
@@ -296,6 +296,11 @@ static int project_postprocess_hook(Quark *q,
                 graph_set_world(q, &w);
                 graph_set_xinvert(q, FALSE);
             }
+        }
+        if (version_id < 50991) {
+            /* Separate drawing props for grid lines introduced in 5.99.1 */
+            t->gprops.line  = t->props.line;
+            t->mgprops.line = t->mprops.line;
         }
 
         break;

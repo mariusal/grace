@@ -46,6 +46,7 @@ static void drawgrid(Canvas *canvas, Quark *q)
     Quark *gr;
     tickmarks *t;
     tickprops tprops;
+    gridprops gprops;
     int ttype;
     world w;
     view v;
@@ -89,15 +90,17 @@ static void drawgrid(Canvas *canvas, Quark *q)
 	if (ittype_loop == 0) { /* minor ticks */
             ttype = TICK_TYPE_MINOR;
             tprops = t->mprops;
+            gprops = t->mgprops;
 	} else {	  /* major ticks */
             ttype = TICK_TYPE_MAJOR;
             tprops = t->props;
+            gprops = t->gprops;
 	}
-        if (tprops.gridflag == 0) {
+        if (!gprops.onoff) {
 	    continue;
 	}
 
-        setline(canvas, &tprops.line);
+        setline(canvas, &gprops.line);
 
 	for (itick = 0; itick < t->nticks; itick++) {
 	    if (t->tloc[itick].type != ttype) {

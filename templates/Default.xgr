@@ -59,7 +59,7 @@
     <viewport xmin="0.15" xmax="1.25" ymin="0.15" ymax="0.85"/>
     <legend active="yes" length="0.04" vgap="0.01" hgap="0.01" single-symbol="no" invert="no">
       <face-spec font-id="0" color-id="1" char-size="1"/>
-      <legframe anchor="(1.0, 1.0)" justification="9" offset="(-0.05, -0.05)">
+      <legframe anchor="(1, 1)" justification="9" offset="(-0.05, -0.05)">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="1"/>
       </legframe>
@@ -74,27 +74,29 @@
         <xformat format="general" prec="6"/>
         <yformat format="general" prec="6"/>
       </locator>
-      <agrid id="x_axisgrid" type="x" active="yes">
+      <agrid id="x_axisgrid" type="x" active="yes" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+        <major-gridlines active="no">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </major-gridlines>
+        <minor-gridlines active="no">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </minor-gridlines>
         <axisbar>
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </axisbar>
-        <ticks major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
-          <userticks type="none"/>
-          <tickmarks>
-            <major size="1" inout-placement="in" grid-lines="no">
-              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
-            </major>
-            <minor size="0.5" grid-lines="no" inout-placement="in">
-              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
-            </minor>
-          </tickmarks>
-          <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
-            <text-properties angle="0" justification="0">
-              <face-spec font-id="0" color-id="1" char-size="1"/>
-            </text-properties>
-            <format format="general" prec="5"/>
-          </ticklabels>
-        </ticks>
+        <userticks type="none"/>
+        <major-tickmarks size="1" inout-placement="in">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </major-tickmarks>
+        <minor-tickmarks size="0.5" inout-placement="in">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </minor-tickmarks>
+        <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+          <text-properties angle="0" justification="0">
+            <face-spec font-id="0" color-id="1" char-size="1"/>
+          </text-properties>
+          <format format="general" prec="5"/>
+        </ticklabels>
         <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
           <atext id="label" active="no" offset="(0, -0.01)">
             <location x="0.5" y="0"/>
@@ -114,27 +116,29 @@
         <axis id="opposite" active="yes" position="opposite" offset="0" bar="yes" ticks="yes" labels="no">
         </axis>
       </agrid>
-      <agrid id="y_axisgrid" type="y" active="yes">
+      <agrid id="y_axisgrid" type="y" active="yes" major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
+        <major-gridlines active="no">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </major-gridlines>
+        <minor-gridlines active="no">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </minor-gridlines>
         <axisbar>
           <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         </axisbar>
-        <ticks major-step="0.2" minor-divisions="1" auto-ticking="6" rounded-position="yes">
-          <userticks type="none"/>
-          <tickmarks>
-            <major size="1" inout-placement="in" grid-lines="no">
-              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
-            </major>
-            <minor size="0.5" grid-lines="no" inout-placement="in">
-              <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
-            </minor>
-          </tickmarks>
-          <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
-            <text-properties angle="0" justification="0">
-              <face-spec font-id="0" color-id="1" char-size="1"/>
-            </text-properties>
-            <format format="general" prec="5"/>
-          </ticklabels>
-        </ticks>
+        <userticks type="none"/>
+        <major-tickmarks size="1" inout-placement="in">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </major-tickmarks>
+        <minor-tickmarks size="0.5" inout-placement="in">
+          <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
+        </minor-tickmarks>
+        <ticklabels transform="" prepend="" append="" offset="auto" skip="0" stagger="0" start="auto" stop="auto">
+          <text-properties angle="0" justification="0">
+            <face-spec font-id="0" color-id="1" char-size="1"/>
+          </text-properties>
+          <format format="general" prec="5"/>
+        </ticklabels>
         <axis id="normal" active="yes" position="normal" offset="0" bar="yes" ticks="yes" labels="yes">
           <atext id="label" active="no" offset="(-0.01, 0)">
             <location x="0" y="0.5"/>

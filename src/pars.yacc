@@ -2806,10 +2806,10 @@ tickattr:
 	    curtm->mprops.line.style = $2;
 	}
 	| MAJOR GRID onoff {
-	    curtm->props.gridflag = $3;
+	    curtm->gprops.onoff = $3;
 	}
 	| MINOR GRID onoff {
-	    curtm->mprops.gridflag = $3;
+	    curtm->mgprops.onoff = $3;
 	}
 	| opchoice_sel {
 	    if ($1 == PLACEMENT_OPPOSITE) {

@@ -446,8 +446,12 @@ typedef struct {
     int inout;                /* inward, outward or both */
     double size;              /* length of tickmarks */
     Line line;                /* line props of tickmarks */
-    int gridflag;             /* grid lines at tick marks */
 } tickprops;
+
+typedef struct {
+    int onoff;                /* grid lines at tick marks */
+    Line line;                /* line props of grid */
+} gridprops;
 
 typedef struct {
     int color;
@@ -473,6 +477,9 @@ typedef struct {
 
     int nticks;                 /* total number of ticks */
     tickloc tloc[MAX_TICKS];    /* locations of ticks */
+
+    gridprops gprops;           /* major grid properties */
+    gridprops mgprops;          /* minor grid properties */
 
     Line bar;                   /* axis bar props */
 
