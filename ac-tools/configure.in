@@ -644,16 +644,14 @@ dnl **** Check for Motif
 
   ACX_RESTORE_STATE
 
-  ICE_FIND_MOTIF
-  if test "$motif_libraries_result" = "(none)" || 
-     test "$motif_includes_result" = "(none)"; then
+  ACX_CHECK_MOTIF(1002)
+  if test "$acx_cv_motif" = "no"; then
     dnl **** only Motif GUI is supported by now:
     GUI="NONE_GUI"
     GUI_FLAGS=""
     GUI_LIBS=""
     AC_MSG_WARN(M*tif has not been found; building a GUI-less version)
   else
-    AC_DEFINE(HAVE_MOTIF)
     GUI_LIBS="-lXm $GUI_LIBS"
     GUI="MOTIF_GUI"
     GUI_FLAGS="$X_CFLAGS"
@@ -664,11 +662,6 @@ dnl **** Check for Motif
     save_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $GUI_FLAGS"
     LIBS="$X_LIBS $GUI_LIBS $LIBS"
-
-    dnl **** Check whether Motif is actually Lesstif
-    ICE_CHECK_LESSTIF
-    dnl **** Check whether _XmVersionString[] can be referred to
-    ACX_CHECK_XMVERSIONSTRING
 
     dnl **** Check for Xbae widget
     if test $bundled_xbae = false
