@@ -490,11 +490,13 @@ int main(int argc, char *argv[])
 		    } else {
                         int nc, *cols;
                         field_string_to_cols(argv[i], &nc, &cols);
-                        if (nc <= 0) {
+                        if (field_string_to_cols(argv[i], &nc, &cols) !=
+                            GRACE_EXIT_SUCCESS) {
                             errmsg("Erroneous field specifications");
                             return 1;
                         }
 		        create_set_fromblock(cur_graph, curtype, nc, cols, -1);
+                        free(cols);
                     }
 		} else if (argmatch(argv[i], "-nxy", 4)) {
 		    i++;

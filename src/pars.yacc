@@ -2920,13 +2920,15 @@ actions:
 	}
 	| BLOCK xytype CHRSTR {
             int nc, *cols;
-            field_string_to_cols($3, &nc, &cols);
-	    free($3);
-            if (nc <= 0) {
+            if (field_string_to_cols($3, &nc, &cols) != GRACE_EXIT_SUCCESS) {
                 errmsg("Erroneous field specifications");
+	        free($3);
                 return 1;
+            } else {
+	        free($3);
+	        create_set_fromblock(whichgraph, $2, nc, cols, -1);
+                free(cols);
             }
-	    create_set_fromblock(whichgraph, $2, nc, cols, -1);
 	}
 	| READ xytype CHRSTR {
 	    gotread = TRUE;
