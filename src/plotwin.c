@@ -58,9 +58,28 @@ static Widget timestamp_rotate_item;
 static OptionStructure *timestamp_color_item;
 Widget timestamp_x_item;
 Widget timestamp_y_item;
+static Widget instantupdate_item;
 
 static int plot_define_notify_proc(void *data);
 static void update_plot_items(void);
+
+
+static void oc_plot_cb(int a, void *data)
+{
+    plot_define_notify_proc(data);
+}
+static void scale_plot_cb(int a, void *data)
+{
+    plot_define_notify_proc(data);
+}
+static void tb_plot_cb(int a, void *data)
+{
+    plot_define_notify_proc(data);
+}
+static void text_plot_cb(void *data)
+{
+    plot_define_notify_proc(data);
+}
 
 void create_plot_frame_cb(void *data)
 {
@@ -74,25 +93,36 @@ void create_plot_frame(void)
     if (plot_frame == NULL) {
         Widget panel, fr, rc;
     
-	plot_frame = CreateDialogForm(app_shell, "Plot appearance");
+        plot_frame = CreateDialogForm(app_shell, "Plot appearance");
 
-	panel = CreateVContainer(plot_frame);
+        panel = CreateVContainer(plot_frame);
+
+        instantupdate_item = CreateToggleButton(panel, "Instant update");
 
 	fr = CreateFrame(panel, "Page background");
         rc = CreateHContainer(fr);
         bg_color_item = CreateColorChoice(rc, "Color:");
+        AddOptionChoiceCB(bg_color_item, oc_plot_cb, bg_color_item);
 	bg_fill_item = CreateToggleButton(rc, "Fill");
+        AddToggleButtonCB(bg_fill_item, tb_plot_cb, bg_fill_item);
 
 	fr = CreateFrame(panel, "Time stamp");
         rc = CreateVContainer(fr);
 
 	timestamp_active_item = CreateToggleButton(rc, "Enable");
+        AddToggleButtonCB(timestamp_active_item, tb_plot_cb, timestamp_active_item);
 	timestamp_font_item = CreateFontChoice(rc, "Font:");
+        AddOptionChoiceCB(timestamp_font_item, oc_plot_cb, timestamp_font_item);
 	timestamp_color_item = CreateColorChoice(rc, "Color:");
+        AddOptionChoiceCB(timestamp_color_item, oc_plot_cb, timestamp_color_item);
 	timestamp_size_item = CreateCharSizeChoice(rc, "Character size");
+        AddScaleCB(timestamp_size_item, scale_plot_cb, timestamp_size_item);
 	timestamp_rotate_item = CreateAngleChoice(rc, "Angle");
+        AddScaleCB(timestamp_rotate_item, scale_plot_cb, timestamp_rotate_item);
 	timestamp_x_item = CreateTextItem2(rc, 10, "Timestamp X:");
+        AddTextItemCB(timestamp_x_item, text_plot_cb, timestamp_x_item);
 	timestamp_y_item = CreateTextItem2(rc, 10, "Timestamp Y:");
+        AddTextItemCB(timestamp_y_item, text_plot_cb, timestamp_y_item);
 
 	CreateAACDialog(plot_frame, panel, plot_define_notify_proc, NULL);
     }
@@ -130,22 +160,43 @@ static int plot_define_notify_proc(void *data)
 {
     plotstr *timestamp = &grace->project->timestamp;
     
-    setbgcolor(GetOptionChoice(bg_color_item));
-    setbgfill(GetToggleButtonState(bg_fill_item));
-
-    timestamp->active = GetToggleButtonState(timestamp_active_item);
-    timestamp->font = GetOptionChoice(timestamp_font_item);
-    timestamp->color = GetOptionChoice(timestamp_color_item);
+    if (!GetToggleButtonState(instantupdate_item) && data != NULL) {
+        return RETURN_SUCCESS;
+    }
     
-    timestamp->charsize = GetCharSizeChoice(timestamp_size_item);
+    if (data == bg_color_item || data == NULL) {
+        setbgcolor(GetOptionChoice(bg_color_item));
+    }
+    if (data == bg_fill_item || data == NULL) {
+        setbgfill(GetToggleButtonState(bg_fill_item));
+    }
+    if (data == timestamp_active_item || data == NULL) {
+        timestamp->active = GetToggleButtonState(timestamp_active_item);
+    }
+    if (data == timestamp_font_item || data == NULL) {
+        timestamp->font = GetOptionChoice(timestamp_font_item);
+    }
+    if (data == timestamp_color_item || data == NULL) {
+        timestamp->color = GetOptionChoice(timestamp_color_item);
+    }
     
-    timestamp->angle = (double) GetAngleChoice(timestamp_rotate_item);
+    if (data == timestamp_size_item || data == NULL) {
+        timestamp->charsize = GetCharSizeChoice(timestamp_size_item);
+    }
     
-    xv_evalexpr(timestamp_x_item, &timestamp->offset.x);
-    xv_evalexpr(timestamp_y_item, &timestamp->offset.y);
+    if (data == timestamp_rotate_item || data == NULL) {
+        timestamp->angle = (double) GetAngleChoice(timestamp_rotate_item);
+    }
+    
+    if (data == timestamp_x_item || data == NULL) {
+        xv_evalexpr(timestamp_x_item, &timestamp->offset.x);
+    }
+    if (data == timestamp_y_item || data == NULL) {
+        xv_evalexpr(timestamp_y_item, &timestamp->offset.y);
+    }
+    
     set_dirtystate();
     xdrawgraph();
     
     return RETURN_SUCCESS;
 }
-

@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c)1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c)1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -14,7 +14,7 @@
  *    This program is free software; you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation; either version 2 of the License, or
- *    (at your option) any later version.
+ *    (at your option)any later version.
  * 
  *    This program is distributed in the hope that it will be useful,
  *    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -63,7 +63,7 @@ static Widget setapp_dialog = NULL;
 static Widget duplegs_item;
 
 static OptionStructure *type_item;
-static Widget *toggle_symbols_item;
+static OptionStructure *toggle_symbols_item;
 static Widget symsize_item;
 static Widget symskip_item;
 static OptionStructure *symcolor_item;
@@ -80,19 +80,19 @@ static OptionStructure *toggle_pattern_item;
 static SpinStructure *toggle_width_item;
 static Widget dropline_item;
 static OptionStructure *toggle_lines_item;
-static Widget *toggle_linet_item;
-static Widget *toggle_filltype_item;
-static Widget *toggle_fillrule_item;
+static OptionStructure *toggle_linet_item;
+static OptionStructure *toggle_filltype_item;
+static OptionStructure *toggle_fillrule_item;
 static OptionStructure *toggle_fillpat_item;
 static OptionStructure *toggle_fillcol_item;
 static ListStructure *toggle_symset_item;
 static Widget baseline_item;
-static Widget *baselinetype_item;
+static OptionStructure *baselinetype_item;
 
 static TextStructure *legend_str_item;
 
 static Widget errbar_active_item;
-static Widget *errbar_ptype_item;
+static OptionStructure *errbar_ptype_item;
 static OptionStructure *errbar_color_item;
 static OptionStructure *errbar_pattern_item;
 static Widget errbar_size_item;
@@ -104,25 +104,50 @@ static Widget errbar_aclip_item;
 static SpinStructure *errbar_cliplen_item;
 
 static Widget avalue_active_item;
-static Widget *avalue_type_item;
+static OptionStructure *avalue_type_item;
 static OptionStructure *avalue_font_item;
 static OptionStructure *avalue_color_item;
 static Widget avalue_charsize_item ;
 static Widget avalue_angle_item;
 static OptionStructure *avalue_format_item;
-static Widget *avalue_precision_item;
+static OptionStructure *avalue_precision_item;
 static Widget avalue_offsetx;
 static Widget avalue_offsety;
 static Widget avalue_prestr;
 static Widget avalue_appstr;
 
 static Widget csync_item;
+static Widget instantupdate_item;
 
 static void UpdateSymbols(int gno, int value);
 static void set_cset_proc(int n, int *values, void *data);
 static int setapp_aac_cb(void *data);
 static void setapp_data_proc(void *data);
 static void csync_cb(int value, void *data);
+
+/* 
+ * callback functions to do incremental set appearance updates
+ */
+static void oc_setapp_cb(int c, void *data)
+{
+    setapp_aac_cb(data);
+}
+static void tb_setapp_cb(int c, void *data)
+{
+    setapp_aac_cb(data);
+}
+static void scale_setapp_cb(int c, void *data)
+{
+    setapp_aac_cb(data);
+}
+static void sp_setapp_cb(double a, void *data)
+{
+    setapp_aac_cb(data);
+}
+static void text_setapp_cb(void *data)
+{
+    setapp_aac_cb(data);
+}
 
 /*
  * create the symbols popup
@@ -133,8 +158,8 @@ void define_symbols_popup(void *data)
     
     set_wait_cursor();
     
-    setno = (int) data;
-    if (is_valid_setno(cg, setno) == TRUE) {
+    setno = (int)data;
+    if (is_valid_setno(cg, setno)== TRUE) {
         cset = setno;
     }
     
@@ -154,26 +179,28 @@ void define_symbols_popup(void *data)
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         CreateMenuButton(menupane, "Set different colors", 'c',
-            setapp_data_proc, (void *) SETAPP_ALL_COLORS);
+            setapp_data_proc, (void *)SETAPP_ALL_COLORS);
         CreateMenuButton(menupane, "Set different symbols", 's',
-            setapp_data_proc, (void *) SETAPP_ALL_SYMBOLS);
+            setapp_data_proc, (void *)SETAPP_ALL_SYMBOLS);
         CreateMenuButton(menupane, "Set different line widths", 'w',
-            setapp_data_proc, (void *) SETAPP_ALL_LINEW);
+            setapp_data_proc, (void *)SETAPP_ALL_LINEW);
         CreateMenuButton(menupane, "Set different line styles", 'y',
-            setapp_data_proc, (void *) SETAPP_ALL_LINES);
+            setapp_data_proc, (void *)SETAPP_ALL_LINES);
         CreateMenuButton(menupane, "Set black & white", 'B',
-            setapp_data_proc, (void *) SETAPP_ALL_BW);
+            setapp_data_proc, (void *)SETAPP_ALL_BW);
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "Load comments", 'm',
-            setapp_data_proc, (void *) SETAPP_LOAD_COMMENTS);
+            setapp_data_proc, (void *)SETAPP_LOAD_COMMENTS);
         CreateMenuButton(menupane, "Strip legends", 'l',
-            setapp_data_proc, (void *) SETAPP_STRIP_LEGENDS);
+            setapp_data_proc, (void *)SETAPP_STRIP_LEGENDS);
         
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         duplegs_item = CreateMenuToggle(menupane,
             "Duplicate legends", 'D', NULL, NULL);
         csync_item = CreateMenuToggle(menupane, "Color sync", 's', NULL, NULL);
         SetToggleButtonState(csync_item, TRUE);
+        instantupdate_item = CreateMenuToggle(menupane, "Instantaneous update",
+                            'u', NULL, NULL);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On set appearance", 's',
@@ -196,6 +223,7 @@ void define_symbols_popup(void *data)
 
         fr = CreateFrame(setapp_main, "Set presentation");
 	type_item = CreateSetTypeChoice(fr, "Type:");
+        AddOptionChoiceCB(type_item, oc_setapp_cb, type_item);
 
         rc2 = CreateHContainer(setapp_main);
 
@@ -218,10 +246,14 @@ void define_symbols_popup(void *data)
                                                  "Char",            /* 11 */
                                                  NULL,
                                                  0);
+        AddOptionChoiceCB(toggle_symbols_item, oc_setapp_cb, toggle_symbols_item);
         symsize_item = CreateCharSizeChoice(rc, "Size");
+        AddScaleCB(symsize_item, scale_setapp_cb, symsize_item);
         symcolor_item = CreateColorChoice(rc, "Color:");
-        AddOptionChoiceCB(symcolor_item, csync_cb, (void *) CSYNC_SYM);
+        AddOptionChoiceCB(symcolor_item, csync_cb, (void *)CSYNC_SYM);
+        AddOptionChoiceCB(symcolor_item, oc_setapp_cb, symcolor_item);
         symchar_item = CreateTextItem2(rc, 3, "Symbol char:");
+        AddTextItemCB(symchar_item, text_setapp_cb, symchar_item);
 
         fr = CreateFrame(rc2, "Line properties");
         rc = CreateVContainer(fr);
@@ -235,18 +267,25 @@ void define_symbols_popup(void *data)
                                               "3-Segments",
                                               NULL,
                                               0);
+        AddOptionChoiceCB(toggle_linet_item, oc_setapp_cb, toggle_linet_item); 
         toggle_lines_item = CreateLineStyleChoice(rc, "Style:");
+        AddOptionChoiceCB(toggle_lines_item, oc_setapp_cb, toggle_lines_item);
         toggle_width_item = CreateLineWidthChoice(rc, "Width:");
+        AddSpinButtonCB(toggle_width_item, sp_setapp_cb, toggle_width_item); 
         toggle_color_item = CreateColorChoice(rc, "Color:");
-        AddOptionChoiceCB(toggle_color_item, csync_cb, (void *) CSYNC_LINE);
+        AddOptionChoiceCB(toggle_color_item, csync_cb, (void *)CSYNC_LINE);
+        AddOptionChoiceCB(toggle_color_item, oc_setapp_cb, toggle_color_item);
         
         fr = CreateFrame(setapp_main, "Legend");
         legend_str_item = CreateCSText(fr, "String:");
+        AddTextInputCB(legend_str_item, text_setapp_cb, legend_str_item);
 
         fr = CreateFrame(setapp_main, "Display options");
         rc2 = CreateHContainer(fr);
         avalue_active_item = CreateToggleButton(rc2, "Annotate values");
+        AddToggleButtonCB(avalue_active_item, tb_setapp_cb, avalue_active_item);
         errbar_active_item = CreateToggleButton(rc2, "Display error bars");
+        AddToggleButtonCB(errbar_active_item, tb_setapp_cb, errbar_active_item);
 
 
         /* ------------ Symbols tab -------------- */
@@ -258,18 +297,25 @@ void define_symbols_popup(void *data)
 
         rc2 = CreateHContainer(rc);
         symlines_item = CreateLineStyleChoice(rc2, "Style:");
+        AddOptionChoiceCB(symlines_item, oc_setapp_cb, symlines_item);
         symlinew_item = CreateLineWidthChoice(rc2, "Width:");
+        AddSpinButtonCB(symlinew_item, sp_setapp_cb, symlinew_item);
         sympattern_item = CreatePatternChoice(rc, "Pattern:");
+        AddOptionChoiceCB(sympattern_item, oc_setapp_cb, sympattern_item);
 
         fr = CreateFrame(setapp_symbols, "Symbol fill");
         rc = CreateHContainer(fr);
         symfillcolor_item = CreateColorChoice(rc, "Color:");
+        AddOptionChoiceCB(symfillcolor_item, oc_setapp_cb, symfillcolor_item);
         symfillpattern_item = CreatePatternChoice(rc, "Pattern:");
+        AddOptionChoiceCB(symfillpattern_item, oc_setapp_cb, symfillpattern_item);
 
         fr = CreateFrame(setapp_symbols, "Extra");
         rc = CreateVContainer(fr);
         symskip_item = CreateTextItem2(rc, 4, "Symbol skip:");
+        AddTextItemCB(symskip_item, text_setapp_cb, symskip_item);
         char_font_item = CreateFontChoice(rc, "Font for char symbol:");
+        AddOptionChoiceCB(char_font_item, oc_setapp_cb, char_font_item);
 
 
         /* ------------ Line tab -------------- */
@@ -279,7 +325,9 @@ void define_symbols_popup(void *data)
         fr = CreateFrame(setapp_line, "Line properties");
         rc = CreateHContainer(fr);
         toggle_pattern_item = CreatePatternChoice(rc, "Pattern:");
+        AddOptionChoiceCB(toggle_pattern_item, oc_setapp_cb, toggle_pattern_item);
         dropline_item = CreateToggleButton(rc, "Draw drop lines");
+        AddToggleButtonCB(dropline_item, tb_setapp_cb, dropline_item);
 
         fr = CreateFrame(setapp_line, "Fill properties");
         rc = CreateVContainer(fr);
@@ -291,15 +339,19 @@ void define_symbols_popup(void *data)
                                              "To baseline",
                                              NULL,
                                              0);
+        AddOptionChoiceCB(toggle_filltype_item, oc_setapp_cb, toggle_filltype_item); 
         toggle_fillrule_item = CreatePanelChoice(rc2, "Rule:",
                                              3,
                                              "Winding",
                                              "Even-Odd",
                                              NULL,
                                              0);
+        AddOptionChoiceCB(toggle_fillrule_item, oc_setapp_cb, toggle_fillrule_item); 
         rc2 = CreateHContainer(rc);
         toggle_fillpat_item = CreatePatternChoice(rc2, "Pattern:");
+        AddOptionChoiceCB(toggle_fillpat_item, oc_setapp_cb, toggle_fillpat_item);
         toggle_fillcol_item = CreateColorChoice(rc2, "Color:");
+        AddOptionChoiceCB(toggle_fillcol_item, oc_setapp_cb, toggle_fillcol_item);
         
         fr = CreateFrame(setapp_line, "Base line");
         rc = CreateHContainer(fr);
@@ -312,7 +364,9 @@ void define_symbols_popup(void *data)
                                              "Graph max",
                                              NULL,
                                              0);
+        AddOptionChoiceCB(baselinetype_item, oc_setapp_cb, baselinetype_item);
         baseline_item = CreateToggleButton(rc, "Draw line");
+        AddToggleButtonCB(baseline_item, tb_setapp_cb, baseline_item);
         
         
         /* ------------ AValue tab -------------- */
@@ -324,22 +378,29 @@ void define_symbols_popup(void *data)
         
         rc2 = CreateHContainer(rc);
 	avalue_font_item = CreateFontChoice(rc2, "Font:");
+        AddOptionChoiceCB(avalue_font_item, oc_setapp_cb, avalue_active_item);
 	avalue_charsize_item = CreateCharSizeChoice(rc2, "Char size");
 	SetScaleWidth(avalue_charsize_item, 120);
+        AddScaleCB(avalue_charsize_item, scale_setapp_cb, avalue_active_item);
         
         rc2 = CreateHContainer(rc);
 	avalue_color_item = CreateColorChoice(rc2, "Color:");
+        AddOptionChoiceCB(avalue_color_item, oc_setapp_cb, avalue_active_item);
 	avalue_angle_item = CreateAngleChoice(rc2, "Angle");
 	SetScaleWidth(avalue_angle_item, 180);
+        AddScaleCB(avalue_angle_item, scale_setapp_cb, avalue_active_item);
 
         rc2 = CreateHContainer(rc);
         avalue_prestr = CreateTextItem2(rc2, 10, "Prepend:");
+        AddTextItemCB(avalue_prestr, text_setapp_cb, avalue_active_item);
         avalue_appstr = CreateTextItem2(rc2, 10, "Append:");
+        AddTextItemCB(avalue_appstr, text_setapp_cb, avalue_active_item);
         
 	fr = CreateFrame(setapp_avalue, "Format options");
 	rc = CreateVContainer(fr);
         rc2 = CreateHContainer(rc);
 	avalue_format_item = CreateFormatChoice(rc, "Format:");
+        AddOptionChoiceCB(avalue_format_item, oc_setapp_cb, avalue_active_item);
         avalue_type_item = CreatePanelChoice(rc2, "Type:",
                                              7,
                                              "None",
@@ -350,12 +411,16 @@ void define_symbols_popup(void *data)
                                              "Z",
                                              NULL,
                                              0);
+        AddOptionChoiceCB(avalue_type_item, oc_setapp_cb, avalue_active_item); 
 	avalue_precision_item = CreatePrecisionChoice(rc2, "Precision:");
+        AddOptionChoiceCB(avalue_precision_item, oc_setapp_cb, avalue_active_item);
         
 	fr = CreateFrame(setapp_avalue, "Placement");
         rc2 = CreateHContainer(fr);
         avalue_offsetx = CreateTextItem2(rc2, 10, "X offset:");
+        AddTextItemCB(avalue_offsetx, text_setapp_cb, avalue_active_item);
         avalue_offsety = CreateTextItem2(rc2, 10, "Y offset:");
+        AddTextItemCB(avalue_offsety, text_setapp_cb, avalue_active_item);
         
 
         /* ------------ Errbar tab -------------- */
@@ -376,28 +441,39 @@ void define_symbols_popup(void *data)
                                              "Both",
                                              NULL,
                                              0);
+        AddOptionChoiceCB(errbar_ptype_item, oc_setapp_cb, errbar_ptype_item); 
 	errbar_color_item = CreateColorChoice(rc, "Color:");
+        AddOptionChoiceCB(errbar_color_item, oc_setapp_cb, errbar_color_item);
 	errbar_pattern_item = CreatePatternChoice(rc, "Pattern:");
+        AddOptionChoiceCB(errbar_pattern_item, oc_setapp_cb, errbar_pattern_item);
 
         fr = CreateFrame(rc1, "Clipping");
         rc = CreateVContainer(fr);
 	errbar_aclip_item = CreateToggleButton(rc, "Arrow clip");
+        AddToggleButtonCB(errbar_aclip_item, tb_setapp_cb, errbar_aclip_item);
 	errbar_cliplen_item = CreateSpinChoice(rc, "Max length:",
             3, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
+        AddSpinButtonCB(errbar_cliplen_item, sp_setapp_cb, errbar_cliplen_item);
 
         rc1 = CreateVContainer(rc2);
 
         fr = CreateFrame(rc1, "Bar line");
         rc = CreateVContainer(fr);
         errbar_size_item = CreateCharSizeChoice(rc, "Size");
+        AddScaleCB(errbar_size_item, scale_setapp_cb, errbar_size_item);
         errbar_width_item = CreateLineWidthChoice(rc, "Width:");
+        AddSpinButtonCB(errbar_width_item, sp_setapp_cb, errbar_width_item);
         errbar_lines_item = CreateLineStyleChoice(rc, "Style:");
+        AddOptionChoiceCB(errbar_lines_item, oc_setapp_cb, errbar_lines_item);
 
         fr = CreateFrame(rc1, "Riser line");
         rc = CreateVContainer(fr);
         errbar_riserlinew_item = CreateLineWidthChoice(rc, "Width:");
+        AddSpinButtonCB(errbar_riserlinew_item,
+            sp_setapp_cb, errbar_riserlinew_item);
         errbar_riserlines_item = CreateLineStyleChoice(rc, "Style:");
-
+        AddOptionChoiceCB(errbar_riserlines_item,
+            oc_setapp_cb, errbar_riserlines_item);
         
         SelectTabPage(setapp_tab, setapp_main);
 
@@ -417,71 +493,15 @@ static int setapp_aac_cb(void *data)
 {
     int i;
     int duplegs;
-    int type;
-    int sym, symskip, symlines;
-    double symlinew;
-    int line, linet, color, pattern;
-    double wid;
-    int dropline, filltype, fillrule, fillpat, fillcol;
-    int symcolor, sympattern, symfillcolor, symfillpattern;
-    double symsize;
-    int baseline, baselinetype;
-    Errbar errbar;
-    AValue avalue;
-    char symchar;
-    int charfont;
     set *p;
+    int setno, *selset, cd;
     
-    int setno;
-    int *selset, cd;
+    if (!GetToggleButtonState(instantupdate_item) && data != NULL) {
+        return RETURN_SUCCESS;
+    }
     
     duplegs = GetToggleButtonState(duplegs_item);
 
-    type = GetOptionChoice(type_item);
-    symsize = GetCharSizeChoice(symsize_item);
-    sym = GetChoice(toggle_symbols_item);
-    color = GetOptionChoice(toggle_color_item);
-    pattern = GetOptionChoice(toggle_pattern_item);
-    wid = GetSpinChoice(toggle_width_item);
-    baseline = GetToggleButtonState(baseline_item);
-    baselinetype = GetChoice(baselinetype_item);
-    dropline = GetToggleButtonState(dropline_item);
-    line = GetOptionChoice(toggle_lines_item);
-    linet = GetChoice(toggle_linet_item);
-    filltype = GetChoice(toggle_filltype_item);
-    fillrule = GetChoice(toggle_fillrule_item);
-    fillpat = GetOptionChoice(toggle_fillpat_item);
-    fillcol = GetOptionChoice(toggle_fillcol_item);
-    xv_evalexpri(symskip_item, &symskip);
-    symcolor = GetOptionChoice(symcolor_item);
-    sympattern = GetOptionChoice(sympattern_item);
-    symfillcolor = GetOptionChoice(symfillcolor_item);
-    symfillpattern = GetOptionChoice(symfillpattern_item);
-    symlinew = GetSpinChoice(symlinew_item);
-    symlines = GetOptionChoice(symlines_item);
-    symchar = atoi(xv_getstr(symchar_item));
-    charfont = GetOptionChoice(char_font_item);
-    
-    errbar.active = GetToggleButtonState(errbar_active_item);
-    errbar.barsize = GetCharSizeChoice(errbar_size_item);
-    errbar.linew = GetSpinChoice(errbar_width_item);
-    errbar.lines = GetOptionChoice(errbar_lines_item);
-    errbar.riser_linew = GetSpinChoice(errbar_riserlinew_item);
-    errbar.riser_lines = GetOptionChoice(errbar_riserlines_item);
-        
-    avalue.active = GetToggleButtonState(avalue_active_item);
-    avalue.type = GetChoice(avalue_type_item);
-    avalue.size = GetCharSizeChoice(avalue_charsize_item);
-    avalue.font = GetOptionChoice(avalue_font_item);
-    avalue.color = GetOptionChoice(avalue_color_item);
-    avalue.angle = GetAngleChoice(avalue_angle_item);
-    avalue.format = GetOptionChoice(avalue_format_item);
-    avalue.prec = GetChoice(avalue_precision_item);
-    strcpy(avalue.prestr, xv_getstr(avalue_prestr));
-    strcpy(avalue.appstr, xv_getstr(avalue_appstr));
-    xv_evalexpr(avalue_offsetx, &avalue.offset.x );
-    xv_evalexpr(avalue_offsety, &avalue.offset.y);
-                    
     cd = GetListChoices(toggle_symset_item, &selset);
     if (cd < 1) {
         errwin("No set selected");
@@ -490,44 +510,152 @@ static int setapp_aac_cb(void *data)
         for(i = 0; i < cd; i++) {
             setno = selset[i];
             p = set_get(get_cg(), setno);
-            p->symskip = symskip;
-            p->symsize = symsize;
-            p->symlinew = symlinew;
-            p->symlines = symlines;
-            p->symchar = symchar;
-            p->charfont = charfont;
-            p->filltype = filltype;
-            p->fillrule = fillrule;
-            p->setfillpen.pattern = fillpat;
-            p->setfillpen.color = fillcol;
-            if (cd == 1 || duplegs) {
-                p->legstr = copy_string(p->legstr,
-                    GetTextString(legend_str_item));
+            if (data == symskip_item || data == NULL) {
+                xv_evalexpri(symskip_item, &(p->symskip));
             }
-            p->sym = sym;
-            p->linet = linet;
-            p->lines = line;
-            p->linew = wid;
-            p->linepen.color = color;
-            p->linepen.pattern = pattern;
-            p->sympen.color = symcolor;
-            p->sympen.pattern = sympattern;
-            p->symfillpen.color = symfillcolor;
-            p->symfillpen.pattern = symfillpattern;
-            p->dropline = dropline;
-            p->baseline = baseline;
-            p->baseline_type = baselinetype;
-
-            errbar.ptype = GetChoice(errbar_ptype_item);
-            errbar.pen.color = GetOptionChoice(errbar_color_item);
-            errbar.pen.pattern = GetOptionChoice(errbar_pattern_item);
-            errbar.arrow_clip = GetToggleButtonState(errbar_aclip_item);
-            errbar.cliplen = GetSpinChoice(errbar_cliplen_item);
-    
-            p->errbar = errbar;
-            p->avalue = avalue;
-            
-            set_dataset_type(get_cg(), setno, type);
+            if (data == symsize_item || data  ==  NULL) {
+                p->symsize = GetCharSizeChoice(symsize_item);
+            }
+            if (data == symlinew_item || data  ==  NULL) {
+                p->symlinew = GetSpinChoice(symlinew_item);
+            }
+            if (data == symlines_item || data  ==  NULL) {
+                p->symlines = GetOptionChoice(symlines_item);
+            }
+            if (data == symchar_item || data == NULL) {
+                p->symchar = atoi(xv_getstr(symchar_item));
+            }
+            if (data == char_font_item || data == NULL) {
+                p->charfont = GetOptionChoice(char_font_item);
+            }
+            if (data == toggle_filltype_item || data == NULL) {
+                p->filltype = GetOptionChoice(toggle_filltype_item);
+            }
+            if (data == toggle_fillrule_item || data == NULL) {
+                p->fillrule = GetOptionChoice(toggle_fillrule_item);
+            }
+            if (data == toggle_fillpat_item || data == NULL) {
+                p->setfillpen.pattern = GetOptionChoice(toggle_fillpat_item);
+            }
+            if (data == toggle_fillcol_item || data == NULL) {
+                p->setfillpen.color = GetOptionChoice(toggle_fillcol_item);
+            }
+            if (data == legend_str_item || data == NULL) {
+                if (cd==1 || duplegs) {
+                    strcpy(p->legstr, GetTextString(legend_str_item));
+                }
+            }
+            if (data == toggle_symbols_item || data == NULL) {
+                p->sym = GetOptionChoice(toggle_symbols_item);
+            }
+            if (data == toggle_linet_item || data == NULL) {
+                p->linet = GetOptionChoice(toggle_linet_item);
+            }
+            if (data == toggle_lines_item || data == NULL) {
+                p->lines = GetOptionChoice(toggle_lines_item);
+            }
+            if (data == toggle_width_item || data == NULL) {
+                p->linew = GetSpinChoice(toggle_width_item);
+            }
+            if (data == toggle_color_item || data == NULL) {
+                p->linepen.color = GetOptionChoice(toggle_color_item);
+            }
+            if (data == toggle_pattern_item || data == NULL) {
+                p->linepen.pattern = GetOptionChoice(toggle_pattern_item);
+            }
+            if (data == symcolor_item || data == NULL) {
+                p->sympen.color = GetOptionChoice(symcolor_item);
+            }
+            if (data == sympattern_item || data == NULL) {
+                p->sympen.pattern = GetOptionChoice(sympattern_item);
+            }
+            if (data == symfillcolor_item || data == NULL) {
+                p->symfillpen.color = GetOptionChoice(symfillcolor_item);
+            }
+            if (data == symfillpattern_item || data == NULL) {
+                p->symfillpen.pattern = GetOptionChoice(symfillpattern_item);
+            }
+            if (data ==  dropline_item || data == NULL) {
+                p->dropline = GetToggleButtonState(dropline_item);
+            }
+            if (data == baseline_item || data == NULL) {
+                p->baseline = GetToggleButtonState(baseline_item);
+            }
+            if (data ==  baselinetype_item || data == NULL) {
+                p->baseline_type = GetOptionChoice(baselinetype_item);
+            }
+            if (data == errbar_active_item || data == NULL) {
+                p->errbar.active = GetToggleButtonState(errbar_active_item);
+            }
+            if (data == errbar_size_item || data == NULL) {
+                p->errbar.barsize = GetCharSizeChoice(errbar_size_item);
+            }
+            if (data == errbar_width_item || data == NULL) {
+                p->errbar.linew = GetSpinChoice(errbar_width_item);
+            }
+            if (data == errbar_lines_item || data == NULL) {
+                p->errbar.lines = GetOptionChoice(errbar_lines_item);
+            }
+            if (data == errbar_riserlinew_item || data == NULL) {
+                p->errbar.riser_linew = GetSpinChoice(errbar_riserlinew_item);
+            }
+            if (data == type_item || data == NULL) {
+                set_dataset_type(get_cg(), setno, GetOptionChoice(type_item));
+            }
+            if (data == errbar_riserlines_item || data == NULL) {
+                p->errbar.riser_lines = GetOptionChoice(errbar_riserlines_item);
+            }
+            if (data == errbar_ptype_item || data == NULL) {
+                p->errbar.ptype = GetOptionChoice(errbar_ptype_item);
+            }
+            if (data == errbar_color_item || data == NULL) {
+                p->errbar.pen.color = GetOptionChoice(errbar_color_item);
+            }
+            if (data == errbar_pattern_item || data == NULL) {
+                p->errbar.pen.pattern = GetOptionChoice(errbar_pattern_item);
+            }
+            if (data == errbar_aclip_item || data == NULL) {
+                p->errbar.arrow_clip = GetToggleButtonState(errbar_aclip_item);
+            }
+            if (data == errbar_cliplen_item || data == NULL) {
+                p->errbar.cliplen = GetSpinChoice(errbar_cliplen_item);
+            }
+            if (data == avalue_active_item || data == NULL) {
+                p->avalue.active = GetToggleButtonState(avalue_active_item);
+            }
+            if (data == avalue_type_item || data == NULL) {
+                p->avalue.type = GetOptionChoice(avalue_type_item);
+            }
+            if (data == avalue_charsize_item || data == NULL) {
+                p->avalue.size = GetCharSizeChoice(avalue_charsize_item);
+            }
+            if (data == avalue_font_item || data == NULL) {
+                p->avalue.font = GetOptionChoice(avalue_font_item);
+            }
+            if (data == avalue_color_item || data == NULL) {
+                p->avalue.color = GetOptionChoice(avalue_color_item);
+            }
+            if (data == avalue_angle_item || data == NULL) {
+                p->avalue.angle = GetAngleChoice(avalue_angle_item);
+            }
+            if (data == avalue_format_item || data == NULL) {
+                p->avalue.format = GetOptionChoice(avalue_format_item);
+            }
+            if (data == avalue_precision_item || data == NULL) {
+                p->avalue.prec = GetOptionChoice(avalue_precision_item);
+            }
+            if (data == avalue_prestr || data == NULL) {
+                strcpy(p->avalue.prestr, xv_getstr(avalue_prestr));
+            }
+            if (data == avalue_appstr || data == NULL) {
+                strcpy(p->avalue.appstr, xv_getstr(avalue_appstr));
+            }
+            if (data == avalue_offsetx || data == NULL) {
+                xv_evalexpr(avalue_offsetx, &p->avalue.offset.x);
+            }
+            if (data == avalue_offsety || data == NULL) {
+                xv_evalexpr(avalue_offsety, &p->avalue.offset.y);
+            }
         }
         xfree(selset);
     } 
@@ -548,7 +676,7 @@ static void UpdateSymbols(int gno, int value)
     char val[24];
     set *p;
 
-    if ((cset == value) && (value != -1)) {
+    if ((cset == value)&& (value != -1)) {
         p = set_get(gno, cset);
         if (!p) {
             return;
@@ -556,7 +684,7 @@ static void UpdateSymbols(int gno, int value)
     
         SetOptionChoice(type_item, p->type);
         for (i = 0; i < type_item->nchoices; i++) {
-            if (settype_cols(type_item->options[i].value) ==
+            if (settype_cols(type_item->options[i].value)==
                                             settype_cols(p->type)) {
                 SetSensitive(type_item->options[i].widget, True);
             } else {
@@ -569,7 +697,7 @@ static void UpdateSymbols(int gno, int value)
         xv_setstr(symskip_item, val);
         sprintf(val, "%d", p->symchar);
         xv_setstr(symchar_item, val);
-        SetChoice(toggle_symbols_item, p->sym);
+        SetOptionChoice(toggle_symbols_item, p->sym);
         
         SetOptionChoice(symcolor_item, p->sympen.color);
         SetOptionChoice(sympattern_item, p->sympen.pattern);
@@ -585,14 +713,14 @@ static void UpdateSymbols(int gno, int value)
         SetSpinChoice(toggle_width_item, p->linew);
         SetToggleButtonState(dropline_item, p->dropline);
         SetOptionChoice(toggle_lines_item, p->lines);
-        SetChoice(toggle_linet_item, p->linet);
-        SetChoice(toggle_filltype_item, p->filltype);
-        SetChoice(toggle_fillrule_item, p->fillrule);
+        SetOptionChoice(toggle_linet_item, p->linet);
+        SetOptionChoice(toggle_filltype_item, p->filltype);
+        SetOptionChoice(toggle_fillrule_item, p->fillrule);
         SetOptionChoice(toggle_fillcol_item, p->setfillpen.color);
         SetOptionChoice(toggle_fillpat_item, p->setfillpen.pattern);
         
         SetToggleButtonState(baseline_item, p->baseline);
-        SetChoice(baselinetype_item, p->baseline_type);
+        SetOptionChoice(baselinetype_item, p->baseline_type);
 
         SetTextString(legend_str_item, p->legstr);
         
@@ -602,13 +730,13 @@ static void UpdateSymbols(int gno, int value)
         case SET_XYDXDX:
         case SET_XYDYDY:
         case SET_XYDXDXDYDY:
-            SetSensitive(errbar_ptype_item[4], False);
+            SetSensitive(errbar_ptype_item->options[2].widget, False);
             break;
         default:
-            SetSensitive(errbar_ptype_item[4], True);
+            SetSensitive(errbar_ptype_item->options[2].widget, True);
             break;
         }
-        SetChoice(errbar_ptype_item, p->errbar.ptype);
+        SetOptionChoice(errbar_ptype_item, p->errbar.ptype);
         SetOptionChoice(errbar_color_item, p->errbar.pen.color);
         SetOptionChoice(errbar_pattern_item, p->errbar.pen.pattern);
         SetToggleButtonState(errbar_aclip_item, p->errbar.arrow_clip);
@@ -620,13 +748,13 @@ static void UpdateSymbols(int gno, int value)
         SetCharSizeChoice(errbar_size_item, p->errbar.barsize);
 
         SetToggleButtonState(avalue_active_item, p->avalue.active);
-        SetChoice(avalue_type_item, p->avalue.type);
+        SetOptionChoice(avalue_type_item, p->avalue.type);
         SetCharSizeChoice(avalue_charsize_item, p->avalue.size);
         SetOptionChoice(avalue_font_item, p->avalue.font);
         SetOptionChoice(avalue_color_item, p->avalue.color);
         SetAngleChoice(avalue_angle_item, p->avalue.angle);
         SetOptionChoice(avalue_format_item, p->avalue.format);
-        SetChoice(avalue_precision_item, p->avalue.prec);
+        SetOptionChoice(avalue_precision_item, p->avalue.prec);
         
         xv_setstr(avalue_prestr, p->avalue.prestr);
         xv_setstr(avalue_appstr, p->avalue.appstr);
@@ -654,7 +782,7 @@ void updatesymbols(int gno, int setno)
     }
     
     if (setapp_dialog != NULL) { 
-        if (SelectListChoice(toggle_symset_item, setno) == RETURN_SUCCESS) {
+        if (SelectListChoice(toggle_symset_item, setno)== RETURN_SUCCESS) {
             cset = setno;
         }
     }
@@ -669,7 +797,7 @@ static void setapp_data_proc(void *data)
     set *p;
     int c = 0, bg = getbgcolor();
     
-    proc_type = (int) data;
+    proc_type = (int)data;
 
     cd = GetListChoices(toggle_symset_item, &selset);
     if (cd < 1) {
@@ -691,7 +819,7 @@ static void setapp_data_proc(void *data)
                 load_comments_to_legend(cg, setno);
                 break;
             case SETAPP_ALL_COLORS:
-                while (c == bg || get_colortype(c) != COLOR_MAIN) {
+                while (c == bg || get_colortype(c)!= COLOR_MAIN) {
                     c++;
                     c %= number_of_colors();
                 }
@@ -699,13 +827,13 @@ static void setapp_data_proc(void *data)
                 c++;
                 break;
             case SETAPP_ALL_SYMBOLS:
-                p->sym = (i % (MAXSYM - 2)) + 1;
+                p->sym = (i % (MAXSYM - 2))+ 1;
                 break;
             case SETAPP_ALL_LINEW:
-                p->linew = ((i % (2*((int) MAX_LINEWIDTH) - 1)) + 1)/2.0;
+                p->linew = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
                 break;
             case SETAPP_ALL_LINES:
-                p->lines = (i % (number_of_linestyles() - 1)) + 1;
+                p->lines = (i % (number_of_linestyles()- 1))+ 1;
                 break;
             case SETAPP_ALL_BW:
                 set_set_colors(p, 1);
@@ -723,9 +851,9 @@ static void setapp_data_proc(void *data)
 
 static void csync_cb(int value, void *data)
 {
-    int mask = (int) data;
+    int mask = (int)data;
     
-    if (GetToggleButtonState(csync_item) != TRUE) {
+    if (GetToggleButtonState(csync_item)!= TRUE) {
         return;
     }
     
