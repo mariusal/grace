@@ -102,6 +102,8 @@ DObject *object_new(void)
     o = xmalloc(sizeof(DObject));
     memset(o, 0, sizeof(DObject));
     if (o) {
+        o->active = FALSE;
+        
         o->type = DO_NONE;
 
         o->loctype = COORD_VIEW;
@@ -117,7 +119,7 @@ DObject *object_new(void)
         o->line.style = 1;
         o->line.width = 1.0;
         o->fillpen.color = 1;
-        o->fillpen.pattern = 1;
+        o->fillpen.pattern = 0;
         
         o->odata = NULL;
         
@@ -182,8 +184,9 @@ DObject *object_new_complete(OType type)
     
     o = object_new();
     if (o) {
-        o->type  = type;
-        o->odata = object_data_new(type);
+        o->active = TRUE;
+        o->type   = type;
+        o->odata  = object_data_new(type);
         if (o->odata == NULL) {
             xfree(o);
             return NULL;
