@@ -3,7 +3,7 @@ main$(O) : main.c globals.h grace.h defines.h storage.h utils.h files.h \
  ssdata.h graphs.h graphutils.h plotone.h draw.h device.h t1fonts.h \
  devlist.h x11drv.h parser.h protos.h missing.h noxprotos.h xprotos.h
 grace$(O) : grace.c defines.h grace.h storage.h utils.h graphs.h protos.h \
- missing.h noxprotos.h xprotos.h device.h t1fonts.h
+ missing.h noxprotos.h xprotos.h
 project$(O) : project.c defines.h utils.h grace.h storage.h objutils.h \
  graphs.h protos.h missing.h noxprotos.h xprotos.h
 draw$(O) : draw.c defines.h device.h t1fonts.h graphs.h grace.h storage.h \
@@ -21,10 +21,12 @@ files$(O) : files.c globals.h grace.h defines.h storage.h utils.h files.h \
  ssdata.h graphs.h graphutils.h parser.h protos.h missing.h \
  noxprotos.h xprotos.h
 xfile$(O) : xfile.c defines.h utils.h files.h xfile.h
-xml_in$(O) : xml_in.c defines.h utils.h files.h xfile.h
+xml_in$(O) : xml_in.c globals.h grace.h defines.h storage.h utils.h \
+ objutils.h device.h t1fonts.h files.h xfile.h xstrings.h protos.h \
+ missing.h noxprotos.h graphs.h xprotos.h
 xml_out$(O) : xml_out.c globals.h grace.h defines.h storage.h utils.h \
- device.h t1fonts.h draw.h graphs.h graphutils.h objutils.h files.h \
- xfile.h protos.h missing.h noxprotos.h xprotos.h
+ draw.h t1fonts.h graphs.h graphutils.h objutils.h files.h xfile.h \
+ xstrings.h protos.h missing.h noxprotos.h xprotos.h
 ssdata$(O) : ssdata.c defines.h globals.h grace.h storage.h utils.h \
  graphs.h graphutils.h files.h ssdata.h parser.h protos.h missing.h \
  noxprotos.h xprotos.h
@@ -52,7 +54,7 @@ computils$(O) : computils.c ../cephes/cephes.h utils.h draw.h defines.h \
 defaults$(O) : defaults.c defines.h globals.h grace.h storage.h graphs.h \
  objutils.h draw.h utils.h protos.h missing.h noxprotos.h xprotos.h
 params$(O) : params.c globals.h grace.h defines.h storage.h draw.h \
- utils.h graphs.h graphutils.h device.h t1fonts.h protos.h missing.h \
+ t1fonts.h utils.h graphs.h graphutils.h protos.h missing.h \
  noxprotos.h xprotos.h
 dlmodule$(O) : dlmodule.c dlmodule.h defines.h utils.h parser.h
 missing$(O) : missing.c defines.h missing.h
