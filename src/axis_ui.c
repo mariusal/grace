@@ -308,7 +308,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     ui->sw = XtVaCreateManagedWidget("ui->sw",
                                  xmScrolledWindowWidgetClass, ui->special_tp,
-				 XmNheight, 300,
+				 XmNheight, 320,
                                  XmNscrollingPolicy, XmAUTOMATIC,
                                  NULL);
     rc = CreateVContainer(ui->sw);
@@ -316,9 +316,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     for (i = 0; i < MAX_TICKS; i++) {
         rc3 = CreateHContainer(rc);
         sprintf(buf, "%2d", i);
-        ui->specloc[i]   = CreateTextItem4(rc3, 12, buf);
+        ui->specloc[i]   = CreateTextItem2(rc3, 12, buf);
         AddTextItemCB(ui->specloc[i], titem_explorer_cb, eui);
-        ui->speclabel[i] = CreateTextItem4(rc3, 30, "");
+        ui->speclabel[i] = CreateTextItem2(rc3, 30, "");
         AddTextItemCB(ui->speclabel[i], titem_explorer_cb, eui);
     }
 

@@ -3860,17 +3860,6 @@ Widget CreateTextItem2(Widget parent, int len, char *s)
     return w;
 }
 
-Widget CreateTextItem4(Widget parent, int len, char *label)
-{
-    Widget retval;
-    XtVaCreateManagedWidget(label, xmLabelWidgetClass, parent, NULL);
-    retval = XtVaCreateManagedWidget("text",
-        xmTextWidgetClass, parent,
-        XmNcolumns, len,
-        NULL);
-    return retval;
-}
-
 typedef struct {
     TItem_CBProc cbproc;
     void *anydata;

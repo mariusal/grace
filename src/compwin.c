@@ -1312,11 +1312,11 @@ static void *prune_build_cb(TransformStructure *tdialog)
         ui->area = CreateOptionChoice(rc, "Prune area:", 0, 2, aopitems);
 
 	rc2 = CreateHContainer(rc);
-	ui->dx = CreateTextItem4(rc2, 16, "DX:");
+	ui->dx = CreateTextItem2(rc2, 16, "DX:");
 	ui->dxtype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
 	
 	rc2 = CreateHContainer(rc);
-	ui->dy = CreateTextItem4(rc2, 16, "DY:");
+	ui->dy = CreateTextItem2(rc2, 16, "DY:");
 	ui->dytype = CreateOptionChoice(rc2, "Type:", 0, 2, dopitems);
     }
 
