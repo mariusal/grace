@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -60,8 +60,6 @@ extern Display *disp;
 extern Window root;
 extern GC gc;
 extern int depth;
-
-extern unsigned long xvlibcolors[];
 
 static Widget fonttool_frame = NULL;
 static OptionStructure *font_select_item;
@@ -196,8 +194,6 @@ void create_fonttool(Widget cstext)
 	    XmNheight, (Dimension) 100,
 	    XmNwidth, (Dimension) 600,
 	    XmNresizePolicy, XmRESIZE_ANY,
-            XmNbackground,
-	    xvlibcolors[0],
 	    NULL);
 #endif
 

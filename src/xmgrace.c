@@ -90,7 +90,6 @@ extern GC gc;
 extern int screennumber;
 extern int depth;
 extern Colormap cmap;
-extern unsigned long xvlibcolors[];
 
 /* used locally */
 static Widget main_frame;
@@ -982,16 +981,12 @@ void startup_gui(void)
         canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, drawing_window,
 				     XmNresizePolicy, XmRESIZE_ANY,
-                                     XmNbackground,
-				     xvlibcolors[0],
 				     NULL);
     } else {
         canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, form,
 				     XmNresizePolicy, XmRESIZE_ANY,
 				     XmNnavigationType, XmEXCLUSIVE_TAB_GROUP,
-                                     XmNbackground,
-				     xvlibcolors[0],
 				     NULL);
         drawing_window = canvas;
     }
