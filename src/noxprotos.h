@@ -93,7 +93,7 @@ void runmedian(double *x, double *y, double *ax, double *ay, int n, int ilen);
 void runminmax(double *x, double *y, double *ax, double *ay, int n, int ilen, int type);
 void filterser(int n, double *x, double *y, double *resx, double *resy, double *h, int len);
 void linearconv(double *x, double *h, double *y, int n, int m);
-int crosscorr(double *x, double *y, int n, int lag, double *xcov, double *xcor);
+int crosscorr(double *x, double *y, int n, int lag, double *xcor);
 int transfit(int type, int n, double *x, double *y, double *fitted);
 int linear_regression(int n, double *x, double *y, double *fitted);
 

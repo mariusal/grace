@@ -314,7 +314,7 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
                     set1, maxlag);
 	}
 	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), getsetlength(gno1, set1),
-                         maxlag, getx(get_cg(), xcorset), gety(get_cg(), xcorset));
+                         maxlag, gety(get_cg(), xcorset));
 	xtmp = getx(get_cg(), xcorset);
 	for (i = 0; i <= maxlag; i++) {
 	    xtmp[i] = i;
