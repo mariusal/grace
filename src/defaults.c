@@ -159,8 +159,11 @@ void set_default_ticks(tickmarks *t)
     if (t == NULL) {
         return;
     }
+
+    memset(t, 0, sizeof(tickmarks));
     
     t->active = TRUE;
+    t->type = AXIS_TYPE_X;
     t->zero = FALSE;
     t->tl_flag = TRUE;
     t->t_flag = TRUE;
