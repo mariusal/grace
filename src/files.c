@@ -1089,6 +1089,7 @@ int load_agr_project(Grace *grace, char *fn)
     if (getdata(project, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
         return grace_set_project(grace, project);
     } else {
+        parser_state_reset(grace->project);
         quark_free(project);
         
         return RETURN_FAILURE;
