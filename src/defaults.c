@@ -74,7 +74,7 @@ void set_program_defaults(void)
     grdefaults = d_d;
         
     for (i = 0; i < MAXREGION; i++) {
-        set_region_defaults(i);
+        set_region_defaults(&rg[i]);
     }
     
     set_default_string(&timestamp);
@@ -88,18 +88,22 @@ void set_program_defaults(void)
     objects = storage_new(object_free, NULL);
 }
 
-void set_region_defaults(int rno)
+void set_region_defaults(region *r)
 {
-    rg[rno].active = FALSE;
-    rg[rno].type = 0;
-    rg[rno].color = grdefaults.color;
-    rg[rno].lines = grdefaults.lines;
-    rg[rno].linew = grdefaults.linew;
-    rg[rno].n = 0;
-    rg[rno].x = rg[rno].y = NULL;
-    rg[rno].x1 = rg[rno].y1 = rg[rno].x2 = rg[rno].y2 = 0.0;
+    if (!r) {
+        return;
+    }
+    
+    r->active = FALSE;
+    r->type = 0;
+    r->color = grdefaults.color;
+    r->lines = grdefaults.lines;
+    r->linew = grdefaults.linew;
+    r->n = 0;
+    r->x = r->y = NULL;
+    r->x1 = r->y1 = r->x2 = r->y2 = 0.0;
 
-    rg[rno].linkto = 0;
+    r->linkto = 0;
 }
 
 void set_default_framep(framep * f)
