@@ -41,7 +41,7 @@
 #include "grace/core.h"
 
 static defaults d_d =
-{{{1, 1}, 1, 1.0}, {0, 0}, 1, 1.0};
+{{{1, 1}, 1, 1.0}, {0, 0}, 0, 1.0};
 
 Project *project_data_new(void)
 {
