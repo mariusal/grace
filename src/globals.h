@@ -163,7 +163,7 @@ GLOBAL(nr, int, 0);
 GLOBAL(resfp, FILE *, NULL);
 
 /* format for saving data sets */
-GLOBALARR(sformat, char, 128, "%16.8g");
+GLOBALARR(sformat, char, 128, "%.8g");
 
 #ifdef HAVE_NETCDF
 GLOBALARR(netcdf_name, char, 512, "");
