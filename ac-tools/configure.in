@@ -658,8 +658,8 @@ dnl **** Check for Motif
     GRACE=xmgrace
 
     dnl **** Special Motif checks
-    save_CPPFLAGS="$CPPFLAGS"
-    save_LIBS="$LIBS"
+    xsave_CPPFLAGS="$CPPFLAGS"
+    xsave_LIBS="$LIBS"
     CPPFLAGS="$CPPFLAGS $GUI_FLAGS"
     LIBS="$X_LIBS $GUI_LIBS $LIBS"
 
@@ -693,8 +693,8 @@ dnl **** Check for Motif
 
     GUI_LIBS="$LIBHELP_LIB $XMHTML_LIB $XBAE_LIB $GUI_LIBS"
 
-    CPPFLAGS="$save_CPPFLAGS"
-    LIBS="$save_LIBS"
+    CPPFLAGS="$xsave_CPPFLAGS"
+    LIBS="$xsave_LIBS"
     
   fi
 fi
