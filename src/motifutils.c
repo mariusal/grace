@@ -3558,8 +3558,6 @@ void errwin(char *s)
 	XmStringFree(str);
 	XtAddCallback(error_popup, XmNokCallback, 
             cancelerrwin, (XtPointer) error_popup);
-	AddButtonCB(error_popup, HelpCB,
-	    (XtPointer) NULL);
 	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
 	    XmDIALOG_CANCEL_BUTTON));
 	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
