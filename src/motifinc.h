@@ -443,6 +443,7 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 StorageStructure *CreateSetChoice(Widget parent, char *labelstr, 
                                         int type, StorageStructure *graphss);
 void UpdateSetChoice(StorageStructure *ss);
+Quark *get_set_choice_gr(StorageStructure *ss);
 
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
