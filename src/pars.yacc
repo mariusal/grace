@@ -58,7 +58,6 @@
 #include "core_utils.h"
 #include "plotone.h"
 #include "dlmodule.h"
-#include "grace/canvas.h"
 #include "ssdata.h"
 #include "protos.h"
 #include "parser.h"

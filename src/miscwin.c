@@ -38,7 +38,6 @@
 #include <stdlib.h>
 
 #include "globals.h"
-#include "grace/canvas.h"
 #include "utils.h"
 #include "core_utils.h"
 #include "motifinc.h"

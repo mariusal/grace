@@ -41,10 +41,6 @@
 
 #include "cephes.h"
 
-#include "grace/baseP.h"
-#include "utils.h"
-#include "grace/canvas.h"
-#include "ssdata.h"
 #include "core_utils.h"
 #include "parser.h"
 #include "protos.h"

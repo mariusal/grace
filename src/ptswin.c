@@ -38,7 +38,6 @@
 #include <stdlib.h>
 
 #include "utils.h"
-#include "grace/canvas.h"
 #include "core_utils.h"
 #include "events.h"
 #include "protos.h"

@@ -38,9 +38,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "grace/canvas.h"
 #include "core_utils.h"
-#include "utils.h"
 #include "protos.h"
 
 /*

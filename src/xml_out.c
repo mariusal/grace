@@ -27,7 +27,7 @@
 
 #include <config.h>
 
-#include "grace/canvas.h"
+#include "grace.h"
 #include "utils.h"
 #include "dicts.h"
 #include "files.h"

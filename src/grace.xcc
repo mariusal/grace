@@ -10,7 +10,6 @@
 #include "files.h"
 #include "utils.h"
 #include "dicts.h"
-#include "grace/canvas.h"
 #include "core_utils.h"
 #include "protos.h"
 
