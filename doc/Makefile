@@ -24,7 +24,7 @@ SGML2DVI = sgml2latex
 
 SGMLS = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
 
-HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg \
+HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html \
 	FAQ.html Tutorial.html UsersGuide.html
 
 DVIDOCS = FAQ.dvi Tutorial.dvi UsersGuide.dvi
