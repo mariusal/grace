@@ -281,12 +281,14 @@ We define other routines formatting parameters
 */
 #define    DumpArea(area)    t1_DumpArea(area)
 #define    DumpText(text)    t1_DumpText(text)
+/* #define    DumpPath(path)    t1_DumpPath(path) */ /* commented by RMz, 1999-06-10 */
 #define    DumpSpace(space)  t1_DumpSpace(space)
 #define    DumpEdges(e)      t1_DumpEdges(e)
 #define    FormatFP(s,p)     t1_FormatFP(s,p)
  
 void t1_DumpArea();           /* dump a region structure                      */
 void t1_DumpText();           /* dump a textpath structure                    */
+void t1_DumpPath();           /* dump a path list                             */
 void t1_DumpSpace();          /* dump a coordinate space structure            */
 void t1_DumpEdges();          /* dump a region's edge list                    */
 void t1_FormatFP();           /* dump a format a "fractpel" coordinate        */

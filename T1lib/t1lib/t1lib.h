@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-23
+  ----- Date:        1999-06-28
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
@@ -95,6 +95,8 @@ typedef struct
 #define IGNORE_FONTDATABASE 0x2  /* Default is to read database */
 #define IGNORE_CONFIGFILE   0x4  /* Default is to read config file */
 #define T1_AA_CACHING       0x8  /* Cache aa-bytes */
+#define T1_NO_AFM           0x10 /* Do not load or generate AFM data */
+
 
 
 /* common 'yes'/'no' */
@@ -156,6 +158,8 @@ extern int T1_errno;
 #define T1ERR_ALLOC_MEM               13
 #define T1ERR_FILE_OPEN_ERR           14
 #define T1ERR_UNSPECIFIED             15
+#define T1ERR_NO_AFM_DATA             16
+#define T1ERR_X11                     17
 
 
 /* Flags to control the rasterizer */
@@ -299,6 +303,7 @@ extern METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 				      int len,  long spaceoff, int kerning);
 extern BBox T1_GetFontBBox( int FontID);
 extern char **T1_GetAllCharNames( int FontID);
+extern int T1_GetNoKernPairs( int FontID);
 
 /* from t1load.c */
 extern int T1_LoadFont( int FontID);
@@ -316,27 +321,31 @@ extern GLYPH *T1_SetString( int FontID, char *string, int len,
 extern GLYPH *T1_CopyGlyph(GLYPH *glyph);
 extern void T1_DumpGlyph( GLYPH *glyph);
 extern GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
-			       int x_off, int y_off, int mode);
+			       int x_off, int y_off, int modflag);
 extern void T1_DumpPixmap( GLYPH *glyph);
 extern GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
 /* from t1trans.c */
 extern int T1_ExtendFont( int FontID, double extend);
 extern int T1_SlantFont( int FontID, double slant);
+extern int T1_TransformFont( int FontID, T1_TMATRIX *matrix);
+extern double T1_GetExtend( int FontID);
+extern double T1_GetSlant( int FontID);
+extern T1_TMATRIX T1_GetTransform( int FontID);
 extern int T1_SetLinePosition( int FontID, int linetype, float value);
 extern int T1_SetLineThickness( int FontID, int linetype, float value);
 extern float T1_GetLinePosition( int FontID, int linetype);
 extern float T1_GetLineThickness( int FontID, int linetype);
-extern T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, float angle);
+extern T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, double angle);
 extern T1_TMATRIX *T1_MirrorHMatrix( T1_TMATRIX *matrix);
 extern T1_TMATRIX *T1_MirrorVMatrix( T1_TMATRIX *matrix);
-extern T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, float shear);
-extern T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, float shear);
-extern T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, float extent);
-extern T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, float extent);
+extern T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, double shear);
+extern T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, double shear);
+extern T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, double extent);
+extern T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent);
 extern T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
-				       float cxx, float cyx,
-				       float cxy, float cyy);
+				       double cxx, double cyx,
+				       double cxy, double cyy);
 
 
 /* from t1aaset.c */
@@ -352,7 +361,11 @@ extern int T1_AASetGrayValues(unsigned long white,
 			      unsigned long black);
 extern int T1_AAHSetGrayValues( unsigned long *grayvals);
 extern int T1_AANSetGrayValues( unsigned long bg, unsigned long fg);
+extern int T1_AAGetGrayValues( long *pgrayvals);
+extern int T1_AAHGetGrayValues( long *pgrayvals);
+extern int T1_AANGetGrayValues( long *pgrayvals);
 extern int T1_AASetBitsPerPixel( int bpp);
+extern int T1_AAGetBitsPerPixel( void);
 extern int T1_AASetLevel( int level);
 extern int T1_AAGetLevel( void);
 extern GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag);
@@ -379,7 +392,8 @@ extern void T1_AbsolutePath( T1_OUTLINE *rpath);
 extern void T1_RelativePath( T1_OUTLINE *apath);
 extern void T1_ManipulatePath( T1_OUTLINE *path,
 			       void (*manipulate)(long *x,long *y,int type));
-
+extern T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path);
+extern void T1_FreeOutline( T1_OUTLINE *path);
 
 
 #if defined(__cplusplus) || defined(c_plusplus)

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-03-21
+  ----- Date:        1999-06-28
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1set.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -43,7 +43,7 @@ void T1_ComputeLineParameters( int FontID, int width,
 			       int *startx, int *endx,
 			       int *starty, int *endy);
 GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
-			int x_off, int y_off, int mode);
+			int x_off, int y_off, int modflag);
 void T1_DumpGlyph( GLYPH *glyph);
 GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
@@ -61,7 +61,7 @@ extern void fillrun(char *p, pel x0, pel x1, int bit);
 extern GLYPH *T1_CopyGlyph(GLYPH *glyph);
 extern void T1_DumpGlyph( GLYPH *glyph);
 extern GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
-			       int x_off, int y_off, int mode);
+			       int x_off, int y_off, int modflag);
 extern void T1_DumpGlyph( GLYPH *glyph);
 extern GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 

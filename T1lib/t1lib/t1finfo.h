@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/24/1998
+  ----- Date:        1999-06-07
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1finfo.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -51,6 +51,7 @@ METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 			       int len,  long spaceoff, int kerning);
 BBox T1_GetFontBBox( int FontID);
 char **T1_GetAllCharNames( int FontID);
+int T1_GetNoKernPairs( int FontID);
 static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2);
 
 #else
@@ -79,6 +80,7 @@ extern BBox T1_GetStringBBox( int FontID, char *string,
 extern METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 				      int len,  long spaceoff, int kerning);
 extern BBox T1_GetFontBBox( int FontID);
+extern int T1_GetNoKernPairs( int FontID);
 extern char **T1_GetAllCharNames( int FontID);
      
 #endif

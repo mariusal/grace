@@ -1,8 +1,8 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1aaset.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-                     Subsampling-code by Raph Levien (raph@acm.org)
-  ----- Date:        1999-04-23
+                     Subsampling based on code by Raph Levien (raph@acm.org)
+  ----- Date:        1999-06-06
   ----- Description: This file is part of the t1-library. It contains
                      functions for antialiased setting of characters
 		     and strings of characters.
@@ -92,7 +92,7 @@ unsigned T1_AA_TYPE32 T1aa_bg=0;
 /* The limit values for smart antialiasing */
 float T1aa_smartlimit1=T1_AA_SMARTLIMIT1;
 float T1aa_smartlimit2=T1_AA_SMARTLIMIT2;
-int    T1aa_SmartOn=0;     /* We do not enable smart AA by default */
+int   T1aa_SmartOn=0;     /* We do not enable smart AA by default */
 
 /* T1_AAInit: This function must be called whenever the T1aa_gray_val
    or T1aa_bpp variables change, or the level changes. */
@@ -704,6 +704,7 @@ static void T1_AADoLine ( int level, int x, int y, int width,
 }
 
 
+
 /* T1_DoLine(): Generate a scanline of bytes from a scanline of bits */
 static void T1_DoLine ( long wd, long paddedW, char *ptr, register char *target_ptr )
 {
@@ -1276,7 +1277,7 @@ int T1_AAHSetGrayValues( unsigned long *grayvals)
 /* T1_AANSetGrayValues(): Sets the byte values that are put into the
    pixel position for the respective entries (for 2 gray levels):
    Returns 0 if successfull. This is for the case the non-antialiased
-   "bytemaps should be generated.
+   "bytemaps" should be generated.
    */
 int T1_AANSetGrayValues( unsigned long bg, unsigned long fg)
 {
@@ -1297,6 +1298,79 @@ int T1_AANSetGrayValues( unsigned long bg, unsigned long fg)
   
 }
 
+
+
+/* Get the current setting of graylevels for 2x antialiasing. The 5
+   values are stored at address pgrayvals in order from background to
+   foreground */
+int T1_AAGetGrayValues( long *pgrayvals)  
+{
+  int i;
+  
+  if (CheckForInit()) {
+    T1_errno=T1ERR_OP_NOT_PERMITTED;
+    return(-1);
+  }
+
+  if (pgrayvals==NULL) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(-1);
+  }
+  
+  for ( i=0; i<5; i++) { /* bg (i=0)  to fg (i=4) */
+    pgrayvals[i]=gv[i];
+  }
+  return( 0);
+  
+}
+
+
+
+/* Get the current setting of graylevels for 2x antialiasing. The 17
+   values are stored at address pgrayvals in order from background to
+   foreground */
+int T1_AAHGetGrayValues( long *pgrayvals) 
+{
+  int i;
+
+  if (CheckForInit()) {
+    T1_errno=T1ERR_OP_NOT_PERMITTED;
+    return(-1);
+  }
+
+  if (pgrayvals==NULL) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(-1);
+  }
+
+  for ( i=0; i<17; i++) { /* bg (i=0)  to fg (i=16) */
+    pgrayvals[i]=gv[i];
+  }
+  return( 0);
+}
+
+
+
+/* Get the current setting of graylevels for 2x antialiasing. The 2
+   values are stored at address pgrayvals in order from background to
+   foreground */
+int T1_AANGetGrayValues( long *pgrayvals) 
+{
+  int i;
+
+  if (CheckForInit()) {
+    T1_errno=T1ERR_OP_NOT_PERMITTED;
+    return(-1);
+  }
+
+  if (pgrayvals==NULL) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(-1);
+  }
+  pgrayvals[0]=gv[0]; /* background */
+  pgrayvals[1]=gv[1]; /* foreground */
+  return( 0);
+}
 
 
 /* T1_AASetBitsPerPixel(): Sets the depths of the antialiased glyph
@@ -1329,6 +1403,16 @@ int  T1_AASetBitsPerPixel( int bpp)
 
   T1_errno=T1ERR_INVALID_PARAMETER;
   return(-1);
+}
+
+
+/* T1_AAGetBitsPerPixel(): Return the number of bits per pixel set in
+   t1lib. 
+*/
+int T1_AAGetBitsPerPixel( void)
+{
+  return( T1aa_bpp);
+  
 }
 
 

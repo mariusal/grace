@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-20
+  ----- Date:        1999-06-12
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
@@ -86,6 +86,7 @@
 #define IGNORE_FONTDATABASE 0x2  /* Default is to read database */
 #define IGNORE_CONFIGFILE   0x4  /* Default is to read config file */
 #define T1_AA_CACHING       0x8  /* Cache aa-bytes */
+#define T1_NO_AFM           0x10 /* Don't load AFM files or generate AFM data */
 
 
 /* How may ligatures a character may have at maximum: */
@@ -149,6 +150,8 @@
 #define T1ERR_ALLOC_MEM               13
 #define T1ERR_FILE_OPEN_ERR           14
 #define T1ERR_UNSPECIFIED             15
+#define T1ERR_NO_AFM_DATA             16
+#define T1ERR_X11                     17
 
 
 /* The info_flags meaning */

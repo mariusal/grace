@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-05-06
+  ----- Date:        1999-06-07
   ----- Description: This file is part of the t1-library. It contains basic
                      basic routines to initialize the data structures used
 		     by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -83,10 +83,15 @@ void *T1_InitLib( int log)
   else
     pFontBase->bitmap_pad=T1GLYPH_PAD;
 
+  pFontBase->pFontArray = NULL;
   pFontBase->t1lib_flags=0;
   /* Chek for AA-caching */
   if ((log & T1_AA_CACHING)){
     pFontBase->t1lib_flags |= T1_AA_CACHING;
+  }
+  /* Check for AFM disable */
+  if ((log & T1_NO_AFM)) {
+    pFontBase->t1lib_flags |= T1_NO_AFM;
   }
   
   
@@ -453,22 +458,24 @@ int T1_AddFont( char *fontfilename)
      realloc memory some amount larger */
   save_ptr=pFontBase->pFontArray;
   if (pFontBase->no_fonts==pFontBase->no_fonts_limit){
-    if (pFontBase->pFontArray == NULL)
+    if (pFontBase->pFontArray == NULL) {
       /* In case this is the first font */
       pFontBase->pFontArray=(FONTPRIVATE *)calloc(pFontBase->no_fonts_limit 
 						  + ADVANCE_FONTPRIVATE,
 						  sizeof(FONTPRIVATE));
-    else 
+    }
+    else {
       /* We already have some fonts */
       pFontBase->pFontArray=(FONTPRIVATE *)realloc(pFontBase->pFontArray,
 						   (pFontBase->no_fonts_limit
 						    + ADVANCE_FONTPRIVATE)
 						   * sizeof(FONTPRIVATE));
-    if (pFontBase->pFontArray==NULL){
-      /* Restore pointer */
-      pFontBase->pFontArray=save_ptr;
-      T1_errno=T1ERR_ALLOC_MEM;
-      return(-2); /* No memory available */
+      if (pFontBase->pFontArray==NULL){
+	/* Restore pointer */
+	pFontBase->pFontArray=save_ptr;
+	T1_errno=T1ERR_ALLOC_MEM;
+	return(-2); /* No memory available */
+      }
     }
     pFontBase->no_fonts_limit += ADVANCE_FONTPRIVATE;
     /* First, initialize newly allocated to be not used */
@@ -848,6 +855,11 @@ int T1_CopyFont( int FontID)
       T1_errno=T1ERR_ALLOC_MEM;
       return(-3);
     }
+    /* We zero the newly allocated memory */
+    if (pFontBase->pFontArray != NULL) {
+      memset( pFontBase->pFontArray + pFontBase->no_fonts_limit, 0,
+	      ADVANCE_FONTPRIVATE * sizeof(FONTPRIVATE));
+    }
     pFontBase->no_fonts_limit += ADVANCE_FONTPRIVATE;
   }
   /* no_fonts-1 was the largest allowed font ID */
@@ -857,36 +869,49 @@ int T1_CopyFont( int FontID)
   /* (Re)Set some values explicitly, others remain untouched: */  
   pFontBase->pFontArray[new_ID].pFontSizeDeps=NULL;
   pFontBase->pFontArray[new_ID].physical=0;
-  /* AFM-mapping tables are to be setup for logical font separately */
-  k=pFontBase->pFontArray[new_ID].pAFMData->numOfPairs;
-  if (k>0){ /* kern map exists only if kerning pairs exist! */
-    if ((pFontBase->pFontArray[new_ID].pKernMap=
-	 (METRICS_ENTRY *)malloc( k*sizeof( METRICS_ENTRY)))==NULL){
-      sprintf( err_warn_msg_buf, "Error allocating memory for kerning map (new_ID=%d)",
+  /* AFM-mapping tables are to be setup for logical fonts separately
+   (if AFM data is there) */
+  /* first, kerning map */
+  if (pFontBase->pFontArray[new_ID].pAFMData) {
+    k=pFontBase->pFontArray[new_ID].pAFMData->numOfPairs;
+    if (k>0){ /* kern map exists only if kerning pairs exist! */
+      if ((pFontBase->pFontArray[new_ID].pKernMap=
+	   (METRICS_ENTRY *)malloc( k*sizeof( METRICS_ENTRY)))==NULL){
+	sprintf( err_warn_msg_buf, "Error allocating memory for kerning map (new_ID=%d)",
+		 new_ID);
+	T1_PrintLog( "T1_CopyFont()", err_warn_msg_buf,
+		     T1LOG_WARNING);
+	T1_errno=T1ERR_ALLOC_MEM;
+	return(-4);
+      }
+      memcpy( pFontBase->pFontArray[new_ID].pKernMap,
+	      pFontBase->pFontArray[FontID].pKernMap,
+	      k*sizeof( METRICS_ENTRY));
+    } 
+    else { /* no kerning pairs, bu AFM data present */
+      pFontBase->pFontArray[new_ID].pKernMap=NULL;
+    }
+  } 
+  else { /* AFM data not present at all */
+    pFontBase->pFontArray[new_ID].pKernMap=NULL;
+  }
+
+  /* second, encoding map */
+  if (pFontBase->pFontArray[FontID].pEncMap!=NULL) {
+    if ((pFontBase->pFontArray[new_ID].pEncMap=
+	 (int *)calloc(256,sizeof(int)))==NULL){
+      sprintf( err_warn_msg_buf,
+	       "Error allocating memory for encoding map (new_ID=%d)",
 	       new_ID);
       T1_PrintLog( "T1_CopyFont()", err_warn_msg_buf,
 		   T1LOG_WARNING);
       T1_errno=T1ERR_ALLOC_MEM;
       return(-4);
     }
-    memcpy( pFontBase->pFontArray[new_ID].pKernMap,
-	    pFontBase->pFontArray[FontID].pKernMap,
-	    k*sizeof( METRICS_ENTRY));
+    memcpy( pFontBase->pFontArray[new_ID].pEncMap,
+	    pFontBase->pFontArray[FontID].pEncMap,
+	    256*sizeof( int));
   }
-  else
-    pFontBase->pFontArray[new_ID].pKernMap=NULL;
-  if ((pFontBase->pFontArray[new_ID].pEncMap=
-       (int *)calloc(256,sizeof(int)))==NULL){
-    sprintf( err_warn_msg_buf, "Error allocating memory for encoding map (new_ID=%d)",
-	     new_ID);
-    T1_PrintLog( "T1_CopyFont()", err_warn_msg_buf,
-		 T1LOG_WARNING);
-    T1_errno=T1ERR_ALLOC_MEM;
-    return(-4);
-  }
-  memcpy( pFontBase->pFontArray[new_ID].pEncMap,
-	  pFontBase->pFontArray[FontID].pEncMap,
-	  256*sizeof( int));
   
   /* New font is logical --> indicate to which physical font it
      refers by setting refcount: */

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1aaset.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-03-21
+  ----- Date:        1999-06-06
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1set.c.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
@@ -39,7 +39,11 @@ int T1_AASetGrayValues( unsigned long white,
 			unsigned long black);
 int T1_AAHSetGrayValues( unsigned long *grayvals);
 int T1_AANSetGrayValues( unsigned long fg, unsigned long bg);
+int T1_AAGetGrayValues( long *pgrayvals);
+int T1_AAHGetGrayValues( long *pgrayvals);
+int T1_AANGetGrayValues( long *pgrayvals);
 int T1_AASetBitsPerPixel( int bpp);
+int T1_AAGetBitsPerPixel( void);
 int T1_AASetLevel( int level);
 int T1_AAGetLevel( void);
 GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag);
@@ -60,7 +64,11 @@ extern int T1_AASetGrayValues( unsigned long white,
 			       unsigned long black);
 extern int T1_AAHSetGrayValues( unsigned long *grayvals);
 extern int T1_AANSetGrayValues( unsigned long bg, unsigned long fg);
+extern int T1_AAGetGrayValues( long *pgrayvals);
+extern int T1_AAHGetGrayValues( long *pgrayvals);
+extern int T1_AANGetGrayValues( long *pgrayvals);
 extern int T1_AASetBitsPerPixel( int bpp);
+extern int T1_AAGetBitsPerPixel( void);
 extern int T1_AASetLevel( int level);
 extern int T1_AAGetLevel( void);
 extern GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag);

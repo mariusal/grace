@@ -268,31 +268,34 @@ xobject fontfcnB(int FontID, int modflag,
     
   /* Get width of char in charspace coordinates. We do not multiply with
      extension factor because extension is already done in the space matrix */
+  /*
   acc_width = (int) (pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) index]].wx);
+  */
   
   /* Take care for underlining and such */
-  if (modflag & T1_UNDERLINE){
+  /*
+  if (modflag & T1_UNDERLINE) {
     tmppath1=(struct segment *)Type1Line(FontP,S,
 					 pFontBase->pFontArray[FontID].UndrLnPos,
 					 pFontBase->pFontArray[FontID].UndrLnThick,
 					 (float) acc_width);
     charpath=(struct segment *)Join(charpath,tmppath1);
   }
-  if (modflag & T1_OVERLINE){
+  if (modflag & T1_OVERLINE) {
     tmppath1=(struct segment *)Type1Line(FontP,S,
 					 pFontBase->pFontArray[FontID].OvrLnPos,
 					 pFontBase->pFontArray[FontID].OvrLnThick,
 					 (float) acc_width);
     charpath=(struct segment *)Join(charpath,tmppath1);
   }
-  if (modflag & T1_OVERSTRIKE){
+  if (modflag & T1_OVERSTRIKE) {
     tmppath1=(struct segment *)Type1Line(FontP,S,
 					 pFontBase->pFontArray[FontID].OvrStrkPos,
 					 pFontBase->pFontArray[FontID].OvrStrkThick,
 					 (float) acc_width);
     charpath=(struct segment *)Join(charpath,tmppath1);
   }
-  
+  */
   /* if Type1Char reported an error, then return */
 
   if ( *mode == FF_PARSE_ERROR)  return(NULL);
@@ -323,7 +326,7 @@ xobject fontfcnB(int FontID, int modflag,
    third argument. The value of this pointer is first handed to FontP
    so that most other routines may be used without changes */
 
-#define MAXTRIAL 4  
+#define MAXTRIAL              4
 
 /***================================================================***/
 Bool fontfcnA(env,mode,Font_Ptr)
@@ -343,7 +346,10 @@ psfont *Font_Ptr;
   /* Read the font program. */
   for (i=1; i<MAXTRIAL; i++){
     vm_init_count=0;
-    vm_init_amount=MAX_STRING_LEN * i;
+    /* We allocate larger chunks (4*65536 Bytes) in order to reduce load
+       time for large fonts by initially requesting somewhat more
+       memory. */
+    vm_init_amount=MAX_STRING_LEN * 4 * i;
     if (!(initFont())) {
       /* we are really out of memory, not simulated! */
       *mode = SCAN_OUT_OF_MEMORY;
@@ -542,7 +548,6 @@ xobject fontfcnB_string( int FontID, int modflag,
 	}
       }
 
-      /* Accumulate width of string */
       acc_width += (int) ((pFontBase->pFontArray[FontID].pAFMData->cmi[pFontBase->pFontArray[FontID].pEncMap[(int) string[i]]].wx));
       
       
@@ -567,6 +572,7 @@ xobject fontfcnB_string( int FontID, int modflag,
     }
   }
 
+  
   /* Take care for underlining and such */
   if (modflag & T1_UNDERLINE){
     tmppath2=(struct segment *)Type1Line(FontP,S,

@@ -77,7 +77,7 @@ typedef struct				/* Builtin Standard Encoding */
 } EncodingTable;
 
 
-static char not_def[]=".notdef";
+char not_def[]=".notdef";
 
 
 static EncodingTable StdEnc[] = {

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-05-06
+  ----- Date:        1999-06-05
   ----- Description: This file is part of the t1-library. It contains
                      functions for loading fonts  and for managing size
 		     dependent data.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -80,6 +80,8 @@ int T1_LoadFont( int FontID)
 #endif
 
   extern psobj *StdEncArrayP;       /* For checking of a fonts encoding */
+  extern char not_def[];            /* for checking the ".notdef"-string */
+
 
   /* These are for constructing the kerning lookup table: */
   PairKernData *pkd;
@@ -224,8 +226,11 @@ int T1_LoadFont( int FontID)
 	else{ /* Font-specific encoding */ 
 	  for (k=0; k<256; k++){
 	    ldummy=(long)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[j].value.data.arrayP[k].data.arrayP;
-	    ldummy +=shift;
-	    pFontBase->pFontArray[FontID].pType1Data->fontInfoP[j].value.data.arrayP[k].data.arrayP=(struct ps_obj *)ldummy;
+	    /* The ".notdef" is also static and may not be shifted (Thanks, Derek ;) */
+	    if (ldummy != (unsigned long)not_def) {
+	      ldummy +=shift;
+	      pFontBase->pFontArray[FontID].pType1Data->fontInfoP[j].value.data.arrayP[k].data.arrayP=(struct ps_obj *)ldummy;
+	    }
 	  }
 	}
       } /* end of encoding-handling */
@@ -356,8 +361,11 @@ int T1_LoadFont( int FontID)
 	else{ /* Font-specific encoding */ 
 	  for (k=0; k<256; k++){
 	    ldummy=(long)pFontBase->pFontArray[FontID].pType1Data->fontInfoP[j].value.data.arrayP[k].data.arrayP;
-	    ldummy -=shift;
-	    pFontBase->pFontArray[FontID].pType1Data->fontInfoP[j].value.data.arrayP[k].data.arrayP=(struct ps_obj *)ldummy;
+	    /* The ".notdef" is also static and may not be shifted (Thanks, Derek ;) */
+	    if (ldummy != (unsigned long)not_def) {
+	      ldummy -=shift;
+	      pFontBase->pFontArray[FontID].pType1Data->fontInfoP[j].value.data.arrayP[k].data.arrayP=(struct ps_obj *)ldummy;
+	    }
 	  }
 	}
       } /* end of encoding-handling */
@@ -460,44 +468,54 @@ int T1_LoadFont( int FontID)
   pFontBase->pFontArray[FontID].extend=1.0;
 
   
-  /* Now try to load afm-structures from corresponding .afm-file. */
-  if ((i=openFontMetricsFile( FontID, 0))){
-    /* Try a fallback, opening sloppy: */
-    if ((i=openFontMetricsFile( FontID, 1))){
-      sprintf( err_warn_msg_buf,
-	       "Alert: Error (%d) sloppy-processing afm-file for Font %d!",
-	       i ,FontID);
-      T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_STATISTIC);
-      if ((pFontBase->pFontArray[FontID].pAFMData=
-	   T1_GenerateAFMFallbackInfo(FontID))==NULL){
+  /* Now try to load afm-structures from corresponding .afm-file (if
+     not suppressed by the user). */
+  if ((pFontBase->t1lib_flags & T1_NO_AFM)!=0) {
+    pFontBase->pFontArray[FontID].pAFMData = NULL;
+    T1_PrintLog( "T1_LoadFont()",
+		 "Suppressing AFM data handling on user request",
+		 T1LOG_STATISTIC);
+  }
+  else {
+    if ((i=openFontMetricsFile( FontID, 0))){
+      /* Try a fallback, opening sloppy: */
+      if ((i=openFontMetricsFile( FontID, 1))) {
 	sprintf( err_warn_msg_buf,
-		 "Ultimately failed to generate metrics information Font %d!",
-		 FontID);
-	T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_WARNING);
-	T1_PrintLog( "T1_LoadFont()", "Segmentation fault might result",T1LOG_WARNING);
+		 "Alert: Error (%d) sloppy-processing afm-file for Font %d!",
+		 i ,FontID);
+	T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_STATISTIC);
+	if ((pFontBase->pFontArray[FontID].pAFMData=
+	     T1_GenerateAFMFallbackInfo(FontID))==NULL){
+	  sprintf( err_warn_msg_buf,
+		   "Ultimately failed to generate metrics information Font %d!",
+		   FontID);
+	  T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_WARNING);
+	}
+	else {
+	  pFontBase->pFontArray[FontID].info_flags |=AFM_SELFGEN_SUCCESS;
+	  T1_PrintLog( "T1_LoadFont()",
+		       "Generating AFM-information from fontfile successful!",
+		       T1LOG_STATISTIC);
+	}
       }
-      else{
-	pFontBase->pFontArray[FontID].info_flags |=AFM_SELFGEN_SUCCESS;
-	T1_PrintLog( "T1_LoadFont()",
-		     "Generating AFM-information from fontfile successful!",
-		     T1LOG_STATISTIC);
-      }
+      else {
+	pFontBase->pFontArray[FontID].info_flags |=AFM_SLOPPY_SUCCESS;
+	sprintf( err_warn_msg_buf,
+		 "Alert: Limited afm-information for Font %d",FontID);
+	T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_STATISTIC);
+      } 
     }
-    else{
-      pFontBase->pFontArray[FontID].info_flags |=AFM_SLOPPY_SUCCESS;
-      sprintf( err_warn_msg_buf,
-	       "Alert: Limited afm-information for Font %d",FontID);
-      T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_STATISTIC);
+    else {
+      pFontBase->pFontArray[FontID].info_flags |=AFM_SUCCESS;
     }
   }
-  else
-    pFontBase->pFontArray[FontID].info_flags |=AFM_SUCCESS;
+  
   
   /* Now, set Encodingvector entry to default if the font's
      internal encoding is "StandardEncoding".
      */
   if (pFontBase->pFontArray[FontID].pType1Data->fontInfoP[ENCODING].value.data.arrayP
-      == StdEncArrayP){
+      == StdEncArrayP) {
     pFontBase->pFontArray[FontID].info_flags |=USES_STANDARD_ENCODING;
     pFontBase->pFontArray[FontID].pFontEnc=pFontBase->default_enc;
     sprintf( err_warn_msg_buf,
@@ -508,11 +526,12 @@ int T1_LoadFont( int FontID)
     sprintf( err_warn_msg_buf,
 	     "Font %d not reencoded to default",FontID);
     T1_PrintLog( "T1_LoadFont()", err_warn_msg_buf, T1LOG_DEBUG);
+    pFontBase->pFontArray[FontID].pFontEnc = NULL;
   }
 
   
   /* If AFM-Info available we try to speed up some things: */
-  if (pFontBase->pFontArray[FontID].pAFMData != NULL){
+  if (pFontBase->pFontArray[FontID].pAFMData != NULL) {
     /* We have to fill the array that maps the current encodings' indices to the
        indices used in afm file */
     if ((pFontBase->pFontArray[FontID].pEncMap=
@@ -583,7 +602,12 @@ int T1_LoadFont( int FontID)
     }
     else
       pFontBase->pFontArray[FontID].pKernMap=NULL;
-  } /* End of "if (AFM-info ..)" */
+  }
+  else { /* no AFM data */
+    pFontBase->pFontArray[FontID].pKernMap=NULL;
+    pFontBase->pFontArray[FontID].pEncMap=NULL;
+  }
+  /* End of "if (AFM-info ..)" */
   
   
   /* We have just loaded a physical font into memory, thus .... */

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1trans.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        08/29/1998
+  ----- Date:        1999-06-04
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations fort t1trans.c
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -29,39 +29,47 @@
 
 int T1_ExtendFont( int FontID, double extend);
 int T1_SlantFont( int FontID, double slant);
+int T1_TransformFont( int FontID, T1_TMATRIX *matrix);
+double T1_GetExtend( int FontID);
+double T1_GetSlant( int FontID);
+T1_TMATRIX T1_GetTransform( int FontID);
 int T1_SetLinePosition( int FontID, int linetype, float value);
 int T1_SetLineThickness( int FontID, int linetype, float value);
 float T1_GetLinePosition( int FontID, int linetype);
 float T1_GetLineThickness( int FontID, int linetype);
-T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, float angle);
+T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, double angle);
 T1_TMATRIX *T1_MirrorHMatrix( T1_TMATRIX *matrix);
 T1_TMATRIX *T1_MirrorVMatrix( T1_TMATRIX *matrix);
-T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, float shear);
-T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, float shear);
-T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, float extent);
-T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, float extent);
+T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, double shear);
+T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, double shear);
+T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, double extent);
+T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent);
 T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
-				float cxx, float cyx,
-				float cxy, float cyy);
+				double cxx, double cyx,
+				double cxy, double cyy);
 
 #else
 
 extern int T1_ExtendFont( int FontID, double extend);
 extern int T1_SlantFont( int FontID, double slant);
+extern int T1_TransformFont( int FontID, T1_TMATRIX *matrix);
+extern double T1_GetExtend( int FontID);
+extern double T1_GetSlant( int FontID);
+extern T1_TMATRIX T1_GetTransform( int FontID);
 extern int T1_SetLinePosition( int FontID, int linetype, float value);
 extern int T1_SetLineThickness( int FontID, int linetype, float value);
 extern float T1_GetLinePosition( int FontID, int linetype);
 extern float T1_GetLineThickness( int FontID, int linetype);
-extern T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, float angle);
+extern T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, double angle);
 extern T1_TMATRIX *T1_MirrorHMatrix( T1_TMATRIX *matrix);
 extern T1_TMATRIX *T1_MirrorVMatrix( T1_TMATRIX *matrix);
-extern T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, float shear);
-extern T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, float shear);
-extern T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, float extent);
-extern T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, float extent);
+extern T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, double shear);
+extern T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, double shear);
+extern T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, double extent);
+extern T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent);
 extern T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
-				       float cxx, float cyx,
-				       float cxy, float cyy);
+				       double cxx, double cyx,
+				       double cxy, double cyy);
 
 #endif
 

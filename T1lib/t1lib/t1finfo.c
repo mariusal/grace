@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-22
+  ----- Date:        1999-06-05
   ----- Description: This file is part of the t1-library. It contains
                      functions for accessing afm-data and some other
 		     fontinformation data.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -84,6 +84,12 @@ int T1_GetKerning( int FontID, char char1, char char2)
     return(0);
   }
 
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( 0);
+  }
+
   /* if there's no kerning info, return immediately */
   if (pFontBase->pFontArray[FontID].pAFMData->numOfPairs==0)
     return( 0);
@@ -105,7 +111,7 @@ int T1_GetKerning( int FontID, char char1, char char2)
 /* int T1_GetCharWidth(): This function returns the characterwidth
    specified in the .afm-file. If no .afm-file is loaded for that font,
    0 is returned. Note that if one tries to raster strings, afm data
-   should always be available. The returned character width is corrected
+   must always be available. The returned character width is corrected
    using  a possibly applied font extension!
    */
 int T1_GetCharWidth( int FontID, char char1)
@@ -120,9 +126,10 @@ int T1_GetCharWidth( int FontID, char char1)
     return(0);
   }
   
-  if (pFontBase->pFontArray[FontID].pAFMData==NULL){
-    T1_errno=T1ERR_UNSPECIFIED;
-    return(0);  /* font is loaded, but no afm data available */
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( 0);
   }
   
   /* Check if character is encoded */
@@ -181,9 +188,10 @@ BBox T1_GetCharBBox( int FontID, char char1)
     return(NullBBox);
   }
 
-  if (pFontBase->pFontArray[FontID].pAFMData==NULL){
-    T1_errno=T1ERR_UNSPECIFIED;
-    return(NullBBox);  /* font is loaded, but no afm data available */
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( NullBBox);
   }
   
   /* Check if character is encoded */
@@ -497,11 +505,12 @@ int T1_QueryLigs( int FontID,  char char1, char **successors,
     return(-1);
   }
   
-  if (pFontBase->pFontArray[FontID].pAFMData==NULL){
-    T1_errno=T1ERR_UNSPECIFIED;
-    return(-1);  /* font is loaded, but no afm data available */
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( -1);
   }
-  
+
   /* All OK, ... */
   afm_ptr=pFontBase->pFontArray[FontID].pAFMData;
   m_ptr=afm_ptr->cmi;
@@ -627,17 +636,19 @@ int T1_GetStringWidth( int FontID, char *string,
   
   /* First, check for a correct ID */
   i=CheckForFontID(FontID);
-  if (i==-1){
+  if (i!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(0);
   }
-  /* if necessary load font into memory */
-  if (i==0)
-    if (T1_LoadFont(FontID))
-      return(0);
+  
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( 0);
+  }
 
   /* Get length of string: */
-  if (len<0){  /* invalid length */
+  if (len<0 || ustring == NULL){  /* invalid length or NULL-pointer */
     T1_errno=T1ERR_INVALID_PARAMETER;
     return(0);
   }
@@ -722,18 +733,19 @@ BBox T1_GetStringBBox( int FontID, char *string,
   
   /* First, check for a correct ID */
   i=CheckForFontID(FontID);
-  if (i==-1){
+  if (i!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(NullBBox);
   }
   
-  /* if necessary load font into memory */
-  if (i==0)
-    if (T1_LoadFont(FontID))
-      return(NullBBox);
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( NullBBox);
+  }
 
   /* Get length of string: */
-  if (len<0){  /* invalid length */
+  if (len<0 || string==NULL) {  /* invalid length or NULL-pointer */
     T1_errno=T1ERR_INVALID_PARAMETER;
     return(NullBBox);
   }
@@ -815,18 +827,19 @@ METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 
   /* First, check for a correct ID */
   i=CheckForFontID(FontID);
-  if (i==-1){
+  if (i!=1){
     T1_errno=T1ERR_INVALID_FONTID;
     return(metrics);
   }
   
-  /* if necessary load font into memory */
-  if (i==0)
-    if (T1_LoadFont(FontID))
-      return(metrics);
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( metrics);
+  }
 
   /* Get length of string: */
-  if (len<0){  /* invalid length */
+  if (len<0 || ustring==NULL ) {  /* invalid length or NULL_pointer */
     T1_errno=T1ERR_INVALID_PARAMETER;
     return(metrics);
   }
@@ -966,6 +979,30 @@ char **T1_GetAllCharNames( int FontID)
 }
 
 
+
+/* T1_GetNoKernPairs(): Return the number of kerning pairs defined
+   for font FontID */
+int T1_GetNoKernPairs( int FontID)
+{
+  
+  /* Check whether font is loaded: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return( -1);
+  }
+
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return( -1);
+  }
+
+  return( pFontBase->pFontArray[FontID].pAFMData->numOfPairs);
+  
+}
+
+
+
 /* A function for comparing METRICS_ENTRY structs */
 static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
 {
@@ -977,5 +1014,3 @@ static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2)
     return(1);
   return(0); /* This should not happen */
 }
-    
-    

@@ -1427,8 +1427,10 @@ struct segment *HeadSegment(path)
 :h2.Path Debug Routines
  
 :h3.DumpPath() - Display a Path on the Trace File
+  removed by RMz, 1999-06-07 
 */
- 
+
+/*
 void DumpPath(p)
        register struct segment *p;
 {
@@ -1509,4 +1511,4 @@ void DumpPath(p)
        }
 }
  
- 
+*/ 

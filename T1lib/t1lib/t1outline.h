@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1outline.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-07
+  ----- Date:        1999-06-26
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1outline.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -41,6 +41,8 @@ void T1_AbsolutePath( T1_OUTLINE *rpath);
 void T1_RelativePath( T1_OUTLINE *apath);
 void T1_ManipulatePath( T1_OUTLINE *path,
 			void (*manipulate)(fractpel *x,fractpel *y,int type));
+T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path);
+void T1_FreeOutline( T1_OUTLINE *path);
 
 
 #else
@@ -60,6 +62,8 @@ extern void T1_AbsolutePath( T1_OUTLINE *rpath);
 extern void T1_RelativePath( T1_OUTLINE *apath);
 extern void T1_ManipulatePath( T1_OUTLINE *path,
 			       void (*manipulate)(fractpel *x,fractpel *y,int type));
+extern T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path);
+extern void T1_FreeOutline( T1_OUTLINE *path);
 
 #endif
 

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1outline.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-23
+  ----- Date:        1999-06-26
   ----- Description: This file is part of the t1-library. It contains
                      functions for getting glyph outline descriptions of
 		     strings and characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -219,6 +219,12 @@ T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len,
   if (i==0)
     if (T1_LoadFont(FontID))
       return(NULL);
+
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return(NULL);
+  }
 
   /* Check for valid size */
   if (size<=0.0){
@@ -728,3 +734,28 @@ void T1_ManipulatePath( T1_OUTLINE *path,
   } while (ipath!=NULL);
   
 }
+
+
+
+/* T1_CopyOutline(): Copy an outline physically.
+                     Returns a pointer to the path or NULL */
+T1_OUTLINE *T1_CopyOutline( T1_OUTLINE *path)
+{
+  extern struct segment *CopyPath( struct segment *p);
+
+  return( (T1_OUTLINE *) CopyPath( (struct segment *)path));
+	  
+}
+
+
+
+/* T1_FreeOutline(): Free an outline. */
+void T1_FreeOutline( T1_OUTLINE *path)
+{
+  extern void KillPath( struct segment *p);
+  
+  KillPath( (struct segment *)path);
+  return;
+  
+}
+

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-04-23
+  ----- Date:        1999-06-28
   ----- Description: This file is part of the t1-library. It contains
                      functions for setting characters and strings of
 		     characters.
@@ -247,9 +247,10 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
   paddedW = PAD(w, T1_pad);
   if ( (area->xmin > area->xmax) || (area->ymin > area->ymax) ){
     /* There was a character like .notdef or space, that didn't
-       produce any black pixels on the bitmap! -> pathological */
+       produce any black pixels on the bitmap! -> we return a glyph with
+       correct metrics and bitmap pointer set to NULL */
     sprintf( err_warn_msg_buf,
-	     "No black pixels found for character %d from font %d, returning NULL",
+	     "No black pixels found for character %d from font %d",
 	     ucharcode, FontID);
     T1_PrintLog( "T1_SetChar()", err_warn_msg_buf, T1LOG_WARNING);
 
@@ -381,16 +382,16 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
   /* pad=8 */
   unsigned T1_AA_TYPE16 BitBuf_c;
   unsigned char *p_c;
-  unsigned char  *Target_c;
+  unsigned char *Target_c;
   /* pad=16 */
   unsigned T1_AA_TYPE32 BitBuf_s;
-  unsigned short *p_s;
-  unsigned short *Target_s;
+  unsigned T1_AA_TYPE16 *p_s;
+  unsigned T1_AA_TYPE16 *Target_s;
 #ifdef T1_AA_TYPE64 
   /* pad=32 */
   unsigned T1_AA_TYPE64 BitBuf_l;
-  unsigned long *p_l;
-  unsigned long  *Target_l;
+  unsigned T1_AA_TYPE32 *p_l;
+  unsigned T1_AA_TYPE32 *Target_l;
 #endif
   unsigned char *ustring;
   
@@ -410,6 +411,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 
   /* force string elements into unsigned */
   ustring=(unsigned char*)string;
+
 
   /* Check for valid string */
   if (string==NULL){
@@ -461,10 +463,17 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
     T1_errno=T1ERR_INVALID_FONTID;
     return(NULL);
   }
+  
   /* if necessary load font into memory */
   if (i==0)
     if (T1_LoadFont(FontID))
       return(NULL);
+
+  /* If no AFM info is present, we return an error */
+  if (pFontBase->pFontArray[FontID].pAFMData==NULL) {
+    T1_errno=T1ERR_NO_AFM_DATA;
+    return(NULL);
+  }
 
   /* Check for valid size */
   if (size<=0.0){
@@ -845,10 +854,10 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	if (T1_pad==32 && T1_byte==0){
 	  /* The following loop steps through the lines of the character bitmap: */
 	  for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
-	    Target_l= (unsigned long *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
+	    Target_l= (unsigned T1_AA_TYPE32 *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
 					+ByteOffset);
 	    /* The following loop copies the scanline of a character bitmap: */
-	    p_l = (unsigned long *)(currchar->bits+(char_paddedW/8*j));
+	    p_l = (unsigned T1_AA_TYPE32 *)(currchar->bits+(char_paddedW/8*j));
 	    if (BitShift == 0) {
 	      for (k=char_paddedW >> 5; k; k--)
 		*Target_l++ |= *p_l++;
@@ -866,17 +875,17 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	  if (T1_pad==16 && T1_byte==0){
 	    /* The following loop steps through the lines of the character bitmap: */
 	    for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
-	      Target_s= (unsigned short *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
+	      Target_s= (unsigned T1_AA_TYPE16 *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
 					   +ByteOffset);
 	      /* The following loop copies the scanline of a character bitmap: */
-	      p_s = (unsigned short *)(currchar->bits+(char_paddedW/8*j));
+	      p_s = (unsigned  T1_AA_TYPE16 *)(currchar->bits+(char_paddedW/8*j));
 	      if (BitShift == 0) {
 		for (k=char_paddedW >> 4; k; k--)
 		  *Target_s++ |= *p_s++;
 	      }
 	      else{
 		for (k=char_paddedW >> 4; k; k--){
-		  BitBuf_s= ((long)(*p_s++))<<BitShift;
+		  BitBuf_s= ((T1_AA_TYPE32)(*p_s++))<<BitShift;
 		  *Target_s++ |= BitBuf_s;
 		  *Target_s |= BitBuf_s>>s_shift;
 		} /* End of for ( .. ) stepping through columns */
@@ -896,7 +905,7 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	      }
 	      else{
 		for (k=char_paddedW >> 3; k; k--){
-		  BitBuf_c = ((short)*p_c++) << BitShift;
+		  BitBuf_c = ((T1_AA_TYPE16)(*p_c++)) << BitShift;
 		  *Target_c++ |= BitBuf_c;
 		  *Target_c |= BitBuf_c>>c_shift;
 		} /* End of for ( .. ) stepping through columns */
@@ -1374,7 +1383,8 @@ void T1_ComputeLineParameters( int FontID, int mode,
    x_off, y_off are respected. By the function.
    If either glyph is NULL or the glyphs have distinct depth, NULL is
    returned. */
-GLYPH *T1_ConcatGlyphs( GLYPH *glyph_1, GLYPH *glyph_2, int x_off, int y_off, int mode)
+GLYPH *T1_ConcatGlyphs( GLYPH *glyph_1, GLYPH *glyph_2,
+			int x_off, int y_off, int modflag)
 {
 
   int lsb1, lsb2, rsb1, rsb2;
@@ -1405,7 +1415,7 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph_1, GLYPH *glyph_2, int x_off, int y_off, in
      3) Recalculate the dimensions of the resulating glyph.
   */
   /* Check for writing direction and reorganize appropriately: */
-  if (mode & T1_RIGHT_TO_LEFT){
+  if (modflag & T1_RIGHT_TO_LEFT){
     glyph1=glyph_2;
     glyph2=glyph_1;
     y_off=-y_off;
@@ -1680,7 +1690,7 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph_1, GLYPH *glyph_2, int x_off, int y_off, in
   
   
   /* Check for writing direction and re-compute dimens appropriately: */
-  if (mode & T1_RIGHT_TO_LEFT){
+  if (modflag & T1_RIGHT_TO_LEFT){
     advanceX=-advanceX1-advanceX2;
     advanceY=-advanceY1-advanceY2;
     lsb=lsb1 < lsb2+advanceX1 ? advanceX+lsb1 : advanceX+lsb2+advanceX1;
@@ -1712,57 +1722,6 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph_1, GLYPH *glyph_2, int x_off, int y_off, in
   return( &glyph);
   
 }
-
-
-/* T1_DumpPixmap(): 
-   The same as T1_DumpGlyph, but produces XPM file viewable by xv on stdout.
-   (Contributed by Pavel Janik (Pavel.Janik@inet.cz)). 
-   */
-void T1_DumpPixmap( GLYPH *glyph)
-{
-  int i,j,h,w;   /* i=line-index, j=column-index */ 
-  int paddedW;
-  
-  if (glyph==NULL){
-    return;
-  }
-  
-  h=glyph->metrics.ascent+glyph->metrics.descent;
-  w=glyph->metrics.rightSideBearing-glyph->metrics.leftSideBearing;
-  
-  paddedW=PAD(w, T1_pad);
-  
-  printf("/* XPM */\n");
-  printf("static const char *xpm_data[]={\n");
-  printf("\"%d %d %d %d\",\n", paddedW, h, 3, 1); /* 3 colors, 1 char/pixel */
-  printf("\"       c None\",\n");
-  printf("\"X      c #000000000000\",\n");
-  printf("\".      c #FFFFFFFFFFFF\",\n");
-  
-  
-  for ( i=0; i<h; i++){
-    {
-      printf("\"");
-      if (T1_pad==8)
-	for (j=0; j<paddedW/T1_pad; j++)
-	  bin_dump_c(glyph->bits[i*paddedW/T1_pad+j], 0);
-      else if (T1_pad==16)
-	for (j=0; j<paddedW/T1_pad; j++){
-	  bin_dump_s(((unsigned short *)glyph->bits)[i*paddedW/T1_pad+j], 0);
-	}
-      else
-	for (j=0; j<paddedW/T1_pad; j++){
-	  bin_dump_l(((unsigned long *)glyph->bits)[i*paddedW/T1_pad+j], 0);
-	}
-      if (i<h-1)
-	printf("\",");
-      else
-	printf("\"};");
-    }
-    
-    printf("\n");
-  } 
-} 
 
 
 
@@ -1832,11 +1791,21 @@ GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag)
   paddedW = PAD(w, T1_pad);
   if ( (area->xmin > area->xmax) || (area->ymin > area->ymax) ){
     /* There was a character like .notdef or space, that didn't
-       produce any black pixels on the bitmap! -> pathological */
+       produce any black pixels on the bitmap! -> we return a glyph with
+       correct metrics and bitmap pointer set to NULL */
     sprintf( err_warn_msg_buf,
-	     "No black pixels within outline, returning NULL");
+	     "No black pixels in outline %p", path);
     T1_PrintLog( "T1_FillOutline()", err_warn_msg_buf, T1LOG_WARNING);
-    return(NULL);
+    
+    glyph.metrics.leftSideBearing  = 0;
+    glyph.metrics.advanceX   = NEARESTPEL(area->ending.x - area->origin.x);
+    glyph.metrics.advanceY   = - NEARESTPEL(area->ending.y - area->origin.y);
+    glyph.metrics.rightSideBearing = 0;
+    glyph.metrics.descent          = 0;
+    glyph.metrics.ascent           = 0;
+    /* make sure to get rid of 'area' before leaving! */
+    KillRegion (area);
+    return( &glyph);
   }
   if (h > 0 && w > 0) {
     memsize = h * paddedW / 8 + 1;
@@ -1846,6 +1815,10 @@ GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag)
     glyph.bits = (char *)malloc(memsize*sizeof( char));
     if (glyph.bits == NULL){
       T1_errno=T1ERR_ALLOC_MEM;
+      /* make sure to get rid of area if it's there */
+      if (area){
+	KillRegion (area);
+      }
       return(NULL);
     }
     
@@ -1862,7 +1835,7 @@ GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag)
   glyph.metrics.rightSideBearing = area->xmax;
   glyph.metrics.descent          = - area->ymax;
   glyph.metrics.ascent           = - area->ymin;
-
+  
   
   if (h > 0 && w > 0) {
     (void) memset(glyph.bits, 0, memsize);
@@ -1879,6 +1852,10 @@ GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag)
     glyph.metrics.ascent += glyph.metrics.advanceY;
   } 
   
+  /* make sure to get rid of area if it's there */
+  if (area){
+    KillRegion (area);
+  }
   return( &glyph);
   
   

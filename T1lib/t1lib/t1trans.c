@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1trans.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        10/23/1998
+  ----- Date:        1999-06-04
   ----- Description: This file is part of the t1-library. It contains
                      functions for transforming fonts and setting
 		     line-parameters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -61,7 +61,7 @@
    */
 int T1_ExtendFont( int FontID, double extend)
 {
-
+  
   /* First, check for font residing in memory: */
   if (CheckForFontID(FontID)!=1){
     T1_errno=T1ERR_INVALID_FONTID;
@@ -78,6 +78,25 @@ int T1_ExtendFont( int FontID, double extend)
   pFontBase->pFontArray[FontID].FontTransform[0] = extend;
   return(0);
 }
+
+
+
+/* T1_GetExtend(): Return the current extension factor of the
+   font FontID
+   Return: 0.0                    if font not loaded
+           current extent         otherwise
+*/
+double T1_GetExtend( int FontID)
+{
+  /* First, check for font residing in memory: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0.0);
+  }
+
+  return( pFontBase->pFontArray[FontID].extend);
+}
+
 
 
 
@@ -104,6 +123,78 @@ int T1_SlantFont( int FontID, double slant)
   pFontBase->pFontArray[FontID].slant=slant;
   pFontBase->pFontArray[FontID].FontTransform[2] = slant;
   return(0);
+}
+
+
+
+/* T1_GetSlant(): Return the current slanting factor of the
+   font FontID
+   Return: 0.0                    if font not loaded
+           current slant          otherwise (may also be 0.0!)
+*/
+double T1_GetSlant( int FontID)
+{
+  /* First, check for font residing in memory: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(0.0);
+  }
+
+  return( pFontBase->pFontArray[FontID].slant);
+}
+
+
+
+/* T1_TransformFont(): Transform the font referenced by FontID according
+   to the transform matrix.  This is only allowed if no size dependent
+   data exists.  Of course, the font must already have been loaded.
+   Returns 0 for success and -1 otherwise.
+   */
+int T1_TransformFont( int FontID, T1_TMATRIX *matrix)
+{
+  
+  /* First, check for font residing in memory: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(-1);
+  }
+  
+  /* Second, check whether size-dependent data exists: */
+  if (pFontBase->pFontArray[FontID].pFontSizeDeps != NULL){
+    T1_errno=T1ERR_OP_NOT_PERMITTED;
+    return(-1); 
+  }
+  
+  pFontBase->pFontArray[FontID].FontTransform[0] = matrix->cxx;
+  pFontBase->pFontArray[FontID].FontTransform[1] = matrix->cxy;
+  pFontBase->pFontArray[FontID].FontTransform[2] = matrix->cyx;
+  pFontBase->pFontArray[FontID].FontTransform[3] = matrix->cyy;
+  return(0);
+}
+
+
+
+/* T1_GetTransform(): Return the current transformation matrix for the
+   font FontID
+   Return: [0.0, 0.0, 0.0, 0.0]    if font not loaded
+           current tmatrix         otherwise 
+*/
+T1_TMATRIX T1_GetTransform( int FontID)
+{
+  T1_TMATRIX tmatrix={0.0, 0.0, 0.0, 0.0};
+  
+  /* First, check for font residing in memory: */
+  if (CheckForFontID(FontID)!=1){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(tmatrix);
+  }
+
+  tmatrix.cxx=pFontBase->pFontArray[FontID].FontTransform[0];
+  tmatrix.cxy=pFontBase->pFontArray[FontID].FontTransform[1];
+  tmatrix.cyx=pFontBase->pFontArray[FontID].FontTransform[2];
+  tmatrix.cyy=pFontBase->pFontArray[FontID].FontTransform[3];
+  
+  return( tmatrix);
 }
 
 
@@ -224,7 +315,7 @@ float T1_GetLineThickness( int FontID, int linetype)
 	    (            ) = (                   ) * (          ) 
             ( x12'  x22' )   ( sin(a)     cos(a) )   ( x12  x22 ) 
 */
-T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, float angle)
+T1_TMATRIX *T1_RotateMatrix( T1_TMATRIX *matrix, double angle)
 {
   T1_TMATRIX tmat;
   
@@ -307,7 +398,7 @@ T1_TMATRIX *T1_MirrorVMatrix( T1_TMATRIX *matrix)
 	    (            ) = (        ) * (          ) = (                       ) 
             ( x12'  x22' )   ( 0    1 )   ( x12  x22 )   ( x12         x22       ) 
 */
-T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, float shear)
+T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, double shear)
 {
   
   if (matrix==NULL){
@@ -333,7 +424,7 @@ T1_TMATRIX *T1_ShearHMatrix( T1_TMATRIX *matrix, float shear)
 	    (            ) = (        ) * (          ) = (                       ) 
             ( x12'  x22' )   ( f    1 )   ( x12  x22 )   ( x12+f*x11   x22+f*x21 ) 
 */
-T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, float shear)
+T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, double shear)
 {
   
   if (matrix==NULL){
@@ -359,7 +450,7 @@ T1_TMATRIX *T1_ShearVMatrix( T1_TMATRIX *matrix, float shear)
 	    (            ) = (        ) * (          ) = (               ) 
             ( x12'  x22' )   ( 0    1 )   ( x12  x22 )   ( x12     x22   ) 
 */
-T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, float extent)
+T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, double extent)
 {
   
   if (matrix==NULL){
@@ -385,7 +476,7 @@ T1_TMATRIX *T1_ExtendHMatrix( T1_TMATRIX *matrix, float extent)
 	    (            ) = (        ) * (          ) = (              ) 
             ( x12'  x22' )   ( 0    f )   ( x12  x22 )   ( f*x12  f*x22 ) 
 */
-T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, float extent)
+T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, double extent)
 {
   
   if (matrix==NULL){
@@ -412,8 +503,8 @@ T1_TMATRIX *T1_ExtendVMatrix( T1_TMATRIX *matrix, float extent)
     ( x12   x22 )   ( y12   y22 )   ( x12*y11+x22*y12   x12*y21+x22*y22 )
 */
 T1_TMATRIX *T1_TransformMatrix( T1_TMATRIX *matrix,
-				float cxx, float cyx,
-				float cxy, float cyy)
+				double cxx, double cyx,
+				double cxy, double cyy)
 {
   T1_TMATRIX tmat;
   
