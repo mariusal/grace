@@ -483,6 +483,8 @@ void SetPenChoice(Widget button, Pen *pen);
 int GetPenChoice(Widget pen_button, Pen *pen);
 void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata);
 
+SpinStructure *CreateViewCoordInput(Widget parent, char *s);
+
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s);
 
 StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);

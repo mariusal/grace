@@ -2257,6 +2257,10 @@ void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
     }
 }
 
+SpinStructure *CreateViewCoordInput(Widget parent, char *s)
+{
+    return CreateSpinChoice(parent, s, 6, SPIN_TYPE_FLOAT, -10.0, 10.0, 0.05);
+}
 
 
 static StorageStructure **graph_selectors = NULL;
