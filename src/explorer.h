@@ -40,6 +40,12 @@ typedef struct {
     Widget          sformat;
     Widget          description;
     
+    OptionStructure *page_orient;
+    OptionStructure *page_format;
+    OptionStructure *page_size_unit;
+    Widget          page_x;
+    Widget          page_y;
+
     OptionStructure *bg_color;
     Widget          bg_fill;
 
@@ -49,6 +55,8 @@ typedef struct {
     Widget          refdate;
     Widget          wrap_year;
     Widget          two_digits_years;
+
+    int             current_page_units;
 } ProjectUI;
 
 typedef struct {
