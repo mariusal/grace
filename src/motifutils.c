@@ -117,7 +117,7 @@ extern int depth;
 
 extern XtAppContext app_con;
 
-extern unsigned long xvlibcolors[];
+static unsigned long xvlibcolors[MAXCOLORS];
 
 
 static OptionItem *color_option_items = NULL;
@@ -1795,8 +1795,30 @@ static BitmapOptionItem *lines_option_items;
 #define LINES_BM_HEIGHT 15
 #define LINES_BM_WIDTH  64
 
+static void init_xvlibcolors(void)
+{
+    int i;
+    
+    for (i = 0; i < number_of_colors(canvas); i++) {
+        long pixel = -1;
+        Color *color = get_color_def(canvas, i);
+        
+        if (color != NULL && color->ctype == COLOR_MAIN) {
+            pixel = x11_allocate_color(grace->gui, &color->rgb);
+        }
+        
+        if (pixel >= 0) {
+            xvlibcolors[i] = pixel;
+        } else {
+            xvlibcolors[i] = BlackPixel(disp, screennumber);
+        }
+    }
+}
+
 int init_option_menus(void) {
     int i, j, k, l, n;
+    
+    init_xvlibcolors();
     
     n = number_of_fonts(canvas);
     if (n) {
@@ -3823,7 +3845,7 @@ void DefineDialogCursor(Cursor c)
     XFlush(disp);
 }
 
-void UndefineDialogCursor()
+void UndefineDialogCursor(void)
 {
     int i;
     
@@ -4218,6 +4240,7 @@ void update_all(void)
     update_set_lists(NULL);
 
     if (ReqUpdateColorSel == TRUE) {
+        init_xvlibcolors();
         update_color_selectors();
         ReqUpdateColorSel = FALSE;
     }

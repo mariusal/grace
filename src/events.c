@@ -44,7 +44,6 @@
 #include <X11/Intrinsic.h>
 #include <X11/keysym.h>
 
-#include "x11drv.h"
 #include "motifinc.h"
 #include "protos.h"
 
@@ -94,7 +93,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 	if (cursortype || xme->state & ShiftMask) {
             crosshair_motion(x, y);
         }
-	xlibdev2VPoint(x, y, &vp);
+	x11_dev2VPoint(x, y, &vp);
 
         if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
             cg = next_graph_containing(cg, &vp);
@@ -105,7 +104,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     case ButtonPress:
 	x = event->xbutton.x;
 	y = event->xbutton.y;
-	xlibdev2VPoint(x, y, &vp);
+	x11_dev2VPoint(x, y, &vp);
 
 	switch (event->xbutton.button) {
 	case Button1:
@@ -239,7 +238,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
     static VPoint vp = {0.0, 0.0};
     view v;
     double wx, wy, xtmp, ytmp;
-    int x, y;
+    short x, y;
     double dsx = 0.0, dsy = 0.0;
     char buf[256], bufx[64], bufy[64], *s;
     GLocator *locator;
@@ -304,7 +303,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
         ytmp = vp.y;
         break;
     case 5:
-        xlibVPoint2dev(&vp, &x, &y);
+        x11_VPoint2dev(&vp, &x, &y);
         xtmp = x;
         ytmp = y;
         break;

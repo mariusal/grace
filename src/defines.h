@@ -157,6 +157,11 @@
 #define T1_DEFAULT_ENCODING_FILE  "Default.enc"
 #define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
 
+/* Private colormap */
+#define CMAP_INSTALL_NEVER      0
+#define CMAP_INSTALL_ALWAYS     1
+#define CMAP_INSTALL_AUTO       2
+
 /* A point in frame coordinates */
 typedef struct {
     double x;

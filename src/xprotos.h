@@ -39,6 +39,15 @@
 #include "defines.h"
 #include "core_utils.h"
 
+void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
+void x11_dev2VPoint(short x, short y, VPoint *vp);
+
+long x11_allocate_color(GUI *gui, const RGB *rgb);
+Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
+void x11_redraw(Window window, int x, int y, int widht, int height);
+
+int x11_init(const Canvas *canvas);
+
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
 

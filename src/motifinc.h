@@ -569,4 +569,7 @@ void destroy_dialog_cb(Widget but, void *data);
 void savewidget(Widget w);
 void deletewidget(Widget w);
 
+void DefineDialogCursor(Cursor c);
+void UndefineDialogCursor(void);
+
 #endif /* __MOTIFINC_H_ */

@@ -279,7 +279,7 @@ int register_pnm_drv(Canvas *canvas)
 
         return register_xrst_device(canvas, &xdev);
     } else {
-        return RETURN_FAILURE;
+        return -1;
     }
 }
 

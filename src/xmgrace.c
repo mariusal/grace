@@ -58,7 +58,6 @@
 #include "bitmaps.h"
 #include "utils.h"
 #include "files.h"
-#include "x11drv.h"
 #include "core_utils.h"
 #include "plotone.h"
 #include "events.h"
@@ -438,6 +437,8 @@ int initialize_gui(int *argc, char **argv)
     grace->gui->toolbar = rd.toolbar;
     grace->gui->statusbar = rd.statusbar;
     grace->gui->locbar = rd.locatorbar;
+
+    x11_init(grace->rt->canvas);
 
     return RETURN_SUCCESS;
 }
@@ -891,7 +892,6 @@ void startup_gui(void)
  */
     handle_close(app_shell);
     
-    xlibinit(grace->rt->canvas);
     XtVaSetValues(app_shell, XmNcolormap, cmap, NULL);
     
 /*

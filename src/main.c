@@ -49,15 +49,11 @@
 #include "plotone.h"
 
 #include "devlist.h"
-#ifndef NONE_GUI
-#  include "x11drv.h"
-#endif
 #include "parser.h"
 #include "protos.h"
 
 
 extern char batchfile[];
-extern int install_cmap;
 
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
@@ -294,9 +290,9 @@ int main(int argc, char *argv[])
 		}
 #ifndef NONE_GUI
 	    } else if (argmatch(argv[i], "-install", 7)) {
-		install_cmap = CMAP_INSTALL_ALWAYS;
+		gui->install_cmap = CMAP_INSTALL_ALWAYS;
 	    } else if (argmatch(argv[i], "-noinstall", 9)) {
-		install_cmap = CMAP_INSTALL_NEVER;
+		gui->install_cmap = CMAP_INSTALL_NEVER;
 	    } else if (argmatch(argv[i], "-barebones", 9)) {
 		set_barebones();
 #endif
@@ -325,10 +321,6 @@ int main(int argc, char *argv[])
 #endif
 	    } else if (argmatch(argv[i], "-noask", 5)) {
 		gui->noask = TRUE;
-#ifndef NONE_GUI
-	    } else if (argmatch(argv[i], "-mono", 5)) {
-		gui->monomode = TRUE;
-#endif
 	    } else if (argmatch(argv[i], "-hdevice", 5)) {
 		i++;
 		if (i == argc) {
@@ -593,8 +585,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
 #ifndef NONE_GUI
     fprintf(stream, "-install                              Install private colormap\n");
-    fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
-    fprintf(stream, "                                        the display only)\n");
 #endif
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");

@@ -56,13 +56,16 @@ GUI *gui_new(Grace *grace)
     gui->allow_dc        = TRUE;
     gui->focus_policy    = FOCUS_CLICK;
     gui->draw_focus_flag = TRUE;
-    gui->monomode        = FALSE;
     gui->noask           = FALSE;
 
     gui->instant_update  = FALSE;
     gui->toolbar         = TRUE;
     gui->statusbar       = TRUE;
     gui->locbar          = TRUE;
+
+    gui->monomode        = FALSE;
+    gui->install_cmap    = CMAP_INSTALL_AUTO;
+    gui->private_cmap    = FALSE;
     
     return gui;
 }

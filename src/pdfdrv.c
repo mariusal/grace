@@ -118,7 +118,7 @@ int register_pdf_drv(Canvas *canvas)
     
     data = init_pdf_data();
     if (!data) {
-        return RETURN_FAILURE;
+        return -1;
     }
 
     d = device_new("PDF", DEVICE_FILE, TRUE, data);

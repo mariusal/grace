@@ -126,7 +126,7 @@ int register_ps_drv(Canvas *canvas)
     
     data = init_ps_data(PS_FORMAT);
     if (!data) {
-        return RETURN_FAILURE;
+        return -1;
     }
 
     d = device_new("PostScript", DEVICE_PRINT, TRUE, (void *) data);

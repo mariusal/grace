@@ -48,6 +48,7 @@ typedef struct _GUI {
 
     /* true if running X */
     int inwin;
+
     /* use GXxor or GXinvert for xor'ing */
     int invert;
     /* if true, redraw graph each time action is performed */
@@ -56,8 +57,6 @@ typedef struct _GUI {
     int allow_dc;
     int focus_policy;
     int draw_focus_flag;
-    /* set mono mode */
-    int monomode;
     /* if TRUE, assume yes for everything */
     int noask;
     /* instant update enabled for controls on appearance dialogs */
@@ -66,6 +65,11 @@ typedef struct _GUI {
     int toolbar;
     int statusbar;
     int locbar;
+
+    /* colormap stuff */
+    int monomode;
+    int install_cmap;
+    int private_cmap;
     
     ExplorerUI *eui;
 } GUI;

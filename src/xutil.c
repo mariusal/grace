@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -43,20 +43,15 @@
 #include "core_utils.h"
 #include "plotone.h"
 
-#include "x11drv.h"
-
+#include "motifinc.h"
 #include "protos.h"
 
-extern Window root, xwin;
+#define win_scale MIN2(win_h, win_w)
+
 extern Display *disp;
 extern Widget app_shell;
 extern XtAppContext app_con;
-extern GC gc, gcxor;
-extern int depth;
-
-static Pixmap bufpixmap = (Pixmap) NULL;
-
-extern int win_h, win_w;	/* declared in x11drv.c */
+extern Window xwin;
 
 extern int inpipe;
 extern char batchfile[];
@@ -64,10 +59,18 @@ extern char batchfile[];
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 
-/*
- * cursors
- */
+int screennumber;
+Window root;
+GC gc;
+int depth;
+Colormap cmap;
 
+unsigned int win_h = 0, win_w = 0;
+
+static Pixmap bufpixmap = (Pixmap) NULL;
+static GC gcxor;
+
+/* cursors */
 static Cursor wait_cursor;
 static Cursor line_cursor;
 static Cursor find_cursor;
@@ -76,10 +79,31 @@ static Cursor text_cursor;
 static Cursor kill_cursor;
 static int cur_cursor = -1;
 
-static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId);
+long x11_allocate_color(GUI *gui, const RGB *rgb)
+{
+    XColor xc;
+    
+    xc.pixel = 0;
+    xc.flags = DoRed | DoGreen | DoBlue;
+    
+    xc.red   = rgb->red   << (16 - GRACE_BPP);
+    xc.green = rgb->green << (16 - GRACE_BPP);
+    xc.blue  = rgb->blue  << (16 - GRACE_BPP);
 
-void DefineDialogCursor(Cursor c);
-void UndefineDialogCursor();
+    if (XAllocColor(disp, cmap, &xc)) {
+        return xc.pixel;
+    } else
+    if (gui->install_cmap != CMAP_INSTALL_NEVER && 
+        gui->private_cmap == FALSE) {
+        cmap = XCopyColormapAndFree(disp, cmap);
+        gui->private_cmap = TRUE;
+        
+        /* try to allocate the same color in the private colormap */
+        return x11_allocate_color(gui, rgb);
+    } else {
+        return -1;
+    }
+}
 
 void set_wait_cursor()
 {
@@ -213,7 +237,7 @@ static void aux_XFillRectangle(int x, int y, unsigned int width, unsigned int he
  */
 void draw_focus(Quark *gr)
 {
-    int ix1, iy1, ix2, iy2;
+    short ix1, iy1, ix2, iy2;
     view v;
     VPoint vp;
     
@@ -221,10 +245,10 @@ void draw_focus(Quark *gr)
         graph_get_viewport(gr, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
-        xlibVPoint2dev(&vp, &ix1, &iy1);
+        x11_VPoint2dev(&vp, &ix1, &iy1);
         vp.x = v.xv2;
         vp.y = v.yv2;
-        xlibVPoint2dev(&vp, &ix2, &iy2);
+        x11_VPoint2dev(&vp, &ix2, &iy2);
         aux_XFillRectangle(ix1 - 5, iy1 - 5, 10, 10);
         aux_XFillRectangle(ix1 - 5, iy2 - 5, 10, 10);
         aux_XFillRectangle(ix2 - 5, iy2 - 5, 10, 10);
@@ -282,19 +306,18 @@ void select_region(int x1, int y1, int x2, int y2, int erase)
  */
 void slide_region(view bb, int shift_x, int shift_y, int erase)
 {
-    int x1, x2;
-    int y1, y2;
+    short x1, x2, y1, y2;
     VPoint vp;
 
     vp.x = bb.xv1;
     vp.y = bb.yv1;
-    xlibVPoint2dev(&vp, &x1, &y1);
+    x11_VPoint2dev(&vp, &x1, &y1);
     x1 += shift_x;
     y1 += shift_y;
     
     vp.x = bb.xv2;
     vp.y = bb.yv2;
-    xlibVPoint2dev(&vp, &x2, &y2);
+    x11_VPoint2dev(&vp, &x2, &y2);
     x2 += shift_x;
     y2 += shift_y;
     
@@ -373,7 +396,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     }
     
     if (cbs->reason == XmCR_EXPOSE) {
-  	xlibredraw(cbs->window, cbs->event->xexpose.x,
+  	x11_redraw(cbs->window, cbs->event->xexpose.x,
                                 cbs->event->xexpose.y,
                                 cbs->event->xexpose.width,
                                 cbs->event->xexpose.height);
@@ -400,7 +423,7 @@ void xdrawgraph(void)
 }
 
 
-void xlibredraw(Window window, int x, int y, int width, int height)
+void x11_redraw(Window window, int x, int y, int width, int height)
 {
     if (grace->gui->inwin == TRUE && bufpixmap != (Pixmap) NULL) {
         XCopyArea(disp, bufpixmap, window, gc, x, y, width, height, x, y);
@@ -468,9 +491,9 @@ void xregister_rti(Input_buffer *ib)
  */
 void setpointer(VPoint vp)
 {
-    int x, y;
+    short x, y;
     
-    xlibVPoint2dev(&vp, &x, &y);
+    x11_VPoint2dev(&vp, &x, &y);
     
     /* Make sure we remain inside the DA widget dimensions */
     x = MAX2(x, 0);
@@ -579,4 +602,66 @@ void installXErrorHandler(void)
 {
     XSetErrorHandler(HandleXError);
     XSetIOErrorHandler(HandleXIOError);
+}
+
+int x11_init(const Canvas *canvas)
+{
+    XGCValues gc_val;
+    
+    screennumber = DefaultScreen(disp);
+    root = RootWindow(disp, screennumber);
+ 
+    gc = DefaultGC(disp, screennumber);
+    
+    depth = DisplayPlanes(disp, screennumber);
+
+    /* init colormap */
+    cmap = DefaultColormap(disp, screennumber);
+    /* redefine colormap, if needed */
+    if (grace->gui->install_cmap == CMAP_INSTALL_ALWAYS) {
+        cmap = XCopyColormapAndFree(disp, cmap);
+        grace->gui->private_cmap = TRUE;
+    }
+    
+    /* set GCs */
+    if (grace->gui->invert) {
+        gc_val.function = GXinvert;
+    } else {
+        gc_val.function = GXxor;
+    }
+    gcxor = XCreateGC(disp, root, GCFunction, &gc_val);
+
+    return RETURN_SUCCESS;
+}
+
+
+static int x11_convx(double x)
+{
+    return ((int) rint(win_scale * x));
+}
+
+static int x11_convy(double y)
+{
+    return ((int) rint(win_h - win_scale * y));
+}
+
+void x11_VPoint2dev(const VPoint *vp, short *x, short *y)
+{
+    *x = x11_convx(vp->x);
+    *y = x11_convy(vp->y);
+}
+
+/*
+ * x11_dev2VPoint - given (x,y) in screen coordinates, return the 
+ * viewport coordinates
+ */
+void x11_dev2VPoint(short x, short y, VPoint *vp)
+{
+    if (win_scale == 0) {
+        vp->x = (double) 0.0;
+        vp->y = (double) 0.0;
+    } else {
+        vp->x = (double) x / win_scale;
+        vp->y = (double) (win_h - y) / win_scale;
+    }
 }
