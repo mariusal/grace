@@ -1308,7 +1308,10 @@ void drawsetsyms(int gno, int setno, plotarr *p,
                 symsize = p->symsize;
             }
             if (c) {
-                fillpen.color = c[i];
+                fillpen.color = (int) rint(c[i]);
+                if (get_colortype(fillpen.color) != COLOR_MAIN) {
+                    fillpen.color = 1;
+                }
             } else {
                 fillpen.color = p->symfillpen.color;
             }
