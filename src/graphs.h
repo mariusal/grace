@@ -397,8 +397,6 @@ void set_graph_xyflip(Quark *gr, int xyflip);
 
 void set_graph_legend_active(Quark *gr, int flag);
 
-#define is_graph_active(gr) is_valid_gno(gr)
-
 int is_graph_hidden(Quark *gr);
 int set_graph_hidden(Quark *gr, int flag);
 
@@ -433,8 +431,6 @@ int get_graph_yscale(Quark *gr);
 
 int set_graph_znorm(Quark *gr, double norm);
 double get_graph_znorm(Quark *gr);
-
-int is_valid_gno(Quark *gr);
 
 int set_graph_type(Quark *gr, int gtype);
 

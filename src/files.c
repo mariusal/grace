@@ -1454,7 +1454,7 @@ int write_netcdf(char *fname)
     ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
     graphs = project_get_graphs(grace->project);
     while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
-        if (is_graph_active(gr)) {
+        if (gr) {
             Quark **psets;
             int nsets = graph_get_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
@@ -1498,7 +1498,7 @@ int write_netcdf(char *fname)
 	return 1;
     }
     while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
-	if (is_graph_active(gr)) {
+	if (gr) {
             Quark **psets;
             int nsets = graph_get_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {

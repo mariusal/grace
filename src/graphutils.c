@@ -835,7 +835,7 @@ int overlay_graphs(Quark *gsec, Quark *gpri, int type)
     if (gsec == gpri) {
         return RETURN_FAILURE;
     }
-    if (is_valid_gno(gpri) == FALSE || is_valid_gno(gsec) == FALSE) {
+    if (!gpri || !gsec) {
         return RETURN_FAILURE;
     }
     

@@ -1096,7 +1096,7 @@ int find_point(Quark *gr, VPoint vp, Quark **pset, int *loc)
     double dist, mindist = MAXPICKDIST;
     int locked;
 
-    if (is_valid_gno(gr) != TRUE) {
+    if (!gr) {
         return RETURN_FAILURE;
     }
         
@@ -1244,7 +1244,7 @@ void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2)
         fswap(&w.yg1, &w.yg2);
     }
 
-    if (is_graph_active(gr)) {
+    if (gr) {
         get_graph_world(gr, &wtmp);
         switch (axes) {
         case ALL_AXES:

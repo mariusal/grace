@@ -91,15 +91,6 @@ graph *graph_get_data(Quark *q)
     }
 }
 
-int is_valid_gno(Quark *gr)
-{
-    if (gr) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
 static void set_default_graph(graph *g)
 {    
     int i;
