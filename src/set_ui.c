@@ -98,6 +98,12 @@ static void setapp_data_proc(Widget but, void *data)
 }
 #endif
 
+void charfont_cb(OptionStructure *opt, int a, void *data)
+{
+    OptionStructure *symchar = (OptionStructure *) data;
+    UpdateCharOptionChoice(symchar, a);
+}
+
 /*
  * create the symbols popup
  */
@@ -167,8 +173,8 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->symsize, sp_explorer_cb, eui);
     ui->sympen = CreatePenChoice(rc, "Outline pen:");
     AddPenChoiceCB(ui->sympen, pen_explorer_cb, eui);
-    ui->symchar = CreateTextItem2(rc, 3, "Symbol char:");
-    AddTextItemCB(ui->symchar, titem_explorer_cb, eui);
+    ui->symchar = CreateCharOptionChoice(rc, "Symbol char:");
+    AddOptionChoiceCB(ui->symchar, oc_explorer_cb, eui);
 
     fr = CreateFrame(rc2, "Line properties");
     rc = CreateVContainer(fr);
@@ -225,6 +231,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddSpinChoiceCB(ui->symskip, sp_explorer_cb, eui);
     ui->char_font = CreateFontChoice(rc, "Font for char symbol:");
     AddOptionChoiceCB(ui->char_font, oc_explorer_cb, eui);
+    AddOptionChoiceCB(ui->char_font, charfont_cb, ui->symchar);
 
 
     /* ------------ Line tab -------------- */
@@ -391,8 +398,8 @@ void update_set_ui(SetUI *ui, Quark *q)
 
         SetSpinChoice(ui->symsize, p->sym.size);
         SetSpinChoice(ui->symskip, p->symskip);
-        sprintf(val, "%d", p->sym.symchar);
-        xv_setstr(ui->symchar, val);
+        UpdateCharOptionChoice(ui->symchar, p->sym.charfont);
+        SetOptionChoice(ui->symchar, p->sym.symchar);
         SetOptionChoice(ui->symbols, p->sym.type);
         
         SetPenChoice(ui->sympen, &p->sym.line.pen);
@@ -481,7 +488,7 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
             p->sym.line.style = GetOptionChoice(ui->symlines);
         }
         if (!caller || caller == ui->symchar) {
-            p->sym.symchar = atoi(xv_getstr(ui->symchar));
+            p->sym.symchar = GetOptionChoice(ui->symchar);
         }
         if (!caller || caller == ui->char_font) {
             p->sym.charfont = GetOptionChoice(ui->char_font);

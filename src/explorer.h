@@ -143,7 +143,7 @@ typedef struct {
     Widget          symfillpen;
     SpinStructure   *symlinew;
     OptionStructure *symlines;
-    Widget          symchar;
+    OptionStructure *symchar;
     OptionStructure *char_font;
 
     Widget          pen;
