@@ -328,6 +328,10 @@ static int project_postprocess_hook(Quark *q,
             s->sym.fillpen.color = s->sym.line.pen.color;
         }
 
+	if (version_id < 30000) {
+            s->line.fillpen.pattern = 1;
+            s->sym.fillpen.pattern  = 1;
+        }
 	if (version_id <= 40102 && gtype == GRAPH_CHART) {
             s->type       = SET_BAR;
             s->sym.line    = s->line.line;
