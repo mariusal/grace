@@ -35,6 +35,8 @@ PSDOCS = FAQ.ps Tutorial.ps UsersGuide.ps
 TUTDATA = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
 	10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.gif
 
+MANPAGES = grace.1
+
 all : html dvi
 
 html : $(HTMLDOCS)
@@ -52,11 +54,15 @@ distclean :
 devclean : 
 	$(RM) *.orig $(DVIDOCS) $(PSDOCS)
 
-install : $(HTMLDOCS) $(DVIDOCS) $(TUTDATA)
+install : $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/doc
 	for i in $?; do $(INSTALL_DATA) $$i $(GRACE_HOME)/doc; done
 
-links : dummy
+links : $(MANPAGES)
+	$(MKINSTALLDIRS) $(PREFIX)/man
+	$(MKINSTALLDIRS) $(PREFIX)/man/man1
+	cd $(PREFIX)/man/man1; \
+	for i in $?; do $(LN_S) $(GRACE_HOME)/doc/$$i $$i; done
 
 tests : dummy
 
