@@ -122,6 +122,7 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
 
     q = xmalloc(sizeof(Quark));
     if (q) {
+        char buf[32];
         memset(q, 0, sizeof(Quark));
         
         q->fid = fid;
@@ -133,6 +134,9 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
             xfree(q);
             return NULL;
         }
+        
+        sprintf(buf, "%p", (void *) q);
+        quark_idstr_set(q, buf);
         
         if (parent) {
             q->parent   = parent;
@@ -264,6 +268,9 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     qf = quark_flavor_get(q->qfactory, q->fid);
     data = qf->data_copy(q->data);
     new = quark_new_raw(newparent, q->fid, data);
+    if (newparent != q->parent) {
+        quark_idstr_set(new, q->idstr);
+    }
 
     storage_traverse(q->children, copy_hook, new);
     
