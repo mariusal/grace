@@ -3581,11 +3581,11 @@ axisbardesc:
 
 nonlfitopts:
         TITLE CHRSTR { 
-          strcpy(nonl_opts.title, $2);
+          nonl_opts.title = copy_string(nonl_opts.title, $2);
 	  xfree($2);
         }
         | FORMULA CHRSTR { 
-          strcpy(nonl_opts.formula, $2);
+          nonl_opts.formula = copy_string(nonl_opts.formula, $2);
 	  xfree($2);
         }
         | WITH nexpr PARAMETERS { 

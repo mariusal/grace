@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -697,8 +697,8 @@ typedef struct {
 
 /* options for non-linear fit */
 typedef struct {
-    char title[256];    /* fit title */
-    char formula[256];  /* fit function */
+    char *title;        /* fit title */
+    char *formula;      /* fit function */
     int parnum;         /* # of fit parameters */
     double tolerance;   /* tolerance */
 } nonlopts;

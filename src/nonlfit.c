@@ -74,8 +74,8 @@ void reset_nonl(void)
     	nonl_parms[i].max = 1.0;
     }
     
-    strcpy (nonl_opts.formula, "y = ");
-    strcpy (nonl_opts.title, "A fit");
+    nonl_opts.title   = copy_string(nonl_opts.title, "A fit");
+    nonl_opts.formula = copy_string(nonl_opts.formula, "y = ");
     nonl_opts.parnum = 0;
     nonl_opts.tolerance = 0.01;
 
@@ -84,6 +84,8 @@ void reset_nonl(void)
 
 void initialize_nonl(void)
 {
+    nonl_opts.title   = NULL;
+    nonl_opts.formula = NULL;
     reset_nonl();
 }
 

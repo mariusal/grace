@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -481,7 +481,7 @@ static void do_nonl_proc(void *data)
     	return;
     }
     
-    strcpy(nonl_opts.formula, xv_getstr(nonl_formula_item));
+    nonl_opts.formula = copy_string(nonl_opts.formula, xv_getstr(nonl_formula_item));
     nsteps = (int) GetSpinChoice(nonl_nsteps_item);
     nonl_opts.tolerance = atof(xv_getstr(nonl_tol_item));
     
@@ -799,7 +799,7 @@ static int do_savefit_proc(char *filename, void *data)
     
     pp = grace_openw(filename);
     if (pp != NULL) {
-        strcpy(nonl_opts.title, xv_getstr(title_item));
+        nonl_opts.title = copy_string(nonl_opts.title, xv_getstr(title_item));
         put_fitparms(pp, 0);
         grace_close(pp);
     }
