@@ -95,7 +95,7 @@ GLOBAL(debuglevel, int, 0);
 GLOBAL(logwindow, int, FALSE);
 
 /* real-time input delay (prevents getting stuck reading) */
-GLOBAL(timer_delay, int, 1000);
+GLOBAL(timer_delay, int, 200);
 
 /* linked scroll */
 GLOBAL(scrolling_islinked, int, FALSE);
