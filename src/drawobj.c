@@ -158,21 +158,17 @@ static void draw_object(int gno, DObject *o)
 void draw_objects(int gno)
 {
     int i, n;
-    DObject *o;
-    Storage *objects = grace->project->objects;
+    int *ids;
                                 
     /* disable (?) clipping for object drawing */
     setclipping(FALSE);
     
-    storage_rewind(objects);
-    n = storage_count(objects);
+    n = get_object_ids(&ids);
     for (i = 0; i < n; i++) {
-        if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
-            draw_object(gno, o);
-        } else {
-            break;
-        }
-        storage_next(objects);
+        DObject *o;
+        
+        o = object_get(ids[i]);
+        draw_object(gno, o);
     }
     
     setclipping(TRUE);
