@@ -113,8 +113,6 @@ int seval(double *u, double *v, int ulen,
 void dft(double *jr, double *ji, int n, int iflag);
 void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv);
 
-int read_param(char *pbuf);
-
 void putparms(int gno, FILE * pp, int embed);
 void put_fitparms(FILE * pp, int embed);
 

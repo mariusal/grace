@@ -40,23 +40,15 @@
 
 #include "globals.h"
 #include "utils.h"
-#include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "device.h"
-#include "parser.h"
 #include "protos.h"
 
 static void put_regions(FILE * pp, int embed);
 static void put_objects(int gno, FILE * pp, int embed);
 
 static char buf[256];
-
-/* read and interpret single line */
-int read_param(char *stext)
-{
-    return scanner(stext);
-}
 
 void putparms(int gno, FILE *pp, int embed)
 {
