@@ -63,8 +63,7 @@
 
 extern int nonlflag;		/* true if nonlinear curve fitting module is
 				 * to be included */
-static int pick_gno;		/* Used in pick operations */
-static int pick_set;		/* Used in pick operations */
+static int pick_set = 0;	/* TODO: remove */
 
 static Widget but1[3];
 static Widget but2[3];
@@ -90,12 +89,6 @@ static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void set_regr_sensitivity(Widget , XtPointer , XtPointer );
 
-void do_pick_compose(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    set_action(0);
-    set_action((int) client_data);
-}
-
 typedef struct _Eval_ui {
     Widget top;
     SetChoiceItem sel;
@@ -113,10 +106,9 @@ void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
     Widget dialog, rc;
     set_wait_cursor();
     if (eui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	eui.top = XmCreateDialogShell(app_shell, "Evaluate expression", NULL, 0);
 	handle_close(eui.top);
 	dialog = XmCreateRowColumn(eui.top, "dialog_rc", NULL, 0);
@@ -138,10 +130,9 @@ void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_compute_proc, (XtPointer) & eui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_EXPR);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) eui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) eui.top);
 
 	XtManageChild(dialog);
     }
@@ -214,10 +205,9 @@ void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (hui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	hui.top = XmCreateDialogShell(app_shell, "Histograms", NULL, 0);
 	handle_close(hui.top);
 	dialog = XmCreateRowColumn(hui.top, "dialog_rc", NULL, 0);
@@ -257,10 +247,9 @@ void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	hui.graph_item = CreateGraphChoice(dialog, "Load result to graph:", LIST_TYPE_SINGLE);
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_histo_proc, (XtPointer) & hui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_HISTO);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) hui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) hui.top);
 
 	XtManageChild(dialog);
     }
@@ -332,16 +321,15 @@ void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget dialog;
     Widget rc;
-    Widget buts[5];
+    Widget buts[4];
 
     set_wait_cursor();
     if (fui.top == NULL) {
-	char *l[5];
+	char *l[4];
 	l[0] = "DFT";
 	l[1] = "FFT";
 	l[2] = "Window only";
-	l[3] = "Pick";
-	l[4] = "Close";
+	l[3] = "Close";
 	fui.top = XmCreateDialogShell(app_shell, "Fourier transforms", NULL, 0);
 	handle_close(fui.top);
 	dialog = XmCreateRowColumn(fui.top, "dialog_rc", NULL, 0);
@@ -420,8 +408,7 @@ void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_fourier_proc, (XtPointer) & fui);
 	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) do_fft_proc, (XtPointer) & fui);
 	XtAddCallback(buts[2], XmNactivateCallback, (XtCallbackProc) do_window_proc, (XtPointer) & fui);
-	XtAddCallback(buts[3], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_FOURIER);
-	XtAddCallback(buts[4], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) fui.top);
+	XtAddCallback(buts[3], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) fui.top);
 
 	XtManageChild(dialog);
     }
@@ -551,10 +538,9 @@ void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (rui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	rui.top = XmCreateDialogShell(app_shell, "Running averages", NULL, 0);
 	handle_close(rui.top);
 	dialog = XmCreateRowColumn(rui.top, "dialog_rc", NULL, 0);
@@ -609,10 +595,9 @@ void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_runavg_proc, (XtPointer) & rui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_RUNAVG);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) rui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) rui.top);
 
 	XtManageChild(dialog);
     }
@@ -699,18 +684,14 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget dialog;
     Widget rc, rc2;
-    Widget buts[4];
+    Widget buts[2];
 	int i;
 
     set_wait_cursor();
     if (regui.top == NULL) {
-	char *label1[4];
+	char *label1[2];
 	label1[0] = "Accept";
-	label1[1] = "Pick";
-/*
-	label1[2] = "Eval...";
-*/
-	label1[2] = "Close";
+	label1[1] = "Close";
 	regui.top = XmCreateDialogShell(app_shell, "Regression", NULL, 0);
 	handle_close(regui.top);
 	dialog = XmCreateRowColumn(regui.top, "dialog_rc", NULL, 0);
@@ -813,10 +794,9 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, buts, label1);
+	CreateCommandButtons(dialog, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_regress_proc, (XtPointer) & regui);
-	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_REG);
-	XtAddCallback(buts[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) regui.top);
+	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) regui.top);
 
 	XtManageChild(dialog);
     }
@@ -923,10 +903,9 @@ void create_diff_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (dui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	dui.top = XmCreateDialogShell(app_shell, "Differences", NULL, 0);
 	handle_close(dui.top);
 	dialog = XmCreateRowColumn(dui.top, "dialog_rc", NULL, 0);
@@ -947,10 +926,9 @@ void create_diff_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_differ_proc, (XtPointer) & dui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_DIFF);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) dui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) dui.top);
 
 	XtManageChild(dialog);
     }
@@ -1011,10 +989,9 @@ void create_int_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (iui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	iui.top = XmCreateDialogShell(app_shell, "Integration", NULL, 0);
 	handle_close(iui.top);
 	dialog = XmCreateRowColumn(iui.top, "dialog_rc", NULL, 0);
@@ -1035,10 +1012,9 @@ void create_int_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_int_proc, (XtPointer) & iui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_INT);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) iui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) iui.top);
 
 	XtManageChild(dialog);
     }
@@ -1104,10 +1080,9 @@ void create_seasonal_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (sui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	sui.top = XmCreateDialogShell(app_shell, "Seasonal differences", NULL, 0);
 	handle_close(sui.top);
 	dialog = XmCreateRowColumn(sui.top, "dialog_rc", NULL, 0);
@@ -1121,10 +1096,9 @@ void create_seasonal_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_seasonal_proc, (XtPointer) & sui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_SEASONAL);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sui.top);
 
 	XtManageChild(dialog);
     }
@@ -1368,10 +1342,9 @@ void create_spline_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (splineui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	splineui.top = XmCreateDialogShell(app_shell, "Splines", NULL, 0);
 	handle_close(splineui.top);
 	dialog = XmCreateRowColumn(splineui.top, "dialog_rc", NULL, 0);
@@ -1395,10 +1368,9 @@ void create_spline_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_spline_proc, (XtPointer) & splineui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_SPLINE);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) splineui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) splineui.top);
 
 	XtManageChild(dialog);
     }
@@ -1471,10 +1443,9 @@ void create_samp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (sampui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	sampui.top = XmCreateDialogShell(app_shell, "Sample points", NULL, 0);
 	handle_close(sampui.top);
 	dialog = XmCreateRowColumn(sampui.top, "dialog_rc", NULL, 0);
@@ -1509,10 +1480,9 @@ void create_samp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_sample_proc, (XtPointer) & sampui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_SAMPLE);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sampui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sampui.top);
 
 	XtManageChild(dialog);
     }
@@ -1586,10 +1556,9 @@ void create_prune_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (pruneui.top == NULL) {
-	char *label2[3];
+	char *label2[2];
 	label2[0] = "Accept";
-	label2[1] = "Pick";
-	label2[2] = "Close";
+	label2[1] = "Close";
 	pruneui.top = XmCreateDialogShell(app_shell, "Prune data", NULL, 0);
 	handle_close(pruneui.top);
 	dialog = XmCreateRowColumn(pruneui.top, "dialog_rc", NULL, 0);
@@ -1642,10 +1611,9 @@ void create_prune_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
 
-	CreateCommandButtons(dialog, 3, but2, label2);
+	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_prune_proc, (XtPointer) & pruneui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) do_pick_compose, (XtPointer) PICK_PRUNE);
-	XtAddCallback(but2[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) pruneui.top);
+	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) pruneui.top);
 
 	XtManageChild(dialog);
     }
@@ -2240,47 +2208,4 @@ static void reset_geom_proc(Widget w, XtPointer client_data, XtPointer call_data
 	xv_setstr(tui->scaley_item, "1.0");
 	xv_setstr(tui->transx_item, "0.0");
 	xv_setstr(tui->transy_item, "0.0");
-}
-
-
-
-void execute_pick_compute(int gno, int setno, int function)
-{
-    pick_gno = gno;
-    pick_set = setno;
-    switch (function) {
-    case PICK_EXPR:
-	do_compute_proc((Widget) NULL, (XtPointer) & eui, (XtPointer) 0);
-	break;
-    case PICK_RUNAVG:
-	do_runavg_proc((Widget) NULL, (XtPointer) & rui, (XtPointer) 0);
-	break;
-    case PICK_REG:
-	do_regress_proc((Widget) NULL, (XtPointer) & regui, (XtPointer) 0);
-	break;
-    case PICK_SEASONAL:
-	do_seasonal_proc((Widget) NULL, (XtPointer) & sui, (XtPointer) 0);
-	break;
-    case PICK_SPLINE:
-	do_spline_proc((Widget) NULL, (XtPointer) & splineui, (XtPointer) 0);
-	break;
-    case PICK_DIFF:
-	do_differ_proc((Widget) NULL, (XtPointer) & dui, (XtPointer) 0);
-	break;
-    case PICK_INT:
-	do_int_proc((Widget) NULL, (XtPointer) & iui, (XtPointer) 0);
-	break;
-    case PICK_SAMPLE:
-	do_sample_proc((Widget) NULL, (XtPointer) & sampui, (XtPointer) 0);
-	break;
-    case PICK_PRUNE:
-        do_prune_proc((Widget) NULL, (XtPointer) & pruneui, (XtPointer) 0);
-        break;
-    case PICK_FOURIER:
-	do_fourier_proc((Widget) NULL, (XtPointer) & fui, (XtPointer) 0);
-	break;
-    case PICK_HISTO:
-	do_histo_proc((Widget) NULL, (XtPointer) & hui, (XtPointer) 0);
-	break;
-    }
 }
