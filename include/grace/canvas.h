@@ -28,13 +28,6 @@
 #ifndef __CANVAS_H_
 #define __CANVAS_H_
 
-#include <t1lib.h>
-/* A hack - until there are T1_MAJORVERSION etc defined */
-#ifndef T1ERR_SCAN_ENCODING
-# define T1_CheckForFontID CheckForFontID
-# define T1_GetNoFonts T1_Get_no_fonts
-#endif
-
 #include "grace/base.h"
 
 /* bpp that Grace uses internally ( = 256 colors) */
@@ -242,6 +235,15 @@ typedef struct {
     view bbox;
 } CanvasStats;
 
+typedef struct {
+    int width;
+    int height;
+    char *bits;
+    int bpp;
+    int pad;
+    int type;
+} CPixmap;
+
 typedef struct _Canvas Canvas;
 
 typedef void (*DevFreeDataProc)(void *data);
@@ -277,8 +279,7 @@ typedef void (*DevFillArcProc)(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
 /* device pixmap drawing */
 typedef void (*DevPutPixmapProc)(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+    const VPoint *vp, const CPixmap *pm);
 /* device text typesetting */
 typedef void (*DevPutTextProc)(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,

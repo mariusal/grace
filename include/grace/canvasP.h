@@ -164,9 +164,7 @@ void canvas_dev_drawarc(Canvas *canvas,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2);
 void canvas_dev_fillarc(Canvas *canvas,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
-void canvas_dev_putpixmap(Canvas *canvas,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void canvas_dev_putpixmap(Canvas *canvas, const VPoint *vp, const CPixmap *pm);
 void canvas_dev_puttext(Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);

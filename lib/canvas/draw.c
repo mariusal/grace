@@ -115,27 +115,28 @@ void canvas_dev_fillarc(Canvas *canvas,
     }
 }
 
-void canvas_dev_putpixmap(Canvas *canvas,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+void canvas_dev_putpixmap(Canvas *canvas, const VPoint *vp, const CPixmap *pm)
 {
-    if (pixmap_bpp == 1) {
+    if (!pm) {
+        return;
+    }
+    
+    if (pm->bpp == 1) {
         canvas_stats_update(canvas, CANVAS_STATS_COLOR);
-        if (pixmap_type != PIXMAP_TRANSPARENT) {
+        if (pm->type != PIXMAP_TRANSPARENT) {
             canvas->cmap[getbgcolor(canvas)].used = 1;
         }
     } else {
         int j, k;
-        for (k = 0; k < height; k++) {
-            for (j = 0; j < width; j++) {
-                int cindex = (databits)[k*width+j];
+        for (k = 0; k < pm->height; k++) {
+            for (j = 0; j < pm->width; j++) {
+                int cindex = (pm->bits)[k*pm->width+j];
                 canvas->cmap[cindex].used = 1;
             }
         }
     }
     if (!canvas->drypass) {
-        canvas->curdevice->putpixmap(canvas, canvas->curdevice->data,
-            vp, width, height, databits, pixmap_bpp, bitmap_pad, pixmap_type);
+        canvas->curdevice->putpixmap(canvas, canvas->curdevice->data, vp, pm);
     }
 }
 

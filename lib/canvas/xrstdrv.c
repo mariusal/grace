@@ -492,8 +492,7 @@ void xrst_fillarc(const Canvas *canvas, void *data,
 
 
 void xrst_putpixmap(const Canvas *canvas, void *data,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+    const VPoint *vp, const CPixmap *pm)
 {
     Xrst_data *ddata = (Xrst_data *) data;
     int cindex, bg;
@@ -512,24 +511,24 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
     MI_GET_CANVAS_DRAWABLE_BOUNDS(ddata->mcanvas, xleft, ytop, xright, ybottom)
     
     y = mp.y;
-    if (pixmap_bpp == 1) {
+    if (pm->bpp == 1) {
         color = getcolor(canvas);
-        paddedW = PAD(width, bitmap_pad);
-        for (k = 0; k < height; k++) {
+        paddedW = PADBITS(pm->width, pm->pad);
+        for (k = 0; k < pm->height; k++) {
             x = mp.x;
             y++;
-            for (j = 0; j < paddedW/bitmap_pad; j++) {
-                for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
+            for (j = 0; j < paddedW/pm->pad; j++) {
+                for (i = 0; i < pm->pad && j*pm->pad + i < pm->width; i++) {
                     x++;
                     /* bound checking */
                     if (x < xleft || x > xright ||
                         y < ytop  || y > ybottom) {
                         continue;
                     }
-                    if (bin_dump(&(databits)[k*paddedW/bitmap_pad+j], i, bitmap_pad)) {
+                    if (bin_dump(&(pm->bits)[k*paddedW/pm->pad+j], i, pm->pad)) {
                         MI_SET_CANVAS_DRAWABLE_PIXEL(ddata->mcanvas, x, y, color);
                     } else {
-                        if (pixmap_type == PIXMAP_OPAQUE) {
+                        if (pm->type == PIXMAP_OPAQUE) {
                             MI_SET_CANVAS_DRAWABLE_PIXEL(ddata->mcanvas, x, y, bg);
                         }
                     }
@@ -537,18 +536,18 @@ void xrst_putpixmap(const Canvas *canvas, void *data,
             }
         }
     } else {
-        for (k = 0; k < height; k++) {
+        for (k = 0; k < pm->height; k++) {
             x = mp.x;
             y++;
-            for (j = 0; j < width; j++) {
+            for (j = 0; j < pm->width; j++) {
                 x++;
                 /* bound checking */
                 if (x < xleft || x > xright ||
                     y < ytop  || y > ybottom) {
                     continue;
                 }
-                cindex = (databits)[k*width+j];
-                if (cindex != bg || pixmap_type == PIXMAP_OPAQUE) {
+                cindex = (pm->bits)[k*pm->width+j];
+                if (cindex != bg || pm->type == PIXMAP_OPAQUE) {
                     color = cindex;
                     MI_SET_CANVAS_DRAWABLE_PIXEL(ddata->mcanvas, x, y, color);
                 }

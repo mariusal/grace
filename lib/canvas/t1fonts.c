@@ -32,6 +32,13 @@
 #include "grace/baseP.h"
 #include "grace/canvasP.h"
 
+#include <t1lib.h>
+/* A hack - until there are T1_MAJORVERSION etc defined */
+#ifndef T1ERR_SCAN_ENCODING
+# define T1_CheckForFontID CheckForFontID
+# define T1_GetNoFonts T1_Get_no_fonts
+#endif
+
 int init_t1(Canvas *canvas)
 {
     /* Set log-level */
@@ -881,15 +888,21 @@ void WriteString(Canvas *canvas,
                 canvas_dev_puttext(canvas, &vptmp, cs->s, cs->len, cs->font,
                     &cs->tm, cs->underline, cs->overline, cs->kerning);
             } else {
+                CPixmap pm;
+                
                 /* upper left corner of bitmap */
                 vptmp.x += cglyph->start.x;
                 vptmp.y += cglyph->start.y;
                 vptmp.x += (double) glyph->metrics.leftSideBearing/dpv;
                 vptmp.y += (double) glyph->metrics.ascent/dpv;
 
-                canvas_dev_putpixmap(canvas, &vptmp,
-                    pwidth, pheight, glyph->bits, glyph->bpp,
-                    T1_GetBitmapPad(), PIXMAP_TRANSPARENT);
+                pm.width  = pwidth;
+                pm.height = pheight;
+                pm.bits   = glyph->bits;
+                pm.bpp    = glyph->bpp;
+                pm.pad    = T1_GetBitmapPad();
+                pm.type   = PIXMAP_TRANSPARENT;
+                canvas_dev_putpixmap(canvas, &vptmp, &pm);
             }
         }
     }
