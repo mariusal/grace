@@ -968,6 +968,7 @@ int getdata(int gno, char *fn, int src, int load_type)
     save_version = project_get_version_id(grace->project);
     project_set_version_id(grace->project, 0);
 
+    set_graph_active(gno, FALSE);
     set_parser_gno(gno);
     
     retval = uniread(fp, load_type, fn);

@@ -701,7 +701,7 @@ int number_of_sets(int gno)
     if (g) {
         return storage_count(g->sets);
     } else {
-        return -1;
+        return 0;
     }
 }
 
