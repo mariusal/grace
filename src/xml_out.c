@@ -767,7 +767,7 @@ static int project_save_hook(Quark *q,
             f = frame_get_data(q);
 
             attributes_set_sval(attrs, AStrId, QIDSTR(q));
-            xmlio_set_active(attrs, f->active);
+            xmlio_set_active(attrs, quark_is_active(q));
             attributes_set_ival(attrs, AStrType, f->type); /* FIXME: textual */
             xfile_begin_element(xf, EStrFrame, attrs);
             save_frame_properties(xf, f);
@@ -780,7 +780,7 @@ static int project_save_hook(Quark *q,
     case QFlavorGraph:
         if (!closure->post) {
             attributes_set_sval(attrs, AStrId, QIDSTR(q));
-            xmlio_set_active(attrs, graph_is_active(q));
+            xmlio_set_active(attrs, quark_is_active(q));
 
             xfile_begin_element(xf, EStrGraph, attrs);
             save_graph_properties(xf, q);
@@ -794,7 +794,7 @@ static int project_save_hook(Quark *q,
         p = set_get_data(q);
         
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
-        xmlio_set_active(attrs, p->active);
+        xmlio_set_active(attrs, quark_is_active(q));
         attributes_set_sval(attrs, AStrType, set_types(rt_from_quark(q), p->type));
         attributes_set_ival(attrs, AStrSkip, p->symskip);
         attributes_set_dval(attrs, AStrSkipMinDist, p->symskipmindist);
@@ -812,7 +812,7 @@ static int project_save_hook(Quark *q,
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
         
         attributes_set_sval(attrs, AStrType, axis_is_x(q) ? "x":"y");
-        xmlio_set_active(attrs, t->active);
+        xmlio_set_active(attrs, quark_is_active(q));
         xfile_begin_element(xf, EStrAxis, attrs);
         save_axis_properties(xf, q);
         xfile_end_element(xf, EStrAxis);
@@ -822,8 +822,8 @@ static int project_save_hook(Quark *q,
         o = object_get_data(q);
 
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
+        xmlio_set_active(attrs, quark_is_active(q));
 
-        xmlio_set_active(attrs, o->active);
         xmlio_set_angle(attrs, o->angle);
         xmlio_set_offset(attrs, o->offset.x, o->offset.y);
         xfile_begin_element(xf, EStrObject, attrs);
@@ -882,8 +882,8 @@ static int project_save_hook(Quark *q,
         at = atext_get_data(q);
 
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
+        xmlio_set_active(attrs, quark_is_active(q));
 
-        xmlio_set_active(attrs, at->active);
         xmlio_set_offset(attrs, at->offset.x, at->offset.y);
 
         xfile_begin_element(xf, EStrAText, attrs);
@@ -918,8 +918,8 @@ static int project_save_hook(Quark *q,
         r = region_get_data(q);
         
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
+        xmlio_set_active(attrs, quark_is_active(q));
         
-        xmlio_set_active(attrs, r->active);
         attributes_set_sval(attrs,
             AStrType, region_types(rt_from_quark(q), r->type));
         xmlio_set_color_ref(attrs, r->color);

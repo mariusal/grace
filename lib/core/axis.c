@@ -49,7 +49,6 @@ static void set_default_ticks(Quark *q)
     
     grdefaults = pr->grdefaults;
     
-    t->active = TRUE;
     t->type = AXIS_TYPE_X;
     t->zero = FALSE;
     t->tl_flag = TRUE;
@@ -185,20 +184,6 @@ int axis_set_type(Quark *q, int type)
     if (t) {
         if (t->type != type) {
             t->type = type;
-            quark_dirtystate_set(q, TRUE);
-        }
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int axis_set_active(Quark *q, int flag)
-{
-    tickmarks *t = axis_get_data(q);
-    if (t) {
-        if (t->active != flag) {
-            t->active = flag;
             quark_dirtystate_set(q, TRUE);
         }
         return RETURN_SUCCESS;

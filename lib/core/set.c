@@ -272,7 +272,6 @@ static void set_default_set(Quark *pset)
     
     grdefs = pr->grdefaults;
     
-    p->active = TRUE;
     p->type = SET_XY;                            /* dataset type */
 
     p->symskip = 0;                              /* How many symbols to skip */
@@ -386,28 +385,6 @@ set *set_data_copy(set *p)
     return p_new;
 }
 
-
-int set_is_active(Quark *pset)
-{
-    if (pset) {
-        set *p = set_get_data(pset);
-        return p->active;
-    } else {
-        return FALSE;
-    }
-}
-
-int set_set_active(Quark *pset, int flag)
-{
-    if (pset) {
-        set *p = set_get_data(pset);
-        p->active = flag;
-        quark_dirtystate_set(pset, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
 
 int settype_cols(int type)
 {

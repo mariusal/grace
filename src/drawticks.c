@@ -58,7 +58,7 @@ static void drawgrid(Canvas *canvas, Quark *q)
     int ittype_loop, itick;
         
     t = axis_get_data(q);
-    if (!t || t->active != TRUE) {
+    if (!t) {
         return;
     }
     
@@ -182,7 +182,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
     double (*coord_conv) (const Quark *gr, double wx);
     
     t = axis_get_data(q);
-    if (!t || t->active != TRUE) {
+    if (!t) {
         return;
     }
     
@@ -678,7 +678,7 @@ static void calculate_tickgrid(Quark *q)
     
     t = axis_get_data(q);
 
-    if (!t || t->active != TRUE) {
+    if (!t) {
         return;
     }
 
@@ -838,8 +838,7 @@ reenter:
 void draw_axis(Canvas *canvas, Quark *q)
 {
     tickmarks *t = axis_get_data(q);
-    if (t && t->active &&
-        graph_get_type(get_parent_graph(q)) != GRAPH_PIE) {
+    if (t && graph_get_type(get_parent_graph(q)) != GRAPH_PIE) {
         /* calculate tick mark positions */
         calculate_tickgrid(q);
         

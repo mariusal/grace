@@ -309,8 +309,6 @@ typedef struct {
 } legend;
 
 typedef struct {
-    int active;
-    
     int type;                   /* frame type */
     
     Line outline;               /* outline    */
@@ -399,8 +397,6 @@ typedef struct {
  * a graph
  */
 typedef struct {
-    int active;                 /* display or not */
-
     int type;                   /* type of graph */
     int stacked;                /* TRUE if graph is stacked */
 
@@ -452,8 +448,6 @@ typedef struct {
 } TextProps;
 
 typedef struct {
-    int active;                 /* active or not */
-
     int type;                   /* X or Y */
     int zero;                   /* "zero" axis or plain */
 
@@ -634,8 +628,6 @@ typedef struct {
 } AValue;
 
 typedef struct {
-    int active;                 /* on/off */
-
     int type;                   /* set type */
 
     Symbol sym;                 /* set plot symbol props */
@@ -655,8 +647,6 @@ typedef struct {
 
 
 typedef struct {
-    int active;                 /* region on or off */
-    
     int type;                   /* region type */
     
     int n;                      /* number of points */
@@ -674,8 +664,6 @@ typedef enum {
 } OType;
 
 typedef struct _DObject {
-    int active;
-
     APoint ap;
     
     VPoint offset;
@@ -719,8 +707,6 @@ typedef struct _DOArcData {
 } DOArcData;
 
 typedef struct _AText {
-    int active;
-
     APoint ap;
     VVector offset;
     
@@ -760,6 +746,9 @@ int quark_idstr_set(Quark *q, const char *s);
 char *quark_idstr_get(const Quark *q);
 int quark_fid_set(Quark *q, int fid);
 int quark_fid_get(const Quark *q);
+
+int quark_set_active(Quark *q, int onoff);
+int quark_is_active(const Quark *q);
 
 QuarkFactory *quark_get_qfactory(const Quark *q);
 
@@ -826,9 +815,6 @@ frame *frame_get_data(const Quark *q);
 
 Quark *frame_new(Quark *project);
 
-int frame_is_active(const Quark *q);
-int frame_set_active(Quark *q, int flag);
-
 int frame_get_view(const Quark *q, view *v);
 int frame_set_view(Quark *q, const view *v);
 
@@ -860,8 +846,6 @@ int graph_get_world(const Quark *gr, world *w);
 int graph_set_world(Quark *gr, const world *w);
 int graph_get_xyflip(const Quark *gr);
 int graph_set_xyflip(Quark *gr, int xyflip);
-int graph_is_active(const Quark *gr);
-int graph_set_active(Quark *gr, int flag);
 int graph_is_stacked(const Quark *gr);
 int graph_set_stacked(Quark *gr, int flag);
 double graph_get_bargap(const Quark *gr);
@@ -889,7 +873,6 @@ Quark *axis_new(Quark *q);
 tickmarks *axis_get_data(const Quark *q);
 
 int axis_set_type(Quark *q, int type);
-int axis_set_active(Quark *q, int flag);
 int axis_is_x(const Quark *q);
 int axis_is_y(const Quark *q);
 void axis_autotick(Quark *q);
@@ -915,9 +898,6 @@ set *set_data_copy(set *p);
 Quark *set_new(Quark *gr);
 
 set *set_get_data(const Quark *q);
-
-int set_is_active(Quark *pset);
-int set_set_active(Quark *pset, int flag);
 
 Dataset *set_get_dataset(Quark *pset);
 int set_set_dataset(Quark *q, Dataset *dsp);
@@ -964,7 +944,6 @@ region *region_get_data(const Quark *q);
 
 Quark *region_new(Quark *gr);
 
-int region_set_active(Quark *q, int flag);
 int region_set_type(Quark *q, int type);
 int region_set_color(Quark *q, int color);
 
@@ -985,7 +964,6 @@ Quark *object_new_complete(Quark *gr, OType type);
 
 DObject *object_get_data(const Quark *q);
 
-int object_set_active(Quark *q, int flag);
 int object_set_angle(Quark *q, double angle);
 int object_set_offset(Quark *q, const VPoint *offset);
 int object_set_line(Quark *q, const Line *line);
@@ -1005,7 +983,6 @@ void atext_data_free(AText *at);
 AText *atext_data_copy(AText *at);
 Quark *atext_new(Quark *q);
 AText *atext_get_data(const Quark *q);
-int atext_set_active(Quark *q, int flag);
 int atext_set_string(Quark *q, const char *s);
 int atext_set_ap(Quark *q, const APoint *ap);
 int atext_set_offset(Quark *q, const VPoint *offset);

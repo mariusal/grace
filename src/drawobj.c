@@ -42,7 +42,7 @@ void draw_object(Canvas *canvas, Quark *q)
     VPoint anchor;
     DObject *o = object_get_data(q);
 
-    if (o == NULL || o->active == FALSE) {
+    if (o == NULL) {
         return;
     }
     
@@ -174,7 +174,7 @@ void draw_atext(Canvas *canvas, Quark *q)
     int savebg;
     AText *at = atext_get_data(q);
     
-    if (!at || !at->active || is_empty_string(at->s)) {
+    if (!at || is_empty_string(at->s)) {
         return;
     }
 

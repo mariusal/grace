@@ -63,8 +63,6 @@ DObject *object_data_new(void)
     o = xmalloc(sizeof(DObject));
     memset(o, 0, sizeof(DObject));
     if (o) {
-        o->active = FALSE;
-        
         o->type = DO_NONE;
 
         o->ap.x = 0.0;
@@ -202,7 +200,6 @@ DObject *object_data_new_complete(OType type)
     
     o = object_data_new();
     if (o) {
-        o->active = TRUE;
         o->type   = type;
         o->odata  = object_odata_new(type);
         if (o->odata == NULL) {
@@ -222,7 +219,6 @@ Quark *object_new_complete(Quark *gr, OType type)
     q = object_new(gr);
     o = object_get_data(q);
     if (o) {
-        o->active = TRUE;
         o->type   = type;
         o->odata  = object_odata_new(type);
         if (o->odata == NULL) {
@@ -257,20 +253,6 @@ int object_get_bb(DObject *o, view *bb)
     }
 }
 
-
-int object_set_active(Quark *q, int flag)
-{
-    DObject *o = object_get_data(q);
-    if (o) {
-        
-        o->active = flag;
-        
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
 
 int object_set_angle(Quark *q, double angle)
 {

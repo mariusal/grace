@@ -58,9 +58,6 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(tab, "General");
 
-    ui->active = CreateToggleButton(ui->main_tp, "Active");
-    AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
-
     fr = CreateFrame(ui->main_tp, "Anchor point");
     rc = CreateHContainer(fr);
     ui->x = CreateTextInput(rc, "X:");
@@ -304,8 +301,6 @@ void update_object_ui(ObjectUI *ui, Quark *q)
     if (o && ui) {
         char *format, buf[32];
         
-        SetToggleButtonState(ui->active, o->active);
-        
         if (object_get_loctype(q) == COORD_WORLD) {
             format = "%.8g";
         } else {
@@ -361,9 +356,6 @@ int set_object_data(ObjectUI *ui, Quark *q, void *caller)
     DObject *o = object_get_data(q);
     
     if (o && ui) {
-        if (!caller || caller == ui->active) {
-            o->active = GetToggleButtonState(ui->active);
-        }
         if (!caller || caller == ui->x) {
             xv_evalexpr(ui->x->text, &o->ap.x);
         }

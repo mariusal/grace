@@ -867,18 +867,20 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 
 
 
-#define SS_DELETE_CB         0
-#define SS_DUPLICATE_CB      1
-#define SS_BRING_TO_FRONT_CB 2
-#define SS_SEND_TO_BACK_CB   3
-#define SS_MOVE_UP_CB        4
-#define SS_MOVE_DOWN_CB      5
+#define SS_HIDE_CB           0
+#define SS_SHOW_CB           1
+#define SS_DELETE_CB         2
+#define SS_DUPLICATE_CB      3
+#define SS_BRING_TO_FRONT_CB 4
+#define SS_SEND_TO_BACK_CB   5
+#define SS_MOVE_UP_CB        6
+#define SS_MOVE_DOWN_CB      7
 
 static char *default_storage_labeling_proc(Quark *q, unsigned int *rid)
 {
     char buf[128];
     
-    sprintf(buf, "Item #%d (data = %p)", *rid, (void *) q);
+    sprintf(buf, "Quark \"%s\"", QIDSTR(q));
     
     (*rid)++;
     
@@ -898,12 +900,18 @@ static int traverse_hook(Quark *q, void *udata, QTraverseClosure *closure)
     
     s = ss->labeling_proc(q, &stdata->rid);
     if (s) {
+        char buf[16], *sbuf;
         XmString str;
         
         ss->values[ss->nchoices++] = q;
 
-        str = XmStringCreateLocalized(s);
+        sprintf(buf, "(%c) ", quark_is_active(q) ? '+':'-');
+        sbuf = copy_string(NULL, buf);
+        sbuf = concat_strings(sbuf, s);
         xfree(s);
+
+        str = XmStringCreateLocalized(sbuf);
+        xfree(sbuf);
 
         XmListAddItemUnselected(ss->list, str, 0);
         XmStringFree(str);
@@ -968,6 +976,12 @@ static void ss_any_cb(StorageStructure *ss, int type)
         }
         
         switch (type) {
+        case SS_HIDE_CB:
+            quark_set_active(q, FALSE);
+            break;
+        case SS_SHOW_CB:
+            quark_set_active(q, TRUE);
+            break;
         case SS_DELETE_CB:
             quark_free(q);
             break;
@@ -994,6 +1008,16 @@ static void ss_any_cb(StorageStructure *ss, int type)
         update_all();
         xdrawgraph(grace->project, FALSE);
     }
+}
+
+static void ss_hide_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_HIDE_CB);
+}
+
+static void ss_show_cb(Widget but, void *udata)
+{
+    ss_any_cb((StorageStructure *) udata, SS_SHOW_CB);
 }
 
 static void ss_delete_cb(Widget but, void *udata)
@@ -1054,6 +1078,10 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     
     popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
     ss->popup = popup;
+
+    ss->popup_hide_bt = CreateMenuButton(popup, "Hide", '\0', ss_hide_cb, ss);
+    ss->popup_show_bt = CreateMenuButton(popup, "Show", '\0', ss_show_cb, ss);
+    CreateMenuSeparator(popup);
     
     ss->popup_delete_bt =
         CreateMenuButton(popup, "Delete", '\0', ss_delete_cb, ss);
@@ -2404,14 +2432,9 @@ SpinStructure *CreateViewCoordInput(Widget parent, char *s)
 static StorageStructure **graph_selectors = NULL;
 static int ngraph_selectors = 0;
 
-
-#define GSS_HIDE_CB          0
-#define GSS_SHOW_CB          1
-#define GSS_FOCUS_CB         2
+#define GSS_FOCUS_CB         0
 
 typedef struct {
-    Widget hide_bt;
-    Widget show_bt;
     Widget focus_bt;
 } GSSData;
 
@@ -2427,12 +2450,6 @@ static void gss_any_cb(void *udata, int cbtype)
         Quark *gr = values[i];
         
         switch (cbtype) {
-        case GSS_HIDE_CB:
-            graph_set_active(gr, FALSE);
-            break;
-        case GSS_SHOW_CB:
-            graph_set_active(gr, TRUE);
-            break;
         case GSS_FOCUS_CB:
             switch_current_graph(gr);
             break;
@@ -2446,16 +2463,6 @@ static void gss_any_cb(void *udata, int cbtype)
     }
 }
 
-static void g_hide_cb(Widget but, void *udata)
-{
-    gss_any_cb(udata, GSS_HIDE_CB);
-}
-
-static void g_show_cb(Widget but, void *udata)
-{
-    gss_any_cb(udata, GSS_SHOW_CB);
-}
-
 static void g_focus_cb(Widget but, void *udata)
 {
     gss_any_cb(udata, GSS_FOCUS_CB);
@@ -2465,8 +2472,6 @@ static void g_popup_cb(StorageStructure *ss, int nselected)
 {
     GSSData *gssdata = (GSSData *) ss->data;
     
-    SetSensitive(gssdata->hide_bt,  (nselected > 0));
-    SetSensitive(gssdata->show_bt,  (nselected > 0));
     SetSensitive(gssdata->focus_bt, (nselected == 1));
 }
 
@@ -2487,8 +2492,8 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
     char buf[128];
     
     if (quark_fid_get(q) == QFlavorGraph) {
-        sprintf(buf, "(%c) Graph \"%s\" (type: %s, sets: %d)",
-            graph_is_active(q) ? '+':'-', QIDSTR(q),
+        sprintf(buf, "Graph \"%s\" (type: %s, sets: %d)",
+            QIDSTR(q),
             graph_types(grace->rt, graph_get_type(q)), number_of_sets(q));
 
         (*rid)++;
@@ -2523,10 +2528,6 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     ss->popup_cb = g_popup_cb;
     
     popup = ss->popup;
-    
-    CreateMenuSeparator(popup);
-    gssdata->hide_bt = CreateMenuButton(popup, "Hide", '\0', g_hide_cb, ss);
-    gssdata->show_bt = CreateMenuButton(popup, "Show", '\0', g_show_cb, ss);
     
     CreateMenuSeparator(popup);
 
@@ -2569,19 +2570,15 @@ static StorageStructure **set_selectors = NULL;
 static int nset_selectors = 0;
 
 
-#define SSS_HIDE_CB          0
-#define SSS_SHOW_CB          1
-#define SSS_EDITS_CB         2
-#define SSS_EDITE_CB         3
-#define SSS_NEWF_CB          4
-#define SSS_NEWS_CB          5
-#define SSS_NEWE_CB          6
-#define SSS_NEWB_CB          7
+#define SSS_EDITS_CB         0
+#define SSS_EDITE_CB         1
+#define SSS_NEWF_CB          2
+#define SSS_NEWS_CB          3
+#define SSS_NEWE_CB          4
+#define SSS_NEWB_CB          5
 
 typedef struct {
     StorageStructure *graphss;
-    Widget hide_bt;
-    Widget show_bt;
     Widget edit_menu;
 } SSSData;
 
@@ -2614,12 +2611,6 @@ static void sss_any_cb(void *udata, int cbtype)
         Quark *pset = values[i];
         
         switch (cbtype) {
-        case SSS_HIDE_CB:
-            set_set_active(pset, FALSE);
-            break;
-        case SSS_SHOW_CB:
-            set_set_active(pset, TRUE);
-            break;
         case SSS_EDITS_CB:
             create_ss_frame(pset);
             break;
@@ -2636,14 +2627,12 @@ static void sss_any_cb(void *udata, int cbtype)
     case SSS_NEWS_CB:
         if ((pset = grace_set_new(gr))) {
             set_set_comment(pset, "Editor");
-            set_set_active(pset, TRUE);
             create_ss_frame(pset);
         }
         break;
     case SSS_NEWE_CB:
         if ((pset = grace_set_new(gr))) {
             set_set_comment(pset, "Editor");
-            set_set_active(pset, TRUE);
             do_ext_editor(pset);
         }
         break;
@@ -2658,16 +2647,6 @@ static void sss_any_cb(void *udata, int cbtype)
     
     update_all();
     xdrawgraph(grace->project, FALSE);
-}
-
-static void s_hide_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_HIDE_CB);
-}
-
-static void s_show_cb(Widget but, void *udata)
-{
-    sss_any_cb(udata, SSS_SHOW_CB);
 }
 
 static void s_editS_cb(Widget but, void *udata)
@@ -2711,8 +2690,6 @@ static void s_popup_cb(StorageStructure *ss, int nselected)
         selected = FALSE;
     }
     
-    SetSensitive(sssdata->hide_bt, selected);
-    SetSensitive(sssdata->show_bt, selected);
     SetSensitive(sssdata->edit_menu, selected);
 }
 
@@ -2727,8 +2704,8 @@ static char *set_labeling(Quark *q, unsigned int *rid)
     if (quark_fid_get(q) == QFlavorSet) {
         set *p = set_get_data(q);
 
-        sprintf(buf, "(%c) Set \"%s\" (type: %s, length: %d)",
-            p->active ? '+':'-', QIDSTR(q), set_types(grace->rt, p->type),
+        sprintf(buf, "Set \"%s\" (type: %s, length: %d)",
+            QIDSTR(q), set_types(grace->rt, p->type),
             set_get_length(q));
 
         (*rid)++;
@@ -2761,13 +2738,10 @@ StorageStructure *CreateSetChoice(Widget parent,
     sssdata = xmalloc(sizeof(SSSData));
     ss->data = sssdata;
     ss->popup_cb = s_popup_cb;
+    sssdata->graphss = graphss;
     
     popup = ss->popup;
     
-    CreateMenuSeparator(popup);
-    sssdata->graphss = graphss;
-    sssdata->hide_bt = CreateMenuButton(popup, "Hide", '\0', s_hide_cb, ss);
-    sssdata->show_bt = CreateMenuButton(popup, "Show", '\0', s_show_cb, ss);
     CreateMenuSeparator(popup);
 
     sssdata->edit_menu = CreateMenu(popup, "Edit", 'E', FALSE);

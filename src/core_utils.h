@@ -67,7 +67,6 @@ Quark *graph_next(Quark *project);
 
 Quark *graph_get_current(const Quark *project);
 
-int is_axis_active(tickmarks *t);
 int is_zero_axis(tickmarks *t);
 int activate_tick_labels(tickmarks *t, int flag);
 
@@ -87,7 +86,7 @@ int select_graph(Quark *g);
 
 int is_set_dataless(Quark *pset);
 
-#define is_set_drawable(p) (!is_set_dataless(p) && set_is_active(p))
+#define is_set_drawable(p) (quark_is_active(p) && !is_set_dataless(p))
 
 int number_of_sets(Quark *gr);
 

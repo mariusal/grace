@@ -118,6 +118,9 @@ struct _StorageStructure {
     Widget popup;
     Widget selpopup;
     
+    Widget popup_hide_bt;
+    Widget popup_show_bt;
+
     Widget popup_delete_bt;
     Widget popup_duplicate_bt;
 

@@ -84,7 +84,10 @@ static Quark *project;
 static Quark *whichframe;
 static Quark *whichgraph;
 static Quark *whichset;
+
+static Quark *whichaxis;
 static tickmarks *curtm;
+
 static DObject *curobject;
 static Quark *curatext;
 static Quark *objgno;
@@ -1736,7 +1739,7 @@ regionset:
 	selectregion onoff {
 	    region *r = region_get_data($1);
             if (r) {
-                r->active = $2;
+                quark_set_active($1, $2);
                 XCFREE(r->wps);
                 r->n = 0;
             }
@@ -1839,12 +1842,8 @@ parmset:
             curobject = object_data_new_complete($2);
 	}
 	| objecttype onoff {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else {
-	        curobject->active = $2;
-            }
-	}
+	    /* was never off */
+        }
 	| LINE selectgraph {
 	    objgno = $2;
 	}
@@ -2038,7 +2037,7 @@ parmset:
 	| atext LOCTYPE worldview {
 	}
 	| atext onoff {
-            atext_set_active($1, $2);
+            quark_set_active($1, $2);
         }
 	| atext font_select {
             atext_set_font($1, $2);
@@ -2359,12 +2358,12 @@ parmset:
         }
 
 	| selectgraph onoff {
-            graph_set_active($1, $2);
-            frame_set_active(get_parent_frame($1), $2);
+            quark_set_active($1, $2);
+            quark_set_active(get_parent_frame($1), $2);
         }
 	| selectgraph HIDDEN onoff {
-            graph_set_active($1, !$3);
-            frame_set_active(get_parent_frame($1), !$3);
+            quark_set_active($1, !$3);
+            quark_set_active(get_parent_frame($1), !$3);
         }
 	| selectgraph TYPE graphtype {
             graph_set_type($1, $3);
@@ -2443,7 +2442,7 @@ actions:
 	    xfree($2);
 	}
 	| selectset HIDDEN onoff {
-	    set_set_active($1, !$3);
+	    quark_set_active($1, !$3);
 	}
         ;
 
@@ -2464,7 +2463,7 @@ set_setprop:
 
 setprop:
 	selectset onoff {
-	    set_set_active($1, $2);
+	    quark_set_active($1, $2);
 	}
 	| selectset TYPE xytype {
 	    set_set_type($1, $3);
@@ -2725,7 +2724,7 @@ setprop:
 
 axisfeature:
 	onoff {
-	    curtm->active = $1;
+	    quark_set_active(whichaxis, $1);
 	}
 	| TYPE ZERO onoff {
 	    curtm->zero = $3;
@@ -2993,6 +2992,7 @@ axis:
                 axis_set_type(q, AXIS_TYPE_X);
             }
             curtm = axis_get_data(q);
+            whichaxis = q;
         }
 	| YAXIS {
             Quark *q = quark_find_descendant_by_idstr(whichgraph, "y_axis");
@@ -3002,6 +3002,7 @@ axis:
                 axis_set_type(q, AXIS_TYPE_Y);
             }
             curtm = axis_get_data(q);
+            whichaxis = q;
         }
 	| ALTXAXIS {
             Quark *q = quark_find_descendant_by_idstr(whichgraph, "altx_axis");
@@ -3011,6 +3012,7 @@ axis:
                 axis_set_type(q, AXIS_TYPE_X);
             }
             curtm = axis_get_data(q);
+            whichaxis = q;
         }
 	| ALTYAXIS {
             Quark *q = quark_find_descendant_by_idstr(whichgraph, "alty_axis");
@@ -3020,6 +3022,7 @@ axis:
                 axis_set_type(q, AXIS_TYPE_Y);
             }
             curtm = axis_get_data(q);
+            whichaxis = q;
         }
 	;
 
@@ -3029,7 +3032,7 @@ title:
             if (!q) {
                 AText *at;
                 q = atext_new(whichframe);
-                atext_set_active(q, TRUE);
+                quark_set_active(q, TRUE);
                 at = atext_get_data(q);
                 if (at) {
                     APoint ap = {0.5, 1.0};
@@ -3048,7 +3051,7 @@ title:
             if (!q) {
                 AText *at;
                 q = atext_new(whichframe);
-                atext_set_active(q, TRUE);
+                quark_set_active(q, TRUE);
                 at = atext_get_data(q);
                 if (at) {
                     APoint ap = {0.5, 1.0};
@@ -3619,7 +3622,7 @@ setprop_obs:
 tickattr_obs:
 	MAJOR onoff {
 	    /* <= xmgr-4.1 */
-	    curtm->active = $2;
+	    quark_set_active(whichaxis, $2);
 	}
 	| MINOR onoff { }
 	| ALT onoff   { }
@@ -4756,6 +4759,7 @@ static Quark *allocate_region(Quark *gr, int rn)
         if (!r) {
             r = region_new(gr);
             quark_idstr_set(r, buf);
+            quark_set_active(r, FALSE);
         }
     }
     
@@ -4789,6 +4793,7 @@ void parser_state_reset(Quark *pr)
         whichgraph = NULL;
     }
     whichset  = NULL;
+    whichaxis = NULL;
     curtm     = NULL;
     curobject = NULL;
     objgno    = NULL;

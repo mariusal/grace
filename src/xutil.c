@@ -508,7 +508,7 @@ void xdrawgraph(const Quark *q, int force)
         select_device(grace->rt->canvas, grace->rt->tdevice);
 	drawgraph(project);
 
-        if (graph_is_active(gr)) {
+        if (quark_is_active(gr)) {
             draw_focus(gr);
         }
         reset_crosshair(grace->gui, FALSE);

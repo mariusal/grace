@@ -730,7 +730,7 @@ static int leval_aac_cb(void *data)
     
     pset = grace_set_new(gr);
     set_set_type(pset, type);
-    set_set_active(pset, TRUE);
+    quark_set_active(pset, TRUE);
     if (set_set_length(pset, npts) != RETURN_SUCCESS) {
         killset(pset);
         XCFREE(t->data);

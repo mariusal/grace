@@ -127,6 +127,8 @@ static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
         q->fid = fid;
         q->data = data;
         
+        q->active = TRUE;
+        
         q->children = storage_new(quark_storage_free, NULL, NULL);
         
         if (!q->children) {
@@ -276,6 +278,7 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     qf = quark_flavor_get(q->qfactory, q->fid);
     data = qf->data_copy(q->data);
     new = quark_new_raw(newparent, q->fid, data);
+    new->active = q->active;
     if (newparent != q->parent) {
         quark_idstr_set(new, q->idstr);
     }
@@ -318,6 +321,25 @@ void quark_dirtystate_set(Quark *q, int flag)
 int quark_dirtystate_get(const Quark *q)
 {
     return q->dirtystate;
+}
+
+int quark_set_active(Quark *q, int onoff)
+{
+    if (q) {
+        if (q->active != onoff) {
+            q->active = onoff;
+            quark_dirtystate_set(q, TRUE);
+        }
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int quark_is_active(const Quark *q)
+{
+    return q->active;
 }
 
 int quark_idstr_set(Quark *q, const char *s)

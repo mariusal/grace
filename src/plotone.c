@@ -51,6 +51,11 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     plot_rt_t *plot_rt = (plot_rt_t *) udata;
     Canvas *canvas = plot_rt->canvas;
+
+    if (!quark_is_active(q)) {
+        closure->descend = FALSE;
+        return TRUE;
+    }
     
     switch (quark_fid_get(q)) {
     case QFlavorProject:
@@ -61,10 +66,6 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         }
         break;
     case QFlavorFrame:
-        if (!frame_is_active(q)) {
-            closure->descend = FALSE;
-            break;
-        }
         if (!closure->post) {
             /* fill frame */
             fillframe(canvas, q);
@@ -229,10 +230,6 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
 {
     GraphType gtype;
     
-    if (!graph_is_active(gr)) {
-        return RETURN_FAILURE;
-    }
-
     plot_rt->ndsets = 0;
     plot_rt->offset = 0.0;
 
@@ -2117,7 +2114,7 @@ void draw_region(Canvas *canvas, Quark *q)
     double dv = 0.003;
 
     frame_get_view(f, &v);
-    if (terminal_device(canvas) != TRUE || !r || !r->active) {
+    if (terminal_device(canvas) != TRUE || !r) {
         return;
     }
     
@@ -2245,7 +2242,7 @@ static int is_legend_drawable(Quark *pset)
     
     if (is_set_drawable(pset)       &&
         !is_empty_string(p->legstr) &&
-        graph_is_active(gr)         &&
+        quark_is_active(gr)         &&
         graph_get_type(gr) != GRAPH_PIE) {
         
         return TRUE;

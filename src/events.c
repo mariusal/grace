@@ -142,9 +142,14 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
     DObject *o;
     double *x, *y;
     
+    if (!quark_is_active(q)) {
+        closure->descend = FALSE;
+        return TRUE;
+    }
+    
     switch (quark_fid_get(q)) {
     case QFlavorFrame:
-        if (frame_is_active(q)) {
+        {
             legend *l;
 
             frame_get_view(q, &v);
@@ -157,7 +162,7 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
         break;
     case QFlavorAText:
         at = atext_get_data(q);
-        if (at->active) {
+        {
             VPoint vp;
             target_consider(ct, q, 0, &at->bb);
             
@@ -173,9 +178,7 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
         break;
     case QFlavorDObject:
         o = object_get_data(q);
-        if (o->active) {
-            target_consider(ct, q, 0, &o->bb);
-        }
+        target_consider(ct, q, 0, &o->bb);
         break;
     case QFlavorSet:
         x = set_get_col(q, DATA_X);
@@ -754,7 +757,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
         
         closure->descend = FALSE;
         
-	if (graph_is_active(q)        == TRUE &&
+	if (quark_is_active(q)        == TRUE &&
             graph_get_viewport(q, &v) == RETURN_SUCCESS &&
             is_vpoint_inside(&v, vp, 0.0) == TRUE &&
             graph_get_current(pr) != q) {
@@ -762,7 +765,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
             return FALSE;
         }
     } else
-    if (quark_fid_get(q) == QFlavorFrame && !frame_is_active(q)) {
+    if (quark_fid_get(q) == QFlavorFrame && !quark_is_active(q)) {
         closure->descend = FALSE;
     }
 
@@ -796,7 +799,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
         vp = *vpp;
     }
 
-    if (graph_is_active(cg) == TRUE                  &&
+    if (quark_is_active(cg) == TRUE                  &&
         graph_get_viewport(cg, &v) == RETURN_SUCCESS &&
         is_vpoint_inside(&v, &vp, 0.0) == TRUE       &&
         (locator = graph_get_locator(cg)) != NULL    &&
@@ -851,7 +854,7 @@ void update_locator_lab(Quark *cg, VPoint *vpp)
 void switch_current_graph(Quark *gr)
 {
     
-    if (graph_is_active(gr)) {
+    if (quark_is_active(gr)) {
         Grace *grace = grace_from_quark(gr);
         Quark *cg = graph_get_current(grace->project);
         

@@ -113,20 +113,6 @@ AText *atext_get_data(const Quark *q)
     }
 }
 
-int atext_set_active(Quark *q, int flag)
-{
-    AText *at = atext_get_data(q);
-    if (at) {
-        
-        at->active = flag;
-        
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 int atext_set_string(Quark *q, const char *s)
 {
     AText *at = atext_get_data(q);

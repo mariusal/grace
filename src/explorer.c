@@ -75,7 +75,7 @@ static char *default_quark_labeling_proc(Quark *q)
 {
     char buf[128];
     
-    sprintf(buf, "Item \"%s\" (data = %p)", QIDSTR(q), (void *) q);
+    sprintf(buf, "Quark \"%s\"", QIDSTR(q));
     
     return copy_string(NULL, buf);
 }
@@ -89,13 +89,19 @@ static int traverse_hook(unsigned int step, void *data, void *udata)
     
     s = ti_data->labeling_proc(q);
     if (s) {
+        char buf[16], *sbuf;
+
+        sprintf(buf, "(%c) ", quark_is_active(q) ? '+':'-');
+        sbuf = copy_string(NULL, buf);
+        sbuf = concat_strings(sbuf, s);
+        xfree(s);
         if (step >= ti_data->nchoices) {
-            q_create(ti_data->tree, ti, s, data);
+            q_create(ti_data->tree, ti, sbuf, data);
             ti_data->nchoices++;
         } else {
-            ListTreeRenameItem(ti_data->tree, ti, s);
+            ListTreeRenameItem(ti_data->tree, ti, sbuf);
         }
-        xfree(s);
+        xfree(sbuf);
     }
     
     return TRUE;
@@ -185,13 +191,13 @@ static char *q_labeling(Quark *q)
     case QFlavorFrame:
         f = frame_get_data(q);
         
-        sprintf(buf, "(%c) Frame \"%s%s\"", f->active ? '+':'-', QIDSTR(q),
+        sprintf(buf, "Frame \"%s%s\"", QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"");
 
         break;
     case QFlavorGraph:
-        sprintf(buf, "(%c) Graph \"%s%s\" (type: %s, sets: %d)",
-            graph_is_active(q) ? '+':'-', QIDSTR(q),
+        sprintf(buf, "Graph \"%s%s\" (type: %s, sets: %d)",
+            QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"",
             graph_types(rt, graph_get_type(q)), number_of_sets(q));
 
@@ -199,39 +205,39 @@ static char *q_labeling(Quark *q)
     case QFlavorSet:
         s = set_get_data(q);
         
-        sprintf(buf, "(%c) Set \"%s%s\" (%s)",
-            s->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+        sprintf(buf, "Set \"%s%s\" (%s)",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
             set_types(rt, s->type));
 
         break;
     case QFlavorAxis:
         t = axis_get_data(q);
         
-        sprintf(buf, "(%c) %c Axis \"%s%s\"",
-            t->active ? '+':'-', t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q),
+        sprintf(buf, "%c Axis \"%s%s\"",
+            t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q),
             quark_dirtystate_get(q) ? "*":"");
 
         break;
     case QFlavorDObject:
         o = object_get_data(q);
 
-        sprintf(buf, "(%c) DObject \"%s%s\" (%s)",
-            o->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+        sprintf(buf, "DObject \"%s%s\" (%s)",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
             object_types(o->type));
         
         break;
     case QFlavorAText:
         at = atext_get_data(q);
 
-        sprintf(buf, "(%c) AText \"%s%s\"",
-            at->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"");
+        sprintf(buf, "AText \"%s%s\"",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"");
         
         break;
     case QFlavorRegion:
         r = region_get_data(q);
 
-        sprintf(buf, "(%c) Region \"%s%s\" (%d pts)",
-            r->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
+        sprintf(buf, "Region \"%s%s\" (%d pts)",
+            QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
             r->n);
         
         break;
@@ -418,6 +424,14 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->region_ui->top);
             break;
         }
+    }
+
+    if (!count || fid == QFlavorProject) {
+        SetSensitive(ui->popup_hide_bt,           FALSE);
+        SetSensitive(ui->popup_show_bt,           FALSE);
+    } else {
+        SetSensitive(ui->popup_hide_bt,           TRUE);
+        SetSensitive(ui->popup_show_bt,           TRUE);
     }
         
     if (!count || !ui->all_siblings || fid == QFlavorProject) {
@@ -678,20 +692,22 @@ static void update_explorer_cb(Widget but, void *data)
 }
 
 
-#define DELETE_CB         0
-#define DUPLICATE_CB      1
-#define BRING_TO_FRONT_CB 2
-#define SEND_TO_BACK_CB   3
-#define MOVE_UP_CB        4
-#define MOVE_DOWN_CB      5
-#define ADD_FRAME_CB      6
-#define ADD_GRAPH_CB      7
-#define ADD_SET_CB        8
-#define ADD_AXIS_CB       9
-#define ADD_LINE_CB      10
-#define ADD_BOX_CB       11
-#define ADD_ARC_CB       12
-#define ADD_TEXT_CB      13
+#define HIDE_CB           0
+#define SHOW_CB           1
+#define DELETE_CB         2
+#define DUPLICATE_CB      3
+#define BRING_TO_FRONT_CB 4
+#define SEND_TO_BACK_CB   5
+#define MOVE_UP_CB        6
+#define MOVE_DOWN_CB      7
+#define ADD_FRAME_CB      8
+#define ADD_GRAPH_CB      9
+#define ADD_SET_CB       10
+#define ADD_AXIS_CB      11
+#define ADD_LINE_CB      12
+#define ADD_BOX_CB       13
+#define ADD_ARC_CB       14
+#define ADD_TEXT_CB      15
 
 static void popup_any_cb(ExplorerUI *eui, int type)
 {
@@ -720,6 +736,12 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         q = ti_data->q;
         
         switch (type) {
+        case HIDE_CB:
+            quark_set_active(q, FALSE);
+            break;
+        case SHOW_CB:
+            quark_set_active(q, TRUE);
+            break;
         case DELETE_CB:
             quark_free(q);
             break;
@@ -767,6 +789,16 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     
     xdrawgraph(grace->project, FALSE);
     update_all();
+}
+
+static void hide_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, HIDE_CB);
+}
+
+static void show_cb(Widget but, void *udata)
+{
+    popup_any_cb((ExplorerUI *) udata, SHOW_CB);
 }
 
 static void delete_cb(Widget but, void *udata)
@@ -983,6 +1015,13 @@ void raise_explorer(GUI *gui, Quark *q)
 
         /* Menu popup */
         eui->popup = XmCreatePopupMenu(eui->tree, "explorerPopupMenu", NULL, 0);
+        eui->popup_hide_bt = CreateMenuButton(eui->popup,
+            "Hide", '\0', hide_cb, eui);
+        eui->popup_show_bt = CreateMenuButton(eui->popup,
+            "Show", '\0', show_cb, eui);
+
+        CreateMenuSeparator(eui->popup);
+
         eui->popup_delete_bt = CreateMenuButton(eui->popup,
             "Delete", '\0', delete_cb, eui);
         eui->popup_duplicate_bt = CreateMenuButton(eui->popup,

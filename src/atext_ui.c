@@ -55,9 +55,6 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     /* ------------ Main tab -------------- */
     ui->main_tp = CreateTabPage(ui->top, "Main");
 
-    ui->active = CreateToggleButton(ui->main_tp, "Active");
-    AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
-
     fr = CreateFrame(ui->main_tp, "Text properties");
     rc = CreateVContainer(fr);
     
@@ -146,8 +143,6 @@ void update_atext_ui(ATextUI *ui, Quark *q)
         char *format, buf[32];
         AText *at = atext_get_data(q);
 
-        SetToggleButtonState(ui->active, at->active);
-
         SetTextString(ui->text,    at->s);
 
 
@@ -189,10 +184,6 @@ int set_atext_data(ATextUI *ui, Quark *q, void *caller)
 {
     if (ui && q && quark_fid_get(q) == QFlavorAText) {
         AText *at = atext_get_data(q);
-
-        if (!caller || caller == ui->active) {
-            atext_set_active(q, GetToggleButtonState(ui->active));
-        }
 
         if (!caller || caller == ui->text) {
             char *s = GetTextString(ui->text);

@@ -48,7 +48,6 @@ static void set_default_graph(graph *g)
 {    
     static const world d_w = {0.0, 1.0, 0.0, 1.0};
 
-    g->active = TRUE;
     g->type = GRAPH_XY;
     g->xinvert = FALSE;
     g->yinvert = FALSE;
@@ -124,7 +123,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
     if (q->fid == QFlavorGraph) {
         closure->descend = FALSE;
         
-        if (graph_is_active(q)) {
+        if (quark_is_active(q)) {
             Project *project = (Project *) udata;
 
             if (project->cg != q) {
@@ -133,7 +132,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
             }
         }
     } else
-    if (q->fid == QFlavorFrame && !frame_is_active(q)) {
+    if (q->fid == QFlavorFrame && !quark_is_active(q)) {
         closure->descend = FALSE;
     }
 
@@ -325,28 +324,6 @@ int graph_get_xyflip(const Quark *gr)
         return g->xyflip;
     } else {
         return FALSE;
-    }
-}
-
-int graph_is_active(const Quark *gr)
-{
-    graph *g = graph_get_data(gr);
-    if (g) {
-        return g->active;
-    } else {
-        return FALSE;
-    }
-}
-
-int graph_set_active(Quark *gr, int flag)
-{
-    graph *g = graph_get_data(gr);
-    if (g) {
-        g->active = flag;
-        quark_dirtystate_set(gr, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
     }
 }
 

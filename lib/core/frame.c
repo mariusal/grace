@@ -73,7 +73,6 @@ static void set_default_frame(Quark *q)
     pr = project_get_data(get_parent_project(q));
     grdefaults = pr->grdefaults;
     
-    f->active = TRUE;
     f->type = 0;                /* frame type */
     f->outline = grdefaults.line;
     f->fillpen = grdefaults.fillpen;
@@ -152,28 +151,6 @@ legend *frame_get_legend(const Quark *q)
         return &f->l;
     } else {
         return NULL;
-    }
-}
-
-int frame_is_active(const Quark *q)
-{
-    frame *f = frame_get_data(q);
-    if (f) {
-        return f->active;
-    } else {
-        return FALSE;
-    }
-}
-
-int frame_set_active(Quark *q, int flag)
-{
-    frame *f = frame_get_data(q);
-    if (f) {
-        f->active = flag;
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
     }
 }
 

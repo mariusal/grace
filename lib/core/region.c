@@ -41,7 +41,6 @@ static void set_region_defaults(region *r)
         return;
     }
     
-    r->active = FALSE;
     r->type = 0;
     r->color = 1;
     r->n = 0;
@@ -103,18 +102,6 @@ region *region_get_data(const Quark *q)
         return (region *) q->data;
     } else {
         return NULL;
-    }
-}
-
-int region_set_active(Quark *q, int flag)
-{
-    region *r = region_get_data(q);
-    if (r) {
-        r->active = flag;
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
     }
 }
 

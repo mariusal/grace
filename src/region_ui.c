@@ -43,9 +43,6 @@ RegionUI *create_region_ui(ExplorerUI *eui)
 
     ui->top = form;
     
-    ui->active = CreateToggleButton(form, "Active");
-    AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
-
     ui->type = CreateOptionChoiceVA(form, "Type:",
         "Polygon", REGION_POLYGON,
         "Band",    REGION_BAND,
@@ -63,7 +60,6 @@ void update_region_ui(RegionUI *ui, Quark *q)
 {
     region *r = region_get_data(q);
     if (ui && r) {
-        SetToggleButtonState(ui->active, r->active);
         SetOptionChoice(ui->type, r->type);
         SetOptionChoice(ui->color, r->color);
     }
@@ -74,9 +70,6 @@ int set_region_data(RegionUI *ui, Quark *q, void *caller)
     int retval = RETURN_SUCCESS;
     
     if (ui && q) {
-        if (!caller || caller == ui->active) {
-            region_set_active(q, GetToggleButtonState(ui->active));
-        }
         if (!caller || caller == ui->type) {
             region_set_type(q, GetOptionChoice(ui->type));
         }

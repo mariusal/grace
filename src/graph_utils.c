@@ -85,7 +85,7 @@ Quark *graph_next(Quark *project)
 
 int select_graph(Quark *gr)
 {
-    if (graph_is_active(gr)) {
+    if (quark_is_active(gr)) {
         Project *pr = project_get_data(get_parent_project(gr));
         if (pr) {
             set_parser_gno(gr);
@@ -179,15 +179,6 @@ int is_refpoint_active(Quark *gr)
     }
 }
 
-
-int is_axis_active(tickmarks *t)
-{
-    if (t) {
-        return t->active;
-    } else {
-        return FALSE;
-    }
-}
 
 int is_zero_axis(tickmarks *t)
 {

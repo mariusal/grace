@@ -44,10 +44,10 @@ struct _QuarkFactory {
 struct _Quark {
     QuarkFactory *qfactory;
     
-    void *udata;
-    
     unsigned int fid;
     char *idstr;
+    
+    int active;
     
     struct _Quark *parent;
     Storage *children;
@@ -58,6 +58,8 @@ struct _Quark {
     
     Quark_cb cb;
     void *cbdata;
+    
+    void *udata;
 };
 
 #endif /* __COREP_H_ */

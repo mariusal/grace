@@ -58,8 +58,6 @@ typedef struct {
     Widget          legends_tp;
     Widget          legendbox_tp;
 
-    Widget          active;
-
     Widget          view_xv1;
     Widget          view_xv2;
     Widget          view_yv1;
@@ -94,8 +92,6 @@ typedef struct {
     
     Widget          main_tp;
     Widget          locator_tp;
-
-    Widget          active;
 
     OptionStructure *graph_type;
     Widget          stacked;
@@ -132,8 +128,6 @@ typedef struct {
     Widget          line_tp;
     Widget          errbar_tp;
     Widget          avalue_tp;
-
-    Widget          active;
 
     OptionStructure *type;
     OptionStructure *symbols;
@@ -195,8 +189,6 @@ typedef struct {
     Widget          tickmark_tp;
     Widget          special_tp;
     Widget          sw;
-
-    Widget          active;
 
     OptionStructure *type;
     
@@ -304,8 +296,6 @@ typedef struct {
     Widget          main_tp;
     Widget          odata_tp;
 
-    Widget          active;
-    
     TextStructure   *x;
     TextStructure   *y;
     
@@ -327,8 +317,6 @@ typedef struct {
     Widget          top;
     Widget          main_tp;
     Widget          frame_tp;
-    
-    Widget          active;
     
     TextStructure   *x;
     TextStructure   *y;
@@ -361,8 +349,6 @@ typedef struct {
 typedef struct {
     Widget          top;
 
-    Widget          active;
-    
     OptionStructure *type;
     OptionStructure *color;
 } RegionUI;
@@ -389,6 +375,9 @@ struct _ExplorerUI {
     RegionUI     *region_ui;
 
     Widget       popup;
+
+    Widget       popup_hide_bt;
+    Widget       popup_show_bt;
 
     Widget       popup_delete_bt;
     Widget       popup_duplicate_bt;
