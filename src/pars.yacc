@@ -2944,10 +2944,10 @@ actions:
 	    free($4);
 	}
 	| WRITE selectset {
-	    outputset($2->gno, $2->setno, NULL, NULL);
+	    outputset($2->gno, $2->setno, "stdout", NULL);
 	}
 	| WRITE selectset FORMAT CHRSTR {
-	    outputset($2->gno, $2->setno, NULL, $4);
+	    outputset($2->gno, $2->setno, "stdout", $4);
 	    free($4);
 	}
 	| WRITE selectset FILEP CHRSTR {
