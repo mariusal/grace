@@ -125,6 +125,12 @@ static int init_svg_data(void)
 }
 
 /*
+ * SVG conventions :
+ *   Y coordinates increase downwards
+ *   angles increase counterclockwise
+ */
+
+/*
  * convert coordinate system
  */
 static double convertX (double x)
@@ -485,26 +491,34 @@ void svg_fillpolygon(VPoint *vps, int nc)
 
 void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
 {
-    VPoint center, start, end;
+    VPoint center;
     double rx, ry;
 
+    if (a1 == a2) {
+        return;
+    }
+    
     center.x = 0.5*(vp1.x + vp2.x);
     center.y = 0.5*(vp1.y + vp2.y);
     rx       = 0.5*fabs(vp2.x - vp1.x);
     ry       = 0.5*fabs(vp2.y - vp1.y);
 
-    start.x = center.x + rx*cos((M_PI/180.0)*a1);
-    start.y = center.y + ry*sin((M_PI/180.0)*a1);
-    end.x   = center.x + rx*cos((M_PI/180.0)*a2);
-    end.y   = center.y + ry*sin((M_PI/180.0)*a2);
-
     svg_group_props(TRUE, FALSE);
 
-    /* SVG conventions :
-         Y coordinates increase downwards
-         angles increase counterclockwise
-     */
-    fprintf(prstream,
+    if ((a1 - a2)%360 == 0) {
+        fprintf(prstream,
+            "   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
+            convertW(rx), convertH(ry),
+            convertX(center.x), convertY(center.y));
+    } else {
+        VPoint start, end;
+        
+        start.x = center.x + rx*cos((M_PI/180.0)*a1);
+        start.y = center.y + ry*sin((M_PI/180.0)*a1);
+        end.x   = center.x + rx*cos((M_PI/180.0)*a2);
+        end.y   = center.y + ry*sin((M_PI/180.0)*a2);
+
+        fprintf(prstream,
             "   <path  d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4f\"/>\n",
             convertX(start.x), convertY(start.y),
             convertW(rx), convertH(ry),
@@ -512,31 +526,40 @@ void svg_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
             (abs(a2 - a1) > 180) ? 1 : 0,
             (a2 > a1) ? 0 : 1,
             convertX(end.x), convertY(end.y));
+    }
 }
 
 void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
-    VPoint center, start, end;
+    VPoint center;
     double rx, ry;
+
+    if (a1 == a2) {
+        return;
+    }
 
     center.x = 0.5*(vp1.x + vp2.x);
     center.y = 0.5*(vp1.y + vp2.y);
     rx       = 0.5*fabs(vp2.x - vp1.x);
     ry       = 0.5*fabs(vp2.y - vp1.y);
 
-    start.x = center.x + rx*cos((M_PI/180.0)*a1);
-    start.y = center.y + ry*sin((M_PI/180.0)*a1);
-    end.x   = center.x + rx*cos((M_PI/180.0)*a2);
-    end.y   = center.y + ry*sin((M_PI/180.0)*a2);
-
     svg_group_props(FALSE, TRUE);
 
-    /* SVG conventions :
-         Y coordinates increase downwards
-         angles increase counterclockwise
-     */
-    if (mode == ARCFILL_CHORD) {
+    if ((a1 - a2)%360 == 0) {
         fprintf(prstream,
+            "   <ellipse  rx=\"%.4f\" ry=\"%.4f\" cx=\"%.4f\" cy=\"%.4f\"/>\n",
+            convertW(rx), convertH(ry),
+            convertX(center.x), convertY(center.y));
+    } else {
+        VPoint start, end;
+        
+        start.x = center.x + rx*cos((M_PI/180.0)*a1);
+        start.y = center.y + ry*sin((M_PI/180.0)*a1);
+        end.x   = center.x + rx*cos((M_PI/180.0)*a2);
+        end.y   = center.y + ry*sin((M_PI/180.0)*a2);
+
+        if (mode == ARCFILL_CHORD) {
+            fprintf(prstream,
                 "   <path  d=\"M%.4f, %.4fA%.4f, %.4f %d %d %d %.4f, %.4fz\"/>\n",
                 convertX(start.x), convertY(start.y),
                 convertW(rx), convertH(ry),
@@ -544,8 +567,8 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
                 (abs(a2 - a1) > 180) ? 1 : 0,
                 (a2 > a1) ? 0 : 1,
                 convertX(end.x), convertY(end.y));
-    } else {
-        fprintf(prstream,
+        } else {
+            fprintf(prstream,
                 "   <path  d=\"M%.4f,%.4fL%.4f,%.4fA%.4f,%.4f %d %d %d %.4f,%.4fz\"/>\n",
                 convertX(center.x), convertY(center.y),
                 convertX(start.x), convertY(start.y),
@@ -554,6 +577,7 @@ void svg_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
                 (abs(a2 - a1) > 180) ? 1 : 0,
                 (a2 > a1) ? 0 : 1,
                 convertX(end.x), convertY(end.y));
+        }
     }
 }
 
