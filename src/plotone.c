@@ -1505,9 +1505,7 @@ void drawseterrbars(int gno, int setno, plotarr *p,
         dy_plus  = dtmp;
         break;
     case PLACEMENT_BOTH:
-        if (dx_minus != NULL || dy_minus != NULL) {
-            errmsg("Error bar placement: \"Both\" has no effect for this set type");
-        } else {
+        if (dx_minus == NULL && dy_minus == NULL) {
             dx_minus = dx_plus;
             dy_minus = dy_plus;
         }
