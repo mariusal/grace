@@ -104,10 +104,11 @@ void linearconv(double *x, double *h, double *y, int n, int m);
 int crosscorr(double *x, double *y, int n, int lag, double *xcov, double *xcor);
 int transfit(int type, int n, double *x, double *y, double *fitted);
 int linear_regression(int n, double *x, double *y, double *fitted);
+
 void spline(int n, double *x, double *y, double *b, double *c, double *d);
 void aspline(int n, double *x, double *y, double *b, double *c, double *d);
-double seval(int n, double u, double *x, double *y, double *b, double *c, double *d);
-double aseval(int n, double u, double *x, double *y, double *b, double *c, double *d);
+int seval(double *u, double *v, int ulen,
+    double *x, double *y, double *b, double *c, double *d, int n);
 
 void dft(double *jr, double *ji, int n, int iflag);
 void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv);

@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -44,7 +44,7 @@
  * int crosscorr() - cross/auto correlation
  * int linear_regression() - linear regression
  * void spline() - compute a spline fit
- * double seval() - evaluate the spline computed in spline()
+ * int seval() - evaluate the spline computed in spline()
  */
 
 #include <config.h>
@@ -711,61 +711,56 @@ void aspline(int n, double *x, double *y, double *b, double *c, double *d)
 #undef  m
 }
 
-double seval(int n, double u, double *x, double *y, double *b, double *c, double *d)
+int seval(double *u, double *v, int ulen,
+    double *x, double *y, double *b, double *c, double *d, int n)
 {
-/*
-c
-c  this subroutine evaluates the cubic spline function
-c
-c    seval = y(i) + b(i)*(u-x(i)) + c(i)*(u-x(i))**2 + d(i)*(u-x(i))**3
-c
-c    where  x(i) .lt. u .lt. x(i+1), using horner's rule
-c
-c  if  u .lt. x(1) then  i = 1	is used.
-c  if  u .ge. x(n) then  i = n	is used.
-c
-c  input..
-c
-c    n = the number of data points
-c    u = the abscissa at which the spline is to be evaluated
-c    x,y = the arrays of data abscissas and ordinates
-c    b,c,d = arrays of spline coefficients computed by spline
-c
-c  if  u  is not in the same interval as the previous call, then a
-c  binary search is performed to determine the proper interval.
-c
-*/
-    int j, k;
-    double dx;
-    int i;
 
 /*
-c
-c  binary search
-c
-*/
-    if (u < x[0]) {
-	i = 0;
-    } else if (u >= x[n - 1]) {
-	i = n - 1;
-    } else {
-	i = 0;
-	j = n;
-l20:	;
-	k = (i + j) / 2;
-	if (u < x[k])
-	    j = k;
-	if (u >= x[k])
-	    i = k;
-	if (j > i + 1)
-	    goto l20;
+ * 
+ *  this subroutine evaluates the cubic spline function on a mesh
+ * 
+ *    seval = y(i) + b(i)*(u-x(i)) + c(i)*(u-x(i))**2 + d(i)*(u-x(i))**3
+ * 
+ *    where  x(i) .lt. u .lt. x(i+1), using horner's rule
+ * 
+ *  if  u .lt. x(1) then  i = 1  is used.
+ *  if  u .ge. x(n) then  i = n  is used.
+ * 
+ *  input..
+ * 
+ *    u = the array of abscissas at which the spline is to be evaluated
+ *    ulen = length of the mesh
+ * 
+ *    x,y = the arrays of data abscissas and ordinates
+ *    b,c,d = arrays of spline coefficients computed by spline
+ *    n = the number of data points
+ * 
+ *  output..
+ * 
+ *    v = the array of evaluated values
+ */
+
+    int j, m;
+
+    m = monotonicity(x, n, FALSE);
+    if (m == 0) {
+        errmsg("seval() called with a non-monotonic array");
+        return RETURN_FAILURE;
     }
-/*
-c
-c  evaluate spline
-c
-*/
-    dx = u - x[i];
-    return (y[i] + dx * (b[i] + dx * (c[i] + dx * d[i])));
+    
+    for (j = 0; j < ulen; j++) {
+        double dx;
+        int ifound;
+        
+        ifound = find_span_index(x, n, m, u[j]);
+        if (ifound < 0) {
+            ifound = 0;
+        } else if (ifound > n - 2) {
+            ifound = n - 1;
+        }
+        dx = u[j] - x[ifound];
+        v[j] = y[ifound] + dx*(b[ifound] + dx*(c[ifound] + dx*d[ifound]));
+    }
+    
+    return RETURN_SUCCESS;
 }
-
