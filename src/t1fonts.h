@@ -96,6 +96,7 @@ void update_t1(void);
 
 int number_of_fonts(void);
 char *get_fontname(int font);
+char *get_afmfilename(int font);
 char *get_fontalias(int font);
 char *get_fontfallback(int font);
 char *get_fontfilename(int font);

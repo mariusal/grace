@@ -300,6 +300,30 @@ char *get_fontfilename(int font)
     return (T1_GetFontFileName(font));
 }
 
+char *get_afmfilename(int font)
+{
+    char *s, *s1;
+    static char buf[64];
+    int len;
+
+    s = T1_GetAfmFileName(font);
+    if (s == NULL) {
+        s = T1_GetFontFileName(font);
+        len = strlen(s);
+        s1 = s + (len - 1);
+        while(s1 && *s1 != '.') {
+            len--;
+            s1--;
+        }
+        strncpy(buf, s, len);
+        buf[len] = '\0';
+        strcat(buf, "afm");
+        return buf;
+    } else {
+        return s;
+    }
+}
+
 char *get_fontname(int font)
 {
     return (T1_GetFontName(font));
