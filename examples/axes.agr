@@ -45,17 +45,6 @@
 @with line
 @    line on
 @    line loctype view
-@    line 0, 0, 0, 0
-@    line linewidth 1
-@    line linestyle 1
-@    line color 1
-@    line arrow 0
-@    line arrow size 1.000000
-@    line arrow type 0
-@line def
-@with line
-@    line on
-@    line loctype view
 @    line 0.152882, 0.714055, 0.053885, 0.852989
 @    line linewidth 1
 @    line linestyle 1
@@ -68,17 +57,6 @@
 @    line on
 @    line loctype view
 @    line 0.320802, 0.907916, 0.367168, 0.849758
-@    line linewidth 1
-@    line linestyle 1
-@    line color 1
-@    line arrow 0
-@    line arrow size 1.000000
-@    line arrow type 0
-@line def
-@with line
-@    line on
-@    line loctype view
-@    line 0, 0, 0, 0
 @    line linewidth 1
 @    line linestyle 1
 @    line color 1
