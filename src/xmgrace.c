@@ -1097,7 +1097,8 @@ static void graph_scroll_proc(Widget but, void *data)
     
     quark_traverse(f, scroll_hook, &type);
     
-    xdrawgraph(grace->project, FALSE);
+    xdrawgraph(grace->project, FALSE);\
+    update_all();
 }
 
 static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -1122,6 +1123,7 @@ static void graph_zoom_proc(Widget but, void *data)
     quark_traverse(f, zoom_hook, &type);
     
     xdrawgraph(grace->project, FALSE);
+    update_all();
 }
 
 static void load_example(Widget but, void *data)
