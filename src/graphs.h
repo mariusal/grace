@@ -83,6 +83,7 @@ typedef enum {
 
 typedef struct {
     int len;                    /* dataset length */
+    int ncols;                  /* number of data columns */
     double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
     char **s;                   /* pointer to strings */
 } Dataset;

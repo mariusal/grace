@@ -213,13 +213,102 @@ Dataset *dataset_new(void)
     int k;
     
     dsp = xmalloc(sizeof(Dataset));
-    dsp->len = 0;
+    dsp->len   = 0;
+    dsp->ncols = 0;
     for (k = 0; k < MAX_SET_COLS; k++) {
         dsp->ex[k] = NULL;
     }
     dsp->s = NULL;
     
     return dsp;
+}
+
+int set_dataset_nrows(Dataset *data, int len)
+{
+    int i, j, oldlen;
+    
+    if (!data || len < 0) {
+	return RETURN_FAILURE;
+    }
+    
+    oldlen = data->len;
+    if (len == oldlen) {
+	return RETURN_SUCCESS;
+    }
+    
+    for (i = 0; i < data->ncols; i++) {
+	if ((data->ex[i] = xrealloc(data->ex[i], len*SIZEOF_DOUBLE)) == NULL
+            && len != 0) {
+	    return RETURN_FAILURE;
+	}
+        for (j = oldlen; j < len; j++) {
+            data->ex[i][j] = 0.0;
+        }
+    }
+    
+    if (data->s != NULL) {
+        for (i = len; i < oldlen; i++) {
+            xfree(data->s[i]);
+        }
+        data->s = xrealloc(data->s, len*sizeof(char *));
+        for (j = oldlen; j < len; j++) {
+            data->s[j] = copy_string(NULL, "");
+        }
+    }
+    
+    data->len = len;
+
+    return RETURN_SUCCESS;
+}
+
+int set_dataset_ncols(Dataset *data, int ncols)
+{
+    if (ncols < 0 || ncols >= MAX_SET_COLS) {
+        return RETURN_FAILURE;
+    }
+    
+    if (data->ncols == ncols) {
+        /* nothing changed */
+        return RETURN_SUCCESS;
+    } else {
+        int i, ncols_old = data->ncols;
+        
+        for (i = ncols_old; i < ncols; i++) {
+            data->ex[i] = xcalloc(data->len, SIZEOF_DOUBLE);
+        }
+        for (i = ncols; i < ncols_old; i++) {
+            XCFREE(data->ex[i]);
+        }
+
+        data->ncols = ncols;
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+int set_dataset_scol(Dataset *data, int yesno)
+{
+    if (yesno) {
+        if (data->s) {
+            return RETURN_SUCCESS;
+        } else {
+            data->s = xcalloc(data->len, sizeof(char *));
+            if (data->len && !data->s) {
+                return RETURN_FAILURE;
+            } else {
+                return RETURN_SUCCESS;
+            }
+        }
+    } else {
+        if (data->s) {
+            int i;
+            for (i = 0; i < data->len; i++) {
+                xfree(data->s[i]);
+            }
+            xfree(data->s);
+        }
+        return RETURN_SUCCESS;
+    }
 }
 
 /*
@@ -231,7 +320,7 @@ int dataset_empty(Dataset *dsp)
     
     if (dsp) {
         if (dsp->len) {
-            for (k = 0; k < MAX_SET_COLS; k++) {
+            for (k = 0; k < dsp->ncols; k++) {
 	        XCFREE(dsp->ex[k]);
             }
             if (dsp->s) {
@@ -260,7 +349,7 @@ void dataset_free(Dataset *dsp)
 Dataset *dataset_copy(Dataset *data)
 {
     Dataset *data_new;
-    int k, len;
+    int k;
 
     if (!data) {
         return NULL;
@@ -271,22 +360,19 @@ Dataset *dataset_copy(Dataset *data)
         return NULL;
     }
     
-    len = data->len;
+    data_new->len   = data->len;
+    data_new->ncols = data->ncols;
     
-    data_new->len = len;
-    
-    for (k = 0; k < MAX_SET_COLS; k++) {
-	if (data->ex[k]) {
-            data_new->ex[k] = copy_data_column(data->ex[k], len);
-            if (!data_new->ex[k]) {
-                dataset_free(data_new);
-                return NULL;
-            }
+    for (k = 0; k < data->ncols; k++) {
+        data_new->ex[k] = copy_data_column(data->ex[k], data->len);
+        if (!data_new->ex[k]) {
+            dataset_free(data_new);
+            return NULL;
         }
     }
     
     if (data->s != NULL) {
-        data_new->s = copy_string_column(data->s, len);
+        data_new->s = copy_string_column(data->s, data->len);
         if (!data_new->s) {
             dataset_free(data_new);
             return NULL;
@@ -302,7 +388,7 @@ int zero_set_data(Dataset *dsp)
     
     if (dsp) {
         dsp->len = 0;
-        for (k = 0; k < MAX_SET_COLS; k++) {
+        for (k = 0; k < dsp->ncols; k++) {
 	    dsp->ex[k] = NULL;
         }
         dsp->s = NULL;
@@ -488,53 +574,15 @@ void killsetdata(int gno, int setno)
 int setlength(int gno, int setno, int len)
 {
     set *p;
-    int i, j, ncols, oldlen;
 
     p = set_get(gno, setno);
     if (!p) {
         return RETURN_FAILURE;
     }
 
-    oldlen = p->data->len;
-    if (len == oldlen) {
-	return RETURN_SUCCESS;
-    }
-    if (len < 0) {
-	return RETURN_FAILURE;
-    }
-    
-    ncols = settype_cols(p->type);
-    
-    if (ncols == 0) {
-	errmsg("Set type not found in setlength()!");
-	return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < ncols; i++) {
-	if ((p->data->ex[i] = xrealloc(p->data->ex[i], len*SIZEOF_DOUBLE)) == NULL
-            && len != 0) {
-	    return RETURN_FAILURE;
-	}
-        for (j = oldlen; j < len; j++) {
-            p->data->ex[i][j] = 0.0;
-        }
-    }
-    
-    if (p->data->s != NULL) {
-        for (i = len; i < oldlen; i++) {
-            xfree(p->data->s[i]);
-        }
-        p->data->s = xrealloc(p->data->s, len*sizeof(char *));
-        for (j = oldlen; j < len; j++) {
-            p->data->s[j] = copy_string(NULL, "");
-        }
-    }
-    
-    p->data->len = len;
-
     set_dirtystate();
     
-    return RETURN_SUCCESS;
+    return set_dataset_nrows(p->data, len);
 }
 
 /*
@@ -790,35 +838,20 @@ char *get_legend_string(int gno, int setno)
 int set_dataset_type(int gno, int setno, int type)
 { 
     set *p;
-    int old_type;
+    int ncols_new;
     
     p = set_get(gno, setno);
     if (!p) {
         return RETURN_FAILURE;
     }
     
-    old_type = p->type;
-    
-    if (old_type == type) {
-        /* nothing changed */
-        return RETURN_SUCCESS;
-    } else {
-        int i, len, ncols_old, ncols_new;
-        
-        len = getsetlength(gno, setno);
-        ncols_old = settype_cols(old_type);
-        ncols_new = settype_cols(type);
-        for (i = ncols_old; i < ncols_new; i++) {
-            p->data->ex[i] = xcalloc(len, SIZEOF_DOUBLE);
-        }
-        for (i = ncols_new; i < ncols_old; i++) {
-            XCFREE(p->data->ex[i]);
-        }
-
+    ncols_new = settype_cols(type);
+    if (set_dataset_ncols(p->data, ncols_new) == RETURN_SUCCESS) {
         p->type = type;
-        
         set_dirtystate();
         return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
     }
 }
 
@@ -1723,6 +1756,44 @@ void zero_datapoint(Datapoint *dpoint)
     dpoint->s = NULL;
 }
 
+Datapoint *datapoint_new(void)
+{
+    Datapoint *dpoint;
+    dpoint = xmalloc(sizeof(Datapoint));
+    zero_datapoint(dpoint);
+    
+    return dpoint;
+}
+
+void datapoint_free(Datapoint *dpoint)
+{
+    xfree(dpoint->s);
+    xfree(dpoint);
+}
+
+int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind)
+{
+    int col;
+    
+    if (!dsp) {
+        return RETURN_FAILURE;
+    }
+    
+    if (ind < 0 || ind >= dsp->len) {
+        return RETURN_FAILURE;
+    }
+    for (col = 0; col < dsp->ncols; col++) {
+        dsp->ex[col][ind] = dpoint->ex[col];
+    }
+    if (dpoint->s) {
+        set_dataset_scol(dsp, TRUE);
+    }
+    if (dsp->s) {
+        dsp->s[ind] = copy_string(dsp->s[ind], dpoint->s);
+    }
+    return RETURN_SUCCESS;
+}
+
 /*
  * add a point to setno at ind
  */
@@ -2045,7 +2116,12 @@ double setybase(int gno, int setno)
 
 int dataset_cols(int gno, int setno)
 {
-    return settype_cols(dataset_type(gno, setno));
+    Dataset *dsp = dataset_get(gno, setno);
+    if (dsp) {
+        return dsp->ncols;
+    } else {
+        return -1;
+    }
 }
 
 int load_comments_to_legend(int gno, int setno)

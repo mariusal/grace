@@ -114,6 +114,12 @@ double vmax(double *x, int n);
 int set_point(int gno, int setn, int seti, WPoint wp);
 int get_point(int gno, int setn, int seti, WPoint *wp);
 int get_datapoint(int gno, int setn, int seti, int *ncols, Datapoint *wp);
+Datapoint *datapoint_new(void);
+void datapoint_free(Datapoint *dpoint);
+Dataset *dataset_new(void);
+int set_dataset_nrows(Dataset *data, int nrows);
+int set_dataset_ncols(Dataset *data, int ncols);
+int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
 void setcol(int gno, int setno, int col, double *x, int len);
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
