@@ -1,6 +1,9 @@
-#!/usr/local/bin/perl
+#!/bin/sh
+exec perl -x $0 ${1+"$@"}
+#!perl
+
 # fdf2fit - script to convert Origin-4 .fdf fit parameter files to ACE/gr's
-# Version 0.3
+# Version 0.3a
 # Author Yu. V. Ralchenko <fnralch@plasma-gate.weizmann.ac.il>
 
 ($input_file,$output_file) = @ARGV;
