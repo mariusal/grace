@@ -2374,9 +2374,6 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
             
             setfont(p->charfont);
-            if (p->type == SET_BAR || p->type == SET_BOXPLOT) {
-                p->sym = 100;
-            }
             
             if (l.len != 0 && p->lines != 0 && p->linet != 0) { 
                 setpen(p->linepen);
@@ -2386,7 +2383,8 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
         
                 setlinewidth(p->symlinew);
                 setlinestyle(p->symlines);
-                if (p->type == SET_BAR || p->type == SET_BOXPLOT) {
+                if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
+                    p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(vp, p->symsize, p->sympen, p->symfillpen);
                     drawlegbarsym(vp2, p->symsize, p->sympen, p->symfillpen);
                 } else {
@@ -2400,7 +2398,8 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
                 
                 setlinewidth(p->symlinew);
                 setlinestyle(p->symlines);
-                if (p->type == SET_BAR || p->type == SET_BOXPLOT) {
+                if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
+                    p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(vptmp, p->symsize, p->sympen, p->symfillpen);
                 } else {
                     drawxysym(vptmp, p->symsize, p->sym, p->sympen, p->symfillpen, p->symchar);
