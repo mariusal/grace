@@ -1035,8 +1035,31 @@ int set_graph_xscale(int gno, int scale)
 {
     graph *g = graph_get(gno);
     if (g) {
-        g->xscale = scale;
-        set_dirtystate();
+        if (g->xscale != scale) {
+            int naxis;
+            g->xscale = scale;
+            for (naxis = 0; naxis < MAXAXES; naxis++) {
+                if (is_xaxis(naxis)) {
+                    tickmarks *t;
+                    t = get_graph_tickmarks(gno, naxis);
+                    if (t) {
+                        if (scale == SCALE_LOG) {
+                            if (g->w.xg2 <= 0.0) {
+                                g->w.xg2 = 10.0;
+                            }
+                            if (g->w.xg1 <= 0.0) {
+                                g->w.xg1 = g->w.xg2/1.0e3;
+                            }
+                            t->tmajor = 10.0;
+                            t->nminor = 9;
+                        } else {
+                            t->nminor = 1;
+                        }
+                    }
+                }
+            }
+            set_dirtystate();
+        }
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1047,8 +1070,31 @@ int set_graph_yscale(int gno, int scale)
 {
     graph *g = graph_get(gno);
     if (g) {
-        g->yscale = scale;
-        set_dirtystate();
+        if (g->yscale != scale) {
+            int naxis;
+            g->yscale = scale;
+            for (naxis = 0; naxis < MAXAXES; naxis++) {
+                if (is_yaxis(naxis)) {
+                    tickmarks *t;
+                    t = get_graph_tickmarks(gno, naxis);
+                    if (t) {
+                        if (scale == SCALE_LOG) {
+                            if (g->w.yg2 <= 0.0) {
+                                g->w.yg2 = 10.0;
+                            }
+                            if (g->w.yg1 <= 0.0) {
+                                g->w.yg1 = g->w.yg2/1.0e3;
+                            }
+                            t->tmajor = 10.0;
+                            t->nminor = 9;
+                        } else {
+                            t->nminor = 1;
+                        }
+                    }
+                }
+            }
+            set_dirtystate();
+        }
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
