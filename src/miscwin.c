@@ -76,6 +76,10 @@ static Widget scrollper_item;
 static Widget shexper_item;
 static Widget linkscroll_item;
 
+static Widget *hint_item;
+static Widget date_item;
+static Widget two_digits_years_item;
+
 /*
  * Event and Notify proc declarations
  */
@@ -167,6 +171,27 @@ void create_props_frame(void *data)
 
 	CreateSeparator(panel);
 
+	hint_item = CreatePanelChoice(panel, "Date hint",
+                                      8,
+                                      "NONE",
+                                      "ISO",
+                                      "EUROPEAN",
+                                      "US",
+                                      "DAYS",
+                                      "SECONDS",
+                                      "NOHINT",
+                                      NULL,
+                                      NULL);
+
+	date_item = CreateTextItem2(panel, 20, "Reference date:");
+        xv_setstr(date_item, "");
+	two_digits_years_item =
+                    XtVaCreateManagedWidget("Allow two digits years",
+					    xmToggleButtonWidgetClass, panel,
+                                            NULL);
+
+	CreateSeparator(panel);
+
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
 		  (XtCallbackProc) props_define_notify_proc, (XtPointer) 0);
@@ -185,6 +210,9 @@ void update_props_items(void)
     int itest = 0;
     Arg a;
     int iv;
+    int y, m, d, h, mm;
+    double sec;
+    char date_string [21];
     
     if (props_frame) {
 #ifdef DEBUG
@@ -218,6 +246,36 @@ void update_props_items(void)
 	iv = (int) rint(100 * shexper);
 	XtSetArg(a, XmNvalue, iv);
 	XtSetValues(shexper_item, &a, 1);
+        switch (get_date_hint()) {
+          case FMT_none :
+              itest = 0;
+              break;
+          case FMT_iso :
+              itest = 1;
+              break;
+          case FMT_european :
+              itest = 2;
+              break;
+          case FMT_us :
+              itest = 3;
+              break;
+          case FMT_days :
+              itest = 4;
+              break;
+          case FMT_seconds :
+              itest = 5;
+              break;
+          default :
+              itest = FMT_nohint;
+              break;
+        }
+    	SetChoice(hint_item, itest);
+	jul_to_cal_and_time(get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
+                y, m, d, h, mm, (int) sec);
+        xv_setstr(date_item, date_string);
+        XmToggleButtonSetState(two_digits_years_item,
+                               two_digits_years_allowed(), False);
     }
 }
 
@@ -225,6 +283,8 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
 {
     Arg a;
     int value;
+    double jul;
+    Dates_format ignored;
     
 #ifdef DEBUG
     debuglevel = GetChoice(debug_item);
@@ -254,6 +314,37 @@ static void props_define_notify_proc(Widget w, XtPointer client_data, XtPointer 
     scrollper = (double) value / 100.0;
     XtGetValues(shexper_item, &a, 1);
     shexper = (double) value / 100.0;
+
+    switch (GetChoice(hint_item)) {
+      case 0 :
+          set_date_hint(FMT_none);
+          break;
+      case 1 :
+          set_date_hint(FMT_iso);
+          break;
+      case 2 :
+          set_date_hint(FMT_european);
+          break;
+      case 3 :
+          set_date_hint(FMT_us);
+          break;
+      case 4 :
+          set_date_hint(FMT_days);
+          break;
+      case 5 :
+          set_date_hint(FMT_seconds);
+          break;
+      default :
+          set_date_hint(FMT_nohint);
+          break;
+    }
+    if (parse_date(xv_getstr(date_item), get_date_hint(), &jul, &ignored)
+        == GRACE_EXIT_SUCCESS) {
+        set_ref_date(jul);
+    } else {
+        errmsg("Invalid date");
+    }
+    allow_two_digits_years(XmToggleButtonGetState(two_digits_years_item));
     
     drawgraph();
 }
