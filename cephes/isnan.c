@@ -62,7 +62,7 @@ Copyright 1984, 1995 by Stephen L. Moshier
 #include "mconf.h"
 #include "cephes.h"
 
-#ifndef HAVE_ISNAN
+#if !defined(HAVE_ISNAN) && !defined(HAVE_ISNAN_MACRO)
 
 #ifdef UNK
 /* ceil(), floor(), frexp(), ldexp() may need to be rewritten. */
