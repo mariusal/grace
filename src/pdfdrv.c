@@ -480,7 +480,6 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
         fontname = get_fontalias(font);
         
         if (pdf_builtin_font(fontname)) {
-            pdflibenc = "host";
             embed = 0;
         } else {
             sprintf(buf, "%s=%s/fonts/type1/%s",
@@ -490,32 +489,29 @@ void pdf_puttext(VPoint vp, char *s, int len, int font,
                 fontname, get_grace_home(), get_fontfilename(font));
             PDF_set_parameter(phandle, "FontOutline", buf);
 
-            encscheme = get_encodingscheme(font);
-            if (strcmp(encscheme, "FontSpecific") == 0) {
-                pdflibenc = "builtin";
-            } else {
-                pdflibenc = "host";
-            }
             embed = 1;
+        }
+
+        encscheme = get_encodingscheme(font);
+        if (strcmp(encscheme, "FontSpecific") == 0) {
+            pdflibenc = "builtin";
+        } else {
+            pdflibenc = "winansi";
         }
         
         pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, embed);
     } 
     PDF_setfont(phandle, pdf_font_ids[font], 1.0);
 
+    PDF_set_parameter(phandle, "underline", true_or_false(underline));
+    PDF_set_parameter(phandle, "overline",  true_or_false(overline));
+    
     PDF_set_text_matrix(phandle, (float) tm->cxx, (float) tm->cyx,
                                  (float) tm->cxy, (float) tm->cyy,
                                  vp.x, vp.y);
 
     PDF_show2(phandle, s, len);
 
-    if (underline == TRUE) {
-        /* TODO */
-    }
-    
-    if (overline == TRUE) {
-        /* TODO */
-    }
 }
 
 void pdf_leavegraphics(void)
