@@ -11,12 +11,15 @@
 
 <H2>5.1.2</H2>
 
+<H3>Functionality</H3>
+ *  [DB] implemented baseline setting to the set (y) average
+
 <H3>Interface</H3>
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
          them via X resources instead (rep. #671)
 
 <H3>Documentation</H3>
- *  [ES] HTML docs now include table of contents
+ *  [ES] HTML docs now include tables of contents
 
 <H3>Parser</H3>
  *  [ES] added "PAGE RESIZE xdim, ydim" which sets the page dimensions of all
@@ -46,6 +49,11 @@
  *  [ES] it was impossible using GUI to disable annotated values in the XYZ
          set type
  *  [LM] creating sets with strings from block data might crash
+ *  [ES] fixed a floating point rounding bug in the polygon clipping which
+         (in rare cases under some OS's) caused set filling be performed wrong
+         (rep. #874)
+ *  [ES] fixed a bug in the Xbae widget crashing under a multi-head X server
+         (rep. #878)
 
 
 <H2>5.1.1</H2>
@@ -944,6 +952,7 @@
     [AC]  - Alber Chin &lt;china@thewrittenword.com&gt;
     [GJ]  - Gerd Jahn &lt;Gerd.Jahn@dss.dornier.dasa.de&gt;
     [UH]  - Ulrich Harttig &lt;harttigu@ucs.orst.edu&gt;
+    [DB]  - Dominique Bissieres &lt;dominique.bissieres@turbomeca.fr&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
