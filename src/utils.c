@@ -1329,6 +1329,7 @@ void msleep_wrap(unsigned int msec)
     select(0, NULL, NULL, NULL, &timeout);    
 }
 
+#ifdef HAVE_SETLOCALE
 static int need_locale = FALSE;
 static char *system_locale_string, *posix_locale_string;
 
@@ -1353,7 +1354,6 @@ int init_locale(void)
 
 void set_locale_num(int flag)
 {
-#ifdef HAVE_SETLOCALE
     if (need_locale) {
         if (flag == TRUE) {
             setlocale(LC_NUMERIC, system_locale_string);
@@ -1361,8 +1361,17 @@ void set_locale_num(int flag)
             setlocale(LC_NUMERIC, posix_locale_string);
         }
     }
-#endif
 }
+#else
+int init_locale(void)
+{
+    return RETURN_SUCCESS;
+}
+
+void set_locale_num(int flag)
+{
+}
+#endif
 
 /*
  * Build info stuff
