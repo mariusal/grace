@@ -40,10 +40,10 @@
 
 #include "globals.h"
 #include "draw.h"
+#include "t1fonts.h"
 #include "utils.h"
 #include "graphs.h"
 #include "graphutils.h"
-#include "device.h"
 #include "protos.h"
 
 static void put_regions(FILE * pp, int embed);
@@ -68,7 +68,6 @@ void putparms(int gno, FILE *pp, int embed)
     CMap_entry *cmap;
     GLocator locator;
     char *p1, *p2, *tmpbuf;
-    int wpp, hpp;
     defaults grdefaults = grace->rt->grdefaults;
     plotstr timestamp = grace->project->timestamp;
 
@@ -83,8 +82,8 @@ void putparms(int gno, FILE *pp, int embed)
     /* Print some global variables */
     fprintf(pp, "%sversion %ld\n", embedstr, bi_version_id());
 
-    get_device_page_dimensions(grace->rt->tdevice, &wpp, &hpp);
-    fprintf(pp, "%spage size %d, %d\n", embedstr, wpp, hpp);
+    fprintf(pp, "%spage size %d, %d\n", embedstr,
+        grace->project->page_wpp, grace->project->page_hpp);
 
     tmpbuf = copy_string(NULL, grace->project->description);
     if (tmpbuf != NULL) {

@@ -90,6 +90,10 @@ Project *project_new(void)
     set_default_string(&pr->timestamp);
     pr->timestamp.offset.x = 0.03;
     pr->timestamp.offset.y = 0.03;
+
+    /* FIXME: #defines */
+    pr->page_wpp = 792;
+    pr->page_hpp = 612;
     
     pr->docname = copy_string(NULL, NONAME);
 

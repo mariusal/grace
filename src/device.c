@@ -74,7 +74,9 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
     if (wpp <= 0 || hpp <= 0) {
         return RETURN_FAILURE;
     } else {
-	if (rescale) {
+	grace->project->page_wpp = wpp;
+	grace->project->page_hpp = hpp;
+        if (rescale) {
             int wpp_old, hpp_old;
             
             get_device_page_dimensions(curdevice, &wpp_old, &hpp_old);
@@ -320,14 +322,12 @@ PageFormat get_page_format(int device)
  * ptofile = 0 means print to printer, otherwise print to file
  */
 
-static int ptofile = FALSE;
-                           
 void set_ptofile(int flag)
 {
-    ptofile = flag;
+    grace->rt->ptofile = flag;
 }
 
 int get_ptofile(void)
 {
-    return ptofile;
+    return grace->rt->ptofile;
 }

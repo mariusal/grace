@@ -58,8 +58,12 @@ typedef struct _Project {
     /* the current region */
     int nr;
 #endif
-
-    plotstr timestamp; /* timestamp */
+    
+    /* timestamp */
+    plotstr timestamp;
+    
+    /* page size */
+    int page_wpp, page_hpp;
     
     /* format for saving data sets */
     char *sformat;
@@ -94,6 +98,10 @@ typedef struct _RunTime {
     int tdevice;
     /* hardcopy device */
     int hdevice;
+
+    /* print to file */
+    int ptofile;
+    
     /* target set */
     target target_set;
     /* parameters for non-linear fit */

@@ -36,9 +36,6 @@
 #include "graphs.h"
 #include "protos.h"
 
-/* FIXME */
-#include "device.h"
-
 static defaults d_d =
 {1, 0, 1, 1, 1, 1.0, 0, 1.0};
 
@@ -115,9 +112,9 @@ RunTime *runtime_new(void)
     rt->print_cmd = copy_string(NULL, s);
     /* if no print command defined, print to file by default */
     if (is_empty_string(rt->print_cmd)) {
-        set_ptofile(TRUE);
+        rt->ptofile = TRUE;
     } else {
-        set_ptofile(FALSE);
+        rt->ptofile = FALSE;
     }
 
     /* editor */

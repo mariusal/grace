@@ -30,7 +30,6 @@
 #include "globals.h"
 #include "defines.h"
 #include "utils.h"
-#include "device.h"
 #include "draw.h"
 #include "t1fonts.h"
 #include "graphs.h"
@@ -849,7 +848,6 @@ int save_project(char *fn)
 {
     XFile *xf;
     Attributes *attrs;
-    int wpp, hpp;
     int gno;
     
     xf = xfile_new(fn);
@@ -877,10 +875,9 @@ int save_project(char *fn)
     xfile_end_element(xf, "definitions");
 
     xfile_comment(xf, "Page properties");
-    get_device_page_dimensions(grace->rt->tdevice, &wpp, &hpp);
     attributes_reset(attrs);
-    attributes_set_ival(attrs, "width", wpp);
-    attributes_set_ival(attrs, "height", hpp);
+    attributes_set_ival(attrs, "width", grace->project->page_wpp);
+    attributes_set_ival(attrs, "height", grace->project->page_hpp);
     xfile_begin_element(xf, "page", attrs);
     {
         Pen pen;
@@ -990,7 +987,8 @@ int save_project(char *fn)
     xfile_end(xf);
     xfile_free(xf);
     
-    set_docname(fn);
+    grace->project->docname = copy_string(grace->project->docname, fn);
+
     clear_dirtystate();
     
     return RETURN_SUCCESS;
