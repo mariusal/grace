@@ -456,6 +456,8 @@ void pdf_puttext(VPoint start, VPoint end, double size,
     char *fontname, *encscheme;
     int pdflibenc;
     
+    pdf_setpen();
+    
     size /= page_scalef;
     
     angle = (float) (180.0/M_PI) * atan2(end.y - start.y, end.x - start.x);
@@ -490,8 +492,6 @@ void pdf_puttext(VPoint start, VPoint end, double size,
     PDF_scale(phandle, (float) size*length/pdfstring_length, (float) size);
 
     PDF_set_text_pos(phandle, 0.0, 0.0);
-    
-    pdf_setpen();
     
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
