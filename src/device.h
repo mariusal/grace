@@ -124,6 +124,8 @@ int parse_device_options(int dindex, char *options);
 
 void set_printer(int device);
 int set_printer_by_name(char *dname);
+void set_ptofile(int flag);
+int get_ptofile(void);
 
 int number_of_devices(void);
 

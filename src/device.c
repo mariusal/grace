@@ -124,11 +124,6 @@ int set_printer_by_name(char *dname)
     }
 }
 
-void set_ptofile(int flag)
-{
-    ptofile = flag;
-}
-
 int initgraphics(void)
 {
     return ((*device_table[curdevice].init)());
@@ -230,4 +225,21 @@ PageFormat get_page_format(int device)
     } else {
         return PAGE_FORMAT_CUSTOM;
     }
+}
+
+/*
+ * flag to indicate destination of hardcopy output,
+ * ptofile = 0 means print to printer, otherwise print to file
+ */
+
+static int ptofile = FALSE;
+                           
+void set_ptofile(int flag)
+{
+    ptofile = flag;
+}
+
+int get_ptofile(void)
+{
+    return ptofile;
 }
