@@ -1716,6 +1716,51 @@ void outputset(int gno, int setno, char *fname, char *dformat)
     }
 }
 
+int load_project_file(char *fn, int as_template)
+{    
+    if (wipeout()) {
+	return GRACE_EXIT_FAILURE;
+    }
+    
+    if (getdata(0, fn, SOURCE_DISK, SET_XY) == GRACE_EXIT_SUCCESS) {
+        if (as_template == FALSE) {
+            strcpy(docname, fn);
+        }
+   	clear_dirtystate();
+        return GRACE_EXIT_SUCCESS;
+    } else {
+ 	return GRACE_EXIT_FAILURE;
+    }
+}
+
+int load_project(char *fn)
+{
+    return load_project_file(fn, FALSE);
+}
+
+int new_project(char *template)
+{
+    int retval;
+    char *s;
+    
+    if (template == NULL || template[0] == '\0') {
+        retval = load_project_file("templates/Default.agr", TRUE);
+    } else if (template[0] == '/') {
+        retval = load_project_file(template, TRUE);
+    } else {
+        s = malloc(strlen("templates/") + strlen(template) + 1);
+        if (s == NULL) {
+            retval = GRACE_EXIT_FAILURE;
+        } else {
+            sprintf(s, "templates/%s", template);
+            retval = load_project_file(s, TRUE);
+            xfree(s);
+        }
+    }
+    
+    return retval;
+}
+
 int save_project(char *fn)
 {
     FILE *cp;
