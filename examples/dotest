@@ -143,6 +143,9 @@ $GRACE charts.agr
 # pie charts
 $GRACE pie.agr
 #
+# vector map
+$GRACE vmap.agr
+#
 # non-linear curve fitting
 $GRACE logistic.agr
 #
