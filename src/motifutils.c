@@ -4473,8 +4473,6 @@ char *GetStringSimple(XmString xms)
     }
 }
 
-extern int ReqUpdateColorSel;
-
 void update_set_lists(Quark *gr)
 {
     update_set_selectors(gr);
@@ -4498,10 +4496,10 @@ void update_all(void)
     update_set_selectors(NULL);
     update_ss_editors(NULL);
 
-    if (ReqUpdateColorSel == TRUE) {
+    if (grace->gui->need_colorsel_update == TRUE) {
         init_xvlibcolors();
         update_color_selectors();
-        ReqUpdateColorSel = FALSE;
+        grace->gui->need_colorsel_update = FALSE;
     }
 
     if (grace->gui->need_fontsel_update == TRUE) {

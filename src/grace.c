@@ -405,12 +405,18 @@ int grace_set_project(Grace *grace, Quark *project)
         quark_free(grace->project);
         grace->project = project;
         
+        /* Reset colormap */
+        /* canvas_cmap_reset(grace->rt->canvas); */
+        
         /* Set dimensions of all devices */
         set_page_dimensions(grace, pr->page_wpp, pr->page_hpp, TRUE);
         
         /* Reset set autocolorization index */
         grace->rt->setcolor = 0;
         
+        /* Request update of color selectors */
+        grace->gui->need_colorsel_update = TRUE;
+
         /* Request update of font selectors */
         grace->gui->need_fontsel_update = TRUE;
 

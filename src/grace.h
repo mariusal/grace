@@ -73,6 +73,9 @@ typedef struct _GUI {
     int statusbar;
     int locbar;
     
+    /* if TRUE, color selectors need update */
+    int need_colorsel_update;
+
     /* if TRUE, font selectors need update */
     int need_fontsel_update;
 
