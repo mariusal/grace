@@ -43,12 +43,6 @@
 
 #include "grace.h"
 
-/* bit padding */
-#ifdef PAD
-#  undef PAD
-#endif
-#define  PAD(bits, pad)  (((bits)+(pad)-1)&-(pad))
-
 #define on_or_off(x) ((x)?"on":"off")
 #define true_or_false(x) ((x)?"true":"false")
 

@@ -664,7 +664,7 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
     
     bp = buf;
     if (pixmap_bpp == 1) {
-        paddedW = PAD(width, bitmap_pad);
+        paddedW = PADBITS(width, bitmap_pad);
         get_rgb(canvas, getcolor(canvas), &fg);
         get_rgb(canvas, getbgcolor(canvas), &bg);
         for (k = 0; k < height; k++) {

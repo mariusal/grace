@@ -1038,7 +1038,7 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             fprintf(prstream, "\n");
         }
     } else { /* monocolor bitmap */
-        paddedW = PAD(width, bitmap_pad);
+        paddedW = PADBITS(width, bitmap_pad);
         if (pixmap_type == PIXMAP_OPAQUE) {
             cindex = getbgcolor(canvas);
             switch (psdata->colorspace) {

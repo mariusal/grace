@@ -445,7 +445,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
             /* TODO: dither pixmaps on mono displays */
             return;
         }
-        pixmap_ptr = xcalloc(PAD(width, 8) * height, x11data->pixel_size);
+        pixmap_ptr = xcalloc(PADBITS(width, 8) * height, x11data->pixel_size);
         if (pixmap_ptr == NULL) {
             errmsg("xmalloc failed in x11_putpixmap()");
             return;
@@ -469,7 +469,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                            );
 
         if (pixmap_type == PIXMAP_TRANSPARENT) {
-            clipmask_ptr = xcalloc((PAD(width, 8)>>3)
+            clipmask_ptr = xcalloc((PADBITS(width, 8)>>3)
                                               * height, SIZEOF_CHAR);
             if (clipmask_ptr == NULL) {
                 errmsg("xmalloc failed in x11_putpixmap()");
@@ -478,7 +478,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                 /* Note: We pad the clipmask always to byte boundary */
                 bg = getbgcolor(canvas);
                 for (k = 0; k < height; k++) {
-                    line_off = k*(PAD(width, 8) >> 3);
+                    line_off = k*(PADBITS(width, 8) >> 3);
                     for (j = 0; j < width; j++) {
                         cindex = (unsigned char) (databits)[k*width+j];
                         if (cindex != bg) {
@@ -493,13 +493,13 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
             }
         }
     } else {
-        pixmap_ptr = xcalloc((PAD(width, bitmap_pad)>>3) * height,
+        pixmap_ptr = xcalloc((PADBITS(width, bitmap_pad)>>3) * height,
                                                         sizeof(unsigned char));
         if (pixmap_ptr == NULL) {
             errmsg("xmalloc failed in x11_putpixmap()");
             return;
         }
-        memcpy(pixmap_ptr, databits, ((PAD(width, bitmap_pad)>>3) * height));
+        memcpy(pixmap_ptr, databits, ((PADBITS(width, bitmap_pad)>>3) * height));
 
         fg = getcolor(canvas);
         if (fg != x11data->color) {
@@ -513,7 +513,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                             );
         if (pixmap_type == PIXMAP_TRANSPARENT) {
             clipmask = XCreateBitmapFromData(x11data->xstuff->disp,
-                x11data->xstuff->root, pixmap_ptr, PAD(width, bitmap_pad), height);
+                x11data->xstuff->root, pixmap_ptr, PADBITS(width, bitmap_pad), height);
         }
     }
 

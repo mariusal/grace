@@ -76,6 +76,7 @@ int compare_strings(const char *s1, const char *s2);
 int is_empty_string(const char *s);
 
 /* bit manipulations */
+#define PADBITS(bits, pad)  (((bits)+(pad)-1)&-(pad))
 int bin_dump(char *value, int i, int pad);
 unsigned char reversebits(unsigned char inword);
 

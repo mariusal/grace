@@ -617,7 +617,7 @@ void mif_putpixmap(const Canvas *canvas, void *data,
         fprintf(prstream, "&00000000\n");
 
         /* image data */
-        paddedW = PAD(width, bitmap_pad);
+        paddedW = PADBITS(width, bitmap_pad);
 
         for (k = 0; k < height; k++) {
             fprintf(prstream, "&");
