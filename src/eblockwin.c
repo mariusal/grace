@@ -38,18 +38,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
-
-#include "globals.h"
 #include "graphs.h"
-#include "plotone.h"
 #include "utils.h"
-#include "files.h"
 #include "ssdata.h"
-#include "motifinc.h"
 #include "protos.h"
+#include "motifinc.h"
 
 static int block_curtype = SET_XY;
 
@@ -70,7 +63,7 @@ static OptionStructure *auto_item;
  * Event and Notify proc declarations
  */
 static void eblock_type_notify_proc(int value, void *data);
-static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int eblock_accept_notify_proc(void *data);
 static void update_eblock(int gno);
 
 /*
@@ -87,18 +80,15 @@ void create_eblock_frame(int gno)
     if (eblock_frame == NULL) {
         int i;
         char buf[32];
-        Widget rc, fr, buts[2];
+        Widget rc, fr;
         OptionItem blockitem;
-	char *label1[2];
 
-	label1[0] = "Accept";
-	label1[1] = "Close";
         blockitem.value = 0;
         blockitem.label = "Index";
 
-	eblock_frame = XmCreateDialogShell(app_shell, "Edit block data", NULL, 0);
-	handle_close(eblock_frame);
-	eblock_panel = XmCreateRowColumn(eblock_frame, "eblock_rc", NULL, 0);
+	eblock_frame = CreateDialogForm(app_shell, "Edit block data");
+
+	eblock_panel = CreateVContainer(eblock_frame);
 
 	fr = CreateFrame(eblock_panel, NULL);
         eblock_ncols_item = CreateLabel(fr, "tmp");
@@ -107,7 +97,7 @@ void create_eblock_frame(int gno)
             CreateGraphSetSelector(eblock_panel, "Load to:", LIST_TYPE_SINGLE);
 
         fr = CreateFrame(eblock_panel, NULL);
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
+        rc = CreateVContainer(fr);
 
 	eblock_type_choice_item = CreateSetTypeChoice(rc, "Set type:");
         AddOptionChoiceCB(eblock_type_choice_item, eblock_type_notify_proc, NULL);
@@ -120,22 +110,14 @@ void create_eblock_frame(int gno)
         eblock_schoice_item = CreateOptionChoice(rc,
             "Strings from column:", 1, 1, &blockitem);
 
-	ManageChild(rc);
-
 	auto_item = CreateASChoice(eblock_panel, "Autoscale graph on load:");
 
-	CreateSeparator(eblock_panel);
-
-	CreateCommandButtons(eblock_panel, 2, buts, label1);
-	XtAddCallback(buts[0], XmNactivateCallback,
-		 (XtCallbackProc) eblock_accept_notify_proc, (XtPointer) 0);
-	XtAddCallback(buts[1], XmNactivateCallback,
-		 (XtCallbackProc) destroy_dialog, (XtPointer) eblock_frame);
-
-	ManageChild(eblock_panel);
+	CreateAACDialog(eblock_frame,
+            eblock_panel, eblock_accept_notify_proc, NULL);
     }
-    RaiseWindow(eblock_frame);
     update_eblock(gno);
+    
+    RaiseWindow(GetParent(eblock_frame));
     unset_wait_cursor();
 }
 
@@ -226,7 +208,7 @@ static void eblock_type_notify_proc(int value, void *data)
     update_eblock(-1);
 }
 
-static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int eblock_accept_notify_proc(void *data)
 {
     int i, gno, setno;
     int cs[MAX_SET_COLS], nncols, scol, autoscale;
@@ -234,7 +216,7 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
     if (GetSingleListChoice(eblock_graphset_item->graph_sel, &gno)
         != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
-        return;
+        return RETURN_FAILURE;
     }
     if (GetSingleListChoice(eblock_graphset_item->set_sel, &setno) !=
         RETURN_SUCCESS) {
@@ -254,5 +236,7 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
         block_curtype, nncols, cs, scol, autoscale);
 
     update_all();
-    drawgraph();
+    xdrawgraph();
+    
+    return RETURN_SUCCESS;
 }
