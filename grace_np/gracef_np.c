@@ -1,6 +1,6 @@
 #include <config.h>
 
-#if defined(HAVE_F77)
+#if defined(WITH_F77_WRAPPER)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,4 +80,4 @@ int F77_FNAME(gracecommandf) (const char* arg, int length)
 /* To make ANSI C happy about non-empty file */
 void F77_FNAME(_gracef_np_c_dummy_func) (void) {}
 
-#endif /* HAVE_F77 */
+#endif /* WITH_F77_WRAPPER */
