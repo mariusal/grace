@@ -167,10 +167,10 @@ static void DrawCB(Widget w, XtPointer client_data, XtPointer call_data)
         pixmap = char_to_pixmap(w, ui->font_id, c, ui->csize);
     }
        
-    if (!pixmap) {
-        ui->valid_chars[c] = FALSE;
-    } else {
+    if (pixmap || c == ' ') {
         ui->valid_chars[c] = TRUE;
+    } else {
+        ui->valid_chars[c] = FALSE;
     }
     
     /* Assign it a pixmap */
@@ -211,9 +211,10 @@ static void EnterCB(Widget w, XtPointer client_data, XtPointer call_data)
         }
         insert_into_string(ui->cstext, s);
     } else {
-        cbs->doit = False;
         XBell(xstuff->disp, 25);
     }
+    
+    cbs->doit = False;
 }
 
 
