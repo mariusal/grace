@@ -12,11 +12,21 @@
 
 <H3>Drivers</H3>
  *  [MD] implemented patterned fills in the SVG driver
+ *  [MD] use the sRGB color space in the SVG driver
+
+<H3>Compilation</H3>
+ *  [PB] installed binary of convcal now gets stripped
+ *  [PB] "make install links" now works
+ *  [PB] DESTDIR introduced for building binary packages (e.g.
+         "make DESTDIR=/tmp install links")
 
 <H3>Bug fixes</H3>
  *  [SR] -(no)safe flags were missed in the -help output
  *  [ES] some standard Xt flags (-geometry etc) were ignored
  *  [MD] patterned fills were transparent in the PDF output
+ *  [MD] font family might be set inconsistently in the MIF driver
+ *  [ES] xmgrace was run in the safe mode when invoked from GraceOpen() via
+         the grace_np interface (rep. #1179)
 
 
 <H2>5.1.8</H2>
@@ -1208,6 +1218,7 @@
     [PM]  - Petrie L M &lt;lmp@ornl.gov&gt;
     [JS]  - Jan Schaumann &lt;jschauma@netmeister.org&gt;
     [SR]  - Stewart Rounds &lt;sarounds@usgs.gov&gt;
+    [PB]  - Peter Breitenlohner &lt;peb@mppmu.mpg.de&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
