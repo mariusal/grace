@@ -205,6 +205,8 @@ static int pnm_output(const Canvas *canvas, void *data,
     return RETURN_SUCCESS;
 }
 
+#ifndef NONE_GUI
+
 void pnm_gui_setup(const Canvas *canvas, void *data)
 {
     Pnm_data *pnmdata = (Pnm_data *) data;
@@ -251,6 +253,8 @@ static int set_pnm_setup_proc(void *data)
     
     return RETURN_SUCCESS;
 }
+
+#endif
 
 int register_pnm_drv(Canvas *canvas)
 {

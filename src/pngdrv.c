@@ -248,6 +248,8 @@ static int png_output(const Canvas *canvas, void *data,
     return RETURN_SUCCESS;
 }
 
+#ifndef NONE_GUI
+
 void png_gui_setup(const Canvas *canvas, void *data)
 {
     Png_data *pngdata = (Png_data *) data;
@@ -294,6 +296,8 @@ static int set_png_setup_proc(void *data)
     
     return RETURN_SUCCESS;
 }
+
+#endif
 
 int register_png_drv(Canvas *canvas)
 {

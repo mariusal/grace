@@ -258,6 +258,8 @@ static int jpg_output(const Canvas *canvas, void *data,
     return RETURN_SUCCESS;
 }
 
+#ifndef NONE_GUI
+
 void jpg_gui_setup(const Canvas *canvas, void *data)
 {
     Jpg_data *jpgdata = (Jpg_data *) data;
@@ -326,6 +328,8 @@ static int set_jpg_setup_proc(void *data)
     
     return RETURN_SUCCESS;
 }
+
+#endif
 
 int register_jpg_drv(Canvas *canvas)
 {
