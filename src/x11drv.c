@@ -175,6 +175,7 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
         }
     }
     
+    XSetLineAttributes(x11data->xstuff->disp, x11data->xstuff->gc, 1, LineSolid, CapButt, JoinMiter);
     XDrawRectangle(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, 0, 0, x11data->xstuff->win_w - 1, x11data->xstuff->win_h - 1);
     
     return RETURN_SUCCESS;
