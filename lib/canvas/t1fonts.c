@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -79,7 +79,7 @@ int canvas_add_font(Canvas *canvas, char *ffile, const char *alias)
     f = &canvas->FontDBtable[canvas->nfonts];
     memset(f, 0, sizeof(FontDB));
     
-    if (T1_AddFont(ffile) < 0 || T1_Get_no_fonts() != canvas->nfonts + 1) {
+    if (T1_AddFont(ffile) < 0 || T1_GetNoFonts() != canvas->nfonts + 1) {
         return RETURN_FAILURE;
     }
     
