@@ -434,7 +434,7 @@ static Histo_ui *histoui = NULL;
 
 static void binsampling_cb(int value, void *data)
 {
-    Interp_ui *ui = (Interp_ui *) data;
+    Histo_ui *ui = (Histo_ui *) data;
     
     if (value == SAMPLING_MESH) {
         SetSensitive(ui->mrc, True);
