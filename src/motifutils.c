@@ -3112,6 +3112,8 @@ Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
 {
     Widget w, form, label;
     XmString str;
+    Arg args[4];
+    int ac;
 	
     form = XmCreateForm(parent, "form", NULL, 0);
 
@@ -3125,13 +3127,14 @@ Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
 	NULL);
     XmStringFree(str);
 
-    w = XmCreateScrolledText(form, "text", NULL, 0);
-    XtVaSetValues(w,
-	XmNrows, hgt,
-	XmNeditMode, XmMULTI_LINE_EDIT,
-	XmNwordWrap, True,
-        XmNvisualPolicy, XmVARIABLE,
-	NULL);
+    ac = 0;
+    if (hgt > 0) {
+        XtSetArg(args[ac], XmNrows, hgt); ac++;
+    }
+    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
+    XtSetArg(args[ac], XmNwordWrap, True); ac++;
+    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
+    w = XmCreateScrolledText(form, "text", args, ac);
     XtVaSetValues(XtParent(w),
 	XmNtopAttachment, XmATTACH_WIDGET,
         XmNtopWidget, label,
