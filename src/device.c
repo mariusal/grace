@@ -158,6 +158,9 @@ int set_printer(int device)
         return RETURN_FAILURE;
     } else {
         hdevice = device;
+        if (device_table[device].type != DEVICE_PRINT) {
+            set_ptofile(TRUE);
+        }
 	return RETURN_SUCCESS;
     }
 }
