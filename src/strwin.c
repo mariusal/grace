@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -191,6 +191,12 @@ void define_string_defaults(Widget w, XtPointer client_data, XtPointer call_data
     }
 }
 
+static void close_objects_cb(void *data)
+{
+    set_action(DO_NOTHING);
+    destroy_dialog_cb((Widget) data);
+}
+
 static void clear_objects_cb(void *data)
 {
     int type = (int) data;
@@ -273,7 +279,7 @@ void define_objects_popup(void *data)
 	wbut = CreateButton(rc, "Clear all ellipses");
         AddButtonCB(wbut, clear_objects_cb, (void *) OBJECT_ELLIPSE);
 	wbut = CreateButton(rc, "Close");
-	XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) objects_frame);
+	AddButtonCB(wbut, close_objects_cb, objects_frame);
 	ManageChild(rc);
 
 	ManageChild(panel);
