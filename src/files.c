@@ -1039,7 +1039,7 @@ int load_project_file(char *fn, int as_template)
     
     if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == GRACE_EXIT_SUCCESS) {
         if (as_template == FALSE) {
-            strcpy(docname, fn);
+            set_docname(fn);
         }
    	clear_dirtystate();
         return GRACE_EXIT_SUCCESS;
@@ -1098,7 +1098,7 @@ int save_project(char *fn)
 
     grace_close(cp);
     
-    strcpy(docname, fn);
+    set_docname(fn);
     clear_dirtystate();
     
     return GRACE_EXIT_SUCCESS;

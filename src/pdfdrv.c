@@ -131,7 +131,7 @@ int pdfinitgraphics(void)
     
     PDF_set_info(phandle, "Creator", bi_version_string());
     PDF_set_info(phandle, "Author", get_username());
-    PDF_set_info(phandle, "Title", docname);
+    PDF_set_info(phandle, "Title", get_docname());
         
     /* just to disable warning - should be fixed in pdflib-2.0.1 */
     PDF_set_parameter(phandle, "resourcefile", "/dev/null");

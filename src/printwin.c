@@ -249,7 +249,7 @@ static void update_device_setup(int device_id)
             XtSetSensitive(device_opts_item, True);
         }
 
-        strcpy(buf, mybasename(docname)); 
+        strcpy(buf, mybasename(get_docname())); 
         bufptr = strrchr(buf, '.');
         if (bufptr) {
             *(bufptr+1)='\0';

@@ -654,7 +654,7 @@ int main(int argc, char *argv[])
 		if (i != argc) {
 		    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE) ==
                                                         GRACE_EXIT_SUCCESS) {
-			strcpy(docname, argv[i]);
+			set_docname(argv[i]);
 			if (remove_flag) {
 			    unlink(argv[i]);
 			}

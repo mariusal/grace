@@ -315,10 +315,10 @@ static void MenuCB(void *data)
 	create_openproject_popup();
 	break;
     case MENU_SAVE:
-	if (strcmp (docname, NONAME) != 0) {
+	if (strcmp (get_docname(), NONAME) != 0) {
 	    set_wait_cursor();
 	    
-	    save_project(docname);
+	    save_project(get_docname());
 	    
 	    unset_wait_cursor();
 	} else {
@@ -330,7 +330,7 @@ static void MenuCB(void *data)
 	break;
     case MENU_REVERT:
 	set_wait_cursor();
-	s = copy_string(NULL, docname);
+	s = copy_string(NULL, get_docname());
 	if (strcmp (s, NONAME) != 0) {
             load_project(s);
         } else {
@@ -392,7 +392,7 @@ void set_left_footer(char *s)
         char hbuf[64];
         char buf[GR_MAXPATHLEN + 100];
         gethostname(hbuf, 63);
-        sprintf(buf, "%s, %s, %s", hbuf, display_name(), docname);
+        sprintf(buf, "%s, %s, %s", hbuf, display_name(), get_docname());
         SetLabel(statlab, buf);
     } else {
         SetLabel(statlab, s);

@@ -235,7 +235,7 @@ static int ps_initgraphics(int format)
         fprintf(prstream, "%%%%Pages: 1\n");
         fprintf(prstream, "%%%%PageOrder: Ascend\n");
     }
-    fprintf(prstream, "%%%%Title: %s\n", docname);
+    fprintf(prstream, "%%%%Title: %s\n", get_docname());
     fprintf(prstream, "%%%%For: %s\n", get_username());
     fprintf(prstream, "%%%%EndComments\n");
 

@@ -181,9 +181,6 @@ GLOBAL(nr, int, 0);
 /* file for results */
 GLOBAL(resfp, FILE *, NULL);
 
-/* project file name */
-GLOBALARR(docname, char, GR_MAXPATHLEN, NONAME);
-
 /* format for saving data sets */
 GLOBALARR(sformat, char, 128, "%16.8g");
 
