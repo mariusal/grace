@@ -123,7 +123,7 @@ char *exe_path_translate(char *path);
 #endif
 
 #ifdef __VMS
-char *exe_path_translate(char *path);
+char *path_translate(char *path);
 #else
 #  define path_translate(p) (p)
 #endif
