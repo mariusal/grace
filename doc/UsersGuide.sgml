@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.3)</title>
 <author>by the Grace Team</author>
-<date>03.02.2001</date>
+<date>25.02.2001</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -784,7 +784,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
         to your <tt>.Xresources</tt> file (the file which is read when an X
         session starts; it could be <tt>.Xdefaults</tt>, <tt>.Xsession</tt> or
-        some other file - ask your system administrator when in doubt). 
+        some other file - ask your system administrator when in doubt).
+        
+        <p>
+          Similarly, it may be desirable to alter default filename patterns of
+          file selection dialogs. The recipe for the dialog's name is like for
+          menu buttons outlined above, with "Button" being replaced with "FSB".
+          E.g., to list all files in the "Open project" dialog ("File/Open..."),
+          set the following resource:
+          
+          <tt>
+            XMgrace*openProjectFSB.pattern: *
+          </tt>
+          
+        </p>
 
 
 <!-- **************************************** -->
@@ -2261,13 +2274,21 @@ integral     | cumulative sum @
           expr <it>n</it> |
           SLEEP(3) @
         EXIT(<it>status</it>) |
-          causes normal program termination with exit status <it>status</it> |
+          cause normal program termination with exit status <it>status</it> |
           iexpr <it>status</it> |
           EXIT(0) @
         EXIT |
-          causes normal program termination; same as EXIT(0) |
+          cause normal program termination; same as EXIT(0) |
           &nbsp; |
           EXIT @
+        HELP <it>url</it> |
+          open a HTML document pointed to by <it>url</it> |
+          qstr <it>url</it> |
+          HELP "doc/FAQ.html" @
+        HELP |
+          open User's Guide |
+          &nbsp; |
+          HELP @
         <hline>
       </tabular>
       <caption>

@@ -10,21 +10,40 @@
 <PRE>
 <H2>5.1.3</H2>
 
+<H3>Interface</H3>
+ *  [AM/ES] set icon's title = project name (rep. #957)
+ *  [ES] when switching to log scale, set major/minor tick settings to 10/9 
+         respectively (rep. #826)
+
+<H3>Documentation</H3>
+ *  [ES] docs updates (including reps. #926, #965)
+ *  [EV] fixed a typo in Tutorials (rep. #916)
+
+<H3>Parser</H3>
+ *  [ES] added "HELP url" and "HELP" to the parser
+
+<H3>Portability/Compilation</H3>
+ *  [AM] allow to specify print command at config time
+ *  [AM] fixed problem compiling bundled Xbae (rep. #959)
+
+<H3>Bug fixes</H3>
  *  [ES] fixed rounding error in calculation of pulldown menu length
          (rep. #929)
  *  [RL] precision of offsets in the Axes dialog were restricted to two
          digits (rep. #911)
  *  [AM/ES] double click on canvas with a pie chart might cause crash
- *  [ES] docs fixes (including rep. #926)
- *  [MD] produce MIF files with a textflow in which the graph is included, so
-         it can be included in another FrameMaker document
+ *  [EV] legend entries for BARDY and BARDYDY sets weren't drawn
  *  [MD] fixed conversion table for non-ASCII codes in the MIF driver
          (rep. #946)
- *  [EV] legend entries for BARDY and BARDYDY sets weren't drawn
- !  [ES] added "HELP url" and "HELP" to the parser
  *  [LM] reading in data files with floats when they were explicitly signed
          and positive resulted in parse error
- *  [AM] allow to specify print command at config time
+ *  [ES] using non-standard might crash the PDF driver
+
+<H3>Drivers</H3>
+ *  [MD] produce MIF files with a textflow in which the graph is included, so
+         it can be included in another FrameMaker document
+ *  [ES] list used fonts in %%DocumentNeededResources in the PS output
+         (rep. #956)
 
 
 <H2>5.1.2</H2>
