@@ -413,7 +413,7 @@ $ XBAE_DIR := [--.XBAE.XBAE]
 $ SRC_DIR := [--.SRC]
 $ GRCONVERT_DIR := [--.GRCONVERT]
 $ EXAMPLES_DIR := [--.EXAMPLES]
-$ CONF_DIR := [--.CONF]
+$ CONF_DIR := [--.AC-TOOLS]
 $!
 $! save the current directory and set default to the vms directory
 $!
