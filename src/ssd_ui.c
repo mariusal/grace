@@ -214,6 +214,8 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     
+    XbaeMatrixCommitEdit(ui->mw, True);
+    
     if (cbs->row_label) {
         if (xbe->state & ControlMask) {
             if (XbaeMatrixIsRowSelected(ui->mw, cbs->row)) {
@@ -362,6 +364,16 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     return ui;
 }
 
+static int kill_cb(Quark *q, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        SSDataUI *ui = (SSDataUI *) data;
+        ui->q = NULL;
+    }
+    
+    return RETURN_SUCCESS;
+}
+
 void update_ssd_ui(SSDataUI *ui, Quark *q)
 {
     if (ui && q) {
@@ -373,6 +385,9 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         char **collabels;
         unsigned char *clab_alignments;
         int cur_row, cur_col, format;
+        
+        quark_cb_set(q, kill_cb, ui);
+        
         
         if (ui->q != q) {
             XbaeMatrixDeselectAll(ui->mw);
@@ -454,15 +469,14 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
         }
 
+#if 1
         /* A bug in Xbae - the cell with focus on is NOT updated, so we do it*/
+        /* NB: not needed with current Xbae CVS */
         XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
         XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
             get_cell_content(ui, cur_row, cur_col, &format));
-
-#if 0
-        /* commit the last entered cell changes */
-        XbaeMatrixEditCell(ui->mw, cur_row, cur_col);
 #endif
+
         xfree(widths);
         xfree(maxlengths);
         xfree(clab_alignments);
@@ -478,6 +492,10 @@ int set_ssd_data(SSDataUI *ui, Quark *q, void *caller)
     int retval = RETURN_SUCCESS;
     
     if (ui && q) {
+        if (!caller) {
+            /* commit the last entered cell changes */
+            XbaeMatrixCommitEdit(ui->mw, False);
+        }
     }
     
     return retval;
