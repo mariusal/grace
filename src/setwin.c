@@ -59,7 +59,6 @@ static void changetypeCB(int n, int *values, void *data);
 static void datasetprop_aac_cb(void *data);
 
 static void datasetop_aac_cb(void *data);
-static void update_sets_cb(int n, int *values, void *data);
 static void datasetoptypeCB(int value, void *data);
 static void setop_aac_cb(void *data);
 
@@ -589,10 +588,7 @@ static void datasetop_aac_cb(void *data)
 
 typedef struct _Setop_ui {
     Widget top;
-    ListStructure *sel1;
-    ListStructure *sel2;
-    ListStructure *graph1_item;
-    ListStructure *graph2_item;
+    SrcDestStructure *srcdest;
     OptionStructure *optype_item;
 } Setop_ui;
 
@@ -604,42 +600,18 @@ static Setop_ui setopui;
 
 void create_setop_popup(void *data)
 {
-    Widget panel, rc, rc2, fr;
-    OptionItem opitems[3];
-
     set_wait_cursor();
     if (setopui.top == NULL) {
+        Widget panel, fr;
+        OptionItem opitems[3];
+
 	setopui.top = XmCreateDialogShell(app_shell, "setOperations", NULL, 0);
 	handle_close(setopui.top);
         panel = XtVaCreateWidget("panel", xmFormWidgetClass, 
                                           setopui.top, NULL, 0);
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel,
-			      XmNorientation, XmHORIZONTAL,
-			      NULL);
 
-	fr = CreateFrame(rc, "Source");
-        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-	setopui.graph1_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
-	setopui.sel1 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(setopui.graph1_item, update_sets_cb, (void *) setopui.sel1);
-        UpdateSetChoice(setopui.sel1, cg);
-        XtManageChild(rc2);
+        setopui.srcdest = CreateSrcDestSelector(panel, LIST_TYPE_MULTIPLE);        
 
-	fr = CreateFrame(rc, "Destination");
-        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-	setopui.graph2_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
-	setopui.sel2 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(setopui.graph2_item, update_sets_cb, (void *) setopui.sel2);
-        UpdateSetChoice(setopui.sel2, cg);
-        XtManageChild(rc2);
-
-        XtManageChild(rc);
-        XtVaSetValues(rc,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
-        
         opitems[0].value = OPTYPE_COPY;
         opitems[0].label = "Copy";
         opitems[1].value = OPTYPE_MOVE;
@@ -650,7 +622,7 @@ void create_setop_popup(void *data)
             "Type of operation:", 0, 3, opitems);
         XtVaSetValues(setopui.optype_item->menu,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, rc,
+            XmNtopWidget, setopui.srcdest->form,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             NULL);
@@ -671,19 +643,6 @@ void create_setop_popup(void *data)
     unset_wait_cursor();
 }
 
-static void update_sets_cb(int n, int *values, void *data)
-{
-    int gno;
-    ListStructure *set_listp = (ListStructure *) data;
-    
-    if (n == 1) {
-        gno = values[0];
-    } else {
-        gno = -1;
-    }
-    UpdateSetChoice(set_listp, gno);
-}
-
 static void setop_aac_cb(void *data)
 {
     int aac_mode, optype, error;
@@ -700,10 +659,10 @@ static void setop_aac_cb(void *data)
     
     optype = GetOptionChoice(setopui.optype_item);
     
-    g1_ok = GetSingleListChoice(setopui.graph1_item, &gno1);
-    g2_ok = GetSingleListChoice(setopui.graph2_item, &gno2);
-    ns1 = GetListChoices(setopui.sel1, &svalues1);
-    ns2 = GetListChoices(setopui.sel2, &svalues2);
+    g1_ok = GetSingleListChoice(setopui.srcdest->src->graph_sel, &gno1);
+    g2_ok = GetSingleListChoice(setopui.srcdest->dest->graph_sel, &gno2);
+    ns1 = GetListChoices(setopui.srcdest->src->set_sel, &svalues1);
+    ns2 = GetListChoices(setopui.srcdest->dest->set_sel, &svalues2);
     
     error = FALSE;
     if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {

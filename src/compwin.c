@@ -90,25 +90,9 @@ static void set_regr_sensitivity(Widget , XtPointer , XtPointer );
 #define RESTRICT_REG3   3
 #define RESTRICT_REG4   4
 
-static void update_sets_cb(int n, int *values, void *data)
-{
-    int gno;
-    ListStructure *set_listp = (ListStructure *) data;
-    
-    if (n == 1) {
-        gno = values[0];
-    } else {
-        gno = -1;
-    }
-    UpdateSetChoice(set_listp, gno);
-}
-
 typedef struct _Eval_ui {
     Widget top;
-    ListStructure *src_graph_item;
-    ListStructure *src_set_item;
-    ListStructure *dest_graph_item;
-    ListStructure *dest_set_item;
+    SrcDestStructure *srcdest;
     Widget formula_item;
     OptionStructure *restr_item;
     Widget negate_item;
@@ -120,8 +104,7 @@ void create_eval_frame(void *data)
 {
     set_wait_cursor();
     if (eui.top == NULL) {
-        int cg = get_cg();
-        Widget dialog, rc, rc2, rc_trans, fr;
+        Widget dialog, rc2, rc_trans, fr;
         OptionItem restr_items[7];
 
         restr_items[0].value = RESTRICT_NONE;
@@ -146,49 +129,11 @@ void create_eval_frame(void *data)
             xmFormWidgetClass, eui.top,
             XmNresizePolicy, XmRESIZE_ANY,
             NULL);
-	rc = XtVaCreateWidget("rc",
-            xmFormWidgetClass, dialog,
-	    XmNfractionBase, 2,
-	    NULL);
 
-	fr = CreateFrame(rc, "Source");
-        XtVaSetValues(fr,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_FORM,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_POSITION,
-            XmNrightPosition, 1,
-            NULL);
-        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-	eui.src_graph_item = CreateGraphChoice(rc2,
-            "Graph:", LIST_TYPE_SINGLE);
-	eui.src_set_item = CreateSetChoice(rc2,
-            "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(eui.src_graph_item,
-            update_sets_cb, (void *) eui.src_set_item);
-        UpdateSetChoice(eui.src_set_item, cg);
-        XtManageChild(rc2);
 
-	fr = CreateFrame(rc, "Destination");
-        XtVaSetValues(fr,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_FORM,
-            XmNleftAttachment, XmATTACH_POSITION,
-            XmNleftPosition, 1,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
-        rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
-	eui.dest_graph_item = CreateGraphChoice(rc2,
-            "Graph:", LIST_TYPE_SINGLE);
-	eui.dest_set_item = CreateSetChoice(rc2,
-            "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(eui.dest_graph_item,
-            update_sets_cb, (void *) eui.dest_set_item);
-        UpdateSetChoice(eui.dest_set_item, cg);
-        XtManageChild(rc2);
+        eui.srcdest = CreateSrcDestSelector(dialog, LIST_TYPE_MULTIPLE);
 
-        XtManageChild(rc);
-        XtVaSetValues(rc,
+        XtVaSetValues(eui.srcdest->form,
             XmNtopAttachment, XmATTACH_FORM,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
@@ -225,7 +170,7 @@ void create_eval_frame(void *data)
 
         XtVaSetValues(rc_trans,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, rc,
+            XmNtopWidget, eui.srcdest->form,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNbottomAttachment, XmATTACH_WIDGET,
@@ -318,10 +263,10 @@ static void compute_aac(void *data)
     restr_type = GetOptionChoice(eui.restr_item);
     restr_negate = GetToggleButtonState(eui.negate_item);
     
-    g1_ok = GetSingleListChoice(eui.src_graph_item, &gno1);
-    g2_ok = GetSingleListChoice(eui.dest_graph_item, &gno2);
-    ns1 = GetListChoices(eui.src_set_item, &svalues1);
-    ns2 = GetListChoices(eui.dest_set_item, &svalues2);
+    g1_ok = GetSingleListChoice(eui.srcdest->src->graph_sel, &gno1);
+    g2_ok = GetSingleListChoice(eui.srcdest->dest->graph_sel, &gno2);
+    ns1 = GetListChoices(eui.srcdest->src->set_sel, &svalues1);
+    ns2 = GetListChoices(eui.srcdest->dest->set_sel, &svalues2);
     
     error = FALSE;
     if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
