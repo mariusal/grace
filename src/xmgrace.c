@@ -355,6 +355,8 @@ int initialize_gui(int *argc, char **argv)
 {
     ApplicationData rd;
 
+    installXErrorHandler();
+    
     XtToolkitInitialize();
     app_con = XtCreateApplicationContext();
     XtAppSetFallbackResources(app_con, fallbackResources);
