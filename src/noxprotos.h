@@ -100,7 +100,7 @@ int do_nonlfit(Quark *pset, NLFit *nlfit,
 /* typeset.c */
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
 int fmap_proc(const Canvas *canvas, int font);
-int init_font_db(Canvas *canvas);
+int init_font_db(Grace *grace, Canvas *canvas);
 
 
 /* set_utils.c */

@@ -36,13 +36,13 @@
 #include "utils.h"
 #include "core_utils.h"
 #include "files.h"
+#include "protos.h"
 
-int init_font_db(Canvas *canvas)
+int init_font_db(Grace *grace, Canvas *canvas)
 {
     int i, nfonts;
     char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
-    Grace *grace = (Grace *) canvas_get_udata(canvas);
     
     /* Set default encoding */
     bufp = grace_path2(grace, "fonts/enc/", T1_DEFAULT_ENCODING_FILE);
@@ -86,8 +86,8 @@ int init_font_db(Canvas *canvas)
 /* TODO: optimize, e.g. via a hashed array */
 int fmap_proc(const Canvas *canvas, int font_id)
 {
-    Grace *grace = (Grace *) canvas_get_udata(canvas);
-    Project *pr = project_get_data(grace->project);
+    Quark *project = (Quark *) canvas_get_udata(canvas);
+    Project *pr = project_get_data(project);
     int font = BAD_FONT_ID;
     unsigned int i;
     
@@ -139,7 +139,7 @@ static int get_escape_args(const char *s, char *buf)
 
 static char *expand_macros(const Canvas *canvas, const char *s)
 {
-    Grace *grace = (Grace *) canvas_get_udata(canvas);
+    Quark *project = (Quark *) canvas_get_udata(canvas);
     char *es, *macro, *subst;
     int i, j, k, slen, extra_len = 0;
     
@@ -158,13 +158,13 @@ static char *expand_macros(const Canvas *canvas, const char *s)
         if (s[i] == '\\' && s[i + 1] == '$' &&
             (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
             if (!strcmp(macro, "timestamp")) {
-                subst = project_get_timestamp(grace->project);
+                subst = project_get_timestamp(project);
             } else
             if (!strcmp(macro, "filename")) {
-                subst = project_get_docname(grace->project);
+                subst = project_get_docname(project);
             } else
             if (!strcmp(macro, "filebname")) {
-                subst = get_docbname(grace->project);
+                subst = get_docbname(project);
             } else {
                 subst = "";
             }
@@ -187,13 +187,13 @@ static char *expand_macros(const Canvas *canvas, const char *s)
         if (s[i] == '\\' && s[i + 1] == '$' &&
             (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
             if (!strcmp(macro, "timestamp")) {
-                subst = project_get_timestamp(grace->project);
+                subst = project_get_timestamp(project);
             } else
             if (!strcmp(macro, "filename")) {
-                subst = project_get_docname(grace->project);
+                subst = project_get_docname(project);
             } else
             if (!strcmp(macro, "filebname")) {
-                subst = get_docbname(grace->project);
+                subst = get_docbname(project);
             } else {
                 subst = "";
             }
@@ -213,7 +213,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
 
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
 {
-    Grace *grace = (Grace *) canvas_get_udata(canvas);
+    Quark *project = (Quark *) canvas_get_udata(canvas);
     CStringSegment *cseg;
 
     char *string, *ss, *buf, *acc_buf;
@@ -344,7 +344,7 @@ int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
 		    new_font = BAD_FONT_ID;
 		    break;
 	        case 'x':
-		    new_font = get_font_by_name(grace->project, "Symbol");
+		    new_font = get_font_by_name(project, "Symbol");
                     break;
 	        case 'c':
 	            upperset = TRUE;
@@ -394,7 +394,7 @@ int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
                     } else if (isdigit(buf[0])) {
                         new_font = atoi(buf);
                     } else {
-                        new_font = get_font_by_name(grace->project, buf);
+                        new_font = get_font_by_name(project, buf);
                     }
                     break;
 	        case 'v':
@@ -470,7 +470,7 @@ int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring)
                     } else if (isdigit(buf[0])) {
                             new_color = atof(buf);
                     } else {
-                        new_color = get_color_by_name(grace->project, buf);
+                        new_color = get_color_by_name(project, buf);
                     }
                     break;
 	        case '#':

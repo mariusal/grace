@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     canvas  = rt->canvas;
     gui     = grace->gui;
     
-    if (init_font_db(canvas)) {
+    if (init_font_db(grace, canvas)) {
         errmsg("Broken or incomplete installation - read the FAQ!");
         exit(1);
     }
