@@ -65,17 +65,20 @@
 
 extern graph *g;
 
-double result;		/* return value if expression */
+static double  s_result;    /* return value if a scalar expression is scanned*/
+static double *v_result;    /* return value if a vector expression is scanned*/
+
+static int expr_parsed, vexpr_parsed;
 
 static int interr;
 
 static double *freelist[100]; 	/* temporary vectors */
-static int fcnt;		/* number allocated */
+static int fcnt = 0;		/* number of the temporary vectors allocated */
 
 int naxis = 0;	/* current axis */
 static int curline, curbox, curellipse, curstring;
 /* these guys attempt to avoid reentrancy problems */
-static int gotbatch = 0, gotparams = 0, gotread = 0, gotnlfit = 0; 
+static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
 int readtype, readsrc, readxformat;
 static int nlfit_gno, nlfit_setno, nlfit_nsteps;
 
@@ -84,15 +87,16 @@ char batchfile[GR_MAXPATHLEN] = "",
      readfile[GR_MAXPATHLEN] = "";
 
 static char f_string[MAX_STRING_LENGTH]; /* buffer for string to parse */
-static int pos = 0;
+static int pos;
 
 /* scratch arrays used in scanner */
 static int maxarr = 0;
 static double *ax = NULL, *bx = NULL, *cx = NULL, *dx = NULL;
 
-static int lxy;
+/* the graph, set, and its length of the parser's current state */
 static int whichgraph;
 static int whichset;
+static int lxy;
 
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
@@ -579,10 +583,12 @@ list:
 	| actions {}
 	| options {}
         | expr {
-            result = $1;
+            expr_parsed = TRUE;
+            s_result = $1;
         }
         | vexpr {
-            result = *$1;
+            vexpr_parsed = TRUE;
+            v_result = $1;
         }
 	| asgn {}
 	| vasgn {}
@@ -616,7 +622,7 @@ expr:	NUMBER {
             }
 	}
 	| vector '[' expr ']' {
-	    double *ptr = getcol(get_cg(), curset, $1);
+	    double *ptr = getcol(whichgraph, whichset, $1);
 	    if (ptr != NULL) {
 		$$ = ptr[(int) $3 - index_shift];
 	    }
@@ -626,7 +632,7 @@ expr:	NUMBER {
 	    }
 	}
 	| SETNUM '.' vector '[' expr ']' {
-	    double *ptr = getcol(get_cg(), $1, $3);
+	    double *ptr = getcol(whichgraph, $1, $3);
 	    if (ptr != NULL) {
 		$$ = ptr[(int) $5 - index_shift];
 	    }
@@ -647,24 +653,24 @@ expr:	NUMBER {
 	}
 	| SETNUM '.' vector '.' extremetype {
 	    double bar, sd;
-	    double *ptr = getcol(get_cg(), $1, $3);
+	    double *ptr = getcol(whichgraph, $1, $3);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
 	    switch ((int) $5) {
 	    case MINP:
-		$$ = vmin(ptr, getsetlength(get_cg(), $1));
+		$$ = vmin(ptr, getsetlength(whichgraph, $1));
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, getsetlength(get_cg(), $1));
+		$$ = vmax(ptr, getsetlength(whichgraph, $1));
 		break;
             case AVG:
-	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd);
+	        stasum(ptr, getsetlength(whichgraph, $1), &bar, &sd);
 	        $$ = bar;
                 break;
             case SD:
-	        stasum(ptr, getsetlength(get_cg(), $1), &bar, &sd);
+	        stasum(ptr, getsetlength(whichgraph, $1), &bar, &sd);
                 $$ = sd;
                 break;
 	    }
@@ -695,24 +701,24 @@ expr:	NUMBER {
 	}
 	| vector '.' extremetype {
 	    double bar, sd;
-	    double *ptr = getcol(get_cg(), curset, $1);
+	    double *ptr = getcol(whichgraph, whichset, $1);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
 	    switch ((int) $3) {
 	    case MINP:
-		$$ = vmin(ptr, getsetlength(get_cg(), curset));
+		$$ = vmin(ptr, getsetlength(whichgraph, whichset));
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, getsetlength(get_cg(), curset));
+		$$ = vmax(ptr, getsetlength(whichgraph, whichset));
 		break;
             case AVG:;
-		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd);
+		stasum(ptr, getsetlength(whichgraph, whichset), &bar, &sd);
 	        $$ = bar;
                 break;
             case SD:
-		stasum(ptr, getsetlength(get_cg(), curset), &bar, &sd);
+		stasum(ptr, getsetlength(whichgraph, whichset), &bar, &sd);
                 $$ = sd;
                 break;
 	    }
@@ -721,10 +727,10 @@ expr:	NUMBER {
 	    $$ = getsetlength($1, $3);
 	}
 	| SETNUM '.' LENGTH {
-	    $$ = getsetlength(get_cg(), $1);
+	    $$ = getsetlength(whichgraph, $1);
 	}
 	| LENGTH {
-	    $$ = getsetlength(get_cg(), curset);
+	    $$ = getsetlength(whichgraph, whichset);
 	}
 	| GRAPHNO '.' SETNUM '.' ID {
 	    $$ = $3;
@@ -807,28 +813,28 @@ expr:	NUMBER {
 	    $$ = julday((int) $5, (int) $7, (int) $3, (int) $9, (int) $11, (double) $13);
 	}
 	| VX1 {
-	    $$ = g[get_cg()].v.xv1;
+	    $$ = g[whichgraph].v.xv1;
 	}
 	| VX2 {
-	    $$ = g[get_cg()].v.xv2;
+	    $$ = g[whichgraph].v.xv2;
 	}
 	| VY1 {
-	    $$ = g[get_cg()].v.yv1;
+	    $$ = g[whichgraph].v.yv1;
 	}
 	| VY2 {
-	    $$ = g[get_cg()].v.yv2;
+	    $$ = g[whichgraph].v.yv2;
 	}
 	| WX1 {
-	    $$ = g[get_cg()].w.xg1;
+	    $$ = g[whichgraph].w.xg1;
 	}
 	| WX2 {
-	    $$ = g[get_cg()].w.xg2;
+	    $$ = g[whichgraph].w.xg2;
 	}
 	| WY1 {
-	    $$ = g[get_cg()].w.yg1;
+	    $$ = g[whichgraph].w.yg1;
 	}
 	| WY2 {
-	    $$ = g[get_cg()].w.yg2;
+	    $$ = g[whichgraph].w.yg2;
 	}
 	| VXMAX {
 	    double vx, vy;
@@ -925,7 +931,7 @@ vexpr:
 	| vector
 	{
 	    int i;
-	    double *ptr = getcol(get_cg(), curset, $1);
+	    double *ptr = getcol(whichgraph, whichset, $1);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -939,7 +945,7 @@ vexpr:
 	| SETNUM '.' vector
 	{
 	    int i;
-	    double *ptr = getcol(get_cg(), $1, $3);
+	    double *ptr = getcol(whichgraph, $1, $3);
 	    if (ptr == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -1534,12 +1540,11 @@ asgn:
 	    }
 	    ptr = get_scratch((int) $1);
 	    ptr[itmp] = $6;
-	    result = $6;
 	}
 	| vector '[' expr ']' '=' expr
 	{
 	    int itmp = (int) $3 - index_shift;
-	    double *ptr = getcol(get_cg(), curset, $1);
+	    double *ptr = getcol(whichgraph, whichset, $1);
 	    if (ptr != NULL) {
 	        ptr[itmp] = $6;
 	    }
@@ -1547,12 +1552,11 @@ asgn:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    result = $6;
 	}
 	| SETNUM '.' vector '[' expr ']' '=' expr
 	{
 	    int itmp = (int) $5 - index_shift;
-	    double *ptr = getcol(get_cg(), $1, $3);
+	    double *ptr = getcol(whichgraph, $1, $3);
 	    if (ptr != NULL) {
 	        ptr[itmp] = $8;
 	    }
@@ -1560,7 +1564,6 @@ asgn:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    result = $8;
 	}
 	| GRAPHNO '.' SETNUM '.' vector '[' expr ']' '=' expr
 	{
@@ -1573,7 +1576,6 @@ asgn:
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	    result = $10;
 	}
 	;
 
@@ -1590,7 +1592,6 @@ vasgn:
             for (i = 0; i < lxy; i++) {
 		ptr[i] = $3[i];
 	    }
-	    result = $3[0];
 	}
 	| SCRARRAY '=' expr
 	{
@@ -1603,22 +1604,20 @@ vasgn:
 	    for (i = 0; i < lxy; i++) {
 		ptr[i] = $3;
 	    }
-	    result = $3;
 	}
 	| vector '=' vexpr
 	{
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(get_cg(), curset)) {
-		setlength(get_cg(), curset, lxy);
-		setcomment(get_cg(), curset, "Created");
+	    if (!is_set_active(whichgraph, whichset)) {
+		setlength(whichgraph, whichset, lxy);
+		setcomment(whichgraph, whichset, "Created");
 	    }
-	    ptr = getcol(get_cg(), curset, $1);
+	    ptr = getcol(whichgraph, whichset, $1);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $3[i];
 	        }
-	        result = $3[0];
 	    }
 	    else {
 		yyerror("NULL variable, check set type");
@@ -1629,16 +1628,15 @@ vasgn:
 	{
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(get_cg(), curset)) {
-		setlength(get_cg(), curset, lxy);
-		setcomment(get_cg(), curset, "Created");
+	    if (!is_set_active(whichgraph, whichset)) {
+		setlength(whichgraph, whichset, lxy);
+		setcomment(whichgraph, whichset, "Created");
 	    }
-	    ptr = getcol(get_cg(), curset, $1);
+	    ptr = getcol(whichgraph, whichset, $1);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $3;
 	        }
-	        result = $3;
 	    }
 	    else {
 		yyerror("NULL variable, check set type");
@@ -1648,17 +1646,15 @@ vasgn:
 	| SETNUM '.' vector '=' vexpr {
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(get_cg(), $1)) {
-		setlength(get_cg(), $1, lxy);
-		setcomment(get_cg(), $1, "Created");
+	    if (!is_set_active(whichgraph, $1)) {
+		setlength(whichgraph, $1, lxy);
+		setcomment(whichgraph, $1, "Created");
 	    }
-	    ptr = getcol(get_cg(), $1, $3);
+	    ptr = getcol(whichgraph, $1, $3);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $5[i];
 	        }
-	        result = $5[0];
-
 	    }
 	    else {
 		yyerror("NULL variable, check set type");
@@ -1668,17 +1664,15 @@ vasgn:
 	| SETNUM '.' vector '=' expr {
 	    int i;
 	    double *ptr;
-	    if (!is_set_active(get_cg(), $1)) {
-		setlength(get_cg(), $1, lxy);
-		setcomment(get_cg(), $1, "Created");
+	    if (!is_set_active(whichgraph, $1)) {
+		setlength(whichgraph, $1, lxy);
+		setcomment(whichgraph, $1, "Created");
 	    }
-	    ptr = getcol(get_cg(), $1, $3);
+	    ptr = getcol(whichgraph, $1, $3);
 	    if (ptr != NULL) {
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $5;
 	        }
-	        result = $5;
-
 	    }
 	    else {
 		yyerror("NULL variable, check set type");
@@ -1699,8 +1693,6 @@ vasgn:
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $7[i];
 	        }
-	        result = $7[0];
-
 	    } else {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -1720,8 +1712,6 @@ vasgn:
 	        for (i = 0; i < lxy; i++) {
 		    ptr[i] = $7;
 	        }
-	        result = $7;
-
 	    } else {
 		yyerror("NULL variable, check set type");
 		return 1;
@@ -1902,15 +1892,14 @@ parmset:
 
 	| STACK WORLD expr ',' expr ',' expr ',' expr
 	{
-	    add_world(get_cg(), $3, $5, $7, $9);
+	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
 	| TARGET SETNUM {
-	    target_set.gno = get_cg();
+	    target_set.gno = whichgraph;
 	    target_set.setno = (int) $2;
 	}
 	| TARGET GRAPHNO '.' SETNUM {
-            select_graph($2);
 	    target_set.gno = $2;
 	    target_set.setno = $4;
 	}
@@ -1918,15 +1907,15 @@ parmset:
             timer_delay = (int) $2;
 	}
 	| WITH GRAPHNO {
-            select_graph($2);
+	    set_parser_gno($2);
 	}
 	| WITH SETNUM {
-	    curset = (int) $2;
+	    set_parser_setno(whichgraph, $2);
 	}
 
 /* Hot links */
 	| SETNUM LINK sourcetype CHRSTR {
-	    set_hotlink(get_cg(), $1, 1, (char *) $4, $3);
+	    set_hotlink(whichgraph, $1, 1, (char *) $4, $3);
 	    free((char *) $4);
 	}
 	| GRAPHNO '.' SETNUM LINK sourcetype CHRSTR {
@@ -1934,7 +1923,7 @@ parmset:
 	    free((char *) $6);
 	}
 	| SETNUM LINK onoff {
-	    set_hotlink(get_cg(), $1, $3, NULL, 0);
+	    set_hotlink(whichgraph, $1, $3, NULL, 0);
 	}
 	| GRAPHNO '.' SETNUM LINK onoff {
 	    set_hotlink($1, $3, $5, NULL, 0);
@@ -2308,66 +2297,79 @@ parmset:
         }
 
 	| WORLD expr ',' expr ',' expr ',' expr {
-	    g[get_cg()].w.xg1 = $2;
-	    g[get_cg()].w.yg1 = $4;
-	    g[get_cg()].w.xg2 = $6;
-	    g[get_cg()].w.yg2 = $8;
+	    g[whichgraph].w.xg1 = $2;
+	    g[whichgraph].w.yg1 = $4;
+	    g[whichgraph].w.xg2 = $6;
+	    g[whichgraph].w.yg2 = $8;
 	}
 	| WORLD XMIN expr {
-	    g[get_cg()].w.xg1 = $3;
+	    g[whichgraph].w.xg1 = $3;
 	}
 	| WORLD XMAX expr {
-	    g[get_cg()].w.xg2 = $3;
+	    g[whichgraph].w.xg2 = $3;
 	}
 	| WORLD YMIN expr {
-	    g[get_cg()].w.yg1 = $3;
+	    g[whichgraph].w.yg1 = $3;
 	}
 	| WORLD YMAX expr {
-	    g[get_cg()].w.yg2 = $3;
+	    g[whichgraph].w.yg2 = $3;
 	}
 	| VIEW expr ',' expr ',' expr ',' expr {
-	    g[get_cg()].v.xv1 = $2;
-	    g[get_cg()].v.yv1 = $4;
-	    g[get_cg()].v.xv2 = $6;
-	    g[get_cg()].v.yv2 = $8;
+	    g[whichgraph].v.xv1 = $2;
+	    g[whichgraph].v.yv1 = $4;
+	    g[whichgraph].v.xv2 = $6;
+	    g[whichgraph].v.yv2 = $8;
 	}
 	| VIEW XMIN expr {
-	    g[get_cg()].v.xv1 = $3;
+	    g[whichgraph].v.xv1 = $3;
 	}
 	| VIEW XMAX expr {
-	    g[get_cg()].v.xv2 = $3;
+	    g[whichgraph].v.xv2 = $3;
 	}
 	| VIEW YMIN expr {
-	    g[get_cg()].v.yv1 = $3;
+	    g[whichgraph].v.yv1 = $3;
 	}
 	| VIEW YMAX expr {
-	    g[get_cg()].v.yv2 = $3;
+	    g[whichgraph].v.yv2 = $3;
 	}
 	| TITLE CHRSTR {
-	    set_plotstr_string(&g[get_cg()].labs.title, (char *) $2);
+	    set_plotstr_string(&g[whichgraph].labs.title, (char *) $2);
 	    free((char *) $2);
 	}
 	| TITLE font_select {
-	    g[get_cg()].labs.title.font = (int) $2;
+	    g[whichgraph].labs.title.font = (int) $2;
 	}
 	| TITLE SIZE NUMBER {
-	    g[get_cg()].labs.title.charsize = $3;
+	    g[whichgraph].labs.title.charsize = $3;
 	}
 	| TITLE color_select {
-	    g[get_cg()].labs.title.color = (int) $2;
+	    g[whichgraph].labs.title.color = (int) $2;
 	}
 	| SUBTITLE CHRSTR {
-	    set_plotstr_string(&g[get_cg()].labs.stitle, (char *) $2);
+	    set_plotstr_string(&g[whichgraph].labs.stitle, (char *) $2);
 	    free((char *) $2);
 	}
 	| SUBTITLE font_select {
-	    g[get_cg()].labs.stitle.font = (int) $2;
+	    g[whichgraph].labs.stitle.font = (int) $2;
 	}
 	| SUBTITLE SIZE NUMBER {
-	    g[get_cg()].labs.stitle.charsize = $3;
+	    g[whichgraph].labs.stitle.charsize = $3;
 	}
 	| SUBTITLE color_select {
-	    g[get_cg()].labs.stitle.color = (int) $2;
+	    g[whichgraph].labs.stitle.color = (int) $2;
+	}
+
+	| XAXES SCALE scaletype {
+	    g[whichgraph].xscale = (int) $3;
+	}
+	| YAXES SCALE scaletype {
+	    g[whichgraph].yscale = (int) $3;
+	}
+	| XAXES INVERT onoff {
+	    g[whichgraph].xinvert = (int) $3;
+	}
+	| YAXES INVERT onoff {
+	    g[whichgraph].yinvert = (int) $3;
 	}
 
 	| DESCRIPTION CHRSTR {
@@ -2384,90 +2386,90 @@ parmset:
         }
 
 	| LEGEND onoff {
-	    g[get_cg()].l.active = $2;
+	    g[whichgraph].l.active = $2;
 	}
 	| LEGEND LOCTYPE worldview {
-	    g[get_cg()].l.loctype = $3;
+	    g[whichgraph].l.loctype = $3;
 	}
 	| LEGEND VGAP NUMBER {
-            g[get_cg()].l.vgap = (int) $3;
+            g[whichgraph].l.vgap = (int) $3;
 	}
 	| LEGEND HGAP NUMBER {
-	    g[get_cg()].l.hgap = (int) $3;
+	    g[whichgraph].l.hgap = (int) $3;
 	}
 	| LEGEND LENGTH NUMBER {
-	    g[get_cg()].l.len = (int) $3;
+	    g[whichgraph].l.len = (int) $3;
 	}
 	| LEGEND INVERT onoff {
-	    g[get_cg()].l.invert = (int) $3;
+	    g[whichgraph].l.invert = (int) $3;
         }
 	| LEGEND BOX FILL color_select {
-	    g[get_cg()].l.boxfillpen.color = (int) $4;
+	    g[whichgraph].l.boxfillpen.color = (int) $4;
         }
 	| LEGEND BOX FILL pattern_select {
-	    g[get_cg()].l.boxfillpen.pattern = (int) $4;
+	    g[whichgraph].l.boxfillpen.pattern = (int) $4;
         }
 	| LEGEND BOX color_select {
-	    g[get_cg()].l.boxpen.color = (int) $3;
+	    g[whichgraph].l.boxpen.color = (int) $3;
 	}
 	| LEGEND BOX pattern_select {
-	    g[get_cg()].l.boxpen.pattern = (int) $3;
+	    g[whichgraph].l.boxpen.pattern = (int) $3;
 	}
 	| LEGEND BOX lines_select {
-	    g[get_cg()].l.boxlines = (int) $3;
+	    g[whichgraph].l.boxlines = (int) $3;
 	}
 	| LEGEND BOX linew_select {
-	    g[get_cg()].l.boxlinew = $3;
+	    g[whichgraph].l.boxlinew = $3;
 	}
 	| LEGEND expr ',' expr {
-	    g[get_cg()].l.legx = $2;
-	    g[get_cg()].l.legy = $4;
+	    g[whichgraph].l.legx = $2;
+	    g[whichgraph].l.legy = $4;
 	}
 	| LEGEND X1 expr {
-	    g[get_cg()].l.legx = $3;
+	    g[whichgraph].l.legx = $3;
 	}
 	| LEGEND Y1 expr {
-	    g[get_cg()].l.legy = $3;
+	    g[whichgraph].l.legy = $3;
 	}
 	| LEGEND CHAR SIZE NUMBER {
-	    g[get_cg()].l.charsize = $4;
+	    g[whichgraph].l.charsize = $4;
 	}
 	| LEGEND font_select {
-	    g[get_cg()].l.font = (int) $2;
+	    g[whichgraph].l.font = (int) $2;
 	}
 	| LEGEND color_select {
-	    g[get_cg()].l.color = (int) $2;
+	    g[whichgraph].l.color = (int) $2;
 	}
 	| LEGEND STRING NUMBER CHRSTR {
-	    strcpy(g[get_cg()].p[(int) $3].lstr, (char *) $4);
+	    strcpy(g[whichgraph].p[(int) $3].lstr, (char *) $4);
 	    free((char *) $4);
 	}
 
 	| FRAMEP onoff {
-            g[get_cg()].f.pen.pattern = $2;
+            g[whichgraph].f.pen.pattern = $2;
 	}
 	| FRAMEP TYPE NUMBER {
-	    g[get_cg()].f.type = (int) $3;
+	    g[whichgraph].f.type = (int) $3;
 	}
 	| FRAMEP lines_select {
-	    g[get_cg()].f.lines = (int) $2;
+	    g[whichgraph].f.lines = (int) $2;
 	}
 	| FRAMEP linew_select {
-	    g[get_cg()].f.linew = $2;
+	    g[whichgraph].f.linew = $2;
 	}
 	| FRAMEP color_select {
-	    g[get_cg()].f.pen.color = (int) $2;
+	    g[whichgraph].f.pen.color = (int) $2;
 	}
 	| FRAMEP pattern_select {
-	    g[get_cg()].f.pen.pattern = (int) $2;
+	    g[whichgraph].f.pen.pattern = (int) $2;
 	}
 	| FRAMEP BACKGROUND color_select
         { 
-            g[get_cg()].f.fillpen.color = (int) $3;
+            g[whichgraph].f.fillpen.color = (int) $3;
         }
 	| FRAMEP BACKGROUND pattern_select
         {
-            g[get_cg()].f.fillpen.pattern = (int) $3;
+            g[whichgraph].f.fillpen.pattern = (int) $3;
         }
 
 	| GRAPHNO onoff {
@@ -2647,25 +2649,25 @@ actions:
 	| PUTP CHRSTR {
 	    FILE *pp = grace_openw((char *) $2);
 	    if (pp != NULL) {
-	        putparms(get_cg(), pp, 0);
+	        putparms(whichgraph, pp, 0);
 	        grace_close(pp);
 	    }
 	    free((char *) $2);
 	}
 	| SETNUM HIDDEN onoff {
-	    set_set_hidden(get_cg(), $1, (int) $3);
+	    set_set_hidden(whichgraph, $1, (int) $3);
 	}
 	| GRAPHNO '.' SETNUM HIDDEN onoff {
 	    set_set_hidden($1, $3, (int) $5);
 	}
 	| SETNUM LENGTH NUMBER {
-	    setlength(get_cg(), $1, (int) $3);
+	    setlength(whichgraph, $1, (int) $3);
 	}
 	| GRAPHNO '.' SETNUM LENGTH NUMBER {
 	    setlength($1, $3, (int) $5);
 	}
 	| SETNUM POINT expr ',' expr {
-	    add_point(get_cg(), $1, $3, $5);
+	    add_point(whichgraph, $1, $3, $5);
 	}
 	| GRAPHNO '.' SETNUM POINT expr ',' expr {
 	    add_point($1, $3, $5, $7);
@@ -2676,7 +2678,7 @@ actions:
 	    int stop = (int) $5 - 1;
 	    int dist = stop - start + 1;
 	    if (dist > 0 && start >= 0) {
-	        droppoints(get_cg(), $1, start, stop, dist);
+	        droppoints(whichgraph, $1, start, stop, dist);
 	    }
 	}
 	| GRAPHNO '.' SETNUM DROP NUMBER ',' NUMBER {
@@ -2688,29 +2690,29 @@ actions:
 	    }
 	}
 	| SORT SETNUM sorton sortdir {
-	    if (is_set_active(get_cg(), $2)) {
-	        sortset(get_cg(), $2, $3, $4 == ASCENDING ? 0 : 1);
+	    if (is_set_active(whichgraph, $2)) {
+	        sortset(whichgraph, $2, $3, $4 == ASCENDING ? 0 : 1);
 	    } else {
 		errmsg("Set not active!");
 	    }
 	}
 	| COPY SETNUM TO SETNUM {
-	    do_copyset(get_cg(), $2, get_cg(), $4);
+	    do_copyset(whichgraph, $2, whichgraph, $4);
 	}
 	| APPEND SETNUM TO SETNUM {
 		int sets[2];
 		sets[0] = $4;
 		sets[1] = $2;
-		join_sets(get_cg(), sets, 2);
+		join_sets(whichgraph, sets, 2);
 	}
 	| REVERSE SETNUM {
-		reverse_set( get_cg(), $2 );
+		reverse_set( whichgraph, $2 );
 	}
 	| REVERSE GRAPHNO '.' SETNUM {
 		reverse_set( $2, $4 );
 	}
 	| SPLIT SETNUM NUMBER {
-		do_splitsets( get_cg(), $2, (int)$3 );
+		do_splitsets( whichgraph, $2, (int)$3 );
 	}
 	| SPLIT GRAPHNO '.' SETNUM NUMBER {
 		do_splitsets( $2, $4, (int)$5 );
@@ -2719,26 +2721,26 @@ actions:
 	    do_copyset($2, $4, $6, $8);
 	}
 	| MOVE SETNUM TO SETNUM {
-	    do_moveset(get_cg(), $2, get_cg(), $4);
+	    do_moveset(whichgraph, $2, whichgraph, $4);
 	}
 	| MOVE GRAPHNO '.' SETNUM TO GRAPHNO '.' SETNUM {
 	    do_moveset($2, $4, $6, $8);
 	}
 	| KILL SETNUM {
-	    killset(get_cg(), $2);
+	    killset(whichgraph, $2);
 	}
 	| KILL SETS {
 	    int i;
-	    for (i = 0; i < g[get_cg()].maxplot; i++) {
-		killset(get_cg(), i);
+	    for (i = 0; i < g[whichgraph].maxplot; i++) {
+		killset(whichgraph, i);
 	    }
 	}
 	| KILL SETNUM SAVEALL {
-            killsetdata(get_cg(), $2);
+            killsetdata(whichgraph, $2);
         }
 	| KILL SETS SAVEALL {
 	    int i;
-            int cg = get_cg();
+            int cg = whichgraph;
 	    for (i = 0; i < number_of_sets(cg); i++) {
 		killsetdata(cg, i);
 	    }
@@ -2771,7 +2773,7 @@ actions:
 	}
 	| NONLFIT '(' SETNUM ',' NUMBER ')' {
 	    gotnlfit = TRUE;
-	    nlfit_gno = get_cg();
+	    nlfit_gno = whichgraph;
 	    nlfit_setno = $3;
 	    nlfit_nsteps = (int) $5;
 	}
@@ -2821,7 +2823,7 @@ actions:
 	    do_interp($3, $5, (int) $7);
 	}
 	| HISTO '(' SETNUM ',' expr ',' expr ',' NUMBER ')' {
-            do_histo(get_cg(), $3, SET_SELECT_NEXT, -1, $7, $5, $5 + ((int) $9)*$7, 
+            do_histo(whichgraph, $3, SET_SELECT_NEXT, -1, $7, $5, $5 + ((int) $9)*$7, 
                                         HISTOGRAM_TYPE_ORDINARY);
 	}
 	| DIFFERENCE '(' SETNUM ',' NUMBER ')' {
@@ -2834,35 +2836,35 @@ actions:
 	    do_xcor($3, $5, (int) $7);
 	}
 	| AUTOSCALE {
-	    if (activeset(get_cg())) {
-		autoscale_graph(get_cg(), AUTOSCALE_XY);
+	    if (activeset(whichgraph)) {
+		autoscale_graph(whichgraph, AUTOSCALE_XY);
 	    } else {
 		errmsg("No active sets!");
 	    }
 	}
 	| AUTOSCALE XAXES {
-	    if (activeset(get_cg())) {
-		autoscale_graph(get_cg(), AUTOSCALE_X);
+	    if (activeset(whichgraph)) {
+		autoscale_graph(whichgraph, AUTOSCALE_X);
 	    } else {
 		errmsg("No active sets!");
 	    }
 	}
 	| AUTOSCALE YAXES {
-	    if (activeset(get_cg())) {
-                autoscale_graph(get_cg(), AUTOSCALE_Y);
+	    if (activeset(whichgraph)) {
+                autoscale_graph(whichgraph, AUTOSCALE_Y);
 	    } else {
 		errmsg("No active sets!");
 	    }
 	}
 	| AUTOSCALE SETNUM {
-	    if (is_set_active(get_cg(), $2)) {
-		autoscale_byset(get_cg(), $2, AUTOSCALE_XY);
+	    if (is_set_active(whichgraph, $2)) {
+		autoscale_byset(whichgraph, $2, AUTOSCALE_XY);
 	    } else {
 		errmsg("Set not active");
 	    }
 	}
         | AUTOTICKS {
-            autotick_axis(get_cg(), ALL_AXES);
+            autotick_axis(whichgraph, ALL_AXES);
         }
 	| FOCUS GRAPHNO {
 	    int gno = (int) $2;
@@ -2880,20 +2882,19 @@ actions:
 	    free((char *) $2);
 	}
 	| READ BATCH CHRSTR {
-	    gotbatch = TRUE;
 	    strcpy(batchfile, (char *) $3);
 	    free((char *) $3);
 	}
 	| READ BLOCK CHRSTR {
-	    getdata(get_cg(), (char *) $3, SOURCE_DISK, SET_BLOCK);
+	    getdata(whichgraph, (char *) $3, SOURCE_DISK, SET_BLOCK);
 	    free((char *) $3);
 	}
 	| READ BLOCK sourcetype CHRSTR {
-	    getdata(get_cg(), (char *) $4, $3, SET_BLOCK);
+	    getdata(whichgraph, (char *) $4, $3, SET_BLOCK);
 	    free((char *) $4);
 	}
 	| BLOCK xytype CHRSTR {
-	    create_set_fromblock(get_cg(), $2, (char *) $3);
+	    create_set_fromblock(whichgraph, $2, (char *) $3);
 	    free((char *) $3);
 	}
 	| READ xytype CHRSTR {
@@ -2911,18 +2912,18 @@ actions:
 	    free((char *) $4);
 	}
 	| WRITE SETNUM {
-	    outputset(get_cg(), $2, (char *) NULL, (char *) NULL);
+	    outputset(whichgraph, $2, (char *) NULL, (char *) NULL);
 	}
 	| WRITE SETNUM FORMAT CHRSTR {
-	    outputset(get_cg(), $2, (char *) NULL, (char *) $4);
+	    outputset(whichgraph, $2, (char *) NULL, (char *) $4);
 	    free((char *) $4);
 	}
 	| WRITE SETNUM FILEP CHRSTR {
-	    outputset(get_cg(), $2, (char *) $4, (char *) NULL);
+	    outputset(whichgraph, $2, (char *) $4, (char *) NULL);
 	    free((char *) $4);
 	}
 	| WRITE SETNUM FILEP CHRSTR FORMAT CHRSTR {
-	    outputset(get_cg(), $2, (char *) $4, (char *) $6);
+	    outputset(whichgraph, $2, (char *) $4, (char *) $6);
 	    free((char *) $4);
 	    free((char *) $6);
 	}
@@ -3230,43 +3231,13 @@ setprop:
 	}
 	;
 
-axesprops:
-	SCALE scaletype {
-	    switch (naxis) {
-	    case ALL_AXES:
-		g[whichgraph].xscale = (int) $2;
-		g[whichgraph].yscale = (int) $2;
-		break;
-	    case ALL_X_AXES:
-		g[whichgraph].xscale = (int) $2;
-		break;
-	    case ALL_Y_AXES:
-		g[whichgraph].yscale = (int) $2;
-		break;
-	    }
-	}
-	| INVERT onoff {
-	    switch (naxis) {
-	    case ALL_AXES:
-		g[whichgraph].xinvert = (int) $2;
-		g[whichgraph].yinvert = (int) $2;
-		break;
-	    case ALL_X_AXES:
-		g[whichgraph].xinvert = (int) $2;
-		break;
-	    case ALL_Y_AXES:
-		g[whichgraph].yinvert = (int) $2;
-		break;
-	    }
-	}
-	;
 
 axisfeature:
 	onoff {
-	    g[get_cg()].t[naxis].active = (int) $1;
+	    g[whichgraph].t[naxis].active = (int) $1;
 	}
 	| TYPE ZERO onoff {
-	    g[get_cg()].t[naxis].zero = (int) $3;
+	    g[whichgraph].t[naxis].zero = (int) $3;
 	}
 	| TICKP tickattr {}
 	| TICKP tickattr_obs {}
@@ -3276,231 +3247,231 @@ axisfeature:
 	| LABEL axislabeldesc_obs {}
 	| BAR axisbardesc {}
 	| OFFSET expr ',' expr {
-            g[get_cg()].t[naxis].offsx = $2;
-	    g[get_cg()].t[naxis].offsy = $4;
+            g[whichgraph].t[naxis].offsx = $2;
+	    g[whichgraph].t[naxis].offsy = $4;
 	}
 	;
 
 tickattr:
 	onoff {
-	    g[get_cg()].t[naxis].t_flag = (int) $1;
+	    g[whichgraph].t[naxis].t_flag = (int) $1;
 	}
 	| MAJOR expr {
-            g[get_cg()].t[naxis].tmajor = $2;
+            g[whichgraph].t[naxis].tmajor = $2;
 	}
 	| MINOR TICKSP NUMBER {
-	    g[get_cg()].t[naxis].nminor = (int) $3;
+	    g[whichgraph].t[naxis].nminor = (int) $3;
 	}
 	| PLACE ROUNDED onoff {
-	    g[get_cg()].t[naxis].t_round = (int) $3;
+	    g[whichgraph].t[naxis].t_round = (int) $3;
 	}
 
 	| OFFSETX expr {
-            g[get_cg()].t[naxis].offsx = $2;
+            g[whichgraph].t[naxis].offsx = $2;
 	}
 	| OFFSETY expr {
-            g[get_cg()].t[naxis].offsy = $2;
+            g[whichgraph].t[naxis].offsy = $2;
 	}
 	| DEFAULT NUMBER {
-	    g[get_cg()].t[naxis].t_autonum = (int) $2;
+	    g[whichgraph].t[naxis].t_autonum = (int) $2;
 	}
 	| inoutchoice {
-	    g[get_cg()].t[naxis].t_inout = $1;
+	    g[whichgraph].t[naxis].t_inout = $1;
 	}
 	| MAJOR SIZE NUMBER {
-	    g[get_cg()].t[naxis].props.size = $3;
+	    g[whichgraph].t[naxis].props.size = $3;
 	}
 	| MINOR SIZE NUMBER {
-	    g[get_cg()].t[naxis].mprops.size = $3;
+	    g[whichgraph].t[naxis].mprops.size = $3;
 	}
 	| color_select {
-	    g[get_cg()].t[naxis].props.color = g[get_cg()].t[naxis].mprops.color = (int) $1;
+	    g[whichgraph].t[naxis].props.color = g[whichgraph].t[naxis].mprops.color = (int) $1;
 	}
 	| MAJOR color_select {
-	    g[get_cg()].t[naxis].props.color = (int) $2;
+	    g[whichgraph].t[naxis].props.color = (int) $2;
 	}
 	| MINOR color_select {
-	    g[get_cg()].t[naxis].mprops.color = (int) $2;
+	    g[whichgraph].t[naxis].mprops.color = (int) $2;
 	}
 	| linew_select {
-	    g[get_cg()].t[naxis].props.linew = g[get_cg()].t[naxis].mprops.linew = $1;
+	    g[whichgraph].t[naxis].props.linew = g[whichgraph].t[naxis].mprops.linew = $1;
 	}
 	| MAJOR linew_select {
-	    g[get_cg()].t[naxis].props.linew = $2;
+	    g[whichgraph].t[naxis].props.linew = $2;
 	}
 	| MINOR linew_select {
-	    g[get_cg()].t[naxis].mprops.linew = $2;
+	    g[whichgraph].t[naxis].mprops.linew = $2;
 	}
 	| MAJOR lines_select {
-	    g[get_cg()].t[naxis].props.lines = (int) $2;
+	    g[whichgraph].t[naxis].props.lines = (int) $2;
 	}
 	| MINOR lines_select {
-	    g[get_cg()].t[naxis].mprops.lines = (int) $2;
+	    g[whichgraph].t[naxis].mprops.lines = (int) $2;
 	}
 	| MAJOR GRID onoff {
-	    g[get_cg()].t[naxis].props.gridflag = $3;
+	    g[whichgraph].t[naxis].props.gridflag = $3;
 	}
 	| MINOR GRID onoff {
-	    g[get_cg()].t[naxis].mprops.gridflag = $3;
+	    g[whichgraph].t[naxis].mprops.gridflag = $3;
 	}
 	| opchoice_sel {
-	    g[get_cg()].t[naxis].t_op = $1;
+	    g[whichgraph].t[naxis].t_op = $1;
 	}
 	| TYPE AUTO {
-	    g[get_cg()].t[naxis].t_type = TYPE_AUTO;
+	    g[whichgraph].t[naxis].t_type = TYPE_AUTO;
 	}
 	| TYPE SPEC {
-	    g[get_cg()].t[naxis].t_type = TYPE_SPEC;
+	    g[whichgraph].t[naxis].t_type = TYPE_SPEC;
 	}
 	| SPEC NUMBER {
-	    g[get_cg()].t[naxis].nticks = (int) $2;
+	    g[whichgraph].t[naxis].nticks = (int) $2;
 	}
 	| MAJOR NUMBER ',' expr {
-	    g[get_cg()].t[naxis].tloc[(int) $2].wtpos = $4;
-	    g[get_cg()].t[naxis].tloc[(int) $2].type = TICK_TYPE_MAJOR;
+	    g[whichgraph].t[naxis].tloc[(int) $2].wtpos = $4;
+	    g[whichgraph].t[naxis].tloc[(int) $2].type = TICK_TYPE_MAJOR;
 	}
 	| MINOR NUMBER ',' expr {
-	    g[get_cg()].t[naxis].tloc[(int) $2].wtpos = $4;
-	    g[get_cg()].t[naxis].tloc[(int) $2].type = TICK_TYPE_MINOR;
+	    g[whichgraph].t[naxis].tloc[(int) $2].wtpos = $4;
+	    g[whichgraph].t[naxis].tloc[(int) $2].type = TICK_TYPE_MINOR;
 	}
 	;
 
 ticklabelattr:
 	onoff {
-	    g[get_cg()].t[naxis].tl_flag = $1;
+	    g[whichgraph].t[naxis].tl_flag = $1;
 	}
 	| TYPE AUTO {
-	    g[get_cg()].t[naxis].tl_type = TYPE_AUTO;
+	    g[whichgraph].t[naxis].tl_type = TYPE_AUTO;
 	}
 	| TYPE SPEC {
-	    g[get_cg()].t[naxis].tl_type = TYPE_SPEC;
+	    g[whichgraph].t[naxis].tl_type = TYPE_SPEC;
 	}
 	| PREC NUMBER {
-	    g[get_cg()].t[naxis].tl_prec = (int) $2;
+	    g[whichgraph].t[naxis].tl_prec = (int) $2;
 	}
 	| FORMAT formatchoice {
-	    g[get_cg()].t[naxis].tl_format = $2;
+	    g[whichgraph].t[naxis].tl_format = $2;
 	}
 	| FORMAT NUMBER {
-	    g[get_cg()].t[naxis].tl_format = $2;
+	    g[whichgraph].t[naxis].tl_format = $2;
 	}
 	| APPEND CHRSTR {
-	    strcpy(g[get_cg()].t[naxis].tl_appstr, (char *) $2);
+	    strcpy(g[whichgraph].t[naxis].tl_appstr, (char *) $2);
 	    free((char *) $2);
 	}
 	| PREPEND CHRSTR {
-	    strcpy(g[get_cg()].t[naxis].tl_prestr, (char *) $2);
+	    strcpy(g[whichgraph].t[naxis].tl_prestr, (char *) $2);
 	    free((char *) $2);
 	}
 	| ANGLE NUMBER {
-	    g[get_cg()].t[naxis].tl_angle = (int) $2;
+	    g[whichgraph].t[naxis].tl_angle = (int) $2;
 	}
 	| SKIP NUMBER {
-	    g[get_cg()].t[naxis].tl_skip = (int) $2;
+	    g[whichgraph].t[naxis].tl_skip = (int) $2;
 	}
 	| STAGGER NUMBER {
-	    g[get_cg()].t[naxis].tl_staggered = (int) $2;
+	    g[whichgraph].t[naxis].tl_staggered = (int) $2;
 	}
 	| opchoice_sel {
-	    g[get_cg()].t[naxis].tl_op = $1;
+	    g[whichgraph].t[naxis].tl_op = $1;
 	}
 	| SIGN signchoice {
-	    g[get_cg()].t[naxis].tl_sign = $2;
+	    g[whichgraph].t[naxis].tl_sign = $2;
 	}
 	| START expr {
-	    g[get_cg()].t[naxis].tl_start = $2;
+	    g[whichgraph].t[naxis].tl_start = $2;
 	}
 	| STOP expr {
-	    g[get_cg()].t[naxis].tl_stop = $2;
+	    g[whichgraph].t[naxis].tl_stop = $2;
 	}
 	| START TYPE SPEC {
-	    g[get_cg()].t[naxis].tl_starttype = TYPE_SPEC;
+	    g[whichgraph].t[naxis].tl_starttype = TYPE_SPEC;
 	}
 	| START TYPE AUTO {
-	    g[get_cg()].t[naxis].tl_starttype = TYPE_AUTO;
+	    g[whichgraph].t[naxis].tl_starttype = TYPE_AUTO;
 	}
 	| STOP TYPE SPEC {
-	    g[get_cg()].t[naxis].tl_stoptype = TYPE_SPEC;
+	    g[whichgraph].t[naxis].tl_stoptype = TYPE_SPEC;
 	}
 	| STOP TYPE AUTO {
-	    g[get_cg()].t[naxis].tl_stoptype = TYPE_AUTO;
+	    g[whichgraph].t[naxis].tl_stoptype = TYPE_AUTO;
 	}
 	| CHAR SIZE NUMBER {
-	    g[get_cg()].t[naxis].tl_charsize = $3;
+	    g[whichgraph].t[naxis].tl_charsize = $3;
 	}
 	| font_select {
-	    g[get_cg()].t[naxis].tl_font = (int) $1;
+	    g[whichgraph].t[naxis].tl_font = (int) $1;
 	}
 	| color_select {
-	    g[get_cg()].t[naxis].tl_color = (int) $1;
+	    g[whichgraph].t[naxis].tl_color = (int) $1;
 	}
 	| NUMBER ',' CHRSTR {
-	    g[get_cg()].t[naxis].tloc[(int) $1].label = 
-                copy_string(g[get_cg()].t[naxis].tloc[(int) $1].label, (char *) $3);
+	    g[whichgraph].t[naxis].tloc[(int) $1].label = 
+                copy_string(g[whichgraph].t[naxis].tloc[(int) $1].label, (char *) $3);
 	    free((char *) $3);
 	}
 	| OFFSET AUTO {
-	    g[get_cg()].t[naxis].tl_gaptype = TYPE_AUTO;
+	    g[whichgraph].t[naxis].tl_gaptype = TYPE_AUTO;
 	}
 	| OFFSET SPEC {
-	    g[get_cg()].t[naxis].tl_gaptype = TYPE_SPEC;
+	    g[whichgraph].t[naxis].tl_gaptype = TYPE_SPEC;
 	}
 	| OFFSET expr ',' expr {
-	    g[get_cg()].t[naxis].tl_gap.x = $2;
-	    g[get_cg()].t[naxis].tl_gap.y = $4;
+	    g[whichgraph].t[naxis].tl_gap.x = $2;
+	    g[whichgraph].t[naxis].tl_gap.y = $4;
 	}
 	;
 
 axislabeldesc:
 	CHRSTR {
-	    set_plotstr_string(&g[get_cg()].t[naxis].label, (char *) $1);
+	    set_plotstr_string(&g[whichgraph].t[naxis].label, (char *) $1);
 	    free((char *) $1);
 	}
 	| LAYOUT PERP {
-	    g[get_cg()].t[naxis].label_layout = LAYOUT_PERPENDICULAR;
+	    g[whichgraph].t[naxis].label_layout = LAYOUT_PERPENDICULAR;
 	}
 	| LAYOUT PARA {
-	    g[get_cg()].t[naxis].label_layout = LAYOUT_PARALLEL;
+	    g[whichgraph].t[naxis].label_layout = LAYOUT_PARALLEL;
 	}
 	| PLACE AUTO {
-	    g[get_cg()].t[naxis].label_place = TYPE_AUTO;
+	    g[whichgraph].t[naxis].label_place = TYPE_AUTO;
 	}
 	| PLACE SPEC {
-	    g[get_cg()].t[naxis].label_place = TYPE_SPEC;
+	    g[whichgraph].t[naxis].label_place = TYPE_SPEC;
 	}
 	| PLACE expr ',' expr {
-	    g[get_cg()].t[naxis].label.x = $2;
-	    g[get_cg()].t[naxis].label.y = $4;
+	    g[whichgraph].t[naxis].label.x = $2;
+	    g[whichgraph].t[naxis].label.y = $4;
 	}
 	| JUST justchoice {
-	    g[get_cg()].t[naxis].label.just = (int) $2;
+	    g[whichgraph].t[naxis].label.just = (int) $2;
 	}
 	| CHAR SIZE NUMBER {
-	    g[get_cg()].t[naxis].label.charsize = $3;
+	    g[whichgraph].t[naxis].label.charsize = $3;
 	}
 	| font_select {
-	    g[get_cg()].t[naxis].label.font = (int) $1;
+	    g[whichgraph].t[naxis].label.font = (int) $1;
 	}
 	| color_select {
-	    g[get_cg()].t[naxis].label.color = (int) $1;
+	    g[whichgraph].t[naxis].label.color = (int) $1;
 	}
 	| opchoice_sel {
-	    g[get_cg()].t[naxis].label_op = $1;
+	    g[whichgraph].t[naxis].label_op = $1;
 	}
 	;
 
 axisbardesc:
 	onoff {
-	    g[get_cg()].t[naxis].t_drawbar = $1;
+	    g[whichgraph].t[naxis].t_drawbar = $1;
 	}
 	| color_select {
-	    g[get_cg()].t[naxis].t_drawbarcolor = (int) $1;
+	    g[whichgraph].t[naxis].t_drawbarcolor = (int) $1;
 	}
 	| lines_select {
-	    g[get_cg()].t[naxis].t_drawbarlines = (int) $1;
+	    g[whichgraph].t[naxis].t_drawbarlines = (int) $1;
 	}
 	| linew_select {
-	    g[get_cg()].t[naxis].t_drawbarlinew = $1;
+	    g[whichgraph].t[naxis].t_drawbarlinew = $1;
 	}
 	;
 
@@ -3524,41 +3495,17 @@ nonlfitopts:
 selectsets:
 	GRAPHNO '.' SETNUM
 	{
-	    whichgraph = $1;
-	    whichset = $3;
+	    set_parser_setno($1, $3);
 	}
 	| SETNUM
 	{
-	    whichgraph = get_cg();
-	    whichset = $1;
-	}
-	|  SETS
-	{
-	    whichgraph = get_cg();
-	    whichset = $1;
-	}
-	| GRAPHNO SETS
-	{
-	    whichgraph = $1;
-	    whichset = $2;
-	}
-	|  GRAPHS SETS
-	{
-	    whichgraph = $1;
-	    whichset = $2;
-	}
-	|  GRAPHS SETNUM
-	{
-	    whichgraph = $1;
-	    whichset = $2;
+	    set_parser_setno(whichgraph, $1);
 	}
 	;
 
 setaxis:
 	axis axisfeature {}
 	| GRAPHNO axis axisfeature {}
-	| allaxes axesprops {}
-	| GRAPHNO allaxes axesprops {}
 	;
 
 axis:
@@ -3566,12 +3513,6 @@ axis:
 	| YAXIS {}
 	| ALTXAXIS {}
 	| ALTYAXIS {}
-	;
-
-allaxes:
-        AXES {}
-        | XAXES {}
-	| YAXES {}
 	;
 
 proctype:
@@ -3917,7 +3858,7 @@ parmset_obs:
 
 	| STACK WORLD expr ',' expr ',' expr ',' expr TICKP expr ',' expr ',' expr ',' expr
 	{
-	    add_world(get_cg(), $3, $5, $7, $9);
+	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
 	| BOX FILL colpat_obs {filltype_obs = (int) $3;}
@@ -3933,7 +3874,7 @@ parmset_obs:
 
 	| LEGEND BOX onoff {
 	    if ($3 == FALSE && get_project_version() <= 40102) {
-                g[get_cg()].l.boxpen.pattern = 0;
+                g[whichgraph].l.boxpen.pattern = 0;
             }
 	}
 	| LEGEND BOX FILL onoff { }
@@ -3984,7 +3925,7 @@ parmset_obs:
 	}
 
 	| FRAMEP FILL onoff { 
-            g[get_cg()].f.fillpen.pattern = $3;
+            g[whichgraph].f.fillpen.pattern = $3;
         }
 
 	| GRAPHNO AUTOSCALE TYPE AUTO {
@@ -4006,7 +3947,7 @@ parmset_obs:
 axislabeldesc_obs:
 	linew_select { }
 	| opchoice_sel_obs {
-	    g[get_cg()].t[naxis].label_op = $1;
+	    g[whichgraph].t[naxis].label_op = $1;
 	}
         ;
 
@@ -4042,7 +3983,7 @@ setprop_obs:
 tickattr_obs:
 	MAJOR onoff {
 	    /* <= xmgr-4.1 */
-	    g[get_cg()].t[naxis].active = (int) $2;
+	    g[whichgraph].t[naxis].active = (int) $2;
 	}
 	| MINOR onoff { }
 	| ALT onoff   { }
@@ -4051,21 +3992,21 @@ tickattr_obs:
 	| LOG onoff   { }
 	| MINOR expr {
 	    if ($2 != 0.0) {
-                g[get_cg()].t[naxis].nminor = 
-                            (int) rint(g[get_cg()].t[naxis].tmajor / $2 - 1);
+                g[whichgraph].t[naxis].nminor = 
+                            (int) rint(g[whichgraph].t[naxis].tmajor / $2 - 1);
             } else {
-                g[get_cg()].t[naxis].nminor = 0;
+                g[whichgraph].t[naxis].nminor = 0;
             }
 	}
 	| SIZE NUMBER {
-	    g[get_cg()].t[naxis].props.size = $2;
+	    g[whichgraph].t[naxis].props.size = $2;
 	}
 	| NUMBER ',' expr {
-	    g[get_cg()].t[naxis].tloc[(int) $1].wtpos = $3;
-	    g[get_cg()].t[naxis].tloc[(int) $1].type = TICK_TYPE_MAJOR;
+	    g[whichgraph].t[naxis].tloc[(int) $1].wtpos = $3;
+	    g[whichgraph].t[naxis].tloc[(int) $1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
-	    g[get_cg()].t[naxis].t_op = $1;
+	    g[whichgraph].t[naxis].t_op = $1;
 	}
         ;
 
@@ -4074,15 +4015,15 @@ ticklabelattr_obs:
 	| LAYOUT SPEC { }
 
 	| LAYOUT HORIZONTAL {
-	    g[get_cg()].t[naxis].tl_angle = 0;
+	    g[whichgraph].t[naxis].tl_angle = 0;
 	}
 	| LAYOUT VERTICAL {
-	    g[get_cg()].t[naxis].tl_angle = 90;
+	    g[whichgraph].t[naxis].tl_angle = 90;
 	}
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
-	    g[get_cg()].t[naxis].tl_op = $1;
+	    g[whichgraph].t[naxis].tl_op = $1;
 	}
         ;
 
@@ -4580,22 +4521,31 @@ int get_parser_gno(void)
     return whichgraph;
 }
 
-void set_parser_gno(int gno)
+int set_parser_gno(int gno)
 {
     if (is_valid_gno(gno) == TRUE) {
         whichgraph = gno;
+	lxy = getsetlength(whichgraph, whichset);
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
     }
 }
 
 int get_parser_setno(void)
 {
-    return whichgraph;
+    return whichset;
 }
 
-void set_parser_setno(int setno)
+int set_parser_setno(int gno, int setno)
 {
-    if (is_valid_setno(whichgraph, setno) == TRUE) {
+    if (is_valid_setno(gno, setno) == TRUE) {
+        whichgraph = gno;
         whichset = setno;
+	lxy = getsetlength(whichgraph, whichset);
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
     }
 }
 
@@ -4645,13 +4595,22 @@ double *get_scratch(int ind)
     }
 }
 
-void scanner(char *s, int len, int setno, int *errpos)
+#define PARSER_TYPE_VOID    0
+#define PARSER_TYPE_EXPR    1
+#define PARSER_TYPE_VEXPR   2
+
+static int parser(char *s, int type)
 {
     char *seekpos;
     int i;
     
     if (s == NULL || s[0] == '\0') {
-        return;
+        if (type == PARSER_TYPE_VOID) {
+            /* don't consider an empty string as error for generic parser */
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
     }
     
     strncpy(f_string, s, MAX_STRING_LENGTH - 2);
@@ -4664,25 +4623,68 @@ void scanner(char *s, int len, int setno, int *errpos)
         seekpos++;
     }
     if (*seekpos == '\n' || *seekpos == '#') {
-        return;
+        if (type == PARSER_TYPE_VOID) {
+            /* don't consider an empty string as error for generic parser */
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
     }
     
+    log_results(s);
+
     lowtoupper(f_string);
         
-    interr = 0;
-    whichgraph = get_cg();
-    whichset = setno;
-    curset = setno;
     pos = 0;
-    lxy = len;
-
-    fcnt = 0;
-    log_results(s);
+    interr = 0;
+    expr_parsed  = FALSE;
+    vexpr_parsed = FALSE;
+    
     yyparse();
-    *errpos = interr;
-    for (i = 0; i < fcnt; i++) {
-	free(freelist[i]);
-	freelist[i] = NULL;
+
+    /* free temp. arrays; for a vector expression keep the last one
+     * (which is none but v_result), given there have been no errors
+     * and it's what we've been asked for
+     */
+    if (vexpr_parsed && !interr && type == PARSER_TYPE_VEXPR) {
+        for (i = 0; i < fcnt - 1; i++) {
+            cxfree(freelist[i]);
+        }
+    } else {
+        for (i = 0; i < fcnt; i++) {
+            cxfree(freelist[i]);
+        }
+    }
+    fcnt = 0;
+    
+    if ((type == PARSER_TYPE_VEXPR && !vexpr_parsed) ||
+        (type == PARSER_TYPE_EXPR  && !expr_parsed)) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+        return (interr ? GRACE_EXIT_FAILURE:GRACE_EXIT_SUCCESS);
+    }
+}
+
+int s_scanner(char *s, double *res)
+{
+    int retval = parser(s, PARSER_TYPE_EXPR);
+    *res = s_result;
+    return retval;
+}
+
+int v_scanner(char *s, int *reslen, double **vres)
+{
+    int retval = parser(s, PARSER_TYPE_VEXPR);
+    *reslen = lxy;
+    *vres = v_result;
+    return retval;
+}
+
+int scanner(char *s)
+{
+    int retval = parser(s, PARSER_TYPE_VOID);
+    if (retval != GRACE_EXIT_SUCCESS) {
+        return GRACE_EXIT_FAILURE;
     }
     
     if (gotparams) {
@@ -4692,15 +4694,15 @@ void scanner(char *s, int len, int setno, int *errpos)
     
     if (gotread) {
 	gotread = FALSE;
-        getdata(get_cg(), readfile, readsrc, readtype);
+        getdata(whichgraph, readfile, readsrc, readtype);
     }
     
     if (gotnlfit) {
 	gotnlfit = FALSE;
         do_nonlfit(nlfit_gno, nlfit_setno, nlfit_nsteps);
     }
+    return retval;
 }
-
 
 int findf(symtab_entry *keytable, char *s)
 {
@@ -4891,7 +4893,7 @@ int yylex(void)
                 }
 		if (set_graph_active(gn, TRUE) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = gn;
-		    whichgraph = gn;
+		    set_parser_gno(gn);
 		    return GRAPHNO;
 		}
 	    } else if (ctmp == 'S') {
@@ -4905,8 +4907,7 @@ int yylex(void)
                 }
 		if (allocate_set(whichgraph, sn) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = sn;
-		    whichset = sn;
-		    lxy = getsetlength(whichgraph, sn);
+		    set_parser_setno(whichgraph, sn);
 		    return SETNUM;
 		}
 	    } else if (ctmp == 'R') {
@@ -5016,25 +5017,6 @@ int yylex(void)
 		case ALTYAXIS:
 		    naxis = ZY_AXIS;
 		    break;
-		case AXES:
-		    naxis = ALL_AXES;
-		    break;
-		case XAXES:
-		    naxis = ALL_X_AXES;
-		    break;
-		case YAXES:
-		    naxis = ALL_Y_AXES;
-		    break;
-		case GRAPHS:
-		    yylval.ival = ALL_GRAPHS;
-		    whichgraph = ALL_GRAPHS;
-		    return GRAPHS;
-		    break;
-		case SETS:
-		    yylval.ival = ALL_SETS;
-		    whichset = ALL_SETS;
-		    return SETS;
-		    break;
 		default:
 		    break;
 		}
@@ -5113,11 +5095,6 @@ void set_prop(int gno,...)
     va_start(var, gno);
     while ((prop = va_arg(var, int)) != 0) {
 	switch (prop) {
-	case SETS:
-	    allsets = 1;
-	    starts = 0;
-	    ends = number_of_sets(gno) - 1;
-	    break;
 	case SET:
 	    switch (prop = va_arg(var, int)) {
 	    case SETNUM:
