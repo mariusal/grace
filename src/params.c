@@ -189,6 +189,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%sdefault symbol size %f\n", embedstr, grdefaults.symsize);
     
     fprintf(pp, "%sbackground color %d\n", embedstr, getbgcolor());
+    fprintf(pp, "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
             
     fprintf(pp, "%stimestamp %s\n", embedstr, on_or_off(timestamp.active));
     fprintf(pp, "%stimestamp %.12g, %.12g\n", embedstr, timestamp.x, timestamp.y);

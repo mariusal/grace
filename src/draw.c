@@ -60,7 +60,7 @@ void (*devleavegraphics) ();    /* device exit */
 
 /* Current drawing properties */
 static DrawProps draw_props =
-{{1, 1}, 0, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
+{{1, 1}, 0, TRUE, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
 
 static world worldwin;
 static view viewport;
@@ -118,6 +118,19 @@ void setbgcolor(int bgcolor)
 int getbgcolor(void)
 {
     return (draw_props.bgcolor);
+}
+
+/*
+ * determines whether page background is filled
+ */
+void setbgfill(int flag)
+{
+    draw_props.bgfilled = flag;
+}
+
+int getbgfill(void)
+{
+    return (draw_props.bgfilled);
 }
 
 /*

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -59,7 +59,8 @@ static Widget plot_frame;
 /*
  * Panel item declarations
  */
-static OptionStructure *page_color_item;
+static OptionStructure *bg_color_item;
+static Widget bg_fill_item;
 
 static Widget timestamp_active_item;
 static OptionStructure *timestamp_font_item;
@@ -79,7 +80,7 @@ void create_plot_frame_cb(Widget w, XtPointer client_data, XtPointer call_data)
 
 void create_plot_frame(void)
 {
-    Widget panel;
+    Widget panel, fr, rc;
     Widget buts[2];
     char *label1[2];
     set_wait_cursor();
@@ -92,7 +93,12 @@ void create_plot_frame(void)
 	handle_close(plot_frame);
 	panel = XmCreateRowColumn(plot_frame, "plot_rc", NULL, 0);
 
-	page_color_item = CreateColorChoice(panel, "Page color");
+	fr = CreateFrame(panel, "Page background");
+        rc = XmCreateRowColumn(fr, "bg_rc", NULL, 0);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        bg_color_item = CreateColorChoice(rc, "Color:");
+	bg_fill_item = CreateToggleButton(rc, "Fill");
+        XtManageChild(rc);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel,
 				NULL);
@@ -150,7 +156,8 @@ static void update_plot_items(void)
     char buf[32];
 
     if (plot_frame) {
-	SetOptionChoice(page_color_item, getbgcolor());
+	SetOptionChoice(bg_color_item, getbgcolor());
+	SetToggleButtonState(bg_fill_item, getbgfill());
 
 	XmToggleButtonSetState(timestamp_active_item, timestamp.active == TRUE, False);
 	SetOptionChoice(timestamp_font_item, timestamp.font);
@@ -176,7 +183,8 @@ static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer c
     int value;
     Arg a;
 
-    setbgcolor (GetOptionChoice(page_color_item));
+    setbgcolor(GetOptionChoice(bg_color_item));
+    setbgfill(GetToggleButtonState(bg_fill_item));
 
     timestamp.active = XmToggleButtonGetState(timestamp_active_item) ? TRUE : FALSE;
     timestamp.font = GetOptionChoice(timestamp_font_item);

@@ -1707,6 +1707,9 @@ parmset:
 	| BACKGROUND COLOR NUMBER {
 	    setbgcolor((int) $3);
 	}
+	| PAGE BACKGROUND FILL onoff {
+	    setbgfill((int) $4);
+	}
 	| PAGE SCROLL NUMBER '%' {
 	    scroll_proc((int) $3);
 	}

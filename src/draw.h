@@ -65,6 +65,7 @@
 typedef struct {
     Pen pen;
     int bgcolor;
+    int bgfilled;
     int lines;
     double linew;
     int linecap;
@@ -122,6 +123,9 @@ int getcolor(void);
 
 void setbgcolor(int bgcolor);
 int getbgcolor(void);
+
+void setbgfill(int flag);
+int getbgfill(void);
 
 void setlinestyle(int lines);
 int getlinestyle(void);

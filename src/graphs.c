@@ -1132,6 +1132,10 @@ void postprocess_project(int version)
         set_pagelayout(PAGE_FIXED);
 #endif
     }
+
+    if (get_project_version() < 50002) {
+        setbgfill(TRUE);
+    }
     
     if (version <= 40102) {
         get_page_viewport(&ext_x, &ext_y);

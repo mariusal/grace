@@ -268,6 +268,9 @@ void xlibinitcmap(void)
 int xlibinitgraphics(void)
 {
     Page_geometry pg;
+    int i, j;
+    double step;
+    XPoint xp;
     
     if (inwin == FALSE) {
         return GRACE_EXIT_FAILURE;
@@ -304,6 +307,21 @@ int xlibinitgraphics(void)
     displaybuff = resize_bufpixmap(win_w, win_h);
     
     xlibupdatecmap();
+    
+    XSetForeground(disp, gc, xvlibcolors[0]);
+    XFillRectangle(disp, displaybuff, gc, 0, 0, win_w, win_h);
+    XSetForeground(disp, gc, xvlibcolors[1]);
+    
+    step = (double) win_scale/10;
+    for (i = 0; i < win_w/step; i++) {
+        for (j = 0; j < win_h/step; j++) {
+            xp.x = rint(i*step);
+            xp.y = win_h - rint(j*step);
+            XDrawPoint(disp, displaybuff, gc, xp.x, xp.y);
+        }
+    }
+    
+    XDrawRectangle(disp, displaybuff, gc, 0, 0, win_w - 1, win_h - 1);
     
     return GRACE_EXIT_SUCCESS;
 }

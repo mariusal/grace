@@ -73,16 +73,19 @@ void drawgraph(void)
     
     update_t1();
         
-    pen.color = getbgcolor();
-    pen.pattern = 1;
-    setpen(pen);
-        
-    vp1.x = 0.0;
-    vp1.y = 0.0;
-    get_page_viewport(&vp2.x, &vp2.y);
-    
     setclipping(FALSE);
-    FillRect(vp1, vp2);
+
+    if (getbgfill() == TRUE) {
+        pen.color = getbgcolor();
+        pen.pattern = 1;
+        setpen(pen);
+ 
+        vp1.x = 0.0;
+        vp1.y = 0.0;
+        get_page_viewport(&vp2.x, &vp2.y);
+ 
+        FillRect(vp1, vp2);
+    }
     
     reset_bboxes();
     activate_bbox(BBOX_TYPE_GLOB, TRUE);
