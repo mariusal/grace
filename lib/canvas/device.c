@@ -154,7 +154,11 @@ int set_page_geometry(Canvas *canvas, const Page_geometry *pg)
 
 Page_geometry *get_page_geometry(const Canvas *canvas)
 {
-    return &canvas->curdevice->pg;
+    if (canvas && canvas->curdevice) {
+        return &canvas->curdevice->pg;
+    } else {
+        return NULL;
+    }
 }
 
 int get_device_page_dimensions(const Canvas *canvas,
