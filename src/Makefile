@@ -71,7 +71,8 @@ $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $? && mv y.tab.c $@
 
 xml_in.c : grace.xcc
-	$(XCC) -b -i $? -o $@
+	$(RM) t.c
+	$(XCC) -b -i $? -o t.c && mv t.c $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin
