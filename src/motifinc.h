@@ -223,12 +223,15 @@ typedef int (*AACDialog_CBProc)(
 );
 
 void ManageChild(Widget w);
-void UnanageChild(Widget w);
+void UnmanageChild(Widget w);
 
 Widget CreateDialogForm(Widget parent, char *s);
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateSeparator(Widget parent);
+
+Widget CreateVContainer(Widget parent);
+Widget CreateHContainer(Widget parent);
 
 Widget CreateTab(Widget parent);
 Widget CreateTabPage(Widget parent, char *s);
