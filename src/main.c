@@ -723,11 +723,6 @@ int main(int argc, char *argv[])
     }
 
 /*
- * try to switch to the first graph
- */
-    select_graph(0);  
-
-/*
  * if -hardcopy on command line or executed as gracebat,
  * just plot the graph and quit
  */

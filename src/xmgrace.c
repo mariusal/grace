@@ -319,7 +319,6 @@ static void MenuCB(void *data)
     case MENU_NEW:
 	new_project(NULL);
 
-	update_all();
         xdrawgraph();
 	break;
     case MENU_OPEN:
@@ -348,7 +347,6 @@ static void MenuCB(void *data)
 	    new_project(NULL);
         }
         xfree(s);
-	update_all();
         xdrawgraph();
 	unset_wait_cursor();
 	break;
@@ -1167,7 +1165,7 @@ static void load_example(void *data)
     s = (char *) data;
     sprintf(buf, "examples/%s", s);
     load_project_file(buf, FALSE);
-    update_all();
+
     drawgraph();
 
     unset_wait_cursor();

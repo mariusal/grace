@@ -3655,6 +3655,10 @@ void update_all(void)
 {
     int gno = get_cg();
     
+    if (!inwin) {
+        return;
+    }
+    
     update_set_lists(gno);
 
     update_set_selectors(ALL_GRAPHS);

@@ -167,7 +167,6 @@ int wipeout(void)
     do_clear_text();
     reset_project_version();
     map_fonts(FONT_MAP_DEFAULT);
-    select_graph(0);
     set_docname(NULL);
     set_project_description(NULL);
     print_file[0] = '\0';

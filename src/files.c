@@ -1031,18 +1031,34 @@ void outputset(int gno, int setno, char *fname, char *dformat)
 
 int load_project_file(char *fn, int as_template)
 {    
+    int gno;
+    int retval;
+    
     if (wipeout()) {
 	return GRACE_EXIT_FAILURE;
-    }
-    
-    if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == GRACE_EXIT_SUCCESS) {
-        if (as_template == FALSE) {
-            set_docname(fn);
-        }
-   	clear_dirtystate();
-        return GRACE_EXIT_SUCCESS;
     } else {
- 	return GRACE_EXIT_FAILURE;
+        if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == GRACE_EXIT_SUCCESS) {
+            if (as_template == FALSE) {
+                set_docname(fn);
+            }
+            clear_dirtystate();
+            retval = GRACE_EXIT_SUCCESS;
+        } else {
+ 	    retval = GRACE_EXIT_FAILURE;
+        }
+
+        /* try to switch to the first active graph */
+        for (gno = 0; gno < number_of_graphs(); gno++) {
+            if (is_graph_hidden(gno) == FALSE) {
+                select_graph(gno);
+                break;
+            }
+        }
+
+#ifndef NONE_GUI
+   	update_all();
+#endif
+        return retval;
     }
 }
 
