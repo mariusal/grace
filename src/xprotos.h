@@ -171,7 +171,6 @@ void errwin(char *s);
 
 void create_datasetprop_popup(void *data);
 void create_datasetop_popup(void *data);
-void create_setop_popup(void *data);
 
 void create_featext_frame(void *data);
 void create_cumulative_frame(void *data);

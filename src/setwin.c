@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -31,7 +31,7 @@
  * setwin - GUI for operations on sets and datasets
  *
  */
-#if 0
+
 #include <config.h>
 
 #include <stdio.h>
@@ -51,19 +51,18 @@
 #include "protos.h"
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void changetypeCB(int n, int *values, void *data);
+static void changetypeCB(int n, void **values, void *data);
 static int datasetprop_aac_cb(void *data);
 static void create_hotfiles_popup(void *data);
 
 static int datasetop_aac_cb(void *data);
 static void datasetoptypeCB(int value, void *data);
-static int setop_aac_cb(void *data);
 
 static int leval_aac_cb(void *data);
 
 typedef struct _Type_ui {
     Widget top;
-    ListStructure *sel;
+    StorageStructure *sel;
     Widget comment_item;
     Widget length_item;
     OptionStructure *datatype_item;
@@ -102,8 +101,8 @@ void create_datasetprop_popup(void *data)
 	dialog = CreateVContainer(tui.top);
 
 	tui.sel = CreateSetChoice(dialog,
-            "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
-	AddListChoiceCB(tui.sel, changetypeCB, (void *) tui.sel);
+            "Data sets:", LIST_TYPE_MULTIPLE, NULL);
+	AddStorageChoiceCB(tui.sel, changetypeCB, (void *) tui.sel);
 
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -111,7 +110,7 @@ void create_datasetprop_popup(void *data)
             "Close", 'C', destroy_dialog_cb, GetParent(tui.top));
 
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
-
+#if 0
         CreateMenuButton(menupane, "Duplicate", 'D',
             duplicate_set_proc, (void *) tui.sel);
         CreateMenuButton(menupane, "Kill data", 'a',
@@ -134,9 +133,7 @@ void create_datasetprop_popup(void *data)
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "Set appearance...", 'S',
             define_symbols_popup, (void *) -1);
-        CreateMenuButton(menupane, "Set operations...", 'o',
-            create_setop_popup, NULL);
- 
+#endif 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On data sets", 's',
             tui.top, "doc/UsersGuide.html#data-sets");
@@ -196,50 +193,47 @@ void create_datasetprop_popup(void *data)
 
         XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
 
-        CreateAACDialog(tui.top, dialog, datasetprop_aac_cb, NULL);
+        CreateAACDialog(tui.top, dialog, datasetprop_aac_cb, tui.sel);
     }
     
     RaiseWindow(GetParent(tui.top));
     unset_wait_cursor();
 }
 
-static void changetypeCB(int n, int *values, void *data)
+static void changetypeCB(int n, void **values, void *data)
 {
     int i, j, ncols;
     double *datap;
     int imin, imax;
     double dmin, dmax, dmean, dsd;
-    ListStructure *listp;
-    SetChoiceData *sdata;
-    int gno, setno;
+    StorageStructure *sp;
     char buf[32];
     char **cells[MAX_SET_COLS];
+    Quark *pset;
     
-    listp = (ListStructure *) data;
-    if (listp == NULL) {
+    sp = (StorageStructure *) data;
+    if (sp == NULL) {
         return;
     }
     
-    sdata = (SetChoiceData *) listp->anydata;
-    gno = sdata->gno;
-    
-    if (n == 1 && is_valid_setno(gno, setno = values[0]) == TRUE) {
-	ncols = dataset_cols(gno, setno);
-        xv_setstr(tui.comment_item, getcomment(gno, setno));
-	sprintf(buf, "%d", getsetlength(gno, setno));
+    if (n == 1) {
+	pset = values[0];
+        ncols = dataset_cols(pset);
+        xv_setstr(tui.comment_item, getcomment(pset));
+	sprintf(buf, "%d", getsetlength(pset));
         xv_setstr(tui.length_item, buf);
-        SetOptionChoice(tui.datatype_item, dataset_type(gno, setno));
-        SetToggleButtonState(tui.hotlink_item, is_hotlinked(gno, setno));
-        SetOptionChoice(tui.hotsrc_item, get_hotlink_src(gno, setno));
-        xv_setstr(tui.hotfile_item, get_hotlink_file(gno, setno));
+        SetOptionChoice(tui.datatype_item, dataset_type(pset));
+        SetToggleButtonState(tui.hotlink_item, is_hotlinked(pset));
+        SetOptionChoice(tui.hotsrc_item, get_hotlink_src(pset));
+        xv_setstr(tui.hotfile_item, get_hotlink_file(pset));
     } else {
-	setno = -1;
+	pset = NULL;
         ncols = 0;
     }
     for (i = 0; i < MAX_SET_COLS; i++) {
-        datap = getcol(gno, setno, i);
-	minmax(datap, getsetlength(gno, setno), &dmin, &dmax, &imin, &imax);
-	stasum(datap, getsetlength(gno, setno), &dmean, &dsd);
+        datap = getcol(pset, i);
+	minmax(datap, getsetlength(pset), &dmin, &dmax, &imin, &imax);
+	stasum(datap, getsetlength(pset), &dmean, &dsd);
         for (j = 0; j < 6; j++) {
             if (i < ncols) {
                 switch (j) {
@@ -290,11 +284,11 @@ static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 static int datasetprop_aac_cb(void *data)
 {
     int error = FALSE;
-    int *selset, nsets, i, len, gno, setno, type, hotlink, hotsrc;
+    int nsets, i, len, type, hotlink, hotsrc;
     char *s, *hotfile;
+    Quark *pset, **selset;
     
-    nsets = GetListChoices(tui.sel, &selset);
-    gno = get_cg();
+    nsets = GetStorageChoices(tui.sel, (void ***) &selset);
     
     if (nsets < 1) {
         errmsg("No set selected");
@@ -314,18 +308,18 @@ static int datasetprop_aac_cb(void *data)
  
         if (error == FALSE) {
             for (i = 0; i < nsets; i++) {
-                setno = selset[i];
-                set_dataset_type(gno, setno, type);
-                setlength(gno, setno, len);
-                setcomment(gno, setno, s);
-                set_hotlink(gno, setno, hotlink, hotfile, hotsrc);
+                pset = selset[i];
+                set_dataset_type(pset, type);
+                setlength(pset, len);
+                setcomment(pset, s);
+                set_hotlink(pset, hotlink, hotfile, hotsrc);
             }
         }
  
         xfree(selset);
 
         if (error == FALSE) {
-            update_set_lists(gno);
+            update_set_lists(get_set_choice_gr((StorageStructure *) data));
             xdrawgraph();
             return RETURN_SUCCESS;
         } else {
@@ -373,7 +367,7 @@ typedef enum {
 
 typedef struct _Datasetop_ui {
     Widget top;
-    ListStructure *sel;
+    StorageStructure *sel;
     OptionStructure *optype_item;
     OptionStructure *xy_item;
     OptionStructure *up_down_item;
@@ -416,7 +410,7 @@ void create_datasetop_popup(void *data)
         XtVaSetValues(dialog, XmNrecomputeSize, True, NULL);
 
 	datasetopui.sel = CreateSetChoice(dialog,
-            "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
+            "Data sets:", LIST_TYPE_MULTIPLE, NULL);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane,
@@ -479,7 +473,7 @@ void create_datasetop_popup(void *data)
 	UnmanageChild(datasettype_controls[3]);
 	UnmanageChild(datasettype_controls[4]);
 
-        CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb, NULL);
+        CreateAACDialog(datasetopui.top, dialog, datasetop_aac_cb, datasetopui.sel);
     }
     
     RaiseWindow(GetParent(datasetopui.top));
@@ -503,16 +497,15 @@ static void datasetoptypeCB(int value, void *data)
 
 static int datasetop_aac_cb(void *data)
 {
-    int *selset, nsets, i, gno, setno;
+    int nsets, i;
     int sorton, stype;
     int lpart;
     int startno, endno;
     static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
     dataSetOpType optype;
+    Quark *pset, **selset;
        
-    gno = get_cg();
-    
-    nsets = GetListChoices(datasetopui.sel, &selset);
+    nsets = GetStorageChoices(datasetopui.sel, (void ***) &selset);
     if (nsets < 1) {
         errmsg("No set selected");
         return RETURN_FAILURE;
@@ -525,167 +518,45 @@ static int datasetop_aac_cb(void *data)
             stype = GetOptionChoice(datasetopui.up_down_item);
 
             for (i = 0; i < nsets; i++) {
-                setno = selset[i];
-	        do_sort(setno, sorton, stype);
+                pset = selset[i];
+	        do_sort(pset, sorton, stype);
             }
             break;
         case DATASETOP_REVERSE:
             for (i = 0; i < nsets; i++) {
-                setno = selset[i];
-	        reverse_set(gno, setno);
+                pset = selset[i];
+	        reverse_set(pset);
             }
             break;
         case DATASETOP_JOIN:
-            join_sets(gno, selset, nsets);
+            join_sets(selset, nsets);
             break;
         case DATASETOP_SPLIT:
             xv_evalexpri(datasetopui.length_item, &lpart);
             for (i = 0; i < nsets; i++) {
-                setno = selset[i];
-                do_splitsets(gno, setno, lpart);
+                pset = selset[i];
+                do_splitsets(pset, lpart);
             }
             break;
         case DATASETOP_DROP:
             xv_evalexpri(datasetopui.start_item, &startno);
             xv_evalexpri(datasetopui.stop_item, &endno);
             for (i = 0; i < nsets; i++) {
-                setno = selset[i];
-		do_drop_points(gno, setno, startno, endno);
+                pset = selset[i];
+		do_drop_points(pset, startno, endno);
             }
             break;
         }
         
         xfree(selset);
 
-        update_set_lists(gno);
+        update_set_lists(get_set_choice_gr((StorageStructure *) data));
         xdrawgraph();
         
         return RETURN_SUCCESS;
     }
 }
 
-
-typedef struct _Setop_ui {
-    Widget top;
-    SrcDestStructure *srcdest;
-    OptionStructure *optype_item;
-} Setop_ui;
-
-static Setop_ui setopui;
-
-#define OPTYPE_COPY 0
-#define OPTYPE_MOVE 1
-#define OPTYPE_SWAP 2
-
-void create_setop_popup(void *data)
-{
-    set_wait_cursor();
-    
-    if (setopui.top == NULL) {
-        OptionItem opitems[3];
-
-	setopui.top = CreateDialogForm(app_shell, "Set operations");
-
-        setopui.srcdest =
-            CreateSrcDestSelector(setopui.top, LIST_TYPE_MULTIPLE);
-        AddDialogFormChild(setopui.top, setopui.srcdest->form);
-        
-        opitems[0].value = OPTYPE_COPY;
-        opitems[0].label = "Copy";
-        opitems[1].value = OPTYPE_MOVE;
-        opitems[1].label = "Move";
-        opitems[2].value = OPTYPE_SWAP;
-        opitems[2].label = "Swap";
-        setopui.optype_item = CreateOptionChoice(setopui.top,
-            "Type of operation:", 0, 3, opitems);
-        
-        CreateAACDialog(setopui.top,
-            setopui.optype_item->menu, setop_aac_cb, NULL);
-    }
-    
-    RaiseWindow(GetParent(setopui.top));
-    
-    unset_wait_cursor();
-}
-
-static int setop_aac_cb(void *data)
-{
-    int optype, error;
-    int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2, gno1, gno2, setno2;
-
-    optype = GetOptionChoice(setopui.optype_item);
-    
-    g1_ok = GetSingleListChoice(setopui.srcdest->src->graph_sel, &gno1);
-    g2_ok = GetSingleListChoice(setopui.srcdest->dest->graph_sel, &gno2);
-    ns1 = GetListChoices(setopui.srcdest->src->set_sel, &svalues1);
-    ns2 = GetListChoices(setopui.srcdest->dest->set_sel, &svalues2);
-    
-    error = FALSE;
-    if (g1_ok == RETURN_FAILURE || g2_ok == RETURN_FAILURE) {
-        error = TRUE;
-        errmsg("Please select single source and destination graphs");
-    } else if (ns1 == 0) {
-        error = TRUE;
-        errmsg("No source sets selected");
-    } else if (ns2 == 0 && optype == OPTYPE_SWAP) {
-        error = TRUE;
-        errmsg("No destination sets selected");
-    } else if (ns1 != ns2 && (optype == OPTYPE_SWAP || ns2 != 0)) {
-        error = TRUE;
-        errmsg("Different number of source and destination sets");
-    } else if (gno1 == gno2 && ns2 == 0 && optype == OPTYPE_MOVE) {
-        error = TRUE;
-        errmsg("Can't move a set to itself");
-    } else {
-        for (i = 0; i < ns1; i++) {
-            switch (optype) {
-            case OPTYPE_SWAP:
-                if (do_swapset(gno1, svalues1[i], gno2, svalues2[i])
-                                                != RETURN_SUCCESS) {
-                    error = TRUE;
-                }
-                break;
-            case OPTYPE_COPY:
-                if (ns2 == 0) {
-                    setno2 = nextset(gno2);
-                } else {
-                    setno2 = svalues2[i];
-                }
-                if (do_copyset(gno1, svalues1[i], gno2, setno2)
-                                                != RETURN_SUCCESS) {
-                    error = TRUE;
-                }
-                break;
-            case OPTYPE_MOVE:
-                if (ns2 == 0) {
-                    setno2 = nextset(gno2);
-                } else {
-                    setno2 = svalues2[i];
-                }
-                if (do_moveset(gno1, svalues1[i], gno2, setno2)
-                                                != RETURN_SUCCESS) {
-                    error = TRUE;
-                }
-                break;
-            }
-        }
-    }
-    
-    if (ns1 > 0) {
-        xfree(svalues1);
-    }
-    if (ns2 > 0) {
-        xfree(svalues2);
-    }
-    
-    if (error == FALSE) {
-        update_all();
-        xdrawgraph();
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
 
 typedef struct _Leval_ui {
     Widget top;
@@ -694,7 +565,7 @@ typedef struct _Leval_ui {
     Widget stop;
     Widget npts;
     Widget mw;
-    int gno;
+    Quark *gr;
 } Leval_ui;
 
 void set_type_cb(int type, void *data)
@@ -731,14 +602,14 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
 
 void create_leval_frame(void *data)
 {
-    int gno = (int) data;
+    Quark *gr = (Quark *) data;
 
     set_wait_cursor();
 
-    if (is_valid_gno(gno)) {
-        levalui.gno = gno;
+    if (gr) {
+        levalui.gr = gr;
     } else {
-        levalui.gno = get_cg();
+        levalui.gr = graph_get_current(grace->project);
     }
 
     if (levalui.top == NULL) {
@@ -797,7 +668,7 @@ void create_leval_frame(void *data)
 
         XtAddCallback(levalui.mw, XmNleaveCellCallback, leaveCB, &levalui);
         
-        CreateAACDialog(levalui.top, levalui.mw, leval_aac_cb, NULL);
+        CreateAACDialog(levalui.top, levalui.mw, leval_aac_cb, &levalui);
     }
     
     RaiseWindow(GetParent(levalui.top));
@@ -810,32 +681,32 @@ static int leval_aac_cb(void *data)
     double start, stop;
     int npts;
     char *formula[MAX_SET_COLS];
-    int res;
-    int setno, gno;
+    Quark *pset, *gr;
     grarr *t;
+    Leval_ui *ui = (Leval_ui *) data;
     
-    gno = levalui.gno;
-    type = GetOptionChoice(levalui.set_type);
+    gr = ui->gr;
+    type = GetOptionChoice(ui->set_type);
     nscols = settype_cols(type);
 
-    if (xv_evalexpr(levalui.start, &start) != RETURN_SUCCESS) {
+    if (xv_evalexpr(ui->start, &start) != RETURN_SUCCESS) {
 	errmsg("Start item undefined");
         return RETURN_FAILURE;
     }
 
-    if (xv_evalexpr(levalui.stop, &stop) != RETURN_SUCCESS) {
+    if (xv_evalexpr(ui->stop, &stop) != RETURN_SUCCESS) {
 	errmsg("Stop item undefined");
         return RETURN_FAILURE;
     }
 
-    if (xv_evalexpri(levalui.npts, &npts) != RETURN_SUCCESS) {
+    if (xv_evalexpri(ui->npts, &npts) != RETURN_SUCCESS) {
 	errmsg("Number of points undefined");
         return RETURN_FAILURE;
     }
 
-    XbaeMatrixCommitEdit(levalui.mw, False);
+    XbaeMatrixCommitEdit(ui->mw, False);
     for (i = 0; i < nscols; i++) {
-        formula[i] = XbaeMatrixGetCell(levalui.mw, i, 0);
+        formula[i] = XbaeMatrixGetCell(ui->mw, i, 0);
     }
     
     t = get_parser_arr_by_name("$t");
@@ -857,23 +728,24 @@ static int leval_aac_cb(void *data)
     }
     t->length = npts;
     
-    setno = nextset(gno);
-    set_dataset_type(gno, setno, type);
-    set_set_hidden(gno, setno, FALSE);
-    if (setlength(gno, setno, npts) != RETURN_SUCCESS) {
-        killset(gno, setno);
+    pset = set_new(gr);
+    set_dataset_type(pset, type);
+    set_set_hidden(pset, FALSE);
+    if (setlength(pset, npts) != RETURN_SUCCESS) {
+        killset(pset);
         XCFREE(t->data);
         t->length = 0;
         return RETURN_FAILURE;
     }
     
-    set_parser_setno(gno, setno);
+    set_parser_setno(pset);
 
+#if 0
     for (i = 0; i < nscols; i++) {
         char buf[32], *expr;
         
         /* preparing the expression */
-        sprintf(buf, "GRAPH[%d].SET[%d].%s = ", gno, setno, dataset_colname(i));
+        sprintf(buf, "GRAPH[%d].SET[%d].%s = ", pset, dataset_colname(i));
         expr = copy_string(NULL, buf);
         expr = concat_strings(expr, formula[i]);
         
@@ -883,7 +755,7 @@ static int leval_aac_cb(void *data)
         xfree(expr);
         
         if (res != RETURN_SUCCESS) {
-            killset(gno, setno);
+            killset(pset);
             
             XCFREE(t->data);
             t->length = 0;
@@ -891,13 +763,12 @@ static int leval_aac_cb(void *data)
             return RETURN_FAILURE;
         }
     }
-    
+#endif    
     XCFREE(t->data);
     t->length = 0;
     
-    update_set_lists(gno);
+    update_set_lists(gr);
     xdrawgraph();
     
     return RETURN_SUCCESS;
 }
-#endif

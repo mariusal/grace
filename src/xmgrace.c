@@ -726,10 +726,8 @@ static Widget CreateMainMenuBar(Widget parent)
  */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
-#if 0
     CreateMenuButton(menupane, "Data sets...", 'D', create_datasetprop_popup, NULL);
-    CreateMenuButton(menupane, "Set operations...", 'o', create_setop_popup, NULL);
-#endif
+
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Arrange graphs...", 'r', create_arrange_frame, NULL);
     CreateMenuButton(menupane, "Overlay graphs...", 'O', create_overlay_frame, NULL);
@@ -758,9 +756,9 @@ static Widget CreateMainMenuBar(Widget parent)
  * Data menu
  */
     menupane = CreateMenu(menubar, "Data", 'D', FALSE);
-#if 0
+
     CreateMenuButton(menupane, "Data set operations...", 'o', create_datasetop_popup, NULL);
-#endif
+
     submenupane = CreateMenu(menupane, "Transformations", 'T', FALSE);
 #if 0
     CreateMenuButton(submenupane, "Evaluate expression...", 'E', create_eval_frame, NULL);
