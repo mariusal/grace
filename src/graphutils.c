@@ -779,11 +779,10 @@ void move_timestamp(plotstr *timestamp, VVector shift)
 
 void rescale_viewport(double ext_x, double ext_y)
 {
-    int i;
     graph *g;
     DObject *o;
 
-    i = 0; storage_rewind(grace->project->graphs);
+    storage_rewind(grace->project->graphs);
     while (storage_get_data(grace->project->graphs, (void **) &g) == RETURN_SUCCESS) {
         g->v.xv1 *= ext_x;
         g->v.xv2 *= ext_x;
@@ -796,25 +795,25 @@ void rescale_viewport(double ext_x, double ext_y)
         }
         
         /* TODO: tickmark offsets */
-        i++;
+        
+        storage_rewind(g->dobjects);
+        while (storage_get_data(g->dobjects, (void **) &o) == RETURN_SUCCESS) {
+            if (o->loctype == COORD_VIEW) {
+                o->ap.x     *= ext_x;
+                o->ap.y     *= ext_y;
+                o->offset.x *= ext_x;
+                o->offset.y *= ext_y;
+            }
+            if (storage_next(g->dobjects) != RETURN_SUCCESS) {
+                break;
+            }
+        }
+        
         if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
             break;
         }
     }
     
-    i = 0; storage_rewind(grace->project->objects);
-    while (storage_get_data(grace->project->objects, (void **) &o) == RETURN_SUCCESS) {
-        if (o->loctype == COORD_VIEW) {
-            o->ap.x     *= ext_x;
-            o->ap.y     *= ext_y;
-            o->offset.x *= ext_x;
-            o->offset.y *= ext_y;
-        }
-        i++;
-        if (storage_next(grace->project->objects) != RETURN_SUCCESS) {
-            break;
-        }
-    }
 }
 
 int overlay_graphs(int gsec, int gpri, int type)

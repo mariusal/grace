@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -29,6 +28,8 @@
 #ifndef __OBJUTILS_H_
 #define __OBJUTILS_H_
 
+#include "graphs.h"
+
 typedef struct {
     double x;
     double y;
@@ -45,8 +46,6 @@ typedef enum {
 
 typedef struct _DObject {
     int active;
-
-    int gno;
 
     int loctype;
     APoint ap;
@@ -96,20 +95,17 @@ char *object_types(OType type);
 void *object_data_new(OType type);
 
 DObject *object_new(void);
+DObject *object_new_complete(OType type);
 void object_free(DObject *o);
 
-DObject *object_get(int id);
+DObject *object_get(graph *g, int id);
 DObject *object_copy(DObject *o);
-
-void do_clear_objects(void);
 
 int isactive_object(DObject *o);
 
-int kill_object(int id);
-DObject *next_object(OType type);
-DObject *duplicate_object(int id);
-
-int number_of_objects(void);
+int kill_object(graph *g, int id);
+DObject *next_object(graph *g, OType type);
+DObject *duplicate_object(graph *g, int id);
 
 int get_object_bb(DObject *o, view *bb);
 void move_object(DObject *o, VVector shift);

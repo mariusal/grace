@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -94,9 +94,6 @@ void drawgraph(void)
         plotone(i);
     }
     
-    /* draw objects NOT clipped to a particular graph */
-    draw_objects(-1);
-
     draw_timestamp(&grace->project->timestamp);
 
     select_graph(saveg);

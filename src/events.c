@@ -211,8 +211,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         create_graphapp_frame(cg);
                     } else if (legend_clicked(cg, vp, &bb) == TRUE) {
                         create_graphapp_frame(cg);
-                    } else if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
-                        object_edit_popup(object_get(id));
+                    } else if (find_item(graph_get(cg), vp, &bb, &id) == RETURN_SUCCESS) {
+                        object_edit_popup(object_get(graph_get(cg), id));
                     } else if (timestamp_clicked(vp, &bb) == TRUE) {
                         create_plot_frame();
                     } else if (graph_clicked(cg, vp) == TRUE) {
@@ -268,20 +268,20 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		newworld(cg, ALL_Y_AXES, anchor_vp, vp);
                 break;
             case EDIT_OBJECT:
-                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
-                    object_edit_popup(object_get(id));
+                if (find_item(graph_get(cg), vp, &bb, &id) == RETURN_SUCCESS) {
+                    object_edit_popup(object_get(graph_get(cg), id));
                 }
                 break;
             case DEL_OBJECT:
-                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
+                if (find_item(graph_get(cg), vp, &bb, &id) == RETURN_SUCCESS) {
                     if (yesno("Kill the object?", NULL, NULL, NULL) == TRUE) {
-                        kill_object(id);
+                        kill_object(graph_get(cg), id);
                         xdrawgraph();
                     }
                 }
                 break;
             case MOVE_OBJECT_1ST:
-                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
+                if (find_item(graph_get(cg), vp, &bb, &id) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
 	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
                     set_action(MOVE_OBJECT_2ND);
@@ -290,12 +290,12 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MOVE_OBJECT_2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                move_object(object_get(id), shift);
+                move_object(object_get(graph_get(cg), id), shift);
                 xdrawgraph();
                 set_action(MOVE_OBJECT_1ST);
                 break;
             case COPY_OBJECT1ST:
-                if (find_item(cg, vp, &bb, &id) == RETURN_SUCCESS) {
+                if (find_item(graph_get(cg), vp, &bb, &id) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
 	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
                     set_action(COPY_OBJECT2ND);
@@ -304,13 +304,13 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case COPY_OBJECT2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                o = duplicate_object(id);
+                o = duplicate_object(graph_get(cg), id);
                 move_object(o, shift);
                 xdrawgraph();
                 set_action(COPY_OBJECT1ST);
                 break;
             case STR_LOC:
-                o = next_object(DO_STRING);
+                o = next_object(graph_get(cg), DO_STRING);
                 object_place_at_vp(o, vp);
                 object_edit_popup(o);
                 break;
@@ -322,7 +322,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MAKE_LINE_2ND:
 	        select_line(anchor_x, anchor_y, x, y, 0);
                 
-                o = next_object(DO_LINE);
+                o = next_object(graph_get(cg), DO_LINE);
 	        {
                     DOLineData *l = (DOLineData *) o->odata;
                     l->length = hypot(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
@@ -341,7 +341,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MAKE_BOX_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
                 
-                o = next_object(DO_BOX);
+                o = next_object(graph_get(cg), DO_BOX);
                 {
                     VPoint vptmp;
 	            DOBoxData *b = (DOBoxData *) o->odata;
@@ -363,7 +363,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MAKE_ELLIP_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
                 
-                o = next_object(DO_ARC);
+                o = next_object(graph_get(cg), DO_ARC);
                 {
                     VPoint vptmp;
 	            DOArcData *a = (DOArcData *) o->odata;
@@ -539,7 +539,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             switch (action_flag) {
             case DO_NOTHING:
 /*
- *                 find_item(cg, vp, &anchor_vp, &id);
+ *                 find_item(graph_get(cg), vp, &anchor_vp, &id);
  *                 sprintf(buf, "object id = %d", id);
  *                 set_left_footer(buf);
  */
@@ -1200,11 +1200,17 @@ int find_insert_location(int gno, int setno, VPoint vp)
 /*
  * find object containing vp inside its bb
  */
-int find_item(int gno, VPoint vp, view *bb, int *id)
+int find_item(graph *g, VPoint vp, view *bb, int *id)
 {
-    Storage *objects = grace->project->objects;
+    Storage *objects;
     DObject *o;
     int i, n;
+    
+    if (!g) {
+        return RETURN_FAILURE;
+    }
+
+    objects = g->dobjects;
 
     storage_rewind(objects);
     n = storage_count(objects);

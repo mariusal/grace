@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -47,9 +47,6 @@ typedef struct _Project {
     Storage *blockdata;
 #endif
     Storage *graphs;
-
-    Storage *objects;
-
 #if 0
     Storage *regions;
 #else

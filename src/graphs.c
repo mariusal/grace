@@ -52,9 +52,6 @@
 
 #include "protos.h"
 
-/* FIXMEOBJ */
-#define objects grace->project->objects
-
 /* graph definition */
 #define graphs grace->project->graphs
 
@@ -162,6 +159,16 @@ static void *wrap_set_copy(void *data)
     return (set *) set_copy((set *) data);
 }
 
+static void wrap_object_free(void *data)
+{
+    object_free((DObject *) data);
+}
+
+static void *wrap_object_copy(void *data)
+{
+    return (void *) object_copy((DObject *) data);
+}
+
 static void set_default_graph(graph *g)
 {    
     int i;
@@ -208,6 +215,7 @@ static void set_default_graph(graph *g)
     set_default_string(&g->labs.stitle);
     g->labs.stitle.charsize = 1.0;
     g->sets = storage_new(wrap_set_free, wrap_set_copy, NULL);
+    g->dobjects = storage_new(wrap_object_free, wrap_object_copy, NULL);
 }
 
 graph *graph_new(void)
@@ -234,6 +242,8 @@ void graph_free(graph *g)
         for (j = 0; j < MAXAXES; j++) {
             free_graph_tickmarks(g->t[j]);
         }
+
+        storage_free(g->dobjects);
         
         xfree(g);
     }
@@ -1205,7 +1215,7 @@ char *get_project_description(void)
 
 void project_postprocess(Project *pr)
 {
-    int ngraphs, gno, setno, naxis;
+    int ngraphs, gsave, gno, setno, naxis;
     double ext_x, ext_y;
     
     if (pr->version_id >= bi_version_id()) {
@@ -1233,12 +1243,16 @@ void project_postprocess(Project *pr)
         rescale_viewport(ext_x, ext_y);
     }
     
+    gsave = get_cg();
+    
     storage_rewind(pr->graphs);
     ngraphs = storage_count(pr->graphs);
     for (gno = 0; gno < ngraphs; gno++) {
         graph *g;
         Storage *sets;
         int nsets;
+        
+        select_graph(gno);
         
         if (storage_get_data(pr->graphs, (void **) &g) != RETURN_SUCCESS) {
             break;
@@ -1354,98 +1368,94 @@ void project_postprocess(Project *pr)
 	    }
         }
         
-        
+        if (pr->version_id >= 40200 && pr->version_id <= 50005) {
+            int i, n;
+            DObject *o;
+            /* BBox type justification was erroneously set */
+            storage_rewind(g->dobjects);
+            n = storage_count(g->dobjects);
+            for (i = 0; i < n; i++) {
+                if (storage_get_data(g->dobjects, (void **) &o) == RETURN_SUCCESS) {
+                    if (o->type == DO_STRING) {
+                        DOStringData *s = (DOStringData *) o->odata;
+                        s->just |= JUST_MIDDLE;
+                    }
+                } else {
+                    break;
+                }
+                storage_next(g->dobjects);
+            }
+        }
+
+        if (pr->version_id <= 50101) {
+            int i, n;
+            DObject *o;
+
+            storage_rewind(g->dobjects);
+            n = storage_count(g->dobjects);
+            for (i = 0; i < n; i++) {
+                if (storage_get_data(g->dobjects, (void **) &o) == RETURN_SUCCESS) {
+                    if (o->loctype == COORD_WORLD) {
+                        WPoint wp;
+                        VPoint vp1, vp2;
+
+                        switch (o->type) {
+                        case DO_BOX:
+                            {
+                                DOBoxData *b = (DOBoxData *) o->odata;
+                                wp.x = o->ap.x - b->width/2;
+                                wp.y = o->ap.y - b->height/2;
+                                vp1 = Wpoint2Vpoint(wp);
+                                wp.x = o->ap.x + b->width/2;
+                                wp.y = o->ap.y + b->height/2;
+                                vp2 = Wpoint2Vpoint(wp);
+
+                                b->width  = fabs(vp2.x - vp1.x);
+                                b->height = fabs(vp2.y - vp1.y);
+                            }
+                            break;
+                        case DO_ARC:
+                            {
+                                DOArcData *a = (DOArcData *) o->odata;
+                                wp.x = o->ap.x - a->width/2;
+                                wp.y = o->ap.y - a->height/2;
+                                vp1 = Wpoint2Vpoint(wp);
+                                wp.x = o->ap.x + a->width/2;
+                                wp.y = o->ap.y + a->height/2;
+                                vp2 = Wpoint2Vpoint(wp);
+
+                                a->width  = fabs(vp2.x - vp1.x);
+                                a->height = fabs(vp2.y - vp1.y);
+                            }
+                            break;
+                        case DO_LINE:
+                            {
+                                DOLineData *l = (DOLineData *) o->odata;
+                                wp.x = o->ap.x;
+                                wp.y = o->ap.y;
+                                vp1 = Wpoint2Vpoint(wp);
+                                wp.x = o->ap.x + l->length*cos(o->angle);
+                                wp.y = o->ap.y + l->length*sin(o->angle);
+                                vp2 = Wpoint2Vpoint(wp);
+
+                                l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
+                                o->angle  = atan2(vp2.y - vp1.y, vp2.x - vp1.x);
+                            }
+                            break;
+                        case DO_STRING:
+                            break;
+                        case DO_NONE:
+                            break;
+                        }
+                    }
+                } else {
+                    break;
+                }
+                storage_next(g->dobjects);
+            }
+        }
         storage_next(pr->graphs);
     }
-
-    if (pr->version_id >= 40200 && pr->version_id <= 50005) {
-        int i, n;
-        DObject *o;
-        /* BBox type justification was erroneously set */
-        storage_rewind(objects);
-        n = storage_count(objects);
-        for (i = 0; i < n; i++) {
-            if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
-                if (o->type == DO_STRING) {
-                    DOStringData *s = (DOStringData *) o->odata;
-                    s->just |= JUST_MIDDLE;
-                }
-            } else {
-                break;
-            }
-            storage_next(objects);
-        }
-    }
-    if (pr->version_id <= 50101) {
-        int i, n, gsave;
-        DObject *o;
-        
-        gsave = get_cg();
-        
-        storage_rewind(objects);
-        n = storage_count(objects);
-        for (i = 0; i < n; i++) {
-            if (storage_get_data(objects, (void **) &o) == RETURN_SUCCESS) {
-                if (o->loctype == COORD_WORLD && is_valid_gno(o->gno)) {
-                    WPoint wp;
-                    VPoint vp1, vp2;
-                    
-                    select_graph(o->gno);
-                    
-                    switch (o->type) {
-                    case DO_BOX:
-                        {
-                            DOBoxData *b = (DOBoxData *) o->odata;
-                            wp.x = o->ap.x - b->width/2;
-                            wp.y = o->ap.y - b->height/2;
-                            vp1 = Wpoint2Vpoint(wp);
-                            wp.x = o->ap.x + b->width/2;
-                            wp.y = o->ap.y + b->height/2;
-                            vp2 = Wpoint2Vpoint(wp);
-                            
-                            b->width  = fabs(vp2.x - vp1.x);
-                            b->height = fabs(vp2.y - vp1.y);
-                        }
-                        break;
-                    case DO_ARC:
-                        {
-                            DOArcData *a = (DOArcData *) o->odata;
-                            wp.x = o->ap.x - a->width/2;
-                            wp.y = o->ap.y - a->height/2;
-                            vp1 = Wpoint2Vpoint(wp);
-                            wp.x = o->ap.x + a->width/2;
-                            wp.y = o->ap.y + a->height/2;
-                            vp2 = Wpoint2Vpoint(wp);
-                            
-                            a->width  = fabs(vp2.x - vp1.x);
-                            a->height = fabs(vp2.y - vp1.y);
-                        }
-                        break;
-                    case DO_LINE:
-                        {
-                            DOLineData *l = (DOLineData *) o->odata;
-                            wp.x = o->ap.x;
-                            wp.y = o->ap.y;
-                            vp1 = Wpoint2Vpoint(wp);
-                            wp.x = o->ap.x + l->length*cos(o->angle);
-                            wp.y = o->ap.y + l->length*sin(o->angle);
-                            vp2 = Wpoint2Vpoint(wp);
-                            
-                            l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
-                            o->angle  = atan2(vp2.y - vp1.y, vp2.x - vp1.x);
-                        }
-                        break;
-                    case DO_STRING:
-                        break;
-                    case DO_NONE:
-                        break;
-                    }
-                }
-            } else {
-                break;
-            }
-            storage_next(objects);
-        }
-        select_graph(gsave);
-    }
+    
+    select_graph(gsave);
 }

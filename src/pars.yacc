@@ -5,7 +5,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -96,6 +96,7 @@ static int tgtn = 0;		/* number of the temporary targets used */
 int naxis = 0;	/* current axis */
 
 static DObject *curobject;
+static int objgno = -1;
 
 /* these guys attempt to avoid reentrancy problems */
 static int gotparams = FALSE, gotread = FALSE, gotnlfit = FALSE; 
@@ -2169,7 +2170,7 @@ parmset:
 
 /* Objects */
 	| WITH objecttype {
-	    curobject = next_object($2);
+	    curobject = object_new_complete($2);
 	}
 	| objecttype onoff {
 	    if (!curobject) {
@@ -2179,32 +2180,16 @@ parmset:
             }
 	}
 	| LINE selectgraph {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else {
-	        curobject->gno = $2;
-            }
+	    objgno = $2;
 	}
 	| BOX selectgraph {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else {
-	        curobject->gno = $2;
-            }
+	    objgno = $2;
 	}
 	| ELLIPSE selectgraph {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else {
-	        curobject->gno = $2;
-            }
+	    objgno = $2;
 	}
 	| STRING selectgraph {
-	    if (!curobject) {
-                yyerror("No active object");
-	    } else {
-	        curobject->gno = $2;
-            }
+	    objgno = $2;
 	}
 	| objecttype LOCTYPE worldview {
 	    if (!curobject) {
@@ -2386,10 +2371,44 @@ parmset:
 	    } else {
 	        DOStringData *s = (DOStringData *) curobject->odata;
                 s->s = copy_string(s->s, $3);
+                
+                if (!curobject) {
+                    yyerror("No active object");
+	        } else {
+                    graph *g;
+                    if (curobject->loctype == COORD_VIEW) {
+                        g = graph_get(get_cg());
+                    } else {
+                        g = graph_get(objgno);
+                    }
+                    if (!g) {
+                        g = graph_next();
+                    }
+                    if (g) {
+                        storage_add(g->dobjects, curobject);
+                    }
+                }
             }
 	    xfree($3);
 	}
-	| objecttype DEF { }
+	| objecttype DEF {
+            if (!curobject) {
+                yyerror("No active object");
+	    } else {
+                graph *g;
+                if (curobject->loctype == COORD_VIEW) {
+                    g = graph_get(get_cg());
+                } else {
+                    g = graph_get(objgno);
+                }
+                if (!g) {
+                    g = graph_next();
+                }
+                if (g) {
+                    storage_add(g->dobjects, curobject);
+                }
+            }
+        }
 
 /* timestamp */
 	| TIMESTAMP onoff {

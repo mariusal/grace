@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -34,16 +34,6 @@
 #include "graphs.h"
 #include "protos.h"
 
-static void wrap_object_free(void *data)
-{
-    object_free((DObject *) data);
-}
-
-static void *wrap_object_copy(void *data)
-{
-    return (void *) object_copy((DObject *) data);
-}
-
 static void wrap_graph_free(void *data)
 {
     graph_free((graph *) data);
@@ -73,13 +63,6 @@ Project *project_new(void)
         return NULL;
     }
     
-    pr->objects = storage_new(wrap_object_free, wrap_object_copy, NULL);
-    if (!pr->objects) {
-        storage_free(pr->graphs);
-        xfree(pr);
-        return NULL;
-    }
-
     pr->nr = 0;
     for (i = 0; i < MAXREGION; i++) {
         set_region_defaults(&pr->rg[i]);
@@ -112,7 +95,6 @@ void project_free(Project *pr)
     xfree(pr->description);
     
     storage_free(pr->graphs);
-    storage_free(pr->objects);
     
     xfree(pr->sformat);
     xfree(pr->docname);

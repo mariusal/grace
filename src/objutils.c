@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -103,7 +103,6 @@ DObject *object_new(void)
     memset(o, 0, sizeof(DObject));
     if (o) {
         o->type = DO_NONE;
-        o->gno = get_cg();
 
         o->loctype = COORD_VIEW;
         o->ap.x = 0.0;
@@ -177,7 +176,7 @@ void *object_data_new(OType type)
     return odata;
 }
 
-static DObject *object_new_complete(OType type)
+DObject *object_new_complete(OType type)
 {
     DObject *o;
     
@@ -254,11 +253,16 @@ void object_free(DObject *o)
     }
 }
 
-DObject *next_object(OType type)
+DObject *next_object(graph *g, OType type)
 {
     DObject *o;
-    Storage *objects = grace->project->objects;
+    Storage *objects;
     
+    if (!g) {
+        return NULL;
+    }
+    
+    objects = g->dobjects;
     o = object_new_complete(type);
     if (o) {
         if (storage_add(objects, (void *) o) == RETURN_SUCCESS) {
@@ -273,22 +277,16 @@ DObject *next_object(OType type)
     }
 }
 
-DObject *object_get(int id)
+DObject *object_get(graph *g, int id)
 {
     DObject *o;
-    Storage *objects = grace->project->objects;
+    Storage *objects = g->dobjects;
     
     if (storage_get_data_by_id(objects, id, (void **) &o) != RETURN_SUCCESS) {
         o = NULL;
     }
     
     return o;
-}
-
-void do_clear_objects(void)
-{
-    Storage *objects = grace->project->objects;
-    storage_empty(objects);
 }
 
 int get_object_bb(DObject *o, view *bb)
@@ -301,9 +299,9 @@ int get_object_bb(DObject *o, view *bb)
     }
 }
 
-int kill_object(int id)
+int kill_object(graph *g, int id)
 {
-    Storage *objects = grace->project->objects;
+    Storage *objects = g->dobjects;
     if (storage_delete_by_id(objects, id) == RETURN_SUCCESS) {
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -312,11 +310,9 @@ int kill_object(int id)
     }
 }
 
-DObject *duplicate_object(int id)
+DObject *duplicate_object(graph *g, int id)
 {
-    Storage *objects = grace->project->objects;
-
-    return storage_duplicate(objects, id);
+    return storage_duplicate(g->dobjects, id);
 }
 
 void move_object(DObject *o, VVector shift)
@@ -365,13 +361,6 @@ int object_place_at_vp(DObject *o, VPoint vp)
 int isactive_object(DObject *o)
 {
     return o->active;
-}
-
-int number_of_objects(void)
-{
-    Storage *objects = grace->project->objects;
-    
-    return storage_count(objects);
 }
 
 void set_plotstr_string(plotstr *pstr, char *s)

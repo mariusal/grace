@@ -933,9 +933,7 @@ RiserLine *riserline_new(void)
             }
         ]]></child>
         <child name="#EStrObject">
-            Storage *objects = ((Project *) $0)->objects;
-            $?->gno = get_cg();
-            storage_add(objects, (void *) $?);
+            storage_add($$->dobjects, (void *) $?);
         </child>
         <child name="#EStrSet">
             storage_add($$->sets, $?);

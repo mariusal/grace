@@ -695,13 +695,19 @@ static int save_dataset(XFile *xf, Dataset *data)
     return RETURN_SUCCESS;
 }
 
-int save_object(XFile *xf, Attributes *attrs, DObject *o)
+int save_object(XFile *xf, DObject *o)
 {
-    if (!xf || !attrs || !o) {
+    Attributes *attrs;
+    
+    if (!xf || !o) {
         return RETURN_FAILURE;
     }
     
-    attributes_reset(attrs);
+    attrs = attributes_new();
+    if (attrs == NULL) {
+        return RETURN_FAILURE;
+    }
+    
     xmlio_set_active(attrs, o->active);
     xmlio_set_angle(attrs, o->angle);
     xmlio_set_offset(attrs, o->offset.x, o->offset.y);
@@ -762,48 +768,31 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
         }
     }
     xfile_end_element(xf, EStrObject);
-    
-    return RETURN_SUCCESS;
-}
-
-int save_objects(XFile *xf, int gno)
-{
-    Attributes *attrs;
-    int i, n;
-
-    if (!xf) {
-        return RETURN_FAILURE;
-    }
-    
-    attrs = attributes_new();
-    
-    if (attrs == NULL) {
-        return RETURN_FAILURE;
-    }
-
-    n = number_of_objects();
-    for (i = 0; i < n; i++) {
-        DObject *o;
-        
-        o = object_get(i);
-        if (o->gno == gno) {
-            save_object(xf, attrs, o);
-        }
-    }
 
     attributes_free(attrs);
-
+    
     return RETURN_SUCCESS;
 }
-    
-int save_canvas_objects(XFile *xf)
+
+static int object_save_hook(unsigned int step, void *data, void *udata)
 {
-    return save_objects(xf, -1);
+    DObject *o = (DObject *) data;
+    XFile *xf = (XFile *) udata;
+    
+    save_object(xf, o);
+        
+    return TRUE;
 }
-    
-int save_graph_objects(XFile *xf, int gno)
+
+int save_graph_objects(XFile *xf, graph *g)
 {
-    return save_objects(xf, gno);
+    if (!xf || !g) {
+        return RETURN_FAILURE;
+    }
+    
+    storage_traverse(g->dobjects, object_save_hook, NULL);
+
+    return RETURN_SUCCESS;
 }
     
 int save_regions(XFile *xf)
@@ -925,8 +914,6 @@ int save_project(char *fn)
     }
     xfile_end_element(xf, EStrTimeStamp);
     
-    save_canvas_objects(xf);
-    
     save_regions(xf);
     
     save_preferences(xf);
@@ -944,7 +931,7 @@ int save_project(char *fn)
         {
             save_graph_properties(xf, g);
             
-            save_graph_objects(xf, gno);
+            save_graph_objects(xf, g);
 
             storage_rewind(g->sets);
             while ((setno = storage_get_id(g->sets)) >= 0) {

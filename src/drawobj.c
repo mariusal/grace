@@ -38,18 +38,11 @@
 #include "plotone.h"
 #include "objutils.h"
 
-static void draw_object(int gno, DObject *o)
+static void draw_object(DObject *o)
 {
     VPoint anchor;
 
     if (o == NULL || o->active == FALSE) {
-        return;
-    }
-    
-    if (o->loctype == COORD_VIEW && gno != -1) {
-        return;
-    }
-    if (o->loctype == COORD_WORLD && o->gno != gno) {
         return;
     }
     
@@ -150,20 +143,26 @@ static void draw_object(int gno, DObject *o)
     o->bb = get_bbox(BBOX_TYPE_TEMP);
 }
 
+
+static int object_draw_hook(unsigned int step, void *data, void *udata)
+{
+    DObject *o = (DObject *) data;
+    draw_object(o);
+    
+    return TRUE;
+}
+
 void draw_objects(int gno)
 {
-    int i, n;
-                                
+    graph *g = graph_get(gno);
+    if (!g) {
+        return;
+    }
+    
     /* disable (?) clipping for object drawing */
     setclipping(FALSE);
     
-    n = number_of_objects();
-    for (i = 0; i < n; i++) {
-        DObject *o;
-        
-        o = object_get(i);
-        draw_object(gno, o);
-    }
+    storage_traverse(g->dobjects, object_draw_hook, NULL);
     
     setclipping(TRUE);
 }

@@ -87,7 +87,6 @@ typedef struct {
     double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
     char **s;                   /* pointer to strings */
 
-
     char *comment;              /* how this dataset originated & alike */
 
     int hotlink;                /* hot linked set */
@@ -182,6 +181,8 @@ typedef struct {
     world_stack ws[MAX_ZOOM_STACK]; /* zoom stack */
     int ws_top;                 /* stack pointer */
     int curw;                   /* for cycling through the stack */
+    
+    Storage *dobjects;          /* drawing objects placed on this graph */
 } graph;
 
 
