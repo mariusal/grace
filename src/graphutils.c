@@ -348,12 +348,15 @@ static void autorange_byset(int gno, int setno, int autos_type)
 
 static void auto_ticks(int gno, int axis)
 {
-    tickmarks t;
+    tickmarks *t;
     world w;
     double range, d, tmpmax, tmpmin;
     int axis_scale;
 
-    get_graph_tickmarks(gno, &t, axis);
+    t = get_graph_tickmarks(gno, axis);
+    if (t == NULL) {
+        return;
+    }
     get_graph_world(gno, &w);
 
     if (is_xaxis(axis)) {
@@ -367,31 +370,28 @@ static void auto_ticks(int gno, int axis)
     }
 
     if (axis_scale == SCALE_LOG) {
-	if (t.tmajor <= 1.0) {
-            t.tmajor = 10.0;
+	if (t->tmajor <= 1.0) {
+            t->tmajor = 10.0;
         }
-        tmpmax = log10(tmpmax)/log10(t.tmajor);
-	tmpmin = log10(tmpmin)/log10(t.tmajor);
-    } else if (t.tmajor <= 0.0) {
-        t.tmajor = 1.0;
+        tmpmax = log10(tmpmax)/log10(t->tmajor);
+	tmpmin = log10(tmpmin)/log10(t->tmajor);
+    } else if (t->tmajor <= 0.0) {
+        t->tmajor = 1.0;
     }
-    if (t.nminor < 0) {
-	t.nminor = 1;
+    if (t->nminor < 0) {
+	t->nminor = 1;
     }
     
     range = tmpmax - tmpmin;
     if (axis_scale != SCALE_LOG) {
-        d = nicenum(range/(t.t_autonum - 1), 0, NICE_ROUND);
-	t.tmajor = d;
-        t.nminor = 1;
+        d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
+	t->tmajor = d;
+        t->nminor = 1;
     } else {
-        d = ceil(range/(t.t_autonum - 1));
-	t.tmajor = pow(t.tmajor, d);
-        t.nminor = 9;
+        d = ceil(range/(t->t_autonum - 1));
+	t->tmajor = pow(t->tmajor, d);
+        t->nminor = 9;
     }
-    
-    set_graph_tickmarks(gno, &t, axis);
-    free_ticklabels(&t);
 }
 
 /*

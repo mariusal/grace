@@ -67,7 +67,7 @@ int is_log_axis(int gno, int axis)
 void drawgrid(int gno)
 {
     int caxis;
-    tickmarks t;
+    tickmarks *t;
     tickprops tprops;
     int ttype;
     world w;
@@ -93,8 +93,8 @@ void drawgrid(int gno)
     vpc.y = (v.yv1 + v.yv2)/2.0;
     
     for (caxis = 0; caxis < MAXAXES; caxis++) {
-	get_graph_tickmarks(gno, &t, caxis);
-	if (t.active != TRUE) {
+	t = get_graph_tickmarks(gno, caxis);
+	if (!t || t->active != TRUE) {
             continue;
         }
 	if (is_xaxis(caxis)) { /* an X-axis */
@@ -112,10 +112,10 @@ void drawgrid(int gno)
 	for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
 	    if (ittype_loop == 0) { /* minor ticks */
                 ttype = TICK_TYPE_MINOR;
-                tprops = t.mprops;
+                tprops = t->mprops;
 	    } else {	  /* major ticks */
                 ttype = TICK_TYPE_MAJOR;
-                tprops = t.props;
+                tprops = t->props;
 	    }
             if (tprops.gridflag == 0) {
 	        continue;
@@ -125,12 +125,12 @@ void drawgrid(int gno)
 	    setlinewidth(tprops.linew);
 	    setlinestyle(tprops.lines);
 	    
-	    for (itick = 0; itick < t.nticks; itick++) {
-	    	if (t.tloc[itick].type != ttype) {
+	    for (itick = 0; itick < t->nticks; itick++) {
+	    	if (t->tloc[itick].type != ttype) {
 	    	    continue;
 	    	}
                 
-                wtpos = t.tloc[itick].wtpos;
+                wtpos = t->tloc[itick].wtpos;
 
 	    	if ((wtpos < wc_start) || (wtpos > wc_stop)) {
 	    	    continue;
@@ -170,14 +170,13 @@ void drawgrid(int gno)
                 }
 	    }
 	}
-        free_ticklabels(&t);
     }
 }
 
 void drawaxes(int gno)
 {
     int caxis;
-    tickmarks t;
+    tickmarks *t;
     tickprops tprops;
     world w;
     view v;
@@ -219,12 +218,12 @@ void drawaxes(int gno)
     
        
     for (caxis = 0; caxis < MAXAXES; caxis++) {
-	get_graph_tickmarks(gno, &t, caxis);
-	if (t.active != TRUE) {
+	t = get_graph_tickmarks(gno, caxis);
+	if (!t || t->active != TRUE) {
             continue;
         }
         
-        if (t.zero == FALSE) {
+        if (t->zero == FALSE) {
             tick_dir_sign = +1;
         } else {
             tick_dir_sign = -1;
@@ -245,7 +244,7 @@ void drawaxes(int gno)
 	    wp1_stop.x  = w.xg2;
 	    wp2_start.x = w.xg1;
 	    wp2_stop.x  = w.xg2;
-	    if (t.zero == TRUE) {
+	    if (t->zero == TRUE) {
                 if (w.yg1 <= 0.0 && w.yg2 >= 0.0) {
 	            wp1_start.y = 0.0;
 	            wp1_stop.y  = 0.0;
@@ -273,10 +272,10 @@ void drawaxes(int gno)
 
             /* TODO axis offset for polar plots */
             if (get_graph_type(gno) != GRAPH_POLAR) {
-                 vp1_start.y -= t.offsx;
-                 vp1_stop.y  -= t.offsx;
-                 vp2_start.y += t.offsy;
-                 vp2_stop.y  += t.offsy;
+                 vp1_start.y -= t->offsx;
+                 vp1_stop.y  -= t->offsx;
+                 vp2_start.y += t->offsy;
+                 vp2_stop.y  += t->offsy;
             }
 	    
 	    vbase1 = vp1_start.y;
@@ -285,7 +284,7 @@ void drawaxes(int gno)
 	    tlabel1_just = JUST_CENTER|JUST_TOP;
 	    tlabel2_just = JUST_CENTER|JUST_BOTTOM;
 	    
-	    switch (t.label_layout) {
+	    switch (t->label_layout) {
 	    case LAYOUT_PARALLEL:
 	    	langle =  0;
 	    	break;
@@ -312,7 +311,7 @@ void drawaxes(int gno)
 	    wp2_start.y = w.yg1;
 	    wp2_stop.y  = w.yg2;
 
-	    if (t.zero == TRUE) {
+	    if (t->zero == TRUE) {
                 if (w.xg1 <= 0.0 && w.xg2 >= 0.0) {
 	            wp1_start.x = 0.0;
 	            wp1_stop.x  = 0.0;
@@ -339,10 +338,10 @@ void drawaxes(int gno)
             }
 
             if (get_graph_type(gno) != GRAPH_POLAR) {
-                vp1_start.x -= t.offsx;
-                vp1_stop.x  -= t.offsx;
-                vp2_start.x += t.offsy;
-                vp2_stop.x  += t.offsy;
+                vp1_start.x -= t->offsx;
+                vp1_stop.x  -= t->offsx;
+                vp2_start.x += t->offsy;
+                vp2_stop.x  += t->offsy;
             }
 	    
 	    vbase1 = vp1_start.x;
@@ -351,7 +350,7 @@ void drawaxes(int gno)
 	    tlabel1_just = JUST_RIGHT|JUST_MIDDLE;
 	    tlabel2_just = JUST_LEFT|JUST_MIDDLE;
 	
-	    switch (t.label_layout) {
+	    switch (t->label_layout) {
 	    case LAYOUT_PARALLEL:
 	    	langle = 90;
 	    	break;
@@ -365,11 +364,11 @@ void drawaxes(int gno)
 	}
 	
 	/* Begin axis bar stuff */
-	if (t.t_drawbar) {
-	    setcolor(t.t_drawbarcolor);
-	    setlinewidth(t.t_drawbarlinew);
-	    setlinestyle(t.t_drawbarlines);
-	    if (t.t_op == PLACEMENT_NORMAL || t.t_op == PLACEMENT_BOTH) {
+	if (t->t_drawbar) {
+	    setcolor(t->t_drawbarcolor);
+	    setlinewidth(t->t_drawbarlinew);
+	    setlinestyle(t->t_drawbarlines);
+	    if (t->t_op == PLACEMENT_NORMAL || t->t_op == PLACEMENT_BOTH) {
                 if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
                     xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
                              &phi_start, &rho);
@@ -391,7 +390,7 @@ void drawaxes(int gno)
 	    	    DrawLine(vp1_start, vp1_stop);
                 }
 	    }
-	    if (t.t_op == PLACEMENT_OPPOSITE || t.t_op == PLACEMENT_BOTH) {
+	    if (t->t_op == PLACEMENT_OPPOSITE || t->t_op == PLACEMENT_BOTH) {
                 if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
                     xy2polar(vp2_start.x - vpc.x, vp2_start.y - vpc.y,
                              &phi_start, &rho);
@@ -423,19 +422,19 @@ void drawaxes(int gno)
         }
 
 	/* Begin axis tick stuff */
-	if (t.t_flag) {
+	if (t->t_flag) {
 	    for (ittype_loop = 0; ittype_loop < 2; ittype_loop++) {
  
 	        if (ittype_loop == 0) { /* minor ticks */
                     ttype = TICK_TYPE_MINOR;
-                    tprops = t.mprops;
+                    tprops = t->mprops;
 	        } else {      /* major ticks */
                     ttype = TICK_TYPE_MAJOR;
-                    tprops = t.props;
+                    tprops = t->props;
 	        }
 	        tsize = 0.02 * tprops.size;
  
-	        switch (t.t_inout) {
+	        switch (t->t_inout) {
 	        case TICKS_IN:
 	            vbase1_start = vbase1;
 	            vbase1_stop  = vbase1 + tick_dir_sign*tsize;
@@ -464,28 +463,28 @@ void drawaxes(int gno)
 	        setlinestyle(tprops.lines);
 	
 	        itcur = 0;
-                for (itick = 0; itick < t.nticks; itick++) {
-	            if (t.tloc[itick].type != ttype) {
+                for (itick = 0; itick < t->nticks; itick++) {
+	            if (t->tloc[itick].type != ttype) {
 	                continue;
 	            }
  
-                    wtpos = t.tloc[itick].wtpos;
+                    wtpos = t->tloc[itick].wtpos;
 	
 	            if ((wtpos < wc_start) || (wtpos > wc_stop)) {
 	                continue;
 	            }
 	
 	            vtpos = coord_conv(wtpos);
-	            if (t.t_op == PLACEMENT_NORMAL ||
-	                t.t_op == PLACEMENT_BOTH) {
+	            if (t->t_op == PLACEMENT_NORMAL ||
+	                t->t_op == PLACEMENT_BOTH) {
 	                vp_tick1_start.x = vtpos*ort_para.x + vbase1_start*ort_perp.x;
 	                vp_tick1_start.y = vtpos*ort_para.y + vbase1_start*ort_perp.y;
 	                vp_tick1_stop.x  = vtpos*ort_para.x + vbase1_stop*ort_perp.x;
 	                vp_tick1_stop.y  = vtpos*ort_para.y + vbase1_stop*ort_perp.y;
 	                DrawLine(vp_tick1_start, vp_tick1_stop);
 	            }
-	            if (t.t_op == PLACEMENT_OPPOSITE ||
-	                t.t_op == PLACEMENT_BOTH) {
+	            if (t->t_op == PLACEMENT_OPPOSITE ||
+	                t->t_op == PLACEMENT_BOTH) {
 	                vp_tick2_start.x = vtpos*ort_para.x + vbase2_start*ort_perp.x;
 	                vp_tick2_start.y = vtpos*ort_para.y + vbase2_start*ort_perp.y;
 	                vp_tick2_stop.x  = vtpos*ort_para.x + vbase2_stop*ort_perp.x;
@@ -501,33 +500,33 @@ void drawaxes(int gno)
 
 	/* Begin tick label stuff */
 	    
-	if(t.tl_gaptype==TYPE_AUTO) {
+	if(t->tl_gaptype==TYPE_AUTO) {
 	  /* hard coded offsets for autoplacement of tick labels */
 	  tl_trans=0.0;     /* parallel */
 	  tl_offset=0.01;  /* perpendicular */
 	} else{
-	  tl_trans  = t.tl_gap.x;
-	  tl_offset = t.tl_gap.y;
+	  tl_trans  = t->tl_gap.x;
+	  tl_offset = t->tl_gap.y;
 	}
 
-	if (t.tl_flag) {
-	    if (t.tl_starttype == TYPE_SPEC) {
-	        wc_start_labels = t.tl_start;
+	if (t->tl_flag) {
+	    if (t->tl_starttype == TYPE_SPEC) {
+	        wc_start_labels = t->tl_start;
             } else {
 	        wc_start_labels = wc_start;
 	    }
 	
-	    if (t.tl_stoptype == TYPE_SPEC) {
-	        wc_stop_labels = t.tl_stop;
+	    if (t->tl_stoptype == TYPE_SPEC) {
+	        wc_stop_labels = t->tl_stop;
             } else {
 	        wc_stop_labels = wc_stop;
 	    }
 	
-	    tlsize = 0.02 * t.tl_charsize;
+	    tlsize = 0.02 * t->tl_charsize;
 
-	    tsize = 0.02 * t.props.size;
+	    tsize = 0.02 * t->props.size;
  
-	    switch (t.t_inout) {
+	    switch (t->t_inout) {
 	    case TICKS_IN:
 	        vbase_tlabel1 = vbase1 - (1 - tick_dir_sign)/2*tsize - tl_offset;
 	        vbase_tlabel2 = vbase2 + (1 - tick_dir_sign)/2*tsize + tl_offset;
@@ -545,58 +544,58 @@ void drawaxes(int gno)
 	        return;
 	    }
 
-	    setcolor(t.tl_color);
-	    setfont(t.tl_font);
-	    setcharsize(t.tl_charsize);
+	    setcolor(t->tl_color);
+	    setfont(t->tl_font);
+	    setcharsize(t->tl_charsize);
 	
 	    itcur = 0;
-            for (itick = 0; itick < t.nticks; itick++) {
-	        if (t.tloc[itick].type != TICK_TYPE_MAJOR) {
+            for (itick = 0; itick < t->nticks; itick++) {
+	        if (t->tloc[itick].type != TICK_TYPE_MAJOR) {
 	            continue;
 	        }
  
-                wtpos = t.tloc[itick].wtpos;
+                wtpos = t->tloc[itick].wtpos;
 
 	        if ((wtpos < wc_start_labels) || (wtpos > wc_stop_labels)) {
 	            continue;
 	        }
 	
-	        if (t.tl_prestr[0]) {
-	            strcpy(tlabel, t.tl_prestr);
+	        if (t->tl_prestr[0]) {
+	            strcpy(tlabel, t->tl_prestr);
 	        } else {
                     tlabel[0] = '\0';
                 }
-	        if (t.tloc[itick].label != NULL) {
-	            strcat(tlabel, t.tloc[itick].label);
+	        if (t->tloc[itick].label != NULL) {
+	            strcat(tlabel, t->tloc[itick].label);
 	        }
-	        if (t.tl_appstr[0]) {
-	            strcat(tlabel, t.tl_appstr);
+	        if (t->tl_appstr[0]) {
+	            strcat(tlabel, t->tl_appstr);
 	        }
 	
 	        vtpos = coord_conv(wtpos);
 
-	        if (itcur % (t.tl_skip + 1) == 0) {
+	        if (itcur % (t->tl_skip + 1) == 0) {
 		  /* Tick labels on normal side */
-	            if (t.tl_op == PLACEMENT_NORMAL ||
-	                t.tl_op == PLACEMENT_BOTH) {
+	            if (t->tl_op == PLACEMENT_NORMAL ||
+	                t->tl_op == PLACEMENT_BOTH) {
 	                vbase_tlabel = vbase_tlabel1 - (tl_offset + tlsize)*
-	                                        (itcur % (t.tl_staggered + 1));
+	                                        (itcur % (t->tl_staggered + 1));
 	                vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
                                                        vbase_tlabel*ort_perp.x;
 	                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                        vbase_tlabel*ort_perp.y;
-	                WriteString(vp_tlabel, t.tl_angle, tlabel1_just, tlabel);
+	                WriteString(vp_tlabel, t->tl_angle, tlabel1_just, tlabel);
 	            }
 		    /* Tick labels on opposite side */
-	            if (t.tl_op == PLACEMENT_OPPOSITE ||
-	                t.tl_op == PLACEMENT_BOTH) {
+	            if (t->tl_op == PLACEMENT_OPPOSITE ||
+	                t->tl_op == PLACEMENT_BOTH) {
 	                vbase_tlabel = vbase_tlabel2 + (tl_offset + tlsize)*
-	                                        (itcur % (t.tl_staggered + 1));
+	                                        (itcur % (t->tl_staggered + 1));
 	                vp_tlabel.x = (vtpos + tl_trans)*ort_para.x +
                                                        vbase_tlabel*ort_perp.x;
 	                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                        vbase_tlabel*ort_perp.y;
-	                WriteString(vp_tlabel, t.tl_angle, tlabel2_just, tlabel);
+	                WriteString(vp_tlabel, t->tl_angle, tlabel2_just, tlabel);
 	            }
 	        }
                 itcur++;
@@ -611,47 +610,46 @@ void drawaxes(int gno)
 	vp_label_offset.x = 0.00; /* parallel */
 	vp_label_offset.y = 0.08; /* perpendicular */
 
-	if (t.label.s && t.label.s[0]) {
+	if (t->label.s && t->label.s[0]) {
 	    
-	    if (t.label_place == TYPE_SPEC) {
-	        vp_label_offset.x = t.label.x;
-		vp_label_offset.y = t.label.y;
+	    if (t->label_place == TYPE_SPEC) {
+	        vp_label_offset.x = t->label.x;
+		vp_label_offset.y = t->label.y;
 	    } else {
-		t.label.x = vp_label_offset.x;
-		t.label.y = vp_label_offset.y;
+		t->label.x = vp_label_offset.x;
+		t->label.y = vp_label_offset.y;
 	    }
 
-	    setcharsize(t.label.charsize);
-	    setfont(t.label.font);
-	    setcolor(t.label.color);
+	    setcharsize(t->label.charsize);
+	    setfont(t->label.font);
+	    setcolor(t->label.color);
 
 	    /* Axis label on normal side */
-	    if (t.label_op == PLACEMENT_NORMAL ||
-		t.label_op == PLACEMENT_BOTH) {
+	    if (t->label_op == PLACEMENT_NORMAL ||
+		t->label_op == PLACEMENT_BOTH) {
 
 	        vp_label.x = (vp1_start.x + vp1_stop.x)/2 + vp_label_offset.x*ort_para.x
                                                         - vp_label_offset.y*ort_perp.x ;
 	        vp_label.y = (vp1_start.y + vp1_stop.y)/2 + vp_label_offset.x*ort_para.y
                                                         - vp_label_offset.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t.label.s);
+	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
 	    }
 
 	    /* Axis label on opposite side */
-	    if (t.label_op == PLACEMENT_OPPOSITE ||
-		t.label_op == PLACEMENT_BOTH) {
+	    if (t->label_op == PLACEMENT_OPPOSITE ||
+		t->label_op == PLACEMENT_BOTH) {
 
 	        vp_label.x = (vp2_start.x + vp2_stop.x)/2 + vp_label_offset.x*ort_para.x
 		                                        + vp_label_offset.y*ort_perp.x ;
 	        vp_label.y = (vp2_start.y + vp2_stop.y)/2 + vp_label_offset.x*ort_para.y
                                                         + vp_label_offset.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t.label.s);
+	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
 	    }
 
 	}
         
-        free_ticklabels(&t);
 	/* End axis label stuff */
     }
 }
@@ -665,22 +663,17 @@ void calculate_tickgrid(int gno)
     int scale;
     double wtmaj, tick_value;
     world w;
-    tickmarks t;
+    tickmarks *t;
     
 reenter:
     get_graph_world(gno, &w);
     
     for (caxis = 0; caxis < MAXAXES; caxis++) {
-	get_graph_tickmarks(gno, &t, caxis);
+	t = get_graph_tickmarks(gno, caxis);
 
-	if (t.active != TRUE) {
+	if (!t || t->active != TRUE || t->t_type == TYPE_SPEC) {
             continue;
         }
-        
-        if (t.t_type == TYPE_SPEC) {
-            continue;
-        }
-        
         
         if (is_xaxis(caxis)) {
             scale = get_graph_xscale(gno);
@@ -702,54 +695,52 @@ reenter:
             }
         }
         if (scale == SCALE_LOG) {
-            stmajor = fscale(t.tmajor, scale);
+            stmajor = fscale(t->tmajor, scale);
         } else {
-            stmajor = t.tmajor;
+            stmajor = t->tmajor;
         }
 
         if (stmajor <= 0.0) {
 	    errmsg("Invalid major tick spacing, autoticking");
 	    autotick_axis(gno, caxis);
-            free_ticklabels(&t);
             goto reenter;
 	}
         
-        if (t.t_round == TRUE) {
+        if (t->t_round == TRUE) {
             swc_start = floor(swc_start/stmajor)*stmajor;
         }
         
         nmajor = (int) ceil((swc_stop - swc_start) / stmajor + 1);
-        t.nticks = (nmajor - 1)*(t.nminor + 1) + 1;
+        t->nticks = (nmajor - 1)*(t->nminor + 1) + 1;
         
-        if (t.nticks > MAX_TICKS) {
+        if (t->nticks > MAX_TICKS) {
 	    errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
 	    autotick_axis(gno, caxis);
-            free_ticklabels(&t);
             goto reenter;
 	}
 
 /*
- *         if (t.nticks > MAX_TICKS) {
- *             t.nticks = MAX_TICKS;
+ *         if (t->nticks > MAX_TICKS) {
+ *             t->nticks = MAX_TICKS;
  *         }
  */
         
         itick = 0;
         itmaj = 0;
-        while (itick < t.nticks) {
+        while (itick < t->nticks) {
             if (scale == SCALE_LOG) {
                 wtmaj = ifscale(swc_start + itmaj*stmajor, scale);
             } else {
                 wtmaj = swc_start + itmaj*stmajor;
-                if (t.tl_format == FORMAT_GENERAL && fabs(wtmaj) < 1.0e-6*stmajor) {
+                if (t->tl_format == FORMAT_GENERAL && fabs(wtmaj) < 1.0e-6*stmajor) {
                     wtmaj = 0.0;
                 }
             }
-            t.tloc[itick].wtpos = wtmaj;
-            t.tloc[itick].type = TICK_TYPE_MAJOR;
+            t->tloc[itick].wtpos = wtmaj;
+            t->tloc[itick].type = TICK_TYPE_MAJOR;
 
-	    if (t.tl_type == TYPE_AUTO) {
-	        switch (t.tl_sign) {
+	    if (t->tl_type == TYPE_AUTO) {
+	        switch (t->tl_sign) {
 	        case SIGN_NORMAL:
 	            tick_value = wtmaj;
 	            break;
@@ -763,25 +754,23 @@ reenter:
 	            errmsg("Internal error in calculate_tickgrid()");
 	            return;
 	        }
-	        t.tloc[itick].label = copy_string(t.tloc[itick].label, 
-                                        create_fstring(t.tl_format, t.tl_prec,
-                                            tick_value, LFORMAT_TYPE_EXTENDED));
+	        t->tloc[itick].label = copy_string(t->tloc[itick].label, 
+                    create_fstring(t->tl_format, t->tl_prec,
+                        tick_value, LFORMAT_TYPE_EXTENDED));
 	    }
 
             itick++;
-            for (imtick = 0; imtick < t.nminor && itick < t.nticks; imtick++) {
+            for (imtick = 0; imtick < t->nminor && itick < t->nticks; imtick++) {
                 if (scale == SCALE_LOG) {
-                    t.tloc[itick].wtpos = wtmaj * (imtick + 2);
+                    t->tloc[itick].wtpos = wtmaj * (imtick + 2);
                 } else {
-                    t.tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t.nminor + 1);
+                    t->tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t->nminor + 1);
                 }
-                t.tloc[itick].type = TICK_TYPE_MINOR;
-	        t.tloc[itick].label = copy_string(t.tloc[itick].label, NULL);
+                t->tloc[itick].type = TICK_TYPE_MINOR;
+	        cxfree(t->tloc[itick].label);
                 itick++;
             }
             itmaj++;
         }
-        set_graph_tickmarks(gno, &t, caxis);
-        free_ticklabels(&t);
     }
 }

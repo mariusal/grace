@@ -287,6 +287,10 @@ void set_default_ticks(tickmarks *t, int a)
 {
     int i;
 
+    if (t == NULL) {
+        return;
+    }
+    
     switch (a) {
     case X_AXIS:
     case Y_AXIS:

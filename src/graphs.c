@@ -130,20 +130,24 @@ int kill_all_sets(int gno)
 
 int kill_graph(int gno)
 {
+    int j;
     if (is_valid_gno(gno) == TRUE) {
 	kill_all_sets(gno);
         cxfree(g[gno].labs.title.s);
         cxfree(g[gno].labs.stitle.s);
+        for (j = 0; j < MAXAXES; j++) {
+            free_graph_tickmarks(g[gno].t[j]);
+            g[gno].t[j] = NULL;
+        }
         
-	/* We want to have at least one graph anyway */
-        if (gno == maxgraph - 1 && maxgraph > 1) {
+        if (gno == maxgraph - 1) {
             maxgraph--;
             g = xrealloc(g, maxgraph*sizeof(graph));
             if (cg == gno) {
                 cg--;
             }
         } else {
-            set_default_graph(gno);
+            set_graph_hidden(gno, TRUE);
         }
         
         set_dirtystate();
@@ -164,29 +168,33 @@ void kill_all_graphs(void)
 
 int copy_graph(int from, int to)
 {
-    int i, j, a;
-    tickmarks t;
+    int i, j;
 
-    if (is_valid_gno(from) != TRUE || is_valid_gno(to) != TRUE) {
+    if (is_valid_gno(from) != TRUE || is_valid_gno(to) != TRUE || from == to) {
         return GRACE_EXIT_FAILURE;
     }
     
+    /* kill target graph */
     kill_all_sets(to);
+    cxfree(g[to].labs.title.s);
+    cxfree(g[to].labs.stitle.s);
+    for (j = 0; j < MAXAXES; j++) {
+        free_graph_tickmarks(g[to].t[j]);
+        g[to].t[j] = NULL;
+    }
 
     memcpy(&g[to], &g[from], sizeof(graph));
-    for (a = 0; a < MAXAXES; a++) {
-        zero_ticklabels(&(g[from].t[a]));
-        get_graph_tickmarks(from, &t, a);
-        set_graph_tickmarks(to, &t, a);
-        free_ticklabels(&t);
-    }
+
+    /* zero allocatable storage */
     g[to].p = NULL;
     g[to].maxplot = 0;
-    
+    g[to].labs.title.s = NULL;
+    g[to].labs.stitle.s = NULL;
+
+    /* duplicate allocatable storage */
     if (realloc_graph_plots(to, g[from].maxplot) != GRACE_EXIT_SUCCESS) {
         return GRACE_EXIT_FAILURE;
     }
-    
     for (i = 0; i < g[from].maxplot; i++) {
 	for (j = 0; j < MAX_SET_COLS; j++) {
 	    g[to].p[i].data.ex[j] = NULL;
@@ -195,18 +203,10 @@ int copy_graph(int from, int to)
 	    do_copyset(from, i, to, i);
 	}
     }
-
-    g[to].labs.title = copy_plotstr(g[from].labs.title);
-    g[to].labs.stitle = copy_plotstr(g[from].labs.stitle);
-
+    g[to].labs.title.s = copy_string(NULL, g[from].labs.title.s);
+    g[to].labs.stitle.s = copy_string(NULL, g[from].labs.stitle.s);
     for (j = 0; j < MAXAXES; j++) {
-	g[to].t[j].label = copy_plotstr(g[from].t[j].label);
-	for (i = 0; i < MAX_TICKS; i++) {
-	    if (g[from].t[j].tloc[i].label != NULL) {
-                g[to].t[j].tloc[i].label = copy_string(g[to].t[j].tloc[i].label,
-                                                g[from].t[j].tloc[i].label);
-	    }
-	}
+	g[to].t[j] = copy_graph_tickmarks(g[from].t[j]);
     }
 
     return GRACE_EXIT_SUCCESS;
@@ -322,19 +322,76 @@ int get_graph_plotarr(int gno, int i, plotarr *p)
     }
 }
 
-int get_graph_tickmarks(int gno, tickmarks *t, int a)
+/* Tickmarks */
+tickmarks *get_graph_tickmarks(int gno, int a)
+{
+    if (is_valid_gno(gno) == TRUE && is_valid_axis(a) == TRUE) {
+        return g[gno].t[a];
+    } else {
+        return NULL;
+    }
+}
+
+tickmarks *new_graph_tickmarks(void)
+{
+    tickmarks *retval;
+    int i;
+    
+    retval = malloc(sizeof(tickmarks));
+    if (retval != NULL) {
+        retval->label.s = NULL;
+        for (i = 0; i < MAX_TICKS; i++) {
+            retval->tloc[i].label = NULL;
+        }
+    }
+    return retval;
+}
+
+tickmarks *copy_graph_tickmarks(tickmarks *t)
+{
+    tickmarks *retval;
+    int i;
+    
+    if (t == NULL) {
+        return NULL;
+    } else {
+        retval = new_graph_tickmarks();
+        if (retval != NULL) {
+            memcpy(retval, t, sizeof(tickmarks));
+	    retval->label.s = copy_string(NULL, t->label.s);
+            for (i = 0; i < MAX_TICKS; i++) {
+                retval->tloc[i].label = copy_string(NULL, t->tloc[i].label);
+            }
+        }
+        return retval;
+    }
+}
+
+void free_graph_tickmarks(tickmarks *t)
 {
     int i;
-    if (is_valid_gno(gno) == TRUE) {
-        memcpy(t, &g[gno].t[a], sizeof(tickmarks));
-        for (i = 0; i < MAX_TICKS; i++) {
-            t->tloc[i].label = copy_string(NULL, g[gno].t[a].tloc[i].label);
-        }
+    
+    if (t == NULL) {
+        return;
+    }
+    cxfree(t->label.s);
+    for (i = 0; i < MAX_TICKS; i++) {
+        cxfree(t->tloc[i].label);
+    }
+    cxfree(t);
+}
+
+int set_graph_tickmarks(int gno, int a, tickmarks *t)
+{
+    if (is_valid_gno(gno) == TRUE &&  is_valid_axis(a) == TRUE) {
+        free_graph_tickmarks(g[gno].t[a]);
+        g[gno].t[a] = copy_graph_tickmarks(t);
         return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
     }
 }
+
 
 int get_graph_legend(int gno, legend *leg)
 {
@@ -439,42 +496,6 @@ void set_graph_plotarr(int gno, int i, plotarr * p)
     set_dirtystate();
 }
 
-void zero_ticklabels(tickmarks *t)
-{
-    int i;
-    
-    for (i = 0; i < MAX_TICKS; i++) {
-        t->tloc[i].label = NULL;
-    }
-}
-
-void free_ticklabels(tickmarks *t)
-{
-    int i;
-    
-    for (i = 0; i < MAX_TICKS; i++) {
-        cxfree(t->tloc[i].label);
-    }
-}
-
-int set_graph_tickmarks(int gno, tickmarks *t, int a)
-{
-    int i;
-
-    if (is_valid_gno(gno) == TRUE) {
-        free_ticklabels(&(g[gno].t[a]));
-        memcpy(&g[gno].t[a], t, sizeof(tickmarks));
-        zero_ticklabels(&(g[gno].t[a]));
-        for (i = 0; i < MAX_TICKS; i++) {
-            g[gno].t[a].tloc[i].label =
-                       copy_string(g[gno].t[a].tloc[i].label, t->tloc[i].label);
-        }
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
 void set_graph_legend(int gno, legend *leg)
 {
     if (is_valid_gno(gno) != TRUE) {
@@ -562,11 +583,14 @@ int realloc_graph_plots(int gno, int n)
     if (is_valid_gno(gno) != TRUE) {
         return GRACE_EXIT_FAILURE;
     }
-    if (n <= 0) {
+    if (n < 0) {
         return GRACE_EXIT_FAILURE;
     }
+    if (n == g[gno].maxplot) {
+        return GRACE_EXIT_SUCCESS;
+    }
     ptmp = xrealloc(g[gno].p, n * sizeof(plotarr));
-    if (ptmp == NULL) {
+    if (ptmp == NULL && n != 0) {
         return GRACE_EXIT_FAILURE;
     } else {
         oldmaxplot = g[gno].maxplot;
@@ -780,7 +804,7 @@ int set_graph_yinvert(int gno, int flag)
 int is_axis_active(int gno, int axis)
 {
     if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
-        return g[gno].t[axis].active;
+        return g[gno].t[axis]->active;
     } else {
         return FALSE;
     }
@@ -789,7 +813,7 @@ int is_axis_active(int gno, int axis)
 int is_zero_axis(int gno, int axis)
 {
     if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
-        return g[gno].t[axis].zero;
+        return g[gno].t[axis]->zero;
     } else {
         return FALSE;
     }
@@ -820,6 +844,10 @@ int islogy(int gno)
  
 void clear_world_stack(void)
 {
+    if (is_valid_gno(cg) != TRUE) {
+        return;
+    }
+
     g[cg].ws_top = 1;
     g[cg].curw = 0;
     g[cg].ws[0].w.xg1 = 0.0;
@@ -830,6 +858,10 @@ void clear_world_stack(void)
 
 static void update_world_stack()
 {
+    if (is_valid_gno(cg) != TRUE) {
+        return;
+    }
+
     g[cg].ws[g[cg].curw].w = g[cg].w;
 }
 
@@ -839,6 +871,10 @@ static void update_world_stack()
  */
 void add_world(int gno, double x1, double x2, double y1, double y2)
 {
+    if (is_valid_gno(gno) != TRUE) {
+        return;
+    }
+
     /* see if another entry has been stacked */
     if( g[gno].ws[0].w.xg1 == 0.0 &&
 	g[gno].ws[0].w.xg2 == 0.0 &&
@@ -863,6 +899,10 @@ void cycle_world_stack(void)
 {
     int neww;
     
+    if (is_valid_gno(cg) != TRUE) {
+        return;
+    }
+
     if (g[cg].ws_top < 1) {
 	errmsg("World stack empty");
     } else {
@@ -874,6 +914,10 @@ void cycle_world_stack(void)
 
 void show_world_stack(int n)
 {
+    if (is_valid_gno(cg) != TRUE) {
+        return;
+    }
+
     if (g[cg].ws_top < 1) {
 	errmsg("World stack empty");
     } else {
@@ -892,6 +936,10 @@ void push_world(void)
 {
     int i;
 
+    if (is_valid_gno(cg) != TRUE) {
+        return;
+    }
+    
     if (g[cg].ws_top < MAX_ZOOM_STACK) {
         update_world_stack();
         for( i=g[cg].ws_top; i>g[cg].curw; i-- ) {
@@ -907,6 +955,10 @@ void push_world(void)
 void pop_world(void)
 {
     int i, neww;
+
+    if (is_valid_gno(cg) != TRUE) {
+        return;
+    }
 
     if (g[cg].ws_top <= 1) {
 	errmsg("World stack empty");
@@ -927,6 +979,8 @@ void pop_world(void)
 
 void set_default_graph(int gno)
 {    
+    int i;
+    
     g[gno].hidden = TRUE;
     g[gno].type = GRAPH_XY;
     g[gno].xinvert = FALSE;
@@ -946,10 +1000,10 @@ void set_default_graph(int gno)
     g[gno].locator.fy = FORMAT_GENERAL;
     g[gno].locator.px = 6;
     g[gno].locator.py = 6;
-    set_default_ticks(&g[gno].t[0], X_AXIS);
-    set_default_ticks(&g[gno].t[1], Y_AXIS);
-    set_default_ticks(&g[gno].t[2], ZX_AXIS);
-    set_default_ticks(&g[gno].t[3], ZY_AXIS);
+    for (i = 0; i < MAXAXES; i++) {
+        g[gno].t[i] = new_graph_tickmarks();
+        set_default_ticks(g[gno].t[i], i);
+    }
     set_default_framep(&g[gno].f);
     set_default_world(&g[gno].w);
     set_default_view(&g[gno].v);
@@ -979,38 +1033,38 @@ int overlay_graphs(int g1, int g2, int type)
     case 0:
 	g[g1].w = g[g2].w;
 	for (i = 0; i < MAXAXES; i++) {
-	    g[g1].t[i].active = FALSE;
-	    g[g2].t[i].active = TRUE;
+	    g[g1].t[i]->active = FALSE;
+	    g[g2].t[i]->active = TRUE;
 	}
-	g[g1].t[1].tl_op = PLACEMENT_NORMAL;
-	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[1].t_op = PLACEMENT_BOTH;
-	g[g2].t[1].t_op = PLACEMENT_BOTH;
+	g[g1].t[1]->tl_op = PLACEMENT_NORMAL;
+	g[g2].t[1]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1]->t_op = PLACEMENT_BOTH;
+	g[g2].t[1]->t_op = PLACEMENT_BOTH;
 
-	g[g1].t[0].tl_op = PLACEMENT_NORMAL;
-	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[0].t_op = PLACEMENT_BOTH;
-	g[g2].t[0].t_op = PLACEMENT_BOTH;
+	g[g1].t[0]->tl_op = PLACEMENT_NORMAL;
+	g[g2].t[0]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0]->t_op = PLACEMENT_BOTH;
+	g[g2].t[0]->t_op = PLACEMENT_BOTH;
 	break;
     case 1:
 	g[g1].w.xg1 = g[g2].w.xg1;
 	g[g1].w.xg2 = g[g2].w.xg2;
 	for (i = 0; i < MAXAXES; i++) {
 	    if (i % 2 == 0) {
-		g[g1].t[i].active = FALSE;
+		g[g1].t[i]->active = FALSE;
 	    } else {
-		g[g1].t[i].active = TRUE;
+		g[g1].t[i]->active = TRUE;
 	    }
 	}
-	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[1].tl_op = PLACEMENT_OPPOSITE;
-	g[g2].t[1].t_op = PLACEMENT_NORMAL;
-	g[g1].t[1].t_op = PLACEMENT_OPPOSITE;
+	g[g2].t[1]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1]->tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[1]->t_op = PLACEMENT_NORMAL;
+	g[g1].t[1]->t_op = PLACEMENT_OPPOSITE;
 
-	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[0].tl_op = PLACEMENT_NORMAL;
-	g[g2].t[0].t_op = PLACEMENT_BOTH;
-	g[g1].t[0].t_op = PLACEMENT_BOTH;
+	g[g2].t[0]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0]->tl_op = PLACEMENT_NORMAL;
+	g[g2].t[0]->t_op = PLACEMENT_BOTH;
+	g[g1].t[0]->t_op = PLACEMENT_BOTH;
 
 	break;
     case 2:
@@ -1018,34 +1072,34 @@ int overlay_graphs(int g1, int g2, int type)
 	g[g1].w.yg2 = g[g2].w.yg2;
 	for (i = 0; i < MAXAXES; i++) {
 	    if (i % 2 == 1) {
-		g[g1].t[i].active = FALSE;
+		g[g1].t[i]->active = FALSE;
 	    } else {
-		g[g1].t[i].active = TRUE;
+		g[g1].t[i]->active = TRUE;
 	    }
 	}
-	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[0].tl_op = PLACEMENT_OPPOSITE;
-	g[g2].t[0].t_op = PLACEMENT_NORMAL;
-	g[g1].t[0].t_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0]->tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0]->t_op = PLACEMENT_NORMAL;
+	g[g1].t[0]->t_op = PLACEMENT_OPPOSITE;
 
-	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[1].tl_op = PLACEMENT_NORMAL;
-	g[g2].t[1].t_op = PLACEMENT_BOTH;
-	g[g1].t[1].t_op = PLACEMENT_BOTH;
+	g[g2].t[1]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1]->tl_op = PLACEMENT_NORMAL;
+	g[g2].t[1]->t_op = PLACEMENT_BOTH;
+	g[g1].t[1]->t_op = PLACEMENT_BOTH;
 	break;
     case 3:
 	for (i = 0; i < MAXAXES; i++) {
-	    g[g1].t[i].active = TRUE;
-	    g[g2].t[i].active = TRUE;
+	    g[g1].t[i]->active = TRUE;
+	    g[g2].t[i]->active = TRUE;
 	}
-	g[g2].t[1].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[1].tl_op = PLACEMENT_OPPOSITE;
-	g[g2].t[0].tl_op = PLACEMENT_NORMAL;
-	g[g1].t[0].tl_op = PLACEMENT_OPPOSITE;
-	g[g2].t[1].t_op = PLACEMENT_NORMAL;
-	g[g1].t[1].t_op = PLACEMENT_OPPOSITE;
-	g[g2].t[0].t_op = PLACEMENT_NORMAL;
-	g[g1].t[0].t_op = PLACEMENT_OPPOSITE;
+	g[g2].t[1]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[1]->tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0]->tl_op = PLACEMENT_NORMAL;
+	g[g1].t[0]->tl_op = PLACEMENT_OPPOSITE;
+	g[g2].t[1]->t_op = PLACEMENT_NORMAL;
+	g[g1].t[1]->t_op = PLACEMENT_OPPOSITE;
+	g[g2].t[0]->t_op = PLACEMENT_NORMAL;
+	g[g1].t[0]->t_op = PLACEMENT_OPPOSITE;
 	break;
     }
     
@@ -1122,7 +1176,7 @@ int get_world_stack_entry(int gno, int n, world_stack *ws)
 int activate_tick_labels(int gno, int axis, int flag)
 {
     if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
-        g[gno].t[axis].tl_flag = flag;
+        g[gno].t[axis]->tl_flag = flag;
         set_dirtystate();
         return GRACE_EXIT_SUCCESS;
     } else {
@@ -1287,23 +1341,23 @@ void postprocess_project(int version)
 	    if (version <= 40102) {
                 if ( (is_xaxis(naxis) && g[gno].xscale == SCALE_LOG) ||
                      (!is_xaxis(naxis) && g[gno].yscale == SCALE_LOG) ) {
-                    g[gno].t[naxis].tmajor = pow(10.0, g[gno].t[naxis].tmajor);
+                    g[gno].t[naxis]->tmajor = pow(10.0, g[gno].t[naxis]->tmajor);
                 }
                 
                 /* TODO : world/view translation */
-                g[gno].t[naxis].offsx = 0.0;
-                g[gno].t[naxis].offsy = 0.0;
+                g[gno].t[naxis]->offsx = 0.0;
+                g[gno].t[naxis]->offsy = 0.0;
             }
 	    if (version < 50000) {
 	        /* There was no label_op in Xmgr */
-                g[gno].t[naxis].label_op = g[gno].t[naxis].tl_op;
+                g[gno].t[naxis]->label_op = g[gno].t[naxis]->tl_op;
 	        
                 /* in xmgr, axis label placement was in x,y coordinates */
 	        /* in Grace, it's parallel/perpendicular */
 	        if(!is_xaxis(naxis)) {
-	            fswap(&g[gno].t[naxis].label.x, &g[gno].t[naxis].label.y);
+	            fswap(&g[gno].t[naxis]->label.x, &g[gno].t[naxis]->label.y);
 	        }
-	        g[gno].t[naxis].label.y *= -1;
+	        g[gno].t[naxis]->label.y *= -1;
 	    }
         }
     }

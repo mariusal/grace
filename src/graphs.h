@@ -169,7 +169,7 @@ typedef struct {
 
     labels labs;                /* title and subtitle */
 
-    tickmarks t[MAXAXES];       /* flags etc. for tickmarks for all axes */
+    tickmarks *t[MAXAXES];      /* flags etc. for tickmarks for all axes */
 
     framep f;                   /* type of box around plot */
 
@@ -194,10 +194,11 @@ int move_graph(int from, int to);
 int swap_graph(int from, int to);
 int duplicate_graph(int gno);
 
-int get_graph_tickmarks(int gno, tickmarks *t, int a);
-int set_graph_tickmarks(int gno, tickmarks *t, int a);
-void free_ticklabels(tickmarks *t);
-void zero_ticklabels(tickmarks *t);
+tickmarks *new_graph_tickmarks(void);
+tickmarks *copy_graph_tickmarks(tickmarks *);
+tickmarks *get_graph_tickmarks(int gno, int a);
+void free_graph_tickmarks(tickmarks *t);
+int set_graph_tickmarks(int gno, int a, tickmarks *t);
 
 int get_graph_framep(int gno, framep *f);
 int get_graph_world(int gno, world *w);

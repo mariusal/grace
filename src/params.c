@@ -105,7 +105,7 @@ void putparms(int gno, FILE *pp, int embed)
     legend leg;
     labels lab;
     plotarr p;
-    tickmarks t;
+    tickmarks *t;
     world_stack ws;
     world w;
     view v;
@@ -276,7 +276,7 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%s    yaxes invert %s\n", embedstr, on_or_off(is_graph_yinvert(gno)));
 
             for (i = 0; i < MAXAXES; i++) {
-                get_graph_tickmarks(gno, &t, i);
+                t = get_graph_tickmarks(gno, i);
                 switch (i) {
                 case 0:
                     sprintf(buf, "%s    xaxis ", embedstr);
@@ -292,37 +292,37 @@ void putparms(int gno, FILE *pp, int embed)
                     break;
                 }
 
-                fprintf(pp, "%s %s\n", buf, on_or_off(t.active));
-                if (t.active == FALSE) {
+                fprintf(pp, "%s %s\n", buf, on_or_off(t->active));
+                if (t->active == FALSE) {
                     continue;
                 }
                 
-                fprintf(pp, "%s type zero %s\n", buf, true_or_false(t.zero));
+                fprintf(pp, "%s type zero %s\n", buf, true_or_false(t->zero));
 
-                fprintf(pp, "%s offset %f , %f\n", buf, t.offsx, t.offsy);
+                fprintf(pp, "%s offset %f , %f\n", buf, t->offsx, t->offsy);
 
-                fprintf(pp, "%s bar %s\n", buf, on_or_off(t.t_drawbar));
-                fprintf(pp, "%s bar color %d\n", buf, t.t_drawbarcolor);
-                fprintf(pp, "%s bar linestyle %d\n", buf, t.t_drawbarlines);
-                fprintf(pp, "%s bar linewidth %.1f\n", buf, t.t_drawbarlinew);
+                fprintf(pp, "%s bar %s\n", buf, on_or_off(t->t_drawbar));
+                fprintf(pp, "%s bar color %d\n", buf, t->t_drawbarcolor);
+                fprintf(pp, "%s bar linestyle %d\n", buf, t->t_drawbarlines);
+                fprintf(pp, "%s bar linewidth %.1f\n", buf, t->t_drawbarlinew);
 
 
-                fprintf(pp, "%s label \"%s\"\n", buf, PSTRING(t.label.s));
-                if (t.label_layout == LAYOUT_PERPENDICULAR) {
+                fprintf(pp, "%s label \"%s\"\n", buf, PSTRING(t->label.s));
+                if (t->label_layout == LAYOUT_PERPENDICULAR) {
                     fprintf(pp, "%s label layout perp\n", buf);
                 } else {
                     fprintf(pp, "%s label layout para\n", buf);
                 }
-                if (t.label_place == TYPE_AUTO) {
+                if (t->label_place == TYPE_AUTO) {
                     fprintf(pp, "%s label place auto\n", buf);
                 } else {
                     fprintf(pp, "%s label place spec\n", buf);
-                    fprintf(pp, "%s label place %f, %f\n", buf, t.label.x, t.label.y);
+                    fprintf(pp, "%s label place %f, %f\n", buf, t->label.x, t->label.y);
                 }
-                fprintf(pp, "%s label char size %f\n", buf, t.label.charsize);
-                fprintf(pp, "%s label font %d\n", buf, get_font_mapped_id(t.label.font));
-                fprintf(pp, "%s label color %d\n", buf, t.label.color);
-                switch (t.label_op) {
+                fprintf(pp, "%s label char size %f\n", buf, t->label.charsize);
+                fprintf(pp, "%s label font %d\n", buf, get_font_mapped_id(t->label.font));
+                fprintf(pp, "%s label color %d\n", buf, t->label.color);
+                switch (t->label_op) {
                 case PLACEMENT_NORMAL:
                     fprintf(pp, "%s label place normal\n", buf);
                     break;
@@ -334,12 +334,12 @@ void putparms(int gno, FILE *pp, int embed)
                     break;
                 }
 
-                fprintf(pp, "%s tick %s\n", buf, on_or_off(t.t_flag));
-                fprintf(pp, "%s tick major %.12g\n", buf, t.tmajor);
-                fprintf(pp, "%s tick minor ticks %d\n", buf, t.nminor);
-                fprintf(pp, "%s tick default %d\n", buf, t.t_autonum);
-                fprintf(pp, "%s tick place rounded %s\n", buf, true_or_false(t.t_round));
-                switch (t.t_inout) {
+                fprintf(pp, "%s tick %s\n", buf, on_or_off(t->t_flag));
+                fprintf(pp, "%s tick major %.12g\n", buf, t->tmajor);
+                fprintf(pp, "%s tick minor ticks %d\n", buf, t->nminor);
+                fprintf(pp, "%s tick default %d\n", buf, t->t_autonum);
+                fprintf(pp, "%s tick place rounded %s\n", buf, true_or_false(t->t_round));
+                switch (t->t_inout) {
                 case TICKS_IN:
                     fprintf(pp, "%s tick in\n", buf);
                     break;
@@ -350,27 +350,27 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s tick both\n", buf);
                     break;
                 }
-                fprintf(pp, "%s tick major size %f\n", buf, t.props.size);
-                fprintf(pp, "%s tick major color %d\n", buf, t.props.color);
-                fprintf(pp, "%s tick major linewidth %.1f\n", buf, t.props.linew);
-                fprintf(pp, "%s tick major linestyle %d\n", buf, t.props.lines);
-                fprintf(pp, "%s tick major grid %s\n", buf, on_or_off(t.props.gridflag));
-                fprintf(pp, "%s tick minor color %d\n", buf, t.mprops.color);
-                fprintf(pp, "%s tick minor linewidth %.1f\n", buf, t.mprops.linew);
-                fprintf(pp, "%s tick minor linestyle %d\n", buf, t.mprops.lines);
-                fprintf(pp, "%s tick minor grid %s\n", buf, on_or_off(t.mprops.gridflag));
-                fprintf(pp, "%s tick minor size %f\n", buf, t.mprops.size);
+                fprintf(pp, "%s tick major size %f\n", buf, t->props.size);
+                fprintf(pp, "%s tick major color %d\n", buf, t->props.color);
+                fprintf(pp, "%s tick major linewidth %.1f\n", buf, t->props.linew);
+                fprintf(pp, "%s tick major linestyle %d\n", buf, t->props.lines);
+                fprintf(pp, "%s tick major grid %s\n", buf, on_or_off(t->props.gridflag));
+                fprintf(pp, "%s tick minor color %d\n", buf, t->mprops.color);
+                fprintf(pp, "%s tick minor linewidth %.1f\n", buf, t->mprops.linew);
+                fprintf(pp, "%s tick minor linestyle %d\n", buf, t->mprops.lines);
+                fprintf(pp, "%s tick minor grid %s\n", buf, on_or_off(t->mprops.gridflag));
+                fprintf(pp, "%s tick minor size %f\n", buf, t->mprops.size);
 
 
-                fprintf(pp, "%s ticklabel %s\n", buf, on_or_off(t.tl_flag));
-                fprintf(pp, "%s ticklabel prec %d\n", buf, t.tl_prec);
-                fprintf(pp, "%s ticklabel format %s\n", buf, get_format_types(t.tl_format));
-                fprintf(pp, "%s ticklabel append \"%s\"\n", buf, PSTRING(t.tl_appstr));
-                fprintf(pp, "%s ticklabel prepend \"%s\"\n", buf, PSTRING(t.tl_prestr));
-                fprintf(pp, "%s ticklabel angle %d\n", buf, t.tl_angle);
-                fprintf(pp, "%s ticklabel skip %d\n", buf, t.tl_skip);
-                fprintf(pp, "%s ticklabel stagger %d\n", buf, t.tl_staggered);
-                switch (t.tl_op) {
+                fprintf(pp, "%s ticklabel %s\n", buf, on_or_off(t->tl_flag));
+                fprintf(pp, "%s ticklabel prec %d\n", buf, t->tl_prec);
+                fprintf(pp, "%s ticklabel format %s\n", buf, get_format_types(t->tl_format));
+                fprintf(pp, "%s ticklabel append \"%s\"\n", buf, PSTRING(t->tl_appstr));
+                fprintf(pp, "%s ticklabel prepend \"%s\"\n", buf, PSTRING(t->tl_prestr));
+                fprintf(pp, "%s ticklabel angle %d\n", buf, t->tl_angle);
+                fprintf(pp, "%s ticklabel skip %d\n", buf, t->tl_skip);
+                fprintf(pp, "%s ticklabel stagger %d\n", buf, t->tl_staggered);
+                switch (t->tl_op) {
                 case PLACEMENT_NORMAL:
                     fprintf(pp, "%s ticklabel place normal\n", buf);
                     break;
@@ -382,9 +382,9 @@ void putparms(int gno, FILE *pp, int embed)
                     break;
                 }
                 fprintf(pp, "%s ticklabel offset %s\n", buf,
-                                t.tl_gaptype == TYPE_AUTO ? "auto" : "spec");
-                fprintf(pp, "%s ticklabel offset %f , %f\n", buf, t.tl_gap.x, t.tl_gap.y);
-                switch (t.tl_sign) {
+                                t->tl_gaptype == TYPE_AUTO ? "auto" : "spec");
+                fprintf(pp, "%s ticklabel offset %f , %f\n", buf, t->tl_gap.x, t->tl_gap.y);
+                switch (t->tl_sign) {
                 case SIGN_NORMAL:
                     fprintf(pp, "%s ticklabel sign normal\n", buf);
                     break;
@@ -396,16 +396,16 @@ void putparms(int gno, FILE *pp, int embed)
                     break;
                 }
                 fprintf(pp, "%s ticklabel start type %s\n", buf,
-                                t.tl_starttype == TYPE_AUTO ? "auto" : "spec");
-                fprintf(pp, "%s ticklabel start %f\n", buf, t.tl_start);
+                                t->tl_starttype == TYPE_AUTO ? "auto" : "spec");
+                fprintf(pp, "%s ticklabel start %f\n", buf, t->tl_start);
                 fprintf(pp, "%s ticklabel stop type %s\n", buf,
-                                t.tl_stoptype == TYPE_AUTO ? "auto" : "spec");
-                fprintf(pp, "%s ticklabel stop %f\n", buf, t.tl_stop);
-                fprintf(pp, "%s ticklabel char size %f\n", buf, t.tl_charsize);
-                fprintf(pp, "%s ticklabel font %d\n", buf, get_font_mapped_id(t.tl_font));
-                fprintf(pp, "%s ticklabel color %d\n", buf, t.tl_color);
+                                t->tl_stoptype == TYPE_AUTO ? "auto" : "spec");
+                fprintf(pp, "%s ticklabel stop %f\n", buf, t->tl_stop);
+                fprintf(pp, "%s ticklabel char size %f\n", buf, t->tl_charsize);
+                fprintf(pp, "%s ticklabel font %d\n", buf, get_font_mapped_id(t->tl_font));
+                fprintf(pp, "%s ticklabel color %d\n", buf, t->tl_color);
 
-                switch (t.t_op) {
+                switch (t->t_op) {
                 case PLACEMENT_NORMAL:
                     fprintf(pp, "%s tick place normal\n", buf);
                     break;
@@ -416,38 +416,37 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s tick place both\n", buf);
                     break;
                 }
-                if (t.tl_type == TYPE_AUTO) {
+                if (t->tl_type == TYPE_AUTO) {
                     fprintf(pp, "%s ticklabel type auto\n", buf);
                 } else {
                     fprintf(pp, "%s ticklabel type spec\n", buf);
                 }
-                if (t.t_type == TYPE_AUTO) {
+                if (t->t_type == TYPE_AUTO) {
                     fprintf(pp, "%s tick type auto\n", buf);
                 } else {
                     fprintf(pp, "%s tick type spec\n", buf);
-                    fprintf(pp, "%s tick spec %d\n", buf, t.nticks);
+                    fprintf(pp, "%s tick spec %d\n", buf, t->nticks);
                 }
-                if (t.t_type == TYPE_SPEC || t.tl_type == TYPE_SPEC) {
-                    for (j = 0; j < t.nticks; j++) {
-                        sprintf(tmpstr1, sformat, t.tloc[j].wtpos);
-                        if (t.tloc[j].type == TICK_TYPE_MAJOR) {
-                            if (t.t_type == TYPE_SPEC) {
+                if (t->t_type == TYPE_SPEC || t->tl_type == TYPE_SPEC) {
+                    for (j = 0; j < t->nticks; j++) {
+                        sprintf(tmpstr1, sformat, t->tloc[j].wtpos);
+                        if (t->tloc[j].type == TICK_TYPE_MAJOR) {
+                            if (t->t_type == TYPE_SPEC) {
                                 fprintf(pp, "%s tick major %d, %s\n",
                                     buf, j, tmpstr1);
                             }
-                            if (t.tl_type == TYPE_SPEC) {
+                            if (t->tl_type == TYPE_SPEC) {
                                 fprintf(pp, "%s ticklabel %d, \"%s\"\n",
-                                    buf, j, PSTRING(t.tloc[j].label));
+                                    buf, j, PSTRING(t->tloc[j].label));
                             }
                         } else {
-                            if (t.t_type == TYPE_SPEC) {
+                            if (t->t_type == TYPE_SPEC) {
                                 fprintf(pp, "%s tick minor %d, %s\n",
                                     buf, j, tmpstr1);
                             }
                         }
                     }
                 }
-                free_ticklabels(&t);
             }
 
             get_graph_legend(gno, &leg);

@@ -3330,10 +3330,10 @@ setprop:
 
 axisfeature:
 	onoff {
-	    g[whichgraph].t[naxis].active = $1;
+	    g[whichgraph].t[naxis]->active = $1;
 	}
 	| TYPE ZERO onoff {
-	    g[whichgraph].t[naxis].zero = $3;
+	    g[whichgraph].t[naxis]->zero = $3;
 	}
 	| TICKP tickattr {}
 	| TICKP tickattr_obs {}
@@ -3343,231 +3343,231 @@ axisfeature:
 	| LABEL axislabeldesc_obs {}
 	| BAR axisbardesc {}
 	| OFFSET expr ',' expr {
-            g[whichgraph].t[naxis].offsx = $2;
-	    g[whichgraph].t[naxis].offsy = $4;
+            g[whichgraph].t[naxis]->offsx = $2;
+	    g[whichgraph].t[naxis]->offsy = $4;
 	}
 	;
 
 tickattr:
 	onoff {
-	    g[whichgraph].t[naxis].t_flag = $1;
+	    g[whichgraph].t[naxis]->t_flag = $1;
 	}
 	| MAJOR expr {
-            g[whichgraph].t[naxis].tmajor = $2;
+            g[whichgraph].t[naxis]->tmajor = $2;
 	}
 	| MINOR TICKSP nexpr {
-	    g[whichgraph].t[naxis].nminor = $3;
+	    g[whichgraph].t[naxis]->nminor = $3;
 	}
 	| PLACE ROUNDED onoff {
-	    g[whichgraph].t[naxis].t_round = $3;
+	    g[whichgraph].t[naxis]->t_round = $3;
 	}
 
 	| OFFSETX expr {
-            g[whichgraph].t[naxis].offsx = $2;
+            g[whichgraph].t[naxis]->offsx = $2;
 	}
 	| OFFSETY expr {
-            g[whichgraph].t[naxis].offsy = $2;
+            g[whichgraph].t[naxis]->offsy = $2;
 	}
 	| DEFAULT nexpr {
-	    g[whichgraph].t[naxis].t_autonum = $2;
+	    g[whichgraph].t[naxis]->t_autonum = $2;
 	}
 	| inoutchoice {
-	    g[whichgraph].t[naxis].t_inout = $1;
+	    g[whichgraph].t[naxis]->t_inout = $1;
 	}
 	| MAJOR SIZE expr {
-	    g[whichgraph].t[naxis].props.size = $3;
+	    g[whichgraph].t[naxis]->props.size = $3;
 	}
 	| MINOR SIZE expr {
-	    g[whichgraph].t[naxis].mprops.size = $3;
+	    g[whichgraph].t[naxis]->mprops.size = $3;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].props.color = g[whichgraph].t[naxis].mprops.color = $1;
+	    g[whichgraph].t[naxis]->props.color = g[whichgraph].t[naxis]->mprops.color = $1;
 	}
 	| MAJOR color_select {
-	    g[whichgraph].t[naxis].props.color = $2;
+	    g[whichgraph].t[naxis]->props.color = $2;
 	}
 	| MINOR color_select {
-	    g[whichgraph].t[naxis].mprops.color = $2;
+	    g[whichgraph].t[naxis]->mprops.color = $2;
 	}
 	| linew_select {
-	    g[whichgraph].t[naxis].props.linew = g[whichgraph].t[naxis].mprops.linew = $1;
+	    g[whichgraph].t[naxis]->props.linew = g[whichgraph].t[naxis]->mprops.linew = $1;
 	}
 	| MAJOR linew_select {
-	    g[whichgraph].t[naxis].props.linew = $2;
+	    g[whichgraph].t[naxis]->props.linew = $2;
 	}
 	| MINOR linew_select {
-	    g[whichgraph].t[naxis].mprops.linew = $2;
+	    g[whichgraph].t[naxis]->mprops.linew = $2;
 	}
 	| MAJOR lines_select {
-	    g[whichgraph].t[naxis].props.lines = $2;
+	    g[whichgraph].t[naxis]->props.lines = $2;
 	}
 	| MINOR lines_select {
-	    g[whichgraph].t[naxis].mprops.lines = $2;
+	    g[whichgraph].t[naxis]->mprops.lines = $2;
 	}
 	| MAJOR GRID onoff {
-	    g[whichgraph].t[naxis].props.gridflag = $3;
+	    g[whichgraph].t[naxis]->props.gridflag = $3;
 	}
 	| MINOR GRID onoff {
-	    g[whichgraph].t[naxis].mprops.gridflag = $3;
+	    g[whichgraph].t[naxis]->mprops.gridflag = $3;
 	}
 	| opchoice_sel {
-	    g[whichgraph].t[naxis].t_op = $1;
+	    g[whichgraph].t[naxis]->t_op = $1;
 	}
 	| TYPE AUTO {
-	    g[whichgraph].t[naxis].t_type = TYPE_AUTO;
+	    g[whichgraph].t[naxis]->t_type = TYPE_AUTO;
 	}
 	| TYPE SPEC {
-	    g[whichgraph].t[naxis].t_type = TYPE_SPEC;
+	    g[whichgraph].t[naxis]->t_type = TYPE_SPEC;
 	}
 	| SPEC nexpr {
-	    g[whichgraph].t[naxis].nticks = $2;
+	    g[whichgraph].t[naxis]->nticks = $2;
 	}
 	| MAJOR nexpr ',' expr {
-	    g[whichgraph].t[naxis].tloc[$2].wtpos = $4;
-	    g[whichgraph].t[naxis].tloc[$2].type = TICK_TYPE_MAJOR;
+	    g[whichgraph].t[naxis]->tloc[$2].wtpos = $4;
+	    g[whichgraph].t[naxis]->tloc[$2].type = TICK_TYPE_MAJOR;
 	}
 	| MINOR nexpr ',' expr {
-	    g[whichgraph].t[naxis].tloc[$2].wtpos = $4;
-	    g[whichgraph].t[naxis].tloc[$2].type = TICK_TYPE_MINOR;
+	    g[whichgraph].t[naxis]->tloc[$2].wtpos = $4;
+	    g[whichgraph].t[naxis]->tloc[$2].type = TICK_TYPE_MINOR;
 	}
 	;
 
 ticklabelattr:
 	onoff {
-	    g[whichgraph].t[naxis].tl_flag = $1;
+	    g[whichgraph].t[naxis]->tl_flag = $1;
 	}
 	| TYPE AUTO {
-	    g[whichgraph].t[naxis].tl_type = TYPE_AUTO;
+	    g[whichgraph].t[naxis]->tl_type = TYPE_AUTO;
 	}
 	| TYPE SPEC {
-	    g[whichgraph].t[naxis].tl_type = TYPE_SPEC;
+	    g[whichgraph].t[naxis]->tl_type = TYPE_SPEC;
 	}
 	| PREC nexpr {
-	    g[whichgraph].t[naxis].tl_prec = $2;
+	    g[whichgraph].t[naxis]->tl_prec = $2;
 	}
 	| FORMAT formatchoice {
-	    g[whichgraph].t[naxis].tl_format = $2;
+	    g[whichgraph].t[naxis]->tl_format = $2;
 	}
 	| FORMAT expr {
-	    g[whichgraph].t[naxis].tl_format = $2;
+	    g[whichgraph].t[naxis]->tl_format = $2;
 	}
 	| APPEND CHRSTR {
-	    strcpy(g[whichgraph].t[naxis].tl_appstr, $2);
+	    strcpy(g[whichgraph].t[naxis]->tl_appstr, $2);
 	    free($2);
 	}
 	| PREPEND CHRSTR {
-	    strcpy(g[whichgraph].t[naxis].tl_prestr, $2);
+	    strcpy(g[whichgraph].t[naxis]->tl_prestr, $2);
 	    free($2);
 	}
 	| ANGLE nexpr {
-	    g[whichgraph].t[naxis].tl_angle = $2;
+	    g[whichgraph].t[naxis]->tl_angle = $2;
 	}
 	| SKIP nexpr {
-	    g[whichgraph].t[naxis].tl_skip = $2;
+	    g[whichgraph].t[naxis]->tl_skip = $2;
 	}
 	| STAGGER nexpr {
-	    g[whichgraph].t[naxis].tl_staggered = $2;
+	    g[whichgraph].t[naxis]->tl_staggered = $2;
 	}
 	| opchoice_sel {
-	    g[whichgraph].t[naxis].tl_op = $1;
+	    g[whichgraph].t[naxis]->tl_op = $1;
 	}
 	| SIGN signchoice {
-	    g[whichgraph].t[naxis].tl_sign = $2;
+	    g[whichgraph].t[naxis]->tl_sign = $2;
 	}
 	| START expr {
-	    g[whichgraph].t[naxis].tl_start = $2;
+	    g[whichgraph].t[naxis]->tl_start = $2;
 	}
 	| STOP expr {
-	    g[whichgraph].t[naxis].tl_stop = $2;
+	    g[whichgraph].t[naxis]->tl_stop = $2;
 	}
 	| START TYPE SPEC {
-	    g[whichgraph].t[naxis].tl_starttype = TYPE_SPEC;
+	    g[whichgraph].t[naxis]->tl_starttype = TYPE_SPEC;
 	}
 	| START TYPE AUTO {
-	    g[whichgraph].t[naxis].tl_starttype = TYPE_AUTO;
+	    g[whichgraph].t[naxis]->tl_starttype = TYPE_AUTO;
 	}
 	| STOP TYPE SPEC {
-	    g[whichgraph].t[naxis].tl_stoptype = TYPE_SPEC;
+	    g[whichgraph].t[naxis]->tl_stoptype = TYPE_SPEC;
 	}
 	| STOP TYPE AUTO {
-	    g[whichgraph].t[naxis].tl_stoptype = TYPE_AUTO;
+	    g[whichgraph].t[naxis]->tl_stoptype = TYPE_AUTO;
 	}
 	| CHAR SIZE expr {
-	    g[whichgraph].t[naxis].tl_charsize = $3;
+	    g[whichgraph].t[naxis]->tl_charsize = $3;
 	}
 	| font_select {
-	    g[whichgraph].t[naxis].tl_font = $1;
+	    g[whichgraph].t[naxis]->tl_font = $1;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].tl_color = $1;
+	    g[whichgraph].t[naxis]->tl_color = $1;
 	}
 	| nexpr ',' CHRSTR {
-	    g[whichgraph].t[naxis].tloc[$1].label = 
-                copy_string(g[whichgraph].t[naxis].tloc[$1].label, $3);
+	    g[whichgraph].t[naxis]->tloc[$1].label = 
+                copy_string(g[whichgraph].t[naxis]->tloc[$1].label, $3);
 	    free($3);
 	}
 	| OFFSET AUTO {
-	    g[whichgraph].t[naxis].tl_gaptype = TYPE_AUTO;
+	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_AUTO;
 	}
 	| OFFSET SPEC {
-	    g[whichgraph].t[naxis].tl_gaptype = TYPE_SPEC;
+	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_SPEC;
 	}
 	| OFFSET expr ',' expr {
-	    g[whichgraph].t[naxis].tl_gap.x = $2;
-	    g[whichgraph].t[naxis].tl_gap.y = $4;
+	    g[whichgraph].t[naxis]->tl_gap.x = $2;
+	    g[whichgraph].t[naxis]->tl_gap.y = $4;
 	}
 	;
 
 axislabeldesc:
 	CHRSTR {
-	    set_plotstr_string(&g[whichgraph].t[naxis].label, $1);
+	    set_plotstr_string(&g[whichgraph].t[naxis]->label, $1);
 	    free($1);
 	}
 	| LAYOUT PERP {
-	    g[whichgraph].t[naxis].label_layout = LAYOUT_PERPENDICULAR;
+	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PERPENDICULAR;
 	}
 	| LAYOUT PARA {
-	    g[whichgraph].t[naxis].label_layout = LAYOUT_PARALLEL;
+	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PARALLEL;
 	}
 	| PLACE AUTO {
-	    g[whichgraph].t[naxis].label_place = TYPE_AUTO;
+	    g[whichgraph].t[naxis]->label_place = TYPE_AUTO;
 	}
 	| PLACE SPEC {
-	    g[whichgraph].t[naxis].label_place = TYPE_SPEC;
+	    g[whichgraph].t[naxis]->label_place = TYPE_SPEC;
 	}
 	| PLACE expr ',' expr {
-	    g[whichgraph].t[naxis].label.x = $2;
-	    g[whichgraph].t[naxis].label.y = $4;
+	    g[whichgraph].t[naxis]->label.x = $2;
+	    g[whichgraph].t[naxis]->label.y = $4;
 	}
 	| JUST justchoice {
-	    g[whichgraph].t[naxis].label.just = $2;
+	    g[whichgraph].t[naxis]->label.just = $2;
 	}
 	| CHAR SIZE expr {
-	    g[whichgraph].t[naxis].label.charsize = $3;
+	    g[whichgraph].t[naxis]->label.charsize = $3;
 	}
 	| font_select {
-	    g[whichgraph].t[naxis].label.font = $1;
+	    g[whichgraph].t[naxis]->label.font = $1;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].label.color = $1;
+	    g[whichgraph].t[naxis]->label.color = $1;
 	}
 	| opchoice_sel {
-	    g[whichgraph].t[naxis].label_op = $1;
+	    g[whichgraph].t[naxis]->label_op = $1;
 	}
 	;
 
 axisbardesc:
 	onoff {
-	    g[whichgraph].t[naxis].t_drawbar = $1;
+	    g[whichgraph].t[naxis]->t_drawbar = $1;
 	}
 	| color_select {
-	    g[whichgraph].t[naxis].t_drawbarcolor = $1;
+	    g[whichgraph].t[naxis]->t_drawbarcolor = $1;
 	}
 	| lines_select {
-	    g[whichgraph].t[naxis].t_drawbarlines = $1;
+	    g[whichgraph].t[naxis]->t_drawbarlines = $1;
 	}
 	| linew_select {
-	    g[whichgraph].t[naxis].t_drawbarlinew = $1;
+	    g[whichgraph].t[naxis]->t_drawbarlinew = $1;
 	}
 	;
 
@@ -4090,7 +4090,7 @@ parmset_obs:
 axislabeldesc_obs:
 	linew_select { }
 	| opchoice_sel_obs {
-	    g[whichgraph].t[naxis].label_op = $1;
+	    g[whichgraph].t[naxis]->label_op = $1;
 	}
         ;
 
@@ -4166,7 +4166,7 @@ setprop_obs:
 tickattr_obs:
 	MAJOR onoff {
 	    /* <= xmgr-4.1 */
-	    g[whichgraph].t[naxis].active = $2;
+	    g[whichgraph].t[naxis]->active = $2;
 	}
 	| MINOR onoff { }
 	| ALT onoff   { }
@@ -4175,21 +4175,21 @@ tickattr_obs:
 	| LOG onoff   { }
 	| MINOR expr {
 	    if ($2 != 0.0) {
-                g[whichgraph].t[naxis].nminor = 
-                            (int) rint(g[whichgraph].t[naxis].tmajor / $2 - 1);
+                g[whichgraph].t[naxis]->nminor = 
+                            (int) rint(g[whichgraph].t[naxis]->tmajor / $2 - 1);
             } else {
-                g[whichgraph].t[naxis].nminor = 0;
+                g[whichgraph].t[naxis]->nminor = 0;
             }
 	}
 	| SIZE expr {
-	    g[whichgraph].t[naxis].props.size = $2;
+	    g[whichgraph].t[naxis]->props.size = $2;
 	}
 	| nexpr ',' expr {
-	    g[whichgraph].t[naxis].tloc[$1].wtpos = $3;
-	    g[whichgraph].t[naxis].tloc[$1].type = TICK_TYPE_MAJOR;
+	    g[whichgraph].t[naxis]->tloc[$1].wtpos = $3;
+	    g[whichgraph].t[naxis]->tloc[$1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
-	    g[whichgraph].t[naxis].t_op = $1;
+	    g[whichgraph].t[naxis]->t_op = $1;
 	}
         ;
 
@@ -4198,15 +4198,15 @@ ticklabelattr_obs:
 	| LAYOUT SPEC { }
 
 	| LAYOUT HORIZONTAL {
-	    g[whichgraph].t[naxis].tl_angle = 0;
+	    g[whichgraph].t[naxis]->tl_angle = 0;
 	}
 	| LAYOUT VERTICAL {
-	    g[whichgraph].t[naxis].tl_angle = 90;
+	    g[whichgraph].t[naxis]->tl_angle = 90;
 	}
 	| PLACE ON TICKSP { }
 	| PLACE BETWEEN TICKSP { }
 	| opchoice_sel_obs {
-	    g[whichgraph].t[naxis].tl_op = $1;
+	    g[whichgraph].t[naxis]->tl_op = $1;
 	}
         ;
 
