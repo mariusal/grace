@@ -2788,6 +2788,10 @@ void SetAngleChoice(Widget w, int angle)
     return;
 }
 
+void SetScaleWidth(Widget w, int width)
+{
+    XtVaSetValues(w, XmNscaleWidth, (Dimension) width, NULL);
+}
 
 Widget CreateToggleButton(Widget parent, char *s)
 {
@@ -3201,8 +3205,10 @@ Widget CreateTextItem4(Widget parent, int len, char *label)
 {
     Widget retval;
     XtVaCreateManagedWidget(label, xmLabelWidgetClass, parent, NULL);
-    retval = XtVaCreateManagedWidget("text", xmTextWidgetClass, parent, NULL);
-    XtVaSetValues(retval, XmNcolumns, len, NULL);
+    retval = XtVaCreateManagedWidget("text",
+        xmTextWidgetClass, parent,
+        XmNcolumns, len,
+        NULL);
     return retval;
 }
 

@@ -266,6 +266,8 @@ Widget CreateAngleChoice(Widget parent, char *s);
 int GetAngleChoice(Widget w);
 void SetAngleChoice(Widget w, int angle);
 
+void SetScaleWidth(Widget w, int width);
+
 Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
 void SetToggleButtonState(Widget w, int value);
