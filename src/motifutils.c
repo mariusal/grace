@@ -2363,10 +2363,10 @@ char *xv_getstr(Widget w)
 Boolean xv_evalexpr(Widget w, double *answer )
 {
     char *s;
-    static char buf[MAX_STRING_LENGTH];
+    static char *buf = NULL;
     int i, len, ier = 0;
 	
-    strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
+    buf = copy_string(buf, s = XmTextGetString(w));
     XtFree(s);
 
     if (!(len = strlen( buf ) )) { /* check for zero length */
@@ -2374,7 +2374,7 @@ Boolean xv_evalexpr(Widget w, double *answer )
         return GRACE_EXIT_FAILURE;
     }
     /* first character may be a sign */
-    if (!fpdigit[(int) s[0]] && s[0] != '-' && s[0] != '+') {
+    if (!fpdigit[(int) buf[0]] && buf[0] != '-' && buf[0] != '+') {
         i = len +1;
     } else {
         i = 1;
@@ -2410,10 +2410,10 @@ Boolean xv_evalexpr(Widget w, double *answer )
 Boolean xv_evalexpri(Widget w, int *answer )
 {
     char *s;
-    static char buf[MAX_STRING_LENGTH];
+    static char *buf = NULL;
     int i, len, ier = 0;
 	
-    strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
+    buf = copy_string(buf, s = XmTextGetString(w));
     XtFree(s);
 
     if (!(len = strlen( buf ) )) { /* check for zero length */
@@ -2421,7 +2421,7 @@ Boolean xv_evalexpri(Widget w, int *answer )
         return GRACE_EXIT_FAILURE;
     }
     /* first character may be a sign */
-    if (!fpdigit[(int) s[0]] && s[0] != '-' && s[0] != '+') {
+    if (!fpdigit[(int) buf[0]] && buf[0] != '-' && buf[0] != '+') {
         i = len +1;
     } else {
         i = 1;
