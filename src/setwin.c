@@ -63,7 +63,7 @@ static int leval_aac_cb(void *data);
 typedef struct _Type_ui {
     Widget top;
     StorageStructure *sel;
-    Widget comment_item;
+    TextStructure *comment_item;
     Widget length_item;
     OptionStructure *datatype_item;
     Widget hotlink_item;
@@ -143,7 +143,7 @@ void create_datasetprop_popup(void *data)
 	rc1 = CreateHContainer(rc);
 	tui.datatype_item = CreateSetTypeChoice(rc1, "Type:");
 	tui.length_item = CreateTextItem2(rc1, 6, "Length:");
-	tui.comment_item = CreateTextItem2(rc, 26, "Comment:");
+	tui.comment_item = CreateTextInput(rc, "Comment:");
 
 	fr = CreateFrame(dialog, "Hotlink");
 	rc = CreateVContainer(fr);
@@ -219,7 +219,7 @@ static void changetypeCB(int n, void **values, void *data)
     if (n == 1) {
 	pset = values[0];
         ncols = dataset_cols(pset);
-        xv_setstr(tui.comment_item, getcomment(pset));
+        SetTextString(tui.comment_item, getcomment(pset));
 	sprintf(buf, "%d", getsetlength(pset));
         xv_setstr(tui.length_item, buf);
         SetOptionChoice(tui.datatype_item, dataset_type(pset));
@@ -300,12 +300,13 @@ static int datasetprop_aac_cb(void *data)
             errmsg("Negative set length!");
             error = TRUE;
         }
-        s = xv_getstr(tui.comment_item);
         
         hotlink = GetToggleButtonState(tui.hotlink_item);
         hotsrc  = GetOptionChoice(tui.hotsrc_item);
         hotfile = xv_getstr(tui.hotfile_item);
  
+        s = GetTextString(tui.comment_item);
+        
         if (error == FALSE) {
             for (i = 0; i < nsets; i++) {
                 pset = selset[i];
@@ -316,6 +317,7 @@ static int datasetprop_aac_cb(void *data)
             }
         }
  
+        xfree(s);
         xfree(selset);
 
         if (error == FALSE) {
