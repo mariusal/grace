@@ -7,10 +7,10 @@ People who have worked on Grace for VMS:
 
 1. Introduction
 
- We have compiled this version of Grace on VMS version 6.2 and 7.1 with
- DECC version 5.7.  We have allowed for other versions, but may have missed
- some things.  Please send mail to John Hasstedt if you have any problems
- building; include CONFIGURE.LOG in your message.
+ I have compiled this version of Grace on VMS version 7.2 with DECC version
+ 5.7.  I have allowed for other versions, but may have missed some things. 
+ Please send mail to John Hasstedt if you have any problems building;
+ include CONFIGURE.LOG in your message.
 
  Grace calls library functions not included in VMS until version 7.
  Starting with version 5.6 of DECC, Compaq distributes an object library
@@ -69,8 +69,9 @@ People who have worked on Grace for VMS:
  and compile the C files in [.pdflib] with the command
 
      CC/FLOAT=IEEE/PREFIX=ALL -
-       /DEFINE=("unlink"="delete",HAVE_SETLOCALE="",HAVE_LIBZ,HAVE_LIBTIFF) -
-       /INCLUDE=(<zlib include directory>,<libtiff include directory>)
+       /DEFINE=(HAVE_SETLOCALE="",HAVE_LIBZ,HAVE_LIBTIFF) -
+       /INCLUDE=(<zlib include directory>,<libtiff include directory>) -
+       /WARNING=(DISABLE=LONGEXTERN)
 
  then create an object library (pdflib.olb) from all the files.  Change
  the /FLOAT qualifier if you are using a different format.  If you don't
