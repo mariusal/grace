@@ -311,6 +311,17 @@ static int ps_initgraphics(int format)
     fprintf(prstream, " end\n");
     fprintf(prstream, "} def\n");
 
+    /* Text under/overlining etc */
+    fprintf(prstream, "/TL {\n");
+    fprintf(prstream, "  /linewidth exch def\n");
+    fprintf(prstream, "  /offset exch def\n");
+    fprintf(prstream, "  gsave\n");
+    fprintf(prstream, "  0 offset rmoveto\n");
+    fprintf(prstream, "  linewidth setlinewidth\n");
+    fprintf(prstream, "  dup stringwidth rlineto s\n");
+    fprintf(prstream, "  grestore\n");
+    fprintf(prstream, "} def\n");
+
     /* Default encoding */
     enc = get_default_encoding();
     fprintf(prstream, "/DefEncoding [\n");
@@ -705,21 +716,26 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
 
     ps_setpen();
     
-    fprintf(prstream, "%.4f %.4f moveto\n", vp.x, vp.y);
+    fprintf(prstream, "%.4f %.4f m\n", vp.x, vp.y);
     fprintf(prstream, "gsave\n");
     fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] concat\n",
                         tm->cxx, tm->cyx, tm->cxy, tm->cyy);
     
     put_string(prstream, s, len);
+
+    if (underline | overline) {
+        double w = get_textline_width(font);
+        if (underline) {
+            double pos = get_underline_pos(font);
+            fprintf(prstream, " %.4f %.4f TL", pos, w);
+        }
+        if (overline) {
+            double pos = get_overline_pos(font);
+            fprintf(prstream, " %.4f %.4f TL", pos, w);
+        }
+    }
+    
     fprintf(prstream, " show\n");
-    
-    if (underline == TRUE) {
-        /* TODO */
-    }
-    
-    if (overline == TRUE) {
-        /* TODO */
-    }
     
     fprintf(prstream, "grestore\n");
 }
