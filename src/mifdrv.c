@@ -296,11 +296,13 @@ void mif_object_props (int draw, int fill)
     int i, ls;
     double lw;
     Pen pen;
+    double side;
 
     pen = getpen();
     if (draw) {
         fprintf(prstream, "   <Pen 0>\n");
-        lw = getlinewidth();
+        side = *((double *) get_curdevice_data());
+        lw = side*getlinewidth();
         fprintf(prstream, "   <PenWidth %8.3f pt>\n", lw);
 
         fprintf(prstream, "   <DashedPattern\n");
