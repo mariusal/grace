@@ -176,9 +176,9 @@ Page_geometry *get_page_geometry(const Canvas *canvas)
 }
 
 int get_device_page_dimensions(const Canvas *canvas,
-    int dindex, int *wpp, int *hpp)
+    unsigned int dindex, int *wpp, int *hpp)
 {
-    if (dindex >= canvas->ndevices || dindex < 0) {
+    if (dindex >= canvas->ndevices) {
         return RETURN_FAILURE;
     } else {
 	*wpp = canvas->device_table[dindex]->pg.width*72/canvas->device_table[dindex]->pg.dpi;
@@ -201,9 +201,9 @@ int register_device(Canvas *canvas, Device_entry *d)
     return dindex;
 }
 
-int select_device(Canvas *canvas, int dindex)
+int select_device(Canvas *canvas, unsigned int dindex)
 {
-    if (dindex >= canvas->ndevices || dindex < 0) {
+    if (dindex >= canvas->ndevices) {
         return RETURN_FAILURE;
     } else {
         canvas->curdevice = canvas->device_table[dindex];
@@ -213,7 +213,7 @@ int select_device(Canvas *canvas, int dindex)
 
 int get_device_by_name(const Canvas *canvas, const char *dname)
 {
-    int i;
+    unsigned int i;
     
     i = 0;
     while (i < canvas->ndevices) {
@@ -245,13 +245,13 @@ char *get_device_name(const Canvas *canvas, int device)
     return canvas->device_table[device]->name;
 }
 
-int parse_device_options(Canvas *canvas, int dindex, char *options)
+int parse_device_options(Canvas *canvas, unsigned int dindex, char *options)
 {
     char *p, *oldp, opstring[64];
     int n;
         
-    if (dindex >= canvas->ndevices || dindex < 0 || 
-            canvas->device_table[dindex]->parser == NULL) {
+    if (dindex >= canvas->ndevices || 
+        canvas->device_table[dindex]->parser == NULL) {
         return RETURN_FAILURE;
     } else {
         Device_entry *dev = canvas->device_table[dindex];

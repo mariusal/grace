@@ -96,7 +96,7 @@ unsigned int number_of_fonts(const Canvas *canvas)
 
 int canvas_get_font_by_name(const Canvas *canvas, const char *fname)
 {
-    int i;
+    unsigned int i;
     
     if (fname == NULL) {
         return BAD_FONT_ID;
@@ -588,7 +588,7 @@ static int postprocess_cs(Canvas *canvas,
     const VPoint vp_zero = {0, 0};
     VPoint cs_marks[MAX_MARKS];
     
-    int iss;
+    unsigned int iss;
     int def_font = getfont(canvas);
     int def_color = getcolor(canvas);
     int text_advancing;
@@ -712,7 +712,7 @@ static int justify_cs(CompositeString *cstring, int just,
     int hjust, vjust;
     double hfudge, vfudge;
     VPoint offset;
-    int iss;
+    unsigned int iss;
 
     hjust = just & 03;
     switch (hjust) {
@@ -760,7 +760,7 @@ static int justify_cs(CompositeString *cstring, int just,
     }
     
     /* justification corrections */
-    for (iss = 0; iss <cstring->nsegs; iss++) {
+    for (iss = 0; iss < cstring->nsegs; iss++) {
 	CSGlyphCache *cglyph = &cstring->cglyphs[iss];
         if (cglyph->glyph == NULL) {
             continue;
@@ -821,7 +821,7 @@ void WriteString(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *theString)
 {
     CompositeString *cstring;
-    int iss;
+    unsigned int iss;
  
     FontRaster fontrast;
     double ipv, dpv;

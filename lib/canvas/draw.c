@@ -47,7 +47,7 @@ int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
 static int clip_polygon(VPoint *vps, int n, const view *clipview);
 static int all_points_inside(const view *clipview, const VPoint *vps, int n);
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
-static int realloc_colors(Canvas *canvas, int n);
+static int realloc_colors(Canvas *canvas, unsigned int n);
 static int RGB2YIQ(const RGB *rgb, YIQ *yiq);
 static int RGB2CMY(const RGB *rgb, CMY *cmy);
 static void canvas_stats_update(Canvas *canvas, int type);
@@ -511,7 +511,8 @@ int get_max_path_limit(const Canvas *canvas)
 
 int initgraphics(Canvas *canvas, const CanvasStats *cstats)
 {
-    int i, retval;
+    unsigned int i;
+    int retval;
 
     for (i = 0; i < canvas->ncolors; i++) {
         CMap_entry *cmap = &canvas->cmap[i];
@@ -1369,7 +1370,7 @@ static int compare_rgb(const RGB *rgb1, const RGB *rgb2)
 
 int find_color(const Canvas *canvas, const RGB *rgb)
 {
-    int i;
+    unsigned int i;
     int cindex = BAD_COLOR;
     
     for (i = 0; i < canvas->ncolors; i++) {
@@ -1384,7 +1385,7 @@ int find_color(const Canvas *canvas, const RGB *rgb)
 
 int get_color_by_name(const Canvas *canvas, const char *cname)
 {
-    int i;
+    unsigned int i;
     int cindex = BAD_COLOR;
     
     for (i = 0; i < canvas->ncolors; i++) {
@@ -1398,9 +1399,9 @@ int get_color_by_name(const Canvas *canvas, const char *cname)
     return (cindex);
 }
 
-static int realloc_colors(Canvas *canvas, int n)
+static int realloc_colors(Canvas *canvas, unsigned int n)
 {
-    int i;
+    unsigned int i;
     CMap_entry *cmap_tmp;
     
     if (n > MAXCOLORS) {
@@ -1516,7 +1517,7 @@ void canvas_color_trans(Canvas *canvas, CMap_entry *cmap)
     }
 }
 
-int store_color(Canvas *canvas, int n, const Color *color)
+int store_color(Canvas *canvas, unsigned int n, const Color *color)
 {
     if (is_valid_color(&color->rgb) != TRUE) {
         return RETURN_FAILURE;
@@ -1689,7 +1690,7 @@ int make_color_scale(Canvas *canvas,
     unsigned int fg, unsigned int bg,
     unsigned int ncolors, unsigned long *colors)
 {
-    int i;
+    unsigned int i;
     fRGB fg_frgb, bg_frgb, delta_frgb;
     Color *fg_color, *bg_color;
 
@@ -1736,7 +1737,7 @@ int make_color_scale(Canvas *canvas,
 
 static int realloc_patterns(Canvas *canvas, unsigned int n)
 {
-    int i;
+    unsigned int i;
     PMap_entry *p_tmp;
     
     for (i = n; i < canvas->npatterns; i++) {
@@ -1821,7 +1822,7 @@ unsigned int number_of_linestyles(const Canvas *canvas)
 
 static int realloc_linestyles(Canvas *canvas, unsigned int n)
 {
-    int i;
+    unsigned int i;
     LMap_entry *p_tmp;
     
     for (i = n; i < canvas->nlinestyles; i++) {
@@ -2138,7 +2139,7 @@ int update_bboxes_with_vpoints(Canvas *canvas, const VPoint *vps, int n, double 
 
 void canvas_stats_reset(Canvas *canvas)
 {
-    int i;
+    unsigned int i;
     
     for (i = 0; i < canvas->ncolors; i++) {
         canvas->cmap[i].used = 0;
@@ -2187,7 +2188,7 @@ CanvasStats *canvas_stats(const Canvas *canvas)
     CanvasStats *cstats = xmalloc(sizeof(CanvasStats));
     
     if (cstats) {
-        int i, j;
+        unsigned int i, j;
         
         memset(cstats, 0, sizeof(CanvasStats));
         

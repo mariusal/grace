@@ -233,11 +233,11 @@ typedef struct {
 typedef struct {
     unsigned int ncolors;
     unsigned int *colors;
-    int npatterns;
-    int *patterns;
-    int nlinestyles;
-    int *linestyles;
-    int nfonts;
+    unsigned int npatterns;
+    unsigned int *patterns;
+    unsigned int nlinestyles;
+    unsigned int *linestyles;
+    unsigned int nfonts;
     FontStats *fonts;
     view bbox;
 } CanvasStats;
@@ -516,7 +516,7 @@ int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
 int get_color_by_name(const Canvas *canvas, const char *cname);
-int store_color(Canvas *canvas, int n, const Color *color);
+int store_color(Canvas *canvas, unsigned int n, const Color *color);
 int add_color(Canvas *canvas, const Color *color);
 int get_colortype(const Canvas *canvas, unsigned int cindex);
 
@@ -525,7 +525,7 @@ int canvas_add_font(Canvas *canvas, char *ffile, const char *alias);
 
 int canvas_get_font_by_name(const Canvas *canvas, const char *fname);
 
-int select_device(Canvas *canvas, int dindex);
+int select_device(Canvas *canvas, unsigned int dindex);
 
 Device_entry *get_device_props(const Canvas *canvas, int device);
 
@@ -535,11 +535,11 @@ int is_valid_page_geometry(const Page_geometry *pg);
 int set_page_geometry(Canvas *canvas, const Page_geometry *pg);
 
 int get_device_page_dimensions(const Canvas *canvas,
-    int dindex, int *wpp, int *hpp);
+    unsigned int dindex, int *wpp, int *hpp);
 
 int get_device_by_name(const Canvas *canvas, const char *dname);
 
-int parse_device_options(Canvas *canvas, int dindex, char *options);
+int parse_device_options(Canvas *canvas, unsigned int dindex, char *options);
 
 int number_of_devices(const Canvas *canvas);
 

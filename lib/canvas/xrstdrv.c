@@ -158,7 +158,7 @@ static void xrst_free_pixmap(miPixmap *bm)
 {
     if (bm) {
         if (bm->pixmap) {
-            int i;
+            unsigned int i;
             for (i = 0; i < bm->width; i++) {
                 xfree(bm->pixmap[i]);
             }
@@ -179,7 +179,7 @@ static miPixmap *xrst_create_pixmap_from_pattern(const Pattern *pat,
         pm->height = pat->height;
         pm->pixmap = xmalloc(pat->width*SIZEOF_VOID_P);
         if (pm->pixmap) {
-            int i, j, k;
+            unsigned int i, j, k;
             unsigned char p;
             
             for (i = 0; i < pm->width; i++) {

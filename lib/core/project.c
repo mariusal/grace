@@ -80,7 +80,7 @@ Project *project_data_new(void)
 
 void project_data_free(Project *pr)
 {
-    int i;
+    unsigned int i;
     
     if (!pr) {
         return;
