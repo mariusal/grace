@@ -1,5 +1,5 @@
 echo "Arrange graphs (2x2 matrix)"
-arrange 2, 2
+arrange(2, 2, 0.1, 0.15, 0.2, on, off, on)
 redraw
 sleep 1
 echo "Create sets in graphs 0, 1, and 2"
@@ -71,7 +71,7 @@ sleep 1
 s0.y = s0.y + rand
 echo "Spline fit of g0.s0, 100 points"
 sleep 1
-spline(s0, min(s0.x), max(s0.x), 100)
+interpolate(s0, mesh(min(s0.x), max(s0.x), 100), spline, true)
 redraw
 frame fill on
 frame background color 7
