@@ -264,7 +264,7 @@ void set_default_plotarr(plotarr * p)
     p->setfillpen.pattern = grdefaults.pattern; /* fill pattern */
 
     p->errbar.active = TRUE;                      /* on by default */
-    p->errbar.ptype = PLACEMENT_BOTH;             /* type of error bar */
+    p->errbar.ptype = PLACEMENT_NORMAL;           /* error bar placement */
     p->errbar.pen.color = grdefaults.color;       /* color */
     p->errbar.pen.pattern = grdefaults.pattern;   /* pattern */
     p->errbar.lines = grdefaults.lines;           /* error bar line width */
