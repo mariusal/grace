@@ -478,11 +478,12 @@ int save_graph_properties(XFile *xf, graph *g)
     xfile_end_element(xf, EStrLegend);
 
     /* Locator */
-    xfile_begin_element(xf, EStrLocator, NULL);
+    attributes_reset(attrs);
+    attributes_set_ival(attrs, AStrType, g->locator.pt_type); /* FIXME: textual */
+    xfile_begin_element(xf, EStrLocator, attrs);
     {
         attributes_reset(attrs);
         xmlio_set_active(attrs, g->locator.pointset);
-        attributes_set_ival(attrs, AStrType, g->locator.pt_type); /* FIXME: textual */
         attributes_set_dval(attrs, AStrX, g->locator.dsx);
         attributes_set_dval(attrs, AStrY, g->locator.dsy);
         xfile_empty_element(xf, EStrFixedpoint, attrs);
@@ -570,9 +571,6 @@ int save_set_properties(XFile *xf, set *p)
         return RETURN_FAILURE;
     }
 
-    attributes_set_sval(attrs, AStrType, set_types(p->type));
-    xfile_empty_element(xf, EStrPresentationSpec, attrs);
-    
     attributes_reset(attrs);
     attributes_set_ival(attrs, AStrType, p->sym); /* FIXME: textual */
     attributes_set_dval(attrs, AStrSize, p->symsize);
@@ -669,7 +667,7 @@ static int save_dataset(XFile *xf, Dataset *data)
 
     for (i = 0; i < data->len; i++) {
         attributes_reset(attrs);
-        for (nc = 0; nc < MAX_SET_COLS; nc++) {
+        for (nc = 0; nc < data->ncols; nc++) {
             if (data->ex[nc]) {
                 xmlio_set_world_value(attrs,
                     dataset_colname(nc), data->ex[nc][i]);
@@ -939,30 +937,29 @@ int save_project(char *fn)
 
             storage_rewind(g->sets);
             while (storage_get_id(g->sets, &setno) == RETURN_SUCCESS) {
-                char data_ref[32];
                 set *p = set_get(gno, setno);
-
-                attributes_reset(attrs);
-                sprintf(data_ref, "G%d.S%d-data", gno, setno);
-                attributes_set_sval(attrs, AStrId, data_ref);
-                attributes_set_sval(attrs, AStrComment, p->comment);
-                if (p->hotlink) {
-                    attributes_set_sval(attrs, AStrHotfile, p->hotfile);
-                    /* FIXME: hotsrc */
-                }
-                xfile_begin_element(xf, EStrDataset, attrs);
-                {
-                    save_dataset(xf, p->data);
-                }
-                xfile_end_element(xf, EStrDataset);
 
                 attributes_reset(attrs);
                 attributes_set_ival(attrs, AStrId, setno);
                 xmlio_set_active(attrs, !(p->hidden));
-                attributes_set_sval(attrs, AStrDataRef, data_ref);
+                attributes_set_sval(attrs, AStrType, set_types(p->type));
                 xfile_begin_element(xf, EStrSet, attrs);
                 {
                     save_set_properties(xf, p);
+
+                    attributes_reset(attrs);
+                    attributes_set_ival(attrs, AStrCols, p->data->ncols);
+                    attributes_set_ival(attrs, AStrRows, p->data->len);
+                    attributes_set_sval(attrs, AStrComment, p->comment);
+                    if (p->hotlink) {
+                        attributes_set_sval(attrs, AStrHotfile, p->hotfile);
+                        /* FIXME: hotsrc */
+                    }
+                    xfile_begin_element(xf, EStrDataset, attrs);
+                    {
+                        save_dataset(xf, p->data);
+                    }
+                    xfile_end_element(xf, EStrDataset);
                 }
                 xfile_end_element(xf, EStrSet);
 
