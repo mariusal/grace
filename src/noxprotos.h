@@ -143,7 +143,6 @@ void do_update_hotlink(Quark *pset);
 
 /* region_utils.c */
 int inregion(const Quark *q, const WPoint *wp);
-char *region_types(int it, int which);
 
 
 /* dates.c */

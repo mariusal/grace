@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -47,5 +47,7 @@ char *side_placement_name(RunTime *rt, int inout);
 int get_side_placement_by_name(RunTime *rt, const char *name);
 char *spec_tick_name(RunTime *rt, int it);
 int get_spec_tick_by_name(RunTime *rt, const char *name);
+char *region_types(RunTime *rt, int it);
+int get_regiontype_by_name(RunTime *rt, const char *name);
 
 #endif /* __DICTS_H_ */

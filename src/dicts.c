@@ -103,6 +103,15 @@ int grace_rt_init_dicts(RunTime *rt)
             {TICKS_SPEC_BOTH,  VStrBoth,  "Tick marks and labels"}
         };
 
+    const DictEntry region_type_defaults =
+        {REGION_POLYGON, VStrPolygon, "Polygon"};
+    const DictEntry region_type_entries[] = 
+        {
+            {REGION_POLYGON, VStrPolygon, "Polygon"},
+            {REGION_BAND,    VStrBand,    "Band"   },
+            {REGION_FORMULA, VStrFormula, "Formula"}
+        };
+
     if (!(rt->graph_type_dict =
         DICT_NEW_STATIC(graph_type_entries, &graph_type_defaults))) {
         return RETURN_FAILURE;
@@ -123,6 +132,10 @@ int grace_rt_init_dicts(RunTime *rt)
         DICT_NEW_STATIC(spec_ticks_entries, &spec_ticks_defaults))) {
         return RETURN_FAILURE;
     }
+    if (!(rt->region_type_dict =
+        DICT_NEW_STATIC(region_type_entries, &region_type_defaults))) {
+        return RETURN_FAILURE;
+    }
     
     return RETURN_SUCCESS;
 }
@@ -134,6 +147,7 @@ void grace_rt_free_dicts(RunTime *rt)
     dict_free(rt->inout_placement_dict);
     dict_free(rt->side_placement_dict);
     dict_free(rt->spec_ticks_dict);
+    dict_free(rt->region_type_dict);
 }
 
 char *graph_types(RunTime *rt, GraphType it)
@@ -227,3 +241,21 @@ int get_spec_tick_by_name(RunTime *rt, const char *name)
     return retval;
 }
 
+
+char *region_types(RunTime *rt, int it)
+{
+    char *s;
+    
+    dict_get_name_by_key(rt->region_type_dict, it, &s);
+    
+    return s;
+}
+
+int get_regiontype_by_name(RunTime *rt, const char *name)
+{
+    int retval;
+    
+    dict_get_key_by_name(rt->region_type_dict, name, &retval);
+    
+    return retval;
+}

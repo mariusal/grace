@@ -158,8 +158,3 @@ int inregion(const Quark *q, const WPoint *wp)
     
     return FALSE;
 }
-
-char *region_types(int it, int which)
-{
-    return "";
-}

@@ -74,6 +74,7 @@
 #define EStrPlacement           "placement"
 #define EStrPointer             "pointer"
 #define EStrPresentationSpec    "presentation-spec"
+#define EStrRegion              "region"
 #define EStrRiserline           "riserline"
 #define EStrRow                 "row"
 #define EStrScales              "scales"
@@ -185,9 +186,11 @@
 
 /* Attribute value names */
 #define VStrAuto                "auto"
+#define VStrBand                "band"
 #define VStrBoth                "both"
 #define VStrEvenodd             "evenodd"
 #define VStrIn                  "in"
+#define VStrFormula             "formula"
 #define VStrMajor               "major"
 #define VStrMinor               "minor"
 #define VStrNone                "none"
@@ -196,6 +199,7 @@
 #define VStrOut                 "out"
 #define VStrParallel            "parallel"
 #define VStrPerpendicular       "perpendicular"
+#define VStrPolygon             "polygon"
 #define VStrTicks               "ticks"
 #define VStrView                "view"
 #define VStrWinding             "winding"

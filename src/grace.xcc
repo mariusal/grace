@@ -608,6 +608,10 @@ char *utf2iso(const char *s)
             $$ = FILLRULE_EVENODD;
         }
     ]]></attribute-type>
+    <attribute-type name="regiontype" ctype="int"><![CDATA[
+        RunTime *rt = ((ParserData *)$U)->rt;
+        $$ = get_regiontype_by_name(rt, $?);
+    ]]></attribute-type>
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
@@ -764,6 +768,9 @@ char *utf2iso(const char *s)
     ]]></element-type>
     <element-type name="datapoint" ctype="Datapoint *"><![CDATA[
         $$ = datapoint_new();
+    ]]></element-type>
+    <element-type name="region" ctype="Quark *"><![CDATA[
+        $$ = region_new((Quark *)$P);
     ]]></element-type>
 
 
@@ -1022,6 +1029,8 @@ char *utf2iso(const char *s)
         <child name="#EStrObject">
         </child>
         <child name="#EStrAText">
+        </child>
+        <child name="#EStrRegion">
         </child>
     </element>
     <element name="#EStrPresentationSpec" type="presentationspec">
@@ -1985,6 +1994,31 @@ char *utf2iso(const char *s)
         <attribute name="s" type="sval">
             $$->s = $?;
         </attribute>
+    </element>
+    <element name="#EStrRegion" type="region">
+        <!-- Attributes -->
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrActive" type="bval">
+            region_set_active($$, $?);
+        </attribute>
+        <attribute name="#AStrType" type="regiontype">
+            region_set_type($$, $?);
+        </attribute>
+        <attribute name="#AStrColorId" type="ival">
+            region_set_color($$, $?);
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrRow"><![CDATA[
+            WPoint wp;
+            wp.x = $?->ex[DATA_X];
+            wp.y = $?->ex[DATA_Y];
+            region_add_point($$, &wp);
+            datapoint_free($?);
+        ]]></child>
     </element>
 
     <!-- Postamble -->

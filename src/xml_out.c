@@ -669,27 +669,6 @@ static int save_dataset(XFile *xf, Quark *pset)
     return RETURN_SUCCESS;
 }
 
-int save_regions(XFile *xf)
-{
-    Attributes *attrs;
-
-    if (!xf) {
-        return RETURN_FAILURE;
-    }
-    
-    attrs = attributes_new();
-    
-    if (attrs == NULL) {
-        return RETURN_FAILURE;
-    }
-
-    /* FIXME: regions */
-
-    attributes_free(attrs);
-
-    return RETURN_SUCCESS;
-}
-    
 int save_preferences(XFile *xf)
 {
     Attributes *attrs;
@@ -719,6 +698,7 @@ static int project_save_hook(Quark *q,
     tickmarks *t;
     DObject *o;
     AText *at;
+    region *r;
     Attributes *attrs;
 
     if (!q) {
@@ -779,8 +759,6 @@ static int project_save_hook(Quark *q,
             xfile_empty_element(xf, EStrWorld, attrs);
         }
         xfile_end_element(xf, EStrDataFormats);
-
-        save_regions(xf);
 
         save_preferences(xf);
         break;
@@ -934,9 +912,28 @@ static int project_save_hook(Quark *q,
         }
         xfile_end_element(xf, EStrAText);
 
-
-
-
+        break;
+    case QFlavorRegion:
+        r = region_get_data(q);
+        
+        attributes_set_sval(attrs, AStrId, QIDSTR(q));
+        
+        xmlio_set_active(attrs, r->active);
+        attributes_set_sval(attrs,
+            AStrType, region_types(rt_from_quark(q), r->type));
+        xmlio_set_color_ref(attrs, r->color);
+        xfile_begin_element(xf, EStrRegion, attrs);
+        {
+            int i;
+            for (i = 0; i < r->n; i++) {
+                attributes_reset(attrs);
+                xmlio_set_world_value(q, attrs, "X", r->wps[i].x);
+                xmlio_set_world_value(q, attrs, "Y", r->wps[i].y);
+                xfile_empty_element(xf, EStrRow, attrs);
+            }
+        }
+        xfile_end_element(xf, EStrRegion);
+        
         break;
     }
     
