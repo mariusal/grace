@@ -222,3 +222,51 @@ char **copy_string_column(AMem *amem, char **src, int nrows)
     }
     return dest;
 }
+
+
+/*
+ * drop rows
+ */
+int ssd_delete_rows(Quark *q, unsigned int startno, unsigned int endno)
+{
+    ss_data *ssd = ssd_get_data(q);
+
+    unsigned int i, j, dist;
+
+    if (!ssd || startno >= ssd->nrows || endno >= ssd->nrows) {
+        return RETURN_FAILURE;
+    }
+    
+    if (endno < startno) {
+        uswap(&endno, &startno);
+    }
+
+    if (endno == ssd->nrows - 1) {
+        /* trivial case */
+        return ssd_set_nrows(q, startno);
+    }
+    
+    dist = endno - startno + 1;
+    
+    for (j = 0; j < ssd->ncols; j++) {
+        ss_column *col = &ssd->cols[j];
+	if (col->format == FFORMAT_STRING) {
+            char **s = col->data;
+	    for (i = startno; i <= endno; i++) {
+	        amem_free(q->amem, s[i]);
+	    }
+	    memmove(s + startno, s + endno + 1,
+                (ssd->nrows - endno - 1)*SIZEOF_VOID_P);
+        } else {
+            double *x = col->data;
+	    memmove(x + startno, x + endno + 1,
+                (ssd->nrows - endno - 1)*SIZEOF_DOUBLE);
+        }
+    }
+    
+    ssd->nrows -= dist;
+    
+    quark_dirtystate_set(q, TRUE);
+    
+    return RETURN_SUCCESS;
+}
