@@ -10,10 +10,10 @@ PARS_C = pars.c
 PARS_O = pars$(O)
 
 GRSRCS =  main.c grace.c project_utils.c \
-	typeset.c drawticks.c drawobj.c plotone.c \
+	typeset.c \
 	utils.c files.c xfile.c xml_in.c xml_out.c ssdata.c \
 	nonlfit.c lmdif.c fourier.c \
-	graph_utils.c set_utils.c region_utils.c \
+	graph_utils.c set_utils.c \
 	dobject_utils.c computils.c \
 	dlmodule.c \
 	iofilters.c dates.c \
@@ -23,10 +23,10 @@ GRSRCS =  main.c grace.c project_utils.c \
 
 
 GROBJS =  main$(O) grace$(O) project_utils$(O) \
-	typeset$(O) drawticks$(O) drawobj$(O) plotone$(O) \
+	typeset$(O) \
 	utils$(O) files$(O) xfile$(O) xml_in$(O) xml_out$(O) ssdata$(O) \
 	nonlfit$(O) lmdif$(O) fourier$(O) \
-	graph_utils$(O) set_utils$(O) region_utils$(O) \
+	graph_utils$(O) set_utils$(O) \
 	dobject_utils$(O) computils$(O) \
 	dlmodule$(O) $(PARS_O) \
 	iofilters$(O) dates$(O) \

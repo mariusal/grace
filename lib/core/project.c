@@ -294,6 +294,23 @@ int project_allow_two_digits_years(Quark *q, int flag)
     }
 }
 
+/*
+ * store the wrap year
+ */
+int project_set_wrap_year(Quark *q, int year)
+{
+    Project *pr = project_get_data(q);
+    
+    if (pr) {
+        pr->wrap_year = year;
+        quark_dirtystate_set(q, TRUE);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
 
 int project_update_timestamp(Quark *q, time_t *t)
 {

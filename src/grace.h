@@ -36,6 +36,7 @@
 #include "grace/baseP.h"
 #include "grace/canvas.h"
 #include "grace/core.h"
+#include "grace/plot.h"
 #include "defines.h"
 
 typedef struct _Grace Grace;
@@ -246,9 +247,6 @@ void project_reset_version(Quark *q);
 
 int project_get_graphs(Quark *q, Quark ***graphs);
 
-void project_set_wrap_year(Quark *q, int wrap_year);
-
-
 char *grace_path(Grace *grace, char *fn);
 char *grace_path2(Grace *grace, const char *prefix, char *fn);
 char *grace_exe_path(Grace *grace, char *fn);
@@ -260,5 +258,7 @@ void grace_close(FILE *fp);
 int grace_init_print(RunTime *rt);
 
 int grace_print(const Grace *grace, const char *fname);
+
+void do_hardcopy(const Quark *project);
 
 #endif /* __GRACE_H_ */

@@ -1,0 +1,16 @@
+##################################################
+#     System-independent Make.defs file for      #
+#             grace-plot library                 #
+##################################################
+
+LIB  = $(GRACE_PLOT_LIB)
+
+SRCS = 	plotone.c \
+	drawticks.c \
+	drawobj.c \
+	utils.c
+
+OBJS = 	plotone$(O) \
+	drawticks$(O) \
+	drawobj$(O) \
+	utils$(O)

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000-2004 Grace Development Team
+ * Copyright (c) 2000-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -33,9 +33,7 @@
 
 #include <stdlib.h>
 
-#include "grace/canvas.h"
-#include "plotone.h"
-#include "core_utils.h"
+#include "grace/plotP.h"
 
 void draw_object(Canvas *canvas, Quark *q)
 {

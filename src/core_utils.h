@@ -73,8 +73,6 @@ int islogy(Quark *gr);
 int islogitx(Quark *gr);
 int islogity(Quark *gr);
 
-int graph_get_viewport(Quark *gr, view *v);
-
 int is_log_axis(const Quark *q);
 int is_logit_axis(const Quark *q);
 
@@ -83,17 +81,9 @@ int number_of_frames(Quark *project);
 int number_of_graphs(Quark *project);
 int select_graph(Quark *g);
 
-int is_set_dataless(Quark *pset);
-
-#define is_set_drawable(p) (quark_is_active(p) && !is_set_dataless(p))
-
-int number_of_sets(Quark *gr);
-
 int load_comments_to_legend(Quark *p);
 
 char *dataset_colname(int col);
-
-int is_refpoint_active(Quark *gr);
 
 int set_refpoint(Quark *gr, const WPoint *wp);
 
@@ -101,10 +91,6 @@ WPoint get_refpoint(Quark *gr);
 
 #define getx(p) set_get_col(p, DATA_X)
 #define gety(p) set_get_col(p, DATA_Y)
-
-double setybase(Quark *p);
-
-int get_descendant_sets(Quark *q, Quark ***sets);
 
 int set_set_colors(Quark *p, unsigned int color);
 Quark *grace_set_new(Quark *gr);

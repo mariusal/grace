@@ -16,6 +16,7 @@ SRCS = 	qfactory.c \
 	region.c \
 	dobject.c \
 	atext.c \
+	utils.c \
 	ctrans.c
 
 OBJS = 	qfactory$(O) \
@@ -29,4 +30,5 @@ OBJS = 	qfactory$(O) \
 	region$(O) \
 	dobject$(O) \
 	atext$(O) \
+	utils$(O) \
 	ctrans$(O)

@@ -46,7 +46,6 @@
 #include "ssdata.h"
 
 #include "dicts.h"
-#include "plotone.h"
 
 #include "devlist.h"
 #include "parser.h"

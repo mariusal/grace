@@ -2746,7 +2746,7 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
     if (quark_fid_get(q) == QFlavorGraph) {
         sprintf(buf, "Graph \"%s\" (type: %s, sets: %d)",
             QIDSTR(q),
-            graph_types(grace->rt, graph_get_type(q)), number_of_sets(q));
+            graph_types(grace->rt, graph_get_type(q)), quark_get_number_of_descendant_sets(q));
 
         (*rid)++;
 
@@ -4020,7 +4020,8 @@ void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data)
     XtAddCallback(ti, XmNactivateCallback, titem_int_cb_proc, (XtPointer) cbdata);
 }
 
-
+/* FIXME: get rid of xv_getstr()!!! */
+#define MAX_STRING_LENGTH 512
 char *xv_getstr(Widget w)
 /* 
  * return the string from a text widget

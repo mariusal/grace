@@ -27,7 +27,7 @@
 
 /*
  *
- * Axis stuff
+ * Set stuff
  *
  */
 

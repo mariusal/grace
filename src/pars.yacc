@@ -58,7 +58,6 @@
 #include "utils.h"
 #include "files.h"
 #include "core_utils.h"
-#include "plotone.h"
 #include "dlmodule.h"
 #include "ssdata.h"
 #include "protos.h"
@@ -3587,7 +3586,7 @@ parmset_obs:
 	| LEGEND STRING nexpr CHRSTR {
             int nsets;
             Quark *pset, **psets;
-            nsets = get_descendant_sets(whichgraph, &psets);
+            nsets = quark_get_descendant_sets(whichgraph, &psets);
             if ($3 >= 0 && $3 < nsets) {
                 pset = psets[$3];
             } else {
@@ -4414,6 +4413,45 @@ int scanner(char *s)
     return retval;
 }
 
+int v_evaluate(char * const formula, char * const varname,
+    double *x, unsigned int len)
+{
+    int res, reslen;
+    double *vres;
+    grarr *tvar = get_parser_arr_by_name(varname);
+
+    if (!x || !len) {
+        return RETURN_FAILURE;
+    }
+    
+    if (tvar == NULL) {
+        tvar = define_parser_arr(varname);
+        if (tvar == NULL) {
+            return RETURN_FAILURE;
+        }
+    }
+
+    if (tvar->length != 0) {
+        xfree(tvar->data);
+        tvar->length = 0;
+    }
+    
+    tvar->data = x;
+    tvar->length = len;
+
+    res = v_scanner(formula, &reslen, &vres);
+    if (res != RETURN_SUCCESS || reslen != len) {
+        return RETURN_FAILURE;
+    } else {
+        memcpy(x, vres, len*SIZEOF_DOUBLE);
+        xfree(vres);
+        tvar->data = NULL;
+        tvar->length = 0;
+        
+        return RETURN_SUCCESS;
+    }
+}
+
 static void free_tmpvrbl(grarr *vrbl)
 {
     if (vrbl->type == GRARR_TMP) {
@@ -4537,7 +4575,7 @@ static int find_set_bydata(double *data, Quark **pset)
         int ngraphs = number_of_graphs(project);
         for (gno = 0; gno < ngraphs; gno++) {
 	    int setno;
-            int nsets = number_of_sets(gno);
+            int nsets = quark_get_number_of_descendant_sets(gno);
 	    for (setno = 0; setno < nsets; setno++) {
                 int ncol;
                 for (ncol = 0; ncol < MAX_SET_COLS; ncol++) {

@@ -347,16 +347,16 @@ static Quark *nextset(Quark *gr)
     
     pset = rt->target_set;
     
-    if (pset && get_parent_graph(pset) == gr && is_set_dataless(pset)) {
+    if (pset && get_parent_graph(pset) == gr && set_is_dataless(pset)) {
         rt->target_set = NULL;
         return pset;
     } else {
         int i, nsets;
         
-        nsets = get_descendant_sets(gr, &psets);
+        nsets = quark_get_descendant_sets(gr, &psets);
         for (i = 0; i < nsets; i++) {
             pset = psets[i];
-            if (is_set_dataless(pset) == TRUE) {
+            if (set_is_dataless(pset) == TRUE) {
 	        return pset;
 	    }
         }

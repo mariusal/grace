@@ -151,4 +151,5 @@ HELPVIEWER=@HELPVIEWER@
 GRACE_BASE_LIB=$(TOP)/lib/base/libgrace-base.a
 GRACE_CANVAS_LIB=$(TOP)/lib/canvas/libgrace-canvas.a
 GRACE_CORE_LIB=$(TOP)/lib/core/libgrace-core.a
+GRACE_PLOT_LIB=$(TOP)/lib/core/libgrace-plot.a
 

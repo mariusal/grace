@@ -36,7 +36,6 @@
 
 #include "globals.h"
 #include "utils.h"
-#include "plotone.h"
 
 #include "motifinc.h"
 #include "protos.h"

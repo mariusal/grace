@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -26,14 +25,13 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*
- * plotone.h
- */
+#ifndef __PLOTP_H_
+#define __PLOTP_H_
 
-#ifndef __PLOTONE_H_
-#define __PLOTONE_H_
+#include "grace/plot.h"
 
-#include "grace.h"
+/* FIXME!!! */
+#define MAX_STRING_LENGTH 512
 
 typedef struct {
     Canvas *canvas;
@@ -47,8 +45,6 @@ typedef struct {
     int first_pass, last_pass;
 } plot_rt_t;
 
-int drawgraph(const Quark *project);
-void do_hardcopy(const Quark *project);
 
 int draw_graph(Quark *gr, plot_rt_t *plot_rt);
 void draw_set(Quark *pset, plot_rt_t *plot_rt);
@@ -93,4 +89,4 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt);
 
 void draw_ref_point(Canvas *canvas, Quark *gr);
 
-#endif /* __PLOTONE_H_ */
+#endif /* __PLOTP_H_ */

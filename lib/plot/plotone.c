@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -39,13 +38,10 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "grace/canvas.h"
+#include "grace/plotP.h"
 
-#include "utils.h"
-#include "files.h"
-#include "core_utils.h"
-#include "plotone.h"
-#include "protos.h"
+static int number_of_active_sets(Quark *gr);
+static int is_refpoint_active(Quark *gr);
 
 static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
@@ -135,101 +131,20 @@ static void dproc(Canvas *canvas, void *data)
 /*
  * draw all active graphs
  */
-int drawgraph(const Quark *project)
+int drawgraph(Canvas *canvas, const Quark *project)
 {
     Project *pr = project_get_data(project);
-    RunTime *rt = rt_from_quark(project);
 
-    if (pr && rt) {
-        canvas_set_docname(rt->canvas, project_get_docname(project));
-        canvas_set_pagefill(rt->canvas, pr->bgfill);
-        setbgcolor(rt->canvas, pr->bgcolor);
-        canvas_set_fontsize_scale(rt->canvas,  pr->fscale);
-        canvas_set_linewidth_scale(rt->canvas, pr->lscale);
+    if (pr) {
+        canvas_set_docname(canvas, project_get_docname(project));
+        canvas_set_pagefill(canvas, pr->bgfill);
+        setbgcolor(canvas, pr->bgcolor);
+        canvas_set_fontsize_scale(canvas,  pr->fscale);
+        canvas_set_linewidth_scale(canvas, pr->lscale);
 
-        return canvas_draw(rt->canvas, dproc, (void *) project);
+        return canvas_draw(canvas, dproc, (void *) project);
     } else {
         return RETURN_FAILURE;
-    }
-}
-
-#define VP_EPSILON  0.001
-
-/*
- * If writing to a file, check to see if it exists
- */
-void do_hardcopy(const Quark *project)
-{
-    Grace *grace = grace_from_quark(project);
-    RunTime *rt;
-    Canvas *canvas;
-    char *s;
-    char fname[GR_MAXPATHLEN];
-    view v;
-    double vx, vy;
-    int truncated_out, res;
-    FILE *prstream;
-    
-    if (!grace) {
-        return;
-    }
-    
-    rt = grace->rt;
-    canvas = rt->canvas;
-    
-    if (get_ptofile(grace)) {
-        if (is_empty_string(rt->print_file)) {
-            Device_entry *dev = get_device_props(canvas, rt->hdevice);
-            sprintf(rt->print_file, "%s.%s",
-                get_docbname(project), dev->fext);
-        }
-        strcpy(fname, rt->print_file);
-    } else {
-        s = get_print_cmd(grace);
-        if (is_empty_string(s)) {
-            errmsg("No print command defined, output aborted");
-            return;
-        }
-        tmpnam(fname);
-        /* VMS doesn't like extensionless files */
-        strcat(fname, ".prn");
-    }
-    
-    prstream = grace_openw(grace, fname);
-    if (prstream == NULL) {
-        return;
-    }
-    
-    canvas_set_prstream(canvas, prstream); 
-    
-    select_device(canvas, rt->hdevice);
-    
-    res = drawgraph(project);
-    
-    grace_close(prstream);
-    
-    if (res != RETURN_SUCCESS) {
-        return;
-    }
-    
-    get_bbox(canvas, BBOX_TYPE_GLOB, &v);
-    project_get_viewport(project, &vx, &vy);
-    if (v.xv1 < 0.0 - VP_EPSILON || v.xv2 > vx + VP_EPSILON ||
-        v.yv1 < 0.0 - VP_EPSILON || v.yv2 > vy + VP_EPSILON) {
-        truncated_out = TRUE;
-    } else {
-        truncated_out = FALSE;
-    }
-    
-    if (get_ptofile(grace) == FALSE) {
-        if (truncated_out == FALSE ||
-            yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
-            grace_print(grace, fname);
-        }
-    } else {
-        if (truncated_out == TRUE) {
-            errmsg("Output is truncated - tune device dimensions");
-        }
     }
 }
 
@@ -249,14 +164,14 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
             int setno, nsets;
             Quark **psets;
 
-            nsets = get_descendant_sets(gr, &psets);
+            nsets = quark_get_descendant_sets(gr, &psets);
             for (setno = 0; setno < nsets; setno++) {
                 Quark *pset = psets[setno];
-                if (is_set_drawable(pset)) {
+                if (set_is_drawable(pset)) {
                     set *p = set_get_data(pset);
                     if (set_get_length(pset) > plot_rt->refn) {
                         plot_rt->refn = set_get_length(pset);
-                        plot_rt->refx = getx(pset);
+                        plot_rt->refx = set_get_col(pset, DATA_X);
                     }
                     if (graph_is_stacked(gr) != TRUE) {
                         plot_rt->offset -= 0.5*0.02*p->sym.size;
@@ -305,7 +220,7 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
     int gtype;
 
 
-    if (!is_set_drawable(pset)) {
+    if (!set_is_drawable(pset)) {
         return;
     }
 
@@ -747,8 +662,8 @@ void drawsetfill(Quark *pset, plot_rt_t *plot_rt)
         if (stacked_chart == TRUE) {
             polylen = len;
         } else {
-            getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
-            ybase = setybase(pset);
+            set_get_minmax(pset, &xmin, &xmax, &ymin, &ymax);
+            ybase = set_get_ybase(pset);
             polylen = len + 2;
             wptmp.x = MIN2(xmax, w.xg2);
             wptmp.y = ybase;
@@ -810,7 +725,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     if (stacked_chart == TRUE) {
         ybase = 0.0;
     } else {
-        ybase = setybase(pset);
+        ybase = set_get_ybase(pset);
     }
     
     setclipping(canvas, TRUE);
@@ -989,7 +904,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
         }
     }
     
-    getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
+    set_get_minmax(pset, &xmin, &xmax, &ymin, &ymax);
        
     if (p->line.baseline == TRUE && stacked_chart != TRUE) {
         wp.x = xmin;
@@ -1433,7 +1348,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     if (stacked_chart == TRUE) {
         ybase = 0.0;
     } else {
-        ybase = setybase(pset);
+        ybase = set_get_ybase(pset);
     }
 
     setline(canvas, &p->sym.line);
@@ -2150,7 +2065,7 @@ void draw_region(Canvas *canvas, Quark *q)
         vp.y = v.yv1;
         while (vp.y <= v.yv2) {
             if (Vpoint2Wpoint(q, &vp, &wp) == RETURN_SUCCESS &&
-                inregion(q, &wp)) {
+                region_contains(q, &wp)) {
                 DrawPixel(canvas, &vp);
             }
             vp.y += dv;
@@ -2168,7 +2083,7 @@ void draw_legend_syms(Quark *pset,
     set *p = set_get_data(pset);
     Quark *gr = get_parent_graph(pset);
 
-    if (is_set_drawable(pset) &&
+    if (set_is_drawable(pset) &&
         !is_empty_string(p->legstr) &&
         graph_get_type(gr) != GRAPH_PIE) {
         
@@ -2265,7 +2180,7 @@ static int is_legend_drawable(Quark *pset)
     set *p = set_get_data(pset);
     Quark *gr = get_parent_graph(pset);
     
-    if (is_set_drawable(pset)       &&
+    if (set_is_drawable(pset)       &&
         !is_empty_string(p->legstr) &&
         quark_is_active(gr)         &&
         graph_get_type(gr) != GRAPH_PIE) {
@@ -2317,7 +2232,7 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
 
     set_draw_mode(canvas, FALSE);
     
-    nsets = get_descendant_sets(q, &psets);
+    nsets = quark_get_descendant_sets(q, &psets);
     leg_entries = xmalloc(nsets*sizeof(leg_rt_t));
     nleg_entries = 0;
     for (setno = 0; setno < nsets; setno++) {
@@ -2473,4 +2388,33 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     }
     
     xfree(leg_entries);
+}
+
+/*
+ * return number of active set(s) in gno
+ */
+static int number_of_active_sets(Quark *gr)
+{
+    int i, nsets, na = 0;
+    Quark **psets;
+
+    nsets = quark_get_descendant_sets(gr, &psets);
+    for (i = 0; i < nsets; i++) {
+        Quark *pset = psets[i];
+        if (set_is_drawable(pset) == TRUE) {
+	    na++;
+	}
+    }
+    xfree(psets);
+    return na;
+}
+
+static int is_refpoint_active(Quark *gr)
+{
+    GLocator *l = graph_get_locator(gr);
+    if (l) {
+        return l->pointset;
+    } else {
+        return FALSE;
+    }
 }

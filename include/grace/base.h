@@ -118,9 +118,34 @@ unsigned char reversebits(unsigned char inword);
 /* file i/o */
 char *grace_fgets(char *s, int size, FILE *stream);
 
+/* dates */
+
+/* rounding types for dates */
+#define ROUND_SECOND 1
+#define ROUND_MINUTE 2
+#define ROUND_HOUR   3
+#define ROUND_DAY    4
+#define ROUND_MONTH  5
+
+long cal_to_jul(int y, int m, int d);
+void jul_to_cal(long n, int *y, int *m, int *d);
+double jul_and_time_to_jul(long jul, int hour, int min, double sec);
+double cal_and_time_to_jul(int y, int m, int d,
+                           int hour, int min, double sec);
+void jul_to_cal_and_time(double jday, int rounding,
+                         int *y, int *m, int *d,
+                         int *hour, int *min, int *sec);
+
 /* misc numerics */
 int sign(double a);
 double nicenum(double x, int nrange, int round);
+void fswap(double *x, double *y);
+void iswap(int *x, int *y);
+void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
+
+/* locale */
+int init_locale(void);
+void set_locale_num(int flag);
 
 /* dict3 stuff */
 typedef struct {

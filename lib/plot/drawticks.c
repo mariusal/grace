@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -27,7 +26,7 @@
  */
 
 /* 
- * Draw axis bars, axis labels, ticks and tick labels
+ * Draw axis bars, tick marks, and tick labels
  */
 
 #include <config.h>
@@ -36,10 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "utils.h"
-#include "core_utils.h"
-#include "plotone.h"
-#include "parser.h"
+#include "grace/plotP.h"
 
 static void drawgrid(Canvas *canvas, Quark *q)
 {
@@ -171,7 +167,7 @@ void draw_axis(Canvas *canvas, Quark *qa)
                                                                 coordinates */
     int ittype_loop, itick, itcur;
     int ttype;
-    char tlabel[MAX_STRING_LENGTH];
+    char *tlabel = NULL;
     int tlabel1_just;
     
     int tick_dir_sign;
@@ -458,17 +454,9 @@ void draw_axis(Canvas *canvas, Quark *qa)
 	        continue;
 	    }
 
-	    if (t->tl_prestr) {
-	        strcpy(tlabel, t->tl_prestr);
-	    } else {
-                tlabel[0] = '\0';
-            }
-	    if (t->tloc[itick].label != NULL) {
-	        strcat(tlabel, t->tloc[itick].label);
-	    }
-	    if (t->tl_appstr) {
-	        strcat(tlabel, t->tl_appstr);
-	    }
+	    tlabel = copy_string(tlabel, t->tl_prestr);
+	    tlabel = concat_strings(tlabel, t->tloc[itick].label);
+	    tlabel = concat_strings(tlabel, t->tl_appstr);
 
 	    vtpos = coord_conv(gr, wtpos);
 
@@ -487,12 +475,18 @@ void draw_axis(Canvas *canvas, Quark *qa)
             itcur++;
 	}
     }
+    
+    xfree(tlabel);
 
     /* End tick label stuff */
 
     get_bbox(canvas, BBOX_TYPE_TEMP, &bb);
     axis_set_bb(qa, &bb);
 }
+
+/* FIXME!!! */
+extern int v_evaluate(char * const formula, char * const varname,
+    double *x, unsigned int len);
 
 static void calculate_tickgrid(Quark *q)
 {
@@ -504,9 +498,7 @@ static void calculate_tickgrid(Quark *q)
     double wtmaj;
     world w;
     tickmarks *t;
-    int res, len;
-    grarr *tvar;
-    double *tt;
+    int res;
     AMem *amem;
     
     t = axisgrid_get_data(q);
@@ -610,38 +602,18 @@ reenter:
             }
         }
 	if (!is_empty_string(t->tl_formula)) {
-
-            tvar = get_parser_arr_by_name("$t");
-            if (tvar == NULL) {
-                tvar = define_parser_arr("$t");
-                if (tvar == NULL) {
-	            errmsg("Internal error");
-                    return;
-                }
-            }
-
-            if (tvar->length != 0) {
-                xfree(tvar->data);
-                tvar->length = 0;
-            }
-            tvar->data = xmalloc(nmajor*SIZEOF_DOUBLE);
-            if (tvar->data == NULL) {
-                return;
-            }
-            tvar->length = nmajor;
+            double *tt = xmalloc(nmajor*SIZEOF_DOUBLE);
 
             itmaj = 0;
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
-                    tvar->data[itmaj] = t->tloc[itick].wtpos;
+                    tt[itmaj] = t->tloc[itick].wtpos;
                     itmaj++;
                 }
             }
 
-            res = v_scanner(t->tl_formula, &len, &tt);
-            XCFREE(tvar->data);
-            tvar->length = 0;
-            if (res != RETURN_SUCCESS || len != nmajor) {
+            res = v_evaluate(t->tl_formula, "$t", tt, nmajor);
+            if (res != RETURN_SUCCESS) {
                 errmsg("Error in tick transformation formula");
                 return;
             }

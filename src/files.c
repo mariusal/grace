@@ -1011,7 +1011,7 @@ int write_set(Quark *pset, FILE *cp, char *format)
 	return RETURN_FAILURE;
     }
     
-    if (is_set_dataless(pset) == FALSE) {
+    if (set_is_dataless(pset) == FALSE) {
         n = set_get_length(pset);
         ncols = set_get_ncols(pset);
         for (col = 0; col < ncols; col++) {
@@ -1450,10 +1450,10 @@ int write_netcdf(Quark *pr, char *fname)
         gr = graphs[i];
         if (gr) {
             Quark **psets;
-            int nsets = get_descendant_sets(gr, &psets);
+            int nsets = quark_get_descendant_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
-                if (!is_set_dataless(pset)) {
+                if (!set_is_dataless(pset)) {
 		    char s[64];
 
 		    sprintf(buf, "comment");
@@ -1467,7 +1467,7 @@ int write_netcdf(Quark *pr, char *fname)
 		    sprintf(buf, "n");
 		    n_dim = ncdimdef(ncid, buf, set_get_length(pset));
 		    dims[0] = n_dim;
-		    getsetminmax(&pset, 1, &x1, &x2, &y1, &y2);
+		    set_get_minmax(pset, &x1, &x2, &y1, &y2);
 		    sprintf(buf, "x");
 		    x_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
 		    ncattput(ncid, x_id, "min", NC_DOUBLE, 1, (void *) &x1);
@@ -1493,10 +1493,10 @@ int write_netcdf(Quark *pr, char *fname)
         gr = graphs[i];
 	if (gr) {
             Quark **psets;
-            int nsets = get_descendant_sets(gr, &psets);
+            int nsets = quark_get_descendant_sets(gr, &psets);
 	    for (j = 0; j < nsets; j++) {
 		Quark *pset = psets[j];
-                if (!is_set_dataless(pset)) {
+                if (!set_is_dataless(pset)) {
 		    len[0] = set_get_length(pset);
 		    x = getx(pset);
 		    y = gety(pset);

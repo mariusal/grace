@@ -41,7 +41,6 @@
 #include "utils.h"
 #include "files.h"
 #include "core_utils.h"
-#include "plotone.h"
 
 #include "motifinc.h"
 #include "protos.h"
@@ -515,7 +514,7 @@ void xdrawgraph(const Quark *q, int force)
         resize_drawables(pg->width, pg->height);
 
         select_device(grace->rt->canvas, grace->rt->tdevice);
-	drawgraph(project);
+	drawgraph(grace->rt->canvas, project);
 
         if (quark_is_active(gr)) {
             draw_focus(gr);

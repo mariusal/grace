@@ -818,6 +818,7 @@ int project_set_linewidth_scale(Quark *q, double lscale);
 
 int project_set_ref_date(Quark *q, double ref);
 int project_allow_two_digits_years(Quark *q, int flag);
+int project_set_wrap_year(Quark *q, int year);
 
 char *project_get_timestamp(Quark *q);
 int project_update_timestamp(Quark *q, time_t *t);
@@ -882,6 +883,8 @@ int graph_is_xinvert(const Quark *gr);
 int graph_set_xinvert(Quark *gr, int flag);
 int graph_is_yinvert(const Quark *gr);
 int graph_set_yinvert(Quark *gr, int flag);
+
+int graph_get_viewport(Quark *gr, view *v);
 
 Quark *get_parent_graph(const Quark *child);
 
@@ -972,6 +975,17 @@ int set_set_type(Quark *p, int stype);
 char *set_get_comment(Quark *p);
 int set_set_comment(Quark *p, char *s);
 
+int quark_get_number_of_descendant_sets(Quark *q);
+int quark_get_descendant_sets(Quark *q, Quark ***sets);
+
+int set_is_dataless(Quark *pset);
+
+#define set_is_drawable(p) (quark_is_active(p) && !set_is_dataless(p))
+
+int set_get_minmax(Quark *pset,
+    double *xmin, double *xmax, double *ymin, double *ymax);
+
+double set_get_ybase(Quark *pset);
 
 /* Region */
 region *region_get_data(const Quark *q);
@@ -983,6 +997,7 @@ int region_set_color(Quark *q, int color);
 
 int region_add_point(Quark *q, const WPoint *wp);
 
+int region_contains(const Quark *q, const WPoint *wp);
 
 /* DObject */
 void *object_odata_new(AMem *amem, OType type);

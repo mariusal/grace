@@ -49,7 +49,6 @@ void spline(int n, double *x, double *y, double *b, double *c, double *d);
 void aspline(int n, double *x, double *y, double *b, double *c, double *d);
 int seval(double *u, double *v, int ulen,
     double *x, double *y, double *b, double *c, double *d, int n);
-void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
 int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
               	   double *vmin, double *vmax);
 double vmin(double *x, int n);
@@ -105,8 +104,10 @@ int init_font_db(Canvas *canvas);
 
 
 /* set_utils.c */
-int getsetminmax(Quark **sets, int nsets, double *x1, double *x2, double *y1, double *y2);
-int getsetminmax_c(Quark **sets, int nsets, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
+int getsetminmax(Quark **sets, int nsets, 
+    double *xmin, double *xmax, double *ymin, double *ymax);
+int getsetminmax_c(Quark **sets, int nsets,
+    double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
 int set_point(Quark *pset, int seti, const WPoint *wp);
 int get_point(Quark *pset, int seti, WPoint *wp);
 int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint);
@@ -123,7 +124,6 @@ void copycol2(Quark *psrc, Quark *pdest, int col);
 void droppoints(Quark *pset, int startno, int endno);
 int join_sets(Quark **sets, int nsets);
 void reverse_set(Quark *pset);
-int number_of_active_sets(Quark *gr);
 
 void del_point(Quark *pset, int pt);
 void add_point(Quark *pset, double px, double py);
@@ -139,22 +139,10 @@ void do_sort(Quark *pset, int sorton, int stype);
 void do_update_hotlink(Quark *pset);
 
 
-/* region_utils.c */
-int inregion(const Quark *q, const WPoint *wp);
-
-
 /* dates.c */
 void set_date_hint(Dates_format preferred);
 Dates_format get_date_hint(void);
-long cal_to_jul(int y, int m, int d);
-void jul_to_cal(long n, int *y, int *m, int *d);
-double jul_and_time_to_jul(long jul, int hour, int min, double sec);
-double cal_and_time_to_jul(int y, int m, int d,
-                           int hour, int min, double sec);
-void jul_to_cal_and_time(const Quark *q, double jday, int rounding,
-                         int *y, int *m, int *d,
-                         int *hour, int *min, int *sec);
-int parse_float(const char *s, double *value, const char **after);
+int parse_float(const char* s, double *value, const char **after);
 int parse_date(const Quark *q, const char* s, Dates_format preferred, int absolute,
                double *jul, Dates_format *recognized);
 int parse_date_or_number(const Quark *q, const char* s, int absolute, double *value);

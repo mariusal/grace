@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -33,6 +33,10 @@
 #include <string.h>
 
 #include "grace/baseP.h"
+
+#ifdef HAVE_SETLOCALE
+#  include <locale.h>
+#endif
 
 int compare_strings(const char *s1, const char *s2)
 {
@@ -162,3 +166,95 @@ int sign(double a)
     }
 }
 
+/*
+ * swap doubles and ints
+ */
+void fswap(double *x, double *y)
+{
+    double tmp;
+
+    tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
+void iswap(int *x, int *y)
+{
+    int tmp;
+
+    tmp = *x;
+    *x = *y;
+    *y = tmp;
+}
+
+/*
+ * compute the mins and maxes of a vector x
+ */
+void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
+{
+    int i;
+    
+    *imin = 0;
+    *imax = 0;
+
+    if (x == NULL) {
+        *xmin = 0.0;
+        *xmax = 0.0;
+        return;
+    }
+    
+    *xmin = x[0];
+    *xmax = x[0];
+    
+    for (i = 1; i < n; i++) {
+	if (x[i] < *xmin) {
+	    *xmin = x[i];
+	    *imin = i;
+	}
+	if (x[i] > *xmax) {
+	    *xmax = x[i];
+	    *imax = i;
+	}
+    }
+}
+
+#ifdef HAVE_SETLOCALE
+static int need_locale = FALSE;
+static char *system_locale_string, *posix_locale_string;
+#endif
+
+int init_locale(void)
+{
+#ifdef HAVE_SETLOCALE
+    char *s;
+    s = setlocale(LC_NUMERIC, "");
+    if (s == NULL) {
+        /* invalid/unsupported locale */
+        return RETURN_FAILURE;
+    } else if (!strcmp(s, "C")) {
+        /* don't enable need_locale, since the system locale is C */
+        return RETURN_SUCCESS;
+    } else {
+        system_locale_string = copy_string(NULL, s);
+        s = setlocale(LC_NUMERIC, "C");
+        posix_locale_string = copy_string(NULL, s);
+        need_locale = TRUE;
+        return RETURN_SUCCESS;
+    }
+#else
+    return RETURN_SUCCESS;
+#endif
+}
+
+void set_locale_num(int flag)
+{
+#ifdef HAVE_SETLOCALE
+    if (need_locale) {
+        if (flag == TRUE) {
+            setlocale(LC_NUMERIC, system_locale_string);
+        } else {
+            setlocale(LC_NUMERIC, posix_locale_string);
+        }
+    }
+#endif
+}

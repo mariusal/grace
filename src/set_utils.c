@@ -167,11 +167,7 @@ void do_update_hotlink(Quark *pset)
 int getsetminmax(Quark **sets, int nsets, 
                     double *xmin, double *xmax, double *ymin, double *ymax)
 {
-    double *x, *y;
-    int len;
-    double x1, x2, y1, y2;
     int i, first = TRUE;
-    int imin, imax; /* dummy */
 
     if (nsets < 1 || !sets) {
         return RETURN_FAILURE;
@@ -179,12 +175,9 @@ int getsetminmax(Quark **sets, int nsets,
     
     for (i = 0; i < nsets; i++) {
         Quark *pset = sets[i];
-        if (is_set_drawable(pset)) {
-            x = set_get_col(pset, DATA_X);
-            y = set_get_col(pset, DATA_Y);
-            len = set_get_length(pset);
-            minmax(x, len, &x1, &x2, &imin, &imax);
-            minmax(y, len, &y1, &y2, &imin, &imax);
+        if (set_is_drawable(pset)) {
+            double x1, x2, y1, y2;
+            set_get_minmax(pset, &x1, &x2, &y1, &y2);
             if (first) {
                 *xmin = x1;
                 *xmax = x2;
@@ -235,7 +228,7 @@ int getsetminmax_c(Quark **sets, int nsets,
     
     for (i = 0; i < nsets; i++) {
         Quark *pset = sets[i];
-        if (is_set_drawable(pset)) {
+        if (set_is_drawable(pset)) {
             
             if (ivec == 1) {
                 bvec = getx(pset);
@@ -330,34 +323,6 @@ void copycol2(Quark *psrc, Quark *pdest, int col)
 	x2[i] = x1[i];
     }
     quark_dirtystate_set(pdest, TRUE);
-}
-
-int is_set_dataless(Quark *pset)
-{
-    if (set_get_length(pset) > 0) {
-        return FALSE;
-    } else {
-        return TRUE;
-    }
-}
-
-/*
- * return number of active set(s) in gno
- */
-int number_of_active_sets(Quark *gr)
-{
-    int i, nsets, na = 0;
-    Quark **psets;
-
-    nsets = get_descendant_sets(gr, &psets);
-    for (i = 0; i < nsets; i++) {
-        Quark *pset = psets[i];
-        if (is_set_drawable(pset) == TRUE) {
-	    na++;
-	}
-    }
-    xfree(psets);
-    return na;
 }
 
 /*
@@ -885,54 +850,12 @@ void do_drop_points(Quark *pset, int startno, int endno)
  */
 void do_sort(Quark *pset, int sorton, int stype)
 {
-    if (is_set_dataless(pset)) {
+    if (set_is_dataless(pset)) {
 	errmsg("Set not active");
 	return;
     } else {
 	sortset(pset, sorton, stype);
     }
-}
-
-
-double setybase(Quark *pset)
-{
-    double ybase = 0.0;
-    double xmin, xmax, ymin, ymax;
-    Quark *gr;
-    set *p;
-    world w;
-    
-    if (!pset) {
-        return 0.0;
-    }
-    
-    gr = get_parent_graph(pset);
-    p = set_get_data(pset);
-    graph_get_world(gr, &w);
-    
-    getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
-
-    switch (p->line.baseline_type) {
-    case BASELINE_TYPE_0:
-        ybase = 0.0;
-        break;
-    case BASELINE_TYPE_SMIN:
-        ybase = ymin;
-        break;
-    case BASELINE_TYPE_SMAX:
-        ybase = ymax;
-        break;
-    case BASELINE_TYPE_GMIN:
-        ybase = w.yg1;
-        break;
-    case BASELINE_TYPE_GMAX:
-        ybase = w.yg2;
-        break;
-    default:
-        errmsg("Wrong type of baseline");
-    }
-    
-    return ybase;
 }
 
 

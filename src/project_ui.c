@@ -314,7 +314,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetSpinChoice(ui->fsize_scale, pr->fscale);
         SetSpinChoice(ui->lwidth_scale, pr->lscale);
 
-	    jul_to_cal_and_time(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+	    jdate_to_datetime(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
         sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
             y, m, d, h, mm, sec);
         xv_setstr(ui->refdate, date_string);

@@ -877,7 +877,7 @@ void do_ext_editor(Quark *pset)
     /* temporarily disable autoscale */
     save_autos = grace->rt->autoscale_onread;
     grace->rt->autoscale_onread = AUTOSCALE_NONE;
-    if (!is_set_dataless(pset)) {
+    if (!set_is_dataless(pset)) {
         grace->rt->curtype = set_get_type(pset);
         grace->rt->target_set = pset;
 	killsetdata(pset);	

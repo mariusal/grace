@@ -44,9 +44,6 @@
 /* max path length */
 #define GR_MAXPATHLEN 256
 
-/* max length for strings */
-#define MAX_STRING_LENGTH 512
-
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
 #define MAX_PREC 10
@@ -209,13 +206,6 @@ typedef enum   { FMT_iso,
                  FMT_us,
                  FMT_nohint
                } Dates_format;
-
-/* rounding types for dates */
-#define ROUND_SECOND 1
-#define ROUND_MINUTE 2
-#define ROUND_HOUR   3
-#define ROUND_DAY    4
-#define ROUND_MONTH  5
 
 /* tokens for the calendar dates parser */
 typedef struct { int value;

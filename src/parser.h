@@ -62,6 +62,9 @@ int   scanner(char *s);
 int s_scanner(char *s, double *res);
 int v_scanner(char *s, int *reslen, double **vres);
 
+int v_evaluate(char * const formula, char * const varname,
+    double *x, unsigned int len);
+
 void realloc_vrbl(grarr *vrbl, int len);
 
 double *define_parser_scalar(char * const name);

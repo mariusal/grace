@@ -139,7 +139,7 @@ static void do_gotopt_proc(void *data)
     VPoint vp;
     int cg = get_cg();
 
-    if (is_set_dataless(cg, track_setno)) {
+    if (set_is_dataless(cg, track_setno)) {
         errmsg("No or inactive set selected");
         return;
     }

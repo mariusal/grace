@@ -9,6 +9,7 @@ SRCS = 	memory.c \
 	amemory.c \
 	missing.c \
 	alloca.c \
+	dates.c \
 	utils.c \
 	files.c \
 	dict3.c \
@@ -18,6 +19,7 @@ OBJS = 	memory$(O) \
 	amemory$(O) \
 	missing$(O) \
 	$(ALLOCA) \
+	dates$(O) \
 	utils$(O) \
 	files$(O) \
 	dict3$(O) \

@@ -46,17 +46,11 @@
 #define on_or_off(x) ((x)?"on":"off")
 #define true_or_false(x) ((x)?"true":"false")
 
-#define LFORMAT_TYPE_PLAIN      0
-#define LFORMAT_TYPE_EXTENDED   1
-
-void fswap(double *x, double *y);
-void iswap(int *x, int *y);
 int isoneof(int c, char *s);
 int argmatch(char *s1, char *s2, int atleast);
 void lowtoupper(char *s);
 void convertchar(char *s);
 
-char *create_fstring(const Quark *q, int form, int prec, double loc, int type);
 char *escapequotes(char *s);
 
 double mytrunc(double a);
@@ -100,9 +94,6 @@ void expand_tilde(const Grace *grace, char *buf);
 
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);
-
-int init_locale(void);
-void set_locale_num(int flag);
 
 long bi_version_id(void);
 char *bi_version_string(void);

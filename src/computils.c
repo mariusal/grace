@@ -449,37 +449,6 @@ int seval(double *u, double *v, int ulen,
     return RETURN_SUCCESS;
 }
 
-/*
- * compute the mins and maxes of a vector x
- */
-void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
-{
-    int i;
-    
-    *imin = 0;
-    *imax = 0;
-
-    if (x == NULL) {
-        *xmin = 0.0;
-        *xmax = 0.0;
-        return;
-    }
-    
-    *xmin = x[0];
-    *xmax = x[0];
-    
-    for (i = 1; i < n; i++) {
-	if (x[i] < *xmin) {
-	    *xmin = x[i];
-	    *imin = i;
-	}
-	if (x[i] > *xmax) {
-	    *xmax = x[i];
-	    *imax = i;
-	}
-    }
-}
-
 
 /*
  * compute the min and max of vector vec calculated for indices such that
@@ -1003,7 +972,7 @@ int filter_set(Quark *pset, char *rarray)
  */
 int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 {
-    if (!is_set_dataless(psrc)) {
+    if (!set_is_dataless(psrc)) {
 	if (psrc != pdest) {
 	    if (copysetdata(psrc, pdest) != RETURN_SUCCESS) {
 	        return RETURN_FAILURE;
@@ -1035,7 +1004,7 @@ int do_differ(Quark *psrc, Quark *pdest,
     double *x1, *x2;
     char *stype, pbuf[32], buf[256];
     
-    if (is_set_dataless(psrc)) {
+    if (set_is_dataless(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -1223,7 +1192,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
 
-    if (is_set_dataless(psrc)) {
+    if (set_is_dataless(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -1252,7 +1221,7 @@ int do_xcor(Quark *psrc, Quark *pdest,
     }
 
     if (!autocor) {
-        if (is_set_dataless(pcor)) {
+        if (set_is_dataless(pcor)) {
 	    errmsg("Set not active");
 	    return RETURN_FAILURE;
         }
@@ -1421,7 +1390,7 @@ int do_int(Quark *psrc, Quark *pdest,
     
     *sum = 0.0;
 
-    if (is_set_dataless(psrc)) {
+    if (set_is_dataless(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -1913,7 +1882,7 @@ int do_prune(Quark *psrc, Quark *pdest,
 	return RETURN_FAILURE;
     }
     
-    if (is_set_dataless(psrc)) {
+    if (set_is_dataless(psrc)) {
         errmsg("Set not active");
         return RETURN_FAILURE;
     }
@@ -2102,7 +2071,7 @@ int get_restriction_array(Quark *pset, Quark *r, int negate, char **rarray)
     for (i = 0; i < n; i++) {
         wp.x = x[i];
         wp.y = y[i];
-        (*rarray)[i] = inregion(r, &wp) ? !negate : negate;
+        (*rarray)[i] = region_contains(r, &wp) ? !negate : negate;
     }
 
     return RETURN_SUCCESS;

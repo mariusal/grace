@@ -125,85 +125,6 @@ int select_graph(Quark *gr)
     }
 }
 
-static int set_count_hook(Quark *q, void *udata, QTraverseClosure *closure)
-{
-    int *nsets = (int *) udata;
-    
-    if (quark_fid_get(q) == QFlavorSet) {
-        (*nsets)++;
-    }
-    
-    return TRUE;
-}
-
-int number_of_sets(Quark *q)
-{
-    int nsets = 0;
-    
-    quark_traverse(q, set_count_hook, &nsets);
-    
-    return nsets;
-}
-
-typedef struct {
-    int nsets;
-    Quark **sets;
-} set_hook_t;
-
-static int set_hook(Quark *q, void *udata, QTraverseClosure *closure)
-{
-    set_hook_t *p = (set_hook_t *) udata;
-    
-    if (quark_fid_get(q) == QFlavorSet) {
-        p->sets[p->nsets] = q;
-        p->nsets++;
-    }
-    
-    return TRUE;
-}
-
-int get_descendant_sets(Quark *q, Quark ***sets)
-{
-    set_hook_t p;
-    
-    if (q) {
-        p.nsets = 0;
-        p.sets  = xmalloc(number_of_sets(q)*SIZEOF_VOID_P);
-
-        if (p.sets) {
-            quark_traverse(q, set_hook, &p);
-        }
-        
-        *sets = p.sets;
-
-        return p.nsets;
-    } else {
-        return 0;
-    }
-}
-
-int graph_get_viewport(Quark *gr, view *v)
-{
-    if (gr) {
-        Quark *fr = get_parent_frame(gr);
-        
-        frame_get_view(fr, v);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int is_refpoint_active(Quark *gr)
-{
-    GLocator *l = graph_get_locator(gr);
-    if (l) {
-        return l->pointset;
-    } else {
-        return FALSE;
-    }
-}
-
 
 int is_log_axis(const Quark *q)
 {
@@ -428,7 +349,7 @@ int autoscale_graph(Quark *gr, int autos_type)
 {
     int nsets;
     Quark **sets;
-    nsets = get_descendant_sets(gr, &sets);
+    nsets = quark_get_descendant_sets(gr, &sets);
     if (nsets) {
         autoscale_bysets(sets, nsets, autos_type);
         xfree(sets);

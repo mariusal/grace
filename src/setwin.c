@@ -43,7 +43,6 @@
 
 #include "core_utils.h"
 #include "utils.h"
-#include "plotone.h"
 #include "ssdata.h"
 #include "parser.h"
 #include "motifinc.h"

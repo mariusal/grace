@@ -702,6 +702,86 @@ int grace_print(const Grace *grace, const char *fname)
     return retval;
 }
 
+#define VP_EPSILON  0.001
+
+/*
+ * If writing to a file, check to see if it exists
+ */
+void do_hardcopy(const Quark *project)
+{
+    Grace *grace = grace_from_quark(project);
+    RunTime *rt;
+    Canvas *canvas;
+    char *s;
+    char fname[GR_MAXPATHLEN];
+    view v;
+    double vx, vy;
+    int truncated_out, res;
+    FILE *prstream;
+    
+    if (!grace) {
+        return;
+    }
+    
+    rt = grace->rt;
+    canvas = rt->canvas;
+    
+    if (get_ptofile(grace)) {
+        if (is_empty_string(rt->print_file)) {
+            Device_entry *dev = get_device_props(canvas, rt->hdevice);
+            sprintf(rt->print_file, "%s.%s",
+                get_docbname(project), dev->fext);
+        }
+        strcpy(fname, rt->print_file);
+    } else {
+        s = get_print_cmd(grace);
+        if (is_empty_string(s)) {
+            errmsg("No print command defined, output aborted");
+            return;
+        }
+        tmpnam(fname);
+        /* VMS doesn't like extensionless files */
+        strcat(fname, ".prn");
+    }
+    
+    prstream = grace_openw(grace, fname);
+    if (prstream == NULL) {
+        return;
+    }
+    
+    canvas_set_prstream(canvas, prstream); 
+    
+    select_device(canvas, rt->hdevice);
+    
+    res = drawgraph(canvas, project);
+    
+    grace_close(prstream);
+    
+    if (res != RETURN_SUCCESS) {
+        return;
+    }
+    
+    get_bbox(canvas, BBOX_TYPE_GLOB, &v);
+    project_get_viewport(project, &vx, &vy);
+    if (v.xv1 < 0.0 - VP_EPSILON || v.xv2 > vx + VP_EPSILON ||
+        v.yv1 < 0.0 - VP_EPSILON || v.yv2 > vy + VP_EPSILON) {
+        truncated_out = TRUE;
+    } else {
+        truncated_out = FALSE;
+    }
+    
+    if (get_ptofile(grace) == FALSE) {
+        if (truncated_out == FALSE ||
+            yesno("Printout is truncated. Continue?", NULL, NULL, NULL)) {
+            grace_print(grace, fname);
+        }
+    } else {
+        if (truncated_out == TRUE) {
+            errmsg("Output is truncated - tune device dimensions");
+        }
+    }
+}
+
 int gui_is_page_free(const GUI *gui)
 {
     return gui->page_free;
