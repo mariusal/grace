@@ -1031,6 +1031,7 @@ int atext_set_just(Quark *q, int just);
 int atext_set_angle(Quark *q, double angle);
 
 int atext_shift(Quark *q, const VVector *vshift);
+int atext_at_shift(Quark *q, const VVector *vshift);
 
 /* co-ordinate transformation stuff */
 int polar2xy(double phi, double rho, double *x, double *y);

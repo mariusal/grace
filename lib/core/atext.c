@@ -267,3 +267,27 @@ int atext_shift(Quark *q, const VVector *vshift)
         return RETURN_FAILURE;
     }
 }
+
+int atext_at_shift(Quark *q, const VVector *vshift)
+{
+    AText *at = atext_get_data(q);
+    if (at) {
+        VPoint vp;
+        APoint ap;
+        
+        if (Apoint2Vpoint(q, &at->ap, &vp) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        }
+        
+        vp.x += vshift->x;
+        vp.y += vshift->y;
+        
+        if (Vpoint2Apoint(q, &vp, &ap) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        }
+        
+        return atext_set_ap(q, &ap);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
