@@ -269,6 +269,13 @@ static int project_postprocess_hook(Quark *q,
 
         break;
     case QFlavorAxis:
+        /* kill inactive axes in old projects */
+        if (version_id < 50200 && !quark_is_active(q)) {
+            quark_free(q);
+            closure->descend = FALSE;
+            break;
+        }
+
 	t = axis_get_data(q);
 
         if (version_id <= 40102) {
@@ -480,6 +487,13 @@ static int project_postprocess_hook(Quark *q,
             if (at) {
                 at->text_props.just |= JUST_MIDDLE;
             }
+        }
+        break;
+    case QFlavorRegion:
+        /* kill inactive regions in old projects */
+        if (version_id < 50200 && !quark_is_active(q)) {
+            quark_free(q);
+            closure->descend = FALSE;
         }
         break;
     }
