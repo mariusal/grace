@@ -39,7 +39,7 @@
 #include "utils.h"
 #include "files.h"
 
-#include "protos.h"
+#include "draw.h"
 
 int init_t1(Canvas *canvas)
 {
@@ -941,7 +941,8 @@ static CompositeString *String2Composite(Canvas *canvas,
             if (isub != 0 || setmark >= 0) {	/* non-empty substring */
 	
 	        csbuf = xrealloc(csbuf, (*nss + 1)*sizeof(CompositeString));
-	        csbuf[*nss].font = font;
+	        memset(&csbuf[*nss], 0, sizeof(CompositeString));
+                csbuf[*nss].font = font;
 	        csbuf[*nss].color = color;
 	        csbuf[*nss].tm = tm;
 	        csbuf[*nss].hshift = hshift;
@@ -1056,105 +1057,38 @@ static void process_ligatures(CompositeString *cs)
     cs->len = m;
 }
 
-void WriteString(Canvas *canvas,
-    const VPoint *vp, double angle, int just, const char *theString)
-{    
-    VPoint vptmp;
- 
-    double page_ipv, page_dpv;
+static int postprocess_cs(Canvas *canvas,
+    CompositeString *cstring, int nss, double angle,
+    double dpv, FontRaster fontrast,
+    VPoint *rpoint, view *bbox)
+{
+    const VPoint vp_zero = {0, 0};
+    VPoint cs_marks[MAX_MARKS];
     
+    int iss;
     int def_font = getfont(canvas);
     int def_color = getcolor(canvas);
+    int text_advancing;
+    int gotomark, setmark;
  
     /* charsize (in VP units) */
     double charsize = MAGIC_FONT_SCALE*getcharsize(canvas);
 
-    int text_advancing;
-
-    int iss, nss;
-    GLYPH *glyph;
- 
-    CompositeString *cstring;
- 
-    int pheight, pwidth;
-    int hjust, vjust;
-    double hfudge, vfudge;
-    
-    int setmark, gotomark;
-    VPoint cs_marks[MAX_MARKS];
-    
-    VPoint rpoint, baseline_start, baseline_stop, bbox_ll, bbox_ur, offset;
-    
-    Device_entry *dev;
- 
-    if (is_empty_string(theString)) {
-	return;
-    }
-    
     if (charsize <= 0.0) {
-        return;
+        return RETURN_FAILURE;
     }
 
-    dev = get_curdevice_props(canvas);
-    
-    /* inches per 1 unit of viewport */
-    page_ipv = MIN2(page_width_in(canvas), page_height_in(canvas));
-
-    /* dots per 1 unit of viewport */
-    page_dpv = page_ipv*page_dpi(canvas);
-
-    hjust = just & 03;
-    switch (hjust) {
-    case JUST_LEFT:
-        hfudge = 0.0;
-        break;
-    case JUST_RIGHT:
-        hfudge = 1.0;
-        break;
-    case JUST_CENTER:
-        hfudge = 0.5;
-        break;
-    default:
-        errmsg("Wrong justification type of string");
-        return;
-    }
-
-    vjust = just & 014;
-    switch (vjust) {
-    case JUST_BOTTOM:
-        vfudge = 0.0;
-        break;
-    case JUST_TOP:
-        vfudge = 1.0;
-        break;
-    case JUST_MIDDLE:
-        vfudge = 0.5;
-        break;
-    case JUST_BLINE:
-        /* Not used; to make compiler happy */
-        vfudge = 0.0;
-        break;
-    default:
-        /* This can't happen; to make compiler happy */
-        errmsg("Internal error");
-        return;
-    }
-
-    cstring = String2Composite(canvas, theString, &nss);
-    if (cstring == NULL) {
-        return;
-    }
-    
     /* zero marks */
     for (gotomark = 0; gotomark < MAX_MARKS; gotomark++) {
-        cs_marks[gotomark] = *vp;
+        cs_marks[gotomark] = vp_zero;
     }
     
-    rpoint = *vp;
-    baseline_start = rpoint;
-    bbox_ll = rpoint;
-    bbox_ur = rpoint;
+    *rpoint  = vp_zero;
+    memset(bbox, 0, sizeof(view));
+
     for (iss = 0; iss < nss; iss++) {
+        GLYPH *glyph;
+        VPoint vptmp;
 	CompositeString *cs = &cstring[iss];
         
         /* Post-process the CS */
@@ -1180,8 +1114,7 @@ void WriteString(Canvas *canvas,
         gotomark = cs->gotomark;
         setmark = cs->setmark;
 
-        glyph = GetGlyphString(canvas,
-            cs, page_dpv, dev->fontrast == FONT_RASTER_AA);
+        glyph = GetGlyphString(canvas, cs, dpv, fontrast == FONT_RASTER_AA);
         if (glyph != NULL) {
             VPoint hvpshift, vvpshift;
 
@@ -1201,39 +1134,39 @@ void WriteString(Canvas *canvas,
             hvpshift.y = cs->tm.cyx*cs->hshift/tm_size(&cs->tm);
 
             if (gotomark >= 0 && gotomark < MAX_MARKS) {
-                rpoint = cs_marks[gotomark];
+                *rpoint = cs_marks[gotomark];
             } else if (gotomark == MARK_CR) {
                 /* carriage return */
-                rpoint = *vp;
+                *rpoint = vp_zero;
             }
 
-            rpoint.x += hvpshift.x;
-            rpoint.y += hvpshift.y;
+            rpoint->x += hvpshift.x;
+            rpoint->y += hvpshift.y;
             
-            cs->start = rpoint;
+            cs->start = *rpoint;
             cs->start.x += vvpshift.x;
             cs->start.y += vvpshift.y;
 
             /* update bbox */
-            vptmp.x = cs->start.x + (double) glyph->metrics.leftSideBearing/page_dpv;
-            vptmp.y = cs->start.y + (double) glyph->metrics.descent/page_dpv;
-            bbox_ll.x = MIN2(bbox_ll.x, vptmp.x);
-            bbox_ll.y = MIN2(bbox_ll.y, vptmp.y);
+            vptmp.x = cs->start.x + (double) glyph->metrics.leftSideBearing/dpv;
+            vptmp.y = cs->start.y + (double) glyph->metrics.descent/dpv;
+            bbox->xv1 = MIN2(bbox->xv1, vptmp.x);
+            bbox->yv1 = MIN2(bbox->yv1, vptmp.y);
 
-            vptmp.x = cs->start.x + (double) glyph->metrics.rightSideBearing/page_dpv;
-            vptmp.y = cs->start.y + (double) glyph->metrics.ascent/page_dpv;
-            bbox_ur.x = MAX2(bbox_ur.x, vptmp.x);
-            bbox_ur.y = MAX2(bbox_ur.y, vptmp.y);
+            vptmp.x = cs->start.x + (double) glyph->metrics.rightSideBearing/dpv;
+            vptmp.y = cs->start.y + (double) glyph->metrics.ascent/dpv;
+            bbox->xv2 = MAX2(bbox->xv2, vptmp.x);
+            bbox->yv2 = MAX2(bbox->yv2, vptmp.y);
             
-            rpoint.x += (double) glyph->metrics.advanceX/page_dpv;
-            rpoint.y += (double) glyph->metrics.advanceY/page_dpv;
+            rpoint->x += (double) glyph->metrics.advanceX/dpv;
+            rpoint->y += (double) glyph->metrics.advanceY/dpv;
 
             if (setmark >= 0 && setmark < MAX_MARKS) {
-                cs_marks[setmark].x = rpoint.x;
-                cs_marks[setmark].y = rpoint.y;
+                cs_marks[setmark].x = rpoint->x;
+                cs_marks[setmark].y = rpoint->y;
             }
             
-            cs->stop = rpoint;
+            cs->stop = *rpoint;
             cs->stop.x += vvpshift.x;
             cs->stop.y += vvpshift.y;
 
@@ -1242,78 +1175,216 @@ void WriteString(Canvas *canvas,
             cs->glyph = NULL;
         }
     }
+    
+    return RETURN_SUCCESS;
+}
 
-    baseline_stop = rpoint;
+static int justify_cs(CompositeString *cstring, int nss, int just,
+    view *bbox, const VPoint *baseline_advance)
+{
+    int hjust, vjust;
+    double hfudge, vfudge;
+    VPoint offset;
+    int iss;
+
+    hjust = just & 03;
+    switch (hjust) {
+    case JUST_LEFT:
+        hfudge = 0.0;
+        break;
+    case JUST_RIGHT:
+        hfudge = 1.0;
+        break;
+    case JUST_CENTER:
+        hfudge = 0.5;
+        break;
+    default:
+        errmsg("Wrong justification type of string");
+        return RETURN_FAILURE;
+    }
+
+    vjust = just & 014;
+    switch (vjust) {
+    case JUST_BOTTOM:
+        vfudge = 0.0;
+        break;
+    case JUST_TOP:
+        vfudge = 1.0;
+        break;
+    case JUST_MIDDLE:
+        vfudge = 0.5;
+        break;
+    case JUST_BLINE:
+        /* Not used; to make compiler happy */
+        vfudge = 0.0;
+        break;
+    default:
+        /* This can't happen; to make compiler happy */
+        errmsg("Internal error");
+        return RETURN_FAILURE;
+    }
     
     if (vjust == JUST_BLINE) {
-        offset.x = baseline_start.x + 
-            hfudge*(baseline_stop.x - baseline_start.x) - vp->x;
-        offset.y = baseline_start.y + 
-            hfudge*(baseline_stop.y - baseline_start.y) - vp->y;
+        offset.x = hfudge*baseline_advance->x;
+        offset.y = hfudge*baseline_advance->y;
     } else {
-        offset.x = bbox_ll.x + 
-            hfudge*(bbox_ur.x - bbox_ll.x) - vp->x;
-        offset.y = bbox_ll.y + 
-            vfudge*(bbox_ur.y - bbox_ll.y) - vp->y;
+        offset.x = bbox->xv1 + hfudge*(bbox->xv2 - bbox->xv1);
+        offset.y = bbox->yv1 + vfudge*(bbox->yv2 - bbox->yv1);
     }
     
     /* justification corrections */
     for (iss = 0; iss < nss; iss++) {
-        glyph = cstring[iss].glyph;
+        CompositeString *cs = &cstring[iss];
+        GLYPH *glyph = cs->glyph;
         if (glyph == NULL) {
             continue;
         }
-        cstring[iss].start.x -= offset.x;
-        cstring[iss].start.y -= offset.y;
-        cstring[iss].stop.x  -= offset.x;
-        cstring[iss].stop.y  -= offset.y;
+        cs->start.x -= offset.x;
+        cs->start.y -= offset.y;
+        cs->stop.x  -= offset.x;
+        cs->stop.y  -= offset.y;
     }
         
     /* update BB */
-    bbox_ll.x -= offset.x;
-    bbox_ll.y -= offset.y;
-    bbox_ur.x -= offset.x;
-    bbox_ur.y -= offset.y;
-    update_bboxes(canvas, &bbox_ll);
-    update_bboxes(canvas, &bbox_ur);
+    bbox->xv1 -= offset.x;
+    bbox->yv1 -= offset.y;
+    bbox->xv2 -= offset.x;
+    bbox->yv2 -= offset.y;
+    
+    return RETURN_SUCCESS;
+}
+
+CompositeString *rasterize_string(Canvas *canvas,
+    const VPoint *vp, double angle, int just, FontRaster fontrast, double dpv,
+    const char *s, int *nss, view *bbox)
+{
+    CompositeString *cstring;
+ 
+    VPoint baseline_advance;
+ 
+    bbox->xv1 = bbox->xv2 = vp->x;
+    bbox->yv1 = bbox->yv2 = vp->y;
+    
+    if (is_empty_string(s)) {
+	return NULL;
+    }
+    
+    cstring = String2Composite(canvas, s, nss);
+    if (cstring == NULL) {
+        return NULL;
+    }
+    
+    if (postprocess_cs(canvas, cstring, *nss,
+                       angle, dpv, fontrast,
+                       &baseline_advance, bbox) != RETURN_SUCCESS ||
+        justify_cs(cstring, *nss,
+                   just, bbox, &baseline_advance) != RETURN_SUCCESS) {
+        FreeCompositeString(cstring, *nss);
+        return NULL;
+    }
+    
+    /* update BB */
+    bbox->xv1 += vp->x;
+    bbox->yv1 += vp->y;
+    bbox->xv2 += vp->x;
+    bbox->yv2 += vp->y;
+
+    return cstring;
+}
+
+void WriteString(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *theString)
+{
+    CompositeString *cstring;
+    int iss, nss;
+ 
+    FontRaster fontrast;
+    double ipv, dpv;
+ 
+    view bbox;
+ 
+    fontrast = (get_curdevice_props(canvas))->fontrast;
+
+    /* inches per 1 unit of viewport */
+    ipv = MIN2(page_width_in(canvas), page_height_in(canvas));
+    /* dots per 1 unit of viewport */
+    dpv = ipv*page_dpi(canvas);
+
+    cstring = rasterize_string(canvas,
+        vp, angle, just, fontrast, dpv, theString, &nss, &bbox);
+    
+    if (!cstring) {
+        return;
+    }
+    
+    update_bboxes_with_view(canvas, &bbox);
         
     for (iss = 0; iss < nss; iss++) {
+        int pheight, pwidth;
         CompositeString *cs = &cstring[iss];
-        glyph = cs->glyph;
+        GLYPH *glyph = cs->glyph;
+    
         if (glyph == NULL) {
             continue;
         }
         
         pheight = glyph->metrics.ascent - glyph->metrics.descent;
-        pwidth  = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
+        pwidth  = glyph->metrics.rightSideBearing -
+                  glyph->metrics.leftSideBearing;
         if (pheight <= 0 || pwidth <= 0) {
             continue;
         }
         
         if (get_draw_mode(canvas) == TRUE) {
+            VPoint vptmp;
+            
             /* No patterned texts yet */
             setpattern(canvas, 1);
             setcolor(canvas, cs->color);
 
-            if (dev->fontrast == FONT_RASTER_DEVICE) {
+            vptmp = *vp;
+            
+            if (fontrast == FONT_RASTER_DEVICE) {
                 if (cs->advancing == TEXT_ADVANCING_RL) {
-                    vptmp = cs->stop;
+                    vptmp.x += cs->stop.x;
+                    vptmp.y += cs->stop.y;
                 } else {
-                    vptmp = cs->start;
+                    vptmp.x += cs->start.x;
+                    vptmp.y += cs->start.y;
                 }
                 canvas_dev_puttext(canvas, &vptmp, cs->s, cs->len, cs->font,
                     &cs->tm, cs->underline, cs->overline, cs->kerning);
             } else {
                 /* upper left corner of bitmap */
-                vptmp = cs->start;
-                vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
-                vptmp.y += (double) glyph->metrics.ascent/page_dpv;
+                vptmp.x += cs->start.x;
+                vptmp.y += cs->start.y;
+                vptmp.x += (double) glyph->metrics.leftSideBearing/dpv;
+                vptmp.y += (double) glyph->metrics.ascent/dpv;
 
-                canvas_dev_putpixmap(canvas, &vptmp, pwidth, pheight, glyph->bits, 
-                    glyph->bpp, T1_DEFAULT_BITMAP_PAD, PIXMAP_TRANSPARENT);
+                canvas_dev_putpixmap(canvas, &vptmp,
+                    pwidth, pheight, glyph->bits, glyph->bpp,
+                    T1_GetBitmapPad(), PIXMAP_TRANSPARENT);
             }
         }
     }
 
     FreeCompositeString(cstring, nss);
+}
+
+int get_string_bbox(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *s, view *bbox)
+{
+    CompositeString *cstring;
+    int nss;
+ 
+    cstring = rasterize_string(canvas,
+        vp, angle, just, FONT_RASTER_MONO, 612.0, s, &nss, bbox);
+    
+    if (cstring) {
+        FreeCompositeString(cstring, nss);
+        
+        return RETURN_SUCCESS;
+    } else {
+	return RETURN_FAILURE;
+    }
 }

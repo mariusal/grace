@@ -723,6 +723,8 @@ void canvas_stats_reset(Canvas *canvas);
 
 int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
 
+int get_string_bbox(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *s, view *bbox);
 
 char *scale_types(ScaleType it);
 ScaleType get_scale_type_by_name(const char *name);
