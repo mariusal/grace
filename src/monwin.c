@@ -48,7 +48,7 @@
 #include "motifinc.h"
 #include "protos.h"
 
-static Widget mon_frame, mon_panel, text_w;
+static Widget mon_frame, mon_panel, monText;
 static Widget wmon_text_item;
 static Widget mon_log_item;
 static Widget wmon_frame;
@@ -79,9 +79,8 @@ void create_monitor_frame(void *data)
         XtSetArg(args[ac], XmNcolumns, 80); ac++;
         XtSetArg(args[ac], XmNwordWrap, True); ac++;
         XtSetArg(args[ac], XmNeditable, False); ac++;
-	text_w = XmCreateScrolledText(fr, "text_w", args, ac);
-	SetFixedFont(text_w);
-        XtManageChild(text_w);
+	monText = XmCreateScrolledText(fr, "monText", args, ac);
+        XtManageChild(monText);
 
 	rc = XmCreateRowColumn(mon_panel, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -121,7 +120,7 @@ void create_monitor_frame(void *data)
 
 static void clear_results(void *data)
 {
-    XmTextSetString(text_w, "");
+    XmTextSetString(monText, "");
 }
 
 static void log_resultsCB(int state, void *data)
@@ -147,14 +146,14 @@ void stufftextwin(char *s, int sp)
     if (inwin) {
 	create_monitor_frame(NULL);
 	if (sp == STUFF_START) {
-	    pos = XmTextGetLastPosition(text_w);
+	    pos = XmTextGetLastPosition(monText);
 	    savepos = pos;
-	    XmTextSetTopCharacter(text_w, savepos);
+	    XmTextSetTopCharacter(monText, savepos);
 	}
-	XmTextInsert(text_w, pos, s);
+	XmTextInsert(monText, pos, s);
 	pos += strlen(s);
 	if (sp == STUFF_STOP) {
-	    XmTextSetTopCharacter(text_w, savepos);
+	    XmTextSetTopCharacter(monText, savepos);
 	    savepos = pos;
 	}
     } else {
@@ -206,8 +205,8 @@ static void wmon_apply_notify_proc(void *data)
     pp = grace_openw(s);
 
     if (pp != NULL) {
-        text = XmTextGetString(text_w);
-        len = XmTextGetLastPosition(text_w);
+        text = XmTextGetString(monText);
+        len = XmTextGetLastPosition(monText);
         fwrite(text, SIZEOF_CHAR, len, pp);
         grace_close(pp);
         XtFree(text);
