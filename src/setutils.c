@@ -1248,20 +1248,11 @@ int do_swapset(int gfrom, int setfrom, int gto, int setto)
  */
 void do_splitsets(int gno, int setno, int lpart)
 {
-    int i, j, k, nsets, ncols, len, nleft, tmpset, psets, stype;
+    int i, j, k, ncols, len, nleft, tmpset, psets, stype;
     char s[256];
     double *x[MAX_SET_COLS], *xtmp[MAX_SET_COLS], *xt[MAX_SET_COLS];
     plotarr p;
 
-    if (!activeset(gno)) {
-	errmsg("No active sets");
-	return;
-    }
-    if (!is_set_active(gno, setno)) {
-	sprintf(s, "Set %d not active", setno);
-	errmsg(s);
-	return;
-    }
     if ((len = getsetlength(gno, setno)) < 3) {
 	errmsg("Set length < 3");
 	return;
@@ -1279,17 +1270,7 @@ void do_splitsets(int gno, int setno, int lpart)
     if (nleft) {
 	psets++;
     }
-    nsets = 0;
 
-    for (i = 0; i < g[gno].maxplot; i++) {
-	if (is_set_active(gno, i)) {
-	    nsets++;
-	}
-    }
-    if (psets > (g[gno].maxplot - nsets + 1)) {
-	errmsg("Not enough sets for split");
-	return;
-    }
     /* get number of columns in this set */
     ncols = getncols(gno, setno);
 
