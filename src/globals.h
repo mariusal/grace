@@ -54,7 +54,7 @@ int ptofile = FALSE;            /* flag to indicate destination of hardcopy
                                  * output, ptofile = 0 means print to printer
                                  * non-zero print to file */
 
-char sformat[128] = "%16.8lg";   /* format for saving data sets */
+char sformat[128] = "%16.8g";   /* format for saving data sets */
 
 int logwindow = FALSE;		/* TRUE if results are displayed in the log window */
 
