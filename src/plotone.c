@@ -294,6 +294,7 @@ void xyplot(int gno)
                 case SET_XYDXDX:
                 case SET_XYDYDY:
                 case SET_XYDXDY:
+                case SET_XYDXDXDYDY:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -452,6 +453,7 @@ void xyplot(int gno)
                 case SET_XYDXDX:
                 case SET_XYDYDY:
                 case SET_XYDXDY:
+                case SET_XYDXDXDYDY:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -1232,8 +1234,8 @@ void drawseterrbars(int gno, int setno, plotarr *p,
 {
     int i, n;
     double *x, *y;
-    double *dx, *dy;
-    int etype = p->errbar.ptype;
+    double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
+    PlacementType ptype = p->errbar.ptype;
     double ebarlen = p->errbar.length;
     WPoint wp1, wp2, wp3, wp4;
     VPoint vp1, vp2;
@@ -1258,24 +1260,62 @@ void drawseterrbars(int gno, int setno, plotarr *p,
         stacked_chart = FALSE;
     }
     
+    dx_plus  = NULL;
+    dx_minus = NULL;
+    dy_plus  = NULL;
+    dy_minus = NULL;
     switch (p->type) {
     case SET_XYDX:
+        dx_plus = p->data.ex[2];
+        break;
     case SET_XYDY:
     case SET_BARDY:
-        dx = p->data.ex[2];
-        dy = p->data.ex[2];
+        dy_plus = p->data.ex[2];
         break;
     case SET_XYDXDX:
+        dx_plus  = p->data.ex[2];
+        dx_minus = p->data.ex[3];
+        break;
     case SET_XYDYDY:
-    case SET_XYDXDY:
     case SET_BARDYDY:
-        dx = p->data.ex[2];
-        dy = p->data.ex[3];
+        dy_plus  = p->data.ex[2];
+        dy_minus = p->data.ex[3];
+        break;
+    case SET_XYDXDY:
+        dx_plus = p->data.ex[2];
+        dy_plus = p->data.ex[3];
+        break;
+    case SET_XYDXDXDYDY:
+        dx_plus  = p->data.ex[2];
+        dx_minus = p->data.ex[3];
+        dy_plus  = p->data.ex[4];
+        dy_minus = p->data.ex[5];
         break;
     default:
         return;
     }
-
+    
+    switch (ptype) {
+    case PLACEMENT_OPPOSITE:
+        dtmp     = dx_minus;
+        dx_minus = dx_plus;
+        dx_plus  = dtmp;
+        dtmp     = dy_minus;
+        dy_minus = dy_plus;
+        dy_plus  = dtmp;
+        break;
+    case PLACEMENT_BOTH:
+        if (dx_minus != NULL || dy_minus != NULL) {
+            errmsg("Error bar placement: \"Both\" has no effect for this set type");
+        } else {
+            dx_minus = dx_plus;
+            dy_minus = dy_plus;
+        }
+        break;
+    default:
+        break;
+    }
+    
     setclipping(TRUE);
     
     setcolor(p->sympen.color);
@@ -1297,68 +1337,34 @@ void drawseterrbars(int gno, int setno, plotarr *p,
                 continue;
             }
             wp4 = wp3 = wp2 = wp1;
-            switch (p->type) {
-            case SET_XYDY:
-            case SET_XYDYDY:
-            case SET_BARDY:
-            case SET_BARDYDY:
-                switch (etype) {
-                case PLACEMENT_NORMAL:
-                    wp2.y += dx[i];
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    wp2.y -= dy[i];
-                    break;
-                case PLACEMENT_BOTH:
-                    wp1.y -= dy[i];
-                    wp2.y += dx[i];
-                    break;
+
+            if (dx_plus != NULL || dx_minus != NULL) {
+                if (dx_plus != NULL) {
+                    wp1.x += fabs(dx_plus[i]);
                 }
-                break;
-            case SET_XYDX:
-            case SET_XYDXDX:
-                switch (etype) {
-                case PLACEMENT_NORMAL:
-                    wp2.x += dx[i];
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    wp2.x -= dy[i];
-                    break;
-                case PLACEMENT_BOTH:
-                    wp1.x -= dy[i];
-                    wp2.x += dx[i];
-                    break;
+                if (dx_minus != NULL) {
+                    wp2.x -= fabs(dx_minus[i]);
                 }
-                break;
-            case SET_XYDXDY:
-                switch (etype) {
-                case PLACEMENT_OPPOSITE:
-                    wp2.x -= dx[i];
-                    wp4.y -= dy[i];
-                    break;
-                case PLACEMENT_NORMAL:
-                    wp2.x += dx[i];
-                    wp4.y += dy[i];
-                    break;
-                case PLACEMENT_BOTH:
-                    wp1.x -= dx[i];
-                    wp2.x += dx[i];
-                    wp3.y -= dy[i];
-                    wp4.y += dy[i];
-                    break;
+                vp1 = Wpoint2Vpoint(wp1);
+                vp2 = Wpoint2Vpoint(wp2);
+    	        vp1.x += offset;
+    	        vp2.x += offset;
+                DrawLine(vp1, vp2);
+            }
+
+            if (dy_plus != NULL || dy_minus != NULL) {
+                if (dy_plus != NULL) {
+                    wp3.y += fabs(dy_plus[i]);
+                }
+                if (dy_minus != NULL) {
+                    wp4.y -= fabs(dy_minus[i]);
                 }
                 vp1 = Wpoint2Vpoint(wp3);
                 vp2 = Wpoint2Vpoint(wp4);
     	        vp1.x += offset;
     	        vp2.x += offset;
                 DrawLine(vp1, vp2);
-                break;
             }
-            vp1 = Wpoint2Vpoint(wp1);
-            vp2 = Wpoint2Vpoint(wp2);
-    	    vp1.x += offset;
-    	    vp2.x += offset;
-            DrawLine(vp1, vp2);
         }
     }
 /*
@@ -1377,73 +1383,23 @@ void drawseterrbars(int gno, int setno, plotarr *p,
                 continue;
             }
             wp4 = wp3 = wp2 = wp1;
-            switch (p->type) {
-            case SET_XYDY:
-            case SET_XYDYDY:
-            case SET_BARDY:
-            case SET_BARDYDY:
-                switch (etype) {
-                case PLACEMENT_NORMAL:
-                    wp1.y += dx[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_HORIZONTAL);
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    wp1.y -= dy[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_HORIZONTAL);
-                    break;
-                case PLACEMENT_BOTH:
-                    wp1.y -= dy[i];
-                    wp2.y += dx[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_HORIZONTAL);
-                    drawerrorbar(wp2, offset, ebarlen, BAR_HORIZONTAL);
-                    break;
-                }
-                break;
-            case SET_XYDX:
-            case SET_XYDXDX:
-                switch (etype) {
-                case PLACEMENT_NORMAL:
-                    wp1.x += dx[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    wp1.x -= dy[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-                    break;
-                case PLACEMENT_BOTH:
-                    wp1.x -= dy[i];
-                    wp2.x += dx[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-                    drawerrorbar(wp2, offset, ebarlen, BAR_VERTICAL);
-                    break;
-                }
-                break;
-            case SET_XYDXDY:
-                switch (etype) {
-                case PLACEMENT_NORMAL:
-                    wp1.x += dx[i];
-                    wp3.y += dy[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-                    drawerrorbar(wp3, offset, ebarlen, BAR_HORIZONTAL);
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    wp1.x -= dx[i];
-                    wp3.y -= dy[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-                    drawerrorbar(wp3, offset, ebarlen, BAR_HORIZONTAL);
-                    break;
-                case PLACEMENT_BOTH:
-                    wp1.x -= dx[i];
-                    wp2.x += dx[i];
-                    wp3.y -= dy[i];
-                    wp4.y += dy[i];
-                    drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
-                    drawerrorbar(wp2, offset, ebarlen, BAR_VERTICAL);
-                    drawerrorbar(wp3, offset, ebarlen, BAR_HORIZONTAL);
-                    drawerrorbar(wp4, offset, ebarlen, BAR_HORIZONTAL);
-                    break;
-                }
-                break;
+
+            if (dx_plus != NULL) {
+                wp1.x += fabs(dx_plus[i]);
+                drawerrorbar(wp1, offset, ebarlen, BAR_VERTICAL);
+            }
+            if (dx_minus != NULL) {
+                wp2.x -= fabs(dx_minus[i]);
+                drawerrorbar(wp2, offset, ebarlen, BAR_VERTICAL);
+            }
+
+            if (dy_plus != NULL) {
+                wp3.y += fabs(dy_plus[i]);
+                drawerrorbar(wp3, offset, ebarlen, BAR_HORIZONTAL);
+            }
+            if (dy_minus != NULL) {
+                wp4.y -= fabs(dy_minus[i]);
+                drawerrorbar(wp4, offset, ebarlen, BAR_HORIZONTAL);
             }
         }
     }
