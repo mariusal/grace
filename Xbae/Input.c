@@ -21,13 +21,16 @@
  *
  * Author: Andrew Lister
  *
- * $Id: Input.c,v 1.1 1999-07-26 22:55:05 fnevgeny Exp $
+ * $Id: Input.c,v 1.2 1999-07-26 22:58:24 fnevgeny Exp $
  */
-
-/*#define DEBUG*/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
+
+/* This interferes with Grace definition */
+#ifdef DEBUG
+#undef DEBUG
 #endif
 
 /* For memmove/bcopy */
