@@ -607,9 +607,7 @@ int main(int argc, char *argv[])
 		usage(stderr, argv[0]);
 	    }
 	} else {
-	    if (getdata(cur_graph, argv[i], rt->cursource, LOAD_SINGLE) ==
-                                                RETURN_SUCCESS) {
-		set_docname(argv[i]);
+	    if (load_project(argv[i]) == RETURN_SUCCESS) {
 		if (remove_flag) {
 		    unlink(argv[i]);
 		}
