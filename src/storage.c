@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000,2001 Grace Development Team
+ * Copyright (c) 2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -52,7 +52,7 @@
     if (!sto) {                                                         \
         _exception_handler(STORAGE_ETYPE_ERROR, "NULL pointer passed"); \
         retaction;                                                      \
-    } else if (sto->ierrno == STORAGE_EFATAL) {                          \
+    } else if (sto->ierrno == STORAGE_EFATAL) {                         \
         sto->exception_handler(STORAGE_ETYPE_FATAL, "Fatal error");     \
         retaction;                                                      \
     }
@@ -173,7 +173,9 @@ int storage_eod(Storage *sto)
     
     cllnode = sto->cp;
     while (cllnode) {
-        sto->cp = cllnode;
+        if (!cllnode->next) {
+            sto->cp = cllnode;
+        }
         cllnode = cllnode->next;
     }
     
