@@ -43,6 +43,7 @@
 
 #include "utils.h"
 #include "files.h"
+#include "ssdata.h"
 
 #include "graphs.h"
 #include "graphutils.h"
@@ -281,6 +282,25 @@ int main(int argc, char *argv[])
 		    } else {
 			strcpy(batchfile, argv[i]);
 		    }
+		} else if (argmatch(argv[i], "-datehint", 5)) {
+		    i++;
+		    if (i == argc) {
+			errmsg("Missing argument for datehint flag");
+			usage(stderr, argv[0]);
+		    } else {
+			if (!strcmp("iso", argv[i])) {
+			    set_date_hint(FMT_iso);
+			} else if (!strcmp("european", argv[i])) {
+			    set_date_hint(FMT_european);
+			} else if (!strcmp("us", argv[i])) {
+			    set_date_hint(FMT_us);
+			} else if (!strcmp("nohint", argv[i])) {
+			    set_date_hint(FMT_nohint);
+			} else {
+			    errmsg("Improper argument for datehint flag");
+			    usage(stderr, argv[0]);
+			}
+		    }
 		} else if (argmatch(argv[i], "-pipe", 5)) {
 		    inpipe = TRUE;
 		} else if (argmatch(argv[i], "-noprint", 8)) {
@@ -463,14 +483,18 @@ int main(int argc, char *argv[])
 			getdata(cur_graph, argv[i], cursource, LOAD_BLOCK);
 		    }
 		} else if (argmatch(argv[i], "-bxy", 4)) {
-		    char blocksetcols[32];
 		    i++;
 		    if (i == argc) {
 			fprintf(stderr, "Missing parameter for block data set creation\n");
 			usage(stderr, argv[0]);
 		    } else {
-		        strcpy(blocksetcols, argv[i]);
-		        create_set_fromblock(cur_graph, curtype, blocksetcols);
+                        int nc, *cols;
+                        field_string_to_cols(argv[i], &nc, &cols);
+                        if (nc <= 0) {
+                            errmsg("Erroneous field specifications");
+                            return 1;
+                        }
+		        create_set_fromblock(cur_graph, curtype, nc, cols, -1);
                     }
 		} else if (argmatch(argv[i], "-nxy", 4)) {
 		    i++;
@@ -708,7 +732,7 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
 	if (inpipe == TRUE) {
-	    getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
+            getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
 	    inpipe = FALSE;
 	}
 	if (batchfile[0]) {
@@ -790,6 +814,9 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        using the current set type from columns\n");
     fprintf(stream, "                                        given in the argument\n");
     fprintf(stream, "-cols      [gcols]                    Arrange graphs in gcols columns\n");
+    fprintf(stream, "-datehint  [iso|european|us\n");
+    fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
+    fprintf(stream, "                                        (it is only a hint for the parser)\n");
 #if defined(DEBUG)
     fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
 #endif
