@@ -196,6 +196,7 @@ void do_fext_proc( Widget w, XtPointer client_data, XtPointer call_data )
     }
     fext_routine( gto, feature, abs_src, abs_set, abs_graph ); 
     update_set_lists(gto);
+    xdrawgraph();
 }
 
 void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph )
