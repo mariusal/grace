@@ -2,13 +2,13 @@
 .SUFFIXES:
 
 # Extension of object files
-O=.o
+O=@OBJ_EXT@
 
 # Extension of executables
-EXE=
+EXE=@EXE_EXT@
 
 # Extension of batch files
-BAT=
+BAT=@BAT_EXT@
 
 # Bourn shell
 SHELL=/bin/sh
@@ -20,7 +20,7 @@ PREFIX=@prefix@
 SUBDIRS=@SUBDIRS@
 
 # Name of executable
-GRACE=@GRACE@
+GRACE=@GRACE@$(EXE)
 
 # Location of the Grace home
 GRACE_HOME=@GRACE_HOME@
