@@ -81,7 +81,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
 int arrange_graphs_simple(int nrows, int ncols,
     int order, int snake, double offset, double hgap, double vgap);
 
-void autotick_axis(Quark *gr, int axis);
+void autotick_axis(Quark *gr, int axes);
 void autoscale_bysets(Quark **sets, int nsets, int autos_type);
 int autoscale_graph(Quark *gr, int autos_type);
 

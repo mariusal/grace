@@ -111,8 +111,6 @@ void create_about_grtool(Widget but, void *data);
 void update_set_lists(Quark *gr);
 
 void update_ticks(Quark *gr);
-void create_axes_dialog(int axisno);
-void create_axes_dialog_cb(Widget but, void *data);
 
 void create_graph_frame(Widget but, void *data);
 

@@ -77,6 +77,7 @@ void drawerrorbar(Canvas *canvas,
 
 void draw_region(Canvas *canvas, region *r);
 
+void draw_axis(Canvas *canvas, Quark *q);
 void draw_object(Canvas *canvas, Quark *q);
 
 void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,

@@ -37,6 +37,8 @@
 #define CORNER_UR   2
 #define CORNER_LR   3
 
+#define MAX_TICKS 100           /* max number of ticks/labels per axis */
+
 /* Graph type */
 typedef enum {
     GRAPH_XY   ,
@@ -248,6 +250,7 @@ typedef struct {
 typedef struct {
     int active;                 /* active or not */
 
+    int type;                   /* X or Y */
     int zero;                   /* "zero" axis or plain */
 
     plotstr label;              /* graph axis label */
@@ -322,6 +325,9 @@ typedef struct {
     int hidden;                 /* display or not */
 
     int type;                   /* type of graph */
+    int stacked;                /* TRUE if graph is stacked */
+
+    world w;                    /* world bounds */
 
     int xscale;                 /* scale mapping of X axes*/
     int yscale;                 /* scale mapping of Y axes*/
@@ -329,12 +335,8 @@ typedef struct {
     int yinvert;                /* Y axes inverted, TRUE or FALSE */
     int xyflip;                 /* whether x and y axes should be flipped */
 
-    int stacked;                /* TRUE if graph is stacked */
-    double bargap;              /* Distance between bars (in bar charts) */
     double znorm;               /* Normalization of pseudo-3D graphs */
-
-    world w;                    /* world */
-    tickmarks *t[MAXAXES];      /* flags etc. for tickmarks for all axes */
+    double bargap;              /* Distance between bars (in bar charts) */
 
     GLocator locator;           /* locator props */
 
@@ -380,11 +382,8 @@ graph *graph_data_copy(graph *g);
 void kill_all_graphs(Quark *project);
 Quark *duplicate_graph(Quark *gr);
 
-tickmarks *new_graph_tickmarks(void);
-tickmarks *copy_graph_tickmarks(tickmarks *);
-tickmarks *get_graph_tickmarks(const Quark *gr, int axis);
-void free_graph_tickmarks(tickmarks *t);
-int set_graph_tickmarks(Quark *gr, int a, tickmarks *t);
+Quark *get_parent_graph(const Quark *q);
+
 int is_axis_active(tickmarks *t);
 int is_zero_axis(tickmarks *t);
 int activate_tick_labels(tickmarks *t, int flag);
@@ -422,8 +421,8 @@ int islogy(Quark *gr);
 int islogitx(Quark *gr);
 int islogity(Quark *gr);
 
-int is_log_axis(Quark *gr, int axis);
-int is_logit_axis(Quark *gr, int axis);
+int is_log_axis(const Quark *q);
+int is_logit_axis(const Quark *q);
 
 int number_of_graphs(const Quark *project);
 int select_graph(Quark *g);
@@ -516,8 +515,22 @@ int set_set_colors(Quark *p, int color);
 
 int copysetdata(Quark *psrc, Quark *pdest);
 
+set *set_data_new(void);
 void set_data_free(set *s);
 set *set_data_copy(set *s);
+
+Quark *set_new(Quark *gr);
+
+Quark *axis_new(Quark *q);
+tickmarks *axis_data_new(void);
+void axis_data_free(tickmarks *t);
+tickmarks *axis_data_copy(tickmarks *t);
+
+tickmarks *copy_graph_tickmarks(tickmarks *);
+
+tickmarks *axis_get_data(const Quark *q);
+int axis_set_active(Quark *q, int flag);
+int axis_set_type(Quark *q, int type);
 
 void project_postprocess(Quark *pr);
 

@@ -20,7 +20,6 @@
 #include "xstrings.h"
 
 typedef struct {
-    int axis;
     int nrow;
 } ParserData;
 
@@ -667,8 +666,8 @@ char *utf2iso(const char *s)
     <element-type name="plotstr" ctype="plotstr *"><![CDATA[
         $$ = plotstr_new();
     ]]></element-type>
-    <element-type name="axis" ctype="tickmarks *"><![CDATA[
-        $$ = new_graph_tickmarks();
+    <element-type name="axis" ctype="Quark *"><![CDATA[
+        $$ = axis_new((Quark *)$P);
     ]]></element-type>
     <element-type name="axisplacement" ctype="APlacement *"><![CDATA[
         $$ = axisplacement_new();
@@ -983,11 +982,8 @@ char *utf2iso(const char *s)
             set_graph_locator($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrAxis"><![CDATA[
-            int axis = ((ParserData *) $U)->axis;
-            set_graph_tickmarks($$, axis, $?);
-            free_graph_tickmarks($?);
-        ]]></child>
+        <child name="#EStrAxis">
+        </child>
         <child name="#EStrObject">
         </child>
         <child name="#EStrSet">
@@ -1209,92 +1205,98 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrAxis" type="axis">
         <!-- Attributes -->
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
+        </attribute>
         <attribute name="#AStrType" type="sval">
-            int axis;
+            int axis_type;
             if (!strcmp($?, "x")) {
-                axis = 0;
-            } else 
-            if (!strcmp($?, "y")) {
-                axis = 1;
-            } else 
-            if (!strcmp($?, "altx")) {
-                axis = 2;
-            } else 
-            if (!strcmp($?, "alty")) {
-                axis = 3;
+                axis_type = AXIS_TYPE_X;
             } else {
-                axis = -1;
-            } 
-            ((ParserData *) $U)->axis = axis;
+                axis_type = AXIS_TYPE_Y;
+            }
+            axis_set_type($$, axis_type);
             xfree($?);
         </attribute>
         <attribute name="#AStrActive" type="bval">
-            $$->active = $?;
+            axis_set_active($$, $?);
         </attribute>
         <!-- Child elements -->
         <child name="#EStrPlacement">
-            $$->zero   = $?->zero;
-            $$->offsx  = $?->offset.x;
-            $$->offsy  = $?->offset.y;
+            tickmarks *t = axis_get_data($$);
+            if (t) {
+                t->zero   = $?->zero;
+                t->offsx  = $?->offset.x;
+                t->offsy  = $?->offset.y;
+            }
             xfree($?);
         </child>
         <child name="#EStrAxisbar">
-            $$->t_drawbar      = $?->active;
-            $$->t_drawbarcolor = $?->line.pen.color;
-            $$->t_drawbarlines = $?->line.style;
-            $$->t_drawbarlinew = $?->line.width;
+            tickmarks *t = axis_get_data($$);
+            if (t) {
+                t->t_drawbar      = $?->active;
+                t->t_drawbarcolor = $?->line.pen.color;
+                t->t_drawbarlines = $?->line.style;
+                t->t_drawbarlinew = $?->line.width;
+            }
             xfree($?);
         </child>
         <child name="#EStrAxislabel">
-            $$->label.s        = $?->s;
-            $$->label.font     = $?->font;
-            $$->label.color    = $?->color;
-            $$->label.charsize = $?->charsize;
+            tickmarks *t = axis_get_data($$);
+            if (t) {
+                t->label.s        = $?->s;
+                t->label.font     = $?->font;
+                t->label.color    = $?->color;
+                t->label.charsize = $?->charsize;
+            }
             xfree($?);
         </child>
         <child name="#EStrTicks"><![CDATA[
-            $$->tmajor    = $?->major;
-            $$->nminor    = $?->nminor;
-            $$->t_autonum = $?->autonum;
-            $$->t_round   = $?->round;
+            tickmarks *t = axis_get_data($$);
+            if (t) {
+                t->tmajor    = $?->major;
+                t->nminor    = $?->nminor;
+                t->t_autonum = $?->autonum;
+                t->t_round   = $?->round;
 
-            $$->t_flag    = $?->tmarks.active;
-            $$->t_inout   = $?->tmarks.inoutplacement;
-            $$->t_op      = $?->tmarks.sideplacement;
-            $$->props     = $?->tmarks.props;
-            $$->mprops    = $?->tmarks.mprops;
+                t->t_flag    = $?->tmarks.active;
+                t->t_inout   = $?->tmarks.inoutplacement;
+                t->t_op      = $?->tmarks.sideplacement;
+                t->props     = $?->tmarks.props;
+                t->mprops    = $?->tmarks.mprops;
 
-            $$->t_spec    = $?->uticks.type;
-            if ($$->t_spec != TICKS_SPEC_NONE) {
-                int i;
-                $$->nticks = $?->uticks.nticks;
-                for (i = 0; i < $$->nticks; i++) {
-                    $$->tloc[i] = $?->uticks.tloc[i];
+                t->t_spec    = $?->uticks.type;
+                if (t->t_spec != TICKS_SPEC_NONE) {
+                    int i;
+                    t->nticks = $?->uticks.nticks;
+                    for (i = 0; i < t->nticks; i++) {
+                        t->tloc[i] = $?->uticks.tloc[i];
+                    }
                 }
+
+                t->tl_flag   = $?->tlabels.active;
+
+                t->tl_op        = $?->tlabels.sideplacement;
+                t->tl_formula   = $?->tlabels.transform;
+                t->tl_font      = $?->tlabels.facespec.font;
+                t->tl_color     = $?->tlabels.facespec.color;
+                t->tl_charsize  = $?->tlabels.facespec.size;
+                t->tl_angle     = $?->tlabels.angle;
+                t->tl_skip      = $?->tlabels.skip;
+                t->tl_staggered = $?->tlabels.stagger;
+                t->tl_format    = $?->tlabels.format.type;
+                t->tl_prec      = $?->tlabels.format.prec;
+                t->tl_gaptype   = $?->tlabels.autoplace ? TYPE_AUTO:TYPE_SPEC;
+                t->tl_gap.x     = $?->tlabels.offset.x;
+                t->tl_gap.y     = $?->tlabels.offset.y;
+                t->tl_starttype = $?->tlabels.autostart ? TYPE_AUTO:TYPE_SPEC;
+                t->tl_start     = $?->tlabels.start;
+                t->tl_stoptype  = $?->tlabels.autostop ? TYPE_AUTO:TYPE_SPEC;
+                t->tl_stop      = $?->tlabels.stop;
+                strcpy(t->tl_prestr, $?->tlabels.prepend);
+                strcpy(t->tl_appstr, $?->tlabels.append);
             }
-            
-            $$->tl_flag   = $?->tlabels.active;
-    
-            $$->tl_op        = $?->tlabels.sideplacement;
-            $$->tl_formula   = $?->tlabels.transform;
-            $$->tl_font      = $?->tlabels.facespec.font;
-            $$->tl_color     = $?->tlabels.facespec.color;
-            $$->tl_charsize  = $?->tlabels.facespec.size;
-            $$->tl_angle     = $?->tlabels.angle;
-            $$->tl_skip      = $?->tlabels.skip;
-            $$->tl_staggered = $?->tlabels.stagger;
-            $$->tl_format    = $?->tlabels.format.type;
-            $$->tl_prec      = $?->tlabels.format.prec;
-            $$->tl_gaptype   = $?->tlabels.autoplace ? TYPE_AUTO:TYPE_SPEC;
-            $$->tl_gap.x     = $?->tlabels.offset.x;
-            $$->tl_gap.y     = $?->tlabels.offset.y;
-            $$->tl_starttype = $?->tlabels.autostart ? TYPE_AUTO:TYPE_SPEC;
-            $$->tl_start     = $?->tlabels.start;
-            $$->tl_stoptype  = $?->tlabels.autostop ? TYPE_AUTO:TYPE_SPEC;
-            $$->tl_stop      = $?->tlabels.stop;
-            strcpy($$->tl_prestr, $?->tlabels.prepend);
-            strcpy($$->tl_appstr, $?->tlabels.append);
-            
             xfree($?->tlabels.prepend);
             xfree($?->tlabels.append);
             xfree($?);
@@ -1924,7 +1926,6 @@ int load_xgr_project(char *fn)
 	return RETURN_FAILURE;
     }
 
-    udata.axis = -1;
     udata.nrow = -1;
     
     ret = xcc_parse(fp, &udata, (void **) &project, xcc_start_handler, xcc_end_handler);

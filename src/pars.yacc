@@ -3314,10 +3314,42 @@ setaxis:
 	;
 
 axis:
-	XAXIS { curtm = get_graph_tickmarks(whichgraph, X_AXIS); }
-	| YAXIS { curtm = get_graph_tickmarks(whichgraph, Y_AXIS ); }
-	| ALTXAXIS { curtm = get_graph_tickmarks(whichgraph, ZX_AXIS); }
-	| ALTYAXIS { curtm = get_graph_tickmarks(whichgraph, ZY_AXIS); }
+	XAXIS {
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "x_axis");
+            if (!q) {
+                q = axis_new(whichgraph);
+                quark_idstr_set(q, "x_axis");
+                axis_set_type(q, AXIS_TYPE_X);
+            }
+            curtm = axis_get_data(q);
+        }
+	| YAXIS {
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "y_axis");
+            if (!q) {
+                q = axis_new(whichgraph);
+                quark_idstr_set(q, "y_axis");
+                axis_set_type(q, AXIS_TYPE_Y);
+            }
+            curtm = axis_get_data(q);
+        }
+	| ALTXAXIS {
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "altx_axis");
+            if (!q) {
+                q = axis_new(whichgraph);
+                quark_idstr_set(q, "altx_axis");
+                axis_set_type(q, AXIS_TYPE_X);
+            }
+            curtm = axis_get_data(q);
+        }
+	| ALTYAXIS {
+            Quark *q = quark_find_descendant_by_idstr(whichgraph, "alty_axis");
+            if (!q) {
+                q = axis_new(whichgraph);
+                quark_idstr_set(q, "alty_axis");
+                axis_set_type(q, AXIS_TYPE_Y);
+            }
+            curtm = axis_get_data(q);
+        }
 	;
 
 proctype:

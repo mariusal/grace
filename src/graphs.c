@@ -93,8 +93,6 @@ graph *graph_get_data(const Quark *q)
 
 static void set_default_graph(graph *g)
 {    
-    int i;
-    
     g->hidden = FALSE;
     g->type = GRAPH_XY;
     g->xinvert = FALSE;
@@ -115,19 +113,6 @@ static void set_default_graph(graph *g)
     g->locator.fy = FORMAT_GENERAL;
     g->locator.px = 6;
     g->locator.py = 6;
-    for (i = 0; i < MAXAXES; i++) {
-        g->t[i] = new_graph_tickmarks();
-        switch (i) {
-        case X_AXIS:
-        case Y_AXIS:
-            g->t[i]->active = TRUE;
-            break;
-        case ZX_AXIS:
-        case ZY_AXIS:
-            g->t[i]->active = FALSE;
-            break;
-        }
-    }
     set_default_world(&g->w);
 }
 
@@ -145,21 +130,12 @@ graph *graph_data_new(void)
 
 void graph_data_free(graph *g)
 {
-    if (g) {
-        int j;
-        
-        for (j = 0; j < MAXAXES; j++) {
-            free_graph_tickmarks(g->t[j]);
-        }
-
-        xfree(g);
-    }
+    xfree(g);
 }
 
 graph *graph_data_copy(graph *g)
 {
     graph *g_new;
-    int j;
     
     if (!g) {
         return NULL;
@@ -171,11 +147,6 @@ graph *graph_data_copy(graph *g)
     }
     
     memcpy(g_new, g, sizeof(graph));
-
-    /* duplicate allocatable storage */
-    for (j = 0; j < MAXAXES; j++) {
-	g_new->t[j] = copy_graph_tickmarks(g->t[j]);
-    }
     
     return g_new;
 }
@@ -208,6 +179,19 @@ Quark *graph_get_project(const Quark *gr)
     return pr;
 }
 
+Quark *get_parent_graph(const Quark *child)
+{
+    Quark *p = (Quark *) child;
+    
+    while (p) {
+        p = p->parent;
+        if (p->fid == QFlavorGraph) {
+            return p;
+        }
+    }
+    
+    return NULL;
+}
 
 static int graph_free_cb(Quark *gr, int etype, void *data)
 {
@@ -259,18 +243,15 @@ void kill_all_graphs(Quark *project)
 
 /**** Tickmarks ****/
 
-tickmarks *get_graph_tickmarks(const Quark *gr, int axis)
+Quark *axis_new(Quark *q)
 {
-    graph *g = graph_get_data(gr);
-    
-    if (g && axis >= 0 && axis < MAXAXES) {
-        return g->t[axis];
-    } else {
-        return NULL;
-    }
+    Quark *a; 
+    a = quark_new(q, QFlavorAxis);
+    return a;
 }
 
-tickmarks *new_graph_tickmarks(void)
+
+tickmarks *axis_data_new(void)
 {
     tickmarks *retval;
     
@@ -281,7 +262,7 @@ tickmarks *new_graph_tickmarks(void)
     return retval;
 }
 
-tickmarks *copy_graph_tickmarks(tickmarks *t)
+tickmarks *axis_data_copy(tickmarks *t)
 {
     tickmarks *retval;
     int i;
@@ -289,7 +270,7 @@ tickmarks *copy_graph_tickmarks(tickmarks *t)
     if (t == NULL) {
         return NULL;
     } else {
-        retval = new_graph_tickmarks();
+        retval = axis_data_new();
         if (retval != NULL) {
             memcpy(retval, t, sizeof(tickmarks));
 	    retval->label.s = copy_string(NULL, t->label.s);
@@ -302,7 +283,7 @@ tickmarks *copy_graph_tickmarks(tickmarks *t)
     }
 }
 
-void free_graph_tickmarks(tickmarks *t)
+void axis_data_free(tickmarks *t)
 {
     if (t) {
         int i;
@@ -318,30 +299,55 @@ void free_graph_tickmarks(tickmarks *t)
     }
 }
 
-int set_graph_tickmarks(Quark *gr, int a, tickmarks *t)
+tickmarks *axis_get_data(const Quark *q)
 {
-    if (gr && a >= 0 && a < MAXAXES) {
-        graph *g = graph_get_data(gr);
-        free_graph_tickmarks(g->t[a]);
-        g->t[a] = copy_graph_tickmarks(t);
-        return RETURN_SUCCESS;
+    if (q && q->fid == QFlavorAxis) {
+        return (tickmarks *) q->data;
     } else {
-        return RETURN_FAILURE;
+        return NULL;
     }
 }
 
-int activate_tick_labels(tickmarks *t, int flag)
+int axis_set_type(Quark *q, int type)
 {
+    tickmarks *t = axis_get_data(q);
     if (t) {
-        if (t->tl_flag != flag) {
-            t->tl_flag = flag;
-            set_dirtystate();
+        if (t->type != type) {
+            t->type = type;
+            quark_dirtystate_set(q, TRUE);
         }
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
+
+int axis_set_active(Quark *q, int flag)
+{
+    tickmarks *t = axis_get_data(q);
+    if (t) {
+        if (t->active != flag) {
+            t->active = flag;
+            quark_dirtystate_set(q, TRUE);
+        }
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int axis_is_x(const Quark *q)
+{
+    tickmarks *t = axis_get_data(q);
+    return (t && t->type == AXIS_TYPE_X);
+}
+
+int axis_is_y(const Quark *q)
+{
+    tickmarks *t = axis_get_data(q);
+    return (t && t->type == AXIS_TYPE_Y);
+}
+
 
 int select_graph(Quark *gr)
 {
@@ -889,8 +895,8 @@ int is_graph_stacked(Quark *gr)
 
 double get_graph_bargap(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->bargap;
     } else {
         return 0.0;
@@ -899,8 +905,8 @@ double get_graph_bargap(Quark *gr)
 
 int set_graph_bargap(Quark *gr, double bargap)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         g->bargap = bargap;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -911,8 +917,8 @@ int set_graph_bargap(Quark *gr, double bargap)
 
 int get_graph_type(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->type;
     } else {
         return -1;
@@ -921,8 +927,8 @@ int get_graph_type(Quark *gr)
 
 int is_refpoint_active(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->locator.pointset;
     } else {
         return FALSE;
@@ -931,8 +937,8 @@ int is_refpoint_active(Quark *gr)
 
 int get_graph_xscale(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->xscale;
     } else {
         return -1;
@@ -941,8 +947,8 @@ int get_graph_xscale(Quark *gr)
 
 int get_graph_yscale(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->yscale;
     } else {
         return -1;
@@ -951,13 +957,13 @@ int get_graph_yscale(Quark *gr)
 
 int set_graph_xscale(Quark *gr, int scale)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         if (g->xscale != scale) {
-            int naxis;
             g->xscale = scale;
+#if 0
             for (naxis = 0; naxis < MAXAXES; naxis++) {
-                if (is_xaxis(naxis)) {
+                if (axis_is_x(naxis)) {
                     tickmarks *t;
                     t = get_graph_tickmarks(gr, naxis);
                     if (t) {
@@ -976,6 +982,7 @@ int set_graph_xscale(Quark *gr, int scale)
                     }
                 }
             }
+#endif
             set_dirtystate();
         }
         return RETURN_SUCCESS;
@@ -986,13 +993,13 @@ int set_graph_xscale(Quark *gr, int scale)
 
 int set_graph_yscale(Quark *gr, int scale)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         if (g->yscale != scale) {
-            int naxis;
             g->yscale = scale;
+#if 0
             for (naxis = 0; naxis < MAXAXES; naxis++) {
-                if (is_yaxis(naxis)) {
+                if (axis_is_y(naxis)) {
                     tickmarks *t;
                     t = get_graph_tickmarks(gr, naxis);
                     if (t) {
@@ -1011,6 +1018,7 @@ int set_graph_yscale(Quark *gr, int scale)
                     }
                 }
             }
+#endif
             set_dirtystate();
         }
         return RETURN_SUCCESS;
@@ -1021,8 +1029,8 @@ int set_graph_yscale(Quark *gr, int scale)
 
 int set_graph_znorm(Quark *gr, double norm)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         g->znorm = norm;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1033,8 +1041,8 @@ int set_graph_znorm(Quark *gr, double norm)
 
 double get_graph_znorm(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->znorm;
     } else {
         return 0.0;
@@ -1043,8 +1051,8 @@ double get_graph_znorm(Quark *gr)
 
 int is_graph_xinvert(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->xinvert;
     } else {
         return FALSE;
@@ -1053,8 +1061,8 @@ int is_graph_xinvert(Quark *gr)
 
 int is_graph_yinvert(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->yinvert;
     } else {
         return FALSE;
@@ -1063,8 +1071,8 @@ int is_graph_yinvert(Quark *gr)
 
 int set_graph_xinvert(Quark *gr, int flag)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         g->xinvert = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1075,8 +1083,8 @@ int set_graph_xinvert(Quark *gr, int flag)
 
 int set_graph_yinvert(Quark *gr, int flag)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         g->yinvert = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1087,8 +1095,8 @@ int set_graph_yinvert(Quark *gr, int flag)
 
 int islogx(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return (g->xscale == SCALE_LOG);
     } else {
         return FALSE;
@@ -1097,8 +1105,8 @@ int islogx(Quark *gr)
 
 int islogy(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return (g->yscale == SCALE_LOG);
     } else {
         return FALSE;
@@ -1107,8 +1115,8 @@ int islogy(Quark *gr)
 
 int islogitx(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return (g->xscale == SCALE_LOGIT);
     } else {
         return FALSE;
@@ -1117,28 +1125,30 @@ int islogitx(Quark *gr)
 
 int islogity(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return (g->yscale == SCALE_LOGIT);
     } else {
         return FALSE;
     }
 }
 
-int is_log_axis(Quark *gr, int axis)
+int is_log_axis(const Quark *q)
 {
-    if ((is_xaxis(axis) && islogx(gr)) ||
-        (is_yaxis(axis) && islogy(gr))) {
+    Quark *gr = get_parent_graph(q);
+    if ((axis_is_x(q) && islogx(gr)) ||
+        (axis_is_y(q) && islogy(gr))) {
         return TRUE;
     } else {
         return FALSE;
     }
 }
 
-int is_logit_axis(Quark *gr, int axis)
+int is_logit_axis(const Quark *q)
 {
-    if ((is_xaxis(axis) && islogitx(gr)) ||
-        (is_yaxis(axis) && islogity(gr))) {
+    Quark *gr = get_parent_graph(q);
+    if ((axis_is_x(q) && islogitx(gr)) ||
+        (axis_is_y(q) && islogity(gr))) {
         return TRUE;
     } else {
         return FALSE;
@@ -1149,9 +1159,10 @@ static int project_postprocess_hook(Quark *q,
     void *udata, QTraverseClosure *closure)
 {
     int version_id = *((int *) udata);
+    frame *f;
     graph *g;
+    tickmarks *t;
     set *s;
-    int naxis;
     int gtype;
     
     switch (q->fid) {
@@ -1179,68 +1190,69 @@ static int project_postprocess_hook(Quark *q,
             rescale_viewport(q, ext_x, ext_y);
         }
         break;
+    case QFlavorFrame:
+        f = frame_get_data(q);
+        
+	if (version_id <= 40102) {
+            f->l.vgap -= 0.01;
+        }
+	if (version_id < 50200) {
+            f->l.acorner = CORNER_UL;
+        }
+
+        break;
     case QFlavorGraph:
         select_graph(q);
 
-        g = graph_get_data(q);
-        
-	if (version_id <= 40102) {
-            // g->l.vgap -= 0.01;
+        break;
+    case QFlavorAxis:
+	t = axis_get_data(q);
+        g = graph_get_data(get_parent_graph(q));
+
+        if (version_id <= 40102) {
+            if ((axis_is_x(q) && g->xscale == SCALE_LOG) ||
+                (axis_is_y(q) && g->yscale == SCALE_LOG)) {
+                t->tmajor = pow(10.0, t->tmajor);
+            }
+
+            /* TODO : world/view translation */
+            t->offsx = 0.0;
+            t->offsy = 0.0;
         }
-	if (version_id < 50200) {
-            // g->l.acorner = CORNER_UL;
+	if (version_id < 50000) {
+	    /* There was no label_op in Xmgr */
+            t->label_op = t->tl_op;
+
+            /* in xmgr, axis label placement was in x,y coordinates */
+	    /* in Grace, it's parallel/perpendicular */
+	    if (axis_is_y(q)) {
+	        fswap(&t->label.offset.x,
+                      &t->label.offset.y);
+	    }
+	    t->label.offset.y *= -1;
+	}
+	if (version_id >= 50000 && version_id < 50103) {
+	    /* Autoplacement of axis labels wasn't implemented 
+               in early versions of Grace */
+            if (t->label_place == TYPE_AUTO) {
+                t->label.offset.x = 0.0;
+                t->label.offset.y = 0.08;
+                t->label_place = TYPE_SPEC;
+            }
+        }
+        if (version_id < 50105) {
+            /* Starting with 5.1.5, X axis min & inverting is honored
+               in pie charts */
+            if (get_graph_type(q) == GRAPH_PIE) {
+                world w;
+                get_graph_world(q, &w);
+                w.xg1 = 0.0;
+                w.xg2 = 2*M_PI;
+                set_graph_world(q, &w);
+                set_graph_xinvert(q, FALSE);
+            }
         }
 
-        for (naxis = 0; naxis < MAXAXES; naxis++) {
-	    tickmarks *t = g->t[naxis];
-            if (!t) {
-                continue;
-            }
-            
-            if (version_id <= 40102) {
-                if ((is_xaxis(naxis) && g->xscale == SCALE_LOG) ||
-                    (is_yaxis(naxis) && g->yscale == SCALE_LOG)) {
-                    t->tmajor = pow(10.0, t->tmajor);
-                }
-                
-                /* TODO : world/view translation */
-                t->offsx = 0.0;
-                t->offsy = 0.0;
-            }
-	    if (version_id < 50000) {
-	        /* There was no label_op in Xmgr */
-                t->label_op = t->tl_op;
-	        
-                /* in xmgr, axis label placement was in x,y coordinates */
-	        /* in Grace, it's parallel/perpendicular */
-	        if (is_yaxis(naxis)) {
-	            fswap(&t->label.offset.x,
-                          &t->label.offset.y);
-	        }
-	        t->label.offset.y *= -1;
-	    }
-	    if (version_id >= 50000 && version_id < 50103) {
-	        /* Autoplacement of axis labels wasn't implemented 
-                   in early versions of Grace */
-                if (t->label_place == TYPE_AUTO) {
-                    t->label.offset.x = 0.0;
-                    t->label.offset.y = 0.08;
-                    t->label_place = TYPE_SPEC;
-                }
-            }
-            if (version_id < 50105) {
-                /* Starting with 5.1.5, X axis min & inverting is honored
-                   in pie charts */
-                if (get_graph_type(q) == GRAPH_PIE) {
-                    world w;
-                    get_graph_world(q, &w);
-                    w.xg1 = 0.0;
-                    w.xg2 = 2*M_PI;
-                    set_graph_world(q, &w);
-                    set_graph_xinvert(q, FALSE);
-                }
-            }
-        }
         break;
     case QFlavorSet:
         s = set_get_data(q);

@@ -88,9 +88,6 @@ void set_default_string(plotstr *s);
 void set_default_arrow(Arrow *arrowp);
 
 void set_default_ticks(tickmarks *t);
-void calculate_tickgrid(Quark *gr);
-void drawgrid(Canvas *canvas, Quark *gr);
-void drawaxes(Canvas *canvas, Quark *gr);
 
 int csparse_proc(const Canvas *canvas, const char *s, CompositeString *cstring);
 int fmap_proc(const Canvas *canvas, int font);
@@ -137,11 +134,6 @@ int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind);
 void setcol(Quark *pset, int col, double *x, int len);
 
 void copycol2(Quark *psrc, Quark *pdest, int col);
-
-set *set_data_new(void);
-void set_data_free(set *p);
-set *set_data_copy(set *p);
-Quark *set_new(Quark *gr);
 
 void killset(Quark *pset);
 void killsetdata(Quark *pset);
@@ -211,8 +203,8 @@ void cli_loop(void);
 
 void reset_nonl(NLFit *nlfit);
 
-int is_xaxis(int axis);
-int is_yaxis(int axis);
+int axis_is_x(const Quark *q);
+int axis_is_y(const Quark *q);
 
 void kill_blockdata(void);
 void alloc_blockdata(int ncols);

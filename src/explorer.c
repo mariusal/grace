@@ -145,6 +145,7 @@ static char *q_labeling(Quark *q)
     frame *f;
     graph *g;
     set *s;
+    tickmarks *t;
     DObject *o;
     
     switch (q->fid) {
@@ -174,6 +175,13 @@ static char *q_labeling(Quark *q)
         
         sprintf(buf, "(%c) Set \"%s\" (%s)",
             !s->hidden ? '+':'-', QIDSTR(q), set_types(grace->rt, s->type));
+
+        break;
+    case QFlavorAxis:
+        t = axis_get_data(q);
+        
+        sprintf(buf, "(%c) %c Axis \"%s\"",
+            t->active ? '+':'-', t->type == AXIS_TYPE_X ? 'X':'Y', QIDSTR(q));
 
         break;
     case QFlavorDObject:
@@ -240,6 +248,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         UnmanageChild(ui->project_ui->top);
         UnmanageChild(ui->frame_ui->top);
         UnmanageChild(ui->graph_ui->top);
+        UnmanageChild(ui->axis_ui->top);
         UnmanageChild(ui->object_ui->top);
     } else {
         SetSensitive(ui->aacbuts[0], TRUE);
@@ -253,6 +262,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
             UnmanageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
             break;
         case QFlavorFrame:
@@ -262,6 +272,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             ManageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
             UnmanageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
             break;
         case QFlavorGraph:
@@ -271,6 +282,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->frame_ui->top);
             ManageChild(ui->graph_ui->top);
             UnmanageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
             break;
         case QFlavorSet:
@@ -280,6 +292,17 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
             ManageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
+            UnmanageChild(ui->object_ui->top);
+            break;
+        case QFlavorAxis:
+            update_axis_ui(ui->axis_ui, q);
+            
+            UnmanageChild(ui->project_ui->top);
+            UnmanageChild(ui->frame_ui->top);
+            UnmanageChild(ui->graph_ui->top);
+            UnmanageChild(ui->set_ui->top);
+            ManageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
             break;
         case QFlavorDObject:
@@ -289,6 +312,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
             UnmanageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
             ManageChild(ui->object_ui->top);
             break;
         default:
@@ -296,6 +320,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             UnmanageChild(ui->frame_ui->top);
             UnmanageChild(ui->graph_ui->top);
             UnmanageChild(ui->set_ui->top);
+            UnmanageChild(ui->axis_ui->top);
             UnmanageChild(ui->object_ui->top);
             break;
         }
@@ -346,6 +371,11 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
             break;
         case QFlavorSet:
             if (set_set_data(ui->set_ui, q, caller) != RETURN_SUCCESS) {
+                res = RETURN_FAILURE;
+            }
+            break;
+        case QFlavorAxis:
+            if (set_axis_data(ui->axis_ui, q, caller) != RETURN_SUCCESS) {
                 res = RETURN_FAILURE;
             }
             break;
@@ -442,11 +472,14 @@ void define_explorer_popup(Widget but, void *data)
 	eui->graph_ui = create_graph_ui(eui);
         UnmanageChild(eui->graph_ui->top);
 
-	eui->object_ui = create_object_ui(eui);
-        UnmanageChild(eui->object_ui->top);
-
 	eui->set_ui = create_set_ui(eui);
         UnmanageChild(eui->set_ui->top);
+
+	eui->axis_ui = create_axis_ui(eui);
+        UnmanageChild(eui->axis_ui->top);
+
+	eui->object_ui = create_object_ui(eui);
+        UnmanageChild(eui->object_ui->top);
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);
 

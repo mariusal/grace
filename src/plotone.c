@@ -72,6 +72,9 @@ static int plotone_hook(Quark *q,
             closure->descend = FALSE;
         }
         break;
+    case QFlavorAxis:
+        draw_axis(canvas, q);
+        break;
     case QFlavorDObject:
         draw_object(canvas, q);
         break;
@@ -198,14 +201,6 @@ int draw_graph(Canvas *canvas, Quark *gr)
     
     gtype = get_graph_type(gr);
     
-    if (gtype != GRAPH_PIE) {
-        /* calculate tick mark positions for all axes */
-        calculate_tickgrid(gr);
-    
-        /* draw grid lines */
-        drawgrid(canvas, gr);
-    }
-    
     /* plot type specific routines */
     switch (gtype) {
     case GRAPH_POLAR:
@@ -222,11 +217,6 @@ int draw_graph(Canvas *canvas, Quark *gr)
         break;
     }
 
-    if (gtype != GRAPH_PIE) {
-        /* plot axes and tickmarks */
-        drawaxes(canvas, gr);
-    }
-    
     /* draw regions and mark the reference points only if in interactive mode */
     if (terminal_device(canvas) == TRUE) {
         draw_regions(canvas, gr);

@@ -340,6 +340,13 @@ static QuarkFlavor set_qf = {
     NULL
 };
 
+static QuarkFlavor axis_qf = {
+    (Quark_data_new) axis_data_new,
+    (Quark_data_free) axis_data_free,
+    (Quark_data_copy) axis_data_copy,
+    NULL
+};
+
 static QuarkFlavor dobject_qf = {
     (Quark_data_new) object_data_new,
     (Quark_data_free) object_data_free,
@@ -374,6 +381,9 @@ QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
         break;
     case QFlavorDObject:
         qf = &dobject_qf;
+        break;
+    case QFlavorAxis:
+        qf = &axis_qf;
         break;
     case QFlavorContainer:
         qf = &container_qf;

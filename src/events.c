@@ -1052,12 +1052,12 @@ int axis_clicked(Quark *gr, VPoint vp, int *axisno)
         if (vp.x >= v.xv1 && vp.x <= v.xv2 &&
             (fabs(vp.y - v.yv1) < MAXPICKDIST ||
              fabs(vp.y - v.yv2) < MAXPICKDIST)) {
-            *axisno = X_AXIS;
+            *axisno = AXIS_TYPE_X;
             return TRUE;
         } else if (vp.y >= v.yv1 && vp.y <= v.yv2 &&
             (fabs(vp.x - v.xv1) < MAXPICKDIST ||
              fabs(vp.x - v.xv2) < MAXPICKDIST)) {
-            *axisno = Y_AXIS;
+            *axisno = AXIS_TYPE_Y;
             return TRUE;
         } else {
             return FALSE;

@@ -248,6 +248,7 @@ enum {
     QFlavorGraph,
     QFlavorSet,
     QFlavorDObject,
+    QFlavorAxis,
     QFlavorContainer
 };
 

@@ -470,7 +470,6 @@ int save_frame_properties(XFile *xf, frame *f)
 
 int save_graph_properties(XFile *xf, Quark *gr)
 {
-    int i;
     Attributes *attrs;
     graph *g;
     
@@ -529,35 +528,6 @@ int save_graph_properties(XFile *xf, Quark *gr)
 
     /* FIXME: world stack */
     
-    for (i = 0; i < MAXAXES; i++) {
-        char *s = "";
-        tickmarks *t;
-        
-        t = g->t[i];
-
-        switch (i) {
-        case 0:
-            s = "x";
-            break;
-        case 1:
-            s = "y";
-            break;
-        case 2:
-            s = "altx";
-            break;
-        case 3:
-            s = "alty";
-            break;
-        }
-
-        attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrType, s);
-        xmlio_set_active(attrs, t && t->active);
-        xfile_begin_element(xf, EStrAxis, attrs);
-        save_axis_properties(xf, t);
-        xfile_end_element(xf, EStrAxis);
-    }
-
     attributes_free(attrs);
     
     return RETURN_SUCCESS;
@@ -755,6 +725,7 @@ static int project_save_hook(Quark *q,
     Project *pr;
     frame *f;
     set *p;
+    tickmarks *t;
     DObject *o;
     Attributes *attrs;
 
@@ -854,6 +825,18 @@ static int project_save_hook(Quark *q,
             save_dataset(xf, q);
         }
         xfile_end_element(xf, EStrSet);
+        
+        break;
+    case QFlavorAxis:
+        t = axis_get_data(q);
+        
+        attributes_set_sval(attrs, AStrId, QIDSTR(q));
+        
+        attributes_set_sval(attrs, AStrType, axis_is_x(q) ? "x":"y");
+        xmlio_set_active(attrs, t->active);
+        xfile_begin_element(xf, EStrAxis, attrs);
+        save_axis_properties(xf, t);
+        xfile_end_element(xf, EStrAxis);
         
         break;
     case QFlavorDObject:

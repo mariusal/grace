@@ -190,6 +190,81 @@ typedef struct {
     Widget          avalue_appstr;
 } SetUI;
 
+typedef struct {
+    Widget          top;
+
+    Widget          main_tp;
+    Widget          label_tp;
+    Widget          ticklabel_tp;
+    Widget          tickmark_tp;
+    Widget          special_tp;
+
+    Widget          active;
+    
+    Widget          zero;
+    Widget          offx;
+    Widget          offy;
+    Widget          tonoff;
+    Widget          tlonoff;
+    TextStructure   *label;
+    OptionStructure *labellayout;
+    OptionStructure *labelplace;
+    Widget          labelspec_rc;
+
+    Widget          labelspec_para;
+    Widget          labelspec_perp;
+    OptionStructure *labelfont;
+    Widget          labelcharsize;
+    OptionStructure *labelcolor;
+    OptionStructure *labelop;
+    
+    Widget          tmajor;
+    SpinStructure   *nminor;
+    
+    OptionStructure *tickop;
+    OptionStructure *ticklop;
+    OptionStructure *tlform;
+    OptionStructure *tlprec;
+    OptionStructure *tlfont;
+    Widget          tlcharsize;
+    OptionStructure *tlcolor;
+    Widget          tlappstr;
+    Widget          tlprestr;
+    OptionStructure *tlskip;
+    OptionStructure *tlstarttype;
+    Widget          tlstart;
+    OptionStructure *tlstoptype;
+    Widget          tlstop;
+    OptionStructure *tlgaptype;
+    Widget          tlgap_rc;
+    Widget          tlgap_para;
+    Widget          tlgap_perp;
+    Widget          tlangle;
+    OptionStructure *tlstagger;
+    TextStructure   *tlformula;
+    OptionStructure *autonum;
+    Widget          tround;
+    Widget          tgrid;
+    OptionStructure *tgridcol;
+    SpinStructure   *tgridlinew;
+    OptionStructure *tgridlines;
+    Widget          tmgrid;
+    OptionStructure *tmgridcol;
+    SpinStructure   *tmgridlinew;
+    OptionStructure *tmgridlines;
+    Widget          tlen;
+    Widget          tmlen;
+    OptionStructure *tinout;
+    Widget          baronoff;
+    OptionStructure *barcolor;
+    SpinStructure   *barlinew;
+    OptionStructure *barlines;
+
+    OptionStructure *specticks;
+    SpinStructure   *nspec;
+    Widget          specloc[MAX_TICKS];
+    Widget          speclabel[MAX_TICKS];
+} AxisUI;
 
 typedef struct {
     Widget top;
@@ -278,6 +353,7 @@ typedef struct {
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;
     SetUI        *set_ui;
+    AxisUI       *axis_ui;
     ObjectUI     *object_ui;
 } ExplorerUI;
 
@@ -303,6 +379,10 @@ int set_graph_data(GraphUI *ui, Quark *q, void *caller);
 SetUI *create_set_ui(ExplorerUI *eui);
 void update_set_ui(SetUI *ui, Quark *q);
 int set_set_data(SetUI *ui, Quark *q, void *caller);
+
+AxisUI *create_axis_ui(ExplorerUI *eui);
+void update_axis_ui(AxisUI *ui, Quark *q);
+int set_axis_data(AxisUI *ui, Quark *q, void *caller);
 
 ObjectUI *create_object_ui(ExplorerUI *eui);
 void update_object_ui(ObjectUI *ui, Quark *q);

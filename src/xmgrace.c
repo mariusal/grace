@@ -790,13 +790,6 @@ static Widget CreateMainMenuBar(Widget parent)
     submenupane = CreateMenu(menupane, "Export", 'E', FALSE);
     CreateMenuButton(submenupane, "ASCII...", 'A', create_write_popup, NULL);
 
-
-/* Plot menu */
-    menupane = CreateMenu(menubar, "Plot", 'P', FALSE);
-
-    CreateMenuButton(menupane, "Axis properties...", 'x', create_axes_dialog_cb, NULL);
-
-
 /* View menu */
     menupane = CreateMenu(menubar, "View", 'V', FALSE);
    

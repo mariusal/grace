@@ -49,9 +49,6 @@
 /* max length for strings */
 #define MAX_STRING_LENGTH 512
 
-
-#define MAXAXES 4               /* max number of axes per graph */
-#define MAX_TICKS 100           /* max number of ticks/labels per axis */
 #define MAXREGION 5             /* max number of regions */
 
 #define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
@@ -88,10 +85,8 @@
 /*
  * coordinates
  */
-#define AXIS_TYPE_ANY -1
 #define AXIS_TYPE_X    0
 #define AXIS_TYPE_Y    1
-#define AXIS_TYPE_BAD  2
 
 /*
  * types of axes
@@ -99,11 +94,6 @@
 #define ALL_AXES    -3
 #define ALL_X_AXES  -2
 #define ALL_Y_AXES  -1
-
-#define X_AXIS  0
-#define Y_AXIS  1
-#define ZX_AXIS 2
-#define ZY_AXIS 3
 
 /* type of splines */
 #define INTERP_LINEAR   0

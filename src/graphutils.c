@@ -46,7 +46,7 @@
 
 extern char print_file[];
 
-static void auto_ticks(Quark *gr, int axis);
+static void auto_ticks(Quark *q);
 
 char *get_format_types(FormatType f)
 {
@@ -189,8 +189,9 @@ static double nicenum(double x, int nrange, int round);
 #define NICE_CEIL    1
 #define NICE_ROUND   2
 
-void autotick_axis(Quark *gr, int axis)
+void autotick_axis(Quark *gr, int axes)
 {
+#if 0
     switch (axis) {
     case ALL_AXES:
         auto_ticks(gr, X_AXIS);
@@ -210,10 +211,12 @@ void autotick_axis(Quark *gr, int axis)
         auto_ticks(gr, axis);
         break;
     }
+#endif
 }
 
 void autoscale_bysets(Quark **sets, int nsets, int autos_type)
 {
+#if 0
     Quark *gr;
     
     if (nsets <= 0) {
@@ -234,6 +237,7 @@ void autoscale_bysets(Quark **sets, int nsets, int autos_type)
         autotick_axis(gr, ALL_AXES);
         break;
     }
+#endif
 }
 
 int autoscale_graph(Quark *gr, int autos_type)
@@ -386,20 +390,22 @@ static void autorange_bysets(Quark **sets, int nsets, int autos_type)
     set_graph_world(gr, &w);
 }
 
-static void auto_ticks(Quark *gr, int axis)
+static void auto_ticks(Quark *q)
 {
+    Quark *gr;
     tickmarks *t;
     world w;
     double range, d, tmpmax, tmpmin;
     int axis_scale;
 
-    t = get_graph_tickmarks(gr, axis);
+    t = axis_get_data(q);
     if (t == NULL) {
         return;
     }
+    gr = get_parent_graph(q);
     get_graph_world(gr, &w);
 
-    if (is_xaxis(axis)) {
+    if (axis_is_x(q)) {
         tmpmin = w.xg1;
         tmpmax = w.xg2;
         axis_scale = get_graph_xscale(gr);
@@ -711,6 +717,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
             v.yv2 = v.yv1 + h;
             // set_graph_viewport(gr, &v);
             
+#if 0
             if (hpack) {
 	        tickmarks *t = get_graph_tickmarks(gr, Y_AXIS);
                 if (iw == 0) {
@@ -739,7 +746,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
                     activate_tick_labels(t, FALSE);
                 }
             }
-            
+#endif            
             ng++;
         }
     }
@@ -827,6 +834,7 @@ void rescale_viewport(Quark *project, double ext_x, double ext_y)
 
 int overlay_graphs(Quark *gsec, Quark *gpri, int type)
 {
+#if 0
     int i;
     tickmarks *tsec, *tpri;
     world wpri, wsec;
@@ -961,6 +969,6 @@ int overlay_graphs(Quark *gsec, Quark *gpri, int type)
     
     /* update world coords */
     set_graph_world(gsec, &wsec);
-
+#endif
     return RETURN_SUCCESS;
 }
