@@ -355,6 +355,10 @@ static int find_cb(void *data)
     XmHTMLTextPosition start, end;
     html_ui *ui = (html_ui *) data;
     
+    if (!ui->input) {
+        return RETURN_FAILURE;
+    }
+    
     s = GetTextString(ui->input);
 
     if (is_empty_string(s)) {
@@ -419,8 +423,8 @@ static int find_cb(void *data)
         break;
     case XmREG_MATCH:
         if (XmHTMLTextFindToPosition(ui->html, ui->finder, &start, &end)) {
-            XmHTMLTextSetHighlight(ui->html, start, end, XmHIGHLIGHT_SELECTED);
             XmHTMLTextShowPosition(ui->html, start);
+            XmHTMLTextSetHighlight(ui->html, start, end, XmHIGHLIGHT_SELECTED);
         }
         break;
     }
@@ -485,6 +489,11 @@ void location_cb(TextStructure *cst, char *s, void *data)
     HelpCB(NULL, s);
 }
 
+static void find_again_cb(Widget but, void *data)
+{
+    find_cb(data);
+}
+
 void create_helper_frame(char *URL)
 {
     static html_ui *ui = NULL;
@@ -496,15 +505,9 @@ void create_helper_frame(char *URL)
         Widget fr1, fr2, menubar, menupane, rc;
         
 	ui = xmalloc(sizeof(html_ui));
+        memset(ui, 0, sizeof(html_ui));
         
-        ui->url = NULL;
-        ui->base = NULL;
-        ui->anchor = NULL;
-        
-        ui->finder = NULL;
-        ui->last = NULL;
-        
-        ui->top = CreateDialogForm(NULL, "Gracilla");
+        ui->top = CreateDialogForm(app_shell, "Gracilla");
 	
         menubar = CreateMenuBar(ui->top);
         ManageChild(menubar);
@@ -515,6 +518,7 @@ void create_helper_frame(char *URL)
         
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
         CreateMenuButton(menupane, "Find", 'F', create_find_dialog, ui);
+        CreateMenuButton(menupane, "Find again", 'g', find_again_cb, ui);
 
         menupane = CreateMenu(menubar, "View", 'V', FALSE);
         CreateMenuButton(menupane, "Refresh", 'R', refresh_cb, ui);
