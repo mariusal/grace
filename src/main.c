@@ -306,10 +306,6 @@ int main(int argc, char *argv[])
 		    inpipe = TRUE;
 		} else if (argmatch(argv[i], "-noprint", 8)) {
 		    noprint = TRUE;
-		} else if (argmatch(argv[i], "-logwindow", 5)) {
-		    logwindow = TRUE;
-		} else if (argmatch(argv[i], "-nologwindow", 7)) {
-		    logwindow = FALSE;
 		} else if (argmatch(argv[i], "-dpipe", 6)) {
 		    i++;
 		    if (i == argc) {
@@ -840,7 +836,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
     fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
     fprintf(stream, "                                        to logarithmic\n");
-    fprintf(stream, "-logwindow                            Open the log window\n");
 #ifndef NONE_GUI
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
@@ -859,7 +854,6 @@ static void usage(FILE *stream, char *progname)
 #ifndef NONE_GUI
     fprintf(stream, "-noinstall                            Don't use private colormap\n");
 #endif
-    fprintf(stream, "-nologwindow                          No log window, overrides resource setting\n");
     fprintf(stream, "-noprint                              In batch mode, do not print\n");
     fprintf(stream, "-nosigcatch                           Don't catch signals\n");
     fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup\n");

@@ -1046,21 +1046,6 @@ void set_docname(const char *s)
     }
 }
 
-/*
- * stuff results, etc. into a text window
- */
-void log_results(char *buf)
-{
-    char tmpbuf[512];
-    if (logwindow) {
-        strcpy(tmpbuf, buf);
-        if (tmpbuf[strlen(tmpbuf) - 1] != '\n') {
-            strcat(tmpbuf, "\n");
-        }
-        stufftext(tmpbuf);
-    }
-}
-
 
 void errmsg(char *buf)
 {
@@ -1123,6 +1108,10 @@ void stufftext(char *s)
         printf(s);
     }
 #endif
+    /* log results to file */
+    if (resfp != NULL) {
+	fprintf(resfp, s);
+    }
 }
 
 
@@ -1272,9 +1261,6 @@ void expand_tilde(char *buf)
 
 void echomsg(char *msg)
 {
-    if (logwindow) {
-	log_results(msg);
-    }
     if (inwin) {
 #ifndef NONE_GUI
         set_left_footer(msg);

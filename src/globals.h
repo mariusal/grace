@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -74,9 +74,6 @@ extern nonlopts nonl_opts;
 extern region rg[];
 
 #endif
-
-/* TRUE if results are displayed in the log window */
-GLOBAL(logwindow, int, FALSE);
 
 /* real-time input delay (prevents getting stuck reading) */
 GLOBAL(timer_delay, int, 200);

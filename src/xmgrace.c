@@ -181,7 +181,6 @@ typedef struct {
     Boolean invert;
     Boolean allow_dc;
     Boolean auto_redraw;
-    Boolean logwindow;
     Boolean toolbar;
     Boolean statusbar;
     Boolean locatorbar;
@@ -199,9 +198,6 @@ static XtResource resources[] =
     {"allowRedraw", "AllowRedraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, auto_redraw), XtRImmediate,
      (XtPointer) TRUE},
-    {"logWindow", "LogWindow", XtRBoolean, sizeof(Boolean),
-     XtOffset(ApplicationDataPtr, logwindow), XtRImmediate,
-     (XtPointer) FALSE},
     {"toolBar", "ToolBar", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, toolbar), XtRImmediate,
      (XtPointer) TRUE},
@@ -354,7 +350,6 @@ int initialize_gui(int *argc, char **argv)
     
     invert = rd.invert;
     allow_dc = rd.allow_dc;
-    logwindow = rd.logwindow;
     auto_redraw = rd.auto_redraw;
     toolbar_visible = rd.toolbar;
     statusbar_visible = rd.statusbar;
