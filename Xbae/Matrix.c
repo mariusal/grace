@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.c,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Matrix.c,v 1.2 1999-05-28 22:32:56 fnevgeny Exp $
  */
 
 /*
@@ -43,7 +43,6 @@
 #include <Xm/DragIcon.h>
 #include <Xm/DragC.h>
 #endif
-#include <Xbae/Cell.h>
 #include <Xbae/Clip.h>
 #include <Xbae/MatrixP.h>
 #include <Xbae/Converters.h>
@@ -1051,7 +1050,7 @@ Cardinal *num_args;
      */
 
     new->matrix.text_field = XtVaCreateWidget(
-	"textField", xqCellWidgetClass, (Widget) new,
+	"textField", xmTextFieldWidgetClass, (Widget) new,
 	XmNmarginWidth, new->matrix.cell_margin_width,
 	XmNmarginHeight, marginHeight,
 	XmNtranslations, new->matrix.text_translations,
