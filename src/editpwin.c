@@ -80,8 +80,10 @@ static void update_cells(EditPoints *ep);
 #define STRING_CELL_WIDTH 128
 
 /* minimum size of the spreadseet matrix */
-#define MIN_SS_ROWS    10
+#define MIN_SS_ROWS    100
 #define MIN_SS_COLS    1
+
+#define VISIBLE_SS_ROWS     10
 
 
 static void get_ep_dims(EditPoints *ep, int *nr, int *nc)
@@ -116,6 +118,7 @@ static void del_rows_cb(void *data)
     int nrows, ncols, scols, nc, nr;
     int nscells, row_start, nsrows, nsrows_max, *srows;
     EditPoints *ep = (EditPoints *) data;
+    char buf[64];
 
     if (get_ep_set_dims(ep, &nrows, &ncols, &scols) != RETURN_SUCCESS) {
         return;
@@ -148,18 +151,21 @@ static void del_rows_cb(void *data)
         }
     }
     
-    for (i = nsrows - 1; i >= 0; i--) {
-        del_point(ep->gno, ep->setno, srows[i]);
+    sprintf(buf, "Delete %d selected row(s)?", nsrows);
+    if (yesno(buf, NULL, NULL, NULL)) {
+        for (i = nsrows - 1; i >= 0; i--) {
+            del_point(ep->gno, ep->setno, srows[i]);
+        }
+
+        XbaeMatrixDeselectAll(ep->mw);
+
+        update_set_lists(ep->gno);
+        update_cells(ep);
+
+        xdrawgraph();
     }
     
     xfree(srows);
-    
-    XbaeMatrixDeselectAll(ep->mw);
-    
-    update_set_lists(ep->gno);
-    update_cells(ep);
-    
-    xdrawgraph();
 }
 
 
@@ -312,8 +318,19 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
         return;
     }
     
-    if (cs->column >= ncols + scols || cs->row >= nrows) {
+    if (cs->column >= ncols + scols) {
+        /* should never happen */
         return;
+    }
+
+    if (cs->row >= nrows) {
+        if (cs->value && cs->value[0] != '\0') {
+            setlength(ep->gno, ep->setno, cs->row + 1);
+            update_set_lists(ep->gno);
+        } else {
+            /* empty cell */
+            return;
+        }
     }
     
     /* TODO: add edit_point() function to setutils.c */
@@ -357,44 +374,43 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
  */
 #define STACKLEN    10
 
-static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
+static char *get_cell_content(EditPoints *ep, int row, int column)
 {
-    int i, j;
-    int ncols, nrows, scols;
     static char buf[STACKLEN][32];
     static int stackp = 0;
     
-    EditPoints *ep = (EditPoints *) client_data;
-    XbaeMatrixDrawCellCallbackStruct *cs =
-    	    (XbaeMatrixDrawCellCallbackStruct *) calld;
-
-    i = cs->row;
-    j = cs->column;
-
+    int ncols, nrows, scols;
+    char *s;
+    
     if (get_ep_set_dims(ep, &nrows, &ncols, &scols) != RETURN_SUCCESS) {
-        return;
-    }
-
-    cs->type = XbaeString;
-    
-    if (j >= ncols + scols || i >= nrows) {
-        cs->string = "";
-        return;
-    }
-    
-    if (j < ncols) {
+        s = "";
+    } else if (column >= ncols + scols || row >= nrows) {
+        s = "";
+    } else if (column < ncols) {
         double *datap;
-        datap = getcol(ep->gno, ep->setno, j);
+        datap = getcol(ep->gno, ep->setno, column);
         strcpy(buf[stackp],
-            create_fstring(ep->cformat[j], ep->cprec[j], datap[i], LFORMAT_TYPE_PLAIN));
-        cs->string = buf[stackp];
+            create_fstring(ep->cformat[column], ep->cprec[column], datap[row], LFORMAT_TYPE_PLAIN));
+        s = buf[stackp];
         stackp++;
         stackp %= STACKLEN;
     } else {
         char **datap;
         datap = get_set_strings(ep->gno, ep->setno);
-        cs->string = datap[i];
+        s = datap[row];
     }
+    
+    return s;
+}
+
+static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
+{
+    EditPoints *ep = (EditPoints *) client_data;
+    XbaeMatrixDrawCellCallbackStruct *cs =
+    	    (XbaeMatrixDrawCellCallbackStruct *) calld;
+
+    cs->type = XbaeString;
+    cs->string = get_cell_content(ep, cs->row, cs->column);
 }
 
 static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
@@ -495,6 +511,7 @@ void update_ss_editors(int gno)
 static void update_cells(EditPoints *ep)
 {
     int i, nr, nc, new_nr, new_nc, delta_nr, delta_nc;
+    int c_row, c_column;
     int ncols, nrows, scols;
     short widths[MAX_SET_COLS + 1];
     int maxlengths[MAX_SET_COLS + 1];
@@ -528,13 +545,15 @@ static void update_cells(EditPoints *ep)
     delta_nr = new_nr - nr;
     delta_nc = new_nc - nc;
     
-#if 0
-    /* Doesn't work as expected - the cell with focus on is NOT updated ... */
+    /* A bug in Xbae - the cell with focus on is NOT updated, so we do it */
+    XbaeMatrixGetCurrentCell(ep->mw, &c_row, &c_column);
+    XbaeMatrixSetCell(ep->mw,
+        c_row, c_column, get_cell_content(ep, c_row, c_column));
+    
     if (delta_nr == 0 && delta_nc == 0) {
         XbaeMatrixRefresh(ep->mw);
         return;
     }
-#endif
     
     for (i = 0; i < ncols; i++) {
         widths[i] = CELL_WIDTH;
@@ -684,7 +703,7 @@ static EditPoints *new_ep(void)
     ep->mw = XtVaCreateManagedWidget("mw",
         xbaeMatrixWidgetClass, ep->top,
         XmNrows, MIN_SS_ROWS,
-        XmNvisibleRows, MIN_SS_ROWS,
+        XmNvisibleRows, VISIBLE_SS_ROWS,
         XmNbuttonLabels, True,
         XmNrowLabels, rowlabels,
         XmNcolumns, MIN_SS_COLS,
