@@ -185,7 +185,9 @@ void create_axes_dialog(int axisno)
         opitems[1].label = "Logarithmic";
         opitems[2].value = SCALE_REC;
         opitems[2].label = "Reciprocal";
-        axis_scale = CreateOptionChoice(rc, "Scale:", 0, 3, opitems);
+	opitems[3].value = SCALE_LOGIT;
+	opitems[3].label = "Logit";
+        axis_scale = CreateOptionChoice(rc, "Scale:", 0, 4, opitems);
         AddOptionChoiceCB(axis_scale, axis_scale_cb, NULL);
 
 	axis_invert = CreateToggleButton(rc, "Invert axis");
@@ -682,6 +684,13 @@ static int axes_aac_cb(void *data)
                     set_graph_yscale(i, SCALE_REC);
                 }
                 break;
+	    case 3:
+                if (is_xaxis(j)) {
+                    set_graph_xscale(i, SCALE_LOGIT);
+                } else {
+                    set_graph_yscale(i, SCALE_LOGIT);
+                }
+                break;	
             }
 
             invert = GetToggleButtonState(axis_invert);
@@ -744,6 +753,26 @@ static void axis_scale_cb(int value, void *data)
             xv_setstr(tmajor, "10");
         }
         break;
+     case SCALE_LOGIT:
+        if (axestart <= 0.0 && axestop <= 0.0) {
+            errmsg("Can't set logit scale for values outside 0 and 1");
+            SetOptionChoice(axis_scale, SCALE_NORMAL);
+            return;
+        } 
+	if (axestart <= 0.0) {
+            axestart = 0.1;
+            sprintf(buf, "%g", axestart);
+            xv_setstr(axis_world_start, buf);
+        }
+	if (axestop >= 1.0) {
+	    axestop = 0.95;
+	    sprintf(buf, "%g", axestop);
+            xv_setstr(axis_world_stop, buf);
+	}
+        if (major_space >= 1.0) {
+            xv_setstr(tmajor, "0.6");
+        }
+        break;	
     }
 }
 
@@ -818,6 +847,14 @@ void update_ticks(int gno)
             if (t->tmajor <= 1.0) {
                 t->tmajor = 10.0;
             }
+            sprintf(buf, "%g", t->tmajor);	    
+        } else if (is_logit_axis(gno, curaxis)) {
+	    if (t->tmajor <= 0.0) {
+                t->tmajor = 0.1;
+            }
+	    else if (t->tmajor >= 0.5) {
+                t->tmajor = 0.4;
+	    }
             sprintf(buf, "%g", t->tmajor);
         } else if (t->tmajor > 0) {
             sprintf(buf, "%g", t->tmajor);

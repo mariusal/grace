@@ -242,6 +242,9 @@ int set_graph_bargap(int gno, double bargap);
 int islogx(int gno);
 int islogy(int gno);
 
+int islogitx(int gno);
+int islogity(int gno);
+
 int number_of_graphs(void);
 int select_graph(int gno);
 

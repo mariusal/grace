@@ -275,6 +275,18 @@ static void round_axis_limits(double *amin, double *amax, int scale)
         }
         smin = log10(*amin);
         smax = log10(*amax);
+    } else if (scale == SCALE_LOGIT) {
+	if (*amax <= 0.0) {
+            errmsg("Can't autoscale a logit axis by non-positive data");
+            *amax = 0.9;
+            *amin = 0.1;
+            return;
+        } else if (*amin <= 0.0) {
+            errmsg("Data have non-positive values");
+            *amin = 0.1;
+        }
+        smin = log(*amin/(1-*amin));
+        smax = log(*amax/(1-*amax));	
     } else {
         smin = *amin;
         smax = *amax;
@@ -299,6 +311,9 @@ static void round_axis_limits(double *amin, double *amax, int scale)
     if (scale == SCALE_LOG) {
         *amin = pow(10.0, smin);
         *amax = pow(10.0, smax);
+    } else if (scale == SCALE_LOGIT) {
+	*amin = exp(smin)/(1.0 + exp(smin));
+        *amax = exp(smax)/(1.0 + exp(smax));	
     } else {
         *amin = smin;
         *amax = smax;
@@ -388,17 +403,28 @@ static void auto_ticks(int gno, int axis)
         }
         tmpmax = log10(tmpmax)/log10(t->tmajor);
 	tmpmin = log10(tmpmin)/log10(t->tmajor);
+    } else if (axis_scale == SCALE_LOGIT) {
+    	if (t->tmajor >= 0.5) {
+            t->tmajor = 0.4;
+        }
+        tmpmax = log(tmpmax/(1-tmpmax))/log(t->tmajor/(1-t->tmajor));
+	tmpmin = log(tmpmin/(1-tmpmin))/log(t->tmajor/(1-t->tmajor)); 
     } else if (t->tmajor <= 0.0) {
         t->tmajor = 1.0;
     }
     
     range = tmpmax - tmpmin;
-    if (axis_scale != SCALE_LOG) {
-        d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
-	t->tmajor = d;
-    } else {
-        d = ceil(range/(t->t_autonum - 1));
+    if (axis_scale == SCALE_LOG) {
+	d = ceil(range/(t->t_autonum - 1));
 	t->tmajor = pow(t->tmajor, d);
+    } 
+    else if (axis_scale == SCALE_LOGIT ){
+        d = ceil(range/(t->t_autonum - 1));
+	t->tmajor = exp(d)/(1.0 + exp(d));
+    } 
+    else {
+	d = nicenum(range/(t->t_autonum - 1), 0, NICE_ROUND);
+	t->tmajor = d;
     }
 
     /* alter # of minor ticks only if the current value is anomalous */

@@ -1254,6 +1254,9 @@ char *scale_types(int it)
     case SCALE_REC:
 	strcpy(s, "Reciprocal");
 	break;
+    case SCALE_LOGIT:
+	strcpy(s, "Logit");
+	break; 	   
     default:
         strcpy(s, "Unknown");
 	break;
@@ -1275,6 +1278,8 @@ double fscale(double wc, int scale)
         return (log10(wc));
     case SCALE_REC:
         return (1.0/wc);
+    case SCALE_LOGIT:
+        return (log(wc/(1.0-wc)));
     default:
         errmsg("internal error in fscale()");
         return (wc);
@@ -1293,6 +1298,8 @@ double ifscale(double vc, int scale)
         return (pow(10.0, vc));
     case SCALE_REC:
         return (1.0/vc);
+    case SCALE_LOGIT:
+        return (exp(vc)/(1+exp(vc)));
     default:
         errmsg("internal error in ifscale()");
         return (vc);
@@ -1306,7 +1313,9 @@ double ifscale(double vc, int scale)
 double xy_xconv(double wx)
 {
     if ((scaletypex == SCALE_LOG && wx <= 0.0) ||
-        (scaletypex == SCALE_REC && wx == 0.0)) {
+        (scaletypex == SCALE_REC && wx == 0.0) ||
+        (scaletypex == SCALE_LOGIT && wx <= 0.0) ||
+	(scaletypex == SCALE_LOGIT && wx >= 1.0)){
         return 0;
     } else {
         return (xv_med + xv_rc*(fscale(wx, scaletypex) - fxg_med));
@@ -1316,7 +1325,9 @@ double xy_xconv(double wx)
 double xy_yconv(double wy)
 {
     if ((scaletypey == SCALE_LOG && wy <= 0.0) ||
-        (scaletypey == SCALE_REC && wy == 0.0)) {
+        (scaletypey == SCALE_REC && wy == 0.0) ||
+        (scaletypey == SCALE_LOGIT && wy <= 0.0) ||
+	(scaletypey == SCALE_LOGIT && wy >= 1.0)) {
         return 0;
     } else {
         return (yv_med + yv_rc*(fscale(wy, scaletypey) - fyg_med));
@@ -1436,7 +1447,9 @@ int definewindow(world w, view v, int gtype,
         if ((xscale == SCALE_LOG && (w.xg1 <= 0.0 || w.xg2 <= 0.0)) ||
             (yscale == SCALE_LOG && (w.yg1 <= 0.0 || w.yg2 <= 0.0)) ||
             (xscale == SCALE_REC && (w.xg1 == 0.0 || w.xg2 == 0.0)) ||
-            (yscale == SCALE_REC && (w.yg1 == 0.0 || w.yg2 == 0.0))) {
+            (yscale == SCALE_REC && (w.yg1 == 0.0 || w.yg2 == 0.0)) ||
+            (xscale == SCALE_LOGIT && (w.xg1 <= 0.0 || w.xg2 >= 1.0)) ||
+            (yscale == SCALE_LOGIT && (w.yg1 <= 0.0 || w.yg2 >= 1.0))) {
             return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_XY;
@@ -1515,7 +1528,18 @@ int checkon_world(int gno)
                 errmsg("X-axis contains 0");
                 return FALSE;
             }
+	    
         }
+        if (get_graph_xscale(gno) == SCALE_LOGIT) {
+            if (w.xg1 <= 0) {
+                errmsg("World X-min <= 0.0");
+                return FALSE;
+            }
+            if (w.xg2 >= 1) {
+                errmsg("World X-max >= 1.0");
+                return FALSE;
+            }
+	}    
         
         if (get_graph_yscale(gno) == SCALE_LOG) {
             if (w.yg1 <= 0.0) {
@@ -1532,7 +1556,17 @@ int checkon_world(int gno)
                 return FALSE;
             }
         }
-
+	if (get_graph_yscale(gno) == SCALE_LOGIT) {
+            if (w.yg1 <= 0) {
+                errmsg("World Y-min <= 0.0");
+                return FALSE;
+            }
+            if (w.yg2 >= 1) {
+                errmsg("World Y-max >= 1.0");
+                return FALSE;
+            }
+	}    
+        
         return TRUE;
     }
 

@@ -65,6 +65,16 @@ int is_log_axis(int gno, int axis)
     }
 }
 
+int is_logit_axis(int gno, int axis)
+{
+    if ((is_xaxis(axis) && islogitx(gno)) ||
+        (is_yaxis(axis) && islogity(gno))) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 void drawgrid(int gno)
 {
     int caxis;

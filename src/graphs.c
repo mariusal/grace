@@ -857,6 +857,23 @@ int islogy(int gno)
     }
 }
 
+int islogitx(int gno)
+{
+    if (is_valid_gno(gno) == TRUE) {
+        return (g[gno].xscale == SCALE_LOGIT);
+    } else {
+        return FALSE;
+    }
+}
+
+int islogity(int gno)
+{
+    if (is_valid_gno(gno) == TRUE) {
+        return (g[gno].yscale == SCALE_LOGIT);
+    } else {
+        return FALSE;
+    }
+}
 
 /* 
  * Stack manipulation functions

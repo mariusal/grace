@@ -339,6 +339,7 @@ symtab_entry *key;
 %token <ival> LOCTYPE
 %token <ival> LOG
 %token <ival> LOGARITHMIC
+%token <ival> LOGIT
 %token <ival> LOGX
 %token <ival> LOGXY
 %token <ival> LOGY
@@ -3766,6 +3767,7 @@ regiontype:
 scaletype: NORMAL { $$ = SCALE_NORMAL; }
 	| LOGARITHMIC { $$ = SCALE_LOG; }
 	| RECIPROCAL { $$ = SCALE_REC; }
+	| LOGIT { $$ = SCALE_LOGIT; }
 	;
 
 onoff: ON { $$ = TRUE; }
@@ -4567,6 +4569,7 @@ symtab_entry ikey[] = {
 	{"LOGX", LOGX, NULL},
 	{"LOGXY", LOGXY, NULL},
 	{"LOGY", LOGY, NULL},
+	{"LOGIT", LOGIT, NULL},
 	{"LT", LT, NULL},
 	{"MAGIC", MAGIC, NULL},
 	{"MAGNITUDE", MAGNITUDE, NULL},
