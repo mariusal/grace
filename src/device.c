@@ -139,6 +139,11 @@ Device_entry get_curdevice_props()
     return (device_table[curdevice]);
 }
 
+char *get_device_name(int device)
+{
+    return (device_table[device].name);
+}
+
 void set_device_props(int deviceid, Device_entry device)
 {
     device_table[deviceid].type = device.type;

@@ -112,6 +112,8 @@ int initgraphics (void);
 Device_entry get_device_props(int device);
 Device_entry get_curdevice_props(void);
 
+char *get_device_name(int device);
+
 void set_device_props(int device, Device_entry dev);
 void set_curdevice_props(Device_entry dev);
 
