@@ -344,6 +344,7 @@ static void storage_deallocate_node(Storage *sto, LLNode *llnode)
                     (sto->count - i - 1)*SIZEOF_INT);
             }
             sto->count--;
+            sto->ids = xrealloc(sto->ids, sto->count*SIZEOF_INT);
             return;
         }
     }
