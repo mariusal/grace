@@ -115,7 +115,7 @@ int xrst_initgraphics(const Canvas *canvas, void *data,
     ddata->patno        = -1;
     ddata->linewidth    = -1;
     ddata->linestyle    = -1;
-    ddata->arcfillmode  = -1;
+    ddata->fillrule     = -1;
     ddata->arcfillmode  = -1;
     ddata->linecap      = -1;
     ddata->linejoin     = -1;
