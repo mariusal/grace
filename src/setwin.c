@@ -49,6 +49,8 @@
 #include "motifinc.h"
 #include "protos.h"
 
+#define DATA_STAT_COLS   6
+
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
 static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data);
 
@@ -61,7 +63,7 @@ typedef struct _Type_ui {
     Widget top;
     GraphSetStructure *sel;
     Widget mw;
-    char *rows[MAX_SET_COLS][6];
+    char *rows[MAX_SET_COLS][DATA_STAT_COLS];
 } Type_ui;
 
 static Type_ui tui;
@@ -71,52 +73,51 @@ void create_datasetprop_popup(Widget but, void *data)
     set_wait_cursor();
 
     if (tui.top == NULL) {
-        Widget menubar, menupane, dialog, fr;
+        Widget menubar, menupane, fr;
         int i, j;
         char *rowlabels[MAX_SET_COLS];
-        char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
-        short column_widths[6] = {10, 6, 10, 6, 10, 10};
-        unsigned char column_alignments[6];
-        unsigned char column_label_alignments[6];
+        char *collabels[DATA_STAT_COLS] =
+            {"Min", "at", "Max", "at", "Mean", "Stdev"};
+        short column_widths[DATA_STAT_COLS] = {12, 6, 12, 6, 12, 12};
+        unsigned char column_alignments[DATA_STAT_COLS];
+        unsigned char column_label_alignments[DATA_STAT_COLS];
 
-	tui.top = CreateDialogForm(app_shell, "Data set properties");
+	tui.top = CreateDialogForm(app_shell, "Data set statistics");
 
         menubar = CreateMenuBar(tui.top);
         ManageChild(menubar);
         AddDialogFormChild(tui.top, menubar);
 
-	dialog = CreateVContainer(tui.top);
-
-	tui.sel = CreateGraphSetSelector(dialog,
+	tui.sel = CreateGraphSetSelector(tui.top,
             "Data sets:", LIST_TYPE_SINGLE);
+        AddDialogFormChild(tui.top, tui.sel->frame);
 	AddStorageChoiceCB(tui.sel->set_sel, changetypeCB, tui.sel);
 
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
-        CreateMenuButton(menupane,
-            "Close", 'C', destroy_dialog_cb, GetParent(tui.top));
+        CreateMenuCloseButton(menupane, tui.top);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On data sets", 's',
             tui.top, "doc/UsersGuide.html#data-sets");
 
-        for (i = 0; i < 6; i++) {
+        for (i = 0; i < DATA_STAT_COLS; i++) {
             column_alignments[i] = XmALIGNMENT_END;
             column_label_alignments[i] = XmALIGNMENT_CENTER;
         }
         
         for (i = 0; i < MAX_SET_COLS; i++) {
             rowlabels[i] = copy_string(NULL, dataset_colname(i));
-            for (j = 0; j < 6; j++) {
+            for (j = 0; j < DATA_STAT_COLS; j++) {
                 tui.rows[i][j] = NULL;
             }
         }
 
-	fr = CreateFrame(dialog, "Statistics");
+	fr = CreateFrame(tui.top, "Statistics");
         tui.mw = XtVaCreateManagedWidget("mw",
             xbaeMatrixWidgetClass, fr,
             XmNrows, MAX_SET_COLS,
-            XmNcolumns, 6,
+            XmNcolumns, DATA_STAT_COLS,
             XmNvisibleRows, MAX_SET_COLS,
             XmNvisibleColumns, 4,
             XmNcolumnLabels, collabels,
@@ -137,7 +138,8 @@ void create_datasetprop_popup(Widget but, void *data)
 
         XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
 
-        CreateAACDialog(tui.top, dialog, NULL, NULL);
+        AddDialogFormChild(tui.top, fr);
+        XtManageChild(tui.top);
     }
     
     RaiseWindow(GetParent(tui.top));
@@ -171,7 +173,7 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
         datap = set_get_col(pset, i);
 	minmax(datap, set_get_length(pset), &dmin, &dmax, &imin, &imax);
 	stasum(datap, set_get_length(pset), &dmean, &dsd);
-        for (j = 0; j < 6; j++) {
+        for (j = 0; j < DATA_STAT_COLS; j++) {
             if (i < ncols) {
                 switch (j) {
                 case 0:
