@@ -308,7 +308,7 @@ int xlibinitgraphics(const Canvas *canvas, void *data,
     xlibpatno = -1;
     xliblinewidth = -1;
     xliblinestyle = -1;
-    xlibarcfillmode = -1;
+    xlibfillrule = -1;
     xlibarcfillmode = -1;
     xliblinecap   = -1;
     xliblinejoin  = -1;
