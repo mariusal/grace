@@ -116,7 +116,8 @@ typedef struct _ListTreeItemReturnStruct {
 typedef struct _ListTreeDropStruct {
   int		reason;
   ListTreeItem	*item;
-  int		ok;
+  char		ok;
+  char		operation;
 } ListTreeDropStruct;
 
 /*

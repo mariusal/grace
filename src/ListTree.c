@@ -2387,7 +2387,11 @@ DropProc(Widget aw, XtPointer client_data, XtPointer call_data)
   ListTreeWidget w = (ListTreeWidget) aw;
   XmDragProcCallbackStruct *cbs = (XmDragProcCallbackStruct *) call_data;
   ListTreeDropStruct ret;
+  Arg args[2];
+  int n = 0;
+
   ret.reason = XtDROP;
+  ret.operation = cbs->operation;
   ret.ok = False;
 
   if (w->list.DropCallback) {
@@ -2398,7 +2402,13 @@ DropProc(Widget aw, XtPointer client_data, XtPointer call_data)
     }
   }
   
-  XmDropTransferStart(cbs->dragContext, NULL, 0);
+  if (!ret.ok) {
+    cbs->dropSiteStatus = XmDROP_SITE_INVALID;
+    cbs->operation = XmDROP_NOOP;
+    XtSetArg(args[n], XmNtransferStatus, XmTRANSFER_FAILURE); n++;
+    XtSetArg(args[n], XmNnumDropTransfers, 0); n++;
+  }
+  XmDropTransferStart(cbs->dragContext, args, n);
 }
 
 Widget
@@ -2415,8 +2425,7 @@ XmCreateScrolledListTree(Widget parent, char *name, Arg *args, Cardinal count)
   
   al = (Arg *)XtCalloc(count + 4, sizeof(Arg));
   for (i=0; i<count; i++) {
-    al[i].name = args[i].name;
-    al[i].value = args[i].value;
+    XtSetArg(al[i], args[i].name, args[i].value);
   }
 
   XtSetArg(al[i], XmNscrollingPolicy, XmAPPLICATION_DEFINED); i++;
@@ -2428,10 +2437,9 @@ XmCreateScrolledListTree(Widget parent, char *name, Arg *args, Cardinal count)
   XtFree((XtPointer)al);
   
   tw = XtCreateWidget(name, listtreeWidgetClass, sw, args, count);
-  al1[0].name = XmNdropProc;
-  al1[0].value = (XtArgVal) DropProc;
-  al1[1].name = XmNdropSiteOperations;
-  al1[1].value = XmDROP_MOVE;
+  XtSetArg(al1[0], XmNdropProc, DropProc);
+  XtSetArg(al1[1], XmNdropSiteOperations, XmDROP_MOVE | XmDROP_COPY);
   XmDropSiteRegister(tw, al1, 2);
+
   return tw;
 }
