@@ -444,7 +444,9 @@ static void set_printer_proc(void *data)
     
     dev.pg = pg;
     
-    set_device_props(seldevice, dev);
+    if (set_device_props(seldevice, dev) != RETURN_SUCCESS) {
+        errmsg("Invalid page dimensions or DPI");
+    }
     
     if (GetToggleButtonState(dsync_item) == TRUE) {
         set_page_dimensions((int) rint(72.0*pg.width/pg.dpi),
