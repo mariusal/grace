@@ -1169,8 +1169,17 @@ int save_project(char *fn)
 {
     FILE *cp;
     int gno, setno;
+    char *old_fn;
+    int noask_save = noask;
+    
+    old_fn = get_docname();
+    if (compare_strings(old_fn, fn)) {
+        /* If saving under the same name, don't warn about overwriting */
+        noask = TRUE;
+    }
     
     if ((cp = grace_openw(fn)) == NULL) {
+        noask = noask_save;
 	return RETURN_FAILURE;
     }
     
@@ -1187,6 +1196,7 @@ int save_project(char *fn)
     set_docname(fn);
     clear_dirtystate();
     
+    noask = noask_save;
     return RETURN_SUCCESS;
 }
 
