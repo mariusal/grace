@@ -303,6 +303,12 @@ void update_project_ui(ProjectUI *ui, Quark *q)
             SetSensitive(ui->page_orient->menu, TRUE);
         }
         SetOptionChoice(ui->page_format, format);
+        
+        if (pr->page_wpp > pr->page_hpp) {
+            SetOptionChoice(ui->page_orient, PAGE_ORIENT_LANDSCAPE);
+        } else {
+            SetOptionChoice(ui->page_orient, PAGE_ORIENT_PORTRAIT);
+        }
 
         SetOptionChoice(ui->bg_color, pr->bgcolor);
         SetToggleButtonState(ui->bg_fill, pr->bgfill);
@@ -310,9 +316,9 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         SetSpinChoice(ui->fsize_scale, pr->fscale);
         SetSpinChoice(ui->lwidth_scale, pr->lscale);
 
-	jul_to_cal_and_time(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
-                y, m, d, h, mm, sec);
+	    jul_to_cal_and_time(q, 0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
+        sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
+            y, m, d, h, mm, sec);
         xv_setstr(ui->refdate, date_string);
         SetToggleButtonState(ui->two_digits_years, pr->two_digits_years);
         sprintf(wrap_year_string, "%04d", pr->wrap_year);
@@ -387,10 +393,10 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
 
             switch (page_units) {
             case PAGE_UNITS_IN:
-                factor = 1.0/72.0;
+                factor = 72.0;
                 break;
             case PAGE_UNITS_CM:
-                factor = CM_PER_INCH/72.0;
+                factor = 72.0/CM_PER_INCH;
                 break;
             default:
                 factor = 1.0;
