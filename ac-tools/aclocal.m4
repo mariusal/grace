@@ -1,3 +1,24 @@
+dnl ACX_SAVE_STATE/ACX_RESTORE_STATE
+dnl Save/restore flags
+dnl 
+dnl ACX_SAVE_STATE
+AC_DEFUN(ACX_SAVE_STATE,
+[
+    save_CFLAGS=$CFLAGS
+    save_CPPFLAGS=$CPPFLAGS
+    save_LDFLAGS=$LDFLAGS
+    save_LIBS=$LIBS
+])
+dnl ACX_RESTORE_STATE
+AC_DEFUN(ACX_RESTORE_STATE,
+[
+    CFLAGS=$save_CFLAGS
+    CPPFLAGS=$save_CPPFLAGS
+    LDFLAGS=$save_LDFLAGS
+    LIBS=$save_LIBS
+])
+
+
 AC_DEFUN(ACX_CHECK_CC_FLAGS,
 [
 AC_REQUIRE([AC_PROG_CC])
@@ -349,7 +370,7 @@ AC_REQUIRE([AC_PATH_XTRA])
 motif_includes=
 motif_libraries=
 AC_ARG_WITH(motif,
-[  --without-motif         do not use Motif widgets])
+[  --without-motif              do not use Motif widgets])
 dnl Treat --without-motif like
 dnl --without-motif-includes --without-motif-libraries.
 if test "$with_motif" = "no"
@@ -522,4 +543,233 @@ AC_MSG_RESULT($ice_cv_have_lesstif)
 if test "$ice_cv_have_lesstif" = yes; then
 AC_DEFINE(HAVE_LESSTIF)
 fi
+])dnl
+
+dnl ACX_CHECK_T1LIB
+dnl --------------
+AC_DEFUN(ACX_CHECK_T1LIB,
+[
+  AC_CACHE_CHECK( "for T1lib \>= $1", acx_cv_t1lib,
+    ACX_SAVE_STATE
+    LIBS="-lt1 -lm $LIBS"
+    AC_TRY_RUN([
+#include <string.h>
+#include <t1lib.h>
+      int main(void) {
+        char *vlib;
+        vlib = T1_GetLibIdent();
+        if (strcmp(vlib, "[$1]") < 0) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_t1lib="yes",
+      acx_cv_t1lib="no",
+      acx_cv_t1lib="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_t1lib" = "yes"
+  then
+    T1_LIB="-lt1"
+    $2
+  else
+    T1_LIB=
+    $3
+  fi
+])dnl
+
+dnl ACX_CHECK_ZLIB
+dnl --------------
+AC_DEFUN(ACX_CHECK_ZLIB,
+[
+  AC_CACHE_CHECK( "for zlib \>= $1", acx_cv_zlib,
+    ACX_SAVE_STATE
+    LIBS="-lz $LIBS"
+    AC_TRY_RUN([
+#include <string.h>
+#include <zlib.h>
+      int main(void) {
+        char *vlib, *vinc;
+        vlib = zlibVersion();
+        vinc = ZLIB_VERSION;
+        if (strcmp(vinc, "[$1]") < 0) {
+          exit(1);
+        }
+        if (strcmp(vinc, vlib) != 0) {
+          exit(2);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_zlib="yes",
+      acx_cv_zlib="no",
+      acx_cv_zlib="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_zlib" = "yes"
+  then
+    Z_LIB="-lz"
+    $2
+  else
+    Z_LIB=
+    $3
+  fi
+])dnl
+
+dnl ACX_CHECK_JPEG
+dnl --------------
+AC_DEFUN(ACX_CHECK_JPEG,
+[
+  AC_CACHE_CHECK( "for IJG JPEG software \>= $1", acx_cv_jpeg,
+    ACX_SAVE_STATE
+    LIBS="-ljpeg $LIBS"
+    AC_TRY_RUN([
+#include <stdio.h>
+#include <jpeglib.h>
+      int main(void) {
+        int vinc;
+        vinc = JPEG_LIB_VERSION;
+        if (vinc < [$1]) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_jpeg="yes",
+      acx_cv_jpeg="no",
+      acx_cv_jpeg="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_jpeg" = "yes"
+  then
+    JPEG_LIB="-ljpeg"
+    $2
+  else
+    JPEG_LIB=
+    $3
+  fi
+])dnl
+
+dnl ACX_CHECK_PNG
+dnl --------------
+AC_DEFUN(ACX_CHECK_PNG,
+[
+  AC_CACHE_CHECK( "for libpng \>= $1", acx_cv_png,
+    ACX_SAVE_STATE
+    LIBS="-lpng $Z_LIB $LIBS"
+    AC_TRY_RUN([
+#include <string.h>
+#include <png.h>
+      int main(void) {
+        char *vlib, *vinc;
+        vlib = png_libpng_ver;
+        vinc = PNG_LIBPNG_VER_STRING;
+        if (strcmp(vinc, "[$1]") < 0) {
+          exit(1);
+        }
+        if (strcmp(vinc, vlib) != 0) {
+          exit(2);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_png="yes",
+      acx_cv_png="no",
+      acx_cv_png="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_png" = "yes"
+  then
+    PNG_LIB="-lpng"
+    $2
+  else
+    PNG_LIB=
+    $3
+  fi
+])dnl
+
+dnl ACX_CHECK_TIFF
+dnl --------------
+AC_DEFUN(ACX_CHECK_TIFF,
+[
+  AC_CACHE_CHECK( "for libtiff \>= $1", acx_cv_tiff,
+    ACX_SAVE_STATE
+    LIBS="-ltiff $JPEG_LIB $Z_LIB -lm $LIBS"
+    AC_TRY_RUN([
+#include <tiffio.h>
+      int main(void) {
+        int vinc;
+        (void) TIFFGetVersion();
+        vinc = TIFFLIB_VERSION;
+        if (vinc < [$1]) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_tiff="yes",
+      acx_cv_tiff="no",
+      acx_cv_tiff="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_tiff" = "yes"
+  then
+    TIFF_LIB="-ltiff"
+    $2
+  else
+    TIFF_LIB=
+    $3
+  fi
+])dnl
+
+dnl ACX_CHECK_PDFLIB
+dnl --------------
+AC_DEFUN(ACX_CHECK_PDFLIB,
+[
+  AC_CACHE_CHECK( "for PDFlib \>= $1", acx_cv_pdflib,
+    ACX_SAVE_STATE
+    LIBS="-lpdf $TIFF_LIB $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
+    AC_TRY_RUN([
+#include <pdflib.h>
+      int main(void) {
+        char *vinc;
+        int vlibn, vincn;
+        vlibn = 100*PDF_get_majorversion() + PDF_get_minorversion();
+        vincn = 100*PDFLIB_MAJORVERSION + PDFLIB_MINORVERSION;
+        vinc = PDFLIB_VERSIONSTRING;
+        if (strcmp(vinc, "[$1]") < 0) {
+          exit(1);
+        }
+        if (vincn != vlibn) {
+          exit(2);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_pdflib="yes",
+      acx_cv_pdflib="no",
+      acx_cv_pdflib="no"
+    )
+    ACX_RESTORE_STATE
+  )
+  if test "$acx_cv_pdflib" = "yes"
+  then
+    PDF_LIB="-lpdf"
+    $2
+  else
+    PDF_LIB=
+    $3
+  fi
 ])dnl
