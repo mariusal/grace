@@ -39,9 +39,6 @@
 #define FFORMAT_STRING  1
 #define FFORMAT_DATE    2
 
-double *copy_data_column(double *src, int nrows);
-double *allocate_index_data(int nrows);
-
 typedef struct _ss_data
 {
     int ncols;
@@ -49,6 +46,10 @@ typedef struct _ss_data
     int *formats;
     void **data;
 } ss_data;
+
+double *copy_data_column(double *src, int nrows);
+double *allocate_index_data(int nrows);
+double *allocate_mesh(double start, double stop, int len);
 
 void set_blockdata(ss_data *ssd);
 

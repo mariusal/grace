@@ -45,6 +45,7 @@
 #include "graphutils.h"
 #include "files.h"
 #include "ssdata.h"
+#include "parser.h"
 
 #include "protos.h"
 
@@ -69,6 +70,21 @@ double *allocate_index_data(int nrows)
     if (retval != NULL) {
         for (i = 0; i < nrows; i++) {
             retval[i] = i;
+        }
+    }
+    return retval;
+}
+
+double *allocate_mesh(double start, double stop, int len)
+{
+    int i;
+    double *retval;
+    
+    retval = malloc(len*SIZEOF_DOUBLE);
+    if (retval != NULL) {
+        double s = (start + stop)/2, d = (stop - start)/2;
+        for (i = 0; i < len; i++) {
+            retval[i] = s + d*((double) (2*i + 1 - len)/(len - 1));
         }
     }
     return retval;
