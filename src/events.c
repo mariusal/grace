@@ -134,6 +134,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     static int track_setno;
     static int track_loc;
     static int type, id;   /* for objects */
+    int axisno;
     char buf[100];
     Datapoint dpoint;
     GLocator locator;
@@ -224,6 +225,14 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	                select_region(x, y, anchor_x, anchor_y, 0);
                     } else if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
                         define_symbols_popup(parent, (XtPointer) setno, NULL);
+                    } else if (axis_clicked(cg, vp, &axisno) == TRUE) {
+                        create_axes_dialog(axisno);
+                    } else if (legend_clicked(cg, vp, &bb) == TRUE) {
+                        create_graphapp_frame(cg);
+                    } else if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
+                        object_edit_popup(type, id);
+                    } else if (timestamp_clicked(vp, &bb) == TRUE) {
+                        create_plot_frame();
                     }
                 } else {
                     if (focus_policy == FOCUS_CLICK) {
@@ -988,7 +997,7 @@ int next_graph_containing(int cg, VPoint vp)
 	j = (i + cg + 1) % ng;
 	if (is_graph_hidden(j)        == FALSE &&
             get_graph_viewport(j, &v) == GRACE_EXIT_SUCCESS &&
-            is_vpoint_inside(v, vp)   == TRUE) {
+            is_vpoint_inside(v, vp, MAXPICKDIST)   == TRUE) {
 	    
             gno = j;
             break;
@@ -1004,7 +1013,7 @@ int legend_clicked(int gno, VPoint vp, view *bb)
 
     if (is_valid_gno(gno)) {
         get_graph_legend(gno, &l);
-	if (l.active && is_vpoint_inside(l.bb, vp)) {
+	if (l.active && is_vpoint_inside(l.bb, vp, MAXPICKDIST)) {
 	    *bb = l.bb;
             return TRUE;
 	} else {
@@ -1017,7 +1026,7 @@ int legend_clicked(int gno, VPoint vp, view *bb)
 
 int timestamp_clicked(VPoint vp, view *bb)
 {
-    if (timestamp.active && is_vpoint_inside(timestamp.bb, vp)) {
+    if (timestamp.active && is_vpoint_inside(timestamp.bb, vp, MAXPICKDIST)) {
         *bb = timestamp.bb;
         return TRUE;
     } else {
@@ -1051,6 +1060,31 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp)
         return TRUE;
     } else {
         return FALSE;
+    }
+}
+
+int axis_clicked(int gno, VPoint vp, int *axisno)
+{
+    view v;
+    
+    /* TODO: check for offsets, zero axes, polar graphs */
+    if (is_valid_gno(gno) == FALSE) {
+        return FALSE;
+    } else {
+        get_graph_viewport(gno, &v);
+        if (vp.x >= v.xv1 && vp.x <= v.xv2 &&
+            (fabs(vp.y - v.yv1) < MAXPICKDIST ||
+             fabs(vp.y - v.yv2) < MAXPICKDIST)) {
+            *axisno = X_AXIS;
+            return TRUE;
+        } else if (vp.y >= v.yv1 && vp.y <= v.yv2 &&
+            (fabs(vp.x - v.xv1) < MAXPICKDIST ||
+             fabs(vp.x - v.xv2) < MAXPICKDIST)) {
+            *axisno = Y_AXIS;
+            return TRUE;
+        } else {
+            return FALSE;
+        }
     }
 }
 
@@ -1141,7 +1175,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
     for (i = 0; i < maxboxes; i++) {
 	if (isactive_box(i)) {
             get_object_bb(OBJECT_BOX, i, bb);
-	    if (is_vpoint_inside(*bb, vp)) {
+	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
 		*type = OBJECT_BOX;
 		*id = i;
 	    }
@@ -1150,7 +1184,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
     for (i = 0; i < maxboxes; i++) {
 	if (isactive_ellipse(i)) {
             get_object_bb(OBJECT_ELLIPSE, i, bb);
-	    if (is_vpoint_inside(*bb, vp)) {
+	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
 		*type = OBJECT_ELLIPSE;
 		*id = i;
 	    }
@@ -1159,7 +1193,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
     for (i = 0; i < maxlines; i++) {
 	if (isactive_line(i)) {
             get_object_bb(OBJECT_LINE, i, bb);
-	    if (is_vpoint_inside(*bb, vp)) {
+	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
 		*type = OBJECT_LINE;
 		*id = i;
 	    }
@@ -1168,7 +1202,7 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
     for (i = 0; i < maxstr; i++) {
 	if (isactive_string(i)) {
             get_object_bb(OBJECT_STRING, i, bb);
-	    if (is_vpoint_inside(*bb, vp)) {
+	    if (is_vpoint_inside(*bb, vp, MAXPICKDIST)) {
 		*type = OBJECT_STRING;
 		*id = i;
 	    }
@@ -1324,4 +1358,3 @@ void push_and_zoom(void)
     set_action(ZOOM_1ST);
 #endif
 }
-

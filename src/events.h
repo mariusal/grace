@@ -89,7 +89,7 @@ typedef enum {
  */
 #define CLICKINT 400
 
-#define MAXPICKDIST 0.02      /* the maximum distance away from an object */
+#define MAXPICKDIST 0.015      /* the maximum distance away from an object */
                               /* you may be when picking it (in viewport  */
                               /* coordinates)                             */  
 
@@ -109,6 +109,7 @@ int next_graph_containing(int cg, VPoint vp);
 int focus_clicked(int cg, VPoint vp, VPoint *avp);
 int legend_clicked(int gno, VPoint vp, view *bb);
 int timestamp_clicked(VPoint vp, view *bb);
+int axis_clicked(int gno, VPoint vp, int *axisno);
 int find_insert_location(int gno, int setno, VPoint vp);
 int find_point(int gno, VPoint vp, int *setno, int *loc);
 void newworld(int gno, int axes, VPoint vp1, VPoint vp2);
