@@ -222,22 +222,23 @@ void SetUserData(Widget w, void *udata)
 
 #define MAX_PULLDOWN_LENGTH 30
 
-OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
-                                                int nchoices, OptionItem *items)
+OptionStructure *CreateOptionChoice(Widget parent, char *labelstr,
+    int ncols, int nchoices, OptionItem *items)
 {
     Arg args[2];
     XmString str;
     OptionStructure *retval;
 
-    retval = xmalloc(sizeof(OptionStructure));
+    retval = xcalloc(1, sizeof(OptionStructure));
+    if (!retval) {
+        return NULL;
+    }
 
     XtSetArg(args[0], XmNpacking, XmPACK_COLUMN);
     retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", args, 1);
 
     retval->ncols = ncols;
     
-    retval->nchoices = 0;
-    retval->options = NULL;
     UpdateOptionChoice(retval, nchoices, items);
 
     str = XmStringCreateLocalized(labelstr);
@@ -283,6 +284,34 @@ OptionStructure *CreateOptionChoiceVA(Widget parent, char *labelstr, ...)
     return retval;
 }
 
+static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int value;
+    
+    OC_CBdata *cbdata = (OC_CBdata *) client_data;
+
+    value = GetOptionChoice(cbdata->opt);
+    cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
+}
+
+void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
+{
+    OC_CBdata *cbdata;
+    unsigned int i;
+    
+    opt->cblist = xrealloc(opt->cblist, (opt->cbnum + 1)*sizeof(OC_CBdata));
+    cbdata = &opt->cblist[opt->cbnum];
+    opt->cbnum++;
+    
+    cbdata->opt = opt;
+    cbdata->cbproc = cbproc;
+    cbdata->anydata = anydata;
+    for (i = 0; i < opt->nchoices; i++) {
+        XtAddCallback(opt->options[i].widget, XmNactivateCallback, 
+                                    oc_int_cb_proc, (XtPointer) cbdata);
+    }
+}
+
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
     int i, nold, ncols, nw;
@@ -322,8 +351,14 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     optp->nchoices = nchoices;
 
     for (i = nold; i < nchoices; i++) {
+        unsigned int j;
         optp->options[i].widget = 
                   XmCreatePushButton(optp->pulldown, "button", NULL, 0);
+        for (j = 0; j < optp->cbnum; j++) {
+            OC_CBdata *cbdata = &optp->cblist[j];
+            XtAddCallback(optp->options[i].widget, XmNactivateCallback, 
+                                    oc_int_cb_proc, (XtPointer) cbdata);
+        }
     }
     
     for (i = 0; i < nchoices; i++) {
@@ -360,9 +395,9 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     Pixel fg, bg;
     Pixmap ptmp;
 
-    retval = xmalloc(sizeof(OptionStructure));
-    if (retval == NULL) {
-        errmsg("Malloc error in CreateBitmapOptionChoice()");
+    retval = xcalloc(1, sizeof(OptionStructure));
+    if (!retval) {
+        return NULL;
     }
     retval->nchoices = nchoices;
     retval->options = xmalloc(nchoices*sizeof(OptionWidgetItem));
@@ -456,7 +491,7 @@ OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
     Pixmap ptmp;
     int *fontid;
 
-    retval = xmalloc(sizeof(OptionStructure));
+    retval = xcalloc(1, sizeof(OptionStructure));
     if (retval == NULL) {
         errmsg("Malloc error in CreateBitmapOptionChoice()");
     }
@@ -556,12 +591,6 @@ int GetOptionChoice(OptionStructure *opt)
 }
 
 typedef struct {
-    OptionStructure *opt;
-    OC_CBProc cbproc;
-    void *anydata;
-} OC_CBdata;
-
-typedef struct {
     SpinStructure *spin;
     Spin_CBProc cbproc;
     void *anydata;
@@ -573,32 +602,6 @@ typedef struct {
     Scale_CBProc cbproc;
     void *anydata;
 } Scale_CBdata;
-
-static void oc_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int value;
-    
-    OC_CBdata *cbdata = (OC_CBdata *) client_data;
-
-    value = GetOptionChoice(cbdata->opt);
-    cbdata->cbproc(cbdata->opt, value, cbdata->anydata);
-}
-
-void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
-{
-    OC_CBdata *cbdata;
-    int i;
-    
-    cbdata = xmalloc(sizeof(OC_CBdata));
-    
-    cbdata->opt = opt;
-    cbdata->cbproc = cbproc;
-    cbdata->anydata = anydata;
-    for (i = 0; i < opt->nchoices; i++) {
-        XtAddCallback(opt->options[i].widget, XmNactivateCallback, 
-                                    oc_int_cb_proc, (XtPointer) cbdata);
-    }
-}
 
 
 static char list_translation_table[] = "\

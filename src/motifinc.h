@@ -76,13 +76,31 @@ typedef struct {
     Widget widget;
 } OptionWidgetItem;
 
+typedef struct _OptionStructure OptionStructure;
+
+/* OptionChoice CB procedure */
+typedef void (*OC_CBProc)(
+    OptionStructure *opt,
+    int value,           /* value */
+    void *               /* data the application registered */
+);
+
 typedef struct {
+    OptionStructure *opt;
+    OC_CBProc cbproc;
+    void *anydata;
+} OC_CBdata;
+
+struct _OptionStructure {
     int nchoices;
     int ncols;  /* preferred number of columns */
     Widget menu;
     Widget pulldown;
     OptionWidgetItem *options;
-} OptionStructure;
+    
+    unsigned int cbnum;
+    OC_CBdata *cblist;
+};
 
 typedef struct {
     int nchoices;
@@ -262,13 +280,6 @@ typedef struct {
     TDFree_CBProc  free_cb;
     TDRun_CBProc   run_cb;
 } TD_CBProcs;
-
-/* OptionChoice CB procedure */
-typedef void (*OC_CBProc)(
-    OptionStructure *opt,
-    int value,           /* value */
-    void *               /* data the application registered */
-);
 
 /* ToggleButton CB procedure */
 typedef void (*TB_CBProc)(
