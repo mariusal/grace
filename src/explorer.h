@@ -365,6 +365,9 @@ struct _ExplorerUI {
     Widget       scrolled_window;
     ListTreeItem *project;
     
+    int          homogeneous_selection;
+    int          all_siblings;
+
     ProjectUI    *project_ui;
     FrameUI      *frame_ui;
     GraphUI      *graph_ui;

@@ -255,8 +255,6 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
 {
     ExplorerUI *ui = (ExplorerUI *) client;
     ListTreeMultiReturnStruct *ret;
-    int homogeneous_selection = TRUE;
-    int all_siblings = TRUE;
     int count;
     Quark *q = NULL;
     int fid = -1;
@@ -264,6 +262,9 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
     ret = (ListTreeMultiReturnStruct *) call;
     count = ret->count;
     
+    ui->homogeneous_selection = TRUE;
+    ui->all_siblings = TRUE;
+
     if (count > 0) {
         int i;
         ListTreeItem *item = ret->items[0];
@@ -279,15 +280,15 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
             ti_data = (TreeItemData *) item->user_data;
             
             if ((int) ti_data->q->fid != fid) {
-                homogeneous_selection = FALSE;
+                ui->homogeneous_selection = FALSE;
             }
             if (quark_parent_get(ti_data->q) != parent) {
-                all_siblings = FALSE;
+                ui->all_siblings = FALSE;
             }
         }
     }
     
-    if (!count || !homogeneous_selection) {
+    if (!count || !ui->homogeneous_selection) {
         SetSensitive(ui->aacbuts[0], FALSE);
         SetSensitive(ui->aacbuts[1], FALSE);
         
@@ -392,7 +393,7 @@ static void highlight_cb(Widget w, XtPointer client, XtPointer call)
         }
     }
         
-    if (!count || !all_siblings || fid == QFlavorProject) {
+    if (!count || !ui->all_siblings || fid == QFlavorProject) {
         SetSensitive(ui->popup_delete_bt,         FALSE);
         SetSensitive(ui->popup_duplicate_bt,      FALSE);
         SetSensitive(ui->popup_bring_to_front_bt, FALSE);
@@ -454,6 +455,42 @@ static void destroy_cb(Widget w, XtPointer client, XtPointer call)
     ret = (ListTreeItemReturnStruct *) call;
     
     xfree(ret->item->user_data);
+}
+
+static void drop_cb(Widget w, XtPointer client, XtPointer call)
+{
+    ExplorerUI *ui = (ExplorerUI *) client;
+    ListTreeDropStruct *cbs = (ListTreeDropStruct *) call;
+    TreeItemData *ti_data = (TreeItemData *) cbs->item->user_data;
+    Quark *drop_q = ti_data->q;
+
+    if (ui->all_siblings && ui->homogeneous_selection) {
+        int count;
+        ListTreeMultiReturnStruct ret;
+        
+        ListTreeGetHighlighted(ui->tree, &ret);
+        count = ret.count;
+        if (count > 0) {
+            int i;
+            Quark *parent;
+            ListTreeItem *item = ret.items[0];
+            ti_data = (TreeItemData *) item->user_data;
+            parent = quark_parent_get(ti_data->q);
+            
+            if (parent && parent != drop_q && parent->fid == drop_q->fid) {
+                for (i = 0; i < count; i++) {
+                    Quark *q;
+                    item = ret.items[i];
+                    ti_data = (TreeItemData *) item->user_data;
+                    q = ti_data->q;
+                    quark_reparent(q, drop_q);
+                }
+                cbs->ok = True;
+                xdrawgraph(grace->project, FALSE);
+                update_all();
+            }
+        }
+    }
 }
 
 static int explorer_apply(ExplorerUI *ui, void *caller)
@@ -591,6 +628,9 @@ void update_explorer(ExplorerUI *ui, int reselect)
     if (reselect) {
         ListTreeGetHighlighted(ui->tree, &ret);
         XtCallCallbacks(ui->tree, XtNhighlightCallback, (XtPointer) &ret);
+    } else {
+        ui->homogeneous_selection = FALSE;
+        ui->all_siblings = FALSE;
     }
 }
 
@@ -689,8 +729,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
     }
     
     xdrawgraph(grace->project, FALSE);
-    update_explorer(eui, FALSE);
-    update_app_title(grace->project);
+    update_all();
 }
 
 static void delete_cb(Widget but, void *udata)
@@ -820,6 +859,7 @@ void raise_explorer(GUI *gui, Quark *q)
         XtAddCallback(eui->tree, XtNhighlightCallback, highlight_cb, eui);
         XtAddCallback(eui->tree, XtNmenuCallback, menu_cb, eui);
         XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
+        XtAddCallback(eui->tree, XtNdropCallback, drop_cb, eui);
         PlaceGridChild(panel, GetParent(eui->tree), 0, 0);
 
         form = XmCreateForm(panel, "form", NULL, 0);
