@@ -118,8 +118,7 @@ int map_font(int font, int mapped_id);
 int map_font_by_name(char *fname, int mapped_id);
 void map_fonts(int map);
 
-GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag,
-    char *theString, int len);
+GLYPH *GetGlyphString(CompositeString *cs);
 GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
                     int x_off, int y_off, int advancing);
 void FreeCompositeString(CompositeString *cs);

@@ -398,11 +398,16 @@ static void tm_slant(TextMatrix *tm, double slant)
     }
 }
 
-GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag, 
-    char *theString, int len)
+GLYPH *GetGlyphString(CompositeString *cs)
 {
     int i, j, k, l, m, none_found;
     
+    char *theString = cs->s;
+    int len = cs->len;
+    int FontID = cs->font;
+    
+    float Size;
+
 /*
  *     int Kerning = 0;
  */
@@ -411,7 +416,7 @@ GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag,
     
     GLYPH *glyph;
     
-    char *ligtheString = '\0';
+    char *ligtheString;
     char *succs, *ligs;
     char buf_char;
 
@@ -419,23 +424,30 @@ GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag,
     unsigned int fg, bg;
     static unsigned long last_bg = 0, last_fg = 0;
 
+    int modflag;
+    T1_TMATRIX matrix;
+
     RGB fg_rgb, bg_rgb, delta_rgb, *prgb;
     CMap_entry cmap;
     
     Device_entry dev;
 
-    if (len == 0) {
+    if (cs->len == 0) {
         return NULL;
     }
 
-/*
- *     if (Size <= 0.0) {
- *         errmsg("t1lib: Size must be positive!");
- *         return NULL;
- *     }
- */
+    Size = (float) cs->tm.cyy;
+    if (Size == 0.0) {
+        errmsg("t1lib: Zero font size!");
+        return NULL;
+    }
 
-    /* Now comes the ligatur handling */
+    matrix.cxx = (float) cs->tm.cxx/Size;
+    matrix.cxy = (float) cs->tm.cxy/Size;
+    matrix.cyx = (float) cs->tm.cyx/Size;
+    matrix.cyy = (float) cs->tm.cyy/Size;
+
+    /* Now comes the ligature handling */
     ligtheString = xmalloc((len + 1)*SIZEOF_CHAR);
     if (LigDetect){
       	for (j = 0, m = 0; j < len; j++, m++) { /* Loop through the characters */
@@ -465,7 +477,10 @@ GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag,
     } else {
         memcpy(ligtheString, theString, len);
     }
-    
+
+    modflag = T1_UNDERLINE * cs->underline |
+              T1_OVERLINE  * cs->overline;
+
     dev = get_curdevice_props();
     if (dev.fontaa == TRUE) {
     	fg = getcolor();
@@ -513,10 +528,10 @@ GLYPH *GetGlyphString(int FontID, float Size, T1_TMATRIX *t1tm, int modflag,
     			   aacolors[4]);
 
     	glyph = T1_AASetString(FontID, ligtheString, len,
-    				   Space, modflag, Size, t1tm);
+    				   Space, modflag, Size, &matrix);
     } else {
     	glyph = T1_SetString(FontID, ligtheString, len,
-    				   Space, modflag, Size, t1tm);
+    				   Space, modflag, Size, &matrix);
     }
  
     xfree(ligtheString);
@@ -838,7 +853,7 @@ CompositeString *String2Composite(char *string)
 	    hshift = new_hshift;
             if (hshift != 0.0) {
                 /* once a substring is manually advanced, all the following
-                 * subtrings will be advanced as well!
+                 * substrings will be advanced as well!
                  */
                 new_hshift = 0.0;
             }
@@ -915,8 +930,6 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
  
     /* Variables for raster parameters */
     double Angle = 0.0;
-    int FontID;
-    int modflag;
     int text_advancing;
 
     int iglyph;
@@ -940,8 +953,6 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     int pinpoint_x, pinpoint_y, justpoint_x, justpoint_y;
 
     int xshift, yshift;
-    
-    T1_TMATRIX matrix, *matrixP;
     
     int setmark, gotomark;
     CSMark cs_marks[MAX_MARKS];
@@ -985,20 +996,12 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     first = FALSE;
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
-  	FontID = cstring[iglyph].font;
         text_advancing = cstring[iglyph].advancing;
-        modflag = T1_UNDERLINE * cstring[iglyph].underline |
-                  T1_OVERLINE  * cstring[iglyph].overline;
 
-        matrix.cxx = (float) cstring[iglyph].tm.cxx;
-        matrix.cxy = (float) cstring[iglyph].tm.cxy;
-        matrix.cyx = (float) cstring[iglyph].tm.cyx;
-        matrix.cyy = (float) cstring[iglyph].tm.cyy;
+        tm_scale(&cstring[iglyph].tm, scale_factor);
+        tm_rotate(&cstring[iglyph].tm, Angle);
 
-        matrixP = T1_RotateMatrix(&matrix, (float) Angle);
-        
-        glyph = GetGlyphString(FontID, (float) scale_factor, matrixP, modflag, cstring[iglyph].s,
-            cstring[iglyph].len);
+        glyph = GetGlyphString(&cstring[iglyph]);
 
         gotomark = cstring[iglyph].gotomark;
         if (CSglyph != NULL && gotomark >= 0 && gotomark < MAX_MARKS) {
