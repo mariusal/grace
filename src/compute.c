@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -36,10 +36,9 @@
 
 #include <stdio.h>
 
-#include "globals.h"
-#include "graphs.h"
+#include "defines.h"
 #include "utils.h"
-#include "protos.h"
+#include "parser.h"
 
 /*
  * evaluate the expression in sscanstr and place the result in selset
