@@ -72,7 +72,7 @@ int getparms(char *plfile)
         return 0;
     } else {
         errcnt = 0;
-        while (fgets(readbuf, MAX_STRING_LENGTH - 1, pp) != NULL) {
+        while (grace_fgets(readbuf, MAX_STRING_LENGTH - 1, pp) != NULL) {
             linecount++;
             if (read_param(readbuf)) {
                 sprintf(readbuf, "Error at line %d", linecount);

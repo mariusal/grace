@@ -111,9 +111,9 @@ int init_t1(void)
     FontDBtable = (FontDB *) xmalloc(nfonts*sizeof(FontDB));
     
     /* skip the first line */
-    fgets(buf, GR_MAXPATHLEN - 1, fd); 
+    grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
     for (i = 0; i < nfonts; i++) {
-        fgets(buf, GR_MAXPATHLEN - 1, fd); 
+        grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
         if (sscanf(buf, "%s %s %*s", FontDBtable[i].alias, 
                                      FontDBtable[i].fallback) != 2) {
             fclose(fd);

@@ -356,7 +356,7 @@ static int do_rhist_proc(char *filename, void *data)
     Widget h = XmCommandGetChild(command, XmDIALOG_HISTORY_LIST);
 
     if ((fp = grace_openr(filename, SOURCE_DISK)) != NULL) {
-	while (fgets(buf, 255, fp) != NULL) {
+	while (grace_fgets(buf, 255, fp) != NULL) {
 	    sl = strlen(buf);
 	    buf[sl - 1] = 0;
 	    if (strlen(buf) == 0) {
