@@ -745,7 +745,6 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     char *encscheme;
     double *kvector;
     int i;
-    double kcomp;
     
     if (psfont_status[font] == FALSE) {
         fontname = get_fontalias(font);
@@ -776,12 +775,10 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
         kvector = NULL;
     }
     
-    kcomp = 0.0;
     if (kvector) {
         fprintf(prstream, "[");
         for (i = 0; i < len - 1; i++) {
             fprintf(prstream, "%.4f ", kvector[i]);
-            kcomp += kvector[i];
         }
         fprintf(prstream, "] KINIT\n");
         fprintf(prstream, "{KPROC} ");
@@ -790,13 +787,20 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     put_string(prstream, s, len);
 
     if (underline | overline) {
-        double w = get_textline_width(font);
+        double w, pos, kcomp;
+        
+        if (kvector) {
+            kcomp = kvector[len - 1];
+        } else {
+            kcomp = 0.0;
+        }
+        w = get_textline_width(font);
         if (underline) {
-            double pos = get_underline_pos(font);
+            pos = get_underline_pos(font);
             fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
         }
         if (overline) {
-            double pos = get_overline_pos(font);
+            pos = get_overline_pos(font);
             fprintf(prstream, " %.4f %.4f %.4f TL", pos, w, kcomp);
         }
     }
