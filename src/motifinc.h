@@ -107,6 +107,52 @@ typedef struct {
     Widget arrow_down;
 } SpinStructure;
 
+typedef struct {
+    Widget popup;
+    Widget label_item;
+    Widget shownd_item;
+    Widget showh_item;
+    Widget hide_item;
+    Widget show_item;
+    Widget duplicate_item;
+    Widget kill_item;
+    Widget killd_item;
+    Widget copy12_item;
+    Widget copy21_item;
+    Widget move12_item;
+    Widget move21_item;
+    Widget swap_item;
+    Widget edit_item;
+} SetPopupMenu;
+
+typedef enum {
+    SetMenuHideCB,
+    SetMenuShowCB,
+    SetMenuDuplicateCB,
+    SetMenuKillCB,
+    SetMenuKillDCB,
+    SetMenuCopy12CB,
+    SetMenuCopy21CB,
+    SetMenuMove12CB,
+    SetMenuMove21CB,
+    SetMenuSwapCB,
+    SetMenuNewFCB,
+    SetMenuNewSCB,
+    SetMenuNewECB,
+    SetMenuNewBCB,
+    SetMenuEditSCB,
+    SetMenuEditECB
+} SetMenuCBtype;
+
+typedef struct {
+    int standalone;
+    int gno;
+    int show_hidden;
+    int show_nodata;
+    SetPopupMenu *menu;
+} SetChoiceData;
+
+
 
 Widget CreateFrame(Widget parent, char *s);
 
