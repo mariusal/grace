@@ -195,7 +195,6 @@ void create_graphapp_frame(int gno)
 						   "Smith chart (N/I)",
 						   "Fixed",
 						   "Pie chart",
-						   NULL,
 						   NULL);
 	stacked_item = CreateToggleButton(rc, "Stacked chart");
 
@@ -253,7 +252,6 @@ void create_graphapp_frame(int gno)
 							 "Break bottom",
 							 "Break left",
 							 "Break right",
-							 NULL,
 							 NULL);
 
 	rc2 = CreateHContainer(rc);
@@ -280,7 +278,7 @@ void create_graphapp_frame(int gno)
 						  3,
 						  "World coords",
 						  "Viewport coords",
-						  0, 0);
+						  NULL);
 
         rc1 = CreateHContainer(rc);
 	legend_x_item = CreateTextItem2(rc1, 10, "X:");
@@ -319,16 +317,16 @@ void create_graphapp_frame(int gno)
         legends_vgap_item = CreatePanelChoice(rc1, "V-gap:",
 					     7,
 					     "0", "1", "2", "3", "4", "5",
-					     0, 0);
+					     NULL);
         legends_hgap_item = CreatePanelChoice(rc1, "H-gap:",
 					     7,
 					     "0", "1", "2", "3", "4", "5",
-					     0, 0);
+					     NULL);
 	legends_len_item = CreatePanelChoice(rc, "Legend line length:",
 					     10,
 				             "0", "1", "2", "3", "4",
                                              "5", "6", "7", "8",
-					     0, 0);
+					     NULL);
 	legends_invert_item = CreateToggleButton(rc, "Put in reverse order");
         
 

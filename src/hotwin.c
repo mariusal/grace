@@ -222,7 +222,6 @@ void create_hotlinks_popup(void *data)
 	hotlink_source_item = CreatePanelChoice(dialog, "Source: ", 3,
 						"Disk file",
 						"Pipe",
-						NULL,
 						NULL);
 
 	CreateSeparator(dialog);

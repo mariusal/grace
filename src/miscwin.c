@@ -118,7 +118,6 @@ void create_props_frame(void *data)
 	    "Button press",
 	    "As set",
 	    "Follows mouse",
-	    NULL,
 	    NULL);
 
         graph_drawfocus_choice_item =
@@ -151,7 +150,6 @@ void create_props_frame(void *data)
                                       "European",
                                       "US",
                                       "None",
-                                      NULL,
                                       NULL);
 	date_item = CreateTextItem2(rc1, 20, "Reference date:");
 	rc = CreateHContainer(rc1);

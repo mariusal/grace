@@ -107,7 +107,6 @@ void create_locator_frame(void *data)
 				       "[Phi, Rho]",
 				       "[VX, VY]",
 				       "[SX, SY]",
-				       NULL,
 				       NULL);
 	
 	fr = CreateFrame(locator_panel, "X properties");

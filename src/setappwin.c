@@ -217,8 +217,7 @@ void define_symbols_popup(void *data)
                                                  "X",               /* 9 */
                                                  "Star",            /* 10 */
                                                  "Char",            /* 11 */
-                                                 NULL,
-                                                 0);
+                                                 NULL);
         symsize_item = CreateCharSizeChoice(rc, "Size");
         symcolor_item = CreateColorChoice(rc, "Color:");
         AddOptionChoiceCB(symcolor_item, csync_cb, (void *) CSYNC_SYM);
@@ -234,8 +233,7 @@ void define_symbols_popup(void *data)
                                               "Right stairs",
                                               "Segments",
                                               "3-Segments",
-                                              NULL,
-                                              0);
+                                              NULL);
         toggle_lines_item = CreateLineStyleChoice(rc, "Style:");
         toggle_width_item = CreateLineWidthChoice(rc, "Width:");
         toggle_color_item = CreateColorChoice(rc, "Color:");
@@ -291,14 +289,12 @@ void define_symbols_popup(void *data)
                                              "None",
                                              "As polygon",
                                              "To baseline",
-                                             NULL,
-                                             0);
+                                             NULL);
         toggle_fillrule_item = CreatePanelChoice(rc2, "Rule:",
                                              3,
                                              "Winding",
                                              "Even-Odd",
-                                             NULL,
-                                             0);
+                                             NULL);
         rc2 = CreateHContainer(rc);
         toggle_fillpat_item = CreatePatternChoice(rc2, "Pattern:");
         toggle_fillcol_item = CreateColorChoice(rc2, "Color:");
@@ -313,8 +309,7 @@ void define_symbols_popup(void *data)
                                              "Graph min",
                                              "Graph max",
                                              "Set average",
-                                             NULL,
-                                             0);
+                                             NULL);
         baseline_item = CreateToggleButton(rc, "Draw line");
         
         
@@ -351,8 +346,7 @@ void define_symbols_popup(void *data)
                                              "X, Y",
                                              "String",
                                              "Z",
-                                             NULL,
-                                             0);
+                                             NULL);
 	avalue_precision_item = CreatePrecisionChoice(rc2, "Precision:");
         
 	fr = CreateFrame(setapp_avalue, "Placement");
@@ -377,8 +371,7 @@ void define_symbols_popup(void *data)
                                              "Normal",
                                              "Opposite",
                                              "Both",
-                                             NULL,
-                                             0);
+                                             NULL);
 	errbar_color_item = CreateColorChoice(rc, "Color:");
 	errbar_pattern_item = CreatePatternChoice(rc, "Pattern:");
 

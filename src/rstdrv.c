@@ -1072,7 +1072,7 @@ void pnm_gui_setup(void)
 					 "1-bit mono (PBM)",
 					 "8-bit grayscale (PGM)",
 					 "8-bit color (PPM)",
-                                         0, 0);
+                                         NULL);
 	pnm_setup_rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
 
 	CreateAACDialog(pnm_setup_frame, fr, set_pnm_setup_proc, NULL);
@@ -1141,7 +1141,7 @@ void jpg_gui_setup(void)
 					 "Fast integer",
 					 "Slow integer",
 					 "Float",
-                                         0, 0);
+                                         NULL);
 
 	CreateAACDialog(jpg_setup_frame, jpg_setup_rc, set_jpg_setup_proc, NULL);
     }

@@ -642,7 +642,6 @@ void create_fourier_frame(void *data)
 					    "Hamming",
 					    "Blackman",
 					    "Parzen",
-					    NULL,
 					    NULL);
 
 	XtVaCreateManagedWidget("Load result as: ", xmLabelWidgetClass, rc, NULL);
@@ -653,8 +652,7 @@ void create_fourier_frame(void *data)
 					  "Magnitude",
 					  "Phase",
 					  "Coefficients",
-					  0,
-					  0);
+					  NULL);
 
 	XtVaCreateManagedWidget("Let result X = ", xmLabelWidgetClass, rc, NULL);
 	fui.loadx_item = CreatePanelChoice(rc,
@@ -663,8 +661,7 @@ void create_fourier_frame(void *data)
 					   "Index",
 					   "Frequency",
 					   "Period",
-					   0,
-					   0);
+					   NULL);
 
 	XtVaCreateManagedWidget("Perform: ", xmLabelWidgetClass, rc, NULL);
 	fui.inv_item = CreatePanelChoice(rc,
@@ -672,8 +669,7 @@ void create_fourier_frame(void *data)
 					 3,
 					 "Transform",
 					 "Inverse transform",
-					 0,
-					 0);
+					 NULL);
 
 	XtVaCreateManagedWidget("Data is: ", xmLabelWidgetClass, rc, NULL);
 	fui.type_item = CreatePanelChoice(rc,
@@ -681,8 +677,7 @@ void create_fourier_frame(void *data)
 					  3,
 					  "Real",
 					  "Complex",
-					  0,
-					  0);
+					  NULL);
 	ManageChild(rc);
 
 	CreateSeparator(dialog);
@@ -837,8 +832,8 @@ void create_run_frame(void *data)
 					  "Median",
 					  "Minimum",
 					  "Maximum",
-					  "Std. dev.", 0,
-					  0);
+					  "Std. dev.",
+                                          NULL);
 	rui.len_item = CreateTextItem4(rc, 10, "Length of average:");
 
 	XtVaCreateManagedWidget("Restrictions:", xmLabelWidgetClass, rc, NULL);
@@ -853,8 +848,7 @@ void create_run_frame(void *data)
 					    "Region 4",
 					    "Inside graph",
 					    "Outside graph",
-					    0,
-					    0);
+					    NULL);
 
 	rui.rinvert_item = CreateToggleButton(rc, "Invert region");
 
@@ -989,8 +983,7 @@ void create_reg_frame(void *data)
 					      "Exponential y=A*exp(B*x)",
 					      "Logarithmic y=A+B*ln(x)",
 					      "Inverse y=1/(A+Bx)",
-					      0,
-					      0);
+					      NULL);
 	ManageChild(rc2);
 	
 	rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, rc,
@@ -1003,9 +996,8 @@ void create_reg_frame(void *data)
 					     4,
 					     "Fitted values",
 					     "Residuals",
-						 "Function",
-					     0,
-					     0);
+					     "Function",
+					     NULL);
         ManageChild(rc2);
 	for( i=2; i<5; i++ )
 		XtAddCallback( regui.resid_item[i], XmNactivateCallback, 
@@ -1028,8 +1020,7 @@ void create_reg_frame(void *data)
 					      "Region 4",
 					      "Inside graph",
 					      "Outside graph",
-					      0,
-					      0);
+					      NULL);
 	
         regui.rinvert_item = CreateToggleButton(rc2, "Invert region");
 	ManageChild(rc2);
@@ -1169,8 +1160,7 @@ void create_diff_frame(void *data)
 					  "Forward difference",
 					  "Backward difference",
 					  "Centered difference",
-					  0,
-					  0);
+					  NULL);
 
 	CreateSeparator(dialog);
 
@@ -1247,8 +1237,7 @@ void create_int_frame(void *data)
 					  3,
 					  "Cumulative sum",
 					  "Sum only",
-					  0,
-					  0);
+					  NULL);
 	iui.sum_item = CreateTextItem2(dialog, 10, "Sum:");
 
 	CreateSeparator(dialog);
@@ -1495,8 +1484,7 @@ void create_samp_frame(void *data)
 					     3,
 					     "Start/step",
 					     "Expression",
-					     0,
-					     0);
+					     NULL);
 	sampui.start_item = CreateTextItem4(rc, 10, "Start:");
 	sampui.step_item = CreateTextItem4(rc, 10, "Step:");
 	sampui.expr_item = CreateTextItem4(rc, 10, "Logical expression:");
@@ -1599,7 +1587,7 @@ void create_prune_frame(void *data)
 	pruneui.type_item = CreatePanelChoice(dialog,
 	    "Prune type: ", 5,
 	    "Interpolation", "Circle", "Ellipse", "Rectangle",
-	    NULL, 0);
+	    NULL);
 
 	pruneui.dx_rc = XtVaCreateWidget("dx_rc",
             xmRowColumnWidgetClass, dialog,
@@ -1618,13 +1606,13 @@ void create_prune_frame(void *data)
 	CreateSeparator(dialog);
 
         pruneui.deltatype_item = CreatePanelChoice(dialog,
-	    "Type of Delta coordinates:", 3, "Viewport", "World", NULL, 0);
+	    "Type of Delta coordinates:", 3, "Viewport", "World", NULL);
 	
 	pruneui.dxtype_item = CreatePanelChoice(dialog,
-            "Scaling of Delta X:", 3, "Linear", "Logarithmic", NULL, 0);
+            "Scaling of Delta X:", 3, "Linear", "Logarithmic", NULL);
 	
 	pruneui.dytype_item = CreatePanelChoice(dialog,
-            "Scaling of Delta Y:", 3, "Linear", "Logarithmic", NULL, 0);
+            "Scaling of Delta Y:", 3, "Linear", "Logarithmic", NULL);
 
         update_prune_frame();
 
@@ -1964,8 +1952,7 @@ void create_geom_frame(void *data)
 					   "Translate, rotate, scale",
 					   "Scale, translate, rotate",
 					   "Scale, rotate, translate",
-					   0,
-					   0);
+					   NULL);
 
 	gui.degrees_item = CreateTextItem4(rc, 10, "Rotation (degrees):");
 	gui.rotx_item = CreateTextItem4(rc, 10, "Rotate about X = :");

@@ -140,7 +140,7 @@ void create_featext_frame(void *data)
 	feui.xval_item = CreatePanelChoice(dialog,
 						"X values from:", 5,
 						"Index", "Legends", "X from Set", "Y from set",
-						NULL, 0 );
+						NULL);
 	
 	for (i = 0; i < 4; i++) {
 	    XtAddCallback(feui.xval_item[2 + i], XmNactivateCallback,

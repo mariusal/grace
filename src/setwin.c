@@ -391,13 +391,13 @@ void create_datasetop_popup(void *data)
 					   "Y2",
 					   "Y3",
 					   "Y4",
-					   0, 0);
+					   NULL);
 	datasetopui.up_down_item = CreatePanelChoice(rc,
 						"Order:",
 						3,
 						"Ascending",
-						"Descending", 0,
-						0);
+						"Descending",
+                                                NULL);
         datasettype_controls[0] = rc;
 
 	/* Reverse */

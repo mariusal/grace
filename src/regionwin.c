@@ -97,7 +97,7 @@ void create_define_frame(void *data)
 					       "Define region:",
 					       6,
 					       "0", "1", "2", "3", "4",
-					       NULL, 0);
+					       NULL);
 
 	define_type_item = CreatePanelChoice(dialog,
 					     "Region type:",
@@ -112,7 +112,7 @@ void create_define_frame(void *data)
 					     "In Vert. Range",
 					     "Out of Horiz. Range",
 					     "Out of Vert. Range",
-					     NULL, 0);
+					     NULL);
 
 	CreateSeparator(dialog);
 
@@ -161,7 +161,7 @@ void create_clear_frame(void *data)
 					      "Clear region:",
 					      7,
 					      "0", "1", "2", "3", "4", "All",
-					      NULL, 0);
+					      NULL);
 
 	CreateSeparator(dialog);
 
@@ -245,13 +245,13 @@ void create_reporton_frame(void *data)
 						   "Report on sets in region:",
 						   8,
 		   "0", "1", "2", "3", "4", "Inside world", "Outside world",
-						   NULL, 0);
+						   NULL);
 
 	reporton_type_item = CreatePanelChoice(dialog,
 						   "Report type:",
 						   3,
 		   				"Sets", "Points",
-						   NULL, 0);
+						   NULL);
 
 	CreateSeparator(dialog);
 

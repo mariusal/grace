@@ -256,7 +256,6 @@ void create_axes_dialog(int axisno)
                                             3,
                                             "Parallel to axis",
                                             "Perpendicular to axis",
-                                            NULL,
                                             NULL);
 
         rc2 = CreateHContainer(rc);
@@ -265,7 +264,7 @@ void create_axes_dialog(int axisno)
                                              "Normal",
                                              "Opposite",
                                              "Both",
-                                             0, 0);
+                                             NULL);
         opitems[0].value = TYPE_AUTO;
         opitems[0].label = "Auto";
         opitems[1].value = TYPE_SPEC;
@@ -305,26 +304,26 @@ void create_axes_dialog(int axisno)
                                     "Normal",
                                     "Opposite",
                                     "Both",
-                                    0, 0);
+                                    NULL);
         tlstagger = CreatePanelChoice(rc2, "Stagger:",
                                       11,
-                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
-                                      0);
+                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                                      NULL);
         
         
         rc2 = CreateVContainer(rc);
         rc3 = CreateHContainer(rc2);
         tlstarttype = CreatePanelChoice(rc3, "Start at:",
                                         3,
-                                        "Axis min", "Specified:", 0,
-                                        0);
+                                        "Axis min", "Specified:",
+                                        NULL);
         tlstart = CreateTextItem2(rc3, 8, "");
 
         rc3 = CreateHContainer(rc2);
         tlstoptype = CreatePanelChoice(rc3, "Stop at:",
                                        3,
-                                       "Axis max", "Specified:", 0,
-                                       0);
+                                       "Axis max", "Specified:",
+                                       NULL);
         tlstop = CreateTextItem2(rc3, 8, "");
 
         fr = CreateFrame(axes_ticklabel, "Extra");
@@ -333,8 +332,8 @@ void create_axes_dialog(int axisno)
         rc2 = CreateHContainer(rc);
         tlskip = CreatePanelChoice(rc2, "Skip every:",
                                    11,
-                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
-                                   0);
+                        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                                   NULL);
 
         tlformula = CreateTextInput(rc2, "Axis transform:");
 
@@ -360,14 +359,14 @@ void create_axes_dialog(int axisno)
         rc = CreateHContainer(rc2);
         tinout = CreatePanelChoice(rc, "Pointing:",
                                    4,
-                                   "In", "Out", "Both", 0,
-                                   0);
+                                   "In", "Out", "Both",
+                                   NULL);
         tickop = CreatePanelChoice(rc, "Draw on:",
                                    4,
                                    "Normal side",
                                    "Opposite side",
                                    "Both sides",
-                                   0, 0);
+                                   NULL);
         rc = CreateHContainer(rc2);
         tround = CreateToggleButton(rc, "Place at rounded positions");
 	autonum = CreatePanelChoice(rc, "Autotick divisions",
@@ -383,7 +382,6 @@ void create_axes_dialog(int axisno)
                                     "10",
                                     "11",
                                     "12",
-				    NULL,
 				    NULL);
         
         rc2 = CreateHContainer(axes_tickmark);
@@ -446,7 +444,6 @@ void create_axes_dialog(int axisno)
                                          "All axes, current graph",
                                          "Current axis, all graphs",
                                          "All axes, all graphs",
-                                         NULL,
                                          NULL);
 
         CreateAACDialog(axes_dialog, rc, axes_aac_cb, NULL);

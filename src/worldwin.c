@@ -380,7 +380,6 @@ void create_autos_frame(void *data)
 					     3,
 					     "Current",
 					     "All",
-					     NULL,
 					     NULL);
 
 	CreateAACDialog(aui.top, rc, define_autos_proc, &aui);

@@ -402,7 +402,6 @@ void create_wparam_frame(void *data)
             3,
             "Current",
             "All",
-            NULL,
             NULL);
 	AddFileSelectionBoxCB(fsb, write_params_proc, graph_item);
         ManageChild(fsb->FSB);
