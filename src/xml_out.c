@@ -554,6 +554,7 @@ int save_set_properties(XFile *xf, Quark *pset)
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->avalue.active);
     attributes_set_ival(attrs, AStrType, p->avalue.type); /* FIXME: textual */
+    xmlio_set_offset(attrs, p->avalue.offset.x, p->avalue.offset.y);
 
     attributes_set_sval(attrs, AStrPrepend, p->avalue.prestr);
     attributes_set_sval(attrs, AStrAppend, p->avalue.appstr);
