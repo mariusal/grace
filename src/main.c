@@ -71,7 +71,13 @@ static void VersionInfo(void);
 int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
 
 #if defined(DEBUG)    
-    extern int yydebug;
+extern int yydebug;
+#endif
+
+#ifdef HAVE_NETCDF
+static char netcdf_name[512] = "";
+static char xvar_name[128] = "";
+static char yvar_name[128] = "";
 #endif
 
 int main(int argc, char *argv[])
@@ -93,6 +99,20 @@ int main(int argc, char *argv[])
     char fd_name[GR_MAXPATHLEN];
 
     int wpp, hpp;
+    
+    Project *project;
+    RunTime *rt;
+    GUI *gui;
+    
+    grace = grace_new();
+    if (!grace) {
+        errmsg("FIXME");
+        exit(1);
+    }
+    
+    project = grace->project;
+    rt      = grace->rt;
+    gui     = grace->gui;
     
     /*
      * set version
@@ -143,12 +163,6 @@ int main(int argc, char *argv[])
 	set_help_viewer(s);
     }
 
-    /* initialize plots, strings, graphs */
-    set_program_defaults();
-
-    /* initialize the nonl-fit parameters */
-    initialize_nonl();
-
     /* initialize the parser symbol table */
     init_symtab();
     
@@ -189,16 +203,16 @@ int main(int argc, char *argv[])
     /* initialize devices */
 #ifndef NONE_GUI
     if (cli == TRUE || gracebat == TRUE) {
-        tdevice = register_dummy_drv();
+        rt->tdevice = register_dummy_drv();
     } else {
-        tdevice = register_x11_drv();
+        rt->tdevice = register_x11_drv();
     }
 #else
-    tdevice = register_dummy_drv();
+    rt->tdevice = register_dummy_drv();
 #endif
-    select_device(tdevice);
+    select_device(rt->tdevice);
 
-    hdevice = register_ps_drv();
+    rt->hdevice = register_ps_drv();
     register_eps_drv();
 
 #ifdef HAVE_LIBPDF
@@ -262,13 +276,13 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
 			if (!strcmp("x", argv[i])) {
-			    autoscale_onread = AUTOSCALE_X;
+			    rt->autoscale_onread = AUTOSCALE_X;
 			} else if (!strcmp("y", argv[i])) {
-			    autoscale_onread = AUTOSCALE_Y;
+			    rt->autoscale_onread = AUTOSCALE_Y;
 			} else if (!strcmp("xy", argv[i])) {
-			    autoscale_onread = AUTOSCALE_XY;
+			    rt->autoscale_onread = AUTOSCALE_XY;
 			} else if (!strcmp("none", argv[i])) {
-			    autoscale_onread = AUTOSCALE_NONE;
+			    rt->autoscale_onread = AUTOSCALE_NONE;
 			} else {
 			    errmsg("Improper argument for autoscale flag");
 			    usage(stderr, argv[0]);
@@ -342,7 +356,6 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
 			strcpy(netcdf_name, argv[i]);
-			readcdf = 1;
 		    }
 		} else if (argmatch(argv[i], "-netcdfxy", 9) || argmatch(argv[i], "-hdfxy", 6)) {
 		    i++;
@@ -371,7 +384,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing argument for time delay\n");
 			usage(stderr, argv[0]);
 		    } else {
-			timer_delay = atoi(argv[i]);
+			rt->timer_delay = atoi(argv[i]);
 		    }
 #ifndef NONE_GUI
 		} else if (argmatch(argv[i], "-install", 7)) {
@@ -382,7 +395,7 @@ int main(int argc, char *argv[])
 		    set_barebones( TRUE );
 #endif
 		} else if (argmatch(argv[i], "-timestamp", 10)) {
-		    timestamp.active = TRUE;
+		    project->timestamp.active = TRUE;
 		} else if (argmatch(argv[i], "-remove", 7)) {
 		    remove_flag = TRUE;
 		} else if (argmatch(argv[i], "-fixed", 5)) {
@@ -409,10 +422,10 @@ int main(int argc, char *argv[])
 		    set_pagelayout(PAGE_FREE);
 #endif
 		} else if (argmatch(argv[i], "-noask", 5)) {
-		    noask = TRUE;
+		    gui->noask = TRUE;
 #ifndef NONE_GUI
 		} else if (argmatch(argv[i], "-mono", 5)) {
-		    monomode = TRUE;
+		    gui->monomode = TRUE;
 #endif
 		} else if (argmatch(argv[i], "-hdevice", 5)) {
 		    i++;
@@ -480,7 +493,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing filename for block data\n");
 			usage(stderr, argv[0]);
 		    } else {
-			getdata(cur_graph, argv[i], cursource, LOAD_BLOCK);
+			getdata(cur_graph, argv[i], rt->cursource, LOAD_BLOCK);
 		    }
 		} else if (argmatch(argv[i], "-bxy", 4)) {
 		    i++;
@@ -496,7 +509,7 @@ int main(int argc, char *argv[])
                             return 1;
                         }
 		        create_set_fromblock(cur_graph, NEW_SET,
-                            curtype, nc, cols, -1, autoscale_onread);
+                            rt->curtype, nc, cols, -1, rt->autoscale_onread);
                         xfree(cols);
                     }
 		} else if (argmatch(argv[i], "-nxy", 4)) {
@@ -505,14 +518,14 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing filename for nxy data\n");
 			usage(stderr, argv[0]);
 		    } else {
-			getdata(cur_graph, argv[i], cursource, LOAD_NXY);
+			getdata(cur_graph, argv[i], rt->cursource, LOAD_NXY);
 		    }
 		} else if (argmatch(argv[i], "-type", 2) ||
                            argmatch(argv[i], "-settype", 8)) {
 		    /* set types */
 		    i++;
-                    curtype = get_settype_by_name(argv[i]);
-                    if (curtype == -1) {
+                    rt->curtype = get_settype_by_name(argv[i]);
+                    if (rt->curtype == -1) {
 			fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
 			usage(stderr, argv[0]);
 		    }
@@ -569,7 +582,7 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
                         /*  open resfile if -results option given */
-		        if ((resfp = grace_openw(argv[i])) == NULL) {
+		        if ((rt->resfp = grace_openw(argv[i])) == NULL) {
 		            exit(1);
 		        }
 		    }
@@ -599,9 +612,9 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    }
 		    if (argmatch(argv[i], "pipe", 4)) {
-			cursource = SOURCE_PIPE;
+			rt->cursource = SOURCE_PIPE;
 		    } else if (argmatch(argv[i], "disk", 4)) {
-			cursource = SOURCE_DISK;
+			rt->cursource = SOURCE_DISK;
 		    }
 		} else if (argmatch(argv[i], "-viewport", 2)) {
 		    i++;
@@ -645,7 +658,7 @@ int main(int argc, char *argv[])
 		}
 	    } else {
 		if (i != argc) {
-		    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE) ==
+		    if (getdata(cur_graph, argv[i], rt->cursource, LOAD_SINGLE) ==
                                                         RETURN_SUCCESS) {
 			set_docname(argv[i]);
 			if (remove_flag) {
@@ -684,7 +697,7 @@ int main(int argc, char *argv[])
  * just plot the graph and quit
  */
     if (gracebat == TRUE) {
-	if (hdevice == 0) {
+	if (rt->hdevice == 0) {
 	    errmsg("Terminal device can't be used for batch plotting");
 	    exit(1);
 	}

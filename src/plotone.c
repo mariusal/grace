@@ -96,7 +96,7 @@ void drawgraph(void)
     /* draw objects NOT clipped to a particular graph */
     draw_objects(-1);
 
-    draw_timestamp();
+    draw_timestamp(&grace->project->timestamp);
 
     select_graph(saveg);
 
@@ -116,7 +116,7 @@ void do_hardcopy(void)
     
     if (get_ptofile()) {
         if (print_file[0] == '\0') {
-            Device_entry dev = get_device_props(hdevice);
+            Device_entry dev = get_device_props(grace->rt->hdevice);
             sprintf(print_file, "%s.%s", get_docbname(), dev.fext);
         }
         strcpy(fname, print_file);
@@ -137,7 +137,7 @@ void do_hardcopy(void)
         return;
     }
     
-    select_device(hdevice);
+    select_device(grace->rt->hdevice);
     
     drawgraph();
     
@@ -166,7 +166,7 @@ void do_hardcopy(void)
         }
     }
     
-    select_device(tdevice);
+    select_device(grace->rt->tdevice);
 }
 
 
@@ -670,12 +670,13 @@ void draw_regions(int gno)
     
     /* draw any defined regions for this graph */
     for (i = 0; i < MAXREGION; i++) {
-        if (rg[i].active && rg[i].linkto == gno) {
-            setcolor(rg[i].color);
+        region r = grace->project->rg[i];
+        if (r.active && r.linkto == gno) {
+            setcolor(r.color);
             setpattern(1);
-            setlinewidth(rg[i].linew);
-            setlinestyle(rg[i].lines);
-            draw_region(i);
+            setlinewidth(r.linew);
+            setlinestyle(r.lines);
+            draw_region(&r);
         }
     }
 }
@@ -2104,14 +2105,12 @@ void draw_arrowhead(VPoint vp1, VPoint vp2, const Arrow *arrowp)
     return;
 }
 
-void draw_region(int r)
+void draw_region(region *this)
 {
     int i;
     double vshift = 0.05;
     double xshift = 0.0, yshift = 0.0;
     
-    region *this;
-
     int rgndouble=0;
     Arrow arrow;
     
@@ -2119,8 +2118,6 @@ void draw_region(int r)
     VPoint vps[4], *vpstmp;
 
     set_default_arrow(&arrow);
-    
-    this=&rg[r];
     
     switch (this->type) {
     case REGION_POLYI:
@@ -2397,21 +2394,21 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
 }
 
 /* plot time stamp */
-void draw_timestamp(void)
+void draw_timestamp(plotstr *timestamp)
 {
-    if (timestamp.active) {
+    if (timestamp && timestamp->active) {
         VPoint vp;
-        setfont(timestamp.font);
-        setcharsize(timestamp.charsize);
-        setcolor(timestamp.color);
-        vp.x = timestamp.x;
-        vp.y = timestamp.y;
+        setfont(timestamp->font);
+        setcharsize(timestamp->charsize);
+        setcolor(timestamp->color);
+        vp.x = timestamp->x;
+        vp.y = timestamp->y;
 
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, timestamp.rot, timestamp.just, timestamp.s);
+        WriteString(vp, timestamp->rot, timestamp->just, timestamp->s);
 
-        timestamp.bb = get_bbox(BBOX_TYPE_TEMP);
+        timestamp->bb = get_bbox(BBOX_TYPE_TEMP);
     }
 }

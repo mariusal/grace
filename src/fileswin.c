@@ -79,7 +79,7 @@ static saveGUI save_gui;
 
 static void update_save_gui(saveGUI *gui)
 {
-    xv_setstr(gui->format_item, sformat);
+    xv_setstr(gui->format_item, grace->project->sformat);
     xv_setstr(gui->descr_item, get_project_description());
 }
 
@@ -118,7 +118,7 @@ static int save_proc(char *filename, void *data)
     char *s;
     saveGUI *gui = (saveGUI *) data;
     
-    strcpy(sformat, xv_getstr(gui->format_item));
+    grace->project->sformat = copy_string(grace->project->sformat, xv_getstr(gui->format_item));
     s = XmTextGetString(gui->descr_item);
     set_project_description(s);
     XtFree(s);
@@ -245,12 +245,12 @@ static int read_sets_proc(char *filename, void *data)
         errmsg("Please select a single graph");
     } else {
         if (load == LOAD_SINGLE) {
-            curtype = GetOptionChoice(gui->ftype_item);
+            grace->rt->curtype = GetOptionChoice(gui->ftype_item);
         }
 
-        autoscale_onread = GetOptionChoice(gui->auto_item);
+        grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         
-        getdata(graphno, filename, cursource, load);
+        getdata(graphno, filename, grace->rt->cursource, load);
 
 	if (load == LOAD_BLOCK) {
             create_eblock_frame(graphno);
@@ -269,7 +269,7 @@ static void set_src_proc(Widget w, XtPointer client_data, XtPointer call_data)
     XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
 
     if (state->set) {
-        cursource = which;
+        grace->rt->cursource = which;
     }
 }
 
@@ -311,7 +311,7 @@ void create_write_popup(void *data)
         gui->sel = CreateSetChoice(rc,
             "Write set(s):", LIST_TYPE_MULTIPLE, TRUE);
 	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
-        xv_setstr(gui->format_item, sformat);
+        xv_setstr(gui->format_item, grace->project->sformat);
         ManageChild(rc);
 
         ManageChild(fsb->FSB);
@@ -639,9 +639,6 @@ void create_netcdfs_popup(void *data)
 
 	ManageChild(dialog);
 	netcdf_frame = top;
-	if (strlen(netcdf_name)) {
-	    xv_setstr(netcdf_file_item, netcdf_name);
-	}
     }
     update_netcdfs();
     RaiseWindow(top);

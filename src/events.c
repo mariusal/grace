@@ -84,6 +84,8 @@ static int iax[MAX_POLY_POINTS];
 static int iay[MAX_POLY_POINTS];
 static WPoint region_wps[MAX_POLY_POINTS];
 
+#define nr grace->project->nr
+#define rg grace->project->rg
 
 void anchor_point(int curx, int cury, VPoint curvp)
 {
@@ -126,7 +128,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	vp = xlibdev2VPoint(x, y);
         getpoints(&vp);
 
-        if (focus_policy == FOCUS_FOLLOWS) {
+        if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
             if ((newg = next_graph_containing(-1, vp)) != cg) {
                 switch_current_graph(newg);
                 cg = newg;
@@ -194,7 +196,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             
             switch (action_flag) {
             case 0:
-                if (dbl_click == True && allow_dc == TRUE) {
+                if (dbl_click == True && grace->gui->allow_dc == TRUE) {
                     track_setno = -1;
                     if (focus_clicked(cg, vp, &anchor_vp) == TRUE) {
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
@@ -216,7 +218,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         define_symbols_popup((void *) -1);
                     }
                 } else {
-                    if (focus_policy == FOCUS_CLICK) {
+                    if (grace->gui->focus_policy == FOCUS_CLICK) {
                         if ((newg = next_graph_containing(cg, vp)) != cg) {
                             switch_current_graph(newg);
                         }
@@ -477,7 +479,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case PLACE_TIMESTAMP_2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                move_timestamp(shift);
+                move_timestamp(&grace->project->timestamp, shift);
                 xdrawgraph();
                 set_action(PLACE_TIMESTAMP_1ST);
                 break;
@@ -1019,6 +1021,7 @@ int graph_clicked(int gno, VPoint vp)
 
 int timestamp_clicked(VPoint vp, view *bb)
 {
+    plotstr timestamp = grace->project->timestamp;
     if (timestamp.active && is_vpoint_inside(timestamp.bb, vp, MAXPICKDIST)) {
         *bb = timestamp.bb;
         return TRUE;
@@ -1192,6 +1195,7 @@ int find_insert_location(int gno, int setno, VPoint vp)
  */
 int find_item(int gno, VPoint vp, view *bb, int *id)
 {
+    Storage *objects = grace->project->objects;
     DObject *o;
     int i, n;
 

@@ -480,7 +480,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
     gettimeofday(&read_begin, NULL);
     first_time    = 1;
     retsel        = 1;
-    while (((time_spent() < timer_delay) || first_time) && retsel > 0) {
+    while (((time_spent() < grace->rt->timer_delay) || first_time) && retsel > 0) {
 
         /* register all the monitored descriptors */
         highest = -1;
@@ -504,7 +504,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
             remaining = 0;
         } else {
             /* wait until data or end of time slice arrive */
-            remaining = timer_delay - time_spent();
+            remaining = grace->rt->timer_delay - time_spent();
             if (remaining < 0) {
                 remaining = 0;
             }
@@ -514,7 +514,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
         retsel = select(highest + 1, &rfds, NULL, NULL, &timeout);
 
         for (ib = tbl;
-             ((time_spent() < timer_delay) || first_time) && ib < tbl + tblsize;
+             ((time_spent() < grace->rt->timer_delay) || first_time) && ib < tbl + tblsize;
              ib++) {
             if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
                 /* there is pending input */
@@ -870,7 +870,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 }
                 
                 if (load_type == LOAD_SINGLE) {
-                    nncols_req = settype_cols(curtype);
+                    nncols_req = settype_cols(grace->rt->curtype);
                     if (nncols_req <= nncols) {
                         nncols = nncols_req;
                     } else if (nncols_req == nncols + 1) {
@@ -964,7 +964,7 @@ int getdata(int gno, char *fn, int src, int load_type)
         postprocess_project(cur_version);
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        autoscale_graph(gno, autoscale_onread);
+        autoscale_graph(gno, grace->rt->autoscale_onread);
     }
     set_project_version(save_version);
 
@@ -1165,7 +1165,7 @@ int save_project(char *fn)
 
     for (gno = 0; gno < number_of_graphs(); gno++) {
         for (setno = 0; setno < number_of_sets(gno); setno++) {
-            write_set(gno, setno, cp, sformat, FALSE);
+            write_set(gno, setno, cp, grace->project->sformat, FALSE);
         }
     }
 
@@ -1199,7 +1199,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
         s = get_set_strings(gno, setno);
 
         if (format == NULL) {
-            format = sformat;
+            format = grace->project->sformat;
         }
 
         if (!rawdata) {
@@ -1440,7 +1440,7 @@ int readnetcdf(int gno,
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
     setcomment(gno, setno, buf);
     
-    autoscale_graph(gno, autoscale_onread);
+    autoscale_graph(gno, grace->rt->autoscale_onread);
     
     return 1;
 }

@@ -60,79 +60,74 @@ int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x,
 	doublereal *fvec, doublereal *tol, integer *iwa, 
 	doublereal *wa, integer lwa, integer nsteps);
 
-void a_to_parms (double *a);
-void parms_to_a (double *a);
+void a_to_parms(double *a, nonlparm *parms, int parnum);
+void parms_to_a(nonlparm *parms, double *a, int parnum);
 
-void reset_nonl(void)
+void reset_nonl(NLFit *nlfit)
 {
     int i;
     
+    nlfit->title   = copy_string(nlfit->title, "A fit");
+    nlfit->formula = copy_string(nlfit->formula, "y = ");
+    nlfit->parnum = 0;
+    nlfit->tolerance = 0.01;
+
     for (i = 0; i < MAXPARM; i++) {
-    	nonl_parms[i].value = 1.0;
-    	nonl_parms[i].constr = FALSE;
-    	nonl_parms[i].min = 1.0;
-    	nonl_parms[i].max = 1.0;
+        nonlparm *nlp;
+    	nlp = &nlfit->parms[i];
+        nlp->value = 1.0;
+    	nlp->constr = FALSE;
+    	nlp->min = 1.0;
+    	nlp->max = 1.0;
     }
     
-    nonl_opts.title   = copy_string(nonl_opts.title, "A fit");
-    nonl_opts.formula = copy_string(nonl_opts.formula, "y = ");
-    nonl_opts.parnum = 0;
-    nonl_opts.tolerance = 0.01;
-
     return;
 }
 
-void initialize_nonl(void)
-{
-    nonl_opts.title   = NULL;
-    nonl_opts.formula = NULL;
-    reset_nonl();
-}
-
-void a_to_parms (double *a)
+void a_to_parms (double *a, nonlparm *parms, int parnum)
 {
     int i;
     double t;
     
-    for (i = 0; i < nonl_opts.parnum; i++) {
-    	if (nonl_parms[i].constr) {
+    for (i = 0; i < parnum; i++) {
+    	if (parms[i].constr) {
     	    /* map (-inf, inf) to (-1, 1) */
     	    t = a[i]/(abs(a[i]) + 1.0);
     	    
     	    /* map (-1, 1) to (nonl_lowb[i], nonl_uppb[i]) */
-    	    nonl_parms[i].value = (nonl_parms[i].min + nonl_parms[i].max)/2.0 +
-    	    	    (nonl_parms[i].max - nonl_parms[i].min)/2.0 * t;
+    	    parms[i].value = (parms[i].min + parms[i].max)/2.0 +
+    	    	    (parms[i].max - parms[i].min)/2.0 * t;
     	} else {
-    	    nonl_parms[i].value = a[i];
+    	    parms[i].value = a[i];
     	}
     }
 }
 
 
-void parms_to_a (double *a)
+void parms_to_a (nonlparm *parms, double *a, int parnum)
 {
     int i;
     double t;
         
     double eps  = 1.e-6;
        
-    for (i = 0; i < nonl_opts.parnum; i++) {
-    	if (nonl_parms[i].constr) {
-    	    t = (nonl_parms[i].value - (nonl_parms[i].min + nonl_parms[i].max)/2.0)/
-    	    	  ((nonl_parms[i].max - nonl_parms[i].min)/2.0);
+    for (i = 0; i < parnum; i++) {
+    	if (parms[i].constr) {
+    	    t = (parms[i].value - (parms[i].min + parms[i].max)/2.0)/
+    	    	  ((parms[i].max - parms[i].min)/2.0);
     	    if (t < -(1.0 - eps)){
     	    	t = -(1.0 - eps);
-    	    	nonl_parms[i].value = (nonl_parms[i].min + nonl_parms[i].max)/2.0 +
-    	    	    (nonl_parms[i].max - nonl_parms[i].min)/2.0 * t;
+    	    	parms[i].value = (parms[i].min + parms[i].max)/2.0 +
+    	    	    (parms[i].max - parms[i].min)/2.0 * t;
     	    }
     	    if (t > (1.0 - eps)){
     	    	t = (1.0 - eps);
-    	    	nonl_parms[i].value = (nonl_parms[i].min + nonl_parms[i].max)/2.0 +
-    	    	    (nonl_parms[i].max - nonl_parms[i].min)/2.0 * t;
+    	    	parms[i].value = (parms[i].min + parms[i].max)/2.0 +
+    	    	    (parms[i].max - parms[i].min)/2.0 * t;
     	    }
     	    a[i] = t/(1.0 - abs(t)); 
     	} else {
-    	    a[i] = nonl_parms[i].value;
+    	    a[i] = parms[i].value;
     	}
     }
 }
@@ -144,9 +139,9 @@ void fcn(int * m, int * n, double * x, double * fvec,
     int errpos;
     int i;
 
-    a_to_parms(x);
+    a_to_parms(x, grace->rt->nlfit->parms, *n);
 
-    errpos = scanner(nonl_opts.formula);
+    errpos = scanner(grace->rt->nlfit->formula);
     if (errpos) {
 	errmsg("error in fcn");
 	*iflag = -1;
@@ -204,7 +199,9 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     int i, n;
     integer lwa, iwa[MAXPARM];
     double a[MAXPARM];
-    int parnum = nonl_opts.parnum;
+    NLFit *nlfit = grace->rt->nlfit;
+    nonlparm *parms = nlfit->parms;
+    int parnum = nlfit->parnum;
     char buf[128];
     double cor, chisq, rms_pe, ysq, theil;
     int rms_ok;
@@ -235,14 +232,14 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     }
 
     stufftext("Fitting with formula: ");
-    stufftext(nonl_opts.formula);
+    stufftext(nlfit->formula);
     stufftext("\n");
     stufftext("Initial guesses:\n");
-    for (i = 0; i < nonl_opts.parnum; i++) {
-        sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
+    for (i = 0; i < nlfit->parnum; i++) {
+        sprintf(buf, "\ta%1d = %g\n", i, parms[i].value);
         stufftext(buf);
     }
-    sprintf(buf, "Tolerance = %g\n", nonl_opts.tolerance);
+    sprintf(buf, "Tolerance = %g\n", nlfit->tolerance);
     stufftext(buf);
     
     xp = getx(gno, setno);
@@ -255,12 +252,12 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     ra = rarray;
     wts = warray;
 
-    parms_to_a(a);
+    parms_to_a(parms, a, parnum);
     
     info = lmdif_drv((U_fp) fcn, (integer) n, (integer) parnum, a, fvec, 
-        &nonl_opts.tolerance, iwa, wa, lwa, (integer) nsteps);
+        &nlfit->tolerance, iwa, wa, lwa, (integer) nsteps);
     
-    a_to_parms(a);
+    a_to_parms(a, parms, parnum);
     
     correlation(yp, y_saved, n, &cor);
     
@@ -332,8 +329,8 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     
     if ((info > 0 && info < 4) || (info == 5)) {
         stufftext("Computed values:\n");
-        for (i = 0; i < nonl_opts.parnum; i++) {
-            sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
+        for (i = 0; i < nlfit->parnum; i++) {
+            sprintf(buf, "\ta%1d = %g\n", i, parms[i].value);
             stufftext(buf);
         }
         stufftext("\n");

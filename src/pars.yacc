@@ -68,9 +68,13 @@
 
 #define MAX_PARS_STRING_LENGTH  4096
 
-typedef double (*ParserFnc)();
+#define g grace->project->graphs
+#define rg grace->project->rg
+#define grdefaults grace->project->grdefaults
+#define nlfit grace->rt->nlfit
+#define nonl_parms nlfit->parms
 
-extern graph *g;
+typedef double (*ParserFnc)();
 
 static double  s_result;    /* return value if a scalar expression is scanned*/
 static grarr *v_result;    /* return value if a vector expression is scanned*/
@@ -2138,7 +2142,7 @@ parmset:
 	    scrollinout_proc((int) $3);
 	}
 	| LINK PAGE onoff {
-	    scrolling_islinked = $3;
+	    grace->project->scrolling_islinked = $3;
 	}
 
 	| STACK WORLD expr ',' expr ',' expr ',' expr
@@ -2147,12 +2151,12 @@ parmset:
 	}
 
 	| TIMER nexpr {
-            timer_delay = $2;
+            grace->rt->timer_delay = $2;
 	}
 
 	| TARGET selectset {
-	    target_set = *($2);
-	    set_parser_setno(target_set.gno, target_set.setno);
+	    grace->rt->target_set = *($2);
+	    set_parser_setno(grace->rt->target_set.gno, grace->rt->target_set.setno);
 	}
 	| WITH selectgraph {
 	    set_parser_gno($2);
@@ -2397,27 +2401,27 @@ parmset:
 
 /* timestamp */
 	| TIMESTAMP onoff {
-            timestamp.active = $2;
+            grace->project->timestamp.active = $2;
         }
 	| TIMESTAMP font_select {
-            timestamp.font = $2;
+            grace->project->timestamp.font = $2;
         }
 	| TIMESTAMP CHAR SIZE expr {
-            timestamp.charsize = $4;
+            grace->project->timestamp.charsize = $4;
         }
 	| TIMESTAMP ROT nexpr {
-            timestamp.rot = $3;
+            grace->project->timestamp.rot = $3;
         }
 	| TIMESTAMP color_select {
-            timestamp.color = $2;
+            grace->project->timestamp.color = $2;
         }
 	| TIMESTAMP expr ',' expr {
-	    timestamp.x = $2;
-	    timestamp.y = $4;
+	    grace->project->timestamp.x = $2;
+	    grace->project->timestamp.y = $4;
 	}
 	| TIMESTAMP DEF CHRSTR {
-	  set_plotstr_string(&timestamp, $3);
-	  xfree($3);
+	    set_plotstr_string(&grace->project->timestamp, $3);
+	    xfree($3);
 	}
 
 /* defaults */
@@ -2443,7 +2447,7 @@ parmset:
 	    grdefaults.symsize = $4;
 	}
 	| DEFAULT SFORMAT CHRSTR {
-	    strcpy(sformat, $3);
+	    grace->project->sformat = copy_string(grace->project->sformat, $3);
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
@@ -2673,7 +2677,7 @@ parmset:
         }
         
 	| TYPE xytype {
-	    curtype = $2;
+	    grace->rt->curtype = $2;
 	}
 
 /* I/O filters */
@@ -2689,7 +2693,7 @@ parmset:
 	}
 
 	| SOURCE sourcetype {
-	    cursource = $2;
+	    grace->rt->cursource = $2;
 	}
 	| FORMAT formatchoice {
 	    readxformat = $2;
@@ -2969,21 +2973,21 @@ actions:
             } else {
 	        xfree($3);
 	        create_set_fromblock(whichgraph, NEW_SET,
-                    $2, nc, cols, -1, autoscale_onread);
+                    $2, nc, cols, -1, grace->rt->autoscale_onread);
                 xfree(cols);
             }
 	}
 	| READ xytype CHRSTR {
 	    gotread = TRUE;
-	    curtype = $2;
+	    grace->rt->curtype = $2;
 	    strcpy(readfile, $3);
 	    xfree($3);
 	}
 	| READ xytype sourcetype CHRSTR {
 	    gotread = TRUE;
 	    strcpy(readfile, $4);
-	    curtype = $2;
-	    cursource = $3;
+	    grace->rt->curtype = $2;
+	    grace->rt->cursource = $3;
 	    xfree($4);
 	}
 	| READ NXY CHRSTR {
@@ -3051,19 +3055,19 @@ options:
 #endif
         }
 	| AUTO REDRAW onoff {
-	    auto_redraw = $3;
+	    grace->gui->auto_redraw = $3;
 	}
 	| FOCUS onoff {
-	    draw_focus_flag = $2;
+	    grace->gui->draw_focus_flag = $2;
 	}
 	| FOCUS SET {
-	    focus_policy = FOCUS_SET;
+	    grace->gui->focus_policy = FOCUS_SET;
 	}
 	| FOCUS FOLLOWS {
-	    focus_policy = FOCUS_FOLLOWS;
+	    grace->gui->focus_policy = FOCUS_FOLLOWS;
 	}
 	| FOCUS CLICK {
-	    focus_policy = FOCUS_CLICK;
+	    grace->gui->focus_policy = FOCUS_CLICK;
 	}
         ;
 
@@ -3527,18 +3531,18 @@ axisbardesc:
 
 nonlfitopts:
         TITLE CHRSTR { 
-          nonl_opts.title = copy_string(nonl_opts.title, $2);
+          nlfit->title = copy_string(nlfit->title, $2);
 	  xfree($2);
         }
         | FORMULA CHRSTR { 
-          nonl_opts.formula = copy_string(nonl_opts.formula, $2);
+          nlfit->formula = copy_string(nlfit->formula, $2);
 	  xfree($2);
         }
         | WITH nexpr PARAMETERS { 
-            nonl_opts.parnum = $2; 
+            nlfit->parnum = $2; 
         }
         | PREC expr { 
-            nonl_opts.tolerance = $2; 
+            nlfit->tolerance = $2; 
         }
         ;
 
@@ -4895,7 +4899,7 @@ int scanner(char *s)
     
     if (gotread) {
 	gotread = FALSE;
-        getdata(whichgraph, readfile, cursource, LOAD_SINGLE);
+        getdata(whichgraph, readfile, grace->rt->cursource, LOAD_SINGLE);
     }
     
     if (gotnlfit) {

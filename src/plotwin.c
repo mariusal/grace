@@ -38,6 +38,7 @@
 #include <stdlib.h>
 
 #include "globals.h"
+#include "draw.h"
 #include "utils.h"
 #include "protos.h"
 #include "motifinc.h"
@@ -106,7 +107,8 @@ static void update_plot_items(void)
     char buf[32];
 
     if (plot_frame) {
-	SetOptionChoice(bg_color_item, getbgcolor());
+	plotstr timestamp = grace->project->timestamp;
+        SetOptionChoice(bg_color_item, getbgcolor());
 	SetToggleButtonState(bg_fill_item, getbgfill());
 
 	SetToggleButtonState(timestamp_active_item, timestamp.active);
@@ -126,19 +128,21 @@ static void update_plot_items(void)
 
 static int plot_define_notify_proc(void *data)
 {
+    plotstr *timestamp = &grace->project->timestamp;
+    
     setbgcolor(GetOptionChoice(bg_color_item));
     setbgfill(GetToggleButtonState(bg_fill_item));
 
-    timestamp.active = GetToggleButtonState(timestamp_active_item);
-    timestamp.font = GetOptionChoice(timestamp_font_item);
-    timestamp.color = GetOptionChoice(timestamp_color_item);
+    timestamp->active = GetToggleButtonState(timestamp_active_item);
+    timestamp->font = GetOptionChoice(timestamp_font_item);
+    timestamp->color = GetOptionChoice(timestamp_color_item);
     
-    timestamp.charsize = GetCharSizeChoice(timestamp_size_item);
+    timestamp->charsize = GetCharSizeChoice(timestamp_size_item);
     
-    timestamp.rot = GetAngleChoice(timestamp_rotate_item);
+    timestamp->rot = GetAngleChoice(timestamp_rotate_item);
     
-    xv_evalexpr(timestamp_x_item, &timestamp.x);
-    xv_evalexpr(timestamp_y_item, &timestamp.y);
+    xv_evalexpr(timestamp_x_item, &timestamp->x);
+    xv_evalexpr(timestamp_y_item, &timestamp->y);
     set_dirtystate();
     xdrawgraph();
     

@@ -45,6 +45,8 @@
 #include "utils.h"
 #include "protos.h"
 
+#define rg grace->project->rg
+
 int regiontype = 0;
 
 /*

@@ -362,7 +362,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
             return RETURN_FAILURE;
         }
 
-        nncols_req = settype_cols(curtype);
+        nncols_req = settype_cols(grace->rt->curtype);
         x_from_index = FALSE;
         if (nncols_req == nncols + 1) {
             x_from_index = TRUE;
@@ -372,7 +372,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
         }
 
         setno = nextset(gno);
-        set_dataset_type(gno, setno, curtype);
+        set_dataset_type(gno, setno, grace->rt->curtype);
 
         nncols = 0;
         if (x_from_index) {

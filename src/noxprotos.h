@@ -63,7 +63,6 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
 void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno);
 void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay, int dxtype, int dytype);
 
-void set_program_defaults(void);
 void set_region_defaults(region *r);
 void set_default_framep(framep * f);
 void set_default_world(world * w);
@@ -198,8 +197,7 @@ void set_plotstr_string(plotstr * pstr, char *buf);
 
 void cli_loop(void);
 
-void initialize_nonl(void);
-void reset_nonl(void);
+void reset_nonl(NLFit *nlfit);
 
 int is_xaxis(int axis);
 int is_yaxis(int axis);

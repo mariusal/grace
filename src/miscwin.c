@@ -39,6 +39,7 @@
 #include <stdlib.h>
 
 #include "globals.h"
+#include "draw.h"
 #include "utils.h"
 #include "graphs.h"
 #include "motifinc.h"
@@ -174,6 +175,7 @@ void update_props_items(void)
     char date_string[64], wrap_year_string[64];
     
     if (props_frame) {
+        GUI *gui = grace->gui;
 #ifdef DEBUG
 	if (get_debuglevel() > 8) {
 	    errwin("Debug level > 8, resetting to 0");
@@ -181,29 +183,29 @@ void update_props_items(void)
 	}
 	SetSpinChoice(debug_item, (double) get_debuglevel());
 #endif
-	SetToggleButtonState(noask_item, noask);
-	SetToggleButtonState(dc_item, allow_dc);
+	SetToggleButtonState(noask_item, gui->noask);
+	SetToggleButtonState(dc_item, gui->allow_dc);
 
-	if (focus_policy == FOCUS_SET) {
+	if (gui->focus_policy == FOCUS_SET) {
 	    itest = 1;
-	} else if (focus_policy == FOCUS_CLICK) {
+	} else if (gui->focus_policy == FOCUS_CLICK) {
 	    itest = 0;
-	} else if (focus_policy == FOCUS_FOLLOWS) {
+	} else if (gui->focus_policy == FOCUS_FOLLOWS) {
 	    itest = 2;
 	}
 	SetChoice(graph_focus_choice_item, itest);
-	SetToggleButtonState(graph_drawfocus_choice_item, draw_focus_flag);
+	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
-	SetToggleButtonState(linkscroll_item, scrolling_islinked);
-	SetToggleButtonState(autoredraw_type_item, auto_redraw);
+	SetToggleButtonState(linkscroll_item, grace->project->scrolling_islinked);
+	SetToggleButtonState(autoredraw_type_item, gui->auto_redraw);
 	SetToggleButtonState(cursor_type_item, cursortype);
 #if defined WITH_XMHTML || defined WITH_LIBHELP
 	SetToggleButtonState(force_external_viewer_item, force_external_viewer);
 #endif
 	SetSpinChoice(max_path_item, (double) get_max_path_limit());
-	iv = (int) rint(100*scrollper);
+	iv = (int) rint(100*grace->project->scrollper);
 	SetScaleValue(scrollper_item, iv);
-	iv = (int) rint(100*shexper);
+	iv = (int) rint(100*grace->project->shexper);
 	SetScaleValue(shexper_item, iv);
         switch (get_date_hint()) {
         case FMT_iso :
@@ -234,35 +236,36 @@ void update_props_items(void)
 static int props_define_notify_proc(void *data)
 {
     double jul;
+    GUI *gui = grace->gui;
     
 #ifdef DEBUG
     set_debuglevel((int) GetSpinChoice(debug_item));
 #endif
-    noask = GetToggleButtonState(noask_item);
-    allow_dc = GetToggleButtonState(dc_item);
+    gui->noask = GetToggleButtonState(noask_item);
+    gui->allow_dc = GetToggleButtonState(dc_item);
 
     switch (GetChoice(graph_focus_choice_item)) {
     case 0:
-	focus_policy = FOCUS_CLICK;
+	gui->focus_policy = FOCUS_CLICK;
 	break;
     case 1:
-	focus_policy = FOCUS_SET;
+	gui->focus_policy = FOCUS_SET;
 	break;
     case 2:
-	focus_policy = FOCUS_FOLLOWS;
+	gui->focus_policy = FOCUS_FOLLOWS;
 	break;
     }
-    draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
+    gui->draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
 
-    scrolling_islinked = GetToggleButtonState(linkscroll_item);
-    auto_redraw = GetToggleButtonState(autoredraw_type_item);
+    grace->project->scrolling_islinked = GetToggleButtonState(linkscroll_item);
+    gui->auto_redraw = GetToggleButtonState(autoredraw_type_item);
     cursortype = GetToggleButtonState(cursor_type_item);
 #if defined WITH_XMHTML || defined WITH_LIBHELP
     force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
     set_max_path_limit((int) GetSpinChoice(max_path_item));
-    scrollper = (double) GetScaleValue(scrollper_item)/100.0;
-    shexper   = (double) GetScaleValue(shexper_item)/100.0;
+    grace->project->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
+    grace->project->shexper   = (double) GetScaleValue(shexper_item)/100.0;
 
     switch (GetChoice(hint_item)) {
     case 0 :

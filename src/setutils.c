@@ -46,7 +46,7 @@
 #include "graphs.h"
 #include "protos.h"
 
-extern graph *g;
+#define g grace->project->graphs
 
 /*
  * return the string version of the set type
@@ -1046,12 +1046,12 @@ int nextset(int gno)
         return (-1);
     }
     
-    if ( (target_set.gno == gno) &&
-         is_valid_setno(target_set.gno, target_set.setno) &&
-         !is_set_active(gno, target_set.setno)) {
-	setno = target_set.setno;
-	target_set.gno = -1;
-	target_set.setno = -1;
+    if ( (grace->rt->target_set.gno == gno) &&
+         is_valid_setno(grace->rt->target_set.gno, grace->rt->target_set.setno) &&
+         !is_set_active(gno, grace->rt->target_set.setno)) {
+	setno = grace->rt->target_set.setno;
+	grace->rt->target_set.gno = -1;
+	grace->rt->target_set.setno = -1;
     } else {
         maxplot = number_of_sets(gno);
         for (setno = 0; setno < maxplot; setno++) {

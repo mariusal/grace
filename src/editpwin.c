@@ -779,21 +779,21 @@ void do_ext_editor(int gno, int setno)
         return;
     }
 
-    write_set(gno, setno, cp, sformat, FALSE);
+    write_set(gno, setno, cp, grace->project->sformat, FALSE);
     grace_close(cp);
 
     sprintf(ebuf, "%s %s", get_editor(), fname);
     system_wrap(ebuf);
 
     /* temporarily disable autoscale */
-    save_autos = autoscale_onread;
-    autoscale_onread = AUTOSCALE_NONE;
+    save_autos = grace->rt->autoscale_onread;
+    grace->rt->autoscale_onread = AUTOSCALE_NONE;
     if (is_set_active(gno, setno)) {
-        curtype = dataset_type(gno, setno);
+        grace->rt->curtype = dataset_type(gno, setno);
 	killsetdata(gno, setno);	
     }
     getdata(gno, fname, SOURCE_DISK, LOAD_SINGLE);
-    autoscale_onread = save_autos;
+    grace->rt->autoscale_onread = save_autos;
     unlink(fname);
     update_all();
     xdrawgraph();

@@ -153,7 +153,7 @@ void set_title(char *ts)
 {
     static char *buf = NULL;
     
-    if (!inwin || ts == NULL) {
+    if (!grace->gui->inwin || ts == NULL) {
         return;
     } else if (buf == NULL || strcmp(buf, ts) != 0) {
         buf = copy_string(buf, ts);
@@ -198,7 +198,7 @@ void draw_focus(int gno)
     view v;
     VPoint vp;
     
-    if (draw_focus_flag == TRUE) {
+    if (grace->gui->draw_focus_flag == TRUE) {
         get_graph_viewport(gno, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
@@ -331,7 +331,7 @@ void expose_resize(Widget w, XtPointer client_data,
     }
     
     if (!inc) {
-	inwin = TRUE;
+	grace->gui->inwin = TRUE;
 	inc++;
         
 	if (batchfile[0]) {
@@ -369,7 +369,7 @@ void expose_resize(Widget w, XtPointer client_data,
  */
 void xdrawgraph(void)
 {
-    if (inwin && (auto_redraw)) {
+    if (grace->gui->inwin && (grace->gui->auto_redraw)) {
 	set_wait_cursor();
 	drawgraph();
 	unset_wait_cursor();
@@ -379,7 +379,7 @@ void xdrawgraph(void)
 
 void xlibredraw(Window window, int x, int y, int width, int height)
 {
-    if (inwin == TRUE && bufpixmap != (Pixmap) NULL) {
+    if (grace->gui->inwin == TRUE && bufpixmap != (Pixmap) NULL) {
         XCopyArea(disp, bufpixmap, window, gc, x, y, width, height, x, y);
     }
 }

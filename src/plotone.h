@@ -73,7 +73,7 @@ int drawxysym(VPoint vp, double size, int symtype,
     Pen sympen, Pen symfillpen, char s);
 void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
 
-void draw_region(int r);
+void draw_region(region *r);
 
 void draw_objects(int gno);
 
@@ -86,7 +86,7 @@ void draw_titles(int gno);
 
 void draw_ref_point(int gno);
 
-void draw_timestamp(void);
+void draw_timestamp(plotstr *timestamp);
 
 void draw_regions(int gno);
 

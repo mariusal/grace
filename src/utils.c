@@ -346,8 +346,8 @@ double mytrunc(double a)
 void bailout(void)
 {
     if (!is_dirtystate() || yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
-         if (resfp) {
-             grace_close(resfp);
+         if (grace->rt->resfp) {
+             grace_close(grace->rt->resfp);
          }
          exit(0);
     }
@@ -404,7 +404,7 @@ static void bugwarn(char *signame)
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
-            noask = TRUE;
+            grace->gui->noask = TRUE;
             if (save_project(buf) == RETURN_SUCCESS) {
                 fprintf(stderr, "ok!\n");
             } else {
@@ -1052,7 +1052,7 @@ void errmsg(char *buf)
 #ifdef NONE_GUI
     fprintf(stderr, "%s\n", buf);
 #else
-    if (inwin) {
+    if (grace->gui->inwin) {
         errwin(buf);
     } else {
         fprintf(stderr, "%s\n", buf);
@@ -1067,13 +1067,13 @@ int yesnoterm(char *msg)
 
 int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 {
-    if (noask) {
+    if (grace->gui->noask) {
 	return 1;
     }
 #ifdef NONE_GUI
     return (yesnoterm(msg));
 #else
-    if (inwin) {
+    if (grace->gui->inwin) {
         return (yesnowin(msg, s1, s2, help_anchor));
     } else {
         return (yesnoterm(msg));
@@ -1102,15 +1102,15 @@ void stufftext(char *s)
 #ifdef NONE_GUI
     printf(s);
 #else
-    if (inwin) {
+    if (grace->gui->inwin) {
         stufftextwin(s);
     } else {
         printf(s);
     }
 #endif
     /* log results to file */
-    if (resfp != NULL) {
-	fprintf(resfp, s);
+    if (grace->rt->resfp != NULL) {
+	fprintf(grace->rt->resfp, s);
     }
 }
 
@@ -1261,7 +1261,7 @@ void expand_tilde(char *buf)
 
 void echomsg(char *msg)
 {
-    if (inwin) {
+    if (grace->gui->inwin) {
 #ifndef NONE_GUI
         set_left_footer(msg);
 #endif
@@ -1282,7 +1282,7 @@ static void update_timestamp(void)
     if (str[strlen(str) - 1] == '\n') {
         str[strlen(str) - 1]= '\0';
     }
-    set_plotstr_string(&timestamp, str);
+    set_plotstr_string(&grace->project->timestamp, str);
 }
 
 void update_app_title(void)

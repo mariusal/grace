@@ -91,7 +91,7 @@ void create_printer_setup(void *data)
     set_wait_cursor();
     
     if (data == NULL) {
-        device = hdevice;
+        device = grace->rt->hdevice;
     } else {
         device = *((int *) data);
     }
@@ -355,7 +355,7 @@ static int set_printer_proc(void *data)
     dev = get_device_props(seldevice);
 
     if (dev.type != DEVICE_TERM) {
-        hdevice = seldevice;
+        grace->rt->hdevice = seldevice;
         set_ptofile(GetToggleButtonState(printto_item));
         if (get_ptofile()) {
             strcpy(print_file, xv_getstr(printfile_item));
@@ -414,7 +414,7 @@ static int set_printer_proc(void *data)
         do_redraw = TRUE;
     }
     
-    if (seldevice == tdevice) {
+    if (seldevice == grace->rt->tdevice) {
         do_redraw = TRUE;
     }
     

@@ -2703,7 +2703,7 @@ OptionStructure *CreateASChoice(Widget parent, char *s)
     
     retval = CreateOptionChoice(parent, s, 1, 4, as_option_items);
     /* As init value, use this */
-    SetOptionChoice(retval, autoscale_onread);
+    SetOptionChoice(retval, grace->rt->autoscale_onread);
     
     return(retval);
 }
@@ -3789,7 +3789,7 @@ void update_set_lists(int gno)
         update_ss_editors(gno);
     }
 
-    if (inwin) {
+    if (grace->gui->inwin) {
         for (i = 0; i < nplist; i++) {
             if (plist[i].gno == gno || 
                 (gno == get_cg() && plist[i].gno == GRAPH_SELECT_CURRENT)) {
@@ -4100,7 +4100,7 @@ void update_all(void)
 {
     int gno = get_cg();
     
-    if (!inwin) {
+    if (!grace->gui->inwin) {
         return;
     }
     

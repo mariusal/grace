@@ -159,6 +159,7 @@ void draw_objects(int gno)
 {
     int i, n;
     DObject *o;
+    Storage *objects = grace->project->objects;
                                 
     /* disable (?) clipping for object drawing */
     setclipping(FALSE);

@@ -76,8 +76,8 @@ static void do_define_region(Widget w, XtPointer client_data, XtPointer call_dat
 {
     int rtype = GetChoice(define_type_item);
 
-    nr = GetChoice(define_region_item);
-    define_region(nr, rtype);
+    grace->project->nr = GetChoice(define_region_item);
+    define_region(grace->project->nr, rtype);
 }
 
 void create_define_frame(void *data)
@@ -293,8 +293,9 @@ void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	set_status_label(header_w, buf);
 
 	for (rno = 0; rno < MAXREGION; rno++) {
-	    sprintf(buf, "  %2d    %3s   %6s", rno, on_or_off(rg[rno].active),
-		    region_types(rg[rno].type, 0));
+	    region r = grace->project->rg[rno];
+            sprintf(buf, "  %2d    %3s   %6s", rno, on_or_off(r.active),
+		    region_types(r.type, 0));
 	    set_status_label(labx[rno], buf);
 	}
 

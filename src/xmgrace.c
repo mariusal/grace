@@ -97,7 +97,7 @@ extern unsigned long xvlibcolors[];
 static Widget main_frame;
 static Widget menu_bar;
 static Widget frleft, frtop, frbot;	/* dialogs along canvas edge */
-static Widget form;		/* form for mainwindow */
+static Widget form;		/* form for magrace->gui->inwindow */
 
 static void MenuCB(void *data);
 static Widget CreateMainMenuBar(Widget parent);
@@ -379,9 +379,9 @@ int initialize_gui(int *argc, char **argv)
     XtGetApplicationResources(app_shell, &rd,
         resources, XtNumber(resources), NULL, 0);
     
-    invert = rd.invert;
-    allow_dc = rd.allow_dc;
-    auto_redraw = rd.auto_redraw;
+    grace->gui->invert = rd.invert;
+    grace->gui->allow_dc = rd.allow_dc;
+    grace->gui->auto_redraw = rd.auto_redraw;
     toolbar_visible = rd.toolbar;
     statusbar_visible = rd.statusbar;
     locbar_visible = rd.locatorbar;
@@ -672,7 +672,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Print setup...", 't', create_printer_setup, &hdevice);
+    CreateMenuButton(menupane, "Print setup...", 't', create_printer_setup, &grace->rt->hdevice);
     CreateMenuButton(menupane, "Print", 'P', MenuCB, (void *) MENU_PRINT);
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Exit", 'x', MenuCB, (void *) MENU_EXIT);
@@ -777,7 +777,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Page setup...", 'P', create_printer_setup, &tdevice);
+    CreateMenuButton(menupane, "Page setup...", 'P', create_printer_setup, &grace->rt->tdevice);
 
     CreateMenuSeparator(menupane);
 
@@ -1117,7 +1117,7 @@ void startup_gui(void)
 
     XtRealizeWidget(app_shell);
     xwin = XtWindow(canvas);
-    inwin = 1;
+    grace->gui->inwin = 1;
     
 /*
  * set the title
@@ -1153,7 +1153,7 @@ void set_pagelayout(int layout)
         return;
     }
     
-    if (inwin) {
+    if (grace->gui->inwin) {
         errmsg("Can not change layout after initialization of GUI");
         return;
     } else {

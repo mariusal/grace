@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
 #include "defines.h"
 #include "utils.h"
 #include "device.h"
@@ -52,10 +53,11 @@
 #include "protos.h"
 
 /* FIXMEOBJ */
-extern Storage *objects;
+#define objects grace->project->objects
 
 /* graph definition */
-graph *g = NULL;
+#define g grace->project->graphs
+
 static int maxgraph = 0;
 
 /* the current graph */
@@ -82,31 +84,31 @@ int get_cg(void)
 
 char *graph_types(int it)
 {
-    static char s[16];
-
+    char *s;
+    
     switch (it) {
     case GRAPH_XY:
-	strcpy(s, "XY");
+	s = "XY";
 	break;
     case GRAPH_CHART:
-	strcpy(s, "Chart");
+	s = "Chart";
 	break;
     case GRAPH_POLAR:
-	strcpy(s, "Polar");
+	s = "Polar";
 	break;
     case GRAPH_SMITH:
-	strcpy(s, "Smith");
+	s = "Smith";
 	break;
     case GRAPH_FIXED:
-	strcpy(s, "Fixed");
+	s = "Fixed";
 	break;
     case GRAPH_PIE:
-	strcpy(s, "Pie");
+	s = "Pie";
 	break;
     default:
-        strcpy(s, "Unknown");
+        s = "Unknown";
 	break;
-   }
+    }
     return s;
 }
 

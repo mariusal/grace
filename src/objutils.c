@@ -42,6 +42,7 @@
 #include "globals.h"
 
 #include "graphs.h"
+#include "draw.h"
 #include "utils.h"
 #include "objutils.h"
 
@@ -205,6 +206,7 @@ int next_object(OType type)
 {
     int id;
     DObject *o;
+    Storage *objects = grace->project->objects;
     
     id = storage_get_unique_id(objects);
     if (id >= 0) {
@@ -227,6 +229,7 @@ int next_object(OType type)
 DObject *object_get(int id)
 {
     DObject *o;
+    Storage *objects = grace->project->objects;
     
     if (storage_get_data_by_id(objects, id, (void **) &o) != RETURN_SUCCESS) {
         o = NULL;
@@ -237,6 +240,7 @@ DObject *object_get(int id)
 
 void do_clear_objects(void)
 {
+    Storage *objects = grace->project->objects;
     storage_empty(objects);
 }
 
@@ -252,6 +256,7 @@ int get_object_bb(DObject *o, view *bb)
 
 int kill_object(int id)
 {
+    Storage *objects = grace->project->objects;
     if (storage_delete_by_id(objects, id) == RETURN_SUCCESS) {
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -262,6 +267,7 @@ int kill_object(int id)
 
 int duplicate_object(int id)
 {
+    Storage *objects = grace->project->objects;
     DObject *osrc, *odest;
     int new_id;
     

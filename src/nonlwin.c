@@ -41,6 +41,7 @@
 #include <Xm/ScrolledW.h>
 
 #include "globals.h"
+#include "defines.h"
 #include "graphs.h"
 #include "utils.h"
 #include "files.h"
@@ -158,7 +159,7 @@ void create_nonl_frame(void *data)
 	
 	title_fr = CreateFrame(nonl_frame, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
-	nonl_title_item = CreateLabel(title_fr, nonl_opts.title);
+	nonl_title_item = CreateLabel(title_fr, grace->rt->nlfit->title);
         AddDialogFormChild(nonl_frame, title_fr);
 
         /* ------------ Tabs --------------*/
@@ -272,7 +273,7 @@ static void do_nparm_toggle(int value, void *data)
 
 static void reset_nonl_frame_cb(void *data)
 {
-    reset_nonl();
+    reset_nonl(grace->rt->nlfit);
     update_nonl_frame();
 }
 
@@ -286,7 +287,7 @@ void update_nonl_frame(void)
     int i;
     
     if (nonl_frame) {
-        XmString str = XmStringCreateLocalized(nonl_opts.title);
+        XmString str = XmStringCreateLocalized(grace->rt->nlfit->title);
         XtVaSetValues(nonl_title_item, XmNlabelString, str, NULL);
 /* 
  * If I define only XmALIGNMENT_CENTER (default!) then it's ignored - bug in Motif???
@@ -295,21 +296,22 @@ void update_nonl_frame(void)
         XtVaSetValues(nonl_title_item, XmNalignment, XmALIGNMENT_CENTER, NULL);
         XmStringFree(str);
         
-        SetTextString(nonl_formula_item, nonl_opts.formula);
-        sprintf(buf, "%g", nonl_opts.tolerance);
+        SetTextString(nonl_formula_item, grace->rt->nlfit->formula);
+        sprintf(buf, "%g", grace->rt->nlfit->tolerance);
         xv_setstr(nonl_tol_item, buf);
-        SetOptionChoice(nonl_nparm_item, nonl_opts.parnum);
+        SetOptionChoice(nonl_nparm_item, grace->rt->nlfit->parnum);
         for (i = 0; i < MAXPARM; i++) {
-            sprintf(buf, "%g", nonl_parms[i].value);
+            nonlparm *nlp = &grace->rt->nlfit->parms[i];
+            sprintf(buf, "%g", nlp->value);
             xv_setstr(nonl_value_item[i], buf);
-            SetToggleButtonState(nonl_constr_item[i], nonl_parms[i].constr);
-            sprintf(buf, "%g", nonl_parms[i].min);
+            SetToggleButtonState(nonl_constr_item[i], nlp->constr);
+            sprintf(buf, "%g", nlp->min);
             xv_setstr(nonl_lowb_item[i], buf);
-            SetSensitive(nonl_lowb_item[i], nonl_parms[i].constr);
-            sprintf(buf, "%g", nonl_parms[i].max);
+            SetSensitive(nonl_lowb_item[i], nlp->constr);
+            sprintf(buf, "%g", nlp->max);
             xv_setstr(nonl_uppb_item[i], buf);
-            SetSensitive(nonl_uppb_item[i], nonl_parms[i].constr);
-            if (i < nonl_opts.parnum) {
+            SetSensitive(nonl_uppb_item[i], nlp->constr);
+            if (i < grace->rt->nlfit->parnum) {
                 if (!XtIsManaged (nonl_parm_item[i])) {
                     ManageChild(nonl_parm_item[i]);
                 }
@@ -373,11 +375,11 @@ static void do_constr_toggle(int onoff, void *data)
     if (onoff) {
     	SetSensitive(nonl_lowb_item[value], True);
     	SetSensitive(nonl_uppb_item[value], True);
-    	nonl_parms[value].constr = TRUE;
+    	grace->rt->nlfit->parms[value].constr = TRUE;
     } else {
     	SetSensitive(nonl_lowb_item[value], False);
     	SetSensitive(nonl_uppb_item[value], False);
-    	nonl_parms[value].constr = FALSE;
+    	grace->rt->nlfit->parms[value].constr = FALSE;
     }
 }
 
@@ -406,31 +408,32 @@ static int do_nonl_proc(void *data)
     	return RETURN_FAILURE;
     }
     
-    nonl_opts.formula = copy_string(nonl_opts.formula, GetTextString(nonl_formula_item));
+    grace->rt->nlfit->formula = copy_string(grace->rt->nlfit->formula, GetTextString(nonl_formula_item));
     nsteps = (int) GetSpinChoice(nonl_nsteps_item);
-    nonl_opts.tolerance = atof(xv_getstr(nonl_tol_item));
+    grace->rt->nlfit->tolerance = atof(xv_getstr(nonl_tol_item));
     
-    nonl_opts.parnum = GetOptionChoice(nonl_nparm_item);
-    for (i = 0; i < nonl_opts.parnum; i++) {
-	strcpy(buf, xv_getstr(nonl_value_item[i]));
-	if (sscanf(buf, "%lf", &nonl_parms[i].value) != 1) {
+    grace->rt->nlfit->parnum = GetOptionChoice(nonl_nparm_item);
+    for (i = 0; i < grace->rt->nlfit->parnum; i++) {
+	nonlparm *nlp = &grace->rt->nlfit->parms[i];
+        strcpy(buf, xv_getstr(nonl_value_item[i]));
+	if (sscanf(buf, "%lf", &nlp->value) != 1) {
 	    errmsg("Invalid input in parameter field");
 	    return RETURN_FAILURE;
 	}
 	
-	nonl_parms[i].constr = GetToggleButtonState(nonl_constr_item[i]);
-	if (nonl_parms[i].constr) {
+	nlp->constr = GetToggleButtonState(nonl_constr_item[i]);
+	if (nlp->constr) {
 	    strcpy(buf, xv_getstr(nonl_lowb_item[i]));
-	    if (sscanf(buf, "%lf", &nonl_parms[i].min) != 1) {
+	    if (sscanf(buf, "%lf", &nlp->min) != 1) {
 	    	errmsg("Invalid input in low-bound field");
 	    	return RETURN_FAILURE;
 	    }
 	    strcpy(buf, xv_getstr(nonl_uppb_item[i]));
-	    if (sscanf(buf, "%lf", &nonl_parms[i].max) != 1) {
+	    if (sscanf(buf, "%lf", &nlp->max) != 1) {
 	    	errmsg("Invalid input in upper-bound field");
 	    	return RETURN_FAILURE;
 	    }
-	    if ((nonl_parms[i].value < nonl_parms[i].min) || (nonl_parms[i].value > nonl_parms[i].max)) {
+	    if ((nlp->value < nlp->min) || (nlp->value > nlp->max)) {
 	    	errmsg("Initial values must be within bounds");
 	    	return RETURN_FAILURE;
 	    }
@@ -526,8 +529,8 @@ static int do_nonl_proc(void *data)
 	    return RETURN_FAILURE;  	
     	}
    	    	
-    	for (i = 0; i < nonl_opts.parnum; i++) {
-	    sprintf(buf, "%g", nonl_parms[i].value);
+    	for (i = 0; i < grace->rt->nlfit->parnum; i++) {
+	    sprintf(buf, "%g", grace->rt->nlfit->parms[i].value);
 	    xv_setstr(nonl_value_item[i], buf);
     	}
     }
@@ -622,9 +625,9 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     	    break;
     	}
     	
-    	setcomment(dest_gno, dest_setno, nonl_opts.formula);
+    	setcomment(dest_gno, dest_setno, grace->rt->nlfit->formula);
     	
-    	do_compute(dest_gno, dest_setno, dest_gno, dest_setno, NULL, nonl_opts.formula);
+    	do_compute(dest_gno, dest_setno, dest_gno, dest_setno, NULL, grace->rt->nlfit->formula);
     	
     	if (nonl_prefs.load == LOAD_RESIDUALS) { /* load residuals */
     	    y = gety(src_gno, src_setno);
@@ -662,7 +665,7 @@ static void create_openfit_popup(void *data)
 
 static int do_openfit_proc(char *filename, void *data)
 {
-    reset_nonl();
+    reset_nonl(grace->rt->nlfit);
     getparms(filename);
     update_nonl_frame();
     
@@ -687,7 +690,7 @@ static void create_savefit_popup(void *data)
         ManageChild(fsb->FSB);
     }
     
-    xv_setstr(title_item, nonl_opts.title);
+    xv_setstr(title_item, grace->rt->nlfit->title);
     
     RaiseWindow(fsb->dialog);
 
@@ -701,7 +704,7 @@ static int do_savefit_proc(char *filename, void *data)
     
     pp = grace_openw(filename);
     if (pp != NULL) {
-        nonl_opts.title = copy_string(nonl_opts.title, xv_getstr(title_item));
+        grace->rt->nlfit->title = copy_string(grace->rt->nlfit->title, xv_getstr(title_item));
         put_fitparms(pp, 0);
         grace_close(pp);
     }

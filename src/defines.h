@@ -629,15 +629,16 @@ typedef struct {
     int constr;         /* whether or not to use constraints */
     double min;         /* low bound constraint */
     double max;         /* upper bound constraint */
-} nonlparms;
+} nonlparm;
 
 /* options for non-linear fit */
 typedef struct {
-    char *title;        /* fit title */
-    char *formula;      /* fit function */
-    int parnum;         /* # of fit parameters */
-    double tolerance;   /* tolerance */
-} nonlopts;
+    char *title;             /* fit title */
+    char *formula;           /* fit function */
+    int parnum;              /* # of fit parameters */
+    double tolerance;        /* tolerance */
+    nonlparm parms[MAXPARM]; /* fit parameters */
+} NLFit;
 
 /* real time inputs */
 typedef struct _Input_buffer {

@@ -710,7 +710,7 @@ void create_leval_frame(void *data)
         AddDialogFormChild(levalui.top, levalui.set_type->menu);
         AddOptionChoiceCB(levalui.set_type, set_type_cb, (void *) &levalui);
 	
-        nscols = settype_cols(curtype);
+        nscols = settype_cols(grace->rt->curtype);
 	for (i = 0; i < nscols; i++) {
             rowlabels[i] = copy_string(NULL, dataset_colname(i));
             rowlabels[i] = concat_strings(rowlabels[i], " = ");

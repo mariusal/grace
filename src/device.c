@@ -153,7 +153,7 @@ int select_device(int dindex)
  */
 void set_printer(int device)
 {
-    hdevice = device;
+    grace->rt->hdevice = device;
 }
 
 int get_device_by_name(char *dname)
@@ -184,7 +184,7 @@ int set_printer_by_name(char *dname)
     if (id >= ndevices || id < 0 || device_table[id].type == DEVICE_TERM) {
         return RETURN_FAILURE;
     } else {
-        hdevice = id;
+        grace->rt->hdevice = id;
 	return RETURN_SUCCESS;
     }
 }

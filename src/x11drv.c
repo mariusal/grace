@@ -135,7 +135,7 @@ int xlibinit(void)
         XFree ((char *) pmf);
     }
     if (pixel_size == 0) {
-        monomode = TRUE;
+        grace->gui->monomode = TRUE;
     }
 
 /*
@@ -154,7 +154,7 @@ int xlibinit(void)
  */
     gc_val.foreground = xvlibcolors[0];
     gc_val.background = xvlibcolors[1];
-    if (invert) {
+    if (grace->gui->invert) {
         gc_val.function = GXinvert;
     } else {
         gc_val.function = GXxor;
@@ -174,11 +174,11 @@ int xlibinit(void)
 /*
  * disable font AA in mono mode
  */
-    if (monomode == TRUE) {
+    if (grace->gui->monomode == TRUE) {
         Device_entry dev;
-        dev = get_device_props(tdevice);
+        dev = get_device_props(grace->rt->tdevice);
         dev.fontaa = FALSE;
-        set_device_props(tdevice, dev);
+        set_device_props(grace->rt->tdevice, dev);
     }
 
     return RETURN_SUCCESS;
@@ -234,7 +234,7 @@ VPoint xlibdev2VPoint(int x, int y)
 void xlibupdatecmap(void)
 {
     /* TODO: replace!!! */
-    if (inwin) {
+    if (grace->gui->inwin) {
         xlibinitcmap();
     }
 }
@@ -253,7 +253,7 @@ void xlibinitcmap(void)
     
     for (i = 0; i < number_of_colors(); i++) {
         /* even in mono, b&w must be allocated */
-        if (monomode == FALSE || i < 2) { 
+        if (grace->gui->monomode == FALSE || i < 2) { 
             prgb = get_rgb(i);
             if (prgb != NULL) {
                 xc[i].red = prgb->red << (16 - GRACE_BPP);
@@ -291,7 +291,7 @@ int xlibinitgraphics(void)
     double step;
     XPoint xp;
     
-    if (inwin == FALSE) {
+    if (grace->gui->inwin == FALSE) {
         return RETURN_FAILURE;
     }
 
@@ -617,7 +617,7 @@ void xlibputpixmap(VPoint vp, int width, int height,
     xp = VPoint2XPoint(vp);
       
     if (pixmap_bpp != 1) {
-        if (monomode == TRUE) {
+        if (grace->gui->monomode == TRUE) {
             /* TODO: dither pixmaps on mono displays */
             return;
         }

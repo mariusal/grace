@@ -44,49 +44,17 @@
 #include "globals.h"
 #include "graphs.h"
 #include "objutils.h"
+#include "draw.h"
 #include "utils.h"
 #include "protos.h"
 
-static defaults d_d =
-{1, 0, 1, 1, 1, 1.0, 0, 1.0};
-
-/* defaults layout
-    int color;
-    int bgcolor;
-    int pattern;
-    int lines;
-    double linew;
-    double charsize;
-    int font;
-    double symsize;
-*/
+#define grdefaults grace->project->grdefaults
 
 static world d_w =
 {0.0, 1.0, 0.0, 1.0};
 
 static view d_v =
 {0.15, 0.85, 0.15, 0.85};
-
-void set_program_defaults(void)
-{
-    int i;
-    
-    grdefaults = d_d;
-        
-    for (i = 0; i < MAXREGION; i++) {
-        set_region_defaults(&rg[i]);
-    }
-    
-    set_default_string(&timestamp);
-    
-    timestamp.x = 0.03;
-    timestamp.y = 0.03;
-    
-    target_set.gno = -1;
-    target_set.setno = -1;
-    
-    objects = storage_new(object_free, NULL);
-}
 
 void set_region_defaults(region *r)
 {
@@ -96,9 +64,9 @@ void set_region_defaults(region *r)
     
     r->active = FALSE;
     r->type = 0;
-    r->color = grdefaults.color;
-    r->lines = grdefaults.lines;
-    r->linew = grdefaults.linew;
+    r->color = 1;
+    r->lines = 1;
+    r->linew = 1.0;
     r->n = 0;
     r->x = r->y = NULL;
     r->x1 = r->y1 = r->x2 = r->y2 = 0.0;
@@ -133,11 +101,11 @@ void set_default_string(plotstr * s)
     s->loctype = COORD_VIEW;
     s->gno = -1;
     s->x = s->y = 0.0;
-    s->color = grdefaults.color;
+    s->color = 1;
     s->rot = 0;
-    s->font = grdefaults.font;
+    s->font = 0;
     s->just = JUST_LEFT|JUST_BLINE;
-    s->charsize = grdefaults.charsize;
+    s->charsize = 1.0;
     s->s = NULL;
 }
 

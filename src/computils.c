@@ -42,6 +42,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "draw.h"
 #include "ssdata.h"
 #include "graphs.h"
 #include "parser.h"

@@ -39,6 +39,7 @@
 #include <string.h>
 
 #include "globals.h"
+#include "draw.h"
 #include "utils.h"
 #include "graphs.h"
 #include "graphutils.h"
@@ -68,6 +69,8 @@ void putparms(int gno, FILE *pp, int embed)
     GLocator locator;
     char *p1, *p2, *tmpbuf;
     int wpp, hpp;
+    defaults grdefaults = grace->project->grdefaults;
+    plotstr timestamp = grace->project->timestamp;
 
     if (embed) {
         strcpy(embedstr, "@");
@@ -80,7 +83,7 @@ void putparms(int gno, FILE *pp, int embed)
     /* Print some global variables */
     fprintf(pp, "%sversion %ld\n", embedstr, bi_version_id());
 
-    get_device_page_dimensions(tdevice, &wpp, &hpp);
+    get_device_page_dimensions(grace->rt->tdevice, &wpp, &hpp);
     fprintf(pp, "%spage size %d, %d\n", embedstr, wpp, hpp);
 
     tmpbuf = copy_string(NULL, get_project_description());
@@ -99,9 +102,9 @@ void putparms(int gno, FILE *pp, int embed)
         xfree(tmpbuf);
     }
 
-    fprintf(pp, "%spage scroll %d%%\n", embedstr, (int) rint(scrollper * 100));
-    fprintf(pp, "%spage inout %d%%\n", embedstr, (int) rint(shexper * 100));
-    fprintf(pp, "%slink page %s\n", embedstr, scrolling_islinked ? "on" : "off");
+    fprintf(pp, "%spage scroll %d%%\n", embedstr, (int) rint(grace->project->scrollper * 100));
+    fprintf(pp, "%spage inout %d%%\n", embedstr, (int) rint(grace->project->shexper * 100));
+    fprintf(pp, "%slink page %s\n", embedstr, grace->project->scrolling_islinked ? "on" : "off");
 
     for (i = 0; i < number_of_fonts(); i++) {
         if (get_font_mapped_id(i) != BAD_FONT_ID) {
@@ -133,7 +136,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%sdefault font %d\n", embedstr, get_font_mapped_id(grdefaults.font));
     fprintf(pp, "%sdefault char size %f\n", embedstr, grdefaults.charsize);
     fprintf(pp, "%sdefault symbol size %f\n", embedstr, grdefaults.symsize);
-    fprintf(pp, "%sdefault sformat \"%s\"\n", embedstr, PSTRING(sformat));
+    fprintf(pp, "%sdefault sformat \"%s\"\n", embedstr, PSTRING(grace->project->sformat));
     
     fprintf(pp, "%sbackground color %d\n", embedstr, getbgcolor());
     fprintf(pp, "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
@@ -383,7 +386,7 @@ void putparms(int gno, FILE *pp, int embed)
                 if (t->t_spec != TICKS_SPEC_NONE) {
                     fprintf(pp, "%s tick spec %d\n", buf, t->nticks);
                     for (j = 0; j < t->nticks; j++) {
-                        sprintf(tmpstr1, sformat, t->tloc[j].wtpos);
+                        sprintf(tmpstr1, grace->project->sformat, t->tloc[j].wtpos);
                         if (t->tloc[j].type == TICK_TYPE_MAJOR) {
                             fprintf(pp, "%s tick major %d, %s\n",
                                 buf, j, tmpstr1);
@@ -525,11 +528,12 @@ static void put_regions(FILE * pp, int embed)
         embedstr[0] = 0;
     }
     for (i = 0; i < MAXREGION; i++) {
-      fprintf(pp, "%sr%1d %s\n", embedstr, i, on_or_off(rg[i].active));
+      region r = grace->project->rg[i];
+      fprintf(pp, "%sr%1d %s\n", embedstr, i, on_or_off(r.active));
       
-      fprintf(pp, "%slink r%1d to g%1d\n", embedstr, i, rg[i].linkto);
+      fprintf(pp, "%slink r%1d to g%1d\n", embedstr, i, r.linkto);
       
-      switch (rg[i].type) {
+      switch (r.type) {
       case REGION_ABOVE:
 	fprintf(pp, "%sr%1d type above\n", embedstr, i);
 	break;
@@ -561,15 +565,15 @@ static void put_regions(FILE * pp, int embed)
 	fprintf(pp,"%sr%1d type verto\n", embedstr, i);
 	break;
       }
-      fprintf(pp, "%sr%1d linestyle %d\n", embedstr, i, rg[i].lines);
-      fprintf(pp, "%sr%1d linewidth %.1f\n", embedstr, i, rg[i].linew);
-      fprintf(pp, "%sr%1d color %d\n", embedstr, i, rg[i].color);
-      if (rg[i].type != REGION_POLYI && rg[i].type != REGION_POLYO) {
-	fprintf(pp, "%sr%1d line %.12g, %.12g, %.12g, %.12g\n", embedstr, i, rg[i].x1, rg[i].y1, rg[i].x2, rg[i].y2);
+      fprintf(pp, "%sr%1d linestyle %d\n", embedstr, i, r.lines);
+      fprintf(pp, "%sr%1d linewidth %.1f\n", embedstr, i, r.linew);
+      fprintf(pp, "%sr%1d color %d\n", embedstr, i, r.color);
+      if (r.type != REGION_POLYI && r.type != REGION_POLYO) {
+	fprintf(pp, "%sr%1d line %.12g, %.12g, %.12g, %.12g\n", embedstr, i, r.x1, r.y1, r.x2, r.y2);
       } else {
-	if (rg[i].x != NULL) {
-	  for (j = 0; j < rg[i].n; j++) {
-	    fprintf(pp, "%sr%1d xy %.12g, %.12g\n", embedstr, i, rg[i].x[j], rg[i].y[j]);
+	if (r.x != NULL) {
+	  for (j = 0; j < r.n; j++) {
+	    fprintf(pp, "%sr%1d xy %.12g, %.12g\n", embedstr, i, r.x[j], r.y[j]);
 	  }
 	}
       }
@@ -580,6 +584,8 @@ void put_fitparms(FILE * pp, int embed)
 {
     int i;
     char embedstr[2];
+    NLFit *nlfit = grace->rt->nlfit;
+    nonlparm nlp;
 
     if (embed) {
         strcpy(embedstr, "@");
@@ -590,20 +596,21 @@ void put_fitparms(FILE * pp, int embed)
     fprintf(pp, "# Grace fit description file\n");
     fprintf(pp, "#\n");
 
-    fprintf(pp, "%sfit title \"%s\"\n", embedstr, PSTRING(nonl_opts.title));
-    fprintf(pp, "%sfit formula \"%s\"\n", embedstr, PSTRING(nonl_opts.formula));
-    fprintf(pp, "%sfit with %1d parameters\n", embedstr, nonl_opts.parnum);
-    fprintf(pp, "%sfit prec %g\n", embedstr, nonl_opts.tolerance);
+    fprintf(pp, "%sfit title \"%s\"\n", embedstr, PSTRING(nlfit->title));
+    fprintf(pp, "%sfit formula \"%s\"\n", embedstr, PSTRING(nlfit->formula));
+    fprintf(pp, "%sfit with %1d parameters\n", embedstr, nlfit->parnum);
+    fprintf(pp, "%sfit prec %g\n", embedstr, nlfit->tolerance);
     
-    for (i = 0; i < nonl_opts.parnum; i++) {
-        fprintf(pp, "%sa%1d = %g\n", embedstr, i, nonl_parms[i].value);
-        if (nonl_parms[i].constr) {
+    for (i = 0; i < nlfit->parnum; i++) {
+        nlp = nlfit->parms[i];
+        fprintf(pp, "%sa%1d = %g\n", embedstr, i, nlp.value);
+        if (nlp.constr) {
             fprintf(pp, "%sa%1d constraints on\n", embedstr, i);
         } else {
             fprintf(pp, "%sa%1d constraints off\n", embedstr, i);
         }
-        fprintf(pp, "%sa%1dmin = %g\n", embedstr, i, nonl_parms[i].min);
-        fprintf(pp, "%sa%1dmax = %g\n", embedstr, i, nonl_parms[i].max);
+        fprintf(pp, "%sa%1dmin = %g\n", embedstr, i, nlp.min);
+        fprintf(pp, "%sa%1dmax = %g\n", embedstr, i, nlp.max);
     }
 }
 

@@ -40,6 +40,7 @@
 #include "globals.h"
 
 #include "graphs.h"
+#include "draw.h"
 #include "utils.h"
 #include "motifinc.h"
 #include "protos.h"
