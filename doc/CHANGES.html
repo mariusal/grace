@@ -22,27 +22,29 @@
  !  [ES] inter-bar gap for bar charts is adjustable (rep. #198)
  !  [ES] new set type: BarDY (bar charts with error bars)
  *  [ES] precision can be used for XYZ sets (rep. #519)
- *  [ES] new set autocoloring is back
+ *  [ES] new set auto-coloring is back
  *  [ES] added 16 new patterns
  *  [ES] added a few more line styles (rep. #305)
  !  [ES] legends can be displayed in reverse order (rep. #205)
  *  [ES] legends are drawn by default
  *  [ES] enhanced backward compatibility with Xmgr
- *  [ES] in free mode, auto-rescale all the plot objects (imitating Xmgr)
+ *  [ES] in free mode, auto-re-scale all the plot objects (imitating Xmgr)
+         (rep. #537)
  !  [ES] color map stuff (rep. #512)
- !  [AM] autoscaling with range restrictions
+ !  [AM] auto-scaling with range restrictions
  *  [LM] added internals for RT (real time) input monitoring 
  !  [LM] grace_np library now uses anonymous instead of named pipes
  !  [ES] write format is used for all dataset types
  !  [ES] FP line widths (rep. #483)
  !  [ES] locale, if available and set, is used for numeric labels
- !  [ES] added an option to fill (or not to) the page background
- *  [ES] Grace honours $GRACE_PRINT_CMD environment variable (rep. #522)
- *  [ES] PS and PDF drivers optimized for speed and file size
- !  [ES] added color/grayscale and bbox:tight/page options to the EPS driver
  *  [ES] in case of crash, Grace tries to save the project anyway
- *  [ES] warning issued on truncated printout (if display and hardcopy
-         device aspect ratio doesn't coinside, for example)
+ !  [ES] added an option to fill (or not to) the page background
+ *  [ES] Grace honors $GRACE_PRINT_CMD environment variable (rep. #522)
+ *  [ES] PS and PDF drivers optimized for speed and file size
+ *  [ES] added color/gray-scale and bbox:tight/page options to the EPS driver
+ *  [ES] added adjustable printer page offsets to the PS driver
+ *  [ES] warning issued on truncated printout (if display and hard-copy
+         device aspect ratio don't coincide, for example)
 
 <H3>Interface</H3>
  !  [ES] menu shuffles
@@ -55,13 +57,13 @@
  *  [ES] line style selectors have dash bitmaps displayed
  *  [ES] graph number for ops is automatically graph that has focus
          (rep. #104)
- !  [ES] (approximate) number of tick divisions for autoticking is set in 
+ !  [ES] (approximate) number of tick divisions for auto-ticking is set in 
          "Axis properties" now instead of "Autoscale"
  !  [ES] a simplistic (by now) fonttool added
  *  [ES] removed all set pick operations
  !  [ES] "Set appearance/Edit/*" now act on selected sets only
  *  [HS] it's possible to refer to the index of blockdata as column 0
-         via commandline (rep. #464)
+         via command line (rep. #464)
  *  [ES] removed -xy, -xydy etc command line flags; use -(set)type instead
  *  [ES] -source stdin removed
  !  [ES] "-" and "stdin/stdout" can be used anywhere (rep. #486)
@@ -88,34 +90,42 @@
  *  [ES] max error count upon reading in reduced from 50 to 5
 
 <H3>Documentation/Info</H3>
- *  [ES] old html docs removed; a draft version of User's Guide added
- *  [EV] written Tutorials. It's a recommended reading not only for newbies,
+ *  [ES] old HTML docs removed; a draft version of User's Guide added
+ *  [EV] Tutorials prepared. It's a recommended reading not only for newbies,
          especially taking into account the rudimentary state of the User's
          Guide
  *  [AM] -version additions
 
 <H3>Parser</H3>
- !  [ES] *ACTIVATE -> HIDDEN torf
- !  [ES] device commands (rep. #490)
- !  [ES] VXMAX, VYMAX
- !  [ES] TRUE/FALSE and ON/OFF are interchangable
- !  [ES] NEW *
- !  [ES] MAP COLOR
- !  [ES] PRINT TO CHRSTR
+ *  [ES] device commands (rep. #490)
+ !  [ES] VXMAX and VYMAX - max viewport values of the current device
+ !  [ES] TRUE/FALSE and ON/OFF are interchangeable
+ !  [ES] NEW - start new project from scratch using default template;
+         NEW FROM "filename" - start new project from scratch using filename
+         template
+ !  [ES] MAP COLOR color_id TO (R, G, B), "colorname"
+         (0 &lt;= R, G, B &lt; 256)
+ !  [ES] S$ - currently processed (in parser) SETNUM
+ !  [ES] S_ - recently assigned SETNUM (e.g., after a data have been read in)
+ !  [ES] SETNUM.ID - id of the set (i.e., S5.ID is 5)
+ !  [ES] G$, G_ and GRAPHNO.ID - same as above, but for graphs
 
 <H3>Defaults</H3>
- !  [ES] toolbar X resources
+ *  [ES] toolbar X resources
  !  [ES] use IsoLatin1 encoding if Default.enc is not found
- !  [ES] gracerc magic path
+ *  [ES] gracerc magic path
  !  [ES] gracerc re-read upon SIGHUP
- !  [ES] templates (rep. #520)
+ *  [ES] templates (rep. #520)
 
 <H3>Portability</H3>
- *  [LM] grace_np library now compiles (and hopefully works correctly)
-         on VMS, OS/2 and Win32 (in addition to all Unices, of course)
+ *  [LM] grace_np library now compiles and works correctly on OS/2 and Win32
+         (in addition to all Unices, of course). There is an unresolved
+         problem with VMS, though
  *  [ES] added configuration for use of lcc as compiler
  *  [JH] VMS updates
  *  [AM] OS/2 updates
+ *  [ES] grconvert works on Win32
+ *  [ES] Win32 port should compile out of the box
 
 <H3>Bug fixes</H3>
  *  [ES] configure issued wrong messages
@@ -131,7 +141,7 @@
  *  [ES] npipe load bug fixed
  *  [LM] linear regression on a two-point set was performed wrongly
  *  [ES] spreadsheet fixes and clean-ups (rep. #203, #259, #409)
- *  [ES] autoscale fixes (rep. #510)
+ *  [ES] auto-scale fixes (rep. #510)
  *  [LM] configure fixes
  *  [LM] updated several explanation strings on example files with the new
          GUI layout
@@ -148,8 +158,8 @@
  *  [ES] incorrect postscript output of bar charts fixed (rep. #341, #410) 
  *  [ES] fixed crash if applying axis settings to all graphs (rep. #503)
  *  [ES] warning popup on exit sometimes appeared even after no changes 
-         have meen made (rep. #274)
- *  [ES] autoscale didn't work if specified from the command line together
+         have been made (rep. #274)
+ *  [ES] auto-scale didn't work if specified from the command line together
          with some other arguments (rep. #385, #441)
  *  [ES] File/Write/Sets didn't work for multiple set selection (rep. #394)
  *  [ES] strange font size decrement (rep. #242)
@@ -158,6 +168,8 @@
  *  [ES] sometimes in plots with multiple graphs, one couldn't get the x axis
          tick marks or labels to be displayed on any of the graphs except for
          graph 0 (rep. #339)
+ *  [LM] in applications linked against grace_np, a call to system() or
+         like functions would abort execution (rep. #382)
  *  [ES] Core dump in SetSelectedSet if optimized (rep. #366)
  *  [ES] misc other bug fixes
 
