@@ -71,6 +71,27 @@ static int object_data_size(OType type)
     return size;
 }
 
+char *object_types(OType type)
+{
+    char *s = "";
+    switch (type) {
+    case DO_LINE:
+        s = "line";
+        break;
+    case DO_BOX:
+        s = "box";
+        break;
+    case DO_ARC:
+        s = "arc";
+        break;
+    case DO_STRING:
+        s = "string";
+        break;
+    }
+    
+    return s;
+}
+
 static DObject *object_new(OType type)
 {
     DObject *o;

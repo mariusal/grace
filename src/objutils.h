@@ -92,6 +92,8 @@ typedef struct _DOStringData {
     int just;
 } DOStringData;
 
+char *object_types(OType type);
+
 DObject *object_get(int id);
 void object_free(DObject *o);
 DObject *object_copy(DObject *o);
