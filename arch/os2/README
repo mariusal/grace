@@ -1,25 +1,22 @@
 
 
-                  GRACE (former XMGR or ACE/GR) for XFree86 OS/2
-
-                  (current supported version is 5.0x)
-
+                           (XM)GRACE for XFree86 OS/2
+                                   (19990312)
 
 
-      Contents of this document:
+                          Contents of this document:
 
-        1) Introduction
-        2) How to re-build
-        3) How to install
+                              1) Introduction
+                              2) How to re-build
+                              3) How to install
 
 
 
 1) Introduction
    ------------
 
-  Note that this (incomplete) port of GRACE for XFree86 OS/2 is still work
-  in progress  and may therefore still have some bugs. Some of them are just
-  related to the general problems un*x based applications have on non-un*x
+  Note that this port of GRACE for XFree86 OS/2 may still have some bugs.
+  Some of them are just related to the general problems un*x based applications have on non-un*x
   filesystems. So read the documentation and FAQs of XFree86
   carefully to get some hints how to avoid running into these bugs or
   better 'limitations' (a good idea is installing TVFS, the Toronto
@@ -41,19 +38,14 @@
 
   The first listed packages have be installed anyway:
 
-  - EMX 09c (full development package to re-compile)
-    available from  
-      http://hobbes.nmsu.edu  and/or
-      http://www.leo.org/cgi-bin/leo-dls/pub/comp/os/os2/leo/00-index.html
+  - EMX 0.9 development package
+    (http://hobbes.nmsu.edu  and/or http://www.leo.org)
 
-  - XFree86 for OS/2 ("XFree/2")
-    available from  
-      http://borneo.gmd.de/~veit/os2/xf86os2.html
-    including it's development package
+  - XFree86 for OS/2 ("X/2"), including it's development package
+    (http://borneo.gmd.de/~veit/os2/xf86os2.html)
 
-  - Lesstif >= 0.82 for XFree/2
-    available from  
-      http://borneo.gmd.de/~veit/os2/xf86os2.html
+  - Lesstif for X/2
+    (http://borneo.gmd.de/~veit/os2/xf86os2.html)
 
   Additional useful utilities:
 
@@ -69,19 +61,16 @@
       (used to display the online help written in HTML)
       Their sources can be found at:
          ftp://ftp.uni-stuttgart.de/pub/libhelp/
-     - libgd
-       (process GIF files)
+     - libgd: processing GIF files
           http://www.boutell.com
-     - pdflib
-       (handles PDF files)
+     - pdflib: creating PDF files
           http://www.ifconnection.de/~tm/
-     - fftw library
-       (-> README.fftw)
+     - fftw library: fourier transformations
           http://theory.lcs.mit.edu/~fftw/
 
-  So far the supplied configure (shell-) script doesn't work under OS/2
-  and even the Autoconf port still fails. As a small replacement I offer
-  a small REXX-script 'configos2.cmd' which will just
+  So far the supplied configure (shell-) script may not work under OS/2
+  (even using the existing Autoconf port). 
+  As a small replacement I offer a small REXX-script 'configos2.cmd' which will
 
   - copy the standard OS/2 configuration files (config.h and Make.conf)
     from .\arch\os2 to the toplevel source directory
@@ -117,6 +106,6 @@
   on OS/2. By now I'm using lpr and lpd to access my Postscript printer.
   
 
--------------------------------------
+
 Alexander Mai
 st002279@hrzpub.tu-darmstadt.de
