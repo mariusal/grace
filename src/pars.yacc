@@ -3482,7 +3482,8 @@ color_select:
         COLOR nexpr
         {
             unsigned int c = $2;
-            if (c >= 0 && c < number_of_colors(canvas)) {
+	    Project *pr = project_get_data(project);
+            if (c >= 0 && c < pr->ncolors) {
                 $$ = c;
             } else {
                 errmsg("Invalid color ID");
