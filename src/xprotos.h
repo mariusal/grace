@@ -182,7 +182,8 @@ void define_legend_popup(Widget w, XtPointer client_data, XtPointer call_data);
 void define_errbar_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void update_ticks(int gno);
-void create_axes_dialog(Widget w, XtPointer client_data, XtPointer call_data);
+void create_axes_dialog(int axisno);
+void create_axes_dialog_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 void update_graph_items(void);
 void create_graph_frame(Widget w, XtPointer client_data, XtPointer call_data);
@@ -220,7 +221,8 @@ void update_locator_items(int gno);
 void create_locator_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
 void update_frame_items(int gno);
-void create_graphapp_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_graphapp_frame(int gno);
+void create_graphapp_frame_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data);
 void stufftextwin(char *s, int sp);
@@ -233,7 +235,8 @@ void update_nonl_frame(void);
 void update_prune_frame(void);
 
 void update_misc_items(void);
-void create_plot_frame(Widget w, XtPointer client_data, XtPointer call_data);
+void create_plot_frame(void);
+void create_plot_frame_cb(Widget w, XtPointer client_data, XtPointer call_data);
 void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
 void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data);
