@@ -3723,7 +3723,14 @@ onoff: ON { $$ = TRUE; }
 
 sourcetype: 
         DISK { $$ = SOURCE_DISK; }
-	| PIPE { $$ = SOURCE_PIPE; }
+	| PIPE {
+            if (!grace->rt->safe_mode) {
+                $$ = SOURCE_PIPE;
+            } else {
+                yyerror("Pipe inputs are disabled in safe mode");
+                $$ = SOURCE_DISK;
+            }
+        }
 	;
 
 justchoice: RIGHT { $$ = JUST_RIGHT; }

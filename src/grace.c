@@ -100,6 +100,8 @@ RunTime *runtime_new(Grace *grace)
 
     rt->P = grace;
     
+    rt->safe_mode = TRUE;
+    
     /* allocatables */
     rt->grace_home   = NULL;
     rt->print_cmd    = NULL;

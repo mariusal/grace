@@ -131,6 +131,9 @@ typedef struct _RunTime {
     /* Parent */
     Grace *P;
     
+    /* safe mode flag */
+    int safe_mode;
+    
     /* terminal device */
     int tdevice;
     /* hardcopy device */

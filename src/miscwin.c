@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -68,6 +68,7 @@ static Widget graph_drawfocus_choice_item;
 static Widget autoredraw_type_item;
 static Widget cursor_type_item;
 static SpinStructure *max_path_item;
+static Widget safe_mode_item;
 static Widget scrollper_item;
 static Widget shexper_item;
 static Widget linkscroll_item;
@@ -129,10 +130,12 @@ void create_props_frame(void *data)
 	force_external_viewer_item = CreateToggleButton(rc1,
             "Use external help viewer for local documents");
 #endif        
-	fr = CreateFrame(props_frame, "Limits");
+	fr = CreateFrame(props_frame, "Restrictions");
         AddDialogFormChild(props_frame, fr);
-	max_path_item = CreateSpinChoice(fr,
+        rc1 = CreateVContainer(fr);
+	max_path_item = CreateSpinChoice(rc1,
             "Max drawing path length:", 6, SPIN_TYPE_INT, 0.0, 1.0e6, 1000);
+	safe_mode_item = CreateToggleButton(rc1, "Run in safe mode");
         
 	fr = CreateFrame(props_frame, "Scroll/zoom");
         AddDialogFormChild(props_frame, fr);
@@ -204,6 +207,7 @@ void update_props_items(void)
 #endif
 	SetSpinChoice(max_path_item,
             (double) get_max_path_limit(grace->rt->canvas));
+	SetToggleButtonState(safe_mode_item, grace->rt->safe_mode);
 	iv = (int) rint(100*grace->rt->scrollper);
 	SetScaleValue(scrollper_item, iv);
 	iv = (int) rint(100*grace->rt->shexper);
@@ -265,6 +269,7 @@ static int props_define_notify_proc(void *data)
     force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
     set_max_path_limit(grace->rt->canvas, (int) GetSpinChoice(max_path_item));
+    grace->rt->safe_mode = GetToggleButtonState(safe_mode_item);
     grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
 
