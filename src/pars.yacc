@@ -2528,7 +2528,7 @@ parmset:
 	    g[whichgraph].w.yg2 = $3;
 	}
 	| ZNORM expr {
-	    set_graph_znorm(whichgraph, $2)
+	    set_graph_znorm(whichgraph, $2);
 	}
 	| VIEW expr ',' expr ',' expr ',' expr {
 	    g[whichgraph].v.xv1 = $2;
