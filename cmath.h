@@ -94,6 +94,8 @@ extern double lgam ( double x );
 #else
 #  ifndef HAVE_LGAMMA_IN_MATH_H
 extern double lgamma ( double x );
+#  endif
+#  ifndef HAVE_SIGNGAM_IN_MATH_H
 extern int signgam;
 #  endif
 #  define lgam lgamma
