@@ -7,6 +7,7 @@ LIB  = $(GRACE_CORE_LIB)
 
 SRCS = 	quark.c \
 	project.c \
+	ssd.c \
 	frame.c \
 	graph.c \
 	set.c \
@@ -18,7 +19,8 @@ SRCS = 	quark.c \
 
 OBJS = 	quark$(O) \
 	project$(O) \
-	frame$(O) \
+	ssd$(O) \
+        frame$(O) \
 	graph$(O) \
 	set$(O) \
 	axis$(O) \

@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -176,6 +176,7 @@ typedef int (*Quark_traverse_hook)(Quark *q,
 
 enum {
     QFlavorProject,
+    QFlavorSSD,
     QFlavorFrame,
     QFlavorGraph,
     QFlavorSet,
@@ -219,9 +220,6 @@ typedef struct _Project {
     /* textual description */
     char *description;
     
-#if 0
-    Storage *blockdata;
-#endif
     /* (pointer to) current graph */
     Quark *cg;
     
@@ -280,6 +278,20 @@ typedef struct {
     double x;
     double y;
 } APoint;
+
+
+#define FFORMAT_NUMBER  0
+#define FFORMAT_STRING  1
+#define FFORMAT_DATE    2
+
+/* Spread-sheet data */
+typedef struct {
+    int ncols;
+    int nrows;
+    int *formats;
+    void **data;
+    char *label;
+} ss_data;
 
 #define GLOCATOR_TYPE_NONE  0
 #define GLOCATOR_TYPE_XY    1
@@ -429,7 +441,7 @@ typedef struct {
 } graph;
 
 
-/* Placement (axis labels, ticks, error bars */
+/* Placement (error bars) */
 typedef enum {
     PLACEMENT_NORMAL,
     PLACEMENT_OPPOSITE,
@@ -814,6 +826,18 @@ int project_add_font(Quark *project, const Fontdef *f);
 int project_add_color(Quark *project, const Colordef *c);
 
 Quark *get_parent_project(const Quark *q);
+
+/* SSData */
+ss_data *ssd_data_new(void);
+void ssd_data_free(ss_data *ssd);
+ss_data *ssd_data_copy(ss_data *ssd);
+ss_data *ssd_get_data(const Quark *q);
+
+Quark *ssd_new(Quark *q);
+
+int ssd_get_ncols(const Quark *q);
+int ssd_get_nrows(const Quark *q);
+int *ssd_get_formats(const Quark *q);
 
 /* Frame */
 frame *frame_data_new(void);
