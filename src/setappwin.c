@@ -692,6 +692,17 @@ static void UpdateSymbols(int gno, int value)
         SetTextString(legend_str_item, p.lstr);
         
         SetToggleButtonState(errbar_active_item, p.errbar.active);
+        
+        switch (p.type) {
+        case SET_XYDXDX:
+        case SET_XYDYDY:
+        case SET_XYDXDXDYDY:
+            XtSetSensitive(errbar_ptype_item[4], False);
+            break;
+        default:
+            XtSetSensitive(errbar_ptype_item[4], True);
+            break;
+        }
         SetChoice(errbar_ptype_item, p.errbar.ptype);
         SetOptionChoice(errbar_color_item, p.errbar.pen.color);
         SetOptionChoice(errbar_pattern_item, p.errbar.pen.pattern);
