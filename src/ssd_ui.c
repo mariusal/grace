@@ -353,6 +353,7 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         int *maxlengths;
         char **collabels;
         unsigned char *clab_alignments;
+        int cur_row, cur_col, format;
         
         if (ui->q != q) {
             XbaeMatrixDeselectAll(ui->mw);
@@ -433,9 +434,14 @@ void update_ssd_ui(SSDataUI *ui, Quark *q)
         if (delta_nc != 0) {
             XtVaSetValues(ui->mw, XmNcolumnWidths, widths, NULL);
         }
+
+        /* A bug in Xbae - the cell with focus on is NOT updated, so we do it*/
+        XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
+        XbaeMatrixSetCell(ui->mw, cur_row, cur_col,
+            get_cell_content(ui, cur_row, cur_col, &format));
+
 #if 0
         /* commit the last entered cell changes */
-        XbaeMatrixGetCurrentCell(ui->mw, &cur_row, &cur_col);
         XbaeMatrixEditCell(ui->mw, cur_row, cur_col);
 #endif
         xfree(widths);
