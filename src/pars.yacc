@@ -104,10 +104,6 @@ static int interr;
 static grarr freelist[100]; 	/* temporary vectors */
 static int fcnt = 0;		/* number of the temporary vectors allocated */
 
-/* this one attempts to avoid reentrancy problems */
-static int gotparams = FALSE; 
-static char paramfile[GR_MAXPATHLEN] = "";
-
 static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
 static unsigned int pos;
 
@@ -259,7 +255,6 @@ static void yyerror(char *s);
 %token <ival> FREE
 %token <ival> FROM
 %token <ival> GENERAL
-%token <ival> GETP
 %token <ival> GRAPH
 %token <ival> GRAPHNO
 %token <ival> GRID
@@ -2446,11 +2441,6 @@ actions:
             sprintf(buf, "%g", $2);
             echomsg(buf);
 	}
-	| GETP CHRSTR {
-	    gotparams = TRUE;
-	    strcpy(paramfile, $2);
-	    xfree($2);
-	}
 	| selectset HIDDEN onoff {
 	    quark_set_active($1, !$3);
 	}
@@ -3830,7 +3820,6 @@ symtab_entry ikey[] = {
 	{"GDTRC", FUNC_PPD, (void *) gdtrc},
 	{"GE", GE, NULL},
 	{"GENERAL", GENERAL, NULL},
-	{"GETP", GETP, NULL},
 	{"GRAPH", GRAPH, NULL},
 	{"GRID", GRID, NULL},
 	{"GT", GT, NULL},
@@ -4236,11 +4225,6 @@ int scanner(char *s)
     int retval = parser(s, PARSER_TYPE_VOID);
     if (retval != RETURN_SUCCESS) {
         return RETURN_FAILURE;
-    }
-    
-    if (gotparams) {
-	gotparams = FALSE;
-        getparms(grace, paramfile);
     }
     
     return retval;
