@@ -199,8 +199,6 @@ int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
 int set_point(int gno, int setn, int seti, WPoint wp);
 int get_point(int gno, int setn, int seti, WPoint *wp);
 void setcol(int gno, double *x, int setno, int len, int col);
-int getncols(int gno, int setno);
-void setxy(int gno, double **ex, int setno, int len, int ncols);
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
 #define copyx(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 0)

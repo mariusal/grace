@@ -418,7 +418,7 @@ void create_ss_frame(int gno, int setno)
     
     ep->gno = gno;
     ep->setno = setno;
-    ep->ncols = getncols(gno, setno);
+    ep->ncols = dataset_cols(gno, setno);
     ep->nrows = getsetlength(gno, setno);
     for (i = 0; i < MAX_SET_COLS; i++) {
         collabels[i] = copy_string(NULL, dataset_colname(i));
