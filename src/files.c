@@ -1156,41 +1156,6 @@ int new_project(char *template)
     return retval;
 }
 
-int save_project(char *fn)
-{
-    FILE *cp;
-    int gno, setno;
-    graph *g;
-    
-    if ((cp = grace_openw(fn)) == NULL) {
-	return RETURN_FAILURE;
-    }
-    
-    putparms(-1, cp, TRUE);
-
-    storage_rewind(grace->project->graphs);
-    while (storage_get_id(grace->project->graphs, &gno) == RETURN_SUCCESS) {
-        g = graph_get(gno);
-        storage_rewind(g->sets);
-        while (storage_get_id(g->sets, &setno) == RETURN_SUCCESS) {
-            write_set(gno, setno, cp, grace->project->sformat, FALSE);
-            if (storage_next(g->sets) != RETURN_SUCCESS) {
-                break;
-            }
-        }
-        if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
-            break;
-        }
-    }
-
-    grace_close(cp);
-    
-    set_docname(fn);
-    clear_dirtystate();
-    
-    return RETURN_SUCCESS;
-}
-
 /*
  * write out a set
  */
