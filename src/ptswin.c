@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -67,7 +67,7 @@ extern int move_dir;
 
 static Widget points_frame;
 
-Widget locate_point_item;
+static Widget locate_point_item;
 static Widget locate_point_message;
 
 static Widget goto_pointx_item;
@@ -349,3 +349,17 @@ void create_points_frame(void *data)
     XtRaise(points_frame);
     unset_wait_cursor();
 }
+
+void update_point_locator(int gno, int setno, int loc)
+{
+    WPoint wp;
+    char buf[64];
+    
+    if (get_point(gno, setno, loc, &wp) == GRACE_EXIT_SUCCESS) {
+        sprintf(buf, "G%d.S%d, loc %d, (%g, %g)", gno, setno, loc, wp.x, wp.y);
+        xv_setstr(locate_point_item, buf);
+    } else {
+        xv_setstr(locate_point_item, "");
+    }
+}
+
