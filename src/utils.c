@@ -207,7 +207,7 @@ double mytrunc(double a)
  */
 void bailout(Grace *grace)
 {
-    if (!grace->project->dirtystate ||
+    if ((grace->project && !quark_dirtystate_get(grace->project)) ||
         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
         grace_free(grace);
         exit(0);
