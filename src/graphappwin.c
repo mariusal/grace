@@ -82,7 +82,7 @@ static Widget *frame_framestyle_choice_item;
 static OptionStructure *frame_color_choice_item;
 static OptionStructure *frame_pattern_choice_item;
 static OptionStructure *frame_lines_choice_item;
-static Widget *frame_linew_choice_item;
+static SpinStructure *frame_linew_choice_item;
 static OptionStructure *frame_fillcolor_choice_item;
 static OptionStructure *frame_fillpattern_choice_item;
 
@@ -99,7 +99,7 @@ static Widget legend_charsize_item;
 static OptionStructure *legend_color_item;
 static OptionStructure *legend_boxfillcolor_item;
 static OptionStructure *legend_boxfillpat_item;
-static Widget *legend_boxlinew_item;
+static SpinStructure *legend_boxlinew_item;
 static OptionStructure *legend_boxlines_item;
 static OptionStructure *legend_boxcolor_item;
 static OptionStructure *legend_boxpattern_item;
@@ -453,7 +453,7 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
 	    f.type = GetChoice(frame_framestyle_choice_item);
 	    f.pen.color = GetOptionChoice(frame_color_choice_item);
 	    f.pen.pattern = GetOptionChoice(frame_pattern_choice_item);
-	    f.linew = GetChoice(frame_linew_choice_item);
+	    f.linew = GetSpinChoice(frame_linew_choice_item);
 	    f.lines = GetOptionChoice(frame_lines_choice_item);
 	    f.fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
 	    f.fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
@@ -473,7 +473,7 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
 	    l.boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
 	    l.boxpen.color = GetOptionChoice(legend_boxcolor_item);
 	    l.boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
-	    l.boxlinew = GetChoice(legend_boxlinew_item);
+	    l.boxlinew = GetSpinChoice(legend_boxlinew_item);
 	    l.boxlines = GetOptionChoice(legend_boxlines_item);
 
             set_graph_viewport(gno, v);
@@ -615,7 +615,7 @@ static void updatelegends(int gno)
 	SetOptionChoice(legend_boxfillpat_item, l.boxfillpen.pattern);
 	SetOptionChoice(legend_boxcolor_item, l.boxpen.color);
 	SetOptionChoice(legend_boxpattern_item, l.boxpen.pattern);
-	SetChoice(legend_boxlinew_item, l.boxlinew);
+	SetSpinChoice(legend_boxlinew_item, l.boxlinew);
 	SetOptionChoice(legend_boxlines_item, l.boxlines);
     }
 }
@@ -630,7 +630,7 @@ void update_frame_items(int gno)
 	SetChoice(frame_framestyle_choice_item, f.type);
 	SetOptionChoice(frame_color_choice_item, f.pen.color);
 	SetOptionChoice(frame_pattern_choice_item, f.pen.pattern);
-	SetChoice(frame_linew_choice_item, f.linew);
+	SetSpinChoice(frame_linew_choice_item, f.linew);
 	SetOptionChoice(frame_lines_choice_item, f.lines);
 	SetOptionChoice(frame_fillcolor_choice_item, f.fillpen.color);
 	SetOptionChoice(frame_fillpattern_choice_item, f.fillpen.pattern);

@@ -98,15 +98,15 @@ typedef struct {
     double symsize;             /* size of symbols */
     Pen sympen;                 /* pen props of symbol line */
     Pen symfillpen;             /* pen props of symbol filling */
-    int symlines;               /* Symbol linestyle */
-    int symlinew;               /* Symbol linewidth */
-    int symskip;                /* How many symbols to skip */
+    int symlines;               /* symbol linestyle */
+    double symlinew;            /* symbol linewidth */
+    int symskip;                /* number of symbols to skip */
     char symchar;               /* char used if sym == SYM_CHAR */
     int charfont;               /* font for symchar if sym == SYM_CHAR */
 
     int linet;                  /* set line type */
     int lines;                  /* set line style */
-    int linew;                  /* line width */
+    double linew;               /* line width */
     Pen linepen;                /* pen for connecting line */
 
     int baseline_type;          /* type of baseline */

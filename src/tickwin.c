@@ -104,18 +104,18 @@ static Widget *autonum;         /* number of autotick divisions */
 static Widget tround;           /* place at rounded positions */
 static Widget tgrid;            /* major ticks grid */
 static OptionStructure *tgridcol;
-static Widget *tgridlinew;
+static SpinStructure *tgridlinew;
 static OptionStructure *tgridlines;
 static Widget tmgrid;           /* minor ticks grid */
 static OptionStructure *tmgridcol;
-static Widget *tmgridlinew;
+static SpinStructure *tmgridlinew;
 static OptionStructure *tmgridlines;
 static Widget tlen;             /* tick length */
 static Widget tmlen;
 static Widget *tinout;          /* ticks in out or both */
 static Widget baronoff;         /* axis bar */
 static OptionStructure *barcolor;
-static Widget *barlinew;
+static SpinStructure *barlinew;
 static OptionStructure *barlines;
 
 static Widget specticks;        /* special ticks and tick labels */
@@ -748,10 +748,10 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     }
     
     t.props.color = GetOptionChoice(tgridcol);
-    t.props.linew = GetChoice(tgridlinew);
+    t.props.linew = GetSpinChoice(tgridlinew);
     t.props.lines = GetOptionChoice(tgridlines);
     t.mprops.color = GetOptionChoice(tmgridcol);
-    t.mprops.linew = GetChoice(tmgridlinew);
+    t.mprops.linew = GetSpinChoice(tmgridlinew);
     t.mprops.lines = GetOptionChoice(tmgridlines);
     
     t.props.size = GetCharSizeChoice(tlen);
@@ -765,7 +765,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     t.mprops.gridflag = GetToggleButtonState(tmgrid);
 
     t.t_drawbarcolor = GetOptionChoice(barcolor);
-    t.t_drawbarlinew = GetChoice(barlinew);
+    t.t_drawbarlinew = GetSpinChoice(barlinew);
     t.t_drawbarlines = GetOptionChoice(barlines);
 
     t.t_type = GetToggleButtonState(specticks) ? TYPE_SPEC : TYPE_AUTO;
@@ -1131,10 +1131,10 @@ void update_ticks(int gno)
             break;
         }
         SetOptionChoice(tgridcol, t.props.color);
-        SetChoice(tgridlinew, t.props.linew);
+        SetSpinChoice(tgridlinew, t.props.linew);
         SetOptionChoice(tgridlines, t.props.lines);
         SetOptionChoice(tmgridcol, t.mprops.color);
-        SetChoice(tmgridlinew, t.mprops.linew);
+        SetSpinChoice(tmgridlinew, t.mprops.linew);
         SetOptionChoice(tmgridlines, t.mprops.lines);
         SetCharSizeChoice(tlen, t.props.size);
         SetCharSizeChoice(tmlen, t.mprops.size);
@@ -1146,7 +1146,7 @@ void update_ticks(int gno)
         SetToggleButtonState(tmgrid, t.mprops.gridflag);
 
         SetOptionChoice(barcolor, t.t_drawbarcolor);
-        SetChoice(barlinew, t.t_drawbarlinew);
+        SetSpinChoice(barlinew, t.t_drawbarlinew);
         SetOptionChoice(barlines, t.t_drawbarlines);
 
         SetToggleButtonState(specticks, (t.t_type == TYPE_SPEC));

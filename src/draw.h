@@ -39,7 +39,7 @@
 
 #define MAXLINESTYLES 9
 
-#define MAXLINEWIDTHS 9
+#define MAX_LINEWIDTH 10.0        /* max width of drawn lines */
 
 #define POLYLINE_OPEN	0
 #define POLYLINE_CLOSED	1
@@ -56,7 +56,7 @@ typedef struct {
     Pen pen;
     int bgcolor;
     int lines;
-    int linew;
+    double linew;
     double charsize;
     int font;
     int fillrule;
@@ -114,7 +114,7 @@ int getbgcolor(void);
 void setlinestyle(int lines);
 int getlinestyle(void);
 
-void setlinewidth(int linew);
+void setlinewidth(double linew);
 double getlinewidth(void);
 
 void setpattern(int pattern);
@@ -212,7 +212,6 @@ int get_draw_mode(void);
 int number_of_colors(void);
 int number_of_patterns(void);
 int number_of_linestyles(void);
-int number_of_linewidths(void);
 
 void vpswap(VPoint *vp1, VPoint *vp2);
 

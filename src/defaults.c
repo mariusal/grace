@@ -53,7 +53,7 @@ static defaults d_d =
     int bgcolor;
     int pattern;
     int lines;
-    int linew;
+    double linew;
     double charsize;
     int font;
     double symsize;

@@ -172,14 +172,14 @@ ellipsetype defellip={TRUE,COORD_VIEW,0,0,0,0,0,1,1,1,1,0};
 /* lines and ellipses and boxes flags */
 int box_color = 1;
 int box_lines = 1;
-int box_linew = 1;
+double box_linew = 1;
 int box_fillpat = 0;
 int box_fillcolor = 1;
 int box_loctype = COORD_VIEW;
 
 int ellipse_color = 1;
 int ellipse_lines = 1;
-int ellipse_linew = 1;
+double ellipse_linew = 1;
 int ellipse_fillpat = 0;
 int ellipse_fillcolor = 1;
 int ellipse_loctype = COORD_VIEW;
@@ -187,19 +187,16 @@ int ellipse_loctype = COORD_VIEW;
 int line_color = 1;
 int line_arrow = 0;
 int line_lines = 1;
-int line_linew = 1;
+double line_linew = 1;
 int line_loctype = COORD_VIEW;
 double line_asize = 1.0;
 int line_atype = 0;
 
 /* default string parameters */
 int string_color = 1;
-int string_linew = 1;
 int string_font = 0;
 int string_rot = 0;
 int string_just = 0;
-int string_fillpat = 1;
-int string_fillcolor = 1;
 int string_loctype = COORD_VIEW;
 double string_size = 1.0;
 
@@ -314,7 +311,7 @@ extern ellipsetype defellip;
 
 extern int box_color;
 extern int box_lines;
-extern int box_linew;
+extern double box_linew;
 extern int box_fill;
 extern int box_fillpat;
 extern int box_fillcolor;
@@ -322,7 +319,7 @@ extern int box_loctype;
 
 extern int ellipse_color;
 extern int ellipse_lines;
-extern int ellipse_linew;
+extern double ellipse_linew;
 extern int ellipse_fill;
 extern int ellipse_fillpat;
 extern int ellipse_fillcolor;
@@ -331,19 +328,15 @@ extern int ellipse_loctype;
 extern int line_color;
 extern int line_arrow;
 extern int line_lines;
-extern int line_linew;
+extern double line_linew;
 extern int line_loctype;
 extern double line_asize;
 extern int line_atype;
 
 extern int string_color;
-extern int string_linew;
 extern int string_font;
 extern int string_rot;
 extern int string_just;
-extern int string_fill;
-extern int string_fillpat;
-extern int string_fillcolor;
 extern int string_loctype;
 extern double string_size;
 

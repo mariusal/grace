@@ -180,7 +180,7 @@ void putparms(int gno, FILE *pp, int embed)
         }
     }
     
-    fprintf(pp, "%sdefault linewidth %d\n", embedstr, grdefaults.linew);
+    fprintf(pp, "%sdefault linewidth %.1f\n", embedstr, grdefaults.linew);
     fprintf(pp, "%sdefault linestyle %d\n", embedstr, grdefaults.lines);
     fprintf(pp, "%sdefault color %d\n", embedstr, grdefaults.color);
     fprintf(pp, "%sdefault pattern %d\n", embedstr, grdefaults.pattern);
@@ -311,7 +311,7 @@ void putparms(int gno, FILE *pp, int embed)
                 fprintf(pp, "%s bar %s\n", buf, on_or_off(t.t_drawbar));
                 fprintf(pp, "%s bar color %d\n", buf, t.t_drawbarcolor);
                 fprintf(pp, "%s bar linestyle %d\n", buf, t.t_drawbarlines);
-                fprintf(pp, "%s bar linewidth %d\n", buf, t.t_drawbarlinew);
+                fprintf(pp, "%s bar linewidth %.1f\n", buf, t.t_drawbarlinew);
 
 
                 fprintf(pp, "%s label \"%s\"\n", buf, t.label.s);
@@ -365,11 +365,11 @@ void putparms(int gno, FILE *pp, int embed)
                 }
                 fprintf(pp, "%s tick major size %f\n", buf, t.props.size);
                 fprintf(pp, "%s tick major color %d\n", buf, t.props.color);
-                fprintf(pp, "%s tick major linewidth %d\n", buf, t.props.linew);
+                fprintf(pp, "%s tick major linewidth %.1f\n", buf, t.props.linew);
                 fprintf(pp, "%s tick major linestyle %d\n", buf, t.props.lines);
                 fprintf(pp, "%s tick major grid %s\n", buf, on_or_off(t.props.gridflag));
                 fprintf(pp, "%s tick minor color %d\n", buf, t.mprops.color);
-                fprintf(pp, "%s tick minor linewidth %d\n", buf, t.mprops.linew);
+                fprintf(pp, "%s tick minor linewidth %.1f\n", buf, t.mprops.linew);
                 fprintf(pp, "%s tick minor linestyle %d\n", buf, t.mprops.lines);
                 fprintf(pp, "%s tick minor grid %s\n", buf, on_or_off(t.mprops.gridflag));
                 fprintf(pp, "%s tick minor size %f\n", buf, t.mprops.size);
@@ -481,7 +481,7 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%s    legend y1 %.12g\n", embedstr, leg.legy);
             fprintf(pp, "%s    legend box color %d\n", embedstr, leg.boxpen.color);
             fprintf(pp, "%s    legend box pattern %d\n", embedstr, leg.boxpen.pattern);
-            fprintf(pp, "%s    legend box linewidth %d\n", embedstr, leg.boxlinew);
+            fprintf(pp, "%s    legend box linewidth %.1f\n", embedstr, leg.boxlinew);
             fprintf(pp, "%s    legend box linestyle %d\n", embedstr, leg.boxlines);
             fprintf(pp, "%s    legend box fill color %d\n", embedstr, leg.boxfillpen.color);
             fprintf(pp, "%s    legend box fill pattern %d\n", embedstr, leg.boxfillpen.pattern);
@@ -497,7 +497,7 @@ void putparms(int gno, FILE *pp, int embed)
             get_graph_framep(gno, &f);
             fprintf(pp, "%s    frame type %d\n", embedstr, f.type);
             fprintf(pp, "%s    frame linestyle %d\n", embedstr, f.lines);
-            fprintf(pp, "%s    frame linewidth %d\n", embedstr, f.linew);
+            fprintf(pp, "%s    frame linewidth %.1f\n", embedstr, f.linew);
             fprintf(pp, "%s    frame color %d\n", embedstr, f.pen.color);
             fprintf(pp, "%s    frame pattern %d\n", embedstr, f.pen.pattern);
             fprintf(pp, "%s    frame background color %d\n", embedstr, f.fillpen.color);
@@ -516,7 +516,7 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s    s%1d symbol pattern %d\n", embedstr, i, p.sympen.pattern);
                     fprintf(pp, "%s    s%1d symbol fill color %d\n", embedstr, i, p.symfillpen.color);
                     fprintf(pp, "%s    s%1d symbol fill pattern %d\n", embedstr, i, p.symfillpen.pattern);
-                    fprintf(pp, "%s    s%1d symbol linewidth %d\n", embedstr, i, p.symlinew);
+                    fprintf(pp, "%s    s%1d symbol linewidth %.1f\n", embedstr, i, p.symlinew);
                     fprintf(pp, "%s    s%1d symbol linestyle %d\n", embedstr, i, p.symlines);
                     fprintf(pp, "%s    s%1d symbol char %d\n", embedstr, i, p.symchar);
                     fprintf(pp, "%s    s%1d symbol char font %d\n", embedstr, i, get_font_mapped_id(p.charfont));
@@ -524,7 +524,7 @@ void putparms(int gno, FILE *pp, int embed)
 
                     fprintf(pp, "%s    s%1d line type %d\n", embedstr, i, p.linet);
                     fprintf(pp, "%s    s%1d line linestyle %d\n", embedstr, i, p.lines);
-                    fprintf(pp, "%s    s%1d line linewidth %d\n", embedstr, i, p.linew);
+                    fprintf(pp, "%s    s%1d line linewidth %.1f\n", embedstr, i, p.linew);
                     fprintf(pp, "%s    s%1d line color %d\n", embedstr, i, p.linepen.color);
                     fprintf(pp, "%s    s%1d line pattern %d\n", embedstr, i, p.linepen.pattern);
 
@@ -569,9 +569,9 @@ void putparms(int gno, FILE *pp, int embed)
                         break;
                     }
                     fprintf(pp, "%s    s%1d errorbar length %f\n", embedstr, i, p.errbar.length);
-                    fprintf(pp, "%s    s%1d errorbar linewidth %d\n", embedstr, i, p.errbar.linew);
+                    fprintf(pp, "%s    s%1d errorbar linewidth %.1f\n", embedstr, i, p.errbar.linew);
                     fprintf(pp, "%s    s%1d errorbar linestyle %d\n", embedstr, i, p.errbar.lines);
-                    fprintf(pp, "%s    s%1d errorbar riser linewidth %d\n", embedstr, i, p.errbar.riser_linew);
+                    fprintf(pp, "%s    s%1d errorbar riser linewidth %.1f\n", embedstr, i, p.errbar.riser_linew);
                     fprintf(pp, "%s    s%1d errorbar riser linestyle %d\n", embedstr, i, p.errbar.riser_lines);
 
                     if (is_hotlinked(gno, i)) {
@@ -613,7 +613,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             }
             fprintf(pp, "%s    box %.12g, %.12g, %.12g, %.12g\n", embedstr, b.x1, b.y1, b.x2, b.y2);
             fprintf(pp, "%s    box linestyle %d\n", embedstr, b.lines);
-            fprintf(pp, "%s    box linewidth %d\n", embedstr, b.linew);
+            fprintf(pp, "%s    box linewidth %.1f\n", embedstr, b.linew);
             fprintf(pp, "%s    box color %d\n", embedstr, b.color);
             fprintf(pp, "%s    box fill color %d\n", embedstr, b.fillcolor);
             fprintf(pp, "%s    box fill pattern %d\n", embedstr, b.fillpattern);
@@ -632,7 +632,7 @@ static void put_objects(int gno, FILE * pp, int embed)
             }
             fprintf(pp, "%s    ellipse %.12g, %.12g, %.12g, %.12g\n", embedstr, e.x1, e.y1, e.x2, e.y2);
             fprintf(pp, "%s    ellipse linestyle %d\n", embedstr, e.lines);
-            fprintf(pp, "%s    ellipse linewidth %d\n", embedstr, e.linew);
+            fprintf(pp, "%s    ellipse linewidth %.1f\n", embedstr, e.linew);
             fprintf(pp, "%s    ellipse color %d\n", embedstr, e.color);
             fprintf(pp, "%s    ellipse fill color %d\n", embedstr, e.fillcolor);
             fprintf(pp, "%s    ellipse fill pattern %d\n", embedstr, e.fillpattern);
@@ -649,7 +649,7 @@ static void put_objects(int gno, FILE * pp, int embed)
                 fprintf(pp, "%s    line g%1d\n", embedstr, l.gno);
             }
             fprintf(pp, "%s    line %.12g, %.12g, %.12g, %.12g\n", embedstr, l.x1, l.y1, l.x2, l.y2);
-            fprintf(pp, "%s    line linewidth %d\n", embedstr, l.linew);
+            fprintf(pp, "%s    line linewidth %.1f\n", embedstr, l.linew);
             fprintf(pp, "%s    line linestyle %d\n", embedstr, l.lines);
             fprintf(pp, "%s    line color %d\n", embedstr, l.color);
             fprintf(pp, "%s    line arrow %d\n", embedstr, l.arrow);
@@ -723,7 +723,7 @@ static void put_regions(FILE * pp, int embed)
 	break;
       }
       fprintf(pp, "%sr%1d linestyle %d\n", embedstr, i, rg[i].lines);
-      fprintf(pp, "%sr%1d linewidth %d\n", embedstr, i, rg[i].linew);
+      fprintf(pp, "%sr%1d linewidth %.1f\n", embedstr, i, rg[i].linew);
       fprintf(pp, "%sr%1d color %d\n", embedstr, i, rg[i].color);
       if (rg[i].type != REGION_POLYI && rg[i].type != REGION_POLYO) {
 	fprintf(pp, "%sr%1d line %.12g, %.12g, %.12g, %.12g\n", embedstr, i, rg[i].x1, rg[i].y1, rg[i].x2, rg[i].y2);

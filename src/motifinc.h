@@ -47,6 +47,9 @@
 #define LIST_TYPE_SINGLE    0
 #define LIST_TYPE_MULTIPLE  1
 
+#define SPIN_TYPE_INT       0
+#define SPIN_TYPE_FLOAT     1
+
 #define CreateMenuSeparator(w) CreateSeparator(w)
 
 extern Widget app_shell;        /* defined in xmgrace.c */
@@ -93,6 +96,18 @@ typedef struct {
     Widget list;
 } ListStructure;
 
+typedef struct {
+    int type;
+    double min;
+    double max;
+    double incr;
+    Widget rc;
+    Widget text;
+    Widget arrow_up;
+    Widget arrow_down;
+} SpinStructure;
+
+
 Widget CreateFrame(Widget parent, char *s);
 
 Widget CreateSeparator(Widget parent);
@@ -137,6 +152,11 @@ void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb);
 void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar);
 void list_choice_unselectall(Widget w, XEvent *e, String *par, Cardinal *npar);
 
+SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
+                        int type, double min, double max, double incr);
+double GetSpinChoice(SpinStructure *spinp);
+void SetSpinChoice(SpinStructure *spinp, double value);
+
 OptionStructure *CreateFontChoice(Widget parent, char *s);
 OptionStructure *CreatePatternChoice(Widget parent, char *s);
 OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
@@ -148,6 +168,8 @@ ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
                                         int type, int standalone);
 void UpdateSetChoice(ListStructure *listp, int gno);
+
+SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
 
 
 SetChoiceItem CreateSetSelector(Widget parent, char *label, int type, int ff, int gtype, int stype);
@@ -172,7 +194,6 @@ Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s);
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);
 
-Widget *CreateLineWidthChoice(Widget parent, char *s);
 Widget *CreateFormatChoice(Widget parent, char *s);
 Widget *CreatePrecisionChoice(Widget parent, char *s);
 

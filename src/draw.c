@@ -59,7 +59,7 @@ void (*devleavegraphics) ();    /* device exit */
 
 /* Current drawing properties */
 static DrawProps draw_props =
-{{1, 1}, 0, 1, 0, 1.0, 0, FILLRULE_WINDING};
+{{1, 1}, 0, 1, 0.0, 1.0, 0, FILLRULE_WINDING};
 
 static world worldwin;
 static view viewport;
@@ -133,12 +133,12 @@ int getlinestyle(void)
     return (draw_props.lines);
 }
 
+#define MAGIC_LINEW_SCALE 0.0015
 /*
  * make the current line width linew
  */
-void setlinewidth(int linew)
+void setlinewidth(double linew)
 {
-#define MAGIC_LINEW_SCALE 0.0015
     draw_props.linew = linew;
     return;
 }
@@ -1082,42 +1082,6 @@ int number_of_linestyles(void)
 {
     return MAXLINESTYLES;
 }
-
-/* 
- * ------------------ Line width routines ---------------
- */
-
-int number_of_linewidths(void)
-{
-    return MAXLINEWIDTHS;
-}
-
-/*
- * static double linewidths[MAXLINEWIDTHS];
- */
-
-/*
- * int map_linewidth(int linew_id, double linew)
- * {
- *     if (linew_id < 0 || linew_id >= MAXLINEWIDTHS) {
- *         return GRACE_EXIT_FAILURE;
- *     } else {
- *         linewidths[linew_id] = linew;
- *         return GRACE_EXIT_SUCCESS;
- *     }
- * }
- * 
- * void map_linewidths(int map) {
- *     switch (map == LINEW_MAP_ACEGR) {
- *     case LINEW_MAP_ACEGR:
- *         break;
- *     case LINEW_MAP_GRACE501:
- *         break;
- *     default:
- *         break;
- *     }
- * }
- */
 
 /*
  * ------------- coordinate conversion routines ------------

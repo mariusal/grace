@@ -53,6 +53,7 @@
 #include <Xm/RowColumn.h>
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
+#include <Xm/ArrowBG.h>
 #include <Xm/Protocols.h>
 
 #include "Tab.h"
@@ -477,6 +478,142 @@ void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb)
     XtAddCallback(listp->list, XmNmultipleSelectionCallback, cb, listp);
     XtAddCallback(listp->list, XmNextendedSelectionCallback, cb, listp);
 }
+
+
+static void spin_arrow_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    SpinStructure *spinp;
+    double value, incr;
+    
+    spinp = (SpinStructure *) client_data;
+    value = GetSpinChoice(spinp);
+    incr = spinp->incr;
+    
+    if (w == spinp->arrow_up) {
+        incr =  spinp->incr;
+    } else if (w == spinp->arrow_down) {
+        incr = -spinp->incr;
+    } else {
+        errmsg("Wrong call to spin_arrow_cb()");
+        return;
+    }
+    value += incr;
+    SetSpinChoice(spinp, value);
+}
+
+SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
+                        int type, double min, double max, double incr)
+{
+    SpinStructure *retval;
+    Widget fr, form;
+    XmString str;
+    
+    if (min >= max) {
+        errmsg("min >= max in CreateSpinChoice()!");
+        return NULL;
+    }
+    
+    retval = malloc(sizeof(SpinStructure));
+    
+    retval->type = type;
+    retval->min = min;
+    retval->max = max;
+    retval->incr = incr;
+    
+    retval->rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, parent,
+        XmNorientation, XmHORIZONTAL,
+        NULL);
+    str = XmStringCreateSimple(s);
+    XtVaCreateManagedWidget("label", xmLabelWidgetClass, retval->rc,
+	XmNlabelString, str,
+	NULL);
+    XmStringFree(str);
+    fr = XtVaCreateWidget("fr", xmFrameWidgetClass, retval->rc,
+        XmNshadowType, XmSHADOW_ETCHED_OUT,
+        NULL);
+    form = XtVaCreateWidget("form", xmFormWidgetClass, fr,
+        NULL);
+    retval->text = XtVaCreateWidget("text", xmTextWidgetClass, form,
+	XmNtraversalOn, True,
+	XmNcolumns, len,
+	NULL);
+    retval->arrow_up = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
+        XmNarrowDirection, XmARROW_UP,
+        NULL);
+    XtAddCallback(retval->arrow_up, XmNactivateCallback,
+        spin_arrow_cb, (XtPointer) retval);
+    retval->arrow_down = XtVaCreateWidget("form", xmArrowButtonGadgetClass, form,
+        XmNarrowDirection, XmARROW_DOWN,
+        NULL);
+    XtAddCallback(retval->arrow_down, XmNactivateCallback,
+        spin_arrow_cb, (XtPointer) retval);
+    XtVaSetValues(retval->text,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_NONE,
+        NULL);
+    XtVaSetValues(retval->arrow_down,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_WIDGET,
+        XmNleftWidget, retval->text,
+        XmNrightAttachment, XmATTACH_NONE,
+        NULL);
+    XtVaSetValues(retval->arrow_up,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_WIDGET,
+        XmNleftWidget, retval->arrow_down,
+        NULL);
+    
+    XtManageChild(retval->text);
+    XtManageChild(retval->arrow_up);
+    XtManageChild(retval->arrow_down);
+    XtManageChild(form);
+    XtManageChild(fr);
+    XtManageChild(retval->rc);
+    
+    return retval;
+}
+
+void SetSpinChoice(SpinStructure *spinp, double value)
+{
+    char buf[64];
+    
+    if (value < spinp->min) {
+        XBell(disp, 50);
+        value = spinp->min;
+    } else if (value > spinp->max) {
+        XBell(disp, 50);
+        value = spinp->max;
+    }
+    
+    if (spinp->type == SPIN_TYPE_FLOAT) {
+        sprintf(buf, "%g", value);
+    } else {
+        sprintf(buf, "%d", (int) rint(value));
+    }
+    XmTextSetString(spinp->text, buf);
+}
+
+double GetSpinChoice(SpinStructure *spinp)
+{
+    double retval;
+    
+    if (xv_evalexpr(spinp->text, &retval) != GRACE_EXIT_SUCCESS &&
+        (retval < spinp->min || retval < spinp->max)) {
+        retval = (spinp->min + spinp->max)/2;
+    }
+    
+    if (spinp->type == SPIN_TYPE_INT) {
+        return rint(retval);
+    } else {
+        return retval;
+    }
+}
+
 
 static OptionItem *font_option_items;
 static OptionItem *settype_option_items;
@@ -971,7 +1108,7 @@ void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
                   XmNitemCount, &n,
                   NULL);
     if (selection_type_save == XmSINGLE_SELECT) {
-        XBell(disp, 100);
+        XBell(disp, 50);
         return;
     }
     
@@ -1673,7 +1810,10 @@ OptionStructure *CreateColorChoice(Widget parent, char *s)
     return retvalp;
 }
 
-
+SpinStructure *CreateLineWidthChoice(Widget parent, char *s)
+{
+    return CreateSpinChoice(parent, s, 3, SPIN_TYPE_FLOAT, 0.0, MAX_LINEWIDTH, 0.5);
+}
 
 
 
@@ -1803,23 +1943,6 @@ int GetChoice(Widget * w)
 	i++;
     }
     return i;
-}
-
-Widget *CreateLineWidthChoice(Widget parent, char *s)
-{
-    Widget *wp, rc;
-
-    rc = XmCreateRowColumn(parent, "rcLineWidth", NULL, 0);
-    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    wp = CreatePanelChoice(rc, s,
-                           11,
-                           "0", "1", "2", "3", "4", "5",
-                           "6", "7", "8", "9",
-                           NULL,
-                           0);
-    XtManageChild(rc);
-    
-    return wp;
 }
 
 Widget *CreateFormatChoice(Widget parent, char *s)

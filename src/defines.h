@@ -60,8 +60,6 @@
 #define MAXELLIPSES 50          /* max number of ellipses */
 #define MAXSTR 100              /* max number of strings */
 
-#define MAX_LINEWIDTH 10        /* max width of drawn lines */
-
 #define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
@@ -496,7 +494,7 @@ typedef struct {
     int bgcolor;
     int pattern;
     int lines;
-    int linew;
+    double linew;
     double charsize;
     int font;
     double symsize;
@@ -540,7 +538,7 @@ typedef struct {
     double x2;
     double y2;
     int lines;
-    int linew;
+    double linew;
     int color;
     int fillcolor;
     int fillpattern;
@@ -555,7 +553,7 @@ typedef struct {
     double x2;
     double y2;
     int lines;
-    int linew;
+    double linew;
     int color;
     int arrow;
     int atype;
@@ -571,7 +569,7 @@ typedef struct {
     double x2;
     double y2;
     int lines;
-    int linew;
+    double linew;
     int color;
     int fillcolor;
     int fillpattern;
@@ -635,9 +633,9 @@ typedef struct {
 typedef struct {
     int active;          /* on/off */
     int type;            /* type of error bar */
-    int linew;           /* error bar line width */
+    double linew;        /* error bar line width */
     int lines;           /* error bar line style */
-    int riser_linew;     /* connecting line between error limits line width */
+    double riser_linew;  /* connecting line between error limits line width */
     int riser_lines;     /* connecting line between error limits line style */
     double length;       /* length of error bar */
 } Errbar;
@@ -668,7 +666,7 @@ typedef struct {
 typedef struct {
     double size;              /* length of tickmarks */
     int color;                /* color of tickmarks */
-    int linew;                /* linewidth of tickmarks */
+    double linew;             /* linewidth of tickmarks */
     int lines;                /* linestyle of tickmarks */
     int gridflag;             /* grid lines at tick marks */
 } tickprops;
@@ -686,7 +684,7 @@ typedef struct {
     int t_drawbar;              /* draw a bar connecting tick marks */
     int t_drawbarcolor;         /* color of bar */
     int t_drawbarlines;         /* linestyle of bar */
-    int t_drawbarlinew;         /* line width of bar */
+    double t_drawbarlinew;         /* line width of bar */
 
     double offsx, offsy;        /* offset of axes in viewport coords
                                    (attention: these
@@ -757,7 +755,7 @@ typedef struct {
     int color;
     Pen boxpen;
     Pen boxfillpen;
-    int boxlinew;               /* legend frame line width */
+    double boxlinew;               /* legend frame line width */
     int boxlines;               /* legend frame line style */
 } legend;
 
@@ -766,7 +764,7 @@ typedef struct {
     int type;                   /* region type */
     int color;                  /* region color */
     int lines;                  /* region linestyle */
-    int linew;                  /* region line width */
+    double linew;                  /* region line width */
     int *linkto;                /* associated with graphs in linkto */
     int n;                      /* number of points if type is POLY */
     double *x, *y;              /* coordinates if type is POLY */
@@ -777,7 +775,7 @@ typedef struct {
     int type;                   /* frame type */
     Pen pen;                    /* frame pen */
     int lines;                  /* frame linestyle */
-    int linew;                  /* frame line width */
+    double linew;                  /* frame line width */
     Pen fillpen;                /* fill pen */
 } framep;
 

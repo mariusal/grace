@@ -71,14 +71,14 @@ static OptionStructure *symcolor_item;
 static OptionStructure *sympattern_item;
 static OptionStructure *symfillcolor_item;
 static OptionStructure *symfillpattern_item;
-static Widget *symlinew_item;
+static SpinStructure *symlinew_item;
 static OptionStructure *symlines_item;
 static Widget symchar_item;
 static OptionStructure *char_font_item;
 
 static OptionStructure *toggle_color_item;
 static OptionStructure *toggle_pattern_item;
-static Widget *toggle_width_item;
+static SpinStructure *toggle_width_item;
 static Widget dropline_item;
 static OptionStructure *toggle_lines_item;
 static Widget *toggle_linet_item;
@@ -94,10 +94,10 @@ static Widget legend_str_panel;
 
 static Widget errbar_active_item;
 static Widget errbar_size_item;
-static Widget *errbar_width_item;
+static SpinStructure *errbar_width_item;
 static OptionStructure *errbar_lines_item;
 static Widget *errbar_type_item;
-static Widget *errbar_riserlinew_item;
+static SpinStructure *errbar_riserlinew_item;
 static OptionStructure *errbar_riserlines_item;
 
 static Widget avalue_active_item;
@@ -496,8 +496,10 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     int aac_mode;
     int i;
     int type;
-    int sym, symskip, symlinew, symlines;
-    int line, linet, color, pattern, wid;
+    int sym, symskip, symlines;
+    double symlinew;
+    int line, linet, color, pattern;
+    double wid;
     int dropline, filltype, fillrule, fillpat, fillcol;
     int symcolor, sympattern, symfillcolor, symfillpattern;
     double symsize;
@@ -524,7 +526,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     sym = GetChoice(toggle_symbols_item);
     color = GetOptionChoice(toggle_color_item);
     pattern = GetOptionChoice(toggle_pattern_item);
-    wid = GetChoice(toggle_width_item);
+    wid = GetSpinChoice(toggle_width_item);
     baseline = GetToggleButtonState(baseline_item);
     baselinetype = GetChoice(baselinetype_item);
     dropline = GetToggleButtonState(dropline_item);
@@ -539,16 +541,16 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     sympattern = GetOptionChoice(sympattern_item);
     symfillcolor = GetOptionChoice(symfillcolor_item);
     symfillpattern = GetOptionChoice(symfillpattern_item);
-    symlinew = GetChoice(symlinew_item);
+    symlinew = GetSpinChoice(symlinew_item);
     symlines = GetOptionChoice(symlines_item);
     symchar = atoi(xv_getstr(symchar_item));
     charfont = GetOptionChoice(char_font_item);
     
     errbar.active = GetToggleButtonState(errbar_active_item);
     errbar.length = GetCharSizeChoice(errbar_size_item);
-    errbar.linew = GetChoice(errbar_width_item);
+    errbar.linew = GetSpinChoice(errbar_width_item);
     errbar.lines = GetOptionChoice(errbar_lines_item);
-    errbar.riser_linew = GetChoice(errbar_riserlinew_item);
+    errbar.riser_linew = GetSpinChoice(errbar_riserlinew_item);
     errbar.riser_lines = GetOptionChoice(errbar_riserlines_item);
         
     avalue.active = GetToggleButtonState(avalue_active_item);
@@ -679,14 +681,14 @@ static void UpdateSymbols(int gno, int value)
         SetOptionChoice(sympattern_item, p.sympen.pattern);
         SetOptionChoice(symfillcolor_item, p.symfillpen.color);
         SetOptionChoice(symfillpattern_item, p.symfillpen.pattern);
-        SetChoice(symlinew_item, p.symlinew);
+        SetSpinChoice(symlinew_item, p.symlinew);
         SetOptionChoice(symlines_item, p.symlines);
         
         SetOptionChoice(char_font_item, p.charfont);        
         
         SetOptionChoice(toggle_color_item, p.linepen.color);
         SetOptionChoice(toggle_pattern_item, p.linepen.pattern);
-        SetChoice(toggle_width_item, p.linew);
+        SetSpinChoice(toggle_width_item, p.linew);
         SetToggleButtonState(dropline_item, p.dropline);
         SetOptionChoice(toggle_lines_item, p.lines);
         SetChoice(toggle_linet_item, p.linet);
@@ -718,9 +720,9 @@ static void UpdateSymbols(int gno, int value)
         }
         SetToggleButtonState(errbar_active_item, p.errbar.active);
         SetChoice(errbar_type_item, itmp);
-        SetChoice(errbar_width_item, p.errbar.linew);
+        SetSpinChoice(errbar_width_item, p.errbar.linew);
         SetOptionChoice(errbar_lines_item, p.errbar.lines);
-        SetChoice(errbar_riserlinew_item, p.errbar.riser_linew);
+        SetSpinChoice(errbar_riserlinew_item, p.errbar.riser_linew);
         SetOptionChoice(errbar_riserlines_item, p.errbar.riser_lines);
         SetCharSizeChoice(errbar_size_item, p.errbar.length);
 
@@ -816,7 +818,7 @@ static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_dat
                 break;
             case SETAPP_ALL_LINEW:
                 get_graph_plotarr(cg, setno, &p);
-                p.linew = (i % (number_of_linewidths() - 1)) + 1;
+                p.linew = ((i % (2*((int) MAX_LINEWIDTH) - 1)) + 1)/2.0;
                 set_graph_plotarr(cg, setno, &p);
                 break;
             case SETAPP_ALL_LINES:

@@ -528,8 +528,9 @@ symtab_entry *key;
 %type <pset> windowtype
 
 %type <val> expr
-%type <ptr> vexpr
+%type <val> linew_select
 
+%type <ptr> vexpr
 %type <ptr> asgn
 %type <ptr> vasgn
 
@@ -1561,8 +1562,8 @@ regionset:
 	| REGNUM LINESTYLE NUMBER {
 	    rg[$1].lines = checkon(LINESTYLE, rg[$1].lines, (int) $3);
 	}
-	| REGNUM LINEWIDTH NUMBER {
-	    rg[$1].linew = checkon(LINEWIDTH, rg[$1].linew, (int) $3);
+	| REGNUM linew_select {
+	    rg[$1].linew = $2;
 	}
 	| REGNUM LINE expr ',' expr ',' expr ',' expr
 	{
@@ -1783,8 +1784,8 @@ parmset:
 	| BOX LINESTYLE NUMBER {
 	    box_lines = checkon(LINESTYLE, box_lines, (int) $3);
 	}
-	| BOX LINEWIDTH NUMBER {
-	    box_linew = checkon(LINEWIDTH, box_linew, (int) $3);
+	| BOX linew_select {
+	    box_linew = $2;
 	}
 	| BOX COLOR NUMBER {
 	    box_color = checkon(COLOR, box_color, (int) $3);
@@ -1850,8 +1851,8 @@ parmset:
 	| ELLIPSE LINESTYLE NUMBER {
 	    ellipse_lines = checkon(LINESTYLE, ellipse_lines, (int) $3);
 	}
-	| ELLIPSE LINEWIDTH NUMBER {
-	    ellipse_linew = checkon(LINEWIDTH, ellipse_linew, (int) $3);
+	| ELLIPSE linew_select {
+	    ellipse_linew = $2;
 	}
 	| ELLIPSE COLOR NUMBER {
 	    ellipse_color = checkon(COLOR, ellipse_color, (int) $3);
@@ -1912,8 +1913,8 @@ parmset:
 	| LINE LOCTYPE worldview {
 	    line_loctype = $3;
 	}
-	| LINE LINEWIDTH NUMBER {
-	    line_linew = checkon(LINEWIDTH, line_linew, (int) $3);
+	| LINE linew_select {
+	    line_linew = $2;
 	}
 	| LINE LINESTYLE NUMBER {
 	    line_lines = checkon(LINESTYLE, line_lines, (int) $3);
@@ -2017,8 +2018,8 @@ parmset:
 	| DEFAULT LINESTYLE NUMBER {
 	    grdefaults.lines = (int) $3;
 	}
-	| DEFAULT LINEWIDTH NUMBER {
-	    grdefaults.linew = (int) $3;
+	| DEFAULT linew_select {
+	    grdefaults.linew = $2;
 	}
 	| DEFAULT COLOR NUMBER {
 	    grdefaults.color = (int) $3;
@@ -2171,8 +2172,8 @@ parmset:
 	| LEGEND BOX LINESTYLE NUMBER {
 	    g[get_cg()].l.boxlines = checkon(LINESTYLE, g[get_cg()].l.boxlines, (int) $4);
 	}
-	| LEGEND BOX LINEWIDTH NUMBER {
-	    g[get_cg()].l.boxlinew = checkon(LINEWIDTH, g[get_cg()].l.boxlinew, (int) $4);
+	| LEGEND BOX linew_select {
+	    g[get_cg()].l.boxlinew = $3;
 	}
 	| LEGEND expr ',' expr {
 	    g[get_cg()].l.legx = $2;
@@ -2207,8 +2208,8 @@ parmset:
 	| FRAMEP LINESTYLE NUMBER {
 	    g[get_cg()].f.lines = checkon(LINESTYLE, g[get_cg()].f.lines, (int) $3);
 	}
-	| FRAMEP LINEWIDTH NUMBER {
-	    g[get_cg()].f.linew = checkon(LINEWIDTH, g[get_cg()].f.linew, (int) $3);
+	| FRAMEP linew_select {
+	    g[get_cg()].f.linew = $2;
 	}
 	| FRAMEP COLOR NUMBER {
 	    g[get_cg()].f.pen.color = (int) $3;
@@ -2359,8 +2360,8 @@ actions:
 	| PATTERN NUMBER {
 		setpattern((int) $2);
 	}
-	| LINEWIDTH NUMBER {
-		setlinewidth((int) $2);
+	| linew_select {
+		setlinewidth($1);
 	}
 	| LINESTYLE NUMBER {
 		setlinestyle((int) $2);
@@ -2739,8 +2740,8 @@ setprop:
 	| SYMBOL PATTERN NUMBER {
 	    g[whichgraph].p[whichset].sympen.pattern = (int) $3;
 	}
-	| SYMBOL LINEWIDTH NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINEWIDTH, (int) $3, 0);
+	| SYMBOL linew_select {
+	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINEWIDTH, $2, 0);
 	}
 	| SYMBOL LINESTYLE NUMBER {
 	    set_prop(whichgraph, SET, SETNUM, whichset, SYMBOL, LINESTYLE, (int) $3, 0);
@@ -2772,9 +2773,9 @@ setprop:
         {
 	    g[whichgraph].p[whichset].lines = (int) $3;
 	}
-	| LINE LINEWIDTH NUMBER
+	| LINE linew_select
         {
-	    g[whichgraph].p[whichset].linew = (int) $3;
+	    g[whichgraph].p[whichset].linew = $2;
 	}
 	| LINE COLOR NUMBER
         {
@@ -2909,8 +2910,8 @@ setprop:
 	| ERRORBAR TYPE opchoice {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, TYPE, $3, 0);
 	}
-	| ERRORBAR LINEWIDTH NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINEWIDTH, (int) $3, 0);
+	| ERRORBAR linew_select {
+	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINEWIDTH, $2, 0);
 	}
 	| ERRORBAR LINESTYLE NUMBER {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, LINESTYLE, (int) $3, 0);
@@ -2918,8 +2919,8 @@ setprop:
 	| ERRORBAR RISER onoff {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, ON, $3, 0);
 	}
-	| ERRORBAR RISER LINEWIDTH NUMBER {
-	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINEWIDTH, (int) $4, 0);
+	| ERRORBAR RISER linew_select {
+	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINEWIDTH, $3, 0);
 	}
 	| ERRORBAR RISER LINESTYLE NUMBER {
 	    set_prop(whichgraph, SET, SETNUM, whichset, ERRORBAR, RISER, LINESTYLE, (int) $4, 0);
@@ -3028,14 +3029,14 @@ tickattr:
 	| MINOR COLOR NUMBER {
 	    g[get_cg()].t[naxis].mprops.color = (int) $3;
 	}
-	| LINEWIDTH NUMBER {
-	    g[get_cg()].t[naxis].props.linew = g[get_cg()].t[naxis].mprops.linew = (int) $2;
+	| linew_select {
+	    g[get_cg()].t[naxis].props.linew = g[get_cg()].t[naxis].mprops.linew = $1;
 	}
-	| MAJOR LINEWIDTH NUMBER {
-	    g[get_cg()].t[naxis].props.linew = (int) $3;
+	| MAJOR linew_select {
+	    g[get_cg()].t[naxis].props.linew = $2;
 	}
-	| MINOR LINEWIDTH NUMBER {
-	    g[get_cg()].t[naxis].mprops.linew = (int) $3;
+	| MINOR linew_select {
+	    g[get_cg()].t[naxis].mprops.linew = $2;
 	}
 	| MAJOR LINESTYLE NUMBER {
 	    g[get_cg()].t[naxis].props.lines = (int) $3;
@@ -3205,8 +3206,8 @@ axisbardesc:
 	| LINESTYLE NUMBER {
 	    g[get_cg()].t[naxis].t_drawbarlines = (int) $2;
 	}
-	| LINEWIDTH NUMBER {
-	    g[get_cg()].t[naxis].t_drawbarlinew = (int) $2;
+	| linew_select {
+	    g[get_cg()].t[naxis].t_drawbarlinew = $1;
 	}
 	;
 
@@ -3520,6 +3521,22 @@ font_select:
         }
         ;
 
+linew_select:
+        LINEWIDTH NUMBER
+        {
+            double linew;
+            linew = $2;
+            if (linew < 0.0) {
+                yyerror("Negative linewidth");
+                linew = 0.0;
+            } else if (linew > MAX_LINEWIDTH) {
+                yyerror("Linewidth too large");
+                linew = MAX_LINEWIDTH;
+            }
+            $$ = linew;
+        }
+        ;
+
 parmset_obs:
         PAGE LAYOUT pageorient
         {
@@ -3554,12 +3571,12 @@ parmset_obs:
 
 	| ELLIPSE FILL colpat_obs {filltype_obs = (int) $3;}
 
-	| STRING LINEWIDTH NUMBER { }
+	| STRING linew_select { }
 
-	| TIMESTAMP LINEWIDTH NUMBER { }
+	| TIMESTAMP linew_select { }
 
-	| TITLE LINEWIDTH NUMBER { }
-	| SUBTITLE LINEWIDTH NUMBER { }
+	| TITLE linew_select { }
+	| SUBTITLE linew_select { }
 
 	| LEGEND BOX onoff {
 	    if ($3 == FALSE && get_project_version() <= 40102) {
@@ -3569,7 +3586,7 @@ parmset_obs:
 	| LEGEND BOX FILL onoff { }
 	| LEGEND BOX FILL WITH colpat_obs {filltype_obs = (int) $5;}
 	| LEGEND LINESTYLE NUMBER { }
-	| LEGEND LINEWIDTH NUMBER { }
+	| LEGEND linew_select { }
 
 	| GRAPHNO LABEL onoff { }
 
@@ -3625,12 +3642,12 @@ parmset_obs:
         | HARDCOPY DEVICE NUMBER { }
         | PS LINEWIDTH BEGIN NUMBER { }
         | PS LINEWIDTH INCREMENT NUMBER { }
-        | PS LINEWIDTH NUMBER { }
+        | PS linew_select { }
         ;
 
 
 axislabeldesc_obs:
-	LINEWIDTH NUMBER { }
+	linew_select { }
         ;
 
 setprop_obs:
@@ -3645,8 +3662,8 @@ setprop_obs:
 	| LINESTYLE NUMBER {
 	    g[whichgraph].p[whichset].lines = (int) $2;
 	}
-	| LINEWIDTH NUMBER {
-	    g[whichgraph].p[whichset].linew = (int) $2;
+	| linew_select {
+	    g[whichgraph].p[whichset].linew = $1;
 	}
 	| COLOR NUMBER {
 	    g[whichgraph].p[whichset].linepen.color = (int) $2;
@@ -3684,8 +3701,8 @@ tickattr_obs:
         ;
 
 ticklabelattr_obs:
-	LINEWIDTH NUMBER { }
-	| LAYOUT SPEC    { }
+	linew_select { }
+	| LAYOUT SPEC { }
 
 	| LAYOUT HORIZONTAL {
 	    g[get_cg()].t[naxis].tl_angle = 0;
@@ -4684,16 +4701,13 @@ void set_prop(int gno,...)
 	    }
 	    break;
 	case LINEWIDTH:
-	    prop = va_arg(var, int);
+	    prop = va_arg(var, double);
 	    for (i = startg; i <= endg; i++) {
 		if (allsets) {
 		    ends = g[i].maxplot - 1;
 		}
 		for (j = starts; j <= ends; j++) {
-		    g[i].p[j].linew = checkon(LINEWIDTH, g[i].p[j].linew, prop);
-		    if (check_err) {
-			return;
-		    }
+		    g[i].p[j].linew = prop;
 		}
 	    }
 	    break;
@@ -4898,7 +4912,7 @@ void set_prop(int gno,...)
 		}
 		break;
 	    case LINEWIDTH:
-		prop = va_arg(var, int);
+		prop = va_arg(var, double);
 		for (i = startg; i <= endg; i++) {
 		    if (allsets) {
 			ends = g[i].maxplot - 1;
@@ -4950,7 +4964,7 @@ void set_prop(int gno,...)
 		}
 		break;
 	    case LINEWIDTH:
-		prop = va_arg(var, int);
+		prop = va_arg(var, double);
 		for (i = startg; i <= endg; i++) {
 		    if (allsets) {
 			ends = g[i].maxplot - 1;
@@ -4978,7 +4992,7 @@ void set_prop(int gno,...)
 		    prop = va_arg(var, int);
                     break;
 		case LINEWIDTH:
-		    prop = va_arg(var, int);
+		    prop = va_arg(var, double);
 		    for (i = startg; i <= endg; i++) {
 			if (allsets) {
 			    ends = g[i].maxplot - 1;
@@ -5027,14 +5041,6 @@ int checkon(int prop, int old_val, int new_val)
     int retval = old_val;
     check_err = 0;
     switch (prop) {
-    case LINEWIDTH:
-	if (new_val >= 0 && new_val <= MAX_LINEWIDTH) {
-	    retval = new_val;
-	} else {
-	    sprintf(buf, "LINEWIDTH out of bounds, should be from 0 to %d", MAX_LINEWIDTH);
-	    check_err = 1;
-	}
-	break;
     case LINESTYLE:
 	if (new_val >= 0 && new_val < number_of_linestyles()) {
 	    retval = new_val;

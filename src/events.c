@@ -1535,7 +1535,6 @@ void my_proc(Widget w, XtPointer data, XEvent * event)
 		setcharsize(string_size);
 		setfont(string_font);
 		setcolor(string_color);
-		setlinewidth(string_linew);
 		si = sin(M_PI / 180.0 * string_rot) *
 		    ((double) win_w) / ((double) win_h);
 		co = cos(M_PI / 180.0 * string_rot);

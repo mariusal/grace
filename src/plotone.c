@@ -770,7 +770,7 @@ void drawsetline(int gno, int setno, plotarr *p,
                  int refn, double *refx, double *refy, double offset)
 {
     int setlen;
-    int i, ly = p->lines, wy = p->linew;
+    int i, ly = p->lines;
     int line_type = p->linet;
     VPoint vps[4], *vpstmp;
     WPoint wp;
@@ -807,7 +807,7 @@ void drawsetline(int gno, int setno, plotarr *p,
 /* draw the line */
     if (ly != 0) {
         setpen(p->linepen);
-        setlinewidth(wy);
+        setlinewidth(p->linew);
         setlinestyle(ly);
         
         switch (line_type) {
