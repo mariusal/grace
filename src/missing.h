@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -102,6 +102,11 @@ extern double drand48(void);
 #ifndef HAVE_POPEN
 FILE *popen(char *cmd, char *mode);
 int   pclose(FILE *fp);
+#endif
+
+#ifndef HAVE_GETTIMEOFDAY
+#  include <time.h>
+int gettimeofday (struct timeval *tp, void *tzp);
 #endif
 
 #ifndef HAVE_ALLOCA
