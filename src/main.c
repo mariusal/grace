@@ -442,15 +442,14 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing parameter for block data set creation\n");
 		    usage(stderr, argv[0]);
 		} else {
-                    int nc, *cols;
-                    field_string_to_cols(argv[i], &nc, &cols);
-                    if (field_string_to_cols(argv[i], &nc, &cols) !=
+                    int nc, *cols, scol;
+                    if (field_string_to_cols(argv[i], &nc, &cols, &scol) !=
                         RETURN_SUCCESS) {
                         errmsg("Erroneous field specifications");
                         return 1;
                     }
 		    create_set_fromblock(cur_graph, NEW_SET,
-                        rt->curtype, nc, cols, -1, rt->autoscale_onread);
+                        rt->curtype, nc, cols, scol, rt->autoscale_onread);
                     xfree(cols);
                 }
 	    } else if (argmatch(argv[i], "-nxy", 4)) {

@@ -462,9 +462,7 @@ int store_data(ss_data *ssd, int load_type)
     return RETURN_SUCCESS;
 }
 
-#define OLD_COL_INDICES
-
-int field_string_to_cols(const char *fs, int *nc, int **cols)
+int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol)
 {
     int col;
     char *s, *buf;
@@ -489,19 +487,27 @@ int field_string_to_cols(const char *fs, int *nc, int **cols)
     strcpy(buf, fs);
     s = buf;
     *nc = 0;
+    *scol = -1;
     while ((s = strtok(s, ":")) != NULL) {
-#ifdef OLD_COL_INDICES
+        int strcol;
+        if (*s == '{') {
+            char *s1;
+            strcol = TRUE;
+            s++;
+            if ((s1 = index(s, '}')) != NULL) {
+                *s1 = '\0';
+            }
+        } else {
+            strcol = FALSE;
+        }
         col = atoi(s);
         col--;
-#else
-	if (!strcmp(s, "i")) {
-            col = -1;
+        if (strcol) {
+            *scol = col;
         } else {
-            col = atoi(s);
+            (*cols)[*nc] = col;
+	    (*nc)++;
         }
-#endif
-        (*cols)[*nc] = col;
-	(*nc)++;
 	s = NULL;
     }
     
@@ -510,25 +516,21 @@ int field_string_to_cols(const char *fs, int *nc, int **cols)
     return RETURN_SUCCESS;
 }
 
-char *cols_to_field_string(int nc, int *cols)
+char *cols_to_field_string(int nc, int *cols, int scol)
 {
     int i;
     char *s, buf[32];
     
     s = NULL;
     for (i = 0; i < nc; i++) {
-#ifdef OLD_COL_INDICES
         sprintf(buf, "%d", cols[i] + 1);
-#else
-        if (cols[i] == -1) {
-            strcpy(buf, "i");
-        } else {
-            sprintf(buf, "%d", cols[i]);
-        }
-#endif
         if (i != 0) {
             s = concat_strings(s, ":");
         }
+        s = concat_strings(s, buf);
+    }
+    if (scol >= 0) {
+        sprintf(buf, ":{%d}", scol + 1);
         s = concat_strings(s, buf);
     }
     
@@ -621,7 +623,7 @@ int create_set_fromblock(int gno, int setno,
     }
 
     sprintf(buf, "%s, cols %s",
-        blockdata.label, cols_to_field_string(nc, coli));
+        blockdata.label, cols_to_field_string(nc, coli, scol));
     setcomment(gno, setno, buf);
 
     autoscale_graph(gno, autoscale);
