@@ -265,8 +265,11 @@ AC_CHECK_FUNCS(on_exit)
 AC_CHECK_FUNCS(strerror)
 if test "$ac_cv_func_strerror" = no; then
   AC_CACHE_CHECK("for sys_errlist declaration in stdio.h", ac_cv_sys_errlist_decl,
-      AC_EGREP_HEADER(sys_errlist, stdio.h, ac_cv_sys_errlist_decl="yes";
-      AC_DEFINE(HAVE_SYS_ERRLIST_DECL), ac_cv_sys_errlist_decl="no"))
+      AC_EGREP_HEADER(sys_errlist, stdio.h, ac_cv_sys_errlist_decl="yes",
+      ac_cv_sys_errlist_decl="no"))
+  if test "$ac_cv_sys_errlist_decl" = yes; then
+    AC_DEFINE(HAVE_SYS_ERRLIST_DECL)
+  fi
 fi
 
 ICE_CHECK_DECL(drand48, stdlib.h)
@@ -310,8 +313,11 @@ dnl **** The machten4 (unix for mac) system does have signgam in libm
 dnl **** but it is not declared in <math.h>
 if test "$ac_cv_func_lgamma" = yes; then
   AC_CACHE_CHECK("for signgam declaration in math.h", ac_cv_signgam_decl,
-      AC_EGREP_HEADER(signgam, math.h, ac_cv_signgam_decl="yes";
-      AC_DEFINE(HAVE_SIGNGAM_DECL), ac_cv_signgam_decl="no"))
+      AC_EGREP_HEADER(signgam, math.h, ac_cv_signgam_decl="yes",
+      ac_cv_signgam_decl="no"))
+  if test "$ac_cv_signgam_decl" = yes; then
+    AC_DEFINE(HAVE_SIGNGAM_DECL)
+  fi
 fi
 
 ICE_CHECK_DECL(erf, math.h)
@@ -675,7 +681,7 @@ dnl **** use editres
     CPPFLAGS="$save_CPPFLAGS"
     
     dnl **** check for Xbae widget
-    AC_CHECK_LIB(Xbae, XbaeMatrixRefreshCell, XBAE_LIB="-lXbae";AC_DEFINE(HAVE_LIBXBAE),,$X_LIBS $GUI_LIBS)
+    AC_CHECK_LIB(Xbae, XbaeCreateMatrix, XBAE_LIB="-lXbae";AC_DEFINE(HAVE_LIBXBAE),,$X_LIBS $GUI_LIBS)
     if test -z "$XBAE_LIB"
     then
       dnl **** Use the bundled Xbae library
