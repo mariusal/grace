@@ -49,42 +49,46 @@
 #  include "motifinc.h"
 #endif
 
-static void put_string(FILE *fp, const char *s, int len);
+typedef struct {
+    int curformat;
 
-static int curformat = DEFAULT_PS_FORMAT;
+    unsigned long page_scale;
+    double pixel_size;
+    float page_scalef;
+    int page_orientation;
 
-static unsigned long page_scale;
-static double pixel_size;
-static float page_scalef;
-static int page_orientation;
+    int color;
+    int pattern;
+    double linew;
+    int lines;
+    int linecap;
+    int linejoin;
 
-static int ps_color;
-static int ps_pattern;
-static double ps_linew;
-static int ps_lines;
-static int ps_linecap;
-static int ps_linejoin;
+    int level2;
+    PSColorSpace colorspace;
+    int docdata;
+    int fonts;
 
-static int ps_level2 = TRUE;
-static PSColorSpace ps_colorspace = DEFAULT_COLORSPACE;
-static int docdata = DOCDATA_8BIT;
-static int ps_fonts = FONT_EMBED_BUT35;
+    int offset_x;
+    int offset_y;
+    int feed;
+    int hwres;
 
-static int ps_setup_offset_x = 0;
-static int ps_setup_offset_y = 0;
+#ifndef NONE_GUI
+    Widget frame;
+    Widget level2_item;
+    OptionStructure *docdata_item;
+    OptionStructure *fonts_item;
+    OptionStructure *colorspace_item;
+    SpinStructure *offset_x_item;
+    SpinStructure *offset_y_item;
+    OptionStructure *feed_item;
+    Widget hwres_item;
+#endif
+} PS_data;
 
-static int ps_setup_level2 = TRUE;
-static int ps_setup_colorspace = DEFAULT_COLORSPACE;
-static int ps_setup_docdata = DOCDATA_8BIT;
-static int ps_setup_fonts = FONT_EMBED_BUT35;
+static void put_string(PS_data *psdata, FILE *fp, const char *s, int len);
 
-static int ps_setup_feed = MEDIA_FEED_AUTO;
-static int ps_setup_hwres = FALSE;
-
-static int eps_setup_level2 = TRUE;
-static int eps_setup_colorspace = DEFAULT_COLORSPACE;
-static int eps_setup_docdata = DOCDATA_8BIT;
-static int eps_setup_fonts = FONT_EMBED_BUT35;
 
 static Device_entry dev_ps = {
     DEVICE_PRINT,
@@ -97,7 +101,7 @@ static Device_entry dev_ps = {
     TRUE,
     FALSE,
 
-    psprintinitgraphics,
+    ps_initgraphics,
     ps_op_parser,
     ps_gui_setup,
     NULL,
@@ -124,9 +128,9 @@ static Device_entry dev_eps = {
     TRUE,
     TRUE,
 
-    epsinitgraphics,
-    eps_op_parser,
-    eps_gui_setup,
+    ps_initgraphics,
+    ps_op_parser,
+    ps_gui_setup,
     NULL,
     ps_leavegraphics,
     ps_drawpixel,
@@ -140,13 +144,58 @@ static Device_entry dev_eps = {
     NULL
 };
 
+static PS_data *init_ps_data(const Canvas *canvas, int format)
+{
+    PS_data *data;
+
+    /* we need to perform the allocations */
+    data = (PS_data *) xmalloc(sizeof(PS_data));
+    if (data == NULL) {
+        return NULL;
+    }
+
+    memset(data, 0, sizeof(PS_data));
+
+    data->curformat  = format;
+
+    data->level2     = TRUE;
+    data->colorspace = DEFAULT_COLORSPACE;
+    data->docdata    = DOCDATA_8BIT;
+    data->fonts      = FONT_EMBED_BUT35;
+
+    data->offset_x   = 0;
+    data->offset_y   = 0;
+    data->feed       = MEDIA_FEED_AUTO;
+    data->hwres      = FALSE;
+
+    return data;
+}
+
 int register_ps_drv(Canvas *canvas)
 {
+    PS_data *data;
+    
+    data = init_ps_data(canvas, PS_FORMAT);
+    if (!data) {
+        return RETURN_FAILURE;
+    }
+
+    dev_ps.data = data;
+
     return register_device(canvas, &dev_ps);
 }
 
 int register_eps_drv(Canvas *canvas)
 {
+    PS_data *data;
+    
+    data = init_ps_data(canvas, EPS_FORMAT);
+    if (!data) {
+        return RETURN_FAILURE;
+    }
+
+    dev_eps.data = data;
+
     return register_device(canvas, &dev_eps);
 }
 
@@ -257,12 +306,13 @@ static int ps_embedded_font(const char *fname, int embed_type)
     }
 }
 
-static int ps_initgraphics(const Canvas *canvas,
-    const CanvasStats *cstats, int format)
+int ps_initgraphics(const Canvas *canvas, void *data,
+    const CanvasStats *cstats)
 {
+    PS_data *psdata = (PS_data *) data;
     int i, j, first;
     Page_geometry *pg;
-    int width_pp, height_pp, page_offset_x, page_offset_y;
+    int width_pp, height_pp;
     PSFont *psfonts;
     int font_needed_any = FALSE, font_embed_any = FALSE;
     char **enc;
@@ -271,50 +321,32 @@ static int ps_initgraphics(const Canvas *canvas,
     
     time_t time_value;
     
-    curformat = format;
-    
     pg = get_page_geometry(canvas);
     
-    page_scale = MIN2(pg->height, pg->width);
-    pixel_size = 1.0/page_scale;
-    page_scalef = (float) page_scale*72.0/pg->dpi;
+    psdata->page_scale = MIN2(pg->height, pg->width);
+    psdata->pixel_size = 1.0/psdata->page_scale;
+    psdata->page_scalef = (float) psdata->page_scale*72.0/pg->dpi;
 
-    if (curformat == PS_FORMAT && pg->height < pg->width) {
-        page_orientation = PAGE_ORIENT_LANDSCAPE;
+    if (psdata->curformat == PS_FORMAT && pg->height < pg->width) {
+        psdata->page_orientation = PAGE_ORIENT_LANDSCAPE;
     } else {
-        page_orientation = PAGE_ORIENT_PORTRAIT;
+        psdata->page_orientation = PAGE_ORIENT_PORTRAIT;
     }
     
     /* undefine all graphics state parameters */
-    ps_color = -1;
-    ps_pattern = -1;
-    ps_linew = -1.0;
-    ps_lines = -1;
-    ps_linecap = -1;
-    ps_linejoin = -1;
+    psdata->color = -1;
+    psdata->pattern = -1;
+    psdata->linew = -1.0;
+    psdata->lines = -1;
+    psdata->linecap = -1;
+    psdata->linejoin = -1;
     
     /* CMYK is a PS2 feature */
-    if (ps_level2 == FALSE && ps_colorspace == COLORSPACE_CMYK) {
-        ps_colorspace = COLORSPACE_RGB;
+    if (psdata->level2 == FALSE && psdata->colorspace == COLORSPACE_CMYK) {
+        psdata->colorspace = COLORSPACE_RGB;
     }
 
-    switch (curformat) {
-    case PS_FORMAT:
-        fprintf(canvas->prstream, "%%!PS-Adobe-3.0\n");
-        page_offset_x = ps_setup_offset_x;
-        page_offset_y = ps_setup_offset_y;
-        break;
-    case EPS_FORMAT:
-        fprintf(canvas->prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
-        page_offset_x = 0;
-        page_offset_y = 0;
-        break;
-    default:
-        errmsg("Invalid PS format");
-        return RETURN_FAILURE;
-    }
-    
-    if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
+    if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
         width_pp  = (int) rint(72.0*pg->height/pg->dpi);
         height_pp = (int) rint(72.0*pg->width/pg->dpi);
     } else {
@@ -323,23 +355,23 @@ static int ps_initgraphics(const Canvas *canvas,
     }
 
     v = cstats->bbox;
-    if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-        llx = page_scalef*(1.0 - v.yv2);
-        lly = page_scalef*v.xv1;
-        urx = page_scalef*(1.0 - v.yv1);
-        ury = page_scalef*v.xv2;
+    if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
+        llx = psdata->page_scalef*(1.0 - v.yv2);
+        lly = psdata->page_scalef*v.xv1;
+        urx = psdata->page_scalef*(1.0 - v.yv1);
+        ury = psdata->page_scalef*v.xv2;
     } else {
-        llx = page_scalef*v.xv1;
-        lly = page_scalef*v.yv1;
-        urx = page_scalef*v.xv2;
-        ury = page_scalef*v.yv2;
+        llx = psdata->page_scalef*v.xv1;
+        lly = psdata->page_scalef*v.yv1;
+        urx = psdata->page_scalef*v.xv2;
+        ury = psdata->page_scalef*v.yv2;
     }
     fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n",
         (int) floor(llx), (int) floor(lly), (int) ceil(urx), (int) ceil(ury));
     fprintf(canvas->prstream, "%%%%HiResBoundingBox: %.2f %.2f %.2f %.2f\n",
         llx, lly, urx, ury);
 
-    if (ps_level2 == TRUE) {
+    if (psdata->level2 == TRUE) {
         fprintf(canvas->prstream, "%%%%LanguageLevel: 2\n");
     } else {
         fprintf(canvas->prstream, "%%%%LanguageLevel: 1\n");
@@ -349,7 +381,7 @@ static int ps_initgraphics(const Canvas *canvas,
 
     time(&time_value);
     fprintf(canvas->prstream, "%%%%CreationDate: %s", ctime(&time_value));
-    switch (docdata) {
+    switch (psdata->docdata) {
     case DOCDATA_7BIT:
         fprintf(canvas->prstream, "%%%%DocumentData: Clean7Bit\n");
         break;
@@ -360,13 +392,13 @@ static int ps_initgraphics(const Canvas *canvas,
         fprintf(canvas->prstream, "%%%%DocumentData: Binary\n");
         break;
     }
-    if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
+    if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(canvas->prstream, "%%%%Orientation: Landscape\n");
     } else {
         fprintf(canvas->prstream, "%%%%Orientation: Portrait\n");
     }
     
-    if (curformat == PS_FORMAT) {
+    if (psdata->curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "%%%%Pages: 1\n");
         fprintf(canvas->prstream, "%%%%PageOrder: Ascend\n");
     }
@@ -377,7 +409,7 @@ static int ps_initgraphics(const Canvas *canvas,
     for (i = 0; i < cstats->nfonts; i++) {
         int font = cstats->fonts[i].font;
         char *fontalias = get_fontalias(canvas, font);
-        if (ps_embedded_font(fontalias, ps_fonts)) {
+        if (ps_embedded_font(fontalias, psdata->fonts)) {
             char *fontname = get_fontname(canvas, font);
             psfonts[i].embed = TRUE;
             psfonts[i].name  = copy_string(NULL, fontname);
@@ -423,9 +455,9 @@ static int ps_initgraphics(const Canvas *canvas,
 
     /* Definitions */
     fprintf(canvas->prstream, "%%%%BeginProlog\n");
-    if (curformat == PS_FORMAT) {
-        fprintf(canvas->prstream, "/PAGE_OFFSET_X %d def\n", page_offset_x);
-        fprintf(canvas->prstream, "/PAGE_OFFSET_Y %d def\n", page_offset_y);
+    if (psdata->curformat == PS_FORMAT) {
+        fprintf(canvas->prstream, "/PAGE_OFFSET_X %d def\n", psdata->offset_x);
+        fprintf(canvas->prstream, "/PAGE_OFFSET_Y %d def\n", psdata->offset_y);
     }
     fprintf(canvas->prstream, "/m {moveto} def\n");
     fprintf(canvas->prstream, "/l {lineto} def\n");
@@ -439,7 +471,7 @@ static int ps_initgraphics(const Canvas *canvas,
     fprintf(canvas->prstream, "/SC {setcolor} def\n");
     fprintf(canvas->prstream, "/SGRY {setgray} def\n");
     fprintf(canvas->prstream, "/SRGB {setrgbcolor} def\n");
-    if (ps_colorspace == COLORSPACE_CMYK) {
+    if (psdata->colorspace == COLORSPACE_CMYK) {
         fprintf(canvas->prstream, "/SCMYK {setcmykcolor} def\n");
     }
     fprintf(canvas->prstream, "/SD {setdash} def\n");
@@ -453,7 +485,7 @@ static int ps_initgraphics(const Canvas *canvas,
     for (i = 0; i < cstats->ncolors; i++) {
         int cindex = cstats->colors[i];
         fprintf(canvas->prstream,"/Color%d {", cindex);
-        switch (ps_colorspace) {
+        switch (psdata->colorspace) {
         case COLORSPACE_GRAYSCALE:
             fprintf(canvas->prstream,"%.4f", get_colorintensity(canvas, cindex));
             break;
@@ -525,7 +557,7 @@ static int ps_initgraphics(const Canvas *canvas,
         fprintf(canvas->prstream, "/Font%d exch definefont pop\n", font);
     }
        
-    if (ps_level2 == TRUE && cstats->npatterns) {
+    if (psdata->level2 == TRUE && cstats->npatterns) {
         fprintf(canvas->prstream, "/PTRN {\n");
         fprintf(canvas->prstream, " /pat_bits exch def \n");
         fprintf(canvas->prstream, " /height exch def \n");
@@ -540,7 +572,7 @@ static int ps_initgraphics(const Canvas *canvas,
         fprintf(canvas->prstream, "   width height true [-1 0 0 -1 width height] pat_bits imagemask\n");
         fprintf(canvas->prstream, "  }\n");
         fprintf(canvas->prstream, " >>\n");
-        fprintf(canvas->prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/page_scalef, 1.0/page_scalef);
+        fprintf(canvas->prstream, " [%.4f 0 0 %.4f 0 0]\n", 1.0/psdata->page_scalef, 1.0/psdata->page_scalef);
         fprintf(canvas->prstream, " makepattern\n");
         fprintf(canvas->prstream, "} def\n");
         for (i = 0; i < cstats->npatterns; i++) {
@@ -605,9 +637,9 @@ static int ps_initgraphics(const Canvas *canvas,
     fprintf(canvas->prstream, "%%%%EndProlog\n");
 
     fprintf(canvas->prstream, "%%%%BeginSetup\n");
-    if (ps_level2 == TRUE && curformat == PS_FORMAT) {
+    if (psdata->level2 == TRUE && psdata->curformat == PS_FORMAT) {
         /* page size feed */
-        switch (ps_setup_feed) {
+        switch (psdata->feed) {
         case MEDIA_FEED_AUTO:
             break;
         case MEDIA_FEED_MATCH:
@@ -625,7 +657,7 @@ static int ps_initgraphics(const Canvas *canvas,
         }
         
         /* force HW resolution */
-        if (ps_setup_hwres == TRUE) {
+        if (psdata->hwres == TRUE) {
             fprintf(canvas->prstream, "%%%%BeginFeature: *HWResolution\n");
             fprintf(canvas->prstream, "<</HWResolution [%d %d]>> setpagedevice\n",
                 (int) pg->dpi, (int) pg->dpi);
@@ -634,18 +666,18 @@ static int ps_initgraphics(const Canvas *canvas,
     }
     
     /* compensate for printer page offsets */
-    if (curformat == PS_FORMAT) {
+    if (psdata->curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
     }
-    fprintf(canvas->prstream, "%.2f %.2f scale\n", page_scalef, page_scalef);
+    fprintf(canvas->prstream, "%.2f %.2f scale\n", psdata->page_scalef, psdata->page_scalef);
     /* rotate to get landscape on hardcopy */
-    if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
+    if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
         fprintf(canvas->prstream, "90 rotate\n");
         fprintf(canvas->prstream, "0.0 -1.0 translate\n");
     }
     fprintf(canvas->prstream, "%%%%EndSetup\n");
 
-    if (curformat == PS_FORMAT) {
+    if (psdata->curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "%%%%Page: 1 1\n");
     }
 
@@ -658,12 +690,12 @@ static int ps_initgraphics(const Canvas *canvas,
     return RETURN_SUCCESS;
 }
 
-void ps_setpen(const Canvas *canvas, const Pen *pen)
+void ps_setpen(const Canvas *canvas, const Pen *pen, PS_data *psdata)
 {
-    if (pen->color != ps_color || pen->pattern != ps_pattern) {
-        if (ps_level2 == TRUE) {
+    if (pen->color != psdata->color || pen->pattern != psdata->pattern) {
+        if (psdata->level2 == TRUE) {
             if (pen->pattern == 1) {
-                switch (ps_colorspace) {
+                switch (psdata->colorspace) {
                 case COLORSPACE_GRAYSCALE:
                     fprintf(canvas->prstream, "[/DeviceGray] SCS\n");
                     break;
@@ -676,7 +708,7 @@ void ps_setpen(const Canvas *canvas, const Pen *pen)
                 }
                 fprintf(canvas->prstream, "Color%d SC\n", pen->color);
             } else {
-                switch (ps_colorspace) {
+                switch (psdata->colorspace) {
                 case COLORSPACE_GRAYSCALE:
                     fprintf(canvas->prstream, "[/Pattern /DeviceGray] SCS\n");
                     break;
@@ -691,18 +723,18 @@ void ps_setpen(const Canvas *canvas, const Pen *pen)
                     "Color%d Pattern%d SC\n", pen->color, pen->pattern);
             }
         } else {
-            if (ps_colorspace == COLORSPACE_GRAYSCALE) {
+            if (psdata->colorspace == COLORSPACE_GRAYSCALE) {
                 fprintf(canvas->prstream, "Color%d SGRY\n", pen->color);
             } else {
                 fprintf(canvas->prstream, "Color%d SRGB\n", pen->color);
             }
         }
-        ps_color = pen->color;
-        ps_pattern = pen->pattern;
+        psdata->color = pen->color;
+        psdata->pattern = pen->pattern;
     }
 }
 
-void ps_setdrawbrush(const Canvas *canvas)
+void ps_setdrawbrush(const Canvas *canvas, PS_data *psdata)
 {
     int i;
     int ls;
@@ -710,12 +742,12 @@ void ps_setdrawbrush(const Canvas *canvas)
     Pen pen;
     
     getpen(canvas, &pen);
-    ps_setpen(canvas, &pen);
+    ps_setpen(canvas, &pen, psdata);
 
     ls = getlinestyle(canvas);
-    lw = MAX2(getlinewidth(canvas), pixel_size);
+    lw = MAX2(getlinewidth(canvas), psdata->pixel_size);
     
-    if (ls != ps_lines || lw != ps_linew) {    
+    if (ls != psdata->lines || lw != psdata->linew) {    
         fprintf(canvas->prstream, "[");
         if (ls > 1) {
             LineStyle *linestyle = canvas_get_linestyle(canvas, ls);
@@ -725,19 +757,19 @@ void ps_setdrawbrush(const Canvas *canvas)
         }
         fprintf(canvas->prstream, "] 0 SD\n");
         fprintf(canvas->prstream, "%.4f SLW\n", lw);
-        ps_linew = lw;
-        ps_lines = ls;
+        psdata->linew = lw;
+        psdata->lines = ls;
     }
 }
 
-void ps_setlineprops(const Canvas *canvas)
+void ps_setlineprops(const Canvas *canvas, PS_data *psdata)
 {
     int lc, lj;
     
     lc = getlinecap(canvas);
     lj = getlinejoin(canvas);
     
-    if (lc != ps_linecap) {
+    if (lc != psdata->linecap) {
         switch (lc) {
         case LINECAP_BUTT:
             fprintf(canvas->prstream, "0 SLC\n");
@@ -749,10 +781,10 @@ void ps_setlineprops(const Canvas *canvas)
             fprintf(canvas->prstream, "2 SLC\n");
             break;
         }
-        ps_linecap = lc;
+        psdata->linecap = lc;
     }
 
-    if (lj != ps_linejoin) {
+    if (lj != psdata->linejoin) {
         switch (lj) {
         case LINEJOIN_MITER:
             fprintf(canvas->prstream, "0 SLJ\n");
@@ -764,27 +796,28 @@ void ps_setlineprops(const Canvas *canvas)
             fprintf(canvas->prstream, "2 SLJ\n");
             break;
         }
-        ps_linejoin = lj;
+        psdata->linejoin = lj;
     }
 }
 
 void ps_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 {
+    PS_data *psdata = (PS_data *) data;
     Pen pen;
     getpen(canvas, &pen);
-    ps_setpen(canvas, &pen);
+    ps_setpen(canvas, &pen, psdata);
     
-    if (ps_linew != pixel_size) {
-        fprintf(canvas->prstream, "%.4f SLW\n", pixel_size);
-        ps_linew = pixel_size;
+    if (psdata->linew != psdata->pixel_size) {
+        fprintf(canvas->prstream, "%.4f SLW\n", psdata->pixel_size);
+        psdata->linew = psdata->pixel_size;
     }
-    if (ps_linecap != LINECAP_ROUND) {
+    if (psdata->linecap != LINECAP_ROUND) {
         fprintf(canvas->prstream, "1 SLC\n");
-        ps_linecap = LINECAP_ROUND;
+        psdata->linecap = LINECAP_ROUND;
     }
-    if (ps_lines != 1) {
+    if (psdata->lines != 1) {
         fprintf(canvas->prstream, "[] 0 SD\n");
-        ps_lines = 1;
+        psdata->lines = 1;
     }
     
     fprintf(canvas->prstream, "%.4f %.4f PXL\n", vp->x, vp->y);
@@ -793,11 +826,12 @@ void ps_drawpixel(const Canvas *canvas, void *data, const VPoint *vp)
 void ps_drawpolyline(const Canvas *canvas, void *data,
     const VPoint *vps, int n, int mode)
 {
+    PS_data *psdata = (PS_data *) data;
     int i;
     
-    ps_setdrawbrush(canvas);
+    ps_setdrawbrush(canvas, psdata);
     
-    ps_setlineprops(canvas);
+    ps_setlineprops(canvas, psdata);
     
     fprintf(canvas->prstream, "n\n");
     fprintf(canvas->prstream, "%.4f %.4f m\n", vps[0].x, vps[0].y);
@@ -814,6 +848,7 @@ void ps_drawpolyline(const Canvas *canvas, void *data,
 void ps_fillpolygon(const Canvas *canvas, void *data,
     const VPoint *vps, int nc)
 {
+    PS_data *psdata = (PS_data *) data;
     int i;
     Pen pen;
     getpen(canvas, &pen);
@@ -830,18 +865,18 @@ void ps_fillpolygon(const Canvas *canvas, void *data,
     fprintf(canvas->prstream, "c\n");
 
     /* fill bg first if the pattern != solid */
-    if (pen.pattern != 1 && ps_level2 == TRUE) {
+    if (pen.pattern != 1 && psdata->level2 == TRUE) {
         Pen bgpen;
         bgpen.color   = getbgcolor(canvas);
         bgpen.pattern = 1;
         fprintf(canvas->prstream, "GS\n");
-        ps_setpen(canvas, &bgpen);
+        ps_setpen(canvas, &bgpen, psdata);
         fprintf(canvas->prstream, "fill\n");
         fprintf(canvas->prstream, "GR\n");
     }
     
     getpen(canvas, &pen);
-    ps_setpen(canvas, &pen);
+    ps_setpen(canvas, &pen, psdata);
     if (getfillrule(canvas) == FILLRULE_WINDING) {
         fprintf(canvas->prstream, "fill\n");
     } else {
@@ -852,10 +887,11 @@ void ps_fillpolygon(const Canvas *canvas, void *data,
 void ps_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
+    PS_data *psdata = (PS_data *) data;
     VPoint vpc;
     double rx, ry;
     
-    ps_setdrawbrush(canvas);
+    ps_setdrawbrush(canvas, psdata);
 
     vpc.x = (vp1->x + vp2->x)/2;
     vpc.y = (vp1->y + vp2->y)/2;
@@ -869,6 +905,7 @@ void ps_drawarc(const Canvas *canvas, void *data,
 void ps_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
+    PS_data *psdata = (PS_data *) data;
     VPoint vpc;
     double rx, ry;
     Pen pen;
@@ -892,18 +929,18 @@ void ps_fillarc(const Canvas *canvas, void *data,
                        vpc.x, vpc.y, rx, ry, a1, a2);
 
     /* fill bg first if the pattern != solid */
-    if (pen.pattern != 1 && ps_level2 == TRUE) {
+    if (pen.pattern != 1 && psdata->level2 == TRUE) {
         Pen bgpen;
         bgpen.color   = getbgcolor(canvas);
         bgpen.pattern = 1;
         fprintf(canvas->prstream, "GS\n");
-        ps_setpen(canvas, &bgpen);
+        ps_setpen(canvas, &bgpen, psdata);
         fprintf(canvas->prstream, "fill\n");
         fprintf(canvas->prstream, "GR\n");
     }
 
     getpen(canvas, &pen);
-    ps_setpen(canvas, &pen);
+    ps_setpen(canvas, &pen, psdata);
     fprintf(canvas->prstream, "fill\n");
 }
 
@@ -911,6 +948,7 @@ void ps_putpixmap(const Canvas *canvas, void *data,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
+    PS_data *psdata = (PS_data *) data;
     int j, k;
     int cindex;
     int paddedW;
@@ -920,18 +958,18 @@ void ps_putpixmap(const Canvas *canvas, void *data,
     Pen pen;
 
     getpen(canvas, &pen);
-    ps_setpen(canvas, &pen);
+    ps_setpen(canvas, &pen, psdata);
     
     fprintf(canvas->prstream, "GS\n");
     fprintf(canvas->prstream, "%.4f %.4f translate\n", vp->x, vp->y);
-    fprintf(canvas->prstream, "%.4f %.4f scale\n", (float) width/page_scale, 
-                                           (float) height/page_scale);    
+    fprintf(canvas->prstream, "%.4f %.4f scale\n",
+        (float) width/psdata->page_scale, (float) height/psdata->page_scale);    
     if (pixmap_bpp != 1) {
         int layers = 1, bpp = 8;
         if (pixmap_type == PIXMAP_TRANSPARENT) {
             /* TODO: mask */
         }
-        switch (ps_colorspace) {
+        switch (psdata->colorspace) {
         case COLORSPACE_GRAYSCALE:
             layers = 1;
             bpp = 8;
@@ -949,7 +987,7 @@ void ps_putpixmap(const Canvas *canvas, void *data,
         fprintf(canvas->prstream, "%d %d %d\n", width, height, bpp);
         fprintf(canvas->prstream, "[%d 0 0 %d 0 0]\n", width, -height);
         fprintf(canvas->prstream, "{currentfile picstr readhexstring pop}\n");
-        if (ps_colorspace == COLORSPACE_GRAYSCALE || ps_level2 == FALSE) {
+        if (psdata->colorspace == COLORSPACE_GRAYSCALE || psdata->level2 == FALSE) {
             /* No color images in Level1 */
             fprintf(canvas->prstream, "image\n");
         } else {
@@ -959,12 +997,12 @@ void ps_putpixmap(const Canvas *canvas, void *data,
         for (k = 0; k < height; k++) {
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width+j];
-                if (ps_colorspace == COLORSPACE_GRAYSCALE ||
-                    ps_level2 == FALSE) {
+                if (psdata->colorspace == COLORSPACE_GRAYSCALE ||
+                    psdata->level2 == FALSE) {
                     fprintf(canvas->prstream,"%02x",
                         (int) (255*get_colorintensity(canvas, cindex)));
                 } else {
-                    if (ps_colorspace == COLORSPACE_CMYK) {
+                    if (psdata->colorspace == COLORSPACE_CMYK) {
                         CMYK cmyk;
                         get_cmyk(canvas, cindex, &cmyk);
                         fprintf(canvas->prstream, "%02x%02x%02x%02x",
@@ -984,7 +1022,7 @@ void ps_putpixmap(const Canvas *canvas, void *data,
         paddedW = PAD(width, bitmap_pad);
         if (pixmap_type == PIXMAP_OPAQUE) {
             cindex = getbgcolor(canvas);
-            switch (ps_colorspace) {
+            switch (psdata->colorspace) {
             case COLORSPACE_GRAYSCALE:
                 fprintf(canvas->prstream,"%.4f SGRY\n",
                     get_colorintensity(canvas, cindex));
@@ -1004,7 +1042,7 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             fprintf(canvas->prstream, "0 0 1 -1 rectfill\n");
         }
         cindex = getcolor(canvas);
-        switch (ps_colorspace) {
+        switch (psdata->colorspace) {
         case COLORSPACE_GRAYSCALE:
             fprintf(canvas->prstream,"%.4f SGRY\n",
                 get_colorintensity(canvas, cindex));
@@ -1041,6 +1079,7 @@ void ps_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
+    PS_data *psdata = (PS_data *) data;
     double *kvector;
     int i;
     Pen pen;
@@ -1048,7 +1087,7 @@ void ps_puttext(const Canvas *canvas, void *data,
     fprintf(canvas->prstream, "/Font%d FFSF\n", font);
 
     getpen(canvas, &pen);
-    ps_setpen(canvas, &pen);
+    ps_setpen(canvas, &pen, psdata);
     
     fprintf(canvas->prstream, "%.4f %.4f m\n", vp->x, vp->y);
     fprintf(canvas->prstream, "GS\n");
@@ -1070,7 +1109,7 @@ void ps_puttext(const Canvas *canvas, void *data,
         fprintf(canvas->prstream, "{KPROC} ");
     }
     
-    put_string(canvas->prstream, s, len);
+    put_string(psdata, canvas->prstream, s, len);
 
     if (underline | overline) {
         double w, pos, kcomp;
@@ -1105,7 +1144,8 @@ void ps_puttext(const Canvas *canvas, void *data,
 void ps_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
-    if (curformat == PS_FORMAT) {
+    PS_data *psdata = (PS_data *) data;
+    if (psdata->curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "showpage\n");
         fprintf(canvas->prstream, "%%%%PageTrailer\n");
     }
@@ -1135,7 +1175,7 @@ static int is8bit(unsigned char uc)
 /*
  * Put a NOT NULL-terminated string escaping parentheses and backslashes
  */
-static void put_string(FILE *fp, const char *s, int len)
+static void put_string(PS_data *psdata, FILE *fp, const char *s, int len)
 {
     int i;
     
@@ -1146,8 +1186,8 @@ static void put_string(FILE *fp, const char *s, int len)
         if (c == '(' || c == ')' || c == '\\') {
             fputc('\\', fp);
         }
-        if ((docdata == DOCDATA_7BIT && !is7bit(uc)) ||
-            (docdata == DOCDATA_8BIT && !is8bit(uc))) {
+        if ((psdata->docdata == DOCDATA_7BIT && !is7bit(uc)) ||
+            (psdata->docdata == DOCDATA_8BIT && !is8bit(uc))) {
             fprintf(fp, "\\%03o", uc);
         } else {
             fputc(c, fp);
@@ -1156,143 +1196,71 @@ static void put_string(FILE *fp, const char *s, int len)
     fputc(')', fp);
 }
 
-int psprintinitgraphics(const Canvas *canvas, void *data,
-    const CanvasStats *cstats)
-{
-    int result;
-    
-    ps_level2     = ps_setup_level2;
-    ps_colorspace = ps_setup_colorspace;
-    docdata       = ps_setup_docdata;
-    ps_fonts      = ps_setup_fonts;
-    result = ps_initgraphics(canvas, cstats, PS_FORMAT);
-    
-    if (result == RETURN_SUCCESS) {
-        curformat = PS_FORMAT;
-    }
-    
-    return (result);
-}
-
-int epsinitgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
-{
-    int result;
-    
-    ps_level2     = eps_setup_level2;
-    ps_colorspace = eps_setup_colorspace;
-    docdata       = eps_setup_docdata;
-    ps_fonts      = eps_setup_fonts;
-    result = ps_initgraphics(canvas, cstats, EPS_FORMAT);
-    
-    if (result == RETURN_SUCCESS) {
-        curformat = EPS_FORMAT;
-    }
-    
-    return (result);
-}
-
 int ps_op_parser(const Canvas *canvas, void *data, const char *opstring)
 {
+    PS_data *psdata = (PS_data *) data;
+    
     if (!strcmp(opstring, "level2")) {
-        ps_setup_level2 = TRUE;
+        psdata->level2 = TRUE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "level1")) {
-        ps_setup_level2 = FALSE;
+        psdata->level2 = FALSE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "colorspace:grayscale")) {
-        ps_setup_colorspace = COLORSPACE_GRAYSCALE;
+        psdata->colorspace = COLORSPACE_GRAYSCALE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "colorspace:rgb")) {
-        ps_setup_colorspace = COLORSPACE_RGB;
+        psdata->colorspace = COLORSPACE_RGB;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "colorspace:cmyk")) {
-        ps_setup_colorspace = COLORSPACE_CMYK;
+        psdata->colorspace = COLORSPACE_CMYK;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "docdata:7bit")) {
-        ps_setup_docdata = DOCDATA_7BIT;
+        psdata->docdata = DOCDATA_7BIT;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "docdata:8bit")) {
-        ps_setup_docdata = DOCDATA_8BIT;
+        psdata->docdata = DOCDATA_8BIT;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "docdata:binary")) {
-        ps_setup_docdata = DOCDATA_BINARY;
-        return RETURN_SUCCESS;
-    } else if (!strncmp(opstring, "xoffset:", 8)) {
-        ps_setup_offset_x = atoi(opstring + 8);
-        return RETURN_SUCCESS;
-    } else if (!strncmp(opstring, "yoffset:", 8)) {
-        ps_setup_offset_y = atoi(opstring + 8);
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "hwresolution:on")) {
-        ps_setup_hwres = TRUE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "hwresolution:off")) {
-        ps_setup_hwres = FALSE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "mediafeed:auto")) {
-        ps_setup_feed = MEDIA_FEED_AUTO;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "mediafeed:match")) {
-        ps_setup_feed = MEDIA_FEED_MATCH;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "mediafeed:manual")) {
-        ps_setup_feed = MEDIA_FEED_MANUAL;
+        psdata->docdata = DOCDATA_BINARY;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "embedfonts:none")) {
-        ps_setup_fonts = FONT_EMBED_NONE;
+        psdata->fonts = FONT_EMBED_NONE;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "embedfonts:but13")) {
-        ps_setup_fonts = FONT_EMBED_BUT13;
+        psdata->fonts = FONT_EMBED_BUT13;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "embedfonts:but35")) {
-        ps_setup_fonts = FONT_EMBED_BUT35;
+        psdata->fonts = FONT_EMBED_BUT35;
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "embedfonts:all")) {
-        ps_setup_fonts = FONT_EMBED_ALL;
+        psdata->fonts = FONT_EMBED_ALL;
         return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int eps_op_parser(const Canvas *canvas, void *data, const char *opstring)
-{
-    if (!strcmp(opstring, "level2")) {
-        eps_setup_level2 = TRUE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "level1")) {
-        eps_setup_level2 = FALSE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "colorspace:grayscale")) {
-        eps_setup_colorspace = COLORSPACE_GRAYSCALE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "colorspace:rgb")) {
-        eps_setup_colorspace = COLORSPACE_RGB;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "colorspace:cmyk")) {
-        eps_setup_colorspace = COLORSPACE_CMYK;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "docdata:7bit")) {
-        eps_setup_docdata = DOCDATA_7BIT;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "docdata:8bit")) {
-        eps_setup_docdata = DOCDATA_8BIT;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "docdata:binary")) {
-        eps_setup_docdata = DOCDATA_BINARY;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "embedfonts:none")) {
-        eps_setup_fonts = FONT_EMBED_NONE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "embedfonts:but13")) {
-        eps_setup_fonts = FONT_EMBED_BUT13;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "embedfonts:but35")) {
-        eps_setup_fonts = FONT_EMBED_BUT35;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "embedfonts:all")) {
-        eps_setup_fonts = FONT_EMBED_ALL;
-        return RETURN_SUCCESS;
+    } else if (psdata->curformat == PS_FORMAT) {
+        if (!strncmp(opstring, "xoffset:", 8)) {
+            psdata->offset_x = atoi(opstring + 8);
+            return RETURN_SUCCESS;
+        } else if (!strncmp(opstring, "yoffset:", 8)) {
+            psdata->offset_y = atoi(opstring + 8);
+            return RETURN_SUCCESS;
+        } else if (!strcmp(opstring, "hwresolution:on")) {
+            psdata->hwres = TRUE;
+            return RETURN_SUCCESS;
+        } else if (!strcmp(opstring, "hwresolution:off")) {
+            psdata->hwres = FALSE;
+            return RETURN_SUCCESS;
+        } else if (!strcmp(opstring, "mediafeed:auto")) {
+            psdata->feed = MEDIA_FEED_AUTO;
+            return RETURN_SUCCESS;
+        } else if (!strcmp(opstring, "mediafeed:match")) {
+            psdata->feed = MEDIA_FEED_MATCH;
+            return RETURN_SUCCESS;
+        } else if (!strcmp(opstring, "mediafeed:manual")) {
+            psdata->feed = MEDIA_FEED_MANUAL;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
     } else {
         return RETURN_FAILURE;
     }
@@ -1300,18 +1268,8 @@ int eps_op_parser(const Canvas *canvas, void *data, const char *opstring)
 
 #ifndef NONE_GUI
 
-static void update_ps_setup_frame(void);
+static void update_ps_setup_frame(PS_data *psdata);
 static int set_ps_setup_proc(void *data);
-
-static Widget ps_setup_frame;
-static Widget ps_setup_level2_item;
-static OptionStructure *ps_setup_docdata_item;
-static OptionStructure *ps_setup_fonts_item;
-static OptionStructure *ps_setup_colorspace_item;
-static SpinStructure *ps_setup_offset_x_item;
-static SpinStructure *ps_setup_offset_y_item;
-static OptionStructure *ps_setup_feed_item;
-static Widget ps_setup_hwres_item;
 
 static void colorspace_cb(int onoff, void *data)
 {
@@ -1332,9 +1290,12 @@ static void colorspace_cb(int onoff, void *data)
 
 void ps_gui_setup(const Canvas *canvas, void *data)
 {
+    PS_data *psdata = (PS_data *) data;
+    
     set_wait_cursor();
     
-    if (ps_setup_frame == NULL) {
+    if (psdata->frame == NULL) {
+        char *title;
         Widget ps_setup_rc, fr, rc;
         OptionItem colorspace_op_items[3] = {
             {COLORSPACE_GRAYSCALE, "Grayscale"},
@@ -1358,140 +1319,80 @@ void ps_gui_setup(const Canvas *canvas, void *data)
             {FONT_EMBED_ALL,   "All"                }
         };
         
-	ps_setup_frame = CreateDialogForm(app_shell, "PS options");
+        if (psdata->curformat == PS_FORMAT) {
+            title = "PS options";
+        } else {
+            title = "EPS options";
+        }
+	psdata->frame = CreateDialogForm(app_shell, title);
 
-        ps_setup_rc = CreateVContainer(ps_setup_frame);
+        ps_setup_rc = CreateVContainer(psdata->frame);
 
 	fr = CreateFrame(ps_setup_rc, "PS options");
         rc = CreateVContainer(fr);
-	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-        ps_setup_colorspace_item =
+	psdata->level2_item = CreateToggleButton(rc, "PS Level 2");
+        psdata->colorspace_item =
             CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
-	AddToggleButtonCB(ps_setup_level2_item,
-            colorspace_cb, ps_setup_colorspace_item);
-	ps_setup_docdata_item =
+	AddToggleButtonCB(psdata->level2_item,
+            colorspace_cb, psdata->colorspace_item);
+	psdata->docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
-	ps_setup_fonts_item =
+	psdata->fonts_item =
             CreateOptionChoice(rc, "Embed fonts:", 1, 4, font_op_items);
 
-	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
-        rc = CreateHContainer(fr);
-	ps_setup_offset_x_item = CreateSpinChoice(rc,
-            "X: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
-	ps_setup_offset_y_item = CreateSpinChoice(rc,
-            "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
+        if (psdata->curformat == PS_FORMAT) {
+	    fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
+            rc = CreateHContainer(fr);
+	    psdata->offset_x_item = CreateSpinChoice(rc,
+                "X: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
+	    psdata->offset_y_item = CreateSpinChoice(rc,
+                "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 
-	fr = CreateFrame(ps_setup_rc, "Hardware");
-        rc = CreateVContainer(fr);
-	ps_setup_feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
-	ps_setup_hwres_item = CreateToggleButton(rc, "Set hardware resolution");
+	    fr = CreateFrame(ps_setup_rc, "Hardware");
+            rc = CreateVContainer(fr);
+	    psdata->feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
+	    psdata->hwres_item = CreateToggleButton(rc, "Set hardware resolution");
+        }
 
-	CreateAACDialog(ps_setup_frame, ps_setup_rc, set_ps_setup_proc, NULL);
+	CreateAACDialog(psdata->frame, ps_setup_rc, set_ps_setup_proc, psdata);
     }
-    update_ps_setup_frame();
+    update_ps_setup_frame(psdata);
     
-    RaiseWindow(GetParent(ps_setup_frame));
+    RaiseWindow(GetParent(psdata->frame));
     unset_wait_cursor();
 }
 
-static void update_ps_setup_frame(void)
+static void update_ps_setup_frame(PS_data *psdata)
 {
-    if (ps_setup_frame) {
-        SetToggleButtonState(ps_setup_level2_item, ps_setup_level2);
-        SetOptionChoice(ps_setup_colorspace_item, ps_setup_colorspace);
-        colorspace_cb(ps_setup_level2, ps_setup_colorspace_item);
-        SetOptionChoice(ps_setup_fonts_item, ps_setup_fonts);
-        SetSpinChoice(ps_setup_offset_x_item, (double) ps_setup_offset_x);
-        SetSpinChoice(ps_setup_offset_y_item, (double) ps_setup_offset_y);
-        SetOptionChoice(ps_setup_feed_item, ps_setup_feed);
-        SetToggleButtonState(ps_setup_hwres_item, ps_setup_hwres);
-        SetOptionChoice(ps_setup_docdata_item, ps_setup_docdata);
+    if (psdata->frame) {
+        SetToggleButtonState(psdata->level2_item, psdata->level2);
+        SetOptionChoice(psdata->colorspace_item, psdata->colorspace);
+        colorspace_cb(psdata->level2, psdata->colorspace_item);
+        SetOptionChoice(psdata->fonts_item, psdata->fonts);
+        SetOptionChoice(psdata->docdata_item, psdata->docdata);
+        if (psdata->curformat == PS_FORMAT) {
+            SetSpinChoice(psdata->offset_x_item, (double) psdata->offset_x);
+            SetSpinChoice(psdata->offset_y_item, (double) psdata->offset_y);
+            SetOptionChoice(psdata->feed_item, psdata->feed);
+            SetToggleButtonState(psdata->hwres_item, psdata->hwres);
+        }
     }
 }
 
 static int set_ps_setup_proc(void *data)
 {
-    ps_setup_level2     = GetToggleButtonState(ps_setup_level2_item);
-    ps_setup_docdata    = GetOptionChoice(ps_setup_docdata_item);
-    ps_setup_colorspace = GetOptionChoice(ps_setup_colorspace_item);
-    ps_setup_fonts      = GetOptionChoice(ps_setup_fonts_item);
-    ps_setup_offset_x   = (int) GetSpinChoice(ps_setup_offset_x_item);
-    ps_setup_offset_y   = (int) GetSpinChoice(ps_setup_offset_y_item);
-    ps_setup_feed       = GetOptionChoice(ps_setup_feed_item);
-    ps_setup_hwres      = GetToggleButtonState(ps_setup_hwres_item);
-    
-    return RETURN_SUCCESS;
-}
+    PS_data *psdata = (PS_data *) data;
 
-static void update_eps_setup_frame(void);
-static int set_eps_setup_proc(void *data);
-static Widget eps_setup_frame;
-static Widget eps_setup_level2_item;
-static OptionStructure *eps_setup_colorspace_item;
-static OptionStructure *eps_setup_docdata_item;
-static OptionStructure *eps_setup_fonts_item;
-
-void eps_gui_setup(const Canvas *canvas, void *data)
-{
-    set_wait_cursor();
-    
-    if (eps_setup_frame == NULL) {
-        Widget fr, rc;
-        OptionItem colorspace_op_items[3] = {
-            {COLORSPACE_GRAYSCALE, "Grayscale"},
-            {COLORSPACE_RGB,       "RGB"      },
-            {COLORSPACE_CMYK,      "CMYK"     }
-        };
-        OptionItem docdata_op_items[3] = {
-            {DOCDATA_7BIT,   "7bit"  },
-            {DOCDATA_8BIT,   "8bit"  },
-            {DOCDATA_BINARY, "Binary"}
-        };
-        OptionItem font_op_items[4] = {
-            {FONT_EMBED_NONE,  "None"               },
-            {FONT_EMBED_BUT13, "All but 13 standard"},
-            {FONT_EMBED_BUT35, "All but 35 standard"},
-            {FONT_EMBED_ALL,   "All"                }
-        };
-	
-        eps_setup_frame = CreateDialogForm(app_shell, "EPS options");
-
-        fr = CreateFrame(eps_setup_frame, "EPS options");
-        rc = CreateVContainer(fr);
-	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-	eps_setup_colorspace_item =
-            CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
-	AddToggleButtonCB(eps_setup_level2_item,
-            colorspace_cb, eps_setup_colorspace_item);
-	eps_setup_docdata_item =
-            CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
-	eps_setup_fonts_item =
-            CreateOptionChoice(rc, "Embed fonts:", 1, 4, font_op_items);
-	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
+    psdata->level2     = GetToggleButtonState(psdata->level2_item);
+    psdata->docdata    = GetOptionChoice(psdata->docdata_item);
+    psdata->colorspace = GetOptionChoice(psdata->colorspace_item);
+    psdata->fonts      = GetOptionChoice(psdata->fonts_item);
+    if (psdata->curformat == PS_FORMAT) {
+        psdata->offset_x   = (int) GetSpinChoice(psdata->offset_x_item);
+        psdata->offset_y   = (int) GetSpinChoice(psdata->offset_y_item);
+        psdata->feed       = GetOptionChoice(psdata->feed_item);
+        psdata->hwres      = GetToggleButtonState(psdata->hwres_item);
     }
-    update_eps_setup_frame();
-    RaiseWindow(GetParent(eps_setup_frame));
-    
-    unset_wait_cursor();
-}
-
-static void update_eps_setup_frame(void)
-{
-    if (eps_setup_frame) {
-        SetToggleButtonState(eps_setup_level2_item, eps_setup_level2);
-        SetOptionChoice(eps_setup_colorspace_item, eps_setup_colorspace);
-        colorspace_cb(eps_setup_level2, eps_setup_colorspace_item);
-        SetOptionChoice(eps_setup_docdata_item, eps_setup_docdata);
-        SetOptionChoice(eps_setup_fonts_item, eps_setup_fonts);
-    }
-}
-
-static int set_eps_setup_proc(void *data)
-{
-    eps_setup_level2     = GetToggleButtonState(eps_setup_level2_item);
-    eps_setup_colorspace = GetOptionChoice(eps_setup_colorspace_item);
-    eps_setup_docdata    = GetOptionChoice(eps_setup_docdata_item);
-    eps_setup_fonts      = GetOptionChoice(eps_setup_fonts_item);
     
     return RETURN_SUCCESS;
 }

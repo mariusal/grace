@@ -31,8 +31,6 @@
 #define EPS_FORMAT  1
 /* #define EPSI_FORMAT  2 */
 
-#define DEFAULT_PS_FORMAT PS_FORMAT
-
 typedef enum {
     COLORSPACE_GRAYSCALE,
     COLORSPACE_RGB,
@@ -59,9 +57,7 @@ typedef struct {
 #define FONT_EMBED_BUT35   2
 #define FONT_EMBED_ALL     3
 
-int psprintinitgraphics(const Canvas *canvas, void *data,
-    const CanvasStats *cstats);
-int epsinitgraphics(const Canvas *canvas, void *data,
+int ps_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 void ps_drawpixel(const Canvas *canvas, void *data, const VPoint *vp);
@@ -84,16 +80,9 @@ void ps_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 
 int ps_op_parser(const Canvas *canvas, void *data, const char *opstring);
-int eps_op_parser(const Canvas *canvas, void *data, const char *opstring);
 
 #if defined(NONE_GUI)
 #  define ps_gui_setup NULL
 #else
 void ps_gui_setup(const Canvas *canvas, void *data);
-#endif
-
-#if defined(NONE_GUI)
-#  define eps_gui_setup NULL
-#else
-void eps_gui_setup(const Canvas *canvas, void *data);
 #endif
