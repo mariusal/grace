@@ -77,7 +77,9 @@ void update_locator_items(int gno)
     
     GLocator locator;
     
-    get_graph_locator(gno, &locator);
+    if (get_graph_locator(gno, &locator) != RETURN_SUCCESS) {
+        return;
+    }
     
     if (locator_frame) {
 	SetChoice(fixedp_item, locator.pointset);
