@@ -1972,6 +1972,25 @@ int drawxysym(VPoint vp, double size, int symtype,
     return RETURN_SUCCESS;
 }
 
+static void drawlegbarsym(VPoint vp, double size, Pen sympen, Pen symfillpen)
+{
+    double width, height;
+    VPoint vps[4];
+
+    width  = 0.02*size;
+    height = 0.02*getcharsize();
+    
+    vps[0].x = vps[1].x = vp.x - width/2;
+    vps[2].x = vps[3].x = vp.x + width/2;
+    vps[0].y = vps[3].y = vp.y - height/2;
+    vps[1].y = vps[2].y = vp.y + height/2;
+    
+    setpen(symfillpen);
+    DrawPolygon (vps, 4);
+    setpen(sympen);
+    DrawPolyline (vps, 4, POLYLINE_CLOSED);
+}
+
 void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)
 {
     double ilen;
@@ -2598,8 +2617,8 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
             
             setfont(p.charfont);
-            if (p.type == SET_BAR) {
-                p.sym = SYM_SQUARE;
+            if (p.type == SET_BAR || p.type == SET_BOXPLOT) {
+                p.sym = 100;
             }
             
             if (l.len != 0 && p.lines != 0 && p.linet != 0) { 
@@ -2610,8 +2629,13 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
         
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
-                drawxysym(vp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
-                drawxysym(vp2, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
+                if (p.type == SET_BAR || p.type == SET_BOXPLOT) {
+                    drawlegbarsym(vp, p.symsize, p.sympen, p.symfillpen);
+                    drawlegbarsym(vp2, p.symsize, p.sympen, p.symfillpen);
+                } else {
+                    drawxysym(vp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
+                    drawxysym(vp2, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
+                }
             } else {
                 VPoint vptmp;
                 vptmp.x = (vp.x + vp2.x)/2;
@@ -2619,7 +2643,11 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
                 
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
-                drawxysym(vptmp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
+                if (p.type == SET_BAR || p.type == SET_BOXPLOT) {
+                    drawlegbarsym(vptmp, p.symsize, p.sympen, p.symfillpen);
+                } else {
+                    drawxysym(vptmp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
+                }
             }
         }
     }
