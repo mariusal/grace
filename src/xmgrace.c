@@ -600,6 +600,15 @@ void set_locbar(int onoff, void *data)
     set_view_items();
 }
 
+void set_barebones(int onoff)
+{
+    if (onoff){
+        locbar_visible = 0;
+        toolbar_visible = 0;
+        statusbar_visible = 0;
+    }
+}
+
 /*
  * create the main menubar
  */
@@ -1218,3 +1227,4 @@ static void load_example(void *data)
 
     unset_wait_cursor();
 }
+

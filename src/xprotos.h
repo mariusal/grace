@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -195,5 +195,7 @@ void set_graph_selectors(int gno);
 void update_props_items(void);
 void update_all(void);
 void update_all_cb(void *data);
+
+void set_barebones(int onoff);
 
 #endif /* __XPROTOS_H_ */

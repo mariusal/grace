@@ -383,6 +383,8 @@ int main(int argc, char *argv[])
 		    install_cmap = CMAP_INSTALL_ALWAYS;
 		} else if (argmatch(argv[i], "-noinstall", 9)) {
 		    install_cmap = CMAP_INSTALL_NEVER;
+		} else if (argmatch(argv[i], "-barebones", 9)) {
+		    set_barebones( TRUE );
 #endif
 		} else if (argmatch(argv[i], "-timestamp", 10)) {
 		    timestamp.active = TRUE;
@@ -808,6 +810,9 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-arrange   [rows] [cols]              Arrange the graphs in a grid rows by cols\n");
     fprintf(stream, "-autoscale [x|y|xy|none]              Set autoscale type\n");
     fprintf(stream, "-batch     [batch_file]               Execute batch_file on start up\n");
+#ifndef NONE_GUI
+    fprintf(stream, "-barebones                            Turn off all toolbars\n");
+#endif
     fprintf(stream, "-block     [block_data]               Assume data file is block data\n");
     fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
     fprintf(stream, "                                        using the current set type from columns\n");
