@@ -4639,10 +4639,7 @@ void update_all(void)
         return;
     }
     
-    update_set_lists(gno);
-
-    update_set_selectors(ALL_GRAPHS);
-    update_ss_editors(ALL_GRAPHS);
+    update_set_lists(ALL_GRAPHS);
 
     if (ReqUpdateColorSel == TRUE) {
         update_color_selectors();
