@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -445,7 +445,7 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
  
     	    delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)   / (T1_AALEVELS - 1);
     	    delta_rgb.green = (fg_rgb.green - bg_rgb.green) / (T1_AALEVELS - 1);
-    	    delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue) / (T1_AALEVELS - 1);
+    	    delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue)  / (T1_AALEVELS - 1);
  
     	    for (i = 1; i < T1_AALEVELS - 1; i++) {
     		cmap.rgb.red   = bg_rgb.red + i*delta_rgb.red;
@@ -828,11 +828,6 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     
     dev = get_curdevice_props();
     
-    /* No patterned texts */
-    setpattern(1);
-    
-    cstring = String2Composite(theString);
-    
     /* inches per 1 unit of viewport */
     page_ipv = MIN2(page_width_in, page_height_in);
 
@@ -853,6 +848,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         cs_marks[gotomark].x = 0;
         cs_marks[gotomark].y = 0;
     }
+    
+    cstring = String2Composite(theString);
     
     first = FALSE;
     iglyph = 0;
@@ -990,12 +987,15 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     vptmp.y = vp.y + (double) yshift/page_dpv;
 
     if (get_draw_mode() == TRUE) {
+        /* No patterned texts */
+        setpattern(1);
+    
         if (dev.devfonts == FONTSRC_BITMAP) {
             (*devputpixmap) (vptmp, pwidth, pheight, CSglyph->bits, 
                                 CSglyph->bpp, bitmap_pad, PIXMAP_TRANSPARENT);
         } else {
             if (devputtext == NULL) {
-                errmsg("Device has no fonts built-in");
+                errmsg("Device has no built-in fonts");
             } else {
                 vp_baseline_start.x = vptmp.x + 
                     (double) (baseline_start_x - bbox_left_x)/page_dpv;
