@@ -37,10 +37,15 @@
 
 int grace_rt_init_dicts(RunTime *rt);
 void grace_rt_free_dicts(RunTime *rt);
+
 char *graph_types(RunTime *rt, GraphType it);
+char *graph_type_descr(RunTime *rt, GraphType it);
 GraphType graph_get_type_by_name(RunTime *rt, const char *name);
+
 char *set_types(RunTime *rt, SetType it);
+char *set_type_descr(RunTime *rt, SetType it);
 SetType get_settype_by_name(RunTime *rt, const char *name);
+
 char *inout_placement_name(RunTime *rt, int inout);
 int get_inout_placement_by_name(RunTime *rt, const char *name);
 char *side_placement_name(RunTime *rt, int inout);

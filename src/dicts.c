@@ -159,6 +159,15 @@ char *graph_types(RunTime *rt, GraphType it)
     return s;
 }
 
+char *graph_type_descr(RunTime *rt, GraphType it)
+{
+    char *s;
+    
+    dict_get_descr_by_key(rt->graph_type_dict, it, &s);
+    
+    return s;
+}
+
 GraphType graph_get_type_by_name(RunTime *rt, const char *name)
 {
     int retval;
@@ -174,6 +183,15 @@ char *set_types(RunTime *rt, SetType it)
     char *s;
     
     dict_get_name_by_key(rt->set_type_dict, it, &s);
+    
+    return s;
+}
+
+char *set_type_descr(RunTime *rt, SetType it)
+{
+    char *s;
+    
+    dict_get_descr_by_key(rt->set_type_dict, it, &s);
     
     return s;
 }
