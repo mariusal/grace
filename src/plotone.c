@@ -122,6 +122,10 @@ void do_hardcopy(void)
     int truncated_out;
     
     if (get_ptofile()) {
+        if (print_file[0] == '\0') {
+            Device_entry dev = get_device_props(hdevice);
+            sprintf(print_file, "%s.%s", get_docbname(), dev.fext);
+        }
         strcpy(fname, print_file);
     } else {
         s = get_print_cmd();
