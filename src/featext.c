@@ -292,9 +292,9 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 			case 10: 		/* frequency and period */
 			case 11:
 				if ( ilog2(getsetlength(cg, cs)) <= 0)    /* only FFT */
-					do_fourier(1, cs, 0, 1, 0, 0, 0);
-				else							/* DFT      */
-					do_fourier(0, cs, 0, 1, 0, 0, 0);
+					do_fourier(cg, cs, 1, 0, 1, 0, 0, 0);
+				else		                                        /* DFT      */
+					do_fourier(cg, cs, 0, 0, 1, 0, 0, 0);
 
 				sprintf( tbuf, "FT of set %d", cs );
 				fts = 0;
@@ -388,11 +388,11 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 							getsetlength( cg, cs ), xmax, &datum ); 
 				break;
 			case 23:		/* cumulative sum */
-				datum = do_int( cs, 1 );
+				datum = do_int(cg, cs, 1);
 				break;
 		}
 		if( !extract_err )
-			add_point( gto, ns, abscissa[i], datum);
+			add_point(gto, ns, abscissa[i], datum);
 		cs++;
 	}
 

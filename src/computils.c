@@ -52,42 +52,21 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
 
 static char buf[256];
 
-void do_running_command(int type, int setno, int rlen)
-{
-    switch (type) {
-    case RUN_AVG:
-	type = 0;
-	break;
-    case RUN_MED:
-	type = 1;
-	break;
-    case RUN_MIN:
-	type = 2;
-	break;
-    case RUN_MAX:
-	type = 3;
-	break;
-    case RUN_STD:
-	type = 4;
-	break;
-    }
-    do_runavg(setno, rlen, type, -1, 0);
-}
 
-void do_fourier_command(int ftype, int setno, int ltype)
+void do_fourier_command(int gno, int setno, int ftype, int ltype)
 {
     switch (ftype) {
     case FFT_DFT:
-	do_fourier(0, setno, 0, ltype, 0, 0, 0);
+	do_fourier(gno, setno, 0, 0, ltype, 0, 0, 0);
 	break;
-    case FFT_INVDFT:
-	do_fourier(0, setno, 0, ltype, 1, 0, 0);
+    case FFT_INVDFT       :
+	do_fourier(gno, setno, 0, 0, ltype, 1, 0, 0);
 	break;
     case FFT_FFT:
-	do_fourier(1, setno, 0, ltype, 0, 0, 0);
+	do_fourier(gno, setno, 1, 0, ltype, 0, 0, 0);
 	break;
-    case FFT_INVFFT:
-	do_fourier(1, setno, 0, ltype, 1, 0, 0);
+    case FFT_INVFFT       :
+	do_fourier(gno, setno, 1, 0, ltype, 1, 0, 0);
 	break;
     }
 }
@@ -309,20 +288,20 @@ void do_linearc(int set1, int set2)
 /*
  * cross correlation
  */
-void do_xcor(int set1, int set2, int maxlag)
+void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
 {
     int xcorset, i, ierr;
     double *xtmp;
 
-    if (!(is_set_active(get_cg(), set1) && is_set_active(get_cg(), set2))) {
+    if (!(is_set_active(gno1, set1) && is_set_active(gno2, set2))) {
 	errmsg("Set not active");
 	return;
     }
-    if (maxlag < 0 || maxlag + 2 > getsetlength(get_cg(), set1)) {
+    if (maxlag < 0 || maxlag + 2 > getsetlength(gno1, set1)) {
 	errmsg("Lag incorrectly specified");
 	return;
     }
-    if ((getsetlength(get_cg(), set1) < 3) || (getsetlength(get_cg(), set2) < 3)) {
+    if ((getsetlength(gno1, set1) < 3) || (getsetlength(gno2, set2) < 3)) {
 	errmsg("Set length < 3");
 	return;
     }
@@ -337,7 +316,7 @@ void do_xcor(int set1, int set2, int maxlag)
 	    sprintf(buf, "Autocorrelation of set %d at maximum lag %d",
                     set1, maxlag);
 	}
-	ierr = crosscorr(gety(get_cg(), set1), gety(get_cg(), set2), getsetlength(get_cg(), set1),
+	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), getsetlength(gno1, set1),
                          maxlag, getx(get_cg(), xcorset), gety(get_cg(), xcorset));
 	xtmp = getx(get_cg(), xcorset);
 	for (i = 0; i <= maxlag; i++) {
@@ -351,16 +330,16 @@ void do_xcor(int set1, int set2, int maxlag)
 /*
  * splines
  */
-void do_spline(int set, double start, double stop, int n, int type)
+void do_spline(int gno, int set, double start, double stop, int n, int type)
 {
     int i, splineset, len;
     double delx, *x, *y, *b, *c, *d, *xtmp, *ytmp;
 
-    if (!is_set_active(get_cg(), set)) {
+    if (!is_set_active(gno, set)) {
 	errmsg("Set not active");
 	return;
     }
-    if ((len = getsetlength(get_cg(), set)) < 3) {
+    if ((len = getsetlength(gno, set)) < 3) {
 	errmsg("Improper set length");
 	return;
     }
@@ -369,12 +348,12 @@ void do_spline(int set, double start, double stop, int n, int type)
 	return;
     }
     delx = (stop - start) / (n - 1);
-    splineset = nextset(get_cg());
+    splineset = nextset(gno);
     if (splineset != -1) {
-	activateset(get_cg(), splineset);
-	setlength(get_cg(), splineset, n);
-	x = getx(get_cg(), set);
-	y = gety(get_cg(), set);
+	activateset(gno, splineset);
+	setlength(gno, splineset, n);
+	x = getx(gno, set);
+	y = gety(gno, set);
 	b = calloc(len, SIZEOF_DOUBLE);
 	c = calloc(len, SIZEOF_DOUBLE);
 	d = calloc(len, SIZEOF_DOUBLE);
@@ -383,7 +362,7 @@ void do_spline(int set, double start, double stop, int n, int type)
 	    cxfree(b);
 	    cxfree(c);
 	    cxfree(d);
-	    killset(get_cg(), splineset);
+	    killset(gno, splineset);
 	    return;
 	}
 	if (type == SPLINE_AKIMA) {
@@ -391,8 +370,8 @@ void do_spline(int set, double start, double stop, int n, int type)
 	} else {
 	    spline (len, x, y, b, c, d);
 	}
-	xtmp = getx(get_cg(), splineset);
-	ytmp = gety(get_cg(), splineset);
+	xtmp = getx(gno, splineset);
+	ytmp = gety(gno, splineset);
 
 	for (i = 0; i < n; i++) {
 	    xtmp[i] = start + i * delx;
@@ -404,7 +383,7 @@ void do_spline(int set, double start, double stop, int n, int type)
 	        sprintf(buf, "Cubic spline fit from set %d", set);
 	    }
 	}
-	setcomment(get_cg(), splineset, buf);
+	setcomment(gno, splineset, buf);
 	log_results(buf);
 
 	cxfree(b);
@@ -417,31 +396,31 @@ void do_spline(int set, double start, double stop, int n, int type)
 /*
  * numerical integration
  */
-double do_int(int setno, int itype)
+double do_int(int gno, int setno, int itype)
 {
     int intset;
     double sum = 0;
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gno, setno)) {
 	errmsg("Set not active");
 	return 0.0;
     }
-    if (getsetlength(get_cg(), setno) < 3) {
+    if (getsetlength(gno, setno) < 3) {
 	errmsg("Set length < 3");
 	return 0.0;
     }
     if (itype == 0) {
-	intset = nextset(get_cg());
+	intset = nextset(gno);
 	if (intset != (-1)) {
-	    activateset(get_cg(), intset);
-	    setlength(get_cg(), intset, getsetlength(get_cg(), setno));
+	    activateset(gno, intset);
+	    setlength(gno, intset, getsetlength(gno, setno));
 	    sprintf(buf, "Cumulative sum of set %d", setno);
-	    sum = trapint(getx(get_cg(), setno), gety(get_cg(), setno), getx(get_cg(), intset), gety(get_cg(), intset), getsetlength(get_cg(), setno));
-	    setcomment(get_cg(), intset, buf);
+	    sum = trapint(getx(gno, setno), gety(gno, setno), getx(gno, intset), gety(gno, intset), getsetlength(gno, setno));
+	    setcomment(gno, intset, buf);
 	    log_results(buf);
 	}
     } else {
-	sum = trapint(getx(get_cg(), setno), gety(get_cg(), setno), NULL, NULL, getsetlength(get_cg(), setno));
+	sum = trapint(getx(gno, setno), gety(gno, setno), NULL, NULL, getsetlength(gno, setno));
     }
     return sum;
 }
@@ -453,39 +432,39 @@ double do_int(int setno, int itype)
  *  1 - backward
  *  2 - centered difference
  */
-void do_differ(int setno, int itype)
+void do_differ(int gno, int setno, int itype)
 {
     int diffset;
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gno, setno)) {
 	errmsg("Set not active");
 	return;
     }
-    if (getsetlength(get_cg(), setno) < 3) {
+    if (getsetlength(gno, setno) < 3) {
 	errmsg("Set length < 3");
 	return;
     }
-    diffset = nextset(get_cg());
+    diffset = nextset(gno);
     if (diffset != (-1)) {
-	activateset(get_cg(), diffset);
+	activateset(gno, diffset);
 	switch (itype) {
 	case 0:
 	    sprintf(buf, "Forward difference of set %d", setno);
-	    setlength(get_cg(), diffset, getsetlength(get_cg(), setno) - 1);
-	    forwarddiff(getx(get_cg(), setno), gety(get_cg(), setno), getx(get_cg(), diffset), gety(get_cg(), diffset), getsetlength(get_cg(), setno));
+	    setlength(gno, diffset, getsetlength(gno, setno) - 1);
+	    forwarddiff(getx(gno, setno), gety(gno, setno), getx(gno, diffset), gety(gno, diffset), getsetlength(gno, setno));
 	    break;
 	case 1:
 	    sprintf(buf, "Backward difference of set %d", setno);
-	    setlength(get_cg(), diffset, getsetlength(get_cg(), setno) - 1);
-	    backwarddiff(getx(get_cg(), setno), gety(get_cg(), setno), getx(get_cg(), diffset), gety(get_cg(), diffset), getsetlength(get_cg(), setno));
+	    setlength(gno, diffset, getsetlength(gno, setno) - 1);
+	    backwarddiff(getx(gno, setno), gety(gno, setno), getx(gno, diffset), gety(gno, diffset), getsetlength(gno, setno));
 	    break;
 	case 2:
 	    sprintf(buf, "Centered difference of set %d", setno);
-	    setlength(get_cg(), diffset, getsetlength(get_cg(), setno) - 2);
-	    centereddiff(getx(get_cg(), setno), gety(get_cg(), setno), getx(get_cg(), diffset), gety(get_cg(), diffset), getsetlength(get_cg(), setno));
+	    setlength(gno, diffset, getsetlength(gno, setno) - 2);
+	    centereddiff(getx(gno, setno), gety(gno, setno), getx(gno, diffset), gety(gno, diffset), getsetlength(gno, setno));
 	    break;
 	}
-	setcomment(get_cg(), diffset, buf);
+	setcomment(gno, diffset, buf);
 	log_results(buf);
     }
 }
@@ -521,9 +500,9 @@ void do_seasonal_diff(int setno, int period)
 /*
  * regression with restrictions to region rno if rno >= 0
  */
-void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
+void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int fitset)
 	/* 
-	 * setno  - set to perform fit on
+	 * gno, setno  - set to perform fit on
 	 * ideg   - degree of fit
 	 * irisid - 0 -> whole set, 1-> subset of setno
 	 * rno    - region number of subset
@@ -540,13 +519,13 @@ void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
     char buf[256];
     double c[20];   /* coefficients of fitted polynomial */
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gno, setno)) {
 		errmsg("Set not active");
 		return;
     }
-    len = getsetlength(get_cg(), setno);
-    x = getx(get_cg(), setno);
-    y = gety(get_cg(), setno);
+    len = getsetlength(gno, setno);
+    x = getx(gno, setno);
+    y = gety(gno, setno);
     if (rno == -1) {
 		xt = x;
 		yt = y;
@@ -574,20 +553,20 @@ void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
     }
 	/* determine is set provided or use abscissa from fitted set */
     if( fitset == -1 ) {		        /* create set */
-    	if( (fitset = nextset(get_cg())) != -1 ) {
-			activateset(get_cg(), fitset);
-			setlength(get_cg(), fitset, len);
+    	if( (fitset = nextset(gno)) != -1 ) {
+			activateset(gno, fitset);
+			setlength(gno, fitset, len);
 			fitlen = len;
-			xr = getx(get_cg(), fitset);
+			xr = getx(gno, fitset);
 			for (i = 0; i < len; i++) {
 	    		xr[i] = xt[i];
 			}	
-			yr = gety(get_cg(), fitset);
+			yr = gety(gno, fitset);
 		}
     } else {									/* set has been provided */
-		fitlen = getsetlength( get_cg(), fitset );
-		xr = getx(get_cg(), fitset);
-		yr = gety(get_cg(), fitset);
+		fitlen = getsetlength( gno, fitset );
+		xr = getx(gno, fitset);
+		yr = gety(gno, fitset);
     }
 
 	/* transform data so that system has the form y' = A + B * x' */
@@ -659,7 +638,7 @@ void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
 	}
 
 	if (fitcurve(xt, yt, len, ideg, c)) {
-	    killset(get_cg(), fitset);
+	    killset(gno, fitset);
 	    goto bustout;
 	}
 
@@ -724,7 +703,7 @@ void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
 	    break;
 	}
 	sprintf(buf, "%d deg fit of set %d", ideg, setno);
-	setcomment(get_cg(), fitset, buf);
+	setcomment(gno, fitset, buf);
 	log_results(buf);
     }
     bustout:;
@@ -737,13 +716,13 @@ void do_regress(int setno, int ideg, int iresid, int rno, int invr, int fitset)
 /*
  * running averages, medians, min, max, std. deviation
  */
-void do_runavg(int setno, int runlen, int runtype, int rno, int invr)
+void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr)
 {
     int runset;
     int len, cnt = 0;
     double *x, *y, *xt = NULL, *yt = NULL, *xr, *yr;
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gno, setno)) {
 	errmsg("Set not active");
 	return;
     }
@@ -751,9 +730,9 @@ void do_runavg(int setno, int runlen, int runtype, int rno, int invr)
 	errmsg("Length of running average < 2");
 	return;
     }
-    len = getsetlength(get_cg(), setno);
-    x = getx(get_cg(), setno);
-    y = gety(get_cg(), setno);
+    len = getsetlength(gno, setno);
+    x = getx(gno, setno);
+    y = gety(gno, setno);
     if (rno == -1) {
 	xt = x;
 	yt = y;
@@ -775,12 +754,12 @@ void do_runavg(int setno, int runlen, int runtype, int rno, int invr)
 	errmsg("Length of running average > set length");
 	goto bustout;
     }
-    runset = nextset(get_cg());
+    runset = nextset(gno);
     if (runset != (-1)) {
-	activateset(get_cg(), runset);
-	setlength(get_cg(), runset, len - runlen + 1);
-	xr = getx(get_cg(), runset);
-	yr = gety(get_cg(), runset);
+	activateset(gno, runset);
+	setlength(gno, runset, len - runlen + 1);
+	xr = getx(gno, runset);
+	yr = gety(gno, runset);
 	switch (runtype) {
 	case 0:
 	    runavg(xt, yt, xr, yr, len, runlen);
@@ -803,7 +782,7 @@ void do_runavg(int setno, int runlen, int runtype, int rno, int invr)
 	    sprintf(buf, "%d-pt. std dev., set %d ", runlen, setno);
 	    break;
 	}
-	setcomment(get_cg(), runset, buf);
+	setcomment(gno, runset, buf);
 	log_results(buf);
     }
   bustout:;
@@ -816,7 +795,7 @@ void do_runavg(int setno, int runlen, int runtype, int rno, int invr)
 /*
  * DFT by FFT or definition
  */
-void do_fourier(int fftflag, int setno, int load, int loadx, int invflag, int type, int wind)
+void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invflag, int type, int wind)
 {
     int i, ilen;
     double *x, *y, *xx, *yy, delt, T;
@@ -1608,10 +1587,10 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
     return 1;
 }
 
-void do_interp( int yset, int xset, int method )
+void do_interp(int ygno, int yset, int xgno, int xset, int method)
 /* interpolate a set at abscissas from another set
- *  yset - set to interpolate
- *  xset - set supplying abscissas
+ *  (ygno, yset) - set to interpolate
+ *  (xgno, xset) - set supplying abscissas
  *  method - spline or linear interpolation
  *
  * Added by Ed Vigmond 10/2/97
@@ -1621,31 +1600,25 @@ void do_interp( int yset, int xset, int method )
     double *x1, *x2, *newx, *y, *b, *c, *d, newy;
     double xmin, xmax, ymin, ymax;
 	
-    if (!is_set_active(get_cg(), yset)) {
+    if (!is_set_active(ygno, yset)) {
 	errmsg("Interpolating set not active");
 	return;
     }
-    if (!is_set_active(get_cg(), xset)) {
+    if (!is_set_active(xgno, xset)) {
         errmsg("Sampling set not active");
         return;
     }
     iset = nextset(get_cg());
-    /* make sure set was really killed */
-/*
- *     if (getsetlength(get_cg(), iset) > 0) {                
- *         set_default_plotarr(&g[get_cg()].p[iset]);
- *     }
- */
     activateset( get_cg(), iset );
     /* ensure bounds of new set */
-    x1=getx( get_cg(), yset );
-    y=gety( get_cg(), yset );
-    x2=getx( get_cg(), xset );
-    newx = calloc( getsetlength( get_cg(), xset ), sizeof( double ) );
-    xsetlength = getsetlength( get_cg(), xset );
-    ysetlength = getsetlength( get_cg(), yset );
+    x1=getx( ygno, yset );
+    y=gety( ygno, yset );
+    x2=getx( xgno, xset );
+    newx = calloc( getsetlength( xgno, xset ), sizeof( double ) );
+    xsetlength = getsetlength( xgno, xset );
+    ysetlength = getsetlength( ygno, yset );
     for(i = 0, j = 0; i < xsetlength; i++) {		/* get intersection of sets */
-    	getsetminmax(get_cg(), yset, &xmin, &xmax, &ymin, &ymax);
+    	getsetminmax(ygno, yset, &xmin, &xmax, &ymin, &ymax);
         if(x2[i] >= xmin && x2[i] <= xmax) {
     	    newx[j++] = x2[i];
         }

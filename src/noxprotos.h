@@ -43,19 +43,18 @@
 
 int formula(int gno, int selset, char *sscanstr);
 
-void do_running_command(int type, int setno, int rlen);
-void do_fourier_command(int ftype, int setno, int ltype);
+void do_fourier_command(int gno, int setno, int ftype, int ltype);
 int do_compute(int setno, int loadto, int graphto, char *fstr);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
-void do_xcor(int set1, int set2, int lag);
-void do_spline(int set, double start, double stop, int n, int type);
-double do_int(int setno, int itype);
-void do_differ(int setno, int itype);
-void do_regress(int setno, int ideg, int iresid, int rno, int invr, int rset);
-void do_runavg(int setno, int runlen, int runtype, int rno, int invr);
-void do_fourier(int fftflag, int setno, int load, int loadx, int invflag, int type, int wind);
+void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
+void do_spline(int gno, int set, double start, double stop, int n, int type);
+double do_int(int gno, int setno, int itype);
+void do_differ(int gno, int setno, int itype);
+void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
+void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr);
+void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invflag, int type, int wind);
 void do_window(int setno, int type, int wind);
 void apply_window(double *xx, double *yy, int ilen, int type, int wind);
 void do_histo(int fromgraph, int fromset, int tograph, int toset,
@@ -254,7 +253,7 @@ int get_hotlink_src(int gno, int setno);
 void sortset(int gno, int setno, int sorton, int stype);
 void do_seasonal_diff(int setno, int period);
 int do_nonlfit(int gno, int setno, int nsteps);
-void do_interp( int yset, int xset, int method );
+void do_interp(int ygno, int yset, int xgno, int xset, int method);
 
 int inbounds(int gno, double x, double y);
 int intersect_to_left(double x, double y, double x1, double y1, double x2, double y2);

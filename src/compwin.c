@@ -413,6 +413,7 @@ void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int i, cnt;
     int setno, load, loadx, invflag, type, wind;
@@ -436,9 +437,9 @@ static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	do_fourier(0, setno, load, loadx, invflag, type, wind);
+	do_fourier(gno, setno, 0, load, loadx, invflag, type, wind);
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     free(selsets);
     unset_wait_cursor();
     drawgraph();
@@ -449,6 +450,7 @@ static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data
  */
 static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int i, cnt;
     int setno, load, loadx, invflag, type, wind;
@@ -466,9 +468,9 @@ static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	do_fourier(1, setno, load, loadx, invflag, type, wind);
+	do_fourier(gno, setno, 1, load, loadx, invflag, type, wind);
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     free(selsets);
     unset_wait_cursor();
     drawgraph();
@@ -599,6 +601,7 @@ void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int i, cnt;
     int runlen, runtype, setno, rno, invr;
@@ -623,9 +626,9 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	do_runavg(setno, runlen, runtype, rno, invr);
+	do_runavg(gno, setno, runlen, runtype, rno, invr);
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     unset_wait_cursor();
     free(selsets);
     drawgraph();
@@ -796,6 +799,7 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int cnt;
     Reg_ui *ui = (Reg_ui *) client_data;
@@ -852,20 +856,20 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     	for (j = 0; j < cnt; j++) {
 			setno = selsets[j];
 			if( rx == 2 ) {
-				if( (rset = nextset( get_cg() )) == -1 ){
+				if( (rset = nextset( gno )) == -1 ){
 				     errwin("Not enough sets");
 				     return;
 				}
-				activateset( get_cg(), rset );
-				setlength( get_cg(), rset, nstep);
-				xr = getx( get_cg(), rset );
+				activateset( gno, rset );
+				setlength( gno, rset, nstep);
+				xr = getx( gno, rset );
 				for( k=0; k<nstep; k++ )
 					xr[k] = xstart+k*stepsize;
 			}
-			do_regress(setno, i, iresid, rno, invr, rset);
+			do_regress(gno, setno, i, iresid, rno, invr, rset);
 	    }
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     unset_wait_cursor();
     free(selsets);
     drawgraph();
@@ -927,6 +931,7 @@ void create_diff_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int i, cnt;
     int setno, itype;
@@ -946,9 +951,9 @@ static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	do_differ(setno, itype);
+	do_differ(gno, setno, itype);
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     unset_wait_cursor();
     free(selsets);
     drawgraph();
@@ -1011,6 +1016,7 @@ void create_int_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int i, cnt;
     int setno, itype;
@@ -1033,11 +1039,11 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	sum = do_int(setno, itype);
+	sum = do_int(gno, setno, itype);
 	sprintf(buf, "%g", sum);
 	xv_setstr(ui->sum_item, buf);
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     unset_wait_cursor();
     free(selsets);
     drawgraph();
@@ -1185,42 +1191,19 @@ void create_interp_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_interp_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-/* TODO
-    int *selsets;
-    int i, cnt;
-    int setno;
-    if (w == NULL) {
-	cnt = 1;
-	selsets = (int *) malloc(sizeof(int));
-	selsets[0] = pick_set;
-    } else {
-	cnt = GetSelectedSets(ui->sel, &selsets);
-	if (cnt == SET_SELECT_ERROR) {
-	    errwin("No sets selected");
-	    return;
-	}
-    }
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-    }
-    update_set_lists(get_cg());
-    unset_wait_cursor();
-    free(selsets);
-    drawgraph();
-*/
+    int gno = get_cg();
     int set1, set2, method;
     Interp_ui *ui = (Interp_ui *) client_data;
     set1 = GetSelectedSet(ui->sel1);
     set2 = GetSelectedSet(ui->sel2);
     if (set1 == SET_SELECT_ERROR || set2 == SET_SELECT_ERROR) {
-		errwin("Select 2 sets");
-		return;
+	errwin("Select 2 sets");
+	return;
     }
-    method = (int) GetChoice(ui->meth_item);
+    method = GetChoice(ui->meth_item);
     set_wait_cursor();
-    do_interp(set1, set2, method);
-    update_set_lists(get_cg());
+    do_interp(gno, set1, gno, set2, method);
+    update_set_lists(gno);
     unset_wait_cursor();
 }
 
@@ -1279,6 +1262,7 @@ void create_xcor_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int set1, set2, maxlag;
     Cross_ui *ui = (Cross_ui *) client_data;
     set1 = GetSelectedSet(ui->sel1);
@@ -1291,8 +1275,8 @@ static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     set_wait_cursor();
-    do_xcor(set1, set2, maxlag);
-    update_set_lists(get_cg());
+    do_xcor(gno, set1, gno, set2, maxlag);
+    update_set_lists(gno);
     drawgraph();
     unset_wait_cursor();
 }
@@ -1359,6 +1343,7 @@ void create_spline_frame(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int gno = get_cg();
     int *selsets;
     int i, cnt;
     int setno, n;
@@ -1386,9 +1371,9 @@ static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
 	setno = selsets[i];
-	do_spline(setno, start, stop, n, stype+1);
+	do_spline(gno, setno, start, stop, n, stype+1);
     }
-    update_set_lists(get_cg());
+    update_set_lists(gno);
     unset_wait_cursor();
 
     free(selsets);
