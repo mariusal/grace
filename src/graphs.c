@@ -179,19 +179,22 @@ Quark *get_parent_graph(const Quark *child)
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     if (q->fid == QFlavorGraph) {
-        Project *project = (Project *) udata;
-
         closure->descend = FALSE;
         
-        if (project->cg != q) {
-            project->cg = q;
-            return FALSE;
-        } else {
-            return TRUE;
+        if (!is_graph_hidden(q)) {
+            Project *project = (Project *) udata;
+
+            if (project->cg != q) {
+                project->cg = q;
+                return FALSE;
+            }
         }
-    } else {
-        return TRUE;
+    } else
+    if (q->fid == QFlavorFrame && !frame_is_active(q)) {
+        closure->descend = FALSE;
     }
+
+    return TRUE;
 }
 
 static int graph_free_cb(Quark *gr, int etype, void *data)
@@ -201,9 +204,9 @@ static int graph_free_cb(Quark *gr, int etype, void *data)
         Project *project = project_get_data(pr);
         if (project->cg == gr) {
             quark_traverse(pr, hook, project);
-        }
-        if (project->cg == gr) {
-            project->cg = NULL;
+            if (project->cg == gr) {
+                project->cg = NULL;
+            }
         }
     }
     return RETURN_SUCCESS;
@@ -354,6 +357,10 @@ int select_graph(Quark *gr)
     graph *g = graph_get_data(gr);
     int ctrans_type, xyfixed;
     view v;
+    
+    if (!g) {
+        return RETURN_FAILURE;
+    }
     
     switch (g->type) {
     case GRAPH_POLAR:
