@@ -182,6 +182,12 @@ void do_clear_text(void);
 void do_clear_ellipses(void);
 
 void scanner(char *s, double *x, double *y, int len, double *a, double *b, double *c, double *d, int lenscr, int i, int setno, int *errpos);
+
+int get_parser_gno(void);
+void set_parser_gno(int gno);
+int get_parser_setno(void);
+void set_parser_setno(int setno);
+
 double rnorm(double mean, double sdev);
 double fx(double x);
 void init_symtab(void);

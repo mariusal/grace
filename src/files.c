@@ -74,7 +74,6 @@ static char buf[256];
 static char *linebuf = 0;
 static int   linelen = 0;
 
-int change_gno;			/* if the graph number changes on read in */
 static int cur_gno;		/* if the graph number changes on read in */
 int change_type;		/* current set type */
 static int cur_type;		/* current set type */
@@ -823,6 +822,8 @@ static int readnxy(int gno, char *fn, FILE * fp)
     char *s, buf[1024], *tmpbuf;
     int do_restart = 0;
 
+    set_parser_gno(gno);
+
 /* if more than one set of nxy data is in the file,
  * leap to here after each is read - the goto is at the
  * bottom of this module.
@@ -833,13 +834,11 @@ static int readnxy(int gno, char *fn, FILE * fp)
            && ((linebuf[0] == '#') || (linebuf[0] == '@'))) {
 	readline++;
 	if (linebuf[0] == '@') {
-	    change_gno = -1;
 	    read_param(linebuf + 1);
-	    if (change_gno >= 0) {
-		cur_gno = gno = change_gno;
-	    }
 	}
     }
+    cur_gno = gno = get_parser_gno();
+    
     convertchar(linebuf);
 
     /*
@@ -902,12 +901,9 @@ static int readnxy(int gno, char *fn, FILE * fp)
 		continue;
 	    }
 	    if (linebuf[0] == '@') {
-		change_gno = -1;
 		change_type = cur_type;
 		read_param(linebuf + 1);
-		if (change_gno >= 0) {
-		    cur_gno = gno = change_gno;
-		}
+                cur_gno = gno = get_parser_gno();
 		if (change_type != cur_type) {
 		    cur_type = change_type;
 		    retval = -1;
@@ -992,6 +988,8 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
     int ncols;  /* columns of numbers */
     long alloclen;
 
+    set_parser_gno(gno);
+
     retval = 0;
     
     alloclen = 0;
@@ -1007,14 +1005,11 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
 	}
         
 	if (linebuf[0] == '@') {
-	    change_gno = -1;
 	    change_type = type;
 	    if (read_param(linebuf + 1) != 0) {
                 retval = -2;
             }
-	    if (change_gno >= 0) {
-		cur_gno = gno = change_gno;
-	    }
+            cur_gno = gno = get_parser_gno();
 	    if (change_type != type) {
 	        cur_type = change_type;
                 retval = -1;
@@ -1217,6 +1212,8 @@ static int readxystring(int gno, char *fn, FILE * fp)
     double *x, *y;
     char *s, *s1, *s2, **strs;
 
+    set_parser_gno(gno);
+
     x = calloc(BUFSIZE, SIZEOF_DOUBLE);
     y = calloc(BUFSIZE, SIZEOF_DOUBLE);
     strs = calloc(BUFSIZE, sizeof(char *));
@@ -1254,12 +1251,9 @@ static int readxystring(int gno, char *fn, FILE * fp)
 	    continue;
 	}
 	if (linebuf[0] == '@') {
-	    change_gno = -1;
 	    change_type = cur_type;
 	    read_param(linebuf + 1);
-	    if (change_gno >= 0) {
-		cur_gno = gno = change_gno;
-	    }
+            cur_gno = gno = get_parser_gno();
 	    if (change_type != cur_type) {
 		cur_type = change_type;
 		retval = -1;

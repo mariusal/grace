@@ -87,14 +87,12 @@ static char f_string[MAX_STRING_LENGTH]; /* buffer for string to parse */
 static int pos = 0;
 static double *aa, *bb, *cc, *dd;
 static int setindex, lxy, ls;
-static int setsetno;
 static int whichgraph;
 static int whichset;
 
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
 
-extern int change_gno;
 extern int change_type;
 extern char *close_input;
 
@@ -1733,15 +1731,12 @@ parmset:
 	    target_set.setno = (int) $2;
 	}
 	| TARGET GRAPHNO '.' SETNUM {
+            select_graph($2);
 	    target_set.gno = $2;
 	    target_set.setno = $4;
-            change_gno = target_set.gno;
 	}
 	| WITH GRAPHNO {
-	    int gno = $2;
-            if (select_graph(gno) == GRACE_EXIT_SUCCESS) {
-	        change_gno = gno;
-            }
+            select_graph($2);
 	}
 	| WITH SETNUM {
 	    curset = (int) $2;
@@ -2610,7 +2605,12 @@ actions:
             autotick_axis(get_cg(), ALL_AXES);
         }
 	| FOCUS GRAPHNO {
-	    select_graph((int) $2);
+	    int gno = (int) $2;
+            if (is_graph_hidden(gno) == FALSE) {
+                select_graph(gno);
+            } else {
+		errmsg("Graph is not active");
+            }
 	}
 	| READ CHRSTR {
 	    gotread = TRUE;
@@ -4203,6 +4203,29 @@ symtab_entry ikey[] = {
 
 static int maxfunc = sizeof(ikey) / sizeof(symtab_entry);
 
+int get_parser_gno(void)
+{
+    return whichgraph;
+}
+
+void set_parser_gno(int gno)
+{
+    if (is_valid_gno(gno) == TRUE) {
+        whichgraph = gno;
+    }
+}
+
+int get_parser_setno(void)
+{
+    return whichgraph;
+}
+
+void set_parser_setno(int setno)
+{
+    if (is_valid_setno(whichgraph, setno) == TRUE) {
+        whichset = setno;
+    }
+}
 
 void scanner(char *s, double *x, double *y, int len, double *a, double *b, double *c, double *d, int lenscr, int i, int setno, int *errpos)
 {
@@ -4230,6 +4253,7 @@ void scanner(char *s, double *x, double *y, int len, double *a, double *b, doubl
     interr = 0;
     whichgraph = get_cg();
     whichset = setno;
+    curset = setno;
     pos = 0;
     aa = a;
     bb = b;
@@ -4238,7 +4262,6 @@ void scanner(char *s, double *x, double *y, int len, double *a, double *b, doubl
     lxy = len;
     ls = lenscr;
     setindex = i + 1;
-    curset = setsetno = setno;
 
     fcnt = 0;
     log_results(s);
@@ -4435,7 +4458,7 @@ int yylex(void)
 	char stmp[80];
 	int i = 0, ctmp = c, gn, sn, rn;
 	c = getcharstr();
-	while (isdigit(c)) {
+	while (isdigit(c) || c == '$' || c == '_') {
 	    stmp[i++] = c;
 	    c = getcharstr();
 	}
@@ -4446,7 +4469,13 @@ int yylex(void)
 	    ungetchstr();
 	    if (ctmp == 'G') {
 	        stmp[i] = '\0';
-		gn = atoi(stmp);
+		if (i == 1 && stmp[0] == '$') {
+                    gn = get_recent_gno();
+                } else if (i == 1 && stmp[0] == '_') {
+                    gn = whichgraph;
+                } else {
+                    gn = atoi(stmp);
+                }
 		if (set_graph_active(gn, TRUE) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = gn;
 		    whichgraph = gn;
@@ -4454,7 +4483,13 @@ int yylex(void)
 		}
 	    } else if (ctmp == 'S') {
 	        stmp[i] = '\0';
-		sn = atoi(stmp);
+		if (i == 1 && stmp[0] == '$') {
+                    sn = get_recent_setno();
+                } else if (i == 1 && stmp[0] == '_') {
+                    sn = whichset;
+                } else {
+		    sn = atoi(stmp);
+                }
 		if (allocate_set(whichgraph, sn) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = sn;
 		    whichset = sn;
@@ -4476,7 +4511,8 @@ int yylex(void)
 
 	do {
 	    *p++ = c;
-	} while ((c = getcharstr()) != EOF && (isalpha(c) || isdigit(c) || c == '_'));
+	} while ((c = getcharstr()) != EOF && (isalpha(c) || isdigit(c) ||
+                  c == '_' || c == '$'));
 	ungetchstr();
 	*p = '\0';
         if (debuglevel == 2) {
