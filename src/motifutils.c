@@ -3178,6 +3178,7 @@ void destroy_dialog_cb(void *data)
 void handle_close(Widget w)
 {
     Atom WM_DELETE_WINDOW;
+    
     XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
     WM_DELETE_WINDOW = XmInternAtom(disp, "WM_DELETE_WINDOW", False);
     XmAddProtocolCallback(w,
@@ -3185,6 +3186,8 @@ void handle_close(Widget w)
         WM_DELETE_WINDOW,
         destroy_dialog,
         (XtPointer) w);
+    
+    savewidget(w);
 }
 
 /*
@@ -3194,7 +3197,6 @@ void RaiseWindow(Widget w)
 {
     XtManageChild(w);
     XMapRaised(XtDisplay(w), XtWindow(w));
-    savewidget(w);
 }
 
 
