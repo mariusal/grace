@@ -77,15 +77,14 @@ devclean :
 	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) \
 	tags *.orig *.*gr .gdb_history t1lib.log $(PARS_C)
 
-depend : Make.dep
-
-Make.dep :
-	echo "# Generated automatically by \`make depend'" > $@
+depend :
+	echo "# Generated automatically by \`make depend'" > Make.dep
 	$(CC) $(CFLAGS) -MM $(GRSRCS) $(GUISRCS) $(PARS_C) buildinfo.c \
-	| sed 's/\.o:/\$$(O)\ :/g' >> $@
+		| sed 's/\.o:/\$$(O)\ :/g' >> Make.dep
 
 tags : $(GRSRCS) $(GUISRCS) $(PARS_Y)
 	ctags --format=1 $(GRSRCS) $(GUISRCS) $(PARS_Y)
 
 dummy :
 
+# DO NOT DELETE
