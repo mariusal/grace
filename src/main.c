@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 #ifndef NONE_GUI    
             cli = FALSE;
             if (initialize_gui(&argc, argv) != RETURN_SUCCESS) {
-	        errmsg("Can't open X connection, exiting");
+	        errmsg("Failed initializing GUI, exiting");
                 exit(1);
             }
 #endif
