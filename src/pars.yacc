@@ -2182,7 +2182,28 @@ parmset:
 	        curobject->active = $2;
             }
 	}
-	| objecttype selectgraph {
+	| LINE selectgraph {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->gno = $2;
+            }
+	}
+	| BOX selectgraph {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->gno = $2;
+            }
+	}
+	| ELLIPSE selectgraph {
+	    if (!curobject) {
+                yyerror("No active object");
+	    } else {
+	        curobject->gno = $2;
+            }
+	}
+	| STRING selectgraph {
 	    if (!curobject) {
                 yyerror("No active object");
 	    } else {
@@ -3019,18 +3040,6 @@ actions:
 	}
 	| CLEAR STACK {
 	    clear_world_stack();
-	}
-	| CLEAR BOX {
-	    do_clear_boxes();
-	}
-	| CLEAR ELLIPSE {
-	    do_clear_ellipses();
-	}
-	| CLEAR LINE {
-	    do_clear_lines();
-	}
-	| CLEAR STRING {
-	    do_clear_text();
 	}
         ;
 

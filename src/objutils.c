@@ -28,7 +28,7 @@
 
 /*
  *
- * operations on objects (strings, lines, and boxes)
+ * operations on objects (strings, lines, boxes, and arcs)
  *
  */
 
@@ -45,7 +45,31 @@
 #include "utils.h"
 #include "objutils.h"
 
-DObject *object_new(OType type)
+static int object_data_size(OType type)
+{
+    int size;
+
+    switch (type) {
+    case DO_LINE:
+        size = sizeof(DOLineData);
+        break;
+    case DO_BOX:
+        size = sizeof(DOBoxData);
+        break;
+    case DO_ARC:
+        size = sizeof(DOArcData);
+        break;
+    case DO_STRING:
+        size = sizeof(DOStringData);
+        break;
+    default:
+        size = 0;
+    }
+    
+    return size;
+}
+
+static DObject *object_new(OType type)
 {
     DObject *o;
     
@@ -69,47 +93,44 @@ DObject *object_new(OType type)
         o->fillpen.color = 1;
         o->fillpen.pattern = 1;
 
+        o->odata = xmalloc(object_data_size(type));
+        if (o->odata == NULL) {
+            xfree(o);
+            return NULL;
+        }
         switch (o->type) {
         case DO_LINE:
             {
-                DOLineData *l;
-                l = xmalloc(sizeof(DOLineData));
+                DOLineData *l = (DOLineData *) o->odata;
                 l->length    = 0.0;
                 l->arrow_end = 0; 
                 set_default_arrow(&l->arrow);
-                o->odata = (void *) l;
             }
             break;
         case DO_BOX:
             {
-                DOBoxData *b;
-                b = xmalloc(sizeof(DOBoxData));
+                DOBoxData *b = (DOBoxData *) o->odata;
                 b->width  = 0.0;
                 b->height = 0.0;
-                o->odata = (void *) b;
             }
             break;
         case DO_ARC:
             {
-                DOArcData *e;
-                e = xmalloc(sizeof(DOArcData));
+                DOArcData *e = (DOArcData *) o->odata;
                 e->width  = 0.0;
                 e->height = 0.0;
                 e->angle1 =   0.0;
                 e->angle2 = 360.0;
                 e->fillmode = ARCFILL_CHORD;
-                o->odata = (void *) e;
             }
             break;
         case DO_STRING:
             {
-                DOStringData *s;
-                s = xmalloc(sizeof(DOStringData));
+                DOStringData *s = (DOStringData *) o->odata;
                 s->s    = NULL;
                 s->font = 0;
                 s->just = 0;
                 s->size = 1.0;
-                o->odata = (void *) s;
             }
             break;
         }
@@ -120,9 +141,61 @@ DObject *object_new(OType type)
     return o;
 }
 
+static int object_set_data(DObject *o, void *odata)
+{
+    int size = object_data_size(o->type);
+    
+    if (!size) {
+        return RETURN_FAILURE;
+    }
+
+    memcpy(o->odata, (void *) odata, size);
+    
+    if (o->type == DO_STRING) {
+        ((DOStringData *) (o->odata))->s =
+            copy_string(NULL, ((DOStringData *) odata)->s);
+    }
+    
+    return RETURN_SUCCESS;
+}
+
+static DObject *object_copy(DObject *osrc)
+{
+    DObject *odest;
+    void *odata;
+    
+    if (!osrc) {
+        return NULL;
+    }
+    
+    odest = object_new(osrc->type);
+    if (!odest) {
+        return NULL;
+    }
+    
+    /* Save odata pointer before memcpy overwrites it */
+    odata = odest->odata;
+    
+    memcpy(odest, osrc, sizeof(DObject));
+    
+    /* Restore odata */
+    odest->odata = odata;
+    
+    if (object_set_data(odest, osrc->odata) != RETURN_SUCCESS) {
+        object_free(odest);
+        return NULL;
+    }
+    
+    return odest;
+}
+
 void object_free(DObject *o)
 {
     if (o) {
+        if (o->type == DO_STRING) {
+            DOStringData *s = (DOStringData *) o->odata;
+            xfree(s->s);
+        }
         xfree(o->odata);
         xfree(o);
     }
@@ -144,6 +217,8 @@ int next_object(OType type)
         } else {
             id = -1;
         }
+        
+        set_dirtystate();
     }
     
     return id;
@@ -165,16 +240,6 @@ void do_clear_objects(void)
     storage_empty(objects);
 }
 
-void do_clear_lines(void){}
-void do_clear_boxes(void){}
-void do_clear_ellipses(void){}
-void do_clear_text(void){}
-
-void set_plotstr_string(plotstr *pstr, char *buf)
-{
-    pstr->s = copy_string(pstr->s, buf);
-}
-
 int get_object_bb(DObject *o, view *bb)
 {
     if (o) {
@@ -187,20 +252,149 @@ int get_object_bb(DObject *o, view *bb)
 
 int kill_object(int id)
 {
-    return storage_delete_by_id(objects, id);
+    if (storage_delete_by_id(objects, id) == RETURN_SUCCESS) {
+        set_dirtystate();
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
-void copy_object(int type, int from, int to){}
-int duplicate_object(int type, int id){return 0;}
+int duplicate_object(int id)
+{
+    DObject *osrc, *odest;
+    int new_id;
+    
+    osrc = object_get(id);
+    if (!osrc) {
+        return -1;
+    }
+    
+    new_id = storage_get_unique_id(objects);
+    if (new_id < 0) {
+        return -1;
+    }
+    
+    odest = object_copy(osrc);
+    if (!odest) {
+        return -1;
+    }
+    
+    if (storage_add(objects, new_id, (void *) odest) == RETURN_SUCCESS) {
+        return new_id;
+    } else {
+        object_free(odest);
+        return -1;
+    }
+}
 
-void move_object(int type, int id, VVector shift){}
+void move_object(int id, VVector shift)
+{
+    DObject *o;
+    
+    o = object_get(id);
+    if (!o) {
+        return;
+    }
 
-void init_string(int id, VPoint vp){}
-void init_line(int id, VPoint vp1, VPoint vp2){}
-void init_box(int id, VPoint vp1, VPoint vp2){}
-void init_ellipse(int id, VPoint vp1, VPoint vp2){}
+    if (o->loctype == COORD_VIEW) {
+        o->ap.x += shift.x;
+        o->ap.y += shift.y;
+    } else {
+        WPoint wp;
+        VPoint vp;
+        
+        wp.x = o->ap.x;
+        wp.y = o->ap.y;
+        
+        vp = Wpoint2Vpoint(wp);
+        vp.x += shift.x;
+        vp.y += shift.y;
+        
+        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
+    }
+    
+    set_dirtystate();
+}
+
+int object_place_at_vp(int id, VPoint vp)
+{
+    DObject *o;
+    
+    o = object_get(id);
+    if (!o) {
+        return RETURN_FAILURE;
+    }
+    
+    if (o->loctype == COORD_VIEW) {
+        o->ap.x = vp.x;
+        o->ap.y = vp.y;
+    } else {
+        view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
+    }
+    
+    set_dirtystate();
+    return RETURN_SUCCESS;
+}
 
 int isactive_object(DObject *o)
 {
     return o->active;
+}
+
+int init_string(int id, DOStringData *s)
+{
+    DObject *o;
+    
+    o = object_get(id);
+    if (!o || o->type != DO_STRING) {
+        return RETURN_FAILURE;
+    }
+    
+    set_dirtystate();
+    return object_set_data(o, (void *) s);
+}
+
+int init_line(int id, DOLineData *l)
+{
+    DObject *o;
+    
+    o = object_get(id);
+    if (!o || o->type != DO_LINE) {
+        return RETURN_FAILURE;
+    }
+    
+    set_dirtystate();
+    return object_set_data(o, (void *) l);
+}
+
+int init_box(int id, DOBoxData *b)
+{
+    DObject *o;
+    
+    o = object_get(id);
+    if (!o || o->type != DO_BOX) {
+        return RETURN_FAILURE;
+    }
+    
+    set_dirtystate();
+    return object_set_data(o, (void *) b);
+}
+
+int init_arc(int id, DOArcData *a)
+{
+    DObject *o;
+    
+    o = object_get(id);
+    if (!o || o->type != DO_ARC) {
+        return RETURN_FAILURE;
+    }
+    
+    set_dirtystate();
+    return object_set_data(o, (void *) a);
+}
+
+void set_plotstr_string(plotstr *pstr, char *s)
+{
+    pstr->s = copy_string(pstr->s, s);
 }

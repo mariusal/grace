@@ -1,3 +1,31 @@
+/*
+ * Grace - GRaphing, Advanced Computation and Exploration of data
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
 #ifndef __OBJUTILS_H_
 #define __OBJUTILS_H_
 
@@ -71,25 +99,20 @@ void do_clear_objects(void);
 
 int isactive_object(DObject *o);
 
-void copy_object(int type, int from, int to);
 int kill_object(int id);
 int next_object(OType type);
-int duplicate_object(int type, int id);
+int duplicate_object(int id);
 
 int get_object_bb(DObject *o, view *bb);
-void move_object(int type, int id, VVector shift);
+void move_object(int id, VVector shift);
+int object_place_at_vp(int id, VPoint vp);
 
-void init_string(int id, VPoint vp);
-void init_line(int id, VPoint vp1, VPoint vp2);
-void init_box(int id, VPoint vp1, VPoint vp2);
-void init_ellipse(int id, VPoint vp1, VPoint vp2);
+int init_string(int id, DOStringData *s);
+int init_line(int id, DOLineData *l);
+int init_box(int id, DOBoxData *b);
+int init_arc(int id, DOArcData *a);
 
-void do_clear_lines(void);
-void do_clear_boxes(void);
-void do_clear_text(void);
-void do_clear_ellipses(void);
-
-void set_default_string(plotstr * s);
+void set_default_string(plotstr *s);
 void set_default_arrow(Arrow *arrowp);
 
 #endif /* __OBJUTILS_H_ */

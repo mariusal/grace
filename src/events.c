@@ -108,7 +108,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     int track_setno;
     static int track_loc;
     int add_at;
-    static int type, id;   /* for objects */
+    static int id;   /* for objects */
     int axisno;
     Datapoint dpoint;
     GLocator locator;
@@ -287,7 +287,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case MOVE_OBJECT_2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                move_object(type, id, shift);
+                move_object(id, shift);
                 xdrawgraph();
                 set_action(MOVE_OBJECT_1ST);
                 break;
@@ -301,14 +301,14 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case COPY_OBJECT2ND:
                 shift.x = vp.x - anchor_vp.x;
                 shift.y = vp.y - anchor_vp.y;
-                id = duplicate_object(type, id);
-                move_object(type, id, shift);
+                id = duplicate_object(id);
+                move_object(id, shift);
                 xdrawgraph();
                 set_action(COPY_OBJECT1ST);
                 break;
             case STR_LOC:
                 id = next_object(DO_STRING);
-                init_string(id, vp);
+                object_place_at_vp(id, vp);
                 object_edit_popup(id);
                 break;
             case MAKE_LINE_1ST:
@@ -318,8 +318,16 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_LINE_2ND:
 	        select_line(anchor_x, anchor_y, x, y, 0);
+                
                 id = next_object(DO_LINE);
-                init_line(id, anchor_vp, vp);
+	        {
+                    DObject *o = object_get(id);
+                    DOLineData *l = (DOLineData *) o->odata;
+                    l->length = hypot(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
+                    o->angle  = atan2(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
+                    object_place_at_vp(id, anchor_vp);
+                }
+                
                 xdrawgraph();
                 set_action(MAKE_LINE_1ST);
                 break;
@@ -330,8 +338,19 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_BOX_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
+                
                 id = next_object(DO_BOX);
-                init_box(id, anchor_vp, vp);
+                {
+                    VPoint vptmp;
+                    DObject *o = object_get(id);
+	            DOBoxData *b = (DOBoxData *) o->odata;
+                    b->width  = fabs(vp.x - anchor_vp.x);
+                    b->height = fabs(vp.y - anchor_vp.y);
+                    vptmp.x = (vp.x + anchor_vp.x)/2;
+                    vptmp.y = (vp.y + anchor_vp.y)/2;
+                    object_place_at_vp(id, vptmp);
+                }
+                
                 xdrawgraph();
                 set_action(MAKE_BOX_1ST);
                 break;
@@ -342,8 +361,22 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 break;
             case MAKE_ELLIP_2ND:
 	        select_region(anchor_x, anchor_y, x, y, 0);
+                
                 id = next_object(DO_ARC);
-                init_ellipse(id, anchor_vp, vp);
+                {
+                    VPoint vptmp;
+                    DObject *o = object_get(id);
+	            DOArcData *a = (DOArcData *) o->odata;
+                    a->width  = fabs(vp.x - anchor_vp.x);
+                    a->height = fabs(vp.y - anchor_vp.y);
+                    a->angle1 =   0.0;
+                    a->angle2 = 360.0;
+                    a->fillmode = ARCFILL_CHORD;
+                    vptmp.x = (vp.x + anchor_vp.x)/2;
+                    vptmp.y = (vp.y + anchor_vp.y)/2;
+                    object_place_at_vp(id, vptmp);
+                }
+                
                 xdrawgraph();
                 set_action(MAKE_ELLIP_1ST);
                 break;
@@ -1176,6 +1209,7 @@ int find_item(int gno, VPoint vp, view *bb, int *id)
         } else {
             break;
         }
+        storage_next(objects);
     }
 
     return RETURN_FAILURE;
