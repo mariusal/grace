@@ -331,6 +331,13 @@ typedef enum {
 #define RUN_XPLACE_AVERAGE 1
 #define RUN_XPLACE_RIGHT   2
 
+/* Typesetting defines */
+#define SSCRIPT_SCALE M_SQRT1_2
+#define SUBSCRIPT_SHIFT 0.4
+#define SUPSCRIPT_SHIFT 0.6
+#define ENLARGE_SCALE sqrt(M_SQRT2)
+#define OBLIQUE_FACTOR 0.25
+
 /*
  * defaults
  */

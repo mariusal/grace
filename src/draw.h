@@ -40,8 +40,6 @@
 
 #define MAX_LINEWIDTH 20.0        /* max width of drawn lines */
 
-#define MAGIC_LINEW_SCALE 0.0015
-
 /* polyline drawing modes */
 #define POLYLINE_OPEN	    0
 #define POLYLINE_CLOSED	    1
@@ -98,13 +96,9 @@
 #define BAD_FONT_ID     -1
 
 /* TODO */
-#define MAGIC_FONT_SCALE	0.028
+#define MAGIC_FONT_SCALE    0.028
+#define MAGIC_LINEW_SCALE   0.0015
 
-#define SSCRIPT_SCALE M_SQRT1_2
-#define SUBSCRIPT_SHIFT 0.4
-#define SUPSCRIPT_SHIFT 0.6
-#define ENLARGE_SCALE sqrt(M_SQRT2)
-#define OBLIQUE_FACTOR 0.25
 
 #define TEXT_ADVANCING_LR   0
 #define TEXT_ADVANCING_RL   1
