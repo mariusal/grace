@@ -2246,7 +2246,7 @@ parmset:
                         char buf[16];
                         object_data_free(object_get_data(q));
                         q->data = curobject;
-	                sprintf(buf, "DO%d", dobject_id);
+	                sprintf(buf, "DO%02d", dobject_id);
                         quark_idstr_set(q, buf);
                         dobject_id++;
                     }
@@ -2275,7 +2275,7 @@ parmset:
                     char buf[16];
                     object_data_free(object_get_data(q));
                     q->data = curobject;
-	            sprintf(buf, "DO%d", dobject_id);
+	            sprintf(buf, "DO%02d", dobject_id);
                     quark_idstr_set(q, buf);
                     dobject_id++;
                 }
@@ -5090,6 +5090,10 @@ static Quark *allocate_graph(Quark *project, int gno)
         if (!gr) {
             gr = graph_next(project);
             quark_idstr_set(gr, buf);
+            
+            /* assign an idstr to the frame, too */
+            sprintf(buf, "F%d", gno);
+            quark_idstr_set(get_parent_frame(gr), buf);
         }
     }
     
