@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -148,28 +148,53 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     canvas_target *ct = (canvas_target *) udata;
     view v;
+    AText *at;
+    DObject *o;
+    double *x, *y;
     
-    if (q->fid == QFlavorFrame && frame_is_active(q)) {
-        legend *l;
-        
-        frame_get_view(q, &v);
-        target_consider(ct, q, 0, &v);
-        
-        if ((l = frame_get_legend(q)) && l->active) {
-            target_consider(ct, q, 1, &l->bb);
+    switch (q->fid) {
+    case QFlavorFrame:
+        if (frame_is_active(q)) {
+            legend *l;
+
+            frame_get_view(q, &v);
+            target_consider(ct, q, 0, &v);
+
+            if ((l = frame_get_legend(q)) && l->active) {
+                target_consider(ct, q, 1, &l->bb);
+            }
         }
-    } else
-    if (q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+        break;
+    case QFlavorAText:
+        at = atext_get_data(q);
         if (at->active) {
             target_consider(ct, q, 0, &at->bb);
         }
-    } else
-    if (q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+        break;
+    case QFlavorDObject:
+        o = object_get_data(q);
         if (o->active) {
             target_consider(ct, q, 0, &o->bb);
         }
+        break;
+    case QFlavorSet:
+        x = set_get_col(q, DATA_X);
+        y = set_get_col(q, DATA_Y);
+        if (x && y) {
+            int i;
+            WPoint wp;
+            VPoint vp;
+            for (i = 0; i < set_get_length(q); i++) {
+                wp.x = x[i];
+                wp.y = y[i];
+                Wpoint2Vpoint(q, &wp, &vp);
+                v.xv1 = v.xv2 = vp.x;
+                v.yv1 = v.yv2 = vp.y;
+                view_extend(&v, 0.005);
+                target_consider(ct, q, i, &v);
+            }
+        }
+        break;
     }
     
     return TRUE;
@@ -206,6 +231,9 @@ static void move_target(canvas_target *ct, const VPoint *vp)
         break;
     case QFlavorDObject:
         object_shift(ct->q, &vshift);
+        break;
+    case QFlavorSet:
+        set_point_shift(ct->q, ct->part, &vshift);
         break;
     }
 }
@@ -295,7 +323,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                     update_locator_lab(cg, &vp);
                 }
             } else {
-                fprintf(stderr, "DblClick\n");
+                ct.vp = vp;
+                if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
+                    raise_explorer(grace->gui, ct.q);
+                }
             }
             
             if (collect_points) {
@@ -312,12 +343,20 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             fprintf(stderr, "Button2\n");
             break;
 	case Button3:
-            undo_point = TRUE;
-            if (npoints) {
-                npoints--;
-            }
-            if (npoints == 0) {
-                abort_action = TRUE;
+            if (collect_points) {
+                undo_point = TRUE;
+                if (npoints) {
+                    npoints--;
+                }
+                if (npoints == 0) {
+                    abort_action = TRUE;
+                }
+            } else {
+                ct.vp = vp;
+                if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
+                    /* TODO: context-sensitive menu */
+                    fprintf(stderr, "%s(%d)\n", QIDSTR(ct.q), ct.part);
+                }
             }
             break;
 	case Button4:
@@ -332,17 +371,21 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         break;
     case ButtonRelease:
         xbe = (XButtonEvent *) event;
-        if (xbe->state & ControlMask && ct.found) {
-            slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
-	    
-            x11_dev2VPoint(x, y, &vp);
-            
-            move_target(&ct, &vp);
-            ct.found = FALSE;
-    
-            xdrawgraph(grace->project, TRUE);
+	switch (event->xbutton.button) {
+	case Button1:
+            if (xbe->state & ControlMask && ct.found) {
+                slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+
+                x11_dev2VPoint(x, y, &vp);
+
+                move_target(&ct, &vp);
+                ct.found = FALSE;
+
+                xdrawgraph(grace->project, TRUE);
+            }
+            set_cursor(grace->gui, -1);
+            break;
         }
-        set_cursor(grace->gui, -1);
         break;
     case KeyPress:
 	xke = (XKeyEvent *) event;
