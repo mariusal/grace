@@ -489,9 +489,8 @@ static int objects_aac(void *data)
     return RETURN_SUCCESS;
 }
 
-static char *dobject_labeling(Quark *data, unsigned int *rid)
+static char *dobject_labeling(Quark *q, unsigned int *rid)
 {
-    Quark *q = data;
     char buf[128];
     if (q->fid == QFlavorDObject) {
         DObject *o = object_get_data(q);
