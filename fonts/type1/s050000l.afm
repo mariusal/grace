@@ -1,6 +1,6 @@
 StartFontMetrics 3.0
 Comment Copyright URW Software, Copyright 1997 by URW
-Comment Creation Date: 3/23/1998
+Comment Creation Date: 10/21/1999
 Comment See the file COPYING (GNU General Public License) for license conditions.
 FontName StandardSymL
 FullName Standard Symbols L
@@ -41,7 +41,7 @@ C 50 ; WX 500 ; N two ; B 25 0 475 686 ;
 C 51 ; WX 500 ; N three ; B 39 -13 435 686 ;
 C 52 ; WX 500 ; N four ; B 16 0 469 680 ;
 C 53 ; WX 500 ; N five ; B 29 -13 443 699 ;
-C 54 ; WX 500 ; N six ; B 36 -13 467 685 ;
+C 54 ; WX 500 ; N six ; B 36 -13 468 685 ;
 C 55 ; WX 500 ; N seven ; B 24 -7 448 673 ;
 C 56 ; WX 500 ; N eight ; B 54 -13 440 686 ;
 C 57 ; WX 500 ; N nine ; B 31 -13 460 686 ;
@@ -114,6 +114,7 @@ C 123 ; WX 480 ; N braceleft ; B 58 -165 397 673 ;
 C 124 ; WX 200 ; N bar ; B 65 -177 135 673 ;
 C 125 ; WX 480 ; N braceright ; B 79 -165 418 673 ;
 C 126 ; WX 549 ; N similar ; B 17 196 529 325 ;
+C 160 ; WX 762 ; N Euro ; B 53 -4 722 671 ;
 C 161 ; WX 620 ; N Upsilon1 ; B -2 0 610 687 ;
 C 162 ; WX 247 ; N minute ; B 27 476 228 735 ;
 C 163 ; WX 549 ; N lessequal ; B 29 0 526 639 ;
@@ -145,7 +146,7 @@ C 188 ; WX 1000 ; N ellipsis ; B 111 -13 889 100 ;
 C 189 ; WX 603 ; N arrowvertex ; B 280 -120 336 1010 ;
 C 190 ; WX 1000 ; N arrowhorizex ; B -60 220 1050 276 ;
 C 191 ; WX 658 ; N carriagereturn ; B 15 -16 602 629 ;
-C 192 ; WX 823 ; N aleph ; B 175 0 661 689 ;
+C 192 ; WX 823 ; N aleph ; B 175 0 662 689 ;
 C 193 ; WX 686 ; N Ifraktur ; B 10 -54 578 736 ;
 C 194 ; WX 795 ; N Rfraktur ; B 26 -16 759 730 ;
 C 195 ; WX 987 ; N weierstrass ; B 159 -211 870 574 ;
@@ -163,7 +164,7 @@ C 206 ; WX 713 ; N element ; B 45 0 505 470 ;
 C 207 ; WX 713 ; N notelement ; B 45 -58 505 555 ;
 C 208 ; WX 768 ; N angle ; B 26 -1 738 672 ;
 C 209 ; WX 713 ; N gradient ; B 36 0 681 687 ;
-C 210 ; WX 790 ; N registeredserif ; B 50 -13 740 690 ;
+C 210 ; WX 790 ; N registerserif ; B 50 -13 740 690 ;
 C 211 ; WX 790 ; N copyrightserif ; B 51 -13 741 690 ;
 C 212 ; WX 890 ; N trademarkserif ; B 18 269 855 673 ;
 C 213 ; WX 823 ; N product ; B 25 -124 803 751 ;
@@ -179,7 +180,7 @@ C 222 ; WX 987 ; N arrowdblright ; B 45 -19 954 506 ;
 C 223 ; WX 603 ; N arrowdbldown ; B 44 0 572 909 ;
 C 224 ; WX 494 ; N lozenge ; B 18 -1 466 740 ;
 C 225 ; WX 329 ; N angleleft ; B 25 -152 306 757 ;
-C 226 ; WX 790 ; N registeredsans ; B 50 -12 740 679 ;
+C 226 ; WX 790 ; N registersans ; B 50 -12 740 679 ;
 C 227 ; WX 790 ; N copyrightsans ; B 49 -12 739 679 ;
 C 228 ; WX 786 ; N trademarksans ; B 5 277 725 673 ;
 C 229 ; WX 713 ; N summation ; B 14 -123 695 752 ;
@@ -191,7 +192,7 @@ C 234 ; WX 384 ; N bracketleftex ; B 0 -85 55 925 ;
 C 235 ; WX 384 ; N bracketleftbt ; B 0 -80 340 926 ;
 C 236 ; WX 494 ; N bracelefttp ; B 201 -75 439 926 ;
 C 237 ; WX 494 ; N braceleftmid ; B 14 -85 255 935 ;
-C 238 ; WX 494 ; N bracelefttbt ; B 201 -70 439 926 ;
+C 238 ; WX 494 ; N braceleftbt ; B 201 -70 439 926 ;
 C 239 ; WX 494 ; N braceex ; B 201 -79 255 925 ;
 C 241 ; WX 329 ; N angleright ; B 21 -152 302 757 ;
 C 242 ; WX 274 ; N integral ; B 2 -107 291 916 ;
@@ -207,7 +208,6 @@ C 251 ; WX 384 ; N bracketrightbt ; B 20 -80 360 926 ;
 C 252 ; WX 494 ; N bracerighttp ; B 17 -75 255 926 ;
 C 253 ; WX 494 ; N bracerightmid ; B 201 -85 442 935 ;
 C 254 ; WX 494 ; N bracerightbt ; B 17 -70 255 926 ;
-C -1 ; WX 790 ; N apple ; B 56 -4 733 808 ;
 C -1 ; WX 250 ; N .notdef ; B 0 0 0 0 ;
 EndCharMetrics
 EndFontMetrics
