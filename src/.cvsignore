@@ -1,4 +1,4 @@
 buildinfo.h pars.c
 xmgrace buildinfo
 *.agr *.dat
-*.gmf *.ps *.eps *.pdf *.png
+*.gmf *.ps *.eps *.pdf *.png *.mif *.svg *.jpg
