@@ -674,6 +674,8 @@ AC_DEFUN(ACX_CHECK_JPEG,
 #include <jpeglib.h>
       int main(void) {
         int vinc;
+        struct jpeg_compress_struct cinfo;
+        jpeg_create_compress(&cinfo);
         vinc = JPEG_LIB_VERSION;
         if (vinc < [$1]) {
           exit(1);
