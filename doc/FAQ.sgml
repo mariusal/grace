@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.99.0)
   <author>by the Grace Team
-  <date>24.06.2004
+  <date>24.07.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -160,7 +160,7 @@
         i.e. there is no printed literature. All relevant docs are currently
         bundled with Grace. See questions <ref id="homepage" name="Home
         Page"> and <ref id="manual" name="User's Guide"> for details. You can
-        print your own copy of the FAQ, the User's Guide and the Tutorial by
+        print your own copy of the FAQ and the User's Guide by
         converting the DVI files to PostScript output.
 
     <sect1>Is there a User's Guide available for Grace? <label id="manual">
@@ -178,19 +178,6 @@
         name="Home Page">).
 
         The User's Guide is not quite complete, yet.
-
-    <sect1>Is there a Tutorial available for Grace? <label id="tutorial">
-      <p>
-
-        Yes. There are several tutorials which give detailed
-        step-by-step information how to achieve various tasks. They
-        are also part of the Grace distribution. You can find them
-        in <tt>$GRACE_HOME/doc/</tt>.
-
-        There are tutorials about creating a simple plot, batch
-        plotting, fitting curves, transformations (graphical -
-        simple ones, interpolation, feature extraction, using the
-        command line), using pipes, overlaying graphs, hot links.
 
     <sect1>Where do I get support for Grace? <label id="support">
       <p>
@@ -1060,8 +1047,7 @@ XMgrace*background: ...
         non-graphical programs.
 
         Refer to the User's Guide (question <ref id="manual"
-          name="User's Guide">) or the tutorials (question <ref
-          id="tutorial" name="Tutorials">) for further information.
+          name="User's Guide">) for further information.
 
         One example for using pipes is included in the <tt>`make
         tests'</tt> slide show.

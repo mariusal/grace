@@ -788,7 +788,6 @@ static Widget CreateMainMenuBar(Widget parent)
     menupane = CreateMenu(menubar, "Help", 'H', TRUE);
 
     CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, "doc/UsersGuide.html");
-    CreateMenuButton(menupane, "Tutorial", 'T', HelpCB, "doc/Tutorial.html");
     CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, "doc/FAQ.html");
     CreateMenuButton(menupane, "Changes", 'C', HelpCB, "doc/CHANGES.html");
 

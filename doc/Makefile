@@ -46,15 +46,15 @@ PDFLATEX    = pdflatex
 SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
 HTMLS    = NEWS.html GPL.html philosophical-gnu-sm.jpg nohelp.html
 
-HTMLDOCS = FAQ.html Tutorial.html UsersGuide.html
+HTMLDOCS = FAQ.html UsersGuide.html
 
-DVIDOCS  = FAQ.dvi Tutorial.dvi UsersGuide.dvi
+DVIDOCS  = FAQ.dvi UsersGuide.dvi
 
-PSDOCS   = FAQ.ps Tutorial.ps UsersGuide.ps
+PSDOCS   = FAQ.ps UsersGuide.ps
 
-PDFDOCS  = FAQ.pdf Tutorial.pdf UsersGuide.pdf
+PDFDOCS  = FAQ.pdf UsersGuide.pdf
 
-TEXDOCS  = FAQ.tex Tutorial.tex UsersGuide.tex
+TEXDOCS  = FAQ.tex UsersGuide.tex
 
 TUTDATA  = 2.1.dat 3.dat 7.1.2.agr 7.1.3.agr 8.2.dat \
            10.1.dat 10a.dat 10c.dat 10b.dat shiftdata.sh mygraph.png
@@ -84,7 +84,7 @@ distclean : clean
 devclean : distclean
 	$(RM) $(DVIDOCS) $(PSDOCS) $(PDFDOCS) $(HTMLDOCS)
 
-install : $(HTMLS) $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
+install : $(HTMLS) $(HTMLDOCS) $(DVIDOCS) $(MANPAGES)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/doc
 	for i in $?; do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/doc; done
 	cd $(DESTDIR)$(GRACE_HOME)/doc; \
