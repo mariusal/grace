@@ -875,9 +875,9 @@ void ps_gui_setup(void)
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	ps_setup_offset_x_item = CreateSpinChoice(rc,
-            "X: ", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
+            "X: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 	ps_setup_offset_y_item = CreateSpinChoice(rc,
-            "Y: ", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
+            "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 	XtManageChild(rc);
 
 	CreateSeparator(ps_setup_rc);
