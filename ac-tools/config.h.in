@@ -365,6 +365,9 @@
 /* Define if you have (and want to use) libhelp  */
 #undef WITH_LIBHELP
 
+/* Define if you have (and want to use) XmHTML widget  */
+#undef WITH_XMHTML
+
 /* Define if you have (and want to use) editres  */
 #undef WITH_EDITRES
 
