@@ -11,30 +11,58 @@
 
 <H2>5.0.4</H2>
 
- *  [ES] #640
- *  [ES] #642
- *  [ES] #644. Thanks go to Harald Freyer for identifying the bug
- *  [ES] #645
- *  [JB] WRITE setselect crashed
- *  [ES] PS PageSize
- *  [ES] fixed crash when selecting "Show data-less" or "Show hidden" from
-         set popup menus.
- !  [ES] nonl-fit GUI: src/dest (#77), restrictions (#251), stat weights...
- !  [ES] NONLFIT (selectset, vexpr, nexpr)
- *  [LM] fixed a few bugs in date/Julian day conversion
- *  [LM] fixed "day of week" format that was broken for negative dates
- *  [ES] the default template had the 2-digit year format enabled and 
-         the wrap year set to 1900. Changed to off and 1950 respectively
- *  [ES] use %g in the point tracking window
- *  [ES] selecting multiple graphs in "graph appearance" corrupted titles/
-         subtitles (#??)
- *  [LM] date format rounding
- *  [ES] #655
- *  [ES] #298
- *  [AM] OS/2 updates
+<H3>New functionality</H3>
+ *  [ES] nonl-fit: added region restrictions (rep. #251)
+ *  [ES] nonl-fit: added optional stat weights
+ *  [ES] print some basic statistics on the non-linear fit quality
+ *  [LM] implemented proper rounding for date/time axis formats
+ *  [ES] in PS output, issue an explicit page size selection call. This
+         should allow to automatically choose between several input trays
+         with different paper (for printers that have mutiple trays, of
+         course)
+
+<H3>Interface</H3>
+ *  [ES] nonl-fit GUI reworked (including part of rep. #77)
+
+<H3>Documentation/Info</H3>
  *  [AM] docs on building DL modules under OS/2
- !  [ES] print some statistics on non-linear fit
- *  [ES] Xbae and T1lib screening
+
+<H3>Parser</H3>
+ !  [ES] extended variant of NONLFIT added: NONLFIT (selectset, vexpr, nexpr).
+         The vexpr argument is an array of weights (of proper length)
+
+<H3>Defaults</H3>
+ *  [ES] the default template had the 2-digit year format enabled and 
+         the wrap year set to 1900, imitating older versions. Changed to
+         off and 1950 respectively - should be more Y2K compliant :)
+
+<H3>Portability/Compilation</H3>
+ *  [ES] upgraded to T1lib-0.9.2 (fixing rep. #650)
+ *  [AM] OS/2 updates
+ *  [AM/ES] header files of the bundled Xbae and T1lib could in some cases
+         clash with system-wide installations of respective library
+
+<H3>Bug fixes</H3>
+ *  [ES] strings (titles, legends,...) with only spaces in them caused crash
+         (rep. #640)
+ *  [ES] enabling bounds for fit parameters in the non-linear fit popup
+         crashed Grace (rep. #642)
+ *  [HF/ES] fixed bug in creating sets from block data (rep. #644)
+ *  [ES] "rawbits" PPM format was broken on big endian machines (rep. #645)
+ *  [ES] in the non-linear fit window, set was deselected after each step of
+         fit (rep. #646)
+ *  [JB] WRITE setselect crashed
+ *  [ES] fixed crash when selecting "Show data-less" or "Show hidden" from
+         set popup menus (rep. #652)
+ *  [LM] fixed a few bugs in the date/Julian day conversion
+ *  [LM] fixed "day of week" format that was broken for negative dates
+ *  [ES] use "%g" format in the point tracking window
+ *  [ES] selecting multiple graphs in "graph appearance" corrupted titles/
+         subtitles (#566)
+ *  [ES] couldn't parse data from multicolumn files containing non-numerics
+         fields (rep. #655)
+ *  [ES] the user tick locations were saved with insufficient precision;
+         now we use the same format as for storing data sets (rep. #298)
 
 
 <H2>5.0.3</H2>
@@ -583,6 +611,7 @@
     [HS2] - Heiko R. Selber &lt;selber@fhi-berlin.mpg.de&gt;
     [LM]  - Luc Maisonobe
     [MR]  - Mark Rintoul &lt;rintoul@cs.sandia.gov&gt;
+    [HF]  - Harald Freyer &lt;hf@nike.cup.uni-muenchen.de&gt;
     [JB]  - Jesko Brudermann &lt;jbruder@gwdg.de&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 

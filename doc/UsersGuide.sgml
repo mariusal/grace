@@ -5,9 +5,9 @@
 
 <article>
 
-<title>Grace User's Guide (v0.3)
+<title>Grace User's Guide (v0.4)
 <author>by the Grace Team
-<date>22.08.1999
+<date>12.09.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -76,33 +76,30 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 </verb></tscreen>
 
-<p>
-For certain libraries required to build Grace
-(which are therefore even included in a suitable version)
-there may be different Copyright/License statements. Though their
-License may by chance match the one used for Grace,
-the Grace Copyright holders can not influence or change them.
+   <p>
+     For certain libraries required to build Grace
+     (which are therefore even included in a suitable version)
+     there may be different Copyright/License statements. Though their
+     License may by chance match the one used for Grace,
+     the Grace Copyright holders can not influence or change them.
 
-<p>
-      <table LOC=htbp>
-      <tabular CA="ll">
-          <hline>
-          Library    |  License   @
-          <hline>
-	      cephes     |  "Freely distributable"  @
-          T1lib      |  LGPL @
-	      Xbae       |  own  @
-              <hline>
-      </tabular>
-      <caption>
-              <label id="licenses">
-              licenses.
-      </caption>
-      </table>
+   <p>
+   <table LOC=htbp>
+     <tabular CA="ll">
+       <hline>
+       Package    |  License  @
+       <hline>
+       cephes     |  Free     @
+       T1lib      |  LGPL     @
+       Xbae       |  BSD-like @
+       Tab        |  BSD-like @
+       <hline>
+     </tabular>
+     <caption>
+       Licenses
+     </caption>
+   </table>
  <P>
- License terms marked as "own" are given in additional
- files which are distributed in the according source directories
- and are not explicitly given in this document.
 
 <sect1>Comments and bug reports
   <p>
@@ -128,13 +125,16 @@ the Grace Copyright holders can not influence or change them.
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
-              <item> The PDF driver requires the PDFlib-2.01 library of Thomas
+              <item> The PDF driver requires the PDFlib library of Thomas
                      Merz to be installed, which is available
-                     <url name="here" url="http://www.pdflib.com/">.
+                     <url name="here" url="http://www.pdflib.com/">, version
+                     2.01 or above.
               <item> The JPEG backend needs the IJG's
-                     (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">).
+                     (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">),
+                     version 6.x.
               <item> The PNG backend needs
-                     the (<url name="libpng" url="http://www.cdrom.com/pub/png/">) library.
+                     the (<url name="libpng" url="http://www.cdrom.com/pub/png/">)
+                     library (version 1.00 or above).
               <item> If your computer has the FFTW library installed when
                      Grace is compiled, Grace will link itself to this, and
                      drop all conventional FFT's and DFT's. All transforms
@@ -464,7 +464,7 @@ the Grace Copyright holders can not influence or change them.
                 Remove data file after read
 
           <tag> -results <it>results_file</it> </tag>
-                Write the results from regression to results_file
+                Write results of some data manipulations to results_file
 
           <tag> -rows <it>grows</it> </tag>
                 Arrange graphs in grows rows
@@ -1071,12 +1071,12 @@ the Grace Copyright holders can not influence or change them.
          example to draw the curve outside of the data sample range or
          to produce an evenly spaced set from an irregular one.
 
-         <sect3> Non linear fit <label id="non-linear-fit">
+         <sect3> Non-linear fit <label id="non-linear-fit">
          <p>
          The non linear fit popup can be used for functions outside of
          the simple regression methods scope. With this popup you
-         provide the expression yourself using a0, a1, ..., an to
-         denote the unknowns (as an example you can say y = a0 * cos
+         provide the expression yourself using a0, a1, ..., a9 to
+         denote the fit parameters (as an example you can say y = a0 * cos
          (a1 * x + a2)). You specify a tolerance, starting values and
          optional bounds and run several steps before loading the
          results.
@@ -1085,15 +1085,17 @@ the Grace Copyright holders can not influence or change them.
          can be saved in a file and retrieved as needed using the file
          menu of the popup.
 
-         You can load either the fitted values, the residuals or the
-         function itself (the choice is in the option menu of the
-         popup). Choosing to load fitted values or residuals leads to
-         a set of the same length and abscissas as the initial
-         set. Choosing to load the function is almost similar to load
-         the fitted values except that you choose yourself the
-         boundaries and the number of points. This can be used for
-         example to draw the curve outside of the data sample range or
-         to produce an evenly spaced set from an irregular one.
+         In the "Advanced" tab, you can additionally apply a restriction to the
+         set(s) to be fitted (thus ignoring points not satisfying the
+         criteria), use one of preset weighting schemes or define your own,
+         and choose whether to load the fitted values, the residuals or
+         the function itself. Choosing to load fitted values or residuals leads
+         to a set of the same length and abscissas as the initial set. Choosing
+         to load the function is almost similar to load the fitted values
+         except that you choose yourself the boundaries and the number of
+         points. This can be used for example to draw the curve outside of the
+         data sample range or to produce an evenly spaced set from an irregular
+         one.
 
          <sect3> Cross/auto correlation <label id="cross/auto-correlation">
          <p>
@@ -2005,15 +2007,17 @@ C
          <p>
          <sect3>OS/2
           <p>
-         In general the examples above describe the method to be used on OS/2,
-         too. However you have to create a DLL (Dynamic Link Library) which is
-         a bit more tricky on OS/2 than on some un*x systems. This document
-         can't explain the whole procedure in detail but outline the way to go.
+         In general method outlined in the examples above describe can be used
+         on OS/2, too. However you have to create a DLL (Dynamic Link Library)
+         which is a bit more tricky on OS/2 than on some un*x systems. 
+         This document can't explain the whole procedure in detail but roughly
+         describe the way to go.
          Since Grace was ported with EMX I also use it to create the examples.
-         We refer to Example 2, since Example 1 is showing the problem on OS/2:
+         We refer to Example 2, since Example 1 is showing a problem on OS/2:
          DLLs are likely to have their entry points (i.e. exported functions)
-         as ordinals only, so you may not know how to access a specific
-         function without a bit of research. Compile my_func.c
+         callable as ordinals only, so you may not know how to access a
+         specific function without some research.
+         Compile my_func.c to my_func.obj
 
          <tscreen>
          gcc -Zomf -c my_func.c
@@ -2040,16 +2044,17 @@ C
          gcc my_func.obj my_func.def -o my_func.dll -Zdll -Zno-rte -Zomf
          </tscreen>
 
-         (the -Zno-rte depends on the content of the library; check out the
-          EMX documentation when you may use it)
-         To actually use the function in Grace you may either put the
+         (the -Zno-rte flag depends on the content of the library;
+          check out the EMX documentation when you may use it)
+         To make use of the function in Grace you may either put the
          DLL in the LIBPATH and use the short form:
 
          <tscreen>
          USE "my_function" TYPE f_of_nd FROM "my_func" ALIAS "myf"
          </tscreen>
 
-         or have it in an arbitrary path which you need to specify:
+         or have it in an arbitrary path which you need to specify explicitly
+         then:
 
          <tscreen>
          USE "my_function" TYPE f_of_nd FROM "e:/foo/my_func.dll" ALIAS "myf"
