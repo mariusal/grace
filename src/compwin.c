@@ -1382,7 +1382,6 @@ void create_prune_frame(void *data)
     RaiseTransformationDialog(tdialog);
 }
 
-#if 0
 
 
 typedef struct _Featext_ui {
@@ -1395,51 +1394,53 @@ typedef struct _Featext_ui {
 static int do_fext_proc(void *data)
 {
     char *formula;
-    int nsrc, ndest, *ssids, *dsids, sdest, gsrc, gdest;
+    int nsrc, ndest;
+    Quark **srcsets, **destsets, *pdest;
 
     Featext_ui *ui = (Featext_ui *) data;
 
-    formula = GetTextString(ui->formula);
-    
-    if (GetSingleListChoice(ui->src->graph_sel, &gsrc) != RETURN_SUCCESS) {
-        errmsg("Please select a single source graph");
-        return RETURN_FAILURE;
-    }
-    if (GetSingleListChoice(ui->dest->graph_sel, &gdest) != RETURN_SUCCESS) {
-        errmsg("Please select a single source graph");
-        return RETURN_FAILURE;
-    }
-    
-    nsrc = GetListChoices(ui->src->set_sel, &ssids);
+    nsrc = GetStorageChoices(ui->src->set_sel, (void ***) &srcsets);
     if (nsrc < 1) {
         errmsg("No source sets selected");
         return RETURN_FAILURE;
     }
 
-    ndest = GetListChoices(ui->dest->set_sel, &dsids);
+    ndest = GetStorageChoices(ui->dest->set_sel, (void ***) &destsets);
     if (ndest == 0) {
-        sdest = nextset(gdest);
+        Quark *destgr;
+        if (GetSingleStorageChoice(ui->dest->graph_sel,
+            (void **) &destgr) != RETURN_SUCCESS) {
+            xfree(*srcsets);
+            errmsg("No destination graph selected");
+	    return RETURN_FAILURE;
+        }
+        
+        pdest = set_new(destgr);
+        
+        update_set_selectors(destgr);
+        SelectStorageChoice(ui->dest->set_sel, (void *) pdest);
     } else if (ndest == 1) {
-        sdest = dsids[0];
-        xfree(dsids);
+        pdest = destsets[0];
+        xfree(destsets);
     } else {
         errmsg("Please select a single or none destination set");
         if (ndest > 0) {
-            xfree(dsids);
+            xfree(destsets);
         }
-        if (nsrc > 0) {
-            xfree(ssids);
-        }
+        xfree(srcsets);
         return RETURN_FAILURE;
     }
 
-    featext(gsrc, ssids, nsrc, gdest, sdest, formula); 
+    formula = GetTextString(ui->formula);
+    
+    featext(srcsets, nsrc, pdest, formula);
 
+    xfree(formula);
     if (nsrc > 0) {
-        xfree(ssids);
+        xfree(srcsets);
     }
     
-    update_set_lists(gdest);
+    update_set_lists(pdest->parent);
     xdrawgraph();
     
     return RETURN_SUCCESS;
@@ -1488,49 +1489,49 @@ typedef struct _Cumulative_ui {
 
 static int do_cumulative_proc(void *data)
 {
-    int nsrc, ndest, *ssids, *dsids, sdest, gsrc, gdest;
+    Cumulative_ui *ui = (Cumulative_ui *) data;
+    int nsrc, ndest;
+    Quark **srcsets, **destsets, *pdest;
 
-    Featext_ui *ui = (Featext_ui *) data;
-
-    if (GetSingleListChoice(ui->src->graph_sel, &gsrc) != RETURN_SUCCESS) {
-        errmsg("Please select a single source graph");
-        return RETURN_FAILURE;
-    }
-    if (GetSingleListChoice(ui->dest->graph_sel, &gdest) != RETURN_SUCCESS) {
-        errmsg("Please select a single source graph");
-        return RETURN_FAILURE;
-    }
-    
-    nsrc = GetListChoices(ui->src->set_sel, &ssids);
+    nsrc = GetStorageChoices(ui->src->set_sel, (void ***) &srcsets);
     if (nsrc < 1) {
         errmsg("No source sets selected");
         return RETURN_FAILURE;
     }
 
-    ndest = GetListChoices(ui->dest->set_sel, &dsids);
+    ndest = GetStorageChoices(ui->dest->set_sel, (void ***) &destsets);
     if (ndest == 0) {
-        sdest = nextset(gdest);
+        Quark *destgr;
+        if (GetSingleStorageChoice(ui->dest->graph_sel,
+            (void **) &destgr) != RETURN_SUCCESS) {
+            xfree(*srcsets);
+            errmsg("No destination graph selected");
+	    return RETURN_FAILURE;
+        }
+        
+        pdest = set_new(destgr);
+        
+        update_set_selectors(destgr);
+        SelectStorageChoice(ui->dest->set_sel, (void *) pdest);
     } else if (ndest == 1) {
-        sdest = dsids[0];
-        xfree(dsids);
+        pdest = destsets[0];
+        xfree(destsets);
     } else {
         errmsg("Please select a single or none destination set");
         if (ndest > 0) {
-            xfree(dsids);
+            xfree(destsets);
         }
-        if (nsrc > 0) {
-            xfree(ssids);
-        }
+        xfree(srcsets);
         return RETURN_FAILURE;
     }
 
-    cumulative(gsrc, ssids, nsrc, gdest, sdest); 
+    cumulative(srcsets, nsrc, pdest); 
 
     if (nsrc > 0) {
-        xfree(ssids);
+        xfree(srcsets);
     }
     
-    update_set_lists(gdest);
+    update_set_lists(pdest->parent);
     xdrawgraph();
     
     return RETURN_SUCCESS;
@@ -1567,4 +1568,3 @@ void create_cumulative_frame(void *data)
     
     unset_wait_cursor();
 }
-#endif

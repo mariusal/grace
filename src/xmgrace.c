@@ -778,10 +778,8 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Sample points...", 'm', create_samp_frame, NULL);
     CreateMenuButton(submenupane, "Prune data...", 'P', create_prune_frame, NULL);
 
-#if 0
     CreateMenuButton(menupane, "Feature extraction...", 'x', create_featext_frame, NULL);
     CreateMenuButton(menupane, "Cumulative properties...", 'C', create_cumulative_frame, NULL);
-#endif
 
     CreateMenuSeparator(menupane);
     submenupane = CreateMenu(menupane, "Import", 'I', FALSE);
