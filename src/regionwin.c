@@ -720,3 +720,58 @@ void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
     update_status_popup(NULL, NULL, NULL);
     unset_wait_cursor();
 }
+
+void define_region(int nr, int regionlinkto, int rtype)
+{
+    kill_region(nr);
+    switch (rtype) {
+    case 0:
+	regiontype = REGION_POLYI;
+	do_select_region();
+	break;
+    case 1:
+	regiontype = REGION_POLYO;
+	do_select_region();
+	break;
+    case 2:
+	regiontype = REGION_ABOVE;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 3:
+	regiontype = REGION_BELOW;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 4:
+	regiontype = REGION_TOLEFT;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 5:
+	regiontype = REGION_TORIGHT;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 6:
+        regiontype= REGION_HORIZI;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 7:
+        regiontype= REGION_VERTI;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 8:
+        regiontype= REGION_HORIZO;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    case 9:
+        regiontype= REGION_VERTO;
+	set_action(DO_NOTHING);
+	set_action(DEF_REGION1ST);
+	break;
+    }
+}

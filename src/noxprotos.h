@@ -264,7 +264,6 @@ int isactive_region(int regno);
 char *region_types(int it, int which);
 void kill_region(int r);
 void activate_region(int r, int type);
-void define_region(int nr, int regionlinkto, int rtype);
 void extract_region(int gno, int fromset, int toset, int regno);
 void delete_region(int gno, int setno, int regno);
 void evaluate_region(int regno, int gno, int setno, char *buf);

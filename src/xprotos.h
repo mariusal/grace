@@ -161,6 +161,8 @@ void create_reporton_frame(Widget w, XtPointer client_data, XtPointer call_data)
 void create_evalregion_frame(Widget w, XtPointer client_data, XtPointer call_data);
 void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
+void define_region(int nr, int regionlinkto, int rtype);
+
 void update_status(int gno, int itemno);
 void update_region_status(int rno);
 void update_status_auto_redraw(void);

@@ -43,9 +43,6 @@
 #include "draw.h"
 #include "graphs.h"
 #include "utils.h"
-#ifndef NONE_GUI
-#  include "events.h"
-#endif
 #include "protos.h"
 
 int regiontype = 0;
@@ -142,81 +139,6 @@ void activate_region(int r, int type)
     kill_region(r);
     rg[r].active = TRUE;
     rg[r].type = type;
-}
-
-void define_region(int nr, int regionlinkto, int rtype)
-{
-    kill_region(nr);
-    switch (rtype) {
-    case 0:
-	regiontype = REGION_POLYI;
-#ifndef NONE_GUI
-	do_select_region();
-#endif
-	break;
-    case 1:
-	regiontype = REGION_POLYO;
-#ifndef NONE_GUI
-	do_select_region();
-#endif
-	break;
-    case 2:
-	regiontype = REGION_ABOVE;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 3:
-	regiontype = REGION_BELOW;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 4:
-	regiontype = REGION_TOLEFT;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 5:
-	regiontype = REGION_TORIGHT;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 6:
-      regiontype= REGION_HORIZI;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 7:
-      regiontype= REGION_VERTI;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 8:
-      regiontype= REGION_HORIZO;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    case 9:
-      regiontype= REGION_VERTO;
-#ifndef NONE_GUI
-	set_action(0);
-	set_action(DEF_REGION1ST);
-#endif
-	break;
-    }
 }
 
 /*
