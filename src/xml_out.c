@@ -503,13 +503,13 @@ int save_graph_properties(XFile *xf, Quark *gr)
 
     /* Locator */
     attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrType, g->locator.pt_type); /* FIXME: textual */
+    attributes_set_ival(attrs, AStrType, g->locator.type); /* FIXME: textual */
     xfile_begin_element(xf, EStrLocator, attrs);
     {
         attributes_reset(attrs);
         xmlio_set_active(attrs, g->locator.pointset);
-        attributes_set_dval(attrs, AStrX, g->locator.dsx);
-        attributes_set_dval(attrs, AStrY, g->locator.dsy);
+        xmlio_set_world_value(gr, attrs, AStrX, g->locator.origin.x);
+        xmlio_set_world_value(gr, attrs, AStrY, g->locator.origin.y);
         xfile_empty_element(xf, EStrFixedpoint, attrs);
         
         xmlio_write_format_spec(xf, attrs,

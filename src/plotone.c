@@ -509,14 +509,11 @@ void draw_set(Quark *pset, plot_rt_t *plot_rt)
 void draw_ref_point(Canvas *canvas, Quark *gr)
 {
     GLocator *locator;
-    WPoint wp;
     VPoint vp;
     
     if (is_refpoint_active(gr)) {      
         locator = graph_get_locator(gr);
-        wp.x = locator->dsx;
-        wp.y = locator->dsy;
-        Wpoint2Vpoint(gr, &wp, &vp);
+        Wpoint2Vpoint(gr, &locator->origin, &vp);
         setcolor(canvas, 1);
         setpattern(canvas, 1);
         setlinewidth(canvas, 1.0);

@@ -1163,13 +1163,13 @@ char *utf2iso(const char *s)
     <element name="#EStrLocator" type="glocator">
         <!-- Attributes -->
         <attribute name="#AStrType" type="ival">
-            $$->pt_type = $?;
+            $$->type = $?;
         </attribute>
         <!-- Child elements -->
         <child name="#EStrFixedpoint">
             $$->pointset = $?->active;
-            $$->dsx      = $?->x;
-            $$->dsy      = $?->y;
+            $$->origin.x = $?->x;
+            $$->origin.y = $?->y;
             xfree($?);
         </child>
         <child name="#EStrXformat">

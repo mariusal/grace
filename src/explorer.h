@@ -113,7 +113,7 @@ typedef struct {
     SpinStructure   *bargap;
     Widget          znorm;
 
-    OptionStructure *delta;
+    OptionStructure *loc_type;
     OptionStructure *loc_formatx;
     OptionStructure *loc_formaty;
     OptionStructure *loc_precx;

@@ -129,15 +129,13 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
     /* ------------ Locator tab -------------- */
 
     ui->locator_tp = CreateTabPage(tab, "Locator");
-    ui->delta = CreatePanelChoice(ui->locator_tp, "Locator display type:",
-	                          "[X, Y]",
-	                          "[DX, DY]",
-	                          "[DISTANCE]",
-	                          "[Phi, Rho]",
-	                          "[VX, VY]",
-	                          "[SX, SY]",
-	                          NULL);
-    AddOptionChoiceCB(ui->delta, oc_explorer_cb, eui);
+    ui->loc_type = CreateOptionChoiceVA(ui->locator_tp,
+        "Locator display type:",
+	"None",       GLOCATOR_TYPE_NONE,
+	"[X, Y]",     GLOCATOR_TYPE_XY,
+	"[Phi, Rho]", GLOCATOR_TYPE_POLAR,
+	NULL);
+    AddOptionChoiceCB(ui->loc_type, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->locator_tp, "X properties");
     rc = CreateVContainer(fr);
@@ -208,14 +206,14 @@ void update_graph_ui(GraphUI *ui, Quark *q)
 
 
 	SetToggleButtonState(ui->fixedp, locator->pointset);
-	SetOptionChoice(ui->delta, locator->pt_type);
+	SetOptionChoice(ui->loc_type, locator->type);
 	SetOptionChoice(ui->loc_formatx, locator->fx);
 	SetOptionChoice(ui->loc_formaty, locator->fy);
 	SetOptionChoice(ui->loc_precx, locator->px);
 	SetOptionChoice(ui->loc_precy, locator->py);
-	sprintf(buf, "%g", locator->dsx);
+	sprintf(buf, "%g", locator->origin.x);
 	xv_setstr(ui->locx, buf);
-	sprintf(buf, "%g", locator->dsy);
+	sprintf(buf, "%g", locator->origin.y);
 	xv_setstr(ui->locy, buf);
     }
 }
@@ -303,8 +301,8 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
         }
 
 
-        if (!caller || caller == ui->delta) {
-            locator->pt_type = GetOptionChoice(ui->delta);
+        if (!caller || caller == ui->loc_type) {
+            locator->type = GetOptionChoice(ui->loc_type);
         }
         if (!caller || caller == ui->loc_formatx) {
             locator->fx = GetOptionChoice(ui->loc_formatx);
@@ -322,10 +320,10 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             locator->pointset = GetToggleButtonState(ui->fixedp);
         }
         if (!caller || caller == ui->locx) {
-            xv_evalexpr(ui->locx, &locator->dsx); 
+            xv_evalexpr(ui->locx, &locator->origin.x); 
         }
         if (!caller || caller == ui->locy) {
-            xv_evalexpr(ui->locy, &locator->dsy); 
+            xv_evalexpr(ui->locy, &locator->origin.y); 
         }
 
         return RETURN_SUCCESS;

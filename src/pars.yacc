@@ -2391,12 +2391,24 @@ parmset:
 	}
 	| selectgraph FIXEDPOINT XY expr ',' expr {
             GLocator *gloc = graph_get_locator($1);
-	    gloc->dsx = $4;
-	    gloc->dsy = $6;
+	    gloc->origin.x = $4;
+	    gloc->origin.y = $6;
 	}
 	| selectgraph FIXEDPOINT TYPE nexpr {
             GLocator *gloc = graph_get_locator($1);
-            gloc->pt_type = $4;
+            switch ($4) {
+            case 0:
+            case 1:
+                gloc->type = GLOCATOR_TYPE_XY;
+                break;
+            case 2:
+            case 3:
+                gloc->type = GLOCATOR_TYPE_POLAR;
+                break;
+            default:
+                gloc->type = GLOCATOR_TYPE_NONE;
+                break;
+            }
         }
         
 	| TYPE xytype {

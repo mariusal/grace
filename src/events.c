@@ -51,17 +51,6 @@
 
 extern Widget drawing_window;
 
-/*
- * set format string for locator
- */
-static char *typestr[6] = {"X, Y",
-                           "DX, DY",
-			   "DIST",
-			   "Phi, Rho",
-			   "VX, VY",
-                           "SX, SY"};
-
-
 int cursortype = 0;
 
 static void scroll_bar_pix(Widget bar, int pix)
@@ -707,7 +696,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
 	break;
     }
     
-    if (abort_action) {
+    if (abort_action && xstuff->collect_points) {
         /* clear selection */
         switch (xstuff->sel_type) {
         case SELECTION_TYPE_RECT:
@@ -799,89 +788,63 @@ Quark *next_graph_containing(Quark *q, VPoint *vp)
 void update_locator_lab(Quark *cg, VPoint *vpp)
 {
     static VPoint vp = {0.0, 0.0};
-    WPoint wp;
     view v;
-    double wx, wy, xtmp, ytmp;
-    short x, y;
-    double dsx = 0.0, dsy = 0.0;
-    char buf[256], bufx[64], bufy[64], *s;
     GLocator *locator;
+    char buf[256];
     
     if (vpp != NULL) {
         vp = *vpp;
     }
 
-    if (!graph_is_active(cg)) {
-        set_tracker_string("[No graphs]");
-        return;
-    }
-    
-    graph_get_viewport(cg, &v);
-    if (!is_vpoint_inside(&v, &vp, 0.0)) {
-        set_tracker_string("[Out of frame]");
-        return;
-    }
-    
-    Vpoint2Wpoint(cg, &vp, &wp);
-    wx = wp.x;
-    wy = wp.y;
-    
-    locator = graph_get_locator(cg);
-    
-    if (locator->pointset) {
-	dsx = locator->dsx;
-	dsy = locator->dsy;
-    }
-    
-    switch (locator->pt_type) {
-    case 0:
-        if (graph_get_type(cg) == GRAPH_POLAR) {
-            polar2xy(wx, wy, &xtmp, &ytmp);
-        } else {
-            xtmp = wx;
-            ytmp = wy;
-        }
-        break;
-    case 1:
-        xtmp = wx - dsx;
-        ytmp = wy - dsy;
-        break;
-    case 2:
-        if (graph_get_type(cg) == GRAPH_POLAR) {
-            polar2xy(wx, wy, &xtmp, &ytmp);
-        } else {
-            xtmp = wx;
-            ytmp = wy;
-        }
-        xtmp = hypot(dsx - xtmp, dsy - ytmp);
-        ytmp = 0.0;
-        break;
-    case 3:
-        if (dsx - wx != 0.0 || dsy - wy != 0.0) {
-            xy2polar(dsx - wx, dsy - wy, &xtmp, &ytmp);
-        } else {
-            xtmp = 0.0;
-            ytmp = 0.0;
-        }
-        break;
-    case 4:
-        xtmp = vp.x;
-        ytmp = vp.y;
-        break;
-    case 5:
-        x11_VPoint2dev(&vp, &x, &y);
-        xtmp = x;
-        ytmp = y;
-        break;
-    default:
-        return;
-    }
-    s = create_fstring(get_parent_project(cg), locator->fx, locator->px, xtmp, LFORMAT_TYPE_PLAIN);
-    strcpy(bufx, s);
-    s = create_fstring(get_parent_project(cg), locator->fy, locator->py, ytmp, LFORMAT_TYPE_PLAIN);
-    strcpy(bufy, s);
-    sprintf(buf, "%s: %s = [%s, %s]", QIDSTR(cg), typestr[locator->pt_type], bufx, bufy);
+    if (graph_is_active(cg) == TRUE                  &&
+        graph_get_viewport(cg, &v) == RETURN_SUCCESS &&
+        is_vpoint_inside(&v, &vp, 0.0) == TRUE       &&
+        (locator = graph_get_locator(cg)) != NULL    &&
+        locator->type != GLOCATOR_TYPE_NONE) {
+        char bufx[64], bufy[64], *s, *prefix, *sx, *sy;
+        WPoint wp;
+        double wx, wy, xtmp, ytmp;
 
+        Vpoint2Wpoint(cg, &vp, &wp);
+        wx = wp.x;
+        wy = wp.y;
+
+        if (locator->pointset) {
+	    wx -= locator->origin.x;
+	    wy -= locator->origin.y;
+            prefix = "d";
+        } else {
+            prefix = "";
+        }
+
+        switch (locator->type) {
+        case GLOCATOR_TYPE_XY:
+            xtmp = wx;
+            ytmp = wy;
+            sx = "X";
+            sy = "Y";
+            break;
+        case GLOCATOR_TYPE_POLAR:
+            xy2polar(wx, wy, &xtmp, &ytmp);
+            sx = "Phi";
+            sy = "Rho";
+            break;
+        default:
+            return;
+        }
+        s = create_fstring(get_parent_project(cg),
+            locator->fx, locator->px, xtmp, LFORMAT_TYPE_PLAIN);
+        strcpy(bufx, s);
+        s = create_fstring(get_parent_project(cg),
+            locator->fy, locator->py, ytmp, LFORMAT_TYPE_PLAIN);
+        strcpy(bufy, s);
+
+        sprintf(buf, "%s: %s%s, %s%s = (%s, %s)", QIDSTR(cg),
+            prefix, sx, prefix, sy, bufx, bufy);
+    } else {
+        sprintf(buf, "VX, VY = (%.4f, %.4f)", vp.x, vp.y);
+    }
+    
     set_tracker_string(buf);
 }
 
@@ -993,8 +956,7 @@ static int locator_sink(unsigned int npoints, const VPoint *vps, void *data)
     Vpoint2Wpoint(cg, &vps[0], &wp);
 
     gl = graph_get_locator(cg);
-    gl->dsx = wp.x;
-    gl->dsy = wp.y;
+    gl->origin = wp;
     gl->pointset = TRUE;
     quark_dirtystate_set(cg, TRUE);
     
