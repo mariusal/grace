@@ -150,6 +150,10 @@ extern double jn ( int n, double x );
 #  ifndef HAVE_ISFINITE_DECL
 extern int isfinite ( double x );
 #  endif
+#else
+#  ifndef HAVE_FINITE_DECL
+extern int finite ( double x );
+#  endif
 #endif
 
 #ifndef HAVE_ISNAN_DECL
