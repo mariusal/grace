@@ -98,6 +98,8 @@ typedef struct {
     ListStructure *gsel;
     StorageStructure *ss;
     
+    Widget active;
+    
     TextStructure *x;
     TextStructure *y;
     OptionStructure *loctype;
@@ -324,6 +326,8 @@ static void selectobjectCB(int n, void **values, void *data)
         
         ui->dobject = o;
         
+        SetToggleButtonState(ui->active, o->active);
+        
         SetOptionChoice(ui->loctype, o->loctype);
         if (o->loctype == COORD_VIEW) {
             format = "%.4f";
@@ -402,10 +406,18 @@ static int objects_aac(void *data)
     int i, n;
     void **values;
     DObject *o;
+    int olist_need_update = FALSE;
     
     n = GetStorageChoices(ui->ss, &values);
     for (i = 0; i < n; i++) {
+        int active;
         o = (DObject *) values[i];
+        
+        active = GetToggleButtonState(ui->active);
+        if (o->active != active) {
+            olist_need_update = TRUE;
+            o->active = active;
+        }
         
         o->loctype = GetOptionChoice(ui->loctype);
         xv_evalexpr(ui->x->text, &o->ap.x);
@@ -441,6 +453,9 @@ static int objects_aac(void *data)
         }
     }
 
+    if (olist_need_update) {
+        UpdateStorageChoice(ui->ss);
+    }
     xdrawgraph();
     set_dirtystate();
     
@@ -533,7 +548,7 @@ void define_objects_popup(void *data)
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuHelpButton(menupane, "On drawing objects", 's',
-            oui->top, "doc/UsersGouide.html#drawing-objects");
+            oui->top, "doc/UsersGuide.html#drawing-objects");
 
         panel = CreateVContainer(oui->top);
         AddDialogFormChild(oui->top, panel);
@@ -550,6 +565,8 @@ void define_objects_popup(void *data)
         /* ------------ Main tab -------------- */
         main_tab = CreateTabPage(tabs, "General");
 
+        oui->active = CreateToggleButton(main_tab, "Active");
+        
         fr = CreateFrame(main_tab, "Anchor point");
         rc = CreateHContainer(fr);
         oui->loctype = CreateOptionChoice(rc, "Type:", 1, 2, opitems);
