@@ -61,15 +61,17 @@ typedef struct _EditPoints {
     Widget top;
     Widget mw;
     Widget label;
+    OptionStructure *stype;
+    TextStructure *comment;
 } EditPoints;
 
-void update_cells(EditPoints *ep);
+static void update_cells(EditPoints *ep);
 
 /* default cell value precision */
 #define CELL_PREC 8
 
-/* default cell value format (0 - Decimal; 1 - General; 2 - Exponential) */
-#define CELL_FORMAT 1
+/* default cell value format */
+#define CELL_FORMAT FORMAT_GENERAL
 
 /* default cell width */
 #define CELL_WIDTH 12
@@ -81,11 +83,13 @@ void update_cells(EditPoints *ep);
 #define MIN_SS_ROWS    10
 #define MIN_SS_COLS    1
 
-char *scformat[3] =
-{"%.*lf", "%.*lg", "%.*le"};
 
+static void get_ep_dims(EditPoints *ep, int *nr, int *nc)
+{
+    XtVaGetValues(ep->mw, XmNrows, nr, XmNcolumns, nc, NULL);
+}
 
-int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
+static int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
 {
     if (!ep || !is_valid_setno(ep->gno, ep->setno)) {
         return RETURN_FAILURE;
@@ -104,26 +108,53 @@ int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
 
 
 /*
- * delete the selected row
+ * delete the selected row(s)
  */
-void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void del_rows_cb(void *data)
 {
-    int i, j;
-    int nrows, ncols, scols;
-    EditPoints *ep = (EditPoints *) client_data;
+    int i;
+    int nrows, ncols, scols, nc, nr;
+    int nscells, row_start, nsrows, nsrows_max, *srows;
+    EditPoints *ep = (EditPoints *) data;
 
-    XbaeMatrixGetCurrentCell(ep->mw, &i, &j);
-    
     if (get_ep_set_dims(ep, &nrows, &ncols, &scols) != RETURN_SUCCESS) {
         return;
     }
     
-    if (i >= nrows) {
-        errmsg("Selected row out of range");
+    get_ep_dims(ep, &nr, &nc);
+    if (nr == 0 || nc == 0) {
         return;
     }
     
-    del_point(ep->gno, ep->setno, i);
+    row_start = XbaeMatrixFirstSelectedRow(ep->mw);
+    if (row_start < 0 || row_start >= nrows) {
+        errmsg("Nothing to delete");
+        return;
+    }
+    
+    nscells = XbaeMatrixGetNumSelected(ep->mw);
+    nsrows_max = nscells/nc;
+    srows = xmalloc(nsrows_max*SIZEOF_INT);
+    if (!srows) {
+        errmsg("Not enough memory");
+        return;
+    }
+    
+    for (nsrows = 0, i = row_start; i < nrows && nscells > 0; i++) {
+        if (XbaeMatrixIsRowSelected(ep->mw, i)) {
+            srows[nsrows] = i;
+            nsrows++;
+            nscells -= nc;
+        }
+    }
+    
+    for (i = nsrows - 1; i >= 0; i--) {
+        del_point(ep->gno, ep->setno, srows[i]);
+    }
+    
+    xfree(srows);
+    
+    XbaeMatrixDeselectAll(ep->mw);
     
     update_set_lists(ep->gno);
     update_cells(ep);
@@ -133,15 +164,16 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
 
 
 /*
- * add a point to a set by copying the selected cell and placing it after it
+ * add a point to a set by copying the row containing the selected cell
+ * and placing it after it
  */
-void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
+void add_row_cb(void *data)
 {
     int i, j, k;
     int nrows, ncols, scols;
     char **s;
     Datapoint dpoint;
-    EditPoints *ep = (EditPoints *) client_data;
+    EditPoints *ep = (EditPoints *) data;
     int gno = ep->gno, setno = ep->setno;
 
     XbaeMatrixGetCurrentCell(ep->mw, &i, &j);
@@ -175,48 +207,42 @@ void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
     xdrawgraph();
 }
 
-static Widget *editp_col_item;
-static Widget *editp_format_item;
-static Widget *editp_precision_item;
+static OptionStructure *editp_col_item;
+static OptionStructure *editp_format_item;
+static SpinStructure *editp_precision_item;
 
 static void update_props(EditPoints *ep, int col)
 {
     if (col >= 0 && col < MAX_SET_COLS) {
-        SetChoice(editp_col_item, col);
+        SetOptionChoice(editp_col_item, col);
     } else {
-        col = GetChoice(editp_col_item);
-        if (col >= MAX_SET_COLS) {
-    	    col = 0;
-        }
+        col = GetOptionChoice(editp_col_item);
     }
 
-    SetChoice(editp_format_item, ep->cformat[col]); 
+    SetOptionChoice(editp_format_item, ep->cformat[col]); 
 
-    SetChoice(editp_precision_item, ep->cprec[col]);
+    SetSpinChoice(editp_precision_item, (double) ep->cprec[col]);
 }
 
 static int do_accept_props(void *data)
 {
-    int i, col, cformat, cprec;
+    int col, cformat, cprec;
     EditPoints *ep = *((EditPoints **) data);
 
-    col = GetChoice(editp_col_item);
-    cformat = GetChoice(editp_format_item);
-    cprec = GetChoice(editp_precision_item);
+    col = GetOptionChoice(editp_col_item);
+    cformat = GetOptionChoice(editp_format_item);
+    cprec = (int) GetSpinChoice(editp_precision_item);
     
-    if (col < MAX_SET_COLS) {
+    if (col >= 0 && col < MAX_SET_COLS) {
         ep->cformat[col] = cformat;
         ep->cprec[col] = cprec;
-    } else {	    /* do it for all columns */
-    	for (i = 0; i < MAX_SET_COLS; i++) {
-    	    ep->cformat[i] = cformat;
-    	    ep->cprec[i] = cprec;
-        }
+        
+        update_cells(ep);
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
     }
-    
-    update_cells(ep);
-    
-    return RETURN_SUCCESS;
 }
 
 void do_props(EditPoints *ep, int column)
@@ -229,27 +255,36 @@ void do_props(EditPoints *ep, int column)
     set_wait_cursor();
     
     if (top == NULL) {
+        int i;
         Widget dialog;
+        OptionItem opitems[MAX_SET_COLS];
+        
 	top = CreateDialogForm(app_shell, "Edit set properties");
 	dialog = CreateVContainer(top);
 
-	editp_col_item = CreatePanelChoice(dialog, "Apply to column:",
-				    8, "1", "2", "3", "4", "5", "6", "All",
-					   NULL, 0);
+	for (i = 0; i < MAX_SET_COLS; i++) {
+            opitems[i].label = copy_string(NULL, dataset_colname(i));
+            opitems[i].value = i;
+        }
+        editp_col_item = CreateOptionChoice(dialog,
+            "Column:", 1, MAX_SET_COLS, opitems);
+	for (i = 0; i < MAX_SET_COLS; i++) {
+            xfree(opitems[i].label);
+        }
 
-	editp_format_item = CreatePanelChoice(dialog, "Format:",
-					      4,
-					      "Decimal",
-					      "General",
-					      "Exponential",
-					      NULL, 0);
+	opitems[0].label = "Decimal";
+	opitems[0].value = FORMAT_DECIMAL;
+	opitems[1].label = "General";
+	opitems[1].value = FORMAT_GENERAL;
+	opitems[2].label = "Exponential";
+	opitems[2].value = FORMAT_EXPONENTIAL;
+	opitems[3].label = "Date/time";
+	opitems[3].value = FORMAT_YYMMDDHMS;
 
-	editp_precision_item = CreatePanelChoice(dialog, "Precision:",
-						 16,
-						 "0", "1", "2", "3", "4",
-						 "5", "6", "7", "8", "9",
-						 "10", "11", "12", "13", "14",
-						 NULL, 0);
+        editp_format_item = CreateOptionChoice(dialog, "Format:", 1, 4, opitems);
+
+	editp_precision_item = CreateSpinChoice(dialog, "Precision:",
+            2, SPIN_TYPE_INT, (double) 0, (double) 20, (double) 1);
 
 	CreateAACDialog(top, dialog, do_accept_props, &sep);
     }
@@ -264,7 +299,6 @@ static void do_props_cb(void *data)
     EditPoints *ep = (EditPoints *) data;
     do_props(ep, -1);
 }
-
 
 static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 {
@@ -284,13 +318,18 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     
     /* TODO: add edit_point() function to setutils.c */
     if (cs->column < ncols) {
-        char buf[128];
+        char *s;
         double *datap = getcol(ep->gno, ep->setno, cs->column);
-        sprintf(buf, scformat[(ep->cformat[cs->column])], ep->cprec[cs->column],
-    	        datap[cs->row]);
-        if (strcmp(buf, cs->value) != 0) {
-	    datap[cs->row] = atof(cs->value);
-            changed = TRUE;
+        s = create_fstring(ep->cformat[cs->column], ep->cprec[cs->column],
+            datap[cs->row], LFORMAT_TYPE_PLAIN);
+        if (strcmp(s, cs->value) != 0) {
+	    double value;
+            if (parse_date_or_number(cs->value, FALSE, &value) == RETURN_SUCCESS) {
+                datap[cs->row] = value;
+                changed = TRUE;
+            } else {
+                errmsg("Can't parse input value");
+            }
         }
     } else if (cs->column < ncols + scols) {
         char **datap = get_set_strings(ep->gno, ep->setno);
@@ -346,7 +385,8 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
     if (j < ncols) {
         double *datap;
         datap = getcol(ep->gno, ep->setno, j);
-        sprintf(buf[stackp], scformat[(ep->cformat[j])], ep->cprec[j], datap[i]);
+        strcpy(buf[stackp],
+            create_fstring(ep->cformat[j], ep->cprec[j], datap[i], LFORMAT_TYPE_PLAIN));
         cs->string = buf[stackp];
         stackp++;
         stackp %= STACKLEN;
@@ -370,7 +410,12 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
 	    XbaeMatrixSelectRow(ep->mw, cbs->row);
         }
     } else {
-        do_props(ep, cbs->column);
+        int ncols, nrows, scols;
+        if (get_ep_set_dims(ep, &nrows, &ncols, &scols) != RETURN_SUCCESS) {
+            return;
+        } else if (cbs->column < ncols) {
+            do_props(ep, cbs->column);
+        }
     }
 }
 
@@ -444,15 +489,10 @@ void update_ss_editors(int gno)
     }
 }
 
-static void get_ep_dims(EditPoints *ep, int *nr, int *nc)
-{
-    XtVaGetValues(ep->mw, XmNrows, nr, XmNcolumns, nc, NULL);
-}
-
 /*
  * redo frame since number of data points or set type, etc.,  may change 
  */
-void update_cells(EditPoints *ep)
+static void update_cells(EditPoints *ep)
 {
     int i, nr, nc, new_nr, new_nc, delta_nr, delta_nc;
     int ncols, nrows, scols;
@@ -475,7 +515,10 @@ void update_cells(EditPoints *ep)
     
     sprintf(buf, "Dataset G%d.S%d", ep->gno, ep->setno);
     SetLabel(ep->label, buf);
-	
+
+    SetOptionChoice(ep->stype, dataset_type(ep->gno, ep->setno));
+    SetTextString(ep->comment, getcomment(ep->gno, ep->setno));
+    
     /* get current size of widget and update rows/columns as needed */
     get_ep_dims(ep, &nr, &nc);
 
@@ -495,7 +538,7 @@ void update_cells(EditPoints *ep)
     
     for (i = 0; i < ncols; i++) {
         widths[i] = CELL_WIDTH;
-        maxlengths[i] = CELL_WIDTH;
+        maxlengths[i] = 2*CELL_WIDTH;
         collabels[i] = copy_string(NULL, dataset_colname(i));
         column_label_alignments[i] = XmALIGNMENT_CENTER;
     }
@@ -546,11 +589,16 @@ void update_cells(EditPoints *ep)
     XtVaSetValues(ep->mw,
 	XmNrowLabelWidth, width,
         XmNvisibleColumns, ncols + scols,
-        XmNcolumnWidths, widths,
         XmNcolumnMaxLengths, maxlengths,
         XmNcolumnLabels, collabels,
         XmNcolumnLabelAlignments, column_label_alignments,
 	NULL);
+
+    if (delta_nc != 0) {
+        XtVaSetValues(ep->mw,
+            XmNcolumnWidths, widths,
+	    NULL);
+    }
 
     /* free memory used to hold strings */
     for (i = 0; i < ncols + scols; i++) {
@@ -560,6 +608,18 @@ void update_cells(EditPoints *ep)
 
 int ep_aac_proc(void *data)
 {
+    EditPoints *ep = (EditPoints *) data;
+    int stype;
+    char *comment;
+    
+    stype = GetOptionChoice(ep->stype);
+    comment = GetTextString(ep->comment);
+    
+    set_dataset_type(ep->gno, ep->setno, stype);
+    setcomment(ep->gno, ep->setno, comment);
+    update_set_lists(ep->gno);
+    xdrawgraph();
+    
     return RETURN_SUCCESS;
 }
 
@@ -569,9 +629,8 @@ static EditPoints *new_ep(void)
     int i;
     short widths[MIN_SS_COLS];
     char *rowlabels[MIN_SS_ROWS];
-    char *label2[2] = {"Delete", "Add"};
     EditPoints *ep;
-    Widget dialog, fr, but2[2];
+    Widget fr, rc, menubar, menupane;
     
     ep = xmalloc(sizeof(EditPoints));
     ep->next = ep_start;
@@ -585,9 +644,33 @@ static EditPoints *new_ep(void)
     }
 
     ep->top = CreateDialogForm(app_shell, "Spreadsheet dataset editor");
+
+    menubar = CreateMenuBar(ep->top);
+    ManageChild(menubar);
+    AddDialogFormChild(ep->top, menubar);
+
+    menupane = CreateMenu(menubar, "File", 'F', FALSE);
+    CreateMenuButton(menupane,
+        "Close", 'C', destroy_dialog_cb, GetParent(ep->top));
+
+    menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
+    CreateMenuButton(menupane, "Add row", 'A', add_row_cb, ep);
+    CreateMenuButton(menupane, "Delete selected rows", 'D', del_rows_cb, ep);
+    CreateMenuSeparator(menupane);
+    CreateMenuButton(menupane, "Column format...", 'f', do_props_cb, ep);
+
+    menupane = CreateMenu(menubar, "Help", 'H', TRUE);
+    CreateMenuButton(menupane, "On dataset editor", 'e', HelpCB, NULL);
+
     fr = CreateFrame(ep->top, NULL);
     AddDialogFormChild(ep->top, fr);
     ep->label = CreateLabel(fr, "Dataset G*.S*");
+
+    fr = CreateFrame(ep->top, NULL);
+    AddDialogFormChild(ep->top, fr);
+    rc = CreateVContainer(fr);
+    ep->stype = CreateSetTypeChoice(rc, "Type:");
+    ep->comment = CreateTextInput(rc, "Comment:");
 
     for (i = 0; i < MIN_SS_ROWS; i++) {
     	char buf[32];
@@ -622,15 +705,7 @@ static EditPoints *new_ep(void)
     XtAddCallback(ep->mw, XmNleaveCellCallback, leaveCB, ep);
     XtAddCallback(ep->mw, XmNlabelActivateCallback, labelCB, ep);
 
-    AddDialogFormChild(ep->top, ep->mw);
-
-    dialog = CreateVContainer(ep->top);
-
-    CreateCommandButtons(dialog, 2, but2, label2);
-    XtAddCallback(but2[0], XmNactivateCallback, del_point_cb, (XtPointer) ep);
-    XtAddCallback(but2[1], XmNactivateCallback, add_pt_cb, (XtPointer) ep);
-
-    CreateAACDialog(ep->top, dialog, ep_aac_proc, ep);
+    CreateAACDialog(ep->top, ep->mw, ep_aac_proc, ep);
 
     return ep;
 }
