@@ -37,9 +37,6 @@
 #include "draw.h"
 #include "graphs.h"
 
-#define BAR_HORIZONTAL  0
-#define BAR_VERTICAL    1
-
 void drawgraph(Grace *grace);
 void do_hardcopy(Grace *grace);
 
