@@ -106,7 +106,7 @@ int ssd_qf_register(QuarkFactory *qfactory)
     return quark_flavor_add(qfactory, &qf);
 }
 
-int ssd_get_ncols(const Quark *q)
+unsigned int ssd_get_ncols(const Quark *q)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd) {
@@ -116,7 +116,7 @@ int ssd_get_ncols(const Quark *q)
     }
 }
 
-int ssd_get_nrows(const Quark *q)
+unsigned int ssd_get_nrows(const Quark *q)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd) {
@@ -133,5 +133,83 @@ int *ssd_get_formats(const Quark *q)
         return ssd->formats;
     } else {
         return NULL;
+    }
+}
+
+int ssd_set_nrows(Quark *q, unsigned int nrows)
+{
+    unsigned int i, j;
+    char  **sp;
+    ss_data *ssd = ssd_get_data(q);
+    AMem *amem = quark_get_amem(q);
+    
+    if (!ssd) {
+        return RETURN_FAILURE;
+    }
+    
+    if (ssd->nrows == nrows) {
+        /* nothing to do */
+        return RETURN_SUCCESS;
+    }
+    
+    for (i = 0; i < ssd->ncols; i++) {
+        if (ssd->formats[i] == FFORMAT_STRING) {
+            sp = (char **) ssd->data[i];
+            for (j = nrows; j < ssd->nrows; j++) {
+                AMEM_CFREE(amem, sp[j]);
+            }
+            ssd->data[i] =
+                amem_realloc(amem, ssd->data[i], nrows*SIZEOF_VOID_P);
+            sp = (char **) ssd->data[i];
+            for (j = ssd->nrows; j < nrows; j++) {
+                sp[j] = NULL;
+            }
+        } else {
+            ssd->data[i] =
+                amem_realloc(amem, ssd->data[i], nrows*SIZEOF_DOUBLE);
+        }
+    }
+    ssd->nrows = nrows;
+
+    quark_dirtystate_set(q, TRUE);
+    
+    return RETURN_SUCCESS;
+}
+
+int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats)
+{
+    ss_data *ssd = ssd_get_data(q);
+    AMem *amem = quark_get_amem(q);
+    
+    if (!ssd) {
+        return RETURN_FAILURE;
+    }
+    
+    ssd->data = amem_calloc(amem, ncols, SIZEOF_VOID_P);
+
+    ssd->formats = amem_malloc(amem, ncols*SIZEOF_INT);
+    memcpy(ssd->formats, formats, ncols*SIZEOF_INT);
+    ssd->ncols = ncols;
+    ssd->nrows = 0;
+    
+    quark_dirtystate_set(q, TRUE);
+
+    return RETURN_SUCCESS;
+}
+
+int ssd_set_label(Quark *q, const char *label)
+{
+    ss_data *ssd = ssd_get_data(q);
+
+    if (!ssd) {
+        return RETURN_FAILURE;
+    } else {
+        AMem *amem = quark_get_amem(q);
+
+        ssd->label = amem_strcpy(amem, ssd->label, label);
+
+        quark_dirtystate_set(q, TRUE);
+    
+        return RETURN_SUCCESS;
     }
 }

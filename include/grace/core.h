@@ -833,9 +833,13 @@ ss_data *ssd_get_data(const Quark *q);
 
 Quark *ssd_new(Quark *q);
 
-int ssd_get_ncols(const Quark *q);
-int ssd_get_nrows(const Quark *q);
+unsigned int ssd_get_ncols(const Quark *q);
+unsigned int ssd_get_nrows(const Quark *q);
 int *ssd_get_formats(const Quark *q);
+
+int ssd_set_nrows(Quark *q, unsigned int nrows);
+int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
+int ssd_set_label(Quark *q, const char *label);
 
 /* Frame */
 frame *frame_get_data(const Quark *q);
@@ -960,14 +964,14 @@ int set_is_hotlinked(Quark *pset);
 char *set_get_hotlink_file(Quark *pset);
 int set_get_hotlink_src(Quark *pset);
 
-int set_set_strings(Quark *p, int len, char **s);
+int set_set_strings(Quark *p, unsigned int len, char **s);
 char **set_get_strings(Quark *p);
 
 int set_set_length(Quark *p, unsigned int length);
 int set_get_length(Quark *p);
 
 double *set_get_col(Quark *p, unsigned int col);
-void set_set_col(Quark *pset, unsigned int col, double *x, unsigned int len);
+int set_set_col(Quark *pset, unsigned int col, const double *x, unsigned int len);
 
 int set_get_type(Quark *p);
 int set_set_type(Quark *p, int stype);

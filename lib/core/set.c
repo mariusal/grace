@@ -549,8 +549,8 @@ set *set_get_data(const Quark *q)
 
 Dataset *set_get_dataset(Quark *qset)
 {
-    if (qset) {
-        set *p = set_get_data(qset);
+    set *p = set_get_data(qset);
+    if (p) {
         return p->data;
     } else {
         return NULL;
@@ -559,68 +559,62 @@ Dataset *set_get_dataset(Quark *qset)
 
 int set_set_symskip(Quark *pset, int symskip)
 {
-    set *p;
-    if (!pset || symskip < 0) {
+    set *p = set_get_data(pset);
+    if (!p || symskip < 0) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
     p->symskip = symskip;
+    quark_dirtystate_set(pset, TRUE);
     
     return RETURN_SUCCESS;
 }
 
 int set_set_symskipmindist(Quark *pset, double symskipmindist)
 {
-    set *p;
-    if (!pset || symskipmindist < 0) {
+    set *p = set_get_data(pset);
+    if (!p || symskipmindist < 0) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
     p->symskipmindist = symskipmindist;
+    quark_dirtystate_set(pset, TRUE);
     
     return RETURN_SUCCESS;
 }
 
 int set_set_symbol(Quark *pset, const Symbol *sym)
 {
-    set *p;
-    if (!pset || !sym) {
+    set *p = set_get_data(pset);
+    if (!p || !sym) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
     p->sym = *sym;
+    quark_dirtystate_set(pset, TRUE);
     
     return RETURN_SUCCESS;
 }
 
 int set_set_line(Quark *pset, const SetLine *sl)
 {
-    set *p;
-    if (!pset || !sl) {
+    set *p = set_get_data(pset);
+    if (!p || !sl) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
     p->line = *sl;
+    quark_dirtystate_set(pset, TRUE);
     
     return RETURN_SUCCESS;
 }
 
 int set_set_avalue(Quark *pset, const AValue *av)
 {
-    set *p;
-    if (!pset || !av) {
+    set *p = set_get_data(pset);
+    if (!p || !av) {
         return RETURN_FAILURE;
     }
-    
-    p = set_get_data(pset);
     
     AMEM_CFREE(pset->amem, p->avalue.prestr);
     AMEM_CFREE(pset->amem, p->avalue.appstr);
@@ -628,34 +622,33 @@ int set_set_avalue(Quark *pset, const AValue *av)
     p->avalue.prestr = amem_strdup(pset->amem, av->prestr);
     p->avalue.appstr = amem_strdup(pset->amem, av->appstr);
     
+    quark_dirtystate_set(pset, TRUE);
     return RETURN_SUCCESS;
 }
 
 int set_set_errbar(Quark *pset, const Errbar *ebar)
 {
-    set *p;
-    if (!pset || !ebar) {
+    set *p = set_get_data(pset);
+    if (!p || !ebar) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
     p->errbar = *ebar;
     
+    quark_dirtystate_set(pset, TRUE);
     return RETURN_SUCCESS;
 }
 
 int set_set_legstr(Quark *pset, const char *s)
 {
-    set *p;
-    if (!pset) {
+    set *p = set_get_data(pset);
+    if (!p) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-    
     p->legstr = amem_strcpy(pset->amem, p->legstr, s);
     
+    quark_dirtystate_set(pset, TRUE);
     return RETURN_SUCCESS;
 }
 
@@ -669,16 +662,25 @@ char **set_get_strings(Quark *pset)
     }
 }
 
-int set_set_strings(Quark *pset, int len, char **s)
+int set_set_strings(Quark *pset, unsigned int len, char **s)
 {
-    if (pset && len > 0 && s!= NULL) {
+    if (set_set_length(pset, len) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    } else {
+        unsigned int i;
         set *p = set_get_data(pset);
-        p->data->s = s;
-        p->data->len = len;
+        Dataset *dsp = p->data;
+
+        if (dataset_enable_scol(p->data, TRUE) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        }
+
+        for (i = 0; i < len; i++) {
+            dsp->s[i] = amem_strcpy(dsp->amem, dsp->s[i], s[i]);
+        }
+
         quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
     }
 }
 
@@ -763,20 +765,22 @@ int set_get_type(Quark *pset)
 
 double *set_get_col(Quark *pset, unsigned int col)
 {
-    if (pset) {
-        set *p = set_get_data(pset);
+    set *p = set_get_data(pset);
+    if (p) {
         return p->data->ex[col];
     } else {
         return NULL;
     }
 }
 
-void set_set_col(Quark *pset, unsigned int col, double *x, unsigned int len)
+int set_set_col(Quark *pset, unsigned int col, const double *x, unsigned int len)
 {
-    if (pset) {
+    if (set_set_length(pset, len) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    } else {
         set *p = set_get_data(pset);
-        p->data->ex[col] = x;
-        p->data->len = len;
+        memcpy(p->data->ex[col], x, len*SIZEOF_DOUBLE);
         quark_dirtystate_set(pset, TRUE);
+        return RETURN_SUCCESS;
     }
 }
