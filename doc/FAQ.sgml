@@ -1160,6 +1160,8 @@ T1_InitLib(): Fatal error scanning Font Database File
           <tscreen><code>
 XMgrace*translations: #override\n\
         Ctrl <Btn1Down>: do_nothing()
+XMgrace*XmList.translations: #override\n\
+        Ctrl <Btn1Down>: ListBeginToggle()
           </code></tscreen>
 
 

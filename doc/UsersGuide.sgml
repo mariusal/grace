@@ -2187,19 +2187,29 @@ C
               Control code | Description   @
               <hline>
               &bsol;f{x}   | switch to font named "x"   @
-              &bsol;f{n}   | switch to font number n (not recommended)   @
-              &bsol;f{}    | return to original font   @
+              &bsol;f{n}   | switch to font number n    @
+              &bsol;f{}    | return to original font    @
+              &bsol;R{x}   | switch to color named "x"  @
+              &bsol;R{n}   | switch to color number n   @
+              &bsol;R{}    | return to original color   @
+              &bsol;#{x}   | treat "x" (must be of even length) as list of hexadecimal char codes @
+              &bsol;t{xx xy yx yy} | apply transformation matrix   @
+              &bsol;t{}    | reset transformation matrix   @
+              &bsol;z{x}   | zoom x times   @
+              &bsol;z{}    | return to original zoom   @
+              &bsol;r{x}   | rotate by x degrees   @
+              &bsol;l{x}   | slant by factor x   @
+              &bsol;v{x}   | shift vertically by x   @
+              &bsol;v{}    | return to unshifted baseline   @
+              &bsol;h{x}   | horizontal shift by x   @
               &bsol;u      | begin underline   @
               &bsol;U      | stop underline   @
               &bsol;o      | begin overline   @
               &bsol;O      | stop overline   @
-              &bsol;c      | begin using upper 128 characters of set   @
-              &bsol;C      | stop using upper 128 characters of set   @
-              &bsol;z{x}   | zoom x times   @
-              &bsol;z{}    | return to original zoom   @
-              &bsol;v{x}   | shift vertically by x   @
-              &bsol;v{}    | return to unshifted baseline   @
-              &bsol;h{x}   | horizontal shift by x   @
+              &bsol;Fk     | enable kerning   @
+              &bsol;FK     | disable kerning   @
+              &bsol;Fl     | enable ligatures   @
+              &bsol;FL     | disable ligatures   @
               &bsol;m{n}   | mark current position as n   @
               &bsol;M{n}   | return to saved position n   @
               &bsol;dl     | LtoR substring direction   @
@@ -2212,9 +2222,17 @@ C
               &bsol;-      | decrease size (same as &bsol;z{0.84} ; 0.84 = 1/sqrt(sqrt(2)))   @
               &bsol;s      | begin subscripting (same as &bsol;v{-0.4}&bsol;z{0.71})   @
               &bsol;S      | begin superscripting (same as &bsol;v{0.6}&bsol;z{0.71})   @
-              &bsol;N      | return to normal style (same as &bsol;v{}&bsol;z{})   @
+              &bsol;T{xx xy yx yy} | same as &bsol;t{}&bsol;t{xx xy yx yy}   @
+              &bsol;Z{x}   | absolute zoom x times (same as &bsol;z{}&bsol;z{x})  @
+              &bsol;q      | make font oblique (same as &bsol;l{0.25})   @
+              &bsol;Q      | undo oblique (same as &bsol;l{-0.25})   @
+              &bsol;N      | return to normal style (same as &bsol;v{}&bsol;t{})   @
               <hline>
               &bsol;&bsol; | print &bsol;   @
+              <hline>
+              &bsol;n      | switch to font number n (0-9) (deprecated) @
+              &bsol;c      | begin using upper 128 characters of set (deprecated)  @
+              &bsol;C      | stop using upper 128 characters of set (deprecated)  @
               <hline>
       </tabular>
       <caption>
@@ -2440,7 +2458,7 @@ C
       reference date. The default reference date is the one chosen by
       Scaliger, it is a classical reference for astronomical
       events. It can modified for a single session using the <ref
-      name="Edit->Preferences" id="preferences"> popup of the GUI. If
+      name="Edit-&gt;Preferences" id="preferences"> popup of the GUI. If
       you often work with a specific reference date you can set it for
       every sessions with a REFERENCE DATE command in your
       configuration file (see <ref name="Default template"
@@ -2552,7 +2570,8 @@ C
       <item> Default page layout switched from free (allowing to resize canvas
              with mouse) to fixed. For the old behavior, put "PAGE LAYOUT FREE"
              in the Grace resource file or use the "-free" command line switch.
-             The use of the "free" page layout is in general deprecated, though.
+             <bf>The use of the "free" page layout is in general deprecated,
+             though.</bf>
  
       <item> System variables GR_* renamed to GRACE_*
  
