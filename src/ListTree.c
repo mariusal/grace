@@ -45,7 +45,7 @@
 #ifdef DEBUG
 #include <stdlib.h>
 #include <stdarg.h>
-static void DBG(int line,char *fcn,char *fmt, ...)
+static void DBG(int line,const char *fcn,char *fmt, ...)
 {
   va_list ap;
   
@@ -57,7 +57,7 @@ static void DBG(int line,char *fcn,char *fmt, ...)
 #define DARG __LINE__,__FUNCTION__
 #define DBGW(a) fprintf(stderr,"%s:%d %s()   %s\n",__FILE__,__LINE__,__FUNCTION__, a)
 #else
-static void DBG(int line,char *fcn,char *fmt, ...)
+static void DBG(int line,const char *fcn,char *fmt, ...)
 {
 }
 #define DARG __LINE__,__FUNCTION__
