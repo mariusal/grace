@@ -268,19 +268,7 @@ String fallbackResources[] = {
  * Lesstif-0.80 sometimes crashes with tear-off menus; let's hope version 1.0
  * will fix it :-)
  */
-    "*fileMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*readMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*writeMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*dataMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*transformationsMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*setOperationsMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*regionOperationsMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*graphOperationsMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*plotMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*optionsMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*pageMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*viewMenu.tearOffModel: XmTEAR_OFF_ENABLED",
-    "*helpMenu.tearOffModel: XmTEAR_OFF_ENABLED",
+    "*menuBar*tearOffModel: XmTEAR_OFF_ENABLED",
 #endif
     "*dragInitiatorProtocolStyle: XmDRAG_NONE",
     "*dragReceiverProtocolStyle:  XmDRAG_NONE",
@@ -722,13 +710,12 @@ static Widget CreateMainMenuBar(Widget parent)
     	    (XtCallbackProc) create_sort_popup, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "reverse", "Reverse...", 'v',
     	    (XtCallbackProc) create_reverse_popup, (XtPointer) NULL, 0);
-    CreateMenuSeparator(submenupane);
+    CreateMenuButton(submenupane, "join", "Join...", 'J',
+    	    (XtCallbackProc) create_join_popup, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "split", "Split...", 'S',
+    	    (XtCallbackProc) create_split_popup, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "dropPoints", "Drop points...", 'n',
     	    (XtCallbackProc) create_drop_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
-    	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
-    	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
 
     submenupane = CreateMenu(menupane, "regionOperationsMenu", 
     				"Region operations", 'i', NULL, NULL);
@@ -748,25 +735,15 @@ static Widget CreateMainMenuBar(Widget parent)
     	    
     submenupane = CreateMenu(menupane, "transformationsMenu", "Transformations", 'T', NULL, NULL);
 
-    CreateMenuButton(submenupane, "join", "Join...", 'J',
-    	    (XtCallbackProc) create_join_popup, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "split", "Split...", 'S',
-    	    (XtCallbackProc) create_split_popup, (XtPointer) NULL, 0);
 
     CreateMenuButton(submenupane, "evaluateExpression", "Evaluate expression...", 'E',
     	    (XtCallbackProc) create_eval_frame, (XtPointer) NULL, 0);
-
+    CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "histograms", "Histograms...", 'H',
     	    (XtCallbackProc) create_histo_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "fourierTransforms", "Fourier transforms...", 'u',
     	    (XtCallbackProc) create_fourier_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "regression", "Regression...", 'R',
-    	    (XtCallbackProc) create_reg_frame, (XtPointer) NULL, 0);
-    CreateMenuButton(submenupane, "nonLinearFit", "Non-linear curve fitting...", 'N',
-    	    (XtCallbackProc) create_nonl_frame, (XtPointer) NULL, 0);
-
+    CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "runningAverages", "Running averages...", 'a',
     	    (XtCallbackProc) create_run_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "differences", "Differences...", 'D',
@@ -775,27 +752,31 @@ static Widget CreateMainMenuBar(Widget parent)
     	    (XtCallbackProc) create_seasonal_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "integration", "Integration...", 'I',
     	    (XtCallbackProc) create_int_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "correlation", "Cross/auto correlation...", 'C',
-    	    (XtCallbackProc) create_xcor_frame, (XtPointer) NULL, 0);
-
+    CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "interpolation", "Interpolation...", 't',
     	    (XtCallbackProc) create_interp_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "splines", "Splines...", 'S',
     	    (XtCallbackProc) create_spline_frame, (XtPointer) NULL, 0);
-
-    CreateMenuButton(submenupane, "samplePoints", "Sample points...", 'm',
-    	    (XtCallbackProc) create_samp_frame, (XtPointer) NULL, 0);
-
+    CreateMenuButton(submenupane, "regression", "Regression...", 'R',
+    	    (XtCallbackProc) create_reg_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "nonLinearFit", "Non-linear curve fitting...", 'N',
+    	    (XtCallbackProc) create_nonl_frame, (XtPointer) NULL, 0);
+    CreateMenuSeparator(submenupane);
+    CreateMenuButton(submenupane, "correlation", "Cross/auto correlation...", 'C',
+    	    (XtCallbackProc) create_xcor_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "digitalFilter", "Digital filter...", 'f',
     	    (XtCallbackProc) create_digf_frame, (XtPointer) NULL, 0);
-
     CreateMenuButton(submenupane, "linearConvolution", "Linear convolution...", 'v',
     	    (XtCallbackProc) create_lconv_frame, (XtPointer) NULL, 0);
-
+    CreateMenuSeparator(submenupane);
+    CreateMenuButton(submenupane, "geometricTransforms", "Geometric transforms...", 'G',
+    	    (XtCallbackProc) create_geom_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "samplePoints", "Sample points...", 'm',
+    	    (XtCallbackProc) create_samp_frame, (XtPointer) NULL, 0);
     CreateMenuButton(submenupane, "featureExtraction", "Feature extraction...", 'x',
     	    (XtCallbackProc) create_featext_frame, (XtPointer) NULL, 0);
+    CreateMenuButton(submenupane, "pruneData", "Prune data...", 'P',
+    	    (XtCallbackProc) create_prune_frame, (XtPointer) NULL, 0);
 
 /* Plot menu */
     menupane = CreateMenu(menubar, "plotMenu", "Plot", 'P', NULL, NULL);
