@@ -139,6 +139,8 @@ int register_pdf_drv(Canvas *canvas)
     }
     
     device_set_fext(d, "pdf");
+
+    device_set_dpi(d, 300.0);
     
     device_set_procs(d,
         pdf_initgraphics,
