@@ -211,7 +211,7 @@ static int props_define_notify_proc(void *data)
     grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
     
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
     
     return RETURN_SUCCESS;
 }

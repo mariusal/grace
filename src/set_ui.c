@@ -94,7 +94,7 @@ static void setapp_data_proc(Widget but, void *data)
     }
 
     UpdateSymbols(cset);
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 #endif
 

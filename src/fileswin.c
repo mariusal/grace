@@ -114,7 +114,7 @@ static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
     if (load_project(grace, filename) == RETURN_SUCCESS) {
         update_all();
-        xdrawgraph();
+        xdrawgraph(grace->project, FALSE);
         return TRUE;
     } else {
         return FALSE;
@@ -224,7 +224,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
             create_eblock_frame(gr);
         } else {
             update_all();
-            xdrawgraph();
+            xdrawgraph(grace->project, FALSE);
         }
     }
     /* never close the popup */
@@ -400,7 +400,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	retval = readnetcdf(NULL, fname, xvar, yvar, -1, -1, 1);
     }
     if (retval) {
-	xdrawgraph();
+	xdrawgraph(grace->project, FALSE);
     }
     unset_wait_cursor();
 }

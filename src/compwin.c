@@ -1441,7 +1441,7 @@ static int do_fext_proc(void *data)
     }
     
     update_set_lists(get_parent_graph(pdest));
-    xdrawgraph();
+    xdrawgraph(pdest, FALSE);
     
     return RETURN_SUCCESS;
 }
@@ -1532,7 +1532,7 @@ static int do_cumulative_proc(void *data)
     }
     
     update_set_lists(get_parent_graph(pdest));
-    xdrawgraph();
+    xdrawgraph(pdest, FALSE);
     
     return RETURN_SUCCESS;
 }

@@ -227,8 +227,6 @@ void do_hardcopy(const Quark *project)
             errmsg("Output is truncated - tune device dimensions");
         }
     }
-    
-    select_device(canvas, rt->tdevice);
 }
 
 

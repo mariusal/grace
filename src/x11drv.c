@@ -57,6 +57,8 @@ extern unsigned int win_h, win_w;
 typedef struct {
     Visual *visual;
     int pixel_size;
+    
+    int monomode;
 
     unsigned int win_scale;
     
@@ -100,13 +102,11 @@ static X11_data *init_x11_data(void)
         XFree((char *) pmf);
     }
     if (data->pixel_size == 0) {
-        grace->gui->monomode = TRUE;
+        data->monomode = TRUE;
     }
 
     data->visual = DefaultVisual(disp, screennumber);
 
-    data->displaybuff = resize_bufpixmap(win_w, win_h);
-    
     return data;
 }
 
@@ -124,7 +124,7 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
     
     for (i = 0; i < number_of_colors(canvas); i++) {
         /* even in mono, b&w must be allocated */
-        if (grace->gui->monomode == FALSE || i < 2) {
+        if (x11data->monomode == FALSE || i < 2) {
             if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
                 pixel = x11_allocate_color(grace->gui, &rgb);
                 if (pixel >= 0) {
@@ -143,9 +143,7 @@ static void x11_updatecmap(const Canvas *canvas, void *data)
 {
     X11_data *x11data = (X11_data *) data;
     /* TODO: replace!!! */
-    if (grace->gui->inwin) {
-        x11_initcmap(canvas, x11data);
-    }
+    x11_initcmap(canvas, x11data);
 }
 
 static int x11_initgraphics(const Canvas *canvas, void *data,
@@ -156,10 +154,6 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
     double step;
     XPoint xp;
     
-    if (grace->gui->inwin == FALSE) {
-        return RETURN_FAILURE;
-    }
-
     /* init settings specific to X11 driver */    
     x11data->color       = BAD_COLOR;
     x11data->bgcolor     = BAD_COLOR;
@@ -171,12 +165,6 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
     x11data->linecap     = -1;
     x11data->linejoin    = -1;
 
-    if (get_pagelayout() == PAGE_FIXED) {
-        sync_canvas_size(&win_w, &win_h, FALSE);
-    } else {
-        sync_canvas_size(&win_w, &win_h, TRUE);
-    }
-    
     x11data->win_scale   = MIN2(win_h, win_w);
     
     x11data->displaybuff = resize_bufpixmap(win_w, win_h);
@@ -463,7 +451,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
     VPoint2XPoint(vp, &xp);
       
     if (pixmap_bpp != 1) {
-        if (grace->gui->monomode == TRUE) {
+        if (x11data->monomode == TRUE) {
             /* TODO: dither pixmaps on mono displays */
             return;
         }
@@ -568,15 +556,6 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
 static void x11_leavegraphics(const Canvas *canvas, void *data, 
     const CanvasStats *cstats)
 {
-    Quark *gr = graph_get_current(grace->project);
-    
-    if (graph_is_active(gr)) {
-        draw_focus(gr);
-    }
-    reset_crosshair(FALSE);
-    x11_redraw(xwin, 0, 0, win_w, win_h);
-    
-    XFlush(disp);
 }
 
 int register_x11_drv(Canvas *canvas)
@@ -622,7 +601,7 @@ int register_x11_drv(Canvas *canvas)
     device_set_dpi(d, dpi, FALSE);
     
     /* disable font AA in mono mode */
-    if (grace->gui->monomode == TRUE) {
+    if (data->monomode == TRUE) {
         device_set_fontrast(d, FONT_RASTER_MONO);
     }
     

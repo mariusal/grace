@@ -879,7 +879,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
     if (n > 0) {
         xfree(values);
         update_all();
-        xdrawgraph();
+        xdrawgraph(grace->project, FALSE);
     }
 }
 
@@ -2287,7 +2287,7 @@ static void gss_any_cb(void *udata, int cbtype)
     if (n > 0) {
         xfree(values);
         update_all();
-        xdrawgraph();
+        xdrawgraph(grace->project, FALSE);
     }
 }
 
@@ -2319,7 +2319,7 @@ static void g_new_cb(Widget but, void *udata)
 {
     graph_next(grace->project);
     update_all();
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 
 static void g_dc_cb(StorageStructure *ss, Quark *gr, void *data)
@@ -2503,7 +2503,7 @@ static void sss_any_cb(void *udata, int cbtype)
     }
     
     update_all();
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 
 static void s_hide_cb(Widget but, void *udata)
@@ -3268,7 +3268,7 @@ int td_cb(void *data)
     tdialog->free_cb(tddata);
     UpdateSrcDestSelector(tdialog->srcdest);
     
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
     
     if (error == FALSE) {
         return RETURN_SUCCESS;

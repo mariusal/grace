@@ -456,7 +456,7 @@ static int set_printer_proc(void *data)
     }
     
     if (do_redraw) {
-        drawgraph(grace->project);
+        xdrawgraph(grace->project, TRUE);
     }
     
     return RETURN_SUCCESS;

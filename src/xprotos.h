@@ -51,7 +51,7 @@ int x11_init(const Canvas *canvas);
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);
 
-void xdrawgraph(void);
+void xdrawgraph(const Quark *q, int force);
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
 
 void setpointer(VPoint vp);

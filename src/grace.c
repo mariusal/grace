@@ -63,7 +63,6 @@ GUI *gui_new(Grace *grace)
     gui->statusbar       = TRUE;
     gui->locbar          = TRUE;
 
-    gui->monomode        = FALSE;
     gui->install_cmap    = CMAP_INSTALL_AUTO;
     gui->private_cmap    = FALSE;
     

@@ -90,8 +90,8 @@ extern Colormap cmap;
 /* used locally */
 static Widget main_frame;
 static Widget menu_bar;
-static Widget frleft, frtop, frbot;	/* dialogs along canvas edge */
-static Widget form;		/* form for magrace->gui->inwindow */
+static Widget frleft, frtop, frbot;
+static Widget form;
 
 static void MenuCB(Widget but, void *data);
 static Widget CreateMainMenuBar(Widget parent);
@@ -445,7 +445,7 @@ int initialize_gui(int *argc, char **argv)
 
 static void do_drawgraph(Widget but, void *data)
 {
-    drawgraph(grace->project);
+    xdrawgraph(grace->project, TRUE);
 }
 
 
@@ -460,7 +460,7 @@ static void MenuCB(Widget but, void *data)
     case MENU_NEW:
 	new_project(grace, NULL);
 
-        xdrawgraph();
+        xdrawgraph(grace->project, FALSE);
 	break;
     case MENU_OPEN:
 	create_openproject_popup();
@@ -488,7 +488,7 @@ static void MenuCB(Widget but, void *data)
 	    new_project(grace, NULL);
         }
         xfree(s);
-        xdrawgraph();
+        xdrawgraph(grace->project, FALSE);
 	unset_wait_cursor();
 	break;
     case MENU_PRINT:
@@ -510,7 +510,7 @@ static void autoscale_proc(Widget but, void *data)
     
     if (autoscale_graph(cg, (int) data) == RETURN_SUCCESS) {
 	update_ticks(cg);
-        xdrawgraph();
+        xdrawgraph(grace->project, FALSE);
     } else {
 	errmsg("Can't autoscale (no active sets?)");
     }
@@ -529,7 +529,7 @@ void autoticks_proc(Widget but, void *data)
 {
     autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
     update_ticks(graph_get_current(grace->project));
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 
 /*
@@ -559,7 +559,7 @@ void do_clear_point(Widget but, void *data)
     
     locator = graph_get_locator(graph_get_current(grace->project));
     locator->pointset = FALSE;
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 
 /*
@@ -1081,7 +1081,7 @@ void startup_gui(void)
 
     XtRealizeWidget(app_shell);
     xwin = XtWindow(canvas);
-    grace->gui->inwin = 1;
+    grace->gui->inwin = TRUE;
     
 /*
  * set the title
@@ -1146,7 +1146,7 @@ static void graph_scroll_proc(Widget but, void *data)
     
     quark_traverse(f, scroll_hook, &type);
     
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 
 static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -1170,7 +1170,7 @@ static void graph_zoom_proc(Widget but, void *data)
     
     quark_traverse(f, zoom_hook, &type);
     
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 }
 
 static void load_example(Widget but, void *data)
@@ -1183,7 +1183,7 @@ static void load_example(Widget but, void *data)
     sprintf(buf, "examples/%s", s);
     load_project_file(grace, buf, FALSE);
 
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
 
     unset_wait_cursor();
 }

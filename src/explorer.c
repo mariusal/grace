@@ -466,7 +466,7 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
         }
     }
     
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
     
     update_explorer(ui, FALSE);
     update_app_title(grace->project);
@@ -634,7 +634,7 @@ static void popup_any_cb(ExplorerUI *eui, int type)
         }
     }
     
-    xdrawgraph();
+    xdrawgraph(grace->project, FALSE);
     update_explorer(eui, FALSE);
     update_app_title(grace->project);
 }

@@ -390,7 +390,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 	}
 
         update_all();
-        drawgraph(grace->project);
+        xdrawgraph(grace->project, TRUE);
 
         return;
     }
@@ -406,18 +406,40 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     if (get_pagelayout() == PAGE_FREE) {
         unsigned int w, h;
         sync_canvas_size(&w, &h, TRUE);
-        drawgraph(grace->project);
+        xdrawgraph(grace->project, TRUE);
     }
 }
 
 /* 
  * redraw all
  */
-void xdrawgraph(void)
+void xdrawgraph(const Quark *q, int force)
 {
-    if (grace->gui->inwin && (grace->gui->auto_redraw)) {
-	set_wait_cursor();
-	drawgraph(grace->project);
+    Quark *project = get_parent_project(q);
+    Grace *grace = grace_from_quark(q);
+    if (grace && grace->gui->inwin && (force || grace->gui->auto_redraw)) {
+        Quark *gr = graph_get_current(project);
+	
+        set_wait_cursor();
+
+        if (get_pagelayout() == PAGE_FIXED) {
+            sync_canvas_size(&win_w, &win_h, FALSE);
+        } else {
+            sync_canvas_size(&win_w, &win_h, TRUE);
+        }
+
+        select_device(grace->rt->canvas, grace->rt->tdevice);
+	drawgraph(project);
+
+        if (graph_is_active(gr)) {
+            draw_focus(gr);
+        }
+        reset_crosshair(FALSE);
+
+        x11_redraw(xwin, 0, 0, win_w, win_h);
+
+        XFlush(disp);
+
 	unset_wait_cursor();
     }
 }

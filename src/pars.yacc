@@ -2697,7 +2697,9 @@ parmset:
 
 actions:
 	REDRAW {
-	    drawgraph(grace->project);
+#ifndef NONE_GUI
+	    xdrawgraph(grace->project, TRUE);
+#endif
 	}
 	| CD CHRSTR {
 	    set_workingdir(grace, $2);

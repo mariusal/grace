@@ -320,8 +320,9 @@ static int datasetprop_aac_cb(void *data)
         xfree(selset);
 
         if (error == FALSE) {
-            update_set_lists(get_set_choice_gr((StorageStructure *) data));
-            xdrawgraph();
+            Quark *gr = get_set_choice_gr((StorageStructure *) data);
+            update_set_lists(gr);
+            xdrawgraph(gr, FALSE);
             return RETURN_SUCCESS;
         } else {
             return RETURN_FAILURE;
@@ -504,7 +505,7 @@ static int datasetop_aac_cb(void *data)
     int startno, endno;
     static int son[MAX_SET_COLS] = {DATA_X, DATA_Y, DATA_Y1, DATA_Y2, DATA_Y3, DATA_Y4};
     dataSetOpType optype;
-    Quark *pset, **selset;
+    Quark *pset, **selset, *gr;
        
     nsets = GetStorageChoices(datasetopui.sel, &selset);
     if (nsets < 1) {
@@ -552,7 +553,8 @@ static int datasetop_aac_cb(void *data)
         xfree(selset);
 
         update_set_lists(get_set_choice_gr((StorageStructure *) data));
-        xdrawgraph();
+        gr = get_set_choice_gr((StorageStructure *) data);
+        xdrawgraph(gr, FALSE);
         
         return RETURN_SUCCESS;
     }
@@ -772,7 +774,7 @@ static int leval_aac_cb(void *data)
     set_set_comment(pset, "Formula");
     
     update_set_lists(gr);
-    xdrawgraph();
+    xdrawgraph(gr, FALSE);
     
     return RETURN_SUCCESS;
 }

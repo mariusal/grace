@@ -67,7 +67,6 @@ typedef struct _GUI {
     int locbar;
 
     /* colormap stuff */
-    int monomode;
     int install_cmap;
     int private_cmap;
     
