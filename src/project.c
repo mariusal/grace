@@ -68,7 +68,7 @@ Project *project_new(void)
         set_region_defaults(&pr->rg[i]);
     }
     
-    pr->sformat = copy_string(NULL, "%16.8g");
+    pr->sformat = copy_string(NULL, "%.8g");
 
     set_default_string(&pr->timestamp);
     pr->timestamp.offset.x = 0.03;
