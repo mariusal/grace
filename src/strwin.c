@@ -64,7 +64,7 @@ static Widget strings_rot_item;
 static Widget strings_size_item;
 static Widget *strings_loc_item;
 static OptionStructure *strings_color_item;
-static Widget *strings_just_item;
+static OptionStructure *strings_just_item;
 
 static Widget *lines_arrow_item;
 static SpinStructure *lines_asize_item;
@@ -148,7 +148,7 @@ void updatestrings(void)
 	SetCharSizeChoice(strings_size_item, string_size);
 	SetAngleChoice(strings_rot_item, string_rot);
 	SetChoice(strings_loc_item, string_loctype == COORD_VIEW ? 1 : 0);
-	SetChoice(strings_just_item, string_just);
+	SetOptionChoice(strings_just_item, string_just);
     }
 }
 
@@ -187,7 +187,7 @@ void define_string_defaults(Widget w, XtPointer client_data, XtPointer call_data
 	string_size = GetCharSizeChoice(strings_size_item);
 	string_rot = GetAngleChoice(strings_rot_item);
 	string_loctype = GetChoice(strings_loc_item) ? COORD_VIEW : COORD_WORLD;
-	string_just = GetChoice(strings_just_item);
+	string_just = GetOptionChoice(strings_just_item);
     }
 }
 
@@ -351,13 +351,7 @@ static void define_strings_popup(void *data)
 
 	strings_color_item = CreateColorChoice(rc, "Color: ");
 
-	strings_just_item = CreatePanelChoice(rc, "Justification:",
-					      4,
-					      "Left",
-					      "Right",
-					      "Centered",
-					      0,
-					      0);
+	strings_just_item = CreateJustChoice(rc, "Justification:");
 
 	strings_loc_item = CreatePanelChoice(rc, "Position in:",
 					     3,
@@ -975,7 +969,7 @@ typedef struct {
     OptionStructure *font_item;
     Widget size_item;
     Widget rot_item;
-    Widget *just_item;
+    OptionStructure *just_item;
     Widget x1_item;
     Widget y1_item;
     int stringno;
@@ -988,7 +982,7 @@ void update_string_edit(EditStringUI *ui)
 	plotstr *pstring = &pstr[ui->stringno];
 	SetTextString(ui->string_item, pstring->s);
 	SetOptionChoice(ui->color_item, pstring->color);
-	SetChoice(ui->just_item, pstring->just);
+	SetOptionChoice(ui->just_item, pstring->just);
 	SetOptionChoice(ui->font_item, pstring->font );
         SetCharSizeChoice(ui->size_item, pstring->charsize);
         SetAngleChoice(ui->rot_item, pstring->rot);
@@ -1032,7 +1026,7 @@ void string_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     pstr[stringno].color = GetOptionChoice(ui->color_item);
     pstr[stringno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     pstr[stringno].font = GetOptionChoice(ui->font_item);
-    pstr[stringno].just = GetChoice(ui->just_item);
+    pstr[stringno].just = GetOptionChoice(ui->just_item);
     xv_evalexpr(ui->x1_item, &pstr[stringno].x);
     xv_evalexpr(ui->y1_item, &pstr[stringno].y);
     pstr[stringno].charsize = GetCharSizeChoice(ui->size_item);
@@ -1068,13 +1062,7 @@ void string_edit_popup(int stringno)
 	
 	string_ui.font_item = CreateFontChoice(rc, "Font:");
 
-        string_ui.just_item = CreatePanelChoice(rc, "Justification:",
-					      4,
-					      "Left",
-					      "Right",
-					      "Centered",
-					      0,
-					      0);
+        string_ui.just_item = CreateJustChoice(rc, "Justification:");
 
         string_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					     3,
