@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.c,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
+ * $Id: Matrix.c,v 1.2 2001-12-26 20:46:48 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -37,12 +37,12 @@
 #include <Xm/XmP.h>
 #include <Xm/AtomMgr.h>
 #include <Xm/ScrollBar.h>
+#include <Xm/TextF.h>
 #if XmVersion > 1001
 #include <Xm/DrawP.h>
 #include <Xm/DragIcon.h>
 #include <Xm/DragC.h>
 #endif
-#include <Xbae/Input.h>
 #include <Xbae/Clip.h>
 #include <Xbae/MatrixP.h>
 #include <Xbae/Converters.h>
@@ -1082,7 +1082,7 @@ Cardinal *num_args;
      */
 
     new->matrix.text_field = XtVaCreateWidget(
-	"textField", xbaeInputWidgetClass, (Widget) new,
+	"textField", xmTextFieldWidgetClass, (Widget) new,
 	XmNmarginWidth, new->matrix.cell_margin_width,
 	XmNmarginHeight, marginHeight,
 	XmNtranslations, new->matrix.text_translations,
