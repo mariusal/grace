@@ -221,7 +221,6 @@ symtab_entry *key;
 %token <ival> AUTOTICKS
 %token <ival> AVALUE
 %token <ival> AVG
-%token <ival> AXES
 %token <ival> BACKGROUND
 %token <ival> BAR
 %token <ival> BARDY
@@ -325,7 +324,6 @@ symtab_entry *key;
 %token <ival> INVDFT
 %token <ival> INVERT
 %token <ival> INVFFT
-%token <ival> JOIN
 %token <ival> JUST
 %token <ival> KILL
 %token <ival> LABEL
@@ -369,7 +367,6 @@ symtab_entry *key;
 %token <ival> NONE
 %token <ival> NONLFIT
 %token <ival> NORMAL
-%token <ival> NXY
 %token <ival> OFF
 %token <ival> OFFSET
 %token <ival> OFFSETX
@@ -583,13 +580,11 @@ symtab_entry *key;
 %type <ival> indx
 
 %type <dval> expr
-%type <dval> asgn
 
 %type <vrbl> array
 %type <vrbl> lside_array
 
 %type <vrbl> vexpr
-%type <dptr> vasgn
 
 /* Precedence */
 %nonassoc '?' ':'
@@ -599,7 +594,7 @@ symtab_entry *key;
 %right UCONSTANT
 %left '+' '-'
 %left '*' '/' '%'
-%left UMINUS NOT	/* negation--unary minus */
+%nonassoc UMINUS NOT	/* negation--unary minus */
 %right '^'		/* exponentiation        */
 
 
@@ -796,6 +791,9 @@ expr:	NUMBER {
 	}
 	| '-' expr %prec UMINUS {
 	    $$ = -$2;
+	}
+	| '+' expr %prec UMINUS {
+	    $$ = $2;
 	}
 	| expr '*' expr {
 	    $$ = $1 * $3;
@@ -1791,7 +1789,7 @@ regionset:
 
 
 parmset:
-        VERSION NUMBER {
+        VERSION expr {
             if (set_project_version((int) $2) != GRACE_EXIT_SUCCESS) {
                 errmsg("Project version is newer than software!");
             }
@@ -1838,7 +1836,7 @@ parmset:
             }
             free($2);
         }
-        | DEVICE CHRSTR DPI NUMBER {
+        | DEVICE CHRSTR DPI expr {
             int device_id;
             Device_entry dev;
             
@@ -1905,10 +1903,10 @@ parmset:
 	| PAGE BACKGROUND FILL onoff {
 	    setbgfill($4);
 	}
-	| PAGE SCROLL NUMBER '%' {
+	| PAGE SCROLL expr '%' {
 	    scroll_proc((int) $3);
 	}
-	| PAGE INOUT NUMBER '%' {
+	| PAGE INOUT expr '%' {
 	    scrollinout_proc((int) $3);
 	}
 	| LINK PAGE onoff {
@@ -1920,7 +1918,7 @@ parmset:
 	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
-	| TIMER NUMBER {
+	| TIMER expr {
             timer_delay = (int) $2;
 	}
 
@@ -1948,7 +1946,7 @@ parmset:
 	| WITH BOX {
 	    curbox = next_box();
 	}
-	| WITH BOX NUMBER {
+	| WITH BOX expr {
 	    curbox = (int) $3;
 	}
 	| BOX onoff {
@@ -2027,7 +2025,7 @@ parmset:
 	| WITH ELLIPSE {
 		curellipse = next_ellipse();
 	}
-	| WITH ELLIPSE NUMBER {
+	| WITH ELLIPSE expr {
 	    curellipse = (int) $3;
 	}
 	| ELLIPSE onoff {
@@ -2106,7 +2104,7 @@ parmset:
 	| WITH LINE {
 	    curline = next_line();
 	}
-	| WITH LINE NUMBER {
+	| WITH LINE expr {
 	    curline = (int) $3;
 	}
 	| LINE onoff {
@@ -2145,13 +2143,13 @@ parmset:
 	| LINE color_select {
 	    line_color = $2;
 	}
-	| LINE ARROW NUMBER {
+	| LINE ARROW expr {
 	    line_arrow_end = (int) $3;
 	}
 	| LINE ARROW LENGTH expr {
 	    line_asize = $4;
 	}
-	| LINE ARROW TYPE NUMBER {
+	| LINE ARROW TYPE expr {
 	    line_atype = (int) $4;
 	}
 	| LINE ARROW LAYOUT expr ',' expr {
@@ -2178,7 +2176,7 @@ parmset:
 	| WITH STRING {
             curstring = next_string();
         }
-	| WITH STRING NUMBER {
+	| WITH STRING expr {
             curstring = (int) $3;
         }
 	| STRING onoff {
@@ -2209,16 +2207,16 @@ parmset:
 	| STRING color_select {
             string_color = $2;
         }
-	| STRING ROT NUMBER {
+	| STRING ROT expr {
             string_rot = (int) $3;
         }
 	| STRING font_select {
             string_font = $2;
         }
-	| STRING JUST NUMBER {
+	| STRING JUST expr {
             string_just = (int) $3;
         }
-	| STRING CHAR SIZE NUMBER {
+	| STRING CHAR SIZE expr {
             string_size = $4;
         }
 	| STRING DEF CHRSTR {
@@ -2243,16 +2241,16 @@ parmset:
 	| TIMESTAMP font_select {
             timestamp.font = $2;
         }
-	| TIMESTAMP CHAR SIZE NUMBER {
+	| TIMESTAMP CHAR SIZE expr {
             timestamp.charsize = $4;
         }
-	| TIMESTAMP ROT NUMBER {
+	| TIMESTAMP ROT expr {
             timestamp.rot = (int) $3;
         }
 	| TIMESTAMP color_select {
             timestamp.color = $2;
         }
-	| TIMESTAMP NUMBER ',' NUMBER {
+	| TIMESTAMP expr ',' expr {
 	    timestamp.x = $2;
 	    timestamp.y = $4;
 	}
@@ -2274,20 +2272,20 @@ parmset:
 	| DEFAULT pattern_select {
 	    grdefaults.pattern = $2;
 	}
-	| DEFAULT CHAR SIZE NUMBER {
+	| DEFAULT CHAR SIZE expr {
 	    grdefaults.charsize = $4;
 	}
 	| DEFAULT font_select {
 	    grdefaults.font = $2;
 	}
-	| DEFAULT SYMBOL SIZE NUMBER {
+	| DEFAULT SYMBOL SIZE expr {
 	    grdefaults.symsize = $4;
 	}
 	| DEFAULT SFORMAT CHRSTR {
 	    strcpy(sformat, $3);
 	    free($3);
 	}
-	| MAP FONTP NUMBER TO CHRSTR ',' CHRSTR {
+	| MAP FONTP expr TO CHRSTR ',' CHRSTR {
 	    if ((map_font_by_name($5, (int) $3) == GRACE_EXIT_SUCCESS) || 
                 (map_font_by_name($7, (int) $3) == GRACE_EXIT_SUCCESS)) {
                 ;
@@ -2298,7 +2296,7 @@ parmset:
             free($5);
 	    free($7);
 	}
-	| MAP COLOR NUMBER TO '(' NUMBER ',' NUMBER ',' NUMBER ')' ',' CHRSTR {
+	| MAP COLOR expr TO '(' expr ',' expr ',' expr ')' ',' CHRSTR {
 	    CMap_entry cmap;
             cmap.rgb.red   = $6;
             cmap.rgb.green = $8;
@@ -2354,7 +2352,7 @@ parmset:
 	| TITLE font_select {
 	    g[whichgraph].labs.title.font = $2;
 	}
-	| TITLE SIZE NUMBER {
+	| TITLE SIZE expr {
 	    g[whichgraph].labs.title.charsize = $3;
 	}
 	| TITLE color_select {
@@ -2367,7 +2365,7 @@ parmset:
 	| SUBTITLE font_select {
 	    g[whichgraph].labs.stitle.font = $2;
 	}
-	| SUBTITLE SIZE NUMBER {
+	| SUBTITLE SIZE expr {
 	    g[whichgraph].labs.stitle.charsize = $3;
 	}
 	| SUBTITLE color_select {
@@ -2406,13 +2404,13 @@ parmset:
 	| LEGEND LOCTYPE worldview {
 	    g[whichgraph].l.loctype = $3;
 	}
-	| LEGEND VGAP NUMBER {
+	| LEGEND VGAP expr {
             g[whichgraph].l.vgap = (int) $3;
 	}
-	| LEGEND HGAP NUMBER {
+	| LEGEND HGAP expr {
 	    g[whichgraph].l.hgap = (int) $3;
 	}
-	| LEGEND LENGTH NUMBER {
+	| LEGEND LENGTH expr {
 	    g[whichgraph].l.len = (int) $3;
 	}
 	| LEGEND INVERT onoff {
@@ -2446,7 +2444,7 @@ parmset:
 	| LEGEND Y1 expr {
 	    g[whichgraph].l.legy = $3;
 	}
-	| LEGEND CHAR SIZE NUMBER {
+	| LEGEND CHAR SIZE expr {
 	    g[whichgraph].l.charsize = $4;
 	}
 	| LEGEND font_select {
@@ -2455,7 +2453,7 @@ parmset:
 	| LEGEND color_select {
 	    g[whichgraph].l.color = $2;
 	}
-	| LEGEND STRING NUMBER CHRSTR {
+	| LEGEND STRING expr CHRSTR {
 	    strcpy(g[whichgraph].p[(int) $3].lstr, $4);
 	    free($4);
 	}
@@ -2463,7 +2461,7 @@ parmset:
 	| FRAMEP onoff {
             g[whichgraph].f.pen.pattern = $2;
 	}
-	| FRAMEP TYPE NUMBER {
+	| FRAMEP TYPE expr {
 	    g[whichgraph].f.type = (int) $3;
 	}
 	| FRAMEP lines_select {
@@ -2511,7 +2509,7 @@ parmset:
 	    g[$1].locator.fx = $4;
 	    g[$1].locator.fy = $5;
 	}
-	| GRAPHNO FIXEDPOINT PREC NUMBER ',' NUMBER {
+	| GRAPHNO FIXEDPOINT PREC expr ',' expr {
 	    g[$1].locator.px = $4;
 	    g[$1].locator.py = $6;
 	}
@@ -2519,7 +2517,7 @@ parmset:
 	    g[$1].locator.dsx = $4;
 	    g[$1].locator.dsy = $6;
 	}
-	| GRAPHNO FIXEDPOINT TYPE NUMBER {
+	| GRAPHNO FIXEDPOINT TYPE expr {
             g[$1].locator.pt_type = (int) $4;
         }
         
@@ -2650,7 +2648,7 @@ actions:
 		break;
 	    }
 	}
-	| SLEEP NUMBER {
+	| SLEEP expr {
 	    if ($2 > 0) {
 	        msleep_wrap((unsigned int) (1000 * $2));
 	    }
@@ -2671,14 +2669,14 @@ actions:
 	| selectset HIDDEN onoff {
 	    set_set_hidden($1->gno, $1->setno, $3);
 	}
-	| selectset LENGTH NUMBER {
+	| selectset LENGTH expr {
 	    setlength($1->gno, $1->setno, (int) $3);
 	}
 	| selectset POINT expr ',' expr {
 	    add_point($1->gno, $1->setno, $3, $5);
 	}
 
-	| selectset DROP NUMBER ',' NUMBER {
+	| selectset DROP expr ',' expr {
 	    int start = (int) $3 - 1;
 	    int stop = (int) $5 - 1;
 	    int dist = stop - start + 1;
@@ -2707,7 +2705,7 @@ actions:
 	| REVERSE selectset {
             reverse_set($2->gno, $2->setno);
 	}
-	| SPLIT selectset NUMBER {
+	| SPLIT selectset expr {
             do_splitsets($2->gno, $2->setno, (int) $3);
 	}
 	| MOVE selectset TO selectset {
@@ -2725,10 +2723,10 @@ actions:
 	| FLUSH {
             wipeout();
         }
-	| ARRANGE NUMBER ',' NUMBER {
+	| ARRANGE expr ',' expr {
             arrange_graphs((int) $2, (int) $4);
         }
-	| LOAD SCRARRAY NUMBER ',' expr ',' expr {
+	| LOAD SCRARRAY expr ',' expr ',' expr {
 	    int i, ilen = (int) $3;
             double *ptr;
 	    if (ilen < 0) {
@@ -2742,19 +2740,19 @@ actions:
 		ptr[i] = $5 + $7 * i;
 	    }
 	}
-	| NONLFIT '(' selectset ',' NUMBER ')' {
+	| NONLFIT '(' selectset ',' expr ')' {
 	    gotnlfit = TRUE;
 	    nlfit_gno = $3->gno;
 	    nlfit_setno = $3->setno;
 	    nlfit_nsteps = (int) $5;
 	}
-	| REGRESS '(' selectset ',' NUMBER ')' {
+	| REGRESS '(' selectset ',' expr ')' {
 	    do_regress($3->gno, $3->setno, (int) $5, 0, -1, 0, -1);
 	}
-	| runtype '(' selectset ',' NUMBER ')' {
+	| runtype '(' selectset ',' expr ')' {
 	    do_runavg($3->gno, $3->setno, (int) $5, $1, -1, 0);
 	}
-	| ffttype '(' selectset ',' NUMBER ')' {
+	| ffttype '(' selectset ',' expr ')' {
 	    do_fourier_command($3->gno, $3->setno, $1, (int) $5);
 	}
         | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
@@ -2777,26 +2775,26 @@ actions:
 	        break;
 	    }
         }
-	| SPLINE '(' selectset ',' expr ',' expr ',' NUMBER ')' {
+	| SPLINE '(' selectset ',' expr ',' expr ',' expr ')' {
 	    do_spline($3->gno, $3->setno, $5, $7, (int) $9, SPLINE_CUBIC);
 	}
-	| ASPLINE '(' selectset ',' expr ',' expr ',' NUMBER ')' {
+	| ASPLINE '(' selectset ',' expr ',' expr ',' expr ')' {
 	    do_spline($3->gno, $3->setno, $5, $7, (int) $9, SPLINE_AKIMA);
 	}
-	| INTERP '(' selectset ',' selectset ',' NUMBER ')' {
+	| INTERP '(' selectset ',' selectset ',' expr ')' {
 	    do_interp($3->gno, $3->setno, $5->gno, $5->setno, (int) $7);
 	}
-	| HISTO '(' selectset ',' expr ',' expr ',' NUMBER ')' {
+	| HISTO '(' selectset ',' expr ',' expr ',' expr ')' {
             do_histo($3->gno, $3->setno, SET_SELECT_NEXT, -1, $7, $5, $5 + ((int) $9)*$7, 
                                         HISTOGRAM_TYPE_ORDINARY);
 	}
-	| DIFFERENCE '(' selectset ',' NUMBER ')' {
+	| DIFFERENCE '(' selectset ',' expr ')' {
 	    do_differ($3->gno, $3->setno, (int) $5);
 	}
 	| INTEGRATE '(' selectset ')' {
 	    do_int($3->gno, $3->setno, 0);
 	}
- 	| XCOR '(' selectset ',' selectset ',' NUMBER ')' {
+ 	| XCOR '(' selectset ',' selectset ',' expr ')' {
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, (int) $7);
 	}
 	| AUTOSCALE {
@@ -2908,7 +2906,7 @@ actions:
 	| CYCLE {
 	    cycle_world_stack();
 	}
-	| STACK NUMBER {
+	| STACK expr {
 	    if ((int) $2 > 0)
 		show_world_stack((int) $2 - 1);
 	}
@@ -2967,7 +2965,7 @@ setprop:
 	    set_dataset_type($1->gno, $1->setno, $3);
 	}
 
-	| selectset SYMBOL NUMBER {
+	| selectset SYMBOL expr {
 	    g[$1->gno].p[$1->setno].sym = (int) $3;
 	}
 	| selectset SYMBOL color_select {
@@ -2991,17 +2989,17 @@ setprop:
 	| selectset SYMBOL SIZE expr {
 	    g[$1->gno].p[$1->setno].symsize = $4;
 	}
-	| selectset SYMBOL CHAR NUMBER {
+	| selectset SYMBOL CHAR expr {
 	    g[$1->gno].p[$1->setno].symchar = (int) $4;
 	}
 	| selectset SYMBOL CHAR font_select {
 	    g[$1->gno].p[$1->setno].charfont = $4;
 	}
-	| selectset SYMBOL SKIP NUMBER {
+	| selectset SYMBOL SKIP expr {
 	    g[$1->gno].p[$1->setno].symskip = (int) $4;
 	}
 
-	| selectset LINE TYPE NUMBER
+	| selectset LINE TYPE expr
         {
 	    g[$1->gno].p[$1->setno].linet = (int) $4;
 	}
@@ -3022,11 +3020,11 @@ setprop:
 	    g[$1->gno].p[$1->setno].linepen.pattern = $3;
 	}
 
-	| selectset FILL TYPE NUMBER
+	| selectset FILL TYPE expr
         {
 	    g[$1->gno].p[$1->setno].filltype = (int) $4;
 	}
-	| selectset FILL RULE NUMBER
+	| selectset FILL RULE expr
         {
 	    g[$1->gno].p[$1->setno].fillrule = (int) $4;
 	}
@@ -3072,7 +3070,7 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].baseline = $3;
 	}
-	| selectset BASELINE TYPE NUMBER
+	| selectset BASELINE TYPE expr
         {
 	    g[$1->gno].p[$1->setno].baseline_type = (int) $4;
 	}
@@ -3086,11 +3084,11 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].avalue.active = $3;
 	}
-	| selectset AVALUE TYPE NUMBER
+	| selectset AVALUE TYPE expr
         {
 	    g[$1->gno].p[$1->setno].avalue.type = (int) $4;
 	}
-	| selectset AVALUE CHAR SIZE NUMBER
+	| selectset AVALUE CHAR SIZE expr
         {
 	    g[$1->gno].p[$1->setno].avalue.size = $5;
 	}
@@ -3102,7 +3100,7 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].avalue.color = $3;
 	}
-	| selectset AVALUE ROT NUMBER
+	| selectset AVALUE ROT expr
         {
 	    g[$1->gno].p[$1->setno].avalue.angle = (int) $4;
 	}
@@ -3110,7 +3108,7 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].avalue.format = $4;
 	}
-	| selectset AVALUE PREC NUMBER
+	| selectset AVALUE PREC expr
         {
 	    g[$1->gno].p[$1->setno].avalue.prec = (int) $4;
 	}
@@ -3141,7 +3139,7 @@ setprop:
 	| selectset ERRORBAR pattern_select {
 	    g[$1->gno].p[$1->setno].errbar.pen.pattern = $3;
 	}
-	| selectset ERRORBAR SIZE NUMBER {
+	| selectset ERRORBAR SIZE expr {
             g[$1->gno].p[$1->setno].errbar.barsize = $4;
 	}
 	| selectset ERRORBAR linew_select {
@@ -3159,7 +3157,7 @@ setprop:
 	| selectset ERRORBAR RISER CLIP onoff {
             g[$1->gno].p[$1->setno].errbar.arrow_clip = $5;
 	}
-	| selectset ERRORBAR RISER CLIP LENGTH NUMBER {
+	| selectset ERRORBAR RISER CLIP LENGTH expr {
             g[$1->gno].p[$1->setno].errbar.cliplen = $6;
 	}
 
@@ -3202,7 +3200,7 @@ tickattr:
 	| MAJOR expr {
             g[whichgraph].t[naxis].tmajor = $2;
 	}
-	| MINOR TICKSP NUMBER {
+	| MINOR TICKSP expr {
 	    g[whichgraph].t[naxis].nminor = (int) $3;
 	}
 	| PLACE ROUNDED onoff {
@@ -3215,16 +3213,16 @@ tickattr:
 	| OFFSETY expr {
             g[whichgraph].t[naxis].offsy = $2;
 	}
-	| DEFAULT NUMBER {
+	| DEFAULT expr {
 	    g[whichgraph].t[naxis].t_autonum = (int) $2;
 	}
 	| inoutchoice {
 	    g[whichgraph].t[naxis].t_inout = $1;
 	}
-	| MAJOR SIZE NUMBER {
+	| MAJOR SIZE expr {
 	    g[whichgraph].t[naxis].props.size = $3;
 	}
-	| MINOR SIZE NUMBER {
+	| MINOR SIZE expr {
 	    g[whichgraph].t[naxis].mprops.size = $3;
 	}
 	| color_select {
@@ -3266,14 +3264,14 @@ tickattr:
 	| TYPE SPEC {
 	    g[whichgraph].t[naxis].t_type = TYPE_SPEC;
 	}
-	| SPEC NUMBER {
+	| SPEC expr {
 	    g[whichgraph].t[naxis].nticks = (int) $2;
 	}
-	| MAJOR NUMBER ',' expr {
+	| MAJOR expr ',' expr {
 	    g[whichgraph].t[naxis].tloc[(int) $2].wtpos = $4;
 	    g[whichgraph].t[naxis].tloc[(int) $2].type = TICK_TYPE_MAJOR;
 	}
-	| MINOR NUMBER ',' expr {
+	| MINOR expr ',' expr {
 	    g[whichgraph].t[naxis].tloc[(int) $2].wtpos = $4;
 	    g[whichgraph].t[naxis].tloc[(int) $2].type = TICK_TYPE_MINOR;
 	}
@@ -3289,13 +3287,13 @@ ticklabelattr:
 	| TYPE SPEC {
 	    g[whichgraph].t[naxis].tl_type = TYPE_SPEC;
 	}
-	| PREC NUMBER {
+	| PREC expr {
 	    g[whichgraph].t[naxis].tl_prec = (int) $2;
 	}
 	| FORMAT formatchoice {
 	    g[whichgraph].t[naxis].tl_format = $2;
 	}
-	| FORMAT NUMBER {
+	| FORMAT expr {
 	    g[whichgraph].t[naxis].tl_format = $2;
 	}
 	| APPEND CHRSTR {
@@ -3306,13 +3304,13 @@ ticklabelattr:
 	    strcpy(g[whichgraph].t[naxis].tl_prestr, $2);
 	    free($2);
 	}
-	| ANGLE NUMBER {
+	| ANGLE expr {
 	    g[whichgraph].t[naxis].tl_angle = (int) $2;
 	}
-	| SKIP NUMBER {
+	| SKIP expr {
 	    g[whichgraph].t[naxis].tl_skip = (int) $2;
 	}
-	| STAGGER NUMBER {
+	| STAGGER expr {
 	    g[whichgraph].t[naxis].tl_staggered = (int) $2;
 	}
 	| opchoice_sel {
@@ -3339,7 +3337,7 @@ ticklabelattr:
 	| STOP TYPE AUTO {
 	    g[whichgraph].t[naxis].tl_stoptype = TYPE_AUTO;
 	}
-	| CHAR SIZE NUMBER {
+	| CHAR SIZE expr {
 	    g[whichgraph].t[naxis].tl_charsize = $3;
 	}
 	| font_select {
@@ -3348,7 +3346,7 @@ ticklabelattr:
 	| color_select {
 	    g[whichgraph].t[naxis].tl_color = $1;
 	}
-	| NUMBER ',' CHRSTR {
+	| expr ',' CHRSTR {
 	    g[whichgraph].t[naxis].tloc[(int) $1].label = 
                 copy_string(g[whichgraph].t[naxis].tloc[(int) $1].label, $3);
 	    free($3);
@@ -3389,7 +3387,7 @@ axislabeldesc:
 	| JUST justchoice {
 	    g[whichgraph].t[naxis].label.just = $2;
 	}
-	| CHAR SIZE NUMBER {
+	| CHAR SIZE expr {
 	    g[whichgraph].t[naxis].label.charsize = $3;
 	}
 	| font_select {
@@ -3427,10 +3425,10 @@ nonlfitopts:
           strcpy(nonl_opts.formula, $2);
 	  free($2);
         }
-        | WITH NUMBER PARAMETERS { 
+        | WITH expr PARAMETERS { 
             nonl_opts.parnum = (int) $2; 
         }
-        | PREC NUMBER { 
+        | PREC expr { 
             nonl_opts.tolerance = $2; 
         }
         ;
@@ -3679,7 +3677,7 @@ extremetype: MINP { $$ = MINP; }
 	;
 
 font_select:
-        FONTP NUMBER
+        FONTP expr
         {
             $$ = get_mapped_font((int) $2);
         }
@@ -3691,7 +3689,7 @@ font_select:
         ;
 
 lines_select:
-        LINESTYLE NUMBER
+        LINESTYLE expr
         {
 	    int lines = (int) $2;
             if (lines >= 0 && lines < number_of_linestyles()) {
@@ -3704,7 +3702,7 @@ lines_select:
         ;
 
 pattern_select:
-        PATTERN NUMBER
+        PATTERN expr
         {
 	    int patno = (int) $2;
             if (patno >= 0 && patno < number_of_patterns()) {
@@ -3717,7 +3715,7 @@ pattern_select:
         ;
 
 color_select:
-        COLOR NUMBER
+        COLOR expr
         {
             int c = (int) $2;
             if (c >= 0 && c < number_of_colors()) {
@@ -3737,7 +3735,7 @@ color_select:
             free($2);
             $$ = c;
         }
-        | COLOR '(' NUMBER ',' NUMBER ',' NUMBER ')'
+        | COLOR '(' expr ',' expr ',' expr ')'
         {
             int c;
             CMap_entry cmap;
@@ -3756,7 +3754,7 @@ color_select:
         ;
 
 linew_select:
-        LINEWIDTH NUMBER
+        LINEWIDTH expr
         {
             double linew;
             linew = $2;
@@ -3798,14 +3796,14 @@ parmset_obs:
             pg.dpi_y = 72.0;
             set_page_geometry(pg);
         }
-	| PAGE NUMBER {
+	| PAGE expr {
 	    scroll_proc((int) $2);
 	}
-	| PAGE INOUT NUMBER {
+	| PAGE INOUT expr {
 	    scrollinout_proc((int) $3);
 	}
 
-	| DEFAULT FONTP SOURCE NUMBER {
+	| DEFAULT FONTP SOURCE expr {
 	}
 
 	| STACK WORLD expr ',' expr ',' expr ',' expr TICKP expr ',' expr ',' expr ',' expr
@@ -3873,7 +3871,7 @@ parmset_obs:
 	    g[$1].xyflip = TRUE;
 	}
 
-	| LEGEND LAYOUT NUMBER {
+	| LEGEND LAYOUT expr {
 	}
 
 	| FRAMEP FILL onoff { 
@@ -3885,13 +3883,13 @@ parmset_obs:
 	| GRAPHNO AUTOSCALE TYPE SPEC {
         }
 
-	| LINE ARROW SIZE NUMBER {
+	| LINE ARROW SIZE expr {
 	    line_asize = 2.0*$4;
 	}
 
-        | HARDCOPY DEVICE NUMBER { }
-        | PS LINEWIDTH BEGIN NUMBER { }
-        | PS LINEWIDTH INCREMENT NUMBER { }
+        | HARDCOPY DEVICE expr { }
+        | PS LINEWIDTH BEGIN expr { }
+        | PS LINEWIDTH INCREMENT expr { }
         | PS linew_select { }
         ;
 
@@ -3904,7 +3902,7 @@ axislabeldesc_obs:
         ;
 
 setprop_obs:
-	selectset SYMBOL FILL NUMBER {
+	selectset SYMBOL FILL expr {
 	    switch ((int) $4){
 	    case 0:
 	        g[$1->gno].p[$1->setno].symfillpen.pattern = 0;
@@ -3918,11 +3916,11 @@ setprop_obs:
 	        break;
 	    }
 	}
-	| selectset SKIP NUMBER
+	| selectset SKIP expr
         {
 	    g[$1->gno].p[$1->setno].symskip = (int) $3;
 	}
-	| selectset FILL NUMBER
+	| selectset FILL expr
         {
 	    switch ((int) $3) {
             case 0:
@@ -3948,9 +3946,11 @@ setprop_obs:
 	| selectset ERRORBAR TYPE opchoice_obs {
 	    g[$1->gno].p[$1->setno].errbar.ptype = $4;
 	}
-	| selectset SYMBOL COLOR '-' NUMBER {
-	    g[$1->gno].p[$1->setno].sympen.color = -1;
-	}
+/*
+ * 	| selectset SYMBOL COLOR '-' N_NUMBER {
+ * 	    g[$1->gno].p[$1->setno].sympen.color = -1;
+ * 	}
+ */
 	| selectset SYMBOL CENTER onoff { }
 	| selectset lines_select {
 	    g[$1->gno].p[$1->setno].lines = $2;
@@ -3963,7 +3963,7 @@ setprop_obs:
 	}
 	| selectset FILL WITH colpat_obs {filltype_obs = $4;}
 	| selectset XYZ expr ',' expr { }
-	| selectset ERRORBAR LENGTH NUMBER {
+	| selectset ERRORBAR LENGTH expr {
             g[$1->gno].p[$1->setno].errbar.barsize = $4;
 	}
 	| selectset ERRORBAR RISER onoff { }
@@ -3977,8 +3977,8 @@ tickattr_obs:
 	}
 	| MINOR onoff { }
 	| ALT onoff   { }
-	| MINP expr   { }
-	| MAXP expr   { }
+	| MINP NUMBER   { }
+	| MAXP NUMBER   { }
 	| LOG onoff   { }
 	| MINOR expr {
 	    if ($2 != 0.0) {
@@ -3988,10 +3988,10 @@ tickattr_obs:
                 g[whichgraph].t[naxis].nminor = 0;
             }
 	}
-	| SIZE NUMBER {
+	| SIZE expr {
 	    g[whichgraph].t[naxis].props.size = $2;
 	}
-	| NUMBER ',' expr {
+	| expr ',' expr {
 	    g[whichgraph].t[naxis].tloc[(int) $1].wtpos = $3;
 	    g[whichgraph].t[naxis].tloc[(int) $1].type = TICK_TYPE_MAJOR;
 	}
@@ -4098,7 +4098,6 @@ symtab_entry ikey[] = {
 	{"AUTOTICKS", AUTOTICKS, NULL},
 	{"AVALUE", AVALUE, NULL},
 	{"AVG", AVG, NULL},
-	{"AXES", AXES, NULL},
 	{"B", SCRARRAY, NULL},
 	{"BACKGROUND", BACKGROUND, NULL},
 	{"BAR", BAR, NULL},
@@ -4264,7 +4263,6 @@ symtab_entry ikey[] = {
 	{"IV", FUNC_DD, iv_wrap},
 	{"JDAY", JDAY, NULL},
 	{"JDAY0", JDAY0, NULL},
-	{"JOIN", JOIN, NULL},
 	{"JUST", JUST, NULL},
 	{"JV", FUNC_DD, jv_wrap},
 	{"K0E", FUNC_D, k0e},
@@ -4327,8 +4325,6 @@ symtab_entry ikey[] = {
 	{"NORM", FUNC_D, fx},
 	{"NORMAL", NORMAL, NULL},
 	{"NOT", NOT, NULL},
-	{"NUMBER", NUMBER, NULL},
-	{"NXY", NXY, NULL},
 	{"OFF", OFF, NULL},
 	{"OFFSET", OFFSET, NULL},
 	{"OFFSETX", OFFSETX, NULL},
@@ -4930,7 +4926,6 @@ int yylex(void)
                 }
 		if (set_graph_active(gn, TRUE) == GRACE_EXIT_SUCCESS) {
 		    yylval.ival = gn;
-		    /* set_parser_gno(gn); */
 		    return GRAPHNO;
 		}
 	    } else if (ctmp == 'S') {
@@ -5043,7 +5038,7 @@ int yylex(void)
 	    }
 	} else {
 	    strcat(sbuf, ": No such function or variable");
-	    yyerror(sbuf);
+	    errmsg(sbuf);
 	    return 0;
 	}
     }
