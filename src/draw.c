@@ -703,7 +703,7 @@ void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
  */
 void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    DrawArc(canvas, vp1, vp2, 0.0, 0.0);
+    DrawArc(canvas, vp1, vp2, 0.0, 360.0);
 }
 
 /*
@@ -711,7 +711,7 @@ void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
  */
 void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    DrawFilledArc(canvas, vp1, vp2, 0.0, 0.0, ARCFILL_CHORD);
+    DrawFilledArc(canvas, vp1, vp2, 0.0, 360.0, ARCFILL_CHORD);
 }
 
 /*
@@ -726,7 +726,7 @@ void DrawCircle(Canvas *canvas, const VPoint *vp, double radius)
     vp2.x = vp->x + radius;
     vp2.y = vp->y + radius;
     
-    DrawArc(canvas, &vp1, &vp2, 0.0, 0.0);
+    DrawArc(canvas, &vp1, &vp2, 0.0, 360.0);
 }
 
 /*
@@ -741,7 +741,7 @@ void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius)
     vp2.x = vp->x + radius;
     vp2.y = vp->y + radius;
     
-    DrawFilledArc(canvas, &vp1, &vp2, 0.0, 0.0, ARCFILL_CHORD);
+    DrawFilledArc(canvas, &vp1, &vp2, 0.0, 360.0, ARCFILL_CHORD);
 }
 
 
