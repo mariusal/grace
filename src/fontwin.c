@@ -56,10 +56,6 @@
 
 /* used globally */
 extern Widget app_shell;
-extern Display *disp;
-extern Window root;
-extern GC gc;
-extern int depth;
 
 static Widget fonttool_frame = NULL;
 static OptionStructure *font_select_item;
@@ -234,6 +230,7 @@ static T1_TMATRIX UNITY_MATRIX = {1.0, 0.0, 0.0, 1.0};
 
 static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     unsigned char c;
     GLYPH *glyph;
     int height, width, hshift, vshift;
@@ -258,22 +255,22 @@ static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs
         hshift = MAX2(glyph->metrics.leftSideBearing - bbox.llx, 0);
         vshift = MAX2(bbox.ury - glyph->metrics.ascent, 0);
         XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
-        XSetForeground(disp, gc, bg);
-        ptmp = XCreateBitmapFromData(disp, root,
+        XSetForeground(xstuff->disp, xstuff->gc, bg);
+        ptmp = XCreateBitmapFromData(xstuff->disp, xstuff->root,
                     (char *) glyph->bits, width, height);
-        XSetBackground(disp, gc, bg);
-        pixmap = XCreatePixmap(disp, root, bbox.urx - bbox.llx, bbox.ury - bbox.lly, depth);
-        XFillRectangle(disp, pixmap, gc, 0, 0, bbox.urx - bbox.llx, bbox.ury - bbox.lly);
-        XSetForeground(disp, gc, fg);
-        XCopyPlane(disp, ptmp, pixmap, gc, 0, 0, width, height, hshift, vshift, 1);
-        XFreePixmap(disp, ptmp);
+        XSetBackground(xstuff->disp, xstuff->gc, bg);
+        pixmap = XCreatePixmap(xstuff->disp, xstuff->root, bbox.urx - bbox.llx, bbox.ury - bbox.lly, xstuff->depth);
+        XFillRectangle(xstuff->disp, pixmap, xstuff->gc, 0, 0, bbox.urx - bbox.llx, bbox.ury - bbox.lly);
+        XSetForeground(xstuff->disp, xstuff->gc, fg);
+        XCopyPlane(xstuff->disp, ptmp, pixmap, xstuff->gc, 0, 0, width, height, hshift, vshift, 1);
+        XFreePixmap(xstuff->disp, ptmp);
     } else {
         if (c == ' ') {
             valid_char = TRUE;
         } else {
             valid_char = FALSE;
         }
-        pixmap = XCreateBitmapFromData(disp, root,
+        pixmap = XCreateBitmapFromData(xstuff->disp, xstuff->root,
              dummy_bits, 1, 1);
     }
     
@@ -295,6 +292,7 @@ static void insert_into_string(char *s)
 
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int valid_char;
     char s[7];
     unsigned char c;
@@ -311,7 +309,7 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
         }
         insert_into_string(s);
     } else {
-        XBell(disp, 25);
+        XBell(xstuff->disp, 25);
     }
 }
 

@@ -45,23 +45,14 @@
 
 #include "protos.h"
 
-extern Display *disp;
-extern Window root, xwin;
-
-extern int screennumber;
-extern GC gc;
-extern int depth;
-
-extern unsigned int win_h, win_w;
-
 typedef struct {
+    X11Stuff *xstuff;
+    
     Visual *visual;
     int pixel_size;
     
     int monomode;
 
-    unsigned int win_scale;
-    
     int color;
     int bgcolor;
     int patno;
@@ -73,11 +64,11 @@ typedef struct {
     int linejoin;
 
     unsigned long pixels[MAXCOLORS];
-    Pixmap displaybuff;
 } X11_data;
 
 static X11_data *init_x11_data(void)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     X11_data *data;
     XPixmapFormatValues *pmf;
     int i, n;
@@ -90,11 +81,13 @@ static X11_data *init_x11_data(void)
     
     memset(data, 0, sizeof(X11_data));
     
+    data->xstuff = xstuff;
+
     data->pixel_size = 0;
-    pmf = XListPixmapFormats (disp, &n);
+    pmf = XListPixmapFormats(xstuff->disp, &n);
     if (pmf) {
         for (i = 0; i < n; i++) {
-            if (pmf[i].depth == depth) {
+            if (pmf[i].depth == xstuff->depth) {
                 data->pixel_size = pmf[i].bits_per_pixel/8;
                 break;
             }
@@ -105,7 +98,7 @@ static X11_data *init_x11_data(void)
         data->monomode = TRUE;
     }
 
-    data->visual = DefaultVisual(disp, screennumber);
+    data->visual = DefaultVisual(xstuff->disp, xstuff->screennumber);
 
     return data;
 }
@@ -130,11 +123,13 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
                 if (pixel >= 0) {
                     x11data->pixels[i] = pixel;
                 } else {
-                    x11data->pixels[i] = BlackPixel(disp, screennumber);
+                    x11data->pixels[i] = BlackPixel(x11data->xstuff->disp,
+                        x11data->xstuff->screennumber);
                 }
             }
         } else {
-            x11data->pixels[i] = BlackPixel(disp, screennumber);
+            x11data->pixels[i] = BlackPixel(x11data->xstuff->disp,
+                x11data->xstuff->screennumber);
         }
     }
 }
@@ -165,27 +160,23 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
     x11data->linecap     = -1;
     x11data->linejoin    = -1;
 
-    x11data->win_scale   = MIN2(win_h, win_w);
-    
-    x11data->displaybuff = resize_bufpixmap(win_w, win_h);
-    
     x11_initcmap(canvas, x11data);
     
-    XSetForeground(disp, gc, x11data->pixels[0]);
-    XSetFillStyle(disp, gc, FillSolid);
-    XFillRectangle(disp, x11data->displaybuff, gc, 0, 0, win_w, win_h);
-    XSetForeground(disp, gc, x11data->pixels[1]);
+    XSetForeground(x11data->xstuff->disp, x11data->xstuff->gc, x11data->pixels[0]);
+    XSetFillStyle(x11data->xstuff->disp, x11data->xstuff->gc, FillSolid);
+    XFillRectangle(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, 0, 0, x11data->xstuff->win_w, x11data->xstuff->win_h);
+    XSetForeground(x11data->xstuff->disp, x11data->xstuff->gc, x11data->pixels[1]);
     
-    step = (double) (x11data->win_scale)/10;
-    for (i = 0; i < win_w/step; i++) {
-        for (j = 0; j < win_h/step; j++) {
+    step = (double) (x11data->xstuff->win_scale)/10;
+    for (i = 0; i < x11data->xstuff->win_w/step; i++) {
+        for (j = 0; j < x11data->xstuff->win_h/step; j++) {
             xp.x = rint(i*step);
-            xp.y = win_h - rint(j*step);
-            XDrawPoint(disp, x11data->displaybuff, gc, xp.x, xp.y);
+            xp.y = x11data->xstuff->win_h - rint(j*step);
+            XDrawPoint(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, xp.x, xp.y);
         }
     }
     
-    XDrawRectangle(disp, x11data->displaybuff, gc, 0, 0, win_w - 1, win_h - 1);
+    XDrawRectangle(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, 0, 0, x11data->xstuff->win_w - 1, x11data->xstuff->win_h - 1);
     
     return RETURN_SUCCESS;
 }
@@ -213,22 +204,22 @@ static void x11_setpen(const Canvas *canvas, X11_data *x11data)
         return;
     } else if (p == 1) {
         /* To make X faster */
-        XSetForeground(disp, gc, x11data->pixels[fg]);
-        XSetBackground(disp, gc, x11data->pixels[bg]);
-        XSetFillStyle(disp, gc, FillSolid);
+        XSetForeground(x11data->xstuff->disp, x11data->xstuff->gc, x11data->pixels[fg]);
+        XSetBackground(x11data->xstuff->disp, x11data->xstuff->gc, x11data->pixels[bg]);
+        XSetFillStyle(x11data->xstuff->disp, x11data->xstuff->gc, FillSolid);
     } else {
         Pattern *pat = canvas_get_pattern(canvas, p);
-        Pixmap ptmp = XCreatePixmapFromBitmapData(disp, root,
+        Pixmap ptmp = XCreatePixmapFromBitmapData(x11data->xstuff->disp, x11data->xstuff->root,
             (char *) pat->bits, pat->width, pat->height,
-            x11data->pixels[fg], x11data->pixels[bg], depth);
+            x11data->pixels[fg], x11data->pixels[bg], x11data->xstuff->depth);
 /*
- *      XSetFillStyle(disp, gc, FillStippled);
- *      XSetStipple(disp, gc, curstipple);
+ *      XSetFillStyle(x11data->xstuff->disp, x11data->xstuff->gc, FillStippled);
+ *      XSetStipple(x11data->xstuff->disp, x11data->xstuff->gc, curstipple);
  */
-        XSetFillStyle(disp, gc, FillTiled);
-        XSetTile(disp, gc, ptmp);
+        XSetFillStyle(x11data->xstuff->disp, x11data->xstuff->gc, FillTiled);
+        XSetTile(x11data->xstuff->disp, x11data->xstuff->gc, ptmp);
         
-        XFreePixmap(disp, ptmp);
+        XFreePixmap(x11data->xstuff->disp, ptmp);
     }
 }
 
@@ -242,7 +233,7 @@ static void x11_setdrawbrush(const Canvas *canvas, X11_data *x11data)
 
     x11_setpen(canvas, x11data);
     
-    iw = (unsigned int) rint(getlinewidth(canvas)*x11data->win_scale);
+    iw = (unsigned int) rint(getlinewidth(canvas)*x11data->xstuff->win_scale);
     if (iw == 1) {
         iw = 0;
     }
@@ -287,11 +278,11 @@ static void x11_setdrawbrush(const Canvas *canvas, X11_data *x11data)
             for (i = 0; i < darr_len; i++) {
                 xdarr[i] = scale*linestyle->array[i];
             }
-            XSetLineAttributes(disp, gc, iw, LineOnOffDash, lc, lj);
-            XSetDashes(disp, gc, 0, xdarr, darr_len);
+            XSetLineAttributes(x11data->xstuff->disp, x11data->xstuff->gc, iw, LineOnOffDash, lc, lj);
+            XSetDashes(x11data->xstuff->disp, x11data->xstuff->gc, 0, xdarr, darr_len);
             xfree(xdarr);
         } else if (style == 1) {
-            XSetLineAttributes(disp, gc, iw, LineSolid, lc, lj);
+            XSetLineAttributes(x11data->xstuff->disp, x11data->xstuff->gc, iw, LineSolid, lc, lj);
         }
  
         x11data->linestyle = style;
@@ -311,7 +302,7 @@ static void x11_drawpixel(const Canvas *canvas, void *data,
     
     VPoint2XPoint(vp, &xp);
     x11_setpen(canvas, x11data);
-    XDrawPoint(disp, x11data->displaybuff, gc, xp.x, xp.y);
+    XDrawPoint(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, xp.x, xp.y);
 }
 
 static void x11_drawpolyline(const Canvas *canvas, void *data,
@@ -339,7 +330,7 @@ static void x11_drawpolyline(const Canvas *canvas, void *data,
     
     x11_setdrawbrush(canvas, x11data);
     
-    XDrawLines(disp, x11data->displaybuff, gc, p, xn, CoordModeOrigin);
+    XDrawLines(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, p, xn, CoordModeOrigin);
     
     xfree(p);
 }
@@ -366,13 +357,13 @@ static void x11_fillpolygon(const Canvas *canvas, void *data,
     if (getfillrule(canvas) != x11data->fillrule) {
         x11data->fillrule = getfillrule(canvas);
         if (getfillrule(canvas) == FILLRULE_WINDING) {
-            XSetFillRule(disp, gc, WindingRule);
+            XSetFillRule(x11data->xstuff->disp, x11data->xstuff->gc, WindingRule);
         } else {
-            XSetFillRule(disp, gc, EvenOddRule);
+            XSetFillRule(x11data->xstuff->disp, x11data->xstuff->gc, EvenOddRule);
         }
     }
 
-    XFillPolygon(disp, x11data->displaybuff, gc, p, nc, Complex, CoordModeOrigin);
+    XFillPolygon(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, p, nc, Complex, CoordModeOrigin);
     
     xfree(p);
 }
@@ -392,10 +383,10 @@ static void x11_drawarc(const Canvas *canvas, void *data,
     x11_setdrawbrush(canvas, x11data);
     
     if (x1 != x2 || y1 != y2) {
-        XDrawArc(disp, x11data->displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
+        XDrawArc(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, MIN2(x1, x2), MIN2(y1, y2),
               abs(x2 - x1), abs(y2 - y1), (int) rint(64*a1), (int) rint(64*a2));
     } else { /* zero radius */
-        XDrawPoint(disp, x11data->displaybuff, gc, x1, y1);
+        XDrawPoint(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, x1, y1);
     }
 }
 
@@ -416,15 +407,15 @@ static void x11_fillarc(const Canvas *canvas, void *data,
         if (x11data->arcfillmode != mode) {
             x11data->arcfillmode = mode;
             if (mode == ARCFILL_CHORD) {
-                XSetArcMode(disp, gc, ArcChord);
+                XSetArcMode(x11data->xstuff->disp, x11data->xstuff->gc, ArcChord);
             } else {
-                XSetArcMode(disp, gc, ArcPieSlice);
+                XSetArcMode(x11data->xstuff->disp, x11data->xstuff->gc, ArcPieSlice);
             }
         }
-        XFillArc(disp, x11data->displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
+        XFillArc(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, MIN2(x1, x2), MIN2(y1, y2),
            abs(x2 - x1), abs(y2 - y1), (int) rint(64*a1), (int) rint(64*a2));
     } else { /* zero radius */
-        XDrawPoint(disp, x11data->displaybuff, gc, x1, y1);
+        XDrawPoint(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, x1, y1);
     }
 }
 
@@ -472,8 +463,8 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
             }
         }
 
-        ximage=XCreateImage(disp, x11data->visual,
-                           depth, ZPixmap, 0, pixmap_ptr, width, height,
+        ximage=XCreateImage(x11data->xstuff->disp, x11data->visual,
+                           x11data->xstuff->depth, ZPixmap, 0, pixmap_ptr, width, height,
                            bitmap_pad,  /* lines padded to bytes */
                            0 /* number of bytes per line */
                            );
@@ -497,8 +488,8 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
                     }
                 }
         
-                clipmask=XCreateBitmapFromData(disp, root, clipmask_ptr, 
-                                                            width, height);
+                clipmask = XCreateBitmapFromData(x11data->xstuff->disp,
+                    x11data->xstuff->root, clipmask_ptr, width, height);
                 xfree(clipmask_ptr);
             }
         }
@@ -513,30 +504,30 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
 
         fg = getcolor(canvas);
         if (fg != x11data->color) {
-            XSetForeground(disp, gc, x11data->pixels[fg]);
+            XSetForeground(x11data->xstuff->disp, x11data->xstuff->gc, x11data->pixels[fg]);
             x11data->color = fg;
         }
-        ximage=XCreateImage(disp, x11data->visual,
+        ximage = XCreateImage(x11data->xstuff->disp, x11data->visual,
                             1, XYBitmap, 0, pixmap_ptr, width, height,
                             bitmap_pad, /* lines padded to bytes */
                             0 /* number of bytes per line */
                             );
         if (pixmap_type == PIXMAP_TRANSPARENT) {
-            clipmask=XCreateBitmapFromData(disp, root, pixmap_ptr, 
-                                              PAD(width, bitmap_pad), height);
+            clipmask = XCreateBitmapFromData(x11data->xstuff->disp,
+                x11data->xstuff->root, pixmap_ptr, PAD(width, bitmap_pad), height);
         }
     }
 
     if (pixmap_type == PIXMAP_TRANSPARENT) {
-        XSetClipMask(disp, gc, clipmask);
-        XSetClipOrigin(disp, gc, xp.x, xp.y);
+        XSetClipMask(x11data->xstuff->disp, x11data->xstuff->gc, clipmask);
+        XSetClipOrigin(x11data->xstuff->disp, x11data->xstuff->gc, xp.x, xp.y);
     }
         
     /* Force bit and byte order */
     ximage->bitmap_bit_order = LSBFirst;
     ximage->byte_order       = LSBFirst;
     
-    XPutImage(disp, x11data->displaybuff, gc, ximage, 0, 0, xp.x, xp.y, width, height);
+    XPutImage(x11data->xstuff->disp, x11data->xstuff->bufpixmap, x11data->xstuff->gc, ximage, 0, 0, xp.x, xp.y, width, height);
     
     /* XDestroyImage free's the image data - which is VERY wrong since we
        allocated (and hence, want to free) it ourselves. So, the trick is
@@ -546,10 +537,10 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
     XDestroyImage(ximage);
      
     if (pixmap_type == PIXMAP_TRANSPARENT) {
-        XFreePixmap(disp, clipmask);
+        XFreePixmap(x11data->xstuff->disp, clipmask);
         clipmask = 0;
-        XSetClipMask(disp, gc, None);
-        XSetClipOrigin(disp, gc, 0, 0);
+        XSetClipMask(x11data->xstuff->disp, x11data->xstuff->gc, None);
+        XSetClipOrigin(x11data->xstuff->disp, x11data->xstuff->gc, 0, 0);
     }    
 }
 
@@ -578,12 +569,12 @@ int register_x11_drv(Canvas *canvas)
     
     /* XExtendedMaxRequestSize() appeared in X11R6 */
 #if XlibSpecificationRelease > 5
-    mrsize = XExtendedMaxRequestSize(disp);
+    mrsize = XExtendedMaxRequestSize(data->xstuff->disp);
 #else
     mrsize = 0;
 #endif
     if (mrsize <= 0) {
-        mrsize = XMaxRequestSize(disp);
+        mrsize = XMaxRequestSize(data->xstuff->disp);
     }
     max_path_limit = (mrsize - 3)/2;
     if (max_path_limit < get_max_path_limit(canvas)) {
@@ -595,8 +586,8 @@ int register_x11_drv(Canvas *canvas)
         set_max_path_limit(canvas, max_path_limit);
     }
     
-    dpi = (float) rint(MM_PER_INCH*DisplayWidth(disp, screennumber)/
-        DisplayWidthMM(disp, screennumber));
+    dpi = (float) rint(MM_PER_INCH*DisplayWidth(data->xstuff->disp, data->xstuff->screennumber)/
+        DisplayWidthMM(data->xstuff->disp, data->xstuff->screennumber));
     
     device_set_dpi(d, dpi, FALSE);
     

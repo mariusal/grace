@@ -110,11 +110,6 @@ unsigned char fpdigit[256] = {
 			      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 
-extern Display *disp;
-extern int screennumber;
-extern Window root;
-extern int depth;
-
 extern XtAppContext app_con;
 
 static unsigned long xvlibcolors[MAXCOLORS];
@@ -329,6 +324,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int i;
     XmString str;
     OptionStructure *retval;
@@ -368,9 +364,9 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     for (i = 0; i < nchoices; i++) {
 	retval->options[i].value = items[i].value;
         if (items[i].bitmap != NULL) {
-            ptmp = XCreatePixmapFromBitmapData(disp, root, 
+            ptmp = XCreatePixmapFromBitmapData(xstuff->disp, xstuff->root, 
                                     (char *) items[i].bitmap, width, height,
-                                    fg, bg, depth);
+                                    fg, bg, xstuff->depth);
             retval->options[i].widget = 
                 XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
                                  retval->pulldown,
@@ -503,6 +499,7 @@ static void list_unselectall(Widget list)
 
 static void list_invertselection(Widget list)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int i, n;
     unsigned char selection_type_save;
     
@@ -511,7 +508,7 @@ static void list_invertselection(Widget list)
         XmNitemCount, &n,
         NULL);
     if (selection_type_save == XmSINGLE_SELECT) {
-        XBell(disp, 50);
+        XBell(xstuff->disp, 50);
         return;
     }
     
@@ -1340,13 +1337,14 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 
 void SetSpinChoice(SpinStructure *spinp, double value)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     char buf[64];
     
     if (value < spinp->min) {
-        XBell(disp, 50);
+        XBell(xstuff->disp, 50);
         value = spinp->min;
     } else if (value > spinp->max) {
-        XBell(disp, 50);
+        XBell(xstuff->disp, 50);
         value = spinp->max;
     }
     
@@ -1525,6 +1523,7 @@ Widget CreateButton(Widget parent, char *label)
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Widget button;
     Pixmap pm;
     Pixel fg, bg;
@@ -1541,8 +1540,8 @@ Widget CreateBitmapButton(Widget parent,
 		  XmNforeground, &fg,
 		  XmNbackground, &bg,
 		  NULL);
-    pm = XCreatePixmapFromBitmapData(disp,
-        root, (char *) bits, width, height, fg, bg, depth);
+    pm = XCreatePixmapFromBitmapData(xstuff->disp,
+        xstuff->root, (char *) bits, width, height, fg, bg, xstuff->depth);
     XtVaSetValues(button, XmNlabelPixmap, pm, NULL);
 
     return button;
@@ -1797,6 +1796,7 @@ static BitmapOptionItem *lines_option_items;
 
 static void init_xvlibcolors(void)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int i;
     
     for (i = 0; i < number_of_colors(canvas); i++) {
@@ -1810,7 +1810,7 @@ static void init_xvlibcolors(void)
         if (pixel >= 0) {
             xvlibcolors[i] = pixel;
         } else {
-            xvlibcolors[i] = BlackPixel(disp, screennumber);
+            xvlibcolors[i] = BlackPixel(xstuff->disp, xstuff->screennumber);
         }
     }
 }
@@ -2005,6 +2005,7 @@ static GC gc_pen;
 
 void SetPenChoice(Widget button, Pen *pen)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Pixel bg, fg;
     Pixmap pixtile, pixmap;
     Button_PData *pdata;
@@ -2021,25 +2022,25 @@ void SetPenChoice(Widget button, Pen *pen)
     pdata->pen = *pen;
     
     if (!gc_pen) {
-        gc_pen = XCreateGC(disp, root, 0, NULL);
-        XSetFillStyle(disp, gc_pen, FillTiled);
+        gc_pen = XCreateGC(xstuff->disp, xstuff->root, 0, NULL);
+        XSetFillStyle(xstuff->disp, gc_pen, FillTiled);
     }
     
     fg = xvlibcolors[pen->color];
     bg = xvlibcolors[getbgcolor(canvas)];
     
     pat = canvas_get_pattern(canvas, pen->pattern);
-    pixtile = XCreatePixmapFromBitmapData(disp, root, 
-        (char *) pat->bits, pat->width, pat->height, fg, bg, depth);
+    pixtile = XCreatePixmapFromBitmapData(xstuff->disp, xstuff->root, 
+        (char *) pat->bits, pat->width, pat->height, fg, bg, xstuff->depth);
 
-    XSetTile(disp, gc_pen, pixtile);
+    XSetTile(xstuff->disp, gc_pen, pixtile);
     
-    pixmap = XCreatePixmap(disp, root, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT, depth);
-    XFillRectangle(disp, pixmap, gc_pen, 0, 0, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT);
+    pixmap = XCreatePixmap(xstuff->disp, xstuff->root, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT, xstuff->depth);
+    XFillRectangle(xstuff->disp, pixmap, gc_pen, 0, 0, PEN_CHOICE_WIDTH, PEN_CHOICE_HEIGHT);
 
     XtVaSetValues(button, XmNlabelPixmap, pixmap, NULL);
     
-    XFreePixmap(disp, pixtile);
+    XFreePixmap(xstuff->disp, pixtile);
 }
 
 static void pen_popup(Widget parent,
@@ -2080,6 +2081,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 
 static Widget CreateColorChoicePopup(Widget button)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Widget popup;
     int ci;
     
@@ -2100,9 +2102,9 @@ static Widget CreateColorChoicePopup(Widget button)
 
             bg = xvlibcolors[ci];
 	    if (get_colorintensity(canvas, ci) < 0.5) {
-	        fg = WhitePixel(disp, screennumber);
+	        fg = WhitePixel(xstuff->disp, xstuff->screennumber);
 	    } else {
-	        fg = BlackPixel(disp, screennumber);
+	        fg = BlackPixel(xstuff->disp, xstuff->screennumber);
 	    }
 	    XtVaSetValues(cb, 
                 XmNbackground, bg,
@@ -2733,6 +2735,7 @@ void UpdateSrcDestSelector(SrcDestStructure *srcdest)
 
 void paint_color_selector(OptionStructure *optp)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int i, color;
     long bg, fg;
     
@@ -2740,9 +2743,9 @@ void paint_color_selector(OptionStructure *optp)
         color = color_option_items[i].value;
         bg = xvlibcolors[color];
 	if (get_colorintensity(canvas, color) < 0.5) {
-	    fg = WhitePixel(disp, screennumber);
+	    fg = WhitePixel(xstuff->disp, xstuff->screennumber);
 	} else {
-	    fg = BlackPixel(disp, screennumber);
+	    fg = BlackPixel(xstuff->disp, xstuff->screennumber);
 	}
 	XtVaSetValues(optp->options[i].widget, 
             XmNbackground, bg,
@@ -3074,6 +3077,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 
 Widget CreateDialogForm(Widget parent, const char *s)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Widget dialog, w;
     char *bufp;
     int standalone;
@@ -3081,7 +3085,7 @@ Widget CreateDialogForm(Widget parent, const char *s)
     if (parent == NULL) {
         standalone = TRUE;
         parent = XtAppCreateShell("XMgrace", "XMgrace",
-            topLevelShellWidgetClass, disp,
+            topLevelShellWidgetClass, xstuff->disp,
             NULL, 0);
     } else {
         standalone = FALSE;
@@ -3778,10 +3782,11 @@ static void wm_exit_cb(Widget w, XtPointer client_data, XtPointer call_data)
  */
 void handle_close(Widget w)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Atom WM_DELETE_WINDOW;
     
     XtVaSetValues(w, XmNdeleteResponse, XmDO_NOTHING, NULL);
-    WM_DELETE_WINDOW = XmInternAtom(disp, "WM_DELETE_WINDOW", False);
+    WM_DELETE_WINDOW = XmInternAtom(xstuff->disp, "WM_DELETE_WINDOW", False);
     XmAddProtocolCallback(w,
         XM_WM_PROTOCOL_ATOM(w), WM_DELETE_WINDOW,
         (w == app_shell) ? wm_exit_cb : destroy_dialog, w);
@@ -3837,22 +3842,24 @@ void deletewidget(Widget w)
 
 void DefineDialogCursor(Cursor c)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int i;
     
     for (i = 0; i < nsavedwidgets; i++) {
-	XDefineCursor(disp, XtWindow(savewidgets[i]), c);
+	XDefineCursor(xstuff->disp, XtWindow(savewidgets[i]), c);
     }
-    XFlush(disp);
+    XFlush(xstuff->disp);
 }
 
 void UndefineDialogCursor(void)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     int i;
     
     for (i = 0; i < nsavedwidgets; i++) {
-	XUndefineCursor(disp, XtWindow(savewidgets[i]));
+	XUndefineCursor(xstuff->disp, XtWindow(savewidgets[i]));
     }
-    XFlush(disp);
+    XFlush(xstuff->disp);
 }
 
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l)
@@ -4073,11 +4080,12 @@ void AddHelpCB(Widget w, char *ha)
 
 void ContextHelpCB(Widget but, void *data)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Widget whelp;
     Cursor cursor;
     int ok = FALSE;
     
-    cursor = XCreateFontCursor(disp, XC_question_arrow);
+    cursor = XCreateFontCursor(xstuff->disp, XC_question_arrow);
     whelp = XmTrackingLocate(app_shell, cursor, False);
     while (whelp != NULL) {
         if (XtHasCallbacks(whelp, XmNhelpCallback) == XtCallbackHasSome) {
@@ -4091,7 +4099,7 @@ void ContextHelpCB(Widget but, void *data)
     if (!ok) {
         HelpCB(but, NULL);
     }
-    XFreeCursor(disp, cursor);
+    XFreeCursor(xstuff->disp, cursor);
 }
 
 
@@ -4195,10 +4203,11 @@ void SetLabel(Widget w, char *s)
 
 void SetFixedFont(Widget w)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     XFontStruct *f;
     XmFontList xmf;
 
-    f = XLoadQueryFont(disp, "fixed");
+    f = XLoadQueryFont(xstuff->disp, "fixed");
     xmf = XmFontListCreate(f, charset);
     if (xmf == NULL) {
         errmsg("Can't load font \"fixed\"");
@@ -4234,6 +4243,10 @@ void update_all(void)
     
     if (!grace->gui->inwin) {
         return;
+    }
+
+    if (get_pagelayout() == PAGE_FREE) {
+        sync_canvas_size(grace);
     }
     
     update_graph_selectors(grace->project);

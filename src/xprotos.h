@@ -39,33 +39,52 @@
 #include "defines.h"
 #include "core_utils.h"
 
+struct _X11Stuff {
+    Display *disp;
+    int screennumber;
+    
+    Window root;
+    Window xwin;
+
+    Widget canvas;
+
+    GC gc;
+    int depth;
+    Colormap cmap;
+
+    Pixmap bufpixmap;
+
+    unsigned int win_h;
+    unsigned int win_w;
+    unsigned int win_scale;
+};
+
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y);
 void x11_dev2VPoint(short x, short y, VPoint *vp);
 
 long x11_allocate_color(GUI *gui, const RGB *rgb);
-Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
 void x11_redraw(Window window, int x, int y, int widht, int height);
 
-int x11_init(const Canvas *canvas);
+int x11_init(Grace *grace);
 
 int initialize_gui(int *argc, char **argv);
-void startup_gui(void);
+void startup_gui(Grace *grace);
 
 void xdrawgraph(const Quark *q, int force);
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data);
 
 void setpointer(VPoint vp);
 
-void select_line(int x1, int y1, int x2, int y2, int erase);
-void select_region(int x1, int y1, int x2, int y2, int erase);
-void slide_region(view bbox, int shift_x, int shift_y, int erase);
-void reset_crosshair(int clear);
-void crosshair_motion(int x, int y);
+void select_line(GUI *gui, int x1, int y1, int x2, int y2, int erase);
+void select_region(GUI *gui, int x1, int y1, int x2, int y2, int erase);
+void slide_region(GUI *gui, view bbox, int shift_x, int shift_y, int erase);
+void reset_crosshair(GUI *gui, int clear);
+void crosshair_motion(GUI *gui, int x, int y);
 
 void draw_focus(Quark *gr);
 void switch_current_graph(Quark *gr);
 
-char *display_name(void);
+char *display_name(GUI *gui);
 
 void xunregister_rti(XtInputId);
 void xregister_rti(Input_buffer *ib);
@@ -144,8 +163,8 @@ void create_ss_frame(Quark *pset);
 void update_ss_editors(Quark *gr);
 void do_ext_editor(Quark *pset);
 
-void init_cursors(void);
-void set_cursor(int c);
+void init_cursors(GUI *gui);
+void set_cursor(GUI *gui, int c);
 void set_wait_cursor(void);
 void unset_wait_cursor(void);
 
@@ -156,7 +175,7 @@ void set_left_footer(char *s);
 
 void set_pagelayout(int layout);
 int get_pagelayout(void);
-void sync_canvas_size(unsigned int *w, unsigned int *h, int inv);
+void sync_canvas_size(Grace *grace);
 
 void set_barebones(void);
 

@@ -70,22 +70,11 @@
 XtAppContext app_con;
 Widget app_shell;
 
-static Widget canvas;
-
 Widget drawing_window;		/* container for drawing area */
 
 
 Widget loclab;			/* locator label */
 Widget statlab;			/* status line at the bottom */
-
-
-Display *disp = NULL;
-Window xwin;
-extern Window root;
-extern GC gc;
-extern int screennumber;
-extern int depth;
-extern Colormap cmap;
 
 /* used locally */
 static Widget main_frame;
@@ -361,6 +350,7 @@ static int is_motif_compatible(void)
 
 int initialize_gui(int *argc, char **argv)
 {
+    X11Stuff *xstuff;
     Screen *screen;
     ApplicationData rd;
     String *allResources, *resolResources;
@@ -368,10 +358,14 @@ int initialize_gui(int *argc, char **argv)
     unsigned int i, n_common, n_resol;
     char *display_name = NULL;
 
+    xstuff = xmalloc(sizeof(X11Stuff));
+    memset(xstuff, 0, sizeof(X11Stuff));
+    grace->gui->xstuff = xstuff;
+    
     installXErrorHandler();
     
     /* Locale settings for GUI */
-    XtSetLanguageProc(NULL,NULL,NULL);
+    XtSetLanguageProc(NULL, NULL, NULL);
     
     XtToolkitInitialize();
     app_con = XtCreateApplicationContext();
@@ -384,13 +378,13 @@ int initialize_gui(int *argc, char **argv)
             display_name = argv[i + 1];
         }
     }
-    disp = XOpenDisplay(display_name);
-    if (disp == NULL) {
+    xstuff->disp = XOpenDisplay(display_name);
+    if (xstuff->disp == NULL) {
 	errmsg("Can't open display");
         return RETURN_FAILURE;
     }
 
-    screen = DefaultScreenOfDisplay(disp);
+    screen = DefaultScreenOfDisplay(xstuff->disp);
     if (HeightOfScreen(screen) < 740) {
         lowres = TRUE;
     }
@@ -413,7 +407,7 @@ int initialize_gui(int *argc, char **argv)
     allResources[n_common + n_resol] = NULL;
     XtAppSetFallbackResources(app_con, allResources);
     
-    XtDisplayInitialize(app_con, disp, "xmgrace", "XMgrace", NULL, 0, argc, argv);
+    XtDisplayInitialize(app_con, xstuff->disp, "xmgrace", "XMgrace", NULL, 0, argc, argv);
 
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
@@ -421,7 +415,7 @@ int initialize_gui(int *argc, char **argv)
     XtAppAddActions(app_con, cstext_actions, XtNumber(cstext_actions));
 
     app_shell = XtAppCreateShell(NULL, "XMgrace", applicationShellWidgetClass,
-        disp, NULL, 0);
+        xstuff->disp, NULL, 0);
 
     if (is_motif_compatible() != TRUE) {
         return RETURN_FAILURE;
@@ -438,7 +432,7 @@ int initialize_gui(int *argc, char **argv)
     grace->gui->statusbar = rd.statusbar;
     grace->gui->locbar = rd.locatorbar;
 
-    x11_init(grace->rt->canvas);
+    x11_init(grace);
 
     return RETURN_SUCCESS;
 }
@@ -542,7 +536,7 @@ void set_left_footer(char *s)
         char buf[GR_MAXPATHLEN + 100];
         gethostname(hbuf, 63);
         sprintf(buf, "%s, %s, %s",
-            hbuf, display_name(), get_docname(grace->project));
+            hbuf, display_name(grace->gui), get_docname(grace->project));
         SetLabel(statlab, buf);
     } else {
         SetLabel(statlab, s);
@@ -875,8 +869,9 @@ static Widget CreateMainMenuBar(Widget parent)
 /*
  * build the GUI
  */
-void startup_gui(void)
+void startup_gui(Grace *grace)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     Widget bt, rcleft;
     Pixmap icon, shape;
 
@@ -892,7 +887,7 @@ void startup_gui(void)
  */
     handle_close(app_shell);
     
-    XtVaSetValues(app_shell, XmNcolormap, cmap, NULL);
+    XtVaSetValues(app_shell, XmNcolormap, xstuff->cmap, NULL);
     
 /*
  * build the UI here
@@ -924,27 +919,23 @@ void startup_gui(void)
     if (get_pagelayout() == PAGE_FIXED) {
         drawing_window = XtVaCreateManagedWidget("drawing_window",
 				     xmScrolledWindowWidgetClass, form,
-				     XmNnavigationType, XmEXCLUSIVE_TAB_GROUP,
 				     XmNscrollingPolicy, XmAUTOMATIC,
 				     XmNvisualPolicy, XmVARIABLE,
 				     NULL);
-        canvas = XtVaCreateManagedWidget("canvas",
+        xstuff->canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, drawing_window,
-				     XmNresizePolicy, XmRESIZE_ANY,
 				     NULL);
     } else {
-        canvas = XtVaCreateManagedWidget("canvas",
+        xstuff->canvas = XtVaCreateManagedWidget("canvas",
                                      xmDrawingAreaWidgetClass, form,
-				     XmNresizePolicy, XmRESIZE_ANY,
-				     XmNnavigationType, XmEXCLUSIVE_TAB_GROUP,
 				     NULL);
-        drawing_window = canvas;
+        drawing_window = xstuff->canvas;
     }
     
-    XtAddCallback(canvas, XmNexposeCallback, expose_resize, NULL);
-    XtAddCallback(canvas, XmNresizeCallback, expose_resize, NULL);
+    XtAddCallback(xstuff->canvas, XmNexposeCallback, expose_resize, grace);
+    XtAddCallback(xstuff->canvas, XmNresizeCallback, expose_resize, grace);
 
-    XtAddEventHandler(canvas, ButtonPressMask
+    XtAddEventHandler(xstuff->canvas, ButtonPressMask
 		      | PointerMotionMask
 		      | KeyPressMask
 		      | KeyReleaseMask
@@ -952,9 +943,9 @@ void startup_gui(void)
 		      False,
 		      canvas_event_proc, grace);
 		      
-    XtOverrideTranslations(canvas, XtParseTranslationTable(canvas_table));
+    XtOverrideTranslations(xstuff->canvas, XtParseTranslationTable(canvas_table));
     
-    AddHelpCB(canvas, "doc/UsersGuide.html#canvas");
+    AddHelpCB(xstuff->canvas, "doc/UsersGuide.html#canvas");
 
     XtVaSetValues(frtop,
 		  XmNtopAttachment, XmATTACH_FORM,
@@ -1045,7 +1036,7 @@ void startup_gui(void)
 /*
  * initialize cursors
  */
-    init_cursors();
+    init_cursors(grace->gui);
 
 /*
  * initialize some option menus
@@ -1064,39 +1055,26 @@ void startup_gui(void)
  * set icon
  */
 #if defined(HAVE_XPM)
-    XpmCreatePixmapFromData(disp, root,
+    XpmCreatePixmapFromData(xstuff->disp, xstuff->root,
         grace_icon_xpm, &icon, &shape, NULL);
 #else
-    icon = XCreateBitmapFromData(disp, root,
+    icon = XCreateBitmapFromData(xstuff->disp, xstuff->root,
         (char *) grace_icon_bits, grace_icon_width, grace_icon_height);
-    shape = XCreateBitmapFromData(disp, root,
+    shape = XCreateBitmapFromData(xstuff->disp, xstuff->root,
         (char *) grace_mask_bits, grace_icon_width, grace_icon_height);
 #endif
     XtVaSetValues(app_shell, XtNiconPixmap, icon, XtNiconMask, shape, NULL);
 
     XtRealizeWidget(app_shell);
-    xwin = XtWindow(canvas);
+    xstuff->xwin = XtWindow(xstuff->canvas);
     grace->gui->inwin = TRUE;
-    
+
 /*
  * set the title
  */
     update_app_title(grace->project);
 
     XtAppMainLoop(app_con);
-}
-
-void sync_canvas_size(unsigned int *w, unsigned int *h, int inv)
-{
-    if (inv) {
-        GetDimensions(canvas, w, h);
-        set_page_dimensions(grace, *w, *h, TRUE);
-    } else {
-        Page_geometry *pg = get_page_geometry(grace->rt->canvas);
-        *w = pg->width;
-        *h = pg->height;
-        SetDimensions(canvas, *w, *h);
-    }
 }
 
 static int page_layout = PAGE_FIXED;

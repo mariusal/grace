@@ -46,12 +46,9 @@
 #include "motifinc.h"
 #include "protos.h"
 
-#define win_scale MIN2(win_h, win_w)
-
-extern Display *disp;
 extern Widget app_shell;
 extern XtAppContext app_con;
-extern Window xwin;
+
 
 extern int inpipe;
 extern char batchfile[];
@@ -59,15 +56,6 @@ extern char batchfile[];
 extern Input_buffer *ib_tbl;
 extern int ib_tblsize;
 
-int screennumber;
-Window root;
-GC gc;
-int depth;
-Colormap cmap;
-
-unsigned int win_h = 0, win_w = 0;
-
-static Pixmap bufpixmap = (Pixmap) NULL;
 static GC gcxor;
 
 /* cursors */
@@ -79,8 +67,11 @@ static Cursor text_cursor;
 static Cursor kill_cursor;
 static int cur_cursor = -1;
 
+static void resize_drawables(unsigned int w, unsigned int h);
+
 long x11_allocate_color(GUI *gui, const RGB *rgb)
 {
+    X11Stuff *xstuff = gui->xstuff;
     XColor xc;
     
     xc.pixel = 0;
@@ -90,12 +81,12 @@ long x11_allocate_color(GUI *gui, const RGB *rgb)
     xc.green = rgb->green << (16 - GRACE_BPP);
     xc.blue  = rgb->blue  << (16 - GRACE_BPP);
 
-    if (XAllocColor(disp, cmap, &xc)) {
+    if (XAllocColor(xstuff->disp, xstuff->cmap, &xc)) {
         return xc.pixel;
     } else
     if (gui->install_cmap != CMAP_INSTALL_NEVER && 
         gui->private_cmap == FALSE) {
-        cmap = XCopyColormapAndFree(disp, cmap);
+        xstuff->cmap = XCopyColormapAndFree(xstuff->disp, xstuff->cmap);
         gui->private_cmap = TRUE;
         
         /* try to allocate the same color in the private colormap */
@@ -105,66 +96,70 @@ long x11_allocate_color(GUI *gui, const RGB *rgb)
     }
 }
 
-void set_wait_cursor()
+void set_wait_cursor(void)
 {
-    if (disp == NULL) {
+    if (grace->gui->xstuff->disp == NULL) {
         return;
     }
     
     DefineDialogCursor(wait_cursor);
 }
 
-void unset_wait_cursor()
+void unset_wait_cursor(void)
 {
-    if (disp == NULL) {
+    if (grace->gui->xstuff->disp == NULL) {
         return;
     }
     
     UndefineDialogCursor();
     if (cur_cursor >= 0) {
-        set_cursor(cur_cursor);
+        set_cursor(grace->gui, cur_cursor);
     }
 }
 
-void set_cursor(int c)
+void set_cursor(GUI *gui, int c)
 {
-    if (disp == NULL) {
+    X11Stuff *xstuff = gui->xstuff;
+    if (xstuff->disp == NULL) {
         return;
     }
 
-    XUndefineCursor(disp, xwin);
+    XUndefineCursor(xstuff->disp, xstuff->xwin);
     cur_cursor = c;
     switch (c) {
     case 0:
-        XDefineCursor(disp, xwin, line_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, line_cursor);
         break;
     case 1:
-        XDefineCursor(disp, xwin, find_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, find_cursor);
         break;
     case 2:
-        XDefineCursor(disp, xwin, text_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, text_cursor);
         break;
     case 3:
-        XDefineCursor(disp, xwin, kill_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, kill_cursor);
         break;
     case 4:
-        XDefineCursor(disp, xwin, move_cursor);
+        XDefineCursor(xstuff->disp, xstuff->xwin, move_cursor);
         break;
     default:
         cur_cursor = -1;
         break;
     }
-    XFlush(disp);
+    XFlush(xstuff->disp);
 }
 
-void init_cursors(void)
+void init_cursors(GUI *gui)
 {
-    wait_cursor = XCreateFontCursor(disp, XC_watch);
-    line_cursor = XCreateFontCursor(disp, XC_crosshair);
-    find_cursor = XCreateFontCursor(disp, XC_hand2);
-    text_cursor = XCreateFontCursor(disp, XC_xterm);
-    kill_cursor = XCreateFontCursor(disp, XC_pirate);
-    move_cursor = XCreateFontCursor(disp, XC_fleur);
+    X11Stuff *xstuff = gui->xstuff;
+
+    wait_cursor = XCreateFontCursor(xstuff->disp, XC_watch);
+    line_cursor = XCreateFontCursor(xstuff->disp, XC_crosshair);
+    find_cursor = XCreateFontCursor(xstuff->disp, XC_hand2);
+    text_cursor = XCreateFontCursor(xstuff->disp, XC_xterm);
+    kill_cursor = XCreateFontCursor(xstuff->disp, XC_pirate);
+    move_cursor = XCreateFontCursor(xstuff->disp, XC_fleur);
+    
     cur_cursor = -1;
 }
 
@@ -207,27 +202,30 @@ void set_title(const Quark *pr)
 /*
  *  Auxiliary routines for simultaneous drawing on display and pixmap
  */
-static void aux_XDrawLine(int x1, int y1, int x2, int y2)
+static void aux_XDrawLine(GUI *gui, int x1, int y1, int x2, int y2)
 {
-    XDrawLine(disp, xwin, gcxor, x1, y1, x2, y2);
-    if (bufpixmap != (Pixmap) NULL) {
-        XDrawLine(disp, bufpixmap, gcxor, x1, y1, x2, y2);
+    X11Stuff *xstuff = gui->xstuff;
+    XDrawLine(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
+    if (xstuff->bufpixmap != (Pixmap) NULL) {
+        XDrawLine(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
     }
 }
 
-static void aux_XDrawRectangle(int x1, int y1, int x2, int y2)
+static void aux_XDrawRectangle(GUI *gui, int x1, int y1, int x2, int y2)
 {
-    XDrawRectangle(disp, xwin, gcxor, x1, y1, x2, y2);
-    if (bufpixmap != (Pixmap) NULL) {
-        XDrawRectangle(disp, bufpixmap, gcxor, x1, y1, x2, y2);
+    X11Stuff *xstuff = gui->xstuff;
+    XDrawRectangle(xstuff->disp, xstuff->xwin, gcxor, x1, y1, x2, y2);
+    if (xstuff->bufpixmap != (Pixmap) NULL) {
+        XDrawRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x1, y1, x2, y2);
     }
 }
 
-static void aux_XFillRectangle(int x, int y, unsigned int width, unsigned int height)
+static void aux_XFillRectangle(GUI *gui, int x, int y, unsigned int width, unsigned int height)
 {
-    XFillRectangle(disp, xwin, gcxor, x, y, width, height);
-    if (bufpixmap != (Pixmap) NULL) {
-        XFillRectangle(disp, bufpixmap, gcxor, x, y, width, height);
+    X11Stuff *xstuff = gui->xstuff;
+    XFillRectangle(xstuff->disp, xstuff->xwin, gcxor, x, y, width, height);
+    if (xstuff->bufpixmap != (Pixmap) NULL) {
+        XFillRectangle(xstuff->disp, xstuff->bufpixmap, gcxor, x, y, width, height);
     }
 }
 
@@ -240,8 +238,9 @@ void draw_focus(Quark *gr)
     short ix1, iy1, ix2, iy2;
     view v;
     VPoint vp;
+    GUI *gui = gui_from_quark(gr);
     
-    if (grace->gui->draw_focus_flag == TRUE) {
+    if (gui->draw_focus_flag == TRUE) {
         graph_get_viewport(gr, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
@@ -249,35 +248,35 @@ void draw_focus(Quark *gr)
         vp.x = v.xv2;
         vp.y = v.yv2;
         x11_VPoint2dev(&vp, &ix2, &iy2);
-        aux_XFillRectangle(ix1 - 5, iy1 - 5, 10, 10);
-        aux_XFillRectangle(ix1 - 5, iy2 - 5, 10, 10);
-        aux_XFillRectangle(ix2 - 5, iy2 - 5, 10, 10);
-        aux_XFillRectangle(ix2 - 5, iy1 - 5, 10, 10);
+        aux_XFillRectangle(gui, ix1 - 5, iy1 - 5, 10, 10);
+        aux_XFillRectangle(gui, ix1 - 5, iy2 - 5, 10, 10);
+        aux_XFillRectangle(gui, ix2 - 5, iy2 - 5, 10, 10);
+        aux_XFillRectangle(gui, ix2 - 5, iy1 - 5, 10, 10);
     }
 }
 
 /*
  * rubber band line (optionally erasing previous one)
  */
-void select_line(int x1, int y1, int x2, int y2, int erase)
+void select_line(GUI *gui, int x1, int y1, int x2, int y2, int erase)
 {
     static int x1_old, y1_old, x2_old, y2_old;
 
     if (erase) {
-        aux_XDrawLine(x1_old, y1_old, x2_old, y2_old);
+        aux_XDrawLine(gui, x1_old, y1_old, x2_old, y2_old);
     }
     x1_old = x1;
     y1_old = y1;
     x2_old = x2;
     y2_old = y2;
-    aux_XDrawLine(x1, y1, x2, y2);
+    aux_XDrawLine(gui, x1, y1, x2, y2);
 }
 
 
 /*
  * draw an xor'ed box (optionally erasing previous one)
  */
-void select_region(int x1, int y1, int x2, int y2, int erase)
+void select_region(GUI *gui, int x1, int y1, int x2, int y2, int erase)
 {
     static int x1_old, y1_old, dx_old, dy_old;
     int dx = x2 - x1;
@@ -292,19 +291,19 @@ void select_region(int x1, int y1, int x2, int y2, int erase)
 	dy = -dy;
     }
     if (erase) {
-        aux_XDrawRectangle(x1_old, y1_old, dx_old, dy_old);
+        aux_XDrawRectangle(gui, x1_old, y1_old, dx_old, dy_old);
     }
     x1_old = x1;
     y1_old = y1;
     dx_old = dx;
     dy_old = dy;
-    aux_XDrawRectangle(x1, y1, dx, dy);
+    aux_XDrawRectangle(gui, x1, y1, dx, dy);
 }
 
 /*
  * slide an xor'ed bbox shifted by shift_*, (optionally erasing previous one)
  */
-void slide_region(view bb, int shift_x, int shift_y, int erase)
+void slide_region(GUI *gui, view bb, int shift_x, int shift_y, int erase)
 {
     short x1, x2, y1, y2;
     VPoint vp;
@@ -321,39 +320,53 @@ void slide_region(view bb, int shift_x, int shift_y, int erase)
     x2 += shift_x;
     y2 += shift_y;
     
-    select_region(x1, y1, x2, y2, erase);
+    select_region(gui, x1, y1, x2, y2, erase);
 }
 
 static int crosshair_erase = FALSE;
 static int cursor_oldx, cursor_oldy;
 
 
-void reset_crosshair(int clear)
+void reset_crosshair(GUI *gui, int clear)
 {
+    X11Stuff *xstuff = gui->xstuff;
     crosshair_erase = FALSE;
     if (clear) {
-        aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);
-        aux_XDrawLine(cursor_oldx, 0, cursor_oldx, win_h);
+        aux_XDrawLine(gui, 0, cursor_oldy, xstuff->win_w, cursor_oldy);
+        aux_XDrawLine(gui, cursor_oldx, 0, cursor_oldx, xstuff->win_h);
     }
 }
 
 /*
  * draw a crosshair cursor
  */
-void crosshair_motion(int x, int y)
+void crosshair_motion(GUI *gui, int x, int y)
 {
+    X11Stuff *xstuff = gui->xstuff;
     /* Erase the previous crosshair */
     if (crosshair_erase == TRUE) {
-        aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);
-        aux_XDrawLine(cursor_oldx, 0, cursor_oldx, win_h);
+        aux_XDrawLine(gui, 0, cursor_oldy, xstuff->win_w, cursor_oldy);
+        aux_XDrawLine(gui, cursor_oldx, 0, cursor_oldx, xstuff->win_h);
     }
 
     /* Draw the new crosshair */
-    aux_XDrawLine(0, y, win_w, y);
-    aux_XDrawLine(x, 0, x, win_h);
+    aux_XDrawLine(gui, 0, y, xstuff->win_w, y);
+    aux_XDrawLine(gui, x, 0, x, xstuff->win_h);
     crosshair_erase = TRUE;
     cursor_oldx = x;
     cursor_oldy = y;
+}
+
+void sync_canvas_size(Grace *grace)
+{
+    X11Stuff *xstuff = grace->gui->xstuff;
+    unsigned int w, h;
+
+    Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
+
+    GetDimensions(xstuff->canvas, &w, &h);
+
+    set_page_dimensions(grace, w*72.0/d->pg.dpi, h*72.0/d->pg.dpi, TRUE);
 }
 
 
@@ -362,6 +375,7 @@ void crosshair_motion(int x, int y)
  */
 void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    Grace *grace = (Grace *) client_data;
     static int inc = 0;
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
@@ -372,12 +386,11 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 #endif
     
     /* HACK */
-    if (xwin == 0) {
+    if (!grace->gui->inwin) {
         return;
     }
     
     if (!inc) {
-	grace->gui->inwin = TRUE;
 	inc++;
         
 	if (batchfile[0]) {
@@ -396,17 +409,16 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     }
     
     if (cbs->reason == XmCR_EXPOSE) {
-  	x11_redraw(cbs->window, cbs->event->xexpose.x,
-                                cbs->event->xexpose.y,
-                                cbs->event->xexpose.width,
-                                cbs->event->xexpose.height);
-        return;
-    }
-    
-    if (get_pagelayout() == PAGE_FREE) {
-        unsigned int w, h;
-        sync_canvas_size(&w, &h, TRUE);
-        xdrawgraph(grace->project, TRUE);
+  	x11_redraw(cbs->window,
+            cbs->event->xexpose.x,
+            cbs->event->xexpose.y,
+            cbs->event->xexpose.width,
+            cbs->event->xexpose.height);
+    } else {
+        if (get_pagelayout() == PAGE_FREE) {
+            sync_canvas_size(grace);
+            xdrawgraph(grace->project, TRUE);
+        }
     }
 }
 
@@ -417,16 +429,14 @@ void xdrawgraph(const Quark *q, int force)
 {
     Quark *project = get_parent_project(q);
     Grace *grace = grace_from_quark(q);
+    X11Stuff *xstuff = grace->gui->xstuff;
     if (grace && grace->gui->inwin && (force || grace->gui->auto_redraw)) {
         Quark *gr = graph_get_current(project);
+        Device_entry *d = get_device_props(grace->rt->canvas, grace->rt->tdevice);
 	
         set_wait_cursor();
-
-        if (get_pagelayout() == PAGE_FIXED) {
-            sync_canvas_size(&win_w, &win_h, FALSE);
-        } else {
-            sync_canvas_size(&win_w, &win_h, TRUE);
-        }
+        
+        resize_drawables(d->pg.width, d->pg.height);
 
         select_device(grace->rt->canvas, grace->rt->tdevice);
 	drawgraph(project);
@@ -434,11 +444,11 @@ void xdrawgraph(const Quark *q, int force)
         if (graph_is_active(gr)) {
             draw_focus(gr);
         }
-        reset_crosshair(FALSE);
+        reset_crosshair(grace->gui, FALSE);
 
-        x11_redraw(xwin, 0, 0, win_w, win_h);
+        x11_redraw(xstuff->xwin, 0, 0, xstuff->win_w, xstuff->win_h);
 
-        XFlush(disp);
+        XFlush(xstuff->disp);
 
 	unset_wait_cursor();
     }
@@ -447,35 +457,40 @@ void xdrawgraph(const Quark *q, int force)
 
 void x11_redraw(Window window, int x, int y, int width, int height)
 {
-    if (grace->gui->inwin == TRUE && bufpixmap != (Pixmap) NULL) {
-        XCopyArea(disp, bufpixmap, window, gc, x, y, width, height, x, y);
+    X11Stuff *xstuff = grace->gui->xstuff;
+    if (grace->gui->inwin == TRUE && xstuff->bufpixmap != (Pixmap) NULL) {
+        XCopyArea(xstuff->disp, xstuff->bufpixmap, window, xstuff->gc, x, y, width, height, x, y);
     }
 }
 
-Pixmap resize_bufpixmap(unsigned int w, unsigned int h)
+static void resize_drawables(unsigned int w, unsigned int h)
 {
-    static unsigned int pixmap_w = 0, pixmap_h = 0;
+    X11Stuff *xstuff = grace->gui->xstuff;
     
     if (w == 0 || h == 0) {
-        return (bufpixmap);
+        return;
     }
     
-    if (bufpixmap == (Pixmap) NULL) {
-        bufpixmap = XCreatePixmap(disp, root, w, h, depth);
-    } else if (pixmap_w != w || pixmap_h != h) {
-        XFreePixmap(disp, bufpixmap);
-        bufpixmap = XCreatePixmap(disp, root, w, h, depth);
+    if (xstuff->bufpixmap == (Pixmap) NULL) {
+        xstuff->bufpixmap = XCreatePixmap(xstuff->disp, xstuff->root, w, h, xstuff->depth);
+    } else if (xstuff->win_w != w || xstuff->win_h != h) {
+        XFreePixmap(xstuff->disp, xstuff->bufpixmap);
+        xstuff->bufpixmap = XCreatePixmap(xstuff->disp, xstuff->root, w, h, xstuff->depth);
     }
     
-    if (bufpixmap == (Pixmap) NULL) {
+    if (xstuff->bufpixmap == (Pixmap) NULL) {
         errmsg("Can't allocate buffer pixmap");
-        pixmap_w = 0;
-        pixmap_h = 0;
-        return (xwin);
+        xstuff->win_w = 0;
+        xstuff->win_h = 0;
     } else {
-        pixmap_w = w;
-        pixmap_h = h;
-        return (bufpixmap);
+        xstuff->win_w = w;
+        xstuff->win_h = h;
+    }
+
+    xstuff->win_scale = MIN2(xstuff->win_w, xstuff->win_h);
+    
+    if (get_pagelayout() == PAGE_FIXED) {
+        SetDimensions(xstuff->canvas, xstuff->win_w, xstuff->win_h);
     }
 }
 
@@ -490,7 +505,8 @@ static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 
 void xunregister_rti(XtInputId id)
 {
-    if (disp != (Display *) NULL) {
+    X11Stuff *xstuff = grace->gui->xstuff;
+    if (xstuff->disp != (Display *) NULL) {
         /* the screen has been initialized : we can remove the buffer */
         XtRemoveInput(id);
     }
@@ -498,7 +514,8 @@ void xunregister_rti(XtInputId id)
 
 void xregister_rti(Input_buffer *ib)
 {
-    if (disp != (Display *) NULL) {
+    X11Stuff *xstuff = grace->gui->xstuff;
+    if (xstuff->disp != (Display *) NULL) {
         /* the screen has been initialized : we can register the buffer */
         ib->id = (unsigned long) XtAppAddInput(app_con,
                                                ib->fd,
@@ -513,22 +530,23 @@ void xregister_rti(Input_buffer *ib)
  */
 void setpointer(VPoint vp)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     short x, y;
     
     x11_VPoint2dev(&vp, &x, &y);
     
     /* Make sure we remain inside the DA widget dimensions */
     x = MAX2(x, 0);
-    x = MIN2(x, win_w);
+    x = MIN2(x, xstuff->win_w);
     y = MAX2(y, 0);
-    y = MIN2(y, win_h);
+    y = MIN2(y, xstuff->win_h);
     
-    XWarpPointer(disp, None, xwin, 0, 0, 0, 0, x, y);
+    XWarpPointer(xstuff->disp, None, xstuff->xwin, 0, 0, 0, 0, x, y);
 }
 
-char *display_name(void)
+char *display_name(GUI *gui)
 {
-    return DisplayString(disp);
+    return DisplayString(gui->xstuff->disp);
 }
 
 #define BUFSIZE 1024
@@ -626,22 +644,23 @@ void installXErrorHandler(void)
     XSetIOErrorHandler(HandleXIOError);
 }
 
-int x11_init(const Canvas *canvas)
+int x11_init(Grace *grace)
 {
+    X11Stuff *xstuff = grace->gui->xstuff;
     XGCValues gc_val;
     
-    screennumber = DefaultScreen(disp);
-    root = RootWindow(disp, screennumber);
+    xstuff->screennumber = DefaultScreen(xstuff->disp);
+    xstuff->root = RootWindow(xstuff->disp, xstuff->screennumber);
  
-    gc = DefaultGC(disp, screennumber);
+    xstuff->gc = DefaultGC(xstuff->disp, xstuff->screennumber);
     
-    depth = DisplayPlanes(disp, screennumber);
+    xstuff->depth = DisplayPlanes(xstuff->disp, xstuff->screennumber);
 
     /* init colormap */
-    cmap = DefaultColormap(disp, screennumber);
+    xstuff->cmap = DefaultColormap(xstuff->disp, xstuff->screennumber);
     /* redefine colormap, if needed */
     if (grace->gui->install_cmap == CMAP_INSTALL_ALWAYS) {
-        cmap = XCopyColormapAndFree(disp, cmap);
+        xstuff->cmap = XCopyColormapAndFree(xstuff->disp, xstuff->cmap);
         grace->gui->private_cmap = TRUE;
     }
     
@@ -651,7 +670,7 @@ int x11_init(const Canvas *canvas)
     } else {
         gc_val.function = GXxor;
     }
-    gcxor = XCreateGC(disp, root, GCFunction, &gc_val);
+    gcxor = XCreateGC(xstuff->disp, xstuff->root, GCFunction, &gc_val);
 
     return RETURN_SUCCESS;
 }
@@ -659,12 +678,14 @@ int x11_init(const Canvas *canvas)
 
 static int x11_convx(double x)
 {
-    return ((int) rint(win_scale * x));
+    X11Stuff *xstuff = grace->gui->xstuff;
+    return ((int) rint(xstuff->win_scale * x));
 }
 
 static int x11_convy(double y)
 {
-    return ((int) rint(win_h - win_scale * y));
+    X11Stuff *xstuff = grace->gui->xstuff;
+    return ((int) rint(xstuff->win_h - xstuff->win_scale * y));
 }
 
 void x11_VPoint2dev(const VPoint *vp, short *x, short *y)
@@ -679,11 +700,12 @@ void x11_VPoint2dev(const VPoint *vp, short *x, short *y)
  */
 void x11_dev2VPoint(short x, short y, VPoint *vp)
 {
-    if (win_scale == 0) {
+    X11Stuff *xstuff = grace->gui->xstuff;
+    if (xstuff->win_scale == 0) {
         vp->x = (double) 0.0;
         vp->y = (double) 0.0;
     } else {
-        vp->x = (double) x / win_scale;
-        vp->y = (double) (win_h - y) / win_scale;
+        vp->x = (double) x / xstuff->win_scale;
+        vp->y = (double) (xstuff->win_h - y) / xstuff->win_scale;
     }
 }

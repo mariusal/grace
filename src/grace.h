@@ -40,6 +40,7 @@
 
 typedef struct _Grace Grace;
 
+typedef struct _X11Stuff X11Stuff;
 typedef struct _ExplorerUI ExplorerUI;
 
 typedef struct _GUI {
@@ -69,6 +70,8 @@ typedef struct _GUI {
     /* colormap stuff */
     int install_cmap;
     int private_cmap;
+    
+    X11Stuff *xstuff;
     
     ExplorerUI *eui;
 } GUI;

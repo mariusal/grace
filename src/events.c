@@ -124,7 +124,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     case MotionNotify:
 	xme = (XMotionEvent *) event;
 	if (cursortype || xme->state & ShiftMask) {
-            crosshair_motion(x, y);
+            crosshair_motion(grace->gui, x, y);
         }
 	x11_dev2VPoint(x, y, &vp);
 
@@ -205,7 +205,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         keybuf = XLookupKeysym(xke, 0);
         if (cursortype == 0 &&
             (keybuf == XK_Shift_L || keybuf == XK_Shift_R)) { /* Shift */
-            reset_crosshair(TRUE);
+            reset_crosshair(grace->gui, TRUE);
         }
         break;
     default:

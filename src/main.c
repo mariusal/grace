@@ -140,7 +140,6 @@ int main(int argc, char *argv[])
 #else
     rt->tdevice = register_dummy_drv(canvas);
 #endif
-    select_device(canvas, rt->tdevice);
 
     rt->hdevice = register_ps_drv(canvas);
     register_eps_drv(canvas);
@@ -508,7 +507,7 @@ int main(int argc, char *argv[])
         if (cli == TRUE) {
             cli_loop(grace);
         } else {
-            startup_gui();
+            startup_gui(grace);
         }
 #else
         cli_loop(grace);
