@@ -1083,6 +1083,7 @@ static void CreateStorageChoicePopup(StorageStructure *ss)
     
     popup = XmCreatePopupMenu(ss->list, "popupMenu", NULL, 0);
     ss->popup = popup;
+    XtVaSetValues(popup, XmNpopupEnabled, XmPOPUP_DISABLED, NULL);
 
     ss->popup_hide_bt = CreateMenuButton(popup, "Hide", '\0', ss_hide_cb, ss);
     ss->popup_show_bt = CreateMenuButton(popup, "Show", '\0', ss_show_cb, ss);
