@@ -48,7 +48,7 @@ double trapint(double *x, double *y, double *resx, double *resy, int n);
 int do_linearc(int gsrc, int setfrom, int gdest, int setto,
     int gconv, int setconv);
 int do_xcor(int gsrc, int setfrom, int gdest, int setto,
-    int gcor, int setcor, int maxlag);
+    int gcor, int setcor, int maxlag, int covar);
 int do_int(int gsrc, int setfrom, int gdest, int setto,
     int disponly, double *sum);
 int do_differ(int gsrc, int setfrom, int gdest, int setto,

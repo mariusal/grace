@@ -473,7 +473,6 @@ symtab_entry *key;
 %token <ival> X1
 %token <ival> XAXES
 %token <ival> XAXIS
-%token <ival> XCOR
 %token <ival> XMAX
 %token <ival> XMIN
 %token <ival> XY
@@ -2923,10 +2922,6 @@ actions:
 	    double dummy;
             do_int($3->gno, $3->setno, $5->gno, $5->setno, FALSE, &dummy);
 	}
- 	| XCOR '(' selectset ',' selectset ',' selectset ',' nexpr ')' {
-	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno,
-                $7->gno, $7->setno, $9);
-	}
 	
         | AUTOSCALE {
 	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != RETURN_SUCCESS) {
@@ -4675,7 +4670,6 @@ symtab_entry ikey[] = {
 	{"X1", X1, NULL},
 	{"XAXES", XAXES, NULL},
 	{"XAXIS", XAXIS, NULL},
-	{"XCOR", XCOR, NULL},
 	{"XMAX", XMAX, NULL},
 	{"XMIN", XMIN, NULL},
 	{"XY", XY, NULL},

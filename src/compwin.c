@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1166,6 +1166,7 @@ typedef struct _Cross_ui {
     Widget autocor;
     GraphSetStructure *corsel;
     SpinStructure *maxlag;
+    Widget covar;
 } Cross_ui;
 
 static void xcor_self_toggle(int onoff, void *data)
@@ -1187,7 +1188,7 @@ void create_xcor_frame(void *data)
         ui = xmalloc(sizeof(Cross_ui));
         
         ui->tdialog = CreateTransformDialogForm(app_shell,
-            "Cross/Auto-correlation", LIST_TYPE_MULTIPLE);
+            "Correlation/covariance", LIST_TYPE_MULTIPLE);
 
 	rc = CreateVContainer(ui->tdialog->form);
 	ui->autocor = CreateToggleButton(rc, "Auto-correlation");
@@ -1196,7 +1197,8 @@ void create_xcor_frame(void *data)
             "Correlate with:", LIST_TYPE_SINGLE);
 	ui->maxlag = CreateSpinChoice(rc, "Maximum lag:", 6, SPIN_TYPE_INT,
             (double) 1, (double) 999999, (double) 1);
-
+        ui->covar = CreateToggleButton(rc, "Calculate covariance");
+        
         /* default settings */
         SetSpinChoice(ui->maxlag, 1);
 
@@ -1216,7 +1218,7 @@ static int do_xcor_proc(void *data)
     int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
     int i, res, err = FALSE;
     int gcor, setcor;
-    int maxlag, autocor;
+    int maxlag, autocor, covar;
     Cross_ui *ui = (Cross_ui *) data;
 
     res = GetTransformDialogSettings(ui->tdialog, TRUE,
@@ -1228,6 +1230,7 @@ static int do_xcor_proc(void *data)
     
     maxlag  = (int) GetSpinChoice(ui->maxlag);
     autocor = GetToggleButtonState(ui->autocor);
+    covar   = GetToggleButtonState(ui->covar);
     
     if (!autocor &&
         (GetSingleListChoice(ui->corsel->graph_sel, &gcor) != RETURN_SUCCESS ||
@@ -1248,7 +1251,7 @@ static int do_xcor_proc(void *data)
             gcor = gsrc;
             setcor = setfrom;
         }
-        res = do_xcor(gsrc, setfrom, gdest, setto, gcor, setcor, maxlag);
+        res = do_xcor(gsrc, setfrom, gdest, setto, gcor, setcor, maxlag, covar);
         if (res != RETURN_SUCCESS) {
             err = TRUE;
         }

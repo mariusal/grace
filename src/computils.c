@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -996,14 +996,15 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
 }
 
 /*
- * cross correlation
+ * cross correlation/covariance
  */
 int do_xcor(int gsrc, int setfrom, int gdest, int setto,
-    int gcor, int setcor, int maxlag)
+    int gcor, int setcor, int maxlag, int covar)
 {
     int autocor;
     int len, i, ncols1, ncols2, ncols, nc;
     double xspace1, xspace2, *xsrc, *xcor, *xdest, xoffset;
+    char *fname;
 
     if (maxlag < 0) {
 	errmsg("Negative max lag");
@@ -1080,6 +1081,8 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
     for (nc = 1; nc < ncols; nc++) {
         int buflen;
         double *d1_re, *d1_im, *d2_re, *d2_im, *dres;
+        double xbar, sd;
+        double cnorm = 1.0;
         
         buflen = len + maxlag;
         
@@ -1091,6 +1094,13 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
             xfree(d1_re);
             xfree(d1_im);
             return RETURN_FAILURE;
+        }
+        if (covar) {
+            /* substract mean value if doing covariance */
+            stasum(d1_re, len, &xbar, &sd);
+            for (i = 0; i < len; i++) {
+                d1_re[i] -= xbar;
+            }
         }
         /* pad with zeros */
         for (i = len; i < buflen; i++) {
@@ -1111,6 +1121,12 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
                 xfree(d1_im);
                 xfree(d2_im);
                 return RETURN_FAILURE;
+            }
+            if (covar) {
+                stasum(d2_re, len, &xbar, &sd);
+                for (i = 0; i < len; i++) {
+                    d2_re[i] -= xbar;
+                }
             }
             for (i = len; i < buflen; i++) {
                 d2_re[i] = 0.0;
@@ -1148,6 +1164,12 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         dres = getcol(gdest, setto, nc);
         for (i = 0; i < maxlag; i++) {
             dres[i] = d1_re[i]/buflen*xspace1;
+            if (i == 0) {
+                cnorm = dres[i];
+                dres[i] = 1.0;
+            } else {
+                dres[i] /= cnorm;
+            }
         }
         
         /* free the remaining buffer storage */
@@ -1159,14 +1181,19 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
 	xdest[i] = xoffset + i*xspace1;
     }
 
+    if (covar) {
+        fname = "covariance";
+    } else {
+        fname = "correlation";
+    }
     if (autocor) {
 	sprintf(buf,
-            "Auto-correlation of set G%d.S%d at maximum lag %d",
-            gsrc, setfrom, maxlag);
+            "Auto-%s of set G%d.S%d at maximum lag %d",
+            fname, gsrc, setfrom, maxlag);
     } else {
 	sprintf(buf,
-            "Cross-correlation of sets G%d.S%d and G%d.S%d at maximum lag %d",
-            gsrc, setfrom, gcor, setcor, maxlag);
+            "Cross-%s of sets G%d.S%d and G%d.S%d at maximum lag %d",
+            fname, gsrc, setfrom, gcor, setcor, maxlag);
     }
     setcomment(gdest, setto, buf);
     
