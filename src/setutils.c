@@ -542,8 +542,8 @@ int copysetdata(Quark *psrc, Quark *pdest)
 	return RETURN_FAILURE;
     }
     
-    p1 = (set *) psrc;
-    p2 = (set *) pdest;
+    p1 = set_get_data(psrc);
+    p2 = set_get_data(pdest);
     
     dataset_free(p2->data);
     p2->data = dataset_copy(p1->data);

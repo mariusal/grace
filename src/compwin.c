@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -35,7 +35,6 @@
  *
  */
 
-#if 0
 #include <config.h>
 
 #include <stdio.h>
@@ -99,20 +98,20 @@ void create_eval_frame(void *data)
  */
 static int compute_aac(void *data)
 {
-    int error, resno;
-    int i, nssrc, nsdest;
+    int error, res;
+    int i, nssrc;
     Quark *psrc, *pdest, **srcsets, **destsets;
     char fstr[256];
     int restr_type, restr_negate;
     char *rarray;
-    Eval_ui *eui = (Eval_ui *) data;
+    Eval_ui *ui = (Eval_ui *) data;
 
-    restr_type = GetOptionChoice(eui->restr_item->r_sel);
-    restr_negate = GetToggleButtonState(eui->restr_item->negate);
-    strcpy(fstr, xv_getstr(eui->formula_item));
+    restr_type = GetOptionChoice(ui->restr_item->r_sel);
+    restr_negate = GetToggleButtonState(ui->restr_item->negate);
+    strcpy(fstr, xv_getstr(ui->formula_item));
 
-    res = GetTransformDialogSettings(ui->tdialog, TRUE,
-        &nssrc, &srcsets, &nsdest, &destsets);
+    res = GetTransformDialogSettings(ui->tdialog, FALSE,
+        &nssrc, &srcsets, &destsets);
     
     if (res != RETURN_SUCCESS) {
         return RETURN_FAILURE;
@@ -121,24 +120,18 @@ static int compute_aac(void *data)
     error = FALSE;
     
     for (i = 0; i < nssrc; i++) {
-	psrc = srcsets[i];
-	if (nsdest != 0) {
-            setno2 = svalues2[i];
-        } else {
-            setno2 = nextset(gno2);
-            set_set_hidden(gno2, setno2, FALSE);
-        }
+	psrc  = srcsets[i];
+	pdest = destsets[i];
 
-        resno = get_restriction_array(gno1, setno1,
-            restr_type, restr_negate, &rarray);
-	if (resno != RETURN_SUCCESS) {
-	    errmsg("Error in evaluation restriction");
+        res = get_restriction_array(psrc, restr_type, restr_negate, &rarray);
+	if (res != RETURN_SUCCESS) {
+	    errmsg("Error in evaluation of restriction");
 	    break;
 	}
 
-        resno = do_compute(gno1, setno1, gno2, setno2, rarray, fstr);
+        res = do_compute(psrc, pdest, rarray, fstr);
 	XCFREE(rarray);
-	if (resno != RETURN_SUCCESS) {
+	if (res != RETURN_SUCCESS) {
 	    errmsg("Error in do_compute(), check formula");
             break;
 	}
@@ -146,15 +139,10 @@ static int compute_aac(void *data)
     
     if (nssrc > 0) {
         xfree(srcsets);
-    }
-    if (nsdest > 0) {
         xfree(destsets);
     }
     
-    update_set_lists(gno1);
-    if (gno1 != gno2) {
-        update_set_lists(gno2);
-    }
+    UpdateSrcDestSelector(ui->tdialog->srcdest);
     
     xdrawgraph();
     
@@ -165,6 +153,7 @@ static int compute_aac(void *data)
     }
 }
 
+#if 0
 
 #define SAMPLING_MESH   0
 #define SAMPLING_SET    1

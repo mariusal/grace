@@ -824,8 +824,7 @@ int monospaced(double *array, int len, double *space)
 /*
  * evaluate a formula
  */
-int do_compute(Quark *psrc, Quark *pdest,
-    char *rarray, char *fstr)
+int do_compute(Quark *psrc, Quark *pdest, char *rarray, char *fstr)
 {
     if (is_set_active(psrc)) {
 	if (psrc != pdest) {

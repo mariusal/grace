@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -760,8 +760,8 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Data set operations...", 'o', create_datasetop_popup, NULL);
 
     submenupane = CreateMenu(menupane, "Transformations", 'T', FALSE);
-#if 0
     CreateMenuButton(submenupane, "Evaluate expression...", 'E', create_eval_frame, NULL);
+#if 0
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Histograms...", 'H', create_histo_frame, NULL);
     CreateMenuButton(submenupane, "Fourier transforms...", 'u', create_fourier_frame, NULL);
