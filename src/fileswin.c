@@ -588,7 +588,7 @@ void update_netcdfs(void)
 	set_wait_cursor();
 	XmListDeleteAllItems(netcdf_listx_item);
 	XmListDeleteAllItems(netcdf_listy_item);
-	xms = XmStringCreateLtoR("INDEX", charset);
+	xms = XmStringCreateLocalized("INDEX");
 	XmListAddItemUnselected(netcdf_listx_item, xms, 0);
 	XmStringFree(xms);
 
@@ -618,7 +618,7 @@ void update_netcdfs(void)
 	    }
 	    ncdiminq(cdfid, dim[0], (char *) NULL, &len);
 	    sprintf(buf, "%s", varname);
-	    xms = XmStringCreateLtoR(buf, charset);
+	    xms = XmStringCreateLocalized(buf);
 	    XmListAddItemUnselected(netcdf_listx_item, xms, 0);
 	    XmListAddItemUnselected(netcdf_listy_item, xms, 0);
 	    XmStringFree(xms);

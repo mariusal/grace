@@ -281,14 +281,15 @@ void open_command(Widget w, XtPointer client_data, XtPointer call_data)
 			 "Help"};
     set_wait_cursor();
     if (command == NULL) {
-	comshell = XmCreateDialogShell(app_shell, "Commands", NULL, 0);
+	XmString str;
+        comshell = XmCreateDialogShell(app_shell, "Commands", NULL, 0);
 	handle_close(comshell);
 	command = XmCreateCommand(comshell, "command", NULL, 0);
 	hl = XmCommandGetChild( command, XmDIALOG_HISTORY_LIST );
-	XtVaSetValues(command,
-		      XmNpromptString, XmStringCreateLtoR("Command", charset),
-		      NULL);
-
+	str = XmStringCreateLocalized("Command");
+        XtVaSetValues(command, XmNpromptString, str, NULL);
+        XmStringFree(str);
+        
 	form = XmCreateForm(command, "commandform", NULL, 0);
 
 	fr1 = CreateFrame(form, NULL);
@@ -367,7 +368,7 @@ static int do_rhist_proc(char *filename, void *data)
 	    if (strlen(buf) == 0) {
                 continue;
 	    }
-	    list_item = XmStringCreateLtoR(buf, charset);
+	    list_item = XmStringCreateLocalized(buf);
 	    XmListAddItemUnselected(h, list_item, 0);
 	    XmStringFree(list_item);
 	}

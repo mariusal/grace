@@ -295,7 +295,7 @@ void create_points_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	dialog = XmCreateRowColumn(points_frame, "dialog_rc", NULL, 0);
 
 	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
-	str = XmStringCreateLtoR("Set, location, (X, Y): ", charset);
+	str = XmStringCreateLocalized("Set, location, (X, Y): ");
 	locate_point_message = XtVaCreateManagedWidget("pointslabel",
             xmLabelWidgetClass, rc, XmNlabelString, str, NULL);
         XmStringFree(str);

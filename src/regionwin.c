@@ -349,13 +349,13 @@ void create_delete_frame(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
-XmString astring, pstring;
 Widget arealab, perimlab;
 extern XmStringCharSet charset;
 
 void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
     static Widget top, dialog;
+    XmString str;
 
     set_wait_cursor();
     if (top == NULL) {
@@ -367,13 +367,16 @@ void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	handle_close(top);
 	dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
 
-	arealab = XtVaCreateManagedWidget("label Area", xmLabelWidgetClass, dialog,
-					  XmNlabelString, astring = XmStringCreateLtoR("[    Area    ]", charset),
+	str = XmStringCreateLocalized("[    Area    ]");
+        arealab = XtVaCreateManagedWidget("label Area", xmLabelWidgetClass, dialog,
+					  XmNlabelString, str,
 					  NULL);
-
+        XmStringFree(str);
+	str = XmStringCreateLocalized("[    Perim    ]");
 	perimlab = XtVaCreateManagedWidget("label Perim", xmLabelWidgetClass, dialog,
-					   XmNlabelString, pstring = XmStringCreateLtoR("[    Perim    ]", charset),
+					   XmNlabelString, str,
 					   NULL);
+        XmStringFree(str);
 
 	CreateSeparator(dialog);
 
@@ -609,7 +612,7 @@ static void set_status_label(Widget w, char *buf)
 {
     Arg al;
     XmString ls;
-    ls = XmStringCreateLtoR(buf, charset);
+    ls = XmStringCreateLocalized(buf);
     XtSetArg(al, XmNlabelString, ls);
     XtSetValues(w, &al, 1);
     XmStringFree(ls);

@@ -95,9 +95,9 @@ static void do_hotlink_proc(Widget w, XtPointer client_data, XtPointer call_data
 			sprintf(buf, "G%d.S%d -> %s -> %s:%d", get_cg(), sets[i], 
 						src == 0 ? "DISK" : "PIPE", fname, i+1);
 
-		xms = XmStringCreateLtoR(buf, charset);
+		xms = XmStringCreateLocalized(buf);
 		XmListAddItemUnselected(hotlink_list_item, xms, 0);
-    	XmStringFree(xms);
+    	        XmStringFree(xms);
 		set_hotlink(get_cg(), sets[i], i+1, fname, src==0?SOURCE_DISK:SOURCE_PIPE);
 		if( numset == 1 )
 			setcomment( get_cg(), sets[i], fname );
@@ -158,7 +158,7 @@ void update_hotlinks(void)
 				sprintf(buf, "G%d.S%d -> %s -> %s:%d", get_cg(), j, 
 					get_hotlink_src(get_cg(), j) == SOURCE_DISK ? "DISK" : "PIPE", 
 					get_hotlink_file(get_cg(), j), is_hotlinked(get_cg(),j) );
-				xms = XmStringCreateLtoR(buf, charset);
+				xms = XmStringCreateLocalized(buf);
 				XmListAddItemUnselected(hotlink_list_item, xms, 0);
 				XmStringFree(xms);
 			}

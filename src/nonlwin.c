@@ -342,7 +342,7 @@ void update_nonl_frame(void)
     int i;
     
     if (nonl_frame) {
-        XmString str = XmStringCreateSimple(nonl_opts.title);
+        XmString str = XmStringCreateLocalized(nonl_opts.title);
         XtVaSetValues(nonl_title_item, XmNlabelString, str, NULL);
 /* 
  * If I define only XmALIGNMENT_CENTER (default!) then it's ignored - bug in Motif???
