@@ -518,31 +518,40 @@ int graph_zoom(int type)
 {
     double dx, dy;
     world w;
-    int cg = get_cg();
+    int gstart, gstop, gno;
+
+    if (scrolling_islinked) {
+        gstart = 0;
+        gstop = number_of_graphs() - 1;
+    } else {
+        gstart = get_cg();
+        gstop = gstart;
+    }
     
-    if (!islogx(cg) && !islogy(cg)) {
-        if (get_graph_world(cg, &w) == GRACE_EXIT_SUCCESS) {
-            dx = shexper * (w.xg2 - w.xg1);
-            dy = shexper * (w.yg2 - w.yg1);
-            if (type == GZOOM_SHRINK) {
-                dx *= -1;
-                dy *= -1;
+    for (gno = gstart; gno <= gstop; gno++) {
+        if (!islogx(gno) && !islogy(gno)) {
+            if (get_graph_world(gno, &w) == GRACE_EXIT_SUCCESS) {
+                dx = shexper * (w.xg2 - w.xg1);
+                dy = shexper * (w.yg2 - w.yg1);
+                if (type == GZOOM_SHRINK) {
+                    dx *= -1;
+                    dy *= -1;
+                }
+ 
+                w.xg1 -= dx;
+                w.xg2 += dx;
+                w.yg1 -= dy;
+                w.yg2 += dy;
+ 
+                set_graph_world(gno, w);
             }
- 
-	    w.xg1 -= dx;
-	    w.xg2 += dx;
-	    w.yg1 -= dy;
-	    w.yg2 += dy;
- 
-            set_graph_world(cg, w);
-            return GRACE_EXIT_SUCCESS;
         } else {
+            errmsg("Zooming is not implemented for LOG plots");
             return GRACE_EXIT_FAILURE;
         }
-    } else {
-	errmsg("Zooming is not implemented for LOG plots");
-        return GRACE_EXIT_FAILURE;
     }
+    
+    return GRACE_EXIT_SUCCESS;
 }
 
 /*
