@@ -78,10 +78,13 @@ static Widget loclab;		/* locator label */
 static Widget statlab;		/* status line at the bottom */
 
 static Widget CreateMainMenuBar(Widget parent);
-static void MenuCB(Widget but, void *data);
-static void graph_scroll_proc(Widget but, void *data);
-static void graph_zoom_proc(Widget but, void *data);
-static void load_example(Widget but, void *data);
+static void graph_scroll_left_cb(Widget but, void *data);
+static void graph_scroll_right_cb(Widget but, void *data);
+static void graph_scroll_up_cb(Widget but, void *data);
+static void graph_scroll_down_cb(Widget but, void *data);
+static void graph_zoom_in_cb(Widget but, void *data);
+static void graph_zoom_out_cb(Widget but, void *data);
+static void load_example_cb(Widget but, void *data);
 
 /*
  * action routines, to be used with translations
@@ -424,77 +427,39 @@ static void do_drawgraph(Widget but, void *data)
 }
 
 
-static void MenuCB(Widget but, void *data)
-{
-    char *s;
-    
-    switch ((int) data) {
-    case MENU_EXIT:
-	bailout(grace);
-	break;
-    case MENU_NEW:
-	new_project(grace, NULL);
-
-        xdrawgraph(grace->project, FALSE);
-	break;
-    case MENU_OPEN:
-	create_openproject_popup();
-	break;
-    case MENU_SAVE:
-	if (strcmp (project_get_docname(grace->project), NONAME) != 0) {
-	    set_wait_cursor();
-	    
-	    save_project(grace->project, project_get_docname(grace->project));
-            update_all();
-	    
-	    unset_wait_cursor();
-	} else {
-	    create_saveproject_popup();
-	}
-	break;
-    case MENU_SAVEAS:
-	create_saveproject_popup();
-	break;
-    case MENU_REVERT:
-	set_wait_cursor();
-	s = copy_string(NULL, project_get_docname(grace->project));
-	if (strcmp (s, NONAME) != 0) {
-            load_project(grace, s);
-        } else {
-	    new_project(grace, NULL);
-        }
-        xfree(s);
-        xdrawgraph(grace->project, FALSE);
-	unset_wait_cursor();
-	break;
-    case MENU_PRINT:
-	set_wait_cursor();
-	do_hardcopy(grace->project);
-	unset_wait_cursor();
-	break;
-    default:
-	break;
-    }
-}
-
 /*
  * service the autoscale buttons on the main panel
  */
-static void autoscale_proc(Widget but, void *data)
+static void autoscale_proc(Grace *grace, int type)
 {
     Quark *cg = graph_get_current(grace->project);
     
-    if (autoscale_graph(cg, (int) data) == RETURN_SUCCESS) {
+    if (autoscale_graph(cg, type) == RETURN_SUCCESS) {
         xdrawgraph(grace->project, FALSE);
     } else {
 	errmsg("Can't autoscale (no active sets?)");
     }
 }
 
+static void autoscale_xy_cb(Widget but, void *data)
+{
+    autoscale_proc((Grace *) data, AUTOSCALE_XY);
+}
+
+static void autoscale_x_cb(Widget but, void *data)
+{
+    autoscale_proc((Grace *) data, AUTOSCALE_X);
+}
+
+static void autoscale_y_cb(Widget but, void *data)
+{
+    autoscale_proc((Grace *) data, AUTOSCALE_Y);
+}
+
 /*
  * service the autoticks button on the main panel
  */
-static void autoticks_proc(Widget but, void *data)
+static void autoticks_cb(Widget but, void *data)
 {
     autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
     xdrawgraph(grace->project, FALSE);
@@ -650,6 +615,70 @@ static void zoom_1_cb(Widget but, void *data)
     page_zoom_inout(grace, 0);
 }
 
+static void new_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    new_project(grace, NULL);
+    xdrawgraph(grace->project, FALSE);
+}
+
+
+static void exit_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    bailout(grace);
+}
+
+static void open_cb(Widget but, void *data)
+{
+    create_openproject_popup();
+}
+
+static void save_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    if (strcmp (project_get_docname(grace->project), NONAME) != 0) {
+	set_wait_cursor();
+
+	save_project(grace->project, project_get_docname(grace->project));
+        update_all();
+
+	unset_wait_cursor();
+    } else {
+	create_saveproject_popup();
+    }
+}
+
+static void save_as_cb(Widget but, void *data)
+{
+    create_saveproject_popup();
+}
+
+static void revert_cb(Widget but, void *data)
+{
+    char *s;
+    Grace *grace = (Grace *) data;
+
+    set_wait_cursor();
+    s = copy_string(NULL, project_get_docname(grace->project));
+    if (strcmp (s, NONAME) != 0) {
+        load_project(grace, s);
+    } else {
+	new_project(grace, NULL);
+    }
+    xfree(s);
+    xdrawgraph(grace->project, FALSE);
+    unset_wait_cursor();
+}
+
+static void print_cb(Widget but, void *data)
+{
+    Grace *grace = (Grace *) data;
+    set_wait_cursor();
+    do_hardcopy(grace->project);
+    unset_wait_cursor();
+}
+
 /*
  * create the main menubar
  */
@@ -664,18 +693,18 @@ static Widget CreateMainMenuBar(Widget parent)
     /* File menu */
     menupane = CreateMenu(menubar, "File", 'F', FALSE);
 
-    CreateMenuButton(menupane, "New", 'N', MenuCB, (void *) MENU_NEW);
-    CreateMenuButton(menupane, "Open...", 'O', MenuCB, (void *) MENU_OPEN);
-    CreateMenuButton(menupane, "Save", 'S', MenuCB, (void *) MENU_SAVE);
-    CreateMenuButton(menupane, "Save as...", 'a', MenuCB, (void *) MENU_SAVEAS);
-    CreateMenuButton(menupane, "Revert to saved", 'v', MenuCB, (void *) MENU_REVERT);
+    CreateMenuButton(menupane, "New", 'N', new_cb, grace);
+    CreateMenuButton(menupane, "Open...", 'O', open_cb, grace);
+    CreateMenuButton(menupane, "Save", 'S', save_cb, grace);
+    CreateMenuButton(menupane, "Save as...", 'a', save_as_cb, grace);
+    CreateMenuButton(menupane, "Revert to saved", 'v', revert_cb, grace);
 
     CreateMenuSeparator(menupane);
 
     CreateMenuButton(menupane, "Print setup...", 't', create_printer_setup, &grace->rt->hdevice);
-    CreateMenuButton(menupane, "Print", 'P', MenuCB, (void *) MENU_PRINT);
+    CreateMenuButton(menupane, "Print", 'P', print_cb, grace);
     CreateMenuSeparator(menupane);
-    CreateMenuButton(menupane, "Exit", 'x', MenuCB, (void *) MENU_EXIT);
+    CreateMenuButton(menupane, "Exit", 'x', exit_cb, grace);
 
     /* Edit menu */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
@@ -779,56 +808,56 @@ static Widget CreateMainMenuBar(Widget parent)
  
     submenupane = CreateMenu(menupane, "Examples", 'E', FALSE);
     sub2menupane = CreateMenu(submenupane, "General intro", 'i', FALSE);
-    CreateMenuButton(sub2menupane, "Explain", '\0', load_example, "explain.agr");
-    CreateMenuButton(sub2menupane, "Properties", '\0', load_example, "props.agr");
-    CreateMenuButton(sub2menupane, "Axes", '\0',load_example, "axes.agr");
-    CreateMenuButton(sub2menupane, "Fonts", '\0', load_example, "tfonts.agr");
-    CreateMenuButton(sub2menupane, "Arrows", '\0', load_example, "arrows.agr");
-    CreateMenuButton(sub2menupane, "Symbols and lines", '\0', load_example, "symslines.agr");
-    CreateMenuButton(sub2menupane, "Fills", '\0', load_example, "fills.agr");
-    CreateMenuButton(sub2menupane, "Inset graphs", '\0', load_example, "tinset.agr");
-    CreateMenuButton(sub2menupane, "Many graphs", '\0', load_example, "manygraphs.agr");
+    CreateMenuButton(sub2menupane, "Explain", '\0', load_example_cb, "explain.agr");
+    CreateMenuButton(sub2menupane, "Properties", '\0', load_example_cb, "props.agr");
+    CreateMenuButton(sub2menupane, "Axes", '\0',load_example_cb, "axes.agr");
+    CreateMenuButton(sub2menupane, "Fonts", '\0', load_example_cb, "tfonts.agr");
+    CreateMenuButton(sub2menupane, "Arrows", '\0', load_example_cb, "arrows.agr");
+    CreateMenuButton(sub2menupane, "Symbols and lines", '\0', load_example_cb, "symslines.agr");
+    CreateMenuButton(sub2menupane, "Fills", '\0', load_example_cb, "fills.agr");
+    CreateMenuButton(sub2menupane, "Inset graphs", '\0', load_example_cb, "tinset.agr");
+    CreateMenuButton(sub2menupane, "Many graphs", '\0', load_example_cb, "manygraphs.agr");
 
     sub2menupane = CreateMenu(submenupane, "XY graphs", 'g', FALSE);
-    CreateMenuButton(sub2menupane, "Log scale", '\0', load_example, "tlog.agr");
-    CreateMenuButton(sub2menupane, "Log2 scale", '\0', load_example, "log2.agr");
-    CreateMenuButton(sub2menupane, "Logit scale", '\0', load_example, "logit.agr");
-    CreateMenuButton(sub2menupane, "Reciprocal scale", '\0', load_example, "reciprocal.agr");
-    CreateMenuButton(sub2menupane, "Error bars", '\0', load_example, "terr.agr");
-    CreateMenuButton(sub2menupane, "Date/time axis formats", '\0', load_example, "times.agr");
-    CreateMenuButton(sub2menupane, "Australia map", '\0', load_example, "au.agr");
-    CreateMenuButton(sub2menupane, "A CO2 analysis", '\0', load_example, "co2.agr");
-    CreateMenuButton(sub2menupane, "Motif statistics", '\0', load_example, "motif.agr");
-    CreateMenuButton(sub2menupane, "Spectrum", '\0', load_example, "spectrum.agr");
+    CreateMenuButton(sub2menupane, "Log scale", '\0', load_example_cb, "tlog.agr");
+    CreateMenuButton(sub2menupane, "Log2 scale", '\0', load_example_cb, "log2.agr");
+    CreateMenuButton(sub2menupane, "Logit scale", '\0', load_example_cb, "logit.agr");
+    CreateMenuButton(sub2menupane, "Reciprocal scale", '\0', load_example_cb, "reciprocal.agr");
+    CreateMenuButton(sub2menupane, "Error bars", '\0', load_example_cb, "terr.agr");
+    CreateMenuButton(sub2menupane, "Date/time axis formats", '\0', load_example_cb, "times.agr");
+    CreateMenuButton(sub2menupane, "Australia map", '\0', load_example_cb, "au.agr");
+    CreateMenuButton(sub2menupane, "A CO2 analysis", '\0', load_example_cb, "co2.agr");
+    CreateMenuButton(sub2menupane, "Motif statistics", '\0', load_example_cb, "motif.agr");
+    CreateMenuButton(sub2menupane, "Spectrum", '\0', load_example_cb, "spectrum.agr");
 
     sub2menupane = CreateMenu(submenupane, "XY charts", 'c', FALSE);
-    CreateMenuButton(sub2menupane, "Bar chart", '\0', load_example, "bar.agr");
-    CreateMenuButton(sub2menupane, "Stacked bar", '\0', load_example, "stackedb.agr");
-    CreateMenuButton(sub2menupane, "Bar chart with error bars", '\0', load_example, "chartebar.agr");
-    CreateMenuButton(sub2menupane, "Different charts", '\0', load_example, "charts.agr");
+    CreateMenuButton(sub2menupane, "Bar chart", '\0', load_example_cb, "bar.agr");
+    CreateMenuButton(sub2menupane, "Stacked bar", '\0', load_example_cb, "stackedb.agr");
+    CreateMenuButton(sub2menupane, "Bar chart with error bars", '\0', load_example_cb, "chartebar.agr");
+    CreateMenuButton(sub2menupane, "Different charts", '\0', load_example_cb, "charts.agr");
 
     sub2menupane = CreateMenu(submenupane, "Polar graphs", 'P', FALSE);
-    CreateMenuButton(sub2menupane, "Polar graph", '\0', load_example, "polar.agr");
+    CreateMenuButton(sub2menupane, "Polar graph", '\0', load_example_cb, "polar.agr");
 
     sub2menupane = CreateMenu(submenupane, "Pie charts", 'i', FALSE);
-    CreateMenuButton(sub2menupane, "Pie chart", '\0', load_example, "pie.agr");
+    CreateMenuButton(sub2menupane, "Pie chart", '\0', load_example_cb, "pie.agr");
 
     sub2menupane = CreateMenu(submenupane, "Special set presentations", 'S', FALSE);
-    CreateMenuButton(sub2menupane, "HILO", '\0', load_example, "hilo.agr");
-    CreateMenuButton(sub2menupane, "XY Radius", '\0', load_example, "txyr.agr");
-    CreateMenuButton(sub2menupane, "XYZ", '\0', load_example, "xyz.agr");
-    CreateMenuButton(sub2menupane, "Box plot", '\0', load_example, "boxplot.agr");
-    CreateMenuButton(sub2menupane, "Vector map", '\0', load_example, "vmap.agr");
-    CreateMenuButton(sub2menupane, "XY Size", '\0', load_example, "xysize.agr");
-    CreateMenuButton(sub2menupane, "XY Color", '\0', load_example, "xycolor.agr");
+    CreateMenuButton(sub2menupane, "HILO", '\0', load_example_cb, "hilo.agr");
+    CreateMenuButton(sub2menupane, "XY Radius", '\0', load_example_cb, "txyr.agr");
+    CreateMenuButton(sub2menupane, "XYZ", '\0', load_example_cb, "xyz.agr");
+    CreateMenuButton(sub2menupane, "Box plot", '\0', load_example_cb, "boxplot.agr");
+    CreateMenuButton(sub2menupane, "Vector map", '\0', load_example_cb, "vmap.agr");
+    CreateMenuButton(sub2menupane, "XY Size", '\0', load_example_cb, "xysize.agr");
+    CreateMenuButton(sub2menupane, "XY Color", '\0', load_example_cb, "xycolor.agr");
 
     sub2menupane = CreateMenu(submenupane, "Type setting", 'T', FALSE);
-    CreateMenuButton(sub2menupane, "Simple", '\0', load_example, "test2.agr");
-    CreateMenuButton(sub2menupane, "Text transforms", '\0', load_example, "txttrans.agr");
-    CreateMenuButton(sub2menupane, "Advanced", '\0', load_example, "typeset.agr");
+    CreateMenuButton(sub2menupane, "Simple", '\0', load_example_cb, "test2.agr");
+    CreateMenuButton(sub2menupane, "Text transforms", '\0', load_example_cb, "txttrans.agr");
+    CreateMenuButton(sub2menupane, "Advanced", '\0', load_example_cb, "typeset.agr");
 
     sub2menupane = CreateMenu(submenupane, "Calculus", 'u', FALSE);
-    CreateMenuButton(sub2menupane, "Non-linear fit", '\0', load_example, "logistic.agr");
+    CreateMenuButton(sub2menupane, "Non-linear fit", '\0', load_example_cb, "logistic.agr");
  
     CreateMenuSeparator(menupane);
 
@@ -976,33 +1005,33 @@ void startup_gui(Grace *grace)
 
     /* autoscale */
     bt = CreateBitmapButton(rcleft, 16, 16, auto_bits);
-    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_XY);
+    AddButtonCB(bt, autoscale_xy_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_x_bits);
-    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
+    AddButtonCB(bt, autoscale_x_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_y_bits);
-    AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
+    AddButtonCB(bt, autoscale_y_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, auto_tick_bits);
-    AddButtonCB(bt, autoticks_proc, NULL);
+    AddButtonCB(bt, autoticks_cb, NULL);
 
     CreateSeparator(rcleft);
 
     /* scrolling buttons */
     bt = CreateBitmapButton(rcleft, 16, 16, left_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_LEFT);
+    AddButtonCB(bt, graph_scroll_left_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, right_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_RIGHT);
+    AddButtonCB(bt, graph_scroll_right_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, up_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_UP);
+    AddButtonCB(bt, graph_scroll_up_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, down_bits);
-    AddButtonCB(bt, graph_scroll_proc, (void *) GSCROLL_DOWN);
+    AddButtonCB(bt, graph_scroll_down_cb, (void *) grace);
 
     CreateSeparator(rcleft);
 
     /* expand/shrink */
     bt = CreateBitmapButton(rcleft, 16, 16, expand_bits);
-    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_EXPAND);
+    AddButtonCB(bt, graph_zoom_in_cb, (void *) grace);
     bt = CreateBitmapButton(rcleft, 16, 16, shrink_bits);
-    AddButtonCB(bt, graph_zoom_proc, (void *) GZOOM_SHRINK);
+    AddButtonCB(bt, graph_zoom_out_cb, (void *) grace);
 
     CreateSeparator(rcleft);
 
@@ -1014,7 +1043,7 @@ void startup_gui(Grace *grace)
 
     /* exit */
     bt = CreateBitmapButton(rcleft, 16, 16, exit_bits);
-    AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
+    AddButtonCB(bt, exit_cb, grace);
 
 /*
  * initialize some option menus
@@ -1062,10 +1091,9 @@ static int scroll_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static void graph_scroll_proc(Widget but, void *data)
+static void graph_scroll_proc(Grace *grace, int type)
 {
     Quark *cg, *f;
-    int type = (int) data;
     
     cg = graph_get_current(grace->project);
     f = get_parent_frame(cg);
@@ -1074,6 +1102,26 @@ static void graph_scroll_proc(Widget but, void *data)
     
     xdrawgraph(grace->project, FALSE);\
     update_all();
+}
+
+static void graph_scroll_left_cb(Widget but, void *data)
+{
+    graph_scroll_proc((Grace *) data, GSCROLL_LEFT);
+}
+
+static void graph_scroll_right_cb(Widget but, void *data)
+{
+    graph_scroll_proc((Grace *) data, GSCROLL_RIGHT);
+}
+
+static void graph_scroll_up_cb(Widget but, void *data)
+{
+    graph_scroll_proc((Grace *) data, GSCROLL_UP);
+}
+
+static void graph_scroll_down_cb(Widget but, void *data)
+{
+    graph_scroll_proc((Grace *) data, GSCROLL_DOWN);
 }
 
 static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
@@ -1087,10 +1135,9 @@ static int zoom_hook(Quark *q, void *udata, QTraverseClosure *closure)
     return TRUE;
 }
 
-static void graph_zoom_proc(Widget but, void *data)
+static void graph_zoom_proc(Grace *grace, int type)
 {
     Quark *cg, *f;
-    int type = (int) data;
     
     cg = graph_get_current(grace->project);
     f = get_parent_frame(cg);
@@ -1101,7 +1148,17 @@ static void graph_zoom_proc(Widget but, void *data)
     update_all();
 }
 
-static void load_example(Widget but, void *data)
+static void graph_zoom_in_cb(Widget but, void *data)
+{
+    graph_zoom_proc((Grace *) data, GZOOM_EXPAND);
+}
+
+static void graph_zoom_out_cb(Widget but, void *data)
+{
+    graph_zoom_proc((Grace *) data, GZOOM_SHRINK);
+}
+
+static void load_example_cb(Widget but, void *data)
 {
     char *s, buf[128];
     
@@ -1115,4 +1172,3 @@ static void load_example(Widget but, void *data)
 
     unset_wait_cursor();
 }
-
