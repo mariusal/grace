@@ -2959,7 +2959,8 @@ actions:
                 return 1;
             } else {
 	        free($3);
-	        create_set_fromblock(whichgraph, $2, nc, cols, -1);
+	        create_set_fromblock(whichgraph, $2,
+                    nc, cols, -1, autoscale_onread);
                 free(cols);
             }
 	}
