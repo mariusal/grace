@@ -419,7 +419,7 @@ int set_graph_active(int gno, int flag)
         }
     } else { 
         if (is_valid_gno(gno) == TRUE) {
-            kill_graph(gno);
+            set_graph_hidden(gno, TRUE);
         } 
         return RETURN_SUCCESS;
     }
