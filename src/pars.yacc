@@ -157,27 +157,26 @@ symtab_entry *key;
 
 %union {
     long    ival;
-    double  val;
-    double *ptr;
+    double  dval;
     char   *sval;
-    long    func;
+    double *ptr;
     target *trgt;
 }
 
-%token <func> INDEX
-%token <func> JDAY
-%token <func> JDAY0
+%token <ival> INDEX
+%token <ival> JDAY
+%token <ival> JDAY0
 
-%token <func> CONSTANT	 /* a (double) constant                                     */
-%token <func> UCONSTANT	 /* a (double) unit constant                                */
-%token <func> FUNC_I	 /* a function of 1 int variable                            */
-%token <func> FUNC_D	 /* a function of 1 double variable                         */
-%token <func> FUNC_NN    /* a function of 2 int parameters                          */
-%token <func> FUNC_ND    /* a function of 1 int parameter and 1 double variable     */
-%token <func> FUNC_DD    /* a function of 2 double variables                        */
-%token <func> FUNC_NND   /* a function of 2 int parameters and 1 double variable    */
-%token <func> FUNC_PPD   /* a function of 2 double parameters and 1 double variable */
-%token <func> FUNC_PPPD  /* a function of 3 double parameters and 1 double variable */
+%token <ival> CONSTANT	 /* a (double) constant                                     */
+%token <ival> UCONSTANT	 /* a (double) unit constant                                */
+%token <ival> FUNC_I	 /* a function of 1 int variable                            */
+%token <ival> FUNC_D	 /* a function of 1 double variable                         */
+%token <ival> FUNC_NN    /* a function of 2 int parameters                          */
+%token <ival> FUNC_ND    /* a function of 1 int parameter and 1 double variable     */
+%token <ival> FUNC_DD    /* a function of 2 double variables                        */
+%token <ival> FUNC_NND   /* a function of 2 int parameters and 1 double variable    */
+%token <ival> FUNC_PPD   /* a function of 2 double parameters and 1 double variable */
+%token <ival> FUNC_PPPD  /* a function of 3 double parameters and 1 double variable */
 %token <ival> PROC_CONST
 %token <ival> PROC_UNIT
 %token <ival> PROC_FUNC_I
@@ -505,57 +504,71 @@ symtab_entry *key;
 %token <ival> FITPARM
 %token <ival> FITPMAX
 %token <ival> FITPMIN
-%token <val> NUMBER
+%token <dval> NUMBER
+
+%type <ival> onoff
+
+%type <trgt> selectset
+
+%type <ival> pagelayout
+%type <ival> pageorient
+
+%type <ival> regiontype
+
+%type <ival> color_select
+%type <ival> pattern_select
+%type <ival> font_select
+
+%type <ival> lines_select
+%type <dval> linew_select
+
+%type <ival> graphtype
+%type <ival> xytype
+
+%type <ival> scaletype
+%type <ival> signchoice
 
 %type <ival> colpat_obs
 %type <ival> direction
 
-%type <ival> extremetype
-
-%type <ival> filtermethod
-%type <ival> filtertype
-
 %type <ival> formatchoice
-%type <ival> graphtype
 %type <ival> inoutchoice
 %type <ival> justchoice
-%type <ival> color_select
-%type <ival> pattern_select
-%type <ival> font_select
-%type <ival> lines_select
-%type <ival> onoff
+
 %type <ival> opchoice
 %type <ival> opchoice_sel
 %type <ival> opchoice_obs
 %type <ival> opchoice_sel_obs
-%type <ival> pagelayout
-%type <ival> pageorient
-%type <ival> regiontype
-%type <ival> runtype
-%type <ival> scaletype
-%type <trgt> selectset
-%type <ival> signchoice
-%type <ival> sourcetype
-%type <ival> vector
-%type <ival> worldview
-%type <ival> xytype
 
-%type <ival> proctype
+%type <ival> worldview
+
+%type <ival> filtermethod
+%type <ival> filtertype
+
+%type <ival> sourcetype
+
+%type <ival> extremetype
+%type <ival> vector
+
+%type <ival> runtype
 
 %type <ival> ffttype
 %type <ival> fourierdata
 %type <ival> fourierloadx
 %type <ival> fourierloady
-%type <ival> nonlfitopts
-%type <ival> sortdir
-%type <ival> sorton
 %type <ival> windowtype
 
-%type <val> expr
-%type <val> linew_select
+%type <ival> nonlfitopts
+
+%type <ival> sortdir
+%type <ival> sorton
+
+%type <ival> proctype
+
+%type <dval> expr
+%type <dval> asgn
 
 %type <ptr> vexpr
-%type <ptr> asgn
 %type <ptr> vasgn
 
 /* Precedence */
@@ -690,9 +703,6 @@ expr:	NUMBER {
 	}
 	| selectset '.' LENGTH {
 	    $$ = getsetlength($1->gno, $1->setno);
-	}
-	| LENGTH {
-	    $$ = getsetlength(whichgraph, whichset);
 	}
 	| selectset '.' ID {
 	    $$ = $1->setno;
@@ -842,23 +852,23 @@ expr:	NUMBER {
 		$$ = $5;
 	    }
 	}
-	| '(' expr GT expr ')' {
-	    $$ = ($2 > $4);
+	| expr GT expr {
+	    $$ = ($1 > $3);
 	}
-	| '(' expr LT expr ')' {
-	    $$ = ($2 < $4);
+	| expr LT expr {
+	    $$ = ($1 < $3);
 	}
-	| '(' expr LE expr ')' {
-	    $$ = ($2 <= $4);
+	| expr LE expr {
+	    $$ = ($1 <= $3);
 	}
-	| '(' expr GE expr ')' {
-	    $$ = ($2 >= $4);
+	| expr GE expr {
+	    $$ = ($1 >= $3);
 	}
-	| '(' expr EQ expr ')' {
-	    $$ = ($2 == $4);
+	| expr EQ expr {
+	    $$ = ($1 == $3);
 	}
-	| '(' expr NE expr ')' {
-	    $$ = ($2 != $4);
+	| expr NE expr {
+	    $$ = ($1 != $3);
 	}
 	| expr AND expr {
 	    $$ = $1 && $3;
@@ -1218,166 +1228,166 @@ vexpr:
 	        }
 	    }
 	}
-	| '(' vexpr GT vexpr ')'
+	| vexpr GT vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] > $4[i];
+		$$[i] = $1[i] > $3[i];
 	    }
 	}
-	| '(' expr GT vexpr ')'
+	| expr GT vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2 > $4[i];
+		$$[i] = $1 > $3[i];
 	    }
 	}
-	| '(' vexpr GT expr ')'
+	| vexpr GT expr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] > $4;
+		$$[i] = $1[i] > $3;
 	    }
 	}
-	| '(' vexpr LT vexpr ')'
+	| vexpr LT vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] < $4[i];
+		$$[i] = $1[i] < $3[i];
 	    }
 	}
-	| '(' expr LT vexpr ')'
+	| expr LT vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2 < $4[i];
+		$$[i] = $1 < $3[i];
 	    }
 	}
-	| '(' vexpr LT expr ')'
+	| vexpr LT expr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] < $4;
+		$$[i] = $1[i] < $3;
 	    }
 	}
-	| '(' vexpr LE vexpr ')'
+	| vexpr LE vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] <= $4[i];
+		$$[i] = $1[i] <= $3[i];
 	    }
 	}
-	| '(' expr LE vexpr ')'
+	| expr LE vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2 <= $4[i];
+		$$[i] = $1 <= $3[i];
 	    }
 	}
-	| '(' vexpr LE expr ')'
+	| vexpr LE expr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] <= $4;
+		$$[i] = $1[i] <= $3;
 	    }
 	}
-	| '(' vexpr GE vexpr ')'
+	| vexpr GE vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] >= $4[i];
+		$$[i] = $1[i] >= $3[i];
 	    }
 	}
-	| '(' expr GE vexpr ')'
+	| expr GE vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2 >= $4[i];
+		$$[i] = $1 >= $3[i];
 	    }
 	}
-	| '(' vexpr GE expr ')'
+	| vexpr GE expr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] >= $4;
+		$$[i] = $1[i] >= $3;
 	    }
 	}
-	| '(' vexpr EQ vexpr ')'
+	| vexpr EQ vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] == $4[i];
+		$$[i] = $1[i] == $3[i];
 	    }
 	}
-	| '(' expr EQ vexpr ')'
+	| expr EQ vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2 == $4[i];
+		$$[i] = $1 == $3[i];
 	    }
 	}
-	| '(' vexpr EQ expr ')'
+	| vexpr EQ expr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] == $4;
+		$$[i] = $1[i] == $3;
 	    }
 	}
-	| '(' vexpr NE vexpr ')'
+	| vexpr NE vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] != $4[i];
+		$$[i] = $1[i] != $3[i];
 	    }
 	}
-	| '(' expr NE vexpr ')'
+	| expr NE vexpr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2 != $4[i];
+		$$[i] = $1 != $3[i];
 	    }
 	}
-	| '(' vexpr NE expr ')'
+	| vexpr NE expr
 	{
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
 	    freelist[fcnt++] = $$;
 	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i] != $4;
+		$$[i] = $1[i] != $3;
 	    }
 	}
 	| vexpr AND vexpr
@@ -3338,10 +3348,10 @@ setaxis:
 	;
 
 axis:
-	XAXIS {}
-	| YAXIS {}
-	| ALTXAXIS {}
-	| ALTYAXIS {}
+	XAXIS { naxis =  X_AXIS; }
+	| YAXIS { naxis = Y_AXIS; }
+	| ALTXAXIS { naxis = ZX_AXIS; }
+	| ALTYAXIS { naxis = ZY_AXIS; }
 	;
 
 proctype:
@@ -4734,7 +4744,7 @@ int yylex(void)
 	stmp[i] = '\0';
 	ungetchstr();
 	sscanf(stmp, "%lf", &d);
-	yylval.val = d;
+	yylval.dval = d;
 	return NUMBER;
     }
 /* graphs, sets, regions resp. */
@@ -4820,75 +4830,59 @@ int yylex(void)
 	    }
 	    else if (key[found].type == FITPARM) {
 		int index = sbuf[1] - '0';
-		yylval.val = index;
+		yylval.dval = index;
 		return FITPARM;
 	    }
 	    else if (key[found].type == FITPMAX) {
 		int index = sbuf[1] - '0';
-		yylval.val = index;
+		yylval.dval = index;
 		return FITPMAX;
 	    }
 	    else if (key[found].type == FITPMIN) {
 		int index = sbuf[1] - '0';
-		yylval.val = index;
+		yylval.dval = index;
 		return FITPMIN;
 	    }
 	    else if (key[found].type == FUNC_I) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_I;
 	    }
 	    else if (key[found].type == CONSTANT) {
-		yylval.func = found;
+		yylval.ival = found;
 		return CONSTANT;
 	    }
 	    else if (key[found].type == UCONSTANT) {
-		yylval.func = found;
+		yylval.ival = found;
 		return UCONSTANT;
 	    }
 	    else if (key[found].type == FUNC_D) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_D;
 	    }
 	    else if (key[found].type == FUNC_ND) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_ND;
 	    }
 	    else if (key[found].type == FUNC_DD) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_DD;
 	    }
 	    else if (key[found].type == FUNC_NND) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_NND;
 	    }
 	    else if (key[found].type == FUNC_PPD) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_PPD;
 	    }
 	    else if (key[found].type == FUNC_PPPD) {
-		yylval.func = found;
+		yylval.ival = found;
 		return FUNC_PPPD;
 	    }
-	    else { /* set up special cases */
-		switch (key[found].type) {
-		case XAXIS:
-		    naxis = X_AXIS;
-		    break;
-		case YAXIS:
-		    naxis = Y_AXIS;
-		    break;
-		case ALTXAXIS:
-		    naxis = ZX_AXIS;
-		    break;
-		case ALTYAXIS:
-		    naxis = ZY_AXIS;
-		    break;
-		default:
-		    break;
-		}
+	    else {
+	        yylval.ival = key[found].type;
+	        return key[found].type;
 	    }
-	    yylval.func = key[found].type;
-	    return key[found].type;
 	} else {
 	    strcat(sbuf, ": No such function or variable");
 	    yyerror(sbuf);
