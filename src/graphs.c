@@ -88,19 +88,6 @@ graph *graph_get_current(void)
     return graph_get(cg);
 }
 
-/*
- * kill all sets in a graph
- */
-int kill_all_sets(graph *g)
-{
-    if (g) {
-	storage_empty(g->sets);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 int kill_graph(int gno)
 {
     set_dirtystate();
@@ -192,8 +179,6 @@ void graph_free(graph *g)
     if (g) {
         int j;
         
-	kill_all_sets(g);
-        
         XCFREE(g->labs.title.s);
         XCFREE(g->labs.stitle.s);
         
@@ -201,6 +186,7 @@ void graph_free(graph *g)
             free_graph_tickmarks(g->t[j]);
         }
 
+        storage_free(g->sets);
         storage_free(g->dobjects);
         
         xfree(g);
