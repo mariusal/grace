@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- LinuxDoc file was created by LyX 1.0 (C) 1995-1999 by <ed> Sun Mar 19 15:07:54 2000
+<!-- LinuxDoc file was created by LyX 1.0 (C) 1995-1999 by <vigmonde> Tue May 23 19:09:52 2000
  -->
  <article>
  <title>
@@ -354,7 +354,7 @@ If your system doesn't have the Xbae widget set or you want the power of
  updated.
  </p>
  <sect1>
-From block data
+>From block data
  <p>
 This creates a new set from a block of data which has been read in. See
  section 3.
@@ -617,10 +617,12 @@ Read in 7.1.2.agr
   <item>
 Note how the abscissa are different. We begin by using interpolate to produce
  a third set which is the second set sampled at the x values of the first. Call
- up the Interpolate popup from Main:Data/Transformations/Interpolation...
+ up the Interpolate popup from Main:Data/Transformations/Interpolation/splines...
   <item>
-Interpolate on set 1 at points from set 0 and use the linear method. Pressing
- Accept should produce a curve which overlaps set 1. Note that the new curve
+Select S1 as the source set but don't specify a destination set. A set
+ will automatically be made. Use the Strict, linear method, Sampling:Abscissas
+ of another set and use S0 as the Sampling set. Pressing Apply should produce
+ a curve which is S1 interpolated at the points of S0. Note that the new curve
  only exists over the portion of the x axis common to both curves.
   <item>
 We still have a problem since set 2 is sampled the same as set 0 but has
@@ -629,6 +631,11 @@ We still have a problem since set 2 is sampled the same as set 0 but has
  2 and set 3 have the exact same abscissas.
   <item>
 Call up the command interpreter from Main:Window/Commands...
+  <item>
+We need to create a set to hold the result, S4. We can either make a copy
+ (using Main:Edit/Set_operations...) of S2 which will be guaranteed to have
+ the proper size to hold out result or we can use type a command: <tt>s4 length
+ s2.length</tt>
   <item>
 We have to break up the computation into an x part and a y part. In this
  instance, we simply wish to keep the same x values. The final result will be
@@ -809,34 +816,28 @@ It might be annoying if one is trying to work in a region of overlapping
  <sect2>
 Arranging a tableau of graphs
  <p>
-Placing a large number of regularly spaced graphs is most easily done with
- Main:Edit/Arrange_graphs. This will automatically calculate the layout but
- a few notes are needed. First of all, one should note that the parameters as
- given on the graph are overdetermined meaning one cannot satisfy all conditions.
- Instead, the graph width and the graph height are functions of the rest of
- the values. These width gets recomputed every time the number of columns is
- selected and the height gets recomputed every time the number of rows is selected.
- This allows one to first generate a rough layout with an equal border all around
- and equal spacing between graphs, and then to fine tune it. A sample use might
- be as follows:
+Placing a large number of regularly spaced graphs is easily done with Main:Edit/Arrange_graphs.
+ This will automatically calculate the layout:
  </p>
  <p>
  <enum>
   <item>
-Choose3 rows and 2 columns. You should now see 6 graphs.
+Choose 3 rows and 3 columns and Apply. You should now see 9 graphs. The
+ Order button refers to the way the graphs are numbered. The beginning of the
+ line on the diagram of the button shows which graph is numbered 0 and how the
+ numbers increase, by row or column.
   <item>
 You realize you need horizontal packing, i.e. no horizontal gap between
- graphs. Select it. to set the intergraph spacing to zero. Now you must recompute
- the graph widths so again choose 2 columns and then accept to see the effect.
+ graphs. Click on the Pack button beside the Hgap/width input and then Apply.
   <item>
-You are going to bind the page in a book so it needs to be offset so Start
- X=0.15. Press accept to see the change.
+Suddenly, you realize you only need6 graphs and not 9. Choose 2 rows and
+ press Apply. There is a slight problem as graphs 6, 7 an 8 are still visible.
+ This is a feature since you don't want to accidentally kill a graph. You can
+ kill the extra graphs by clicking on the "Kill extra graphs" check box. Now,
+ any graphs other than the explicitly arranged ones will be automatically killed.
   <item>
-You now realize you only need 4 graphs and not 6. Choose 2 rows and accept.
- There is a slight problem as graphs 5 and 6 are still visible. This is a feature
- since you don't want to accidentally kill a graph. You can kill the graphs
- from a graph selector list like in Main:Plot/Graph_appearance by using the
- menu under mouse button 3.
+The margins are controlled by the Page Offsets, and the intergraph spacing
+ by the Hgap and Vgap inputs.
   <item>
 Press close to remove the window.
  </enum>
