@@ -332,10 +332,12 @@ int xlibinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 void xlib_setpen(const Canvas *canvas)
 {
     int fg, bg, p;
+    Pen pen;
     
-    fg = getcolor(canvas);
     bg = getbgcolor(canvas);
-    p = getpattern(canvas);
+    getpen(canvas, &pen);
+    fg = pen.color;
+    p = pen.pattern;
     
     if ((fg == xlibcolor) && (bg == xlibbgcolor) && (p == xlibpatno)) {
         return;
@@ -453,10 +455,6 @@ void xlibdrawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode)
     int i, xn = n;
     XPoint *p;
     
-    if (n <= 1 || getlinestyle(canvas) == 0 || getpattern(canvas) == 0) {
-        return;
-    }
-    
     if (mode == POLYLINE_CLOSED) {
         xn++;
     }
@@ -485,10 +483,6 @@ void xlibfillpolygon(const Canvas *canvas, const VPoint *vps, int nc)
 {
     int i;
     XPoint *p;
-    
-    if (nc < 3 || getpattern(canvas) == 0) {
-        return;
-    }
     
     p = (XPoint *) xmalloc(nc*sizeof(XPoint));
     if (p == NULL) {
@@ -526,10 +520,6 @@ void xlibdrawarc(const Canvas *canvas,
     xlibVPoint2dev(vp1, &x1, &y2);
     xlibVPoint2dev(vp2, &x2, &y1);
 
-    if (getlinestyle(canvas) == 0 || getpattern(canvas) == 0) {
-        return;
-    }
-
     xlib_setdrawbrush(canvas);
     
     if (x1 != x2 || y1 != y2) {
@@ -551,22 +541,20 @@ void xlibfillarc(const Canvas *canvas,
     xlibVPoint2dev(vp1, &x1, &y2);
     xlibVPoint2dev(vp2, &x2, &y1);
     
-    if (getpattern(canvas) != 0) {
-        xlib_setpen(canvas);
-        if (x1 != x2 || y1 != y2) {
-            if (xlibarcfillmode != mode) {
-                xlibarcfillmode = mode;
-                if (mode == ARCFILL_CHORD) {
-                    XSetArcMode(disp, gc, ArcChord);
-                } else {
-                    XSetArcMode(disp, gc, ArcPieSlice);
-                }
+    xlib_setpen(canvas);
+    if (x1 != x2 || y1 != y2) {
+        if (xlibarcfillmode != mode) {
+            xlibarcfillmode = mode;
+            if (mode == ARCFILL_CHORD) {
+                XSetArcMode(disp, gc, ArcChord);
+            } else {
+                XSetArcMode(disp, gc, ArcPieSlice);
             }
-            XFillArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
-               abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * (a2 - a1));
-        } else { /* zero radius */
-            XDrawPoint(disp, displaybuff, gc, x1, y1);
         }
+        XFillArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
+           abs(x2 - x1), abs(y2 - y1), 64 * a1, 64 * (a2 - a1));
+    } else { /* zero radius */
+        XDrawPoint(disp, displaybuff, gc, x1, y1);
     }
 }
 
