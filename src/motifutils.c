@@ -79,6 +79,16 @@
 #include "events.h"
 #include "protos.h"
 
+/*
+ * used to set up XmStrings
+ * Seems to be some problems under AIX, the #ifdef is supposed to
+ * take care of the problem.
+ */
+#ifndef XmFONTLIST_DEFAULT_TAG
+#  define XmFONTLIST_DEFAULT_TAG XmSTRING_DEFAULT_CHARSET
+#endif
+static XmStringCharSet charset = (XmStringCharSet) XmFONTLIST_DEFAULT_TAG;
+
 /* lookup table to determine if character is a floating point digit 
  * only allowable char's [0-9.eE]
  */
@@ -765,10 +775,12 @@ static void fsb_setcwd_cb(void *data)
     Widget fsb = (Widget) data;
     
     XtVaGetValues(fsb, XmNdirectory, &directory, NULL);
-    XmStringGetLtoR(directory, charset, &bufp);
+    bufp = GetStringSimple(directory);
     XmStringFree(directory);
-    set_workingdir(bufp);
-    XtFree(bufp);
+    if (bufp != NULL) {
+        set_workingdir(bufp);
+        XtFree(bufp);
+    }
 }
 
 #define FSB_CWD  0
@@ -885,7 +897,8 @@ static void fsb_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data
     XmFileSelectionBoxCallbackStruct *cbs =
         (XmFileSelectionBoxCallbackStruct *) call_data;
 
-    if (!XmStringGetLtoR(cbs->value, charset, &s)) {
+    s = GetStringSimple(cbs->value);
+    if (s == NULL) {
 	errmsg("Error converting XmString to char string");
 	return;
     }
@@ -2918,7 +2931,7 @@ int GetSelectedSet(SetChoiceItem l)
 		      XmNselectedItems, &s,
 		      NULL);
 	cs = XmStringCopy(*s);
-	if (XmStringGetLtoR(cs, charset, &cstr)) {
+	if ((cstr = GetStringSimple(cs))) {
 	    strcpy(buf, cstr);
 	    if (strcmp(buf, "New set") == 0) {
 		retval = SET_SELECT_NEXT;
@@ -2972,7 +2985,7 @@ int GetSelectedSets(SetChoiceItem l, int **sets)
 	ptr = *sets;
 	for (i = 0; i < cnt; i++) {
 	    cs = XmStringCopy(s[i]);
-	    if (XmStringGetLtoR(cs, charset, &cstr)) {
+	    if ((cstr = GetStringSimple(cs))) {
 		strcpy(buf, cstr);
 		if (strcmp(buf, "New set") == 0) {
 		    retval = SET_SELECT_NEXT;
@@ -3070,9 +3083,7 @@ void update_set_list(int gno, SetChoiceItem l)
             cnt++;
         }
     }
-#if XmVersion > 1001    
     XmListAddItemsUnselected(l.list, xms, cnt, 0);
-#endif
 
     /* automatically highlight if only 1 selection */
     if (scnt == 1) {
@@ -3080,9 +3091,6 @@ void update_set_list(int gno, SetChoiceItem l)
     }
 	
     for (i = 0; i < cnt; i++) {
-#if XmVersion < 1002   /* For Motif 1.1 */
-        XmListAddItemUnselected(l.list, xms[i], 0);
-#endif    
         XmStringFree(xms[i]);
     }
     free(xms);
@@ -3378,6 +3386,28 @@ void SetLabel(Widget w, char *s)
     str = XmStringCreateLocalized(s);
     XtVaSetValues(w, XmNlabelString, str, NULL);
     XmStringFree(str);
+}
+
+void SetFixedFont(Widget w)
+{
+    XFontStruct *f;
+    XmFontList xmf;
+
+    f = (XFontStruct *) XLoadQueryFont(disp, "fixed");
+    xmf = XmFontListCreate(f, charset);
+    XtVaSetValues(w, XmNfontList, xmf, NULL);
+    XmFontListFree(xmf);
+}
+
+char *GetStringSimple(XmString xms)
+{
+    char *s;
+
+    if (XmStringGetLtoR(xms, charset, &s)) {
+        return s;
+    } else {
+        return NULL;
+    }
 }
 
 extern int ReqUpdateColorSel;

@@ -33,10 +33,6 @@
 #ifndef __MOTIFINC_H_
 #define __MOTIFINC_H_
 
-#if (XmVersion < 1002)
-#  define XmStringCreateLocalized XmStringCreateSimple
-#endif
-
 /* 
  * Accept/Apply/Close for aac_cb callbacks
  */
@@ -53,7 +49,6 @@
 #define CreateMenuSeparator(w) CreateSeparator(w)
 
 extern Widget app_shell;        /* defined in xmgrace.c */
-extern XmStringCharSet charset; /* defined in xmgrace.c */
 
 /* set selection gadget */
 typedef struct _SetChoiceItem {
@@ -319,6 +314,7 @@ Widget *CreateFormatChoice(Widget parent, char *s);
 Widget *CreatePrecisionChoice(Widget parent, char *s);
 
 void SetLabel(Widget w, char *s);
+void SetFixedFont(Widget w);
 
 Widget CreateMenuBar(Widget parent, char *name, char *help_anchor);
 Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
@@ -328,6 +324,8 @@ Widget CreateMenuButton(Widget parent, char *name, char *label, char mnemonic,
 Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
 	XtCallbackProc cb, XtPointer data, char *help_anchor);
 Widget CreateMenuLabel(Widget parent, char *name);
+
+char *GetStringSimple(XmString xms);
 
 char *xv_getstr(Widget w);
 Boolean xv_evalexpr(Widget w, double *);
