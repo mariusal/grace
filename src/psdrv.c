@@ -292,9 +292,11 @@ void ps_setpen(void)
 void ps_setdrawbrush(void)
 {
     int i;
-    int ls = getlinestyle();
-    double lw = getlinewidth();
+    int ls;
+    double lw;
     
+    ls = getlinestyle();
+    lw = MAX2(getlinewidth(), 1.0/page_scale);
     ps_setpen();
     
     fprintf(prstream, "[");

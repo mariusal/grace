@@ -119,7 +119,7 @@ void rst_setdrawbrush(void)
     int on, off;
 
     rstpen = getpen();
-    rstlinew = (int) rint(getlinewidth()*page_scale);
+    rstlinew = MAX2((int) rint(getlinewidth()*page_scale), 1);
     rstlines = getlinestyle();
     
     if (rstlines == 0 || rstpen.pattern == 0) {

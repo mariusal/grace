@@ -152,15 +152,15 @@ void pdf_setpen(void)
 void pdf_setdrawbrush(void)
 {
     int i;
-    float lw = (float) getlinewidth();
-    int ls = getlinestyle();
+    float lw;
+    int ls;
     float *darray = NULL;
     
+    ls = getlinestyle();
+    lw = MAX2((float) getlinewidth(), 1.0/page_scale);
     PDF_setlinewidth(phandle, lw);
 
-    if (ls == 0) {
-        PDF_setpolydash(phandle, darray, 0);
-    } else if (ls == 1) {
+    if (ls == 0 || ls == 1) {
         PDF_setpolydash(phandle, darray, 0); /* length == 0,1 means solid line */
     } else {
         darray = (float *) malloc(dash_array_length[ls]*SIZEOF_FLOAT);
