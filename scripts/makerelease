@@ -1,0 +1,21 @@
+#!/bin/sh
+PATH=/bin:/usr/bin:/usr/local/bin
+export PATH
+
+cat << EOF > Make.conf
+YACC=bison -y
+EOF
+
+make configure
+make CHANGES
+make MIGRATION
+CDIR=`pwd`
+CDIR_BNAME=`basename $CDIR`
+cd ..
+cd -
+cd src
+make pars.c
+cd ..
+rm -f Make.conf
+tar --exclude \*CVS\* -cvzf ${CDIR_BNAME}.tar.gz $CDIR_BNAME
+
