@@ -816,7 +816,7 @@ static int project_save_hook(Quark *q,
         p = set_get_data(q);
         
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
-        xmlio_set_active(attrs, !(p->hidden));
+        xmlio_set_active(attrs, p->active);
         attributes_set_sval(attrs, AStrType, set_types(grace->rt, p->type));
         attributes_set_ival(attrs, AStrSkip, p->symskip);
         xfile_begin_element(xf, EStrSet, attrs);

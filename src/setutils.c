@@ -331,7 +331,7 @@ int zero_set_data(Dataset *dsp)
 
 static void set_default_set(set *p)
 {
-    p->hidden = FALSE;                          /* hidden set */
+    p->active = TRUE;
     p->type = SET_XY;                           /* dataset type */
 
     p->symskip = 0;                             /* How many symbols to skip */

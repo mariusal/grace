@@ -167,9 +167,7 @@ typedef struct {
 } AValue;
 
 typedef struct {
-    Dataset *data;              /* dataset */
-    
-    int hidden;                 /* hidden set */
+    int active;                 /* on/off */
 
     int type;                   /* set type */
 
@@ -183,6 +181,8 @@ typedef struct {
     Errbar errbar;              /* error bar properties */
 
     char *legstr;               /* legend for this set */
+    
+    Dataset *data;              /* dataset */
 } set;
 
 /* Locator props */
@@ -322,7 +322,7 @@ typedef struct {
  * a graph
  */
 typedef struct {
-    int hidden;                 /* display or not */
+    int active;                 /* display or not */
 
     int type;                   /* type of graph */
     int stacked;                /* TRUE if graph is stacked */

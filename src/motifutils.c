@@ -2358,7 +2358,7 @@ static char *graph_labeling(Quark *q, unsigned int *rid)
     
     if (g) {
         sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
-            !g->hidden ? '+':'-', *rid, graph_types(grace->rt, g->type),
+            g->active ? '+':'-', *rid, graph_types(grace->rt, g->type),
             number_of_sets(q));
 
         (*rid)++;
@@ -2600,7 +2600,7 @@ static char *set_labeling(Quark *q, unsigned int *rid)
         set *p = set_get_data(q);
 
         sprintf(buf, "(%c) Set #%d (type: %s, length: %d)",
-            !p->hidden ? '+':'-', *rid, set_types(grace->rt, p->type),
+            p->active ? '+':'-', *rid, set_types(grace->rt, p->type),
             getsetlength(q));
 
         (*rid)++;

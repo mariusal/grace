@@ -93,7 +93,7 @@ graph *graph_get_data(const Quark *q)
 
 static void set_default_graph(graph *g)
 {    
-    g->hidden = FALSE;
+    g->active = TRUE;
     g->type = GRAPH_XY;
     g->xinvert = FALSE;
     g->yinvert = FALSE;
@@ -686,7 +686,7 @@ int is_set_hidden(Quark *pset)
 {
     if (pset) {
         set *p = (set *) pset->data;
-        return p->hidden;
+        return !(p->active);
     } else {
         return FALSE;
     }
@@ -696,7 +696,7 @@ int set_set_hidden(Quark *pset, int flag)
 {
     if (pset) {
         set *p = (set *) pset->data;
-        p->hidden = flag;
+        p->active = !flag;
         set_dirtystate();
         return RETURN_SUCCESS;
     } else {
@@ -853,7 +853,7 @@ int is_graph_hidden(Quark *gr)
 {
     if (gr) {
         graph *g = graph_get_data(gr);
-        return g->hidden;
+        return !(g->active);
     } else {
         return TRUE;
     }
@@ -863,7 +863,7 @@ int set_graph_hidden(Quark *gr, int flag)
 {
     if (gr) {
         graph *g = graph_get_data(gr);
-        g->hidden = flag;
+        g->active = !flag;
         set_dirtystate();
         return RETURN_SUCCESS;
     } else {

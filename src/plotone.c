@@ -191,7 +191,7 @@ int draw_graph(Canvas *canvas, Quark *gr)
     GraphType gtype;
     graph *g = graph_get_data(gr);
     
-    if (!g || g->hidden) {
+    if (!g || !g->active) {
         return RETURN_FAILURE;
     }
 
