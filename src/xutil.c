@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -322,7 +322,7 @@ void expose_resize(Widget w, XtPointer client_data,
     static int inc = 0;
 
 #if defined(DEBUG)
-    if (debuglevel == 7) {
+    if (get_debuglevel() == 7) {
 	printf("Call to expose_resize(); reason == %d\n", cbs->reason);
     }
 #endif

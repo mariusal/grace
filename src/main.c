@@ -245,8 +245,8 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing argument for debug flag\n");
 			usage(stderr, argv[0]);
 		    } else {
-		    	debuglevel = atoi(argv[i]);
-		    	if (debuglevel == 4) { 
+		    	set_debuglevel(atoi(argv[i]));
+		    	if (get_debuglevel() == 4) { 
 			    /* turn on debugging in pars.y */
 			    yydebug = TRUE;
 		    	}

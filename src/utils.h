@@ -139,4 +139,9 @@ char *bi_gui(void);
 char *bi_ccompiler(void);
 char *bi_t1lib(void);
 
+#ifdef DEBUG
+void set_debuglevel(int level);
+int get_debuglevel(void);
+#endif
+
 #endif /* __UTILS_H_*/

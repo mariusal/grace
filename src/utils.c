@@ -1401,3 +1401,18 @@ char *bi_ccompiler(void)
 {
     return BI_CCOMPILER;
 }
+
+#ifdef DEBUG
+static int debuglevel = 0;
+
+void set_debuglevel(int level)
+{
+    debuglevel = level;
+}
+
+int get_debuglevel(void)
+{
+    return debuglevel;
+}
+#endif
+

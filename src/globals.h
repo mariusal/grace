@@ -75,10 +75,6 @@ extern region rg[];
 
 #endif
 
-#ifdef DEBUG
-GLOBAL(debuglevel, int, 0);
-#endif
-
 /* TRUE if results are displayed in the log window */
 GLOBAL(logwindow, int, FALSE);
 

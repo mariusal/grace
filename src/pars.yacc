@@ -5113,7 +5113,7 @@ int yylex(void)
 	ungetchstr();
 	*p = '\0';
 #ifdef DEBUG
-        if (debuglevel == 2) {
+        if (get_debuglevel() == 2) {
 	    printf("->%s<-\n", sbuf);
 	}
 #endif
