@@ -350,7 +350,6 @@ void create_delete_frame(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 Widget arealab, perimlab;
-extern XmStringCharSet charset;
 
 void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -652,14 +651,9 @@ void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
     if (status_frame == NULL) {
         int i;
         Widget wbut, rc, rc3, fr2;
-        XFontStruct *f;
-        XmFontList xmf;
 
 	status_frame = XmCreateDialogShell(app_shell, "Status", NULL, 0);
 	handle_close(status_frame);
-
-	f = XLoadQueryFont(disp, "fixed");
-	xmf = XmFontListCreate(f, charset);
 
 	status_panel = XmCreateForm(status_frame, "form", NULL, 0);
 
@@ -672,22 +666,19 @@ void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	rc3 = XmCreateRowColumn(status_sw, "rc3", NULL, 0);
 	header_w = XtVaCreateManagedWidget("header", xmLabelWidgetClass, rc3,
 	    XmNalignment, XmALIGNMENT_BEGINNING,
-	    XmNfontList, xmf,
 	    XmNrecomputeSize, True,
 	    NULL);
-	labx = (Widget *)malloc( MAXREGION*sizeof(Widget) );
+	SetFixedFont(header_w);
+        labx = (Widget *)malloc( MAXREGION*sizeof(Widget) );
 	for (i = 0; i < MAXREGION; i++) {
             labx[i] = XtVaCreateManagedWidget("labx", xmLabelWidgetClass, rc3,
 		XmNalignment, XmALIGNMENT_BEGINNING,
-		XmNfontList, xmf,
 		XmNrecomputeSize, True,
 		NULL);
+            SetFixedFont(labx[i]);
         }
-        XmFontListFree(xmf);
         XtManageChild(rc3);
-	XtVaSetValues(status_sw,
-		      XmNworkWindow, rc3,
-		      NULL);
+	XtVaSetValues(status_sw, XmNworkWindow, rc3, NULL);
 
 	fr2 = CreateFrame(status_panel, NULL);
 	rc = XmCreateRowColumn(fr2, "rc", NULL, 0);

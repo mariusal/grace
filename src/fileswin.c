@@ -529,7 +529,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNselectedItems, &s,
 		      NULL);
 	cs = XmStringCopy(*s);
-	if (XmStringGetLtoR(cs, charset, &cstr)) {
+	if ((cstr = GetStringSimple(cs))) {
 	    strcpy(xvar, cstr);
 	    XtFree(cstr);
 	}
@@ -546,7 +546,7 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNselectedItems, &s,
 		      NULL);
 	cs = XmStringCopy(*s);
-	if (XmStringGetLtoR(cs, charset, &cstr)) {
+	if ((cstr = GetStringSimple(cs))) {
 	    strcpy(yvar, cstr);
 	    XtFree(cstr);
 	}
@@ -784,7 +784,7 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 		      XmNselectedItems, &s,
 		      NULL);
 	cs = XmStringCopy(*s);
-	if (XmStringGetLtoR(cs, charset, &cstr)) {
+	if ((cstr = GetStringSimple(cs))) {
 	    strcpy(xvar, cstr);
 	    XtFree(cstr);
 	}
@@ -799,7 +799,7 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 		      XmNselectedItems, &s,
 		      NULL);
 	cs = XmStringCopy(*s);
-	if (XmStringGetLtoR(cs, charset, &cstr)) {
+	if ((cstr = GetStringSimple(cs))) {
 	    strcpy(yvar, cstr);
 	    XtFree(cstr);
 	}

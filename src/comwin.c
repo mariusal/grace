@@ -126,7 +126,7 @@ static void comcall(Widget w, XtPointer cd, XtPointer calld)
     char *ts;
     
     XmCommandCallbackStruct *s = (XmCommandCallbackStruct *) calld;
-    XmStringGetLtoR(s->value, charset, &ts);
+    ts = GetStringSimple(s->value);
     scanner(ts);
     XtFree(ts);
 }
@@ -241,7 +241,7 @@ static void replay_history(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int errpos;
     static int errcount;
-    char buf[256], *ts;
+    char *ts;
     int i;
     int ac = 0, hc;
     XmStringTable xmstrs;
@@ -255,11 +255,10 @@ static void replay_history(Widget w, XtPointer client_data, XtPointer call_data)
     XtGetValues(command, al, ac);
     errcount = 0;
     for (i = 0; i < hc; i++) {
-        XmStringGetLtoR(xmstrs[i], charset, &ts);
-        strcpy(buf, ts);
+        ts = GetStringSimple(xmstrs[i]);
+        errpos = scanner(ts);
         XtFree(ts);
 
-        errpos = scanner(buf);
         if (errpos) {
             errcount++;
         }
@@ -436,13 +435,12 @@ void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data)
 static void whist_apply_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i, ac = 0, hc;
-    char s[256], *ts;
+    char *ts;
     XmStringTable xmstrs;
     Arg al[5];
     FILE *pp;
     
-    strcpy(s, xv_getstr(whist_text_item));
-    pp = grace_openw(s);
+    pp = grace_openw(xv_getstr(whist_text_item));
     if (pp != NULL) {
         ac = 0;
         XtSetArg(al[ac], XmNhistoryItems, &xmstrs);
@@ -451,7 +449,7 @@ static void whist_apply_notify_proc(Widget w, XtPointer client_data, XtPointer c
         ac++;
         XtGetValues(command, al, ac);
         for (i = 0; i < hc; i++) {
-            XmStringGetLtoR(xmstrs[i], charset, &ts);
+            ts = GetStringSimple(xmstrs[i]);
             fprintf(pp, "%s\n", ts);
             XtFree(ts);
         }

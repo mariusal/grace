@@ -127,7 +127,7 @@ static void do_hotunlink_proc(Widget w, XtPointer client_data, XtPointer call_da
     if( cnt ) {
 		for( ; cnt; cnt-- ) {
 			cs = XmStringCopy(s[cnt-1]);
-			if (XmStringGetLtoR(cs, charset, &cstr)) {
+			if ((cstr = GetStringSimple(cs))) {
 				sscanf(cstr, "G%*d.S%d", &setno);
 				if (setno >= 0 && setno < number_of_sets(get_cg())) {
 					set_hotlink(get_cg(), setno, FALSE, NULL, 0);
