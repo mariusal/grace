@@ -97,6 +97,17 @@ Pen getpen(void)
 }
 
 /*
+ * set line drawing properties
+ */
+void setline(Line *line)
+{
+    draw_props.pen   = line->pen;
+    draw_props.linew = line->width;
+    draw_props.lines = line->style;
+    return;
+}
+
+/*
  * make the current color color
  */
 void setcolor(int color)

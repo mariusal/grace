@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -365,10 +365,14 @@ typedef struct {
 typedef struct {
     int color;
     int pattern;
-/*
- *     int transparency;
- */
+    /* int transparency; */
 } Pen;
+
+typedef struct {
+    Pen pen;
+    int style;
+    double width;
+} Line;
 
 /* A point in world coordinates */
 typedef struct {

@@ -151,6 +151,8 @@ typedef struct {
 void setpen(Pen pen);
 Pen getpen(void);
 
+void setline(Line *line);
+
 void setcolor(int color);
 int getcolor(void);
 
