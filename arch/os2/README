@@ -1,5 +1,5 @@
-                           Grace 5.x for XFree86 OS/2
-			   ==========================
+                  Grace 5.2.x (and above) for XFree86 OS/2
+                  ========================================
 
 
                           Contents of this document:
@@ -15,12 +15,12 @@
 
   This is (xm)Grace compiled for OS/2. Since it's an X11 application
   (well, most of the time) it requires XFree86 to be installed.
-  Like every piece of software this port of Grace may have
-  some bugs. Some of them are just related to the general problems
+  Like every piece of software this port of Grace may contain 
+  a few bugs. Some of them are just related to the general problems
   un*x based applications have on non-un*x filesystems. So read the
-  documentation and FAQs of XFree86 carefully to get some hints how to
-  avoid running into these bugs/limitations, e.g. it is a good idea to
-  install TVFS, the Toronto Virtual File System.
+  documentation and FAQs of XFree86 OS/2 carefully to get some hints
+  how to avoid running into these bugs/limitations, e.g. it might be
+  a good idea to install TVFS, the Toronto Virtual File System.
 
   A pre-compiled version should always be available from
 
@@ -48,6 +48,9 @@
 
   - LessTif for XFree/2
       http://www.tu-darmstadt.de/~st002279/os2/lesstif.html
+      
+  - libExt (Posix.1/BSD extension library for EMX)
+      http://posix2.sourceforge.net
 
   - libXbae (for LessTif)
       http://www.tu-darmstadt.de/~st002279/os2/lesstif.html
@@ -61,8 +64,10 @@
 
   Additional useful utilities:
 
-  - the "usual" GNU utilities (text, shell, file).
+  - some of the "usual" GNU utilities (text, shell, file).
   - un*x shell (sh)
+  If you want to do everything on your own get the autoconf port
+  and try to get an almost usable set of files out of it ;-)
 
   To build Grace I use additional libraries which are not integral parts
   of Grace, in fact it can be built without using them.
@@ -80,8 +85,6 @@
 
     - copy standard OS/2 configuration files (config.h and Make.conf)
       from .\arch\os2 to the toplevel source directory
-    - build dlfcn.a in \arch\os2 (support for user-supplied mathematical
-      functions in dynamic load libraries = DLLs)
     - build the complete package
 
   configos2.cmd is located in .\arch\os2 and has to be copied
@@ -89,8 +92,8 @@
   Please check .\arch\os2\config.h.os2 and .\arch\os2\Make.conf.os2
   and modify them if necessary. Especially make changes to
   make use of pre-installed libraries like T1lib and fftw.
-  Finally this script wil call 'x11make.exe'.
-  Note that calling the 'make' script from XFree/2 won't work,
+  Finally this script calls 'x11make.exe'.
+  Note that using the 'make' script from XFree/2 won't work,
   because the generic Makefile is using shell commands which are 
   disabled by "make.cmd".
 
@@ -99,12 +102,12 @@
 3) How to install
    ---------------
 
-  At this moment the OS/2 Makefiles don't offer an installation target.
-  You have to do it manually ...
+  Currently the Makefiles don't offer an installation target
+  on OS/2 systems (almost true ...). You have to do it manually.
 
-  The binary distribution archive can just be unpacked and will
+  The binary distribution archive can be simply unpacked and will
   fit in the tree below $(X11ROOT)\. I supply a small REXX-script 
-  'xmgrace1.cmd' which sets up the necessary environment variable(s)
+  'xmgrace1.cmd' which sets up the necessary environment variable(s),
   so that xmgrace runs fine within this setup.
   Check out the webpage or section 2) How to build Grace for
   other packages which are required to run Grace!
@@ -114,11 +117,11 @@
   tied to Grace but an issue for every non-PM application on OS/2.
   I'm using the network printing tools 'lpr' and 'lpd' (part of OS/2 Warp 4)
   to access my local Postscript printer.
-  Check out the printing utilitiess on LEO/Hobbes or  just print to a file
+  Check out the printing utilities on LEO/Hobbes or just print to a file
   and do the further processing (e.g. running Ghostscript) manually.
   The document on
-    http://www.tu-darmstadt.de/~st002279/os2/printing.html
-  is still work in progress but may contain useful hints as well.
+      http://www.tu-darmstadt.de/~st002279/os2/porting.html
+  may contain useful hints as well.
 
 
 ---

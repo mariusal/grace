@@ -1,3 +1,4 @@
+/* config.h.  Generated automatically by configure.  */
 /*
  * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
@@ -33,17 +34,17 @@
    System headers sometimes define this.
    We just want to avoid a redefinition error message.  */
 #ifndef _ALL_SOURCE
-#undef _ALL_SOURCE
+/* #undef _ALL_SOURCE */
 #endif
 
 /* Define if you need to in order for stat and other things to work.  */
-#undef _POSIX_SOURCE
+/* #undef _POSIX_SOURCE */
 
 /* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS 1
 
 /* Define if char is unsigned   */
-#undef __CHAR_UNSIGNED__   
+/* #undef __CHAR_UNSIGNED__ */   
 /* Define sizeof(char)          */
 #define SIZEOF_CHAR         1
 /* Define sizeof(short)         */
@@ -64,23 +65,23 @@
 #define SIZEOF_VOID_P       4
 
 /* Define to empty if the keyword does not work.  */
-#undef const
+/* #undef const */
 
 /* Define to `int' if <sys/types.h> doesn't define.  */
-#undef pid_t
+/* #undef pid_t */
 
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
-#undef size_t
+/* #undef size_t */
 
 /* Define if you have the <unistd.h> header file.  */
 #define HAVE_UNISTD_H 1
 
 /* Define to one of _getb67, GETB67, getb67 for Cray-2 and Cray-YMP systems.
    This function is required for alloca.c support on those systems.  */
-#undef CRAY_STACKSEG_END
+/* #undef CRAY_STACKSEG_END */
 
 /* Define if using alloca.c.  */
-#undef C_ALLOCA
+/* #undef C_ALLOCA */
 
 /* Define if you have alloca, as a function or macro.  */
 #define HAVE_ALLOCA 1
@@ -107,7 +108,7 @@
 #define HAVE_SYS_SELECT_H 1
 
 /* Define if your <sys/time.h> declares struct tm.  */
-#undef TM_IN_SYS_TIME
+/* #undef TM_IN_SYS_TIME */
 
 /* Define if <time.h> and <sys/time.h> can be both included.  */
 #define TIME_WITH_SYS_TIME 1
@@ -116,16 +117,16 @@
 #define HAVE_GETTIMEOFDAY 1
 
 /* Define if you have <vfork.h>.  */
-#undef HAVE_VFORK_H
+/* #undef HAVE_VFORK_H */
 
 /* Define vfork as fork if vfork does not work.  */
-#define vfork fork
+/* #undef vfork */
 
 /* Define if you have the getcwd function.  */
 #define HAVE_GETCWD 1
 
 /* Define if you have the gethostname function.  */
-#define HAVE_GETHOSTNAME 1
+/* #undef HAVE_GETHOSTNAME */
 
 /* Define if you have the memcpy function.  */
 #define HAVE_MEMCPY 1
@@ -146,7 +147,7 @@
 #define HAVE_FNMATCH 1
 
 /* Define if you have the on_exit function.  */
-#undef HAVE_ON_EXIT
+/* #undef HAVE_ON_EXIT */
 
 /* Define if you have the strstr function.  */
 #define HAVE_STRSTR 1
@@ -155,7 +156,7 @@
 #define HAVE_STRERROR 1
 
 /* Define if stdio.h defines the sys_errlist table */
-#undef HAVE_SYS_ERRLIST_DECL
+/* #undef HAVE_SYS_ERRLIST_DECL */
 
 /* Define if you have the vsnprintf function.  */
 #define HAVE_VSNPRINTF 1
@@ -164,35 +165,35 @@
 #define HAVE_DLOPEN 1
 
 /* Define if dlfcn.h defines the RTLD_NOW constant */
-#undef HAVE_RTLD_NOW
+#define HAVE_RTLD_NOW 1
 
 /* Define if you have the shl_load function.  */
-#undef HAVE_SHL_LOAD
+/* #undef HAVE_SHL_LOAD */
 
 /* If words are stored with the most significant byte first (like
                    Motorola and SPARC, but not Intel and VAX, CPUs */
-#undef WORDS_BIGENDIAN
+/* #undef WORDS_BIGENDIAN */
 
 /* Define if your FPU arithmetics is of the DEC type.  */
-#undef HAVE_DEC_FPU
+/* #undef HAVE_DEC_FPU */
 
 /* Define if your FPU arithmetics is of the little endian IEEE type.  */
-#define HAVE_LIEEE_FPU 1
+/* #undef HAVE_LIEEE_FPU */
 
 /* Define if your FPU arithmetics is of the big endian IEEE type.  */
-#undef HAVE_BIEEE_FPU
+/* #undef HAVE_BIEEE_FPU */
 
 /* Define if realloc() is buggy (SunOS4, for example) */
-#undef REALLOC_IS_BUGGY
+/* #undef REALLOC_IS_BUGGY */
 
 /* Define if you have the drand48 function.  */
-#undef HAVE_DRAND48
+#define HAVE_DRAND48 1
 
 /* Define if your system supports locale.  */
 #define HAVE_SETLOCALE 1
 
 /* Define if stdlib.h defines the drand48 function.  */
-#undef HAVE_DRAND48_IN_STDLIB_H
+#define HAVE_DRAND48_DECL 1
 
 /* Define if you have the m library (-lm).  */
 #define HAVE_LIBM 1
@@ -204,13 +205,13 @@
 #define HAVE_FLOAT_H 1
 
 /* Define if you have <ieeefp.h>.  */
-#undef HAVE_IEEEFP_H
+#define HAVE_IEEEFP_H 1
 
 /* Define if you have the hypot function.  */
 #define HAVE_HYPOT 1
 
 /* Define if the hypot function is declared in math.h.  */
-#define HAVE_HYPOT_DECL
+#define HAVE_HYPOT_DECL 1
 
 /* Define if you have the cbrt function.  */
 #define HAVE_CBRT 1
@@ -219,10 +220,10 @@
 #define HAVE_CBRT_DECL 1
 
 /* Define if you have the log2 function.  */
-#undef HAVE_LOG2
+/* #undef HAVE_LOG2 */
 
 /* Define if the log2 function is declared in math.h.  */
-#undef HAVE_LOG2_DECL
+/* #undef HAVE_LOG2_DECL */
 
 /* Define if you have the rint function.  */
 #define HAVE_RINT 1
@@ -231,55 +232,55 @@
 #define HAVE_RINT_DECL 1
 
 /* Define if you have the lgamma function.  */
-#undef HAVE_LGAMMA
+#define HAVE_LGAMMA 1
 
 /* Define if the lgamma function is declared in math.h.  */
-#undef HAVE_LGAMMA_DECL
+#define HAVE_LGAMMA_DECL 1
 
 /* Define if math.h defines the signgam variable.  */
-#undef HAVE_SIGNGAM_DECL
+#define HAVE_SIGNGAM_DECL 1
 
 /* Define if you have the asinh function.  */
-#undef HAVE_ASINH
+#define HAVE_ASINH 1
 
 /* Define if the asinh function is declared in math.h.  */
-#undef HAVE_ASINH_DECL
+#define HAVE_ASINH_DECL 1
 
 /* Define if you have the acosh function.  */
-#undef HAVE_ACOSH
+#define HAVE_ACOSH 1
 
 /* Define if the acosh function is declared in math.h.  */
-#undef HAVE_ACOSH_DECL
+#define HAVE_ACOSH_DECL 1
 
 /* Define if you have the atanh function.  */
-#undef HAVE_ATANH
+#define HAVE_ATANH 1
 
 /* Define if the atanh function is declared in math.h.  */
-#undef HAVE_ATANH_DECL
+#define HAVE_ATANH_DECL 1
 
 /* Define if you have the erf function.  */
-#undef HAVE_ERF
+#define HAVE_ERF 1
 
 /* Define if the erf function is declared in math.h.  */
-#undef HAVE_ERF_DECL
+#define HAVE_ERF_DECL 1
 
 /* Define if you have the erfc function.  */
-#undef HAVE_ERFC
+#define HAVE_ERFC 1
 
 /* Define if the erfc function is declared in math.h.  */
-#undef HAVE_ERFC_DECL
+#define HAVE_ERFC_DECL 1
 
 /* Define if you have the finite function.  */
-#undef HAVE_FINITE
+#define HAVE_FINITE 1
 
 /* Define if the finite function is declared in math.h.  */
-#undef HAVE_FINITE_DECL
+#define HAVE_FINITE_DECL 1
 
 /* Define if you have the isfinite function.  */
 #define HAVE_ISFINITE 1
 
 /* Define if the isfinite function is declared in math.h.  */
-#define HAVE_ISFINITE_DECL 1
+/* #undef HAVE_ISFINITE_DECL */
 
 /* Define if you have the isnan function.  */
 #define HAVE_ISNAN 1
@@ -288,43 +289,43 @@
 #define HAVE_ISNAN_DECL 1
 
 /* Define if you have the Bessel j0 function.  */
-#undef HAVE_J0
+#define HAVE_J0 1
 
 /* Define if the j0 function is declared in math.h.  */
-#undef HAVE_J0_DECL
+#define HAVE_J0_DECL 1
 
 /* Define if you have the Bessel j1 function.  */
-#undef HAVE_J1
+#define HAVE_J1 1
 
 /* Define if the j1 function is declared in math.h.  */
-#undef HAVE_J1_DECL
+#define HAVE_J1_DECL 1
 
 /* Define if you have the Bessel jn function.  */
-#undef HAVE_JN
+#define HAVE_JN 1
 
 /* Define if the jn function is declared in math.h.  */
-#undef HAVE_JN_DECL
+#define HAVE_JN_DECL 1
 
 /* Define if you have the Bessel y0 function.  */
-#undef HAVE_Y0
+#define HAVE_Y0 1
 
 /* Define if the y0 function is declared in math.h.  */
-#undef HAVE_Y0_DECL
+#define HAVE_Y0_DECL 1
 
 /* Define if you have the Bessel y1 function.  */
-#undef HAVE_Y1
+#define HAVE_Y1 1
 
 /* Define if the y1 function is declared in math.h.  */
-#undef HAVE_Y1_DECL
+#define HAVE_Y1_DECL 1
 
 /* Define if you have the Bessel yn function.  */
-#undef HAVE_YN
+#define HAVE_YN 1
 
 /* Define if the yn function is declared in math.h.  */
-#undef HAVE_YN_DECL
+#define HAVE_YN_DECL 1
 
 /* Define if netCDF library is available */
-#undef HAVE_NETCDF
+/* #undef HAVE_NETCDF */
 
 /* Define if FFTW Fourier transform library is available */
 #define HAVE_FFTW 1
@@ -342,7 +343,7 @@
 #define WITH_F77_WRAPPER 1
 
 /* Define if the X Window System is missing or not being used.  */
-#undef X_DISPLAY_MISSING
+/* #undef X_DISPLAY_MISSING */
 
 /* Define if you have Motif.  */
 #define HAVE_MOTIF 1
@@ -357,7 +358,7 @@
 #define HAVE_XPM 1
 
 /* Define if you have the xpm.h.  */
-#undef HAVE_XPM_H 1
+/* #undef HAVE_XPM_H */
 
 /* Define if you have the xpm.h header among X11 includes.  */
 #define HAVE_X11_XPM_H 1
@@ -366,7 +367,7 @@
 #define WITH_LIBHELP 1
 
 /* Define if you have (and want to use) XmHTML widget  */
-#undef WITH_XMHTML
+/* #undef WITH_XMHTML */
 
 /* Define if you have (and want to use) editres  */
 #define WITH_EDITRES 1
@@ -378,10 +379,10 @@
 #endif
 
 /* Define if the print spooling command itself unlinks the temporary file */
-#undef PRINT_CMD_UNLINKS
+/* #undef PRINT_CMD_UNLINKS */
 
 /* Define if you want to compile in (a basic) support for debugging  */
-#define WITH_DEBUG 1
+/* #undef WITH_DEBUG */
 
 #if defined(WITH_DEBUG)
 #  define DEBUG

@@ -7,44 +7,37 @@ O=.o
 # Extension of executables
 EXE=.exe
 
-# Extension of batch files
-BAT=.cmd
-
 # Bourn shell
-SHELL=sh
+SHELL=sh.exe
 
 # Path prefix for installation links
-PREFIX=$(X11ROOT)/XFree86
+PREFIX=/usr/local
 
 # List of subdirectories
-# I'll comment out if I have a DLL available of the library
-#SUBDIRS=cephes T1lib Xbae/Xbae src grace_np templates doc examples auxiliary
-SUBDIRS=cephes src grace_np templates doc examples auxiliary
+SUBDIRS=cephes   src  grace_np fonts templates doc examples auxiliary
 
 # Name of executable
-GRACE=xmgrace.exe
+GRACE=xmgrace$(EXE)
 
 # Location of the Grace home
-GRACE_HOME=$(X11ROOT)/XFree86/lib/grace
+GRACE_HOME=/usr/local/grace
 
 # Relocatable that contains alloca()
 ALLOCA=
 
 # Type1 fonts library
-#T1_LIB=../../T1lib/t1lib.a
 T1_LIB=-lt1
 
 # T1 include path
-#T1_INC=-I../../T1lib
 T1_INC=
 
 # T1lib defines (if the bundled version to be used)
-T1_AA_TYPE16=short
-T1_AA_TYPE32=int
+T1_AA_TYPE16=
+T1_AA_TYPE32=
 T1_AA_TYPE64=
 
 # Library containing XDR functions
-XDR_LIB=-lrpc -lsocket
+XDR_LIB=
 
 # Library containing dll-related functions
 DL_LIB=
@@ -71,23 +64,22 @@ TIFF_LIB=-ltiff
 PDF_LIB=-lpdf
 
 # Xbae include path
-#XBAE_INC=-I../Xbae
 XBAE_INC=
 
 # Location of yacc (or its substitution)
-YACC=yacc
+YACC=bison -y
 
 # C compiler
-CC=gcc
+CC=gcc.exe
 
 # F77 compiler
 FC=g77
 
 # ar
-AR=ar
+AR=ar.exe
 
 # ranlib
-RANLIB=ar s
+RANLIB=ar.exe s
 
 # rm
 RM=rm -f
@@ -96,37 +88,35 @@ RM=rm -f
 LN_S=cp
 
 # BSD install
-INSTALL=
-INSTALL_PROGRAM=
-INSTALL_DATA=
-MKINSTALLDIRS=
+INSTALL=/program/ports/Active/grace/grace/ac-tools/shtool install -c
+INSTALL_PROGRAM=${INSTALL}
+INSTALL_DATA=${INSTALL} -m 644
+MKINSTALLDIRS=/program/ports/Active/grace/grace/ac-tools/shtool mkdir -p -f
 
 # CPP flags
-CPPFLAGS= -I$(X11ROOT)/XFree86/include
+CPPFLAGS= -Ie:/XFree86/include  -Ie:/XFree86/include
 
 # C flags
-#CFLAGS0= -Wall -Wno-unused -ansi -O3 -m486 -Zmt
-CFLAGS0= -Wall -Wno-unused -O3 -m486 -Zmt
+CFLAGS0= -O2 -m486 -Zmt
 
 # GUI flags
-GUI_FLAGS=
+GUI_FLAGS= -Ie:/XFree86/include
 
 # LDFLAGS
-# -Zbin-files is removed. Not sure where this will hurt us (fftw, ?! ) ...
-LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals -Zstack 0x4000
+LDFLAGS=-s -Zmt -Zcrtdll -Zbsd-signals -Zbin-files
 
 # Libraries (all but GUI)
-NOGUI_LIBS=
+NOGUI_LIBS=-lm -lExtensions
 
 # GUI libraries
-#GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
-GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient -lXbae -lXm -lXpm -lXt -lXext -lXmu -lX11 -lsocket
+GUI_LIBS= -Le:/XFree86/lib   -lXbae -lXm -lXpm -lXp -lXmu -lXt -lXext -lX11  -lSM -lICE -lsocket -lhlpclient
 
-# Commamd used to print
-PRINT_CMD='lp'
+# Command used to print
+PRINT_CMD='lpr'
 
 # Editor
-GRACE_EDITOR=nedit
+GRACE_EDITOR='xterm -e vi'
 
 # HTML help viewer command
-HELPVIEWER=-DGRACE_HELPVIEWER=\"xmhelp\"
+HELPVIEWER=
+
