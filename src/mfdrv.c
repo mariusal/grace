@@ -34,9 +34,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "defines.h"
-#include "utils.h"
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
+
 #include "devlist.h"
 #include "mfdrv.h"
 

@@ -41,8 +41,10 @@
 
 #include <pdflib.h>
 
-#include "utils.h"
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
+
+#include "utils.h"
 #include "devlist.h"
 #include "pdfdrv.h"
 

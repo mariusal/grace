@@ -35,10 +35,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "defines.h"
-#include "utils.h"
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
-#include "graphs.h"
+
+#include "utils.h"
 #include "devlist.h"
 #include "svgdrv.h"
 

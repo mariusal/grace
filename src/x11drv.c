@@ -33,17 +33,16 @@
  */
 
 #include <config.h>
-#include "defines.h"
 
 #include <stdlib.h>
 
 #include <X11/Xlib.h>
 
-#include "globals.h"
-#include "utils.h"
-#include "devlist.h"
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
-#include "graphs.h"
+
+#include "globals.h"
+#include "devlist.h"
 
 #include "x11drv.h"
 

@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
  
-#include "defines.h"
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 #include "devlist.h"
 #include "dummydrv.h"

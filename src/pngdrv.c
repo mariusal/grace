@@ -38,10 +38,11 @@
 
 #include <png.h>
 
-#include "defines.h"
+#define CANVAS_BACKEND_API
+#include "grace/canvas.h"
+
 #include "utils.h"
 #include "devlist.h"
-#include "grace/canvas.h"
 
 #ifndef NONE_GUI
 #  include "motifinc.h"

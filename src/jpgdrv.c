@@ -39,11 +39,10 @@
 #define JPEG_INTERNAL_OPTIONS
 #include <jpeglib.h>
 
-#include "defines.h"
-#include "utils.h"
-#include "devlist.h"
+#define CANVAS_BACKEND_API
 #include "grace/canvas.h"
 
+#include "devlist.h"
 #ifndef NONE_GUI
 #  include "motifinc.h"
 #endif
