@@ -8,7 +8,7 @@
 
   <title>Grace FAQ (for Grace-5.99.0)</title>
   <author><name>The Grace Team</name></author>
-  <date>30.09.2004</date>
+  <date>02.10.2004</date>
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -68,11 +68,9 @@
         <tt>Xmgr to Grace migration guide</tt> in the
         User's Guide (question <ref id="manual" name="User's Guide">.
 
-        There are currently several features of Xmgr which are not yet
+        There are currently a few features of Xmgr which are not yet
         implemented in Grace (of course, alongside with a lot of new stuff
-        not found in Xmgr). A full compatibility is desirable except for
-        ``bad'' features of Xmgr.
- 
+        not found in Xmgr).
 
         Among the Xmgr features not (yet) implemented in Grace are:
 
@@ -322,8 +320,7 @@
     <sect1><heading>I have got an idea! How do I report a wish?</heading>
       <p>
         You can submit wishes and suggestions just the way you would
-        submit bug reports (see question <ref id="w3todo"
-        name="Known Bugs">).  Suggestions for improvement are
+        submit bug reports (see question <ref id="w3todo" name="Known Bugs">).  Suggestions for improvement are
         generally very welcome. It may be possible, however, that
         the developers are busy or that your wish is rejected for
         some good reason, so it may be necessary to persuade (better
@@ -353,7 +350,7 @@
         Specify exactly against which version the diff is
         supposed to work.
         Finally send them to
-        <url url="mailto:fnevgeny at weizmann dot ac dot il">
+        <url url="mailto:fnevgeny_at_weizmann_dot_ac_dot_il">
         
         In case you plan to help this way more than once you should join
         the <ref id="forums" name="forums">.
@@ -716,17 +713,6 @@ XMgrace*XmMessageBox.translations: #override\n\
       </p>
     </sect1>
 
-    <sect1><heading>What is a parameter file? <label id="parameter"></heading>
-      <p>
-
-        A parameter file contains informations about settings. Every
-        batch command of Grace is a valid line in a parameter
-        file. A parameter file is essentially a project file without
-        sets in a slightly different format (i.e. without leading
-        <tt>@</tt>s).
-      </p>
-    </sect1>
-
     <sect1><heading>Which data formats does Grace recognize?</heading>
       <p>
 
@@ -765,9 +751,9 @@ XMgrace*XmMessageBox.translations: #override\n\
       </p>
     </sect1>
 
-    <sect1><heading>What is the Julian Date?<label id="jdate"></heading>
+    <sect1><heading>What is the Julian date?<label id="jdate"></heading>
       <p>
-        The Julian Date, not to be confused with the Julian
+        The Julian date, not to be confused with the Julian
         calendar, is a format to represent the time in a single
         number. Julian Date 0 is a day way in the past, namely the
         1st January 4713 before Christ (don't ask me why). The
@@ -775,11 +761,9 @@ XMgrace*XmMessageBox.translations: #override\n\
         at noon.
         This numbering scheme is in wide use, especially in
         astronomy, and is used for the internal representation of
-        dates in Grace. Some further explanations are given on
-        <url url="http://www.magnet.ch/serendipity/hermetic/cal_stud/jdn.htm"
-        name="this page">.
+        dates in Grace.
 
-        The <tt>convcal</tt> utility in <tt>$GRACE_HOME/auxiliary/</tt> can
+        The <tt>convcal</tt> utility in <tt>$GRACE_HOME/bin/</tt> can
         be used for about any to Julian date convertion.
       </p>
     </sect1>
@@ -856,8 +840,7 @@ XMgrace*XmMessageBox.translations: #override\n\
       <p>
         Quite a few. You can display them with <tt>xmgrace -help</tt>.
         
-        Or check for the man page xmgrace(1). However it may
-        not always be up-to-date.
+        Or check for the man page xmgrace(1).
       </p>
     </sect1>
 
@@ -915,7 +898,7 @@ XMgrace*background: ...
 
         Yes, Grace has all these features. Wherever you can type a
         text in Grace, e.g. Axis labels, graph title, text from
-        <tt/Plot->Drawing objects/, etc., you can use all those
+        <tt>Plot->Drawing objects</tt>, etc., you can use all those
         features within the same text.  Please refer to the User
         Guide (question <ref id="manual" name="User's Guide">) for
         details.
@@ -952,29 +935,19 @@ XMgrace*background: ...
     </sect1>
         
 
-    <sect1><heading>At which precision is numerical data saved? How can I set the
-           precision?</heading>
+    <sect1><heading>At which precision is numerical data saved? How can I set
+           the precision?</heading>
       <p>
-
         By default, numbers are saved with eight valid digits. To
-        set your own precision, use the command
-
-        <tt>DEFAULT SFORMAT formatstring</tt>
-
-        in an init resource file (see question <ref id="custom"
-          name="Customization">) with formatstring being in the
-        <tt>printf(3)</tt> format.
-        
-        As well, you can set the precision on a per-project basis. When you
-        save a project for the first time (or use "File/Save as"), there is
-        a relevant "Data format" field in the popup you are presented with.
+        set your own precision, go to the Project's proeprties in the
+        Explorer tool and alter the "Data format:" field with another string
+        (in the <tt>printf(3)</tt> format).
       </p>
     </sect1>
 
-    <sect1><heading>When I save a project and then re-open it, the julian date values
-           appear to be rounded to the nearest half day.</heading>
+    <sect1><heading>When I save a project and then re-open it, the julian date
+           values appear to be rounded to the nearest half day.</heading>
       <p>
-        
         For time plots, the default precision may be insufficient. See the
         previous question on how to alter it.
       </p>
@@ -982,7 +955,6 @@ XMgrace*background: ...
 
     <sect1><heading>How do I read in project files created by Xmgr?</heading>
       <p>
-
         From Xmgr-4.1.2 on, each project file starts with a string
         giving the version number by which is was saved. These
         files should cause no problems. You can modify older files
@@ -995,10 +967,9 @@ XMgrace*background: ...
       </p>
     </sect1>
 
-    <sect1><heading>I can't open anymore project files saved with an old version of
-           Xmgr.</heading>
+    <sect1><heading>I can't open anymore project files saved with an old
+           version of Xmgr.</heading>
       <p>
-
         In Xmgr-4.1.0, support for the binary file format (the
         former default one) was dropped. You must use the
         <tt>grconvert</tt> utility supplied with the Grace
@@ -1009,36 +980,13 @@ XMgrace*background: ...
     <sect1><heading>When I load a project saved with an earlier version of Xmgr
            (&lt;4.0), symbols of all (some) sets are drawn in black.</heading>
       <p>
-
         Make sure you added a valid <tt>@VERSION versionid</tt> line to the
         beginning of the file.
       </p>
     </sect1>
 
-    <sect1><heading>How do I save disk space? Can I use compressed project files?</heading>
-      <p>
-
-        Yes. You can use your favorite compression program
-        (e.g. `gzip') as input or output filter so that files on
-        disk are automagically (de)compressed. Just add the lines
-
-        <tt>DEFINE IFILTER "gzip -dc %s" PATTERN "*.gz"</tt>
-
-        and
-
-        <tt>DEFINE OFILTER "gzip - &gt;  %s" PATTERN "*.gz"</tt>
-
-        into your personal grace init file. Then, everytime you
-        specify a file name that ends with <tt>.gz</tt>, gzip is used
-        as input and output filters. You can use this mechanism to
-        do other things, e.g. reading and storing files into a
-        database.
-      </p>
-    </sect1>
-
     <sect1><heading>Can I import bitmap graphics into Grace?</heading>
       <p>
-
         Well, not yet. The import of images will be implemented
         in a future release.
       </p>
@@ -1047,7 +995,6 @@ XMgrace*background: ...
     <sect1><heading>Can I export Grace graphs to GIF&verbar;TIFF&verbar;
            PostScript&verbar;PDF etc? <label id="export"></heading>
       <p>
-
         PostScript (for printing), EPS (encapsulated PostScript; for the
         inclusion of graphics into e.g. LaTeX documents), MIF (for
         inclusion in FrameMaker) and SVG (Scalable Vector Graphics) are
@@ -1060,19 +1007,17 @@ XMgrace*background: ...
         
         You can get various other formats using netpbm and pstoedit.
 
-        Bitmaps: Using the PNM device + the <tt>netpbm</tt> utils
-        (available at e.g. <url
-        url="ftp://ftp.x.org/contrib/utilities/"> one can get
-        TIFF, GIF, G3, BMP, PCX,...  (conversion can be done on
-        the fly with appropriate filter definitions).
+        Bitmaps: Using the PNM device + the <tt>netpbm</tt> utils (available at
+        e.g. <url url="ftp://ftp.x.org/contrib/utilities/"> one can get TIFF,
+        GIF, G3, BMP, PCX,...  (conversion can be done on the fly with
+        appropriate filter definitions).
 
         Notice that the direct support of the GIF format is impossible
         due to the copyright policy of Unisys - it's not a technical
         problem. In fact it was supported in earlier versions but
         to avoid any legal problems this feature has been removed.
 
-        One can use <url name="pstoedit"
-        url="http://www.geocities.com/SiliconValley/Network/1958/pstoedit/">
+        One can use <url name="pstoedit" url="http://www.pstoedit.net/">
         to convert PS to a lot of other vector formats: MIF, CGM,
         xfig's, tgif's, Windoze and OS/2 metafiles,... even Java
         applets!
@@ -1081,7 +1026,6 @@ XMgrace*background: ...
 
     <sect1><heading>Where have all the region operations gone to?</heading>
       <p>
-          
         Region operations have no meaning by themselves. Regions are
         restriction conditions applied to data set(s) which a
         transformation is performed on. For example, to kill data points in
@@ -1104,24 +1048,12 @@ XMgrace*background: ...
       </p>
     </sect1>
 
-    <sect1><heading>How do I set the background color of a plot, outside of the graph
-           frame?</heading>
-      <p>
-
-        This can be done using the <tt>"Plot/Plot appearance"</tt> popup.
-
-        This changes the background of the entire canvas, not only
-        the background of graphs.
-      </p>
-    </sect1>
-
     <sect1><heading>How do I use more than 16 colors for objects/lines in Grace?</heading>
       <p>
-
-       You may edit your Default.agr file in
+       You may edit your Default.xgr file in
        <tt>$GRACE_HOME/templates</tt>. Just add lines similar to
-       <verb> @map color 2 to (255, 0, 0), "red" </verb> defining a RGB
-       value and an according name for that color triplet.
+       <verb> &lt;color-def id="2" rgb="#ff0000" name="red"/&gt; </verb>
+       defining a RGB value and an according name for that color triplet.
       </p>
     </sect1>
 
@@ -1138,23 +1070,11 @@ XMgrace*background: ...
 
         Refer to the User's Guide (question <ref id="manual"
           name="User's Guide">) for further information.
-
-        One example for using pipes is included in the <tt>`make
-        tests'</tt> slide show.
-      </p>
-    </sect1>
-
-    <sect1><heading>Is it possible to make Grace starting with a completely empty
-           canvas, until the commands are loaded and executed?</heading>
-      <p>
-       Start Grace with -pexec "G0 OFF" or load  a parameter file with
-       the above command. 
       </p>
     </sect1>
 
     <sect1><heading>Printing to my old PostScript printer produces an error.</heading>
       <p>
-        
         By default, the PS driver uses Level 2 features, while your
         printer may not be PostScript Level 2 compliant. You can force
         the use of PS Level 1 only features in the PostScript device setup,
@@ -1165,13 +1085,12 @@ XMgrace*background: ...
 
     <sect1><heading>How do I make a Grace image fit on a given paper size?</heading>
       <p>
-
         Select the correct paper size in the <tt>Device setup</tt>
         popup.
 
         You can also try the command psresize from the
         <url name="psutils package"
-        url="http://www.dcs.ed.ac.uk/~ajcd/psutils/"> in order to
+        url="http://www.knackered.org/angus/psutils/"> in order to
         resize a Postscript file generated by Grace.
       </p>
     </sect1>
@@ -1190,10 +1109,10 @@ XMgrace*background: ...
 
     <sect1><heading>Is it possible to use the dB (decibel) axis scale?</heading>
       <p>
-        In "Plot/Axis props", enable logarithmic axis scaling, then go to
-        the "Tick labels" tab of this dialog, find the "Axis transform"
-        input field in the "Extra" frame, and enter there "10*log10(10*$t)"
-        (w/o quotes, of course).
+        In "Explorer", select the relevant axis, enable logarithmic axis
+        scaling, then go to the "Tick labels" tab of this dialog, find the
+        "Axis transform" input field in the "Extra" frame, and enter there
+        "10*log10(10*$t)" (w/o quotes, of course).
       </p>
     </sect1>
  
@@ -1206,17 +1125,6 @@ XMgrace*background: ...
       </p>
     </sect1>
  
-    <sect1><heading>When making use of <it>-param</it> via the command line to set
-           the parameters, the world scaling is not correctly set (it just
-           auto-scales).</heading>
-      <p>
-        The <it>-param</it> flag and its argument should be placed on the
-        command line <bf>after</bf> the data filenames. Alternatively,
-        disable the autoscale with <it>-autoscale none</it> - but
-        <bf>before</bf> your data is read in.
-      </p>
-    </sect1>
- 
     <sect1><heading>I am unable to find "Load &amp; Evaluate" which I used quite a
            lot with Xmgr.</heading>
       <p>
@@ -1224,14 +1132,12 @@ XMgrace*background: ...
       </p>
     </sect1>
  
-    <sect1><heading>How can I specify a template other than the default one on the
-           command line? In the scripts?</heading>
+    <sect1><heading>How can I specify a template other than the default one on
+           the command line?</heading>
       <p>
         Template is just an empty (in the sense that there are no data sets)
         but otherwise a valid project file. So just put your favorite
-        template's filename as the first argument on the command line. If
-        your script creates several plots, use 'new from "filename"' to
-        initialize a new project from the non-default template.
+        template's filename as the first argument on the command line.
       </p>
     </sect1>
 
@@ -1239,7 +1145,7 @@ XMgrace*background: ...
       <p>
         A part of them are saved with the project; most of the rest are
         available via command-line options and/or X resources. A more
-        homogeneous approach will be implemented in a future version. 
+        homogeneous approach will be implemented soon. 
       </p>
     </sect1>
   </sect>
@@ -1251,83 +1157,8 @@ XMgrace*background: ...
 
     <sect1><heading>What algorithm is used for non-linear curve fitting?</heading>
       <p>
-
         It is the Levenberg-Marquardt algorithm, based on LMDIF from
         MINPACK, with some modifications.
-      </p>
-    </sect1>
-  </sect>
-
-<!-- **************************************** -->
-
-  <sect><heading>Command Line Interface <label id="commands"></heading>
-
-    <sect1><heading>Which non-interactive batch commands does Grace know?</heading>
-      <p>
-        Lots. Almost every mouseclick in the GUI has an equivalent
-        in the batch language. See the User's Guide (question <ref
-        id="manual" name="User's Guide">) for details.
-      </p>
-    </sect1>
-        
-    <sect1><heading>How can I do feature extraction non-interactively?</heading>
-      <p>
-        Currently not at all. This will be implemented in a later
-        release.
-      </p>
-    </sect1>
-
-    <sect1><heading>How can I use non-linear fits in the batch mode?</heading>
-      <p>
-        Make a batch file with the following commands:
-        
-        <verb>
-          fit formula "y = a0 + a1 * sin (a2 + x * pi / 180)"
-          fit with 3 parameters
-          fit prec 0.05
-          a0 = 1
-          a0 constraints off
-          a1 = 1
-          a1 constraints off
-          a2 = 1
-          a2 constraints off
-          nonlfit (s0, 100)
-        </verb>
-
-        This assumes that your original curve is in set s0 and that
-        you want to make 100 iterations.
-
-        <tt>nonlfit()</tt> doesn't produce any plots by itself. It only
-        <bf>fits</bf>. I.e., at this point, you can use the fitted
-        values <tt>A0, A1, A2...</tt>:
-
-        Plot a set, e.g.:
-
-        <verb>
-          s3 on
-          s3 length s0.length
-          s3.x = s0.x
-          s3.y = a0 + a1 * sin (a2 + x * pi / 180)
-        </verb>
-
-        Use for another fit as the initial values, or just ECHO them
-        (to <tt>stdout</tt>) with <tt>ECHO A0</tt>.
-      </p>
-    </sect1>
-
-    <sect1><heading>Is it possible to call the command "POINT expr, expr" with more
-           than two values, as needed, for example, for points in XYDYDY
-           sets?</heading>
-      <p>
-        No, but you can do something like this (given the set type was
-        properly defined):
-
-        <verb>
-          S0 POINT expr, expr
-          S0.Y1[S0.LENGTH - 1] = expr
-          S0.Y2[S0.LENGTH - 1] = expr
-          ...
-        </verb>
       </p>
     </sect1>
   </sect>
@@ -1355,20 +1186,12 @@ XMgrace*background: ...
     <sect1><heading>Which features are planned for the future?</heading>
       <p>
         Among the many features planned to be introduced in the
-        future are enhancing the spreadsheet-like frontend for dataset
-        operations, contour plots, many-level undo/redo, image import and
+        future are contour plots, many-level undo/redo, image import and
         manipulations, a library for 2-way communication, ... Then 3D plots
         would come :-)
       </p>
     </sect1>
         
-    <sect1><heading>Are there things that Grace can't do?</heading>
-      <p>
-        Probably. If you have an idea for improvement, post it as a wish to
-        the w3todo web page (see question <ref id="w3todo" name="Known Bugs">).
-      </p>
-    </sect1>
-
     <sect1><heading>How should Grace be acknowledged when it
            is used to prepare a publication?</heading>
       <p>
