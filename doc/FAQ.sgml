@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.15)
   <author>by the Grace Team
-  <date>26.05.2004
+  <date>24.06.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -210,8 +210,8 @@
           <item>Have a look at the Grace home page (question <ref
               id="homepage" name="Home Page">).
 
-          <item>On the Grace mailing list (see question 
-              <ref id="mailinglist" name="Mailing Lists"> for details)
+          <item>On the Grace forums (see question 
+              <ref id="forums" name="Forums"> for details)
               you can easily get in contact with users and
               developers of Grace. However be aware that people
               here are trying to help in their spare time -
@@ -222,94 +222,28 @@
     <sect1>Is there a newsgroup devoted to Grace?
       <p>
 
-        No, there isn't. We feel that a mailing list (see question
-        <ref id="mailinglist" name="Mailing Lists">) is more
-        appropriate to discuss the topics related to Grace as long
-        the volume of the lists stays low enough.
+        No, there isn't. We feel that a bulletin board (see question
+        <ref id="forums" name="Forums">) is more
+        appropriate to discuss the topics related to Grace.
 
-    <sect1>Is there a mailing list for Grace?<label id="mailinglist">
+    <sect1>Is there a mailing list for Grace?
       <p>
 
-        Yes.  Grace has three mailing lists: <tt>grace</tt>,
-        <tt>grace-announce</tt> and <tt>grace-dev</tt>.
+        There used to be a few, but now they are replaced with
+        bulletin-board-style forums (see question
+        <ref id="forums" name="Forums">).
 
-        See question <ref id="subscription" name="Subscription"> for
-        details on how to subscribe.
+        The <url name="mailing list archives"
+        url="http://plasma-gate.weizmann.ac.il/Grace/maillists/grace/"> are
+        still available for browsing.
 
-        <descrip>
-
-          <tag>grace</tag> The first one, unmoderated, serves for general
-            discussions about Grace. This is the list your message
-            should go to if you have a question about
-            Grace. Currently, the volume of this list is about a
-            dozen messages per week.
-
-            If you want to write an email to the list, use the
-            address <htmlurl name="grace@plasma-gate.weizmann.ac.il"
-            url="mailto:grace@plasma-gate.weizmann.ac.il">. This
-            address is <bf>not</bf> for subscription or unsubscription.
-
-            Virtually all developers and most users of Grace have
-            subscribed to this list. So you can be pretty sure that
-            there will be at least one who can help you.
-
-            <bf>But:</bf> no one likes to read the same questions over
-            and over again. So, please refer to other sources of
-            help (see question <ref id="support" name="Support">)
-            before asking something that can be found in the
-            documentation.
-
-            Instead of subscribing to the list itself you may wish
-            to subscribe to the digest of the list. The digest is
-            sent once in three days or when its size exceeds 32K.
-
-          <tag>grace-announce</tag> The moderated grace-announce list is
-            for new version or serious bug fix announcements only
-            (which are automatically relayed to the first mailing
-            list, too). The volume of this list is very low, like
-            once a month or less.
-
-          <tag>grace-dev</tag> The grace-dev mailing list is for
-            developers. It serves for discussions about the future
-            development or details which are usually not interesting
-            to mere users.
-
-        </descrip>
-
-        There are <url name="mailing list archives"
-          url="http://plasma-gate.weizmann.ac.il/Grace/maillists/grace/">
-        available for browsing.
-
-    <sect1>How do I subscribe to the mailing lists?<label id="subscription">
+    <sect1>Is there a forum for Grace? <label id="forums">
       <p>
 
-        You can subscribe to any of the Grace mailing lists by
-        sending an email to
-        <tt>&lt;LISTNAME>-request@plasma-gate.weizmann.ac.il</tt> with
-        no subject line and the only word <tt>`Subscribe'</tt> (without
-        quotes, of course) in the body of the message.
-
-        <tt>&lt;LISTNAME></tt> stands for the name of the list you wish
-        to subscribe to, i.e. <tt>grace</tt>, <tt>grace-digest</tt>,
-        <tt>grace-announce</tt> or <tt>grace-devel</tt>
-
-        So the respective addresses are:
-
-        <htmlurl name="grace-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-request@plasma-gate.weizmann.ac.il">
-
-        <htmlurl name="grace-digest-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-digest-request@plasma-gate.weizmann.ac.il">
-
-        <htmlurl name="grace-announce-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-announce-request@plasma-gate.weizmann.ac.il">
-
-        <htmlurl name="grace-dev-request@plasma-gate.weizmann.ac.il"
-          url="mailto:grace-dev-request@plasma-gate.weizmann.ac.il">
-
-        To unsubscribe from a list, same instructions apply, with
-        <tt>`Subscribe'</tt> being replaced by <tt>`Unsubscribe'</tt>.
-
+        Yes. Just follow this link: <url name="forums"
+        url="http://plasma-gate.weizmann.ac.il/Grace/phpbb/">. It has its
+        own FAQ.
+        
 <!-- **************************************** -->
 
   <sect>Providing Help: Finding and Reporting Bugs
@@ -368,7 +302,7 @@
         wishes.
         <p>
         Some bugs and fixes may not appear in w3todo, but are
-        covered on the <ref id="mailinglist" name="mailinglists">.
+        covered on the <ref id="forums" name="forums">.
 
     <sect1>The bug report #xxx is marked as "Fixed" in the w3todo, but I
            checked the last version of Grace and the bug is still there!
@@ -406,7 +340,7 @@
         Fine! There are always things to do.
 
         If you are a C programmer, you can almost certainly find
-        something useful to do. Just ask the mailing list.
+        something useful to do. Just ask on the forums.
         The same applies if you are a technical writer. The documentation
         will certainly need to be updated, corrected or completed.
         Every small contribution is appreciated!
@@ -422,11 +356,10 @@
         Specify exactly against which version the diff is
         supposed to work.
         Finally send them to
-        <url url="mailto:fnevgeny@plasma-gate.weizmann.ac.il">
+        <url url="mailto:fnevgeny at weizmann dot ac dot il">
         
-        In case you plan to help this way more than once
-        you should join the
-        <ref id="mailinglist" name="developer mailinglist">
+        In case you plan to help this way more than once you should join
+        the <ref id="forums" name="forums">.
 
     <sect1>I like Grace! Should I donate anything to its authors?
       <p>
@@ -542,7 +475,7 @@
         volunteers they're put in under the <url name="contrib"
         url="ftp://plasma-gate.weizmann.ac.il/pub/grace/contrib/"> area. Again,
         these are NOT supported (bug reports like "I can't install that RPM"
-        will be silently ignored), but feel free using the Grace mailing list
+        will be silently ignored), but feel free using the Grace forums
         for relevant discussions.
 
     <sect1>Is there a Windows&verbar;OS/2&verbar;VMS port of Grace?
@@ -558,8 +491,7 @@
         support for "direct"/native printing; probably you will have to use
         the Postscript output for printing).
 
-        A port to OS/2 made by <url name="Alexander Mai"
-          url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
+        A port to OS/2 made by Alexander Mai can be found
         at <url url="http://www.tu-darmstadt.de/~st002279/os2/">.
         It requires the XFree86 libraries and an X Server (e.g. XFree86,
 	Hob X11, Exceed, etc.).
@@ -1355,10 +1287,8 @@ XMgrace*background: ...
     <sect1>Are there things that Grace can't do?
       <p>
 
-        Probably. If you have an idea for improvement, send mail to
-        the mailing list (question <ref id="mailinglist"
-        name="Mailing Lists">) or post it as a wish to the w3todo web
-        page (see question <ref id="w3todo" name="Known Bugs">).
+        Probably. If you have an idea for improvement, post it as a wish to
+        the w3todo web page (see question<ref id="w3todo" name="Known Bugs">).
 
     <sect1>How should Grace be acknowledged when it
            is used to prepare a publication?
