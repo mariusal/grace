@@ -115,8 +115,8 @@ AText *atext_get_data(const Quark *q)
 
 int atext_set_active(Quark *q, int flag)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->active = flag;
         
@@ -129,8 +129,8 @@ int atext_set_active(Quark *q, int flag)
 
 int atext_set_string(Quark *q, const char *s)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->s = copy_string(at->s, s);
         
@@ -143,8 +143,8 @@ int atext_set_string(Quark *q, const char *s)
 
 int atext_set_ap(Quark *q, const APoint *ap)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->ap = *ap;
         
@@ -157,8 +157,8 @@ int atext_set_ap(Quark *q, const APoint *ap)
 
 int atext_set_offset(Quark *q, const VPoint *offset)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->offset = *offset;
         
@@ -171,8 +171,8 @@ int atext_set_offset(Quark *q, const VPoint *offset)
 
 int atext_set_tprops(Quark *q, const TextProps *tprops)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->text_props = *tprops;
         
@@ -185,8 +185,8 @@ int atext_set_tprops(Quark *q, const TextProps *tprops)
 
 int atext_set_font(Quark *q, int font)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->text_props.font = font;
         
@@ -199,8 +199,8 @@ int atext_set_font(Quark *q, int font)
 
 int atext_set_char_size(Quark *q, double size)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->text_props.charsize = size;
         
@@ -213,8 +213,8 @@ int atext_set_char_size(Quark *q, double size)
 
 int atext_set_color(Quark *q, int color)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->text_props.color = color;
         
@@ -227,8 +227,8 @@ int atext_set_color(Quark *q, int color)
 
 int atext_set_just(Quark *q, int just)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->text_props.just = just;
         
@@ -241,10 +241,25 @@ int atext_set_just(Quark *q, int just)
 
 int atext_set_angle(Quark *q, double angle)
 {
-    if (q && q->fid == QFlavorAText) {
-        AText *at = atext_get_data(q);
+    AText *at = atext_get_data(q);
+    if (at) {
         
         at->text_props.angle = angle;
+        
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int atext_shift(Quark *q, const VVector *vshift)
+{
+    AText *at = atext_get_data(q);
+    if (at) {
+        
+        at->offset.x += vshift->x;
+        at->offset.y += vshift->y;
         
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;

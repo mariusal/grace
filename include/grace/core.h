@@ -850,6 +850,8 @@ int frame_set_fillpen(Quark *q, const Pen *pen);
 
 Quark *get_parent_frame(const Quark *q);
 
+int frame_shift(Quark *q, const VVector *vshift);
+int frame_legend_shift(Quark *q, const VVector *vshift);
 
 /* Graph */
 graph *graph_data_new(void);
@@ -1001,6 +1003,8 @@ int object_set_location(Quark *q, const APoint *ap);
 
 int object_get_bb(DObject *o, view *bb);
 
+int object_shift(Quark *q, const VVector *vshift);
+
 /* AText */
 TextProps *textprops_new(void);
 void set_default_textprops(TextProps *pstr, const defaults *grdefs);
@@ -1020,6 +1024,8 @@ int atext_set_char_size(Quark *q, double size);
 int atext_set_color(Quark *q, int color);
 int atext_set_just(Quark *q, int just);
 int atext_set_angle(Quark *q, double angle);
+
+int atext_shift(Quark *q, const VVector *vshift);
 
 /* co-ordinate transformation stuff */
 int polar2xy(double phi, double rho, double *x, double *y);

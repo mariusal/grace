@@ -279,3 +279,50 @@ Quark *get_parent_frame(const Quark *q)
     
     return NULL;
 }
+
+int frame_shift(Quark *q, const VVector *vshift)
+{
+    view v;
+
+    if (frame_get_view(q, &v) == RETURN_SUCCESS) {
+        v.xv1 += vshift->x;
+        v.xv2 += vshift->x;
+        v.yv1 += vshift->y;
+        v.yv2 += vshift->y;
+
+        return frame_set_view(q, &v);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int frame_legend_shift(Quark *q, const VVector *vshift)
+{
+    legend *l = frame_get_legend(q);
+
+    if (l) {
+        switch (l->acorner) {
+        case CORNER_LL:
+            l->offset.x += vshift->x;
+            l->offset.y += vshift->y;
+            break;
+        case CORNER_UL:
+            l->offset.x += vshift->x;
+            l->offset.y -= vshift->y;
+            break;
+        case CORNER_UR:
+            l->offset.x -= vshift->x;
+            l->offset.y -= vshift->y;
+            break;
+        case CORNER_LR:
+            l->offset.x -= vshift->x;
+            l->offset.y += vshift->y;
+            break;
+        }
+
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}

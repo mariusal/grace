@@ -260,11 +260,12 @@ int object_get_bb(DObject *o, view *bb)
 
 int object_set_active(Quark *q, int flag)
 {
-    if (q && q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+    DObject *o = object_get_data(q);
+    if (o) {
         
         o->active = flag;
         
+        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -273,11 +274,12 @@ int object_set_active(Quark *q, int flag)
 
 int object_set_angle(Quark *q, double angle)
 {
-    if (q && q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+    DObject *o = object_get_data(q);
+    if (o) {
         
         o->angle = angle;
         
+        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -286,11 +288,12 @@ int object_set_angle(Quark *q, double angle)
 
 int object_set_offset(Quark *q, const VPoint *offset)
 {
-    if (q && q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+    DObject *o = object_get_data(q);
+    if (o) {
         
         o->offset = *offset;
         
+        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -299,11 +302,12 @@ int object_set_offset(Quark *q, const VPoint *offset)
 
 int object_set_line(Quark *q, const Line *line)
 {
-    if (q && q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+    DObject *o = object_get_data(q);
+    if (o) {
         
         o->line = *line;
         
+        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -312,11 +316,12 @@ int object_set_line(Quark *q, const Line *line)
 
 int object_set_fillpen(Quark *q, const Pen *pen)
 {
-    if (q && q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+    DObject *o = object_get_data(q);
+    if (o) {
         
         o->fillpen = *pen;
         
+        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -325,11 +330,27 @@ int object_set_fillpen(Quark *q, const Pen *pen)
 
 int object_set_location(Quark *q, const APoint *ap)
 {
-    if (q && q->fid == QFlavorDObject) {
-        DObject *o = object_get_data(q);
+    DObject *o = object_get_data(q);
+    if (o) {
         
         o->ap      = *ap;
         
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int object_shift(Quark *q, const VVector *vshift)
+{
+    DObject *o = object_get_data(q);
+    if (o) {
+        
+        o->offset.x += vshift->x;
+        o->offset.y += vshift->y;
+        
+        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
