@@ -596,17 +596,63 @@ int save_set_properties(XFile *xf, Quark *pset)
     return RETURN_SUCCESS;
 }
 
-static int save_dataset(XFile *xf, Quark *pset)
+static int save_ssd(XFile *xf, Quark *q)
 {
-#if 0
     Attributes *attrs;
-    int i, nc;
-    Dataset *data;
+    unsigned int i, j, ncols, nrows;
+    char *sformat;
 
-    if (!pset) {
+    attrs = attributes_new();
+    
+    if (attrs == NULL) {
         return RETURN_FAILURE;
     }
+
+#if 0
+    attributes_set_sval(attrs, AStrComment, data->comment);
+    if (data->hotlink) {
+        attributes_set_sval(attrs, AStrHotfile, data->hotfile);
+        /* FIXME: hotsrc */
+    }
+#endif
+
+    ncols = ssd_get_ncols(q);
+    nrows = ssd_get_nrows(q);
+    sformat = project_get_sformat(get_parent_project(q));
+    for (i = 0; i < ncols; i++) {
+        ss_column *col = ssd_get_col(q, i);
+        char *ename;
+        
+        attributes_reset(attrs);
+        attributes_set_sval(attrs, AStrLabel, col->label);
+        ename = col->format == FFORMAT_STRING ? EStrScolumn:EStrDcolumn;
+        xfile_begin_element(xf, ename, attrs);
+        
+        for (j = 0; j < nrows; j++) {
+            char *s, buf[32];
+            if (col->format == FFORMAT_STRING) {
+                s = ((char **) col->data)[j];
+            } else {
+                sprintf(buf, sformat, ((double *) col->data)[j]);
+                s = buf;
+            }
+
+            xfile_text_element(xf, EStrCell, NULL, s, FALSE);
+        }
+        xfile_end_element(xf, ename);
+    }
     
+    attributes_free(attrs);
+
+    return RETURN_SUCCESS;
+}
+
+static int save_dataset(XFile *xf, Quark *pset)
+{
+    Attributes *attrs;
+    unsigned int nc, ncols;
+    Dataset *data;
+
     data = set_get_dataset(pset);
     
     attrs = attributes_new();
@@ -614,34 +660,20 @@ static int save_dataset(XFile *xf, Quark *pset)
     if (attrs == NULL) {
         return RETURN_FAILURE;
     }
-
-    attributes_set_ival(attrs, AStrCols, data->ncols);
-    attributes_set_ival(attrs, AStrRows, data->len);
-    attributes_set_sval(attrs, AStrComment, data->comment);
-    if (data->hotlink) {
-        attributes_set_sval(attrs, AStrHotfile, data->hotfile);
-        /* FIXME: hotsrc */
-    }
-    xfile_begin_element(xf, EStrDataset, attrs);
-
-    for (i = 0; i < data->len; i++) {
-        attributes_reset(attrs);
-        for (nc = 0; nc < data->ncols; nc++) {
-            if (data->ex[nc]) {
-                xmlio_set_world_value(pset, attrs,
-                    dataset_colname(nc), data->ex[nc][i]);
-            }
-        }
-        if (data->s) {
-            attributes_set_sval(attrs, "s", data->s[i]);
-        }
-        xfile_empty_element(xf, EStrRow, attrs);
-    }
     
-    xfile_end_element(xf, EStrDataset);
+    ncols = settype_cols(set_get_type(pset));
+
+    attributes_reset(attrs);
+    for (nc = 0; nc < ncols; nc++) {
+        attributes_set_ival(attrs, dataset_colname(nc), data->cols[nc]);
+    }
+    attributes_set_ival(attrs, "s", data->scol);
+    
+    attributes_set_sval(attrs, AStrComment, data->comment);
+    xfile_empty_element(xf, EStrDataset, attrs);
 
     attributes_free(attrs);
-#endif
+
     return RETURN_SUCCESS;
 }
 
@@ -736,6 +768,22 @@ static int project_save_hook(Quark *q,
         xfile_end_element(xf, EStrDataFormats);
 
         save_preferences(xf);
+        break;
+    case QFlavorSSD:
+        if (!closure->post) {
+            attributes_set_sval(attrs, AStrId, QIDSTR(q));
+            xmlio_set_active(attrs, quark_is_active(q));
+            attributes_set_ival(attrs, AStrRows, ssd_get_nrows(q));
+
+            xfile_begin_element(xf, EStrSSD, attrs);
+            {
+                save_ssd(xf, q);
+            }
+            
+            closure->post = TRUE;
+        } else {
+            xfile_end_element(xf, EStrSSD);
+        }
         break;
     case QFlavorFrame:
         if (!closure->post) {

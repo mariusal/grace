@@ -17,7 +17,9 @@
 
 typedef struct {
     RunTime *rt;
+    int ncol;
     int nrow;
+    Quark *ss;
 } ParserData;
 
 typedef struct _Page {
@@ -612,6 +614,11 @@ char *utf2iso(const char *s)
     <element-type name="facespec" ctype="FaceSpec *"><![CDATA[
         $$ = facespec_new();
     ]]></element-type>
+    <element-type name="ssd" ctype="Quark *"><![CDATA[
+        $$ = ssd_new((Quark *)$P);
+        ((ParserData *) $U)->ss = $$;
+        ((ParserData *) $U)->ncol = -1;
+    ]]></element-type>
     <element-type name="graph" ctype="Quark *"><![CDATA[
         $$ = graph_new((Quark *)$P);
     ]]></element-type>
@@ -723,13 +730,32 @@ char *utf2iso(const char *s)
     ]]></element-type>
     <element-type name="dataset" ctype="Dataset *"><![CDATA[
         $$ = dataset_new(quark_get_amem((Quark *)$P));
-        ((ParserData *) $U)->nrow = 0;
     ]]></element-type>
     <element-type name="datapoint" ctype="Datapoint *"><![CDATA[
         $$ = datapoint_new();
     ]]></element-type>
     <element-type name="region" ctype="Quark *"><![CDATA[
         $$ = region_new((Quark *)$P);
+    ]]></element-type>
+    <element-type name="scolumn" ctype="ss_column *"><![CDATA[
+        {
+        ParserData *udata = (ParserData *) $U;
+        $$ = ssd_add_col((Quark *)$P, FFORMAT_STRING);
+        udata->ncol++;
+        udata->nrow = -1;
+        }
+    ]]></element-type>
+    <element-type name="dcolumn" ctype="ss_column *"><![CDATA[
+        {
+        ParserData *udata = (ParserData *) $U;
+        $$ = ssd_add_col((Quark *)$P, FFORMAT_NUMBER);
+        udata->ncol++;
+        udata->nrow = -1;
+        }
+    ]]></element-type>
+    <element-type name="cell" ctype="char **"><![CDATA[
+        $$ = xmalloc(SIZEOF_VOID_P);
+        ((ParserData *) $U)->nrow++;
     ]]></element-type>
 
 
@@ -980,9 +1006,9 @@ char *utf2iso(const char *s)
             graph_set_locator($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrAGrid">
+        <child name="#EStrSSD">
         </child>
-        <child name="#EStrSet">
+        <child name="#EStrAGrid">
         </child>
         <child name="#EStrObject">
         </child>
@@ -1653,6 +1679,64 @@ char *utf2iso(const char *s)
             $$->lL_ff = $?;
         </attribute>
     </element>
+    <element name="#EStrSSD" type="ssd">
+        <!-- Attributes -->
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrActive" type="bval">
+            quark_set_active($$, $?);
+        </attribute>
+        <attribute name="#AStrRows" type="ival">
+            ssd_set_nrows($$, $?);
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrDcolumn">
+        </child>
+        <child name="#EStrScolumn">
+        </child>
+        <child name="#EStrSet">
+        </child>
+    </element>
+    <element name="#EStrScolumn" type="scolumn">
+        <!-- Attributes -->
+        <attribute name="#AStrLabel" type="sval">
+            // $$->label = amem_strdup(amem, $?);
+            xfree($?);
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrCell"><![CDATA[
+            ParserData *udata = (ParserData *) $U;
+            ssd_set_string(udata->ss, udata->nrow, udata->ncol, *$?);
+            xfree(*$?);
+            xfree($?);
+        ]]></child>
+    </element>
+    <element name="#EStrDcolumn" type="dcolumn">
+        <!-- Attributes -->
+        <attribute name="#AStrLabel" type="sval">
+            // $$->label = amem_strdup(amem, $?);
+            xfree($?);
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrCell"><![CDATA[
+            ParserData *udata = (ParserData *) $U;
+            double val;
+            if (parse_date_or_number($0, *$?, FALSE, &val) != RETURN_SUCCESS) {
+                val = 0;
+            }
+            ssd_set_value(udata->ss, udata->nrow, udata->ncol, val);
+            xfree(*$?);
+            xfree($?);
+        ]]></child>
+    </element>
+    <element name="#EStrCell" type="cell">
+        <!-- Character data -->
+        <data>
+            *$$ = utf2iso($?);
+        </data>
+    </element>
     <element name="#EStrSet" type="set">
         <!-- Attributes -->
         <attribute name="#AStrId" type="sval">
@@ -1695,6 +1779,7 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrDataset">
             set_set_dataset($$, $?);
+            dataset_free(quark_get_amem($$), $?);
         </child>
     </element>
     <element name="#EStrSymbol" type="symbol">
@@ -1862,22 +1947,30 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrDataset" type="dataset">
         <!-- Attributes -->
-        <attribute name="#AStrCols" type="ival">
-            // dataset_set_ncols($$, $?);
+        <attribute name="X" type="ival">
+            $$->cols[DATA_X] = $?;
         </attribute>
-        <attribute name="#AStrRows" type="ival">
-            // dataset_set_nrows($$, $?);
+        <attribute name="Y" type="ival">
+            $$->cols[DATA_Y] = $?;
+        </attribute>
+        <attribute name="Y1" type="ival">
+            $$->cols[DATA_Y1] = $?;
+        </attribute>
+        <attribute name="Y2" type="ival">
+            $$->cols[DATA_Y2] = $?;
+        </attribute>
+        <attribute name="Y3" type="ival">
+            $$->cols[DATA_Y3] = $?;
+        </attribute>
+        <attribute name="Y4" type="ival">
+            $$->cols[DATA_Y4] = $?;
+        </attribute>
+        <attribute name="s" type="ival">
+            $$->scol = $?;
         </attribute>
         <attribute name="#AStrComment" type="sval">
             $$->comment = $?;
         </attribute>
-        
-        <!-- Child elements -->
-        <child name="#EStrRow">
-            // dataset_set_datapoint($$, $?, ((ParserData *) $U)->nrow);
-            datapoint_free($?);
-            ((ParserData *) $U)->nrow++;
-        </child>
     </element>
     <element name="#EStrRow" type="datapoint">
         <!-- Attributes -->
@@ -1945,7 +2038,9 @@ int load_xgr_project(Grace *grace, char *fn)
     }
 
     udata.rt = grace->rt;
+    udata.ss   = NULL;
     udata.nrow = -1;
+    udata.ncol = -1;
     
     ret = xcc_parse(fp, &udata, &p, xcc_start_handler, xcc_end_handler);
     project = p;
