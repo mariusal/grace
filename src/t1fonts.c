@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -478,6 +478,26 @@ static void FreeCompositeString(CompositeString *cs, int nss)
     xfree(cs);
 }
 
+static int get_escape_args(char *s, char *buf)
+{
+    int i = 0;
+    
+    if (*s == '{') {
+        s++;
+        while (*s != '\0') {
+            if (*s == '}') {
+                *buf = '\0';
+                return i;
+            } else {
+                *buf = *s;
+                buf++; s++; i++;
+            }
+        }
+    }
+    
+    return -1;
+}
+
 static const TextMatrix unit_tm = UNIT_TM;
 
 static CompositeString *String2Composite(char *string, int *nss)
@@ -485,6 +505,7 @@ static CompositeString *String2Composite(char *string, int *nss)
     CompositeString *csbuf;
 
     char *ss, *buf, *acc_buf;
+    int inside_escape = FALSE;
     int i, isub, j;
     int acc_len;
     int slen;
@@ -537,230 +558,224 @@ static CompositeString *String2Composite(char *string, int *nss)
     ss[isub] = 0;
     
     for (i = 0; i <= slen; i++) {
+	ccode = string[i];
 	acc_len = 0;
-        if (string[i] < 32 && string[i] > 0) {
+        if (ccode < 32 && ccode > 0) {
 	    /* skip control codes */
             continue;
-	} else if (string[i] == '\\' && isdigit(string[i + 1])) {
-	    new_font = get_mapped_font(string[i + 1] - '0');
-	    i++;
-	    continue;
-	} else if (string[i] == '\\' && string[i + 1] == '\\') {
-	    if (!upperset) {	/* special case */
-	    	i++;
-	    }
-	} else if (string[i] == '\\' && string[i + 1] == 'd') {
-            switch (string[i + 2]) {
-            case 'l':
-		new_direction = STRING_DIRECTION_LR;
-		break;
-	    case 'r':
-		new_direction = STRING_DIRECTION_RL;
-		break;
-	    case 'L':
-		new_advancing = TEXT_ADVANCING_LR;
-		break;
-	    case 'R':
-		new_advancing = TEXT_ADVANCING_RL;
-		break;
-            }
-            i += 2;
-            continue;
-	} else if (string[i] == '\\' && string[i + 1] == 'F') {
-            switch (string[i + 2]) {
-            case 'k':
-		new_kerning = TRUE;
-		break;
-	    case 'K':
-		new_kerning = FALSE;
-		break;
-	    case 'l':
-		new_ligatures = TRUE;
-		break;
-	    case 'L':
-		new_ligatures = FALSE;
-		break;
-            }
-            i += 2;
-            continue;
-        } else if (string[i] == '\\' && 
-                isoneof(string[i + 1], "cCsSNBxuUoO+-fhvzZmM#rlqQtTR")) {
-	    i++;
-	    ccode = string[i];
-            switch (ccode) {
-	    case 'f':
-	    case 'h':
-	    case 'v':
-	    case 'z':
-	    case 'Z':
-	    case 'm':
-	    case 'M':
-	    case '#':
-	    case 'r':
-	    case 'l':
-	    case 't':
-	    case 'T':
-	    case 'R':
-		if (string[i + 1] == '{') {
-                    j = 0;
-                    while (string[i + 2 + j] != '}' &&
-                           string[i + 2 + j] != '\0') {
-                        buf[j] = string[i + 2 + j];
-                        j++;
-                    }
-                    if (string[i + 2 + j] == '}') {
-                        buf[j] = '\0';
-                        switch (ccode) {
-	                case 'f':
-                            if (j == 0) {
-                                new_font = BAD_FONT_ID;
-                            } else if (isdigit(buf[0])) {
-                                new_font = get_mapped_font(atoi(buf));
-                            } else {
-                                new_font = get_font_by_name(buf);
-                            }
-                            break;
-	                case 'v':
-                            if (j == 0) {
-                                new_vshift = 0.0;
-                            } else {
-                                val = atof(buf);
-                                new_vshift += tm_size(&tm_new)*val;
-                            }
-                            break;
-	                case 'h':
-                            val = atof(buf);
-                            new_hshift = tm_size(&tm_new)*val;
-                            break;
-	                case 'z':
-                            if (j == 0) {
-                                scale = 1.0/tm_size(&tm_new);
-                                tm_scale(&tm_new, scale);
-                            } else {
-                                scale = atof(buf);
-                                tm_scale(&tm_new, scale);
-                            }
-                            break;
-	                case 'Z':
-                            scale = atof(buf)/tm_size(&tm_new);
-                            tm_scale(&tm_new, scale);
-                            break;
-	                case 'r':
-                            tm_rotate(&tm_new, atof(buf));
-                            break;
-	                case 'l':
-                            tm_slant(&tm_new, atof(buf));
-                            break;
-	                case 't':
-                            if (j == 0) {
-                                tm_new = unit_tm;
-                            } else {
-                                if (sscanf(buf, "%lf %lf %lf %lf",
-                                                &tm_buf.cxx, &tm_buf.cxy,
-                                                &tm_buf.cyx, &tm_buf.cyy) == 4) {
-                                    tm_product(&tm_new, &tm_buf);
-                                }
-                            }
-                            break;
-	                case 'T':
-                            if (sscanf(buf, "%lf %lf %lf %lf",
-                                            &tm_buf.cxx, &tm_buf.cxy,
-                                            &tm_buf.cyx, &tm_buf.cyy) == 4) {
-                                tm_new = tm_buf;
-                            }
-                            break;
-	                case 'm':
-                            setmark = atoi(buf);
-                            break;
-	                case 'M':
-                            new_gotomark = atoi(buf);
-		            new_vshift = 0.0;
-		            new_hshift = 0.0;
-                            break;
-	                case '#':
-                            if (j % 2 == 0) {
-                                int k;
-                                char hex[3];
-                                hex[2] = '\0';
-                                for (k = 0; k < j; k += 2) {
-                                    hex[0] = buf[k];
-                                    hex[1] = buf[k + 1];
-                                    acc_buf[acc_len] = strtol(hex, NULL, 16);
-	                            acc_len++;
-                                }
-                            }
-                            break;
-	                case 'R':
-                            if (j == 0) {
-                                new_color = BAD_COLOR;
-                            } else if (isdigit(buf[0])) {
-                                    new_color = atof(buf);
-                            } else {
-                                new_color = get_color_by_name(buf);
-                            }
-                            break;
-                        }
-                        i += (j + 2);
-                    }
+	}
+        if (inside_escape) {
+            inside_escape = FALSE;
+            
+            if (isdigit(ccode)) {
+	        new_font = get_mapped_font(ccode - '0');
+	        continue;
+	    } else if (ccode == 'd') {
+                i++;
+                switch (string[i]) {
+                case 'l':
+		    new_direction = STRING_DIRECTION_LR;
+		    break;
+	        case 'r':
+		    new_direction = STRING_DIRECTION_RL;
+		    break;
+	        case 'L':
+		    new_advancing = TEXT_ADVANCING_LR;
+		    break;
+	        case 'R':
+		    new_advancing = TEXT_ADVANCING_RL;
+		    break;
+                default:
+                    /* undo advancing */
+                    i--;
+		    break;
                 }
-		break;
-	    case 's':
-                new_vshift -= tm_size(&tm_new)*SUBSCRIPT_SHIFT;
-                tm_scale(&tm_new, SSCRIPT_SCALE);
-		break;
-	    case 'S':
-                new_vshift += tm_size(&tm_new)*SUPSCRIPT_SHIFT;
-                tm_scale(&tm_new, SSCRIPT_SCALE);
-		break;
-	    case 'N':
-                scale = 1.0/tm_size(&tm_new);
-                tm_scale(&tm_new, scale);
-		new_vshift = 0.0;
-		break;
-	    case 'B':
-		new_font = BAD_FONT_ID;
-		break;
-	    case 'x':
-		new_font = get_font_by_name("Symbol");
-		break;
-	    case 'c':
-	        upperset = TRUE;
-		break;
-	    case 'C':
-	        upperset = FALSE;
-		break;
-	    case 'u':
-		new_underline = TRUE;
-		break;
-	    case 'U':
-		new_underline = FALSE;
-		break;
-	    case 'o':
-		new_overline = TRUE;
-		break;
-	    case 'O':
-		new_overline = FALSE;
-		break;
-	    case '-':
-                tm_scale(&tm_new, 1.0/ENLARGE_SCALE);
-		break;
-	    case '+':
-                tm_scale(&tm_new, ENLARGE_SCALE);
-		break;
-	    case 'q':
-                tm_slant(&tm_new, OBLIQUE_FACTOR);
-		break;
-	    case 'Q':
-                tm_slant(&tm_new, -OBLIQUE_FACTOR);
-		break;
-	    }
-	    
-            if (ccode != '#') {
                 continue;
+	    } else if (ccode == 'F') {
+                i++;
+                switch (string[i]) {
+                case 'k':
+		    new_kerning = TRUE;
+		    break;
+	        case 'K':
+		    new_kerning = FALSE;
+		    break;
+	        case 'l':
+		    new_ligatures = TRUE;
+		    break;
+	        case 'L':
+		    new_ligatures = FALSE;
+		    break;
+                default:
+                    /* undo advancing */
+                    i--;
+		    break;
+                }
+                continue;
+            } else if (isoneof(ccode, "cCsSNBxuUoO+-qQ")) {
+                switch (ccode) {
+	        case 's':
+                    new_vshift -= tm_size(&tm_new)*SUBSCRIPT_SHIFT;
+                    tm_scale(&tm_new, SSCRIPT_SCALE);
+		    break;
+	        case 'S':
+                    new_vshift += tm_size(&tm_new)*SUPSCRIPT_SHIFT;
+                    tm_scale(&tm_new, SSCRIPT_SCALE);
+		    break;
+	        case 'N':
+                    scale = 1.0/tm_size(&tm_new);
+                    tm_scale(&tm_new, scale);
+		    new_vshift = 0.0;
+		    break;
+	        case 'B':
+		    new_font = BAD_FONT_ID;
+		    break;
+	        case 'x':
+		    new_font = get_font_by_name("Symbol");
+		    break;
+	        case 'c':
+	            upperset = TRUE;
+		    break;
+	        case 'C':
+	            upperset = FALSE;
+		    break;
+	        case 'u':
+		    new_underline = TRUE;
+		    break;
+	        case 'U':
+		    new_underline = FALSE;
+		    break;
+	        case 'o':
+		    new_overline = TRUE;
+		    break;
+	        case 'O':
+		    new_overline = FALSE;
+		    break;
+	        case '-':
+                    tm_scale(&tm_new, 1.0/ENLARGE_SCALE);
+		    break;
+	        case '+':
+                    tm_scale(&tm_new, ENLARGE_SCALE);
+		    break;
+	        case 'q':
+                    tm_slant(&tm_new, OBLIQUE_FACTOR);
+		    break;
+	        case 'Q':
+                    tm_slant(&tm_new, -OBLIQUE_FACTOR);
+		    break;
+                }
+                continue;
+            } else if (isoneof(ccode, "fhvzZmM#rltTR") &&
+                       (j = get_escape_args(&(string[i + 1]), buf)) >= 0) {
+                i += (j + 2);
+                switch (ccode) {
+	        case 'f':
+                    if (j == 0) {
+                        new_font = BAD_FONT_ID;
+                    } else if (isdigit(buf[0])) {
+                        new_font = get_mapped_font(atoi(buf));
+                    } else {
+                        new_font = get_font_by_name(buf);
+                    }
+                    break;
+	        case 'v':
+                    if (j == 0) {
+                        new_vshift = 0.0;
+                    } else {
+                        val = atof(buf);
+                        new_vshift += tm_size(&tm_new)*val;
+                    }
+                    break;
+	        case 'h':
+                    val = atof(buf);
+                    new_hshift = tm_size(&tm_new)*val;
+                    break;
+	        case 'z':
+                    if (j == 0) {
+                        scale = 1.0/tm_size(&tm_new);
+                        tm_scale(&tm_new, scale);
+                    } else {
+                        scale = atof(buf);
+                        tm_scale(&tm_new, scale);
+                    }
+                    break;
+	        case 'Z':
+                    scale = atof(buf)/tm_size(&tm_new);
+                    tm_scale(&tm_new, scale);
+                    break;
+	        case 'r':
+                    tm_rotate(&tm_new, atof(buf));
+                    break;
+	        case 'l':
+                    tm_slant(&tm_new, atof(buf));
+                    break;
+	        case 't':
+                    if (j == 0) {
+                        tm_new = unit_tm;
+                    } else {
+                        if (sscanf(buf, "%lf %lf %lf %lf",
+                                        &tm_buf.cxx, &tm_buf.cxy,
+                                        &tm_buf.cyx, &tm_buf.cyy) == 4) {
+                            tm_product(&tm_new, &tm_buf);
+                        }
+                    }
+                    break;
+	        case 'T':
+                    if (sscanf(buf, "%lf %lf %lf %lf",
+                                    &tm_buf.cxx, &tm_buf.cxy,
+                                    &tm_buf.cyx, &tm_buf.cyy) == 4) {
+                        tm_new = tm_buf;
+                    }
+                    break;
+	        case 'm':
+                    setmark = atoi(buf);
+                    break;
+	        case 'M':
+                    new_gotomark = atoi(buf);
+		    new_vshift = 0.0;
+		    new_hshift = 0.0;
+                    break;
+	        case 'R':
+                    if (j == 0) {
+                        new_color = BAD_COLOR;
+                    } else if (isdigit(buf[0])) {
+                            new_color = atof(buf);
+                    } else {
+                        new_color = get_color_by_name(buf);
+                    }
+                    break;
+	        case '#':
+                    if (j % 2 == 0) {
+                        int k;
+                        char hex[3];
+                        hex[2] = '\0';
+                        for (k = 0; k < j; k += 2) {
+                            hex[0] = buf[k];
+                            hex[1] = buf[k + 1];
+                            acc_buf[acc_len] = strtol(hex, NULL, 16);
+	                    acc_len++;
+                        }
+                    }
+                    break;
+                }
+
+                if (ccode != '#') {
+                    continue;
+                }
+	    } else {
+                /* store the char */
+                acc_buf[0] = (ccode + (upperset*0x80)) & 0xff;
+                acc_len = 1;
             }
-	} else {
-            acc_buf[0] = (string[i] + (upperset*0x80)) & 0xff;
-            acc_len = 1;
+        } else {
+            if (ccode == '\\') {
+                inside_escape = TRUE;
+                continue;
+            } else {
+                /* store the char */
+                acc_buf[0] = (ccode + (upperset*0x80)) & 0xff;
+                acc_len = 1;
+            }
         }
 	
         if ((new_font      != font      ) ||
@@ -779,7 +794,7 @@ static CompositeString *String2Composite(char *string, int *nss)
 	    (new_ligatures != ligatures ) ||
 	    (setmark       >= 0         ) ||
 	    (new_gotomark  >= 0         ) ||
-	    (string[i]     == 0         )) {
+	    (ccode         == 0         )) {
 	    
             if (isub != 0 || setmark >= 0) {	/* non-empty substring */
 	
@@ -867,7 +882,8 @@ static void process_ligatures(CompositeString *cs)
     char buf_char;
 
     ligtheString = xmalloc((cs->len + 1)*SIZEOF_CHAR);
-    for (j = 0, m = 0; j < cs->len; j++, m++) { /* Loop through the characters */
+    /* Loop through the characters */
+    for (j = 0, m = 0; j < cs->len; j++, m++) {
         if ((k = T1_QueryLigs(cs->font, cs->s[j], &succs, &ligs)) > 0) {
             buf_char = cs->s[j];
             while (k > 0){
