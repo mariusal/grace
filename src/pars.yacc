@@ -2351,16 +2351,16 @@ parmset:
 
 /* defaults */
 	| DEFAULT lines_select {
-	    grdefaults.lines = $2;
+	    grdefaults.line.style = $2;
 	}
 	| DEFAULT linew_select {
-	    grdefaults.linew = $2;
+	    grdefaults.line.width = $2;
 	}
 	| DEFAULT color_select {
-	    grdefaults.color = $2;
+	    grdefaults.line.pen.color = $2;
 	}
 	| DEFAULT pattern_select {
-	    grdefaults.pattern = $2;
+	    grdefaults.line.pen.pattern = $2;
 	}
 	| DEFAULT CHAR SIZE expr {
 	    grdefaults.charsize = $4;
@@ -2369,7 +2369,6 @@ parmset:
 	    grdefaults.font = $2;
 	}
 	| DEFAULT SYMBOL SIZE expr {
-	    grdefaults.symsize = $4;
 	}
 	| DEFAULT SFORMAT CHRSTR {
 	    project_set_sformat(grace->project, $3);

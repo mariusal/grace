@@ -306,14 +306,11 @@ typedef enum {
  * defaults
  */
 typedef struct {
-    int color;
-    int bgcolor;
-    int pattern;
-    int lines;
-    double linew;
-    double charsize;
+    Line line;
+    Pen fillpen;
+
     int font;
-    double symsize;
+    double charsize;
 } defaults;
 
 typedef struct {

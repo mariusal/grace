@@ -336,58 +336,49 @@ static void set_default_set(Quark *pset)
     grdefaults = rt->grdefaults;
     
     p->active = TRUE;
-    p->type = SET_XY;                           /* dataset type */
+    p->type = SET_XY;                            /* dataset type */
 
-    p->symskip = 0;                             /* How many symbols to skip */
+    p->symskip = 0;                              /* How many symbols to skip */
 
-    p->sym.type = 0;                            /* set plot symbol */
-    p->sym.size = grdefaults.symsize;            /* size of symbols */
-    p->sym.line.pen.color = grdefaults.color;    /* color for symbol line */
-    p->sym.line.pen.pattern = grdefaults.pattern;/* pattern */
-    p->sym.line.style = grdefaults.lines;        /* set plot sym line style */
-    p->sym.line.width = grdefaults.linew;        /* set plot sym line width */
-    p->sym.fillpen.color = grdefaults.color;     /* color for symbol fill */
-    p->sym.fillpen.pattern = 0;                  /* pattern for symbol fill */
+    p->sym.type = 0;                             /* set plot symbol */
+    p->sym.size = grdefaults.charsize;           /* size of symbols */
+    p->sym.line = grdefaults.line;
+    p->sym.fillpen = grdefaults.fillpen;
     p->sym.symchar = 'A';
     p->sym.charfont = grdefaults.font;
 
-    p->avalue.active = FALSE;                   /* active or not */
-    p->avalue.type = AVALUE_TYPE_Y;             /* type */
-    p->avalue.size = 1.0;                       /* char size */
-    p->avalue.font = grdefaults.font;           /* font */
-    p->avalue.color = grdefaults.color;         /* color */
-    p->avalue.angle = 0;                        /* rotation angle */
-    p->avalue.format = FORMAT_GENERAL;          /* format */
-    p->avalue.prec = 3;                         /* precision */
+    p->avalue.active = FALSE;                    /* active or not */
+    p->avalue.type = AVALUE_TYPE_Y;              /* type */
+    p->avalue.size = 1.0;                        /* char size */
+    p->avalue.font = grdefaults.font;            /* font */
+    p->avalue.color = grdefaults.line.pen.color; /* color */
+    p->avalue.angle = 0;                         /* rotation angle */
+    p->avalue.format = FORMAT_GENERAL;           /* format */
+    p->avalue.prec = 3;                          /* precision */
     p->avalue.prestr[0] = '\0';
     p->avalue.appstr[0] = '\0';
     p->avalue.offset.x = 0.0;
     p->avalue.offset.y = 0.0;
 
     p->line.type = LINE_TYPE_STRAIGHT;
-    p->line.line.style = grdefaults.lines;
-    p->line.line.width = grdefaults.linew;
-    p->line.line.pen.color = grdefaults.color;
-    p->line.line.pen.pattern = grdefaults.pattern;
+    p->line.line = grdefaults.line;
     
     p->line.baseline_type = BASELINE_TYPE_0;
     p->line.baseline = FALSE;
     p->line.droplines = FALSE;
 
-    p->line.filltype = SETFILL_NONE;                 /* fill type */
-    p->line.fillrule = FILLRULE_WINDING;             /* fill type */
-    p->line.fillpen.color = grdefaults.color;     /* fill color */
-    p->line.fillpen.pattern = grdefaults.pattern; /* fill pattern */
+    p->line.filltype = SETFILL_NONE;              /* fill type */
+    p->line.fillrule = FILLRULE_WINDING;          /* fill rule */
+    p->line.fillpen = grdefaults.fillpen;
 
     p->errbar.active = TRUE;                      /* on by default */
     p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
-    p->errbar.pen.color = grdefaults.color;       /* color */
-    p->errbar.pen.pattern = grdefaults.pattern;   /* pattern */
-    p->errbar.lines = grdefaults.lines;           /* error bar line width */
-    p->errbar.linew = grdefaults.linew;           /* error bar line style */
-    p->errbar.riser_linew = grdefaults.linew;     /* riser line width */
-    p->errbar.riser_lines = grdefaults.lines;     /* riser line style */
-    p->errbar.barsize = 1.0;                      /* size of error bar */
+    p->errbar.pen = grdefaults.line.pen;
+    p->errbar.lines = grdefaults.line.style;      /* error bar line width */
+    p->errbar.linew = grdefaults.line.width;      /* error bar line style */
+    p->errbar.riser_linew = grdefaults.line.width;/* riser line width */
+    p->errbar.riser_lines = grdefaults.line.style;/* riser line style */
+    p->errbar.barsize = grdefaults.charsize;      /* size of error bar */
     p->errbar.arrow_clip = FALSE;                 /* draw arrows if clipped */
     p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
 

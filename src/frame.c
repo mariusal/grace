@@ -47,12 +47,8 @@ static void set_default_legend(legend *l, const defaults *grdefaults)
     l->offset.x = 0.05;
     l->offset.y = 0.05;
     
-    l->boxline.pen.color = grdefaults->color;
-    l->boxline.pen.pattern = grdefaults->pattern;
-    l->boxline.width = grdefaults->linew;
-    l->boxline.style = grdefaults->lines;
-    l->boxfillpen.color = 0;
-    l->boxfillpen.pattern = grdefaults->pattern;
+    l->boxline    = grdefaults->line;
+    l->boxfillpen = grdefaults->fillpen;
     
     l->singlesym = FALSE;
     l->vgap = 0.01;
@@ -62,7 +58,7 @@ static void set_default_legend(legend *l, const defaults *grdefaults)
     
     l->font = grdefaults->font;
     l->charsize = grdefaults->charsize;
-    l->color = grdefaults->color;
+    l->color = grdefaults->line.pen.color;
     
     l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
 }
@@ -82,12 +78,8 @@ static void set_default_frame(Quark *q)
     
     f->active = TRUE;
     f->type = 0;                /* frame type */
-    f->outline.style = grdefaults.lines;
-    f->outline.width = grdefaults.linew;
-    f->outline.pen.color = grdefaults.color;
-    f->outline.pen.pattern = grdefaults.pattern;
-    f->fillpen.color = grdefaults.bgcolor;      /* fill background */
-    f->fillpen.pattern = 0;
+    f->outline = grdefaults.line;
+    f->fillpen = grdefaults.fillpen;
 
     memcpy(&f->v, &d_v, sizeof(view));
     set_default_legend(&f->l, &grdefaults);

@@ -41,7 +41,7 @@
 #include "protos.h"
 
 static defaults d_d =
-{1, 0, 1, 1, 1, 1.0, 0, 1.0};
+{{{1, 1}, 1, 1.0}, {0, 0}, 1, 1.0};
 
 /* defaults layout
     int color;
