@@ -311,7 +311,7 @@ int pclose(FILE *fp)
 #endif /* HAVE_POPEN */
 
 #ifdef __EMX__
-char *popen_path_translate(char *path)
+char *exe_path_translate(char *path)
 {
     static char absfn[GR_MAXPATHLEN];
     

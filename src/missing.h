@@ -109,9 +109,9 @@ void *alloca(unsigned int);
 #endif
 
 #ifdef __EMX__
-char *popen_path_translate(char *path);
+char *exe_path_translate(char *path);
 #else
-#  define popen_path_translate(p) (p)
+#  define exe_path_translate(p) (p)
 #endif
 
 #endif /* __MISSING_H_ */
