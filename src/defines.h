@@ -36,6 +36,8 @@
 
 #include <config.h>
 
+#include "draw.h"
+
 /*
  * some constants
  *
@@ -349,18 +351,6 @@ typedef struct {
     double symsize;
 } defaults;
 
-typedef struct {
-    int color;
-    int pattern;
-    /* int transparency; */
-} Pen;
-
-typedef struct {
-    Pen pen;
-    int style;
-    double width;
-} Line;
-
 /* A point in world coordinates */
 typedef struct {
     double x;
@@ -368,24 +358,9 @@ typedef struct {
 } WPoint;
 
 
-/* A point in viewport coordinates */
-typedef struct {
-    double x;
-    double y;
-} VPoint;
-
-typedef struct {
-    double x;
-    double y;
-} VVector;
-
 typedef struct {
     double xg1, xg2, yg1, yg2;  /* window into world coords */
 } world;
-
-typedef struct {
-    double xv1, xv2, yv1, yv2;  /* viewport */
-} view;
 
 /* target graph & set*/
 typedef struct {

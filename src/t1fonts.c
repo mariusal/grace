@@ -33,7 +33,6 @@
 #include <ctype.h>
 
 #include "globals.h"
-#include "defines.h"
 
 #include "utils.h"
 #include "files.h"

@@ -37,11 +37,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
-#include "graphs.h"
-#include "utils.h"
 #include "draw.h"
 #include "patterns.h"
+#include "utils.h"
+#include "graphs.h"
 
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
                                    a separate module */

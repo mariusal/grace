@@ -33,7 +33,6 @@
 #include <t1lib.h>
 
 #include "grace/base.h"
-#include "defines.h"
 
 /* bpp that Grace uses internally ( = 256 colors) */
 #define GRACE_BPP	8
@@ -146,6 +145,34 @@
 #define COLOR_TRANS_NEGATIVE    3
 #define COLOR_TRANS_REVERSE     4
 #define COLOR_TRANS_SRGB        5
+
+/* A point in viewport coordinates */
+typedef struct {
+    double x;
+    double y;
+} VPoint;
+
+typedef struct {
+    double x;
+    double y;
+} VVector;
+
+/* Viewport */
+typedef struct {
+    double xv1, xv2, yv1, yv2;
+} view;
+
+typedef struct {
+    int color;
+    int pattern;
+    /* int transparency; */
+} Pen;
+
+typedef struct {
+    Pen pen;
+    int style;
+    double width;
+} Line;
 
 typedef struct {
     int red;
