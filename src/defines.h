@@ -75,6 +75,9 @@
 /* dot (obsolete) */
 #define SYM_DOT_OBS     1
 
+/* max width of drawn lines */
+#define MAX_LINEWIDTH 20.0
+
 /*
  * axis types
  */
