@@ -1329,29 +1329,31 @@ char *get_username(void)
     return username;
 }
 
+static char *userhome = NULL;
+
+void init_userhome(void)
+{
+    userhome = copy_string(NULL, getenv("HOME"));
+    if (userhome == NULL || userhome[strlen(userhome) - 1] != '/') {
+        userhome = concat_strings(userhome, "/");
+    }
+}
+
+char *get_userhome(void)
+{
+    return userhome;
+}
+
 /* TODO this needs some work */
 void expand_tilde(char *buf)
 {
     char buf2[GR_MAXPATHLEN];
-    char *home;
+
     if (buf[0] == '~') {
 	if (strlen(buf) == 1) {
-	    home = getenv("HOME");
-	    if (home == NULL) {
-		errmsg("Couldn't find $HOME!");
-		return;
-	    } else {
-		strcpy(buf, home);
-		strcat(buf, "/");
-	    }
+            strcpy(buf, get_userhome());
 	} else if (buf[1] == '/') {
-	    home = getenv("HOME");
-	    if (home == NULL) {
-		errmsg("Couldn't find $HOME!");
-		return;
-	    }
-	    strcpy(buf2, home);
-	    strcat(buf2, "/");
+            strcpy(buf2, get_userhome());
 	    strcat(buf2, buf + 1);
 	    strcpy(buf, buf2);
 	} else {
