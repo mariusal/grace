@@ -276,6 +276,7 @@ void draw_pie_chart(int gno)
             }
             
             switch (dataset_type(gno, setno)) {
+            case SET_XY:
             case SET_XYCOLPAT:
                 get_graph_plotarr(gno, setno, &p);
                 /* data */
@@ -310,6 +311,8 @@ void draw_pie_chart(int gno)
                 
                 stop_angle = 0.0;
                 for (i = 0; i < p.data.len; i++) {
+                    Pen pen;
+                    
                     start_angle = stop_angle;
                     stop_angle = start_angle + 2*M_PI*x[i]/norm;
                     offset.x = e[i]*r*cos((start_angle + stop_angle)/2.0);
@@ -325,8 +328,17 @@ void draw_pie_chart(int gno)
                     vp2.x = vpc.x + r + offset.x;
                     vp2.y = vpc.y + r + offset.y;
                     
-                    setcolor((int) rint(c[i]));
-                    setpattern((int) rint(pt[i]));
+                    if (c != NULL) {
+                        pen.color   = (int) rint(c[i]);
+                    } else {
+                        pen.color = p.symfillpen.color;
+                    }
+                    if (pt != NULL) {
+                        pen.pattern   = (int) rint(pt[i]);
+                    } else {
+                        pen.pattern = p.symfillpen.pattern;
+                    }
+                    setpen(pen);
                     DrawFilledArc(vp1, vp2,
                         (int) rint(180.0/M_PI*start_angle),
                         (int) rint(180.0/M_PI*stop_angle),
