@@ -187,7 +187,7 @@ static void xmlio_write_text(XFile *xf, char *text)
     if (is_empty_string(text)) {
         xfile_empty_element(xf, EStrText, NULL);
     } else {
-        xfile_text_element(xf, EStrText, NULL, text);
+        xfile_text_element(xf, EStrText, NULL, text, TRUE);
     }
 }
 
