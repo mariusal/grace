@@ -287,6 +287,8 @@ void set_date_hint(Dates_format preferred);
 Dates_format get_date_hint(void);
 void allow_two_digits_years(int allowed);
 int two_digits_years_allowed(void);
+void set_wrap_year(int year);
+int get_wrap_year(void);
 long cal_to_jul(int y, int m, int d);
 void jul_to_cal(long n, int *y, int *m, int *d);
 double jul_and_time_to_jul(long jul, int hour, int min, double sec);

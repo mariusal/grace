@@ -152,20 +152,40 @@ int two_digits_years_allowed(void)
 }
 
 
+static int wrap_year = 1950;
+static int century   = 2000;
+
 /*
- * reduce years according to the folowing rules :
- * [1950 ; 1999] -> [50 ; 99]
- * [2000 ; 2049] -> [00 ; 49]
+ * store the wrap year
+ */
+void set_wrap_year(int year)
+{
+    wrap_year = year;
+    century   = 100*(1 + wrap_year/100);
+}
+
+/*
+ * get the wrap year
+ */
+int get_wrap_year(void)
+{
+    return wrap_year;
+}
+
+/*
+ * reduce years according to the following rules :
+ * [ wrap_year ; 100*(1 + wrap_year/100) - 1 ] -> [wy ; 99]
+ * [ 100*(1 + wrap_year/100) ; wrap_year + 99] -> [00 ; wy-1]
  */
 static int reduced_year(int y)
 {
     if (two_digits_years_allowed()) {
-        if (y < 1950) {
+        if (y < wrap_year) {
             return y;
-        } else if (y < 2000) {
-            return y - 1900;
-        } else if (y < 2050) {
-            return y - 2000;
+        } else if (y < century) {
+            return y - (century - 100);
+        } else if (y < (wrap_year + 100)) {
+            return y - century;
         } else {
             return y;
         }
