@@ -1,4 +1,4 @@
-.TH GRACE 1
+.TH GRACE 1 "March 31, 2001"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -169,6 +169,10 @@ Set the world coordinates for the current graph
 .B -usage|-help
 This message
 
+.SH RESOURCES
+.TP
+When run in the GUI mode, the interface is a subject to X resource settings.
+Please refer to the User's Guide for a list of important ones.
 
 .SH ENVIRONMENT
 .TP
@@ -194,8 +198,25 @@ and
 A flag (0 or 1) and a file name which determine whether a FFT should use 
 `wisdom' when using the FFTW libraries.
 
+.SH FILES
+In many cases, when Grace needs to access a file given with a
+relative \f4pathname\f1, it searches for the file along the
+following path:
+\f4 ./pathname:./.grace/pathname:~/.grace/pathname: $GRACE_HOME/pathname\f1
+
+The following files are of a special importance:
+
+.B gracerc
+- init file loaded upon start up.
+
+.B templates/Default.agr
+- the default template, loaded whenever a new project is started.
+
+.B fonts/FontDataBase
+- the file responsible for font configuration.
+
 .SH "SEE ALSO"
-grconvert(1)
+grconvert(1), X(1), Grace User's Guide
 
 .SH HOME PAGE
 http://plasma-gate.weizmann.ac.il/Grace/
@@ -216,7 +237,7 @@ over by a team of volunteers under the coordination of Evgeny Stambulchik.
 .SH COPYRIGHT
 Copyright (c) 1991-1995 Paul J Turner, Portland, OR
 .br
-Copyright (c) 1996-2000 Grace Development Team
+Copyright (c) 1996-2001 Grace Development Team
 
 .SH LICENSE
 The program is distributed under the terms of the GNU General Public License as
