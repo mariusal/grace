@@ -820,31 +820,28 @@ Widget CreateButton(Widget parent, char *label)
     return button;
 }
 
-static Pixel pm_fg, pm_bg;
-
-/*
- * initialize pixel values for bitmap buttons
- */
-void init_pm(Pixel fg, Pixel bg)
-{
-    pm_fg = fg;
-    pm_bg = bg;
-}
-
 Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits)
 {
     Widget button;
     Pixmap pm;
+    Pixel fg, bg;
 
-    pm = XCreatePixmapFromBitmapData(disp,
-        root, (char *) bits, width, height, pm_fg, pm_bg, depth);
-    
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent, 
 	XmNlabelType, XmPIXMAP,
-	XmNlabelPixmap, pm,
     	NULL);
+    
+/*
+ * We need to get right fore- and background colors for pixmap.
+ */    
+    XtVaGetValues(button,
+		  XmNforeground, &fg,
+		  XmNbackground, &bg,
+		  NULL);
+    pm = XCreatePixmapFromBitmapData(disp,
+        root, (char *) bits, width, height, fg, bg, depth);
+    XtVaSetValues(button, XmNlabelPixmap, pm, NULL);
 
     return button;
 }
