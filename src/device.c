@@ -103,10 +103,9 @@ int set_page_dimensions(int wpp, int hpp, int rescale)
             } 
         }
         for (i = 0; i < ndevices; i++) {
-            device_table[i].pg.width =
-                (unsigned long) (wpp*(device_table[i].pg.dpi/72));
-            device_table[i].pg.height =
-                (unsigned long) (hpp*(device_table[i].pg.dpi/72));
+            Page_geometry *pg = &device_table[i].pg;
+            pg->width  = (unsigned long) rint((double) wpp*(pg->dpi/72));
+            pg->height = (unsigned long) rint((double) hpp*(pg->dpi/72));
         }
         return RETURN_SUCCESS;
     }
@@ -117,8 +116,9 @@ int get_device_page_dimensions(int dindex, int *wpp, int *hpp)
     if (dindex >= ndevices || dindex < 0) {
         return RETURN_FAILURE;
     } else {
-	*wpp = device_table[dindex].pg.width*72/device_table[dindex].pg.dpi;
-	*hpp = device_table[dindex].pg.height*72/device_table[dindex].pg.dpi;
+        Page_geometry *pg = &device_table[dindex].pg;
+        *wpp = (int) rint((double) pg->width*72/pg->dpi);
+        *hpp = (int) rint((double) pg->height*72/pg->dpi);
         return RETURN_SUCCESS;
     }
 }
