@@ -1,4 +1,6 @@
 /*-----------------------------------------------------------------------------
+ * $Header: /usr/shome/cvsroot/grace/src/ListTree.h,v 1.2 2001-07-21 17:45:05 fnevgeny Exp $
+ *
  * ListTree	A list widget that displays a file manager style tree
  *
  * Copyright (c) 1996 Robert W. McMullen
@@ -110,47 +112,44 @@ typedef struct _ListTreeItemReturnStruct {
   XEvent	*event;
 } ListTreeItemReturnStruct;
 
-#ifdef __cplusplus
-};
-#endif
-
 /*
 ** Public function declarations
 */
-#ifndef _ListTree_
-#if __STDC__ || defined(__cplusplus)
-#define P_(s) s
-#else
-#define P_(s) ()
-#endif
 
 /* ListTree.c */
-void ListTreeRefresh P_((Widget w));
-void ListTreeRefreshOff P_((Widget w));
-void ListTreeRefreshOn P_((Widget w));
-ListTreeItem *ListTreeAdd P_((Widget w, ListTreeItem *parent, char *string));
-ListTreeItem *ListTreeAddType P_((Widget w, ListTreeItem *parent, char *string, ListTreeItemType type));
-ListTreeItem *ListTreeAddBranch P_((Widget w, ListTreeItem *parent, char *string));
-ListTreeItem *ListTreeAddLeaf P_((Widget w, ListTreeItem *parent, char *string));
-void ListTreeSetItemPixmaps P_((Widget w, ListTreeItem *item, Pixmap openPixmap, Pixmap closedPixmap));
-void ListTreeRenameItem P_((Widget w, ListTreeItem *item, char *string));
-int ListTreeDelete P_((Widget w, ListTreeItem *item));
-int ListTreeDeleteChildren P_((Widget w, ListTreeItem *item));
-int ListTreeReparent P_((Widget w, ListTreeItem *item, ListTreeItem *newparent));
-int ListTreeReparentChildren P_((Widget w, ListTreeItem *item, ListTreeItem *newparent));
-int ListTreeOrderSiblings P_((Widget w, ListTreeItem *item));
-int ListTreeOrderChildren P_((Widget w, ListTreeItem *item));
-ListTreeItem *ListTreeFindSiblingName P_((Widget w, ListTreeItem *item, char *name));
-ListTreeItem *ListTreeFindChildName P_((Widget w, ListTreeItem *item, char *name));
-void ListTreeHighlightItem P_((Widget w, ListTreeItem *item));
-ListTreeItem *ListTreeFirstItem P_((Widget w));
+void ListTreeRefresh (Widget w);
+void ListTreeRefreshOff (Widget w);
+void ListTreeRefreshOn (Widget w);
+ListTreeItem *ListTreeAdd (Widget w, ListTreeItem *parent, char *string);
+ListTreeItem *ListTreeAddType (Widget w, ListTreeItem *parent, char *string, ListTreeItemType type);
+ListTreeItem *ListTreeAddBranch (Widget w, ListTreeItem *parent, char *string);
+ListTreeItem *ListTreeAddLeaf (Widget w, ListTreeItem *parent, char *string);
+void ListTreeSetItemPixmaps (Widget w, ListTreeItem *item, Pixmap openPixmap, Pixmap closedPixmap);
+void ListTreeRenameItem (Widget w, ListTreeItem *item, char *string);
+int ListTreeDelete (Widget w, ListTreeItem *item);
+int ListTreeDeleteChildren (Widget w, ListTreeItem *item);
+int ListTreeReparent (Widget w, ListTreeItem *item, ListTreeItem *newparent);
+int ListTreeReparentChildren (Widget w, ListTreeItem *item, ListTreeItem *newparent);
+int ListTreeOrderSiblings (Widget w, ListTreeItem *item);
+int ListTreeOrderChildren (Widget w, ListTreeItem *item);
+int ListTreeUserOrderChildren (Widget w, ListTreeItem *item, int (*func)(const void *, const void *));
+int ListTreeUserOrderSiblings (Widget w, ListTreeItem *item, int (*func)(const void *, const void *));
+ListTreeItem *ListTreeFindSiblingName (Widget w, ListTreeItem *item, char *name);
+ListTreeItem *ListTreeFindChildName (Widget w, ListTreeItem *item, char *name);
+void ListTreeHighlightItem (Widget w, ListTreeItem *item);
+ListTreeItem *ListTreeFirstItem (Widget w);
+void ListTreeGetHighlighted(Widget w,ListTreeMultiReturnStruct *ret);
+void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
+			    int count,Boolean clear);
 #ifdef USE_RDD
-void ListTreeHighlightDrop P_((Widget w, XEvent *event, String *params, Cardinal *num_params));
-ListTreeReturnStruct *ListTreeGetDrop P_((Widget w));
+void ListTreeHighlightDrop (Widget w, XEvent *event, String *params, Cardinal *num_params);
+ListTreeReturnStruct *ListTreeGetDrop (Widget w);
 #endif
-Widget XmCreateScrolledListTree P_((Widget parent, char *name, Arg *args, Cardinal count));
+Widget XmCreateScrolledListTree (Widget parent, char *name, Arg *args, Cardinal count);
 
-#undef P_
+
+#ifdef __cplusplus
+};
 #endif
 
 #endif /* _ListTree_H */

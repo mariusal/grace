@@ -31,6 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ListTreeP.h"
 /* #define DEBUG */
@@ -44,7 +45,7 @@
 #ifdef DEBUG
 #include <stdlib.h>
 #include <stdarg.h>
-void DBG(int line,char *fcn,char *fmt, ...)
+static void DBG(int line,char *fcn,char *fmt, ...)
 {
   va_list ap;
   
@@ -56,7 +57,7 @@ void DBG(int line,char *fcn,char *fmt, ...)
 #define DARG __LINE__,__FUNCTION__
 #define DBGW(a) fprintf(stderr,"%s:%d %s()   %s\n",__FILE__,__LINE__,__FUNCTION__, a)
 #else
-void DBG()
+static void DBG(int line,char *fcn,char *fmt, ...)
 {
 }
 #define DARG __LINE__,__FUNCTION__
@@ -131,40 +132,41 @@ static XtResource resources[] =
 
 #undef offset
 
-static void Initialize();
-static void Destroy();
-static void Redisplay();
-static void Resize();
-static Boolean SetValues();
-static void Realize();
-static XtGeometryResult QueryGeometry();
+static void Initialize(Widget request, Widget tnew, ArgList args, Cardinal * num);
+static void Destroy(ListTreeWidget w);
+static void Redisplay(Widget aw, XExposeEvent * event, Region region);
+static void Resize(ListTreeWidget w);
+static Boolean SetValues(Widget current, Widget request, Widget reply,
+                         ArgList args, Cardinal * nargs);
+static void Realize(Widget aw, XtValueMask * value_mask, XSetWindowAttributes * attributes);
+static XtGeometryResult QueryGeometry(ListTreeWidget w, XtWidgetGeometry *proposed, XtWidgetGeometry *answer);
 
-static void Draw();
-static void DrawAll();
-static void DrawChanged();
-static void DrawItemHighlight();
-static void DrawItemHighlightClear();
-static ListTreeItem *GetItem();
+static void Draw(ListTreeWidget w, int yevent,int hevent);
+static void DrawAll(ListTreeWidget w);
+static void DrawChanged(ListTreeWidget w);
+static void DrawItemHighlight(ListTreeWidget w, ListTreeItem *item);
+static void DrawItemHighlightClear(ListTreeWidget w, ListTreeItem *item);
+static ListTreeItem *GetItem(ListTreeWidget w, int findy);
 
-static void DeleteChildren();
-static void CountAll();
-static void GotoPosition();
+static void DeleteChildren(ListTreeWidget w, ListTreeItem *item);
+static void CountAll(ListTreeWidget w);
+static void GotoPosition(ListTreeWidget w);
+static int  GotoPositionChildren(ListTreeWidget w,ListTreeItem *item, int i);
 static void VSBCallback (Widget w, XtPointer client_data, XtPointer call_data);
 static void HSBCallback (Widget w, XtPointer client_data, XtPointer call_data);
-void ListTreeGetHighlighted(ListTreeWidget w,ListTreeMultiReturnStruct *ret);
-void ListTreeSetHighlighted(ListTreeWidget w,ListTreeItem **items,
-			    int count,Boolean clear);
+static int SearchPosition(ListTreeWidget w, ListTreeItem *item, ListTreeItem *finditem,
+	       int y, Boolean *found);
 
 /* Actions */
-static void focus_in();
-static void focus_out();
-static void notify();
-static void unset();
-static void menu();
-static void select_start();
-static void extend_select_start();
-static void extend_select();
-static void keypress();
+static void focus_in(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void focus_out(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void notify(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void unset(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void menu(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void select_start(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void extend_select_start(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void extend_select(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void keypress(Widget aw, XEvent *event, String *params, Cardinal *num_params);
 
 #ifdef max  /* just in case--we don't know, but these are commonly set */
 #undef max  /* by arbitrary unix systems.  Also, we cast to int! */
@@ -265,9 +267,9 @@ ListTreeClassRec listtreeClassRec =
 	/* compress_exposure     */ XtExposeCompressMultiple,
 	/* compress_enterleave   */ True,
 	/* visible_interest      */ True,
-	/* destroy               */ Destroy,
-	/* resize                */ Resize,
-	/* expose                */ Redisplay,
+	/* destroy               */ (XtWidgetProc)Destroy,
+	/* resize                */ (XtWidgetProc)Resize,
+	/* expose                */ (XtExposeProc)Redisplay,
 	/* set_values            */ SetValues,
 	/* set_values_hook       */ NULL,
 	/* set_values_almost     */ XtInheritSetValuesAlmost,
@@ -276,7 +278,7 @@ ListTreeClassRec listtreeClassRec =
 	/* version               */ XtVersion,
 	/* callback_private      */ NULL,
 	/* tm_table              */ defaultTranslations,
-	/* query_geometry        */ QueryGeometry,
+	/* query_geometry        */ (XtGeometryHandler)QueryGeometry,
 	/* display_accelerator   */ XtInheritDisplayAccelerator,
 	/* extension             */ (XtPointer) & listtreeCoreClassExtRec
   },
@@ -586,10 +588,23 @@ static Boolean
 SetValues(Widget current, Widget request, Widget reply,
   ArgList args, Cardinal * nargs)
 {
+Boolean relayout = False;
+Boolean refresh = False;
+
   if (!XtIsRealized(current))
     return False;
 
-  return True;
+    if (((ListTreeWidget)current)->list.Indent != ((ListTreeWidget)reply)->list.Indent)
+    {
+    	relayout = True;
+    }
+    if (relayout)
+    {
+    	(XtClass(reply)->core_class.resize)(reply);
+    	refresh = True;
+    }
+
+  return refresh;
 }
 
 static void
@@ -1031,7 +1046,7 @@ SelectDouble(ListTreeWidget w)
 
       save=w->list.Refresh;
       w->list.Refresh=False;
-      ListTreeSetHighlighted(w,ret.path,ret.count,True);
+      ListTreeSetHighlighted((Widget)w,ret.path,ret.count,True);
       w->list.Refresh=save;
 /*       ListTreeGetHighlighted(w,&ret2); */
 /*       ListTreeSetHighlighted(w,ret2.items,ret2.count,True); */
@@ -1229,11 +1244,7 @@ focus_out(Widget aw, XEvent *event, String *params, Cardinal *num_params)
 
 /* ARGSUSED */
 static void
-menu(aw, event, params, num_params)
-Widget aw;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+menu(Widget aw, XEvent *event, String *params, Cardinal *num_params)
 {
   ListTreeWidget w = (ListTreeWidget) aw;
   ListTreeItem *item;
@@ -1255,15 +1266,12 @@ Cardinal *num_params;
 
 /* ARGSUSED */
 static void
-keypress(aw, event, params, num_params)
-Widget aw;
-XEvent *event;
-String *params;
-Cardinal *num_params;
+keypress(Widget aw, XEvent *event, String *params, Cardinal *num_params)
 {
-#if 0
+  /*
   ListTreeWidget w = (ListTreeWidget) aw;
-#endif
+  */
+
   DBG(DARG,"keypress\n");
 }
 
@@ -1669,9 +1677,7 @@ CountAll(ListTreeWidget w)
 /* This function removes the specified item from the linked list.  It does */
 /* not do anything with the data contained in the item, though. */
 static void
-RemoveReference(w, item)
-ListTreeWidget w;
-ListTreeItem *item;
+RemoveReference(ListTreeWidget w, ListTreeItem *item)
 {
 
 /* If there exists a previous sibling, just skip over item to be dereferenced */
@@ -1696,9 +1702,7 @@ ListTreeItem *item;
 }
 
 static void
-DeleteChildren(w, item)
-ListTreeWidget w;
-ListTreeItem *item;
+DeleteChildren(ListTreeWidget w, ListTreeItem *item)
 {
   ListTreeItem *sibling;
   ListTreeItemReturnStruct ret;
@@ -1724,10 +1728,7 @@ ListTreeItem *item;
 }
 
 static void
-InsertChild(w, parent, item)
-ListTreeWidget w;
-ListTreeItem *parent;
-ListTreeItem *item;
+InsertChild(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item)
 {
   ListTreeItem *i;
 
@@ -1765,10 +1766,7 @@ ListTreeItem *item;
 
 /* Insert a list of ALREADY LINKED children into another list */
 static void
-InsertChildren(w, parent, item)
-ListTreeWidget w;
-ListTreeItem *parent;
-ListTreeItem *item;
+InsertChildren(ListTreeWidget w, ListTreeItem *parent, ListTreeItem *item)
 {
   ListTreeItem *next, *newnext;
 
@@ -1831,9 +1829,7 @@ SearchChildren(ListTreeWidget w, ListTreeItem *item, ListTreeItem **last,
 }
 
 static ListTreeItem *
-GetItem(w, findy)
-ListTreeWidget w;
-int findy;
+GetItem(ListTreeWidget w, int findy)
 {
   int y;
   ListTreeItem *item, *finditem, *lastdrawn;
@@ -1870,11 +1866,8 @@ int findy;
 }
 
 static int
-SearchPosition(w, item, y, finditem, found)
-ListTreeWidget w;
-ListTreeItem *item, *finditem;
-int y;
-Boolean *found;
+SearchPosition(ListTreeWidget w, ListTreeItem *item, ListTreeItem *finditem,
+	       int y, Boolean *found)
 {
   int height;
   Pixinfo *pix;
@@ -1895,7 +1888,7 @@ Boolean *found;
 
     y += height + (int) w->list.VSpacing;
     if ((item->firstchild) && (item->open)) {
-      y = SearchPosition(w, item->firstchild, y, finditem, found);
+      y = SearchPosition(w, item->firstchild, finditem, y, found);
       if (*found)
 	return y;
     }
@@ -1905,9 +1898,7 @@ Boolean *found;
 }
 
 static Position
-GetPosition(w, finditem)
-ListTreeWidget w;
-ListTreeItem *finditem;
+GetPosition(ListTreeWidget w, ListTreeItem *finditem)
 {
   int y, height;
   ListTreeItem *item;
@@ -1929,7 +1920,7 @@ ListTreeItem *finditem;
 
     y += height + (int) w->list.VSpacing;
     if ((item->firstchild) && (item->open)) {
-      y = SearchPosition(w, item->firstchild, y, finditem, &found);
+      y = SearchPosition(w, item->firstchild, finditem, y, &found);
       if (found)
 	return (Position) y;
     }
@@ -1946,22 +1937,22 @@ ListTreeItem *finditem;
 /* Public Functions --------------------------------------------------------- */
 
 void
-ListTreeRefresh(ListTreeWidget w)
+ListTreeRefresh(Widget w)
 {
-  if (XtIsRealized((Widget) w) && w->list.Refresh)
-    DrawChanged(w);
+  if (XtIsRealized((Widget) w) && ((ListTreeWidget)w)->list.Refresh)
+    DrawChanged((ListTreeWidget)w);
 }
 
 void
-ListTreeRefreshOff(ListTreeWidget w)
+ListTreeRefreshOff(Widget w)
 {
-  w->list.Refresh = False;
+  ((ListTreeWidget)w)->list.Refresh = False;
 }
 
 void
-ListTreeRefreshOn(ListTreeWidget w)
+ListTreeRefreshOn(Widget w)
 {
-  w->list.Refresh = True;
+  ((ListTreeWidget)w)->list.Refresh = True;
   ListTreeRefresh(w);
 }
 
@@ -1988,38 +1979,38 @@ AddItem(ListTreeWidget w, ListTreeItem * parent, char *string,
   item->firstchild = item->prevsibling = item->nextsibling = NULL;
   InsertChild(w, parent, item);
 
-  ListTreeRefresh(w);
+  ListTreeRefresh((Widget)w);
 
   return item;
 }
 
 ListTreeItem *
-ListTreeAdd(ListTreeWidget w,ListTreeItem *parent,char *string)
+ListTreeAdd(Widget w,ListTreeItem *parent,char *string)
 {
-    return (AddItem (w,parent,string,ItemDetermineType));
+    return (AddItem ((ListTreeWidget)w,parent,string,ItemDetermineType));
 }
 
 ListTreeItem *
-ListTreeAddType(ListTreeWidget w,ListTreeItem *parent,char *string,
+ListTreeAddType(Widget w, ListTreeItem *parent, char *string,
                 ListTreeItemType type)
 {
-    return (AddItem (w,parent,string,type));
+    return (AddItem( (ListTreeWidget)w, parent, string, type));
 }
 
 ListTreeItem *
-ListTreeAddBranch(ListTreeWidget w,ListTreeItem *parent,char *string)
+ListTreeAddBranch(Widget w,ListTreeItem *parent,char *string)
 {
-    return (AddItem (w,parent,string,ItemBranchType));
+    return (AddItem( (ListTreeWidget)w,parent,string,ItemBranchType));
 }
 
 ListTreeItem *
-ListTreeAddLeaf(ListTreeWidget w,ListTreeItem *parent,char *string)
+ListTreeAddLeaf(Widget w,ListTreeItem *parent,char *string)
 {
-    return (AddItem (w,parent,string,ItemLeafType));
+    return (AddItem( (ListTreeWidget)w,parent,string,ItemLeafType));
 }
 
 void
-ListTreeSetItemPixmaps (ListTreeWidget w, ListTreeItem *item,
+ListTreeSetItemPixmaps (Widget w, ListTreeItem *item,
                         Pixmap openPixmap, Pixmap closedPixmap)
 {
     item->openPixmap   = openPixmap;
@@ -2027,7 +2018,7 @@ ListTreeSetItemPixmaps (ListTreeWidget w, ListTreeItem *item,
 }
 
 void
-ListTreeRenameItem(ListTreeWidget w, ListTreeItem * item, char *string)
+ListTreeRenameItem(Widget w, ListTreeItem * item, char *string)
 {
   int len;
   char *copy;
@@ -2044,13 +2035,13 @@ ListTreeRenameItem(ListTreeWidget w, ListTreeItem * item, char *string)
 }
 
 int
-ListTreeDelete(ListTreeWidget w, ListTreeItem * item)
+ListTreeDelete(Widget w, ListTreeItem * item)
 {
   if (item->firstchild)
-    DeleteChildren(w, item->firstchild);
+    DeleteChildren((ListTreeWidget)w, item->firstchild);
   item->firstchild = NULL;
 
-  RemoveReference(w, item);
+  RemoveReference((ListTreeWidget)w, item);
 
   XtFree((char *) item->text);
   XtFree((char *) item);
@@ -2061,10 +2052,10 @@ ListTreeDelete(ListTreeWidget w, ListTreeItem * item)
 }
 
 int
-ListTreeDeleteChildren(ListTreeWidget w, ListTreeItem * item)
+ListTreeDeleteChildren(Widget w, ListTreeItem * item)
 {
   if (item->firstchild)
-    DeleteChildren(w, item->firstchild);
+    DeleteChildren((ListTreeWidget)w, item->firstchild);
   item->firstchild = NULL;
 
   ListTreeRefresh(w);
@@ -2073,14 +2064,14 @@ ListTreeDeleteChildren(ListTreeWidget w, ListTreeItem * item)
 }
 
 int
-ListTreeReparent(ListTreeWidget w, ListTreeItem * item, ListTreeItem * newparent)
+ListTreeReparent(Widget w, ListTreeItem * item, ListTreeItem * newparent)
 {
   TreeCheck(w, "in ListTreeReparent");
 /* Remove the item from its old location. */
-  RemoveReference(w, item);
+  RemoveReference((ListTreeWidget)w, item);
 
 /* The item is now unattached.  Reparent it.                     */
-  InsertChild(w, newparent, item);
+  InsertChild((ListTreeWidget)w, newparent, item);
 
   ListTreeRefresh(w);
 
@@ -2088,7 +2079,7 @@ ListTreeReparent(ListTreeWidget w, ListTreeItem * item, ListTreeItem * newparent
 }
 
 int
-ListTreeReparentChildren(ListTreeWidget w, ListTreeItem * item, ListTreeItem * newparent)
+ListTreeReparentChildren(Widget w, ListTreeItem * item, ListTreeItem * newparent)
 {
   ListTreeItem *first;
 
@@ -2097,7 +2088,7 @@ ListTreeReparentChildren(ListTreeWidget w, ListTreeItem * item, ListTreeItem * n
     first = item->firstchild;
     item->firstchild = NULL;
 
-    InsertChildren(w, newparent, first);
+    InsertChildren((ListTreeWidget)w, newparent, first);
 
     ListTreeRefresh(w);
     return 1;
@@ -2105,7 +2096,7 @@ ListTreeReparentChildren(ListTreeWidget w, ListTreeItem * item, ListTreeItem * n
   return 0;
 }
 
-int
+static int
 AlphabetizeItems(const void *item1, const void *item2)
 {
   return strcmp((*((ListTreeItem **) item1))->text,
@@ -2113,7 +2104,7 @@ AlphabetizeItems(const void *item1, const void *item2)
 }
 
 int
-ListTreeUserOrderSiblings(ListTreeWidget w, ListTreeItem * item, int (*func) ())
+ListTreeUserOrderSiblings(Widget w, ListTreeItem * item, int (*func) (const void *, const void *))
 {
   ListTreeItem *first, *parent, **list;
   size_t i, count, size;
@@ -2155,7 +2146,7 @@ ListTreeUserOrderSiblings(ListTreeWidget w, ListTreeItem * item, int (*func) ())
   if (parent)
     parent->firstchild = list[0];
   else
-    w->list.first = list[0];
+    ((ListTreeWidget)w)->list.first = list[0];
   XtFree((char *) list);
 
   ListTreeRefresh(w);
@@ -2165,14 +2156,14 @@ ListTreeUserOrderSiblings(ListTreeWidget w, ListTreeItem * item, int (*func) ())
 }
 
 int
-ListTreeOrderSiblings(ListTreeWidget w, ListTreeItem * item)
+ListTreeOrderSiblings(Widget w, ListTreeItem * item)
 {
   TreeCheck(w, "in ListTreeOrderSiblings");
   return ListTreeUserOrderSiblings(w, item, AlphabetizeItems);
 }
 
 int
-ListTreeUserOrderChildren(ListTreeWidget w, ListTreeItem * item, int (*func) ())
+ListTreeUserOrderChildren(Widget w, ListTreeItem * item, int (*func) (const void *, const void *))
 {
   ListTreeItem *first;
 
@@ -2183,15 +2174,15 @@ ListTreeUserOrderChildren(ListTreeWidget w, ListTreeItem * item, int (*func) ())
       ListTreeUserOrderSiblings(w, first, func);
   }
   else {
-    if (w->list.first)
-      ListTreeUserOrderSiblings(w, w->list.first, func);
+    if (((ListTreeWidget)w)->list.first)
+      ListTreeUserOrderSiblings(w, ((ListTreeWidget)w)->list.first, func);
   }
   TreeCheck(w, "exiting ListTreeUserOrderChildren");
   return 1;
 }
 
 int
-ListTreeOrderChildren(ListTreeWidget w, ListTreeItem * item)
+ListTreeOrderChildren(Widget w, ListTreeItem * item)
 {
   ListTreeItem *first;
 
@@ -2202,15 +2193,15 @@ ListTreeOrderChildren(ListTreeWidget w, ListTreeItem * item)
       ListTreeOrderSiblings(w, first);
   }
   else {
-    if (w->list.first)
-      ListTreeOrderSiblings(w, w->list.first);
+    if (((ListTreeWidget)w)->list.first)
+      ListTreeOrderSiblings(w, ((ListTreeWidget)w)->list.first);
   }
   TreeCheck(w, "exiting ListTreeOrderChildren");
   return 1;
 }
 
 ListTreeItem *
-ListTreeFindSiblingName(ListTreeWidget w, ListTreeItem * item, char *name)
+ListTreeFindSiblingName(Widget w, ListTreeItem * item, char *name)
 {
   ListTreeItem *first;
 
@@ -2232,15 +2223,15 @@ ListTreeFindSiblingName(ListTreeWidget w, ListTreeItem * item, char *name)
 }
 
 ListTreeItem *
-ListTreeFindChildName(ListTreeWidget w, ListTreeItem * item, char *name)
+ListTreeFindChildName(Widget w, ListTreeItem * item, char *name)
 {
   TreeCheck(w, "in ListTreeFindChildName");
 /* Get first child in list; */
   if (item && item->firstchild) {
     item = item->firstchild;
   }
-  else if (!item && w->list.first) {
-    item = w->list.first;
+  else if (!item && ((ListTreeWidget)w)->list.first) {
+    item = ((ListTreeWidget)w)->list.first;
   }
   else
     item = NULL;
@@ -2254,42 +2245,42 @@ ListTreeFindChildName(ListTreeWidget w, ListTreeItem * item, char *name)
 }
 
 void
-ListTreeHighlightItem(ListTreeWidget w, ListTreeItem * item)
+ListTreeHighlightItem(Widget w, ListTreeItem * item)
 {
-  HighlightAll(w, False, False);
-  HighlightItem(w, item, True, False);
+  HighlightAll((ListTreeWidget)w, False, False);
+  HighlightItem((ListTreeWidget)w, item, True, False);
   ListTreeRefresh(w);
 }
 
 void
-ListTreeHighlightAll(ListTreeWidget w)
+ListTreeHighlightAll(Widget w)
 {
-  HighlightAllVisible(w, True, False);
+  HighlightAllVisible((ListTreeWidget)w, True, False);
   ListTreeRefresh(w);
 }
 
 void
-ListTreeClearHighlighted(ListTreeWidget w)
+ListTreeClearHighlighted(Widget w)
 {
-  HighlightAll(w, False, False);
+  HighlightAll((ListTreeWidget)w, False, False);
   ListTreeRefresh(w);
 }
 
 void
-ListTreeGetHighlighted(ListTreeWidget w, ListTreeMultiReturnStruct * ret)
+ListTreeGetHighlighted(Widget w, ListTreeMultiReturnStruct * ret)
 {
   if (ret)
-    MakeMultiCallbackStruct(w, ret);
+    MakeMultiCallbackStruct((ListTreeWidget)w, ret);
 }
 
 void
-ListTreeSetHighlighted(ListTreeWidget w, ListTreeItem ** items, int count, Boolean clear)
+ListTreeSetHighlighted(Widget w, ListTreeItem ** items, int count, Boolean clear)
 {
   if (clear)
-    HighlightAll(w, False, False);
+    HighlightAll((ListTreeWidget)w, False, False);
   if (count < 0) {
     while (*items) {
-      HighlightItem(w, *items, True, False);
+      HighlightItem((ListTreeWidget)w, *items, True, False);
       items++;
     }
   }
@@ -2297,20 +2288,19 @@ ListTreeSetHighlighted(ListTreeWidget w, ListTreeItem ** items, int count, Boole
     int i;
 
     for (i = 0; i < count; i++) {
-      HighlightItem(w, items[i], True, False);
+      HighlightItem((ListTreeWidget)w, items[i], True, False);
     }
   }
   ListTreeRefresh(w);
 }
 
 ListTreeItem *
-ListTreeFirstItem(w)
-ListTreeWidget w;
+ListTreeFirstItem(Widget w)
 {
   ListTreeItem *first;
 
 /* Get first child in widget */
-  first = w->list.first;
+  first = ((ListTreeWidget)w)->list.first;
   return first;
 }
 
@@ -2356,7 +2346,7 @@ XmCreateScrolledListTree(Widget parent, char *name, Arg *args, Cardinal count)
 {
   Widget sw;
   char *sname;
-  int i;
+  Cardinal i;
   Arg *al;
   
   sname = XtMalloc(strlen(name)+3);
