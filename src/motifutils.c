@@ -2730,105 +2730,80 @@ Widget *CreatePrecisionChoice(Widget parent, char *s)
 }
     
 
-
-Widget CreateCharSizeChoice(Widget parent, char *s)
+Widget CreateScale(Widget parent, char *s, int min, int max)
 {
     Widget w;
     XmString str;
-    
-    str = XmStringCreateLocalized(s);
-    w = XtVaCreateManagedWidget("charSize", xmScaleWidgetClass, parent,
-				XmNtitleString, str,
-				XmNminimum, 0,
-				XmNmaximum, 400,
-				XmNvalue, 100,
-				XmNshowValue, True,
-#if XmVersion >= 2000    
-				XmNsliderMark, XmROUND_MARK,
-#endif
-				XmNprocessingDirection, XmMAX_ON_RIGHT,
-				XmNorientation, XmHORIZONTAL,
-				NULL);
-    XmStringFree(str);
 
+    str = XmStringCreateLocalized(s);
+    
+    w = XtVaCreateManagedWidget("scroll",
+        xmScaleWidgetClass, parent,
+	XmNtitleString, str,
+	XmNminimum, min,
+	XmNmaximum, max,
+	XmNvalue, 0,
+	XmNshowValue, True,
+	XmNprocessingDirection, XmMAX_ON_RIGHT,
+	XmNorientation, XmHORIZONTAL,
+#if XmVersion >= 2000    
+	XmNsliderMark, XmROUND_MARK,
+#endif
+	NULL);
+
+    XmStringFree(str);
+    
     return w;
 }
 
-double GetCharSizeChoice(Widget w)
+void SetScaleValue(Widget w, int value)
 {
-    Arg arg;
+    XtVaSetValues(w, XmNvalue, value, NULL);
+}
+
+int GetScaleValue(Widget w)
+{
     int value;
-    
-    XtSetArg(arg, XmNvalue, &value);
-    XtGetValues(w, &arg, 1);
-    
-    return ((double) value / 100);
-}
-
-void SetCharSizeChoice(Widget w, double size)
-{
-    Arg arg;
-    int value;
-    
-    if (w == NULL) {
-        return;
-    }
-    
-    value = (int) rint(size*100);
-    XtSetArg(arg, XmNvalue, value);
-    XtSetValues(w, &arg, 1);
-    
-    return;
-}
-
-Widget CreateAngleChoice(Widget parent, char *s)
-{
-    Widget w;
-    XmString str;
-    
-    str = XmStringCreateLocalized(s);
-    w = XtVaCreateManagedWidget("angle", xmScaleWidgetClass, parent,
-				XmNtitleString, str,
-				XmNminimum, 0,
-				XmNmaximum, 360,
-				XmNvalue, 100,
-				XmNshowValue, True,
-#if XmVersion >= 2000    
-				XmNsliderMark, XmROUND_MARK,
-#endif
-				XmNprocessingDirection, XmMAX_ON_RIGHT,
-				XmNorientation, XmHORIZONTAL,
-				NULL);
-    XmStringFree(str);
-
-    return w;
-}
-
-int GetAngleChoice(Widget w)
-{
-    Arg arg;
-    int value;
-    
-    XtSetArg(arg, XmNvalue, &value);
-    XtGetValues(w, &arg, 1);
-    
-    return (value);
-}
-
-void SetAngleChoice(Widget w, int angle)
-{
-    Arg arg;
-    
-    XtSetArg(arg, XmNvalue, angle);
-    XtSetValues(w, &arg, 1);
-    
-    return;
+    XtVaGetValues(w, XmNvalue, &value, NULL);
+    return value;
 }
 
 void SetScaleWidth(Widget w, int width)
 {
     XtVaSetValues(w, XmNscaleWidth, (Dimension) width, NULL);
 }
+
+Widget CreateAngleChoice(Widget parent, char *s)
+{
+    return CreateScale(parent, s, 0, 360);
+}
+
+int GetAngleChoice(Widget w)
+{
+    return GetScaleValue(w);
+}
+
+void SetAngleChoice(Widget w, int angle)
+{
+    SetScaleValue(w, angle);
+}
+
+Widget CreateCharSizeChoice(Widget parent, char *s)
+{
+    return CreateScale(parent, s, 0, 400);
+}
+
+double GetCharSizeChoice(Widget w)
+{
+    return ((double) GetScaleValue(w)/100);
+}
+
+void SetCharSizeChoice(Widget w, double size)
+{
+    int value = (int) rint(size*100);
+    SetScaleValue(w, value);
+}
+
 
 Widget CreateToggleButton(Widget parent, char *s)
 {

@@ -265,6 +265,11 @@ Widget CreateTab(Widget parent);
 Widget CreateTabPage(Widget parent, char *s);
 void SelectTabPage(Widget tab, Widget w);
 
+Widget CreateScale(Widget parent, char *s, int min, int max);
+void SetScaleValue(Widget w, int value);
+int GetScaleValue(Widget w);
+void SetScaleWidth(Widget w, int width);
+
 Widget CreateCharSizeChoice(Widget parent, char *s);
 double GetCharSizeChoice(Widget w);
 void SetCharSizeChoice(Widget w, double size);
@@ -272,8 +277,6 @@ void SetCharSizeChoice(Widget w, double size);
 Widget CreateAngleChoice(Widget parent, char *s);
 int GetAngleChoice(Widget w);
 void SetAngleChoice(Widget w, int angle);
-
-void SetScaleWidth(Widget w, int width);
 
 Widget CreateToggleButton(Widget parent, char *s);
 int GetToggleButtonState(Widget w);
