@@ -626,13 +626,18 @@ int ep_aac_proc(void *data)
     EditPoints *ep = (EditPoints *) data;
     int stype;
     char *comment;
+    int cur_row, cur_col;
     
     stype = GetOptionChoice(ep->stype);
     comment = GetTextString(ep->comment);
     
     set_set_type(ep->pset, stype);
     set_set_comment(ep->pset, comment);
-    update_set_lists(get_parent_graph(ep->pset));
+    /* commit the last entered cell changes */
+    XbaeMatrixGetCurrentCell(ep->mw, &cur_row, &cur_col);
+    XbaeMatrixEditCell(ep->mw, cur_row, cur_col);
+
+    update_all();
     xdrawgraph(ep->pset, FALSE);
     
     xfree(comment);
