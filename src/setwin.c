@@ -244,7 +244,7 @@ static void changetypeCB(int n, int *values, void *data)
     sdata = (SetChoiceData *) listp->anydata;
     gno = sdata->gno;
     
-    if (n == 1 && is_set_active(gno, setno = values[0]) == TRUE) {
+    if (n == 1 && is_valid_setno(gno, setno = values[0]) == TRUE) {
 	ncols = dataset_cols(gno, setno);
         xv_setstr(tui.comment_item, getcomment(gno, setno));
 	sprintf(buf, "%d", getsetlength(gno, setno));
