@@ -1,6 +1,6 @@
 # Grace project file
 #
-@version 50005
+@version 50100
 @page size 792, 612
 @page scroll 5%
 @page inout 5%
@@ -96,6 +96,7 @@
 @    world ymin 0
 @    world ymax 1
 @    stack world 0, 0, 0, 0
+@    znorm 1
 @    view xmin 0.150000
 @    view xmax 1.150000
 @    view ymin 0.150000
@@ -143,8 +144,9 @@
 @    xaxis  tick minor grid off
 @    xaxis  tick minor size 0.500000
 @    xaxis  ticklabel on
-@    xaxis  ticklabel prec 5
 @    xaxis  ticklabel format general
+@    xaxis  ticklabel prec 5
+@    xaxis  ticklabel formula ""
 @    xaxis  ticklabel append ""
 @    xaxis  ticklabel prepend ""
 @    xaxis  ticklabel angle 0
@@ -153,7 +155,6 @@
 @    xaxis  ticklabel place normal
 @    xaxis  ticklabel offset auto
 @    xaxis  ticklabel offset 0.000000 , 0.010000
-@    xaxis  ticklabel sign normal
 @    xaxis  ticklabel start type auto
 @    xaxis  ticklabel start 0.000000
 @    xaxis  ticklabel stop type auto
@@ -162,8 +163,7 @@
 @    xaxis  ticklabel font 0
 @    xaxis  ticklabel color 1
 @    xaxis  tick place both
-@    xaxis  ticklabel type auto
-@    xaxis  tick type auto
+@    xaxis  tick spec type none
 @    yaxis  on
 @    yaxis  type zero false
 @    yaxis  offset 0.000000 , 0.000000
@@ -195,8 +195,9 @@
 @    yaxis  tick minor grid off
 @    yaxis  tick minor size 0.500000
 @    yaxis  ticklabel on
-@    yaxis  ticklabel prec 5
 @    yaxis  ticklabel format general
+@    yaxis  ticklabel prec 5
+@    yaxis  ticklabel formula ""
 @    yaxis  ticklabel append ""
 @    yaxis  ticklabel prepend ""
 @    yaxis  ticklabel angle 0
@@ -205,7 +206,6 @@
 @    yaxis  ticklabel place normal
 @    yaxis  ticklabel offset auto
 @    yaxis  ticklabel offset 0.000000 , 0.010000
-@    yaxis  ticklabel sign normal
 @    yaxis  ticklabel start type auto
 @    yaxis  ticklabel start 0.000000
 @    yaxis  ticklabel stop type auto
@@ -214,8 +214,7 @@
 @    yaxis  ticklabel font 0
 @    yaxis  ticklabel color 1
 @    yaxis  tick place both
-@    yaxis  ticklabel type auto
-@    yaxis  tick type auto
+@    yaxis  tick spec type none
 @    altxaxis  off
 @    altyaxis  off
 @    legend on

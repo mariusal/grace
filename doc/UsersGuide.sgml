@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.6 - for Grace-5.1.0)
 <author>by the Grace Team
-<date>25.12.1999
+<date>31.01.2000
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -262,12 +262,109 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           a title and a subtitle, a number of sets and additional annotative
           objects (time stamp string, text strings, lines, boxes and ellipses).
 
+          The graph type can be any of:
+          <itemize>
+             <item> XY Graph
+             <item> XY Chart
+             <item> Polar Graph
+             <item> Fixed Graph
+             <item> Pie chart
+          </itemize>
+
       <sect2>Sets <label id="sets">
 	<p>
 
 	  A set is a way of representing numerical data (datasets). It consists
           of a pointer to a dataset plus a collection of parameters describing
           the visual appearance of the data (like color, line dash pattern etc).
+
+          The set type can be any of the following:
+        
+        <p>
+        
+          <table LOC=htbp>
+          <tabular CA="lcl">
+            <hline>
+            Set type   | # of num. cols | Description              @
+            <hline>
+            XY         | 2 | An X-Y scatter and/or line plot, plus 
+                             (optionally) an annotated value       @
+            XYDX       | 3 | Same as XY, but with error bars
+                             (either one- or two-sided) along
+                              X axis                               @
+            XYDY       | 3 | Same as XYDX, but error bars are
+                             along Y axis                          @
+            XYDXDX     | 4 | Same as XYDX, but left and right error
+                             bars are defined separately           @
+            XYDYDY     | 4 | Same as XYDXDX, but error bars are
+                             along Y axis @
+            XYDXDY     | 4 | Same as XY, but with X and Y error bars
+                             (either one- or two-sided)            @
+            XYDXDXDYDY | 6 | Same as XYDXDY, but left/right and 
+                             upper/lower error bars are defined
+                             separately                            @
+            BAR        | 2 | Same as XY, but vertical bars are used
+                             instead of symbols                    @
+            BARDY      | 3 | Same as BAR, but with error bars
+                             (either one- or two-sided) along
+                              Y axis                               @
+            BARDYDY    | 4 | Same as BARDY, but lower and upper
+                             error bars are defined separately     @
+            XYHILO     | 5 | Hi/Low/Open/Close plot                @
+            XYZ        | 3 | Same as XY; makes no sense unless the
+                             annotated value is Z                  @
+            XYR        | 3 | X, Y,  Radius. Only allowed in Fixed
+                             graphs                                @
+            XYSYMSIZE  | 3 | Same as XY, but symbol size is
+                             variable                              @
+            XYCOLPAT   | 4 | X, Y, color index, pattern index
+                             (currently used for Pie charts only)  @
+            XYVMAP     | 4 | Vector map                            @
+            XYBOXPLOT  | 6 | Box plot (X, median, uper/lower limit,
+                             upper/lower whisker)                  @
+            <hline>
+          </tabular>
+          <caption>
+            Set types
+          </caption>
+          </table>
+          
+        <p>
+
+          Not all set types, however, can be plotted on any graph type. The
+          following table summarizes it:
+
+        <p>
+
+          <table LOC=htbp>
+          <tabular CA="lccccc">
+            <hline>
+            Set type          | XY Graph | XY Chart | Fixed | Polar | Pie @
+            <hline>
+            XY                |     +    |    +     |   +   |   +   |  -  @
+            XYDX              |     +    |    -     |   +   |   -   |  -  @
+            XYDY              |     +    |    +     |   +   |   -   |  -  @
+            XYDXDX            |     +    |    -     |   +   |   -   |  -  @
+            XYDYDY            |     +    |    +     |   +   |   -   |  -  @
+            XYDXDY            |     +    |    -     |   +   |   -   |  -  @
+            XYDXDXDYDY        |     +    |    -     |   +   |   -   |  -  @
+            BAR               |     +    |    +     |   +   |   -   |  -  @
+            BARDY             |     -    |    +     |   -   |   -   |  -  @
+            BARDYDY           |     -    |    +     |   -   |   -   |  -  @
+            XYHILO            |     +    |    -     |   -   |   -   |  -  @
+            XYZ               |     +    |    -     |   +   |   -   |  -  @
+            XYR               |     -    |    -     |   +   |   -   |  -  @
+            XYSYMSIZE         |     +    |    +     |   +   |   +   |  -  @
+            XYCOLPAT          |     -    |    -     |   -   |   -   |  +  @
+            XYVMAP            |     +    |    -     |   +   |   -   |  -  @
+            XYBOXPLOT         |     +    |    -     |   -   |   -   |  -  @
+            <hline>
+          </tabular>
+          <caption>
+            Graph/Set type connection
+          </caption>
+          </table>
+
 
       <sect2>Datasets <label id="datasets">
 	<p>
@@ -672,10 +769,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <sect2> Save as <label id="save-as">
       <p>
-      Save the current work in a project file with a new name. A popup
-      allows to browse the file system and set the name and the format
-      to use for saving data points (the default value is "%16.8g"). A
-      warning is displayed if a file with the same name already
+      Save the current work in a project file with a new name. A popup allows
+      to browse the file system and set the name, the format to use for saving
+      data points (the default value is "%16.8g"), and a textual description of
+      the project. A warning is displayed if a file with the same name already
       exists.
 
       <sect2> Revert to saved <label id="revert-to-saved">
@@ -683,11 +780,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       Abandon all modifications performed on the project since the
       last save. A confirmation popup is fired to allow the user
       canceling the operation.
-
-      <sect2> Describe <label id="describe">
-      <p>
-      Open an editable text panel where you can store (or read) a
-      description of the project.
 
       <sect2> Read menu <label id="read-menu">
       <p>
@@ -714,22 +806,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          all popups, using the <ref id="set-selector" name="set
          selector">.
 
-         The set type can be any of:
-         <itemize>
-            <item> XY
-            <item> XYDX
-            <item> XYDY
-            <item> XYDXDX
-            <item> XYDYDY
-            <item> XYDXDY
-            <item> XYDXDXDYDY
-            <item> BAR
-            <item> BARDY
-            <item> BARDYDY
-            <item> XYHILO
-            <item> XYZ
-            <item> XYR
-         </itemize>
+         The set type can be one of the predefined set presentation types
+         (see <ref id="sets" name="sets">).
 
          The data source can be selected as "Disk" or "Pipe". In the
          first case the text in the "Selection" field is considered to
@@ -1141,7 +1219,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
          <sect3> Sample points <label id="sample-points">
          <p>
-         This popups provides two sampling methods. The first one is
+         This popup provides two sampling methods. The first one is
          to choose a starting point and a step, the second one is to
          select only the points that satisfy a boolean expression you
          specify.
@@ -2349,6 +2427,23 @@ C
       <table LOC=htbp>
       <tabular CA="ll">
               <hline>
+              Command           | Description                        @
+              <hline>
+              PDF1.2            | set compatibility mode to PDF-1.2  @
+              PDF1.3            | set compatibility mode to PDF-1.3  @
+              compression:value | set compression level (0 - 9)      @
+              <hline>
+      </tabular>
+      <caption>
+              PDF driver options
+      </caption>
+      </table>
+
+    <p>
+
+      <table LOC=htbp>
+      <tabular CA="ll">
+              <hline>
               Command           | Description               @
               <hline>
               format:pbm        | output in PBM format      @
@@ -2547,8 +2642,6 @@ C
       just play with Grace to test new features and controls.
  
       <enum>
-      <item> DOCUMENTATION IS VERY SPARSE YET!
- 
       <item> Grace must be explicitly told the version number of the software
              used to create a file. You can manually put "@version VERSIONID"
              string in the beginning of the file. The VERSIONID is built as
@@ -2558,18 +2651,19 @@ C
  
       <item> The above relates to the ASCII projects only. The old binary
              projects (saved with xmgr-4.0.*) are not automatically converted
-             anymore. An input filter must be defined to make the conversion work
-             on-the-fly. Add the following line to ~/.gracerc or the system-wide
-             $GRACE_HOME/gracerc resource file: DEFINE IFILTER "grconvert %s -"
-             MAGIC "00000031" See docs for more info on the I/O filters.
+             anymore. An input filter must be defined to make the conversion
+             work on-the-fly. Add the following line to ~/.gracerc or the
+             system-wide $GRACE_HOME/gracerc resource file: DEFINE IFILTER
+             "grconvert %s -" MAGIC "00000031" See docs for more info on the
+             I/O filters.
+ 
+      <item> Documentation on the script language is severely lacking still.
  
       <item> Grace is WYSIWYG. Xmgr was not. Many changes required to achieve the
              WYSIWYG'ness led to the situation when graphs with objects carefully
              aligned under Xmgr may not look so under Grace. Grace tries its best
              to compensate for the differences, but sometimes you may have to
              adjust such graphs manually.
- 
-      <item> Smith plots don't work now. They'll be put back soon.
  
       <item> A lot of symbol types (all except *real* symbols) are removed.
              "Location *" types can be replaced (with much higher comfort) by
@@ -2584,7 +2678,9 @@ C
              <bf>The use of the "free" page layout is in general deprecated,
              though.</bf>
  
-      <item> System variables GR_* renamed to GRACE_*
+      <item> System (shell) variables GR_* renamed to GRACE_*
+ 
+      <item> Smith plots don't work now. They'll be put back soon.
  
       </enum>
     
