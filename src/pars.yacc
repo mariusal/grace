@@ -170,7 +170,7 @@ symtab_entry *key;
 %}
 
 %union {
-    long    ival;
+    int     ival;
     double  dval;
     char   *sval;
     double *dptr;
@@ -180,7 +180,6 @@ symtab_entry *key;
 
 %token <ival> INDEX
 %token <ival> JDAY
-%token <ival> JDAY0
 
 %token <ival> CONSTANT	 /* a (double) constant                                     */
 %token <ival> UCONSTANT	 /* a (double) unit constant                                */
@@ -582,6 +581,8 @@ symtab_entry *key;
 
 %type <ival> indx
 
+%type <ival> iexpr
+%type <ival> nexpr
 %type <dval> expr
 
 %type <vrbl> array
@@ -686,29 +687,29 @@ expr:	NUMBER {
 	{
 	    $$ = $1 * key[$2].fnc();
 	}
-	| FUNC_I '(' expr ')'
+	| FUNC_I '(' iexpr ')'
 	{
-	    $$ = key[$1].fnc((int) $3);
+	    $$ = key[$1].fnc($3);
 	}
 	| FUNC_D '(' expr ')'
 	{
 	    $$ = key[$1].fnc($3);
 	}
-	| FUNC_ND '(' expr ',' expr ')'
+	| FUNC_ND '(' iexpr ',' expr ')'
 	{
-	    $$ = key[$1].fnc((int) $3, $5);
+	    $$ = key[$1].fnc($3, $5);
 	}
-	| FUNC_NN '(' expr ',' expr ')'
+	| FUNC_NN '(' iexpr ',' iexpr ')'
 	{
-	    $$ = key[$1].fnc((int) $3, (int) $5);
+	    $$ = key[$1].fnc($3, $5);
 	}
 	| FUNC_DD '(' expr ',' expr ')'
 	{
 	    $$ = key[$1].fnc($3, $5);
 	}
-	| FUNC_NND '(' expr ',' expr ',' expr ')'
+	| FUNC_NND '(' iexpr ',' iexpr ',' expr ')'
 	{
-	    $$ = key[$1].fnc((int) $3, (int) $5, $7);
+	    $$ = key[$1].fnc($3, $5, $7);
 	}
 	| FUNC_PPD '(' expr ',' expr ',' expr ')'
 	{
@@ -745,20 +746,22 @@ expr:	NUMBER {
 	| JDAY '(' CHRSTR ')' {
             double jul;
             Dates_format recognized;
-            if (parse_date((const char*) $3, FMT_iso, &jul, &recognized)
+            if (parse_date($3, FMT_iso, &jul, &recognized)
                 == GRACE_EXIT_SUCCESS) {
+                free($3);
                 $$ = jul;
             } else {
+                free($3);
 		yyerror("Invalid date");
 		return 1;
             }
 	}
-	| JDAY '(' expr ',' expr ',' expr ')' { /* yr, mo, day */
-	    $$ = cal_and_time_to_jul((int) $3, (int) $5, (int) $7, 12, 0, 0.0);
+	| JDAY '(' iexpr ',' nexpr ',' nexpr ')' { /* yr, mo, day */
+	    $$ = cal_and_time_to_jul($3, $5, $7, 12, 0, 0.0);
 	}
-	| JDAY0 '(' expr ',' expr ',' expr ',' expr ',' expr ',' expr ')' 
+	| JDAY '(' iexpr ',' nexpr ',' nexpr ',' nexpr ',' nexpr ',' expr ')' 
 	{ /* yr, mo, day, hr, min, sec */
-	    $$ = cal_and_time_to_jul((int) $3, (int) $5, (int) $7, (int) $9, (int) $11, (double) $13);
+	    $$ = cal_and_time_to_jul($3, $5, $7, $9, $11, $13);
 	}
 	| VX1 {
 	    $$ = g[whichgraph].v.xv1;
@@ -872,13 +875,27 @@ expr:	NUMBER {
 	}
 	;
 
-indx:	'[' expr ']' {
-	    int itmp = rint($2);
-            if (fabs(itmp - $2) > 1.e-6) {
-		yyerror("Non-integer index");
+iexpr:  expr {
+	    int itmp = rint($1);
+            if (fabs(itmp - $1) > 1.e-6) {
+		yyerror("Non-integer value supplied for integer");
 		return 1;
             }
-            itmp -= index_shift;
+            $$ = itmp;
+        }
+        ;
+
+nexpr:	iexpr {
+            if ($1 < 0) {
+		yyerror("Negative value supplied for non-negative");
+		return 1;
+            }
+            $$ = $1;
+	}
+        ;
+
+indx:	'[' iexpr ']' {
+	    int itmp = $2 - index_shift;
             if (itmp < 0) {
 		yyerror("Negative index");
 		return 1;
@@ -998,7 +1015,7 @@ vexpr:
 		$$->data[i] = key[$1].fnc($3->data[i], $5);
 	    }
 	}
-	| FUNC_ND '(' expr ',' vexpr ')'
+	| FUNC_ND '(' iexpr ',' vexpr ')'
 	{
 	    int i;
             $$ = &freelist[fcnt++];
@@ -1006,10 +1023,10 @@ vexpr:
             $$->type = GRVAR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc((int) $3, $5->data[i]);
+		$$->data[i] = key[$1].fnc($3, $5->data[i]);
 	    }
 	}
-	| FUNC_NND '(' expr ',' expr ',' vexpr ')'
+	| FUNC_NND '(' iexpr ',' iexpr ',' vexpr ')'
 	{
 	    int i;
             $$ = &freelist[fcnt++];
@@ -1017,7 +1034,7 @@ vexpr:
             $$->type = GRVAR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc((int) $3, (int) $5, $7->data[i]);
+		$$->data[i] = key[$1].fnc($3, $5, $7->data[i]);
 	    }
 	}
 	| FUNC_PPD '(' expr ',' expr ',' vexpr ')'
@@ -1816,8 +1833,8 @@ regionset:
 
 
 parmset:
-        VERSION expr {
-            if (set_project_version((int) $2) != GRACE_EXIT_SUCCESS) {
+        VERSION nexpr {
+            if (set_project_version($2) != GRACE_EXIT_SUCCESS) {
                 errmsg("Project version is newer than software!");
             }
             if (get_project_version() < 50001) {
@@ -1956,8 +1973,8 @@ parmset:
 	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
-	| TIMER expr {
-            timer_delay = (int) $2;
+	| TIMER nexpr {
+            timer_delay = $2;
 	}
 
 	| TARGET selectset {
@@ -1984,8 +2001,8 @@ parmset:
 	| WITH BOX {
 	    curbox = next_box();
 	}
-	| WITH BOX expr {
-	    curbox = (int) $3;
+	| WITH BOX nexpr {
+	    curbox = $3;
 	}
 	| BOX onoff {
 	    if (!is_valid_box(curbox)) {
@@ -2063,8 +2080,8 @@ parmset:
 	| WITH ELLIPSE {
 		curellipse = next_ellipse();
 	}
-	| WITH ELLIPSE expr {
-	    curellipse = (int) $3;
+	| WITH ELLIPSE nexpr {
+	    curellipse = $3;
 	}
 	| ELLIPSE onoff {
 	    if (!is_valid_ellipse(curellipse)) {
@@ -2142,8 +2159,8 @@ parmset:
 	| WITH LINE {
 	    curline = next_line();
 	}
-	| WITH LINE expr {
-	    curline = (int) $3;
+	| WITH LINE nexpr {
+	    curline = $3;
 	}
 	| LINE onoff {
 	    if (!is_valid_line(curline)) {
@@ -2181,14 +2198,14 @@ parmset:
 	| LINE color_select {
 	    line_color = $2;
 	}
-	| LINE ARROW expr {
-	    line_arrow_end = (int) $3;
+	| LINE ARROW nexpr {
+	    line_arrow_end = $3;
 	}
 	| LINE ARROW LENGTH expr {
 	    line_asize = $4;
 	}
-	| LINE ARROW TYPE expr {
-	    line_atype = (int) $4;
+	| LINE ARROW TYPE nexpr {
+	    line_atype = $4;
 	}
 	| LINE ARROW LAYOUT expr ',' expr {
 	    line_a_dL_ff = $4;
@@ -2214,8 +2231,8 @@ parmset:
 	| WITH STRING {
             curstring = next_string();
         }
-	| WITH STRING expr {
-            curstring = (int) $3;
+	| WITH STRING nexpr {
+            curstring = $3;
         }
 	| STRING onoff {
 	    if (!is_valid_string(curstring)) {
@@ -2245,14 +2262,14 @@ parmset:
 	| STRING color_select {
             string_color = $2;
         }
-	| STRING ROT expr {
-            string_rot = (int) $3;
+	| STRING ROT nexpr {
+            string_rot = $3;
         }
 	| STRING font_select {
             string_font = $2;
         }
-	| STRING JUST expr {
-            string_just = (int) $3;
+	| STRING JUST nexpr {
+            string_just = $3;
         }
 	| STRING CHAR SIZE expr {
             string_size = $4;
@@ -2282,8 +2299,8 @@ parmset:
 	| TIMESTAMP CHAR SIZE expr {
             timestamp.charsize = $4;
         }
-	| TIMESTAMP ROT expr {
-            timestamp.rot = (int) $3;
+	| TIMESTAMP ROT nexpr {
+            timestamp.rot = $3;
         }
 	| TIMESTAMP color_select {
             timestamp.color = $2;
@@ -2323,25 +2340,25 @@ parmset:
 	    strcpy(sformat, $3);
 	    free($3);
 	}
-	| MAP FONTP expr TO CHRSTR ',' CHRSTR {
-	    if ((map_font_by_name($5, (int) $3) == GRACE_EXIT_SUCCESS) || 
-                (map_font_by_name($7, (int) $3) == GRACE_EXIT_SUCCESS)) {
+	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
+	    if ((map_font_by_name($5, $3) == GRACE_EXIT_SUCCESS) || 
+                (map_font_by_name($7, $3) == GRACE_EXIT_SUCCESS)) {
                 ;
             } else {
                 errmsg("Failed mapping a font");
-                map_font(0, (int) $3);
+                map_font(0, $3);
             }
             free($5);
 	    free($7);
 	}
-	| MAP COLOR expr TO '(' expr ',' expr ',' expr ')' ',' CHRSTR {
+	| MAP COLOR nexpr TO '(' nexpr ',' nexpr ',' nexpr ')' ',' CHRSTR {
 	    CMap_entry cmap;
             cmap.rgb.red   = $6;
             cmap.rgb.green = $8;
             cmap.rgb.blue  = $10;
             cmap.ctype = COLOR_MAIN;
             cmap.cname = $13;
-            if (store_color((int) $3, cmap) == GRACE_EXIT_FAILURE) {
+            if (store_color($3, cmap) == GRACE_EXIT_FAILURE) {
                 errmsg("Failed mapping a color");
             }
 	    free($13);
@@ -2442,14 +2459,14 @@ parmset:
 	| LEGEND LOCTYPE worldview {
 	    g[whichgraph].l.loctype = $3;
 	}
-	| LEGEND VGAP expr {
-            g[whichgraph].l.vgap = (int) $3;
+	| LEGEND VGAP nexpr {
+            g[whichgraph].l.vgap = $3;
 	}
-	| LEGEND HGAP expr {
-	    g[whichgraph].l.hgap = (int) $3;
+	| LEGEND HGAP nexpr {
+	    g[whichgraph].l.hgap = $3;
 	}
-	| LEGEND LENGTH expr {
-	    g[whichgraph].l.len = (int) $3;
+	| LEGEND LENGTH nexpr {
+	    g[whichgraph].l.len = $3;
 	}
 	| LEGEND INVERT onoff {
 	    g[whichgraph].l.invert = $3;
@@ -2491,16 +2508,16 @@ parmset:
 	| LEGEND color_select {
 	    g[whichgraph].l.color = $2;
 	}
-	| LEGEND STRING expr CHRSTR {
-	    strcpy(g[whichgraph].p[(int) $3].lstr, $4);
+	| LEGEND STRING nexpr CHRSTR {
+	    strcpy(g[whichgraph].p[$3].lstr, $4);
 	    free($4);
 	}
 
 	| FRAMEP onoff {
             g[whichgraph].f.pen.pattern = $2;
 	}
-	| FRAMEP TYPE expr {
-	    g[whichgraph].f.type = (int) $3;
+	| FRAMEP TYPE nexpr {
+	    g[whichgraph].f.type = $3;
 	}
 	| FRAMEP lines_select {
 	    g[whichgraph].f.lines = $2;
@@ -2555,8 +2572,8 @@ parmset:
 	    g[$1].locator.dsx = $4;
 	    g[$1].locator.dsy = $6;
 	}
-	| selectgraph FIXEDPOINT TYPE expr {
-            g[$1].locator.pt_type = (int) $4;
+	| selectgraph FIXEDPOINT TYPE nexpr {
+            g[$1].locator.pt_type = $4;
         }
         
 	| TYPE xytype {
@@ -2707,16 +2724,16 @@ actions:
 	| selectset HIDDEN onoff {
 	    set_set_hidden($1->gno, $1->setno, $3);
 	}
-	| selectset LENGTH expr {
-	    setlength($1->gno, $1->setno, (int) $3);
+	| selectset LENGTH nexpr {
+	    setlength($1->gno, $1->setno, $3);
 	}
 	| selectset POINT expr ',' expr {
 	    add_point($1->gno, $1->setno, $3, $5);
 	}
 
-	| selectset DROP expr ',' expr {
-	    int start = (int) $3 - index_shift;
-	    int stop = (int) $5 - index_shift;
+	| selectset DROP nexpr ',' nexpr {
+	    int start = $3 - index_shift;
+	    int stop = $5 - index_shift;
 	    int dist = stop - start + 1;
 	    if (dist > 0 && start >= 0) {
 	        droppoints($1->gno, $1->setno, start, stop, dist);
@@ -2743,8 +2760,8 @@ actions:
 	| REVERSE selectset {
             reverse_set($2->gno, $2->setno);
 	}
-	| SPLIT selectset expr {
-            do_splitsets($2->gno, $2->setno, (int) $3);
+	| SPLIT selectset nexpr {
+            do_splitsets($2->gno, $2->setno, $3);
 	}
 	| MOVE selectset TO selectset {
 	    do_moveset($2->gno, $2->setno, $4->gno, $4->setno);
@@ -2761,11 +2778,11 @@ actions:
 	| FLUSH {
             wipeout();
         }
-	| ARRANGE expr ',' expr {
-            arrange_graphs((int) $2, (int) $4);
+	| ARRANGE nexpr ',' nexpr {
+            arrange_graphs($2, $4);
         }
-	| LOAD SCRARRAY expr ',' expr ',' expr {
-	    int i, ilen = (int) $3;
+	| LOAD SCRARRAY nexpr ',' expr ',' expr {
+	    int i, ilen = $3;
             double *ptr;
 	    if (ilen < 0) {
 		yyerror("Length of array < 0");
@@ -2773,25 +2790,25 @@ actions:
 	    } else if (ilen > maxarr) {
 		init_scratch_arrays(ilen);
 	    }
-            ptr = get_scratch((int) $2);
+            ptr = get_scratch($2);
 	    for (i = 0; i < ilen; i++) {
 		ptr[i] = $5 + $7 * i;
 	    }
 	}
-	| NONLFIT '(' selectset ',' expr ')' {
+	| NONLFIT '(' selectset ',' nexpr ')' {
 	    gotnlfit = TRUE;
 	    nlfit_gno = $3->gno;
 	    nlfit_setno = $3->setno;
-	    nlfit_nsteps = (int) $5;
+	    nlfit_nsteps = $5;
 	}
-	| REGRESS '(' selectset ',' expr ')' {
-	    do_regress($3->gno, $3->setno, (int) $5, 0, -1, 0, -1);
+	| REGRESS '(' selectset ',' nexpr ')' {
+	    do_regress($3->gno, $3->setno, $5, 0, -1, 0, -1);
 	}
-	| runtype '(' selectset ',' expr ')' {
-	    do_runavg($3->gno, $3->setno, (int) $5, $1, -1, 0);
+	| runtype '(' selectset ',' nexpr ')' {
+	    do_runavg($3->gno, $3->setno, $5, $1, -1, 0);
 	}
-	| ffttype '(' selectset ',' expr ')' {
-	    do_fourier_command($3->gno, $3->setno, $1, (int) $5);
+	| ffttype '(' selectset ',' nexpr ')' {
+	    do_fourier_command($3->gno, $3->setno, $1, $5);
 	}
         | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
                       fourierloadx ','  fourierloady ')' {
@@ -2813,27 +2830,27 @@ actions:
 	        break;
 	    }
         }
-	| SPLINE '(' selectset ',' expr ',' expr ',' expr ')' {
-	    do_spline($3->gno, $3->setno, $5, $7, (int) $9, SPLINE_CUBIC);
+	| SPLINE '(' selectset ',' expr ',' expr ',' nexpr ')' {
+	    do_spline($3->gno, $3->setno, $5, $7, $9, SPLINE_CUBIC);
 	}
-	| ASPLINE '(' selectset ',' expr ',' expr ',' expr ')' {
-	    do_spline($3->gno, $3->setno, $5, $7, (int) $9, SPLINE_AKIMA);
+	| ASPLINE '(' selectset ',' expr ',' expr ',' nexpr ')' {
+	    do_spline($3->gno, $3->setno, $5, $7, $9, SPLINE_AKIMA);
 	}
-	| INTERP '(' selectset ',' selectset ',' expr ')' {
-	    do_interp($3->gno, $3->setno, $5->gno, $5->setno, (int) $7);
+	| INTERP '(' selectset ',' selectset ',' nexpr ')' {
+	    do_interp($3->gno, $3->setno, $5->gno, $5->setno, $7);
 	}
-	| HISTO '(' selectset ',' expr ',' expr ',' expr ')' {
-            do_histo($3->gno, $3->setno, SET_SELECT_NEXT, -1, $7, $5, $5 + ((int) $9)*$7, 
+	| HISTO '(' selectset ',' expr ',' expr ',' nexpr ')' {
+            do_histo($3->gno, $3->setno, SET_SELECT_NEXT, -1, $7, $5, $5 + $9*$7, 
                                         HISTOGRAM_TYPE_ORDINARY);
 	}
-	| DIFFERENCE '(' selectset ',' expr ')' {
-	    do_differ($3->gno, $3->setno, (int) $5);
+	| DIFFERENCE '(' selectset ',' nexpr ')' {
+	    do_differ($3->gno, $3->setno, $5);
 	}
 	| INTEGRATE '(' selectset ')' {
 	    do_int($3->gno, $3->setno, 0);
 	}
- 	| XCOR '(' selectset ',' selectset ',' expr ')' {
-	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, (int) $7);
+ 	| XCOR '(' selectset ',' selectset ',' nexpr ')' {
+	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
 	}
 	| AUTOSCALE {
 	    if (activeset(whichgraph)) {
@@ -2944,9 +2961,9 @@ actions:
 	| CYCLE {
 	    cycle_world_stack();
 	}
-	| STACK expr {
-	    if ((int) $2 > 0)
-		show_world_stack((int) $2 - 1);
+	| STACK nexpr {
+	    if ($2 > 0)
+		show_world_stack($2 - 1);
 	}
 	| CLEAR STACK {
 	    clear_world_stack();
@@ -3003,8 +3020,8 @@ setprop:
 	    set_dataset_type($1->gno, $1->setno, $3);
 	}
 
-	| selectset SYMBOL expr {
-	    g[$1->gno].p[$1->setno].sym = (int) $3;
+	| selectset SYMBOL nexpr {
+	    g[$1->gno].p[$1->setno].sym = $3;
 	}
 	| selectset SYMBOL color_select {
 	    g[$1->gno].p[$1->setno].sympen.color = $3;
@@ -3027,19 +3044,19 @@ setprop:
 	| selectset SYMBOL SIZE expr {
 	    g[$1->gno].p[$1->setno].symsize = $4;
 	}
-	| selectset SYMBOL CHAR expr {
-	    g[$1->gno].p[$1->setno].symchar = (int) $4;
+	| selectset SYMBOL CHAR nexpr {
+	    g[$1->gno].p[$1->setno].symchar = $4;
 	}
 	| selectset SYMBOL CHAR font_select {
 	    g[$1->gno].p[$1->setno].charfont = $4;
 	}
-	| selectset SYMBOL SKIP expr {
-	    g[$1->gno].p[$1->setno].symskip = (int) $4;
+	| selectset SYMBOL SKIP nexpr {
+	    g[$1->gno].p[$1->setno].symskip = $4;
 	}
 
-	| selectset LINE TYPE expr
+	| selectset LINE TYPE nexpr
         {
-	    g[$1->gno].p[$1->setno].linet = (int) $4;
+	    g[$1->gno].p[$1->setno].linet = $4;
 	}
 	| selectset LINE lines_select
         {
@@ -3058,13 +3075,13 @@ setprop:
 	    g[$1->gno].p[$1->setno].linepen.pattern = $3;
 	}
 
-	| selectset FILL TYPE expr
+	| selectset FILL TYPE nexpr
         {
-	    g[$1->gno].p[$1->setno].filltype = (int) $4;
+	    g[$1->gno].p[$1->setno].filltype = $4;
 	}
-	| selectset FILL RULE expr
+	| selectset FILL RULE nexpr
         {
-	    g[$1->gno].p[$1->setno].fillrule = (int) $4;
+	    g[$1->gno].p[$1->setno].fillrule = $4;
 	}
 	| selectset FILL color_select
         {
@@ -3108,9 +3125,9 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].baseline = $3;
 	}
-	| selectset BASELINE TYPE expr
+	| selectset BASELINE TYPE nexpr
         {
-	    g[$1->gno].p[$1->setno].baseline_type = (int) $4;
+	    g[$1->gno].p[$1->setno].baseline_type = $4;
 	}
         
 	| selectset DROPLINE onoff
@@ -3122,9 +3139,9 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].avalue.active = $3;
 	}
-	| selectset AVALUE TYPE expr
+	| selectset AVALUE TYPE nexpr
         {
-	    g[$1->gno].p[$1->setno].avalue.type = (int) $4;
+	    g[$1->gno].p[$1->setno].avalue.type = $4;
 	}
 	| selectset AVALUE CHAR SIZE expr
         {
@@ -3138,17 +3155,17 @@ setprop:
         {
 	    g[$1->gno].p[$1->setno].avalue.color = $3;
 	}
-	| selectset AVALUE ROT expr
+	| selectset AVALUE ROT nexpr
         {
-	    g[$1->gno].p[$1->setno].avalue.angle = (int) $4;
+	    g[$1->gno].p[$1->setno].avalue.angle = $4;
 	}
 	| selectset AVALUE FORMAT formatchoice
         {
 	    g[$1->gno].p[$1->setno].avalue.format = $4;
 	}
-	| selectset AVALUE PREC expr
+	| selectset AVALUE PREC nexpr
         {
-	    g[$1->gno].p[$1->setno].avalue.prec = (int) $4;
+	    g[$1->gno].p[$1->setno].avalue.prec = $4;
 	}
 	| selectset AVALUE OFFSET expr ',' expr {
 	    g[$1->gno].p[$1->setno].avalue.offset.x = $4;
@@ -3238,8 +3255,8 @@ tickattr:
 	| MAJOR expr {
             g[whichgraph].t[naxis].tmajor = $2;
 	}
-	| MINOR TICKSP expr {
-	    g[whichgraph].t[naxis].nminor = (int) $3;
+	| MINOR TICKSP nexpr {
+	    g[whichgraph].t[naxis].nminor = $3;
 	}
 	| PLACE ROUNDED onoff {
 	    g[whichgraph].t[naxis].t_round = $3;
@@ -3251,8 +3268,8 @@ tickattr:
 	| OFFSETY expr {
             g[whichgraph].t[naxis].offsy = $2;
 	}
-	| DEFAULT expr {
-	    g[whichgraph].t[naxis].t_autonum = (int) $2;
+	| DEFAULT nexpr {
+	    g[whichgraph].t[naxis].t_autonum = $2;
 	}
 	| inoutchoice {
 	    g[whichgraph].t[naxis].t_inout = $1;
@@ -3302,16 +3319,16 @@ tickattr:
 	| TYPE SPEC {
 	    g[whichgraph].t[naxis].t_type = TYPE_SPEC;
 	}
-	| SPEC expr {
-	    g[whichgraph].t[naxis].nticks = (int) $2;
+	| SPEC nexpr {
+	    g[whichgraph].t[naxis].nticks = $2;
 	}
-	| MAJOR expr ',' expr {
-	    g[whichgraph].t[naxis].tloc[(int) $2].wtpos = $4;
-	    g[whichgraph].t[naxis].tloc[(int) $2].type = TICK_TYPE_MAJOR;
+	| MAJOR nexpr ',' expr {
+	    g[whichgraph].t[naxis].tloc[$2].wtpos = $4;
+	    g[whichgraph].t[naxis].tloc[$2].type = TICK_TYPE_MAJOR;
 	}
-	| MINOR expr ',' expr {
-	    g[whichgraph].t[naxis].tloc[(int) $2].wtpos = $4;
-	    g[whichgraph].t[naxis].tloc[(int) $2].type = TICK_TYPE_MINOR;
+	| MINOR nexpr ',' expr {
+	    g[whichgraph].t[naxis].tloc[$2].wtpos = $4;
+	    g[whichgraph].t[naxis].tloc[$2].type = TICK_TYPE_MINOR;
 	}
 	;
 
@@ -3325,8 +3342,8 @@ ticklabelattr:
 	| TYPE SPEC {
 	    g[whichgraph].t[naxis].tl_type = TYPE_SPEC;
 	}
-	| PREC expr {
-	    g[whichgraph].t[naxis].tl_prec = (int) $2;
+	| PREC nexpr {
+	    g[whichgraph].t[naxis].tl_prec = $2;
 	}
 	| FORMAT formatchoice {
 	    g[whichgraph].t[naxis].tl_format = $2;
@@ -3342,14 +3359,14 @@ ticklabelattr:
 	    strcpy(g[whichgraph].t[naxis].tl_prestr, $2);
 	    free($2);
 	}
-	| ANGLE expr {
-	    g[whichgraph].t[naxis].tl_angle = (int) $2;
+	| ANGLE nexpr {
+	    g[whichgraph].t[naxis].tl_angle = $2;
 	}
-	| SKIP expr {
-	    g[whichgraph].t[naxis].tl_skip = (int) $2;
+	| SKIP nexpr {
+	    g[whichgraph].t[naxis].tl_skip = $2;
 	}
-	| STAGGER expr {
-	    g[whichgraph].t[naxis].tl_staggered = (int) $2;
+	| STAGGER nexpr {
+	    g[whichgraph].t[naxis].tl_staggered = $2;
 	}
 	| opchoice_sel {
 	    g[whichgraph].t[naxis].tl_op = $1;
@@ -3384,9 +3401,9 @@ ticklabelattr:
 	| color_select {
 	    g[whichgraph].t[naxis].tl_color = $1;
 	}
-	| expr ',' CHRSTR {
-	    g[whichgraph].t[naxis].tloc[(int) $1].label = 
-                copy_string(g[whichgraph].t[naxis].tloc[(int) $1].label, $3);
+	| nexpr ',' CHRSTR {
+	    g[whichgraph].t[naxis].tloc[$1].label = 
+                copy_string(g[whichgraph].t[naxis].tloc[$1].label, $3);
 	    free($3);
 	}
 	| OFFSET AUTO {
@@ -3463,8 +3480,8 @@ nonlfitopts:
           strcpy(nonl_opts.formula, $2);
 	  free($2);
         }
-        | WITH expr PARAMETERS { 
-            nonl_opts.parnum = (int) $2; 
+        | WITH nexpr PARAMETERS { 
+            nonl_opts.parnum = $2; 
         }
         | PREC expr { 
             nonl_opts.tolerance = $2; 
@@ -3744,9 +3761,9 @@ extremetype: MINP { $$ = MINP; }
 	;
 
 font_select:
-        FONTP expr
+        FONTP nexpr
         {
-            $$ = get_mapped_font((int) $2);
+            $$ = get_mapped_font($2);
         }
         | FONTP CHRSTR
         {
@@ -3756,9 +3773,9 @@ font_select:
         ;
 
 lines_select:
-        LINESTYLE expr
+        LINESTYLE nexpr
         {
-	    int lines = (int) $2;
+	    int lines = $2;
             if (lines >= 0 && lines < number_of_linestyles()) {
 	        $$ = lines;
 	    } else {
@@ -3769,9 +3786,9 @@ lines_select:
         ;
 
 pattern_select:
-        PATTERN expr
+        PATTERN nexpr
         {
-	    int patno = (int) $2;
+	    int patno = $2;
             if (patno >= 0 && patno < number_of_patterns()) {
 	        $$ = patno;
 	    } else {
@@ -3782,9 +3799,9 @@ pattern_select:
         ;
 
 color_select:
-        COLOR expr
+        COLOR nexpr
         {
-            int c = (int) $2;
+            int c = $2;
             if (c >= 0 && c < number_of_colors()) {
                 $$ = c;
             } else {
@@ -3802,13 +3819,13 @@ color_select:
             free($2);
             $$ = c;
         }
-        | COLOR '(' expr ',' expr ',' expr ')'
+        | COLOR '(' nexpr ',' nexpr ',' nexpr ')'
         {
             int c;
             CMap_entry cmap;
-            cmap.rgb.red = (int) $3;
-            cmap.rgb.green = (int) $5;
-            cmap.rgb.blue = (int) $7;
+            cmap.rgb.red = $3;
+            cmap.rgb.green = $5;
+            cmap.rgb.blue = $7;
             cmap.ctype = COLOR_MAIN;
             cmap.cname = NULL;
             c = add_color(cmap);
@@ -3863,11 +3880,11 @@ parmset_obs:
             pg.dpi_y = 72.0;
             set_page_geometry(pg);
         }
-	| PAGE expr {
-	    scroll_proc((int) $2);
+	| PAGE nexpr {
+	    scroll_proc($2);
 	}
-	| PAGE INOUT expr {
-	    scrollinout_proc((int) $3);
+	| PAGE INOUT nexpr {
+	    scrollinout_proc($3);
 	}
 
 	| DEFAULT FONTP SOURCE expr {
@@ -3969,8 +3986,8 @@ axislabeldesc_obs:
         ;
 
 setprop_obs:
-	selectset SYMBOL FILL expr {
-	    switch ((int) $4){
+	selectset SYMBOL FILL nexpr {
+	    switch ($4){
 	    case 0:
 	        g[$1->gno].p[$1->setno].symfillpen.pattern = 0;
 	        break;
@@ -3983,13 +4000,13 @@ setprop_obs:
 	        break;
 	    }
 	}
-	| selectset SKIP expr
+	| selectset SKIP nexpr
         {
-	    g[$1->gno].p[$1->setno].symskip = (int) $3;
+	    g[$1->gno].p[$1->setno].symskip = $3;
 	}
-	| selectset FILL expr
+	| selectset FILL nexpr
         {
-	    switch ((int) $3) {
+	    switch ($3) {
             case 0:
                 g[$1->gno].p[$1->setno].filltype = SETFILL_NONE;
                 break;
@@ -4058,9 +4075,9 @@ tickattr_obs:
 	| SIZE expr {
 	    g[whichgraph].t[naxis].props.size = $2;
 	}
-	| expr ',' expr {
-	    g[whichgraph].t[naxis].tloc[(int) $1].wtpos = $3;
-	    g[whichgraph].t[naxis].tloc[(int) $1].type = TICK_TYPE_MAJOR;
+	| nexpr ',' expr {
+	    g[whichgraph].t[naxis].tloc[$1].wtpos = $3;
+	    g[whichgraph].t[naxis].tloc[$1].type = TICK_TYPE_MAJOR;
 	}
 	| opchoice_sel_obs {
 	    g[whichgraph].t[naxis].t_op = $1;
@@ -4330,7 +4347,6 @@ symtab_entry ikey[] = {
 	{"IRAND", FUNC_I, irand_wrap},
 	{"IV", FUNC_DD, iv_wrap},
 	{"JDAY", JDAY, NULL},
-	{"JDAY0", JDAY0, NULL},
 	{"JUST", JUST, NULL},
 	{"JV", FUNC_DD, jv_wrap},
 	{"K0E", FUNC_D, k0e},
@@ -5052,17 +5068,17 @@ int yylex(void)
 	    }
 	    else if (key[found].type == FITPARM) {
 		int index = sbuf[1] - '0';
-		yylval.dval = index;
+		yylval.ival = index;
 		return FITPARM;
 	    }
 	    else if (key[found].type == FITPMAX) {
 		int index = sbuf[1] - '0';
-		yylval.dval = index;
+		yylval.ival = index;
 		return FITPMAX;
 	    }
 	    else if (key[found].type == FITPMIN) {
 		int index = sbuf[1] - '0';
-		yylval.dval = index;
+		yylval.ival = index;
 		return FITPMIN;
 	    }
 	    else if (key[found].type == FUNC_I) {
