@@ -5085,14 +5085,14 @@ static Quark *allocate_graph(Quark *project, int gno)
     char buf[32];
     
     if (gno >= 0) {
-        sprintf(buf, "G%d", gno);
+        sprintf(buf, "G%02d", gno);
         gr = quark_find_descendant_by_idstr(project, buf);
         if (!gr) {
             gr = graph_next(project);
             quark_idstr_set(gr, buf);
             
             /* assign an idstr to the frame, too */
-            sprintf(buf, "F%d", gno);
+            sprintf(buf, "F%02d", gno);
             quark_idstr_set(get_parent_frame(gr), buf);
         }
     }
@@ -5106,7 +5106,7 @@ static Quark *allocate_set(Quark *gr, int setno)
     char buf[32];
     
     if (setno >= 0) {
-        sprintf(buf, "S%d", setno);
+        sprintf(buf, "S%02d", setno);
         pset = quark_find_descendant_by_idstr(gr, buf);
         if (!pset) {
             pset = set_new(gr);
