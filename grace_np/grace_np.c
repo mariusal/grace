@@ -12,7 +12,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
-#include <sys/param.h>
+#ifdef HAVE_SYS_PARAM_H
+#  include <sys/param.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #ifdef HAVE_FCNTL_H
@@ -20,6 +22,9 @@
 #endif
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
+#endif
+#ifdef HAVE_VFORK_H
+#  include <vfork.h>
 #endif
 #include <limits.h>
 #ifndef OPEN_MAX
@@ -185,7 +190,7 @@ GraceOpen(const int arg)
     }
 
     /* Fork a subprocess for starting grace */
-    pid = fork();
+    pid = vfork();
     if (pid == (pid_t) (-1)) {
         GracePerror("GraceOpen");
         return (-1);
