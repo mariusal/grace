@@ -71,11 +71,13 @@ typedef struct _console_ui
 static void command_hist_prev(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     char *s;
+    void *p;
     console_ui *ui = (console_ui *) GetUserData(w);
     if (!ui->eohistory) {
         storage_scroll(ui->history, -1, FALSE);
     }
-    if (storage_get_data(ui->history, (void **) &s) == RETURN_SUCCESS) {
+    if (storage_get_data(ui->history, &p) == RETURN_SUCCESS) {
+        s = p;
         SetTextString(ui->cmd, s);
     }
     ui->eohistory = FALSE;
@@ -84,9 +86,11 @@ static void command_hist_prev(Widget w, XEvent *e, String *par, Cardinal *npar)
 static void command_hist_next(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     char *s;
+    void *p;
     console_ui *ui = GetUserData(w);
     if (storage_scroll(ui->history, +1, FALSE) == RETURN_SUCCESS) {
-        storage_get_data(ui->history, (void **) &s);
+        storage_get_data(ui->history, &p);
+        s = p;
     } else {
         ui->eohistory = TRUE;
         s = "";
