@@ -838,7 +838,7 @@ static Widget CreateMainMenuBar(Widget parent)
  */
 void initialize_screen()
 {
-    Widget bt, rc3, rcleft, rctop, formbot;
+    Widget bt, rc3, rcleft;
     Pixmap icon, shape;
     Atom WM_DELETE_WINDOW;
     Pixel fg, bg;
@@ -906,39 +906,21 @@ void initialize_screen()
 				     NULL);
     XtAddCallback(rcleft, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#toolbar");
 
-    frtop = XtVaCreateManagedWidget("frtop", xmFrameWidgetClass, form,
-				    NULL);
-    rctop = XtVaCreateManagedWidget("rctop", xmRowColumnWidgetClass, frtop,
-				    XmNorientation, XmHORIZONTAL,
-				    XmNpacking, XmPACK_TIGHT,
-#ifdef HAVE_LESSTIF
-                                    /* Lesstif-0.88 for some reason needs it */
-                                    XmNresizeWidth, False,
-#endif
-				    XmNspacing, 0,
-				    XmNentryBorder, 0,
-				    XmNmarginWidth, 0,
-				    XmNmarginHeight, 0,
-				    NULL);
+    frtop = CreateFrame(form, NULL);
+    frbot = CreateFrame(form, NULL);
 
-    frbot = XtVaCreateManagedWidget("frbot", xmFrameWidgetClass, form, NULL);
-    XtManageChild(frbot);
-    /* formbot = XmCreateForm(frbot, "form", NULL, 0); */
-    formbot = XmCreateRowColumn(frbot, "rc", NULL, 0);
-    statlab = XtVaCreateManagedWidget("statlab", xmLabelWidgetClass, formbot,
+    statlab = XtVaCreateManagedWidget("statlab", xmLabelWidgetClass, frbot,
 				      XmNalignment, XmALIGNMENT_BEGINNING,
 				      XmNrecomputeSize, True,
 				      NULL);
     XtAddCallback(statlab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#statbar");
 
-    loclab = XtVaCreateManagedWidget("label Locate", xmLabelWidgetClass, rctop,
+    loclab = XtVaCreateManagedWidget("label Locate", xmLabelWidgetClass, frtop,
 				     XmNalignment, XmALIGNMENT_BEGINNING,
 				     XmNrecomputeSize, True,
 				     NULL);
     XtAddCallback(loclab, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#locbar");
 
-    XtManageChild(formbot);
-    
     if (get_pagelayout() == PAGE_FIXED) {
 
         drawing_window = XtVaCreateManagedWidget("drawing_window",
