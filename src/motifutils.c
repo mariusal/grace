@@ -4280,45 +4280,64 @@ void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
-static void update_yesno(Widget w, char *msg, char *ha)
+int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 {
-    Widget hb;
+    static Widget dialog = NULL;
+    XEvent event;
+    static char *ha = NULL;
+    Widget but;
     XmString str;
+    
+    ha = help_anchor;
+
+    keep_grab = True;
+
+    if (dialog == NULL) {
+        dialog = XmCreateErrorDialog(app_shell, "warningDialog", NULL, 0);
+
+        str = XmStringCreateLocalized("Grace: Warning");
+        XtVaSetValues(dialog, XmNdialogTitle, str, NULL);
+        XmStringFree(str);
 	
+	XtAddCallback(dialog, XmNokCallback, yesnoCB, NULL);
+	XtAddCallback(dialog, XmNcancelCallback, yesnoCB, NULL);
+        
+        but = XtNameToWidget(dialog, "Help");
+        AddButtonCB(but, HelpCB, ha);
+    }
+
     if (msg != NULL) {
         str = XmStringCreateLocalized(msg);
     } else {
         str = XmStringCreateLocalized("Warning");
     }
-    XtVaSetValues(w, XmNmessageString, str, NULL);
+    XtVaSetValues(dialog, XmNmessageString, str, NULL);
     XmStringFree(str);
     
-    hb = XtNameToWidget(w, "Help");
-    if (ha) {
-        AddButtonCB(hb, HelpCB, ha);
-        XtSetSensitive(hb, True);
+    but = XtNameToWidget(dialog, "OK");
+    if (s1) {
+    	SetLabel(but, s1);
     } else {    
-        XtSetSensitive(hb, False);
+    	SetLabel(but, "OK");
     }
-}
-
-int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
-{
-    static Widget yesno_popup = NULL;
-    XEvent event;
-
-    keep_grab = True;
-
-    if (yesno_popup == NULL) {
-	yesno_popup = XmCreateErrorDialog(app_shell, "warndlg", NULL, 0);
-
-	XtAddCallback(yesno_popup, XmNokCallback, yesnoCB, NULL);
-	XtAddCallback(yesno_popup, XmNcancelCallback, yesnoCB, NULL);
-    }
-    update_yesno(yesno_popup, msg, help_anchor);
-    RaiseWindow(yesno_popup);
     
-    XtAddGrab(XtParent(yesno_popup), True, False);
+    but = XtNameToWidget(dialog, "Cancel");
+    if (s2) {
+    	SetLabel(but, s2);
+    } else {    
+    	SetLabel(but, "Cancel");
+    }
+    
+    but = XtNameToWidget(dialog, "Help");
+    if (ha) {
+        XtManageChild(but);
+    } else {    
+        XtUnmanageChild(but);
+    }
+
+    RaiseWindow(dialog);
+    
+    XtAddGrab(XtParent(dialog), True, False);
     while (keep_grab || XtAppPending(app_con)) {
 	XtAppNextEvent(app_con, &event);
 	XtDispatchEvent(&event);
