@@ -290,15 +290,11 @@ typedef enum {
 /* for data pruning */
 #define PRUNE_INTERPOLATION     0
 #define PRUNE_CIRCLE            1
-#define PRUNE_ELLIPSE           2
-#define PRUNE_RECTANGLE         3
+#define PRUNE_RECTANGLE         2
+#define PRUNE_ELLIPSE           3
 
-#define PRUNE_LIN               0
-#define PRUNE_LOG               1
-
-#define PRUNE_VIEWPORT          0
-#define PRUNE_WORLD             1
-
+#define PRUNE_ABSOLUTE          0
+#define PRUNE_RELATIVE          1
 
 /* for io filters */
 #define FILTER_INPUT    0

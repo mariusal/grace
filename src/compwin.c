@@ -41,22 +41,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/Form.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Text.h>
-
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
 #include "ssdata.h"
 #include "motifinc.h"
 #include "protos.h"
-
-static Widget but2[3];
 
 static int compute_aac(void *data);
 static int do_histo_proc(void *data);
@@ -68,8 +58,7 @@ static int do_int_proc(void *data);
 static int do_linearc_proc(void *data);
 static int do_xcor_proc(void *data);
 static int do_sample_proc(void *data);
-static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_prune_proc(void *data);
 
 typedef struct _Eval_ui {
     Widget top;
@@ -77,7 +66,6 @@ typedef struct _Eval_ui {
     Widget formula_item;
     RestrictionStructure *restr_item;
 } Eval_ui;
-
 
 void create_eval_frame(void *data)
 {
@@ -1370,203 +1358,155 @@ static int do_sample_proc(void *data)
 /* Prune data */
 
 typedef struct _Prune_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *type_item;
-    Widget *dxtype_item;
-    Widget *dytype_item;
-    Widget *deltatype_item;
+    TransformStructure *tdialog;
+    OptionStructure *type;
     Widget dx_rc;
+    Widget dx;
+    OptionStructure *dxtype;
     Widget dy_rc;
-    Widget dx_item;
-    Widget dy_item;
+    Widget dy;
+    OptionStructure *dytype;
 } Prune_ui;
-
-static Prune_ui pruneui;
-
-void create_prune_frame(void *data)
-{
-    int i;
-    static Widget dialog;
-
-    set_wait_cursor();
-    if (pruneui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	pruneui.top = XmCreateDialogShell(app_shell, "Prune data", NULL, 0);
-	handle_close(pruneui.top);
-	dialog = XmCreateRowColumn(pruneui.top, "dialog_rc", NULL, 0);
-
-	pruneui.sel = CreateSetSelector(dialog, "Apply to set:",
-	    SET_SELECT_ALL, FILTER_SELECT_NONE, GRAPH_SELECT_CURRENT,
-	    SELECTION_TYPE_MULTIPLE);
-
-	pruneui.type_item = CreatePanelChoice(dialog,
-	    "Prune type: ", 5,
-	    "Interpolation", "Circle", "Ellipse", "Rectangle",
-	    NULL, 0);
-
-	pruneui.dx_rc = XtVaCreateWidget("dx_rc",
-            xmRowColumnWidgetClass, dialog,
-            XmNorientation, XmHORIZONTAL,
-	    NULL);
-	pruneui.dx_item = CreateTextItem4(pruneui.dx_rc, 17, "Delta X:");
-        ManageChild(pruneui.dx_rc);
-
-	pruneui.dy_rc = XtVaCreateWidget("dy_rc",
-            xmRowColumnWidgetClass, dialog,
-            XmNorientation, XmHORIZONTAL,
-	    NULL);
-	pruneui.dy_item = CreateTextItem4(pruneui.dy_rc, 17, "Delta Y:");
-        ManageChild(pruneui.dy_rc);
-
-	CreateSeparator(dialog);
-
-        pruneui.deltatype_item = CreatePanelChoice(dialog,
-	    "Type of Delta coordinates:", 3, "Viewport", "World", NULL, 0);
-	
-	pruneui.dxtype_item = CreatePanelChoice(dialog,
-            "Scaling of Delta X:", 3, "Linear", "Logarithmic", NULL, 0);
-	
-	pruneui.dytype_item = CreatePanelChoice(dialog,
-            "Scaling of Delta Y:", 3, "Linear", "Logarithmic", NULL, 0);
-
-        update_prune_frame();
-
-        for (i = 0; i <= 3; i++) {
-            XtAddCallback(pruneui.type_item[2 + i], XmNactivateCallback,
-                (XtCallbackProc) do_prune_toggle, (XtPointer) &pruneui);
-        }
-	for (i = 0; i <= 1; i++) {
-            XtAddCallback(pruneui.deltatype_item[2 + i], XmNactivateCallback,
-                (XtCallbackProc) do_prune_toggle, (XtPointer) &pruneui);
-        }
-        do_prune_toggle ((Widget) NULL, (XtPointer) &pruneui, 0);
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_prune_proc, (XtPointer) & pruneui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) pruneui.top);
-
-	ManageChild(dialog);
-    }
-    RaiseWindow(pruneui.top);
-    unset_wait_cursor();
-}
-
-void update_prune_frame(void)
-{
-    if (pruneui.top != NULL) {
-        SetChoice(pruneui.dxtype_item,
-            (get_graph_xscale(get_cg()) == SCALE_LOG) ? 1 : 0);
-        SetChoice(pruneui.dytype_item,
-            (get_graph_yscale(get_cg()) == SCALE_LOG) ? 1 : 0);
-    }
-}
 
 /*
  * Toggle prune type
  */
-static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data)
+static void do_prune_toggle(int value, void *data)
 {
-    Prune_ui *ui = (Prune_ui *) client_data;
-    int typeno = (int) GetChoice(ui->type_item);
-    int deltatypeno = (int) GetChoice(ui->deltatype_item);
+    Prune_ui *ui = (Prune_ui *) data;
 
-    switch (typeno) {
-        case PRUNE_CIRCLE:
-	    SetSensitive(pruneui.dx_rc, TRUE);
-	    SetSensitive(pruneui.dy_rc, FALSE);
-	    switch (deltatypeno) {
-		case PRUNE_VIEWPORT:
-		    SetSensitive(*pruneui.dxtype_item, FALSE);
-		    SetSensitive(*pruneui.dytype_item, FALSE);
-		    break;
-		case PRUNE_WORLD:
-		    SetSensitive(*pruneui.dxtype_item, TRUE);
-		    SetSensitive(*pruneui.dytype_item, FALSE);
-		    break;
-	    }
-	    break;
-        case PRUNE_ELLIPSE:
-        case PRUNE_RECTANGLE:
-	    SetSensitive(pruneui.dx_rc, TRUE);
-	    SetSensitive(pruneui.dy_rc, TRUE);
-	    switch (deltatypeno) {
-		case PRUNE_VIEWPORT:
-		    SetSensitive(*pruneui.dxtype_item, FALSE);
-		    SetSensitive(*pruneui.dytype_item, FALSE);
-		    break;
-		case PRUNE_WORLD:
-		    SetSensitive(*pruneui.dxtype_item, TRUE);
-		    SetSensitive(*pruneui.dytype_item, TRUE);
-		    break;
-	    }
-	    break;
-        case PRUNE_INTERPOLATION:
-	    SetSensitive(pruneui.dx_rc, FALSE);
-	    SetSensitive(pruneui.dy_rc, TRUE);
-	    switch (deltatypeno) {
-		case PRUNE_VIEWPORT:
-		    SetSensitive(*pruneui.dxtype_item, FALSE);
-		    SetSensitive(*pruneui.dytype_item, FALSE);
-		    break;
-		case PRUNE_WORLD:
-		    SetSensitive(*pruneui.dxtype_item, FALSE);
-		    SetSensitive(*pruneui.dytype_item, TRUE);
-		    break;
-	    }
-	    break;
+    switch (value) {
+    case PRUNE_CIRCLE:
+	SetSensitive(ui->dx_rc, TRUE);
+	SetSensitive(ui->dy_rc, FALSE);
+	break;
+    case PRUNE_INTERPOLATION:
+	SetSensitive(ui->dx_rc, FALSE);
+	SetSensitive(ui->dy_rc, TRUE);
+	break;
+    default:
+	SetSensitive(ui->dx_rc, TRUE);
+	SetSensitive(ui->dy_rc, TRUE);
+	break;
     }
 }
+
+void create_prune_frame(void *data)
+{
+    static Prune_ui *ui;
+    
+    set_wait_cursor();
+
+    if (ui == NULL) {
+	Widget rc;
+        OptionItem topitems[] = {
+            {PRUNE_INTERPOLATION, "Interpolation"},
+            {PRUNE_CIRCLE,        "Circle"       },
+            {PRUNE_RECTANGLE,     "Rectangle"    },
+            {PRUNE_ELLIPSE,       "Ellipse"      }
+        };
+        OptionItem dopitems[] = {
+            {PRUNE_ABSOLUTE, "Absolute"},
+            {PRUNE_RELATIVE, "Relative"}
+        };
+        
+        ui = xmalloc(sizeof(Prune_ui));
+
+        ui->tdialog = CreateTransformDialogForm(app_shell,
+            "Prune data", LIST_TYPE_MULTIPLE);
+
+	rc = CreateVContainer(ui->tdialog->form);
+
+        ui->type = CreateOptionChoice(rc, "Prune type:", 0, 4, topitems);
+        AddOptionChoiceCB(ui->type, do_prune_toggle, (void *) ui);
+
+	ui->dx_rc = CreateHContainer(rc);
+	ui->dx = CreateTextItem4(ui->dx_rc, 16, "DX:");
+	ui->dxtype = CreateOptionChoice(ui->dx_rc, "Type:", 0, 2, dopitems);
+	
+	ui->dy_rc = CreateHContainer(rc);
+	ui->dy = CreateTextItem4(ui->dy_rc, 16, "DY:");
+	ui->dytype = CreateOptionChoice(ui->dy_rc, "Type:", 0, 2, dopitems);
+
+        do_prune_toggle(PRUNE_INTERPOLATION, (void *) ui);
+        
+        CreateAACDialog(ui->tdialog->form, rc, do_prune_proc, (void *) ui);
+    }
+    
+    RaiseWindow(GetParent(ui->tdialog->form));
+    
+    unset_wait_cursor();
+}
+
 
 /*
  * Prune data
  */
-static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_prune_proc(void *data)
 {
-    int *selsets;
-    int i, cnt;
-    int setno, typeno, deltatypeno;
-    int dxtype, dytype;
-    double deltax, deltay;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int type, dxtype, dytype;
+    double dx, dy;
+    Prune_ui *ui = (Prune_ui *) data;
 
-    Prune_ui *ui = (Prune_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest,
+        &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    typeno = (int) GetChoice(ui->type_item);
-    deltatypeno = (int) GetChoice(ui->deltatype_item);
-    dxtype = (int) GetChoice(ui->dxtype_item);
-    dytype = (int) GetChoice(ui->dytype_item);
 
-	if( XtIsSensitive(ui->dx_rc)== True ){
-		if(xv_evalexpr(ui->dx_item, &deltax) != RETURN_SUCCESS)
-			return;
-	} else
-		deltax = 0;
-	if( XtIsSensitive(ui->dy_rc)== True ){
-		if(xv_evalexpr(ui->dy_item, &deltay) != RETURN_SUCCESS )
-			return;
-	} else
-		deltay = 0;	
-	
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
+    type   = GetOptionChoice(ui->type);
+    dxtype = GetOptionChoice(ui->dxtype);
+    dytype = GetOptionChoice(ui->dytype);
 
-	do_prune(setno, typeno, deltatypeno, deltax, deltay, dxtype, dytype);
+    if (type != PRUNE_INTERPOLATION) {
+        if (xv_evalexpr(ui->dx, &dx) != RETURN_SUCCESS) {
+            errmsg("Can't parse value for X");
+            return RETURN_FAILURE;
+        }
     }
-    update_set_lists(get_cg());
-    unset_wait_cursor();
-    xfree(selsets);
+    if (type != PRUNE_CIRCLE) {
+        if (xv_evalexpr(ui->dy, &dy) != RETURN_SUCCESS) {
+            errmsg("Can't parse value for Y");
+            return RETURN_FAILURE;
+        }
+    }
+
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+        
+	res = do_prune(gsrc, setfrom, gdest, setto,
+            type, dx, dxtype, dy, dytype);
+        
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        }
+    }
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
     xdrawgraph();
-}
 
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
+}
 
 
 typedef struct _Featext_ui {

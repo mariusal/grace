@@ -65,7 +65,8 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
 
 int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula);
-void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay, int dxtype, int dytype);
+int do_prune(int gsrc, int setfrom, int gdest, int setto, 
+    int type, double dx, int dxtype, double dy, int dytype);
 
 void set_region_defaults(region *r);
 void set_default_framep(framep * f);

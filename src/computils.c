@@ -1097,312 +1097,171 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
     return RETURN_SUCCESS;
 }
 
-#define prune_xconv(res,x,xtype)	\
-    switch (deltatypeno) {		\
-    case PRUNE_VIEWPORT:		\
-	res = xy_xconv(x);			\
-	break;				\
-    case PRUNE_WORLD:			\
-	switch (xtype) {		\
-	case PRUNE_LIN:			\
-	    res = x;			\
-	    break;			\
-	case PRUNE_LOG:			\
-	    res = log(x);		\
-	    break;			\
-	}				\
-    }
-
-#define prune_yconv(res,y,ytype)	\
-    switch (deltatypeno) {		\
-    case PRUNE_VIEWPORT:		\
-	res = xy_yconv(y);			\
-	break;				\
-    case PRUNE_WORLD:			\
-	switch (ytype) {		\
-	case PRUNE_LIN:			\
-	    res = y;			\
-	    break;			\
-	case PRUNE_LOG:			\
-	    res = log(y);		\
-	    break;			\
-	}				\
-    }
 
 /*
  * Prune data
  */
-void do_prune(int setno, int typeno, int deltatypeno, float deltax, float deltay, int dxtype, int dytype)
+int do_prune(int gsrc, int setfrom, int gdest, int setto, 
+    int type, double dx, int dxtype, double dy, int dytype)
 {
-    int len, npts = 0, d, i, j, k, drop, resset;
-    double *x, *y, *resx, *resy, xtmp, ytmp, ddx = 0.0, ddy = 0.0;
-    double xj = 0.0, xjm = 0.0, xjp = 0.0, yj = 0.0, yjm = 0.0, yjp = 0.0;
+    int len, newlen, ncols, i, nc;
+    char *stype, *iprune;
+    double *x, *y, old_x, old_y, ddx, ddy;
 
-    if (!is_set_active(get_cg(), setno)) {
+    if (!is_set_active(gsrc, setfrom)) {
         errmsg("Set not active");
-        return;
+        return RETURN_FAILURE;
     }
-    len = getsetlength(get_cg(), setno);
+    
+    len = getsetlength(gsrc, setfrom);
     if (len <= 2) {
 	errmsg("Set has <= 2 points");
-	return;
+	return RETURN_FAILURE;
     }
-    x = getx(get_cg(), setno);
-    y = gety(get_cg(), setno);
-    switch (typeno) {
+
+    activateset(gdest, setto);
+    ncols = dataset_cols(gsrc, setfrom);
+    if (dataset_cols(gdest, setto) != ncols) {
+        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    }
+    
+    switch (type) {
     case PRUNE_CIRCLE:
     case PRUNE_ELLIPSE:
     case PRUNE_RECTANGLE:
-	deltax = fabs(deltax);
-	if (deltax == 0)
-	    return;
-	break;
+	dx = fabs(dx);
+	if (dx == 0.0) {
+            errmsg("Zero dx");
+	    return RETURN_FAILURE;
+	}
+        break;
     }
-    switch (typeno) {
+    
+    switch (type) {
     case PRUNE_CIRCLE:
-	deltay = deltax;
+	dy = dx;
 	break;
     case PRUNE_ELLIPSE:
     case PRUNE_RECTANGLE:
     case PRUNE_INTERPOLATION:
-	deltay = fabs(deltay);
-	if (deltay == 0)
-	    return;
-	break;
+	dy = fabs(dy);
+	if (dy == 0.0) {
+            errmsg("Zero dy");
+	    return RETURN_FAILURE;
+	}
+        break;
     }
-    if (deltatypeno == PRUNE_WORLD) {
-	if (dxtype == PRUNE_LOG && deltax < 1.0) {
-	    deltax = 1.0 / deltax;
-	}
-	if (dytype == PRUNE_LOG && deltay < 1.0) {
-	    deltay = 1.0 / deltay;
-	}
-    }
-    resset = nextset(get_cg());
-    if (resset < 0) {
-        return;
-    }
-    add_point(get_cg(), resset, x[0], y[0]);
-    npts++;
-    resx = getx(get_cg(), resset);
-    resy = gety(get_cg(), resset);
-    switch (typeno) {
-    case PRUNE_CIRCLE:
-    case PRUNE_ELLIPSE:
-	for (i = 1; i < len; i++) {
-	    xtmp = x[i];
-	    ytmp = y[i];
-	    drop = FALSE;
-	    for (j = npts - 1; j >= 0 && drop == FALSE; j--) {
-		switch (deltatypeno) {
-		case PRUNE_VIEWPORT:
-		    ddx = (xy_xconv(xtmp) - xy_xconv(resx[j])) / deltax;
-		    if (fabs(ddx) < 1.0) {
-			ddy = (xy_yconv(ytmp) - xy_yconv(resy[j])) / deltay;
-			if (ddx * ddx + ddy * ddy < 1.0) {
-			    drop = TRUE;
-			}
-		    }
-		    break;
-		case PRUNE_WORLD:
-		    switch (dxtype) {
-		    case PRUNE_LIN:
-			ddx = (xtmp - resx[j]) / deltax;
-			break;
-		    case PRUNE_LOG:
-			ddx = (xtmp / resx[j]);
-			if (ddx < 1.0) {
-			    ddx = 1.0 / ddx;
-			}
-			ddx /= deltax;
-			break;
-		    }
-		    if (fabs(ddx) < 1.0) {
-			switch (dytype) {
-			case PRUNE_LIN:
-			    ddy = (ytmp - resy[j]) / deltay;
-			    break;
-			case PRUNE_LOG:
-			    ddy = (ytmp / resy[j]);
-			    if (ddy < 1.0) {
-				ddy = 1.0 / ddy;
-			    }
-			    ddy /= deltay;
-			    break;
-			}
-			if (ddx * ddx + ddy * ddy < 1.0) {
-			    drop = TRUE;
-			}
-		    }
-		    break;
-		}
-	    }
-	    if (drop == FALSE) {
-		add_point(get_cg(), resset, xtmp, ytmp);
-		npts++;
-		resx = getx(get_cg(), resset);
-		resy = gety(get_cg(), resset);
-	    }
-	}
-	sprintf(buf, "Prune from %d, %s dx = %g dy = %g", setno, 
-	    (typeno == 0) ? "Circle" : "Ellipse", deltax, deltay);
-	break;
-    case PRUNE_RECTANGLE:
-	for (i = 1; i < len; i++) {
-	    xtmp = x[i];
-	    ytmp = y[i];
-	    drop = FALSE;
-	    for (j = npts - 1; j >= 0 && drop == FALSE; j--) {
-		switch (deltatypeno) {
-		case PRUNE_VIEWPORT:
-		    ddx = fabs(xy_xconv(xtmp) - xy_xconv(resx[j]));
-		    if (ddx < deltax) {
-			ddy = fabs(xy_yconv(ytmp) - xy_yconv(resy[j]));
-			if (ddy < deltay) {
-			    drop = TRUE;
-			}
-		    }
-		    break;
-		case PRUNE_WORLD:
-		    switch (dxtype) {
-		    case PRUNE_LIN:
-			ddx = fabs(xtmp - resx[j]);
-			break;
-		    case PRUNE_LOG:
-			ddx = (xtmp / resx[j]);
-			if (ddx < 1.0) {
-			    ddx = 1.0 / ddx;
-			}
-			break;
-		    }
-		    if (ddx < deltax) {
-			switch (dytype) {
-			case PRUNE_LIN:
-			    ddy = fabs(ytmp - resy[j]);
-			    break;
-			case PRUNE_LOG:
-			    ddy = (ytmp / resy[j]);
-			    if (ddy < 1.0) {
-				ddy = 1.0 / ddy;
-			    }
-			    break;
-			}
-			if (ddy < deltay) {
-			    drop = TRUE;
-			}
-		    }
-		    break;
-		}
-	    }
-	    if (drop == FALSE) {
-		add_point(get_cg(), resset, xtmp, ytmp);
-		npts++;
-		resx = getx(get_cg(), resset);
-		resy = gety(get_cg(), resset);
-	    }
-	}
-	sprintf(buf, "Prune from %d, %s dx = %g dy = %g", setno, 
-	    "Rectangle", deltax, deltay);
-	break;
+    
+    switch (type) {
     case PRUNE_INTERPOLATION:
-	k = 0;
-	prune_xconv(xjm, x[0], dxtype);
-	prune_yconv(yjm, y[0], dytype);
-	while (k < len - 2) {
-	    d = 1;
-	    i = k + d + 1;
-	    drop = TRUE;
-	    while (TRUE) {
-		prune_xconv(xjp, x[i], dxtype);
-		prune_yconv(yjp, y[i], dytype);
-		for (j = k + 1; j < i && drop == TRUE; j++) {
-		    prune_xconv(xj, x[j], dxtype);
-		    prune_yconv(yj, y[j], dytype);
-		    if (xjp == xjm) {
-			ytmp = 0.5 * (yjp + yjm);
-		    } else {
-			ytmp = (yjp*(xj-xjm)+yjm*(xjp-xj))/(xjp-xjm);
-		    }
-		    switch (deltatypeno) {
-		    case PRUNE_VIEWPORT:
-			ddy = fabs(ytmp - yj);
-			break;
-		    case PRUNE_WORLD:
-			switch (dytype) {
-			case PRUNE_LIN:
-			    ddy = fabs(ytmp - yj);
-			    break;
-			case PRUNE_LOG:
-			    ddy = exp(fabs(ytmp - yj));
-			    break;
-			}
-		    }
-		    if (ddy > deltay) {
-			drop = FALSE;
-		    }
-		}
-		if (drop == FALSE || i == len - 1) {
-		    break;
-		}
-		d *= 2;
-		i = k + d + 1;
-		if (i >= len) {
-		    i = len - 1;
-		}
-	    }
-	    if (drop == FALSE) {
-		i = k + 1;
-		drop = TRUE;
-		while (d > 1) {
-		    d /= 2;
-		    i += d;
-		    prune_xconv(xjp, x[i], dxtype);
-		    prune_yconv(yjp, y[i], dytype);
-		    drop = TRUE;
-		    for (j = k + 1; j < i && drop == TRUE; j++) {
-			prune_xconv(xj, x[j], dxtype);
-			prune_yconv(yj, y[j], dytype);
-			ytmp = (yjp*(xj-xjm)+yjm*(xjp-xj))/(xjp-xjm);
-			switch (deltatypeno) {
-			case PRUNE_VIEWPORT:
-			    ddy = fabs(ytmp - yj);
-			    break;
-			case PRUNE_WORLD:
-			    switch (dytype) {
-			    case PRUNE_LIN:
-				ddy = fabs(ytmp - yj);
-				break;
-			    case PRUNE_LOG:
-				ddy = exp(fabs(ytmp - yj));
-				break;
-			    }
-			}
-			if (ddy > deltay) {
-			    drop = FALSE;
-			}
-		    }
-		    if (drop == FALSE) {
-			i -= d;
-		    }
-		}
-	    }
-	    k = i;
-	    prune_xconv(xjm, x[k], dxtype);
-	    prune_yconv(yjm, y[k], dytype);
-	    add_point(get_cg(), resset, x[k], y[k]);
-	    npts++;
-	    resx = getx(get_cg(), resset);
-	    resy = gety(get_cg(), resset);
-	}
-	if (k == len - 2) {
-	    add_point(get_cg(), resset, x[len-1], y[len-1]);
-	    npts++;
-	}
-	sprintf(buf, "Prune from %d, %s dy = %g", setno, 
-	    "Interpolation", deltay);
-	break;
+        stype = "interpolation";
+        break;
+    case PRUNE_CIRCLE:
+        stype = "circle";
+        break;
+    case PRUNE_RECTANGLE:
+        stype = "rectangle";
+        break;
+    case PRUNE_ELLIPSE:
+        stype = "ellipse";
+        break;
+    default:
+        errmsg("Internal error, wrong arguments passed to do_prune()");
+        return RETURN_FAILURE;
     }
-    setcomment(get_cg(), resset, buf);
+    
+    x = getx(gsrc, setfrom);
+    y = gety(gsrc, setfrom);
+
+    iprune = xmalloc(len*SIZEOF_CHAR);
+    if (!iprune) {
+        return RETURN_FAILURE;
+    }
+    
+    newlen = 1;
+    iprune[0] = FALSE;
+    old_x = x[0];
+    old_y = y[0];
+    for (i = 1; i < len; i++) {
+        int prune;
+        
+        if (type == PRUNE_INTERPOLATION) {
+            /* FIXME! */
+        }
+        
+        ddx = fabs(x[i] - old_x);
+        ddy = fabs(y[i] - old_y);
+        if (dxtype == PRUNE_RELATIVE) {
+            if (old_x != 0.0) {
+                ddx /= old_x;
+            } else {
+                ddx = 2*dx;
+            }
+        }
+        if (dytype == PRUNE_RELATIVE) {
+            if (old_y != 0.0) {
+                ddy /= old_y;
+            } else {
+                ddy = 2*dy;
+            }
+        }
+        
+        prune = FALSE;
+        switch (type) {
+        case PRUNE_INTERPOLATION:
+            if (ddy < dy) {
+                prune = TRUE;
+            }
+            break;
+        case PRUNE_CIRCLE:
+        case PRUNE_ELLIPSE:
+            if (hypot(ddx/dx, ddy/dy) < 1.0) {
+                prune = TRUE;
+            }
+            break;
+        case PRUNE_RECTANGLE:
+            if (ddx < dx && ddy < dy) {
+                prune = TRUE;
+            }
+            break;
+        }
+        
+        if (prune) {
+            iprune[i] = TRUE;
+        } else {
+            iprune[i] = FALSE;
+            newlen++;
+            old_x = x[i];
+            old_y = y[i];
+        }
+    }
+
+    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+        xfree(iprune);
+        return RETURN_FAILURE;
+    }
+    
+    for (nc = 0; nc < ncols; nc++) {
+        double *d1, *d2;
+        int j;
+        j = 0;
+        d1 = getcol(gsrc, setfrom, nc);
+        d2 = getcol(gdest, setto, nc);
+        for (i = 0; i < len; i++) {
+	    if (iprune[i] == FALSE) {
+	        d2[j] = d1[i];
+                j++;
+	    }
+        }
+    }
+    
+    xfree(iprune);
+
+    sprintf(buf, "Prune from G%d.S%d, method: %s, dx = %g, dy = %g",
+        gsrc, setfrom, stype, dx, dy);
+    setcomment(gdest, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 
