@@ -912,8 +912,9 @@ XMgrace*background: ...
 
 	    PostScript (for printing), EPS (encapsulated
 	    PostScript; for the inclusion of graphics into e.g. LaTeX
-	    documents), PNM (PBM/PGM/PPM) and MIF (for inclusion in
-	    FrameMaker) are implemented by default.
+	    documents), PNM (PBM/PGM/PPM), MIF (for inclusion in
+	    FrameMaker) and SVG (Scalable Vector Graphics)
+	    are implemented by default.
 
 	    Additionally, if some extra libraries are installed, listed in the
             User's Guide (question <ref id="manual" name="User's Guide">),
