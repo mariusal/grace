@@ -80,7 +80,7 @@ void installSignal(void);
 int bin_dump(char *value, int i, int pad);
 unsigned char reversebits(unsigned char inword);
 
-char *copy_string(char *dest, char *src);
+char *copy_string(char *dest, const char *src);
 void reverse_string(char *s);
 
 char *get_grace_home(void);

@@ -1079,7 +1079,7 @@ unsigned char reversebits(unsigned char inword)
     return (result);
 }
 
-char *copy_string(char *dest, char *src)
+char *copy_string(char *dest, const char *src)
 {
     if (src == dest) {
         ;
