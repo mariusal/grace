@@ -92,7 +92,8 @@ static void create_monitor_frame(int force, char *msg)
         CreateMenuToggle(menupane, "Popup only on errors", 'e', popup_on, ui);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-        CreateMenuButton(menupane, "On console", 'c', HelpCB, NULL);
+        CreateMenuButton(menupane, "On console", 'c',
+            HelpCB, "doc/UsersGuide.html#console");
 	
         fr = CreateFrame(ui->mon_frame, NULL);
         

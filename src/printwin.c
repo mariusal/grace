@@ -122,7 +122,8 @@ void create_printer_setup(void *data)
         SetToggleButtonState(psync_item, FALSE);
 
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
-        CreateMenuButton(menupane, "On device setup", 'd', HelpCB, NULL);
+        CreateMenuButton(menupane, "On device setup", 'd',
+            HelpCB, "doc/UsersGuide.html#print-setup");
 
         ManageChild(menubar);
 

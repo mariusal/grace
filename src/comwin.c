@@ -326,7 +326,7 @@ void open_command(void *data)
 	XtAddCallback(but[2], XmNactivateCallback, clear_history, NULL);
 	XtAddCallback(but[3], XmNactivateCallback, replay_history, NULL);
 	XtAddCallback(but[4], XmNactivateCallback, destroy_dialog, comshell);
-	AddButtonCB(but[5], HelpCB, NULL);
+	AddButtonCB(but[5], HelpCB, "doc/UsersGuide.html#commands");
 
 	XtAddCallback(command, XmNcommandEnteredCallback, comcall, NULL);
 	ManageChild(form);
