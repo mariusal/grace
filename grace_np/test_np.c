@@ -51,7 +51,7 @@ main (int argc, char* argv[])
             GracePrintf ("redraw");
             /* Wait a second, just to simulate some time needed for
                calculations. Your real application shouldn't wait. */
-            sleep (10);
+            sleep (1);
         }
     }
 
