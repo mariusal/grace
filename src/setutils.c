@@ -1286,8 +1286,9 @@ int nextset(int gno)
         int i, nsets, *sids;
         nsets = get_set_ids(gno, &sids);
         for (i = 0; i < nsets; i++) {
-            setno = sids[i];
-            if (!is_set_active(gno, setno)) {
+            int setno1 = sids[i];
+            if (!is_set_active(gno, setno1)) {
+                setno = setno1;
                 break;
             }
         }
