@@ -149,7 +149,6 @@ static char *label_to_resname(const char *s, const char *suffix)
     }
     *rs = '\0';
     if (suffix != NULL) {
-        retval = concat_strings(retval, "_");
         retval = concat_strings(retval, suffix);
     }
     return retval;
@@ -3248,7 +3247,7 @@ Widget CreateMenuBar(Widget parent)
 {
     Widget menubar;
     
-    menubar = XmCreateMenuBar(parent, "menubar", NULL, 0);
+    menubar = XmCreateMenuBar(parent, "menuBar", NULL, 0);
     return menubar;
 }
 
@@ -3258,17 +3257,17 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
     XmString str;
     char *name;
     
-    menupane = XmCreatePulldownMenu(parent, "pulldown", NULL, 0);
+    name = label_to_resname(label, "Menu");
+    menupane = XmCreatePulldownMenu(parent, name, NULL, 0);
+    xfree(name);
 
     str = XmStringCreateLocalized(label);
-    name = label_to_resname(label, "Menu");
-    cascade = XtVaCreateManagedWidget(name,
+    cascade = XtVaCreateManagedWidget("cascade",
         xmCascadeButtonGadgetClass, parent, 
     	XmNsubMenuId, menupane, 
     	XmNlabelString, str, 
     	XmNmnemonic, mnemonic,
     	NULL);
-    xfree(name);
     XmStringFree(str);
 
     if (help) {
