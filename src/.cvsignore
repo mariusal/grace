@@ -3,3 +3,4 @@ buildinfo.h pars.c xml_in.c
 xmgrace buildinfo
 *.agr *.xgr *.dat *.par
 *.gmf *.ps *.eps *.pdf *.png *.mif *.svg *.jpg
+.kdbgrc*
