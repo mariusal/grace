@@ -11,6 +11,7 @@ YACC=bison -y
 EOF
 
 make CHANGES
+make ChangeLog
 
 CDIR=`pwd`
 CDIR_BNAME=`basename $CDIR`
