@@ -97,6 +97,7 @@ static int whichset;
 static int alias_force = FALSE; /* controls whether aliases can override
                                                        existing keywords */
 
+extern char print_file[];
 extern int change_type;
 extern char *close_input;
 
@@ -2379,6 +2380,11 @@ actions:
 	}
 	| PRINT {
 	    do_hardcopy();
+	}
+	| PRINT TO CHRSTR {
+	    strcpy(print_file, (char *) $3);
+            free((char *) $3);
+            do_hardcopy();
 	}
 	| COLOR NUMBER {
 		setcolor((int) $2);
