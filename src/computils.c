@@ -941,7 +941,7 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
 	toset = nextset(tograph);
     }
     if (!is_valid_setno(tograph, toset)) {
-	errmsg("Can't activate target set");
+	errmsg("Can't activate destination set");
         return RETURN_FAILURE;
     }
     
@@ -1570,6 +1570,14 @@ int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
     
     len = getsetlength(gno_src, setno_src);
     ncols = dataset_cols(gno_src, setno_src);
+
+    if (setno_dest == SET_SELECT_NEXT) {
+	setno_dest = nextset(gno_dest);
+    }
+    if (!is_valid_setno(gno_dest, setno_dest)) {
+	errmsg("Can't activate destination set");
+	return RETURN_FAILURE;
+    }
 
     if (dataset_cols(gno_dest, setno_dest) != ncols) {
         copyset(gno_src, setno_src, gno_dest, setno_dest);
