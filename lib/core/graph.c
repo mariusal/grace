@@ -166,6 +166,7 @@ Quark *graph_new(Quark *q)
     }
     
     g = quark_new(q, QFlavorGraph);
+    update_graph_ccache(g);
     if (g) {
         Project *pr = project_get_data(get_parent_project(q));
         if (pr && pr->cg == NULL) {
