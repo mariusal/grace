@@ -1782,6 +1782,7 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrDataset">
+            dataset_free($$->data);
             $$->data = $?;
         </child>
     </element>
