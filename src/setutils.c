@@ -1397,32 +1397,7 @@ void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype)
  */
 void del_point(int gno, int setno, int pt)
 {
-    int i, j, len, ncols;
-    double *tmp;
-
-    if (is_valid_setno(gno, setno) != TRUE) {
-        return;
-    }
-    
-    ncols = dataset_cols(gno, setno);
-    len = getsetlength(gno, setno);
-    if (pt >= len || pt < 0) {
-	return;
-    } else {
-	for (i = pt; i < len - 1; i++) {
-	    for (j = 0; j < ncols; j++) {
-		tmp = getcol(gno, setno, j);
-		tmp[i] = tmp[i + 1];
-	    }
-	}
-        len--;
-    }
-    if (len > 0) {
-	setlength(gno, setno, len);
-    } else {
-	killsetdata(gno, setno);
-    }
-    set_dirtystate();
+    droppoints(gno, setno, pt, pt);
 }
 
 /*
