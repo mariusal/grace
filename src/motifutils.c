@@ -82,6 +82,7 @@
 #include "t1fonts.h"
 #include "graphs.h"
 #include "utils.h"
+#include "dicts.h"
 #include "events.h"
 #include "parser.h"
 #include "protos.h"
@@ -1796,7 +1797,8 @@ int init_option_menus(void) {
     }
     for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
         settype_option_items[i].value = i;
-        settype_option_items[i].label = copy_string(NULL, set_types(i));
+        settype_option_items[i].label = copy_string(NULL,
+            set_types(grace->rt, i));
         lowtoupper(settype_option_items[i].label);
     }
 

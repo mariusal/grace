@@ -18,7 +18,7 @@ GRSRCS =  main.c grace.c project.c \
 	dlmodule.c missing.c alloca.c \
 	iofilters.c dates.c t1fonts.c device.c mfdrv.c \
 	mifdrv.c psdrv.c pdfdrv.c svgdrv.c gd.c rstdrv.c dummydrv.c \
-	storage.c bi.c
+	storage.c dict3.c dicts.c bi.c
 
 
 GROBJS =  main$(O) grace$(O) project$(O) \
@@ -30,7 +30,8 @@ GROBJS =  main$(O) grace$(O) project$(O) \
 	dlmodule$(O) $(PARS_O) missing$(O) $(ALLOCA) \
 	iofilters$(O) dates$(O) t1fonts$(O) device$(O) \
 	dummydrv$(O) mfdrv$(O) mifdrv$(O) psdrv$(O) \
-	pdfdrv$(O) svgdrv$(O) gd$(O) rstdrv$(O) storage$(O) bi$(O)
+	pdfdrv$(O) svgdrv$(O) gd$(O) rstdrv$(O) storage$(O) dict3$(O) \
+	dicts$(O) bi$(O)
 
 # The following are for a GUI
 #

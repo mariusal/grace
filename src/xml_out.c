@@ -30,6 +30,7 @@
 #include "globals.h"
 #include "defines.h"
 #include "utils.h"
+#include "dicts.h"
 #include "draw.h"
 #include "t1fonts.h"
 #include "graphs.h"
@@ -54,37 +55,21 @@ static void xmlio_set_world_value(Attributes *attrs, char *name, double value)
     attributes_set_dval_formatted(attrs, name, value, grace->project->sformat);
 }
 
-static void xmlio_set_inout_placement(Attributes *attrs, int inout)
+static void xmlio_set_inout_placement(RunTime *rt, Attributes *attrs, int inout)
 {
-    char *s = VStrIn;
-    switch (inout) {
-    case TICKS_IN:
-        s =VStrIn;
-        break;
-    case TICKS_OUT:
-        s =VStrOut;
-        break;
-    case TICKS_BOTH:
-        s = VStrBoth;
-        break;
-    }
+    char *s;
+    
+    s = inout_placement_name(rt, inout);
+    
     attributes_set_sval(attrs, AStrInoutPlacement, s);
 }
 
-static void xmlio_set_side_placement(Attributes *attrs, PlacementType placement)
+static void xmlio_set_side_placement(RunTime *rt, Attributes *attrs, PlacementType placement)
 {
-    char *s = VStrNormal;
-    switch (placement) {
-    case PLACEMENT_NORMAL:
-        s = VStrNormal;
-        break;
-    case PLACEMENT_OPPOSITE:
-        s = VStrOpposite;
-        break;
-    case PLACEMENT_BOTH:
-        s = VStrBoth;
-        break;
-    }
+    char *s;
+    
+    s = side_placement_name(rt, placement);
+
     attributes_set_sval(attrs, AStrSidePlacement, s);
 }
 
@@ -297,7 +282,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
         t->label_layout == LAYOUT_PERPENDICULAR ? VStrPerpendicular:VStrParallel);
     xmlio_set_offset_placement(attrs,
         t->label_place == TYPE_AUTO, t->label.offset.x, t->label.offset.y);
-    xmlio_set_side_placement(attrs, t->label_op);
+    xmlio_set_side_placement(grace->rt, attrs, t->label_op);
     xfile_begin_element(xf, EStrAxislabel, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
@@ -313,18 +298,10 @@ int save_axis_properties(XFile *xf, tickmarks *t)
     attributes_set_bval(attrs, AStrRoundedPosition, t->t_round);
     xfile_begin_element(xf, EStrTicks, attrs);
     {
-        char *s = VStrNone;
-        switch (t->t_spec) {
-        case TICKS_SPEC_NONE:
-            s = VStrNone;
-            break;
-        case TICKS_SPEC_MARKS:
-            s = VStrTicks;
-            break;
-        case TICKS_SPEC_BOTH:
-            s = VStrBoth;
-            break;
-        }
+        char *s;
+        
+        s = spec_tick_name(grace->rt, t->t_spec);
+        
         attributes_reset(attrs);
         attributes_set_sval(attrs, AStrType, s);
         if (t->t_spec == TICKS_SPEC_NONE) {
@@ -350,8 +327,8 @@ int save_axis_properties(XFile *xf, tickmarks *t)
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->t_flag);
-        xmlio_set_side_placement(attrs, t->t_op);
-        xmlio_set_inout_placement(attrs, t->t_inout);
+        xmlio_set_side_placement(grace->rt, attrs, t->t_op);
+        xmlio_set_inout_placement(grace->rt, attrs, t->t_inout);
         xfile_begin_element(xf, EStrTickmarks, attrs);
         {
             Pen pen;
@@ -384,7 +361,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->tl_flag);
-        xmlio_set_side_placement(attrs, t->tl_op);
+        xmlio_set_side_placement(grace->rt, attrs, t->tl_op);
         attributes_set_sval(attrs, AStrTransform, t->tl_formula);
         attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
         attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
@@ -435,7 +412,7 @@ int save_graph_properties(XFile *xf, graph *g)
     }
     
     attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrType, graph_types(g->type));
+    attributes_set_sval(attrs, AStrType, graph_types(grace->rt, g->type));
     attributes_set_bval(attrs, AStrStacked, g->stacked);
     attributes_set_dval(attrs, AStrBargap, g->bargap);
     xfile_empty_element(xf, EStrPresentationSpec, attrs);
@@ -628,7 +605,7 @@ int save_set_properties(XFile *xf, set *p)
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->errbar.active);
-    xmlio_set_side_placement(attrs, p->errbar.ptype);
+    xmlio_set_side_placement(grace->rt, attrs, p->errbar.ptype);
     xfile_begin_element(xf, EStrErrorbar, attrs);
     {
         attributes_reset(attrs);
@@ -959,7 +936,8 @@ int save_project(char *fn)
                 attributes_reset(attrs);
                 attributes_set_ival(attrs, AStrId, setno);
                 xmlio_set_active(attrs, !(p->hidden));
-                attributes_set_sval(attrs, AStrType, set_types(p->type));
+                attributes_set_sval(attrs, AStrType, set_types(grace->rt,
+                    p->type));
                 xfile_begin_element(xf, EStrSet, attrs);
                 {
                     save_set_properties(xf, p);

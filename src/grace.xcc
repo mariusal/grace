@@ -11,6 +11,7 @@
 #include "device.h"
 #include "files.h"
 #include "utils.h"
+#include "dicts.h"
 #include "draw.h"
 #include "graphs.h"
 #include "graphutils.h"
@@ -649,7 +650,7 @@ char *utf2iso(const char *s)
         }
     ]]></attribute-type>
     <attribute-type name="settype" ctype="SetType"><![CDATA[
-        $$ = get_settype_by_name($?);
+        $$ = get_settype_by_name(grace->rt, $?);
     ]]></attribute-type>
     <attribute-type name="fillrule" ctype="int"><![CDATA[
         if (!strcmp($?, VStrWinding)) {
@@ -1068,7 +1069,7 @@ char *utf2iso(const char *s)
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            $$->type = get_graph_type_by_name($?);
+            $$->type = get_graph_type_by_name(grace->rt, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrStacked" type="bval">

@@ -192,12 +192,6 @@ graph *graph_copy(graph *g);
 
 int get_cg(void);
 
-char *graph_types(GraphType it);
-GraphType get_graph_type_by_name(const char *name);
-
-char *set_types(SetType it);
-SetType get_settype_by_name(const char *s);
-
 graph *graph_next(void);
 int kill_graph(int gno);
 void kill_all_graphs(void);

@@ -45,6 +45,7 @@
 #include "files.h"
 #include "ssdata.h"
 
+#include "dicts.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "plotone.h"
@@ -471,7 +472,7 @@ int main(int argc, char *argv[])
                        argmatch(argv[i], "-settype", 8)) {
 		/* set types */
 		i++;
-                rt->curtype = get_settype_by_name(argv[i]);
+                rt->curtype = get_settype_by_name(rt, argv[i]);
                 if (rt->curtype == -1) {
 		    fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
 		    usage(stderr, argv[0]);

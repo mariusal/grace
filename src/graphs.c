@@ -49,6 +49,7 @@
 #include "storage.h"
 #include "objutils.h"
 #include "parser.h"
+#include "dict3.h"
 
 #include "protos.h"
 
@@ -56,48 +57,6 @@
 #define graphs grace->project->graphs
 
 static int cg = -1;
-
-char *graph_types(GraphType it)
-{
-    char *s;
-    
-    switch (it) {
-    case GRAPH_XY:
-	s = "XY";
-	break;
-    case GRAPH_CHART:
-	s = "Chart";
-	break;
-    case GRAPH_POLAR:
-	s = "Polar";
-	break;
-    case GRAPH_SMITH:
-	s = "Smith";
-	break;
-    case GRAPH_FIXED:
-	s = "Fixed";
-	break;
-    case GRAPH_PIE:
-	s = "Pie";
-	break;
-    default:
-        s = "Unknown";
-	break;
-    }
-    return s;
-}
-
-GraphType get_graph_type_by_name(const char *name)
-{
-    int i;
-    for (i = 0; i < NUMBER_OF_GRAPHTYPES; i++) {
-        if (!strcmp(graph_types(i), name)) {
-            return i;
-        }
-    }
-    
-    return GRAPH_BAD;
-}
 
 int is_valid_gno(int gno)
 {

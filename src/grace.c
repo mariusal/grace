@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -33,6 +33,7 @@
 #include "defines.h"
 #include "grace.h"
 #include "utils.h"
+#include "dicts.h"
 #include "graphs.h"
 #include "protos.h"
 
@@ -87,7 +88,7 @@ RunTime *runtime_new(void)
 {
     RunTime *rt;
     char *s;
-    
+
     rt = xmalloc(sizeof(RunTime));
     if (!rt) {
         return NULL;
@@ -161,7 +162,7 @@ RunTime *runtime_new(void)
     }
 
     rt->nlfit = xmalloc(sizeof(NLFit));
-
+    
     if (!rt->grace_home   ||
         !rt->print_cmd    ||
         !rt->grace_editor ||
@@ -174,6 +175,12 @@ RunTime *runtime_new(void)
         return NULL;
     }
     
+    /* dictionaries */
+    if (grace_rt_init_dicts(rt) != RETURN_SUCCESS) {
+        runtime_free(rt);
+        return NULL;
+    }
+
     rt->tdevice = 0;
     rt->hdevice = 0;
     
@@ -222,6 +229,8 @@ void runtime_free(RunTime *rt)
     
     /* FIXME nonlfit */
     xfree(rt->nlfit);
+    
+    grace_rt_free_dicts(rt);
     
     xfree(rt);
 }

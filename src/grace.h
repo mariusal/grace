@@ -35,6 +35,7 @@
 
 #include "defines.h"
 #include "storage.h"
+#include "dict3.h"
 
 typedef struct _Project {
     /* Version ID */
@@ -154,6 +155,13 @@ typedef struct _RunTime {
 
     /* $HOME */
     char *userhome;
+    
+    /* Misc dictionaries */
+    Dictionary *graph_type_dict;
+    Dictionary *set_type_dict;
+    Dictionary *inout_placement_dict;
+    Dictionary *side_placement_dict;
+    Dictionary *spec_ticks_dict;
 
     /* debug level */
 #ifdef DEBUG

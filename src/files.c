@@ -56,6 +56,7 @@
 #include "globals.h"
 #include "grace.h"
 #include "utils.h"
+#include "dicts.h"
 #include "files.h"
 #include "ssdata.h"
 #include "graphs.h"
@@ -1132,7 +1133,8 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
 
         if (!rawdata) {
             fprintf(cp, "@target G%d.S%d\n", gno, setno);
-            fprintf(cp, "@type %s\n", set_types(dataset_type(gno, setno)));
+            fprintf(cp, "@type %s\n", set_types(grace->rt,
+                dataset_type(gno, setno)));
         }
         
         for (i = 0; i < n; i++) {
