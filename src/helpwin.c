@@ -401,7 +401,7 @@ static void create_find_dialog(void *data)
     if (!dialog) {
         Widget rc, rc2;
         
-        dialog = CreateDialogForm(ui->top, "Find Dialog");
+        dialog = CreateDialogForm(app_shell, "Find Dialog");
         
         rc = CreateVContainer(dialog);
         ui->input = CreateTextInput(rc, "Find:");
@@ -417,22 +417,54 @@ static void create_find_dialog(void *data)
     RaiseWindow(GetParent(dialog));
 }
 
+static XmImageInfo *loadImage(Widget w,
+    String url, Dimension width, Dimension height, XtPointer client_data)
+{
+    char *fname;
+    XmImageInfo *image;
+    
+    if (url == NULL) {
+        return NULL;
+    }
+    
+    if (url[0] == '/') {
+        fname = url;
+    } else {
+        char *buf, *pname, *p;
+        XtVaGetValues(w, XmNuserData, &pname, NULL);
+        buf = copy_string(NULL, pname);
+        p = strrchr(buf, '/');
+        if (p) {
+            p++;
+            *p = '\0';
+            buf = concat_strings(buf, url);
+            fname = grace_path(buf);
+        } else {
+            fname = url;
+        }
+        xfree(buf);
+    }
+    
+    image = XmHTMLImageDefaultProc(w, fname, NULL, 0);
+    
+    return image;
+}
+
 void create_helper_frame(char *fname)
 {
     static html_ui *ui = NULL;
-    
-    char *content;
+    char *content, *contentp, *pname;
     
     set_wait_cursor();
     
     if (ui == NULL) {
-        Widget panel, fr, menubar, menupane;
+        Widget fr1, fr2, menubar, menupane;
         
 	ui = xmalloc(sizeof(html_ui));
         ui->finder = NULL;
         ui->last = NULL;
         
-        ui->top = CreateDialogForm(app_shell, "Gracilla");
+        ui->top = CreateDialogForm(NULL, "Gracilla");
 	
         menubar = CreateMenuBar(ui->top);
         ManageChild(menubar);
@@ -452,30 +484,35 @@ void create_helper_frame(char *fname)
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane, "License terms", 'L', HelpCB, (void *) "GPL.html");
         
-        panel = CreateVContainer(ui->top);
-        AddDialogFormChild(ui->top, panel);
-
-	fr = CreateFrame(panel, NULL);
+	fr1 = CreateFrame(ui->top, NULL);
+        AddDialogFormChild(ui->top, fr1);
         ui->html = XtVaCreateManagedWidget("html",
-	   xmHTMLWidgetClass, fr,
+	   xmHTMLWidgetClass, fr1,
+           XmNimageProc, loadImage,
            XmNenableBadHTMLWarnings, XmHTML_NONE,
            XmNanchorButtons, False,
 	   XmNmarginWidth, 20,
 	   XmNmarginHeight, 20,
-	   XmNwidth, 600,
-	   XmNheight, 500,
 	   NULL);
 
 	XtAddCallback(ui->html, XmNactivateCallback, anchorCB, NULL);
         XtAddCallback(ui->html, XmNanchorTrackCallback, trackCB, ui);
 
-	fr = CreateFrame(panel, NULL);
-        ui->track = CreateTextInput(fr, "Link:");
+	fr2 = CreateFrame(ui->top, NULL);
+        AddDialogFormChild(ui->top, fr2);
+        ui->track = CreateTextInput(fr2, "Link:");
         XtVaSetValues(ui->track->text, XmNeditable, False, NULL);
         SetTextString(ui->track, "Welcome to Gracilla!");
+        
+        XtVaSetValues(fr1,
+            XmNbottomAttachment, XmATTACH_WIDGET,
+            XmNbottomWidget, fr2,
+            NULL);
+        XtVaSetValues(fr2,
+            XmNtopAttachment, XmATTACH_NONE,
+            NULL);
 	
         ManageChild(ui->top);
-        
     }
     
     if (ui->finder) {
@@ -486,15 +523,20 @@ void create_helper_frame(char *fname)
     
     content = loadFile(fname);
     if (content == NULL) {
-	XmHTMLTextSetString(ui->html,
-            "<html><body>Could not read given file</body></html>");
+	contentp = "<html><body>Could not read given file</body></html>";
     } else {
-	XmHTMLTextSetString(ui->html, content);
-	xfree(content);
+        contentp = content;
     }
+
+    XtVaGetValues(ui->html, XmNuserData, &pname, NULL);
+    pname = copy_string(pname, fname);
+    XtVaSetValues(ui->html, XmNuserData, pname, NULL);
+
+    XmHTMLTextSetString(ui->html, contentp);
+    xfree(content);
 
     RaiseWindow(GetParent(ui->top));
     
     unset_wait_cursor();
 }
-#endif
+#endif /* WITH_XMHTML */
