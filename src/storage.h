@@ -117,6 +117,8 @@ int storage_data_swap(Storage *sto, int id1, int id2);
 
 void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata);
 
+int storage_extract_data(Storage *sto, void *data);
+
 int storage2_data_copy_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_move_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2);

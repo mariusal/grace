@@ -1184,6 +1184,7 @@ int find_insert_location(Quark *pset, VPoint vp)
  */
 int find_item(Quark *gr, VPoint vp, view *bb, int *id)
 {
+#if 0
     graph *g = (graph *) gr->data;
     Storage *objects;
     DObject *o;
@@ -1211,7 +1212,7 @@ int find_item(Quark *gr, VPoint vp, view *bb, int *id)
         }
         storage_next(objects);
     }
-
+#endif
     return RETURN_FAILURE;
 }
 

@@ -51,10 +51,25 @@
 
 #include "protos.h"
 
+static int graph_count_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *q = (Quark *) data;
+    int *ngraphs = (int *) udata;
+    
+    if (q->fid == QFlavorGraph) {
+        (*ngraphs)++;
+    }
+    
+    return TRUE;
+}
+
 int number_of_graphs(const Quark *project)
 {
-    Project *pr = (Project *) project->data;
-    return storage_count(pr->graphs);
+    int ngraphs = 0;
+    
+    storage_traverse(project->children, graph_count_hook, &ngraphs);
+    
+    return ngraphs;
 }
 
 Quark *graph_get_current(const Quark *project)
@@ -83,26 +98,6 @@ int is_valid_gno(Quark *gr)
     } else {
         return FALSE;
     }
-}
-
-static void wrap_set_free(void *data)
-{
-    quark_free((Quark *) data);
-}
-
-static void *wrap_set_copy(void *data)
-{
-    return (void *) quark_copy((Quark *) data);
-}
-
-static void wrap_object_free(void *data)
-{
-    quark_free((Quark *) data);
-}
-
-static void *wrap_object_copy(void *data)
-{
-    return (void *) quark_copy((Quark *) data);
 }
 
 static void set_default_graph(graph *g)
@@ -150,8 +145,6 @@ static void set_default_graph(graph *g)
     g->labs.title.charsize = 1.5;
     set_default_string(&g->labs.stitle);
     g->labs.stitle.charsize = 1.0;
-    g->sets = storage_new(wrap_set_free, wrap_set_copy, NULL);
-    g->dobjects = storage_new(wrap_object_free, wrap_object_copy, NULL);
 }
 
 graph *graph_data_new(void)
@@ -178,9 +171,6 @@ void graph_data_free(graph *g)
             free_graph_tickmarks(g->t[j]);
         }
 
-        storage_free(g->sets);
-        storage_free(g->dobjects);
-        
         xfree(g);
     }
 }
@@ -202,10 +192,6 @@ graph *graph_data_copy(graph *g)
     memcpy(g_new, g, sizeof(graph));
 
     /* duplicate allocatable storage */
-    g_new->sets = storage_copy(g->sets);
-
-    g_new->dobjects = storage_copy(g->dobjects);
-    
     g_new->labs.title.s = copy_string(NULL, g->labs.title.s);
     g_new->labs.stitle.s = copy_string(NULL, g->labs.stitle.s);
     
@@ -213,12 +199,7 @@ graph *graph_data_copy(graph *g)
 	g_new->t[j] = copy_graph_tickmarks(g->t[j]);
     }
     
-    if (!g_new->sets || !g_new->dobjects) {
-        graph_data_free(g_new);
-        return NULL;
-    } else {
-        return g_new;
-    }
+    return g_new;
 }
 
 static int hook(unsigned int step, void *data, void *udata)
@@ -242,7 +223,7 @@ static int graph_free_cb(Quark *gr, int etype, void *data)
         Quark *pr = gr->parent;
         Project *project = (Project *) pr->data;
         if (project->cg == gr) {
-            storage_traverse(project->graphs, hook, project);
+            storage_traverse(pr->children, hook, project);
         }
         if (project->cg == gr) {
             project->cg = NULL;
@@ -256,11 +237,6 @@ Quark *graph_new(Quark *project)
     Quark *g; 
     g = quark_new(project, QFlavorGraph);
     if (g) {
-        Project *pr = (Project *) project->data;
-        if (storage_add(pr->graphs, g) != RETURN_SUCCESS) {
-            quark_free(g);
-            return NULL;
-        }
         quark_cb_set(g, graph_free_cb, NULL);
     }
     return g;
@@ -280,17 +256,7 @@ Quark *graph_next(Quark *project)
 
 void kill_all_graphs(Quark *project)
 {
-    Project *pr = (Project *) project->data;
-    storage_empty(pr->graphs);
-}
-
-Quark *duplicate_graph(Quark *graph)
-{
-    Quark *project = graph->parent;
-    Project *pr = (Project *) project->data;
-    
-    storage_scroll_to_data(pr->graphs, graph);
-    return storage_duplicate(pr->graphs);
+    storage_empty(project->children);
 }
 
 /**** Tickmarks ****/
@@ -707,23 +673,6 @@ RiserLine *riserline_new(void)
     return retval;
 }
 
-
-Quark *set_get(Quark *gr, int setid)
-{
-    Quark *p = NULL;
-    
-    if (gr) {
-        graph *g = (graph *) gr->data;
-    
-        if (storage_get_data_by_id(g->sets, setid, (void **) &p) !=
-            RETURN_SUCCESS) {
-            p = NULL;
-        }
-    }
-    
-    return p;
-}
-
 int is_set_hidden(Quark *pset)
 {
     if (pset) {
@@ -746,14 +695,59 @@ int set_set_hidden(Quark *pset, int flag)
     }
 }
 
+static int set_count_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *q = (Quark *) data;
+    int *nsets = (int *) udata;
+    
+    if (q->fid == QFlavorSet) {
+        (*nsets)++;
+    }
+    
+    return TRUE;
+}
+
 int number_of_sets(Quark *gr)
 {
-    if (gr) {
-        graph *g = (graph *) gr->data;
-        return storage_count(g->sets);
-    } else {
-        return 0;
+    int nsets = 0;
+    
+    storage_traverse(gr->children, set_count_hook, &nsets);
+    
+    return nsets;
+}
+
+typedef struct {
+    int nsets;
+    Quark **sets;
+} set_hook_t;
+
+static int set_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *q = (Quark *) data;
+    set_hook_t *p = (set_hook_t *) udata;
+    
+    if (q->fid == QFlavorSet) {
+        p->sets[p->nsets] = q;
+        p->nsets++;
     }
+    
+    return TRUE;
+}
+
+int get_graph_sets(Quark *gr, Quark ***sets)
+{
+    set_hook_t p;
+    
+    p.nsets = 0;
+    p.sets  = xmalloc(storage_count(gr->children)*SIZEOF_VOID_P);
+    
+    if (p.sets) {
+        storage_traverse(gr->children, set_hook, &p);
+    }
+    
+    *sets = xrealloc(p.sets, p.nsets*SIZEOF_VOID_P);
+    
+    return p.nsets;
 }
 
 
@@ -1249,170 +1243,59 @@ int is_logit_axis(Quark *gr, int axis)
     }
 }
 
-void project_postprocess(Quark *project)
+static int project_postprocess_hook(Quark *q,
+    unsigned int depth, unsigned int step, void *udata)
 {
-    Project *pr = (Project *) project->data;
-    Quark *gsave;
-    int ngraphs, gno, setno, naxis;
-    double ext_x, ext_y;
+    int version_id = *((int *) udata);
+    graph *g;
+    set *s;
+    int naxis;
+    int gtype;
     
-    if (pr->version_id >= bi_version_id()) {
-        return;
-    }
-
-    if (pr->version_id < 40005) {
-        set_page_dimensions(grace, 792, 612, FALSE);
-    }
-
-    if (pr->version_id < 50002) {
-        pr->bgpen.pattern = 1;
-    }
-
-    if (pr->version_id < 50003) {
-        allow_two_digits_years(TRUE);
-        set_wrap_year(1900);
-    }
-    
-    if (pr->version_id <= 40102) {
-#ifndef NONE_GUI
-        set_pagelayout(PAGE_FIXED);
-#endif
-        get_page_viewport(grace->rt->canvas, &ext_x, &ext_y);
-        rescale_viewport(project, ext_x, ext_y);
-    }
-    
-    gsave = pr->cg;
-    
-    storage_rewind(pr->graphs);
-    ngraphs = storage_count(pr->graphs);
-    for (gno = 0; gno < ngraphs; gno++) {
-        Quark *gr;
-        graph *g;
-        Storage *sets;
-        int nsets;
-        
-        if (storage_get_data(pr->graphs, (void **) &gr) != RETURN_SUCCESS) {
-            break;
+    switch (q->fid) {
+    case QFlavorProject:
+        if (version_id < 40005) {
+            set_page_dimensions(grace, 792, 612, FALSE);
         }
-        select_graph(gr);
 
-        g = (graph *) gr->data;
+        if (version_id < 50002) {
+            Project *pr = (Project *) q->data;
+            pr->bgpen.pattern = 1;
+        }
+
+        if (version_id < 50003) {
+            allow_two_digits_years(TRUE);
+            set_wrap_year(1900);
+        }
+
+        if (version_id <= 40102) {
+            double ext_x, ext_y;
+#ifndef NONE_GUI
+            set_pagelayout(PAGE_FIXED);
+#endif
+            get_page_viewport(grace->rt->canvas, &ext_x, &ext_y);
+            rescale_viewport(q, ext_x, ext_y);
+        }
+        break;
+    case QFlavorGraph:
+        select_graph(q);
+
+        g = graph_get_data(q);
         
-	if (pr->version_id <= 40102) {
+	if (version_id <= 40102) {
             g->l.vgap -= 0.01;
         }
-	if (pr->version_id < 50200) {
+	if (version_id < 50200) {
             g->l.acorner = CORNER_UL;
         }
-        
-        sets = g->sets;
-        storage_rewind(sets);
-        nsets = storage_count(sets);
-	for (setno = 0; setno < nsets; setno++) {
-            Quark *pset;
-            set *s;
-            if (storage_get_data(sets, (void **) &pset) != RETURN_SUCCESS) {
-                break;
-            }
-            
-            s = (set *) pset->data;
-            
-            if (pr->version_id < 50000) {
-                switch (s->sym.type) {
-                case SYM_NONE:
-                    break;
-                case SYM_DOT_OBS:
-                    s->sym.type = SYM_CIRCLE;
-                    s->sym.size = 0.0;
-                    s->sym.line.style = 0;
-                    s->sym.fillpen.pattern = 1;
-                    break;
-                default:
-                    s->sym.type--;
-                    break;
-                }
-            }
-            if ((pr->version_id < 40004 && g->type != GRAPH_CHART) ||
-                s->sym.line.pen.color == -1) {
-                s->sym.line.pen.color = s->line.line.pen.color;
-            }
-            if (pr->version_id < 40200 || s->sym.fillpen.color == -1) {
-                s->sym.fillpen.color = s->sym.line.pen.color;
-            }
-            
-	    if (pr->version_id <= 40102 && g->type == GRAPH_CHART) {
-                s->type       = SET_BAR;
-                s->sym.line    = s->line.line;
-                s->line.line.style = 0;
-                
-                s->sym.fillpen = s->line.fillpen;
-                s->line.fillpen.pattern = 0;
-            }
-	    if (pr->version_id <= 40102 && s->type == SET_XYHILO) {
-                s->sym.line.width = s->line.line.width;
-            }
-	    if (pr->version_id <= 50112 && s->type == SET_XYHILO) {
-                s->avalue.active = FALSE;
-            }
-	    if (pr->version_id < 50100 && s->type == SET_BOXPLOT) {
-                s->sym.line.width = s->line.line.width;
-                s->sym.line.style = s->line.line.style;
-                s->sym.size = 2.0;
-                s->errbar.riser_linew = s->line.line.width;
-                s->errbar.riser_lines = s->line.line.style;
-                s->line.line.style = 0;
-                s->errbar.barsize = 0.0;
-            }
-            if (pr->version_id < 50003) {
-                s->errbar.active = TRUE;
-                s->errbar.pen.color = s->sym.line.pen.color;
-                s->errbar.pen.pattern = 1;
-                switch (s->errbar.ptype) {
-                case PLACEMENT_NORMAL:
-                    s->errbar.ptype = PLACEMENT_OPPOSITE;
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    s->errbar.ptype = PLACEMENT_NORMAL;
-                    break;
-                case PLACEMENT_BOTH:
-                    switch (s->type) {
-                    case SET_XYDXDX:
-                    case SET_XYDYDY:
-                    case SET_BARDYDY:
-                        s->errbar.ptype = PLACEMENT_NORMAL;
-                        break;
-                    }
-                    break;
-                }
-            }
-            if (pr->version_id < 50002) {
-                s->errbar.barsize *= 2;
-            }
 
-            if (pr->version_id < 50107) {
-                /* Starting with 5.1.7, symskip is honored for all set types */
-                switch (s->type) {
-                case SET_BAR:
-                case SET_BARDY:
-                case SET_BARDYDY:
-                case SET_XYHILO:
-                case SET_XYR:
-                case SET_XYVMAP:
-                case SET_BOXPLOT:
-                    s->symskip = 0;
-                    break;
-                }
-            }
-
-            storage_next(sets);
-        }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
 	    tickmarks *t = g->t[naxis];
             if (!t) {
                 continue;
             }
             
-            if (pr->version_id <= 40102) {
+            if (version_id <= 40102) {
                 if ((is_xaxis(naxis) && g->xscale == SCALE_LOG) ||
                     (is_yaxis(naxis) && g->yscale == SCALE_LOG)) {
                     t->tmajor = pow(10.0, t->tmajor);
@@ -1422,7 +1305,7 @@ void project_postprocess(Quark *project)
                 t->offsx = 0.0;
                 t->offsy = 0.0;
             }
-	    if (pr->version_id < 50000) {
+	    if (version_id < 50000) {
 	        /* There was no label_op in Xmgr */
                 t->label_op = t->tl_op;
 	        
@@ -1434,7 +1317,7 @@ void project_postprocess(Quark *project)
 	        }
 	        t->label.offset.y *= -1;
 	    }
-	    if (pr->version_id >= 50000 && pr->version_id < 50103) {
+	    if (version_id >= 50000 && version_id < 50103) {
 	        /* Autoplacement of axis labels wasn't implemented 
                    in early versions of Grace */
                 if (t->label_place == TYPE_AUTO) {
@@ -1443,117 +1326,200 @@ void project_postprocess(Quark *project)
                     t->label_place = TYPE_SPEC;
                 }
             }
-            if (pr->version_id < 50105) {
+            if (version_id < 50105) {
                 /* Starting with 5.1.5, X axis min & inverting is honored
                    in pie charts */
-                if (get_graph_type(gr) == GRAPH_PIE) {
+                if (get_graph_type(q) == GRAPH_PIE) {
                     world w;
-                    get_graph_world(gr, &w);
+                    get_graph_world(q, &w);
                     w.xg1 = 0.0;
                     w.xg2 = 2*M_PI;
-                    set_graph_world(gr, &w);
-                    set_graph_xinvert(gr, FALSE);
+                    set_graph_world(q, &w);
+                    set_graph_xinvert(q, FALSE);
                 }
+            }
+        }
+        break;
+    case QFlavorSet:
+        s = set_get_data(q);
+        gtype = get_graph_type(q->parent);
+
+        if (version_id < 50000) {
+            switch (s->sym.type) {
+            case SYM_NONE:
+                break;
+            case SYM_DOT_OBS:
+                s->sym.type = SYM_CIRCLE;
+                s->sym.size = 0.0;
+                s->sym.line.style = 0;
+                s->sym.fillpen.pattern = 1;
+                break;
+            default:
+                s->sym.type--;
+                break;
+            }
+        }
+        if ((version_id < 40004 && gtype != GRAPH_CHART) ||
+            s->sym.line.pen.color == -1) {
+            s->sym.line.pen.color = s->line.line.pen.color;
+        }
+        if (version_id < 40200 || s->sym.fillpen.color == -1) {
+            s->sym.fillpen.color = s->sym.line.pen.color;
+        }
+
+	if (version_id <= 40102 && gtype == GRAPH_CHART) {
+            s->type       = SET_BAR;
+            s->sym.line    = s->line.line;
+            s->line.line.style = 0;
+
+            s->sym.fillpen = s->line.fillpen;
+            s->line.fillpen.pattern = 0;
+        }
+	if (version_id <= 40102 && s->type == SET_XYHILO) {
+            s->sym.line.width = s->line.line.width;
+        }
+	if (version_id <= 50112 && s->type == SET_XYHILO) {
+            s->avalue.active = FALSE;
+        }
+	if (version_id < 50100 && s->type == SET_BOXPLOT) {
+            s->sym.line.width = s->line.line.width;
+            s->sym.line.style = s->line.line.style;
+            s->sym.size = 2.0;
+            s->errbar.riser_linew = s->line.line.width;
+            s->errbar.riser_lines = s->line.line.style;
+            s->line.line.style = 0;
+            s->errbar.barsize = 0.0;
+        }
+        if (version_id < 50003) {
+            s->errbar.active = TRUE;
+            s->errbar.pen.color = s->sym.line.pen.color;
+            s->errbar.pen.pattern = 1;
+            switch (s->errbar.ptype) {
+            case PLACEMENT_NORMAL:
+                s->errbar.ptype = PLACEMENT_OPPOSITE;
+                break;
+            case PLACEMENT_OPPOSITE:
+                s->errbar.ptype = PLACEMENT_NORMAL;
+                break;
+            case PLACEMENT_BOTH:
+                switch (s->type) {
+                case SET_XYDXDX:
+                case SET_XYDYDY:
+                case SET_BARDYDY:
+                    s->errbar.ptype = PLACEMENT_NORMAL;
+                    break;
+                }
+                break;
+            }
+        }
+        if (version_id < 50002) {
+            s->errbar.barsize *= 2;
+        }
+
+        if (version_id < 50107) {
+            /* Starting with 5.1.7, symskip is honored for all set types */
+            switch (s->type) {
+            case SET_BAR:
+            case SET_BARDY:
+            case SET_BARDYDY:
+            case SET_XYHILO:
+            case SET_XYR:
+            case SET_XYVMAP:
+            case SET_BOXPLOT:
+                s->symskip = 0;
+                break;
             }
         }
         
-        if (pr->version_id >= 40200 && pr->version_id <= 50005) {
-            int i, n;
-            DObject *o;
+        break;
+    case QFlavorDObject:
+        if (version_id >= 40200 && version_id <= 50005) {
             /* BBox type justification was erroneously set */
-            storage_rewind(g->dobjects);
-            n = storage_count(g->dobjects);
-            for (i = 0; i < n; i++) {
-                Quark *q;
-                if (storage_get_data(g->dobjects, (void **) &q) ==
-                    RETURN_SUCCESS) {
-                    o = object_get_data(q);
-                    if (o->type == DO_STRING) {
-                        DOStringData *s = (DOStringData *) o->odata;
-                        s->just |= JUST_MIDDLE;
-                    }
-                } else {
-                    break;
-                }
-                storage_next(g->dobjects);
+            DObject *o = object_get_data(q);
+            if (o->type == DO_STRING) {
+                DOStringData *s = (DOStringData *) o->odata;
+                s->just |= JUST_MIDDLE;
             }
         }
 
-        if (pr->version_id < 50200) {
-            int i, n;
-            Quark *q;
-            DObject *o;
+        if (version_id < 50200) {
+            DObject *o = object_get_data(q);
+            if (o->loctype == COORD_WORLD) {
+                WPoint wp;
+                VPoint vp1, vp2;
 
-            storage_rewind(g->dobjects);
-            n = storage_count(g->dobjects);
-            for (i = 0; i < n; i++) {
-                if (storage_get_data(g->dobjects, (void **) &q) ==
-                    RETURN_SUCCESS) {
-                    o = object_get_data(q);
-                    if (o->loctype == COORD_WORLD) {
-                        WPoint wp;
-                        VPoint vp1, vp2;
+                switch (o->type) {
+                case DO_BOX:
+                    {
+                        DOBoxData *b = (DOBoxData *) o->odata;
+                        wp.x = o->ap.x - b->width/2;
+                        wp.y = o->ap.y - b->height/2;
+                        vp1 = Wpoint2Vpoint(wp);
+                        wp.x = o->ap.x + b->width/2;
+                        wp.y = o->ap.y + b->height/2;
+                        vp2 = Wpoint2Vpoint(wp);
 
-                        switch (o->type) {
-                        case DO_BOX:
-                            {
-                                DOBoxData *b = (DOBoxData *) o->odata;
-                                wp.x = o->ap.x - b->width/2;
-                                wp.y = o->ap.y - b->height/2;
-                                vp1 = Wpoint2Vpoint(wp);
-                                wp.x = o->ap.x + b->width/2;
-                                wp.y = o->ap.y + b->height/2;
-                                vp2 = Wpoint2Vpoint(wp);
-
-                                b->width  = fabs(vp2.x - vp1.x);
-                                b->height = fabs(vp2.y - vp1.y);
-                            }
-                            break;
-                        case DO_ARC:
-                            {
-                                DOArcData *a = (DOArcData *) o->odata;
-                                wp.x = o->ap.x - a->width/2;
-                                wp.y = o->ap.y - a->height/2;
-                                vp1 = Wpoint2Vpoint(wp);
-                                wp.x = o->ap.x + a->width/2;
-                                wp.y = o->ap.y + a->height/2;
-                                vp2 = Wpoint2Vpoint(wp);
-
-                                a->width  = fabs(vp2.x - vp1.x);
-                                a->height = fabs(vp2.y - vp1.y);
-                            }
-                            break;
-                        case DO_LINE:
-                            {
-                                DOLineData *l = (DOLineData *) o->odata;
-                                wp.x = o->ap.x;
-                                wp.y = o->ap.y;
-                                vp1 = Wpoint2Vpoint(wp);
-                                wp.x = o->ap.x +
-                                    l->length*cos(M_PI/180.0*o->angle);
-                                wp.y = o->ap.y +
-                                    l->length*sin(M_PI/180.0*o->angle);
-                                vp2 = Wpoint2Vpoint(wp);
-
-                                l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
-                                o->angle  = 180.0/M_PI*atan2(vp2.y - vp1.y,
-                                                             vp2.x - vp1.x);
-                            }
-                            break;
-                        case DO_STRING:
-                            break;
-                        case DO_NONE:
-                            break;
-                        }
+                        b->width  = fabs(vp2.x - vp1.x);
+                        b->height = fabs(vp2.y - vp1.y);
                     }
-                } else {
+                    break;
+                case DO_ARC:
+                    {
+                        DOArcData *a = (DOArcData *) o->odata;
+                        wp.x = o->ap.x - a->width/2;
+                        wp.y = o->ap.y - a->height/2;
+                        vp1 = Wpoint2Vpoint(wp);
+                        wp.x = o->ap.x + a->width/2;
+                        wp.y = o->ap.y + a->height/2;
+                        vp2 = Wpoint2Vpoint(wp);
+
+                        a->width  = fabs(vp2.x - vp1.x);
+                        a->height = fabs(vp2.y - vp1.y);
+                    }
+                    break;
+                case DO_LINE:
+                    {
+                        DOLineData *l = (DOLineData *) o->odata;
+                        wp.x = o->ap.x;
+                        wp.y = o->ap.y;
+                        vp1 = Wpoint2Vpoint(wp);
+                        wp.x = o->ap.x +
+                            l->length*cos(M_PI/180.0*o->angle);
+                        wp.y = o->ap.y +
+                            l->length*sin(M_PI/180.0*o->angle);
+                        vp2 = Wpoint2Vpoint(wp);
+
+                        l->length = hypot(vp2.x - vp1.x, vp2.y - vp1.y);
+                        o->angle  = 180.0/M_PI*atan2(vp2.y - vp1.y,
+                                                     vp2.x - vp1.x);
+                    }
+                    break;
+                case DO_STRING:
+                    break;
+                case DO_NONE:
                     break;
                 }
-                storage_next(g->dobjects);
             }
         }
-        storage_next(pr->graphs);
+
+        break;
     }
     
+    return TRUE;
+}
+
+void project_postprocess(Quark *project)
+{
+    Quark *gsave;
+    int version_id = project_get_version_id(project);
+    
+    if (version_id >= bi_version_id()) {
+        return;
+    }
+    
+    gsave = graph_get_current(project);
+    
+    quark_traverse(project, project_postprocess_hook, &version_id);
+
     select_graph(gsave);
 }

@@ -240,13 +240,6 @@ Quark *object_new(Quark *gr)
 {
     Quark *o; 
     o = quark_new(gr, QFlavorDObject);
-    if (o) {
-        graph *g = (graph *) gr->data;
-        if (storage_add(g->dobjects, o) != RETURN_SUCCESS) {
-            quark_free(o);
-            return NULL;
-        }
-    }
     return o;
 }
 

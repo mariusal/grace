@@ -881,6 +881,15 @@ int storage_delete_by_data(Storage *sto, void *data)
     }
 }
 
+int storage_extract_data(Storage *sto, void *data)
+{
+    if (storage_scroll_to_data(sto, data) == RETURN_SUCCESS) {
+        storage_extract_node(sto, sto->cp);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
 #ifdef STORAGE_TEST
 
 #define TEST_LEN    10

@@ -1445,8 +1445,10 @@ int write_netcdf(char *fname)
     graphs = project_get_graphs(grace->project);
     while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
         if (is_graph_active(gr)) {
-	    for (j = 0; j < number_of_sets(gr); j++) {
-		Quark *pset = set_get(gr, j);
+            Quark **psets;
+            int nsets = get_graph_sets(gr, &psets);
+	    for (j = 0; j < nsets; j++) {
+		Quark *pset = psets[j];
                 if (is_set_active(pset)) {
 		    char s[64];
 
@@ -1473,6 +1475,7 @@ int write_netcdf(char *fname)
 		    ncattput(ncid, y_id, "max", NC_DOUBLE, 1, (void *) &y2);
 		}
 	    }
+            xfree(psets);
 	}
         if (storage_next(graphs) != RETURN_SUCCESS) {
             break;
@@ -1486,8 +1489,10 @@ int write_netcdf(char *fname)
     }
     while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
 	if (is_graph_active(gr)) {
-	    for (j = 0; j < number_of_sets(gr); j++) {
-		Quark *pset = set_get(gr, j);
+            Quark **psets;
+            int nsets = get_graph_sets(gr, &psets);
+	    for (j = 0; j < nsets; j++) {
+		Quark *pset = psets[j];
                 if (is_set_active(pset)) {
 		    len[0] = getsetlength(pset);
 		    x = getx(pset);
@@ -1500,6 +1505,7 @@ int write_netcdf(char *fname)
 		    ncvarput(ncid, y_id, &it, len, (void *) y);
 		}
 	    }
+            xfree(psets);
 	}
         if (storage_next(graphs) != RETURN_SUCCESS) {
             break;

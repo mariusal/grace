@@ -327,8 +327,6 @@ typedef struct {
     double bargap;              /* Distance between bars (in bar charts) */
     double znorm;               /* Normalization of pseudo-3D graphs */
 
-    Storage *sets;              /* sets go here */
-
     legend l;                   /* legends */
 
     world w;                    /* world */
@@ -345,8 +343,6 @@ typedef struct {
     world_stack ws[MAX_ZOOM_STACK]; /* zoom stack */
     int ws_top;                 /* stack pointer */
     int curw;                   /* for cycling through the stack */
-    
-    Storage *dobjects;          /* drawing objects placed on this graph */
 } graph;
 
 Symbol *symbol_new();
@@ -509,7 +505,7 @@ int graph_world_stack_size(Quark *gr);
 int get_world_stack_current(Quark *gr);
 int get_world_stack_entry(Quark *gr, int n, world_stack *ws);
 
-Quark *set_get(Quark *gr, int setid);
+int get_graph_sets(Quark *gr, Quark ***sets);
 
 int set_set_colors(Quark *p, int color);
 

@@ -36,16 +36,6 @@
 #include "graphs.h"
 #include "protos.h"
 
-static void wrap_graph_free(void *data)
-{
-    quark_free((Quark *) data);
-}
-
-static void *wrap_graph_copy(void *data)
-{
-    return (void *) quark_copy((Quark *) data);
-}
-
 static int project_free_cb(Quark *pr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
@@ -86,12 +76,6 @@ Project *project_data_new(void)
     pr->version_id  = bi_version_id();
     pr->description = NULL;
     
-    pr->graphs  = storage_new(wrap_graph_free, wrap_graph_copy, NULL);
-    if (!pr->graphs) {
-        xfree(pr);
-        return NULL;
-    }
-    
     pr->nr = 0;
     for (i = 0; i < MAXREGION; i++) {
         set_region_defaults(&pr->rg[i]);
@@ -122,8 +106,6 @@ void project_data_free(Project *pr)
     }
     
     xfree(pr->description);
-    
-    storage_free(pr->graphs);
     
     xfree(pr->sformat);
     xfree(pr->docname);
@@ -207,8 +189,7 @@ void project_clear_dirtystate(Quark *q)
 
 Storage *project_get_graphs(const Quark *q)
 {
-    Project *pr = (Project *) q->data;
-    return pr->graphs;
+    return q->children;
 }
 
 char *project_get_sformat(const Quark *q)

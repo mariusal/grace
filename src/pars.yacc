@@ -138,7 +138,7 @@ static int findf(symtab_entry *keytable, char *s);
 
 static void add_xmgr_fonts(Quark *project);
 
-static Quark *allocate_graph(int gno);
+static Quark *allocate_graph(Quark *project, int gno);
 static Quark *allocate_set(Quark *gr, int setno);
 
 /* Total (intrinsic + user-defined) list of functions and keywords */
@@ -2234,7 +2234,7 @@ parmset:
                         gr = objgno;
                     }
                     if (!gr) {
-                        gr = graph_next(grace->project);
+                        gr = allocate_graph(grace->project, 0);
                     }
                     if (gr) {
                         Quark *q = object_new(gr);
@@ -2256,7 +2256,7 @@ parmset:
                     gr = objgno;
                 }
                 if (!gr) {
-                    gr = graph_next(grace->project);
+                    gr = allocate_graph(grace->project, 0);
                 }
                 if (gr) {
                     Quark *q = object_new(gr);
@@ -2279,7 +2279,7 @@ parmset:
 
                 gr = graph_get_current(grace->project);
                 if (!gr) {
-                    gr = graph_next(grace->project);
+                    gr = allocate_graph(grace->project, 0);
                 }
                 if (gr) {
                     Quark *q = object_new(gr);
@@ -3291,7 +3291,7 @@ axisbardesc:
 selectgraph:
         GRAPHNO
         {
-            $$ = allocate_graph($1);
+            $$ = allocate_graph(grace->project, $1);
         }
         ;
 
@@ -3677,10 +3677,18 @@ parmset_obs:
             l->offset.y = gv.yv2 - vp.y;
 	}
 	| LEGEND STRING nexpr CHRSTR {
-            Quark *pset = set_get(whichgraph, $3);
+            int nsets;
+            Quark *pset, **psets;
+            nsets = get_graph_sets(whichgraph, &psets);
+            if ($3 >= 0 && $3 < nsets) {
+                pset = psets[$3];
+            } else {
+                pset = NULL;
+            }
             if (set_legend_string(pset, $4) != RETURN_SUCCESS) {
                 yyerror("Unallocated set");
             }
+            xfree(psets);
             xfree($4);
 	}
 	| LEGEND BOX FILL onoff { }
@@ -5021,20 +5029,18 @@ static void add_xmgr_fonts(Quark *project)
     add_xmgr_font(project, "ZapfDingbats", 9);
 }
 
-static Quark *allocate_graph(int gno)
+static Quark *allocate_graph(Quark *project, int gno)
 {
     Quark *gr = NULL;
     char buf[32];
     
     if (gno >= 0) {
-        Project *pr = (Project *) (grace->project->data);
-        while (storage_count(pr->graphs) <= gno && graph_next(grace->project)) {
-            ;
-        }
-        storage_get_data_by_id(pr->graphs, gno, (void **) &gr);
-        
         sprintf(buf, "G%d", gno);
-        quark_idstr_set(gr, buf);
+        gr = quark_find_child_by_idstr(project, buf);
+        if (!gr) {
+            gr = graph_next(project);
+            quark_idstr_set(gr, buf);
+        }
     }
     
     return gr;
@@ -5046,14 +5052,12 @@ static Quark *allocate_set(Quark *gr, int setno)
     char buf[32];
     
     if (setno >= 0) {
-        graph *g = (graph *) gr->data;
-        while (storage_count(g->sets) <= setno && set_new(gr)) {
-            ;
-        }
-        storage_get_data_by_id(g->sets, setno, (void **) &pset);
-        
         sprintf(buf, "S%d", setno);
-        quark_idstr_set(pset, buf);
+        pset = quark_find_child_by_idstr(gr, buf);
+        if (!pset) {
+            pset = set_new(gr);
+            quark_idstr_set(pset, buf);
+        }
     }
     
     return pset;

@@ -183,7 +183,9 @@ static int object_draw_hook(unsigned int step, void *data, void *udata)
     Quark *q = (Quark *) data;
     Canvas *canvas = (Canvas *) udata;
     
-    draw_object(canvas, q);
+    if (q->fid == QFlavorDObject) {
+        draw_object(canvas, q);
+    }
     
     return TRUE;
 }
@@ -191,11 +193,10 @@ static int object_draw_hook(unsigned int step, void *data, void *udata)
 void draw_objects(Canvas *canvas, Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
         /* disable (?) clipping for object drawing */
         setclipping(canvas, FALSE);
 
-        storage_traverse(g->dobjects, object_draw_hook, canvas);
+        storage_traverse(gr->children, object_draw_hook, canvas);
 
         setclipping(canvas, TRUE);
     }

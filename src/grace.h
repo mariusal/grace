@@ -64,14 +64,19 @@ struct _Quark {
     Grace *grace;
     unsigned int fid;
     char *idstr;
+    
     struct _Quark *parent;
+    Storage *children;
     unsigned int dirtystate;
     unsigned int refcount;
+    
     void *data;
     
     Quark_cb cb;
     void *cbdata;
 };
+
+typedef int (*Quark_traverse_hook)(Quark *q, unsigned int depth, unsigned int step, void *udata); 
 
 typedef struct _Project {
     /* Version ID */
@@ -83,7 +88,6 @@ typedef struct _Project {
 #if 0
     Storage *blockdata;
 #endif
-    Storage *graphs;
     /* (pointer to) current graph */
     Quark *cg;
 #if 0
@@ -248,8 +252,10 @@ int quark_dirtystate_get(const Quark *q);
 
 void quark_idstr_set(Quark *q, const char *s);
 char *quark_idstr_get(const Quark *q);
+Quark *quark_find_child_by_idstr(Quark *q, const char *s);
 
 int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata);
+void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata);
 
 #define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
 

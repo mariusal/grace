@@ -64,9 +64,8 @@ static int plotone_hook(unsigned int step, void *data, void *udata)
 static void dproc(Canvas *canvas, void *data)
 {
     Quark *project = (Quark *) data;
-    Project *pr = (Project *) project->data;
 
-    storage_traverse(pr->graphs, plotone_hook, canvas);
+    storage_traverse(project->children, plotone_hook, canvas);
 }
 
 /*
@@ -252,6 +251,7 @@ void draw_pie_chart(Canvas *canvas, Quark *gr)
     double *x, *c, *e, *pt;
     AValue avalue;
     char str[MAX_STRING_LENGTH];
+    Quark **psets;
 
     get_graph_viewport(gr, &v);
     vpc.x = (v.xv1 + v.xv2)/2;
@@ -260,10 +260,10 @@ void draw_pie_chart(Canvas *canvas, Quark *gr)
     get_graph_world(gr, &w);
     sgn = is_graph_xinvert(gr) ? -1:1;
     
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
     
     for (setno = 0; setno < nsets; setno++) {
-        Quark *pset = set_get(gr, setno);
+        Quark *pset = psets[setno];
         if (is_set_drawable(pset)) {
             set *p = (set *) pset->data;
             ndsets++;
@@ -389,16 +389,18 @@ void draw_pie_chart(Canvas *canvas, Quark *gr)
             }
         }
     }
+    xfree(psets);
 }
 
 void draw_polar_graph(Canvas *canvas, Quark *gr)
 {
     int setno, nsets;
+    Quark **psets;
 
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
     
     for (setno = 0; setno < nsets; setno++) {
-        Quark *pset = set_get(gr, setno);
+        Quark *pset = psets[setno];
         if (is_set_drawable(pset)) {
             switch (dataset_type(pset)) {
             case SET_XY:
@@ -415,6 +417,7 @@ void draw_polar_graph(Canvas *canvas, Quark *gr)
             }
         }
     }
+    xfree(psets);
 }
 
 void xyplot(Canvas *canvas, Quark *gr)
@@ -423,19 +426,20 @@ void xyplot(Canvas *canvas, Quark *gr)
     int refn;
     double *refx, *refy;
     double offset, epsilon;
+    Quark **psets;
 
     refn = 0;
     offset = 0.0;
     refx = NULL;
     refy = NULL;
 
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
 
     /* draw sets */
     switch (get_graph_type(gr)) {
     case GRAPH_XY:
         for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = set_get(gr, setno);
+            Quark *pset = psets[setno];
             if (is_set_drawable(pset)) {
                 switch (dataset_type(pset)) {
                 case SET_XY:
@@ -486,7 +490,7 @@ void xyplot(Canvas *canvas, Quark *gr)
         break;
     case GRAPH_CHART:
         for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = set_get(gr, setno);
+            Quark *pset = psets[setno];
             if (is_set_drawable(pset)) {
                 set *p = (set *) pset->data;
                 if (getsetlength(pset) > refn) {
@@ -518,7 +522,7 @@ void xyplot(Canvas *canvas, Quark *gr)
         }
 
         for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = set_get(gr, setno);
+            Quark *pset = psets[setno];
             int x_ok;
             double *x;
             
@@ -604,7 +608,7 @@ void xyplot(Canvas *canvas, Quark *gr)
             }
             
             for (setno = 0; setno < nsets; setno++) {
-                Quark *pset = set_get(gr, setno);
+                Quark *pset = psets[setno];
                 if (is_set_drawable(pset)) {
                     switch (dataset_type(pset)) {
                     case SET_XY:
@@ -642,7 +646,7 @@ void xyplot(Canvas *canvas, Quark *gr)
         break;
     case GRAPH_FIXED:
         for (setno = 0; setno < nsets; setno++) {
-            Quark *pset = set_get(gr, setno);
+            Quark *pset = psets[setno];
             if (is_set_drawable(pset)) {
                 switch (dataset_type(pset)) {
                 case SET_XY:
@@ -684,6 +688,7 @@ void xyplot(Canvas *canvas, Quark *gr)
         break;
     } /* end g.type */
 
+    xfree(psets);
 }
 
 void draw_regions(Canvas *canvas, Quark *gr)
@@ -2263,6 +2268,8 @@ void dolegend(Canvas *canvas, Quark *gr)
     legend *l;
     set *p;
 
+    Quark **psets;
+
     l = get_graph_legend(gr);
     if (l->active == FALSE) {
         return;
@@ -2270,9 +2277,9 @@ void dolegend(Canvas *canvas, Quark *gr)
     
     maxsymsize = 0.0;
     draw_flag = FALSE;
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
     for (setno = 0; setno < nsets; setno++) {
-        Quark *pset = set_get(gr, setno);
+        Quark *pset = psets[setno];
         if (is_set_drawable(pset)) {
             p = (set *) pset->data;
             if (!is_empty_string(p->legstr)) {
@@ -2283,6 +2290,7 @@ void dolegend(Canvas *canvas, Quark *gr)
             }
         }  
     }
+    xfree(psets);
     
     if (draw_flag == FALSE) {
         l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
@@ -2358,6 +2366,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
     set *p;
     legend *l;
     int draw_line, singlesym;
+    Quark **psets;
     
     l = get_graph_legend(gr);
 
@@ -2367,7 +2376,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
     vpstr.y = vp->y;
     vpstr.x = vp2.x + l->hgap + 0.01*maxsymsize;
     
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
     for (i = 0; i < nsets; i++) {
         Quark *pset;
         
@@ -2377,7 +2386,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
             setno = nsets - i - 1;
         }
         
-        pset = set_get(gr, setno);
+        pset = psets[setno];
         
         if (is_set_drawable(pset)) {
             view vtmp;
@@ -2475,4 +2484,5 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
             }
         }
     }
+    xfree(psets);
 }

@@ -240,16 +240,8 @@ int autoscale_graph(Quark *gr, int autos_type)
 {
     int nsets;
     Quark **sets;
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &sets);
     if (nsets) {
-        int i;
-        sets = xmalloc(nsets*SIZEOF_VOID_P);
-        if (!sets) {
-            return RETURN_FAILURE;
-        }
-        for (i = 0; i < nsets; i++) {
-            sets[i] = set_get(gr, i);
-        }
         autoscale_bysets(sets, nsets, autos_type);
         xfree(sets);
         return RETURN_SUCCESS;
@@ -782,44 +774,53 @@ void move_legend(Quark *gr, VVector shift)
     }
 }
 
-void rescale_viewport(Quark *project, double ext_x, double ext_y)
-{
-    Project *pr = (Project *) project->data;
-    Quark *gr, *q;
-    DObject *o;
+typedef struct {
+    double x, y;
+} ext_xy_t;
 
-    storage_rewind(pr->graphs);
-    while (storage_get_data(pr->graphs, (void **) &gr) == RETURN_SUCCESS) {
-        graph *g = (graph *) gr->data;
-        g->v.xv1 *= ext_x;
-        g->v.xv2 *= ext_x;
-        g->v.yv1 *= ext_y;
-        g->v.yv2 *= ext_y;
+static int hook(Quark *q, unsigned int depth, unsigned int step, void *udata)
+{
+    graph *g;
+    DObject *o;
+    ext_xy_t *ext_xy = (ext_xy_t *) udata;
+    
+    switch (q->fid) {
+    case QFlavorGraph:
+        g = graph_get_data(q);
+        g->v.xv1 *= ext_xy->x;
+        g->v.xv2 *= ext_xy->x;
+        g->v.yv1 *= ext_xy->y;
+        g->v.yv2 *= ext_xy->y;
         
-        g->l.offset.x *= ext_x;
-        g->l.offset.y *= ext_y;
+        g->l.offset.x *= ext_xy->x;
+        g->l.offset.y *= ext_xy->y;
         
         /* TODO: tickmark offsets */
-        
-        storage_rewind(g->dobjects);
-        while (storage_get_data(g->dobjects, (void **) &q) == RETURN_SUCCESS) {
-            o = object_get_data(q);
-            if (o->loctype == COORD_VIEW) {
-                o->ap.x     *= ext_x;
-                o->ap.y     *= ext_y;
-                o->offset.x *= ext_x;
-                o->offset.y *= ext_y;
-            }
-            if (storage_next(g->dobjects) != RETURN_SUCCESS) {
-                break;
-            }
+        quark_dirtystate_set(q, TRUE);
+        break;
+    case QFlavorDObject:
+        o = object_get_data(q);
+        if (o->loctype == COORD_VIEW) {
+            o->ap.x     *= ext_xy->x;
+            o->ap.y     *= ext_xy->y;
+            o->offset.x *= ext_xy->x;
+            o->offset.y *= ext_xy->y;
         }
-        
-        if (storage_next(pr->graphs) != RETURN_SUCCESS) {
-            break;
-        }
+        quark_dirtystate_set(q, TRUE);
+        break;
     }
     
+    return TRUE;
+}
+
+void rescale_viewport(Quark *project, double ext_x, double ext_y)
+{
+    ext_xy_t ext_xy;
+    ext_xy.x = ext_x;
+    ext_xy.y = ext_y;
+
+    quark_traverse(project, hook, &ext_xy);
+
     set_dirtystate();
 }
 

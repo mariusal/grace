@@ -357,7 +357,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
  */
 Quark *nextset(Quark *gr)
 {
-    Quark *pset;
+    Quark *pset, **psets;
     
     if (!gr) {
         return NULL;
@@ -371,13 +371,15 @@ Quark *nextset(Quark *gr)
     } else {
         int i, nsets;
         
-        nsets = number_of_sets(gr);
+        nsets = get_graph_sets(gr, &psets);
         for (i = 0; i < nsets; i++) {
-            pset = set_get(gr, i);
+            pset = psets[i];
             if (!is_set_active(pset) == TRUE) {
 	        return pset;
 	    }
         }
+        xfree(psets);
+        
         return set_new(gr);
     }
 }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -152,12 +152,14 @@ void reporton_region(Quark *gr, int rno, int type)
     char buf[256];
     int i, setno, first, contained, nsets;
     double *x, *y;
+    Quark **psets;
+
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
     stufftext(buf);
     
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
     for (setno = 0; setno < nsets; setno++) {
-	Quark *pset = set_get(gr, setno);
+	Quark *pset = psets[setno];
         x = getx(pset);
 	y = gety(pset);
 	first = 1;

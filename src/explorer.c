@@ -189,11 +189,11 @@ static ListTreeItem *graph_create(Widget w,
     
     set_item = CreateStorageTree(w, graph_item, "Sets");
     SetStorageTreeProcs(set_item, set_labeling, NULL);
-    SetStorageTreeStorage(set_item, g->sets);
+    // SetStorageTreeStorage(set_item, g->sets);
     
     do_item = CreateStorageTree(w, graph_item, "Drawing objects");
     SetStorageTreeProcs(do_item, dobject_labeling, NULL);
-    SetStorageTreeStorage(do_item, g->dobjects);
+    // SetStorageTreeStorage(do_item, g->dobjects);
     
     return graph_item;
 }

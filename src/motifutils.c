@@ -2354,7 +2354,6 @@ static char *graph_labeling(unsigned int step, void *data)
 
 StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
 {
-    Project *pr = (Project *) grace->project->data;
     StorageStructure *ss;
     GSSData *gssdata;
     Widget popup;
@@ -2363,7 +2362,7 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, graph_labeling);
-    SetStorageChoiceStorage(ss, pr->graphs);
+    SetStorageChoiceStorage(ss, grace->project->children);
     AddStorageChoiceDblClickCB(ss, g_dc_cb, NULL);
     AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
 
@@ -2400,8 +2399,7 @@ void update_graph_selectors(Quark *pr)
     for (i = 0; i < ngraph_selectors; i++) {
         StorageStructure *ss = graph_selectors[i];
         if (!ss->sto && pr) {
-            Project *project = (Project *) pr->data;
-            ss->sto = project->graphs;
+            ss->sto = pr->children;
         } else 
         if (!pr) {
             ss->sto = NULL;
@@ -2584,13 +2582,17 @@ static char *set_labeling(unsigned int step, void *data)
 {
     char buf[128];
     Quark *q = (Quark *) data;
-    set *p = set_get_data(q);
-    
-    sprintf(buf, "(%c) Set #%d (type: %s, length: %d)",
-        !p->hidden ? '+':'-', step, set_types(grace->rt, p->type),
-        getsetlength(q));
-    
-    return copy_string(NULL, buf);
+    if (q->fid == QFlavorSet) {
+        set *p = set_get_data(q);
+
+        sprintf(buf, "(%c) Set #%d (type: %s, length: %d)",
+            !p->hidden ? '+':'-', step, set_types(grace->rt, p->type),
+            getsetlength(q));
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
 }
 
 StorageStructure *CreateSetChoice(Widget parent,
@@ -2647,8 +2649,7 @@ void UpdateSetChoice(StorageStructure *ss)
     
     gr = get_set_choice_gr(ss);
     if (gr) {
-        graph *g = graph_get_data(gr);
-        sto = g->sets;
+        sto = gr->children;
     } else {
         sto = NULL;
     }

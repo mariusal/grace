@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001,2002 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -696,101 +696,15 @@ static int save_dataset(XFile *xf, Quark *pset)
     return RETURN_SUCCESS;
 }
 
-int save_object(XFile *xf, DObject *o)
+static int graph_children_save_hook(unsigned int step, void *data, void *udata)
 {
-    Attributes *attrs;
-    
-    if (!xf || !o) {
-        return RETURN_FAILURE;
-    }
-    
-    attrs = attributes_new();
-    if (attrs == NULL) {
-        return RETURN_FAILURE;
-    }
-    
-    xmlio_set_active(attrs, o->active);
-    xmlio_set_angle(attrs, o->angle);
-    xmlio_set_offset(attrs, o->offset.x, o->offset.y);
-    xfile_begin_element(xf, EStrObject, attrs);
-    {
-        char buf[32];
-        xmlio_write_location(xf, attrs, o->loctype, o->ap.x, o->ap.y);
-        xmlio_write_line_spec(xf, attrs,
-            &(o->line.pen), o->line.width, o->line.style);
-        xmlio_write_fill_spec(xf, attrs, &(o->fillpen));
-        attributes_reset(attrs);
-        switch (o->type) {
-        case DO_LINE:
-            {
-                DOLineData *l = (DOLineData *) o->odata;
-                attributes_set_dval(attrs, AStrLength, l->length);
-                attributes_set_ival(attrs, AStrArrowsAt, l->arrow_end); /* FIXME: textual */
-            }
-            break;
-        case DO_BOX:
-            {
-                DOBoxData *b = (DOBoxData *) o->odata;
-                attributes_set_dval(attrs, AStrWidth, b->width);
-                attributes_set_dval(attrs, AStrHeight, b->height);
-            }
-            break;
-        case DO_ARC:
-            {
-                DOArcData *a = (DOArcData *) o->odata;
-                attributes_set_dval(attrs, AStrWidth, a->width);
-                attributes_set_dval(attrs, AStrHeight, a->height);
-                attributes_set_dval(attrs, AStrStartAngle, a->angle1);
-                attributes_set_dval(attrs, AStrExtentAngle, a->angle2);
-                attributes_set_ival(attrs, AStrFillMode, a->fillmode); /* FIXME: textual */
-            }
-            break;
-        case DO_STRING:
-            {
-                DOStringData *s = (DOStringData *) o->odata;
-                xmlio_set_font_ref(attrs, s->font);
-                attributes_set_dval(attrs, AStrCharSize, s->size);
-                attributes_set_ival(attrs, AStrJustification, s->just); /* FIXME: textual */
-            }
-            break;
-        case DO_NONE:
-            break;
-        }
-        sprintf(buf, "%s-data", object_types(o->type));
-        if (o->type == DO_STRING) {
-            xfile_begin_element(xf, buf, attrs);
-            {
-                DOStringData *s = (DOStringData *) o->odata;
-                xmlio_write_text(xf, s->s);
-            }
-            xfile_end_element(xf, buf);
-        } else
-        if (o->type == DO_LINE) {
-            xfile_begin_element(xf, buf, attrs);
-            {
-                DOLineData *l = (DOLineData *) o->odata;
-                xmlio_write_arrow(xf, attrs, &l->arrow);
-            }
-            xfile_end_element(xf, buf);
-        } else {
-            xfile_empty_element(xf, buf, attrs);
-        }
-    }
-    xfile_end_element(xf, EStrObject);
-
-    attributes_free(attrs);
-    
-    return RETURN_SUCCESS;
-}
-
-static int set_save_hook(unsigned int step, void *data, void *udata)
-{
-    Quark *pset = (Quark *) data;
+    Quark *q = (Quark *) data;
     XFile *xf = (XFile *) udata;
     set *p;
+    DObject *o;
     Attributes *attrs;
 
-    if (!pset) {
+    if (!q) {
         return RETURN_FAILURE;
     }
 
@@ -799,61 +713,99 @@ static int set_save_hook(unsigned int step, void *data, void *udata)
         return RETURN_FAILURE;
     }
     
-    p = (set *) pset->data;
-    
-    xmlio_set_active(attrs, !(p->hidden));
-    attributes_set_sval(attrs, AStrType, set_types(grace->rt, p->type));
-    attributes_set_ival(attrs, AStrSkip, p->symskip);
-    xfile_begin_element(xf, EStrSet, attrs);
-    {
-        save_set_properties(xf, pset);
-        save_dataset(xf, pset);
-    }
-    xfile_end_element(xf, EStrSet);
+    switch (q->fid) {
+    case QFlavorSet:
+        p = set_get_data(q);
+        
+        xmlio_set_active(attrs, !(p->hidden));
+        attributes_set_sval(attrs, AStrType, set_types(grace->rt, p->type));
+        attributes_set_ival(attrs, AStrSkip, p->symskip);
+        xfile_begin_element(xf, EStrSet, attrs);
+        {
+            save_set_properties(xf, q);
+            save_dataset(xf, q);
+        }
+        xfile_end_element(xf, EStrSet);
+        
+        break;
+    case QFlavorDObject:
+        o = object_get_data(q);
 
+        xmlio_set_active(attrs, o->active);
+        xmlio_set_angle(attrs, o->angle);
+        xmlio_set_offset(attrs, o->offset.x, o->offset.y);
+        xfile_begin_element(xf, EStrObject, attrs);
+        {
+            char buf[32];
+            xmlio_write_location(xf, attrs, o->loctype, o->ap.x, o->ap.y);
+            xmlio_write_line_spec(xf, attrs,
+                &(o->line.pen), o->line.width, o->line.style);
+            xmlio_write_fill_spec(xf, attrs, &(o->fillpen));
+            attributes_reset(attrs);
+            switch (o->type) {
+            case DO_LINE:
+                {
+                    DOLineData *l = (DOLineData *) o->odata;
+                    attributes_set_dval(attrs, AStrLength, l->length);
+                    attributes_set_ival(attrs, AStrArrowsAt, l->arrow_end); /* FIXME: textual */
+                }
+                break;
+            case DO_BOX:
+                {
+                    DOBoxData *b = (DOBoxData *) o->odata;
+                    attributes_set_dval(attrs, AStrWidth, b->width);
+                    attributes_set_dval(attrs, AStrHeight, b->height);
+                }
+                break;
+            case DO_ARC:
+                {
+                    DOArcData *a = (DOArcData *) o->odata;
+                    attributes_set_dval(attrs, AStrWidth, a->width);
+                    attributes_set_dval(attrs, AStrHeight, a->height);
+                    attributes_set_dval(attrs, AStrStartAngle, a->angle1);
+                    attributes_set_dval(attrs, AStrExtentAngle, a->angle2);
+                    attributes_set_ival(attrs, AStrFillMode, a->fillmode); /* FIXME: textual */
+                }
+                break;
+            case DO_STRING:
+                {
+                    DOStringData *s = (DOStringData *) o->odata;
+                    xmlio_set_font_ref(attrs, s->font);
+                    attributes_set_dval(attrs, AStrCharSize, s->size);
+                    attributes_set_ival(attrs, AStrJustification, s->just); /* FIXME: textual */
+                }
+                break;
+            case DO_NONE:
+                break;
+            }
+            sprintf(buf, "%s-data", object_types(o->type));
+            if (o->type == DO_STRING) {
+                xfile_begin_element(xf, buf, attrs);
+                {
+                    DOStringData *s = (DOStringData *) o->odata;
+                    xmlio_write_text(xf, s->s);
+                }
+                xfile_end_element(xf, buf);
+            } else
+            if (o->type == DO_LINE) {
+                xfile_begin_element(xf, buf, attrs);
+                {
+                    DOLineData *l = (DOLineData *) o->odata;
+                    xmlio_write_arrow(xf, attrs, &l->arrow);
+                }
+                xfile_end_element(xf, buf);
+            } else {
+                xfile_empty_element(xf, buf, attrs);
+            }
+        }
+        xfile_end_element(xf, EStrObject);
+
+        break;
+    }
+    
     attributes_free(attrs);
         
     return TRUE;
-}
-
-static int object_save_hook(unsigned int step, void *data, void *udata)
-{
-    DObject *o = object_get_data(data);
-    XFile *xf = (XFile *) udata;
-    
-    save_object(xf, o);
-        
-    return TRUE;
-}
-
-int save_graph_objects(XFile *xf, Quark *gr)
-{
-    graph *g;
-
-    if (!xf || !gr) {
-        return RETURN_FAILURE;
-    }
-    
-    g = (graph *) gr->data;
-    
-    storage_traverse(g->dobjects, object_save_hook, xf);
-
-    return RETURN_SUCCESS;
-}
-
-int save_graph_sets(XFile *xf, Quark *gr)
-{
-    graph *g;
-    
-    if (!xf || !gr) {
-        return RETURN_FAILURE;
-    }
-    
-    g = (graph *) gr->data;
-
-    storage_traverse(g->sets, set_save_hook, xf);
-    
-    return RETURN_SUCCESS;
 }
 
 int save_regions(XFile *xf)
@@ -962,23 +914,22 @@ int save_project(char *fn)
     save_preferences(xf);
 
     xfile_comment(xf, "Graphs");
-    storage_rewind(pr->graphs);
-    while (storage_get_data(pr->graphs, (void **) &gr) == RETURN_SUCCESS) {
+    storage_rewind(grace->project->children);
+    while (storage_get_data(grace->project->children, (void **) &gr) == RETURN_SUCCESS) {
         attributes_reset(attrs);
         attributes_set_sval(attrs, AStrId, gr->idstr);
         xmlio_set_active(attrs, !is_graph_hidden(gr));
         xfile_begin_element(xf, EStrGraph, attrs);
         {
             save_graph_properties(xf, gr);
-            
-            save_graph_objects(xf, gr);
 
-            save_graph_sets(xf, gr);
+            /* save graph children */
+            storage_traverse(gr->children, graph_children_save_hook, xf);
 
         }
         xfile_end_element(xf, EStrGraph);
 
-        if (storage_next(pr->graphs) != RETURN_SUCCESS) {
+        if (storage_next(grace->project->children) != RETURN_SUCCESS) {
             break;
         }
     }

@@ -128,8 +128,7 @@ static void changegraphCB(int n, void **values, void *data)
 
     if (n == 1) {
         Quark *gr = (Quark *) values[0];
-        graph *g = graph_get_data(gr);
-        SetStorageChoiceStorage(ui->ss, g->dobjects); 
+        SetStorageChoiceStorage(ui->ss, gr->children); 
     } else {
         SetStorageChoiceStorage(ui->ss, NULL); 
     }
@@ -467,13 +466,18 @@ static int objects_aac(void *data)
 
 static char *dobject_labeling(unsigned int step, void *data)
 {
+    Quark *q = (Quark *) data;
     char buf[128];
-    DObject *o = object_get_data((Quark *) data);
-    
-    sprintf(buf, "(%c) DObject #%d (%s)",
-        o->active ? '+':'-', step, object_types(o->type));
-    
-    return copy_string(NULL, buf);
+    if (q->fid == QFlavorDObject) {
+        DObject *o = object_get_data(q);
+
+        sprintf(buf, "(%c) DObject #%d (%s)",
+            o->active ? '+':'-', step, object_types(o->type));
+
+        return copy_string(NULL, buf);
+    } else {
+        return NULL;
+    }
 }
 
 static void loctype_cb(int value, void *data)
@@ -641,8 +645,6 @@ StorageStructure *CreateDObjectChoice(Widget parent, char *labelstr, int type)
 
 void define_objects_popup(void *data)
 {
-    Quark *gr;
-    
     set_wait_cursor();
     
     if (!oui) {

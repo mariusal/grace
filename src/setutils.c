@@ -396,13 +396,6 @@ Quark *set_new(Quark *gr)
 {
     Quark *pset; 
     pset = quark_new(gr, QFlavorSet);
-    if (pset) {
-        graph *g = (graph *) gr->data;
-        if (storage_add(g->sets, pset) != RETURN_SUCCESS) {
-            quark_free(pset);
-            return NULL;
-        }
-    }
     return pset;
 }
 
@@ -564,13 +557,7 @@ int copysetdata(Quark *psrc, Quark *pdest)
  */
 void killset(Quark *pset)
 {
-    Quark *gr;
-    graph *g;
-    
-    gr = pset->parent;
-    g = (graph *) gr->data;
-    
-    storage_delete_by_data(g->sets, pset);
+    quark_free(pset);
 }
 
 double *getcol(Quark *pset, int col)
@@ -1080,14 +1067,16 @@ int is_set_active(Quark *pset)
 int number_of_active_sets(Quark *gr)
 {
     int i, nsets, na = 0;
+    Quark **psets;
 
-    nsets = number_of_sets(gr);
+    nsets = get_graph_sets(gr, &psets);
     for (i = 0; i < nsets; i++) {
-        Quark *pset = set_get(gr, i);
+        Quark *pset = psets[i];
         if (is_set_active(pset) == TRUE) {
 	    na++;
 	}
     }
+    xfree(psets);
     return na;
 }
 
