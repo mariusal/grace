@@ -198,6 +198,8 @@ String fallbackResourcesCommon[] = {
     "XMgrace*fileMenu.exitButton.accelerator: Ctrl<Key>q",
     "XMgrace*fileMenu.printButton.acceleratorText: Ctrl+P",
     "XMgrace*fileMenu.printButton.accelerator: Ctrl<Key>p",
+    "XMgrace*toolsMenu.explorerButton.acceleratorText: Ctrl+E",
+    "XMgrace*toolsMenu.explorerButton.accelerator: Ctrl<Key>e",
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
     "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
     "XMgrace*pageZoomMenu.smallerButton.acceleratorText: Ctrl+-",
