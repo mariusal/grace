@@ -150,6 +150,8 @@ int drawgraph(const Quark *project)
     }
 }
 
+#define VP_EPSILON  0.001
+
 /*
  * If writing to a file, check to see if it exists
  */
@@ -209,7 +211,8 @@ void do_hardcopy(const Quark *project)
     
     get_bbox(canvas, BBOX_TYPE_GLOB, &v);
     project_get_viewport(project, &vx, &vy);
-    if (v.xv1 < 0.0 || v.xv2 > vx || v.yv1 < 0.0 || v.yv2 > vy) {
+    if (v.xv1 < 0.0 - VP_EPSILON || v.xv2 > vx + VP_EPSILON ||
+        v.yv1 < 0.0 - VP_EPSILON || v.yv2 > vy + VP_EPSILON) {
         truncated_out = TRUE;
     } else {
         truncated_out = FALSE;
