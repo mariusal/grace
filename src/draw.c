@@ -48,13 +48,12 @@
 int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
                                    a separate module */
 
-static int all_points_inside(Canvas *canvas, const VPoint *vps, int n);
+static int clip_polygon(VPoint *vps, int n, const view *clipview);
+static int all_points_inside(const view *clipview, const VPoint *vps, int n);
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
 static int realloc_colors(Canvas *canvas, int n);
 static int RGB2YIQ(const RGB *rgb, YIQ *yiq);
 static int RGB2CMY(const RGB *rgb, CMY *cmy);
-
-static view viewport;
 
 /* Default drawing properties */
 static DrawProps default_draw_props = 
@@ -348,7 +347,7 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
  *  in most real cases, all points of a set are inside the viewport;
  *  so we check it prior to going into compilated clipping mode
  */
-    if (canvas->clipflag && !all_points_inside(canvas, vps, n)) {
+    if (canvas->clipflag && !all_points_inside(&canvas->clipview, vps, n)) {
         
         vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
@@ -433,7 +432,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
 
     max_purge = get_max_path_limit(canvas);
     
-    if (canvas->clipflag && !all_points_inside(canvas, vps, n)) {
+    if (canvas->clipflag && !all_points_inside(&canvas->clipview, vps, n)) {
         /* In the worst case, the clipped polygon may have twice more vertices */
         vptmp = xmalloc((2*n) * sizeof(VPoint));
         if (vptmp == NULL) {
@@ -441,7 +440,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
             return;
         } else {
             memcpy(vptmp, vps, n * sizeof(VPoint));
-            nc = clip_polygon(vptmp, n);
+            nc = clip_polygon(vptmp, n, &canvas->clipview);
             if (nc > 2) {
                 update_bboxes_with_vpoints(canvas, vptmp, nc, 0.0);
                 
@@ -809,21 +808,21 @@ int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p
     return nc;
 }
 
-int clip_polygon(VPoint *vps, int n)
+static int clip_polygon(VPoint *vps, int n, const view *clipview)
 {
     int nc, na;
     VPoint vpsa[5];
     
     polybuf_length = 2*n;
     
-    vpsa[0].x = viewport.xv1;
-    vpsa[0].y = viewport.yv1;
-    vpsa[1].x = viewport.xv2;
-    vpsa[1].y = viewport.yv1;
-    vpsa[2].x = viewport.xv2;
-    vpsa[2].y = viewport.yv2;
-    vpsa[3].x = viewport.xv1;
-    vpsa[3].y = viewport.yv2;
+    vpsa[0].x = clipview->xv1;
+    vpsa[0].y = clipview->yv1;
+    vpsa[1].x = clipview->xv2;
+    vpsa[1].y = clipview->yv1;
+    vpsa[2].x = clipview->xv2;
+    vpsa[2].y = clipview->yv2;
+    vpsa[3].x = clipview->xv1;
+    vpsa[3].y = clipview->yv2;
     vpsa[4] = vpsa[0];
     
     nc = n;
@@ -838,12 +837,12 @@ int clip_polygon(VPoint *vps, int n)
 }
 
 
-static int all_points_inside(Canvas *canvas, const VPoint *vps, int n)
+static int all_points_inside(const view *clipview, const VPoint *vps, int n)
 {
     int i;
     
     for (i = 0; i < n; i++) {
-        if (is_vpoint_inside(&viewport, &vps[i], VP_EPSILON) != TRUE) {
+        if (is_vpoint_inside(clipview, &vps[i], VP_EPSILON) != TRUE) {
             return FALSE;
         }
     }
@@ -856,7 +855,7 @@ static int all_points_inside(Canvas *canvas, const VPoint *vps, int n)
 int is_validVPoint(const Canvas *canvas, const VPoint *vp)
 {
     if (canvas->clipflag) {
-        return (is_vpoint_inside(&viewport, vp, VP_EPSILON));
+        return (is_vpoint_inside(&canvas->clipview, vp, VP_EPSILON));
     } else {
         return TRUE;
     }
@@ -891,19 +890,20 @@ int clip_line(const Canvas *canvas,
         *vp2c = *vp2;
         return (TRUE);
     } else {
-        vpsa[0].x = viewport.xv1 - VP_EPSILON;
-        vpsa[0].y = viewport.yv1 - VP_EPSILON;
-        vpsa[1].x = viewport.xv2 + VP_EPSILON;
-        vpsa[1].y = viewport.yv1 - VP_EPSILON;
-        vpsa[2].x = viewport.xv2 + VP_EPSILON;
-        vpsa[2].y = viewport.yv2 + VP_EPSILON;
-        vpsa[3].x = viewport.xv1 - VP_EPSILON;
-        vpsa[3].y = viewport.yv2 + VP_EPSILON;
+        vpsa[0].x = canvas->clipview.xv1 - VP_EPSILON;
+        vpsa[0].y = canvas->clipview.yv1 - VP_EPSILON;
+        vpsa[1].x = canvas->clipview.xv2 + VP_EPSILON;
+        vpsa[1].y = canvas->clipview.yv1 - VP_EPSILON;
+        vpsa[2].x = canvas->clipview.xv2 + VP_EPSILON;
+        vpsa[2].y = canvas->clipview.yv2 + VP_EPSILON;
+        vpsa[3].x = canvas->clipview.xv1 - VP_EPSILON;
+        vpsa[3].y = canvas->clipview.yv2 + VP_EPSILON;
         vpsa[4] = vpsa[0];
         
         na = 0;
         while ((ends_found < 2) && na < 4) {
-            if ((vpp = line_intersect(vp1, vp2, &vpsa[na], &vpsa[na + 1], LINE_FINITE)) != NULL) {
+            if ((vpp = line_intersect(vp1, vp2, &vpsa[na], &vpsa[na + 1],
+                LINE_FINITE)) != NULL) {
                 vptmp[ends_found] = *vpp;
                 ends_found++;
             }
@@ -1837,7 +1837,7 @@ void view2world(double xv, double yv, double *xw, double *yw)
  * definewindow - defines the scaling
  *               of the plotting rectangle to be used for clipping
  */
-int definewindow(world w, view v, int gtype, 
+int definewindow(Canvas *canvas, const world *w, const view *v, int gtype, 
                         int xscale, int yscale,
                         int invx, int invy)
 {
@@ -1849,10 +1849,10 @@ int definewindow(world w, view v, int gtype,
             return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_POLAR;
-            worldwin = w;
-            viewport = v;
+            worldwin = *w;
+            canvas->clipview = *v;
             scaletypex = xscale;
-            xv_med = (v.xv1 + v.xv2)/2;
+            xv_med = (v->xv1 + v->xv2)/2;
             if (invx == FALSE) {
                 xv_rc = +1.0;
             } else {
@@ -1860,8 +1860,8 @@ int definewindow(world w, view v, int gtype,
             }
 
             scaletypey = yscale;
-            yv_med = (v.yv1 + v.yv2)/2;
-            yv_rc = (MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2.0)/w.yg2;
+            yv_med = (v->yv1 + v->yv2)/2;
+            yv_rc = (MIN2(v->xv2 - v->xv1, v->yv2 - v->yv1)/2.0)/w->yg2;
             return RETURN_SUCCESS;
         }
         break;
@@ -1871,18 +1871,18 @@ int definewindow(world w, view v, int gtype,
             return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_XY;
-            worldwin = w;
-            viewport = v;
+            worldwin = *w;
+            canvas->clipview = *v;
 
             scaletypex = xscale;
-            xv_med = (v.xv1 + v.xv2)/2;
-            fxg_med = (w.xg1 + w.xg2)/2;
+            xv_med = (v->xv1 + v->xv2)/2;
+            fxg_med = (w->xg1 + w->xg2)/2;
             scaletypey = yscale;
-            yv_med = (v.yv1 + v.yv2)/2;
-            fyg_med = (w.yg1 + w.yg2)/2;
+            yv_med = (v->yv1 + v->yv2)/2;
+            fyg_med = (w->yg1 + w->yg2)/2;
 
-            xv_rc = MIN2((v.xv2 - v.xv1)/(w.xg2 - w.xg1),
-                         (v.yv2 - v.yv1)/(w.yg2 - w.yg1));
+            xv_rc = MIN2((v->xv2 - v->xv1)/(w->xg2 - w->xg1),
+                         (v->yv2 - v->yv1)/(w->yg2 - w->yg1));
             yv_rc = xv_rc;
             if (invx == TRUE) {
                 xv_rc = -xv_rc;
@@ -1895,34 +1895,34 @@ int definewindow(world w, view v, int gtype,
         }
         break;
     default:
-        if ((xscale == SCALE_LOG && (w.xg1 <= 0.0 || w.xg2 <= 0.0)) ||
-            (yscale == SCALE_LOG && (w.yg1 <= 0.0 || w.yg2 <= 0.0)) ||
-            (xscale == SCALE_REC && (w.xg1 == 0.0 || w.xg2 == 0.0)) ||
-            (yscale == SCALE_REC && (w.yg1 == 0.0 || w.yg2 == 0.0)) ||
-            (xscale == SCALE_LOGIT && (w.xg1 <= 0.0 || w.xg2 >= 1.0)) ||
-            (yscale == SCALE_LOGIT && (w.yg1 <= 0.0 || w.yg2 >= 1.0))) {
+        if ((xscale == SCALE_LOG && (w->xg1 <= 0.0 || w->xg2 <= 0.0)) ||
+            (yscale == SCALE_LOG && (w->yg1 <= 0.0 || w->yg2 <= 0.0)) ||
+            (xscale == SCALE_REC && (w->xg1 == 0.0 || w->xg2 == 0.0)) ||
+            (yscale == SCALE_REC && (w->yg1 == 0.0 || w->yg2 == 0.0)) ||
+            (xscale == SCALE_LOGIT && (w->xg1 <= 0.0 || w->xg2 >= 1.0)) ||
+            (yscale == SCALE_LOGIT && (w->yg1 <= 0.0 || w->yg2 >= 1.0))) {
             return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_XY;
-            worldwin = w;
-            viewport = v;
+            worldwin = *w;
+            canvas->clipview = *v;
  
             scaletypex = xscale;
-            xv_med = (v.xv1 + v.xv2)/2;
-            fxg_med = (fscale(w.xg1, xscale) + fscale(w.xg2, xscale))/2;
+            xv_med = (v->xv1 + v->xv2)/2;
+            fxg_med = (fscale(w->xg1, xscale) + fscale(w->xg2, xscale))/2;
             if (invx == FALSE) {
-                xv_rc = (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
+                xv_rc = (v->xv2 - v->xv1)/(fscale(w->xg2, xscale) - fscale(w->xg1, xscale));
             } else {
-                xv_rc = - (v.xv2 - v.xv1)/(fscale(w.xg2, xscale) - fscale(w.xg1, xscale));
+                xv_rc = - (v->xv2 - v->xv1)/(fscale(w->xg2, xscale) - fscale(w->xg1, xscale));
             }
 
             scaletypey = yscale;
-            yv_med = (v.yv1 + v.yv2)/2;
-            fyg_med = (fscale(w.yg1, yscale) + fscale(w.yg2, yscale))/2;
+            yv_med = (v->yv1 + v->yv2)/2;
+            fyg_med = (fscale(w->yg1, yscale) + fscale(w->yg2, yscale))/2;
             if (invy == FALSE) {
-                yv_rc = (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
+                yv_rc = (v->yv2 - v->yv1)/(fscale(w->yg2, yscale) - fscale(w->yg1, yscale));
             } else {
-                yv_rc = - (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
+                yv_rc = - (v->yv2 - v->yv1)/(fscale(w->yg2, yscale) - fscale(w->yg1, yscale));
             }
  
            return RETURN_SUCCESS;

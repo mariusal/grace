@@ -310,23 +310,8 @@ typedef struct {
 
 /* Canvas */
 struct _Canvas {
-    DrawProps            draw_props;
+    DrawProps draw_props;
     
-    DevDrawPixelProc     devdrawpixel;
-    DevDrawPolyLineProc  devdrawpolyline;
-    DevFillPolygonProc   devfillpolygon;
-    DevDrawArcProc       devdrawarc;
-    DevFillArcProc       devfillarc;
-    DevPutPixmapProc     devputpixmap;
-    DevPutTextProc       devputtext;
-    DevUpdateCmapProc    devupdatecmap;
-    DevLeaveGraphicsProc devleavegraphics;
-    void                 *devdata;
-    
-    int clipflag;
-    
-    int draw_mode;
-
     /* colors */
     int maxcolors;
     CMap_entry *cmap_table;
@@ -337,6 +322,12 @@ struct _Canvas {
     FontDB *FontDBtable;
     char **DefEncoding;
 
+    /* clipping */
+    int clipflag;
+    view clipview;
+    
+    int draw_mode;
+
     BBox_type bboxes[2];
 
     int max_path_length;
@@ -346,8 +337,21 @@ struct _Canvas {
     int curdevice;
     Device_entry **device_table;
     
+    /* low-level device routines */
+    DevDrawPixelProc     devdrawpixel;
+    DevDrawPolyLineProc  devdrawpolyline;
+    DevFillPolygonProc   devfillpolygon;
+    DevDrawArcProc       devdrawarc;
+    DevFillArcProc       devfillarc;
+    DevPutPixmapProc     devputpixmap;
+    DevPutTextProc       devputtext;
+    DevUpdateCmapProc    devupdatecmap;
+    DevLeaveGraphicsProc devleavegraphics;
+    
+    /* output stream */
     FILE *prstream;
     
+    /* info */
     char *username;
     char *docname;
 };
@@ -445,11 +449,6 @@ int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
-VPoint *line_intersect(const VPoint *vp1, const VPoint *vp2,
-    const VPoint *vp1p, const VPoint *vp2p, int mode);
-int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p);
-int clip_polygon(VPoint *vps, int n);
-
 int is_valid_color(const RGB *rgb);
 int find_color(const Canvas *canvas, const RGB *rgb);
 int get_color_by_name(const Canvas *canvas, const char *cname);
@@ -521,8 +520,9 @@ VPoint Wpoint2Vpoint(WPoint wp);
 int world2view(double x, double y, double *xv, double *yv);
 void view2world(double xv, double yv, double *xw, double *yw);
 
-int definewindow(world w, view v, int gtype,
-                 int xscale, int yscale,
-                 int xinv, int yinv);
+int definewindow(Canvas *canvas,
+    const world *w, const view *v, int gtype, 
+    int xscale, int yscale,
+    int invx, int invy);
 
 #endif /* __DRAW_H_ */

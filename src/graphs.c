@@ -411,9 +411,10 @@ int select_graph(int gno)
     g = graph_get(gno);
     if (g && set_parser_gno(gno) == RETURN_SUCCESS) {
         cg = gno;
-        retval = definewindow(g->w, g->v, g->type,
-                              g->xscale,  g->yscale,
-                              g->xinvert, g->yinvert);
+        retval = definewindow(grace->rt->canvas,
+            &g->w, &g->v, g->type,
+            g->xscale,  g->yscale,
+            g->xinvert, g->yinvert);
     } else {
         retval = RETURN_FAILURE;
     }
