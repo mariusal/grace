@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001,2002 Grace Development Team
+ * Copyright (c) 2001-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -36,8 +36,11 @@
 #include "grace/baseP.h"
 #include "defines.h"
 #include "storage.h"
-#include "grace/canvas.h"
 #include "dict3.h"
+#include "grace/canvas.h"
+
+#define QUARK_ETYPE_MODIFY  1
+#define QUARK_ETYPE_DELETE  2
 
 typedef struct _Grace Grace;
 
@@ -47,6 +50,8 @@ typedef void  (*Quark_data_free)(void *data);
 typedef void *(*Quark_data_new)(void); 
 typedef void *(*Quark_data_copy)(void *data); 
 typedef void  (*Quark_gui)(Quark *q, void *data); 
+
+typedef int (*Quark_cb)(Quark *q, int etype, void *data); 
 
 typedef struct _QuarkFlavor {
     Quark_data_new  data_new;
@@ -63,6 +68,9 @@ struct _Quark {
     unsigned int dirtystate;
     unsigned int refcount;
     void *data;
+    
+    Quark_cb cb;
+    void *cbdata;
 };
 
 typedef struct _Project {
@@ -237,10 +245,10 @@ Quark *quark_copy(const Quark *q);
 void quark_dirtystate_set(Quark *q, int flag);
 int quark_dirtystate_get(const Quark *q);
 
-void quark_data_free(Quark *q);
-
 void quark_idstr_set(Quark *q, const char *s);
 char *quark_idstr_get(const Quark *q);
+
+int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata);
 
 #define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
 

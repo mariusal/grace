@@ -1,8 +1,34 @@
+/*
+ * Grace - GRaphing, Advanced Computation and Exploration of data
+ * 
+ * Home page: http://plasma-gate.weizmann.ac.il/Grace/
+ * 
+ * Copyright (c) 2002,2003 Grace Development Team
+ * 
+ * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
+ * 
+ * 
+ *                           All Rights Reserved
+ * 
+ *    This program is free software; you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation; either version 2 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program; if not, write to the Free Software
+ *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
-#include "utils.h"
+#include "grace.h"
 
 static Quark *quark_new_raw(Quark *parent, unsigned int fid, void *data)
 {
@@ -69,6 +95,9 @@ void quark_free(Quark *q)
         }
         
         qf = quark_flavor_get(q->grace, q->fid);
+        if (q->cb) {
+            q->cb(q, QUARK_ETYPE_DELETE, q->cbdata);
+        }
         qf->data_free(q->data);
         
         if (q->refcount == 0) {
@@ -76,19 +105,6 @@ void quark_free(Quark *q)
             xfree(q);
         } else {
             errmsg("Tried freeing a referenced quark!");
-        }
-    }
-}
-
-void quark_data_free(Quark *q)
-{
-    if (q) {
-        QuarkFlavor *qf;
-        
-        qf = quark_flavor_get(q->grace, q->fid);
-        if (q->data) {
-            quark_dirtystate_set(q, TRUE);
-            qf->data_free(q->data);
         }
     }
 }
@@ -131,4 +147,16 @@ void quark_idstr_set(Quark *q, const char *s)
 char *quark_idstr_get(const Quark *q)
 {
     return q->idstr;
+}
+
+int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata)
+{
+    if (q) {
+        q->cb     = cb;
+        q->cbdata = cbdata;
+        
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
