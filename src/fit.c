@@ -416,25 +416,25 @@ int linear_regression(int n, double *x, double *y, double *coeff)
     RSS = SYY - slope * SXY;
 
     sprintf(buf, "Number of observations\t\t\t = %d\n", n);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Mean of independent variable\t\t = %.7g\n", xbar);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Mean of dependent variable\t\t = %.7g\n", ybar);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Standard dev. of ind. variable\t\t = %.7g\n", sdx);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Standard dev. of dep. variable\t\t = %.7g\n", sdy);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Correlation coefficient\t\t\t = %.7g\n", rxy);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Regression coefficient (SLOPE)\t\t = %.7g\n", slope);
-    stufftext(buf, 0);
+    stufftext(buf);
 
     if (n == 2) {
         coeff[1] = (y[1] - y[0])/(x[1] - x[0]);
         coeff[0] = y[0] - coeff[1]*x[0];
         sprintf(buf, "Regression constant (INTERCEPT)\t\t = %.7g\n", intercept);
-        stufftext(buf, 0);
+        stufftext(buf);
         return 0;
     } 
     
@@ -447,27 +447,26 @@ int linear_regression(int n, double *x, double *y, double *coeff)
     R2 = SSreg / SYY;
 
     sprintf(buf, "Standard error of coefficient\t\t = %.7g\n", seslope);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "t - value for coefficient\t\t = %.7g\n", slope / seslope);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Regression constant (INTERCEPT)\t\t = %.7g\n", intercept);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Standard error of constant\t\t = %.7g\n", seintercept);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "t - value for constant\t\t\t = %.7g\n", intercept / seintercept);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "\nAnalysis of variance\n");
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Source\t\t d.f\t Sum of squares\t Mean Square\t F\n");
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Regression\t   1\t%.7g\t%.7g\t%.7g\n", SSreg, SSreg, F);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Residual\t%5d\t%.7g\t%.7g\n", n - 2, RSS, rms);
-    stufftext(buf, 0);
+    stufftext(buf);
     sprintf(buf, "Total\t\t%5d\t%.7g\n\n", n - 1, SYY);
-/*
-    stufftext(buf, 2);
-*/
+    stufftext(buf);
+
     for (i = 0; i < n; i++) {
 	coeff[0] = intercept;
 	coeff[1] = slope;

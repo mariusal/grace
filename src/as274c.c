@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -611,12 +611,12 @@ void pr_utdm_v(double *x, int N, int width, int precision)
         leavespace = i*width;
         sprintf(s, "%%%ds", leavespace); 
 	sprintf(buf, s, "");
-	stufftext(buf, 0);
+	stufftext(buf);
         for (j=i; j<N; j++) {
 	    sprintf(buf, fmt, x[pos++]);
-	    stufftext(buf, 0);
+	    stufftext(buf);
 	}
-        stufftext("\n", 0);
+        stufftext("\n");
     }
 }
 
@@ -680,10 +680,10 @@ void putdvec(const char *s, double *x, int l, int h)
     int i;
     char buf[512];
     sprintf(buf, "Vector %-10s: \n", s);
-    stufftext(buf, 0);
+    stufftext(buf);
     for (i=l; i<=h; i++) {
 	sprintf(buf, " %d: %.4g \n", i, x[i]);
-        stufftext(buf, 0);
+        stufftext(buf);
     }
 }
 
@@ -747,7 +747,7 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
 	goto bustout;
     }
     sprintf(buf, "SSerr = %17g\n", sserr);
-    stufftext(buf, 0);
+    stufftext(buf);
 
     error = regcf(nvars, nrbar, d, rbar, thetab, tol, beta, nvars);
     if (error) {
@@ -755,17 +755,17 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
 	errmsg(buf);
 	goto bustout;
     }
-    stufftext("\nVariable order:\n ", 0);
+    stufftext("\nVariable order:\n ");
     for (j=0; j<nvars; j++) {
 	sprintf(buf, "   %d ", vorder[j]);
-	stufftext(buf, 0);
+	stufftext(buf);
     }
-    stufftext("\n", 0);
+    stufftext("\n");
 
     putdvec("Beta", beta, 0, nvars - 1);
     putdvec("d", d, 0, nvars - 1);
     sprintf(buf, "rbar matrix:\n"); 
-    stufftext(buf, 0);
+    stufftext(buf);
     pr_utdm_v(rbar, nvars - 1, 14, 6);
     putdvec("thetab", thetab, 0, nvars - 1);
     for (j=0; j<nvars; j++) {

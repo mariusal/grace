@@ -767,7 +767,7 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 	goto out1;
     }
     if (strcmp(xvar, "INDEX") == 0) {
-	stufftext("X is the index of the Y variable\n", STUFF_START);
+	stufftext("X is the index of the Y variable\n");
     } else {
 	if ((x_id = ncvarid(cdfid, xvar)) == -1) {
 	    char ebuf[256];
@@ -778,9 +778,9 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 	ncvarinq(cdfid, x_id, NULL, &xdatatype, &xndims, xdim, &xnatts);
 	ncdiminq(cdfid, xdim[0], NULL, &nx);
 	sprintf(buf, "X is %s, data type %s \t length [%ld]\n", xvar, getcdf_type(xdatatype), nx);
-	stufftext(buf, STUFF_TEXT);
+	stufftext(buf);
 	sprintf(buf, "\t%d Attributes:\n", xnatts);
-	stufftext(buf, STUFF_TEXT);
+	stufftext(buf);
 	for (i = 0; i < xnatts; i++) {
 	    atcharval[0] = 0;
 	    ncattname(cdfid, x_id, i, attname);
@@ -790,17 +790,17 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 		ncattget(cdfid, x_id, attname, (void *) atcharval);
 		atcharval[atlen] = 0;
 		sprintf(buf, "\t\t%s: %s\n", attname, atcharval);
-		stufftext(buf, STUFF_TEXT);
+		stufftext(buf);
 		break;
 	    case NC_FLOAT:
 		ncattget(cdfid, x_id, attname, (void *) &f);
 		sprintf(buf, "\t\t%s: %f\n", attname, f);
-		stufftext(buf, STUFF_TEXT);
+		stufftext(buf);
 		break;
 	    case NC_DOUBLE:
 		ncattget(cdfid, x_id, attname, (void *) &d);
 		sprintf(buf, "\t\t%s: %f\n", attname, d);
-		stufftext(buf, STUFF_TEXT);
+		stufftext(buf);
 		break;
 	       default:
                 break;
@@ -816,9 +816,9 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
     ncvarinq(cdfid, y_id, NULL, &ydatatype, &yndims, ydim, &ynatts);
     ncdiminq(cdfid, ydim[0], NULL, &ny);
     sprintf(buf, "Y is %s, data type %s \t length [%ld]\n", yvar, getcdf_type(ydatatype), ny);
-    stufftext(buf, STUFF_TEXT);
+    stufftext(buf);
     sprintf(buf, "\t%d Attributes:\n", ynatts);
-    stufftext(buf, STUFF_TEXT);
+    stufftext(buf);
     for (i = 0; i < ynatts; i++) {
 	atcharval[0] = 0;
 	ncattname(cdfid, y_id, i, attname);
@@ -828,17 +828,17 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 	    ncattget(cdfid, y_id, attname, (void *) atcharval);
 	    atcharval[atlen] = 0;
 	    sprintf(buf, "\t\t%s: %s\n", attname, atcharval);
-	    stufftext(buf, STUFF_TEXT);
+	    stufftext(buf);
 	    break;
 	case NC_FLOAT:
 	    ncattget(cdfid, y_id, attname, (void *) &f);
 	    sprintf(buf, "\t\t%s: %f\n", attname, f);
-	    stufftext(buf, STUFF_TEXT);
+	    stufftext(buf);
 	    break;
 	case NC_DOUBLE:
 	    ncattget(cdfid, y_id, attname, (void *) &d);
 	    sprintf(buf, "\t\t%s: %f\n", attname, d);
-	    stufftext(buf, STUFF_TEXT);
+	    stufftext(buf);
 	    break;
           default:
             break;
@@ -847,7 +847,7 @@ static void do_netcdfquery_proc(Widget w, XtPointer client_data, XtPointer call_
 
   out1:;
     ncclose(cdfid);
-    stufftext("\n", STUFF_STOP);
+    stufftext("\n");
     unset_wait_cursor();
 }
 

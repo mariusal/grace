@@ -151,7 +151,7 @@ void reporton_region(int gno, int rno, int type)
     int i, j, first, contained;
     double *x, *y;
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
-    stufftext(buf, STUFF_START);
+    stufftext(buf);
     for (j = 0; j < number_of_sets(gno); j++) {
 	if (is_set_active(gno, j)) {
 	    x = getx(gno, j);
@@ -166,17 +166,17 @@ void reporton_region(int gno, int rno, int type)
 			if (first) {
 			    first = 0;
 			    sprintf(buf, "  Set S%1d\n", j);
-			    stufftext(buf, STUFF_TEXT);
+			    stufftext(buf);
 			}
 			break;
 		    case 1:	/* points */
 			if (first) {
 			    first = 0;
 			    sprintf(buf, "  Set S%1d\n", j);
-			    stufftext(buf, STUFF_TEXT);
+			    stufftext(buf);
 			}
 			sprintf(buf, "    %d %f %f\n", i + 1, x[i], y[i]);
-			stufftext(buf, STUFF_TEXT);
+			stufftext(buf);
 			break;
 		    }
 		} else {
@@ -186,7 +186,7 @@ void reporton_region(int gno, int rno, int type)
 	}
     }
     strcpy(buf, "\n");
-    stufftext(buf, STUFF_STOP);
+    stufftext(buf);
 }
 
 void load_poly_region(int r, int n, WPoint *wps)

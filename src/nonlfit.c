@@ -234,16 +234,16 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
 	return RETURN_FAILURE;
     }
 
-    stufftext("Fitting with formula: ", 0);
-    stufftext(nonl_opts.formula, 0);
-    stufftext("\n", 0);
-    stufftext("Initial guesses:\n", 0);
+    stufftext("Fitting with formula: ");
+    stufftext(nonl_opts.formula);
+    stufftext("\n");
+    stufftext("Initial guesses:\n");
     for (i = 0; i < nonl_opts.parnum; i++) {
         sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
-        stufftext(buf, 0);
+        stufftext(buf);
     }
     sprintf(buf, "Tolerance = %g\n", nonl_opts.tolerance);
-    stufftext(buf, 0);
+    stufftext(buf);
     
     xp = getx(gno, setno);
     yp = gety(gno, setno);
@@ -327,26 +327,26 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
             errmsg("Internal error in do_nonlfit()");
             break;
         }
-        stufftext(s, 0);
+        stufftext(s);
     }
     
     if ((info > 0 && info < 4) || (info == 5)) {
-        stufftext("Computed values:\n", 0);
+        stufftext("Computed values:\n");
         for (i = 0; i < nonl_opts.parnum; i++) {
             sprintf(buf, "\ta%1d = %g\n", i, nonl_parms[i].value);
-            stufftext(buf, 0);
+            stufftext(buf);
         }
-        stufftext("\n", 0);
+        stufftext("\n");
         sprintf(buf, "Chi-square: %g\n", chisq);
-        stufftext(buf, 0);
+        stufftext(buf);
         sprintf(buf, "Correlation coefficient: %f\n", cor);
-        stufftext(buf, 0);
+        stufftext(buf);
         if (rms_ok) {
             sprintf(buf, "RMS per cent error: %g\n", rms_pe);
-            stufftext(buf, 0);
+            stufftext(buf);
         }
         sprintf(buf, "Theil U coefficent: %g\n", theil);
-        stufftext(buf, 0);
+        stufftext(buf);
     }
 
     return RETURN_SUCCESS;

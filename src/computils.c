@@ -607,9 +607,9 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 	    for (i = 0; i < fitlen; i++)
 			yr[i] = 1.0 / yr[i];
 	}
-	stufftext(buf, STUFF_STOP);
+	stufftext(buf);
 	sprintf(buf, "\nRegression of set %d results to set %d\n", setno, fitset);
-	stufftext(buf, STUFF_STOP);
+	stufftext(buf);
 	
 	switch (iresid) {
 	case 1:
