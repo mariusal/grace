@@ -34,17 +34,23 @@
 #include <cmath.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "defines.h"
-#include "globals.h"
 #include "utils.h"
 #include "draw.h"
 #include "device.h"
+#include "devlist.h"
 #include "patterns.h"
 #include "rstdrv.h"
 #include "protos.h"
 
 #include <gd.h>
+
+#ifdef HAVE_LIBJPEG
+#  define JPEG_INTERNAL_OPTIONS
+#  include <jpeglib.h>
+#endif
 
 #ifndef NONE_GUI
 #  include <Xm/Xm.h>
@@ -76,6 +82,86 @@ static unsigned long page_scale;
 
 static int gif_setup_interlaced = FALSE;
 static int gif_setup_transparent = FALSE;
+
+#ifdef HAVE_LIBJPEG
+static void rstImageJpg(gdImagePtr ihandle, FILE *prstream);
+
+static int jpg_setup_quality = 75;
+static int jpg_setup_grayscale = FALSE;
+static int jpg_setup_baseline = FALSE;
+static int jpg_setup_progressive = FALSE;
+static int jpg_setup_optimize = FALSE;
+static int jpg_setup_smoothing = 0;
+static int jpg_setup_dct = JPEG_DCT_DEFAULT;
+#endif
+
+static Device_entry dev_gd = {DEVICE_FILE,
+          "GD",
+          gdinitgraphics,
+          NULL,
+          NULL,
+          "gd",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
+static Device_entry dev_gif = {DEVICE_FILE,
+          "GIF",
+          gifinitgraphics,
+          gif_op_parser,
+          gif_gui_setup,
+          "gif",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
+static Device_entry dev_pnm = {DEVICE_FILE,
+          "PNM",
+          pnminitgraphics,
+          pnm_op_parser,
+          pnm_gui_setup,
+          "pnm",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+
+#ifdef HAVE_LIBJPEG
+static Device_entry dev_jpg = {DEVICE_FILE,
+          "JPEG",
+          jpginitgraphics,
+          jpg_op_parser,
+          jpg_gui_setup,
+          "jpg",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+         };
+#endif
+
+int register_gd_drv(void)
+{
+    return register_device(dev_gd);
+}
+
+int register_gif_drv(void)
+{
+    return register_device(dev_gif);
+}
+
+int register_pnm_drv(void)
+{
+    return register_device(dev_pnm);
+}
+
+#ifdef HAVE_LIBJPEG
+int register_jpg_drv(void)
+{
+    return register_device(dev_jpg);
+}
+#endif
 
 static void rst_updatecmap(void)
 {
@@ -449,6 +535,11 @@ void rst_leavegraphics(void)
     case RST_FORMAT_PNM:
         rstImagePnm(ihandle, prstream);
         break;   
+#ifdef HAVE_LIBJPEG
+    case RST_FORMAT_JPG:
+        rstImageJpg(ihandle, prstream);
+        break;   
+#endif
     default:
         errmsg("Invalid raster format");  
         break;
@@ -593,6 +684,124 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
         }
     }
 }
+
+
+#ifdef HAVE_LIBJPEG
+int jpginitgraphics(void)
+{
+    int result;
+    
+    result = rst_initgraphics(RST_FORMAT_JPG);
+    
+    if (result == GRACE_EXIT_SUCCESS) {
+        curformat = RST_FORMAT_JPG;
+    }
+    
+    return (result);
+}
+
+static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
+{
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+    J_DCT_METHOD dct_method;
+    JSAMPROW row_pointer;        /* pointer to a single row */
+    int w, h;
+    int i, j, k;
+    int c;
+    int r, g, b;
+    unsigned char y;
+
+    w = gdImageSX(ihandle);
+    h = gdImageSY(ihandle);
+
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_compress(&cinfo);
+    jpeg_stdio_dest(&cinfo, prstream);
+    
+    cinfo.image_width  = w;
+    cinfo.image_height = h;
+    if (jpg_setup_grayscale) {
+        cinfo.input_components = 1;
+        cinfo.in_color_space = JCS_GRAYSCALE;
+    } else {
+        cinfo.input_components = 3;
+        cinfo.in_color_space = JCS_RGB;
+    }
+
+    jpeg_set_defaults(&cinfo);
+
+    jpeg_set_quality(&cinfo, jpg_setup_quality, jpg_setup_baseline);
+
+    cinfo.smoothing_factor = jpg_setup_smoothing;
+
+    switch (jpg_setup_dct) {
+    case JPEG_DCT_IFAST:
+        dct_method = JDCT_IFAST;
+        break;
+    case JPEG_DCT_ISLOW:
+        dct_method = JDCT_ISLOW;
+        break;
+    case JPEG_DCT_FLOAT:
+        dct_method = JDCT_FLOAT;
+        break;
+    default:
+        dct_method = JDCT_DEFAULT;
+    }
+    cinfo.dct_method = dct_method;
+
+    if (jpg_setup_progressive) {
+#ifdef C_PROGRESSIVE_SUPPORTED
+        jpeg_simple_progression(&cinfo);
+#else
+        errmsg("jpeglib: sorry, progressive output was not compiled");
+#endif
+    }
+
+    if (jpg_setup_optimize) {
+#ifdef ENTROPY_OPT_SUPPORTED
+        cinfo.optimize_coding = TRUE;
+#else
+        errmsg("jpeglib: sorry, entropy optimization was not compiled");
+#endif
+    }
+
+    jpeg_start_compress(&cinfo, TRUE);
+    
+    if (jpg_setup_grayscale) {
+        row_pointer = malloc(w);
+    } else {
+        row_pointer = malloc(3*w);
+    }
+    while ((i = cinfo.next_scanline) < h) {
+        k = 0;
+        for (j = 0; j < w; j++) {
+            c = gdImageGetPixel(ihandle, j, i);
+            r = gdImageRed(ihandle, c);
+            g = gdImageGreen(ihandle, c);
+            b = gdImageBlue(ihandle, c);
+            if (jpg_setup_grayscale) {
+                y = (int) (0.299*r + 0.587*g + 0.114*b);
+                row_pointer[k++] = y;
+            } else {
+                row_pointer[k++] = r;
+                row_pointer[k++] = g;
+                row_pointer[k++] = b;
+            }
+        }
+        jpeg_write_scanlines(&cinfo, &row_pointer, 1);
+    }
+    free(row_pointer);
+    
+    jpeg_finish_compress(&cinfo);
+    jpeg_destroy_compress(&cinfo);
+}
+
+int jpg_op_parser(char *opstring)
+{
+    return GRACE_EXIT_FAILURE;
+}
+#endif
 
 int gif_op_parser(char *opstring)
 {
@@ -770,5 +979,104 @@ static void set_pnm_setup_proc(Widget w, XtPointer client_data,
         XtUnmanageChild(pnm_setup_frame);
     }
 }
+
+
+#ifdef HAVE_LIBJPEG
+static void update_jpg_setup_frame(void);
+static void set_jpg_setup_proc(Widget w, XtPointer client_data, 
+                                                        XtPointer call_data);
+
+static Widget jpg_setup_frame;
+static Widget jpg_setup_grayscale_item;
+static Widget jpg_setup_baseline_item;
+static Widget jpg_setup_optimize_item;
+static Widget jpg_setup_progressive_item;
+static SpinStructure *jpg_setup_quality_item;
+static SpinStructure *jpg_setup_smoothing_item;
+static Widget *jpg_setup_dct_item;
+
+void jpg_gui_setup(void)
+{
+    Widget jpg_setup_panel, jpg_setup_rc, fr, rc;
+    
+    set_wait_cursor();
+    if (jpg_setup_frame == NULL) {
+	jpg_setup_frame = XmCreateDialogShell(app_shell, "GIF options", NULL, 0);
+	handle_close(jpg_setup_frame);
+        jpg_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
+                                        jpg_setup_frame, NULL, 0);
+        jpg_setup_rc = XmCreateRowColumn(jpg_setup_panel, "psetup_rc", NULL, 0);
+
+	fr = CreateFrame(jpg_setup_rc, "JPEG options");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
+	jpg_setup_quality_item = CreateSpinChoice(rc,
+            "Quality:", 3, SPIN_TYPE_INT, 0.0, 100.0, 5.0);
+	jpg_setup_optimize_item = CreateToggleButton(rc, "Optimize");
+	XtManageChild(rc);
+
+	fr = CreateFrame(jpg_setup_rc, "JPEG advanced options");
+        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+	jpg_setup_smoothing_item = CreateSpinChoice(rc,
+            "Smoothing:", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
+	jpg_setup_baseline_item = CreateToggleButton(rc, "Force baseline");
+	jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
+	jpg_setup_dct_item = CreatePanelChoice(rc, "DCT: ",
+					 4,
+					 "Fast integer",
+					 "Slow integer",
+					 "Float",
+                                         0, 0);
+	XtManageChild(rc);
+
+	CreateSeparator(jpg_setup_rc);
+
+	CreateAACButtons(jpg_setup_rc, jpg_setup_panel, set_jpg_setup_proc);
+        
+	XtManageChild(jpg_setup_rc);
+	XtManageChild(jpg_setup_panel);
+    }
+    XtRaise(jpg_setup_frame);
+    update_jpg_setup_frame();
+    unset_wait_cursor();
+}
+
+static void update_jpg_setup_frame(void)
+{
+    if (jpg_setup_frame) {
+        SetToggleButtonState(jpg_setup_grayscale_item, jpg_setup_grayscale);
+        SetToggleButtonState(jpg_setup_baseline_item, jpg_setup_baseline);
+        SetToggleButtonState(jpg_setup_optimize_item, jpg_setup_optimize);
+        SetToggleButtonState(jpg_setup_progressive_item, jpg_setup_progressive);
+        SetSpinChoice(jpg_setup_quality_item, jpg_setup_quality);
+        SetSpinChoice(jpg_setup_smoothing_item, jpg_setup_smoothing);
+        SetChoice(jpg_setup_dct_item, jpg_setup_dct);
+    }
+}
+
+static void set_jpg_setup_proc(Widget w, XtPointer client_data, 
+                                                        XtPointer call_data)
+{
+    int aac_mode;
+    aac_mode = (int) client_data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(jpg_setup_frame);
+        return;
+    }
+    
+    jpg_setup_grayscale = GetToggleButtonState(jpg_setup_grayscale_item);
+    jpg_setup_baseline = GetToggleButtonState(jpg_setup_baseline_item);
+    jpg_setup_optimize = GetToggleButtonState(jpg_setup_optimize_item);
+    jpg_setup_progressive = GetToggleButtonState(jpg_setup_progressive_item);
+    jpg_setup_quality = (int) GetSpinChoice(jpg_setup_quality_item);
+    jpg_setup_smoothing = (int) GetSpinChoice(jpg_setup_smoothing_item);
+    jpg_setup_dct = GetChoice(jpg_setup_dct_item);
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(jpg_setup_frame);
+    }
+}
+#endif
 
 #endif
