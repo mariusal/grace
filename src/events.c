@@ -254,16 +254,17 @@ static Widget popup = NULL, poplab, drop_pt_bt, as_set_bt, edit_menu;
 static Widget bring_to_front_bt, move_up_bt, move_down_bt, send_to_back_bt;
 
 #define EDIT_CB              0
-#define DELETE_CB            1
-#define DUPLICATE_CB         2
-#define BRING_TO_FRONT_CB    3
-#define SEND_TO_BACK_CB      4
-#define MOVE_UP_CB           5
-#define MOVE_DOWN_CB         6
-#define DROP_POINT_CB        7
-#define EDITDATA_S_CB        8
-#define EDITDATA_E_CB        9
-#define AUTOSCALE_BY_SET_CB 10
+#define HIDE_CB              1
+#define DELETE_CB            2
+#define DUPLICATE_CB         3
+#define BRING_TO_FRONT_CB    4
+#define SEND_TO_BACK_CB      5
+#define MOVE_UP_CB           6
+#define MOVE_DOWN_CB         7
+#define DROP_POINT_CB        8
+#define EDITDATA_S_CB        9
+#define EDITDATA_E_CB       10
+#define AUTOSCALE_BY_SET_CB 11
 
 static void popup_any_cb(canvas_target *ct, int type)
 {
@@ -274,6 +275,9 @@ static void popup_any_cb(canvas_target *ct, int type)
     case EDIT_CB:
         raise_explorer(gui_from_quark(q), q);
         return;
+        break;
+    case HIDE_CB:
+        quark_set_active(q, FALSE);
         break;
     case DELETE_CB:
         quark_free(q);
@@ -318,6 +322,11 @@ static void popup_any_cb(canvas_target *ct, int type)
 static void edit_cb(Widget but, void *udata)
 {
     popup_any_cb((canvas_target *) udata, EDIT_CB);
+}
+
+static void hide_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, HIDE_CB);
 }
 
 static void delete_cb(Widget but, void *udata)
@@ -559,6 +568,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         CreateMenuButton(popup,
                             "Properties", '\0', edit_cb, &ct);
                         
+                        CreateMenuSeparator(popup);
+                        
+                        CreateMenuButton(popup, "Hide", '\0', hide_cb, &ct);
+
                         CreateMenuSeparator(popup);
                         
                         CreateMenuButton(popup,
