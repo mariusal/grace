@@ -2906,6 +2906,7 @@ Widget CreateVContainer(Widget parent)
     Widget rc;
     
     rc = XmCreateRowColumn(parent, "VContainer", NULL, 0);
+    XtManageChild(rc);
     
     return rc;
 }
@@ -2916,6 +2917,7 @@ Widget CreateHContainer(Widget parent)
     
     rc = XmCreateRowColumn(parent, "HContainer", NULL, 0);
     XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+    XtManageChild(rc);
     
     return rc;
 }
