@@ -798,7 +798,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuButton(menupane, "User's Guide", 'G', HelpCB, "doc/UsersGuide.html");
     CreateMenuButton(menupane, "FAQ", 'Q', HelpCB, "doc/FAQ.html");
-    CreateMenuButton(menupane, "Changes", 'C', HelpCB, "doc/CHANGES.html");
+    CreateMenuButton(menupane, "Changes", 'C', HelpCB, "doc/NEWS.html");
 
     CreateMenuSeparator(menupane);
  
@@ -852,9 +852,10 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Text transforms", '\0', load_example_cb, "txttrans.agr");
     CreateMenuButton(sub2menupane, "Advanced", '\0', load_example_cb, "typeset.agr");
 
+#if 0
     sub2menupane = CreateMenu(submenupane, "Calculus", 'u', FALSE);
     CreateMenuButton(sub2menupane, "Non-linear fit", '\0', load_example_cb, "logistic.agr");
- 
+#endif
     CreateMenuSeparator(menupane);
     submenupane = CreateMenu(menupane, "Web support", 'W', FALSE);
 
