@@ -973,7 +973,7 @@ int legend_clicked(int gno, VPoint vp, view *bb)
 {
     legend l;
 
-    if (is_valid_gno(gno)) {
+    if (is_graph_hidden(gno) == FALSE) {
         get_graph_legend(gno, &l);
 	if (l.active && is_vpoint_inside(l.bb, vp, MAXPICKDIST)) {
 	    *bb = l.bb;
@@ -990,7 +990,7 @@ int graph_clicked(int gno, VPoint vp)
 {
     view v;
 
-    if (is_valid_gno(gno)) {
+    if (is_graph_hidden(gno) == FALSE) {
         get_graph_viewport(gno, &v);
 	if (is_vpoint_inside(v, vp, MAXPICKDIST)) {
             return TRUE;
@@ -1016,6 +1016,9 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp)
 {
     view v;
     
+    if (is_graph_hidden(cg) == TRUE) {
+        return FALSE;
+    }
     if (get_graph_viewport(cg, &v) != RETURN_SUCCESS) {
         return FALSE;
     }
@@ -1046,7 +1049,7 @@ int axis_clicked(int gno, VPoint vp, int *axisno)
     view v;
     
     /* TODO: check for offsets, zero axes, polar graphs */
-    if (is_valid_gno(gno) == FALSE) {
+    if (is_graph_hidden(gno) == TRUE) {
         return FALSE;
     } else {
         get_graph_viewport(gno, &v);
@@ -1071,7 +1074,7 @@ int title_clicked(int gno, VPoint vp)
     view v;
     
     /* a rude check; TODO: use right offsets */
-    if (is_valid_gno(gno) == FALSE) {
+    if (is_graph_hidden(gno) == TRUE) {
         return FALSE;
     } else {
         get_graph_viewport(gno, &v);
