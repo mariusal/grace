@@ -1201,6 +1201,18 @@ vexpr:
 		$$[i] = $1[i] * key[$2].fnc();
 	    }
 	}
+	| vexpr '?' expr ':' expr {
+	    int i;
+	    $$ = calloc(lxy, SIZEOF_DOUBLE);
+	    freelist[fcnt++] = $$;
+	    for (i = 0; i < lxy; i++) {
+	        if ((int) $1[i]) {
+		    $$[i] = $3;
+	        } else {
+		    $$[i] = $5;
+	        }
+	    }
+	}
 	| vexpr '?' vexpr ':' vexpr {
 	    int i;
 	    $$ = calloc(lxy, SIZEOF_DOUBLE);
