@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -151,13 +151,27 @@ void init_cursors(void)
  */
 void set_title(char *ts)
 {
-    static char *buf = NULL;
+    static char *ts_save = NULL;
+    static int dstate_save = 0;
+    int dstate = is_dirtystate();
     
     if (!inwin || ts == NULL) {
         return;
-    } else if (buf == NULL || strcmp(buf, ts) != 0) {
-        buf = copy_string(buf, ts);
-        XtVaSetValues(app_shell, XtNtitle, ts, NULL);
+    } else
+    if (ts_save == NULL || strcmp(ts_save, ts) != 0 || dstate != dstate_save) {
+        char *buf1, *buf2;
+        ts_save = copy_string(ts_save, ts);
+        dstate = is_dirtystate();
+        buf1 = copy_string(NULL, "Grace: ");
+        buf1 = concat_strings(buf1, ts);
+        buf2 = copy_string(NULL, ts);
+        if (dstate) {
+            buf2 = concat_strings(buf2, "*");
+            buf1 = concat_strings(buf1, " (modified)");
+        }
+        XtVaSetValues(app_shell, XtNtitle, buf1, XtNiconName, buf2, NULL);
+        xfree(buf1);
+        xfree(buf2);
     }
 }
 

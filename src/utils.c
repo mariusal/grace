@@ -1288,15 +1288,7 @@ static void update_timestamp(void)
 void update_app_title(void)
 {
 #ifndef NONE_GUI
-    char buf[100];
-    
-    strcpy(buf, "Grace: ");
-    strncat(buf, mybasename(get_docname()), 80);
-    if (is_dirtystate()) {
-        strcat(buf, " (modified)");
-    }
-
-    set_title(buf);
+    set_title(mybasename(get_docname()));
 #endif
 }
 
