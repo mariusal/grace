@@ -100,7 +100,7 @@ devclean : distclean
 depend : Make.dep
 
 tags : $(GRSRCS) $(GUISRCS) $(PARS_Y)
-	ctags $(GRSRCS) $(GUISRCS) $(PARS_Y) *.h $(TOP)/lib/*/*.c $(TOP)/include/grace/*.h
+	ctags $(GRSRCS) $(GUISRCS) $(PARS_Y) *.h $(TOP)/lib/*/*.[c,h] $(TOP)/include/grace/*.h
 
 dummy :
 
