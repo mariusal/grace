@@ -86,6 +86,13 @@ typedef struct {
     int ncols;                  /* number of data columns */
     double *ex[MAX_SET_COLS];   /* arrays of x, y, z, ... depending on type */
     char **s;                   /* pointer to strings */
+
+
+    char *comment;              /* how this dataset originated & alike */
+
+    int hotlink;                /* hot linked set */
+    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
+    char *hotfile;              /* hot linked filename */
 } Dataset;
 
 typedef struct {
@@ -128,12 +135,6 @@ typedef struct {
     Errbar errbar;              /* error bar properties */
 
     char *legstr;               /* legend for this set */
-
-    char *comment;              /* how this set originated & alike */
-
-    int hotlink;                /* hot linked set */
-    int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
-    char hotfile[GR_MAXPATHLEN];   /* hot linked filename */
 } set;
 
 /* Locator props */

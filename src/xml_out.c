@@ -665,6 +665,15 @@ static int save_dataset(XFile *xf, Dataset *data)
         return RETURN_FAILURE;
     }
 
+    attributes_set_ival(attrs, AStrCols, data->ncols);
+    attributes_set_ival(attrs, AStrRows, data->len);
+    attributes_set_sval(attrs, AStrComment, data->comment);
+    if (data->hotlink) {
+        attributes_set_sval(attrs, AStrHotfile, data->hotfile);
+        /* FIXME: hotsrc */
+    }
+    xfile_begin_element(xf, EStrDataset, attrs);
+
     for (i = 0; i < data->len; i++) {
         attributes_reset(attrs);
         for (nc = 0; nc < data->ncols; nc++) {
@@ -678,6 +687,8 @@ static int save_dataset(XFile *xf, Dataset *data)
         }
         xfile_empty_element(xf, EStrRow, attrs);
     }
+    
+    xfile_end_element(xf, EStrDataset);
 
     attributes_free(attrs);
 
@@ -947,19 +958,7 @@ int save_project(char *fn)
                 {
                     save_set_properties(xf, p);
 
-                    attributes_reset(attrs);
-                    attributes_set_ival(attrs, AStrCols, p->data->ncols);
-                    attributes_set_ival(attrs, AStrRows, p->data->len);
-                    attributes_set_sval(attrs, AStrComment, p->comment);
-                    if (p->hotlink) {
-                        attributes_set_sval(attrs, AStrHotfile, p->hotfile);
-                        /* FIXME: hotsrc */
-                    }
-                    xfile_begin_element(xf, EStrDataset, attrs);
-                    {
-                        save_dataset(xf, p->data);
-                    }
-                    xfile_end_element(xf, EStrDataset);
+                    save_dataset(xf, p->data);
                 }
                 xfile_end_element(xf, EStrSet);
 

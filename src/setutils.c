@@ -220,6 +220,11 @@ Dataset *dataset_new(void)
     }
     dsp->s = NULL;
     
+    dsp->comment = NULL;
+    dsp->hotlink = FALSE;
+    dsp->hotsrc  = SOURCE_DISK;
+    dsp->hotfile = NULL;
+    
     return dsp;
 }
 
@@ -342,6 +347,8 @@ void dataset_free(Dataset *dsp)
 {
     if (dsp) {
         dataset_empty(dsp);
+        xfree(dsp->hotfile);
+        xfree(dsp->comment);
         xfree(dsp);
     }
 }
@@ -379,6 +386,11 @@ Dataset *dataset_copy(Dataset *data)
         }
     }
     
+    data_new->hotlink = data->hotlink;
+    data_new->hotsrc  = data->hotsrc;
+    data_new->comment = copy_string(NULL, data->comment);
+    data_new->hotfile = copy_string(NULL, data->hotfile);
+    
     return data_new;
 }
 
@@ -402,8 +414,6 @@ static void set_default_set(set *p)
 {
     p->hidden = FALSE;                          /* hidden set */
     p->type = SET_XY;                           /* dataset type */
-    p->hotlink = FALSE;                         /* hot linked set */
-    p->hotfile[0] = '\0';                       /* hot linked file name */
 
     p->sym = 0;                                 /* set plot symbol */
     p->symlines = grdefaults.lines;             /* set plot sym line style */
@@ -459,7 +469,6 @@ static void set_default_set(set *p)
     p->errbar.arrow_clip = FALSE;                 /* draw arrows if clipped */
     p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
 
-    p->comment = NULL;                            /* how this set originated */
     p->legstr = NULL;                             /* legend string */
 
     p->data = NULL;
@@ -488,7 +497,6 @@ void set_free(set *p)
 {
     if (p) {
         dataset_free(p->data);
-        xfree(p->comment);
         xfree(p->legstr);
     }
 }
@@ -514,7 +522,6 @@ set *set_copy(set *p)
         xfree(p_new);
         return NULL;
     }
-    p->comment = copy_string(NULL, p->comment);
     p->legstr  = copy_string(NULL, p->legstr);
 
     return p_new;
@@ -527,20 +534,17 @@ int copy_set_params(set *p1, set *p2)
     } else {
         Dataset *data;
         int type;
-        char *comment;
         char *legstr;
         
         /* preserve allocatables and related stuff */
         type    = p2->type;
         data    = p2->data;
-        comment = p2->comment;
         legstr  = p2->legstr;
         
         memcpy(p2, p1, sizeof(set));
         
         p2->type    = type;
         p2->data    = data;
-        p2->comment = comment;
         p2->legstr  = legstr;
         
         return RETURN_SUCCESS;
@@ -785,11 +789,11 @@ int getsetlength(int gno, int setno)
 
 int setcomment(int gno, int setno, char *s)
 { 
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p) {
-        p->comment = copy_string(p->comment, s);
+    dsp = dataset_get(gno, setno);
+    if (dsp) {
+        dsp->comment = copy_string(dsp->comment, s);
         set_dirtystate();
         return RETURN_SUCCESS;
     } else {
@@ -799,11 +803,11 @@ int setcomment(int gno, int setno, char *s)
 
 char *getcomment(int gno, int setno)
 { 
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p) {
-        return p->comment;
+    dsp = dataset_get(gno, setno);
+    if (dsp) {
+        return dsp->comment;
     } else {
         return NULL;
     }
@@ -871,14 +875,14 @@ int dataset_type(int gno, int setno)
 
 void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
 {
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p) {
-        p->hotlink = onoroff;
+    dsp = dataset_get(gno, setno);
+    if (dsp) {
+        dsp->hotlink = onoroff;
         if (onoroff && fname != NULL) {
-	    strcpy(p->hotfile, fname);
-	    p->hotsrc = src;
+	    dsp->hotfile = copy_string(dsp->hotfile, fname);
+	    dsp->hotsrc = src;
         }
         set_dirtystate();
     }
@@ -886,10 +890,10 @@ void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
 
 int is_hotlinked(int gno, int setno)
 {
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p && p->hotlink && strlen(p->hotfile)) {
+    dsp = dataset_get(gno, setno);
+    if (dsp && dsp->hotlink && dsp->hotfile) {
         return TRUE;
     } else { 
         return FALSE;
@@ -898,11 +902,11 @@ int is_hotlinked(int gno, int setno)
 
 char *get_hotlink_file(int gno, int setno)
 {
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p) {
-        return p->hotfile;
+    dsp = dataset_get(gno, setno);
+    if (dsp) {
+        return dsp->hotfile;
     } else {
         return NULL;
     }
@@ -910,11 +914,11 @@ char *get_hotlink_file(int gno, int setno)
 
 int get_hotlink_src(int gno, int setno)
 {
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p) {
-        return p->hotsrc;
+    dsp = dataset_get(gno, setno);
+    if (dsp) {
+        return dsp->hotsrc;
     } else {
         return -1;
     }
@@ -922,11 +926,11 @@ int get_hotlink_src(int gno, int setno)
 
 void do_update_hotlink(int gno, int setno)
 {
-    set *p;
+    Dataset *dsp;
     
-    p = set_get(gno, setno);
-    if (p) {
-        read_xyset_fromfile(gno, setno, p->hotfile, p->hotsrc, p->hotlink);
+    dsp = dataset_get(gno, setno);
+    if (dsp) {
+        read_xyset_fromfile(gno, setno, dsp->hotfile, dsp->hotsrc, dsp->hotlink);
     }
 }
 

@@ -1600,7 +1600,7 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     p->lines = 1;
     p->symlines = 1;
     sprintf(buf, "Histogram from G%d.S%d", fromgraph, fromset);
-    p->comment = copy_string(p->comment, buf);
+    setcomment(tograph, toset, buf);
 
     return RETURN_SUCCESS;
 }

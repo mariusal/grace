@@ -1804,8 +1804,7 @@ RiserLine *riserline_new(void)
             set_dataset_nrows($$, $?);
         </attribute>
         <attribute name="#AStrComment" type="sval">
-            /* FIXME */
-            xfree($?);
+            $$->comment = $?;
         </attribute>
         
         <!-- Child elements -->
