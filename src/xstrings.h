@@ -99,7 +99,7 @@
 
 /* Attribute names */
 #define AStrActive              "active"
-#define AStrAnchorCorner        "anchor-corner"
+#define AStrAnchor              "anchor"
 #define AStrAngle               "angle"
 #define AStrAppend              "append"
 #define AStrArrowClip           "arrow-clip"

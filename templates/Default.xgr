@@ -59,7 +59,7 @@
     <viewport xmin="0.15" xmax="1.15" ymin="0.15" ymax="0.85"/>
     <legend active="yes" length="0.04" vgap="0.01" hgap="0.01" single-symbol="no" invert="no">
       <face-spec font-id="0" color-id="1" char-size="1"/>
-      <legframe anchor-corner="1" offset="(0.7, 0.05)">
+      <legframe anchor="(1.0, 1.0)" justification="9" offset="(-0.05, -0.05)">
         <line-spec color-id="1" pattern-id="1" style-id="1" width="1"/>
         <fill-spec color-id="0" pattern-id="1"/>
       </legframe>

@@ -77,9 +77,11 @@ typedef struct {
     SpinStructure   *frame_linew_choice;
     Widget          frame_fillpen;
 
-    OptionStructure *legend_acorner;
-    SpinStructure   *legend_x;
-    SpinStructure   *legend_y;
+    SpinStructure   *legend_anchor_x;
+    SpinStructure   *legend_anchor_y;
+    OptionStructure *legend_just;
+    SpinStructure   *legend_dx;
+    SpinStructure   *legend_dy;
     Widget          toggle_legends;
     SpinStructure   *legends_vgap;
     SpinStructure   *legends_hgap;

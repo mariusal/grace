@@ -2262,8 +2262,11 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     int i, nsets, setno, nleg_entries;
     double max_sym_width, max_str_width;
     
-    view sym_bbox, str_bbox, v;
+    view sym_bbox, str_bbox;
     legend *l;
+
+    int hjust, vjust;
+    double hfudge, vfudge;
 
     Quark **psets;
     
@@ -2333,30 +2336,52 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     xfree(psets);
 
     set_draw_mode(canvas, TRUE);
+
+    if (!nleg_entries) {
+        return;
+    }
     
     bb_width = max_sym_width + max_str_width + 3*l->hgap;
     
-    frame_get_view(q, &v);
-    
-    switch (l->acorner) {
-    case CORNER_LL:
-        vp.x = v.xv1 + l->offset.x;
-        vp.y = v.yv1 + l->offset.y + bb_height;
+    Fpoint2Vpoint(q, &l->anchor, &vp);
+
+    hjust = l->just & 03;
+    switch (hjust) {
+    case JUST_LEFT:
+        hfudge = 0.0;
         break;
-    case CORNER_UL:
-        vp.x = v.xv1 + l->offset.x;
-        vp.y = v.yv2 - l->offset.y;
+    case JUST_RIGHT:
+        hfudge = 1.0;
         break;
-    case CORNER_UR:
+    case JUST_CENTER:
+        hfudge = 0.5;
+        break;
     default:
-        vp.x = v.xv2 - l->offset.x - bb_width;
-        vp.y = v.yv2 - l->offset.y;
-        break;
-    case CORNER_LR:
-        vp.x = v.xv2 - l->offset.x - bb_width;
-        vp.y = v.yv1 + l->offset.y + bb_height;
-        break;
+        errmsg("Wrong justification type of legend");
+        return;
     }
+
+    vjust = l->just & 014;
+    switch (vjust) {
+    case JUST_BOTTOM:
+        vfudge = 0.0;
+        break;
+    case JUST_TOP:
+        vfudge = 1.0;
+        break;
+    case JUST_MIDDLE:
+        vfudge = 0.5;
+        break;
+    default:
+        errmsg("Wrong justification type of legend");
+        return;
+    }
+
+    vp.x -=         hfudge*bb_width;
+    vp.y += (1.0 - vfudge)*bb_height;
+
+    vp.x += l->offset.x;
+    vp.y += l->offset.y;
     
     vp2.x = vp.x + bb_width;
     vp2.y = vp.y - bb_height;

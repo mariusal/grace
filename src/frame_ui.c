@@ -31,21 +31,12 @@
 #include "explorer.h"
 #include "protos.h"
 
-#include "cbitmaps.h"
-
 FrameUI *create_frame_ui(ExplorerUI *eui)
 {
     FrameUI *ui;
     
     Widget tab;
     Widget rc, rc1, rc2, fr;
-
-    BitmapOptionItem opitems[4] = {
-        {CORNER_UL, ul_bits},
-        {CORNER_LL, ll_bits},
-        {CORNER_UR, ur_bits},
-        {CORNER_LR, lr_bits}
-    };
 
     ui = xmalloc(sizeof(FrameUI));
 
@@ -109,21 +100,29 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     ui->legendbox_tp = CreateTabPage(tab, "Leg. box");
 
     fr = CreateFrame(ui->legendbox_tp, "Anchor point");
-    rc = CreateVContainer(fr);
-    ui->legend_acorner = CreateBitmapOptionChoice(rc,
-        "Corner:", 2, 4, CBITMAP_WIDTH, CBITMAP_HEIGHT, opitems);
-    AddOptionChoiceCB(ui->legend_acorner, oc_explorer_cb, eui);
 
-    rc1 = CreateHContainer(rc);
-    ui->legend_x = CreateSpinChoice(rc1, "dX:", 4,
+    rc1 = CreateHContainer(fr);
+    ui->legend_anchor_x = CreateSpinChoice(rc1, "X:", 5,
+        SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
+    AddSpinChoiceCB(ui->legend_anchor_x, sp_explorer_cb, eui);
+    ui->legend_anchor_y = CreateSpinChoice(rc1, "Y:", 5,
+        SPIN_TYPE_FLOAT, 0.0, 1.0, 0.01);
+    AddSpinChoiceCB(ui->legend_anchor_y, sp_explorer_cb, eui);
+
+    fr = CreateFrame(ui->legendbox_tp, "Offset");
+    rc1 = CreateHContainer(fr);
+    ui->legend_dx = CreateSpinChoice(rc1, "dX:", 5,
         SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
-    AddSpinChoiceCB(ui->legend_x, sp_explorer_cb, eui);
-    ui->legend_y = CreateSpinChoice(rc1, "dY:", 4,
+    AddSpinChoiceCB(ui->legend_dx, sp_explorer_cb, eui);
+    ui->legend_dy = CreateSpinChoice(rc1, "dY:", 5,
         SPIN_TYPE_FLOAT, -1.0, 1.0, 0.01);
-    AddSpinChoiceCB(ui->legend_y, sp_explorer_cb, eui);
+    AddSpinChoiceCB(ui->legend_dy, sp_explorer_cb, eui);
 
     fr = CreateFrame(ui->legendbox_tp, "Frame box");
     rc = CreateVContainer(fr);
+
+    ui->legend_just = CreateJustChoice(rc, "Justification:");
+    AddOptionChoiceCB(ui->legend_just, oc_explorer_cb, eui);
 
     rc2 = CreateHContainer(rc);
     ui->legend_boxlinew = CreateLineWidthChoice(rc2, "Width:");
@@ -207,9 +206,11 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 
 	SetToggleButtonState(ui->toggle_legends, l->active == TRUE);
 
-	SetOptionChoice(ui->legend_acorner, l->acorner);
-	SetSpinChoice(ui->legend_x, l->offset.x);
-	SetSpinChoice(ui->legend_y, l->offset.y);
+	SetSpinChoice(ui->legend_anchor_x, l->anchor.x);
+	SetSpinChoice(ui->legend_anchor_y, l->anchor.y);
+	SetOptionChoice(ui->legend_just, l->just);
+	SetSpinChoice(ui->legend_dx, l->offset.x);
+	SetSpinChoice(ui->legend_dy, l->offset.y);
 
 	SetSpinChoice(ui->legends_vgap, l->vgap);
 	SetSpinChoice(ui->legends_hgap, l->hgap);
@@ -291,14 +292,20 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->legends_singlesym) {
             l->singlesym = GetToggleButtonState(ui->legends_singlesym);
         }
-        if (!caller || caller == ui->legend_acorner) {
-            l->acorner = GetOptionChoice(ui->legend_acorner);
+        if (!caller || caller == ui->legend_anchor_x) {
+            l->anchor.x = GetSpinChoice(ui->legend_anchor_x);
         }
-        if (!caller || caller == ui->legend_x) {
-            l->offset.x = GetSpinChoice(ui->legend_x);
+        if (!caller || caller == ui->legend_anchor_y) {
+            l->anchor.y = GetSpinChoice(ui->legend_anchor_y);
         }
-        if (!caller || caller == ui->legend_y) {
-            l->offset.y = GetSpinChoice(ui->legend_y);
+        if (!caller || caller == ui->legend_just) {
+            l->just = GetOptionChoice(ui->legend_just);
+        }
+        if (!caller || caller == ui->legend_dx) {
+            l->offset.x = GetSpinChoice(ui->legend_dx);
+        }
+        if (!caller || caller == ui->legend_dy) {
+            l->offset.y = GetSpinChoice(ui->legend_dy);
         }
         if (!caller || caller == ui->legend_font) {
             l->font = GetOptionChoice(ui->legend_font);

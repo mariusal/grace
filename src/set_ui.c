@@ -326,7 +326,7 @@ SetUI *create_set_ui(ExplorerUI *eui)
     AddTextItemCB(ui->avalue_offsetx, titem_explorer_cb, eui);
     ui->avalue_offsety = CreateTextItem2(rc2, 10, "Y offset:");
     AddTextItemCB(ui->avalue_offsety, titem_explorer_cb, eui);
-    ui->avalue_just = CreateJustChoice(rc, "Justification:");
+    ui->avalue_just = CreateTextJustChoice(rc, "Justification:");
     AddOptionChoiceCB(ui->avalue_just, oc_explorer_cb, eui);
 
 

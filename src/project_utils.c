@@ -245,9 +245,6 @@ static int project_postprocess_hook(Quark *q,
 	if (version_id <= 40102) {
             f->l.vgap -= 0.01;
         }
-	if (version_id < 50200) {
-            f->l.acorner = CORNER_UL;
-        }
 
         break;
     case QFlavorGraph:

@@ -78,6 +78,14 @@ static void xmlio_set_offset(Attributes *attrs, double offset1, double offset2)
     attributes_set_sval(attrs, AStrOffset, buf);
 }
 
+static void xmlio_set_fpoint(Attributes *attrs,
+    const char *aname, const FPoint *fp)
+{
+    char buf[32];
+    sprintf(buf, "(%g, %g)", fp->x, fp->y);
+    attributes_set_sval(attrs, aname, buf);
+}
+
 static void xmlio_set_offset_placement(Attributes *attrs,
     int autoplace, double offset1, double offset2)
 {
@@ -445,8 +453,9 @@ int save_frame_properties(XFile *xf, frame *f)
         xmlio_write_face_spec(xf, attrs,
             f->l.font, f->l.charsize, f->l.color);
         attributes_reset(attrs);
-        attributes_set_ival(attrs, AStrAnchorCorner, f->l.acorner);
+        xmlio_set_fpoint(attrs, AStrAnchor, &f->l.anchor);
         xmlio_set_offset(attrs, f->l.offset.x, f->l.offset.y);
+        attributes_set_ival(attrs, AStrJustification, f->l.just); /* FIXME: textual */
         xfile_begin_element(xf, EStrLegframe, attrs);
         {
             xmlio_write_line_spec(xf, attrs,

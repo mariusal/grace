@@ -68,7 +68,7 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     AddOptionChoiceCB(ui->color, oc_explorer_cb, eui);
     ui->size = CreateCharSizeChoice(rc1, "Size:");
     AddSpinChoiceCB(ui->size, sp_explorer_cb, eui);
-    ui->just = CreateJustChoice(rc, "Justification:");
+    ui->just = CreateTextJustChoice(rc, "Justification:");
     AddOptionChoiceCB(ui->just, oc_explorer_cb, eui);
 
     fr = CreateFrame(ui->main_tp, "Anchor point");

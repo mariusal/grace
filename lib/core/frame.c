@@ -39,9 +39,11 @@ static void set_default_legend(legend *l, const defaults *grdefaults)
 {
     l->active = TRUE;
     
-    l->acorner = CORNER_UR;
-    l->offset.x = 0.05;
-    l->offset.y = 0.05;
+    l->anchor.x = 1.0;
+    l->anchor.y = 1.0;
+    l->just     = JUST_RIGHT | JUST_TOP;
+    l->offset.x = -0.05;
+    l->offset.y = -0.05;
     
     l->boxline    = grdefaults->line;
     l->boxfillpen = grdefaults->fillpen;
@@ -278,24 +280,8 @@ int frame_legend_shift(Quark *q, const VVector *vshift)
     legend *l = frame_get_legend(q);
 
     if (l) {
-        switch (l->acorner) {
-        case CORNER_LL:
-            l->offset.x += vshift->x;
-            l->offset.y += vshift->y;
-            break;
-        case CORNER_UL:
-            l->offset.x += vshift->x;
-            l->offset.y -= vshift->y;
-            break;
-        case CORNER_UR:
-            l->offset.x -= vshift->x;
-            l->offset.y -= vshift->y;
-            break;
-        case CORNER_LR:
-            l->offset.x -= vshift->x;
-            l->offset.y += vshift->y;
-            break;
-        }
+        l->offset.x += vshift->x;
+        l->offset.y += vshift->y;
 
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;

@@ -166,7 +166,8 @@ Location *location_new()
 }
 
 typedef struct {
-    int acorner;
+    FPoint anchor;
+    int just;
     VPoint offset;
     Line line;
     Pen fillpen;
@@ -188,7 +189,6 @@ Legframe *legframe_new()
     lf = xmalloc(sizeof(Legframe));
     if (lf) {
         memset(lf, 0, sizeof(Legframe));
-        lf->acorner = CORNER_UR;
     }
     return lf;
 }
@@ -514,6 +514,10 @@ char *utf2iso(const char *s)
             $$ = xmalloc(sizeof(VPoint));
             sscanf($?, "(%lg, %lg)", &($$->x), &($$->y));
         }
+    ]]></attribute-type>
+    <attribute-type name="fpoint" ctype="FPoint *"><![CDATA[
+        $$ = xmalloc(sizeof(FPoint));
+        sscanf($?, "(%lg, %lg)", &($$->x), &($$->y));
     ]]></attribute-type>
     <attribute-type name="axislayout" ctype="int"><![CDATA[
         if (!strcmp($?, VStrParallel)) {
@@ -1141,14 +1145,19 @@ char *utf2iso(const char *s)
         <child name="#EStrLegframe">
             $$->boxfillpen = $?->fillpen;
             $$->boxline    = $?->line;
-            $$->acorner    = $?->acorner;
+            $$->anchor     = $?->anchor;
+            $$->just       = $?->just;
             $$->offset     = $?->offset;
             xfree($?);
         </child>
     </element>
     <element name="#EStrLegframe" type="legframe">
-        <attribute name="#AStrAnchorCorner" type="ival">
-            $$->acorner = $?;
+        <attribute name="#AStrAnchor" type="fpoint">
+            $$->anchor = *($?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrJustification" type="ival">
+            $$->just = $?;
         </attribute>
         <attribute name="#AStrOffset" type="offset">
             $$->offset = *($?);

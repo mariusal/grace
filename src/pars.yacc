@@ -2311,9 +2311,13 @@ parmset:
                 wp.y = $4; 
                 Wpoint2Vpoint(whichgraph, &wp, &vp);
             }
-            graph_get_viewport(whichgraph, &gv);
+            frame_get_view(whichframe, &gv);
             l->offset.x = vp.x - gv.xv1;
-            l->offset.y = gv.yv2 - vp.y;
+            l->offset.y = vp.y - gv.yv2;
+
+            l->anchor.x = 0.0;
+            l->anchor.y = 1.0;
+            l->just     = JUST_LEFT | JUST_TOP;
 	}
 	| LEGEND CHAR SIZE expr {
 	    legend *l = frame_get_legend(whichframe);
@@ -3419,9 +3423,13 @@ parmset_obs:
                 wp.y = $3;
                 Wpoint2Vpoint(whichgraph, &wp, &vp);
             }
-            graph_get_viewport(whichgraph, &gv);
+            frame_get_view(whichframe, &gv);
             l->offset.x = vp.x - gv.xv1;
-            l->offset.y = gv.yv2 - vp.y;
+            l->offset.y = vp.y - gv.yv2;
+
+            l->anchor.x = 0.0;
+            l->anchor.y = 1.0;
+            l->just     = JUST_LEFT | JUST_TOP;
 	}
 	| LEGEND STRING nexpr CHRSTR {
             int nsets;

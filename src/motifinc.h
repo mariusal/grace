@@ -480,6 +480,7 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s);
 OptionStructure *CreateColorChoice(Widget parent, char *s);
 OptionStructure *CreateFormatChoice(Widget parent, char *s);
 OptionStructure *CreateASChoice(Widget parent, char *s);
+OptionStructure *CreateTextJustChoice(Widget parent, char *s);
 OptionStructure *CreateJustChoice(Widget parent, char *s);
 
 OptionStructure *CreateCharOptionChoice(Widget parent, char *s);

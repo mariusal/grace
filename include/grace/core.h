@@ -35,11 +35,6 @@
 #define QUARK_ETYPE_DELETE   2
 #define QUARK_ETYPE_REPARENT 3
 
-#define CORNER_LL   0
-#define CORNER_UL   1
-#define CORNER_UR   2
-#define CORNER_LR   3
-
 /*
  * axis types
  */
@@ -297,7 +292,8 @@ typedef struct {
 typedef struct {
     int active;                 /* legend on or off */
 
-    int acorner;                /* anchor corner */
+    FPoint anchor;              /* anchor point */
+    int just;                   /* justification */
     VPoint offset;              /* location on graph */
 
     int singlesym;              /* draw single set symbol in the legend */

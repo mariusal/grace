@@ -2147,7 +2147,7 @@ OptionStructure *CreateSetTypeChoice(Widget parent, char *s)
         s, 0, NUMBER_OF_SETTYPES, settype_option_items));
 }
 
-static BitmapOptionItem just_option_items[12] =
+static BitmapOptionItem text_just_option_items[12] =
 {
     {JUST_LEFT  |JUST_BLINE , j_lm_o_bits},
     {JUST_CENTER|JUST_BLINE , j_cm_o_bits},
@@ -2163,10 +2163,29 @@ static BitmapOptionItem just_option_items[12] =
     {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
 };
 
-OptionStructure *CreateJustChoice(Widget parent, char *s)
+OptionStructure *CreateTextJustChoice(Widget parent, char *s)
 {
     return (CreateBitmapOptionChoice(parent, s, 4,
-        12, JBITMAP_WIDTH, JBITMAP_HEIGHT, just_option_items));
+        12, JBITMAP_WIDTH, JBITMAP_HEIGHT, text_just_option_items));
+}
+
+static BitmapOptionItem just_option_items[9] =
+{
+    {JUST_LEFT  |JUST_BOTTOM, j_lb_b_bits},
+    {JUST_CENTER|JUST_BOTTOM, j_cb_b_bits},
+    {JUST_RIGHT |JUST_BOTTOM, j_rb_b_bits},
+    {JUST_LEFT  |JUST_MIDDLE, j_lm_b_bits},
+    {JUST_CENTER|JUST_MIDDLE, j_cm_b_bits},
+    {JUST_RIGHT |JUST_MIDDLE, j_rm_b_bits},
+    {JUST_LEFT  |JUST_TOP   , j_lt_b_bits},
+    {JUST_CENTER|JUST_TOP   , j_ct_b_bits},
+    {JUST_RIGHT |JUST_TOP   , j_rt_b_bits}
+};
+
+OptionStructure *CreateJustChoice(Widget parent, char *s)
+{
+    return (CreateBitmapOptionChoice(parent, s, 3,
+        9, JBITMAP_WIDTH, JBITMAP_HEIGHT, just_option_items));
 }
 
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)

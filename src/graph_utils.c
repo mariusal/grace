@@ -806,25 +806,8 @@ void move_legend(Quark *fr, const VVector *shift)
 {
     legend *l = frame_get_legend(fr);
     if (l) {
-        switch (l->acorner) {
-        case CORNER_LL:
-            l->offset.x += shift->x;
-            l->offset.y += shift->y;
-            break;
-        case CORNER_UL:
-            l->offset.x += shift->x;
-            l->offset.y -= shift->y;
-            break;
-        case CORNER_UR:
-        default:
-            l->offset.x -= shift->x;
-            l->offset.y -= shift->y;
-            break;
-        case CORNER_LR:
-            l->offset.x -= shift->x;
-            l->offset.y += shift->y;
-            break;
-        }
+        l->offset.x += shift->x;
+        l->offset.y += shift->y;
 
         quark_dirtystate_set(fr, TRUE);
     }
