@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -45,13 +45,6 @@
 void create_helper_frame(char *fname);
 #endif
 
-int force_external_viewer =
-#if defined WITH_XMHTML
-    FALSE;
-#else
-    TRUE;
-#endif
-
 void HelpCB(Widget w, void *data)
 {
     char *URL, *ha;
@@ -89,7 +82,7 @@ void HelpCB(Widget w, void *data)
         remote = FALSE;
     }
     
-    if (remote || force_external_viewer) {
+    if (remote || grace->gui->force_external_viewer) {
         char *help_viewer, *command;
         int i, j, len, urllen, comlen;
         
@@ -157,7 +150,7 @@ void create_about_grtool(Widget but, void *data)
 	fr = CreateFrame(about_panel, "Legal stuff");
         rc = CreateVContainer(fr);
 	CreateLabel(rc, "Copyright (c) 1991-1995 Paul J Turner");
-	CreateLabel(rc, "Copyright (c) 1996-2004 Grace Development Team");
+	CreateLabel(rc, "Copyright (c) 1996-2005 Grace Development Team");
 	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
 	CreateLabel(rc, "All rights reserved");
 	CreateLabel(rc,

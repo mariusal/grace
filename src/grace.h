@@ -63,6 +63,11 @@ typedef struct _GUI {
     int auto_redraw;
     int focus_policy;
     int draw_focus_flag;
+    
+    int crosshair_cursor;
+
+    int force_external_viewer;
+    
     /* if TRUE, assume yes for everything */
     int noask;
     /* instant update enabled for controls on appearance dialogs */

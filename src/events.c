@@ -49,8 +49,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-int cursortype = 0;
-
 static void scroll_bar_pix(Widget bar, int pix)
 {
     int value, slider_size, maxvalue;
@@ -493,7 +491,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     switch (event->type) {
     case MotionNotify:
 	xme = (XMotionEvent *) event;
-	if (cursortype || xme->state & ShiftMask) {
+	if (grace->gui->crosshair_cursor) {
             crosshair_motion(grace->gui, x, y);
         }
 
@@ -837,10 +835,6 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     case KeyRelease:
 	xke = (XKeyEvent *) event;
         keybuf = XLookupKeysym(xke, 0);
-        if (cursortype == 0 &&
-            (keybuf == XK_Shift_L || keybuf == XK_Shift_R)) { /* Shift */
-            reset_crosshair(grace->gui, TRUE);
-        }
         if (xke->state & ControlMask) {
             if (on_focus) {
                 set_cursor(grace->gui, -1);

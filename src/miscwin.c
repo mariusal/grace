@@ -43,12 +43,6 @@
 #include "motifinc.h"
 #include "protos.h"
 
-extern int cursortype;
-
-#if defined WITH_XMHTML || defined WITH_LIBHELP
-extern int force_external_viewer;
-#endif
-
 static Widget props_frame;
 
 /*
@@ -69,7 +63,7 @@ static Widget safe_mode_item;
 static Widget scrollper_item;
 static Widget shexper_item;
 
-#if defined WITH_XMHTML || defined WITH_LIBHELP
+#if defined WITH_XMHTML
 static Widget force_external_viewer_item;
 #endif
 
@@ -108,7 +102,7 @@ void create_props_frame(Widget but, void *data)
             CreateToggleButton(rc1, "Display focus markers");
 	autoredraw_type_item = CreateToggleButton(rc1, "Auto redraw");
 	cursor_type_item = CreateToggleButton(rc1, "Crosshair cursor");
-#if defined WITH_XMHTML || defined WITH_LIBHELP
+#if defined WITH_XMHTML
 	force_external_viewer_item = CreateToggleButton(rc1,
             "Use external help viewer for local documents");
 #endif        
@@ -160,9 +154,9 @@ void update_props_items(void)
 	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
 	SetToggleButtonState(autoredraw_type_item, gui->auto_redraw);
-	SetToggleButtonState(cursor_type_item, cursortype);
-#if defined WITH_XMHTML || defined WITH_LIBHELP
-	SetToggleButtonState(force_external_viewer_item, force_external_viewer);
+	SetToggleButtonState(cursor_type_item, gui->crosshair_cursor);
+#if defined WITH_XMHTML
+	SetToggleButtonState(force_external_viewer_item, gui->force_external_viewer);
 #endif
 	SetSpinChoice(max_path_item,
             (double) get_max_path_limit(grace->rt->canvas));
@@ -197,9 +191,9 @@ static int props_define_notify_proc(void *data)
     gui->draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
 
     gui->auto_redraw = GetToggleButtonState(autoredraw_type_item);
-    cursortype = GetToggleButtonState(cursor_type_item);
-#if defined WITH_XMHTML || defined WITH_LIBHELP
-    force_external_viewer = GetToggleButtonState(force_external_viewer_item);
+    gui->crosshair_cursor = GetToggleButtonState(cursor_type_item);
+#if defined WITH_XMHTML
+    gui->force_external_viewer = GetToggleButtonState(force_external_viewer_item);
 #endif
     set_max_path_limit(grace->rt->canvas, (int) GetSpinChoice(max_path_item));
     grace->rt->safe_mode = GetToggleButtonState(safe_mode_item);

@@ -62,6 +62,9 @@ GUI *gui_new(Grace *grace)
     gui->auto_redraw     = TRUE;
     gui->focus_policy    = FOCUS_CLICK;
     gui->draw_focus_flag = TRUE;
+
+    gui->crosshair_cursor = FALSE;
+
     gui->noask           = FALSE;
 
     gui->instant_update  = FALSE;
@@ -71,6 +74,12 @@ GUI *gui_new(Grace *grace)
 
     gui->install_cmap    = CMAP_INSTALL_AUTO;
     gui->private_cmap    = FALSE;
+
+#if defined WITH_XMHTML
+    gui->force_external_viewer = FALSE;
+#else
+    gui->force_external_viewer = TRUE;
+#endif
     
     return gui;
 }
