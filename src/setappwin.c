@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c)1991-1995 Paul J Turner, Portland, OR
- * Copyright (c)1996-2002 Grace Development Team
+ * Copyright (c)1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -66,7 +66,7 @@ static Widget duplegs_item;
 static OptionStructure *type_item;
 static OptionStructure *toggle_symbols_item;
 static Widget symsize_item;
-static Widget symskip_item;
+static SpinStructure *symskip_item;
 static OptionStructure *symcolor_item;
 static OptionStructure *sympattern_item;
 static OptionStructure *symfillcolor_item;
@@ -314,8 +314,9 @@ void define_symbols_popup(void *data)
 
         fr = CreateFrame(setapp_symbols, "Extra");
         rc = CreateVContainer(fr);
-        symskip_item = CreateTextItem2(rc, 4, "Symbol skip:");
-        AddTextItemCB(symskip_item, text_setapp_cb, symskip_item);
+        symskip_item = CreateSpinChoice(rc, "Symbol skip:",
+            5, SPIN_TYPE_INT, (double) 0, (double) 100000, (double) 1);
+        AddSpinButtonCB(symskip_item, sp_setapp_cb, symskip_item);
         char_font_item = CreateFontChoice(rc, "Font for char symbol:");
         AddOptionChoiceCB(char_font_item, oc_setapp_cb, char_font_item);
 
@@ -513,7 +514,7 @@ static int setapp_aac_cb(void *data)
             pset = selset[i];
             p = pset->data;
             if (data == symskip_item || data == NULL) {
-                xv_evalexpri(symskip_item, &(p->symskip));
+                p->symskip = GetSpinChoice(symskip_item);
             }
             if (data == symsize_item || data  ==  NULL) {
                 p->sym.size = GetCharSizeChoice(symsize_item);
@@ -694,8 +695,7 @@ static void UpdateSymbols(Quark *pset)
         }
 
         SetCharSizeChoice(symsize_item, p->sym.size);
-        sprintf(val, "%d", p->symskip);
-        xv_setstr(symskip_item, val);
+        SetSpinChoice(symskip_item, p->symskip);
         sprintf(val, "%d", p->sym.symchar);
         xv_setstr(symchar_item, val);
         SetOptionChoice(toggle_symbols_item, p->sym.type);
