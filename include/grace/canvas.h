@@ -395,6 +395,7 @@ int get_max_path_limit(const Canvas *canvas);
 
 unsigned int number_of_colors(const Canvas *canvas);
 double get_rgb_intensity(const RGB *rgb);
+int compare_rgb(const RGB *rgb1, const RGB *rgb2);
 
 unsigned int number_of_fonts(const Canvas *canvas);
 char *get_fontname(const Canvas *canvas, int font);

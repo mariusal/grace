@@ -187,7 +187,6 @@ int update_bboxes_with_vpoints(Canvas *canvas,
     const VPoint *vps, int n, double lw);
 
 int is_valid_color(const RGB *rgb);
-int compare_rgb(const RGB *rgb1, const RGB *rgb2);
 int find_color(const Canvas *canvas, const RGB *rgb);
 int realloc_color(Canvas *canvas, int n);
 void canvas_color_trans(Canvas *canvas, CMap_entry *cmap);
