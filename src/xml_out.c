@@ -37,6 +37,7 @@
 #include "objutils.h"
 #include "files.h"
 #include "xfile.h"
+#include "xstrings.h"
 #include "protos.h"
 
 /*
@@ -45,7 +46,7 @@
 
 static void xmlio_set_active(Attributes *attrs, int active)
 {
-    attributes_set_bval(attrs, "active", active);
+    attributes_set_bval(attrs, AStrActive, active);
 }
 
 static void xmlio_set_world_value(Attributes *attrs, char *name, double value)
@@ -55,50 +56,50 @@ static void xmlio_set_world_value(Attributes *attrs, char *name, double value)
 
 static void xmlio_set_inout_placement(Attributes *attrs, int inout)
 {
-    char *s = "in";
+    char *s = VStrIn;
     switch (inout) {
     case TICKS_IN:
-        s ="in";
+        s =VStrIn;
         break;
     case TICKS_OUT:
-        s ="out";
+        s =VStrOut;
         break;
     case TICKS_BOTH:
-        s ="both";
+        s = VStrBoth;
         break;
     }
-    attributes_set_sval(attrs, "inout-placement", s);
+    attributes_set_sval(attrs, AStrInoutPlacement, s);
 }
 
 static void xmlio_set_side_placement(Attributes *attrs, PlacementType placement)
 {
-    char *s = "normal";
+    char *s = VStrNormal;
     switch (placement) {
     case PLACEMENT_NORMAL:
-        s ="normal";
+        s = VStrNormal;
         break;
     case PLACEMENT_OPPOSITE:
-        s ="opposite";
+        s = VStrOpposite;
         break;
     case PLACEMENT_BOTH:
-        s ="both";
+        s = VStrBoth;
         break;
     }
-    attributes_set_sval(attrs, "side-placement", s);
+    attributes_set_sval(attrs, AStrSidePlacement, s);
 }
 
 static void xmlio_set_offset(Attributes *attrs, double offset1, double offset2)
 {
     char buf[32];
     sprintf(buf, "(%g, %g)", offset1, offset2);
-    attributes_set_sval(attrs, "offset", buf);
+    attributes_set_sval(attrs, AStrOffset, buf);
 }
 
 static void xmlio_set_offset_placement(Attributes *attrs,
     int autoplace, double offset1, double offset2)
 {
     if (autoplace) {
-        attributes_set_sval(attrs, "offset", "auto");
+        attributes_set_sval(attrs, AStrOffset, VStrAuto);
     } else {
         xmlio_set_offset(attrs, offset1, offset2);
     }
@@ -106,22 +107,22 @@ static void xmlio_set_offset_placement(Attributes *attrs,
 
 static void xmlio_set_angle(Attributes *attrs, double angle)
 {
-    attributes_set_dval(attrs, "angle", angle);
+    attributes_set_dval(attrs, AStrAngle, angle);
 }
 
 static void xmlio_set_font_ref(Attributes *attrs, int font)
 {
-    attributes_set_ival(attrs, "font-id", get_font_mapped_id(font));
+    attributes_set_ival(attrs, AStrFontId, get_font_mapped_id(font));
 }
 
 static void xmlio_set_color_ref(Attributes *attrs, int color)
 {
-    attributes_set_ival(attrs, "color-id", color);
+    attributes_set_ival(attrs, AStrColorId, color);
 }
 
 static void xmlio_set_pattern_ref(Attributes *attrs, int pattern)
 {
-    attributes_set_ival(attrs, "pattern-id", pattern);
+    attributes_set_ival(attrs, AStrPatternId, pattern);
 }
 
 
@@ -129,13 +130,13 @@ static void xmlio_write_location(XFile *xf, Attributes *attrs,
     int loctype, double x, double y)
 {
     attributes_reset(attrs);
-    attributes_set_sval(attrs, "type", w_or_v(loctype));
+    attributes_set_sval(attrs, AStrType, w_or_v(loctype));
     if (loctype == LOCWORLD) {
-        xmlio_set_world_value(attrs, "x", x);
-        xmlio_set_world_value(attrs, "y", y);
+        xmlio_set_world_value(attrs, AStrX, x);
+        xmlio_set_world_value(attrs, AStrY, y);
     } else {
-        attributes_set_dval(attrs, "x", x);
-        attributes_set_dval(attrs, "y", y);
+        attributes_set_dval(attrs, AStrX, x);
+        attributes_set_dval(attrs, AStrY, y);
     }
 }
 
@@ -143,8 +144,8 @@ static void xmlio_write_format_spec(XFile *xf, Attributes *attrs,
     char *name, int format, int prec)
 {
     attributes_reset(attrs);
-    attributes_set_sval(attrs, "format", get_format_types(format));
-    attributes_set_ival(attrs, "prec", prec);
+    attributes_set_sval(attrs, AStrFormat, get_format_types(format));
+    attributes_set_ival(attrs, AStrPrec, prec);
     xfile_empty_element(xf, name, attrs);
 }
 
@@ -155,8 +156,8 @@ static void xmlio_write_face_spec(XFile *xf, Attributes *attrs,
 
     xmlio_set_font_ref(attrs, font);
     xmlio_set_color_ref(attrs, color);
-    attributes_set_dval(attrs, "char-size", charsize);
-    xfile_empty_element(xf, "face-spec", attrs);
+    attributes_set_dval(attrs, AStrCharSize, charsize);
+    xfile_empty_element(xf, EStrFaceSpec, attrs);
 }
 
 static void xmlio_write_fill_spec(XFile *xf, Attributes *attrs, Pen *pen)
@@ -165,7 +166,7 @@ static void xmlio_write_fill_spec(XFile *xf, Attributes *attrs, Pen *pen)
 
     xmlio_set_color_ref(attrs, pen->color);
     xmlio_set_pattern_ref(attrs, pen->pattern);
-    xfile_empty_element(xf, "fill-spec", attrs);
+    xfile_empty_element(xf, EStrFillSpec, attrs);
 }
 
 static void xmlio_write_line_spec(XFile *xf, Attributes *attrs,
@@ -175,17 +176,17 @@ static void xmlio_write_line_spec(XFile *xf, Attributes *attrs,
 
     xmlio_set_color_ref(attrs, pen->color);
     xmlio_set_pattern_ref(attrs, pen->pattern);
-    attributes_set_ival(attrs, "style-id", lines);
-    attributes_set_dval(attrs, "width", linew);
-    xfile_empty_element(xf, "line-spec", attrs);
+    attributes_set_ival(attrs, AStrStyleId, lines);
+    attributes_set_dval(attrs, AStrWidth, linew);
+    xfile_empty_element(xf, EStrLineSpec, attrs);
 }
 
 static void xmlio_write_text(XFile *xf, char *text)
 {
     if (is_empty_string(text)) {
-        xfile_empty_element(xf, "text", NULL);
+        xfile_empty_element(xf, EStrText, NULL);
     } else {
-        xfile_text_element(xf, "text", NULL, text);
+        xfile_text_element(xf, EStrText, NULL, text);
     }
 }
 
@@ -200,17 +201,17 @@ int save_fontmap(XFile *xf)
         return RETURN_FAILURE;
     }
 
-    xfile_begin_element(xf, "fontmap", NULL);
+    xfile_begin_element(xf, EStrFontmap, NULL);
     for (i = 0; i < number_of_fonts(); i++) {
         if (get_font_mapped_id(i) != BAD_FONT_ID) {
             attributes_reset(attrs);
-            attributes_set_ival(attrs, "id", get_font_mapped_id(i));
-            attributes_set_sval(attrs, "name", get_fontalias(i));
-            attributes_set_sval(attrs, "fallback", get_fontfallback(i));
-            xfile_empty_element(xf, "font-def", attrs);
+            attributes_set_ival(attrs, AStrId, get_font_mapped_id(i));
+            attributes_set_sval(attrs, AStrName, get_fontalias(i));
+            attributes_set_sval(attrs, AStrFallback, get_fontfallback(i));
+            xfile_empty_element(xf, EStrFontDef, attrs);
         }
     }
-    xfile_end_element(xf, "fontmap");
+    xfile_end_element(xf, EStrFontmap);
     
     attributes_free(attrs);
     
@@ -228,22 +229,22 @@ int save_colormap(XFile *xf)
         return RETURN_FAILURE;
     }
 
-    xfile_begin_element(xf, "colormap", NULL);
+    xfile_begin_element(xf, EStrColormap, NULL);
     for (i = 0; i < number_of_colors(); i++) {
         CMap_entry *cmap;
         cmap = get_cmap_entry(i);
         if (cmap != NULL && cmap->ctype == COLOR_MAIN) {
             char buf[16];
             attributes_reset(attrs);
-            attributes_set_ival(attrs, "id", i);
+            attributes_set_ival(attrs, AStrId, i);
             sprintf(buf, "#%02x%02x%02x",
                 cmap->rgb.red, cmap->rgb.green, cmap->rgb.blue);
-            attributes_set_sval(attrs, "rgb", buf);
-            attributes_set_sval(attrs, "name", cmap->cname);
-            xfile_empty_element(xf, "color-def", attrs);
+            attributes_set_sval(attrs, AStrRgb, buf);
+            attributes_set_sval(attrs, AStrName, cmap->cname);
+            xfile_empty_element(xf, EStrColorDef, attrs);
         }
     }
-    xfile_end_element(xf, "colormap");
+    xfile_end_element(xf, EStrColormap);
 
     attributes_free(attrs);
     
@@ -263,13 +264,13 @@ int save_axis_properties(XFile *xf, tickmarks *t)
         return RETURN_FAILURE;
     }
 
-    attributes_set_bval(attrs, "zero", t->zero);
+    attributes_set_bval(attrs, AStrZero, t->zero);
     xmlio_set_offset(attrs, t->offsx, t->offsy);
-    xfile_empty_element(xf, "placement", attrs);
+    xfile_empty_element(xf, EStrPlacement, attrs);
     
     attributes_reset(attrs);
     xmlio_set_active(attrs, t->t_drawbar);
-    xfile_begin_element(xf, "axisbar", attrs);
+    xfile_begin_element(xf, EStrAxisbar, attrs);
     {
         Pen pen;
         pen.pattern = 1;
@@ -277,129 +278,129 @@ int save_axis_properties(XFile *xf, tickmarks *t)
         xmlio_write_line_spec(xf, attrs,
             &pen, t->t_drawbarlinew, t->t_drawbarlines);
     }
-    xfile_end_element(xf, "axisbar");
+    xfile_end_element(xf, EStrAxisbar);
 
     attributes_reset(attrs);
-    attributes_set_sval(attrs, "layout",
-        t->label_layout == LAYOUT_PERPENDICULAR ? "perpendicular":"parallel");
+    attributes_set_sval(attrs, AStrLayout,
+        t->label_layout == LAYOUT_PERPENDICULAR ? VStrPerpendicular:VStrParallel);
     xmlio_set_offset_placement(attrs,
         t->label_place == TYPE_AUTO, t->label.offset.x, t->label.offset.y);
     xmlio_set_side_placement(attrs, t->label_op);
-    xfile_begin_element(xf, "axislabel", attrs);
+    xfile_begin_element(xf, EStrAxislabel, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
             t->label.font, t->label.charsize, t->label.color);
         xmlio_write_text(xf, t->label.s);
     }
-    xfile_end_element(xf, "axislabel");
+    xfile_end_element(xf, EStrAxislabel);
 
     attributes_reset(attrs);
-    xmlio_set_world_value(attrs, "major-step", t->tmajor);
-    attributes_set_ival(attrs, "minor-divisions", t->nminor);
-    attributes_set_ival(attrs, "auto-ticking", t->t_autonum);
-    attributes_set_bval(attrs, "rounded-position", t->t_round);
-    xfile_begin_element(xf, "ticks", attrs);
+    xmlio_set_world_value(attrs, AStrMajorStep, t->tmajor);
+    attributes_set_ival(attrs, AStrMinorDivisions, t->nminor);
+    attributes_set_ival(attrs, AStrAutoTicking, t->t_autonum);
+    attributes_set_bval(attrs, AStrRoundedPosition, t->t_round);
+    xfile_begin_element(xf, EStrTicks, attrs);
     {
-        char *s = "none";
+        char *s = VStrNone;
         switch (t->t_spec) {
         case TICKS_SPEC_NONE:
-            s = "none";
+            s = VStrNone;
             break;
         case TICKS_SPEC_MARKS:
-            s = "ticks";
+            s = VStrTicks;
             break;
         case TICKS_SPEC_BOTH:
-            s = "both";
+            s = VStrBoth;
             break;
         }
         attributes_reset(attrs);
-        attributes_set_sval(attrs, "type", s);
+        attributes_set_sval(attrs, AStrType, s);
         if (t->t_spec == TICKS_SPEC_NONE) {
-            xfile_empty_element(xf, "userticks", attrs);
+            xfile_empty_element(xf, EStrUserticks, attrs);
         } else {
-            xfile_begin_element(xf, "userticks", attrs);
+            xfile_begin_element(xf, EStrUserticks, attrs);
             {
                 int i;
                 for (i = 0; i < MIN2(t->nticks, MAX_TICKS); i++) {
                     attributes_reset(attrs);
-                    attributes_set_sval(attrs, "type",
-                        t->tloc[i].type == TICK_TYPE_MAJOR ? "major":"minor");
+                    attributes_set_sval(attrs, AStrType,
+                        t->tloc[i].type == TICK_TYPE_MAJOR ? VStrMajor:VStrMinor);
                     xmlio_set_world_value(attrs,
-                        "position", t->tloc[i].wtpos);
+                        AStrPosition, t->tloc[i].wtpos);
                     if (t->t_spec == TICKS_SPEC_BOTH) {
-                        attributes_set_sval(attrs, "label", t->tloc[i].label);
+                        attributes_set_sval(attrs, AStrLabel, t->tloc[i].label);
                     }
-                    xfile_empty_element(xf, "tick", attrs);
+                    xfile_empty_element(xf, EStrTick, attrs);
                 }
             }
-            xfile_end_element(xf, "userticks");
+            xfile_end_element(xf, EStrUserticks);
         }
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->t_flag);
         xmlio_set_side_placement(attrs, t->t_op);
         xmlio_set_inout_placement(attrs, t->t_inout);
-        xfile_begin_element(xf, "tickmarks", attrs);
+        xfile_begin_element(xf, EStrTickmarks, attrs);
         {
             Pen pen;
             
             attributes_reset(attrs);
-            attributes_set_dval(attrs, "size", t->props.size);
-            attributes_set_bval(attrs, "grid-lines", t->props.gridflag);
-            xfile_begin_element(xf, "major", attrs);
+            attributes_set_dval(attrs, AStrSize, t->props.size);
+            attributes_set_bval(attrs, AStrGridLines, t->props.gridflag);
+            xfile_begin_element(xf, EStrMajor, attrs);
             {
                 pen.color = t->props.color;
                 pen.pattern = 1;
                 xmlio_write_line_spec(xf, attrs,
                     &pen, t->props.linew, t->props.lines);
             }
-            xfile_end_element(xf, "major");
+            xfile_end_element(xf, EStrMajor);
 
             attributes_reset(attrs);
-            attributes_set_dval(attrs, "size", t->mprops.size);
-            attributes_set_bval(attrs, "grid-lines", t->mprops.gridflag);
-            xfile_begin_element(xf, "minor", attrs);
+            attributes_set_dval(attrs, AStrSize, t->mprops.size);
+            attributes_set_bval(attrs, AStrGridLines, t->mprops.gridflag);
+            xfile_begin_element(xf, EStrMinor, attrs);
             {
                 pen.color = t->mprops.color;
                 pen.pattern = 1;
                 xmlio_write_line_spec(xf, attrs,
                     &pen, t->mprops.linew, t->mprops.lines);
             }
-            xfile_end_element(xf, "minor");
+            xfile_end_element(xf, EStrMinor);
         }
-        xfile_end_element(xf, "tickmarks");
+        xfile_end_element(xf, EStrTickmarks);
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->tl_flag);
         xmlio_set_side_placement(attrs, t->tl_op);
-        attributes_set_sval(attrs, "transform", t->tl_formula);
-        attributes_set_sval(attrs, "prepend", t->tl_prestr);
-        attributes_set_sval(attrs, "append", t->tl_appstr);
+        attributes_set_sval(attrs, AStrTransform, t->tl_formula);
+        attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
+        attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
         xmlio_set_offset_placement(attrs,
             t->tl_gaptype == TYPE_AUTO, t->tl_gap.x, t->tl_gap.y);
         xmlio_set_angle(attrs, (double) t->tl_angle);
-        attributes_set_ival(attrs, "skip", t->tl_skip);
-        attributes_set_ival(attrs, "stagger", t->tl_staggered);
+        attributes_set_ival(attrs, AStrSkip, t->tl_skip);
+        attributes_set_ival(attrs, AStrStagger, t->tl_staggered);
         if (t->tl_starttype == TYPE_AUTO) {
-            attributes_set_sval(attrs, "start", "auto");
+            attributes_set_sval(attrs, AStrStart, VStrAuto);
         } else {
-            xmlio_set_world_value(attrs, "start", t->tl_start);
+            xmlio_set_world_value(attrs, AStrStart, t->tl_start);
         }
         if (t->tl_stoptype == TYPE_AUTO) {
-            attributes_set_sval(attrs, "stop", "auto");
+            attributes_set_sval(attrs, AStrStop, VStrAuto);
         } else {
-            xmlio_set_world_value(attrs, "stop", t->tl_stop);
+            xmlio_set_world_value(attrs, AStrStop, t->tl_stop);
         }
-        xfile_begin_element(xf, "ticklabels", attrs);
+        xfile_begin_element(xf, EStrTicklabels, attrs);
         {
             xmlio_write_face_spec(xf, attrs,
                 t->tl_font, t->tl_charsize, t->tl_color);
             xmlio_write_format_spec(xf, attrs,
-                "format", t->tl_format, t->tl_prec);
+                AStrFormat, t->tl_format, t->tl_prec);
         }
-        xfile_end_element(xf, "ticklabels");
+        xfile_end_element(xf, EStrTicklabels);
     }
-    xfile_end_element(xf, "ticks");
+    xfile_end_element(xf, EStrTicks);
 
     attributes_free(attrs);
     
@@ -422,48 +423,48 @@ int save_graph_properties(XFile *xf, graph *g)
     }
     
     attributes_reset(attrs);
-    attributes_set_sval(attrs, "type", graph_types(g->type));
-    attributes_set_bval(attrs, "stacked", g->stacked);
-    attributes_set_dval(attrs, "bargap", g->bargap);
-    xfile_empty_element(xf, "presentation-spec", attrs);
+    attributes_set_sval(attrs, AStrType, graph_types(g->type));
+    attributes_set_bval(attrs, AStrStacked, g->stacked);
+    attributes_set_dval(attrs, AStrBargap, g->bargap);
+    xfile_empty_element(xf, EStrPresentationSpec, attrs);
 
     /* Viewport */
     attributes_reset(attrs);
-    attributes_set_dval(attrs, "xmin", g->v.xv1);
-    attributes_set_dval(attrs, "xmax", g->v.xv2);
-    attributes_set_dval(attrs, "ymin", g->v.yv1);
-    attributes_set_dval(attrs, "ymax", g->v.yv2);
-    xfile_empty_element(xf, "viewport", attrs);
+    attributes_set_dval(attrs, AStrXmin, g->v.xv1);
+    attributes_set_dval(attrs, AStrXmax, g->v.xv2);
+    attributes_set_dval(attrs, AStrYmin, g->v.yv1);
+    attributes_set_dval(attrs, AStrYmax, g->v.yv2);
+    xfile_empty_element(xf, EStrViewport, attrs);
 
     /* World coordinate scales */
     attributes_reset(attrs);
-    xmlio_set_world_value(attrs, "min", g->w.xg1);
-    xmlio_set_world_value(attrs, "max", g->w.xg2);
-    attributes_set_sval(attrs, "type", scale_types(g->xscale));
-    attributes_set_bval(attrs, "invert", g->xinvert);
-    xfile_empty_element(xf, "xscale", attrs);
+    xmlio_set_world_value(attrs, AStrMin, g->w.xg1);
+    xmlio_set_world_value(attrs, AStrMax, g->w.xg2);
+    attributes_set_sval(attrs, AStrType, scale_types(g->xscale));
+    attributes_set_bval(attrs, AStrInvert, g->xinvert);
+    xfile_empty_element(xf, EStrXscale, attrs);
     attributes_reset(attrs);
-    xmlio_set_world_value(attrs, "min", g->w.yg1);
-    xmlio_set_world_value(attrs, "max", g->w.yg2);
-    attributes_set_sval(attrs, "type", scale_types(g->yscale));
-    attributes_set_bval(attrs, "invert", g->yinvert);
-    xfile_empty_element(xf, "yscale", attrs);
+    xmlio_set_world_value(attrs, AStrMin, g->w.yg1);
+    xmlio_set_world_value(attrs, AStrMax, g->w.yg2);
+    attributes_set_sval(attrs, AStrType, scale_types(g->yscale));
+    attributes_set_bval(attrs, AStrInvert, g->yinvert);
+    xfile_empty_element(xf, EStrYscale, attrs);
     attributes_reset(attrs);
-    attributes_set_dval(attrs, "norm", g->znorm);
-    xfile_empty_element(xf, "zscale", attrs);
+    attributes_set_dval(attrs, AStrNorm, g->znorm);
+    xfile_empty_element(xf, EStrZscale, attrs);
 
     /* Legend */
     attributes_reset(attrs);
     xmlio_set_active(attrs, g->l.active);
-    attributes_set_ival(attrs, "length", g->l.len);
-    attributes_set_ival(attrs, "vgap", g->l.vgap);
-    attributes_set_ival(attrs, "hgap", g->l.hgap);
-    attributes_set_bval(attrs, "invert", g->l.invert);
-    xfile_begin_element(xf, "legend", attrs);
+    attributes_set_ival(attrs, AStrLength, g->l.len);
+    attributes_set_ival(attrs, AStrVgap, g->l.vgap);
+    attributes_set_ival(attrs, AStrHgap, g->l.hgap);
+    attributes_set_bval(attrs, AStrInvert, g->l.invert);
+    xfile_begin_element(xf, EStrLegend, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
             g->l.font, g->l.charsize, g->l.color);
-        xfile_begin_element(xf, "legframe", NULL);
+        xfile_begin_element(xf, EStrLegframe, NULL);
         {
             xmlio_write_location(xf, attrs,
                 g->l.loctype, g->l.legx, g->l.legy);
@@ -471,52 +472,52 @@ int save_graph_properties(XFile *xf, graph *g)
                 &(g->l.boxpen), g->l.boxlinew, g->l.boxlines);
             xmlio_write_fill_spec(xf, attrs, &(g->l.boxfillpen));
         }
-        xfile_end_element(xf, "legframe");
+        xfile_end_element(xf, EStrLegframe);
     }
-    xfile_end_element(xf, "legend");
+    xfile_end_element(xf, EStrLegend);
 
     /* Locator */
-    xfile_begin_element(xf, "locator", NULL);
+    xfile_begin_element(xf, EStrLocator, NULL);
     {
         attributes_reset(attrs);
         xmlio_set_active(attrs, g->locator.pointset);
-        attributes_set_ival(attrs, "type", g->locator.pt_type); /* FIXME: textual */
-        attributes_set_dval(attrs, "x", g->locator.dsx);
-        attributes_set_dval(attrs, "y", g->locator.dsy);
-        xfile_empty_element(xf, "fixedpoint", attrs);
+        attributes_set_ival(attrs, AStrType, g->locator.pt_type); /* FIXME: textual */
+        attributes_set_dval(attrs, AStrX, g->locator.dsx);
+        attributes_set_dval(attrs, AStrY, g->locator.dsy);
+        xfile_empty_element(xf, EStrFixedpoint, attrs);
         
         xmlio_write_format_spec(xf, attrs,
-            "xformat", g->locator.fx, g->locator.px);
+            EStrXformat, g->locator.fx, g->locator.px);
         xmlio_write_format_spec(xf, attrs,
-            "yformat", g->locator.fy, g->locator.py);
+            EStrYformat, g->locator.fy, g->locator.py);
     }
-    xfile_end_element(xf, "locator");
+    xfile_end_element(xf, EStrLocator);
 
     /* Frame */
     attributes_reset(attrs);
-    attributes_set_ival(attrs, "type", g->f.type); /* FIXME: textual */
-    xfile_begin_element(xf, "frame", attrs);
+    attributes_set_ival(attrs, AStrType, g->f.type); /* FIXME: textual */
+    xfile_begin_element(xf, EStrFrame, attrs);
     {
         xmlio_write_line_spec(xf, attrs, &(g->f.pen), g->f.linew, g->f.lines);
         xmlio_write_fill_spec(xf, attrs, &(g->f.fillpen));
     }
-    xfile_end_element(xf, "frame");
+    xfile_end_element(xf, EStrFrame);
 
     /* Title/subtitle */
-    xfile_begin_element(xf, "title", NULL);
+    xfile_begin_element(xf, EStrTitle, NULL);
     {
         xmlio_write_face_spec(xf, attrs,
             g->labs.title.font, g->labs.title.charsize, g->labs.title.color);
         xmlio_write_text(xf, g->labs.title.s);
     }
-    xfile_end_element(xf, "title");
-    xfile_begin_element(xf, "subtitle", NULL);
+    xfile_end_element(xf, EStrTitle);
+    xfile_begin_element(xf, EStrSubtitle, NULL);
     {
         xmlio_write_face_spec(xf, attrs,
             g->labs.stitle.font, g->labs.stitle.charsize, g->labs.stitle.color);
         xmlio_write_text(xf, g->labs.stitle.s);
     }
-    xfile_end_element(xf, "subtitle");
+    xfile_end_element(xf, EStrSubtitle);
 
     /* FIXME: world stack */
     
@@ -542,11 +543,11 @@ int save_graph_properties(XFile *xf, graph *g)
         }
 
         attributes_reset(attrs);
-        attributes_set_sval(attrs, "type", s);
+        attributes_set_sval(attrs, AStrType, s);
         xmlio_set_active(attrs, t && t->active);
-        xfile_begin_element(xf, "axis", attrs);
+        xfile_begin_element(xf, EStrAxis, attrs);
         save_axis_properties(xf, t);
-        xfile_end_element(xf, "axis");
+        xfile_end_element(xf, EStrAxis);
     }
 
     attributes_free(attrs);
@@ -568,82 +569,82 @@ int save_set_properties(XFile *xf, set *p)
         return RETURN_FAILURE;
     }
 
-    attributes_set_sval(attrs, "type", set_types(p->type));
-    xfile_empty_element(xf, "presentation-spec", attrs);
+    attributes_set_sval(attrs, AStrType, set_types(p->type));
+    xfile_empty_element(xf, EStrPresentationSpec, attrs);
     
     attributes_reset(attrs);
-    attributes_set_ival(attrs, "type", p->sym); /* FIXME: textual */
-    attributes_set_dval(attrs, "size", p->symsize);
-    attributes_set_ival(attrs, "skip", p->symskip);
-    attributes_set_ival(attrs, "char", (int) p->symchar);
+    attributes_set_ival(attrs, AStrType, p->sym); /* FIXME: textual */
+    attributes_set_dval(attrs, AStrSize, p->symsize);
+    attributes_set_ival(attrs, AStrSkip, p->symskip);
+    attributes_set_ival(attrs, AStrChar, (int) p->symchar);
     xmlio_set_font_ref(attrs, p->charfont);
-    xfile_begin_element(xf, "symbol", attrs);
+    xfile_begin_element(xf, EStrSymbol, attrs);
     {
         xmlio_write_line_spec(xf, attrs, &(p->sympen), p->symlinew, p->symlines);
         xmlio_write_fill_spec(xf, attrs, &(p->symfillpen));
     }
-    xfile_end_element(xf, "symbol");
+    xfile_end_element(xf, EStrSymbol);
     
     attributes_reset(attrs);
-    attributes_set_ival(attrs, "type", p->linet); /* FIXME: textual */
-    attributes_set_ival(attrs, "fill-type", p->filltype); /* FIXME: textual */
-    attributes_set_sval(attrs, "fill-rule",
-        p->fillrule == FILLRULE_WINDING ? "winding":"evenodd");
-    attributes_set_ival(attrs, "baseline-type", p->baseline_type); /* FIXME: textual */
-    attributes_set_bval(attrs, "draw-baseline", p->baseline);
-    attributes_set_bval(attrs, "draw-droplines", p->dropline);
-    xfile_begin_element(xf, "line", attrs);
+    attributes_set_ival(attrs, AStrType, p->linet); /* FIXME: textual */
+    attributes_set_ival(attrs, AStrFillType, p->filltype); /* FIXME: textual */
+    attributes_set_sval(attrs, AStrFillRule,
+        p->fillrule == FILLRULE_WINDING ? VStrWinding:VStrEvenodd);
+    attributes_set_ival(attrs, AStrBaselineType, p->baseline_type); /* FIXME: textual */
+    attributes_set_bval(attrs, AStrDrawBaseline, p->baseline);
+    attributes_set_bval(attrs, AStrDrawDroplines, p->dropline);
+    xfile_begin_element(xf, EStrLine, attrs);
     {
         xmlio_write_line_spec(xf, attrs, &(p->linepen), p->linew, p->lines);
         xmlio_write_fill_spec(xf, attrs, &(p->setfillpen));
     }
-    xfile_end_element(xf, "line");
+    xfile_end_element(xf, EStrLine);
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->avalue.active);
-    attributes_set_ival(attrs, "type", p->avalue.type); /* FIXME: textual */
+    attributes_set_ival(attrs, AStrType, p->avalue.type); /* FIXME: textual */
     xmlio_set_angle(attrs, (double) p->avalue.angle);
     xmlio_set_offset(attrs, p->avalue.offset.x, p->avalue.offset.y);
-    attributes_set_sval(attrs, "prepend", p->avalue.prestr);
-    attributes_set_sval(attrs, "append", p->avalue.appstr);
-    xfile_begin_element(xf, "annotation", attrs);
+    attributes_set_sval(attrs, AStrPrepend, p->avalue.prestr);
+    attributes_set_sval(attrs, AStrAppend, p->avalue.appstr);
+    xfile_begin_element(xf, EStrAnnotation, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
             p->avalue.font, p->avalue.size, p->avalue.color);
         xmlio_write_format_spec(xf, attrs,
-            "format", p->avalue.format, p->avalue.prec);
+            AStrFormat, p->avalue.format, p->avalue.prec);
     }
-    xfile_end_element(xf, "annotation");
+    xfile_end_element(xf, EStrAnnotation);
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->errbar.active);
     xmlio_set_side_placement(attrs, p->errbar.ptype);
-    xfile_begin_element(xf, "errorbar", attrs);
+    xfile_begin_element(xf, EStrErrorbar, attrs);
     {
         attributes_reset(attrs);
-        attributes_set_dval(attrs, "size", p->errbar.barsize);
-        xfile_begin_element(xf, "barline", attrs);
+        attributes_set_dval(attrs, AStrSize, p->errbar.barsize);
+        xfile_begin_element(xf, EStrBarline, attrs);
         {
             xmlio_write_line_spec(xf, attrs,
                 &(p->errbar.pen), p->errbar.linew, p->errbar.lines);
         }
-        xfile_end_element(xf, "barline");
+        xfile_end_element(xf, EStrBarline);
         
         attributes_reset(attrs);
-        attributes_set_bval(attrs, "arrow-clip", p->errbar.arrow_clip);
-        attributes_set_dval(attrs, "clip-length", p->errbar.cliplen);
-        xfile_begin_element(xf, "riserline", attrs);
+        attributes_set_bval(attrs, AStrArrowClip, p->errbar.arrow_clip);
+        attributes_set_dval(attrs, AStrClipLength, p->errbar.cliplen);
+        xfile_begin_element(xf, EStrRiserline, attrs);
         {
             xmlio_write_line_spec(xf, attrs,
                 &(p->errbar.pen), p->errbar.riser_linew, p->errbar.riser_lines);
         }
-        xfile_end_element(xf, "riserline");
+        xfile_end_element(xf, EStrRiserline);
     }
-    xfile_end_element(xf, "errorbar");
+    xfile_end_element(xf, EStrErrorbar);
 
-    xfile_begin_element(xf, "legend-entry", NULL);
+    xfile_begin_element(xf, EStrLegendEntry, NULL);
     xmlio_write_text(xf, p->legstr);
-    xfile_end_element(xf, "legend-entry");
+    xfile_end_element(xf, EStrLegendEntry);
 
     attributes_free(attrs);
     
@@ -676,7 +677,7 @@ static int save_dataset(XFile *xf, Dataset *data)
         if (data->s) {
             attributes_set_sval(attrs, "s", data->s[i]);
         }
-        xfile_empty_element(xf, "row", attrs);
+        xfile_empty_element(xf, EStrRow, attrs);
     }
 
     attributes_free(attrs);
@@ -694,7 +695,7 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
     xmlio_set_active(attrs, o->active);
     xmlio_set_angle(attrs, o->angle);
     xmlio_set_offset(attrs, o->offset.x, o->offset.y);
-    xfile_begin_element(xf, "object", attrs);
+    xfile_begin_element(xf, EStrObject, attrs);
     {
         char buf[32];
         xmlio_write_location(xf, attrs, o->loctype, o->ap.x, o->ap.y);
@@ -705,33 +706,33 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
         case DO_LINE:
             {
                 DOLineData *l = (DOLineData *) o->odata;
-                attributes_set_dval(attrs, "length", l->length);
+                attributes_set_dval(attrs, AStrLength, l->length);
                 /* FIXME arrows */;
             }
             break;
         case DO_BOX:
             {
                 DOBoxData *b = (DOBoxData *) o->odata;
-                attributes_set_dval(attrs, "width", b->width);
-                attributes_set_dval(attrs, "height", b->height);
+                attributes_set_dval(attrs, AStrWidth, b->width);
+                attributes_set_dval(attrs, AStrHeight, b->height);
             }
             break;
         case DO_ARC:
             {
                 DOArcData *a = (DOArcData *) o->odata;
-                attributes_set_dval(attrs, "width", a->width);
-                attributes_set_dval(attrs, "height", a->height);
-                attributes_set_dval(attrs, "start-angle", a->angle1);
-                attributes_set_dval(attrs, "stop-angle", a->angle2);
-                attributes_set_ival(attrs, "fill-mode", a->fillmode); /* FIXME: textual */
+                attributes_set_dval(attrs, AStrWidth, a->width);
+                attributes_set_dval(attrs, AStrHeight, a->height);
+                attributes_set_dval(attrs, AStrStartAngle, a->angle1);
+                attributes_set_dval(attrs, AStrStopAngle, a->angle2);
+                attributes_set_ival(attrs, AStrFillMode, a->fillmode); /* FIXME: textual */
             }
             break;
         case DO_STRING:
             {
                 DOStringData *s = (DOStringData *) o->odata;
                 xmlio_set_font_ref(attrs, s->font);
-                attributes_set_dval(attrs, "char-size", s->size);
-                attributes_set_ival(attrs, "justification", s->just); /* FIXME: textual */
+                attributes_set_dval(attrs, AStrCharSize, s->size);
+                attributes_set_ival(attrs, AStrJustification, s->just); /* FIXME: textual */
             }
             break;
         }
@@ -747,7 +748,7 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
             xfile_empty_element(xf, buf, attrs);
         }
     }
-    xfile_end_element(xf, "object");
+    xfile_end_element(xf, EStrObject);
     
     return RETURN_SUCCESS;
 }
@@ -848,53 +849,53 @@ int save_project(char *fn)
     }
     
     attributes_reset(attrs);
-    attributes_set_ival(attrs, "version", bi_version_id());
-    xfile_begin(xf, "ISO-8859-1", FALSE, NULL, "grace.dtd", "grace", attrs);
+    attributes_set_ival(attrs, AStrVersion, bi_version_id());
+    xfile_begin(xf, "ISO-8859-1", FALSE, NULL, "grace.dtd", EStrGrace, attrs);
 
     xfile_comment(xf, "Description");
-    xfile_begin_element(xf, "description", NULL);
+    xfile_begin_element(xf, EStrDescription, NULL);
     {
         xmlio_write_text(xf, grace->project->description);
     }
-    xfile_end_element(xf, "description");
+    xfile_end_element(xf, EStrDescription);
     
     xfile_comment(xf, "Definitions");
-    xfile_begin_element(xf, "definitions", NULL);
+    xfile_begin_element(xf, EStrDefinitions, NULL);
     {
         xfile_comment(xf, "Color map");
         save_colormap(xf);
         xfile_comment(xf, "Font map");
         save_fontmap(xf);
     }
-    xfile_end_element(xf, "definitions");
+    xfile_end_element(xf, EStrDefinitions);
 
     xfile_comment(xf, "Page properties");
     attributes_reset(attrs);
-    attributes_set_ival(attrs, "width", grace->project->page_wpp);
-    attributes_set_ival(attrs, "height", grace->project->page_hpp);
-    xfile_begin_element(xf, "page", attrs);
+    attributes_set_ival(attrs, AStrWidth, grace->project->page_wpp);
+    attributes_set_ival(attrs, AStrHeight, grace->project->page_hpp);
+    xfile_begin_element(xf, EStrPage, attrs);
     {
         Pen pen;
         pen.color = getbgcolor();
         pen.pattern = getbgfill() ? 1:0;
         xmlio_write_fill_spec(xf, attrs, &pen);
     }
-    xfile_end_element(xf, "page");
+    xfile_end_element(xf, EStrPage);
 
     xfile_comment(xf, "Data formats");
-    xfile_begin_element(xf, "data-formats", NULL);
+    xfile_begin_element(xf, EStrDataFormats, NULL);
     {
         attributes_reset(attrs);
-        xmlio_set_world_value(attrs, "reference", get_ref_date());
-        attributes_set_bval(attrs, "wrap", two_digits_years_allowed());
-        attributes_set_ival(attrs, "wrap-year", get_wrap_year());
-        xfile_empty_element(xf, "dates", attrs);
+        xmlio_set_world_value(attrs, AStrReference, get_ref_date());
+        attributes_set_bval(attrs, AStrWrap, two_digits_years_allowed());
+        attributes_set_ival(attrs, AStrWrapYear, get_wrap_year());
+        xfile_empty_element(xf, EStrDates, attrs);
         
         attributes_reset(attrs);
-        attributes_set_sval(attrs, "format", grace->project->sformat);
-        xfile_empty_element(xf, "world", attrs);
+        attributes_set_sval(attrs, AStrFormat, grace->project->sformat);
+        xfile_empty_element(xf, EStrWorld, attrs);
     }
-    xfile_end_element(xf, "data-formats");
+    xfile_end_element(xf, EStrDataFormats);
 
     xfile_comment(xf, "Time stamp");
     attributes_reset(attrs);
@@ -902,15 +903,15 @@ int save_project(char *fn)
     xmlio_set_offset(attrs, grace->project->timestamp.offset.x,
         grace->project->timestamp.offset.y);
     xmlio_set_angle(attrs, grace->project->timestamp.angle);
-    attributes_set_sval(attrs, "value", grace->project->timestamp.s);
+    attributes_set_sval(attrs, AStrValue, grace->project->timestamp.s);
     /* FIXME: justification */
-    xfile_begin_element(xf, "time-stamp", attrs);
+    xfile_begin_element(xf, EStrTimeStamp, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
             grace->project->timestamp.font, grace->project->timestamp.charsize,
                 grace->project->timestamp.color);
     }
-    xfile_end_element(xf, "time-stamp");
+    xfile_end_element(xf, EStrTimeStamp);
     
     save_canvas_objects(xf);
     
@@ -925,9 +926,9 @@ int save_project(char *fn)
         int setno;
 
         attributes_reset(attrs);
-        attributes_set_ival(attrs, "id", gno);
+        attributes_set_ival(attrs, AStrId, gno);
         xmlio_set_active(attrs, !(g->hidden));
-        xfile_begin_element(xf, "graph", attrs);
+        xfile_begin_element(xf, EStrGraph, attrs);
         {
             save_graph_properties(xf, g);
             
@@ -940,34 +941,34 @@ int save_project(char *fn)
 
                 attributes_reset(attrs);
                 sprintf(data_ref, "G%d.S%d-data", gno, setno);
-                attributes_set_sval(attrs, "id", data_ref);
-                attributes_set_sval(attrs, "comment", p->comment);
+                attributes_set_sval(attrs, AStrId, data_ref);
+                attributes_set_sval(attrs, AStrComment, p->comment);
                 if (p->hotlink) {
-                    attributes_set_sval(attrs, "hotfile", p->hotfile);
+                    attributes_set_sval(attrs, AStrHotfile, p->hotfile);
                     /* FIXME: hotsrc */
                 }
-                xfile_begin_element(xf, "dataset", attrs);
+                xfile_begin_element(xf, EStrDataset, attrs);
                 {
                     save_dataset(xf, p->data);
                 }
-                xfile_end_element(xf, "dataset");
+                xfile_end_element(xf, EStrDataset);
 
                 attributes_reset(attrs);
-                attributes_set_ival(attrs, "id", setno);
+                attributes_set_ival(attrs, AStrId, setno);
                 xmlio_set_active(attrs, !(p->hidden));
-                attributes_set_sval(attrs, "data-ref", data_ref);
-                xfile_begin_element(xf, "set", attrs);
+                attributes_set_sval(attrs, AStrDataRef, data_ref);
+                xfile_begin_element(xf, EStrSet, attrs);
                 {
                     save_set_properties(xf, p);
                 }
-                xfile_end_element(xf, "set");
+                xfile_end_element(xf, EStrSet);
 
                 if (storage_next(g->sets) != RETURN_SUCCESS) {
                     break;
                 }
             }
         }
-        xfile_end_element(xf, "graph");
+        xfile_end_element(xf, EStrGraph);
 
         if (storage_next(grace->project->graphs) != RETURN_SUCCESS) {
             break;
