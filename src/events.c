@@ -250,18 +250,20 @@ static void move_target(canvas_target *ct, const VPoint *vp)
     }
 }
 
-static Widget popup = NULL, poplab, drop_pt_bt, as_set_bt;
+static Widget popup = NULL, poplab, drop_pt_bt, as_set_bt, edit_menu;
 static Widget bring_to_front_bt, move_up_bt, move_down_bt, send_to_back_bt;
 
-#define EDIT_CB             0
-#define DELETE_CB           1
-#define DUPLICATE_CB        2
-#define BRING_TO_FRONT_CB   3
-#define SEND_TO_BACK_CB     4
-#define MOVE_UP_CB          5
-#define MOVE_DOWN_CB        6
-#define DROP_POINT_CB       7
-#define AUTOSCALE_BY_SET_CB 8
+#define EDIT_CB              0
+#define DELETE_CB            1
+#define DUPLICATE_CB         2
+#define BRING_TO_FRONT_CB    3
+#define SEND_TO_BACK_CB      4
+#define MOVE_UP_CB           5
+#define MOVE_DOWN_CB         6
+#define DROP_POINT_CB        7
+#define EDITDATA_S_CB        8
+#define EDITDATA_E_CB        9
+#define AUTOSCALE_BY_SET_CB 10
 
 static void popup_any_cb(canvas_target *ct, int type)
 {
@@ -300,6 +302,12 @@ static void popup_any_cb(canvas_target *ct, int type)
         if (quark_fid_get(q) == QFlavorSet) {
             autoscale_bysets(&q, 1, AUTOSCALE_XY);
         }
+        break;
+    case EDITDATA_S_CB:
+        create_ss_frame(q);
+        break;
+    case EDITDATA_E_CB:
+        do_ext_editor(q);
         break;
     }
     
@@ -345,6 +353,16 @@ static void move_down_cb(Widget but, void *udata)
 static void autoscale_cb(Widget but, void *udata)
 {
     popup_any_cb((canvas_target *) udata, AUTOSCALE_BY_SET_CB);
+}
+
+static void s_editS_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, EDITDATA_S_CB);
+}
+
+static void s_editE_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, EDITDATA_E_CB);
 }
 
 static void drop_point_cb(Widget but, void *udata)
@@ -564,6 +582,12 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                         as_set_bt = CreateMenuButton(popup,
                             "Autoscale by this set", '\0', autoscale_cb, &ct);
 
+                        edit_menu = CreateMenu(popup, "Edit data", '\0', FALSE);
+                        CreateMenuButton(edit_menu, "In spreadsheet", '\0',
+    	                    s_editS_cb, &ct);
+                        CreateMenuButton(edit_menu, "In text editor", '\0',
+    	                    s_editE_cb, &ct);
+
                         CreateMenuSeparator(popup);
 
                         drop_pt_bt = CreateMenuButton(popup,
@@ -593,8 +617,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                     }
                     if (quark_fid_get(ct.q) == QFlavorSet) {
                         ManageChild(as_set_bt);
+                        ManageMenu(edit_menu);
                     } else {
                         UnmanageChild(as_set_bt);
+                        UnmanageMenu(edit_menu);
                     }
                     XmMenuPosition(popup, xbe);
                     XtManageChild(popup);
