@@ -288,7 +288,7 @@ We define other routines formatting parameters
  
 void t1_DumpArea();           /* dump a region structure                      */
 void t1_DumpText();           /* dump a textpath structure                    */
-void t1_DumpPath();           /* dump a path list                             */
+/* void t1_DumpPath(); */     /* dump a path list                             */
 void t1_DumpSpace();          /* dump a coordinate space structure            */
 void t1_DumpEdges();          /* dump a region's edge list                    */
 void t1_FormatFP();           /* dump a format a "fractpel" coordinate        */
