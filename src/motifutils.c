@@ -1731,7 +1731,10 @@ static void text_timer_proc(XtPointer client_data, XtIntervalId *id)
     cbdata->timeout_id = (XtIntervalId) 0;
 }
 
-static void text_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+/* Text input timeout [ms] */
+#define TEXT_TIMEOUT    0
+
+static void text_int_mv_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Text_CBdata *cbdata = (Text_CBdata *) client_data;
 
@@ -1745,8 +1748,11 @@ static void text_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
     if (cbdata->timeout_id) {
         XtRemoveTimeOut(cbdata->timeout_id);
     }
-    cbdata->timeout_id = XtAppAddTimeOut(XtWidgetToApplicationContext(w),
-        500 /* 0.5 second */, text_timer_proc, client_data);
+    
+    if (TEXT_TIMEOUT) {
+        cbdata->timeout_id = XtAppAddTimeOut(app_con,
+            TEXT_TIMEOUT, text_timer_proc, client_data);
+    }
 }
 
 static void text_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
@@ -1772,7 +1778,7 @@ void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data)
     XtAddCallback(cst->text,
         XmNactivateCallback, text_int_cb_proc, (XtPointer) cbdata);
     XtAddCallback(cst->text,
-        XmNmodifyVerifyCallback, text_cb_proc, (XtPointer) cbdata);
+        XmNmodifyVerifyCallback, text_int_mv_cb_proc, (XtPointer) cbdata);
 }
 
 int GetTextCursorPos(TextStructure *cst)
