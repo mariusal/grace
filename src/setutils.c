@@ -334,16 +334,16 @@ void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
     
     *xmin = x[0];
     *xmax = x[0];
-    *imin = 1;
-    *imax = 1;
+    *imin = 0;
+    *imax = 0;
     for (i = 1; i < n; i++) {
 	if (x[i] < *xmin) {
 	    *xmin = x[i];
-	    *imin = i + 1;
+	    *imin = i;
 	}
 	if (x[i] > *xmax) {
 	    *xmax = x[i];
-	    *imax = i + 1;
+	    *imax = i;
 	}
     }
 }
