@@ -129,13 +129,6 @@ GLOBAL(autoscale_onread, int, AUTOSCALE_XY);
 GLOBAL(focus_policy, int, FOCUS_CLICK);
 GLOBAL(draw_focus_flag, int, TRUE);
 
-/* block data globals */
-GLOBAL(blockdata, double **, NULL);
-GLOBAL(maxblock, int, MAXBLOCK);
-GLOBAL(blocklen, int, 0);
-GLOBAL(blockncols, int, 0);
-
-
 /* lines */
 GLOBAL(lines, linetype *, NULL);
 /* boxes */
