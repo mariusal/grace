@@ -2320,8 +2320,9 @@ static int is_legend_drawable(Quark *pset)
     set *p = set_get_data(pset);
     Quark *gr = get_parent_graph(pset);
     
-    if (is_set_drawable(pset) &&
+    if (is_set_drawable(pset)       &&
         !is_empty_string(p->legstr) &&
+        !is_graph_hidden(gr)        &&
         get_graph_type(gr) != GRAPH_PIE) {
         
         return TRUE;
