@@ -326,6 +326,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 ct.vp = vp;
                 if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
                     raise_explorer(grace->gui, ct.q);
+                    ct.found = FALSE;
                 }
             }
             
@@ -356,6 +357,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
                     /* TODO: context-sensitive menu */
                     fprintf(stderr, "%s(%d)\n", QIDSTR(ct.q), ct.part);
+                    ct.found = FALSE;
                 }
             }
             break;
@@ -381,6 +383,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 move_target(&ct, &vp);
                 ct.found = FALSE;
 
+                update_explorer(grace->gui->eui, TRUE);
                 xdrawgraph(grace->project, TRUE);
             }
             set_cursor(grace->gui, -1);
