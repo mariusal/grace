@@ -356,6 +356,9 @@
 /* Define if Motif library is actually Lesstif.  */
 #define HAVE_LESSTIF 1
 
+/* Define if Motif library includes _XmVersionString[] string.  */
+#define HAVE__XMVERSIONSTRING 1
+
 /* Define if you have the Xpm library (-lXpm).  */
 #define HAVE_XPM 1
 
