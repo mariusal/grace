@@ -1215,7 +1215,7 @@ static void load_example_cb(Widget but, void *data)
     
     s = (char *) data;
     sprintf(buf, "examples/%s", s);
-    load_project_file(grace, buf, FALSE);
+    load_project(grace, buf);
 
     xdrawgraph(grace->project);
 
