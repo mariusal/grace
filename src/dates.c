@@ -546,6 +546,9 @@ int parse_float(const char* s, double *value, const char **after)
        s++;
     } else {
         neg_mant = 0;
+        if (*s == '+') {
+            s++;
+        }
     }
 
     /* mantissa */
