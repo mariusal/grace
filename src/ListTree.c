@@ -1263,6 +1263,10 @@ menu(Widget aw, XEvent *event, String *params, Cardinal *num_params)
     item=GetItem (w, event->xbutton.y);
   
     if (item) {
+      if (!item->highlighted) {
+          ListTreeHighlightItem(aw, item);
+          HighlightDoCallback(w);
+      }
       ret.reason = XtMENU;
       ret.item = item;
       ret.event = event;
