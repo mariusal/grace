@@ -59,16 +59,6 @@
 
 extern Widget app_shell;        /* defined in xmgrace.c */
 
-/* set selection gadget */
-typedef struct _SetChoiceItem {
-    int type;
-    int display;
-    int gno;
-    int spolicy;
-    int indx;
-    Widget list;
-} SetChoiceItem;
-
 typedef struct {
     int value;
     char *label;
@@ -389,17 +379,6 @@ void editS_set_proc(void *data);
 void editE_set_proc(void *data);
 
 SpinStructure *CreateLineWidthChoice(Widget parent, char *s);
-
-
-SetChoiceItem CreateSetSelector(Widget parent, char *label, int type, int ff, int gtype, int stype);
-int GetSelectedSet(SetChoiceItem l);
-int GetSelectedSets(SetChoiceItem l, int **sets);
-void update_set_list(int gno, SetChoiceItem l);
-int save_set_list(SetChoiceItem l);
-void update_save_set_list( SetChoiceItem l, int newgr );
-
-int SetSelectedSet(int gno, int setno, SetChoiceItem l);
-
 
 Widget *CreatePanelChoice(Widget parent, char *labstr, int nchoices, ...);
 void SetChoice(Widget * w, int value);
