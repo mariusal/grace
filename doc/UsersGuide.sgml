@@ -892,7 +892,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <itemize>
           <item> Ctrl &lt;Key&gt;A: Autoscale the current graph
           <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
-          <item> Ctrl &lt;Key&gt;V: Set the viewport with mouse
           <item> Ctrl &lt;Key&gt;Z: Zoom
           <item> Ctrl Alt &lt;Key&gt;L: Draw a line
           <item> Ctrl Alt &lt;Key&gt;B: Draw a box
