@@ -2151,6 +2151,7 @@ void dolegend(int gno)
     
     if (draw_flag == FALSE) {
         l.bb.xv1 = l.bb.xv2 = l.bb.yv1 = l.bb.yv2 = 0.0;
+        set_graph_legend(gno, &l);
         return;
     }
         
