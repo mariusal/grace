@@ -390,7 +390,8 @@ static void autoscale_proc(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (activeset(cg)) {
 	autoscale_graph(cg, (int) client_data);
-	drawgraph();
+	update_ticks(cg);
+        drawgraph();
     } else {
 	errwin("No active sets!");
     }

@@ -228,9 +228,6 @@ void autoscale_byset(int gno, int setno, int autos_type)
             autotick_axis(gno, ALL_AXES);
             break;
         }
-#ifndef NONE_GUI
-        update_ticks(gno);
-#endif
     }
 }
 

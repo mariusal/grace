@@ -371,6 +371,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
             case AUTO_NEAREST:
                 if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
                     autoscale_byset(cg, setno, AUTOSCALE_XY);
+                    update_ticks(cg);
                     xdrawgraph();
                     set_action(DO_NOTHING);
                 }
@@ -1293,7 +1294,10 @@ void newworld(int gno, int axes, VPoint vp1, VPoint vp2)
 /* canvas_actions */
 void autoscale_action(Widget w, XKeyEvent *e, String *p, Cardinal *c)
 {
-    autoscale_graph(get_cg(), AUTOSCALE_XY);
+    int cg = get_cg();
+    
+    autoscale_graph(cg, AUTOSCALE_XY);
+    update_ticks(cg);
 }
 
 void autoscale_on_near_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )

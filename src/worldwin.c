@@ -428,5 +428,6 @@ void define_autos(int aon, int au, int ap)
 	    autoscale_byset(i, au, aon);
 	}
     }
+    update_ticks(cg);
     drawgraph();
 }
