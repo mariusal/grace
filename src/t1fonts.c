@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -412,7 +412,7 @@ GLYPH *GetGlyphString(Canvas *canvas,
     T1_TMATRIX matrix, *matrixP;
 
     RGB fg_rgb, bg_rgb, delta_rgb;
-    CMap_entry cmap;
+    Color color;
     
     if (cs->len == 0) {
         return NULL;
@@ -451,26 +451,31 @@ GLYPH *GetGlyphString(Canvas *canvas,
     	aacolors[T1_AALEVELS - 1] = fg;
 
     	if ((fg != last_fg) || (bg != last_bg)) {
-    	    /* Get RGB values for fore- and background */
-    	    if (get_rgb(canvas, fg, &fg_rgb) != RETURN_SUCCESS) {
+    	    Color *cp;
+            /* Get RGB values for fore- and background */
+    	    cp = get_color_def(canvas, fg);
+            if (!cp) {
     		return NULL;
     	    }
+            fg_rgb = cp->rgb;
  
-    	    if (get_rgb(canvas, bg, &bg_rgb) != RETURN_SUCCESS) {
+    	    cp = get_color_def(canvas, bg);
+            if (!cp) {
     		return NULL;
     	    }
+            bg_rgb = cp->rgb;
  
     	    delta_rgb.red   = (fg_rgb.red   - bg_rgb.red)   / (T1_AALEVELS - 1);
     	    delta_rgb.green = (fg_rgb.green - bg_rgb.green) / (T1_AALEVELS - 1);
     	    delta_rgb.blue  = (fg_rgb.blue  - bg_rgb.blue)  / (T1_AALEVELS - 1);
  
     	    for (i = 1; i < T1_AALEVELS - 1; i++) {
-    		cmap.rgb.red   = bg_rgb.red + i*delta_rgb.red;
-    		cmap.rgb.green = bg_rgb.green + i*delta_rgb.green;
-    		cmap.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
-    		cmap.cname = "";
-    		cmap.ctype = COLOR_AUX;
-    		aacolors[i] = add_color(canvas, &cmap);
+    		color.rgb.red   = bg_rgb.red + i*delta_rgb.red;
+    		color.rgb.green = bg_rgb.green + i*delta_rgb.green;
+    		color.rgb.blue  = bg_rgb.blue + i*delta_rgb.blue;
+    		color.cname = "";
+    		color.ctype = COLOR_AUX;
+    		aacolors[i] = add_color(canvas, &color);
     	    }
  
     	    last_fg = fg;

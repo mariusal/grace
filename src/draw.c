@@ -407,7 +407,12 @@ int get_max_path_limit(const Canvas *canvas)
 
 int initgraphics(Canvas *canvas, const CanvasStats *cstats)
 {
-    int retval;
+    int i, retval;
+
+    for (i = 0; i < canvas->ncolors; i++) {
+        CMap_entry *cmap = &canvas->cmap[i];
+        canvas_color_trans(canvas, cmap);
+    }
     
     retval = canvas->curdevice->init(canvas, canvas->curdevice->data, cstats);
     
@@ -1157,39 +1162,39 @@ static int RGB2CMY(const RGB *rgb, CMY *cmy)
     }
 }
 
-static CMap_entry cmap_init[] = {
+static Color cmap_init[] = {
     /* white  */
-    {{255, 255, 255}, "white", COLOR_MAIN, 0},
+    {{255, 255, 255}, "white", COLOR_MAIN},
     /* black  */
-    {{0, 0, 0}, "black", COLOR_MAIN, 0},
+    {{0, 0, 0}, "black", COLOR_MAIN},
     /* red    */
-    {{255, 0, 0}, "red", COLOR_MAIN, 0},
+    {{255, 0, 0}, "red", COLOR_MAIN},
     /* green  */
-    {{0, 255, 0}, "green", COLOR_MAIN, 0},
+    {{0, 255, 0}, "green", COLOR_MAIN},
     /* blue   */
-    {{0, 0, 255}, "blue", COLOR_MAIN, 0},
+    {{0, 0, 255}, "blue", COLOR_MAIN},
     /* yellow */
-    {{255, 255, 0}, "yellow", COLOR_MAIN, 0},
+    {{255, 255, 0}, "yellow", COLOR_MAIN},
     /* brown  */
-    {{188, 143, 143}, "brown", COLOR_MAIN, 0},
+    {{188, 143, 143}, "brown", COLOR_MAIN},
     /* grey   */
-    {{220, 220, 220}, "grey", COLOR_MAIN, 0},
+    {{220, 220, 220}, "grey", COLOR_MAIN},
     /* violet */
-    {{148, 0, 211}, "violet", COLOR_MAIN, 0},
+    {{148, 0, 211}, "violet", COLOR_MAIN},
     /* cyan   */
-    {{0, 255, 255}, "cyan", COLOR_MAIN, 0},
+    {{0, 255, 255}, "cyan", COLOR_MAIN},
     /* magenta*/
-    {{255, 0, 255}, "magenta", COLOR_MAIN, 0},
+    {{255, 0, 255}, "magenta", COLOR_MAIN},
     /* orange */
-    {{255, 165, 0}, "orange", COLOR_MAIN, 0},
+    {{255, 165, 0}, "orange", COLOR_MAIN},
     /* indigo */
-    {{114, 33, 188}, "indigo", COLOR_MAIN, 0},
+    {{114, 33, 188}, "indigo", COLOR_MAIN},
     /* maroon */
-    {{103, 7, 72}, "maroon", COLOR_MAIN, 0},
+    {{103, 7, 72}, "maroon", COLOR_MAIN},
     /* turquoise */
-    {{64, 224, 208}, "turquoise", COLOR_MAIN, 0},
+    {{64, 224, 208}, "turquoise", COLOR_MAIN},
     /* forest green */
-    {{0, 139, 0}, "green4", COLOR_MAIN, 0}
+    {{0, 139, 0}, "green4", COLOR_MAIN}
 };
 
 /*
@@ -1200,7 +1205,7 @@ void initialize_cmap(Canvas *canvas)
 {
     int i, n;
     
-    n = sizeof(cmap_init)/sizeof(CMap_entry);
+    n = sizeof(cmap_init)/sizeof(Color);
     realloc_colors(canvas, n);
     for (i = 0; i < n; i++) {
         store_color(canvas, i, &cmap_init[i]);
@@ -1241,7 +1246,7 @@ int find_color(const Canvas *canvas, const RGB *rgb)
     int cindex = BAD_COLOR;
     
     for (i = 0; i < canvas->ncolors; i++) {
-        if (compare_rgb(&canvas->cmap[i].rgb, rgb) == TRUE) {
+        if (compare_rgb(&canvas->cmap[i].color.rgb, rgb) == TRUE) {
             cindex = i;
             break;
         }
@@ -1256,8 +1261,8 @@ int get_color_by_name(const Canvas *canvas, const char *cname)
     int cindex = BAD_COLOR;
     
     for (i = 0; i < canvas->ncolors; i++) {
-        if (canvas->cmap[i].ctype == COLOR_MAIN &&
-            compare_strings(canvas->cmap[i].cname, cname) == TRUE) {
+        if (canvas->cmap[i].color.ctype == COLOR_MAIN &&
+            compare_strings(canvas->cmap[i].color.cname, cname) == TRUE) {
             cindex = i;
             break;
         }
@@ -1275,7 +1280,7 @@ static int realloc_colors(Canvas *canvas, int n)
         return RETURN_FAILURE;
     } else {
         for (i = n; i < canvas->ncolors; i++) {
-            XCFREE(canvas->cmap[i].cname);
+            XCFREE(canvas->cmap[i].color.cname);
         }
         cmap_tmp = xrealloc(canvas->cmap, n*sizeof(CMap_entry));
         if (cmap_tmp == NULL) {
@@ -1284,7 +1289,7 @@ static int realloc_colors(Canvas *canvas, int n)
             canvas->cmap = cmap_tmp;
             for (i = canvas->ncolors; i < n; i++) {
                 memset(&canvas->cmap[i], 0, sizeof(CMap_entry));
-                canvas->cmap[i].ctype = COLOR_NONE;
+                canvas->cmap[i].color.ctype = COLOR_NONE;
             }
         }
         canvas->ncolors = n;
@@ -1293,29 +1298,103 @@ static int realloc_colors(Canvas *canvas, int n)
     return RETURN_SUCCESS;
 }
 
-int store_color(Canvas *canvas, int n, const CMap_entry *cmap)
+static int is_rgb_grey(const RGB *rgb)
 {
-    if (is_valid_color(&cmap->rgb) != TRUE) {
+    if (rgb->red == rgb->blue &&
+        rgb->red == rgb->green) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+static void rgb_invert(const RGB *src, RGB *dest)
+{
+    dest->red   = MAXCOLORS - 1 - src->red;
+    dest->blue  = MAXCOLORS - 1 - src->blue;
+    dest->green = MAXCOLORS - 1 - src->green;
+}
+
+static void rgb_greyscale(const RGB *src, RGB *dest)
+{
+    int y;
+    
+    y = INTENSITY(src->red, src->green, src->blue);
+    
+    dest->red   = y;
+    dest->blue  = y;
+    dest->green = y;
+}
+
+static void rgb_bw(const RGB *src, RGB *dest)
+{
+    int y;
+    
+    if (src->red   < MAXCOLORS - 1 ||
+        src->green < MAXCOLORS - 1 ||
+        src->blue  < MAXCOLORS - 1) {
+        y = 0;
+    } else {
+        y = MAXCOLORS - 1;
+    }
+    
+    dest->red   = y;
+    dest->blue  = y;
+    dest->green = y;
+}
+
+void canvas_color_trans(Canvas *canvas, CMap_entry *cmap)
+{
+    switch (canvas->color_trans) {
+    case COLOR_TRANS_BW:
+        rgb_bw(&cmap->color.rgb, &cmap->devrgb);
+        break;
+    case COLOR_TRANS_GREYSCALE:
+        rgb_greyscale(&cmap->color.rgb, &cmap->devrgb);
+        break;
+    case COLOR_TRANS_NEGATIVE:
+        rgb_invert(&cmap->color.rgb, &cmap->devrgb);
+        break;
+    case COLOR_TRANS_REVERSE:
+        if (is_rgb_grey(&cmap->color.rgb)) {
+            rgb_invert(&cmap->color.rgb, &cmap->devrgb);
+        } else {
+            cmap->devrgb = cmap->color.rgb;
+        }
+        break;
+    case COLOR_TRANS_NONE:
+    default:
+        cmap->devrgb = cmap->color.rgb;
+        break;
+    }
+}
+
+int store_color(Canvas *canvas, int n, const Color *color)
+{
+    if (is_valid_color(&color->rgb) != TRUE) {
         return RETURN_FAILURE;
     } else if (n >= canvas->ncolors &&
         realloc_colors(canvas, n + 1) == RETURN_FAILURE) {
         return RETURN_FAILURE;
     } else {
-        if (is_empty_string(cmap->cname)) {
-            canvas->cmap[n].cname =
-                copy_string(canvas->cmap[n].cname, "unnamed");
+        CMap_entry *cmap = &canvas->cmap[n];
+        if (is_empty_string(color->cname)) {
+            cmap->color.cname =
+                copy_string(cmap->color.cname, "unnamed");
         } else {
-            canvas->cmap[n].cname =
-                copy_string(canvas->cmap[n].cname, cmap->cname);
+            cmap->color.cname =
+                copy_string(cmap->color.cname, color->cname);
         }
-        canvas->cmap[n].rgb = cmap->rgb;
-        canvas->cmap[n].ctype = cmap->ctype;
+        cmap->color.rgb = color->rgb;
+        cmap->color.ctype = color->ctype;
                 
         /* inform current device of changes in the cmap database */
         if (canvas->device_ready && canvas->curdevice->updatecmap != NULL) {
+            canvas_color_trans(canvas, cmap);
             canvas->curdevice->updatecmap(canvas, canvas->curdevice->data);
+            
         }
-        if (cmap->ctype == COLOR_MAIN) {
+        if (color->ctype == COLOR_MAIN) {
             ReqUpdateColorSel = TRUE;
         }
         return RETURN_SUCCESS;
@@ -1325,19 +1404,19 @@ int store_color(Canvas *canvas, int n, const CMap_entry *cmap)
 /*
  * add_color() adds a new entry to the colormap table
  */
-int add_color(Canvas *canvas, const CMap_entry *cmap)
+int add_color(Canvas *canvas, const Color *color)
 {
     int cindex;
     
-    if (is_valid_color(&cmap->rgb) != TRUE) {
+    if (is_valid_color(&color->rgb) != TRUE) {
         cindex = BAD_COLOR;
-    } else if ((cindex = find_color(canvas, &cmap->rgb)) != BAD_COLOR) {
-        if (cmap->ctype == COLOR_MAIN && 
-            canvas->cmap[cindex].ctype != COLOR_MAIN) {
-            canvas->cmap[cindex].ctype = COLOR_MAIN;
+    } else if ((cindex = find_color(canvas, &color->rgb)) != BAD_COLOR) {
+        if (color->ctype == COLOR_MAIN && 
+            canvas->cmap[cindex].color.ctype != COLOR_MAIN) {
+            canvas->cmap[cindex].color.ctype = COLOR_MAIN;
             ReqUpdateColorSel = TRUE;
         }
-    } else if (store_color(canvas, canvas->ncolors, cmap) == RETURN_FAILURE) {
+    } else if (store_color(canvas, canvas->ncolors, color) == RETURN_FAILURE) {
         cindex = BAD_COLOR;
     } else {
         cindex = canvas->ncolors - 1;
@@ -1355,7 +1434,7 @@ int add_color(Canvas *canvas, const CMap_entry *cmap)
 int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb)
 {
     if (rgb && cindex < canvas->ncolors) {
-        *rgb = canvas->cmap[cindex].rgb;
+        *rgb = canvas->cmap[cindex].devrgb;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1364,20 +1443,21 @@ int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb)
 
 int get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb)
 {
-    if (frgb && cindex < canvas->ncolors) {
-        frgb->red   = (double) canvas->cmap[cindex].rgb.red   / (MAXCOLORS - 1);
-        frgb->green = (double) canvas->cmap[cindex].rgb.green / (MAXCOLORS - 1);
-        frgb->blue  = (double) canvas->cmap[cindex].rgb.blue  / (MAXCOLORS - 1);
+    RGB rgb;
+    if (frgb && get_rgb(canvas, cindex, &rgb) == RETURN_SUCCESS) {
+        frgb->red   = (double) rgb.red   / (MAXCOLORS - 1);
+        frgb->green = (double) rgb.green / (MAXCOLORS - 1);
+        frgb->blue  = (double) rgb.blue  / (MAXCOLORS - 1);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-CMap_entry *get_cmap_entry(const Canvas *canvas, unsigned int cindex)
+Color *get_color_def(const Canvas *canvas, unsigned int cindex)
 {
     if (cindex < canvas->ncolors) {
-        return &(canvas->cmap[cindex]);
+        return &(canvas->cmap[cindex].color);
     } else {
         return NULL;
     }
@@ -1386,7 +1466,7 @@ CMap_entry *get_cmap_entry(const Canvas *canvas, unsigned int cindex)
 char *get_colorname(const Canvas *canvas, unsigned int cindex)
 {
     if (cindex < canvas->ncolors) {
-        return (canvas->cmap[cindex].cname);
+        return (canvas->cmap[cindex].color.cname);
     } else {
         return NULL;
     }
@@ -1395,7 +1475,7 @@ char *get_colorname(const Canvas *canvas, unsigned int cindex)
 int get_colortype(const Canvas *canvas, unsigned int cindex)
 {
     if (cindex < canvas->ncolors) {
-        return (canvas->cmap[cindex].ctype);
+        return (canvas->cmap[cindex].color.ctype);
     } else {
         return (BAD_COLOR);
     }
@@ -1430,7 +1510,7 @@ int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk)
 {
     CMY cmy;
     
-    if (get_cmy(canvas, cindex, &cmy)     == RETURN_SUCCESS) {
+    if (get_cmy(canvas, cindex, &cmy) == RETURN_SUCCESS) {
         cmyk->black   = MIN3(cmy.cyan, cmy.magenta, cmy.yellow);
         cmyk->cyan    = cmy.cyan    - cmyk->black;
         cmyk->magenta = cmy.magenta - cmyk->black;
@@ -1458,17 +1538,7 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk)
 
 void reverse_video(Canvas *canvas)
 {
-    CMap_entry ctmp;
-    
-    memcpy(&ctmp, &canvas->cmap[0], sizeof(CMap_entry));
-    memcpy(&canvas->cmap[0], &canvas->cmap[1], sizeof(CMap_entry));
-    memcpy(&canvas->cmap[1], &ctmp, sizeof(CMap_entry));
-    canvas->revflag = !canvas->revflag;
-}
-
-int is_video_reversed(const Canvas *canvas)
-{
-    return canvas->revflag;
+    canvas->color_trans = COLOR_TRANS_REVERSE;
 }
 
 /* 

@@ -229,16 +229,16 @@ int save_colormap(XFile *xf, const Canvas *canvas)
 
     xfile_begin_element(xf, EStrColormap, NULL);
     for (i = 0; i < number_of_colors(canvas); i++) {
-        CMap_entry *cmap;
-        cmap = get_cmap_entry(canvas, i);
-        if (cmap != NULL && cmap->ctype == COLOR_MAIN) {
+        Color *color;
+        color = get_color_def(canvas, i);
+        if (color != NULL && color->ctype == COLOR_MAIN) {
             char buf[16];
             attributes_reset(attrs);
             attributes_set_ival(attrs, AStrId, i);
             sprintf(buf, "#%02x%02x%02x",
-                cmap->rgb.red, cmap->rgb.green, cmap->rgb.blue);
+                color->rgb.red, color->rgb.green, color->rgb.blue);
             attributes_set_sval(attrs, AStrRgb, buf);
-            attributes_set_sval(attrs, AStrName, cmap->cname);
+            attributes_set_sval(attrs, AStrName, color->cname);
             xfile_empty_element(xf, EStrColorDef, attrs);
         }
     }

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -112,6 +112,7 @@ unsigned char fpdigit[256] = {
 
 
 extern Display *disp;
+extern int screennumber;
 extern Window root;
 extern int depth;
 
@@ -2016,7 +2017,7 @@ static void cc_cb(Widget w, XtPointer client_data, XtPointer call_data)
 static Widget CreateColorChoicePopup(Widget button)
 {
     Widget popup;
-    int color;
+    int ci;
     
     popup = XmCreatePopupMenu(button, "colorPopupMenu", NULL, 0);
     XtVaSetValues(popup,
@@ -2024,23 +2025,20 @@ static Widget CreateColorChoicePopup(Widget button)
                   XmNpacking, XmPACK_COLUMN,
                   NULL);
 
-    for (color = 0; color < number_of_colors(canvas); color++) {
-        CMap_entry *pcmap = get_cmap_entry(canvas, color);
-        if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
+    for (ci = 0; ci < number_of_colors(canvas); ci++) {
+        Color *color = get_color_def(canvas, ci);
+        if (color != NULL && color->ctype == COLOR_MAIN) {
             long bg, fg;
             Widget cb;
-            cb = CreateButton(popup, get_colorname(canvas, color));
+            cb = CreateButton(popup, color->cname);
             XtAddCallback(cb,
-                XmNactivateCallback, cc_cb, (XtPointer) color);
+                XmNactivateCallback, cc_cb, (XtPointer) ci);
 
-            bg = xvlibcolors[color];
-	    if ((get_colorintensity(canvas, color) < 0.5 &&
-                 is_video_reversed(canvas) == FALSE) ||
-                (get_colorintensity(canvas, color) > 0.5 &&
-                 is_video_reversed(canvas) == TRUE )) {
-	        fg = xvlibcolors[0];
+            bg = xvlibcolors[ci];
+	    if (get_colorintensity(canvas, ci) < 0.5) {
+	        fg = WhitePixel(disp, screennumber);
 	    } else {
-	        fg = xvlibcolors[1];
+	        fg = BlackPixel(disp, screennumber);
 	    }
 	    XtVaSetValues(cb, 
                 XmNbackground, bg,
@@ -3299,13 +3297,10 @@ void paint_color_selector(OptionStructure *optp)
     for (i = 0; i < ncolor_option_items; i++) {
         color = color_option_items[i].value;
         bg = xvlibcolors[color];
-	if ((get_colorintensity(canvas, color) < 0.5 &&
-             is_video_reversed(canvas) == FALSE) ||
-            (get_colorintensity(canvas, color) > 0.5 &&
-             is_video_reversed(canvas) == TRUE )) {
-	    fg = xvlibcolors[0];
+	if (get_colorintensity(canvas, color) < 0.5) {
+	    fg = WhitePixel(disp, screennumber);
 	} else {
-	    fg = xvlibcolors[1];
+	    fg = BlackPixel(disp, screennumber);
 	}
 	XtVaSetValues(optp->options[i].widget, 
             XmNbackground, bg,
@@ -3317,11 +3312,11 @@ void paint_color_selector(OptionStructure *optp)
 void update_color_selectors(void)
 {
     int i, j;
-    CMap_entry *pcmap;
+    Color *color;
     
     for (i = 0, j = 0; i < number_of_colors(canvas); i++) {
-        pcmap = get_cmap_entry(canvas, i);
-        if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
+        color = get_color_def(canvas, i);
+        if (color != NULL && color->ctype == COLOR_MAIN) {
             j++;
         }
     }
@@ -3330,8 +3325,8 @@ void update_color_selectors(void)
     color_option_items = xrealloc(color_option_items,
                                     ncolor_option_items*sizeof(OptionItem));
     for (i = 0, j = 0; i < number_of_colors(canvas); i++) {
-        pcmap = get_cmap_entry(canvas, i);
-        if (pcmap != NULL && pcmap->ctype == COLOR_MAIN) {
+        color = get_color_def(canvas, i);
+        if (color != NULL && color->ctype == COLOR_MAIN) {
             color_option_items[j].value = i;
             color_option_items[j].label = get_colorname(canvas, i);
             j++;

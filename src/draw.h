@@ -141,6 +141,12 @@
 
 #define INTENSITY(r, g, b) ((299*r + 587*g + 114*b)/1000)
 
+#define COLOR_TRANS_NONE        0
+#define COLOR_TRANS_GREYSCALE   1
+#define COLOR_TRANS_BW          2
+#define COLOR_TRANS_NEGATIVE    3
+#define COLOR_TRANS_REVERSE     4
+
 typedef struct {
     int red;
     int green;
@@ -307,7 +313,12 @@ typedef struct {
     RGB rgb;
     char *cname;
     int ctype;
+} Color;
+
+typedef struct {
+    Color color;
     char used;
+    RGB devrgb;     /* Converted RGB - for the current device */
 } CMap_entry;
 
 typedef struct {
@@ -368,8 +379,8 @@ typedef struct {
     Page_geometry pg;                      /* device defaults */
     
     int twopass;                           /* two-pass mode */
-    int autocrop;                           /* resize canvas to tight BBox */
-
+    int autocrop;                          /* resize canvas to tight BBox */
+    
     /* low-level device routines */
     DevInitProc          init;
     DevParserProc        parser;
@@ -421,7 +432,7 @@ struct _Canvas {
     /* colors */
     unsigned int ncolors;
     CMap_entry *cmap;
-    int revflag;
+    int color_trans;                       /* color transformation type */
 
     /* patterns */
     unsigned int npatterns;
@@ -565,13 +576,14 @@ int is_valid_color(const RGB *rgb);
 int find_color(const Canvas *canvas, const RGB *rgb);
 int get_color_by_name(const Canvas *canvas, const char *cname);
 int realloc_color(Canvas *canvas, int n);
-int store_color(Canvas *canvas, int n, const CMap_entry *cmap);
-int add_color(Canvas *canvas, const CMap_entry *cmap);
+int store_color(Canvas *canvas, int n, const Color *color);
+int add_color(Canvas *canvas, const Color *color);
 int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
 int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
-CMap_entry *get_cmap_entry(const Canvas *canvas, unsigned int cindex);
+Color *get_color_def(const Canvas *canvas, unsigned int cindex);
 char *get_colorname(const Canvas *canvas, unsigned int cindex);
 int get_colortype(const Canvas *canvas, unsigned int cindex);
+void canvas_color_trans(Canvas *canvas, CMap_entry *cmap);
 
 double get_colorintensity(const Canvas *canvas, int cindex);
 
@@ -581,7 +593,6 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 
 void initialize_cmap(Canvas *canvas);
 void reverse_video(Canvas *canvas);
-int is_video_reversed(const Canvas *canvas);
 
 int init_t1(Canvas *canvas);
 

@@ -44,7 +44,7 @@ Page *page_new(void)
 
 typedef struct {
     int id;
-    CMap_entry cmap;
+    Color color;
 } Colordef;
 
 Colordef *colordef_new(void)
@@ -52,14 +52,14 @@ Colordef *colordef_new(void)
     Colordef *retval;
     retval = xmalloc(sizeof(Colordef));
     retval->id = -1;
-    retval->cmap.cname = NULL;
+    retval->color.cname = NULL;
     return retval;
 }
 
 void colordef_free(Colordef *cd)
 {
     if (cd) {
-        xfree(cd->cmap.cname);
+        xfree(cd->color.cname);
         xfree(cd);
     }
 }
@@ -697,7 +697,7 @@ char *utf2iso(const char *s)
     ]]></element-type>
     <element-type name="colordef" ctype="Colordef *"><![CDATA[
         $$ = colordef_new();
-        $$->cmap.ctype = COLOR_MAIN;
+        $$->color.ctype = COLOR_MAIN;
     ]]></element-type>
     <element-type name="fontdef" ctype="Fontdef *"><![CDATA[
         $$ = fontdef_new();
@@ -860,7 +860,7 @@ char *utf2iso(const char *s)
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
         <child name="#EStrColorDef"><![CDATA[
-            store_color(grace->rt->canvas, $?->id, &$?->cmap);
+            store_color(grace->rt->canvas, $?->id, &$?->color);
             colordef_free($?);
         ]]></child>
     </element>
@@ -882,11 +882,11 @@ char *utf2iso(const char *s)
             $$->id = $?;
         </attribute>
         <attribute name="#AStrRgb" type="rgb">
-            $$->cmap.rgb = *($?);
+            $$->color.rgb = *($?);
             xfree($?);
         </attribute>
         <attribute name="#AStrName" type="sval">
-            $$->cmap.cname = $?;
+            $$->color.cname = $?;
         </attribute>
     </element>
     <element name="#EStrFontDef" type="fontdef">

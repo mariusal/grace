@@ -2491,13 +2491,13 @@ parmset:
 	    xfree($7);
 	}
 	| MAP COLOR nexpr TO '(' nexpr ',' nexpr ',' nexpr ')' ',' CHRSTR {
-	    CMap_entry cmap;
-            cmap.rgb.red   = $6;
-            cmap.rgb.green = $8;
-            cmap.rgb.blue  = $10;
-            cmap.ctype = COLOR_MAIN;
-            cmap.cname = $13;
-            if (store_color(canvas, $3, &cmap) == RETURN_FAILURE) {
+	    Color color;
+            color.rgb.red   = $6;
+            color.rgb.green = $8;
+            color.rgb.blue  = $10;
+            color.ctype = COLOR_MAIN;
+            color.cname = $13;
+            if (store_color(canvas, $3, &color) == RETURN_FAILURE) {
                 errmsg("Failed mapping a color");
             }
 	    xfree($13);
@@ -3908,13 +3908,13 @@ color_select:
         | COLOR '(' nexpr ',' nexpr ',' nexpr ')'
         {
             int c;
-            CMap_entry cmap;
-            cmap.rgb.red = $3;
-            cmap.rgb.green = $5;
-            cmap.rgb.blue = $7;
-            cmap.ctype = COLOR_MAIN;
-            cmap.cname = NULL;
-            c = add_color(canvas, &cmap);
+            Color color;
+            color.rgb.red = $3;
+            color.rgb.green = $5;
+            color.rgb.blue = $7;
+            color.ctype = COLOR_MAIN;
+            color.cname = NULL;
+            c = add_color(canvas, &color);
             if (c == BAD_COLOR) {
                 errmsg("Can't allocate requested color");
                 c = 1;
