@@ -1190,8 +1190,7 @@ void postprocess_project(int version)
     if (version < 40005) {
         pg.width  = 792;
         pg.height = 612;
-        pg.dpi_x = 72.0;
-        pg.dpi_y = 72.0;
+        pg.dpi = 72.0;
         set_page_geometry(pg);
 #ifndef NONE_GUI
         set_pagelayout(PAGE_FIXED);

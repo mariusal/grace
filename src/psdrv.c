@@ -100,7 +100,7 @@ static Device_entry dev_ps = {DEVICE_PRINT,
           "ps",
           TRUE,
           FALSE,
-          {3300, 2550, 300.0, 300.0}
+          {3300, 2550, 300.0}
          };
 
 static Device_entry dev_eps = {DEVICE_FILE,
@@ -111,7 +111,7 @@ static Device_entry dev_eps = {DEVICE_FILE,
           "eps",
           TRUE,
           FALSE,
-          {2500, 2500, 300.0, 300.0}
+          {2500, 2500, 300.0}
          };
 
 int register_ps_drv(void)
@@ -152,7 +152,7 @@ static int ps_initgraphics(int format)
     
     page_scale = MIN2(pg.height, pg.width);
     pixel_size = 1.0/page_scale;
-    page_scalef = (float) page_scale*72.0/pg.dpi_x;
+    page_scalef = (float) page_scale*72.0/pg.dpi;
 
     if (pg.height < pg.width) {
         page_orientation = PAGE_ORIENT_LANDSCAPE;
@@ -202,14 +202,14 @@ static int ps_initgraphics(int format)
             fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
                 page_offset_x,
                 page_offset_y,
-                (int) (72.0*pg.height/pg.dpi_y) + page_offset_x,
-                (int) (72.0*pg.width/pg.dpi_x)  + page_offset_y);
+                (int) (72.0*pg.height/pg.dpi) + page_offset_x,
+                (int) (72.0*pg.width/pg.dpi)  + page_offset_y);
         } else {
             fprintf(prstream, "%%%%BoundingBox: %d %d %d %d\n", 
                 page_offset_x,
                 page_offset_y,
-                (int) (72.0*pg.width/pg.dpi_x)  + page_offset_x,
-                (int) (72.0*pg.height/pg.dpi_y) + page_offset_y);
+                (int) (72.0*pg.width/pg.dpi)  + page_offset_x,
+                (int) (72.0*pg.height/pg.dpi) + page_offset_y);
         }
     }
     
@@ -714,7 +714,7 @@ void ps_puttext(VPoint start, VPoint end, double size, CompositeString *cstring)
      * incorrect BB calculations
      */
     fprintf(prstream, "%.6f pslength div %.6f scale\n", 
-                                    length*size, size*72.0/page_dpi_y);
+                                    length*size, size*72.0/page_dpi);
 
     fprintf(prstream, "0.0 0.0 moveto\n");
     

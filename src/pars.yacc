@@ -1875,21 +1875,6 @@ parmset:
             }
             free($2);
         }
-        | DEVICE CHRSTR DPI NUMBER NUMBER {
-            int device_id;
-            Device_entry dev;
-            
-            device_id = get_device_by_name($2);
-            if (device_id < 0) {
-                yyerror("Unknown device");
-            } else {
-                dev = get_device_props(device_id);
-                dev.pg.dpi_x = (long) $4;
-                dev.pg.dpi_y = (long) $5;
-                set_device_props(device_id, dev);
-            }
-            free($2);
-        }
         | DEVICE CHRSTR DPI expr {
             int device_id;
             Device_entry dev;
@@ -1899,7 +1884,7 @@ parmset:
                 yyerror("Unknown device");
             } else {
                 dev = get_device_props(device_id);
-                dev.pg.dpi_x = dev.pg.dpi_y = (long) $4;
+                dev.pg.dpi = $4;
                 set_device_props(device_id, dev);
             }
             free($2);
@@ -3875,8 +3860,7 @@ parmset_obs:
                 pg.width =  612;
                 pg.height = 792;
             }
-            pg.dpi_x = 72.0;
-            pg.dpi_y = 72.0;
+            pg.dpi = 72.0;
             set_page_geometry(pg);
         }
 	| PAGE nexpr {

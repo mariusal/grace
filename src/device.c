@@ -44,8 +44,7 @@ int set_page_geometry(Page_geometry pg)
 {
     if (pg.width  > 0 &&
 	pg.height > 0 &&
-        pg.dpi_x  > 0 &&
-        pg.dpi_y  > 0) {
+        pg.dpi > 0.0) {
         device_table[curdevice].pg = pg;
 	return GRACE_EXIT_SUCCESS;
     } else {
@@ -192,8 +191,8 @@ int number_of_devices(void)
 
 void get_page_viewport(double *vx, double *vy)
 {
-    *vx = device_table[curdevice].pg.width/device_table[curdevice].pg.dpi_x;
-    *vy = device_table[curdevice].pg.height/device_table[curdevice].pg.dpi_y;
+    *vx = device_table[curdevice].pg.width/device_table[curdevice].pg.dpi;
+    *vy = device_table[curdevice].pg.height/device_table[curdevice].pg.dpi;
     if (*vx < *vy) {
         *vy /= *vx;
         *vx = 1.0;
@@ -218,8 +217,8 @@ PageFormat get_page_format(int device)
     int width_pp, height_pp;
     
     pg = device_table[device].pg;
-    width_pp  = (int) rint((double) 72*pg.width/pg.dpi_x);
-    height_pp = (int) rint((double) 72*pg.height/pg.dpi_y);
+    width_pp  = (int) rint((double) 72*pg.width/pg.dpi);
+    height_pp = (int) rint((double) 72*pg.height/pg.dpi);
     
     if ((width_pp == 612 && height_pp == 792) ||
         (height_pp == 612 && width_pp == 792)) {

@@ -68,8 +68,7 @@ static Widget *page_format_item;
 static Widget page_x_item;
 static Widget page_y_item;
 static Widget *page_size_unit_item;
-static Widget dev_x_res_item;
-static Widget dev_y_res_item;
+static Widget dev_res_item;
 static Widget fontaa_item;
 static Widget devfont_item;
 
@@ -200,11 +199,7 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
         SetChoice(page_size_unit_item, current_page_units);
         XtManageChild(rc);
 
-	rc = XmCreateRowColumn(rc1, "rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-        dev_x_res_item = CreateTextItem2(rc, 4, "Resolution (dpi):");
-        dev_y_res_item = CreateTextItem2(rc, 4, "x ");
-        XtManageChild(rc);
+        dev_res_item = CreateTextItem2(rc1, 4, "Resolution (dpi):");
 
         XtManageChild(rc1);
 
@@ -314,10 +309,8 @@ static void update_device_setup(int device_id)
             XtSetSensitive(page_orient_item[0], True);
         }
         
-        sprintf (buf, "%.0f", pg.dpi_x); 
-        xv_setstr(dev_x_res_item, buf);
-        sprintf (buf, "%.0f", pg.dpi_y); 
-        xv_setstr(dev_y_res_item, buf);
+        sprintf (buf, "%.0f", pg.dpi); 
+        xv_setstr(dev_res_item, buf);
         
         page_units = GetChoice(page_size_unit_item);
         
@@ -327,12 +320,12 @@ static void update_device_setup(int device_id)
             page_y = (float) pg.height;
             break;
         case 1:      /* inches */
-            page_x = (float) pg.width / pg.dpi_x;
-            page_y = (float) pg.height / pg.dpi_y;
+            page_x = (float) pg.width / pg.dpi;
+            page_y = (float) pg.height / pg.dpi;
             break;
         case 2:      /* cm */ 
-            page_x = (float) CM_PER_INCH * pg.width / pg.dpi_x;
-            page_y = (float) CM_PER_INCH * pg.height / pg.dpi_y;
+            page_x = (float) CM_PER_INCH * pg.width / pg.dpi;
+            page_y = (float) CM_PER_INCH * pg.height / pg.dpi;
             break;
         default:
             errmsg("Internal error");
@@ -355,7 +348,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
     int aac_mode;
     int seldevice;
     double page_x, page_y;
-    double dpi_x, dpi_y;
+    double dpi;
     int page_units;
     Device_entry dev;
     Page_geometry pg;
@@ -390,8 +383,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
         return;
     }
 
-    if (xv_evalexpr(dev_x_res_item, &dpi_x) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(dev_y_res_item, &dpi_y) != GRACE_EXIT_SUCCESS ) {
+    if (xv_evalexpr(dev_res_item, &dpi) != GRACE_EXIT_SUCCESS) {
         errmsg("Invalid dpi");
         return;
     }
@@ -404,20 +396,19 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
         pg.height = (long) page_y;
         break;
     case 1: 
-        pg.width =  (long) (page_x * dpi_x);
-        pg.height = (long) (page_y * dpi_y);
+        pg.width =  (long) (page_x * dpi);
+        pg.height = (long) (page_y * dpi);
         break;
     case 2: 
-        pg.width =  (long) (page_x * dpi_x / CM_PER_INCH);
-        pg.height = (long) (page_y * dpi_y / CM_PER_INCH);
+        pg.width =  (long) (page_x * dpi / CM_PER_INCH);
+        pg.height = (long) (page_y * dpi / CM_PER_INCH);
         break;
     default:
         errmsg("Internal error");
         return;
     }
     
-    pg.dpi_x = dpi_x;
-    pg.dpi_y = dpi_y;
+    pg.dpi = dpi;
     
     dev.pg = pg;
     
@@ -461,7 +452,7 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     int x, y;
     double px, py;
     int page_units;
-    double dpi_x, dpi_y;
+    double dpi;
     char buf[32];
     
     if (value == PAGE_FORMAT_CUSTOM) {
@@ -494,13 +485,12 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     
     switch (page_units) {
     case 0:      /* pixels */
-        if (xv_evalexpr(dev_x_res_item, &dpi_x) != GRACE_EXIT_SUCCESS ||
-            xv_evalexpr(dev_y_res_item, &dpi_y) != GRACE_EXIT_SUCCESS ) {
+        if (xv_evalexpr(dev_res_item, &dpi) != GRACE_EXIT_SUCCESS) {
             errmsg("Invalid dpi");
             return;
         }
-        px = (float) x*dpi_x/72.0;
-        py = (float) y*dpi_y/72.0;
+        px = (float) x*dpi/72.0;
+        py = (float) y*dpi/72.0;
         break;
     case 1:      /* inches */
         px = (float) x/72.0;
@@ -610,7 +600,7 @@ static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data
 {
     char buf[32];
     double page_x, page_y;
-    double dev_x_res, dev_y_res;
+    double dev_res;
     int page_units = (int) client_data;
     
     if (xv_evalexpr(page_x_item, &page_x) != GRACE_EXIT_SUCCESS || 
@@ -619,13 +609,12 @@ static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data
         return;
     }
     
-    if (xv_evalexpr(dev_x_res_item, &dev_x_res) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(dev_y_res_item, &dev_y_res) != GRACE_EXIT_SUCCESS ) {
+    if (xv_evalexpr(dev_res_item, &dev_res) != GRACE_EXIT_SUCCESS) {
         errmsg("Invalid device resolution(s)");
         return;
     }
     
-    if (dev_x_res <= 0.0 || dev_y_res <= 0.0) {
+    if (dev_res <= 0.0) {
         errmsg("Device resolution(s) <= 0");
         return;
     }
@@ -633,20 +622,20 @@ static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data
     if (current_page_units == page_units) {
         ;
     } else if (current_page_units == 0 && page_units == 1) {
-        page_x /= dev_x_res;
-        page_y /= dev_y_res;
+        page_x /= dev_res;
+        page_y /= dev_res;
     } else if (current_page_units == 0 && page_units == 2) {
-        page_x /= (dev_x_res/CM_PER_INCH);
-        page_y /= (dev_y_res/CM_PER_INCH);
+        page_x /= (dev_res/CM_PER_INCH);
+        page_y /= (dev_res/CM_PER_INCH);
     } else if (current_page_units == 1 && page_units == 0) {
-        page_x *= dev_x_res;
-        page_y *= dev_y_res;
+        page_x *= dev_res;
+        page_y *= dev_res;
     } else if (current_page_units == 1 && page_units == 2) {
         page_x *= CM_PER_INCH;
         page_y *= CM_PER_INCH;
     } else if (current_page_units == 2 && page_units == 0) {
-        page_x *= (dev_x_res/CM_PER_INCH);
-        page_y *= (dev_y_res/CM_PER_INCH);
+        page_x *= (dev_res/CM_PER_INCH);
+        page_y *= (dev_res/CM_PER_INCH);
     } else if (current_page_units == 2 && page_units == 1) {
         page_x /= CM_PER_INCH;
         page_y /= CM_PER_INCH;

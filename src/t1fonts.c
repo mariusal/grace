@@ -182,7 +182,7 @@ void update_t1(void)
       	lastSlant = Slant;
     }
 
-    Extent = page_dpi_x/page_dpi_y;
+    Extent = 1.0;
     if (Extent != lastExtent) {
       	/* Delete all size dependent data */
       	for (i = 0; i < T1_Get_no_fonts(); i++) {
@@ -759,7 +759,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     int hjust, vjust, just_type;
     float hfudge, vfudge;
     
-    double page_ipv, page_dpv_x, page_dpv_y;
+    double page_ipv, page_dpv;
  
     /* Variables for raster parameters */
     double Size, Angle = 0.0;
@@ -811,10 +811,9 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     page_ipv = MIN2(page_width_in, page_height_in);
 
     /* dots per 1 unit of viewport */
-    page_dpv_x = page_ipv*page_dpi_x;
-    page_dpv_y = page_ipv*page_dpi_y;
+    page_dpv = page_ipv*page_dpi;
 
-    scale_factor = page_dpv_y * MAGIC_FONT_SCALE * getcharsize();
+    scale_factor = page_dpv * MAGIC_FONT_SCALE * getcharsize();
     if (scale_factor <= 0.0) {
         return;
     }
@@ -951,8 +950,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     xshift = pinpoint_x - justpoint_x;
     yshift = pinpoint_y - justpoint_y;
     
-    vptmp.x = vp.x + (double) xshift/page_dpv_x;
-    vptmp.y = vp.y + (double) yshift/page_dpv_y;
+    vptmp.x = vp.x + (double) xshift/page_dpv;
+    vptmp.y = vp.y + (double) yshift/page_dpv;
 
     if (get_draw_mode() == TRUE) {
         if (dev.devfonts == FONTSRC_BITMAP) {
@@ -963,13 +962,13 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
                 errmsg("Device has no fonts built-in");
             } else {
                 vp_baseline_start.x = vptmp.x + 
-                    (double) (baseline_start_x - bbox_left_x)/page_dpv_x;
+                    (double) (baseline_start_x - bbox_left_x)/page_dpv;
                 vp_baseline_start.y = vptmp.y +
-                    (double) (baseline_start_y - bbox_upper_y)/page_dpv_y;
+                    (double) (baseline_start_y - bbox_upper_y)/page_dpv;
                 vp_baseline_end.x   = vptmp.x + 
-                    (double) (baseline_end_x - bbox_left_x)/page_dpv_x;
+                    (double) (baseline_end_x - bbox_left_x)/page_dpv;
                 vp_baseline_end.y   = vptmp.y +
-                    (double) (baseline_end_y - bbox_upper_y)/page_dpv_y;
+                    (double) (baseline_end_y - bbox_upper_y)/page_dpv;
                 (*devputtext) (vp_baseline_start, vp_baseline_end, 
                                                 scale_factor, cstring);
             }
@@ -979,7 +978,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     T1_FreeGlyph(CSglyph);
     
     update_bboxes(vptmp);
-    vptmp.x += (double) pwidth/page_dpv_x;
-    vptmp.y -= (double) pheight/page_dpv_y;
+    vptmp.x += (double) pwidth/page_dpv;
+    vptmp.y -= (double) pheight/page_dpv;
     update_bboxes(vptmp);
 }

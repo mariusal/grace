@@ -103,7 +103,7 @@ static Device_entry dev_gd = {DEVICE_FILE,
           "gd",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
          };
 
 static Device_entry dev_gif = {DEVICE_FILE,
@@ -114,7 +114,7 @@ static Device_entry dev_gif = {DEVICE_FILE,
           "gif",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
          };
 
 static Device_entry dev_pnm = {DEVICE_FILE,
@@ -125,7 +125,7 @@ static Device_entry dev_pnm = {DEVICE_FILE,
           "pnm",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
          };
 
 #ifdef HAVE_LIBJPEG
@@ -137,7 +137,7 @@ static Device_entry dev_jpg = {DEVICE_FILE,
           "jpg",
           FALSE,
           TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0, 72.0}
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
          };
 #endif
 

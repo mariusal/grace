@@ -66,8 +66,7 @@ typedef enum {
 typedef struct {
     unsigned long width;
     unsigned long height;
-    float dpi_x;
-    float dpi_y;
+    float dpi;
 } Page_geometry;
 
 typedef struct {
@@ -138,14 +137,13 @@ int terminal_device(void);
 PageFormat get_page_format(int device);
 
 /* some useful macros */
-#define page_dpi_x     ((get_page_geometry()).dpi_x)
-#define page_dpi_y     ((get_page_geometry()).dpi_y)
+#define page_dpi       ((get_page_geometry()).dpi)
 
 #define page_width     ((get_page_geometry()).width)
 #define page_height    ((get_page_geometry()).height)
 
-#define page_width_in  ((double) page_width/page_dpi_x)
-#define page_height_in ((double) page_height/page_dpi_y)
+#define page_width_in  ((double) page_width/page_dpi)
+#define page_height_in ((double) page_height/page_dpi)
 
 #define page_width_mm  (MM_PER_INCH*page_width_in)
 #define page_height_mm (MM_PER_INCH*page_height_in)

@@ -90,7 +90,7 @@ static Device_entry dev_pdf = {DEVICE_FILE,
           "pdf",
           TRUE,
           FALSE,
-          {612, 792, 72.0, 72.0}
+          {612, 792, 72.0}
          };
 
 int register_pdf_drv(void)
@@ -122,7 +122,7 @@ int pdfinitgraphics(void)
     
     page_scale = MIN2(pg.height, pg.width);
     pixel_size = 1.0/page_scale;
-    page_scalef = (float) page_scale*72.0/pg.dpi_x;
+    page_scalef = (float) page_scale*72.0/pg.dpi;
 
     /* undefine all graphics state parameters */
     pdf_color = -1;
@@ -164,7 +164,7 @@ int pdfinitgraphics(void)
         PDF_add_font_alias(phandle, get_fontalias(i), buf, get_fontfilename(i));
     }
     
-    PDF_begin_page(phandle, pg.width*72.0/pg.dpi_x, pg.height*72.0/pg.dpi_y);
+    PDF_begin_page(phandle, pg.width*72.0/pg.dpi, pg.height*72.0/pg.dpi);
     PDF_scale(phandle, page_scalef, page_scalef);
     
     return GRACE_EXIT_SUCCESS;
