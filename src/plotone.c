@@ -2168,7 +2168,10 @@ void dolegend(int gno)
     
     if (draw_flag == FALSE) {
         l.bb.xv1 = l.bb.xv2 = l.bb.yv1 = l.bb.yv2 = 0.0;
+        /* The bb update shouldn't change the dirtystate flag */
+        lock_dirtystate(TRUE);
         set_graph_legend(gno, &l);
+        lock_dirtystate(FALSE);
         return;
     }
         
@@ -2203,7 +2206,10 @@ void dolegend(int gno)
     l.bb.yv1 = vp2.y;
     l.bb.xv2 = vp2.x;
     l.bb.yv2 = vp.y;
+    /* The bb update shouldn't change the dirtystate flag */
+    lock_dirtystate(TRUE);
     set_graph_legend(gno, &l);
+    lock_dirtystate(FALSE);
     
     set_draw_mode(TRUE);
     
