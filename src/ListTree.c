@@ -20,6 +20,8 @@
  *
  * Author: Rob McMullen <rwmcm@mail.ae.utexas.edu>
  *         http://www.ae.utexas.edu/~rwmcm
+ *
+ * Minor cleaning-ups by E. Stambulchik
  */
 
 #define _ListTree_
@@ -28,7 +30,7 @@
 #include <X11/StringDefs.h>
 
 #include <stdio.h>
-/*#include <stdlib.h> */
+#include <stdlib.h>
 
 #include "ListTreeP.h"
 /* #define DEBUG */
@@ -64,7 +66,7 @@ void DBG()
 
 #define folder_width 16
 #define folder_height 12
-static char folder_bits[] =
+static unsigned char folder_bits[] =
 {
   0x00, 0x1f, 0x80, 0x20, 0x7c, 0x5f, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40,
   0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0xfc, 0x3f,
@@ -72,7 +74,7 @@ static char folder_bits[] =
 
 #define folderopen_width 16
 #define folderopen_height 12
-static char folderopen_bits[] =
+static unsigned char folderopen_bits[] =
 {
   0x00, 0x3e, 0x00, 0x41, 0xf8, 0xd5, 0xac, 0xaa, 0x54, 0xd5, 0xfe, 0xaf,
   0x01, 0xd0, 0x02, 0xa0, 0x02, 0xe0, 0x04, 0xc0, 0x04, 0xc0, 0xf8, 0x7f,
@@ -80,7 +82,7 @@ static char folderopen_bits[] =
 
 #define document_width 9
 #define document_height 14
-static char document_bits[] =
+static unsigned char document_bits[] =
 {
   0x1f, 0x00, 0x31, 0x00, 0x51, 0x00, 0x91, 0x00, 0xf1, 0x01, 0x01, 0x01,
   0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -351,25 +353,25 @@ InitializePixmaps(ListTreeWidget w)
   if (w->list.Closed.bitmap == XtUnspecifiedPixmap)
     w->list.Closed.bitmap = XCreateBitmapFromData(XtDisplay((Widget) w),
       RootWindowOfScreen(XtScreen((Widget) w)),
-      folder_bits, folder_width, folder_height);
+      (char *) folder_bits, folder_width, folder_height);
   MakePixmap(w, &w->list.Closed);
 
   if (w->list.Open.bitmap == XtUnspecifiedPixmap)
     w->list.Open.bitmap = XCreateBitmapFromData(XtDisplay((Widget) w),
       RootWindowOfScreen(XtScreen((Widget) w)),
-      folderopen_bits, folderopen_width, folderopen_height);
+      (char *) folderopen_bits, folderopen_width, folderopen_height);
   MakePixmap(w, &w->list.Open);
 
   if (w->list.Leaf.bitmap == XtUnspecifiedPixmap)
     w->list.Leaf.bitmap = XCreateBitmapFromData(XtDisplay((Widget) w),
       RootWindowOfScreen(XtScreen((Widget) w)),
-      document_bits, document_width, document_height);
+      (char *) document_bits, document_width, document_height);
   MakePixmap(w, &w->list.Leaf);
 
   if (w->list.LeafOpen.bitmap == XtUnspecifiedPixmap)
     w->list.LeafOpen.bitmap = XCreateBitmapFromData(XtDisplay((Widget) w),
       RootWindowOfScreen(XtScreen((Widget) w)),
-      document_bits, document_width, document_height);
+      (char *) document_bits, document_width, document_height);
   MakePixmap(w, &w->list.LeafOpen);
 
   w->list.pixWidth = w->list.Closed.width;
@@ -421,9 +423,9 @@ InitializeScrollBars(ListTreeWidget w)
     w->list.mom = NULL;
   
   if(w->list.mom) {
-    char *name = XtMalloc(strlen(XtName(w))+4);
+    char *name = XtMalloc(strlen(XtName((Widget) w))+4);
     
-    strcpy(name,XtName(w));
+    strcpy(name,XtName((Widget) w));
     strcat(name,"HSB");
     w->list.hsb = XtVaCreateManagedWidget(name, 
       xmScrollBarWidgetClass,w->list.mom,
@@ -438,7 +440,7 @@ InitializeScrollBars(ListTreeWidget w)
     XtAddCallback(w->list.hsb, XmNtoTopCallback,HSBCallback,(XtPointer)w);
     XtAddCallback(w->list.hsb, XmNvalueChangedCallback,HSBCallback,(XtPointer)w);
     
-    strcpy(name,XtName(w));
+    strcpy(name,XtName((Widget) w));
     strcat(name,"VSB");
     w->list.vsb = XtVaCreateManagedWidget(name,
       xmScrollBarWidgetClass,XtParent(w),
@@ -559,7 +561,7 @@ Redisplay(Widget aw, XExposeEvent * event, Region region)
 {
   ListTreeWidget w = (ListTreeWidget) aw;
 
-  if (!XtIsRealized(w))
+  if (!XtIsRealized(aw))
     return;
 
   if (event) {
@@ -746,7 +748,7 @@ HSBCallback(Widget scrollbar, XtPointer client_data, XtPointer call_data)
 static void
 Resize(ListTreeWidget w)
 {
-  if (!XtIsRealized(w))
+  if (!XtIsRealized((Widget) w))
     return;
 
   ResizeStuff(w);
@@ -1259,8 +1261,9 @@ XEvent *event;
 String *params;
 Cardinal *num_params;
 {
+#if 0
   ListTreeWidget w = (ListTreeWidget) aw;
-
+#endif
   DBG(DARG,"keypress\n");
 }
 
@@ -1283,7 +1286,8 @@ GetItemPix(ListTreeWidget w, ListTreeItem *item)
       Pixmap pixmap = item->closedPixmap;
 
       Window       root;
-      unsigned int pixwidth, pixheight, pixbw, pixdepth, pixx, pixy;
+      unsigned int pixwidth, pixheight, pixbw, pixdepth;
+      int pixx, pixy;
 
       /* If it is not closed and there is a pixmap for it, then use that one
        * instead.

@@ -27,6 +27,7 @@
 
 #include <Xm/Xm.h>
 #include <Xm/XmP.h>
+#include <Xm/DrawP.h>
 #include <Xm/PrimitiveP.h>
 #include <Xm/ScrollBar.h>
 #include <Xm/ScrolledW.h>
