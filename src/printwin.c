@@ -377,13 +377,13 @@ static void set_printer_proc(void *data)
     dev.devfonts = GetToggleButtonState(devfont_item);
     dev.fontaa = GetToggleButtonState(fontaa_item);
     
-    if (xv_evalexpr(page_x_item, &page_x) != GRACE_EXIT_SUCCESS || 
-        xv_evalexpr(page_y_item, &page_y) != GRACE_EXIT_SUCCESS  ) {
+    if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
+        xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS  ) {
         errmsg("Invalid page dimension(s)");
         return;
     }
 
-    if (xv_evalexpr(dev_res_item, &dpi) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS) {
         errmsg("Invalid dpi");
         return;
     }
@@ -485,7 +485,7 @@ static void do_format_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     
     switch (page_units) {
     case 0:      /* pixels */
-        if (xv_evalexpr(dev_res_item, &dpi) != GRACE_EXIT_SUCCESS) {
+        if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS) {
             errmsg("Invalid dpi");
             return;
         }
@@ -527,8 +527,8 @@ static void do_orient_toggle(Widget w, XtPointer client_data, XtPointer call_dat
     double px, py;
     char buf[32];
 
-    if (xv_evalexpr(page_x_item, &px) != GRACE_EXIT_SUCCESS || 
-        xv_evalexpr(page_y_item, &py) != GRACE_EXIT_SUCCESS ) {
+    if (xv_evalexpr(page_x_item, &px) != RETURN_SUCCESS || 
+        xv_evalexpr(page_y_item, &py) != RETURN_SUCCESS ) {
         errmsg("Invalid page dimension(s)");
         return;
     }
@@ -603,13 +603,13 @@ static void do_units_toggle(Widget w, XtPointer client_data, XtPointer call_data
     double dev_res;
     int page_units = (int) client_data;
     
-    if (xv_evalexpr(page_x_item, &page_x) != GRACE_EXIT_SUCCESS || 
-        xv_evalexpr(page_y_item, &page_y) != GRACE_EXIT_SUCCESS ) {
+    if (xv_evalexpr(page_x_item, &page_x) != RETURN_SUCCESS || 
+        xv_evalexpr(page_y_item, &page_y) != RETURN_SUCCESS ) {
         errmsg("Invalid page dimension(s)");
         return;
     }
     
-    if (xv_evalexpr(dev_res_item, &dev_res) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpr(dev_res_item, &dev_res) != RETURN_SUCCESS) {
         errmsg("Invalid device resolution(s)");
         return;
     }

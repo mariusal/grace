@@ -65,7 +65,7 @@ void drawgraph(void)
 
     saveg = get_cg();
     
-    if (initgraphics() == GRACE_EXIT_FAILURE) {
+    if (initgraphics() == RETURN_FAILURE) {
         errmsg("Device wasn't properly initialized");
         return;
     }
@@ -1239,7 +1239,7 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             vp = Wpoint2Vpoint(wp);
     	    vp.x += offset;
             
-            if (drawxysym(vp, sy, p->sympen, p->symfillpen, p->symchar) != GRACE_EXIT_SUCCESS) {
+            if (drawxysym(vp, sy, p->sympen, p->symfillpen, p->symchar) != RETURN_SUCCESS) {
                 return;
             }
         } 
@@ -1787,9 +1787,9 @@ int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
         break;
     default:
         errmsg("Invalid symbol type");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb)

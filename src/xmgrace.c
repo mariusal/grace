@@ -277,7 +277,7 @@ int initialize_gui(int *argc, char **argv)
     XtAppSetFallbackResources(app_con, fallbackResources);
     disp = XtOpenDisplay(app_con, NULL, NULL, "XMgrace", NULL, 0, argc, argv);
     if (disp == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     XtAppAddActions(app_con, dummy_actions, XtNumber(dummy_actions));
@@ -299,7 +299,7 @@ int initialize_gui(int *argc, char **argv)
     statusbar_visible = rd.statusbar;
     locbar_visible = rd.locatorbar;
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 static void do_drawgraph(void *data)
@@ -367,7 +367,7 @@ static void autoscale_proc(void *data)
 {
     int cg = get_cg();
     
-    if (autoscale_graph(cg, (int) data) == GRACE_EXIT_SUCCESS) {
+    if (autoscale_graph(cg, (int) data) == RETURN_SUCCESS) {
 	update_ticks(cg);
         drawgraph();
     } else {

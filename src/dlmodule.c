@@ -69,7 +69,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     
     if ((dl_type < 0) || (dl_key == NULL) || (dl_function == NULL)) {
         errmsg("Improper call to load_module()");
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
 #if defined(HAVE_DLOPEN)
@@ -86,14 +86,14 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     handle = (void *) dlopen (fname, dlflag);
     if (!handle) {
         errmsg ((char *) dlerror());
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     newkey.data = dlsym(handle, dl_function);
     if ((error = (char *) dlerror()) != NULL) {
         errmsg(error);
         dlclose(handle);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
 #endif /* end dlopen interface */
@@ -117,7 +117,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
         errmsg("DL module initialization failed");
 # endif
 #endif
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     if (shl_findsym(handle, dl_function, TYPE_UNDEFINED, &newkey.data) != NULL) {
@@ -131,7 +131,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
 # endif
 #endif
         shl_unload(handle);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
 #endif /* end shl_load interface */
@@ -145,6 +145,6 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
 
 #else /* no support for DL */
     errmsg("No support for DL modules on your OS");
-    return GRACE_EXIT_FAILURE;
+    return RETURN_FAILURE;
 #endif
 }

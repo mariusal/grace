@@ -71,7 +71,7 @@ int dummyinitgraphics(void)
     
     devleavegraphics = dummy_leavegraphics;
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void dummy_drawpixel(VPoint vp){}

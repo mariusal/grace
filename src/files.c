@@ -133,7 +133,7 @@ static int expand_ib_tbl(void)
     new_size = (ib_tblsize > 0) ? 2*ib_tblsize : 5;
     new_tbl  = xcalloc(new_size, sizeof(Input_buffer));
     if (new_tbl == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     for (i = 0; i < new_size; i++) {
@@ -146,7 +146,7 @@ static int expand_ib_tbl(void)
     ib_tbl  = new_tbl;
     ib_tblsize = new_size;
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 
 }
 
@@ -162,7 +162,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
     newsize = *ptrSize + CHUNKSIZE;
     newbuf = xmalloc(newsize);
     if (newbuf == 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     if (*ptrSize == 0) {
@@ -182,7 +182,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
     *adrBuf  = newbuf;
     *ptrSize = newsize;    
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -202,7 +202,7 @@ static int reopen_real_time_input(Input_buffer *ib)
         sprintf(buf, "Can't reopen real time input %s", ib->name);
         errmsg(buf);
         unregister_real_time_input(ib->name);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
 #ifndef NONE_GUI
@@ -217,7 +217,7 @@ static int reopen_real_time_input(Input_buffer *ib)
     xregister_rti(ib);
 #endif
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 
 }
 
@@ -267,7 +267,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
     if (fd < 0) {
         sprintf(buf, "%s : internal error, wrong file descriptor", name);
         errmsg(buf);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
 #ifdef HAVE_FCNTL
@@ -275,7 +275,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
         fprintf(stderr,
                 "Descriptor %d not open for reading\n",
                 fd);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 #endif
 
@@ -288,7 +288,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
             sprintf(buf, "%s : internal error, file descriptor already in use",
                     name);
             errmsg(buf);
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else if (ib->fd < 0) {
             break;
         }
@@ -297,8 +297,8 @@ int register_real_time_input(int fd, const char *name, int reopen)
     if (ib == ib_tbl + ib_tblsize) {
         /* the table was full, we expand it */
         int old_size = ib_tblsize;
-        if (expand_ib_tbl() != GRACE_EXIT_SUCCESS) {
-            return GRACE_EXIT_FAILURE;
+        if (expand_ib_tbl() != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
         }
         ib = ib_tbl + old_size;
     }
@@ -318,7 +318,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
 
     nb_rt++;
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -336,8 +336,8 @@ static int read_real_time_lines(Input_buffer *ib)
     /* have we enough space to store the characters ? */
     if (available < 2) {
         if (expand_line_buffer(&(ib->buf), &(ib->size), &cursor)
-            != GRACE_EXIT_SUCCESS) {
-            return GRACE_EXIT_FAILURE;
+            != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
         }
         available = ib->buf + ib->size - cursor;
     }
@@ -349,7 +349,7 @@ static int read_real_time_lines(Input_buffer *ib)
         sprintf(buf, "%s : read error on real time input",
                 ib->name);
         errmsg(buf);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         if (nbread == 0) {
             ib->zeros++;
@@ -360,7 +360,7 @@ static int read_real_time_lines(Input_buffer *ib)
         }
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 
 }
 
@@ -375,7 +375,7 @@ static int process_complete_lines(Input_buffer *ib)
     char buf[256];
 
     if (ib->used <= 0) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 
     end_of_line = NULL;
@@ -439,7 +439,7 @@ static int process_complete_lines(Input_buffer *ib)
 
                 if (ib->fd < 0) {
                     /* we have closed ourselves */
-                    return GRACE_EXIT_SUCCESS;
+                    return RETURN_SUCCESS;
                 }
 
             }
@@ -461,7 +461,7 @@ static int process_complete_lines(Input_buffer *ib)
 
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 
 }
 
@@ -503,7 +503,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 
         if (highest < 0) {
             /* there's nothing to do */
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         }
 
         if (no_wait) {
@@ -525,9 +525,9 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
              ib++) {
             if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
                 /* there is pending input */
-                if (read_real_time_lines(ib) != GRACE_EXIT_SUCCESS
-                    || process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
-                    return GRACE_EXIT_FAILURE;
+                if (read_real_time_lines(ib) != RETURN_SUCCESS
+                    || process_complete_lines(ib) != RETURN_SUCCESS) {
+                    return RETURN_FAILURE;
                 }
 
                 if (ib->zeros >= 5) {
@@ -537,8 +537,8 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
                     if (ib->reopen) {
                         /* we should reset the input buffer, in case
                            the peer also reopens it */
-                        if (reopen_real_time_input(ib) != GRACE_EXIT_SUCCESS) {
-                            return GRACE_EXIT_FAILURE;
+                        if (reopen_real_time_input(ib) != RETURN_SUCCESS) {
+                            return RETURN_FAILURE;
                         }
                     } else {
                         unregister_real_time_input(ib->name);
@@ -554,7 +554,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
         first_time = 0;
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -568,13 +568,13 @@ static int read_long_line(FILE * fp)
 
     cursor    = linebuf;
     available = linelen;
-    retval    = GRACE_EXIT_FAILURE;
+    retval    = RETURN_FAILURE;
     do {
         /* have we enough space to store the characters ? */
         if (available < 2) {
             if (expand_line_buffer(&linebuf, &linelen, &cursor)
-                != GRACE_EXIT_SUCCESS) {
-                return GRACE_EXIT_FAILURE;
+                != RETURN_SUCCESS) {
+                return RETURN_FAILURE;
             }
         }
         available = linebuf + linelen - cursor;
@@ -587,7 +587,7 @@ static int read_long_line(FILE * fp)
         if (nbread < 1) {
             return retval;
         } else {
-            retval = GRACE_EXIT_SUCCESS;
+            retval = RETURN_SUCCESS;
         }
 
         /* prepare next read */
@@ -780,7 +780,7 @@ static int uniread(FILE *fp, int load_type, char *label)
     
     breakon = TRUE;
 
-    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
+    while (read_long_line(fp) == RETURN_SUCCESS) {
 	linecount++;
         s = linebuf;
         while (*s == ' ' || *s == '\t' || *s == '\n') {
@@ -794,8 +794,8 @@ static int uniread(FILE *fp, int load_type, char *label)
                 realloc_ss_data(&ssd, nrows);
 
                 /* store accumulated data in set(s) */
-                if (store_data(&ssd, load_type, label) != GRACE_EXIT_SUCCESS) {
-		    return GRACE_EXIT_FAILURE;
+                if (store_data(&ssd, load_type, label) != RETURN_SUCCESS) {
+		    return RETURN_FAILURE;
                 }
                 
                 /* reset state registers */
@@ -810,9 +810,9 @@ static int uniread(FILE *fp, int load_type, char *label)
 	} else {
 	    if (breakon) {
 		/* parse the data line */
-                if (parse_ss_row(s, &nncols, &nscols, &formats) != GRACE_EXIT_SUCCESS) {
+                if (parse_ss_row(s, &nncols, &nscols, &formats) != RETURN_SUCCESS) {
 		    errmsg("Can't parse data");
-		    return GRACE_EXIT_FAILURE;
+		    return RETURN_FAILURE;
                 }
                 
                 if (load_type == LOAD_SINGLE) {
@@ -824,14 +824,14 @@ static int uniread(FILE *fp, int load_type, char *label)
                         ;
                     } else {
 		        errmsg("Column count incorrect");
-		        return GRACE_EXIT_FAILURE;
+		        return RETURN_FAILURE;
                     }
                 }
 
                 ncols = nncols + nscols;
 
                 /* init the data storage */
-                if (init_ss_data(&ssd, ncols, formats) != GRACE_EXIT_SUCCESS) {
+                if (init_ss_data(&ssd, ncols, formats) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
 		    return 0;
                 }
@@ -839,21 +839,21 @@ static int uniread(FILE *fp, int load_type, char *label)
 		breakon = FALSE;
 	    }
 	    if (nrows % BUFSIZE == 0) {
-		if (realloc_ss_data(&ssd, nrows + BUFSIZE) != GRACE_EXIT_SUCCESS) {
+		if (realloc_ss_data(&ssd, nrows + BUFSIZE) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
                     free_ss_data(&ssd);
-		    return GRACE_EXIT_FAILURE;
+		    return RETURN_FAILURE;
 		}
 	    }
 
-            if (insert_data_row(&ssd, nrows, s) != GRACE_EXIT_SUCCESS) {
+            if (insert_data_row(&ssd, nrows, s) != RETURN_SUCCESS) {
                 sprintf(tbuf, "Error parsing line %d, skipped", linecount);
                 errmsg(tbuf);
                 readerror++;
                 if (readerror > MAXERR) {
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
                         free_ss_data(&ssd);
-                        return GRACE_EXIT_FAILURE;
+                        return RETURN_FAILURE;
                     } else {
                         readerror = 0;
                     }
@@ -869,12 +869,12 @@ static int uniread(FILE *fp, int load_type, char *label)
         realloc_ss_data(&ssd, nrows);
 
         /* store accumulated data in set(s) */
-        if (store_data(&ssd, load_type, label) != GRACE_EXIT_SUCCESS) {
-	    return GRACE_EXIT_FAILURE;
+        if (store_data(&ssd, load_type, label) != RETURN_SUCCESS) {
+	    return RETURN_FAILURE;
         }
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -886,7 +886,7 @@ int getdata(int gno, char *fn, int src, int load_type)
 
     fp = grace_openr(fn, src);
     if (fp == NULL) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     save_version = get_project_version();
@@ -952,7 +952,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
         XCFREE(y);
         goto breakout;
     }
-    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
+    while (read_long_line(fp) == RETURN_SUCCESS) {
         readline++;
         if (linebuf[strlen(linebuf) - 1] != '\n') { 
             /* must have a newline char at the end of line */
@@ -1035,16 +1035,16 @@ int load_project_file(char *fn, int as_template)
     int retval;
     
     if (wipeout()) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     } else {
-        if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == GRACE_EXIT_SUCCESS) {
+        if (getdata(0, fn, SOURCE_DISK, LOAD_SINGLE) == RETURN_SUCCESS) {
             if (as_template == FALSE) {
                 set_docname(fn);
             }
             clear_dirtystate();
-            retval = GRACE_EXIT_SUCCESS;
+            retval = RETURN_SUCCESS;
         } else {
- 	    retval = GRACE_EXIT_FAILURE;
+ 	    retval = RETURN_FAILURE;
         }
 
         /* try to switch to the first active graph */
@@ -1079,7 +1079,7 @@ int new_project(char *template)
     } else {
         s = xmalloc(strlen("templates/") + strlen(template) + 1);
         if (s == NULL) {
-            retval = GRACE_EXIT_FAILURE;
+            retval = RETURN_FAILURE;
         } else {
             sprintf(s, "templates/%s", template);
             retval = load_project_file(s, TRUE);
@@ -1096,7 +1096,7 @@ int save_project(char *fn)
     int gno, setno;
     
     if ((cp = grace_openw(fn)) == NULL) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     putparms(-1, cp, TRUE);
@@ -1112,7 +1112,7 @@ int save_project(char *fn)
     set_docname(fn);
     clear_dirtystate();
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -1125,7 +1125,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
     char **s;
 
     if (cp == NULL) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     if (is_set_active(gno, setno) == TRUE) {
@@ -1164,7 +1164,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 

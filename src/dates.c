@@ -511,15 +511,15 @@ static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
 
     if (m.digits > 2 || d.digits > 2) {
         /* this should be the year instead of either the month or the day */
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     *jul = cal_to_jul(y_expand, m.value, d.value);
     jul_to_cal(*jul, &y_check, &m_check, &d_check);
     if (y_expand != y_check || m.value != m_check || d.value != d_check) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 
 }
@@ -567,7 +567,7 @@ int parse_float(const char* s, double *value, const char **after)
     }
     if (digits == 0) {
         /* there should be at least one digit (either before or after dot) */
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     /* exponent (d and D are fortran exponent markers) */
@@ -599,7 +599,7 @@ int parse_float(const char* s, double *value, const char **after)
         *after = s;
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 
 }
 
@@ -685,7 +685,7 @@ static int parse_calendar_date(const char* s,
         s++;
 
         /* seconds are read in float format */
-        if (parse_float(s, sec, &s) == GRACE_EXIT_SUCCESS) {
+        if (parse_float(s, sec, &s) == RETURN_SUCCESS) {
             while (isspace(*s)) {
                 s++;
             }
@@ -761,7 +761,7 @@ int parse_date(const char* s, Dates_format preferred, int absolute,
               }
 
               if (check_date(tab[ky], tab[km], tab[kd], &j)
-                  == GRACE_EXIT_SUCCESS) {
+                  == RETURN_SUCCESS) {
                   *jul =
                       jul_and_time_to_jul(j, tab[3].value, tab[4].value, sec);
                   if (!absolute) {
@@ -769,7 +769,7 @@ int parse_date(const char* s, Dates_format preferred, int absolute,
                   }
 
                   *recognized = trials[i];
-                  return GRACE_EXIT_SUCCESS;
+                  return RETURN_SUCCESS;
               }
           }
           break;
@@ -780,7 +780,7 @@ int parse_date(const char* s, Dates_format preferred, int absolute,
 
     }
 
-    return GRACE_EXIT_FAILURE;
+    return RETURN_FAILURE;
 }
 
 int parse_date_or_number(const char* s, int absolute, double *value)
@@ -789,11 +789,11 @@ int parse_date_or_number(const char* s, int absolute, double *value)
     const char *sdummy;
     
     if (parse_date(s, get_date_hint(), absolute, value, &dummy)
-        == GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_SUCCESS;
-    } else if (parse_float(s, value, &sdummy) == GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_SUCCESS;
+        == RETURN_SUCCESS) {
+        return RETURN_SUCCESS;
+    } else if (parse_float(s, value, &sdummy) == RETURN_SUCCESS) {
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }

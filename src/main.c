@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     srand48(100L);
     
     /* initialize T1lib */
-    if (init_t1() != GRACE_EXIT_SUCCESS) {
+    if (init_t1() != RETURN_SUCCESS) {
         errmsg("--> Broken or incomplete installation - read the FAQ!");
 	exit (1);
     }
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         } else {
 #ifndef NONE_GUI    
             cli = FALSE;
-            if (initialize_gui(&argc, argv) != GRACE_EXIT_SUCCESS) {
+            if (initialize_gui(&argc, argv) != RETURN_SUCCESS) {
 	        errmsg("Can't open X connection, exiting");
                 exit(1);
             }
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
     register_mf_drv();
 
     /* check whether locale is correctly set */
-    if (init_locale() != GRACE_EXIT_SUCCESS) {
+    if (init_locale() != RETURN_SUCCESS) {
         errmsg("Invalid or unsupported locale");
     }
     /* default is POSIX */
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
                         fd = atoi(argv[i]);
                         sprintf(fd_name, "pipe<%d>", fd);
                         if (register_real_time_input(fd, fd_name, FALSE) !=
-                            GRACE_EXIT_SUCCESS) {
+                            RETURN_SUCCESS) {
                             exit(1);
                         }
 		    }
@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
                             fprintf(stderr, "Can't open fifo\n");
                         } else {
                             if (register_real_time_input(fd, argv[i], TRUE) !=
-                                GRACE_EXIT_SUCCESS) {
+                                RETURN_SUCCESS) {
                                 exit(1);
                             }
                         }
@@ -422,7 +422,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing argument for hardcopy device select flag\n");
 			usage(stderr, argv[0]);
 		    } else {
-		        if (set_printer_by_name(argv[i]) != GRACE_EXIT_SUCCESS) {
+		        if (set_printer_by_name(argv[i]) != RETURN_SUCCESS) {
                             errmsg("Unknown or unsupported device");
                             exit(1);
                         }
@@ -469,7 +469,7 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
 			sscanf(argv[i], "%d", &gno);
-			if (set_graph_active(gno, TRUE) == GRACE_EXIT_SUCCESS) {
+			if (set_graph_active(gno, TRUE) == RETURN_SUCCESS) {
 			    cur_graph = gno;
                             select_graph(gno);
 			} else {
@@ -493,7 +493,7 @@ int main(int argc, char *argv[])
                         int nc, *cols;
                         field_string_to_cols(argv[i], &nc, &cols);
                         if (field_string_to_cols(argv[i], &nc, &cols) !=
-                            GRACE_EXIT_SUCCESS) {
+                            RETURN_SUCCESS) {
                             errmsg("Erroneous field specifications");
                             return 1;
                         }
@@ -621,7 +621,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Missing parameters for working directory\n");
 			usage(stderr, argv[0]);
 		    } else {
-			if (set_workingdir(argv[i]) != GRACE_EXIT_SUCCESS) {
+			if (set_workingdir(argv[i]) != RETURN_SUCCESS) {
 			    fprintf(stderr, "Can't change to directory %s, fatal error", argv[i]);
 			    exit(1);
 			}
@@ -680,7 +680,7 @@ int main(int argc, char *argv[])
 	    } else {
 		if (i != argc) {
 		    if (getdata(cur_graph, argv[i], cursource, LOAD_SINGLE) ==
-                                                        GRACE_EXIT_SUCCESS) {
+                                                        RETURN_SUCCESS) {
 			set_docname(argv[i]);
 			if (remove_flag) {
 			    unlink(argv[i]);
@@ -779,7 +779,7 @@ void cli_loop(void)
     }
     
     if (register_real_time_input(STDIN_FILENO, "stdin", 0)
-        != GRACE_EXIT_SUCCESS) {
+        != RETURN_SUCCESS) {
         exit(1);
     }
     for (ib_stdin = ib_tbl; ib_stdin->fd != STDIN_FILENO; ib_stdin++) {

@@ -798,7 +798,7 @@ reenter:
                 res = v_scanner(t->tl_formula, &len, &tt);
                 XCFREE(tvar->data);
                 tvar->length = 0;
-                if (res != GRACE_EXIT_SUCCESS || len != nmajor) {
+                if (res != RETURN_SUCCESS || len != nmajor) {
                     errmsg("Error in tick transformation formula");
                     return;
                 }

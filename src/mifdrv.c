@@ -220,7 +220,7 @@ int mifinitgraphics(void)
 
     data = xrealloc(NULL, SIZEOF_DOUBLE);
     if (data == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     *data = MIN2(page_width_pp, page_height_pp);
     set_curdevice_data((void *) data);
@@ -290,7 +290,7 @@ int mifinitgraphics(void)
             page_width_pp, page_height_pp);
     fprintf(prstream, "  <FrameType NotAnchored>\n");
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void mif_object_props (int draw, int fill)

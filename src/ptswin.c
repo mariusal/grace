@@ -158,8 +158,8 @@ static void do_gotoxy_proc(Widget w, XtPointer client_data, XtPointer call_data)
     WPoint wp;
     VPoint vp;
 
-    if (xv_evalexpr(goto_pointx_item, &wp.x) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(goto_pointy_item, &wp.y) != GRACE_EXIT_SUCCESS  ) {
+    if (xv_evalexpr(goto_pointx_item, &wp.x) != RETURN_SUCCESS ||
+        xv_evalexpr(goto_pointy_item, &wp.y) != RETURN_SUCCESS  ) {
 	return;
     }
 
@@ -355,7 +355,7 @@ void update_point_locator(int gno, int setno, int loc)
     WPoint wp;
     char buf[64];
     
-    if (get_point(gno, setno, loc, &wp) == GRACE_EXIT_SUCCESS) {
+    if (get_point(gno, setno, loc, &wp) == RETURN_SUCCESS) {
         sprintf(buf, "G%d.S%d, loc %d, (%g, %g)", gno, setno, loc, wp.x, wp.y);
         xv_setstr(locate_point_item, buf);
     } else {

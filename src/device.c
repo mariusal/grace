@@ -46,9 +46,9 @@ int set_page_geometry(Page_geometry pg)
 	pg.height > 0 &&
         pg.dpi > 0.0) {
         device_table[curdevice].pg = pg;
-	return GRACE_EXIT_SUCCESS;
+	return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -62,7 +62,7 @@ int set_page_dimensions(int wpp, int hpp)
     int i;
     
     if (wpp <= 0 || hpp <= 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
 	for (i = 0; i < ndevices; i++) {
             device_table[i].pg.width =
@@ -70,18 +70,18 @@ int set_page_dimensions(int wpp, int hpp)
             device_table[i].pg.height =
                 (unsigned long) (hpp*(device_table[i].pg.dpi/72));
         }
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
 int get_device_page_dimensions(int dindex, int *wpp, int *hpp)
 {
     if (dindex >= ndevices || dindex < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
 	*wpp = device_table[dindex].pg.width*72/device_table[dindex].pg.dpi;
 	*hpp = device_table[dindex].pg.height*72/device_table[dindex].pg.dpi;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -103,10 +103,10 @@ int register_device(Device_entry device)
 int select_device(int dindex)
 {
     if (dindex >= ndevices || dindex < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         curdevice = dindex;
-	return GRACE_EXIT_SUCCESS;
+	return RETURN_SUCCESS;
     }
 }
 
@@ -144,10 +144,10 @@ int set_printer_by_name(char *dname)
     id = get_device_by_name(dname);
     
     if (id >= ndevices || id < 0 || device_table[id].type == DEVICE_TERM) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         hdevice = id;
-	return GRACE_EXIT_SUCCESS;
+	return RETURN_SUCCESS;
     }
 }
 
@@ -208,15 +208,15 @@ int parse_device_options(int dindex, char *options)
         
     if (dindex >= ndevices || dindex < 0 || 
             device_table[dindex].parser == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         oldp = options;
         while ((p = strchr(oldp, ',')) != NULL) {
 	    n = MIN2((p - oldp), 64 - 1);
             strncpy(opstring, oldp, n);
             opstring[n] = '\0';
-            if (device_table[dindex].parser(opstring) != GRACE_EXIT_SUCCESS) {
-                return GRACE_EXIT_FAILURE;
+            if (device_table[dindex].parser(opstring) != RETURN_SUCCESS) {
+                return RETURN_FAILURE;
             }
             oldp = p + 1;
         }

@@ -125,9 +125,9 @@ int kill_all_sets(int gno)
 	for (i = 0; i < g[gno].maxplot; i++) {
 	    killset(gno, i);
 	}
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -154,9 +154,9 @@ int kill_graph(int gno)
         }
         
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -174,7 +174,7 @@ int copy_graph(int from, int to)
     int i, j;
 
     if (is_valid_gno(from) != TRUE || is_valid_gno(to) != TRUE || from == to) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     /* kill target graph */
@@ -195,8 +195,8 @@ int copy_graph(int from, int to)
     g[to].labs.stitle.s = NULL;
 
     /* duplicate allocatable storage */
-    if (realloc_graph_plots(to, g[from].maxplot) != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (realloc_graph_plots(to, g[from].maxplot) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
     for (i = 0; i < g[from].maxplot; i++) {
 	for (j = 0; j < MAX_SET_COLS; j++) {
@@ -212,20 +212,20 @@ int copy_graph(int from, int to)
 	g[to].t[j] = copy_graph_tickmarks(g[from].t[j]);
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int move_graph(int from, int to)
 {
     if (is_valid_gno(from) != TRUE || is_valid_gno(to) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
-    if (copy_graph(from, to) != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (copy_graph(from, to) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     } else {
         kill_graph(from);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -234,17 +234,17 @@ int duplicate_graph(int gno)
     int new_gno = maxgraph;
     
     if (is_valid_gno(gno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
-    if (set_graph_active(new_gno, TRUE) != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (set_graph_active(new_gno, TRUE) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
     
-    if (copy_graph(gno, new_gno) != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (copy_graph(gno, new_gno) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     } else {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -253,7 +253,7 @@ int swap_graph(int from, int to)
     graph gtmp;
 
     if (is_valid_gno(from) != TRUE || is_valid_gno(to) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     memcpy(&gtmp, &g[from], sizeof(graph));
@@ -262,16 +262,16 @@ int swap_graph(int from, int to)
 
     set_dirtystate();
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int get_graph_framep(int gno, framep *f)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(f, &g[gno].f, sizeof(framep));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -279,9 +279,9 @@ int get_graph_locator(int gno, GLocator *locator)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(locator, &g[gno].locator, sizeof(GLocator));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -289,9 +289,9 @@ int get_graph_world(int gno, world *w)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(w, &g[gno].w, sizeof(world));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -299,9 +299,9 @@ int get_graph_viewport(int gno, view *v)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(v, &g[gno].v, sizeof(view));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -309,9 +309,9 @@ int get_graph_labels(int gno, labels *labs)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(labs, &g[gno].labs, sizeof(labels));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -319,9 +319,9 @@ int get_graph_plotarr(int gno, int i, plotarr *p)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(p, &g[gno].p[i], sizeof(plotarr));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -387,9 +387,9 @@ int set_graph_tickmarks(int gno, int a, tickmarks *t)
     if (is_valid_gno(gno) == TRUE &&  is_valid_axis(a) == TRUE) {
         free_graph_tickmarks(g[gno].t[a]);
         g[gno].t[a] = copy_graph_tickmarks(t);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -398,9 +398,9 @@ int get_graph_legend(int gno, legend *leg)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(leg, &g[gno].l, sizeof(legend));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -412,18 +412,18 @@ int set_graph_active(int gno, int flag)
     if (flag == TRUE) {
         if (gno >= maxgraph) {
             retval = realloc_graphs(gno + 1);
-            if (retval == GRACE_EXIT_SUCCESS) {
+            if (retval == RETURN_SUCCESS) {
                 set_graph_hidden(gno, FALSE);
             }
             return retval;
         } else {
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         }
     } else { 
         if (is_valid_gno(gno) == TRUE) {
             kill_graph(gno);
         } 
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -542,13 +542,13 @@ int select_graph(int gno)
 {
     int retval;
 
-    if (set_parser_gno(gno) == GRACE_EXIT_SUCCESS) {
+    if (set_parser_gno(gno) == RETURN_SUCCESS) {
         cg = gno;
         retval = definewindow(g[gno].w, g[gno].v, g[gno].type,
                               g[gno].xscale, g[gno].yscale,
                               g[gno].xinvert, g[gno].yinvert);
     } else {
-        retval = GRACE_EXIT_FAILURE;
+        retval = RETURN_FAILURE;
     }
     
     return retval;
@@ -560,18 +560,18 @@ int realloc_graphs(int n)
     graph *gtmp;
 
     if (n <= 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     gtmp = xrealloc(g, n*sizeof(graph));
     if (gtmp == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         g = gtmp;
         for (j = maxgraph; j < n; j++) {
             set_default_graph(j);
         }
         maxgraph = n;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -582,17 +582,17 @@ int realloc_graph_plots(int gno, int n)
     int c, bg;
     
     if (is_valid_gno(gno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (n < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (n == g[gno].maxplot) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
     ptmp = xrealloc(g[gno].p, n * sizeof(plotarr));
     if (ptmp == NULL && n != 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         oldmaxplot = g[gno].maxplot;
         g[gno].p = ptmp;
@@ -608,7 +608,7 @@ int realloc_graph_plots(int gno, int n)
             set_set_colors(gno, j, c);
             c++;
         }
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -636,12 +636,12 @@ int set_graph_type(int gno, int gtype)
             break;
         default:
             errmsg("Internal error in set_graph_type()");
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         g[gno].type = gtype;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -659,9 +659,9 @@ int set_graph_hidden(int gno, int flag)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].hidden = flag;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -670,9 +670,9 @@ int set_graph_stacked(int gno, int flag)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].stacked = flag;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -699,9 +699,9 @@ int set_graph_bargap(int gno, double bargap)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].bargap = bargap;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -746,9 +746,9 @@ int set_graph_xscale(int gno, int scale)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].xscale = scale;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -757,9 +757,9 @@ int set_graph_yscale(int gno, int scale)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].yscale = scale;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -786,9 +786,9 @@ int set_graph_xinvert(int gno, int flag)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].xinvert = flag;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -797,9 +797,9 @@ int set_graph_yinvert(int gno, int flag)
     if (is_valid_gno(gno) == TRUE) {
         g[gno].yinvert = flag;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1032,10 +1032,10 @@ int overlay_graphs(int g1, int g2, int type)
     int i;
     
     if (g1 == g2) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (is_valid_gno(g1) == FALSE || is_valid_gno(g2) == FALSE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     /* set identical viewports g2 in the controlling graph */
@@ -1115,7 +1115,7 @@ int overlay_graphs(int g1, int g2, int type)
     }
     
     set_dirtystate();
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int is_valid_setno(int gno, int setno)
@@ -1141,9 +1141,9 @@ int set_set_hidden(int gno, int setno, int flag)
     if (is_valid_setno(gno, setno) == TRUE) {
         g[gno].p[setno].hidden = flag;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1178,9 +1178,9 @@ int get_world_stack_entry(int gno, int n, world_stack *ws)
 {
     if (is_valid_gno(gno) == TRUE) {
         memcpy(ws, &g[gno].ws[n], sizeof(world_stack));
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1189,19 +1189,19 @@ int activate_tick_labels(int gno, int axis, int flag)
     if (is_valid_gno(gno) == TRUE && is_valid_axis(axis) == TRUE) {
         g[gno].t[axis]->tl_flag = flag;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
 int set_set_colors(int gno, int setno, int color)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (color >= number_of_colors() || color < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     g[gno].p[setno].linepen.color = color;
@@ -1210,7 +1210,7 @@ int set_set_colors(int gno, int setno, int color)
     g[gno].p[setno].errbar.pen.color = color;
     
     set_dirtystate();
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 static int project_version;
@@ -1224,10 +1224,10 @@ int set_project_version(int version)
 {
     if (version  > bi_version_id()) {
         project_version = bi_version_id();
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         project_version = version;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 

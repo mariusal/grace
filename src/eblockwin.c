@@ -230,12 +230,12 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
     int cs[MAX_SET_COLS], nncols, scol, autoscale;
 
     if (GetSingleListChoice(eblock_graphset_item->graph_sel, &gno)
-        != GRACE_EXIT_SUCCESS) {
+        != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
         return;
     }
     if (GetSingleListChoice(eblock_graphset_item->set_sel, &setno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	/* no set selected; allocate new one */
     	setno = NEW_SET;
     }

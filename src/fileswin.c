@@ -104,7 +104,7 @@ static int save_proc(char *filename, void *data)
     Widget format_item = (Widget) data;
     
     strcpy(sformat, xv_getstr(format_item));
-    if (save_project(filename) == GRACE_EXIT_SUCCESS) {
+    if (save_project(filename) == RETURN_SUCCESS) {
         return TRUE;
     } else {
         return FALSE;
@@ -133,7 +133,7 @@ void create_openproject_popup(void)
  */
 static int open_proc(char *filename, void *data)
 {
-    if (load_project(filename) == GRACE_EXIT_SUCCESS) {
+    if (load_project(filename) == RETURN_SUCCESS) {
         update_all();
         drawgraph();
         return TRUE;
@@ -223,7 +223,7 @@ static int read_sets_proc(char *filename, void *data)
     rdataGUI *gui = (rdataGUI *) data;
     
     load = GetOptionChoice(gui->load_item);
-    if (GetSingleListChoice(gui->graph_item, &graphno) != GRACE_EXIT_SUCCESS) {
+    if (GetSingleListChoice(gui->graph_item, &graphno) != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
     } else {
         if (load == LOAD_SINGLE) {

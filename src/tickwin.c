@@ -653,7 +653,7 @@ static void axes_aac_cb(void *data)
     
     t->zero = GetToggleButtonState(axis_zero);
 
-    if (xv_evalexpr(tmajor, &t->tmajor) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpr(tmajor, &t->tmajor) != RETURN_SUCCESS) {
 	errmsg( "Specify major tick spacing" );
         free_graph_tickmarks(t);
         return;
@@ -692,7 +692,7 @@ static void axes_aac_cb(void *data)
     strcpy(t->tl_prestr, xv_getstr(tlprestr));
     t->tl_starttype = (int) GetChoice(tlstarttype) == 0 ? TYPE_AUTO : TYPE_SPEC;
     if (t->tl_starttype == TYPE_SPEC) {
-        if(xv_evalexpr(tlstart, &t->tl_start) != GRACE_EXIT_SUCCESS) {
+        if(xv_evalexpr(tlstart, &t->tl_start) != RETURN_SUCCESS) {
 	    errmsg( "Specify tick label start" );
             free_graph_tickmarks(t);
             return;
@@ -700,7 +700,7 @@ static void axes_aac_cb(void *data)
     }
     t->tl_stoptype = (int) GetChoice(tlstoptype) == 0 ? TYPE_AUTO : TYPE_SPEC;
     if (t->tl_stoptype == TYPE_SPEC) {
-        if(xv_evalexpr(tlstop, &t->tl_stop) != GRACE_EXIT_SUCCESS){
+        if(xv_evalexpr(tlstop, &t->tl_stop) != RETURN_SUCCESS){
 	    errmsg( "Specify tick label stop" );
             free_graph_tickmarks(t);
             return;
@@ -759,7 +759,7 @@ static void axes_aac_cb(void *data)
         t->nticks = (int) GetSpinChoice(nspec);
         /* ensure that enough tick positions have been specified */
         for (i = 0; i < t->nticks; i++) {
-            if (xv_evalexpr(specloc[i], &t->tloc[i].wtpos) == GRACE_EXIT_SUCCESS) {
+            if (xv_evalexpr(specloc[i], &t->tloc[i].wtpos) == RETURN_SUCCESS) {
                 cp = xv_getstr(speclabel[i]);
                 if (cp[0] == '\0') {
                     t->tloc[i].type = TICK_TYPE_MINOR;
@@ -812,8 +812,8 @@ static void axes_aac_cb(void *data)
         break;        
     }
         
-    if (xv_evalexpr(axis_world_start, &axestart) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(axis_world_stop,  &axestop)  != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpr(axis_world_start, &axestart) != RETURN_SUCCESS ||
+        xv_evalexpr(axis_world_stop,  &axestop)  != RETURN_SUCCESS) {
         errmsg("Axis start/stop values undefined");
         free_graph_tickmarks(t);
         return;

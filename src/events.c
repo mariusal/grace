@@ -202,7 +202,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         xlibVPoint2dev(anchor_vp, &anchor_x, &anchor_y);
                         set_action(VIEW_2ND);
 	                select_region(anchor_x, anchor_y, x, y, 0);
-                    } else if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
+                    } else if (find_point(cg, vp, &setno, &loc) == RETURN_SUCCESS) {
                         define_symbols_popup((void *) setno);
                     } else if (axis_clicked(cg, vp, &axisno) == TRUE) {
                         create_axes_dialog(axisno);
@@ -210,7 +210,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                         create_graphapp_frame(cg);
                     } else if (legend_clicked(cg, vp, &bb) == TRUE) {
                         create_graphapp_frame(cg);
-                    } else if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
+                    } else if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
                         object_edit_popup(type, id);
                     } else if (timestamp_clicked(vp, &bb) == TRUE) {
                         create_plot_frame();
@@ -267,12 +267,12 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		newworld(cg, ALL_Y_AXES, anchor_vp, vp);
                 break;
             case EDIT_OBJECT:
-                if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
+                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
                     object_edit_popup(type, id);
                 }
                 break;
             case DEL_OBJECT:
-                if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
+                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
                     if (yesno("Kill the object?", NULL, NULL, NULL) == TRUE) {
                         kill_object(type, id);
                         xdrawgraph();
@@ -280,7 +280,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 }
                 break;
             case MOVE_OBJECT_1ST:
-                if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
+                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
 	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
                     set_action(MOVE_OBJECT_2ND);
@@ -294,7 +294,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(MOVE_OBJECT_1ST);
                 break;
             case COPY_OBJECT1ST:
-                if (find_item(cg, vp, &bb, &type, &id) == GRACE_EXIT_SUCCESS) {
+                if (find_item(cg, vp, &bb, &type, &id) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
 	            slide_region(bb, x - anchor_x, y - anchor_y, 0);
                     set_action(COPY_OBJECT2ND);
@@ -350,7 +350,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(MAKE_ELLIP_1ST);
                 break;
             case AUTO_NEAREST:
-                if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
+                if (find_point(cg, vp, &setno, &loc) == RETURN_SUCCESS) {
                     autoscale_byset(cg, setno, AUTOSCALE_XY);
                     update_ticks(cg);
                     xdrawgraph();
@@ -363,14 +363,14 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 }
                 break;
             case DEL_POINT:
-                if (find_point(cg, vp, &setno, &loc) == GRACE_EXIT_SUCCESS) {
+                if (find_point(cg, vp, &setno, &loc) == RETURN_SUCCESS) {
 		    del_point(cg, setno, loc);
 		    update_set_lists(cg);
                     xdrawgraph();
                 }
                 break;
             case MOVE_POINT1ST:
-                if (find_point(cg, vp, &track_setno, &track_loc) == GRACE_EXIT_SUCCESS) {
+                if (find_point(cg, vp, &track_setno, &track_loc) == RETURN_SUCCESS) {
                     anchor_point(x, y, vp);
                     get_point(cg, track_setno, track_loc, &wp);
                     update_point_locator(cg, track_setno, track_loc);
@@ -453,7 +453,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
                 set_action(PLACE_TIMESTAMP_1ST);
                 break;
 	    case SEL_POINT:
-		if (get_graph_locator(cg, &locator) == GRACE_EXIT_SUCCESS) {
+		if (get_graph_locator(cg, &locator) == RETURN_SUCCESS) {
 		    view2world(vp.x, vp.y, &locator.dsx, &locator.dsy);
                     locator.pointset = TRUE;
 		    set_graph_locator(cg, &locator);
@@ -507,7 +507,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	case Button2:
             switch (action_flag) {
             case TRACKER:
-                if (find_point(cg, vp, &track_setno, &track_loc) == GRACE_EXIT_SUCCESS) {
+                if (find_point(cg, vp, &track_setno, &track_loc) == RETURN_SUCCESS) {
                     track_gno = cg;
                     track_point(cg, track_setno, &track_loc, 0);
                 } else {
@@ -843,7 +843,7 @@ void getpoints(VPoint vp)
     GLocator locator;
 
     view2world(vp.x, vp.y, &wx, &wy);
-    if (get_graph_locator(cg, &locator) != GRACE_EXIT_SUCCESS) {
+    if (get_graph_locator(cg, &locator) != RETURN_SUCCESS) {
         SetLabel(loclab, "[No graphs]");
         return;
     }
@@ -959,7 +959,7 @@ int next_graph_containing(int cg, VPoint vp)
     for (i = 0; i < ng ; i++) {
 	j = (i + cg + 1) % ng;
 	if (is_graph_hidden(j)        == FALSE &&
-            get_graph_viewport(j, &v) == GRACE_EXIT_SUCCESS &&
+            get_graph_viewport(j, &v) == RETURN_SUCCESS &&
             is_vpoint_inside(v, vp, MAXPICKDIST)   == TRUE) {
 	    
             gno = j;
@@ -1017,7 +1017,7 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp)
 {
     view v;
     
-    if (get_graph_viewport(cg, &v) != GRACE_EXIT_SUCCESS) {
+    if (get_graph_viewport(cg, &v) != RETURN_SUCCESS) {
         return FALSE;
     }
 
@@ -1098,7 +1098,7 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
 
     *setno = -1;
     if (is_valid_gno(gno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     for (i = 0; i < number_of_sets(gno); i++) {
@@ -1121,9 +1121,9 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
     }
     
     if (*setno == -1) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -1207,10 +1207,10 @@ int find_item(int gno, VPoint vp, view *bb, int *type, int *id)
     }
     
     if (*type == OBJECT_NONE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         get_object_bb(*type, *id, bb);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 

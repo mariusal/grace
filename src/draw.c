@@ -986,14 +986,14 @@ int realloc_colors(int n)
     CMap_entry *cmap_tmp;
     
     if (n > MAXCOLORS) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         for (i = n; i < maxcolors; i++) {
             XCFREE(cmap_table[i].cname);
         }
         cmap_tmp = xrealloc(cmap_table, n*sizeof(CMap_entry));
         if (cmap_tmp == NULL) {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else {
             cmap_table = cmap_tmp;
             for (i = maxcolors; i < n; i++) {
@@ -1008,15 +1008,15 @@ int realloc_colors(int n)
         maxcolors = n;
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int store_color(int n, CMap_entry cmap)
 {
     if (is_valid_color(cmap.rgb) != TRUE) {
-        return GRACE_EXIT_FAILURE;
-    } else if (n >= maxcolors && realloc_colors(n + 1) == GRACE_EXIT_FAILURE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
+    } else if (n >= maxcolors && realloc_colors(n + 1) == RETURN_FAILURE) {
+        return RETURN_FAILURE;
     } else {
         if (cmap.cname == NULL || strlen(cmap.cname) == 0) {
             cmap_table[n].cname =
@@ -1036,7 +1036,7 @@ int store_color(int n, CMap_entry cmap)
         if (cmap.ctype == COLOR_MAIN) {
             ReqUpdateColorSel = TRUE;
         }
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -1055,7 +1055,7 @@ int add_color(CMap_entry cmap)
             cmap_table[cindex].ctype = COLOR_MAIN;
             ReqUpdateColorSel = TRUE;
         }
-    } else if (store_color(maxcolors, cmap) == GRACE_EXIT_FAILURE) {
+    } else if (store_color(maxcolors, cmap) == RETURN_FAILURE) {
         cindex = BAD_COLOR;
     } else {
         cindex = maxcolors - 1;
@@ -1326,11 +1326,11 @@ double xy_yconv(double wy)
 int polar2xy(double phi, double rho, double *x, double *y)
 {
     if (rho < 0.0) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     } else {
         *x = rho*cos(phi);
         *y = rho*sin(phi);
-        return (GRACE_EXIT_SUCCESS);
+        return (RETURN_SUCCESS);
     }
 }
 
@@ -1343,8 +1343,8 @@ void xy2polar(double x, double y, double *phi, double *rho)
 int world2view(double x, double y, double *xv, double *yv)
 {
     if (coordinates == COORDINATES_POLAR) {
-        if (polar2xy(xv_rc*x, yv_rc*y, xv, yv) != GRACE_EXIT_SUCCESS) {
-            return (GRACE_EXIT_FAILURE);
+        if (polar2xy(xv_rc*x, yv_rc*y, xv, yv) != RETURN_SUCCESS) {
+            return (RETURN_FAILURE);
         }
         *xv += xv_med;
         *yv += yv_med;
@@ -1352,7 +1352,7 @@ int world2view(double x, double y, double *xv, double *yv)
         *xv = xy_xconv(x);
         *yv = xy_yconv(y);
     }
-    return (GRACE_EXIT_SUCCESS);
+    return (RETURN_SUCCESS);
 }
 
 /*
@@ -1384,7 +1384,7 @@ int definewindow(world w, view v, int gtype,
         if ((xscale != SCALE_NORMAL) ||
             (yscale != SCALE_NORMAL) ||
             (invy == TRUE)) {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_POLAR;
             worldwin = w;
@@ -1400,13 +1400,13 @@ int definewindow(world w, view v, int gtype,
             scaletypey = yscale;
             yv_med = (v.yv1 + v.yv2)/2;
             yv_rc = (MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2.0)/w.yg2;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         }
         break;
     case GRAPH_FIXED:
         if ((xscale != SCALE_NORMAL) ||
             (yscale != SCALE_NORMAL)) {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_XY;
             worldwin = w;
@@ -1429,7 +1429,7 @@ int definewindow(world w, view v, int gtype,
                 yv_rc = -yv_rc;
             }
 
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         }
         break;
     default:
@@ -1437,7 +1437,7 @@ int definewindow(world w, view v, int gtype,
             (yscale == SCALE_LOG && (w.yg1 <= 0.0 || w.yg2 <= 0.0)) ||
             (xscale == SCALE_REC && (w.xg1 == 0.0 || w.xg2 == 0.0)) ||
             (yscale == SCALE_REC && (w.yg1 == 0.0 || w.yg2 == 0.0))) {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else {
             coordinates = COORDINATES_XY;
             worldwin = w;
@@ -1461,7 +1461,7 @@ int definewindow(world w, view v, int gtype,
                 yv_rc = - (v.yv2 - v.yv1)/(fscale(w.yg2, yscale) - fscale(w.yg1, yscale));
             }
  
-           return GRACE_EXIT_SUCCESS;
+           return RETURN_SUCCESS;
         }
         break;
     }

@@ -358,12 +358,12 @@ static int rst_initgraphics(int format)
     /* Allocate the image */
     ihandle = gdImageCreate(pg.width, pg.height);
     if (ihandle == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     rst_updatecmap();
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void rst_drawpixel(VPoint vp)
@@ -546,7 +546,7 @@ int pnminitgraphics(void)
     
     result = rst_initgraphics(RST_FORMAT_PNM);
     
-    if (result == GRACE_EXIT_SUCCESS) {
+    if (result == RETURN_SUCCESS) {
         curformat = RST_FORMAT_PNM;
     }
     
@@ -658,7 +658,7 @@ int jpginitgraphics(void)
     
     result = rst_initgraphics(RST_FORMAT_JPG);
     
-    if (result == GRACE_EXIT_SUCCESS) {
+    if (result == RETURN_SUCCESS) {
         curformat = RST_FORMAT_JPG;
     }
     
@@ -768,57 +768,57 @@ int jpg_op_parser(char *opstring)
     
     if (!strcmp(opstring, "grayscale")) {
         jpg_setup_grayscale = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "color")) {
         jpg_setup_grayscale = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "optimize:on")) {
         jpg_setup_optimize = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "optimize:off")) {
         jpg_setup_optimize = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "baseline:on")) {
         jpg_setup_baseline = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "baseline:off")) {
         jpg_setup_baseline = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "progressive:on")) {
         jpg_setup_progressive = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "progressive:off")) {
         jpg_setup_progressive = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "dct:ifast")) {
         jpg_setup_dct = JPEG_DCT_IFAST;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "dct:islow")) {
         jpg_setup_dct = JPEG_DCT_ISLOW;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "dct:float")) {
         jpg_setup_dct = JPEG_DCT_FLOAT;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strncmp(opstring, "quality:", 8)) {
         bufp = strchr(opstring, ':');
         bufp++;
         if (bufp != NULL && *bufp != '\0') {
             jpg_setup_quality = atoi(bufp);
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     } else if (!strncmp(opstring, "smoothing:", 10)) {
         bufp = strchr(opstring, ':');
         bufp++;
         if (bufp != NULL && *bufp != '\0') {
             jpg_setup_smoothing = atoi(bufp);
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 #endif
@@ -827,21 +827,21 @@ int pnm_op_parser(char *opstring)
 {
     if (!strcmp(opstring, "rawbits:on")) {
         pnm_setup_rawbits = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "rawbits:off")) {
         pnm_setup_rawbits = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "format:pbm")) {
         pnm_setup_format = PNM_FORMAT_PBM;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "format:pgm")) {
         pnm_setup_format = PNM_FORMAT_PGM;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "format:ppm")) {
         pnm_setup_format = PNM_FORMAT_PPM;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -852,7 +852,7 @@ int pnginitgraphics(void)
     
     result = rst_initgraphics(RST_FORMAT_PNG);
     
-    if (result == GRACE_EXIT_SUCCESS) {
+    if (result == RETURN_SUCCESS) {
         curformat = RST_FORMAT_PNG;
     }
     
@@ -970,27 +970,27 @@ int png_op_parser(char *opstring)
 
     if (!strcmp(opstring, "interlaced:on")) {
         png_setup_interlaced = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "interlaced:off")) {
         png_setup_interlaced = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "transparent:on")) {
         png_setup_transparent = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "transparent:off")) {
         png_setup_transparent = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strncmp(opstring, "compression:", 12)) {
         bufp = strchr(opstring, ':');
         bufp++;
         if (bufp != NULL && *bufp != '\0') {
             png_setup_compression = atoi(bufp);
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 #endif

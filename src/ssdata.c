@@ -135,7 +135,7 @@ int realloc_ss_data(ss_data *ssd, int nrows)
     }
     ssd->nrows = nrows;
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void free_ss_data(ss_data *ssd)
@@ -170,7 +170,7 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats)
     ssd->ncols = ncols;
     ssd->nrows = 0;
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 static char *next_token(char *s, char **token, int *quoted)
@@ -236,7 +236,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
             *nncols = 0;
             XCFREE(*formats);
             xfree(buf);
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         
         ncols = *nncols + *nscols;
@@ -249,10 +249,10 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
             (*formats)[ncols] = FFORMAT_STRING;
             (*nscols)++;
         } else if (parse_date(token, df_pref, FALSE, &value, &ddummy) ==
-            GRACE_EXIT_SUCCESS) {
+            RETURN_SUCCESS) {
             (*formats)[ncols] = FFORMAT_DATE;
             (*nncols)++;
-        } else if (parse_float(token, &value, &sdummy) == GRACE_EXIT_SUCCESS) {
+        } else if (parse_float(token, &value, &sdummy) == RETURN_SUCCESS) {
             (*formats)[ncols] = FFORMAT_NUMBER;
             (*nncols)++;
         } else {
@@ -263,7 +263,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
     }
     xfree(buf);
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -291,15 +291,15 @@ int insert_data_row(ss_data *ssd, int row, char *s)
                     XCFREE(sp[row]);
                 }
             }
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else {
             if (ssd->formats[i] == FFORMAT_STRING) {
                 sp = (char **) ssd->data[i];
                 sp[row] = copy_string(NULL, token);
                 if (sp[row] != NULL) {
-                    res = GRACE_EXIT_SUCCESS;
+                    res = RETURN_SUCCESS;
                 } else {
-                    res = GRACE_EXIT_FAILURE;
+                    res = RETURN_FAILURE;
                 }
             } else if (ssd->formats[i] == FFORMAT_DATE) {
                 np = (double *) ssd->data[i];
@@ -308,19 +308,19 @@ int insert_data_row(ss_data *ssd, int row, char *s)
                 np = (double *) ssd->data[i];
                 res = parse_float(token, &np[row], &sdummy);
             }
-            if (res != GRACE_EXIT_SUCCESS) {
+            if (res != RETURN_SUCCESS) {
                 for (j = 0; j < i; j++) {
                     if (ssd->formats[j] == FFORMAT_STRING) {
                         sp = (char **) ssd->data[j];
                         XCFREE(sp[row]);
                     }
                 }
-                return GRACE_EXIT_FAILURE;
+                return RETURN_FAILURE;
             }
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -333,12 +333,12 @@ int store_data(ss_data *ssd, int load_type, char *label)
     int x_from_index;
     
     if (ssd == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     ncols = ssd->ncols;
     nrows = ssd->nrows;
     if (ncols <= 0 || nrows <= 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     nncols = 0;
@@ -351,7 +351,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
     
     gno = get_parser_gno();
     if (is_valid_gno(gno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     switch (load_type) {
@@ -359,7 +359,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
         if (nncols > MAX_SET_COLS || nscols > 1) {
             errmsg("Internal error");
             free_ss_data(ssd);
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
 
         nncols_req = settype_cols(curtype);
@@ -368,7 +368,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
             x_from_index = TRUE;
         } else if (nncols_req != nncols) {
 	    errmsg("Column count incorrect");
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
         }
 
         setno = nextset(gno);
@@ -402,14 +402,14 @@ int store_data(ss_data *ssd, int load_type, char *label)
         if (nscols != 0) {
             errmsg("Can not yet use strings when reading in data as NXY");
             free_ss_data(ssd);
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         
         for (i = 0; i < ncols - 1; i++) {
             setno = nextset(gno);
             if (setno == -1) {
                 free_ss_data(ssd);
-                return GRACE_EXIT_FAILURE;
+                return RETURN_FAILURE;
             }
             if (i > 0) {
                 xdata = copy_data_column((double *) ssd->data[0], nrows);
@@ -435,10 +435,10 @@ int store_data(ss_data *ssd, int load_type, char *label)
     default:
         errmsg("Internal error");
         free_ss_data(ssd);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 #define OLD_COL_INDICES
@@ -450,7 +450,7 @@ int field_string_to_cols(const char *fs, int *nc, int **cols)
 
     buf = copy_string(NULL, fs);
     if (buf == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     s = buf;
@@ -462,7 +462,7 @@ int field_string_to_cols(const char *fs, int *nc, int **cols)
     *cols = xmalloc((*nc)*SIZEOF_INT);
     if (*cols == NULL) {
         xfree(buf);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     strcpy(buf, fs);
@@ -486,7 +486,7 @@ int field_string_to_cols(const char *fs, int *nc, int **cols)
     
     xfree(buf);
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 char *cols_to_field_string(int nc, int *cols)
@@ -524,7 +524,7 @@ int create_set_fromblock(int gno, int setno,
     blockncols = get_blockncols();
     if (blockncols <= 0) {
         errmsg("No block data read");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     blocklen = get_blocknrows();
@@ -532,37 +532,37 @@ int create_set_fromblock(int gno, int setno,
     ncols = settype_cols(type);
     if (nc > ncols) {
         errmsg("Too many columns scanned in column string");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (nc < ncols) {
 	errmsg("Too few columns scanned in column string");
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     for (i = 0; i < nc; i++) {
 	if (coli[i] < -1 || coli[i] >= blockncols) {
 	    errmsg("Column index out of range");
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	}
     }
     
     if (scol >= blockncols) {
 	errmsg("String column index out of range");
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     if (setno == NEW_SET) {
         setno = nextset(gno);
         if (setno == -1) {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
     /* clear data stored in the set, if any */
     killsetdata(gno, setno);
     
-    if (activateset(gno, setno) != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (activateset(gno, setno) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
     
     set_dataset_type(gno, setno, type);
@@ -577,12 +577,12 @@ int create_set_fromblock(int gno, int setno,
             } else {
                 errmsg("Tried to read doubles from strings!");
                 killsetdata(gno, setno);
-                return GRACE_EXIT_FAILURE;
+                return RETURN_FAILURE;
             }
         }
         if (cdata == NULL) {
             killsetdata(gno, setno);
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         setcol(gno, setno, i, cdata, blocklen);
     }
@@ -592,7 +592,7 @@ int create_set_fromblock(int gno, int setno,
         if (blockdata.formats[scol] != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
             killsetdata(gno, setno);
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         } else {
             set_set_strings(gno, setno, blocklen, (char **) blockdata.data[scol]);
         }
@@ -605,5 +605,5 @@ int create_set_fromblock(int gno, int setno,
 
     log_results(buf);   
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }

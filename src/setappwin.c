@@ -742,7 +742,7 @@ void updatesymbols(int gno, int setno)
     }
     
     if (setapp_dialog != NULL) { 
-        if (SelectListChoice(toggle_symset_item, setno) == GRACE_EXIT_SUCCESS) {
+        if (SelectListChoice(toggle_symset_item, setno) == RETURN_SUCCESS) {
             cset = setno;
         }
     }

@@ -179,7 +179,7 @@ int xlibinit(void)
     curtile = XCreatePixmap(disp, root, 16, 16, depth);
     if (curtile == (Pixmap) NULL) {
         errmsg("Error allocating tile pixmap");
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
 /*
@@ -192,7 +192,7 @@ int xlibinit(void)
         set_device_props(tdevice, dev);
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -304,7 +304,7 @@ int xlibinitgraphics(void)
     XPoint xp;
     
     if (inwin == FALSE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     xlibcolor = BAD_COLOR;
@@ -356,7 +356,7 @@ int xlibinitgraphics(void)
     
     XDrawRectangle(disp, displaybuff, gc, 0, 0, win_w - 1, win_h - 1);
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 

@@ -73,7 +73,7 @@ void *tz;
 /* (to aid porting) - how are errors dealt with */
 
 #define ERROR(msg) { fprintf(stderr, "%s\nFile %s line %d\n", msg, __FILE__, __LINE__); }
-#define FATAL(msg) { fprintf(stderr, "%s\nFile %s line %d\n", msg, __FILE__, __LINE__); exit(GRACE_EXIT_FAILURE); }
+#define FATAL(msg) { fprintf(stderr, "%s\nFile %s line %d\n", msg, __FILE__, __LINE__); exit(RETURN_FAILURE); }
 
 #include <unistd.h>
 #include <string.h>

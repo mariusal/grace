@@ -231,9 +231,9 @@ int autoscale_graph(int gno, int autos_type)
 {
     if (number_of_active_sets(gno) > 0) {
         autoscale_byset(gno, ALL_SETS, autos_type);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -477,13 +477,13 @@ int graph_scroll(int type)
     }
     
     for (i = gstart; i <= gstop; i++) {
-        if (get_graph_world(i, &w) == GRACE_EXIT_SUCCESS) {
+        if (get_graph_world(i, &w) == RETURN_SUCCESS) {
             switch (type) {
             case GSCROLL_LEFT:    
             case GSCROLL_RIGHT:    
                 if (islogx(i) == TRUE) {
                     errmsg("Scrolling of LOG axes is not implemented");
-                    return GRACE_EXIT_FAILURE;
+                    return RETURN_FAILURE;
                 }
                 dwc = scrollper * (w.xg2 - w.xg1);
                 break;
@@ -491,7 +491,7 @@ int graph_scroll(int type)
             case GSCROLL_UP:    
                 if (islogy(i) == TRUE) {
                     errmsg("Scrolling of LOG axes is not implemented");
-                    return GRACE_EXIT_FAILURE;
+                    return RETURN_FAILURE;
                 }
                 dwc = scrollper * (w.yg2 - w.yg1);
                 break;
@@ -519,7 +519,7 @@ int graph_scroll(int type)
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int graph_zoom(int type)
@@ -538,7 +538,7 @@ int graph_zoom(int type)
     
     for (gno = gstart; gno <= gstop; gno++) {
         if (!islogx(gno) && !islogy(gno)) {
-            if (get_graph_world(gno, &w) == GRACE_EXIT_SUCCESS) {
+            if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
                 dx = shexper * (w.xg2 - w.xg1);
                 dy = shexper * (w.yg2 - w.yg1);
                 if (type == GZOOM_SHRINK) {
@@ -555,11 +555,11 @@ int graph_zoom(int type)
             }
         } else {
             errmsg("Zooming is not implemented for LOG plots");
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -595,7 +595,7 @@ int arrange_graphs2(int grows, int gcols, double vgap, double hgap,
     view v;
 
     if (gcols < 1 || grows < 1) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     for (i = 0; i < gcols; i++) {
@@ -611,7 +611,7 @@ int arrange_graphs2(int grows, int gcols, double vgap, double hgap,
             gtmp++;
         }
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void define_arrange(int nrows, int ncols, int pack,
@@ -619,7 +619,7 @@ void define_arrange(int nrows, int ncols, int pack,
 {
     int i, j, k, gno;
 
-    if (arrange_graphs2(nrows, ncols, vgap, hgap, sx, sy, wx, wy) != GRACE_EXIT_SUCCESS) {
+    if (arrange_graphs2(nrows, ncols, vgap, hgap, sx, sy, wx, wy) != RETURN_SUCCESS) {
 	return;
     }
     

@@ -594,10 +594,10 @@ void ellipse_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int ellipno = ui->boxno;
     double a, b, c, d;
 
-    if (xv_evalexpr( ui->x1_item, &a ) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr( ui->x2_item, &b ) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr( ui->y1_item, &c ) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr( ui->y2_item, &d ) != GRACE_EXIT_SUCCESS ) {
+    if (xv_evalexpr( ui->x1_item, &a ) != RETURN_SUCCESS ||
+        xv_evalexpr( ui->x2_item, &b ) != RETURN_SUCCESS ||
+        xv_evalexpr( ui->y1_item, &c ) != RETURN_SUCCESS ||
+        xv_evalexpr( ui->y2_item, &d ) != RETURN_SUCCESS ) {
         return;
     }
     ellip[ellipno].color = GetOptionChoice(ui->color_item);
@@ -1116,8 +1116,8 @@ int object_edit_popup(int type, int id)
         string_edit_popup(id);
         break;
     default:
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
         break;
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }

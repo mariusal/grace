@@ -122,10 +122,10 @@ int pdfinitgraphics(void)
 
     phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, NULL);
     if (phandle == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (PDF_open_fp(phandle, prstream) == -1) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     PDF_set_info(phandle, "Creator", bi_version_string());
@@ -150,7 +150,7 @@ int pdfinitgraphics(void)
     
     PDF_scale(phandle, page_scalef, page_scalef);
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void pdf_setpen(void)

@@ -178,13 +178,13 @@ int correlation(double *x, double *y, int n, double *cor)
 
     *cor = 0.0;
     if (n < 2) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     stasum(x, n, &xbar, &xsd);
     stasum(y, n, &ybar, &ysd);
     if (xsd == 0.0 || ysd == 0.0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     for (i = 0; i < n; i++) {
@@ -192,7 +192,7 @@ int correlation(double *x, double *y, int n, double *cor)
     }
     *cor /= (n*xsd*ysd);
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
@@ -207,8 +207,8 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     double cor, chisq, rms_pe, ysq, theil;
     int rms_ok;
 
-    if (set_parser_setno(gno, setno) != GRACE_EXIT_SUCCESS) {
-	return GRACE_EXIT_FAILURE;
+    if (set_parser_setno(gno, setno) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
     }
     n = getsetlength(gno, setno);
     
@@ -216,20 +216,20 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         
     fvec = xcalloc(n, SIZEOF_DOUBLE);
     if (fvec == NULL) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
       
     y_saved = xcalloc(n, SIZEOF_DOUBLE);
     if (y_saved == NULL) {
 	xfree(fvec);
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
 
     wa = xcalloc(lwa, sizeof(doublereal));
     if (wa == NULL) {
 	xfree(y_saved);
 	xfree(fvec);
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
 
     xp = getx(gno, setno);
@@ -350,7 +350,7 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
         stufftext(buf, 0);
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*

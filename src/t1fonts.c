@@ -67,20 +67,20 @@ int init_t1(void)
     /* Set search paths: */
     bufp = grace_path("fonts/type1");
     if (bufp == NULL) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     T1_SetFileSearchPath(T1_PFAB_PATH, bufp);
     T1_SetFileSearchPath(T1_AFM_PATH, bufp);
     bufp = grace_path("fonts/enc");
     if (bufp == NULL) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     T1_SetFileSearchPath(T1_ENC_PATH, bufp);
     
     /* Set font database: */
     bufp = grace_path("fonts/FontDataBase");
     if (bufp == NULL) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     T1_SetFontDataBase(bufp);
 
@@ -95,17 +95,17 @@ int init_t1(void)
     
     /* Initialize t1-library */
     if (T1_InitLib(T1LOGFILE|IGNORE_CONFIGFILE) == NULL) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     
     nfonts = T1_Get_no_fonts();
     if (nfonts < 1) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     
     fd = grace_openr(bufp, SOURCE_DISK);
     if (fd == NULL) {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     
     FontDBtable = (FontDB *) xmalloc(nfonts*sizeof(FontDB));
@@ -117,7 +117,7 @@ int init_t1(void)
         if (sscanf(buf, "%s %s %*s", FontDBtable[i].alias, 
                                      FontDBtable[i].fallback) != 2) {
             fclose(fd);
-            return (GRACE_EXIT_FAILURE);
+            return (RETURN_FAILURE);
         }
         FontDBtable[i].mapped_id = i;
     }
@@ -137,7 +137,7 @@ int init_t1(void)
         T1_SetDefaultEncoding(Encoding);
         strcpy(LastEncodingFile, EncodingFile);
     } else {
-        return (GRACE_EXIT_FAILURE);
+        return (RETURN_FAILURE);
     }
     
     lastExtent = 1.0;
@@ -147,7 +147,7 @@ int init_t1(void)
     
     bitmap_pad = T1_GetBitmapPad();
     
-    return (GRACE_EXIT_SUCCESS);
+    return (RETURN_SUCCESS);
 }
 
 void update_t1(void)
@@ -248,7 +248,7 @@ int map_font(int font, int mapped_id)
     int i;
     
     if (font >= nfonts || font < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     /* make sure the mapping is unique */
@@ -259,7 +259,7 @@ int map_font(int font, int mapped_id)
     }
     FontDBtable[font].mapped_id = mapped_id;
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int map_font_by_name(char *fname, int mapped_id)

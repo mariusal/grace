@@ -469,13 +469,13 @@ static void do_nonl_proc(void *data)
     set_wait_cursor();
 
     if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	errmsg("No source graph selected");
 	unset_wait_cursor();
     	return;
     }
     if (GetSingleListChoice(nonl_set_item->src->set_sel, &src_setno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	errmsg("No source set selected");
 	unset_wait_cursor();
     	return;
@@ -569,14 +569,14 @@ static void do_nonl_proc(void *data)
             }
             break;
         case WEIGHT_CUSTOM:
-            if (set_parser_setno(src_gno, src_setno) != GRACE_EXIT_SUCCESS) {
+            if (set_parser_setno(src_gno, src_setno) != RETURN_SUCCESS) {
                 errmsg("Bad set");
                 unset_wait_cursor();
                 return;
             }
             
             fstr = xv_getstr(nonl_wfunc_item);
-            if (v_scanner(fstr, &wlen, &warray) != GRACE_EXIT_SUCCESS) {
+            if (v_scanner(fstr, &wlen, &warray) != RETURN_SUCCESS) {
                 errmsg("Error evaluating expression for weights");
                 unset_wait_cursor();
                 return;
@@ -598,7 +598,7 @@ static void do_nonl_proc(void *data)
         restr_negate = GetToggleButtonState(restr_item->negate);
         resno = get_restriction_array(src_gno, src_setno,
             restr_type, restr_negate, &rarray);
-	if (resno != GRACE_EXIT_SUCCESS) {
+	if (resno != RETURN_SUCCESS) {
 	    errmsg("Error in restriction evaluation");
 	    unset_wait_cursor();
 	    xfree(warray);
@@ -609,7 +609,7 @@ static void do_nonl_proc(void *data)
     	resno = do_nonlfit(src_gno, src_setno, warray, rarray, nsteps);
 	xfree(warray);
 	xfree(rarray);
-    	if (resno != GRACE_EXIT_SUCCESS) {
+    	if (resno != RETURN_SUCCESS) {
 	    errmsg("Fatal error in do_nonlfit()");  
 	    unset_wait_cursor();
 	    return;  	
@@ -638,12 +638,12 @@ static void load_nonl_fit_cb(void *data)
     int src_gno, src_setno;
     
     if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	errmsg("No source graph selected");
     	return;
     }
     if (GetSingleListChoice(nonl_set_item->src->set_sel, &src_setno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	errmsg("No source set selected");
     	return;
     }
@@ -657,16 +657,16 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     double delx, *xfit, *y, *yfit;
     
     if (GetSingleListChoice(nonl_set_item->dest->graph_sel, &dest_gno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	errmsg("No destination graph selected");
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (GetSingleListChoice(nonl_set_item->dest->set_sel, &dest_setno) !=
-        GRACE_EXIT_SUCCESS) {
+        RETURN_SUCCESS) {
     	/* no dest sel selected; allocate new one */
     	dest_setno = nextset(dest_gno);
     	if (dest_setno == -1) {
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
     	} else {
     	    activateset(dest_gno, dest_setno);
     	}
@@ -676,21 +676,21 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     nonl_prefs.load = GetOptionChoice(nonl_load_item);
     
     if (nonl_prefs.load == LOAD_FUNCTION) {
-	if (xv_evalexpr(nonl_start_item, &nonl_prefs.start) != GRACE_EXIT_SUCCESS) {
+	if (xv_evalexpr(nonl_start_item, &nonl_prefs.start) != RETURN_SUCCESS) {
 	    errmsg("Invalid input in start field");
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	}
-	if (xv_evalexpr(nonl_stop_item, &nonl_prefs.stop) != GRACE_EXIT_SUCCESS) {
+	if (xv_evalexpr(nonl_stop_item, &nonl_prefs.stop) != RETURN_SUCCESS) {
 	    errmsg("Invalid input in start field");
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	}
-	if (xv_evalexpri(nonl_npts_item, &nonl_prefs.npoints) != GRACE_EXIT_SUCCESS) {
+	if (xv_evalexpri(nonl_npts_item, &nonl_prefs.npoints) != RETURN_SUCCESS) {
 	    errmsg("Invalid input in start field");
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	}
     	if (nonl_prefs.npoints <= 1) {
     	    errmsg("Number of points must be > 1");
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
     	}
     }
     
@@ -732,7 +732,7 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     	drawgraph();
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 

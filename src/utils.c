@@ -381,7 +381,7 @@ static void bugwarn(char *signame)
         if (interrupts > 10) {
             fprintf(stderr, "oh, no luck :-(\n");
             fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
-            exit(GRACE_EXIT_FAILURE);
+            exit(RETURN_FAILURE);
         }
         return;
     } else {
@@ -394,14 +394,14 @@ static void bugwarn(char *signame)
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
             noask = TRUE;
-            if (save_project(buf) == GRACE_EXIT_SUCCESS) {
+            if (save_project(buf) == RETURN_SUCCESS) {
                 fprintf(stderr, "ok!\n");
             } else {
                 fprintf(stderr, "oh, no luck :-(\n");
             }
         }
         fprintf(stderr, "\nPlease use \"Help/Comments\" to report the bug.\n");
-        exit(GRACE_EXIT_FAILURE);
+        exit(RETURN_FAILURE);
     }
 }
 
@@ -1164,7 +1164,7 @@ int set_workingdir(const char *wd)
         if (workingdir[strlen(workingdir)-1] != '/') {
             strcat(workingdir, "/");
         }
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
     
     strncpy(buf, wd, GR_MAXPATHLEN - 1);
@@ -1176,9 +1176,9 @@ int set_workingdir(const char *wd)
         if (workingdir[strlen(workingdir)-1] != '/') {
             strcat(workingdir, "/");
         }
-	return GRACE_EXIT_SUCCESS;
+	return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1370,16 +1370,16 @@ int init_locale(void)
     s = setlocale(LC_NUMERIC, "");
     if (s == NULL) {
         /* invalid/unsupported locale */
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else if (!strcmp(s, "C")) {
         /* don't enable need_locale, since the system locale is C */
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
         system_locale_string = copy_string(NULL, s);
         s = setlocale(LC_NUMERIC, "C");
         posix_locale_string = copy_string(NULL, s);
         need_locale = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 

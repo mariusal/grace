@@ -178,7 +178,7 @@ static void compute_aac(void *data)
     ns2 = GetListChoices(eui.srcdest->dest->set_sel, &svalues2);
     
     error = FALSE;
-    if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
+    if (g1_ok == RETURN_FAILURE || g2_ok == RETURN_FAILURE) {
         error = TRUE;
         errmsg("Please select single source and destination graphs");
     } else if (ns1 == 0) {
@@ -200,14 +200,14 @@ static void compute_aac(void *data)
 	    
             resno = get_restriction_array(gno1, setno1,
                 restr_type, restr_negate, &rarray);
-	    if (resno != GRACE_EXIT_SUCCESS) {
+	    if (resno != RETURN_SUCCESS) {
 	        errmsg("Error in evaluation restriction");
 	        break;
 	    }
             
             resno = do_compute(gno1, setno1, gno2, setno2, rarray, fstr);
 	    XCFREE(rarray);
-	    if (resno != GRACE_EXIT_SUCCESS) {
+	    if (resno != RETURN_SUCCESS) {
 	        errmsg("Error in do_compute(), check formula");
                 break;
 	    }
@@ -325,13 +325,13 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     toset = SET_SELECT_NEXT;
-    if (GetSingleListChoice(ui->graph_item, &tograph) != GRACE_EXIT_SUCCESS) {
+    if (GetSingleListChoice(ui->graph_item, &tograph) != RETURN_SUCCESS) {
 	errmsg("Please select single graph");
 	return;
     }
-    if(xv_evalexpr(ui->binw_item, &binw) != GRACE_EXIT_SUCCESS ||
-       xv_evalexpr(ui->hxmin_item, &xmin) != GRACE_EXIT_SUCCESS ||
-       xv_evalexpr(ui->hxmax_item, &xmax) != GRACE_EXIT_SUCCESS ) {
+    if(xv_evalexpr(ui->binw_item, &binw) != RETURN_SUCCESS ||
+       xv_evalexpr(ui->hxmin_item, &xmin) != RETURN_SUCCESS ||
+       xv_evalexpr(ui->hxmax_item, &xmax) != RETURN_SUCCESS ) {
         return;
     }
     hist_type = GetChoice(ui->type_item);
@@ -649,7 +649,7 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
         errwin("No sets selected");
         return;
     }
-    if (xv_evalexpri(ui->len_item, &runlen ) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpri(ui->len_item, &runlen ) != RETURN_SUCCESS) {
         return;
     }
     runtype = GetChoice(ui->type_item);
@@ -852,15 +852,15 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
 			break;
 		case 2:		/* evaluate fitted function at new x points */
 		    iresid = 0;
-		    if(xv_evalexpri(ui->step_item, &nstep) != GRACE_EXIT_SUCCESS || nstep < 2 ) {
+		    if(xv_evalexpri(ui->step_item, &nstep) != RETURN_SUCCESS || nstep < 2 ) {
 		            errwin("Number points < 2");
 		            return;         
 		    }
-		    if(xv_evalexpr(ui->start_item, &xstart ) != GRACE_EXIT_SUCCESS) {
+		    if(xv_evalexpr(ui->start_item, &xstart ) != RETURN_SUCCESS) {
 		            errwin("Specify starting value");
 		            return;
 		    }               
-		    if(xv_evalexpr(ui->stop_item, &xstop) != GRACE_EXIT_SUCCESS) {
+		    if(xv_evalexpr(ui->stop_item, &xstop) != RETURN_SUCCESS) {
 		            errwin("Specify stopping value");
 		            return;
 		    } else {
@@ -1117,7 +1117,7 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
         errwin("No sets selected");
         return;
     }
-    if(xv_evalexpri(ui->period_item, &period ) != GRACE_EXIT_SUCCESS)
+    if(xv_evalexpri(ui->period_item, &period ) != RETURN_SUCCESS)
 		return;
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
@@ -1273,7 +1273,7 @@ static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	errwin("Select 2 sets");
 	return;
     }
-    if(xv_evalexpri(ui->lag_item, &maxlag) != GRACE_EXIT_SUCCESS) { 
+    if(xv_evalexpri(ui->lag_item, &maxlag) != RETURN_SUCCESS) { 
         return;
     }
     set_wait_cursor();
@@ -1357,9 +1357,9 @@ static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
         errwin("No sets selected");
         return;
     }
-    if(xv_evalexpr(ui->start_item, &start) != GRACE_EXIT_SUCCESS ||
-       xv_evalexpr(ui->stop_item,  &stop)  != GRACE_EXIT_SUCCESS ||
-       xv_evalexpri(ui->step_item, &n)     != GRACE_EXIT_SUCCESS )
+    if(xv_evalexpr(ui->start_item, &start) != RETURN_SUCCESS ||
+       xv_evalexpr(ui->stop_item,  &stop)  != RETURN_SUCCESS ||
+       xv_evalexpri(ui->step_item, &n)     != RETURN_SUCCESS )
 		return;
 
     stype = GetChoice(ui->type_item);
@@ -1463,8 +1463,8 @@ static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     typeno = (int) GetChoice(ui->type_item);
 	
-	if(xv_evalexpri(ui->start_item, &startno) != GRACE_EXIT_SUCCESS||
-	   xv_evalexpri(ui->step_item, &stepno) != GRACE_EXIT_SUCCESS)
+	if(xv_evalexpri(ui->start_item, &startno) != RETURN_SUCCESS||
+	   xv_evalexpri(ui->step_item, &stepno) != RETURN_SUCCESS)
 		return;
     set_wait_cursor();
     for (i = 0; i < cnt; i++) {
@@ -1657,12 +1657,12 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
     dytype = (int) GetChoice(ui->dytype_item);
 
 	if( XtIsSensitive(ui->dx_rc)== True ){
-		if(xv_evalexpr(ui->dx_item, &deltax) != GRACE_EXIT_SUCCESS)
+		if(xv_evalexpr(ui->dx_item, &deltax) != RETURN_SUCCESS)
 			return;
 	} else
 		deltax = 0;
 	if( XtIsSensitive(ui->dy_rc)== True ){
-		if(xv_evalexpr(ui->dy_item, &deltay) != GRACE_EXIT_SUCCESS )
+		if(xv_evalexpr(ui->dy_item, &deltay) != RETURN_SUCCESS )
 			return;
 	} else
 		deltay = 0;	
@@ -1964,13 +1964,13 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	break;
     }
 	/* check input fields */
-    if (xv_evalexpr(ui->degrees_item, &degrees) != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->rotx_item, &rotx)       != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->roty_item, &roty)       != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->transx_item, &tx)       != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->transy_item, &ty)       != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->scalex_item, &sx)       != GRACE_EXIT_SUCCESS ||
-        xv_evalexpr(ui->scaley_item, &sy)       != GRACE_EXIT_SUCCESS )
+    if (xv_evalexpr(ui->degrees_item, &degrees) != RETURN_SUCCESS ||
+        xv_evalexpr(ui->rotx_item, &rotx)       != RETURN_SUCCESS ||
+        xv_evalexpr(ui->roty_item, &roty)       != RETURN_SUCCESS ||
+        xv_evalexpr(ui->transx_item, &tx)       != RETURN_SUCCESS ||
+        xv_evalexpr(ui->transy_item, &ty)       != RETURN_SUCCESS ||
+        xv_evalexpr(ui->scalex_item, &sx)       != RETURN_SUCCESS ||
+        xv_evalexpr(ui->scaley_item, &sy)       != RETURN_SUCCESS )
 		return;
    	
 	degrees = M_PI / 180.0 * degrees;

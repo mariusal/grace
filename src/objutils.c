@@ -233,7 +233,7 @@ int next_line(void)
 	}
     }
     maxold = maxlines;
-    if (realloc_lines(maxlines + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+    if (realloc_lines(maxlines + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
         errmsg("Error - no lines available");
@@ -253,7 +253,7 @@ int next_box(void)
 	}
     }
     maxold = maxboxes;
-    if (realloc_boxes(maxboxes + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+    if (realloc_boxes(maxboxes + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
         errmsg("Error - no boxes available");
@@ -272,7 +272,7 @@ int next_string(void)
 	}
     }
     maxold = maxstr;
-    if (realloc_strings(maxstr + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+    if (realloc_strings(maxstr + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
         errmsg("Error - no strings available");
@@ -292,7 +292,7 @@ int next_ellipse(void)
 	}
     }
     maxold = maxellipses;
-    if (realloc_ellipses(maxellipses + OBJECT_BUFNUM) == GRACE_EXIT_SUCCESS) {
+    if (realloc_ellipses(maxellipses + OBJECT_BUFNUM) == RETURN_SUCCESS) {
         return maxold;
     } else {
         errmsg("Error - no ellipses available");
@@ -337,10 +337,10 @@ int kill_object(int type, int id)
         kill_string(id);
         break;
     default:
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
         break;
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void copy_object(int type, int from, int to)
@@ -418,10 +418,10 @@ int get_object_bb(int type, int id, view *bb)
         *bb = pstr[id].bb;
         break;
     default:
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
         break;
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void set_plotstr_string(plotstr *pstr, char *buf)
@@ -580,13 +580,13 @@ int realloc_lines(int n)
 	        set_default_line(&lines[i]);
 	    }
 	    maxlines = n;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int realloc_boxes(int n)
@@ -602,13 +602,13 @@ int realloc_boxes(int n)
 	        set_default_box(&boxes[i]);
 	    }
 	    maxboxes = n;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int realloc_ellipses(int n)
@@ -624,13 +624,13 @@ int realloc_ellipses(int n)
 	        set_default_ellipse(&ellip[i]);
 	    }
 	    maxellipses = n;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int realloc_strings(int n)
@@ -646,13 +646,13 @@ int realloc_strings(int n)
 	        set_default_string(&pstr[i]);
 	    }
 	    maxstr = n;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 

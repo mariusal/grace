@@ -668,7 +668,7 @@ static void setop_aac_cb(void *data)
     ns2 = GetListChoices(setopui.srcdest->dest->set_sel, &svalues2);
     
     error = FALSE;
-    if (g1_ok == GRACE_EXIT_FAILURE || g2_ok == GRACE_EXIT_FAILURE) {
+    if (g1_ok == RETURN_FAILURE || g2_ok == RETURN_FAILURE) {
         error = TRUE;
         errmsg("Please select single source and destination graphs");
     } else if (ns1 == 0) {
@@ -688,7 +688,7 @@ static void setop_aac_cb(void *data)
             switch (optype) {
             case OPTYPE_SWAP:
                 if (do_swapset(gno1, svalues1[i], gno2, svalues2[i])
-                                                != GRACE_EXIT_SUCCESS) {
+                                                != RETURN_SUCCESS) {
                     error = TRUE;
                 }
                 break;
@@ -699,7 +699,7 @@ static void setop_aac_cb(void *data)
                     setno2 = svalues2[i];
                 }
                 if (do_copyset(gno1, svalues1[i], gno2, setno2)
-                                                != GRACE_EXIT_SUCCESS) {
+                                                != RETURN_SUCCESS) {
                     error = TRUE;
                 }
                 break;
@@ -710,7 +710,7 @@ static void setop_aac_cb(void *data)
                     setno2 = svalues2[i];
                 }
                 if (do_moveset(gno1, svalues1[i], gno2, setno2)
-                                                != GRACE_EXIT_SUCCESS) {
+                                                != RETURN_SUCCESS) {
                     error = TRUE;
                 }
                 break;
@@ -906,17 +906,17 @@ static void leval_aac_cb(void *data)
     type = GetOptionChoice(levalui.set_type);
     nscols = settype_cols(type);
 
-    if (xv_evalexpr(levalui.start, &start) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpr(levalui.start, &start) != RETURN_SUCCESS) {
 	errmsg("Start item undefined");
         return;
     }
 
-    if (xv_evalexpr(levalui.stop, &stop) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpr(levalui.stop, &stop) != RETURN_SUCCESS) {
 	errmsg("Stop item undefined");
         return;
     }
 
-    if (xv_evalexpri(levalui.npts, &npts) != GRACE_EXIT_SUCCESS) {
+    if (xv_evalexpri(levalui.npts, &npts) != RETURN_SUCCESS) {
 	errmsg("Number of points undefined");
         return;
     }
@@ -952,7 +952,7 @@ static void leval_aac_cb(void *data)
     setno = nextset(gno);
     set_dataset_type(gno, setno, type);
     set_set_hidden(gno, setno, FALSE);
-    if (setlength(gno, setno, npts) != GRACE_EXIT_SUCCESS) {
+    if (setlength(gno, setno, npts) != RETURN_SUCCESS) {
         killset(gno, setno);
         XCFREE(t->data);
         t->length = 0;
@@ -962,7 +962,7 @@ static void leval_aac_cb(void *data)
 
     for (i = 0; i < nscols; i++) {
         res = v_scanner(formula[i], &len, &ex);
-        if (res != GRACE_EXIT_SUCCESS || len != npts) {
+        if (res != RETURN_SUCCESS || len != npts) {
 	    char buf[32];
             sprintf(buf, "Error in formula for %s", dataset_colname(i));
             errmsg(buf);

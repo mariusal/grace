@@ -80,23 +80,23 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 {
     if (is_set_active(gno, setno)) {
 	if (gno != graphto || setno != loadto) {
-	    if (copysetdata(gno, setno, graphto, loadto) != GRACE_EXIT_SUCCESS) {
-	        return GRACE_EXIT_FAILURE;
+	    if (copysetdata(gno, setno, graphto, loadto) != RETURN_SUCCESS) {
+	        return RETURN_FAILURE;
             }
         }
 	filter_set(graphto, loadto, rarray);
         set_parser_setno(graphto, loadto);
-        if (scanner(fstr) != GRACE_EXIT_SUCCESS) {
+        if (scanner(fstr) != RETURN_SUCCESS) {
 	    if (graphto != gno || loadto != setno) {
 		killset(graphto, loadto);
 	    }
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	} else {
 	    set_dirtystate();
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         }
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1044,7 +1044,7 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
         bins[nbins] = xmax;
     }
     
-    if (histogram(ndata, data, nbins, bins, hist) == GRACE_EXIT_FAILURE){
+    if (histogram(ndata, data, nbins, bins, hist) == RETURN_FAILURE){
         xfree(hist);
         xfree(bins);
         return;
@@ -1086,7 +1086,7 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
     
     if (nbins < 1) {
         errmsg("Number of bins < 1");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     bsign = sign(bins[1] - bins[0]);
@@ -1094,12 +1094,12 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
     if (nbins > 1) {
         if (bsign == 0) {
             errmsg("Zero-width bin");
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         for (i = 1; i < nbins; i++) {
             if (bsign != sign(bins[i + 1] - bins[i])) {
                 errmsg("Non-monothonic bins");
-                return GRACE_EXIT_FAILURE;
+                return RETURN_FAILURE;
             }
         }
     }
@@ -1124,7 +1124,7 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
             }
         }
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 
@@ -1173,12 +1173,12 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 	}
 	sprintf(buf, "Sample, %d, %d set #%d", startno, stepno, setno);
     } else {
-        if (set_parser_setno(gno, setno) != GRACE_EXIT_SUCCESS) {
+        if (set_parser_setno(gno, setno) != RETURN_SUCCESS) {
 	    errmsg("Bad set");
             killset(gno, resset);
 	    return;
         }
-        if (v_scanner(exprstr, &reslen, &result) != GRACE_EXIT_SUCCESS) {
+        if (v_scanner(exprstr, &reslen, &result) != RETURN_SUCCESS) {
             killset(gno, resset);
 	    return;
         }
@@ -1655,18 +1655,18 @@ int get_restriction_array(int gno, int setno,
     
     if (rtype == RESTRICT_NONE) {
         *rarray = NULL;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
     
     n = getsetlength(gno, setno);
     if (n <= 0) {
         *rarray = NULL;
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     *rarray = xmalloc(n*SIZEOF_CHAR);
     if (*rarray == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     x = getcol(gno, setno, DATA_X);
@@ -1694,8 +1694,8 @@ int get_restriction_array(int gno, int setno,
     default:
         errmsg("Internal error in get_restriction_array()");
         XCFREE(*rarray);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
         break;
     }
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }

@@ -263,8 +263,8 @@ typedef enum {
 #define FFT_INVDFT      3
 
 /* return codes */
-#define GRACE_EXIT_SUCCESS (0)
-#define GRACE_EXIT_FAILURE (1)
+#define RETURN_SUCCESS (0)
+#define RETURN_FAILURE (1)
 
 #ifndef TRUE
 #  define TRUE 1

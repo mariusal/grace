@@ -465,9 +465,9 @@ int SelectListChoice(ListStructure *listp, int choice)
             XmListSetBottomPos(listp->list, i);
         }
         
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -527,9 +527,9 @@ int GetSingleListChoice(ListStructure *listp, int *value)
     n = GetListChoices(listp, &values);
     if (n == 1) {
         *value = values[0];
-        retval = GRACE_EXIT_SUCCESS;
+        retval = RETURN_SUCCESS;
     } else {
-        retval = GRACE_EXIT_FAILURE;
+        retval = RETURN_FAILURE;
     }
     if (n > 0) {
         xfree(values);
@@ -1083,7 +1083,7 @@ int init_option_menus(void) {
     font_option_items = xmalloc(n*sizeof(OptionItem));
     if (font_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     for (i = 0; i < n; i++) {
         font_option_items[i].value = i;
@@ -1095,7 +1095,7 @@ int init_option_menus(void) {
     if (pattern_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
         xfree(font_option_items);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     for (i = 0; i < n; i++) {
         pattern_option_items[i].value = i;
@@ -1112,7 +1112,7 @@ int init_option_menus(void) {
         errmsg("Malloc error in init_option_menus()");
         xfree(pattern_option_items);
         xfree(font_option_items);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     for (i = 0; i < n; i++) {
         lines_option_items[i].value = i;
@@ -1143,7 +1143,7 @@ int init_option_menus(void) {
     settype_option_items = xmalloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
     if (settype_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     for (i = 0; i < NUMBER_OF_SETTYPES; i++) {
         settype_option_items[i].value = i;
@@ -1151,7 +1151,7 @@ int init_option_menus(void) {
         lowtoupper(settype_option_items[i].label);
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 OptionStructure *CreateFontChoice(Widget parent, char *s)
@@ -2898,7 +2898,7 @@ Boolean xv_evalexpr(Widget w, double *answer )
 
     if (!(len = strlen( buf ) )) { /* check for zero length */
         *answer = 0;
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     /* first character may be a sign */
     if (!fpdigit[(int) buf[0]] && buf[0] != '-' && buf[0] != '+') {
@@ -2915,15 +2915,15 @@ Boolean xv_evalexpr(Widget w, double *answer )
 
     if (i == len) {         /* only floating point digits */
         *answer = atof( buf );
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {                /* must evaluate an expression */
         ier = s_scanner(buf, &result);
         if( !ier ) {
             *answer = result;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
             *answer = 0;
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
 }
@@ -2946,7 +2946,7 @@ Boolean xv_evalexpri(Widget w, int *answer )
 
     if (!(len = strlen( buf ) )) { /* check for zero length */
         *answer = 0;
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     /* first character may be a sign */
     if (!fpdigit[(int) buf[0]] && buf[0] != '-' && buf[0] != '+') {
@@ -2963,15 +2963,15 @@ Boolean xv_evalexpri(Widget w, int *answer )
 
     if (i == len) {             /* only floating point digits */
         *answer = atoi(buf);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {                    /* must evaluate an expression */
         ier = s_scanner(buf, &result);
         if( !ier ) {
             *answer = (int)result;
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
             *answer = 0;
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
 }

@@ -78,7 +78,7 @@ int mfinitgraphics(void)
 
     fprintf(prstream, "InitGraphics { }\n");
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void mf_setpen(void)

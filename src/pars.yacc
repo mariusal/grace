@@ -892,7 +892,7 @@ jdate:  expr {
             double jul;
             Dates_format dummy;
             if (parse_date($1, FMT_iso, FALSE, &jul, &dummy)
-                == GRACE_EXIT_SUCCESS) {
+                == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
             } else {
@@ -910,7 +910,7 @@ jrawdate:  expr {
             double jul;
             Dates_format dummy;
             if (parse_date($1, FMT_iso, TRUE, &jul, &dummy)
-                == GRACE_EXIT_SUCCESS) {
+                == RETURN_SUCCESS) {
                 xfree($1);
                 $$ = jul;
             } else {
@@ -1816,7 +1816,7 @@ lside_array:
             target tgt;
             switch ($1->type) {
             case GRARR_SET:
-                if (find_set_bydata($1->data, &tgt) == GRACE_EXIT_SUCCESS) {
+                if (find_set_bydata($1->data, &tgt) == RETURN_SUCCESS) {
                     vasgn_gno   = tgt.gno;
                     vasgn_setno = tgt.setno;
                 } else {
@@ -1870,7 +1870,7 @@ defines:
 	    tmpkey.s = $2;
 	    tmpkey.type = KEY_VAR;
 	    tmpkey.data = (void *) var;
-	    if (addto_symtab(tmpkey) != GRACE_EXIT_SUCCESS) {
+	    if (addto_symtab(tmpkey) != RETURN_SUCCESS) {
 	        yyerror("Keyword already exists");
 	    }
 
@@ -1915,7 +1915,7 @@ defines:
 		tmpkey.s = $2;
 		tmpkey.type = key[position].type;
 		tmpkey.data = key[position].data;
-		if (addto_symtab(tmpkey) != GRACE_EXIT_SUCCESS) {
+		if (addto_symtab(tmpkey) != RETURN_SUCCESS) {
 		    yyerror("Keyword already exists");
 		}
 	    } else {
@@ -1992,7 +1992,7 @@ regionset:
 
 parmset:
         VERSION nexpr {
-            if (set_project_version($2) != GRACE_EXIT_SUCCESS) {
+            if (set_project_version($2) != RETURN_SUCCESS) {
                 errmsg("Project version is newer than software!");
             }
             if (get_project_version() < 50001) {
@@ -2069,7 +2069,7 @@ parmset:
                 yyerror("Unknown device");
             } else {
                 if (parse_device_options(device_id, $4) != 
-                                                        GRACE_EXIT_SUCCESS) {
+                                                        RETURN_SUCCESS) {
                     yyerror("Incorrect device option string");
                 }
             }
@@ -2478,8 +2478,8 @@ parmset:
 	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
-	    if ((map_font_by_name($5, $3) == GRACE_EXIT_SUCCESS) || 
-                (map_font_by_name($7, $3) == GRACE_EXIT_SUCCESS)) {
+	    if ((map_font_by_name($5, $3) == RETURN_SUCCESS) || 
+                (map_font_by_name($7, $3) == RETURN_SUCCESS)) {
                 ;
             } else {
                 errmsg("Failed mapping a font");
@@ -2495,7 +2495,7 @@ parmset:
             cmap.rgb.blue  = $10;
             cmap.ctype = COLOR_MAIN;
             cmap.cname = $13;
-            if (store_color($3, cmap) == GRACE_EXIT_FAILURE) {
+            if (store_color($3, cmap) == RETURN_FAILURE) {
                 errmsg("Failed mapping a color");
             }
 	    xfree($13);
@@ -2948,17 +2948,17 @@ actions:
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
 	}
 	| AUTOSCALE {
-	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != GRACE_EXIT_SUCCESS) {
+	    if (autoscale_graph(whichgraph, AUTOSCALE_XY) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
 	}
 	| AUTOSCALE XAXES {
-	    if (autoscale_graph(whichgraph, AUTOSCALE_X) != GRACE_EXIT_SUCCESS) {
+	    if (autoscale_graph(whichgraph, AUTOSCALE_X) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
 	}
 	| AUTOSCALE YAXES {
-	    if (autoscale_graph(whichgraph, AUTOSCALE_Y) != GRACE_EXIT_SUCCESS) {
+	    if (autoscale_graph(whichgraph, AUTOSCALE_Y) != RETURN_SUCCESS) {
 		errmsg("Can't autoscale (no active sets?)");
 	    }
 	}
@@ -2995,7 +2995,7 @@ actions:
 	}
 	| BLOCK xytype CHRSTR {
             int nc, *cols;
-            if (field_string_to_cols($3, &nc, &cols) != GRACE_EXIT_SUCCESS) {
+            if (field_string_to_cols($3, &nc, &cols) != RETURN_SUCCESS) {
                 errmsg("Erroneous field specifications");
 	        xfree($3);
                 return 1;
@@ -4734,9 +4734,9 @@ int set_parser_gno(int gno)
 {
     if (is_valid_gno(gno) == TRUE) {
         whichgraph = gno;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -4754,9 +4754,9 @@ int set_parser_setno(int gno, int setno)
            a _standalone_ vexpr */
         vasgn_gno = gno;
         vasgn_setno = setno;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -4799,9 +4799,9 @@ static int parser(char *s, int type)
     if (s == NULL || s[0] == '\0') {
         if (type == PARSER_TYPE_VOID) {
             /* don't consider an empty string as error for generic parser */
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
@@ -4817,9 +4817,9 @@ static int parser(char *s, int type)
     if (*seekpos == '\n' || *seekpos == '#') {
         if (type == PARSER_TYPE_VOID) {
             /* don't consider an empty string as error for generic parser */
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         } else {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
@@ -4853,9 +4853,9 @@ static int parser(char *s, int type)
     
     if ((type == PARSER_TYPE_VEXPR && !vexpr_parsed) ||
         (type == PARSER_TYPE_EXPR  && !expr_parsed)) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
-        return (interr ? GRACE_EXIT_FAILURE:GRACE_EXIT_SUCCESS);
+        return (interr ? RETURN_FAILURE:RETURN_SUCCESS);
     }
 }
 
@@ -4869,8 +4869,8 @@ int s_scanner(char *s, double *res)
 int v_scanner(char *s, int *reslen, double **vres)
 {
     int retval = parser(s, PARSER_TYPE_VEXPR);
-    if (retval != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (retval != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     } else {
         *reslen = v_result->length;
         if (v_result->type == GRARR_TMP) {
@@ -4880,15 +4880,15 @@ int v_scanner(char *s, int *reslen, double **vres)
         } else {
             *vres = copy_data_column(v_result->data, v_result->length);
         }
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
 int scanner(char *s)
 {
     int retval = parser(s, PARSER_TYPE_VOID);
-    if (retval != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (retval != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
     
     if (gotparams) {
@@ -4963,7 +4963,7 @@ grarr *define_parser_arr(char * const name)
 	tmpkey.s = name;
 	tmpkey.type = KEY_VEC;
 	tmpkey.data = (void *) var;
-	if (addto_symtab(tmpkey) == GRACE_EXIT_SUCCESS) {
+	if (addto_symtab(tmpkey) == RETURN_SUCCESS) {
 	    return var;
 	} else {
             return NULL;
@@ -4985,10 +4985,10 @@ int undefine_parser_var(void *ptr)
                 memmove(&(key[i]), &(key[i + 1]), (maxfunc - i)*sizeof(symtab_entry));
             }
             key = xrealloc(key, maxfunc*sizeof(symtab_entry));
-            return GRACE_EXIT_SUCCESS;
+            return RETURN_SUCCESS;
         }
     }
-    return GRACE_EXIT_FAILURE;
+    return RETURN_FAILURE;
 }
 
 static int find_set_bydata(double *data, target *tgt)
@@ -4996,7 +4996,7 @@ static int find_set_bydata(double *data, target *tgt)
     int gno, setno, ncol;
     
     if (data == NULL) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         for (gno = 0; gno < number_of_graphs(); gno++) {
             for (setno = 0; setno < number_of_sets(gno); setno++) {
@@ -5004,13 +5004,13 @@ static int find_set_bydata(double *data, target *tgt)
                     if (getcol(gno, setno, ncol) == data) {
                         tgt->gno   = gno;
                         tgt->setno = setno;
-                        return GRACE_EXIT_SUCCESS;
+                        return RETURN_SUCCESS;
                     }
                 }
             }
         }
     }
-    return GRACE_EXIT_FAILURE;
+    return RETURN_FAILURE;
 }
 
 static int findf(symtab_entry *keytable, char *s)
@@ -5056,18 +5056,18 @@ int addto_symtab(symtab_entry newkey)
 	    key[maxfunc].s = s;
 	    maxfunc++;
 	    qsort(key, maxfunc, sizeof(symtab_entry), compare_keys);
-	    return GRACE_EXIT_SUCCESS;
+	    return RETURN_SUCCESS;
 	} else {
 	    xfree(s);
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	}
     } else if (alias_force == TRUE) { /* already exists but alias_force enabled */
         key[position].type = newkey.type;
 	key[position].data = newkey.data;
-	return GRACE_EXIT_SUCCESS;
+	return RETURN_SUCCESS;
     } else {
 	xfree(s);
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -5201,7 +5201,7 @@ static int yylex(void)
                 } else {
                     gn = atoi(stmp);
                 }
-		if (set_graph_active(gn, TRUE) == GRACE_EXIT_SUCCESS) {
+		if (set_graph_active(gn, TRUE) == RETURN_SUCCESS) {
 		    yylval.ival = gn;
 		    return GRAPHNO;
 		}

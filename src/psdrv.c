@@ -193,7 +193,7 @@ static int ps_initgraphics(int format)
         break;
     default:
         errmsg("Invalid PS format");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     if (page_orientation == PAGE_ORIENT_PORTRAIT) {
@@ -333,7 +333,7 @@ static int ps_initgraphics(int format)
         fprintf(prstream, "%%%%Page: 1 1\n");
     }
 
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void ps_setpen(void)
@@ -826,7 +826,7 @@ int psprintinitgraphics(void)
     ps_level2 = ps_setup_level2;
     result = ps_initgraphics(PS_FORMAT);
     
-    if (result == GRACE_EXIT_SUCCESS) {
+    if (result == RETURN_SUCCESS) {
         curformat = PS_FORMAT;
     }
     
@@ -841,7 +841,7 @@ int epsinitgraphics(void)
     ps_level2 = TRUE;
     result = ps_initgraphics(EPS_FORMAT);
     
-    if (result == GRACE_EXIT_SUCCESS) {
+    if (result == RETURN_SUCCESS) {
         curformat = EPS_FORMAT;
     }
     
@@ -852,24 +852,24 @@ int ps_op_parser(char *opstring)
 {
     if (!strcmp(opstring, "grayscale")) {
         ps_setup_grayscale = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "color")) {
         ps_setup_grayscale = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "level2")) {
         ps_setup_level2 = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "level1")) {
         ps_setup_level2 = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strncmp(opstring, "xoffset:", 8)) {
         ps_setup_offset_x = atoi(opstring + 8);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strncmp(opstring, "yoffset:", 8)) {
         ps_setup_offset_y = atoi(opstring + 8);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -877,18 +877,18 @@ int eps_op_parser(char *opstring)
 {
     if (!strcmp(opstring, "grayscale")) {
         ps_setup_grayscale = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "color")) {
         ps_setup_grayscale = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "bbox:tight")) {
         eps_setup_tight_bb = TRUE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "bbox:page")) {
         eps_setup_tight_bb = FALSE;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 

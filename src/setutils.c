@@ -194,30 +194,30 @@ int setlength(int gno, int setno, int len)
     int i, j, ncols, oldlen;
 
     if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     p = &g[gno].p[setno];
 
     oldlen = p->data.len;
     if (len == oldlen) {
-	return GRACE_EXIT_SUCCESS;
+	return RETURN_SUCCESS;
     }
     if (len < 0) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     ncols = settype_cols(p->type);
     
     if (ncols == 0) {
 	errmsg("Set type not found in setlength()!");
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     
     for (i = 0; i < ncols; i++) {
 	if ((p->data.ex[i] = xrealloc(p->data.ex[i], len*SIZEOF_DOUBLE)) == NULL
             && len != 0) {
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
 	}
         for (j = oldlen; j < len; j++) {
             p->data.ex[i][j] = 0.0;
@@ -238,7 +238,7 @@ int setlength(int gno, int setno, int len)
 
     set_dirtystate();
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -249,11 +249,11 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
     int k;
 
     if (gnoto == gnofrom && setfrom == setto) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
 
     if (is_valid_setno(gnofrom, setfrom) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 
     if (is_set_active(gnoto, setto)) {
@@ -272,7 +272,7 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
     g[gnofrom].p[setfrom].hidden = TRUE;
     
     set_dirtystate();
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -285,13 +285,13 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
     char buf[256];
 
     if (!is_set_active(gfrom, setfrom)) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (!is_valid_gno(gto)) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (setfrom == setto && gfrom == gto) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (is_set_active(gto, setto)) {
 	killset(gto, setto);
@@ -300,12 +300,12 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
     ncols = dataset_cols(gfrom, setfrom);
     activateset(gto, setto);
     set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
-    if (setlength(gto, setto, len) != GRACE_EXIT_SUCCESS) {
-	return GRACE_EXIT_FAILURE;
+    if (setlength(gto, setto, len) != RETURN_SUCCESS) {
+	return RETURN_FAILURE;
     }
     if (g[gfrom].p[setfrom].data.s != NULL) {
         if ((g[gto].p[setto].data.s = xmalloc(len*sizeof(char *))) == NULL) {
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
         }
     }
 
@@ -331,7 +331,7 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
 
     set_dirtystate();
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -343,13 +343,13 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
     char buf[256];
 
     if (!is_set_active(gfrom, setfrom)) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (!is_valid_gno(gto)) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (setfrom == setto && gfrom == gto) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (is_set_active(gto, setto)) {
 	killsetdata(gto, setto);
@@ -360,12 +360,12 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
     if (dataset_cols(gto, setto) != ncols) {
         set_dataset_type(gto, setto, dataset_type(gfrom, setfrom));
     }
-    if (setlength(gto, setto, len) != GRACE_EXIT_SUCCESS) {
-        return GRACE_EXIT_FAILURE;
+    if (setlength(gto, setto, len) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
     if (g[gfrom].p[setfrom].data.s != NULL) {
         if ((g[gto].p[setto].data.s = xmalloc(len*sizeof(char *))) == NULL) {
-	    return GRACE_EXIT_FAILURE;
+	    return RETURN_FAILURE;
         }
     }
 
@@ -386,7 +386,7 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
 
     set_dirtystate();
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -398,10 +398,10 @@ int swapset(int gno1, int setno1, int gno2, int setno2)
 
     if (is_valid_setno(gno1, setno1) == FALSE ||
         is_valid_setno(gno2, setno2) == FALSE) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
     if (setno1 == setno2 && gno1 == gno2) {
-	return GRACE_EXIT_FAILURE;
+	return RETURN_FAILURE;
     }
 
     memcpy(&p, &g[gno2].p[setno2], sizeof(plotarr));
@@ -410,7 +410,7 @@ int swapset(int gno1, int setno1, int gno2, int setno2)
 
     set_dirtystate();
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 /*
@@ -480,9 +480,9 @@ int set_set_strings(int gno, int setno, int len, char **s)
         g[gno].p[setno].data.s = s;
         g[gno].p[setno].data.len = len;
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -500,9 +500,9 @@ int setcomment(int gno, int setno, char *s)
     if (is_valid_setno(gno, setno) && s != NULL) {
         strncpy(g[gno].p[setno].comments, s, MAX_STRING_LENGTH - 1);
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -519,9 +519,9 @@ int set_legend_string(int gno, int setno, char *s)
 { 
     if (is_valid_setno(gno, setno) && s != NULL) {
         strncpy(g[gno].p[setno].lstr, s, MAX_STRING_LENGTH - 1);
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -555,9 +555,9 @@ int set_dataset_type(int gno, int setno, int type)
             break;
         }
         g[gno].p[setno].type = type;
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -672,9 +672,9 @@ int getsetminmax(int gno, int setno,
     }
     
     if (first == FALSE) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -706,7 +706,7 @@ int getsetminmax_c(int gno, int setno,
         start = setno;
         stop  = setno;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     for (i = start; i <= stop; i++) {
@@ -722,7 +722,7 @@ int getsetminmax_c(int gno, int setno,
             
             n = getsetlength(gno, i);
             hits = minmaxrange(bvec, vec, n, bvmin, bvmax, &vmin_t, &vmax_t);
-            if (hits == GRACE_EXIT_SUCCESS) {
+            if (hits == RETURN_SUCCESS) {
                 if (first) {
                     *vmin = vmin_t;
                     *vmax = vmax_t;
@@ -736,9 +736,9 @@ int getsetminmax_c(int gno, int setno,
     }
     
     if (first == FALSE) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -774,7 +774,7 @@ void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
 /*
  * compute the min and max of vector vec calculated for indices such that
  * bvec values lie within [bmin, bmax] range
- * returns GRACE_EXIT_FAILURE if none found
+ * returns RETURN_FAILURE if none found
  */
 int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
               	   double *vmin, double *vmax)
@@ -782,7 +782,7 @@ int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
     int i, first = TRUE;
     
     if ((vec == NULL) || (bvec == NULL)) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     for (i = 0; i < n; i++) {
@@ -802,9 +802,9 @@ int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
     }
     
     if (first == FALSE) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -847,28 +847,28 @@ double vmax(double *x, int n)
 int set_point(int gno, int setno, int seti, WPoint wp)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (seti >= getsetlength(gno, setno) || seti < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     (getcol(gno, setno, DATA_X))[seti] = wp.x;
     (getcol(gno, setno, DATA_Y))[seti] = wp.y;
     set_dirtystate();
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 int get_point(int gno, int setno, int seti, WPoint *wp)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (seti >= getsetlength(gno, setno) || seti < 0) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     wp->x = (getcol(gno, setno, DATA_X))[seti];
     wp->y = (getcol(gno, setno, DATA_Y))[seti];
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
@@ -899,30 +899,30 @@ int pushset(int gno, int setno, int push_type)
     int i, newsetno;
     
     if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         switch (push_type) {
         case PUSH_SET_TOFRONT:
             newsetno = number_of_sets(gno) - 1;
             for (i = setno; i < newsetno; i++) {
-                if (swapset(gno, i, gno, i + 1) != GRACE_EXIT_SUCCESS) {
-                    return GRACE_EXIT_FAILURE;
+                if (swapset(gno, i, gno, i + 1) != RETURN_SUCCESS) {
+                    return RETURN_FAILURE;
                 }
             }
             break;
         case PUSH_SET_TOBACK:
             newsetno = 0;
             for (i = setno; i > newsetno; i--) {
-                if (swapset(gno, i, gno, i - 1) != GRACE_EXIT_SUCCESS) {
-                    return GRACE_EXIT_FAILURE;
+                if (swapset(gno, i, gno, i - 1) != RETURN_SUCCESS) {
+                    return RETURN_FAILURE;
                 }
             }
             break;
         default:
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
             break;
         }
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
 }
 
@@ -948,7 +948,7 @@ void packsets(int gno)
 int allocate_set(int gno, int setno)
 {
     if (is_valid_setno(gno, setno)) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
         return realloc_graph_plots(gno, setno + 1);
     }
@@ -959,10 +959,10 @@ int activateset(int gno, int setno)
     int retval;
     
     if (is_valid_gno(gno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     } else {
         retval = allocate_set(gno, setno);
-        if (retval == GRACE_EXIT_SUCCESS) {
+        if (retval == RETURN_SUCCESS) {
             set_set_hidden(gno, setno, FALSE);
         }
         return retval;
@@ -1009,7 +1009,7 @@ int nextset(int gno)
             }
         }
         /* if no sets found, try allocating new one */
-        if (setno == maxplot && allocate_set(gno, setno) != GRACE_EXIT_SUCCESS) {
+        if (setno == maxplot && allocate_set(gno, setno) != RETURN_SUCCESS) {
             return (-1);
         }
     }
@@ -1080,7 +1080,7 @@ int join_sets(int gno, int *sets, int nsets)
 
     if (nsets < 2) {
         errmsg("nsets < 2");
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     
     setno_final = sets[0];
@@ -1089,11 +1089,11 @@ int join_sets(int gno, int *sets, int nsets)
         setno = sets[i];
         if (is_valid_setno(gno, setno) != TRUE) {
             errmsg("Invalid setno in the list");
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         if (dataset_cols(gno, setno) != ncols) {
             errmsg("Can't join datasets with different number of cols");
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
     }
     
@@ -1102,8 +1102,8 @@ int join_sets(int gno, int *sets, int nsets)
         setno = sets[i];
         old_length = new_length;
         new_length += getsetlength(gno, setno);
-        if (setlength(gno, setno_final, new_length) != GRACE_EXIT_SUCCESS) {
-            return GRACE_EXIT_FAILURE;
+        if (setlength(gno, setno_final, new_length) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
         }
         for (j = 0; j < ncols; j++) {
             x1 = getcol(gno, setno_final, j);
@@ -1115,7 +1115,7 @@ int join_sets(int gno, int *sets, int nsets)
         killset(gno, setno);
     }
     
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
 
 void reverse_set(int gno, int setno)
@@ -1364,7 +1364,7 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
     if (is_valid_setno(gno, setno)) {
         len = getsetlength(gno, setno);
         if (ind < 0 || ind > len) {
-            return GRACE_EXIT_FAILURE;
+            return RETURN_FAILURE;
         }
         len++;
         setlength(gno, setno, len);
@@ -1381,9 +1381,9 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
             s[ind] = copy_string(s[ind], dpoint->s);
         }
         set_dirtystate();
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     } else {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
 }
 
@@ -1427,7 +1427,7 @@ int do_moveset(int gfrom, int setfrom, int gto, int setto)
     char buf[64];
     
     retval = moveset(gfrom, setfrom, gto, setto);
-    if (retval != GRACE_EXIT_SUCCESS) {
+    if (retval != RETURN_SUCCESS) {
         sprintf(buf,
             "Error moving G%d.S%d to G%d.S%d",
             gfrom, setfrom, gto, setto);
@@ -1445,7 +1445,7 @@ int do_copyset(int gfrom, int setfrom, int gto, int setto)
     char buf[64];
     
     retval = copyset(gfrom, setfrom, gto, setto);
-    if (retval != GRACE_EXIT_SUCCESS) {
+    if (retval != RETURN_SUCCESS) {
         sprintf(buf,
             "Error copying G%d.S%d to G%d.S%d",
             gfrom, setfrom, gto, setto);
@@ -1463,7 +1463,7 @@ int do_swapset(int gfrom, int setfrom, int gto, int setto)
     char buf[64];
     
     retval = swapset(gfrom, setfrom, gto, setto);
-    if (retval != GRACE_EXIT_SUCCESS) {
+    if (retval != RETURN_SUCCESS) {
         sprintf(buf,
             "Error swapping G%d.S%d with G%d.S%d",
             gfrom, setfrom, gto, setto);
@@ -1697,10 +1697,10 @@ int filter_set(int gno, int setno, char *rarray)
     Dataset *dsp;
     
     if (is_valid_setno(gno, setno) != TRUE) {
-        return GRACE_EXIT_FAILURE;
+        return RETURN_FAILURE;
     }
     if (rarray == NULL) {
-        return GRACE_EXIT_SUCCESS;
+        return RETURN_SUCCESS;
     }
     ncols = dataset_cols(gno, setno);
     dsp = &(g[gno].p[setno].data);
@@ -1717,5 +1717,5 @@ int filter_set(int gno, int setno, char *rarray)
         }
     }
     setlength(gno, setno, ip);
-    return GRACE_EXIT_SUCCESS;
+    return RETURN_SUCCESS;
 }
