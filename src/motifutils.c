@@ -174,6 +174,27 @@ Widget GetParent(Widget w)
     }
 }
 
+void SetDimensions(Widget w, unsigned int width, unsigned int height)
+{
+    XtVaSetValues(w,
+        XmNwidth, (Dimension) width,
+        XmNheight, (Dimension) height,
+        NULL);
+}
+
+void GetDimensions(Widget w, unsigned int *width, unsigned int *height)
+{
+    Dimension ww, wh;
+
+    XtVaGetValues(w,
+        XmNwidth, &ww,
+        XmNheight, &wh,
+        NULL);
+
+    *width  = (unsigned int) ww;
+    *height = (unsigned int) wh;
+}
+
 #define MAX_PULLDOWN_LENGTH 30
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
