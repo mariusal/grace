@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -395,6 +395,7 @@ void draw_polar_graph(Canvas *canvas, int gno)
             case SET_XY:
             case SET_XYSIZE:
             case SET_XYCOLOR:
+            case SET_XYZ:
                 drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                 drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                 drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
@@ -432,6 +433,7 @@ void xyplot(Canvas *canvas, int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
+                case SET_XYZ:
                     drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
@@ -454,11 +456,6 @@ void xyplot(Canvas *canvas, int gno)
                     break;
                 case SET_XYHILO:
                     drawsethilo(canvas, p);
-                    break;
-                case SET_XYZ:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
                     drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
@@ -607,6 +604,7 @@ void xyplot(Canvas *canvas, int gno)
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
+                case SET_XYZ:
                     drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
@@ -619,11 +617,6 @@ void xyplot(Canvas *canvas, int gno)
                 case SET_XYDXDXDYDY:
                     drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawseterrbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    break;
-                case SET_XYZ:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
                     break;
