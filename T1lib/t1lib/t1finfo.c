@@ -499,9 +499,9 @@ int T1_QueryLigs( int FontID,  char char1, char **successors,
   char *c_name;
   char cc_name[128];
   static char succ[MAX_LIGS];
-  char succ_index;
+  int succ_index;
   static char lig[MAX_LIGS];
-  char lig_index;
+  int lig_index;
   
   Ligature *ligs;
   int i,j;
