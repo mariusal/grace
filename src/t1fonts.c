@@ -787,8 +787,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 {    
     VPoint vptmp;
  
-    int hjust, vjust, just_type;
-    float hfudge, vfudge;
+    int hjust, vjust;
+    float hfudge;
     
     double page_ipv, page_dpv;
  
@@ -951,36 +951,29 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     vjust = just & 014;
     switch (vjust) {
     case JUST_BOTTOM:
-        vfudge = 0.0;
-        break;
-    case JUST_TOP:
-        vfudge = 1.0;
-        break;
-    case JUST_MIDDLE:
-        vfudge = 0.5;
-        break;
-    default:
-        errmsg("Wrong justification type of string");
-        FreeCompositeString(cstring);
-        return;
-    }
- 
-    just_type = just & 020;
-    switch (just_type) {
-    case JUST_OBJECT:
-        justpoint_x = (int) rint(baseline_start_x + 
-                                hfudge*(baseline_end_x - baseline_start_x));
-        justpoint_y = (int) rint(baseline_start_y + 
-                                hfudge*(baseline_end_y - baseline_start_y));
-        break;
-    case JUST_BBOX:
         justpoint_x = (int) rint(bbox_left_x + 
                                 hfudge*(bbox_right_x - bbox_left_x));
-        justpoint_y = (int) rint(bbox_lower_y + 
-                                vfudge*(bbox_upper_y - bbox_lower_y));
+        justpoint_y = bbox_lower_y;
+        break;
+    case JUST_TOP:
+        justpoint_x =
+            (int) rint(bbox_left_x + hfudge*(bbox_right_x - bbox_left_x));
+        justpoint_y = bbox_upper_y;
+        break;
+    case JUST_MIDDLE:
+        justpoint_x = 
+            (int) rint(bbox_left_x + hfudge*(bbox_right_x - bbox_left_x));
+        justpoint_y = (int) rint(0.5*(bbox_lower_y + bbox_upper_y));
+        break;
+    case JUST_BLINE:
+        justpoint_x = (int) rint(baseline_start_x + 
+            hfudge*(baseline_end_x - baseline_start_x));
+        justpoint_y = (int) rint(baseline_start_y + 
+            hfudge*(baseline_end_y - baseline_start_y));
         break;
     default:
-        errmsg("Wrong justification type of string");
+        /* This can't happen; to make compiler happy */
+        errmsg("Internal error");
         FreeCompositeString(cstring);
         return;
     }

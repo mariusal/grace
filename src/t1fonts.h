@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -46,6 +46,18 @@
 /* Font mappings */
 #define FONT_MAP_DEFAULT    0
 #define FONT_MAP_ACEGR      1
+
+/* Text string justifications */
+/* Horizontal */
+#define JUST_LEFT       0
+#define JUST_RIGHT      1
+#define JUST_CENTER     2
+
+/* Vertical */
+#define JUST_BLINE      0
+#define JUST_BOTTOM     4
+#define JUST_TOP        8
+#define JUST_MIDDLE    12
 
 /* TODO */
 #define MAGIC_FONT_SCALE	0.028

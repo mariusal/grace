@@ -43,6 +43,7 @@
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
+#include "t1fonts.h"
 #include "protos.h"
 
 static defaults d_d =
@@ -137,7 +138,7 @@ void set_default_string(plotstr * s)
     s->color = grdefaults.color;
     s->rot = 0;
     s->font = grdefaults.font;
-    s->just = JUST_LEFT|JUST_MIDDLE|JUST_OBJECT;
+    s->just = JUST_LEFT|JUST_BLINE;
     s->charsize = grdefaults.charsize;
     s->s = NULL;
 }

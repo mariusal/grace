@@ -283,8 +283,8 @@ void drawaxes(int gno)
 	    vbase1 = vp1_start.y;
 	    vbase2 = vp2_start.y;
 	    
-	    tlabel1_just = JUST_CENTER|JUST_TOP|JUST_BBOX;
-	    tlabel2_just = JUST_CENTER|JUST_BOTTOM|JUST_BBOX;
+	    tlabel1_just = JUST_CENTER|JUST_TOP;
+	    tlabel2_just = JUST_CENTER|JUST_BOTTOM;
 	    
 	    switch (t.label_layout) {
 	    case LAYOUT_PARALLEL:
@@ -349,8 +349,8 @@ void drawaxes(int gno)
 	    vbase1 = vp1_start.x;
 	    vbase2 = vp2_start.x;
 	    
-	    tlabel1_just = JUST_RIGHT|JUST_MIDDLE|JUST_BBOX;
-	    tlabel2_just = JUST_LEFT|JUST_MIDDLE|JUST_BBOX;
+	    tlabel1_just = JUST_RIGHT|JUST_MIDDLE;
+	    tlabel2_just = JUST_LEFT|JUST_MIDDLE;
 	
 	    switch (t.label_layout) {
 	    case LAYOUT_PARALLEL:
@@ -635,7 +635,7 @@ void drawaxes(int gno)
 	        vp_label.y = (vp1_start.y + vp1_stop.y)/2 + vp_label_offset.x*ort_para.y
                                                         - vp_label_offset.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE|JUST_BBOX, t.label.s);
+	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t.label.s);
 	    }
 
 	    /* Axis label on opposite side */
@@ -647,7 +647,7 @@ void drawaxes(int gno)
 	        vp_label.y = (vp2_start.y + vp2_stop.y)/2 + vp_label_offset.x*ort_para.y
                                                         + vp_label_offset.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE|JUST_BBOX, t.label.s);
+	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t.label.s);
 	    }
 
 	}

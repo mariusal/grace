@@ -64,7 +64,6 @@
 #define OBJECT_BUFNUM 10
 
 
-#define MAX_JUST 2
 #define MAX_ARROW 3
 #define MAX_PREC 10
 
@@ -243,16 +242,6 @@ typedef enum {
 /* Data source type */
 #define SOURCE_DISK     0
 #define SOURCE_PIPE     1
-
-/* Justifications */
-#define JUST_LEFT       0
-#define JUST_RIGHT      1
-#define JUST_CENTER     2
-#define JUST_BOTTOM     0
-#define JUST_TOP        4
-#define JUST_MIDDLE     8
-#define JUST_BBOX       0
-#define JUST_OBJECT     16
 
 
 /* Types of running command */

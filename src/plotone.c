@@ -532,14 +532,14 @@ void draw_titles(int gno)
         setcharsize(lab.title.charsize);
         setfont(lab.title.font);
         vp1.y += 0.06;
-        WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM|JUST_BBOX, lab.title.s);
+        WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
     }
     if (lab.stitle.s && lab.stitle.s[0]) {
         setcolor(lab.stitle.color);
         setcharsize(lab.stitle.charsize);
         setfont(lab.stitle.font);
         vp2.y += 0.02;
-        WriteString(vp2, 0, JUST_CENTER|JUST_BOTTOM|JUST_BBOX, lab.stitle.s);
+        WriteString(vp2, 0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
     }
 }
 
@@ -1208,8 +1208,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         
         strcat(str, avalue.appstr);
         
-        WriteString(vp, avalue.angle,
-                        JUST_CENTER|JUST_BOTTOM|JUST_BBOX, str);
+        WriteString(vp, avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
     } 
 }
 
@@ -1644,7 +1643,7 @@ int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
         setcolor(sympen.color);
         buf[0] = s;
         buf[1] = '\0';
-        WriteString(vp, 0, JUST_CENTER|JUST_MIDDLE|JUST_BBOX, buf);
+        WriteString(vp, 0, JUST_CENTER|JUST_MIDDLE, buf);
         break;
     default:
         errmsg("Invalid symbol type");
@@ -1773,7 +1772,7 @@ void draw_string(int gno, int i)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, pstr.rot, pstr.just|JUST_MIDDLE|JUST_BBOX, pstr.s);
+        WriteString(vp, pstr.rot, pstr.just, pstr.s);
 
         pstr.bb = get_bbox(BBOX_TYPE_TEMP);
         set_graph_string(i, &pstr);
@@ -2271,7 +2270,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             setcharsize(l.charsize);
             setfont(l.font);
             setcolor(l.color);
-            WriteString(vpstr, 0, JUST_LEFT|JUST_TOP|JUST_BBOX, p.lstr);
+            WriteString(vpstr, 0, JUST_LEFT|JUST_TOP, p.lstr);
             vp.y = (vpstr.y + get_bbox(BBOX_TYPE_TEMP).yv1)/2;
             vp2.y = vp.y;
             vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
@@ -2319,7 +2318,7 @@ void draw_timestamp(void)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, timestamp.rot, timestamp.just|JUST_BOTTOM|JUST_OBJECT, timestamp.s);
+        WriteString(vp, timestamp.rot, timestamp.just, timestamp.s);
 
         timestamp.bb = get_bbox(BBOX_TYPE_TEMP);
     }
