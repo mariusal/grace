@@ -57,6 +57,8 @@ typedef struct {
 #define FONT_EMBED_BUT35   2
 #define FONT_EMBED_ALL     3
 
+#define MAX_PS_LINELEN   70
+
 int ps_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats);
 

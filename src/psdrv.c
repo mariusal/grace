@@ -956,6 +956,7 @@ void ps_putpixmap(const Canvas *canvas, void *data,
     fCMYK fcmyk;
     unsigned char tmpbyte;
     Pen pen;
+    int linelen;
 
     getpen(canvas, &pen);
     ps_setpen(canvas, &pen, psdata);
@@ -995,25 +996,28 @@ void ps_putpixmap(const Canvas *canvas, void *data,
             fprintf(canvas->prstream, "colorimage\n");
         }
         for (k = 0; k < height; k++) {
+            linelen = 0;
             for (j = 0; j < width; j++) {
                 cindex = (databits)[k*width+j];
                 if (psdata->colorspace == COLORSPACE_GRAYSCALE ||
                     psdata->level2 == FALSE) {
-                    fprintf(canvas->prstream,"%02x",
+                    linelen += fprintf(canvas->prstream,"%02x",
                         (int) (255*get_colorintensity(canvas, cindex)));
+                } else if (psdata->colorspace == COLORSPACE_CMYK) {
+                    CMYK cmyk;
+                    get_cmyk(canvas, cindex, &cmyk);
+                    linelen += fprintf(canvas->prstream, "%02x%02x%02x%02x",
+                                      cmyk.cyan, cmyk.magenta,
+                                      cmyk.yellow, cmyk.black);
                 } else {
-                    if (psdata->colorspace == COLORSPACE_CMYK) {
-                        CMYK cmyk;
-                        get_cmyk(canvas, cindex, &cmyk);
-                        fprintf(canvas->prstream, "%02x%02x%02x%02x",
-                                          cmyk.cyan, cmyk.magenta,
-                                          cmyk.yellow, cmyk.black);
-                    } else {
-                        RGB rgb;
-                        get_rgb(canvas, cindex, &rgb);
-                        fprintf(canvas->prstream, "%02x%02x%02x",
-                                           rgb.red, rgb.green, rgb.blue);
-                    }
+                    RGB rgb;
+                    get_rgb(canvas, cindex, &rgb);
+                    linelen += fprintf(canvas->prstream, "%02x%02x%02x",
+                                       rgb.red, rgb.green, rgb.blue);
+                }
+                if (linelen >= MAX_PS_LINELEN) {
+                    fprintf(canvas->prstream, "\n");
+                    linelen = 0;
                 }
             }
             fprintf(canvas->prstream, "\n");
@@ -1065,9 +1069,14 @@ void ps_putpixmap(const Canvas *canvas, void *data,
         fprintf(canvas->prstream, "{currentfile picstr readhexstring pop}\n");
         fprintf(canvas->prstream, "imagemask\n");
         for (k = 0; k < height; k++) {
+            linelen = 0;
             for (j = 0; j < paddedW/bitmap_pad; j++) {
                 tmpbyte = reversebits((unsigned char) (databits)[k*paddedW/bitmap_pad + j]);
-                fprintf(canvas->prstream, "%02x", tmpbyte);
+                linelen += fprintf(canvas->prstream, "%02x", tmpbyte);
+                if (linelen >= MAX_PS_LINELEN) {
+                    fprintf(canvas->prstream, "\n");
+                    linelen = 0;
+                }
             }
             fprintf(canvas->prstream, "\n");
         }
@@ -1083,6 +1092,7 @@ void ps_puttext(const Canvas *canvas, void *data,
     double *kvector;
     int i;
     Pen pen;
+    int linelen;
     
     fprintf(canvas->prstream, "/Font%d FFSF\n", font);
 
@@ -1101,12 +1111,17 @@ void ps_puttext(const Canvas *canvas, void *data,
     }
     
     if (kvector) {
-        fprintf(canvas->prstream, "[");
+        linelen = 0;
+        linelen += fprintf(canvas->prstream, "[");
         for (i = 0; i < len - 1; i++) {
-            fprintf(canvas->prstream, "%.4f ", kvector[i]);
+            linelen += fprintf(canvas->prstream, "%.4f ", kvector[i]);
+            if (linelen >= MAX_PS_LINELEN) {
+                fprintf(canvas->prstream, "\n");
+                linelen = 0;
+            }
         }
         fprintf(canvas->prstream, "] KINIT\n");
-        fprintf(canvas->prstream, "{KPROC} ");
+        fprintf(canvas->prstream, "{KPROC}\n");
     }
     
     put_string(psdata, canvas->prstream, s, len);
@@ -1177,20 +1192,27 @@ static int is8bit(unsigned char uc)
  */
 static void put_string(PS_data *psdata, FILE *fp, const char *s, int len)
 {
-    int i;
+    int i, linelen = 0;
     
     fputc('(', fp);
+    linelen++;
     for (i = 0; i < len; i++) {
         char c = s[i];
         unsigned char uc = (unsigned char) c;
         if (c == '(' || c == ')' || c == '\\') {
             fputc('\\', fp);
+            linelen++;
         }
         if ((psdata->docdata == DOCDATA_7BIT && !is7bit(uc)) ||
             (psdata->docdata == DOCDATA_8BIT && !is8bit(uc))) {
-            fprintf(fp, "\\%03o", uc);
+            linelen += fprintf(fp, "\\%03o", uc);
         } else {
             fputc(c, fp);
+            linelen++;
+        }
+        if (linelen >= MAX_PS_LINELEN) {
+            fprintf(fp, "\\\n");
+            linelen = 0;
         }
     }
     fputc(')', fp);
