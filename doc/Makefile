@@ -11,7 +11,7 @@ include $(TOP)/Make.conf
 .SUFFIXES : .sgml .dvi .html .pdf .ps .tex
 
 SGML2HTML   = sgml2html --split=0
-SGML2DVI    = sgml2latex
+SGML2DVI    = sgml2latex --output=dvi
 SGML2LATEX  = sgml2latex --output=tex
 DVI2PS      = dvips
 LATEX       = latex
