@@ -21,16 +21,13 @@
 
 <H3>Parser</H3>
  *  [ES] added "HELP url" and "HELP" to the parser
- *  [LM] added "AUTOSCALE ONREAD NONE", "AUTOSCALE ONREAD XAXES,
-         "AUTOSCALE ONREAD YAXES and "AUTOSCALE ONREAD XYAXES to the parser
+ *  [LM] added "AUTOSCALE ONREAD NONE|XAXES|YAXES|XYAXES" to the parser
 
 <H3>Drivers</H3>
  *  [MD] produce MIF files with a textflow in which the graph is included, so
          it can be included in another FrameMaker document
  *  [ES] list used fonts in %%DocumentNeededResources in the PS output
          (rep. #956)
- *  [ES] failure to save project to a file due to wrong permissions didn't
-         produce an error message
 
 <H3>Portability/Compilation</H3>
  *  [AM] allow to specify print command at config time
@@ -47,12 +44,20 @@
          (rep. #946)
  *  [LM] reading in data files with floats when they were explicitly signed
          and positive resulted in parse error
+ *  [ES] failure to save project to a file due to wrong permissions didn't
+         produce an error message
  *  [ES] using non-standard fonts might crash the PDF driver
  *  [ES] specifing a file-only output device with "-hdevice" didn't actually
          set the output to file (rep. #899)
  *  [ES] the "Rescale plot on page size change" option in the
          "File/Print setup" dialog had no effect if the selected device was
          X11
+ *  [ES] fixed (actually, just now implemented) automatic axis label placement
+         (rep. #744)
+ *  [ES] projects with sets using symbol char from the upper half of the ASCII
+         table weren't saved correctly
+ *  [ES] line width of drawing elements wasn't accounted for in the bbox
+         calculations, which in rare cases resulted in a wrong EPS bbox
 
 
 <H2>5.1.2</H2>
