@@ -351,10 +351,48 @@ TLabels *tlabels_new()
 }
 
 typedef struct {
+    int type;                   /* type of user ticks */
+    int nticks;                 /* total number of ticks */
+    tickloc tloc[MAX_TICKS];    /* locations of ticks */
+} UTicks;
+
+UTicks *uticks_new()
+{
+    UTicks *retval;
+    retval = xmalloc(sizeof(UTicks));
+    if (retval) {
+        memset(retval, 0, sizeof(UTicks));
+    }
+    return retval;
+}
+
+tickloc *tick_new()
+{
+    tickloc *retval;
+    retval = xmalloc(sizeof(tickloc));
+    if (retval) {
+        memset(retval, 0, sizeof(tickloc));
+    }
+    return retval;
+}
+
+int utick_add(UTicks *uticks, tickloc *tick)
+{
+    if (uticks && uticks->nticks < MAX_TICKS) {
+        uticks->tloc[uticks->nticks++] = *tick;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+
+typedef struct {
     double major;
     int nminor;
     int autonum;
     int round;
+    UTicks uticks;
     TMarks tmarks;
     TLabels tlabels;
 } Ticks;
@@ -524,6 +562,31 @@ RiserLine *riserline_new(void)
             errmsg("Wrong inoutplacement");
         }
     ]]></attribute-type>
+    <attribute-type name="uticktype" ctype="int"><![CDATA[
+        if (!strcmp($?, VStrNone)) {
+            $$ = TICKS_SPEC_NONE;
+        } else
+        if (!strcmp($?, VStrTicks)) {
+            $$ = TICKS_SPEC_MARKS;
+        } else
+        if (!strcmp($?, VStrBoth)) {
+            $$ = TICKS_SPEC_BOTH;
+        } else {
+            $$ = TICKS_SPEC_BOTH;
+            errmsg("Wrong uticktype");
+        }
+    ]]></attribute-type>
+    <attribute-type name="ticktype" ctype="int"><![CDATA[
+        if (!strcmp($?, VStrMajor)) {
+            $$ = TICK_TYPE_MAJOR;
+        } else
+        if (!strcmp($?, VStrMinor)) {
+            $$ = TICK_TYPE_MINOR;
+        } else {
+            $$ = TICK_TYPE_MINOR;
+            errmsg("Wrong ticktype");
+        }
+    ]]></attribute-type>
     <attribute-type name="autoval" ctype="Autoval *"><![CDATA[
         $$ = xmalloc(sizeof(Autoval));
         if (!strcmp($?, VStrAuto)) {
@@ -646,6 +709,12 @@ RiserLine *riserline_new(void)
     <element-type name="tlabels" ctype="TLabels *"><![CDATA[
         $$ = tlabels_new();
     ]]></element-type>
+    <element-type name="uticks" ctype="UTicks *"><![CDATA[
+        $$ = uticks_new();
+    ]]></element-type>
+    <element-type name="tick" ctype="tickloc *"><![CDATA[
+        $$ = tick_new();
+    ]]></element-type>
     <element-type name="object" ctype="DObject *"><![CDATA[
         $$ = object_new();
     ]]></element-type>
@@ -717,6 +786,8 @@ RiserLine *riserline_new(void)
         <child name="#EStrDataFormats">
         </child>
         <child name="#EStrTimeStamp">
+            $$->timestamp = *($?);
+            xfree($?);
         </child>
         <child name="#EStrGraph">
             storage_add($$->graphs, $?);
@@ -799,25 +870,30 @@ RiserLine *riserline_new(void)
         <child name="#EStrWorld">
         </child>
     </element>
-    <element name="#EStrTimeStamp" type="dummy">
+    <element name="#EStrTimeStamp" type="plotstr">
         <!-- Attributes -->
         <attribute name="#AStrActive" type="bval">
-            /* FIXME */
+            $$->active = $?;
         </attribute>
-        <attribute name="#AStrOffset" type="sval">
-            /* FIXME */
-            xfree($?);
+        <attribute name="#AStrOffset" type="offset">
+            if ($?) {
+                $$->offset.x = $?->x;
+                $$->offset.y = $?->y;
+                xfree($?);
+            }
         </attribute>
         <attribute name="#AStrAngle" type="dval">
-            /* FIXME */
+            $$->angle = $?;
         </attribute>
         <attribute name="#AStrValue" type="sval">
-            /* FIXME */
+            set_plotstr_string($$, $?);
             xfree($?);
         </attribute>
         <child name="#EStrFaceSpec">
-            /* FIXME */
-            facespec_free($?);
+            $$->font     = $?->font;
+            $$->color    = $?->color;
+            $$->charsize = $?->size;
+            xfree($?);
         </child>
     </element>
     <element name="#EStrFaceSpec" type="facespec">
@@ -1211,7 +1287,7 @@ RiserLine *riserline_new(void)
             $$->label.charsize = $?->charsize;
             xfree($?);
         </child>
-        <child name="#EStrTicks">
+        <child name="#EStrTicks"><![CDATA[
             $$->tmajor    = $?->major;
             $$->nminor    = $?->nminor;
             $$->t_autonum = $?->autonum;
@@ -1222,6 +1298,15 @@ RiserLine *riserline_new(void)
             $$->props     = $?->tmarks.props;
             $$->mprops    = $?->tmarks.mprops;
 
+            $$->t_spec    = $?->uticks.type;
+            if ($$->t_spec != TICKS_SPEC_NONE) {
+                int i;
+                $$->nticks = $?->uticks.nticks;
+                for (i = 0; i < $$->nticks; i++) {
+                    $$->tloc[i] = $?->uticks.tloc[i];
+                }
+            }
+            
             $$->tl_flag   = $?->tlabels.active;
     
             $$->tl_op        = $?->tlabels.sideplacement;
@@ -1247,7 +1332,7 @@ RiserLine *riserline_new(void)
             xfree($?->tlabels.prepend);
             xfree($?->tlabels.append);
             xfree($?);
-        </child>
+        ]]></child>
     </element>
     <element name="#EStrPlacement" type="axisplacement">
         <!-- Attributes -->
@@ -1319,7 +1404,8 @@ RiserLine *riserline_new(void)
         
         <!-- Child elements -->
         <child name="#EStrUserticks">
-            /* FIXME */;
+            $$->uticks = *($?);
+            xfree($?);
         </child>
         <child name="#EStrTickmarks">
             $$->tmarks = *($?);
@@ -1330,12 +1416,17 @@ RiserLine *riserline_new(void)
             xfree($?);
         </child>
     </element>
-    <element name="#EStrUserticks" type="dummy">
+    <element name="#EStrUserticks" type="uticks">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="sval">
-            /* FIXME */;
-            xfree($?);
+        <attribute name="#AStrType" type="uticktype">
+            $$->type = $?;
         </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrTick">
+            utick_add($$, $?);
+            xfree($?);
+        </child>
     </element>
     <element name="#EStrTickmarks" type="tmarks">
         <!-- Attributes -->
@@ -1449,6 +1540,18 @@ RiserLine *riserline_new(void)
             $$->format = *($?);
             xfree($?);
         </child>
+    </element>
+    <element name="#EStrTick" type="tick">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="ticktype">
+            $$->type = $?;
+        </attribute>
+        <attribute name="#AStrPosition" type="dval">
+            $$->wtpos = $?;
+        </attribute>
+        <attribute name="#AStrLabel" type="sval">
+            $$->label = $?;
+        </attribute>
     </element>
     <element name="#EStrFormat" type="format">
         <!-- Attributes -->
