@@ -1086,6 +1086,7 @@ static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
     int *selset, cd, i;
     int gno, setno;
     char *fn;
+    char format[32];
     FILE *cp;
     
     Write_ui *ui = (Write_ui *) client_data;
@@ -1107,11 +1108,11 @@ static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
         errwin("No set selected");
     } else {
         gno = get_cg();
-        strcpy(sformat, xv_getstr(ui->format_item));
+        strncpy(format, xv_getstr(ui->format_item), 31);
         set_wait_cursor();
         for(i = 0; i < cd; i++) {
             setno = selset[i];
-            write_set(gno, setno, cp, sformat);
+            write_set(gno, setno, cp, format);
         }
         free(selset);
     }
