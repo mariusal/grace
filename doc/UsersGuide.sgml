@@ -732,8 +732,205 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <sect2>Using pipes
       <p>
 
-    <sect2>Using grace_np library
+    <sect2>Using grace&lowbar;np library
       <p>
+      The grace&lowbar;np library is a set of compiled functions that
+      allows you to launch and drive a Grace subprocess from your C or
+      Fortran application. Functions are provided to start the
+      subprocess, to send it commands or data, to stop it or detach
+      from it.
+
+      <table LOC=htbp>
+      <tabular CA="ccl">
+              <hline>
+Function | Arguments |  Description   @
+              <hline>
+
+int GraceOpen |
+(int <it>buf&lowbar;size</it>) |
+launch a Grace subprocess and open a communication channel with it @
+
+int GraceIsOpen |
+(void) |
+test if a Grace subprocess is currently connected @
+
+int GraceClose |
+(void)  |
+close the communication channel and exit the Grace subprocess @
+
+int GraceClosePipe |
+(void) |
+close the communication channel and leave the Grace subprocess alone @
+
+              <hline>
+
+int GraceFlush |
+(void) |
+flush all the data remaining in the buffer @
+
+int GracePrintf |
+(const char* <it>format</it>, ...) |
+format a command and send it to the Grace subprocess @
+
+int GraceCommand |
+(const char* <it>cmd</it>) |
+send an already formated command to the Grace subprocess @
+              <hline>
+GraceErrorFunctionType GraceRegisterErrorFunction |
+(GraceErrorFunctionType <it>f</it>) |
+register a user function <it>f</it> to display library errors @
+              <hline>
+      </tabular>
+      <caption>
+              <label id="C functions">
+              grace&lowbar;np library C functions.
+      </caption>
+      </table>
+
+      <table LOC=htbp>
+      <tabular CA="ccl">
+              <hline>
+Function | Arguments |  Description   @
+              <hline>
+
+integer GraceOpenF |
+(integer <it>buf&lowbar;size</it>) |
+launch a Grace subprocess and open a communication channel with it @
+
+integer GraceIsOpenF |
+(void) |
+test if a Grace subprocess is currently connected @
+
+integer GraceCloseF |
+(void)  |
+close the communication channel and exit the Grace subprocess @
+
+integer GraceClosePipeF |
+(void) |
+close the communication channel and leave the Grace subprocess alone @
+
+              <hline>
+
+integer GraceFlushF |
+(void) |
+flush all the data remaining in the buffer @
+
+integer GraceCommandF |
+(character*(*) <it>cmd</it>) |
+send an already formatted command to the Grace subprocess @
+              <hline>
+GraceFortranFunctionType GraceRegisterErrorFunctionF |
+(GraceFortranFunctionType <it>f</it>) |
+register a user function <it>f</it> to display library errors @
+              <hline>
+      </tabular>
+      <caption>
+              <label id="fortran functions">
+              grace&lowbar;np library F77 functions.
+      </caption>
+      </table>
+
+      <p> There is no fortran equivalent for the GracePrintf function,
+      you should format all the data and commands yourself before
+      sending them with GraceCommandF.
+
+      The Grace subprocess listen for the commands you send and
+      interpret them as if they were given in a batch file. You can
+      send any command you like (redraw, autoscale, ...). If you want
+      to send data, you should include them in a command like "g0.s0
+      point 3.5 4.2".
+
+      Apart from the fact it monitors the data sent via the anonymous
+      pipe, the Grace subprocess is a normal process. You can interact
+      with it through the GUI. Note that no error can be sent back to
+      the parent process. If your application send erroneous commands,
+      an error popup will be displayed by the subprocess.
+
+      If you exit the subprocess while the parent process is still
+      using it, the broken pipe will be detected. An error code will
+      be returned to every further call to the library (but you can
+      still start a new process if you want to manage this situation).
+
+      Here is an example use of the library, you will find this
+      program in the distribution.
+
+<tscreen><verb>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include "grace_np.h"
+
+#ifndef EXIT_SUCCESS
+#  define EXIT_SUCCESS 0
+#endif
+
+#ifndef EXIT_FAILURE
+#  define EXIT_FAILURE -1
+#endif
+
+void my_error_function(const char *msg)
+{
+    fprintf(stderr, "library message : \"%s\"\n", msg);
+}
+
+int
+main (int argc, char* argv[])
+{
+    int i;
+
+    GraceRegisterErrorFunction (my_error_function);
+
+    /* Start Grace with a buffer size of 2048 and open the pipe */
+    if (GraceOpen(2048) == -1) {
+        fprintf (stderr, "Can't run Grace. \n");
+        exit (EXIT_FAILURE);
+    }
+    
+    /* Send some initialization commands to Grace */
+    GracePrintf ("world xmax 100");
+    GracePrintf ("world ymax 10000");
+    GracePrintf ("xaxis tick major 20");
+    GracePrintf ("xaxis tick minor 10");
+    GracePrintf ("yaxis tick major 2000");
+    GracePrintf ("yaxis tick minor 1000");
+    GracePrintf ("s0 on");
+    GracePrintf ("s0 symbol 1");
+    GracePrintf ("s0 symbol size 0.3");
+    GracePrintf ("s0 symbol fill pattern 1");
+    GracePrintf ("s1 on");
+    GracePrintf ("s1 symbol 1");
+    GracePrintf ("s1 symbol size 0.3");
+    GracePrintf ("s1 symbol fill pattern 1");
+
+    /* Display sample data */
+    for (i = 1; i <= 100 && GraceIsOpen(); i++) {
+        GracePrintf ("g0.s0 point %d, %d", i, i);
+        GracePrintf ("g0.s1 point %d, %d", i, i * i);
+        /* Update the Grace display after every ten steps */
+        if (i % 10 == 0) {
+            GracePrintf ("redraw");
+            /* Wait a second, just to simulate some time needed for
+               calculations. Your real application shouldn't wait. */
+            sleep (1);
+        }
+    }
+
+    if (GraceIsOpen()) {
+        /* Tell Grace to save the data */
+        GracePrintf ("saveall \"sample.agr\"");
+
+        /* Flush the output buffer and close Grace */
+        GraceClose();
+
+        /* We are done */
+        exit (EXIT_SUCCESS);
+    } else {
+        exit (EXIT_FAILURE);
+    }
+
+}
+
+</verb></tscreen>
 
   <sect1>DL modules
     <p>
