@@ -50,7 +50,7 @@
 #endif
 
 typedef struct {
-    int curformat;
+    int format;
 
     unsigned long page_scale;
     double pixel_size;
@@ -68,6 +68,7 @@ typedef struct {
     PSColorSpace colorspace;
     int docdata;
     int fonts;
+    int printable;
 
     int offset_x;
     int offset_y;
@@ -80,6 +81,7 @@ typedef struct {
     OptionStructure *docdata_item;
     OptionStructure *fonts_item;
     OptionStructure *colorspace_item;
+    Widget printable_item;
     SpinStructure *offset_x_item;
     SpinStructure *offset_y_item;
     OptionStructure *feed_item;
@@ -156,12 +158,13 @@ static PS_data *init_ps_data(const Canvas *canvas, int format)
 
     memset(data, 0, sizeof(PS_data));
 
-    data->curformat  = format;
+    data->format     = format;
 
     data->level2     = TRUE;
     data->colorspace = DEFAULT_COLORSPACE;
     data->docdata    = DOCDATA_8BIT;
     data->fonts      = FONT_EMBED_BUT35;
+    data->printable  = FALSE;
 
     data->offset_x   = 0;
     data->offset_y   = 0;
@@ -327,7 +330,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     psdata->pixel_size = 1.0/psdata->page_scale;
     psdata->page_scalef = (float) psdata->page_scale*72.0/pg->dpi;
 
-    if (psdata->curformat == PS_FORMAT && pg->height < pg->width) {
+    if (psdata->format == PS_FORMAT && pg->height < pg->width) {
         psdata->page_orientation = PAGE_ORIENT_LANDSCAPE;
     } else {
         psdata->page_orientation = PAGE_ORIENT_PORTRAIT;
@@ -346,7 +349,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
         psdata->colorspace = COLORSPACE_RGB;
     }
 
-    if (psdata->curformat == EPS_FORMAT) {
+    if (psdata->format == EPS_FORMAT) {
         fprintf(canvas->prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
     } else {
         fprintf(canvas->prstream, "%%!PS-Adobe-3.0\n");
@@ -404,7 +407,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
         fprintf(canvas->prstream, "%%%%Orientation: Portrait\n");
     }
     
-    if (psdata->curformat == PS_FORMAT) {
+    if (psdata->format == PS_FORMAT) {
         fprintf(canvas->prstream, "%%%%Pages: 1\n");
         fprintf(canvas->prstream, "%%%%PageOrder: Ascend\n");
     }
@@ -461,7 +464,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
 
     /* Definitions */
     fprintf(canvas->prstream, "%%%%BeginProlog\n");
-    if (psdata->curformat == PS_FORMAT) {
+    if (psdata->format == PS_FORMAT) {
         fprintf(canvas->prstream, "/PAGE_OFFSET_X %d def\n", psdata->offset_x);
         fprintf(canvas->prstream, "/PAGE_OFFSET_Y %d def\n", psdata->offset_y);
     }
@@ -643,7 +646,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     fprintf(canvas->prstream, "%%%%EndProlog\n");
 
     fprintf(canvas->prstream, "%%%%BeginSetup\n");
-    if (psdata->level2 == TRUE && psdata->curformat == PS_FORMAT) {
+    if (psdata->level2 == TRUE && psdata->format == PS_FORMAT) {
         /* page size feed */
         switch (psdata->feed) {
         case MEDIA_FEED_AUTO:
@@ -672,7 +675,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     }
     
     /* compensate for printer page offsets */
-    if (psdata->curformat == PS_FORMAT) {
+    if (psdata->format == PS_FORMAT) {
         fprintf(canvas->prstream, "PAGE_OFFSET_X PAGE_OFFSET_Y translate\n");
     }
     fprintf(canvas->prstream, "%.2f %.2f scale\n", psdata->page_scalef, psdata->page_scalef);
@@ -683,7 +686,7 @@ int ps_initgraphics(const Canvas *canvas, void *data,
     }
     fprintf(canvas->prstream, "%%%%EndSetup\n");
 
-    if (psdata->curformat == PS_FORMAT) {
+    if (psdata->format == PS_FORMAT) {
         fprintf(canvas->prstream, "%%%%Page: 1 1\n");
     }
 
@@ -1166,12 +1169,16 @@ void ps_leavegraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     PS_data *psdata = (PS_data *) data;
-    if (psdata->curformat == PS_FORMAT) {
+    
+    if (psdata->format == PS_FORMAT || psdata->printable) {
         fprintf(canvas->prstream, "showpage\n");
+    }
+    
+    if (psdata->format == PS_FORMAT) {
         fprintf(canvas->prstream, "%%%%PageTrailer\n");
     }
-    fprintf(canvas->prstream, "%%%%Trailer\n");
     
+    fprintf(canvas->prstream, "%%%%Trailer\n");
     fprintf(canvas->prstream, "%%%%EOF\n");
 }
 
@@ -1264,7 +1271,7 @@ int ps_op_parser(const Canvas *canvas, void *data, const char *opstring)
     } else if (!strcmp(opstring, "embedfonts:all")) {
         psdata->fonts = FONT_EMBED_ALL;
         return RETURN_SUCCESS;
-    } else if (psdata->curformat == PS_FORMAT) {
+    } else if (psdata->format == PS_FORMAT) {
         if (!strncmp(opstring, "xoffset:", 8)) {
             psdata->offset_x = atoi(opstring + 8);
             return RETURN_SUCCESS;
@@ -1285,6 +1292,16 @@ int ps_op_parser(const Canvas *canvas, void *data, const char *opstring)
             return RETURN_SUCCESS;
         } else if (!strcmp(opstring, "mediafeed:manual")) {
             psdata->feed = MEDIA_FEED_MANUAL;
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+    } else if (psdata->format == EPS_FORMAT) {
+        if (!strcmp(opstring, "printable:on")) {
+            psdata->printable = TRUE;
+            return RETURN_SUCCESS;
+        } else if (!strcmp(opstring, "printable:off")) {
+            psdata->printable = FALSE;
             return RETURN_SUCCESS;
         } else {
             return RETURN_FAILURE;
@@ -1347,7 +1364,7 @@ void ps_gui_setup(const Canvas *canvas, void *data)
             {FONT_EMBED_ALL,   "All"                }
         };
         
-        if (psdata->curformat == PS_FORMAT) {
+        if (psdata->format == PS_FORMAT) {
             title = "PS options";
         } else {
             title = "EPS options";
@@ -1368,7 +1385,12 @@ void ps_gui_setup(const Canvas *canvas, void *data)
 	psdata->fonts_item =
             CreateOptionChoice(rc, "Embed fonts:", 1, 4, font_op_items);
 
-        if (psdata->curformat == PS_FORMAT) {
+        if (psdata->format == EPS_FORMAT) {
+	    psdata->printable_item = CreateToggleButton(rc,
+                "Printable as standalone");
+        }
+        
+        if (psdata->format == PS_FORMAT) {
 	    fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
             rc = CreateHContainer(fr);
 	    psdata->offset_x_item = CreateSpinChoice(rc,
@@ -1398,7 +1420,10 @@ static void update_ps_setup_frame(PS_data *psdata)
         colorspace_cb(psdata->level2, psdata->colorspace_item);
         SetOptionChoice(psdata->fonts_item, psdata->fonts);
         SetOptionChoice(psdata->docdata_item, psdata->docdata);
-        if (psdata->curformat == PS_FORMAT) {
+        if (psdata->format == EPS_FORMAT) {
+            SetToggleButtonState(psdata->printable_item, psdata->printable);
+        }
+        if (psdata->format == PS_FORMAT) {
             SetSpinChoice(psdata->offset_x_item, (double) psdata->offset_x);
             SetSpinChoice(psdata->offset_y_item, (double) psdata->offset_y);
             SetOptionChoice(psdata->feed_item, psdata->feed);
@@ -1415,7 +1440,10 @@ static int set_ps_setup_proc(void *data)
     psdata->docdata    = GetOptionChoice(psdata->docdata_item);
     psdata->colorspace = GetOptionChoice(psdata->colorspace_item);
     psdata->fonts      = GetOptionChoice(psdata->fonts_item);
-    if (psdata->curformat == PS_FORMAT) {
+    if (psdata->format == EPS_FORMAT) {
+        psdata->printable  = GetToggleButtonState(psdata->printable_item);
+    }
+    if (psdata->format == PS_FORMAT) {
         psdata->offset_x   = (int) GetSpinChoice(psdata->offset_x_item);
         psdata->offset_y   = (int) GetSpinChoice(psdata->offset_y_item);
         psdata->feed       = GetOptionChoice(psdata->feed_item);
