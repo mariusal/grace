@@ -16,6 +16,12 @@ PREFIX=@prefix@
 # List of subdirectories
 SUBDIRS=@SUBDIRS@
 
+# Grace version numbers
+MAJOR_REV=@MAJOR_REV@
+MINOR_REV=@MINOR_REV@
+PATCHLEVEL=@PATCHLEVEL@
+BETA_VER=@BETA_VER@
+
 # Name of executable
 GRACE=@GRACE@$(EXE)
 
