@@ -35,86 +35,64 @@
 #include "globals.h"
 
 #include "utils.h"
-#include "files.h"
 
 #include "draw.h"
 
 int init_t1(Canvas *canvas)
 {
-    int i;
-    char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
-    FILE *fd;
-    
-    /* Set search paths: */
-    bufp = grace_path("fonts/type1");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFileSearchPath(T1_PFAB_PATH, bufp);
-    T1_SetFileSearchPath(T1_AFM_PATH, bufp);
-    bufp = grace_path("fonts/enc");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFileSearchPath(T1_ENC_PATH, bufp);
-    
-    /* Set font database: */
-    bufp = grace_path("fonts/FontDataBase");
-    if (bufp == NULL) {
-        return (RETURN_FAILURE);
-    }
-    T1_SetFontDataBase(bufp);
-
-    /* Set log-level: */
+    /* Set log-level */
     T1_SetLogLevel(T1LOG_DEBUG);
     
     /* Initialize t1-library */
     if (T1_InitLib(T1LOGFILE|IGNORE_CONFIGFILE) == NULL) {
-        return (RETURN_FAILURE);
+        return RETURN_FAILURE;
     }
     
-    canvas->nfonts = T1_Get_no_fonts();
-    if (canvas->nfonts < 1) {
-        return (RETURN_FAILURE);
-    }
-    
-    fd = grace_openr(bufp, SOURCE_DISK);
-    if (fd == NULL) {
-        return (RETURN_FAILURE);
-    }
-    
-    canvas->FontDBtable = xmalloc(canvas->nfonts*sizeof(FontDB));
-    memset(canvas->FontDBtable, 0, canvas->nfonts*sizeof(FontDB));
-    
-    /* skip the first line */
-    grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
-    for (i = 0; i < canvas->nfonts; i++) {
-        grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
-        if (sscanf(buf, "%s %s %*s", abuf, fbuf) != 2) {
-            fclose(fd);
-            return (RETURN_FAILURE);
-        }
-        canvas->FontDBtable[i].alias     = copy_string(NULL, abuf);
-    }
-    fclose(fd);
-    
+    /* Rasterization parameters */
     T1_SetDeviceResolutions(72.0, 72.0);
-    
-    canvas->DefEncoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
-    if (canvas->DefEncoding == NULL) {
-        canvas->DefEncoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
-    }
-    if (canvas->DefEncoding != NULL) {
-        T1_SetDefaultEncoding(canvas->DefEncoding);
-    } else {
-        return (RETURN_FAILURE);
-    }
-    
     T1_AASetBitsPerPixel(GRACE_BPP);
-    
     T1_SetBitmapPad(T1_DEFAULT_BITMAP_PAD);
     
-    return (RETURN_SUCCESS);
+    return RETURN_SUCCESS;
+}
+
+int canvas_set_encoding(Canvas *canvas, char *encfile)
+{
+    if (!encfile) {
+        return RETURN_FAILURE;
+    }
+    
+    canvas->DefEncoding = T1_LoadEncoding(encfile);
+    if (canvas->DefEncoding) {
+        T1_SetDefaultEncoding(canvas->DefEncoding);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int canvas_add_font(Canvas *canvas, char *ffile, const char *alias)
+{
+    void *p;
+    FontDB *f;
+    
+    p = xrealloc(canvas->FontDBtable, (canvas->nfonts + 1)*sizeof(FontDB));
+    if (!p) {
+        return RETURN_FAILURE;
+    }
+    
+    canvas->FontDBtable = p;
+    f = &canvas->FontDBtable[canvas->nfonts];
+    memset(f, 0, sizeof(FontDB));
+    
+    if (T1_AddFont(ffile) < 0 || T1_Get_no_fonts() != canvas->nfonts + 1) {
+        return RETURN_FAILURE;
+    }
+    
+    f->alias = copy_string(NULL, alias);
+    canvas->nfonts++;
+    
+    return RETURN_SUCCESS;
 }
 
 unsigned int number_of_fonts(const Canvas *canvas)

@@ -35,6 +35,52 @@
 
 #include "draw.h"
 #include "utils.h"
+#include "files.h"
+
+int init_font_db(Canvas *canvas)
+{
+    int i, nfonts;
+    char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
+    FILE *fd;
+    
+    /* Set default encoding */
+    bufp = grace_path2("fonts/enc/", T1_DEFAULT_ENCODING_FILE);
+    if (canvas_set_encoding(canvas, bufp) != RETURN_SUCCESS) {
+        bufp = grace_path2("fonts/enc/", T1_FALLBACK_ENCODING_FILE);
+        if (canvas_set_encoding(canvas, bufp) != RETURN_SUCCESS) {
+            return RETURN_FAILURE;
+        }
+    }
+    
+    /* Open & process the font database */
+    fd = grace_openr("fonts/FontDataBase", SOURCE_DISK);
+    if (fd == NULL) {
+        return RETURN_FAILURE;
+    }
+    
+    /* the first line - number of fonts */
+    grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
+    if (sscanf(buf, "%d", &nfonts) != 1 || nfonts <= 0) {
+        fclose(fd);
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < nfonts; i++) {
+        grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
+        if (sscanf(buf, "%s %*s %s", abuf, fbuf) != 2) {
+            fclose(fd);
+            return RETURN_FAILURE;
+        }
+        bufp = grace_path2("fonts/type1/", fbuf);
+        if (canvas_add_font(canvas, bufp, abuf) != RETURN_SUCCESS) {
+            fclose(fd);
+            return RETURN_FAILURE;
+        }
+    }
+    fclose(fd);
+    
+    return RETURN_SUCCESS;
+}
 
 int project_add_font(Quark *project, const Fontdef *f)
 {

@@ -531,8 +531,9 @@ void canvas_set_docname(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
 
-void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
+int init_font_db(Canvas *canvas);
 void canvas_set_fmap_proc(Canvas *canvas, CanvasFMapProc fmap_proc);
+void canvas_set_csparse_proc(Canvas *canvas, CanvasCSParseProc csparse_proc);
 
 void canvas_set_pagepen(Canvas *canvas, const Pen *pen);
 
@@ -653,6 +654,9 @@ int make_color_scale(Canvas *canvas,
     unsigned int ncolors, unsigned long *colors);
 
 int init_t1(Canvas *canvas);
+
+int canvas_set_encoding(Canvas *canvas, char *encfile);
+int canvas_add_font(Canvas *canvas, char *ffile, const char *alias);
 
 unsigned int number_of_fonts(const Canvas *canvas);
 char *get_fontname(const Canvas *canvas, int font);
