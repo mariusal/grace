@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
                             }
                         }
 		    }
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+#ifdef HAVE_NETCDF
 		} else if (argmatch(argv[i], "-netcdf", 7) || argmatch(argv[i], "-hdf", 4)) {
 		    i++;
 		    if (i == argc) {
@@ -845,7 +845,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
 #endif
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+#ifde HAVE_NETCDF
     fprintf(stream, "-netcdf    [netcdf file]              Assume data file is bnetCDF format\n");
     fprintf(stream, "-netcdfxy  [X var name] [Y var name]  If -netcdf was used previously, read from\n");
     fprintf(stream, "                                        the netCDF file, 'X var name' and 'Y\n");

@@ -50,7 +50,7 @@
 #  include <fcntl.h>
 #endif
 
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+#ifdef HAVE_NETCDF
 #  include <netcdf.h>
 #endif
 
@@ -1175,7 +1175,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
 }
 
 
-#if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
+#ifdef HAVE_NETCDF
 
 /*
  * read a variable from netcdf file into a set in graph gno
