@@ -81,9 +81,6 @@
 #endif
 #define CHUNKSIZE 2*PIPE_BUF
 
-static char *linebuf = NULL;
-static int   linelen = 0;
-
 char *close_input;		/* name of real-time input to close */
 
 static int readerror = 0;	/* number of errors */
@@ -103,7 +100,7 @@ static int reopen_real_time_input(Input_buffer *ib);
 static int read_real_time_lines(Input_buffer *ib);
 static int process_complete_lines(Input_buffer *ib);
 
-static int read_long_line(FILE *fp);
+static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
 static int uniread(FILE *fp, int load_type, char *label);
 
@@ -361,7 +358,6 @@ static int read_real_time_lines(Input_buffer *ib)
     }
 
     return RETURN_SUCCESS;
-
 }
 
 
@@ -561,26 +557,27 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 /*
  * read a line increasing buffer as necessary
  */
-static int read_long_line(FILE * fp)
+static int read_long_line(FILE * fp, char **linebuf, int *buflen)
 {
     char *cursor;
-    int   available, nbread, retval;
+    int  available;
+    int  nbread, retval;
 
-    cursor    = linebuf;
-    available = linelen;
+    cursor    = *linebuf;
+    available = *buflen;
     retval    = RETURN_FAILURE;
     do {
-        /* have we enough space to store the characters ? */
+        /* do we have enough space to store the characters ? */
         if (available < 2) {
-            if (expand_line_buffer(&linebuf, &linelen, &cursor)
+            if (expand_line_buffer(linebuf, buflen, &cursor)
                 != RETURN_SUCCESS) {
                 return RETURN_FAILURE;
             }
         }
-        available = linebuf + linelen - cursor;
+        available = (int)(*linebuf-cursor) + *buflen;
 
         /* read as much as possible */
-        if (fgets(cursor, available, fp) == NULL) {
+        if (grace_fgets(cursor, available, fp) == NULL) {
             return retval;
         }
         nbread = strlen(cursor);
@@ -597,7 +594,6 @@ static int read_long_line(FILE * fp)
     } while (*(cursor - 1) != '\n');
 
     return retval;
-
 }
 
 /* open a file for write */
@@ -772,6 +768,8 @@ static int uniread(FILE *fp, int load_type, char *label)
     int breakon, readerror;
     ss_data ssd;
     char *s, tbuf[128];
+    char *linebuf=NULL;
+    int linelen=0;   /* a misleading name ... */
     int linecount;
 
     linecount = 0;
@@ -780,7 +778,7 @@ static int uniread(FILE *fp, int load_type, char *label)
     
     breakon = TRUE;
 
-    while (read_long_line(fp) == RETURN_SUCCESS) {
+    while (read_long_line(fp, &linebuf, &linelen) == RETURN_SUCCESS) {
 	linecount++;
         s = linebuf;
         while (*s == ' ' || *s == '\t' || *s == '\n') {
@@ -795,7 +793,8 @@ static int uniread(FILE *fp, int load_type, char *label)
 
                 /* store accumulated data in set(s) */
                 if (store_data(&ssd, load_type, label) != RETURN_SUCCESS) {
-		    return RETURN_FAILURE;
+		    xfree(linebuf);
+                    return RETURN_FAILURE;
                 }
                 
                 /* reset state registers */
@@ -812,6 +811,7 @@ static int uniread(FILE *fp, int load_type, char *label)
 		/* parse the data line */
                 if (parse_ss_row(s, &nncols, &nscols, &formats) != RETURN_SUCCESS) {
 		    errmsg("Can't parse data");
+		    xfree(linebuf);
 		    return RETURN_FAILURE;
                 }
                 
@@ -824,6 +824,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                         ;
                     } else {
 		        errmsg("Column count incorrect");
+		        xfree(linebuf);
 		        return RETURN_FAILURE;
                     }
                 }
@@ -833,6 +834,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 /* init the data storage */
                 if (init_ss_data(&ssd, ncols, formats) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
+		    xfree(linebuf);
 		    return 0;
                 }
                 
@@ -842,6 +844,7 @@ static int uniread(FILE *fp, int load_type, char *label)
 		if (realloc_ss_data(&ssd, nrows + BUFSIZE) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
                     free_ss_data(&ssd);
+		    xfree(linebuf);
 		    return RETURN_FAILURE;
 		}
 	    }
@@ -853,6 +856,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 if (readerror > MAXERR) {
                     if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
                         free_ss_data(&ssd);
+		        xfree(linebuf);
                         return RETURN_FAILURE;
                     } else {
                         readerror = 0;
@@ -870,10 +874,12 @@ static int uniread(FILE *fp, int load_type, char *label)
 
         /* store accumulated data in set(s) */
         if (store_data(&ssd, load_type, label) != RETURN_SUCCESS) {
+	    xfree(linebuf);
 	    return RETURN_FAILURE;
         }
     }
 
+    xfree(linebuf);
     return RETURN_SUCCESS;
 }
 
@@ -925,6 +931,8 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     double *x, *y, tmp;
     char *scstr;                    /* scanf string */
     char buf[256];
+    char *linebuf=NULL;
+    int *linelen=0; /* misleading name */
 
     if (is_set_active(gno, setno) && dataset_cols(gno, setno) != 2) {
         errmsg("Only two-column sets are supported in read_xyset_fromfile()");
@@ -952,7 +960,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
         XCFREE(y);
         goto breakout;
     }
-    while (read_long_line(fp) == RETURN_SUCCESS) {
+    while (read_long_line(fp, &linebuf, linelen) == RETURN_SUCCESS) {
         readline++;
         if (linebuf[strlen(linebuf) - 1] != '\n') { 
             /* must have a newline char at the end of line */
@@ -1013,6 +1021,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     grace_close(fp);
     
     xfree(scstr);
+    xfree(linebuf);
     return retval;
 }
 
@@ -1460,3 +1469,26 @@ int write_netcdf(char *fname)
 }
 
 #endif				/* HAVE_NETCDF */
+
+/* replacement for fgets() to fix up reading DOS text files */
+char *grace_fgets(char *s, int size, FILE *stream) {
+    int  slen;
+    char *endptr;
+
+    s = fgets(s, size, stream);
+    if (!s) {
+        return NULL;
+    }
+
+    slen = strlen(s);
+    if (slen >= 2) {
+        endptr = s + slen - 2;
+        /* check for DOS ending "\r\n" */
+        if (*endptr == '\r') {
+            /* 'move' un*x string tail "\n\0" one char forward */
+            *endptr     = '\n';
+            *(endptr+1) = '\0';
+        }
+    }
+    return s;
+}
