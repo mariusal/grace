@@ -9,8 +9,8 @@ exec perl -w -x $0 ${1+"$@"} # -*- mode: perl; perl-indent-level: 2; -*-
 ###                                                        ###
 ##############################################################
 
-## $Revision: 1.5 $
-## $Date: 2004-06-28 20:23:11 $
+## $Revision: 1.6 $
+## $Date: 2004-07-14 20:25:16 $
 ## $Author: fnevgeny $
 ##
 
@@ -142,7 +142,7 @@ use User::pwent    qw( getpwnam );
 # Globals --------------------------------------------------------------------
 
 # In case we have to print it out:
-my $VERSION = '$Revision: 1.5 $';
+my $VERSION = '$Revision: 1.6 $';
 $VERSION =~ s/\S+\s+(\S+)\s+\S+/$1/;
 
 ## Vars set by options:
@@ -1755,6 +1755,8 @@ sub files { wantarray ? @{$_[0]->{files}} : $_[0]->{files} }
 
 package CVS::Utils::ChangeLog::FileEntry;
 
+use File::Basename qw( fileparse );
+
 # Each revision of a file has a little data structure (a `qunk')
 # associated with it.  That data structure holds not only the
 # file's name, but any additional information about the file
@@ -1940,6 +1942,7 @@ sub read_changelog {
  XX_Log_Source:
   while (<LOG_SOURCE>) {
     chomp;
+    s!\r$!!;
 
     # If on a new file and don't see filename, skip until we find it, and
     # when we find it, grab it.
@@ -2209,10 +2212,11 @@ sub read_date_author_and_state {
       if defined $Domain && $Domain ne '';
 
     my $pw = getpwnam($author);
-    my ($fullname, $office, $workphone, $homephone);
+    my ($fullname, $office, $workphone, $homephone, $gcos);
     if ( defined $pw ) {
+      $gcos = (getpwnam($author))[6];
       ($fullname, $office, $workphone, $homephone) =
-        split /\s*,\s*/, $pw->gecos;
+        split /\s*,\s*/, $gcos;
     } else {
       warn "Couldn't find gecos info for author '$author'\n"
         unless $gecos_warned{$author}++;
@@ -2283,16 +2287,25 @@ sub parse_date_author_and_state {
   # Parses the date/time and author out of a line like:
   #
   # date: 1999/02/19 23:29:05;  author: apharris;  state: Exp;
+  #
+  # or, in CVS 1.12.9:
+  #
+  # date: 2004-06-05 16:10:32 +0000; author: somebody; state: Exp;
 
-  my ($year, $mon, $mday, $hours, $min, $secs, $author, $state, $rest) =
+  my ($year, $mon, $mday, $hours, $min, $secs, $utcOffset, $author, $state, $rest) =
     $line =~
-      m!(\d+)/(\d+)/(\d+)\s+(\d+):(\d+):(\d+);\s+
+      m!(\d+)[-/](\d+)[-/](\d+)\s+(\d+):(\d+):(\d+)(\s+[+-]\d{4})?;\s+
         author:\s+([^;]+);\s+state:\s+([^;]+);(.*)!x
     or  die "Couldn't parse date ``$line''";
   die "Bad date or Y2K issues"
     unless $year > 1969 and $year < 2258;
   # Kinda arbitrary, but useful as a sanity check
   my $time = timegm($secs, $min, $hours, $mday, $mon-1, $year-1900);
+  if ( defined $utcOffset ) {
+    my ($plusminus, $hour, $minute) = ($utcOffset =~ m/([+-])(\d\d)(\d\d)/);
+    my $offset = (($hour * 60) + $minute) * 60 * ($plusminus eq '+' ? -1 : 1);
+    $time += $offset;
+  }
   if ( $rest =~ m!\s+lines:\s+(.*)! ) {
     $self->{lines} = $1;
   }
