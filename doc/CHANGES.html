@@ -20,12 +20,22 @@
 
 <H3>Drivers</H3>
  *  [ES] implemented font kerning in the (E)PS output
+ *  [ES] added option to choose document data (7bit/8bit/binary) for the PS
+         driver
 
 <H3>Bug fixes</H3>
  *  [ES] "-saveall" filename argument was ignored (rep. #841)
  *  [ES] not enough arguments to "-world" or "-viewport" could cause crash
  *  [ES] with "Auto redraw" disabled, several operations still caused an
          immediate redraw
+ *  [ES] backslashes in text strings weren't escaped in the (E)PS output
+ *  [AM] interpolating non-monotonic data by spline caused crash or
+         meaningless results (rep. #866)
+ *  [ES] for some non-standard fonts and/or encodings, the (E)PS output might
+         be binary while declared as 8bit clean
+
+<H3>Portability/Compilation</H3>
+ *  [AM] OS/2 updates
 
 
 <H2>5.1.1</H2>

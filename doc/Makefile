@@ -38,9 +38,9 @@ PDFLATEX    = pdflatex
 	$(PDFLATEX) $<
 
 SGMLS    = FAQ.sgml Tutorial.sgml UsersGuide.sgml 
+HTMLS    = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html
 
-HTMLDOCS = CHANGES.html GPL.html philosophical-gnu-sm.jpg nohelp.html \
-	   FAQ.html Tutorial.html UsersGuide.html
+HTMLDOCS = FAQ.html Tutorial.html UsersGuide.html
 
 DVIDOCS  = FAQ.dvi Tutorial.dvi UsersGuide.dvi
 
@@ -76,9 +76,9 @@ distclean : clean
 	$(RM) *.orig
 
 devclean : distclean
-	$(RM) $(DVIDOCS) $(PSDOCS)
+	$(RM) $(DVIDOCS) $(PSDOCS) $(PDFDOCS) $(HTMLDOCS)
 
-install : $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
+install : $(HTMLS) $(HTMLDOCS) $(DVIDOCS) $(TUTDATA) $(MANPAGES)
 	$(MKINSTALLDIRS) $(GRACE_HOME)/doc
 	for i in $?; do $(INSTALL_DATA) $$i $(GRACE_HOME)/doc; done
 	cd $(GRACE_HOME)/doc; \
