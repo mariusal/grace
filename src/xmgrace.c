@@ -856,14 +856,18 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Non-linear fit", '\0', load_example_cb, "logistic.agr");
  
     CreateMenuSeparator(menupane);
+    submenupane = CreateMenu(menupane, "Web support", 'W', FALSE);
 
-    CreateMenuButton(menupane, "Home page", 'H', HelpCB,
+    CreateMenuButton(submenupane, "Home page", 'H', HelpCB,
         "http://plasma-gate.weizmann.ac.il/Grace/");
+    CreateMenuButton(submenupane, "Forums", 'F', HelpCB,
+        "http://plasma-gate.weizmann.ac.il/Grace/phpbb/");
     sprintf(buf,
         "http://plasma-gate.weizmann.ac.il/Grace/report.php?version_id=%ld",
         bi_version_id());
-    CreateMenuButton(menupane, "Report an issue", 'R', HelpCB, buf);
+    CreateMenuButton(submenupane, "Report an issue", 'R', HelpCB, buf);
     CreateMenuSeparator(menupane);
+
     CreateMenuButton(menupane, "License terms", 'L', HelpCB, "doc/GPL.html");
     CreateMenuButton(menupane, "About...", 'A', create_about_grtool, NULL);
 
