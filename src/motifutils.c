@@ -733,17 +733,20 @@ static char *default_storage_labeling_proc(unsigned int step, void *data)
 static int traverse_hook(unsigned int step, void *data, void *udata)
 {
     char *s;
-    XmString str;
     StorageStructure *ss = (StorageStructure *) udata;
     
-    ss->values[ss->nchoices++] = data;
-
     s = ss->labeling_proc(step, data);
-    str = XmStringCreateLocalized(s);
-    xfree(s);
-    
-    XmListAddItemUnselected(ss->list, str, 0);
-    XmStringFree(str);
+    if (s) {
+        XmString str;
+        
+        ss->values[ss->nchoices++] = data;
+
+        str = XmStringCreateLocalized(s);
+        xfree(s);
+
+        XmListAddItemUnselected(ss->list, str, 0);
+        XmStringFree(str);
+    }
     
     return TRUE;
 }
