@@ -780,4 +780,7 @@ reenter:
 
     /* revert to POSIX */
     set_locale_num(FALSE);
+#ifndef NONE_GUI    
+    update_ticks(gno);
+#endif
 }
