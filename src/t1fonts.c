@@ -1072,6 +1072,15 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         if (glyph != NULL) {
             VPoint hvpshift, vvpshift;
 
+            if (text_advancing == TEXT_ADVANCING_RL) {
+                glyph->metrics.leftSideBearing -= glyph->metrics.advanceX;
+                glyph->metrics.rightSideBearing -= glyph->metrics.advanceX;
+                glyph->metrics.advanceX *= -1;
+                glyph->metrics.ascent  -= glyph->metrics.advanceY;
+                glyph->metrics.descent -= glyph->metrics.advanceY;
+                glyph->metrics.advanceY *= -1;
+            }
+
             vvpshift.x = cs->tm.cxy*cs->vshift/tm_size(&cs->tm);
             vvpshift.y = cs->tm.cyy*cs->vshift/tm_size(&cs->tm);
             
@@ -1163,28 +1172,33 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     update_bboxes(bbox_ur);
         
     for (iglyph = 0; iglyph < nglyphs; iglyph++) {
-        glyph = cstring[iglyph].glyph;
+        CompositeString *cs = &cstring[iglyph];
+        glyph = cs->glyph;
         if (glyph == NULL) {
             continue;
         }
+        
         pheight = glyph->metrics.ascent - glyph->metrics.descent;
         pwidth  = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
+        if (pheight <= 0 || pwidth <= 0) {
+            continue;
+        }
         
         /* upper left corner of bitmap */
-        vptmp = cstring[iglyph].start;
+        vptmp = cs->start;
         vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
         vptmp.y += (double) glyph->metrics.ascent/page_dpv;
         
         if (get_draw_mode() == TRUE) {
             /* No patterned texts yet */
             setpattern(1);
-            setcolor(cstring[iglyph].color);
+            setcolor(cs->color);
 
             if (dev.devfonts == TRUE) {
                 if (devputtext == NULL) {
                     errmsg("Device has no built-in fonts");
                 } else {
-                    (*devputtext) (&cstring[iglyph]);
+                    (*devputtext) (cs);
                 }
             } else {
                 (*devputpixmap) (vptmp, pwidth, pheight, glyph->bits, 
