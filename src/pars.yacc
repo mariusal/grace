@@ -423,11 +423,7 @@ symtab_entry *key;
 %token <ival> ROT
 %token <ival> ROUNDED
 %token <ival> RULE
-%token <ival> RUNAVG
-%token <ival> RUNMAX
-%token <ival> RUNMED
-%token <ival> RUNMIN
-%token <ival> RUNSTD
+%token <ival> RUNPROPERTY
 %token <ival> SAVEALL
 %token <ival> SCALE
 %token <ival> SCIENTIFIC
@@ -589,8 +585,6 @@ symtab_entry *key;
 %type <ival> stattype
 
 %type <ival> datacolumn
-
-%type <ival> runtype
 
 %type <ival> ffttype
 %type <ival> fourierdata
@@ -2875,8 +2869,9 @@ actions:
 	| REGRESS '(' selectset ',' nexpr ')' {
 	    do_regress($3->gno, $3->setno, $5, 0, -1, 0, -1);
 	}
-	| runtype '(' selectset ',' nexpr ')' {
-	    do_runavg($3->gno, $3->setno, $5, $1, -1, 0);
+	| RUNPROPERTY '(' selectset ',' selectset ',' nexpr ',' CHRSTR ')' {
+	    do_runavg($3->gno, $3->setno, $5->gno, $5->setno,
+                $7, $9, RUN_XPLACE_AVERAGE);
 	}
         | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
                       fourierloadx ','  fourierloady ')' {
@@ -3691,13 +3686,6 @@ scaletype: NORMAL { $$ = SCALE_NORMAL; }
 
 onoff: ON { $$ = TRUE; }
 	| OFF { $$ = FALSE; }
-	;
-
-runtype: RUNAVG { $$ = RUN_AVG; }
-	| RUNSTD { $$ = RUN_STD; }
-	| RUNMED { $$ = RUN_MED; }
-	| RUNMAX { $$ = RUN_MAX; }
-	| RUNMIN { $$ = RUN_MIN; }
 	;
 
 sourcetype: 
@@ -4575,11 +4563,7 @@ symtab_entry ikey[] = {
 	{"ROT", ROT, NULL},
 	{"ROUNDED", ROUNDED, NULL},
 	{"RULE", RULE, NULL},
-	{"RUNAVG", RUNAVG, NULL},
-	{"RUNMAX", RUNMAX, NULL},
-	{"RUNMED", RUNMED, NULL},
-	{"RUNMIN", RUNMIN, NULL},
-	{"RUNSTD", RUNSTD, NULL},
+	{"RUNPROPERTY", RUNPROPERTY, NULL},
 	{"SAVEALL", SAVEALL, NULL},
 	{"SCALE", SCALE, NULL},
 	{"SCIENTIFIC", SCIENTIFIC, NULL},
