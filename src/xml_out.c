@@ -787,6 +787,8 @@ static int project_save_hook(Quark *q,
         if (!closure->post) {
             f = frame_get_data(q);
 
+            attributes_set_sval(attrs, AStrId, QIDSTR(q));
+            xmlio_set_active(attrs, f->active);
             attributes_set_ival(attrs, AStrType, f->type); /* FIXME: textual */
             xfile_begin_element(xf, EStrFrame, attrs);
             save_frame_properties(xf, f);

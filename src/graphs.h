@@ -360,6 +360,9 @@ frame *frame_get_data(const Quark *q);
 Quark *frame_new(Quark *project);
 view *frame_get_view(Quark *q);
 
+int frame_is_active(const Quark *q);
+
+int frame_set_active(Quark *q, int flag);
 int frame_set_type(Quark *q, int type);
 int frame_set_view(Quark *q, const view *v);
 int frame_set_legend(Quark *q, const legend *l);

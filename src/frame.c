@@ -101,7 +101,7 @@ frame *frame_get_data(const Quark *q)
 view *frame_get_view(Quark *q)
 {
     frame *f = frame_get_data(q);
-    if (q) {
+    if (f) {
         return &f->v;
     } else {
         return NULL;
@@ -110,8 +110,8 @@ view *frame_get_view(Quark *q)
 
 labels *frame_get_labels(Quark *q)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
+    if (f) {
         return &f->labs;
     } else {
         return NULL;
@@ -120,20 +120,42 @@ labels *frame_get_labels(Quark *q)
 
 legend *frame_get_legend(Quark *q)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
+    
+    if (f) {
         return &f->l;
     } else {
         return NULL;
     }
 }
 
+int frame_is_active(const Quark *q)
+{
+    frame *f = frame_get_data(q);
+    if (f) {
+        return f->active;
+    } else {
+        return FALSE;
+    }
+}
+
+int frame_set_active(Quark *q, int flag)
+{
+    frame *f = frame_get_data(q);
+    if (f) {
+        f->active = flag;
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
 
 int frame_set_type(Quark *q, int type)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         f->type = type;
         quark_dirtystate_set(q, TRUE);
     
@@ -145,9 +167,9 @@ int frame_set_type(Quark *q, int type)
 
 int frame_set_outline(Quark *q, const Line *line)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         f->outline = *line;
         quark_dirtystate_set(q, TRUE);
     
@@ -159,9 +181,9 @@ int frame_set_outline(Quark *q, const Line *line)
 
 int frame_set_fillpen(Quark *q, const Pen *pen)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         f->fillpen = *pen;
         quark_dirtystate_set(q, TRUE);
     
@@ -173,9 +195,9 @@ int frame_set_fillpen(Quark *q, const Pen *pen)
 
 int frame_set_view(Quark *q, const view *v)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         f->v = *v;
         quark_dirtystate_set(q, TRUE);
     
@@ -187,9 +209,9 @@ int frame_set_view(Quark *q, const view *v)
 
 int frame_set_title(Quark *q, const plotstr *s)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         xfree(f->labs.title.s);
         memcpy(&f->labs.title, s, sizeof(plotstr));
         f->labs.title.s = copy_string(NULL, s->s);
@@ -203,9 +225,9 @@ int frame_set_title(Quark *q, const plotstr *s)
 
 int frame_set_stitle(Quark *q, const plotstr *s)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         xfree(f->labs.stitle.s);
         memcpy(&f->labs.stitle, s, sizeof(plotstr));
         f->labs.stitle.s = copy_string(NULL, s->s);
@@ -219,9 +241,9 @@ int frame_set_stitle(Quark *q, const plotstr *s)
 
 int frame_set_labels(Quark *q, const labels *labs)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         xfree(f->labs.title.s);
         xfree(f->labs.stitle.s);
         memcpy(&f->labs, labs, sizeof(labels));
@@ -237,9 +259,9 @@ int frame_set_labels(Quark *q, const labels *labs)
 
 int frame_set_legend(Quark *q, const legend *leg)
 {
-    if (q) {
-        frame *f = frame_get_data(q);
+    frame *f = frame_get_data(q);
 
+    if (f) {
         if (&f->l != leg) {
             memcpy(&f->l, leg, sizeof(legend));
         }
@@ -250,18 +272,3 @@ int frame_set_legend(Quark *q, const legend *leg)
         return RETURN_FAILURE;
     }
 }
-
-#if 0
-void set_graph_legend_active(Quark *gr, int flag)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-        
-        g->l.active = flag;
-
-        set_dirtystate();
-    }
-}
-#endif
-
-

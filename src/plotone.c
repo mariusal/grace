@@ -61,6 +61,10 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
         set_draw_mode(canvas, TRUE);   
         break;
     case QFlavorFrame:
+        if (!frame_is_active(q)) {
+            closure->descend = FALSE;
+            break;
+        }
         if (!closure->post) {
             /* fill frame */
             fillframe(canvas, q);

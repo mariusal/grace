@@ -2619,10 +2619,10 @@ parmset:
         }
 
 	| selectgraph onoff {
-            set_graph_hidden($1, !$2);
+            frame_set_active(get_parent_frame($1), $2);
         }
 	| selectgraph HIDDEN onoff {
-            set_graph_hidden($1, $3);
+            frame_set_active(get_parent_frame($1), !$3);
         }
 	| selectgraph TYPE graphtype {
             set_graph_type($1, $3);

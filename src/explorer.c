@@ -159,7 +159,7 @@ static char *q_labeling(Quark *q)
     case QFlavorFrame:
         f = frame_get_data(q);
         
-        sprintf(buf, "Frame \"%s\"", QIDSTR(q));
+        sprintf(buf, "(%c) Frame \"%s\"", f->active ? '+':'-', QIDSTR(q));
 
         break;
     case QFlavorGraph:
