@@ -137,11 +137,14 @@
 
 #define INTENSITY(r, g, b) ((299*r + 587*g + 114*b)/1000)
 
+#define fRGB2fSRGB(c) (c <= 0.0031308 ? c*= 12.92 : 1.055*pow(c, 0.4) - 0.055)
+
 #define COLOR_TRANS_NONE        0
 #define COLOR_TRANS_GREYSCALE   1
 #define COLOR_TRANS_BW          2
 #define COLOR_TRANS_NEGATIVE    3
 #define COLOR_TRANS_REVERSE     4
+#define COLOR_TRANS_SRGB        5
 
 typedef struct {
     int red;

@@ -1325,6 +1325,23 @@ static void rgb_greyscale(const RGB *src, RGB *dest)
     dest->green = y;
 }
 
+static void rgb_srgb(const RGB *src, RGB *dest)
+{
+    fRGB fsrc, fdest;
+    
+    fsrc.red    = (double) src->red   / (MAXCOLORS - 1);
+    fsrc.green  = (double) src->green / (MAXCOLORS - 1);
+    fsrc.blue   = (double) src->blue  / (MAXCOLORS - 1);
+
+    fdest.red   = fRGB2fSRGB(fsrc.red);
+    fdest.green = fRGB2fSRGB(fsrc.green);
+    fdest.blue  = fRGB2fSRGB(fsrc.blue);
+
+    dest->red   = (int) rint(fdest.red   * (MAXCOLORS - 1));
+    dest->green = (int) rint(fdest.green * (MAXCOLORS - 1));
+    dest->blue  = (int) rint(fdest.blue  * (MAXCOLORS - 1));
+}
+
 static void rgb_bw(const RGB *src, RGB *dest)
 {
     int y;
@@ -1360,6 +1377,9 @@ void canvas_color_trans(Canvas *canvas, CMap_entry *cmap)
         } else {
             cmap->devrgb = cmap->color.rgb;
         }
+        break;
+    case COLOR_TRANS_SRGB:
+        rgb_srgb(&cmap->color.rgb, &cmap->devrgb);
         break;
     case COLOR_TRANS_NONE:
     default:

@@ -223,7 +223,7 @@ void create_printer_setup(void *data)
             "Font rastering:", 1, 3, option_items);
         xfree(option_items);
 
-        option_items = xmalloc(5*sizeof(OptionItem));
+        option_items = xmalloc(6*sizeof(OptionItem));
         option_items[0].value = COLOR_TRANS_NONE;
         option_items[0].label = "None";
         option_items[1].value = COLOR_TRANS_GREYSCALE;
@@ -234,8 +234,10 @@ void create_printer_setup(void *data)
         option_items[3].label = "Negative";
         option_items[4].value = COLOR_TRANS_REVERSE;
         option_items[4].label = "Reverse";
+        option_items[5].value = COLOR_TRANS_SRGB;
+        option_items[5].label = "sRGB";
 	color_trans_item = CreateOptionChoice(rc1,
-            "Color transform:", 1, 5, option_items);
+            "Color transform:", 1, 6, option_items);
         xfree(option_items);
         
 	CreateAACDialog(psetup_frame, psetup_rc, set_printer_proc, NULL);
