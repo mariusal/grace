@@ -10,11 +10,22 @@
 <PRE>
 
 <H2>5.0.3</H2>
+
  *  [ES] configure honours $CC
  *  [AM/ES] buildinfo
  !  [ES] "Fixed" graphs
  *  [ES] XYR set is back
  !  [ES] #206
+ *  [ES] set split was broken in 5.0.2
+ *  [EV] frequency/period feature extraction fix (#?)
+ *  [MR] #563
+ *  [ES] #575
+ *  [HS/ES] several logical constructs of mixed type arguments (vector and scalar)
+         didn't work
+ *  [ES] added '?' and ':' to the operator precedence list; no conflicts in the
+         parser anymore
+ *  [ES] in the PS driver, pattern fills were not opaque (rep. #567)
+ *  [ES] #571
 
 <H2>5.0.2</H2>
 
@@ -405,6 +416,7 @@
     [MM]  - Marcus H. Mendenhall &lt;marcus.h.mendenhall@vanderbilt.edu&gt;
     [HS2] - Heiko R. Selber &lt;selber@fhi-berlin.mpg.de&gt;
     [LM]  - Luc Maisonobe
+    [MR]  - Mark Rintoul &lt;rintoul@cs.sandia.gov&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)
