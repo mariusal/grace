@@ -66,7 +66,6 @@ void ssd_data_free(AMem *amem, ss_data *ssd)
             amem_free(amem, col->label);
         }
         amem_free(amem, ssd->cols);
-        amem_free(amem, ssd->label);
 
         amem_free(amem, ssd->hotfile);
         
@@ -87,8 +86,6 @@ ss_data *ssd_data_copy(AMem *amem, ss_data *ssd)
     ssd_new->ncols = ssd->ncols;
     ssd_new->nrows = ssd->nrows;
     
-    ssd_new->label = amem_strdup(amem, ssd->label);
-
     ssd_new->hotfile = amem_strdup(amem, ssd->hotfile);
     
     ssd_new->cols = amem_calloc(amem, ssd->ncols, sizeof(ss_column));
@@ -235,26 +232,42 @@ int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats)
     return RETURN_SUCCESS;
 }
 
-int ssd_set_label(Quark *q, const char *label)
-{
-    ss_data *ssd = ssd_get_data(q);
-
-    if (!ssd) {
-        return RETURN_FAILURE;
-    } else {
-        ssd->label = amem_strcpy(q->amem, ssd->label, label);
-
-        quark_dirtystate_set(q, TRUE);
-    
-        return RETURN_SUCCESS;
-    }
-}
-
 ss_column *ssd_get_col(const Quark *q, int col)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd && col >= 0 && col < ssd->ncols) {
         return &ssd->cols[col];
+    } else {
+        return NULL;
+    }
+}
+
+ss_column *ssd_add_col(Quark *q, int format)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd) {
+        void *p1, *p2;
+        p1 = amem_realloc(q->amem, ssd->cols, (ssd->ncols + 1)*sizeof(ss_column));
+        if (format == FFORMAT_STRING) {
+            p2 = amem_calloc(q->amem, ssd->nrows, SIZEOF_VOID_P);
+        } else {
+            p2 = amem_calloc(q->amem, ssd->nrows, SIZEOF_DOUBLE);
+        }
+
+        if (!p1 || !p2) {
+            amem_free(q->amem, p1);
+            amem_free(q->amem, p2);
+            return NULL;
+        } else {
+            ss_column *col;
+            ssd->cols = p1;
+            col = &ssd->cols[ssd->ncols];
+            col->data = p2;
+            col->format = format;
+            col->label = NULL;
+            ssd->ncols++;
+            return col;
+        }
     } else {
         return NULL;
     }

@@ -826,7 +826,6 @@ typedef struct {
     int ncols;
     int nrows;
     ss_column *cols;
-    char *label;
 
     int hotlink;                /* hot linked set */
     int hotsrc;                 /* source for hot linked file (DISK|PIPE) */
@@ -844,7 +843,8 @@ int ssd_get_format(const Quark *q, int col);
 
 int ssd_set_nrows(Quark *q, unsigned int nrows);
 int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
-int ssd_set_label(Quark *q, const char *label);
+
+ss_column *ssd_add_col(Quark *q, int format);
 
 int ssd_set_value(Quark *q, int row, int column, double value);
 int ssd_set_string(Quark *q, int row, int column, const char *s);
