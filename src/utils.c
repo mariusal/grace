@@ -45,6 +45,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -483,12 +484,15 @@ static void timerUpdates(void)
 {
     static int reading_now = FALSE;
     static int fd = -1;
-    static char buf[GR_MAXPATHLEN];
+    static char buf[2*PIPE_BUF + 1];
     static char *s = buf;
+    char *sstart, *sstop;
+    int nread, nread_max, len;
 #ifndef NONE_GUI
     int cursor_set;
 #endif
 
+    
     if (named_pipe == TRUE && fd < 0) {
         fd = open(pipe_name, O_NONBLOCK | O_RDONLY);
         if (fd < 0) {
@@ -503,20 +507,32 @@ static void timerUpdates(void)
         reading_now = TRUE;
         cursor_set = FALSE;
 
-        while (read(fd, s, 1) > 0) {
+        while (TRUE) {
+            nread_max = 2*PIPE_BUF - (s - buf);
+            if ((nread = read(fd, s, nread_max)) <= 0) {
+                break;
+            }
+            /* make sure there will be no overflow */
+            s[nread] = '\0';
+            
 #ifndef NONE_GUI
             if (cursor_set == FALSE) {
                 set_wait_cursor();
                 cursor_set = TRUE;
             }
 #endif
-            if ((*s == '\n') || (s - buf >= GR_MAXPATHLEN - 2)) {
-                *(s + 1) = '\0';
-                read_param(buf);
-                s = buf;
-            } else {
-                s++;
+            for (sstop = buf, sstart = buf; *sstop != '\0'; sstop++) {
+                if (*sstop == '\n') {
+                    *sstop = '\0';
+                    read_param(sstart);
+                    sstart = sstop + 1;
+                } 
             }
+            /* move rest of the string to the beginning of the buffer */
+            len = strlen(sstart);
+            memmove(buf, sstart, len + 1);
+            /* continue reading in at the point where we stopped */
+            s = buf + len;
         }
         
 #ifndef NONE_GUI
