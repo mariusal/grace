@@ -71,9 +71,6 @@ void set_program_defaults(void)
     
     grdefaults = d_d;
         
-    realloc_graphs(1);
-    set_graph_hidden(0, FALSE);
-    
     for (i = 0; i < MAXREGION; i++) {
         set_region_defaults(i);
     }
