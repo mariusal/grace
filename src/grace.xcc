@@ -540,16 +540,6 @@ char *utf2iso(const char *s)
             errmsg("Wrong ticktype");
         }
     ]]></attribute-type>
-    <attribute-type name="autoval" ctype="Autoval *"><![CDATA[
-        $$ = xmalloc(sizeof(Autoval));
-        if (!strcmp($?, VStrAuto)) {
-            $$->autov = TRUE;
-            $$->value = 0.0;
-        } else {
-            $$->autov = FALSE;
-            $$->value = atof($?);
-        }
-    ]]></attribute-type>
     <attribute-type name="loctype" ctype="int"><![CDATA[
         if (!strcmp($?, VStrWorld)) {
             $$ = COORD_WORLD;
