@@ -1128,9 +1128,16 @@ int load_project_file(char *fn, int as_template)
     }
 }
 
+extern int load_xgr_project(char *fn);
+
 int load_project(char *fn)
 {
-    return load_project_file(fn, FALSE);
+    /* A temporary hack */
+    if (fn && strstr(fn, ".xgr")) {
+        return load_xgr_project(fn);
+    } else {
+        return load_project_file(fn, FALSE);
+    }
 }
 
 int new_project(char *template)

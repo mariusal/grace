@@ -20,7 +20,7 @@ files$(O) : files.c globals.h grace.h defines.h storage.h utils.h files.h \
  ssdata.h graphs.h graphutils.h parser.h protos.h missing.h \
  noxprotos.h xprotos.h
 xfile$(O) : xfile.c defines.h utils.h files.h xfile.h
-xmlio$(O) : xmlio.c globals.h grace.h defines.h storage.h utils.h \
+xml_out$(O) : xml_out.c globals.h grace.h defines.h storage.h utils.h \
  device.h t1fonts.h draw.h graphs.h graphutils.h objutils.h files.h \
  xfile.h protos.h missing.h noxprotos.h xprotos.h
 ssdata$(O) : ssdata.c defines.h globals.h grace.h storage.h utils.h \

@@ -40,6 +40,9 @@
 #include "xfile.h"
 #include "protos.h"
 
+/*
+ * XML project output
+ */
 
 static void xmlio_set_active(Attributes *attrs, int active)
 {
@@ -417,9 +420,6 @@ int save_graph_properties(XFile *xf, graph *g)
     
     attributes_reset(attrs);
     attributes_set_sval(attrs, "type", graph_types(g->type));
-    xfile_empty_element(xf, "general", attrs);
-
-    attributes_reset(attrs);
     attributes_set_bval(attrs, "stacked", g->stacked);
     attributes_set_dval(attrs, "bargap", g->bargap);
     xfile_empty_element(xf, "presentation-spec", attrs);
@@ -570,7 +570,7 @@ int save_set_properties(XFile *xf, set *p)
     }
 
     attributes_set_sval(attrs, "type", set_types(p->type));
-    xfile_empty_element(xf, "general", attrs);
+    xfile_empty_element(xf, "presentation-spec", attrs);
     
     attributes_reset(attrs);
     attributes_set_ival(attrs, "type", p->sym); /* FIXME: textual */
