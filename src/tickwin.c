@@ -86,7 +86,7 @@ static Widget tmajor;           /* major tick spacing */
 static SpinStructure *nminor;   /* # of minor ticks */
 static Widget *tickop;          /* ticks normal|opposite|both sides */
 static Widget *ticklop;         /* tick labels normal|opposite|both sides */
-static Widget *tlform;          /* format for labels */
+static OptionStructure *tlform; /* format for labels */
 static Widget *tlprec;          /* precision for labels */
 static OptionStructure *tlfont;  /* tick label font */
 static Widget tlcharsize;       /* tick label charsize */
@@ -700,7 +700,7 @@ static void axes_aac_cb(void *data)
             return;
 	}
     }
-    t.tl_format = format_types[GetChoice(tlform)];
+    t.tl_format = GetOptionChoice(tlform);
     t.tl_sign = GetChoice(tlsign);
 
     t.tl_gaptype = GetChoice(tlgaptype) ? TYPE_SPEC : TYPE_AUTO;
@@ -924,7 +924,7 @@ void update_ticks(int gno)
     tickmarks t;
     world w;
     char buf[128];
-    int i, iv;
+    int i;
 
     if (axes_dialog && XtIsManaged(axes_dialog)) {
         get_graph_tickmarks(gno, &t, curaxis);
@@ -1008,8 +1008,7 @@ void update_ticks(int gno)
             sprintf(buf, "%f", t.tl_stop);
             xv_setstr(tlstop, buf);
         }
-        iv = get_format_index(t.tl_format);
-        SetChoice(tlform, iv);
+        SetOptionChoice(tlform, t.tl_format);
         SetChoice(ticklop, t.tl_op);
         SetChoice(tlsign, t.tl_sign);
         SetChoice(tlprec, t.tl_prec);

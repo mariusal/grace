@@ -113,7 +113,7 @@ static OptionStructure *avalue_font_item;
 static OptionStructure *avalue_color_item;
 static Widget avalue_charsize_item ;
 static Widget avalue_angle_item;
-static Widget *avalue_format_item;
+static OptionStructure *avalue_format_item;
 static Widget *avalue_precision_item;
 static Widget avalue_offsetx;
 static Widget avalue_offsety;
@@ -570,7 +570,7 @@ static void setapp_aac_cb(void *data)
     avalue.font = GetOptionChoice(avalue_font_item);
     avalue.color = GetOptionChoice(avalue_color_item);
     avalue.angle = GetAngleChoice(avalue_angle_item);
-    avalue.format = GetChoice(avalue_format_item);
+    avalue.format = GetOptionChoice(avalue_format_item);
     avalue.prec = GetChoice(avalue_precision_item);
     strcpy(avalue.prestr, xv_getstr(avalue_prestr));
     strcpy(avalue.appstr, xv_getstr(avalue_appstr));
@@ -709,7 +709,7 @@ static void UpdateSymbols(int gno, int value)
         SetOptionChoice(avalue_font_item, p.avalue.font);
         SetOptionChoice(avalue_color_item, p.avalue.color);
         SetAngleChoice(avalue_angle_item, p.avalue.angle);
-        SetChoice(avalue_format_item, p.avalue.format);
+        SetOptionChoice(avalue_format_item, p.avalue.format);
         SetChoice(avalue_precision_item, p.avalue.prec);
         
         xv_setstr(avalue_prestr, p.avalue.prestr);

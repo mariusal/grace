@@ -57,8 +57,8 @@ static Widget locator_panel;
  */
 static Widget *locator_onoff_item;
 static Widget *delta_item;
-static Widget *loc_formatx;
-static Widget *loc_formaty;
+static OptionStructure *loc_formatx;
+static OptionStructure *loc_formaty;
 static Widget *loc_precx;
 static Widget *loc_precy;
 static Widget locx_item;
@@ -88,8 +88,8 @@ void update_locator_items(int gno)
 	SetChoice(locator_onoff_item, go_locateflag == FALSE);
 	SetChoice(fixedp_item, locator.pointset == TRUE);
 	SetChoice(delta_item, locator.pt_type);
-	SetChoice(loc_formatx, get_format_index(locator.fx));
-	SetChoice(loc_formaty, get_format_index(locator.fy));
+	SetOptionChoice(loc_formatx, locator.fx);
+	SetOptionChoice(loc_formaty, locator.fy);
 	SetChoice(loc_precx, locator.px);
 	SetChoice(loc_precy, locator.py);
 	if (locator.pointset) {
@@ -188,8 +188,8 @@ static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointe
     
     go_locateflag = (int) GetChoice(locator_onoff_item) == 0;
     locator.pt_type = (int) GetChoice(delta_item);
-    locfx = locator.fx = format_types[(int) GetChoice(loc_formatx)];
-    locfy = locator.fy = format_types[(int) GetChoice(loc_formaty)];
+    locfx = locator.fx = GetOptionChoice(loc_formatx);
+    locfy = locator.fy = GetOptionChoice(loc_formaty);
     locpx = locator.px = (int) GetChoice(loc_precx);
     locpy = locator.py = (int) GetChoice(loc_precy);
     locator.pointset = (int) GetChoice(fixedp_item);
