@@ -988,9 +988,10 @@ static void fsb_setcwd_cb(void *data)
     }
 }
 
-#define FSB_CWD  0
-#define FSB_HOME 1
-#define FSB_ROOT 2
+#define FSB_CWD     0
+#define FSB_HOME    1
+#define FSB_ROOT    2
+#define FSB_CYGDRV  3
 
 static void fsb_cd_cb(int value, void *data)
 {
@@ -1008,6 +1009,9 @@ static void fsb_cd_cb(int value, void *data)
     case FSB_ROOT:
         bufp = "/";
         break;
+    case FSB_CYGDRV:
+        bufp = "/cygdrive/";
+        break;
     default:
         return;
     }
@@ -1021,11 +1025,16 @@ static void fsb_cd_cb(int value, void *data)
     XmStringFree(dirmask);
 }
 
-static OptionItem fsb_items[3] = {
+static OptionItem fsb_items[] = {
     {FSB_CWD,  "Cwd"},
     {FSB_HOME, "Home"},
     {FSB_ROOT, "/"}
+#ifdef __CYGWIN__
+    ,{FSB_CYGDRV, "My Computer"}
+#endif
 };
+
+#define FSB_ITEMS_NUM   sizeof(fsb_items)/sizeof(OptionItem)
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
@@ -1057,7 +1066,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
     retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
     fr = CreateFrame(retval->rc, NULL);
     form = XtVaCreateWidget("form", xmFormWidgetClass, fr, NULL);
-    opt = CreateOptionChoice(form, "Chdir to:", 1, 3, fsb_items);
+    opt = CreateOptionChoice(form, "Chdir to:", 1, FSB_ITEMS_NUM, fsb_items);
     AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
     button = CreateButton(form, "Set as cwd");
     AddButtonCB(button, fsb_setcwd_cb, (void *) retval->FSB);
