@@ -134,6 +134,8 @@ void set_default_legend(legend *l)
     l->boxfillpen.pattern = grdefaults.pattern;
     l->boxlinew = grdefaults.linew;     /* set plot sym line width */
     l->boxlines = grdefaults.lines;     /* set plot sym line style */
+    
+    l->bb.xv1 = l->bb.xv2 = l->bb.yv1 = l->bb.yv2 = 0.0;
 }
 
 void set_default_ticks(tickmarks *t)
