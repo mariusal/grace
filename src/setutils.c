@@ -874,17 +874,21 @@ int get_point(int gno, int setno, int seti, WPoint *wp)
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
 {
-    int i, n;
+    int i, n1, n2;
     double *x1, *x2;
 
     if (is_valid_setno(gfrom, setfrom) != TRUE ||
         is_valid_setno(gto, setto) != TRUE) {
         return;
     }
-    n = getsetlength(gfrom, setfrom);
+    n1 = getsetlength(gfrom, setfrom);
+    n2 = getsetlength(gto, setto);
+    if (n1 != n2) {
+        return;
+    }
     x1 = getcol(gfrom, setfrom, col);
     x2 = getcol(gto, setto, col);
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n1; i++) {
 	x2[i] = x1[i];
     }
     set_dirtystate();
