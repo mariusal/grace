@@ -70,7 +70,7 @@ clean :
 	$(RM) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O)
 
 distclean : 
-	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) \
+	$(RM) $(GRACE) $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) buildinfo$(EXE)\
 	tags *.orig *.*gr .gdb_history t1lib.log
 
 devclean : 
