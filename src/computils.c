@@ -282,7 +282,7 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
 	errmsg("Set not active");
 	return;
     }
-    if (maxlag < 0 || maxlag + 2 > getsetlength(gno1, set1)) {
+    if (maxlag < 0 || maxlag + 1 > getsetlength(gno1, set1)) {
 	errmsg("Lag incorrectly specified");
 	return;
     }
@@ -293,7 +293,7 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
     xcorset = nextset(get_cg());
     if (xcorset != (-1)) {
 	activateset(get_cg(), xcorset);
-	setlength(get_cg(), xcorset, maxlag + 1);
+	setlength(get_cg(), xcorset, maxlag);
 	if (set1 != set2) {
 	    sprintf(buf, "X-correlation of set %d and %d at maximum lag %d",
                     set1, set2, maxlag);
@@ -302,9 +302,9 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
                     set1, maxlag);
 	}
 	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), getsetlength(gno1, set1),
-                         maxlag, getx(get_cg(), xcorset), gety(get_cg(), xcorset));
+                         maxlag, gety(get_cg(), xcorset));
 	xtmp = getx(get_cg(), xcorset);
-	for (i = 0; i <= maxlag; i++) {
+	for (i = 0; i < maxlag; i++) {
 	    xtmp[i] = i;
 	}
 	setcomment(get_cg(), xcorset, buf);

@@ -334,29 +334,29 @@ void linearconv(double *x, double *h, double *y, int n, int m)
 /*
  * cross correlation
  */
-int crosscorr(double *x, double *y, int n, int maxlag, double *xcov, double *xcor)
+int crosscorr(double *x, double *y, int n, int maxlag, double *xcor)
 {
-    double xbar, xsd;
-    double ybar, ysd;
+    double cnorm = 1.0;
     int i, j;
 
-    if (maxlag + 2 > n)
-	return 1;
-    for (i = 0; i <= maxlag; i++) {
-        stasum(&x[i], n - i, &xbar, &xsd);
-        if (xsd == 0.0)
-	    return 2;
-        stasum(y, n - i, &ybar, &ysd);
-        if (ysd == 0.0)
-	    return 3;
-	xcov[i] = 0.0;
-	for (j = 0; j < n - i; j++) {
-	    xcov[i] += (y[j] - ybar) * (x[j + i] - xbar);
-	}
-	xcov[i] /= n - i;
-	xcor[i] = xcov[i] / (xsd * ysd);
+    if (maxlag + 1 > n) {
+        return RETURN_FAILURE;
     }
-    return 0;
+    
+    for (i = 0; i < maxlag; i++) {
+	xcor[i] = 0.0;
+	for (j = 0; j < n - i; j++) {
+	    xcor[i] += y[j]*x[j + i];
+	}
+	if (i == 0) {
+            cnorm = xcor[i];
+            xcor[i] = 1.0;
+        } else {
+            xcor[i] /= cnorm;
+        }
+    }
+    
+    return RETURN_SUCCESS;
 }
 
 /*
