@@ -1982,7 +1982,6 @@ parmset:
 
 	| STACK WORLD expr ',' expr ',' expr ',' expr
 	{
-	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
 	| TIMER nexpr {
@@ -3687,9 +3686,11 @@ parmset_obs:
 	| DEFAULT FONTP SOURCE expr {
 	}
 
+	| STACK WORLD expr ',' expr ',' expr ',' expr
+	{
+	}
 	| STACK WORLD expr ',' expr ',' expr ',' expr TICKP expr ',' expr ',' expr ',' expr
 	{
-	    add_world(whichgraph, $3, $5, $7, $9);
 	}
 
 	| objecttype FILL colpat_obs {filltype_obs = $3;}

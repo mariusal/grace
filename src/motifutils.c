@@ -4265,7 +4265,6 @@ void update_all(void)
 
     update_ticks(gr);
     update_props_items();
-    set_stack_message();
     set_left_footer(NULL);
     update_app_title(grace->project);
 }

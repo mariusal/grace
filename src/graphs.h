@@ -339,10 +339,6 @@ typedef struct {
     double bargap;              /* Distance between bars (in bar charts) */
 
     GLocator locator;           /* locator props */
-
-    world_stack ws[MAX_ZOOM_STACK]; /* zoom stack */
-    int ws_top;                 /* stack pointer */
-    int curw;                   /* for cycling through the stack */
 } graph;
 
 Symbol *symbol_new();
@@ -499,16 +495,6 @@ int is_graph_yinvert(Quark *gr);
 
 int set_graph_xinvert(Quark *gr, int flag);
 int set_graph_yinvert(Quark *gr, int flag);
-
-void cycle_world_stack(Quark *pr);
-void clear_world_stack(Quark *pr);
-void show_world_stack(Quark *pr, int n);
-void add_world(Quark *gr, double x1, double x2, double y1, double y2);
-void push_world(Quark *pr);
-void pop_world(Quark *pr);
-int graph_world_stack_size(Quark *gr);
-int get_world_stack_current(Quark *gr);
-int get_world_stack_entry(Quark *gr, int n, world_stack *ws);
 
 int get_descendant_sets(Quark *q, Quark ***sets);
 

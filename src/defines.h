@@ -51,8 +51,6 @@
 
 #define MAXREGION 5             /* max number of regions */
 
-#define MAX_ZOOM_STACK 20       /* max stack depth for world stack */
-
 #define MAXPARM 10              /* max number of parameters for non-lin fit */
 
 #define MAXFIT 12               /* max degree of polynomial+1 that can be
@@ -382,13 +380,6 @@ typedef struct {
     view bb;
 } plotstr;
 
-
-/*
- * world stack
- */
-typedef struct {
-    world w;                    /* current world */
-} world_stack;
 
 typedef struct {
     plotstr title;              /* graph title */

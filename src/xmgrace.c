@@ -79,8 +79,6 @@ static Widget drawing_window;		/* container for drawing area */
 
 Widget loclab;			/* locator label */
 Widget statlab;			/* status line at the bottom */
-Widget stack_depth_item;	/* stack depth item on the main panel */
-Widget curw_item;		/* current world stack item on the main panel */
 
 
 Display *disp = NULL;
@@ -104,13 +102,7 @@ static Widget windowbarw[3];
 
 static void graph_scroll_proc(Widget but, void *data);
 static void graph_zoom_proc(Widget but, void *data);
-static void world_stack_proc(Widget but, void *data);
 static void load_example(Widget but, void *data);
-
-#define WSTACK_PUSH         0
-#define WSTACK_POP          1
-#define WSTACK_CYCLE        2
-#define WSTACK_PUSH_ZOOM    3
 
 /*
  * action routines, to be used with translations
@@ -557,21 +549,6 @@ void set_left_footer(char *s)
     }
     XmUpdateDisplay(statlab);
 }
-
-/*
- * for world stack
- */
-void set_stack_message(void)
-{
-    char buf[16];
-    if (stack_depth_item) {
-	sprintf(buf, " SD:%1d ", graph_world_stack_size(graph_get_current(grace->project)));
-	SetLabel(stack_depth_item, buf);
-        sprintf(buf, " CW:%1d ", get_world_stack_current(graph_get_current(grace->project)));
-	SetLabel(curw_item, buf);
-    }
-}
-
 
 /*
  * clear the locator reference point
@@ -1077,7 +1054,7 @@ void startup_gui(void)
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
 				  XmNpacking, XmPACK_COLUMN,
-				  XmNnumColumns, 4,
+				  XmNnumColumns, 2,
 				  XmNspacing, 0,
 				  XmNentryBorder, 0,
 				  NULL);
@@ -1090,19 +1067,6 @@ void startup_gui(void)
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_X);
     bt = CreateButton(rc3, "AY");
     AddButtonCB(bt, autoscale_proc, (void *) AUTOSCALE_Y);
-
-    bt = CreateButton(rc3, "PZ");
-    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_PUSH_ZOOM);
-    bt = CreateButton(rc3, "Pu");
-    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_PUSH);
-
-    bt = CreateButton(rc3, "Po");
-    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_POP);
-    bt = CreateButton(rc3, "Cy");
-    AddButtonCB(bt, world_stack_proc, (void *) WSTACK_CYCLE);
-
-    stack_depth_item = CreateLabel(rcleft, "");
-    curw_item = CreateLabel(rcleft, "");
 
     bt = CreateButton(rcleft, "Exit");
     AddButtonCB(bt, MenuCB, (void *) MENU_EXIT);
@@ -1123,7 +1087,6 @@ void startup_gui(void)
     set_view_items();
 
     SetLabel(loclab, "G0:[X, Y] = ");
-    set_stack_message();
     set_left_footer(NULL);
 
 /*
@@ -1195,28 +1158,6 @@ static void graph_scroll_proc(Widget but, void *data)
 static void graph_zoom_proc(Widget but, void *data)
 {
     graph_zoom(graph_get_current(grace->project), (int) data);
-    xdrawgraph();
-}
-
-static void world_stack_proc(Widget but, void *data)
-{
-    switch ((int) data) {
-    case WSTACK_PUSH_ZOOM:
-        push_and_zoom();
-        break;
-    case WSTACK_PUSH:
-        push_world(graph_get_current(grace->project));
-        break;
-    case WSTACK_POP:
-        pop_world(graph_get_current(grace->project));
-        break;
-    case WSTACK_CYCLE:
-        cycle_world_stack(graph_get_current(grace->project));
-        break;
-    default:
-        return;
-    }
-    update_all();
     xdrawgraph();
 }
 
