@@ -91,10 +91,10 @@ LIBSUBDIRS = \
 all : libt1.a
 
 
-$(TYPE1_OBJS) :
+$(TYPE1_OBJS) : $(TYPE1_SRCS)
 	(cd type1; $(SUBMAKE))
 
-$(T1LIB_OBJS) :
+$(T1LIB_OBJS) : $(T1LIB_SRCS)
 	(cd t1lib; $(SUBMAKE))
 
 libt1.a : $(TYPE1_OBJS) $(T1LIB_OBJS)
