@@ -245,7 +245,8 @@ void create_plot_frame(void);
 void create_plot_frame_cb(Widget w, XtPointer client_data, XtPointer call_data);
 void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data);
 
-void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data);
+void create_fonttool(Widget w);
+void create_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 void set_wait_cursor(void);
 void unset_wait_cursor(void);

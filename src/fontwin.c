@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -63,10 +63,8 @@
 
 
 /* used globally */
-extern XtAppContext app_con;
 extern Widget app_shell;
 extern Display *disp;
-extern Window xwin;
 extern Window root;
 extern GC gc;
 extern int depth;
@@ -76,25 +74,46 @@ extern unsigned long xvlibcolors[];
 static Widget fonttool_frame = NULL;
 static Widget font_table;
 static OptionStructure *font_select_item;
-static Widget string_item;
-static Widget glyph_item;
+static CSTextStructure *string_item = NULL;
+
+static Widget cstext_parent = NULL;
 
 static int FontID;
 static BBox bbox;
 static float Size = 16.8;
+
+static int enable_edit_cb;
 
 static void DrawCB(Widget w,XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs);
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs);
 static void update_fonttool(int font);
 static void update_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data);
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs);
+static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
-void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
+void create_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    create_fonttool((Widget) client_data);
+}
+
+void create_fonttool(Widget cstext)
 {
     int i;
     short widths[16];
     unsigned char column_alignments[16];
-    Widget fonttool_panel, scrolled_window;
+    Widget fonttool_panel, aac_buts;
+    
+    if (string_item != NULL && cstext == string_item->cstext) {
+        /* avoid recursion */
+        return;
+    }
+    
+    if (cstext_parent != NULL) {
+        /* unlock previous parent */
+        XtSetSensitive(cstext_parent, True);
+    }
+    
+    cstext_parent = cstext;
     
     if (fonttool_frame == NULL) {
 	fonttool_frame = XmCreateDialogShell(app_shell, "Font tool", NULL, 0);
@@ -137,42 +156,62 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
         XtAddCallback(font_table, XmNdrawCellCallback, (XtCallbackProc) DrawCB, NULL);
         XtAddCallback(font_table, XmNenterCellCallback, (XtCallbackProc) EnterCB, NULL);
 
-        string_item = CreateTextItem2(fonttool_panel, 50, "String:");
-        XtVaSetValues(XtParent(string_item),
+        string_item = CreateCSText(fonttool_panel, "CString:");
+        XtVaSetValues(string_item->form,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, font_table,
             NULL);
 
-/*
- *         XtAddCallback(string_item, XmNvalueChangedCallback, (XtCallbackProc) EditStringCB, NULL);
- */
-        XtAddCallback(string_item, XmNmodifyVerifyCallback, (XtCallbackProc) EditStringCB, NULL);
+        XtAddCallback(string_item->cstext,
+            XmNmodifyVerifyCallback, (XtCallbackProc) EditStringCB, NULL);
         
-        scrolled_window = XtVaCreateManagedWidget("scrolled_window",
-	    xmScrolledWindowWidgetClass, fonttool_panel,
-	    XmNscrollingPolicy, XmAUTOMATIC,
-	    XmNvisualPolicy, XmVARIABLE,
+/*
+ *         scrolled_window = XtVaCreateManagedWidget("scrolled_window",
+ * 	    xmScrolledWindowWidgetClass, fonttool_panel,
+ * 	    XmNscrollingPolicy, XmAUTOMATIC,
+ * 	    XmNvisualPolicy, XmVARIABLE,
+ *             XmNleftAttachment, XmATTACH_FORM,
+ *             XmNrightAttachment, XmATTACH_FORM,
+ *             XmNtopAttachment, XmATTACH_WIDGET,
+ *             XmNtopWidget, XtParent(string_item),
+ *             XmNbottomAttachment, XmATTACH_FORM,
+ * 	    NULL);
+ * 
+ *         glyph_item = XtVaCreateManagedWidget("glyph",
+ *             xmDrawingAreaWidgetClass, scrolled_window,
+ * 	    XmNheight, (Dimension) 100,
+ * 	    XmNwidth, (Dimension) 600,
+ * 	    XmNresizePolicy, XmRESIZE_ANY,
+ *             XmNbackground,
+ * 	    xvlibcolors[0],
+ * 	    NULL);
+ */
+
+        aac_buts = CreateAACButtons(fonttool_panel,
+            fonttool_panel, fonttool_aac_cb);
+        XtVaSetValues(aac_buts,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, XtParent(string_item),
+            XmNtopWidget, string_item->form,
             XmNbottomAttachment, XmATTACH_FORM,
-	    NULL);
-
-        glyph_item = XtVaCreateManagedWidget("glyph",
-            xmDrawingAreaWidgetClass, scrolled_window,
-	    XmNheight, (Dimension) 100,
-	    XmNwidth, (Dimension) 600,
-	    XmNresizePolicy, XmRESIZE_ANY,
-            XmNbackground,
-	    xvlibcolors[0],
-	    NULL);
-
+            NULL);
+        
         update_fonttool(0);
         XtManageChild(fonttool_panel);
     }
+
+    enable_edit_cb = FALSE;
+    if (cstext_parent == NULL) {
+        SetCSTextString(string_item, "");
+    } else {
+        SetCSTextString(string_item, xv_getstr(cstext_parent));
+        /* Lock editable text */
+        XtSetSensitive(cstext_parent, False);
+    }
+    enable_edit_cb = TRUE;
     
     XtRaise(fonttool_frame);
 }
@@ -229,16 +268,6 @@ static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs
     cbs->type = XbaePixmap;
     XbaeMatrixSetCellUserData(w, cbs->row, cbs->column, (XtPointer) valid_char);  
    
-/*
- *     cbs->mask = mask;
- */
-
-    /* Set height and width to that of the bitmap's to ensure correct
-       positioning and drawing */
-
-/*  This is no longer necessary as it is calculated on the fly */
-/*  cbs->height = xbae_height; */
-/*  cbs->width = xbae_width; */
     return;
 }
 
@@ -246,8 +275,8 @@ static void insert_into_string(char *s)
 {
     int pos;
     
-    pos = XmTextGetInsertionPosition(string_item);
-    XmTextInsert(string_item, pos, s);
+    pos = GetCSTextCursorPos(string_item);
+    CSTextInsert(string_item, pos, s);
 }
 
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs)
@@ -292,7 +321,7 @@ static void update_fonttool(int font)
     bbox.ury = bbox.ury*Size/1000;
     
     XbaeMatrixRefresh(font_table);
-    sprintf(buf, "\\f{%d}", FontID);
+    sprintf(buf, "\\f{%s}", get_fontalias(FontID));
     insert_into_string(buf);
 }
 
@@ -310,15 +339,17 @@ static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *c
     static int column = 0, row = 0;
     XmTextVerifyCallbackStruct *tcbs;
     XmTextBlock text;
-/*
- *     VPoint vp;
- */
+    
+    if (enable_edit_cb != TRUE) {
+        return;
+    }
     
     tcbs = (XmTextVerifyCallbackStruct *) cbs;
+    
     text = tcbs->text;
     for (i = 0; i < text->length; i++) {
         XbaeMatrixDeselectCell(font_table, row, column);
-        
+ 
         c = text->ptr[i];
         row = c/16;
         column = c % 16;
@@ -332,10 +363,31 @@ static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *c
         }
     }
     
-    strcpy(string, xv_getstr(string_item));
-/*
- *     vp.x = 0.5;
- *     vp.y = 0.5;
- *     WriteString(vp, 0, 0, string);
- */
+    strcpy(string, GetCSTextString(string_item));
+}
+
+static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int aac_mode;
+    
+    aac_mode = (int) client_data;
+    
+    if (aac_mode == AAC_CLOSE) {
+        XtUnmanageChild(fonttool_frame);
+        if (cstext_parent != NULL) {
+            XtSetSensitive(cstext_parent, True);
+        }
+        return;
+    }
+
+    if (cstext_parent != NULL) {
+        xv_setstr(cstext_parent, GetCSTextString(string_item));
+    }
+    
+    if (aac_mode == AAC_ACCEPT) {
+        XtUnmanageChild(fonttool_frame);
+        if (cstext_parent != NULL) {
+            XtSetSensitive(cstext_parent, True);
+        }
+    }
 }
