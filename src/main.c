@@ -794,7 +794,7 @@ int main(int argc, char *argv[])
 		}
 	    } else {
 		if (i != argc) {
-		    lock_dirtystate();
+		    lock_dirtystate(TRUE);
 		    if (getdata(cur_graph, argv[i], cursource, curtype) ==
                                                         GRACE_EXIT_SUCCESS) {
 			strcpy(docname, argv[i]);
@@ -803,7 +803,7 @@ int main(int argc, char *argv[])
 			}
 			clear_dirtystate();
 		    } else {
-		        clear_dirtystate();
+		        lock_dirtystate(FALSE);
 			set_dirtystate();
 		    }
 		}		/* end if */
@@ -1041,11 +1041,6 @@ void VersionInfo(void)
 #  endif
 #endif
 
-#ifdef HAVE_LIBT1
-    fprintf(stdout, "T1lib: system\n");
-#else
-    fprintf(stdout, "T1lib: bundled\n");
-#endif
 #ifdef WITH_DEBUG
     fprintf(stdout, "Debugging is enabled\n");
 #else
@@ -1054,7 +1049,7 @@ void VersionInfo(void)
  
     fprintf(stdout, "\n");
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");
-    fprintf(stdout, "(C) Copyright 1996-1998 Grace Development Team\n");
+    fprintf(stdout, "(C) Copyright 1996-1999 Grace Development Team\n");
     fprintf(stdout, "All Rights Reserved\n");
 
     return;

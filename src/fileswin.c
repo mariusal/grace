@@ -864,7 +864,6 @@ static Save_ui sui;
 static void save_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     char *s;
-    int done_ok;
     
     Save_ui *ui = (Save_ui *) client_data;
     XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) call_data;
@@ -875,20 +874,13 @@ static void save_proc(Widget w, XtPointer client_data, XtPointer call_data)
     XtUnmanageChild(ui->top);
     set_wait_cursor();
     
-    strcpy(sformat, (char *) xv_getstr(save_format_item));
+    strcpy(sformat, xv_getstr(save_format_item));
     if (save_project(s) == GRACE_EXIT_SUCCESS) {
-        done_ok = TRUE;
-    } else {
-        done_ok = FALSE;
-    }
-    
-    if (done_ok) {
-    	strcpy(docname, s);
-
-    	clear_dirtystate();
     	drawgraph();
     }
+
     XtFree(s);
+
     unset_wait_cursor();
 }
 
@@ -953,13 +945,13 @@ static void open_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     set_wait_cursor();
     
-    lock_dirtystate();
-    
+    lock_dirtystate(TRUE);
     if (getdata(get_cg(), s, cursource, SET_XY) == GRACE_EXIT_SUCCESS) {
     	done_ok = TRUE;
     } else {
     	done_ok = FALSE;
     }
+    lock_dirtystate(FALSE);
 
     if (done_ok) {
     	strcpy(docname, s);

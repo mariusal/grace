@@ -1737,6 +1737,10 @@ int save_project(char *fn)
     }
 
     grace_close(cp);
+    
+    strcpy(docname, fn);
+    clear_dirtystate();
+    
     return GRACE_EXIT_SUCCESS;
 }
 

@@ -354,9 +354,7 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
 	if (strcmp (docname, NONAME) != 0) {
 	    set_wait_cursor();
 	    
-	    if (save_project(docname) == GRACE_EXIT_SUCCESS) {
-	        clear_dirtystate();
-	    }
+	    save_project(docname);
 	    
 	    unset_wait_cursor();
 	} else {
