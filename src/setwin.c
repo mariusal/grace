@@ -170,7 +170,7 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
     set_wait_cursor();
     if (tui.top == NULL) {
-        char *rowlabels[MAX_SET_COLS] = {"X", "Y", "Y1", "Y2", "Y3", "Y4"};
+        char *rowlabels[MAX_SET_COLS];
         char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
         unsigned char column_alignments[6] = {
                                                 XmALIGNMENT_CENTER,
@@ -196,6 +196,13 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
         XtManageChild(rc);
 	tui.comment_item = CreateTextItem2(dialog, 24, "Comment:");
 
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            rowlabels[i] = copy_string(NULL, dataset_colname(i));
+            for (j = 0; j < 6; j++) {
+                tui.rows[i][j] = NULL;
+            }
+        }
+
 	fr = CreateFrame(dialog, "Statistics");
         tui.mw = XtVaCreateManagedWidget("mw",
             xbaeMatrixWidgetClass, fr,
@@ -206,6 +213,7 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
             XmNcolumnLabels, collabels,
             XmNcolumnLabelAlignments, column_alignments,
             XmNrowLabels, rowlabels,
+	    XmNrowLabelWidth, 3,
             XmNrowLabelAlignment, XmALIGNMENT_CENTER,
             XmNallowColumnResize, True,
             XmNgridType, XmGRID_COLUMN_SHADOW,
@@ -219,12 +227,6 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
  *         XtUninstallTranslations(tui.mw);
  */
         XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
-
-        for (i = 0; i < MAX_SET_COLS; i++) {
-            for (j = 0; j < 6; j++) {
-                tui.rows[i][j] = NULL;
-            }
-        }
 
 	XtManageChild(dialog);
         XtVaSetValues(dialog,

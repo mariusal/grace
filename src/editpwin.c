@@ -394,7 +394,7 @@ void destroy_ep(Widget w, XtPointer client_data, XtPointer call_data)
 void create_ss_frame(int gno, int setno)
 {
     int i;
-    char *collabels[MAX_SET_COLS] = {"X", "Y", "Y1", "Y2", "Y3", "Y4"};
+    char *collabels[MAX_SET_COLS];
     char wname[256];
     char *label1[3] = {"Props...", "Update", "Close"};
     char *label2[2] = {"Delete", "Add"};
@@ -420,6 +420,7 @@ void create_ss_frame(int gno, int setno)
     ep->ncols = getncols(gno, setno);
     ep->nrows = getsetlength(gno, setno);
     for (i = 0; i < MAX_SET_COLS; i++) {
+        collabels[i] = copy_string(NULL, dataset_colname(i));
         ep->cwidth[i] = CELL_WIDTH;
         ep->cprec[i] = CELL_PREC;
         ep->cformat[i] = CELL_FORMAT;
