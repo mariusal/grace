@@ -1251,7 +1251,7 @@ char *utf2iso(const char *s)
                 t->label.charsize = $?->charsize;
             
                 t->label_layout   = $?->layout;
-                t->label_place    = $?->autoplace;
+                t->label_place    = $?->autoplace ? TYPE_AUTO:TYPE_SPEC;
                 t->label.offset   = $?->offset;
                 t->label_op       = $?->sideplacement;
             }
