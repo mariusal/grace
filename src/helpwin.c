@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -136,7 +136,7 @@ static Widget about_panel;
 
 void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget wbut, rc, sep;
+    Widget wbut, rc;
     char buf[1024];
 
     set_wait_cursor();
@@ -148,9 +148,53 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 	sprintf(buf, "Grace-%d.%d.%d %s, GUI: %s",
                        MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER, gui_version);
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+
+	CreateSeparator(about_panel);
+
+	sprintf(buf, "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
         
-	sep = XmCreateSeparator(about_panel, "sep", NULL, 0);
-        XtManageChild(sep);
+	CreateSeparator(about_panel);
+
+	sprintf(buf, "Copyright (c) 1991-1995 Paul J Turner");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "Copyright (c) 1996-1999 Grace Development Team");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "All rights reserved");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "The program is distributed under the terms of the GNU General Public License");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+        
+	CreateSeparator(about_panel);
+
+	sprintf(buf, "Contains Tab widget, Copyright (c) 1997 Pralay Dakua");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "May contain Xbae widget,");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      Copyright (c) 1995-97 Andrew Lister");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+#ifdef HAVE_LIBPDF
+	sprintf(buf, "May contain PDFlib library, Copyright (c) 1997-98 Thomas Metz");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+#endif
+#ifdef HAVE_LIBGD
+	sprintf(buf, "May contain GD library,");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      Portions copyright (c) 1994-98 Cold Spring Harbor Laboratory");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      GIF decompression code copyright (c) 1990, 91, 93 David Koblas");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      Non-LZW-based GIF compression code copyright (c) 1998");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	sprintf(buf, "      Hutchison Avenue Software Corporation");
+	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+#endif
+
+	CreateSeparator(about_panel);
 
 	sprintf(buf, "Max scratch array length = %d", MAXARR);
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
@@ -163,26 +207,7 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
 	sprintf(buf, "Max number of strings = %d", maxstr);
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
         
-	sep = XmCreateSeparator(about_panel, "sep", NULL, 0);
-        XtManageChild(sep);
-
-	sprintf(buf, "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-        
-	sep = XmCreateSeparator(about_panel, "sep", NULL, 0);
-        XtManageChild(sep);
-
-	sprintf(buf, "(C) Copyright 1991-1995 Paul J Turner");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "(C) Copyright 1996-1998 Grace Development Team");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "All Rights Reserved");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "The program is distributed under the terms of the GNU General Public License");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-        
-	sep = XmCreateSeparator(about_panel, "sep", NULL, 0);
-        XtManageChild(sep);
+	CreateSeparator(about_panel);
 
 	rc = XmCreateRowColumn(about_panel, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
