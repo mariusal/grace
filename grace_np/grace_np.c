@@ -277,6 +277,12 @@ GraceOpenVA(char* exe, int bs, ...)
 }
 
 int
+GraceOpen(int bs)
+{
+    return GraceOpenVA("xmgrace", bs, "-noask", NULL);
+}
+
+int
 GraceIsOpen(void)
 {
     return (fd_pipe >= 0) ? 1 : 0;

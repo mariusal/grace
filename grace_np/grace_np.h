@@ -45,9 +45,8 @@ GraceErrorFunctionType GraceRegisterErrorFunction(GraceErrorFunctionType f);
 /* launch a grace subprocess and a communication channel with it */
 int GraceOpenVA(char* exe, int bs, ...);
 
-#ifndef GraceOpen
-#  define GraceOpen(A)    GraceOpenVA("xmgrace", A, "-noask", NULL)
-#endif
+/* a simplified (obsolete) version of the above */
+int GraceOpen(int bs);
 
 /* test if a grace subprocess is currently connected */
 int GraceIsOpen(void);
