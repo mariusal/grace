@@ -475,6 +475,7 @@ void bailout(void)
  */
 static void rereadConfig(void)
 {
+    getparms("gracerc");
 }
 
 /*
@@ -1327,10 +1328,11 @@ void update_app_title(void)
  */
 
 static int dirtystate = 0;
+static int dirtystate_lock = FALSE;
 
 void set_dirtystate(void)
 {
-    if (dirtystate >= 0) {
+    if (dirtystate_lock == FALSE) {
         dirtystate++;
         update_timestamp();
         update_app_title();
@@ -1348,17 +1350,18 @@ void set_dirtystate(void)
 void clear_dirtystate(void)
 {
     dirtystate = 0;
+    dirtystate_lock = FALSE;
     update_app_title();
 }
 
-void lock_dirtystate(void)
+void lock_dirtystate(flag)
 {
-    dirtystate = -1;
+    dirtystate_lock = flag;
 }
 
 int is_dirtystate(void)
 {
-    return (dirtystate);
+    return (dirtystate ? TRUE:FALSE);
 }
 
 int system_wrap(const char *string)

@@ -112,7 +112,7 @@ void update_app_title(void);
 
 void set_dirtystate(void);
 void clear_dirtystate(void);
-void lock_dirtystate(void);
+void lock_dirtystate(int flag);
 int is_dirtystate(void);
 
 int system_wrap(const char *string);
