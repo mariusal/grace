@@ -309,6 +309,7 @@ void quark_idstr_set(Quark *q, const char *s)
 {
     if (q) {
         q->idstr = copy_string(q->idstr, s);
+        quark_dirtystate_set(q, TRUE);
     }
 }
 
