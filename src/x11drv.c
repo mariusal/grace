@@ -50,7 +50,7 @@ typedef struct {
     Pixmap pixmap;
     
     int pixel_size;
-    unsigned int page_scale;
+    unsigned int height, width, page_scale;
         
     int monomode;
 
@@ -81,9 +81,10 @@ static X11_data *init_x11_data(void)
     return data;
 }
 
-static void VPoint2XPoint(const VPoint *vp, XPoint *xp)
+static void VPoint2XPoint(const X11_data *x11data, const VPoint *vp, XPoint *xp)
 {
-    x11_VPoint2dev(vp, &xp->x, &xp->y);
+    xp->x = (short) rint(x11data->page_scale*vp->x);
+    xp->y = (short) rint(x11data->height - x11data->page_scale*vp->y);
 }
 
 static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
@@ -127,6 +128,8 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
 
     Page_geometry *pg = get_page_geometry(canvas);
 
+    x11data->width = pg->width;
+    x11data->height = pg->height;
     x11data->page_scale = MIN2(pg->width, pg->height);
 
     xstream = (X11stream *) canvas_get_prstream(canvas);
@@ -292,7 +295,7 @@ static void x11_drawpixel(const Canvas *canvas, void *data,
     X11_data *x11data = (X11_data *) data;
     XPoint xp;
     
-    VPoint2XPoint(vp, &xp);
+    VPoint2XPoint(x11data, vp, &xp);
     x11_setpen(canvas, x11data);
     XDrawPoint(DisplayOfScreen(x11data->screen), x11data->pixmap, DefaultGCOfScreen(x11data->screen), xp.x, xp.y);
 }
@@ -314,7 +317,7 @@ static void x11_drawpolyline(const Canvas *canvas, void *data,
     }
     
     for (i = 0; i < n; i++) {
-        VPoint2XPoint(&vps[i], &p[i]);
+        VPoint2XPoint(x11data, &vps[i], &p[i]);
     }
     if (mode == POLYLINE_CLOSED) {
         p[n] = p[0];
@@ -341,7 +344,7 @@ static void x11_fillpolygon(const Canvas *canvas, void *data,
     }
     
     for (i = 0; i < nc; i++) {
-        VPoint2XPoint(&vps[i], &p[i]);
+        VPoint2XPoint(x11data, &vps[i], &p[i]);
     }
     
     x11_setpen(canvas, x11data);
@@ -367,10 +370,15 @@ static void x11_drawarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2)
 {
     X11_data *x11data = (X11_data *) data;
+    XPoint xp;
     short x1, y1, x2, y2;
     
-    x11_VPoint2dev(vp1, &x1, &y2);
-    x11_VPoint2dev(vp2, &x2, &y1);
+    VPoint2XPoint(x11data, vp1, &xp);
+    x1 = xp.x;
+    y2 = xp.y;
+    VPoint2XPoint(x11data, vp2, &xp);
+    x2 = xp.x;
+    y1 = xp.y;
 
     x11_setdrawbrush(canvas, x11data);
     
@@ -389,10 +397,15 @@ static void x11_fillarc(const Canvas *canvas, void *data,
     const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode)
 {
     X11_data *x11data = (X11_data *) data;
+    XPoint xp;
     short x1, y1, x2, y2;
     
-    x11_VPoint2dev(vp1, &x1, &y2);
-    x11_VPoint2dev(vp2, &x2, &y1);
+    VPoint2XPoint(x11data, vp1, &xp);
+    x1 = xp.x;
+    y2 = xp.y;
+    VPoint2XPoint(x11data, vp2, &xp);
+    x2 = xp.x;
+    y1 = xp.y;
     
     x11_setpen(canvas, x11data);
     if (x1 != x2 || y1 != y2) {
@@ -430,7 +443,7 @@ static void x11_putpixmap(const Canvas *canvas, void *data,
 
     int cindex, fg, bg;
     
-    VPoint2XPoint(vp, &xp);
+    VPoint2XPoint(x11data, vp, &xp);
       
     if (pm->bpp != 1) {
         if (x11data->monomode == TRUE) {
