@@ -31,9 +31,9 @@ distclean : dummy
 devclean : dummy
 
 install : $(EXAMPLES) $(DOTEST)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/examples
-	for i in $(EXAMPLES); do $(INSTALL_DATA) $$i $(GRACE_HOME)/examples; done
-	$(INSTALL_PROGRAM) $(DOTEST) $(GRACE_HOME)/examples/$(DOTEST)
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/examples
+	for i in $(EXAMPLES); do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/examples; done
+	$(INSTALL_PROGRAM) $(DOTEST) $(DESTDIR)$(GRACE_HOME)/examples/$(DOTEST)
 
 links : dummy
 

@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.8)</title>
+<title>Grace User's Guide (for Grace-5.1.9)</title>
 <author>by the Grace Team</author>
-<date>28.05.2002</date>
+<date>19.06.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -3361,7 +3361,6 @@ C
         <item> SVG driver:
                the driver is a brand new one and still in beta test
                <itemize>
-                 <item> patterned fills not implemented
                  <item> bitmapped text strings not implemented
                </itemize>
       </itemize>

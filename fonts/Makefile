@@ -54,13 +54,13 @@ distclean : dummy
 devclean : dummy
 
 install : $(FONTS) $(AFMS) $(ENCODINGS)
-	$(MKINSTALLDIRS) $(GRACE_HOME)/fonts
-	$(INSTALL_DATA) $(FONTDATABASE) $(GRACE_HOME)/fonts
-	$(MKINSTALLDIRS) $(GRACE_HOME)/fonts/type1
-	for i in $(FONTS); do $(INSTALL_DATA) $$i $(GRACE_HOME)/fonts/type1; done
-	for i in $(AFMS); do $(INSTALL_DATA) $$i $(GRACE_HOME)/fonts/type1; done
-	$(MKINSTALLDIRS) $(GRACE_HOME)/fonts/enc
-	for i in $(ENCODINGS); do $(INSTALL_DATA) $$i $(GRACE_HOME)/fonts/enc; done
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/fonts
+	$(INSTALL_DATA) $(FONTDATABASE) $(DESTDIR)$(GRACE_HOME)/fonts
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/fonts/type1
+	for i in $(FONTS); do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/fonts/type1; done
+	for i in $(AFMS); do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/fonts/type1; done
+	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/fonts/enc
+	for i in $(ENCODINGS); do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/fonts/enc; done
 
 links : dummy
 
