@@ -2882,7 +2882,7 @@ actions:
                       fourierloadx ','  fourierloady ')' {
             do_fourier($3->gno, $3->setno, $3->gno, nextset($3->gno),
                 ($1 == FFT_INVFFT), $9, FFT_NORM_FORWARD,
-                $5, FALSE, 0.0, FALSE, $7, 1.0,
+                $5, FALSE, 1.0, FALSE, $7, 1.0,
                 $5 ? FALSE:TRUE, $11);
         }
 	| INTERPOLATE '(' selectset ',' vexpr ',' interpmethod ',' onoff ')' {

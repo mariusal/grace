@@ -760,7 +760,7 @@ int apply_window(double *v, int len, int window, double beta)
  */
 int do_fourier(int gfrom, int setfrom, int gto, int setto,
     int invflag, int xscale, int norm, int complexin, int dcdump,
-    double zeropad, int round2n, int window, double beta, int halflen,
+    double oversampling, int round2n, int window, double beta, int halflen,
     int output)
 {
     int i, inlen, buflen, outlen, ncols, settype;
@@ -827,9 +827,9 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
     }
     
     /* a safety measure */
-    zeropad = MAX2(0.0, zeropad);
+    oversampling = MAX2(1.0, oversampling);
     
-    buflen = (int) rint(inlen*(1.0 + zeropad));
+    buflen = (int) rint(inlen*oversampling);
     if (round2n) {
         /* round to the closest 2^N, but NOT throw away any data */
         int i2 = (int) rint(log2((double) buflen));

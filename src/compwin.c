@@ -553,7 +553,7 @@ typedef struct _Four_ui {
     OptionStructure *norm;
     Widget complexin;
     Widget dcdump;
-    SpinStructure *zeropad;
+    SpinStructure *oversampling;
     Widget round2n;
     OptionStructure *window;
     SpinStructure *winpar;
@@ -667,8 +667,8 @@ void create_fourier_frame(void *data)
         fui->winpar = CreateSpinChoice(rc2,
             "Parameter", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
 	rc2 = CreateHContainer(rc1);
-        fui->zeropad = CreateSpinChoice(rc2,
-            "Zero padding", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
+        fui->oversampling = CreateSpinChoice(rc2,
+            "Zero padding", 2, SPIN_TYPE_FLOAT, 1.0, 99.0, 1.0);
 	fui->round2n = CreateToggleButton(rc2, "Round to 2^N");
 
         fr = CreateFrame(rc, "Output");
@@ -685,7 +685,7 @@ void create_fourier_frame(void *data)
         SetSpinChoice(fui->winpar, 1.0);
         SetSensitive(fui->winpar->rc, FALSE);
         SetToggleButtonState(fui->halflen, TRUE);
-        SetSpinChoice(fui->zeropad, 0.0);
+        SetSpinChoice(fui->oversampling, 1.0);
 #ifndef HAVE_FFTW
         SetToggleButtonState(fui->round2n, TRUE);
 #endif
@@ -705,7 +705,7 @@ static int do_fourier_proc(void *data)
     int i, res, err = FALSE;
     int invflag, xscale, norm;
     int complexin, dcdump, window, round2n, halflen, output;
-    double zeropad, beta;
+    double oversampling, beta;
     Four_ui *ui = (Four_ui *) data;
     
     res = GetTransformDialogSettings(ui->tdialog, TRUE,
@@ -721,7 +721,7 @@ static int do_fourier_proc(void *data)
     
     complexin = GetToggleButtonState(ui->complexin);
     dcdump    = GetToggleButtonState(ui->dcdump);
-    zeropad   = GetSpinChoice(ui->zeropad);
+    oversampling   = GetSpinChoice(ui->oversampling);
     round2n   = GetToggleButtonState(ui->round2n);
     window    = GetOptionChoice(ui->window);
     beta      = GetSpinChoice(ui->winpar);
@@ -738,7 +738,7 @@ static int do_fourier_proc(void *data)
             setto = nextset(gdest);
         }
 	if (do_fourier(gsrc, setfrom, gdest, setto,
-            invflag, xscale, norm, complexin, dcdump, zeropad, round2n,
+            invflag, xscale, norm, complexin, dcdump, oversampling, round2n,
             window, beta, halflen, output) != RETURN_SUCCESS) {
             err = TRUE;
         }
