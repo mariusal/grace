@@ -7,7 +7,6 @@ COPYRIGHT               - legal stuff
 LICENSE                 - license terms (GPL)
 CHANGES                 - chronological list of changes
 INSTALL                 - directions on installation
-MIGRATION               - brief migration guide (from Xmgr)
 doc/FAQ.html            - frequently asked questions (in HTML format)
 arch/<os_name>/README   - system-specific important notes
 
