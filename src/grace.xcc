@@ -989,22 +989,22 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrXscale"><![CDATA[
             world w;
-            graph_set_xscale($$, $?->type);
-            graph_set_xinvert($$, $?->invert);
             graph_get_world($$, &w);
             w.xg1 = $?->min;
             w.xg2 = $?->max;
             graph_set_world($$, &w);
+            graph_set_xscale($$, $?->type);
+            graph_set_xinvert($$, $?->invert);
             xfree($?);
         ]]></child>
         <child name="#EStrYscale"><![CDATA[
             world w;
-            graph_set_yscale($$, $?->type);
-            graph_set_yinvert($$, $?->invert);
             graph_get_world($$, &w);
             w.yg1 = $?->min;
             w.yg2 = $?->max;
             graph_set_world($$, &w);
+            graph_set_yscale($$, $?->type);
+            graph_set_yinvert($$, $?->invert);
             xfree($?);
         ]]></child>
         <child name="#EStrZscale">
