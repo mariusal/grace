@@ -230,9 +230,14 @@ typedef enum {
 #define FOCUS_SET       1
 #define FOCUS_FOLLOWS   2
 
-/* Autoscale, tick mark etc. type */
+/* Placement of labels etc */
 #define TYPE_AUTO       0
 #define TYPE_SPEC       1
+
+/* User-defined tickmarks/labels */
+#define TICKS_SPEC_NONE     0
+#define TICKS_SPEC_MARKS    1
+#define TICKS_SPEC_BOTH     2
 
 /* Tick direction */
 #define TICKS_IN        0
@@ -583,7 +588,7 @@ typedef struct {
     int t_drawbar;              /* draw a bar connecting tick marks */
     int t_drawbarcolor;         /* color of bar */
     int t_drawbarlines;         /* linestyle of bar */
-    double t_drawbarlinew;         /* line width of bar */
+    double t_drawbarlinew;      /* line width of bar */
 
     double offsx, offsy;        /* offset of axes in viewport coords
                                    (attention: these
@@ -591,8 +596,10 @@ typedef struct {
 				   perpendicular and parallel offsets */
 
     int t_flag;                 /* toggle tickmark display */
-    int t_type;                 /* type of tickmarks, auto or specified */
     int t_autonum;              /* approximate default number of major ticks */
+
+    int t_spec;                 /* special (user-defined) tickmarks/ticklabels, */
+                                /* can be none/marks/both marks and labels */
 
     int t_round;                /* place major ticks at rounded positions */
 
@@ -609,7 +616,6 @@ typedef struct {
     tickprops mprops;
 
     int tl_flag;                /* toggle ticmark labels on or off */
-    int tl_type;                /* either auto or specified (below) */
     int tl_angle;               /* angle to draw labels */
 
     int tl_format;              /* tickmark label format */

@@ -121,8 +121,7 @@ static OptionStructure *barcolor;
 static SpinStructure *barlinew;
 static OptionStructure *barlines;
 
-static Widget specticks;        /* special ticks and tick labels */
-static Widget specticklabels;
+static OptionStructure *specticks;      /* special ticks/labels */
 static SpinStructure *nspec;
 static Widget specnum[MAX_TICKS];       /* label denoting which tick/label */
 static Widget specloc[MAX_TICKS];
@@ -160,12 +159,6 @@ void create_axes_dialog(int axisno)
     }
     
     if (axes_dialog == NULL) {
-        opitems[0].value = SCALE_NORMAL;
-        opitems[0].label = "Linear";
-        opitems[1].value = SCALE_LOG;
-        opitems[1].label = "Logarithmic";
-        opitems[2].value = SCALE_REC;
-        opitems[2].label = "Reciprocal";
 
         axes_dialog = XmCreateDialogShell(app_shell, "Axes", NULL, 0);
         handle_close(axes_dialog);
@@ -201,8 +194,16 @@ void create_axes_dialog(int axisno)
 
         rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
+        opitems[0].value = SCALE_NORMAL;
+        opitems[0].label = "Linear";
+        opitems[1].value = SCALE_LOG;
+        opitems[1].label = "Logarithmic";
+        opitems[2].value = SCALE_REC;
+        opitems[2].label = "Reciprocal";
         axis_scale = CreateOptionChoice(rc, "Scale:", 0, 3, opitems);
         AddOptionChoiceCB(axis_scale, axis_scale_cb, NULL);
+
 	axis_invert = CreateToggleButton(rc, "Invert axis");
         XtManageChild(rc);
         
@@ -524,8 +525,14 @@ void create_axes_dialog(int axisno)
         axes_special = CreateTabPage(axes_tab, "Special");
 
         rc = XmCreateRowColumn(axes_special, "rc", NULL, 0);
-        specticks = CreateToggleButton(rc, "Use special tick locations");
-        specticklabels = CreateToggleButton(rc, "Use special tick labels");
+
+        opitems[0].value = TICKS_SPEC_NONE;
+        opitems[0].label = "None";
+        opitems[1].value = TICKS_SPEC_MARKS;
+        opitems[1].label = "Tick marks";
+        opitems[2].value = TICKS_SPEC_BOTH;
+        opitems[2].label = "Tick marks and labels";
+        specticks = CreateOptionChoice(rc, "Special ticks:", 0, 3, opitems);;
 
         nspec = CreateSpinChoice(rc, "Number of user ticks to use:",
             3, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS, 1.0);
@@ -746,10 +753,9 @@ static void axes_aac_cb(void *data)
     t->t_drawbarlinew = GetSpinChoice(barlinew);
     t->t_drawbarlines = GetOptionChoice(barlines);
 
-    t->t_type = GetToggleButtonState(specticks) ? TYPE_SPEC : TYPE_AUTO;
-    t->tl_type = GetToggleButtonState(specticklabels) ? TYPE_SPEC : TYPE_AUTO;
+    t->t_spec = GetOptionChoice(specticks);
     /* only read special info if special ticks used */
-    if (t->t_type == TYPE_SPEC || t->tl_type == TYPE_SPEC) {
+    if (t->t_spec != TICKS_SPEC_NONE) {
         t->nticks = (int) GetSpinChoice(nspec);
         /* ensure that enough tick positions have been specified */
         for (i = 0; i < t->nticks; i++) {
@@ -760,7 +766,7 @@ static void axes_aac_cb(void *data)
                 } else {
                     t->tloc[i].type = TICK_TYPE_MAJOR;
                 }
-                if (t->tl_type == TYPE_SPEC) {
+                if (t->t_spec == TICKS_SPEC_BOTH) {
                     t->tloc[i].label = copy_string(t->tloc[i].label, cp);
                 } else {
                     t->tloc[i].label = copy_string(t->tloc[i].label, NULL);
@@ -1056,8 +1062,7 @@ void update_ticks(int gno)
         SetSpinChoice(barlinew, t->t_drawbarlinew);
         SetOptionChoice(barlines, t->t_drawbarlines);
 
-        SetToggleButtonState(specticks, (t->t_type == TYPE_SPEC));
-        SetToggleButtonState(specticklabels, (t->tl_type == TYPE_SPEC));
+        SetOptionChoice(specticks, t->t_spec);
         SetSpinChoice(nspec, t->nticks);
         for (i = 0; i < t->nticks; i++) {
             sprintf(buf, "%g", t->tloc[i].wtpos);

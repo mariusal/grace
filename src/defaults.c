@@ -306,7 +306,6 @@ void set_default_ticks(tickmarks *t)
     t->label_layout = LAYOUT_PARALLEL;
     t->label_place = TYPE_AUTO;
     t->label_op = PLACEMENT_NORMAL;
-    t->tl_type = TYPE_AUTO;
     t->tl_format = FORMAT_GENERAL;
     t->tl_prec = 5;
     t->tl_formula = NULL;
@@ -326,7 +325,7 @@ void set_default_ticks(tickmarks *t)
     t->tl_color = grdefaults.color;
     t->tl_appstr[0] = 0;
     t->tl_prestr[0] = 0;
-    t->t_type = TYPE_AUTO;
+    t->t_spec = TICKS_SPEC_NONE;
     t->t_autonum = 6;
     t->t_inout = TICKS_IN;
     t->t_op = PLACEMENT_BOTH;

@@ -558,6 +558,8 @@ symtab_entry *key;
 %type <ival> filtermethod
 %type <ival> filtertype
 
+%type <ival> tickspectype
+
 %type <ival> sourcetype
 
 %type <ival> stattype
@@ -3413,11 +3415,8 @@ tickattr:
 	| opchoice_sel {
 	    g[whichgraph].t[naxis]->t_op = $1;
 	}
-	| TYPE AUTO {
-	    g[whichgraph].t[naxis]->t_type = TYPE_AUTO;
-	}
-	| TYPE SPEC {
-	    g[whichgraph].t[naxis]->t_type = TYPE_SPEC;
+	| SPEC TYPE tickspectype {
+	    g[whichgraph].t[naxis]->t_spec = $3;
 	}
 	| SPEC nexpr {
 	    g[whichgraph].t[naxis]->nticks = $2;
@@ -3435,12 +3434,6 @@ tickattr:
 ticklabelattr:
 	onoff {
 	    g[whichgraph].t[naxis]->tl_flag = $1;
-	}
-	| TYPE AUTO {
-	    g[whichgraph].t[naxis]->tl_type = TYPE_AUTO;
-	}
-	| TYPE SPEC {
-	    g[whichgraph].t[naxis]->tl_type = TYPE_SPEC;
 	}
 	| PREC nexpr {
 	    g[whichgraph].t[naxis]->tl_prec = $2;
@@ -3665,6 +3658,11 @@ proctype:
 	| KEY_FUNC_PPPD { $$ = FUNC_PPPD; }
 	;
 
+tickspectype:
+	NONE { $$ =  TICKS_SPEC_NONE; }
+	| TICKSP { $$ = TICKS_SPEC_MARKS; }
+	| BOTH { $$ = TICKS_SPEC_BOTH; }
+	;
 
 filtertype:
         IFILTER       { $$ = FILTER_INPUT; }
@@ -4175,6 +4173,14 @@ tickattr_obs:
 	| MINP NUMBER   { }
 	| MAXP NUMBER   { }
 	| LOG onoff   { }
+	| TYPE AUTO {
+	    g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_NONE;
+	}
+	| TYPE SPEC {
+	    if (g[whichgraph].t[naxis]->t_spec != TICKS_SPEC_BOTH) {
+                g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_MARKS;
+            }
+	}
 	| MINOR expr {
 	    if ($2 != 0.0) {
                 g[whichgraph].t[naxis]->nminor = 
@@ -4197,6 +4203,14 @@ tickattr_obs:
 
 ticklabelattr_obs:
 	linew_select { }
+	| TYPE AUTO {
+	    if (g[whichgraph].t[naxis]->t_spec == TICKS_SPEC_BOTH) {
+                g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_MARKS;
+            }
+	}
+	| TYPE SPEC {
+	    g[whichgraph].t[naxis]->t_spec = TICKS_SPEC_BOTH;
+	}
 	| LAYOUT SPEC { }
 
 	| LAYOUT HORIZONTAL {

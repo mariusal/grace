@@ -411,34 +411,32 @@ void putparms(int gno, FILE *pp, int embed)
                     fprintf(pp, "%s tick place both\n", buf);
                     break;
                 }
-                if (t->tl_type == TYPE_AUTO) {
-                    fprintf(pp, "%s ticklabel type auto\n", buf);
-                } else {
-                    fprintf(pp, "%s ticklabel type spec\n", buf);
+                switch (t->t_spec) {
+                case TICKS_SPEC_NONE:
+                    fprintf(pp, "%s tick spec type none\n", buf);
+                    break;
+                case TICKS_SPEC_MARKS:
+                    fprintf(pp, "%s tick spec type ticks\n", buf);
+                    break;
+                case TICKS_SPEC_BOTH:
+                    fprintf(pp, "%s tick spec type both\n", buf);
+                    break;
                 }
-                if (t->t_type == TYPE_AUTO) {
-                    fprintf(pp, "%s tick type auto\n", buf);
-                } else {
-                    fprintf(pp, "%s tick type spec\n", buf);
+                
+                if (t->t_spec != TICKS_SPEC_NONE) {
                     fprintf(pp, "%s tick spec %d\n", buf, t->nticks);
-                }
-                if (t->t_type == TYPE_SPEC || t->tl_type == TYPE_SPEC) {
                     for (j = 0; j < t->nticks; j++) {
                         sprintf(tmpstr1, sformat, t->tloc[j].wtpos);
                         if (t->tloc[j].type == TICK_TYPE_MAJOR) {
-                            if (t->t_type == TYPE_SPEC) {
-                                fprintf(pp, "%s tick major %d, %s\n",
-                                    buf, j, tmpstr1);
-                            }
-                            if (t->tl_type == TYPE_SPEC) {
+                            fprintf(pp, "%s tick major %d, %s\n",
+                                buf, j, tmpstr1);
+                            if (t->t_spec == TICKS_SPEC_BOTH) {
                                 fprintf(pp, "%s ticklabel %d, \"%s\"\n",
                                     buf, j, PSTRING(t->tloc[j].label));
                             }
                         } else {
-                            if (t->t_type == TYPE_SPEC) {
-                                fprintf(pp, "%s tick minor %d, %s\n",
-                                    buf, j, tmpstr1);
-                            }
+                            fprintf(pp, "%s tick minor %d, %s\n",
+                                buf, j, tmpstr1);
                         }
                     }
                 }

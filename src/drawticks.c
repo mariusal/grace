@@ -679,7 +679,7 @@ reenter:
             continue;
         }
 
-	if (t->t_type == TYPE_AUTO) {
+	if (t->t_spec == TICKS_SPEC_NONE) {
             if (is_xaxis(caxis)) {
                 scale = get_graph_xscale(gno);
                 if (scale == SCALE_LOG) {
@@ -759,7 +759,7 @@ reenter:
             }
         }
 
-        if (t->tl_type == TYPE_AUTO) {
+        if (t->t_spec != TICKS_SPEC_BOTH) {
 	    nmajor = 0;
             for (itick = 0; itick < t->nticks; itick++) {
                 if (t->tloc[itick].type == TICK_TYPE_MAJOR) {
