@@ -34,7 +34,7 @@
 #define CMAP_INSTALL_ALWAYS     1
 #define CMAP_INSTALL_AUTO       2
 
-void xlibinit(void);
+int xlibinit(void);
 int xlibinitgraphics(void);
 void drawxlib(int x, int y, int mode);
 void xlibupdatecmap(void);

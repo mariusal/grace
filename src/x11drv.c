@@ -90,7 +90,7 @@ unsigned int win_h = 0, win_w = 0;
 Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
 
 
-void xlibinit(void)
+int xlibinit(void)
 {
     XSetWindowAttributes sw;
     XGCValues gc_val;
@@ -106,17 +106,40 @@ void xlibinit(void)
     depth = DisplayPlanes(disp, screennumber);
     gc = DefaultGC(disp, screennumber);
 
+    switch (bpp) {
+    case 1:
+        monomode = TRUE;
+        pixel_size = 0;
+        break;
+    case 8:
+    case 16:
+    case 32:
+        pixel_size = bpp/8;
+        break;
+    case 6:
+        pixel_size = 1;
+        break;
+    case 15:
+        pixel_size = 2;
+        break;
+    case 24:
+        pixel_size = 4;
+        break;
+    default:
+        errmsg("X11 with unsupported bpp");
+        exit(1);
+    }
+
 /*
  * init colormap
  */
     cmap = DefaultColormap(disp, screennumber);
+    /* redefine colormap, if needed */
     if (install_cmap == CMAP_INSTALL_ALWAYS) {
         cmap = XCopyColormapAndFree(disp, cmap);
         private_cmap = TRUE;
     }
-    
     xlibinitcmap();
-    XtVaSetValues(app_shell, XmNcolormap, cmap, NULL);
     
 /*
  * set GCs
@@ -136,7 +159,8 @@ void xlibinit(void)
  */    
     curtile = XCreatePixmap(disp, root, 16, 16, depth);
     if (curtile == (Pixmap) NULL) {
-        errmsg("Error allocating tile");
+        errmsg("Error allocating tile pixmap");
+	return GRACE_EXIT_FAILURE;
     }
     
 /*
@@ -148,6 +172,8 @@ void xlibinit(void)
         dev.fontaa = FALSE;
         set_device_props(tdevice, dev);
     }
+
+    return GRACE_EXIT_SUCCESS;
 }
 
 
@@ -211,30 +237,6 @@ void xlibinitcmap(void)
     int i;
     RGB *prgb;
     XColor xc[MAXCOLORS];
-
-    switch (bpp) {
-    case 1:
-        monomode = TRUE;
-        pixel_size = 0;
-        break;
-    case 8:
-    case 16:
-    case 32:
-        pixel_size = bpp/8;
-        break;
-    case 6:
-        pixel_size = 1;
-        break;
-    case 15:
-        pixel_size = 2;
-        break;
-    case 24:
-        pixel_size = 4;
-        break;
-    default:
-        errmsg("X11 with unsupported bpp");
-        exit(1);
-    }
     
     for (i = 0; i < MAXCOLORS; i++) {
         xc[i].pixel = 0;
