@@ -32,7 +32,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <fcntl.h>
+#ifdef HAVE_FCNTL_H
+#  include <fcntl.h>
+#endif
 
 /* for globals.h */
 #define MAIN
@@ -369,10 +371,6 @@ int main(int argc, char *argv[])
 		    }
 		} else if (argmatch(argv[i], "-pipe", 5)) {
 		    inpipe = TRUE;
-/*
-		    int flags = 0;
-		    fcntl(0, F_SETFL, flags | O_NONBLOCK);
-*/
 		} else if (argmatch(argv[i], "-noprint", 8)) {
 		    noprint = TRUE;
 		} else if (argmatch(argv[i], "-logwindow", 5)) {
@@ -386,12 +384,15 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
                         fd = atoi(argv[i]);
+#ifdef HAVE_FCNTL
                         if (fcntl(fd, F_GETFL) != O_RDONLY) {
                             fprintf(stderr,
                                     "Descriptor %d not open for reading\n",
                                     fd);
                             usage(stderr, argv[0]);
-                        } else {
+                        } else 
+#endif
+                        {
                             sprintf (fd_name, "pipe<%d>", fd);
                             register_real_time_input(fd, fd_name);
                         }
