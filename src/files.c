@@ -853,8 +853,12 @@ static int uniread(FILE *fp, int load_type, char *label)
         while (*s == ' ' || *s == '\t' || *s == '\n') {
             s++;
         }
-	/*   command      comment    end-of-set      EOL   */
-        if (*s == '@' || *s == '#' || *s == '&' || *s == '\0') {
+	/* skip comments */
+        if (*s == '#') {
+            continue;
+        }
+        /*   command     end-of-set      EOL   */
+        if (*s == '@' || *s == '&' || *s == '\0') {
 	    /* a data break line */
             if (breakon != TRUE) {
 		/* free excessive storage */
