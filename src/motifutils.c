@@ -61,6 +61,10 @@
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
 
+#if XmVersion < 2000
+#  define XmStringConcatAndFree(a, b) XmStringConcat(a, b); XmStringFree(a); XmStringFree(b)
+#endif
+
 #include "Tab.h"
 #include "motifinc.h"
 
@@ -134,7 +138,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
     UpdateOptionChoice(retval, nchoices, items);
 
     retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
-    str = XmStringCreate(labelstr, charset);
+    str = XmStringCreateLocalized(labelstr);
     XtVaSetValues(retval->menu,
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval->pulldown,
@@ -169,7 +173,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
     for (i = 0; i < nchoices; i++) {
 	optp->options[i].value = items[i].value;
 	if (items[i].label != NULL) {
-            str = XmStringCreateSimple(items[i].label);
+            str = XmStringCreateLocalized(items[i].label);
             XtVaSetValues(optp->options[i].widget, XmNlabelString, str, NULL);
             XmStringFree(str);
         }
@@ -239,7 +243,7 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     }
 
     retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
-    str = XmStringCreate(labelstr, charset);
+    str = XmStringCreateLocalized(labelstr);
     XtVaSetValues(retval->menu,
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval->pulldown,
@@ -388,7 +392,7 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
     
     XmListDeleteAllItems(listp->list);
     for (i = 0; i < nchoices; i++) {
-	str = XmStringCreateSimple(items[i].label);
+	str = XmStringCreateLocalized(items[i].label);
         XmListAddItemUnselected(listp->list, str, 0);
         XmStringFree(str);
     }
@@ -542,7 +546,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
     retval->rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, parent,
         XmNorientation, XmHORIZONTAL,
         NULL);
-    str = XmStringCreateSimple(s);
+    str = XmStringCreateLocalized(s);
     XtVaCreateManagedWidget("label", xmLabelWidgetClass, retval->rc,
 	XmNlabelString, str,
 	NULL);
@@ -656,7 +660,7 @@ CSTextStructure *CreateCSText(Widget parent, char *s)
     retval = malloc(sizeof(CSTextStructure));
     retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL, 0);
 
-    str = XmStringCreateSimple(s);
+    str = XmStringCreateLocalized(s);
     retval->label = XtVaCreateManagedWidget("label", 
         xmLabelWidgetClass, retval->form,
         XmNlabelString, str,
@@ -723,7 +727,7 @@ Widget CreateButton(Widget parent, char *label)
     Widget button;
     XmString xmstr;
     
-    xmstr = XmStringCreateSimple(label);
+    xmstr = XmStringCreateLocalized(label);
     button = XtVaCreateManagedWidget("button",
         xmPushButtonWidgetClass, parent, 
     	XmNlabelString, xmstr,
@@ -793,7 +797,7 @@ static void fsb_cd_cb(int value, void *data)
     
     XtVaGetValues(FSB, XmNpattern, &pattern, NULL);
     
-    dir = XmStringCreateSimple(bufp);
+    dir = XmStringCreateLocalized(bufp);
     dirmask = XmStringConcatAndFree(dir, pattern);
 
     XmFileSelectionDoSearch(FSB, dirmask);
@@ -823,12 +827,12 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     free(bufp);
     
     if (pattern != NULL) {
-        xmstr = XmStringCreateSimple(pattern);
+        xmstr = XmStringCreateLocalized(pattern);
         XtVaSetValues(retval->FSB, XmNpattern, xmstr, NULL);
         XmStringFree(xmstr);
     }
     
-    xmstr = XmStringCreateSimple(get_workingdir());
+    xmstr = XmStringCreateLocalized(get_workingdir());
     XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);
     XmStringFree(xmstr);
     
@@ -913,7 +917,7 @@ void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern)
     XmString xmstr;
     
     if (pattern != NULL) {
-        xmstr = XmStringCreateSimple(pattern);
+        xmstr = XmStringCreateLocalized(pattern);
         XtVaSetValues(fsb->FSB, XmNpattern, xmstr, NULL);
         XmStringFree(xmstr);
     }
@@ -2165,7 +2169,7 @@ Widget *CreatePanelChoice0(Widget parent, char *labelstr, int ncols, int nchoice
     XtManageChildren(retval + 2, nchoices);
 
     retval[0] = XmCreateOptionMenu(parent, "optionmenu", NULL, 0);
-    str = XmStringCreate(labelstr, charset);
+    str = XmStringCreateLocalized(labelstr);
     XtVaSetValues(retval[0],
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval[1],
@@ -2204,7 +2208,7 @@ Widget *CreatePanelChoice(Widget parent, char *labelstr, int nchoices,...)
     XtManageChildren(retval + 2, nchoices);
 
     retval[0] = XmCreateOptionMenu(parent, "optionmenu", NULL, 0);
-    str = XmStringCreate(labelstr, charset);
+    str = XmStringCreateLocalized(labelstr);
     XtVaSetValues(retval[0],
 		  XmNlabelString, str,
 		  XmNsubMenuId, retval[1],
@@ -2319,7 +2323,7 @@ Widget CreateCharSizeChoice(Widget parent, char *s)
     Widget w;
     XmString str;
     
-    str = XmStringCreate(s, charset);
+    str = XmStringCreateLocalized(s);
     w = XtVaCreateManagedWidget("charSize", xmScaleWidgetClass, parent,
 				XmNtitleString, str,
 				XmNminimum, 0,
@@ -2369,7 +2373,7 @@ Widget CreateAngleChoice(Widget parent, char *s)
     Widget w;
     XmString str;
     
-    str = XmStringCreate(s, charset);
+    str = XmStringCreateLocalized(s);
     w = XtVaCreateManagedWidget("angle", xmScaleWidgetClass, parent,
 				XmNtitleString, str,
 				XmNminimum, 0,
@@ -2486,7 +2490,7 @@ Widget CreateTabPage(Widget parent, char *s)
     XmString str;
     
     w = XmCreateRowColumn(parent, "tabPage", NULL, 0);
-    str = XmStringCreateSimple(s);
+    str = XmStringCreateLocalized(s);
     XtVaSetValues(w, XmNtabLabel, str, NULL);
     XmStringFree(str);
     XtManageChild(w);
@@ -2506,7 +2510,7 @@ Widget CreateTextItem2(Widget parent, int len, char *s)
     XmString str;
     rc = XmCreateRowColumn(parent, "rc", NULL, 0);
     XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    str = XmStringCreateLtoR(s, charset);
+    str = XmStringCreateLocalized(s);
     XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
 			    XmNlabelString, str,
 			    NULL);
@@ -2546,7 +2550,7 @@ Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s)
 	
     rc = XmCreateRowColumn(parent, "rc", NULL, 0);
     XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-    str = XmStringCreateLtoR(s, charset);
+    str = XmStringCreateLocalized(s);
     XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
 			    XmNlabelString, str,
 			    NULL);
@@ -2938,7 +2942,7 @@ int SetSelectedSet(int gno, int setno, SetChoiceItem l)
     char buf[1024];
     XmString xms;
     sprintf(buf, "S%d (N=%d, %s)", setno, getsetlength(gno, setno), getcomment(gno, setno));
-    xms = XmStringCreateLtoR(buf, charset);
+    xms = XmStringCreateLocalized(buf);
     XmListSelectItem(l.list, xms, True);
     XmStringFree(xms);
     return 0;
@@ -3040,17 +3044,17 @@ void update_set_list(int gno, SetChoiceItem l)
 	break;
     case SET_SELECT_ALL:
 	xms = malloc(sizeof(XmString) * (scnt + 1));
-	xms[0] = XmStringCreateLtoR("All sets", charset);
+	xms[0] = XmStringCreateLocalized("All sets");
 	cnt = 1;
 	break;
     case SET_SELECT_NEXT:
 	xms = malloc(sizeof(XmString) * (scnt + 1));
-	xms[0] = XmStringCreateLtoR("New set", charset);
+	xms[0] = XmStringCreateLocalized("New set");
 	cnt = 1;
 	break;
     case SET_SELECT_NEAREST:
 	xms = malloc(sizeof(XmString) * (scnt + 1));
-	xms[0] = XmStringCreateLtoR("Nearest set", charset);
+	xms[0] = XmStringCreateLocalized("Nearest set");
 	cnt = 1;
 	break;
     default:
@@ -3062,7 +3066,7 @@ void update_set_list(int gno, SetChoiceItem l)
     for (i = 0; i < number_of_sets(gno); i++) {
         if (is_set_active(gno, i)) {
             sprintf(buf, "S%d (N=%d, %s)", i, getsetlength(gno, i), getcomment(gno, i));
-            xms[cnt] = XmStringCreateLtoR(buf, charset);
+            xms[cnt] = XmStringCreateLocalized(buf);
             cnt++;
         }
     }
@@ -3125,7 +3129,7 @@ Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
     Widget menu, cascadeTmp;
     XmString str;
     
-    str = XmStringCreateSimple(label);
+    str = XmStringCreateLocalized(label);
     menu = XmCreatePulldownMenu(parent, name, NULL, 0);
     cascadeTmp = XtVaCreateWidget((String) name, xmCascadeButtonWidgetClass, parent, 
     	XmNlabelString, str, 
@@ -3152,7 +3156,7 @@ Widget CreateMenuButton(Widget parent, char *name, char *label, char mnemonic,
     Widget button;
     XmString str;
     
-    str = XmStringCreateSimple(label);
+    str = XmStringCreateLocalized(label);
     button = XtVaCreateManagedWidget((String) name, xmPushButtonWidgetClass, parent, 
     	XmNlabelString, str,
     	XmNmnemonic, mnemonic,
@@ -3173,7 +3177,7 @@ Widget CreateMenuToggle(Widget parent, char *name, char *label, char mnemonic,
     Widget button;
     XmString str;
     
-    str = XmStringCreateSimple(label);
+    str = XmStringCreateLocalized(label);
     button = XtVaCreateManagedWidget((String) name, xmToggleButtonWidgetClass, parent, 
     	XmNlabelString, str,
     	XmNmnemonic, mnemonic,
@@ -3244,25 +3248,25 @@ int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
     if (yesno_popup == NULL) {
 	yesno_popup = XmCreateErrorDialog(app_shell, "warndlg", NULL, 0);
 	if (msg != NULL) {
-	    str = XmStringCreateLtoR(msg, charset);
+	    str = XmStringCreateLocalized(msg);
 	} else {
-	    str = XmStringCreateLtoR("Warning", charset);
+	    str = XmStringCreateLocalized("Warning");
 	}
 	XtVaSetValues(yesno_popup, XmNmessageString, str, NULL);
 	XmStringFree(str);
 	
 	if (s1 != NULL) {
-	    str = XmStringCreateLtoR(s1, charset);
+	    str = XmStringCreateLocalized(s1);
 	} else {
-	    str = XmStringCreateLtoR("OK", charset);
+	    str = XmStringCreateLocalized("OK");
 	}
 	XtVaSetValues(yesno_popup, str, XmNokLabelString, NULL);
 	XmStringFree(str);
 	
 	if (s2 != NULL) {
-	    str = XmStringCreateLtoR(s2, charset);
+	    str = XmStringCreateLocalized(s2);
 	} else {
-	    str = XmStringCreateLtoR("Cancel", charset);
+	    str = XmStringCreateLocalized("Cancel");
 	}
 	XtVaSetValues(yesno_popup, str, XmNcancelLabelString, NULL);
 	XmStringFree(str);
@@ -3298,7 +3302,7 @@ void cancelerrwin( Widget w, XtPointer client_data, XtPointer call_data)
 {
 	XmString empty;
 	
-	empty = XmStringCreateLtoR( "", charset);
+	empty = XmStringCreateLocalized("");
 	XtVaSetValues( (Widget)client_data, XmNmessageString, empty, NULL );
 	XmStringFree( empty );
 	XtUnmanageChild( (Widget)client_data );
@@ -3310,7 +3314,7 @@ void cancelerrwin( Widget w, XtPointer client_data, XtPointer call_data)
  */
 void errwin(char *s)
 {
-    XmString str, str1, nl;
+    XmString str, str1, str2, nl;
     static Widget error_popup = NULL;
 
     keep_grab = True;
@@ -3319,34 +3323,33 @@ void errwin(char *s)
     
     if (error_popup == NULL) {
         error_popup = XmCreateErrorDialog(app_shell, "errorDialog", NULL, 0);
-		str = XmStringCreateLtoR(s, charset);
-		XtVaSetValues(error_popup, XmNmessageString, str, NULL);
-		XmStringFree(str);
-		XtVaSetValues(error_popup,
-		  XmNdialogTitle, XmStringCreateLtoR("Error (you may hit return to cancel)", charset),
-		  XmNdialogStyle, XmDIALOG_APPLICATION_MODAL,
-		  NULL);
-		XtAddCallback(error_popup, XmNokCallback, 
-				(XtCallbackProc) cancelerrwin, (XtPointer) error_popup);
-		XtAddCallback(error_popup, XmNhelpCallback, (XtCallbackProc) HelpCB,
-		  (XtPointer) NULL);
-		XtUnmanageChild(XmMessageBoxGetChild(error_popup,
-		XmDIALOG_CANCEL_BUTTON));
-		XtUnmanageChild(XmMessageBoxGetChild(error_popup,
-		XmDIALOG_HELP_BUTTON));
-		XtManageChild(error_popup);
+	str = XmStringCreateLocalized(s);
+	XtVaSetValues(error_popup, XmNmessageString, str, NULL);
+	XmStringFree(str);
+	str = XmStringCreateLocalized("Error (you may hit return to cancel)");
+        XtVaSetValues(error_popup,
+	    XmNdialogTitle, str,
+	    XmNdialogStyle, XmDIALOG_APPLICATION_MODAL,
+	    NULL);
+	XmStringFree(str);
+	XtAddCallback(error_popup, XmNokCallback, 
+            (XtCallbackProc) cancelerrwin, (XtPointer) error_popup);
+	XtAddCallback(error_popup, XmNhelpCallback, (XtCallbackProc) HelpCB,
+	    (XtPointer) NULL);
+	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
+	    XmDIALOG_CANCEL_BUTTON));
+	XtUnmanageChild(XmMessageBoxGetChild(error_popup,
+	    XmDIALOG_HELP_BUTTON));
+	XtManageChild(error_popup);
     } else {									/* add new error onto end */
-		nl = XmStringCreateLtoR( "\n", charset);
-		XtVaGetValues( error_popup, XmNmessageString, &str, NULL );
-		str1 = 	XmStringConcat( str, nl );
-		XmStringFree( str );
-		str = XmStringCreateLtoR(s, charset);
-		XtVaSetValues(error_popup,XmNmessageString,
-					XmStringConcat( str1, str), NULL);
-		XmStringFree( str );
-		XmStringFree( str1 );
-		XmStringFree( nl );
-	}
+	nl = XmStringCreateLocalized("\n");
+	XtVaGetValues(error_popup, XmNmessageString, &str, NULL);
+	str1 = XmStringConcatAndFree(str, nl);
+	str2 = XmStringCreateLocalized(s);
+	str = XmStringConcatAndFree(str1, str2);
+        XtVaSetValues(error_popup, XmNmessageString, str, NULL);
+	XmStringFree(str);
+    }
     XtRaise(error_popup);
 }
 
@@ -3372,7 +3375,7 @@ void SetLabel(Widget w, char *s)
 {
     XmString str;
 
-    str = XmStringCreateSimple(s);
+    str = XmStringCreateLocalized(s);
     XtVaSetValues(w, XmNlabelString, str, NULL);
     XmStringFree(str);
 }
