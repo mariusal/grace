@@ -186,9 +186,13 @@ int wipeout(void)
 static void autorange_byset(int gno, int setno, int autos_type);
 static double nicenum(double x, int round);
 
-#define NICE_FLOOR  0
-#define NICE_CEIL   1
-#define NICE_ROUND  2
+#define NICE_FLOOR   0
+#define NICE_CEIL    1
+#define NICE_ROUND   2
+#define NICE_DOWN    NICE_FLOOR
+#define NICE_UP      NICE_CEIL
+#define WITH_ZERO    0
+#define WITHOUT_ZERO 1
 
 void autotick_axis(int gno, int axis)
 {
@@ -256,13 +260,7 @@ static void round_axis_limits(double *amin, double *amax, int scale)
             break;
         }
     } 
-/*
- *     else {
- *         extra_range = 0.05 * fabs(*amin);
- *         *amin -= extra_range;
- *         *amax += extra_range;
- *     }
- */
+
     *amin = nicenum(*amin, NICE_FLOOR);
     *amax = nicenum(*amax, NICE_CEIL);
     
@@ -300,8 +298,19 @@ static void autorange_byset(int gno, int setno, int autos_type)
         return;
     }
 
-    getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+    xmin=w.xg1;
+    xmax=w.xg2;
+    ymin=w.yg1;
+    ymax=w.yg2;
+    if (autos_type == AUTOSCALE_XY) {
+        getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+    } else if (autos_type == AUTOSCALE_X) {
+        getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 2);
+    } else if (autos_type == AUTOSCALE_Y) {
+        getsetminmax_c(gno, setno, &xmin, &xmax, &ymin, &ymax, 1);
+    }
 
+/*  Ensure we have finite endpoints for axis */
     if ((finite(xmin) == 0) && (xmin < 0.)) {
       xmin = -MAXNUM;
     }

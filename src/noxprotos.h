@@ -199,7 +199,10 @@ void allocxy(plotarr * p, int len);
 int init_array(double **a, int n);
 int init_scratch_arrays(int n);
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
+int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
+int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
+              	   double *vmin, double *vmax);
 void set_point(int gno, int setn, int seti, double wx, double wy);
 void get_point(int gno, int setn, int seti, double *wx, double *wy);
 void setcol(int gno, double *x, int setno, int len, int col);

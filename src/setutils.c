@@ -234,6 +234,71 @@ int getsetminmax(int gno, int setno,
 }
 
 /*
+ * get the min/max fields of a set with fixed x/y range
+ */
+int getsetminmax_c(int gno, int setno, 
+            double *xmin, double *xmax, double *ymin, double *ymax, int ivec)
+{
+    double vmin_t, vmax_t, *vmin, *vmax, bvmin, bvmax, *vec, *bvec;
+    int i, start, stop, n;
+    int first = TRUE, hits;
+
+    if (ivec == 1) {    
+        bvmin = *xmin;
+        bvmax = *xmax;
+        vmin  = ymin; 
+        vmax  = ymax; 
+    } else {
+        bvmin = *ymin;
+        bvmax = *ymax;
+        vmin  = xmin;
+        vmax  = xmax;
+    }
+    if (setno == ALL_SETS) {
+        start = 0;
+        stop  = number_of_sets(gno) - 1;
+    } else if (setno >= 0) {
+        start = setno;
+        stop  = setno;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    for (i = start; i <= stop; i++) {
+        if (is_set_active(gno, i)) {
+            
+            if (ivec == 1) {
+                bvec = getx(gno, i);
+                vec  = gety(gno, i);
+            } else {
+                bvec = gety(gno, i);
+                vec  = getx(gno, i);
+            }
+            
+            n = getsetlength(gno, i);
+            hits = minmaxrange(bvec, vec, n, bvmin, bvmax, &vmin_t, &vmax_t);
+            if (hits == GRACE_EXIT_SUCCESS) {
+                if (first) {
+                    *vmin = vmin_t;
+                    *vmax = vmax_t;
+                    first = FALSE;
+                } else {
+                    *vmin = MIN2(vmin_t, *vmin);
+                    *vmax = MAX2(vmax_t, *vmax);
+                }
+            }
+        }
+    }
+    
+    if (first == FALSE) {
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+
+/*
  * compute the mins and maxes of a vector x
  */
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
@@ -259,6 +324,45 @@ void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax)
 	}
     }
 }
+
+
+/*
+ * compute the min and max of vector vec calculated for indices such that
+ * bvec values lie within [bmin, bmax] range
+ * returns GRACE_EXIT_FAILURE if none found
+ */
+int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
+              	   double *vmin, double *vmax)
+{
+    int i, first = TRUE;
+    
+    if ((vec == NULL) || (bvec == NULL)) {
+        return GRACE_EXIT_FAILURE;
+    }
+    
+    for (i = 0; i < n; i++) {
+        if ((bvec[i] >= bvmin) && (bvec[i] <= bvmax)) {
+	    if (first == TRUE) {
+                *vmin = vec[i];
+                *vmax = vec[i];
+                first = FALSE;
+            } else {
+                if (vec[i] < *vmin) {
+                    *vmin = vec[i];
+  	        } else if (vec[i] > *vmax) {
+                    *vmax = vec[i];
+       	        }
+            }
+        }
+    }
+    
+    if (first == FALSE) {
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
 
 /*
  * compute the mins and maxes of a vector x
