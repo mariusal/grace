@@ -315,8 +315,11 @@ int main(int argc, char *argv[])
     /* default is POSIX */
     set_locale_num(FALSE);
     
-    /* check for startup file */
+    /* load startup file */
     getparms("gracerc");
+
+    /* load default template */
+    new_project(NULL);
 
     if (argc >= 2) {
 	for (i = 1; i < argc; i++) {
