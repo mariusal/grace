@@ -90,7 +90,86 @@ double *allocate_mesh(double start, double stop, int len)
     return retval;
 }
 
-void set_blockdata(Quark *q, const ss_data *ssd)
+int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol)
+{
+    int col;
+    char *s, *buf;
+
+    buf = copy_string(NULL, fs);
+    if (buf == NULL) {
+        return RETURN_FAILURE;
+    }
+
+    s = buf;
+    *nc = 0;
+    while ((s = strtok(s, ":")) != NULL) {
+	(*nc)++;
+	s = NULL;
+    }
+    *cols = xmalloc((*nc)*SIZEOF_INT);
+    if (*cols == NULL) {
+        xfree(buf);
+        return RETURN_FAILURE;
+    }
+
+    strcpy(buf, fs);
+    s = buf;
+    *nc = 0;
+    *scol = -1;
+    while ((s = strtok(s, ":")) != NULL) {
+        int strcol;
+        if (*s == '{') {
+            char *s1;
+            strcol = TRUE;
+            s++;
+            if ((s1 = strchr(s, '}')) != NULL) {
+                *s1 = '\0';
+            }
+        } else {
+            strcol = FALSE;
+        }
+        col = atoi(s);
+        col--;
+        if (strcol) {
+            *scol = col;
+        } else {
+            (*cols)[*nc] = col;
+	    (*nc)++;
+        }
+	s = NULL;
+    }
+    
+    xfree(buf);
+    
+    return RETURN_SUCCESS;
+}
+
+char *cols_to_field_string(int nc, int *cols, int scol)
+{
+    int i;
+    char *s, buf[32];
+    
+    s = NULL;
+    for (i = 0; i < nc; i++) {
+        sprintf(buf, "%d", cols[i] + 1);
+        if (i != 0) {
+            s = concat_strings(s, ":");
+        }
+        s = concat_strings(s, buf);
+    }
+    if (scol >= 0) {
+        sprintf(buf, ":{%d}", scol + 1);
+        s = concat_strings(s, buf);
+    }
+    
+    return s;
+}
+
+
+
+
+
+static void set_blockdata(Quark *q, const ss_data *ssd)
 {
     ss_data *dest_ssd = ssd_get_data(q);
     if (dest_ssd) {
@@ -100,20 +179,22 @@ void set_blockdata(Quark *q, const ss_data *ssd)
     }
 }
 
-int get_blockncols(const ss_data *ssd)
+static int get_blockncols(const ss_data *ssd)
 {
     return ssd->ncols;
 }
 
-int get_blocknrows(const ss_data *ssd)
+static int get_blocknrows(const ss_data *ssd)
 {
     return ssd->nrows;
 }
 
-int *get_blockformats(const ss_data *ssd)
+static int *get_blockformats(const ss_data *ssd)
 {
     return ssd->formats;
 }
+
+
 
 int realloc_ss_data(ss_data *ssd, int nrows)
 {
@@ -488,87 +569,13 @@ int store_data(Quark *pr, ss_data *ssd, int load_type)
     return RETURN_SUCCESS;
 }
 
-int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol)
-{
-    int col;
-    char *s, *buf;
-
-    buf = copy_string(NULL, fs);
-    if (buf == NULL) {
-        return RETURN_FAILURE;
-    }
-
-    s = buf;
-    *nc = 0;
-    while ((s = strtok(s, ":")) != NULL) {
-	(*nc)++;
-	s = NULL;
-    }
-    *cols = xmalloc((*nc)*SIZEOF_INT);
-    if (*cols == NULL) {
-        xfree(buf);
-        return RETURN_FAILURE;
-    }
-
-    strcpy(buf, fs);
-    s = buf;
-    *nc = 0;
-    *scol = -1;
-    while ((s = strtok(s, ":")) != NULL) {
-        int strcol;
-        if (*s == '{') {
-            char *s1;
-            strcol = TRUE;
-            s++;
-            if ((s1 = strchr(s, '}')) != NULL) {
-                *s1 = '\0';
-            }
-        } else {
-            strcol = FALSE;
-        }
-        col = atoi(s);
-        col--;
-        if (strcol) {
-            *scol = col;
-        } else {
-            (*cols)[*nc] = col;
-	    (*nc)++;
-        }
-	s = NULL;
-    }
-    
-    xfree(buf);
-    
-    return RETURN_SUCCESS;
-}
-
-char *cols_to_field_string(int nc, int *cols, int scol)
-{
-    int i;
-    char *s, buf[32];
-    
-    s = NULL;
-    for (i = 0; i < nc; i++) {
-        sprintf(buf, "%d", cols[i] + 1);
-        if (i != 0) {
-            s = concat_strings(s, ":");
-        }
-        s = concat_strings(s, buf);
-    }
-    if (scol >= 0) {
-        sprintf(buf, ":{%d}", scol + 1);
-        s = concat_strings(s, buf);
-    }
-    
-    return s;
-}
-
 int create_set_fromblock(const Quark *ss, Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale)
 {
     int i, ncols, blockncols, blocklen, column;
     double *cdata;
     char buf[256], *s;
+    int *formats;
     ss_data *blockdata = ssd_get_data(ss);
     if (!blockdata) {
         return RETURN_FAILURE;
@@ -603,6 +610,8 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
 	errmsg("String column index out of range");
 	return RETURN_FAILURE;
     }
+
+    formats = get_blockformats(blockdata);
     
     /* clear data stored in the set, if any */
     killsetdata(pset);
@@ -614,7 +623,7 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
         if (column == -1) {
             cdata = allocate_index_data(blocklen);
         } else {
-            if (blockdata->formats[column] != FFORMAT_STRING) {
+            if (formats[column] != FFORMAT_STRING) {
                 AMem *amem = quark_get_amem(pset);
                 cdata = copy_data_column(amem,
                     (double *) blockdata->data[column], blocklen);
@@ -633,7 +642,7 @@ int create_set_fromblock(const Quark *ss, Quark *pset,
 
     /* strings, if any */
     if (scol >= 0) {
-        if (blockdata->formats[scol] != FFORMAT_STRING) {
+        if (formats[scol] != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
             killsetdata(pset);
             return RETURN_FAILURE;

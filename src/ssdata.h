@@ -41,11 +41,9 @@ double *copy_data_column_simple(double *src, int nrows);
 double *allocate_index_data(int nrows);
 double *allocate_mesh(double start, double stop, int len);
 
-void set_blockdata(Quark *q, const ss_data *ssd);
+char *cols_to_field_string(int nc, int *cols, int scol);
+int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 
-int get_blockncols(const ss_data *ssd);
-int get_blocknrows(const ss_data *ssd);
-int *get_blockformats(const ss_data *ssd);
 
 int realloc_ss_data(ss_data *ssd, int nrows);
 void free_ss_data(ss_data *ssd);
@@ -57,7 +55,5 @@ int store_data(Quark *pr, ss_data *ssd, int load_type);
 
 int create_set_fromblock(const Quark *ss, Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale);
-char *cols_to_field_string(int nc, int *cols, int scol);
-int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);
 
 #endif /* __SSDATA_H_ */
