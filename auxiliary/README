@@ -10,5 +10,3 @@ magic.grace - Section for magic(4) so file(1) would recognize ACE/gr and Grace
               /etc/magic) you may add it simply by this command:
 	          cat magic.grace >> /etc/magic
 
-fdf2fit     - Script to convert Origin-4 .fdf fit parameter files to Grace
-              format

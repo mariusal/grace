@@ -8,9 +8,8 @@ TOP=..
 
 include $(TOP)/Make.conf
 
-AUXILIARIES = README convcal.c magic.grace
+AUXILIARIES = magic.grace
 PROGRAMS = convcal$(EXE)
-SCRIPTS = fdf2fit
 
 all : convcal$(EXE)
 
@@ -28,7 +27,6 @@ install : $(AUXILIARIES) $(PROGRAMS) $(SCRIPTS)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/auxiliary
 	for i in $(AUXILIARIES); do $(INSTALL_DATA) $$i $(DESTDIR)$(GRACE_HOME)/auxiliary; done
 	for i in $(PROGRAMS); do $(INSTALL_PROGRAM) -s $$i $(DESTDIR)$(GRACE_HOME)/bin; done
-	for i in $(SCRIPTS); do $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GRACE_HOME)/bin; done
 
 tests : dummy
 
