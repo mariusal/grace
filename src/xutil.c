@@ -314,8 +314,6 @@ void expose_resize(Widget w, XtPointer client_data,
             set_page_geometry(pg);
         }
         
-        update_all();
-        drawgraph();
 	
 	if (batchfile[0]) {
             getparms(batchfile);
@@ -324,7 +322,6 @@ void expose_resize(Widget w, XtPointer client_data,
 	if (inpipe == TRUE) {
 	    getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
 	    inpipe = FALSE;
-            drawgraph();
 	}
 
         if (ib_tblsize > 0) {
@@ -334,6 +331,9 @@ void expose_resize(Widget w, XtPointer client_data,
                 }
             }
         }
+
+        update_all();
+        drawgraph();
 
         return;
     }
