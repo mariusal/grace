@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -560,6 +560,23 @@ static void pdf_error_handler(int level, const char* fmt, va_list ap)
     strcat(buf, buf_tail);
     
     errmsg(buf);
+}
+
+int pdf_op_parser(char *opstring)
+{
+    if (!strcmp(opstring, "binary") ||
+        !strcmp(opstring, "binary:on") ||
+        !strcmp(opstring, "ascii:off")) {
+        pdf_setup_binary = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "ascii") ||
+        !strcmp(opstring, "ascii:on") ||
+        !strcmp(opstring, "binary:off")) {
+        pdf_setup_binary = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
 }
 
 #ifndef NONE_GUI

@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -41,14 +41,6 @@
 
 #define DEFAULT_PNM_FORMAT PNM_FORMAT_PPM
 
-#if defined(NONE_GUI)
-#  define gif_gui_setup NULL
-#  define pnm_gui_setup NULL
-#else
-void gif_gui_setup(void);
-void pnm_gui_setup(void);
-#endif
-
 void rst_drawpixel(VPoint vp);
 void rst_drawpolyline(VPoint *vps, int n, int mode);
 void rst_fillpolygon(VPoint *vps, int nc);
@@ -61,3 +53,14 @@ void rst_leavegraphics(void);
 int gifinitgraphics(void);
 int gdinitgraphics(void);
 int pnminitgraphics(void);
+
+int gif_op_parser(char *opstring);
+int pnm_op_parser(char *opstring);
+
+#if defined(NONE_GUI)
+#  define gif_gui_setup NULL
+#  define pnm_gui_setup NULL
+#else
+void gif_gui_setup(void);
+void pnm_gui_setup(void);
+#endif

@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -595,6 +595,46 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
     }
 }
 
+int gif_op_parser(char *opstring)
+{
+    if (!strcmp(opstring, "interlaced:on")) {
+        gif_setup_interlaced = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "interlaced:off")) {
+        gif_setup_interlaced = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "transparent:on")) {
+        gif_setup_transparent = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "transparent:off")) {
+        gif_setup_transparent = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+
+int pnm_op_parser(char *opstring)
+{
+    if (!strcmp(opstring, "rawbits:on")) {
+        pnm_setup_rawbits = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "rawbits:off")) {
+        pnm_setup_rawbits = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "format:pbm")) {
+        pnm_setup_format = PNM_FORMAT_PBM;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "format:pgm")) {
+        pnm_setup_format = PNM_FORMAT_PGM;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "format:ppm")) {
+        pnm_setup_format = PNM_FORMAT_PPM;
+        return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
 
 #ifndef NONE_GUI
 

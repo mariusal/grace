@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -30,12 +30,6 @@
 
 int pdfinitgraphics(void);
 
-#if defined(NONE_GUI)
-#  define pdf_gui_setup NULL
-#else
-void pdf_gui_setup(void);
-#endif
-
 void pdf_drawpixel(VPoint vp);
 void pdf_drawpolyline(VPoint *vps, int n, int mode);
 void pdf_fillpolygon(VPoint *vps, int nc);
@@ -48,3 +42,10 @@ void pdf_puttext(VPoint start, VPoint end, double size,
 
 void pdf_leavegraphics(void);
 
+int pdf_op_parser(char *opstring);
+
+#if defined(NONE_GUI)
+#  define pdf_gui_setup NULL
+#else
+void pdf_gui_setup(void);
+#endif
