@@ -3166,16 +3166,16 @@ pageorient:
         ;
 
 regiontype:
-	ABOVE     { $$ = REGION_BAND;   }
-	|  BELOW  { $$ = REGION_BAND;   }
-	|  LEFT   { $$ = REGION_BAND;   }
-	|  RIGHT  { $$ = REGION_BAND;   }
-	|  POLYI  { $$ = REGION_POLYGON;}
-	|  POLYO  { $$ = REGION_POLYGON;}
-	|  HORIZI { $$ = REGION_BAND;   }
-	|  VERTI  { $$ = REGION_BAND;   }
-	|  HORIZO { $$ = REGION_BAND;   }
-	|  VERTO  { $$ = REGION_BAND;   }
+	ABOVE     { $$ = REGION_POLYGON; }
+	|  BELOW  { $$ = REGION_POLYGON; }
+	|  LEFT   { $$ = REGION_POLYGON; }
+	|  RIGHT  { $$ = REGION_POLYGON; }
+	|  POLYI  { $$ = REGION_POLYGON; }
+	|  POLYO  { $$ = REGION_POLYGON; }
+	|  HORIZI { $$ = REGION_BAND;    }
+	|  VERTI  { $$ = REGION_BAND;    }
+	|  HORIZO { $$ = REGION_BAND;    }
+	|  VERTO  { $$ = REGION_BAND;    }
 	;
 
 scaletype: NORMAL { $$ = SCALE_NORMAL; }
