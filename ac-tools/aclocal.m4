@@ -833,7 +833,7 @@ AC_DEFUN(ACX_CHECK_XMHTML,
   AC_CACHE_CHECK([for XmHTML widget >= $1], acx_cv_xmhtml,
     AC_CACHE_VAL(acx_cv_xmhtml_library, acx_cv_xmhtml_library=$xmhtml_library)
     ACX_SAVE_STATE
-    LIBS="$acx_cv_xmhtml_library $JPEG_LIB $PNG_LIB $Z_LIB $LIBS"
+    LIBS="$acx_cv_xmhtml_library $JPEG_LIB $PNG_LIB $Z_LIB -lm $LIBS"
     AC_TRY_RUN([
 #include <XmHTML/XmHTML.h>
       int main(void) {
