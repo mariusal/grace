@@ -59,7 +59,11 @@ ATextUI *create_atext_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->main_tp, "Text properties");
     rc = CreateVContainer(fr);
     
-    ui->text = CreateCSText(rc, "Text:");
+    ui->text = CreateScrolledCSText(rc, "", 3);
+    
+    /* A dirty workaround, since Tab's geomanager chokes on this one */
+    XtVaSetValues(GetParent(ui->text->text), XmNheight, 100, NULL);
+    
     AddTextInputCB(ui->text, text_explorer_cb, eui);
     ui->font = CreateFontChoice(rc, "Font:");
     AddOptionChoiceCB(ui->font, oc_explorer_cb, eui);
