@@ -141,7 +141,7 @@ static Boolean SetValues(Widget current, Widget request, Widget reply,
 static void Realize(Widget aw, XtValueMask * value_mask, XSetWindowAttributes * attributes);
 static XtGeometryResult QueryGeometry(ListTreeWidget w, XtWidgetGeometry *proposed, XtWidgetGeometry *answer);
 
-static void Draw(ListTreeWidget w, int yevent,int hevent);
+static void Draw(ListTreeWidget w, int yevent,int hevent, Boolean partial);
 static void DrawAll(ListTreeWidget w);
 static void DrawChanged(ListTreeWidget w);
 static void DrawItemHighlight(ListTreeWidget w, ListTreeItem *item);
@@ -568,7 +568,7 @@ Redisplay(Widget aw, XExposeEvent * event, Region region)
     return;
 
   if (event) {
-    Draw(w, (int) event->y, (int) event->height);
+    Draw(w, (int) event->y, (int) event->height, True);
   }
   else {			/* event==NULL ==> repaint the entire list */
     DrawChanged(w);
@@ -1532,7 +1532,7 @@ DrawVertical(ListTreeWidget w, ListTreeItem *item)
 
 /* Draws items starting from topItemPos */
 static void
-Draw(ListTreeWidget w, int yevent,int hevent)
+Draw(ListTreeWidget w, int yevent,int hevent, Boolean partial)
 {
   int y, xbranch, ybranch;
   ListTreeItem *item,*lastdrawn;
@@ -1559,7 +1559,9 @@ Draw(ListTreeWidget w, int yevent,int hevent)
   DrawChildren(w, item, &lastdrawn, y, xbranch, ybranch);
 
   DBG(DARG,"lastdrawn=%s\n",lastdrawn->text);
-  w->list.bottomItemPos=lastdrawn->count;
+  if (!partial) {
+      w->list.bottomItemPos=lastdrawn->count;
+  }
 
   DrawVertical(w,lastdrawn);
 
@@ -1577,7 +1579,7 @@ DrawAll(ListTreeWidget w)
     w->list.viewWidth,w->list.viewHeight,False);
   if (w->list.recount)
     CountAll(w);
-  Draw(w, w->list.viewY, w->list.viewY+w->list.viewHeight);
+  Draw(w, w->list.viewY, w->list.viewY+w->list.viewHeight, False);
 }
 
 static void
