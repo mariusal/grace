@@ -40,17 +40,13 @@
 
 #define NO_HELP "doc/nohelp.html"
 
-#ifdef WITH_LIBHELP
-#  include <help.h>
-#endif
-
 #ifdef WITH_XMHTML
 #  include <XmHTML/XmHTML.h>
 void create_helper_frame(char *fname);
 #endif
 
 int force_external_viewer =
-#if defined WITH_XMHTML || defined WITH_LIBHELP
+#if defined WITH_XMHTML
     FALSE;
 #else
     TRUE;
@@ -127,9 +123,6 @@ void HelpCB(Widget w, void *data)
     } else {
 #ifdef WITH_XMHTML
         create_helper_frame(URL);
-#endif
-#ifdef WITH_LIBHELP
-        get_help(app_shell, (XtPointer) URL, NULL);
 #endif
     }
     
