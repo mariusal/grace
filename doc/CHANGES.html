@@ -18,10 +18,17 @@
 <H3>Documentation</H3>
  *  [ES] HTML docs now include table of contents
 
+<H3>Parser</H3>
+ *  [ES] added "PAGE RESIZE xdim, ydim" which sets the page dimensions of all
+         output devices (in pp) and rescales the current plot accordingly
+
 <H3>Drivers</H3>
  *  [ES] implemented font kerning in the (E)PS output
  *  [ES] added option to choose document data (7bit/8bit/binary) for the PS
          driver
+
+<H3>Portability/Compilation</H3>
+ *  [AM] OS/2 updates
 
 <H3>Bug fixes</H3>
  *  [ES] "-saveall" filename argument was ignored (rep. #841)
@@ -36,6 +43,9 @@
  *  [ES] path in print setup
  *  [ES] too wide pulldowns in "Edit block data" if block data contained too
          many columns
+ *  [ES] it was impossible using GUI to disable annotated values in the XYZ
+         set type
+ *  [LM] creating sets with strings from block data might crash
 
 
 <H2>5.1.1</H2>
