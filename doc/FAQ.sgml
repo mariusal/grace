@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- $Id: FAQ.sgml,v 1.4 1999-03-12 00:20:23 fnevgeny Exp $ -->
+<!-- $Id: FAQ.sgml,v 1.5 1999-04-04 21:08:17 fnevgeny Exp $ -->
 
 <!-- This is the FAQ for Grace, the 2d plotting tool -->
 
@@ -507,16 +507,22 @@
 
             There is, however, a free replacement for Motif called LessTif (see
             <url url="http://www.lesstif.org">). LessTif is intended to be a
-            100% compatible replacement for Motif, but is still under
+            100% source(!) compatible replacement for Motif, but is still under
             development, so don't expect everything to work exactly as it
             should. For the purposes of Grace, try using the latest version of
-            LessTif (or at least 0.86.9 and above) - if you don't
+            LessTif (or at least 0.88 and above) - if you don't
             mind that it's a bit slower than commercial versions of Motif and
             graphical details may be different. Be aware, however, that
             occasional crashes might occur under certain circumstances. The
             LessTif people usually receive many bug reports from the Grace
             developers, so you can expect bugs in LessTif to be fixed rather
             quickly.
+            In addition to the source compatibility it may work with
+            binaries prepared for real Motif. This is not guaranteed and you
+            also have to install the correct version (compatible to
+            either Motif 1.2 or 2.0 installed). Most Lesstif binary packages
+            ship only with the 1.2 versions, so you might have to build
+            the 2.0 version yourself.
 
 	<sect2>While compiling Grace I get error messages about missing include files.
 	  <p>
@@ -560,7 +566,7 @@
 
 	  A port to OS/2 made by <url name="Alexander Mai"
 	    url="mailto:st002279@hrzpub.tu-darmstadt.de"> can be found
-	  at <url url="http://www.os-2.de/~mai">.
+	  at <url url="http://www.tu.darmstadt.de/~st002279/os2stuff.html">.
 
 <!-- **************************************** -->
 
