@@ -299,174 +299,68 @@ if test "$mdw_cv_lib_$1" != "no"; then
 else :
   $4
 fi])
-dnl ICE_FIND_MOTIF
+
+
+dnl ACX_CHECK_MOTIF
 dnl --------------
-dnl
-dnl Find Motif libraries and headers
-dnl Put Motif include directory in motif_includes,
-dnl put Motif library directory in motif_libraries,
-dnl and add appropriate flags to X_CFLAGS and X_LIBS.
-dnl
-dnl
-AC_DEFUN(ICE_FIND_MOTIF,
+AC_DEFUN(ACX_CHECK_MOTIF,
 [
-AC_REQUIRE([AC_PATH_XTRA])
-motif_includes=
-motif_libraries=
-AC_ARG_WITH(motif,
-[  --without-motif              do not use Motif widgets])
-dnl Treat --without-motif like
-dnl --without-motif-includes --without-motif-libraries.
-if test "$with_motif" = "no"
-then
-motif_includes=no
-motif_libraries=no
-fi
-AC_ARG_WITH(motif-includes,
-[  --with-motif-includes=DIR    Motif include files are in DIR],
-motif_includes="$withval")
-AC_ARG_WITH(motif-libraries,
-[  --with-motif-libraries=DIR   Motif libraries are in DIR],
-motif_libraries="$withval")
-AC_MSG_CHECKING(for Motif)
-#
-#
-# Search the include files.
-#
-if test "$motif_includes" = ""; then
-AC_CACHE_VAL(ice_cv_motif_includes,
-[
-ice_motif_save_LIBS="$LIBS"
-ice_motif_save_CFLAGS="$CFLAGS"
-ice_motif_save_CPPFLAGS="$CPPFLAGS"
-ice_motif_save_LDFLAGS="$LDFLAGS"
-#
-LIBS="-lXm -lXt $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
-CFLAGS="$X_CFLAGS $CFLAGS"
-CPPFLAGS="$X_CFLAGS $CPPFLAGS"
-LDFLAGS="$X_LIBS $LDFLAGS"
-#
-AC_TRY_COMPILE([#include <Xm/Xm.h>],[int a;],
-[
-# Xm/Xm.h is in the standard search path.
-ice_cv_motif_includes=
-],
-[
-# Xm/Xm.h is not in the standard search path.
-# Locate it and put its directory in `motif_includes'
-#
-# /usr/include/Motif* are used on HP-UX (Motif).
-# /usr/include/X11* are used on HP-UX (X and Athena).
-# /usr/dt is used on Solaris (Motif).
-# /usr/openwin is used on Solaris (X and Athena).
-# Other directories are just guesses.
-ice_cv_motif_includes=no
-for dir in "$x_includes" "${prefix}/include" /usr/include /usr/local/include \
-           /usr/include/Motif2.0 /usr/include/Motif1.2 /usr/include/Motif1.1 \
-           /usr/include/X11R6 /usr/include/X11R5 /usr/include/X11R4 \
-           /usr/dt/include /usr/openwin/include \
-           /usr/dt/*/include /opt/*/include /usr/include/Motif* \
-           "${prefix}"/*/include /usr/*/include /usr/local/*/include \
-           "${prefix}"/include/* /usr/include/* /usr/local/include/*; do
-if test -f "$dir/Xm/Xm.h"; then
-ice_cv_motif_includes="$dir"
-break
-fi
-done
-])
-#
-LIBS="$ice_motif_save_LIBS"
-CFLAGS="$ice_motif_save_CFLAGS"
-CPPFLAGS="$ice_motif_save_CPPFLAGS"
-LDFLAGS="$ice_motif_save_LDFLAGS"
-])
-motif_includes="$ice_cv_motif_includes"
-fi
-#
-#
-# Now for the libraries.
-#
-if test "$motif_libraries" = ""; then
-AC_CACHE_VAL(ice_cv_motif_libraries,
-[
-ice_motif_save_LIBS="$LIBS"
-ice_motif_save_CFLAGS="$CFLAGS"
-ice_motif_save_CPPFLAGS="$CPPFLAGS"
-ice_motif_save_LDFLAGS="$LDFLAGS"
-#
-LIBS="-lXm -lXt $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
-CFLAGS="$X_CFLAGS $CFLAGS"
-CPPFLAGS="$X_CFLAGS $CPPFLAGS"
-LDFLAGS="$X_LIBS $LDFLAGS"
-#
-AC_TRY_LINK([#include <Xm/Xm.h>],[XtToolkitInitialize();],
-[
-# libXm.a is in the standard search path.
-ice_cv_motif_libraries=
-],
-[
-# libXm.a is not in the standard search path.
-# Locate it and put its directory in `motif_libraries'
-#
-# /usr/lib/Motif* are used on HP-UX (Motif).
-# /usr/lib/X11* are used on HP-UX (X and Athena).
-# /usr/dt is used on Solaris (Motif).
-# /usr/lesstif is used on Linux (Lesstif).
-# /usr/openwin is used on Solaris (X and Athena).
-# Other directories are just guesses.
-ice_cv_motif_libraries=no
-for dir in "$x_libraries" "${prefix}/lib" /usr/lib /usr/local/lib \
-           /usr/lib/Motif2.0 /usr/lib/Motif1.2 /usr/lib/Motif1.1 \
-           /usr/lib/X11R6 /usr/lib/X11R5 /usr/lib/X11R4 /usr/lib/X11 \
-           /usr/dt/lib /usr/openwin/lib \
-           /usr/dt/*/lib /opt/*/lib /usr/lib/Motif* \
-           /usr/lesstif*/lib /usr/lib/Lesstif* \
-           "${prefix}"/*/lib /usr/*/lib /usr/local/*/lib \
-           "${prefix}"/lib/* /usr/lib/* /usr/local/lib/*; do
-if test -d "$dir" && test "`ls $dir/libXm.* 2> /dev/null`" != ""; then
-ice_cv_motif_libraries="$dir"
-break
-fi
-done
-])
-#
-LIBS="$ice_motif_save_LIBS"
-CFLAGS="$ice_motif_save_CFLAGS"
-CPPFLAGS="$ice_motif_save_CPPFLAGS"
-LDFLAGS="$ice_motif_save_LDFLAGS"
-])
-#
-motif_libraries="$ice_cv_motif_libraries"
-fi
-# Add Motif definitions to X flags
-#
-if test "$motif_includes" != "" && test "$motif_includes" != "$x_includes" && test "$motif_includes" != "no"
-then
-X_CFLAGS="-I$motif_includes $X_CFLAGS"
-fi
-if test "$motif_libraries" != "" && test "$motif_libraries" != "$x_libraries" && test "$motif_libraries" != "no"
-then
-case "$X_LIBS" in
-  *-R\ *) X_LIBS="-L$motif_libraries -R $motif_libraries $X_LIBS";;
-  *-R*)   X_LIBS="-L$motif_libraries -R$motif_libraries $X_LIBS";;
-  *)      X_LIBS="-L$motif_libraries $X_LIBS";;
-esac
-fi
-#
-#
-motif_libraries_result="$motif_libraries"
-motif_includes_result="$motif_includes"
-test "$motif_libraries_result" = "" &&
-  motif_libraries_result="in default path"
-test "$motif_includes_result" = "" &&
-  motif_includes_result="in default path"
-test "$motif_libraries_result" = "no" &&
-  motif_libraries_result="(none)"
-test "$motif_includes_result" = "no" &&
-  motif_includes_result="(none)"
-AC_MSG_RESULT(
-  [libraries $motif_libraries_result, headers $motif_includes_result])
+  AC_REQUIRE([AC_PATH_XTRA])
+  AC_ARG_WITH(motif_library,
+  [  --with-motif-library=OBJ     use OBJ as Motif library [-lXm]],
+  motif_library="$withval")
+  if test "x$motif_library" = "x"
+  then
+    motif_library=-lXm
+  fi
+
+  ACX_SAVE_STATE
+  
+  AC_CACHE_CHECK( "for a Motif \>= $1 compatible API", acx_cv_motif,
+    AC_CACHE_VAL(acx_cv_motif_library, acx_cv_motif_library=$motif_library)
+    LIBS="-lXm -lXt $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
+    CFLAGS="$X_CFLAGS $CFLAGS"
+    CPPFLAGS="$X_CFLAGS $CPPFLAGS"
+    LDFLAGS="$X_LIBS $LDFLAGS"
+    AC_TRY_RUN([
+#include <Xm/Xm.h>
+      int main(void) {
+        int vlibn, vincn;
+        vincn = XmVersion;
+        XmRegisterConverters();
+        vlibn = xmUseVersion;
+        if (vincn != vlibn) {
+          exit(1);
+        }
+        if (vincn < [$1]) {
+          exit(1);
+        }
+        exit(0);
+      }
+      ],
+
+      acx_cv_motif="yes",
+      acx_cv_motif="no",
+      acx_cv_motif="no"
+    )
+  )
+  if test "$acx_cv_motif" = "yes"
+  then
+    AC_DEFINE(HAVE_MOTIF)
+    MOTIF_LIB="$acx_cv_motif_library"
+    $2
+    dnl **** Check whether Motif is actually Lesstif
+    ICE_CHECK_LESSTIF
+    dnl **** Check whether _XmVersionString[] can be referred to
+    ACX_CHECK_XMVERSIONSTRING
+  else
+    MOTIF_LIB=
+    $3
+  fi
+  
+  ACX_RESTORE_STATE
 ])dnl
+
 
 dnl ICE_CHECK_LESSTIF
 dnl -----------------
@@ -475,6 +369,7 @@ dnl Define `HAVE_LESSTIF' if the Motif library is actually a LessTif library
 dnl
 AC_DEFUN(ICE_CHECK_LESSTIF,
 [
+AC_REQUIRE([ACX_CHECK_MOTIF])
 AC_MSG_CHECKING(whether the Motif library is actually a LessTif library)
 AC_CACHE_VAL(ice_cv_have_lesstif,
 AC_EGREP_CPP(yes,
@@ -511,6 +406,7 @@ AC_DEFUN(ACX_CHECK_XMVERSIONSTRING,
     $2
   fi
 ])dnl
+
 
 dnl ACX_CHECK_T1LIB
 dnl --------------
