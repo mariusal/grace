@@ -1272,7 +1272,7 @@ void drawseterrbars(int gno, int setno, plotarr *p,
         return;
     }
 
-    setclipping(FALSE);
+    setclipping(TRUE);
     
     setpen(p->sympen);
     
