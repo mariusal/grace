@@ -28,9 +28,11 @@
  *  [ES] -safe/-nosafe command line options for switching the safe mode
  *  [ES] "Run in safe mode" checkbox in "Edit/Preferences" for the same
          purpose
+ *  [ES] removed broken "Command" function of the hotlink popup
 
 <H3>Drivers</H3>
  *  [MD] backported from 5.2 pattern fills in PDF driver (off by default)
+ *  [MD] better font definitions in the MIF driver 
 
 <H3>Portability/Compilation</H3>
  *  [ES] use strchr() instead of BSD-ish index() which broke compilation
@@ -43,6 +45,7 @@
          filled in with the last object's fill props (rep. #1152)
  *  [ES] changing HTML viewer by setting the GRACE_HELPVIEWER shell variable
          might result in memory corruption (rep. #1160)
+ *  [ES] canvas wasn't refreshed after feature extraction
 
 
 <H2>5.1.7</H2>
