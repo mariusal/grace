@@ -1896,9 +1896,9 @@ int drawxysym(VPoint vp, double size, int symtype,
         break;
     case SYM_TRIANG1:
         vps[0].x = vp.x;
-        vps[0].y = vp.y + symsize;
+        vps[0].y = vp.y + 2*M_SQRT1_3*symsize;
         vps[1].x = vp.x - symsize;
-        vps[1].y = vp.y - symsize;
+        vps[1].y = vp.y - M_SQRT1_3*symsize;
         vps[2].x = vp.x + symsize;
         vps[2].y = vps[1].y;
         
@@ -1908,9 +1908,9 @@ int drawxysym(VPoint vp, double size, int symtype,
         DrawPolyline (vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG2:
-        vps[0].x = vp.x - symsize;
+        vps[0].x = vp.x - 2*M_SQRT1_3*symsize;
         vps[0].y = vp.y;
-        vps[1].x = vp.x + symsize;
+        vps[1].x = vp.x + M_SQRT1_3*symsize;
         vps[1].y = vp.y - symsize;
         vps[2].x = vps[1].x;
         vps[2].y = vp.y + symsize;
@@ -1922,9 +1922,9 @@ int drawxysym(VPoint vp, double size, int symtype,
         break;
     case SYM_TRIANG3:
         vps[0].x = vp.x - symsize;
-        vps[0].y = vp.y + symsize;
+        vps[0].y = vp.y + M_SQRT1_3*symsize;
         vps[1].x = vp.x;
-        vps[1].y = vp.y - symsize;
+        vps[1].y = vp.y - 2*M_SQRT1_3*symsize;
         vps[2].x = vp.x + symsize;
         vps[2].y = vps[0].y;
         
@@ -1934,11 +1934,11 @@ int drawxysym(VPoint vp, double size, int symtype,
         DrawPolyline (vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG4:
-        vps[0].x = vp.x - symsize;
+        vps[0].x = vp.x - M_SQRT1_3*symsize;
         vps[0].y = vp.y + symsize;
         vps[1].x = vps[0].x;
         vps[1].y = vp.y - symsize;
-        vps[2].x = vp.x + symsize;
+        vps[2].x = vp.x + 2*M_SQRT1_3*symsize;
         vps[2].y = vp.y;
         
         setpen(symfillpen);
