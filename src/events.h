@@ -108,7 +108,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event);
 void set_actioncb(void *data);
 void set_action(CanvasAction act);
 void track_point(int gno, int setno, int *loc, int shift);
-void getpoints(VPoint vp);
+void getpoints(VPoint *vpp);
 void set_stack_message(void);
 void do_select_area(void);
 void do_select_peri(void);
