@@ -162,6 +162,18 @@ typedef struct {
 } SetChoiceData;
 
 typedef struct {
+    Widget frame;
+    ListStructure *graph_sel;
+    ListStructure *set_sel;
+} GraphSetStructure;
+
+typedef struct {
+    Widget form;
+    GraphSetStructure *src;
+    GraphSetStructure *dest;
+} SrcDestStructure;
+
+typedef struct {
     Widget dialog;
     Widget FSB;
     Widget rc;
@@ -280,6 +292,9 @@ ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
                                         int type, int standalone);
 void UpdateSetChoice(ListStructure *listp, int gno);
+
+GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
+SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
 
 void hide_set_proc(void *data);
 void show_set_proc(void *data);

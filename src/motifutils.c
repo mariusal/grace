@@ -2238,6 +2238,69 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     return retvalp;
 }
 
+static void update_sets_cb(int n, int *values, void *data)
+{
+    int gno;
+    ListStructure *set_listp = (ListStructure *) data;
+    
+    if (n == 1) {
+        gno = values[0];
+    } else {
+        gno = -1;
+    }
+    UpdateSetChoice(set_listp, gno);
+}
+
+GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
+{
+    GraphSetStructure *retval;
+    Widget rc;
+
+    retval = malloc(sizeof(GraphSetStructure));
+    retval->frame = CreateFrame(parent, s);
+    rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
+    retval->graph_sel = CreateGraphChoice(rc, "Graph:", LIST_TYPE_SINGLE);
+    retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, FALSE);
+    AddListChoiceCB(retval->graph_sel,
+        update_sets_cb, (void *) retval->set_sel);
+    UpdateSetChoice(retval->set_sel, get_cg());
+    XtManageChild(rc);
+
+    return retval;
+}
+
+SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
+{
+    SrcDestStructure *retval;
+
+    retval = malloc(sizeof(SrcDestStructure));
+
+    retval->form = XtVaCreateWidget("form",
+        xmFormWidgetClass, parent,
+        XmNfractionBase, 2,
+        NULL);
+    retval->src  = CreateGraphSetSelector(retval->form, "Source", sel_type);
+    retval->dest = CreateGraphSetSelector(retval->form, "Destination", sel_type);
+    XtVaSetValues(retval->src->frame,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_POSITION,
+        XmNrightPosition, 1,
+        NULL);
+
+    XtVaSetValues(retval->dest->frame,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNleftAttachment, XmATTACH_POSITION,
+        XmNleftPosition, 1,
+        XmNrightAttachment, XmATTACH_FORM,
+        NULL);
+
+    XtManageChild(retval->form);
+
+    return retval;
+}
 
 
 void paint_color_selector(OptionStructure *optp)
