@@ -723,6 +723,8 @@ int storage2_data_move(Storage *sto1, Storage *sto2)
 
 int storage2_data_flush(Storage *sto1, Storage *sto2)
 {
+    storage_rewind(sto1);
+    
     while (sto1->count) {
         if (storage2_data_move(sto1, sto2) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
