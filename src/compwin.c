@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -1521,30 +1521,43 @@ static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int *selsets;
     int i, cnt;
     int setno, typeno;
-    char exprstr[256];
+    char *exprstr;
     int startno, stepno;
     Samp_ui *ui = (Samp_ui *) client_data;
+    
     cnt = GetSelectedSets(ui->sel, &selsets);
     if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
+        errmsg("No sets selected");
         return;
     }
-    typeno = (int) GetChoice(ui->type_item);
-	
-	if(xv_evalexpri(ui->start_item, &startno) != RETURN_SUCCESS||
-	   xv_evalexpri(ui->step_item, &stepno) != RETURN_SUCCESS)
-		return;
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-		setno = selsets[i];
-/* exprstr gets clobbered */
-		strcpy(exprstr, (char *) xv_getstr(ui->expr_item));
-		do_sample(setno, typeno, exprstr, startno, stepno);
+    
+    typeno = GetChoice(ui->type_item);
+    
+    if (typeno == 0) {
+        exprstr = "";
+        if (xv_evalexpri(ui->start_item, &startno) != RETURN_SUCCESS ||
+            xv_evalexpri(ui->step_item, &stepno)   != RETURN_SUCCESS) {
+            errmsg("Please select start and step values");
+            return;
+        }
+    } else {
+        exprstr = xv_getstr(ui->expr_item);
+        startno = stepno = 1;
     }
-    update_set_lists(get_cg());
-    unset_wait_cursor();
+    
+    set_wait_cursor();
+    
+    for (i = 0; i < cnt; i++) {
+        setno = selsets[i];
+        do_sample(setno, typeno, exprstr, startno, stepno);
+    }
+    
     xfree(selsets);
+    
+    update_set_lists(get_cg());
     xdrawgraph();
+    
+    unset_wait_cursor();
 }
 
 /* Prune data */
