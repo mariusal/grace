@@ -1221,14 +1221,16 @@ XMgrace*background: ...
     <sect1>How can I use non-linear fits in the batch mode?
       <p>
 
-        Make a batch file with the following commands:
+        Example - make a batch file with the following commands:
         
         <verb>
           fit formula "y = a0 + a1 * sin (a2 + x * pi / 180)"
           fit with 3 parameters
           fit prec 0.05
           a0 = 1
-          a0 constraints off
+          a0 constraints on
+	  a0min = 0
+	  a0max = 2
           a1 = 1
           a1 constraints off
           a2 = 1
