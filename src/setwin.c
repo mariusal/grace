@@ -147,7 +147,7 @@ void create_datasetprop_popup(Widget but, void *data)
 
 static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data)
 {
-    int i, j, ncols;
+    int i, j;
     double *datap;
     int imin, imax;
     double dmin, dmax, dmean, dsd;
@@ -163,17 +163,15 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
     
     if (n == 1) {
 	pset = values[0];
-        ncols = set_get_ncols(pset);
     } else {
 	pset = NULL;
-        ncols = 0;
     }
     for (i = 0; i < MAX_SET_COLS; i++) {
         datap = set_get_col(pset, i);
-	minmax(datap, set_get_length(pset), &dmin, &dmax, &imin, &imax);
-	stasum(datap, set_get_length(pset), &dmean, &dsd);
-        for (j = 0; j < DATA_STAT_COLS; j++) {
-            if (i < ncols) {
+	if (datap) {
+            minmax(datap, set_get_length(pset), &dmin, &dmax, &imin, &imax);
+	    stasum(datap, set_get_length(pset), &dmean, &dsd);
+            for (j = 0; j < DATA_STAT_COLS; j++) {
                 switch (j) {
                 case 0:
                     sprintf(buf, "%g", dmin);
@@ -198,7 +196,9 @@ static void changetypeCB(StorageStructure *ss, int n, Quark **values, void *data
                     break;
                 }
                 tui.rows[i][j] = copy_string(tui.rows[i][j], buf);
-            } else {
+            }
+        } else {
+            for (j = 0; j < DATA_STAT_COLS; j++) {
                 tui.rows[i][j] = copy_string(tui.rows[i][j], "");
             }
         }
