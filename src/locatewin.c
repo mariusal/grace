@@ -114,13 +114,11 @@ void create_locator_frame(void *data)
 	rc = CreateVContainer(fr);
 	loc_formatx = CreateFormatChoice(rc, "Format:");
 	loc_precx = CreatePrecisionChoice(rc, "Precision:");
-	ManageChild(rc);
 
 	fr = CreateFrame(locator_panel, "Y properties");
 	rc = CreateVContainer(fr);
 	loc_formaty = CreateFormatChoice(rc, "Format:");
 	loc_precy = CreatePrecisionChoice(rc, "Precision:");
-	ManageChild(rc);
 
         fr = CreateFrame(locator_panel, "Fixed point");
 	rc = CreateVContainer(fr);
@@ -128,8 +126,6 @@ void create_locator_frame(void *data)
 	rc2 = CreateHContainer(rc);
 	locx_item = CreateTextItem2(rc2, 10, "X:");
 	locy_item = CreateTextItem2(rc2, 10, "Y:");
-	ManageChild(rc2);
-	ManageChild(rc);
 
 	CreateAACDialog(locator_frame,
             locator_panel, locator_define_notify_proc, NULL);
