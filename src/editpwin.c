@@ -88,26 +88,6 @@ void do_update_cells(Widget w, XtPointer client_data, XtPointer call_data);
 char *scformat[3] =
 {"%.*lf", "%.*lg", "%.*le"};
 
-typedef enum {
-    NoSelection,
-    CellSelection,
-    RowSelection,
-    ColumnSelection
-} SelectionType;
-
-typedef enum {
-    AddMode,
-    ExclusiveMode
-} SelectionMode;
-
-typedef struct _SelectionStruct {
-    int row, column;
-    SelectionType type;
-    SelectionMode mode;
-    Boolean selected;
-    Widget matrix;
-} SelectionStruct, *SelectionPtr;
-
 /*
  * delete the selected row
  */
@@ -316,7 +296,7 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 }
 
 
-void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
+static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 {
     double *datap;
     char buf[128];
@@ -336,7 +316,7 @@ void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 }
 
 
-void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
+static void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
 {
     int i, j;
     double *datap;
@@ -353,7 +333,7 @@ void drawcellCB(Widget w, XtPointer client_data, XtPointer calld)
     cs->string = XtNewString(buf);
 }
 
-void selectCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void selectCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     XbaeMatrixSelectCellCallbackStruct *sc =
         (XbaeMatrixSelectCellCallbackStruct *) call_data;
@@ -361,8 +341,7 @@ void selectCB(Widget w, XtPointer client_data, XtPointer call_data)
     XbaeMatrixSelectCell(w, sc->row, sc->column);
 }
 
-
-void writeCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void writeCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
 }
 
