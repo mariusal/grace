@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -249,8 +249,8 @@ String fallbackResources[] = {
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
     "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
     "XMgrace*readHistoryFSB*pattern: *.com",
-    "XMgrace*openProjectFSB*pattern: *.agr",
-    "XMgrace*saveProjectFSB*pattern: *.agr",
+    "XMgrace*openProjectFSB*pattern: *.*gr",
+    "XMgrace*saveProjectFSB*pattern: *.xgr",
     "XMgrace*readSetsFSB*pattern: *.dat",
     "XMgrace*writeSetsFSB*pattern: *.dat",
     "XMgrace*readParametersFSB*pattern: *.par",
