@@ -62,7 +62,7 @@ static SpinStructure *debug_item;
 static Widget noask_item;
 static Widget dc_item;
 
-static Widget *graph_focus_choice_item;
+static OptionStructure *graph_focus_choice_item;
 static Widget graph_drawfocus_choice_item;
 
 static Widget autoredraw_type_item;
@@ -72,7 +72,7 @@ static Widget scrollper_item;
 static Widget shexper_item;
 static Widget linkscroll_item;
 
-static Widget *hint_item;
+static OptionStructure *hint_item;
 static Widget date_item;
 static Widget wrap_year_item;
 static Widget two_digits_years_item;
@@ -193,7 +193,7 @@ void update_props_items(void)
 	} else if (gui->focus_policy == FOCUS_FOLLOWS) {
 	    itest = 2;
 	}
-	SetChoice(graph_focus_choice_item, itest);
+	SetOptionChoice(graph_focus_choice_item, itest);
 	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
 	SetToggleButtonState(linkscroll_item, grace->rt->scrolling_islinked);
@@ -221,7 +221,7 @@ void update_props_items(void)
             itest = FMT_nohint;
             break;
         }
-    	SetChoice(hint_item, itest);
+    	SetOptionChoice(hint_item, itest);
 	jul_to_cal_and_time(0.0, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
                 y, m, d, h, mm, sec);
@@ -244,7 +244,7 @@ static int props_define_notify_proc(void *data)
     gui->noask = GetToggleButtonState(noask_item);
     gui->allow_dc = GetToggleButtonState(dc_item);
 
-    switch (GetChoice(graph_focus_choice_item)) {
+    switch (GetOptionChoice(graph_focus_choice_item)) {
     case 0:
 	gui->focus_policy = FOCUS_CLICK;
 	break;
@@ -267,7 +267,7 @@ static int props_define_notify_proc(void *data)
     grace->rt->scrollper = (double) GetScaleValue(scrollper_item)/100.0;
     grace->rt->shexper   = (double) GetScaleValue(shexper_item)/100.0;
 
-    switch (GetChoice(hint_item)) {
+    switch (GetOptionChoice(hint_item)) {
     case 0 :
         set_date_hint(FMT_iso);
         break;

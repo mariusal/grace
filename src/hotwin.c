@@ -50,7 +50,7 @@ static Widget hotlink_frame = (Widget) NULL;
 static ListStructure *hotlink_set_item;
 static Widget hotlink_list_item;
 static Widget hotlink_file_item;
-static Widget *hotlink_source_item;
+static OptionStructure *hotlink_source_item;
 static Widget hotlink_command=NULL;
 
 void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data);
@@ -69,7 +69,7 @@ static void do_hotlink_proc(Widget w, XtPointer client_data, XtPointer call_data
     set_wait_cursor();
 
     numset = GetListChoices(hotlink_set_item, &sets);
-    src = GetChoice(hotlink_source_item);
+    src = GetOptionChoice(hotlink_source_item);
     strcpy(fname, xv_getstr(hotlink_file_item));
 
     if (numset == 0) {

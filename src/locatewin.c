@@ -46,11 +46,11 @@ static Widget locator_frame;
 /*
  * Panel item declarations
  */
-static Widget *delta_item;
+static OptionStructure *delta_item;
 static OptionStructure *loc_formatx;
 static OptionStructure *loc_formaty;
-static Widget *loc_precx;
-static Widget *loc_precy;
+static OptionStructure *loc_precx;
+static OptionStructure *loc_precy;
 static Widget locx_item;
 static Widget locy_item;
 static Widget fixedp_item;
@@ -72,11 +72,11 @@ void update_locator_items(int gno)
         }
         
 	SetToggleButtonState(fixedp_item, locator.pointset);
-	SetChoice(delta_item, locator.pt_type);
+	SetOptionChoice(delta_item, locator.pt_type);
 	SetOptionChoice(loc_formatx, locator.fx);
 	SetOptionChoice(loc_formaty, locator.fy);
-	SetChoice(loc_precx, locator.px);
-	SetChoice(loc_precy, locator.py);
+	SetOptionChoice(loc_precx, locator.px);
+	SetOptionChoice(loc_precy, locator.py);
 	sprintf(buf, "%g", locator.dsx);
 	xv_setstr(locx_item, buf);
 	sprintf(buf, "%g", locator.dsy);
@@ -152,11 +152,11 @@ static int locator_define_notify_proc(void *data)
         return RETURN_FAILURE;
     }
     
-    locator.pt_type = GetChoice(delta_item);
+    locator.pt_type = GetOptionChoice(delta_item);
     locator.fx = GetOptionChoice(loc_formatx);
     locator.fy = GetOptionChoice(loc_formaty);
-    locator.px = GetChoice(loc_precx);
-    locator.py = GetChoice(loc_precy);
+    locator.px = GetOptionChoice(loc_precx);
+    locator.py = GetOptionChoice(loc_precy);
     locator.pointset = GetToggleButtonState(fixedp_item);
     xv_evalexpr(locx_item, &locator.dsx ); 
     xv_evalexpr(locy_item, &locator.dsy ); 

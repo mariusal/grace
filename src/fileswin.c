@@ -386,7 +386,8 @@ void create_wparam_frame(void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        Widget fr, *graph_item;
+        Widget fr;
+        OptionStructure *graph_item;
 	
         fsb = CreateFileSelectionBox(app_shell, "Write parameters");
 	fr = CreateFrame(fsb->rc, NULL);
@@ -408,11 +409,11 @@ void create_wparam_frame(void *data)
 
 static int write_params_proc(char *filename, void *data)
 {
-    Widget *graph_item = (Widget *) data;
+    OptionStructure *graph_item = (OptionStructure *) data;
     int gno;
     FILE *pp;
 
-    if (GetChoice(graph_item) == 0) {
+    if (GetOptionChoice(graph_item) == 0) {
 	gno = get_cg();
     } else {
 	gno = ALL_GRAPHS;

@@ -996,7 +996,7 @@ static void update_pnm_setup_frame(void);
 static int set_pnm_setup_proc(void *data);
 static Widget pnm_setup_frame;
 static Widget pnm_setup_rawbits_item;
-static Widget *pnm_setup_format_item;
+static OptionStructure *pnm_setup_format_item;
 
 #ifdef HAVE_LIBPNG
 static void update_png_setup_frame(void);
@@ -1081,14 +1081,14 @@ void pnm_gui_setup(void)
 static void update_pnm_setup_frame(void)
 {
     if (pnm_setup_frame) {
-        SetChoice(pnm_setup_format_item, pnm_setup_format);
+        SetOptionChoice(pnm_setup_format_item, pnm_setup_format);
         SetToggleButtonState(pnm_setup_rawbits_item, pnm_setup_rawbits);
     }
 }
 
 static int set_pnm_setup_proc(void *data)
 {
-    pnm_setup_format = GetChoice(pnm_setup_format_item);
+    pnm_setup_format = GetOptionChoice(pnm_setup_format_item);
     pnm_setup_rawbits = GetToggleButtonState(pnm_setup_rawbits_item);
     
     return RETURN_SUCCESS;
@@ -1105,7 +1105,7 @@ static Widget jpg_setup_optimize_item;
 static Widget jpg_setup_progressive_item;
 static SpinStructure *jpg_setup_quality_item;
 static SpinStructure *jpg_setup_smoothing_item;
-static Widget *jpg_setup_dct_item;
+static OptionStructure *jpg_setup_dct_item;
 
 void jpg_gui_setup(void)
 {
@@ -1155,7 +1155,7 @@ static void update_jpg_setup_frame(void)
         SetToggleButtonState(jpg_setup_progressive_item, jpg_setup_progressive);
         SetSpinChoice(jpg_setup_quality_item, jpg_setup_quality);
         SetSpinChoice(jpg_setup_smoothing_item, jpg_setup_smoothing);
-        SetChoice(jpg_setup_dct_item, jpg_setup_dct);
+        SetOptionChoice(jpg_setup_dct_item, jpg_setup_dct);
     }
 }
 
@@ -1167,7 +1167,7 @@ static int set_jpg_setup_proc(void *data)
     jpg_setup_progressive = GetToggleButtonState(jpg_setup_progressive_item);
     jpg_setup_quality = (int) GetSpinChoice(jpg_setup_quality_item);
     jpg_setup_smoothing = (int) GetSpinChoice(jpg_setup_smoothing_item);
-    jpg_setup_dct = GetChoice(jpg_setup_dct_item);
+    jpg_setup_dct = GetOptionChoice(jpg_setup_dct_item);
     
     return RETURN_SUCCESS;
 }

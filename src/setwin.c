@@ -323,8 +323,8 @@ typedef struct _Datasetop_ui {
     Widget top;
     ListStructure *sel;
     OptionStructure *optype_item;
-    Widget *xy_item;
-    Widget *up_down_item;
+    OptionStructure *xy_item;
+    OptionStructure *up_down_item;
     Widget length_item;
     Widget start_item;
     Widget stop_item;
@@ -467,8 +467,8 @@ static int datasetop_aac_cb(void *data)
  
         switch (optype) {
         case DATASETOP_SORT:
-            sorton = son[GetChoice(datasetopui.xy_item)];
-            stype = GetChoice(datasetopui.up_down_item);
+            sorton = son[GetOptionChoice(datasetopui.xy_item)];
+            stype = GetOptionChoice(datasetopui.up_down_item);
 
             for (i = 0; i < nsets; i++) {
                 setno = selset[i];

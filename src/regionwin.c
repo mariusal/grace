@@ -60,8 +60,8 @@ static void do_define_region(Widget w, XtPointer client_data, XtPointer call_dat
 static void do_clear_region(Widget w, XtPointer client_data, XtPointer call_data);
 
 
-static Widget *define_region_item;
-static Widget *define_type_item;
+static OptionStructure *define_region_item;
+static OptionStructure *define_type_item;
 
 static char buf[256];
 
@@ -74,9 +74,9 @@ static Widget *labx;
 
 static void do_define_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int rtype = GetChoice(define_type_item);
+    int rtype = GetOptionChoice(define_type_item);
 
-    grace->project->nr = GetChoice(define_region_item);
+    grace->project->nr = GetOptionChoice(define_region_item);
     define_region(grace->project->nr, rtype);
 }
 
@@ -126,19 +126,19 @@ void create_define_frame(void *data)
     unset_wait_cursor();
 }
 
-static Widget *clear_region_item;
+static OptionStructure *clear_region_item;
 
 static void do_clear_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i;
 
     set_wait_cursor();
-    if (GetChoice(clear_region_item) == MAXREGION) {
+    if (GetOptionChoice(clear_region_item) == MAXREGION) {
 	for (i = 0; i < MAXREGION; i++) {
 	    kill_region(i);
 	}
     } else {
-	kill_region(GetChoice(clear_region_item));
+	kill_region(GetOptionChoice(clear_region_item));
     }
     unset_wait_cursor();
     xdrawgraph();
@@ -216,13 +216,13 @@ void create_area_frame(void *data)
     unset_wait_cursor();
 }
 
-static Widget *reporton_region_item;
-static Widget *reporton_type_item;
+static OptionStructure *reporton_region_item;
+static OptionStructure *reporton_type_item;
 
 static void do_reporton_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int regno = (int) GetChoice(reporton_region_item);
-    int type = (int) GetChoice(reporton_type_item);
+    int regno = (int) GetOptionChoice(reporton_region_item);
+    int type = (int) GetOptionChoice(reporton_type_item);
     set_wait_cursor();
     reporton_region(get_cg(), regno, type);
     unset_wait_cursor();
