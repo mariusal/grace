@@ -214,6 +214,7 @@ String fallbackResources[] = {
     "XMgrace*tabFontList:-adobe-helvetica-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace.consoleDialog*text.fontList:-adobe-courier-medium-r-normal-*-12-*-*-*-*-*-*-*",
     "XMgrace.consoleDialog*text.columns: 72",
+    "XMgrace.consoleDialog*text.rows: 5",
     "XMgrace*background: #e5e5e5",
     "XMgrace*foreground: #000000",
     "XMgrace*XbaeMatrix.oddRowBackground: #cccccc",
@@ -780,7 +781,7 @@ static Widget CreateMainMenuBar(Widget parent)
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
  */
-    CreateMenuButton(menupane, "Console", 'l', create_monitor_frame, NULL);
+    CreateMenuButton(menupane, "Console", 'l', create_monitor_frame_cb, NULL);
     
 
 /* help menu */
