@@ -2,7 +2,7 @@
  * grace_np - a library for interfacing with Grace using pipes
  * 
  * Copyright (c) 1997-1998 Henrik Seidel
- * Copyright (c) 1999-2002 Grace Development Team
+ * Copyright (c) 1999-2003 Grace Development Team
  *
  *
  *                           All Rights Reserved
@@ -42,9 +42,6 @@
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
 #endif
-#ifdef HAVE_VFORK_H
-#  include <vfork.h>
-#endif
 #include <limits.h>
 #ifndef OPEN_MAX
 #  define OPEN_MAX 256
@@ -57,7 +54,6 @@ static char* buf = NULL;               /* global write buffer */
 static int bufsize;                    /* size of the global write buffer */
 static int bufsizeforce;               /* threshold for forcing a flush */
 static int fd_pipe = -1;               /* file descriptor of the pipe */
-static int broken_pipe = 0;            /* is the pipe broken ? */
 static pid_t pid = (pid_t) -1;         /* pid of grace */
 
 /*
@@ -125,7 +121,6 @@ GraceCleanup(void)
         }
         fd_pipe = -1;
     }
-    broken_pipe = 1;
     
     free(buf);
     buf = NULL;
@@ -158,10 +153,11 @@ GraceOneWrite(int left)
         }
 
     } else if (written < 0) {
-        GracePerror("GraceOneWrite");
         if (errno == EPIPE) {
             /* Grace has closed the pipe : we cannot write anymore */
             GraceCleanup();
+        } else {
+            GracePerror("GraceOneWrite");
         }
         return (-1);
     }
@@ -184,16 +180,24 @@ GraceRegisterErrorFunction(GraceErrorFunctionType f)
 }
 
 static void
-handle_signals(int signum)
+handle_sigchld(int signum)
 {
-    GraceCleanup();
+    int status;
+    int retval;
+    
+    if (fd_pipe != -1) {
+        retval = waitpid(pid, &status, WNOHANG);
+        if (retval == pid) {
+            /* Grace just died */
+            GraceCleanup();
+        }
+    }
 }
 
 int
 GraceOpenVA(char* exe, int bs, ...)
 {
     int i, fd[2];
-    int retval;
     char fd_number[4];
     va_list ap;
     char **arglist;
@@ -221,10 +225,10 @@ GraceOpenVA(char* exe, int bs, ...)
 #endif
 
     /* Don't exit on SIGPIPE */
-    signal(SIGPIPE, handle_signals);
-
+    signal(SIGPIPE, SIG_IGN);
+    
     /* Don't exit when our child "grace" exits */
-    signal(SIGCHLD, handle_signals);
+    signal(SIGCHLD, handle_sigchld);
 
     /* Make the pipe */
     if (pipe(fd)) {
@@ -233,9 +237,11 @@ GraceOpenVA(char* exe, int bs, ...)
     }
 
     /* Fork a subprocess for starting grace */
-    pid = vfork();
+    pid = fork();
     if (pid == (pid_t) (-1)) {
         GracePerror("GraceOpenVA");
+        close(fd[0]);
+        close(fd[1]);
         return (-1);
     }
 
@@ -255,28 +261,25 @@ GraceOpenVA(char* exe, int bs, ...)
         /* build the argument list */
         va_start(ap, bs);
         numarg = 3;
-        arglist = malloc((numarg + 1)*sizeof(char *));
+        arglist = malloc((numarg + 1)*SIZEOF_VOID_P);
         arglist[0] = exe;
         arglist[1] = "-dpipe";
         sprintf(fd_number, "%d", fd[0]);
         arglist[2] = fd_number;
         while ((s = va_arg(ap, char *)) != NULL) {
-	    numarg++;
-            arglist = realloc(arglist, (numarg + 1)*sizeof(char *));
-            arglist[numarg - 1] = malloc((strlen(s) + 1)*SIZEOF_CHAR);
-            strcpy(arglist[numarg - 1], s);
+            numarg++;
+            arglist = realloc(arglist, (numarg + 1)*SIZEOF_VOID_P);
+            arglist[numarg - 1] = s;
         }
         arglist[numarg] = NULL;
         va_end(ap);
 
-        retval = execvp(exe, arglist);
+        execvp(exe, arglist);
         
-        if (retval == -1) {
-            fprintf(stderr, "GraceOpenVA: Could not start %s\n", exe);
-            exit(1);
-        } else {
-            exit(0);
-        }
+        /* if we get here execvp failed */
+        fprintf(stderr, "GraceOpenVA: Could not start %s\n", exe);
+        
+        _exit(EXIT_FAILURE);
     }
 
     /* We are the parent -> keep the write part of the pipe
@@ -292,7 +295,6 @@ GraceOpenVA(char* exe, int bs, ...)
 
     close(fd[0]);
     fd_pipe = fd[1];
-    broken_pipe = 0;
 
     return (0);
 }
@@ -318,17 +320,9 @@ GraceClose(void)
     }
 
     /* Tell grace to close the pipe */
-    if (! broken_pipe) {
-        if (GraceCommand ("exit") == -1)
-            return (-1);
-        if (GraceFlush() != 0)
-            return (-1);
-    } else {
+    if (GraceCommand ("exit") == -1 || GraceFlush() != 0){
         kill(pid, SIGTERM);
     }
-
-    /* Wait until grace exit */
-    waitpid (pid, NULL, 0);
 
     GraceCleanup();
 
@@ -344,12 +338,10 @@ GraceClosePipe(void)
     }
 
     /* Tell grace to close the pipe */
-    if (! broken_pipe) {
-        if (GraceCommand ("close") == -1)
-            return (-1);
-        if (GraceFlush() != 0)
-            return (-1);
-    }
+    if (GraceCommand ("close") == -1)
+        return (-1);
+    if (GraceFlush() != 0)
+        return (-1);
 
     GraceCleanup();
     
