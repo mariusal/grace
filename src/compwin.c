@@ -59,7 +59,7 @@
 static Widget but1[3];
 static Widget but2[3];
 
-static void compute_aac(void *data);
+static int compute_aac(void *data);
 static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -69,9 +69,7 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
 static int do_interp_proc(void *data);
 static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int do_fourier_proc(void *data);
 static int do_histo_proc(void *data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
@@ -85,96 +83,59 @@ typedef struct _Eval_ui {
     RestrictionStructure *restr_item;
 } Eval_ui;
 
-static Eval_ui eui;
 
 void create_eval_frame(void *data)
 {
+    static Eval_ui *eui = NULL;
+    
     set_wait_cursor();
-    if (eui.top == NULL) {
-        Widget dialog, rc_trans, fr;
+    
+    if (eui == NULL) {
+        Widget rc_trans;
 
-	eui.top = XmCreateDialogShell(app_shell, "evaluateExpression", NULL, 0);
-        XtVaSetValues(eui.top, XmNallowShellResize, True, NULL);
-	handle_close(eui.top);
-        dialog = XtVaCreateWidget("dialog",
-            xmFormWidgetClass, eui.top,
-            XmNresizePolicy, XmRESIZE_ANY,
-            NULL);
+	eui = xmalloc(sizeof(Eval_ui));
+        
+        eui->top = CreateDialogForm(app_shell, "Evaluate expression");
+        SetDialogFormResizable(eui->top, TRUE);
 
+        eui->srcdest = CreateSrcDestSelector(eui->top, LIST_TYPE_MULTIPLE);
+        AddDialogFormChild(eui->top, eui->srcdest->form);
 
-        eui.srcdest = CreateSrcDestSelector(dialog, LIST_TYPE_MULTIPLE);
+	rc_trans = CreateVContainer(eui->top);
 
-        XtVaSetValues(eui.srcdest->form,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            NULL);
+	eui->formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
 
-	rc_trans = XtVaCreateWidget("rc",
-            xmRowColumnWidgetClass, dialog,
-            XmNrecomputeSize, True,
-            NULL);
-
-	CreateSeparator(rc_trans);
-	eui.formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
-
-        eui.restr_item =
+        eui->restr_item =
             CreateRestrictionChoice(rc_trans, "Source data filtering");
 
-        ManageChild(rc_trans);
-	fr = CreateFrame(dialog, NULL);
-        XtVaSetValues(fr,
-            XmNtopAttachment, XmATTACH_NONE,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_FORM,
-            NULL);
-        CreateAACButtons(fr, dialog, compute_aac);
-
-        XtVaSetValues(rc_trans,
-            XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, eui.srcdest->form,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_WIDGET,
-            XmNbottomWidget, fr,
-            NULL);
-
-
-	ManageChild(dialog);
+        CreateAACDialog(eui->top, rc_trans, compute_aac, (void *) eui);
     }
-    RaiseWindow(eui.top);
+    
+    RaiseWindow(GetParent(eui->top));
+    
     unset_wait_cursor();
 }
 
 /*
  * evaluate a formula
  */
-static void compute_aac(void *data)
+static int compute_aac(void *data)
 {
-    int aac_mode, error, resno;
+    int error, resno;
     int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2,
         gno1, gno2, setno1, setno2;
     char fstr[256];
     int restr_type, restr_negate;
     char *rarray;
+    Eval_ui *eui = (Eval_ui *) data;
 
-    aac_mode = (int) data;
+    restr_type = GetOptionChoice(eui->restr_item->r_sel);
+    restr_negate = GetToggleButtonState(eui->restr_item->negate);
     
-    if (aac_mode == AAC_CLOSE) {
-        UnmanageChild(eui.top);
-        return;
-    }
-
-    set_wait_cursor();
-    
-    restr_type = GetOptionChoice(eui.restr_item->r_sel);
-    restr_negate = GetToggleButtonState(eui.restr_item->negate);
-    
-    g1_ok = GetSingleListChoice(eui.srcdest->src->graph_sel, &gno1);
-    g2_ok = GetSingleListChoice(eui.srcdest->dest->graph_sel, &gno2);
-    ns1 = GetListChoices(eui.srcdest->src->set_sel, &svalues1);
-    ns2 = GetListChoices(eui.srcdest->dest->set_sel, &svalues2);
+    g1_ok = GetSingleListChoice(eui->srcdest->src->graph_sel, &gno1);
+    g2_ok = GetSingleListChoice(eui->srcdest->dest->graph_sel, &gno2);
+    ns1 = GetListChoices(eui->srcdest->src->set_sel, &svalues1);
+    ns2 = GetListChoices(eui->srcdest->dest->set_sel, &svalues2);
     
     error = FALSE;
     if (g1_ok == RETURN_FAILURE || g2_ok == RETURN_FAILURE) {
@@ -187,7 +148,7 @@ static void compute_aac(void *data)
         error = TRUE;
         errmsg("Different number of source and destination sets");
     } else {
-        strcpy(fstr, xv_getstr(eui.formula_item));
+        strcpy(fstr, xv_getstr(eui->formula_item));
         for (i = 0; i < ns1; i++) {
 	    setno1 = svalues1[i];
 	    if (ns2 != 0) {
@@ -213,10 +174,6 @@ static void compute_aac(void *data)
         }
     }
     
-    if (aac_mode == AAC_ACCEPT && error == FALSE) {
-        UnmanageChild(eui.top);
-    }
-
     if (ns1 > 0) {
         xfree(svalues1);
     }
@@ -231,8 +188,10 @@ static void compute_aac(void *data)
             update_set_lists(gno1);
         }
         xdrawgraph();
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
     }
-    unset_wait_cursor();
 }
 
 
@@ -253,7 +212,6 @@ typedef struct _Interp_ui {
     ListStructure *sset_sel;
 } Interp_ui;
 
-static Interp_ui *interpui = NULL;
 
 static void sampling_cb(int value, void *data)
 {
@@ -270,6 +228,8 @@ static void sampling_cb(int value, void *data)
 
 void create_interp_frame(void *data)
 {
+    static Interp_ui *interpui = NULL;
+    
     set_wait_cursor();
 
     if (interpui == NULL) {
@@ -430,8 +390,6 @@ typedef struct _Histo_ui {
     ListStructure *sset_sel;
 } Histo_ui;
 
-static Histo_ui *histoui = NULL;
-
 static void binsampling_cb(int value, void *data)
 {
     Interp_ui *ui = (Interp_ui *) data;
@@ -447,6 +405,8 @@ static void binsampling_cb(int value, void *data)
 
 void create_histo_frame(void *data)
 {
+    static Histo_ui *histoui = NULL;
+
     set_wait_cursor();
 
     if (histoui == NULL) {
@@ -587,205 +547,202 @@ static int do_histo_proc(void *data)
 /* DFTs */
 
 typedef struct _Four_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *load_item;
-    Widget *window_item;
-    Widget *loadx_item;
-    Widget *inv_item;
-    Widget *type_item;
-    Widget *graph_item;
+    TransformStructure *tdialog;
+    Widget inverse;
+    OptionStructure *xscale;
+    OptionStructure *norm;
+    Widget complexin;
+    Widget dcdump;
+    SpinStructure *zeropad;
+    Widget round2n;
+    OptionStructure *window;
+    Widget halflen;
+    OptionStructure *output;
 } Four_ui;
 
-static Four_ui fui;
+static void toggle_inverse_cb(int onoff, void *data)
+{
+    Four_ui *ui = (Four_ui *) data;
+    if (onoff) {
+        SetToggleButtonState(ui->halflen, FALSE);
+        SetSensitive(ui->halflen, FALSE);
+        
+        SetToggleButtonState(ui->dcdump, FALSE);
+        SetSensitive(ui->dcdump, FALSE);
+
+        SetOptionChoice(ui->window, FFT_WINDOW_NONE);
+        SetSensitive(ui->window->menu, FALSE);
+    } else {
+        SetToggleButtonState(ui->halflen, TRUE);
+        SetSensitive(ui->halflen, TRUE);
+        
+        SetSensitive(ui->dcdump, TRUE);
+
+        SetSensitive(ui->window->menu, TRUE);
+    }
+}
+
+static void toggle_complex_cb(int onoff, void *data)
+{
+    Four_ui *ui = (Four_ui *) data;
+    if (onoff) {
+        SetToggleButtonState(ui->halflen, FALSE);
+        SetSensitive(ui->halflen, FALSE);
+    } else {
+        SetToggleButtonState(ui->halflen, TRUE);
+        SetSensitive(ui->halflen, TRUE);
+    }
+}
 
 void create_fourier_frame(void *data)
 {
-    Widget dialog;
-    Widget rc;
-    Widget buts[4];
+    static Four_ui *fui = NULL;
 
     set_wait_cursor();
-    if (fui.top == NULL) {
-	char *l[4];
-	l[0] = "DFT";
-	l[1] = "FFT";
-	l[2] = "Window only";
-	l[3] = "Close";
-	fui.top = XmCreateDialogShell(app_shell, "Fourier transforms", NULL, 0);
-	handle_close(fui.top);
-	dialog = XmCreateRowColumn(fui.top, "dialog_rc", NULL, 0);
 
-	fui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
+    if (fui == NULL) {
+        Widget rc, fr, rc1, rc2;
+        OptionItem window_opitems[] = {
+            {FFT_WINDOW_NONE,       "None (Rectangular)"},
+            {FFT_WINDOW_TRIANGULAR, "Triangular"        },
+            {FFT_WINDOW_HANNING,    "Hanning"           },
+            {FFT_WINDOW_WELCH,      "Welch"             },
+            {FFT_WINDOW_HAMMING,    "Hamming"           },
+            {FFT_WINDOW_BLACKMAN,   "Blackman"          },
+            {FFT_WINDOW_PARZEN,     "Parzen"            }
+        };
+        OptionItem output_opitems[] = {
+            {FFT_OUTPUT_MAGNITUDE, "Magnitude"       },
+            {FFT_OUTPUT_PHASE,     "Phase"           },
+            {FFT_OUTPUT_RE,        "Real part"       },
+            {FFT_OUTPUT_IM,        "Imaginary part"  },
+            {FFT_OUTPUT_REIM,      "Complex"         },
+            {FFT_OUTPUT_APHI,      "Complex (A, Phi)"}
+        };
+        OptionItem xscale_opitems[] = {
+            {FFT_XSCALE_INDEX, "Index"         },
+            {FFT_XSCALE_NU,    "Frequency"     },
+            {FFT_XSCALE_OMEGA, "Ang. frequency"}
+        };
+        OptionItem norm_opitems[] = {
+            {FFT_NORM_NONE,      "None"     },
+            {FFT_NORM_SYMMETRIC, "Symmetric"},
+            {FFT_NORM_FORWARD,   "Forward"  },
+            {FFT_NORM_BACKWARD,  "Backward" }
+        };
+        
+        fui = xmalloc(sizeof(Four_ui));
+        
+	fui->tdialog = CreateTransformDialogForm(app_shell,
+            "Fourier transform", LIST_TYPE_MULTIPLE);
 
-	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, dialog,
-			      XmNpacking, XmPACK_COLUMN,
-			      XmNnumColumns, 5,
-			      XmNorientation, XmHORIZONTAL,
-			      XmNisAligned, True,
-			      XmNadjustLast, False,
-			      XmNentryAlignment, XmALIGNMENT_END,
-			      NULL);
+	rc = CreateVContainer(fui->tdialog->form);
 
-	XtVaCreateManagedWidget("Data window: ", xmLabelWidgetClass, rc, NULL);
-	fui.window_item = CreatePanelChoice(rc,
-					    " ",
-					    8,
-					    "None (Rectangular)",
-					    "Triangular",
-					    "Hanning",
-					    "Welch",
-					    "Hamming",
-					    "Blackman",
-					    "Parzen",
-					    NULL,
-					    NULL);
+        fr = CreateFrame(rc, "General");
+	rc1 = CreateVContainer(fr);
+	fui->inverse = CreateToggleButton(rc1, "Perform backward transform");
+        AddToggleButtonCB(fui->inverse, toggle_inverse_cb, (void *) fui);
+	rc2 = CreateHContainer(rc1);
+	fui->xscale = CreateOptionChoice(rc2, "X scale:", 0, 3, xscale_opitems);
+	fui->norm = CreateOptionChoice(rc2, "Normalize:", 0, 4, norm_opitems);
+        
+        fr = CreateFrame(rc, "Input");
+	rc1 = CreateVContainer(fr);
+	fui->complexin = CreateToggleButton(rc1, "Complex data");
+        AddToggleButtonCB(fui->complexin, toggle_complex_cb, (void *) fui);
+	fui->dcdump = CreateToggleButton(rc1, "Dump DC component");
+	fui->window = CreateOptionChoice(rc1,
+            "Apply window:", 0, 7, window_opitems);
+	rc2 = CreateHContainer(rc1);
+        fui->zeropad = CreateSpinChoice(rc2,
+            "Zero padding", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
+	fui->round2n = CreateToggleButton(rc2, "Round to 2^N");
 
-	XtVaCreateManagedWidget("Load result as: ", xmLabelWidgetClass, rc, NULL);
+        fr = CreateFrame(rc, "Output");
+	rc1 = CreateHContainer(fr);
+        fui->output = CreateOptionChoice(rc1,
+            "Load:", 0, 6, output_opitems);
+	fui->halflen = CreateToggleButton(rc1, "Half length");
 
-	fui.load_item = CreatePanelChoice(rc,
-					  " ",
-					  4,
-					  "Magnitude",
-					  "Phase",
-					  "Coefficients",
-					  0,
-					  0);
-
-	XtVaCreateManagedWidget("Let result X = ", xmLabelWidgetClass, rc, NULL);
-	fui.loadx_item = CreatePanelChoice(rc,
-					   " ",
-					   4,
-					   "Index",
-					   "Frequency",
-					   "Period",
-					   0,
-					   0);
-
-	XtVaCreateManagedWidget("Perform: ", xmLabelWidgetClass, rc, NULL);
-	fui.inv_item = CreatePanelChoice(rc,
-					 " ",
-					 3,
-					 "Transform",
-					 "Inverse transform",
-					 0,
-					 0);
-
-	XtVaCreateManagedWidget("Data is: ", xmLabelWidgetClass, rc, NULL);
-	fui.type_item = CreatePanelChoice(rc,
-					  " ",
-					  3,
-					  "Real",
-					  "Complex",
-					  0,
-					  0);
-	ManageChild(rc);
-
-	CreateSeparator(dialog);
-	CreateCommandButtons(dialog, 4, buts, l);
-	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_fourier_proc, (XtPointer) & fui);
-	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) do_fft_proc, (XtPointer) & fui);
-	XtAddCallback(buts[2], XmNactivateCallback, (XtCallbackProc) do_window_proc, (XtPointer) & fui);
-	XtAddCallback(buts[3], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) fui.top);
-
-	ManageChild(dialog);
+	CreateAACDialog(fui->tdialog->form, rc, do_fourier_proc, (void *) fui);
+        
+        /* Default values */
+        SetOptionChoice(fui->xscale, FFT_XSCALE_NU);
+        SetOptionChoice(fui->norm, FFT_NORM_FORWARD);
+        SetToggleButtonState(fui->halflen, TRUE);
+        SetSpinChoice(fui->zeropad, 0.0);
+#ifndef HAVE_FFTW
+        SetToggleButtonState(fui->round2n, TRUE);
+#endif
     }
-    RaiseWindow(fui.top);
+    
+    RaiseWindow(GetParent(fui->tdialog->form));
+    
     unset_wait_cursor();
 }
 
 /*
- * DFT
+ * Fourier
  */
-static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int do_fourier_proc(void *data)
 {
-    int gno = get_cg();
-    int *selsets;
-    int i, cnt;
-    int setno, load, loadx, invflag, type, wind;
-    Four_ui *ui = (Four_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int invflag, xscale, norm;
+    int complexin, dcdump, window, round2n, halflen, output;
+    double zeropad;
+    Four_ui *ui = (Four_ui *) data;
+    
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
     }
-    wind = GetChoice(ui->window_item);
-    load = GetChoice(ui->load_item);
-    loadx = GetChoice(ui->loadx_item);
-    invflag = GetChoice(ui->inv_item);
-    type = GetChoice(ui->type_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_fourier(gno, setno, 0, load, loadx, invflag, type, wind);
+
+    invflag   = GetToggleButtonState(ui->inverse);
+    xscale    = GetOptionChoice(ui->xscale);
+    norm      = GetOptionChoice(ui->norm);
+    
+    complexin = GetToggleButtonState(ui->complexin);
+    dcdump    = GetToggleButtonState(ui->dcdump);
+    zeropad   = GetSpinChoice(ui->zeropad);
+    round2n   = GetToggleButtonState(ui->round2n);
+    window    = GetOptionChoice(ui->window);
+    
+    halflen   = GetToggleButtonState(ui->halflen);
+    output    = GetOptionChoice(ui->output);
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+	if (do_fourier(gsrc, setfrom, gdest, setto,
+            invflag, xscale, norm, complexin, dcdump, zeropad, round2n, window,
+            halflen, output) != RETURN_SUCCESS) {
+            err = TRUE;
+        }
     }
-    update_set_lists(gno);
-    xfree(selsets);
-    unset_wait_cursor();
+
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    update_set_lists(gdest);
     xdrawgraph();
+    
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
 }
 
-/*
- * DFT by FFT
- */
-static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int gno = get_cg();
-    int *selsets;
-    int i, cnt;
-    int setno, load, loadx, invflag, type, wind;
-    Four_ui *ui = (Four_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-	errwin("No sets selected");
-	return;
-    }
-    wind = GetChoice(ui->window_item);
-    load = GetChoice(ui->load_item);
-    loadx = GetChoice(ui->loadx_item);
-    invflag = GetChoice(ui->inv_item);
-    type = GetChoice(ui->type_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_fourier(gno, setno, 1, load, loadx, invflag, type, wind);
-    }
-    update_set_lists(gno);
-    xfree(selsets);
-    unset_wait_cursor();
-    xdrawgraph();
-}
-
-/*
- * Apply data window only
- */
-static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int *selsets;
-    int i, cnt;
-    int setno, type, wind;
-    Four_ui *ui = (Four_ui *) client_data;
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
-    }
-    wind = GetChoice(ui->window_item);
-    type = GetChoice(ui->type_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	do_window(setno, type, wind);
-    }
-    update_set_lists(get_cg());
-    xfree(selsets);
-    unset_wait_cursor();
-    xdrawgraph();
-}
 
 /* running averages */
 

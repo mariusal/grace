@@ -248,12 +248,6 @@ typedef enum {
 #define RUN_MAX         3
 #define RUN_STD         4
 
-/* Types of Fourier transforms */
-#define FFT_FFT         0
-#define FFT_INVFFT      1
-#define FFT_DFT         2
-#define FFT_INVDFT      3
-
 /* return codes */
 #define RETURN_SUCCESS (0)
 #define RETURN_FAILURE (1)
@@ -357,6 +351,31 @@ typedef enum {
 #define RESTRICT_REG2   2
 #define RESTRICT_REG3   3
 #define RESTRICT_REG4   4
+
+/* FFT stuff */
+#define FFT_XSCALE_INDEX       0
+#define FFT_XSCALE_NU          1
+#define FFT_XSCALE_OMEGA       2
+
+#define FFT_NORM_NONE          0
+#define FFT_NORM_FORWARD       1
+#define FFT_NORM_BACKWARD      2
+#define FFT_NORM_SYMMETRIC     3
+
+#define FFT_WINDOW_NONE        0
+#define FFT_WINDOW_TRIANGULAR  1
+#define FFT_WINDOW_HANNING     2
+#define FFT_WINDOW_WELCH       3
+#define FFT_WINDOW_HAMMING     4
+#define FFT_WINDOW_BLACKMAN    5
+#define FFT_WINDOW_PARZEN      6
+
+#define FFT_OUTPUT_MAGNITUDE   0
+#define FFT_OUTPUT_PHASE       1
+#define FFT_OUTPUT_RE          2
+#define FFT_OUTPUT_IM          3
+#define FFT_OUTPUT_REIM        4
+#define FFT_OUTPUT_APHI        5
 
 
 /*

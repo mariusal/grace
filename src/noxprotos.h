@@ -43,7 +43,6 @@
 
 int filter_set(int gno, int setno, char *rarray);
 
-void do_fourier_command(int gno, int setno, int ftype, int ltype);
 int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
@@ -53,9 +52,11 @@ double do_int(int gno, int setno, int itype);
 void do_differ(int gno, int setno, int itype);
 void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
 void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr);
-void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invflag, int type, int wind);
-void do_window(int setno, int type, int wind);
-void apply_window(double *xx, double *yy, int ilen, int type, int wind);
+int do_fourier(int gsrc, int setfrom, int gdest, int setto,
+    int invflag, int xscale, int norm,
+    int complexin, int dcdump, double zeropad, int round2n, int window,
+    int halflen, int output);
+int apply_window(double *v, int ilen, int window);
 int do_histo(int fromgraph, int fromset, int tograph, int toset,
 	      double *bins, int nbins, int cumulative, int normalize);
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist);
@@ -100,8 +101,7 @@ void aspline(int n, double *x, double *y, double *b, double *c, double *d);
 int seval(double *u, double *v, int ulen,
     double *x, double *y, double *b, double *c, double *d, int n);
 
-void dft(double *jr, double *ji, int n, int iflag);
-void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv);
+int fourier(double *jr, double *ji, int n, int iflag);
 
 void putparms(int gno, FILE * pp, int embed);
 void put_fitparms(FILE * pp, int embed);
@@ -123,8 +123,6 @@ int get_datapoint(int gno, int setn, int seti, int *ncols, Datapoint *wp);
 void setcol(int gno, int setno, int col, double *x, int len);
 
 void copycol2(int gfrom, int setfrom, int gto, int setto, int col);
-#define copyx(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 0)
-#define copyy(gno, setfrom, setto)      copycol2(gno, setfrom, gno, setto, 1)
 
 void packsets(int gno);
 int nextset(int gno);
@@ -175,6 +173,7 @@ int get_restriction_array(int gno, int setno,
     int rtype, int negate, char **rarray);
 
 int monotonicity(double *array, int len, int strict);
+int monospaced(double *array, int len, double *space);
 int find_span_index(double *array, int len, int m, double x);
 
 int featext(int gfrom, int *sfrom, int nsets, int gto, int setto, char *formula);

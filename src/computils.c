@@ -55,26 +55,6 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
 
 static char buf[256];
 
-
-void do_fourier_command(int gno, int setno, int ftype, int ltype)
-{
-    switch (ftype) {
-    case FFT_DFT:
-	do_fourier(gno, setno, 0, 0, ltype, 0, 0, 0);
-	break;
-    case FFT_INVDFT       :
-	do_fourier(gno, setno, 0, 0, ltype, 1, 0, 0);
-	break;
-    case FFT_FFT:
-	do_fourier(gno, setno, 1, 0, ltype, 0, 0, 0);
-	break;
-    case FFT_INVFFT       :
-	do_fourier(gno, setno, 1, 0, ltype, 1, 0, 0);
-	break;
-    }
-}
-
-
 /*
  * evaluate a formula
  */
@@ -702,210 +682,274 @@ void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr)
     }
 }
 
-/*
- * DFT by FFT or definition
- */
-void do_fourier(int gno, int setno, int fftflag, int load, int loadx, int invflag, int type, int wind)
+int dump_dc(double *v, int len)
 {
-    int i, ilen;
-    double *x, *y, *xx, *yy, delt, T;
-    int i2 = 0, specset;
-
-    if (!is_set_active(get_cg(), setno)) {
-	errmsg("Set not active");
-	return;
+    int i;
+    double avg, dummy;
+    
+    if (len < 1 || !v) {
+        return RETURN_FAILURE;
     }
-    ilen = getsetlength(get_cg(), setno);
-    if (ilen < 2) {
-	errmsg("Set length < 2");
-	return;
+    
+    stasum(v, len, &avg, &dummy);
+    for (i = 0; i < len; i++) {
+        v[i] -= avg;
     }
-    if (fftflag) {
-	if ((i2 = ilog2(ilen)) <= 0) {
-	    errmsg("Set length not a power of 2");
-	    return;
-	}
-    }
-    specset = nextset(get_cg());
-    if (specset != -1) {
-	activateset(get_cg(), specset);
-	setlength(get_cg(), specset, ilen);
-	xx = getx(get_cg(), specset);
-	yy = gety(get_cg(), specset);
-	x = getx(get_cg(), setno);
-	y = gety(get_cg(), setno);
-	copyx(get_cg(), setno, specset);
-	copyy(get_cg(), setno, specset);
-	if (wind != 0) {	/* apply data window if needed */
-	    apply_window(xx, yy, ilen, type, wind);
-	}
-	if (type == 0) {	/* real data */
-	    for (i = 0; i < ilen; i++) {
-		xx[i] = yy[i];
-		yy[i] = 0.0;
-	    }
-	}
-	if (fftflag) {
-	    fft(xx, yy, ilen, i2, invflag);
-	} else {
-	    dft(xx, yy, ilen, invflag);
-	}
-	switch (load) {
-	case 0:
-	    delt = (x[ilen-1] - x[0])/(ilen -1.0);
-	    T = (x[ilen - 1] - x[0]);
-	    xx = getx(get_cg(), specset);
-	    yy = gety(get_cg(), specset);
-	    for (i = 0; i < ilen / 2; i++) {
-	      /* carefully get amplitude of complex xform: 
-		 use abs(a[i]) + abs(a[-i]) except for zero term */
-	      if(i) yy[i] = hypot(xx[i], yy[i])+hypot(xx[ilen-i], yy[ilen-i]);
-	      else yy[i]=fabs(xx[i]);
-		switch (loadx) {
-		case 0:
-		    xx[i] = i;
-		    break;
-		case 1:
-		    /* xx[i] = 2.0 * M_PI * i / ilen; */
-		    xx[i] = i / T;
-		    break;
-		case 2:
-		    if (i == 0) {
-			xx[i] = T + delt;	/* the mean */
-		    } else {
-			/* xx[i] = (double) ilen / (double) i; */
-			xx[i] = T / i;
-		    }
-		    break;
-		}
-	    }
-	    setlength(get_cg(), specset, ilen / 2);
-	    break;
-	case 1:
-	    delt = (x[ilen-1] - x[0])/(ilen -1.0);
-	    T = (x[ilen - 1] - x[0]);
-	    setlength(get_cg(), specset, ilen / 2);
-	    xx = getx(get_cg(), specset);
-	    yy = gety(get_cg(), specset);
-	    for (i = 0; i < ilen / 2; i++) {
-		yy[i] = -atan2(yy[i], xx[i]);
-		switch (loadx) {
-		case 0:
-		    xx[i] = i;
-		    break;
-		case 1:
-		    /* xx[i] = 2.0 * M_PI * i / ilen; */
-		    xx[i] = i / T;
-		    break;
-		case 2:
-		    if (i == 0) {
-			xx[i] = T + delt;
-		    } else {
-			/* xx[i] = (double) ilen / (double) i; */
-			xx[i] = T / i;
-		    }
-		    break;
-		}
-	    }
-	    break;
-	}
-	if (fftflag) {
-	    sprintf(buf, "FFT of set %d", setno);
-	} else {
-	    sprintf(buf, "DFT of set %d", setno);
-	}
-	setcomment(get_cg(), specset, buf);
-    }
+    
+    return RETURN_SUCCESS;
 }
 
-/*
- * Apply a window to a set, result goes to a new set.
- */
-void do_window(int setno, int type, int wind)
-{
-    int ilen;
-    double *xx, *yy;
-    int specset;
-
-    if (!is_set_active(get_cg(), setno)) {
-	errmsg("Set not active");
-	return;
-    }
-    ilen = getsetlength(get_cg(), setno);
-    if (ilen < 2) {
-	errmsg("Set length < 2");
-	return;
-    }
-    specset = nextset(get_cg());
-    if (specset != -1) {
-	char *wtype[6];
-	wtype[0] = "Triangular";
-	wtype[1] = "Hanning";
-	wtype[2] = "Welch";
-	wtype[3] = "Hamming";
-	wtype[4] = "Blackman";
-	wtype[5] = "Parzen";
-
-	activateset(get_cg(), specset);
-	setlength(get_cg(), specset, ilen);
-	xx = getx(get_cg(), specset);
-	yy = gety(get_cg(), specset);
-	copyx(get_cg(), setno, specset);
-	copyy(get_cg(), setno, specset);
-	if (wind != 0) {
-	    apply_window(xx, yy, ilen, type, wind);
-	    sprintf(buf, "%s windowed set %d", wtype[wind - 1], setno);
-	} else {		/* shouldn't happen */
-	}
-	setcomment(get_cg(), specset, buf);
-    }
-}
-
-void apply_window(double *xx, double *yy, int ilen, int type, int wind)
+int apply_window(double *v, int len, int window)
 {
     int i;
 
-    for (i = 0; i < ilen; i++) {
-	switch (wind) {
-	case 1:		/* triangular */
-	    if (type != 0) {
-		xx[i] *= 1.0 - fabs((i - 0.5 * (ilen - 1.0)) / (0.5 * (ilen - 1.0)));
-	    }
-	    yy[i] *= 1.0 - fabs((i - 0.5 * (ilen - 1.0)) / (0.5 * (ilen - 1.0)));
+    if (len < 2 || !v) {
+        return RETURN_FAILURE;
+    }
+    
+    if (window == FFT_WINDOW_NONE) {
+        return RETURN_SUCCESS;
+    }
+    
+    for (i = 0; i < len; i++) {
+	double c;
+        switch (window) {
+	case FFT_WINDOW_TRIANGULAR:
+	    c = 1.0 - fabs((i - 0.5*(len - 1.0))/(0.5*(len - 1)));
+	    break;
+	case FFT_WINDOW_HANNING:
+	    c = 0.5 - 0.5*cos(2*M_PI*i/(len - 1));
+	    break;
+	case FFT_WINDOW_WELCH:
+	    c = 1.0 - pow((i - 0.5*(len - 1))/(0.5*(len + 1)), 2.0);
+	    break;
+	case FFT_WINDOW_HAMMING:
+	    c = 0.54 - 0.46*cos(2*M_PI*i/(len - 1));
+	    break;
+	case FFT_WINDOW_BLACKMAN:
+	    c = 0.42 - 0.5*cos(2*M_PI*i/(len - 1)) + 0.08*cos(4*M_PI*i/(len - 1));
+	    break;
+	case FFT_WINDOW_PARZEN:
+	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len + 1)));
+	    break;
+	default:	/* should never happen */
+            c = 0.0;
+            return RETURN_FAILURE;
+	    break;
+        }
+    
+        v[i] *= c;
+    }
+    
+    return RETURN_SUCCESS;
+}
 
+/*
+ * Fourier transform
+ */
+int do_fourier(int gfrom, int setfrom, int gto, int setto,
+    int invflag, int xscale, int norm,
+    int complexin, int dcdump, double zeropad, int round2n, int window,
+    int halflen, int output)
+{
+    int i, inlen, buflen, outlen, ncols, settype;
+    double *in_x, *in_re, *in_im, *buf_re, *buf_im, *out_x, *out_y, *out_y1;
+    double xspace, amp_correction;
+
+    inlen = getsetlength(gfrom, setfrom);
+    if (inlen < 2) {
+	errmsg("Set length < 2");
+	return RETURN_FAILURE;
+    }
+
+    if (activateset(gto, setto) != RETURN_SUCCESS) {
+	errmsg("Can't activate target set");
+        return RETURN_FAILURE;
+    }
+    
+    /* get input */
+    in_re = getcol(gfrom, setfrom, DATA_Y);
+    if (!in_re) {
+        /* should never happen */
+        return RETURN_FAILURE;
+    }
+    if (!complexin) {
+        in_im = NULL;
+    } else {
+        in_im = getcol(gfrom, setfrom, DATA_Y1);
+    }
+    
+    in_x = getcol(gfrom, setfrom, DATA_X);
+    if (monospaced(in_x, inlen, &xspace) != TRUE) {
+        errmsg("Abscissas of the set are not monospaced, can't use for sampling");
+        return RETURN_FAILURE;
+    } else {
+        if (xspace == 0.0) {
+            errmsg("The set spacing is 0, can't continue");
+            return RETURN_FAILURE;
+        }
+    }
+    
+    /* copy input data to buffer storage which will be used then to hold out */
+    
+    buf_re = copy_data_column(in_re, inlen);
+    if (in_im) {
+        buf_im = copy_data_column(in_im, inlen);
+    } else {
+        buf_im = xcalloc(inlen, SIZEOF_DOUBLE);
+    }
+    if (!buf_re || !buf_im) {
+        xfree(buf_re);
+        xfree(buf_im);
+        return RETURN_FAILURE;
+    }
+    
+    /* dump the DC component */
+    if (dcdump) {
+        dump_dc(buf_re, inlen);
+    }
+    
+    /* apply data window */
+    apply_window(buf_re, inlen, window);
+    if (in_im) {
+        apply_window(buf_im, inlen, window);
+    }
+    
+    /* a safety measure */
+    zeropad = MAX2(0.0, zeropad);
+    
+    buflen = (int) rint(inlen*(1.0 + zeropad));
+    if (round2n) {
+        /* round to the closest 2^N, but NOT throw away any data */
+        int i2 = (int) rint(log2((double) buflen));
+        buflen = (int) pow(2.0, (double) i2);
+        if (buflen < inlen) {
+            buflen *= 2;
+        }
+    }
+    
+    if (buflen != inlen) {
+        buf_re = xrealloc(buf_re, SIZEOF_DOUBLE*buflen);
+        buf_im = xrealloc(buf_im, SIZEOF_DOUBLE*buflen);
+        
+        if (!buf_re || !buf_im) {
+            xfree(buf_re);
+            xfree(buf_im);
+            return RETURN_FAILURE;
+        }
+        
+        /* stuff the added data with zeros */
+        for (i = inlen; i < buflen; i++) {
+            buf_re[i] = 0.0;
+            buf_im[i] = 0.0;
+        }
+    }
+    
+    if (fourier(buf_re, buf_im, buflen, invflag) != RETURN_SUCCESS) {
+        xfree(buf_re);
+        xfree(buf_im);
+        return RETURN_FAILURE;
+    }
+    
+    /* amplitude correction due to the zero padding etc */
+    amp_correction = (double) buflen/inlen;
+    if ((invflag  && norm == FFT_NORM_BACKWARD) ||
+        (!invflag && norm == FFT_NORM_FORWARD)) {
+        amp_correction /= buflen;
+    } else if (norm == FFT_NORM_SYMMETRIC) {
+        amp_correction /= sqrt((double) buflen);
+    }
+
+    if (halflen && !complexin) {
+	outlen = buflen/2 + 1;
+        /* DC component */
+        buf_re[0] = 2*buf_re[0];
+        buf_im[0] = 0.0;
+        for (i = 1; i < outlen; i++) {
+            /* carefully get amplitude of complex form: 
+               use abs(a[i]) + abs(a[-i]) except for zero term */
+            buf_re[i] += buf_re[buflen - i];
+            buf_im[i] -= buf_im[buflen - i];
+        }
+    } else {
+	outlen = buflen;
+    }
+    
+    switch (output) {
+    case FFT_OUTPUT_REIM:
+    case FFT_OUTPUT_APHI:
+        ncols = 3;
+        settype = SET_XYZ;
+        break;
+    default:
+        ncols = 2;
+        settype = SET_XY;
+        break;
+    }
+    
+    if (dataset_cols(gto, setto) != ncols) {
+        if (set_dataset_type(gto, setto, settype) != RETURN_SUCCESS) {
+            xfree(buf_re);
+            xfree(buf_im);
+            return RETURN_FAILURE;
+        } 
+    }
+    if (setlength(gto, setto, outlen) != RETURN_SUCCESS) {
+        xfree(buf_re);
+        xfree(buf_im);
+        return RETURN_FAILURE;
+    }
+    
+    out_y  = getcol(gto, setto, DATA_Y);
+    out_y1 = getcol(gto, setto, DATA_Y1);
+    
+    for (i = 0; i < outlen; i++) {
+        switch (output) {
+        case FFT_OUTPUT_MAGNITUDE:
+            out_y[i]  = amp_correction*hypot(buf_re[i], buf_im[i]);
+            break;
+        case FFT_OUTPUT_RE:
+            out_y[i]  = amp_correction*buf_re[i];
+            break;
+        case FFT_OUTPUT_IM:
+            out_y[i]  = amp_correction*buf_im[i];
+            break;
+        case FFT_OUTPUT_PHASE:
+            out_y[i]  = atan2(buf_im[i], buf_re[i]);
+            break;
+        case FFT_OUTPUT_REIM:
+            out_y[i]  = amp_correction*buf_re[i];
+            out_y1[i] = amp_correction*buf_im[i];
+            break;
+        case FFT_OUTPUT_APHI:
+            out_y[i]  = amp_correction*hypot(buf_re[i], buf_im[i]);
+            out_y1[i] = atan2(buf_im[i], buf_re[i]);
+            break;
+        }
+    }
+    
+    out_x  = getcol(gto, setto, DATA_X);
+    for (i = 0; i < outlen; i++) {
+        switch (xscale) {
+	case FFT_XSCALE_NU:
+	    out_x[i] = (double) i/(xspace*buflen);
 	    break;
-	case 2:		/* Hanning */
-	    if (type != 0) {
-		xx[i] = xx[i] * (0.5 - 0.5 * cos(2.0 * M_PI * i / (ilen - 1.0)));
-	    }
-	    yy[i] = yy[i] * (0.5 - 0.5 * cos(2.0 * M_PI * i / (ilen - 1.0)));
+	case FFT_XSCALE_OMEGA:
+	    out_x[i] = 2*M_PI*i/(xspace*buflen);
 	    break;
-	case 3:		/* Welch (from Numerical Recipes) */
-	    if (type != 0) {
-		xx[i] *= 1.0 - pow((i - 0.5 * (ilen - 1.0)) / (0.5 * (ilen + 1.0)), 2.0);
-	    }
-	    yy[i] *= 1.0 - pow((i - 0.5 * (ilen - 1.0)) / (0.5 * (ilen + 1.0)), 2.0);
-	    break;
-	case 4:		/* Hamming */
-	    if (type != 0) {
-		xx[i] = xx[i] * (0.54 - 0.46 * cos(2.0 * M_PI * i / (ilen - 1.0)));
-	    }
-	    yy[i] = yy[i] * (0.54 - 0.46 * cos(2.0 * M_PI * i / (ilen - 1.0)));
-	    break;
-	case 5:		/* Blackman */
-	    if (type != 0) {
-		xx[i] = xx[i] * (0.42 - 0.5 * cos(2.0 * M_PI * i / (ilen - 1.0)) + 0.08 * cos(4.0 * M_PI * i / (ilen - 1.0)));
-	    }
-	    yy[i] = yy[i] * (0.42 - 0.5 * cos(2.0 * M_PI * i / (ilen - 1.0)) + 0.08 * cos(4.0 * M_PI * i / (ilen - 1.0)));
-	    break;
-	case 6:		/* Parzen (from Numerical Recipes) */
-	    if (type != 0) {
-		xx[i] *= 1.0 - fabs((i - 0.5 * (ilen - 1)) / (0.5 * (ilen + 1)));
-	    }
-	    yy[i] *= 1.0 - fabs((i - 0.5 * (ilen - 1)) / (0.5 * (ilen + 1)));
+	default:
+	    out_x[i] = (double) i;
 	    break;
 	}
     }
+    
+    xfree(buf_re);
+    xfree(buf_im);
+    
+    sprintf(buf, "FFT of set G%d.S%d", gfrom, setfrom);
+    setcomment(gto, setto, buf);
+    
+    return RETURN_SUCCESS;
 }
 
 
@@ -1701,6 +1745,27 @@ int monotonicity(double *array, int len, int strict)
     }
     
     return s0;
+}
+
+int monospaced(double *array, int len, double *space)
+{
+    int i;
+    double eps;
+    
+    if (len < 2) {
+        errmsg("Monospacing of an array of length < 2 is meaningless");
+        return FALSE;
+    }
+    
+    *space = array[1] - array[0];
+    eps = fabs((array[len - 1] - array[0]))*1.0e-6; /* FIXME */
+    for (i = 2; i < len; i++) {
+        if (fabs(array[i] - array[i - 1] - *space) > eps) {
+            return FALSE;
+        }
+    }
+    
+    return TRUE;
 }
 
 int find_span_index(double *array, int len, int m, double x)

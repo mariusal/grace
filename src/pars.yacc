@@ -73,6 +73,10 @@
 #define nlfit grace->rt->nlfit
 #define nonl_parms nlfit->parms
 
+/* Types of Fourier transforms */
+#define FFT_FFT         0
+#define FFT_INVFFT      1
+
 typedef double (*ParserFnc)();
 
 static double  s_result;    /* return value if a scalar expression is scanned*/
@@ -247,7 +251,6 @@ symtab_entry *key;
 %token <ival> CLICK
 %token <ival> CLIP
 %token <ival> CLOSE
-%token <ival> COEFFICIENTS
 %token <ival> COLOR
 %token <ival> COMMENT
 %token <ival> COMPLEX
@@ -272,7 +275,6 @@ symtab_entry *key;
 %token <ival> DESCENDING
 %token <ival> DESCRIPTION
 %token <ival> DEVICE
-%token <ival> DFT
 %token <ival> DIFFERENCE
 %token <ival> DISK
 %token <ival> DOWN
@@ -325,7 +327,6 @@ symtab_entry *key;
 %token <ival> INOUT
 %token <ival> INTEGRATE
 %token <ival> INTERPOLATE
-%token <ival> INVDFT
 %token <ival> INVERT
 %token <ival> INVFFT
 %token <ival> JUST
@@ -2877,28 +2878,12 @@ actions:
 	| runtype '(' selectset ',' nexpr ')' {
 	    do_runavg($3->gno, $3->setno, $5, $1, -1, 0);
 	}
-	| ffttype '(' selectset ',' nexpr ')' {
-	    do_fourier_command($3->gno, $3->setno, $1, $5);
-	}
         | ffttype '(' selectset ',' fourierdata ',' windowtype ',' 
                       fourierloadx ','  fourierloady ')' {
-	    switch ($1) {
-	    case FFT_DFT:
-                do_fourier($3->gno, $3->setno, 0, $11, $9, 0, $5, $7);
-	        break;
-	    case FFT_INVDFT    :
-                do_fourier($3->gno, $3->setno, 0, $11, $9, 1, $5, $7);
-	        break;
-	    case FFT_FFT:
-                do_fourier($3->gno, $3->setno, 1, $11, $9, 0, $5, $7);
-	        break;
-	    case FFT_INVFFT    :
-                do_fourier($3->gno, $3->setno, 1, $11, $9, 1, $5, $7);
-	        break;
-	    default:
-                errmsg("Internal error");
-	        break;
-	    }
+            do_fourier($3->gno, $3->setno, $3->gno, nextset($3->gno),
+                ($1 == FFT_INVFFT), $9, FFT_NORM_FORWARD,
+                $5, FALSE, 0.0, FALSE, $7,
+                $5 ? FALSE:TRUE, $11);
         }
 	| INTERPOLATE '(' selectset ',' vexpr ',' interpmethod ',' onoff ')' {
             do_interp($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
@@ -3797,9 +3782,7 @@ sorton: X_TOK { $$ = DATA_X; }
 	| Y_TOK { $$ = DATA_Y; }
 	;
 
-ffttype: DFT { $$ = FFT_DFT; }
-	| FFT { $$ = FFT_FFT; }
-	| INVDFT { $$ = FFT_INVDFT; }
+ffttype: FFT { $$ = FFT_FFT; }
 	| INVFFT { $$ = FFT_INVFFT; }
 	;
 
@@ -3815,19 +3798,18 @@ fourierloadx:
 	;
 
 fourierloady:
-	MAGNITUDE {$$=0;}
-	| PHASE {$$=1;}
-	| COEFFICIENTS {$$=2;}
+	MAGNITUDE {$$=FFT_OUTPUT_MAGNITUDE;}
+	| PHASE {$$=FFT_OUTPUT_PHASE;}
 	;
 
 windowtype:
-	NONE {$$=0;}
-	| TRIANGULAR {$$=1;}
-	| HANNING {$$=2;}
-	| WELCH {$$=3;}
-	| HAMMING {$$=4;}
-	| BLACKMAN {$$=5;}
-	| PARZEN {$$=6;}
+	NONE {$$=FFT_WINDOW_NONE;}
+	| TRIANGULAR {$$=FFT_WINDOW_NONE;}
+	| HANNING {$$=FFT_WINDOW_HANNING;}
+	| WELCH {$$=FFT_WINDOW_WELCH;}
+	| HAMMING {$$=FFT_WINDOW_HAMMING;}
+	| BLACKMAN {$$=FFT_WINDOW_BLACKMAN;}
+	| PARZEN {$$=FFT_WINDOW_PARZEN;}
 	;
 
 interpmethod:
@@ -4342,7 +4324,6 @@ symtab_entry ikey[] = {
 	{"CLICK", CLICK, NULL},
 	{"CLIP", CLIP, NULL},
 	{"CLOSE", CLOSE, NULL},
-	{"COEFFICIENTS", COEFFICIENTS, NULL},
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},
 	{"COMPLEX", COMPLEX, NULL},
@@ -4373,7 +4354,6 @@ symtab_entry ikey[] = {
 	{"DESCENDING", DESCENDING, NULL},
 	{"DESCRIPTION", DESCRIPTION, NULL},
 	{"DEVICE", DEVICE, NULL},
-	{"DFT", DFT, NULL},
 	{"DIFF", DIFFERENCE, NULL},
 	{"DIFFERENCE", DIFFERENCE, NULL},
 	{"DISK", DISK, NULL},
@@ -4468,7 +4448,6 @@ symtab_entry ikey[] = {
 	{"INOUT", INOUT, NULL},
 	{"INTEGRATE", INTEGRATE, NULL},
 	{"INTERPOLATE", INTERPOLATE, NULL},
-	{"INVDFT", INVDFT, NULL},
 	{"INVERT", INVERT, NULL},
 	{"INVFFT", INVFFT, NULL},
 	{"IRAND", FUNC_I, (void *) irand_wrap},
