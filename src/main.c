@@ -208,6 +208,7 @@ int main(int argc, char *argv[])
 #ifdef HAVE_LIBPDF
     register_pdf_drv();
 #endif
+    register_mif_drv();
     register_pnm_drv();
 #ifdef HAVE_LIBJPEG
     register_jpg_drv();

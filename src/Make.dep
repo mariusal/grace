@@ -58,6 +58,8 @@ device$(O) : device.c defines.h globals.h graphs.h draw.h utils.h \
  device.h t1fonts.h
 mfdrv$(O) : mfdrv.c defines.h utils.h draw.h device.h t1fonts.h devlist.h \
  mfdrv.h
+mifdrv$(O) : mifdrv.c defines.h utils.h ../cmath.h draw.h device.h \
+ t1fonts.h devlist.h patterns.h mifdrv.h
 psdrv$(O) : psdrv.c defines.h utils.h draw.h device.h t1fonts.h devlist.h \
  patterns.h psdrv.h protos.h missing.h noxprotos.h graphs.h xprotos.h \
  motifinc.h

@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
  * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-95 Paul J Turner, Portland, OR
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -26,34 +26,19 @@
  *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* 
- *
- *  list of device init functions
- *
- */
+#include "defines.h"
 
-#ifndef __DEVLIST_H_
-#define __DEVLIST_H_
+int mifinitgraphics(void);
 
-#include <config.h>
+void mif_drawpixel(VPoint vp);
+void mif_drawpolyline(VPoint *vps, int n, int mode);
+void mif_fillpolygon(VPoint *vps, int nc);
+void mif_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void mif_putpixmap(VPoint vp, int width, int height, 
+                   char *databits, int pixmap_bpp,
+                   int bitmap_pad, int pixmap_type);
+void mif_puttext (VPoint start, VPoint end, double size, 
+                  CompositeString *cstring);
 
-int register_dummy_drv(void);
-#ifndef NONE_GUI
-int register_x11_drv(void);
-#endif
-int register_ps_drv(void);
-int register_eps_drv(void);
-int register_mf_drv(void);
-int register_mif_drv(void);
-#ifdef HAVE_LIBPDF
-int register_pdf_drv(void);
-#endif
-int register_pnm_drv(void);
-#ifdef HAVE_LIBJPEG
-int register_jpg_drv(void);
-#endif
-#ifdef HAVE_LIBPNG
-int register_png_drv(void);
-#endif
-
-#endif /* __DEVLIST_H_ */
+void mif_leavegraphics(void);
