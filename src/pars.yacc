@@ -3040,8 +3040,8 @@ actions:
 	| INTEGRATE '(' selectset ')' {
 	    do_int($3->gno, $3->setno, 0);
 	}
- 	| XCOR '(' selectset ',' selectset ',' nexpr ')' {
-	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);
+ 	| XCOR '(' selectset ',' selectset ',' nexpr ',' onoff ')' {
+	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7, $9);
 	}
  	| RESTRICT '(' selectset ',' vexpr ')' {
             int len = getsetlength($3->gno, $3->setno);

@@ -271,9 +271,9 @@ void do_linearc(int set1, int set2)
 }
 
 /*
- * cross correlation
+ * cross correlation/covariance
  */
-void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
+void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag, int covar)
 {
     int xcorset, i, ierr, len, cg = get_cg();
     double *xtmp;
@@ -300,17 +300,23 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
     xcorset = nextset(cg);
     
     if (xcorset != (-1)) {
-	activateset(cg, xcorset);
+	char *fname;
+        activateset(cg, xcorset);
 	setlength(cg, xcorset, maxlag);
-	if (set1 != set2) {
-	    sprintf(buf, "X-correlation of G%d.S%d and G%d.S%d at maximum lag %d",
-                    gno1, set1, gno2, set2, maxlag);
+	if (covar) {
+            fname = "covariance";
+        } else {
+            fname = "correlation";
+        }
+        if (set1 != set2) {
+	    sprintf(buf, "X-%s of G%d.S%d and G%d.S%d at maximum lag %d",
+                    fname, gno1, set1, gno2, set2, maxlag);
 	} else {
-	    sprintf(buf, "Autocorrelation of G%d.S%d at maximum lag %d",
-                    gno1, set1, maxlag);
+	    sprintf(buf, "Auto-%s of G%d.S%d at maximum lag %d",
+                    fname, gno1, set1, maxlag);
 	}
 	ierr = crosscorr(gety(gno1, set1), gety(gno2, set2), len,
-                         maxlag, gety(cg, xcorset));
+                         maxlag, covar, gety(cg, xcorset));
 	xtmp = getx(cg, xcorset);
 	for (i = 0; i < maxlag; i++) {
 	    xtmp[i] = i;

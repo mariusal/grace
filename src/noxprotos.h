@@ -48,7 +48,7 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
-void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
+void do_xcor(int gno1, int set1, int gno2, int set2, int lag,  int covar);
 double do_int(int gno, int setno, int itype);
 void do_differ(int gno, int setno, int itype);
 void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
@@ -100,7 +100,7 @@ void runmedian(double *x, double *y, double *ax, double *ay, int n, int ilen);
 void runminmax(double *x, double *y, double *ax, double *ay, int n, int ilen, int type);
 void filterser(int n, double *x, double *y, double *resx, double *resy, double *h, int len);
 void linearconv(double *x, double *h, double *y, int n, int m);
-int crosscorr(double *x, double *y, int n, int lag, double *xcor);
+int crosscorr(double *x, double *y, int n, int maxlag, int covar, double *xres);
 int transfit(int type, int n, double *x, double *y, double *fitted);
 int linear_regression(int n, double *x, double *y, double *fitted);
 

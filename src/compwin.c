@@ -1376,8 +1376,7 @@ typedef struct _Cross_ui {
     SetChoiceItem sel1;
     SetChoiceItem sel2;
     Widget lag_item;
-    Widget *region_item;
-    Widget rinvert_item;
+    Widget covar_item;
 } Cross_ui;
 
 static Cross_ui crossui;
@@ -1391,7 +1390,7 @@ void create_xcor_frame(void *data)
 	char *label2[3];
 	label2[0] = "Accept";
 	label2[1] = "Close";
-	crossui.top = XmCreateDialogShell(app_shell, "X-correlation", NULL, 0);
+	crossui.top = XmCreateDialogShell(app_shell, "Correlation/Covariance", NULL, 0);
 	handle_close(crossui.top);
 	dialog = XmCreateRowColumn(crossui.top, "dialog_rc", NULL, 0);
 
@@ -1406,6 +1405,7 @@ void create_xcor_frame(void *data)
 					 GRAPH_SELECT_CURRENT,
 					 SELECTION_TYPE_SINGLE);
 	crossui.lag_item = CreateTextItem2(dialog, 10, "Maximum lag:");
+	crossui.covar_item = CreateToggleButton(dialog, "Calculate covariance");
 
 	CreateSeparator(dialog);
 
@@ -1425,7 +1425,7 @@ void create_xcor_frame(void *data)
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int gno = get_cg();
-    int set1, set2, maxlag;
+    int set1, set2, maxlag, covar;
     Cross_ui *ui = (Cross_ui *) client_data;
     set1 = GetSelectedSet(ui->sel1);
     set2 = GetSelectedSet(ui->sel2);
@@ -1436,8 +1436,9 @@ static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data)
     if(xv_evalexpri(ui->lag_item, &maxlag) != RETURN_SUCCESS) { 
         return;
     }
+    covar = GetToggleButtonState(ui->covar_item);
     set_wait_cursor();
-    do_xcor(gno, set1, gno, set2, maxlag);
+    do_xcor(gno, set1, gno, set2, maxlag, covar);
     update_set_lists(gno);
     xdrawgraph();
     unset_wait_cursor();
