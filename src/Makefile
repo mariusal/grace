@@ -46,8 +46,8 @@ buildinfo$(EXE) : buildinfo$(O)
 buildinfo$(O) : $(TOP)/Make.conf
 	$(CC) $(CFLAGS) $(PREFS) -c buildinfo.c -o $@
 
-buildinfo.h : buildinfo$(EXE)
-	$? > $@
+buildinfo.h : buildinfo$(EXE) # $(GRSRCS) $(GUISRCS)
+	buildinfo$(EXE) > $@
 
 $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $?
