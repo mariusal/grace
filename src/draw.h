@@ -61,6 +61,18 @@
 #define LINEJOIN_ROUND      1
 #define LINEJOIN_BEVEL      2
 
+/* Text string justifications */
+/* Horizontal */
+#define JUST_LEFT       0
+#define JUST_RIGHT      1
+#define JUST_CENTER     2
+
+/* Vertical */
+#define JUST_BLINE      0
+#define JUST_BOTTOM     4
+#define JUST_TOP        8
+#define JUST_MIDDLE    12
+
 /* Drawing properties */
 typedef struct {
     Pen pen;
@@ -171,6 +183,8 @@ void DrawEllipse(VPoint vp1, VPoint vp2);
 void DrawFilledEllipse(VPoint vp1, VPoint vp2);
 void DrawCircle(VPoint vp, double radius);
 void DrawFilledCircle(VPoint vp, double radius);
+
+void WriteString(VPoint vp, int rot, int just, char *theString);
 
 int is_wpoint_inside(WPoint *wp, world *w);
 int is_vpoint_inside(view v, VPoint vp, double epsilon);

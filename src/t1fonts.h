@@ -47,18 +47,6 @@
 #define FONT_MAP_DEFAULT    0
 #define FONT_MAP_ACEGR      1
 
-/* Text string justifications */
-/* Horizontal */
-#define JUST_LEFT       0
-#define JUST_RIGHT      1
-#define JUST_CENTER     2
-
-/* Vertical */
-#define JUST_BLINE      0
-#define JUST_BOTTOM     4
-#define JUST_TOP        8
-#define JUST_MIDDLE    12
-
 /* TODO */
 #define MAGIC_FONT_SCALE	0.028
 
@@ -127,6 +115,5 @@ GLYPH *CatGlyphs(GLYPH *dest_glyph, GLYPH *src_glyph,
                     int x_off, int y_off, int advancing);
 void FreeCompositeString(CompositeString *cs);
 CompositeString *String2Composite(char *string);
-void WriteString(VPoint vp, int rot, int just, char *theString);
 
 #endif /* __T1_FONTS_H_ */
