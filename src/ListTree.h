@@ -49,11 +49,13 @@
 #define XtNhighlightCallback	"highlightCallback"
 #define XtNmenuCallback		"menuCallback"
 #define XtNdestroyItemCallback	"destroyItemCallback"
+#define XtNdropCallback		"dropCallback"
 
 #define XtBRANCH	1
 #define XtLEAF		2
 #define XtMENU		3
 #define XtDESTROY	4
+#define XtDROP		5
 
 #ifdef __cplusplus
 extern "C" {
@@ -110,6 +112,12 @@ typedef struct _ListTreeItemReturnStruct {
   ListTreeItem	*item;
   XEvent	*event;
 } ListTreeItemReturnStruct;
+
+typedef struct _ListTreeDropStruct {
+  int		reason;
+  ListTreeItem	*item;
+  int		ok;
+} ListTreeDropStruct;
 
 /*
 ** Public function declarations

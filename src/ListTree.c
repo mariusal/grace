@@ -128,6 +128,8 @@ static XtResource resources[] =
    offset(MenuCallback), XtRCallback, NULL},
   {XtNdestroyItemCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
    offset(DestroyItemCallback), XtRCallback, NULL},
+  {XtNdropCallback, XtCCallback, XtRCallback, sizeof(XtPointer),
+   offset(DropCallback), XtRCallback, NULL},
 };
 
 #undef offset
@@ -161,6 +163,7 @@ static int SearchPosition(ListTreeWidget w, ListTreeItem *item, ListTreeItem *fi
 static void focus_in(Widget aw, XEvent *event, String *params, Cardinal *num_params);
 static void focus_out(Widget aw, XEvent *event, String *params, Cardinal *num_params);
 static void notify(Widget aw, XEvent *event, String *params, Cardinal *num_params);
+static void process_drag(Widget aw, XEvent *event, String *params, Cardinal *num_params);
 static void unset(Widget aw, XEvent *event, String *params, Cardinal *num_params);
 static void menu(Widget aw, XEvent *event, String *params, Cardinal *num_params);
 static void select_start(Widget aw, XEvent *event, String *params, Cardinal *num_params);
@@ -185,6 +188,7 @@ static void keypress(Widget aw, XEvent *event, String *params, Cardinal *num_par
 static char defaultTranslations[] = "\
 <FocusIn>:		focus-in()\n\
 <FocusOut>:		focus-out()\n\
+<Btn2Down>:             process-drag()\n\
 <Btn3Down>:             menu()\n\
 <Key>Return:            keypress()\n\
 <Key>osfUp:             keypress()\n\
@@ -199,6 +203,7 @@ static XtActionsRec actions[] =
 {
   {"focus-in", focus_in},
   {"focus-out", focus_out},
+  {"process-drag", process_drag},
   {"notify", notify},
   {"select-start", select_start},
   {"extend-select", extend_select},
@@ -1221,6 +1226,20 @@ notify(Widget aw, XEvent *event, String *params, Cardinal *num_params)
 
 /* ARGSUSED */
 static void
+process_drag(Widget aw, XEvent *event, String *params, Cardinal *num_params)
+{
+  ListTreeWidget w = (ListTreeWidget) aw;
+  ListTreeItem *item;
+
+  /* See if there is an item at the position of the click */
+  item = GetItem (w, event->xbutton.y);
+  if (item && item->highlighted) {
+    (void) XmDragStart(aw, event, NULL, 0);
+  }
+}
+
+/* ARGSUSED */
+static void
 focus_in(Widget aw, XEvent *event, String *params, Cardinal *num_params)
 {
   ListTreeWidget w = (ListTreeWidget) aw;
@@ -1259,7 +1278,7 @@ menu(Widget aw, XEvent *event, String *params, Cardinal *num_params)
 
   if (w->list.MenuCallback) {
     
-      /* See if there is an item at the position of the click */
+    /* See if there is an item at the position of the click */
     item=GetItem (w, event->xbutton.y);
   
     if (item) {
@@ -2361,13 +2380,33 @@ ListTreeGetPathnameFromItem(ListTreeItem * item, char *dir)
   }
 }
 
+static void
+DropProc(Widget aw, XtPointer client_data, XtPointer call_data)
+{
+  ListTreeWidget w = (ListTreeWidget) aw;
+  XmDragProcCallbackStruct *cbs = (XmDragProcCallbackStruct *) call_data;
+  ListTreeDropStruct ret;
+  ret.reason = XtDROP;
+  ret.ok = False;
+
+  if (w->list.DropCallback) {
+    ListTreeItem *item = GetItem(w, cbs->y);
+    if (item && !item->highlighted) {
+      ret.item = item;
+      XtCallCallbacks(aw, XtNdropCallback, &ret);
+    }
+  }
+  
+  XmDropTransferStart(cbs->dragContext, NULL, 0);
+}
+
 Widget
 XmCreateScrolledListTree(Widget parent, char *name, Arg *args, Cardinal count)
 {
-  Widget sw;
+  Widget sw, tw;
   char *sname;
   Cardinal i;
-  Arg *al;
+  Arg *al, al1[2];
   
   sname = XtMalloc(strlen(name)+3);
   strcpy(sname, name);
@@ -2387,5 +2426,11 @@ XmCreateScrolledListTree(Widget parent, char *name, Arg *args, Cardinal count)
   sw = XtCreateManagedWidget(sname, xmScrolledWindowWidgetClass, parent, al, i);
   XtFree((XtPointer)al);
   
-  return XtCreateWidget(name, listtreeWidgetClass, sw, args, count);
+  tw = XtCreateWidget(name, listtreeWidgetClass, sw, args, count);
+  al1[0].name = XmNdropProc;
+  al1[0].value = (XtArgVal) DropProc;
+  al1[1].name = XmNdropSiteOperations;
+  al1[1].value = XmDROP_MOVE;
+  XmDropSiteRegister(tw, al1, 2);
+  return tw;
 }

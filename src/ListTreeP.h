@@ -31,6 +31,7 @@
 #include <Xm/PrimitiveP.h>
 #include <Xm/ScrollBar.h>
 #include <Xm/ScrolledW.h>
+#include <Xm/DragDrop.h>
 
 #include "ListTree.h"
 
@@ -105,6 +106,7 @@ typedef struct {
   XtCallbackList ActivateCallback;
   XtCallbackList MenuCallback;
   XtCallbackList DestroyItemCallback;
+  XtCallbackList DropCallback;
 
   /* Private stuff ... */
   GC drawGC;
