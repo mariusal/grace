@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.2 2001-12-26 21:10:33 fnevgeny Exp $
+ * $Id: Methods.c,v 1.3 2005-02-14 00:24:17 fnevgeny Exp $
  */
 
 /*
@@ -2752,8 +2752,8 @@ Boolean unmap;
      */
     if (commit && unmap)
     {
+	XmProcessTraversal(TextChild(mw), XmTRAVERSE_CURRENT);
 	XtUnmanageChild(TextChild(mw));
-	XmProcessTraversal(TextChild(mw), XmTRAVERSE_RIGHT);
     }
 
     return commit;
@@ -2779,8 +2779,8 @@ Boolean unmap;
      */
     if (unmap)
     {
+	XmProcessTraversal(TextChild(mw), XmTRAVERSE_CURRENT);
 	XtUnmanageChild(TextChild(mw));
-	XmProcessTraversal(TextChild(mw), XmTRAVERSE_RIGHT);
     }
 
     /*
