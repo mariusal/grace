@@ -733,7 +733,9 @@ static void show_cb(Widget but, void *udata)
 
 static void delete_cb(Widget but, void *udata)
 {
-    popup_any_cb((ExplorerUI *) udata, DELETE_CB);
+    if (yesno("Really delete selected item(s)?", NULL, NULL, NULL)) {
+        popup_any_cb((ExplorerUI *) udata, DELETE_CB);
+    }
 }
 
 static void duplicate_cb(Widget but, void *udata)

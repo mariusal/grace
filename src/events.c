@@ -331,7 +331,9 @@ static void hide_cb(Widget but, void *udata)
 
 static void delete_cb(Widget but, void *udata)
 {
-    popup_any_cb((canvas_target *) udata, DELETE_CB);
+    if (yesno("Really delete this item?", NULL, NULL, NULL)) {
+        popup_any_cb((canvas_target *) udata, DELETE_CB);
+    }
 }
 
 static void duplicate_cb(Widget but, void *udata)

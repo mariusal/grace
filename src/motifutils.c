@@ -1023,7 +1023,9 @@ static void ss_show_cb(Widget but, void *udata)
 
 static void ss_delete_cb(Widget but, void *udata)
 {
-    ss_any_cb((StorageStructure *) udata, SS_DELETE_CB);
+    if (yesno("Really delete selected item(s)?", NULL, NULL, NULL)) {
+        ss_any_cb((StorageStructure *) udata, SS_DELETE_CB);
+    }
 }
 
 static void ss_duplicate_cb(Widget but, void *udata)
