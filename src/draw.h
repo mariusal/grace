@@ -364,6 +364,8 @@ void canvas_set_docname(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
 
+void setclipping(Canvas *canvas, int flag);
+
 void setbgcolor(Canvas *canvas, int bgcolor);
 void setpen(Canvas *canvas, const Pen *pen);
 void setline(Canvas *canvas, const Line *line);
@@ -392,28 +394,23 @@ int getfont(const Canvas *canvas);
 void leavegraphics(Canvas *canvas);
 
 void DrawPixel(Canvas *canvas, const VPoint *vp);
-void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
-void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
-void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
 void DrawPolygon(Canvas *canvas, const VPoint *vps, int n);
 void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     int angle1, int angle2);
 void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     int angle1, int angle2, int mode);
+void WriteString(Canvas *canvas,
+    const VPoint *vp, double angle, int just, const char *s);
+
+void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawCircle(Canvas *canvas, const VPoint *vp, double radius);
 void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius);
-void WriteString(Canvas *canvas,
-    const VPoint *vp, double angle, int just, const char *s);
 
-void setclipping(Canvas *canvas, int fl);
-int  getclipping(const Canvas *canvas);
-
-void symplus(Canvas *canvas, const VPoint *vp, double s);
-void symx(Canvas *canvas, const VPoint *vp, double s);
-void symsplat(Canvas *canvas, const VPoint *vp, double s);
 
 int is_validVPoint(const Canvas *canvas, const VPoint *vp);
 
@@ -425,7 +422,7 @@ void update_bbox(Canvas *canvas, int type, const VPoint *vp);
 void update_bboxes(Canvas *canvas, const VPoint *vp);
 int melt_bbox(Canvas *canvas, int type);
 void activate_bbox(Canvas *canvas, int type, int status);
-int update_bboxes_with_view(Canvas *canvas, view *v);
+int update_bboxes_with_view(Canvas *canvas, const view *v);
 int update_bboxes_with_vpoints(Canvas *canvas,
     const VPoint *vps, int n, double lw);
 
@@ -446,10 +443,8 @@ int merge_bboxes(const view *v1, const view *v2, view *v);
 void vpswap(VPoint *vp1, VPoint *vp2);
 int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
 
-int is_wpoint_inside(WPoint *wp, world *w);
 int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon);
 
-int is_validWPoint(WPoint wp);
 VPoint *line_intersect(const VPoint *vp1, const VPoint *vp2,
     const VPoint *vp1p, const VPoint *vp2p, int mode);
 int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p);
@@ -467,9 +462,6 @@ CMap_entry *get_cmap_entry(const Canvas *canvas, unsigned int cindex);
 char *get_colorname(const Canvas *canvas, unsigned int cindex);
 int get_colortype(const Canvas *canvas, unsigned int cindex);
 
-int RGB2YIQ(const RGB *rgb, YIQ *yiq);
-int RGB2CMY(const RGB *rgb, CMY *cmy);
-
 double get_colorintensity(const Canvas *canvas, int cindex);
 
 int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
@@ -479,7 +471,6 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
 void initialize_cmap(Canvas *canvas);
 void reverse_video(Canvas *canvas);
 int is_video_reversed(const Canvas *canvas);
-
 
 int init_t1(Canvas *canvas);
 
@@ -505,15 +496,18 @@ int get_font_by_name(const Canvas *canvas, const char *fname);
 int get_font_mapped_id(const Canvas *canvas, int font);
 int get_mapped_font(const Canvas *canvas, int mapped_id);
 
-
+int number_of_colors(const Canvas *canvas);
+int number_of_patterns(const Canvas *canvas);
+int number_of_linestyles(const Canvas *canvas);
 
 
 char *scale_types(ScaleType it);
 ScaleType get_scale_type_by_name(const char *name);
 
-int checkon_world(int gno);
-int checkon_viewport(int gno);
-int isvalid_viewport(view v);
+int isvalid_viewport(const view *v);
+
+int is_wpoint_inside(WPoint *wp, world *w);
+int is_validWPoint(WPoint wp);
 
 double fscale(double wc, int scale);
 double ifscale(double vc, int scale);
@@ -530,9 +524,5 @@ void view2world(double xv, double yv, double *xw, double *yw);
 int definewindow(world w, view v, int gtype,
                  int xscale, int yscale,
                  int xinv, int yinv);
-
-int number_of_colors(const Canvas *canvas);
-int number_of_patterns(const Canvas *canvas);
-int number_of_linestyles(const Canvas *canvas);
 
 #endif /* __DRAW_H_ */

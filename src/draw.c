@@ -50,18 +50,11 @@ int ReqUpdateColorSel = FALSE;  /* a part of pre-GUI layer; should be in
 
 static int all_points_inside(Canvas *canvas, const VPoint *vps, int n);
 static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
+static int realloc_colors(Canvas *canvas, int n);
+static int RGB2YIQ(const RGB *rgb, YIQ *yiq);
+static int RGB2CMY(const RGB *rgb, CMY *cmy);
 
-static world worldwin;
 static view viewport;
-static int coordinates;
-static int scaletypex;
-static int scaletypey;
-static double xv_med;
-static double yv_med;
-static double xv_rc;
-static double yv_rc;
-static double fxg_med;
-static double fyg_med;
 
 /* Default drawing properties */
 static DrawProps default_draw_props = 
@@ -104,6 +97,14 @@ void canvas_free(Canvas *canvas)
     }
 }
 
+/*
+ * clip if clipflag = TRUE
+ */
+void setclipping(Canvas *canvas, int flag)
+{
+    canvas->clipflag = flag;
+}
+
 void canvas_set_username(Canvas *canvas, const char *s)
 {
     canvas->username = copy_string(canvas->username, s);
@@ -114,16 +115,16 @@ void canvas_set_docname(Canvas *canvas, const char *s)
     canvas->docname = copy_string(canvas->docname, s);
 }
 
-char *canvas_get_username(const Canvas *canvas)
+
+void set_draw_mode(Canvas *canvas, int mode)
 {
-    return canvas->username;
+    canvas->draw_mode = mode ? TRUE:FALSE;
 }
 
-char *canvas_get_docname(const Canvas *canvas)
+void set_max_path_limit(Canvas *canvas, int limit)
 {
-    return canvas->docname;
+    canvas->max_path_length = limit;
 }
-
 
 /*
  * set pen properties
@@ -275,46 +276,26 @@ int getfont(const Canvas *canvas)
     return canvas->draw_props.font;
 }
 
-
-void symplus(Canvas *canvas, const VPoint *vp, double s)
+char *canvas_get_username(const Canvas *canvas)
 {
-    VPoint vp1, vp2;
-    vp1.x = vp->x - s;
-    vp1.y = vp->y;
-    vp2.x = vp->x + s;
-    vp2.y = vp->y;
-    
-    DrawLine(canvas, &vp1, &vp2);
-    vp1.x = vp->x;
-    vp1.y = vp->y - s;
-    vp2.x = vp->x;
-    vp2.y = vp->y + s;
-    DrawLine(canvas, &vp1, &vp2);
+    return canvas->username;
 }
 
-void symx(Canvas *canvas, const VPoint *vp, double s)
+char *canvas_get_docname(const Canvas *canvas)
 {
-    VPoint vp1, vp2;
-    double side = M_SQRT1_2*s;
-    
-    vp1.x = vp->x - side;
-    vp1.y = vp->y - side;
-    vp2.x = vp->x + side;
-    vp2.y = vp->y + side;
-    DrawLine(canvas, &vp1, &vp2);
-    
-    vp1.x = vp->x - side;
-    vp1.y = vp->y + side;
-    vp2.x = vp->x + side;
-    vp2.y = vp->y - side;
-    DrawLine(canvas, &vp1, &vp2);
+    return canvas->docname;
 }
 
-void symsplat(Canvas *canvas, const VPoint *vp, double s)
+int get_draw_mode(const Canvas *canvas)
 {
-    symplus(canvas, vp, s);
-    symx(canvas, vp, s);
+    return (canvas->draw_mode);
 }
+
+int get_max_path_limit(const Canvas *canvas)
+{
+    return canvas->max_path_length;
+}
+
 
 
 void leavegraphics(Canvas *canvas)
@@ -335,45 +316,6 @@ void DrawPixel(Canvas *canvas, const VPoint *vp)
          update_bboxes(canvas, vp);
      }
 }
-
-/*
- * DrawRect - draw a rectangle using the current color and linestyle
- */
-void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
-{
-    VPoint vps[4];
-    
-    vps[0].x = vp1->x;
-    vps[0].y = vp1->y;
-    vps[1].x = vp1->x;
-    vps[1].y = vp2->y;
-    vps[2].x = vp2->x;
-    vps[2].y = vp2->y;
-    vps[3].x = vp2->x;
-    vps[3].y = vp1->y;
-    
-    DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
-}
-
-/*
- * DrawRect - draw a rectangle using the current color and linestyle
- */
-void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
-{
-    VPoint vps[4];
-    
-    vps[0].x = vp1->x;
-    vps[0].y = vp1->y;
-    vps[1].x = vp1->x;
-    vps[1].y = vp2->y;
-    vps[2].x = vp2->x;
-    vps[2].y = vp2->y;
-    vps[3].x = vp2->x;
-    vps[3].y = vp1->y;
-    
-    DrawPolygon(canvas, vps, 4);
-}
-
 
 /*
  * DrawPolyline - draw a connected line in the current color and linestyle
@@ -406,7 +348,7 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
  *  in most real cases, all points of a set are inside the viewport;
  *  so we check it prior to going into compilated clipping mode
  */
-    if (getclipping(canvas) && !all_points_inside(canvas, vps, n)) {
+    if (canvas->clipflag && !all_points_inside(canvas, vps, n)) {
         
         vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
@@ -474,20 +416,6 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
 }
 
 /*
- * DrawLine - draw a straight line in the current color and linestyle
- *            with nodes given by vp1 and vp2
- */
-void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
-{
-    VPoint vps[2];
-    
-    vps[0] = *vp1;
-    vps[1] = *vp2;
-    
-    DrawPolyline(canvas, vps, 2, POLYLINE_OPEN);
-}
-
-/*
  * DrawPolygon - draw a filled polygon in the current color and pattern
  *      with nodes given by vps[]
  */
@@ -505,7 +433,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
 
     max_purge = get_max_path_limit(canvas);
     
-    if (getclipping(canvas) && !all_points_inside(canvas, vps, n)) {
+    if (canvas->clipflag && !all_points_inside(canvas, vps, n)) {
         /* In the worst case, the clipped polygon may have twice more vertices */
         vptmp = xmalloc((2*n) * sizeof(VPoint));
         if (vptmp == NULL) {
@@ -553,7 +481,8 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
 /*
  * DrawArc - draw an arc line 
  */
-void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2, int angle1, int angle2)
+void DrawArc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int angle1, int angle2)
 {
     view v;
     
@@ -575,7 +504,8 @@ void DrawArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2, int angle1, i
 /*
  * DrawFilledArc - draw a filled arc 
  */
-void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2, int angle1, int angle2, int mode)
+void DrawFilledArc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int angle1, int angle2, int mode)
 {
     if (getpattern(canvas) == 0) {
         return;
@@ -593,6 +523,60 @@ void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2, int ang
     /* TODO: consider open arcs! */
     update_bboxes(canvas, vp1);
     update_bboxes(canvas, vp2);
+}
+
+
+
+/*
+ * DrawRect - draw a rectangle using the current color and linestyle
+ */
+void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
+{
+    VPoint vps[4];
+    
+    vps[0].x = vp1->x;
+    vps[0].y = vp1->y;
+    vps[1].x = vp1->x;
+    vps[1].y = vp2->y;
+    vps[2].x = vp2->x;
+    vps[2].y = vp2->y;
+    vps[3].x = vp2->x;
+    vps[3].y = vp1->y;
+    
+    DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
+}
+
+/*
+ * DrawRect - draw a rectangle using the current color and linestyle
+ */
+void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
+{
+    VPoint vps[4];
+    
+    vps[0].x = vp1->x;
+    vps[0].y = vp1->y;
+    vps[1].x = vp1->x;
+    vps[1].y = vp2->y;
+    vps[2].x = vp2->x;
+    vps[2].y = vp2->y;
+    vps[3].x = vp2->x;
+    vps[3].y = vp1->y;
+    
+    DrawPolygon(canvas, vps, 4);
+}
+
+/*
+ * DrawLine - draw a straight line in the current color and linestyle
+ *            with nodes given by vp1 and vp2
+ */
+void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
+{
+    VPoint vps[2];
+    
+    vps[0] = *vp1;
+    vps[1] = *vp2;
+    
+    DrawPolyline(canvas, vps, 2, POLYLINE_OPEN);
 }
 
 /*
@@ -642,45 +626,65 @@ void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius)
 }
 
 
+
 /* 
  * ------------------ Clipping routines ---------------
  */
 
-/*
- * clip if clipflag = TRUE
- */
-void setclipping(Canvas *canvas, int flag)
+void vpswap(VPoint *vp1, VPoint *vp2)
 {
-    canvas->clipflag = flag ? TRUE:FALSE;
+    VPoint vptmp;
+
+    vptmp = *vp1;
+    *vp1 = *vp2;
+    *vp2 = vptmp;
 }
 
-/*
- * 
- */
-int getclipping(const Canvas *canvas)
+int isvalid_viewport(const view *v)
 {
-    return (canvas->clipflag ? TRUE:FALSE);
+    if ((v->xv2 <= v->xv1) || (v->yv2 <= v->yv1)) {
+	return FALSE;
+    } else {
+        return TRUE;
+    }
 }
 
-
-/*
- * Convert point's world coordinates to viewport
- */
-VPoint Wpoint2Vpoint(WPoint wp)
+int points_overlap(const Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
 {
-    VPoint vp;
-    world2view(wp.x, wp.y, &vp.x, &vp.y);
-    return (vp);
+    double delta;
+    
+    delta = 1.0/MIN2(page_width(canvas), page_height(canvas));
+    if (fabs(vp2->x - vp1->x) < delta || fabs(vp2->y - vp1->y) < delta) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
 }
 
-/*
- * is_wpoint_inside() checks if point qp is inside of world rectangle w
- */
-int is_wpoint_inside(WPoint *wp, world *w)
+int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb)
 {
-    return ((wp->x >= w->xg1) && (wp->x <= w->xg2) &&
-            (wp->y >= w->yg1) && (wp->y <= w->yg2));
+    if (!bb || !vp1 || !vp2) {
+        return RETURN_FAILURE;
+    } else {
+        if (vp1->x <= vp2->x) {
+            bb->xv1 = vp1->x;
+            bb->xv2 = vp2->x;
+        } else {
+            bb->xv1 = vp2->x;
+            bb->xv2 = vp1->x;
+        }
+        if (vp1->y <= vp2->y) {
+            bb->yv1 = vp1->y;
+            bb->yv2 = vp2->y;
+        } else {
+            bb->yv1 = vp2->y;
+            bb->yv2 = vp1->y;
+        }
+        
+        return RETURN_SUCCESS;
+    }
 }
+
 
 /* some to avoid round errors due to the finite FP precision */
 #define VP_EPSILON  0.0001
@@ -694,52 +698,20 @@ int is_vpoint_inside(const view *v, const VPoint *vp, double epsilon)
             (vp->y >= v->yv1 - epsilon) && (vp->y <= v->yv2 + epsilon));
 }
 
-static int all_points_inside(Canvas *canvas, const VPoint *vps, int n)
+static int is_inside_boundary(const VPoint *vp,
+    const VPoint *vp1c, const VPoint *vp2c)
 {
-    int i;
-    
-    for (i = 0; i < n; i++) {
-        if (is_vpoint_inside(&viewport, &vps[i], VP_EPSILON) != TRUE) {
-            return FALSE;
-        }
-    }
-    return TRUE;
-}
-
-/*
- * is_validVPoint() checks if a point is inside of (current) graph viewport
- */
-int is_validVPoint(const Canvas *canvas, const VPoint *vp)
-{
-    if (getclipping(canvas)) {
-        return (is_vpoint_inside(&viewport, vp, VP_EPSILON));
-    } else {
+    /* vector product should be positive if vp1c, vp2c and vp lie 
+     * counter-clockwise
+     */
+    if ((vp2c->x - vp1c->x)*(vp->y   - vp2c->y) -
+        (vp->x   - vp2c->x)*(vp2c->y - vp1c->y) >= 0.0){
         return TRUE;
+    } else {
+        return FALSE;
     }
 }
 
-/*
- * is_validWPoint() checks if a point is inside of (current) world rectangle
- */
-int is_validWPoint(WPoint wp)
-{
-    if (coordinates == COORDINATES_POLAR) {
-        if (wp.y >= 0.0 && wp.y <= worldwin.yg2) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    } else {
-        if (((wp.x >= worldwin.xg1 && wp.x <= worldwin.xg2) ||
-             (wp.x >= worldwin.xg2 && wp.x <= worldwin.xg1)) &&
-            ((wp.y >= worldwin.yg1 && wp.y <= worldwin.yg2) ||
-             (wp.y >= worldwin.yg2 && wp.y <= worldwin.yg1))) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
-}
 
 #define LINE_FINITE     0
 #define LINE_INFINITE   1
@@ -792,6 +764,101 @@ VPoint *line_intersect(const VPoint *vp1, const VPoint *vp2,
         } else {
             return NULL;
         }
+    }
+}
+
+/* size of buffer array used in polygon clipping */
+static int polybuf_length;
+
+int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p)
+{
+    int i, nc, ishift;
+    VPoint vp1, vp2, *vpp;
+    
+    nc = 0;
+    ishift = polybuf_length - n;
+    
+    memmove(vps + ishift, vps, n * sizeof(VPoint));
+    
+    vp1 = vps[polybuf_length - 1];
+    for (i = ishift; i < polybuf_length; i++) {
+        vp2 = vps[i];
+        if (is_inside_boundary(&vp2, vp1p, vp2p)) {
+            if (is_inside_boundary(&vp1, vp1p, vp2p)) {
+                vps[nc] = vp2;
+                nc++;
+            } else {
+                vpp = line_intersect(&vp1, &vp2, vp1p, vp2p, LINE_INFINITE);
+                if (vpp != NULL) {
+                    vps[nc] = *vpp;
+                    nc++;
+                }
+                vps[nc] = vp2;
+                nc++;
+            }
+        } else if (is_inside_boundary(&vp1, vp1p, vp2p)) {
+            vpp = line_intersect(&vp1, &vp2, vp1p, vp2p, LINE_INFINITE);
+            if (vpp != NULL) {
+                vps[nc] = *vpp;
+                nc++;
+            }
+        }
+        vp1 = vp2;
+    }
+    
+    return nc;
+}
+
+int clip_polygon(VPoint *vps, int n)
+{
+    int nc, na;
+    VPoint vpsa[5];
+    
+    polybuf_length = 2*n;
+    
+    vpsa[0].x = viewport.xv1;
+    vpsa[0].y = viewport.yv1;
+    vpsa[1].x = viewport.xv2;
+    vpsa[1].y = viewport.yv1;
+    vpsa[2].x = viewport.xv2;
+    vpsa[2].y = viewport.yv2;
+    vpsa[3].x = viewport.xv1;
+    vpsa[3].y = viewport.yv2;
+    vpsa[4] = vpsa[0];
+    
+    nc = n;
+    for (na = 0; na < 4; na++) {
+        nc = intersect_polygon(vps, nc, &vpsa[na], &vpsa[na + 1]);
+        if (nc < 2) {
+            break;
+        }
+    }
+    
+    return nc;
+}
+
+
+static int all_points_inside(Canvas *canvas, const VPoint *vps, int n)
+{
+    int i;
+    
+    for (i = 0; i < n; i++) {
+        if (is_vpoint_inside(&viewport, &vps[i], VP_EPSILON) != TRUE) {
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
+
+/*
+ * is_validVPoint() checks if a point is inside of (current) graph viewport
+ */
+int is_validVPoint(const Canvas *canvas, const VPoint *vp)
+{
+    if (canvas->clipflag) {
+        return (is_vpoint_inside(&viewport, vp, VP_EPSILON));
+    } else {
+        return TRUE;
     }
 }
 
@@ -870,91 +937,151 @@ int clip_line(const Canvas *canvas,
     }
 }
 
-static int is_inside_boundary(const VPoint *vp, const VPoint *vp1c, const VPoint *vp2c)
+
+#define PURGE_INIT_FACTOR   1.0
+#define PURGE_ITER_FACTOR   M_SQRT2
+
+/* Note: vps and pvps may be the same array! */
+static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
 {
-    /* vector product should be positive if vp1c, vp2c and vp lie 
-     * counter-clockwise
-     */
-    if ((vp2c->x - vp1c->x)*(vp->y - vp2c->y) - (vp->x - vp2c->x)*(vp2c->y - vp1c->y) >= 0.0){
-        return TRUE;
-    } else {
-        return FALSE;
+    int i, j, iter;
+    int ok;
+    double eps;
+    VPoint vptmp;
+    
+    if (n <= *np) {
+        memmove(pvps, vps, n*sizeof(VPoint));
     }
-}
-
-/* size of buffer array used in polygon clipping */
-static int polybuf_length;
-
-int intersect_polygon(VPoint *vps, int n, const VPoint *vp1p, const VPoint *vp2p)
-{
-    int i, nc, ishift;
-    VPoint vp1, vp2, *vpp;
     
-    nc = 0;
-    ishift = polybuf_length - n;
+    if (*np <= 0) {
+        *np = 0;
+        return;
+    }
     
-    memmove(vps + ishift, vps, n * sizeof(VPoint));
-    
-    vp1 = vps[polybuf_length - 1];
-    for (i = ishift; i < polybuf_length; i++) {
-        vp2 = vps[i];
-        if (is_inside_boundary(&vp2, vp1p, vp2p)) {
-            if (is_inside_boundary(&vp1, vp1p, vp2p)) {
-                vps[nc] = vp2;
-                nc++;
-            } else {
-                vpp = line_intersect(&vp1, &vp2, vp1p, vp2p, LINE_INFINITE);
-                if (vpp != NULL) {
-                    vps[nc] = *vpp;
-                    nc++;
+    /* Start with 1/np epsilon */
+    eps = PURGE_INIT_FACTOR/(*np);
+    iter = 0;
+    ok = FALSE;
+    while (ok == FALSE) {
+        j = 0;
+        vptmp = vps[0];
+        for (i = 0; i < n - 1; i++) {
+            if (fabs(vps[i].x - vptmp.x) > eps ||
+                fabs(vps[i].y - vptmp.y) > eps) {
+                vptmp = vps[i];
+                j++;
+                if (j >= *np) {
+                    break;
                 }
-                vps[nc] = vp2;
-                nc++;
-            }
-        } else if (is_inside_boundary(&vp1, vp1p, vp2p)) {
-            vpp = line_intersect(&vp1, &vp2, vp1p, vp2p, LINE_INFINITE);
-            if (vpp != NULL) {
-                vps[nc] = *vpp;
-                nc++;
             }
         }
-        vp1 = vp2;
+        if (j < *np - 1) {
+            ok = TRUE;
+        } else {
+            eps *= PURGE_ITER_FACTOR;
+        }
+        iter++;
     }
-    
-    return nc;
-}
 
-int clip_polygon(VPoint *vps, int n)
-{
-    int nc, na;
-    VPoint vpsa[5];
-    
-    polybuf_length = 2*n;
-    
-    vpsa[0].x = viewport.xv1;
-    vpsa[0].y = viewport.yv1;
-    vpsa[1].x = viewport.xv2;
-    vpsa[1].y = viewport.yv1;
-    vpsa[2].x = viewport.xv2;
-    vpsa[2].y = viewport.yv2;
-    vpsa[3].x = viewport.xv1;
-    vpsa[3].y = viewport.yv2;
-    vpsa[4] = vpsa[0];
-    
-    nc = n;
-    for (na = 0; na < 4; na++) {
-        nc = intersect_polygon(vps, nc, &vpsa[na], &vpsa[na + 1]);
-        if (nc < 2) {
-            break;
+    /* actually fill the purged array */
+    pvps[0] = vps[0];
+    j = 0;
+    for (i = 0; i < n - 1; i++) {
+        if (fabs(vps[i].x - pvps[j].x) > eps ||
+            fabs(vps[i].y - pvps[j].y) > eps) {
+            pvps[++j] = vps[i];
         }
     }
+    pvps[j++] = vps[n - 1];
     
-    return nc;
+    *np = j;
+#ifdef DEBUG    
+    if (get_debuglevel() == 6) {
+        printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
+    }
+#endif
 }
 
 /* 
  * ------------------ Colormap routines ---------------
  */
+
+static int RGB2YIQ(const RGB *rgb, YIQ *yiq)
+{
+    if (is_valid_color(rgb)) {
+        yiq->y = (0.299*rgb->red + 0.587*rgb->green + 0.114*rgb->blue)
+                                                            /(MAXCOLORS - 1);
+        yiq->i = (0.596*rgb->red - 0.275*rgb->green - 0.321*rgb->blue)
+                                                            /(MAXCOLORS - 1);
+        yiq->q = (0.212*rgb->red - 0.528*rgb->green + 0.311*rgb->blue)
+                                                             /(MAXCOLORS - 1);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static int RGB2CMY(const RGB *rgb, CMY *cmy)
+{
+    if (is_valid_color(rgb)) {
+        cmy->cyan    = MAXCOLORS - 1 - rgb->red;
+        cmy->magenta = MAXCOLORS - 1 - rgb->green;
+        cmy->yellow  = MAXCOLORS - 1 - rgb->blue;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+static CMap_entry cmap_init[] = {
+    /* white  */
+    {{255, 255, 255}, "white", COLOR_MAIN, 0},
+    /* black  */
+    {{0, 0, 0}, "black", COLOR_MAIN, 0},
+    /* red    */
+    {{255, 0, 0}, "red", COLOR_MAIN, 0},
+    /* green  */
+    {{0, 255, 0}, "green", COLOR_MAIN, 0},
+    /* blue   */
+    {{0, 0, 255}, "blue", COLOR_MAIN, 0},
+    /* yellow */
+    {{255, 255, 0}, "yellow", COLOR_MAIN, 0},
+    /* brown  */
+    {{188, 143, 143}, "brown", COLOR_MAIN, 0},
+    /* grey   */
+    {{220, 220, 220}, "grey", COLOR_MAIN, 0},
+    /* violet */
+    {{148, 0, 211}, "violet", COLOR_MAIN, 0},
+    /* cyan   */
+    {{0, 255, 255}, "cyan", COLOR_MAIN, 0},
+    /* magenta*/
+    {{255, 0, 255}, "magenta", COLOR_MAIN, 0},
+    /* orange */
+    {{255, 165, 0}, "orange", COLOR_MAIN, 0},
+    /* indigo */
+    {{114, 33, 188}, "indigo", COLOR_MAIN, 0},
+    /* maroon */
+    {{103, 7, 72}, "maroon", COLOR_MAIN, 0},
+    /* turquoise */
+    {{64, 224, 208}, "turquoise", COLOR_MAIN, 0},
+    /* forest green */
+    {{0, 139, 0}, "green4", COLOR_MAIN, 0}
+};
+
+/*
+ * initialize_cmap()
+ *    Initialize the colormap segment data and setup the RGB values.
+ */
+void initialize_cmap(Canvas *canvas)
+{
+    int i, n;
+    
+    n = sizeof(cmap_init)/sizeof(CMap_entry);
+    realloc_colors(canvas, n);
+    for (i = 0; i < n; i++) {
+        store_color(canvas, i, &cmap_init[i]);
+    }
+}
 
 int number_of_colors(const Canvas *canvas)
 {
@@ -1155,33 +1282,6 @@ int get_colortype(const Canvas *canvas, unsigned int cindex)
     }
 }
 
-int RGB2YIQ(const RGB *rgb, YIQ *yiq)
-{
-    if (is_valid_color(rgb)) {
-        yiq->y = (0.299*rgb->red + 0.587*rgb->green + 0.114*rgb->blue)
-                                                            /(MAXCOLORS - 1);
-        yiq->i = (0.596*rgb->red - 0.275*rgb->green - 0.321*rgb->blue)
-                                                            /(MAXCOLORS - 1);
-        yiq->q = (0.212*rgb->red - 0.528*rgb->green + 0.311*rgb->blue)
-                                                             /(MAXCOLORS - 1);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int RGB2CMY(const RGB *rgb, CMY *cmy)
-{
-    if (is_valid_color(rgb)) {
-        cmy->cyan    = MAXCOLORS - 1 - rgb->red;
-        cmy->magenta = MAXCOLORS - 1 - rgb->green;
-        cmy->yellow  = MAXCOLORS - 1 - rgb->blue;
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
 double get_colorintensity(const Canvas *canvas, int cindex)
 {
     RGB rgb;
@@ -1237,56 +1337,6 @@ int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk)
     }
 }
 
-static CMap_entry cmap_init[] = {
-    /* white  */
-    {{255, 255, 255}, "white", COLOR_MAIN, 0},
-    /* black  */
-    {{0, 0, 0}, "black", COLOR_MAIN, 0},
-    /* red    */
-    {{255, 0, 0}, "red", COLOR_MAIN, 0},
-    /* green  */
-    {{0, 255, 0}, "green", COLOR_MAIN, 0},
-    /* blue   */
-    {{0, 0, 255}, "blue", COLOR_MAIN, 0},
-    /* yellow */
-    {{255, 255, 0}, "yellow", COLOR_MAIN, 0},
-    /* brown  */
-    {{188, 143, 143}, "brown", COLOR_MAIN, 0},
-    /* grey   */
-    {{220, 220, 220}, "grey", COLOR_MAIN, 0},
-    /* violet */
-    {{148, 0, 211}, "violet", COLOR_MAIN, 0},
-    /* cyan   */
-    {{0, 255, 255}, "cyan", COLOR_MAIN, 0},
-    /* magenta*/
-    {{255, 0, 255}, "magenta", COLOR_MAIN, 0},
-    /* orange */
-    {{255, 165, 0}, "orange", COLOR_MAIN, 0},
-    /* indigo */
-    {{114, 33, 188}, "indigo", COLOR_MAIN, 0},
-    /* maroon */
-    {{103, 7, 72}, "maroon", COLOR_MAIN, 0},
-    /* turquoise */
-    {{64, 224, 208}, "turquoise", COLOR_MAIN, 0},
-    /* forest green */
-    {{0, 139, 0}, "green4", COLOR_MAIN, 0}
-};
-
-/*
- * initialize_cmap()
- *    Initialize the colormap segment data and setup the RGB values.
- */
-void initialize_cmap(Canvas *canvas)
-{
-    int i, n;
-    
-    n = sizeof(cmap_init)/sizeof(CMap_entry);
-    realloc_colors(canvas, n);
-    for (i = 0; i < n; i++) {
-        store_color(canvas, i, &cmap_init[i]);
-    }
-}
-
 void reverse_video(Canvas *canvas)
 {
     CMap_entry ctmp;
@@ -1320,9 +1370,315 @@ int number_of_linestyles(const Canvas *canvas)
     return MAXLINESTYLES;
 }
 
+
+/*
+ * ---------------- bbox utilities --------------------
+ */
+
+static const view invalid_view = {0.0, 0.0, 0.0, 0.0};
+
+void reset_bbox(Canvas *canvas, int type)
+{
+    view *vp;
+    
+    switch(type) {
+    case BBOX_TYPE_GLOB:
+        vp = &(canvas->bboxes[0].v);
+        break;
+    case BBOX_TYPE_TEMP:
+        vp = &(canvas->bboxes[1].v);
+        break;
+    default:
+        errmsg ("Incorrect call of reset_bbox()");
+        return;
+    }
+    *vp = invalid_view;
+}
+
+void reset_bboxes(Canvas *canvas)
+{
+    reset_bbox(canvas, BBOX_TYPE_GLOB);
+    reset_bbox(canvas, BBOX_TYPE_TEMP);
+}
+
+void freeze_bbox(Canvas *canvas, int type)
+{
+    BBox_type *bbp;
+    
+    switch (type) {
+    case BBOX_TYPE_GLOB:
+        bbp = &canvas->bboxes[0];
+        break;
+    case BBOX_TYPE_TEMP:
+        bbp = &canvas->bboxes[1];
+        break;
+    default:
+        errmsg ("Incorrect call of freeze_bbox()");
+        return;
+    }
+    bbp->fv = bbp->v;
+}
+
+int get_bbox(const Canvas *canvas, int type, view *v)
+{
+    switch (type) {
+    case BBOX_TYPE_GLOB:
+        *v = canvas->bboxes[0].v;
+        break;
+    case BBOX_TYPE_TEMP:
+        *v = canvas->bboxes[1].v;
+        break;
+    default:
+        *v = invalid_view;
+        errmsg ("Incorrect call of get_bbox()");
+        return RETURN_FAILURE;
+    }
+    return RETURN_SUCCESS;
+}
+
+int is_valid_bbox(const view *v)
+{
+    if ((v->xv1 == invalid_view.xv1) &&
+        (v->xv2 == invalid_view.xv2) &&
+        (v->yv1 == invalid_view.yv1) &&
+        (v->yv2 == invalid_view.yv2)) {
+        return (FALSE);
+    } else {
+        return (TRUE);
+    }
+}
+
+int merge_bboxes(const view *v1, const view *v2, view *v)
+{
+    if (!is_valid_bbox(v1)) {
+        if (is_valid_bbox(v2)) {
+            *v = *v2;
+            return RETURN_SUCCESS;
+        } else {
+            *v = invalid_view;
+            return RETURN_FAILURE;
+        }
+    } else if (!is_valid_bbox(v2)) {
+        *v = *v1;
+        return RETURN_SUCCESS;
+    } else {
+        v->xv1 = MIN2(v1->xv1, v2->xv1);
+        v->xv2 = MAX2(v1->xv2, v2->xv2);
+        v->yv1 = MIN2(v1->yv1, v2->yv1);
+        v->yv2 = MAX2(v1->yv2, v2->yv2);
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+void update_bbox(Canvas *canvas, int type, const VPoint *vp)
+{
+    BBox_type *bbp;
+    
+    switch (type) {
+    case BBOX_TYPE_GLOB:
+        /* Global bbox is updated only with real drawings */
+        if (get_draw_mode(canvas) == FALSE) {
+            return;
+        }
+        bbp = &canvas->bboxes[0];
+        break;
+    case BBOX_TYPE_TEMP:
+        bbp = &canvas->bboxes[1];
+        break;
+    default:
+        errmsg ("Incorrect call of update_bbox()");
+        return;
+    }
+    if (bbp->active == TRUE) {
+        if (is_vpoint_inside(&bbp->v, vp, 0.0) == FALSE) {
+            if (is_valid_bbox(&bbp->v)) {
+                bbp->v.xv1 = MIN2(bbp->v.xv1, vp->x);
+                bbp->v.xv2 = MAX2(bbp->v.xv2, vp->x);
+                bbp->v.yv1 = MIN2(bbp->v.yv1, vp->y);
+                bbp->v.yv2 = MAX2(bbp->v.yv2, vp->y);
+            } else {
+                bbp->v.xv1 = vp->x;
+                bbp->v.xv2 = vp->x;
+                bbp->v.yv1 = vp->y;
+                bbp->v.yv2 = vp->y;
+            }
+        }
+    }
+}
+
+void update_bboxes(Canvas *canvas, const VPoint *vp)
+{
+    update_bbox(canvas, BBOX_TYPE_GLOB, vp);
+    update_bbox(canvas, BBOX_TYPE_TEMP, vp);
+}
+
+int melt_bbox(Canvas *canvas, int type)
+{
+    BBox_type *bbp;
+    
+    switch(type) {
+    case BBOX_TYPE_GLOB:
+        bbp = &canvas->bboxes[0];
+        break;
+    case BBOX_TYPE_TEMP:
+        bbp = &canvas->bboxes[1];
+        break;
+    default:
+        errmsg ("Incorrect call of melt_bbox()");
+        return RETURN_FAILURE;
+    }
+    
+    return merge_bboxes(&bbp->v, &bbp->fv, &bbp->v);
+}
+
+void activate_bbox(Canvas *canvas, int type, int status)
+{
+    BBox_type *bbp;
+    
+    switch(type) {
+    case BBOX_TYPE_GLOB:
+        bbp = &canvas->bboxes[0];
+        break;
+    case BBOX_TYPE_TEMP:
+        bbp = &canvas->bboxes[1];
+        break;
+    default:
+        errmsg ("Incorrect call of activate_bbox()");
+        return;
+    }
+    bbp->active = status;
+}
+
+/* Extend all view boundaries with w */
+int view_extend(view *v, double w)
+{
+    if (!v) {
+        return RETURN_FAILURE;
+    } else {
+        v->xv1 -= w;
+        v->xv2 += w;
+        v->yv1 -= w;
+        v->yv2 += w;
+        return RETURN_SUCCESS;
+    }
+}
+
+int update_bboxes_with_view(Canvas *canvas, const view *v)
+{
+    if (!v) {
+        return RETURN_FAILURE;
+    } else {
+        VPoint vp;
+        
+        vp.x = v->xv1;
+        vp.y = v->yv1;
+        update_bboxes(canvas, &vp);
+        vp.x = v->xv2;
+        vp.y = v->yv2;
+        update_bboxes(canvas, &vp);
+        
+        return RETURN_SUCCESS;
+    }
+}
+
+int update_bboxes_with_vpoints(Canvas *canvas, const VPoint *vps, int n, double lw)
+{
+    if (!vps || n < 1) {
+        return RETURN_FAILURE;
+    } else {
+        int i;
+        double xmin, xmax, ymin, ymax;
+        view v;
+        
+        xmin = xmax = vps[0].x;
+        ymin = ymax = vps[0].y;
+        
+        for (i = 1; i < n; i++) {
+            if (vps[i].x < xmin) {
+                xmin = vps[i].x;
+            } else
+            if  (vps[i].x > xmax) {
+                xmax = vps[i].x;
+            }
+            
+            if (vps[i].y < ymin) {
+                ymin = vps[i].y;
+            } else
+            if  (vps[i].y > ymax) {
+                ymax = vps[i].y;
+            }
+        }
+        
+        v.xv1 = xmin;
+        v.xv2 = xmax;
+        v.yv1 = ymin;
+        v.yv2 = ymax;
+        
+        view_extend(&v, lw/2);
+        
+        update_bboxes_with_view(canvas, &v);
+        
+        return RETURN_SUCCESS;
+    }
+}
+
 /*
  * ------------- coordinate conversion routines ------------
  */
+
+static world worldwin;
+static int coordinates;
+static int scaletypex;
+static int scaletypey;
+static double xv_med;
+static double yv_med;
+static double xv_rc;
+static double yv_rc;
+static double fxg_med;
+static double fyg_med;
+
+/*
+ * is_validWPoint() checks if a point is inside of (current) world rectangle
+ */
+int is_validWPoint(WPoint wp)
+{
+    if (coordinates == COORDINATES_POLAR) {
+        if (wp.y >= 0.0 && wp.y <= worldwin.yg2) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    } else {
+        if (((wp.x >= worldwin.xg1 && wp.x <= worldwin.xg2) ||
+             (wp.x >= worldwin.xg2 && wp.x <= worldwin.xg1)) &&
+            ((wp.y >= worldwin.yg1 && wp.y <= worldwin.yg2) ||
+             (wp.y >= worldwin.yg2 && wp.y <= worldwin.yg1))) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+}
+
+/*
+ * Convert point's world coordinates to viewport
+ */
+VPoint Wpoint2Vpoint(WPoint wp)
+{
+    VPoint vp;
+    world2view(wp.x, wp.y, &vp.x, &vp.y);
+    return (vp);
+}
+
+/*
+ * is_wpoint_inside() checks if point qp is inside of world rectangle w
+ */
+int is_wpoint_inside(WPoint *wp, world *w)
+{
+    return ((wp->x >= w->xg1) && (wp->x <= w->xg2) &&
+            (wp->y >= w->yg1) && (wp->y <= w->yg2));
+}
 
 char *scale_types(ScaleType it)
 {
@@ -1573,502 +1929,4 @@ int definewindow(world w, view v, int gtype,
         }
         break;
     }
-}
-
-int checkon_world(int gno)
-{
-    double dx, dy;
-    world w;
-    
-    get_graph_world(gno, &w);
-    dx = w.xg2 - w.xg1;
-    dy = w.yg2 - w.yg1;
-
-    if (get_graph_type(gno) == GRAPH_POLAR) {
-        if (w.yg2 <= 0.0) {
-            errmsg("World Rho-max <= 0.0");
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    } else {
-        if (dx <= 0.0) {
-            errmsg("World DX <= 0.0");
-            return FALSE;
-        }
-        if (dy <= 0.0) {
-            errmsg("World DY <= 0.0");
-            return FALSE;
-        }
-        
-        if (get_graph_type(gno) == GRAPH_FIXED) {
-            if ((get_graph_xscale(gno) != SCALE_NORMAL) ||
-                (get_graph_yscale(gno) != SCALE_NORMAL)) {
-                errmsg("Only linear axis scale is allowed in Fixed graphs");
-                return FALSE;
-            } 
-        }
-        
-        if (get_graph_xscale(gno) == SCALE_LOG) {
-            if (w.xg1 <= 0) {
-                errmsg("World X-min <= 0.0");
-                return FALSE;
-            }
-            if (w.xg2 <= 0) {
-                errmsg("World X-max <= 0.0");
-                return FALSE;
-            }
-        } else if (get_graph_xscale(gno) == SCALE_REC) {
-            if (sign(w.xg1) != sign(w.xg2)) {
-                errmsg("X-axis contains 0");
-                return FALSE;
-            }
-	    
-        }
-        if (get_graph_xscale(gno) == SCALE_LOGIT) {
-            if (w.xg1 <= 0) {
-                errmsg("World X-min <= 0.0");
-                return FALSE;
-            }
-            if (w.xg2 >= 1) {
-                errmsg("World X-max >= 1.0");
-                return FALSE;
-            }
-	}    
-        
-        if (get_graph_yscale(gno) == SCALE_LOG) {
-            if (w.yg1 <= 0.0) {
-                errmsg("World Y-min <= 0.0");
-                return FALSE;
-            }
-            if (w.yg2 <= 0.0) {
-                errmsg("World Y-max <= 0.0");
-                return FALSE;
-            }
-        } else if (get_graph_yscale(gno) == SCALE_REC) {
-            if (sign(w.yg1) != sign(w.yg2)) {
-                errmsg("Y-axis contains 0");
-                return FALSE;
-            }
-        }
-	if (get_graph_yscale(gno) == SCALE_LOGIT) {
-            if (w.yg1 <= 0) {
-                errmsg("World Y-min <= 0.0");
-                return FALSE;
-            }
-            if (w.yg2 >= 1) {
-                errmsg("World Y-max >= 1.0");
-                return FALSE;
-            }
-	}    
-        
-        return TRUE;
-    }
-
-}
-
-int isvalid_viewport(view v)
-{
-    if ((v.xv2 <= v.xv1) || (v.yv2 <= v.yv1)) {
-	return FALSE;
-    } else {
-        return TRUE;
-    }
-}
-
-/* check viewport (min < max) */
-int checkon_viewport(int gno)
-{
-    view v;
-    
-    get_graph_viewport(gno, &v);
-    if (isvalid_viewport(v) == FALSE) {
-        errmsg("Invalid viewport coordinates");
-        return FALSE;
-    } else {
-        return TRUE;
-    }
-}
-
-
-/*
- * ---------------- bbox utilities --------------------
- */
-
-static const view invalid_view = {0.0, 0.0, 0.0, 0.0};
-
-void reset_bbox(Canvas *canvas, int type)
-{
-    view *vp;
-    
-    switch(type) {
-    case BBOX_TYPE_GLOB:
-        vp = &(canvas->bboxes[0].v);
-        break;
-    case BBOX_TYPE_TEMP:
-        vp = &(canvas->bboxes[1].v);
-        break;
-    default:
-        errmsg ("Incorrect call of reset_bbox()");
-        return;
-    }
-    *vp = invalid_view;
-}
-
-void reset_bboxes(Canvas *canvas)
-{
-    reset_bbox(canvas, BBOX_TYPE_GLOB);
-    reset_bbox(canvas, BBOX_TYPE_TEMP);
-}
-
-void freeze_bbox(Canvas *canvas, int type)
-{
-    BBox_type *bbp;
-    
-    switch (type) {
-    case BBOX_TYPE_GLOB:
-        bbp = &canvas->bboxes[0];
-        break;
-    case BBOX_TYPE_TEMP:
-        bbp = &canvas->bboxes[1];
-        break;
-    default:
-        errmsg ("Incorrect call of freeze_bbox()");
-        return;
-    }
-    bbp->fv = bbp->v;
-}
-
-int get_bbox(const Canvas *canvas, int type, view *v)
-{
-    switch (type) {
-    case BBOX_TYPE_GLOB:
-        *v = canvas->bboxes[0].v;
-        break;
-    case BBOX_TYPE_TEMP:
-        *v = canvas->bboxes[1].v;
-        break;
-    default:
-        *v = invalid_view;
-        errmsg ("Incorrect call of get_bbox()");
-        return RETURN_FAILURE;
-    }
-    return RETURN_SUCCESS;
-}
-
-int is_valid_bbox(const view *v)
-{
-    if ((v->xv1 == invalid_view.xv1) &&
-        (v->xv2 == invalid_view.xv2) &&
-        (v->yv1 == invalid_view.yv1) &&
-        (v->yv2 == invalid_view.yv2)) {
-        return (FALSE);
-    } else {
-        return (TRUE);
-    }
-}
-
-int merge_bboxes(const view *v1, const view *v2, view *v)
-{
-    if (!is_valid_bbox(v1)) {
-        if (is_valid_bbox(v2)) {
-            *v = *v2;
-            return RETURN_SUCCESS;
-        } else {
-            *v = invalid_view;
-            return RETURN_FAILURE;
-        }
-    } else if (!is_valid_bbox(v2)) {
-        *v = *v1;
-        return RETURN_SUCCESS;
-    } else {
-        v->xv1 = MIN2(v1->xv1, v2->xv1);
-        v->xv2 = MAX2(v1->xv2, v2->xv2);
-        v->yv1 = MIN2(v1->yv1, v2->yv1);
-        v->yv2 = MAX2(v1->yv2, v2->yv2);
-        
-        return RETURN_SUCCESS;
-    }
-}
-
-void update_bbox(Canvas *canvas, int type, const VPoint *vp)
-{
-    BBox_type *bbp;
-    
-    switch (type) {
-    case BBOX_TYPE_GLOB:
-        /* Global bbox is updated only with real drawings */
-        if (get_draw_mode(canvas) == FALSE) {
-            return;
-        }
-        bbp = &canvas->bboxes[0];
-        break;
-    case BBOX_TYPE_TEMP:
-        bbp = &canvas->bboxes[1];
-        break;
-    default:
-        errmsg ("Incorrect call of update_bbox()");
-        return;
-    }
-    if (bbp->active == TRUE) {
-        if (is_vpoint_inside(&bbp->v, vp, 0.0) == FALSE) {
-            if (is_valid_bbox(&bbp->v)) {
-                bbp->v.xv1 = MIN2(bbp->v.xv1, vp->x);
-                bbp->v.xv2 = MAX2(bbp->v.xv2, vp->x);
-                bbp->v.yv1 = MIN2(bbp->v.yv1, vp->y);
-                bbp->v.yv2 = MAX2(bbp->v.yv2, vp->y);
-            } else {
-                bbp->v.xv1 = vp->x;
-                bbp->v.xv2 = vp->x;
-                bbp->v.yv1 = vp->y;
-                bbp->v.yv2 = vp->y;
-            }
-        }
-    }
-}
-
-void update_bboxes(Canvas *canvas, const VPoint *vp)
-{
-    update_bbox(canvas, BBOX_TYPE_GLOB, vp);
-    update_bbox(canvas, BBOX_TYPE_TEMP, vp);
-}
-
-int melt_bbox(Canvas *canvas, int type)
-{
-    BBox_type *bbp;
-    
-    switch(type) {
-    case BBOX_TYPE_GLOB:
-        bbp = &canvas->bboxes[0];
-        break;
-    case BBOX_TYPE_TEMP:
-        bbp = &canvas->bboxes[1];
-        break;
-    default:
-        errmsg ("Incorrect call of melt_bbox()");
-        return RETURN_FAILURE;
-    }
-    
-    return merge_bboxes(&bbp->v, &bbp->fv, &bbp->v);
-}
-
-void activate_bbox(Canvas *canvas, int type, int status)
-{
-    BBox_type *bbp;
-    
-    switch(type) {
-    case BBOX_TYPE_GLOB:
-        bbp = &canvas->bboxes[0];
-        break;
-    case BBOX_TYPE_TEMP:
-        bbp = &canvas->bboxes[1];
-        break;
-    default:
-        errmsg ("Incorrect call of activate_bbox()");
-        return;
-    }
-    bbp->active = status;
-}
-
-/* Extend all view boundaries with w */
-int view_extend(view *v, double w)
-{
-    if (!v) {
-        return RETURN_FAILURE;
-    } else {
-        v->xv1 -= w;
-        v->xv2 += w;
-        v->yv1 -= w;
-        v->yv2 += w;
-        return RETURN_SUCCESS;
-    }
-}
-
-int update_bboxes_with_view(Canvas *canvas, view *v)
-{
-    if (!v) {
-        return RETURN_FAILURE;
-    } else {
-        VPoint vp;
-        
-        vp.x = v->xv1;
-        vp.y = v->yv1;
-        update_bboxes(canvas, &vp);
-        vp.x = v->xv2;
-        vp.y = v->yv2;
-        update_bboxes(canvas, &vp);
-        
-        return RETURN_SUCCESS;
-    }
-}
-
-int update_bboxes_with_vpoints(Canvas *canvas, const VPoint *vps, int n, double lw)
-{
-    if (!vps || n < 1) {
-        return RETURN_FAILURE;
-    } else {
-        int i;
-        double xmin, xmax, ymin, ymax;
-        view v;
-        
-        xmin = xmax = vps[0].x;
-        ymin = ymax = vps[0].y;
-        
-        for (i = 1; i < n; i++) {
-            if (vps[i].x < xmin) {
-                xmin = vps[i].x;
-            } else
-            if  (vps[i].x > xmax) {
-                xmax = vps[i].x;
-            }
-            
-            if (vps[i].y < ymin) {
-                ymin = vps[i].y;
-            } else
-            if  (vps[i].y > ymax) {
-                ymax = vps[i].y;
-            }
-        }
-        
-        v.xv1 = xmin;
-        v.xv2 = xmax;
-        v.yv1 = ymin;
-        v.yv2 = ymax;
-        
-        view_extend(&v, lw/2);
-        
-        update_bboxes_with_view(canvas, &v);
-        
-        return RETURN_SUCCESS;
-    }
-}
-
-int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb)
-{
-    if (!bb || !vp1 || !vp2) {
-        return RETURN_FAILURE;
-    } else {
-        if (vp1->x <= vp2->x) {
-            bb->xv1 = vp1->x;
-            bb->xv2 = vp2->x;
-        } else {
-            bb->xv1 = vp2->x;
-            bb->xv2 = vp1->x;
-        }
-        if (vp1->y <= vp2->y) {
-            bb->yv1 = vp1->y;
-            bb->yv2 = vp2->y;
-        } else {
-            bb->yv1 = vp2->y;
-            bb->yv2 = vp1->y;
-        }
-        
-        return RETURN_SUCCESS;
-    }
-}
-
-void set_draw_mode(Canvas *canvas, int mode)
-{
-    canvas->draw_mode = mode ? TRUE:FALSE;
-}
-
-int get_draw_mode(const Canvas *canvas)
-{
-    return (canvas->draw_mode);
-}
-
-void vpswap(VPoint *vp1, VPoint *vp2)
-{
-    VPoint vptmp;
-
-    vptmp = *vp1;
-    *vp1 = *vp2;
-    *vp2 = vptmp;
-}
-
-int points_overlap(const Canvas *canvas, const VPoint *vp1, const VPoint *vp2)
-{
-    double delta;
-    
-    delta = 1.0/MIN2(page_width(canvas), page_height(canvas));
-    if (fabs(vp2->x - vp1->x) < delta || fabs(vp2->y - vp1->y) < delta) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
-
-void set_max_path_limit(Canvas *canvas, int limit)
-{
-    canvas->max_path_length = limit;
-}
-
-int get_max_path_limit(const Canvas *canvas)
-{
-    return canvas->max_path_length;
-}
-
-#define PURGE_INIT_FACTOR   1.0
-#define PURGE_ITER_FACTOR   M_SQRT2
-
-/* Note: vps and pvps may be the same array! */
-static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np)
-{
-    int i, j, iter;
-    int ok;
-    double eps;
-    VPoint vptmp;
-    
-    if (n <= *np) {
-        memmove(pvps, vps, n*sizeof(VPoint));
-    }
-    
-    if (*np <= 0) {
-        *np = 0;
-        return;
-    }
-    
-    /* Start with 1/np epsilon */
-    eps = PURGE_INIT_FACTOR/(*np);
-    iter = 0;
-    ok = FALSE;
-    while (ok == FALSE) {
-        j = 0;
-        vptmp = vps[0];
-        for (i = 0; i < n - 1; i++) {
-            if (fabs(vps[i].x - vptmp.x) > eps ||
-                fabs(vps[i].y - vptmp.y) > eps) {
-                vptmp = vps[i];
-                j++;
-                if (j >= *np) {
-                    break;
-                }
-            }
-        }
-        if (j < *np - 1) {
-            ok = TRUE;
-        } else {
-            eps *= PURGE_ITER_FACTOR;
-        }
-        iter++;
-    }
-
-    /* actually fill the purged array */
-    pvps[0] = vps[0];
-    j = 0;
-    for (i = 0; i < n - 1; i++) {
-        if (fabs(vps[i].x - pvps[j].x) > eps ||
-            fabs(vps[i].y - pvps[j].y) > eps) {
-            pvps[++j] = vps[i];
-        }
-    }
-    pvps[j++] = vps[n - 1];
-    
-    *np = j;
-#ifdef DEBUG    
-    if (get_debuglevel() == 6) {
-        printf("Purging %d points to %d in %d iteration(s)\n", n, *np, iter);
-    }
-#endif
 }

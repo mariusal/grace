@@ -89,4 +89,7 @@ void move_legend(int gno, VVector shift);
 
 void rescale_viewport(Project *pr, double ext_x, double ext_y);
 
+int checkon_world(int gno);
+int checkon_viewport(int gno);
+
 #endif /* __GRAPHUTILS_H_ */

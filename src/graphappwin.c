@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -499,7 +499,7 @@ static int graphapp_aac_cb(void *data)
             if (data == define_view_yv2 || data == NULL) {
                 xv_evalexpr(define_view_yv2, &v.yv2);  
             }
-            if (isvalid_viewport(v)==FALSE) {
+            if (isvalid_viewport(&v)==FALSE) {
                 errmsg("Invalid viewport coordinates");
                 return RETURN_FAILURE;
             } 

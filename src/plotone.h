@@ -70,6 +70,10 @@ void drawcirclexy(Canvas *canvas, set *s);
 void drawsetvmap(Canvas *canvas, int gno, set *s);
 void drawsetboxplot(Canvas *canvas, set *s);
 
+void symplus(Canvas *canvas, const VPoint *vp, double s);
+void symx(Canvas *canvas, const VPoint *vp, double s);
+void symsplat(Canvas *canvas, const VPoint *vp, double s);
+
 int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
     const Pen *sympen, const Pen *symfillpen, char s);
 void drawerrorbar(Canvas *canvas,

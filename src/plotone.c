@@ -44,6 +44,7 @@
 #include "utils.h"
 #include "files.h"
 #include "graphs.h"
+#include "graphutils.h"
 #include "draw.h"
 #include "device.h"
 #include "objutils.h"
@@ -1813,6 +1814,46 @@ void drawsetboxplot(Canvas *canvas, set *p)
         vp2.x += size;
         DrawLine(canvas, &vp1, &vp2);
     }
+}
+
+void symplus(Canvas *canvas, const VPoint *vp, double s)
+{
+    VPoint vp1, vp2;
+    vp1.x = vp->x - s;
+    vp1.y = vp->y;
+    vp2.x = vp->x + s;
+    vp2.y = vp->y;
+    
+    DrawLine(canvas, &vp1, &vp2);
+    vp1.x = vp->x;
+    vp1.y = vp->y - s;
+    vp2.x = vp->x;
+    vp2.y = vp->y + s;
+    DrawLine(canvas, &vp1, &vp2);
+}
+
+void symx(Canvas *canvas, const VPoint *vp, double s)
+{
+    VPoint vp1, vp2;
+    double side = M_SQRT1_2*s;
+    
+    vp1.x = vp->x - side;
+    vp1.y = vp->y - side;
+    vp2.x = vp->x + side;
+    vp2.y = vp->y + side;
+    DrawLine(canvas, &vp1, &vp2);
+    
+    vp1.x = vp->x - side;
+    vp1.y = vp->y + side;
+    vp2.x = vp->x + side;
+    vp2.y = vp->y - side;
+    DrawLine(canvas, &vp1, &vp2);
+}
+
+void symsplat(Canvas *canvas, const VPoint *vp, double s)
+{
+    symplus(canvas, vp, s);
+    symx(canvas, vp, s);
 }
 
 int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
