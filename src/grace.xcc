@@ -607,6 +607,23 @@ char *utf2iso(const char *s)
         RunTime *rt = ((ParserData *)$U)->rt;
         $$ = get_regiontype_by_name(rt, $?);
     ]]></attribute-type>
+    <attribute-type name="dateordval" ctype="double"><![CDATA[
+        if (parse_date_or_number($0, $?, FALSE, &$$) != RETURN_SUCCESS) {
+                $$ = 0.0;
+        }
+    ]]></attribute-type>
+    <attribute-type name="autodateordval" ctype="Autoval *"><![CDATA[
+        $$ = xmalloc(sizeof(Autoval));
+        if (!strcmp($?, VStrAuto)) {
+            $$->autov = TRUE;
+            $$->value = 0.0;
+        } else {
+            $$->autov = FALSE;
+            if (parse_date_or_number($0, $?, FALSE, &$$->value) != RETURN_SUCCESS) {
+                    $$->value = 0.0;
+            }
+        }
+    ]]></attribute-type>
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
@@ -1057,10 +1074,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrXscale" type="scale">
         <!-- Attributes -->
-        <attribute name="#AStrMin" type="dval">
+        <attribute name="#AStrMin" type="dateordval">
             $$->min = $?;
         </attribute>
-        <attribute name="#AStrMax" type="dval">
+        <attribute name="#AStrMax" type="dateordval">
             $$->max = $?;
         </attribute>
         <attribute name="#AStrType" type="sval">
@@ -1073,10 +1090,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrYscale" type="scale">
         <!-- Attributes -->
-        <attribute name="#AStrMin" type="dval">
+        <attribute name="#AStrMin" type="dateordval">
             $$->min = $?;
         </attribute>
-        <attribute name="#AStrMax" type="dval">
+        <attribute name="#AStrMax" type="dateordval">
             $$->max = $?;
         </attribute>
         <attribute name="#AStrType" type="sval">
@@ -1497,12 +1514,12 @@ char *utf2iso(const char *s)
         <attribute name="#AStrStagger" type="ival">
             $$->stagger = $?;
         </attribute>
-        <attribute name="#AStrStart" type="autoval">
+        <attribute name="#AStrStart" type="autodateordval">
             $$->autostart = $?->autov;
             $$->start     = $?->value;
             xfree($?);
         </attribute>
-        <attribute name="#AStrStop" type="autoval">
+        <attribute name="#AStrStop" type="autodateordval">
             $$->autostop = $?->autov;
             $$->stop     = $?->value;
             xfree($?);
@@ -1523,7 +1540,7 @@ char *utf2iso(const char *s)
         <attribute name="#AStrType" type="ticktype">
             $$->type = $?;
         </attribute>
-        <attribute name="#AStrPosition" type="dval">
+        <attribute name="#AStrPosition" type="dateordval">
             $$->wtpos = $?;
         </attribute>
         <attribute name="#AStrLabel" type="sval">
@@ -1593,10 +1610,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrLocation" type="location">
         <!-- Attributes -->
-        <attribute name="#AStrX" type="dval">
+        <attribute name="#AStrX" type="dateordval">
             $$->ap.x = $?;
         </attribute>
-        <attribute name="#AStrY" type="dval">
+        <attribute name="#AStrY" type="dateordval">
             $$->ap.y = $?;
         </attribute>
     </element>
@@ -1969,22 +1986,22 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrRow" type="datapoint">
         <!-- Attributes -->
-        <attribute name="X" type="dval">
+        <attribute name="X" type="dateordval">
             $$->ex[DATA_X] = $?;
         </attribute>
-        <attribute name="Y" type="dval">
+        <attribute name="Y" type="dateordval">
             $$->ex[DATA_Y] = $?;
         </attribute>
-        <attribute name="Y1" type="dval">
+        <attribute name="Y1" type="dateordval">
             $$->ex[DATA_Y1] = $?;
         </attribute>
-        <attribute name="Y2" type="dval">
+        <attribute name="Y2" type="dateordval">
             $$->ex[DATA_Y2] = $?;
         </attribute>
-        <attribute name="Y3" type="dval">
+        <attribute name="Y3" type="dateordval">
             $$->ex[DATA_Y3] = $?;
         </attribute>
-        <attribute name="Y4" type="dval">
+        <attribute name="Y4" type="dateordval">
             $$->ex[DATA_Y4] = $?;
         </attribute>
         <attribute name="s" type="sval">
