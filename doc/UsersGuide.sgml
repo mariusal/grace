@@ -4,9 +4,9 @@
 
 <article>
 
-<title>Grace User's Guide (for Grace-5.1.13)</title>
+<title>Grace User's Guide (for Grace-5.1.14)</title>
 <author>by the Grace Team</author>
-<date>26.08.2003</date>
+<date>03.12.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -3086,14 +3086,16 @@ main(int argc, char* argv[])
               <hline>
       Grace type | Description   @
               <hline>
-f&lowbar;of&lowbar;i    | a function of 1 <tt/int/ variable                                 @
-f&lowbar;of&lowbar;d    | a function of 1 <tt/double/ variable                              @
-f&lowbar;of&lowbar;nn   | a function of 2 <tt/int/ parameters                               @
-f&lowbar;of&lowbar;nd   | a function of 1 <tt/int/ parameter and 1 <tt/double/ variable     @
-f&lowbar;of&lowbar;dd   | a function of 2 <tt/double/ variables                             @
-f&lowbar;of&lowbar;nnd  | a function of 2 <tt/int/ parameters and 1 <tt/double/ variable    @
-f&lowbar;of&lowbar;ppd  | a function of 2 <tt/double/ parameters and 1 <tt/double/ variable @
-f&lowbar;of&lowbar;pppd | a function of 3 <tt/double/ parameters and 1 <tt/double/ variable @
+f&lowbar;of&lowbar;i      | a function of 1 <tt/int/ variable                                 @
+f&lowbar;of&lowbar;d      | a function of 1 <tt/double/ variable                              @
+f&lowbar;of&lowbar;nn     | a function of 2 <tt/int/ parameters                               @
+f&lowbar;of&lowbar;nd     | a function of 1 <tt/int/ parameter and 1 <tt/double/ variable     @
+f&lowbar;of&lowbar;dd     | a function of 2 <tt/double/ variables                             @
+f&lowbar;of&lowbar;nnd    | a function of 2 <tt/int/ parameters and 1 <tt/double/ variable    @
+f&lowbar;of&lowbar;ppd    | a function of 2 <tt/double/ parameters and 1 <tt/double/ variable @
+f&lowbar;of&lowbar;pppd   | a function of 3 <tt/double/ parameters and 1 <tt/double/ variable @
+f&lowbar;of&lowbar;ppppd  | a function of 4 <tt/double/ parameters and 1 <tt/double/ variable @
+f&lowbar;of&lowbar;pppppd | a function of 5 <tt/double/ parameters and 1 <tt/double/ variable @
               <hline>
       </tabular>
       <caption>
