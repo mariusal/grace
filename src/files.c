@@ -1196,6 +1196,24 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
                         return -2;
                     }
                     break;
+                case 6:
+                    x  = xrealloc(x,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
+                    y  = xrealloc(y,  (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
+                    dx = xrealloc(dx, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
+                    dy = xrealloc(dy, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
+                    dz = xrealloc(dz, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
+                    dw = xrealloc(dw, (alloclen + BUFSIZE)*SIZEOF_DOUBLE);
+                    if (x == NULL || y == NULL || dx == NULL || dy == NULL || dz == NULL || dw == NULL) {
+                        errmsg("Insufficient memory for set");
+                        cxfree(x);
+                        cxfree(y);
+                        cxfree(dx);
+                        cxfree(dy);
+                        cxfree(dz);
+                        cxfree(dw);
+                        return -2;
+                    }
+                    break;
                 default:
                     errmsg("Internal error in readxyany");
                     return -3;
@@ -1235,6 +1253,14 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
 		dx[i] = dxtmp;
 		dy[i] = dytmp;
 		dz[i] = dztmp;
+                break;
+            case 6:
+	        x[i] = xtmp;
+	        y[i] = ytmp;
+		dx[i] = dxtmp;
+		dy[i] = dytmp;
+		dz[i] = dztmp;
+		dw[i] = dwtmp;
                 break;
             }
 	    i++;
@@ -1619,8 +1645,8 @@ void create_set_fromblock(int gno, int type, char *cols)
 {
     int i;
     int setno;
-    int cx, cy, c1, c2, c3, c4;
-    double *tx, *ty, *t2, *t3, *t4;
+    int cx, cy, c2, c3, c4, c5;
+    double *tx, *ty, *t2, *t3, *t4, *t5;
     int nc, *coli;
     char *s, buf[256];
 
@@ -1631,7 +1657,7 @@ void create_set_fromblock(int gno, int type, char *cols)
     
     strcpy(buf, cols);
     s = buf;
-    c1 = c2 = c3 = c4 = nc = 0;
+    c2 = c3 = c4 = c5 = nc = 0;
     coli = malloc(maxblock * sizeof(int *));
     while ((s = strtok(s, ":")) != NULL) {
 	coli[nc] = atoi(s);
@@ -1668,43 +1694,69 @@ void create_set_fromblock(int gno, int type, char *cols)
     case 2:
 	break;
     case 3:
-	c1 = coli[2];
-	if (c1 >= blockncols) {
+	c2 = coli[2];
+	if (c2 >= blockncols) {
 	    errmsg("Column for E1 exceeds the number of columns in block data");
 	    free(coli);
 	    return;
 	}
 	break;
     case 4:
-	c1 = coli[2];
-	c2 = coli[3];
-	if (c1 >= blockncols) {
+	c2 = coli[2];
+	c3 = coli[3];
+	if (c2 >= blockncols) {
 	    errmsg("Column for E1 exceeds the number of columns in block data");
 	    free(coli);
 	    return;
 	}
-	if (c2 >= blockncols) {
+	if (c3 >= blockncols) {
 	    errmsg("Column for E2 exceeds the number of columns in block data");
 	    free(coli);
 	    return;
 	}
 	break;
     case 5:
-	c1 = coli[2];
-	c2 = coli[3];
-	c3 = coli[4];
-	if (c1 >= blockncols) {
+	c2 = coli[2];
+	c3 = coli[3];
+	c4 = coli[4];
+	if (c2 >= blockncols) {
 	    errmsg("Column for E1 exceeds the number of columns in block data");
 	    free(coli);
 	    return;
 	}
-	if (c2 >= blockncols) {
+	if (c3 >= blockncols) {
 	    errmsg("Column for E2 exceeds the number of columns in block data");
 	    free(coli);
 	    return;
 	}
-	if (c3 >= blockncols) {
+	if (c4 >= blockncols) {
 	    errmsg("Column for E3 exceeds the number of columns in block data");
+	    free(coli);
+	    return;
+	}
+	break;
+    case 6:
+	c2 = coli[2];
+	c3 = coli[3];
+	c4 = coli[4];
+	c5 = coli[5];
+	if (c2 >= blockncols) {
+	    errmsg("Column for E1 exceeds the number of columns in block data");
+	    free(coli);
+	    return;
+	}
+	if (c3 >= blockncols) {
+	    errmsg("Column for E2 exceeds the number of columns in block data");
+	    free(coli);
+	    return;
+	}
+	if (c4 >= blockncols) {
+	    errmsg("Column for E3 exceeds the number of columns in block data");
+	    free(coli);
+	    return;
+	}
+	if (c5 >= blockncols) {
+	    errmsg("Column for E4 exceeds the number of columns in block data");
 	    free(coli);
 	    return;
 	}
@@ -1746,67 +1798,101 @@ void create_set_fromblock(int gno, int type, char *cols)
 	sprintf(buf, "Cols %d %d", cx + 1, cy + 1);
 	break;
     case 3:
-	sprintf(buf, "Cols %d %d %d", cx + 1, cy + 1, c1 + 1);
+	sprintf(buf, "Cols %d %d %d", cx + 1, cy + 1, c2 + 1);
 	t2 = calloc(blocklen, SIZEOF_DOUBLE);
 	for (i = 0; i < blocklen; i++) {
-	    if (c1 == -1) {
+	    if (c2 == -1) {
 		t2[i] = i + 1;
 	    }
 	    else {
-		t2[i] = blockdata[c1][i];
+		t2[i] = blockdata[c2][i];
 	    }
 	}
 	setcol(gno, t2, setno, blocklen, 2);
 	break;
     case 4:
-	sprintf(buf, "Cols %d %d %d %d", cx + 1, cy + 1, c1 + 1, c2 + 1);
+	sprintf(buf, "Cols %d %d %d %d", cx + 1, cy + 1, c2 + 1, c3 + 1);
 	t2 = calloc(blocklen, SIZEOF_DOUBLE);
 	t3 = calloc(blocklen, SIZEOF_DOUBLE);
 	for (i = 0; i < blocklen; i++) {
-	    if (c1 == -1) {
+	    if (c2 == -1) {
 		t2[i] = i + 1;
 	    }
 	    else {
-		t2[i] = blockdata[c1][i];
+		t2[i] = blockdata[c2][i];
 	    }
-	    if (c2 == -1) {
+	    if (c3 == -1) {
 		t3[i] = i + 1;
 	    }
 	    else {
-		t3[i] = blockdata[c2][i];
+		t3[i] = blockdata[c3][i];
 	    }
 	}
 	setcol(gno, t2, setno, blocklen, 2);
 	setcol(gno, t3, setno, blocklen, 3);
 	break;
     case 5:
-	sprintf(buf, "Cols %d %d %d %d %d", cx + 1, cy + 1, c1 + 1, c2 + 1, c3 + 1);
+	sprintf(buf, "Cols %d %d %d %d %d", cx + 1, cy + 1, c2 + 1, c3 + 1, c4 + 1);
 	t2 = calloc(blocklen, SIZEOF_DOUBLE);
 	t3 = calloc(blocklen, SIZEOF_DOUBLE);
 	t4 = calloc(blocklen, SIZEOF_DOUBLE);
 	for (i = 0; i < blocklen; i++) {
-	    if (c1 == -1) {
+	    if (c2 == -1) {
 		t2[i] = i + 1;
 	    }
 	    else {
-		t2[i] = blockdata[c1][i];
+		t2[i] = blockdata[c2][i];
 	    }
-	    if (c2 == -1) {
+	    if (c3 == -1) {
 		t3[i] = i + 1;
 	    }
 	    else {
-		t3[i] = blockdata[c2][i];
+		t3[i] = blockdata[c3][i];
 	    }
-	    if (c3 == -1) {
+	    if (c4 == -1) {
 		t4[i] = i + 1;
 	    }
 	    else {
-		t4[i] = blockdata[c3][i];
+		t4[i] = blockdata[c4][i];
 	    }
 	}
 	setcol(gno, t2, setno, blocklen, 2);
 	setcol(gno, t3, setno, blocklen, 3);
 	setcol(gno, t4, setno, blocklen, 4);
+	break;
+    case 6:
+	sprintf(buf, "Cols %d %d %d %d %d %d",
+            cx + 1, cy + 1, c2 + 1, c3 + 1, c4 + 1, c5 + 1);
+	t2 = calloc(blocklen, SIZEOF_DOUBLE);
+	t3 = calloc(blocklen, SIZEOF_DOUBLE);
+	t4 = calloc(blocklen, SIZEOF_DOUBLE);
+	t5 = calloc(blocklen, SIZEOF_DOUBLE);
+	for (i = 0; i < blocklen; i++) {
+	    if (c2 == -1) {
+		t2[i] = i + 1;
+	    } else {
+		t2[i] = blockdata[c2][i];
+	    }
+	    if (c3 == -1) {
+		t3[i] = i + 1;
+	    } else {
+		t3[i] = blockdata[c3][i];
+	    }
+	    if (c4 == -1) {
+		t4[i] = i + 1;
+	    } else {
+		t4[i] = blockdata[c4][i];
+	    }
+	    if (c5 == -1) {
+		t5[i] = i + 1;
+	    } else {
+		t5[i] = blockdata[c5][i];
+	    }
+	}
+	setcol(gno, t2, setno, blocklen, 2);
+	setcol(gno, t3, setno, blocklen, 3);
+	setcol(gno, t4, setno, blocklen, 4);
+	setcol(gno, t5, setno, blocklen, 5);
 	break;
     }
 
@@ -1906,7 +1992,7 @@ int save_project(char *fn)
 int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
 {
     int i, n, ncols;
-    double *x, *y, *dx, *dy, *dz;
+    double *x, *y, *dx, *dy, *dz, *dw;
     char **s;
     char *format_string;
 
@@ -1972,6 +2058,19 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
                 for (i = 0; i < n; i++) {
                     fprintf(cp, format_string, x[i], y[i], dx[i], dy[i], dz[i]);
                 }
+                break;
+            case 6:
+                dx = getcol(gno, setno, 2);
+                dy = getcol(gno, setno, 3);
+                dz = getcol(gno, setno, 4);
+                dw = getcol(gno, setno, 5);
+                for (i = 0; i < n; i++) {
+                    fprintf(cp, format_string,
+                        x[i], y[i], dx[i], dy[i], dz[i], dw[i]);
+                }
+                break;
+            default:
+                errmsg("Internal error in write_set()");
                 break;
             }
         }
