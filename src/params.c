@@ -37,8 +37,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -49,8 +47,6 @@
 #include "parser.h"
 #include "protos.h"
 
-#define MAXERR 5
-
 static void put_regions(FILE * pp, int embed);
 static void put_objects(int gno, FILE * pp, int embed);
 
@@ -60,39 +56,6 @@ static char buf[256];
 int read_param(char *stext)
 {
     return scanner(stext);
-}
-
-int getparms(char *plfile)
-{
-    int linecount = 0, errcnt = 0;
-    char readbuf[MAX_STRING_LENGTH];
-    FILE *pp;
-
-    if ((pp = grace_openr(plfile, SOURCE_DISK)) == NULL) {
-        return 0;
-    } else {
-        errcnt = 0;
-        while (grace_fgets(readbuf, MAX_STRING_LENGTH - 1, pp) != NULL) {
-            linecount++;
-            if (read_param(readbuf)) {
-                sprintf(readbuf, "Error at line %d", linecount);
-                errmsg(readbuf);
-                errcnt++;
-                if (errcnt > MAXERR) {
-                    if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
-                        grace_close(pp);
-                        return 0;
-                    } else {
-                        errcnt = 0;
-                    }
-                }
-            }
-        }
-        if (pp != stdin) {
-            grace_close(pp);
-        }
-    }
-    return 1;
 }
 
 void putparms(int gno, FILE *pp, int embed)
