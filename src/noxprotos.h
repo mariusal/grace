@@ -187,8 +187,8 @@ int get_parser_setno(void);
 int set_parser_setno(int gno, int setno);
 void init_symtab(void);
 int addto_symtab(symtab_entry newkey);
-int init_scratch_arrays(int n);
-double *get_scratch(int ind);
+
+double *realloc_scratch(int ind, int len);
 
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);

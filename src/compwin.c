@@ -1917,7 +1917,7 @@ void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 void loadset(int gno, int selset, int toval, double startno, double stepno)
 {
-    int i, lenset;
+    int i, sa_num, lenset;
     double *ltmp;
     double *xtmp, *ytmp;
 
@@ -1938,31 +1938,25 @@ void loadset(int gno, int selset, int toval, double startno, double stepno)
 	ltmp = ytmp;
 	break;
     case 3:
-	init_scratch_arrays(lenset);
-        ltmp = get_scratch(0);
-	break;
     case 4:
-	init_scratch_arrays(lenset);
-	ltmp = get_scratch(1);
-	break;
     case 5:
-	init_scratch_arrays(lenset);
-	ltmp = get_scratch(2);
-	break;
     case 6:
-	init_scratch_arrays(lenset);
-	ltmp = get_scratch(3);
+	sa_num = toval - 3;
+        ltmp = realloc_scratch(sa_num, lenset);
 	break;
     default:
 	return;
     }
-    for (i = 0; i < lenset; i++) {
-	*ltmp++ = startno + i * stepno;
+    if (ltmp == NULL) {
+        errmsg("Malloc failed");
+        return;
+    } else {
+        for (i = 0; i < lenset; i++) {
+            *ltmp++ = startno + i * stepno;
+        }
+        set_dirtystate();
     }
-
-    set_dirtystate();
 }
-
 
 
 /*
