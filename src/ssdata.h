@@ -39,6 +39,7 @@
 #define FFORMAT_STRING  1
 
 double *copy_data_column(double *src, int nrows);
+double *allocate_index_data(int nrows);
 
 typedef struct _ss_data
 {
