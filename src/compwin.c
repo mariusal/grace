@@ -400,7 +400,7 @@ void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChild(rc);
 
 	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
-	CreateCommandButtons(dialog, 5, buts, l);
+	CreateCommandButtons(dialog, 4, buts, l);
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_fourier_proc, (XtPointer) & fui);
 	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) do_fft_proc, (XtPointer) & fui);
 	XtAddCallback(buts[2], XmNactivateCallback, (XtCallbackProc) do_window_proc, (XtPointer) & fui);
