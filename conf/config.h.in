@@ -152,7 +152,7 @@
 #undef HAVE_STRERROR
 
 /* Define if stdio.h defines the sys_errlist table */
-#undef HAVE_SYS_ERRLIST_IN_STDIO_H
+#undef HAVE_SYS_ERRLIST_DECL
 
 /* Define if you have the vsnprintf function.  */
 #undef HAVE_VSNPRINTF
@@ -189,7 +189,7 @@
 #undef HAVE_SETLOCALE
 
 /* Define if stdlib.h defines the drand48 function.  */
-#undef HAVE_DRAND48_IN_STDLIB_H
+#undef HAVE_DRAND48_DECL
 
 /* Define if you have the m library (-lm).  */
 #undef HAVE_LIBM
@@ -206,65 +206,119 @@
 /* Define if you have the hypot function.  */
 #undef HAVE_HYPOT
 
+/* Define if the hypot function is declared in math.h.  */
+#undef HAVE_HYPOT_DECL
+
 /* Define if you have the cbrt function.  */
 #undef HAVE_CBRT
+
+/* Define if the cbrt function is declared in math.h.  */
+#undef HAVE_CBRT_DECL
 
 /* Define if you have the log2 function.  */
 #undef HAVE_LOG2
 
+/* Define if the log2 function is declared in math.h.  */
+#undef HAVE_LOG2_DECL
+
 /* Define if you have the rint function.  */
 #undef HAVE_RINT
+
+/* Define if the rint function is declared in math.h.  */
+#undef HAVE_RINT_DECL
 
 /* Define if you have the lgamma function.  */
 #undef HAVE_LGAMMA
 
-/* Define if math.h defines the lgamma function.  */
-#undef HAVE_LGAMMA_IN_MATH_H
+/* Define if the lgamma function is declared in math.h.  */
+#undef HAVE_LGAMMA_DECL
 
 /* Define if math.h defines the signgam variable.  */
-#undef HAVE_SIGNGAM_IN_MATH_H
+#undef HAVE_SIGNGAM_DECL
 
 /* Define if you have the asinh function.  */
 #undef HAVE_ASINH
 
+/* Define if the asinh function is declared in math.h.  */
+#undef HAVE_ASINH_DECL
+
 /* Define if you have the acosh function.  */
 #undef HAVE_ACOSH
+
+/* Define if the acosh function is declared in math.h.  */
+#undef HAVE_ACOSH_DECL
 
 /* Define if you have the atanh function.  */
 #undef HAVE_ATANH
 
+/* Define if the atanh function is declared in math.h.  */
+#undef HAVE_ATANH_DECL
+
 /* Define if you have the erf function.  */
 #undef HAVE_ERF
+
+/* Define if the erf function is declared in math.h.  */
+#undef HAVE_ERF_DECL
 
 /* Define if you have the erfc function.  */
 #undef HAVE_ERFC
 
+/* Define if the erfc function is declared in math.h.  */
+#undef HAVE_ERFC_DECL
+
 /* Define if you have the finite function.  */
 #undef HAVE_FINITE
+
+/* Define if the finite function is declared in math.h.  */
+#undef HAVE_FINITE_DECL
 
 /* Define if you have the isfinite function.  */
 #undef HAVE_ISFINITE
 
+/* Define if the isfinite function is declared in math.h.  */
+#undef HAVE_ISFINITE_DECL
+
 /* Define if you have the isnan function.  */
 #undef HAVE_ISNAN
+
+/* Define if the isnan function is declared in math.h.  */
+#undef HAVE_ISNAN_DECL
 
 /* Define if you have the Bessel j0 function.  */
 #undef HAVE_J0
 
+/* Define if the j0 function is declared in math.h.  */
+#undef HAVE_J0_DECL
+
 /* Define if you have the Bessel j1 function.  */
 #undef HAVE_J1
+
+/* Define if the j1 function is declared in math.h.  */
+#undef HAVE_J1_DECL
 
 /* Define if you have the Bessel jn function.  */
 #undef HAVE_JN
 
+/* Define if the jn function is declared in math.h.  */
+#undef HAVE_JN_DECL
+
 /* Define if you have the Bessel y0 function.  */
 #undef HAVE_Y0
+
+/* Define if the y0 function is declared in math.h.  */
+#undef HAVE_Y0_DECL
 
 /* Define if you have the Bessel y1 function.  */
 #undef HAVE_Y1
 
+/* Define if the y1 function is declared in math.h.  */
+#undef HAVE_Y1_DECL
+
 /* Define if you have the Bessel yn function.  */
 #undef HAVE_YN
+
+/* Define if the yn function is declared in math.h.  */
+#undef HAVE_YN_DECL
 
 /* Define if you have the netcdf library (-lnetcdf).  */
 #undef HAVE_NETCDF

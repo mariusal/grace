@@ -56,7 +56,8 @@ Make.conf : conf/Make.conf.in configure
 	@echo
 
 configure : conf/configure.in ac-tools/ice_check_lesstif.m4 \
-	ac-tools/mdw_check_manylibs.m4 ac-tools/ice_find_motif.m4
+	ac-tools/mdw_check_manylibs.m4 ac-tools/ice_find_motif.m4 \
+	ac-tools/ice_check_decl.m4
 	autoconf conf/configure.in > configure
 	chmod +x configure
 	@echo

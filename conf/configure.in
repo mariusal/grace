@@ -8,6 +8,7 @@ AC_CONFIG_HEADER(config.h:conf/config.h.in)
 AC_PREFIX_DEFAULT("/usr/local")
 
 builtin(include, ac-tools/mdw_check_manylibs.m4)
+builtin(include, ac-tools/ice_check_decl.m4)
 builtin(include, ac-tools/ice_find_motif.m4)
 builtin(include, ac-tools/ice_check_lesstif.m4)
 
@@ -252,18 +253,24 @@ AC_TYPE_SIGNAL
 AC_FUNC_VFORK
 AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(getcwd gethostname)
-AC_CHECK_FUNCS(strstr strerror)
-if test "$ac_cv_func_strerror" = no; then
-  AC_CACHE_CHECK("whether sys_errlist is defined in stdio.h", ac_sys_errlist_in_stdio_h,
-      AC_EGREP_HEADER(sys_errlist, stdio.h, ac_sys_errlist_in_stdio_h="yes";
-      AC_DEFINE(HAVE_SYS_ERRLIST_IN_STDIO_H), ac_sys_errlist_in_stdio_h="no"))
-fi
+AC_CHECK_FUNCS(strstr)
 AC_CHECK_FUNCS(memcpy memmove)
 AC_CHECK_FUNCS(unlink fcntl)
 AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(fnmatch)
 AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(on_exit)
+AC_CHECK_FUNCS(strerror)
+if test "$ac_cv_func_strerror" = no; then
+  AC_CACHE_CHECK("for sys_errlist declaration in stdio.h", ac_cv_sys_errlist_decl,
+      AC_EGREP_HEADER(sys_errlist, stdio.h, ac_cv_sys_errlist_decl="yes";
+      AC_DEFINE(HAVE_SYS_ERRLIST_DECL), ac_cv_sys_errlist_decl="no"))
+fi
+
+ICE_CHECK_DECL(drand48, stdlib.h)
+
+dnl **** Check for locale
+AC_CHECK_FUNCS(setlocale)
 
 dnl **** Check for buggy realloc()
 AC_CACHE_CHECK( "whether realloc is buggy", ac_cv_c_realloc_bug,
@@ -284,61 +291,41 @@ then
   AC_DEFINE(REALLOC_IS_BUGGY)
 fi
 
-AC_CHECK_FUNCS(drand48)
-dnl **** SunOS4, for one, lacks this definition
-if test "$ac_cv_func_drand48" = yes; then
-  AC_CACHE_CHECK("whether drand48 is defined in stdlib.h", ac_drand48_in_stdlib_h,
-      AC_EGREP_HEADER(drand48, stdlib.h, ac_drand48_in_stdlib_h="yes";
-      AC_DEFINE(HAVE_DRAND48_IN_STDLIB_H), ac_drand48_in_stdlib_h="no"))
-fi
-
-dnl **** Check for locale
-AC_CHECK_FUNCS(setlocale)
-
 dnl **** Checks for libm
-AC_CHECK_LIB(m, main)
-if test "$ac_cv_lib_m_main" = yes; then
-  dnl **** Those functions are usually found in libm but...
-  AC_CHECK_LIB(m, hypot, AC_DEFINE(HAVE_HYPOT))
-  AC_CHECK_LIB(m, rint, AC_DEFINE(HAVE_RINT))
-  AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT))
-  AC_CHECK_LIB(m, log2, AC_DEFINE(HAVE_LOG2))
-  AC_CHECK_LIB(m, asinh, AC_DEFINE(HAVE_ASINH))
-  AC_CHECK_LIB(m, acosh, AC_DEFINE(HAVE_ACOSH))
-  AC_CHECK_LIB(m, atanh, AC_DEFINE(HAVE_ATANH))
-  AC_CHECK_LIB(m, lgamma, AC_DEFINE(HAVE_LGAMMA))
-  
-  dnl **** Some braindamaged compiler suites don't have the lgamma define though
-  dnl **** the function itself does exist in libm!
-  if test "$ac_cv_lib_m_lgamma" = yes; then
-    AC_CACHE_CHECK("whether lgamma is defined in math.h", ac_lgamma_in_math_h,
-        AC_EGREP_HEADER(lgamma, math.h, ac_lgamma_in_math_h="yes";
-        AC_DEFINE(HAVE_LGAMMA_IN_MATH_H), ac_lgamma_in_math_h="no"))
-  fi
-  
-  dnl **** The machten4 (unix for mac) system does have signgam in libm
-  dnl **** but it is not declared in <math.h>
-  if test "$ac_cv_lib_m_lgamma" = yes; then
-    AC_CACHE_CHECK("whether signgam is defined in math.h", ac_signgam_in_math_h,
-        AC_EGREP_HEADER(signgam, math.h, ac_signgam_in_math_h="yes";
-        AC_DEFINE(HAVE_SIGNGAM_IN_MATH_H), ac_signgam_in_math_h="no"))
-  fi
-  
-  AC_CHECK_LIB(m, erf, AC_DEFINE(HAVE_ERF))
-  AC_CHECK_LIB(m, erfc, AC_DEFINE(HAVE_ERFC))
-  AC_CHECK_LIB(m, j0, AC_DEFINE(HAVE_J0))
-  AC_CHECK_LIB(m, j1, AC_DEFINE(HAVE_J1))
-  AC_CHECK_LIB(m, jn, AC_DEFINE(HAVE_JN))
-  AC_CHECK_LIB(m, y0, AC_DEFINE(HAVE_Y0))
-  AC_CHECK_LIB(m, y1, AC_DEFINE(HAVE_Y1))
-  AC_CHECK_LIB(m, yn, AC_DEFINE(HAVE_YN))
-  AC_CHECK_LIB(m, finite, AC_DEFINE(HAVE_FINITE))
-  dnl **** C9X-compatible isfinite() may be a good replacement for finite()
-  if test "$ac_cv_lib_m_finite" != yes; then
-    AC_CHECK_LIB(m, isfinite, AC_DEFINE(HAVE_ISFINITE))
-  fi
-  AC_CHECK_LIB(m, isnan, AC_DEFINE(HAVE_ISNAN))
+AC_CHECK_LIB(m, sin)
+
+dnl **** Those functions are usually found in libm but...
+ICE_CHECK_DECL(hypot, math.h)
+ICE_CHECK_DECL(rint, math.h)
+ICE_CHECK_DECL(cbrt, math.h)
+ICE_CHECK_DECL(log2, math.h)
+ICE_CHECK_DECL(asinh, math.h)
+ICE_CHECK_DECL(acosh, math.h)
+ICE_CHECK_DECL(atanh, math.h)
+ICE_CHECK_DECL(lgamma, math.h)
+
+dnl **** The machten4 (unix for mac) system does have signgam in libm
+dnl **** but it is not declared in <math.h>
+if test "$ac_cv_func_lgamma" = yes; then
+  AC_CACHE_CHECK("for signgam declaration in math.h", ac_cv_signgam_decl,
+      AC_EGREP_HEADER(signgam, math.h, ac_cv_signgam_decl="yes";
+      AC_DEFINE(HAVE_SIGNGAM_DECL), ac_cv_signgam_decl="no"))
 fi
+
+ICE_CHECK_DECL(erf, math.h)
+ICE_CHECK_DECL(erfc, math.h)
+ICE_CHECK_DECL(j0, math.h)
+ICE_CHECK_DECL(j1, math.h)
+ICE_CHECK_DECL(jn, math.h)
+ICE_CHECK_DECL(y0, math.h)
+ICE_CHECK_DECL(y1, math.h)
+ICE_CHECK_DECL(yn, math.h)
+ICE_CHECK_DECL(finite, math.h)
+dnl **** C9X-compatible isfinite() may be a good replacement for finite()
+if test "$ac_cv_lib_m_finite" != yes; then
+  ICE_CHECK_DECL(isfinite, math.h)
+fi
+ICE_CHECK_DECL(isnan, math.h)
 
 dnl **** Check for libgen
 AC_CHECK_LIB(gen, main)
