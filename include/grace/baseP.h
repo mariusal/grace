@@ -276,7 +276,12 @@ extern int finite ( double x );
 #  endif
 #endif
 
-#ifndef HAVE_ISNAN_DECL
+/* isnan is a macro */
+#ifdef isnan
+#  define HAVE_ISNAN_MACRO
+#endif
+
+#if !defined(HAVE_ISNAN_DECL) && !defined(HAVE_ISNAN_MACRO)
 extern int isnan ( double x );
 #endif
 
