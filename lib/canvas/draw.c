@@ -1383,7 +1383,7 @@ int is_valid_color(const RGB *rgb)
     }
 }
 
-static int compare_rgb(const RGB *rgb1, const RGB *rgb2)
+int compare_rgb(const RGB *rgb1, const RGB *rgb2)
 {
     if ((rgb1->red   == rgb2->red)   &&
         (rgb1->green == rgb2->green) &&
