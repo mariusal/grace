@@ -194,6 +194,7 @@ void *object_odata_new(OType type)
     if (odata == NULL) {
         return NULL;
     }
+    memset(odata, 0, object_odata_size(type));
     switch (type) {
     case DO_LINE:
         {
@@ -227,6 +228,9 @@ void *object_odata_new(OType type)
             s->font = 0;
             s->just = 0;
             s->size = 1.0;
+            s->line.width       = 1.0;
+            s->line.pen.color   = 1;
+            s->line.pen.pattern = 1;
         }
         break;
     case DO_NONE:

@@ -88,6 +88,9 @@ typedef struct _DOStringData {
     int font;
     double size;
     int just;
+    
+    Line line;
+    Pen fillpen;
 } DOStringData;
 
 char *object_types(OType type);

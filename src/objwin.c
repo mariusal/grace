@@ -91,6 +91,11 @@ typedef struct {
     OptionStructure *font;
     Widget size;
     OptionStructure *just;
+
+    SpinStructure *linew;
+    OptionStructure *lines;
+    Widget linepen;
+    Widget fillpen;
 } StringUI;
 
 typedef struct {
@@ -284,6 +289,11 @@ static void update_string_ui(StringUI *ui, DOStringData *odata)
     SetOptionChoice(ui->font,   odata->font);
     SetOptionChoice(ui->just,   odata->just);
     SetCharSizeChoice(ui->size, odata->size);
+
+    SetSpinChoice(ui->linew,   odata->line.width);
+    SetOptionChoice(ui->lines, odata->line.style);
+    SetPenChoice(ui->linepen, &odata->line.pen);
+    SetPenChoice(ui->fillpen, &odata->fillpen);
 }
 
 static void set_string_odata(StringUI *ui, DOStringData *odata)
@@ -293,22 +303,37 @@ static void set_string_odata(StringUI *ui, DOStringData *odata)
     odata->font = GetOptionChoice(ui->font);
     odata->just = GetOptionChoice(ui->just);
     odata->size = GetCharSizeChoice(ui->size);
+
+    odata->line.width = GetSpinChoice(ui->linew);
+    odata->line.style = GetOptionChoice(ui->lines);
+    GetPenChoice(ui->linepen, &odata->line.pen);
+    GetPenChoice(ui->fillpen, &odata->fillpen);
 }
 
 static StringUI *create_string_ui(Widget parent)
 {
     StringUI *ui;
-    Widget rc;
+    Widget fr, rc, rc1;
     
     ui = xmalloc(sizeof(StringUI));
     
-    ui->top = CreateFrame(parent, "String properties");
-    rc = CreateVContainer(ui->top);
+    ui->top = CreateVContainer(parent);
+    fr = CreateFrame(ui->top, "String properties");
+    rc = CreateVContainer(fr);
     
     ui->text = CreateCSText(rc, "Text:");
     ui->font = CreateFontChoice(rc, "Font:");
     ui->just = CreateJustChoice(rc, "Justification:");
     ui->size = CreateCharSizeChoice(rc, "Size");
+
+    fr = CreateFrame(ui->top, "Frame");
+    rc = CreateVContainer(fr);
+    rc1 = CreateHContainer(rc);
+    ui->linew = CreateLineWidthChoice(rc1, "Width:");
+    ui->lines = CreateLineStyleChoice(rc1, "Style:");
+    rc1 = CreateHContainer(rc);
+    ui->linepen = CreatePenChoice(rc1, "Outline pen:");
+    ui->fillpen = CreatePenChoice(rc1, "Fill pen:");
     
     return ui;
 }

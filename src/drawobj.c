@@ -129,14 +129,36 @@ static void draw_object(Canvas *canvas, Quark *q)
     case DO_STRING:
         {
             DOStringData *s = (DOStringData *) o->odata;
+            int savebg;
             
-            /* FIXME AA background setpen(o->fillpen); */
-
-            setpen(canvas, &o->line.pen);
             setcharsize(canvas, s->size);
             setfont(canvas, s->font);
 
+            if (s->line.pen.pattern || s->fillpen.pattern) {
+                view bbox;
+                VPoint vp1, vp2;
+                
+                get_string_bbox(canvas, &anchor, o->angle, s->just, s->s, &bbox);
+                view_extend(&bbox, 0.01);
+                vp1.x = bbox.xv1;
+                vp1.y = bbox.yv1;
+                vp2.x = bbox.xv2;
+                vp2.y = bbox.yv2;
+                setpen(canvas, &s->fillpen);
+                FillRect(canvas, &vp1, &vp2);
+                setline(canvas, &s->line);
+                DrawRect(canvas, &vp1, &vp2);
+            }
+
+            setpen(canvas, &o->line.pen);
+            savebg = getbgcolor(canvas);
+            /* If frame is filled with a solid color, alter bgcolor to
+               make AA look good */
+            if (s->fillpen.pattern == 1) {
+                setbgcolor(canvas, s->fillpen.color);
+            }
             WriteString(canvas, &anchor, o->angle, s->just, s->s);
+            setbgcolor(canvas, savebg);
         }
         break;
     case DO_LINE:
