@@ -96,7 +96,15 @@ void drawgraph(void)
     draw_objects(-1);
 
     draw_timestamp();
-    
+
+    /* draw regions and mark the reference points only if in interactive mode */
+    if (terminal_device() == TRUE) {
+        for (i = 0; i < number_of_graphs(); i++) {
+            draw_regions(i);
+            draw_ref_point(i);
+        }
+    }
+
     select_graph(saveg);
 
     leavegraphics();
@@ -205,20 +213,12 @@ void plotone(int gno)
         xyplot(gno);
     }
 
-    /* draw regions if in interactive mode */
-    if (terminal_device()) {
-        draw_regions(gno);
-    }
-
     /* plot axes and tickmarks */
     drawaxes(gno);
     
     /* plot frame */
     drawframe(gno);
 
-    /* mark the reference point */
-    draw_ref_point(gno);
-    
     /* plot objects */
     draw_objects(gno);
     
@@ -227,6 +227,7 @@ void plotone(int gno)
     
     /* draw title and subtitle */
     draw_titles(gno);
+    
 }
 
 void draw_smith_chart(int gno)
@@ -476,6 +477,8 @@ void draw_ref_point(int gno)
         vp = Wpoint2Vpoint(wp);
         setcolor(1);
         setpattern(1);
+        setlinewidth(1.0);
+        setlinestyle(1);
         symplus(vp, 0.01);
         DrawCircle (vp, 0.01);
     }
