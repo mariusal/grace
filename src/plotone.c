@@ -78,7 +78,9 @@ void drawgraph(Grace *grace)
     
     canvas_draw(canvas, dproc, NULL);
     
-    select_graph(saveg);
+    if (get_cg() != saveg) {
+        select_graph(saveg);
+    }
 }
 
 /*
@@ -158,20 +160,13 @@ void plotone(Canvas *canvas, int gno)
         return;
     }
 
-    /* sanity checks */
-    if (checkon_world(gno) == FALSE) {
-        return;
-    }
-    
-    if (checkon_viewport(gno) == FALSE) {
-        return;
-    }
-   
     setclipping(canvas, TRUE);
     
     set_draw_mode(canvas, TRUE);
     
-    select_graph(gno);
+    if (select_graph(gno) != RETURN_SUCCESS) {
+        return;
+    }
     
     /* fill frame */
     fillframe(canvas, gno);
