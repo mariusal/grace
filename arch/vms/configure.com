@@ -292,6 +292,7 @@ $ ELSE
 $   ALLOCA = "alloca.obj"
 $ ENDIF
 $ T1_LIB = ",$(T1LIBDIR)libt1lib.olb/LIBRARY"
+$ T1_INC = ",[-.T1LIB.T1LIB]"
 $ T1_AA_TYPE16 = "short"
 $ T1_AA_TYPE32 = "int"
 $ T1_AA_TYPE64 = ""
