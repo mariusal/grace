@@ -1992,6 +1992,7 @@ char *utf2iso(const char *s)
 int load_xgr_project(Grace *grace, char *fn)
 {
     ParserData udata;
+    void *p;
     Quark *project;
     FILE *fp;
     int ret;
@@ -2004,13 +2005,12 @@ int load_xgr_project(Grace *grace, char *fn)
     udata.rt = grace->rt;
     udata.nrow = -1;
     
-    ret = xcc_parse(fp, &udata, (void **) &project, xcc_start_handler, xcc_end_handler);
+    ret = xcc_parse(fp, &udata, &p, xcc_start_handler, xcc_end_handler);
+    project = p;
 
     grace_close(fp);
     
     if (ret == XCC_RETURN_SUCCESS) {
-        project_set_docname(project, fn);
-
         return grace_set_project(grace, project);
     } else {
         quark_free(project);
