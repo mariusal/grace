@@ -62,4 +62,6 @@ struct _Quark {
     void *udata;
 };
 
+void set_default_arrow(Arrow *arrowp);
+
 #endif /* __COREP_H_ */

@@ -138,12 +138,12 @@ void object_data_free(DObject *o)
     }
 }
 
-static void set_default_arrow(Arrow *arrowp)
+void set_default_arrow(Arrow *arrowp)
 {
-    arrowp->type = 0;
+    arrowp->type   = ARROW_TYPE_LINE;
     arrowp->length = 1.0;
-    arrowp->dL_ff = 1.0;
-    arrowp->lL_ff = 1.0;
+    arrowp->dL_ff  = 1.0;
+    arrowp->lL_ff  = 0.0;
 }
 
 void *object_odata_new(OType type)
