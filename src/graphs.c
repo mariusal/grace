@@ -1382,6 +1382,8 @@ void postprocess_project(int version)
             if (version < 50002) {
                 s->errbar.barsize *= 2;
             }
+
+            storage_next(sets);
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
 	    if (version <= 40102) {
