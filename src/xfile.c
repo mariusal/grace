@@ -262,11 +262,13 @@ static void xfile_output_attributes(XFile *xf, Attributes *attrs)
     if (attrs) {
         unsigned int i;
         for (i = 0; i < attrs->count; i++) {
-            xfile_output(xf, " ");
-            xfile_output(xf, attrs->args[i].name);
-            xfile_output(xf, "=\"");
-            xfile_output(xf, attrs->args[i].value);
-            xfile_output(xf, "\"");
+            if (attrs->args[i].name) {
+                xfile_output(xf, " ");
+                xfile_output(xf, attrs->args[i].name);
+                xfile_output(xf, "=\"");
+                xfile_output(xf, PSTRING(attrs->args[i].value));
+                xfile_output(xf, "\"");
+            }
         }
     }
 }
