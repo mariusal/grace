@@ -401,6 +401,8 @@ static void auto_ticks(int gno, int axis)
 	t->tmajor = pow(t->tmajor, d);
         t->nminor = 9;
     }
+    
+    set_dirtystate();
 }
 
 /*
