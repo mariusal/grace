@@ -402,6 +402,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
     return GRACE_EXIT_SUCCESS;
 }
 
+#define OLD_COL_INDICES
 
 void field_string_to_cols(char *fs, int *nc, int **cols)
 {
@@ -412,11 +413,16 @@ void field_string_to_cols(char *fs, int *nc, int **cols)
     s = buf;
     *nc = 0;
     while ((s = strtok(s, ":")) != NULL) {
+#ifdef OLD_COL_INDICES
+        col = atoi(s);
+        col--;
+#else
 	if (!strcmp(s, "i")) {
             col = -1;
         } else {
             col = atoi(s);
         }
+#endif
 	if (col < -1) {
 	    errmsg("Column index out of range");
 	}
@@ -438,11 +444,15 @@ char *cols_to_field_string(int nc, int *cols)
     
     s = NULL;
     for (i = 0; i < nc; i++) {
+#ifdef OLD_COL_INDICES
+        sprintf(buf, "%d", cols[i] + 1);
+#else
         if (cols[i] == -1) {
             strcpy(buf, "i");
         } else {
             sprintf(buf, "%d", cols[i]);
         }
+#endif
         if (i != 0) {
             s = concat_strings(s, ":");
         }
