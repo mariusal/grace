@@ -500,6 +500,7 @@ static void bugwarn(char *signame)
             strcpy(buf, docname);
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
+            fflush(stderr);
             noask = TRUE;
             if (save_project(buf) == GRACE_EXIT_SUCCESS) {
                 fprintf(stderr, "ok!\n");
