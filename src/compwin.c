@@ -556,6 +556,7 @@ typedef struct _Four_ui {
     SpinStructure *zeropad;
     Widget round2n;
     OptionStructure *window;
+    SpinStructure *winpar;
     Widget halflen;
     OptionStructure *output;
 } Four_ui;
@@ -594,6 +595,12 @@ static void toggle_complex_cb(int onoff, void *data)
     }
 }
 
+static void option_window_cb(int value, void *data)
+{
+    Four_ui *ui = (Four_ui *) data;
+    SetSensitive(ui->winpar->rc, value == FFT_WINDOW_KAISER);
+}
+
 void create_fourier_frame(void *data)
 {
     static Four_ui *fui = NULL;
@@ -605,11 +612,13 @@ void create_fourier_frame(void *data)
         OptionItem window_opitems[] = {
             {FFT_WINDOW_NONE,       "None (Rectangular)"},
             {FFT_WINDOW_TRIANGULAR, "Triangular"        },
-            {FFT_WINDOW_HANNING,    "Hanning"           },
+            {FFT_WINDOW_PARZEN,     "Parzen"            },
             {FFT_WINDOW_WELCH,      "Welch"             },
+            {FFT_WINDOW_HANNING,    "Hanning"           },
             {FFT_WINDOW_HAMMING,    "Hamming"           },
+            {FFT_WINDOW_FLATTOP,    "Flat top"          },
             {FFT_WINDOW_BLACKMAN,   "Blackman"          },
-            {FFT_WINDOW_PARZEN,     "Parzen"            }
+            {FFT_WINDOW_KAISER,     "Kaiser"            }
         };
         OptionItem output_opitems[] = {
             {FFT_OUTPUT_MAGNITUDE, "Magnitude"       },
@@ -651,8 +660,12 @@ void create_fourier_frame(void *data)
 	fui->complexin = CreateToggleButton(rc1, "Complex data");
         AddToggleButtonCB(fui->complexin, toggle_complex_cb, (void *) fui);
 	fui->dcdump = CreateToggleButton(rc1, "Dump DC component");
-	fui->window = CreateOptionChoice(rc1,
-            "Apply window:", 0, 7, window_opitems);
+	rc2 = CreateHContainer(rc1);
+	fui->window = CreateOptionChoice(rc2,
+            "Apply window:", 0, 9, window_opitems);
+        AddOptionChoiceCB(fui->window, option_window_cb, (void *) fui);
+        fui->winpar = CreateSpinChoice(rc2,
+            "Parameter", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
 	rc2 = CreateHContainer(rc1);
         fui->zeropad = CreateSpinChoice(rc2,
             "Zero padding", 2, SPIN_TYPE_FLOAT, 0.0, 99.0, 1.0);
@@ -669,6 +682,8 @@ void create_fourier_frame(void *data)
         /* Default values */
         SetOptionChoice(fui->xscale, FFT_XSCALE_NU);
         SetOptionChoice(fui->norm, FFT_NORM_FORWARD);
+        SetSpinChoice(fui->winpar, 1.0);
+        SetSensitive(fui->winpar->rc, FALSE);
         SetToggleButtonState(fui->halflen, TRUE);
         SetSpinChoice(fui->zeropad, 0.0);
 #ifndef HAVE_FFTW
@@ -690,7 +705,7 @@ static int do_fourier_proc(void *data)
     int i, res, err = FALSE;
     int invflag, xscale, norm;
     int complexin, dcdump, window, round2n, halflen, output;
-    double zeropad;
+    double zeropad, beta;
     Four_ui *ui = (Four_ui *) data;
     
     res = GetTransformDialogSettings(ui->tdialog, TRUE,
@@ -709,6 +724,7 @@ static int do_fourier_proc(void *data)
     zeropad   = GetSpinChoice(ui->zeropad);
     round2n   = GetToggleButtonState(ui->round2n);
     window    = GetOptionChoice(ui->window);
+    beta      = GetSpinChoice(ui->winpar);
     
     halflen   = GetToggleButtonState(ui->halflen);
     output    = GetOptionChoice(ui->output);
@@ -722,8 +738,8 @@ static int do_fourier_proc(void *data)
             setto = nextset(gdest);
         }
 	if (do_fourier(gsrc, setfrom, gdest, setto,
-            invflag, xscale, norm, complexin, dcdump, zeropad, round2n, window,
-            halflen, output) != RETURN_SUCCESS) {
+            invflag, xscale, norm, complexin, dcdump, zeropad, round2n,
+            window, beta, halflen, output) != RETURN_SUCCESS) {
             err = TRUE;
         }
     }

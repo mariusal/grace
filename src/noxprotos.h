@@ -53,10 +53,10 @@ void do_differ(int gno, int setno, int itype);
 void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int rset);
 void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr);
 int do_fourier(int gsrc, int setfrom, int gdest, int setto,
-    int invflag, int xscale, int norm,
-    int complexin, int dcdump, double zeropad, int round2n, int window,
-    int halflen, int output);
-int apply_window(double *v, int ilen, int window);
+    int invflag, int xscale, int norm, int complexin, int dcdump,
+    double zeropad, int round2n, int window, double beta, int halflen,
+    int output);
+int apply_window(double *v, int ilen, int window, double beta);
 int do_histo(int fromgraph, int fromset, int tograph, int toset,
 	      double *bins, int nbins, int cumulative, int normalize);
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist);

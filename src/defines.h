@@ -364,11 +364,13 @@ typedef enum {
 
 #define FFT_WINDOW_NONE        0
 #define FFT_WINDOW_TRIANGULAR  1
-#define FFT_WINDOW_HANNING     2
+#define FFT_WINDOW_PARZEN      2
 #define FFT_WINDOW_WELCH       3
-#define FFT_WINDOW_HAMMING     4
-#define FFT_WINDOW_BLACKMAN    5
-#define FFT_WINDOW_PARZEN      6
+#define FFT_WINDOW_HANNING     4
+#define FFT_WINDOW_HAMMING     5
+#define FFT_WINDOW_FLATTOP     6
+#define FFT_WINDOW_BLACKMAN    7
+#define FFT_WINDOW_KAISER      8
 
 #define FFT_OUTPUT_MAGNITUDE   0
 #define FFT_OUTPUT_PHASE       1

@@ -40,6 +40,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cephes/cephes.h"
+
 #include "globals.h"
 #include "utils.h"
 #include "draw.h"
@@ -699,7 +701,7 @@ int dump_dc(double *v, int len)
     return RETURN_SUCCESS;
 }
 
-int apply_window(double *v, int len, int window)
+int apply_window(double *v, int len, int window, double beta)
 {
     int i;
 
@@ -712,25 +714,34 @@ int apply_window(double *v, int len, int window)
     }
     
     for (i = 0; i < len; i++) {
-	double c;
+	double c, w, tmp;
+        w = 2*M_PI*i/(len - 1);
         switch (window) {
 	case FFT_WINDOW_TRIANGULAR:
-	    c = 1.0 - fabs((i - 0.5*(len - 1.0))/(0.5*(len - 1)));
-	    break;
-	case FFT_WINDOW_HANNING:
-	    c = 0.5 - 0.5*cos(2*M_PI*i/(len - 1));
-	    break;
-	case FFT_WINDOW_WELCH:
-	    c = 1.0 - pow((i - 0.5*(len - 1))/(0.5*(len + 1)), 2.0);
-	    break;
-	case FFT_WINDOW_HAMMING:
-	    c = 0.54 - 0.46*cos(2*M_PI*i/(len - 1));
-	    break;
-	case FFT_WINDOW_BLACKMAN:
-	    c = 0.42 - 0.5*cos(2*M_PI*i/(len - 1)) + 0.08*cos(4*M_PI*i/(len - 1));
+	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len - 1)));
 	    break;
 	case FFT_WINDOW_PARZEN:
 	    c = 1.0 - fabs((i - 0.5*(len - 1))/(0.5*(len + 1)));
+	    break;
+	case FFT_WINDOW_WELCH:
+	    tmp = (i - 0.5*(len - 1))/(0.5*(len + 1));
+            c = 1.0 - tmp*tmp;
+	    break;
+	case FFT_WINDOW_HANNING:
+	    c = 0.5 - 0.5*cos(w);
+	    break;
+	case FFT_WINDOW_HAMMING:
+	    c = 0.54 - 0.46*cos(w);
+	    break;
+	case FFT_WINDOW_BLACKMAN:
+	    c = 0.42 - 0.5*cos(w) + 0.08*cos(2*w);
+	    break;
+	case FFT_WINDOW_FLATTOP:
+	    c = 0.2810639 - 0.5208972*cos(w) + 0.1980399*cos(2*w);
+	    break;
+	case FFT_WINDOW_KAISER:
+	    tmp = (i - 0.5*(len - 1))/(0.5*(len - 1));
+            c = i0(beta*sqrt(1.0 - tmp*tmp))/i0(beta);
 	    break;
 	default:	/* should never happen */
             c = 0.0;
@@ -748,9 +759,9 @@ int apply_window(double *v, int len, int window)
  * Fourier transform
  */
 int do_fourier(int gfrom, int setfrom, int gto, int setto,
-    int invflag, int xscale, int norm,
-    int complexin, int dcdump, double zeropad, int round2n, int window,
-    int halflen, int output)
+    int invflag, int xscale, int norm, int complexin, int dcdump,
+    double zeropad, int round2n, int window, double beta, int halflen,
+    int output)
 {
     int i, inlen, buflen, outlen, ncols, settype;
     double *in_x, *in_re, *in_im, *buf_re, *buf_im, *out_x, *out_y, *out_y1;
@@ -810,9 +821,9 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
     }
     
     /* apply data window */
-    apply_window(buf_re, inlen, window);
+    apply_window(buf_re, inlen, window, beta);
     if (in_im) {
-        apply_window(buf_im, inlen, window);
+        apply_window(buf_im, inlen, window, beta);
     }
     
     /* a safety measure */
