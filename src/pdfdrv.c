@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -188,6 +188,11 @@ static int pdf_builtin_font(const char *fname)
     return FALSE;
 }
 
+static size_t pdf_writeproc(PDF *p, void *data, size_t size)
+{
+    FILE *fp = PDF_get_opaque(p);
+    return fwrite(data, 1, size, fp);
+}
 
 int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
@@ -210,7 +215,8 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     pdfdata->linecap  = -1;
     pdfdata->linejoin = -1;
 
-    pdfdata->phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, NULL);
+    pdfdata->phandle = PDF_new2(pdf_error_handler,
+        NULL, NULL, NULL, canvas_get_prstream(canvas));
     if (pdfdata->phandle == NULL) {
         return RETURN_FAILURE;
     }
@@ -240,9 +246,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     }
     PDF_set_parameter(pdfdata->phandle, "compatibility", s);
 
-    if (PDF_open_fp(pdfdata->phandle, canvas_get_prstream(canvas)) == -1) {
-        return RETURN_FAILURE;
-    }
+    PDF_begin_document_callback(pdfdata->phandle, pdf_writeproc, "");
     
     PDF_set_value(pdfdata->phandle, "compress", (float) pdfdata->compression);
     PDF_set_value(pdfdata->phandle, "floatdigits", (float) pdfdata->fpprec);
@@ -420,7 +424,7 @@ void pdf_setdrawbrush(const Canvas *canvas, PDF_data *pdfdata)
         PDF_setlinewidth(pdfdata->phandle, lw);
 
         if (ls == 0 || ls == 1) {
-            PDF_setpolydash(pdfdata->phandle, NULL, 0); /* length == 0,1 means solid line */
+            PDF_setdash(pdfdata->phandle, 0, 0);
         } else {
             LineStyle *linestyle = canvas_get_linestyle(canvas, ls);
             darray = xmalloc(linestyle->length*SIZEOF_FLOAT);
@@ -755,7 +759,7 @@ void pdf_leavegraphics(const Canvas *canvas, void *data,
     PDF_set_value(pdfdata->phandle, "CropBox/ury", pdfdata->page_scalef*v.yv2);
     
     PDF_end_page(pdfdata->phandle);
-    PDF_close(pdfdata->phandle);
+    PDF_end_document(pdfdata->phandle, "");
     PDF_delete(pdfdata->phandle);
     xfree(pdfdata->font_ids);
     XCFREE(pdfdata->pattern_ids);
