@@ -98,6 +98,9 @@ char *set_types(int it)
     case SET_XYCOLPAT:
 	s = "xycolpat";
 	break;
+    case SET_XYVMAP:
+	s = "xyvmap";
+	break;
     }
     return s;
 }
@@ -135,6 +138,7 @@ int settype_cols(int type)
     case SET_XYDXDY:
     case SET_BARDYDY:
     case SET_XYCOLPAT:
+    case SET_XYVMAP:
 	ncols = 4;
 	break;
     case SET_XYHILO:

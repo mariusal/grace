@@ -454,6 +454,12 @@ void xyplot(int gno)
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
+                case SET_XYVMAP:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetvmap(gno, &p);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
                 default:
                     errmsg("Unsupported in XY graph set type");
                     break;
@@ -606,6 +612,12 @@ void xyplot(int gno)
                     break;
                 case SET_XYR:
                     drawcirclexy(&p);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
+                    break;
+                case SET_XYVMAP:
+                    drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetvmap(gno, &p);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
@@ -1674,8 +1686,56 @@ void drawcirclexy(plotarr *p)
     }
 }
 
+/* Arrows for vector map plots */
+void drawsetvmap(int gno, plotarr *p)
+{
+    int i, setlen;
+    double znorm = get_graph_znorm(gno);
+    double *x, *y, *vx, *vy;
+    WPoint wp;
+    VPoint vp1, vp2;
+    Arrow arrow = {0, 1.0, 1.0, 0.0};
+    
+    Errbar eb = p->errbar;
+    
+    setclipping(TRUE);
+    
+    if (znorm == 0.0) {
+        return;
+    }
+    
+    setlen = p->data.len;
+    x = p->data.ex[DATA_X];
+    y = p->data.ex[DATA_Y];
+    vx = p->data.ex[DATA_Y1];
+    vy = p->data.ex[DATA_Y2];
+
+    arrow.length = 2*eb.barsize;
+
+    setpen(p->errbar.pen);
+
+    for (i = 0; i < setlen; i++) {
+        wp.x = x[i];
+        wp.y = y[i];
+        if (!is_validWPoint(wp)){
+            continue;
+        }
+        vp1 = Wpoint2Vpoint(wp);
+        vp2.x = vp1.x + vx[i]/znorm;
+        vp2.y = vp1.y + vy[i]/znorm;
+
+        setlinewidth(eb.riser_linew);
+        setlinestyle(eb.riser_lines);
+        DrawLine(vp1, vp2);
+
+        setlinewidth(eb.linew);
+        setlinestyle(eb.lines);
+        draw_arrowhead(vp1, vp2, &arrow);
+    }
+}
+
 int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
-{   
+{
     VPoint vps[4];
     char buf[2];
     double symsize = 0.01 * getcharsize();

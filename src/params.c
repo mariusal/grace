@@ -254,6 +254,8 @@ void putparms(int gno, FILE *pp, int embed)
                         ws.w.xg1, ws.w.xg2, ws.w.yg1, ws.w.yg2);
             }
 
+            fprintf(pp, "%s    znorm %g\n", embedstr, get_graph_znorm(gno));
+
             get_graph_viewport(gno, &v);
             fprintf(pp, "%s    view xmin %f\n", embedstr, v.xv1);
             fprintf(pp, "%s    view xmax %f\n", embedstr, v.xv2);

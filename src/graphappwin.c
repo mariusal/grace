@@ -77,6 +77,7 @@ static Widget stitle_size_item;
 static Widget graph_flipxy_item;
 
 static SpinStructure *bargap_item;
+static Widget znorm_item;
 
 static Widget *frame_framestyle_choice_item;
 static OptionStructure *frame_color_choice_item;
@@ -355,7 +356,10 @@ void create_graphapp_frame(int gno)
         
         graphapp_spec = CreateTabPage(graphapp_tab, "Special");
 
-	fr = CreateFrame(graphapp_spec, "XY chart");
+	fr = CreateFrame(graphapp_spec, "2D+ graphs");
+        znorm_item = CreateTextItem2(fr, 10, "Z normalization");
+
+	fr = CreateFrame(graphapp_spec, "XY charts");
         bargap_item = CreateSpinChoice(fr, "Bar gap:", 5,
             SPIN_TYPE_FLOAT, 0.0, 1.0, 0.005);
 
@@ -414,6 +418,7 @@ static void graphapp_aac_cb(void *data)
     int graphtype;
     int stacked;
     double bargap;
+    double znorm;
 /*
  *     int flipxy;
  */
@@ -477,6 +482,8 @@ static void graphapp_aac_cb(void *data)
     stacked = GetToggleButtonState(stacked_item);
 
     bargap = GetSpinChoice(bargap_item);
+ 
+    xv_evalexpr(znorm_item, &znorm);
     
 /*
  *     flipxy = GetToggleButtonState(graph_flipxy_item);
@@ -489,6 +496,7 @@ static void graphapp_aac_cb(void *data)
             set_graph_type(gno, graphtype);
             set_graph_stacked(gno, stacked);
             set_graph_bargap(gno, bargap);
+            set_graph_znorm(gno, znorm);
             set_graph_viewport(gno, v);
             set_graph_labels(gno, &labs);
             set_graph_framep(gno, &f);
@@ -512,6 +520,7 @@ void update_graphapp_items(int n, int *values, void *data)
 {
     int gno;
     labels labs;
+    char buf[32];
     
     if (n != 1) {
         return;
@@ -537,6 +546,9 @@ void update_graphapp_items(int n, int *values, void *data)
         SetSpinChoice(bargap_item, get_graph_bargap(gno));
 
         SetToggleButtonState(stacked_item, is_graph_stacked(gno));
+
+        sprintf(buf, "%g", get_graph_znorm(gno));
+        xv_setstr(znorm_item, buf);
 
         SetTextString(label_title_text_item, labs.title.s);
         SetTextString(label_subtitle_text_item, labs.stitle.s);

@@ -4,8 +4,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -497,6 +497,7 @@ symtab_entry *key;
 %token <ival> XYHILO
 %token <ival> XYR
 %token <ival> XYSTRING
+%token <ival> XYVMAP
 %token <ival> XYZ
 %token <ival> Y_TOK
 %token <ival> Y0
@@ -512,6 +513,7 @@ symtab_entry *key;
 %token <ival> YYMMDD
 %token <ival> YYMMDDHMS
 %token <ival> ZERO
+%token <ival> ZNORM
 
 %token <ival> FITPARM
 %token <ival> FITPMAX
@@ -2519,6 +2521,9 @@ parmset:
 	| WORLD YMAX expr {
 	    g[whichgraph].w.yg2 = $3;
 	}
+	| ZNORM expr {
+	    set_graph_znorm(whichgraph, $2)
+	}
 	| VIEW expr ',' expr ',' expr ',' expr {
 	    g[whichgraph].v.xv1 = $2;
 	    g[whichgraph].v.yv1 = $4;
@@ -3685,6 +3690,7 @@ xytype:
 	| XYHILO { $$ = SET_XYHILO; }
 	| XYR { $$ = SET_XYR; }
 	| XYCOLPAT { $$ = SET_XYCOLPAT; }
+	| XYVMAP { $$ = SET_XYVMAP; }
 	| XYSTRING { $$ = SET_XY; }
 	;
 
@@ -4701,6 +4707,7 @@ symtab_entry ikey[] = {
 	{"XYHILO", XYHILO, NULL},
 	{"XYR", XYR, NULL},
 	{"XYSTRING", XYSTRING, NULL},
+	{"XYVMAP", XYVMAP, NULL},
 	{"XYZ", XYZ, NULL},
 	{"Y", Y_TOK, NULL},
 	{"Y0", Y0, NULL},
@@ -4720,7 +4727,8 @@ symtab_entry ikey[] = {
 	{"ZEROXAXIS", ALTXAXIS, NULL},
 	{"ZEROYAXIS", ALTYAXIS, NULL},
 	{"ZETA", FUNC_DD, (void *) zeta},
-	{"ZETAC", FUNC_D, (void *) zetac}
+	{"ZETAC", FUNC_D, (void *) zetac},
+	{"ZNORM", ZNORM, NULL}
 };
 
 static int maxfunc = sizeof(ikey) / sizeof(symtab_entry);

@@ -763,6 +763,26 @@ int set_graph_yscale(int gno, int scale)
     }
 }
 
+int set_graph_znorm(int gno, double norm)
+{
+    if (is_valid_gno(gno) == TRUE) {
+        g[gno].znorm = norm;
+        set_dirtystate();
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+double get_graph_znorm(int gno)
+{
+    if (is_valid_gno(gno) == TRUE) {
+        return g[gno].znorm;
+    } else {
+        return 0.0;
+    }
+}
+
 int is_graph_xinvert(int gno)
 {
     if (is_valid_gno(gno) == TRUE) {
@@ -990,6 +1010,7 @@ void set_default_graph(int gno)
     g[gno].xyflip = FALSE;
     g[gno].stacked = FALSE;
     g[gno].bargap = 0.0;
+    g[gno].znorm  = 1.0;
     g[gno].xscale = SCALE_NORMAL;
     g[gno].yscale = SCALE_NORMAL;
     g[gno].ws_top = 1;

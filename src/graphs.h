@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -57,6 +57,7 @@ typedef enum {
     SET_XYZ       ,
     SET_XYR       ,
     SET_XYCOLPAT  ,
+    SET_XYVMAP    ,
     SET_BAD
 } SetType;
 #define NUMBER_OF_SETTYPES  SET_BAD
@@ -161,6 +162,7 @@ typedef struct {
 
     int stacked;                /* TRUE if graph is stacked */
     double bargap;              /* Distance between bars (in bar charts) */
+    double znorm;               /* Normalization of pseudo-3D graphs */
 
     plotarr *p;                 /* sets go here */
 
@@ -248,6 +250,9 @@ int set_graph_yscale(int gno, int scale);
 
 int get_graph_xscale(int gno);
 int get_graph_yscale(int gno);
+
+int set_graph_znorm(int gno, double norm);
+double get_graph_znorm(int gno);
 
 int is_valid_gno(int gno);
 
