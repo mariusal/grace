@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.13)
+  <title>Grace FAQ (for Grace-5.1.15)
   <author>by the Grace Team
-  <date>26.08.2003
+  <date>26.05.2004
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -977,9 +977,19 @@ XMgrace*background: ...
         in an init resource file (see question <ref id="custom"
           name="Customization">) with formatstring being in the
         <tt>printf(3)</tt> format.
+        
+        As well, you can set the precision on a per-project basis. When you
+        save a project for the first time (or use "File/Save as"), there is
+        a relevant "Data format" field in the popup you are presented with.
 
-    <sect1>How do I read in project files created by Xmgr or older versions
-           of Grace?
+    <sect1>When I save a project and then re-open it, the julian date values
+           appear to be rounded to the nearest half day.
+      <p>
+        
+        For time plots, the default precision may be insufficient. See the
+        previous question on how to alter it.
+
+    <sect1>How do I read in project files created by Xmgr?
       <p>
 
         From Xmgr-4.1.2 on, each project file starts with a string
