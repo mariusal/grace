@@ -38,9 +38,7 @@
 
 #include <X11/cursorfont.h>
 #include <Xm/DialogS.h>
-#include <Xm/Label.h>
 #include <Xm/RowColumn.h>
-#include <Xm/PushB.h>
 
 #include "motifinc.h"
 
@@ -134,77 +132,69 @@ static Widget about_panel;
 
 void create_about_grtool(void *data)
 {
-    Widget wbut, rc;
+    Widget wbut;
     char buf[1024];
 
     set_wait_cursor();
+    
     if (about_frame == NULL) {
 	about_frame = XmCreateDialogShell(app_shell, "About", NULL, 0);
 	handle_close(about_frame);
 	about_panel = XmCreateRowColumn(about_frame, "about_rc", NULL, 0);
 
-	sprintf(buf, "%s", bi_version_string());
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel, bi_version_string());
+
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "Copyright (c) 1991-95 Paul J Turner");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "Copyright (c) 1996-99 Grace Development Team");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "All rights reserved");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "The program is distributed under the terms of the GNU General Public License");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-        
+	CreateLabel(about_panel, "Copyright (c) 1991-95 Paul J Turner");
+	CreateLabel(about_panel, "Copyright (c) 1996-99 Grace Development Team");
+	CreateLabel(about_panel, "All rights reserved");
+	CreateLabel(about_panel,
+            "The program is distributed under the terms of the GNU General Public License");
+
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-        
+	CreateLabel(about_panel,
+            "The home of Grace is http://plasma-gate.weizmann.ac.il/Grace/");
+
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "Contains Tab widget, Copyright (c) 1997 Pralay Dakua");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "May contain Xbae widget,");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      Copyright (c) 1995-97 Andrew Lister");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "Raster driver based on the GD-1.3 library,");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      Portions copyright (c) 1994-98 Cold Spring Harbor Laboratory");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel,
+            "Contains Tab widget, Copyright (c) 1997 Pralay Dakua");
+	CreateLabel(about_panel, "May contain Xbae widget,");
+	CreateLabel(about_panel,
+            "      Copyright (c) 1991, 1992 Bell Communications Research, Inc. (Bellcore)");
+	CreateLabel(about_panel,
+            "      Copyright (c) 1995-97 Andrew Lister");
+	CreateLabel(about_panel, "Raster driver based on the GD-1.3 library,");
+	CreateLabel(about_panel,
+            "      Portions copyright (c) 1994-98 Cold Spring Harbor Laboratory");
+	CreateLabel(about_panel,
+            "      Portions copyright (c) 1996-98 Boutell.Com, Inc");
 #ifdef HAVE_LIBPDF
-	sprintf(buf, "May contain PDFlib library, Copyright (c) 1997-99 Thomas Metz");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel,
+            "May contain PDFlib library, Copyright (c) 1997-99 Thomas Metz");
 #endif
 
 	CreateSeparator(about_panel);
 
 	sprintf(buf, "Built on: %s", BI_SYSTEM);
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel, buf);
 	sprintf(buf, "Build time: %s", BI_DATE);
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel, buf);
 	sprintf(buf, "GUI toolkit: %s ", BI_GUI);
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel, buf);
 	sprintf(buf, "T1lib: %s ", BI_T1LIB);
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel, buf);
 #ifdef DEBUG
-	sprintf(buf, "Debugging is enabled");
-	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
+	CreateLabel(about_panel, "Debugging is enabled");
 #endif
 	
 	CreateSeparator(about_panel);
 
-	rc = XmCreateRowColumn(about_panel, "rc", NULL, 0);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
-	wbut = XtVaCreateManagedWidget("Close", xmPushButtonWidgetClass, rc,
-				       NULL);
-	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) about_frame);
-	XtManageChild(rc);
+	wbut = CreateButton(about_panel, "Close");
+	AlignLabel(wbut, ALIGN_CENTER);
+        XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) about_frame);
 
 	XtManageChild(about_panel);
     }
