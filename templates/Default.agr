@@ -1,6 +1,6 @@
 # Grace project file
 #
-@version 50114
+@version 50115
 @page size 792, 612
 @page scroll 5%
 @page inout 5%
@@ -101,16 +101,10 @@
 @g0 fixedpoint format general general
 @g0 fixedpoint prec 6, 6
 @with g0
-@    world xmin 0
-@    world xmax 1
-@    world ymin 0
-@    world ymax 1
+@    world 0, 0, 1, 1
 @    stack world 0, 0, 0, 0
 @    znorm 1
-@    view xmin 0.150000
-@    view xmax 1.150000
-@    view ymin 0.150000
-@    view ymax 0.850000
+@    view 0.150000, 0.150000, 1.150000, 0.850000
 @    title ""
 @    title font 0
 @    title size 1.500000

@@ -198,10 +198,8 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%swith g%1d\n", embedstr, gno);
 
             get_graph_world(gno, &w);
-            fprintf(pp, "%s    world xmin %.12g\n", embedstr, w.xg1);
-            fprintf(pp, "%s    world xmax %.12g\n", embedstr, w.xg2);
-            fprintf(pp, "%s    world ymin %.12g\n", embedstr, w.yg1);
-            fprintf(pp, "%s    world ymax %.12g\n", embedstr, w.yg2);
+            fprintf(pp, "%s    world %.12g, %.12g, %.12g, %.12g\n", embedstr,
+                w.xg1, w.yg1, w.xg2, w.yg2);
 
             for (i = 0; i < graph_world_stack_size(gno); i++) {
                 get_world_stack_entry(gno, i, &ws);
@@ -212,10 +210,8 @@ void putparms(int gno, FILE *pp, int embed)
             fprintf(pp, "%s    znorm %g\n", embedstr, get_graph_znorm(gno));
 
             get_graph_viewport(gno, &v);
-            fprintf(pp, "%s    view xmin %f\n", embedstr, v.xv1);
-            fprintf(pp, "%s    view xmax %f\n", embedstr, v.xv2);
-            fprintf(pp, "%s    view ymin %f\n", embedstr, v.yv1);
-            fprintf(pp, "%s    view ymax %f\n", embedstr, v.yv2);
+            fprintf(pp, "%s    view %f, %f, %f, %f\n", embedstr,
+                v.xv1, v.yv1, v.xv2, v.yv2);
 
             get_graph_labels(gno, &lab);
             fprintf(pp, "%s    title \"%s\"\n", embedstr, PSTRING(lab.title.s));
@@ -511,7 +507,94 @@ void putparms(int gno, FILE *pp, int embed)
 
 static void put_objects(int gno, FILE * pp, int embed)
 {
-/* FIXMEOBJ */
+    int i;
+    boxtype b;
+    linetype l;
+    ellipsetype e;
+    plotstr s;
+    char embedstr[2];
+
+    if (embed) {
+        strcpy(embedstr, "@");
+    } else {
+        embedstr[0] = 0;
+    }
+    for (i = 0; i < number_of_boxes(); i++) {
+        get_graph_box(i, &b);
+        if (b.active == TRUE) {
+            fprintf(pp, "%swith box\n", embedstr);
+            fprintf(pp, "%s    box on\n", embedstr);
+            fprintf(pp, "%s    box loctype %s\n", embedstr, w_or_v(b.loctype));
+            if (b.loctype == COORD_WORLD) {
+                fprintf(pp, "%s    box g%1d\n", embedstr, b.gno);
+            }
+            fprintf(pp, "%s    box %.12g, %.12g, %.12g, %.12g\n", embedstr, b.x1, b.y1, b.x2, b.y2);
+            fprintf(pp, "%s    box linestyle %d\n", embedstr, b.lines);
+            fprintf(pp, "%s    box linewidth %.1f\n", embedstr, b.linew);
+            fprintf(pp, "%s    box color %d\n", embedstr, b.color);
+            fprintf(pp, "%s    box fill color %d\n", embedstr, b.fillcolor);
+            fprintf(pp, "%s    box fill pattern %d\n", embedstr, b.fillpattern);
+            fprintf(pp, "%sbox def\n", embedstr);
+        }
+    }
+
+    for (i = 0; i < number_of_ellipses(); i++) {
+        get_graph_ellipse(i, &e);
+        if (e.active == TRUE) {
+            fprintf(pp, "%swith ellipse\n", embedstr);
+            fprintf(pp, "%s    ellipse on\n", embedstr);
+            fprintf(pp, "%s    ellipse loctype %s\n", embedstr, w_or_v(e.loctype));
+            if (e.loctype == COORD_WORLD) {
+                fprintf(pp, "%s    ellipse g%1d\n", embedstr, e.gno);
+            }
+            fprintf(pp, "%s    ellipse %.12g, %.12g, %.12g, %.12g\n", embedstr, e.x1, e.y1, e.x2, e.y2);
+            fprintf(pp, "%s    ellipse linestyle %d\n", embedstr, e.lines);
+            fprintf(pp, "%s    ellipse linewidth %.1f\n", embedstr, e.linew);
+            fprintf(pp, "%s    ellipse color %d\n", embedstr, e.color);
+            fprintf(pp, "%s    ellipse fill color %d\n", embedstr, e.fillcolor);
+            fprintf(pp, "%s    ellipse fill pattern %d\n", embedstr, e.fillpattern);
+            fprintf(pp, "%sellipse def\n", embedstr);
+        }
+    }
+   for (i = 0; i < number_of_lines(); i++) {
+        get_graph_line(i, &l);
+        if (l.active == TRUE) {
+            fprintf(pp, "%swith line\n", embedstr);
+            fprintf(pp, "%s    line on\n", embedstr);
+            fprintf(pp, "%s    line loctype %s\n", embedstr, w_or_v(l.loctype));
+            if (l.loctype == COORD_WORLD) {
+                fprintf(pp, "%s    line g%1d\n", embedstr, l.gno);
+            }
+            fprintf(pp, "%s    line %.12g, %.12g, %.12g, %.12g\n", embedstr, l.x1, l.y1, l.x2, l.y2);
+            fprintf(pp, "%s    line linewidth %.1f\n", embedstr, l.linew);
+            fprintf(pp, "%s    line linestyle %d\n", embedstr, l.lines);
+            fprintf(pp, "%s    line color %d\n", embedstr, l.color);
+            fprintf(pp, "%s    line arrow %d\n", embedstr, l.arrow_end);
+            fprintf(pp, "%s    line arrow type %d\n", embedstr, l.arrow.type);
+            fprintf(pp, "%s    line arrow length %f\n", embedstr, l.arrow.length);
+            fprintf(pp, "%s    line arrow layout %f, %f\n", embedstr, l.arrow.dL_ff, l.arrow.lL_ff);
+            fprintf(pp, "%sline def\n", embedstr);
+        }
+    }
+
+    for (i = 0; i < number_of_strings(); i++) {
+        get_graph_string(i, &s);
+        if (s.active == TRUE && s.s[0]) {
+            fprintf(pp, "%swith string\n", embedstr);
+            fprintf(pp, "%s    string on\n", embedstr);
+            fprintf(pp, "%s    string loctype %s\n", embedstr, w_or_v(s.loctype));
+            if (s.loctype == COORD_WORLD) {
+                fprintf(pp, "%s    string g%1d\n", embedstr, s.gno);
+            }
+            fprintf(pp, "%s    string %.12g, %.12g\n", embedstr, s.x, s.y);
+            fprintf(pp, "%s    string color %d\n", embedstr, s.color);
+            fprintf(pp, "%s    string rot %d\n", embedstr, s.rot);
+            fprintf(pp, "%s    string font %d\n", embedstr, get_font_mapped_id(s.font));
+            fprintf(pp, "%s    string just %d\n", embedstr, s.just);
+            fprintf(pp, "%s    string char size %f\n", embedstr, s.charsize);
+            fprintf(pp, "%s    string def \"%s\"\n", embedstr, PSTRING(s.s));
+        }
+    }
 }
 
 static void put_regions(FILE * pp, int embed)

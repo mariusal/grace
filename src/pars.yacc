@@ -2689,34 +2689,6 @@ parmset:
 	    g[whichgraph].w.xg2 = $6;
 	    g[whichgraph].w.yg2 = $8;
 	}
-	| WORLD XMIN expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].w.xg1 = $3;
-	}
-	| WORLD XMAX expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].w.xg2 = $3;
-	}
-	| WORLD YMIN expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].w.yg1 = $3;
-	}
-	| WORLD YMAX expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].w.yg2 = $3;
-	}
 	| ZNORM expr {
 	    set_graph_znorm(whichgraph, $2);
 	}
@@ -2729,34 +2701,6 @@ parmset:
 	    g[whichgraph].v.yv1 = $4;
 	    g[whichgraph].v.xv2 = $6;
 	    g[whichgraph].v.yv2 = $8;
-	}
-	| VIEW XMIN expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].v.xv1 = $3;
-	}
-	| VIEW XMAX expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].v.xv2 = $3;
-	}
-	| VIEW YMIN expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].v.yv1 = $3;
-	}
-	| VIEW YMAX expr {
-	    if (!is_valid_gno(whichgraph)) {
-                yyerror("No valid graph selected");
-                return 1;
-            }
-	    g[whichgraph].v.yv2 = $3;
 	}
 	| TITLE CHRSTR {
 	    if (!is_valid_gno(whichgraph)) {
@@ -4865,6 +4809,64 @@ parmset_obs:
 	    g[$1].type = GRAPH_CHART;
 	    g[$1].stacked = TRUE;
 	    g[$1].xyflip = TRUE;
+	}
+
+	| WORLD XMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].w.xg1 = $3;
+	}
+	| WORLD XMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].w.xg2 = $3;
+	}
+	| WORLD YMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].w.yg1 = $3;
+	}
+	| WORLD YMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].w.yg2 = $3;
+	}
+
+	| VIEW XMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].v.xv1 = $3;
+	}
+	| VIEW XMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].v.xv2 = $3;
+	}
+	| VIEW YMIN expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].v.yv1 = $3;
+	}
+	| VIEW YMAX expr {
+	    if (!is_valid_gno(whichgraph)) {
+                yyerror("No valid graph selected");
+                return 1;
+            }
+	    g[whichgraph].v.yv2 = $3;
 	}
 
 	| LEGEND LAYOUT expr {
