@@ -1,12 +1,12 @@
 /* 
-  REXX-Script to configure&build GRACE 5.x for XFree86 OS/2
-  (19990721)
+  REXX-Script to configure & build GRACE 5.x for XFree86 OS/2
+  (19991228)
 */
 
 /*
    Todo:
        - forget about this mess and switch to configure ;-)
-       - Ask/check for Xbae, libhelp, g77, ...
+       - Ask/check for libhelp, g77, ...
        - distinguish between debug- & production builds
 */
 
@@ -65,13 +65,13 @@ if x11root <> '' then
   if Translate(newdir) <> Translate(x11path) then
     do
     say 'XFree/2 is not properly installed!'
-    say 'At least the X11ROOT environment variable is not set correctly'
+    say 'The X11ROOT environment variable is not set correctly'
     end
   end
 else
   do
   say 'XFree/2 is not properly installed!'
-  say 'At least the X11ROOT environment variable is missing'
+  say 'The X11ROOT environment variable is missing'
   SIGNAL FIN
   end
 
@@ -122,7 +122,7 @@ else
   end
 
 /*
-  Building dlopen.a
+  Building dlfcn.a
 */
 
 call Execute "cd .\arch\os2 && x11make.exe -f dlfcn.mak all & cd ..\.."
@@ -177,6 +177,7 @@ return
 
 rtest:
 /* work in progress (hopefully ;-) */
+
 _CR     = D2C(13)
 _LF     = D2C(10)
 _CRLF   = _CR''_LF

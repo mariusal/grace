@@ -1,5 +1,5 @@
-                           GRACE for XFree86 OS/2
-                                (19990904)
+                           GRACE 5.x for XFree86 OS/2
+                                (19991228)
 
 
                           Contents of this document:
@@ -17,7 +17,7 @@
   (well, most of the time ...) it requires XFree86 to be installed.
   Like every piece of software this port of GRACE may have
   some bugs. Some of them are just related to the general problems
-  un*x biased applications have on non-un*x filesystems. So read the
+  un*x based applications have on non-un*x filesystems. So read the
   documentation and FAQs of XFree86 carefully to get some hints how to
   avoid running into these bugs/limitations, e.g. it is a good idea to
   install TVFS, the Toronto Virtual File System.
@@ -42,8 +42,8 @@
   - XFree86 for OS/2, including its development package(s)
       http://borneo.gmd.de/~veit/os2/xf86os2.html
 
-  - Lesstif for XFree/2
-      http://www.ime.rwth-aachen.de/~michael/os2/lt/lesstif.html
+  - LessTif for XFree/2
+      http://www.tu-darmstadt.de/~st002279/lesstif.html
 
   Additional useful utilities:
 
@@ -67,8 +67,8 @@
 
     - copy standard OS/2 configuration files (config.h and Make.conf)
       from .\arch\os2 to the toplevel source directory
-    - build dlfcn.a in \arch\os2 (support for user-supplied mathemtical
-      functions in dynamic load libraries)
+    - build dlfcn.a in \arch\os2 (support for user-supplied mathematical
+      functions in dynamic load libraries AKA DLLs)
     - build the complete package
 
   configos2.cmd is located in .\arch\os2 and has to be copied
@@ -76,7 +76,7 @@
   Please check .\arch\os2\config.h.os2 and .\arch\os2\Make.conf.os2
   and modify them if necessary. Especially make changes to
   make use of pre-installed versions of libraries like
-  T1lib and Xbae.
+  T1lib and fftw.
   Finally 'x11make.exe' will be called by this script. 
   Note that calling the 'make' script from XFree/2 won't work,
   because the generic Makefile is using shell commands which are 

@@ -9,14 +9,17 @@
 extern "C" {
 #endif
 
-extern void  *dlopen (const char *filename, int flag);
-extern const  char *dlerror (void);
-extern void  *dlsym (void *handle, char *symbol);
+extern void  *dlopen  (const char *filename, int flag);
+extern char  *dlerror (void);
+extern void  *dlsym   (void *handle, char *symbol);
 extern int    dlclose (void *handle);
 
 
-/* We do not actually use the definitions below but have
-   to keep them for compatibility ... */
+/*
+   We do not actually use the definitions below but have
+   to keep them for compatibility ... 
+   Values taken from linux
+*/
 
 #define RTLD_LAZY	1
 #define RTLD_NOW	2

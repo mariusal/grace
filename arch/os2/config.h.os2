@@ -360,10 +360,10 @@
 #define HAVE_XPM 1
 
 /* Define if you have the xpm.h.  */
-#define HAVE_XPM_H 1
+#undef HAVE_XPM_H 1
 
 /* Define if you have the xpm.h header among X11 includes.  */
-#undef HAVE_X11_XPM_H
+#define HAVE_X11_XPM_H 1
 
 /* Define if you have (and want to use) libhelp  */
 #define WITH_LIBHELP 1

@@ -133,6 +133,18 @@ ACEGR' tbar3.dat'
 /* a stacked bar graph */
 ACEGR' stackedb.d'
 
+/* a bar chart with error bars */
+ACEGR' chartebar.agr
+
+/* display all types of XY charts */
+ACEGR' charts.agr
+
+/* pie charts */
+ACEGR' pie.agr
+
+/* non-linear curve fitting */
+ACEGR' logistic.agr
+
 /* some interesting stuff */
 ACEGR' -arrange 2 2 -b test.com'
 
@@ -172,3 +184,4 @@ Parse Arg EC_param
 _silent_pre = "@"
 ADDRESS CMD _silent_pre""EC_param
 return rc
+

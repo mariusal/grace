@@ -1,6 +1,7 @@
+/* $Id: dlfcn.c,v 1.3 1999-12-30 22:08:15 fnevgeny Exp $    */
 /* dlfcn.c */ 
-/* Implementation of dlopen() interface for OS/2               */
-/* This code is released into public domain                    */
+/*    Implementation of dlopen() interface for OS/2             */
+/*    This code is released into public domain                  */
 
 
 #include <stdlib.h>
@@ -12,13 +13,15 @@
 #define INCL_DOSERRORS        /* Error values */
 #include <os2.h>
 
-#define LM_LENGTH 256
+/* to get constants and check prototypes */
+#include "dlfcn.h"
+
+#define LM_LENGTH  256
 #define MAXDLLOPEN 256
 
-static ULONG LoadErrorLength = LM_LENGTH;
-static int   LoadErrorFlag   = FALSE;
-UCHAR LoadError[LM_LENGTH]   = "";  /* this is being referenced from outside
-                                       this module */
+static int LoadErrorFlag    = FALSE;
+UCHAR LoadError[LM_LENGTH]  = "";     /* this is being referenced from outside
+                                         this module */
 
 
 void *dlopen( const char *filename, int flag)
@@ -28,7 +31,7 @@ void *dlopen( const char *filename, int flag)
   APIRET rc;
  
   rc = DosLoadModule( LoadError,
-                      LoadErrorLength-1,
+                      LM_LENGTH-1,
                       filename,
                       &DLLHandle);
   if (rc != NO_ERROR)
@@ -78,7 +81,7 @@ void *dlsym(void *handle, char *symbol)
                  symbol, rc);
           break;
          }
-       case ERROR_ENTRY_IS_CALLGATE: /* I have no idea what this is ... */
+       case ERROR_ENTRY_IS_CALLGATE:
         {
          sprintf(LoadError,
                 "DosQueryProcAddr(\"%s\")=ERROR_INVALID_HANDLE (%lu)\n",
