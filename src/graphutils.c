@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -273,9 +273,9 @@ static void round_axis_limits(double *amin, double *amax, int scale)
     smin = nicenum(smin, nrange, NICE_FLOOR);
     smax = nicenum(smax, nrange, NICE_CEIL);
     if (sign(smin) == sign(smax)) {
-        if (smax > 5.0*smin) {
+        if (smax/smin > 5.0) {
             smin = 0.0;
-        } else if (smin > 5.0*smax) {
+        } else if (smin/smax > 5.0) {
             smax = 0.0;
         }
     }
