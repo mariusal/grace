@@ -773,7 +773,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-    CreateMenuButton(menupane, "Page setup...", 'P', create_printer_setup, &grace->rt->tdevice);
+    CreateMenuButton(menupane, "Page rendering...", 'P', create_printer_setup, &grace->rt->tdevice);
 
     CreateMenuSeparator(menupane);
 
