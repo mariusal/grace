@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -131,6 +131,8 @@ int kill_graph(int gno)
 {
     if (is_valid_gno(gno) == TRUE) {
 	kill_all_sets(gno);
+        cxfree(g[gno].labs.title.s);
+        cxfree(g[gno].labs.stitle.s);
         
 	/* We want to have at least one graph anyway */
         if (gno == maxgraph - 1 && maxgraph > 1) {
@@ -951,10 +953,8 @@ void set_default_graph(int gno)
     set_default_world(&g[gno].w);
     set_default_view(&g[gno].v);
     set_default_legend(gno, &g[gno].l);
-    /* TODO: memory leak! */
     set_default_string(&g[gno].labs.title);
     g[gno].labs.title.charsize = 1.5;
-    /* TODO: memory leak! */
     set_default_string(&g[gno].labs.stitle);
     g[gno].labs.stitle.charsize = 1.0;
     g[gno].maxplot = 0;
