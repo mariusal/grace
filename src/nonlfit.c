@@ -234,18 +234,6 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
 	return RETURN_FAILURE;
     }
 
-    xp = getx(gno, setno);
-    yp = gety(gno, setno);
-    
-    for (i = 0; i < n; ++i) {
-    	y_saved[i] = yp[i];
-    }
-   
-    parms_to_a(a);
-    
-    ra = rarray;
-    wts = warray;
-
     stufftext("Fitting with formula: ", 0);
     stufftext(nonl_opts.formula, 0);
     stufftext("\n", 0);
@@ -256,6 +244,18 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     }
     sprintf(buf, "Tolerance = %g\n", nonl_opts.tolerance);
     stufftext(buf, 0);
+    
+    xp = getx(gno, setno);
+    yp = gety(gno, setno);
+    
+    for (i = 0; i < n; ++i) {
+    	y_saved[i] = yp[i];
+    }
+   
+    ra = rarray;
+    wts = warray;
+
+    parms_to_a(a);
     
     info = lmdif_drv((U_fp) fcn, (integer) n, (integer) parnum, a, fvec, 
         &nonl_opts.tolerance, iwa, wa, lwa, (integer) nsteps);
