@@ -351,6 +351,7 @@ int xlibinitgraphics(void)
     xlibupdatecmap();
     
     XSetForeground(disp, gc, xvlibcolors[0]);
+    XSetFillStyle(disp, gc, FillSolid);
     XFillRectangle(disp, displaybuff, gc, 0, 0, win_w, win_h);
     XSetForeground(disp, gc, xvlibcolors[1]);
     
