@@ -391,7 +391,7 @@ Widget CreateBitmapButton(Widget parent,
     int width, int height, const unsigned char *bits);
 void AddButtonCB(Widget button, Button_CBProc cbproc, void *data);
 
-void CreateAACDialog(Widget form,
+WidgetList CreateAACDialog(Widget form,
     Widget container, AACDialog_CBProc cbproc, void *data);
 
 Widget CreateAACButtons(Widget parent, Widget form, Button_CBProc aac_cb);

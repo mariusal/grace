@@ -3184,13 +3184,16 @@ void aacdialog_int_cb_proc(void *data)
     unset_wait_cursor();
 }
 
-void CreateAACDialog(Widget form,
+WidgetList CreateAACDialog(Widget form,
     Widget container, AACDialog_CBProc cbproc, void *data)
 {
-    Widget fr, aacbut[3];
+    Widget fr;
+    WidgetList aacbut;
     AACDialog_CBdata *cbdata_accept, *cbdata_apply;
     char *aaclab[3] = {"Apply", "Accept", "Close"};
 
+    aacbut = (WidgetList) XtMalloc(3*sizeof(Widget));
+    
     fr = CreateFrame(form, NULL);
     XtVaSetValues(fr,
         XmNtopAttachment, XmATTACH_NONE,
@@ -3226,6 +3229,8 @@ void CreateAACDialog(Widget form,
     
     XtManageChild(container);
     XtManageChild(form);
+    
+    return aacbut;
 }
 
 int td_cb(void *data)
