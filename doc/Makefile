@@ -34,7 +34,7 @@ PDFLATEX    = pdflatex
 	$(LATEX) $<
 
 .dvi.ps :
-	$(DVI2PS) $<
+	$(DVI2PS) $< -o $@
 
 .tex.pdf :
 	$(PDFLATEX) $<
