@@ -21,7 +21,7 @@
  *
  * Author: Andrew Lister
  *
- * $Id: Input.c,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
+ * $Id: Input.c,v 1.1.2.1 2001-01-19 21:55:50 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -33,6 +33,7 @@
 #undef DEBUG
 #endif
 
+#include <stdio.h>
 /* For memmove/bcopy */
 #include <string.h>
 
