@@ -46,8 +46,6 @@
 #include <Xm/Label.h>
 #include <Xm/Text.h>
 
-#include "Tab.h"
-
 #include "globals.h"
 #include "protos.h"
 #include "utils.h"

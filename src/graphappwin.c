@@ -39,8 +39,6 @@
 #include <Xm/DialogS.h>
 #include <Xm/RowColumn.h>
 
-#include "Tab.h"
-
 #include "graphs.h"
 #include "graphutils.h"
 #include "utils.h"
