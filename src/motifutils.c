@@ -1007,7 +1007,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
 {
     FSBStructure *retval;
     OptionStructure *opt;
-    Widget w, fr, form, button;
+    Widget fr, form, button;
     XmString xmstr;
     char *bufp, *resname;
     
@@ -1034,9 +1034,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     
     XtAddCallback(retval->FSB,
         XmNcancelCallback, destroy_dialog, retval->dialog);
-    
-    w = XmFileSelectionBoxGetChild(retval->FSB, XmDIALOG_HELP_BUTTON);
-    XtSetSensitive(w, FALSE);
+    AddHelpCB(retval->FSB, "doc/UsersGuide.html#FS-dialog");
     
     retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
     fr = CreateFrame(retval->rc, NULL);
