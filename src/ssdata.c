@@ -313,23 +313,25 @@ int insert_data_row(Quark *q, unsigned int row, char *s)
  */
 static Quark *nextset(Quark *ss)
 {
-    Quark *pset;
-    RunTime *rt = rt_from_quark(ss);
+    Quark *pset, *gr, **sets;
+    int nsets;
     
-    if (!rt) {
-        return NULL;
-    }
+    pset = get_target_set();
     
-    pset = rt->target_set;
-    
-    if (pset && set_is_dataless(pset)) {
-        rt->target_set = NULL;
-        quark_reparent(pset, ss);
-        return pset;
+    if (pset) {
+        set_target_set(NULL);
     } else {
-        
-        return grace_set_new(ss);
+        gr = get_parent_graph(ss);
+        nsets = quark_get_descendant_sets(gr, &sets);
+        if (nsets) {
+            pset = sets[0];
+        } else {
+            pset = grace_set_new(ss);
+        }
     }
+    quark_reparent(pset, ss);
+    
+    return pset;
 }
 
 int store_data(Quark *q, int load_type)

@@ -265,8 +265,6 @@ RunTime *runtime_new(Grace *grace)
     rt->tdevice = 0;
     rt->hdevice = 0;
     
-    rt->target_set = NULL;
-    
     rt->timer_delay = 200;
 
     rt->autoscale_onread = AUTOSCALE_XY;

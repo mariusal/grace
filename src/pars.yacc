@@ -84,6 +84,10 @@ static Quark *whichframe;
 static Quark *whichgraph;
 static Quark *whichset;
 
+/* target set */
+static Quark *target_set;
+
+
 static Quark *whichaxisgrid;
 static Quark *normaxis,  *oppaxis;
 static Quark *normlabel, *opplabel;
@@ -1811,7 +1815,7 @@ parmset:
 	}
 
 	| TARGET selectset {
-	    grace->rt->target_set = $2;
+	    target_set = $2;
 	    set_parser_setno($2);
 	}
 	| WITH selectgraph {
@@ -5024,6 +5028,16 @@ static Quark *allocate_set(Quark *gr, int setno)
     return pset;
 }
 
+Quark *get_target_set(void)
+{
+    return target_set;
+}
+
+void set_target_set(Quark *pset)
+{
+    target_set = pset;
+}
+
 void parser_state_reset(Quark *pr)
 {
     project = pr;
@@ -5033,11 +5047,12 @@ void parser_state_reset(Quark *pr)
         whichframe = NULL;
         whichgraph = NULL;
     }
-    whichset  = NULL;
+    whichset      = NULL;
+    target_set    = NULL;
     whichaxisgrid = NULL;
-    normaxis = NULL;
-    oppaxis  = NULL;
-    curtm     = NULL;
-    curobject = NULL;
-    objgno    = NULL;
+    normaxis      = NULL;
+    oppaxis       = NULL;
+    curtm         = NULL;
+    curobject     = NULL;
+    objgno        = NULL;
 }

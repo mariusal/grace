@@ -56,6 +56,9 @@ int set_parser_setno(Quark *pset);
 Quark *get_parser_gno(void);
 Quark *get_parser_setno(void);
 
+Quark *get_target_set(void);
+void set_target_set(Quark *pset);
+
 void parser_state_reset(Quark *pr);
 
 int   scanner(char *s);

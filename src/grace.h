@@ -129,9 +129,6 @@ typedef struct _RunTime {
     /* hardcopy device */
     int hdevice;
 
-    /* target set */
-    Quark *target_set;
-
     /* real-time input delay (prevents getting stuck reading) */
     int timer_delay;
     /* autoscale after reading in data sets */
