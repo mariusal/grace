@@ -42,13 +42,13 @@ devclean : $(subdirs)
 	@set -e; for i in $(SUBDIRS); do (cd $$i; $(MAKE) devclean) || exit 1; done
 	$(RM) config.log config.status config.cache config.h Make.conf configure
 
-texts : CHANGES MIGRATION
+texts : CHANGES ChangeLog
 
 CHANGES : doc/CHANGES.html
 	@lynx -dump $? > CHANGES
 
-MIGRATION : doc/MIGRATION.html
-	@lynx -dump $? > MIGRATION
+ChangeLog : 
+	./scripts/cvs2cl.pl
 
 Make.conf : conf/Make.conf.in configure
 	@echo
