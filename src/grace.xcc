@@ -494,6 +494,40 @@ RiserLine *riserline_new(void)
     return retval;
 }
 
+char *utf2iso(const char *s)
+{
+    char *retval;
+    char *p1, *p2;
+    
+    if (!s) {
+        return NULL;
+    }
+    
+    retval = xmalloc(strlen(s) + 1);
+    if (!retval) {
+        return NULL;
+    }
+    
+    p1 = (char *) s;
+    p2 = retval;
+    
+    while (*p1) {
+        if (*p1 & 0x80) {
+            /* last 2 bits */
+            *p2 = (*p1 & 0x03) << 6; p1++;
+            /* last 6 bits of the next byte */
+            *p2 += *p1 & 0x3F;
+        } else {
+            *p2 = *p1;
+        }
+        p1++; p2++;
+    }
+    
+    *(p2) = '\0';
+    
+    return retval;
+}
+
     ]]></preamble>
 
     <!-- Attribute types -->
@@ -931,7 +965,10 @@ RiserLine *riserline_new(void)
     <element name="#EStrText" type="string">
         <!-- Character data -->
         <data>
-            xcc_string_set($$, $?);
+            char *s;
+            s = utf2iso($?);
+            xcc_string_set($$, s);
+            xfree(s);
         </data>
     </element>
     <element name="#EStrFillSpec" type="pen">
