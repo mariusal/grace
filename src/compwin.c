@@ -44,7 +44,7 @@
 #include "protos.h"
 
 typedef struct {
-    Widget formula_item;
+    TextStructure *formula_item;
     RestrictionStructure *restr_item;
 } Eval_ui;
 
@@ -63,7 +63,7 @@ static void *eval_build_cb(TransformStructure *tdialog)
         Widget rc_trans;
         
         rc_trans = CreateVContainer(tdialog->frame);
-        ui->formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
+        ui->formula_item = CreateScrolledTextInput(rc_trans, "Formula:", 3);
         ui->restr_item = CreateRestrictionChoice(rc_trans, "Source data filtering");
     }
 
@@ -79,7 +79,7 @@ static void *eval_get_cb(void *gui)
     if (pars) {
         pars->restr_type = GetOptionChoice(ui->restr_item->r_sel);
         pars->restr_negate = GetToggleButtonState(ui->restr_item->negate);
-        pars->fstr = copy_string(NULL, xv_getstr(ui->formula_item));
+        pars->fstr = GetTextString(ui->formula_item);
     }
     
     return (void *) pars;

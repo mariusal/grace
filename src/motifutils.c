@@ -1609,6 +1609,53 @@ TextStructure *CreateTextInput(Widget parent, char *s)
     return retval;
 }
 
+/* 
+ * create a multiline editable window
+ * parent = parent widget
+ * nrows  = number of lines in the window
+ * s      = label for window
+ */
+TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows)
+{
+    TextStructure *retval;
+    XmString str;
+    Arg args[4];
+    int ac;
+	
+    retval = xmalloc(sizeof(TextStructure));
+    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
+
+    str = XmStringCreateLocalized(s);
+    retval->label = XtVaCreateManagedWidget("label",
+        xmLabelWidgetClass, retval->form,
+	XmNlabelString, str,
+	XmNtopAttachment, XmATTACH_FORM,
+	XmNleftAttachment, XmATTACH_FORM,
+	XmNrightAttachment, XmATTACH_FORM,
+	NULL);
+    XmStringFree(str);
+
+    ac = 0;
+    if (nrows > 0) {
+        XtSetArg(args[ac], XmNrows, nrows); ac++;
+    }
+    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
+    XtSetArg(args[ac], XmNwordWrap, True); ac++;
+    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
+    retval->text = XmCreateScrolledText(retval->form, "text", args, ac);
+    XtVaSetValues(XtParent(retval->text),
+	XmNtopAttachment, XmATTACH_WIDGET,
+        XmNtopWidget, retval->label,
+	XmNleftAttachment, XmATTACH_FORM,
+	XmNrightAttachment, XmATTACH_FORM,
+	XmNbottomAttachment, XmATTACH_FORM,
+	NULL);
+    XtManageChild(retval->text);
+    
+    XtManageChild(retval->form);
+    return retval;
+}
+
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
     TextStructure *cst = (TextStructure *) GetUserData(w);
@@ -3822,55 +3869,6 @@ Widget CreateTextItem4(Widget parent, int len, char *label)
         XmNcolumns, len,
         NULL);
     return retval;
-}
-
-
-/* 
- * create a multiline editable window
- * parent = parent widget
- * hgt    = number of lines in edit window
- * s      = label for window
- * 
- * returns the edit window widget
- */
-Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
-{
-    Widget w, form, label;
-    XmString str;
-    Arg args[4];
-    int ac;
-	
-    form = XmCreateForm(parent, "form", NULL, 0);
-
-    str = XmStringCreateLocalized(s);
-    label = XtVaCreateManagedWidget("label",
-        xmLabelWidgetClass, form,
-	XmNlabelString, str,
-	XmNtopAttachment, XmATTACH_FORM,
-	XmNleftAttachment, XmATTACH_FORM,
-	XmNrightAttachment, XmATTACH_FORM,
-	NULL);
-    XmStringFree(str);
-
-    ac = 0;
-    if (hgt > 0) {
-        XtSetArg(args[ac], XmNrows, hgt); ac++;
-    }
-    XtSetArg(args[ac], XmNeditMode, XmMULTI_LINE_EDIT); ac++;
-    XtSetArg(args[ac], XmNwordWrap, True); ac++;
-    XtSetArg(args[ac], XmNvisualPolicy, XmVARIABLE); ac++;
-    w = XmCreateScrolledText(form, "text", args, ac);
-    XtVaSetValues(XtParent(w),
-	XmNtopAttachment, XmATTACH_WIDGET,
-        XmNtopWidget, label,
-	XmNleftAttachment, XmATTACH_FORM,
-	XmNrightAttachment, XmATTACH_FORM,
-	XmNbottomAttachment, XmATTACH_FORM,
-	NULL);
-    XtManageChild(w);
-    
-    XtManageChild(form);
-    return w;
 }
 
 typedef struct {

@@ -38,7 +38,7 @@ typedef struct {
     Widget          top;
 
     Widget          sformat;
-    Widget          description;
+    TextStructure  *description;
     
     OptionStructure *page_orient;
     OptionStructure *page_format;

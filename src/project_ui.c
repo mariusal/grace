@@ -189,8 +189,8 @@ ProjectUI *create_project_ui(ExplorerUI *eui)
 
     fr = CreateFrame(form, NULL);
     rc = CreateVContainer(fr);
-    ui->description  = CreateScrollTextItem2(rc, 5, "Project description:");
-    AddTextItemCB(ui->description, titem_explorer_cb, eui);
+    ui->description  = CreateScrolledTextInput(rc, "Project description:", 5);
+    AddTextInputCB(ui->description, text_explorer_cb, eui);
     ui->sformat = CreateTextItem2(rc, 15, "Data format:");
     AddTextItemCB(ui->sformat, titem_explorer_cb, eui);
 
@@ -264,7 +264,7 @@ void update_project_ui(ProjectUI *ui, Quark *q)
         int format;
 
         xv_setstr(ui->sformat, project_get_sformat(q));
-        xv_setstr(ui->description, project_get_description(q));
+        SetTextString(ui->description, project_get_description(q));
 
         switch (GetOptionChoice(ui->page_size_unit)) {
         case PAGE_UNITS_IN:
@@ -339,9 +339,9 @@ int set_project_data(ProjectUI *ui, Quark *q, void *caller)
             project_set_sformat(q, xv_getstr(ui->sformat));
         }
         if (!caller || caller == ui->description) {
-            char *s = XmTextGetString(ui->description);
+            char *s = GetTextString(ui->description);
             project_set_description(q, s);
-            XtFree(s);
+            xfree(s);
         }
 
         if (caller == ui->page_orient) {

@@ -458,7 +458,9 @@ void SetSpinChoice(SpinStructure *spinp, double value);
 void AddSpinChoiceCB(SpinStructure *spinp, Spin_CBProc cbproc, void *data);
 
 TextStructure *CreateTextInput(Widget parent, char *s);
+TextStructure *CreateScrolledTextInput(Widget parent, char *s, int nrows);
 TextStructure *CreateCSText(Widget parent, char *s);
+
 char *GetTextString(TextStructure *cst);
 void SetTextString(TextStructure *cst, char *s);
 void AddTextInputCB(TextStructure *cst, Text_CBProc cbproc, void *data);
@@ -548,7 +550,6 @@ OptionStructure *CreatePaperFormatChoice(Widget parent, char *s);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);
-Widget CreateScrollTextItem2(Widget parent, int hgt, char *s);
 void AddTextItemCB(Widget ti, TItem_CBProc cbproc, void *data);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);

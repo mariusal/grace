@@ -58,7 +58,7 @@ static void cmd_cb(TextStructure *cst, char *s, void *data);
 typedef struct _console_ui
 {
     Widget mon_frame;
-    Widget monText;
+    TextStructure *monText;
     FSBStructure *save_logs_fsb;
     TextStructure *cmd;
     Storage *history;
@@ -156,9 +156,8 @@ static void create_monitor_frame(int force, char *msg)
             ui->mon_frame, "doc/UsersGuide.html#console");
 	
         fr = CreateFrame(ui->mon_frame, NULL);
-	ui->monText = CreateScrollTextItem2(fr, 0, "Messages:");
-        XmTextSetString(ui->monText, "");
-        XtVaSetValues(ui->monText, XmNeditable, False, NULL);
+	ui->monText = CreateScrolledTextInput(fr, "Messages:", 0);
+        SetTextEditable(ui->monText, FALSE);
         AddDialogFormChild(ui->mon_frame, fr);
 
         fr = CreateFrame(ui->mon_frame, NULL);
@@ -177,8 +176,8 @@ static void create_monitor_frame(int force, char *msg)
     
     if (msg != NULL) {
         XmTextPosition pos;
-        pos = XmTextGetLastPosition(ui->monText);
-        XmTextInsert(ui->monText, pos, msg);
+        pos = XmTextGetLastPosition(ui->monText->text);
+        TextInsert(ui->monText, pos, msg);
     }
     
     if (force || ui->popup_only_on_errors == FALSE) {
@@ -209,7 +208,7 @@ static void auto_update_cb(Widget tbut, int onoff, void *data)
 static void clear_results(Widget but, void *data)
 {
     console_ui *ui = (console_ui *) data;
-    XmTextSetString(ui->monText, "");
+    SetTextString(ui->monText, "");
 }
 
 /*
@@ -246,11 +245,11 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
     if (pp == NULL) {
         return RETURN_FAILURE;
     } else {
-        char *text = XmTextGetString(ui->monText);
+        char *text = GetTextString(ui->monText);
         
         if (text) {
             fwrite(text, SIZEOF_CHAR, strlen(text), pp);
-            XtFree(text);
+            xfree(text);
         }
         
         grace_close(pp);
