@@ -55,15 +55,9 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
     switch (q->fid) {
     case QFlavorProject:
         if (!closure->post) {
-            plot_rt->saveg = graph_get_current(q);
-
             set_draw_mode(canvas, TRUE);   
             
             closure->post = TRUE;
-        } else {
-            if (graph_get_current(q) != plot_rt->saveg) {
-                select_graph(plot_rt->saveg);
-            }
         }
         break;
     case QFlavorFrame:
@@ -89,8 +83,6 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
             plot_rt->refn = 0;
             plot_rt->refx = NULL;
             plot_rt->refy = NULL;
-
-            select_graph(q);
 
             if (draw_graph(q, plot_rt) != RETURN_SUCCESS) {
                 closure->descend = FALSE;
@@ -538,12 +530,12 @@ void draw_ref_point(Canvas *canvas, Quark *gr)
 void draw_frame(Quark *q, plot_rt_t *plot_rt)
 {
     Canvas *canvas = plot_rt->canvas;
-    view *v;
+    view v;
     frame *f;
     VPoint vps[4];
 
     f = frame_get_data(q);
-    v = frame_get_view(q);
+    frame_get_view(q, &v);
 
     setclipping(canvas, TRUE);
     
@@ -551,63 +543,63 @@ void draw_frame(Quark *q, plot_rt_t *plot_rt)
 
     switch (f->type) {
     case 0:
-        vps[0].x = v->xv1;
-        vps[0].y = v->yv1;
-        vps[1].x = v->xv2;
-        vps[1].y = v->yv2;
+        vps[0].x = v.xv1;
+        vps[0].y = v.yv1;
+        vps[1].x = v.xv2;
+        vps[1].y = v.yv2;
         DrawRect(canvas, &vps[0], &vps[1]);
         break;
     case 1:                     /* half open */
-        vps[0].x = v->xv1;
-        vps[0].y = v->yv2;
-        vps[1].x = v->xv1;
-        vps[1].y = v->yv1;
-        vps[2].x = v->xv2;
-        vps[2].y = v->yv1;
+        vps[0].x = v.xv1;
+        vps[0].y = v.yv2;
+        vps[1].x = v.xv1;
+        vps[1].y = v.yv1;
+        vps[2].x = v.xv2;
+        vps[2].y = v.yv1;
         DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
         break;
     case 2:                     /* break top */
-        vps[0].x = v->xv1;
-        vps[0].y = v->yv2;
-        vps[1].x = v->xv1;
-        vps[1].y = v->yv1;
-        vps[2].x = v->xv2;
-        vps[2].y = v->yv1;
-        vps[3].x = v->xv2;
-        vps[3].y = v->yv2;
+        vps[0].x = v.xv1;
+        vps[0].y = v.yv2;
+        vps[1].x = v.xv1;
+        vps[1].y = v.yv1;
+        vps[2].x = v.xv2;
+        vps[2].y = v.yv1;
+        vps[3].x = v.xv2;
+        vps[3].y = v.yv2;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 3:                     /* break bottom */
-        vps[0].x = v->xv1;
-        vps[0].y = v->yv1;
-        vps[1].x = v->xv1;
-        vps[1].y = v->yv2;
-        vps[2].x = v->xv2;
-        vps[2].y = v->yv2;
-        vps[3].x = v->xv2;
-        vps[3].y = v->yv1;
+        vps[0].x = v.xv1;
+        vps[0].y = v.yv1;
+        vps[1].x = v.xv1;
+        vps[1].y = v.yv2;
+        vps[2].x = v.xv2;
+        vps[2].y = v.yv2;
+        vps[3].x = v.xv2;
+        vps[3].y = v.yv1;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 4:                     /* break left */
-        vps[0].x = v->xv1;
-        vps[0].y = v->yv1;
-        vps[1].x = v->xv2;
-        vps[1].y = v->yv1;
-        vps[2].x = v->xv2;
-        vps[2].y = v->yv2;
-        vps[3].x = v->xv1;
-        vps[3].y = v->yv2;
+        vps[0].x = v.xv1;
+        vps[0].y = v.yv1;
+        vps[1].x = v.xv2;
+        vps[1].y = v.yv1;
+        vps[2].x = v.xv2;
+        vps[2].y = v.yv2;
+        vps[3].x = v.xv1;
+        vps[3].y = v.yv2;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 5:                     /* break right */
-        vps[0].x = v->xv2;
-        vps[0].y = v->yv1;
-        vps[1].x = v->xv1;
-        vps[1].y = v->yv1;
-        vps[2].x = v->xv1;
-        vps[2].y = v->yv2;
-        vps[3].x = v->xv2;
-        vps[3].y = v->yv2;
+        vps[0].x = v.xv2;
+        vps[0].y = v.yv1;
+        vps[1].x = v.xv1;
+        vps[1].y = v.yv1;
+        vps[2].x = v.xv1;
+        vps[2].y = v.yv2;
+        vps[3].x = v.xv2;
+        vps[3].y = v.yv2;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     }
@@ -617,22 +609,22 @@ void draw_frame(Quark *q, plot_rt_t *plot_rt)
 
 void fillframe(Canvas *canvas, Quark *q)
 {
-    view *v;
+    view v;
     frame *f;
     VPoint vp1, vp2;
 
-    v = frame_get_view(q);
+    frame_get_view(q, &v);
     f = frame_get_data(q);
 
-    canvas_set_clipview(canvas, v);
+    canvas_set_clipview(canvas, &v);
     
     /* fill coordinate frame with background color */
     if (f->fillpen.pattern != 0) {
         setpen(canvas, &f->fillpen);
-        vp1.x = v->xv1;
-        vp1.y = v->yv1;
-        vp2.x = v->xv2;
-        vp2.y = v->yv2;
+        vp1.x = v.xv1;
+        vp1.y = v.yv1;
+        vp2.x = v.xv2;
+        vp2.y = v.yv2;
         FillRect(canvas, &vp1, &vp2);
     }
 }    
@@ -2064,12 +2056,13 @@ void draw_arrowhead(Canvas *canvas,
 void draw_region(Canvas *canvas, Quark *q)
 {
     Quark *f = get_parent_frame(q);
-    view *v = frame_get_view(f);
+    view v;
     region *r = region_get_data(q);
     VPoint vp;
     WPoint wp;
     double dv = 0.003;
 
+    frame_get_view(f, &v);
     if (terminal_device(canvas) != TRUE || !r || !r->active) {
         return;
     }
@@ -2077,10 +2070,10 @@ void draw_region(Canvas *canvas, Quark *q)
     setcolor(canvas, r->color);
     setpattern(canvas, 1);
     
-    vp.x = v->xv1;
-    while (vp.x <= v->xv2) {
-        vp.y = v->yv1;
-        while (vp.y <= v->yv2) {
+    vp.x = v.xv1;
+    while (vp.x <= v.xv2) {
+        vp.y = v.yv1;
+        while (vp.y <= v.yv2) {
             if (Vpoint2Wpoint(q, &vp, &wp) && inregion(q, &wp)) {
                 DrawPixel(canvas, &vp);
             }
@@ -2223,7 +2216,7 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     int i, nsets, setno, nleg_entries;
     double max_sym_width, max_str_width;
     
-    view sym_bbox, str_bbox, *v;
+    view sym_bbox, str_bbox, v;
     legend *l;
 
     Quark **psets;
@@ -2297,25 +2290,25 @@ void draw_legends(Quark *q, plot_rt_t *plot_rt)
     
     bb_width = max_sym_width + max_str_width + 3*l->hgap;
     
-    v = frame_get_view(q);
+    frame_get_view(q, &v);
     
     switch (l->acorner) {
     case CORNER_LL:
-        vp.x = v->xv1 + l->offset.x;
-        vp.y = v->yv1 + l->offset.y + bb_height;
+        vp.x = v.xv1 + l->offset.x;
+        vp.y = v.yv1 + l->offset.y + bb_height;
         break;
     case CORNER_UL:
-        vp.x = v->xv1 + l->offset.x;
-        vp.y = v->yv2 - l->offset.y;
+        vp.x = v.xv1 + l->offset.x;
+        vp.y = v.yv2 - l->offset.y;
         break;
     case CORNER_UR:
     default:
-        vp.x = v->xv2 - l->offset.x - bb_width;
-        vp.y = v->yv2 - l->offset.y;
+        vp.x = v.xv2 - l->offset.x - bb_width;
+        vp.y = v.yv2 - l->offset.y;
         break;
     case CORNER_LR:
-        vp.x = v->xv2 - l->offset.x - bb_width;
-        vp.y = v->yv1 + l->offset.y + bb_height;
+        vp.x = v.xv2 - l->offset.x - bb_width;
+        vp.y = v.yv1 + l->offset.y + bb_height;
         break;
     }
     

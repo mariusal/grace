@@ -2332,12 +2332,11 @@ static void g_dc_cb(StorageStructure *ss, Quark *gr, void *data)
 static char *graph_labeling(Quark *q, unsigned int *rid)
 {
     char buf[128];
-    graph *g = graph_get_data(q);
     
-    if (g) {
+    if (q->fid == QFlavorGraph) {
         sprintf(buf, "(%c) Graph \"%s\" (type: %s, sets: %d)",
-            g->active ? '+':'-', QIDSTR(q), graph_types(grace->rt, g->type),
-            number_of_sets(q));
+            graph_is_active(q) ? '+':'-', QIDSTR(q),
+            graph_types(grace->rt, graph_get_type(q)), number_of_sets(q));
 
         (*rid)++;
 

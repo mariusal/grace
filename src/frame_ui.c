@@ -200,21 +200,21 @@ void update_frame_ui(FrameUI *ui, Quark *q)
     frame *f = frame_get_data(q);
     if (f) {
         char buf[32];
-        view *v;
+        view v;
         legend *l;
     
-	v = frame_get_view(q);
+	frame_get_view(q, &v);
 	l = frame_get_legend(q);
         
         SetToggleButtonState(ui->active, frame_is_active(q));
         
-        sprintf(buf, "%.9g", v->xv1);
+        sprintf(buf, "%.9g", v.xv1);
 	xv_setstr(ui->view_xv1, buf);
-	sprintf(buf, "%.9g", v->xv2);
+	sprintf(buf, "%.9g", v.xv2);
 	xv_setstr(ui->view_xv2, buf);
-	sprintf(buf, "%.9g", v->yv1);
+	sprintf(buf, "%.9g", v.yv1);
 	xv_setstr(ui->view_yv1, buf);
-	sprintf(buf, "%.9g", v->yv2);
+	sprintf(buf, "%.9g", v.yv2);
 	xv_setstr(ui->view_yv2, buf);
 
 	SetOptionChoice(ui->frame_framestyle_choice, f->type);
@@ -254,17 +254,16 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
 {
     frame *f = frame_get_data(q);
     if (f) {
-        view *v, vtmp;
+        view vtmp;
         legend *l;
 
-        v    = frame_get_view(q);
-        l    = frame_get_legend(q);
+        frame_get_view(q, &vtmp);
+        l = frame_get_legend(q);
 
         if (!caller || caller == ui->active) {
             f->active = GetToggleButtonState(ui->active);
         }
 
-        vtmp = *v;
         if (!caller || caller == ui->view_xv1) {
             xv_evalexpr(ui->view_xv1, &vtmp.xv1);  
         }

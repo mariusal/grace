@@ -1148,8 +1148,7 @@ int load_project_file(Grace *grace, char *fn, int as_template)
     ngraphs = project_get_graphs(grace->project, &graphs);
     for (i = 0; i < ngraphs; i++) {
         gr = graphs[i];
-        if (graph_is_active(gr)) {
-            select_graph(gr);
+        if (select_graph(gr) == RETURN_SUCCESS) {
             break;
         }
     }

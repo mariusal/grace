@@ -85,11 +85,7 @@ Quark *graph_next(Quark *project)
 
 int select_graph(Quark *gr)
 {
-    if (!gr || gr->fid != QFlavorGraph) {
-        return RETURN_FAILURE;
-    }
-    
-    if (update_graph_ccache(gr) == RETURN_SUCCESS) {
+    if (graph_is_active(gr)) {
         Project *pr = project_get_data(get_parent_project(gr));
         if (pr) {
             set_parser_gno(gr);
@@ -164,11 +160,9 @@ int get_descendant_sets(Quark *q, Quark ***sets)
 int graph_get_viewport(Quark *gr, view *v)
 {
     if (gr) {
-        view *vv;
         Quark *fr = get_parent_frame(gr);
         
-        vv = frame_get_view(fr);
-        memcpy(v, vv, sizeof(view));
+        frame_get_view(fr, v);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -229,9 +223,8 @@ int is_logit_axis(const Quark *q)
 
 int islogx(Quark *gr)
 {
-    graph *g = graph_get_data(gr);
-    if (g) {
-        return (g->xscale == SCALE_LOG);
+    if (graph_get_xscale(gr) == SCALE_LOG) {
+        return TRUE;
     } else {
         return FALSE;
     }
@@ -239,9 +232,8 @@ int islogx(Quark *gr)
 
 int islogy(Quark *gr)
 {
-    graph *g = graph_get_data(gr);
-    if (g) {
-        return (g->yscale == SCALE_LOG);
+    if (graph_get_yscale(gr) == SCALE_LOG) {
+        return TRUE;
     } else {
         return FALSE;
     }
@@ -249,9 +241,8 @@ int islogy(Quark *gr)
 
 int islogitx(Quark *gr)
 {
-    graph *g = graph_get_data(gr);
-    if (g) {
-        return (g->xscale == SCALE_LOGIT);
+    if (graph_get_xscale(gr) == SCALE_LOGIT) {
+        return TRUE;
     } else {
         return FALSE;
     }
@@ -259,9 +250,8 @@ int islogitx(Quark *gr)
 
 int islogity(Quark *gr)
 {
-    graph *g = graph_get_data(gr);
-    if (g) {
-        return (g->yscale == SCALE_LOGIT);
+    if (graph_get_yscale(gr) == SCALE_LOGIT) {
+        return TRUE;
     } else {
         return FALSE;
     }
@@ -866,16 +856,19 @@ typedef struct {
 static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     frame *f;
+    view v;
     DObject *o;
     ext_xy_t *ext_xy = (ext_xy_t *) udata;
     
     switch (q->fid) {
     case QFlavorFrame:
         f = frame_get_data(q);
-        f->v.xv1 *= ext_xy->x;
-        f->v.xv2 *= ext_xy->x;
-        f->v.yv1 *= ext_xy->y;
-        f->v.yv2 *= ext_xy->y;
+        frame_get_view(q, &v);
+        v.xv1 *= ext_xy->x;
+        v.xv2 *= ext_xy->x;
+        v.yv1 *= ext_xy->y;
+        v.yv2 *= ext_xy->y;
+        frame_set_view(q, &v);
         
         f->l.offset.x *= ext_xy->x;
         f->l.offset.y *= ext_xy->y;

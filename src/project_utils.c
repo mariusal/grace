@@ -231,7 +231,6 @@ static int project_postprocess_hook(Quark *q,
         if (version_id < 50200) {
             quark_sort_children(q, fcomp, NULL);
         }
-        select_graph(q);
 
         break;
     case QFlavorAxis:
@@ -239,8 +238,8 @@ static int project_postprocess_hook(Quark *q,
         g = graph_get_data(get_parent_graph(q));
 
         if (version_id <= 40102) {
-            if ((axis_is_x(q) && g->xscale == SCALE_LOG) ||
-                (axis_is_y(q) && g->yscale == SCALE_LOG)) {
+            if ((axis_is_x(q) && islogx(q)) ||
+                (axis_is_y(q) && islogy(q))) {
                 t->tmajor = pow(10.0, t->tmajor);
             }
 
@@ -455,16 +454,11 @@ static int project_postprocess_hook(Quark *q,
 
 void project_postprocess(Quark *project)
 {
-    Quark *gsave;
     int version_id = project_get_version_id(project);
     
     if (version_id >= bi_version_id()) {
         return;
     }
     
-    gsave = graph_get_current(project);
-    
     quark_traverse(project, project_postprocess_hook, &version_id);
-
-    select_graph(gsave);
 }

@@ -148,7 +148,6 @@ static char *q_labeling(Quark *q)
     char buf[128];
     Project *pr;
     frame *f;
-    graph *g;
     set *s;
     tickmarks *t;
     DObject *o;
@@ -170,11 +169,10 @@ static char *q_labeling(Quark *q)
 
         break;
     case QFlavorGraph:
-        g = graph_get_data(q);
-        
         sprintf(buf, "(%c) Graph \"%s%s\" (type: %s, sets: %d)",
-            g->active ? '+':'-', QIDSTR(q), quark_dirtystate_get(q) ? "*":"",
-            graph_types(rt, g->type), number_of_sets(q));
+            graph_is_active(q) ? '+':'-', QIDSTR(q),
+            quark_dirtystate_get(q) ? "*":"",
+            graph_types(rt, graph_get_type(q)), number_of_sets(q));
 
         break;
     case QFlavorSet:

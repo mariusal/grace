@@ -2406,6 +2406,9 @@ parmset:
 	    world w;
             graph_get_world(whichgraph, &w);
 	    w.xg1 = $3;
+            if (w.xg1 >= w.xg2) {
+                w.xg2 = w.xg1 + 1.0;
+            }
             graph_set_world(whichgraph, &w);
 	}
 	| WORLD XMAX expr {
@@ -2418,6 +2421,9 @@ parmset:
 	    world w;
             graph_get_world(whichgraph, &w);
 	    w.yg1 = $3;
+            if (w.yg1 >= w.yg2) {
+                w.yg2 = w.yg1 + 1.0;
+            }
             graph_set_world(whichgraph, &w);
 	}
 	| WORLD YMAX expr {
