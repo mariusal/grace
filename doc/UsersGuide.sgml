@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.99.0)</title>
 <author>by the Grace Team</author>
-<date>13.06.2004</date>
+<date>24.07.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -23,7 +23,7 @@
      Grace is a WYSIWYG tool to make two-dimensional plots of scientific
      data. It runs under various (if not all) flavors of Unix with X11
      and M*tif (LessTif or Motif). It also runs under VMS, OS/2, and
-     Windows (95/98/NT/Xp). Its capabilities are roughly similar to
+     Windows (95/98/NT/XP). Its capabilities are roughly similar to
      GUI-based programs like Sigmaplot or Microcal Origin plus
      script-based tools like Gnuplot or Genplot. Its strength lies in the
      fact that it combines the convenience of a graphical user interface
@@ -86,12 +86,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    <table loc="htbp">
      <tabular ca="ll">
        <hline>
-       Package        |  License  @
+       Package         |  License  @
        <hline>
-       cephes library |  Free     @
-       T1lib          |  LGPL     @
-       Xbae           |  BSD-like @
-       Tab Widget     |  BSD-like @
+       Cephes library  |  Free     @
+       T1lib           |  LGPL     @
+       Expat           |  MIT/X    @
+       Xbae            |  BSD-like @
+       Tab Widget      |  BSD-like @
+       ListTree Widget |  LGPL     @
        <hline>
      </tabular>
      <caption>
@@ -114,14 +116,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                  Grace usually compiles out of the box in a regular Unix-like
                  environment. You need an ANSI C compiler (gcc is just fine),
                  the X11R5 or above libraries and headers, and an
-                 implementaion of the M*tif API, version 1.2 or above.
+                 implementaion of the M*tif API, version 1.2 or above (2.1 is
+                 highly recommended).
                  If you want to compile your own changes to certain parts of
-                 Grace, you will need a parser generator (<tt/yacc/ or, better,
-                 <tt/bison/).
+                 Grace, you will need a parser generator (<tt>yacc</tt> or,
+                 better, <tt>bison</tt>).
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
-              <item> All raster backends (PNG, JPEG, ...) are based upon the
+              <item> All raster backends (PNG, JPEG, ...) are based on the
                      (<url name="Xmi library" url="http://www.gnu.org/software/libxmi/libxmi.html">),
                      version 1.2.
               <item> The JPEG backend needs the IJG's
@@ -133,14 +136,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <item> The PDF driver requires the PDFlib library to be
                      installed, which is available
                      <url name="here" url="http://www.pdflib.com/">, version
-                     5.0.0 or above.
+                     6.0.0 or above.
               <item> If your computer has the FFTW library (see the
                      <url name="FFTW Home page" url="http://www.fftw.org">)
                      installed when Grace is compiled, Grace will link itself
                      to this, and drop all conventional FFT's and DFT's. All
                      Fourier transforms will be routed through this package,
                      resulting in higher accuracy and better (much better
-                     in many cases) performance.
+                     in many cases) performance. You'll need version 2.1.*,
+                     since the FFTW-3 API is not supported as of yet.
               <item> In order to read/write sets in the NetCDF data format, you
                      will also need the <url name="NetCDF libraries"
                      url="http://unidata.ucar.edu/packages/netcdf/index.html">.
@@ -194,147 +198,150 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <item> Compilation
         <itemize>
           <item> Issue <tt>make</tt>
-                   <p>
-                 If something goes wrong, try to see if the problem has been
-                 described already in the <bf>Grace FAQ</bf> (in the
-                 <tt>doc</tt> directory).
+            <p>
+              If something goes wrong, try to see if the problem has been
+              described already in the <bf>Grace FAQ</bf> (in the <tt>doc</tt>
+              directory).
         </itemize>
         <item> Testing
     
         <itemize>
           <item> <tt>make tests</tt>
-                   <p>
-                  This will give you a slide show demonstrating some nice
-                  features of Grace.
+            <p>
+              This will give you a slide show demonstrating some nice
+              features of Grace.
         </itemize>
         <item> Installation
         <itemize>
           <item> <tt>make install</tt>
           <item> <tt>make links</tt>
-                   <p>
-                 The later (optional) step will make soft links from some files
-                 under the Grace home directory to the system-wide default
-                 locations (can be changed by the <tt>--prefix</tt> option
-                 during the configuration, see above).
+            <p>
+              The later (optional) step will make soft links from some files
+              under the Grace home directory to the system-wide default
+              locations (can be changed by the <tt>--prefix</tt> option
+              during the configuration, see above).
         </itemize>
       </enum>
 
   <sect1>Binary installation
     <p>
-       <enum>
-       <item> Getting pre-built packages
-       <item> Installation
-       <item> Running tests
-       </enum>
-
-  <sect1>Alternative packaging schemes (RPM, ...)
-    <p>
-      
-      Not written yet...
-
+       We neither provide nor support binary builds. Please contact your
+       vendor. Practically all general-purpose GNU/Linux and other Open Source
+       distributions have a Grace package in either main or contributed
+       sections.
+    </p>
 
 <!-- **************************************** -->
 <sect>Getting started
   <p>
-
-  For a jump-in start, you can browse the demos ("Help/Examples" menu tree).
-  These are ordinary Grace projects, so you can play with them and modify them.
-  Also, read the <url name="Tutorial" url="Tutorial.html">.
+    For a jump-in start, you can browse the demos ("Help/Examples" menu tree).
+    These are ordinary Grace projects, so you can play with them and modify
+    them.
+  </p>
   <p>
-  O.k. Here's a VERY quick introduction:
-       <enum>
-       <item> Start the GUI version: xmgrace (return).
-       <item> Select/check the output medium and canvas size in File/Device
-              Setup.
-       <item> If needed, set the graph size ('Viewport' in
-              Plot/Graph Appearance).
-       <item> Load your data with Data/Import/ASCII. 'Load as': 'Single set' for
-              two-column ASCII data, 'Block data' for multi-column ASCII data.
-       <item> Adjust the scales, axis labels and tick marks in Plot/Axis
-              properties. Acknowledge all changes with 'Apply'.
-       <item> Adjust lines, symbols, legends in Plot/Set appearance.
-       <item> Adjust titles, plot frame and legend display in Plot/Graph
-              Appearance.
-       <item> Data can be manipulated in Data/Transformations. To shift a
-              data set by 20 to the left, e.g., in 'Evaluate Expression'
-              select the same set on the left and the right, and say Formula:
-              y=y-20.
-              As you'll probably notice, Grace can do MUCH more than that.
-              Explore at your leisure.
-       <item> When you like your plot, select File/Print. That's it!
-       </enum>
+    O.k. Here's a VERY quick introduction:
+    <enum>
+      <item> Start the GUI version: xmgrace (return).
+      <item> Load your data with Data/Import/ASCII. 'Load as': 'Single set' for
+             two-column ASCII data, 'Block data' for multi-column ASCII data.
+      <item> Fire up project explorer (Tools/Explorer).
+      <item> Click on the top-level node of the project tree and select/check
+             the page size.
+      <item> Adjust the scales, axis labels and tick marks in "Axis" quark
+             properties.
+      <item> Adjust lines, symbols, legends in "Set" properties.
+      <item> Continue exploring the quark tree for finer tuning.
+      <item> Data can be manipulated in Data/Transformations. To shift a
+             data set by 20 to the left, e.g., in 'Evaluate Expression'
+             select the same set on the left and the right, and say Formula:
+             y = y - 20.
+             As you'll probably notice, Grace can do MUCH more than that.
+             Explore at your leisure.
+      <item> When you like your plot, select File/Print. That's it!
+    </enum>
+  </p>
 
   <sect1>General concepts
     <p>
-
-      <sect2>Project files <label id="project-file">
+      <sect2>Project tree<label id="project-tree">
 	<p>
+          A plot in Grace is built in a tree-like manner (reflected
+          1:1 in the Explorer tool) out of "Quarks". Quark is an object that
+          may have its own presentation properties plus a number of children
+          quarks.
+	</p>
+      </sect2>
 
-          A project file contains all information necessary to restore a plot
-          created by Grace, as well as some of preferences. Each plot is
-          represented on a single page, but may have an unlimited number of
-          graphs.You create a project file of your current graph with
-          File/Save,Save as.
-
-      <sect2>Parameter files <label id="parameter-file">
+      <sect2>Coordinate frames <label id="coordinates">
 	<p>
-
-          A parameter file contains the detailed settings of your project.
-          It can be used to transfer these settings to a different
-          plot/project. You generate a parameter file with
-          File/Write/Parameters. You can load the settings contained in
-          a parameter file with File/Read/Parameters.
-
-      <sect2>Input File formats <label id="files-formats">
+          Some quarks impose a coordinate transform; these are "Project",
+          "Frame", and "Graph". Correspondly, there are three types of
+          coordinates in Grace: the <bf>viewport</bf>, the <bf>frame</bf>, and
+          the <bf>world coordinates</bf>. A child position is <it>always</it>
+          defined in the coordinate frame of its parent, so e.g.   points of
+          data sets are defined in the graph's world coordinates. The frame
+          coordinates go from 0 to 1 in both X and Y dimensions of a Frame. 
+	</p>
+          
 	<p>
+          The viewport coordinates correspond to the image of the plot drawn on
+          the canvas (or printed on, say, PS output page).
+          Actually, there is yet another level in the hierarchy of coordinates
+          - the <bf>device coordinates</bf>. However, you (as a user of Grace)
+          should not worry about the latter. The mapping between the viewport
+          coordinates and the device coordinates is always set in such a way
+          that the origin of the viewport corresponds to the left bottom corner
+          of the device page, the smallest of the device dimensions corresponds
+          to one unit in the viewport coordinates. Oh, and the most important
+          thing about the viewport &rarr; device transformation is that it is
+          homotetic, i.e. a square is guaranteed to remain a square, not a
+          rectangle, a circle remains a circle (not an ellipse) etc.
+          
+          The transformation converting the world coordinates into the frame
+          and further into the viewport ones is determined by both the graph
+          type and the axis scaling.
+	</p>
 
-          Grace understands several input files formats. The most
-          basic one is ASCII text files containing space and comma
-          separated columns of data. The data fields can be either
-          numeric (Fortran 'd' and 'D' exponent markers are supported)
-          or alphanumeric (with or without quotes). Several calendar
-          date formats are recognized automatically and you can
-          specify your own reference for numeric dates formats. Grace also
-          has a command language (see <ref id="command-interpreter"
-          name="command interpreter">), you can include commands in
-          data files using lines having "@" as their first non-blank
-          character. Depending on configuration, Grace can also read
-          NetCDF files (see <ref id="configuration" name="configuration">).
-
-      <sect2>Graphs <label id="graph">
 	<p>
+	</p>
+      </sect2>
 
-          A graph consists of (every element is optional): a graph frame, axes,
-          a title and a subtitle, a number of sets and additional annotative
-          objects (text strings, lines, boxes and ellipses).
+      <sect2>Frames<label id="frame">
+	<p>
+          Frame is a rectangular placeholder for one or more graphs (if there
+          are more than one graph in a frame, such graphs are called
+          <bf>overlaid</bf>), and optional annotating objects (texts, boxes,
+          etc). As well, Frame is responsible for displaying legend box holding
+          legend entries for its all children graphs.
+	</p>
+      </sect2>
+
+      <sect2>Graphs<label id="graph">
+	<p>
+          A graph may hold (every element is optional) Axes, Sets, and
+          additional annotative objects.
 
           The graph type can be any of:<label id="graph-types">
           <itemize>
-             <item> XY Graph
-             <item> XY Chart
-             <item> Polar Graph
-             <item> Fixed Graph
-             <item> Pie chart
+            <item> XY Graph
+            <item> XY Chart
+            <item> Polar Graph
+            <item> Fixed Graph
+            <item> Pie chart
           </itemize>
+	</p>
+      </sect2>
 
-      <sect2>Datasets <label id="datasets">
+      <sect2>Sets<label id="sets">
 	<p>
-
-          A dataset is a collection of points with x and y coordinates, up to
-          four optional data values (which, depending on the set type, can be
-          displayed as error bars or like) and one optional character string.
-
-      <sect2>Sets <label id="sets">
-	<p>
-
 	  A set is a way of representing datasets. It consists
           of a pointer to a dataset plus a collection of parameters describing
           the visual appearance of the data (like color, line dash pattern etc).
 
           The set type can be any of the following:
+        </p>
         
         <p>
-        
           <table loc="htbp">
           <tabular ca="lcp{9cm}">
             <hline>
@@ -364,14 +371,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             Set types
           </caption>
           </table>
+        </p>
           
         <p>
-
           Not all set types, however, can be plotted on any graph type. The
           following table summarizes it:
+        </p>
 
         <p>
-
           <table loc="htbp">
           <tabular ca="lccccc">
             <hline>
@@ -401,33 +408,72 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             Graph/Set type connection
           </caption>
           </table>
+	</p>
+      </sect2>
 
-
-      <sect2>Regions <label id="regions">
+      <sect2>Regions<label id="regions">
 	<p>
-
-          Regions are sections of the graph defined by the interior or exterior
+          Regions are sections of a graph defined by the interior or exterior
           of a polygon, or a half plane defined by a line. Regions are used to
-          restrict data transformations to a geometric area occupied by region.
+          restrict data transformations to a geometric area covered by region.
+          
+          Regions are auxiliary objects which are not displayed in print
+          outputs.
+	</p>
+      </sect2>
+
+
+      <sect2>Project files<label id="project-file">
+	<p>
+          A project file contains all information necessary to restore a plot
+          created by Grace. Each plot is represented on a single page (this may
+          change in future), but may have an unlimited number of graphs.You
+          create a project file of your current graph with File/Save,Save as.
+	</p>
+      </sect2>
+
+      <sect2>Datasets<label id="datasets">
+	<p>
+          A dataset is a collection of points with X and Y coordinates, up to
+          four optional data values (which, depending on the set presentation
+          type, can be displayed as error bars or like) and one optional
+          character string.
+	</p>
+      </sect2>
+
+      <sect2>Input File formats <label id="files-formats">
+	<p>
+          Grace understands several input files formats. The most basic one is
+          ASCII text files containing space and comma separated columns of
+          data. The data fields can be either numeric (Fortran 'd' and 'D'
+          exponent markers are supported) or alphanumeric (with or without
+          quotes). Several calendar date formats are recognized automatically
+          and you can specify your own reference for numeric dates formats.
+          Depending on configuration, Grace can also read NetCDF files (see
+          <ref id="configuration" name="configuration">).
+	</p>
+      </sect2>
 
       <sect2>Real Time Input <label id="RTI">
 	<p>
-
           Real Time Input refers to the ability Grace has to be
           fed in real time by an external program. The Grace
           process spawned by the driver program is a full featured
           Grace process: the user can interact using the GUI at the
           same time the program sends data and commands. The process
           will adapt itself to the incoming data rate.
+	</p>
+      </sect2>
 
       <sect2>Hotlinks <label id="hotlinks">
 	<p>
-
           Hotlinks are sources containing varying data. Grace can be
           instructed a file or a pipe is a hotlink in which case it
           will provide specific commands to refresh the data on a
           mouse click (a later version will probably allow automatic
           refresh).
+	</p>
+      </sect2>
 
       <sect2>Devices<label id="devices">
 	<p>
@@ -436,214 +482,163 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           supported devices is:
 
           <itemize>
-          <item> X11
-          <item> PostScript (level 1 and level 2)
-          <item> EPS (encapsulated PostScript)
-          <item> Metafile (which is Grace format, used at the moment mostly
-                 for debugging purposes)
-          <item> MIF (Maker Interchange Format used by FrameMaker)
-          <item> SVG (Scalable Vector Graphics, a language for describing
-                 two-dimensional vector and mixed vector/raster graphics
-                 in XML)
-          <item> PDF (depends on extra libraries,
-                      see <ref name="configuration" id="configuration">)
-          <item> PNM (portable anymap file format)
-          <item> JPEG (depends on extra libraries,
-                      see <ref name="configuration" id="configuration">)
-          <item> PNG (depends on extra libraries,
-                      see <ref name="configuration" id="configuration">)
+            <item> X11
+            <item> PostScript (level 1 and level 2)
+            <item> EPS (encapsulated PostScript)
+            <item> Metafile (which is Grace format, used at the moment mostly
+                   for debugging purposes)
+            <item> MIF (Maker Interchange Format used by FrameMaker)
+            <item> SVG (Scalable Vector Graphics, a language for describing
+                   two-dimensional vector and mixed vector/raster graphics
+                   in XML)
+            <item> PDF (depends on extra libraries,
+                   see <ref name="configuration" id="configuration">)
+            <item> PNM (portable anymap file format)
+            <item> JPEG (depends on extra libraries,
+                   see <ref name="configuration" id="configuration">)
+            <item> PNG (depends on extra libraries,
+                   see <ref name="configuration" id="configuration">)
           </itemize>
+	</p>
 
         <p>
-          Note that Grace no longer supports GIF due to
-          the copyright policy of Unisys. Grace can also be
-          instructed to launch conversion programs automatically
-          based on file name. As an example you can produce MIF
-          (FrameMaker Interchange Format) or Java applets using
-          pstoedit, or almost any image format using the netpbm suite
-          (see the <url name="FAQ" url="FAQ.html">).
+          Grace can also be instructed to launch conversion programs
+          automatically based on file name. As an example you can produce many
+          vector formats using pstoedit, or almost any image format using the
+          netpbm suite (see also the <url name="FAQ" url="FAQ.html">).
+	</p>
+      </sect2>
 
       <sect2>Magic path<label id="magic-path">
 	<p>
-        In many cases, when Grace needs to access a file given with a
-        relative <tt>pathname</tt>, it searches for the file along the
-        following path:
-        <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
+          In many cases, when Grace needs to access a file given with a
+          relative <tt>pathname</tt>, it searches for the file along the
+          following path:
+          <tt>./pathname:./.grace/pathname:~/.grace/pathname:$GRACE_HOME/pathname</tt>
+	</p>
+      </sect2>
 
       <sect2>Dynamic modules<label id="dynamic-modules">
 	<p>
-        Grace can access external functions present in either system
-        or third-party shared libraries or modules specially compiled
-        for use with it. The term dynamic refers to the possibility
-        Grace has to open the library at run time to find the code of
-        the external function, there is no need to recompile Grace
-        itself (the functions already compiled in Grace are
-        "statically linked").
-
-      <sect2>Coordinate frames <label id="coordinates">
-
-	<p>
-          There are two types of coordinates in Grace: the <bf>world
-          coordinates</bf> and the <bf>viewport coordinates</bf>. Points of
-          data sets are defined in the world coordinates. The viewport
-          coordinates correspond to the image of the plot drawn on the canvas
-          (or printed on, say, PS output page). The transformation converting
-          the world coordinates into the viewport ones is determined by both
-          the graph type and the axis scaling.
+          Grace can access external functions present in either system or
+          third-party shared libraries or modules specially compiled for use
+          with it. The term dynamic refers to the possibility Grace has to open
+          the library at run time to find the code of the external function,
+          there is no need to recompile Grace itself (the functions already
+          compiled in Grace are "statically linked").
 	</p>
-
-	<p>
-          Actually, there is yet another level in the hierarchy of coordinates
-          - the <bf>device coordinates</bf>. However, you (as a user of Grace)
-          should not worry about the latter. The mapping between the viewport
-          coordinates and the device coordinates is always set in such a way
-          that the origin of the viewport corresponds to the left bottom corner
-          of the device page, the smallest of the device dimensions corresponds
-          to one unit in the viewport coordinates. Oh, and the most important
-          thing about the viewport &rarr; device transformation is that it is
-          homotetic, i.e. a square is guaranteed to remain a square, not a
-          rectangle, a circle remains a circle (not an ellipse) etc.
-	</p>
+      </sect2>
 
   <sect1>Invocation
-    <p>
+    <sect2>Operational mode
+      <p>
+        With respect to the user interface, there are three modes of
+        operation that Grace can be invoked in. The full-featured GUI-based
+        version is called <tt>xmgrace</tt>. A batch-printing version is
+        called <tt>gracebat</tt>. A command-line interface mode is called
+        <tt>grace</tt>. Usually, a single executable is called in all cases,
+        with two of the three files being (symbolic) links to a "real" one.
+      </p>
+    </sect2>
 
-      <sect2>Operational mode
-        <p>
+    <sect2>Command line options
+      <p>
+        <descrip>
+        <tag> -autoscale <it>x|y|xy</it> </tag>
+              Set autoscale type
 
-          With respect to the user interface, there are three modes of
-          operation that Grace can be invoked in. The full-featured GUI-based
-          version is called <tt>xmgrace</tt>. A batch-printing version is
-          called <tt>gracebat</tt>. A command-line interface mode is called
-          <tt>grace</tt>. Usually, a single executable is called in all cases,
-          with two of the three files being (symbolic) links to a "real" one.
+        <tag> -barebones </tag>
+              Turn off all toolbars
 
-      <sect2>Command line options
-        <p>
-          <descrip>
-          <tag> -autoscale <it>x|y|xy</it> </tag>
-                Override any parameter file settings
+        <tag> -block <it>block_data</it> </tag>
+              Assume data file is block data
 
-          <tag> -barebones </tag>
-                Turn off all toolbars
+        <tag> -bxy <it>x:y:etc.</it> </tag>
+              Form a set from the current block data set using the current set
+              type from columns given in the argument
 
-          <tag> -block <it>block_data</it> </tag>
-                Assume data file is block data
+        <tag> -datehint <it>iso|european|us|days|seconds|nohint</it> </tag>
+              Set the hint for dates analysis
 
-          <tag> -bxy <it>x:y:etc.</it> </tag>
-                Form a set from the current block data set using the current set
-                type from columns given in the argument
+        <tag> -dpipe <it>descriptor</it> </tag>
+              Read data from descriptor (anonymous pipe) on startup
 
-          <tag> -datehint <it>iso|european|us|days|seconds|nohint</it> </tag>
-                Set the hint for dates analysis
+        <tag> -fixed <it>width</it> <it>height</it> </tag>
+              Set canvas size fixed to width*height
 
-          <tag> -dpipe <it>descriptor</it> </tag>
-                Read data from descriptor (anonymous pipe) on startup
+        <tag> -free </tag> Use free page layout
 
-          <tag> -fixed <it>width</it> <it>height</it> </tag>
-                Set canvas size fixed to width*height
+        <tag> -hardcopy </tag>
+              No interactive session, just print and quit
 
-          <tag> -free </tag> Use free page layout
+        <tag> -hdevice <it>hardcopy_device_name</it> </tag>
+              Set default hardcopy device
 
-          <tag> -graph <it>graph_number</it> </tag>
-                Set the current graph number
+        <tag> -hdevice-options <it>option_strin</it> </tag>
+              Set options for default hardcopy device
 
-          <tag> -graphtype <it>graph_type</it> </tag>
-                Set the type of the current graph
+        <tag> -install </tag>
+              Install private colormap
 
-          <tag> -hardcopy </tag>
-                No interactive session, just print and quit
+        <tag> -noask </tag>
+              Assume the answer is yes to all requests - if the operation would
+              overwrite a file, Grace will do so without prompting
 
-          <tag> -hdevice <it>hardcopy_device_name</it> </tag>
-                Set default hardcopy device
+        <tag> -noinstall </tag>
+              Don't use private colormap
 
-          <tag> -install </tag>
-                Install private colormap
+        <tag> -noprint </tag>
+              In batch mode, do not print
 
-          <tag> -legend <it>load</it> </tag>
-                Turn the graph legend on
+        <tag> -nosigcatch </tag>
+              Don't catch signals
 
-          <tag> -log <it>x|y|xy</it> </tag>
-                Set the axis scaling of the current graph to logarithmic
+        <tag> -npipe <it>file</it> </tag>
+              Read data from named pipe on startup
 
-          <tag> -netcdf <it>file</it> </tag>
-                Assume data <it>file</it> is in netCDF format. This option is
-                present only if the netCDF support was compiled in
+        <tag> -nxy <it>nxy_file</it> </tag>
+              Assume data file is in X Y1 Y2 Y3 ... format
 
-          <tag> -netcdfxy <it>X_var</it> <it>Y_var</it> </tag>
-                If -netcdf was used previously, read from the netCDF file
-                <it>X_var</it> <it>Y_var</it> variables and create a set. If
-                <it>X_var</it> name is "null" then load the index of Y to X.
-                This option is present only if the netCDF support was compiled
-                in
- 
- 
- 
-          <tag> -noask </tag>
-                Assume the answer is yes to all requests - if the operation would
-                overwrite a file, Grace will do so without prompting
+        <tag> -param <it>parameter_file</it> </tag>
+              Load parameters from parameter_file to the current graph
 
-          <tag> -noinstall </tag>
-                Don't use private colormap
+        <tag> -pexec <it>parameter_string</it> </tag>
+              Interpret string as a parameter setting
 
-          <tag> -noprint </tag>
-                In batch mode, do not print
+        <tag> -printfile </tag> <it>file</it>
+              Save print output to file
 
-          <tag> -nosigcatch </tag>
-                Don't catch signals
+        <tag> -results <it>results_file</it> </tag>
+              Write results of some data manipulations to results_file
 
-          <tag> -npipe <it>file</it> </tag>
-                Read data from named pipe on startup
+        <tag> -saveall <it>save_file</it> </tag>
+              Save all graphs to save_file
 
-          <tag> -nxy <it>nxy_file</it> </tag>
-                Assume data file is in X Y1 Y2 Y3 ... format
+        <tag> -seed <it>seed_value</it> </tag>
+              Integer seed for random number generator
 
-          <tag> -param <it>parameter_file</it> </tag>
-                Load parameters from parameter_file to the current graph
+        <tag> -source <it>disk|pipe</it> </tag>
+              Source type of next data file
 
-          <tag> -pexec <it>parameter_string</it> </tag>
-                Interpret string as a parameter setting
+        <tag> -timer <it>delay</it> </tag>
+              Set allowed time slice for real time inputs to delay ms
 
-          <tag> -printfile </tag> <it>file</it>
-                Save print output to file
+        <tag> -settype <it>xy|xydx|...</it> </tag>
+              Set the type of the next data file
 
-          <tag> -results <it>results_file</it> </tag>
-                Write results of some data manipulations to results_file
+        <tag> -version </tag>
+              Show the program version
 
-          <tag> -rvideo </tag>
-                Exchange the color indices for black and white
+        <tag> -wd <it>directory</it> </tag>
+              Set the working directory
 
-          <tag> -saveall <it>save_file</it> </tag>
-                Save all graphs to save_file
+        <tag> -usage|-help </tag>
+              This message
 
-          <tag> -seed <it>seed_value</it> </tag>
-                Integer seed for random number generator
-
-          <tag> -source <it>disk|pipe</it> </tag>
-                Source type of next data file
-
-          <tag> -timer <it>delay</it> </tag>
-                Set allowed time slice for real time inputs to delay ms
-
-          <tag> -settype <it>xy|xydx|...</it> </tag>
-                Set the type of the next data file
-
-          <tag> -version </tag>
-                Show the program version
-
-          <tag> -viewport <it>xmin ymin xmax ymax</it> </tag>
-                Set the viewport for the current graph
-
-          <tag> -wd <it>directory</it> </tag>
-                Set the working directory
-
-          <tag> -world <it>xmin ymin xmax ymax</it> </tag>
-                Set the world coordinates for the current graph
-
-          <tag> -usage|-help </tag>
-                This message
- 
-          </descrip>
+        </descrip>
+      </p>
+    </sect2>
+  </sect1>
 
   <sect1>Customization
     <p>
@@ -668,13 +663,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                <p>
         <item> GRACE&lowbar;HELPVIEWER
                <p>
-               The HTML viewer for on-line browsing of help documents
+               Invocation string of an HTML viewer for on-line browsing of
+               help documents. Must include "%s" to be replaced with an
+               URL string.
                <p>
         <item> GRACE&lowbar;FFTW&lowbar;WISDOM&lowbar;FILE and
                GRACE&lowbar;FFTW&lowbar;RAM&lowbar;WISDOM
                <p>
                These flags control behavior of the FFTW planner (see
-               <ref id="fftw-tuning" name="FFTW tuning"> for detailed info)
+               <ref id="fftw-tuning" name="FFTW tuning"> for detailed info).
                <p>
         </itemize>
     
@@ -691,7 +688,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
     <sect2>Default template<label id="default-template">
       <p>
         Whenever a new project is started, Grace loads the default template,
-        <tt>templates/Default.agr</tt>. The file is searched for in the magic
+        <tt>templates/Default.xgr</tt>. The file is searched for in the magic
         path (see  <ref id="magic-path" name="magic path">); once found, the
         rest of the path is ignored. It's recommended that in the default
         template, one doesn't use statements which are NOT part of a project
@@ -700,40 +697,36 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
     <sect2>X resources
       <p>
-
         The following Grace-specific X resource settings are supported:
 
         <itemize>
-        <item> XMgrace.invertDraw
-               <newline>
-               Use GXinvert rather than GXxor for rubber-band lines.
-               If the rubber-banding for zooms and lines, etc. doesn't
-               appear on the canvas, set this resource to yes.
-               <newline>
+          <item> XMgrace.invertDraw
+                 <newline>
+                 Use GXinvert rather than GXxor for rubber-band lines.
+                 If the rubber-banding for zooms and lines, etc. doesn't
+                 appear on the canvas, set this resource to yes.
+                 <newline>
 
-        <item> XMgrace.allowDoubleClick
-               <newline>
-               When Yes, allow double clicks on the canvas to bring up various
-               popups depending on  the location of the pointer when the double
-               click occurs.
-               <newline>
+          <item> XMgrace.toolBar
+                 <newline>
+                 Enables button toolbar
+                 <newline>
 
-        <item> XMgrace.toolBar
-               <newline>
-               Enables button toolbar
-               <newline>
+          <item> XMgrace.statusBar
+                 <newline>
+                 Enables status bar
+                 <newline>
 
-        <item> XMgrace.statusBar
-               <newline>
-               Enables status bar
-               <newline>
+          <item> XMgrace.locatorBar
+                 <newline>
+                 Enables locator bar
+                 <newline>
 
-        <item> XMgrace.locatorBar
-               <newline>
-               Enables locator bar
-               <newline>
-
-       </itemize>
+          <item> XMgrace.instantUpdate
+                 <newline>
+                 Enables instant update feature of Explorer
+                 <newline>
+        </itemize>
 
 
         It is also possible to customize menus by assigning key accelerators to
@@ -805,47 +798,60 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       simple operations on these objects (copying, deleting, ...). The
       operations are available from a popup menu that appears when pressing
       mouse button 3 on them. Depending on the required functionality, they
-      may allow multiple choices or not. The following
-      shortcuts are enabled (if the result of an action would contradict the
-      list's selection policy, this would be ignored):
+      may allow multiple choices or not.
+      
+      <itemize>
+        <item> hide
+        <item> show
+        <item> delete
+        <item> bring to front
+        <item> move up
+        <item> move down
+        <item> send to back
+        <item> selector operations
+        <itemize>
+          <item> select all
+          <item> unselect all
+          <item> invert selection
+          <item> update list
+        </itemize>
+      </itemize>
+      
+      The following shortcuts are enabled (if the result of an action would
+      contradict the list's selection policy, this would be ignored):
       <itemize>
         <item> Ctrl+a select all
         <item> Ctrl+u unselect all
         <item> Ctrl+i invert selection
       </itemize>
 
-        <sect3> Graph selector <label id="graph-selector">
+        <sect3> Frame selector <label id="frame-selector">
         <p>
-        The operations that can be performed on graphs through the graph
-        selector's popup menu are:
+        An extension of the <ref name="list selector" id="list-selector">.
+        The additional operations that can be performed on frames through
+        the frame selector's popup menu are:
         <itemize>
-          <item> focus to
-          <item> hide
-          <item> show
-          <item> duplicate
-          <item> kill
-          <item> swap
           <item> create new
         </itemize>
-        All this operations are not available in every instance of the
-        selector. For example in the "read sets" popup only one graph can
-        be selected at a time, and the swap operation is disabled.
+
+        <sect3> Graph selector <label id="graph-selector">
+        <p>
+        An extension of the <ref name="list selector" id="list-selector">.
+        The additional operations that can be performed on graphs through
+        the graph selector's popup menu are:
+        <itemize>
+          <item> create new
+          <item> focus to selected
+        </itemize>
 
         Double-clicking on a list entry will switch the focus to that graph.
 
         <sect3> Set selector <label id="set-selector">
         <p>
-        The operations that can be performed on sets through the set
-        selector's popup menu are:
+        An extension of the <ref name="list selector" id="list-selector">.
+        The additional operations that can be performed on sets through the
+        set selector's popup menu are:
         <itemize>
-          <item> hide
-          <item> show
-          <item> bring to front
-          <item> send to back
-          <item> duplicate
-          <item> kill
-          <item> kill data
-          <item> swap
           <item> edit
           <itemize>
             <item> in spreadsheet (see
@@ -860,22 +866,40 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             <item> in text editor
             <item> from block data
           </itemize>
-          <item> pack all sets
-          <item> selector operations
-          <itemize>
-            <item> view set comments
-            <item> show data-less
-            <item> show hidden
-            <item> select all
-            <item> unselect all
-            <item> invert selection
-            <item> update
-          </itemize>
         </itemize>
 
         Double-clicking on a list entry will open the spreadsheet editor
         (see <ref name="Spreadsheet data set editor" id="SSEditor">) on
         the set data.
+
+    <sect2>Pen chooser<label id="pen-chooser">
+    <p>
+      Pen chooser lets you select a pen (a color+pattern combination) for
+      drawing a line or filling in an object. When you click on the button,
+      a dialog with color and pattern selectors will appear. When applied,
+      the pen chooser will itself be painted by the pen. A faster way to
+      alter pen's color is to press the right mouse button on it, which will
+      invoke a color-change menu.
+    </p>
+
+    <sect2>Spreadsheet data set editor<label id="SSEditor">
+    <p>
+      The dialog presents an editable matrix of numbers, corresponding
+      to the data set being edited. The set type (and hence, the number
+      of data columns) can be changed using the "Type:" selector.
+      Clicking on a column label pops up a dialog allowing to adjust
+      the column formatting. Clicking on the row labels toggles the
+      respective row state (selected/unselected). The selected rows can
+      be deleted via the dialog's "Edit" menu. Another entry in this
+      menu lets you add a row; the place of the new row is determined
+      by the row containing a cell with the keyboard focus on. As well,
+      just typing in an empty cell will add one or several rows
+      (filling the intermediate rows with zeros).
+
+      To resize columns, drag the vertical rules using Shift+Button 2.
+    </p>
+    </sect2> <!-- Spreadsheet data set editor -->
+
 
   <sect1>The main window<label id="main-window">
     <p>
@@ -893,10 +917,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Ctrl &lt;Key&gt;A: Autoscale the current graph
           <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
           <item> Ctrl &lt;Key&gt;Z: Zoom
-          <item> Ctrl Alt &lt;Key&gt;L: Draw a line
-          <item> Ctrl Alt &lt;Key&gt;B: Draw a box
-          <item> Ctrl Alt &lt;Key&gt;E: Draw an ellipse
-          <item> Ctrl Alt &lt;Key&gt;T: Write a text string
         </itemize>
 
       <sect3>Clicks and double clicks<label id="clicks">
@@ -958,15 +978,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           zoom lens above but are restricted to a single axis. 
         <item> <tt>AX,AY</tt>: Autoscale one axis only.
           <p>
-        The following buttons deal with the graph stack and there is a good
-        example under Help/Examples/General Intro/World Stack.
-        <item> <tt>Pu/Po</tt>: Push and pop the current world settings to/from
-          the graph stack. When popping, makes the new stack top current.
-        <item> <tt>PZ</tt>: Push before Zooming.  Functions as the zoom lens,
-          but first pushes the current world settings to the stack.  
-        <item> <tt>Cy</tt>: Cycles through the stack settings of the active
-          graph.  Each graph may have up to twenty layers on the stack.
-          <p>      
         <item> <tt>Exit</tt>: Pretty obvious, eh?
       </itemize>
 
@@ -1040,7 +1051,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Data sets <label id="data-sets">
       <p>
       Using the data set popup, you can view the properties of
-      datasets. This include its type, length, associated comment and
+      datasets. These include its type, length, associated comment and
       some statistics (min, max, mean, standard deviation). A
       horizontal scrollbar at the bottom allows to get the two last
       properties, they are not displayed by default. Also note that if
@@ -1051,50 +1062,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       sets or add new ones. Among the most important entries in the menu,
       are options to create or modify a set using the spreadsheet data set
       editor (see <ref name="Spreadsheet data set editor" id="SSEditor">).
-      
-        <sect3>Spreadsheet data set editor<label id="SSEditor">
-        <p>
-          The dialog presents an editable matrix of numbers, corresponding
-          to the data set being edited. The set type (and hence, the number
-          of data columns) can be changed using the "Type:" selector.
-          Clicking on a column label pops up a dialog allowing to adjust
-          the column formatting. Clicking on the row labels toggles the
-          respective row state (selected/unselected). The selected rows can
-          be deleted via the dialog's "Edit" menu. Another entry in this
-          menu lets you add a row; the place of the new row is determined
-          by the row containing a cell with the keyboard focus on. As well,
-          just typing in an empty cell will add one or several rows
-          (filling the intermediate rows with zeros).
 
-          To resize columns, drag the vertical rules using Shift+Button 2.
-        </p>
-        </sect3> <!-- Spreadsheet data set editor -->
-
-
-      <sect2> Set operations <label id="set-operations">
+      <sect2> Arrange frames <label id="arrange-frames">
       <p>
-      The set operations popup allows you to interact with sets as a
-      whole. If you want to operate on the data ordering of the sets,
-      you should use the <ref name="data set operations"
-      id="data-set-operations"> popup from the Data menu. The popup
-      allows you to select a source (one set within one graph) and a
-      destination and perform some action upon them (copy, move,
-      swap). This popup also give you a quick access to several graph
-      and set selectors if you want to perform some other operation
-      like hiding a graph or creating a new set from block data.
-
-      <sect2> Arrange graphs <label id="arrange-graphs">
-      <p>
-      This entry fires up a popup to lay out several graphs in a
+      This entry fires up a popup to lay out several graph frames in a
       regular grid given by <bf>M</bf> rows and <bf>N</bf> columns. 
       
-      The graph selector at the top allows one to select a number of graphs
-      the arrangement will operate on. If the number of selected graphs
-      isn't equal to <bf>M</bf> times <bf>N</bf>,  new graphs may be created
-      or extra graphs killed if needed. These options are  controlled by the
-      respective checkboxes below the graph selector.
+      The frame selector at the top allows one to select a number of frames
+      the arrangement will operate on. If the number of selected frames
+      isn't equal to <bf>M</bf> times <bf>N</bf>,  new frames may be created
+      or extra frames killed if needed. These options are  controlled by the
+      respective checkboxes below the frame selector.
       
-      The order in which the matrix is filled in with the graphs can be
+      The order in which the matrix is filled in with the frames can be
       selected (first horizontally then vertically or vise versa, with
       either of them inverted). 
       
@@ -1103,116 +1083,47 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       coordinates) and <it>relative</it> inter-cell distances, vertical
       and horizontal. Next to each of the vertical/horizontal spacing
       spinboxes, a "Pack" checkbox is found. Enabling it effectively sets
-      the respective inter-cell distance to zero and alter axis tickmark
-      settings such that only bottom/left-most tickmarks are visible.
+      the respective inter-cell distance to zero.
       
       If you don't want the regular layout this arrangement gives you,
-      you can change it afterwards using the mouse (select a graph and
-      double click on the focus marker, see <ref id="clicks"
-      name="clicks and double clicks">).
+      you can change it afterwards.
 
-      <sect2> Overlay graphs <label id="overlay-graphs">
+      <sect2> Autoscale graphs<label id="autoscale-graphs">
       <p>
-      You can overlay a graph on top of another one. The main use of
-      this feature is to plot several curves using different scales on
-      the same (apparently) graph. The main difficulty is to be sure
-      you operate on the graph you want at all times (you can hide one
-      for a moment if this becomes too difficult).
-
-      <sect2> Autoscale <label id="autoscale">
-      <p>
-      Using this entry, you can autoscale one graph or all graphs
+      Using this entry, you can autoscale a graph
       according to the specified sets only. This is useful if you need
       either to have truly comparable graphs despite every one
       contains data of different ranges, or if you want to focus your
       attention on one set only while it is displayed with other data
       in a complex graph.
 
-      <sect2> Regions menu <label id="regions-menu">
-      <p>
-         <sect3> Status <label id="status">
-         <p>
-         This small popup only displays the current state (type and
-         whether it is active or not) of the existing regions.
-
-         <sect3> Define <label id="define">
-         <p>
-         You can define a new region (or redefine an existing one),
-         the allowed region types are:
-
-         <itemize>
-         <item> Inside polygon
-         <item> Outside polygon
-         <item> Above line
-         <item> Below line
-         <item> Left of line
-         <item> Right of line
-         <item> In horizontal range
-         <item> In vertical range
-         <item> Out of horizontal range
-         <item> Out of vertical range
-         </itemize>
-
-         A region can be either linked to the current graph only or to
-         all graphs.
-
-         <sect3> Clear <label id="clear">
-         <p>
-         This kills a region.
-
-         <sect3> Report on <label id="report-on">
-         <p>
-         This popup reports you which sets or points are inside or
-         outside of a region.
-
-      <sect2> Hot links <label id="hot-links">
-      <p>
-      You can link a set to a file or a pipe using this feature. Once
-      a link has been established, you can update it (i.e., read data
-      again) by clicking on the update button.
-      <p>
-      Currently, only simple XY sets can be used for hotlinks.
-
       <sect2> Set locator fixed point <label id="set-locator-fixed-point">
       <p>
       After having selected this menu entry, you can select a point on
       a graph that will be used as the origin of the locator display
-      (just below the menu bar). The fixed point is taken into account
-      only when the display type of the locator is set to [DX,DY].
+      (just below the menu bar).
 
       <sect2> Clear locator fixed point <label id="clear-locator-fixed-point">
       <p>
       This entry is provided to remove a fixed point set before and
       use the default again: point [0, 0].
 
-      <sect2> Locator props <label id="locator-props">
-      <p>
-      The locator props popup allows you to customize the display of
-      the locator, mainly its type and the format and precision of the
-      display. You can use all the formats that are allowed in the
-      graphs scales.
-
       <sect2> Preferences <label id="preferences">
       <p>
       The preferences popup allows you to set miscellaneous properties
-      of your Grace session, such as GUI behavior, cursor type,
-      date reading hint and reference date used for calendar conversions.
+      of your Grace session, such as GUI behavior, cursor type, etc.
 
    <sect1> Data menu <label id="data-menu">
    <p>
       <sect2> Data set operations <label id="data-set-operations">
       <p>
        This popup gathers all operations that are related to the
-      ordering of data points inside a set or between sets. If you
-      want to operate on the sets as a whole, you should use the <ref
-      name="set operations" id="set-operations"> popup from the Edit
-      menu. You can sort according to any coordinate (X, Y, DX, ...)
+      ordering of data points inside a set or between sets. You can
+      sort according to any coordinate (X, Y, DX, ...)
       in ascending or descending order, reverse the order of the
       points, join several sets into one, split one set into several
       others of equal lengths, or drop a range of points from a
-      set. The <ref name="set selector" id="set-selector"> of the
-      popup shows the number of points in each set in square brackets
-      like this: G0.S0[63], the points are numbered from 0 to n-1.
+      set.
 
       <sect2> Transformations menu <label id="transformations-menu">
       <p>
@@ -1291,26 +1202,19 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          name="environment variables" id="environment-variables"> to
          name them.
 
-         <sect3> Running averages <label id="running-averages">
+         <sect3> Running properties <label id="running-properties">
          <p>
-         The running average popup allows you to compute some values
+         The running properties popup allows you to compute some values
          on a sliding window over your data. You choose both the value
          you need (average, median, minimum, maximum, standard
          deviation) and the length of the window and perform the
-         operation. You can restrict the operation to the points
-         belonging to (or outside of) a region.
+         operation.
 
-         <sect3> Differences <label id="differences">
+         <sect3> Differences/derivatives <label id="differences">
          <p>
          The differences popup is used to compute approximations of
          the first derivative of a function with finite
-         differences. The only choice (apart from the source set of
-         course) is the type of differences to use: forward, backward
-         or centered.
-
-         <sect3> Seasonal differences <label id="seasonal-differences">
-         <p>
-         The seasonal differences popup is used to subtract data from
+         differences.
          a period to data of the preceding period (namely y[i] - y[i +
          period]). Beware that the period is entered in terms of index
          in the set and not in terms of abscissa!
@@ -1348,23 +1252,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          The abscissas of the set being interpolated must form a strictly
          monotonic array.
 
-         <sect3> Regression <label id="regression">
-         <p>
-         The regression popup can be used to fit a set against
-         polynomials or some specific functions (y=A*x^B,
-         y=A*exp(B*x), y=A+B*ln(x) and y=1/(A+Bx)) for which a simple
-         transformation of input data can be used to apply linear
-         regression formulas.
-
-         You can load either the fitted values, the residuals or the
-         function itself. Choosing to load fitted values or residuals
-         leads to a set of the same length and abscissas as the
-         initial set. Choosing to load the function is almost similar
-         to load the fitted values except that you choose yourself the
-         boundaries and the number of points. This can be used for
-         example to draw the curve outside of the data sample range or
-         to produce an evenly spaced set from an irregular one.
-
          <sect3> Non-linear fit <label id="non-linear-fit">
          <p>
          The non linear fit popup can be used for functions outside of
@@ -1394,34 +1281,23 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          sample range or to produce an evenly spaced set from an irregular
          one.
 
-         <sect3> Cross/auto correlation <label id="cross/auto-correlation">
+         <sect3> Correlation/covariance <label id="correlation/covariance">
          <p>
-         The correlation popup can be used to compute autocorrelation
+         This popup can be used to compute autocorrelation
          of one set or cross correlation between two sets. You only
-         select the set (or sets) and specify the maximum lag.
-
-         <sect3> Digital filter <label id="digital-filter">
-         <p>
-         You can use a set as a weight to filter another set. Only the
-         Y part and the length of the weighting set are important, the
-         X part is ignored.
+         select the set (or sets) and specify the maximum lag. A check
+         box allows one to evaluate covariance instead of correlation.
+         The result is normalized so that abs(C(0)) = 1.
 
          <sect3> Linear convolution <label id="linear-convolution">
          <p>
          The convolution popup is used to ... convolve two sets. You
          only select the sets and apply.
 
-         <sect3> Geometric transforms <label id="geometric-transforms">
-         <p>
-         You can rotate, scale or translate sets using the geometric
-         transformations popup. You specify the characteristics of
-         each transform and the application order.
-
          <sect3> Sample points <label id="sample-points">
          <p>
-         This popup provides two sampling methods. The first one is
-         to choose a starting point and a step, the second one is to
-         select only the points that satisfy a boolean expression you
+         This popup provides a way to sample a set by
+         selecting only the points that satisfy a boolean expression you
          specify.
 
          <sect3> Prune data <label id="prune-data">
@@ -1446,43 +1322,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       Given a set of curves in a graph, extract a feature from each
       curve and use the values of the feature to provide the Y values
       for a new curve.
-
       <p>
-      <table loc="htbp">
-      <tabular ca="lp{10cm}">
-              <hline>
-              Feature           | Description                       @
-              <hline>
-Y minimum |  Minimum Y value of set @
-Y maximum | Maximum Y value of set @
-Y average | Average Y value of set @
-Y std. dev. | Standard deviation of Y values @
-Y median | Median Y value @
-X minimum | Minimum X value of set @
-X maximum | Maximum X value of set @
-X average | Average X value of set @
-X std. dev. | Standard deviation of X values @
-X median | Median X value @
-Frequency | Perform DFT (FFT if set length a power of 2) to find largest frequency component @
-Period | Inverse of above  @
-Zero crossing | Time of the first zero crossing, + or - going @
-Rise time | Assume curve starts at the minimum and rises to the maximum, get time to go from 10% to 90% of rise. For single exponential curves, this is 2.2*time constant @
-Fall time | Assume curve starts at the maximum and drops to the minimum, get time to go from 90% to 10% of fall @
-Slope | Perform linear regression to obtain slope @
-Y intercept | Perform linear regression to obtain Y-intercept @
-Set length | Number of data points in set @
-Half maximal width | Assume curve starts from the minimum, rises to the maximum and drops to the minimum again. Determine the time for which the curve is elevated more than 50% of the maximum rise. @
-Barycenter X | Barycenter along X axis @
-Barycenter Y | Barycenter along Y axis @
-X (Y max)    | X of Maximum Y @
-Y (X max)    | Y of Maximum X @
-integral     | cumulative sum @
-              <hline>
-      </tabular>
-      <caption>
-              Extractable features
-      </caption>
-      </table>
 
       <sect2> Import menu <label id="read-menu">
       <p>
@@ -1546,209 +1386,234 @@ integral     | cumulative sum @
          same name already exists.
 
 
-   <sect1> Plot menu <label id="plot-menu">
+   <sect1>View menu<label id="view-menu">
    <p>
-      <sect2> Plot appearance <label id="plot-appearance">
-      <p>
-      The plot appearance popup let you set the time stamp properties
-      and the background color of the page. The color is used outside
-      of graphs and also on graphs were no specific background color
-      is set. The time stamp is updated every time the project is modified.
+      <sect2>Show/hide<label id="show-hide">
+        <sect3>Locator bar<label id="show-locator-bar">
+          <p>
+            This toggle item shows or hides the locator below the menu bar.
+          </p>
+        </sect3>
 
-      <sect2> Graph appearance <label id="graph-appearance">
-      <p>
-      The graph appearance popup can be displayed from both the plot menu
-      and by double-clicking on a legend, title, or subtitle of a graph
-      (see <ref name="Clicks and double clicks" id="clicks">). The graph
-      selector at the top allows to choose the graph you want to operate
-      on, it also allows certain common actions through its popup menu (see
-      <ref name="graph selector" id="graph-selector">). Most of the actions
-      can also be performed using the "Edit" menu available from the popup
-      menubar. The main tab includes the properties you will need more
-      often (title for example), and other tabs are used to fine tune some
-      less frequently used options (fonts, sizes, colors, placements).
+        <sect3>Status bar<label id="show-status-bar">
+          <p>
+           This toggle item shows or hides the status string below the
+           canvas.
+          </p>
+        </sect3>
 
-      If you need special characters or special formatting in your
-      title or subtitle, you can use Grace escape sequences (the
-      sequence will appear verbatim in the text field but will be
-      rendered on the graph), see <ref name="typesetting"
-      id="typesetting">. If you don't remember the mapping between
-      alphabetic characters and the glyph you need in some specific
-      fonts (mainly symbol and zapfdingbats), you can invoke the font
-      tool from the text field by hitting CTRL-e. You can change fonts
-      and select characters from there, they will be copied back in
-      the text field when you press the "Accept" button. Beware of
-      the position of the cursor as you enter text or change font in
-      the font tool, the character or command will be inserted at this
-      position, not at the end of the string!
+        <sect3>Tool bar<label id="show-tool-bar">
+          <p>
+            This toggle item shows or hides the tool bar at the left of the
+            canvas.
+          </p>
+        </sect3>
+      </sect2>
 
-      You can save graph appearance parameters or retrieve settings
-      previously saved via the "File" menu of this popup. In the "Save
-      parameters" dialog, you can choose to save settings either for
-      the current graph only or for all graphs.
+      <sect2>Page zoom<label id="page-zoom">
+        <sect3>Smaller
+          <p>
+            Zoom out page.
+          </p>
+        </sect3>
+
+        <sect3>Larger
+          <p>
+            Zoom in page.
+          </p>
+        </sect3>
+
+        <sect3>Original size
+          <p>
+            Reset page zoom.
+          </p>
+        </sect3>
+      </sect2>
+
+
+      <sect2>Page rendering<label id="page-rendering">
+        <p>
+          Set the rendering properties of the display device (font
+          anti-aliasing and color transformations).
+        </p>
+      </sect2>
       
+      <sect2>Redraw<label id="redraw">
+        <p>
+          This menu item triggers a redrawing of the canvas.
+        </p>
+      </sect2>
 
-      <sect2> Set appearance <label id="set-appearance">
-      <p>
-      The set appearance popup can be displayed from both the plot
-      menu and by double-clicking anywhere in a graph (see <ref
-      name="Clicks and double clicks" id="clicks">). The set selector
-      at the top allows to choose the set you want to operate on, it
-      also allows certain common actions through its popup menu (see
-      <ref name="set selector" id="set-selector">). The main tab
-      gathers the properties you will need more often (line and
-      symbol properties or legend string for example), and other tabs
-      are used to fine tune some less frequently used options (drop
-      lines, fill properties, annotated values and error bars
-      properties for example).
+      <sect2>Update all<label id="update-all">
+        <p>
+          This menu item causes an update of all GUI controls. Usually,
+          everything is updated automatically, unless one makes modifications
+          by entering commands in the <ref name="Console" id="console"> tool.
+        </p>
+      </sect2>
 
-      You should note that despite the legend string related to
-      <em>one</em> set is entered in the set appearance popup, this is not
-      sufficient to display it. Displaying <em>all</em> legends is a graph
-      level decision, so the toggle is in the main tab of the <ref
-      name="graph appearance" id="graph-appearance"> popup.
-
-      If you need special characters or special formatting in your
-      legend, you can use Grace escape sequences (the sequence will
-      appear verbatim in the text field but will be rendered on the
-      graph), see <ref name="typesetting" id="typesetting">. If you
-      don't remember the mapping between alphabetic characters and the
-      glyph you need in some specific fonts (mainly symbol and
-      zapfdingbats), you can invoke the font tool from the text
-      field by hitting CTRL-e. You can change fonts and select
-      characters from there, they will be copied back in the text
-      field when you press the "Accept" button. Beware of the
-      position of the cursor as you enter text or change font in the
-      font tool, the character or command will be inserted at this
-      position, not at the end of the string!
-
-      <sect2> Axis properties <label id="axis-properties">
-      <p>
-      The axis properties popup can be displayed from both the "Plot"
-      menu and by double-clicking exactly on an axis (see <ref
-      name="Clicks and double clicks" id="clicks">). The pulldown menu
-      at the top allows to select the axis you want to operate on. The
-      "Active" toggle globally activates or deactivates the axis (all
-      GUI elements are insensitive for deactivated axes). The start
-      and stop fields depict the displayed range. Three types of
-      scales are available: linear, logarithmic or reciprocal, and
-      you can invert the axis (which normally increases from left to
-      right and from bottom to top).  The main tab includes the
-      properties you will need more often (axis label, tick
-      spacing and format for example), and other tabs are used to fine
-      tune some less frequently used options (fonts, sizes, colors,
-      placements, stagger, grid lines, special ticks, ...).
-
-      If you need special characters or special formatting in your
-      label, you can use Grace escape sequences (the
-      sequence will appear verbatim in the text field but will be
-      rendered on the graph), see <ref name="typesetting"
-      id="typesetting">. If you don't remember the mapping between
-      alphabetic characters and the glyph you need in some specific
-      fonts (mainly symbol and zapfdingbats), you can invoke the font
-      tool from the text field by hitting CTRL-e. You can change fonts
-      and select characters from there, they will be copied back in
-      the text field when you press the "Accept" button. Beware of
-      the position of the cursor as you enter text or change font in
-      the font tool, the character or command will be inserted at this
-      position, not at the end of the string!
-
-      Once you have set the options as you want, you can apply
-      them. One useful feature is that you can set several axes at
-      once with the bottom pulldown menu (current axis, all axes
-      current graph, current axis all graphs, all axes all
-      graphs). Beware that you always apply the properties of all
-      tabs, not only the selected one.
-
-      <sect2> Drawing objects <label id="drawing-objects">
-      <p>
-        Not written yet...
-      </p>
-
-   <sect1> View menu <label id="view-menu">
-   <p>
-      <sect2> Show locator bar <label id="show-locator-bar">
-      <p>
-      This toggle item shows or hides the locator below the menu bar.
-
-      <sect2> Show status bar <label id="show-status-bar">
-      <p>
-       This toggle item shows or hides the status string below the
-       canvas.
-
-     <sect2> Show tool bar <label id="show-tool-bar">
-      <p>
-      This toggle item shows or hides the tool bar at the left of the
-      canvas.
-
-      <sect2> Page setup <label id="page-setup">
-      <p>
-      Set the properties of the display device. It is the same dialog as
-      in <ref name="Print setup" id="print-setup">.
-      
-      <sect2> Redraw <label id="redraw">
-      <p>
-      This menu item triggers a redrawing of the canvas.
-
-      <sect2> Update all <label id="update-all">
-      <p>
-      This menu item causes an update of all GUI controls. Usually, everything
-      is updated automatically, unless one makes modifications by entering
-      commands in the <ref name="Console" id="console"> tool.
-
-
-   <sect1> Tools menu <label id="tools-menu">
+   <sect1>Tools menu<label id="tools-menu">
     <p>
-      <sect2> Point tracking <label id="point-tracking">
-      <p>
-        Not written yet...
-      </p>
-      <sect2> Font tool <label id="font-tool">
-      <p>
-        Not written yet...
-      </p>
-      <sect2> Console <label id="console">
-      <p>
-        The console window displays errors and results of some numerical
-        operations, e.g. nonlinear fit (see <ref id="non-linear-fit"
-        name="Non-linear fit">). The window is popped up automatically
-        whenever an error occurs or new result messages appear. This can
-        be altered by checking the "Options/Popup only on errors" option.
-      </p>
-      <p>
-        The dialog also provides an interface to the command driven version
-        of Grace. Here, commands
-        can be typed in the "Command:" text item and executed when
-        &lt;Return&gt; is pressed. The command will be parsed and executed,
-        and the command line is placed in the history list. Items in the
-        history list can be recalled by using the keyboard arrow buttons.
-        Depending on the state of the "Options/Auto redraw" and
-        "Options/Auto update" checkboxes, each command entered will cause
-        an immediate resync of the canvas and/or the GUI, respectively.
-        For a reference on the Grace command interpreter,
-        see <ref id="command-interpreter" name="Command interpreter">.
-      </p>
 
-   <sect1> Help menu <label id="help-menu">
+       <sect2>Explorer<label id="explorer">
+         <p>
+          This is the most complex dialog. It allows to tune presentation
+          properties of any plot element.
+
+          The left pane of the dialog shows the current project's tree
+          structure. By clicking on a node, a "plugin" dialog corresponding  to
+          the quark selected appears in the right pane. A few quarks of the
+          same type can be selected; in this case, changes will be applied to
+          all of them.
+          
+          <sect3>Project properties<label id="project-properties">
+            <p>
+              The project properties dialog lets you set page dimensions and
+              the background color.
+            </p>
+          </sect3>
+
+          <sect3>Frame properties<label id="frame-properties">
+            <p>
+              The frame properties dialog governs location of the frame
+              rectangle and legend properties.
+            </p>
+          </sect3>
+
+          <sect3>Graph properties<label id="graph-properties">
+            <p>
+              The main tab includes the properties you will need more often, in
+              particular, properties related to the graph's coordinate frame.
+              For each axis, you can define the axis range and a scale types:
+              linear, logarithmic, or reciprocal, and you can invert the axis
+              (which normally increases from left to right and from bottom to
+              top).
+
+              The "Locator" tab allows you to customize the display of the
+              locator, mainly its type and the format and precision of the
+              display.
+            </p>
+          </sect3>
+
+          <sect3>Set properties<label id="set-properties">
+            <p>
+              The main tab gathers the properties you will need more often
+              (line and symbol properties or legend string for example), and
+              other tabs are used to fine tune some less frequently used
+              options (drop lines, fill properties, annotated values and error
+              bars properties for example).
+
+              You should note that, despite the legend string (related to
+              <em>one</em> given set) is entered in the set properties popup,
+              this is not sufficient to display it. Displaying <em>all</em>
+              legends is a frame-level decision, so the toggle is in the main
+              tab of the <ref name="frame properties" id="frame-properties">
+              plugin dialog.
+
+              If you need special characters or special formatting in your
+              legend, you can use Grace escape sequences (the sequence will
+              appear verbatim in the text field but will be rendered on the
+              graph), see <ref name="typesetting" id="typesetting">. If you
+              don't remember the mapping between alphabetic characters and the
+              glyph you need in some specific fonts (mainly symbol and
+              zapfdingbats), you can invoke the font tool from the text field
+              by hitting CTRL-e. You can change fonts and select characters
+              from there, they will be copied back in the text field when you
+              press the "Accept" button. Beware of the position of the cursor
+              as you enter text or change font in the font tool, the character
+              or command will be inserted at this position, not at the end of
+              the string!
+            </p>
+          </sect3>
+
+          <sect3>Axis properties<label id="axis-properties">
+            <p>
+              The main tab includes the properties you will need more often
+              (axis label, tick spacing and format for example), and other tabs
+              are used to fine tune some less frequently used options (fonts,
+              sizes, colors, placements, stagger, grid lines, special ticks,
+              ...).
+
+              If you need special characters or special formatting in your
+              label, you can use Grace escape sequences (the sequence will
+              appear verbatim in the text field but will be rendered on the
+              graph), see <ref name="typesetting" id="typesetting">. If you
+              don't remember the mapping between alphabetic characters and the
+              glyph you need in some specific fonts (mainly symbol and
+              zapfdingbats), you can invoke the font tool from the text field
+              by hitting CTRL-e. You can change fonts and select characters
+              from there, they will be copied back in the text field when you
+              press the "Accept" button. Beware of the position of the cursor
+              as you enter text or change font in the font tool, the character
+              or command will be inserted at this position, not at the end of
+              the string!
+            </p>
+          </sect3>
+
+          <sect3>Annotated texts<label id="atext-properties">
+            <p>
+              Not written yet...
+            </p>
+          </sect3>
+
+          <sect3>Drawing objects<label id="dobject-properties">
+            <p>
+              Not written yet...
+            </p>
+          </sect3>
+
+          <sect3>Regions<label id="region-properties">
+            <p>
+              This dialog is incomplete as of yet.
+            </p>
+          </sect3>
+      </sect2>
+
+      <sect2>Font tool<label id="font-tool">
+        <p>
+          Not written yet...
+        </p>
+      </sect2>
+      
+      <sect2>Console<label id="console">
+        <p>
+          The console window displays errors and results of some numerical
+          operations, e.g. nonlinear fit (see <ref id="non-linear-fit"
+          name="Non-linear fit">). The window is popped up automatically
+          whenever an error occurs or new result messages appear. This can
+          be altered by checking the "Options/Popup only on errors" option.
+        </p>
+        <p>
+          The dialog also provides an interface to the command driven version
+          of Grace. Here, commands
+          can be typed in the "Command:" text item and executed when
+          &lt;Return&gt; is pressed. The command will be parsed and executed,
+          and the command line is placed in the history list. Items in the
+          history list can be recalled by using the keyboard arrow buttons.
+          Depending on the state of the "Options/Auto redraw" and
+          "Options/Auto update" checkboxes, each command entered will cause
+          an immediate resync of the canvas and/or the GUI, respectively.
+          For a reference on the Grace command interpreter,
+          see <ref id="command-interpreter" name="Command interpreter">.
+        </p>
+      </sect2>
+
+   <sect1>Help menu<label id="help-menu">
    <p>
-      <sect2> On context <label id="on-context">
+      <sect2>On context<label id="on-context">
       <p>
         Click on any element of the interface to get context-sensitive help
         on it. Only partially implemented at the moment.
       </p>
-      <sect2> User's guide <label id="users-guide">
+      <sect2>User's guide<label id="users-guide">
       <p>
         Browse the Grace user's guide.
       </p>      
-      <sect2> Tutorial <label id="tutorial">
-      <p>
-        Browse the Grace tutorial.
-      </p>      
-      <sect2> FAQ <label id="faq">
+      <sect2>FAQ<label id="faq">
       <p>
         Frequently Asked Questions with answers.
       </p>      
-      <sect2> Changes <label id="changes">
+      <sect2>Changes<label id="changes">
       <p>
         The list of changes during the Grace development.
       </p> 
@@ -1812,102 +1677,6 @@ integral     | cumulative sum @
       <caption>
         <label id="types">
         Basic types
-      </caption>
-      </table>
-    </p>
-
-    <p>
-      <table loc="htbp">
-      <tabular ca="llll">
-        <hline>
-        Expression | Description | Types | Example @
-        <hline>
-        GRAPH&lsqb;<it>id</it>&rsqb; |
-          graph <it>id</it> |
-          indx <it>id</it> |
-          GRAPH&lsqb;0&rsqb; @
-        G<it>nn</it> |
-          graph <it>nn</it> |
-          <it>nn</it>: 0-99 |
-          G0 @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="graph-sel">
-        Graph selections
-      </caption>
-      </table>
-    </p>
-
-    <p>
-      <table loc="htbp">
-      <tabular ca="llll">
-        <hline>
-        Expression | Description | Types | Example @
-        <hline>
-        <it>graph</it>.SETS&lsqb;<it>id</it>&rsqb; |
-          set <it>id</it> in graph <it>graph</it>|
-          indx <it>id</it>, graphsel <it>graph</it> |
-          GRAPH&lsqb;0&rsqb;.SETS&lsqb;1&rsqb; @
-	  <it>graph</it>.S<it>nn</it> |
-          set <it>nn</it> in graph <it>graph</it>|
-          <it>nn</it>: 0-99, graphsel <it>graph</it> |
-          G0.S1 @
-        SET&lsqb;<it>id</it>&rsqb; |
-          set <it>id</it> in the current graph|
-          indx <it>id</it> |
-          SET&lsqb;1&rsqb; @
-        S<it>nn</it> |
-          set <it>nn</it> in the current graph|
-          <it>nn</it>: 0-99 |
-          S1 @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="set-sel">
-        Set selections
-      </caption>
-      </table>
-    </p>
-
-    <p>
-      <table loc="htbp">
-      <tabular ca="llll">
-        <hline>
-        Expression | Description | Types | Example @
-        <hline>
-        COLOR <it>"colorname"</it> |
-          a mapped color <it>colorname</it> |
-          - |
-          COLOR "red" @
-        COLOR <it>id</it> |
-          a mapped color with ID <it>id</it> |
-          nexpr <it>id</it> |
-          COLOR 2 @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="color-sel">
-        Color selections
-      </caption>
-      </table>
-    </p>
-
-    <p>
-      <table loc="htbp">
-      <tabular ca="llll">
-        <hline>
-        Expression | Description | Types | Example @
-        <hline>
-        PATTERN <it>id</it> |
-          pattern with ID <it>id</it> |
-          nexpr <it>id</it> |
-          PATTERN 1 @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="pattern-sel">
-        Pattern selections
       </caption>
       </table>
     </p>
@@ -2179,371 +1948,6 @@ integral     | cumulative sum @
       </caption>
       </table>
 
-  <sect1>Procedures
-    <p>
-     Methods of directly manipulating the data corresponding to the
-     Data|Transformation menu are described in table
-     <ref id="transformations">. 
-
-      <table loc="htbp">
-      <tabular ca="p{3cm}p{5cm}p{3.5cm}p{3cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-        INTERPOLATE (set, mesh, method, strict) |
-          interpolate <it>set</it> on a sampling <it>mesh</it> using <it>method</it>. <it>strict</it> flag controls whether result should be bound within the source set |
-          vexpr <it>mesh</it>, <it>method</it>: one of LINEAR, SPLINE, and ASPLINE, onoff <it>strict</it> |
-          INTERPOLATE (S0, S1.X, ASPLINE, OFF) @
-        HISTOGRAM (set, bins, cumulative, normalize) |
-          calculate Histogram of <it>set</it> on defined <it>bins</it>. <it>cumulative</it> and <it>normalize</it> flags control whether to calculate cumulative and normalized (aka PDF) histograms, respectively.  Data points are placed at upper limit of the bin |
-          vexpr <it>bins</it>, onoff <it>cumulative</it>, onoff <it>normalize</it> |
-          HISTOGRAM (S0, MESH(0, 1, 11), OFF, ON) @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="transformations">
-        Transformations
-      </caption>
-      </table>
-    </p>
-
-    <p>
-      Not finished yet...
-    </p>
-
-  <sect1>Device parameters
-    <p>
-    For producing "hard copy", several parameters can be set via the command
-    interpreter.  They are summarized in table 
-    <ref id="device-parameters" name="Device parameters">.
-
-      <table loc="htbp">
-      <tabular ca="lp{7cm}">
-        <hline>
-        Command                                           | Description   @
-        <hline>
-        PAGE SIZE xdim, ydim                              | set page dimensions (in pp) of all devices  @
-        DEVICE <it>"devname"</it> PAGE SIZE xdim, ydim    | set page dimensions (in pp) of device <it>devname</it>  @
-        DEVICE <it>"devname"</it> DPI dpi                 | set device's dpi (dots per pixel) @
-        DEVICE <it>"devname"</it> FONT onoff              | enable/disable usage of built-in fonts for device <it>devname</it> @
-        DEVICE <it>"devname"</it> FONT ANTIALIASING onoff | enable/disable font aliasing for device <it>devname</it> @
-        DEVICE <it>"devname"</it> OP <it>"options"</it>   | set device specific options (see <ref id="device-settings" name="Device-specific settings">) @
-        HARDCOPY DEVICE <it>"devname"</it>                | set device <it>devname</it> as current hardcopy device @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="device-parameters">
-        Device parameters
-      </caption>
-      </table>
-
-  <sect1>Flow control
-
-    <p>
-      <table loc="htbp">
-      <tabular ca="lp{7cm}ll">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-        SLEEP <it>n</it> |
-          sleep for <it>n</it> seconds |
-          expr <it>n</it> |
-          SLEEP(3) @
-        EXIT(<it>status</it>) |
-          causes normal program termination with exit status <it>status</it> |
-          iexpr <it>status</it> |
-          EXIT(0) @
-        EXIT |
-          causes normal program termination; same as EXIT(0) |
-          &nbsp; |
-          EXIT @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="flow-control">
-        Flow control
-      </caption>
-      </table>
-    </p>
-
-  <sect1>Declarations
-    <p>
-    User-defined variables are set and used according to the syntax
-    described in table <ref id="user-variables" name="User variables">.
-
-      <table loc="htbp">
-      <tabular ca="lp{7cm}ll">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-        DEFINE <it>var</it> |
-          define new scalar variable <it>var</it> |
-          &nbsp; |
-          DEFINE myvar @
-        DEFINE <it>vvar</it>&lsqb;&rsqb; |
-          define new vector variable <it>vvar</it> of zero length |
-          &nbsp; |
-          DEFINE myvvar&lsqb;&rsqb; @
-        DEFINE <it>vvar</it>&lsqb;<it>n</it>&rsqb; |
-          define new vector variable <it>vvar</it> of length <it>n</it> |
-          nexpr <it>n</it> |
-          DEFINE myvvar&lsqb;10&rsqb; @
-        <hline>
-        CLEAR <it>var</it> |
-          undefine new variable <it>var</it> and deallocate associated storage |
-          &nbsp; |
-          CLEAR myvar @
-        <hline>
-        <it>vvar</it> LENGTH <it>n</it> |
-          reallocate vector variable <it>vvar</it> |
-          nexpr <it>n</it> |
-          myvvar LENGTH 25 @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="user-variables">
-        User variables
-      </caption>
-      </table>
-    </p>
-
-    <p>
-      Not finished yet...
-    </p>
-
-  <sect1>Graph properties
-  <p>
-  We divide the commands pertaining to the properties and appearance of
-  graphs into those which directly manipulate the graphs and those that 
-  affect the appearance of graph elements---the parameters that can appear
-  in a Grace project file.
-  </p>
-  
-  <sect2>Command operations
-    <p>
-     General graph creation/annihilation and control commands appear in
-     table <ref id="graph-ops" name="Graph operations">.
-
-      <table loc="htbp">
-      <tabular ca="p{3.5cm}p{4.5cm}p{3cm}p{3.5cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-	FOCUS <it>graph</it> | Makes <it>graph</it> current and unhides it if necessary |
-	                      graphsel <it>graph</it> | FOCUS G0 @
-	KILL <it>graph</it> | Kills <it>graph</it> | graphsel <it>graph</it> | KILL G0 @
-	ARRANGE(<it>nrows</it>, <it>ncols</it>, <it>offset</it>, <it>hgap</it>, <it>vgap</it>) |
-         Arrange existing graphs (or add extra if needed) to form an <it>nrows</it> by <it>ncols</it> matrix, leaving <it>offset</it> at each page edge with <it>hgap</it> and <it>vgap</it> relative horizontal and vertical spacings |
-         nexpr <it>nrows</it>, <it>ncols</it>, expr <it>offset</it>, <it>hgap</it>, <it>vgap</it> |
-         ARRANGE(2, 2, 0.1, 0.15, 0.2) @
-	ARRANGE(<it>nrows</it>, <it>ncols</it>, <it>offset</it>, <it>hgap</it>, <it>vgap</it>, <it>hvinv</it>, <it>hinv</it>, <it>vinv</it>) |
-         Same as above, plus additional <it>hvinv</it>, <it>hinv</it>, and <it>vinv</it> flags allowing to alter the order of the matrix filling |
-         nexpr <it>nrows</it>, <it>ncols</it>, expr <it>offset</it>, <it>hgap</it>, <it>vgap</it>, onoff <it>hvinv</it>, <it>hinv</it>, <it>vinv</it> |
-         ARRANGE(2, 2, 0.1, 0.15, 0.2, ON, OFF, ON) @
-      </tabular>
-      <caption>
-        <label id="graph-ops">
-        Graph operations
-      </caption>
-      </table>
-    </p>
-   <sect2>Parameter settings
-    <p>
-    Setting the active graph and its type is accomplished with the commands
-    found in table <ref id="graphsel-pars" name="Graph selection parameters">.
-    
-      <table loc="htbp">
-      <tabular ca="p{3.25cm}p{4.5cm}p{3.5cm}p{3.25cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-	WITH <it>graph</it> | Makes  <it>graph</it> current | 
-	                    graphsel <it>graph</it> | WITH G0 @
-	TYPE <it>type</it>  | Sets <it>type</it> of current graph |
-	                   graphtype <it>type</it> |TYPE XY @
-	 <it>graph</it> onoff| (De)Activates selected <it>graph</it> | graphsel <it>graph</it>, onoff | G0 ON @
-	 <it>graph</it> HIDDEN onoff | Hides selected <it>graph</it> | graphsel <it>graph</it>, onoff | G1 HIDDEN TRUE @
-	 <it>graph</it> TYPE <it>type</it> | Sets <it>type</it> of <it>graph</it>  |
-	          graphsel <it>graph</it>, graphtype <it>type</it> | G0 TYPE XYDY @
-      </tabular>
-      <caption>
-        <label id="graphsel-pars">
-        Graph selection parameters
-      </caption>
-      </table>
-
-      The axis range and scale of the current graph as well as its  location
-      on the plot viewport are set with the commands listed in table
-      <ref id="graphaxis-pars" name="Axis parameters">.
-      <table loc="htbp">
-      <tabular ca="p{3.25cm}p{4.5cm}p{3.5cm}p{3.25cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-	 WORLD XMIN <it>xmin</it> | Sets minimum value of  current graph's x axis to <it>xmin</it> |
-	          expr <it>xmin</it> | WORLD XMIN -10 @
-	 WORLD XMAX <it>xmax</it> | Sets maximum value of  current graph's x axis to <it>xmin</it> |
-	          expr <it>xmax</it> | WORLD XMAX 22.5 @
-	 WORLD YMIN <it>ymin</it> | Sets minimum value of current graph's y axis to <it>ymin</it> |
-	          expr <it>ymin</it> | WORLD YMIN 0 @
-	 WORLD YMAX <it>ymax</it> | Sets maximum value of current graph's y axis to <it>ymax</it> |
-	          expr <it>ymax</it> | WORLD YMAX 1e4 @
-	 VIEW XMIN <it>xmin</it> | Sets left edge of current graph at x=<it>xmin</it> in the viewport |
-	          expr <it>xmin</it>| VIEW XMIN .2 @
-	 VIEW XMAX <it>xmax</it> | Sets right edge of current graph at x=<it>xmax</it> in the viewport |
-	          expr <it>xmax</it>| VIEW XMAX 1.0 @
-	 VIEW YMIN <it>ymin</it> | Sets bottom edge of current graph at y=<it>ymin</it> in the viewport |
-	          expr <it>ymin</it>| VIEW YMIN .25 @
-         VIEW YMAX <it>ymax</it> | Sets top edge of current graph at y=<it>ymax</it> in the viewport | 
-	          expr <it>ymax</it>| VIEW YMAX .75 @
-	 XAXES SCALE <it>type</it>  | Set scaling of the x axes to <it>type</it> |
-	          <it>type</it>: one of NORMAL, LOGARITHMIC, or RECIPROCAL | XAXES SCALE NORMAL @
-	 YAXES SCALE <it>type</it>  | Set scaling of the y axes to <it>type</it>  |
-	          <it>type</it>: one of NORMAL, LOGARITHMIC, or RECIPROCAL | YAXES SCALE LOGARITHMIC @
-	 XAXES INVERT onoff | If ON, draws xmin to xmax from right to left | 
- 	          onoff | XAXES INVERT OFF @
-	 YAXES INVERT onoff | If ON, draws ymin to ymax from  top to bottom | 
- 	          onoff | YAXES INVERT OFF @
-      </tabular>
-      <caption>
-        <label id="graphaxis-pars">
-        Axis parameters
-      </caption>
-      </table>
-
-      The commands to set the appearance and textual content of titles and
-      legends are given in table 
-      <ref id="graphlegend-pars" name="Titles and legends">.
-
-      <table loc="htbp">
-      <tabular ca="p{3.5cm}p{4.5cm}p{3.25cm}p{3.25cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-	 TITLE <it>title</it>       | Sets the title of current graph |
-	          qstr <it>title</it> | TITLE "Foo" @
-	 TITLE FONT <it>font</it>  | Selects font of title string |
-	          fontsel <it>font</it> | TITLE FONT 1 @
-	 TITLE SIZE <it>size</it>  | Sets size of title string |
-	          expr <it>size</it> | TITLE SIZE 1.5 @
-	 TITLE COLOR <it>color</it> | Sets color of title string | 
-	          colorsel <it>color</it> | TITLE COLOR 1 @
-	 SUBTITLE <it>subtitle</it> | Sets the subtitle of current graph |
-	          qstr <it>subtitle</it> | SUBTITLE "Bar" @
-	 SUBTITLE FONT <it>font</it>  | Selects font of subtitle string |
-	          fontsel <it>font</it> | SUBTITLE FONT "Times-Italic" @
-	 SUBTITLE SIZE <it>size</it>  | Sets size of subtitle string |
-	          expr <it>size</it> | SUBTITLE SIZE .60 @
-	 SUBTITLE COLOR <it>color</it> | Sets color of subtitle string |
-	          colorsel <it>color</it> | SUBTITLE COLOR "blue" @
-	 LEGEND onoff | Toggle legend display |onoff | LEGEND ON @
-	 LEGEND LOCTYPE <it>type</it> | Posistion legend in <it>type</it> coordinates |
-	   <it>type</it>: either WORLD or VIEW | LEGEND LOCTYPE WORLD @
-	 LEGEND <it>xloc, yloc</it> | Set location of legend box (upper left corner) | 
-	   expr <it>xloc, yloc</it> | LEGEND .5,.75 @
-	 LEGEND FONT <it>font</it>| Set legend font type |
-	   fontsel <it>font</it> | LEGEND FONT "Helvetica" @
-	 LEGEND CHAR SIZE <it>size</it> | Sets size of legend label characters (1 is normal)|
-	 expr <it>size</it> | LEGEND CHAR SIZE .30 @
-	 LEGEND <it>color</it>| Set color of legend text |
-	   colorsel <it>color</it> | LEGEND COLOR 1 @
-	 LEGEND VGAP <it>gap</it> | Sets vertical gap between legend entries |
-	   nexpr <it>gap</it> | LEGEND VGAP 1 @
-	 LEGEND HGAP <it>gap</it> | Sets horizontal gap between symbol and description |
-	   nexpr <it>gap</it> | LEGEND HGAP 4 @
-	 LEGEND LENGTH <it>length</it>| Sets <it>length</it> of legend| 
- 	   nexpr <it>length</it> | LEGEND LENGTH 5 @
-	 LEGEND INVERT onoff | Determines relationship between order of sets and order of legend labels |
-	   onoff | LEGEND INVERT true @
-	 LEGEND BOX onoff | Determines if the legend bounding box is drawn |
-	   onoff | LEGEND BOX off @
-	 LEGEND BOX COLOR <it>color</it>  | Sets color of legend bounding box | colorsel <it>color</it> |
-	   LEGEND BOX COLOR 1@
-	 LEGEND BOX PATTERN <it>pattern</it>| Sets pattern of legend bounding box | patternsel <it>pattern</it> |
-	   LEGEND BOX PATTERN 2@
-	 LEGEND BOX LINESTYLE <it>style</it>| Sets line style of bounding box |nexpr <it>style</it> |
-	   LEGEND BOX LINESTYLE 1 @
-	 LEGEND BOX LINEWIDTH <it>width</it>| Sets line width of bounding box|nexpr <it>width</it> | 
-	   LEGEND BOX LINEWIDTH 2 @
-	 LEGEND BOX FILL onoff | Determines if the legend bounding box is filled |
-	   onoff | LEGEND BOX FILL false @
-	 LEGEND BOX FILL COLOR <it>color</it>  | Sets color of legend box fill | colorsel <it>color</it> | 
-	   LEGEND BOX COLOR 3 @
-	 LEGEND BOX FILL <it>pattern</it>| Sets pattern of legend box fill |patternsel <it>pattern</it> |
-	   LEGEND BOX FILL PATTERN 1@
-      </tabular>
-      <caption>
-        <label id="graphlegend-pars">
-        Titles and legends
-      </caption>
-      </table>
-    </p>
-   <p>
-   Not finished yet...
-   </p>
-   
-  <sect1>Set properties
-    <p>
-    Again, as with the graphs, we separate those parser commands that
-    manipulate the data in a set from the commands that determine
-    parameters---elements that are saved in a project file.
-
-    <sect2>Commands
-    <p>
-    Operations for set I/O are summarized in table 
-    <ref id="set-io" name="Set input, output,  and creation">.  (Note that
-    this is incomplete  and only lists <it>input</it> commands at the moment.)
-
-      <table loc="htbp">
-      <tabular ca="p{3.5cm}p{4.5cm}p{3cm}p{3.5cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-    	READ <it>file</it> | Reads <it>file</it> as a single set |
-	                     qstr <it>file</it> | READ "foo.dat" @
-    	READ <it>settype</it> <it>file</it> | Reads <it>file</it> into a single set of type <it>settype</it> |
-		     xytype <it>settype</it>, qstr <it>file</it> | READ xydy "bar.dat" @
-	READ NXY <it>file</it> | Reads <it>file</it> as NXY data |
-	                     qstr <it>file</it> | READ NXY "gad.dat" @
-	READ BLOCK <it>file</it> | Reads <it>file</it> as block data |
-	                     qstr <it>file</it> | READ BLOCK "zooks.dat" @
-	BLOCK <it>settype</it> <it>columns</it> | Forms a data set of type <it>settype</it> using <it>columns</it> from current block data file. |
-	             xytype <it>settype</it>, qstr <it>columns</it> | BLOCK xydxdy "0:2:1:3" @
-      </tabular>
-      <caption>
-        <label id="set-io">
-        Set input, output,  and creation
-      </caption>
-      </table>
-
-      The parser commands analogous to the Data|Data set operations dialogue
-      can be found in table <ref id="set-ops" name="Set operations">. 
-      <table loc="htbp">
-      <tabular ca="p{3.5cm}p{4.5cm}p{3cm}p{3.5cm}">
-        <hline>
-        Statement | Description | Types | Example @
-        <hline>
-	COPY <it>src</it> TO <it>dest</it>  | Copies <it>src</it> to <it>dest</it>|
-	   setsel <it>src,dest</it> | COPY S0 TO S1 @
-	MOVE <it>src</it> TO <it>dest</it>  | Moves <it>src</it> to <it>dest</it> |
-	   setsel <it>src,dest</it> | MOVE G0.S0 TO G1.S0 @
-	SWAP <it>src</it> AND <it>dest</it>  | Interchanges <it>src</it> and <it>dest</it> | 
-	   setsel <it>src,dest</it> | SWAP G0.S0 AND G0.S1 @
-	KILL <it>set</it> | Kills <it>set</it> | setsel <it>set</it> | KILL G0.S0 @
-      </tabular>
-      <caption>
-        <label id="set-ops">
-        Set operations
-      </caption>
-      </table>
-    </p>
-    <p>
-    Not Finished yet...
-
-    <sect2>Parameter settings
-    <p>
-      Not written yet...
-      
 <!-- **************************************** -->
 <sect>Advanced topics
   <p>
@@ -2662,169 +2066,6 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
 
     <sect2>Using pipes
       <p>
-
-    <sect2>Using grace&lowbar;np library
-      <p>
-      The grace&lowbar;np library is a set of compiled functions that
-      allows you to launch and drive a Grace subprocess from your C or
-      Fortran application. Functions are provided to start the
-      subprocess, to send it commands or data, to stop it or detach
-      from it.
-
-      <table loc="htbp">
-      <tabular ca="p{4.5cm}lp{5.5cm}">
-        <hline>
-        Function           | Arguments          |  Description                 @
-        <hline>
-        int GraceOpenVA    | (char *<it>exe</it>, int <it>buf&lowbar;size</it>, ...)
-                                                | launch a Grace executable <it>exe</it> and open a communication channel with it using <it>buf&lowbar;size</it> bytes for data buffering. The remaining NULL-terminated list of options is command line arguments passed to the Grace process @
-        int GraceOpen      | (int <it>buf&lowbar;size</it>)
-                                                | equivalent to GraceOpenVA("xmgrace", buf&lowbar;size, "-noask", NULL) @
-        int GraceIsOpen    | (void)             | test if a Grace subprocess is currently connected @
-        int GraceClose     | (void)             | close the communication channel and exit the Grace subprocess @
-        int GraceClosePipe | (void)             | close the communication channel and leave the Grace subprocess alone @
-        <hline>
-        int GraceFlush     | (void)             | flush all the data remaining in the buffer @
-        int GracePrintf    | (const char* <it>format</it>, ...)
-                                                | format a command and send it to the Grace subprocess @
-        int GraceCommand   | (const char* <it>cmd</it>)
-                                                | send an already formated command to the Grace subprocess @
-        <hline>
-        GraceErrorFunctionType GraceRegisterErrorFunction
-                           | (GraceErrorFunctionType <it>f</it>)
-                                                | register a user function <it>f</it> to display library errors @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="C functions"> grace&lowbar;np library C functions.
-      </caption>
-      </table>
-
-      <table loc="htbp">
-      <tabular ca="p{5cm}lp{5cm}">
-        <hline>
-        Function                | Arguments     |  Description                 @
-        <hline>
-        integer GraceOpenF      | (integer <it>buf&lowbar;size</it>)
-                                                | launch a Grace subprocess and open a communication channel with it @
-        integer GraceIsOpenF    | (void)        | test if a Grace subprocess is currently connected @
-        integer GraceCloseF     | (void)        | close the communication channel and exit the Grace subprocess @
-        integer GraceClosePipeF | (void)        | close the communication channel and leave the Grace subprocess alone @
-        <hline>
-        integer GraceFlushF     | (void)        | flush all the data remaining in the buffer @
-        integer GraceCommandF   | (character*(*) <it>cmd</it>)
-                                                | send an already formatted command to the Grace subprocess @
-        <hline>
-        GraceFortranFunctionType GraceRegisterErrorFunctionF
-                                | (GraceFortranFunctionType <it>f</it>)
-                                                | register a user function <it>f</it> to display library errors @
-        <hline>
-      </tabular>
-      <caption>
-        <label id="fortran functions"> grace&lowbar;np library F77 functions.
-      </caption>
-      </table>
-
-      <p> There is no fortran equivalent for the GracePrintf function,
-      you should format all the data and commands yourself before
-      sending them with GraceCommandF.
-
-      The Grace subprocess listen for the commands you send and
-      interpret them as if they were given in a batch file. You can
-      send any command you like (redraw, autoscale, ...). If you want
-      to send data, you should include them in a command like "g0.s0
-      point 3.5, 4.2".
-
-      Apart from the fact it monitors the data sent via an anonymous
-      pipe, the Grace subprocess is a normal process. You can interact
-      with it through the GUI. Note that no error can be sent back to
-      the parent process. If your application send erroneous commands,
-      an error popup will be displayed by the subprocess.
-
-      If you exit the subprocess while the parent process is still
-      using it, the broken pipe will be detected. An error code will
-      be returned to every further call to the library (but you can
-      still start a new process if you want to manage this situation).
-
-      Here is an example use of the library, you will find this
-      program in the distribution.
-
-<tscreen><code>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <grace_np.h>
-
-#ifndef EXIT_SUCCESS
-#  define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-#  define EXIT_FAILURE -1
-#endif
-
-void my_error_function(const char *msg)
-{
-    fprintf(stderr, "library message: \"%s\"\n", msg);
-}
-
-int
-main(int argc, char* argv[])
-{
-    int i;
-
-    GraceRegisterErrorFunction(my_error_function);
-
-    /* Start Grace with a buffer size of 2048 and open the pipe */
-    if (GraceOpen(2048) == -1) {
-        fprintf(stderr, "Can't run Grace. \n");
-        exit(EXIT_FAILURE);
-    }
-    
-    /* Send some initialization commands to Grace */
-    GracePrintf("world xmax 100");
-    GracePrintf("world ymax 10000");
-    GracePrintf("xaxis tick major 20");
-    GracePrintf("xaxis tick minor 10");
-    GracePrintf("yaxis tick major 2000");
-    GracePrintf("yaxis tick minor 1000");
-    GracePrintf("s0 on");
-    GracePrintf("s0 symbol 1");
-    GracePrintf("s0 symbol size 0.3");
-    GracePrintf("s0 symbol fill pattern 1");
-    GracePrintf("s1 on");
-    GracePrintf("s1 symbol 1");
-    GracePrintf("s1 symbol size 0.3");
-    GracePrintf("s1 symbol fill pattern 1");
-
-    /* Display sample data */
-    for (i = 1; i <= 100 && GraceIsOpen(); i++) {
-        GracePrintf("g0.s0 point %d, %d", i, i);
-        GracePrintf("g0.s1 point %d, %d", i, i * i);
-        /* Update the Grace display after every ten steps */
-        if (i % 10 == 0) {
-            GracePrintf("redraw");
-            /* Wait a second, just to simulate some time needed for
-               calculations. Your real application shouldn't wait. */
-            sleep(1);
-        }
-    }
-
-    if (GraceIsOpen()) {
-        /* Tell Grace to save the data */
-        GracePrintf("saveall \"sample.agr\"");
-
-        /* Flush the output buffer and close Grace */
-        GraceClose();
-
-        /* We are done */
-        exit(EXIT_SUCCESS);
-    } else {
-        exit(EXIT_FAILURE);
-    }
-}
-
-</code></tscreen>
 
  <sect1>FFTW tuning<label id="fftw-tuning">
     <p>
@@ -3255,11 +2496,9 @@ C
   <sect1>Device-specific settings<label id="device-settings">
     <p>
       
-      Some of the output devices accept several configuration options. You can
-      set the options by passing a respective string to the interpreter
-      using the "DEVICE <it>"devname"</it> OP <it>"options"</it>" command (see
-      <ref id="device-parameters" name="Device parameters">). A few options
-      can be passed in one command, separated by commas.
+      Some of the output devices accept several configuration options.
+      A few options can be passed in one command, separated by commas.
+      NIY!
 
     <p>
       

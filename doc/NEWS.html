@@ -11,6 +11,15 @@
 
 <H2>5.99.0</H2>
 
+KNOWN ISSUES:
+
+Interpreter
+Non-linear fit
+Point explorer
+Regions
+Stacked line plots (*)
+Rotated arcs
+
 <H3>Functionality</H3>
  !  [ES] all elements of a project now form a true tree structure with
          rendering following the order. This solved a lot of requests
@@ -23,7 +32,8 @@
  !  [ES] Fourier transforms fully reworked (including reps. #554, #630,
          #684, #1216, #1391)
  !  [ES] feature extraction reworked (including rep. #1130)
- !  [ES] diff/derivatives reworked (including rep. #436)
+ !  [ES] diff/derivatives reworked (including rep. #436) and combined with 
+         seasonal differences
  !  [ES] running properties reworked
  !  [ES] integration reworked
  !  [ES] prune data reworked (including reps. #1140, #1342)
@@ -110,6 +120,8 @@
  *  [ES] fixed precision of the dobject coordinates (rep. #1227)
  *  [ES] importing data from the command line doesn't set project name
          (rep. #1281)
+ *  [ES] when a set was killed, the next set was often plotted black
+         (rep. #1362)
 
 
  <B>Legend:</B>

@@ -1,4 +1,4 @@
-.TH GRACE 1 "May 21, 2002"
+.TH GRACE 1 "July 24, 2004"
 .LO 1
 .SH NAME
 grace \- command line interface
@@ -50,36 +50,17 @@ Set canvas size fixed to width*height
 .B -free                                 
 Use free page layout
 .TP
-.BI "\-graph "     "number"             
-Set the current graph number
-.TP
-.BI "\-graphtype " "type"               
-Set the type of the current graph
-.TP
 .B -hardcopy
 No interactive session, just print and quit
 .TP
 .BI "\-hdevice "   "device_name"     
 Set default hardcopy device
 .TP
+.BI "\-hdevice-options "   "option_string"     
+Set options for default hardcopy device
+.TP
 .B -install
 Install private colormap
-.TP
-.B -legend    load
-Turn the graph legend on
-.TP
-.B -log       x|y|xy 
-Set the axis scaling of the current graph to logarithmic
-.TP
-.BI "\-netcdf "  "file"
-Assume data file is in netCDF format. This option is present
-only if the netCDF support was compiled in
-.TP
-.BI "\-netcdfxy " "X_var Y_var"
-If -netcdf was used previously, read from the netCDF file
-X_var and Y_var variables and create a set.
-If X_var is "null" then load the index of Y to X.
-This option is present only if the netCDF support was compiled in
 .TP
 .B -noask
 Assume the answer is yes to all requests, if the operation would overwrite
@@ -143,14 +124,8 @@ Set the type of the next data file
 .B -version                             
 Show the program version and exit
 .TP
-.BI "\-viewport " "xmin ymin xmax ymax"      
-Set the viewport for the current graph
-.TP
 .BI "\-wd "       "path"                
 Set the working directory
-.TP
-.BI "\-world "    "xmin ymin xmax ymax"
-Set the world coordinates for the current graph
 .TP
 .B -usage|-help
 This message
