@@ -35,8 +35,9 @@
 @map color 13 to (103, 7, 72), "maroon"
 @map color 14 to (64, 224, 208), "turquoise"
 @map color 15 to (0, 139, 0), "green4"
-@reference jdate 0
-@y2kwrap on
+@reference date 0
+@date wrap on
+@date wrap year 1950
 @default linewidth 1.0
 @default linestyle 1
 @default color 1
@@ -53,7 +54,27 @@
 @timestamp rot 0
 @timestamp font 0
 @timestamp char size 1.000000
-@timestamp def "Sat Aug  7 04:05:21 1999"
+@timestamp def "Sat Aug 14 21:47:19 1999"
+@with box
+@    box on
+@    box loctype view
+@    box 0.68, 0.63, 1.13, 0.83
+@    box linestyle 1
+@    box linewidth 1.0
+@    box color 1
+@    box fill color 7
+@    box fill pattern 1
+@box def
+@with box
+@    box on
+@    box loctype view
+@    box 0.691176470588, 0.77614379085, 1.12091503268, 0.638888888889
+@    box linestyle 1
+@    box linewidth 1.0
+@    box color 8
+@    box fill color 0
+@    box fill pattern 1
+@box def
 @with ellipse
 @    ellipse on
 @    ellipse loctype view
@@ -74,6 +95,66 @@
 @    string just 0
 @    string char size 1.000000
 @    string def "No, it's \+NOT\N a Y2K bug :-). The 2-digit year format is set in \"Edit/Preferences\" popup (off by default)."
+@with string
+@    string on
+@    string loctype view
+@    string 0.7, 0.75
+@    string color 1
+@    string rot 0
+@    string font 8
+@    string just 0
+@    string char size 0.750000
+@    string def "1998-05-15 4365 \"xmgr-4.1.2\""
+@with string
+@    string on
+@    string loctype view
+@    string 0.7, 0.725
+@    string color 1
+@    string rot 0
+@    string font 8
+@    string just 0
+@    string char size 0.750000
+@    string def "1998-06-30 3761 \"grace-5.0.0\""
+@with string
+@    string on
+@    string loctype view
+@    string 0.7, 0.7
+@    string color 1
+@    string rot 0
+@    string font 8
+@    string just 0
+@    string char size 0.750000
+@    string def "1998-09-15 3703 \"grace-5.0.1\""
+@with string
+@    string on
+@    string loctype view
+@    string 0.7, 0.675
+@    string color 1
+@    string rot 0
+@    string font 8
+@    string just 0
+@    string char size 0.750000
+@    string def "1999-03-20 3188 \"grace-5.0.2\""
+@with string
+@    string on
+@    string loctype view
+@    string 0.7, 0.65
+@    string color 1
+@    string rot 0
+@    string font 8
+@    string just 0
+@    string char size 0.750000
+@    string def "1999-08-07 2240 \"grace-5.0.3pre1\""
+@with string
+@    string on
+@    string loctype view
+@    string 0.702614379085, 0.795751633987
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 0
+@    string char size 1.000000
+@    string def "The input file looked like this:"
 @r0 type above
 @r0 linestyle 1
 @r0 linewidth 1.0
@@ -107,8 +188,8 @@
 @g0 fixedpoint off
 @g0 fixedpoint type 0
 @g0 fixedpoint xy 0.000000, 0.000000
-@g0 fixedpoint format general general
-@g0 fixedpoint prec 6, 6
+@g0 fixedpoint format mmddyy decimal
+@g0 fixedpoint prec 6, 0
 @with g0
 @    world xmin 2450907.5
 @    world xmax 2451546.5
@@ -151,7 +232,7 @@
 @    xaxis  tick default 6
 @    xaxis  tick place rounded false
 @    xaxis  tick in
-@    xaxis  tick major size 1.000000
+@    xaxis  tick major size 0.750000
 @    xaxis  tick major color 1
 @    xaxis  tick major linewidth 1.0
 @    xaxis  tick major linestyle 1
@@ -180,7 +261,7 @@
 @    xaxis  ticklabel char size 1.000000
 @    xaxis  ticklabel font 0
 @    xaxis  ticklabel color 1
-@    xaxis  tick place both
+@    xaxis  tick place normal
 @    xaxis  ticklabel type auto
 @    xaxis  tick type auto
 @    yaxis  on
