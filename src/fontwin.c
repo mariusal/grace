@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -318,7 +318,7 @@ static void update_fonttool_cb(int value, void *data)
     Widget font_table = (Widget) data;
     
     FontID = value;
-    switch (CheckForFontID(FontID)) {
+    switch (T1_CheckForFontID(FontID)) {
     case 0:
         T1_LoadFont(FontID);
         break;
@@ -419,7 +419,9 @@ static void fonttool_aac_cb(void *data)
     }
 
     if (cstext_parent != NULL) {
-        xv_setstr(cstext_parent, GetTextString(string_item));
+        char *s = GetTextString(string_item);
+        xv_setstr(cstext_parent, s);
+        xfree(s);
     }
     
     if (aac_mode == AAC_ACCEPT) {

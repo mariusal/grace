@@ -664,7 +664,9 @@ static int axes_aac_cb(void *data)
         }
 
         if (data == axislabel || data == NULL) {
-            set_plotstr_string(&ot->label, GetTextString(axislabel));
+            char *s = GetTextString(axislabel);
+            set_plotstr_string(&ot->label, s);
+            xfree(s);
         }
         if (data == tmajor || data == NULL) {
             if (xv_evalexpr(tmajor, &ot->tmajor) != RETURN_SUCCESS) {
@@ -782,8 +784,8 @@ static int axes_aac_cb(void *data)
             ot->tl_skip = GetOptionChoice(tlskip);
         }
         if (data == tlformula || data == NULL) {
-            ot->tl_formula =
-                copy_string(ot->tl_formula, GetTextString(tlformula));
+            xfree(ot->tl_formula);
+            ot->tl_formula = GetTextString(tlformula);
         }
         if (data == tlprestr || data == NULL) {
             strcpy(ot->tl_prestr, xv_getstr(tlprestr));

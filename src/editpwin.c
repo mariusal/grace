@@ -633,6 +633,8 @@ int ep_aac_proc(void *data)
     update_set_lists(ep->pset->parent);
     xdrawgraph();
     
+    xfree(comment);
+    
     return RETURN_SUCCESS;
 }
 

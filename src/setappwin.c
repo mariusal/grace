@@ -545,8 +545,8 @@ static int setapp_aac_cb(void *data)
             }
             if (data == legend_str_item || data == NULL) {
                 if (cd == 1 || duplegs) {
-                    p->legstr =
-                        copy_string(p->legstr, GetTextString(legend_str_item));
+                    xfree(p->legstr);
+                    p->legstr = GetTextString(legend_str_item);
                 }
             }
             if (data == toggle_symbols_item || data == NULL) {

@@ -521,7 +521,9 @@ static int graphapp_aac_cb(void *data)
                 set_graph_znorm(gr, znorm);
             }
             if (data == label_title_text_item || data == NULL) {
-                set_plotstr_string(&labs->title, GetTextString(label_title_text_item));
+                char *s = GetTextString(label_title_text_item);
+                set_plotstr_string(&labs->title, s);
+                xfree(s);
             }
             if (data == title_size_item || data == NULL) {
                 labs->title.charsize = GetCharSizeChoice(title_size_item);
@@ -533,7 +535,9 @@ static int graphapp_aac_cb(void *data)
                 labs->title.font = GetOptionChoice(title_font_item);
             }
             if (data == label_subtitle_text_item || data == NULL) {
-                set_plotstr_string(&labs->stitle, GetTextString(label_subtitle_text_item));
+                char *s = GetTextString(label_title_text_item);
+                set_plotstr_string(&labs->stitle, s);
+                xfree(s);
             }
             if (data == stitle_size_item || data == NULL) {
                 labs->stitle.charsize = GetCharSizeChoice(stitle_size_item);

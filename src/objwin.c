@@ -289,7 +289,8 @@ static void update_string_ui(StringUI *ui, DOStringData *odata)
 
 static void set_string_odata(StringUI *ui, DOStringData *odata)
 {
-    odata->s    = copy_string(odata->s, GetTextString(ui->text));
+    xfree(odata->s);
+    odata->s    = GetTextString(ui->text);
     odata->font = GetOptionChoice(ui->font);
     odata->just = GetOptionChoice(ui->just);
     odata->size = GetCharSizeChoice(ui->size);

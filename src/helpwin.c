@@ -362,9 +362,10 @@ static int find_cb(void *data)
     XmHTMLTextPosition start, end;
     html_ui *ui = (html_ui *) data;
     
-    ptr = GetTextString(ui->input);
+    s = GetTextString(ui->input);
 
-    if (is_empty_string(ptr)) {
+    if (is_empty_string(s)) {
+        xfree(s);
         return RETURN_FAILURE;
     }
     
@@ -372,11 +373,10 @@ static int find_cb(void *data)
         ui->finder = XmHTMLTextFinderCreate(ui->html);
         if (ui->finder == NULL) {
             errmsg("XmHTMLTextFinderCreate failed!");
+            xfree(s);
             return RETURN_FAILURE;
         }
     }
-
-    s = copy_string(NULL, ptr);
 
     case_sensitive = GetToggleButtonState(ui->case_sensitive);
     find_backwards = GetToggleButtonState(ui->find_backwards);
