@@ -2963,13 +2963,13 @@ actions:
 	        break;
 	    }
         }
-	| INTERPOLATE '(' selectset ',' array ',' interpmethod ',' onoff ')' {
+	| INTERPOLATE '(' selectset ',' vexpr ',' interpmethod ',' onoff ')' {
             do_interp($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
                 $5->data, $5->length, $7, $9);
 	}
-	| HISTOGRAM '(' selectset ',' array ',' onoff ',' onoff ')' {
+	| HISTOGRAM '(' selectset ',' vexpr ',' onoff ',' onoff ')' {
             do_histo($3->gno, $3->setno, get_cg(), SET_SELECT_NEXT,
-                $5->data, $5->length, $7, $9);
+                $5->data, $5->length - 1, $7, $9);
 	}
 	| DIFFERENCE '(' selectset ',' nexpr ')' {
 	    do_differ($3->gno, $3->setno, $5);
