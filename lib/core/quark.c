@@ -277,10 +277,16 @@ Quark *quark_copy2(Quark *newparent, const Quark *q)
     data = qf->data_copy(q->data);
     new = quark_new_raw(newparent, q->fid, data);
     new->active = q->active;
+
+    new->cb     = q->cb;
+    new->cbdata = q->cbdata;
+
+    new->udata  = q->udata;
+
     if (newparent != q->parent) {
         quark_idstr_set(new, q->idstr);
-        if (q->cb) {
-            q->cb(new, QUARK_ETYPE_REPARENT, new->cbdata);
+        if (new->cb) {
+            new->cb(new, QUARK_ETYPE_REPARENT, new->cbdata);
         }
     }
 
