@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -32,7 +32,7 @@
 #define MAJOR_REV 5
 #define MINOR_REV 0
 #define PATCHLEVEL 2
-#define BETA_VER "(981231)"
+#define BETA_VER "(990113)"
 
 #define VERSION_ID (MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL)
 

@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -156,9 +156,9 @@ void create_about_grtool(Widget w, XtPointer client_data, XtPointer call_data)
         
 	CreateSeparator(about_panel);
 
-	sprintf(buf, "Copyright (c) 1991-1995 Paul J Turner");
+	sprintf(buf, "Copyright (c) 1991-95 Paul J Turner");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
-	sprintf(buf, "Copyright (c) 1996-1999 Grace Development Team");
+	sprintf(buf, "Copyright (c) 1996-99 Grace Development Team");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
 	sprintf(buf, "All rights reserved");
 	XtVaCreateManagedWidget(buf, xmLabelWidgetClass, about_panel, NULL);
