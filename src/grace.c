@@ -95,8 +95,6 @@ void *container_data_copy(void *data)
     return data;
 }
 
-int grace_init_print(RunTime *rt);
-
 RunTime *runtime_new(Grace *grace)
 {
     RunTime *rt;

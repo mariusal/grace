@@ -250,6 +250,8 @@ FILE *grace_openw(Grace *grace, char *fn);
 FILE *grace_openr(Grace *grace, char *fn, int src);
 void grace_close(FILE *fp);
 
+int grace_init_print(RunTime *rt);
+
 int grace_print(const Grace *grace, const char *fname);
 
 #endif /* __GRACE_H_ */
