@@ -338,7 +338,7 @@ Grace *grace_new(void)
     if (!grace) {
         return NULL;
     }
-    memset(grace, 0, sizeof(grace));
+    memset(grace, 0, sizeof(Grace));
 
     grace->rt = runtime_new(grace);
     if (!grace->rt) {
