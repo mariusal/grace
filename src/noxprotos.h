@@ -178,30 +178,25 @@ void do_clear_boxes(void);
 void do_clear_text(void);
 void do_clear_ellipses(void);
 
-int init_array(double **a, int n);
-int init_scratch_arrays(int n);
-double *get_scratch(int ind);
-
 int   scanner(char *s);
 int s_scanner(char *s, double *res);
 int v_scanner(char *s, int *reslen, double **res);
-
 int get_parser_gno(void);
 int set_parser_gno(int gno);
 int get_parser_setno(void);
 int set_parser_setno(int gno, int setno);
-
-double rnorm(double mean, double sdev);
-double fx(double x);
 void init_symtab(void);
 int addto_symtab(symtab_entry newkey);
-
+int init_scratch_arrays(int n);
+double *get_scratch(int ind);
 
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);
 int minmaxrange(double *bvec, double *vec, int n, double bvmin, double bvmax,
               	   double *vmin, double *vmax);
+double vmin(double *x, int n);
+double vmax(double *x, int n);
 int set_point(int gno, int setn, int seti, WPoint wp);
 int get_point(int gno, int setn, int seti, WPoint *wp);
 void setcol(int gno, int setno, int col, double *x, int len);
