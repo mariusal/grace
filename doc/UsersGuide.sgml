@@ -7,10 +7,10 @@
 
 <title>Grace User's Guide (v0.6 - for Grace-5.1.0)
 <author>by the Grace Team
-<date>31.01.2000
+<date>20.02.2000
 <abstract>
   This document explains the usage of
-  <bf/Grace/, a 2D plotting tool for scientific data.
+  <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
 </abstract>
 
 <toc>
@@ -125,16 +125,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <item> Extra libraries. Some features will be available only if
                  additional libraries are installed. Those are:
             <itemize>
-              <item> The PDF driver requires the PDFlib library of Thomas
-                     Merz to be installed, which is available
-                     <url name="here" url="http://www.pdflib.com/">, version
-                     3.00 or above.
               <item> The JPEG backend needs the IJG's
                      (<url name="JPEG library" url="ftp://ftp.uu.net/graphics/jpeg/">),
                      version 6.x.
               <item> The PNG backend needs
                      the (<url name="libpng" url="http://www.cdrom.com/pub/png/">)
-                     library (version 1.00 or above).
+                     library (version 0.96 or above).
+              <item> The PDF driver requires the PDFlib library of Thomas
+                     Merz to be installed, which is available
+                     <url name="here" url="http://www.pdflib.com/">, version
+                     3.00 or above.
               <item> If your computer has the FFTW library installed when
                      Grace is compiled, Grace will link itself to this, and
                      drop all conventional FFT's and DFT's. All transforms
@@ -172,8 +172,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   % /usr/local/src/grace-x.y.z/ac-tools/shtool mkshadow \
     /usr/local/src/grace-x.y.z .
                  </verb>
-          <item> Consult README.configure for basic notes on the GNU configure
-                 usage
+          <item> The <tt>configure</tt> shell script attempts to guess correct
+          values for various system-dependent variables used during
+          compilation. It uses those values to create <tt>Make.conf</tt> in the
+          top directory of the package. It also create <tt>config.h</tt> file
+          containing system-dependent definitions. Finally, it creates a shell
+          script <tt>config.status</tt> that you can run in the future to
+          recreate the current configuration, a file <tt>config.cache</tt> that
+          saves the results of its tests to speed up reconfiguring, and a file
+          <tt>config.log</tt> containing compiler output (useful mainly for
+          debugging <tt>configure</tt>). If at some point <tt>config.cache</tt>
+          contains results you don't want to keep, you may remove or edit it.
           <item> Run <tt>./configure --help</tt>
                  to get list of additional switches specific to Grace
           <item> Run <tt>./configure &lt;options&gt;</tt>. Just an example:
@@ -315,8 +324,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                              annotated value is Z                  @
             XYR        | 3 | X, Y,  Radius. Only allowed in Fixed
                              graphs                                @
-            XYSYMSIZE  | 3 | Same as XY, but symbol size is
+            XYSIZE     | 3 | Same as XY, but symbol size is
                              variable                              @
+            XYCOLOR    | 3 | X, Y, color index (of the symbol fill)@
             XYCOLPAT   | 4 | X, Y, color index, pattern index
                              (currently used for Pie charts only)  @
             XYVMAP     | 4 | Vector map                            @
@@ -341,7 +351,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             <hline>
             Set type          | XY Graph | XY Chart | Fixed | Polar | Pie @
             <hline>
-            XY                |     +    |    +     |   +   |   +   |  -  @
+            XY                |     +    |    +     |   +   |   +   |  +  @
             XYDX              |     +    |    -     |   +   |   -   |  -  @
             XYDY              |     +    |    +     |   +   |   -   |  -  @
             XYDXDX            |     +    |    -     |   +   |   -   |  -  @
@@ -354,7 +364,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             XYHILO            |     +    |    -     |   -   |   -   |  -  @
             XYZ               |     +    |    -     |   +   |   -   |  -  @
             XYR               |     -    |    -     |   +   |   -   |  -  @
-            XYSYMSIZE         |     +    |    +     |   +   |   +   |  -  @
+            XYSIZE            |     +    |    +     |   +   |   +   |  -  @
+            XYCOLOR           |     +    |    +     |   +   |   +   |  +  @
             XYCOLPAT          |     -    |    -     |   -   |   -   |  +  @
             XYVMAP            |     +    |    -     |   +   |   -   |  -  @
             XYBOXPLOT         |     +    |    -     |   -   |   -   |  -  @
@@ -472,13 +483,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2>Operational mode
         <p>
 
-	  With respect to the user interface, there are three modes of
-          operation that Grace can be invoked in. The full-featured
-	  GUI-based version is called <tt/xmgrace/. A batch-printing
-	  version is called <tt/gracebat/. A command-line interface mode
-          is called <tt/grace/. Usually, a single executable is called in all
-          cases, with two of the three files being (symbolic) links to a
-          "real" one.
+          With respect to the user interface, there are three modes of
+          operation that Grace can be invoked in. The full-featured GUI-based
+          version is called <tt>xmgrace</tt>. A batch-printing version is
+          called <tt>gracebat</tt>. A command-line interface mode is called
+          <tt>grace</tt>. Usually, a single executable is called in all cases,
+          with two of the three files being (symbolic) links to a "real" one.
 
       <sect2>Command line options
         <p>
@@ -1602,6 +1612,11 @@ integral     | cumulative sum @
 <sect>Command interpreter <label id="command-interpreter">
   <p>
 
+  <sect1>General notes
+    <p>
+
+      
+
   <sect1>Definitions
     <p>
 
@@ -1613,6 +1628,16 @@ integral     | cumulative sum @
       Not written yet...
 
   <sect1>Set properties
+    <p>
+
+      Not written yet...
+
+  <sect1>Functions and variables
+    <p>
+
+      Not written yet...
+
+  <sect1>Procedures
     <p>
 
       Not written yet...
@@ -1639,16 +1664,6 @@ integral     | cumulative sum @
               Device parameters.
       </caption>
       </table>
-
-  <sect1>Functions and variables
-    <p>
-
-      Not written yet...
-
-  <sect1>Procedures
-    <p>
-
-      Not written yet...
 
 <!-- **************************************** -->
 <sect>Advanced topics
@@ -2551,7 +2566,7 @@ C
       computation. Another time scale is possible: counting only the
       days from a reference. Such a time scale was introduced by
       Joseph-Juste Scaliger (Josephus Justus Scaliger) in 1583. He
-      decided to use "-4713-01-01 12:00:00" as a reference date
+      decided to use "-4713-01-01T12:00:00" as a reference date
       because it was at the same time a Monday, first of January of a
       leap year, there was an exact number of 19 years Meton cycle
       between this date and year 1 (for Easter computation), and it
@@ -2574,12 +2589,21 @@ C
       seconds are always optional):
       
       <enum>
-      <item>iso8601  : 1999-12-31 23:59:59.999
+      <item>iso8601  : 1999-12-31T23:59:59.999
       <item>european : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999
       <item>us       : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999
       <item>Julian   : 123456.789
       </enum>
       
+      One should be aware that Grace does not allow to put a space in
+      one data column as spaces are used to separate fields. You
+      should always use another separator (:/.- or better T) between
+      date and time in data files. The GUI, the batch language and the
+      command line flags do not have this limitation, you can use
+      spaces there without any problem. The T separator comes from the
+      ISO8601 standard. Grace support its use also in european and us
+      formats.
+
       You can also provide a hint about the format ("ISO8601",
       "european", "us") using the -datehint command line flag or the
       ref name="Edit->Preferences" id="preferences"> popup of the GUI.
@@ -2587,9 +2611,10 @@ C
       given by the user, then iso, european and us (there is no
       ambiguity between calendar formats and numerical formats and
       therefore no order is specified for them). The separators
-      between various fields can be any characters in the set: " :/.-"
+      between various fields can be any characters in the set: " :/.-T"
       (one or more spaces act as one separator, other characters can
-      not be repeated), so the string "1999-12 31:23/59" is allowed
+      not be repeated, the T separator is allowed only between date and time,
+      mainly for iso8601), so the string "1999-12 31:23/59" is allowed
       (but not recommended).  The '-' character is used both as a
       separator (it is traditionally used in iso8601 format) and as
       the unary minus (for dates in the far past or for numerical
@@ -2644,10 +2669,12 @@ C
       <enum>
       <item> Grace must be explicitly told the version number of the software
              used to create a file. You can manually put "@version VERSIONID"
-             string in the beginning of the file. The VERSIONID is built as
+             string at the beginning of the file. The VERSIONID is built as
              MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL; so 40101 corresponds
              to xmgr-4.1.1. Projects saved with Xmgr-4.1.2 do NOT need the above,
-             since they already have the version string in them.
+             since they already have the version string in them. If you have no
+             idea what version of Xmgr your file was created with, try some.
+             In most cases, 40102 would do the trick.
  
       <item> The above relates to the ASCII projects only. The old binary
              projects (saved with xmgr-4.0.*) are not automatically converted

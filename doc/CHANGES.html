@@ -11,54 +11,89 @@
 
 <H2>5.1.0</H2>
 
- *  [ES] too long text strings (>256) crashed Grace
- *  [LM] MIF driver (alpha)
- *  [ES] "-" in PS (rep. #711)
+<H3>New functionality</H3>
+ *  [LM] MIF driver
  *  [ES] more font encoding files added
  !  [ES] finally, introduced variables (usual and 1D arrays)...
  !  [ES] as a result of the above, removed scratch arrays (A, B, C, D)
- !  [ES] re-designed "Create by formula"; any set type can be defined
- *  [ES] panned selectors: orientation
- *  [ES] #710
- !  [ES] justifications
- *  [ES] "duplicate graph" caused memory corruption
  !  [ES] alternative tick labels ("transformed" axes) (rep. #93)
- !  [ES] user-defined tick labels are no longer allowed without tick mark
-         positions
- *  [AM] omit a few GUI-specific flags/help strings when compiling a GUI-less
-         exec.
- *  [RW] #711
- *  [ES] #715
  *  [ES] pie charts
  *  [ES] \#{} escape code in strings
- *  [JM] #720
  *  [ES] \t{}, \T{}, \r{}, \l{}, \q, \Q escape codes in strings ()
  *  [ES] \Fk, \FK, \Fl, \FL escape codes in strings
  *  [ES] \R{} escape codes in strings ()
- *  [ES] fixed \m{} in the beginning of a string
- *  [ES] #736
- *  [AM] fixed reading in files with DOS <cr>.
  !  [EV] set restriction in point ops
- !  [ES] combined point ops dialogs into one
- *  [ES] print all point data (was only x, y) during point tracking
+ !  [ES] user-defined tick labels are no longer allowed without tick mark
+         positions
+ *  [ES] #737
  *  [ES] PS Level 1/2 in the EPS driver
  *  [ES] font encoding in (E)PS
- *  [LM] SVG driver (alpha)
- *  [EV] Tutorials updated - added a regions section and updated the create
-         by formula
- !  [ES] (optional) set comments in set selectors
- *  [ES] graph overlay fixes (including rep. #734)
- *  [ES] #737
+ *  [LM] SVG driver
  *  [ES] VMAP plots (rep. #440)
- *  [ES] fixed spurious error message about non-monotonic bins when
-         calculating histograms (happened sometimes due to a rounding error)
  *  [ES] under/overlining now should work in PDF output
  *  [ES] PDF driver setup options: 1.2/1.3 compatibility and compression
          level
  *  [ES] BOXPLOT sets
- *  [ES] XYSYMSIZE sets
- *  [AH] #743
+ *  [ES] XYSIZE sets
+ *  [LM] allow to use 'T' as date-time separator (as recommended by ISO8601)
+ !  [ES] autoticking now alters # of minor ticks only if the current value
+         is anomalous
+ *  [ES] XYCOLOR sets
+ *  [ES] for XYBAR/XYBOXPLOT sets draw the symbols in the legend with the
+         fixed height (of the legend text) for better readability (rep. #741)
+
+<H3>Interface</H3>
+ !  [ES] re-designed "Create by formula"; any set type can be defined
+ *  [ES] panned selectors: orientation
+ !  [ES] justifications
+ !  [ES] combined point ops dialogs into one
+ *  [ES] print all point data (was only x, y) during point tracking
+ !  [ES] (optional) set comments in set selectors
  *  [ES] "File/Describe" merged with "File/Save as"
+ *  [ES] use "thin" lines in X11 driver if the line width &lt;= 1 pixel
+ *  [ES] reading in block data no longer resets set column selectors
+
+<H3>Documentation/Info</H3>
+ *  [AM] omit a few GUI-specific flags/help strings when compiling a GUI-less
+         exec.
+ *  [EV] Tutorials updated - added a regions section and updated the create
+         by formula
+ *  [LM] added usage help for convcal
+
+<H3>Parser</H3>
+ !  [DP] SWAP selectset AND selectset
+ !  [ES] EXIT(iexpr)
+ !  [ES] enlarged parser buffer to 4K
+
+<H3>Portability/Compilation</H3>
+ *  [AM] OS/2 updates
+ *  [JH] VMS updates
+ *  [ES] #758
+ *  [ES] new configure options (including #757)
+ *  [ES] checks for proper versions and consistency of libs and includes
+
+<H3>Bug fixes</H3>
+ *  [ES] too long text strings (&gt;255) crashed Grace (#759)
+ *  [ES] #710
+ *  [ES] "-" in PS (rep. #711)
+ *  [ES] "duplicate graph" caused memory corruption
+ *  [ES] fixed \m{} in the beginning of a string
+ *  [AM] fixed reading in files with DOS &lt;cr&gt;
+ *  [ES] graph overlay fixes (including rep. #734)
+ *  [ES] fixed spurious error message about non-monotonic bins when
+         calculating histograms (happened sometimes due to a rounding error)
+ *  [KS] the lower error bar in BARDY and BARDYDY was shadowed by bar
+ *  [RW] #717
+ *  [ES] #715
+ *  [JM] #720
+ *  [ES] #736
+ *  [AH] #743
+ *  [AM] #731
+ *  [ES] parser errors in too long lines (&gt;255), if processed from a RTI
+         caused crash
+ *  [ES] using very long formulae (&gt;~100) in the non-linear fit caused
+         memory corruption
+ *  [ES] fixed triangle symbols
 
 
 <H2>5.0.5</H2>
@@ -716,7 +751,9 @@
     [OT]  - Ovidiu Toader &lt;ovidiut@ostrich.physics.utoronto.ca&gt;
     [RW]  - Robin Williams &lt;Robin.Williams@astro.cf.ac.uk&gt;
     [JM]  - John McKitterick &lt;jbmck@batc.allied.com&gt;
-    [AH]  -  A. Stewart Hopkins &lt;ahopkins@mail.arc.nasa.gov&gt;
+    [AH]  - A. Stewart Hopkins &lt;ahopkins@mail.arc.nasa.gov&gt;
+    [KS]  - Keith Stribley &lt;keith@stribley.dabsol.co.uk&gt;
+    [DP]  - Donald A. Peterson &lt;donald@nd.edu&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)

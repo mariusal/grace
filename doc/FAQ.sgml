@@ -6,7 +6,7 @@
 
       <title>Grace FAQ (v0.8 - for Grace-5.1.0)
       <author>by the Grace Team
-      <date>30.01.2000
+      <date>19.02.2000
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, a WYSIWYG 2D plotting tool for scientific data.
@@ -867,7 +867,11 @@ XMgrace*background: ...
 	    giving the version number by which is was saved. These
 	    files should cause no problems. You can modify older files
 	    by inserting a version line at the beginning. For example,
-	    <tt/@VERSION 40102/ stands for version 4.1.2.
+	    <tt>@VERSION 40102</tt> stands for version 4.1.2. If you have no
+            idea what version of Xmgr your file was created with, try some.
+            In most cases, 40102 would do the trick. Also, make sure to read
+            the "Xmgr to Grace migration" section of the User's Guide
+            (question <ref id="manual" name="User's Guide">).
 
 	<sect2>I can't open anymore project files saved with an old version of Xmgr.
 	  <p>
