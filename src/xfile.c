@@ -259,6 +259,24 @@ int attributes_set_dval_formatted(Attributes *attrs, const char *name,
     }
 }
 
+int attributes_set_ns(Attributes *attrs, const char *ns, const char *uri)
+{
+    int retval;
+    char *buf;
+    
+    buf = copy_string(NULL, "xmlns");
+    if (ns) {
+        buf = concat_strings(buf, ":");
+        buf = concat_strings(buf, ns);
+    }
+    
+    retval = attributes_set_sval(attrs, buf, uri);
+    
+    xfree(buf);
+    
+    return retval;
+}
+
 int attributes_reset(Attributes *attrs)
 {
     attrs->count = 0;
@@ -286,9 +304,9 @@ XFile *xfile_new(char *fname)
 
     xf = xmalloc(sizeof(XFile));
     if (xf) {
+        memset(xf, 0, sizeof(XFile));
+        
         xf->tree    = xstack_new();
-        xf->indent  = 0;
-        xf->curpos  = 0;
         xf->convert = CONVERT_NONE;
         xf->indstr  = copy_string(NULL, DEFAULT_INDENT_STRING);
         xf->fname   = copy_string(NULL, fname);
@@ -438,10 +456,21 @@ int xfile_processing_instruction(XFile *xf, Attributes *attrs)
     return RETURN_SUCCESS;
 }
 
+static int xfile_output_element_name(XFile *xf, char *name)
+{
+    if (xf->ns_force && xf->ns_prefix) {
+        xfile_output(xf, xf->ns_prefix);
+        xfile_output(xf, ":");
+    }
+    xfile_output(xf, name);
+    
+    return RETURN_SUCCESS;
+}
+
 int xfile_begin_element(XFile *xf, char *name, Attributes *attrs)
 {
     xfile_output(xf, "<");
-    xfile_output(xf, name);
+    xfile_output_element_name(xf, name);
     xfile_output_attributes(xf, attrs);
     xfile_output(xf, ">");
     xfile_indent_increment(xf);
@@ -457,7 +486,7 @@ int xfile_end_element(XFile *xf, char *name)
 {
     xfile_indent_decrement(xf);
     xfile_output(xf, "</");
-    xfile_output(xf, name);
+    xfile_output_element_name(xf, name);
     xfile_output(xf, ">");
     xfile_crlf(xf);
     
@@ -471,7 +500,7 @@ int xfile_end_element(XFile *xf, char *name)
 int xfile_empty_element(XFile *xf, char *name, Attributes *attrs)
 {
     xfile_output(xf, "<");
-    xfile_output(xf, name);
+    xfile_output_element_name(xf, name);
     xfile_output_attributes(xf, attrs);
     xfile_output(xf, "/>");
     xfile_crlf(xf);
@@ -486,7 +515,7 @@ int xfile_text_element(XFile *xf,
         return xfile_empty_element(xf, name, attrs);
     } else {
         xfile_output(xf, "<");
-        xfile_output(xf, name);
+        xfile_output_element_name(xf, name);
         xfile_output_attributes(xf, attrs);
         xfile_output(xf, ">");
         
@@ -505,12 +534,24 @@ int xfile_text_element(XFile *xf,
         }
 
         xfile_output(xf, "</");
-        xfile_output(xf, name);
+        xfile_output_element_name(xf, name);
         xfile_output(xf, ">");
         xfile_crlf(xf);
 
         return RETURN_SUCCESS;
     }
+}
+
+int xfile_set_ns(XFile *xf, const char *ns, const char *uri, int force)
+{
+    if (xf->ns_uri) {
+        return RETURN_FAILURE;
+    }
+    xf->ns_uri    = copy_string(NULL, uri);
+    xf->ns_prefix = copy_string(NULL, ns);
+    xf->ns_force  = force;
+    
+    return RETURN_SUCCESS;
 }
 
 int xfile_begin(XFile *xf, int standalone,
@@ -548,6 +589,7 @@ int xfile_begin(XFile *xf, int standalone,
         xfile_crlf(xf);
     }
     
+    attributes_set_ns(root_attrs, xf->ns_prefix, xf->ns_uri);
     xfile_begin_element(xf, root, root_attrs);
     
     return RETURN_SUCCESS;

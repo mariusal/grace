@@ -62,6 +62,9 @@ typedef struct _XFile {
     char *indstr;
     int curpos;
     int convert;
+    char *ns_prefix;
+    char *ns_uri;
+    int ns_force;
 } XFile;
 
 XStack *xstack_new(void);
@@ -85,8 +88,12 @@ int attributes_set_dval(Attributes *attrs, const char *name, double dval);
 int attributes_set_dval_formatted(Attributes *attrs, const char *name,
     double dval, char *format);
 
+int attributes_set_ns(Attributes *attrs, const char *ns, const char *uri);
+
 XFile *xfile_new(char *fname);
 void xfile_free(XFile *xf);
+
+int xfile_set_ns(XFile *xf, const char *ns, const char *uri, int force);
 
 int xfile_begin(XFile *xf, int standalone,
     char *dtd_name, char *dtd_uri, char *root, Attributes *root_attrs);
