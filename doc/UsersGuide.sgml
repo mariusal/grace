@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>14.06.1999
+<date>22.06.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -314,9 +314,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
           <tag> -logwindow </tag>
                 Open the log window
-
-          <tag> -maxblock <it>number_of_columns</it> </tag>
-                Set the number of columns for block data (default is 30)
 
           <tag> -mono </tag>
                 Run Grace in monochrome mode (affects the display only)
@@ -1199,6 +1196,118 @@ main (int argc, char* argv[])
       </table>
 
     <p>
+
+    <sect1>Dates in Grace
+    
+    <p>
+      We use two calendars in Grace : the one that was established in
+      532 by Denys and lasted until 1582, and the one that was created
+      by Luigi Lilio (Alyosius Lilius) and Christoph Klau
+      (Christophorus Clavius) for pope Gregorius XIII. Both use the
+      same months (they were introduced under emperor Augustus, a few
+      years after julian calendar introduction, both Julius and
+      Augustus were honored by a month beeing named after each one).
+      
+      The leap years occured regularly in Denys's calendar : once
+      every four years, there is no year 0 in this calendar (the leap
+      year -1 was just before year 1). This calendar was not compliant
+      with earth motion and the dates were slowly shifting with regard
+      to astronomical events.
+      
+      This was corrected in 1582 by introducing gregorian
+      calendar. First a ten days shift was introduced to reset correct
+      dates (Thursday October the 4th was followed by Friday October
+      the 15th). The rules for leap years were also changed : three
+      leap years are removed every four centuries. These years are
+      those that are multiple of 100 but not multiple of 400 : 1700,
+      1800, and 1900 were not leap years, but 1600 and 2000 were (will
+      be) leap years.
+      
+      We still use gregorian calendar today, but we now have several
+      time scales for increased accuracy. The International Atomic
+      Time is a linear scale : the best scale to use for scientific
+      reference. The Universal Time Coordinate (often confused with
+      Greenwhich Mean Time) is a legal time that is almost
+      synchronized with earth motion. However, since the earth is
+      slightly slowing down, leap seconds are introduced from time to
+      time in UTC (about one second every 18 monthes). UTC is not a
+      continuous scale ! When a leap second is introduced by
+      International Earth Rotation Service, this is published in
+      advance and the legal time sequence is as follows : 23:59:59
+      followed one second later by 23:59:60 followed one second later
+      by 00:00:00. At the time of this writing (1999-01-05) the
+      difference between IAT and UTC was 32 seconds, and the last leap
+      second was introduced in 1998-12-31.
+      
+      These calendars allow to represent any date from the mist of the
+      past to the fog of the future, but they are not convenient for
+      computation. Another time scale is of possible : counting only
+      the days from a reference. Such a time scale was introduced by
+      Joseph-Juste Scaliger (Josephus Justus Scaliger) in 1583. He
+      decided to use "-4713-01-01 12:00:00" as a reference date
+      because it was at the same time a monday, first of January of a
+      leap year, there was an exact number of 19 years Meton cycle
+      between this date and year 1 (for Easter computation), and it
+      was at the beginning of a 15 years <it>roman indiction</it>
+      cycle. The day number is called <it>julian day</it>, but it has
+      really nothing to do with the julian calendar.
+      
+      The following date formats are supported (hour, minutes and
+      seconds are always optional):
+      
+      <enum>
+      <item>iso8601   : 1999-12-31 23:59:59.999
+      <item>european  : 31/12/1999 23:59:59.999 or 31/12/99 23:59:59.999
+      <item>us        : 12/31/1999 23:59:59.999 or 12/31/99 23:59:59.999
+      <item>days      : 123456.789
+      <item>seconds   : 123456.789
+      </enum>
+      
+      The formats are tried in the following order : iso, european and
+      us (there is no ambiguity between calendar formats and numerical
+      formats and therefore no order is specified for them). The
+      separators between various fields can be any characters in the
+      set : " :/-" (one or more spaces act as one separator, other
+      characters can not be repeated), so the string "1999-12 31:23-59"
+      is allowed (but not recommended).  The '-' character
+      is used both as a separator (it is traditionally used in iso8601
+      format) and as the unary minus (for dates in the far past or for
+      numerical dates). When the year is between 0 and 99 and is
+      written with two or less digits, it is mapped to the present era
+      as follows :
+
+       range [00 ; 49] is mapped to [2000 ; 2049]
+       range [50 ; 99] is mapped to [1950 ; 1999]
+
+      this is Y2K compliant and is consistent with current use.
+      Specifying year 1 is still possible using more than two digits
+      as follows : "0001-03-04" is unambiguously March the 4th, year
+      1. However using two digits only is not recommended (we
+      introduce a 2050 bug here so this feature should be removed at
+      some point in the future.
+      
+      Numerical dates (days and seconds formats) can be specified
+      using integral, real or exponential formats (the 'd' and 'D'
+      exponant markers from fortran are supported in addition to 'e'
+      and 'E').  They are computed according to a customizable
+      reference date.  The default value is given by the REFDATE
+      command (you can set it in your configuration files). The
+      default value in the distributed file is "-4713-01-01 12:00:00",
+      it is a classical reference for astronomical events (note that
+      the '-' is used here both as a unary minus and as a separator).
+      
+      The date parser can be used either for Denys's and gregorian
+      calendars. Inexistant dates are detected, they include year 0,
+      dates between 1582-10-05 and 1582-10-14, February 29th of non
+      leap years, months below 1 or above 12, ...  the parser does not
+      take into account leap seconds : you can think it works only in
+      International Atomic Time (TAI) and not in Unified Time
+      Coordinate (UTC). If you find yourself in a situation were you
+      need UTC, a very precise scale, and should take into account
+      leap seconds ... you should convert your data yourself (for
+      example using International Atomic Time). But if you bother with
+      that you probably already know what to do.
+
 
     <sect1>Xmgr to Grace migration guide
     
