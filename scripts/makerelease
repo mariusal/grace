@@ -10,6 +10,7 @@ O=.o
 EXE=
 YACC=bison -y
 XCC=xcc
+PAPERSIZE=a4
 EOF
 
 make NEWS
