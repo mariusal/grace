@@ -298,53 +298,49 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
         }
     }
     
-    if (pdfdata->compat >= PDF_1_3) {
-        pdfdata->pattern_ids = xmalloc(number_of_patterns(canvas)*SIZEOF_INT);
-        for (i = 0; i < cstats->npatterns; i++) {
-            int patno = cstats->patterns[i];
-            Pattern *pat = canvas_get_pattern(canvas, patno);
+    pdfdata->pattern_ids = xmalloc(number_of_patterns(canvas)*SIZEOF_INT);
+    for (i = 0; i < cstats->npatterns; i++) {
+        int patno = cstats->patterns[i];
+        Pattern *pat = canvas_get_pattern(canvas, patno);
 /* Unfortunately, there is no way to open a _masked_ image from memory */
 #if 0
-            int im;
-            pdfdata->pattern_ids[i] = PDF_begin_pattern(pdfdata->phandle,
-                pat->width, pat->height, pat->width, pat->height, 2);
-            im = PDF_open_image(pdfdata->phandle, "raw", "memory",
-                (const char *) pat_bits[i], pat->width*pat->height/8,
-                pat->width, pat->height, 1, 1, "");
-            PDF_place_image(pdfdata->phandle, im, 0.0, 0.0, 1.0);
-            PDF_close_image(pdfdata->phandle, im);
-            PDF_end_pattern(pdfdata->phandle);
+        int im;
+        pdfdata->pattern_ids[i] = PDF_begin_pattern(pdfdata->phandle,
+            pat->width, pat->height, pat->width, pat->height, 2);
+        im = PDF_open_image(pdfdata->phandle, "raw", "memory",
+            (const char *) pat_bits[i], pat->width*pat->height/8,
+            pat->width, pat->height, 1, 1, "");
+        PDF_place_image(pdfdata->phandle, im, 0.0, 0.0, 1.0);
+        PDF_close_image(pdfdata->phandle, im);
+        PDF_end_pattern(pdfdata->phandle);
 #else
-            int j, k, l;
-            pdfdata->pattern_ids[patno] = PDF_begin_pattern(pdfdata->phandle,
-                pat->width, pat->height, pat->width, pat->height, 2);
-            for (j = 0; j < 256; j++) {
-                k = j%16;
-                l = 15 - j/16;
-                if ((pat->bits[j/8] >> (j%8)) & 0x01) {
-                    /* the bit is set */
-                    PDF_rect(pdfdata->phandle, (float) k, (float) l, 1.0, 1.0);
-                    PDF_fill(pdfdata->phandle);
-                }
+        int j, k, l;
+        pdfdata->pattern_ids[patno] = PDF_begin_pattern(pdfdata->phandle,
+            pat->width, pat->height, pat->width, pat->height, 2);
+        for (j = 0; j < 256; j++) {
+            k = j%16;
+            l = 15 - j/16;
+            if ((pat->bits[j/8] >> (j%8)) & 0x01) {
+                /* the bit is set */
+                PDF_rect(pdfdata->phandle, (float) k, (float) l, 1.0, 1.0);
+                PDF_fill(pdfdata->phandle);
             }
-            PDF_end_pattern(pdfdata->phandle);
-#endif
         }
+        PDF_end_pattern(pdfdata->phandle);
+#endif
     }
 
     PDF_begin_page(pdfdata->phandle, pg->width*72.0/pg->dpi, pg->height*72.0/pg->dpi);
     
-    if (pdfdata->compat >= PDF_1_3) {
-        s = canvas_get_description(canvas);
+    s = canvas_get_description(canvas);
 
-        if (!is_empty_string(s)) {
-            PDF_set_border_style(pdfdata->phandle, "dashed", 3.0);
-            PDF_set_border_dash(pdfdata->phandle, 5.0, 1.0);
-            PDF_set_border_color(pdfdata->phandle, 1.0, 0.0, 0.0);
+    if (!is_empty_string(s)) {
+        PDF_set_border_style(pdfdata->phandle, "dashed", 3.0);
+        PDF_set_border_dash(pdfdata->phandle, 5.0, 1.0);
+        PDF_set_border_color(pdfdata->phandle, 1.0, 0.0, 0.0);
 
-            PDF_add_note(pdfdata->phandle,
-                20.0, 50.0, 320.0, 100.0, s, "Project description", "note", 0);
-        }
+        PDF_add_note(pdfdata->phandle,
+            20.0, 50.0, 320.0, 100.0, s, "Project description", "note", 0);
     }
     
     PDF_scale(pdfdata->phandle, pdfdata->page_scalef, pdfdata->page_scalef);
@@ -396,8 +392,7 @@ void pdf_setpen(const Canvas *canvas, const Pen *pen, PDF_data *pdfdata)
         }
 
         PDF_setcolor(pdfdata->phandle, "both", cstype, c1, c2, c3, c4);     
-        if (pdfdata->compat >= PDF_1_3 &&
-            pen->pattern > 1 && pdfdata->pattern_ids[pen->pattern] >= 0) {
+        if (pen->pattern > 1 && pdfdata->pattern_ids[pen->pattern] >= 0) {
             PDF_setcolor(pdfdata->phandle, "both", "pattern",
                 (float) pdfdata->pattern_ids[pen->pattern], 0.0, 0.0, 0.0);     
         }
@@ -551,7 +546,7 @@ void pdf_fillpolygon(const Canvas *canvas, void *data,
         PDF_set_parameter(pdfdata->phandle, "fillrule", "evenodd");
     }
     
-    if (pdfdata->compat >= PDF_1_3 && pen.pattern > 1) {
+    if (pen.pattern > 1) {
         Pen solid_pen;
         solid_pen.color = getbgcolor(canvas);
         solid_pen.pattern = 1;
@@ -626,7 +621,7 @@ void pdf_fillarc(const Canvas *canvas, void *data,
         return;
     }
     
-    if (pdfdata->compat >= PDF_1_3 && pen.pattern > 1) {
+    if (pen.pattern > 1) {
         Pen solid_pen;
         solid_pen.color = getbgcolor(canvas);
         solid_pen.pattern = 1;
