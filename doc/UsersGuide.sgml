@@ -1444,7 +1444,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
          of one set or cross correlation between two sets. You only
          select the set (or sets) and specify the maximum lag. A check
          box allows one to evaluate covariance instead of correlation.
-         The result is normalized so that C(0) = 1.
+         The result is normalized so that abs(C(0)) = 1.
 
          <sect3> Digital filter <label id="digital-filter">
          <p>
