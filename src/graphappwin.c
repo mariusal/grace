@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -112,17 +112,25 @@ static void updatelegends(int gno);
 void update_graphapp_items(Widget list, XtPointer client_data,
                                                     XmListCallbackStruct *cbs);
 
+void create_graphapp_frame_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    create_graphapp_frame((int) client_data);
+}
 
 /*
  * 
  */
-void create_graphapp_frame(Widget w, XtPointer client_data, XtPointer call_data)
+void create_graphapp_frame(int gno)
 {
     Widget graphapp_tab, graphapp_frame, graphapp_main, graphapp_titles,
          graphapp_legends, graphapp_legendbox;
     Widget rc, rc1, rc2, fr;
 
     set_wait_cursor();
+    
+    if (is_valid_gno(gno) == FALSE) {
+        gno = get_cg();
+    }
     
     if (graphapp_dialog == NULL) {
 	graphapp_dialog = XmCreateDialogShell(app_shell, "GraphAppearance", NULL, 0);
@@ -370,7 +378,7 @@ void create_graphapp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
     }
     
-    SelectListChoice(graph_selector, get_cg());
+    SelectListChoice(graph_selector, gno);
     XtRaise(graphapp_dialog);
     unset_wait_cursor();
 }
