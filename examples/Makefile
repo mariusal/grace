@@ -1,8 +1,7 @@
 #####################################################
-# Makefile for examples of GRACE                    #
+# Makefile for examples of Grace                    #
 #####################################################
 # You should not change anything here.              #
-# Please read INSTALL file in the upper directory   #
 #####################################################
 
 TOP=..
@@ -17,7 +16,7 @@ EXAMPLES = altaxis.par logtest.par times.agr \
 	bar.agr explain.agr moresyms.agr test.com tmc.c \
 	fills.agr props.agr test.dat \
 	chartebar.agr charts.agr graphs.par regions.par test1.par tstack.agr \
-	brw.dat hilo.agr slideshow.d test2.agr txyr.agr \
+	brw.dat hilo.agr slideshow.d test2.agr arrows.agr txyr.agr \
 	co2.agr log.dat stackedb.agr tfonts.agr typeset.agr \
 	co2.par logistic.agr logistic.fit symslines.agr tforms.par polar.agr
 
