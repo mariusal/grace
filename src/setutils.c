@@ -1001,8 +1001,11 @@ int allocate_set(int gno, int setno)
 {
     if (is_valid_setno(gno, setno)) {
         return RETURN_SUCCESS;
-    } else {
+    } else
+    if (setno >= 0) {
         return realloc_graph_plots(gno, setno + 1);
+    } else {
+        return RETURN_FAILURE;
     }
 }    
 
