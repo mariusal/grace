@@ -100,8 +100,20 @@
 /* Define if you have the <sys/param.h> header file.  */
 #define HAVE_SYS_PARAM_H 1
 
+/* Define if you have the <sys/time.h> header file.  */
+#define HAVE_SYS_TIME_H 1
+
+/* Define if you have the <sys/resource.h> header file.  */
+#define HAVE_SYS_RESOURCE_H 1
+
+/* Define if you have the <sys/select.h> header file.  */
+#define HAVE_SYS_SELECT_H 1
+
 /* Define if your <sys/time.h> declares struct tm.  */
 #undef TM_IN_SYS_TIME
+
+/* Define if <time.h> and <sys/time.h> can be both included.  */
+#define TIME_WITH_SYS_TIME 1
 
 /* Define if you have <vfork.h>.  */
 #undef HAVE_VFORK_H
@@ -139,6 +151,9 @@
 /* Define if you have the strerror function.  */
 #define HAVE_STRERROR 1
 
+/* Define if stdio.h defines the sys_errlist table */
+#undef HAVE_SYS_ERRLIST_IN_STDIO_H
+
 /* Define if you have the vsnprintf function.  */
 #define HAVE_VSNPRINTF 1
 
@@ -150,6 +165,9 @@
 
 /* Define if you have the shl_load function.  */
 #undef HAVE_SHL_LOAD
+
+/* Define if you have the getrlimit function.  */
+#undef HAVE_GETRLIMIT
 
 /* If words are stored with the most significant byte first (like
                    Motorola and SPARC, but not Intel and VAX, CPUs */
@@ -205,6 +223,9 @@
 
 /* Define if math.h defines the lgamma function.  */
 #undef HAVE_LGAMMA_IN_MATH_H
+
+/* Define if math.h defines the signgam variable.  */
+#undef HAVE_SIGNGAM_IN_MATH_H
 
 /* Define if you have the asinh function.  */
 #undef HAVE_ASINH

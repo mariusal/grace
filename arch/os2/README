@@ -65,9 +65,6 @@
   without these packages). Well, at least they could be found in
   binary distributions from the URL given above.
 
-    - Xbae
-      It's sources can be found at:
-         ftp://ftp.x.org/contrib/widgets/motif/
     - libhelp and it's little application xmhelp
       (used to display the online help written in HTML)
       Their sources can be found at:
