@@ -149,6 +149,30 @@ int two_digits_years_allowed(void)
     return two_digits_years_flag;
 }
 
+
+/*
+ * reduce years according to the folowing rules :
+ * [1950 ; 1999] -> [50 ; 99]
+ * [2000 ; 2049] -> [00 ; 49]
+ */
+static int reduced_year(int y)
+{
+    if (two_digits_years_allowed()) {
+        if (y < 1950) {
+            return y;
+        } else if (y < 2000) {
+            return y - 1900;
+        } else if (y < 2050) {
+            return y - 2000;
+        } else {
+            return y;
+        }
+    } else {
+        return y;
+    }
+}
+
+
 /*
  * set of functions to convert julian calendar elements
  * with negative years to julian day
@@ -370,6 +394,9 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
 {
     long n;
 
+    /* compensate for the reference date */
+    jday += get_ref_date();
+    
     /* find the time of the day */
     n = (long) floor(jday - 0.5);
     *sec = 24.0*(jday - 0.5 - n);
@@ -393,7 +420,7 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
 
     /* now find the date */
     jul_to_cal(n, y, m, d);
-
+    *y = reduced_year(*y);
 }
 
 /*

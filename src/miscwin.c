@@ -270,7 +270,7 @@ void update_props_items(void)
               break;
         }
     	SetChoice(hint_item, itest);
-	jul_to_cal_and_time(get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(0.0, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(date_string, "%d-%02d-%02d %02d:%02d:%02d",
                 y, m, d, h, mm, (int) sec);
         xv_setstr(date_item, date_string);

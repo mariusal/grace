@@ -468,30 +468,6 @@ void installSignal(void){
 #endif
 }
 
-
-/*
- * reduce years according to the folowing rules :
- * [1950 ; 1999] -> [50 ; 99]
- * [2000 ; 2049] -> [00 ; 49]
- */
-static int reduced_year(int y)
-{
-
-    if (two_digits_years_allowed()) {
-        if (y < 1950) {
-            return y;
-        } else if (y < 2000) {
-            return y - 1900;
-        } else if (y < 2050) {
-            return y - 2000;
-        } else {
-            return y;
-        }
-    } else {
-        return y;
-    }
-}
-
 /* create format string */
 char *create_fstring(int form, int prec, double loc, int type)
 {
@@ -636,36 +612,32 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DDMMYY:
 	strcpy(format, "%02d-%02d-%d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, d, m, y);
 	break;
     case FORMAT_MMDDYY:
 	strcpy(format, "%02d-%02d-%d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d, y);
 	break;
     case FORMAT_YYMMDD:
 	strcpy(format, "%d-%02d-%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, y, m, d);
 	break;
     case FORMAT_MMYY:
 	strcpy(format, "%02d-%d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, y);
 	break;
     case FORMAT_MMDD:
 	strcpy(format, "%02d-%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d);
 	break;
     case FORMAT_MONTHDAY:
 	strcpy(format, "%s-%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -674,7 +646,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYMONTH:
 	strcpy(format, "%02d-%s");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -683,7 +655,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_MONTHS:
 	strcpy(format, "%s");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -692,8 +664,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_MONTHSY:
 	strcpy(format, "%s-%d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -702,7 +673,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_MONTHL:
 	strcpy(format, "%s");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
@@ -711,7 +682,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFWEEKS:
 	strcpy(format, "%s");
-	itmp = dayofweek(loc + get_ref_date());
+	itmp = dayofweek(loc);
 	if ((itmp < 0) | (itmp > 6)) {
 	} else {
 	    sprintf(s, format, dayofweekstrs[dayofweek(loc)]);
@@ -719,7 +690,7 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFWEEKL:
 	strcpy(format, "%s");
-	itmp = dayofweek(loc + get_ref_date());
+	itmp = dayofweek(loc);
 	if ((itmp < 0) | (itmp > 6)) {
 	} else {
 	    sprintf(s, format, dayofweekstrl[dayofweek(loc)]);
@@ -727,30 +698,28 @@ char *create_fstring(int form, int prec, double loc, int type)
 	break;
     case FORMAT_DAYOFYEAR:
 	strcpy(format, "%d");
-        jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+        jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format,
                 1 + (int) (cal_to_jul(y, m, d) - cal_to_jul(y, 1, 1)));
 	break;
     case FORMAT_HMS:
 	strcpy(format, "%02d:%02d:%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, h, mm, (int) sec);
 	break;
     case FORMAT_MMDDHMS:
 	strcpy(format, "%02d-%02d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d, h, mm, (int) sec);
 	break;
     case FORMAT_MMDDYYHMS:
 	strcpy(format, "%02d-%02d-%d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, m, d, y, h, mm, (int) sec);
 	break;
     case FORMAT_YYMMDDHMS:
 	strcpy(format, "%d-%02d-%02d %02d:%02d:%02d");
-	jul_to_cal_and_time(loc + get_ref_date(), 0.5, &y, &m, &d, &h, &mm, &sec);
-	y = reduced_year(y);
+	jul_to_cal_and_time(loc, 0.5, &y, &m, &d, &h, &mm, &sec);
 	sprintf(s, format, y, m, d, h, mm, (int) sec);
 	break;
     case FORMAT_DEGREESLON:
