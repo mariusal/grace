@@ -134,7 +134,7 @@ static Widget axis_world_stop;
 static void set_axis_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void set_active_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void axes_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
-static void axis_scale_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void axis_scale_cb(int value, void *data);
 
 void create_axes_dialog_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -203,7 +203,7 @@ void create_axes_dialog(int axisno)
         rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         axis_scale = CreateOptionChoice(rc, "Scale:", 0, 3, opitems);
-        AddOptionChoiceCB(axis_scale, axis_scale_cb);
+        AddOptionChoiceCB(axis_scale, axis_scale_cb, NULL);
 	axis_invert = CreateToggleButton(rc, "Invert axis");
         XtManageChild(rc);
         
@@ -879,9 +879,9 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
 /*
  * This CB services the axis "Scale" selector 
  */
-static void axis_scale_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void axis_scale_cb(int value, void *data)
 {
-    int scale = (int) client_data;
+    int scale = value;
     double major_space, axestart, axestop;
     int auton;
     char buf[32];

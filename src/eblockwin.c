@@ -69,7 +69,7 @@ static ListStructure *eblock_graph_choice_item;
 /*
  * Event and Notify proc declarations
  */
-static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void eblock_type_notify_proc(int value, void *data);
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void update_eblock(int gno);
 
@@ -104,7 +104,7 @@ void create_eblock_frame(int gno)
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, eblock_panel, NULL);
 
 	eblock_type_choice_item = CreateSetTypeChoice(rc, "Set type:");
-        AddOptionChoiceCB(eblock_type_choice_item, eblock_type_notify_proc);
+        AddOptionChoiceCB(eblock_type_choice_item, eblock_type_notify_proc, NULL);
 
 	for (i = 0; i < MAX_SET_COLS; i++) {
             sprintf(buf, "%s from column:", dataset_colname(i));
@@ -185,11 +185,9 @@ static void update_eblock(int gno)
     }
 }
 
-static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void eblock_type_notify_proc(int value, void *data)
 {
-    int cd = (int) client_data;
-
-    block_curtype = cd;
+    block_curtype = value;
 
     update_eblock(-1);
 }

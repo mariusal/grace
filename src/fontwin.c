@@ -87,7 +87,7 @@ static int enable_edit_cb;
 static void DrawCB(Widget w,XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs);
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs);
 static void update_fonttool(int font);
-static void update_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void update_fonttool_cb(int value, void *data);
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs);
 static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
@@ -122,7 +122,7 @@ void create_fonttool(Widget cstext)
                                         fonttool_frame, NULL, 0);
 
         font_select_item = CreateFontChoice(fonttool_panel, "Font:");
-        AddOptionChoiceCB(font_select_item, update_fonttool_cb);
+        AddOptionChoiceCB(font_select_item, update_fonttool_cb, NULL);
         SetOptionChoice(font_select_item, 0);
         XtVaSetValues(font_select_item->menu,
             XmNleftAttachment, XmATTACH_FORM,
@@ -325,9 +325,9 @@ static void update_fonttool(int font)
     insert_into_string(buf);
 }
 
-static void update_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void update_fonttool_cb(int value, void *data)
 {
-    update_fonttool((int) client_data);
+    update_fonttool(value);
 }
 
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs)
