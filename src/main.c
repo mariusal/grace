@@ -178,14 +178,17 @@ int main(int argc, char *argv[])
 	gracebat = TRUE;
     } else {
 	gracebat = FALSE;
-#ifndef NONE_GUI    
-        if (initialize_gui(&argc, argv) == GRACE_EXIT_SUCCESS) {
-            cli = FALSE;
+        if (strstr(s, "grace") == s) {
+            cli = TRUE;
         } else {
-	    errmsg("Can't open X connection - switching to CLI");
-	    cli = TRUE;
-        }
+#ifndef NONE_GUI    
+            cli = FALSE;
+            if (initialize_gui(&argc, argv) != GRACE_EXIT_SUCCESS) {
+	        errmsg("Can't open X connection, exiting");
+                exit(1);
+            }
 #endif
+        }
     }
 
     /* initialize devices */
