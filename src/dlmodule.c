@@ -108,18 +108,26 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     handle = (void *) shl_load (fname, dlflag, 0L);
     if (!handle) {
 #if defined(HAVE_STRERROR)
-        errmsg (strerror(errno));
+        errmsg(strerror(errno));
 #else
-        errmsg ("DL module initialization failed");
+# if defined(HAVE_SYS_ERRLIST_IN_STDIO_H)
+        errmsg(sys_errlist[errno]);
+# else
+        errmsg("DL module initialization failed");
+# endif
 #endif
         return (1);
     }
     
     if (shl_findsym(handle, dl_function, TYPE_UNDEFINED, &newkey.fnc) != NULL) {
 #if defined(HAVE_STRERROR)
-        errmsg (strerror(errno));
+        errmsg(strerror(errno));
 #else
+# if defined(HAVE_SYS_ERRLIST_IN_STDIO_H)
+        errmsg(sys_errlist[errno]);
+# else
         errmsg("Error while resolving symbol");
+# endif
 #endif
         shl_unload(handle);
         return (1);
