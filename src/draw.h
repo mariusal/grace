@@ -190,7 +190,7 @@ void DrawFilledEllipse(VPoint vp1, VPoint vp2);
 void DrawCircle(VPoint vp, double radius);
 void DrawFilledCircle(VPoint vp, double radius);
 
-void WriteString(VPoint vp, int rot, int just, char *theString);
+void WriteString(VPoint vp, double angle, int just, char *theString);
 
 int is_wpoint_inside(WPoint *wp, world *w);
 int is_vpoint_inside(view v, VPoint vp, double epsilon);

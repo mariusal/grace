@@ -386,7 +386,7 @@ void draw_pie_chart(int gno)
                         setfont(avalue.font);
                         setcolor(avalue.color);
 
-                        WriteString(vpa, avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
+                        WriteString(vpa, (double) avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
                     }
                 }
                 break;
@@ -720,14 +720,14 @@ void draw_titles(int gno)
         setcharsize(lab.title.charsize);
         setfont(lab.title.font);
         vp1.y += 0.06;
-        WriteString(vp1, 0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
+        WriteString(vp1, 0.0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
     }
     if (lab.stitle.s && lab.stitle.s[0]) {
         setcolor(lab.stitle.color);
         setcharsize(lab.stitle.charsize);
         setfont(lab.stitle.font);
         vp2.y += 0.02;
-        WriteString(vp2, 0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
+        WriteString(vp2, 0.0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
     }
 }
 
@@ -1425,7 +1425,7 @@ void drawsetavalues(int gno, int setno, plotarr *p,
         strcat(str, avalue.appstr);
         
         setcolor(avalue.color);
-        WriteString(vp, avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
+        WriteString(vp, (double) avalue.angle, JUST_CENTER|JUST_BOTTOM, str);
     } 
 }
 
@@ -1964,7 +1964,7 @@ int drawxysym(VPoint vp, double size, int symtype,
         buf[0] = s;
         buf[1] = '\0';
         setcharsize(size);
-        WriteString(vp, 0, JUST_CENTER|JUST_MIDDLE, buf);
+        WriteString(vp, 0.0, JUST_CENTER|JUST_MIDDLE, buf);
         break;
     default:
         errmsg("Invalid symbol type");
@@ -2351,7 +2351,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             setcharsize(l.charsize);
             setfont(l.font);
             setcolor(l.color);
-            WriteString(vpstr, 0, JUST_LEFT|JUST_TOP, p.lstr);
+            WriteString(vpstr, 0.0, JUST_LEFT|JUST_TOP, p.lstr);
             vp.y = (vpstr.y + get_bbox(BBOX_TYPE_TEMP).yv1)/2;
             vp2.y = vp.y;
             vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
@@ -2406,7 +2406,7 @@ void draw_timestamp(plotstr *timestamp)
         activate_bbox(BBOX_TYPE_TEMP, TRUE);
         reset_bbox(BBOX_TYPE_TEMP);
 
-        WriteString(vp, (int) timestamp->angle, timestamp->just, timestamp->s);
+        WriteString(vp, timestamp->angle, timestamp->just, timestamp->s);
 
         timestamp->bb = get_bbox(BBOX_TYPE_TEMP);
     }

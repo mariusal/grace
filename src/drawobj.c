@@ -118,7 +118,7 @@ static void draw_object(int gno, DObject *o)
             setcharsize(s->size);
             setfont(s->font);
 
-            WriteString(anchor, (int) rint(180.0/M_PI*o->angle), s->just, s->s);
+            WriteString(anchor, 180.0/M_PI*o->angle, s->just, s->s);
         }
         break;
     case DO_LINE:

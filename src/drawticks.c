@@ -598,7 +598,7 @@ void drawaxes(int gno)
                                                        vbase_tlabel*ort_perp.x;
 	                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                        vbase_tlabel*ort_perp.y;
-	                WriteString(vp_tlabel, t->tl_angle, tlabel1_just, tlabel);
+	                WriteString(vp_tlabel, (double) t->tl_angle, tlabel1_just, tlabel);
 	            }
 		    /* Tick labels on opposite side */
 	            if (t->tl_op == PLACEMENT_OPPOSITE ||
@@ -609,7 +609,7 @@ void drawaxes(int gno)
                                                        vbase_tlabel*ort_perp.x;
 	                vp_tlabel.y = (vtpos + tl_trans)*ort_para.y +
                                                        vbase_tlabel*ort_perp.y;
-	                WriteString(vp_tlabel, t->tl_angle, tlabel2_just, tlabel);
+	                WriteString(vp_tlabel, (double) t->tl_angle, tlabel2_just, tlabel);
 	            }
 	        }
                 itcur++;
@@ -645,7 +645,7 @@ void drawaxes(int gno)
 	        vp_label.y = (vp1_start.y + vp1_stop.y)/2 + vp_label_offset.x*ort_para.y
                                                         - vp_label_offset.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
+	        WriteString(vp_label, (double) langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
 	    }
 
 	    /* Axis label on opposite side */
@@ -657,7 +657,7 @@ void drawaxes(int gno)
 	        vp_label.y = (vp2_start.y + vp2_stop.y)/2 + vp_label_offset.x*ort_para.y
                                                         + vp_label_offset.y*ort_perp.y ;
 
-	        WriteString(vp_label, langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
+	        WriteString(vp_label, (double) langle, JUST_CENTER|JUST_MIDDLE, t->label.s);
 	    }
 
 	}

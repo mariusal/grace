@@ -955,7 +955,7 @@ static void process_ligatures(CompositeString *cs)
     cs->len = m;
 }
 
-void WriteString(VPoint vp, int rot, int just, char *theString)
+void WriteString(VPoint vp, double angle, int just, char *theString)
 {    
     VPoint vptmp;
  
@@ -964,8 +964,6 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     int def_font = getfont();
     int def_color = getcolor();
  
-    double Angle = (double) rot;
-
     /* charsize (in VP units) */
     double charsize = MAGIC_FONT_SCALE*getcharsize();
 
@@ -1070,7 +1068,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         if (cs->direction == STRING_DIRECTION_RL) {
             reverse_string(cs->s, cs->len);
         }
-        tm_rotate(&cs->tm, Angle);
+        tm_rotate(&cs->tm, angle);
         
         tm_scale(&cs->tm, charsize);
         cs->vshift *= charsize;
