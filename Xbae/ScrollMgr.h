@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: ScrollMgr.h,v 1.1 1999-01-11 23:37:44 fnevgeny Exp $
+ * $Id: ScrollMgr.h,v 1.2 1999-07-26 22:55:07 fnevgeny Exp $
  */
 
 /*
@@ -35,19 +35,19 @@
  * ScrollMgr implementation
  */
 
-SmScrollMgr xbaeSmCreateScrollMgr P(( void ));
-void xbaeSmDestroyScrollMgr P(( SmScrollMgr )); 
-void xbaeSmAddScroll P(( SmScrollMgr, int, int ));
-void xbaeSmRemoveScroll P(( SmScrollMgr ));
-void xbaeSmScrollEvent P(( SmScrollMgr, XEvent * ));
+SmScrollMgr xbaeSmCreateScrollMgr P((void));
+void xbaeSmDestroyScrollMgr P((SmScrollMgr)); 
+void xbaeSmAddScroll P((SmScrollMgr, int, int));
+void xbaeSmRemoveScroll P((SmScrollMgr));
+void xbaeSmScrollEvent P((SmScrollMgr, XEvent *));
 
 /*
  * Scrollbar callbacks
  */
-void xbaeScrollVertCB P(( Widget, XtPointer, XmScrollBarCallbackStruct * ));
-void xbaeScrollHorizCB P(( Widget, XtPointer , XmScrollBarCallbackStruct * ));
+void xbaeScrollVertCB P((Widget, XtPointer, XmScrollBarCallbackStruct *));
+void xbaeScrollHorizCB P((Widget, XtPointer , XmScrollBarCallbackStruct *));
 
-void xbaeRedrawCells P(( XbaeMatrixWidget, Rectangle * ));
-void xbaeRedrawLabelsAndFixed P(( XbaeMatrixWidget, Rectangle * ));
+void xbaeRedrawCells P((XbaeMatrixWidget, Rectangle *));
+void xbaeRedrawLabelsAndFixed P((XbaeMatrixWidget, Rectangle *));
 
 #endif

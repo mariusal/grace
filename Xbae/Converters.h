@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Converters.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Converters.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 #ifndef _Xbae_Converters_h
@@ -35,40 +35,46 @@
 /*
  * Type converters
  */
-Boolean CvtStringToStringArray P(( Display *, XrmValuePtr, Cardinal *,
-				   XrmValuePtr, XrmValuePtr, XtPointer * ));
-void StringArrayDestructor P(( XtAppContext, XrmValuePtr, XtPointer,
-			       XrmValuePtr, Cardinal * ));
-Boolean CvtStringToCellTable P(( Display *, XrmValuePtr, Cardinal *,
-				 XrmValuePtr, XrmValuePtr, XtPointer * ));
-void StringCellDestructor P(( XtAppContext, XrmValuePtr, XtPointer,
-			      XrmValuePtr, Cardinal * ));
-Boolean CvtStringToWidthArray P(( Display *, XrmValuePtr, Cardinal *,
-				  XrmValuePtr, XrmValuePtr, XtPointer * ));
-void WidthArrayDestructor  P(( XtAppContext, XrmValuePtr, XtPointer,
-			       XrmValuePtr, Cardinal * ));
-Boolean CvtStringToMaxLengthArray P(( Display *, XrmValuePtr, Cardinal *,
-				      XrmValuePtr, XrmValuePtr, XtPointer * ));
-void MaxLengthArrayDestructor P(( XtAppContext, XrmValuePtr, XtPointer,
-				  XrmValuePtr, Cardinal * ));
-Boolean CvtStringToBooleanArray P(( Display *, XrmValuePtr, Cardinal *,
-				    XrmValuePtr, XrmValuePtr, XtPointer * ));
-void BooleanArrayDestructor P(( XtAppContext, XrmValuePtr, XtPointer,
-				XrmValuePtr, Cardinal * ));
-Boolean CvtStringToAlignmentArray P(( Display *, XrmValuePtr, Cardinal *,
-				      XrmValuePtr, XrmValuePtr, XtPointer * ));
-void AlignmentArrayDestructor P(( XtAppContext, XrmValuePtr, XtPointer,
-				  XrmValuePtr, Cardinal *num_args ));
-Boolean CvtStringToPixelTable P(( Display *, XrmValuePtr, Cardinal *,
-				  XrmValuePtr, XrmValuePtr, XtPointer * ));
-void PixelTableDestructor P(( XtAppContext, XrmValuePtr, XtPointer,
-				  XrmValuePtr, Cardinal * ));
-Boolean CvtStringToGridType P(( Display *, XrmValuePtr, Cardinal *,
-				XrmValuePtr, XrmValuePtr, XtPointer * ));
+Boolean CvtStringToStringArray P((Display *, XrmValuePtr, Cardinal *,
+				   XrmValuePtr, XrmValuePtr, XtPointer *));
+void StringArrayDestructor P((XtAppContext, XrmValuePtr, XtPointer,
+			       XrmValuePtr, Cardinal *));
+Boolean CvtStringToCellTable P((Display *, XrmValuePtr, Cardinal *,
+				 XrmValuePtr, XrmValuePtr, XtPointer *));
+void StringCellDestructor P((XtAppContext, XrmValuePtr, XtPointer,
+			      XrmValuePtr, Cardinal *));
+Boolean CvtStringToWidthArray P((Display *, XrmValuePtr, Cardinal *,
+				  XrmValuePtr, XrmValuePtr, XtPointer *));
+void WidthArrayDestructor  P((XtAppContext, XrmValuePtr, XtPointer,
+			       XrmValuePtr, Cardinal *));
+Boolean CvtStringToMaxLengthArray P((Display *, XrmValuePtr, Cardinal *,
+				      XrmValuePtr, XrmValuePtr, XtPointer *));
+void MaxLengthArrayDestructor P((XtAppContext, XrmValuePtr, XtPointer,
+				  XrmValuePtr, Cardinal *));
+Boolean CvtStringToBooleanArray P((Display *, XrmValuePtr, Cardinal *,
+				    XrmValuePtr, XrmValuePtr, XtPointer *));
+void BooleanArrayDestructor P((XtAppContext, XrmValuePtr, XtPointer,
+				XrmValuePtr, Cardinal *));
+Boolean CvtStringToAlignmentArray P((Display *, XrmValuePtr, Cardinal *,
+				      XrmValuePtr, XrmValuePtr, XtPointer *));
+void AlignmentArrayDestructor P((XtAppContext, XrmValuePtr, XtPointer,
+				  XrmValuePtr, Cardinal *num_args));
+Boolean CvtStringToPixelTable P((Display *, XrmValuePtr, Cardinal *,
+				  XrmValuePtr, XrmValuePtr, XtPointer *));
+void PixelTableDestructor P((XtAppContext, XrmValuePtr, XtPointer,
+				  XrmValuePtr, Cardinal *));
+Boolean CvtStringToGridType P((Display *, XrmValuePtr, Cardinal *,
+				XrmValuePtr, XrmValuePtr, XtPointer *));
 
-Boolean CvtStringToMatrixScrollBarDisplayPolicy P(( Display *, XrmValuePtr,
-						    Cardinal *, XrmValuePtr,
-						    XrmValuePtr,
-						    XtPointer * ));
+Boolean
+#ifdef __VMS
+CvtStringToMatrixScrollBarDisp
+#else
+CvtStringToMatrixScrollBarDisplayPolicy
+#endif
+					P((Display *, XrmValuePtr,
+					   Cardinal *, XrmValuePtr,
+					   XrmValuePtr,
+					   XtPointer *));
 
 #endif

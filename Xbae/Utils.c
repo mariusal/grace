@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -22,12 +22,16 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Utils.c,v 1.1 1999-01-11 23:37:44 fnevgeny Exp $
+ * $Id: Utils.c,v 1.2 1999-07-26 22:55:07 fnevgeny Exp $
  */
 
 /*
  * Utils.c created by Andrew Lister (7 August, 1995)
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <Xbae/MatrixP.h>
@@ -114,7 +118,8 @@ XbaeMatrixWidget mw;
 		       &mw->matrix.horiz_origin, &y);
 	/* Check how much space is remaining */
 	for (i = mw->matrix.left_column + mw->matrix.fixed_columns;
-	     i < mw->matrix.columns - mw->matrix.trailing_fixed_columns; i++)
+	     i < mw->matrix.columns -
+		 (int)mw->matrix.trailing_fixed_columns; i++)
 	{
 	    required_width += COLUMN_WIDTH(mw, i);
  	    if (required_width >= visible_width)
@@ -148,14 +153,14 @@ XbaeMatrixWidget mw;
      */
     else if (rows_visible > mw->matrix.rows)
 	rows_visible = mw->matrix.rows;
-
-    if (VERT_ORIGIN(mw) > (mw->matrix.rows - rows_visible -
-			   mw->matrix.fixed_rows -
-			   mw->matrix.trailing_fixed_rows))
-	VERT_ORIGIN(mw) = mw->matrix.rows - rows_visible -
+    
+    if (VERT_ORIGIN(mw) > (int)(mw->matrix.rows - rows_visible -
+				mw->matrix.fixed_rows -
+				mw->matrix.trailing_fixed_rows))
+	mw->matrix.top_row = mw->matrix.rows - rows_visible -
 	    mw->matrix.fixed_rows - mw->matrix.trailing_fixed_rows;
     else if (VERT_ORIGIN(mw) < 0)
-	VERT_ORIGIN(mw) = 0;
+	mw->matrix.top_row = 0;
 }
 
 /*
@@ -180,11 +185,13 @@ int row, column;
     /*
      * Make sure y coord is valid
      */
+#if 0
     if ((win == XtWindow(mw)) &&
-	((y > (CLIP_VERT_VISIBLE_SPACE(mw) + ROW_LABEL_OFFSET(mw) - 1)) ||
-	 (y < ROW_LABEL_OFFSET(mw))))
+	((y > (int)(CLIP_VERT_VISIBLE_SPACE(mw) +
+		    ROW_LABEL_OFFSET(mw) - 1)) ||
+	 (y < (int)ROW_LABEL_OFFSET(mw))))
 	return;
-
+#endif
     XClearArea(XtDisplay(mw), win, x, y, COLUMN_WIDTH(mw, column),
 	       ROW_HEIGHT(mw), fixed);
 }
@@ -202,19 +209,20 @@ int row;
      * see if we are on the screen vertically
      * (fixed rows are always on the screen)
      */
-    if ((row >= (int)mw->matrix.fixed_rows) &&
-	(row < TRAILING_VERT_ORIGIN(mw)))
+    if (! IS_FIXED_ROW(mw, row))
     {
 	row -= mw->matrix.fixed_rows;
 	
 	if (row >= VERT_ORIGIN(mw))
 	{
-	    if (row < (((int)(ClipChild(mw)->core.height) /
-			ROW_HEIGHT(mw)) + VERT_ORIGIN(mw)) /*+ 1*/)
+	    double height = ((double)ClipChild(mw)->core.height /
+			     ROW_HEIGHT(mw)) + VERT_ORIGIN(mw);
+	    if (row < height)
 		return True;
 	    
-	    if (ClipChild(mw)->core.height > TEXT_HEIGHT_OFFSET(mw) &&
-		ClipChild(mw)->core.height < ROW_HEIGHT(mw) &&
+	    if ((int)ClipChild(mw)->core.height >
+		(int)TEXT_HEIGHT_OFFSET(mw) &&
+		(int)ClipChild(mw)->core.height < ROW_HEIGHT(mw) &&
 		row == VERT_ORIGIN(mw))
 
 		return True;
@@ -238,8 +246,7 @@ int column;
      * If we are not in a fixed column, see if we are on the screen
      * horizontally (fixed columns are always on the screen)
      */
-    if ((column >= (int)mw->matrix.fixed_columns) &&
-	(column < TRAILING_HORIZ_ORIGIN(mw)))
+    if (! IS_FIXED_COLUMN(mw, column))
     {
 	int x;
 
@@ -287,7 +294,7 @@ int row;
     /*
      * If we are in a fixed row, we are already visible.
      */
-    if (row < (int)mw->matrix.fixed_rows || row >= TRAILING_VERT_ORIGIN(mw))
+    if (IS_FIXED_ROW(mw, row))
 	return;
 
     /*
@@ -337,8 +344,7 @@ int column;
     /*
      * If we are in a fixed column, we are already visible.
      */
-    if (column < (int)mw->matrix.fixed_columns ||
-	column >= TRAILING_HORIZ_ORIGIN(mw))
+    if (IS_FIXED_COLUMN(mw, column))
 	return;
 
     /*
@@ -578,22 +584,26 @@ Boolean compute_height;
     /*
      * If we are less than full width or our horizontal display policy is
      * constant, then we need an HSB, so increment our height by the size
-     * of the HSB (if we are allowed to modify our height).
+     * of the HSB (if we are allowed to modify our height and we are allowed
+     * to have an HSB).
      */
-    if ((width < full_width) ||
-	(XmDISPLAY_STATIC == mw->matrix.hsb_display_policy))
-	if (compute_height || mw->matrix.visible_rows)
-	    mw->core.height += HORIZ_SB_HEIGHT(mw);
+    if (((width < full_width) ||
+	 (XmDISPLAY_STATIC == mw->matrix.hsb_display_policy)) &&
+	(compute_height || mw->matrix.visible_rows) &&
+	(XmDISPLAY_NONE != mw->matrix.hsb_display_policy))
+	mw->core.height += HORIZ_SB_HEIGHT(mw);
 
     /*
      * If we are less than full height or our vertical display policy is
      * constant, then we need a VSB, so increment our width by the size
-     * of the VSB (if we are allowed to modify our width).
+     * of the VSB (if we are allowed to modify our width and we are allowed
+     * to have a VSB).
      */
-    if ((height < full_height) ||
-	(XmDISPLAY_STATIC == mw->matrix.vsb_display_policy))
-	if (compute_width || mw->matrix.visible_columns)
-	    mw->core.width += VERT_SB_WIDTH(mw);
+    if (((height < full_height) ||
+	 (XmDISPLAY_STATIC == mw->matrix.vsb_display_policy)) &&
+	(compute_width || mw->matrix.visible_columns) &&
+	(XmDISPLAY_NONE != mw->matrix.vsb_display_policy))
+	mw->core.width += VERT_SB_WIDTH(mw);
 
     /*
      * Save our calculated size for use in our query_geometry method.
@@ -695,7 +705,23 @@ CellType cell;
 {
     Rectangle rect;
     unsigned int inBox = CLIP_NONE;
-
+    Boolean need_vert_dead_space_fill = NEED_VERT_DEAD_SPACE_FILL(mw);
+    int horiz_sb_offset = HORIZ_SB_OFFSET(mw);
+    int vert_sb_offset = VERT_SB_OFFSET(mw);
+    int column_label_height = COLUMN_LABEL_HEIGHT(mw);
+    int row_label_offset = ROW_LABEL_OFFSET(mw);
+    int row_label_width = ROW_LABEL_WIDTH(mw);
+    int fixed_row_label_offset = FIXED_ROW_LABEL_OFFSET(mw);
+    int trailing_fixed_row_label_offset = TRAILING_FIXED_ROW_LABEL_OFFSET(mw);
+    int trailing_fixed_row_height = TRAILING_FIXED_ROW_HEIGHT(mw);
+    int fixed_column_label_offset = FIXED_COLUMN_LABEL_OFFSET(mw);
+    int trailing_fixed_column_label_offset =
+	TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw);
+    int trailing_fixed_column_width = TRAILING_FIXED_COLUMN_WIDTH(mw);
+    int column_label_offset = COLUMN_LABEL_OFFSET(mw);
+    int row_height = ROW_HEIGHT(mw);
+    int unattached_trailing_rows_offset = UNATTACHED_TRAILING_ROWS_OFFSET(mw);
+    
     *row = -1;
     *column = -1;
 
@@ -715,9 +741,9 @@ CellType cell;
 	if (!inBox && mw->matrix.fixed_columns && mw->matrix.fixed_rows)
 	{
 	    SETRECT(rect,
-		    COLUMN_LABEL_OFFSET(mw), ROW_LABEL_OFFSET(mw),
-		    FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
-		    FIXED_ROW_LABEL_OFFSET(mw) - 1);
+		    column_label_offset, row_label_offset,
+		    fixed_column_label_offset - 1,
+		    fixed_row_label_offset - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_FIXED_COLUMNS |
 					 CLIP_FIXED_ROWS;
@@ -730,11 +756,11 @@ CellType cell;
 	    mw->matrix.trailing_fixed_rows)
 	{
 	    SETRECT(rect,
-		    COLUMN_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw),
-		    FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-		    TRAILING_FIXED_ROW_HEIGHT(mw) - 1);
+		    column_label_offset,
+		    trailing_fixed_row_label_offset,
+		    fixed_column_label_offset - 1,
+		    trailing_fixed_row_label_offset +
+		    trailing_fixed_row_height - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_FIXED_COLUMNS |
 					 CLIP_TRAILING_FIXED_ROWS;
@@ -747,11 +773,11 @@ CellType cell;
 	    mw->matrix.fixed_rows)
 	{
 	    SETRECT(rect,
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw),
-		    ROW_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-		    TRAILING_FIXED_COLUMN_WIDTH(mw) - 1,
-		    FIXED_ROW_LABEL_OFFSET(mw) - 1);
+		    trailing_fixed_column_label_offset,
+		    row_label_offset,
+		    trailing_fixed_column_label_offset +
+		    trailing_fixed_column_width - 1,
+		    fixed_row_label_offset - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_FIXED_COLUMNS |
 					 CLIP_FIXED_ROWS;
@@ -764,12 +790,12 @@ CellType cell;
 	    mw->matrix.trailing_fixed_rows)
 	{
 	    SETRECT(rect,
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-		    TRAILING_FIXED_COLUMN_WIDTH(mw) - 1,
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-		    TRAILING_FIXED_ROW_HEIGHT(mw) - 1);
+		    trailing_fixed_column_label_offset,
+		    trailing_fixed_row_label_offset,
+		    trailing_fixed_column_label_offset +
+		    trailing_fixed_column_width - 1,
+		    trailing_fixed_row_label_offset +
+		    trailing_fixed_row_height - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_FIXED_COLUMNS |
 					 CLIP_TRAILING_FIXED_ROWS;
@@ -781,9 +807,11 @@ CellType cell;
 	if (!inBox && mw->matrix.fixed_columns)
 	{
 	    SETRECT(rect,
-		    COLUMN_LABEL_OFFSET(mw), FIXED_ROW_LABEL_OFFSET(mw),
-		    FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw) - 1);
+		    column_label_offset, fixed_row_label_offset,
+		    fixed_column_label_offset - 1,
+		    need_vert_dead_space_fill ?
+		    unattached_trailing_rows_offset :
+		    trailing_fixed_row_label_offset - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_FIXED_COLUMNS;
 	}
@@ -794,9 +822,9 @@ CellType cell;
 	if (!inBox && mw->matrix.fixed_rows)
 	{
 	    SETRECT(rect,
-		    FIXED_COLUMN_LABEL_OFFSET(mw), ROW_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
-		    FIXED_ROW_LABEL_OFFSET(mw) - 1);
+		    fixed_column_label_offset, row_label_offset,
+		    trailing_fixed_column_label_offset - 1,
+		    fixed_row_label_offset - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_FIXED_ROWS;
 	}
@@ -807,11 +835,13 @@ CellType cell;
 	if (!inBox && mw->matrix.trailing_fixed_columns)
 	{
 	    SETRECT(rect,
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw),
-		    FIXED_ROW_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-		    TRAILING_FIXED_COLUMN_WIDTH(mw) - 1,
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw) - 1);
+		    trailing_fixed_column_label_offset,
+		    fixed_row_label_offset,
+		    trailing_fixed_column_label_offset +
+		    trailing_fixed_column_width - 1,
+		    need_vert_dead_space_fill ?
+		    unattached_trailing_rows_offset :
+		    trailing_fixed_row_label_offset - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_FIXED_COLUMNS;
 	}
@@ -822,11 +852,11 @@ CellType cell;
 	if (!inBox && mw->matrix.trailing_fixed_rows)
 	{
 	    SETRECT(rect,
-		    FIXED_COLUMN_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw),
-		    TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
-		    TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-		    TRAILING_FIXED_ROW_HEIGHT(mw) - 1);
+		    fixed_column_label_offset,
+		    trailing_fixed_row_label_offset,
+		    trailing_fixed_column_label_offset - 1,
+		    trailing_fixed_row_label_offset +
+		    trailing_fixed_row_height - 1);
 
 	    if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_FIXED_ROWS;
 	}
@@ -836,11 +866,10 @@ CellType cell;
 	 * even though we're in the fixed cell section, this really
 	 * might not be a fixed cell.
 	 */
-	if (!inBox && (XmGRID_ROW_SHADOW == mw->matrix.grid_type) &&
-	    NEED_HORIZ_FILL(mw))
+	if (!inBox && IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw))
 	{
-	    int rx = TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-		TRAILING_FIXED_COLUMN_WIDTH(mw);
+	    int rx = trailing_fixed_column_label_offset +
+		trailing_fixed_column_width;
 
 	    /*
 	     * Upper fill
@@ -848,9 +877,9 @@ CellType cell;
 	    if (!inBox && mw->matrix.fixed_rows)
 	    {
 		SETRECT(rect,
-			rx, ROW_LABEL_OFFSET(mw),
+			rx, row_label_offset,
 			rx + FILL_HORIZ_WIDTH(mw) - 1,
-			FIXED_ROW_LABEL_OFFSET(mw) - 1);
+			fixed_row_label_offset - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_HORIZ_FILL |
 					     CLIP_FIXED_ROWS;
@@ -862,10 +891,10 @@ CellType cell;
 	    if (!inBox && mw->matrix.trailing_fixed_rows)
 	    {
 		SETRECT(rect,
-			rx, TRAILING_FIXED_ROW_LABEL_OFFSET(mw),
+			rx, trailing_fixed_row_label_offset,
 			rx + FILL_HORIZ_WIDTH(mw) - 1,
-			TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-			TRAILING_FIXED_ROW_HEIGHT(mw) - 1);
+			trailing_fixed_row_label_offset +
+			trailing_fixed_row_height - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_HORIZ_FILL |
 					     CLIP_TRAILING_FIXED_ROWS;
@@ -877,10 +906,10 @@ CellType cell;
 	    if (!inBox)
 	    {
 		SETRECT(rect,
-			rx, ROW_LABEL_OFFSET(mw),
+			rx, row_label_offset,
 			rx + FILL_HORIZ_WIDTH(mw) - 1,
-			TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-			TRAILING_FIXED_ROW_HEIGHT(mw) - 1);
+			trailing_fixed_row_label_offset +
+			trailing_fixed_row_height - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_HORIZ_FILL;
 	    }
@@ -889,11 +918,10 @@ CellType cell;
 	/*
 	 * Trailing vertical fill
 	 */
-	if (!inBox && (XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	    NEED_VERT_FILL(mw))
+	if (!inBox && IN_GRID_COLUMN_MODE(mw) && NEED_VERT_FILL(mw))
 	{
-	    int ry = TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-		TRAILING_FIXED_ROW_HEIGHT(mw);
+	    int ry = trailing_fixed_row_label_offset +
+		trailing_fixed_row_height;
 
 	    /*
 	     * Left fill
@@ -901,8 +929,8 @@ CellType cell;
 	    if (mw->matrix.fixed_columns)
 	    {
 		SETRECT(rect,
-			COLUMN_LABEL_OFFSET(mw), ry,
-			FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
+			column_label_offset, ry,
+			fixed_column_label_offset - 1,
 			ry + FILL_VERT_HEIGHT(mw) - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_VERT_FILL |
@@ -915,9 +943,9 @@ CellType cell;
 	    if (!inBox && mw->matrix.trailing_fixed_columns)
 	    {
 		SETRECT(rect,
-			TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw), ry,
-			TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-			TRAILING_FIXED_COLUMN_WIDTH(mw) - 1,
+			trailing_fixed_column_label_offset, ry,
+			trailing_fixed_column_label_offset +
+			trailing_fixed_column_width - 1,
 			ry + FILL_VERT_HEIGHT(mw) - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_VERT_FILL |
@@ -930,9 +958,9 @@ CellType cell;
 	    if (!inBox)
 	    {
 		SETRECT(rect,
-			COLUMN_LABEL_OFFSET(mw), ry,
-			TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-			TRAILING_FIXED_COLUMN_WIDTH(mw) - 1,
+			column_label_offset, ry,
+			trailing_fixed_column_label_offset +
+			trailing_fixed_column_width - 1,
 			ry + FILL_VERT_HEIGHT(mw) - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_TRAILING_VERT_FILL;
@@ -951,7 +979,7 @@ CellType cell;
 	    if (mw->matrix.fixed_columns &&
 		(CLIP_TRAILING_FIXED_ROWS == inBox ||
 		 CLIP_FIXED_ROWS == inBox))
-		*x -= COLUMN_LABEL_OFFSET(mw);
+		*x -= column_label_offset;
 	    else
 		*x -= rect.x1;
 	    *y -= rect.y1;
@@ -964,7 +992,7 @@ CellType cell;
 	    if (CLIP_TRAILING_VERT_FILL & inBox)
 	    {
 		*row = mw->matrix.rows - 1;
-		*y += ROW_HEIGHT(mw);
+		*y += row_height;
 	    }
 	    else
 		*row = YtoRow(mw, *y) +
@@ -1020,7 +1048,7 @@ CellType cell;
 		    ((CLIP_TRAILING_FIXED_COLUMNS & inBox) ?
 		     COLUMN_POSITION(mw, TRAILING_HORIZ_ORIGIN(mw)) : 0);
 	    if (!(CLIP_TRAILING_VERT_FILL & inBox))
-		*y %= ROW_HEIGHT(mw);
+		*y %= row_height;
 
 	    return True;
 	}
@@ -1038,9 +1066,9 @@ CellType cell;
 	    if (mw->matrix.fixed_rows)
 	    {
 		SETRECT(rect,
-			VERT_SB_OFFSET(mw), ROW_LABEL_OFFSET(mw),
-			ROW_LABEL_WIDTH(mw) + VERT_SB_OFFSET(mw),
-			FIXED_ROW_LABEL_OFFSET(mw) - 1);
+			vert_sb_offset, row_label_offset,
+			row_label_width + vert_sb_offset,
+			fixed_row_label_offset - 1);
 		if (INBOX(rect, *x, *y)) inBox = CLIP_ROW_LABELS |
 					     CLIP_FIXED_ROWS;
 	    }
@@ -1048,11 +1076,11 @@ CellType cell;
 	    if (!inBox && mw->matrix.trailing_fixed_rows)
 	    {
 		SETRECT(rect,
-			VERT_SB_OFFSET(mw),
-			TRAILING_FIXED_ROW_LABEL_OFFSET(mw),
-			ROW_LABEL_WIDTH(mw) + VERT_SB_OFFSET(mw),
-			TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
-			TRAILING_FIXED_ROW_HEIGHT(mw) - 1);
+			vert_sb_offset,
+			trailing_fixed_row_label_offset,
+			row_label_width + vert_sb_offset,
+			trailing_fixed_row_label_offset +
+			trailing_fixed_row_height - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_ROW_LABELS |
 					     CLIP_TRAILING_FIXED_ROWS;
@@ -1062,10 +1090,10 @@ CellType cell;
 	    if (!inBox)
 	    {
 		SETRECT(rect,
-			VERT_SB_OFFSET(mw),
-			FIXED_ROW_LABEL_OFFSET(mw),
-			ROW_LABEL_WIDTH(mw) + VERT_SB_OFFSET(mw),
-			TRAILING_FIXED_ROW_LABEL_OFFSET(mw) - 1);
+			vert_sb_offset,
+			fixed_row_label_offset,
+			row_label_width + vert_sb_offset,
+			trailing_fixed_row_label_offset - 1);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_ROW_LABELS;
 	    }
@@ -1073,12 +1101,12 @@ CellType cell;
 	
 	if (CLIP_ROW_LABELS & inBox)
 	{
-	    *y -= ROW_LABEL_OFFSET(mw);
+	    *y -= row_label_offset;
 	    *row = YtoRow(mw, *y);
 	    *row += (CLIP_FIXED_ROWS & inBox ? 0 : mw->matrix.top_row);
 	    *row += ((CLIP_TRAILING_FIXED_ROWS & inBox) ?
 		     (CELL_TOTAL_HEIGHT(mw) - VISIBLE_HEIGHT(mw)) /
-		     ROW_HEIGHT(mw) - mw->matrix.top_row: 0);
+		     row_height - mw->matrix.top_row: 0);
 	    	    
 	    *column = -1;
 	}
@@ -1106,9 +1134,9 @@ CellType cell;
 	    if (mw->matrix.fixed_columns)
 	    {
 		SETRECT(rect,
-			COLUMN_LABEL_OFFSET(mw), HORIZ_SB_OFFSET(mw),
-			FIXED_COLUMN_LABEL_OFFSET(mw) - 1,
-			COLUMN_LABEL_HEIGHT(mw) + HORIZ_SB_OFFSET(mw));
+			column_label_offset, horiz_sb_offset,
+			fixed_column_label_offset - 1,
+			column_label_height + horiz_sb_offset);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_FIXED_COLUMNS |
 					     CLIP_COLUMN_LABELS;
@@ -1116,11 +1144,11 @@ CellType cell;
 	    if (!inBox && mw->matrix.trailing_fixed_columns)
 	    {
 		SETRECT(rect,
-			TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw),
-			HORIZ_SB_OFFSET(mw),
-			TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw) +
-			TRAILING_FIXED_COLUMN_WIDTH(mw) - 1,
-			COLUMN_LABEL_HEIGHT(mw) + HORIZ_SB_OFFSET(mw));
+			trailing_fixed_column_label_offset,
+			horiz_sb_offset,
+			trailing_fixed_column_label_offset +
+			trailing_fixed_column_width - 1,
+			column_label_height + horiz_sb_offset);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_COLUMN_LABELS |
 					     CLIP_TRAILING_FIXED_COLUMNS;
@@ -1129,9 +1157,9 @@ CellType cell;
 	    if (!inBox)
 	    {
 		SETRECT(rect,
-			FIXED_COLUMN_LABEL_OFFSET(mw), HORIZ_SB_OFFSET(mw),
-			TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw),
-			COLUMN_LABEL_HEIGHT(mw) + HORIZ_SB_OFFSET(mw));
+			fixed_column_label_offset, horiz_sb_offset,
+			trailing_fixed_column_label_offset,
+			column_label_height + horiz_sb_offset);
 
 		if (INBOX(rect, *x, *y)) inBox = CLIP_COLUMN_LABELS;
 	    }
@@ -1139,7 +1167,7 @@ CellType cell;
 	
 	if (CLIP_COLUMN_LABELS & inBox)
 	{
-	    *x -= COLUMN_LABEL_OFFSET(mw);
+	    *x -= column_label_offset;
 
 	    if (CLIP_TRAILING_FIXED_COLUMNS & inBox)
 		*column = xbaeXtoTrailingCol(mw, *x);
@@ -1177,7 +1205,7 @@ CellType cell;
 	/*
 	 * Convert the new point to a row/column position
 	 */
-	*row = YtoRow(mw, *y) + VERT_ORIGIN(mw);
+	*row = YtoRow(mw, *y + mw->matrix.first_row_offset) + VERT_ORIGIN(mw);
 	*column = xbaeXtoCol(mw, *x + HORIZ_ORIGIN(mw));
 
 	/*
@@ -1192,7 +1220,7 @@ CellType cell;
 	 * Adjust x,y so they are relative to this cell's origin.
 	 */
 	*x -= COLUMN_POSITION(mw, *column) - HORIZ_ORIGIN(mw);
-	*y %= ROW_HEIGHT(mw);
+	*y %= row_height;
 
 	return True;
 
@@ -1246,9 +1274,11 @@ CellType *cell;
 	*y -= FIXED_ROW_LABEL_OFFSET(mw);
     }
     else if (event->xbutton.window == XtWindow(mw))
-	if (*x < COLUMN_LABEL_OFFSET(mw) && *x > VERT_SB_OFFSET(mw))
+	if (*x < (int)COLUMN_LABEL_OFFSET(mw) &&
+	    *x > (int)VERT_SB_OFFSET(mw))
 	    *cell = RowLabelCell;
-	else if (*y < ROW_LABEL_OFFSET(mw) && *y > HORIZ_SB_OFFSET(mw))
+	else if (*y < (int)ROW_LABEL_OFFSET(mw) &&
+		 *y > (int)HORIZ_SB_OFFSET(mw))
 	    *cell = ColumnLabelCell;
 	else
 	    *cell = FixedCell;
@@ -1348,24 +1378,24 @@ int *y;
 	/*
 	 * Ignore horiz_origin if we are in a fixed column
 	 */
-	if ((column < (int)mw->matrix.fixed_columns))
+	if (IS_LEADING_FIXED_COLUMN(mw, column))
 	{
-	    if (row < mw->matrix.fixed_rows || row >= TRAILING_VERT_ORIGIN(mw))
+	    if (IS_FIXED_ROW(mw, row))
 		*x = COLUMN_LABEL_OFFSET(mw) + COLUMN_POSITION(mw, column);
 	    else
 		*x = COLUMN_POSITION(mw, column);	/* LeftClip */
 	}
-	else if (column >= TRAILING_HORIZ_ORIGIN(mw))
+	else if (IS_TRAILING_FIXED_COLUMN(mw, column))
 	{
 	    int m;
-	    if (row < mw->matrix.fixed_rows || row >= TRAILING_VERT_ORIGIN(mw))
+	    if (IS_FIXED_ROW(mw, row))
 		*x = TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw);
 	    else
 		*x = 0;					/* RightClip */
 	    for (m = TRAILING_HORIZ_ORIGIN(mw); m < column; m++)
 		*x += COLUMN_WIDTH(mw, m);
 	}
-	else if (row < mw->matrix.fixed_rows || row >= TRAILING_VERT_ORIGIN(mw))
+	else if (IS_FIXED_ROW(mw, row))
 	    *x = (COLUMN_POSITION(mw, column) -
 		  COLUMN_POSITION(mw, mw->matrix.fixed_columns)) -
 		HORIZ_ORIGIN(mw);
@@ -1376,29 +1406,26 @@ int *y;
 	/*
 	 * Ignore vert_origin if we are in a fixed row
 	 */
-	if ((row < (int)mw->matrix.fixed_rows))
+	if (IS_LEADING_FIXED_ROW(mw, row))
 	{
-	    if (column < mw->matrix.fixed_columns ||
-		column >= TRAILING_HORIZ_ORIGIN(mw))
+	    if (IS_FIXED_COLUMN(mw, column))
 		*y = ROW_LABEL_OFFSET(mw) + ROW_HEIGHT(mw) * row;
 	    else
 		*y = ROW_HEIGHT(mw) * row;	/* TopClip */
 	}
-	else if (row >= TRAILING_VERT_ORIGIN(mw))
+	else if (IS_TRAILING_FIXED_ROW(mw, row))
 	{
 	    int m;
-	    if (column < mw->matrix.fixed_columns ||
-		column >= TRAILING_HORIZ_ORIGIN(mw))
+	    if (IS_FIXED_COLUMN(mw, column))
 		*y = TRAILING_FIXED_ROW_LABEL_OFFSET(mw);
 	    else
 		*y = 0;				/* BottomClip */
 	    for (m = TRAILING_VERT_ORIGIN(mw); m < row; m++)
 		*y += ROW_HEIGHT(mw);
 	}
-	else if (column < mw->matrix.fixed_columns ||
-		 column >= TRAILING_HORIZ_ORIGIN(mw))
+	else if (IS_FIXED_COLUMN(mw, column))
 
-	    *y = ROW_HEIGHT(mw) * ((row - (int) mw->matrix.fixed_rows) -
+	    *y = ROW_HEIGHT(mw) * ((row - (int)mw->matrix.fixed_rows) -
 				   VERT_ORIGIN(mw));
 	else
 	    *y = ROW_LABEL_OFFSET(mw) + ROW_HEIGHT(mw) *
@@ -1416,6 +1443,7 @@ int *y;
 	    HORIZ_ORIGIN(mw);
 	*y = ROW_HEIGHT(mw) * ((row - (int) mw->matrix.fixed_rows) -
 			       VERT_ORIGIN(mw));
+	*y -= mw->matrix.first_row_offset;
     }
 }
 
@@ -1444,15 +1472,15 @@ int row, column;
     int posn;
     Window win;
 
-    if (row < mw->matrix.fixed_rows)
+    if (IS_LEADING_FIXED_ROW(mw, row))
 	posn = FIXED_TOP;
-    else if (row >= TRAILING_VERT_ORIGIN(mw))
+    else if (IS_TRAILING_FIXED_ROW(mw, row))
 	posn = FIXED_BOTTOM;
     else
 	posn = FIXED_NONE;
-    if (column < mw->matrix.fixed_columns)
+    if (IS_LEADING_FIXED_COLUMN(mw, column))
 	posn += FIXED_LEFT;
-    else if (column >= TRAILING_HORIZ_ORIGIN(mw))
+    else if (IS_TRAILING_FIXED_COLUMN(mw, column))
 	posn += FIXED_RIGHT;
     else
 	posn += FIXED_NONE;	/* add zero!? */
@@ -1542,7 +1570,7 @@ int *height;
 	else
 	    *ax += COLUMN_LABEL_OFFSET(mw);
 	*ay = ClipChild(mw)->core.y + ClipChild(mw)->core.height;
-	if (*ax < COLUMN_LABEL_OFFSET(mw))
+	if (*ax < (int)COLUMN_LABEL_OFFSET(mw))
 	{
 	    *width += *ax - COLUMN_LABEL_OFFSET(mw);
 	    *ax = COLUMN_LABEL_OFFSET(mw);
@@ -1559,18 +1587,38 @@ int *height;
      * Check our width isn't going to draw outside the left or right clip
      */
 
-    if (column >= mw->matrix.fixed_columns && column <
-	TRAILING_HORIZ_ORIGIN(mw))
+    if (! IS_FIXED_COLUMN(mw, column))
     {
 	if (XtIsManaged(LeftClip(mw)) &&
-	    *ax < FIXED_COLUMN_LABEL_OFFSET(mw))
+	    *ax < (int)FIXED_COLUMN_LABEL_OFFSET(mw))
 	{
 	    *width -= (FIXED_COLUMN_LABEL_OFFSET(mw) - *ax);
 	    *ax = FIXED_COLUMN_LABEL_OFFSET(mw);
 	}
+
 	if (XtIsManaged(RightClip(mw)) &&
-	    *ax + *width > RightClip(mw)->core.x)
+	    ((*ax + *width) > (int)RightClip(mw)->core.x))
 	    *width = RightClip(mw)->core.x - *ax;
+
+	if (win == XtWindow(BottomClip(mw)))
+	{
+	    if ((*ax + *width) >
+		 (int)(BottomClip(mw)->core.x + BottomClip(mw)->core.width))
+		*width = BottomClip(mw)->core.width +
+		    BottomClip(mw)->core.x - *ax;
+
+	    if (*ax < (int)COLUMN_LABEL_OFFSET(mw))
+	    {
+		*width += *ax - COLUMN_LABEL_OFFSET(mw);
+		*ax = COLUMN_LABEL_OFFSET(mw);
+	    }
+	}
+
+	if ((win == XtWindow(ClipChild(mw))) &&
+	    ((*ax + *width) >
+	      (int)(ClipChild(mw)->core.x + ClipChild(mw)->core.width)))
+	    *width = ClipChild(mw)->core.width +
+		ClipChild(mw)->core.x - *ax;
     }
 }
     
@@ -1612,7 +1660,7 @@ int *height;
 	else
 	    *ay += ROW_LABEL_OFFSET(mw);
 	*ax = ClipChild(mw)->core.x + ClipChild(mw)->core.width;
-	if (*ay < ROW_LABEL_OFFSET(mw))
+	if (*ay < (int)ROW_LABEL_OFFSET(mw))
 	    *ay = ROW_LABEL_OFFSET(mw);
     }
     else			/* must be in a corner */
@@ -1620,4 +1668,33 @@ int *height;
 
     *width = MATRIX_HORIZ_VISIBLE_SPACE(mw) + COLUMN_LABEL_OFFSET(mw) +
 	VERT_SB_OFFSET(mw) - *ax;
+
+    /*
+     * Unfortunately, on the filled area, we don't have the luxury
+     * of the clip widgets to help us out with the edges of the area.
+     * Check our width isn't going to draw outside the left or right clip,
+     * or out past our matrix region.
+     */
+
+    if (! IS_FIXED_ROW(mw, row))
+    {
+	if (XtIsManaged(LeftClip(mw)) &&
+	    (*ay < (int)FIXED_ROW_LABEL_OFFSET(mw)))
+	{
+	    *height -= (FIXED_ROW_LABEL_OFFSET(mw) - *ay);
+	    *ay = FIXED_ROW_LABEL_OFFSET(mw);
+	}
+
+	if (XtIsManaged(RightClip(mw)) &&
+	    ((*ay + *height) >
+	      (int)(RightClip(mw)->core.y + RightClip(mw)->core.height)))
+	    *height = RightClip(mw)->core.height +
+		RightClip(mw)->core.y - *ay;
+
+	if ((win == XtWindow(ClipChild(mw))) &&
+	    ((*ay + *height) >
+	      (int)(ClipChild(mw)->core.y + ClipChild(mw)->core.height)))
+	    *height = ClipChild(mw)->core.height +
+		ClipChild(mw)->core.y - *ay;
+    }
 }

@@ -21,12 +21,16 @@
  *
  * ClipWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Clip.c,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Clip.c,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
  * Clip.c - private child of Matrix - used to clip Matrix's textField child
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <X11/StringDefs.h>
 #include <Xm/XmP.h>
@@ -48,22 +52,22 @@ static XtResource resources[] = {
 /*
  * Declaration of methods
  */
-static void ClassPartInitialize P(( XbaeClipWidgetClass ));
-static void Realize P(( XbaeClipWidget, XtValueMask *,
-			XSetWindowAttributes * ));
-static void Redisplay P(( XbaeClipWidget, XEvent *, Region ));
-static void Resize P(( Widget ));
-static void Redraw P(( XbaeClipWidget ));
+static void ClassPartInitialize P((XbaeClipWidgetClass));
+static void Realize P((XbaeClipWidget, XtValueMask *,
+			XSetWindowAttributes *));
+static void Redisplay P((XbaeClipWidget, XEvent *, Region));
+static void Resize P((Widget));
+static void Redraw P((XbaeClipWidget));
 
 /*
  * Public convenience function
  */
-void XbaeClipRedraw P(( Widget w ));
+void XbaeClipRedraw P((Widget w));
 
 /*
  * Clip actions
  */
-static void FocusInACT P(( XbaeClipWidget, XEvent *, String *, Cardinal * ));
+static void FocusInACT P((XbaeClipWidget, XEvent *, String *, Cardinal *));
 
 static XtActionsRec actions[] =
 {

@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -22,12 +22,16 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Create.c,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Create.c,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
  * Create.c created by Andrew Lister (28 Jan, 1996)
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <Xbae/MatrixP.h>
@@ -37,7 +41,11 @@
 #include <Xm/ScrollBar.h>
 #include <Xbae/Create.h>
 
-static Pixmap createInsensitivePixmap P(( XbaeMatrixWidget mw ));
+static Pixmap createInsensitivePixmap P((XbaeMatrixWidget mw));
+
+#ifndef MAXSCREENS
+#define MAXSCREENS 1
+#endif
 
 void
 xbaeCopyBackground(widget, offset, value)
@@ -821,17 +829,27 @@ createInsensitivePixmap(mw)
 XbaeMatrixWidget mw;
 {
     static char stippleBits[] = { 0x01, 0x02 };
-    static Pixmap stipple = (Pixmap)NULL;
+    static Pixmap stipple[MAXSCREENS] = {(Pixmap)NULL};
+    Display *dpy = XtDisplay(mw);
+    Screen *scr  = XtScreen (mw);
+    int i;
+    int maxScreens = ScreenCount(dpy);
     
-    if (!stipple)
+    if (maxScreens > MAXSCREENS)
+	maxScreens = MAXSCREENS;
+    
+    if (!stipple[0])
     {
-	Screen *scr = XtScreen(mw);
-
-	stipple = XCreatePixmapFromBitmapData(DisplayOfScreen(scr),
-					      RootWindowOfScreen(scr),
-					      stippleBits, 2, 2, 0, 1, 1);
+	for (i = 0 ; i < maxScreens ; i++)
+	    stipple[i] = XCreatePixmapFromBitmapData(
+		dpy, RootWindow(dpy,i), stippleBits, 2, 2, 0, 1, 1);
     }
-    return stipple;
+    for (i = 0; i < maxScreens; i++)
+    {
+	if (ScreenOfDisplay(dpy, i) == scr)
+	    return stipple[i];
+    }
+    return (Pixmap)NULL;
 }
     
 void
@@ -869,7 +887,7 @@ XbaeMatrixWidget mw;
      * since the foreground may change frequently.
      */
     values.foreground = mw->manager.foreground;
-    values.font = mw->matrix.font->fid;
+    values.font = mw->matrix.fid;
     values.stipple = createInsensitivePixmap(mw);
 
     mw->matrix.draw_gc = XCreateGC(XtDisplay(mw),
@@ -904,7 +922,7 @@ XbaeMatrixWidget mw;
      * GC for drawing labels
      */
     values.foreground = mw->manager.foreground;
-    values.font = mw->matrix.label_font->fid;
+    values.font = mw->matrix.label_fid;
     values.stipple = createInsensitivePixmap(mw);
     mw->matrix.label_gc = XCreateGC(XtDisplay(mw),
 				    GC_PARENT_WINDOW(mw),
@@ -922,7 +940,7 @@ XbaeMatrixWidget mw;
      * GC for drawing labels with clipping.
      */
     values.foreground = mw->manager.foreground;
-    values.font = mw->matrix.label_font->fid;
+    values.font = mw->matrix.label_fid;
     values.stipple = createInsensitivePixmap(mw);
     mw->matrix.label_clip_gc = XCreateGC(XtDisplay(mw),
 					 GC_PARENT_WINDOW(mw),
@@ -990,8 +1008,12 @@ xbaeNewFont(mw)
 XbaeMatrixWidget mw;
 {
     XmFontContext context;
-    XmStringCharSet charset;
     XFontStruct *font;
+    XmFontListEntry font_list_entry;
+    XmFontType type;
+    XFontSetExtents *extents;
+    XFontStruct **fonts;
+    char **font_names;
 
     /*
      * Make a private copy of the FontList
@@ -999,7 +1021,7 @@ XbaeMatrixWidget mw;
     mw->matrix.font_list = XmFontListCopy(mw->matrix.font_list);
 
     /*
-     * Get XFontStruct from FontList
+     * Get XmFontListEntry from FontList
      */
     if (!XmFontListInitFontContext(&context, mw->matrix.font_list))
 	XtAppErrorMsg(
@@ -1008,17 +1030,41 @@ XbaeMatrixWidget mw;
 	    "XbaeMatrix: XmFontListInitFontContext failed, bad fontList",
 	    NULL, 0);
 
-    if (!XmFontListGetNextFont(context, &charset, &font))
+    if ((font_list_entry = XmFontListNextEntry(context)) == NULL)
 	XtAppErrorMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "newFont", "badFont", "XbaeMatrix",
-	    "XbaeMatrix: XmFontListGetNextFont failed, no next fontList",
+	    "XbaeMatrix: XmFontListNextEntry failed, no next fontList",
 	    NULL, 0);
 
-    XtFree(charset);
-    XmFontListFreeFontContext(context);
+    font = (XFontStruct*)XmFontListEntryGetFont(font_list_entry, &type);
 
-    mw->matrix.font = font;
+    if (type == XmFONT_IS_FONTSET)
+    {
+	mw->matrix.font_set = (XFontSet)font;
+	mw->matrix.font_struct = (XFontStruct*)NULL;
+
+	extents = XExtentsOfFontSet((XFontSet)font);
+	mw->matrix.font_width = extents->max_logical_extent.width;
+	mw->matrix.font_height = extents->max_logical_extent.height;
+	mw->matrix.font_y = extents->max_logical_extent.y;
+
+	XFontsOfFontSet((XFontSet)font, &fonts, &font_names);
+	mw->matrix.fid = fonts[0]->fid;
+    }
+    else
+    {
+	mw->matrix.font_set = (XFontSet)NULL;
+	mw->matrix.font_struct = font;
+
+	mw->matrix.font_width = (font->max_bounds.width + font->min_bounds.width) /2;
+	mw->matrix.font_height = (font->max_bounds.descent + font->max_bounds.ascent);
+	mw->matrix.font_y = -font->max_bounds.ascent;
+
+	mw->matrix.fid = font->fid;
+    }
+
+    XmFontListFreeFontContext(context);
 }
 
 void
@@ -1026,8 +1072,12 @@ xbaeNewLabelFont(mw)
 XbaeMatrixWidget mw;
 {
     XmFontContext context;
-    XmStringCharSet charset;
     XFontStruct *font;
+    XmFontListEntry font_list_entry;
+    XmFontType type;
+    XFontSetExtents *extents;
+    XFontStruct **fonts;
+    char **font_names;
 
     /*
      * Make a private copy of the FontList
@@ -1035,7 +1085,7 @@ XbaeMatrixWidget mw;
     mw->matrix.label_font_list = XmFontListCopy(mw->matrix.label_font_list);
 
     /*
-     * Get XFontStruct from FontList
+     * Get XmFontListEntry from FontList
      */
     if (!XmFontListInitFontContext(&context, mw->matrix.label_font_list))
 	XtAppErrorMsg(
@@ -1044,17 +1094,41 @@ XbaeMatrixWidget mw;
 	    "XbaeMatrix: XmFontListInitFontContext failed, bad labelFontList",
 	    NULL, 0);
 
-    if (!XmFontListGetNextFont(context, &charset, &font))
+    if ((font_list_entry = XmFontListNextEntry(context)) == NULL)
 	XtAppErrorMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "newFont", "badLabelFont", "XbaeMatrix",
-	    "XbaeMatrix: XmFontListGetNextFont failed, no next labelFontList",
+	    "XbaeMatrix: XmFontListNextEntry failed, no next fontList",
 	    NULL, 0);
 
-    XtFree(charset);
-    XmFontListFreeFontContext(context);
+    font = (XFontStruct*)XmFontListEntryGetFont(font_list_entry, &type);
 
-    mw->matrix.label_font = font;
+    if (type == XmFONT_IS_FONTSET)
+    {
+	mw->matrix.label_font_set = (XFontSet)font;
+	mw->matrix.label_font_struct = (XFontStruct*)NULL;
+
+	extents = XExtentsOfFontSet((XFontSet)font);
+	mw->matrix.label_font_width = extents->max_logical_extent.width;
+	mw->matrix.label_font_height = extents->max_logical_extent.height;
+	mw->matrix.label_font_y = extents->max_logical_extent.y;
+
+	XFontsOfFontSet((XFontSet)font, &fonts, &font_names);
+	mw->matrix.label_fid = fonts[0]->fid;
+    }
+    else
+    {
+	mw->matrix.label_font_set = (XFontSet)NULL;
+	mw->matrix.label_font_struct = font;
+
+	mw->matrix.label_font_width = (font->max_bounds.width + font->min_bounds.width) /2;
+	mw->matrix.label_font_height = (font->max_bounds.descent + font->max_bounds.ascent);
+	mw->matrix.label_font_y = -font->max_bounds.ascent;
+
+	mw->matrix.label_fid = font->fid;
+    }
+
+    XmFontListFreeFontContext(context);
 }
 
 void

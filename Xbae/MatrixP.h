@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: MatrixP.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: MatrixP.h,v 1.2 1999-07-26 22:55:06 fnevgeny Exp $
  */
 
 /*
@@ -39,7 +39,6 @@
 #endif
 
 #include <Xbae/Matrix.h>
-#include <limits.h>
 
 #ifndef P
 #if defined(__STDC__) || defined (__cplusplus)
@@ -66,6 +65,8 @@
 #     define _XFUNCPROTOEND
 #   endif
 # endif /* _XFUNCPROTOBEGIN */
+#else
+#include <X11/Xfuncproto.h>
 #endif
 
 /*
@@ -73,53 +74,55 @@
  */
 _XFUNCPROTOBEGIN
 
-typedef void (*XbaeMatrixSetCellProc) P(( XbaeMatrixWidget, int, int,
-					  const String, Boolean ));
+typedef void (*XbaeMatrixSetCellProc) P((XbaeMatrixWidget, int, int,
+					 const String, Boolean));
 
-typedef String (*XbaeMatrixGetCellProc) P(( XbaeMatrixWidget, int, int ));
+typedef String (*XbaeMatrixGetCellProc) P((XbaeMatrixWidget, int, int));
 
-typedef void (*XbaeMatrixEditCellProc) P(( XbaeMatrixWidget, int, int ));
+typedef void (*XbaeMatrixEditCellProc) P((XbaeMatrixWidget, XEvent *,
+					  int, int, String *, Cardinal));
 
-typedef void (*XbaeMatrixSelectCellProc) P(( XbaeMatrixWidget, int, int ));
+typedef void (*XbaeMatrixSelectCellProc) P((XbaeMatrixWidget, int, int));
 
-typedef void (*XbaeMatrixSelectRowProc) P(( XbaeMatrixWidget, int ));
+typedef void (*XbaeMatrixSelectRowProc) P((XbaeMatrixWidget, int));
 
-typedef void (*XbaeMatrixSelectColumnProc) P(( XbaeMatrixWidget, int ));
+typedef void (*XbaeMatrixSelectColumnProc) P((XbaeMatrixWidget, int));
 
-typedef void (*XbaeMatrixDeselectAllProc) P(( XbaeMatrixWidget ));
+typedef void (*XbaeMatrixDeselectAllProc) P((XbaeMatrixWidget));
 
-typedef void (*XbaeMatrixSelectAllProc) P(( XbaeMatrixWidget ));
+typedef void (*XbaeMatrixSelectAllProc) P((XbaeMatrixWidget));
 
-typedef void (*XbaeMatrixDeselectCellProc) P(( XbaeMatrixWidget, int, int ));
+typedef void (*XbaeMatrixDeselectCellProc) P((XbaeMatrixWidget, int, int));
 
-typedef void (*XbaeMatrixDeselectRowProc) P(( XbaeMatrixWidget, int ));
+typedef void (*XbaeMatrixDeselectRowProc) P((XbaeMatrixWidget, int));
 
-typedef void (*XbaeMatrixDeselectColumnProc) P(( XbaeMatrixWidget, int ));
+typedef void (*XbaeMatrixDeselectColumnProc) P((XbaeMatrixWidget, int));
 
-typedef Boolean (*XbaeMatrixCommitEditProc) P(( XbaeMatrixWidget, Boolean ));
+typedef Boolean (*XbaeMatrixCommitEditProc) P((XbaeMatrixWidget, XEvent *,
+					       Boolean));
 
-typedef void (*XbaeMatrixCancelEditProc) P(( XbaeMatrixWidget, Boolean ));
+typedef void (*XbaeMatrixCancelEditProc) P((XbaeMatrixWidget, Boolean));
 
-typedef void (*XbaeMatrixAddRowsProc) P(( XbaeMatrixWidget, int, String *,
-					  String *, Pixel *, Pixel *, int ));
+typedef void (*XbaeMatrixAddRowsProc) P((XbaeMatrixWidget, int, String *,
+					 String *, Pixel *, Pixel *, int));
 
-typedef void (*XbaeMatrixDeleteRowsProc) P(( XbaeMatrixWidget, int, int ));
+typedef void (*XbaeMatrixDeleteRowsProc) P((XbaeMatrixWidget, int, int));
 
-typedef void (*XbaeMatrixAddColumnsProc) P(( XbaeMatrixWidget, int, String *,
-					     String *, short *, int *,
-					     unsigned char*, unsigned char *,
-					     Pixel *, Pixel *, int ));
+typedef void (*XbaeMatrixAddColumnsProc) P((XbaeMatrixWidget, int, String *,
+					    String *, short *, int *,
+					    unsigned char*, unsigned char *,
+					    Pixel *, Pixel *, int));
 
-typedef void (*XbaeMatrixDeleteColumnsProc) P(( XbaeMatrixWidget, int, int ));
+typedef void (*XbaeMatrixDeleteColumnsProc) P((XbaeMatrixWidget, int, int));
 
-typedef void (*XbaeMatrixSetRowColorsProc) P(( XbaeMatrixWidget, int, Pixel *,
-					       int, Boolean ));
+typedef void (*XbaeMatrixSetRowColorsProc) P((XbaeMatrixWidget, int, Pixel *,
+					      int, Boolean));
 
-typedef void (*XbaeMatrixSetColumnColorsProc) P(( XbaeMatrixWidget, int,
-						  Pixel *, int, Boolean ));
+typedef void (*XbaeMatrixSetColumnColorsProc) P((XbaeMatrixWidget, int,
+						 Pixel *, int, Boolean));
 
-typedef void (*XbaeMatrixSetCellColorProc) P(( XbaeMatrixWidget, int, int,
-					       Pixel, Boolean ));
+typedef void (*XbaeMatrixSetCellColorProc) P((XbaeMatrixWidget, int, int,
+					      Pixel, Boolean));
 
 _XFUNCPROTOEND
 
@@ -246,6 +249,8 @@ typedef struct {
     Boolean	bold_labels;		/* draw bold row/column labels?	     */
     Boolean	button_labels;		/* draw labels as buttons?	     */
     Boolean	fill;			/* fill available space?	     */
+    Boolean	trailing_attached_right;  /* trailing columns fixed to right */
+    Boolean	trailing_attached_bottom; /* trailing rows fixed to bottom   */
     Boolean	reverse_select;		/* reverse colours - selected cells? */
     Boolean	scroll_select;		/* flag to scroll a selected cell    */
     Boolean	**selected_cells;	/* 2D array of selected cells	     */
@@ -253,6 +258,7 @@ typedef struct {
     Boolean     *column_button_labels;  /* which column labels are butons */
     Boolean     *row_button_labels;     /* which row labels are butons */
     Boolean	traverse_fixed;		/* allow traversal to fixed cells?   */
+    Boolean	calc_cursor_position;	/* calculate insert pos from click   */
     unsigned char cell_shadow_type;	/* cell shadow type		     */
     unsigned char **cell_shadow_types;	/* 2D array of per cell shadow type  */
     unsigned char *column_alignments;	/* alignment of each column	     */
@@ -335,20 +341,14 @@ typedef struct {
     XmFontList	font_list;		/* fontList of widget and textField  */
     XmFontList	label_font_list;	/* fontList of labels		     */
 
-    Widget	clip_window;		/* the clip child		     */
-    Widget	horizontal_sb;		/* the horizontal scrollbar	     */
-    Widget	text_field;		/* the text field		     */
-    Widget      vertical_sb;		/* the vertical scrollbar	     */
-#if CELL_WIDGETS
-    Widget	**cell_widgets;		/* array of widgets for cells	     */
-#endif
-
+    
     /*
      * private state
      */
 #if XmVersion >= 1002
     unsigned char highlight_location;	/* What is being highlighted	     */
 #endif
+    short	first_row_offset;	/* hidden first row */
     int		cell_visible_height;	/* height of visible cells in pixels */
     int		column_label_maxlines;	/* max # lines in column labels	     */
     int		*column_positions;	/* pixel position of each column     */
@@ -371,6 +371,19 @@ typedef struct {
 
     Time	last_click_time;	/* when last ButtonPress occurred    */
 
+    Widget	text_field;		/* the text field		     */
+    Widget	horizontal_sb;		/* the horizontal scrollbar	     */
+    Widget      vertical_sb;		/* the vertical scrollbar	     */
+    Widget	clip_window;		/* the clip child		     */
+    Widget	left_clip;		/* clips for scrolling fixed cells   */
+    Widget	right_clip;
+    Widget	top_clip;
+    Widget	bottom_clip;
+    Widget	current_parent;		/* Current textField parent window   */
+#if CELL_WIDGETS
+    Widget	**cell_widgets;		/* array of widgets for cells	     */
+#endif
+
     GC		cell_bottom_shadow_clip_gc; /* GC for clipped bottom shadow  */
     GC          cell_grid_line_gc;
     GC		cell_top_shadow_clip_gc; /* GC for clipped top shadow	     */
@@ -384,17 +397,22 @@ typedef struct {
 
     ColumnLabelLines column_label_lines; /* structs for multi line labels    */
 				     
-    XFontStruct	*font;			/* fontStruct from fontList	     */
-    XFontStruct	*label_font;		/* fontStruct from fontList	     */
+    XFontStruct	*font_struct;		/* fontStruct from fontList	     */
+    XFontStruct	*label_font_struct;	/* fontStruct from fontList	     */
 
     SmScrollMgr clip_scroll_mgr;	/* ScrollMgr for Clip		     */
     SmScrollMgr matrix_scroll_mgr;	/* ScrollMgr for Matrix		     */
 
-    Widget	left_clip;		/* clips for scrolling fixed cells   */
-    Widget	right_clip;
-    Widget	top_clip;
-    Widget	bottom_clip;
-    Widget	current_parent;		/* Current textField parent window   */
+    XFontSet	font_set;		/* fontSet from fontList	     */
+    short	font_y;
+    short	font_width;
+    short	font_height;
+    Font	fid;
+    XFontSet	label_font_set;		/* fontSet from fontList	     */
+    short	label_font_y;
+    short	label_font_width;
+    short	label_font_height;
+    Font	label_fid;
 
 } XbaeMatrixPart;
 

@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.h,v 1.1 1999-01-11 23:37:44 fnevgeny Exp $
+ * $Id: Methods.h,v 1.2 1999-07-26 22:55:06 fnevgeny Exp $
  */
 
 
@@ -32,35 +32,36 @@
 
 #include <Xbae/Macros.h>
 
-void xbaeResize P(( XbaeMatrixWidget ));
+void xbaeResize P((XbaeMatrixWidget));
 
 /*
  * New Matrix methods
  */
-void xbaeSetCell P(( XbaeMatrixWidget, int, int, const String, Boolean ));
-void xbaeModifyVerifyCB P(( Widget, XtPointer, XtPointer ));
-void xbaeEditCell P(( XbaeMatrixWidget, int, int ));
-void xbaeSelectCell P(( XbaeMatrixWidget, int, int ));
-void xbaeSelectRow P(( XbaeMatrixWidget, int ));
-void xbaeSelectColumn P(( XbaeMatrixWidget, int ));
-void xbaeDeselectAll P(( XbaeMatrixWidget ));
-void xbaeSelectAll P(( XbaeMatrixWidget ));
-void xbaeDeselectCell P(( XbaeMatrixWidget, int, int ));
-void xbaeDeselectRow P(( XbaeMatrixWidget, int ));
-void xbaeDeselectColumn P(( XbaeMatrixWidget, int ));
-String xbaeGetCell P(( XbaeMatrixWidget, int, int ));
-Boolean xbaeCommitEdit P(( XbaeMatrixWidget, Boolean ));
-void xbaeCancelEdit P(( XbaeMatrixWidget, Boolean ));
+void xbaeSetCell P((XbaeMatrixWidget, int, int, const String, Boolean));
+void xbaeModifyVerifyCB P((Widget, XtPointer, XtPointer));
+void xbaeEditCell P((XbaeMatrixWidget, XEvent *, int, int,
+		     String *, Cardinal));
+void xbaeSelectCell P((XbaeMatrixWidget, int, int));
+void xbaeSelectRow P((XbaeMatrixWidget, int));
+void xbaeSelectColumn P((XbaeMatrixWidget, int));
+void xbaeDeselectAll P((XbaeMatrixWidget));
+void xbaeSelectAll P((XbaeMatrixWidget));
+void xbaeDeselectCell P((XbaeMatrixWidget, int, int));
+void xbaeDeselectRow P((XbaeMatrixWidget, int));
+void xbaeDeselectColumn P((XbaeMatrixWidget, int));
+String xbaeGetCell P((XbaeMatrixWidget, int, int));
+Boolean xbaeCommitEdit P((XbaeMatrixWidget, XEvent *, Boolean));
+void xbaeCancelEdit P((XbaeMatrixWidget, Boolean));
 void xbaeAddRows P((XbaeMatrixWidget, int, String *, String *, Pixel *,
-		    Pixel *, int ));
-void xbaeDeleteRows P(( XbaeMatrixWidget, int, int ));
-void xbaeAddColumns P(( XbaeMatrixWidget, int, String *, String *, short *,
+		    Pixel *, int));
+void xbaeDeleteRows P((XbaeMatrixWidget, int, int));
+void xbaeAddColumns P((XbaeMatrixWidget, int, String *, String *, short *,
 			int *, unsigned char *, unsigned char *, Pixel *,
-			Pixel *, int ));
-void xbaeDeleteColumns P(( XbaeMatrixWidget, int, int ));
-void xbaeSetRowColors P(( XbaeMatrixWidget, int, Pixel *, int, Boolean ));
-void xbaeSetColumnColors P(( XbaeMatrixWidget, int,
-			     Pixel *, int, Boolean ));
-void xbaeSetCellColor P(( XbaeMatrixWidget, int, int, Pixel, Boolean ));
+			Pixel *, int));
+void xbaeDeleteColumns P((XbaeMatrixWidget, int, int));
+void xbaeSetRowColors P((XbaeMatrixWidget, int, Pixel *, int, Boolean));
+void xbaeSetColumnColors P((XbaeMatrixWidget, int,
+			     Pixel *, int, Boolean));
+void xbaeSetCellColor P((XbaeMatrixWidget, int, int, Pixel, Boolean));
 
 #endif

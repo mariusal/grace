@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,12 +20,16 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.2 1999-01-25 20:16:58 fnevgeny Exp $
+ * $Id: Methods.c,v 1.3 1999-07-26 22:55:06 fnevgeny Exp $
  */
 
 /*
  * Methods.c created by Andrew Lister (7 August, 1995)
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>
@@ -38,29 +42,37 @@
 #include <Xbae/Draw.h>
 #include <Xbae/Create.h>
 #include <Xbae/ClipP.h>
+#include <Xbae/Input.h>
 #include <Xm/XmP.h>
-#include <Xm/TextF.h>
-#include <Xm/TextFP.h>
+#include <Xm/Text.h>
+#include <Xm/TextP.h>
+
+/* For memmove/bcopy */
+#include <string.h>
+
+#if !defined(HAVE_MEMMOVE) && !defined(XBAE_NEED_BCOPY)
+#define XBAE_NEED_BCOPY
+#endif
 
 /* Earl R.
  * Added another BCOPY macro for porting purposes. Porting to 15+ UNIX
  * platforms. Renamed bcopy to BCOPY and typecast to fix compiler warnings
  * on some platforms.
  */
-#if !defined(XBAE_NEED_BCOPY) && (defined(SVR4) || defined(VMS) || defined(__EMX__))
+#if !defined(XBAE_NEED_BCOPY) || defined(SVR4) || defined(VMS) || defined(__EMX__)
 #define BCOPY(src, dest, n)	memmove((void *)(dest), (void *)(src), (n))
 #else
 #define BCOPY(src, dest, n)     bcopy((void *)(src), (void *)(dest), (n))
 #endif
 
-static void AddRowsToTable P(( XbaeMatrixWidget, int, String *, String *,
-			       Pixel *, Pixel *, int ));
-static void DeleteRowsFromTable P(( XbaeMatrixWidget, int, int ));
-static void AddColumnsToTable P(( XbaeMatrixWidget, int, String *, String *,
+static void AddRowsToTable P((XbaeMatrixWidget, int, String *, String *,
+			       Pixel *, Pixel *, int));
+static void DeleteRowsFromTable P((XbaeMatrixWidget, int, int));
+static void AddColumnsToTable P((XbaeMatrixWidget, int, String *, String *,
 				  short *, int *, unsigned char *,
-				  unsigned char *, Pixel *, Pixel *, int ));
-static void DeleteColumnsFromTable P(( XbaeMatrixWidget, int, int ));
-static Boolean DoCommitEdit P(( XbaeMatrixWidget ));
+				  unsigned char *, Pixel *, Pixel *, int));
+static void DeleteColumnsFromTable P((XbaeMatrixWidget, int, int));
+static Boolean DoCommitEdit P((XbaeMatrixWidget, XEvent *));
 
 /*
  * Add rows to the internal cells data structure.
@@ -81,7 +93,7 @@ int num_rows;
     /*
      * Realloc a larger array of row pointers and a larger label arrays
      */
-    if( mw->matrix.cells || rows)
+    if (mw->matrix.cells || rows)
 	mw->matrix.cells = (String **) XtRealloc((char *) mw->matrix.cells,
 						 (mw->matrix.rows + num_rows) *
 						 sizeof(String *));
@@ -112,43 +124,43 @@ int num_rows;
     if (mw->matrix.cell_user_data)
 	mw->matrix.cell_user_data = (XtPointer **)
 	    XtRealloc((char*) mw->matrix.cell_user_data,
-		       (mw->matrix.rows + num_rows) *
-		       sizeof(XtPointer *));
+		      (mw->matrix.rows + num_rows) *
+		      sizeof(XtPointer *));
 
 #if CELL_WIDGETS
     if (mw->matrix.cell_widgets)
 	mw->matrix.cell_widgets = (Widget **)
 	    XtRealloc((char*) mw->matrix.cell_widgets,
-		       (mw->matrix.rows + num_rows) *
-		       sizeof(Widget *));
+		      (mw->matrix.rows + num_rows) *
+		      sizeof(Widget *));
 #endif
 
     if (mw->matrix.row_user_data)
 	mw->matrix.row_user_data = (XtPointer*)
 	    XtRealloc((char*) mw->matrix.row_user_data,
-		       (mw->matrix.rows + num_rows) *
-		       sizeof(XtPointer));
+		      (mw->matrix.rows + num_rows) *
+		      sizeof(XtPointer));
 
     if (mw->matrix.cell_shadow_types)
 	mw->matrix.cell_shadow_types = (unsigned char **)
 	    XtRealloc((char*) mw->matrix.cell_shadow_types,
-		       (mw->matrix.rows + num_rows) *
-		       sizeof(unsigned char *));
+		      (mw->matrix.rows + num_rows) *
+		      sizeof(unsigned char *));
 
     if (mw->matrix.row_shadow_types)
 	mw->matrix.row_shadow_types = (unsigned char *)
 	    XtRealloc((char*) mw->matrix.row_shadow_types,
-		       (mw->matrix.rows + num_rows) *
-		       sizeof(unsigned char));
+		      (mw->matrix.rows + num_rows) *
+		      sizeof(unsigned char));
 
-    if( mw->matrix.selected_cells )
+    if (mw->matrix.selected_cells)
 	mw->matrix.selected_cells =
 	    (Boolean **) XtRealloc((char *) mw->matrix.selected_cells,
 				   (mw->matrix.rows + num_rows) *
 				   sizeof(Boolean *));
 
 #if XmVersion >= 1002
-    if( mw->matrix.highlighted_cells )
+    if (mw->matrix.highlighted_cells)
 	mw->matrix.highlighted_cells =
 	    (unsigned char **) XtRealloc((char *) mw->matrix.highlighted_cells,
 					 (mw->matrix.rows + num_rows) *
@@ -159,7 +171,7 @@ int num_rows;
      */
     if (position < mw->matrix.rows)
     {
-	if( mw->matrix.cells )
+	if (mw->matrix.cells)
 	    BCOPY(&mw->matrix.cells[position],
 		  &mw->matrix.cells[position + num_rows],
 		  (mw->matrix.rows - position) * sizeof(String *));
@@ -201,12 +213,12 @@ int num_rows;
 	    BCOPY(&mw->matrix.row_shadow_types[position],
 		  &mw->matrix.row_shadow_types[position + num_rows],
 		  (mw->matrix.rows - position) * sizeof(unsigned char));
-	if( mw->matrix.selected_cells )
+	if (mw->matrix.selected_cells)
 	    BCOPY(&mw->matrix.selected_cells[position],
 		  &mw->matrix.selected_cells[position + num_rows],
 		  (mw->matrix.rows - position) * sizeof(Boolean *));
 #if XmVersion >= 1002
-	if( mw->matrix.highlighted_cells )
+	if (mw->matrix.highlighted_cells)
 	    BCOPY(&mw->matrix.highlighted_cells[position],
 		  &mw->matrix.highlighted_cells[position + num_rows],
 		  (mw->matrix.rows - position) * sizeof(unsigned char *));
@@ -221,9 +233,9 @@ int num_rows;
      */
     for (i = 0; i < num_rows; i++)
     {
-	if( mw->matrix.cells )
+	if (mw->matrix.cells)
 	    mw->matrix.cells[i + position] =
-	    (String *) XtMalloc(mw->matrix.columns * sizeof(String));
+		(String *) XtMalloc(mw->matrix.columns * sizeof(String));
 	if (mw->matrix.row_labels)
 	    mw->matrix.row_labels[i + position] =
 		labels ? XtNewString(labels[i]) : XtNewString("");
@@ -252,11 +264,11 @@ int num_rows;
 	if (mw->matrix.row_shadow_types)
 	    mw->matrix.row_shadow_types[i + position] =
 		mw->matrix.cell_shadow_type;
-	if( mw->matrix.selected_cells )
+	if (mw->matrix.selected_cells)
 	    mw->matrix.selected_cells[i + position] =
 		(Boolean *) XtMalloc(mw->matrix.columns * sizeof(Boolean));
 #if XmVersion >= 1002
-	if( mw->matrix.highlighted_cells )
+	if (mw->matrix.highlighted_cells)
 	    mw->matrix.highlighted_cells[i + position] =
 		(unsigned char *) XtMalloc(mw->matrix.columns *
 					   sizeof(unsigned char));
@@ -271,7 +283,7 @@ int num_rows;
     for (i = 0; i < num_rows; i++)
 	for (j = 0; j < mw->matrix.columns; j++)
 	{
-	    if( mw->matrix.cells ) /* NULL row[j] is empty string. Earl R. */
+	    if (mw->matrix.cells) /* NULL row[j] is empty string. Earl R. */
 		mw->matrix.cells[i + position][j] = rows ?
 		    XtNewString((rows[i * mw->matrix.columns + j] ?
                                  rows[i * mw->matrix.columns + j] : "")) :
@@ -291,10 +303,10 @@ int num_rows;
 	    if (mw->matrix.cell_shadow_types)
 		mw->matrix.cell_shadow_types[i + position][j] =
 		    mw->matrix.cell_shadow_type;
-	    if( mw->matrix.selected_cells )
+	    if (mw->matrix.selected_cells)
 		mw->matrix.selected_cells[i + position][j] = False;
 #if XmVersion >= 1002
-	    if( mw->matrix.highlighted_cells )
+	    if (mw->matrix.highlighted_cells)
 		mw->matrix.highlighted_cells[i + position][j] = HighlightNone;
 #endif
 	}
@@ -326,10 +338,10 @@ int num_rows;
     for (i = position; i < position + num_rows; i++)
     {
 	/* Fixed a crash I was getting, Since I allow NULL cells. Earl R. */
-	if( mw->matrix.cells && mw->matrix.cells[i] )
+	if (mw->matrix.cells && mw->matrix.cells[i])
 	{
 	    for (j = 0; j < mw->matrix.columns; j++)
-                if ( mw->matrix.cells[i][j] )
+                if (mw->matrix.cells[i][j])
 		    XtFree((XtPointer) mw->matrix.cells[i][j]);
 	    XtFree((XtPointer) mw->matrix.cells[i]);
 	}
@@ -347,10 +359,16 @@ int num_rows;
 	    XtFree((XtPointer) mw->matrix.cell_user_data[i]);
 	if (mw->matrix.cell_shadow_types)
 	    XtFree((XtPointer) mw->matrix.cell_shadow_types[i]);
-	if( mw->matrix.selected_cells )
+	if (mw->matrix.selected_cells)
+	{
+	    /*
+	     * Deselect the row so num_selected_cells gets updated
+	     */
+	    xbaeDeselectRow(mw, i);
 	    XtFree((XtPointer) mw->matrix.selected_cells[i]);
+	}
 #if XmVersion >= 1002
-	if( mw->matrix.highlighted_cells )
+	if (mw->matrix.highlighted_cells)
 	    XtFree((XtPointer) mw->matrix.highlighted_cells[i]);
 #endif
     }
@@ -361,7 +379,7 @@ int num_rows;
      */
     if (position + num_rows < mw->matrix.rows)
     {
-	if( mw->matrix.cells )	
+	if (mw->matrix.cells)	
 	    BCOPY(&mw->matrix.cells[position + num_rows],
 		  &mw->matrix.cells[position],
 		  (mw->matrix.rows - position - num_rows) * sizeof(String *));
@@ -406,12 +424,12 @@ int num_rows;
 		  &mw->matrix.row_shadow_types[position],
 		  (mw->matrix.rows - position - num_rows) *
 		  sizeof(unsigned char *));
-	if( mw->matrix.selected_cells )
+	if (mw->matrix.selected_cells)
 	    BCOPY(&mw->matrix.selected_cells[position + num_rows],
 		  &mw->matrix.selected_cells[position],
 		  (mw->matrix.rows - position - num_rows) * sizeof(Boolean *));
 #if XmVersion >= 1002
-	if( mw->matrix.highlighted_cells )
+	if (mw->matrix.highlighted_cells)
 	    BCOPY(&mw->matrix.highlighted_cells[position + num_rows],
 		  &mw->matrix.highlighted_cells[position],
 		  (mw->matrix.rows - position - num_rows) *
@@ -454,7 +472,7 @@ int num_columns;
      * highlighted_cells, selected_cells, labels and label lines arrays.
      */
 
-    if( mw->matrix.rows == 0 )
+    if (mw->matrix.rows == 0)
     {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
@@ -466,9 +484,9 @@ int num_columns;
 
     for (i = 0; i < mw->matrix.rows; i++)
     {
-	if( mw->matrix.cells || columns )
+	if (mw->matrix.cells || columns)
 	{
-	    if( !mw->matrix.cells )
+	    if (!mw->matrix.cells)
 	    {
 		mw->matrix.columns += num_columns;
 		xbaeCopyCells(mw);
@@ -482,7 +500,7 @@ int num_columns;
 	}
 	if (mw->matrix.colors || colors)
 	{
-	    if( !mw->matrix.colors )
+	    if (!mw->matrix.colors)
 	    {
 		mw->matrix.columns += num_columns;
 		xbaeCopyColors(mw);
@@ -496,7 +514,7 @@ int num_columns;
 	}
 	if (mw->matrix.cell_background || backgrounds)
 	{
-	    if( !mw->matrix.cell_background )
+	    if (!mw->matrix.cell_background)
 	    {
 		mw->matrix.columns += num_columns;
 		xbaeCopyBackgrounds(mw);
@@ -512,26 +530,26 @@ int num_columns;
 	if (mw->matrix.cell_widgets)
 	    mw->matrix.cell_widgets[i] =
 		(Widget *) XtRealloc((char *) mw->matrix.cell_widgets[i],
-				    (mw->matrix.columns + num_columns) *
-				    sizeof(Widget));
+				     (mw->matrix.columns + num_columns) *
+				     sizeof(Widget));
 #endif
 	if (mw->matrix.cell_user_data)
 	    mw->matrix.cell_user_data[i] = (XtPointer *)
 		XtRealloc((char*) mw->matrix.cell_user_data[i],
-			   (mw->matrix.columns + num_columns) *
-			   sizeof(XtPointer));
+			  (mw->matrix.columns + num_columns) *
+			  sizeof(XtPointer));
 	if (mw->matrix.cell_shadow_types)
 	    mw->matrix.cell_shadow_types[i] = (unsigned char *)
 		XtRealloc((char*) mw->matrix.cell_shadow_types[i],
-			   (mw->matrix.columns + num_columns) *
-			   sizeof(unsigned char));
-	if( mw->matrix.selected_cells )
+			  (mw->matrix.columns + num_columns) *
+			  sizeof(unsigned char));
+	if (mw->matrix.selected_cells)
 	    mw->matrix.selected_cells[i] =
 		(Boolean *) XtRealloc((char *) mw->matrix.selected_cells[i],
 				      (mw->matrix.columns + num_columns) *
 				      sizeof(Boolean));
 #if XmVersion >= 1002
-	if( mw->matrix.highlighted_cells )
+	if (mw->matrix.highlighted_cells)
 	    mw->matrix.highlighted_cells[i] =
 		(unsigned char *) XtRealloc(
 		    (char *) mw->matrix.highlighted_cells[i],
@@ -575,14 +593,14 @@ int num_columns;
     if (mw->matrix.column_user_data)
 	mw->matrix.column_user_data = (XtPointer*)
 	    XtRealloc((char*) mw->matrix.column_user_data,
-		       (mw->matrix.columns + num_columns) *
-		       sizeof(XtPointer));
+		      (mw->matrix.columns + num_columns) *
+		      sizeof(XtPointer));
 
     if (mw->matrix.column_shadow_types)
 	mw->matrix.column_shadow_types = (unsigned char *)
 	    XtRealloc((char*) mw->matrix.column_shadow_types,
-		       (mw->matrix.columns + num_columns) *
-		       sizeof(unsigned char));
+		      (mw->matrix.columns + num_columns) *
+		      sizeof(unsigned char));
 
     if (mw->matrix.column_labels)
     {
@@ -652,7 +670,7 @@ int num_columns;
 	 */
 	for (i = 0; i < mw->matrix.rows; i++)
 	{
-	    if( mw->matrix.cells )
+	    if (mw->matrix.cells)
 		BCOPY(&mw->matrix.cells[i][position],
 		      &mw->matrix.cells[i][position + num_columns],
 		      (mw->matrix.columns - position) * sizeof(String));
@@ -678,12 +696,12 @@ int num_columns;
 		BCOPY(&mw->matrix.cell_shadow_types[i][position],
 		      &mw->matrix.cell_shadow_types[i][position + num_columns],
 		      (mw->matrix.columns - position) * sizeof(unsigned char));
-	    if( mw->matrix.selected_cells )
-		BCOPY( &mw->matrix.selected_cells[i][position],
-		       &mw->matrix.selected_cells[i][position + num_columns],
-		       (mw->matrix.columns - position) * sizeof(Boolean));
+	    if (mw->matrix.selected_cells)
+		BCOPY(&mw->matrix.selected_cells[i][position],
+		      &mw->matrix.selected_cells[i][position + num_columns],
+		      (mw->matrix.columns - position) * sizeof(Boolean));
 #if XmVersion >= 1002
-	    if( mw->matrix.highlighted_cells )
+	    if (mw->matrix.highlighted_cells)
 		BCOPY(&mw->matrix.highlighted_cells[i][position],
 		      &mw->matrix.highlighted_cells[i][position + num_columns],
 		      (mw->matrix.columns - position) * sizeof(unsigned char));
@@ -746,7 +764,7 @@ int num_columns;
 	 */
 	for (i = 0; i < mw->matrix.rows; i++)
 	{
-	    if( mw->matrix.cells )
+	    if (mw->matrix.cells)
 		mw->matrix.cells[i][j + position] = columns ?
 		    XtNewString(columns[i * num_columns + j]) :
 		XtNewString("");
@@ -765,10 +783,10 @@ int num_columns;
 	    if (mw->matrix.cell_shadow_types)
 		mw->matrix.cell_shadow_types[i][j + position] =
 		    mw->matrix.cell_shadow_type;
-	    if( mw->matrix.selected_cells )
+	    if (mw->matrix.selected_cells)
 		mw->matrix.selected_cells[i][j + position] = False;
 #if XmVersion >= 1002
-	    if( mw->matrix.highlighted_cells )
+	    if (mw->matrix.highlighted_cells)
 		mw->matrix.highlighted_cells[i][j + position] = HighlightNone;
 #endif
 	}
@@ -795,7 +813,7 @@ int num_columns;
     /*
      * Recalculate the column positions
      */
-    FreeColumnPositions(mw);
+    xbaeFreeColumnPositions(mw);
     mw->matrix.column_positions = CreateColumnPositions(mw);
     xbaeGetColumnPositions(mw);
 }
@@ -818,7 +836,7 @@ int num_columns;
      */
     for (j = position; j < position + num_columns; j++)
     {
-	if( mw->matrix.cells )
+	if (mw->matrix.cells)
 	    for (i = 0; i < mw->matrix.rows; i++)
 		XtFree((XtPointer) mw->matrix.cells[i][j]);
 	if (mw->matrix.column_labels)
@@ -898,7 +916,7 @@ int num_columns;
 	 */
 	for (i = 0; i < mw->matrix.rows; i++)
 	{
-	    if( mw->matrix.cells )
+	    if (mw->matrix.cells)
 		BCOPY(&mw->matrix.cells[i][position + num_columns],
 		      &mw->matrix.cells[i][position],
 		      (mw->matrix.columns - position - num_columns) *
@@ -930,13 +948,13 @@ int num_columns;
 		      &mw->matrix.cell_shadow_types[i][position],
 		      (mw->matrix.columns - position - num_columns) *
 		      sizeof(unsigned char));
-	    if( mw->matrix.selected_cells )
+	    if (mw->matrix.selected_cells)
 		BCOPY(&mw->matrix.selected_cells[i][position + num_columns],
 		      &mw->matrix.selected_cells[i][position],
 		      (mw->matrix.columns - position - num_columns) *
 		      sizeof(Boolean));
 #if XmVersion >= 1002
-	    if( mw->matrix.highlighted_cells )
+	    if (mw->matrix.highlighted_cells)
 		BCOPY(&mw->matrix.highlighted_cells[i][position + num_columns],
 		      &mw->matrix.highlighted_cells[i][position],
 		      (mw->matrix.columns - position - num_columns) *
@@ -965,7 +983,7 @@ int num_columns;
     /*
      * Recalculate the column positions
      */
-    FreeColumnPositions(mw);
+    xbaeFreeColumnPositions(mw);
     mw->matrix.column_positions = CreateColumnPositions(mw);
     xbaeGetColumnPositions(mw);
 }
@@ -992,7 +1010,7 @@ Boolean update_text;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "xbaeSetCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for xbaeSetCell.",
+	    "XbaeMatrix: Row or column out of bounds for xbaeSetCell.",
 	    NULL, 0);
 	return;
     }
@@ -1002,22 +1020,23 @@ Boolean update_text;
      * also if we want to set the data.  Use this callback to write the
      * new data back to the application.
      */
-    if( mw->matrix.draw_cell_callback )
+    if (mw->matrix.draw_cell_callback)
     {
-	XbaeMatrixWriteCellCallbackStruct cbd;
+ 	XbaeMatrixWriteCellCallbackStruct call_data;
 
-	if( mw->matrix.write_cell_callback )
+	if (mw->matrix.write_cell_callback)
 	{
-	    cbd.reason = XbaeWriteCellReason;
-	    cbd.row = row;
-	    cbd.column = column;
-	    cbd.string = value;
-	    cbd.type = XbaeString;
-	    cbd.pixmap = ( Pixmap )NULL;
-	    cbd.mask = ( Pixmap )NULL;
+	    call_data.reason = XbaeWriteCellReason;
+	    call_data.event = (XEvent *)NULL;
+	    call_data.row = row;
+	    call_data.column = column;
+	    call_data.string = value;
+	    call_data.type = XbaeString;
+	    call_data.pixmap = (Pixmap)NULL;
+	    call_data.mask = (Pixmap)NULL;
 
 	    XtCallCallbackList((Widget)mw, mw->matrix.write_cell_callback,
-			       (XtPointer) &cbd);
+			       (XtPointer) &call_data);
 	}
     }
     else
@@ -1025,19 +1044,19 @@ Boolean update_text;
 	/*
 	 * Store the new value in the cell.
 	 */
-	if( !mw->matrix.cells && value[ 0 ] != 0 )
+	if (!mw->matrix.cells && value[0] != 0)
 	    /*
 	     * The user typed something, there is no drawCellCallback and
 	     * our cells have not been allocated :-(
 	     * The typed value must be stored, so allocate the cells array
 	     * now.
 	     */
-	    xbaeCopyCells( mw );
-	    /*
-	     * Now we are free to store the value in the widget's cell array
-	     */
-	if( mw->matrix.cells &&	/* It's OK to store the value */
-	    strcmp( mw->matrix.cells[row][column], value ) )
+	    xbaeCopyCells(mw);
+	/*
+	 * Now we are free to store the value in the widget's cell array
+	 */
+	if (mw->matrix.cells &&	/* It's OK to store the value */
+	    strcmp(mw->matrix.cells[row][column], value))
 	{
 	    /*
 	     * I'm not particularly keen on this code - ie. checking twice
@@ -1066,26 +1085,49 @@ Boolean update_text;
     if (update_text && XtIsManaged(TextChild(mw)) &&
 	mw->matrix.current_row == row && mw->matrix.current_column == column)
     {
+	String string;
+
 	/* Remove the modify verify callback when the text field is set.
-	   It thinks we are modifying the value but Motif thinks that
-	   it knows best and we know better! */
-	XtRemoveCallback( TextChild(mw), XmNmodifyVerifyCallback,
-			  xbaeModifyVerifyCB, ( XtPointer )mw );
-	if (value[0] == '\0')
+	   It thinks we are modifying the value - Motif thinks that
+	   it knows best but we know better! */
+	XtRemoveCallback(TextChild(mw), XmNmodifyVerifyCallback,
+			 xbaeModifyVerifyCB, (XtPointer)mw);
+
+	/*
+	 * We need to get the value to put back into the textField if the
+	 * application has a draw cell callback so that any reformatting will
+	 * be displayed. -cg May 13, 1999.
+	 */
+	if (mw->matrix.draw_cell_callback)
+	{
+	    Pixmap pixmap, mask;
+	    Pixel bg, fg;
+	    int width, height, depth;
+
+	    xbaeGetDrawCellValue(mw, mw->matrix.current_row,
+				 mw->matrix.current_column, &string,
+				 &pixmap, &mask, &width, &height,
+				 &bg, &fg, &depth);
+	}
+	else
+	    string = value;
+
+	if (string[0] == '\0')
 	    XtVaSetValues(TextChild(mw),
-			  XmNvalue, value,
+			  XmNvalue, string,
 			  NULL);
 	else
-	    XmTextFieldSetString(TextChild(mw), value);
+	    XmTextSetString(TextChild(mw), string);
 
-	XtAddCallback( TextChild(mw), XmNmodifyVerifyCallback,
-		       xbaeModifyVerifyCB, ( XtPointer )mw );
+	XtAddCallback(TextChild(mw), XmNmodifyVerifyCallback,
+		      xbaeModifyVerifyCB, (XtPointer)mw);
     }
 }
 
 static Boolean
-DoCommitEdit(mw)
+DoCommitEdit(mw, event)
 XbaeMatrixWidget mw;
+XEvent *event;
 {
     String cell;
 
@@ -1095,7 +1137,7 @@ XbaeMatrixWidget mw;
     /*
      * Get the value the user entered in the textField (this is a copy)
      */
-    cell = XmTextFieldGetString(TextChild(mw));
+    cell = XmTextGetString(TextChild(mw));
 
     /*
      * Call the leaveCellCallback to see if we can leave the current cell.
@@ -1105,13 +1147,14 @@ XbaeMatrixWidget mw;
 	XbaeMatrixLeaveCellCallbackStruct call_data;
 
 	call_data.reason = XbaeLeaveCellReason;
+	call_data.event = event;
 	call_data.row = mw->matrix.current_row;
 	call_data.column = mw->matrix.current_column;
 	call_data.value = cell;
 	call_data.doit = True;
 
 	XtCallCallbackList((Widget) mw, mw->matrix.leave_cell_callback,
-			   (XtPointer) & call_data);
+			   (XtPointer)&call_data);
 
 	/*
 	 * Application doesn't want to leave this cell. Make the cell visible
@@ -1179,7 +1222,7 @@ XbaeMatrixWidget mw;
     int horiz_visible = NON_FIXED_TOTAL_WIDTH(mw) - HORIZ_ORIGIN(mw);
     int vert_visible = CELL_TOTAL_HEIGHT(mw) -
 	VERT_ORIGIN(mw) * ROW_HEIGHT(mw);
-
+    
     /*
      * Check the location of the scrollbars
      */
@@ -1257,12 +1300,15 @@ XbaeMatrixWidget mw;
      */
     if (width < full_width)
     {
+	int HSBwidth;
+	
 	/*
 	 * Calculate the width of the non-fixed visible cells.
 	 */
 	cell_width = mw->core.width - (FIXED_COLUMN_WIDTH(mw) +
-	     TRAILING_FIXED_COLUMN_WIDTH(mw) + ROW_LABEL_WIDTH(mw) +
-	     2 * mw->manager.shadow_thickness);
+				       TRAILING_FIXED_COLUMN_WIDTH(mw) +
+				       ROW_LABEL_WIDTH(mw) +
+				       2 * mw->manager.shadow_thickness);
 
 	/*
 	 * Subtract the VSB if we have one.
@@ -1274,20 +1320,28 @@ XbaeMatrixWidget mw;
 	    cell_width = 1;
 	    
 	/*
+	 * Adjust for shadow thickness.
+	 */
+	HSBwidth = cell_width + mw->manager.shadow_thickness *
+	    (mw->matrix.fixed_columns ||
+	     mw->matrix.trailing_fixed_columns ?
+	     (mw->matrix.fixed_columns &&
+	      mw->matrix.trailing_fixed_columns ? 0 : 1) : 2);
+	
+	/*
 	 * If the window is not full height, then place the HSB at the edge
 	 * of the window.  Is the window is larger than full height, then
 	 * place the HSB immediately below the cell region.
 	 */
 	XtConfigureWidget(
 	    HorizScrollChild(mw),
-	    FIXED_COLUMN_LABEL_OFFSET(mw) - VERT_SB_OFFSET(mw) +
-	    ((scrollbar_left && has_vert) ? VERT_SB_WIDTH(mw) : 0),
+	    HSB_X_POSITION(mw),
 	    (scrollbar_top && has_horiz) ? (Position) 0 :
 	    ((height < full_height) || mw->matrix.fill ?
 	     (Position) (mw->core.height -
 			 (HorizScrollChild(mw)->core.height +
 			  2 * HorizScrollChild(mw)->core.border_width)) :
-	     (Position) (full_height + mw->matrix.space)), cell_width,
+	     (Position) (full_height + mw->matrix.space)), HSBwidth,
 	    HorizScrollChild(mw)->core.height,
 	    HorizScrollChild(mw)->core.border_width);
 
@@ -1341,23 +1395,14 @@ XbaeMatrixWidget mw;
 	{
 	    XtConfigureWidget(
 		HorizScrollChild(mw),
-		FIXED_COLUMN_LABEL_OFFSET(mw) - VERT_SB_OFFSET(mw) +
-		((scrollbar_left && has_vert) ? VERT_SB_WIDTH(mw) : 0),
+		HSB_X_POSITION(mw),
 		(scrollbar_top && has_horiz) ? (Position) 0 :
 		((height < full_height) || mw->matrix.fill ?
 		 (Position) (mw->core.height -
 			     (HorizScrollChild(mw)->core.height +
 			      2 * HorizScrollChild(mw)->core.border_width)) :
 		 (Position) (full_height + mw->matrix.space)),
-		(! mw->matrix.fill) ? cell_width :
-		((TRAILING_FIXED_COLUMN_WIDTH(mw) > 0) ?
-		 full_width - mw->manager.shadow_thickness -
-		 COLUMN_LABEL_OFFSET(mw) - FIXED_COLUMN_WIDTH(mw) -
-		 TRAILING_FIXED_COLUMN_WIDTH(mw) +
-		 VERT_SB_OFFSET(mw):
-		 mw->core.width - mw->manager.shadow_thickness -
-		 COLUMN_LABEL_OFFSET(mw) - FIXED_COLUMN_WIDTH(mw) +
-		 VERT_SB_OFFSET(mw) - (has_vert ? VERT_SB_WIDTH(mw) : 0)),
+		HSB_WIDTH(mw),
 		HorizScrollChild(mw)->core.height,
 		HorizScrollChild(mw)->core.border_width);
 
@@ -1375,6 +1420,7 @@ XbaeMatrixWidget mw;
     if (height < full_height)
     {
 	int VSBheight;
+
 	/*
 	 * Calculate the height of the non-fixed visible cells.
 	 */
@@ -1388,13 +1434,19 @@ XbaeMatrixWidget mw;
 	if (has_horiz)
 	    cell_height -= HORIZ_SB_HEIGHT(mw);
 
-	if (cell_height <= 0 )
+	if (cell_height <= 0)
 	    cell_height = 1;
 
-	if( TRAILING_FIXED_ROW_HEIGHT(mw) > 0)
-	    VSBheight = (cell_height / ROW_HEIGHT(mw)) * ROW_HEIGHT(mw);
+	/*
+	 * Adjust for shadow thickness.
+	 */
+	if (TRAILING_FIXED_ROW_HEIGHT(mw) > 0)
+	    VSBheight = (cell_height / ROW_HEIGHT(mw)) * ROW_HEIGHT(mw) +
+		(mw->matrix.fixed_rows ? 0 : mw->manager.shadow_thickness);
 	else
-	    VSBheight = cell_height;
+	    VSBheight = cell_height +
+               ((mw->matrix.fixed_rows ? 1 : 2) *
+		mw->manager.shadow_thickness);
 
 	/*
 	 * If the window is not full width, then place the VSB at the edge
@@ -1409,8 +1461,7 @@ XbaeMatrixWidget mw;
 			 (VertScrollChild(mw)->core.width + 2 *
 			  VertScrollChild(mw)->core.border_width)) :
 	     (Position) full_width + mw->matrix.space),
-	    FIXED_ROW_LABEL_OFFSET(mw) - HORIZ_SB_OFFSET(mw) +
-	    ((scrollbar_top && has_horiz) ? HORIZ_SB_HEIGHT(mw) : 0),
+	    VSB_Y_POSITION(mw), 
 	    VertScrollChild(mw)->core.width, VSBheight > 0 ? VSBheight : 1,
 	    VertScrollChild(mw)->core.border_width);
 	/*
@@ -1453,7 +1504,9 @@ XbaeMatrixWidget mw;
 			 VERT_ORIGIN(mw) * ROW_HEIGHT(mw));
 
 	cell_height = CELL_TOTAL_HEIGHT(mw);
-	if (cell_height <= 0) cell_height = 1;
+
+	if (cell_height <= 0)
+	    cell_height = 1;
 	
 	rows_visible = mw->matrix.rows - mw->matrix.fixed_rows -
 	    mw->matrix.trailing_fixed_rows;
@@ -1469,17 +1522,9 @@ XbaeMatrixWidget mw;
 			    (VertScrollChild(mw)->core.width +
 			     2 * VertScrollChild(mw)->core.border_width)) :
 		 (Position)full_width + mw->matrix.space),
-		FIXED_ROW_LABEL_OFFSET(mw) - HORIZ_SB_OFFSET(mw) +
-		((scrollbar_top && has_horiz) ? HORIZ_SB_HEIGHT(mw) : 0),
+		VSB_Y_POSITION(mw),
 		VertScrollChild(mw)->core.width,
-		(! mw->matrix.fill) ? cell_height :
-		((TRAILING_FIXED_ROW_HEIGHT(mw) > 0) ?
-		 full_height - mw->manager.shadow_thickness -
-		 ROW_LABEL_OFFSET(mw) - FIXED_ROW_HEIGHT(mw) -
-		 TRAILING_FIXED_ROW_HEIGHT(mw) + HORIZ_SB_OFFSET(mw) :
-		 mw->core.height - mw->manager.shadow_thickness -
-		 ROW_LABEL_OFFSET(mw) - FIXED_ROW_HEIGHT(mw) +
-		 HORIZ_SB_OFFSET(mw) - (has_horiz ? HORIZ_SB_HEIGHT(mw) : 0)),
+		VSB_HEIGHT(mw),
 		VertScrollChild(mw)->core.border_width);
 	    
 	    XtVaSetValues(
@@ -1664,7 +1709,7 @@ XbaeMatrixWidget mw;
     {
 	XtConfigureWidget(BottomClip(mw),
 			  FIXED_COLUMN_LABEL_OFFSET(mw),
-			  cell_height + FIXED_ROW_LABEL_OFFSET(mw),
+			  TRAILING_FIXED_ROW_LABEL_OFFSET(mw),
 			  cell_width, TRAILING_FIXED_ROW_HEIGHT(mw), 0);
 	if (!XtIsManaged(BottomClip(mw)))
 	    XtManageChild(BottomClip(mw));
@@ -1694,13 +1739,16 @@ XbaeMatrixWidget mw;
 
     if (mw->matrix.resize_callback != NULL)
     {
-      XbaeMatrixResizeCallbackStruct call_data;
+	XbaeMatrixResizeCallbackStruct call_data;
 
-      call_data.reason = XbaeResizeReason;
-      call_data.width  = mw->core.width;
-      call_data.height = mw->core.height;
-      XtCallCallbackList ((Widget)mw, mw->matrix.resize_callback,
-			  (XtPointer) &call_data);
+	call_data.reason = XbaeResizeReason;
+	call_data.event = (XEvent *)NULL;
+	call_data.row = mw->matrix.rows;
+	call_data.column = mw->matrix.columns;
+	call_data.width  = mw->core.width;
+	call_data.height = mw->core.height;
+	XtCallCallbackList ((Widget)mw, mw->matrix.resize_callback,
+			    (XtPointer) &call_data);
     }
 }
 
@@ -1716,8 +1764,8 @@ Widget w;
 XtPointer client;
 XtPointer call;
 {
-    XbaeMatrixWidget mw = ( XbaeMatrixWidget )client;
-    XmTextVerifyCallbackStruct *verify = ( XmTextVerifyCallbackStruct * )call;
+    XbaeMatrixWidget mw = (XbaeMatrixWidget)client;
+    XmTextVerifyCallbackStruct *verify = (XmTextVerifyCallbackStruct *)call;
     XbaeMatrixModifyVerifyCallbackStruct call_data;
 
     if (!mw->matrix.modify_verify_callback)
@@ -1726,22 +1774,13 @@ XtPointer call;
     call_data.reason = XbaeModifyVerifyReason;
     call_data.row = mw->matrix.current_row;
     call_data.column = mw->matrix.current_column;
+    call_data.event = (XEvent *)NULL;
     call_data.verify = verify;
-    /*
-     * I could do:  prev_text = ((XmTextFieldRec*)w)->text.value;
-     * but I think this is safer.
 
-     call_data.prev_text = XmTextFieldGetString(w);
-
-     */
-    
-    /* And I think this is quicker - AL */
-    call_data.prev_text = ((XmTextFieldRec*)w)->text.value;
+    call_data.prev_text = ((XmTextRec*)w)->text.value;
 
     XtCallCallbackList((Widget) mw, mw->matrix.modify_verify_callback,
 		       (XtPointer) & call_data);
-
-    /* XtFree((char *)call_data.prev_text); */
 }
 
 
@@ -1749,13 +1788,15 @@ XtPointer call;
  * Matrix edit_cell method
  */
 void
-xbaeEditCell(mw, row, column)
+xbaeEditCell(mw, event, row, column, params, nparams)
 XbaeMatrixWidget mw;
-int row, column;
+XEvent *event;
+int row;
+int column;
+String *params;
+Cardinal nparams;
 {
-    Boolean edit = True;
-    Boolean select_text = False;
-    Boolean map = True;
+    XbaeMatrixEnterCellCallbackStruct call_data;
     Window newWin, oldWin;
     int x, y;
     Pixel fgcolor, bgcolor;
@@ -1773,13 +1814,13 @@ int row, column;
 	 * If we have zero rows or columns, there are no cells
 	 * available on which to place the text field so just return
 	 */
-	if ( mw->matrix.rows == 0 || mw->matrix.columns == 0 )
+	if (mw->matrix.rows == 0 || mw->matrix.columns == 0)
 	    return;
 
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "editCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for EditCell.",
+	    "XbaeMatrix: Row or column out of bounds for EditCell.",
 	    NULL, 0);
 	return;
     }
@@ -1787,7 +1828,7 @@ int row, column;
     /*
      * Attempt to commit the edit in the current cell. Return if we fail.
      */
-    if (!DoCommitEdit(mw))
+    if (!DoCommitEdit(mw, event))
 	return;
 
     /*
@@ -1798,11 +1839,9 @@ int row, column;
     /*
      * Fixed cells may not be editable.
      */
-    if (IS_FIXED(mw, row, column))
-    {
-	if (!mw->matrix.traverse_fixed)
-	    return;
-    }
+    if (IS_FIXED(mw, row, column) && !mw->matrix.traverse_fixed)
+	return;
+
     /* get the window of the new cell position */
     newWin = xbaeGetCellWindow(mw, &newWidget, row, column);
 
@@ -1810,23 +1849,31 @@ int row, column;
      * If we have an enterCellCallback, call it to see if the cell is
      * editable.
      */
+    call_data.map = True;
+    call_data.doit = True;
+    call_data.position = -1;
+    call_data.template = NULL;
+    
+    XtVaGetValues(TextChild(mw),
+		  XmNoverwriteMode, &call_data.overwrite_mode,
+		  XmNautoFill, &call_data.auto_fill,
+		  XmNconvertCase, &call_data.convert_case,
+		  NULL);
+
+    call_data.select_text = False;
+
     if (mw->matrix.enter_cell_callback)
     {
-	XbaeMatrixEnterCellCallbackStruct call_data;
-
 	call_data.reason = XbaeEnterCellReason;
+	call_data.event = event;
 	call_data.row = row;
 	call_data.column = column;
-	call_data.select_text = False;
 	call_data.map = True;
-	call_data.doit = True;
+	call_data.num_params = nparams;
+	call_data.params = params;
+
 	XtCallCallbackList((Widget) mw, mw->matrix.enter_cell_callback,
 			   (XtPointer) & call_data);
-
-	edit = call_data.doit;
-	select_text = call_data.select_text;
-	if( !edit )
-	    map = call_data.map;
     }
 
     /* Get the window of the current cell so we can see if we need to move. */
@@ -1851,9 +1898,9 @@ int row, column;
     xbaeRowColToXY(mw, row, column, &x, &y);
 
 #if CELL_WIDGETS
-    userWidget = mw->matrix.cell_widgets[ row ][ column ];
+    userWidget = mw->matrix.cell_widgets[row][column];
     
-    if( !userWidget )
+    if (!userWidget)
     {
 #endif
 	/*
@@ -1868,7 +1915,27 @@ int row, column;
 	 * but won't allow continued traversal on the fixed area. -CG
 	 */
 	
-	if (oldWin != newWin)
+	/*
+	 * The old check (oldWin != newWin) as criteria to reparent
+	 * wasn't quite correct in the case of editable fixed columns;
+	 * In this case the first time the cell was edited 'oldWin'
+	 * and 'newWin' where both the left clip widget (which was correct)
+	 * but the 'current_parent' was still the initial parent set in the
+	 * 'Reslize' function (I think the clip widget).
+	 * The result was that the text field was moved relative to wrong
+	 * window and therefore appearing at a complete different position;
+	 * I check now as additional criteria if the 'current_parent' widget
+	 * is the same as 'newWidget'.
+	 * It should fix the my problem without breaking anything else.
+	 * The check (oldWin && newWin) for apps which call on startup
+	 * editCell() without a realized widget tree. Without this check
+	 * X errors would be the result.
+	 *
+	 * donato petrino, 1997/11/
+	 */
+	if ((oldWin != newWin ||
+	     mw->matrix.current_parent != newWidget) &&
+	    (oldWin && newWin))
 	{
 	    XReparentWindow(XtDisplay(mw), XtWindow(TextChild(mw)), newWin,
 			    x + mw->matrix.cell_shadow_thickness,
@@ -1898,14 +1965,14 @@ int row, column;
 		     y + mw->matrix.cell_shadow_thickness +
 		     mw->matrix.cell_highlight_thickness);
 	/* Force editing to be disabled */
-	edit = False;
+	call_data.doit = False;
     }
 #endif
     /*
      * Compute the foreground and background of the text widget
      */
     alt = mw->matrix.alt_row_count ?
-	( row / mw->matrix.alt_row_count ) % 2 : False;
+	(row / mw->matrix.alt_row_count) % 2 : False;
 
     if (mw->matrix.colors)
 	fgcolor = mw->matrix.colors[row][column];
@@ -1915,7 +1982,7 @@ int row, column;
     if (mw->matrix.text_background != mw->core.background_pixel)
 	bgcolor = mw->matrix.text_background;
     else if (mw->matrix.cell_background && 
- 	mw->matrix.cell_background[row][column] != mw->core.background_pixel )
+	     mw->matrix.cell_background[row][column] != mw->core.background_pixel)
 	bgcolor = mw->matrix.cell_background[row][column];
     else
     {
@@ -1932,16 +1999,45 @@ int row, column;
 	Pixmap pixmap;
 	Pixmap mask;
 	int width, height, depth;
+	Pixel orig_bg, orig_fg;
 	
+	orig_bg = bgcolor;
+	orig_fg = fgcolor;
 	if (xbaeGetDrawCellValue(
 	    mw, row, column, &string, &pixmap, &mask, &width, &height,
 	    &bgcolor, &fgcolor, &depth) == XbaePixmap)
-      {
-          /*
-           * If we're showing a pixmap, we don't want the TextField.
-           */
-           return;
-      }
+	{
+	    /*
+	     * If we're showing a pixmap, we don't want the TextField.
+	     */
+	    return;
+	}
+	/*
+	 * If we reverse selected then we would have reversed things we
+	 * shouldn't have. We can detect this by checking bgcolor against
+	 * orig_fg and fgcolor against orig_bg and setting the colors back
+	 * to their non-selected values (as with an ordinary selected when
+	 * it is being edited). -cg 23/7/99
+	 */
+	if (mw->matrix.reverse_select && mw->matrix.selected_cells &&
+	    mw->matrix.selected_cells[row][column])
+	{
+	    int new_fg = fgcolor;
+	    int new_bg = bgcolor;
+
+	    /* callback changed bg */
+	    if (orig_fg != fgcolor)
+		new_bg = fgcolor;
+	    else	/* reset it */
+		new_bg = orig_bg;
+	    /* callback changed fg */
+	    if (orig_bg != bgcolor)
+		new_fg = bgcolor;
+	    else	/* reset it */
+		new_fg = orig_fg;
+	    bgcolor = new_bg;
+	    fgcolor = new_fg;
+	}
     }
     else
 	string = mw->matrix.cells ? mw->matrix.cells[row][column] : "";
@@ -1953,7 +2049,7 @@ int row, column;
      * loading the cell with a bad value to begin with.
      */
 #if CELL_WIDGETS
-    if( !mw->matrix.cell_widgets[ row ][ column ] )
+    if (!mw->matrix.cell_widgets[row][column])
     {
 #endif
 	/*
@@ -1961,11 +2057,10 @@ int row, column;
 	 * It thinks we are modifying the value but Motif thinks that
 	 * it knows best and we know better!
 	 */
-	XtRemoveCallback( TextChild(mw), XmNmodifyVerifyCallback,
-			  xbaeModifyVerifyCB, ( XtPointer )mw );
+	XtRemoveCallback(TextChild(mw), XmNmodifyVerifyCallback,
+			 xbaeModifyVerifyCB, (XtPointer)mw);
 	
 	XtVaSetValues(TextChild(mw),
-		      XmNvalue, string,
 		      XmNwidth, COLUMN_WIDTH(mw, column) -
 		      mw->matrix.cell_shadow_thickness * 2,
 		      XmNheight, ROW_HEIGHT(mw)
@@ -1973,14 +2068,20 @@ int row, column;
 		      XmNmaxLength, mw->matrix.column_max_lengths ?
 		      mw->matrix.column_max_lengths[column] :
 		      (int) mw->matrix.column_widths[column],
-		      XmNeditable, edit,
-		      XmNcursorPositionVisible, edit,
+		      XmNeditable, call_data.doit,
+		      XmNcursorPositionVisible, call_data.doit,
 		      XmNbackground, bgcolor,
 		      XmNforeground, fgcolor,
+		      XmNtemplate, call_data.template,
+		      XmNoverwriteMode, call_data.overwrite_mode,
+		      XmNautoFill, call_data.auto_fill,
+		      XmNconvertCase, call_data.convert_case,
 		      NULL);
 
-	XtAddCallback( TextChild(mw), XmNmodifyVerifyCallback,
-		       xbaeModifyVerifyCB, ( XtPointer )mw );
+	XtVaSetValues(TextChild(mw), XmNvalue, string, NULL);
+
+	XtAddCallback(TextChild(mw), XmNmodifyVerifyCallback,
+		      xbaeModifyVerifyCB, (XtPointer)mw);
 #if CELL_WIDGETS
     }
     else
@@ -1995,31 +2096,20 @@ int row, column;
 #endif
 
     /*
-     * We need this to work around an XmTextField problem with
-     * the I-beam and caret
+     * No need to do anything else if the text field is not going to
+     * be mapped
      */
-#if CELL_WIDGETS
-    if (edit && !userWidget ) 
-#endif
-	if( edit )
-    {
-	int length = strlen(string);
-	if( select_text )
-	    XmTextFieldSetSelection(TextChild(mw), 0, length,
-				    CurrentTime );
-	XmTextFieldSetInsertionPosition(TextChild(mw), length );
-    }
-
-    if( !map )
+    if (!call_data.map)
 	return;
+
     /*
      * Manage and map the textField
      */
 #if CELL_WIDGETS
-    if( userWidget )
+    if (userWidget)
     {
-	XtUnmanageChild( TextChild(mw) );
-	XtManageChild( userWidget );
+	XtUnmanageChild(TextChild(mw));
+	XtManageChild(userWidget);
     }
     else
 #endif
@@ -2034,7 +2124,50 @@ int row, column;
 #if CELL_WIDGETS
     else if (XtIsRealized(userWidget) && userWidget)
 	XtMapWidget(userWidget);
+
+    if (call_data.doit && !userWidget) 
 #endif
+	/*
+	 * Set the insert position of the cursor
+	 */
+	if (call_data.doit)
+	{
+	    int position = call_data.position;
+	    int length = strlen(string);
+
+	    if (event && (event->type == ButtonPress ||
+			  event->type == ButtonRelease ) &&
+		position < 0 && mw->matrix.calc_cursor_position)
+	    {
+		/*
+		 * The location of the pointer click needs to be calculated
+		 * so the cursor can be positioned.  If position is >= 0,
+		 * it has been set in the enterCellCallback and must
+		 * be honoured elsewhere.
+		 */
+		CellType cell;
+		int r, c;
+		
+		/*
+		 * The event must have occurred in a legal position
+		 * otherwise control wouldn't have made it here
+		 */
+		(void)xbaeEventToXY(mw, event, &x, &y, &cell);
+		(void)xbaeXYToRowCol(mw, &x, &y, &r, &c, cell);
+		x -= mw->matrix.cell_shadow_thickness;
+		y = ROW_HEIGHT(mw) / 2; /* XXX should be real y! */
+		position = XmTextXYToPos(TextChild(mw), x, y);
+	    }
+	    
+	    if (call_data.select_text)
+		XmTextSetSelection(TextChild(mw), 0, length,
+					CurrentTime);	    
+	    if (position < 0)
+		XmTextSetInsertionPosition(TextChild(mw), length);
+	    else
+		XmTextSetInsertionPosition(
+		    TextChild(mw), position > length ? length : position);
+	}
 	
 }
 
@@ -2046,25 +2179,29 @@ xbaeSelectCell(mw, row, column)
 XbaeMatrixWidget mw;
 int row, column;
 {
+    Boolean visible;
+
     if (row >= mw->matrix.rows || row < 0 ||
 	column >= mw->matrix.columns || column < 0)
     {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "selectCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for SelectCell.",
+	    "XbaeMatrix: Row or column out of bounds for SelectCell.",
 	    NULL, 0);
 	return;
     }
 
     /* If no cells have been selected yet, allocate memory here */
-    if( !mw->matrix.selected_cells )
-	xbaeCopySelectedCells( mw );
+    if (!mw->matrix.selected_cells)
+	xbaeCopySelectedCells(mw);
 
     /*
      * Scroll the cell onto the screen
      */
-    if (mw->matrix.scroll_select)
+    visible = xbaeIsCellVisible(mw, row, column);
+
+    if (mw->matrix.scroll_select && !visible)
 	xbaeMakeCellVisible(mw, row, column);
 
     /*
@@ -2074,7 +2211,7 @@ int row, column;
     {
 	mw->matrix.selected_cells[row][column] = True;
 	mw->matrix.num_selected_cells++;
-	if (mw->matrix.scroll_select || xbaeIsCellVisible(mw, row, column))
+	if (mw->matrix.scroll_select || visible)
 	{
 	    if (row >= TRAILING_VERT_ORIGIN(mw))
 		xbaeSetClipMask(mw, CLIP_TRAILING_FIXED_ROWS);
@@ -2097,7 +2234,8 @@ int row;
 {
     int j, lc, rc;
     Boolean fixed = False, trailing_fixed = False;
-    unsigned int clip_reason = CLIP_NONE, save_clip;
+    Boolean visible;
+    unsigned int clip_reason = CLIP_NONE, save_clip = CLIP_NONE;
 
     if (row >= mw->matrix.rows || row < 0)
     {
@@ -2110,9 +2248,10 @@ int row;
     }
 
     /* If no cells have been selected yet, allocate memory here */
-    if( !mw->matrix.selected_cells )
-	xbaeCopySelectedCells( mw );
+    if (!mw->matrix.selected_cells)
+	xbaeCopySelectedCells(mw);
 
+    visible = xbaeIsRowVisible(mw, row);
     /*
      * Scroll the row onto the screen
      */
@@ -2123,7 +2262,7 @@ int row;
      * If the row is not visible, there's no need to redraw - but, we do
      * need to update the selected cell resource
      */
-    if(!mw->matrix.scroll_select && !xbaeIsRowVisible(mw, row))
+    if(!mw->matrix.scroll_select && !visible)
     {
 	for (j = 0; j < mw->matrix.columns; j++)
 	    if (!mw->matrix.selected_cells[row][j])
@@ -2172,7 +2311,8 @@ int row;
 		else if ((! trailing_fixed) && (j >= TRAILING_HORIZ_ORIGIN(mw)))
 		{
 		    trailing_fixed = True;
-		    xbaeSetClipMask(mw, clip_reason | CLIP_TRAILING_FIXED_COLUMNS);
+		    xbaeSetClipMask(mw, clip_reason |
+				    CLIP_TRAILING_FIXED_COLUMNS);
 		}
 		
 		xbaeClearCell(mw, row, j);
@@ -2194,6 +2334,7 @@ int column;
 {
     int i, tr, br;
     Boolean once = False;
+
     unsigned int clip_reason = CLIP_NONE;
 
     if (column >= mw->matrix.columns || column < 0)
@@ -2207,8 +2348,8 @@ int column;
     }
 
     /* If no cells have been selected yet, allocate memory here */
-    if( !mw->matrix.selected_cells )
-	xbaeCopySelectedCells( mw );
+    if (!mw->matrix.selected_cells)
+	xbaeCopySelectedCells(mw);
 
     /*
      * Scroll the column onto the screen
@@ -2219,7 +2360,7 @@ int column;
     /*
      * No need to redraw unless the column is visible
      */
-    if( !mw->matrix.scroll_select && !xbaeIsColumnVisible(mw, column) )
+    if (!mw->matrix.scroll_select && !xbaeIsColumnVisible(mw, column))
     {
 	for (i = 0; i < mw->matrix.rows; i++)
 	    if (!mw->matrix.selected_cells[i][column])
@@ -2233,7 +2374,7 @@ int column;
     /*
      * Establish any necessary clipping for redrawing the cells
      */
-    if (column < mw->matrix.fixed_columns)
+    if (column < (int)mw->matrix.fixed_columns)
 	clip_reason = CLIP_FIXED_COLUMNS;
     else if (column >= TRAILING_HORIZ_ORIGIN(mw))
 	clip_reason = CLIP_TRAILING_FIXED_COLUMNS;
@@ -2255,7 +2396,7 @@ int column;
 		(i < (int)mw->matrix.fixed_rows) ||
 		(i >= TRAILING_VERT_ORIGIN(mw)))
 	    {
-		if ( (! once) && (i >= TRAILING_VERT_ORIGIN(mw)) )
+		if ((! once) && (i >= TRAILING_VERT_ORIGIN(mw)))
 		{
 		    once = True;
 		    xbaeSetClipMask(mw, clip_reason | CLIP_TRAILING_FIXED_ROWS);
@@ -2284,7 +2425,7 @@ XbaeMatrixWidget mw;
 
     mw->matrix.num_selected_cells = 0;
     /* If selected_cells is NULL, no cells have been selected yet  */
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return;
     
     xbaeGetVisibleCells(mw, &tr, &br, &lc, &rc);
@@ -2302,12 +2443,12 @@ XbaeMatrixWidget mw;
 	    if (mw->matrix.selected_cells[i][j])
 	    {
 		mw->matrix.selected_cells[i][j] = False;
-		if ( ( (i < (int)mw->matrix.fixed_rows) ||
-		       (i >= TRAILING_VERT_ORIGIN(mw)) ||
-		       (i >= tr && i <= br) ) &&
-		     ( (j < (int)mw->matrix.fixed_columns) ||
-		       (j >= TRAILING_HORIZ_ORIGIN(mw)) ||
-		       (j >= lc && j <= rc) ) )
+		if (((i < (int)mw->matrix.fixed_rows) ||
+		     (i >= TRAILING_VERT_ORIGIN(mw)) ||
+		     (i >= tr && i <= br)) &&
+		    ((j < (int)mw->matrix.fixed_columns) ||
+		     (j >= TRAILING_HORIZ_ORIGIN(mw)) ||
+		     (j >= lc && j <= rc)))
 		{
 		    xbaeClearCell(mw, i, j);
 		    xbaeDrawCell(mw, i, j);
@@ -2334,8 +2475,8 @@ XbaeMatrixWidget mw;
 
     xbaeGetVisibleCells(mw, &tr, &br, &lc, &rc);
     
-    if( !mw->matrix.selected_cells )
-	xbaeCopySelectedCells( mw );
+    if (!mw->matrix.selected_cells)
+	xbaeCopySelectedCells(mw);
 
     for (i = 0; i < mw->matrix.rows; i++)
     {
@@ -2351,12 +2492,12 @@ XbaeMatrixWidget mw;
 	    {
 		mw->matrix.num_selected_cells++;
 		mw->matrix.selected_cells[i][j] = True;
-		if ( ( (i < (int)mw->matrix.fixed_rows) ||
-		       (i >= TRAILING_VERT_ORIGIN(mw)) ||
-		       (i >= tr && i <= br) ) &&
-		     ( (j < (int)mw->matrix.fixed_columns) ||
-		       (j >= TRAILING_HORIZ_ORIGIN(mw)) ||
-		       (j >= lc && j <= rc) ) )
+		if (((i < (int)mw->matrix.fixed_rows) ||
+		     (i >= TRAILING_VERT_ORIGIN(mw)) ||
+		     (i >= tr && i <= br)) &&
+		    ((j < (int)mw->matrix.fixed_columns) ||
+		     (j >= TRAILING_HORIZ_ORIGIN(mw)) ||
+		     (j >= lc && j <= rc)))
 		{
 		    xbaeClearCell(mw, i, j);
 		    xbaeDrawCell(mw, i, j);
@@ -2386,12 +2527,12 @@ int column;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "deselectCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for DeselectCell.",
+	    "XbaeMatrix: Row or column out of bounds for DeselectCell.",
 	    NULL, 0);
 	return;
     }
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return;
 
     if (mw->matrix.selected_cells[row][column])
@@ -2435,7 +2576,7 @@ int row;
 	return;
     }
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return;
 
     /*
@@ -2511,13 +2652,13 @@ int column;
 	return;
     }
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return;
 
     /*
      * Establish any necessary clipping for redrawing the cells
      */
-    if (column < mw->matrix.fixed_columns)
+    if (column < (int)mw->matrix.fixed_columns)
 	clip_reason = CLIP_FIXED_COLUMNS;
     else if (column >= TRAILING_HORIZ_ORIGIN(mw))
 	clip_reason = CLIP_TRAILING_FIXED_COLUMNS;
@@ -2539,7 +2680,7 @@ int column;
 		(i < (int)mw->matrix.fixed_rows) ||
 		(i >= TRAILING_VERT_ORIGIN(mw)))
 	    {
-		if ( (! once) && (i >= TRAILING_VERT_ORIGIN(mw)) )
+		if ((! once) && (i >= TRAILING_VERT_ORIGIN(mw)))
 		{
 		    once = True;
 		    xbaeSetClipMask(mw, clip_reason | CLIP_TRAILING_FIXED_ROWS);
@@ -2571,22 +2712,22 @@ int row, column;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "getCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for GetCell.",
+	    "XbaeMatrix: Row or column out of bounds for GetCell.",
 	    NULL, 0);
 	return (NULL);
     }
-    if( mw->matrix.draw_cell_callback )
+    if (mw->matrix.draw_cell_callback)
     {
 	Pixel bgcolor, fgcolor;
 	Pixmap pixmap, mask;
 	int width, height, depth;
 	
-	if( xbaeGetDrawCellValue( mw, row, column, &value, &pixmap,
-				  &mask, &width, &height, &bgcolor, &fgcolor,
-				  &depth ) == XbaePixmap )
+	if (xbaeGetDrawCellValue(mw, row, column, &value, &pixmap,
+				 &mask, &width, &height, &bgcolor, &fgcolor,
+				 &depth) == XbaePixmap)
 	    value = "";
     }
-    else if( !mw->matrix.cells )
+    else if (!mw->matrix.cells)
 	return "";
     else
 	value = mw->matrix.cells[row][column];
@@ -2599,10 +2740,11 @@ int row, column;
  */
 Boolean
 #if NeedFunctionPrototypes
-xbaeCommitEdit(XbaeMatrixWidget mw, Boolean unmap)
+xbaeCommitEdit(XbaeMatrixWidget mw, XEvent *event, Boolean unmap)
 #else
-xbaeCommitEdit(mw, unmap)
+xbaeCommitEdit(mw, event, unmap)
 XbaeMatrixWidget mw;
+XEvent *event;
 Boolean unmap;
 #endif
 {
@@ -2614,7 +2756,7 @@ Boolean unmap;
     /*
      * Attempt to commit the edit
      */
-    commit = DoCommitEdit(mw);
+    commit = DoCommitEdit(mw, event);
 
     /*
      * If the commit succeeded and we are supposed to unmap the textField,
@@ -2656,11 +2798,12 @@ Boolean unmap;
     /*
      * Don't unmap, just restore original contents
      */
-    else if( !mw->matrix.draw_cell_callback )
+    else if (!mw->matrix.draw_cell_callback)
     {
 	XtVaSetValues(TextChild(mw),
-		      XmNvalue, mw->matrix.cells[mw->matrix.current_row]
-		      [mw->matrix.current_column],
+		      XmNvalue, (mw->matrix.cells ?
+				 mw->matrix.cells[mw->matrix.current_row]
+				 [mw->matrix.current_column] : ""),
 		      NULL);
     }
     else
@@ -2671,10 +2814,10 @@ Boolean unmap;
 	Pixel bg, fg;
 	int width, height, depth;
 	
-	if (xbaeGetDrawCellValue( mw, mw->matrix.current_row,
-				  mw->matrix.current_column, &string,
-				  &pixmap, &mask, &width, &height,
-				  &bg, &fg, &depth) == XbaeString)
+	if (xbaeGetDrawCellValue(mw, mw->matrix.current_row,
+				 mw->matrix.current_column, &string,
+				 &pixmap, &mask, &width, &height,
+				 &bg, &fg, &depth) == XbaeString)
 
 	    XtVaSetValues(TextChild(mw), XmNvalue, string, NULL);
     }
@@ -2716,8 +2859,8 @@ int num_rows;
      * If we add rows, and there is no drawCellCallback, we must allocate
      * the cells array to prevent potential disaster
      */
-    if( !mw->matrix.cells && !mw->matrix.draw_cell_callback )
-	xbaeCopyCells( mw );
+    if (!mw->matrix.cells && !mw->matrix.draw_cell_callback)
+	xbaeCopyCells(mw);
     
     /*
      * Add the new rows into the internal cells/labels data structure.
@@ -2753,7 +2896,7 @@ int num_rows;
 	 * Determine which part of the non clip region needs to be
 	 * redisplayed
 	 */
-	if (position >= mw->matrix.fixed_rows)
+	if (position >= (int)mw->matrix.fixed_rows)
 	{
 	    xbaeRowColToXY(mw, position, mw->matrix.fixed_columns, &x, &y);
 	    if (mw->matrix.scrollbar_placement == XmTOP_LEFT ||
@@ -2787,7 +2930,7 @@ int num_rows;
 		       0, HORIZ_SB_OFFSET(mw), 0,
 		       COLUMN_LABEL_HEIGHT(mw), True);
 	if ((!haveHSB && XtIsManaged(VertScrollChild(mw)) &&
-	    mw->matrix.row_labels) ||
+	     mw->matrix.row_labels) ||
 	    ((mw->matrix.scrollbar_placement == XmTOP_LEFT ||
 	      mw->matrix.scrollbar_placement == XmBOTTOM_LEFT) &&
 	     !haveVSB && XtIsManaged(VertScrollChild(mw))))
@@ -2851,13 +2994,13 @@ int num_rows;
     		  NULL);
 
     max = mw->matrix.rows ?
-	  (mw->matrix.rows - (int) mw->matrix.fixed_rows -
-	  (int) mw->matrix.trailing_fixed_rows) : 1;
+	(mw->matrix.rows - (int) mw->matrix.fixed_rows -
+	 (int) mw->matrix.trailing_fixed_rows) : 1;
 
     XtVaSetValues(VertScrollChild(mw),
 		  XmNvalue, (value >= max) ? max - 1 : value,
 		  XmNmaximum, mw->matrix.rows - (int) mw->matrix.fixed_rows -
-		   (int) mw->matrix.trailing_fixed_rows ?
+		  (int) mw->matrix.trailing_fixed_rows ?
 		  (mw->matrix.rows - (int) mw->matrix.fixed_rows -
 		   (int) mw->matrix.trailing_fixed_rows) : 1,
 		  XmNsliderSize, 1,
@@ -2877,35 +3020,60 @@ int num_rows;
     if (!mw->matrix.disable_redisplay && XtIsRealized((Widget)mw))
     {
 	Rectangle rect;
-	int x, y;
+	int y;
 
 	/*
 	 * Determine which part of the non clip region needs to be
 	 * redisplayed
 	 */
-	if (position >= mw->matrix.fixed_rows)
+#if 0
+	dest_y = (position - mw->matrix.fixed_rows) * ROW_HEIGHT(mw);
+	src_y = dest_y + num_rows * ROW_HEIGHT(mw);
+	if (XtIsManaged(LeftClip(mw)))
 	{
-	    xbaeRowColToXY(mw, position, mw->matrix.fixed_columns, &x, &y);
-	    if (mw->matrix.scrollbar_placement == XmTOP_LEFT ||
-		mw->matrix.scrollbar_placement == XmTOP_RIGHT)
-		y += HORIZ_SB_SPACE(mw);
-	    y += ROW_HEIGHT(mw) * mw->matrix.fixed_rows +
-		COLUMN_LABEL_HEIGHT(mw);
+	    if (src_y < LeftClip(mw)->core.height)
+	    {
+		/* Copy what we can up to replace the deleted rows */
+		XCopyArea(XtDisplay(mw), XtWindow(LeftClip(mw)),
+			  XtWindow(LeftClip(mw)), mw->matrix.draw_gc,
+			  0, src_y, LeftClip(mw)->core.width,
+			  LeftClip(mw)->core.height - src_y,
+			  0, dest_y);
+		/* And clear the new area that needs to be redrawn */
+		XClearArea(XtDisplay(mw), XtWindow(LeftClip(mw)),
+			   0, LeftClip(mw)->core.height - src_y,
+			   LeftClip(mw)->core.width,
+			   LeftClip(mw)->core.height - src_y, True);
+	    }
 	}
-	else
+	if (XtIsManaged(RightClip(mw)))
 	{
-	    y = HORIZ_SB_OFFSET(mw) + ROW_HEIGHT(mw) * position +
-		COLUMN_LABEL_HEIGHT(mw);
+	    if (src_y < RightClip(mw)->core.height)
+	    {
+		XCopyArea(XtDisplay(mw), XtWindow(RightClip(mw)),
+			  XtWindow(RightClip(mw)), mw->matrix.draw_gc,
+			  0, src_y, RightClip(mw)->core.width,
+			  RightClip(mw)->core.height - src_y,
+			  0, dest_y);
+		XClearArea(XtDisplay(mw), XtWindow(RightClip(mw)),
+			   0, RightClip(mw)->core.height - src_y,
+			   RightClip(mw)->core.width,
+			   RightClip(mw)->core.height - src_y, True);
+	    }
 	}
-	SETRECT(rect, 0, y, mw->core.width, mw->core.height);
+#endif
+	y = ROW_LABEL_OFFSET(mw) + position * ROW_HEIGHT(mw);
+	SETRECT(rect, 0, y, mw->core.width, mw->core.height - y);
+	/* xxx could this use an XCopyArea() instead */
 	XClearArea(XtDisplay(mw), XtWindow(mw),
-		   0, VISIBLE_HEIGHT(mw) + FIXED_ROW_HEIGHT(mw) +
-					TRAILING_FIXED_ROW_HEIGHT(mw),
-		   rect.x2, rect.y2, True);
+		   0, y, mw->core.width, mw->core.height - y, True);
+
 	xbaeRedrawLabelsAndFixed(mw, &rect);
+
+	y = (position - mw->matrix.fixed_rows) * ROW_HEIGHT(mw);
+
 	XClearArea(XtDisplay(mw), XtWindow(ClipChild(mw)),
-		   rect.x1, rect.y1,
-		   rect.x2 - rect.x1, rect.y2 - rect.y1, True);
+		   0, y, rect.x2, mw->core.height - y, True);
 	/*
 	 * If the scrollbars have just been unmapped and there are
 	 * labels then the labels shift around. The labels need
@@ -2920,6 +3088,7 @@ int num_rows;
 	    mw->matrix.row_labels)
 	    XClearArea(XtDisplay(mw), XtWindow(mw),
 		       VERT_SB_OFFSET(mw), 0, ROW_LABEL_WIDTH(mw), 0, True);
+#if 0
 	/*
 	 * If we are deleting rows and there are different cell backgrounds
 	 * or foregrounds and the deleted row was on the visible clip, then
@@ -2929,6 +3098,7 @@ int num_rows;
 	    mw->core.background_pixel || mw->matrix.odd_row_background !=
 	    mw->core.background_pixel)
 	    XbaeClipRedraw(ClipChild(mw));
+#endif
     }
 }
 
@@ -2937,7 +3107,7 @@ int num_rows;
  */
 void
 xbaeAddColumns(mw, position, columns, labels, widths, max_lengths,
-	   alignments, label_alignments, colors, backgrounds, num_columns)
+	       alignments, label_alignments, colors, backgrounds, num_columns)
 XbaeMatrixWidget mw;
 int position;
 String *columns;
@@ -2981,8 +3151,8 @@ int num_columns;
      * If we add columns, and there is no drawCellCallback, we must allocate
      * the cells array to prevent potential disaster
      */
-    if( !mw->matrix.cells && !mw->matrix.draw_cell_callback )
-	xbaeCopyCells( mw );
+    if (!mw->matrix.cells && !mw->matrix.draw_cell_callback)
+	xbaeCopyCells(mw);
     
     haveVSB = XtIsManaged(VertScrollChild(mw));
     haveHSB = XtIsManaged(HorizScrollChild(mw));
@@ -3022,7 +3192,7 @@ int num_columns;
 	 * Determine which part of the non clip region needs to be
 	 * redisplayed
 	 */
-	if (position >= mw->matrix.fixed_columns)
+	if (position >= (int)mw->matrix.fixed_columns)
 	{
 	    xbaeRowColToXY(mw, mw->matrix.fixed_columns, position, &x, &y);
 	    if (mw->matrix.scrollbar_placement == XmTOP_LEFT ||
@@ -3051,7 +3221,7 @@ int num_columns;
 	 * to be redrawn
 	 */
 	if ((!haveVSB && XtIsManaged(VertScrollChild(mw)) &&
-	    mw->matrix.column_labels) ||
+	     mw->matrix.column_labels) ||
 	    ((mw->matrix.scrollbar_placement == XmTOP_LEFT ||
 	      mw->matrix.scrollbar_placement == XmTOP_RIGHT) &&
 	     !haveHSB && XtIsManaged(HorizScrollChild(mw))))
@@ -3059,7 +3229,7 @@ int num_columns;
 		       0, HORIZ_SB_OFFSET(mw), 0,
 		       COLUMN_LABEL_HEIGHT(mw), True);
 	if ((!haveHSB && XtIsManaged(VertScrollChild(mw)) &&
-	    mw->matrix.row_labels) ||
+	     mw->matrix.row_labels) ||
 	    ((mw->matrix.scrollbar_placement == XmTOP_LEFT ||
 	      mw->matrix.scrollbar_placement == XmTOP_RIGHT)))
 	    XClearArea(XtDisplay(mw), XtWindow(mw),
@@ -3119,6 +3289,7 @@ int num_columns;
      * Reconfig the HSB maximum. Reset the sliderSize to avoid warnings.
      */
     XtVaSetValues(HorizScrollChild(mw),
+		  XmNvalue, 0,    /* value to 0 to stop sb from whinging */
 		  XmNmaximum, NON_FIXED_TOTAL_WIDTH(mw) ?
 		  NON_FIXED_TOTAL_WIDTH(mw) : 1,
 		  XmNsliderSize, 1,
@@ -3157,7 +3328,7 @@ int num_columns;
 	 * Determine which part of the non clip region needs to be
 	 * redisplayed
 	 */
-	if (position >= mw->matrix.fixed_columns)
+	if (position >= (int)mw->matrix.fixed_columns)
 	{
 	    xbaeRowColToXY(mw, mw->matrix.fixed_columns, position, &x, &y);
 	    if (mw->matrix.scrollbar_placement == XmTOP_LEFT ||
@@ -3178,7 +3349,7 @@ int num_columns;
 	SETRECT(rect, x, 0, mw->core.width, mw->core.height);
 	XClearArea(XtDisplay(mw), XtWindow(mw),
 		   VISIBLE_WIDTH(mw) + FIXED_COLUMN_WIDTH(mw) +
-					TRAILING_FIXED_COLUMN_WIDTH(mw),
+		   TRAILING_FIXED_COLUMN_WIDTH(mw),
 		   0,
 		   mw->core.width, mw->core.height, True);
 	xbaeRedrawLabelsAndFixed(mw, &rect);
@@ -3242,13 +3413,13 @@ Boolean bg;
      * If we don't have any colors yet, malloc them, and initialize
      * unused entries to the appropriate color
      */
-    if( ( !bg && !mw->matrix.colors ) ||
-	( bg && !mw->matrix.cell_background ) )
+    if ((!bg && !mw->matrix.colors) ||
+	(bg && !mw->matrix.cell_background))
     {
-	if( !bg )
+	if (!bg)
 	{
 	    xbaeCreateColors(mw);
-	    set = &mw->matrix.colors[ 0 ];
+	    set = &mw->matrix.colors[0];
 	    pixel = mw->manager.foreground;
 	    for (i = 0; i < position; i++)
 		for (j = 0; j < mw->matrix.columns; j++)
@@ -3261,10 +3432,10 @@ Boolean bg;
 	    xbaeCopyBackgrounds(mw);
     }
     
-    if( !bg )
-	set = &mw->matrix.colors[ 0 ];
+    if (!bg)
+	set = &mw->matrix.colors[0];
     else
-	set = &mw->matrix.cell_background[ 0 ];
+	set = &mw->matrix.cell_background[0];
 
     /*
      * Set each row to the appropriate color
@@ -3297,7 +3468,8 @@ Boolean bg;
     if (position <= mw->matrix.current_row && 
 	position + num_colors > mw->matrix.current_row &&
 	XtIsRealized(TextChild(mw)))
-	if( bg )
+    {
+	if (bg)
 	    XtVaSetValues(TextChild(mw), XmNbackground, 
 			  mw->matrix.cell_background[mw->matrix.current_row]
 			  [mw->matrix.current_column],
@@ -3306,7 +3478,8 @@ Boolean bg;
 	    XtVaSetValues(TextChild(mw), XmNforeground, 
 			  mw->matrix.colors[mw->matrix.current_row]
 			  [mw->matrix.current_column],
-			  NULL);	    
+			  NULL);
+    }
 }
 
 /*
@@ -3315,7 +3488,7 @@ Boolean bg;
 void
 #if NeedFunctionPrototypes
 xbaeSetColumnColors(XbaeMatrixWidget mw, int position, Pixel *colors,
-		int num_colors, Boolean bg)
+		    int num_colors, Boolean bg)
 #else
 xbaeSetColumnColors(mw, position, colors, num_colors, bg)
 XbaeMatrixWidget mw;
@@ -3349,13 +3522,13 @@ Boolean bg;
      * If we don't have any colors yet, malloc them, and initialize
      * unused entries to foreground
      */
-    if( ( !bg && !mw->matrix.colors ) ||
-	( bg && !mw->matrix.cell_background ) )
+    if ((!bg && !mw->matrix.colors) ||
+	(bg && !mw->matrix.cell_background))
     {
-	if( !bg )
+	if (!bg)
 	{
 	    xbaeCreateColors(mw);
-	    set = &mw->matrix.colors[ 0 ];
+	    set = &mw->matrix.colors[0];
 	    pixel = mw->manager.foreground;
 	    for (i = 0; i < mw->matrix.rows; i++)
 		for (j = 0; j < position; j++)
@@ -3368,10 +3541,10 @@ Boolean bg;
 	    xbaeCopyBackgrounds(mw);
     }
 
-    if( !bg )
-	set = &mw->matrix.colors[ 0 ];
+    if (!bg)
+	set = &mw->matrix.colors[0];
     else
-	set = &mw->matrix.cell_background[ 0 ];
+	set = &mw->matrix.cell_background[0];
 
     /*
      * Set each column to the appropriate color
@@ -3403,7 +3576,8 @@ Boolean bg;
     if (position <= mw->matrix.current_column && 
 	position + num_colors > mw->matrix.current_column &&
 	XtIsRealized(TextChild(mw)))
-	if( bg )
+    {
+	if (bg)
 	    XtVaSetValues(TextChild(mw), XmNbackground, 
 			  mw->matrix.cell_background[mw->matrix.current_row]
 			  [mw->matrix.current_column],
@@ -3412,7 +3586,8 @@ Boolean bg;
 	    XtVaSetValues(TextChild(mw), XmNforeground, 
 			  mw->matrix.colors[mw->matrix.current_row]
 			  [mw->matrix.current_column],
-			  NULL);	
+			  NULL);
+    }
 }
 
 /*
@@ -3443,7 +3618,7 @@ Boolean bg;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "xbaeSetCellColor", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for xbaeSetCellColor.",
+	    "XbaeMatrix: Row or column out of bounds for xbaeSetCellColor.",
 	    NULL, 0);
 	return;
     }
@@ -3451,13 +3626,13 @@ Boolean bg;
     /*
      * If we don't have any colors yet, malloc them and initialize them
      */
-    if( ( !bg && !mw->matrix.colors ) ||
-	( bg && !mw->matrix.cell_background ) )
+    if ((!bg && !mw->matrix.colors) ||
+	(bg && !mw->matrix.cell_background))
     {
-	if( !bg )
+	if (!bg)
 	{
 	    xbaeCreateColors(mw);
-	    set = &mw->matrix.colors[ 0 ];
+	    set = &mw->matrix.colors[0];
 	    pixel = mw->manager.foreground;
 	    for (i = 0; i < mw->matrix.rows; i++)
 		for (j = 0; j < mw->matrix.columns; j++)
@@ -3467,10 +3642,10 @@ Boolean bg;
 	    xbaeCopyBackgrounds(mw);
     }
 
-    if( !bg )
-	set = &mw->matrix.colors[ 0 ];
+    if (!bg)
+	set = &mw->matrix.colors[0];
     else
-	set = &mw->matrix.cell_background[ 0 ];
+	set = &mw->matrix.cell_background[0];
 
     /*
      * Set the cell's color
@@ -3485,9 +3660,10 @@ Boolean bg;
 	if (xbaeIsCellVisible(mw, row, column))
 	    xbaeDrawCell(mw, row, column);
     }
-    if (row == mw->matrix.current_row && column == mw->matrix.current_column &&
-	XtIsRealized(TextChild(mw)))
-	if( bg )
+    if (row == mw->matrix.current_row &&
+	column == mw->matrix.current_column && XtIsRealized(TextChild(mw)))
+    {
+	if (bg)
 	    XtVaSetValues(TextChild(mw), XmNbackground, 
 			  mw->matrix.cell_background[mw->matrix.current_row]
 			  [mw->matrix.current_column],
@@ -3497,5 +3673,6 @@ Boolean bg;
 			  mw->matrix.colors[mw->matrix.current_row]
 			  [mw->matrix.current_column],
 			  NULL);
+    }
 }
 

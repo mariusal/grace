@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,12 +20,17 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: ScrollMgr.c,v 1.1 1999-01-11 23:37:44 fnevgeny Exp $
+ * $Id: ScrollMgr.c,v 1.2 1999-07-26 22:55:07 fnevgeny Exp $
  */
 
 /*
  * ScrollMgr.c created by Andrew Lister (7 August, 1995)
  */
+
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <Xbae/MatrixP.h>
@@ -243,9 +248,9 @@ XtPointer client_data;
 XmScrollBarCallbackStruct *call_data;
 {
     XbaeMatrixWidget mw = (XbaeMatrixWidget) XtParent(w);
+    Rectangle fixed, nonfixed;
     int src_y, dest_y, height;
     int vert_sb_offset = VERT_SB_OFFSET(mw);
-    Rectangle fixed, nonfixed;
     int row_height = ROW_HEIGHT(mw);
     int trailing_fixed_row_label_offset = TRAILING_FIXED_ROW_LABEL_OFFSET(mw);
     int trailing_fixed_column_label_offset =
@@ -254,6 +259,12 @@ XmScrollBarCallbackStruct *call_data;
     int row_label_width = ROW_LABEL_WIDTH(mw);
     int fixed_row_label_offset = FIXED_ROW_LABEL_OFFSET(mw);
     
+    /*
+     * Not managed yet
+     */
+    if (!XtIsRealized((Widget)mw))
+	return;
+
     /*
      * Didn't scroll
      */
@@ -286,7 +297,7 @@ XmScrollBarCallbackStruct *call_data;
      * The textField needs to scroll along with the cells.
      */
     if (XtIsManaged(TextChild(mw)) &&
-		mw->matrix.current_row >= mw->matrix.fixed_rows &&
+		mw->matrix.current_row >= (int)mw->matrix.fixed_rows &&
 		mw->matrix.current_row < TRAILING_VERT_ORIGIN(mw))
 	XtMoveWidget(TextChild(mw),
 		     TextChild(mw)->core.x, TextChild(mw)->core.y +
@@ -296,9 +307,6 @@ XmScrollBarCallbackStruct *call_data;
      * Now we can adjust our vertical origin
      */
     VERT_ORIGIN(mw) = call_data->value;
-
-    if (!XtIsRealized((Widget)mw))
-	return;
 
     /*
      * If we scrolled more than a screenful, just clear and
@@ -336,24 +344,27 @@ XmScrollBarCallbackStruct *call_data;
 		ClipChild(mw)->core.height - 1);
 
 	/*
-	 * Clear non-fixed row labels
+	 * Clear non-fixed row labels, if necessary.
+	 * If we don't have a row label width, then
+	 * it would clear the entire width.
 	 */
-	XClearArea(XtDisplay(mw), XtWindow(mw),
-		   vert_sb_offset, fixed_row_label_offset,
-		   row_label_width - 1,
-		   VISIBLE_HEIGHT(mw) - 1,
-		   False);
+	if (row_label_width)
+	    XClearArea(XtDisplay(mw), XtWindow(mw),
+		       vert_sb_offset, fixed_row_label_offset,
+		       row_label_width - 1,
+		       VISIBLE_HEIGHT(mw),
+		       False);
 
 	/*
 	 * Clear the trailing filled rows, if necessary
          */
-	if ((XmGRID_ROW_SHADOW == mw->matrix.grid_type) &&
-	     NEED_HORIZ_FILL(mw))
+	if (IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw))
 	    XClearArea(XtDisplay(mw), XtWindow(mw),
 		       trailing_fixed_column_label_offset +
 		       trailing_fixed_column_width,
 		       fixed_row_label_offset,
-		       0, VISIBLE_HEIGHT(mw) - 1,
+		       FILL_HORIZ_WIDTH(mw),
+		       ClipChild(mw)->core.height,
 		       False);
 
 	/*
@@ -441,17 +452,17 @@ XmScrollBarCallbackStruct *call_data;
 	/*
 	 * Copy the row labels
 	 */
-	XCopyArea(XtDisplay(mw),
-		  XtWindow(mw), XtWindow(mw),
-		  mw->matrix.draw_gc,
-		  vert_sb_offset, src_y,
-		  row_label_width, height,
-		  vert_sb_offset, dest_y);
+	if (row_label_width)
+	    XCopyArea(XtDisplay(mw),
+		      XtWindow(mw), XtWindow(mw),
+		      mw->matrix.draw_gc,
+		      vert_sb_offset, src_y,
+		      row_label_width, height,
+		      vert_sb_offset, dest_y);
 	/*
 	 * Copy trailing filled portion of the rows if necessary
 	 */
-	if ((mw->matrix.grid_type == XmGRID_ROW_SHADOW) &&
-	     NEED_HORIZ_FILL(mw))
+	if (IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw))
 	{
 	    XCopyArea(XtDisplay(mw), XtWindow(mw), XtWindow(mw),
 		      mw->matrix.draw_gc,
@@ -479,30 +490,30 @@ XmScrollBarCallbackStruct *call_data;
 	/*
 	 * Translate coordinates for row labels on Matrix
 	 */
-	y_clear = fixed_row_label_offset;
+	y_clear += fixed_row_label_offset;
 
 	/*
 	 * Clear the newly scrolled chunk of row labels
 	 */
-	XClearArea(XtDisplay(mw), XtWindow(mw),
-		   vert_sb_offset, y_clear,
-		   row_label_width,
-		   CLIP_VERT_VISIBLE_SPACE(mw) +
-		   mw->manager.shadow_thickness,
-		   False);
+	if (row_label_width)
+	    XClearArea(XtDisplay(mw), XtWindow(mw),
+		       vert_sb_offset, y_clear,
+		       row_label_width,
+		       CLIP_VERT_VISIBLE_SPACE(mw) +
+		       mw->manager.shadow_thickness,
+		       False);
 
 	/*
-	 * Clear the trailing filled rows if necessary
-	if ((XmGRID_ROW_SHADOW == mw->matrix.grid_type) &&
-	     NEED_HORIZ_FILL(mw))
-	{
+	 * Clear the trailing filled rows, if necessary
+	 */
+	if ((src_y > dest_y) && IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw))
 	    XClearArea(XtDisplay(mw), XtWindow(mw),
 		       trailing_fixed_column_label_offset +
-		       trailing_fixed_column_width, y_clear,
-		       0, ClipChild(mw)->core.height - height,
+		       trailing_fixed_column_width, y_clear, 
+		       FILL_HORIZ_WIDTH(mw),
+		       ClipChild(mw)->core.height - height,
 		       False);
-	}
-	 */
+ 	
 	/*
 	 * Redraw the new chunk of fixed columns and row labels
 	 */
@@ -540,12 +551,17 @@ XmScrollBarCallbackStruct *call_data;
     int horiz_sb_offset = HORIZ_SB_OFFSET(mw);
     int trailing_fixed_row_label_offset = TRAILING_FIXED_ROW_LABEL_OFFSET(mw);
     int trailing_fixed_row_height = TRAILING_FIXED_ROW_HEIGHT(mw);
-    int trailing_fixed_column_label_offset =
-	TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw);
+/*    int trailing_fixed_column_label_offset =
+	TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw);*/
     int column_label_height = COLUMN_LABEL_HEIGHT(mw);
     int fixed_column_label_offset = FIXED_COLUMN_LABEL_OFFSET(mw);
     int fixed_column_width = FIXED_COLUMN_WIDTH(mw);
+    int vert_dead_space_height = VERT_DEAD_SPACE_HEIGHT(mw);
+    Boolean need_vert_fill = NEED_VERT_FILL(mw);
+    Boolean has_attached_trailing_rows = HAS_ATTACHED_TRAILING_ROWS(mw);
+    Boolean need_vert_dead_space_fill = NEED_VERT_DEAD_SPACE_FILL(mw);
     
+    /*printf("%d\n", HORIZ_ORIGIN(mw));*/
     /*
      * Didn't scroll
      */
@@ -578,7 +594,7 @@ XmScrollBarCallbackStruct *call_data;
      * The textField needs to scroll along with the cells.
      */
     if (XtIsManaged(TextChild(mw)) &&
-		mw->matrix.current_column >= mw->matrix.fixed_columns &&
+		mw->matrix.current_column >= (int)mw->matrix.fixed_columns &&
 		mw->matrix.current_column < TRAILING_HORIZ_ORIGIN(mw))
     {
 	XtMoveWidget(TextChild(mw),
@@ -636,27 +652,36 @@ XmScrollBarCallbackStruct *call_data;
 	/*
 	 * Clear the non-fixed column labels
 	 */
-	XClearArea(XtDisplay(mw), XtWindow(mw),
-		   fixed_column_label_offset, horiz_sb_offset,
-		   VISIBLE_WIDTH(mw) - 1,
-		   column_label_height - 1, False);
-	/*
-	 * Clear the trailing fixed rows
-	 */
-	if ((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	    NEED_VERT_FILL(mw))
+	if (column_label_height)
 	    XClearArea(XtDisplay(mw), XtWindow(mw),
-		       fixed_column_label_offset,
-		       trailing_fixed_row_label_offset +
-		       trailing_fixed_row_height,
-		       VISIBLE_WIDTH(mw) - 1, 0, False);
+		       fixed_column_label_offset, horiz_sb_offset,
+		       VISIBLE_WIDTH(mw),
+		       column_label_height - 1, False);
+	/*
+	 * Clear the trailing fixed column
+	 */
+	if (IN_GRID_COLUMN_MODE(mw))
+	{
+	    if (need_vert_fill && (! has_attached_trailing_rows))
+		XClearArea(XtDisplay(mw), XtWindow(mw),
+			   fixed_column_label_offset,
+			   trailing_fixed_row_label_offset +
+			   trailing_fixed_row_height,
+			   MATRIX_HORIZ_VISIBLE_SPACE(mw), 0, False);
+	    
+	    if (need_vert_dead_space_fill)
+		XClearArea(XtDisplay(mw), XtWindow(mw),
+			   fixed_column_label_offset,
+			   UNATTACHED_TRAILING_ROWS_OFFSET(mw),
+			   MATRIX_HORIZ_VISIBLE_SPACE(mw), 0, False);
+	}
 
 	/*
 	 * Redraw non-fixed column labels and cells in fixed rows
 	 */
 	SETRECT(fixed,
 		fixed_column_label_offset, horiz_sb_offset,
-		trailing_fixed_column_label_offset - 1,
+ 		fixed_column_label_offset + CLIP_HORIZ_VISIBLE_SPACE(mw),
 		trailing_fixed_row_label_offset +
 		trailing_fixed_row_height - 1);
     }
@@ -668,6 +693,8 @@ XmScrollBarCallbackStruct *call_data;
     else
     {
 	int x_clear = src_x > dest_x ? width : 0;
+	int unattached_trailing_rows_offset =
+	    UNATTACHED_TRAILING_ROWS_OFFSET(mw);
 
 	/*
 	 * Queue this scroll with the ScrollMgr
@@ -730,26 +757,36 @@ XmScrollBarCallbackStruct *call_data;
 	/*
 	 * Copy the column labels
 	 */
-	XCopyArea(XtDisplay(mw),
-		  XtWindow(mw), XtWindow(mw),
-		  mw->matrix.draw_gc,
-		  src_x, horiz_sb_offset,
-		  width, column_label_height,
-		  dest_x, horiz_sb_offset);
+	if (column_label_height)
+	    XCopyArea(XtDisplay(mw),
+		      XtWindow(mw), XtWindow(mw),
+		      mw->matrix.draw_gc,
+		      src_x, horiz_sb_offset,
+		      width, column_label_height,
+		      dest_x, horiz_sb_offset);
+	
 	/*
 	 * Copy trailing filled portion of the columns if necessary
 	 */
-	if ((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	    NEED_VERT_FILL(mw))
+	if (IN_GRID_COLUMN_MODE(mw))
 	{
-	    XCopyArea(XtDisplay(mw), XtWindow(mw), XtWindow(mw),
-		      mw->matrix.draw_gc,
-		      src_x, trailing_fixed_row_label_offset +
-		      trailing_fixed_row_height,
-		      width, FILL_VERT_HEIGHT(mw),
-		      dest_x, trailing_fixed_row_label_offset +
-		      trailing_fixed_row_height);
+	    if (need_vert_fill && (! has_attached_trailing_rows))
+		XCopyArea(XtDisplay(mw), XtWindow(mw), XtWindow(mw),
+			  mw->matrix.draw_gc,
+			  src_x, trailing_fixed_row_label_offset +
+			  trailing_fixed_row_height,
+			  width, FILL_VERT_HEIGHT(mw),
+			  dest_x, trailing_fixed_row_label_offset +
+			  trailing_fixed_row_height);
+	    
+	    if (need_vert_dead_space_fill)
+		XCopyArea(XtDisplay(mw), XtWindow(mw), XtWindow(mw),
+			  mw->matrix.draw_gc,
+			  src_x, unattached_trailing_rows_offset,
+			  width, vert_dead_space_height,
+			  dest_x, unattached_trailing_rows_offset);
 	}
+	
 	/*
 	 * Clear newly scrolled chunk of fixed rows on TopClip
 	 */
@@ -776,23 +813,22 @@ XmScrollBarCallbackStruct *call_data;
 	/*
 	 * Clear the newly scrolled chunk of column labels
 	 */
-	XClearArea(XtDisplay(mw), XtWindow(mw),
-		   x_clear, horiz_sb_offset,
-		   ClipChild(mw)->core.width - width,
-		   column_label_height,
-		   False);
+	if (column_label_height)
+	    XClearArea(XtDisplay(mw), XtWindow(mw),
+		       x_clear, horiz_sb_offset,
+		       ClipChild(mw)->core.width - width,
+		       column_label_height,
+		       False);
 
 	/*
-	 * Clear the bottom filled columns if necessary
-	if ((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	     NEED_VERT_FILL(mw))
-	{
-	    XClearArea(XtDisplay(mw), XtWindow(mw),
-		       x_clear, trailing_fixed_row_label_offset +
-		       trailing_fixed_row_height,
-		       ClipChild(mw)->core.width - width, 0, False);
-	}
+	 * Clear the dead space if necessary
 	 */
+	if (IN_GRID_COLUMN_MODE(mw) && need_vert_dead_space_fill)
+	    XClearArea(XtDisplay(mw), XtWindow(mw),
+		       x_clear,unattached_trailing_rows_offset,
+		       ClipChild(mw)->core.width - width,
+		       vert_dead_space_height, False);
+
 	/*
 	 * Redraw the new chunk of fixed rows and column labels
 	 */
@@ -848,8 +884,10 @@ Rectangle *expose;
      */
     startCol = xbaeXtoCol(mw, rect.x1 + HORIZ_ORIGIN(mw));
     endCol = xbaeXtoCol(mw, rect.x2 + HORIZ_ORIGIN(mw));
-    startRow = YtoRow(mw, rect.y1) + VERT_ORIGIN(mw);
-    endRow = YtoRow(mw, rect.y2) + VERT_ORIGIN(mw);
+    startRow = YtoRow(mw, rect.y1 + mw->matrix.first_row_offset) +
+	VERT_ORIGIN(mw);
+    endRow = YtoRow(mw, rect.y2 + mw->matrix.first_row_offset) +
+	VERT_ORIGIN(mw);
 
     SANITY_CHECK_ROW(mw, startRow);
     SANITY_CHECK_ROW(mw, endRow);
@@ -864,9 +902,8 @@ Rectangle *expose;
 	/*
 	 * If we need to clip the vertical fill
 	 */
-	if ((!set_mask) && (XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	    ((mw->matrix.rows - 1) == i) && 
-	    NEED_VERT_FILL(mw))
+	if ((!set_mask) && IN_GRID_COLUMN_MODE(mw) &&
+	    ((mw->matrix.rows - 1) == i) && NEED_VERT_FILL(mw))
 	{
 	    set_mask = True;
 	    xbaeSetClipMask(mw, CLIP_TRAILING_FIXED_ROWS);
@@ -906,6 +943,8 @@ Rectangle *expose;
 	TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw);
     int trailing_fixed_column_width = TRAILING_FIXED_COLUMN_WIDTH(mw);
     int column_label_offset = COLUMN_LABEL_OFFSET(mw);
+    Boolean need_vert_fill = NEED_VERT_FILL(mw);
+    Boolean has_attached_trailing_rows = HAS_ATTACHED_TRAILING_ROWS(mw);
 
     if (mw->matrix.disable_redisplay)
 	return;
@@ -913,7 +952,7 @@ Rectangle *expose;
     /*
      * Handle the row labels that are in fixed rows
      */
-    if (mw->matrix.fixed_rows && mw->matrix.row_labels)
+    if (mw->matrix.rows && mw->matrix.fixed_rows && mw->matrix.row_labels)
     {
 	Rectangle rect;
 	
@@ -942,9 +981,10 @@ Rectangle *expose;
 	    /*
 	     * Redraw each label that was intersected
 	     */
-	    endRow = YtoRow(mw, intersect.y2);
+	    endRow = YtoRow(mw, intersect.y2 + mw->matrix.first_row_offset);
 	    SANITY_CHECK_ROW(mw, endRow);
-	    for (i = YtoRow(mw, intersect.y1), SANITY_CHECK_ROW(mw, i);
+	    for (i = YtoRow(mw, intersect.y1 + mw->matrix.first_row_offset),
+		     SANITY_CHECK_ROW(mw, i);
 		 i <= endRow; i++)
 		xbaeDrawRowLabel(mw, i, False);
 	}
@@ -953,7 +993,8 @@ Rectangle *expose;
     /*
      * Handle the row labels that are in trailing fixed rows
      */
-    if (mw->matrix.trailing_fixed_rows && mw->matrix.row_labels)
+    if (mw->matrix.rows && mw->matrix.trailing_fixed_rows &&
+	mw->matrix.row_labels)
     {
 	Rectangle rect;
 
@@ -1041,7 +1082,8 @@ Rectangle *expose;
     /*
      * Handle the column labels that are in fixed columns
      */
-    if (mw->matrix.fixed_columns && mw->matrix.column_labels)
+    if (mw->matrix.columns && mw->matrix.fixed_columns &&
+	mw->matrix.column_labels)
     {
 	Rectangle rect;
 
@@ -1083,7 +1125,8 @@ Rectangle *expose;
     /*
      * Handle the column labels that are in trailing fixed columns
      */
-    if (mw->matrix.trailing_fixed_columns && mw->matrix.column_labels)
+    if (mw->matrix.columns && mw->matrix.trailing_fixed_columns &&
+	mw->matrix.column_labels)
     {
 	Rectangle rect;
 
@@ -1174,7 +1217,7 @@ Rectangle *expose;
     /*
      * Handle cells in fixed rows except those also in fixed columns
      */
-    if (mw->matrix.fixed_rows)
+    if (mw->matrix.rows && mw->matrix.columns && mw->matrix.fixed_rows)
     {
 	Rectangle rect;
 
@@ -1237,7 +1280,8 @@ Rectangle *expose;
     /*
      * Handle cells in trailing fixed rows except those also in fixed columns
      */
-    if (mw->matrix.trailing_fixed_rows)
+    if (mw->matrix.rows && mw->matrix.columns &&
+	mw->matrix.trailing_fixed_rows)
     {
 	Rectangle rect;
 
@@ -1297,7 +1341,7 @@ Rectangle *expose;
     /*
      * Handle cells in fixed columns
      */
-    if (mw->matrix.fixed_columns)
+    if (mw->matrix.rows && mw->matrix.columns && mw->matrix.fixed_columns)
     {
 	Rectangle rect;
 
@@ -1407,20 +1451,20 @@ Rectangle *expose;
 		     * or alternatively, jump to the trailing fixed row
 		     * to draw.
 		     */
-		    if (redrawFixedRows && (i == mw->matrix.fixed_rows))
+		    if (redrawFixedRows && i == mw->matrix.fixed_rows)
 			i += VERT_ORIGIN(mw);
 
-		    if (redrawTrailingFixedRows && (i == skipRow) &&
-			(endRow > skipRow))
+		    if (redrawTrailingFixedRows && i == skipRow &&
+			endRow > skipRow && i < TRAILING_VERT_ORIGIN(mw))
 			i = TRAILING_VERT_ORIGIN(mw);
 
 		    /*
 		     * If we need to clip the vertical fill
 		     */
 		    if (!(clip_reason & CLIP_TRAILING_FIXED_ROWS) &&
-			(XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
+			IN_GRID_COLUMN_MODE(mw) &&
 			((mw->matrix.rows - 1) == i) && 
-			NEED_VERT_FILL(mw))
+			(need_vert_fill && (! has_attached_trailing_rows)))
 		    {
 			clip_reason |= CLIP_FIXED_COLUMNS |
 			    CLIP_TRAILING_FIXED_ROWS;
@@ -1438,7 +1482,8 @@ Rectangle *expose;
     /*
      * Handle cells in trailing fixed columns
      */
-    if (mw->matrix.trailing_fixed_columns)
+    if (mw->matrix.rows && mw->matrix.columns &&
+	mw->matrix.trailing_fixed_columns)
     {
 	Rectangle rect;
 
@@ -1554,9 +1599,9 @@ Rectangle *expose;
 		     * If we need to clip the vertical fill
 		     */
 		    if (!(clip_reason & CLIP_TRAILING_FIXED_ROWS) &&
-			(XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
+			IN_GRID_COLUMN_MODE(mw) &&
 			((mw->matrix.rows - 1) == i) && 
-			NEED_VERT_FILL(mw))
+			(need_vert_fill && (! has_attached_trailing_rows)))
 		    {
 			clip_reason |= CLIP_TRAILING_FIXED_COLUMNS |
 			    CLIP_TRAILING_FIXED_ROWS;
@@ -1592,19 +1637,15 @@ Rectangle *expose;
 	else
 	{
 	    width = mw->core.width - row_label_width -
-		(! XtIsManaged(VertScrollChild(mw)) ? 0 :
-		 mw->matrix.space + VertScrollChild(mw)->core.width +
-		 2 * VertScrollChild(mw)->core.border_width);
+		VERT_SB_SPACE(mw);
 	    
 	    height = mw->core.height - column_label_height -
-		(! XtIsManaged(HorizScrollChild(mw)) ? 0 :
-		 mw->matrix.space + HorizScrollChild(mw)->core.height +
-		 2 * HorizScrollChild(mw)->core.border_width);
+		HORIZ_SB_SPACE(mw) ;
 	}
 	
 	DRAW_SHADOW(XtDisplay(mw), XtWindow(mw),
-		    mw->manager.bottom_shadow_GC,
 		    mw->manager.top_shadow_GC,
+		    mw->manager.bottom_shadow_GC,
 		    mw->manager.shadow_thickness,
 		    row_label_width + vert_sb_offset,
 		    column_label_height + horiz_sb_offset,

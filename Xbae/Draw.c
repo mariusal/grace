@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,8 +20,12 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Draw.c,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Draw.c,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <Xm/XmP.h>
@@ -32,25 +36,30 @@
 #include <Xbae/Utils.h>
 #include <Xbae/Shadow.h>
 #include <Xbae/Draw.h>
+#include <stdlib.h>
 
-static void xbaeDrawCellString P(( XbaeMatrixWidget, int, int, String, Pixel,
-				   Pixel ));
+static void xbaeDrawCellString P((XbaeMatrixWidget, int, int, int, int,
+				  String, Pixel, Pixel));
 #if CELL_WIDGETS
-static void xbaeDrawCellWidget P(( XbaeMatrixWidget, int, int, Widget, Pixel,
-				   Pixel ));
+static void xbaeDrawCellWidget P((XbaeMatrixWidget, int, int, int, int,
+				  Widget, Pixel, Pixel));
 #endif
-static void xbaeDrawCellPixmap P(( XbaeMatrixWidget, int, int, Pixmap, Pixmap,
-				   int, int, Pixel, Pixel, int ));
+static void xbaeDrawCellPixmap P((XbaeMatrixWidget, int, int, int, int,
+				  Pixmap, Pixmap, int, int, Pixel,
+				  Pixel, int));
 
 /*
  * Draw a fixed or non-fixed cell. The coordinates are calculated relative
  * to the correct window and pixmap is copied to that window.
  */
 static void
-xbaeDrawCellPixmap(mw, row, column, pixmap, mask, width, height, bg, fg, depth)
+xbaeDrawCellPixmap(mw, row, column, x, y, pixmap, mask, width, height, bg,
+		   fg, depth)
 XbaeMatrixWidget mw;
 int row;
 int column;
+int x;
+int y;
 Pixmap pixmap;
 Pixmap mask;
 int width;
@@ -59,14 +68,13 @@ Pixel bg;
 Pixel fg;
 int depth;
 {
-    int x, y;
     int src_x = 0, src_y, dest_x, dest_y;
     int copy_width, copy_height;
     int cell_height = ROW_HEIGHT(mw);
     int cell_width = COLUMN_WIDTH(mw, column);
     Widget w;
     unsigned char alignment = mw->matrix.column_alignments ?
-	mw->matrix.column_alignments[ column ] : XmALIGNMENT_BEGINNING;
+	mw->matrix.column_alignments[column] : XmALIGNMENT_BEGINNING;
     Display *display = XtDisplay(mw);
     GC gc;
     Window win = xbaeGetCellWindow(mw, &w, row, column);
@@ -78,7 +86,6 @@ int depth;
      * Convert the row/column to the coordinates relative to the correct
      * window
      */
-    xbaeRowColToXY(mw, row, column, &x, &y);
     dest_x = x + TEXT_WIDTH_OFFSET(mw);
 
     gc = mw->matrix.pixmap_gc;
@@ -184,8 +191,8 @@ int depth;
     /*
      * If we need to fill the rest of the space, do so
      */
-    if (mw->matrix.grid_type == XmGRID_COLUMN_SHADOW &&
-	row == mw->matrix.rows - 1 && NEED_VERT_FILL(mw))
+    if (IN_GRID_COLUMN_MODE(mw) && NEED_VERT_FILL(mw) &&
+	(row == (mw->matrix.rows - 1)))
     {
 	int ax, ay;
 	int fill_width, fill_height;
@@ -198,8 +205,8 @@ int depth;
 	XFillRectangle(XtDisplay(mw), XtWindow(mw), gc,
 		       ax, ay, fill_width, fill_height);
     }
-    else if (mw->matrix.grid_type == XmGRID_ROW_SHADOW &&
-	     column == mw->matrix.columns - 1 && NEED_HORIZ_FILL(mw))
+    else if (IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw) &&
+	    (column == (mw->matrix.columns - 1)))
     {
 	int ax, ay;
 	int fill_width, fill_height;
@@ -227,13 +234,12 @@ int depth;
  * to the correct window and the cell is drawn in that window.
  */
 static void
-xbaeDrawCellString(mw, row, column, string, bg, fg)
+xbaeDrawCellString(mw, row, column, x, y, string, bg, fg)
 XbaeMatrixWidget mw;
 int row, column;
 String string;
 Pixel bg, fg;
 {
-    int x, y;
     GC gc;
     Widget w;
     Window win = xbaeGetCellWindow(mw, &w, row, column);
@@ -247,12 +253,6 @@ Pixel bg, fg;
     
     if (!win)
 	return;
-
-    /*
-     * Convert the row/column to the coordinates relative to the correct
-     * window
-     */
-    xbaeRowColToXY(mw, row, column, &x, &y);
 
 #if 0
     /*
@@ -286,18 +286,18 @@ Pixel bg, fg;
      * without duplicating work below
      */
     if ((XtWindow(mw) != win) ||
-	(!((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	   ((mw->matrix.rows - 1) == row) &&  NEED_VERT_FILL(mw)) &&
-	 !((XmGRID_ROW_SHADOW == mw->matrix.grid_type) &&
-	   ((mw->matrix.columns - 1) == column) && NEED_HORIZ_FILL(mw))))
+	(!(IN_GRID_COLUMN_MODE(mw) && NEED_VERT_FILL(mw) &&
+	   ((mw->matrix.rows - 1) == row)) &&
+	 !(IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw) &&
+	   ((mw->matrix.columns - 1) == column))))
 	XFillRectangle(XtDisplay(mw), win, gc, x, y,
 		       column_width, row_height);
 
     /*
      * If we need to fill the rest of the space, do so
      */
-    if ((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	((mw->matrix.rows - 1) == row) && NEED_VERT_FILL(mw))
+    if (IN_GRID_COLUMN_MODE(mw) && NEED_VERT_FILL(mw) &&
+	((mw->matrix.rows - 1) == row))
     {
 	int ax, ay;
 	int fill_width, fill_height;
@@ -310,8 +310,8 @@ Pixel bg, fg;
 	XFillRectangle(XtDisplay(mw), XtWindow(mw), gc,
 		       ax, ay, fill_width, fill_height);
     }
-    else if (mw->matrix.grid_type == XmGRID_ROW_SHADOW &&
-	     column == mw->matrix.columns - 1 && NEED_HORIZ_FILL(mw))
+    else if (IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw) &&
+	     (column == (mw->matrix.columns - 1)))
     {
 	int ax, ay;
 	int fill_width, fill_height;
@@ -351,25 +351,19 @@ Pixel bg, fg;
  * Draw a user defined widget in the cell
  */
 static void
-xbaeDrawCellWidget(mw, row, column, widget, bg, fg)
+xbaeDrawCellWidget(mw, row, column, x, y, widget, bg, fg)
 XbaeMatrixWidget mw;
 int row, column;
+int x, y;
 Widget widget;
 Pixel bg, fg;
 {
-    int x, y;
     GC gc;
     Widget w;
     Window win = xbaeGetCellWindow(mw, &w, row, column);
 
     if (!win)
 	return;
-
-    /*
-     * Convert the row/column to the coordinates relative to the correct
-     * window
-     */
-    xbaeRowColToXY(mw, row, column, &x, &y);
 
     gc = mw->matrix.draw_gc;
     XSetForeground(XtDisplay(mw), gc, bg);
@@ -431,14 +425,25 @@ Pixel color;
 #endif
 {
     int start, width, maxwidth;
-    XFontStruct	*font;
+    XFontStruct	*font_struct;
+    XFontSet	font_set;
     Boolean choppedStart = False;
     Boolean choppedEnd = False;
+    XRectangle *ink_array = NULL;
+    XRectangle *logical_array = NULL;
+    int num_chars;
+    XRectangle overall_logical;
 
     if (rowLabel || colLabel)
-	font = mw->matrix.label_font;
+    {
+	font_struct = mw->matrix.label_font_struct;
+	font_set = mw->matrix.label_font_set;
+    }
     else
-	font = mw->matrix.font;
+    {
+	font_struct = mw->matrix.font_struct;
+	font_set = mw->matrix.font_set;
+    }
     /*
      * Initialize starting character in string
      */
@@ -449,189 +454,445 @@ Pixel color;
     else 
 	maxwidth = maxlen * LABEL_WIDTH(mw);
 
-    width = XTextWidth(font, string, length);
-
-    /*
-     * If the width of the string is greater than the width of this cell,
-     * we need to clip. We don't want to use the server to clip because
-     * it is slow, so we truncate characters if we exceed a cells pixel width.
-     */
-    if (width > maxwidth)
+    if (font_set)
     {
-	switch (alignment)
-	{
+	ink_array = (XRectangle*)XtMalloc(length * sizeof(XRectangle));
+	logical_array = (XRectangle*)XtMalloc(length * sizeof(XRectangle));
 
-	case XmALIGNMENT_CENTER:
-	{
-	    int startx = x;
-	    int endx = x + maxwidth - 1;
-	    int newendx;
+	XmbTextPerCharExtents(font_set, string, length,
+	    ink_array, logical_array, length, &num_chars,
+	    NULL, &overall_logical);
 
-	    /*
-	     * Figure out our x for the centered string.  Then loop and chop
-	     * characters off the front until we are within the cell.
-	     * Adjust x, the starting character and the length of the string
-	     * for each char.
-	     */
-	    x += maxwidth / 2 - width / 2;
-	    while (x < startx)
+	/*
+	 * If the width of the string is greater than the width of this cell,
+	 * we need to clip. We don't want to use the server to clip because
+	 * it is slow, so we truncate characters if we exceed a cells pixel
+	 * width.
+	 */
+	if (overall_logical.width > maxwidth)
+	{
+	    switch (alignment)
 	    {
-		int cw = charWidth(font, string[start]);
 
-		x += cw;
-		width -= cw;
-		length--;
-		start++;
-                choppedStart = True;
+	    case XmALIGNMENT_CENTER:
+	    {
+		int startx;
+		int endx;
+		int i;
+		int end;
+
+		/*
+		 * If we are going to draw arrows at both ends, allow for them.
+		 */
+		if (mw->matrix.show_arrows)
+		{
+		    maxwidth -= 2 * mw->matrix.font_width;
+		    choppedStart = True;
+		    choppedEnd = True;
+		}
+
+		/*
+		 * Find limits of cell relative to the origin of the string.
+		 */
+		startx = overall_logical.x + overall_logical.width / 2 -
+		    maxwidth / 2;
+		endx = startx + maxwidth - 1;
+
+		/*
+		 * Find the first character which fits into the cell.
+		 */
+		for (i = 0; i < num_chars && logical_array[i].x < startx; ++i)
+		{
+		    int cl = mblen(string + start, length);
+		    start += cl;
+		    length -= cl;
+		}
+
+		/*
+		 * Find the last character which fits into the cell.
+		 * At this point length represents the number of bytes
+		 * between the end of the cell and the end of the full
+		 * string. Note that the scan continues from above.
+		 */
+		for (end = start; i < num_chars && (logical_array[i].x +
+						    logical_array[i].width) <
+			 endx; ++i)
+		{
+		    int cl = mblen(string + end, length);
+		    end += cl;
+		    length -= cl;
+		}
+
+		/*
+		 * Now reset length so that it represents the number of bytes
+		 * in the string.
+		 */
+		length = end - start;
+
+		break;
+	    }
+
+	    case XmALIGNMENT_END:
+	    {
+		int startx;
+		int i;
+
+		/*
+		 * We are going to an draw arrow at the end, allow for it.
+		 */
+		if (mw->matrix.show_arrows)
+		{
+		    maxwidth -= mw->matrix.font_width;
+		    choppedEnd = True;
+		}
+
+		/*
+		 * Find limits of cell relative to the origin of the string.
+		 */
+		startx = overall_logical.x + overall_logical.width - maxwidth;
+
+		/*
+		 * Find the first character which fits into the cell.
+		 */
+		for (i = 0; i < num_chars && logical_array[i].x < startx; ++i)
+		{
+		    int cl = mblen(string + start, length);
+		    start += cl;
+		    length -= cl;
+		}
+
+		break;
+	    }
+
+	    case XmALIGNMENT_BEGINNING:
+	    default:
+	    {
+		int endx;
+		int i;
+		int end;
+
+		/*
+		 * We are going to an draw arrow at the start, allow for it.
+		 */
+		if (mw->matrix.show_arrows)
+		{
+		    maxwidth -= mw->matrix.font_width;
+		    choppedStart = True;
+		}
+
+		/*
+		 * Find limits of cell relative to the origin of the string.
+		 */
+		endx = overall_logical.x + maxwidth - 1;
+
+		/*
+		 * Find the last character which fits into the cell.
+		 * At this point length represents the number of bytes
+		 * between the end of the cell and the end of the full
+		 * string.
+		 */
+		for (i = 0, end = start;
+		     i < num_chars && (logical_array[i].x +
+				       logical_array[i].width) < endx; ++i)
+		{
+		    int cl = mblen(string + end, length);
+		    end += cl;
+		    length -= cl;
+		    choppedEnd = True;
+		}
+
+		/*
+		 * Now reset length so that it represents the number of bytes
+		 * in the string.
+		 */
+		length = end - start;
+
+		break;
+	    }
 	    }
 
 	    /*
-	     * Now figure out the end x of the string.  Then loop and chop
-	     * characters off the end until we are within the cell.
+	     * Having truncated string recalculate extents to find origin
 	     */
-	    newendx = x + width - 1;
-	    while (newendx > endx && *(string + start))
+	    XmbTextPerCharExtents(font_set, string, length,
+		ink_array, logical_array, length, &num_chars,
+		NULL, &overall_logical);
+	}
+	/*
+	 * We fit inside our cell, so just compute the x of the start of
+	 * our string
+	 */
+	else
+	{
+	    switch (alignment)
 	    {
-		int cw = charWidth(font, string[start]);
 
-		newendx -= cw;
-		width -= cw;
-		length--;
-		choppedEnd = True;
+	    case XmALIGNMENT_CENTER:
+		x += maxwidth / 2 - overall_logical.width / 2;
+		break;
+
+	    case XmALIGNMENT_END:
+		x += maxwidth - overall_logical.width;
+		break;
+
+	    case XmALIGNMENT_BEGINNING:
+	    default:
+		/*
+		 * Leave x alone
+		 */
+		break;
 	    }
-
-	    break;
 	}
 
-	case XmALIGNMENT_END:
+	/*
+	 * Don't worry, XSetForeground is smart about avoiding unnecessary
+	 * protocol requests.
+	 */
+	XSetForeground(XtDisplay(mw), gc, color);
+
+	if (mw->matrix.show_arrows && choppedStart)
 	{
+	    XPoint points[ 3 ];
+	    points[ 0 ].x = points[ 1 ].x = x + mw->matrix.font_width;
+	    points[ 0 ].y = y + mw->matrix.font_y;
+	    points[ 1 ].y = y + mw->matrix.font_y + mw->matrix.font_height;
+	    points[ 2 ].x = x;
+	    points[ 2 ].y = y + mw->matrix.font_y + mw->matrix.font_height / 2;
 
-	    /*
-	     * Figure out our x for the right justified string.
-	     * Then loop and chop characters off the front until we fit.
-	     * Adjust x for each char lopped off. Also adjust the starting
-	     * character and length of the string for each char.
-	     */
-	    x += maxwidth - width;
-	    while (width > maxwidth)
-	    {
-		int cw = charWidth(font, string[start]);
+	    XFillPolygon(XtDisplay(mw), win, gc, points, 3,
+			 Convex, CoordModeOrigin);
 
-		width -= cw;
-		x += cw;
-		length--;
-		start++;
-                choppedStart = True;
-	    }
-	    break;
+	    /* Offset the start point so as to not draw on the triangle */
+	    x += FONT_WIDTH(mw);
 	}
 
-	case XmALIGNMENT_BEGINNING:
-	default:
-	    /*
-	     * Leave x alone, but chop characters off the end until we fit
-	     */
-	    while (width > maxwidth)
-	    {
-		width -= charWidth(font, string[length - 1]);
-		length--;
-		choppedEnd = True;
-	    }
-	    break;
+	if (mw->matrix.show_arrows && choppedEnd)
+	{
+	    XPoint points[ 3 ];
+	    points[ 0 ].x = points[ 1 ].x = x + overall_logical.width;
+	    points[ 0 ].y = y + mw->matrix.font_y;
+	    points[ 1 ].y = y + mw->matrix.font_y + mw->matrix.font_height;
+	    points[ 2 ].x = x + overall_logical.width + mw->matrix.font_width;
+	    points[ 2 ].y = y + mw->matrix.font_y + mw->matrix.font_height / 2;
+
+	    XFillPolygon(XtDisplay(mw), win, gc, points, 3,
+			 Convex, CoordModeOrigin);
 	}
+
+	/*
+	 * Adjust x for origin of string.
+	 */
+	x -= overall_logical.x;
+
+	/*
+	 * Now draw the string at x starting at char 'start' and of
+	 * length 'length'
+	 */
+	XmbDrawString(XtDisplay(mw), win, font_set, gc, x, y, &string[start],
+		      length);
+
+	/*
+	 * If bold is on, draw the string again offset by 1 pixel (overstrike)
+	 */
+	if (bold)
+	    XmbDrawString(XtDisplay(mw), win, font_set, gc, x - 1, y,
+			  &string[start], length);
+	if (ink_array)
+	    XtFree((char*)ink_array);
+	if (logical_array)
+	    XtFree((char*)logical_array);
     }
-
-    /*
-     * We fit inside our cell, so just compute the x of the start of our string
-     */
     else
     {
-	switch (alignment)
+	width = XTextWidth(font_struct, string, length);
+
+	/*
+	 * If the width of the string is greater than the width of this cell,
+	 * we need to clip. We don't want to use the server to clip because
+	 * it is slow, so we truncate characters if we exceed a cells pixel
+	 * width.
+	 */
+	if (width > maxwidth)
 	{
+	    switch (alignment)
+	    {
 
-	case XmALIGNMENT_CENTER:
-	    x += maxwidth / 2 - width / 2;
-	    break;
+	    case XmALIGNMENT_CENTER:
+	    {
+		int startx = x;
+		int endx = x + maxwidth - 1;
+		int newendx;
 
-	case XmALIGNMENT_END:
-	    x += maxwidth - width;
-	    break;
+		/*
+		 * Figure out our x for the centered string.  Then loop
+		 * and chop characters off the front until we are within
+		 * the cell.
+		 *
+		 * Adjust x, the starting character and the length of the
+		 * string for each char.
+		 */
+		x += maxwidth / 2 - width / 2;
+		while (x < startx)
+		{
+		    int cw = charWidth(font_struct,
+				       (unsigned char)string[start]);
 
-	case XmALIGNMENT_BEGINNING:
-	default:
-	    /*
-	     * Leave x alone
-	     */
-	    break;
+		    x += cw;
+		    width -= cw;
+		    length--;
+		    start++;
+		    choppedStart = True;
+		}
+
+		/*
+		 * Now figure out the end x of the string.  Then loop and chop
+		 * characters off the end until we are within the cell.
+		 */
+		newendx = x + width - 1;
+		while (newendx > endx && *(string + start))
+		{
+		    int cw = charWidth(font_struct,
+				       (unsigned char)string[start]);
+
+		    newendx -= cw;
+		    width -= cw;
+		    length--;
+		    choppedEnd = True;
+		}
+
+		break;
+	    }
+
+	    case XmALIGNMENT_END:
+	    {
+
+		/*
+		 * Figure out our x for the right justified string.
+		 * Then loop and chop characters off the front until we fit.
+		 * Adjust x for each char lopped off. Also adjust the starting
+		 * character and length of the string for each char.
+		 */
+		x += maxwidth - width;
+		while (width > maxwidth)
+		{
+		    int cw = charWidth(font_struct,
+				       (unsigned char)string[start]);
+
+		    width -= cw;
+		    x += cw;
+		    length--;
+		    start++;
+		    choppedStart = True;
+		}
+		break;
+	    }
+
+	    case XmALIGNMENT_BEGINNING:
+	    default:
+		/*
+		 * Leave x alone, but chop characters off the end until we fit
+		 */
+		while (width > maxwidth)
+		{
+		    width -= charWidth(font_struct,
+				       (unsigned char)string[length - 1]);
+		    length--;
+		    choppedEnd = True;
+		}
+		break;
+	    }
 	}
-    }
-    
-    /*
-     * Don't worry, XSetForeground is smart about avoiding unnecessary
-     * protocol requests.
-     */
-    XSetForeground(XtDisplay(mw), gc, color);
 
-    if (mw->matrix.show_arrows && choppedEnd)
-    {
-	XPoint points[ 3 ];
-	points[ 0 ].x = points[ 1 ].x = x + width - FONT_WIDTH(mw);
-	points[ 0 ].y = y + mw->matrix.font->max_bounds.descent;
-	points[ 1 ].y = y + mw->matrix.font->max_bounds.descent -
-	    TEXT_HEIGHT(mw);
-	points[ 2 ].x = x + width;
-	points[ 2 ].y = y + mw->matrix.font->max_bounds.descent -
-	    TEXT_HEIGHT(mw) / 2;
+	/*
+	 * We fit inside our cell, so just compute the x of the start of
+	 * our string
+	 */
+	else
+	{
+	    switch (alignment)
+	    {
 
-	XFillPolygon(XtDisplay(mw), win, gc, points, 3,
-		     Convex, CoordModeOrigin);
+	    case XmALIGNMENT_CENTER:
+		x += maxwidth / 2 - width / 2;
+		break;
 
-	/* Reduce the length to allow for our foreign character */
-	length--;
-    }
-    if (mw->matrix.show_arrows && choppedStart)
-    {
-	XPoint points[ 3 ];
-	points[ 0 ].x = points[ 1 ].x = x + FONT_WIDTH(mw);
-	points[ 0 ].y = y + mw->matrix.font->max_bounds.descent -
-	    TEXT_HEIGHT(mw);
-	points[ 1 ].y = y + mw->matrix.font->max_bounds.descent;
-	points[ 2 ].x = x;
-	points[ 2 ].y = y + mw->matrix.font->max_bounds.descent -
-	    TEXT_HEIGHT(mw) / 2;
+	    case XmALIGNMENT_END:
+		x += maxwidth - width;
+		break;
 
-	XFillPolygon(XtDisplay(mw), win, gc, points, 3,
-		     Convex, CoordModeOrigin);
+	    case XmALIGNMENT_BEGINNING:
+	    default:
+		/*
+		 * Leave x alone
+		 */
+		break;
+	    }
+	}
+	
+	/*
+	 * Don't worry, XSetForeground is smart about avoiding unnecessary
+	 * protocol requests.
+	 */
+	XSetForeground(XtDisplay(mw), gc, color);
 
-	/* Offset the start point so as to not draw on the triangle */
-	x += FONT_WIDTH(mw);
-	start++;
-	length--;
-    }
+	if (mw->matrix.show_arrows && choppedEnd)
+	{
+	    XPoint points[3];
+	    points[0].x = points[1].x = x + width - mw->matrix.font_width;
+	    points[0].y = y + mw->matrix.font_y;
+	    points[1].y = y + mw->matrix.font_y + mw->matrix.font_height;
+	    points[2].x = x + width;
+	    points[2].y = y + mw->matrix.font_y + mw->matrix.font_height / 2;
 
-    /*
-     * Now draw the string at x starting at char 'start' and of length 'length'
-     */
-#ifdef NEED_WCHAR
-    if (TWO_BYTE_FONT(mw))
-	XDrawString16(XtDisplay(mw), win, gc, x, y, &string[start], length);
-    else
-#endif
-	XDrawString(XtDisplay(mw), win, gc, x, y, &string[start], length);
+	    XFillPolygon(XtDisplay(mw), win, gc, points, 3,
+			 Convex, CoordModeOrigin);
 
-    /*
-     * If bold is on, draw the string again offset by 1 pixel (overstrike)
-     */
-    if (bold)
+	    /* Reduce the length to allow for our foreign character */
+	    length--;
+	}
+	if (mw->matrix.show_arrows && choppedStart)
+	{
+	    XPoint points[3];
+	    points[0].x = points[1].x = x + mw->matrix.font_width;
+	    points[0].y = y + mw->matrix.font_y; 
+	    points[1].y = y + mw->matrix.font_y + mw->matrix.font_height;
+	    points[2].x = x;
+	    points[2].y = y + mw->matrix.font_y + mw->matrix.font_height / 2;
+
+	    XFillPolygon(XtDisplay(mw), win, gc, points, 3,
+			 Convex, CoordModeOrigin);
+
+	    /* Offset the start point so as to not draw on the triangle */
+	    x += mw->matrix.font_width;
+	    start++;
+	    length--;
+	}
+
+	/*
+	 * Now draw the string at x starting at char 'start' and of length
+	 * 'length'
+	 */
 #ifdef NEED_WCHAR
 	if (TWO_BYTE_FONT(mw))
-	    XDrawString16(XtDisplay(mw), win, gc, x - 1, y,
-			  &string[start], length);
+	    XDrawString16(XtDisplay(mw), win, gc, x, y, &string[start],
+			  length);
 	else
 #endif
-	    XDrawString(XtDisplay(mw), win, gc, x - 1, y,
-			&string[start], length);
+	    XDrawString(XtDisplay(mw), win, gc, x, y, &string[start], length);
 
+	/*
+	 * If bold is on, draw the string again offset by 1 pixel (overstrike)
+	 */
+	if (bold)
+#ifdef NEED_WCHAR
+	    if (TWO_BYTE_FONT(mw))
+		XDrawString16(XtDisplay(mw), win, gc, x - 1, y,
+			      &string[start], length);
+	    else
+#endif
+		XDrawString(XtDisplay(mw), win, gc, x - 1, y,
+			    &string[start], length);
+    }
 }
 
 void
@@ -649,7 +910,7 @@ Pixel *fg, *bg;
     if (mw->matrix.selected_cells && mw->matrix.selected_cells[row][column])
 	if (mw->matrix.reverse_select)
 	    if (mw->matrix.colors)
-		*bg = mw->matrix.colors[ row ][ column ];
+		*bg = mw->matrix.colors[row][column];
 	    else
 		*bg = mw->manager.foreground;
 	else
@@ -675,7 +936,7 @@ Pixel *fg, *bg;
 	else
 	    *fg = mw->matrix.selected_foreground;
     else if (mw->matrix.colors)
-	*fg = mw->matrix.colors[ row ][ column ];
+	*fg = mw->matrix.colors[row][column];
     else
 	*fg = mw->manager.foreground;    
 }
@@ -687,23 +948,35 @@ int row, column;
 {
     Pixel bg, fg;
     String string;
-
-    if (mw->matrix.disable_redisplay)
+    int x, y;
+    
+    if (mw->matrix.disable_redisplay || mw->matrix.rows == 0 ||
+	mw->matrix.columns == 0)
 	return;
+
+    /*
+     * Convert the row/column to the coordinates relative to the correct
+     * window
+     */
+    xbaeRowColToXY(mw, row, column, &x, &y);
 
     xbaeComputeCellColors(mw, row, column, &fg, &bg);
 
 #if CELL_WIDGETS
     if (mw->matrix.cell_widgets[row][column])
-	xbaeDrawCellWidget(mw, row, column,
+	xbaeDrawCellWidget(mw, row, column, x, y,
 			   mw->matrix.cell_widgets[row][column], bg, fg);
     else
 #endif
 
 	if (!mw->matrix.draw_cell_callback)
-	{	
-	    string = mw->matrix.cells ? mw->matrix.cells[row][column] : "";
-	    xbaeDrawCellString(mw, row, column, string, bg, fg);
+	{
+	    if (row < mw->matrix.rows && column < mw->matrix.columns)
+	    {
+		string = mw->matrix.cells ?
+		    mw->matrix.cells[row][column] : "";
+		xbaeDrawCellString(mw, row, column, x, y, string, bg, fg);
+	    }
 	}
 	else
 	{
@@ -713,13 +986,17 @@ int row, column;
 	    int width, height;
 	    int depth;
 	
-	    type = xbaeGetDrawCellValue(mw, row, column, &string, &pixmap,
-					&mask, &width, &height, &bg, &fg, &depth);
-	    if (type == XbaeString)
-		xbaeDrawCellString(mw, row, column, string, bg, fg);
-	    else if (type == XbaePixmap)
-		xbaeDrawCellPixmap(mw, row, column, pixmap, mask, width,
-				   height, bg, fg, depth);
+	    if (row < mw->matrix.rows && column < mw->matrix.columns)
+	    {
+		type = xbaeGetDrawCellValue(mw, row, column, &string, &pixmap,
+					    &mask, &width, &height, &bg, &fg,
+					    &depth);
+		if (type == XbaeString)
+		    xbaeDrawCellString(mw, row, column, x, y, string, bg, fg);
+		else if (type == XbaePixmap)
+		    xbaeDrawCellPixmap(mw, row, column, x, y, pixmap, mask,
+				       width, height, bg, fg, depth);
+	    }
 	}
 }
 
@@ -736,26 +1013,28 @@ int *width, *height;
 Pixel *bg, *fg;
 int *depth;
 {
-    XbaeMatrixDrawCellCallbackStruct cbd;
+    XbaeMatrixDrawCellCallbackStruct call_data;
 
-    cbd.reason = XbaeDrawCellReason;
-    cbd.row = row;
-    cbd.column = column;
-    cbd.width = COLUMN_WIDTH(mw, column) - TEXT_WIDTH_OFFSET(mw) * 2;
-    cbd.height = ROW_HEIGHT(mw) - TEXT_HEIGHT_OFFSET(mw) * 2;
-    cbd.type = XbaeString;
-    cbd.string = "";
-    cbd.pixmap = (Pixmap)NULL;
-    cbd.mask = (Pixmap)NULL;
-    cbd.foreground = *fg;
-    cbd.background = *bg;
+    call_data.reason = XbaeDrawCellReason;
+    call_data.event = (XEvent *)NULL;
+    call_data.row = row;
+    call_data.column = column;
+    call_data.width = COLUMN_WIDTH(mw, column) - TEXT_WIDTH_OFFSET(mw) * 2;
+    call_data.height = ROW_HEIGHT(mw) - TEXT_HEIGHT_OFFSET(mw) * 2;
+    call_data.type = XbaeString;
+    call_data.string = "";
+    call_data.pixmap = (Pixmap)NULL;
+    call_data.mask = (Pixmap)NULL;
+    call_data.foreground = *fg;
+    call_data.background = *bg;
+    call_data.depth = 0;
 
     XtCallCallbackList((Widget)mw, mw->matrix.draw_cell_callback,
-		       (XtPointer) &cbd);
+		       (XtPointer) &call_data);
 
-    *pixmap = cbd.pixmap;
-    *mask = cbd.mask;
-    *string = cbd.string ? cbd.string : ""; /* Handle NULL strings */
+    *pixmap = call_data.pixmap;
+    *mask = call_data.mask;
+    *string = call_data.string ? call_data.string : ""; /* Handle NULLs */
 
     if (mw->matrix.reverse_select && mw->matrix.selected_cells &&
 	mw->matrix.selected_cells[row][column])
@@ -764,27 +1043,28 @@ int *depth;
 	 * if colours were set by the draw cell callback, handle reverse
 	 * selection
 	 */
-	if (*bg != cbd.background)
+	if (*bg != call_data.background)
 	{
-	    if (*fg != cbd.foreground)
-		*bg = cbd.foreground;
-	    *fg = cbd.background;
+	    if (*fg != call_data.foreground)
+		*bg = call_data.foreground;
+	    *fg = call_data.background;
 	}
-	else if (*fg != cbd.foreground)
-	    *bg = cbd.foreground;
+	else if (*fg != call_data.foreground)
+	    *bg = call_data.foreground;
     }
     else
     {
-	*fg = cbd.foreground;
-	*bg = cbd.background;
+	*fg = call_data.foreground;
+	*bg = call_data.background;
     }
-    *width = cbd.width;
-    *height = cbd.height;
+    *width = call_data.width;
+    *height = call_data.height;
+    *depth = call_data.depth;
     
-    if (cbd.type == XbaePixmap)
+    if (call_data.type == XbaePixmap)
     {
 	if (*mask == XmUNSPECIFIED_PIXMAP || *mask == BadPixmap)
-	    cbd.mask = 0;
+	    call_data.mask = 0;
 
 	if (*pixmap == XmUNSPECIFIED_PIXMAP || *pixmap == BadPixmap)
 	{
@@ -793,11 +1073,16 @@ int *depth;
 		"drawCellCallback", "Pixmap", "XbaeMatrix",
 		"XbaeMatrix: Bad pixmap passed from drawCellCallback",
 		NULL, 0);
-	    cbd.type = XbaeString;
+	    call_data.type = XbaeString;
 	    *string = "";
 	}
-	else
+	else if (!*depth)
 	{
+	     /*
+	      * If we know the depth, width and height don't do a round
+	      * trip to find the
+	      * geometry
+	      */
 	    Window root_return;
 	    int x_return, y_return;
 	    unsigned int width_return, height_return;
@@ -815,7 +1100,7 @@ int *depth;
 	    }
 	}
     }
-    return (cbd.type);
+    return (call_data.type);
 }
 
 /*
@@ -880,7 +1165,7 @@ Boolean pressed;
     /*
      * Set our y to the baseline of the first line in this column
      */
-    labelY = mw->matrix.label_font->max_bounds.ascent +
+    labelY = -mw->matrix.label_font_y +
 	mw->matrix.cell_shadow_thickness +
 	mw->matrix.cell_highlight_thickness +
 	mw->matrix.cell_margin_height +
@@ -906,7 +1191,7 @@ Boolean pressed;
 
     label = mw->matrix.column_labels[column];
 
-    if (label[ 0 ] != '\0')
+    if (label[0] != '\0')
 	for (i = 0; i < mw->matrix.column_label_lines[column].lines; i++)
 	{
 	    xbaeDrawString(mw, XtWindow(mw), gc, label,
@@ -966,7 +1251,7 @@ Boolean pressed;
 	    TEXT_Y_OFFSET(mw);
     else
 	y = ROW_LABEL_OFFSET(mw) + ROW_HEIGHT(mw) * (row - VERT_ORIGIN(mw)) +
-	    LABEL_Y_OFFSET(mw);
+	    LABEL_Y_OFFSET(mw) - mw->matrix.first_row_offset;
 
     if (clipped)
 	gc = mw->matrix.label_clip_gc;

@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Draw.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Draw.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
@@ -34,18 +34,18 @@
 
 void xbaeComputeCellColors P((XbaeMatrixWidget, int, int, Pixel *, Pixel *));
 
-void xbaeDrawCell P((XbaeMatrixWidget, int, int ));
-XbaeCellType xbaeGetDrawCellValue P(( XbaeMatrixWidget, int, int, String *,
+void xbaeDrawCell P((XbaeMatrixWidget, int, int));
+XbaeCellType xbaeGetDrawCellValue P((XbaeMatrixWidget, int, int, String *,
 				      Pixmap *, Pixmap *, int *, int *,
-				      Pixel *, Pixel *, int * ));
-void xbaeDrawString P(( XbaeMatrixWidget mw, Window win, GC gc, String string,
+				      Pixel *, Pixel *, int *));
+void xbaeDrawString P((XbaeMatrixWidget mw, Window win, GC gc, String string,
 			int length, int x, int y, int maxlen,
 			unsigned char alignment, Boolean highlight,
 			Boolean bold, Boolean rowLabel,
-			Boolean colLabel, Pixel color ));
-void xbaeDrawColumnLabel P(( XbaeMatrixWidget mw, int column,
-			     Boolean pressed ));
-void xbaeDrawRowLabel P(( XbaeMatrixWidget mw, int row, Boolean pressed ));
+			Boolean colLabel, Pixel color));
+void xbaeDrawColumnLabel P((XbaeMatrixWidget mw, int column,
+			     Boolean pressed));
+void xbaeDrawRowLabel P((XbaeMatrixWidget mw, int row, Boolean pressed));
 
 
 #endif

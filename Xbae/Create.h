@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Create.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Create.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
@@ -32,56 +32,56 @@
 
 #include <Xbae/Macros.h>
 
-void xbaeCopyBackground P(( Widget, int, XrmValue * ));
-void xbaeCopyForeground P(( Widget, int, XrmValue * ));
-void xbaeCopyDoubleClick P(( Widget, int, XrmValue * ));
-void xbaeCopyCellShadowTypes P(( XbaeMatrixWidget ));
-void xbaeCopyRowShadowTypes P(( XbaeMatrixWidget ));
-void xbaeCopyColumnShadowTypes P(( XbaeMatrixWidget ));
-void xbaeCopyCellUserData P(( XbaeMatrixWidget ));
-void xbaeCopyRowUserData P(( XbaeMatrixWidget ));
-void xbaeCopyColumnUserData P(( XbaeMatrixWidget ));
-void xbaeCopySelectedCells P(( XbaeMatrixWidget ));
-void xbaeCopyRowLabels P(( XbaeMatrixWidget ));
-void xbaeCopyColumnLabels P(( XbaeMatrixWidget ));
-void xbaeCopyCells P(( XbaeMatrixWidget ));
+void xbaeCopyBackground P((Widget, int, XrmValue *));
+void xbaeCopyForeground P((Widget, int, XrmValue *));
+void xbaeCopyDoubleClick P((Widget, int, XrmValue *));
+void xbaeCopyCellShadowTypes P((XbaeMatrixWidget));
+void xbaeCopyRowShadowTypes P((XbaeMatrixWidget));
+void xbaeCopyColumnShadowTypes P((XbaeMatrixWidget));
+void xbaeCopyCellUserData P((XbaeMatrixWidget));
+void xbaeCopyRowUserData P((XbaeMatrixWidget));
+void xbaeCopyColumnUserData P((XbaeMatrixWidget));
+void xbaeCopySelectedCells P((XbaeMatrixWidget));
+void xbaeCopyRowLabels P((XbaeMatrixWidget));
+void xbaeCopyColumnLabels P((XbaeMatrixWidget));
+void xbaeCopyCells P((XbaeMatrixWidget));
 #if CELL_WIDGETS
-void xbaeCopyCellWidgets P(( XbaeMatrixWidget ));
+void xbaeCopyCellWidgets P((XbaeMatrixWidget));
 #endif
-void xbaeCopyColumnWidths  P(( XbaeMatrixWidget ));
-void xbaeCopyColumnMaxLengths P(( XbaeMatrixWidget ));
-void xbaeCopyBackgrounds P(( XbaeMatrixWidget ));
-void xbaeCopyColumnAlignments P(( XbaeMatrixWidget ));
-void xbaeCopyColumnLabelAlignments P(( XbaeMatrixWidget ));
-void xbaeCopyColumnButtonLabels P(( XbaeMatrixWidget ));
-void xbaeCopyRowButtonLabels P(( XbaeMatrixWidget ));
-void xbaeCopyColors P(( XbaeMatrixWidget ));
+void xbaeCopyColumnWidths  P((XbaeMatrixWidget));
+void xbaeCopyColumnMaxLengths P((XbaeMatrixWidget));
+void xbaeCopyBackgrounds P((XbaeMatrixWidget));
+void xbaeCopyColumnAlignments P((XbaeMatrixWidget));
+void xbaeCopyColumnLabelAlignments P((XbaeMatrixWidget));
+void xbaeCopyColumnButtonLabels P((XbaeMatrixWidget));
+void xbaeCopyRowButtonLabels P((XbaeMatrixWidget));
+void xbaeCopyColors P((XbaeMatrixWidget));
 #if XmVersion >= 1002
-void xbaeCopyHighlightedCells P(( XbaeMatrixWidget ));
+void xbaeCopyHighlightedCells P((XbaeMatrixWidget));
 #endif
-void xbaeCreateDrawGC P(( XbaeMatrixWidget ));
-void xbaeCreatePixmapGC P(( XbaeMatrixWidget ));
-void xbaeCreateLabelGC P(( XbaeMatrixWidget ));
-void xbaeCreateLabelClipGC P(( XbaeMatrixWidget ));
-void xbaeCreateGridLineGC P(( XbaeMatrixWidget ));
-void xbaeCreateTopShadowClipGC P(( XbaeMatrixWidget ));
-void xbaeCreateBottomShadowClipGC P(( XbaeMatrixWidget ));
-void xbaeNewFont P(( XbaeMatrixWidget ));
-void xbaeNewLabelFont P(( XbaeMatrixWidget ));
-void xbaeFreeCells P(( XbaeMatrixWidget ));
+void xbaeCreateDrawGC P((XbaeMatrixWidget));
+void xbaeCreatePixmapGC P((XbaeMatrixWidget));
+void xbaeCreateLabelGC P((XbaeMatrixWidget));
+void xbaeCreateLabelClipGC P((XbaeMatrixWidget));
+void xbaeCreateGridLineGC P((XbaeMatrixWidget));
+void xbaeCreateTopShadowClipGC P((XbaeMatrixWidget));
+void xbaeCreateBottomShadowClipGC P((XbaeMatrixWidget));
+void xbaeNewFont P((XbaeMatrixWidget));
+void xbaeNewLabelFont P((XbaeMatrixWidget));
+void xbaeFreeCells P((XbaeMatrixWidget));
 #if CELL_WIDGETS
-void xbaeFreeCellWidgets P(( XbaeMatrixWidget ));
+void xbaeFreeCellWidgets P((XbaeMatrixWidget));
 #endif
-void xbaeFreeRowLabels P(( XbaeMatrixWidget ));
-void xbaeFreeColumnLabels P(( XbaeMatrixWidget ));
-void xbaeFreeColors P(( XbaeMatrixWidget ));
-void xbaeFreeBackgrounds P(( XbaeMatrixWidget ));
-void xbaeFreeSelectedCells P(( XbaeMatrixWidget ));
-void xbaeFreeCellUserData P(( XbaeMatrixWidget ));
-void xbaeFreeCellShadowTypes P(( XbaeMatrixWidget ));
+void xbaeFreeRowLabels P((XbaeMatrixWidget));
+void xbaeFreeColumnLabels P((XbaeMatrixWidget));
+void xbaeFreeColors P((XbaeMatrixWidget));
+void xbaeFreeBackgrounds P((XbaeMatrixWidget));
+void xbaeFreeSelectedCells P((XbaeMatrixWidget));
+void xbaeFreeCellUserData P((XbaeMatrixWidget));
+void xbaeFreeCellShadowTypes P((XbaeMatrixWidget));
 #if XmVersion >= 1002
-void xbaeFreeHighlightedCells P(( XbaeMatrixWidget ));
+void xbaeFreeHighlightedCells P((XbaeMatrixWidget));
 #endif
-void xbaeCreateColors P(( XbaeMatrixWidget ));
+void xbaeCreateColors P((XbaeMatrixWidget));
 
 #endif

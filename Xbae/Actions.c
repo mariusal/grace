@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
@@ -21,12 +21,16 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.c,v 1.2 1999-01-25 20:16:57 fnevgeny Exp $
+ * $Id: Actions.c,v 1.3 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
  * Actions.c created by Andrew Lister (7 August, 1995)
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <Xm/XmP.h>
@@ -59,6 +63,7 @@
 typedef struct {
     XbaeMatrixWidget mw;
     GC gc;
+    int row;
     int column;
     int startx;
     int lastx;
@@ -80,6 +85,7 @@ typedef struct {
 typedef struct {
     XbaeMatrixWidget mw;
     XbaeClipWidget cw;
+    XEvent *event;
     XtIntervalId timerID;
     XtAppContext app_context;
     unsigned long interval;
@@ -91,13 +97,13 @@ typedef struct {
     Boolean right;
 } XbaeMatrixScrollStruct;
 
-static int DoubleClick P(( XbaeMatrixWidget, XEvent *, int, int ));
-static void DrawSlideColumn P(( XbaeMatrixWidget, int ));
-static void SlideColumn P(( Widget, XtPointer, XEvent *, Boolean * ));
-static void PushButton P(( Widget, XtPointer, XEvent *, Boolean * ));
-static void updateScroll P(( XtPointer ));
-static void checkScrollValues P(( Widget, XtPointer, XEvent *, Boolean * ));
-static void callSelectCellAction P(( XbaeMatrixWidget mw ));
+static int DoubleClick P((XbaeMatrixWidget, XEvent *, int, int));
+static void DrawSlideColumn P((XbaeMatrixWidget, int));
+static void SlideColumn P((Widget, XtPointer, XEvent *, Boolean *));
+static void PushButton P((Widget, XtPointer, XEvent *, Boolean *));
+static void updateScroll P((XtPointer));
+static void checkScrollValues P((Widget, XtPointer, XEvent *, Boolean *));
+static void callSelectCellAction P((XbaeMatrixWidget, XEvent *));
 
 static int last_row = 0;
 static int last_column = 0;
@@ -125,9 +131,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
@@ -146,23 +152,23 @@ Cardinal *nparams;
     if (!xbaeXYToRowCol(mw, &x, &y, &row, &column, cell))
 	return;
 
-    if (DoubleClick (mw, event, row, column))
+    if (DoubleClick(mw, event, row, column))
     {
 	XbaeMatrixDefaultActionCallbackStruct call_data;
 
 	call_data.reason = XbaeDefaultActionReason;
+	call_data.event = event;
 	call_data.row = row;
 	call_data.column = column;
-	call_data.event = event;
 
 	XtCallCallbackList((Widget)mw, mw->matrix.default_action_callback,
-			   (XtPointer) &call_data);
+			   (XtPointer)&call_data);
       
     }
 }
 
 static void
-DrawSlideColumn (mw, x)
+DrawSlideColumn(mw, x)
 XbaeMatrixWidget mw;
 int x;
 {
@@ -176,28 +182,33 @@ int x;
 #endif
     Dimension height;
     Window win;
-    Display *display = XtDisplay (mw);
-    int column = xbaeXtoCol (mw, x - COLUMN_LABEL_OFFSET (mw));
+    Display *display = XtDisplay(mw);
+    int column = xbaeXtoCol(mw, x - COLUMN_LABEL_OFFSET(mw));
     int top, bottom;
     int adjusted_x;
     int y;
 #ifdef DRAW_RESIZE_LINE
     GC gc = mw->matrix.draw_gc;
 #endif
+    Boolean need_vert_dead_space_fill = NEED_VERT_DEAD_SPACE_FILL(mw);
+    unsigned int clip_reason;
 
     /*
      * If the column being resized is a fixed one then we don't need to
      * bother with the clip region
      */
-    if (column < mw->matrix.fixed_columns)
+    if (column < (int)mw->matrix.fixed_columns)
     {
 	y = ROW_LABEL_OFFSET(mw);
 	height = VISIBLE_HEIGHT(mw) + FIXED_ROW_HEIGHT(mw) +
 	    TRAILING_FIXED_ROW_HEIGHT(mw);
 	win = XtWindow (mw);
 
+	if (need_vert_dead_space_fill)
+	    height += VERT_DEAD_SPACE_HEIGHT(mw);
+
 #ifdef DRAW_RESIZE_LINE
-	XDrawLine (display, win, gc, x, y, x, y + height);
+	XDrawLine(display, win, gc, x, y, x, y + height);
 	if (XtIsManaged(LeftClip(mw)))
 	    XDrawLine(display, XtWindow(LeftClip(mw)), gc,
 		      x - COLUMN_LABEL_OFFSET(mw), 0,
@@ -224,15 +235,18 @@ int x;
      * here also
      */
     if (column >= TRAILING_HORIZ_ORIGIN(mw) ||
-	x >= ClipChild(mw)->core.x + ClipChild(mw)->core.width)
+	x >= (int)(ClipChild(mw)->core.x + ClipChild(mw)->core.width))
     {
 	y = ROW_LABEL_OFFSET(mw);
 	height = VISIBLE_HEIGHT(mw) + FIXED_ROW_HEIGHT(mw) +
 	    TRAILING_FIXED_ROW_HEIGHT(mw);
-	win = XtWindow (mw);
+	win = XtWindow(mw);
+
+	if (need_vert_dead_space_fill)
+	    height += VERT_DEAD_SPACE_HEIGHT(mw);
 
 #ifdef DRAW_RESIZE_LINE
-	XDrawLine (display, win, gc, x, y, x, y + height);
+	XDrawLine(display, win, gc, x, y, x, y + height);
 	if (XtIsManaged(RightClip(mw)))
 	    XDrawLine(display, XtWindow(RightClip(mw)),
 		      gc, x - TRAILING_FIXED_COLUMN_LABEL_OFFSET(mw), 0,
@@ -255,7 +269,8 @@ int x;
 #endif
 	return;
     }
-    xbaeGetVisibleRows (mw, &top, &bottom);
+    
+    xbaeGetVisibleRows(mw, &top, &bottom);
     /*
      * we need all non-fixed rows, so add 1 to bottom
      * to include the last one as the return values
@@ -267,20 +282,21 @@ int x;
      * The area between top and bottom rows are the non fixed rows.  They
      * fall on the ClipChild
      */
-    y = 0; /* relative to clip */
+    y = -mw->matrix.cell_shadow_thickness; /* relative to clip */
 
-    height = ROW_HEIGHT (mw) *  (bottom - top);
+    height = ROW_HEIGHT(mw) * (bottom - top) +
+	2 * mw->matrix.cell_shadow_thickness;
 
     /*
      * If we are on the clip, the x location is offset by the
-     * fixed column width and label offset
+     * fixed column width, label offset and label width
      */
     adjusted_x = x - FIXED_COLUMN_LABEL_OFFSET(mw);
 
-    win = XtWindow (ClipChild(mw));
+    win = XtWindow(ClipChild(mw));
 
 #ifdef DRAW_RESIZE_LINE
-    XDrawLine (display, win, gc, adjusted_x, y, adjusted_x, y + height);
+    XDrawLine(display, win, gc, adjusted_x, y, adjusted_x, y + height);
 #endif
 #ifdef DRAW_RESIZE_SHADOW
     DRAW_SHADOW(display, win,
@@ -292,57 +308,104 @@ int x;
      * Now draw the line (or shadow) on the non clipped region - that is
      * the fixed and trailingFixed rows.  First, do the leading rows.
      */
-
-    y = ROW_LABEL_OFFSET(mw);
-    height = FIXED_ROW_HEIGHT (mw);
-    win = XtWindow (mw);
+    if (mw->matrix.fixed_rows)
+    {
+	y = ROW_LABEL_OFFSET(mw);
+	height = FIXED_ROW_HEIGHT(mw) + 2 * mw->matrix.cell_shadow_thickness;
+	win = XtWindow(mw);
+	xbaeSetClipMask(mw, CLIP_FIXED_ROWS);
 
 #ifdef DRAW_RESIZE_LINE
-    XDrawLine (display, XtWindow(TopClip(mw)), gc, adjusted_x, 0,
-				 adjusted_x, height);
+	if (XtIsManaged(TopClip(mw)))
+	    XDrawLine(display, XtWindow(TopClip(mw)), gc, adjusted_x,
+		      -mw->matrix.cell_shadow_thickness, adjusted_x, height);
 #endif
 #ifdef DRAW_RESIZE_SHADOW
-    if (XtIsManaged(TopClip(mw)))
-	DRAW_SHADOW(display, XtWindow(TopClip(mw)),
-		    mw->matrix.resize_top_shadow_gc,
-		    mw->matrix.resize_bottom_shadow_gc,
-		    shadow_width, adjusted_x, 0, width, height,
-		    XmSHADOW_OUT);
+	if (XtIsManaged(TopClip(mw)))
+	    DRAW_SHADOW(display, XtWindow(TopClip(mw)),
+			mw->matrix.resize_top_shadow_gc,
+			mw->matrix.resize_bottom_shadow_gc,
+			shadow_width, adjusted_x,
+			-mw->matrix.cell_shadow_thickness,
+			width, height, XmSHADOW_OUT);
 #endif
+	xbaeSetClipMask(mw, CLIP_NONE);			 
+    }
+    
     /*
      * The trailingFixedRows
      */
     if (mw->matrix.trailing_fixed_rows)
     {
 	y = TRAILING_FIXED_ROW_LABEL_OFFSET(mw);
-	height = TRAILING_FIXED_ROW_HEIGHT(mw);
-	xbaeSetClipMask(mw, CLIP_TRAILING_FIXED_ROWS);
+	height = TRAILING_FIXED_ROW_HEIGHT(mw) +
+	    2 * mw->matrix.cell_shadow_thickness;
+
+	clip_reason = CLIP_TRAILING_FIXED_ROWS;
+	if (IS_LEADING_FIXED_COLUMN(mw, column))
+	    clip_reason |= CLIP_FIXED_COLUMNS;
+	else if (IS_TRAILING_FIXED_COLUMN(mw, column))
+	    clip_reason |= CLIP_TRAILING_FIXED_COLUMNS;
+	
+	xbaeSetClipMask(mw, clip_reason);
 
 #ifdef DRAW_RESIZE_LINE
-	XDrawLine (display, XtWindow(BottomClip(mw)), gc, adjusted_x, 0,
-		   adjusted_x, height);
+	if (XtIsManaged(BottomClip(mw)))
+	    XDrawLine(display, XtWindow(BottomClip(mw)), gc, adjusted_x,
+		      -mw->matrix.cell_shadow_thickness, adjusted_x, height);
 #endif
 #ifdef DRAW_RESIZE_SHADOW
 	if (XtIsManaged(BottomClip(mw)))
 	    DRAW_SHADOW(display, XtWindow(BottomClip(mw)),
 			mw->matrix.resize_top_shadow_gc,
 			mw->matrix.resize_bottom_shadow_gc,
-			shadow_width, adjusted_x, 0,
+			shadow_width, adjusted_x,
+			-mw->matrix.cell_shadow_thickness,
 			width, height, XmSHADOW_OUT);
 #endif
-	xbaeSetClipMask (mw, CLIP_NONE);			 
+	xbaeSetClipMask(mw, CLIP_NONE);
+    }
+
+    if ((NEED_VERT_FILL(mw) && (! HAS_ATTACHED_TRAILING_ROWS(mw))) ||
+	need_vert_dead_space_fill)
+    {
+	if (need_vert_dead_space_fill)
+	{
+	    y = UNATTACHED_TRAILING_ROWS_OFFSET(mw) -
+		mw->matrix.cell_shadow_thickness;
+	    height = 2 * mw->matrix.cell_shadow_thickness +
+		VERT_DEAD_SPACE_HEIGHT(mw);
+	}
+	else
+	{
+	    y = TRAILING_FIXED_ROW_LABEL_OFFSET(mw) +
+		TRAILING_FIXED_ROW_HEIGHT(mw);
+	    height = FILL_VERT_HEIGHT(mw) - HORIZ_SB_SPACE(mw);
+	}
+
+#ifdef DRAW_RESIZE_LINE
+	XDrawLine(display, XtWindow(mw), gc,
+		  adjusted_x, y, adjusted_x, height);
+#endif
+#ifdef DRAW_RESIZE_SHADOW
+	DRAW_SHADOW(display, XtWindow(mw),
+		    mw->matrix.resize_top_shadow_gc,
+		    mw->matrix.resize_bottom_shadow_gc,
+		    shadow_width, x, y,
+		    width, height, XmSHADOW_OUT);
+#endif
     }
 }
 
 
 static void
-SlideColumn (w, data, event, cont)
+SlideColumn(w, data, event, cont)
 Widget w;
 XtPointer data;
 XEvent *event;
 Boolean *cont;
 {
-    XbaeMatrixResizeColumnStruct *rd =  (XbaeMatrixResizeColumnStruct *)data;
+    XbaeMatrixResizeColumnStruct *rd = (XbaeMatrixResizeColumnStruct *)data;
     XMotionEvent *motionEvent;
     Boolean relayout = False;
     int numCharacters;
@@ -350,34 +413,36 @@ Boolean *cont;
     
     if (event->type == ButtonRelease)
     {
-	DrawSlideColumn (rd->mw, rd->lastx);
-	XUngrabPointer (XtDisplay (w), CurrentTime);
+	DrawSlideColumn(rd->mw, rd->lastx);
+	XUngrabPointer(XtDisplay(w), CurrentTime);
 	rd->grabbed = False;
 	/*
 	 * Remanage the VSB if we unmapped it earlier
 	 */
 	if (rd->haveVSB)
-	    XtManageChild (VertScrollChild (rd->mw));
+	    XtManageChild(VertScrollChild(rd->mw));
 
 	if (rd->mw->matrix.resize_column_callback)
 	{
 	    XbaeMatrixResizeColumnCallbackStruct call_data;
-	    
+
 	    call_data.reason = XbaeResizeColumnReason;
+	    call_data.event = event;
+	    call_data.row = rd->row;
+	    call_data.column = rd->column - 1;
 	    call_data.which = rd->column - 1;
 	    call_data.columns = rd->mw->matrix.columns;
 	    call_data.column_widths  = rd->columnWidths;
-	    call_data.event = event;
 	    XtCallCallbackList ((Widget)rd->mw,
 				rd->mw->matrix.resize_column_callback,
-				(XtPointer) &call_data);	    
+				(XtPointer)&call_data);	    
 	}
 
 	for (i = 0; i < rd->mw->matrix.columns; i++)
-	    if (rd->columnWidths[ i ] != rd->mw->matrix.column_widths[ i ])
+	    if (rd->columnWidths[i] != rd->mw->matrix.column_widths[i])
 	    {
 		/* Make sure everything is handled correctly with SetValues */
-		XtVaSetValues ( (Widget)rd->mw, XmNcolumnWidths,
+		XtVaSetValues((Widget)rd->mw, XmNcolumnWidths,
 			       rd->columnWidths, NULL);
 		break;
 	    }
@@ -386,49 +451,49 @@ Boolean *cont;
 	 * larger, reset the corresponding maxColumnLength
 	 */
 	if (rd->mw->matrix.column_max_lengths &&
-	    rd->columnWidths[ rd->column - 1 ] >
-	    rd->mw->matrix.column_max_lengths[ rd->column - 1 ])
-	    rd->mw->matrix.column_max_lengths[ rd->column - 1 ] =
-		rd->columnWidths[ rd->column - 1 ];
-	XtFree ( (char *)rd->columnWidths);
+	    rd->columnWidths[rd->column - 1] >
+	    rd->mw->matrix.column_max_lengths[rd->column - 1])
+	    rd->mw->matrix.column_max_lengths[rd->column - 1] =
+		rd->columnWidths[rd->column - 1];
+	XtFree((char *)rd->columnWidths);
 	return;
     }
 
     if (event->type != MotionNotify) /* Double check! */
 	return;
 
-    motionEvent =  (XMotionEvent *)event;
+    motionEvent = (XMotionEvent *)event;
 
-    if (rd->currentx - motionEvent->x > FONT_WIDTH (rd->mw))
+    if (rd->currentx - motionEvent->x > FONT_WIDTH(rd->mw))
     {
 	/* If we're only one character wide, we cannae get any smaller */
-	if (rd->columnWidths[ rd->column - 1 ] == BAD_WIDTH + 1)
+	if (rd->columnWidths[rd->column - 1] == BAD_WIDTH + 1)
 	    return;	
 	/*
 	 * Moved left a full character - update the column widths and force
 	 * a redisplay
 	 */	
-	numCharacters =  (rd->currentx - motionEvent->x) /
-	    FONT_WIDTH (rd->mw);
-	if (numCharacters >= rd->columnWidths[ rd->column - 1 ])
+	numCharacters = (rd->currentx - motionEvent->x) /
+	    FONT_WIDTH(rd->mw);
+	if (numCharacters >= rd->columnWidths[rd->column - 1])
 	    /* Must keep a column at least one character wide */
-	    numCharacters = rd->columnWidths[ rd->column - 1 ] - 1;
+	    numCharacters = rd->columnWidths[rd->column - 1] - 1;
 		
-	rd->columnWidths[ rd->column - 1 ] -= numCharacters;
-	rd->currentx -= numCharacters * FONT_WIDTH (rd->mw);
+	rd->columnWidths[rd->column - 1] -= numCharacters;
+	rd->currentx -= numCharacters * FONT_WIDTH(rd->mw);
 	relayout = True;
     }	
     
-    if (motionEvent->x - rd->currentx > FONT_WIDTH (rd->mw))
+    if (motionEvent->x - rd->currentx > FONT_WIDTH(rd->mw))
     {
 	/*
 	 * Moved right a full character - update the column widths and force
 	 * a redisplay
 	 */
-	numCharacters =  (motionEvent->x - rd->currentx) /
-	    FONT_WIDTH (rd->mw);
-	rd->columnWidths[ rd->column - 1 ] += numCharacters;
-	rd->currentx += numCharacters * FONT_WIDTH (rd->mw);
+	numCharacters = (motionEvent->x - rd->currentx) /
+	    FONT_WIDTH(rd->mw);
+	rd->columnWidths[rd->column - 1] += numCharacters;
+	rd->currentx += numCharacters * FONT_WIDTH(rd->mw);
 	relayout = True;
     }
 
@@ -437,8 +502,8 @@ Boolean *cont;
 	/* Draw the marker line in the new location */
 	if (rd->lastx != rd->currentx)
 	{
-	    DrawSlideColumn (rd->mw, rd->currentx);
-	    DrawSlideColumn (rd->mw, rd->lastx);
+	    DrawSlideColumn(rd->mw, rd->currentx);
+	    DrawSlideColumn(rd->mw, rd->lastx);
 
 	    rd->lastx = rd->currentx;
 	}
@@ -477,9 +542,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
@@ -509,10 +574,10 @@ Cardinal *nparams;
      * allowed delta.  x is modified in xbaeXYToRowCol() to be
      * the x distance from the cell's border
      */
-    if (mw->matrix.cell_shadow_thickness > fuzzy)
+    if ((int)mw->matrix.cell_shadow_thickness > fuzzy)
 	fuzzy = mw->matrix.cell_shadow_thickness;
     
-    if  (x > fuzzy && COLUMN_WIDTH(mw, column) - x > fuzzy)
+    if (x > fuzzy && COLUMN_WIDTH(mw, column) - x > fuzzy)
 	return;
     
     /*
@@ -532,12 +597,12 @@ Cardinal *nparams;
     
     /* Create the left / right cursor */
     if (!cursor)
-	cursor = XCreateFontCursor (display, XC_sb_h_double_arrow);
+	cursor = XCreateFontCursor(display, XC_sb_h_double_arrow);
     
     /* Commit any edit in progress and unmap the text field -
        it's just bad luck */
-    (*((XbaeMatrixWidgetClass) XtClass(mw))->matrix_class.commit_edit)
-	(mw, True);
+    (*((XbaeMatrixWidgetClass)XtClass(mw))->matrix_class.commit_edit)
+	(mw, event, True);
 
     /*
      * Redraw the cell that had the text field in it or it might stay blank
@@ -547,30 +612,30 @@ Cardinal *nparams;
     /*
      * Say goodbye to the Vertical ScrollBar -> it only gets in the way!
      */
-    if ( (resizeData.haveVSB = XtIsManaged (VertScrollChild (mw)) &&
+    if ((resizeData.haveVSB = XtIsManaged(VertScrollChild(mw)) &&
 	   ((mw->matrix.scrollbar_placement == XmTOP_RIGHT) ||
 	    (mw->matrix.scrollbar_placement == XmBOTTOM_RIGHT))))
-        XtUnmanageChild (VertScrollChild (mw));
+        XtUnmanageChild(VertScrollChild(mw));
     /*
      * Flush the commit events out to the server.  Otherwise, our changes
      * to the GCs below have a bad effect.
      */
-    XSync(display, True);
+    XSync(display, False);
     
     event_mask = PointerMotionMask | ButtonReleaseMask;
-    XtAddEventHandler (w, event_mask,
-		       True,  (XtEventHandler)SlideColumn,
-		        (XtPointer)&resizeData);
+    XtAddEventHandler(w, event_mask,
+		       True, (XtEventHandler)SlideColumn,
+		       (XtPointer)&resizeData);
     
-    XGrabPointer (display, XtWindow(w), True, event_mask,
-		  GrabModeAsync, GrabModeAsync, XtWindow ( (Widget)mw),
+    XGrabPointer(display, XtWindow(w), True, event_mask,
+		  GrabModeAsync, GrabModeAsync, XtWindow((Widget)mw),
 		  cursor, CurrentTime);
     
     /* Copy the columnWidth array */
     resizeData.columnWidths =
-	 (short *)XtMalloc (mw->matrix.columns * sizeof (short));
+	 (short *)XtMalloc(mw->matrix.columns * sizeof(short));
     for (i = 0; i < mw->matrix.columns; i++)
-	resizeData.columnWidths[ i ] = mw->matrix.column_widths[ i ];
+	resizeData.columnWidths[i] = mw->matrix.column_widths[i];
     resizeData.grabbed = True;
     resizeData.mw = mw;
     resizeData.column = column;
@@ -580,20 +645,20 @@ Cardinal *nparams;
     gcmask = GCForeground | GCBackground | GCFunction;
     values.function = GXxor;
 #ifdef DRAW_RESIZE_LINE
-    XGetGCValues (display, mw->matrix.draw_gc, gcmask, &save);
+    XGetGCValues(display, mw->matrix.draw_gc, gcmask, &save);
     values.foreground = values.background = save.background;
 
     XChangeGC(display, mw->matrix.draw_gc, gcmask, &values);
 #endif
     
-    DrawSlideColumn (mw, resizeData.currentx);
+    DrawSlideColumn(mw, resizeData.currentx);
 
-    appcontext = XtWidgetToApplicationContext (w);
+    appcontext = XtWidgetToApplicationContext(w);
     
     while (resizeData.grabbed)
-	XtAppProcessEvent (appcontext, XtIMAll);
+	XtAppProcessEvent(appcontext, XtIMAll);
     
-    XtRemoveEventHandler (w, event_mask, True,
+    XtRemoveEventHandler(w, event_mask, True,
 			   (XtEventHandler)SlideColumn,
 			   (XtPointer)&resizeData);
 
@@ -625,9 +690,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
@@ -647,8 +712,10 @@ Cardinal *nparams;
 	return;
 
     call_data.reason = XbaeProcessDragReason;
+    call_data.event = event;
     call_data.row = row;
     call_data.column = column;
+
     if (mw->matrix.draw_cell_callback)
     {
 	Pixel bgcolor, fgcolor;
@@ -664,10 +731,9 @@ Cardinal *nparams;
     
     call_data.num_params = *nparams;
     call_data.params = params;
-    call_data.event = event;
 
     XtCallCallbackList((Widget)mw, mw->matrix.process_drag_callback,
-		       (XtPointer) &call_data);
+		       (XtPointer)&call_data);
 #endif
 }
 
@@ -687,7 +753,6 @@ Cardinal *nparams;
     XrmQuark q;
     static XrmQuark QPointer, QLeft, QRight, QUp, QDown;
     static Boolean haveQuarks = False;
-
     /*
      * Get static quarks for the parms we understand
      */
@@ -706,9 +771,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else
     {
 	XtAppWarningMsg(
@@ -727,7 +792,7 @@ Cardinal *nparams;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
 	    "editCellACT", "badParms", "XbaeMatrix",
-	    "XbaeMatrix: Wrong number of parameters passed to EditCell action, needs 1",
+	    "XbaeMatrix: Wrong params passed to EditCell action, needs 1",
 	    NULL, 0);
 	return;
     }
@@ -760,7 +825,7 @@ Cardinal *nparams;
 	 * Return if this event did not occur in the Clip subwindow
 	 * (since we can only edit non-fixed cells).
 	 */
-	switch (event->type)
+	switch(event->type)
 	{
 	case ButtonPress:
 	case ButtonRelease:
@@ -815,7 +880,7 @@ Cardinal *nparams;
 	       	mw->matrix.current_column != TRAILING_HORIZ_ORIGIN(mw) - 1)
 	    {
 		column++;
-		if (column >= TRAILING_HORIZ_ORIGIN(mw))
+		if (IS_TRAILING_FIXED_COLUMN(mw, column))
 		{
 		    column = mw->matrix.fixed_columns;
 		    row++;
@@ -852,7 +917,7 @@ Cardinal *nparams;
 		mw->matrix.current_column != mw->matrix.fixed_columns)
 	    {
 		column--;
-		if (column < mw->matrix.fixed_columns)
+		if (IS_LEADING_FIXED_COLUMN(mw, column))
 		{
 		    column = TRAILING_HORIZ_ORIGIN(mw) - 1;
 		    row--;
@@ -879,7 +944,7 @@ Cardinal *nparams;
 	/* adjust row for allowable traversable regions */
 	if (!mw->matrix.traverse_fixed)
 	{
-	    if (row >= TRAILING_VERT_ORIGIN(mw))
+	    if (IS_TRAILING_FIXED_ROW(mw, row))
 		row = mw->matrix.fixed_rows;
 	}
 	else
@@ -894,7 +959,7 @@ Cardinal *nparams;
 
 	if (!mw->matrix.traverse_fixed)
 	{
-	    if (row < mw->matrix.fixed_rows)
+	    if (IS_LEADING_FIXED_ROW(mw, row))
 		row = TRAILING_VERT_ORIGIN(mw) - 1;
 	}
 	else
@@ -913,6 +978,7 @@ Cardinal *nparams;
 	XbaeMatrixTraverseCellCallbackStruct call_data;
 
 	call_data.reason = XbaeTraverseCellReason;
+	call_data.event = event;
 	call_data.row = mw->matrix.current_row;
 	call_data.column = mw->matrix.current_column;
 	call_data.next_row = row;
@@ -926,8 +992,8 @@ Cardinal *nparams;
 	call_data.param = params[0];
 	call_data.qparam = q;
 
-	XtCallCallbackList((Widget) mw, mw->matrix.traverse_cell_callback,
-			   (XtPointer) & call_data);
+	XtCallCallbackList((Widget)mw, mw->matrix.traverse_cell_callback,
+			   (XtPointer)&call_data);
 
 	row = call_data.next_row;
 	column = call_data.next_column;
@@ -941,13 +1007,13 @@ Cardinal *nparams;
      */
     if (q == QPointer || (row != mw->matrix.current_row ||
 			  column != mw->matrix.current_column))
-	(*((XbaeMatrixWidgetClass) XtClass(mw))->matrix_class.edit_cell)
-	    (mw, row, column);
+	(*((XbaeMatrixWidgetClass)XtClass(mw))->matrix_class.edit_cell)
+	    (mw, event, row, column, params, *nparams);
 
     /*
      * Traverse to the textField
      */
-     (void)XmProcessTraversal(TextChild(mw), XmTRAVERSE_CURRENT);
+    (void)XmProcessTraversal(TextChild(mw), XmTRAVERSE_CURRENT);
 }
 
 /*
@@ -969,9 +1035,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else
     {
 	XtAppWarningMsg(
@@ -990,7 +1056,7 @@ Cardinal *nparams;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
 	    "cancelEditACT", "badParms", "XbaeMatrix",
-	    "XbaeMatrix: Wrong number of parameters passed to CancelEdit action, needs 1",
+	    "XbaeMatrix: Wrong params passed to CancelEdit action, needs 1",
 	    NULL, 0);
 	return;
     }
@@ -1007,14 +1073,14 @@ Cardinal *nparams;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
 	    "cancelEditACT", "badParm", "XbaeMatrix",
-	    "XbaeMatrix: Invalid parameter passed to CancelEdit action, must be True or False",
+	    "XbaeMatrix: Bad parameter for CancelEdit action",
 	    NULL, 0);
 	return;
     }
     /*
      * Call the cancel_edit method
      */
-    (*((XbaeMatrixWidgetClass) XtClass(mw))->matrix_class.cancel_edit)
+    (*((XbaeMatrixWidgetClass)XtClass(mw))->matrix_class.cancel_edit)
 	(mw, unmap);
 }
 
@@ -1037,9 +1103,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else
     {
 	XtAppWarningMsg(
@@ -1058,7 +1124,7 @@ Cardinal *nparams;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
 	    "commitEditACT", "badParms", "XbaeMatrix",
-	    "XbaeMatrix: Wrong number of parameters passed to CommitEdit action, needs 1",
+	    "XbaeMatrix: Wrong params for CommitEdit action, needs 1",
 	    NULL, 0);
 	return;
     }
@@ -1075,13 +1141,13 @@ Cardinal *nparams;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
 	    "commitEditACT", "badParm", "XbaeMatrix",
-	    "XbaeMatrix: Invalid parameter passed to CommitEdit action, must be True or False",
+	    "XbaeMatrix: Bad parameter for CommitEdit action",
 	    NULL, 0);
 	return;
     }
 
-    (void) (*((XbaeMatrixWidgetClass) XtClass(mw))->matrix_class.commit_edit)
-	(mw, unmap);
+    (void)(*((XbaeMatrixWidgetClass)XtClass(mw))->matrix_class.commit_edit)
+	(mw, event, unmap);
 }
 
 static int
@@ -1105,7 +1171,7 @@ int column;
 	mw->matrix.last_row = row;
 	mw->matrix.last_column = column;
 	if (ret)		/* just had a double click */
-	    mw->matrix.last_click_time =  (Time)0;
+	    mw->matrix.last_click_time = (Time)0;
 	else
 	    mw->matrix.last_click_time = event->xbutton.time;
 	ret = 0;
@@ -1116,7 +1182,7 @@ int column;
     delta = current_time - mw->matrix.last_click_time;
 
     if (row == mw->matrix.last_row && column == mw->matrix.last_column &&
-	delta <  (unsigned long)mw->matrix.double_click_interval)
+	delta < (unsigned long)mw->matrix.double_click_interval)
 	ret = 1;
     else
 	ret = 0;
@@ -1126,7 +1192,7 @@ int column;
 
 /*ARGSUSED*/
 static void
-PushButton (w, data, event, cont)
+PushButton(w, data, event, cont)
 Widget w;
 XtPointer data;
 XEvent *event;
@@ -1143,7 +1209,7 @@ Boolean *cont;
     if (event->type == ButtonRelease)
     {
 	button->grabbed = False;
-	XtRemoveGrab (w);
+	XtRemoveGrab(w);
 	scrolling = False;
 
 	if (button->pressed)
@@ -1152,9 +1218,9 @@ Boolean *cont;
 	       same button that was pressed.  "Unpress" it and call the
 	       callbacks */	
 	    if (button->column == -1)
-		xbaeDrawRowLabel (button->mw, button->row, False);
+		xbaeDrawRowLabel(button->mw, button->row, False);
 	    else if (button->row == -1)
-		xbaeDrawColumnLabel (button->mw, button->column, False);    
+		xbaeDrawColumnLabel(button->mw, button->column, False);    
 
 	    if (button->mw->matrix.label_activate_callback)
 	    {
@@ -1162,20 +1228,20 @@ Boolean *cont;
 		
 		call_data.reason = XbaeLabelActivateReason;
 		call_data.event = event;
-		call_data.row_label =  (button->column == -1);
+		call_data.row_label = (button->column == -1);
 		call_data.row = button->row;
 		call_data.column = button->column;
 
 		if (button->column == -1)
 		    call_data.label =
-			button->mw->matrix.row_labels[ button->row ];
+			button->mw->matrix.row_labels[button->row];
 		else
 		    call_data.label =
-			button->mw->matrix.column_labels[ button->column ];
+			button->mw->matrix.column_labels[button->column];
 
 		XtCallCallbackList((Widget)button->mw,
 				   button->mw->matrix.label_activate_callback,
-				   (XtPointer) &call_data);
+				   (XtPointer)&call_data);
 	    }
 	}
 	return;
@@ -1184,14 +1250,14 @@ Boolean *cont;
     if (event->type != MotionNotify) /* We want to be sure about this! */
 	return;
 
-    motionEvent =  (XMotionEvent *)event;
+    motionEvent = (XMotionEvent *)event;
     x = motionEvent->x;
     y = motionEvent->y;
     
     if (!xbaeEventToXY(button->mw, event, &x, &y, &cell))
 	return;
     
-    if (xbaeXYToRowCol (button->mw, &x, &y, &row, &column, cell))
+    if (xbaeXYToRowCol(button->mw, &x, &y, &row, &column, cell))
 	/* Moved off the labels */
 	pressed = False;
     else
@@ -1207,9 +1273,9 @@ Boolean *cont;
     if (pressed != button->pressed)
     {
 	if (button->column == -1)
-	    xbaeDrawRowLabel (button->mw, button->row, pressed);
+	    xbaeDrawRowLabel(button->mw, button->row, pressed);
 	else if (button->row == -1)
-	    xbaeDrawColumnLabel (button->mw, button->column, pressed);    
+	    xbaeDrawColumnLabel(button->mw, button->column, pressed);    
 	/* And set our struct's pressed member to the current setting */
 	button->pressed = pressed;
     }
@@ -1238,13 +1304,13 @@ Boolean *cont;
 
     translation = xbaeXYToRowCol(mw, &x, &y, &row, &column, cell);
 
-    if(!translation &&
-       (mw->matrix.button_labels ||
-	(row == -1 && mw->matrix.column_button_labels &&
-	 mw->matrix.column_button_labels[column]) ||
-	(column == -1 && mw->matrix.row_button_labels &&
-	 mw->matrix.row_button_labels[row])) &&
-       ((row == -1) ^ (column == -1)))
+    if (!translation &&
+	(mw->matrix.button_labels ||
+	 (row == -1 && mw->matrix.column_button_labels &&
+	  mw->matrix.column_button_labels[column]) ||
+	 (column == -1 && mw->matrix.row_button_labels &&
+	  mw->matrix.row_button_labels[row])) &&
+	((row == -1) ^ (column == -1)))
     {
 	unsigned long event_mask;
 	XtAppContext appcontext;
@@ -1258,17 +1324,17 @@ Boolean *cont;
 
 	if (column == -1 && event->type == ButtonPress)
 	    /* row label */
-	    xbaeDrawRowLabel (mw, row, True);
+	    xbaeDrawRowLabel(mw, row, True);
 	else if (row == -1 && event->type == ButtonPress)
 	    /* Column label */
-	    xbaeDrawColumnLabel (mw, column, True);
+	    xbaeDrawColumnLabel(mw, column, True);
 
 	/* Action stations! */
 	event_mask = ButtonReleaseMask | PointerMotionMask;
 
 	scrolling = True;
 
-	XtAddGrab (w, True, False);
+	XtAddGrab(w, True, False);
 	/* Copy the data needed to be passed to the event handler */
 	button.mw = mw;
 	button.row = row;
@@ -1276,28 +1342,28 @@ Boolean *cont;
 	button.pressed = True;
 	button.grabbed = True;
 		
-	XtAddEventHandler (w, event_mask,
-			   True,  (XtEventHandler)PushButton,
-			    (XtPointer)&button);
-	XtAddEventHandler (TextChild(mw), event_mask,
-			   True,  (XtEventHandler)PushButton,
-			    (XtPointer)&button);
+	XtAddEventHandler(w, event_mask,
+			   True, (XtEventHandler)PushButton,
+			   (XtPointer)&button);
+	XtAddEventHandler(TextChild(mw), event_mask,
+			   True, (XtEventHandler)PushButton,
+			   (XtPointer)&button);
     
-	appcontext = XtWidgetToApplicationContext (w);
+	appcontext = XtWidgetToApplicationContext(w);
 
 	while (button.grabbed)
-	    XtAppProcessEvent (appcontext, XtIMAll);
+	    XtAppProcessEvent(appcontext, XtIMAll);
 
-	XtRemoveEventHandler (w, event_mask, True,
-			       (XtEventHandler)PushButton,
-			       (XtPointer)&button);
-	XtRemoveEventHandler (TextChild (mw), event_mask, True,
-			       (XtEventHandler)PushButton,
-			       (XtPointer)&button);
+	XtRemoveEventHandler(w, event_mask, True,
+			      (XtEventHandler)PushButton,
+			      (XtPointer)&button);
+	XtRemoveEventHandler(TextChild(mw), event_mask, True,
+			      (XtEventHandler)PushButton,
+			      (XtPointer)&button);
 
     }
     else if (translation && mw->matrix.default_action_callback &&
-	     w !=  (Widget)mw &&
+	     w != (Widget)mw &&
 	     DoubleClick(mw, event, mw->matrix.current_row,
 			 mw->matrix.current_column))
     {
@@ -1309,12 +1375,12 @@ Boolean *cont;
 	    return;
 	
 	call_data.reason = XbaeDefaultActionReason;
+	call_data.event = event;
 	call_data.row = row;
 	call_data.column = column;
-	call_data.event = event;
 
 	XtCallCallbackList((Widget)mw, mw->matrix.default_action_callback,
-			   (XtPointer) &call_data);
+			   (XtPointer)&call_data);
     }	
 }
 
@@ -1337,9 +1403,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else
     {
 	XtAppWarningMsg(
@@ -1377,10 +1443,13 @@ Cardinal *nparams;
 	    return;
 	}
     }
+
     /*
      * Call our select_cell callbacks
      */
     call_data.reason = XbaeSelectCellReason;
+    call_data.event = event;
+
     if (scrolling)
     {
 	call_data.row = last_row;
@@ -1399,10 +1468,9 @@ Cardinal *nparams;
     call_data.cells = mw->matrix.cells;
     call_data.num_params = *nparams;
     call_data.params = params;
-    call_data.event = event;
 
-    XtCallCallbackList((Widget) mw, mw->matrix.select_cell_callback,
-		       (XtPointer) &call_data);
+    XtCallCallbackList((Widget)mw, mw->matrix.select_cell_callback,
+		       (XtPointer)&call_data);
 }
 
 
@@ -1421,7 +1489,7 @@ Cardinal *nparams;
      * w should be the textField widget.
      */
     if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else
     {
 	XtAppWarningMsg(
@@ -1439,7 +1507,7 @@ Cardinal *nparams;
      * on out of the mw.  yuck!
      */
     mw->matrix.traversing = XmTRAVERSE_NEXT_TAB_GROUP;
-     (void)XmProcessTraversal(TextChild(mw), XmTRAVERSE_NEXT_TAB_GROUP);
+    (void)XmProcessTraversal(TextChild(mw), XmTRAVERSE_NEXT_TAB_GROUP);
     mw->matrix.traversing = NOT_TRAVERSING;
 }
 
@@ -1458,7 +1526,7 @@ Cardinal *nparams;
      * w should be the textField widget.
      */
     if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else
     {
 	XtAppWarningMsg(
@@ -1475,14 +1543,15 @@ Cardinal *nparams;
      * the Clip focusCallback, TraverseInCB, and we will continue to traverse
      * on out of the mw.  yuck!
      */
-    mw->matrix.traversing =  (int)XmTRAVERSE_PREV_TAB_GROUP;
-     (void)XmProcessTraversal(TextChild(mw), XmTRAVERSE_PREV_TAB_GROUP);
+    mw->matrix.traversing = (int)XmTRAVERSE_PREV_TAB_GROUP;
+    (void)XmProcessTraversal(TextChild(mw), XmTRAVERSE_PREV_TAB_GROUP);
     mw->matrix.traversing = NOT_TRAVERSING;
 }
 
 static void
-callSelectCellAction (mw)
+callSelectCellAction(mw, event)
 XbaeMatrixWidget mw;
+XEvent *event;
 {
     XbaeMatrixSelectCellCallbackStruct call_data;
     Boolean old_scroll_select = mw->matrix.scroll_select;
@@ -1490,20 +1559,20 @@ XbaeMatrixWidget mw;
     mw->matrix.scroll_select = False;
 
     call_data.reason = XbaeSelectCellReason;
+    call_data.event = event;
     call_data.row = last_row;
     call_data.column = last_column;
     call_data.selected_cells = mw->matrix.selected_cells;
     call_data.cells = mw->matrix.cells;
     call_data.num_params = 1;
-    call_data.params =  (char **)XtMalloc (sizeof (char *));
+    call_data.params = (char **)XtMalloc(sizeof(char *));
     call_data.params[0] = "extend";
-    call_data.event =  (XEvent *)NULL;
     
     XtCallCallbackList(
 	 (Widget)mw, mw->matrix.select_cell_callback,
-	 (XtPointer) &call_data);
-     (void)XtFree (call_data.params[ 0 ]);
-     (void)XtFree ( (char *)call_data.params);
+	 (XtPointer)&call_data);
+
+     (void)XtFree((char *)call_data.params);
 
      mw->matrix.scroll_select = old_scroll_select;
 }
@@ -1511,13 +1580,13 @@ XbaeMatrixWidget mw;
 
 /*ARGSUSED*/
 static void
-checkScrollValues (w, data, event, cont)
+checkScrollValues(w, data, event, cont)
 Widget w;
 XtPointer data;
 XEvent *event;
 Boolean *cont;
 {
-    XbaeMatrixScrollStruct *ss =  (XbaeMatrixScrollStruct *)data;
+    XbaeMatrixScrollStruct *ss = (XbaeMatrixScrollStruct *)data;
     XMotionEvent *motionEvent;
     int x, y;
     CellType cell;
@@ -1528,28 +1597,41 @@ Boolean *cont;
     int row, column;
     int i;
 
+    ss->event = event;
+
     if (event->type == ButtonRelease)
     {
-	XtRemoveTimeOut (ss->timerID);
+	XtRemoveTimeOut(ss->timerID);
 	ss->grabbed = False;
 
 	if (ss->mw->matrix.selection_policy == XmMULTIPLE_SELECT ||
 	    ss->mw->matrix.selection_policy == XmEXTENDED_SELECT)
-	    callSelectCellAction (ss->mw);
+	    callSelectCellAction(ss->mw, ss->event);
 
 	return;
     }
 
-    if(!xbaeEventToXY (ss->mw, event, &x, &y, &cell))
+    if (!xbaeEventToXY(ss->mw, event, &x, &y, &cell))
 	return;
 
-    motionEvent =  (XMotionEvent *)event;
+    motionEvent = (XMotionEvent *)event;
 
     /*
      * In this instance, we don't care if a valid row and column are
      * returned as we'll be the judge of the result
      */
-    inMatrix = xbaeXYToRowCol (ss->mw, &x, &y, &row, &column, cell);
+    inMatrix = xbaeXYToRowCol(ss->mw, &x, &y, &row, &column, cell);
+
+    /*
+     * Reset the flags, so the matrix stops scrolling when the
+     * pointer is moved back into the fixed columns/rows after a drag
+     * select in the fixed columns/rows which caused the matrix to
+     * scroll vertically/horizontally. 
+     */
+    ss->below = False;
+    ss->above = False;
+    ss->left = False;
+    ss->right = False;
 
     if (inMatrix && cell == NonFixedCell)
     {
@@ -1561,7 +1643,7 @@ Boolean *cont;
 	/*
 	 * Calculate our position relative to the clip and adjust.
 	 */
-	if (motionEvent->y >= ss->cw->core.y + ss->cw->core.height)
+	if (motionEvent->y >= (int)(ss->cw->core.y + ss->cw->core.height))
 	{
 	    /* Below the matrix */
 	    distance = motionEvent->y - ss->cw->core.y - ss->cw->core.height;
@@ -1572,7 +1654,7 @@ Boolean *cont;
 	     * still changed from horizontal motion.
 	     */
 	    i = 0;
-	    while (COLUMN_POSITION (ss->mw, i) < HORIZ_ORIGIN(ss->mw) +
+	    while (COLUMN_POSITION(ss->mw, i) < HORIZ_ORIGIN(ss->mw) +
 		   motionEvent->x)
 		i++;
 
@@ -1583,13 +1665,13 @@ Boolean *cont;
 	{
 	    /*
 	     * Above the matrix - can't be both above and below at the same
-	     * time unless we have two pointers!
+	     * time unless we have two mouses!
 	     */
 	    distance = ss->cw->core.y - motionEvent->y;
 	    ss->below = False;
 	    ss->above = True;
 	    i = 0;
-	    while (COLUMN_POSITION (ss->mw, i) < HORIZ_ORIGIN(ss->mw) +
+	    while (COLUMN_POSITION(ss->mw, i) < HORIZ_ORIGIN(ss->mw) +
 		   motionEvent->x)
 		i++;
 	    if (i > 0 && i <= ss->mw->matrix.columns)
@@ -1600,45 +1682,45 @@ Boolean *cont;
 	    /* To the left */
 	    ss->left = True;
 	    ss->right = False;
-	    distance = Min (distance, ss->cw->core.x - motionEvent->x);
+	    distance = Min(distance, ss->cw->core.x - motionEvent->x);
 	    /*
 	     * Check for any vertical motion
 	     */
 	    if (!ss->below && !ss->above)
 	    {
-		last_row = YtoRow (ss->mw, motionEvent->y -
+		last_row = YtoRow(ss->mw, motionEvent->y -
 				   COLUMN_LABEL_HEIGHT(ss->mw)) +
-		    VERT_ORIGIN (ss->mw);
-		SANITY_CHECK_ROW( ss->mw, last_row );
+		    VERT_ORIGIN(ss->mw);
+		SANITY_CHECK_ROW(ss->mw, last_row);
 	    }
 	}
-	else if (motionEvent->x >= ss->cw->core.x + ss->cw->core.width)
+	else if (motionEvent->x >= (int)(ss->cw->core.x + ss->cw->core.width))
 	{
 	    /* To the right */
 	    ss->left = False;
 	    ss->right = True;
-	    distance = Min (distance, motionEvent->x - ss->cw->core.x -
-			    ss->cw->core.width);
+	    distance = Min(distance, (int)(motionEvent->x - ss->cw->core.x -
+			    ss->cw->core.width));
 	    if (!ss->below && !ss->above)
 	    {
-		last_row = YtoRow (ss->mw, motionEvent->y -
+		last_row = YtoRow(ss->mw, motionEvent->y -
 				   COLUMN_LABEL_HEIGHT(ss->mw)) +
-		    VERT_ORIGIN (ss->mw);
-		SANITY_CHECK_ROW( ss->mw, last_row );
+		    VERT_ORIGIN(ss->mw);
+		SANITY_CHECK_ROW(ss->mw, last_row);
 	    }
 	}
 	/*
 	 * Adjust the value of the update interval based on the distance we
 	 * are away from the matrix
 	 */
-	halfRows = distance /  (ROW_HEIGHT (ss->mw) / 2);
+	halfRows = distance / (ROW_HEIGHT(ss->mw) / 2);
 	/*
 	 * Avoid use of the math library by doing a simple calculation
 	 */
 	for (i = 0; i < halfRows; i++)
 	    denom *= 2;
 
-	ss->interval = DEFAULT_SCROLL_SPEED /  (denom > 0 ? denom : 1);
+	ss->interval = DEFAULT_SCROLL_SPEED / (denom > 0 ? denom : 1);
 
 	if (ss->interval <= 0)	/* Just to be on the safe side */
 	    ss->interval = 1;
@@ -1646,10 +1728,10 @@ Boolean *cont;
 }
 
 static void
-updateScroll (data)
+updateScroll(data)
 XtPointer data;
 {
-    XbaeMatrixScrollStruct *ss =  (XbaeMatrixScrollStruct *)data;
+    XbaeMatrixScrollStruct *ss = (XbaeMatrixScrollStruct *)data;
     Boolean callCallback = False;
     static int my_last_row = -1, my_last_column = -1;
 
@@ -1667,42 +1749,42 @@ XtPointer data;
      * scroll them into view.  If not, start setting the fixed
      * rows and columns as the current row and column.
      */
-    if (ss->below && last_row < TRAILING_VERT_ORIGIN (ss->mw) - 1)
+    if (ss->below && last_row < TRAILING_VERT_ORIGIN(ss->mw) - 1)
     {
-	xbaeMakeRowVisible (ss->mw, ++last_row);
+	xbaeMakeRowVisible(ss->mw, ++last_row);
 	callCallback = True;
     }
-    else if (ss->above && last_row > ss->mw->matrix.fixed_rows)
+    else if (ss->above && last_row > (int)ss->mw->matrix.fixed_rows)
     {
-	xbaeMakeRowVisible (ss->mw, --last_row);
+	xbaeMakeRowVisible(ss->mw, --last_row);
 	callCallback = True;
     }
-    if (ss->right && last_column < TRAILING_HORIZ_ORIGIN (ss->mw) - 1)
+    if (ss->right && last_column < TRAILING_HORIZ_ORIGIN(ss->mw) - 1)
     {
-	xbaeMakeColumnVisible (ss->mw, ++last_column);
+	xbaeMakeColumnVisible(ss->mw, ++last_column);
 	callCallback = True;
     }
-    else if (ss->left && last_column > ss->mw->matrix.fixed_columns)
+    else if (ss->left && last_column > (int)ss->mw->matrix.fixed_columns)
     {
-	xbaeMakeColumnVisible (ss->mw, --last_column);
+	xbaeMakeColumnVisible(ss->mw, --last_column);
 	callCallback = True;
     }
 
     if (callCallback &&
 	 (ss->mw->matrix.selection_policy == XmMULTIPLE_SELECT ||
 	  ss->mw->matrix.selection_policy == XmEXTENDED_SELECT))
-	callSelectCellAction (ss->mw);
+	callSelectCellAction(ss->mw, ss->event);
     
     /*
      * Flush the updates out to the server so we don't end up lagging
      * behind too far and end up with a million redraw requests.
      * Particularly for higher update speeds
      */
-    XFlush (XtDisplay ( (Widget)ss->mw));
+    XFlush(XtDisplay((Widget)ss->mw));
 
     ss->timerID = XtAppAddTimeOut(
-	ss->app_context, ss->interval,  (XtTimerCallbackProc)updateScroll,
-	 (XtPointer)ss);    
+	ss->app_context, ss->interval, (XtTimerCallbackProc)updateScroll,
+	(XtPointer)ss);    
 }
 
 /* ARGSUSED */
@@ -1729,9 +1811,9 @@ Cardinal *nparams;
      * w could be Matrix, or the Clip or textField children of Matrix
      */
     if (XtIsSubclass(w, xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) w;
+	mw = (XbaeMatrixWidget)w;
     else if (XtIsSubclass(XtParent(w), xbaeMatrixWidgetClass))
-	mw = (XbaeMatrixWidget) XtParent(w);
+	mw = (XbaeMatrixWidget)XtParent(w);
     else {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext(w),
@@ -1769,7 +1851,7 @@ Cardinal *nparams;
 
 		if (mw->matrix.selection_policy == XmMULTIPLE_SELECT ||
 		    mw->matrix.selection_policy == XmEXTENDED_SELECT)
-		    callSelectCellAction (mw);
+		    callSelectCellAction(mw, event);
 	    }
 	}
     }
@@ -1788,46 +1870,47 @@ Cardinal *nparams;
 
 	scrolling = True;
 
-	XtAddGrab (w, True, False);
+	XtAddGrab(w, True, False);
 
 	scrollData.mw = mw;
 	scrollData.cw = cw;
+	scrollData.event = event;
 	scrollData.interval = DEFAULT_SCROLL_SPEED;
 	scrollData.inClip = False;
 	scrollData.grabbed = True;
-	scrollData.app_context = XtWidgetToApplicationContext (w);
+	scrollData.app_context = XtWidgetToApplicationContext(w);
 	scrollData.above = scrollData.below = False;
 	scrollData.left = scrollData.right = False;
 	
-	XtAddEventHandler (w, PointerMotionMask | ButtonReleaseMask,
-			   True,  (XtEventHandler)checkScrollValues,
-			    (XtPointer)&scrollData);
+	XtAddEventHandler(w, PointerMotionMask | ButtonReleaseMask,
+			   True, (XtEventHandler)checkScrollValues,
+			   (XtPointer)&scrollData);
 	/*
 	 * Call checkScrollValues() to find out where exactly we are in
 	 * relation to the clip widget
 	 */
-	checkScrollValues (w,  (XtPointer)&scrollData, event, &cont);
+	checkScrollValues(w, (XtPointer)&scrollData, event, &cont);
 
 	/*
 	 * The above / below / left / right members of the scrollData struct
 	 * should now be set so we know where we should be moving.  Let's
 	 * get on with it, eh?
 	 */
-	updateScroll ( (XtPointer)&scrollData);
+	updateScroll((XtPointer)&scrollData);
 
 	while (scrollData.grabbed && !scrollData.inClip)
-	    XtAppProcessEvent (scrollData.app_context, XtIMAll);
+	    XtAppProcessEvent(scrollData.app_context, XtIMAll);
 
-	XtRemoveEventHandler (w, PointerMotionMask | ButtonReleaseMask,
-			      True,  (XtEventHandler)checkScrollValues,
-			       (XtPointer)&scrollData);
+	XtRemoveEventHandler(w, PointerMotionMask | ButtonReleaseMask,
+			      True, (XtEventHandler)checkScrollValues,
+			      (XtPointer)&scrollData);
 
-	XtRemoveGrab (w);
+	XtRemoveGrab(w);
 	/*
 	 * We don't want the timeout getting called again as, in two lines,
 	 * we'll be way out of scope!
 	 */
-	XtRemoveTimeOut (scrollData.timerID);
+	XtRemoveTimeOut(scrollData.timerID);
 	scrolling = False;
     }
 }

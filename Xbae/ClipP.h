@@ -21,7 +21,7 @@
  *
  * ClipWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: ClipP.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: ClipP.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
@@ -46,7 +46,7 @@
 extern "C" {
 #endif
 
-typedef void (*XbaeClipRedrawProc) P(( Widget ));
+typedef void (*XbaeClipRedrawProc) P((Widget));
 
 #if defined (__cplusplus) || defined(c_plusplus)
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Converters.c,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Converters.c,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
@@ -33,6 +33,10 @@
  * white space to be protected.  A backslash-comma (\,) does not
  * terminate a string and is copied as a comma (,).
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <ctype.h>
 #include <stdio.h>
@@ -48,7 +52,7 @@
 #define tolower(c)      ((c) - 'A' + 'a')
 #endif
 
-static Boolean StringsAreEqual P(( String, String, int ));
+static Boolean StringsAreEqual P((String, String, int));
 
 /* ARGSUSED */
 Boolean
@@ -261,7 +265,7 @@ XtPointer *data;
 	 */
 	for (ch = start, count = 1; *ch != '\0'; ch++)
 	{
-	    if ((*ch == '\\' && *(ch+1) == 'n' ) || *ch == '\n')
+	    if ((*ch == '\\' && *(ch+1) == 'n') || *ch == '\n')
 	        count++;
 
         }
@@ -270,13 +274,13 @@ XtPointer *data;
 	 * Malloc the array
 	 */
 	array = (String **)XtMalloc((count + 1) * sizeof(String *));
-	array[count] = (String* )0;
+	array[count] = (String*)0;
 	
-	for (k = 0; k < count; k++ )
+	for (k = 0; k < count; k++)
 	{
 	    for (ch = start; *ch != '\0' ; ch++)
 	    {
-	        if ((*ch == '\\' && *(ch+1) == 'n' ) || *ch == '\n')
+	        if ((*ch == '\\' && *(ch+1) == 'n') || *ch == '\n')
 	            break;
 	    }
 	    c = *ch ; *ch = '\0';
@@ -286,7 +290,7 @@ XtPointer *data;
             lto.addr = (char *)(&array[k]);
             lto.size = sizeof(String *);
             
-            if ( !CvtStringToStringArray(dpy, args, num_args, &lfrom, &lto, data))
+            if (!CvtStringToStringArray(dpy, args, num_args, &lfrom, &lto, data))
             {
                 *ch = c;
 		XtDisplayStringConversionWarning(dpy, from->addr,
@@ -297,9 +301,9 @@ XtPointer *data;
        		return False;
 	    }
             *ch = c;
-	    if ( c == '\\' )
+	    if (c == '\\')
 	        start = ch+2 ;
-	    else if ( c == '\n' )
+	    else if (c == '\n')
 	    	start = ch+1;
 	    else
 	    	start = ch;
@@ -862,7 +866,7 @@ XtPointer *data;
 	    if ((*ch == '\\' && *(ch+1) == 'n') || *ch == '\n')
 	    {
 	        count_y++;
-	        if ( k > count_x )
+	        if (k > count_x)
 	            count_x = k;
 	        k = 1;
 	    }
@@ -872,9 +876,9 @@ XtPointer *data;
 	 * Malloc the arrays
 	 */
 	array = (Pixel **)XtMalloc((count_y + 1) * sizeof(Pixel *));
-	array[count_y] = (Pixel* )0;
+	array[count_y] = (Pixel*)0;
 	
-	for (k = 0; k < count_y; k++ )
+	for (k = 0; k < count_y; k++)
 	{
           row = (Pixel *)XtMalloc((count_x + 1) * sizeof(Pixel));
 	  row[count_x] = BAD_PIXEL;
@@ -886,7 +890,7 @@ XtPointer *data;
 	   */
 	  for (i = 0; i < count_x; i++) {
 
-	    if ( *start == '\0' )
+	    if (*start == '\0')
 	        break;
 	    /*
 	     * Skip leading white space
@@ -910,7 +914,7 @@ XtPointer *data;
             lto.addr = (char *)(&row[i]);
             lto.size = sizeof(Pixel);
             
-            if ( ! XtCvtStringToPixel(dpy, args, num_args, &lfrom, &lto, data))
+            if (! XtCvtStringToPixel(dpy, args, num_args, &lfrom, &lto, data))
             {
                 row[i] = last_pixel;
 		XtDisplayStringConversionWarning(dpy, from->addr,
@@ -918,12 +922,12 @@ XtPointer *data;
 	    }
 	    last_pixel = row[i];
             *ch = c;
-	    if ( c == '\0' )
+	    if (c == '\0')
 	    {
 	        start = ch;
 	        break;
 	    }
-	    if ( c == '\\' )
+	    if (c == '\\')
 	    {
 	        ch++ ;
 	        start = ch+1;
@@ -931,7 +935,7 @@ XtPointer *data;
 	    }
 	    start = ch+1;
 	  }
-	  for (  ; i < count_x-1 ; i++ )
+	  for (; i < count_x-1 ; i++)
 	  {
 	     /* fill rest of row with same value */
 	     row[i+1] = row[i];	            
@@ -963,10 +967,10 @@ Cardinal *num_args;
     Pixel **array = *(Pixel ***) to->addr;
     Pixel **col;
 
-    if ( array )
+    if (array)
     {
-        for ( col = array  ; col ; col++ )
-            XtFree((XtPointer)*col );
+        for (col = array  ; col ; col++)
+            XtFree((XtPointer)*col);
         XtFree((XtPointer) array);
     }
 }
@@ -1006,20 +1010,38 @@ XtPointer *data;
 
     if (StringsAreEqual(start, "grid_none", 9))
 	grid_type = XmGRID_NONE;
+    else if (StringsAreEqual(start, "grid_cell_line", 14))
+	grid_type = XmGRID_CELL_LINE;
+    else if (StringsAreEqual(start, "grid_cell_shadow", 16))
+	grid_type = XmGRID_CELL_SHADOW;
+    else if (StringsAreEqual(start, "grid_row_line", 13))
+	grid_type = XmGRID_ROW_LINE;
+    else if (StringsAreEqual(start, "grid_row_shadow", 15))
+	grid_type = XmGRID_ROW_SHADOW;
+    else if (StringsAreEqual(start, "grid_column_line", 16))
+	grid_type = XmGRID_COLUMN_LINE;
+    else if (StringsAreEqual(start, "grid_column_shadow", 15))
+	grid_type = XmGRID_COLUMN_SHADOW;
+    /* Deprecated types. To be removed in next version. */
     else if (StringsAreEqual(start, "grid_line", 9))
 	grid_type = XmGRID_LINE;
     else if (StringsAreEqual(start, "grid_shadow_in", 14))
 	grid_type = XmGRID_SHADOW_IN;
     else if (StringsAreEqual(start, "grid_shadow_out", 15))
 	grid_type = XmGRID_SHADOW_OUT;
-    else if (StringsAreEqual(start, "grid_row_shadow", 15))
-	grid_type = XmGRID_ROW_SHADOW;
-    else if (StringsAreEqual(start, "grid_column_shadow", 15))
-	grid_type = XmGRID_COLUMN_SHADOW;
     else {
 	XtDisplayStringConversionWarning(dpy, from->addr, XmRGridType);
 	return False;
     }
+
+    /* Deprecated types. To be removed in next version. */
+    if (grid_type >= XmGRID_LINE)
+        XtAppWarningMsg(
+	    XtDisplayToApplicationContext(dpy),
+	    "cvtStringToGridType", "deprecatedType",
+	    "XbaeMatrix",
+	    "Value for GridType is deprecated and will be removed in next release",
+	    NULL, NULL);
 
     /*
      * Store our return value
@@ -1035,7 +1057,13 @@ XtPointer *data;
 
 /* ARGSUSED */
 Boolean
+#ifdef __VMS
+/* According to Barry Stone VMS only allows function names with a
+   maximum length of 31 characters */
+CvtStringToMatrixScrollBarDisp(dpy, args, num_args, from, to, data)
+#else
 CvtStringToMatrixScrollBarDisplayPolicy(dpy, args, num_args, from, to, data)
+#endif
 Display *dpy;
 XrmValuePtr args;
 Cardinal *num_args;

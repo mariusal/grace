@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -22,17 +22,16 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.c,v 1.2 1999-05-28 22:32:56 fnevgeny Exp $
+ * $Id: Matrix.c,v 1.3 1999-07-26 22:55:06 fnevgeny Exp $
  */
 
-/*
- * MATRIX.c - row/column editable matrix widget
- */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-/* #include <X11/Xos.h> */
 #include <X11/StringDefs.h>
 #include <X11/Xlib.h>
 #include <Xm/XmP.h>
@@ -43,6 +42,7 @@
 #include <Xm/DragIcon.h>
 #include <Xm/DragC.h>
 #endif
+#include <Xbae/Input.h>
 #include <Xbae/Clip.h>
 #include <Xbae/MatrixP.h>
 #include <Xbae/Converters.h>
@@ -106,6 +106,9 @@ static XtResource resources[] =
      offset(matrix.button_label_background), XmRCallProc,
      (XtPointer)xbaeCopyBackground},
     
+    {XmNcalcCursorPosition, XmCCalcCursorPosition, XmRBoolean, sizeof(Boolean),
+     offset(matrix.calc_cursor_position), XmRImmediate, (XtPointer) False},
+
     {XmNcellBackgrounds, XmCColors, XmRPixelTable, sizeof(Pixel **),
      offset(matrix.cell_background), XmRImmediate, (XtPointer) NULL},
 
@@ -222,7 +225,7 @@ static XtResource resources[] =
 
     {XmNgridType, XmCGridType, XmRGridType,
      sizeof(unsigned char), offset(matrix.grid_type),
-     XmRImmediate, (XtPointer)XmGRID_LINE},
+     XmRImmediate, (XtPointer)XmGRID_CELL_LINE},
 
 #if XmVersion >= 1002
     {XmNhighlightedCells, XmCHighlightedCells, XmRHighlightTable,
@@ -257,10 +260,12 @@ static XtResource resources[] =
     {XmNoddRowBackground, XmCBackground, XmRPixel, sizeof(Pixel),
      offset(matrix.odd_row_background), XmRCallProc,
      (XtPointer)xbaeCopyBackground},
+
 #if XmVersion > 1001
     {XmNprocessDragCallback, XmCCallback, XmRCallback, sizeof(XtCallbackList),
      offset(matrix.process_drag_callback), XmRCallback, NULL},
 #endif
+
     /* Resize callback resource. Added by mjs */
     {XmNresizeCallback, XmCCallback, XmRCallback, sizeof(XtCallbackList),
      offset(matrix.resize_callback), XmRCallback, NULL},
@@ -326,9 +331,14 @@ static XtResource resources[] =
      sizeof(unsigned char), offset(matrix.selection_policy), XmRImmediate, 
      XmSINGLE_SELECT},
 
+    /* Override Manager default */
+    {XmNshadowThickness, XmCShadowThickness, XmRHorizontalDimension,
+     sizeof(Dimension), XtOffsetOf(XmManagerRec, manager.shadow_thickness),
+     XmRImmediate, (XtPointer) 2},
+
     {XmNshadowType, XmCShadowType, XmRShadowType,
      sizeof(unsigned char), offset(matrix.shadow_type), XmRImmediate,
-     (XtPointer) XmSHADOW_OUT},
+     (XtPointer) XmSHADOW_IN},
 
     {XmNshowArrows, XmCShowArrows, XmRBoolean, sizeof(Boolean),
      offset(matrix.show_arrows), XmRImmediate, (XtPointer) False},
@@ -353,6 +363,12 @@ static XtResource resources[] =
 
     {XmNtopRow, XmCTopRow, XmRInt, sizeof(int),
      offset(matrix.top_row), XmRImmediate, (XtPointer) 0},
+
+    {XmNtrailingAttachedBottom, XmCTrailingAttachedBottom, XmRBoolean, sizeof(Boolean),
+     offset(matrix.trailing_attached_bottom), XmRImmediate, (XtPointer) False},
+
+    {XmNtrailingAttachedRight, XmCTrailingAttachedRight, XmRBoolean, sizeof(Boolean),
+     offset(matrix.trailing_attached_right), XmRImmediate, (XtPointer) False},
 
     {XmNtrailingFixedColumns, XmCTrailingFixedColumns, XmRDimension,
      sizeof(Dimension), offset(matrix.trailing_fixed_columns),
@@ -388,10 +404,6 @@ static XtResource resources[] =
     {XmNwriteCellCallback, XmCCallback, XmRCallback, sizeof(XtCallbackList),
      offset(matrix.write_cell_callback), XmRCallback, NULL},
 
-    /* Override Manager default */
-    {XmNshadowThickness, XmCShadowThickness, XmRHorizontalDimension,
-     sizeof(Dimension), XtOffsetOf(XmManagerRec, manager.shadow_thickness),
-     XmRImmediate, (XtPointer) 2},
 };
 
 static XmSyntheticResource syn_resources[] =
@@ -421,51 +433,49 @@ static XtIntervalId TraverseID = 0;
 /*
  * Declaration of methods
  */
-static void ClassInitialize P(( void ));
-static void xbaeRegisterConverters P(( void ));
-static void ClassPartInitialize P(( XbaeMatrixWidgetClass ));
-static void Initialize P(( XbaeMatrixWidget, XbaeMatrixWidget, ArgList,
-			   Cardinal * ));
-static void Realize P(( XbaeMatrixWidget, XtValueMask *,
-			XSetWindowAttributes * ));
-static void InsertChild P(( Widget ));
-static void Redisplay P(( Widget, XEvent *, Region ));
-static Boolean SetValues P(( XbaeMatrixWidget,
-			     XbaeMatrixWidget, XbaeMatrixWidget,
-			     ArgList, Cardinal * ));
-static void SetValuesAlmost P(( XbaeMatrixWidget, XbaeMatrixWidget,
-				XtWidgetGeometry *,
-				XtWidgetGeometry * ));
-static void Destroy P(( XbaeMatrixWidget ));
-static XtGeometryResult GeometryManager P(( Widget, XtWidgetGeometry *,
-					    XtWidgetGeometry * ));
-static XtGeometryResult QueryGeometry P(( XbaeMatrixWidget, XtWidgetGeometry *,
-					  XtWidgetGeometry * ));
+static void ClassInitialize P((void));
+static void xbaeRegisterConverters P((void));
+static void ClassPartInitialize P((XbaeMatrixWidgetClass));
+static void Initialize P((XbaeMatrixWidget, XbaeMatrixWidget, ArgList,
+			  Cardinal *));
+static void Realize P((XbaeMatrixWidget, XtValueMask *,
+		       XSetWindowAttributes *));
+static void InsertChild P((Widget));
+static void Redisplay P((Widget, XEvent *, Region));
+static Boolean SetValues P((XbaeMatrixWidget, XbaeMatrixWidget,
+			    XbaeMatrixWidget, ArgList, Cardinal *));
+static void SetValuesAlmost P((XbaeMatrixWidget, XbaeMatrixWidget,
+			       XtWidgetGeometry *, XtWidgetGeometry *));
+static void Destroy P((XbaeMatrixWidget));
+static XtGeometryResult GeometryManager P((Widget, XtWidgetGeometry *,
+					   XtWidgetGeometry *));
+static XtGeometryResult QueryGeometry P((XbaeMatrixWidget, XtWidgetGeometry *,
+					 XtWidgetGeometry *));
 
 /*
  * Redraw function for clip widget
  */
-static void ClipRedisplay P(( Widget, XEvent *, Region ));
+static void ClipRedisplay P((Widget, XEvent *, Region));
 
 /*
  * Private functions unique to Matrix
  */
-static void ResizeCells P(( XbaeMatrixWidget, XbaeMatrixWidget ));
-static void ResizeSelectedCells P(( XbaeMatrixWidget, XbaeMatrixWidget ));
+static void ResizeCells P((XbaeMatrixWidget, XbaeMatrixWidget));
+static void ResizeSelectedCells P((XbaeMatrixWidget, XbaeMatrixWidget));
 #if XmVersion >= 1002
-static void ResizeHighlightedCells P(( XbaeMatrixWidget, XbaeMatrixWidget ));
+static void ResizeHighlightedCells P((XbaeMatrixWidget, XbaeMatrixWidget));
 #endif
-static void ResizeColors P(( XbaeMatrixWidget, XbaeMatrixWidget, Boolean ));
-static void TraverseIn P(( XbaeMatrixWidget ));
+static void ResizeColors P((XbaeMatrixWidget, XbaeMatrixWidget, Boolean));
+static void TraverseIn P((XbaeMatrixWidget));
 
 #if XmVersion >= 1002
-static void TraverseInTimeOut P(( XtPointer, XtIntervalId * ));
+static void TraverseInTimeOut P((XtPointer, XtIntervalId *));
 #endif /* XmVersion >= 1002 */
 
 /*
  * Clip widget focusCallback
  */
-static void TraverseInCB P(( Widget, XbaeMatrixWidget, XtPointer ));
+static void TraverseInCB P((Widget, XbaeMatrixWidget, XtPointer));
 
 /*
  * Matrix actions
@@ -486,28 +496,28 @@ static XtActionsRec actions[] =
 
 
 static XmBaseClassExtRec BaseClassExtRec = {
-	/* next_extension	*/  NULL,
-	/* record_type		*/  NULLQUARK,
-	/* version		*/  XmBaseClassExtVersion,
-	/* record_size		*/  sizeof(XmBaseClassExtRec),
-	/* InitializePrehook	*/  NULL,
-	/* SetValuesPrehook	*/  NULL,
-	/* InitializePosthook	*/  NULL,
-	/* SetValuesPosthook	*/  NULL,
-	/* secondaryObjectClass	*/  NULL,
-	/* secondaryCreate	*/  NULL,
-	/* getSecRes data	*/  NULL,
-	/* fastSubclass flags	*/  { 0 },
-	/* get_values_prehook	*/  NULL,
-	/* get_values_posthook	*/  NULL,
-	/* classPartInitPrehook */  NULL,
-	/* classPartInitPosthook*/  NULL,
-	/* ext_resources	*/  NULL,
-	/* compiled_ext_resources*/ NULL,
-	/* num_ext_resources	*/  0,
-	/* use_sub_resources	*/  FALSE,
-	/* widgetNavigable	*/  XmInheritWidgetNavigable,
-	/* focusChange		*/  XmInheritFocusChange,
+    NULL,					/* next_extension	*/
+    NULLQUARK,					/* record_type		*/
+    XmBaseClassExtVersion,			/* version		*/
+    sizeof(XmBaseClassExtRec),			/* record_size		*/
+    NULL,					/* InitializePrehook	*/
+    NULL,					/* SetValuesPrehook	*/
+    NULL,					/* InitializePosthook	*/
+    NULL,					/* SetValuesPosthook	*/
+    NULL,					/* secondaryObjectClass	*/
+    NULL,					/* secondaryCreate	*/
+    NULL,					/* getSecRes data	*/
+    { 0 },					/* fastSubclass flags	*/
+    NULL,					/* get_values_prehook	*/
+    NULL,					/* get_values_posthook	*/
+    NULL,					/* classPartInitPrehook */
+    NULL,					/* classPartInitPosthook*/
+    NULL,					/* ext_resources	*/
+    NULL,					/* compiled_ext_resources*/
+    0,						/* num_ext_resources	*/
+    FALSE,					/* use_sub_resources	*/
+    XmInheritWidgetNavigable,			/* widgetNavigable	*/
+    XmInheritFocusChange,			/* focusChange		*/
 };
 
 
@@ -516,93 +526,93 @@ XbaeMatrixClassRec xbaeMatrixClassRec =
 {
     {
 	/* core_class fields	*/
-	/* superclass		*/ (WidgetClass) & xmManagerClassRec,
-	/* class_name		*/ "XbaeMatrix",
-	/* widget_size		*/ sizeof(XbaeMatrixRec),
-	/* class_initialize	*/ ClassInitialize,
-	/* class_part_initialize*/ ( XtWidgetClassProc )ClassPartInitialize,
-	/* class_inited		*/ False,
-	/* initialize		*/ ( XtInitProc )Initialize,
-	/* initialize_hook	*/ NULL,
-	/* realize		*/ ( XtRealizeProc )Realize,
-	/* actions		*/ actions,
-	/* num_actions		*/ XtNumber(actions),
-	/* resources		*/ resources,
-	/* num_resources	*/ XtNumber(resources),
-	/* xrm_class		*/ NULLQUARK,
-	/* compress_motion	*/ True,
-	/* compress_exposure	*/ XtExposeCompressMultiple |
-				       XtExposeGraphicsExpose |
-				       XtExposeNoExpose,
-	/* compress_enterleave	*/ True,
-	/* visible_interest	*/ False,
-	/* destroy		*/ ( XtWidgetProc )Destroy,
-	/* resize		*/ ( XtWidgetProc )xbaeResize,
-	/* expose		*/ ( XtExposeProc )Redisplay,
-	/* set_values		*/ ( XtSetValuesFunc )SetValues,
-	/* set_values_hook	*/ NULL,
-	/* set_values_almost	*/ ( XtAlmostProc )SetValuesAlmost,
-	/* get_values_hook	*/ NULL,
-	/* accept_focus		*/ NULL,
-	/* version		*/ XtVersionDontCheck,
-	/* callback_private	*/ NULL,
-	/* tm_table		*/ defaultTranslations,
-	/* query_geometry	*/ ( XtGeometryHandler )QueryGeometry,
-	/* display_accelerator	*/ NULL,
-	/* extension		*/ (XtPointer) &BaseClassExtRec
+	(WidgetClass) & xmManagerClassRec,	/* superclass		*/
+	"XbaeMatrix",				/* class_name		*/
+	sizeof(XbaeMatrixRec),			/* widget_size		*/
+	ClassInitialize,			/* class_initialize	*/
+	(XtWidgetClassProc)ClassPartInitialize,	/* class_part_initialize*/
+	False,					/* class_inited		*/
+	(XtInitProc)Initialize,			/* initialize		*/
+	NULL,					/* initialize_hook	*/
+	(XtRealizeProc)Realize,			/* realize		*/
+	actions,				/* actions		*/
+	XtNumber(actions),			/* num_actions		*/
+	resources,				/* resources		*/
+	XtNumber(resources),			/* num_resources	*/
+	NULLQUARK,				/* xrm_class		*/
+	True,					/* compress_motion	*/
+	XtExposeCompressMultiple |		/* compress_exposure	*/
+	XtExposeGraphicsExpose |
+	XtExposeNoExpose,
+	True,					/* compress_enterleave	*/
+	False,					/* visible_interest	*/
+	(XtWidgetProc)Destroy,			/* destroy		*/
+	(XtWidgetProc)xbaeResize,		/* resize		*/
+	(XtExposeProc)Redisplay,		/* expose		*/
+	(XtSetValuesFunc)SetValues,		/* set_values		*/
+	NULL,					/* set_values_hook	*/
+	(XtAlmostProc)SetValuesAlmost,		/* set_values_almost	*/
+	NULL,					/* get_values_hook	*/
+	NULL,					/* accept_focus		*/
+	XtVersionDontCheck,			/* version		*/
+	NULL,					/* callback_private	*/
+	defaultTranslations,			/* tm_table		*/
+	(XtGeometryHandler)QueryGeometry,	/* query_geometry	*/
+	NULL,					/* display_accelerator	*/
+	(XtPointer) &BaseClassExtRec		/* extension		*/
     },
 
     {
 	/* composite_class fields */
-	/* geometry_manager	*/ GeometryManager,
-	/* change_managed	*/ NULL,
-	/* insert_child		*/ InsertChild,
-	/* delete_child		*/ XtInheritDeleteChild,
-	/* extension		*/ NULL,
+	GeometryManager,			/* geometry_manager	*/
+	NULL,					/* change_managed	*/
+	InsertChild,				/* insert_child		*/
+	XtInheritDeleteChild,			/* delete_child		*/
+	NULL,					/* extension		*/
     },
     {
 	/* constraint_class fields */
-	/* resources		*/ NULL,
-	/* num_resources	*/ 0,
-	/* constraint_size	*/ 0,
-	/* initialize		*/ NULL,
-	/* destroy		*/ NULL,
-	/* set_values		*/ NULL,
-	/* extension		*/ NULL
+	NULL,					/* resources		*/
+	0,					/* num_resources	*/
+	0,					/* constraint_size	*/
+	NULL,					/* initialize		*/
+	NULL,					/* destroy		*/
+	NULL,					/* set_values		*/
+	NULL					/* extension		*/
     },
     {
 	/* manager_class fields */
-	/* translations		*/ XtInheritTranslations,
-	/* syn_resources	*/ syn_resources,
-	/* num_syn_resources	*/ XtNumber(syn_resources),
-	/* syn_constraint_resources	*/ NULL,
-	/* num_syn_constraint_resources */ 0,
-	/* parent_process	*/ XmInheritParentProcess,
-	/* extension		*/ NULL
+	XtInheritTranslations,			/* translations		*/
+	syn_resources,				/* syn_resources	*/
+	XtNumber(syn_resources),		/* num_syn_resources	*/
+	NULL,				    /* syn_constraint_resources	*/
+	0,				    /* num_syn_constraint_resources */
+	XmInheritParentProcess,			/* parent_process	*/
+	NULL					/* extension		*/
     },
     {
 	/* matrix_class fields */
-	/* set_cell		*/ ( XbaeMatrixSetCellProc )xbaeSetCell,
-	/* get_cell		*/ xbaeGetCell,
-	/* edit_cell		*/ xbaeEditCell,
-	/* select_cell		*/ xbaeSelectCell,
-	/* select_row		*/ xbaeSelectRow,
-	/* select_column	*/ xbaeSelectColumn,
-	/* deselect_all		*/ xbaeDeselectAll,
-	/* select_all		*/ xbaeSelectAll,
-	/* deselect_cell	*/ xbaeDeselectCell,
-	/* deselect_row		*/ xbaeDeselectRow,
-	/* deselect_column	*/ xbaeDeselectColumn,
-	/* commit_edit		*/ xbaeCommitEdit,
-	/* cancel_edit		*/ xbaeCancelEdit,
-	/* add_rows		*/ xbaeAddRows,
-	/* delete_rows		*/ xbaeDeleteRows,
-	/* add_columns		*/ xbaeAddColumns,
-	/* delete_columns	*/ xbaeDeleteColumns,
-	/* set_row_colors	*/ xbaeSetRowColors,
-	/* set_column_colors	*/ xbaeSetColumnColors,
-	/* set_cell_color	*/ xbaeSetCellColor,
-	/* extension		*/ NULL,
+	xbaeSetCell,				/* set_cell		*/
+	xbaeGetCell,				/* get_cell		*/
+	xbaeEditCell,				/* edit_cell		*/
+	xbaeSelectCell,				/* select_cell		*/
+	xbaeSelectRow,				/* select_row		*/
+	xbaeSelectColumn,			/* select_column	*/
+	xbaeDeselectAll,			/* deselect_all		*/
+	xbaeSelectAll,				/* select_all		*/
+	xbaeDeselectCell,			/* deselect_cell	*/
+	xbaeDeselectRow,			/* deselect_row		*/
+	xbaeDeselectColumn,			/* deselect_column	*/
+	xbaeCommitEdit,				/* commit_edit		*/
+	xbaeCancelEdit,				/* cancel_edit		*/
+	xbaeAddRows,				/* add_rows		*/
+	xbaeDeleteRows,				/* delete_rows		*/
+	xbaeAddColumns,				/* add_columns		*/
+	xbaeDeleteColumns,			/* delete_columns	*/
+	xbaeSetRowColors,			/* set_row_colors	*/
+	xbaeSetColumnColors,			/* set_column_colors	*/
+	xbaeSetCellColor,			/* set_cell_color	*/
+	NULL,					/* extension		*/
     }
 };
 
@@ -693,7 +703,11 @@ xbaeRegisterConverters()
      * XmN{vertical,horizontal}ScrollBarDisplayPolicy
      */
     XtSetTypeConverter(XmRString, XmRMatrixScrollBarDisplayPolicy,
+#ifdef __VMS
+		       CvtStringToMatrixScrollBarDisp,
+#else
 		       CvtStringToMatrixScrollBarDisplayPolicy,
+#endif
 		       NULL, 0, XtCacheAll, NULL);
 }
 
@@ -704,7 +718,7 @@ ClassInitialize()
 }
 
 static void
-ClassPartInitialize( mwc )
+ClassPartInitialize(mwc)
 XbaeMatrixWidgetClass mwc;
 {
     register XbaeMatrixWidgetClass super =
@@ -797,6 +811,7 @@ Cardinal *num_args;
      * Initialize redisplay counters
      */
     new->matrix.disable_redisplay = 0;
+    new->matrix.first_row_offset = 0;
 
 #if XmVersion >= 1002
     /*
@@ -838,7 +853,7 @@ Cardinal *num_args;
 
     /* If no label font is specified, copy the default fontList, but if
        we do then override the bold_labels resource */
-    if( !new->matrix.label_font_list )
+    if (!new->matrix.label_font_list)
 	new->matrix.label_font_list = XmFontListCopy(new->matrix.font_list);
     else
 	new->matrix.bold_labels = False;
@@ -847,22 +862,24 @@ Cardinal *num_args;
      * We must have at least one non-fixed row/column. Only complain if there
      * are some to complain about, though. We may have none at all (yet).
      */
-    if ((new->matrix.fixed_rows + new->matrix.trailing_fixed_rows) > 0 &&
-       	(new->matrix.fixed_rows + new->matrix.trailing_fixed_rows) >=
-        new->matrix.rows)
+    if ((int)(new->matrix.fixed_rows +
+	      new->matrix.trailing_fixed_rows) > 0 &&
+       	(int)(new->matrix.fixed_rows +
+	      new->matrix.trailing_fixed_rows) >= new->matrix.rows)
     {
-        XtAppWarningMsg( XtWidgetToApplicationContext((Widget) new),
+        XtAppWarningMsg(XtWidgetToApplicationContext((Widget) new),
 			 "initialize", "tooManyFixed", "XbaeMatrix",
 			 "XbaeMatrix: At least one row must not be fixed",
 			 NULL, 0);
         new->matrix.fixed_rows = 0;
         new->matrix.trailing_fixed_rows = 0;
     }
-    if ((new->matrix.fixed_columns + new->matrix.trailing_fixed_columns) > 0 &&
-	(new->matrix.fixed_columns + new->matrix.trailing_fixed_columns) >=
-        new->matrix.columns)
+    if ((int)(new->matrix.fixed_columns +
+	      new->matrix.trailing_fixed_columns) > 0 &&
+	(int)(new->matrix.fixed_columns +
+	      new->matrix.trailing_fixed_columns) >= new->matrix.columns)
     {
-        XtAppWarningMsg( XtWidgetToApplicationContext((Widget) new),
+        XtAppWarningMsg(XtWidgetToApplicationContext((Widget) new),
 			 "initialize", "tooManyFixed", "XbaeMatrix",
 			 "XbaeMatrix: At least one column must not be fixed",
 			 NULL, 0);
@@ -884,11 +901,20 @@ Cardinal *num_args;
 	new->matrix.visible_columns = 0;
     }
 
+    if (new->matrix.grid_type >= XmGRID_LINE)
+	/* Deprecated types. To be removed in next version. */
+	XtAppWarningMsg(
+	    XtWidgetToApplicationContext((Widget) new),
+	    "cvtStringToGridType", "deprecatedType",
+	    "XbaeMatrix",
+	    "Value for GridType is deprecated and will be removed in next release",
+	    NULL, NULL);
+
     /*
      * Copy the pointed to resources.
      * If cells is NULL, we create an array of "" strings.
      */
-    if( new->matrix.cells )
+    if (new->matrix.cells)
 	xbaeCopyCells(new);
     if (new->matrix.row_labels)
 	xbaeCopyRowLabels(new);
@@ -917,7 +943,7 @@ Cardinal *num_args;
 	xbaeCopyColumnUserData(new);
 
 #if CELL_WIDGETS
-    if( new->matrix.cell_widgets )
+    if (new->matrix.cell_widgets)
 	xbaeCopyCellWidgets(new);
 #endif
     
@@ -939,11 +965,11 @@ Cardinal *num_args;
     if (new->matrix.cell_background)
   	xbaeCopyBackgrounds(new);
 
-    if ( new->matrix.selected_cells )
+    if (new->matrix.selected_cells)
 	xbaeCopySelectedCells(new);
 
 #if XmVersion >= 1002
-    if ( new->matrix.highlighted_cells )
+    if (new->matrix.highlighted_cells)
 	xbaeCopyHighlightedCells(new);
 #endif
     
@@ -1026,7 +1052,7 @@ Cardinal *num_args;
      * and can use it in traversal.
      */
     XtAddCallback(ClipChild(new), XmNfocusCallback,
-		  ( XtCallbackProc )TraverseInCB, (XtPointer) new);
+		  (XtCallbackProc)TraverseInCB, (XtPointer) new);
 
     /*
      * Calculate an imaginary cellMarginHeight based on the largest of
@@ -1034,9 +1060,10 @@ Cardinal *num_args;
      * the cellMarginHeight needs to be increased to allow the cell font
      * to still appear centrally placed
      */
-    if( LABEL_HEIGHT(new) > FONT_HEIGHT(new) )
-	marginHeight = ( LABEL_HEIGHT(new) + ( new->matrix.cell_margin_height *
-			 2 ) - FONT_HEIGHT(new) ) / 2;
+    if (LABEL_HEIGHT(new) > FONT_HEIGHT(new))
+	marginHeight = (int)(LABEL_HEIGHT(new) +
+			     (new->matrix.cell_margin_height *
+			      2) - FONT_HEIGHT(new)) / 2;
     else 
 	marginHeight = new->matrix.cell_margin_height;
    
@@ -1050,7 +1077,7 @@ Cardinal *num_args;
      */
 
     new->matrix.text_field = XtVaCreateWidget(
-	"textField", xmTextFieldWidgetClass, (Widget) new,
+	"textField", xbaeInputWidgetClass, (Widget) new,
 	XmNmarginWidth, new->matrix.cell_margin_width,
 	XmNmarginHeight, marginHeight,
 	XmNtranslations, new->matrix.text_translations,
@@ -1063,6 +1090,7 @@ Cardinal *num_args;
 	XmNhighlightThickness, new->matrix.cell_highlight_thickness,
 	XmNhighlightColor, new->manager.highlight_color,
 	XmNhighlightPixmap, new->manager.highlight_pixmap,
+	XmNeditMode, XmSINGLE_LINE_EDIT,
 	NULL);
     
     XtAddCallback(TextChild(new), XmNmodifyVerifyCallback, xbaeModifyVerifyCB,
@@ -1070,35 +1098,35 @@ Cardinal *num_args;
 
     /* Add a handler on top of the text field to handle clicks on it */
     XtAddEventHandler(TextChild(new), ButtonPressMask | ButtonReleaseMask,
-		      True, (XtEventHandler)xbaeHandleClick, (XtPointer)new );
+		      True, (XtEventHandler)xbaeHandleClick, (XtPointer)new);
     XtAddEventHandler((Widget)new, ButtonPressMask | ButtonReleaseMask,
-		      True, (XtEventHandler)xbaeHandleClick, (XtPointer)new );
+		      True, (XtEventHandler)xbaeHandleClick, (XtPointer)new);
 
     /*
      * Compute cell text baseline based on TextField widget
      */
-    new->matrix.text_baseline = XmTextFieldGetBaseline(TextChild(new)) +
+    new->matrix.text_baseline = XmTextGetBaseline(TextChild(new)) +
 	new->matrix.cell_shadow_thickness;
 
     /*
      * Adjust the label_baseline according to the larger of the two fonts
      */
-    if( LABEL_HEIGHT(new) == FONT_HEIGHT(new) )
+    if (LABEL_HEIGHT(new) == FONT_HEIGHT(new))
 	new->matrix.label_baseline = new->matrix.text_baseline;
     else
     {
-	if( LABEL_HEIGHT(new) < FONT_HEIGHT(new) )
-	    marginHeight = ( FONT_HEIGHT(new) +
-			     new->matrix.text_shadow_thickness * 2 +
-			     new->matrix.cell_margin_height * 2 -
-			     LABEL_HEIGHT(new) ) / 2;
+	if (LABEL_HEIGHT(new) < FONT_HEIGHT(new))
+	    marginHeight = (int)(FONT_HEIGHT(new) +
+				 new->matrix.text_shadow_thickness * 2 +
+				 new->matrix.cell_margin_height * 2 -
+				 LABEL_HEIGHT(new)) / 2;
 	else 
 	    marginHeight = new->matrix.cell_margin_height +
 		new->matrix.text_shadow_thickness;
 
-	new->matrix.label_baseline = marginHeight + LABEL_HEIGHT(new) +
+	new->matrix.label_baseline = marginHeight +
 	    new->matrix.cell_shadow_thickness -
-	    new->matrix.label_font->max_bounds.descent;
+	    new->matrix.label_font_y;
     }
     /*
      * Calculate total pixel width of cell area
@@ -1155,6 +1183,8 @@ Cardinal *num_args;
     new->matrix.current_row = new->matrix.fixed_rows;
     new->matrix.current_column = new->matrix.fixed_columns;
 
+    new->matrix.current_clip = CLIP_NONE;
+    
     /*
      * We aren't trying to traverse out
      */
@@ -1176,13 +1206,13 @@ Cardinal *num_args;
     /*
      * Now we have created our GCs, check if the widget is sensitive
      */
-    if( !new->core.sensitive )
+    if (!new->core.sensitive)
     {
 	XGCValues values;
 	unsigned long valuemask = GCFillStyle;
-	Display *dpy = XtDisplay( new );
+	Display *dpy = XtDisplay(new);
 	
-	if( !new->core.sensitive )
+	if (!new->core.sensitive)
 	{
 	    int i;
 
@@ -1215,7 +1245,7 @@ Cardinal *num_args;
      */
     new->matrix.last_row = -1;
     new->matrix.last_column = -1;
-    new->matrix.last_click_time = ( Time )0;
+    new->matrix.last_click_time = (Time)0;
 
     /*
      * Compute our size.  If either dimension was explicitly set to 0,
@@ -1305,7 +1335,7 @@ InsertChild(w)
 Widget w;
 {
 #if 0
-    if (((CompositeWidget) XtParent(w))->composite.num_children > 7 )
+    if (((CompositeWidget) XtParent(w))->composite.num_children > 7)
     {
 #if XmVersion > 1001
 	/* Hah! Cannot use XmIsDragIconObjectClass because it is defined
@@ -1467,8 +1497,8 @@ Region region;
      * Redraw the row/column labels and fixed rows/columns which are
      * overlapped by the expose Rectangle.
      */
-    if ( (! mw->matrix.trailing_fixed_columns) &&
-	 (XmGRID_ROW_SHADOW == mw->matrix.grid_type) && NEED_HORIZ_FILL(mw))
+    if ((! mw->matrix.trailing_fixed_columns) &&
+	 IN_GRID_ROW_MODE(mw) && NEED_HORIZ_FILL(mw))
     {
 	Rectangle nonfixed;
 
@@ -1483,9 +1513,8 @@ Region region;
 
 	xbaeRedrawCells(mw, &nonfixed);
     }
-    else if ( (! mw->matrix.trailing_fixed_rows) &&
-	      (XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) &&
-	      NEED_VERT_FILL(mw))
+    else if ((! mw->matrix.trailing_fixed_rows) &&
+	      IN_GRID_COLUMN_MODE(mw) && NEED_VERT_FILL(mw))
     {
 	Rectangle nonfixed;
 
@@ -1628,8 +1657,10 @@ Cardinal *num_args;
      *	row_labels must change or be NULL
      *	row_button_labels must change or be NULL
      */
-    if ((NE(matrix.rows) && new->matrix.row_labels && EQ(matrix.row_labels)) ||
-	(new->matrix.row_button_labels && EQ(matrix.row_button_labels)))
+    if ((NE(matrix.rows) && (new->matrix.row_labels &&
+			     EQ(matrix.row_labels))) ||
+	(new->matrix.row_button_labels &&
+	 EQ(matrix.row_button_labels)))
     {
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) new),
@@ -1698,8 +1729,8 @@ Cardinal *num_args;
      * This could be caused by (trailing) fixed_rows/columns or
      * rows/columns changing.
      */
-    if ((new->matrix.fixed_rows + new->matrix.trailing_fixed_rows) > 0 &&
-	(new->matrix.fixed_rows + new->matrix.trailing_fixed_rows) >=
+    if ((int)(new->matrix.fixed_rows + new->matrix.trailing_fixed_rows) > 0 &&
+	(int)(new->matrix.fixed_rows + new->matrix.trailing_fixed_rows) >=
         new->matrix.rows)
     {
         XtAppWarningMsg(
@@ -1716,9 +1747,10 @@ Cardinal *num_args;
         if (NE(matrix.rows))
             new->matrix.rows = current->matrix.rows;
     }
-    if ((new->matrix.fixed_columns + new->matrix.trailing_fixed_columns) > 0 &&
-	(new->matrix.fixed_columns + new->matrix.trailing_fixed_columns) >=
-        new->matrix.columns)
+    if ((int)(new->matrix.fixed_columns +
+	      new->matrix.trailing_fixed_columns) > 0 &&
+	(int)(new->matrix.fixed_columns +
+	      new->matrix.trailing_fixed_columns) >= new->matrix.columns)
     {
         XtAppWarningMsg(
             XtWidgetToApplicationContext((Widget) new),
@@ -1829,13 +1861,13 @@ Cardinal *num_args;
     }
     if (NE(matrix.row_user_data))
     {
-	FreeRowUserData(current);
+	xbaeFreeRowUserData(current);
 	if (new->matrix.row_user_data)
 	    xbaeCopyRowUserData(new);
     }
     if (NE(matrix.column_user_data))
     {
-	FreeColumnUserData(current);
+	xbaeFreeColumnUserData(current);
 	if (new->matrix.column_user_data)
 	    xbaeCopyColumnUserData(new);
     }
@@ -1847,13 +1879,13 @@ Cardinal *num_args;
     }
     if (NE(matrix.row_shadow_types))
     {
-	FreeRowShadowTypes(current);
+	xbaeFreeRowShadowTypes(current);
 	if (new->matrix.row_shadow_types)
 	    xbaeCopyRowShadowTypes(new);
     }
     if (NE(matrix.column_shadow_types))
     {
-	FreeColumnShadowTypes(current);
+	xbaeFreeColumnShadowTypes(current);
 	if (new->matrix.column_shadow_types)
 	    xbaeCopyColumnShadowTypes(new);
     }
@@ -1894,35 +1926,35 @@ Cardinal *num_args;
     }
     if (NE(matrix.column_max_lengths))
     {
-	FreeColumnMaxLengths(current);
+	xbaeFreeColumnMaxLengths(current);
 	if (new->matrix.column_max_lengths)
 	    xbaeCopyColumnMaxLengths(new);
 	redisplay = True;
     }
     if (NE(matrix.column_alignments))
     {
-	FreeColumnAlignments(current);
+	xbaeFreeColumnAlignments(current);
 	if (new->matrix.column_alignments)
 	    xbaeCopyColumnAlignments(new);
 	redisplay = True;
     }
     if (NE(matrix.column_button_labels))
     {
-	FreeColumnButtonLabels(current);
+	xbaeFreeColumnButtonLabels(current);
 	if (new->matrix.column_button_labels)
 	    xbaeCopyColumnButtonLabels(new);
 	redisplay = True;
     }
     if (NE(matrix.row_button_labels))
     {
-	FreeRowButtonLabels(current);
+	xbaeFreeRowButtonLabels(current);
 	if (new->matrix.row_button_labels)
 	    xbaeCopyRowButtonLabels(new);
 	redisplay = True;
     }
     if (NE(matrix.column_label_alignments))
     {
-	FreeColumnLabelAlignments(current);
+	xbaeFreeColumnLabelAlignments(current);
 	if (new->matrix.column_label_alignments)
 	    xbaeCopyColumnLabelAlignments(new);
 	redisplay = True;
@@ -1952,12 +1984,14 @@ Cardinal *num_args;
 	XtReleaseGC((Widget)new, new->matrix.grid_line_gc);
 	XFreeGC(XtDisplay(new), new->matrix.cell_grid_line_gc);
 	xbaeCreateGridLineGC(new);
-	if( new->matrix.grid_type == XmGRID_LINE)
+	if ((new->matrix.grid_type == XmGRID_CELL_LINE) ||
+	    (new->matrix.grid_type == XmGRID_ROW_LINE) ||
+	    (new->matrix.grid_type == XmGRID_COLUMN_LINE))
 	    redisplay = True;
     }
 
-    if(NE(matrix.alt_row_count) &&
-       ( new->matrix.even_row_background != current->core.background_pixel ||
+    if (NE(matrix.alt_row_count) &&
+       (new->matrix.even_row_background != current->core.background_pixel ||
        new->matrix.odd_row_background != current->core.background_pixel))
 	redisplay = True;
     
@@ -1966,15 +2000,24 @@ Cardinal *num_args;
 	NE(matrix.selected_background))
         redisplay = True;
 
-    if( new->matrix.colors && EQ(matrix.colors)
-	&& ( NE( matrix.rows ) || NE( matrix.columns ) ) )
+    if (NE(matrix.grid_type) && (new->matrix.grid_type >= XmGRID_LINE))
+	/* Deprecated types. To be removed in next version. */
+	XtAppWarningMsg(
+	    XtWidgetToApplicationContext((Widget) new),
+	    "cvtStringToGridType", "deprecatedType",
+	    "XbaeMatrix",
+	    "Value for GridType is deprecated and will be removed in next release",
+	    NULL, NULL);
+    
+    if (new->matrix.colors && EQ(matrix.colors)
+	&& (NE(matrix.rows) || NE(matrix.columns)))
     {
 	ResizeColors(current, new, False);
 	redisplay = True;
     }
     
-    if( new->matrix.cell_background && EQ(matrix.cell_background) &&
-	( NE(matrix.rows) || NE(matrix.columns) ) )
+    if (new->matrix.cell_background && EQ(matrix.cell_background) &&
+	(NE(matrix.rows) || NE(matrix.columns)))
     {
 	ResizeColors(current, new, True);
 	redisplay = True;
@@ -1986,7 +2029,7 @@ Cardinal *num_args;
 
     if (NE(matrix.column_widths))
     {
-	FreeColumnWidths(current);
+	xbaeFreeColumnWidths(current);
 	xbaeCopyColumnWidths(new);
 	relayout = True;
 	new_column_widths = True;
@@ -2103,7 +2146,7 @@ Cardinal *num_args;
 	XtVaSetValues(TextChild(new),
 		      XmNbackground, new->matrix.text_background,
 		      NULL);
-	if( XtIsManaged( TextChild(new) ) )
+	if (XtIsManaged(TextChild(new)))
 	    redisplay = True;
     }
     /*
@@ -2140,7 +2183,7 @@ Cardinal *num_args;
      * If anything changed to affect cell total width or column positions,
      * recalc them
      */
-    if (new_cells || NE(matrix.font->fid) || NE(matrix.label_font->fid) ||
+    if (new_cells || NE(matrix.fid) || NE(matrix.label_fid) ||
 	NE(matrix.cell_margin_width) || NE(matrix.cell_margin_height) ||
 	NE(matrix.cell_shadow_thickness) || NE(matrix.fixed_columns) ||
 	NE(matrix.trailing_fixed_columns) ||
@@ -2153,10 +2196,10 @@ Cardinal *num_args;
 	 */
 	int marginHeight = new->matrix.cell_margin_height; /* by default */
 
-	if( LABEL_HEIGHT(new) > FONT_HEIGHT(new) )
-	    marginHeight = ( LABEL_HEIGHT(new) +
-			     ( new->matrix.cell_margin_height *
-			       2 ) - FONT_HEIGHT(new) ) / 2;
+	if (LABEL_HEIGHT(new) > FONT_HEIGHT(new))
+	    marginHeight = (int)(LABEL_HEIGHT(new) +
+				 (new->matrix.cell_margin_height *
+				  2) - FONT_HEIGHT(new)) / 2;
 	/*
 	 * Cancel the edit -> If I think of a better way of doing this
 	 * I'll do it, AL.
@@ -2188,7 +2231,7 @@ Cardinal *num_args;
 	 */
 	if (NE(matrix.columns))
 	{
-	    FreeColumnPositions(current);
+	    xbaeFreeColumnPositions(current);
 	    new->matrix.column_positions = CreateColumnPositions(new);
 	}
 
@@ -2196,7 +2239,7 @@ Cardinal *num_args;
 	 * If anything but (trailing_)fixed_columns or the highlight color
 	 * changed, we need to recalc column positions.
 	 */
-	if (new_cells || NE(matrix.font->fid) || NE(matrix.label_font->fid) ||
+	if (new_cells || NE(matrix.fid) || NE(matrix.label_fid) ||
 	    NE(matrix.cell_margin_width) || NE(matrix.cell_margin_height) ||
 	    NE(matrix.cell_shadow_thickness) ||
 	    NE(matrix.cell_highlight_thickness) || new_column_widths ||
@@ -2207,29 +2250,29 @@ Cardinal *num_args;
 	/*
 	 * Recalculate the baselines
 	 */
-	new->matrix.text_baseline = XmTextFieldGetBaseline(TextChild(new)) +
+	new->matrix.text_baseline = XmTextGetBaseline(TextChild(new)) +
 	    new->matrix.cell_shadow_thickness /*+
 	    new->matrix.text_shadow_thickness*/;
 	
 	/*
 	 * Adjust the label_baseline according to the larger of the two fonts
 	 */
-	if( LABEL_HEIGHT(new) == FONT_HEIGHT(new) )
+	if (LABEL_HEIGHT(new) == FONT_HEIGHT(new))
 	    new->matrix.label_baseline = new->matrix.text_baseline;
 	else
 	{
-	    if( LABEL_HEIGHT(new) < FONT_HEIGHT(new) )
-		marginHeight = ( FONT_HEIGHT(new) +
+	    if (LABEL_HEIGHT(new) < FONT_HEIGHT(new))
+		marginHeight = (FONT_HEIGHT(new) +
 				 new->matrix.text_shadow_thickness * 2 +
 				 new->matrix.cell_margin_height * 2 -
-				 LABEL_HEIGHT(new) ) / 2;
+				 (int)LABEL_HEIGHT(new)) / 2;
 	    else 
 		marginHeight = new->matrix.cell_margin_height +
 		    new->matrix.text_shadow_thickness;
 	    
-	    new->matrix.label_baseline = marginHeight + LABEL_HEIGHT(new) +
+	    new->matrix.label_baseline = marginHeight +
 		new->matrix.cell_shadow_thickness -
-		new->matrix.label_font->max_bounds.descent;
+		new->matrix.label_font_y;
 	}
 
 	/* JDS: The comment above this section says both redisplay and
@@ -2272,14 +2315,14 @@ Cardinal *num_args;
      * Check whether the widget is sensitive has changed and set our GC's
      * appropriately
      */
-    if (NE(core.sensitive))
+    if (XtIsSensitive((Widget)current) != XtIsSensitive((Widget)new))
     {
 	XGCValues values;
 	int i;
 	unsigned long valuemask = GCFillStyle;
 	Display *dpy = XtDisplay(new);
 	
-	if(!new->core.sensitive)
+	if (!XtIsSensitive((Widget)new))
 	{
 	    values.fill_style = FillStippled;
 
@@ -2313,10 +2356,14 @@ Cardinal *num_args;
     }
 
     /*
-     * If our fill policy changed, we must redisplay
+     * If our fill policy changed or our bottom attachment,
+     * we must redisplay and relayout.
      */
-    if (NE(matrix.fill))
+    if (NE(matrix.fill) || NE(matrix.trailing_attached_bottom))
+    {
+	redisplay = True;
 	relayout = True;
+    }
 
     /*
      * If either of the scrollbar display policies changed,
@@ -2380,18 +2427,18 @@ Cardinal *num_args;
 		 new->manager.bottom_shadow_pixmap);
 	redisplay = True;
     }
-    if (NE(matrix.font->fid))
+    if (NE(matrix.fid))
     {
-	XSetFont(XtDisplay(new), new->matrix.draw_gc, new->matrix.font->fid);
+	XSetFont(XtDisplay(new), new->matrix.draw_gc, new->matrix.fid);
 	redisplay = True;
     }
 
-    if (NE(matrix.label_font->fid))
+    if (NE(matrix.label_fid))
     {
 	XSetFont(XtDisplay(new), new->matrix.label_gc,
-		 new->matrix.label_font->fid);
+		 new->matrix.label_fid);
 	XSetFont(XtDisplay(new), new->matrix.label_clip_gc,
-		 new->matrix.label_font->fid);
+		 new->matrix.label_fid);
 	redisplay = True;
     }
     /*
@@ -2405,14 +2452,14 @@ Cardinal *num_args;
      * If bold_labels or button labels changed, and we have labels,
      * we must redisplay
      */
-    if ( ( NE(matrix.bold_labels) || NE(matrix.button_labels ) ) &&
-	 ( new->matrix.row_labels || new->matrix.column_labels ) )
+    if ((NE(matrix.bold_labels) || NE(matrix.button_labels)) &&
+	 (new->matrix.row_labels || new->matrix.column_labels))
 	 redisplay = True;
 
     /*
      * If showArrows is changed, redisplay to get rid of existing arrows
      */
-    if( NE( matrix.show_arrows ) )
+    if (NE(matrix.show_arrows))
 	redisplay = True;
     
     /*
@@ -2450,6 +2497,7 @@ Cardinal *num_args;
 	VERT_ORIGIN(new) = VERT_ORIGIN(current);
 	xbaeScrollVertCB((Widget)VertScrollChild(new), NULL, &call_data);
 	VERT_ORIGIN(new) = call_data.value; /* and reset VERT_ORIGIN */
+	
 	XtVaSetValues(VertScrollChild(new),
 		      XmNvalue, VERT_ORIGIN(new),
 		      NULL);
@@ -2462,7 +2510,7 @@ Cardinal *num_args;
 	xbaeAdjustLeftColumn(new);
 	call_data.value = HORIZ_ORIGIN(new);
 	HORIZ_ORIGIN(new) = HORIZ_ORIGIN(current);
-	xbaeScrollHorizCB((Widget)VertScrollChild(new), NULL, &call_data);
+	xbaeScrollHorizCB((Widget)HorizScrollChild(new), NULL, &call_data);
 	HORIZ_ORIGIN(new) = call_data.value;
 	XtVaSetValues(HorizScrollChild(new),
 		      XmNvalue, HORIZ_ORIGIN(new),
@@ -2479,8 +2527,8 @@ Cardinal *num_args;
      * widget's resize method (now non-NULL) will be called and Xt will
      * automatically do an expose after that occurs. Seems to work, anyways :).
      */
-    if (redisplay && !new->matrix.disable_redisplay)
-	XbaeClipRedraw(ClipChild(new));
+    if (redisplay)
+	XbaeMatrixRefresh((Widget)new);
 
     /*
      * We want to return True when we need to redisplay or relayout.
@@ -2551,7 +2599,7 @@ XbaeMatrixWidget mw;
 {
 #if XmVersion >= 1002
     if (TraverseID)
-	XtRemoveTimeOut( TraverseID );
+	XtRemoveTimeOut(TraverseID);
 #endif
 
     XtReleaseGC((Widget) mw, mw->matrix.grid_line_gc);
@@ -2572,22 +2620,25 @@ XbaeMatrixWidget mw;
 #endif
     xbaeFreeRowLabels(mw);
     xbaeFreeColumnLabels(mw);
-    FreeColumnWidths(mw);
-    FreeColumnMaxLengths(mw);
-    FreeColumnPositions(mw);
-    FreeColumnAlignments(mw);
-    FreeColumnButtonLabels(mw);
-    FreeRowButtonLabels(mw);
-    FreeColumnLabelAlignments(mw);
+    xbaeFreeColumnWidths(mw);
+    xbaeFreeColumnMaxLengths(mw);
+    xbaeFreeColumnPositions(mw);
+    xbaeFreeColumnAlignments(mw);
+    xbaeFreeColumnButtonLabels(mw);
+    xbaeFreeRowButtonLabels(mw);
+    xbaeFreeColumnLabelAlignments(mw);
     xbaeFreeCellUserData(mw);
-    FreeRowUserData(mw);
-    FreeColumnUserData(mw);
+    xbaeFreeRowUserData(mw);
+    xbaeFreeColumnUserData(mw);
     xbaeFreeCellShadowTypes(mw);
-    FreeRowShadowTypes(mw);
-    FreeColumnShadowTypes(mw);
+    xbaeFreeRowShadowTypes(mw);
+    xbaeFreeColumnShadowTypes(mw);
     xbaeFreeColors(mw);
     xbaeFreeBackgrounds(mw);
     xbaeFreeSelectedCells(mw);
+#if XmVersion >= 1002
+    xbaeFreeHighlightedCells(mw);
+#endif
 
     XmFontListFree(mw->matrix.font_list);
     XmFontListFree(mw->matrix.label_font_list);
@@ -2680,8 +2731,8 @@ XbaeMatrixWidget mw;
      */
     if (XtIsManaged(TextChild(mw)))
     {
-	if( mw->matrix.scroll_select )
-	    xbaeMakeCellVisible( mw, mw->matrix.current_row,
+	if (mw->matrix.scroll_select)
+	    xbaeMakeCellVisible(mw, mw->matrix.current_row,
 				 mw->matrix.current_column);
 	XmProcessTraversal(TextChild(mw), XmTRAVERSE_CURRENT);
     }
@@ -2704,6 +2755,7 @@ XbaeMatrixWidget mw;
 	    XbaeMatrixTraverseCellCallbackStruct call_data;
 
 	    call_data.reason = XbaeTraverseCellReason;
+	    call_data.event = (XEvent *)NULL;
 	    call_data.row = 0;
 	    call_data.column = 0;
 	    call_data.next_row = row;
@@ -2726,7 +2778,7 @@ XbaeMatrixWidget mw;
 	}
 
 	(*((XbaeMatrixWidgetClass) XtClass(mw))->matrix_class.edit_cell)
-	    (mw, row, column);
+	    (mw, NULL, row, column, NULL, 0);
 
 	XmProcessTraversal(TextChild(mw), XmTRAVERSE_CURRENT);
     }
@@ -2792,7 +2844,7 @@ XbaeMatrixWidget new;
      * callback, no memory should have been allocated when this point is
      * reached.
      */
-    if( !new->matrix.cells )
+    if (!new->matrix.cells)
 	return;
     
     if (new->matrix.rows == current->matrix.rows)
@@ -2894,7 +2946,7 @@ XbaeMatrixWidget new;
      * selectedCells is allocated when the first cell is selected.  If it
      * is still NULL, no cells have been selected up to this point.
      */     
-    if( !new->matrix.selected_cells )
+    if (!new->matrix.selected_cells)
 	return;
     
     if (new->matrix.rows == current->matrix.rows)
@@ -2973,7 +3025,7 @@ XbaeMatrixWidget new;
     int i;
     int safe_rows = 0;
 
-    if( !new->matrix.highlighted_cells )
+    if (!new->matrix.highlighted_cells)
 	return;
     
     if (new->matrix.rows == current->matrix.rows)
@@ -3074,7 +3126,7 @@ Boolean bg;
 	/*
 	 * Realloc a larger array of row pointers
 	 */
-	if( bg )
+	if (bg)
 	{
 	    new->matrix.cell_background =
 		(Pixel **) XtRealloc((char *) new->matrix.cell_background,
@@ -3115,7 +3167,7 @@ Boolean bg;
      */
     if (new->matrix.rows < current->matrix.rows)
     {
-	if( bg )
+	if (bg)
 	    for (i = new->matrix.rows; i < current->matrix.rows; i++)
 		XtFree((XtPointer) new->matrix.cell_background[i]);
 	else
@@ -3134,7 +3186,7 @@ Boolean bg;
 	 * Realloc each row array. Do not touch any rows added/deleted above
 	 * (use safe_rows)
 	 */
-	if( bg )
+	if (bg)
 	{
 	    for (i = 0; i < safe_rows; i++)
 	    {

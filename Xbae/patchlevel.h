@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -28,7 +28,7 @@
 #define _Xbae_patchlevel_h
 
 #define XbaeVERSION       4
-#define XbaeREVISION      6
+#define XbaeREVISION      7
 #define XbaeVersion (XbaeVERSION * 1000 + XbaeREVISION)
 
 #endif

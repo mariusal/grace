@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.h,v 1.1 1999-01-11 23:37:42 fnevgeny Exp $
+ * $Id: Actions.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*
@@ -37,15 +37,15 @@
  * Actions
  */
 
-void xbaeEditCellACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeCancelEditACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeCommitEditACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeSelectCellACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeDefaultActionACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeResizeColumnsACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeTraverseNextACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeTraversePrevACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeProcessDragACT P(( Widget, XEvent *, String *, Cardinal * ));
-void xbaeHandleClick P(( Widget, XtPointer, XEvent *, Boolean * ));
-void xbaeHandleMotionACT P(( Widget, XEvent *, String *, Cardinal * ));
+void xbaeEditCellACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeCancelEditACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeCommitEditACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeSelectCellACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeDefaultActionACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeResizeColumnsACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeTraverseNextACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeTraversePrevACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeProcessDragACT P((Widget, XEvent *, String *, Cardinal *));
+void xbaeHandleClick P((Widget, XtPointer, XEvent *, Boolean *));
+void xbaeHandleMotionACT P((Widget, XEvent *, String *, Cardinal *));
 #endif

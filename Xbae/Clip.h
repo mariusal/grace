@@ -21,7 +21,7 @@
  *
  * ClipWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Clip.h,v 1.1 1999-01-11 23:37:43 fnevgeny Exp $
+ * $Id: Clip.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
  */
 
 /*

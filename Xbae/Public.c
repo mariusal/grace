@@ -1,6 +1,6 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-97 Andrew Lister
+ * Copyright(c) 1995-99 Andrew Lister
  *
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
@@ -23,12 +23,16 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Public.c,v 1.1 1999-01-11 23:37:44 fnevgeny Exp $
+ * $Id: Public.c,v 1.2 1999-07-26 22:55:06 fnevgeny Exp $
  */
 
 /*
  * Public.c created by Andrew Lister (7 August, 1995)
  */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #include <Xm/Xm.h>
 #include <Xm/ScrollBar.h>
@@ -45,7 +49,7 @@
  * Public interface to set_cell method
  */
 void
-XbaeMatrixSetCell(w, row, column, value )
+XbaeMatrixSetCell(w, row, column, value)
 Widget w;
 int row;
 int column;
@@ -60,7 +64,7 @@ const String value;
      * Call the set_cell method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_cell)
-	((XbaeMatrixWidget) w, row, column, value, True);
+	((XbaeMatrixWidget)w, row, column, value, True);
 }
 
 
@@ -81,7 +85,7 @@ int row, column;
    * Call the edit_cell method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.edit_cell)
-	((XbaeMatrixWidget) w, row, column);
+	((XbaeMatrixWidget)w, NULL, row, column, NULL, 0);
 
     XmProcessTraversal(TextChild(((XbaeMatrixWidget) w)), XmTRAVERSE_CURRENT);
 }
@@ -103,7 +107,7 @@ int row, column;
    * Call the select_cell method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.select_cell)
-	((XbaeMatrixWidget) w, row, column);
+	((XbaeMatrixWidget)w, row, column);
 }
 
 /*
@@ -123,7 +127,7 @@ int row;
    * Call the select_row method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.select_row)
-	((XbaeMatrixWidget) w, row);
+	((XbaeMatrixWidget)w, row);
 }
 
 /*
@@ -143,7 +147,7 @@ int column;
    * Call the select_column method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.select_column)
-	((XbaeMatrixWidget) w, column);
+	((XbaeMatrixWidget)w, column);
 }
 
 /*
@@ -162,7 +166,7 @@ Widget w;
      * Call the deselect_all method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.deselect_all)
-	((XbaeMatrixWidget) w);
+	((XbaeMatrixWidget)w);
 }
 
 /*
@@ -181,7 +185,7 @@ Widget w;
      * Call the deselect_all method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.select_all)
-	((XbaeMatrixWidget) w);
+	((XbaeMatrixWidget)w);
 }
 
 /*
@@ -202,7 +206,7 @@ int column;
      * Call the deselect_cell method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.deselect_cell)
-	((XbaeMatrixWidget) w, row, column);
+	((XbaeMatrixWidget)w, row, column);
 }
 
 /*
@@ -222,7 +226,7 @@ int row;
    * Call the deselect_row method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.deselect_row)
-	((XbaeMatrixWidget) w, row);
+	((XbaeMatrixWidget)w, row);
 }
 
 /*
@@ -242,7 +246,7 @@ int column;
    * Call the deselect_column method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.deselect_column)
-	((XbaeMatrixWidget) w, column);
+	((XbaeMatrixWidget)w, column);
 }
 
 /*
@@ -262,7 +266,7 @@ int row, column;
      * Call the get_cell method
      */
     return (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.get_cell)
-	((XbaeMatrixWidget) w, row, column);
+	((XbaeMatrixWidget)w, row, column);
 }
 
 /*
@@ -286,7 +290,7 @@ Boolean unmap;
    * Call the commit_edit method
    */
     return (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.commit_edit)
-	((XbaeMatrixWidget) w, unmap);
+	((XbaeMatrixWidget)w, NULL, unmap);
 }
 
 /*
@@ -310,7 +314,7 @@ Boolean unmap;
      * Call the cancel_edit method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.cancel_edit)
-	((XbaeMatrixWidget) w, unmap);
+	((XbaeMatrixWidget)w, unmap);
 }
 
 /*
@@ -333,9 +337,8 @@ int num_rows;
     /*
    * Call the add_rows method
    */
-    ( *( ( XbaeMatrixWidgetClass )XtClass( w ) )->matrix_class.add_rows )
-	( ( XbaeMatrixWidget ) w, position, rows, labels, colors, NULL,
-	  num_rows );
+    (*((XbaeMatrixWidgetClass)XtClass(w))->matrix_class.add_rows)
+	((XbaeMatrixWidget)w, position, rows, labels, colors, NULL, num_rows);
 }
 
 /*
@@ -356,7 +359,7 @@ int num_rows;
      * Call the delete_rows method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.delete_rows)
-	((XbaeMatrixWidget) w, position, num_rows);
+	((XbaeMatrixWidget)w, position, num_rows);
 }
 
 /*
@@ -385,7 +388,7 @@ int num_columns;
    * Call the add_columns method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.add_columns)
-	((XbaeMatrixWidget) w, position, columns, labels, widths,
+	((XbaeMatrixWidget)w, position, columns, labels, widths,
 	 max_lengths, alignments, label_alignments, colors, NULL, num_columns);
 }
 
@@ -407,7 +410,7 @@ int num_columns;
      * Call the delete_columns method
      */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.delete_columns)
-	((XbaeMatrixWidget) w, position, num_columns);
+	((XbaeMatrixWidget)w, position, num_columns);
 }
 
 /*
@@ -429,7 +432,7 @@ int num_colors;
    * Call the set_row_colors method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_row_colors)
-	((XbaeMatrixWidget) w, position, colors, num_colors, False);
+	((XbaeMatrixWidget)w, position, colors, num_colors, False);
 }
 
 /*
@@ -451,7 +454,7 @@ int num_colors;
    * Call the set_column_colors method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_column_colors)
-	((XbaeMatrixWidget) w, position, colors, num_colors, False);
+	((XbaeMatrixWidget)w, position, colors, num_colors, False);
 }
 
 /*
@@ -473,7 +476,7 @@ Pixel color;
    * Call the set_cell_color method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_cell_color)
-	((XbaeMatrixWidget) w, row, column, color, False);
+	((XbaeMatrixWidget)w, row, column, color, False);
 }
 
 /*
@@ -495,7 +498,7 @@ int num_colors;
    * Call the set_row_colors method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_row_colors)
-	((XbaeMatrixWidget) w, position, colors, num_colors, True);
+	((XbaeMatrixWidget)w, position, colors, num_colors, True);
 }
 
 /*
@@ -517,7 +520,7 @@ int num_colors;
    * Call the set_column_colors method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_column_colors)
-	((XbaeMatrixWidget) w, position, colors, num_colors, True);
+	((XbaeMatrixWidget)w, position, colors, num_colors, True);
 }
 
 /*
@@ -539,7 +542,7 @@ Pixel color;
    * Call the set_cell_color method
    */
     (*((XbaeMatrixWidgetClass) XtClass(w))->matrix_class.set_cell_color)
-	((XbaeMatrixWidget) w, row, column, color, True);
+	((XbaeMatrixWidget)w, row, column, color, True);
 }
 
 /*
@@ -586,12 +589,12 @@ int *y;
     XbaeMatrixWidget mw;
     CellType cell;
 
-    if( !XtIsSubclass( w, xbaeMatrixWidgetClass ) )
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
 	return False;
 
-    mw = ( XbaeMatrixWidget )w;
+    mw = (XbaeMatrixWidget)w;
 
-    if( !xbaeEventToXY( mw, event, x, y, &cell ) )
+    if (!xbaeEventToXY(mw, event, x, y, &cell))
 	return False;
 
     return True;
@@ -611,12 +614,12 @@ int *y;
 {
     XbaeMatrixWidget mw;
 
-    if( !XtIsSubclass( w, xbaeMatrixWidgetClass ) )
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
         return False;
 
-    mw = ( XbaeMatrixWidget )w;
+    mw = (XbaeMatrixWidget)w;
 
-    xbaeRowColToXY( mw, row, column, x, y );
+    xbaeRowColToXY(mw, row, column, x, y);
 
     return True;
 }
@@ -652,16 +655,17 @@ void
 XbaeMatrixRefresh(w)
 Widget w;
 {
-    XbaeMatrixWidget mw = ( XbaeMatrixWidget )w;
+    XbaeMatrixWidget mw = (XbaeMatrixWidget)w;
     int x, y;
     
     if (mw->matrix.disable_redisplay)
 	return;
+
     if (!XtIsSubclass(w, xbaeMatrixWidgetClass) || !XtIsRealized((Widget)mw))
 	return;
 
     /*
-     * We're about to flush scoll exposure events, so reset the
+     * We're about to flush scroll exposure events, so reset the
      * scroll managers.
      */
     xbaeSmDestroyScrollMgr(mw->matrix.matrix_scroll_mgr);
@@ -749,19 +753,96 @@ Widget w;
  * Public interface for redrawing one cell
  */
 void
-XbaeMatrixRefreshCell( w, row, column )
+XbaeMatrixRefreshCell(w, row, column)
 Widget w;
 int row;
 int column;
 {
-    XbaeMatrixWidget mw = ( XbaeMatrixWidget )w;
+    XbaeMatrixWidget mw = (XbaeMatrixWidget)w;
 
-    XtCheckSubclass(w, xbaeMatrixWidgetClass, NULL);
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
+	return;
 
     if (xbaeIsCellVisible(mw, row, column))
     {
-	xbaeClearCell(mw, row, column);
+	/* this doesn't seem to be necessary -cg 16/7/99 */
+	/*xbaeClearCell(mw, row, column);*/
 	xbaeDrawCell(mw, row, column);
+    }
+}
+
+/*
+ * Redraw an entire column
+ */
+void
+XbaeMatrixRefreshColumn(w, column)
+Widget w;
+int column;
+{
+    XbaeMatrixWidget mw = (XbaeMatrixWidget)w;
+    int row;
+    int found = 0;
+
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
+	return;
+
+    /* we attempt to be mildly efficient about this */
+    if (xbaeIsColumnVisible(mw, column))
+    {
+        /* fixed always visible */
+        for (row = 0; row < mw->matrix.fixed_rows; row++)
+            xbaeDrawCell(mw, row, column);
+        /* now the scrollable clip */
+        for (; row < mw->matrix.rows - mw->matrix.trailing_fixed_rows; row++)
+            if (xbaeIsRowVisible(mw, row))
+            {
+                found = 1;
+                xbaeDrawCell(mw, row, column);
+            }
+            else if (found)
+                break;  /* came to the end of the clip */
+        /* and finally trailing fixed are always visible */
+        for (row = mw->matrix.rows - mw->matrix.trailing_fixed_rows;
+             row < mw->matrix.rows; row++)
+            xbaeDrawCell(mw, row, column);
+    }
+}
+
+/*
+ * Redraw an entire row
+ */
+void
+XbaeMatrixRefreshRow(w, row)
+Widget w;
+int row;
+{
+    XbaeMatrixWidget mw = (XbaeMatrixWidget)w;
+    int column;
+    int found = 0;
+
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
+	return;
+
+    /* we attempt to be mildly efficient about this */
+    if (xbaeIsRowVisible(mw, row))
+    {
+        /* fixed always visible */
+        for (column = 0; column < mw->matrix.fixed_columns; column++)
+            xbaeDrawCell(mw, row, column);
+        /* now the scrollable clip */
+        for (; column < mw->matrix.columns - mw->matrix.trailing_fixed_columns;
+             column++)
+            if (xbaeIsColumnVisible(mw, column))
+            {
+                found = 1;
+                xbaeDrawCell(mw, row, column);
+            }
+            else if (found)
+                break;  /* came to the end of the clip */
+        /* and finally trailing fixed are always visible */
+        for (column = mw->matrix.columns - mw->matrix.trailing_fixed_columns;
+             column < mw->matrix.columns; column++)
+            xbaeDrawCell(mw, row, column);
     }
 }
 
@@ -774,17 +855,17 @@ int column;
  *      - Cloned from the local "xbaeAdjustTopRow(mw)" routine.
  */
 int
-XbaeMatrixVisibleRows( w )
+XbaeMatrixVisibleRows(w)
 Widget w;
 {
-    XbaeMatrixWidget    matrix = ( XbaeMatrixWidget ) w;
+    XbaeMatrixWidget    matrix = (XbaeMatrixWidget) w;
 
     int rows_visible = VISIBLE_HEIGHT(matrix) / ROW_HEIGHT(matrix);
 
     /*
      *  If we have less than one full row visible, then count it as a full row.
      */
-    if ( rows_visible == 0 )
+    if (rows_visible == 0)
         rows_visible = 1;
 
     /*
@@ -792,7 +873,7 @@ Widget w;
      *  Test this routine and see if we need to call XbaeMatrixRefresh() to
      *  ensure accuracy.
      */
-    else if ( rows_visible > matrix->matrix.rows )
+    else if (rows_visible > matrix->matrix.rows)
         rows_visible = matrix->matrix.rows;
 
     return rows_visible;
@@ -810,10 +891,10 @@ Widget w;
  *      - Cloned from the local "xbaeAdjustTopRow(mw)" routine.
  */
 int
-XbaeMatrixVisibleColumns ( w )
+XbaeMatrixVisibleColumns (w)
 Widget w;
 {
-    XbaeMatrixWidget    matrix = ( XbaeMatrixWidget )w;
+    XbaeMatrixWidget    matrix = (XbaeMatrixWidget)w;
 
     int left_column;
     int right_column;
@@ -1022,7 +1103,7 @@ Widget widget;
 #endif
 
 Boolean
-XbaeMatrixIsRowSelected( w, row )
+XbaeMatrixIsRowSelected(w, row)
 Widget w;
 int row;
 {
@@ -1034,22 +1115,22 @@ int row;
 
     mw = (XbaeMatrixWidget) w;
 
-    if( row < 0 || row >= mw->matrix.rows )
+    if (row < 0 || row >= mw->matrix.rows)
     {
-	XtAppContext appcontext = XtWidgetToApplicationContext( w );
-	XtAppError( appcontext,
-		    "Invalid row passed to XbaeMatrixIsRowSelected()" );
+	XtAppContext appcontext = XtWidgetToApplicationContext(w);
+	XtAppError(appcontext,
+		   "Invalid row passed to XbaeMatrixIsRowSelected()");
 	return False;
     }
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return False;
 
     /*
      * Check all the cells in the row
      */
-    for( col = 0 ; col < mw->matrix.columns ; col++ )
-	if( ! mw->matrix.selected_cells[row][col] )
+    for (col = 0 ; col < mw->matrix.columns ; col++)
+	if (! mw->matrix.selected_cells[row][col])
 	    return False;
 
     /*
@@ -1059,7 +1140,7 @@ int row;
 }
 
 Boolean
-XbaeMatrixIsColumnSelected( w, col )
+XbaeMatrixIsColumnSelected(w, col)
 Widget w;
 int col;
 {
@@ -1071,22 +1152,22 @@ int col;
 
     mw = (XbaeMatrixWidget) w;
 
-    if( col < 0 || col >= mw->matrix.columns )
+    if (col < 0 || col >= mw->matrix.columns)
     {
-	XtAppContext appcontext = XtWidgetToApplicationContext( w );
-	XtAppError( appcontext,
-		    "Invalid column passed to XbaeMatrixIsColumnSelected()" );
+	XtAppContext appcontext = XtWidgetToApplicationContext(w);
+	XtAppError(appcontext,
+		   "Invalid column passed to XbaeMatrixIsColumnSelected()");
 	return False;
     }
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return False;
 
     /*
      * Check all the cells in the row
      */
-    for( row = 0 ; row < mw->matrix.rows ; row++ )
-	if( ! mw->matrix.selected_cells[row][col] )
+    for (row = 0 ; row < mw->matrix.rows ; row++)
+	if (! mw->matrix.selected_cells[row][col])
 	    return False;
 
     /*
@@ -1096,7 +1177,7 @@ int col;
 }
 
 Boolean
-XbaeMatrixIsCellSelected( w, row, column )
+XbaeMatrixIsCellSelected(w, row, column)
 Widget w;
 int row;
 int column;
@@ -1108,20 +1189,20 @@ int column;
 
     mw = (XbaeMatrixWidget) w;
 
-    if( column < 0 || column >= mw->matrix.columns || row < 0 ||
+    if (column < 0 || column >= mw->matrix.columns || row < 0 ||
 	row >= mw->matrix.rows)
     {
-	XtAppContext appcontext = XtWidgetToApplicationContext( w );
+	XtAppContext appcontext = XtWidgetToApplicationContext(w);
 	XtAppError(
 	    appcontext,
-	    "Invalid coordinates passed to XbaeMatrixIsCellSelected()" );
+	    "Invalid coordinates passed to XbaeMatrixIsCellSelected()");
 	return False;
     }
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return False;
 
-    if( ! mw->matrix.selected_cells[row][column] )
+    if (! mw->matrix.selected_cells[row][column])
 	return False;
 
     /*
@@ -1131,7 +1212,7 @@ int column;
 }
 
 int
-XbaeMatrixFirstSelectedRow( w )
+XbaeMatrixFirstSelectedRow(w)
 Widget w;
 {
     int i;
@@ -1142,14 +1223,14 @@ Widget w;
 
     mw = (XbaeMatrixWidget) w;
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return -1;
 
     /*
      * Linear search for first selected
      */
-    for( i = 0 ; i < mw->matrix.rows ; i++ )
-	if( XbaeMatrixIsRowSelected( w, i ) )
+    for (i = 0 ; i < mw->matrix.rows ; i++)
+	if (XbaeMatrixIsRowSelected(w, i))
 	    return i;
     /*
      * No selection - return an invalid row id
@@ -1158,7 +1239,7 @@ Widget w;
 }
 
 int
-XbaeMatrixFirstSelectedColumn( w )
+XbaeMatrixFirstSelectedColumn(w)
 Widget w;
 {
     int i;
@@ -1169,14 +1250,14 @@ Widget w;
 
     mw = (XbaeMatrixWidget) w;
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
 	return -1;
 
     /*
      * Linear search for first selected
      */
-    for( i = 0 ; i < mw->matrix.columns ; i++ )
-	if( XbaeMatrixIsColumnSelected( w, i ) )
+    for (i = 0 ; i < mw->matrix.columns ; i++)
+	if (XbaeMatrixIsColumnSelected(w, i))
 	    return i;
     /*
      * No selection - return an invalid row id
@@ -1185,7 +1266,7 @@ Widget w;
 }
 
 void
-XbaeMatrixFirstSelectedCell( w, row, column )
+XbaeMatrixFirstSelectedCell(w, row, column)
 Widget w;
 int *row;
 int *column;
@@ -1201,16 +1282,16 @@ int *column;
 
     mw = (XbaeMatrixWidget) w;
 
-    if( !mw->matrix.selected_cells )
+    if (!mw->matrix.selected_cells)
     {
 	*row = -1;
 	*column = -1;
 	return;
     }
 
-    for( i = 0; i < mw->matrix.rows; i++ )
-	for( j = 0; j < mw->matrix.columns; j++ )
-	    if( mw->matrix.selected_cells[ i ][ j ] )
+    for (i = 0; i < mw->matrix.rows; i++)
+	for (j = 0; j < mw->matrix.columns; j++)
+	    if (mw->matrix.selected_cells[ i ][ j ])
 	    {
 		*row = i;
 		*column = j;
@@ -1220,7 +1301,7 @@ int *column;
 }
 
 int
-XbaeMatrixGetNumSelected( w )
+XbaeMatrixGetNumSelected(w)
 Widget w;
 {
     XbaeMatrixWidget mw;
@@ -1235,7 +1316,7 @@ Widget w;
 
 
 int
-XbaeMatrixNumColumns( w )
+XbaeMatrixNumColumns(w)
 Widget w;
 {
     XbaeMatrixWidget mw;
@@ -1250,7 +1331,7 @@ Widget w;
 
 
 int
-XbaeMatrixNumRows( w )
+XbaeMatrixNumRows(w)
 Widget w;
 {
     XbaeMatrixWidget mw;
@@ -1265,7 +1346,7 @@ Widget w;
 
 #if XmVersion >= 1002
 void
-XbaeMatrixUnhighlightAll( w )
+XbaeMatrixUnhighlightAll(w)
 Widget w;
 {
     XbaeMatrixWidget mw;
@@ -1275,7 +1356,7 @@ Widget w;
 	return;
     mw = (XbaeMatrixWidget) w;
     
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	return;
 
     mw->matrix.highlight_location = UnhighlightAll;
@@ -1299,7 +1380,7 @@ Widget w;
 
 
 void
-XbaeMatrixHighlightCell( w, row, column )
+XbaeMatrixHighlightCell(w, row, column)
 Widget w;
 int row;
 int column;
@@ -1316,7 +1397,7 @@ int column;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "highlightCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for HighlightCell.",
+	    "XbaeMatrix: Row or column out of bounds for HighlightCell.",
 	    NULL, 0);
 	return;
     }
@@ -1327,7 +1408,7 @@ int column;
     if (mw->matrix.scroll_select)
 	xbaeMakeCellVisible(mw, row, column);
 
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	xbaeCopyHighlightedCells(mw);
 
     /*
@@ -1362,16 +1443,16 @@ int column;
 	     */
 	    xbaeRowColToXY(mw, row, column, &x, &y);
 
-	    DRAW_HIGHLIGHT( XtDisplay(mw), win, 
-			    mw->manager.highlight_GC,
-			    x + mw->matrix.cell_shadow_thickness,
-			    y + mw->matrix.cell_shadow_thickness,
-			    COLUMN_WIDTH(mw, column) -
-			    (2 * mw->matrix.cell_shadow_thickness),
-			    ROW_HEIGHT(mw) -
-			    (2 * mw->matrix.cell_shadow_thickness),
-			    mw->matrix.cell_highlight_thickness,
-			    LineSolid);
+	    DRAW_HIGHLIGHT(XtDisplay(mw), win, 
+			   mw->manager.highlight_GC,
+			   x + mw->matrix.cell_shadow_thickness,
+			   y + mw->matrix.cell_shadow_thickness,
+			   COLUMN_WIDTH(mw, column) -
+			   (2 * mw->matrix.cell_shadow_thickness),
+			   ROW_HEIGHT(mw) -
+			   (2 * mw->matrix.cell_shadow_thickness),
+			   mw->matrix.cell_highlight_thickness,
+			   LineSolid);
 	}
     }
     mw->matrix.highlight_location = HighlightNone;
@@ -1379,7 +1460,7 @@ int column;
 
 
 void
-XbaeMatrixUnhighlightCell( w, row, column )
+XbaeMatrixUnhighlightCell(w, row, column)
 Widget w;
 int row;
 int column;
@@ -1396,12 +1477,12 @@ int column;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "unhighlightCell", "badIndex", "XbaeMatrix",
-	    "XbaeMatrix: Row or column parameter out of bounds for UnhighlightCell.",
+	    "XbaeMatrix: Row or column out of bounds for UnhighlightCell.",
 	    NULL, 0);
 	return;
     }
 
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	return;
     
     mw->matrix.highlight_location = UnhighlightCell;
@@ -1416,7 +1497,7 @@ int column;
 
 
 void
-XbaeMatrixHighlightRow( w, row )
+XbaeMatrixHighlightRow(w, row)
 Widget w;
 int row;
 {
@@ -1439,7 +1520,7 @@ int row;
 	return;
     }
 
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	xbaeCopyHighlightedCells(mw);
 
     /*
@@ -1461,8 +1542,7 @@ int row;
      
     visible = xbaeIsRowVisible(mw, row);
     xbaeGetVisibleColumns(mw, &lc, &rc);
-    highlight = ((XmGRID_ROW_SHADOW == mw->matrix.grid_type) ?
-		 HighlightRow : HighlightOther);
+    highlight = (IN_GRID_ROW_MODE(mw) ? HighlightRow : HighlightOther);
 
     for (j = 0; j < mw->matrix.columns; j++)
     {
@@ -1480,7 +1560,7 @@ int row;
 
 
 void
-XbaeMatrixUnhighlightRow( w, row )
+XbaeMatrixUnhighlightRow(w, row)
 Widget w;
 int row;
 {
@@ -1503,7 +1583,7 @@ int row;
 	return;
     }
 
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	return;
     
     mw->matrix.highlight_location = UnhighlightRow;
@@ -1516,8 +1596,7 @@ int row;
      */
      
     xbaeGetVisibleColumns(mw, &lc, &rc);
-    highlight = ((XmGRID_ROW_SHADOW == mw->matrix.grid_type) ?
-		 HighlightRow : HighlightOther);
+    highlight = (IN_GRID_ROW_MODE(mw) ? HighlightRow : HighlightOther);
     for (column = 0; column < mw->matrix.columns; column++)
     {
 	if (mw->matrix.highlighted_cells[row][column] & highlight)
@@ -1533,7 +1612,7 @@ int row;
 
 
 void
-XbaeMatrixHighlightColumn( w, column )
+XbaeMatrixHighlightColumn(w, column)
 Widget w;
 int column;
 {
@@ -1556,7 +1635,7 @@ int column;
 	return;
     }
     
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	xbaeCopyHighlightedCells(mw);
     /*
      * Scroll the row onto the screen
@@ -1573,8 +1652,7 @@ int column;
      
     visible = xbaeIsColumnVisible(mw, column);
     xbaeGetVisibleRows(mw, &tr, &br);
-    highlight =	((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) ?
-		 HighlightColumn : HighlightOther);
+    highlight =	(IN_GRID_COLUMN_MODE(mw) ? HighlightColumn : HighlightOther);
     for (row = 0; row < mw->matrix.rows; row++)
     {
 	if (!(mw->matrix.highlighted_cells[row][column] & highlight))
@@ -1590,7 +1668,7 @@ int column;
 
 
 void
-XbaeMatrixUnhighlightColumn( w, column )
+XbaeMatrixUnhighlightColumn(w, column)
 Widget w;
 int column;
 {
@@ -1613,7 +1691,7 @@ int column;
 	return;
     }
 
-    if( !mw->matrix.highlighted_cells )
+    if (!mw->matrix.highlighted_cells)
 	return;
     
     mw->matrix.highlight_location = UnhighlightColumn;
@@ -1625,8 +1703,7 @@ int column;
      * unhighlight it and redraw it if it is visible.
      */
     xbaeGetVisibleRows(mw, &tr, &br);
-    highlight = ((XmGRID_COLUMN_SHADOW == mw->matrix.grid_type) ?
-		 HighlightColumn : HighlightOther);
+    highlight = (IN_GRID_COLUMN_MODE(mw) ? HighlightColumn : HighlightOther);
     for (row = 0; row < mw->matrix.rows; row++)
     {
 	if (mw->matrix.highlighted_cells[row][column] & highlight)
@@ -1641,7 +1718,7 @@ int column;
 #endif
 
 void
-XbaeMatrixDisableRedisplay( w )
+XbaeMatrixDisableRedisplay(w)
 Widget w;
 {
     XbaeMatrixWidget mw;
@@ -1675,12 +1752,12 @@ Boolean redisplay;
 #undef FORCE_REDISPLAY_IF_TRUE
 #ifndef FORCE_REDISPLAY_IF_TRUE
     if (redisplay && mw->matrix.disable_redisplay == 0)
-	XbaeMatrixRefresh( w );
+	XbaeMatrixRefresh(w);
 #else
     if (redisplay)
     {
 	mw->matrix.disable_redisplay = 0;
-	XbaeMatrixRefresh( w );
+	XbaeMatrixRefresh(w);
     }
 #endif
 }
@@ -1689,7 +1766,7 @@ Boolean redisplay;
  * Public interface for xbaeMakeCellVisible()
  */
 void
-XbaeMatrixMakeCellVisible( w, row, column )
+XbaeMatrixMakeCellVisible(w, row, column)
 Widget w;
 int row;
 int column;
@@ -1701,7 +1778,7 @@ int column;
 
     mw = (XbaeMatrixWidget) w;
 
-    xbaeMakeCellVisible( mw, row, column );
+    xbaeMakeCellVisible(mw, row, column);
 }
 
 /*
@@ -1714,7 +1791,7 @@ int row;
 {
     XbaeMatrixWidget mw;
 
-    if(!XtIsSubclass(w, xbaeMatrixWidgetClass))
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
 	return False;
 
     mw = (XbaeMatrixWidget) w;
@@ -1732,7 +1809,7 @@ int col;
 {
     XbaeMatrixWidget mw;
 
-    if(!XtIsSubclass(w, xbaeMatrixWidgetClass))
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
 	return False;
 
     mw = (XbaeMatrixWidget) w;
@@ -1751,7 +1828,7 @@ int col;
 {
     XbaeMatrixWidget mw;
 
-    if(!XtIsSubclass(w, xbaeMatrixWidgetClass))
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
 	return False;
 
     mw = (XbaeMatrixWidget) w;
@@ -1775,7 +1852,7 @@ int *right_column;
 {
     XbaeMatrixWidget mw;
 
-    if(!XtIsSubclass(w, xbaeMatrixWidgetClass))
+    if (!XtIsSubclass(w, xbaeMatrixWidgetClass))
 	return;
 
     mw = (XbaeMatrixWidget) w;
@@ -1800,7 +1877,7 @@ int column;
 
     mw = (XbaeMatrixWidget)w;
         
-    if ( !(mw->matrix.column_labels) || column > mw->matrix.columns )
+    if (!(mw->matrix.column_labels) || column > mw->matrix.columns)
 	return NULL;
     else
 	return mw->matrix.column_labels[column];
@@ -1821,7 +1898,7 @@ int row;
 
     mw = (XbaeMatrixWidget)w;
         
-    if ( !(mw->matrix.row_labels) || row > mw->matrix.rows )
+    if (!(mw->matrix.row_labels) || row > mw->matrix.rows)
 	return NULL;
     else
 	return mw->matrix.row_labels[row];
@@ -1866,7 +1943,7 @@ String value;
 	XtAppWarningMsg(
 	    XtWidgetToApplicationContext((Widget) mw),
 	    "setColumnLabel", "changeLines", "XbaeMatrix",
-	    "XbaeMatrix: Cannot change lines when setting column labels",
+	    "XbaeMatrix: Cannot change number of lines when setting column labels",
 	    NULL, 0);
 	XtFree((XtPointer)copy);
 	XtFree((XtPointer)lines->lengths);
@@ -1929,9 +2006,9 @@ String value;
     {
 	int y;
 
-	if (row < (int)mw->matrix.fixed_rows)
+	if (IS_LEADING_FIXED_ROW(mw, row))
 	    y = ROW_LABEL_OFFSET(mw) + ROW_HEIGHT(mw) * row;
-	else if (row >= TRAILING_VERT_ORIGIN(mw))
+	else if (IS_TRAILING_FIXED_ROW(mw, row))
 	    y = TRAILING_FIXED_ROW_LABEL_OFFSET(mw) + ROW_HEIGHT(mw) *
 		(row - TRAILING_VERT_ORIGIN(mw));
 	else
@@ -1944,3 +2021,14 @@ String value;
 	xbaeDrawRowLabel(mw, row, False);
     }
 }
+
+Widget
+XbaeCreateMatrix(parent, name, args, ac) 
+Widget parent;
+String name;
+ArgList args;
+Cardinal ac;
+{ 
+    return XtCreateWidget(name, xbaeMatrixWidgetClass, parent, args, ac); 
+} 
+
