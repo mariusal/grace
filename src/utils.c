@@ -943,6 +943,15 @@ int compare_strings(const char *s1, const char *s2)
     }
 }
 
+int is_empty_string(const char *s)
+{
+    if (!s || s[0] == '\0') {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 char *get_grace_home(void)
 {
     return grace->rt->grace_home;
