@@ -44,6 +44,7 @@
 #include <X11/Intrinsic.h>
 #include <X11/keysym.h>
 #include <Xm/ScrollBar.h>
+#include <Xm/RowColumn.h>
 
 #include "motifinc.h"
 #include "protos.h"
@@ -184,13 +185,15 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
             int i;
             WPoint wp;
             VPoint vp;
+            set *p = set_get_data(q);
+            double symsize = MAX2(0.01*p->sym.size, 0.005);
             for (i = 0; i < set_get_length(q); i++) {
                 wp.x = x[i];
                 wp.y = y[i];
                 Wpoint2Vpoint(q, &wp, &vp);
                 v.xv1 = v.xv2 = vp.x;
                 v.yv1 = v.yv2 = vp.y;
-                view_extend(&v, 0.005);
+                view_extend(&v, symsize);
                 target_consider(ct, q, i, &v);
             }
         }
@@ -236,6 +239,108 @@ static void move_target(canvas_target *ct, const VPoint *vp)
         set_point_shift(ct->q, ct->part, &vshift);
         break;
     }
+}
+
+static Widget popup = NULL, poplab, drop_pt_bt, as_set_bt;
+static Widget bring_to_front_bt, move_up_bt, move_down_bt, send_to_back_bt;
+
+#define EDIT_CB             0
+#define DELETE_CB           1
+#define DUPLICATE_CB        2
+#define BRING_TO_FRONT_CB   3
+#define SEND_TO_BACK_CB     4
+#define MOVE_UP_CB          5
+#define MOVE_DOWN_CB        6
+#define DROP_POINT_CB       7
+#define AUTOSCALE_BY_SET_CB 8
+
+static void popup_any_cb(canvas_target *ct, int type)
+{
+    Quark *q = ct->q;
+    Quark *pr = get_parent_project(q);
+    
+    switch (type) {
+    case EDIT_CB:
+        raise_explorer(gui_from_quark(q), q);
+        return;
+        break;
+    case DELETE_CB:
+        quark_free(q);
+        break;
+    case DUPLICATE_CB:
+        quark_copy(q);
+        break;
+    case BRING_TO_FRONT_CB:
+        quark_push(q, TRUE);
+        break;
+    case SEND_TO_BACK_CB:
+        quark_push(q, FALSE);
+        break;
+    case MOVE_UP_CB:
+        quark_move(q, TRUE);
+        break;
+    case MOVE_DOWN_CB:
+        quark_move(q, FALSE);
+        break;
+    case DROP_POINT_CB:
+        if (q->fid == QFlavorSet && ct->part >= 0) {
+            droppoints(q, ct->part, ct->part);
+        }
+        break;
+    case AUTOSCALE_BY_SET_CB:
+        if (q->fid == QFlavorSet) {
+            autoscale_bysets(&q, 1, AUTOSCALE_XY);
+        }
+        break;
+    }
+    
+    xdrawgraph(pr, FALSE);
+    update_all();
+}
+
+static void edit_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, EDIT_CB);
+}
+
+static void delete_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, DELETE_CB);
+}
+
+static void duplicate_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, DUPLICATE_CB);
+}
+
+static void bring_to_front_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, BRING_TO_FRONT_CB);
+}
+
+static void send_to_back_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, SEND_TO_BACK_CB);
+}
+
+static void move_up_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, MOVE_UP_CB);
+}
+
+static void move_down_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, MOVE_DOWN_CB);
+}
+
+static void autoscale_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, AUTOSCALE_BY_SET_CB);
+}
+
+static void drop_point_cb(Widget but, void *udata)
+{
+    popup_any_cb((canvas_target *) udata, DROP_POINT_CB);
 }
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
@@ -355,9 +460,74 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
             } else {
                 ct.vp = vp;
                 if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
-                    /* TODO: context-sensitive menu */
-                    fprintf(stderr, "%s(%d)\n", QIDSTR(ct.q), ct.part);
                     ct.found = FALSE;
+                    
+                    if (!popup) {
+                        popup = XmCreatePopupMenu(grace->gui->xstuff->canvas,
+                            "popupMenu", NULL, 0);
+                        
+                        poplab = CreateMenuLabel(popup, "");
+                        
+                        CreateMenuSeparator(popup);
+
+                        CreateMenuButton(popup,
+                            "Edit", '\0', edit_cb, &ct);
+                        
+                        CreateMenuSeparator(popup);
+                        
+                        CreateMenuButton(popup,
+                            "Delete", '\0', delete_cb, &ct);
+                        CreateMenuButton(popup,
+                            "Duplicate", '\0', duplicate_cb, &ct);
+
+                        CreateMenuSeparator(popup);
+
+                        bring_to_front_bt = CreateMenuButton(popup,
+                            "Bring to front", '\0', bring_to_front_cb, &ct);
+                        move_up_bt = CreateMenuButton(popup,
+                            "Move up", '\0', move_up_cb, &ct);
+                        move_down_bt = CreateMenuButton(popup,
+                            "Move down", '\0', move_down_cb, &ct);
+                        send_to_back_bt = CreateMenuButton(popup,
+                            "Send to back", '\0', send_to_back_cb, &ct);
+                        
+                        CreateMenuSeparator(popup);
+
+                        as_set_bt = CreateMenuButton(popup,
+                            "Autoscale by this set", '\0', autoscale_cb, &ct);
+
+                        CreateMenuSeparator(popup);
+
+                        drop_pt_bt = CreateMenuButton(popup,
+                            "Drop this point", '\0', drop_point_cb, &ct);
+                    }
+                    SetLabel(poplab, QIDSTR(ct.q));
+                    if (quark_is_last_child(ct.q)) {
+                        SetSensitive(bring_to_front_bt, FALSE);
+                        SetSensitive(move_up_bt, FALSE);
+                    } else {
+                        SetSensitive(bring_to_front_bt, TRUE);
+                        SetSensitive(move_up_bt, TRUE);
+                    }
+                    if (quark_is_first_child(ct.q)) {
+                        SetSensitive(send_to_back_bt, FALSE);
+                        SetSensitive(move_down_bt, FALSE);
+                    } else {
+                        SetSensitive(send_to_back_bt, TRUE);
+                        SetSensitive(move_down_bt, TRUE);
+                    }
+                    if (ct.q->fid == QFlavorSet && ct.part >= 0) {
+                        ManageChild(drop_pt_bt);
+                    } else {
+                        UnmanageChild(drop_pt_bt);
+                    }
+                    if (ct.q->fid == QFlavorSet) {
+                        ManageChild(as_set_bt);
+                    } else {
+                        UnmanageChild(as_set_bt);
+                    }
+                    XmMenuPosition(popup, xbe);
+                    XtManageChild(popup);
                 }
             }
             break;
@@ -613,10 +783,6 @@ void autoscale_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
 }
 
-void autoscale_on_near_action(Widget w, XEvent *e, String *p, Cardinal *c)
-{
-}
-
 void draw_line_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
 }
@@ -633,10 +799,6 @@ void write_string_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
 }
 
-
-void delete_object_action(Widget w, XEvent *e, String *p, Cardinal *c)
-{
-}
 
 void refresh_hotlink_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
