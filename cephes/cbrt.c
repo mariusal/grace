@@ -63,7 +63,7 @@ if( isnan(x) )
   return x;
 #endif
 #ifdef INFINITIES
-if( !isfinite(x) )
+if( !finite(x) )
   return x;
 #endif
 if( x == 0 )
