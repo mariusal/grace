@@ -75,16 +75,15 @@ void dft(double *jr, double *ji, int n, int iflag)
 
     sgn = iflag ? -1 : 1;
     tpi = 2.0 * M_PI;
-    xr = (double *) calloc(n, sizeof(double));
-    xi = (double *) calloc(n, sizeof(double));
-    cov = (double *) calloc(n, sizeof(double));
-    siv = (double *) calloc(n, sizeof(double));
+    xr = xcalloc(n, SIZEOF_DOUBLE);
+    xi = xcalloc(n, SIZEOF_DOUBLE);
+    cov = xcalloc(n, SIZEOF_DOUBLE);
+    siv = xcalloc(n, SIZEOF_DOUBLE);
     if (xr == NULL || xi == NULL || cov == NULL || siv == NULL) {
-	errmsg("Can't allocate temporary in DFT");
-	if(xr) cxfree(xr);
-	if(xi) cxfree(xi);
-	if(cov) cxfree(cov);
-	if(siv) cxfree(siv);
+	XCFREE(xr);
+	XCFREE(xi);
+	XCFREE(cov);
+	XCFREE(siv);
 	return;
     }
     for (i = 0; i < n; i++) {
@@ -116,10 +115,10 @@ void dft(double *jr, double *ji, int n, int iflag)
 	jr[i] = jr[i] * on;
 	ji[i] = ji[i] * on;
     }
-    cxfree(xr);
-    cxfree(xi);
-    cxfree(cov);
-    cxfree(siv);
+    XCFREE(xr);
+    XCFREE(xi);
+    XCFREE(cov);
+    XCFREE(siv);
 }
 
 
@@ -144,15 +143,15 @@ void fft(double *real_data, double *imag_data, int n_pts, int nu, int inv)
     n2 = n_pts / 2;
     
     if(n_pts==0) {
-      if(sintab) cxfree(sintab);
+      if(sintab) XCFREE(sintab);
       sintab=NULL;
       last_n=0;
       return; /* just deallocate memory if called with zero points */
     } else if (n_pts != last_n) { /* allocate new sin table */
       arg=2*M_PI/n_pts;
       last_n=0;
-      if(sintab) cxfree(sintab);
-      sintab=(double *) calloc(n_pts,SIZEOF_DOUBLE);
+      if(sintab) XCFREE(sintab);
+      sintab=(double *) xcalloc(n_pts,SIZEOF_DOUBLE);
       if(sintab == NULL) return; /* out of memory! */
       for(i=0; i<n_pts; i++) sintab[i] = sin(arg*i);
       last_n=n_pts;
@@ -293,7 +292,7 @@ void dft(double *jr, double *ji, int n, int iflag)
 
   plan=fftw_create_plan(n, iflag?FFTW_BACKWARD:FFTW_FORWARD,
 		   plan_flags | FFTW_IN_PLACE);
-  cbuf=calloc(n, sizeof(*cbuf));
+  cbuf=xcalloc(n, sizeof(*cbuf));
   if(!cbuf) return;
   for(i=0; i<n; i++) {
     cbuf[i].re=jr[i]; cbuf[i].im=ji[i];
@@ -312,7 +311,7 @@ void dft(double *jr, double *ji, int n, int iflag)
     }
   }
 
-  cxfree(cbuf);
+  XCFREE(cbuf);
   
 }
 

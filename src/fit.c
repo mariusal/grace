@@ -211,15 +211,15 @@ void runmedian(double *x, double *y, double *ax, double *ay, int n, int ilen)
     int i, j, nlen = n - ilen + 1;
     double *tmpx, *tmpy;
 
-    tmpx = (double *) calloc(ilen, sizeof(double));
+    tmpx = (double *) xcalloc(ilen, sizeof(double));
     if (tmpx == NULL) {
-	errmsg("Can't calloc tmpx in runmedian");
+	errmsg("Can't xcalloc tmpx in runmedian");
 	return;
     }
-    tmpy = (double *) calloc(ilen, sizeof(double));
+    tmpy = (double *) xcalloc(ilen, sizeof(double));
     if (tmpy == NULL) {
-	errmsg("Can't calloc tmpy in runmedian");
-	cxfree(tmpx);
+	errmsg("Can't xcalloc tmpy in runmedian");
+	XCFREE(tmpx);
 	return;
     }
     for (i = 0; i < nlen; i++) {
@@ -237,8 +237,8 @@ void runmedian(double *x, double *y, double *ax, double *ay, int n, int ilen)
 	    ay[i] = (tmpy[ilen / 2] + tmpy[(ilen - 1) / 2]) * 0.5;
 	}
     }
-    cxfree(tmpx);
-    cxfree(tmpy);
+    XCFREE(tmpx);
+    XCFREE(tmpy);
 }
 
 /*

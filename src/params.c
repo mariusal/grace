@@ -141,7 +141,7 @@ void putparms(int gno, FILE *pp, int embed)
         if (*p1) {
             fprintf (pp, "%sdescription \"%s\"\n", embedstr, PSTRING(p1));
         }
-        free(tmpbuf);
+        xfree(tmpbuf);
     }
 
     fprintf(pp, "%spage scroll %d%%\n", embedstr, (int) rint(scrollper * 100));

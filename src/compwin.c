@@ -206,7 +206,7 @@ static void compute_aac(void *data)
 	    }
             
             resno = do_compute(gno1, setno1, gno2, setno2, rarray, fstr);
-	    cxfree(rarray);
+	    XCFREE(rarray);
 	    if (resno != GRACE_EXIT_SUCCESS) {
 	        errmsg("Error in do_compute(), check formula");
                 break;
@@ -219,10 +219,10 @@ static void compute_aac(void *data)
     }
 
     if (ns1 > 0) {
-        free(svalues1);
+        xfree(svalues1);
     }
     if (ns2 > 0) {
-        free(svalues2);
+        xfree(svalues2);
     }
     if (error == FALSE) {
         if (gno1 != gno2) {
@@ -340,7 +340,7 @@ static void do_histo_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	fromset = selsets[i];
 	do_histo(get_cg(), fromset, tograph, toset, binw, xmin, xmax, hist_type);
     }
-    free(selsets);
+    xfree(selsets);
     update_all();
     drawgraph();
     unset_wait_cursor();
@@ -486,7 +486,7 @@ static void do_fourier_proc(Widget w, XtPointer client_data, XtPointer call_data
 	do_fourier(gno, setno, 0, load, loadx, invflag, type, wind);
     }
     update_set_lists(gno);
-    free(selsets);
+    xfree(selsets);
     unset_wait_cursor();
     drawgraph();
 }
@@ -517,7 +517,7 @@ static void do_fft_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	do_fourier(gno, setno, 1, load, loadx, invflag, type, wind);
     }
     update_set_lists(gno);
-    free(selsets);
+    xfree(selsets);
     unset_wait_cursor();
     drawgraph();
 }
@@ -544,7 +544,7 @@ static void do_window_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	do_window(setno, type, wind);
     }
     update_set_lists(get_cg());
-    free(selsets);
+    xfree(selsets);
     unset_wait_cursor();
     drawgraph();
 }
@@ -662,7 +662,7 @@ static void do_runavg_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     update_set_lists(gno);
     unset_wait_cursor();
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -891,7 +891,7 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     }
     update_set_lists(gno);
     unset_wait_cursor();
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -969,7 +969,7 @@ static void do_differ_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     update_set_lists(gno);
     unset_wait_cursor();
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -1053,7 +1053,7 @@ static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     update_set_lists(gno);
     unset_wait_cursor();
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -1125,7 +1125,7 @@ static void do_seasonal_proc(Widget w, XtPointer client_data, XtPointer call_dat
 		do_seasonal_diff(setno, period);
     }
     update_set_lists(get_cg());
-    free(selsets);
+    xfree(selsets);
     unset_wait_cursor();
     drawgraph();
 }
@@ -1372,7 +1372,7 @@ static void do_spline_proc(Widget w, XtPointer client_data, XtPointer call_data)
     update_set_lists(gno);
     unset_wait_cursor();
 
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -1475,7 +1475,7 @@ static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     update_set_lists(get_cg());
     unset_wait_cursor();
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -1675,7 +1675,7 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
     }
     update_set_lists(get_cg());
     unset_wait_cursor();
-    free(selsets);
+    xfree(selsets);
     drawgraph();
 }
 
@@ -2015,7 +2015,7 @@ static void do_geom_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	}			/* end if */
     }				/* end for k */
     update_set_lists(get_cg());
-    free(selsets);
+    xfree(selsets);
     set_dirtystate();
     unset_wait_cursor();
     drawgraph();

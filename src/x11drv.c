@@ -452,7 +452,7 @@ void xlib_setdrawbrush(void)
         lc != xliblinecap   || lj    != xliblinejoin) {
         if (style > 1) {
             darr_len = dash_array_length[style];
-            xdarr = malloc(darr_len*SIZEOF_CHAR);
+            xdarr = xmalloc(darr_len*SIZEOF_CHAR);
             if (xdarr == NULL) {
                 return;
             }
@@ -462,7 +462,7 @@ void xlib_setdrawbrush(void)
             }
             XSetLineAttributes(disp, gc, iw, LineOnOffDash, lc, lj);
             XSetDashes(disp, gc, 0, xdarr, darr_len);
-            free(xdarr);
+            xfree(xdarr);
         } else if (style == 1) {
             XSetLineAttributes(disp, gc, iw, LineSolid, lc, lj);
         }
@@ -498,7 +498,7 @@ void xlibdrawpolyline(VPoint *vps, int n, int mode)
         xn++;
     }
     
-    p = malloc(xn*sizeof(XPoint));
+    p = xmalloc(xn*sizeof(XPoint));
     if (p == NULL) {
         return;
     }
@@ -514,7 +514,7 @@ void xlibdrawpolyline(VPoint *vps, int n, int mode)
     
     XDrawLines(disp, displaybuff, gc, p, xn, CoordModeOrigin);
     
-    free(p);
+    xfree(p);
 }
 
 
@@ -527,7 +527,7 @@ void xlibfillpolygon(VPoint *vps, int npoints)
         return;
     }
     
-    p = (XPoint *) malloc(npoints*sizeof(XPoint));
+    p = (XPoint *) xmalloc(npoints*sizeof(XPoint));
     if (p == NULL) {
         return;
     }
@@ -549,7 +549,7 @@ void xlibfillpolygon(VPoint *vps, int npoints)
 
     XFillPolygon(disp, displaybuff, gc, p, npoints, Complex, CoordModeOrigin);
     
-    free(p);
+    xfree(p);
 }
 
 /*
@@ -630,9 +630,9 @@ void xlibputpixmap(VPoint vp, int width, int height,
             /* TODO: dither pixmaps on mono displays */
             return;
         }
-        pixmap_ptr = calloc(PAD(width, 8) * height, pixel_size);
+        pixmap_ptr = xcalloc(PAD(width, 8) * height, pixel_size);
         if (pixmap_ptr == NULL) {
-            errmsg("malloc failed in xlibputpixmap()");
+            errmsg("xmalloc failed in xlibputpixmap()");
             return;
         }
  
@@ -654,10 +654,10 @@ void xlibputpixmap(VPoint vp, int width, int height,
                            );
 
         if (pixmap_type == PIXMAP_TRANSPARENT) {
-            clipmask_ptr = calloc((PAD(width, 8)>>3)
+            clipmask_ptr = xcalloc((PAD(width, 8)>>3)
                                               * height, SIZEOF_CHAR);
             if (clipmask_ptr == NULL) {
-                errmsg("malloc failed in xlibputpixmap()");
+                errmsg("xmalloc failed in xlibputpixmap()");
                 return;
             } else {
                 /* Note: We pad the clipmask always to byte boundary */
@@ -674,14 +674,14 @@ void xlibputpixmap(VPoint vp, int width, int height,
         
                 clipmask=XCreateBitmapFromData(disp, root, clipmask_ptr, 
                                                             width, height);
-                free(clipmask_ptr);
+                xfree(clipmask_ptr);
             }
         }
     } else {
-        pixmap_ptr = calloc((PAD(width, bitmap_pad)>>3) * height,
+        pixmap_ptr = xcalloc((PAD(width, bitmap_pad)>>3) * height,
                                                         sizeof(unsigned char));
         if (pixmap_ptr == NULL) {
-            errmsg("malloc failed in xlibputpixmap()");
+            errmsg("xmalloc failed in xlibputpixmap()");
             return;
         }
         memcpy(pixmap_ptr, databits, ((PAD(width, bitmap_pad)>>3) * height));

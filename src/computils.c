@@ -337,14 +337,13 @@ void do_spline(int gno, int set, double start, double stop, int n, int type)
 	setlength(gno, splineset, n);
 	x = getx(gno, set);
 	y = gety(gno, set);
-	b = calloc(len, SIZEOF_DOUBLE);
-	c = calloc(len, SIZEOF_DOUBLE);
-	d = calloc(len, SIZEOF_DOUBLE);
+	b = xcalloc(len, SIZEOF_DOUBLE);
+	c = xcalloc(len, SIZEOF_DOUBLE);
+	d = xcalloc(len, SIZEOF_DOUBLE);
 	if (b == NULL || c == NULL || d == NULL) {
-	    errmsg("Not enough memory for splines");
-	    cxfree(b);
-	    cxfree(c);
-	    cxfree(d);
+	    XCFREE(b);
+	    XCFREE(c);
+	    XCFREE(d);
 	    killset(gno, splineset);
 	    return;
 	}
@@ -369,9 +368,9 @@ void do_spline(int gno, int set, double start, double stop, int n, int type)
 	setcomment(gno, splineset, buf);
 	log_results(buf);
 
-	cxfree(b);
-	cxfree(c);
-	cxfree(d);
+	XCFREE(b);
+	XCFREE(c);
+	XCFREE(d);
     }
 }
 
@@ -516,8 +515,6 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
 		if (!get_points_inregion(rno, invr, len, x, y, &cnt, &xt, &yt)) {
 			if (cnt == 0) {
 			errmsg("No points found in region, operation cancelled");
-			} else {
-			errmsg("Memory allocation failed for points in region");
 			}
 			return;
 		}
@@ -691,8 +688,8 @@ void do_regress(int gno, int setno, int ideg, int iresid, int rno, int invr, int
     }
     bustout:;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
-	free(xt);
-	free(yt);
+	xfree(xt);
+	xfree(yt);
     }
 }
 
@@ -723,8 +720,6 @@ void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr)
 	if (!get_points_inregion(rno, invr, len, x, y, &cnt, &xt, &yt)) {
 	    if (cnt == 0) {
 		errmsg("No points found in region, operation cancelled");
-	    } else {
-		errmsg("Memory allocation failed for points in region");
 	    }
 	    return;
 	}
@@ -770,8 +765,8 @@ void do_runavg(int gno, int setno, int runlen, int runtype, int rno, int invr)
     }
   bustout:;
     if (rno >= 0 && cnt != 0) {	/* had a region and allocated memory there */
-	free(xt);
-	free(yt);
+	xfree(xt);
+	xfree(yt);
     }
 }
 
@@ -1026,16 +1021,16 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
     
     nbins = (int) ceil (fabs((xmax - xmin)/binw));
     
-    hist = (int *) malloc (nbins*sizeof(int));
+    hist = (int *) xmalloc (nbins*sizeof(int));
     if (hist == NULL) {
-        errmsg("malloc failed in do_histo()");
+        errmsg("xmalloc failed in do_histo()");
         return;
     }
 
-    bins = (double *) malloc ((nbins + 1)*sizeof(double));
+    bins = (double *) xmalloc ((nbins + 1)*SIZEOF_DOUBLE);
     if (bins == NULL) {
-        errmsg("malloc failed in do_histo()");
-        free(hist);
+        errmsg("xmalloc failed in do_histo()");
+        xfree(hist);
         return;
     }
     
@@ -1048,8 +1043,8 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
     }
     
     if (histogram(ndata, data, nbins, bins, hist) == GRACE_EXIT_FAILURE){
-        free(hist);
-        free(bins);
+        xfree(hist);
+        xfree(bins);
         return;
     }
     
@@ -1065,8 +1060,8 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
         y[i] = (hist_type == HISTOGRAM_TYPE_CUMULATIVE)*y[i - 1] + hist[i - 1];
     }
     
-    free(hist);
-    free(bins);
+    xfree(hist);
+    xfree(bins);
 
     get_graph_plotarr(tograph, toset, &p);
     p.sym = SYM_NONE;
@@ -1199,7 +1194,7 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 		npts++;
 	    }
 	}
-        free(result);
+        xfree(result);
     }
     if (npts > 0) {
 	setcomment(gno, resset, buf);
@@ -1536,13 +1531,13 @@ int get_points_inregion(int rno, int invr, int len, double *x, double *y, int *c
 	if (clen == 0) {
 	    return 0;
 	}
-	xtmp = (double *) calloc(clen, sizeof(double));
+	xtmp = (double *) xcalloc(clen, SIZEOF_DOUBLE);
 	if (xtmp == NULL) {
 	    return 0;
 	}
-	ytmp = (double *) calloc(clen, sizeof(double));
+	ytmp = (double *) xcalloc(clen, SIZEOF_DOUBLE);
 	if (ytmp == NULL) {
-	    free(xtmp);
+	    xfree(xtmp);
 	    return 0;
 	}
 	clen = 0;
@@ -1597,7 +1592,7 @@ void do_interp(int ygno, int yset, int xgno, int xset, int method)
     x1=getx( ygno, yset );
     y=gety( ygno, yset );
     x2=getx( xgno, xset );
-    newx = calloc( getsetlength( xgno, xset ), sizeof( double ) );
+    newx = xcalloc( getsetlength( xgno, xset ), SIZEOF_DOUBLE );
     xsetlength = getsetlength( xgno, xset );
     ysetlength = getsetlength( ygno, yset );
     for(i = 0, j = 0; i < xsetlength; i++) {		/* get intersection of sets */
@@ -1609,14 +1604,13 @@ void do_interp(int ygno, int yset, int xgno, int xset, int method)
     isetlength = j;
 
     if( method ) {					/* spline */
-		b = calloc(ysetlength, sizeof(double));
-		c = calloc(ysetlength, sizeof(double));
-		d = calloc(ysetlength, sizeof(double));
+		b = xcalloc(ysetlength, SIZEOF_DOUBLE);
+		c = xcalloc(ysetlength, SIZEOF_DOUBLE);
+		d = xcalloc(ysetlength, SIZEOF_DOUBLE);
 		if (b == NULL || c == NULL || d == NULL) {
-	    	errmsg("Not enough memory for splines");
-	    	cxfree(b);
-	    	cxfree(c);
-	    	cxfree(d);
+	    	XCFREE(b);
+	    	XCFREE(c);
+	    	XCFREE(d);
 	    	killset(get_cg(), iset);
 	    	return;
 		}
@@ -1645,7 +1639,7 @@ void do_interp(int ygno, int yset, int xgno, int xset, int method)
     }
     /* activate new set and update sets */
     sprintf( buf, "Interpolated from Set %d at points from Set %d", yset, xset );
-    cxfree( newx );
+    XCFREE( newx );
     setcomment(get_cg(), iset, buf);
 }
 
@@ -1668,7 +1662,7 @@ int get_restriction_array(int gno, int setno,
         return GRACE_EXIT_FAILURE;
     }
     
-    *rarray = malloc(n*SIZEOF_CHAR);
+    *rarray = xmalloc(n*SIZEOF_CHAR);
     if (*rarray == NULL) {
         return GRACE_EXIT_FAILURE;
     }
@@ -1697,7 +1691,7 @@ int get_restriction_array(int gno, int setno,
         break;
     default:
         errmsg("Internal error in get_restriction_array()");
-        cxfree(*rarray);
+        XCFREE(*rarray);
         return GRACE_EXIT_FAILURE;
         break;
     }

@@ -140,7 +140,7 @@ int load_module(char *fname, char *dl_function, char *dl_key, int dl_type)
     newkey.s = copy_string(NULL, dl_key);
     
     retval = addto_symtab(newkey);
-    free(newkey.s);
+    xfree(newkey.s);
     return retval;
 
 #else /* no support for DL */

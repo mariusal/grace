@@ -172,8 +172,8 @@ static void update_eblock(int gno)
     
     /* TODO: check if new data arrived */
     if (1) {
-        blockitems  = malloc((blockncols + 1)*sizeof(OptionItem));
-        sblockitems = malloc((blockncols + 1)*sizeof(OptionItem));
+        blockitems  = xmalloc((blockncols + 1)*sizeof(OptionItem));
+        sblockitems = xmalloc((blockncols + 1)*sizeof(OptionItem));
         blockitems[0].value = -1;
         blockitems[0].label = copy_string(NULL, "Index");
         sblockitems[0].value = -1;
@@ -202,13 +202,13 @@ static void update_eblock(int gno)
         UpdateOptionChoice(eblock_schoice_item, nscols + 1, sblockitems);
 
         for (i = 0; i < nncols + 1; i++) {
-            free(blockitems[i].label);
+            xfree(blockitems[i].label);
         }
-        free(blockitems);
+        xfree(blockitems);
         for (i = 0; i < nscols + 1; i++) {
-            free(sblockitems[i].label);
+            xfree(sblockitems[i].label);
         }
-        free(sblockitems);
+        xfree(sblockitems);
     }
 
     ncols = settype_cols(block_curtype);

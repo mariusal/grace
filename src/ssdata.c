@@ -53,7 +53,7 @@ double *copy_data_column(double *src, int nrows)
 {
     double *dest;
     
-    dest = malloc(nrows*SIZEOF_DOUBLE);
+    dest = xmalloc(nrows*SIZEOF_DOUBLE);
     if (dest != NULL) {
         memcpy(dest, src, nrows*SIZEOF_DOUBLE);
     }
@@ -66,7 +66,7 @@ double *allocate_index_data(int nrows)
     int i;
     double *retval;
     
-    retval = malloc(nrows*SIZEOF_DOUBLE);
+    retval = xmalloc(nrows*SIZEOF_DOUBLE);
     if (retval != NULL) {
         for (i = 0; i < nrows; i++) {
             retval[i] = i;
@@ -80,7 +80,7 @@ double *allocate_mesh(double start, double stop, int len)
     int i;
     double *retval;
     
-    retval = malloc(len*SIZEOF_DOUBLE);
+    retval = xmalloc(len*SIZEOF_DOUBLE);
     if (retval != NULL) {
         double s = (start + stop)/2, d = (stop - start)/2;
         for (i = 0; i < len; i++) {
@@ -122,7 +122,7 @@ int realloc_ss_data(ss_data *ssd, int nrows)
         if (ssd->formats[i] == FFORMAT_STRING) {
             sp = (char **) ssd->data[i];
             for (j = nrows; j < ssd->nrows; j++) {
-                cxfree(sp[j]);
+                XCFREE(sp[j]);
             }
             ssd->data[i] = xrealloc(ssd->data[i], nrows*sizeof(char *));
             sp = (char **) ssd->data[i];
@@ -147,13 +147,13 @@ void free_ss_data(ss_data *ssd)
         if (ssd->formats[i] == FFORMAT_STRING) {
             sp = (char **) ssd->data[i];
             for (j = 0; j < ssd->nrows; j++) {
-                cxfree(sp[j]);
+                XCFREE(sp[j]);
             }
         }
-        cxfree(ssd->data[i]);
+        XCFREE(ssd->data[i]);
     }
-    cxfree(ssd->data);
-    cxfree(ssd->formats);
+    XCFREE(ssd->data);
+    XCFREE(ssd->formats);
     ssd->nrows = 0;
     ssd->ncols = 0;
 }
@@ -162,7 +162,7 @@ int init_ss_data(ss_data *ssd, int ncols, int *formats)
 {
     int i;
     
-    ssd->data = malloc(ncols*SIZEOF_VOID_P);
+    ssd->data = xmalloc(ncols*SIZEOF_VOID_P);
     for (i = 0; i < ncols; i++) {
         ssd->data[i] = NULL;
     }
@@ -234,8 +234,8 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
         if (token == NULL) {
             *nscols = 0;
             *nncols = 0;
-            cxfree(*formats);
-            free(buf);
+            XCFREE(*formats);
+            xfree(buf);
             return GRACE_EXIT_FAILURE;
         }
         
@@ -261,7 +261,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
             (*nscols)++;
         }
     }
-    free(buf);
+    xfree(buf);
     
     return GRACE_EXIT_SUCCESS;
 }
@@ -288,7 +288,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
             for (j = 0; j < i; j++) {
                 if (ssd->formats[j] == FFORMAT_STRING) {
                     sp = (char **) ssd->data[j];
-                    cxfree(sp[row]);
+                    XCFREE(sp[row]);
                 }
             }
             return GRACE_EXIT_FAILURE;
@@ -312,7 +312,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
                 for (j = 0; j < i; j++) {
                     if (ssd->formats[j] == FFORMAT_STRING) {
                         sp = (char **) ssd->data[j];
-                        cxfree(sp[row]);
+                        XCFREE(sp[row]);
                     }
                 }
                 return GRACE_EXIT_FAILURE;
@@ -375,7 +375,6 @@ int store_data(ss_data *ssd, int load_type, char *label)
         if (x_from_index) {
             xdata = allocate_index_data(nrows);
             if (xdata == NULL) {
-                errmsg("Can't allocate more sets!");
                 free_ss_data(ssd);
             }
             setcol(gno, setno, nncols, xdata, nrows);
@@ -394,7 +393,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
         }
         log_results(label);
         
-        cxfree(ssd->data);
+        XCFREE(ssd->data);
         break;
     case LOAD_NXY:
         if (nscols != 0) {
@@ -406,14 +405,12 @@ int store_data(ss_data *ssd, int load_type, char *label)
         for (i = 0; i < ncols - 1; i++) {
             setno = nextset(gno);
             if (setno == -1) {
-                errmsg("Can't allocate more sets!");
                 free_ss_data(ssd);
                 return GRACE_EXIT_FAILURE;
             }
             if (i > 0) {
                 xdata = copy_data_column((double *) ssd->data[0], nrows);
                 if (xdata == NULL) {
-                    errmsg("Can't allocate more sets!");
                     free_ss_data(ssd);
                 }
             } else {
@@ -426,7 +423,7 @@ int store_data(ss_data *ssd, int load_type, char *label)
             log_results(label);
         }
     
-        cxfree(ssd->data);
+        XCFREE(ssd->data);
         break;
     case LOAD_BLOCK:
         set_blockdata(ssd);
@@ -459,9 +456,9 @@ int field_string_to_cols(const char *fs, int *nc, int **cols)
 	(*nc)++;
 	s = NULL;
     }
-    *cols = malloc((*nc)*SIZEOF_INT);
+    *cols = xmalloc((*nc)*SIZEOF_INT);
     if (*cols == NULL) {
-        free(buf);
+        xfree(buf);
         return GRACE_EXIT_FAILURE;
     }
 
@@ -554,7 +551,6 @@ int create_set_fromblock(int gno, int setno,
     if (setno == NEW_SET) {
         setno = nextset(gno);
         if (setno == -1) {
-            errmsg("Can't allocate more sets!");
             return GRACE_EXIT_FAILURE;
         }
     }
@@ -563,7 +559,6 @@ int create_set_fromblock(int gno, int setno,
     killsetdata(gno, setno);
     
     if (activateset(gno, setno) != GRACE_EXIT_SUCCESS) {
-        errmsg("Can't allocate more sets!");
         return GRACE_EXIT_FAILURE;
     }
     
@@ -583,7 +578,6 @@ int create_set_fromblock(int gno, int setno,
             }
         }
         if (cdata == NULL) {
-            errmsg("Can't allocate more data sets!");
             killsetdata(gno, setno);
             return GRACE_EXIT_FAILURE;
         }

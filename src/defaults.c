@@ -101,7 +101,7 @@ void set_region_defaults(int rno)
     rg[rno].x1 = rg[rno].y1 = rg[rno].x2 = rg[rno].y2 = 0.0;
 
     /* TODO: Fix this junk! */
-    rg[rno].linkto = malloc(64*SIZEOF_INT);
+    rg[rno].linkto = xmalloc(64*SIZEOF_INT);
     for (j = 0; j < 64; j++) {
         rg[rno].linkto[j] = FALSE;
     }

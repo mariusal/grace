@@ -259,7 +259,7 @@ static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_
 	return;
     }
     g1 = values[0];
-    free(values);
+    xfree(values);
     
     n = GetListChoices(graph_overlay2_choice_item, &values);
     if (n != 1) {
@@ -267,7 +267,7 @@ static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_
 	return;
     }
     g2 = values[0];
-    free(values);
+    xfree(values);
 
     if (g1 == g2) {
 	errmsg("Can't overlay a graph onto itself");

@@ -624,7 +624,7 @@ static void setapp_aac_cb(void *data)
             set_graph_plotarr(get_cg(), setno, &p);
             set_dataset_type(get_cg(), setno, type);
         }
-        free(selset);
+        xfree(selset);
     } 
 
     if (aac_mode == AAC_ACCEPT) {
@@ -803,7 +803,7 @@ static void setapp_data_proc(void *data)
             }
         }
         
-        free(selset);
+        xfree(selset);
         
         UpdateSymbols(cg, cset);
         set_dirtystate();

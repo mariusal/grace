@@ -346,7 +346,7 @@ static void datasetprop_aac_cb(void *data)
             XtUnmanageChild(tui.top);
         }
         
-        free(selset);
+        xfree(selset);
 
         update_set_lists(cg);
         unset_wait_cursor();
@@ -580,7 +580,7 @@ static void datasetop_aac_cb(void *data)
             XtUnmanageChild(datasetopui.top);
         }
         
-        free(selset);
+        xfree(selset);
 
         update_set_lists(cg);
         unset_wait_cursor();
@@ -723,10 +723,10 @@ static void setop_aac_cb(void *data)
     }
 
     if (ns1 > 0) {
-        free(svalues1);
+        xfree(svalues1);
     }
     if (ns2 > 0) {
-        free(svalues2);
+        xfree(svalues2);
     }
     if (error == FALSE) {
         update_all();
@@ -939,12 +939,11 @@ static void leval_aac_cb(void *data)
     }
     
     if (t->length != 0) {
-        free(t->data);
+        xfree(t->data);
         t->length = 0;
     }
     t->data = allocate_mesh(start, stop, npts);
     if (t->data == NULL) {
-	errmsg("Not enough memory");
         unset_wait_cursor();
         return;
     }
@@ -954,9 +953,8 @@ static void leval_aac_cb(void *data)
     set_dataset_type(gno, setno, type);
     set_set_hidden(gno, setno, FALSE);
     if (setlength(gno, setno, npts) != GRACE_EXIT_SUCCESS) {
-	errmsg("Can't allocate more sets");
         killset(gno, setno);
-        cxfree(t->data);
+        XCFREE(t->data);
         t->length = 0;
         unset_wait_cursor();
         return;
@@ -969,7 +967,7 @@ static void leval_aac_cb(void *data)
             sprintf(buf, "Error in formula for %s", dataset_colname(i));
             errmsg(buf);
             killset(gno, setno);
-            cxfree(t->data);
+            XCFREE(t->data);
             t->length = 0;
             unset_wait_cursor();
             return;
@@ -977,7 +975,7 @@ static void leval_aac_cb(void *data)
         setcol(gno, setno, i, ex, npts);
     }
     
-    cxfree(t->data);
+    XCFREE(t->data);
     t->length = 0;
     
     if (aac_mode == AAC_ACCEPT) {

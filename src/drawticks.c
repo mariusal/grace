@@ -752,7 +752,7 @@ reenter:
                         t->tloc[itick].wtpos = wtmaj + (imtick + 1)*stmajor/(t->nminor + 1);
                     }
                     t->tloc[itick].type = TICK_TYPE_MINOR;
-	            cxfree(t->tloc[itick].label);
+	            XCFREE(t->tloc[itick].label);
                     itick++;
                 }
                 itmaj++;
@@ -778,12 +778,11 @@ reenter:
                 }
 
                 if (tvar->length != 0) {
-                    free(tvar->data);
+                    xfree(tvar->data);
                     tvar->length = 0;
                 }
-                tvar->data = malloc(nmajor*SIZEOF_DOUBLE);
+                tvar->data = xmalloc(nmajor*SIZEOF_DOUBLE);
                 if (tvar->data == NULL) {
-	            errmsg("Not enough memory");
                     return;
                 }
                 tvar->length = nmajor;
@@ -797,7 +796,7 @@ reenter:
                 }
 
                 res = v_scanner(t->tl_formula, &len, &tt);
-                cxfree(tvar->data);
+                XCFREE(tvar->data);
                 tvar->length = 0;
                 if (res != GRACE_EXIT_SUCCESS || len != nmajor) {
                     errmsg("Error in tick transformation formula");

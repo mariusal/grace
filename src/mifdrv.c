@@ -218,9 +218,8 @@ int mifinitgraphics(void)
 
     devleavegraphics = mif_leavegraphics;
 
-    data = (double *) xrealloc(NULL, SIZEOF_DOUBLE);
+    data = xrealloc(NULL, SIZEOF_DOUBLE);
     if (data == NULL) {
-        errmsg("Not enough memory for mif driver");
         return GRACE_EXIT_FAILURE;
     }
     *data = MIN2(page_width_pp, page_height_pp);

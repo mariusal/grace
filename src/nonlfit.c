@@ -214,21 +214,21 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     
     lwa = (integer) n * parnum + 5 * parnum + n;
         
-    fvec = calloc(n, SIZEOF_DOUBLE);
+    fvec = xcalloc(n, SIZEOF_DOUBLE);
     if (fvec == NULL) {
 	return GRACE_EXIT_FAILURE;
     }
       
-    y_saved = calloc(n, SIZEOF_DOUBLE);
+    y_saved = xcalloc(n, SIZEOF_DOUBLE);
     if (y_saved == NULL) {
-	free(fvec);
+	xfree(fvec);
 	return GRACE_EXIT_FAILURE;
     }
 
-    wa = calloc(lwa, sizeof(doublereal));
+    wa = xcalloc(lwa, sizeof(doublereal));
     if (wa == NULL) {
-	free(y_saved);
-	free(fvec);
+	xfree(y_saved);
+	xfree(fvec);
 	return GRACE_EXIT_FAILURE;
     }
 
@@ -289,9 +289,9 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     	yp[i] = y_saved[i];
     }
     
-    free(y_saved);
-    free(fvec);
-    free(wa);
+    xfree(y_saved);
+    xfree(fvec);
+    xfree(wa);
 
     if (info >= 0 && info <= 7) {
         char *s;

@@ -162,7 +162,7 @@ void create_file_popup(void *data)
         rdataGUI *gui;
         OptionItem option_items[3];
         
-        gui = malloc(sizeof(rdataGUI));
+        gui = xmalloc(sizeof(rdataGUI));
         
 	rdata_dialog = CreateFileSelectionBox(app_shell, "Read sets", "*.dat");
 	AddFileSelectionBoxCB(rdata_dialog, read_sets_proc, (void *) gui);
@@ -283,7 +283,7 @@ void create_write_popup(void *data)
         Widget fr, rc;
         wdataGUI *gui;
         
-	gui = malloc(sizeof(wdataGUI));
+	gui = xmalloc(sizeof(wdataGUI));
 	
         fsb = CreateFileSelectionBox(app_shell,
             "Write sets", "*.dat");
@@ -330,7 +330,7 @@ static int write_sets_proc(char *filename, void *data)
             setno = selset[i];
             write_set(gno, setno, cp, format, TRUE);
         }
-        free(selset);
+        xfree(selset);
     }
     grace_close(cp);
 

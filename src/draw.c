@@ -389,9 +389,9 @@ void DrawPolyline(VPoint *vps, int n, int mode)
  */
     if (doclipping() && !all_points_inside(vps, n)) {
         
-        vpsc = (VPoint *) malloc((nmax)*sizeof(VPoint));
+        vpsc = (VPoint *) xmalloc((nmax)*sizeof(VPoint));
         if (vpsc == NULL) {
-            errmsg ("malloc() failed in DrawPolyline()");
+            errmsg ("xmalloc() failed in DrawPolyline()");
             return;
         }
         
@@ -431,7 +431,7 @@ void DrawPolyline(VPoint *vps, int n, int mode)
                 }
             }
         }
-        free(vpsc);
+        xfree(vpsc);
     } else {
         for (j = 0; j < n; j++) {
             update_bboxes(vps[j]);
@@ -439,14 +439,14 @@ void DrawPolyline(VPoint *vps, int n, int mode)
         if (get_draw_mode() == TRUE) {
             if (max_purge && n > max_purge) {
                 npurged = max_purge;
-                vpsc = malloc(max_purge*sizeof(VPoint));
+                vpsc = xmalloc(max_purge*sizeof(VPoint));
                 if (vpsc == NULL) {
-                    errmsg ("malloc() failed in DrawPolyline()");
+                    errmsg ("xmalloc() failed in DrawPolyline()");
                     return;
                 }
                 purge_dense_points(vps, n, vpsc, &npurged);
                 (*devdrawpolyline)(vpsc, npurged, mode);
-                free(vpsc);
+                xfree(vpsc);
             } else {
                 (*devdrawpolyline)(vps, n, mode);
             }
@@ -488,9 +488,9 @@ void DrawPolygon(VPoint *vps, int n)
     
     if (doclipping() && !all_points_inside(vps, n)) {
         /* In the worst case, the clipped polygon may have twice more vertices */
-        vptmp = malloc((2*n) * sizeof(VPoint));
+        vptmp = xmalloc((2*n) * sizeof(VPoint));
         if (vptmp == NULL) {
-            errmsg("malloc() failed in DrawPolygon");
+            errmsg("xmalloc() failed in DrawPolygon");
             return;
         } else {
             memcpy(vptmp, vps, n * sizeof(VPoint));
@@ -509,20 +509,20 @@ void DrawPolygon(VPoint *vps, int n)
                     update_bboxes(vptmp[i]);
                 }
             }
-            free(vptmp);
+            xfree(vptmp);
         }
     } else {
         if (get_draw_mode() == TRUE) {
             if (max_purge && n > max_purge) {
                 npurged = max_purge;
-                vptmp = malloc(max_purge*sizeof(VPoint));
+                vptmp = xmalloc(max_purge*sizeof(VPoint));
                 if (vptmp == NULL) {
-                    errmsg ("malloc() failed in DrawPolygon()");
+                    errmsg ("xmalloc() failed in DrawPolygon()");
                     return;
                 }
                 purge_dense_points(vps, n, vptmp, &npurged);
                 (*devfillpolygon) (vptmp, npurged);
-                free(vptmp);
+                xfree(vptmp);
             } else {
                 (*devfillpolygon) (vps, n);
             }
@@ -989,7 +989,7 @@ int realloc_colors(int n)
         return GRACE_EXIT_FAILURE;
     } else {
         for (i = n; i < maxcolors; i++) {
-            cxfree(cmap_table[i].cname);
+            XCFREE(cmap_table[i].cname);
         }
         cmap_tmp = xrealloc(cmap_table, n*sizeof(CMap_entry));
         if (cmap_tmp == NULL) {

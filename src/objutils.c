@@ -397,7 +397,7 @@ void kill_line(int lineno)
 
 void kill_string(int stringno)
 {
-    cxfree(pstr[stringno].s);
+    XCFREE(pstr[stringno].s);
     pstr[stringno].active = FALSE;
     set_dirtystate();
 }

@@ -893,10 +893,10 @@ jdate:  expr {
             Dates_format dummy;
             if (parse_date($1, FMT_iso, FALSE, &jul, &dummy)
                 == GRACE_EXIT_SUCCESS) {
-                free($1);
+                xfree($1);
                 $$ = jul;
             } else {
-                free($1);
+                xfree($1);
 		yyerror("Invalid date");
 		return 1;
             }
@@ -911,10 +911,10 @@ jrawdate:  expr {
             Dates_format dummy;
             if (parse_date($1, FMT_iso, TRUE, &jul, &dummy)
                 == GRACE_EXIT_SUCCESS) {
-                free($1);
+                xfree($1);
                 $$ = jul;
             } else {
-                free($1);
+                xfree($1);
 		yyerror("Invalid date");
 		return 1;
             }
@@ -1864,7 +1864,7 @@ defines:
 	    symtab_entry tmpkey;
             double *var;
             
-            var = malloc(SIZEOF_DOUBLE);
+            var = xmalloc(SIZEOF_DOUBLE);
             *var = 0.0;
             
 	    tmpkey.s = $2;
@@ -1874,7 +1874,7 @@ defines:
 	        yyerror("Keyword already exists");
 	    }
 
-            free($2);
+            xfree($2);
         }
 	| DEFINE NEW_TOKEN '[' ']'
         {
@@ -1882,7 +1882,7 @@ defines:
 	        yyerror("Keyword already exists");
 	    }
 
-            free($2);
+            xfree($2);
         }
 	| DEFINE NEW_TOKEN '[' nexpr ']'
         {
@@ -1893,18 +1893,18 @@ defines:
                 realloc_vrbl(var, $4);
             }
 
-            free($2);
+            xfree($2);
         }
 	| CLEAR VAR_D
         {
             undefine_parser_var((void *) $2);
-            free($2);
+            xfree($2);
         }
 	| CLEAR VEC_D
         {
             realloc_vrbl($2, 0);
             undefine_parser_var((void *) $2);
-            free($2);
+            xfree($2);
         }
 	| ALIAS CHRSTR CHRSTR {
 	    int position;
@@ -1921,8 +1921,8 @@ defines:
 	    } else {
 	        yyerror("Aliased keyword not found");
 	    }
-	    free($2);
-	    free($3);
+	    xfree($2);
+	    xfree($3);
 	}
 	| ALIAS FORCE onoff {
 	    alias_force = $3;
@@ -1931,16 +1931,16 @@ defines:
 	    if (load_module($6, $2, $2, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
-	    free($2);
-	    free($6);
+	    xfree($2);
+	    xfree($6);
 	}
 	| USE CHRSTR TYPE proctype FROM CHRSTR ALIAS CHRSTR {
 	    if (load_module($6, $2, $8, $4) != 0) {
 	        yyerror("DL module load failed");
 	    }
-	    free($2);
-	    free($6);
-	    free($8);
+	    xfree($2);
+	    xfree($6);
+	    xfree($8);
 	}
         ;
 
@@ -1971,8 +1971,8 @@ regionset:
 	{
 	    if (rg[$1].x == NULL || rg[$1].n == 0) {
 		rg[$1].n = 0;
-		rg[$1].x = calloc(1, SIZEOF_DOUBLE);
-		rg[$1].y = calloc(1, SIZEOF_DOUBLE);
+		rg[$1].x = xcalloc(1, SIZEOF_DOUBLE);
+		rg[$1].y = xcalloc(1, SIZEOF_DOUBLE);
 	    } else {
 		rg[$1].x = xrealloc(rg[$1].x, (rg[$1].n + 1) * SIZEOF_DOUBLE);
 		rg[$1].y = xrealloc(rg[$1].y, (rg[$1].n + 1) * SIZEOF_DOUBLE);
@@ -2009,7 +2009,7 @@ parmset:
             Device_entry dev;
             
             device_id = get_device_by_name($2);
-            free($2);
+            xfree($2);
             if (device_id < 0) {
                 yyerror("Unknown device");
             } else {
@@ -2031,7 +2031,7 @@ parmset:
                 dev.pg.dpi = $4;
                 set_device_props(device_id, dev);
             }
-            free($2);
+            xfree($2);
         }
         | DEVICE CHRSTR FONTP ANTIALIASING onoff {
             int device_id;
@@ -2045,7 +2045,7 @@ parmset:
                 dev.fontaa = $5;
                 set_device_props(device_id, dev);
             }
-            free($2);
+            xfree($2);
         }
         | DEVICE CHRSTR FONTP onoff {
             int device_id;
@@ -2059,7 +2059,7 @@ parmset:
                 dev.devfonts = $4;
                 set_device_props(device_id, dev);
             }
-            free($2);
+            xfree($2);
         }
         | DEVICE CHRSTR OP CHRSTR {
             int device_id;
@@ -2073,12 +2073,12 @@ parmset:
                     yyerror("Incorrect device option string");
                 }
             }
-            free($2);
-            free($4);
+            xfree($2);
+            xfree($4);
         }
         | HARDCOPY DEVICE CHRSTR {
             set_printer_by_name($3);
-            free($3);
+            xfree($3);
         }
         | REFERENCE DATE jrawdate {
             set_ref_date($3);
@@ -2128,7 +2128,7 @@ parmset:
 /* Hot links */
 	| selectset LINK sourcetype CHRSTR {
 	    set_hotlink($1->gno, $1->setno, 1, $4, $3);
-	    free($4);
+	    xfree($4);
 	}
 	| selectset LINK onoff {
 	    set_hotlink($1->gno, $1->setno, $3, NULL, 0);
@@ -2423,7 +2423,7 @@ parmset:
 	        pstr[curstring].rot = string_rot;
 	        pstr[curstring].charsize = string_size;
             }
-	    free($3);
+	    xfree($3);
 	}
 
 /* timestamp */
@@ -2448,7 +2448,7 @@ parmset:
 	}
 	| TIMESTAMP DEF CHRSTR {
 	  set_plotstr_string(&timestamp, $3);
-	  free($3);
+	  xfree($3);
 	}
 
 /* defaults */
@@ -2475,7 +2475,7 @@ parmset:
 	}
 	| DEFAULT SFORMAT CHRSTR {
 	    strcpy(sformat, $3);
-	    free($3);
+	    xfree($3);
 	}
 	| MAP FONTP nexpr TO CHRSTR ',' CHRSTR {
 	    if ((map_font_by_name($5, $3) == GRACE_EXIT_SUCCESS) || 
@@ -2485,8 +2485,8 @@ parmset:
                 errmsg("Failed mapping a font");
                 map_font(0, $3);
             }
-            free($5);
-	    free($7);
+            xfree($5);
+	    xfree($7);
 	}
 	| MAP COLOR nexpr TO '(' nexpr ',' nexpr ',' nexpr ')' ',' CHRSTR {
 	    CMap_entry cmap;
@@ -2498,7 +2498,7 @@ parmset:
             if (store_color($3, cmap) == GRACE_EXIT_FAILURE) {
                 errmsg("Failed mapping a color");
             }
-	    free($13);
+	    xfree($13);
         }
 
 	| WORLD expr ',' expr ',' expr ',' expr {
@@ -2539,7 +2539,7 @@ parmset:
 	}
 	| TITLE CHRSTR {
 	    set_plotstr_string(&g[whichgraph].labs.title, $2);
-	    free($2);
+	    xfree($2);
 	}
 	| TITLE font_select {
 	    g[whichgraph].labs.title.font = $2;
@@ -2552,7 +2552,7 @@ parmset:
 	}
 	| SUBTITLE CHRSTR {
 	    set_plotstr_string(&g[whichgraph].labs.stitle, $2);
-	    free($2);
+	    xfree($2);
 	}
 	| SUBTITLE font_select {
 	    g[whichgraph].labs.stitle.font = $2;
@@ -2581,10 +2581,10 @@ parmset:
             char *s;
             s = copy_string(NULL, get_project_description());
             s = concat_strings(s, $2);
-	    free($2);
+	    xfree($2);
             s = concat_strings(s, "\n");
             set_project_description(s);
-            free(s);
+            xfree(s);
 	}
         | CLEAR DESCRIPTION {
             set_project_description(NULL);
@@ -2718,8 +2718,8 @@ parmset:
 	    if (add_io_filter($2, $4, $5, $3) != 0) {
 	        yyerror("Failed adding i/o filter");
 	    }
-	    free($3);
-	    free($5);
+	    xfree($3);
+	    xfree($5);
 	}
 	| CLEAR filtertype {
 	    clear_io_filters($2);
@@ -2743,11 +2743,11 @@ actions:
 	}
 	| CD CHRSTR {
 	    set_workingdir($2);
-	    free($2);
+	    xfree($2);
 	}
 	| ECHO CHRSTR {
 	    echomsg($2);
-	    free($2);
+	    xfree($2);
 	}
 	| ECHO expr {
 	    char buf[32];
@@ -2772,7 +2772,7 @@ actions:
 	| PRINT TO CHRSTR {
             set_ptofile(TRUE);
 	    strcpy(print_file, $3);
-            free($3);
+            xfree($3);
 	}
 	| PAGE direction {
 	    switch ($2) {
@@ -2804,7 +2804,7 @@ actions:
 	| GETP CHRSTR {
 	    gotparams = TRUE;
 	    strcpy(paramfile, $2);
-	    free($2);
+	    xfree($2);
 	}
 	| PUTP CHRSTR {
 	    FILE *pp = grace_openw($2);
@@ -2812,7 +2812,7 @@ actions:
 	        putparms(whichgraph, pp, 0);
 	        grace_close(pp);
 	    }
-	    free($2);
+	    xfree($2);
 	}
 	| selectset HIDDEN onoff {
 	    set_set_hidden($1->gno, $1->setno, $3);
@@ -2979,76 +2979,76 @@ actions:
 	| READ CHRSTR {
 	    gotread = TRUE;
 	    strcpy(readfile, $2);
-	    free($2);
+	    xfree($2);
 	}
 	| READ BATCH CHRSTR {
 	    strcpy(batchfile, $3);
-	    free($3);
+	    xfree($3);
 	}
 	| READ BLOCK CHRSTR {
 	    getdata(whichgraph, $3, SOURCE_DISK, LOAD_BLOCK);
-	    free($3);
+	    xfree($3);
 	}
 	| READ BLOCK sourcetype CHRSTR {
 	    getdata(whichgraph, $4, $3, LOAD_BLOCK);
-	    free($4);
+	    xfree($4);
 	}
 	| BLOCK xytype CHRSTR {
             int nc, *cols;
             if (field_string_to_cols($3, &nc, &cols) != GRACE_EXIT_SUCCESS) {
                 errmsg("Erroneous field specifications");
-	        free($3);
+	        xfree($3);
                 return 1;
             } else {
-	        free($3);
+	        xfree($3);
 	        create_set_fromblock(whichgraph, NEW_SET,
                     $2, nc, cols, -1, autoscale_onread);
-                free(cols);
+                xfree(cols);
             }
 	}
 	| READ xytype CHRSTR {
 	    gotread = TRUE;
 	    curtype = $2;
 	    strcpy(readfile, $3);
-	    free($3);
+	    xfree($3);
 	}
 	| READ xytype sourcetype CHRSTR {
 	    gotread = TRUE;
 	    strcpy(readfile, $4);
 	    curtype = $2;
 	    cursource = $3;
-	    free($4);
+	    xfree($4);
 	}
 	| WRITE selectset {
 	    outputset($2->gno, $2->setno, "stdout", NULL);
 	}
 	| WRITE selectset FORMAT CHRSTR {
 	    outputset($2->gno, $2->setno, "stdout", $4);
-	    free($4);
+	    xfree($4);
 	}
 	| WRITE selectset FILEP CHRSTR {
 	    outputset($2->gno, $2->setno, $4, NULL);
-	    free($4);
+	    xfree($4);
 	}
 	| WRITE selectset FILEP CHRSTR FORMAT CHRSTR {
 	    outputset($2->gno, $2->setno, $4, $6);
-	    free($4);
-	    free($6);
+	    xfree($4);
+	    xfree($6);
 	}
         | SAVEALL CHRSTR {
             save_project($2);
-            free($2);
+            xfree($2);
         }
         | LOAD CHRSTR {
             load_project($2);
-            free($2);
+            xfree($2);
         }
         | NEW {
             new_project(NULL);
         }
         | NEW FROM CHRSTR {
             new_project($3);
-            free($3);
+            xfree($3);
         }
 	| PUSH {
 	    push_world();
@@ -3272,12 +3272,12 @@ setprop:
 	| selectset AVALUE PREPEND CHRSTR
         {
 	    strcpy(g[$1->gno].p[$1->setno].avalue.prestr, $4);
-	    free($4);
+	    xfree($4);
 	}
 	| selectset AVALUE APPEND CHRSTR
         {
 	    strcpy(g[$1->gno].p[$1->setno].avalue.appstr, $4);
-	    free($4);
+	    xfree($4);
 	}
 
 	| selectset ERRORBAR onoff {
@@ -3316,12 +3316,12 @@ setprop:
 
 	| selectset COMMENT CHRSTR {
 	    strncpy(g[$1->gno].p[$1->setno].comments, $3, MAX_STRING_LENGTH - 1);
-	    free($3);
+	    xfree($3);
 	}
         
 	| selectset LEGEND CHRSTR {
 	    strncpy(g[$1->gno].p[$1->setno].lstr, $3, MAX_STRING_LENGTH - 1);
-	    free($3);
+	    xfree($3);
 	}
 	;
 
@@ -3442,11 +3442,11 @@ ticklabelattr:
 	}
 	| APPEND CHRSTR {
 	    strcpy(g[whichgraph].t[naxis]->tl_appstr, $2);
-	    free($2);
+	    xfree($2);
 	}
 	| PREPEND CHRSTR {
 	    strcpy(g[whichgraph].t[naxis]->tl_prestr, $2);
-	    free($2);
+	    xfree($2);
 	}
 	| ANGLE nexpr {
 	    g[whichgraph].t[naxis]->tl_angle = $2;
@@ -3463,7 +3463,7 @@ ticklabelattr:
 	| FORMULA CHRSTR {
             g[whichgraph].t[naxis]->tl_formula =
                 copy_string(g[whichgraph].t[naxis]->tl_formula, $2);
-            free($2);
+            xfree($2);
 	}
 	| START expr {
 	    g[whichgraph].t[naxis]->tl_start = $2;
@@ -3495,7 +3495,7 @@ ticklabelattr:
 	| nexpr ',' CHRSTR {
 	    g[whichgraph].t[naxis]->tloc[$1].label = 
                 copy_string(g[whichgraph].t[naxis]->tloc[$1].label, $3);
-	    free($3);
+	    xfree($3);
 	}
 	| OFFSET AUTO {
 	    g[whichgraph].t[naxis]->tl_gaptype = TYPE_AUTO;
@@ -3512,7 +3512,7 @@ ticklabelattr:
 axislabeldesc:
 	CHRSTR {
 	    set_plotstr_string(&g[whichgraph].t[naxis]->label, $1);
-	    free($1);
+	    xfree($1);
 	}
 	| LAYOUT PERP {
 	    g[whichgraph].t[naxis]->label_layout = LAYOUT_PERPENDICULAR;
@@ -3565,11 +3565,11 @@ axisbardesc:
 nonlfitopts:
         TITLE CHRSTR { 
           strcpy(nonl_opts.title, $2);
-	  free($2);
+	  xfree($2);
         }
         | FORMULA CHRSTR { 
           strcpy(nonl_opts.formula, $2);
-	  free($2);
+	  xfree($2);
         }
         | WITH nexpr PARAMETERS { 
             nonl_opts.parnum = $2; 
@@ -3866,7 +3866,7 @@ font_select:
         | FONTP CHRSTR
         {
             $$ = get_font_by_name($2);
-            free($2);
+            xfree($2);
         }
         ;
 
@@ -3914,7 +3914,7 @@ color_select:
                 errmsg("Invalid color name");
                 c = 1;
             }
-            free($2);
+            xfree($2);
             $$ = c;
         }
         | COLOR '(' nexpr ',' nexpr ',' nexpr ')'
@@ -4016,7 +4016,7 @@ parmset_obs:
 	    } else {
                 yyerror("Unallocated set");
             }
-            free($4);
+            xfree($4);
 	}
 	| LEGEND BOX FILL onoff { }
 	| LEGEND BOX FILL WITH colpat_obs {filltype_obs = $5;}
@@ -4904,7 +4904,7 @@ int scanner(char *s)
     if (gotnlfit) {
 	gotnlfit = FALSE;
         do_nonlfit(nlfit_gno, nlfit_setno, nlfit_warray, NULL, nlfit_nsteps);
-        cxfree(nlfit_warray);
+        XCFREE(nlfit_warray);
     }
     return retval;
 }
@@ -4913,14 +4913,14 @@ static void free_tmpvrbl(grarr *vrbl)
 {
     if (vrbl->type == GRARR_TMP) {
         vrbl->length = 0;
-        cxfree(vrbl->data);
+        XCFREE(vrbl->data);
     }
 }
 
 static void copy_vrbl(grarr *dest, grarr *src)
 {
     dest->type = src->type;
-    dest->data = malloc(src->length*SIZEOF_DOUBLE);
+    dest->data = xmalloc(src->length*SIZEOF_DOUBLE);
     if (dest->data == NULL) {
         errmsg("Malloc failed in copy_vrbl()");
     } else {
@@ -4955,7 +4955,7 @@ grarr *define_parser_arr(char * const name)
 	symtab_entry tmpkey;
         grarr *var;
         
-        var = malloc(sizeof(grarr));
+        var = xmalloc(sizeof(grarr));
         var->type = GRARR_VEC;
         var->length = 0;
         var->data = NULL;
@@ -5059,7 +5059,6 @@ int addto_symtab(symtab_entry newkey)
 	    return GRACE_EXIT_SUCCESS;
 	} else {
 	    xfree(s);
-            errmsg ("Memory allocation failed in addto_symtab()!");
 	    return GRACE_EXIT_FAILURE;
 	}
     } else if (alias_force == TRUE) { /* already exists but alias_force enabled */
@@ -5077,16 +5076,15 @@ void init_symtab(void)
 {
     int i;
     
-    if ((key = (symtab_entry *) malloc(maxfunc*sizeof(symtab_entry))) != NULL) {
+    if ((key = (symtab_entry *) xmalloc(maxfunc*sizeof(symtab_entry))) != NULL) {
     	memcpy (key, ikey, maxfunc*sizeof(symtab_entry));
 	for (i = 0; i < maxfunc; i++) {
-	    key[i].s = malloc(strlen(ikey[i].s) + 1);
+	    key[i].s = xmalloc(strlen(ikey[i].s) + 1);
 	    strcpy(key[i].s, ikey[i].s);
 	}
 	qsort(key, maxfunc, sizeof(symtab_entry), compare_keys);
 	return;
     } else {
-        errmsg ("Memory allocation failed in init_symtab()!");
 	key = ikey;
 	return;
     }

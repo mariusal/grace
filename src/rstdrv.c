@@ -250,7 +250,7 @@ void rst_setdrawbrush(void)
             rst_drawbrush = gdStyledBrushed;
         }
         
-        tmp_dash_array = (int *) malloc((scale*rst_dash_array_length + 1)*SIZEOF_INT);
+        tmp_dash_array = (int *) xmalloc((scale*rst_dash_array_length + 1)*SIZEOF_INT);
         if (tmp_dash_array == NULL) {
             return;
         }
@@ -270,7 +270,7 @@ void rst_setdrawbrush(void)
             }
         }
         gdImageSetStyle(ihandle, tmp_dash_array, k);
-        free(tmp_dash_array);
+        xfree(tmp_dash_array);
             
     } else {
         if (rstlinew <= 1) {
@@ -379,7 +379,7 @@ void rst_drawpolyline(VPoint *vps, int n, int mode)
     int i;
     gdPointPtr gdps;
     
-    gdps = (gdPointPtr) malloc(n*sizeof(gdPoint));
+    gdps = (gdPointPtr) xmalloc(n*sizeof(gdPoint));
     if (gdps == NULL) {
         return;
     }
@@ -400,7 +400,7 @@ void rst_drawpolyline(VPoint *vps, int n, int mode)
          }
     }
     
-    free(gdps);
+    xfree(gdps);
 }
 
 void rst_fillpolygon(VPoint *vps, int nc)
@@ -408,7 +408,7 @@ void rst_fillpolygon(VPoint *vps, int nc)
     int i;
     gdPointPtr gdps;
     
-    gdps = (gdPointPtr) malloc(nc*sizeof(gdPoint));
+    gdps = (gdPointPtr) xmalloc(nc*sizeof(gdPoint));
     if (gdps == NULL) {
         return;
     }
@@ -420,7 +420,7 @@ void rst_fillpolygon(VPoint *vps, int nc)
     rst_setfillbrush();
     gdImageFilledPolygon(ihandle, gdps, nc, rst_fillbrush);
     
-    free(gdps);
+    xfree(gdps);
 }
 
 void rst_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
@@ -734,9 +734,9 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
     jpeg_start_compress(&cinfo, TRUE);
     
     if (jpg_setup_grayscale) {
-        row_pointer = malloc(w);
+        row_pointer = xmalloc(w);
     } else {
-        row_pointer = malloc(3*w);
+        row_pointer = xmalloc(3*w);
     }
     while ((i = cinfo.next_scanline) < h) {
         k = 0;
@@ -756,7 +756,7 @@ static void rstImageJpg(gdImagePtr ihandle, FILE *prstream)
         }
         jpeg_write_scanlines(&cinfo, &row_pointer, 1);
     }
-    free(row_pointer);
+    xfree(row_pointer);
     
     jpeg_finish_compress(&cinfo);
     jpeg_destroy_compress(&cinfo);
@@ -909,7 +909,7 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
         PNG_FILTER_TYPE_DEFAULT);
 
     num_palette = gdImageColorsTotal(ihandle);
-    palette = malloc(num_palette*sizeof(png_color));
+    palette = xmalloc(num_palette*sizeof(png_color));
     if (palette == NULL) {
         return;
     }

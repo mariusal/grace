@@ -132,7 +132,7 @@ int pdfinitgraphics(void)
     PDF_set_info(phandle, "Author", get_username());
     PDF_set_info(phandle, "Title", get_docname());
         
-    pdf_font_ids = malloc(number_of_fonts()*SIZEOF_INT);
+    pdf_font_ids = xmalloc(number_of_fonts()*SIZEOF_INT);
     for (i = 0; i < number_of_fonts(); i++) {
         pdf_font_ids[i] = -1;
     }
@@ -187,12 +187,12 @@ void pdf_setdrawbrush(void)
         if (ls == 0 || ls == 1) {
             PDF_setpolydash(phandle, NULL, 0); /* length == 0,1 means solid line */
         } else {
-            darray = malloc(dash_array_length[ls]*SIZEOF_FLOAT);
+            darray = xmalloc(dash_array_length[ls]*SIZEOF_FLOAT);
             for (i = 0; i < dash_array_length[ls]; i++) {
                 darray[i] = lw*dash_array[ls][i];
             }
             PDF_setpolydash(phandle, darray, dash_array_length[ls]);
-            free(darray);
+            xfree(darray);
         }
         pdf_linew = lw;
         pdf_lines = ls;
@@ -379,9 +379,9 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
 
     int components    = 3;
         
-    buf = malloc(width*height*components);
+    buf = xmalloc(width*height*components);
     if (buf == NULL) {
-        errmsg("malloc failed in pdf_putpixmap()");
+        errmsg("xmalloc failed in pdf_putpixmap()");
         return;
     }
     
@@ -422,7 +422,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         width, height, components, GRACE_BPP, "");
     if (image == -1) {
         errmsg("Not enough memory for image!");
-        free(buf);
+        xfree(buf);
         return;
     }
 
@@ -430,7 +430,7 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         image, vp.x, vp.y - height*pixel_size, pixel_size);
     PDF_close_image(phandle, image);
     
-    free(buf);
+    xfree(buf);
 }
 
 void pdf_puttext(VPoint start, VPoint end, double size, 

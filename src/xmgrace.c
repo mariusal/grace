@@ -347,7 +347,7 @@ static void MenuCB(void *data)
         } else {
 	    new_project(NULL);
         }
-        free(s);
+        xfree(s);
 	update_all();
         xdrawgraph();
 	unset_wait_cursor();

@@ -501,7 +501,7 @@ int main(int argc, char *argv[])
                         }
 		        create_set_fromblock(cur_graph, NEW_SET,
                             curtype, nc, cols, -1, autoscale_onread);
-                        free(cols);
+                        xfree(cols);
                     }
 		} else if (argmatch(argv[i], "-nxy", 4)) {
 		    i++;

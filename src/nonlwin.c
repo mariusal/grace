@@ -531,9 +531,9 @@ static void do_nonl_proc(void *data)
                     return;
                 }
             }
-            warray = malloc(nlen*SIZEOF_DOUBLE);
+            warray = xmalloc(nlen*SIZEOF_DOUBLE);
             if (warray == NULL) {
-	        errmsg("malloc failed in do_nonl_proc()");
+	        errmsg("xmalloc failed in do_nonl_proc()");
                 unset_wait_cursor();
                 return;
             }
@@ -559,9 +559,9 @@ static void do_nonl_proc(void *data)
                     return;
                 }
             }
-            warray = malloc(nlen*SIZEOF_DOUBLE);
+            warray = xmalloc(nlen*SIZEOF_DOUBLE);
             if (warray == NULL) {
-	        errmsg("malloc failed in do_nonl_proc()");
+	        errmsg("xmalloc failed in do_nonl_proc()");
                 unset_wait_cursor();
             }
             for (i = 0; i < nlen; i++) {
@@ -666,7 +666,6 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     	/* no dest sel selected; allocate new one */
     	dest_setno = nextset(dest_gno);
     	if (dest_setno == -1) {
-    	    errmsg("Can't allocate a new set!");
 	    return GRACE_EXIT_FAILURE;
     	} else {
     	    activateset(dest_gno, dest_setno);

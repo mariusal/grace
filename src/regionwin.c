@@ -337,7 +337,7 @@ void define_status_popup(void *data)
 	    XmNrecomputeSize, True,
 	    NULL);
 	SetFixedFont(header_w);
-        labx = (Widget *)malloc( MAXREGION*sizeof(Widget) );
+        labx = (Widget *)xmalloc( MAXREGION*sizeof(Widget) );
 	for (i = 0; i < MAXREGION; i++) {
             labx[i] = XtVaCreateManagedWidget("labx", xmLabelWidgetClass, rc3,
 		XmNalignment, XmALIGNMENT_BEGINNING,

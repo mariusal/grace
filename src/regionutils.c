@@ -120,11 +120,11 @@ void kill_region(int r)
 
     if (rg[r].active == TRUE) {
 	if (rg[r].x != NULL) {
-	    free(rg[r].x);
+	    xfree(rg[r].x);
 	    rg[r].x = NULL;
 	}
 	if (rg[r].y != NULL) {
-	    free(rg[r].y);
+	    xfree(rg[r].y);
 	    rg[r].y = NULL;
 	}
     }
@@ -196,8 +196,8 @@ void load_poly_region(int r, int n, WPoint *wps)
     if (n > 2) {
 	activate_region(r, regiontype);
 	rg[r].n = n;
-	rg[r].x = calloc(n, SIZEOF_DOUBLE);
-	rg[r].y = calloc(n, SIZEOF_DOUBLE);
+	rg[r].x = xcalloc(n, SIZEOF_DOUBLE);
+	rg[r].y = xcalloc(n, SIZEOF_DOUBLE);
 	for (i = 0; i < n; i++) {
 	    rg[r].x[i] = wps[i].x;
 	    rg[r].y[i] = wps[i].y;

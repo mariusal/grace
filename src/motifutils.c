@@ -162,7 +162,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
     XmString str;
     OptionStructure *retval;
 
-    retval = malloc(sizeof(OptionStructure));
+    retval = xmalloc(sizeof(OptionStructure));
 
     retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
 
@@ -230,15 +230,15 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     Pixel fg, bg;
     Pixmap ptmp;
 
-    retval = malloc(sizeof(OptionStructure));
+    retval = xmalloc(sizeof(OptionStructure));
     if (retval == NULL) {
         errmsg("Malloc error in CreateBitmapOptionChoice()");
     }
     retval->nchoices = nchoices;
-    retval->options = malloc(nchoices*sizeof(OptionWidgetItem));
+    retval->options = xmalloc(nchoices*sizeof(OptionWidgetItem));
     if (retval->options == NULL) {
         errmsg("Malloc error in CreateBitmapOptionChoice()");
-        cxfree(retval);
+        XCFREE(retval);
         return retval;
     }
 
@@ -358,7 +358,7 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     OC_CBdata *cbdata;
     int i;
     
-    cbdata = malloc(sizeof(OC_CBdata));
+    cbdata = xmalloc(sizeof(OC_CBdata));
     
     cbdata->opt = opt;
     cbdata->cbproc = cbproc;
@@ -382,7 +382,7 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
     Widget lab;
     ListStructure *retval;
 
-    retval = malloc(sizeof(ListStructure));
+    retval = xmalloc(sizeof(ListStructure));
     retval->rc = XmCreateRowColumn(parent, "rcList", NULL, 0);
 
     lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
@@ -440,7 +440,7 @@ void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items)
     }
     SelectListChoices(listp, nsel, selvalues);
     if (nsel > 0) {
-        free(selvalues);
+        xfree(selvalues);
     }
 }
 
@@ -532,7 +532,7 @@ int GetSingleListChoice(ListStructure *listp, int *value)
         retval = GRACE_EXIT_FAILURE;
     }
     if (n > 0) {
-        free(values);
+        xfree(values);
     }
     return retval;
 }
@@ -553,7 +553,7 @@ static void list_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_dat
     cbdata->cbproc(n, values, cbdata->anydata);
 
     if (n > 0) {
-        free(values);
+        xfree(values);
     }
 }
 
@@ -561,7 +561,7 @@ void AddListChoiceCB(ListStructure *listp, List_CBProc cbproc, void *anydata)
 {
     List_CBdata *cbdata;
     
-    cbdata = malloc(sizeof(List_CBdata));
+    cbdata = xmalloc(sizeof(List_CBdata));
     cbdata->listp = listp;
     cbdata->cbproc = (List_CBProc) cbproc;
     cbdata->anydata = anydata;
@@ -607,7 +607,7 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
         return NULL;
     }
     
-    retval = malloc(sizeof(SpinStructure));
+    retval = xmalloc(sizeof(SpinStructure));
     
     retval->type = type;
     retval->min = min;
@@ -720,7 +720,7 @@ TextStructure *CreateTextInput(Widget parent, char *s)
     TextStructure *retval;
     XmString str;
     
-    retval = malloc(sizeof(TextStructure));
+    retval = xmalloc(sizeof(TextStructure));
     retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
 
     str = XmStringCreateLocalized(s);
@@ -859,7 +859,7 @@ void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
 {
     Button_CBdata *cbdata;
     
-    cbdata = malloc(sizeof(Button_CBdata));
+    cbdata = xmalloc(sizeof(Button_CBdata));
     cbdata->anydata = data;
     cbdata->cbproc = cbproc;
     XtAddCallback(button,
@@ -928,7 +928,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     XmString xmstr;
     char *bufp, *resname;
     
-    retval = malloc(sizeof(FSBStructure));
+    retval = xmalloc(sizeof(FSBStructure));
     resname = label_to_resname(s, "FSB");
     retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
     xfree(resname);
@@ -936,7 +936,7 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
     XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
-    free(bufp);
+    xfree(bufp);
     
     if (pattern != NULL) {
         xmstr = XmStringCreateLocalized(pattern);
@@ -1017,7 +1017,7 @@ void AddFileSelectionBoxCB(FSBStructure *fsb, FSB_CBProc cbproc, void *anydata)
 {
     FSB_CBdata *cbdata;
     
-    cbdata = malloc(sizeof(FSB_CBdata));
+    cbdata = xmalloc(sizeof(FSB_CBdata));
     cbdata->fsb = fsb;
     cbdata->cbproc = (FSB_CBProc) cbproc;
     cbdata->anydata = anydata;
@@ -1080,7 +1080,7 @@ int init_option_menus(void) {
     int i, j, k, l, n;
     
     n = number_of_fonts();
-    font_option_items = malloc(n*sizeof(OptionItem));
+    font_option_items = xmalloc(n*sizeof(OptionItem));
     if (font_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
         return GRACE_EXIT_FAILURE;
@@ -1091,10 +1091,10 @@ int init_option_menus(void) {
     }
     
     n = number_of_patterns();
-    pattern_option_items = malloc(n*sizeof(BitmapOptionItem));
+    pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
     if (pattern_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
-        free(font_option_items);
+        xfree(font_option_items);
         return GRACE_EXIT_FAILURE;
     }
     for (i = 0; i < n; i++) {
@@ -1107,11 +1107,11 @@ int init_option_menus(void) {
     }
     
     n = number_of_linestyles();
-    lines_option_items = malloc(n*sizeof(BitmapOptionItem));
+    lines_option_items = xmalloc(n*sizeof(BitmapOptionItem));
     if (lines_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
-        free(pattern_option_items);
-        free(font_option_items);
+        xfree(pattern_option_items);
+        xfree(font_option_items);
         return GRACE_EXIT_FAILURE;
     }
     for (i = 0; i < n; i++) {
@@ -1122,7 +1122,7 @@ int init_option_menus(void) {
         }
         
         lines_option_items[i].bitmap = 
-              calloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
+              xcalloc(LINES_BM_HEIGHT*LINES_BM_WIDTH/8/SIZEOF_CHAR, SIZEOF_CHAR);
         
         k = LINES_BM_WIDTH*(LINES_BM_HEIGHT/2);
         while (k < LINES_BM_WIDTH*(LINES_BM_HEIGHT/2 + 1)) {
@@ -1140,7 +1140,7 @@ int init_option_menus(void) {
         }
     }
 
-    settype_option_items = malloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
+    settype_option_items = xmalloc(NUMBER_OF_SETTYPES*sizeof(OptionItem));
     if (settype_option_items == NULL) {
         errmsg("Malloc error in init_option_menus()");
         return GRACE_EXIT_FAILURE;
@@ -1221,7 +1221,7 @@ RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s)
     restr_items[6].value = RESTRICT_WORLD;
     restr_items[6].label = "Inside graph";
 
-    retval = malloc(sizeof(RestrictionStructure));
+    retval = xmalloc(sizeof(RestrictionStructure));
 
     retval->frame = CreateFrame(parent, s);
     rc = XtVaCreateWidget("rc",
@@ -1260,7 +1260,7 @@ void update_graph_selectors(void)
     OptionItem *p;
     
     for (i = 0; i < ngraph_select_items; i++) {
-        free(graph_select_items[i].label);
+        xfree(graph_select_items[i].label);
     }
     p = xrealloc(graph_select_items, new_n*sizeof(OptionItem));
     if (p == NULL && new_n != 0) {
@@ -1424,7 +1424,7 @@ void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
     }
 
     if (n > 0) {
-        free(values);
+        xfree(values);
     }
 
     if (err == TRUE) {
@@ -1495,7 +1495,7 @@ GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
     GraphPopupMenu *graph_popup_menu;
     Widget popup;
     
-    graph_popup_menu = malloc(sizeof(GraphPopupMenu));
+    graph_popup_menu = xmalloc(sizeof(GraphPopupMenu));
 
     popup = XmCreatePopupMenu(listp->list, "graphPopupMenu", NULL, 0);
     graph_popup_menu->popup = popup;
@@ -1601,7 +1601,7 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
     }
     
     if (n > 0) {
-        free(values);
+        xfree(values);
     }
     XmMenuPosition(popup, event);
     XtManageChild(popup);
@@ -1751,7 +1751,7 @@ void UpdateSetChoice(ListStructure *listp, int gno)
         return;
     }
     
-    set_select_items = malloc(n*sizeof(OptionItem));
+    set_select_items = xmalloc(n*sizeof(OptionItem));
     if (set_select_items == NULL) {
         return;
     }
@@ -1769,7 +1769,7 @@ void UpdateSetChoice(ListStructure *listp, int gno)
     }
     UpdateListChoice(listp, j, set_select_items);
     
-    free(set_select_items);
+    xfree(set_select_items);
 }
 
 void update_set_selectors(int gno)
@@ -1962,7 +1962,7 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
     }
 
     if (n > 0) {
-        free(values);
+        xfree(values);
     }
 
     if (err == FALSE) {
@@ -2098,7 +2098,7 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     SetPopupMenu *set_popup_menu;
     Widget popup, submenupane;
     
-    set_popup_menu = malloc(sizeof(SetPopupMenu));
+    set_popup_menu = xmalloc(sizeof(SetPopupMenu));
     popup = XmCreatePopupMenu(listp->list, "setPopupMenu", NULL, 0);
     set_popup_menu->popup = popup;
     
@@ -2255,7 +2255,7 @@ void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
     }
     
     if (n > 0) {
-        free(values);
+        xfree(values);
     }
     XmMenuPosition(popup, event);
     XtManageChild(popup);
@@ -2274,9 +2274,9 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
         return NULL;
     }
 
-    sdata = malloc(sizeof(SetChoiceData));
+    sdata = xmalloc(sizeof(SetChoiceData));
     if (sdata == NULL) {
-        cxfree(retvalp);
+        XCFREE(retvalp);
         return NULL;
     }
     
@@ -2319,7 +2319,7 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
     GraphSetStructure *retval;
     Widget rc;
 
-    retval = malloc(sizeof(GraphSetStructure));
+    retval = xmalloc(sizeof(GraphSetStructure));
     retval->frame = CreateFrame(parent, s);
     rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
     retval->graph_sel = CreateGraphChoice(rc, "Graph:", LIST_TYPE_SINGLE);
@@ -2336,7 +2336,7 @@ SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
 {
     SrcDestStructure *retval;
 
-    retval = malloc(sizeof(SrcDestStructure));
+    retval = xmalloc(sizeof(SrcDestStructure));
 
     retval->form = XtVaCreateWidget("form",
         xmFormWidgetClass, parent,
@@ -2740,7 +2740,7 @@ void AddToggleButtonCB(Widget w, TB_CBProc cbproc, void *anydata)
 {
     TB_CBdata *cbdata;
     
-    cbdata = malloc(sizeof(TB_CBdata));
+    cbdata = xmalloc(sizeof(TB_CBdata));
     
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
@@ -3232,7 +3232,7 @@ int GetSelectedSets(SetChoiceItem l, int **sets)
 		      XmNselectedItemCount, &cnt,
 		      XmNselectedItems, &s,
 		      NULL);
-	*sets = malloc(cnt * SIZEOF_INT);
+	*sets = xmalloc(cnt * SIZEOF_INT);
 	ptr = *sets;
 	for (i = 0; i < cnt; i++) {
 	    cs = XmStringCopy(s[i]);
@@ -3303,26 +3303,26 @@ void update_set_list(int gno, SetChoiceItem l)
 
     switch (l.type) {		/* TODO */
     case SET_SELECT_ACTIVE:
-	xms = malloc(sizeof(XmString) * scnt);
+	xms = xmalloc(sizeof(XmString) * scnt);
 	cnt = 0;
 	break;
     case SET_SELECT_ALL:
-	xms = malloc(sizeof(XmString) * (scnt + 1));
+	xms = xmalloc(sizeof(XmString) * (scnt + 1));
 	xms[0] = XmStringCreateLocalized("All sets");
 	cnt = 1;
 	break;
     case SET_SELECT_NEXT:
-	xms = malloc(sizeof(XmString) * (scnt + 1));
+	xms = xmalloc(sizeof(XmString) * (scnt + 1));
 	xms[0] = XmStringCreateLocalized("New set");
 	cnt = 1;
 	break;
     case SET_SELECT_NEAREST:
-	xms = malloc(sizeof(XmString) * (scnt + 1));
+	xms = xmalloc(sizeof(XmString) * (scnt + 1));
 	xms[0] = XmStringCreateLocalized("Nearest set");
 	cnt = 1;
 	break;
     default:
-	xms = malloc(sizeof(XmString) * scnt);
+	xms = xmalloc(sizeof(XmString) * scnt);
 	cnt = 0;
 	break;
     }
@@ -3344,7 +3344,7 @@ void update_set_list(int gno, SetChoiceItem l)
     for (i = 0; i < cnt; i++) {
         XmStringFree(xms[i]);
     }
-    free(xms);
+    xfree(xms);
 }
 
 void update_set_lists(int gno)

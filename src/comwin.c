@@ -138,7 +138,7 @@ static void delete_com(Widget w, XtPointer client_data, XtPointer call_data)
 
     if( XmListGetSelectedPos( hl, &pos, &npos ) == True ) {
         XmListDeletePos( hl, pos[0] );
-        free( pos );
+        xfree( pos );
     }
 }
  
@@ -165,7 +165,7 @@ static void move_com(Widget w, XtPointer client_data, XtPointer call_data)
     	XmListAddItem( hl, selit, pos[0] );
     	XmListSelectPos( hl, pos[0], False );
     	XmStringFree( selit );
-	free( pos );
+	xfree( pos );
     }
 }
 
@@ -188,7 +188,7 @@ static void  add_com(Widget w, XtPointer client_data, XtPointer call_data)
 	XmListAddItem( hl, comtxt, newpos );
 	XmListSelectPos( hl, newpos, False );
 	if( numit>0 ) {
-	    free( pos );
+	    xfree( pos );
 	}
     }
     XmStringFree( comtxt );
@@ -212,7 +212,7 @@ static void replace_com(Widget w, XtPointer client_data, XtPointer call_data)
     	XmListDeletePos( hl, pos[0] );
     	XmListAddItem( hl, comtxt, pos[0] );
     	XmListSelectPos( hl, pos[0], False );
-    	free( pos );
+    	xfree( pos );
 	XmStringFree( comtxt );
 	
 	comtxt=XmStringCreateLocalized( "" );

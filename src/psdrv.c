@@ -171,9 +171,9 @@ static int ps_initgraphics(int format)
 
     /* Font status table */
     if (psfont_status != NULL) {
-        free(psfont_status);
+        xfree(psfont_status);
     }
-    psfont_status = malloc(number_of_fonts()*SIZEOF_INT);
+    psfont_status = xmalloc(number_of_fonts()*SIZEOF_INT);
     for (i = 0; i < number_of_fonts(); i++) {
         psfont_status[i] = FALSE;
     }

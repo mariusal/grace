@@ -131,9 +131,8 @@ static int expand_ib_tbl(void)
     Input_buffer *new_tbl;
 
     new_size = (ib_tblsize > 0) ? 2*ib_tblsize : 5;
-    new_tbl  = (Input_buffer *) calloc(new_size, sizeof(Input_buffer));
+    new_tbl  = xcalloc(new_size, sizeof(Input_buffer));
     if (new_tbl == NULL) {
-        errmsg("Insufficient memory for real time inputs table");
         return GRACE_EXIT_FAILURE;
     }
 
@@ -142,7 +141,7 @@ static int expand_ib_tbl(void)
     }
 
     if (ib_tblsize > 0) {
-        free((void *) ib_tbl);
+        xfree((void *) ib_tbl);
     }
     ib_tbl  = new_tbl;
     ib_tblsize = new_size;
@@ -161,9 +160,8 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
     int   newsize;
 
     newsize = *ptrSize + CHUNKSIZE;
-    newbuf = (char *) malloc(newsize);
+    newbuf = xmalloc(newsize);
     if (newbuf == 0) {
-        errmsg("Insufficient memory for line");
         return GRACE_EXIT_FAILURE;
     }
 
@@ -178,7 +176,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
         if (adrPtr) {
             *adrPtr += newbuf - *adrBuf;
         }
-        free(*adrBuf);
+        xfree(*adrBuf);
     }
 
     *adrBuf  = newbuf;
@@ -248,7 +246,7 @@ void unregister_real_time_input(const char *name)
 #endif
             close(ib->fd);
             ib->fd = -1;
-            free(ib->name);
+            xfree(ib->name);
             ib->name = NULL;
         } else {
             /* this descriptor is still in use */
@@ -436,7 +434,7 @@ static int process_complete_lines(Input_buffer *ib)
                     unregister_real_time_input(close_input);
                 }
 
-                free(close_input);
+                xfree(close_input);
                 close_input = NULL;
 
                 if (ib->fd < 0) {
@@ -938,7 +936,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
 	return 0;
     }
 
-    scstr = (char *)malloc( (col+1)*5 );
+    scstr = xmalloc( (col+1)*5 );
     scstr[0] = '\0';
     for( i=0; i<=col; i++ )
         if( !i || i==col-1 || i==col )
@@ -947,12 +945,11 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
             strcat( scstr, "%*lf " );
     i = 0;
     killsetdata(gno, setno);
-    x = calloc(BUFSIZE, SIZEOF_DOUBLE);
-    y = calloc(BUFSIZE, SIZEOF_DOUBLE);
+    x = xcalloc(BUFSIZE, SIZEOF_DOUBLE);
+    y = xcalloc(BUFSIZE, SIZEOF_DOUBLE);
     if (x == NULL || y == NULL) {
-        errmsg("Insufficient memory for set");
-        cxfree(x);
-        cxfree(y);
+        XCFREE(x);
+        XCFREE(y);
         goto breakout;
     }
     while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
@@ -981,8 +978,8 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
                 }
                 i++;
                 if (i % BUFSIZE == 0) {
-                    x = realloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
-                    y = realloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
+                    x = xrealloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
+                    y = xrealloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
                 }
             }
         } else {
@@ -996,8 +993,8 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
                 }
                 i++;
                 if (i % BUFSIZE == 0) {
-                    x = realloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
-                    y = realloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
+                    x = xrealloc(x, (i + BUFSIZE) * SIZEOF_DOUBLE);
+                    y = xrealloc(y, (i + BUFSIZE) * SIZEOF_DOUBLE);
                 }
             }
         }
@@ -1015,7 +1012,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
 
     grace_close(fp);
     
-    free(scstr);
+    xfree(scstr);
     return retval;
 }
 
@@ -1064,7 +1061,7 @@ int new_project(char *template)
     } else if (template[0] == '/') {
         retval = load_project_file(template, TRUE);
     } else {
-        s = malloc(strlen("templates/") + strlen(template) + 1);
+        s = xmalloc(strlen("templates/") + strlen(template) + 1);
         if (s == NULL) {
             retval = GRACE_EXIT_FAILURE;
         } else {
@@ -1254,12 +1251,11 @@ int readnetcdf(int gno,
 /*
  * allocate for this set
  */
-    x = calloc(n, SIZEOF_DOUBLE);
-    y = calloc(n, SIZEOF_DOUBLE);
+    x = xcalloc(n, SIZEOF_DOUBLE);
+    y = xcalloc(n, SIZEOF_DOUBLE);
     if (x == NULL || y == NULL) {
-	errmsg("Insufficient memory for set");
-	cxfree(x);
-	cxfree(y);
+	XCFREE(x);
+	XCFREE(y);
 	ncclose(cdfid);
 	return 0;
     }
@@ -1275,40 +1271,40 @@ int readnetcdf(int gno,
  */
     if (xvar != NULL) {
 /* TODO should check for other data types here */
-/* TODO should check for NULL on the callocs() */
+/* TODO should check for NULL on the xcallocs() */
 /* TODO making assumptions about the sizes of shorts and longs */
 	switch (xdatatype) {
 	case NC_SHORT:
-	    xs = calloc(n, SIZEOF_SHORT);
+	    xs = xcalloc(n, SIZEOF_SHORT);
 	    ncvarget(cdfid, x_id, start, count, (void *) xs);
 	    for (i = 0; i < n; i++) {
 		x[i] = xs[i];
 	    }
-	    free(xs);
+	    xfree(xs);
 	    break;
 	case NC_LONG:
-	    xl = calloc(n, SIZEOF_LONG);
+	    xl = xcalloc(n, SIZEOF_LONG);
 	    ncvarget(cdfid, x_id, start, count, (void *) xl);
 	    for (i = 0; i < n; i++) {
 		x[i] = xl[i];
 	    }
-	    free(xl);
+	    xfree(xl);
 	    break;
 	case NC_FLOAT:
-	    xf = calloc(n, SIZEOF_FLOAT);
+	    xf = xcalloc(n, SIZEOF_FLOAT);
 	    ncvarget(cdfid, x_id, start, count, (void *) xf);
 	    for (i = 0; i < n; i++) {
 		x[i] = xf[i];
 	    }
-	    free(xf);
+	    xfree(xf);
 	    break;
 	case NC_DOUBLE:
 	    ncvarget(cdfid, x_id, start, count, (void *) x);
 	    break;
 	default:
 	    errmsg("Data type not supported");
-	    cxfree(x);
-	    cxfree(y);
+	    XCFREE(x);
+	    XCFREE(y);
 	    ncclose(cdfid);
 	    return 0;
 	    break;
@@ -1320,14 +1316,14 @@ int readnetcdf(int gno,
     }
     switch (ydatatype) {
     case NC_SHORT:
-	ys = calloc(n, SIZEOF_SHORT);
+	ys = xcalloc(n, SIZEOF_SHORT);
 	ncvarget(cdfid, y_id, start, count, (void *) ys);
 	for (i = 0; i < n; i++) {
 	    y[i] = ys[i];
 	}
 	break;
     case NC_LONG:
-	yl = calloc(n, SIZEOF_LONG);
+	yl = xcalloc(n, SIZEOF_LONG);
 	ncvarget(cdfid, y_id, start, count, (void *) yl);
 	for (i = 0; i < n; i++) {
 	    y[i] = yl[i];
@@ -1335,20 +1331,20 @@ int readnetcdf(int gno,
 	break;
     case NC_FLOAT:
 /* TODO should check for NULL here */
-	yf = calloc(n, SIZEOF_FLOAT);
+	yf = xcalloc(n, SIZEOF_FLOAT);
 	ncvarget(cdfid, y_id, start, count, (void *) yf);
 	for (i = 0; i < n; i++) {
 	    y[i] = yf[i];
 	}
-	free(yf);
+	xfree(yf);
 	break;
     case NC_DOUBLE:
 	ncvarget(cdfid, y_id, start, count, (void *) y);
 	break;
     default:
 	errmsg("Data type not supported");
-	cxfree(x);
-	cxfree(y);
+	XCFREE(x);
+	XCFREE(y);
 	ncclose(cdfid);
 	return 0;
 	break;

@@ -205,10 +205,10 @@ void update_cells(EditPoints *ep)
         XbaeMatrixDeleteColumns(ep->mw, 0, nc - ep->ncols);
     }
 		
-    rowlabels = malloc(ep->nrows*sizeof(char *));
+    rowlabels = xmalloc(ep->nrows*sizeof(char *));
     for (i = 0; i < ep->nrows; i++) {
     	sprintf(buf, "%d", i);
-    	rowlabels[i] = malloc((sizeof(buf) + 1)*SIZEOF_CHAR);
+    	rowlabels[i] = xmalloc((sizeof(buf) + 1)*SIZEOF_CHAR);
     	strcpy(rowlabels[i], buf);
     }
     width = (short) ceil(log10(i)) + 2;	/* increase row label width by 1 */
@@ -220,9 +220,9 @@ void update_cells(EditPoints *ep)
 
     /* free memory used to hold strings */
     for (i = 0; i < ep->nrows; i++) {
-	free(rowlabels[i]);
+	xfree(rowlabels[i]);
     }
-    free(rowlabels);
+    xfree(rowlabels);
 }
 
 void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
@@ -340,14 +340,14 @@ void delete_ep(EditPoints *ep)
     
     if (ep == ep_start) {
         ep_start = ep_start->next;
-        cxfree(ep);
+        XCFREE(ep);
         return;
     }
     
     while (ep_tmp != NULL) {
         if (ep_tmp->next == ep) {
             ep_tmp->next = ep->next;
-            cxfree(ep);
+            XCFREE(ep);
             return;
         }
         ep_tmp = ep_tmp->next;
@@ -398,7 +398,7 @@ void create_ss_frame(int gno, int setno)
     
     set_wait_cursor();
 
-    ep = malloc(sizeof(EditPoints));
+    ep = xmalloc(sizeof(EditPoints));
     ep->next = ep_start;
     ep_start = ep;
     

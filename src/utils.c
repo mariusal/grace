@@ -84,6 +84,38 @@ void xfree(void *ptr)
     }
 }
 
+void *xmalloc(size_t size)
+{
+    void *retval;
+
+    if (size == 0) {
+        retval = NULL;
+    } else {
+        retval = malloc(size);
+    }
+
+    if (retval == NULL && size != 0) {
+        errmsg("Memory storage exceeded!");
+    }
+    return retval;
+}
+
+void *xcalloc(size_t nmemb, size_t size)
+{
+    void *retval;
+
+    if (nmemb == 0) {
+        retval = NULL;
+    } else {
+        retval = calloc(nmemb, size);
+    }
+    
+    if (retval == NULL && nmemb != 0) {
+        errmsg("Memory storage exceeded!");
+    }
+    return retval;
+}
+
 void *xrealloc(void *ptr, size_t size)
 {
     void *retval;
@@ -92,7 +124,7 @@ void *xrealloc(void *ptr, size_t size)
     if (ptr == NULL) {
         retval = malloc(size);
     } else if (size == 0) {
-        free(ptr);
+        xfree(ptr);
         retval = NULL;
     } else {
         retval = realloc(ptr, size); 
@@ -264,7 +296,7 @@ char *escapequotes (char *s)
         return NULL;
     
     len = strlen(s);
-    es = (char *) realloc (es, (len + 1)*sizeof(char));
+    es = xrealloc(es, (len + 1)*SIZEOF_CHAR);
     strcpy(es, s);
     n = 0;
     while ((es = strchr(es, '\"'))) {
@@ -273,7 +305,7 @@ char *escapequotes (char *s)
     }
     
     elen = len + n + 1;
-    es = (char *) realloc (es, elen*sizeof(char));
+    es = xrealloc(es, elen*SIZEOF_CHAR);
     
     i = k = 0;
     while (i < len) {
@@ -891,7 +923,7 @@ char *copy_string(char *dest, const char *src)
     if (src == dest) {
         ;
     } else if (src == NULL) {
-        free(dest);
+        xfree(dest);
         dest = NULL;
     } else {
         dest = xrealloc(dest, (strlen(src) + 1)*SIZEOF_CHAR);

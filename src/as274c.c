@@ -168,7 +168,7 @@ int tolset(int np, int nrbar, double *d, double *rbar, double *tol)
 /* Set TOL(I) = sum of absolute values in column I of RBAR after
    scaling each element by the square root of its row multiplier. */
 
-    work = -1 + (double *) malloc(np*sizeof(double));
+    work = -1 + (double *) xmalloc(np*sizeof(double));
     for (col = 1; col <= np; ++col) work[col] = sqrt(d[col]);
     for (col = 1; col <= np; ++col) {
         pos = col - 1;
@@ -179,7 +179,7 @@ int tolset(int np, int nrbar, double *d, double *rbar, double *tol)
         }
         tol[col] = eps * sum;
     }
-    free(work+1);
+    xfree(work+1);
     return 0;
 } /* tolset */
 
@@ -198,7 +198,7 @@ int sing(int np, int nrbar, double *d,
     if (np <= 0) ier = 1;
     if (nrbar < np * (np - 1) / 2) ier += 2;
     if (ier) return ier;
-    work = -1 + (double *) malloc(np*sizeof(double));
+    work = -1 + (double *) xmalloc(np*sizeof(double));
 
 /* Set elements within RBAR to zero if they are less than TOL(COL) in
    absolute value after being scaled by the square root of their row
@@ -234,7 +234,7 @@ int sing(int np, int nrbar, double *d,
             d[col] = work[col] = thetab[col] = 0;
         }
     }
-    free(work+1);
+    xfree(work+1);
     return ier;
 } /* sing */
 
@@ -341,12 +341,12 @@ int pcorr(int np, int nrbar, double *d,
 
     start = in * (np + np - in - 1) / 2 + 1;
     in1 = in + 1;
-    work = (double *) malloc(np*sizeof(double));
+    work = (double *) xmalloc(np*sizeof(double));
     cor(np-in, d+in1, rbar+start, thetab+in1, sserr, work, cormat+1, ycorr);
 
     /* Check for zeroes. */
     for (i=0; i<(np-in); ++i) if (work[i] <= 0) ier = -1-i;
-    free(work);
+    xfree(work);
     return ier;
 } /* pcorr */
 
@@ -577,7 +577,7 @@ int hdiag(double *xrow, int np, int nrbar,
     if (ier) return ier;
 
 /* The elements of XROW.inv(RBAR).sqrt(D) are calculated and stored in WK. */
-    wk = -1 + (double *) malloc(np*sizeof(double));
+    wk = -1 + (double *) xmalloc(np*sizeof(double));
     *hii = 0;
     i__1 = nreq;
     for (col = 1; col <= i__1; ++col)
@@ -592,7 +592,7 @@ int hdiag(double *xrow, int np, int nrbar,
           d__1 = wk[col] = sum;
           *hii += d__1 * d__1 / d[col];
       }
-    free (wk+1);
+    xfree(wk+1);
     return 0;
 } /* hdiag */
 
@@ -626,9 +626,8 @@ double *dvector(int l, int h)
     int size;
 
     size = h - l + 1;
-    block = (double *) malloc(sizeof(double)*size);
+    block = (double *) xmalloc(sizeof(double)*size);
     if (block == NULL) {
-	fprintf(stderr, "malloc failure in dvector()\n");
 	return NULL;
     }
     return block-l;
@@ -639,9 +638,8 @@ int *ivector(int l, int h)
     int *block, size;
 
     size = h - l + 1;
-    block = (int *) malloc(sizeof(int)*size);
+    block = (int *) xmalloc(sizeof(int)*size);
     if (block == NULL) {
-	fprintf(stderr, "malloc failure in ivector()\n");
 	return NULL;
     }
     return block-l;
@@ -656,17 +654,15 @@ double **dmatrix(int rl, int rh, int cl, int ch)
     rowsize = ch - cl + 1;	/* #locations consumed by 1 row */
     numrows = rh -rl + 1;
     size = numrows*rowsize;
-    block = (double *) malloc((unsigned) sizeof(double)*size);
+    block = (double *) xmalloc((unsigned) sizeof(double)*size);
     if (block == NULL) {
-      fprintf(stderr, "malloc failure in matrix allocation\n");
 	return NULL;
     }
     /* so we have the matrix. */
 
     /* Now for the row pointers */
-    m = (double **) malloc((unsigned) sizeof(double *)*numrows);
+    m = (double **) xmalloc((unsigned) sizeof(double *)*numrows);
     if (m == NULL) {
-	fprintf(stderr, "malloc failure in matrix allocation\n");
 	return NULL;
     }
     m -= rl;	/* fixup m pointer so m[rl] == old m[0] */
@@ -777,18 +773,18 @@ int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c)
     }
 
 bustout:;
-    free(x[0]);
-    free(x);
-    free(y);
-    free(d);
-    free(rbar);
-    free(thetab);
-    free(xrow);
-    free(beta);
-    free(tol);
-    free(rss);
-    free(vorder);
-    free(lindep);
+    xfree(x[0]);
+    xfree(x);
+    xfree(y);
+    xfree(d);
+    xfree(rbar);
+    xfree(thetab);
+    xfree(xrow);
+    xfree(beta);
+    xfree(tol);
+    xfree(rss);
+    xfree(vorder);
+    xfree(lindep);
 
     return 0;
 }

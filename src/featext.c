@@ -209,7 +209,7 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
         int cg = get_cg();
         double *x;
 
-	abscissa = malloc(number_of_sets(cg)*SIZEOF_FLOAT);
+	abscissa = xmalloc(number_of_sets(cg)*SIZEOF_FLOAT);
 	
 	if( !is_graph_active( gto )	){
 		errwin("Graph for results must be active");
@@ -490,7 +490,7 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 	}
 	set_set_hidden(gto, ns, FALSE);
         setcomment( gto, ns, tbuf );
-	free( abscissa );
+	xfree( abscissa );
 }
 
 
@@ -651,7 +651,7 @@ int getmedian( int grno, int setno, int sorton, double *median )
 	double *setdata;
 	
 	setlen = getsetlength( get_cg(), setno );
-	setdata = (double *)malloc( setlen*sizeof(double) );
+	setdata = (double *)xmalloc( setlen*sizeof(double) );
 	if( sorton == DATA_X )
 		memcpy( setdata, getx( grno, setno ), setlen*sizeof(double) );
 	else
@@ -664,7 +664,7 @@ int getmedian( int grno, int setno, int sorton, double *median )
 	else
 		*median = ( setdata[setlen/2-1] + setdata[setlen/2] )/2.;
 
-	free( setdata );
+	xfree( setdata );
 	return 0;
 }
 

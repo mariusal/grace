@@ -472,9 +472,8 @@ void xyplot(int gno)
         offset -= 0.5*(nactive(gno) - 1)*get_graph_bargap(gno);
         
         if (is_graph_stacked(gno) == TRUE) {
-            refy = calloc(refn, SIZEOF_DOUBLE);
+            refy = xcalloc(refn, SIZEOF_DOUBLE);
             if (refy == NULL) {
-                errmsg("Memory allocation failed in plotone()");
                 return;
             }
         }
@@ -571,7 +570,7 @@ void xyplot(int gno)
         }
 
         if (refy != NULL) {
-            free(refy);
+            xfree(refy);
         }
         break;
     case GRAPH_FIXED:
@@ -832,9 +831,9 @@ void drawsetfill(int gno, int setno, plotarr *p,
         } else {
             len = setlen;
         }
-        vps = (VPoint *) malloc((len + 2) * sizeof(VPoint));
+        vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
         if (vps == NULL) {
-            errmsg("Can't malloc in drawsetfill");
+            errmsg("Can't xmalloc in drawsetfill");
             return;
         }
  
@@ -858,9 +857,9 @@ void drawsetfill(int gno, int setno, plotarr *p,
         break;
     case LINE_TYPE_LEFTSTAIR:
         len = 2*setlen - 1;
-        vps = (VPoint *) malloc((len + 2) * sizeof(VPoint));
+        vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
         if (vps == NULL) {
-            errmsg("Can't malloc in drawsetfill");
+            errmsg("Can't xmalloc in drawsetfill");
             return;
         }
  
@@ -880,9 +879,9 @@ void drawsetfill(int gno, int setno, plotarr *p,
         break;
     case LINE_TYPE_RIGHTSTAIR:
         len = 2*setlen - 1;
-        vps = (VPoint *) malloc((len + 2) * sizeof(VPoint));
+        vps = (VPoint *) xmalloc((len + 2) * sizeof(VPoint));
         if (vps == NULL) {
-            errmsg("Can't malloc in drawsetfill");
+            errmsg("Can't xmalloc in drawsetfill");
             return;
         }
  
@@ -927,7 +926,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
         }
         break;
     default:
-        free(vps);
+        xfree(vps);
         return;
     }
     
@@ -935,7 +934,7 @@ void drawsetfill(int gno, int setno, plotarr *p,
     setfillrule(p->fillrule);
     DrawPolygon(vps, polylen);
     
-    free(vps);
+    xfree(vps);
 }
 
 /*
@@ -997,9 +996,9 @@ void drawsetline(int gno, int setno, plotarr *p,
         case LINE_TYPE_NONE:
             break;
         case LINE_TYPE_STRAIGHT:
-            vpstmp = (VPoint *) malloc(setlen*sizeof(VPoint));
+            vpstmp = (VPoint *) xmalloc(setlen*sizeof(VPoint));
             if (vpstmp == NULL) {
-                errmsg("malloc failed in drawsetline()");
+                errmsg("xmalloc failed in drawsetline()");
                 break;
             }
             for (i = 0; i < setlen; i++) {
@@ -1014,7 +1013,7 @@ void drawsetline(int gno, int setno, plotarr *p,
                 vpstmp[i].y -= lw/2.0;
             }
             DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
-            free(vpstmp);
+            xfree(vpstmp);
             break;
         case LINE_TYPE_SEGMENT2:
             for (i = 0; i < setlen - 1; i += 2) {
@@ -2183,9 +2182,9 @@ void draw_region(int r)
     case REGION_POLYI:
     case REGION_POLYO:
         if (this->x != NULL && this->y != NULL && this->n > 2) {
-            vpstmp = malloc (this->n*sizeof(VPoint));
+            vpstmp = xmalloc (this->n*sizeof(VPoint));
             if (vpstmp == NULL) {
-                errmsg("malloc error in draw_region()");
+                errmsg("xmalloc error in draw_region()");
                 return;
             } else {
                 for (i = 0; i < this->n; i++) {
@@ -2194,7 +2193,7 @@ void draw_region(int r)
                     vpstmp[i] = Wpoint2Vpoint(wptmp);
                 }
                 DrawPolyline(vpstmp, this->n, POLYLINE_CLOSED);
-		free(vpstmp);
+		xfree(vpstmp);
             }
         }
         return;

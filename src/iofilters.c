@@ -84,11 +84,11 @@ int add_input_filter( int method, char *id, char *comm )
 	strcpy( ifilt[numIfilt-1].command, comm );
 	ifilt[numIfilt-1].method = method;
 	if( method == FILTER_PATTERN ) {
-		ifilt[numIfilt-1].id = malloc( strlen(id)+1 );
+		ifilt[numIfilt-1].id = xmalloc( strlen(id)+1 );
 		strcpy( ifilt[numIfilt-1].id, id );
 		ifilt[numIfilt-1].idlen = strlen( ifilt[numIfilt-1].id );
 	} else {
-		ifilt[numIfilt-1].id = malloc(strlen(id)/2+1);
+		ifilt[numIfilt-1].id = xmalloc(strlen(id)/2+1);
 		hex2char( &ifilt[numIfilt-1], id );
 	}
 	if( ifilt[numIfilt-1].idlen == 0 ) {
@@ -104,7 +104,7 @@ int add_output_filter( int method, char *id, char *comm )
 	ofilt = xrealloc( ofilt, ++numOfilt*sizeof(Filter) );
 	ofilt[numOfilt-1].command = copy_string(NULL, comm);
 	strcpy( ofilt[numOfilt-1].command, comm );
-	ofilt[numOfilt-1].id = malloc( strlen(id)+1 );
+	ofilt[numOfilt-1].id = xmalloc( strlen(id)+1 );
 	strcpy( ofilt[numOfilt-1].id, id );
 	ofilt[numOfilt-1].method = FILTER_PATTERN;
 	return 0;
@@ -129,10 +129,10 @@ void clear_io_filters( int f )
 	}
 
 	for( ; *i>0; (*i)-- ) {
-		free( filt[*i-1].command );
-		free( filt[*i-1].id );
+		xfree( filt[*i-1].command );
+		xfree( filt[*i-1].id );
 	}
-	free(filt);
+	xfree(filt);
 }
 	
 

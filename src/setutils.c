@@ -217,7 +217,6 @@ int setlength(int gno, int setno, int len)
     for (i = 0; i < ncols; i++) {
 	if ((p->data.ex[i] = xrealloc(p->data.ex[i], len*SIZEOF_DOUBLE)) == NULL
             && len != 0) {
-	    errmsg("Insufficient memory to allocate for plots");
 	    return GRACE_EXIT_FAILURE;
 	}
         for (j = oldlen; j < len; j++) {
@@ -305,7 +304,7 @@ int copyset(int gfrom, int setfrom, int gto, int setto)
 	return GRACE_EXIT_FAILURE;
     }
     if (g[gfrom].p[setfrom].data.s != NULL) {
-        if ((g[gto].p[setto].data.s = malloc(len*sizeof(char *))) == NULL) {
+        if ((g[gto].p[setto].data.s = xmalloc(len*sizeof(char *))) == NULL) {
 	    return GRACE_EXIT_FAILURE;
         }
     }
@@ -365,7 +364,7 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
         return GRACE_EXIT_FAILURE;
     }
     if (g[gfrom].p[setfrom].data.s != NULL) {
-        if ((g[gto].p[setto].data.s = malloc(len*sizeof(char *))) == NULL) {
+        if ((g[gto].p[setto].data.s = xmalloc(len*sizeof(char *))) == NULL) {
 	    return GRACE_EXIT_FAILURE;
         }
     }
@@ -423,13 +422,13 @@ void killsetdata(int gno, int setno)
 
     if (is_set_active(gno, setno)) {
 	for (i = 0; i < MAX_SET_COLS; i++) {
-	    cxfree(g[gno].p[setno].data.ex[i]);
+	    XCFREE(g[gno].p[setno].data.ex[i]);
 	}
 	if (get_set_strings(gno, setno) != NULL) {
 	    for (i = 0; i < getsetlength(gno, setno); i++) {
-		cxfree(g[gno].p[setno].data.s[i]);
+		XCFREE(g[gno].p[setno].data.s[i]);
 	    }
-	    cxfree(g[gno].p[setno].data.s);
+	    XCFREE(g[gno].p[setno].data.s);
 	}
 	g[gno].p[setno].data.len = 0;
 	set_dirtystate();
@@ -544,10 +543,10 @@ int set_dataset_type(int gno, int setno, int type)
         ncols_old = dataset_cols(gno, setno);
         ncols_new = settype_cols(type);
         for (i = ncols_old; i < ncols_new; i++) {
-            g[gno].p[setno].data.ex[i] = calloc(len, SIZEOF_DOUBLE);
+            g[gno].p[setno].data.ex[i] = xcalloc(len, SIZEOF_DOUBLE);
         }
         for (i = ncols_new; i < ncols_old; i++) {
-            cxfree(g[gno].p[setno].data.ex[i]);
+            XCFREE(g[gno].p[setno].data.ex[i]);
         }
         switch (type) {
         case SET_XYZ:
@@ -1104,7 +1103,6 @@ int join_sets(int gno, int *sets, int nsets)
         old_length = new_length;
         new_length += getsetlength(gno, setno);
         if (setlength(gno, setno_final, new_length) != GRACE_EXIT_SUCCESS) {
-            errmsg("Can't allocate intermediate dataset");
             return GRACE_EXIT_FAILURE;
         }
         for (j = 0; j < ncols; j++) {
@@ -1203,18 +1201,16 @@ void sortset(int gno, int setno, int sorton, int stype)
 /*
  * allocate memory for permuted indices
  */
-    ind = calloc(len, SIZEOF_INT);
+    ind = xcalloc(len, SIZEOF_INT);
     if (ind == NULL) {
-	errmsg("Unable to allocate memory for sort");
 	return;
     }
 /*
  * allocate memory for temporary array
  */
-    dtmp = calloc(len, SIZEOF_DOUBLE);
+    dtmp = xcalloc(len, SIZEOF_DOUBLE);
     if (dtmp == NULL) {
-	free(ind);
-	errmsg("Unable to allocate memory for sort");
+	xfree(ind);
 	return;
     }
 /*
@@ -1510,11 +1506,10 @@ void do_splitsets(int gno, int setno, int lpart)
     /* copy the contents to a temporary buffer */
     for (j = 0; j < ncols; j++) {
 	x[j] = getcol(gno, setno, j);
-	xtmp[j] = calloc(len, SIZEOF_DOUBLE);
+	xtmp[j] = xcalloc(len, SIZEOF_DOUBLE);
 	if (xtmp[j] == NULL) {
-	    errmsg("Not enough memory for split");
 	    for (k = 0; k < j; k++) {
-		cxfree(xtmp[k]);
+		XCFREE(xtmp[k]);
 	    }
 	    return;
 	}
@@ -1580,7 +1575,7 @@ void do_splitsets(int gno, int setno, int lpart)
     setcomment(gno, tmpset, s);
     log_results(s);
     for (k = 0; k < ncols; k++) {
-	free(xtmp[k]);
+	xfree(xtmp[k]);
     }
 }
 

@@ -109,7 +109,7 @@ void create_printer_setup(void *data)
         XtVaSetValues(pdev_rc, XmNorientation, XmHORIZONTAL, NULL);
 
 	ndev = number_of_devices();
-        option_items = malloc(ndev*sizeof(OptionItem));
+        option_items = xmalloc(ndev*sizeof(OptionItem));
         for (i = 0; i < ndev; i++) {
             option_items[i].value = i;
             option_items[i].label = get_device_name(i);
@@ -117,7 +117,7 @@ void create_printer_setup(void *data)
         devices_item = CreateOptionChoice(pdev_rc, "Device: ",
 					    1, ndev, option_items);
 	AddOptionChoiceCB(devices_item, do_device_toggle, NULL);
-        free(option_items);
+        xfree(option_items);
         
         device_opts_item = XtVaCreateManagedWidget("Device options...",
                                                 xmPushButtonWidgetClass, 

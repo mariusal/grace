@@ -47,12 +47,15 @@
 #define LFORMAT_TYPE_PLAIN      0
 #define LFORMAT_TYPE_EXTENDED   1
 
-#define cxfree(ptr) xfree(ptr); ptr = NULL
+#define XCFREE(ptr) xfree(ptr); ptr = NULL
 
 #define PSTRING(s) ((s == NULL) ? "" : escapequotes(s))
 
-void xfree(void *ptr);
+void *xmalloc(size_t size);
+void *xcalloc(size_t nmemb, size_t size);
 void *xrealloc(void *ptr, size_t size);
+void xfree(void *ptr);
+
 void fswap(double *x, double *y);
 void iswap(int *x, int *y);
 int isoneof(int c, char *s);

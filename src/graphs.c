@@ -136,8 +136,8 @@ int kill_graph(int gno)
     int j;
     if (is_valid_gno(gno) == TRUE) {
 	kill_all_sets(gno);
-        cxfree(g[gno].labs.title.s);
-        cxfree(g[gno].labs.stitle.s);
+        XCFREE(g[gno].labs.title.s);
+        XCFREE(g[gno].labs.stitle.s);
         for (j = 0; j < MAXAXES; j++) {
             free_graph_tickmarks(g[gno].t[j]);
             g[gno].t[j] = NULL;
@@ -179,8 +179,8 @@ int copy_graph(int from, int to)
     
     /* kill target graph */
     kill_all_sets(to);
-    cxfree(g[to].labs.title.s);
-    cxfree(g[to].labs.stitle.s);
+    XCFREE(g[to].labs.title.s);
+    XCFREE(g[to].labs.stitle.s);
     for (j = 0; j < MAXAXES; j++) {
         free_graph_tickmarks(g[to].t[j]);
         g[to].t[j] = NULL;
@@ -339,7 +339,7 @@ tickmarks *new_graph_tickmarks(void)
 {
     tickmarks *retval;
     
-    retval = malloc(sizeof(tickmarks));
+    retval = xmalloc(sizeof(tickmarks));
     if (retval != NULL) {
         set_default_ticks(retval);
     }
@@ -374,12 +374,12 @@ void free_graph_tickmarks(tickmarks *t)
     if (t == NULL) {
         return;
     }
-    cxfree(t->label.s);
-    cxfree(t->tl_formula);
+    XCFREE(t->label.s);
+    XCFREE(t->tl_formula);
     for (i = 0; i < MAX_TICKS; i++) {
-        cxfree(t->tloc[i].label);
+        XCFREE(t->tloc[i].label);
     }
-    cxfree(t);
+    XCFREE(t);
 }
 
 int set_graph_tickmarks(int gno, int a, tickmarks *t)

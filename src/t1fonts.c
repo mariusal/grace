@@ -108,7 +108,7 @@ int init_t1(void)
         return (GRACE_EXIT_FAILURE);
     }
     
-    FontDBtable = (FontDB *) malloc(nfonts*sizeof(FontDB));
+    FontDBtable = (FontDB *) xmalloc(nfonts*sizeof(FontDB));
     
     /* skip the first line */
     fgets(buf, GR_MAXPATHLEN - 1, fd); 
@@ -384,7 +384,7 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
 
     /* Now comes the ligatur handling */
     len = strlen(theString);
-    ligtheString = (char *) malloc((len + 1)*sizeof(char));
+    ligtheString = (char *) xmalloc((len + 1)*sizeof(char));
     if (LigDetect){
       	for (j = 0, m = 0; j < len; j++, m++) { /* Loop through the characters */
   	    if ((k = T1_QueryLigs(FontID, theString[j], &succs, &ligs)) > 0) {
@@ -474,7 +474,7 @@ GLYPH *GetGlyphString(int FontID, double Size, double Angle, int modflag,
     				   Space, modflag, (float) Size, matrixP);
     }
  
-    free(ligtheString);
+    xfree(ligtheString);
  
     return glyph;
 }
@@ -484,10 +484,10 @@ void FreeCompositeString(CompositeString *cs)
     int i = 0;
     
     while (cs[i].s != NULL) {
-	free (cs[i].s);
+	xfree(cs[i].s);
 	i++;
     }
-    free (cs);
+    xfree(cs);
 }
 
 CompositeString *String2Composite(char *string)
@@ -526,8 +526,8 @@ CompositeString *String2Composite(char *string)
         return NULL;
     }
     
-    ss = malloc(slen + 1);
-    buf = malloc(slen + 1);
+    ss = xmalloc(slen + 1);
+    buf = xmalloc(slen + 1);
     if (ss == NULL || buf == NULL) {
         xfree(ss);
         xfree(buf);
@@ -742,8 +742,8 @@ CompositeString *String2Composite(char *string)
     csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
     csbuf[nss].s = NULL;
     
-    free(buf);
-    free(ss);
+    xfree(buf);
+    xfree(ss);
     return (csbuf);
 }
 
