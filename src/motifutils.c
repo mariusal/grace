@@ -716,15 +716,51 @@ void CSTextInsert(CSTextStructure *cst, int pos, char *s)
 
 
 typedef struct {
-    int type;
-    Widget FSB;
-} fsb_cd_cb_data;
+    void (*cbproc)();
+    void *anydata;
+} Button_CBdata;
 
-static void fsb_setcwd_cb(Widget w, XtPointer client_data, XtPointer call_data)
+Widget CreateButton(Widget parent, char *label)
+{
+    Widget button;
+    XmString xmstr;
+    
+    xmstr = XmStringCreateSimple(label);
+    button = XtVaCreateManagedWidget("button",
+        xmPushButtonWidgetClass, parent, 
+    	XmNlabelString, xmstr,
+        XmNmarginLeft, 5,
+        XmNmarginRight, 5,
+        XmNmarginTop, 3,
+        XmNmarginBottom, 2,
+    	NULL);
+    XmStringFree(xmstr);
+
+    return button;
+}
+
+static void button_int_cb_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    Button_CBdata *cbdata = (Button_CBdata *) client_data;
+    cbdata->cbproc(cbdata->anydata);
+}
+
+void AddButtonCB(Widget button, Button_CBProc cbproc, void *data)
+{
+    Button_CBdata *cbdata;
+    
+    cbdata = malloc(sizeof(Button_CBdata));
+    cbdata->anydata = data;
+    cbdata->cbproc = cbproc;
+    XtAddCallback(button,
+        XmNactivateCallback, button_int_cb_proc, (XtPointer) cbdata);
+}
+
+static void fsb_setcwd_cb(void *data)
 {
     char *bufp;
     XmString directory;
-    Widget fsb = (Widget) client_data;
+    Widget fsb = (Widget) data;
     
     XtVaGetValues(fsb, XmNdirectory, &directory, NULL);
     XmStringGetLtoR(directory, charset, &bufp);
@@ -737,13 +773,13 @@ static void fsb_setcwd_cb(Widget w, XtPointer client_data, XtPointer call_data)
 #define FSB_HOME 1
 #define FSB_ROOT 2
 
-static void fsb_cd_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void fsb_cd_cb(int value, void *data)
 {
     char *bufp;
     XmString dir, pattern, dirmask;
-    fsb_cd_cb_data *cb_datap = (fsb_cd_cb_data *) client_data;
+    Widget FSB = (Widget) data;
     
-    switch (cb_datap->type) {
+    switch (value) {
     case FSB_CWD:
         bufp = get_workingdir();
         break;
@@ -757,28 +793,36 @@ static void fsb_cd_cb(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     
-    XtVaGetValues(cb_datap->FSB, XmNpattern, &pattern, NULL);
+    XtVaGetValues(FSB, XmNpattern, &pattern, NULL);
     
     dir = XmStringCreateSimple(bufp);
     dirmask = XmStringConcatAndFree(dir, pattern);
 
-    XmFileSelectionDoSearch(cb_datap->FSB, dirmask);
+    XmFileSelectionDoSearch(FSB, dirmask);
     XmStringFree(dirmask);
 }
+
+static OptionItem fsb_items[3] = {
+    {FSB_CWD,  "Cwd"},
+    {FSB_HOME, "Home"},
+    {FSB_ROOT, "/"}
+};
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
 {
     FSBStructure *retval;
-    Widget fr, buts[4];
+    OptionStructure *opt;
+    Widget form, button;
     XmString xmstr;
-    char *labels[4] = {"CWD", "Home", "/", "Set CWD"};
-    fsb_cd_cb_data *cb_data;
+    char *bufp;
     
     retval = malloc(sizeof(FSBStructure));
-    cb_data = malloc(3*sizeof(fsb_cd_cb_data));
     retval->FSB = XmCreateFileSelectionDialog(parent, "FSB", NULL, 0);
     retval->dialog = XtParent(retval->FSB);
-    XtVaSetValues(retval->dialog, XmNtitle, s, NULL);
+    bufp = copy_string(NULL, "Grace: ");
+    bufp = concat_strings(bufp, s);
+    XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
+    free(bufp);
     
     if (pattern != NULL) {
         xmstr = XmStringCreateSimple(pattern);
@@ -794,22 +838,27 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
         XmNcancelCallback, (XtCallbackProc) destroy_dialog, retval->dialog);
     
     retval->rc = XmCreateRowColumn(retval->FSB, "rc", NULL, 0);
-    fr = CreateFrame(retval->rc, "Change directory");
-    CreateCommandButtons(fr, 4, buts, labels);
-    cb_data[0].FSB = retval->FSB;
-    cb_data[0].type = FSB_CWD;
-    XtAddCallback(buts[0],
-        XmNactivateCallback, fsb_cd_cb, (XtPointer) &cb_data[0]);
-    cb_data[1].FSB = retval->FSB;
-    cb_data[1].type = FSB_HOME;
-    XtAddCallback(buts[1],
-        XmNactivateCallback, fsb_cd_cb, (XtPointer) &cb_data[1]);
-    cb_data[2].FSB = retval->FSB;
-    cb_data[2].type = FSB_ROOT;
-    XtAddCallback(buts[2],
-        XmNactivateCallback, fsb_cd_cb, (XtPointer) &cb_data[2]);
+    form = XtVaCreateWidget("form", xmFormWidgetClass, retval->rc, NULL);
+    opt = CreateOptionChoice(form, "Chdir to:", 1, 3, fsb_items);
+    AddOptionChoiceCB(opt, fsb_cd_cb, (void *) retval->FSB);
+    button = CreateButton(form, "Set as cwd");
+    AddButtonCB(button, fsb_setcwd_cb, (void *) retval->FSB);
 
-    XtAddCallback(buts[3], XmNactivateCallback, fsb_setcwd_cb, retval->FSB);
+    XtVaSetValues(opt->menu,
+        XmNleftAttachment, XmATTACH_FORM,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_NONE,
+        NULL);
+    XtVaSetValues(button,
+        XmNleftAttachment, XmATTACH_NONE,
+        XmNtopAttachment, XmATTACH_FORM,
+        XmNbottomAttachment, XmATTACH_FORM,
+        XmNrightAttachment, XmATTACH_FORM,
+        NULL);
+    XtManageChild(form);
+
+    CreateSeparator(retval->rc);
     XtManageChild(retval->rc);
         
     return retval;
