@@ -752,9 +752,7 @@ VPoint Wpoint2Vpoint(WPoint wp);
 int world2view(double x, double y, double *xv, double *yv);
 void view2world(double xv, double yv, double *xw, double *yw);
 
-int definewindow(Canvas *canvas,
-    const world *w, const view *v, int gtype, 
-    int xscale, int yscale,
-    int invx, int invy);
+int definewindow(const world *w, const view *v,
+    int gtype, int xscale, int yscale, int invx, int invy);
 
 #endif /* __DRAW_H_ */

@@ -407,21 +407,21 @@ int activate_tick_labels(int gno, int axis, int flag)
 
 int select_graph(int gno)
 {
-    int retval;
-    graph *g;
-
-    g = graph_get(gno);
-    if (g && set_parser_gno(gno) == RETURN_SUCCESS) {
-        cg = gno;
-        retval = definewindow(grace->rt->canvas,
-            &g->w, &g->v, g->type,
-            g->xscale,  g->yscale,
-            g->xinvert, g->yinvert);
-    } else {
-        retval = RETURN_FAILURE;
-    }
+    graph *g = graph_get(gno);
     
-    return retval;
+    if (g && set_parser_gno(gno) == RETURN_SUCCESS &&
+        isvalid_viewport(&g->v) == TRUE &&
+        definewindow(&g->w, &g->v, g->type,
+            g->xscale,  g->yscale,
+            g->xinvert, g->yinvert) == RETURN_SUCCESS) {
+
+        grace->rt->canvas->clipview = g->v;
+        cg = gno;
+
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 int set_graph_type(int gno, int gtype)

@@ -2375,18 +2375,12 @@ void view2world(double xv, double yv, double *xw, double *yw)
  * definewindow - defines the scaling
  *               of the plotting rectangle to be used for clipping
  */
-int definewindow(Canvas *canvas, const world *w, const view *v, int gtype, 
-                        int xscale, int yscale,
-                        int invx, int invy)
+int definewindow(const world *w, const view *v, int gtype, 
+    int xscale, int yscale, int invx, int invy)
 {
     double dx, dy;
     
     /* Safety checks */
-    if (isvalid_viewport(v) == FALSE) {
-        errmsg("Invalid viewport coordinates");
-        return RETURN_FAILURE;
-    }
-    
     dx = w->xg2 - w->xg1;
     if (dx <= 0.0) {
         errmsg("World DX <= 0.0");
@@ -2415,7 +2409,6 @@ int definewindow(Canvas *canvas, const world *w, const view *v, int gtype,
         } else {
             coordinates = COORDINATES_POLAR;
             worldwin = *w;
-            canvas->clipview = *v;
             scaletypex = xscale;
             xv_med = (v->xv1 + v->xv2)/2;
             if (invx == FALSE) {
@@ -2438,7 +2431,6 @@ int definewindow(Canvas *canvas, const world *w, const view *v, int gtype,
         } else {
             coordinates = COORDINATES_XY;
             worldwin = *w;
-            canvas->clipview = *v;
 
             scaletypex = xscale;
             xv_med = (v->xv1 + v->xv2)/2;
@@ -2516,7 +2508,6 @@ int definewindow(Canvas *canvas, const world *w, const view *v, int gtype,
 
         coordinates = COORDINATES_XY;
         worldwin = *w;
-        canvas->clipview = *v;
 
         scaletypex = xscale;
         xv_med = (v->xv1 + v->xv2)/2;
