@@ -73,6 +73,9 @@ $GRACE log2.agr
 # a logit scale sample
 $GRACE logit.agr 
 #
+# a reciprocal scale sample
+$GRACE reciprocal.agr 
+#
 # display fonts and font mappings
 $GRACE tfonts.agr 
 #
@@ -151,6 +154,9 @@ $GRACE vmap.agr
 #
 # a bubble plot
 $GRACE xysize.agr
+#
+# an xycolor map
+$GRACE xycolor.agr
 #
 # non-linear curve fitting
 $GRACE logistic.agr
