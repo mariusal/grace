@@ -116,7 +116,7 @@ int fmap_proc(const Canvas *canvas, int font_id)
             if (font == BAD_FONT_ID) {
                 char buf[64];
                 sprintf(buf, "Couldn't map font %d to any existing one", f->id);
-                errmsg("buf");
+                errmsg(buf);
 
                 font = 0;
             }
