@@ -2662,12 +2662,6 @@ parmset:
 	    g[whichgraph].l.legx = $2;
 	    g[whichgraph].l.legy = $4;
 	}
-	| LEGEND X1 expr {
-	    g[whichgraph].l.legx = $3;
-	}
-	| LEGEND Y1 expr {
-	    g[whichgraph].l.legy = $3;
-	}
 	| LEGEND CHAR SIZE expr {
 	    g[whichgraph].l.charsize = $4;
 	}
@@ -4052,6 +4046,12 @@ parmset_obs:
 	    if ($3 == FALSE && get_project_version() <= 40102) {
                 g[whichgraph].l.boxpen.pattern = 0;
             }
+	}
+	| LEGEND X1 expr {
+	    g[whichgraph].l.legx = $3;
+	}
+	| LEGEND Y1 expr {
+	    g[whichgraph].l.legy = $3;
 	}
 	| LEGEND STRING nexpr CHRSTR {
 	    if (is_valid_setno(whichgraph, $3)) {
