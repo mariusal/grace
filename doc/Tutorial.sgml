@@ -10,7 +10,7 @@ Edward Vigmond
 <tt>evigmon@tulane.edu</tt>
 </author>
 <date>
-for Grace-5.1.1
+for Grace-5.1.4
 </date>
 <toc>
 <sect>
@@ -103,7 +103,7 @@ The object of this tutorial is to do the most basic function of Grace:
 <sect1>
 Reading the data from a file
 <p>
-Start by bringing up the set reading widget <em>Main:</em>Data/Import/Ascii. Select
+Start by bringing up the set reading widget <em>Main:Data/Import/ASCII</em>. Select
  the file 2.1.dat (both double clicking and hitting return work). You should
  see a black curve drawn on a graph.
 </p>
@@ -119,8 +119,7 @@ Now we would like to add some more sets to the graph, but this time the
 <p>
 You should now have 2 copies of the first set since you've read the file
  twice. It would be nice to eliminate one copy. This is most easily accomplished
- by bringing up a popup which lists all the sets. Selecting <em>Main:Edit/Data_sets...
- </em>bring up the Data set props popup. It lists all the sets and for the selected
+ by bringing up a popup which lists all the sets. Selecting <em>Main:Edit/Data_sets...</em>bring up the Data set props popup. It lists all the sets and for the selected
  set, its type and a few statistics. To eliminate a set, select it and then
  press the right mouse button. A menu should appear from which you can select
  kill. You'll note that there is a kill and kill data. The former totally eliminates
@@ -166,7 +165,7 @@ When a set in the list is highlighted, the widgets change to reflect the
 Labelling the axes using the font tool
 <p>
 Aspects of the axes are controlled by the axes popup which is called from
- Main:Plot/Axis properties or by double clicking the graph frame. All aspects
+ <em>Main:Plot/Axis properties</em> or by double clicking the graph frame. All aspects
  of the axes can be changed like the title, the font, colour, whether or not
  to draw grid lines, or user defined tick marks and labels. There are many settings
  and the best thing to do is to experiment to see what each setting does.
@@ -195,7 +194,7 @@ Graph titles
 <p>
 Our next exercise will be to title the graph so other. Operation pertaining
  to this are found in the "Graph appearance" widget which we open by selecting
- Main:Plot/Graph appearance or by double clicking just above the graph frame.
+ <em>Main:Plot/Graph appearance</em> or by double clicking just above the graph frame.
 </p>
 <p>
 We can now fill in the title of the graph and by clicking on the "Titles"
@@ -245,7 +244,7 @@ A block of data is a table of number which are interpreted as columns of
  want to extract from the file. 
 </p>
 <p>
-We first need to read in a block of data. We do this from Main:Data/Import/Ascii.
+We first need to read in a block of data. We do this from <em>Main:Data/Import/ASCII</em>.
  Select the file "3.dat" and Load as "Block data". If the read was successful, a
  window should pop up asking you to create a set from the block data. At the
  top it will list how many columns of data were read.
@@ -272,7 +271,7 @@ Finally, hitting accept will create the set.
 </p>
 <p>
 If you close this window, it can reopened by bringing up a set list (eg.
- Main:Edit/Data_sets) and then selecting Create_new/From_block_data from the
+ <em>Main:Edit/Data_sets</em>) and then selecting Create_new/From_block_data from the
  menu brought up by right clicking on the set list. 
 </p>
 <p>
@@ -289,7 +288,7 @@ Besides reading in data files, Grace has an extensive scripting language
  in Grace are basically unlimited. See the user guide for more details. In addition,
  users can dynamically add libraries to Grace with any desired function. As
  well, points may be added manually to a set by the use of editors. To begin,
- choose <em>Main:Edit/Data sets. </em>To create a set, press mouse button 3 (the rightmost
+ choose <em>Main:Edit/Data sets</em>. To create a set, press mouse button 3 (the rightmost
  one for right handed people) anywhere within the data set list (which may be
  empty) and select Create new. A menu with 4 different ways of creating new
  sets will be presented. We'll go through them one by one.
@@ -544,8 +543,8 @@ Now, we are not limited to computing our fitted curve at the points of
 </p><sect1>
 Non-linear
 <p>
-We pop up the widget by selecting Main:Data/Transformations/Non-linear
- curve fitting. You may want to kill all the sets except the original function
+We pop up the widget by selecting <em>Main:Data/Transformations/Non-linear
+ curve fitting</em>. You may want to kill all the sets except the original function
  and the extrapolated function at this point.
 </p>
 <p>
@@ -593,6 +592,9 @@ Transformations
 Graphical 
 <sect2>
 Simple Geometrical
+<p>
+You can rotate sets around an arbitrary axis perpendicular to the canvas
+(e.g. the Z-axis). Also it is possible to scale sets and translate them.
 <sect2>
 Mathematical operations between sets
 <p>
@@ -618,7 +620,7 @@ Read in 7.1.2.agr
  <item>
 Note how the abscissa are different. We begin by using interpolate to produce
  a third set which is the second set sampled at the x values of the first. Call
- up the Interpolate popup from Main:Data/Transformations/Interpolation/splines...
+ up the Interpolate popup from <em>Main:Data/Transformations/Interpolation/splines ...</em>
  <item>
 Select S1 as the source set but don't specify a destination set. A set
  will automatically be made. Use the Strict, linear method, Sampling:Abscissas
@@ -631,10 +633,10 @@ We still have a problem since set 2 is sampled the same as set 0 but has
  so we now interpolate on set 0 at points from set 2 to produce set 3. Now set
  2 and set 3 have the exact same abscissas.
  <item>
-Call up the command interpreter from Main:Window/Commands...
+Call up the command interpreter from <em>Main:Window/Commands</em> ...
  <item>
 We need to create a set to hold the result, S4. We can either make a copy
- (using Main:Edit/Set_operations...) of S2 which will be guaranteed to have
+ (using <em>Main:Edit/Set_operations...</em>) of S2 which will be guaranteed to have
  the proper size to hold out result or we can use type a command: <tt>s4 length
  s2.length</tt>
  <item>
@@ -648,8 +650,8 @@ Now we can perform the math between our interpolated copies of sets 0 and
 So where is the new set? It's there but it's hidden. Since we already have
  the command window open, we can unhide the set by typing: <tt>S4 on</tt>. For the GUI
  minded (no offense intended), bring up a set list with the set operations menu
- (eg. Main:Edit/Data_sets or Main:Plot/Set_appearance), select set 4 and unhide
- it by selecting show from the operation menu (mouse button 3). 
+ (eg. <em>Main:Edit/Data_sets</em> or <em>Main:Plot/Set_appearance</em>),
+ select set 4 and unhide it by selecting show from the operation menu (mouse button 3). 
 </enum>
 </p><p>
 N.B. If the abscissas of the original curves had been the same, we could
@@ -673,7 +675,8 @@ Feature extraction is a way of creating one curve from a family of curves.
  <item>
 Read in graph 7.1.3.agr
  <item>
-Bring up the feature extraction form by clicking on Main:Data/Transformations/Feature_extraction.
+Bring up the feature extraction form by clicking on
+<em>Main:Data/Transformations/Feature_extraction</em>.
  
  <item>
 Select Results to graph 1.
@@ -726,7 +729,7 @@ Range type</tag>From the define region popup, choose a range type and then
 Using regions
 <p>
 Regions may be only be used to restrict an expression evaluation. Bring
- up the evaluateExpressions popup (Main:Data/Transformations/Evaluate_expression).
+ up the evaluateExpressions popup (<em>Main:Data/Transformations/Evaluate_expression</em>).
  Choose the source and destination sets and specify the formula to apply to
  the region of interest. Not specifying an expression is equivalent to the identity
  transformation. Choose the region you wish to use. By checking negate, the
@@ -750,7 +753,7 @@ Pipes are a way of capturing the output of a running process without the
 <sect1>
 Instead of data files
 <p>
-On certain popups, e.g. <em>Main:Data/Import/</em>Ascii, the option to read from
+On certain popups, e.g. <em>Main:Data/Import/ASCII</em>, the option to read from
  a file or pipe can be specified. If a pipe is chosen, the command in the selection
  widget will be run and the stdout will be captured and treated as though it
  was data which was read from a file. 
@@ -808,17 +811,17 @@ It might be annoying if one is trying to work in a region of overlapping
  graphs. If will not be possible to double click on something because the each
  click will be interpreted as a single click and you will only end up changing
  the graph focus. In such an instance, turning off the graph selection by clicking
- might be desirable. Choose Main:Edit/Preferences and then set Misc:Graph_focus
- to "As set". This means one must explicitly set the focus. Simply bring up a
- graph list (eg. Main:Edit/Overlay_graphs is but one), select the graph you
- want to work on and then, using the menu under mouse button 3, choose "Focus
- to".
+ might be desirable. Choose <em>Main:Edit/Preferences</em> and then set
+ <em>Misc:Graph_focus</em> to "As set". This means one must explicitly set
+ the focus. Simply bring up a graph list (eg. <em>Main:Edit/Overlay_graphs</em>
+ is but one), select the graph you  want to work on and then, using the menu under
+ mouse button 3, choose "Focus to".
 </p>
 <sect2>
 Arranging a tableau of graphs
 <p>
-Placing a large number of regularly spaced graphs is easily done with Main:Edit/Arrange_graphs.
- This will automatically calculate the layout:
+Placing a large number of regularly spaced graphs is easily done with
+<em>Main:Edit/Arrange_graphs</em>. This will automatically calculate the layout:
 </p>
 <p>
 <enum>
@@ -852,9 +855,9 @@ Note that only graphs which are selected are taken into consideration.
 Arranging individual graphs
 <p>
 Arranging individual graphs may either be done (1) exactly, by specifying
- the viewport coordinates from Main:Plot/Graph_appearance or using the previously
- explained Arrange graphs popup, or (2) roughly, by double clicking a graph
- focus marker and then moving it.
+ the viewport coordinates from <em>Main:Plot/Graph_appearance</em> or
+ using the previously explained Arrange graphs popup, or (2) roughly,
+ by double clicking a graph focus marker and then moving it.
 </p>
 <sect1>
 Overlaying Graphs
@@ -870,7 +873,7 @@ Overlaying one graph onto another is useful for creating a graph with two
 <p>
 <enum>
  <item>
-Begin by selecting <em>Main:Edit/Overlay graphs </em>to bring up the Overlay widget.
+Begin by selecting <em>Main:Edit/Overlay graphs</em> to bring up the Overlay widget.
  
  <item>
 Select the graph numbers with which we would like to deal. In this example,
