@@ -705,7 +705,3 @@ static void auto_spec_cb(OptionStructure *opt, int value, void *data)
     Widget rc = (Widget) data;
     SetSensitive(rc, value);
 }
-
-void update_ticks(void)
-{
-}

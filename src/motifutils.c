@@ -4418,7 +4418,6 @@ void update_all(void)
         ReqUpdateColorSel = FALSE;
     }
 
-    update_ticks();
     update_props_items();
     update_explorer(grace->gui->eui, TRUE);
     set_left_footer(NULL);
