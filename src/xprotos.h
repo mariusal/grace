@@ -179,6 +179,8 @@ void create_ss_frame(Quark *pset);
 void update_ss_editors(Quark *gr);
 void do_ext_editor(Quark *pset);
 
+void update_set_selectors(Quark *gr);
+
 void set_graph_selectors(Quark *gr);
 int clean_graph_selectors(Quark *pr, int etype, void *data);
 int clean_set_selectors(Quark *gr, int etype, void *data);
