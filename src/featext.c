@@ -295,10 +295,10 @@ void fext_routine( int gto, int feature, int abs_src, int abs_set, int abs_graph
 				break;
 			case 10: 		/* frequency and period */
 			case 11:
-				if ( ilog2(getsetlength(cg, cs)) <= 0)    /* only DFT */
-					do_fourier(0, cs, 0, 1, 0, 0, 0);
-				else							/* FFT      */
+				if ( ilog2(getsetlength(cg, cs)) <= 0)    /* only FFT */
 					do_fourier(1, cs, 0, 1, 0, 0, 0);
+				else							/* DFT      */
+					do_fourier(0, cs, 0, 1, 0, 0, 0);
 
 				sprintf( tbuf, "FT of set %d", cs );
 				fts = 0;
