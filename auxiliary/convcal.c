@@ -321,7 +321,7 @@ void jul_to_cal(long n, int *y, int *m, int *d)
 double jul_and_time_to_jul(long jul, int hour, int min, double sec)
 {
     return ((double) jul)
-        + (((double) (((hour + 12)*60 + min)*60)) + sec)/86400.0;
+        + (((double) (((hour - 12)*60 + min)*60)) + sec)/86400.0;
 
 }
 
@@ -350,8 +350,8 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
     long n;
 
     /* find the time of the day */
-    n = (long) floor(jday - 0.5);
-    *sec = 24.0*(jday - 0.5 - n);
+    n = (long) floor(jday + 0.5);
+    *sec = 24.0*(jday + 0.5 - n);
     *hour = (int) floor(*sec);
     *sec = 60.0*(*sec - *hour);
     *min = (int) floor(*sec);
@@ -816,7 +816,7 @@ int main(int argc, char *argv[])
     int    i, j, converted;
     int    retval = EXIT_SUCCESS;
 
-    /* intialial values */
+    /* initial values */
     if (parse_date(REFDATE, FMT_iso, &reference_date, &recognized)
         != EXIT_SUCCESS) {
         fprintf(stderr,
