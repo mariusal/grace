@@ -1398,9 +1398,8 @@ void update_graph_selectors(void)
 
     for (i = 0; i < new_n; i++) {
         graph_select_items[i].value = i;
-        sprintf(buf, "G%d (%s, %d sets)", i, 
-                                          is_graph_hidden(i) ? "hidden":"shown",
-                                          number_of_sets(i));
+        sprintf(buf, "(%c) G%d (%d sets)",
+            is_graph_hidden(i) ? '-':'+', i, number_of_sets(i));
         graph_select_items[i].label = copy_string(NULL, buf);
     }
     ngraph_select_items = new_n;
