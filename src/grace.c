@@ -113,8 +113,6 @@ RunTime *runtime_new(Grace *grace)
     rt->username     = NULL;
     rt->userhome     = NULL;
     
-    rt->nlfit        = NULL;
-    
     /* grace home directory */
     if ((s = getenv("GRACE_HOME")) == NULL) {
 	s = bi_home();
@@ -171,16 +169,13 @@ RunTime *runtime_new(Grace *grace)
         rt->userhome = concat_strings(rt->userhome, "/");
     }
 
-    rt->nlfit = xmalloc(sizeof(NLFit));
-    
     if (!rt->grace_home   ||
         !rt->print_cmd    ||
         !rt->grace_editor ||
         !rt->help_viewer  ||
         !rt->workingdir   ||
         !rt->username     ||
-        !rt->userhome     ||
-        !rt->nlfit) {
+        !rt->userhome) {
         runtime_free(rt);
         return NULL;
     }
@@ -195,10 +190,6 @@ RunTime *runtime_new(Grace *grace)
     rt->hdevice = 0;
     
     rt->target_set = NULL;
-    
-    rt->nlfit->title   = NULL;
-    rt->nlfit->formula = NULL;
-    reset_nonl(rt->nlfit);
     
     rt->timer_delay = 200;
 
@@ -237,9 +228,6 @@ void runtime_free(RunTime *rt)
     xfree(rt->userhome);
     
     canvas_free(rt->canvas);
-    
-    /* FIXME nonlfit */
-    xfree(rt->nlfit);
     
     grace_rt_free_dicts(rt);
     

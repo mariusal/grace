@@ -62,6 +62,7 @@ int v_scanner(char *s, int *reslen, double **vres);
 
 void realloc_vrbl(grarr *vrbl, int len);
 
+double *define_parser_scalar(char * const name);
 grarr *define_parser_arr(char * const name);
 int undefine_parser_var(void *ptr);
 grarr *get_parser_arr_by_name(char * const name);

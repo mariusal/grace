@@ -360,7 +360,7 @@ L30:
 	mode, doublereal *factor, integer *nprint, integer *info, integer *
 	nfev, doublereal *fjac, integer *ldfjac, integer *ipvt, doublereal *
 	qtf, doublereal *wa1, doublereal *wa2, doublereal *wa3, doublereal *
-	wa4)
+	wa4, void *udata)
 {
     /* Initialized data */
 
@@ -613,7 +613,7 @@ L20:
 /*     and calculate its norm. */
 
     iflag = 1;
-    (*fcn)(m, n, &x[1], &fvec[1], &iflag);
+    (*fcn)(m, n, &x[1], &fvec[1], &iflag, udata);
     *nfev = 1;
     if (iflag < 0) {
 	goto L300;

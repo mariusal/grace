@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -48,7 +48,7 @@ extern int lmdif_(U_fp, integer *, integer *, doublereal *,
 	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
 	    integer *, integer *, integer *, doublereal *, integer *, integer 
 	    *, doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *);
+	    doublereal *, void *);
 
 static double *xp, *yp, *y_saved;
 static double *wts;
@@ -56,7 +56,7 @@ static char *ra;
 
 int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x, 
 	doublereal *fvec, doublereal *tol, integer *iwa, 
-	doublereal *wa, integer lwa, integer nsteps);
+	doublereal *wa, integer lwa, integer nsteps, NLFit *nlfit);
 
 void a_to_parms(double *a, nonlparm *parms, int parnum);
 void parms_to_a(nonlparm *parms, double *a, int parnum);
@@ -72,7 +72,10 @@ void reset_nonl(NLFit *nlfit)
 
     for (i = 0; i < MAXPARM; i++) {
         nonlparm *nlp;
+        char buf[8];
     	nlp = &nlfit->parms[i];
+        sprintf(buf, "A%d", i);
+        nlp->name = copy_string(nlp->name, buf);
         nlp->value = 1.0;
     	nlp->constr = FALSE;
     	nlp->min = 1.0;
@@ -82,7 +85,7 @@ void reset_nonl(NLFit *nlfit)
     return;
 }
 
-void a_to_parms (double *a, nonlparm *parms, int parnum)
+void a_to_parms(double *a, nonlparm *parms, int parnum)
 {
     int i;
     double t;
@@ -102,7 +105,7 @@ void a_to_parms (double *a, nonlparm *parms, int parnum)
 }
 
 
-void parms_to_a (nonlparm *parms, double *a, int parnum)
+void parms_to_a(nonlparm *parms, double *a, int parnum)
 {
     int i;
     double t;
@@ -131,15 +134,15 @@ void parms_to_a (nonlparm *parms, double *a, int parnum)
 }
 
 
-void fcn(int * m, int * n, double * x, double * fvec,
-		int * iflag)
+void fcn(int * m, int * n, double * x, double * fvec, int * iflag, void *udata)
 {
     int errpos;
     int i;
+    NLFit *nlfit = (NLFit *) udata;
 
-    a_to_parms(x, grace->rt->nlfit->parms, *n);
+    a_to_parms(x, nlfit->parms, *n);
 
-    errpos = scanner(grace->rt->nlfit->formula);
+    errpos = scanner(nlfit->formula);
     if (errpos) {
 	errmsg("error in fcn");
 	*iflag = -1;
@@ -190,14 +193,14 @@ int correlation(double *x, double *y, int n, double *cor)
     return RETURN_SUCCESS;
 }
 
-int do_nonlfit(Quark *psrc, double *warray, char *rarray, int nsteps)
+int do_nonlfit(Quark *psrc, NLFit *nlfit,
+    double *warray, char *rarray, int nsteps)
 {
     int info = -1;
     double *fvec, *wa;
     int i, n;
     integer lwa, iwa[MAXPARM];
     double a[MAXPARM];
-    NLFit *nlfit = grace->rt->nlfit;
     nonlparm *parms = nlfit->parms;
     int parnum = nlfit->parnum;
     char buf[128];
@@ -253,7 +256,7 @@ int do_nonlfit(Quark *psrc, double *warray, char *rarray, int nsteps)
     parms_to_a(parms, a, parnum);
     
     info = lmdif_drv((U_fp) fcn, (integer) n, (integer) parnum, a, fvec, 
-        &nlfit->tolerance, iwa, wa, lwa, (integer) nsteps);
+        &nlfit->tolerance, iwa, wa, lwa, (integer) nsteps, nlfit);
     
     a_to_parms(a, parms, parnum);
     
@@ -355,7 +358,7 @@ int do_nonlfit(Quark *psrc, double *warray, char *rarray, int nsteps)
  */
 int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x, 
 	doublereal *fvec, doublereal *tol, integer *iwa, 
-	doublereal *wa, integer lwa, integer nsteps)
+	doublereal *wa, integer lwa, integer nsteps, NLFit *nlfit)
 {
     /* Initialized data */
 
@@ -480,7 +483,7 @@ int lmdif_drv(U_fp fcn, integer m, integer n, doublereal *x,
     lmdif_((U_fp)fcn, &m, &n, &x[1], &fvec[1], &ftol, &xtol, &gtol, &maxfev, &
 	    epsfcn, &wa[1], &mode, &factor, &nprint, &info, &nfev, &wa[mp5n + 
 	    1], &m, &iwa[1], &wa[n + 1], &wa[(n << 1) + 1], &wa[n * 3 + 1], 
-	    &wa[(n << 2) + 1], &wa[n * 5 + 1]);
+	    &wa[(n << 2) + 1], &wa[n * 5 + 1], (void *) nlfit);
 	    
     if (info == 8) {
 	info = 4;

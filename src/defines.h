@@ -426,6 +426,7 @@ typedef struct {
 
 /* parameters for non-linear fit */
 typedef struct {
+    char *name;         /* symbolic name */
     double value;       /* parameter itself */
     int constr;         /* whether or not to use constraints */
     double min;         /* low bound constraint */

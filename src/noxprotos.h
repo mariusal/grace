@@ -69,7 +69,8 @@ int do_sample(Quark *psrc, Quark *pdest,
     char *formula);
 int do_prune(Quark *psrc, Quark *pdest, 
     int interp, int elliptic, double dx, int reldx, double dy, int reldy);
-int do_nonlfit(Quark *pset, double *warray, char *rarray, int nsteps);
+int do_nonlfit(Quark *pset, NLFit *nlfit,
+    double *warray, char *rarray, int nsteps);
 int do_interp(Quark *psrc, Quark *pdest,
     double *mesh, int meshlen, int method, int strict);
 int featext(Quark **sets, int nsets, Quark *pdest,

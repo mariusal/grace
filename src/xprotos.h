@@ -145,7 +145,6 @@ void stufftextwin(char *s);
 void HelpCB(void *data);
 
 void create_nonl_frame(void *data);
-void update_nonl_frame(void);
 
 void update_misc_items(void);
 void create_plot_frame(void);

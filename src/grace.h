@@ -151,8 +151,6 @@ typedef struct _RunTime {
     /* target set */
     Quark *target_set;
 
-    /* parameters for non-linear fit */
-    NLFit *nlfit;
     /* real-time input delay (prevents getting stuck reading) */
     int timer_delay;
     /* autoscale after reading in data sets */

@@ -71,8 +71,6 @@
 
 #define rg ((Project *) (grace->project->data))->rg
 #define grdefaults grace->rt->grdefaults
-#define nlfit grace->rt->nlfit
-#define nonl_parms nlfit->parms
 #define canvas grace->rt->canvas
 
 /* Types of Fourier transforms */
@@ -272,7 +270,6 @@ symtab_entry *key;
 %token <ival> FFT
 %token <ival> FILEP
 %token <ival> FILL
-%token <ival> FIT
 %token <ival> FIXED
 %token <ival> FIXEDPOINT
 %token <ival> FLUSH
@@ -355,7 +352,6 @@ symtab_entry *key;
 %token <ival> NEGATE
 %token <ival> NEW
 %token <ival> NONE
-%token <ival> NONLFIT
 %token <ival> NORMAL
 %token <ival> NXY
 %token <ival> OFF
@@ -506,9 +502,6 @@ symtab_entry *key;
 %token <ival> ZERO
 %token <ival> ZNORM
 
-%token <ival> FITPARM
-%token <ival> FITPMAX
-%token <ival> FITPMIN
 %token <dval> NUMBER
 
 %token <sval> NEW_TOKEN
@@ -562,8 +555,6 @@ symtab_entry *key;
 %type <ival> stattype
 
 %type <ival> datacolumn
-
-%type <ival> nonlfitopts
 
 %type <ival> sortdir
 
@@ -635,15 +626,6 @@ expr:	NUMBER {
 	}
 	|  VAR_D {
 	    $$ = *($1);
-	}
-	|  FITPARM {
-	    $$ = nonl_parms[$1].value;
-	}
-	|  FITPMAX {
-	    $$ = nonl_parms[$1].max;
-	}
-	|  FITPMIN {
-	    $$ = nonl_parms[$1].min;
 	}
 	|  array indx {
             if ($2 >= $1->length) {
@@ -1741,18 +1723,6 @@ asgn:
 	{
 	    *($1) = $3;
 	}
-	| FITPARM '=' expr
-	{
-	    nonl_parms[$1].value = $3;
-	}
-	| FITPMAX '=' expr
-	{
-	    nonl_parms[$1].max = $3;
-	}
-	| FITPMIN '=' expr
-	{
-	    nonl_parms[$1].min = $3;
-	}
 	| array indx '=' expr
 	{
 	    if ($2 >= $1->length) {
@@ -1811,16 +1781,7 @@ vasgn:
 defines:
 	DEFINE NEW_TOKEN
         {
-	    symtab_entry tmpkey;
-            double *var;
-            
-            var = xmalloc(SIZEOF_DOUBLE);
-            *var = 0.0;
-            
-	    tmpkey.s = $2;
-	    tmpkey.type = KEY_VAR;
-	    tmpkey.data = (void *) var;
-	    if (addto_symtab(tmpkey) != RETURN_SUCCESS) {
+	    if (define_parser_scalar($2) == NULL) {
 	        yyerror("Keyword already exists");
 	    }
 
@@ -2715,10 +2676,6 @@ parmset:
 	| FORMAT formatchoice {
 	    readxformat = $2;
 	}
-        | FIT nonlfitopts { }
-	| FITPARM CONSTRAINTS onoff {
-	    nonl_parms[$1].constr = $3;
-	}
 	;
 
 actions:
@@ -3330,23 +3287,6 @@ axisbardesc:
 	    curtm->t_drawbarlinew = $1;
 	}
 	;
-
-nonlfitopts:
-        TITLE CHRSTR { 
-          nlfit->title = copy_string(nlfit->title, $2);
-	  xfree($2);
-        }
-        | FORMULA CHRSTR { 
-          nlfit->formula = copy_string(nlfit->formula, $2);
-	  xfree($2);
-        }
-        | WITH nexpr PARAMETERS { 
-            nlfit->parnum = $2; 
-        }
-        | PREC expr { 
-            nlfit->tolerance = $2; 
-        }
-        ;
 
 selectgraph:
         GRAPHNO
@@ -4005,36 +3945,6 @@ opchoice_obs: TOP { $$ = PLACEMENT_OPPOSITE; }
 
 /* list of intrinsic functions and keywords */
 symtab_entry ikey[] = {
-	{"A0", FITPARM, NULL},
-	{"A0MAX", FITPMAX, NULL},
-	{"A0MIN", FITPMIN, NULL},
-	{"A1", FITPARM, NULL},
-	{"A1MAX", FITPMAX, NULL},
-	{"A1MIN", FITPMIN, NULL},
-	{"A2", FITPARM, NULL},
-	{"A2MAX", FITPMAX, NULL},
-	{"A2MIN", FITPMIN, NULL},
-	{"A3", FITPARM, NULL},
-	{"A3MAX", FITPMAX, NULL},
-	{"A3MIN", FITPMIN, NULL},
-	{"A4", FITPARM, NULL},
-	{"A4MAX", FITPMAX, NULL},
-	{"A4MIN", FITPMIN, NULL},
-	{"A5", FITPARM, NULL},
-	{"A5MAX", FITPMAX, NULL},
-	{"A5MIN", FITPMIN, NULL},
-	{"A6", FITPARM, NULL},
-	{"A6MAX", FITPMAX, NULL},
-	{"A6MIN", FITPMIN, NULL},
-	{"A7", FITPARM, NULL},
-	{"A7MAX", FITPMAX, NULL},
-	{"A7MIN", FITPMIN, NULL},
-	{"A8", FITPARM, NULL},
-	{"A8MAX", FITPMAX, NULL},
-	{"A8MIN", FITPMIN, NULL},
-	{"A9", FITPARM, NULL},
-	{"A9MAX", FITPMAX, NULL},
-	{"A9MIN", FITPMIN, NULL},
 	{"ABOVE", ABOVE, NULL},
 	{"ABS", FUNC_D, (void *) fabs},
 	{"ABSOLUTE", ABSOLUTE, NULL},
@@ -4155,7 +4065,6 @@ symtab_entry ikey[] = {
 	{"FFT", FFT, NULL},
 	{"FILE", FILEP, NULL},
 	{"FILL", FILL, NULL},
-	{"FIT", FIT, NULL},
 	{"FIXED", FIXED, NULL},
 	{"FIXEDPOINT", FIXEDPOINT, NULL},
 	{"FLOOR", FUNC_D, (void *) floor},
@@ -4283,7 +4192,6 @@ symtab_entry ikey[] = {
 	{"NEGATE", NEGATE, NULL},
 	{"NEW", NEW, NULL},
 	{"NONE", NONE, NULL},
-	{"NONLFIT", NONLFIT, NULL},
 	{"NORM", FUNC_D, (void *) fx},
 	{"NORMAL", NORMAL, NULL},
 	{"NOT", NOT, NULL},
@@ -4659,29 +4567,60 @@ static void copy_vrbl(grarr *dest, grarr *src)
     }
 }
 
+void *get_parser_var_by_name(char * const name, int type)
+{
+    int position;
+    char *s;
+
+    s = copy_string(NULL, name);
+    lowtoupper(s);
+
+    position = findf(key, s);
+    xfree(s);
+
+    if (position >= 0 && key[position].type == type) {
+       return key[position].data;
+    }
+
+    return NULL;
+}
+
 grarr *get_parser_arr_by_name(char * const name)
 {
-     int position;
-     char *s;
-     
-     s = copy_string(NULL, name);
-     lowtoupper(s);
-     
-     position = findf(key, s);
-     xfree(s);
-     
-     if (position >= 0) {
-         if (key[position].type == KEY_VEC) {
-            return (grarr *) key[position].data;
-         }
-     }
-     
-     return NULL;
+    return (grarr *) get_parser_var_by_name(name, KEY_VEC);
+}
+
+double *get_parser_scalar_by_name(char * const name)
+{
+    return (double *) get_parser_var_by_name(name, KEY_VAR);
+}
+
+double *define_parser_scalar(char * const name)
+{
+    if (get_parser_var_by_name(name, KEY_VAR) == NULL) {
+        symtab_entry tmpkey;
+        double *var;
+
+        var = xmalloc(SIZEOF_DOUBLE);
+        *var = 0.0;
+
+        tmpkey.s = name;
+        tmpkey.type = KEY_VAR;
+        tmpkey.data = (void *) var;
+
+        if (addto_symtab(tmpkey) == RETURN_SUCCESS) {
+            return var;
+        } else {
+            return NULL;
+        }
+    } else {
+        return NULL;
+    }
 }
 
 grarr *define_parser_arr(char * const name)
 {
-     if (get_parser_arr_by_name(name) == NULL) {
+     if (get_parser_var_by_name(name, KEY_VEC) == NULL) {
 	symtab_entry tmpkey;
         grarr *var;
         
@@ -4962,23 +4901,7 @@ static int yylex(void)
 #endif
 	found = -1;
 	if ((found = findf(key, sbuf)) >= 0) {
-	    if (key[found].type == FITPARM) {
-		int index = sbuf[1] - '0';
-		yylval.ival = index;
-		return FITPARM;
-	    }
-	    else if (key[found].type == FITPMAX) {
-		int index = sbuf[1] - '0';
-		yylval.ival = index;
-		return FITPMAX;
-	    }
-	    else if (key[found].type == FITPMIN) {
-		int index = sbuf[1] - '0';
-		yylval.ival = index;
-		return FITPMIN;
-	    }
-
-	    else if (key[found].type == KEY_VAR) {
+	    if (key[found].type == KEY_VAR) {
 		yylval.dptr = (double *) key[found].data;
 		return VAR_D;
 	    }
