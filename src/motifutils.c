@@ -3232,8 +3232,8 @@ Boolean xv_evalexpri(Widget w, int *answer )
 
 void xv_setstr(Widget w, char *s)
 {
-    if (s != NULL && w != NULL) {
-        XmTextSetString(w, s);
+    if (w != NULL) {
+        XmTextSetString(w, s ? s : "");
     }
 }
 
