@@ -397,6 +397,77 @@ int save_axis_properties(XFile *xf, tickmarks *t)
     return RETURN_SUCCESS;
 }
 
+int save_frame_properties(XFile *xf, frame *f)
+{
+    Attributes *attrs;
+    if (!f) {
+        return RETURN_FAILURE;
+    }
+    
+    attrs = attributes_new();
+    
+    if (attrs == NULL) {
+        return RETURN_FAILURE;
+    }
+
+    /* Frame */
+    attributes_reset(attrs);
+    xmlio_write_line_spec(xf, attrs,
+        &f->outline.pen, f->outline.width, f->outline.style);
+    xmlio_write_fill_spec(xf, attrs, &f->fillpen);
+    
+    /* Viewport */
+    attributes_reset(attrs);
+    attributes_set_dval(attrs, AStrXmin, f->v.xv1);
+    attributes_set_dval(attrs, AStrXmax, f->v.xv2);
+    attributes_set_dval(attrs, AStrYmin, f->v.yv1);
+    attributes_set_dval(attrs, AStrYmax, f->v.yv2);
+    xfile_empty_element(xf, EStrViewport, attrs);
+
+    /* Legend */
+    attributes_reset(attrs);
+    xmlio_set_active(attrs, f->l.active);
+    attributes_set_dval(attrs, AStrLength, f->l.len);
+    attributes_set_dval(attrs, AStrVgap, f->l.vgap);
+    attributes_set_dval(attrs, AStrHgap, f->l.hgap);
+    attributes_set_bval(attrs, AStrSingleSymbol, f->l.singlesym);
+    attributes_set_bval(attrs, AStrInvert, f->l.invert);
+    xfile_begin_element(xf, EStrLegend, attrs);
+    {
+        xmlio_write_face_spec(xf, attrs,
+            f->l.font, f->l.charsize, f->l.color);
+        attributes_reset(attrs);
+        attributes_set_ival(attrs, AStrAnchorCorner, f->l.acorner);
+        xmlio_set_offset(attrs, f->l.offset.x, f->l.offset.y);
+        xfile_begin_element(xf, EStrLegframe, attrs);
+        {
+            xmlio_write_line_spec(xf, attrs,
+                &(f->l.boxline.pen), f->l.boxline.width, f->l.boxline.style);
+            xmlio_write_fill_spec(xf, attrs, &(f->l.boxfillpen));
+        }
+        xfile_end_element(xf, EStrLegframe);
+    }
+    xfile_end_element(xf, EStrLegend);
+
+    /* Title/subtitle */
+    xfile_begin_element(xf, EStrTitle, NULL);
+    {
+        xmlio_write_face_spec(xf, attrs,
+            f->labs.title.font, f->labs.title.charsize, f->labs.title.color);
+        xmlio_write_text(xf, f->labs.title.s);
+    }
+    xfile_end_element(xf, EStrTitle);
+    xfile_begin_element(xf, EStrSubtitle, NULL);
+    {
+        xmlio_write_face_spec(xf, attrs,
+            f->labs.stitle.font, f->labs.stitle.charsize, f->labs.stitle.color);
+        xmlio_write_text(xf, f->labs.stitle.s);
+    }
+    xfile_end_element(xf, EStrSubtitle);
+
+    return RETURN_SUCCESS;
+}
+
 int save_graph_properties(XFile *xf, Quark *gr)
 {
     int i;
@@ -407,7 +478,7 @@ int save_graph_properties(XFile *xf, Quark *gr)
         return RETURN_FAILURE;
     }
     
-    g = (graph *) gr->data;
+    g = graph_get_data(gr);
     
     attrs = attributes_new();
     
@@ -420,14 +491,6 @@ int save_graph_properties(XFile *xf, Quark *gr)
     attributes_set_bval(attrs, AStrStacked, g->stacked);
     attributes_set_dval(attrs, AStrBargap, g->bargap);
     xfile_empty_element(xf, EStrPresentationSpec, attrs);
-
-    /* Viewport */
-    attributes_reset(attrs);
-    attributes_set_dval(attrs, AStrXmin, g->v.xv1);
-    attributes_set_dval(attrs, AStrXmax, g->v.xv2);
-    attributes_set_dval(attrs, AStrYmin, g->v.yv1);
-    attributes_set_dval(attrs, AStrYmax, g->v.yv2);
-    xfile_empty_element(xf, EStrViewport, attrs);
 
     /* World coordinate scales */
     attributes_reset(attrs);
@@ -446,31 +509,6 @@ int save_graph_properties(XFile *xf, Quark *gr)
     attributes_set_dval(attrs, AStrNorm, g->znorm);
     xfile_empty_element(xf, EStrZscale, attrs);
 
-    /* Legend */
-    attributes_reset(attrs);
-    xmlio_set_active(attrs, g->l.active);
-    attributes_set_dval(attrs, AStrLength, g->l.len);
-    attributes_set_dval(attrs, AStrVgap, g->l.vgap);
-    attributes_set_dval(attrs, AStrHgap, g->l.hgap);
-    attributes_set_bval(attrs, AStrSingleSymbol, g->l.singlesym);
-    attributes_set_bval(attrs, AStrInvert, g->l.invert);
-    xfile_begin_element(xf, EStrLegend, attrs);
-    {
-        xmlio_write_face_spec(xf, attrs,
-            g->l.font, g->l.charsize, g->l.color);
-        attributes_reset(attrs);
-        attributes_set_ival(attrs, AStrAnchorCorner, g->l.acorner);
-        xmlio_set_offset(attrs, g->l.offset.x, g->l.offset.y);
-        xfile_begin_element(xf, EStrLegframe, attrs);
-        {
-            xmlio_write_line_spec(xf, attrs,
-                &(g->l.boxline.pen), g->l.boxline.width, g->l.boxline.style);
-            xmlio_write_fill_spec(xf, attrs, &(g->l.boxfillpen));
-        }
-        xfile_end_element(xf, EStrLegframe);
-    }
-    xfile_end_element(xf, EStrLegend);
-
     /* Locator */
     attributes_reset(attrs);
     attributes_set_ival(attrs, AStrType, g->locator.pt_type); /* FIXME: textual */
@@ -488,33 +526,6 @@ int save_graph_properties(XFile *xf, Quark *gr)
             EStrYformat, g->locator.fy, g->locator.py);
     }
     xfile_end_element(xf, EStrLocator);
-
-    /* Frame */
-    attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrType, g->f.type); /* FIXME: textual */
-    xfile_begin_element(xf, EStrFrame, attrs);
-    {
-        xmlio_write_line_spec(xf, attrs,
-            &(g->f.outline.pen), g->f.outline.width, g->f.outline.style);
-        xmlio_write_fill_spec(xf, attrs, &(g->f.fillpen));
-    }
-    xfile_end_element(xf, EStrFrame);
-
-    /* Title/subtitle */
-    xfile_begin_element(xf, EStrTitle, NULL);
-    {
-        xmlio_write_face_spec(xf, attrs,
-            g->labs.title.font, g->labs.title.charsize, g->labs.title.color);
-        xmlio_write_text(xf, g->labs.title.s);
-    }
-    xfile_end_element(xf, EStrTitle);
-    xfile_begin_element(xf, EStrSubtitle, NULL);
-    {
-        xmlio_write_face_spec(xf, attrs,
-            g->labs.stitle.font, g->labs.stitle.charsize, g->labs.stitle.color);
-        xmlio_write_text(xf, g->labs.stitle.s);
-    }
-    xfile_end_element(xf, EStrSubtitle);
 
     /* FIXME: world stack */
     
@@ -697,10 +708,52 @@ static int save_dataset(XFile *xf, Quark *pset)
     return RETURN_SUCCESS;
 }
 
-static int graph_children_save_hook(unsigned int step, void *data, void *udata)
+int save_regions(XFile *xf)
 {
-    Quark *q = (Quark *) data;
+    Attributes *attrs;
+
+    if (!xf) {
+        return RETURN_FAILURE;
+    }
+    
+    attrs = attributes_new();
+    
+    if (attrs == NULL) {
+        return RETURN_FAILURE;
+    }
+
+    /* FIXME: regions */
+
+    attributes_free(attrs);
+
+    return RETURN_SUCCESS;
+}
+    
+int save_preferences(XFile *xf)
+{
+    Attributes *attrs;
+
+    if (!xf) {
+        return RETURN_FAILURE;
+    }
+    
+    attrs = attributes_new();
+    
+    if (attrs == NULL) {
+        return RETURN_FAILURE;
+    }
+    
+    attributes_free(attrs);
+
+    return RETURN_SUCCESS;
+}
+
+static int project_save_hook(Quark *q,
+    void *udata, QTraverseClosure *closure)
+{
     XFile *xf = (XFile *) udata;
+    Project *pr;
+    frame *f;
     set *p;
     DObject *o;
     Attributes *attrs;
@@ -715,6 +768,79 @@ static int graph_children_save_hook(unsigned int step, void *data, void *udata)
     }
     
     switch (q->fid) {
+    case QFlavorProject:
+        pr = project_get_data(q);
+        
+        xfile_comment(xf, "Description");
+        xfile_begin_element(xf, EStrDescription, NULL);
+        {
+            xmlio_write_text(xf, pr->description);
+        }
+        xfile_end_element(xf, EStrDescription);
+
+        xfile_comment(xf, "Definitions");
+        xfile_begin_element(xf, EStrDefinitions, NULL);
+        {
+            xfile_comment(xf, "Color map");
+            save_colormap(xf, grace->rt->canvas);
+            xfile_comment(xf, "Font map");
+            save_fontmap(xf, pr);
+        }
+        xfile_end_element(xf, EStrDefinitions);
+
+        xfile_comment(xf, "Page properties");
+        attributes_reset(attrs);
+        attributes_set_ival(attrs, AStrWidth, pr->page_wpp);
+        attributes_set_ival(attrs, AStrHeight, pr->page_hpp);
+        attributes_set_bval(attrs, AStrFill, pr->bgfill);
+        xmlio_set_color_ref(attrs, pr->bgcolor);
+        xfile_empty_element(xf, EStrPage, attrs);
+
+        xfile_comment(xf, "Data formats");
+        xfile_begin_element(xf, EStrDataFormats, NULL);
+        {
+            attributes_reset(attrs);
+            xmlio_set_world_value(attrs, AStrReference, get_ref_date());
+            attributes_set_bval(attrs, AStrWrap, two_digits_years_allowed());
+            attributes_set_ival(attrs, AStrWrapYear, get_wrap_year());
+            xfile_empty_element(xf, EStrDates, attrs);
+
+            attributes_reset(attrs);
+            attributes_set_sval(attrs, AStrFormat, pr->sformat);
+            xfile_empty_element(xf, EStrWorld, attrs);
+        }
+        xfile_end_element(xf, EStrDataFormats);
+
+        save_regions(xf);
+
+        save_preferences(xf);
+        break;
+    case QFlavorFrame:
+        if (!closure->pass2) {
+            f = frame_get_data(q);
+
+            attributes_set_ival(attrs, AStrType, f->type); /* FIXME: textual */
+            xfile_begin_element(xf, EStrFrame, attrs);
+            save_frame_properties(xf, f);
+            
+            closure->pass2 = TRUE;
+        } else {
+            xfile_end_element(xf, EStrFrame);
+        }
+        break;
+    case QFlavorGraph:
+        if (!closure->pass2) {
+            attributes_set_sval(attrs, AStrId, QIDSTR(q));
+            xmlio_set_active(attrs, !is_graph_hidden(q));
+
+            xfile_begin_element(xf, EStrGraph, attrs);
+            save_graph_properties(xf, q);
+    
+            closure->pass2 = TRUE;
+        } else {
+            xfile_end_element(xf, EStrGraph);
+        }
+        break;
     case QFlavorSet:
         p = set_get_data(q);
         
@@ -810,53 +936,12 @@ static int graph_children_save_hook(unsigned int step, void *data, void *udata)
     return TRUE;
 }
 
-int save_regions(XFile *xf)
-{
-    Attributes *attrs;
-
-    if (!xf) {
-        return RETURN_FAILURE;
-    }
-    
-    attrs = attributes_new();
-    
-    if (attrs == NULL) {
-        return RETURN_FAILURE;
-    }
-
-    /* FIXME: regions */
-
-    attributes_free(attrs);
-
-    return RETURN_SUCCESS;
-}
-    
-int save_preferences(XFile *xf)
-{
-    Attributes *attrs;
-
-    if (!xf) {
-        return RETURN_FAILURE;
-    }
-    
-    attrs = attributes_new();
-    
-    if (attrs == NULL) {
-        return RETURN_FAILURE;
-    }
-    
-    attributes_free(attrs);
-
-    return RETURN_SUCCESS;
-}
-
 
 int save_project(char *fn)
 {
     XFile *xf;
     Attributes *attrs;
     Project *pr = (Project *) grace->project->data;
-    Quark *gr;
     
     xf = xfile_new(fn);
     attrs = attributes_new();
@@ -871,71 +956,8 @@ int save_project(char *fn)
     attributes_set_ival(attrs, AStrVersion, bi_version_id());
     xfile_begin(xf, FALSE, NULL, "grace.dtd", EStrGrace, attrs);
 
-    xfile_comment(xf, "Description");
-    xfile_begin_element(xf, EStrDescription, NULL);
-    {
-        xmlio_write_text(xf, pr->description);
-    }
-    xfile_end_element(xf, EStrDescription);
-    
-    xfile_comment(xf, "Definitions");
-    xfile_begin_element(xf, EStrDefinitions, NULL);
-    {
-        xfile_comment(xf, "Color map");
-        save_colormap(xf, grace->rt->canvas);
-        xfile_comment(xf, "Font map");
-        save_fontmap(xf, pr);
-    }
-    xfile_end_element(xf, EStrDefinitions);
-
-    xfile_comment(xf, "Page properties");
-    attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrWidth, pr->page_wpp);
-    attributes_set_ival(attrs, AStrHeight, pr->page_hpp);
-    attributes_set_bval(attrs, AStrFill, pr->bgfill);
-    xmlio_set_color_ref(attrs, pr->bgcolor);
-    xfile_empty_element(xf, EStrPage, attrs);
-
-    xfile_comment(xf, "Data formats");
-    xfile_begin_element(xf, EStrDataFormats, NULL);
-    {
-        attributes_reset(attrs);
-        xmlio_set_world_value(attrs, AStrReference, get_ref_date());
-        attributes_set_bval(attrs, AStrWrap, two_digits_years_allowed());
-        attributes_set_ival(attrs, AStrWrapYear, get_wrap_year());
-        xfile_empty_element(xf, EStrDates, attrs);
+    quark_traverse(grace->project, project_save_hook, xf);
         
-        attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrFormat, pr->sformat);
-        xfile_empty_element(xf, EStrWorld, attrs);
-    }
-    xfile_end_element(xf, EStrDataFormats);
-
-    save_regions(xf);
-    
-    save_preferences(xf);
-
-    xfile_comment(xf, "Graphs");
-    storage_rewind(grace->project->children);
-    while (storage_get_data(grace->project->children, (void **) &gr) == RETURN_SUCCESS) {
-        attributes_reset(attrs);
-        attributes_set_sval(attrs, AStrId, QIDSTR(gr));
-        xmlio_set_active(attrs, !is_graph_hidden(gr));
-        xfile_begin_element(xf, EStrGraph, attrs);
-        {
-            save_graph_properties(xf, gr);
-
-            /* save graph children */
-            storage_traverse(gr->children, graph_children_save_hook, xf);
-
-        }
-        xfile_end_element(xf, EStrGraph);
-
-        if (storage_next(grace->project->children) != RETURN_SUCCESS) {
-            break;
-        }
-    }
-    
     attributes_free(attrs);
     
     xfile_end(xf);

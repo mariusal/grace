@@ -187,9 +187,36 @@ void project_clear_dirtystate(Quark *q)
     update_app_title(q);
 }
 
-Storage *project_get_graphs(const Quark *q)
+typedef struct {
+    int ngraphs;
+    Quark **graphs;
+} graph_hook_t;
+
+static int graph_hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
-    return q->children;
+    graph_hook_t *p = (graph_hook_t *) udata;
+    
+    if (q->fid == QFlavorGraph) {
+        p->ngraphs++;
+        p->graphs = xrealloc(p->graphs, p->ngraphs*SIZEOF_VOID_P);
+        p->graphs[p->ngraphs - 1] = q;
+    }
+    
+    return TRUE;
+}
+
+int project_get_graphs(Quark *q, Quark ***graphs)
+{
+    graph_hook_t p;
+    
+    p.ngraphs = 0;
+    p.graphs  = NULL;
+    
+    quark_traverse(q, graph_hook, &p);
+    
+    *graphs = p.graphs;
+    
+    return p.ngraphs;
 }
 
 char *project_get_sformat(const Quark *q)
@@ -204,7 +231,7 @@ void project_set_sformat(Quark *q, const char *s)
     pr->sformat = copy_string(pr->sformat, s);;
 }
 
-Project *project_get_data(Quark *q)
+Project *project_get_data(const Quark *q)
 {
     if (q && q->fid == QFlavorProject) {
         return (Project *) q->data;

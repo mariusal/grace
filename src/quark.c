@@ -89,6 +89,10 @@ Quark *quark_new(Quark *parent, unsigned int fid)
     QuarkFlavor *qf;
     void *data;
     
+    if (!parent) {
+        return NULL;
+    }
+    
     qf = quark_flavor_get(parent->grace, fid);
     
     if (!qf) {
@@ -235,6 +239,31 @@ Quark *quark_find_child_by_idstr(Quark *q, const char *s)
     return _cbdata.child;
 }
 
+static int find_hook2(Quark *q,
+    void *udata, QTraverseClosure *closure)
+{
+    QTFindHookData *_cbdata = (QTFindHookData *) udata;
+    
+    if (compare_strings(q->idstr, _cbdata->s)) {
+        _cbdata->child = q;
+        return FALSE;
+    } else {
+        return TRUE;
+    }
+}
+
+Quark *quark_find_descendant_by_idstr(Quark *q, const char *s)
+{
+    QTFindHookData _cbdata;
+    _cbdata.s = (char *) s;
+    _cbdata.child = NULL;
+    if (q && s) {
+        quark_traverse(q, find_hook2, &_cbdata);
+        
+    }
+    return _cbdata.child;
+}
+
 int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata)
 {
     if (q) {
@@ -268,10 +297,22 @@ static int hook(unsigned int step, void *data, void *udata)
 
 static int _quark_traverse(Quark *q, QTHookData *_cbdata)
 {
-    if (_cbdata->hook(q, _cbdata->depth, _cbdata->step, _cbdata->udata) == TRUE) {
+    int res;
+    QTraverseClosure closure;
+    
+    closure.depth = _cbdata->depth;
+    closure.step  = _cbdata->step;
+    closure.pass2 = FALSE;
+    
+    res = _cbdata->hook(q, _cbdata->udata, &closure);
+    if (res) {
         _cbdata->depth++;
 
         storage_traverse(q->children, hook, _cbdata);
+        
+        if (closure.pass2) {
+            res = _cbdata->hook(q, _cbdata->udata, &closure);
+        }
         
         return TRUE;
     } else {

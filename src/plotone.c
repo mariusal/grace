@@ -51,12 +51,29 @@
 
 char print_file[GR_MAXPATHLEN] = "";
 
-static int plotone_hook(unsigned int step, void *data, void *udata)
+static int plotone_hook(Quark *q,
+    void *udata, QTraverseClosure *closure)
 {
-    Quark *gr = (Quark *) data;
     Canvas *canvas = (Canvas *) udata;
     
-    plotone(canvas, gr);
+    switch (q->fid) {
+    case QFlavorFrame:
+        if (!closure->pass2) {
+            /* fill frame */
+            fillframe(canvas, q);
+    
+            closure->pass2 = TRUE;
+        } else {
+            drawframe(canvas, q);
+        }
+        break;
+    case QFlavorGraph:
+        draw_graph(canvas, q);
+        break;
+    case QFlavorDObject:
+        draw_object(canvas, q);
+        break;
+    }
     
     return TRUE;
 }
@@ -65,7 +82,9 @@ static void dproc(Canvas *canvas, void *data)
 {
     Quark *project = (Quark *) data;
 
-    storage_traverse(project->children, plotone_hook, canvas);
+    set_draw_mode(canvas, TRUE);   
+    
+    quark_traverse(project, plotone_hook, canvas);
 }
 
 /*
@@ -74,7 +93,7 @@ static void dproc(Canvas *canvas, void *data)
 void drawgraph(Grace *grace)
 {
     Canvas *canvas = grace->rt->canvas;
-    Project *pr = (Project *) grace->project->data;
+    Project *pr = project_get_data(grace->project);
     Quark *saveg;
 
     saveg = graph_get_current(grace->project);
@@ -162,7 +181,7 @@ void do_hardcopy(Grace *grace)
 }
 
 
-void plotone(Canvas *canvas, Quark *gr)
+void draw_graph(Canvas *canvas, Quark *gr)
 {
     GraphType gtype;
     graph *g = graph_get_data(gr);
@@ -174,14 +193,6 @@ void plotone(Canvas *canvas, Quark *gr)
     if (select_graph(gr) != RETURN_SUCCESS) {
         return;
     }
-    
-    canvas_set_clipview(canvas, &g->v);
-    setclipping(canvas, TRUE);
-    
-    set_draw_mode(canvas, TRUE);
-    
-    /* fill frame */
-    fillframe(canvas, gr);
     
     gtype = get_graph_type(gr);
     
@@ -214,20 +225,6 @@ void plotone(Canvas *canvas, Quark *gr)
         drawaxes(canvas, gr);
     }
     
-    /* plot frame */
-    drawframe(canvas, gr);
-
-    /* plot objects */
-    draw_objects(canvas, gr);
-    
-    if (gtype != GRAPH_PIE) {
-        /* plot legends */
-        dolegend(canvas, gr);
-    }
-    
-    /* draw title and subtitle */
-    draw_titles(canvas, gr);
-
     /* draw regions and mark the reference points only if in interactive mode */
     if (terminal_device(canvas) == TRUE) {
         draw_regions(canvas, gr);
@@ -736,17 +733,17 @@ void draw_ref_point(Canvas *canvas, Quark *gr)
 
 
 /* draw title and subtitle */
-void draw_titles(Canvas *canvas, Quark *gr)
+void draw_titles(Canvas *canvas, Quark *q)
 {
-    view v;
+    view *v;
     labels *lab;
     VPoint vp1, vp2;
     
-    get_graph_viewport(gr, &v);
-    lab = get_graph_labels(gr);
+    v = frame_get_view(q);
+    lab = frame_get_labels(q);
 
-    vp1.x = (v.xv2 + v.xv1) / 2;
-    vp1.y = (v.yv2 < v.yv1)? v.yv1 : v.yv2;
+    vp1.x = (v->xv2 + v->xv1) / 2;
+    vp1.y = (v->yv2 < v->yv1)? v->yv1 : v->yv2;
     vp2 = vp1;
     if (lab->title.s && lab->title.s[0]) {
         setcolor(canvas, lab->title.color);
@@ -767,97 +764,111 @@ void draw_titles(Canvas *canvas, Quark *gr)
 /*
  * draw the graph frame
  */
-void drawframe(Canvas *canvas, Quark *gr)
+void drawframe(Canvas *canvas, Quark *q)
 {
-    view v;
-    framep *f;
+    view *v;
+    frame *f;
     VPoint vps[4];
 
-    get_graph_viewport(gr, &v);
-    f = get_graph_frame(gr);
+    f = frame_get_data(q);
+    v = frame_get_view(q);
 
+    setclipping(canvas, TRUE);
+    
     setline(canvas, &f->outline);
 
     switch (f->type) {
     case 0:
-        vps[0].x = v.xv1;
-        vps[0].y = v.yv1;
-        vps[1].x = v.xv2;
-        vps[1].y = v.yv2;
+        vps[0].x = v->xv1;
+        vps[0].y = v->yv1;
+        vps[1].x = v->xv2;
+        vps[1].y = v->yv2;
         DrawRect(canvas, &vps[0], &vps[1]);
         break;
     case 1:                     /* half open */
-        vps[0].x = v.xv1;
-        vps[0].y = v.yv2;
-        vps[1].x = v.xv1;
-        vps[1].y = v.yv1;
-        vps[2].x = v.xv2;
-        vps[2].y = v.yv1;
+        vps[0].x = v->xv1;
+        vps[0].y = v->yv2;
+        vps[1].x = v->xv1;
+        vps[1].y = v->yv1;
+        vps[2].x = v->xv2;
+        vps[2].y = v->yv1;
         DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
         break;
     case 2:                     /* break top */
-        vps[0].x = v.xv1;
-        vps[0].y = v.yv2;
-        vps[1].x = v.xv1;
-        vps[1].y = v.yv1;
-        vps[2].x = v.xv2;
-        vps[2].y = v.yv1;
-        vps[3].x = v.xv2;
-        vps[3].y = v.yv2;
+        vps[0].x = v->xv1;
+        vps[0].y = v->yv2;
+        vps[1].x = v->xv1;
+        vps[1].y = v->yv1;
+        vps[2].x = v->xv2;
+        vps[2].y = v->yv1;
+        vps[3].x = v->xv2;
+        vps[3].y = v->yv2;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 3:                     /* break bottom */
-        vps[0].x = v.xv1;
-        vps[0].y = v.yv1;
-        vps[1].x = v.xv1;
-        vps[1].y = v.yv2;
-        vps[2].x = v.xv2;
-        vps[2].y = v.yv2;
-        vps[3].x = v.xv2;
-        vps[3].y = v.yv1;
+        vps[0].x = v->xv1;
+        vps[0].y = v->yv1;
+        vps[1].x = v->xv1;
+        vps[1].y = v->yv2;
+        vps[2].x = v->xv2;
+        vps[2].y = v->yv2;
+        vps[3].x = v->xv2;
+        vps[3].y = v->yv1;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 4:                     /* break left */
-        vps[0].x = v.xv1;
-        vps[0].y = v.yv1;
-        vps[1].x = v.xv2;
-        vps[1].y = v.yv1;
-        vps[2].x = v.xv2;
-        vps[2].y = v.yv2;
-        vps[3].x = v.xv1;
-        vps[3].y = v.yv2;
+        vps[0].x = v->xv1;
+        vps[0].y = v->yv1;
+        vps[1].x = v->xv2;
+        vps[1].y = v->yv1;
+        vps[2].x = v->xv2;
+        vps[2].y = v->yv2;
+        vps[3].x = v->xv1;
+        vps[3].y = v->yv2;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     case 5:                     /* break right */
-        vps[0].x = v.xv2;
-        vps[0].y = v.yv1;
-        vps[1].x = v.xv1;
-        vps[1].y = v.yv1;
-        vps[2].x = v.xv1;
-        vps[2].y = v.yv2;
-        vps[3].x = v.xv2;
-        vps[3].y = v.yv2;
+        vps[0].x = v->xv2;
+        vps[0].y = v->yv1;
+        vps[1].x = v->xv1;
+        vps[1].y = v->yv1;
+        vps[2].x = v->xv1;
+        vps[2].y = v->yv2;
+        vps[3].x = v->xv2;
+        vps[3].y = v->yv2;
         DrawPolyline(canvas, vps, 4, POLYLINE_OPEN);
         break;
     }
+
+#if 0
+    if (gtype != GRAPH_PIE) {
+        /* plot legends */
+        dolegend(canvas, q);
+    }
+#endif
+    
+    /* draw title and subtitle */
+    draw_titles(canvas, q);
 }
 
-void fillframe(Canvas *canvas, Quark *gr)
+void fillframe(Canvas *canvas, Quark *q)
 {
-    view v;
-    framep *f;
+    view *v;
+    frame *f;
     VPoint vp1, vp2;
 
-    get_graph_viewport(gr, &v);
-    f = get_graph_frame(gr);
+    v = frame_get_view(q);
+    f = frame_get_data(q);
+
+    canvas_set_clipview(canvas, v);
     
     /* fill coordinate frame with background color */
     if (f->fillpen.pattern != 0) {
         setpen(canvas, &f->fillpen);
-        vp1.x = v.xv1;
-        vp1.y = v.yv1;
-        vp2.x = v.xv2;
-        vp2.y = v.yv2;
+        vp1.x = v->xv1;
+        vp1.y = v->yv1;
+        vp2.x = v->xv2;
+        vp2.y = v->yv2;
         FillRect(canvas, &vp1, &vp2);
     }
 }    
@@ -2254,8 +2265,9 @@ void draw_region(Canvas *canvas, region *this)
 /*
  * draw the legend
  */
-void dolegend(Canvas *canvas, Quark *gr)
+void dolegend(Canvas *canvas, Quark *q)
 {
+#if 0
     int setno, nsets;
     int draw_flag;
     double maxsymsize;
@@ -2269,7 +2281,7 @@ void dolegend(Canvas *canvas, Quark *gr)
 
     Quark **psets;
 
-    l = get_graph_legend(gr);
+    l = frame_get_legend(gr);
     if (l->active == FALSE) {
         return;
     }
@@ -2356,6 +2368,7 @@ void dolegend(Canvas *canvas, Quark *gr)
     update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
 
     putlegends(canvas, gr, &vp, maxsymsize);
+#endif
 }
 
 void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
@@ -2367,7 +2380,7 @@ void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
     int draw_line, singlesym;
     Quark **psets;
     
-    l = get_graph_legend(gr);
+    l = frame_get_legend(gr);
 
     vp1.x = vp->x + 0.01*maxsymsize;
     vp2.y = vp->y;

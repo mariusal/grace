@@ -155,10 +155,13 @@ typedef struct {
     ProjectUI *project_ui;
 } ExplorerUI;
 
+static int explorer_apply(ExplorerUI *ui, void *caller);
+
 static char *q_labeling(Quark *q)
 {
     char buf[128];
     Project *pr;
+    frame *f;
     graph *g;
     set *s;
     DObject *o;
@@ -169,6 +172,12 @@ static char *q_labeling(Quark *q)
         
         sprintf(buf, "Project \"%s\" (%d graphs)", QIDSTR(q),
             number_of_graphs(q));
+
+        break;
+    case QFlavorFrame:
+        f = frame_get_data(q);
+        
+        sprintf(buf, "Frame \"%s\"", QIDSTR(q));
 
         break;
     case QFlavorGraph:
@@ -213,10 +222,23 @@ static ListTreeItem *q_create(Widget w,
     return item;
 }
 
-static ProjectUI *create_project_ui(Widget form)
+static void oc_project_cb(OptionStructure *opt, int a, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, opt);
+}
+static void tb_project_cb(Widget but, int a, void *data)
+{
+    ExplorerUI *eui = (ExplorerUI *) data;
+    explorer_apply(eui, but);
+}
+
+static ProjectUI *create_project_ui(ExplorerUI *eui)
 {
     ProjectUI *ui;
-    Widget fr, rc;
+    Widget form, fr, rc;
+    
+    form = eui->scrolled_window;
     
     ui = xmalloc(sizeof(ProjectUI));
     
@@ -224,9 +246,9 @@ static ProjectUI *create_project_ui(Widget form)
     AddDialogFormChild(form, fr);
     rc = CreateHContainer(fr);
     ui->bg_color = CreateColorChoice(rc, "Color:");
-    // AddOptionChoiceCB(ui->bg_color, oc_plot_cb, bg_color_item);
+    AddOptionChoiceCB(ui->bg_color, oc_project_cb, eui);
     ui->bg_fill = CreateToggleButton(rc, "Fill");
-    // AddToggleButtonCB(ui->bg_fill, tb_plot_cb, bg_fill_item);
+    AddToggleButtonCB(ui->bg_fill, tb_project_cb, eui);
     
     ui->top = fr;
     
@@ -242,12 +264,16 @@ static void update_project_ui(ProjectUI *ui, Quark *q)
     }
 }
 
-static int set_project_data(ProjectUI *ui, Quark *q)
+static int set_project_data(ProjectUI *ui, Quark *q, void *caller)
 {
     Project *pr = project_get_data(q);
     if (pr) {
-        pr->bgcolor = GetOptionChoice(ui->bg_color);
-        pr->bgfill = GetToggleButtonState(ui->bg_fill);
+        if (!caller || caller == ui->bg_color) {
+            pr->bgcolor = GetOptionChoice(ui->bg_color);
+        }
+        if (!caller || caller == ui->bg_fill) {
+            pr->bgfill = GetToggleButtonState(ui->bg_fill);
+        }
 
         set_dirtystate();
         
@@ -318,11 +344,14 @@ static void destroy_cb(Widget w, XtPointer client, XtPointer call)
     xfree(ret->item->user_data);
 }
 
-static int explorer_aac(void *data)
+static int explorer_apply(ExplorerUI *ui, void *caller)
 {
-    ExplorerUI *ui = (ExplorerUI *) data;
     ListTreeMultiReturnStruct ret;
     int count, i;
+    
+    if (caller && !GetToggleButtonState(ui->instantupdate)) {
+        return RETURN_FAILURE;
+    }
     
     ListTreeGetHighlighted(ui->tree, &ret);
     count = ret.count;
@@ -334,7 +363,7 @@ static int explorer_aac(void *data)
 
         switch (q->fid) {
         case QFlavorProject:
-            if (set_project_data(ui->project_ui, q) != RETURN_SUCCESS) {
+            if (set_project_data(ui->project_ui, q, caller) != RETURN_SUCCESS) {
                 return RETURN_FAILURE;
             }
             break;
@@ -346,6 +375,13 @@ static int explorer_aac(void *data)
     
     xdrawgraph();
     return RETURN_SUCCESS;
+}
+
+static int explorer_aac(void *data)
+{
+    ExplorerUI *ui = (ExplorerUI *) data;
+    
+    return explorer_apply(ui, NULL);
 }
 
 static void update_explorer(ExplorerUI *ui)
@@ -370,7 +406,7 @@ void define_explorer_popup(Widget but, void *data)
     set_wait_cursor();
     
     if (!eui) {
-        Widget menubar, menupane, panel, form;
+        Widget menubar, menupane, panel;
 
         eui = xmalloc(sizeof(ExplorerUI));
         
@@ -409,16 +445,7 @@ void define_explorer_popup(Widget but, void *data)
 	    NULL);
         PlaceGridChild(panel, eui->scrolled_window, 1, 0);
 
-        form = XmCreateForm(eui->scrolled_window, "form", NULL, 0);
-        XtVaSetValues(form,
-            XmNleftAttachment, XmATTACH_FORM,
-            XmNrightAttachment, XmATTACH_FORM,
-            XmNtopAttachment, XmATTACH_FORM,
-            XmNbottomAttachment, XmATTACH_FORM,
-            NULL);
-        ManageChild(form);
-
-	eui->project_ui = create_project_ui(form);
+	eui->project_ui = create_project_ui(eui);
         UnmanageChild(eui->project_ui->top);
 
         eui->aacbuts = CreateAACDialog(eui->top, panel, explorer_aac, eui);

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -40,15 +40,15 @@
 void drawgraph(Grace *grace);
 void do_hardcopy(Grace *grace);
 
-void plotone(Canvas *canvas, Quark *gr);
+void draw_graph(Canvas *canvas, Quark *gr);
 
 void xyplot(Canvas *canvas, Quark *gr);
 void draw_polar_graph(Canvas *canvas, Quark *gr);
 void draw_smith_chart(Canvas *canvas, Quark *gr);
 void draw_pie_chart(Canvas *canvas, Quark *gr);
 
-void drawframe(Canvas *canvas, Quark *gr);
-void fillframe(Canvas *canvas, Quark *gr);
+void drawframe(Canvas *canvas, Quark *q);
+void fillframe(Canvas *canvas, Quark *q);
 
 void drawsetfill(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset);
@@ -77,7 +77,7 @@ void drawerrorbar(Canvas *canvas,
 
 void draw_region(Canvas *canvas, region *r);
 
-void draw_objects(Canvas *canvas, Quark *gr);
+void draw_object(Canvas *canvas, Quark *q);
 
 void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     const Arrow *arrowp, const Pen *pen, const Pen *fill);

@@ -73,7 +73,7 @@ void set_region_defaults(region *r)
     r->linkto = 0;
 }
 
-void set_default_framep(framep * f)
+void set_default_frame(frame * f)
 {
     f->type = 0;                /* frame type */
     f->outline.style = grdefaults.lines;
@@ -82,6 +82,15 @@ void set_default_framep(framep * f)
     f->outline.pen.pattern = grdefaults.pattern;
     f->fillpen.color = grdefaults.bgcolor;      /* fill background */
     f->fillpen.pattern = 0;
+
+
+    set_default_view(&f->v);
+    set_default_legend(&f->l);
+    set_default_string(&f->labs.title);
+    f->labs.title.charsize = 1.5;
+    set_default_string(&f->labs.stitle);
+    f->labs.stitle.charsize = 1.0;
+
 }
 
 void set_default_world(world * w)

@@ -1082,7 +1082,8 @@ int load_project_file(char *fn, int as_template)
 {    
     Quark *gr;
     int retval;
-    Storage *graphs;
+    Quark **graphs;
+    int i, ngraphs;
 
     if (quark_dirtystate_get(grace->project) &&
         !yesno("Abandon unsaved changes?", NULL, NULL, NULL)) {
@@ -1132,17 +1133,15 @@ int load_project_file(char *fn, int as_template)
     }
 
     /* try to switch to the first active graph */
-    graphs = project_get_graphs(grace->project);
-    storage_rewind(graphs);
-    while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
+    ngraphs = project_get_graphs(grace->project, &graphs);
+    for (i = 0; i < ngraphs; i++) {
+        gr = graphs[i];
         if (is_graph_hidden(gr) == FALSE) {
             select_graph(gr);
             break;
         }
-        if (storage_next(graphs) != RETURN_SUCCESS) {
-            break;
-        }
     }
+    xfree(graphs);
 
 #ifndef NONE_GUI
     update_all();
@@ -1437,7 +1436,8 @@ int readnetcdf(Quark *pset,
 
 int write_netcdf(char *fname)
 {
-    Storage *graphs;
+    Quark **graphs;
+    int i, ngraphs;
     Quark *gr; 
     char buf[512];
     int ncid;			/* netCDF id */
@@ -1452,8 +1452,9 @@ int write_netcdf(char *fname)
     double *x, *y, x1, x2, y1, y2;
     ncid = nccreate(fname, NC_CLOBBER);
     ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
-    graphs = project_get_graphs(grace->project);
-    while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
+    ngraphs = project_get_graphs(grace->project, &graphs);
+    for (i = 0; i < ngraphs; i++) {
+        gr = graphs[i];
         if (gr) {
             Quark **psets;
             int nsets = graph_get_sets(gr, &psets);
@@ -1487,17 +1488,16 @@ int write_netcdf(char *fname)
 	    }
             xfree(psets);
 	}
-        if (storage_next(graphs) != RETURN_SUCCESS) {
-            break;
-        }
     }
     ncendef(ncid);
     ncclose(ncid);
     if ((ncid = ncopen(fname, NC_WRITE)) == -1) {
 	errmsg("Can't open file.");
+        xfree(graphs);
 	return 1;
     }
-    while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
+    for (i = 0; i < ngraphs; i++) {
+        gr = graphs[i];
 	if (gr) {
             Quark **psets;
             int nsets = graph_get_sets(gr, &psets);
@@ -1517,11 +1517,9 @@ int write_netcdf(char *fname)
 	    }
             xfree(psets);
 	}
-        if (storage_next(graphs) != RETURN_SUCCESS) {
-            break;
-        }
     }
 
+    xfree(graphs);
     ncclose(ncid);
     return 0;
 }

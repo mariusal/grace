@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -218,10 +218,18 @@ typedef struct {
 } legend;
 
 typedef struct {
+    int active;
+    
     int type;                   /* frame type */
+    
     Line outline;               /* outline    */
     Pen fillpen;                /* fill pen   */
-} framep;
+
+    legend l;                   /* legends */
+    view v;                     /* viewport */
+
+    labels labs;                /* title and subtitle */
+} frame;
 
 typedef struct {
     int type;
@@ -325,16 +333,8 @@ typedef struct {
     double bargap;              /* Distance between bars (in bar charts) */
     double znorm;               /* Normalization of pseudo-3D graphs */
 
-    legend l;                   /* legends */
-
     world w;                    /* world */
-    view v;                     /* viewport */
-
-    labels labs;                /* title and subtitle */
-
     tickmarks *t[MAXAXES];      /* flags etc. for tickmarks for all axes */
-
-    framep f;                   /* type of box around plot */
 
     GLocator locator;           /* locator props */
 
@@ -350,12 +350,28 @@ void setline_free(SetLine *sl);
 BarLine *barline_new(void);
 RiserLine *riserline_new(void);
 
-Quark *graph_new(Quark *project);
+frame *frame_data_new(void);
+void frame_data_free(frame *g);
+frame *frame_data_copy(frame *g);
+frame *frame_get_data(const Quark *q);
+
+Quark *frame_new(Quark *project);
+view *frame_get_view(Quark *q);
+
+int frame_set_type(Quark *q, int type);
+int frame_set_view(Quark *q, const view *v);
+int frame_set_legend(Quark *q, const legend *l);
+int frame_set_title(Quark *q, const plotstr *s);
+int frame_set_stitle(Quark *q, const plotstr *s);
+int frame_set_outline(Quark *q, const Line *line);
+int frame_set_fillpen(Quark *q, const Pen *pen);
+
+Quark *graph_new(Quark *q);
 Quark *graph_next(Quark *project);
 
 Quark *graph_get_current(const Quark *project);
 
-graph *graph_get_data(Quark *gr);
+graph *graph_get_data(const Quark *gr);
 
 graph *graph_data_new(void);
 void graph_data_free(graph *g);
@@ -376,18 +392,12 @@ int activate_tick_labels(tickmarks *t, int flag);
 int get_graph_world(Quark *gr, world *w);
 int get_graph_viewport(Quark *gr, view *v);
 
-framep *get_graph_frame(Quark *gr);
-labels *get_graph_labels(Quark *gr);
-legend *get_graph_legend(Quark *gr);
+Quark *graph_get_frame(Quark *gr);
+labels *frame_get_labels(Quark *gr);
+legend *frame_get_legend(Quark *gr);
 GLocator *get_graph_locator(Quark *gr);
 
-void set_graph_frame(Quark *gr, const framep *f);
 void set_graph_world(Quark *gr, const world *w);
-void set_graph_viewport(Quark *gr, const view *v);
-void set_graph_title(Quark *gr, const plotstr *s);
-void set_graph_stitle(Quark *gr, const plotstr *s);
-void set_graph_labels(Quark *gr, const labels *labs);
-void set_graph_legend(Quark *gr, const legend *leg);
 void set_graph_locator(Quark *gr, const GLocator *locator);
 
 int get_graph_xyflip(Quark *gr);
@@ -447,7 +457,7 @@ int set_set_legstr(Quark *pset, const char *s);
 
 int number_of_sets(Quark *gr);
 
-set *set_get_data(Quark *p);
+set *set_get_data(const Quark *p);
 Dataset *dataset_get(Quark *p);
 
 int load_comments_to_legend(Quark *p);

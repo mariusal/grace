@@ -709,7 +709,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
             v.xv2 = v.xv1 + w;
             v.yv1 = boff + ih*h*(1.0 + vgap);
             v.yv2 = v.yv1 + h;
-            set_graph_viewport(gr, &v);
+            // set_graph_viewport(gr, &v);
             
             if (hpack) {
 	        tickmarks *t = get_graph_tickmarks(gr, Y_AXIS);
@@ -748,7 +748,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
 
 void move_legend(Quark *gr, VVector shift)
 {
-    legend *l = get_graph_legend(gr);
+    legend *l = frame_get_legend(gr);
     if (l) {
         switch (l->acorner) {
         case CORNER_LL:
@@ -778,7 +778,7 @@ typedef struct {
     double x, y;
 } ext_xy_t;
 
-static int hook(Quark *q, unsigned int depth, unsigned int step, void *udata)
+static int hook(Quark *q, void *udata, QTraverseClosure *closure)
 {
     graph *g;
     DObject *o;
@@ -787,13 +787,13 @@ static int hook(Quark *q, unsigned int depth, unsigned int step, void *udata)
     switch (q->fid) {
     case QFlavorGraph:
         g = graph_get_data(q);
-        g->v.xv1 *= ext_xy->x;
-        g->v.xv2 *= ext_xy->x;
-        g->v.yv1 *= ext_xy->y;
-        g->v.yv2 *= ext_xy->y;
+        // g->v.xv1 *= ext_xy->x;
+        // g->v.xv2 *= ext_xy->x;
+        // g->v.yv1 *= ext_xy->y;
+        // g->v.yv2 *= ext_xy->y;
         
-        g->l.offset.x *= ext_xy->x;
-        g->l.offset.y *= ext_xy->y;
+        // g->l.offset.x *= ext_xy->x;
+        // g->l.offset.y *= ext_xy->y;
         
         /* TODO: tickmark offsets */
         quark_dirtystate_set(q, TRUE);
@@ -957,7 +957,7 @@ int overlay_graphs(Quark *gsec, Quark *gpri, int type)
     }
     
     /* set identical viewports */
-    set_graph_viewport(gsec, &v);
+    // set_graph_viewport(gsec, &v);
     
     /* update world coords */
     set_graph_world(gsec, &wsec);

@@ -980,7 +980,7 @@ int legend_clicked(Quark *gr, VPoint vp, view *bb)
     legend *l;
 
     if (is_graph_hidden(gr) == FALSE) {
-        l = get_graph_legend(gr);
+        l = frame_get_legend(gr);
 	if (l && l->active && is_vpoint_inside(&l->bb, &vp, MAXPICKDIST)) {
 	    *bb = l->bb;
             return TRUE;

@@ -79,7 +79,7 @@ int cumulative(Quark **sets, int nsets, Quark *pdest);
 
 
 void set_region_defaults(region *r);
-void set_default_framep(framep * f);
+void set_default_frame(frame * f);
 void set_default_world(world * w);
 void set_default_view(view * v);
 void set_default_legend(legend * l);

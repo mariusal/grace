@@ -319,6 +319,13 @@ static QuarkFlavor project_qf = {
     NULL
 };
 
+static QuarkFlavor frame_qf = {
+    (Quark_data_new) frame_data_new,
+    (Quark_data_free) frame_data_free,
+    (Quark_data_copy) frame_data_copy,
+    NULL
+};
+
 static QuarkFlavor graph_qf = {
     (Quark_data_new) graph_data_new,
     (Quark_data_free) graph_data_free,
@@ -355,6 +362,9 @@ QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
     switch (fid) {
     case QFlavorProject:
         qf = &project_qf;
+        break;
+    case QFlavorFrame:
+        qf = &frame_qf;
         break;
     case QFlavorGraph:
         qf = &graph_qf;

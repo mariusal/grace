@@ -459,12 +459,13 @@ void create_graphapp_frame(Quark *gr)
 
 static int graphapp_aac_cb(void *data)
 {
+#if 0
     int j, n;
     Quark *gr;
     Quark **values;
     view v;
     labels *labs;
-    framep *f;
+    frame *f;
     legend *l;
     double znorm;
     int flipxy;
@@ -485,9 +486,9 @@ static int graphapp_aac_cb(void *data)
         if (gr) {
 
             get_graph_viewport(gr, &v);
-            labs = get_graph_labels(gr);
+            labs = frame_get_labels(gr);
             f = get_graph_frame(gr);
-            l = get_graph_legend(gr);
+            l = frame_get_legend(gr);
 
             if (data == define_view_xv1 || data == NULL) {
                 xv_evalexpr(define_view_xv1, &v.xv1);  
@@ -506,7 +507,7 @@ static int graphapp_aac_cb(void *data)
                 return RETURN_FAILURE;
             } 
 
-            set_graph_viewport(gr, &v);
+            // set_graph_viewport(gr, &v);
 
             if (data == graph_type_choice_item || data == NULL) {
                 set_graph_type(gr, GetOptionChoice(graph_type_choice_item));
@@ -631,7 +632,7 @@ static int graphapp_aac_cb(void *data)
     xfree(values);
 
     xdrawgraph();
-    
+#endif    
     return RETURN_SUCCESS;
 }
 
@@ -658,7 +659,7 @@ void update_graphapp_items(StorageStructure *ss, int n, Quark **values, void *da
         update_frame_items(gr);
  
         updatelegends(gr);
-        labs = get_graph_labels(gr);
+        labs = frame_get_labels(gr);
             
         SetOptionChoice(graph_type_choice_item, get_graph_type(gr));
 
@@ -714,7 +715,7 @@ void updatelegends(Quark *gr)
     legend *l;
     
     if (graphapp_dialog != NULL) {
-	l = get_graph_legend(gr);
+	l = frame_get_legend(gr);
         
         SetCharSizeChoice(legend_charsize_item, l->charsize);
 
@@ -743,7 +744,8 @@ void updatelegends(Quark *gr)
 
 static void update_frame_items(Quark *gr)
 {
-    framep *f;
+#if 0
+    frame *f;
     
     if (graphapp_dialog) {
         f = get_graph_frame(gr);
@@ -756,4 +758,5 @@ static void update_frame_items(Quark *gr)
 	SetOptionChoice(frame_fillcolor_choice_item, f->fillpen.color);
 	SetOptionChoice(frame_fillpattern_choice_item, f->fillpen.pattern);
     }
+#endif
 }

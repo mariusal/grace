@@ -76,7 +76,14 @@ struct _Quark {
     void *cbdata;
 };
 
-typedef int (*Quark_traverse_hook)(Quark *q, unsigned int depth, unsigned int step, void *udata); 
+typedef struct {
+    unsigned int depth;
+    unsigned int step;
+    int pass2;
+} QTraverseClosure;
+
+typedef int (*Quark_traverse_hook)(Quark *q,
+    void *udata, QTraverseClosure *closure); 
 
 typedef struct _Project {
     /* Version ID */
@@ -236,6 +243,7 @@ struct _Grace {
 
 enum {
     QFlavorProject,
+    QFlavorFrame,
     QFlavorGraph,
     QFlavorSet,
     QFlavorDObject,
@@ -256,6 +264,7 @@ int quark_dirtystate_get(const Quark *q);
 void quark_idstr_set(Quark *q, const char *s);
 char *quark_idstr_get(const Quark *q);
 Quark *quark_find_child_by_idstr(Quark *q, const char *s);
+Quark *quark_find_descendant_by_idstr(Quark *q, const char *s);
 
 int quark_cb_set(Quark *q, Quark_cb cb, void *cbdata);
 void quark_traverse(Quark *q, Quark_traverse_hook hook, void *udata);
@@ -302,12 +311,12 @@ char *project_get_description(const Quark *q);
 void project_set_dirtystate(Quark *q);
 void project_clear_dirtystate(Quark *q);
 
-Storage *project_get_graphs(const Quark *q);
+int project_get_graphs(Quark *q, Quark ***graphs);
 
 char *project_get_sformat(const Quark *q);
 void project_set_sformat(Quark *q, const char *s);
 
-Project *project_get_data(Quark *q);
+Project *project_get_data(const Quark *q);
 
 int project_add_font(Quark *project, const Fontdef *f);
 int get_font_by_name(const Quark *project, const char *name);

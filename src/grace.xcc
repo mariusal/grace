@@ -243,16 +243,6 @@ Format *format_new()
     return retval;
 }
 
-framep *frame_new()
-{
-    framep *retval;
-    retval = xmalloc(sizeof(framep));
-    if (retval) {
-        memset(retval, 0, sizeof(framep));
-    }
-    return retval;
-}
-
 plotstr *plotstr_new()
 {
     plotstr *retval;
@@ -671,8 +661,8 @@ char *utf2iso(const char *s)
     <element-type name="format" ctype="Format *"><![CDATA[
         $$ = format_new();
     ]]></element-type>
-    <element-type name="frame" ctype="framep *"><![CDATA[
-        $$ = frame_new();
+    <element-type name="frame" ctype="Quark *"><![CDATA[
+        $$ = frame_new((Quark *)$P);
     ]]></element-type>
     <element-type name="plotstr" ctype="plotstr *"><![CDATA[
         $$ = plotstr_new();
@@ -784,7 +774,7 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrDataFormats">
         </child>
-        <child name="#EStrGraph">
+        <child name="#EStrFrame">
         </child>
     </element>
     <element name="#EStrDefinitions" type="dummy">
@@ -911,6 +901,43 @@ char *utf2iso(const char *s)
             $$->pattern = $?;
         </attribute>
     </element>
+    <element name="#EStrFrame" type="frame">
+        <!-- Attributes -->
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
+        </attribute>
+        <attribute name="#AStrType" type="ival">
+            frame_set_type($$, $?);
+        </attribute>
+        <!-- Child elements -->
+        <child name="#EStrViewport">
+            frame_set_view($$, $?);
+            xfree($?);
+        </child>
+        <child name="#EStrLegend">
+            frame_set_legend($$, $?);
+            xfree($?);
+        </child>
+        <child name="#EStrTitle">
+            frame_set_title($$, $?);
+            plotstr_free($?);
+        </child>
+        <child name="#EStrSubtitle">
+            frame_set_stitle($$, $?);
+            plotstr_free($?);
+        </child>
+        <child name="#EStrLineSpec">
+            frame_set_outline($$, $?);
+            xfree($?);
+        </child>
+        <child name="#EStrFillSpec">
+            frame_set_fillpen($$, $?);
+            xfree($?);
+        </child>
+        <child name="#EStrGraph">
+        </child>
+    </element>
     <element name="#EStrGraph" type="graph">
         <!-- Attributes -->
         <attribute name="#AStrId" type="sval">
@@ -927,10 +954,6 @@ char *utf2iso(const char *s)
             set_graph_bargap($$, $?->bargap);
             set_graph_stacked($$, $?->stacked);
             presentationspec_free($?);
-        </child>
-        <child name="#EStrViewport">
-            set_graph_viewport($$, $?);
-            xfree($?);
         </child>
         <child name="#EStrXscale"><![CDATA[
             world w;
@@ -956,25 +979,9 @@ char *utf2iso(const char *s)
             set_graph_znorm($$, *($?));
             xfree($?);
         </child>
-        <child name="#EStrLegend">
-            set_graph_legend($$, $?);
-            xfree($?);
-        </child>
         <child name="#EStrLocator">
             set_graph_locator($$, $?);
             xfree($?);
-        </child>
-        <child name="#EStrFrame">
-            set_graph_frame($$, $?);
-            xfree($?);
-        </child>
-        <child name="#EStrTitle">
-            set_graph_title($$, $?);
-            plotstr_free($?);
-        </child>
-        <child name="#EStrSubtitle">
-            set_graph_stitle($$, $?);
-            plotstr_free($?);
         </child>
         <child name="#EStrAxis"><![CDATA[
             int axis = ((ParserData *) $U)->axis;
@@ -1173,21 +1180,6 @@ char *utf2iso(const char *s)
         <attribute name="#AStrPrec" type="ival">
             $$->prec = $?;
         </attribute>
-    </element>
-    <element name="#EStrFrame" type="frame">
-        <!-- Attributes -->
-        <attribute name="#AStrType" type="ival">
-            $$->type = $?;
-        </attribute>
-        <!-- Child elements -->
-        <child name="#EStrLineSpec">
-            $$->outline = *$?;
-            xfree($?);
-        </child>
-        <child name="#EStrFillSpec">
-            $$->fillpen = *($?);
-            xfree($?);
-        </child>
     </element>
     <element name="#EStrTitle" type="plotstr">
         <!-- Child elements -->

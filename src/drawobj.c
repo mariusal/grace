@@ -37,7 +37,7 @@
 #include "plotone.h"
 #include "objutils.h"
 
-static void draw_object(Canvas *canvas, Quark *q)
+void draw_object(Canvas *canvas, Quark *q)
 {
     VPoint anchor;
     DObject *o = object_get_data(q);
@@ -197,29 +197,4 @@ static void draw_object(Canvas *canvas, Quark *q)
     }
 
     get_bbox(canvas, BBOX_TYPE_TEMP, &o->bb);
-}
-
-
-static int object_draw_hook(unsigned int step, void *data, void *udata)
-{
-    Quark *q = (Quark *) data;
-    Canvas *canvas = (Canvas *) udata;
-    
-    if (q->fid == QFlavorDObject) {
-        draw_object(canvas, q);
-    }
-    
-    return TRUE;
-}
-
-void draw_objects(Canvas *canvas, Quark *gr)
-{
-    if (gr) {
-        /* disable (?) clipping for object drawing */
-        setclipping(canvas, FALSE);
-
-        storage_traverse(gr->children, object_draw_hook, canvas);
-
-        setclipping(canvas, TRUE);
-    }
 }

@@ -51,9 +51,9 @@
 
 #include "protos.h"
 
-static int graph_count_hook(unsigned int step, void *data, void *udata)
+static int graph_count_hook(Quark *q,
+    void *udata, QTraverseClosure *closure)
 {
-    Quark *q = (Quark *) data;
     int *ngraphs = (int *) udata;
     
     if (q->fid == QFlavorGraph) {
@@ -67,7 +67,7 @@ int number_of_graphs(const Quark *project)
 {
     int ngraphs = 0;
     
-    storage_traverse(project->children, graph_count_hook, &ngraphs);
+    quark_traverse(project, graph_count_hook, &ngraphs);
     
     return ngraphs;
 }
@@ -75,14 +75,14 @@ int number_of_graphs(const Quark *project)
 Quark *graph_get_current(const Quark *project)
 {
     if (project) {
-        Project *pr = (Project *) project->data;
+        Project *pr = project_get_data(project);
         return pr->cg;
     } else {
         return NULL;
     }
 }
 
-graph *graph_get_data(Quark *q)
+graph *graph_get_data(const Quark *q)
 {
     if (q && q->fid == QFlavorGraph) {
         return (graph *) q->data;
@@ -128,14 +128,7 @@ static void set_default_graph(graph *g)
             break;
         }
     }
-    set_default_framep(&g->f);
     set_default_world(&g->w);
-    set_default_view(&g->v);
-    set_default_legend(&g->l);
-    set_default_string(&g->labs.title);
-    g->labs.title.charsize = 1.5;
-    set_default_string(&g->labs.stitle);
-    g->labs.stitle.charsize = 1.0;
 }
 
 graph *graph_data_new(void)
@@ -154,9 +147,6 @@ void graph_data_free(graph *g)
 {
     if (g) {
         int j;
-        
-        xfree(g->labs.title.s);
-        xfree(g->labs.stitle.s);
         
         for (j = 0; j < MAXAXES; j++) {
             free_graph_tickmarks(g->t[j]);
@@ -183,9 +173,6 @@ graph *graph_data_copy(graph *g)
     memcpy(g_new, g, sizeof(graph));
 
     /* duplicate allocatable storage */
-    g_new->labs.title.s = copy_string(NULL, g->labs.title.s);
-    g_new->labs.stitle.s = copy_string(NULL, g->labs.stitle.s);
-    
     for (j = 0; j < MAXAXES; j++) {
 	g_new->t[j] = copy_graph_tickmarks(g->t[j]);
     }
@@ -208,10 +195,24 @@ static int hook(unsigned int step, void *data, void *udata)
     }
 }
 
+Quark *graph_get_project(const Quark *gr)
+{
+    Quark *f = NULL, *pr = NULL;
+    if (gr) {
+        f = gr->parent;
+    }
+    if (f) {
+        pr = f->parent;
+    }
+    
+    return pr;
+}
+
+
 static int graph_free_cb(Quark *gr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
-        Quark *pr = gr->parent;
+        Quark *pr = graph_get_project(gr);
         Project *project = (Project *) pr->data;
         if (project->cg == gr) {
             storage_traverse(pr->children, hook, project);
@@ -223,10 +224,15 @@ static int graph_free_cb(Quark *gr, int etype, void *data)
     return RETURN_SUCCESS;
 }
 
-Quark *graph_new(Quark *project)
+Quark *graph_new(Quark *q)
 {
-    Quark *g; 
-    g = quark_new(project, QFlavorGraph);
+    Quark *g;
+    
+    if (q->fid != QFlavorFrame) {
+        return NULL;
+    }
+    
+    g = quark_new(q, QFlavorGraph);
     if (g) {
         quark_cb_set(g, graph_free_cb, NULL);
     }
@@ -235,11 +241,12 @@ Quark *graph_new(Quark *project)
 
 Quark *graph_next(Quark *project)
 {
-    Quark *g;
+    Quark *f, *g;
     
-    g = graph_new(project);
+    f = frame_new(project);
+    g = graph_new(f);
     if (number_of_graphs(project) == 1) {
-    Project *pr = (Project *) project->data;
+        Project *pr = project_get_data(project);
         pr->cg = g;
     }
     return g;
@@ -254,7 +261,7 @@ void kill_all_graphs(Quark *project)
 
 tickmarks *get_graph_tickmarks(const Quark *gr, int axis)
 {
-    graph *g = (graph *) gr->data;
+    graph *g = graph_get_data(gr);
     
     if (g && axis >= 0 && axis < MAXAXES) {
         return g->t[axis];
@@ -314,7 +321,7 @@ void free_graph_tickmarks(tickmarks *t)
 int set_graph_tickmarks(Quark *gr, int a, tickmarks *t)
 {
     if (gr && a >= 0 && a < MAXAXES) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         free_graph_tickmarks(g->t[a]);
         g->t[a] = copy_graph_tickmarks(t);
         return RETURN_SUCCESS;
@@ -338,8 +345,9 @@ int activate_tick_labels(tickmarks *t, int flag)
 
 int select_graph(Quark *gr)
 {
-    graph *g = (graph *) gr->data;
+    graph *g = graph_get_data(gr);
     int ctrans_type, xyfixed;
+    view v;
     
     switch (g->type) {
     case GRAPH_POLAR:
@@ -356,10 +364,11 @@ int select_graph(Quark *gr)
         break;
     }
     
-    if (definewindow(&g->w, &g->v, ctrans_type, xyfixed,
+    get_graph_viewport(gr, &v);
+    if (definewindow(&g->w, &v, ctrans_type, xyfixed,
             g->xscale,  g->yscale,
             g->xinvert, g->yinvert) == RETURN_SUCCESS) {
-        Project *pr = project_get_data(gr->parent);
+        Project *pr = project_get_data(graph_get_project(gr));
         if (pr) {
             set_parser_gno(gr);
             pr->cg = gr;
@@ -376,7 +385,7 @@ int select_graph(Quark *gr)
 int set_graph_type(Quark *gr, int gtype)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         if (g->type == gtype) {
             return RETURN_SUCCESS;
         }
@@ -468,7 +477,7 @@ static void update_world_stack(Quark *pr)
 void add_world(Quark *gr, double x1, double x2, double y1, double y2)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         
         /* see if another entry has been stacked */
         if (g->ws[0].w.xg1 == 0.0 &&
@@ -499,7 +508,7 @@ void cycle_world_stack(Quark *pr)
     gr = graph_get_current(pr);
     
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         
         if (g->ws_top < 1) {
 	    errmsg("World stack empty");
@@ -519,7 +528,7 @@ void show_world_stack(Quark *pr, int n)
     gr = graph_get_current(pr);
     
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
 
         if (g->ws_top < 1) {
 	    errmsg("World stack empty");
@@ -545,7 +554,7 @@ void push_world(Quark *pr)
     gr = graph_get_current(pr);
     
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
     
         if (g->ws_top < MAX_ZOOM_STACK) {
             update_world_stack(pr);
@@ -567,7 +576,7 @@ void pop_world(Quark *pr)
     gr = graph_get_current(pr);
     
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
 
         if (g->ws_top <= 1) {
 	    errmsg("World stack empty");
@@ -589,7 +598,7 @@ void pop_world(Quark *pr)
 int graph_world_stack_size(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->ws_top;
     } else {
         return -1;
@@ -599,7 +608,7 @@ int graph_world_stack_size(Quark *gr)
 int get_world_stack_current(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->curw;
     } else {
         return -1;
@@ -609,7 +618,7 @@ int get_world_stack_current(Quark *gr)
 int get_world_stack_entry(Quark *gr, int n, world_stack *ws)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         memcpy(ws, &g->ws[n], sizeof(world_stack));
         return RETURN_SUCCESS;
     } else {
@@ -744,12 +753,10 @@ int graph_get_sets(Quark *gr, Quark ***sets)
     return p.nsets;
 }
 
-
-framep *get_graph_frame(Quark *gr)
+Quark *graph_get_frame(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
-        return &g->f;
+        return gr->parent;
     } else {
         return NULL;
     }
@@ -758,7 +765,7 @@ framep *get_graph_frame(Quark *gr)
 GLocator *get_graph_locator(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return &g->locator;
     } else {
         return NULL;
@@ -768,7 +775,7 @@ GLocator *get_graph_locator(Quark *gr)
 int get_graph_world(Quark *gr, world *w)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         memcpy(w, &g->w, sizeof(world));
         return RETURN_SUCCESS;
     } else {
@@ -779,48 +786,21 @@ int get_graph_world(Quark *gr, world *w)
 int get_graph_viewport(Quark *gr, view *v)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
-        memcpy(v, &g->v, sizeof(view));
+        view *vv;
+        Quark *fr = graph_get_frame(gr);
+        
+        vv = frame_get_view(fr);
+        memcpy(v, vv, sizeof(view));
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
 }
 
-labels *get_graph_labels(Quark *gr)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-        return &g->labs;
-    } else {
-        return NULL;
-    }
-}
-
-legend *get_graph_legend(Quark *gr)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-        return &g->l;
-    } else {
-        return NULL;
-    }
-}
-
-void set_graph_frame(Quark *gr, const framep *f)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-    
-        memcpy(&g->f, f, sizeof(framep));
-        set_dirtystate();
-    }
-}
-
 void set_graph_locator(Quark *gr, const GLocator *locator)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
 
         memcpy(&g->locator, locator, sizeof(GLocator));
         set_dirtystate();
@@ -830,45 +810,9 @@ void set_graph_locator(Quark *gr, const GLocator *locator)
 void set_graph_world(Quark *gr, const world *w)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
 
         g->w = *w;
-        set_dirtystate();
-    }
-}
-
-void set_graph_viewport(Quark *gr, const view *v)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-
-        g->v = *v;
-        set_dirtystate();
-    }
-}
-
-void set_graph_title(Quark *gr, const plotstr *s)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-
-        xfree(g->labs.title.s);
-        memcpy(&g->labs.title, s, sizeof(plotstr));
-        g->labs.title.s = copy_string(NULL, s->s);
-
-        set_dirtystate();
-    }
-}
-
-void set_graph_stitle(Quark *gr, const plotstr *s)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-
-        xfree(g->labs.stitle.s);
-        memcpy(&g->labs.stitle, s, sizeof(plotstr));
-        g->labs.stitle.s = copy_string(NULL, s->s);
-
         set_dirtystate();
     }
 }
@@ -876,7 +820,7 @@ void set_graph_stitle(Quark *gr, const plotstr *s)
 void set_graph_xyflip(Quark *gr, int xyflip)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
 
         g->xyflip = xyflip;
 
@@ -887,7 +831,7 @@ void set_graph_xyflip(Quark *gr, int xyflip)
 int get_graph_xyflip(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
 
         return g->xyflip;
     } else {
@@ -895,50 +839,10 @@ int get_graph_xyflip(Quark *gr)
     }
 }
 
-void set_graph_labels(Quark *gr, const labels *labs)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-
-        xfree(g->labs.title.s);
-        xfree(g->labs.stitle.s);
-        memcpy(&g->labs, labs, sizeof(labels));
-        g->labs.title.s = copy_string(NULL, labs->title.s);
-        g->labs.stitle.s = copy_string(NULL, labs->stitle.s);
-
-        set_dirtystate();
-    }
-}
-
-void set_graph_legend(Quark *gr, const legend *leg)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-
-        if (&g->l != leg) {
-            memcpy(&g->l, leg, sizeof(legend));
-        }
-
-        set_dirtystate();
-    }
-}
-
-void set_graph_legend_active(Quark *gr, int flag)
-{
-    if (gr) {
-        graph *g = (graph *) gr->data;
-        
-        g->l.active = flag;
-
-        set_dirtystate();
-    }
-}
-
-
 int is_graph_hidden(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->hidden;
     } else {
         return TRUE;
@@ -948,7 +852,7 @@ int is_graph_hidden(Quark *gr)
 int set_graph_hidden(Quark *gr, int flag)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         g->hidden = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -960,7 +864,7 @@ int set_graph_hidden(Quark *gr, int flag)
 int set_graph_stacked(Quark *gr, int flag)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         g->stacked = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -972,7 +876,7 @@ int set_graph_stacked(Quark *gr, int flag)
 int is_graph_stacked(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->stacked;
     } else {
         return FALSE;
@@ -982,7 +886,7 @@ int is_graph_stacked(Quark *gr)
 double get_graph_bargap(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->bargap;
     } else {
         return 0.0;
@@ -992,7 +896,7 @@ double get_graph_bargap(Quark *gr)
 int set_graph_bargap(Quark *gr, double bargap)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         g->bargap = bargap;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1004,7 +908,7 @@ int set_graph_bargap(Quark *gr, double bargap)
 int get_graph_type(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->type;
     } else {
         return -1;
@@ -1014,7 +918,7 @@ int get_graph_type(Quark *gr)
 int is_refpoint_active(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->locator.pointset;
     } else {
         return FALSE;
@@ -1024,7 +928,7 @@ int is_refpoint_active(Quark *gr)
 int get_graph_xscale(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->xscale;
     } else {
         return -1;
@@ -1034,7 +938,7 @@ int get_graph_xscale(Quark *gr)
 int get_graph_yscale(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->yscale;
     } else {
         return -1;
@@ -1044,7 +948,7 @@ int get_graph_yscale(Quark *gr)
 int set_graph_xscale(Quark *gr, int scale)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         if (g->xscale != scale) {
             int naxis;
             g->xscale = scale;
@@ -1079,7 +983,7 @@ int set_graph_xscale(Quark *gr, int scale)
 int set_graph_yscale(Quark *gr, int scale)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         if (g->yscale != scale) {
             int naxis;
             g->yscale = scale;
@@ -1114,7 +1018,7 @@ int set_graph_yscale(Quark *gr, int scale)
 int set_graph_znorm(Quark *gr, double norm)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         g->znorm = norm;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1126,7 +1030,7 @@ int set_graph_znorm(Quark *gr, double norm)
 double get_graph_znorm(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->znorm;
     } else {
         return 0.0;
@@ -1136,7 +1040,7 @@ double get_graph_znorm(Quark *gr)
 int is_graph_xinvert(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->xinvert;
     } else {
         return FALSE;
@@ -1146,7 +1050,7 @@ int is_graph_xinvert(Quark *gr)
 int is_graph_yinvert(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return g->yinvert;
     } else {
         return FALSE;
@@ -1156,7 +1060,7 @@ int is_graph_yinvert(Quark *gr)
 int set_graph_xinvert(Quark *gr, int flag)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         g->xinvert = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1168,7 +1072,7 @@ int set_graph_xinvert(Quark *gr, int flag)
 int set_graph_yinvert(Quark *gr, int flag)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         g->yinvert = flag;
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -1180,7 +1084,7 @@ int set_graph_yinvert(Quark *gr, int flag)
 int islogx(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return (g->xscale == SCALE_LOG);
     } else {
         return FALSE;
@@ -1190,7 +1094,7 @@ int islogx(Quark *gr)
 int islogy(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return (g->yscale == SCALE_LOG);
     } else {
         return FALSE;
@@ -1200,7 +1104,7 @@ int islogy(Quark *gr)
 int islogitx(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return (g->xscale == SCALE_LOGIT);
     } else {
         return FALSE;
@@ -1210,7 +1114,7 @@ int islogitx(Quark *gr)
 int islogity(Quark *gr)
 {
     if (gr) {
-        graph *g = (graph *) gr->data;
+        graph *g = graph_get_data(gr);
         return (g->yscale == SCALE_LOGIT);
     } else {
         return FALSE;
@@ -1238,7 +1142,7 @@ int is_logit_axis(Quark *gr, int axis)
 }
 
 static int project_postprocess_hook(Quark *q,
-    unsigned int depth, unsigned int step, void *udata)
+    void *udata, QTraverseClosure *closure)
 {
     int version_id = *((int *) udata);
     graph *g;
@@ -1277,10 +1181,10 @@ static int project_postprocess_hook(Quark *q,
         g = graph_get_data(q);
         
 	if (version_id <= 40102) {
-            g->l.vgap -= 0.01;
+            // g->l.vgap -= 0.01;
         }
 	if (version_id < 50200) {
-            g->l.acorner = CORNER_UL;
+            // g->l.acorner = CORNER_UL;
         }
 
         for (naxis = 0; naxis < MAXAXES; naxis++) {

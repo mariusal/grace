@@ -82,6 +82,7 @@
 typedef double (*ParserFnc)();
 
 /* the graph, set, axis, and object of the parser's current state */
+static Quark *whichframe;
 static Quark *whichgraph;
 static Quark *whichset;
 static tickmarks *curtm;
@@ -2420,64 +2421,64 @@ parmset:
 	    v.yv1 = $4;
 	    v.xv2 = $6;
 	    v.yv2 = $8;
-            set_graph_viewport(whichgraph, &v);
+            frame_set_view(whichframe, &v);
 	}
 	| VIEW XMIN expr {
 	    view v;
             get_graph_viewport(whichgraph, &v);
 	    v.xv1 = $3;
-            set_graph_viewport(whichgraph, &v);
+            frame_set_view(whichframe, &v);
 	}
 	| VIEW XMAX expr {
 	    view v;
             get_graph_viewport(whichgraph, &v);
 	    v.xv2 = $3;
-            set_graph_viewport(whichgraph, &v);
+            frame_set_view(whichframe, &v);
 	}
 	| VIEW YMIN expr {
 	    view v;
             get_graph_viewport(whichgraph, &v);
 	    v.yv1 = $3;
-            set_graph_viewport(whichgraph, &v);
+            frame_set_view(whichframe, &v);
 	}
 	| VIEW YMAX expr {
 	    view v;
             get_graph_viewport(whichgraph, &v);
 	    v.yv2 = $3;
-            set_graph_viewport(whichgraph, &v);
+            frame_set_view(whichframe, &v);
 	}
 	| TITLE CHRSTR {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
             set_plotstr_string(&labs->title, $2);
 	    xfree($2);
 	}
 	| TITLE font_select {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    labs->title.font = $2;
 	}
 	| TITLE SIZE expr {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    labs->title.charsize = $3;
 	}
 	| TITLE color_select {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    labs->title.color = $2;
 	}
 	| SUBTITLE CHRSTR {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    set_plotstr_string(&labs->stitle, $2);
 	    xfree($2);
 	}
 	| SUBTITLE font_select {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    labs->stitle.font = $2;
 	}
 	| SUBTITLE SIZE expr {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    labs->stitle.charsize = $3;
 	}
 	| SUBTITLE color_select {
-	    labels *labs = get_graph_labels(whichgraph);
+	    labels *labs = frame_get_labels(whichframe);
 	    labs->stitle.color = $2;
 	}
 
@@ -2505,54 +2506,54 @@ parmset:
 	}
 
 	| LEGEND onoff {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
             l->active = $2;
 	}
 	| LEGEND LOCTYPE worldview {
 	    leg_loctype_obs = $3;
 	}
 	| LEGEND VGAP nexpr {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
             l->vgap = 0.01*$3;
 	}
 	| LEGEND HGAP nexpr {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->hgap = 0.01*$3;
 	}
 	| LEGEND LENGTH nexpr {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->len = 0.01*$3;
 	}
 	| LEGEND INVERT onoff {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->invert = $3;
         }
 	| LEGEND BOX FILL color_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->boxfillpen.color = $4;
         }
 	| LEGEND BOX FILL pattern_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->boxfillpen.pattern = $4;
         }
 	| LEGEND BOX color_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->boxline.pen.color = $3;
 	}
 	| LEGEND BOX pattern_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->boxline.pen.pattern = $3;
 	}
 	| LEGEND BOX lines_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->boxline.style = $3;
 	}
 	| LEGEND BOX linew_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->boxline.width = $3;
 	}
 	| LEGEND expr ',' expr {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    VPoint vp;
             view gv;
             if (leg_loctype_obs == COORD_VIEW) {
@@ -2567,50 +2568,50 @@ parmset:
             l->offset.y = gv.yv2 - vp.y;
 	}
 	| LEGEND CHAR SIZE expr {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->charsize = $4;
 	}
 	| LEGEND font_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->font = $2;
 	}
 	| LEGEND color_select {
-	    legend *l = get_graph_legend(whichgraph);
+	    legend *l = frame_get_legend(whichframe);
 	    l->color = $2;
 	}
 
 	| FRAMEP onoff {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
             f->outline.pen.pattern = $2;
 	}
 	| FRAMEP TYPE nexpr {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
 	    f->type = $3;
 	}
 	| FRAMEP lines_select {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
 	    f->outline.style = $2;
 	}
 	| FRAMEP linew_select {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
 	    f->outline.width = $2;
 	}
 	| FRAMEP color_select {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
 	    f->outline.pen.color = $2;
 	}
 	| FRAMEP pattern_select {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
 	    f->outline.pen.pattern = $2;
 	}
 	| FRAMEP BACKGROUND color_select
         { 
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
             f->fillpen.color = $3;
         }
 	| FRAMEP BACKGROUND pattern_select
         {
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
             f->fillpen.pattern = $3;
         }
 
@@ -3656,7 +3657,7 @@ parmset_obs:
 
 	| LEGEND BOX onoff {
 	    if ($3 == FALSE && project_get_version_id(grace->project) <= 40102) {
-                legend *l = get_graph_legend(whichgraph);
+                legend *l = frame_get_legend(whichframe);
                 l->boxline.pen.pattern = 0;
             }
 	}
@@ -3666,7 +3667,7 @@ parmset_obs:
 	| LEGEND Y1 expr {
 	    VPoint vp;
             view gv;
-            legend *l = get_graph_legend(whichgraph);
+            legend *l = frame_get_legend(whichframe);
             if (leg_loctype_obs == COORD_VIEW) {
                 vp.x = leg_x1_obs;
                 vp.y = $3;
@@ -3742,7 +3743,7 @@ parmset_obs:
 	}
 
 	| FRAMEP FILL onoff { 
-	    framep *f = get_graph_frame(whichgraph);
+	    frame *f = frame_get_data(whichframe);
             f->fillpen.pattern = $3;
         }
 
@@ -4392,8 +4393,10 @@ int set_parser_gno(Quark *gr)
 {
     if (gr) {
         whichgraph = gr;
+        whichframe = gr->parent;
         return RETURN_SUCCESS;
     } else {
+        whichframe = NULL;
         return RETURN_FAILURE;
     }
 }
@@ -4407,6 +4410,7 @@ int set_parser_setno(Quark *pset)
 {
     if (pset) {
         whichgraph = pset->parent;
+        whichframe = whichgraph->parent;
         whichset = pset;
         /* those will usually be overridden except when evaluating
            a _standalone_ vexpr */
@@ -5037,7 +5041,7 @@ static Quark *allocate_graph(Quark *project, int gno)
     
     if (gno >= 0) {
         sprintf(buf, "G%d", gno);
-        gr = quark_find_child_by_idstr(project, buf);
+        gr = quark_find_descendant_by_idstr(project, buf);
         if (!gr) {
             gr = graph_next(project);
             quark_idstr_set(gr, buf);
@@ -5054,7 +5058,7 @@ static Quark *allocate_set(Quark *gr, int setno)
     
     if (setno >= 0) {
         sprintf(buf, "S%d", setno);
-        pset = quark_find_child_by_idstr(gr, buf);
+        pset = quark_find_descendant_by_idstr(gr, buf);
         if (!pset) {
             pset = set_new(gr);
             quark_idstr_set(pset, buf);
@@ -5066,6 +5070,7 @@ static Quark *allocate_set(Quark *gr, int setno)
 
 void parser_state_reset(void)
 {
+    whichframe = NULL;
     whichgraph = NULL;
     whichset   = NULL;
     curtm      = NULL;
