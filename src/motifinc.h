@@ -195,8 +195,12 @@ int GetListChoices(ListStructure *listp, int **values);
 int GetSingleListChoice(ListStructure *listp, int *value);
 void AddListChoiceCB(ListStructure *listp, XtCallbackProc cb);
 
-void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar);
-void list_choice_unselectall(Widget w, XEvent *e, String *par, Cardinal *npar);
+void list_selectall(Widget list);
+void list_unselectall(Widget list);
+void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
+void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar);
+void list_selectall_cb(Widget w, XtPointer client_data, XtPointer call_data);
+void list_unselectall_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
                         int type, double min, double max, double incr);

@@ -183,9 +183,9 @@ static XtActionsRec canvas_actions[] = {
 	{ "enable_zoom", (XtActionProc) enable_zoom_action }
 };
 
-static XtActionsRec graph_select_actions[] = {
-    {"list_choice_selectall",   list_choice_selectall},
-    {"list_choice_unselectall", list_choice_unselectall}
+static XtActionsRec list_select_actions[] = {
+    {"list_selectall_action",   list_selectall_action},
+    {"list_unselectall_action", list_unselectall_action}
 /*
  *     {"graph_choice_delete", (XtActionProc) graph_choice_delete}
  */
@@ -329,7 +329,7 @@ void xlibprocess_args(int *argc, char **argv)
     locbar_visible = rd.locatorbar;
 
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
-    XtAppAddActions(app_con, graph_select_actions, XtNumber(graph_select_actions));
+    XtAppAddActions(app_con, list_select_actions, XtNumber(list_select_actions));
 }
 
 static void do_drawgraph(Widget w, XtPointer client_data, XtPointer call_data)

@@ -311,8 +311,8 @@ void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb)
 
 
 static char list_translation_table[] = "\
-    Ctrl<Key>A: list_choice_selectall()\n\
-    Ctrl<Key>U: list_choice_unselectall()";
+    Ctrl<Key>A: list_selectall_action()\n\
+    Ctrl<Key>U: list_unselectall_action()";
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
@@ -1104,12 +1104,12 @@ void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event
     XtManageChild(popup);
 }
 
-void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
+void list_selectall(Widget list)
 {
     int i, n;
     unsigned char selection_type_save;
     
-    XtVaGetValues(w,
+    XtVaGetValues(list,
                   XmNselectionPolicy, &selection_type_save,
                   XmNitemCount, &n,
                   NULL);
@@ -1118,19 +1118,41 @@ void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar)
         return;
     }
     
-    XtVaSetValues(w, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
+    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
                              
-    XmListDeselectAllItems(w);
+    XmListDeselectAllItems(list);
     for (i = 1; i <= n; i++) {
-        XmListSelectPos(w, i, False);
+        XmListSelectPos(list, i, False);
     }
     
-    XtVaSetValues(w, XmNselectionPolicy, selection_type_save, NULL);
+    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
 }
 
-void list_choice_unselectall(Widget w, XEvent *e, String *par, Cardinal *npar)
+void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
 {
-    XmListDeselectAllItems(w);
+    list_selectall(w);
+}
+
+void list_selectall_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp = (ListStructure *) client_data;
+    list_selectall(listp->list);
+}
+
+void list_unselectall(Widget list)
+{
+    XmListDeselectAllItems(list);
+}
+
+void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    list_unselectall(w);
+}
+
+void list_unselectall_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    ListStructure *listp = (ListStructure *) client_data;
+    list_unselectall(listp->list);
 }
 
 void set_graph_selectors(int gno)
@@ -1212,22 +1234,19 @@ void UpdateSetChoice(ListStructure *listp, int gno)
     free(set_select_items);
 }
 
-void update_set_selectors(void)
+void update_set_selectors(int gno)
 {
-    int i, gno;
+    int i, cg;
     SetChoiceData *sdata;
     
+    cg = get_cg();
     for (i = 0; i < nset_selectors; i++) {
         sdata = (SetChoiceData *) set_selectors[i]->anydata;
-        if (sdata->standalone == TRUE) {
-            gno = get_cg();
+        if (sdata->standalone == TRUE && (gno == cg || gno == ALL_GRAPHS)) {
+            UpdateSetChoice(set_selectors[i], cg);
+        } else if (sdata->standalone == FALSE && sdata->gno == gno) {
             UpdateSetChoice(set_selectors[i], gno);
         }
-/*
- *          else {
- *             gno = sdata->gno;
- *         }
- */
     }
 }
 
@@ -1349,7 +1368,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
                 add_point(gno, setno, 0.0, 0.0);
                 setcomment(gno, setno, "Editor");
                 set_set_hidden(gno, setno, FALSE);
-                update_set_status(gno, setno);
                 create_ss_frame(gno, setno);
             } else {
                 err = TRUE;
@@ -1360,7 +1378,6 @@ void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
                 add_point(gno, setno, 0.0, 0.0);
                 setcomment(gno, setno, "Editor");
                 set_set_hidden(gno, setno, FALSE);
-                update_set_status(gno, setno);
                 do_ext_editor(gno, setno);
             } else {
                 err = TRUE;
@@ -1554,7 +1571,12 @@ SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
     XtAddCallback(set_popup_menu->showh_item, XmNvalueChangedCallback,
         (XtCallbackProc) update_set_proc, (XtPointer) listp);
     CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "update", "Update", 'U',
+    CreateMenuButton(submenupane, "selectAll", "Select all", '\0',
+    	list_selectall_cb, (XtPointer) listp, 0);
+    CreateMenuButton(submenupane, "unSelectAll", "Unselect all", '\0',
+    	list_unselectall_cb, (XtPointer) listp, 0);
+    CreateMenuSeparator(submenupane);
+    CreateMenuButton(submenupane, "update", "Update", '\0',
     	update_set_proc, (XtPointer) listp, 0);
 
     return set_popup_menu;
@@ -3001,6 +3023,8 @@ void SetLabel(Widget w, char *s)
 
 void update_set_status(int gno, int setno)
 {
+    update_graph_selectors();
+    update_set_selectors(gno);
 }
 
 void update_all(void)
@@ -3011,7 +3035,7 @@ void update_all(void)
     update_set_lists(gno);
 
     update_graph_selectors();
-    update_set_selectors();
+    update_set_selectors(ALL_GRAPHS);
 
     update_ticks(gno);
 /*
