@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.14)</title>
 <author>by the Grace Team</author>
-<date>03.12.2003</date>
+<date>13.12.2003</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -2436,6 +2436,10 @@ integral     | cumulative sum @
           scale to a specific set |
           &nbsp; |
           AUTOSCALE S0 @
+        AUTOTICKS |
+          autotick all axes |
+          &nbsp; |
+          AUTOTICKS @
         REDRAW |
           refresh the canvas to reflect the current project state |
           &nbsp; |

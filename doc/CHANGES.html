@@ -17,6 +17,9 @@
 <H3>Parser</H3>
  *  [ES] allow for DL modules to define functions of 4 and 5 parameters
 
+<H3>Portability/Compilation</H3>
+ *  [ES] fixed compilation under FreeBSD-5.1 and OS/X (rep. #1371)
+
 <H3>Bug fixes</H3>
  *  [ES] on 64-bit platforms, when specific compiler/optimization
          combinations were used, some dialogs could crash randomly
@@ -25,6 +28,9 @@
          about unrecognized XKeySym's
  *  [ES] set filling defaulted to even-odd filling rule in the X11
          driver (rep. #1368)
+ *  [ES] fixed potential memory corruption
+ *  [ES] fixed page size sync in the free mode
+ *  [TO] fixed a race condition in the grace_np library
 
 
 <H2>5.1.13</H2>
