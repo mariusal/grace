@@ -9,6 +9,7 @@
 #include <time.h>
 #ifndef NONE_GUI
 #  include <Xm/Xm.h>
+#  include <Xbae/patchlevel.h>
 #endif
 
 #include <t1lib.h>
@@ -59,6 +60,7 @@ static void VersionInfo(FILE *outfile)
     fprintf(outfile, "#define BI_GUI \"none\"\n");
 #else
     fprintf(outfile, "#define BI_GUI \"%s\"\n", XmVERSION_STRING);
+    fprintf(outfile, "#define BI_GUI_XBAE \"%i\"\n", XbaeVersion);
 #endif
     
     fprintf(outfile, "#define BI_T1LIB \"%s\"\n",

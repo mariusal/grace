@@ -905,6 +905,7 @@ static void VersionInfo(void)
    but those settings which may be related to problems on runtime */
 
     fprintf(stdout, "GUI toolkit: %s\n", bi_gui());
+    fprintf(stdout, "Xbae version: %s\n", bi_gui_xbae());
     fprintf(stdout, "T1lib: %s\n", bi_t1lib());
 #ifdef HAVE_FFTW
     fprintf(stdout, "FFT: FFTW\n");

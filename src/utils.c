@@ -1427,6 +1427,11 @@ char *bi_gui(void)
     return BI_GUI;
 }
 
+char *bi_gui_xbae(void)
+{
+    return BI_GUI_XBAE;
+}
+
 char *bi_t1lib(void)
 {
     return BI_T1LIB;

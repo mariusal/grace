@@ -306,7 +306,21 @@ static int is_motif_compatible(void)
         }
     }
 #endif
-    
+
+
+#if 0
+/*
+ *    Important Reminder:
+ *    it is possible that upcoming Xbae versions (i.e. more
+ *    recent than this of LessTif 0.90.0) will carry a built-in
+ *    version number - we should add a check here then!
+ */
+   if (XbaeVersion!=Xbae_Version_runtime) {
+        sprintf(buf, "Xbae runtime version (%i) does not match the build version (%i)!");
+        errmsg(buf);  
+   }
+#endif
+
     return TRUE;
 }
 

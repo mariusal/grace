@@ -186,6 +186,8 @@ void create_about_grtool(void *data)
 	CreateLabel(rc, buf);
 	sprintf(buf, "GUI toolkit: %s ", bi_gui());
 	CreateLabel(rc, buf);
+	sprintf(buf, "Xbae version: %s ", bi_gui_xbae());
+	CreateLabel(rc, buf);
 	sprintf(buf, "T1lib: %s ", bi_t1lib());
 	CreateLabel(rc, buf);
 	ManageChild(rc);
