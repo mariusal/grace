@@ -4,9 +4,9 @@
 
 <article>
 
-  <title>Grace FAQ (for Grace-5.1.9)
+  <title>Grace FAQ (for Grace-5.1.10)
   <author>by the Grace Team
-  <date>30.07.2002
+  <date>11.09.2002
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -1188,6 +1188,12 @@ XMgrace*background: ...
         command line <bf>after</bf> the data filenames. Alternatively,
         disable the autoscale with <it>-autoscale none</it> - but
         <bf>before</bf> your data is read in.
+ 
+    <sect1>I am unable to find "Load &amp; Evaluate" which I used quite a
+           lot with Xmgr.
+      <p>
+        
+        Use "Create new-&gt;By formula" from any set selector popup menu.
  
 
 <!-- **************************************** -->
