@@ -37,7 +37,7 @@ grace$(EXE) : $(GROBJS) $(PARS_C) $(CEPHES_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) -o $@ $(LDFLAGS) $(LIBS)
 
 buildinfo$(EXE) : buildinfo.o
-	$(CC) $(CFLAGS) $? -o $@ $(LDFLAGS) $(LIBS)
+	$(CC) $(CFLAGS) $? -o $@ $(LDFLAGS) $(GUI_LIBS) $(T1_LIB) $(NOGUI_LIBS)
 
 $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $?
