@@ -1,6 +1,6 @@
 <!doctype linuxdoc system>
 
-<!-- $Id: FAQ.sgml,v 1.3 1999-03-03 00:12:52 fnevgeny Exp $ -->
+<!-- $Id: FAQ.sgml,v 1.4 1999-03-12 00:20:23 fnevgeny Exp $ -->
 
 <!-- This is the FAQ for Grace, the 2d plotting tool -->
 
@@ -12,7 +12,7 @@
 
       <title>Grace FAQ
       <author>by the Grace Team
-      <date>v0.4  1999/02/23
+      <date>v0.4  1999/03/11
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, the free 2d plotting tool for scientific data.
@@ -439,8 +439,8 @@
 	    special file formats (see question <ref id="export"
 	    name="Output Devices">).
 
-	    In order to read in the netCDF data format, you
-	    will also need the <url name="netCDF libraries"
+	    In order to read/write sets in the netCDF data format, you
+	    will also need the <url name="NetCDF libraries"
 	    url="http://unidata.ucar.edu/packages/netcdf/index.html">.
 
 	    Furthermore, you might use the XPM libraries for the Grace
