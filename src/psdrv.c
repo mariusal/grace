@@ -26,7 +26,7 @@
  */
 
 /*
- *  GRACE PostScript driver
+ *  Grace PostScript driver
  */
 
 #include <config.h>
@@ -59,8 +59,6 @@ static double pixel_size;
 static float page_scalef;
 static int page_orientation;
 
-static int *psfont_status = NULL;
-
 static int ps_color;
 static int ps_pattern;
 static double ps_linew;
@@ -84,56 +82,61 @@ static int ps_setup_hwres = FALSE;
 
 static int eps_setup_level2 = TRUE;
 static int eps_setup_colorspace = DEFAULT_COLORSPACE;
-static int eps_setup_tight_bb = TRUE;
 static int eps_setup_docdata = DOCDATA_8BIT;
 
-static int tight_bb;
+static Device_entry dev_ps = {
+    DEVICE_PRINT,
+    "PostScript",
+    "ps",
+    TRUE,
+    FALSE,
+    {3300, 2550, 300.0},
 
-static Device_entry dev_ps = {DEVICE_PRINT,
-          "PostScript",
-          "ps",
-          TRUE,
-          FALSE,
-          {3300, 2550, 300.0},
+    TRUE,
+    FALSE,
 
-          psprintinitgraphics,
-          ps_op_parser,
-          ps_gui_setup,
-          NULL,
-          ps_leavegraphics,
-          ps_drawpixel,
-          ps_drawpolyline,
-          ps_fillpolygon,
-          ps_drawarc,
-          ps_fillarc,
-          ps_putpixmap,
-          ps_puttext,
+    psprintinitgraphics,
+    ps_op_parser,
+    ps_gui_setup,
+    NULL,
+    ps_leavegraphics,
+    ps_drawpixel,
+    ps_drawpolyline,
+    ps_fillpolygon,
+    ps_drawarc,
+    ps_fillarc,
+    ps_putpixmap,
+    ps_puttext,
 
-          NULL
-         };
+    NULL
+};
 
-static Device_entry dev_eps = {DEVICE_FILE,
-          "EPS",
-          "eps",
-          TRUE,
-          FALSE,
-          {2500, 2500, 300.0},
+static Device_entry dev_eps = {
+    DEVICE_FILE,
+    "EPS",
+    "eps",
+    TRUE,
+    FALSE,
+    {2500, 2500, 300.0},
 
-          epsinitgraphics,
-          eps_op_parser,
-          eps_gui_setup,
-          NULL,
-          ps_leavegraphics,
-          ps_drawpixel,
-          ps_drawpolyline,
-          ps_fillpolygon,
-          ps_drawarc,
-          ps_fillarc,
-          ps_putpixmap,
-          ps_puttext,
+    TRUE,
+    TRUE,
 
-          NULL
-         };
+    epsinitgraphics,
+    eps_op_parser,
+    eps_gui_setup,
+    NULL,
+    ps_leavegraphics,
+    ps_drawpixel,
+    ps_drawpolyline,
+    ps_fillpolygon,
+    ps_drawarc,
+    ps_fillarc,
+    ps_putpixmap,
+    ps_puttext,
+
+    NULL
+};
 
 int register_ps_drv(Canvas *canvas)
 {
@@ -145,12 +148,124 @@ int register_eps_drv(Canvas *canvas)
     return register_device(canvas, &dev_eps);
 }
 
-static int ps_initgraphics(const Canvas *canvas, int format)
+static char *ps_standard_fonts13[] = 
 {
-    int i, j;
+    "Times-Roman",
+    "Times-Italic",
+    "Times-Bold",
+    "Times-BoldItalic",
+    
+    "Helvetica",
+    "Helvetica-Oblique",
+    "Helvetica-Bold",
+    "Helvetica-BoldOblique",
+    
+    "Courier",
+    "Courier-Oblique",
+    "Courier-Bold",
+    "Courier-BoldOblique",
+    
+    "Symbol",
+    
+    "ZapfDingbats"
+};
+
+static int number_of_ps_standard_fonts13 =
+    sizeof(ps_standard_fonts13)/SIZEOF_VOID_P;
+
+static char *ps_standard_fonts35[] = 
+{
+    "Times-Roman",
+    "Times-Italic",
+    "Times-Bold",
+    "Times-BoldItalic",
+    
+    "Helvetica",
+    "Helvetica-Oblique",
+    "Helvetica-Bold",
+    "Helvetica-BoldOblique",
+    
+    "Courier",
+    "Courier-Oblique",
+    "Courier-Bold",
+    "Courier-BoldOblique",
+    
+    "Bookman-Demi",
+    "Bookman-DemiItalic",
+    "Bookman-Light",
+    "Bookman-LightItalic",
+
+    "AvantGarde-Book",
+    "AvantGarde-BookOblique",
+    "AvantGarde-Demi",
+    "AvantGarde-DemiOblique",
+
+    "Helvetica-Narrow",
+    "Helvetica-Narrow-Oblique",
+    "Helvetica-Narrow-Bold",
+    "Helvetica-Narrow-BoldOblique",
+
+    "Palatino-Roman",
+    "Palatino-Italic",
+    "Palatino-Bold",
+    "Palatino-BoldItalic",
+
+    "NewCenturySchlbk-Roman",
+    "NewCenturySchlbk-Italic",
+    "NewCenturySchlbk-Bold",
+    "NewCenturySchlbk-BoldItalic",
+    
+    "Symbol",
+
+    "ZapfDingbats",
+
+    "ZapfChancery-MediumItalic"
+};
+
+static int number_of_ps_standard_fonts35 =
+    sizeof(ps_standard_fonts35)/SIZEOF_VOID_P;
+
+static int ps_embedded_font(const char *fname, int embed_type)
+{
+    int i;
+    switch (embed_type) {
+    case FONT_EMBED_NONE:
+        return FALSE;
+        break;
+    case FONT_EMBED_13:
+        for (i = 0; i < number_of_ps_standard_fonts13; i++) {
+            if (strcmp(ps_standard_fonts13[i], fname) == 0) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+        break;
+    case FONT_EMBED_35:
+        for (i = 0; i < number_of_ps_standard_fonts35; i++) {
+            if (strcmp(ps_standard_fonts35[i], fname) == 0) {
+                return FALSE;
+            }
+        }
+        return TRUE;
+        break;
+    case FONT_EMBED_ALL:
+    default:
+        return TRUE;
+        break;
+    }
+}
+
+static int ps_initgraphics(const Canvas *canvas,
+    const CanvasStats *cstats, int format)
+{
+    int i, j, first;
     Page_geometry *pg;
     int width_pp, height_pp, page_offset_x, page_offset_y;
+    PSFont *psfonts;
+    int font_needed_any = FALSE, font_embed_any = FALSE;
     char **enc;
+    view v;
+    double llx, lly, urx, ury;
     
     time_t time_value;
     
@@ -181,25 +296,14 @@ static int ps_initgraphics(const Canvas *canvas, int format)
         ps_colorspace = COLORSPACE_RGB;
     }
 
-    /* Font status table */
-    if (psfont_status != NULL) {
-        xfree(psfont_status);
-    }
-    psfont_status = xmalloc(number_of_fonts(canvas)*SIZEOF_INT);
-    for (i = 0; i < number_of_fonts(canvas); i++) {
-        psfont_status[i] = FALSE;
-    }
-    
     switch (curformat) {
     case PS_FORMAT:
         fprintf(canvas->prstream, "%%!PS-Adobe-3.0\n");
-        tight_bb = FALSE;
         page_offset_x = ps_setup_offset_x;
         page_offset_y = ps_setup_offset_y;
         break;
     case EPS_FORMAT:
         fprintf(canvas->prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
-        tight_bb = eps_setup_tight_bb;
         page_offset_x = 0;
         page_offset_y = 0;
         break;
@@ -215,15 +319,24 @@ static int ps_initgraphics(const Canvas *canvas, int format)
         width_pp  = (int) rint(72.0*pg->width/pg->dpi);
         height_pp = (int) rint(72.0*pg->height/pg->dpi);
     }
-    
-    if (tight_bb == TRUE) {
-        fprintf(canvas->prstream, "%%%%BoundingBox: (atend)\n");
+
+    v = cstats->bbox;
+    if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
+        llx = page_scalef*(1.0 - v.yv2);
+        lly = page_scalef*v.xv1;
+        urx = page_scalef*(1.0 - v.yv1);
+        ury = page_scalef*v.xv2;
     } else {
-        fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n", 
-            page_offset_x, page_offset_y,
-            width_pp + page_offset_x, height_pp + page_offset_y);
+        llx = page_scalef*v.xv1;
+        lly = page_scalef*v.yv1;
+        urx = page_scalef*v.xv2;
+        ury = page_scalef*v.yv2;
     }
-    
+    fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n",
+        (int) floor(llx), (int) floor(lly), (int) ceil(urx), (int) ceil(ury));
+    fprintf(canvas->prstream, "%%%%HiResBoundingBox: %.2f %.2f %.2f %.2f\n",
+        llx, lly, urx, ury);
+
     if (ps_level2 == TRUE) {
         fprintf(canvas->prstream, "%%%%LanguageLevel: 2\n");
     } else {
@@ -257,7 +370,53 @@ static int ps_initgraphics(const Canvas *canvas, int format)
     }
     fprintf(canvas->prstream, "%%%%Title: %s\n", canvas_get_docname(canvas));
     fprintf(canvas->prstream, "%%%%For: %s\n", canvas_get_username(canvas));
-    fprintf(canvas->prstream, "%%%%DocumentNeededResources: (atend)\n");
+    
+    psfonts = xmalloc(cstats->nfonts*sizeof(PSFont));
+    for (i = 0; i < cstats->nfonts; i++) {
+        int font = cstats->fonts[i].font;
+        char *fontalias = get_fontalias(canvas, font);
+        if (ps_embedded_font(fontalias, FONT_EMBED_35)) {
+            char *fontname = get_fontname(canvas, font);
+            psfonts[i].embed = TRUE;
+            psfonts[i].name  = copy_string(NULL, fontname);
+            font_embed_any = TRUE;
+        } else {
+            psfonts[i].embed = FALSE;
+            psfonts[i].name  = copy_string(NULL, fontalias);
+            font_needed_any = TRUE;
+        }
+    }
+    
+    if (font_needed_any) {
+        first = TRUE;
+        for (i = 0; i < cstats->nfonts; i++) {
+            if (!psfonts[i].embed) {
+                if (first) {
+                    fprintf(canvas->prstream, "%%%%DocumentNeededResources:");
+                    first = FALSE;
+                } else {
+                    fprintf(canvas->prstream, "%%%%+");
+                }
+                fprintf(canvas->prstream, " font %s\n", psfonts[i].name);
+            }
+        }
+    }
+
+    if (font_embed_any) {
+        first = TRUE;
+        for (i = 0; i < cstats->nfonts; i++) {
+            if (psfonts[i].embed) {
+                if (first) {
+                    fprintf(canvas->prstream, "%%%%DocumentSuppliedResources:");
+                    first = FALSE;
+                } else {
+                    fprintf(canvas->prstream, "%%%%+");
+                }
+                fprintf(canvas->prstream, " font %s\n", psfonts[i].name);
+            }
+        }
+    }
+
     fprintf(canvas->prstream, "%%%%EndComments\n");
 
     /* Definitions */
@@ -289,16 +448,17 @@ static int ps_initgraphics(const Canvas *canvas, int format)
     fprintf(canvas->prstream, "/CC {concat} def\n");
     fprintf(canvas->prstream, "/PXL {n m 0 0 RL s} def\n");
     
-    for (i = 0; i < number_of_colors(canvas); i++) {
-        fprintf(canvas->prstream,"/Color%d {", i);
+    for (i = 0; i < cstats->ncolors; i++) {
+        int cindex = cstats->colors[i];
+        fprintf(canvas->prstream,"/Color%d {", cindex);
         switch (ps_colorspace) {
         case COLORSPACE_GRAYSCALE:
-            fprintf(canvas->prstream,"%.4f", get_colorintensity(canvas, i));
+            fprintf(canvas->prstream,"%.4f", get_colorintensity(canvas, cindex));
             break;
         case COLORSPACE_RGB:
             {
                 fRGB frgb;
-                if (get_frgb(canvas, i, &frgb) == RETURN_SUCCESS) {
+                if (get_frgb(canvas, cindex, &frgb) == RETURN_SUCCESS) {
                     fprintf(canvas->prstream, "%.4f %.4f %.4f",
                                       frgb.red, frgb.green, frgb.blue);
                 }
@@ -307,7 +467,7 @@ static int ps_initgraphics(const Canvas *canvas, int format)
         case COLORSPACE_CMYK:
             {
                 fCMYK fcmyk;
-                if (get_fcmyk(canvas, i, &fcmyk) == RETURN_SUCCESS) {
+                if (get_fcmyk(canvas, cindex, &fcmyk) == RETURN_SUCCESS) {
                     fprintf(canvas->prstream, "%.4f %.4f %.4f %.4f",
                                       fcmyk.cyan, fcmyk.magenta,
                                       fcmyk.yellow, fcmyk.black);
@@ -316,6 +476,51 @@ static int ps_initgraphics(const Canvas *canvas, int format)
             break;
         }
         fprintf(canvas->prstream,"} def\n");
+    }
+
+    for (i = 0; i < cstats->nfonts; i++) {
+        if (psfonts[i].embed) {
+            int font = cstats->fonts[i].font;
+            char *fontdata;
+            unsigned long datalen;
+            
+            fontdata = font_subset(canvas,
+                font, cstats->fonts[i].chars_used, &datalen);
+            if (fontdata) {
+                fprintf(canvas->prstream, "%%%%BeginResource: font %s\n",
+                    psfonts[i].name);
+                fwrite(fontdata, 1, datalen, canvas->prstream);
+                fprintf(canvas->prstream, "%%%%EndResource\n");
+                free(fontdata);
+            } else {
+                errmsg("Font subsetting failed");
+            }
+        }
+    }
+
+    if (cstats->nfonts > 0) {
+        /* Default encoding */
+        enc = get_default_encoding(canvas);
+        fprintf(canvas->prstream, "/DefEncoding [\n");
+        for (i = 0; i < 256; i++) {
+            fprintf(canvas->prstream, " /%s\n", enc[i]);
+        }
+        fprintf(canvas->prstream, "] def\n");
+    }
+
+    for (i = 0; i < cstats->nfonts; i++) {
+        int font = cstats->fonts[i].font;
+        char *encscheme = get_encodingscheme(canvas, font);
+
+        fprintf(canvas->prstream, "/%s findfont\n", psfonts[i].name);
+        if (strcmp(encscheme, "FontSpecific") != 0) {
+            fprintf(canvas->prstream, "dup length dict begin\n");
+            fprintf(canvas->prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
+            fprintf(canvas->prstream, " /Encoding DefEncoding def\n");
+            fprintf(canvas->prstream, " currentdict\n");
+            fprintf(canvas->prstream, "end\n");
+        }
+        fprintf(canvas->prstream, "/Font%d exch definefont pop\n", font);
     }
        
     if (ps_level2 == TRUE) {
@@ -388,14 +593,6 @@ static int ps_initgraphics(const Canvas *canvas, int format)
     fprintf(canvas->prstream, " /kid 1 kid add def\n");
     fprintf(canvas->prstream, "} def\n");
 
-    /* Default encoding */
-    enc = get_default_encoding(canvas);
-    fprintf(canvas->prstream, "/DefEncoding [\n");
-    for (i = 0; i < 256; i++) {
-        fprintf(canvas->prstream, " /%s\n", enc[i]);
-    }
-    fprintf(canvas->prstream, "] def\n");
-
     fprintf(canvas->prstream, "%%%%EndProlog\n");
 
     fprintf(canvas->prstream, "%%%%BeginSetup\n");
@@ -442,6 +639,12 @@ static int ps_initgraphics(const Canvas *canvas, int format)
     if (curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "%%%%Page: 1 1\n");
     }
+
+    /* free the psfonts array */
+    for (i = 0; i < cstats->nfonts; i++) {
+        xfree(psfonts[i].name);
+    }
+    xfree(psfonts);
 
     return RETURN_SUCCESS;
 }
@@ -826,26 +1029,10 @@ void ps_puttext(const Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
-    char *fontname;
-    char *encscheme;
     double *kvector;
     int i;
     Pen pen;
     
-    if (psfont_status[font] == FALSE) {
-        fontname = get_fontalias(canvas, font);
-        encscheme = get_encodingscheme(canvas, font);
-        fprintf(canvas->prstream, "/%s findfont\n", fontname);
-        if (strcmp(encscheme, "FontSpecific") != 0) {
-            fprintf(canvas->prstream, "dup length dict begin\n");
-            fprintf(canvas->prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
-            fprintf(canvas->prstream, " /Encoding DefEncoding def\n");
-            fprintf(canvas->prstream, " currentdict\n");
-            fprintf(canvas->prstream, "end\n");
-        }
-        fprintf(canvas->prstream, "/Font%d exch definefont pop\n", font);
-        psfont_status[font] = TRUE;
-    }
     fprintf(canvas->prstream, "/Font%d FFSF\n", font);
 
     getpen(canvas, &pen);
@@ -903,48 +1090,14 @@ void ps_puttext(const Canvas *canvas,
 }
 
 
-void ps_leavegraphics(const Canvas *canvas)
+void ps_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
-    view v;
-    int i, first;
-    
     if (curformat == PS_FORMAT) {
         fprintf(canvas->prstream, "showpage\n");
         fprintf(canvas->prstream, "%%%%PageTrailer\n");
     }
     fprintf(canvas->prstream, "%%%%Trailer\n");
     
-    if (tight_bb == TRUE) {
-        get_bbox(canvas, BBOX_TYPE_GLOB, &v);
-        if (page_orientation == PAGE_ORIENT_LANDSCAPE) {
-            fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n",
-                                         (int) (page_scalef*(1.0 - v.yv2)) - 1,
-                                         (int) (page_scalef*v.xv1) - 1,
-                                         (int) (page_scalef*(1.0 - v.yv1)) + 2,
-                                         (int) (page_scalef*v.xv2) + 2);
-        } else {
-            fprintf(canvas->prstream, "%%%%BoundingBox: %d %d %d %d\n",
-                                         (int) (page_scalef*v.xv1) - 1,
-                                         (int) (page_scalef*v.yv1) - 1,
-                                         (int) (page_scalef*v.xv2) + 2,
-                                         (int) (page_scalef*v.yv2) + 2);
-        }
-    }
-    
-    first = TRUE;
-    for (i = 0; i < number_of_fonts(canvas); i++) {
-        if (psfont_status[i] == TRUE) {
-            if (first) {
-                fprintf(canvas->prstream, "%%%%DocumentNeededResources: font %s\n",
-                    get_fontalias(canvas, i));
-                first = FALSE;
-            } else {
-                fprintf(canvas->prstream, "%%%%+ font %s\n",
-                    get_fontalias(canvas, i));
-            }
-        }
-    }
-
     fprintf(canvas->prstream, "%%%%EOF\n");
 }
 
@@ -990,14 +1143,14 @@ static void put_string(FILE *fp, const char *s, int len)
     fputc(')', fp);
 }
 
-int psprintinitgraphics(const Canvas *canvas)
+int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int result;
     
     ps_level2     = ps_setup_level2;
     ps_colorspace = ps_setup_colorspace;
     docdata       = ps_setup_docdata;
-    result = ps_initgraphics(canvas, PS_FORMAT);
+    result = ps_initgraphics(canvas, cstats, PS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
         curformat = PS_FORMAT;
@@ -1006,14 +1159,14 @@ int psprintinitgraphics(const Canvas *canvas)
     return (result);
 }
 
-int epsinitgraphics(const Canvas *canvas)
+int epsinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int result;
     
     ps_level2     = eps_setup_level2;
     ps_colorspace = eps_setup_colorspace;
     docdata       = eps_setup_docdata;
-    result = ps_initgraphics(canvas, EPS_FORMAT);
+    result = ps_initgraphics(canvas, cstats, EPS_FORMAT);
     
     if (result == RETURN_SUCCESS) {
         curformat = EPS_FORMAT;
@@ -1099,12 +1252,6 @@ int eps_op_parser(const Canvas *canvas, const char *opstring)
         return RETURN_SUCCESS;
     } else if (!strcmp(opstring, "docdata:binary")) {
         eps_setup_docdata = DOCDATA_BINARY;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "bbox:tight")) {
-        eps_setup_tight_bb = TRUE;
-        return RETURN_SUCCESS;
-    } else if (!strcmp(opstring, "bbox:page")) {
-        eps_setup_tight_bb = FALSE;
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1230,7 +1377,6 @@ static int set_eps_setup_proc(void *data);
 static Widget eps_setup_frame;
 static Widget eps_setup_level2_item;
 static OptionStructure *eps_setup_colorspace_item;
-static Widget eps_setup_tight_bb_item;
 static OptionStructure *eps_setup_docdata_item;
 
 void eps_gui_setup(const Canvas *canvas)
@@ -1261,7 +1407,6 @@ void eps_gui_setup(const Canvas *canvas)
             colorspace_cb, eps_setup_colorspace_item);
 	eps_setup_docdata_item =
             CreateOptionChoice(rc, "Document data:", 1, 3, docdata_op_items);
-	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
 	CreateAACDialog(eps_setup_frame, fr, set_eps_setup_proc, NULL);
     }
     update_eps_setup_frame();
@@ -1276,7 +1421,6 @@ static void update_eps_setup_frame(void)
         SetToggleButtonState(eps_setup_level2_item, eps_setup_level2);
         SetOptionChoice(eps_setup_colorspace_item, eps_setup_colorspace);
         colorspace_cb(eps_setup_level2, eps_setup_colorspace_item);
-        SetToggleButtonState(eps_setup_tight_bb_item, eps_setup_tight_bb);
         SetOptionChoice(eps_setup_docdata_item, eps_setup_docdata);
     }
 }
@@ -1285,7 +1429,6 @@ static int set_eps_setup_proc(void *data)
 {
     eps_setup_level2     = GetToggleButtonState(eps_setup_level2_item);
     eps_setup_colorspace = GetOptionChoice(eps_setup_colorspace_item);
-    eps_setup_tight_bb   = GetToggleButtonState(eps_setup_tight_bb_item);
     eps_setup_docdata    = GetOptionChoice(eps_setup_docdata_item);
     
     return RETURN_SUCCESS;

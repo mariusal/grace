@@ -86,6 +86,7 @@ int init_t1(Canvas *canvas)
     }
     
     canvas->FontDBtable = xmalloc(canvas->nfonts*sizeof(FontDB));
+    memset(canvas->FontDBtable, 0, canvas->nfonts*sizeof(FontDB));
     
     /* skip the first line */
     grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
@@ -321,6 +322,12 @@ double *get_kerning_vector(const Canvas *canvas,
         
         return kvector;
     }
+}
+
+char *font_subset(const Canvas *canvas,
+    int font, char *mask, unsigned long *datalen)
+{
+    return T1_SubsetFont(font, mask, T1_SUBSET_DEFAULT, 64, 16384, datalen);
 }
 
 static int tm_scale(TextMatrix *tm, double s)
@@ -1268,19 +1275,15 @@ void WriteString(Canvas *canvas,
                 } else {
                     vptmp = cs->start;
                 }
-                if (canvas->curdevice->puttext == NULL) {
-                    errmsg("Device has no built-in fonts");
-                } else {
-                    canvas->curdevice->puttext(canvas, &vptmp, cs->s, cs->len, cs->font,
-                        &cs->tm, cs->underline, cs->overline, cs->kerning);
-                }
+                canvas_dev_puttext(canvas, &vptmp, cs->s, cs->len, cs->font,
+                    &cs->tm, cs->underline, cs->overline, cs->kerning);
             } else {
                 /* upper left corner of bitmap */
                 vptmp = cs->start;
                 vptmp.x += (double) glyph->metrics.leftSideBearing/page_dpv;
                 vptmp.y += (double) glyph->metrics.ascent/page_dpv;
 
-                canvas->curdevice->putpixmap(canvas, &vptmp, pwidth, pheight, glyph->bits, 
+                canvas_dev_putpixmap(canvas, &vptmp, pwidth, pheight, glyph->bits, 
                     glyph->bpp, T1_DEFAULT_BITMAP_PAD, PIXMAP_TRANSPARENT);
             }
         }

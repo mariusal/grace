@@ -87,27 +87,31 @@ unsigned int win_h = 0, win_w = 0;
 
 Pixmap resize_bufpixmap(unsigned int w, unsigned int h);
 
-static Device_entry dev_x11 = {DEVICE_TERM,
-          "X11",
-          "",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
-          
-          xlibinitgraphics,
-          NULL,
-          NULL,
-          xlibupdatecmap,
-          xlibleavegraphics,
-          xlibdrawpixel,
-          xlibdrawpolyline,
-          xlibfillpolygon,
-          xlibdrawarc,
-          xlibfillarc,
-          xlibputpixmap,
-          
-          NULL
-         };
+static Device_entry dev_x11 = {
+    DEVICE_TERM,
+    "X11",
+    "",
+    FALSE,
+    TRUE,
+    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+
+    FALSE,
+    FALSE,
+
+    xlibinitgraphics,
+    NULL,
+    NULL,
+    xlibupdatecmap,
+    xlibleavegraphics,
+    xlibdrawpixel,
+    xlibdrawpolyline,
+    xlibfillpolygon,
+    xlibdrawarc,
+    xlibfillarc,
+    xlibputpixmap,
+
+    NULL
+};
 
 int register_x11_drv(Canvas *canvas)
 {
@@ -284,7 +288,7 @@ void xlibinitcmap(const Canvas *canvas)
     }
 }
 
-int xlibinitgraphics(const Canvas *canvas)
+int xlibinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int i, j;
     double step;
@@ -704,7 +708,7 @@ void xlibputpixmap(const Canvas *canvas,
     }    
 }
 
-void xlibleavegraphics(const Canvas *canvas)
+void xlibleavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int cg = get_cg();
     

@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int svginitgraphics(const Canvas *canvas);
+int svginitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 
 void svg_drawpixel(const Canvas *canvas, const VPoint *vp);
 void svg_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -43,4 +43,4 @@ void svg_puttext(const Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void svg_leavegraphics(const Canvas *canvas);
+void svg_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);

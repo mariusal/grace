@@ -2098,7 +2098,7 @@ parmset:
             set_wrap_year($4);
 	}
 	| BACKGROUND color_select {
-	    setbgcolor(canvas, $2);
+	    grace->project->bgpen.color = $2;
 	}
 	| PAGE BACKGROUND FILL onoff {
 	    grace->project->bgpen.pattern = $4;

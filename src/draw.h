@@ -242,17 +242,41 @@ typedef struct {
     int mapped_id;
     char alias[32];
     char fallback[32];
+    char used;
+    char chars_used[256];
 } FontDB;
 
+typedef struct {
+    int font;
+    char chars_used[256];
+} FontStats;
+
+typedef struct {
+    int ncolors;
+    int *colors;
+    int npatterns;
+    int *patterns;
+    int nlinestyles;
+    int *linestyles;
+    int nfonts;
+    FontStats *fonts;
+    view bbox;
+} CanvasStats;
 
 typedef struct _Canvas Canvas;
 
 /* function to initialize device */
-typedef int (*DevInitProc)(const Canvas *canvas);
+typedef int (*DevInitProc)(const Canvas *canvas, const CanvasStats *cstats);
 /* function to parse device-specific commands */
 typedef int (*DevParserProc)(const Canvas *canvas, const char *s);
 /* function (GUI interface) to setup device */
 typedef void (*DevSetupProc)(const Canvas *canvas);
+/* update color map */
+typedef void (*DevUpdateCmapProc)(const Canvas *canvas);
+/* device exit */
+typedef void (*DevLeaveGraphicsProc)(const Canvas *canvas,
+    const CanvasStats *cstats);
+
 
 /* device pixel routine */
 typedef void (*DevDrawPixelProc)(const Canvas *canvas, const VPoint *vp);
@@ -277,17 +301,14 @@ typedef void (*DevPutTextProc)(const Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-/* update color map */
-typedef void (*DevUpdateCmapProc)(const Canvas *canvas);
-
-/* device exit */
-typedef void (*DevLeaveGraphicsProc)(const Canvas *canvas);
+/* drawing procedure */
+typedef void (*CanvasDrawProc)(Canvas *canvas, void *data);
 
 typedef struct {
     RGB rgb;
     char *cname;
     int ctype;
-    int tstamp;
+    char used;
 } CMap_entry;
 
 #define BAD_COLOR	-1
@@ -307,9 +328,9 @@ typedef struct {
 
 /* Standard formats */
 typedef enum {
-    PAGE_FORMAT_CUSTOM, 
+    PAGE_FORMAT_CUSTOM,
     PAGE_FORMAT_USLETTER,
-    PAGE_FORMAT_A4     
+    PAGE_FORMAT_A4
 } PageFormat;
 
 typedef struct {
@@ -325,6 +346,9 @@ typedef struct {
     int devfonts;                          /* device has its own fonts */
     int fontaa;                            /* font antialiasing */
     Page_geometry pg;                      /* device defaults */
+    
+    int twopass;                           /* two-pass mode */
+    int autocrop;                           /* resize canvas to tight BBox */
 
     /* low-level device routines */
     DevInitProc          init;
@@ -346,7 +370,11 @@ typedef struct {
 
 /* Canvas */
 struct _Canvas {
+    /* drawing properties */
     DrawProps draw_props;
+    
+    /* page background fill */
+    Pen pagepen;
     
     /* colors */
     int maxcolors;
@@ -363,6 +391,7 @@ struct _Canvas {
     view clipview;
     
     int draw_mode;
+    int drypass;
 
     BBox_type bboxes[2];
 
@@ -386,7 +415,6 @@ struct _Canvas {
     char *docname;
 };
 
-
 /* The default max drawing path limit */
 #define MAX_DRAWING_PATH  20000
 
@@ -397,6 +425,8 @@ void canvas_set_username(Canvas *canvas, const char *s);
 void canvas_set_docname(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
+
+void canvas_set_pagepen(Canvas *canvas, const Pen *pen);
 
 void setclipping(Canvas *canvas, int flag);
 
@@ -425,8 +455,8 @@ double getlinewidth(const Canvas *canvas);
 double getcharsize(const Canvas *canvas);
 int getfont(const Canvas *canvas);
 
-int initgraphics(Canvas *canvas);
-void leavegraphics(Canvas *canvas);
+int initgraphics(Canvas *canvas, const CanvasStats *cstats);
+void leavegraphics(Canvas *canvas, const CanvasStats *cstats);
 
 void DrawPixel(Canvas *canvas, const VPoint *vp);
 void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -526,6 +556,9 @@ int get_font_by_name(const Canvas *canvas, const char *fname);
 int get_font_mapped_id(const Canvas *canvas, int font);
 int get_mapped_font(const Canvas *canvas, int mapped_id);
 
+char *font_subset(const Canvas *canvas,
+    int font, char *mask, unsigned long *datalen);
+
 int number_of_colors(const Canvas *canvas);
 int number_of_patterns(const Canvas *canvas);
 int number_of_linestyles(const Canvas *canvas);
@@ -577,6 +610,25 @@ PageFormat get_page_format(const Canvas *canvas, int device);
 
 #define page_width_pp(canvas)  (72*page_width_in(canvas))
 #define page_height_pp(canvas) (72*page_height_in(canvas))
+
+void canvas_dev_drawpixel(Canvas *canvas, const VPoint *vp);
+void canvas_dev_drawpolyline(Canvas *canvas,
+    const VPoint *vps, int n, int mode);
+void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc);
+void canvas_dev_drawarc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2);
+void canvas_dev_fillarc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode);
+void canvas_dev_putpixmap(Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void canvas_dev_puttext(Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning);
+
+void canvas_stats_reset(Canvas *canvas);
+
+int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
 
 
 char *scale_types(ScaleType it);

@@ -67,6 +67,9 @@ static Device_entry dev_svg = {
     TRUE,
     FALSE,
     {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+    
+    FALSE,
+    FALSE,
 
     svginitgraphics,
     NULL,
@@ -238,7 +241,7 @@ static char *escape_specials(unsigned char *s, int len)
     return (es);
 }
 
-int svginitgraphics(const Canvas *canvas)
+int svginitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     Svg_data *data;
     int i;
@@ -665,7 +668,7 @@ void svg_puttext(const Canvas *canvas,
     fprintf(canvas->prstream, "</text>\n");
 }
 
-void svg_leavegraphics(const Canvas *canvas)
+void svg_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     Svg_data *data = (Svg_data *) get_curdevice_data(canvas);
     if (data->group_is_open == TRUE) {

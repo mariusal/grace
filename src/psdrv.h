@@ -39,6 +39,11 @@ typedef enum {
     COLORSPACE_CMYK
 } PSColorSpace;
 
+typedef struct {
+    int embed;
+    char *name;
+} PSFont;
+
 #define DEFAULT_COLORSPACE  COLORSPACE_RGB
 
 #define MEDIA_FEED_AUTO    0  
@@ -49,8 +54,13 @@ typedef enum {
 #define DOCDATA_8BIT    1  
 #define DOCDATA_BINARY  2  
 
-int psprintinitgraphics(const Canvas *canvas);
-int epsinitgraphics(const Canvas *canvas);
+#define FONT_EMBED_NONE    0
+#define FONT_EMBED_13      1
+#define FONT_EMBED_35      2
+#define FONT_EMBED_ALL     3
+
+int psprintinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
+int epsinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 
 void ps_drawpixel(const Canvas *canvas, const VPoint *vp);
 void ps_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -66,7 +76,7 @@ void ps_puttext(const Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void ps_leavegraphics(const Canvas *canvas);
+void ps_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);
 
 int ps_op_parser(const Canvas *canvas, const char *opstring);
 int eps_op_parser(const Canvas *canvas, const char *opstring);

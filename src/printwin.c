@@ -65,6 +65,7 @@ static Widget page_x_item;
 static Widget page_y_item;
 static OptionStructure *page_size_unit_item;
 static Widget dev_res_item;
+static Widget autocrop_item;
 static Widget fontaa_item;
 static Widget devfont_item;
 static Widget dsync_item, psync_item;
@@ -206,6 +207,7 @@ void create_printer_setup(void *data)
 
         dev_res_item = CreateTextItem2(rc1, 4, "Resolution (dpi):");
 
+	autocrop_item = CreateToggleButton(rc1, "Auto crop");
 
         fr = CreateFrame(psetup_rc, "Fonts");
         rc1 = CreateVContainer(fr);
@@ -308,6 +310,14 @@ static void update_device_setup(int device_id)
         
         sprintf (buf, "%.0f", pg.dpi); 
         xv_setstr(dev_res_item, buf);
+
+        if (dev->type == DEVICE_TERM || dev->type == DEVICE_PRINT) {
+            SetToggleButtonState(autocrop_item, FALSE);
+            SetSensitive(autocrop_item, FALSE);
+        } else {
+            SetToggleButtonState(autocrop_item, dev->autocrop);
+            SetSensitive(autocrop_item, TRUE);
+        }
         
         page_units = GetOptionChoice(page_size_unit_item);
         
@@ -379,6 +389,8 @@ static int set_printer_proc(void *data)
         errmsg("Invalid dpi");
         return RETURN_FAILURE;
     }
+
+    dev->autocrop = GetToggleButtonState(autocrop_item);
 
     page_units = GetOptionChoice(page_size_unit_item);
 

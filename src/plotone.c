@@ -52,50 +52,33 @@
 
 char print_file[GR_MAXPATHLEN] = "";
 
+static void dproc(Canvas *canvas, void *data)
+{
+    int gno, ngraphs;
+    
+    ngraphs = number_of_graphs();
+    for (gno = 0; gno < ngraphs; gno++) {
+        plotone(canvas, gno);
+    }
+}
+
 /*
  * draw all active graphs
  */
 void drawgraph(Grace *grace)
 {
     Canvas *canvas = grace->rt->canvas;
-    int i, ngraphs;
-    VPoint vp1, vp2;
     int saveg;
 
     saveg = get_cg();
     
     canvas_set_docname(canvas, get_docname(grace->project));
     canvas_set_username(canvas, get_username(grace));
+    canvas_set_pagepen(canvas, &grace->project->bgpen);
     
-    if (initgraphics(canvas) == RETURN_FAILURE) {
-        errmsg("Device wasn't properly initialized");
-        return;
-    }
-    
-    setclipping(canvas, FALSE);
-
-    if (grace->project->bgpen.pattern) {
-        setpen(canvas, &grace->project->bgpen);
- 
-        vp1.x = 0.0;
-        vp1.y = 0.0;
-        get_page_viewport(canvas, &vp2.x, &vp2.y);
- 
-        FillRect(canvas, &vp1, &vp2);
-    }
-    
-    reset_bboxes(canvas);
-    activate_bbox(canvas, BBOX_TYPE_GLOB, TRUE);
-    activate_bbox(canvas, BBOX_TYPE_TEMP, FALSE);
-    
-    ngraphs = number_of_graphs();
-    for (i = 0; i < ngraphs; i++) {
-        plotone(canvas, i);
-    }
+    canvas_draw(canvas, dproc, NULL);
     
     select_graph(saveg);
-
-    leavegraphics(canvas);
 }
 
 /*

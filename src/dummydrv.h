@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int dummyinitgraphics(const Canvas *canvas);
+int dummyinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 
 void dummy_drawpixel(const Canvas *canvas, const VPoint *vp);
 void dummy_drawpolyline(const Canvas *canvas,
@@ -44,4 +44,4 @@ void dummy_puttext(const Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font,
     const TextMatrix *tm, int underline, int overline, int kerning);
 
-void dummy_leavegraphics(const Canvas *canvas);
+void dummy_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);

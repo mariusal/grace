@@ -62,9 +62,9 @@ void rst_fillarc(const Canvas *canvas,
 void rst_putpixmap(const Canvas *canvas,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void rst_leavegraphics(const Canvas *canvas);
+void rst_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);
 
-int pnminitgraphics(const Canvas *canvas);
+int pnminitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 int pnm_op_parser(const Canvas *canvas, const char *opstring);
 #ifdef NONE_GUI
 #  define pnm_gui_setup NULL
@@ -73,7 +73,7 @@ void pnm_gui_setup(const Canvas *canvas);
 #endif
 
 #ifdef HAVE_LIBJPEG
-int jpginitgraphics(const Canvas *canvas);
+int jpginitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 int jpg_op_parser(const Canvas *canvas, const char *opstring);
 #  ifdef NONE_GUI
 #    define jpg_gui_setup NULL
@@ -83,7 +83,7 @@ void jpg_gui_setup(const Canvas *canvas);
 #endif
 
 #ifdef HAVE_LIBPNG
-int pnginitgraphics(const Canvas *canvas);
+int pnginitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 int png_op_parser(const Canvas *canvas, const char *opstring);
 #  ifdef NONE_GUI
 #    define png_gui_setup NULL

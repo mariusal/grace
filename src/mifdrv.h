@@ -27,7 +27,7 @@
 
 #include "defines.h"
 
-int mifinitgraphics(const Canvas *canvas);
+int mifinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 
 void mif_drawpixel(const Canvas *canvas, const VPoint *vp);
 void mif_drawpolyline(const Canvas *canvas, const VPoint *vps, int n, int mode);
@@ -43,4 +43,4 @@ void mif_puttext(const Canvas *canvas,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning);
 
-void mif_leavegraphics(const Canvas *canvas);
+void mif_leavegraphics(const Canvas *canvas, const CanvasStats *cstats);

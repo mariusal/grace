@@ -48,6 +48,9 @@ static Device_entry dev_mf = {DEVICE_FILE,
           FALSE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
           
+          TRUE,
+          FALSE,
+          
           mfinitgraphics,
           NULL,
           NULL,
@@ -70,7 +73,7 @@ int register_mf_drv(Canvas *canvas)
     return register_device(canvas, &dev_mf);
 }
 
-int mfinitgraphics(const Canvas *canvas)
+int mfinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int i, j;
     Page_geometry *pg;
@@ -79,18 +82,20 @@ int mfinitgraphics(const Canvas *canvas)
     fprintf(canvas->prstream, "#GMF-%s\n", GMF_VERSION);
 
     fprintf(canvas->prstream, "FontResources {\n");
-    for (i = 0; i < number_of_fonts(canvas); i++) {
+    for (i = 0; i < cstats->nfonts; i++) {
+        int font = cstats->fonts[i].font;
         fprintf(canvas->prstream, "\t( %d , \"%s\" , \"%s\" )\n", 
-            i, get_fontalias(canvas, i), get_fontfallback(canvas, i));
+            font, get_fontalias(canvas, font), get_fontfallback(canvas, font));
     }
     fprintf(canvas->prstream, "}\n");
 
     fprintf(canvas->prstream, "ColorResources {\n");
-    for (i = 0; i < number_of_colors(canvas); i++) {
+    for (i = 0; i < cstats->ncolors; i++) {
+        int cindex = cstats->colors[i];
         RGB rgb;
-        get_rgb(canvas, i, &rgb);
+        get_rgb(canvas, cindex, &rgb);
         fprintf(canvas->prstream, "\t( %d , \"%s\" , %d , %d , %d )\n", 
-            i, get_colorname(canvas, i), rgb.red, rgb.green, rgb.blue);
+            cindex, get_colorname(canvas, cindex), rgb.red, rgb.green, rgb.blue);
     }
     fprintf(canvas->prstream, "}\n");
 
@@ -278,9 +283,9 @@ void mf_puttext(const Canvas *canvas,
     fprintf(canvas->prstream, "}\n"); 
 }
 
-void mf_leavegraphics(const Canvas *canvas)
+void mf_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
-    view v;
+    view v = cstats->bbox;
     
     get_bbox(canvas, BBOX_TYPE_GLOB, &v);
     fprintf(canvas->prstream, "LeaveGraphics { %.4f %.4f %.4f %.4f }\n",

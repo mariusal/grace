@@ -129,6 +129,9 @@ static Device_entry dev_pnm = {DEVICE_FILE,
           FALSE,
           TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          
+          FALSE,
+          FALSE,
 
           pnminitgraphics,
           pnm_op_parser,
@@ -152,6 +155,9 @@ static Device_entry dev_jpg = {DEVICE_FILE,
           FALSE,
           TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          
+          FALSE,
+          FALSE,
 
           jpginitgraphics,
           jpg_op_parser,
@@ -176,6 +182,9 @@ static Device_entry dev_png = {DEVICE_FILE,
           FALSE,
           TRUE,
           {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+          
+          FALSE,
+          FALSE,
           
           pnginitgraphics,
           png_op_parser,
@@ -528,7 +537,7 @@ void rst_putpixmap(const Canvas *canvas,
     }
 }
      
-void rst_leavegraphics(const Canvas *canvas)
+void rst_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     /* Output the image to the disk file. */
     switch (curformat) {
@@ -559,7 +568,7 @@ void rst_leavegraphics(const Canvas *canvas)
     ihandle = NULL;
 }
 
-int pnminitgraphics(const Canvas *canvas)
+int pnminitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int result;
     
@@ -672,7 +681,7 @@ static void rstImagePnm(const Canvas *canvas,
 
 
 #ifdef HAVE_LIBJPEG
-int jpginitgraphics(const Canvas *canvas)
+int jpginitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int result;
     
@@ -867,7 +876,7 @@ int pnm_op_parser(const Canvas *canvas, const char *opstring)
 }
 
 #ifdef HAVE_LIBPNG
-int pnginitgraphics(const Canvas *canvas)
+int pnginitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int result;
     

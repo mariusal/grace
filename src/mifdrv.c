@@ -47,28 +47,32 @@
 
 static double page_side = 0.0;
 
-static Device_entry dev_mif = {DEVICE_FILE,
-                               "MIF",
-                               "mif",
-                               TRUE,
-                               FALSE,
-                               {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
+static Device_entry dev_mif = {
+    DEVICE_FILE,
+    "MIF",
+    "mif",
+    TRUE,
+    FALSE,
+    {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0},
     
-                               mifinitgraphics,
-                               NULL,
-                               NULL,
-                               NULL,
-                               mif_leavegraphics,
-                               mif_drawpixel,
-                               mif_drawpolyline,
-                               mif_fillpolygon,
-                               mif_drawarc,
-                               mif_fillarc,
-                               mif_putpixmap,
-                               mif_puttext,
+    FALSE,
+    FALSE,
 
-                               (void *) &page_side
-                              };
+    mifinitgraphics,
+    NULL,
+    NULL,
+    NULL,
+    mif_leavegraphics,
+    mif_drawpixel,
+    mif_drawpolyline,
+    mif_fillpolygon,
+    mif_drawarc,
+    mif_fillarc,
+    mif_putpixmap,
+    mif_puttext,
+
+    (void *) &page_side
+};
 
 /* mapping between Grace and MIF fill patterns. This is really ugly but
  * MIF does not allow to define document patterns */
@@ -239,7 +243,7 @@ int register_mif_drv(Canvas *canvas)
     return register_device(canvas, &dev_mif);
 }
 
-int mifinitgraphics(const Canvas *canvas)
+int mifinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int i;
     double c, m, y, k;
@@ -721,7 +725,7 @@ void mif_puttext(const Canvas *canvas,
     copy_string(family, NULL);
 }
 
-void mif_leavegraphics(const Canvas *canvas)
+void mif_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     fprintf(canvas->prstream, " <Group\n");
     fprintf(canvas->prstream, "  <ID 1>\n");

@@ -53,10 +53,105 @@ static void purge_dense_points(const VPoint *vps, int n, VPoint *pvps, int *np);
 static int realloc_colors(Canvas *canvas, int n);
 static int RGB2YIQ(const RGB *rgb, YIQ *yiq);
 static int RGB2CMY(const RGB *rgb, CMY *cmy);
+static void canvas_stats_update(Canvas *canvas, int type);
+static void canvas_char_stats_update(Canvas *canvas,
+    int font, const char *s, int len);
 
 /* Default drawing properties */
 static DrawProps default_draw_props = 
 {{1, 1}, 0, 1, 0.0, LINECAP_BUTT, LINEJOIN_MITER, 1.0, 0, FILLRULE_WINDING};
+
+#define CANVAS_STATS_COLOR     1
+#define CANVAS_STATS_PATTERN   2
+#define CANVAS_STATS_LINESTYLE 4
+#define CANVAS_STATS_FONT      8
+
+#define CANVAS_STATS_PEN  (CANVAS_STATS_COLOR | CANVAS_STATS_PATTERN)
+#define CANVAS_STATS_LINE (CANVAS_STATS_PEN | CANVAS_STATS_LINESTYLE)
+
+void canvas_dev_drawpixel(Canvas *canvas, const VPoint *vp)
+{
+    canvas_stats_update(canvas, CANVAS_STATS_COLOR);
+    if (!canvas->drypass) {
+        canvas->curdevice->drawpixel(canvas, vp);
+    }
+}
+
+void canvas_dev_drawpolyline(Canvas *canvas,
+    const VPoint *vps, int n, int mode)
+{
+    canvas_stats_update(canvas, CANVAS_STATS_LINE);
+    if (!canvas->drypass) {
+        canvas->curdevice->drawpolyline(canvas, vps, n, mode);
+    }
+}
+
+void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc)
+{
+    canvas_stats_update(canvas, CANVAS_STATS_PEN);
+    if (!canvas->drypass) {
+        canvas->curdevice->fillpolygon(canvas, vps, nc);
+    }
+}
+
+void canvas_dev_drawarc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2)
+{
+    canvas_stats_update(canvas, CANVAS_STATS_LINE);
+    if (!canvas->drypass) {
+        canvas->curdevice->drawarc(canvas, vp1, vp2, a1, a2);
+    }
+}
+
+void canvas_dev_fillarc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, int a1, int a2, int mode)
+{
+    canvas_stats_update(canvas, CANVAS_STATS_PEN);
+    if (!canvas->drypass) {
+        canvas->curdevice->fillarc(canvas, vp1, vp2, a1, a2, mode);
+    }
+}
+
+void canvas_dev_putpixmap(Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type)
+{
+    if (pixmap_bpp == 1) {
+        canvas_stats_update(canvas, CANVAS_STATS_COLOR);
+        if (pixmap_type != PIXMAP_TRANSPARENT) {
+            canvas->cmap_table[getbgcolor(canvas)].used = 1;
+        }
+    } else {
+        int j, k;
+        for (k = 0; k < height; k++) {
+            for (j = 0; j < width; j++) {
+                int cindex = (databits)[k*width+j];
+                canvas->cmap_table[cindex].used = 1;
+            }
+        }
+    }
+    if (!canvas->drypass) {
+        canvas->curdevice->putpixmap(canvas,
+            vp, width, height, databits, pixmap_bpp, bitmap_pad, pixmap_type);
+    }
+}
+
+void canvas_dev_puttext(Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning)
+{
+    if (canvas->curdevice->puttext == NULL) {
+        errmsg("Device has no built-in fonts");
+    } else {
+        canvas_stats_update(canvas, CANVAS_STATS_PEN);
+        canvas_char_stats_update(canvas, font, s, len);
+        if (!canvas->drypass) {
+            canvas->curdevice->puttext(canvas,
+                vp, s, len, font, tm, underline, overline, kerning);
+        }
+    }
+}
+
 
 Canvas *canvas_new(void)
 {
@@ -284,6 +379,12 @@ char *canvas_get_docname(const Canvas *canvas)
     return canvas->docname;
 }
 
+void canvas_set_pagepen(Canvas *canvas, const Pen *pen)
+{
+    canvas->pagepen = *pen;
+}
+
+
 int get_draw_mode(const Canvas *canvas)
 {
     return (canvas->draw_mode);
@@ -295,11 +396,11 @@ int get_max_path_limit(const Canvas *canvas)
 }
 
 
-int initgraphics(Canvas *canvas)
+int initgraphics(Canvas *canvas, const CanvasStats *cstats)
 {
     int retval;
     
-    retval = canvas->curdevice->init(canvas);
+    retval = canvas->curdevice->init(canvas, cstats);
     
     if (retval == RETURN_SUCCESS) {
         canvas->device_ready = TRUE;
@@ -310,9 +411,9 @@ int initgraphics(Canvas *canvas)
     return retval;
 }
 
-void leavegraphics(Canvas *canvas)
+void leavegraphics(Canvas *canvas, const CanvasStats *cstats)
 {
-    canvas->curdevice->leavegraphics(canvas);
+    canvas->curdevice->leavegraphics(canvas, cstats);
     canvas->device_ready = FALSE;
 }
 
@@ -324,7 +425,7 @@ void DrawPixel(Canvas *canvas, const VPoint *vp)
 {
      if (is_validVPoint(canvas, vp)) {
          if (canvas->draw_mode) {
-             canvas->curdevice->drawpixel(canvas, vp);
+             canvas_dev_drawpixel(canvas, vp);
          }
          update_bboxes(canvas, vp);
      }
@@ -399,7 +500,7 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
                         } else {
                             npurged = nc;
                         }
-                        canvas->curdevice->drawpolyline(canvas, vpsc, npurged, mode);
+                        canvas_dev_drawpolyline(canvas, vpsc, npurged, mode);
                     }
                     
                     nc = 0;
@@ -419,10 +520,10 @@ void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode)
                     return;
                 }
                 purge_dense_points(vps, n, vpsc, &npurged);
-                canvas->curdevice->drawpolyline(canvas, vpsc, npurged, mode);
+                canvas_dev_drawpolyline(canvas, vpsc, npurged, mode);
                 xfree(vpsc);
             } else {
-                canvas->curdevice->drawpolyline(canvas, vps, n, mode);
+                canvas_dev_drawpolyline(canvas, vps, n, mode);
             }
         }
     }
@@ -465,7 +566,7 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
                     } else {
                         npurged = nc;
                     }
-                    canvas->curdevice->fillpolygon(canvas, vptmp, npurged);
+                    canvas_dev_fillpolygon(canvas, vptmp, npurged);
                 }
             }
             xfree(vptmp);
@@ -482,10 +583,10 @@ void DrawPolygon(Canvas *canvas, const VPoint *vps, int n)
                     return;
                 }
                 purge_dense_points(vps, n, vptmp, &npurged);
-                canvas->curdevice->fillpolygon(canvas, vptmp, npurged);
+                canvas_dev_fillpolygon(canvas, vptmp, npurged);
                 xfree(vptmp);
             } else {
-                canvas->curdevice->fillpolygon(canvas, vps, n);
+                canvas_dev_fillpolygon(canvas, vps, n);
             }
         }
     }
@@ -505,7 +606,7 @@ void DrawArc(Canvas *canvas,
     
     /* TODO: clipping!!!*/
     if (get_draw_mode(canvas) == TRUE) {
-        canvas->curdevice->drawarc(canvas, vp1, vp2, angle1, angle2);
+        canvas_dev_drawarc(canvas, vp1, vp2, angle1, angle2);
     }
     
     /* TODO: consider open arcs! */
@@ -531,7 +632,7 @@ void DrawFilledArc(Canvas *canvas,
         
     /* TODO: clipping!!!*/
     if (get_draw_mode(canvas) == TRUE) {
-        canvas->curdevice->fillarc(canvas, vp1, vp2, angle1, angle2, mode);
+        canvas_dev_fillarc(canvas, vp1, vp2, angle1, angle2, mode);
     }
     /* TODO: consider open arcs! */
     update_bboxes(canvas, vp1);
@@ -1178,7 +1279,7 @@ static int realloc_colors(Canvas *canvas, int n)
                 canvas->cmap_table[i].rgb.blue = 0;
                 canvas->cmap_table[i].cname = NULL;
                 canvas->cmap_table[i].ctype = COLOR_NONE;
-                canvas->cmap_table[i].tstamp = 0;
+                canvas->cmap_table[i].used = 0;
             }
         }
         canvas->maxcolors = n;
@@ -1204,7 +1305,6 @@ int store_color(Canvas *canvas, int n, const CMap_entry *cmap)
         }
         canvas->cmap_table[n].rgb = cmap->rgb;
         canvas->cmap_table[n].ctype = cmap->ctype;
-        canvas->cmap_table[n].tstamp = 1;
                 
         /* inform current device of changes in the cmap database */
         if (canvas->device_ready && canvas->curdevice->updatecmap != NULL) {
@@ -1389,7 +1489,7 @@ int number_of_linestyles(const Canvas *canvas)
  * ---------------- bbox utilities --------------------
  */
 
-static const view invalid_view = {0.0, 0.0, 0.0, 0.0};
+static const view invalid_view = {-1.0, -1.0, -1.0, -1.0};
 
 void reset_bbox(Canvas *canvas, int type)
 {
@@ -1635,6 +1735,171 @@ int update_bboxes_with_vpoints(Canvas *canvas, const VPoint *vps, int n, double 
         
         return RETURN_SUCCESS;
     }
+}
+
+void canvas_stats_reset(Canvas *canvas)
+{
+    int i;
+    
+    for (i = 0; i < canvas->maxcolors; i++) {
+        canvas->cmap_table[i].used = 0;
+    }
+    for (i = 0; i < canvas->nfonts; i++) {
+        int j;
+        canvas->FontDBtable[i].used = 0;
+        for (j = 0; j < 256; j++) {
+            canvas->FontDBtable[i].chars_used[j] = 0; 
+        }
+    }
+}
+
+static void canvas_stats_update(Canvas *canvas, int type)
+{
+    if (type & CANVAS_STATS_COLOR) {
+        canvas->cmap_table[getcolor(canvas)].used = 1;
+    }
+}
+
+static void canvas_char_stats_update(Canvas *canvas,
+    int font, const char *s, int len)
+{
+    int j;
+    
+    canvas->FontDBtable[font].used = 1;
+    for (j = 0; j < len; j++) {
+        canvas->FontDBtable[font].chars_used[(int) s[j]] = 1; 
+    }
+}
+
+CanvasStats *canvas_stats(const Canvas *canvas)
+{
+    CanvasStats *cstats = xmalloc(sizeof(CanvasStats));
+    
+    if (cstats) {
+        int i, j;
+        
+        memset(cstats, 0, sizeof(CanvasStats));
+        
+        /* colors */
+        for (i = 0; i < canvas->maxcolors; i++) {
+            if (canvas->cmap_table[i].used) {
+                cstats->ncolors++;
+            }
+        }
+        cstats->colors = xmalloc(cstats->ncolors*SIZEOF_INT);
+        for (i = 0, j = 0; i < canvas->maxcolors; i++) {
+            if (canvas->cmap_table[i].used) {
+                cstats->colors[j] = i;
+                j++;
+            }
+        }
+
+        /* fonts */
+        for (i = 0; i < canvas->nfonts; i++) {
+            if (canvas->FontDBtable[i].used) {
+                cstats->nfonts++;
+            }
+        }
+        cstats->fonts = xmalloc(cstats->nfonts*sizeof(FontStats));
+        for (i = 0, j = 0; i < canvas->nfonts; i++) {
+            if (canvas->FontDBtable[i].used) {
+                cstats->fonts[j].font = i;
+                memcpy(cstats->fonts[j].chars_used,
+                    canvas->FontDBtable[i].chars_used, 256);
+                j++;
+            }
+        }
+        
+        /* BBox */
+        get_bbox(canvas, BBOX_TYPE_GLOB, &cstats->bbox);
+    }
+    
+    return cstats;
+}
+
+static void canvas_stats_free(CanvasStats *cstats)
+{
+    if (cstats) {
+        xfree(cstats->colors);
+        xfree(cstats->fonts);
+        xfree(cstats);
+    }
+}
+
+int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data)
+{
+    unsigned int npasses, passno;
+    CanvasStats *cstats;
+    
+    if (canvas->curdevice->twopass ||
+        (canvas->pagepen.pattern && canvas->curdevice->autocrop)) {
+        npasses = 2;
+    } else {
+        npasses = 1;
+    }
+    
+    cstats = NULL;
+    
+    for (passno = 0; passno < npasses; passno++) {
+        if (npasses == 2 && passno == 0) {
+            canvas->drypass = TRUE;
+        } else {
+            canvas->drypass = FALSE;
+        }
+        
+        reset_bboxes(canvas);
+        activate_bbox(canvas, BBOX_TYPE_GLOB, FALSE);
+        activate_bbox(canvas, BBOX_TYPE_TEMP, FALSE);
+        canvas_stats_reset(canvas);
+        
+        setbgcolor(canvas, canvas->pagepen.color);
+
+        if (!canvas->drypass) {
+            if (initgraphics(canvas, cstats) != RETURN_SUCCESS) {
+                errmsg("Device wasn't properly initialized");
+                return RETURN_FAILURE;
+            }
+        }
+        
+        if (!canvas->curdevice->autocrop) {
+            activate_bbox(canvas, BBOX_TYPE_GLOB, TRUE);
+        }
+        
+        if (canvas->pagepen.pattern) {
+            VPoint vp1, vp2;
+            
+            if (cstats && canvas->curdevice->autocrop) {
+                vp1.x = cstats->bbox.xv1;
+                vp1.y = cstats->bbox.yv1;
+                vp2.x = cstats->bbox.xv2;
+                vp2.y = cstats->bbox.yv2;
+            } else {
+                vp1.x = 0.0;
+                vp1.y = 0.0;
+                get_page_viewport(canvas, &vp2.x, &vp2.y);
+            }
+            
+            setpen(canvas, &canvas->pagepen);
+            setclipping(canvas, FALSE);
+            FillRect(canvas, &vp1, &vp2);
+        }
+
+        activate_bbox(canvas, BBOX_TYPE_GLOB, TRUE);
+        
+        dproc(canvas, data);
+        
+        if (!cstats) {
+            cstats = canvas_stats(canvas);
+        }
+        
+        if (!canvas->drypass) {
+            leavegraphics(canvas, cstats);
+        }
+    }
+    
+    canvas_stats_free(cstats);
+    
+    return RETURN_SUCCESS;
 }
 
 /*

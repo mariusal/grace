@@ -73,7 +73,6 @@ static int pdf_linejoin;
 
 static PDFCompatibility pdf_setup_compat = PDF_1_3;
 static PDFColorSpace pdf_setup_colorspace = DEFAULT_COLORSPACE;
-static int pdf_setup_tight_bb = FALSE;
 static int pdf_setup_compression = 4;
 static int pdf_setup_fpprec = 4;
 
@@ -85,6 +84,9 @@ static Device_entry dev_pdf = {DEVICE_FILE,
           TRUE,
           FALSE,
           {612, 792, 72.0},
+          
+          TRUE,
+          FALSE,
 
           pdfinitgraphics,
           pdf_op_parser,
@@ -108,7 +110,7 @@ int register_pdf_drv(Canvas *canvas)
     return register_device(canvas, &dev_pdf);
 }
 
-int pdfinitgraphics(const Canvas *canvas)
+int pdfinitgraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
     int i;
     Page_geometry *pg;
@@ -649,17 +651,15 @@ void pdf_puttext(const Canvas *canvas,
     PDF_restore(phandle);
 }
 
-void pdf_leavegraphics(const Canvas *canvas)
+void pdf_leavegraphics(const Canvas *canvas, const CanvasStats *cstats)
 {
-    if (pdf_setup_tight_bb) {
-        view v;
-        get_bbox(canvas, BBOX_TYPE_GLOB, &v);
-        
-        PDF_set_value(phandle, "CropBox/llx", page_scalef*v.xv1 - 1);
-        PDF_set_value(phandle, "CropBox/lly", page_scalef*v.yv1 - 1);
-        PDF_set_value(phandle, "CropBox/urx", page_scalef*v.xv2 + 1);
-        PDF_set_value(phandle, "CropBox/ury", page_scalef*v.yv2 + 1);
-    }
+    view v;
+    v = cstats->bbox;
+
+    PDF_set_value(phandle, "CropBox/llx", page_scalef*v.xv1);
+    PDF_set_value(phandle, "CropBox/lly", page_scalef*v.yv1);
+    PDF_set_value(phandle, "CropBox/urx", page_scalef*v.xv2);
+    PDF_set_value(phandle, "CropBox/ury", page_scalef*v.yv2);
     
     PDF_end_page(phandle);
     PDF_close(phandle);
@@ -722,14 +722,6 @@ int pdf_op_parser(const Canvas *canvas, const char *opstring)
             return RETURN_FAILURE;
         }
     } else
-    if (!strcmp(opstring, "bbox:tight")) {
-        pdf_setup_tight_bb = TRUE;
-        return RETURN_SUCCESS;
-    } else
-    if (!strcmp(opstring, "bbox:page")) {
-        pdf_setup_tight_bb = FALSE;
-        return RETURN_SUCCESS;
-    } else
     if (!strcmp(opstring, "colorspace:grayscale")) {
         pdf_setup_colorspace = COLORSPACE_GRAYSCALE;
         return RETURN_SUCCESS;
@@ -755,7 +747,6 @@ static Widget pdf_setup_frame;
 static OptionStructure *pdf_setup_compat_item;
 static SpinStructure *pdf_setup_compression_item;
 static SpinStructure *pdf_setup_fpprec_item;
-static Widget pdf_setup_tight_bb_item;
 static OptionStructure *pdf_setup_colorspace_item;
 
 void pdf_gui_setup(const Canvas *canvas)
@@ -783,7 +774,6 @@ void pdf_gui_setup(const Canvas *canvas)
             CreateOptionChoice(rc, "Compatibility:", 1, 3, compat_op_items);
         pdf_setup_colorspace_item =
             CreateOptionChoice(rc, "Colorspace:", 1, 3, colorspace_op_items);
-	pdf_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
 	pdf_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
 	pdf_setup_fpprec_item = CreateSpinChoice(rc,
@@ -801,7 +791,6 @@ static void update_pdf_setup_frame(void)
     if (pdf_setup_frame) {
         SetOptionChoice(pdf_setup_compat_item, pdf_setup_compat);
         SetOptionChoice(pdf_setup_colorspace_item, pdf_setup_colorspace);
-        SetToggleButtonState(pdf_setup_tight_bb_item, pdf_setup_tight_bb);
         SetSpinChoice(pdf_setup_compression_item, (double) pdf_setup_compression);
         SetSpinChoice(pdf_setup_fpprec_item, (double) pdf_setup_fpprec);
     }
@@ -811,7 +800,6 @@ static int set_pdf_setup_proc(void *data)
 {
     pdf_setup_compat      = GetOptionChoice(pdf_setup_compat_item);
     pdf_setup_colorspace  = GetOptionChoice(pdf_setup_colorspace_item);
-    pdf_setup_tight_bb    = GetToggleButtonState(pdf_setup_tight_bb_item);
     pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
     pdf_setup_fpprec      = (int) GetSpinChoice(pdf_setup_fpprec_item);
     

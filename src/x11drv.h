@@ -36,7 +36,7 @@
 
 int xlibinit(const Canvas *canvas);
 void xlibredraw(Window window, int x, int y, int widht, int height);
-int xlibinitgraphics(const Canvas *canvas);
+int xlibinitgraphics(const Canvas *canvas, const CanvasStats *cstats);
 void drawxlib(int x, int y, int mode);
 void xlibupdatecmap(const Canvas *canvas);
 void xlibinitcmap(const Canvas *canvas);
@@ -52,7 +52,7 @@ void xlibputpixmap(const Canvas *canvas,
     const VPoint *vp, int width, int height, char *databits,
     int pixmap_bpp, int bitmap_pad, int pixmap_type);
 
-void xlibleavegraphics(const Canvas *canvas);
+void xlibleavegraphics(const Canvas *canvas, const CanvasStats *cstats);
      
 int xconvxlib(double x);
 int yconvxlib(double y);
