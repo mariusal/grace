@@ -25,7 +25,7 @@
  * and numerical format.
 
  * The following command will compile the program :
- *  cc -o convcal convcal.c
+ *  cc -o convcal convcal.c -lm
 
  * The utility reads the dates either on the command line or in the
  * standard input if the command line contains no date. The following
@@ -40,11 +40,11 @@
  * The formats are tried in the following order : users's choice,
  * iso, european and us (there is no ambiguity between calendar
  * formats and numerical formats and therefore no order is specified
- * for them). The default user's choice (auto) does nothing so the
+ * for them). The default user's choice (nohint) does nothing so the
  * following formats of the list are used ; the main use of user's
  * choice is to put another format before the other ones. The
  * separators between various fields can be any characters in the set
- * : " :/-" (one or more spaces act as one separator, other characters
+ * : " :/.-" (one or more spaces act as one separator, other characters
  * can not be repeated), so the string "1999-12 31:23-59" is allowed
  * (but not recommended).  The '-' character is used both as a
  * separator (it is traditionally used in iso8601 format) and as the
@@ -73,7 +73,7 @@
 
  * The program can be used either for Denys's and gregorian
  * calendars. It does not take into account leap seconds : you can
- * think it works only in International Atomic Time (TAI) and not in
+ * think it works only in International Atomic Time (IAT) and not in
  * Unified Time Coordinate (UTC) ...  Inexistant dates are detected,
  * they include year 0, dates between 1582-10-05 and 1582-10-14,
  * February 29th of non leap years, months below 1 or above 12, ...
@@ -83,14 +83,14 @@
  * value overriding the preceding one.
  *
  * -i format : set user's choice for input format, supported formats are
- *             iso, european, us, days, seconds and auto.
- *             At the beginning the input format is auto, which means
+ *             iso, european, us, days, seconds and nohint.
+ *             At the beginning the input format is nohint, which means
  *             the program try to guess the format by itself, if the
  *             user's choice does not allow to parse the date, other
  *             formats are tried
  * -o format : force output format, supported formats are
- *             iso, european, us, days, seconds and auto.
- *             At the beginning, the output format is auto, which means
+ *             iso, european, us, days, seconds and nohint.
+ *             At the beginning, the output format is nohint, which means
  *             the program uses days format for dates read in any
  *             calendar format and uses iso8601 for dates read in
  *             numerical format
@@ -114,12 +114,13 @@
 
 #define REFDATE "-4713-01-01 12:00:00"
 
-typedef enum   { FMT_iso,
+typedef enum   { FTM_none,
+                 FMT_iso,
                  FMT_european,
                  FMT_us,
                  FMT_days,
                  FMT_seconds,
-                 FMT_auto
+                 FMT_nohint
                } Dates_format;
 
 typedef struct { int value;
@@ -510,7 +511,7 @@ static int parse_calendar_date(const char* s,
               negative = 0;
               break;
 
-          case '/' : case ':' : /* non-repeatable separator */
+          case '/' : case ':' : case '.' : /* non-repeatable separator */
               if (waiting_separator) {
                   s++;
                   negative = 0;
@@ -562,7 +563,7 @@ static int parse_calendar_date(const char* s,
         return 5;
     }
 
-    if ((*s == '/') || (*s == ':') || (*s == '-')) {
+    if ((*s == '/') || (*s == ':') || (*s == '.') || (*s == '-')) {
         /* this was the seconds separator */
         s++;
 
@@ -592,7 +593,7 @@ int parse_date(const char* s, Dates_format preferred,
 {
     int i, n;
     int ky, km, kd;
-    static Dates_format trials [] = {FMT_auto, FMT_iso, FMT_european, FMT_us};
+    static Dates_format trials [] = {FMT_nohint, FMT_iso, FMT_european, FMT_us};
     Int_token tab [5];
     long j;
     double sec;
@@ -695,7 +696,7 @@ int convert_and_write(const char *s, double reference_date,
         jul += reference_date;
     }
 
-    if (output_format == FMT_auto) {
+    if (output_format == FMT_nohint) {
         /* choose a format that really convert calendar and numerical */
         if ((recognized == FMT_days) || (recognized == FMT_seconds)) {
             output_format = FMT_iso;
@@ -759,8 +760,8 @@ int parse_format(const char *s, Dates_format *f)
         *f = FMT_days;
     } else if (string_equal(s, "seconds")) {
         *f = FMT_seconds;
-    } else if (string_equal(s, "auto")) {
-        *f = FMT_auto;
+    } else if (string_equal(s, "nohint")) {
+        *f = FMT_nohint;
     } else {
         return EXIT_FAILURE;
     }
@@ -823,8 +824,8 @@ int main(int argc, char *argv[])
                 argv[0], REFDATE);
         return EXIT_FAILURE;
     }
-    input_format  = FMT_auto;
-    output_format = FMT_auto;
+    input_format  = FMT_nohint;
+    output_format = FMT_nohint;
 
     /* command line parsing */
     converted = 0;
