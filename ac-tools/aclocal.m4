@@ -318,7 +318,7 @@ AC_DEFUN(ACX_CHECK_MOTIF,
   
   AC_CACHE_CHECK( "for a Motif \>= $1 compatible API", acx_cv_motif,
     AC_CACHE_VAL(acx_cv_motif_library, acx_cv_motif_library=$motif_library)
-    LIBS="-lXm -lXt $X_PRE_LIBS -lX11 $X_EXTRA_LIBS $LIBS"
+    LIBS="$acx_cv_motif_library $GUI_LIBS"
     CFLAGS="$X_CFLAGS $CFLAGS"
     CPPFLAGS="$X_CFLAGS $CPPFLAGS"
     LDFLAGS="$X_LIBS $LDFLAGS"
@@ -329,11 +329,11 @@ AC_DEFUN(ACX_CHECK_MOTIF,
         vincn = XmVersion;
         XmRegisterConverters();
         vlibn = xmUseVersion;
-        if (vincn != vlibn) {
-          exit(1);
-        }
         if (vincn < [$1]) {
           exit(1);
+        }
+        if (vincn != vlibn) {
+          exit(2);
         }
         exit(0);
       }

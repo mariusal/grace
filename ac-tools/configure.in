@@ -618,7 +618,7 @@ dnl **** Check for Motif
 
   ACX_SAVE_STATE
   
-  LIBS="$GUI_LIBS $NOGUI_LIBS"
+  LIBS="$GUI_LIBS"
   CFLAGS="$X_CFLAGS $CFLAGS"
   CPPFLAGS="$X_CFLAGS $CPPFLAGS"
   LDFLAGS="$X_LIBS $LDFLAGS"
@@ -632,11 +632,9 @@ dnl **** Check for Motif
   if test $ac_cv_lib_Xmu__XEditResCheckMessages != yes; then
     AC_MSG_RESULT(--> support for EditRes protocol is disabled)
   fi
-  LIBS="$GUI_LIBS $NOGUI_LIBS"
 
   dnl **** some Motif-2.1 variants need the -lXp library
   AC_CHECK_LIB(Xp,main,GUI_LIBS="-lXp $GUI_LIBS")
-  LIBS="$GUI_LIBS $NOGUI_LIBS"
 
   dnl **** and some - Xpm lib
   AC_CHECK_LIB(Xpm,main,GUI_LIBS="-lXpm $GUI_LIBS"; AC_DEFINE(HAVE_XPM)
@@ -652,7 +650,7 @@ dnl **** Check for Motif
     GUI_LIBS=""
     AC_MSG_WARN(M*tif has not been found; building a GUI-less version)
   else
-    GUI_LIBS="-lXm $GUI_LIBS"
+    GUI_LIBS="$MOTIF_LIB $GUI_LIBS"
     GUI="MOTIF_GUI"
     GUI_FLAGS="$X_CFLAGS"
     GRACE=xmgrace
