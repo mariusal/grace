@@ -65,13 +65,13 @@ AC_ARG_ENABLE(config,
 
 dnl **** define C compiler
 CC=${CC-gcc}
-AC_ARG_WITH(config,
+AC_ARG_WITH(cc,
 [  --with-cc=PROG               use PROG as C compiler [${CC-gcc}]],
 [CC="${withval}"])
 
 dnl **** define Fortran compiler
 FC=${FC-f77}
-AC_ARG_WITH(config,
+AC_ARG_WITH(f77,
 [  --with-f77=PROG              use PROG as Fortran compiler [${FC-f77}]],
 [FC="${withval}"])
 
