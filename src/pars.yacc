@@ -65,6 +65,8 @@
 #include "protos.h"
 #include "parser.h"
 
+#define MAX_PARS_STRING_LENGTH  4096
+
 typedef double (*ParserFnc)();
 
 extern graph *g;
@@ -94,7 +96,7 @@ char batchfile[GR_MAXPATHLEN] = "",
      paramfile[GR_MAXPATHLEN] = "",
      readfile[GR_MAXPATHLEN] = "";
 
-static char f_string[MAX_STRING_LENGTH]; /* buffer for string to parse */
+static char f_string[MAX_PARS_STRING_LENGTH]; /* buffer for string to parse */
 static int pos;
 
 /* the graph, set, and its length of the parser's current state */
@@ -4031,7 +4033,7 @@ parmset_obs:
 	}
 	| LEGEND STRING nexpr CHRSTR {
 	    if (is_valid_setno(whichgraph, $3)) {
-                strcpy(g[whichgraph].p[$3].lstr, $4);
+                strncpy(g[whichgraph].p[$3].lstr, $4, MAX_STRING_LENGTH - 1);
 	    } else {
                 yyerror("Unallocated set");
             }
@@ -4830,13 +4832,13 @@ static int parser(char *s, int type)
         }
     }
     
-    strncpy(f_string, s, MAX_STRING_LENGTH - 2);
-    f_string[MAX_STRING_LENGTH - 2] = '\0';
+    strncpy(f_string, s, MAX_PARS_STRING_LENGTH - 2);
+    f_string[MAX_PARS_STRING_LENGTH - 2] = '\0';
     strcat(f_string, " ");
     
     seekpos = f_string;
 
-    while ((seekpos - f_string < MAX_STRING_LENGTH - 1) && (*seekpos == ' ' || *seekpos == '\t')) {
+    while ((seekpos - f_string < MAX_PARS_STRING_LENGTH - 1) && (*seekpos == ' ' || *seekpos == '\t')) {
         seekpos++;
     }
     if (*seekpos == '\n' || *seekpos == '#') {
@@ -5132,8 +5134,7 @@ static int yylex(void)
 {
     int c, i;
     int found;
-    static char s[MAX_STRING_LENGTH];
-    char sbuf[MAX_STRING_LENGTH + 40];
+    char sbuf[MAX_PARS_STRING_LENGTH + 40];
 
     while ((c = getcharstr()) == ' ' || c == '\t');
     if (c == EOF) {
@@ -5152,19 +5153,18 @@ static int yylex(void)
 		    c = ctmp;
 		}
 	    }
-	    s[i] = c;
+	    sbuf[i] = c;
 	    i++;
 	}
 	if (c == EOF) {
 	    yyerror("Nonterminating string");
 	    return 0;
 	}
-	s[i] = '\0';
-	yylval.sval = copy_string(NULL, s);
+	sbuf[i] = '\0';
+	yylval.sval = copy_string(NULL, sbuf);
 	return CHRSTR;
     }
     if (c == '.' || isdigit(c)) {
-	char stmp[80];
 	double d;
 	int i, gotdot = 0;
 
@@ -5178,18 +5178,18 @@ static int yylex(void)
 		    gotdot = 1;
 		}
 	    }
-	    stmp[i++] = c;
+	    sbuf[i++] = c;
 	    c = getcharstr();
 	}
 	if (c == 'E' || c == 'e') {
-	    stmp[i++] = c;
+	    sbuf[i++] = c;
 	    c = getcharstr();
 	    if (c == '+' || c == '-') {
-		stmp[i++] = c;
+		sbuf[i++] = c;
 		c = getcharstr();
 	    }
 	    while (isdigit(c)) {
-		stmp[i++] = c;
+		sbuf[i++] = c;
 		c = getcharstr();
 	    }
 	}
@@ -5197,19 +5197,18 @@ static int yylex(void)
 	    ungetchstr();
 	    return '.';
 	}
-	stmp[i] = '\0';
+	sbuf[i] = '\0';
 	ungetchstr();
-	sscanf(stmp, "%lf", &d);
+	sscanf(sbuf, "%lf", &d);
 	yylval.dval = d;
 	return NUMBER;
     }
 /* graphs, sets, regions resp. */
     if (c == 'G' || c == 'S' || c == 'R') {
-	char stmp[80];
 	int i = 0, ctmp = c, gn, sn, rn;
 	c = getcharstr();
 	while (isdigit(c) || c == '$' || c == '_') {
-	    stmp[i++] = c;
+	    sbuf[i++] = c;
 	    c = getcharstr();
 	}
 	if (i == 0) {
@@ -5218,32 +5217,32 @@ static int yylex(void)
 	} else {
 	    ungetchstr();
 	    if (ctmp == 'G') {
-	        stmp[i] = '\0';
-		if (i == 1 && stmp[0] == '_') {
+	        sbuf[i] = '\0';
+		if (i == 1 && sbuf[0] == '_') {
                     gn = get_recent_gno();
-                } else if (i == 1 && stmp[0] == '$') {
+                } else if (i == 1 && sbuf[0] == '$') {
                     gn = whichgraph;
                 } else {
-                    gn = atoi(stmp);
+                    gn = atoi(sbuf);
                 }
 		if (set_graph_active(gn, TRUE) == RETURN_SUCCESS) {
 		    yylval.ival = gn;
 		    return GRAPHNO;
 		}
 	    } else if (ctmp == 'S') {
-	        stmp[i] = '\0';
-		if (i == 1 && stmp[0] == '_') {
+	        sbuf[i] = '\0';
+		if (i == 1 && sbuf[0] == '_') {
                     sn = get_recent_setno();
-                } else if (i == 1 && stmp[0] == '$') {
+                } else if (i == 1 && sbuf[0] == '$') {
                     sn = whichset;
                 } else {
-		    sn = atoi(stmp);
+		    sn = atoi(sbuf);
                 }
 		yylval.ival = sn;
 		return SETNUM;
 	    } else if (ctmp == 'R') {
-	        stmp[i] = '\0';
-		rn = atoi(stmp);
+	        sbuf[i] = '\0';
+		rn = atoi(sbuf);
 		if (rn >= 0 && rn < MAXREGION) {
 		    yylval.ival = rn;
 		    return REGNUM;
@@ -5370,12 +5369,13 @@ static int follow(int expect, int ifyes, int ifno)
 
 static void yyerror(char *s)
 {
-    int i;
-    char buf[2*MAX_STRING_LENGTH + 40];
-    sprintf(buf, "%s: %s", s, f_string);
-    i = strlen(buf);
-    buf[i - 1] = 0;
+    char *buf;
+    
+    buf = copy_string(NULL, s);
+    buf = concat_strings(buf, ": ");
+    buf = concat_strings(buf, f_string);
     errmsg(buf);
+    xfree(buf);
     interr = 1;
 }
 
