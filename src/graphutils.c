@@ -673,7 +673,8 @@ int arrange_graphs(int *graphs, int ngraphs,
     return RETURN_SUCCESS;
 }
 
-int arrange_graphs_simple(int nrows, int ncols)
+int arrange_graphs_simple(int nrows, int ncols,
+    int order, double offset, double gap)
 {
     int *graphs, i, ngraphs, retval;
     
@@ -691,9 +692,8 @@ int arrange_graphs_simple(int nrows, int ncols)
         kill_graph(i);
     }
     
-    retval = arrange_graphs(graphs, ngraphs, nrows, ncols, 0,
-        GA_OFFSET_DEFAULT, GA_OFFSET_DEFAULT, GA_OFFSET_DEFAULT, GA_OFFSET_DEFAULT,
-        GA_GAP_DEFAULT, GA_GAP_DEFAULT, FALSE, FALSE);
+    retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order,
+        offset, offset, offset, offset, gap, gap, FALSE, FALSE);
     
     xfree(graphs);
     

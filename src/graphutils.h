@@ -74,7 +74,8 @@ int arrange_graphs(int *graphs, int ngraphs,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
                    int hpack, int vpack);
-int arrange_graphs_simple(int grows, int gcols);
+int arrange_graphs_simple(int nrows, int ncols,
+    int order, double offset, double gap);
 
 void autotick_axis(int gno, int axis);
 void autoscale_byset(int gno, int setno, int autos_type);
