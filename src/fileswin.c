@@ -93,8 +93,7 @@ void create_saveproject_popup(void)
     if (fsb == NULL) {
         Widget fr, rc;
 	
-        fsb = CreateFileSelectionBox(app_shell,
-            "Save project", "*.agr");
+        fsb = CreateFileSelectionBox(app_shell, "Save project");
 
 	fr = CreateFrame(fsb->rc, NULL);
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -138,8 +137,7 @@ void create_openproject_popup(void)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell,
-            "Open project", "*.agr");
+        fsb = CreateFileSelectionBox(app_shell, "Open project");
 	AddFileSelectionBoxCB(fsb, open_proc, NULL);
         ManageChild(fsb->FSB);
     }
@@ -184,7 +182,7 @@ void create_file_popup(void *data)
         
         gui = xmalloc(sizeof(rdataGUI));
         
-	rdata_dialog = CreateFileSelectionBox(app_shell, "Read sets", "*.dat");
+	rdata_dialog = CreateFileSelectionBox(app_shell, "Read sets");
 	AddFileSelectionBoxCB(rdata_dialog, read_sets_proc, (void *) gui);
 
 	fr = CreateFrame(rdata_dialog->rc, NULL);
@@ -306,8 +304,7 @@ void create_write_popup(void *data)
         
 	gui = xmalloc(sizeof(wdataGUI));
 	
-        fsb = CreateFileSelectionBox(app_shell,
-            "Write sets", "*.dat");
+        fsb = CreateFileSelectionBox(app_shell, "Write sets");
 	AddFileSelectionBoxCB(fsb, write_sets_proc, (void *) gui);
 	
 	fr = CreateFrame(fsb->rc, NULL);
@@ -367,8 +364,7 @@ void create_rparams_popup(void *data)
     set_wait_cursor();
 
     if (rparams_dialog == NULL) {
-	rparams_dialog = CreateFileSelectionBox(app_shell,
-            "Read parameters", "*.par");
+	rparams_dialog = CreateFileSelectionBox(app_shell, "Read parameters");
 	AddFileSelectionBoxCB(rparams_dialog, read_params_proc, NULL);
         ManageChild(rparams_dialog->FSB);
     }
@@ -400,8 +396,7 @@ void create_wparam_frame(void *data)
     if (fsb == NULL) {
         Widget fr, *graph_item;
 	
-        fsb = CreateFileSelectionBox(app_shell,
-            "Write parameters", "*.par");
+        fsb = CreateFileSelectionBox(app_shell, "Write parameters");
 	fr = CreateFrame(fsb->rc, NULL);
 	graph_item = CreatePanelChoice(fr,
             "Write parameters from graph:",
@@ -669,7 +664,7 @@ void create_netcdffiles_popup(Widget w, XtPointer client_data, XtPointer call_da
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Select netCDF file", "*.nc");
+        fsb = CreateFileSelectionBox(app_shell, "Select netCDF file");
 	AddFileSelectionBoxCB(fsb, do_netcdffile_proc, NULL);
         ManageChild(fsb->FSB);
     }

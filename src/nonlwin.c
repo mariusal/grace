@@ -651,7 +651,7 @@ static void create_openfit_popup(void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Open fit parameter file", "*.fit");
+        fsb = CreateFileSelectionBox(app_shell, "Open fit parameter file");
 	AddFileSelectionBoxCB(fsb, do_openfit_proc, NULL);
         ManageChild(fsb->FSB);
     }
@@ -681,7 +681,7 @@ static void create_savefit_popup(void *data)
     if (fsb == NULL) {
         Widget fr;
         
-        fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file", "*.fit");
+        fsb = CreateFileSelectionBox(app_shell, "Save fit parameter file");
 	fr = CreateFrame(fsb->rc, NULL);
 	title_item = CreateTextItem2(fr, 25, "Title: ");
 	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);

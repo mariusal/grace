@@ -248,6 +248,17 @@ String fallbackResources[] = {
     "XMgrace*fileMenu.printButton.accelerator: Ctrl<Key>p",
     "XMgrace*helpMenu.onContextButton.acceleratorText: Shift+F1",
     "XMgrace*helpMenu.onContextButton.accelerator: Shift<Key>F1",
+    "XMgrace*readHistoryFSB*pattern: *.com",
+    "XMgrace*openProjectFSB*pattern: *.agr",
+    "XMgrace*saveProjectFSB*pattern: *.agr",
+    "XMgrace*readSetsFSB*pattern: *.dat",
+    "XMgrace*writeSetsFSB*pattern: *.dat",
+    "XMgrace*readParametersFSB*pattern: *.par",
+    "XMgrace*writeParametersFSB*pattern: *.par",
+    "XMgrace*selectNetcdfFileFSB*pattern: *.nc",
+    "XMgrace*selectHotLinkFileFSB*pattern: *.dat",
+    "XMgrace*openFitParameterFileFSB*pattern: *.fit",
+    "XMgrace*saveFitParameterFileFSB*pattern: *.fit",
     NULL
 };
 

@@ -564,7 +564,7 @@ void create_printfiles_popup(void *data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Select print file", "*");
+        fsb = CreateFileSelectionBox(app_shell, "Select print file");
 	AddFileSelectionBoxCB(fsb, do_prfilesel_proc, NULL);
         ManageChild(fsb->FSB);
     }

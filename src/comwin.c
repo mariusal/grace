@@ -380,7 +380,7 @@ void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Read history", "*.com");
+        fsb = CreateFileSelectionBox(app_shell, "Read history");
 	AddFileSelectionBoxCB(fsb, do_rhist_proc, NULL);
         ManageChild(fsb->FSB);
     }

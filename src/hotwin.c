@@ -280,7 +280,7 @@ void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
     set_wait_cursor();
 
     if (fsb == NULL) {
-        fsb = CreateFileSelectionBox(app_shell, "Select hot link file", "*.dat");
+        fsb = CreateFileSelectionBox(app_shell, "Select hot link file");
 	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, NULL);
         ManageChild(fsb->FSB);
     }
