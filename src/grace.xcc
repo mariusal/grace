@@ -2009,7 +2009,7 @@ int load_xgr_project(Grace *grace, char *fn)
     grace_close(fp);
     
     if (ret == XCC_RETURN_SUCCESS) {
-        set_docname(project, fn);
+        project_set_docname(project, fn);
 
         return grace_set_project(grace, project);
     } else {

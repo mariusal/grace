@@ -182,7 +182,7 @@ void set_title(const Quark *pr)
     }
     
     dstate = quark_dirtystate_get(pr);
-    ts = mybasename(get_docname(pr));
+    ts = mybasename(project_get_docname(pr));
     if (ts_save == NULL || strcmp(ts_save, ts) != 0 || dstate != dstate_save) {
         char *buf1, *buf2;
         ts_save = copy_string(ts_save, ts);

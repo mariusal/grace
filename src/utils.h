@@ -89,8 +89,6 @@ char *get_workingdir(const Grace *grace);
 char *get_username(const Grace *grace);
 char *get_userhome(const Grace *grace);
 
-void set_docname(Quark *q, const char *s);
-char *get_docname(const Quark *q);
 char *get_docbname(const Quark *q);
 
 void errmsg(const char *msg);

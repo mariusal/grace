@@ -278,7 +278,7 @@ static void update_device_setup(int device_id)
         }
 
         if (is_empty_string(grace->rt->print_file)) {
-            strcpy(grace->rt->print_file, mybasename(get_docname(grace->project))); 
+            strcpy(grace->rt->print_file, mybasename(project_get_docname(grace->project))); 
         }
         
         /* Replace existing filename extension */

@@ -1119,7 +1119,7 @@ int load_project_file(Grace *grace, char *fn, int as_template)
         char *bufp;
         
         if (as_template == FALSE) {
-            set_docname(grace->project, fn);
+            project_set_docname(grace->project, fn);
         }
         
         /* Set timestamp */

@@ -137,7 +137,7 @@ void drawgraph(const Quark *project)
     RunTime *rt = rt_from_quark(project);
 
     if (pr && rt) {
-        canvas_set_docname(rt->canvas, get_docname(project));
+        canvas_set_docname(rt->canvas, project_get_docname(project));
         canvas_set_pagefill(rt->canvas, pr->bgfill);
         setbgcolor(rt->canvas, pr->bgcolor);
         canvas_set_fontsize_scale(rt->canvas,  pr->fscale);

@@ -161,7 +161,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
                 subst = project_get_timestamp(grace->project);
             } else
             if (!strcmp(macro, "filename")) {
-                subst = get_docname(grace->project);
+                subst = project_get_docname(grace->project);
             } else
             if (!strcmp(macro, "filebname")) {
                 subst = get_docbname(grace->project);
@@ -190,7 +190,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
                 subst = project_get_timestamp(grace->project);
             } else
             if (!strcmp(macro, "filename")) {
-                subst = get_docname(grace->project);
+                subst = project_get_docname(grace->project);
             } else
             if (!strcmp(macro, "filebname")) {
                 subst = get_docbname(grace->project);

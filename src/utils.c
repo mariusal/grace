@@ -259,7 +259,7 @@ void emergency_exit(Grace *grace, int is_my_bug, char *msg)
         grace->rt->interrupts = 0;
         fprintf(stderr, "\a\nOops! %s\n", msg);
         if (grace->project->dirtystate) {
-            strcpy(buf, get_docname(grace->project));
+            strcpy(buf, project_get_docname(grace->project));
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
@@ -774,21 +774,6 @@ char *get_help_viewer(const Grace *grace)
 void set_help_viewer(Grace *grace, const char *dir)
 {
     grace->rt->help_viewer = copy_string(grace->rt->help_viewer, dir);
-}
-
-char *get_docname(const Quark *q)
-{
-    Project *pr = project_get_data(q);
-    return pr->docname;
-}
-
-void set_docname(Quark *q, const char *s)
-{
-    Project *pr = project_get_data(q);
-    if (!s) {
-        s = NONAME;
-    }
-    pr->docname = copy_string(pr->docname, s);
 }
 
 char *get_docbname(const Quark *q)

@@ -455,10 +455,10 @@ static void MenuCB(Widget but, void *data)
 	create_openproject_popup();
 	break;
     case MENU_SAVE:
-	if (strcmp (get_docname(grace->project), NONAME) != 0) {
+	if (strcmp (project_get_docname(grace->project), NONAME) != 0) {
 	    set_wait_cursor();
 	    
-	    save_project(grace->project, get_docname(grace->project));
+	    save_project(grace->project, project_get_docname(grace->project));
 	    
 	    unset_wait_cursor();
 	} else {
@@ -470,7 +470,7 @@ static void MenuCB(Widget but, void *data)
 	break;
     case MENU_REVERT:
 	set_wait_cursor();
-	s = copy_string(NULL, get_docname(grace->project));
+	s = copy_string(NULL, project_get_docname(grace->project));
 	if (strcmp (s, NONAME) != 0) {
             load_project(grace, s);
         } else {
@@ -531,7 +531,7 @@ void set_left_footer(char *s)
         char buf[GR_MAXPATHLEN + 100];
         gethostname(hbuf, 63);
         sprintf(buf, "%s, %s, %s, %d%%",
-            hbuf, display_name(grace->gui), get_docname(grace->project),
+            hbuf, display_name(grace->gui), project_get_docname(grace->project),
             (int) rint(100*grace->gui->zoom));
         SetLabel(statlab, buf);
     } else {
