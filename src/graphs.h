@@ -113,7 +113,7 @@ typedef struct {
     int symlines;               /* symbol linestyle */
     double symlinew;            /* symbol linewidth */
     int symskip;                /* number of symbols to skip */
-    char symchar;               /* char used if sym == SYM_CHAR */
+    unsigned char symchar;      /* char used if sym == SYM_CHAR */
     int charfont;               /* font for symchar if sym == SYM_CHAR */
 
     int linet;                  /* set line type */
