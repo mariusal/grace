@@ -277,79 +277,65 @@ void delete_region(int gno, int setno, int regno)
 
 void evaluate_region(int regno, int gno, int setno, char *buf)
 {
-    double *x, *y, tmpx, tmpy;
-    int errpos;
-    int i, j, k;
-    int gstart, gstop;
+    double *x, *y, *xtmp, *ytmp;
     int sstart, sstop;
+    int setlen;
+    int i, j;
+    int errpos;
 
-
-    if (gno == GRAPH_SELECT_CURRENT) {      /* current graph */
-        gstart = get_cg() ;
-        gstop = get_cg() ;
-    } else if (gno == GRAPH_SELECT_ALL) {   /* all graphs */
-        gstart = 0;
-        gstop = number_of_graphs() - 1;
-    } else {
-        gstart = gno;                       /* particular graph */
-        gstop = gno;
+    if (!is_valid_gno(gno)) {
+        errmsg("Invalid graph");
+        return;
     }
     if (regno < MAXREGION) {
 	if (rg[regno].active == FALSE) {
 	    errmsg("Region not active");
 	    return;
 	}
-	if (rg[regno].linkto[get_cg() ] == FALSE) {
+	if (rg[regno].linkto[gno] == FALSE) {
 	    errmsg("Region not linked to the current graph");
 	    return;
 	}
     }
-    for (k = gstart; k <= gstop; k++) {
-        if (is_graph_active(k)) {
-            if (setno == SET_SELECT_ALL) {  /* all sets */
-                sstart = 0;
-                sstop = number_of_sets(k) - 1;
-            } else {                        /* particular set */
-                sstart = setno;
-                sstop = setno;
-            }
-            for (j = sstart; j <= sstop; j++) {
-                if (is_set_active(k, j)) {
-		    x = getx(k, j);
-		    y = gety(k, j);
-		    tmpx = x[0];
-		    tmpy = y[0];
-		    for (i = 0; i < getsetlength(k, j); i++) {
-	
-		        if ( (regno < MAXREGION && inregion(regno, x[i], y[i]))
-		           ||(regno == MAXREGION && inbounds(k, x[i], y[i]))
-		           ||(regno > MAXREGION && !inbounds(k, x[i], y[i])) ) {
-	
-		            x[0] = x[i];
-		            y[0] = y[i];
-		            scanner(buf, 1, j, &errpos);
-		            if (errpos) {
-		                x[0] = tmpx;
-		                y[0] = tmpy;
-		                return;
-		            }
-		            if ( i != 0) {
-		                x[i] = x[0];
-		                y[i] = y[0];
-		            } else {
-		                tmpx = x[0];
-		                tmpy = y[0];
-		            }
-		            set_dirtystate();
-		        }
-		    }
-		    x[0] = tmpx;
-		    y[0] = tmpy;
+    if (setno == SET_SELECT_ALL) {  /* all sets */
+        sstart = 0;
+        sstop = number_of_sets(gno) - 1;
+    } else {                        /* particular set */
+        sstart = setno;
+        sstop = setno;
+    }
 
-		} /* isactive */
-	    } /* j */
-	} /* is_graph_active */
-    } /* k */
+    for (j = sstart; j <= sstop; j++) {
+        if (set_parser_setno(gno, j) == GRACE_EXIT_SUCCESS) {
+            setlen = getsetlength(gno, j);
+            xtmp = malloc(setlen*SIZEOF_DOUBLE);
+            ytmp = malloc(setlen*SIZEOF_DOUBLE);
+            if (xtmp == NULL || ytmp == NULL) {
+                cxfree(xtmp);
+                cxfree(ytmp);
+                errmsg("Malloc failed");
+                return;
+            }
+            x = getx(gno, j);
+            y = gety(gno, j);
+            memcpy(xtmp, x, setlen*SIZEOF_DOUBLE);
+            memcpy(ytmp, y, setlen*SIZEOF_DOUBLE);
+            errpos = scanner(buf);
+            if (!errpos) {
+                for (i = 0; i < setlen; i++) {
+                    if (!inregion(regno, x[i], y[i])) {
+                        /* restore original values */
+                        x[i] = xtmp[i];
+                        y[i] = ytmp[i];
+                    }
+                }
+            }
+            cxfree(xtmp);
+            cxfree(ytmp);
+        }
+    }
+    
+    set_dirtystate();
 }
 
 /*
