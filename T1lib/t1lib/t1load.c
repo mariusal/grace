@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-05-27
+  ----- Date:        2001-10-03
   ----- Description: This file is part of the t1-library. It contains
                      functions for loading fonts  and for managing size
 		     dependent data.
@@ -116,27 +116,23 @@ int T1_LoadFont( int FontID)
   
   /* Allocate memory for ps_font structure: */
   if ((pFontBase->pFontArray[FontID].pType1Data=(psfont *)malloc(sizeof(psfont)))==NULL){
-    sprintf( err_warn_msg_buf,
-	     "Failed to allocate memory for psfont-struct (FontID=%d)", FontID);
-    print_msg("T1_LoadFont()", err_warn_msg_buf);
+    T1_PrintLog( "T1_LoadFont()", "Failed to allocate memory for psfont-struct (FontID=%d)",
+		 T1LOG_ERROR, FontID);
     T1_errno=T1ERR_ALLOC_MEM;
     return(-1);
   }
 
   /* Check for valid filename */
   if ((FileName=T1_GetFontFileName(FontID))==NULL){
-    sprintf( err_warn_msg_buf, "No font file name for font %d",
-	     FontID);
-    print_msg( "T1_LoadFont()", err_warn_msg_buf);
+    T1_PrintLog( "T1_LoadFont()", "No font file name for font %d", T1LOG_ERROR, FontID);
     return(-1);
   }
   
   /* Fetch the full path of type1 font file */
-  if ((FileNamePath=Env_GetCompletePath( FileName,
+  if ((FileNamePath=intT1_Env_GetCompletePath( FileName,
 					 T1_PFAB_ptr))==NULL){
-    sprintf( err_warn_msg_buf, "Couldn't locate font file for font %d in %s",
-	     FontID, T1_PFAB_ptr);
-    print_msg( "T1_LoadFont()", err_warn_msg_buf);
+    T1_PrintLog( "T1_LoadFont()", "Couldn't locate font file for font %d in %s",
+		 T1LOG_ERROR, FontID, T1_GetFileSearchPath(T1_PFAB_PATH));
     T1_errno=T1ERR_FILE_OPEN_ERR;
     return(-1);
   }
@@ -144,10 +140,8 @@ int T1_LoadFont( int FontID)
   /* And load all PostScript information into memory */
   if (fontfcnA( FileNamePath, &mode,
 		pFontBase->pFontArray[FontID].pType1Data) == FALSE){
-    sprintf( err_warn_msg_buf,
-	     "Loading font with ID = %d failed! (mode = %d)",
-	    FontID, mode);
-    print_msg( "T1_LoadFont()", err_warn_msg_buf);
+    T1_PrintLog( "T1_LoadFont()", "Loading font with ID = %d failed! (mode = %d)",
+		 T1LOG_ERROR, FontID, mode);
     free(FileNamePath);
     pFontBase->pFontArray[FontID].pType1Data=NULL;
     T1_errno=mode;
@@ -710,10 +704,17 @@ int T1_LoadFont( int FontID)
   pFontBase->pFontArray[FontID].UndrLnThick=
     pFontBase->pFontArray[FontID].pType1Data->fontInfoP[UNDERLINETHICKNESS].value.data.real;
 
-  /* We have to guess a value for the typographic ascender. Since this
-     dimension is not part of the Type 1 font specification, this value
-     should  explicitly be set later by the user! */
-  ascender=(float) T1_GetCharBBox( FontID, T1_GetEncodingIndex( FontID, "d")).ury;
+  /* We have to set the value for the typographic ascender. If possible,
+     we get it from the afm-File. But be aware this value might be undefined!
+     This value should in any acse explicitly be set later by the user! */
+  if (pFontBase->pFontArray[FontID].pAFMData!=NULL &&
+      pFontBase->pFontArray[FontID].pAFMData->gfi!=NULL) {
+    ascender=(float) pFontBase->pFontArray[FontID].pAFMData->gfi->ascender;
+  }
+  else {
+    ascender=(float) T1_GetCharBBox( FontID, T1_GetEncodingIndex( FontID, "d")).ury;
+  }
+  
   pFontBase->pFontArray[FontID].OvrLnPos=ascender
     + (float) abs( (double)pFontBase->pFontArray[FontID].UndrLnPos);
   pFontBase->pFontArray[FontID].OvrStrkPos=ascender / 2.0;
@@ -806,7 +807,7 @@ static int openFontMetricsFile( int FontID, int open_sloppy)
   
   /* Get full path of the afm file (The case of a full path name
      name specification is valid */
-  AFMFileNamePath=Env_GetCompletePath( AFMFileName, T1_AFM_ptr);
+  AFMFileNamePath=intT1_Env_GetCompletePath( AFMFileName, T1_AFM_ptr);
   free( AFMFileName);
   
   /* open afm-file: */
@@ -842,7 +843,7 @@ static int openFontMetricsFile( int FontID, int open_sloppy)
   else
     i=T1lib_parseFile( (FILE *) metricsfile,
 		       (FontInfo **) &(FontBase.pFontArray[FontID].pAFMData),
-		       P_M | P_P | P_C );
+		       P_G | P_M | P_P | P_C );
   fclose(metricsfile);
   return(i);
 }

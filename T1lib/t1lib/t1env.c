@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2001-11-12
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
@@ -61,13 +61,164 @@
 #include "t1base.h"
 
 
+/* The following static variables are used to store information on the distinct
+   file search paths:
+
+   -1         t1lib has not yet been initialized!
+    0         t1lib has been initialized and default paths have been setup
+    n (>0)    there are n path elements for current search path type, either built
+              from a FontDataBase file or from explicit fucntion calls.
+*/
+	    
+static int pfab_no=-1;
+static int afm_no=-1;
+static int enc_no=-1;
+static int fdb_no=-1;
+
+static char path_sep_char='\0';
+static char path_sep_string[2];
+
+static char pathbuf[2048];
+
+/* Define some default search paths */
+#ifndef VMS
+static char T1_pfab[]=".";
+static char T1_afm[]=".";
+static char T1_enc[]=".";
+#else
+static char T1_pfab[]="sys$disk:[]";
+static char T1_afm[]="sys$disk:[]";
+static char T1_enc[]="sys$disk:[]";
+#endif
+char T1_fdb[]="FontDataBase";
+
+
+/* keywords recognized in config file */
+static const char enc_key[]="ENCODING";
+static const char pfab_key[]="TYPE1";
+static const char afm_key[]="AFM";
+static const char fdb_key[]="FONTDATABASE";
+
+
+/* qstrncpy(): Copy bytes from srcP to to destP. srcP is count bytes long
+   and destP is the number of quoted characters shorter. That is, count
+   refers to the number of characters including the escapement chars in
+   srcP! */
+static void qstrncpy( char *destP, const char *srcP, long nochars)
+{
+  long i;
+  long j;
+  
+  i=0;  /* dest-index */
+  j=0;  /* src-index */
+  
+  while (j<nochars) {
+    if (srcP[j]=='\\') {
+      if (srcP[j+1]=='"') { 
+	j++;                /* escaped quotation character --> omit escape char. */
+      }
+    }
+    else {                  /* normal character */
+      destP[i++]=srcP[j++];
+    }
+  }
+}
+
+
+
+
+/* Setup the default paths for searching the distinct file types. If
+   paths have been setup explicitly, skip the step of setting up a default path. */
+void intT1_SetupDefaultSearchPaths( void) 
+{
+
+  path_sep_char=PATH_SEP_CHAR;
+  sprintf( path_sep_string, "%c", path_sep_char);
+  
+  /* We set the number of stored path elements 0 so that we can distiguish
+     between explicitly setup paths and default paths in intT1_ScanConfigFile(). */
+  if (pfab_no==-1) {
+    T1_PFAB_ptr=(char**) calloc( 2, sizeof(char*));
+    T1_PFAB_ptr[0]=(char*)malloc(strlen(T1_pfab)+1);
+    strcpy(T1_PFAB_ptr[0],T1_pfab);
+    pfab_no=0;
+  }
+  
+  if (afm_no==-1) {
+    T1_AFM_ptr=(char**) calloc( 2, sizeof(char*));
+    T1_AFM_ptr[0]=(char*)malloc(strlen(T1_afm)+1);
+    strcpy(T1_AFM_ptr[0],T1_afm);
+    afm_no=0;
+  }
+  
+  if (enc_no==-1) {
+    T1_ENC_ptr=(char**) calloc( 2, sizeof(char*));
+    T1_ENC_ptr[0]=(char*)malloc(strlen(T1_enc)+1);
+    strcpy(T1_ENC_ptr[0],T1_enc);
+    enc_no=0;
+  }
+
+  if (fdb_no==-1) {
+    T1_FDB_ptr=(char**) calloc( 2, sizeof(char*));
+    T1_FDB_ptr[0]=(char*)malloc(strlen(T1_fdb)+1);
+    strcpy(T1_FDB_ptr[0],T1_fdb);
+    fdb_no=0;
+  }
+}
+
+
+/* This function is called from T1_CloseLib(). We have to indicate the state
+   of a non-initialzed t1lib! */
+void intT1_FreeSearchPaths( void) 
+{
+  int i;
+  
+  i=0;
+  if (T1_PFAB_ptr!=NULL) {
+    while (T1_PFAB_ptr[i]!=NULL) {
+      free(T1_PFAB_ptr[i]);
+      T1_PFAB_ptr[i]=NULL;
+    }
+    free( T1_PFAB_ptr);
+  }
+  i=0;
+  if (T1_AFM_ptr!=NULL) {
+    while (T1_AFM_ptr[i]!=NULL) {
+      free(T1_AFM_ptr[i]);
+      T1_AFM_ptr[i]=NULL;
+    }
+    free( T1_AFM_ptr);
+  }
+  i=0;
+  if (T1_ENC_ptr!=NULL) {
+    while (T1_ENC_ptr[i]!=NULL) {
+      free(T1_ENC_ptr[i]);
+      T1_ENC_ptr[i]=NULL;
+    }
+    free( T1_ENC_ptr);
+  }
+  i=0;
+  if (T1_FDB_ptr!=NULL) {
+    while (T1_FDB_ptr[i]!=NULL) {
+      free(T1_FDB_ptr[i]);
+      T1_FDB_ptr[i]=NULL;
+    }
+    free( T1_FDB_ptr);
+  }
+  /* indicate t1lib non-initialized */
+  pfab_no=-1;
+  afm_no=-1;
+  enc_no=-1;
+  fdb_no=-1;
+  
+  return;
+}
+
+
 /* ScanConfigFile(): Read a configuration file and scan and save the
    environment strings used for searching pfa/pfb-, afm- and encoding
    files as well as the name of the font database file. */
-int ScanConfigFile( char **pfabenv_ptr, 
-		    char **afmenv_ptr,
-		    char **encenv_ptr,
-		    char **fontdatabase_ptr)
+int intT1_ScanConfigFile( void)
 {
   
   char *env_str;
@@ -75,14 +226,17 @@ int ScanConfigFile( char **pfabenv_ptr,
   char *usershome;
   char *cnffilepath;
   char *globalcnffilepath;
-  char *tmp_ptr;
   static int linecnt;
-  
-  
-  
+  char local_path_sep_char;
+  int quoted=0;
+  int quotecnt=0;
   FILE *cfg_fp;
   int filesize, i, j, k;
-  
+  int ignoreline=0;
+
+  char*** destP=NULL;
+  int *idestP=NULL;
+  char* curr_key=NULL;
   
   /* First, get the string stored in the environment variable: */
   env_str=getenv(ENV_CONF_STRING);
@@ -118,7 +272,7 @@ int ScanConfigFile( char **pfabenv_ptr,
     strcpy( globalcnffilepath, GLOBAL_CONFIG_DIR);
     strcat( globalcnffilepath, DIRECTORY_SEP);
     strcat( globalcnffilepath, GLOBAL_CONFIG_FILE);
-
+    
     if ((cfg_fp=fopen( cnffilepath, "r"))==NULL){
       sprintf( err_warn_msg_buf, "Could not open configfile %s",
 	       cnffilepath);
@@ -149,7 +303,7 @@ int ScanConfigFile( char **pfabenv_ptr,
       return(0);
     }
   }
-  else{
+  else {
     /* open specified file for reading the configuration */
     if ((cfg_fp=fopen(env_str,"r"))==NULL){
       T1_PrintLog( "ScanConfigFile()",
@@ -158,7 +312,7 @@ int ScanConfigFile( char **pfabenv_ptr,
       return(0);  /* specified file could not be openend
 		     => no config paths read */
     }
-    else{
+    else {
       sprintf( err_warn_msg_buf, "Using %s as Configfile (environment)",
 	       env_str);
       T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf, T1LOG_STATISTIC);
@@ -183,107 +337,126 @@ int ScanConfigFile( char **pfabenv_ptr,
   fclose(cfg_fp);
   
   i=0;
-  
-  while(i<filesize){
+
+  /* this might be overwritten on a per file basis */
+  local_path_sep_char=path_sep_char;
+
+  while(i<filesize) {
+    ignoreline=0;
     j=i;     /* Save index of beginning of line */
-    while ((linebuf[i]!='=')&&(linebuf[i]!='\n')&&(i<filesize))
+    while ((linebuf[i]!='=') && (linebuf[i]!='\n') && (i<filesize)) {
       i++;
+    } 
     if (i==filesize) {
       free( linebuf);
       return(i);
     }
-    if (strncmp( "ENCODING", &linebuf[j], 8)==0) {
-      /* Check for an explicitly assigned value */
-      if (*encenv_ptr==T1_enc){
-	k=i+1;       /* points to assigned path string */
-	while ((!isspace((int)linebuf[i]))&&(i<filesize))
-	  i++;
-	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
-	  T1_errno=T1ERR_ALLOC_MEM;
-	  return(-1);
-	}
-	strncpy( tmp_ptr, &linebuf[k], i-k);
-	tmp_ptr[i-k]='\0';
-	*encenv_ptr=tmp_ptr;
-      }
-      else
-	T1_PrintLog( "ScanConfigFile()",
-		     "Preserving explicitly assigned ENCODING search path",
-		     T1LOG_DEBUG);
-    }  
+    
+    if (strncmp( enc_key, &linebuf[j], 8)==0) {
+      /* setup target */
+      destP=&T1_ENC_ptr;
+      idestP=&enc_no;
+      curr_key=(char*)enc_key;
+    }
     else if (strncmp( "TYPE1", &linebuf[j], 5)==0) {
-      /* Check for an explicitly assigned value */
-      if (*pfabenv_ptr==T1_pfab){
-	k=i+1;       /* points to assigned path string */
-	while ((!isspace((int)linebuf[i]))&&(i<filesize))
-	  i++;
-	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
-	  T1_errno=T1ERR_ALLOC_MEM;
-	  return(-1);
-	}
-	strncpy( tmp_ptr, &linebuf[k], i-k);
-	tmp_ptr[i-k]='\0';
-	*pfabenv_ptr=tmp_ptr;
-      }
-      else
-	T1_PrintLog( "ScanConfigFile()",
-		     "Preserving explicitly assigned PFAB search path",
-		     T1LOG_DEBUG);
-    }  
-    else if (strncmp( "AFM", &linebuf[j], 3)==0) {
-      /* Check for an explicitly assigned value */
-      if (T1_AFM_ptr==T1_afm){
-	k=i+1;       /* points to assigned path string */
-	while ((!isspace((int)linebuf[i]))&&(i<filesize))
-	  i++;
-	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
-	  T1_errno=T1ERR_ALLOC_MEM;
-	  return(-1);
-	}
-	strncpy( tmp_ptr, &linebuf[k], i-k);
-	tmp_ptr[i-k]='\0';
-	*afmenv_ptr=tmp_ptr;
-      }
-      else
-	T1_PrintLog( "ScanConfigFile()",
-		     "Preserving explicitly assigned AFM search path",
-		     T1LOG_DEBUG);
-    }  
-    else if (strncmp( "FONTDATABASE", &linebuf[j], 12)==0) {
-      /* Check for an explicitly assigned value */
-      if (*fontdatabase_ptr==T1_fontdatabase){
-	k=i+1;       /* points to assigned path string */
-	while ((!isspace((int)linebuf[i]))&&(i<filesize))
-	  i++;
-	/* Copy string */
-	if ((tmp_ptr=(char *)malloc( i-k+1))==NULL){
-	  T1_errno=T1ERR_ALLOC_MEM;
-	  return(-1);
-	}
-	strncpy( tmp_ptr, &linebuf[k], i-k);
-	tmp_ptr[i-k]='\0';
-	*fontdatabase_ptr=tmp_ptr;
-      }
-      else
-	T1_PrintLog( "ScanConfigFile()",
-		     "Preserving explicitly assigned FontDataBase",
-		     T1LOG_DEBUG);
+      /* setup target */
+      destP=&T1_PFAB_ptr;
+      idestP=&pfab_no;
+      curr_key=(char*)pfab_key;
+    }
+    else if (strncmp( afm_key, &linebuf[j], 3)==0) {
+      /* setup target */
+      destP=&T1_AFM_ptr;
+      idestP=&afm_no;
+      curr_key=(char*)afm_key;
+    }
+    else if (strncmp( fdb_key, &linebuf[j], 12)==0) {
+      /* setup target */
+      destP=&T1_FDB_ptr;
+      idestP=&fdb_no;
+      curr_key=(char*)fdb_key;
     }
     else {
-      sprintf( err_warn_msg_buf, "Ignoring line %d", linecnt);
-      T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf,
-		   T1LOG_DEBUG);
+      ignoreline=1;
+      T1_PrintLog( "ScanConfigFile()", "Ignoring line %d",
+		   T1LOG_DEBUG, linecnt);
     }
-    
+
+    /* If appropriate, scan this line. */
+    if (ignoreline==0) { 
+      /* Check for an explicitly assigned value */
+      if (*idestP==0) { /* default paths are currently setup, get rid of them */
+	free((*destP)[0]);
+      }
+      else { /* append to existing paths */
+	T1_PrintLog( "ScanConfigFile()",
+		     "Appending to existing %s search path",
+		     T1LOG_DEBUG, curr_key);
+      }
+      while ( (!isspace((int)linebuf[i])) && (i<filesize) ) {
+	k=++i;      /* index to current path element */
+	(*idestP)++;
+	quotecnt=0;
+	if (linebuf[i]=='"') { /* We have a quoted string */
+	  quoted=1;
+	  k=++i;
+	  while ( 1) {
+	    if ( linebuf[i]=='"' ) {    /* we find a quote-char */ 
+	      if ( linebuf[i-1]!='\\' ) 
+		break;                     /* not escaped --> end of path specification */
+	      else
+		quotecnt++;
+	    }                           /* some other char */
+	    if (linebuf[i]=='\n') { /* a newline in a quoted string? Perhabs, quotes do not match! */
+	      T1_PrintLog( "ScanConfigFile()",
+			   "Newline in quoted %s-string in line %d, column %d, of config file! Closing quote missing?", 
+			   T1LOG_WARNING, curr_key, linecnt, i-j+1);
+	      j=i+1;                /* resynchronize linecount */
+	      linecnt++;           
+	    }
+	    if (i<filesize) {            /* filesize not exceeded? */
+	      i++;
+	    }
+	    else {                       /* issue error msg because end of quotation is missing */
+	      T1_PrintLog( "ScanConfigFile()", "Unterminated quoted string in config file",
+			   T1LOG_ERROR);
+	      return -1;
+	    }
+	  }
+	}
+	else {
+	  quoted=0;
+	  while ( (linebuf[i]!=local_path_sep_char) && (!isspace((int)linebuf[i])) && (i<filesize) )
+	    i++;
+	}
+	if (((*destP)=(char**)realloc( (*destP), ((*idestP)+1)*sizeof(char*)))==NULL) {
+	  T1_errno=T1ERR_ALLOC_MEM;
+	  return(-1);
+	}
+	if (((*destP)[(*idestP)-1]=(char*)malloc((i-k-quotecnt+1)*sizeof(char)))==NULL) {
+	  T1_errno=T1ERR_ALLOC_MEM;
+	  return(-1);
+	}
+	if (quoted==0) {
+	  strncpy( (*destP)[*idestP-1], &(linebuf[k]), i-k);
+	  (*destP)[(*idestP)-1][i-k]='\0';
+	}
+	else {
+	  qstrncpy( (*destP)[(*idestP)-1], &(linebuf[k]), i-k);
+	  (*destP)[(*idestP)-1][i-k-quotecnt]='\0';
+	  i++;         /* step over closing quote */
+	}
+	(*destP)[(*idestP)]=NULL;     /* indicate end of string list */
+      }
+    }
+
+    /* skip remaining of line or file */
     while ((linebuf[i]!='\n')&&(i<filesize))
       i++;
     i++;
     linecnt++;
   }
-  /*file should now be read in */
+  /* file should now be read in */
   free( linebuf);
   
   return(i);
@@ -292,24 +465,22 @@ int ScanConfigFile( char **pfabenv_ptr,
 
 
 
-/* Env_GetCompletePath( ): Get a full path name from the file specified by
+/* intT1_Env_GetCompletePath( ): Get a full path name from the file specified by
    argument 1 in the environment specified by argument 2. Return the pointer
    to the path string or NULL if no file was found.*/
-char *Env_GetCompletePath( char *FileName,
-			   char *env_ptr )
+char *intT1_Env_GetCompletePath( char *FileName,
+				 char **env_ptr )
 {
   struct stat filestats;    /* A structure where fileinfo is stored */
-  int fnamelen, enamelen, i, j;
-  char save_char;
+  int fnamelen, i, j;
   char *FullPathName;
-  char *res_ptr;
   char *StrippedName;
   
 
   if (FileName==NULL)
     return(NULL);
   fnamelen=strlen(FileName);
-  enamelen=strlen(env_ptr);
+
   /* We check whether absolute or relative pathname is given. If so,
      stat() it and if appropriate, return that string immediately. */
   if ( (FileName[0]==DIRECTORY_SEP_CHAR)
@@ -319,7 +490,7 @@ char *Env_GetCompletePath( char *FileName,
        ||
        ((fnamelen>2) && (FileName[0]=='.') &&
 	(FileName[1]=='.') && (FileName[2]==DIRECTORY_SEP_CHAR))
-#ifdef __EMX__
+#if defined(MSDOS) | defined(_WIN32) | defined (__EMX__)
        ||
        ((isalpha(FileName[0])) && (FileName[1]==':'))
 #endif
@@ -333,7 +504,7 @@ char *Env_GetCompletePath( char *FileName,
       if (t1lib_log_file!=NULL) {
 	sprintf( err_warn_msg_buf, "stat()'ing complete path %s successful",
 		 FileName);
-	T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
+	T1_PrintLog( "intT1_Env_GetCompletePath()", err_warn_msg_buf,
 		     T1LOG_DEBUG);
       }
       /* Return a copy of the string */
@@ -347,15 +518,24 @@ char *Env_GetCompletePath( char *FileName,
     if (t1lib_log_file!=NULL){
       sprintf( err_warn_msg_buf, "stat()'ing complete path %s failed",
 	       FileName);
-      T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
+      T1_PrintLog( "intT1_Env_GetCompletePath()", err_warn_msg_buf,
 		   T1LOG_DEBUG);
     }
     /* Trying to locate absolute path spec. failed. We try to recover
        by removing the path component and searching in the remaining search
-       path entries. */
+       path entries. This depends on the OS. */
     i=fnamelen-1;
     StrippedName=&(FileName[i]);
-    while ( FileName[i]!=DIRECTORY_SEP_CHAR) {
+    while ( FileName[i]!=DIRECTORY_SEP_CHAR
+#if defined(VMS)
+	    /* What exactly to do for VMS? */
+#elif defined(MSDOS) | defined(_WIN32) | defined (__EMX__) | defined(_MSC_VER)
+	    /* We take a drive specification into account. This means we
+	       step back until the directory separator or a drive specifier
+	       appears! */
+	    && FileName[i]!=':'
+#endif
+	    ) {
       i--;
     }
     i++;
@@ -363,7 +543,7 @@ char *Env_GetCompletePath( char *FileName,
     if (t1lib_log_file!=NULL){
       sprintf( err_warn_msg_buf, "path %s stripped to %s",
 	       FileName, StrippedName);
-      T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
+      T1_PrintLog( "intT1_Env_GetCompletePath()", err_warn_msg_buf,
 		   T1LOG_DEBUG);
     }
   }
@@ -372,56 +552,46 @@ char *Env_GetCompletePath( char *FileName,
   }
 
   i=0;
-  while (i<enamelen){
-    j=i;      /* Save start of current path string */
-    while ((env_ptr[i]!=PATH_SEP_CHAR)&&(env_ptr[i]!=0))
-      i++;
-    /* Save the character that indicated end of path */
-    save_char=env_ptr[i];
-    env_ptr[i]=0;   /* Set limit for this path element */
-    FullPathName=(char *)malloc((i-j+2+fnamelen)*sizeof(char));
-    if (FullPathName==NULL){
-      T1_errno=T1ERR_ALLOC_MEM;
-      return(NULL);
-    }
+  while (env_ptr[i]!=NULL) {
     /* Copy current path element: */
-    res_ptr=strcpy( FullPathName, &env_ptr[j]);
+    strcpy( pathbuf, env_ptr[i]);
+    /* cut a trailing directory separator */
+    j=strlen(pathbuf);
+    if (pathbuf[j-1]==DIRECTORY_SEP_CHAR)
+      pathbuf[j--]='\0';
     /* Add the directory separator: */
 #ifdef VMS
-    { char *p= strrchr(FullPathName, DIRECTORY_SEP_CHAR);
+    { char *p= strrchr(pathbuf, DIRECTORY_SEP_CHAR);
       if (p && *(p+1) ==  '\0')
        *p = '\0';
     } 
 #endif 
-    res_ptr=strcat( FullPathName, DIRECTORY_SEP);
+    strcat( pathbuf, DIRECTORY_SEP);
     /* And finally the filename: */
-    res_ptr=strcat( FullPathName, StrippedName);
+    strcat( pathbuf, StrippedName);
     
     /* Check for existence of the path: */
-    if (!stat( FullPathName, &filestats)){
-      /* restore the replaced character in order to leave environment
-	 string unmodified */
-      env_ptr[i]=save_char;
+    if (!stat( pathbuf, &filestats)) {
+      if ((FullPathName=(char*)malloc( (j+fnamelen+2)*sizeof(char)))==NULL) {
+	T1_errno=T1ERR_ALLOC_MEM;
+	return(NULL);
+      }
+      strcpy( FullPathName, pathbuf);
       if (t1lib_log_file!=NULL){
 	sprintf( err_warn_msg_buf, "stat()'ing %s successful",
 		 FullPathName);
-	T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
+	T1_PrintLog( "intT1_Env_GetCompletePath()", err_warn_msg_buf,
 		     T1LOG_DEBUG);
       }
       return(FullPathName);
     }
     if (t1lib_log_file!=NULL){
       sprintf( err_warn_msg_buf, "stat()'ing %s failed",
-	       FullPathName);
-      T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
+	       pathbuf);
+      T1_PrintLog( "intT1_Env_GetCompletePath()", err_warn_msg_buf,
 		   T1LOG_DEBUG);
     }
-    
     /* We didn't find the file --> try next path entry */
-    free(FullPathName);
-    /* restore the replaced character in order to leave environment string
-       unmodified */
-    env_ptr[i]=save_char;
     i++;
   }
   /* If we get here, no file was found at all, so return a NULL-pointer */
@@ -429,10 +599,19 @@ char *Env_GetCompletePath( char *FileName,
 }
 
 
+
 /* T1_SetFileSearchPath(): Set the search path to find files of the
-   specified type and return 0 if successful and -1 otherwise */
+   specified type and return 0 if successful and -1 otherwise. An existing
+   path is overwritten rigorously, unless the database already contains fonts.
+   In the latter case the function returns with an error status.
+   Multiple path types may be specified as a bitmask!
+*/
 int T1_SetFileSearchPath( int type, char *pathname)
 {
+
+  int i;
+  int pathlen;
+  
   
   if (pathname==NULL){
     T1_errno=T1ERR_INVALID_PARAMETER;
@@ -449,36 +628,77 @@ int T1_SetFileSearchPath( int type, char *pathname)
     T1_errno=T1ERR_OP_NOT_PERMITTED;
     return(-1);
   }
-  
+
+  pathlen=strlen(pathname)+1;
+  /* Throw away a possibly existing path */
   if (type & T1_PFAB_PATH){
-    if ((void *)T1_PFAB_ptr!=(void *)T1_pfab)
-      free( T1_PFAB_ptr);
-    if ((T1_PFAB_ptr=(char *)malloc( (strlen(pathname) + 1) *
-				     sizeof( char)))==NULL){
+    if (pfab_no==-1) {
+      T1_PFAB_ptr=NULL; /* realloc() will do a malloc() */
+    }
+    else {
+      /* throw away current paths */
+      i=0;
+      while (T1_PFAB_ptr[i]!=NULL) {
+	free (T1_PFAB_ptr[i++]);
+      }
+    }
+    if ((T1_PFAB_ptr=(char**)realloc( T1_PFAB_ptr, 2*sizeof(char*)))==NULL) {
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
-    strcpy( T1_PFAB_ptr, pathname);
+    if ((T1_PFAB_ptr[0]=(char*)malloc(pathlen*sizeof(char)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(-1);
+    }
+    strcpy( T1_PFAB_ptr[0], pathname);
+    T1_PFAB_ptr[1]=NULL;
+    pfab_no=1;
   }
   if (type & T1_AFM_PATH){
-    if ((void *)T1_AFM_ptr!=(void *)T1_afm)
-      free( T1_AFM_ptr);
-    if ((T1_AFM_ptr=(char *)malloc( (strlen(pathname) + 1) *
-				    sizeof( char)))==NULL){
+    if (afm_no==-1) {
+      T1_AFM_ptr=NULL; /* realloc() will do a malloc() */
+    }
+    else {
+      /* throw away current paths */
+      i=0;
+      while (T1_AFM_ptr[i]!=NULL) {
+	free (T1_AFM_ptr[i++]);
+      }
+    }
+    if ((T1_AFM_ptr=(char**)realloc( T1_AFM_ptr, 2*sizeof(char*)))==NULL) {
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
-    strcpy( T1_AFM_ptr, pathname);
+    if ((T1_AFM_ptr[0]=(char*)malloc(pathlen*sizeof(char)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(-1);
+    }
+    strcpy( T1_AFM_ptr[0], pathname);
+    T1_AFM_ptr[1]=NULL;
+    afm_no=1;
   }
   if (type & T1_ENC_PATH){
-    if ((void *)T1_ENC_ptr!=(void *)T1_enc)
-      free( T1_ENC_ptr);
-    if ((T1_ENC_ptr=(char *)malloc( (strlen(pathname) + 1) *
-				    sizeof( char)))==NULL){
+    if (enc_no==-1) {
+      T1_ENC_ptr=NULL; /* realloc() will do a malloc() */
+    }
+    else {
+      /* throw away current paths */
+      i=0;
+      while (T1_ENC_ptr[i]!=NULL) {
+	free (T1_ENC_ptr[i++]);
+      }
+    }
+    if ((T1_ENC_ptr=(char**)realloc( T1_ENC_ptr, 2*sizeof(char*)))==NULL) {
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
-    strcpy( T1_ENC_ptr, pathname);
+    if ((T1_ENC_ptr[0]=(char*)malloc(pathlen*sizeof(char)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(-1);
+    }
+    strcpy( T1_ENC_ptr[0], pathname);
+    T1_ENC_ptr[1]=NULL;
+    enc_no=1;
   }
   
   return(0);
@@ -488,124 +708,333 @@ int T1_SetFileSearchPath( int type, char *pathname)
 
 
 /* T1_GetFileSearchPath(): Return the specified file search path
-   or NULL if an error occurred. Note: We  do only one path at a
-   time. */
+   or NULL if an error occurred. Note: We do only one path at a
+   time, so that if a bitmask is specified, the first match wins.
+   The returned path is formatted using the actual PATH_SEP_CHAR. */
 char *T1_GetFileSearchPath( int type)
 {
   static char *out_ptr;
+  int i;
+  int pathlen;
+  char **src_ptr=NULL;
+  
 
   if (out_ptr!=NULL)
     free( out_ptr);
   out_ptr=NULL;
   
-  if (type & T1_PFAB_PATH){
-    if ((out_ptr=(char *)malloc(strlen(T1_PFAB_ptr)+1))==NULL){
-      T1_errno=T1ERR_ALLOC_MEM;
-      return( NULL);
-    }
-    strcpy( out_ptr, T1_PFAB_ptr);
-    return( out_ptr);
+  if (type & T1_PFAB_PATH) {
+    src_ptr=T1_PFAB_ptr;
   }
-  if (type & T1_AFM_PATH){
-    if ((out_ptr=(char *)malloc(strlen(T1_AFM_ptr)+1))==NULL){
-      T1_errno=T1ERR_ALLOC_MEM;
-      return( NULL);
-    }
-    strcpy( out_ptr, T1_AFM_ptr);
-    return( out_ptr);
+  else  if (type & T1_AFM_PATH) {
+    src_ptr=T1_AFM_ptr;
   }
-  if (type & T1_ENC_PATH){
-    if ((out_ptr=(char *)malloc(strlen(T1_ENC_ptr)+1))==NULL){
-      T1_errno=T1ERR_ALLOC_MEM;
-      return( NULL);
-    }
-    strcpy( out_ptr, T1_ENC_ptr);
-    return( out_ptr);
+  else if (type & T1_ENC_PATH) {
+    src_ptr=T1_ENC_ptr;
   }
-
-  return( NULL);
+  else if (type & T1_FDB_PATH) {
+    src_ptr=T1_FDB_ptr;
+  }
   
+  
+  i=0;
+  pathlen=0;
+  while (src_ptr[i]!=NULL) {
+    pathlen +=strlen( src_ptr[i++]);
+    pathlen+=1; /* path separator */
+  }
+  if ((out_ptr=(char *)malloc(pathlen+1))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return( NULL);
+  }
+  strcpy( out_ptr, src_ptr[0]);
+  i=1;
+  while (src_ptr[i]!=NULL) {
+    strcat( out_ptr, path_sep_string);
+    strcat( out_ptr, src_ptr[i++]);
+  }
+  
+  return( out_ptr);
+
 }
 
 
 /* T1_AddToFileSearchPath(): Add the specified path element to
-   the specified search path.
+   the specified search path. If the existing path is the default path,
+   it will not be replaced by the new path element. Since this function might
+   be called before initialization, we have to be aware that even the default
+   path could be missing. Multiple path types may be specified as a bitmask!
    Return value is 0 if successful and -1 otherwise */
 int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname)
 {
   int i;
-  char *tmp_ptr;
+  int pathlen;
+  char* newpath;
+  int nofonts;
+  
   
   
   if (pathname==NULL)
     return(-1);
+
+  nofonts=T1_Get_no_fonts();
+  
+  pathlen=strlen(pathname);
   
   if (pathtype & T1_PFAB_PATH){
-    i=strlen( T1_PFAB_ptr)+strlen( pathname) + 2;
-    if ((tmp_ptr=(char *)malloc(strlen(T1_PFAB_ptr)+
-				strlen(pathname)+2))==NULL){
+    /* Allocate meory for string */
+    if ((newpath=(char*)malloc( (pathlen+1)*sizeof(char)))==NULL)  {
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
+    /* Check for and handle the existing path configuration */
+    if (pfab_no==0) {   /* do not free the default path but establish it
+			   as a regularly setup path, if database not empty! */
+      if (nofonts>0) {
+	pfab_no++;
+      }
+      else {
+	free( T1_AFM_ptr[0]);
+      }
+    }
+    if (pfab_no==-1) {  /* not initialized! */
+      pfab_no=0;
+      T1_PFAB_ptr=NULL; /* realloc() will do the malloc()! */
+    }
+    if ((T1_PFAB_ptr=(char**)realloc( T1_PFAB_ptr, (++pfab_no+1)*sizeof(char*)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(-1);
+    }
+    /* Insert the new path element: */
     if (mode & T1_PREPEND_PATH){ /* prepend */
-      strcpy(tmp_ptr, pathname);
-      strcat(tmp_ptr, PATH_SEP);
-      strcat(tmp_ptr, T1_PFAB_ptr);
+      i=pfab_no-2;
+      while (i>=0) {
+	T1_PFAB_ptr[i+1]=T1_PFAB_ptr[i];
+	i--;
+      }
+      T1_PFAB_ptr[0]=newpath;
     }
     else{ /* append */
-      strcpy(tmp_ptr,T1_PFAB_ptr);
-      strcat(tmp_ptr, PATH_SEP);
-      strcat(tmp_ptr, pathname);
+      T1_PFAB_ptr[pfab_no-1]=newpath;
     }
-    if ((void *)T1_PFAB_ptr!=(void *)T1_pfab)
-      free( T1_PFAB_ptr);
-    T1_PFAB_ptr=tmp_ptr;
+    T1_PFAB_ptr[pfab_no]=NULL;
   }
   if (pathtype & T1_AFM_PATH){
-    i=strlen( T1_AFM_ptr)+strlen( pathname) + 2;
-    if ((tmp_ptr=(char *)malloc(strlen(T1_AFM_ptr)+
-				strlen(pathname)+2))==NULL){
+    /* Allocate meory for string */
+    if ((newpath=(char*)malloc( (pathlen+1)*sizeof(char)))==NULL)  {
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
+    /* Check for and handle the existing path configuration */
+    if (afm_no==0) {   /* do not free the default path but establish it
+			  as a regularly setup path, if database not empty! */
+      if (nofonts>0) {
+	afm_no++;
+      }
+      else {
+	free( T1_AFM_ptr[0]);
+      }
+    }
+    if (afm_no==-1) {  /* not initialized! */
+      afm_no=0;
+      T1_AFM_ptr=NULL; /* realloc() will do the malloc()! */
+    }
+    if ((T1_AFM_ptr=(char**)realloc( T1_AFM_ptr, (++afm_no+1)*sizeof(char*)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(-1);
+    }
+    /* Insert the new path element */
     if (mode & T1_PREPEND_PATH){ /* prepend */
-      strcpy(tmp_ptr, pathname);
-      strcat(tmp_ptr, PATH_SEP);
-      strcat(tmp_ptr, T1_AFM_ptr);
+      i=afm_no-2;
+      while (i>=0) {
+	T1_AFM_ptr[i+1]=T1_AFM_ptr[i];
+	i--;
+      }
+      T1_AFM_ptr[0]=newpath;
     }
     else{ /* append */
-      strcpy(tmp_ptr,T1_AFM_ptr);
-      strcat(tmp_ptr, PATH_SEP);
-      strcat(tmp_ptr, pathname);
+      T1_AFM_ptr[afm_no-1]=newpath;
     }
-    if ((void *)T1_AFM_ptr!=(void *)T1_afm)
-      free( T1_AFM_ptr);
-    T1_AFM_ptr=tmp_ptr;
+    T1_AFM_ptr[afm_no]=NULL;
   }
   if (pathtype & T1_ENC_PATH){
-    i=strlen( T1_ENC_ptr)+strlen( pathname) + 2;
-    if ((tmp_ptr=(char *)malloc(strlen(T1_ENC_ptr)+
-				strlen(pathname)+2))==NULL){
+    /* Allocate meory for string */
+    if ((newpath=(char*)malloc( (pathlen+1)*sizeof(char)))==NULL)  {
       T1_errno=T1ERR_ALLOC_MEM;
       return(-1);
     }
+    /* Check for and handle the existing path configuration */
+    if (enc_no==0) {    /* do not free the default path but establish it
+			   as a regularly setup path, if database not empty! */
+      if (nofonts>0) {
+	enc_no++;
+      }
+      else {
+	free( T1_ENC_ptr[0]);
+      }
+    }
+    if (enc_no==-1) {  /* not initialized! */
+      enc_no=0;
+      T1_ENC_ptr=NULL; /* realloc() will do the malloc()! */
+    }
+    if ((T1_ENC_ptr=(char**)realloc( T1_ENC_ptr, (++enc_no+1)*sizeof(char*)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(-1);
+    }
+    /* Insert the new path element: */
     if (mode & T1_PREPEND_PATH){ /* prepend */
-      strcpy(tmp_ptr, pathname);
-      strcat(tmp_ptr, PATH_SEP);
-      strcat(tmp_ptr, T1_ENC_ptr);
+      i=enc_no-2;
+      while (i>=0) {
+	T1_ENC_ptr[i+1]=T1_ENC_ptr[i];
+	i--;
+      }
+      T1_ENC_ptr[0]=newpath;
     }
     else{ /* append */
-      strcpy(tmp_ptr,T1_ENC_ptr);
-      strcat(tmp_ptr, PATH_SEP);
-      strcat(tmp_ptr, pathname);
+      T1_ENC_ptr[enc_no-1]=newpath;
     }
-    if ((void *)T1_ENC_ptr!=(void *)T1_enc)
-      free( T1_ENC_ptr);
-    T1_ENC_ptr=tmp_ptr;
+    T1_ENC_ptr[enc_no]=NULL;
   }
   return(0);
   
 }
 
+
+
+/* T1_SetFontDataBase(): Set a new name for the font database. It replaces the default
+   name and any names specified previously with this function.
+   Return value: 0 if OK, and -1 if filename not valid or an allocation
+   error occurred */
+int T1_SetFontDataBase( char *filename)
+{
+  int pathlen;
+  int i;
+  int result=0;
+  
+  
+  /* chekc filename */
+  if (filename==NULL) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return -1;
+  }
+
+  /* this function must be called before any font is in the database, that is, usually,
+     before initialization! */
+  if ( pFontBase!=NULL && pFontBase->no_fonts>0) {
+    T1_errno=T1ERR_OP_NOT_PERMITTED;
+    return -1;
+  }
+
+  
+  pathlen=strlen(filename)+1;
+  /* Throw away a possibly existing font database-statement */
+  if (fdb_no==-1) {  
+    T1_FDB_ptr=NULL; /* realloc() will do a malloc() */
+  }
+  else { 
+    /* throw away current paths */
+    i=0;
+    while (T1_FDB_ptr[i]!=NULL) {
+      free (T1_FDB_ptr[i++]);
+    }
+  }
+
+  if ((T1_FDB_ptr=(char**)realloc( T1_FDB_ptr, 2*sizeof(char*)))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return -1;
+  }
+  
+  if ((T1_FDB_ptr[0]=(char*)malloc(pathlen*sizeof(char)))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return -1;
+  }
+  strcpy( T1_FDB_ptr[0], filename);
+  T1_FDB_ptr[1]=NULL;
+  fdb_no=1;
+
+  /* Load database immediately if t1lib already is initailzed */
+  if (CheckForInit()==0) {
+    if ((result=intT1_scanFontDBase(T1_FDB_ptr[0]))==-1) {
+      T1_PrintLog( "T1_AddFontDataBase()", "Fatal error scanning Font Database File %s (T1_errno=%d)",
+		   T1LOG_WARNING, T1_FDB_ptr[0], T1_errno);
+    }
+    if (result>-1)
+      pFontBase->no_fonts+=result;
+    result=pFontBase->no_fonts;
+  }
+  return result;
+  
+}
+
+
+/* T1_AddFontDataBase(): Add a new font database file to the list. If the
+   lib is already initialzed, then the new database is immediately loaded.
+   Otherwise it is simply appended to the list and loaded at the time of
+   initialization.
+   Returns: -1    an error occured
+             0    successfully inserted but not loaded because lib not initilized
+	     n>0  the highest defined FontID
+*/
+int T1_AddFontDataBase( int mode, char *filename) 
+{
+  int i;
+  int pathlen;
+  int result=0;
+  char* newpath;
+  
+  
+  if (filename==NULL) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(-1);
+  }
+  
+  pathlen=strlen(filename);
+  
+  /* Allocate memory for string */
+  if ((newpath=(char*)malloc( (pathlen+1)*sizeof(char)))==NULL)  {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return(-1);
+  }
+  strcpy( newpath, filename);
+  /* Check for and handle the existing path configuration */
+  if (fdb_no==0) {   /* defauls setup, free the path */
+    free( T1_FDB_ptr[0]);
+  }
+  if (fdb_no==-1) {  /* not initialized! */
+    fdb_no=0;
+    T1_FDB_ptr=NULL; /* realloc() will do the malloc()! */
+  }
+  
+  if ((T1_FDB_ptr=(char**)realloc( T1_FDB_ptr, (++fdb_no+1)*sizeof(char*)))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return(-1);
+  }
+  /* Insert the new database. If t1lib is already initialzed, the database can only
+     be appended. Otherwise. prepending is also possible.*/
+  if ((mode & T1_PREPEND_PATH) && (CheckForInit()!=0) ) { /* prepend */
+    i=fdb_no-2;
+    while (i>=0) {
+      T1_FDB_ptr[i+1]=T1_FDB_ptr[i];
+      i--;
+    }
+    T1_FDB_ptr[0]=newpath;
+    result=0;
+  }
+  else { /* append */
+    T1_FDB_ptr[fdb_no-1]=newpath;
+    if (CheckForInit()==0) {
+      if ((result=intT1_scanFontDBase(T1_FDB_ptr[fdb_no-1]))==-1) {
+	T1_PrintLog( "T1_AddFontDataBase()", "Fatal error scanning Font Database File %s (T1_errno=%d)",
+		     T1LOG_WARNING, T1_FDB_ptr[fdb_no-1], T1_errno);
+      }
+      if (result>-1)
+	pFontBase->no_fonts+=result;
+      result=pFontBase->no_fonts;
+    }
+  }
+  T1_FDB_ptr[fdb_no]=NULL;
+  return result;
+  
+}
 
 

@@ -2,7 +2,7 @@
   ----- File:        parseAFM.c
   ----- Author:      Adobe Systems Inc., modifications by
                      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2001-11-01
   ----- Description: This file is part of the t1-library. It is the original
                      parseAFM.h modified at a few points, especially for
 		     reading MSDOS-style AFM files..
@@ -346,12 +346,12 @@ static BOOL parseGlobals(fp, gfi)
                     keyword = linetoken(fp);
                     break;
                 case FONTNAME:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->fontName = (char *) malloc(strlen(keyword) + 1);
                     strcpy(gfi->fontName, keyword);
                     break;
                 case ENCODINGSCHEME:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->encodingScheme = (char *) 
                     	malloc(strlen(keyword) + 1);
                     strcpy(gfi->encodingScheme, keyword);
@@ -367,7 +367,7 @@ static BOOL parseGlobals(fp, gfi)
                     strcpy(gfi->familyName, keyword);
                     break; 
                 case WEIGHT:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->weight = (char *) malloc(strlen(keyword) + 1);
                     strcpy(gfi->weight, keyword);
                     break;
@@ -385,14 +385,14 @@ static BOOL parseGlobals(fp, gfi)
                     break; 
 	            case UNDERLINEPOSITION:
                     keyword = token(fp);
-	                gfi->underlinePosition = atoi(keyword);
+	            gfi->underlinePosition = atoi(keyword);
                     break; 
                 case UNDERLINETHICKNESS:
                     keyword = token(fp);
                     gfi->underlineThickness = atoi(keyword);
                     break;
                 case VERSION:
-                    keyword = token(fp);
+                    keyword = linetoken(fp);
                     gfi->version = (char *) malloc(strlen(keyword) + 1);
                     strcpy(gfi->version, keyword);
                     break; 

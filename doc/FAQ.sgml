@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.2.0)
   <author>by the Grace Team
-  <date>20.03.2001
+  <date>2.10.2001
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -866,28 +866,6 @@ XMgrace*XmMessageBox.translations: #override\n\
         
         Or check for the man page xmgrace(1). However it may
         not always be up-to-date.
-
-    <sect1>I work with the 800x600 screen resolution and several popups are
-        too large to fit in my desktop.
-      <p>
-
-        The window sizes are proportional to the font size used which by
-        default is set to be optimal for the resolution most people are
-        using, i.e. 1024x768. For a lower resolution, set font sizes to a
-        smaller value, e.g. put it in your .Xresources (or like) file:
-
-<tscreen><verb>
-XMgrace*fontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
-XMgrace*tabFontList: -adobe-helvetica-medium-r-normal-*-8-*-*-*-*-*-*-*
-</verb></tscreen>
-
-        Try also decreasing margin heights of manager widgets (from the default
-        value of 3), e.g.
-
-<tscreen><verb>
-XMgrace*HContainer.marginHeight: 2
-XMgrace*VContainer.marginHeight: 2
-</verb></tscreen>
 
     <sect1>Can one change the colour selecton for the menu,
            locator, tool, and status bars, and all the popup menus?

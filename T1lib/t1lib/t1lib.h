@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-06-16
+  ----- Date:        2001-10-03
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
@@ -118,6 +118,7 @@ typedef struct
 #define T1_PFAB_PATH        0x01
 #define T1_AFM_PATH         0x02
 #define T1_ENC_PATH         0x04
+#define T1_FDB_PATH         0x08
 #define T1_APPEND_PATH      0x00
 #define T1_PREPEND_PATH     0x01
 
@@ -259,11 +260,9 @@ typedef struct
 
 /* from t1base.c */
 extern void *T1_InitLib( int log);
-extern int scanFontDBase( char *filename);
 extern int T1_CloseLib( void);
 extern int T1_AddFont( char *fontfilename);
-extern void print_msg( char *func_ident, char *msg_txt);
-extern void T1_PrintLog( char *func_ident, char *msg_txt, int level);
+extern void T1_PrintLog( char *func_ident, char *msg_txt, int level, ...);
 extern void T1_SetLogLevel( int level);
 extern int CheckForInit(void);
 extern int CheckForFontID( int FontID);
@@ -279,7 +278,6 @@ extern void bin_dump_l(unsigned long value);
 extern int T1_CheckEndian(void);
 extern int T1_SetBitmapPad( int pad);
 extern int T1_GetBitmapPad( void);
-extern int T1_SetFontDataBase( char *filename);
 extern char *T1_GetLibIdent( void);
 extern void T1_SetRasterFlags( int flags);
 extern char *T1_GetAfmFileName( int FontID);
@@ -302,12 +300,11 @@ extern int T1_SetDefaultEncoding( char **encoding);
 extern char *T1_GetEncodingScheme( int FontID);
 
 /* from t1env.c */
-extern int ScanConfigFile( char **pfabenv_ptr, char **afmenv_ptr,
-			   char **encenv_ptr, char **fontdatabase_ptr);
-extern char *Env_GetCompletePath( char *FileName, char *env_ptr );
 extern int T1_SetFileSearchPath( int type, char *pathname);
 extern int T1_AddToFileSearchPath( int pathtype, int mode, char *pathname);
 extern char *T1_GetFileSearchPath( int type);
+extern int T1_SetFontDataBase( char *filename);
+extern int T1_AddFontDataBase( int mode, char *filename);
 
 /* from t1finfo.c */
 extern int T1_GetKerning( int FontID, char char1,

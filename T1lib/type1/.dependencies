@@ -4,7 +4,8 @@ curves.lo: curves.c types.h objects.h spaces.h paths.h regions.h \
  curves.h lines.h arith.h
 fontfcn.lo: fontfcn.c t1imager.h types.h fontmisc.h util.h fontfcn.h \
  paths_rmz.h spaces_rmz.h ../t1lib/parseAFM.h ../t1lib/t1types.h \
- ../t1lib/t1extern.h ../t1lib/t1misc.h
+ ../t1lib/t1extern.h ../t1lib/t1misc.h ../t1lib/t1base.h \
+ ../t1lib/t1finfo.h
 hints.lo: hints.c types.h objects.h spaces.h paths.h regions.h hints.h
 lines.lo: lines.c types.h objects.h spaces.h regions.h lines.h
 objects.lo: objects.c types.h objects.h spaces.h paths.h regions.h \

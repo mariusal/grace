@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1enc.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-06-28
+  ----- Date:        2001-10-18
   ----- Description: This file is part of the t1-library. It contains
                      functions encoding handling at runtime.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
@@ -187,7 +187,7 @@ static char *tokcpy( char *dest, const char *src,
 static int TryDVIPSEncoding( char *linebuf, int filesize, char *charnames) 
 {
 
-  char *token;
+  char token[256];
   char *encname;
   int charname_count=0;
   int k=0;
@@ -317,6 +317,7 @@ static int TryDVIPSEncoding( char *linebuf, int filesize, char *charnames)
     /* Encoding definition is complete. we do not allow any further tokens
        except comments. */
     if ((currtokenP=ScanForWord(linebuf,filesize))!=NULL) {
+      tokcpy( token, linebuf, currtokenP->first, currtokenP->last);
       sprintf( err_warn_msg_buf,
 	       "Token \"%s\" after closing \"def\" in successfully scanned encoding file makes encoding definition file invalid", token);
       T1_PrintLog( "TryDVIPSEncoding()", err_warn_msg_buf, T1LOG_WARNING);
@@ -586,7 +587,7 @@ char **T1_LoadEncoding( char *FileName)
     return(NULL);
   }
   
-  if ((EncFileName=Env_GetCompletePath( FileName, T1_ENC_ptr))==NULL){
+  if ((EncFileName=intT1_Env_GetCompletePath( FileName, T1_ENC_ptr))==NULL){
     T1_errno=T1ERR_FILE_OPEN_ERR;
     return(NULL);
   }

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-05-20
+  ----- Date:        2001-10-03
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
@@ -67,28 +67,33 @@
 #define T1_CONFIGFILENAME    ".t1librc"
 #define ENV_CONF_STRING      "T1LIB_CONFIG"
 #define GLOBAL_CONFIG_FILE   "t1lib.config"
+/* Directory separator is operating system dependent */
 #if defined(VMS)
 # define DIRECTORY_SEP        "]"
 # define DIRECTORY_SEP_CHAR   ']'
-#elif defined(_MSC_VER)
+#elif defined(MSDOS) | defined(_WIN32) | defined(__EMX__) | defined(_MSC_VER)
 # define DIRECTORY_SEP        "\\"
 # define DIRECTORY_SEP_CHAR   '\\'
 #else
 # define DIRECTORY_SEP        "/"
 # define DIRECTORY_SEP_CHAR   '/'
 #endif
-/* For EMX-environment, we define the default path separator to
+/* For EMX-, WIN32-, MSDOS-environment, we define the default path separator to
    be ';' instead of ':' */
-#if defined(__EMX__) || defined(VMS) || defined(_MSC_VER)
+#if defined(MSDOS) | defined(_WIN32) | defined(__EMX__) | defined(_MSC_VER) | defined(VMS) 
 #define PATH_SEP             ";"
 #define PATH_SEP_CHAR        ';'
 #else
 #define PATH_SEP             ":"
 #define PATH_SEP_CHAR        ':'
 #endif
+/* This non printable character is used internally */
+#define INTERNAL_PATH_SEP            "\001"
+#define INTERNAL_PATH_SEP_CHAR       '\1'
 
 
 /* Default name for t1lib-logfile: */
+#define ENV_LOG_STRING    "T1LIB_LOGMODE"
 #define T1_LOG_FILE       "t1lib.log"
 /* logfile levels: */
 #define T1LOG_ERROR     1
@@ -132,6 +137,7 @@
 #define T1_PFAB_PATH        0x01
 #define T1_AFM_PATH         0x02
 #define T1_ENC_PATH         0x04
+#define T1_FDB_PATH         0x08
 #define T1_APPEND_PATH      0x00
 #define T1_PREPEND_PATH     0x01
 

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1subset.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-06-03
+  ----- Date:        2001-09-09
   ----- Description: This file is part of the t1-library. It contains
                      functions for subsetting type 1 fonts.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
@@ -433,9 +433,13 @@ char *T1_SubsetFont( int FontID,
   /* We now have to write the CharStrings.
      Each charstring must be written once, even if the respective 
      character appears more than once in the encoding. So we set up
-     table to remember which charstrings already have been written. */
+     table to remember which charstrings already have been written.
+
+     Note: The indices returned by locateCharString() range from 1 to n, so that
+     we have to decrement the index when filling the csdone array!
+  */
   if (( csdone=(char *)calloc( pFontBase->pFontArray[FontID].pType1Data->CharStringsP[0].key.len,
-			       1))==NULL) {
+			       sizeof(char)))==NULL) {
     T1_errno=T1ERR_ALLOC_MEM;
     free( filebuf);
     T1Close( ifp);
@@ -469,13 +473,13 @@ char *T1_SubsetFont( int FontID,
 	continue;
       }
       /* Process charstring only if it has not already been done */
-      if (csdone[currstring_no]==0) {
+      if (csdone[currstring_no-1]==0) {
 	k=i;
 	i+=sprintf( &(filebuf[i]), "/%s %d %s ", charnameP, charstringL, rdstring);
 	memcpy(&(filebuf[i]), charstringP, charstringL);
 	i+=charstringL;
 	i+=sprintf( &(filebuf[i]), " %s\n", ndstring);
-	csdone[currstring_no]=1;
+	csdone[currstring_no-1]=1;
 	sprintf( err_warn_msg_buf,
 		 "Processing of CS ""%s"" for index %d successful (len=%d bytes, line=%d bytes)",
 		 charnameP, j, charstringL, i-k);

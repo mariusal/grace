@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
   ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
-  ----- Date:        2001-04-01
+  ----- Date:        2001-10-03
   ----- Description: This file is part of the t1-library. It contains basic
                      routines to initialize the data structures used
 		     by the t1-library.
@@ -46,7 +46,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
-
+#include <stdarg.h>
 
 #include "../type1/ffilest.h" 
 #include "../type1/types.h"
@@ -74,9 +74,13 @@ static int T1_pad=0;
 void *T1_InitLib( int log)
 {
   int result;
+  int i;
   
-  char *usershome;
-  char *logfilepath;
+  char *usershome=NULL;
+  char *logfilepath=NULL;
+  char *envlogreq=NULL;
+  int  usrforcelog=0;
+  
   
   
   /* Reset T1_errno */
@@ -99,10 +103,27 @@ void *T1_InitLib( int log)
   if ((log & T1_NO_AFM)) {
     pFontBase->t1lib_flags |= T1_NO_AFM;
   }
-  
+
+  /* Check environment variable ENV_LOG_STRING. By this means, a user may
+     generate a log file even if at compile time log file creation has
+     been suppressed. Of course, if the loglevel is reduced after
+     initialization by the programmer, this environment variable takes
+     no effect! */
+  if ((envlogreq=getenv(ENV_LOG_STRING))!=NULL) {
+    if (strcmp( envlogreq, "logDebug")==0)
+      T1_SetLogLevel( T1LOG_DEBUG);
+    else if (strcmp( envlogreq, "logStatistic")==0)
+      T1_SetLogLevel( T1LOG_STATISTIC);
+    else if (strcmp( envlogreq, "logWarning")==0)
+      T1_SetLogLevel( T1LOG_WARNING);
+    else if (strcmp( envlogreq, "logError")==0)
+      T1_SetLogLevel( T1LOG_ERROR);
+    usrforcelog=1;
+  }
   
   /* Open log-file: */
-  if ((log & LOGFILE)) {
+  t1lib_log_file=NULL;
+  if ((log & LOGFILE) || (usrforcelog!=0)) {
     pFontBase->t1lib_flags |= LOGFILE;
     /* Try first opening in current directory: */
     if ((t1lib_log_file=fopen( T1_LOG_FILE, "w"))==NULL) {
@@ -114,18 +135,22 @@ void *T1_InitLib( int log)
 	strcat( logfilepath, DIRECTORY_SEP);
 	strcat( logfilepath, T1_LOG_FILE);
 	if ((t1lib_log_file=fopen( logfilepath, "w"))==NULL){
-	  print_msg( "T1_InitLib()", "Warning: Unable to open log-file");
+	  t1lib_log_file=stderr;
 	}
 	free( logfilepath);
       }
       else {
-	print_msg( "T1_InitLib()", "Warning: Unable to open log-file in . and $(HOME)");
+	t1lib_log_file=stderr;
       }
     }
-    T1_PrintLog( "T1_InitLib()", "Initialization started",
-	       T1LOG_STATISTIC);
+    if (t1lib_log_file==stderr) {
+      T1_PrintLog( "T1_InitLib()", "Unable to open a logfile, using stderr",
+		   T1LOG_ERROR);
+    }
   }
   
+  T1_PrintLog( "T1_InitLib()", "Initialization started",
+	       T1LOG_STATISTIC);
   /* Check for representation of data in memory: */
   if ((pFontBase->endian=T1_CheckEndian())){
     T1_PrintLog( "T1_InitLib()", "Using Big Endian data presentation (MSBFirst)",
@@ -186,14 +211,14 @@ void *T1_InitLib( int log)
 	   SIZEOF_VOID_P);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
   
+  intT1_SetupDefaultSearchPaths();
   if (log & IGNORE_CONFIGFILE) {
     pFontBase->t1lib_flags |= IGNORE_CONFIGFILE;
     T1_PrintLog( "T1_InitLib()", "Skipping configuration file search!",
 		 T1LOG_STATISTIC);
   }
   else {
-    if ((result=ScanConfigFile( &T1_PFAB_ptr, &T1_AFM_ptr,
-				&T1_ENC_ptr, &T1_FDB_ptr))==0)
+    if ((result=intT1_ScanConfigFile())==0)
       T1_PrintLog( "T1_InitLib()", "Warning t1lib configuration file not found!",
 		   T1LOG_WARNING);
   }
@@ -202,13 +227,15 @@ void *T1_InitLib( int log)
   /* Set the default encoding to the fonts' internal encoding */
   pFontBase->default_enc=NULL;
   
+  /* Initialize the no_fonts... values */
+  pFontBase->no_fonts=0;
+  pFontBase->no_fonts_ini=pFontBase->no_fonts;
+  pFontBase->no_fonts_limit=pFontBase->no_fonts;
+
+  
   /* Check whether to read font database */
   if ((log & IGNORE_FONTDATABASE)){
     pFontBase->t1lib_flags |= IGNORE_FONTDATABASE;
-    /* Initialize the no_fonts... values */
-    pFontBase->no_fonts=0;
-    pFontBase->no_fonts_ini=pFontBase->no_fonts;
-    pFontBase->no_fonts_limit=pFontBase->no_fonts;
 
     T1_Up=1;         /* System has been initialized ! */
     T1_PrintLog( "T1_InitLib()", "Initialization successfully finished (Database empty)",
@@ -216,21 +243,24 @@ void *T1_InitLib( int log)
     
     return((void *) pFontBase);
   }
-  
-  /* Read fontdatabase */
-  if ((result=scanFontDBase(T1_FDB_ptr))==-1){
-    print_msg( "T1_InitLib()", "Fatal error scanning Font Database File");
-    return(NULL);
+
+  result=0;
+  /* Read fontdatabase(s) */
+  i=0;
+  while (T1_FDB_ptr[i]!=NULL) {
+    if ((result=intT1_scanFontDBase(T1_FDB_ptr[i]))==-1){
+      T1_PrintLog( "T1_InitLib()", "Fatal error scanning Font Database File %s",
+		   T1LOG_WARNING, T1_FDB_ptr[i]);
+    }
+    if (result>-1)
+      pFontBase->no_fonts+=result;
+    i++;
+    
   }
   if (result == 0){
-    print_msg( "T1_InitLib()", "No fonts from Font Database File found");
+    T1_PrintLog( "T1_InitLib()", "No fonts from Font Database File(s) found (T1_errno=%d)",
+		 T1LOG_ERROR, T1_errno);
     return(NULL);
-  }
-  if (result < pFontBase->no_fonts){
-    sprintf( err_warn_msg_buf, "%d fonts from %d fonts in Font Database File not found",
-		 pFontBase->no_fonts - result, pFontBase->no_fonts);
-    print_msg( "T1_InitLib()", err_warn_msg_buf);
-    
   }
 
   /* Initialize the no_fonts... values */
@@ -244,7 +274,9 @@ void *T1_InitLib( int log)
   return((void *) pFontBase);
 }
 
-/* scanFontDBase():
+
+
+/* intT1_scanFontDBase():
    - opens the file with the font definitions,
    - reads the number of fonts defined and saves this in FontBase,
    - allocates memory for all the filenames of the Type1 files
@@ -254,20 +286,23 @@ void *T1_InitLib( int log)
    - returns -1 on fatal error and the number of fonts located
      successfullly
    */
-int scanFontDBase( char *filename)
+int intT1_scanFontDBase( char *filename)
 {
   int fd;
   int filesize, i, j, k, m;
   int found=0, located=0;
   char *filebuffer;
+  int nofonts=0;
+  FONTPRIVATE* fontarrayP=NULL;
   
   
   if ((fd=open( filename, O_RDONLY))<3){
-    print_msg( "scanFontDBase()", "Font Database File not found");
+    T1_PrintLog( "intT1_scanFontDBase()", "Font Database File %s not found!",
+		 T1LOG_WARNING, filename);
     T1_errno=T1ERR_FILE_OPEN_ERR;
     return(-1);
   }
-  
+
   /* Get the file size */
   filesize=lseek( fd, 0, 2);
   /* Reset fileposition to start */
@@ -275,8 +310,9 @@ int scanFontDBase( char *filename)
 
   if ((filebuffer=(char *)malloc(filesize*sizeof(char)
 				 )) == NULL){
-    print_msg( "scanFontDBase()",
-	       "Couldn't allocate memory for loading font database file");
+    T1_PrintLog(  "intT1_scanFontDBase()",
+		  "Couldn't allocate memory for loading font database file %s",
+		  T1LOG_ERROR, filename);
     T1_errno=T1ERR_ALLOC_MEM;
     return(-1);
   }
@@ -290,15 +326,20 @@ int scanFontDBase( char *filename)
     if (filebuffer[i]=='\n'){ /* We are at the end of line */
       if (j==0) {  /* Read the first line as the number of fonts */
 	filebuffer[i]=0;
-	sscanf( &filebuffer[0], "%d", &FontBase.no_fonts);
+	sscanf( &filebuffer[0], "%d", &nofonts);
 	filebuffer[i]='\n';  /* Because it gives a better feeling */
-	/* Allocate memory for 'no_fonts' structures: */ 
+	/* (Re)Allocate memory for 'no_fonts' structures: */ 
 	if ((FontBase.pFontArray=(FONTPRIVATE *)
-	     calloc( FontBase.no_fonts, sizeof(FONTPRIVATE))) == NULL) {
-	  print_msg( "scanFontDBase()", "Failed to allocate memory for FONTPRIVATE-area");
+	     realloc( FontBase.pFontArray, (FontBase.no_fonts+nofonts)*sizeof(FONTPRIVATE))) == NULL) {
+	  T1_PrintLog( "inT1_scanFontDBase()",
+		       "Failed to allocate memory for FONTPRIVATE-area while scanning %s",
+		       T1LOG_ERROR, filename);
 	  T1_errno=T1ERR_ALLOC_MEM;
 	  return(-1);
 	}
+	/* setup pointer to newly allocated area and do a reset */
+	fontarrayP=&(FontBase.pFontArray[FontBase.no_fonts]);
+	memset(fontarrayP, 0, nofonts*sizeof(FONTPRIVATE));
 	located=1; /* In  order to increment m */
       }
       else {       /* We are in the second or higher line */
@@ -321,14 +362,14 @@ int scanFontDBase( char *filename)
 	else { /* The filename was without . and / or the first on the line */ 
 	  ;
 	}
-	sscanf( &filebuffer[k+1], "%s", &linebuf[0]);
+	sscanf( &(filebuffer[k+1]), "%s", &(linebuf[0]));
 	/* We print error string before testing because after the call
 	   to test_for_t1_file() filename is substituted by an emty
 	   string if the file was not found: */
 	sprintf( err_warn_msg_buf, "Type 1 Font file %s.[pfa/pfb] not found (FontID=%d, SearchPath=%s)",
-		 linebuf, m-1, T1_PFAB_ptr);
+		 linebuf, m-1, T1_GetFileSearchPath(T1_PFAB_PATH));
 	if ((test_for_t1_file( &linebuf[0]))){
-	  print_msg( "scanFontDBase()", err_warn_msg_buf);
+	  T1_PrintLog( "intT1_scanFontDBase()", err_warn_msg_buf, T1LOG_WARNING);
 	  located=0;
 	}
 	else{
@@ -337,29 +378,27 @@ int scanFontDBase( char *filename)
 	     FONTPRIVATE-struct: */
 	  found++;
 	  located=1;
-	  sprintf( err_warn_msg_buf,
-		   "Failed to allocate memory for Filename %s (FontID=%d)",
-		   &linebuf[0], m-1);
-	  if ((FontBase.pFontArray[m-1].pFontFileName=(char *)
+	  if ((fontarrayP[m-1].pFontFileName=(char *)
 	       calloc( strlen( &linebuf[0])+1, sizeof(char))) == NULL){
-	    print_msg( "scanFontDBase()", err_warn_msg_buf);
+	    T1_PrintLog( "intT1_scanFontDBase()",
+			 "Failed to allocate memory for Filename %s (FontID=%d)",
+			 T1LOG_ERROR, &linebuf[0], m-1);
 	    T1_errno=T1ERR_ALLOC_MEM;
 	    return(-1);
 	  }
-	  strcpy( FontBase.pFontArray[m-1].pFontFileName, &linebuf[0]);
+	  strcpy( fontarrayP[m-1].pFontFileName, &linebuf[0]);
 	}
       }
       j++; /* Advance line counter */
       if ((located))
 	m++;
     }
-    if (j>FontBase.no_fonts) /* to ignore especially white space at end */
+    if (j>nofonts) /* to ignore especially white space at end */
       break;
     i++;   /* Step further in file position */
   }
   /* Return the memory for file reading */
   free(filebuffer); 
-  FontBase.no_fonts=found;
   
   return( found);
 }
@@ -402,32 +441,17 @@ int T1_CloseLib( void)
     else
       error=1;
 
-    /* Restore the default search paths */
-    if (T1_PFAB_ptr!=T1_pfab)
-      if (T1_PFAB_ptr!=NULL)
-	free( T1_PFAB_ptr);
-    T1_PFAB_ptr=T1_pfab;
-    if (T1_AFM_ptr!=T1_afm)
-      if (T1_AFM_ptr!=NULL)
-	free( T1_AFM_ptr);
-    T1_AFM_ptr=T1_afm;
-    if (T1_ENC_ptr!=T1_enc)
-      if (T1_ENC_ptr!=NULL)
-	free( T1_ENC_ptr);
-    T1_ENC_ptr=T1_enc;
-    if (T1_FDB_ptr!=T1_fontdatabase)
-      if (T1_FDB_ptr!=NULL)
-	free( T1_FDB_ptr);
-    T1_FDB_ptr=T1_fontdatabase;
+    /* Free search paths */
+    intT1_FreeSearchPaths();
 
     /* Reset the flags */
     pFontBase->t1lib_flags=0;
     
-    /* Indicate Library is no more initialized */
+    /* Indicate Library is no longer initialized */
     pFontBase=NULL;
     T1_Up=0;
     T1_PrintLog( "T1_CloseLib()", "Library closed", T1LOG_STATISTIC);
-    if (t1lib_log_file!=NULL)
+    if ((t1lib_log_file!=NULL) && (t1lib_log_file!=stderr))
       fclose(t1lib_log_file);
     t1lib_log_file=NULL;
   }
@@ -457,7 +481,7 @@ int T1_AddFont( char *fontfilename)
   }
   
   /* Check for existence of fontfile */
-  if ((FullName=Env_GetCompletePath(fontfilename,T1_PFAB_ptr))==NULL){
+  if ((FullName=intT1_Env_GetCompletePath(fontfilename,T1_PFAB_ptr))==NULL) {
     T1_errno=T1ERR_FILE_OPEN_ERR;
     return(-1);
   }
@@ -519,12 +543,11 @@ int T1_AddFont( char *fontfilename)
   new_ID=pFontBase->no_fonts;
   pFontBase->no_fonts++;
 
-  sprintf( err_warn_msg_buf,
-	   "Failed to allocate memory for Filename %s (FontID=%d)",
-	   fontfilename, new_ID);
   if ((FontBase.pFontArray[new_ID].pFontFileName=(char *)
        calloc( strlen( fontfilename)+1, sizeof(char))) == NULL){
-    print_msg( "T1_AddFont()", err_warn_msg_buf);
+    T1_PrintLog( "T1_AddFont()",
+		 "Failed to allocate memory for Filename %s (FontID=%d)",
+		 T1LOG_ERROR, fontfilename, new_ID);
     T1_errno=T1ERR_ALLOC_MEM;
     return(-3);
   }
@@ -541,20 +564,11 @@ int T1_AddFont( char *fontfilename)
 }
 
 
-/* This function prints a message to stderr and places an entry in the log
-   file */
-void print_msg( char *func_ident, char *msg_txt)
+/* T1_PrintLog() generates entries in the log file. msg_txt is subject to scan
+   conversion and ... signifies a accordingly lrge variable list. */
+void T1_PrintLog( char *func_ident, char *msg_txt, int level, ...)
 {
-  fprintf(stderr,"%s: %s\n", func_ident, msg_txt);
-  T1_PrintLog( func_ident, msg_txt, T1LOG_ERROR);
-  return;
-  
-}
-
-
-/* T1_PrintLog generates entries in the log file: */
-void T1_PrintLog( char *func_ident, char *msg_txt, int level)
-{
+  va_list vararg;
   static char levelid[4]={ 'E', 'W', 'S', 'D'};
   time_t s_clock, *tp;
   
@@ -564,16 +578,24 @@ void T1_PrintLog( char *func_ident, char *msg_txt, int level)
     return;
   }
   else{
+    /* initialize argument list */
+    va_start( vararg, level);
+    
     tp=&s_clock;
     s_clock=time( tp);
     /*
-    fprintf( t1lib_log_file, "(%c) (%.24s) %s: %s \n",
-	     levelid[level-1], ctime(&s_clock), func_ident, msg_txt );
+    fprintf( t1lib_log_file, "(%c) (%.24s) %s: ",
+	     levelid[level-1], ctime(&s_clock), func_ident);
 	     */
     /* Don't print the time stamp */
-    fprintf( t1lib_log_file, "(%c) %s: %s \n",
-	     levelid[level-1], func_ident, msg_txt );
-    fflush(t1lib_log_file); 
+    fprintf( t1lib_log_file, "(%c) %s: ", levelid[level-1], func_ident );
+    vfprintf( t1lib_log_file, msg_txt, vararg );
+    fprintf( t1lib_log_file, "\n");
+    fflush( t1lib_log_file);
+
+    /* cleanup variable list */
+    va_end( vararg);
+    
     return;
   }
 }
@@ -637,7 +659,7 @@ int test_for_t1_file( char *buffer )
   
   /* First case: A PostScript Font ASCII File without extension
      (according to some UNIX-conventions) */
-  if ((FullName=Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL){
+  if ((FullName=intT1_Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL) {
     free(FullName);
     return(0);
   }
@@ -653,13 +675,13 @@ int test_for_t1_file( char *buffer )
   
   /* Second case: A PostScript Font ASCII File */
   buffer[i+3]='a';
-  if ((FullName=Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL){
+  if ((FullName=intT1_Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL) {
     free(FullName);
     return(0);
   }
   /* Third case: A PostScript Font Binary File */
   buffer[i+3]='b';
-  if ((FullName=Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL){
+  if ((FullName=intT1_Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL) {
     free(FullName);
     return(0);
   }
@@ -991,35 +1013,6 @@ int T1_GetBitmapPad( void)
 
 
 
-/* T1_SetFontDataBase(): Set a new name for the font database. This is
-   meaningful only if global configuration file is ignored or if it does
-   not contain a FONTDATABASE entry.
-   Return value: 0 if OK, and -1 if filename not valid or an allocation
-   error occurred */
-int T1_SetFontDataBase( char *filename)
-{
-
-  if (filename==NULL){
-    T1_errno=T1ERR_INVALID_PARAMETER;
-    return(-1);
-  }
-  
-  
-  /* We don't care for the contents of filename here! */
-  if ((T1_FDB_ptr=(char *)malloc( (strlen(filename) + 1) *
-				  sizeof( char)))==NULL){
-    T1_errno=T1ERR_ALLOC_MEM;
-    return(-1);
-  }
-  
-  strcpy( T1_FDB_ptr, filename);
-  
-  return(0);
-  
-}
-
-
-
 /* bin_dump(): Print a binary dump of a byte, short and
    long variable (used for debug purposes only): */
 void bin_dump_c(unsigned char value, char space_flag)
@@ -1183,11 +1176,10 @@ char *T1_GetFontFilePath( int FontID)
 
   /* lib is initialized and FontID is valid ->
      we can really expect a name */
-  if ((FileNamePath=Env_GetCompletePath( pFontBase->pFontArray[FontID].pFontFileName, 
-					 T1_PFAB_ptr))==NULL){ 
-    sprintf( err_warn_msg_buf, "Couldn't locate font file for font %d in %s", 
-	     FontID, T1_PFAB_ptr); 
-    print_msg( "T1_GetFontFilePath()", err_warn_msg_buf); 
+  if ((FileNamePath=intT1_Env_GetCompletePath( pFontBase->pFontArray[FontID].pFontFileName, 
+					       T1_PFAB_ptr))==NULL) { 
+    T1_PrintLog( "T1_GetFontFilePath()", "Couldn't locate font file for font %d in %s", 
+		 T1LOG_WARNING, FontID, T1_GetFileSearchPath(T1_PFAB_PATH)); 
     T1_errno=T1ERR_FILE_OPEN_ERR; 
     return(NULL); 
   } 
@@ -1205,7 +1197,7 @@ char *T1_GetFontFilePath( int FontID)
    to the string or NULL if name was not explicitly set .*/
 char *T1_GetAfmFilePath( int FontID)
 {
-
+  
   static char filepath[MAXPATHLEN+1];
   char *FontFileName;
   char *AFMFilePath;
@@ -1266,7 +1258,7 @@ char *T1_GetAfmFilePath( int FontID)
   }
   /* Get full path of the afm file (The case of a full path name
      name specification is valid */
-  AFMFilePath=Env_GetCompletePath( filepath, T1_AFM_ptr);
+  AFMFilePath=intT1_Env_GetCompletePath( filepath, T1_AFM_ptr);
   strcpy( filepath, AFMFilePath);
   free( AFMFilePath);
   

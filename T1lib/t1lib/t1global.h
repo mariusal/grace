@@ -93,22 +93,12 @@ extern struct XYspace *IDENTITY;
 
 int errornumber;  /* for debugging purposes */
  
-/* The following pointer should be set to path-strings--used for locating
+/* The following pointers should be set to path-strings--used for locating
    type1, afm and encoding files */
-#ifndef VMS
-char T1_pfab[]=".";
-char T1_afm[]=".";
-char T1_enc[]=".";
-#else
-char T1_pfab[]="sys$disk:[]";
-char T1_afm[]="sys$disk:[]";
-char T1_enc[]="sys$disk:[]";
-#endif
-char T1_fontdatabase[]="FontDataBase";
-char *T1_PFAB_ptr=T1_pfab;
-char *T1_AFM_ptr=T1_afm;
-char *T1_ENC_ptr=T1_enc;
-char *T1_FDB_ptr=T1_fontdatabase;
+char** T1_PFAB_ptr=NULL;
+char** T1_AFM_ptr=NULL;
+char** T1_ENC_ptr=NULL;
+char** T1_FDB_ptr=NULL;
 
 /* We use a uchar buffer for error and warning messages: */
 char err_warn_msg_buf[1024];
