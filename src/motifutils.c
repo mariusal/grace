@@ -4395,6 +4395,7 @@ void update_set_lists(Quark *gr)
     update_set_selectors(gr);
     update_ss_editors(gr);
     update_explorer(grace->gui->eui, TRUE);
+    update_app_title(grace->project);
 }
 
 void update_all(void)
@@ -4408,7 +4409,8 @@ void update_all(void)
     }
     
     update_graph_selectors(grace->project);
-    update_set_lists(NULL);
+    update_set_selectors(NULL);
+    update_ss_editors(NULL);
 
     if (ReqUpdateColorSel == TRUE) {
         init_xvlibcolors();
