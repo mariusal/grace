@@ -963,8 +963,7 @@ array:
 vexpr:
 	array
 	{
-            $$ = &freelist[fcnt++];
-            copy_vrbl($$, $1);
+            $$ = $1;
 	}
 	| MESH '(' nexpr ')'
 	{
