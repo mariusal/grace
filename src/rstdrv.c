@@ -873,7 +873,10 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
     int i, num_palette;
     png_color *palette;
     png_byte trans;
-
+    int num_text;
+    png_text text_ptr[4];
+    char *s;
+    
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
         NULL, NULL, NULL);
     if (png_ptr == NULL) {
@@ -931,6 +934,30 @@ static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
         trans = gdImageGetTransparent(ihandle);
         png_set_tRNS(png_ptr, info_ptr, &trans, 1, NULL);
     }
+#endif
+    
+#if (defined(PNG_WRITE_tEXt_SUPPORTED) || defined(PNG_WRITE_zTXt_SUPPORTED))
+    text_ptr[0].key         = "Title";
+    text_ptr[0].text        = get_docname();
+    text_ptr[0].compression = PNG_TEXT_COMPRESSION_NONE;
+    text_ptr[1].key         = "Author";
+    text_ptr[1].text        = get_username();
+    text_ptr[1].compression = PNG_TEXT_COMPRESSION_NONE;
+    text_ptr[2].key         = "Software";
+    text_ptr[2].text        = bi_version_string();
+    text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
+    num_text = 3;
+    if ((s = get_project_description())) {
+        text_ptr[3].key         = "Description";
+        text_ptr[3].text        = s;
+        if (strlen(s) > 1024) {
+            text_ptr[3].compression = PNG_TEXT_COMPRESSION_zTXt;
+        } else {
+            text_ptr[3].compression = PNG_TEXT_COMPRESSION_NONE;
+        }
+        num_text++;
+    }
+    png_set_text(png_ptr, info_ptr, text_ptr, num_text);
 #endif
     
     png_write_info(png_ptr, info_ptr);
