@@ -756,6 +756,9 @@ static Widget CreateMainMenuBar(Widget parent)
     sub2menupane = CreateMenu(submenupane, "Polar graphs", 'P', FALSE);
     CreateMenuButton(sub2menupane, "Polar graph", '\0', load_example, "polar.agr");
 
+    sub2menupane = CreateMenu(submenupane, "Pie charts", 'i', FALSE);
+    CreateMenuButton(sub2menupane, "Pie chart", '\0', load_example, "pie.agr");
+
     sub2menupane = CreateMenu(submenupane, "Special set presentations", 'S', FALSE);
     CreateMenuButton(sub2menupane, "HILO", '\0', load_example, "hilo.agr");
     CreateMenuButton(sub2menupane, "XY Radius", '\0', load_example, "txyr.agr");
