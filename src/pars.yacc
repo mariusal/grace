@@ -2529,10 +2529,6 @@ parmset:
 	| LEGEND color_select {
 	    g[whichgraph].l.color = $2;
 	}
-	| LEGEND STRING nexpr CHRSTR {
-	    strcpy(g[whichgraph].p[$3].lstr, $4);
-	    free($4);
-	}
 
 	| FRAMEP onoff {
             g[whichgraph].f.pen.pattern = $2;
@@ -3921,6 +3917,14 @@ parmset_obs:
 	    if ($3 == FALSE && get_project_version() <= 40102) {
                 g[whichgraph].l.boxpen.pattern = 0;
             }
+	}
+	| LEGEND STRING nexpr CHRSTR {
+	    if (is_valid_setno(whichgraph, $3)) {
+                strcpy(g[whichgraph].p[$3].lstr, $4);
+	    } else {
+                yyerror("Unallocated set");
+            }
+            free($4);
 	}
 	| LEGEND BOX FILL onoff { }
 	| LEGEND BOX FILL WITH colpat_obs {filltype_obs = $5;}
