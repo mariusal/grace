@@ -3,8 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -138,7 +137,7 @@ void create_fonttool(Widget cstext)
         
         for (i = 0; i < 16; i++) {
             widths[i] = 2;
-            column_alignments[i] = XmALIGNMENT_END;
+            column_alignments[i] = XmALIGNMENT_BEGINNING;
         }
         font_table = XtVaCreateManagedWidget(
             "fontTable", xbaeMatrixWidgetClass, fonttool_panel,
@@ -316,6 +315,8 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
 static void update_fonttool_cb(int value, void *data)
 {
     char *buf;
+    int x0, y0, x1, y1, cwidth, cheight;
+    int csize, bsize;
     Widget font_table = (Widget) data;
     
     FontID = value;
@@ -345,12 +346,22 @@ static void update_fonttool_cb(int value, void *data)
             bbox.ury = MAX2(bbox.ury, bbox_tmp.ury);
         }
     }
+
+    XbaeMatrixRowColToXY(font_table, 0, 0, &x0, &y0);
+    XbaeMatrixRowColToXY(font_table, 1, 1, &x1, &y1);
+    cwidth  = x1 - x0;
+    cheight = y1 - y0;
     
+    /* 6 = 2*cellShadowThickness + 2 */
+    csize = MIN2(cwidth, cheight) - 6;
+    bsize = MAX2(bbox.urx - bbox.llx, bbox.ury - bbox.lly);
+    Size  = floor(1000.0*csize/bsize);
+
     bbox.llx = bbox.llx*Size/1000;
     bbox.lly = bbox.lly*Size/1000;
     bbox.urx = bbox.urx*Size/1000;
     bbox.ury = bbox.ury*Size/1000;
-    
+            
     XbaeMatrixRefresh(font_table);
     buf = copy_string(NULL, "\\f{");
     buf = concat_strings(buf, get_fontalias(FontID));
