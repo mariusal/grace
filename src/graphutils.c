@@ -90,6 +90,9 @@ char *get_format_types(int f)
     case FORMAT_MMDDYY:
 	strcpy(s, "mmddyy");
 	break;
+    case FORMAT_YYMMDD:
+	strcpy(s, "yymmdd");
+	break;
     case FORMAT_MMYY:
 	strcpy(s, "mmyy");
 	break;
@@ -128,6 +131,9 @@ char *get_format_types(int f)
 	break;
     case FORMAT_MMDDYYHMS:
 	strcpy(s, "mmddyyhms");
+	break;
+    case FORMAT_YYMMDDHMS:
+	strcpy(s, "yymmddhms");
 	break;
     case FORMAT_DEGREESLON:
 	strcpy(s, "degreeslon");
