@@ -178,6 +178,7 @@ void putparms(int gno, FILE *pp, int embed)
     fprintf(pp, "%sdefault font %d\n", embedstr, get_font_mapped_id(grdefaults.font));
     fprintf(pp, "%sdefault char size %f\n", embedstr, grdefaults.charsize);
     fprintf(pp, "%sdefault symbol size %f\n", embedstr, grdefaults.symsize);
+    fprintf(pp, "%sdefault sformat \"%s\"\n", embedstr, sformat);
     
     fprintf(pp, "%sbackground color %d\n", embedstr, getbgcolor());
     fprintf(pp, "%spage background fill %s\n", embedstr, on_or_off(getbgfill()));
