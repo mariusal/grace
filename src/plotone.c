@@ -1786,38 +1786,23 @@ void draw_objects(int gno)
     /* Temporarily; pattern property should be part of object props */
     setpattern(1);
     
-    if (debuglevel == 5) {
-        printf("Boxes\n");
-    }
     for (i = 0; i < number_of_boxes(); i++) {
         if (isactive_box(i)) {
             draw_box(gno, i);
         }
-    }
-    if (debuglevel == 5) {
-        printf("Ellipses\n");
     }
     for (i = 0; i < number_of_ellipses(); i++) {
         if (isactive_ellipse(i)) {
             draw_ellipse(gno, i);
         }
     }
-    if (debuglevel == 5) {
-        printf("Lines\n");
-    }
     for (i = 0; i < number_of_lines(); i++) {
         if (isactive_line(i)) {
             draw_line(gno, i);
         }
     }
-    if (debuglevel == 5) {
-        printf("Strings\n");
-    }
     for (i = 0; i < number_of_strings(); i++) {
         if (isactive_string(i)) {
-            if (debuglevel == 5) {
-                printf("String %d\n", i);
-            }
             draw_string(gno, i);
         }
     }
