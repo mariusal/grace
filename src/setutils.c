@@ -54,9 +54,9 @@
 /*
  * return the string version of the set type
  */
-char *set_types(int it)
+char *set_types(SetType it)
 {
-    char *s = "xy";
+    char *s;
 
     switch (it) {
     case SET_XY:
@@ -113,11 +113,14 @@ char *set_types(int it)
     case SET_XYSIZE:
 	s = "xysize";
 	break;
+    default:
+	s = "unknown";
+	break;
     }
     return s;
 }
 
-int get_settype_by_name(char *s)
+SetType get_settype_by_name(const char *s)
 {
     int i;
     
