@@ -14,6 +14,7 @@ g2.s1 on
 g2.s1 length 1024
 echo "Set g0.s0.x = set index"
 sleep 1
+with g0
 s0.x = index
 with g1
 echo "Set g1.s0.x = g1.s1.x = set index"
