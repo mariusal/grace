@@ -70,8 +70,6 @@ int scrolling_islinked = FALSE;	/* linked scroll */
 double scrollper = 0.05;	/* scroll fraction */
 double shexper = 0.05;		/* expand/shrink fraction */
 
-/* char fname[GR_MAXPATHLEN];*/	    /* last data file read */
-
 int device;			/* graphics device */
 int tdevice;                    /* default device */
 int hdevice;                    /* hardcopy device */
@@ -81,7 +79,6 @@ int invert = FALSE;		/* use GXxor or GXinvert for xor'ing */
 int autoscale_onread = AUTOSCALE_XY; /* autoscale after reading in data sets */
 int auto_redraw = TRUE;		/* if true, redraw graph each time action is
 				 * performed */
-int verify_action = FALSE;	/* request verification of actions if TRUE */
 int allow_dc = TRUE;		/* allow double click ops */
 int status_auto_redraw = TRUE;	/* if true, redraw graph each time action is
 				 * performed in the status window */
@@ -233,10 +230,6 @@ extern int scrolling_islinked;	/* linked scroll */
 extern double scrollper;	/* scroll fraction */
 extern double shexper;		/* expand/shrink fraction */
 
-/*
- * extern char fname[];
- */
-extern int verify_action;	/* request verification of actions if TRUE */
 extern int allow_dc;		/* allow double click ops */
 
 extern defaults grdefaults;	/* default properties */

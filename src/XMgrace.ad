@@ -17,8 +17,6 @@
 ! if the rubberbanding for zooms and lines, etc. doesn't
 ! appear on the canvas, set the following resource to yes.
 !XMgrace.invertDraw: No
-! Verify Edit/Set ops/Pick sets operations
-!XMgrace.verifyAction: No
 ! Allow double clicks on canvas
 !XMgrace.allowDoubleClick: No
 ! Switch toolbar(s) off

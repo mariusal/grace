@@ -211,7 +211,6 @@ static char canvas_table[] = "#override\n\
 typedef struct {
     Boolean invert;
     Boolean allow_dc;
-    Boolean verify_action;
     Boolean auto_redraw;
     Boolean logwindow;
     Boolean toolbar;
@@ -228,9 +227,6 @@ static XtResource resources[] =
     {"allowDoubleClick", "AllowDoubleClick", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, allow_dc), XtRImmediate,
      (XtPointer) TRUE},
-    {"verifyAction", "VerifyAction", XtRBoolean, sizeof(Boolean),
-     XtOffset(ApplicationDataPtr, verify_action), XtRImmediate,
-     (XtPointer) FALSE},
     {"allowRedraw", "AllowRedraw", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, auto_redraw), XtRImmediate,
      (XtPointer) TRUE},
@@ -310,7 +306,6 @@ void xlibprocess_args(int *argc, char **argv)
     
     invert = rd.invert;
     allow_dc = rd.allow_dc;
-    verify_action = rd.verify_action;
     logwindow = rd.logwindow;
     auto_redraw = rd.auto_redraw;
     toolbar_visible = rd.toolbar;
