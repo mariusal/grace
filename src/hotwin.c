@@ -39,14 +39,11 @@
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
 #include <Xm/FileSB.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Text.h>
 #include <Xm/List.h>
-#include <Xm/Separator.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -239,7 +236,7 @@ void create_hotlinks_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	hotlink_command = CreateTextItem2(dialog, 30, "Command:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 5, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_hotlink_proc,

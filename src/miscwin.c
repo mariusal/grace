@@ -39,15 +39,12 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Scale.h>
-#include <Xm/Separator.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -122,10 +119,7 @@ void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				  	 NULL,
 				  	 NULL);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel,
-				NULL);
-
-
+	CreateSeparator(panel);
 
 	graph_focus_choice_item = CreatePanelChoice(panel, "Graph focus",
 						    4,
@@ -139,9 +133,7 @@ void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					    xmToggleButtonWidgetClass, panel,
                                             NULL);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel,
-				NULL);
-
+	CreateSeparator(panel);
 
 	wlabel = XtVaCreateManagedWidget("Scroll %:", xmLabelWidgetClass, panel, NULL);
 	scrollper_item = XtVaCreateManagedWidget("scroll", xmScaleWidgetClass, panel,
@@ -173,9 +165,7 @@ void create_props_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				      xmToggleButtonWidgetClass, panel,
 						   NULL);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
-
-
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

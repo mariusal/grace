@@ -38,17 +38,13 @@
 #include <string.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
-#include <Xm/LabelG.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 #include <Xm/ToggleB.h>
 #include <Xm/Text.h>
-#include <Xm/List.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -134,7 +130,7 @@ void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data)
 			(XtCallbackProc) do_fext_toggle, (XtPointer) i);
 	}
 	
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	feui.legload_rc= XmCreateRowColumn(dialog, "fext_legload_rc", NULL, 0);
 	
@@ -150,7 +146,7 @@ void create_featext_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	
 	XtManageChild(feui.legload_rc);
 	XtSetSensitive(feui.legload_rc, False);
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc)

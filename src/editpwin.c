@@ -275,7 +275,7 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 				"16", "17", "18", "19", "20",
 					NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[1], XmNactivateCallback,

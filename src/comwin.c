@@ -38,14 +38,12 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/BulletinB.h>
-#include <Xm/Frame.h>
+#include <Xm/Form.h>
 #include <Xm/FileSB.h>
 #include <Xm/Command.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Text.h>
-#include <Xm/Separator.h>
 #include <Xm/List.h>
 
 #include "globals.h"
@@ -298,7 +296,7 @@ void open_command(Widget w, XtPointer client_data, XtPointer call_data)
 
 	form = XmCreateForm(command, "commandform", NULL, 0);
 
-	fr1 = XmCreateFrame(form, "commandframe1", NULL, 0);
+	fr1 = CreateFrame(form, NULL);
 	XtVaSetValues(fr1, 
 	    XmNtopAttachment, XmATTACH_FORM,
 	    XmNleftAttachment, XmATTACH_FORM,
@@ -316,7 +314,7 @@ void open_command(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(but[4], XmNactivateCallback, 
 	              (XtCallbackProc) move_com, (XtPointer) 1);
 
-	fr2 = XmCreateFrame(form, "commandframe2", NULL, 0);
+	fr2 = CreateFrame(form, NULL);
 	XtVaSetValues(fr2, 
 	    XmNtopAttachment, XmATTACH_WIDGET,
 	    XmNtopWidget, fr1,
@@ -341,8 +339,6 @@ void open_command(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtAddCallback(command, XmNcommandEnteredCallback, 
 	              (XtCallbackProc) comcall, (XtPointer) NULL);
-	XtManageChild(fr1);
-	XtManageChild(fr2);
 	XtManageChild(form);
 	XtManageChild(command);
 	XtManageChild(comshell);
@@ -434,7 +430,7 @@ void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	whist_text_item = CreateTextItem2(whist_panel, 30, "Write history to:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, whist_panel, NULL);
+	CreateSeparator(whist_panel);
 
 	CreateCommandButtons(whist_panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

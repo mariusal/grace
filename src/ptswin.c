@@ -43,14 +43,10 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
-#include <Xm/List.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 
@@ -214,26 +210,23 @@ void create_goto_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	handle_close(top);
 	dialog = XmCreateRowColumn(top, "dialog_rc", NULL, 0);
 
-	fr = XmCreateFrame(dialog, "fr", NULL, 0);
+	fr = CreateFrame(dialog, NULL);
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	goto_pointx_item = CreateTextItem2(rc, 10, "X: ");
 	goto_pointy_item = CreateTextItem2(rc, 10, "Y: ");
 	XtManageChild(rc);
-	XtManageChild(fr);
 
-	fr = XmCreateFrame(dialog, "fr", NULL, 0);
+	fr = CreateFrame(dialog, NULL);
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	goto_index_item = CreateTextItem2(rc, 10, "Goto point: ");
 	goto_set_item = CreateSetSelector(dialog, "In set:",
 					  SET_SELECT_ACTIVE,
 					  FILTER_SELECT_NONE,
 					  GRAPH_SELECT_CURRENT,
-                SELECTION_TYPE_MULTIPLE);
-
+					  SELECTION_TYPE_MULTIPLE);
 	XtManageChild(rc);
-	XtManageChild(fr);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 3, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_gotoxy_proc, (XtPointer) NULL);
@@ -270,7 +263,7 @@ void create_add_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				       "To beginning of set",
 				       "Between nearest points in set",
 				       NULL, 0);
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_add_proc, (XtPointer) NULL);

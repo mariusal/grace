@@ -37,11 +37,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <Xm/Xm.h>
-#include <Xm/Frame.h>
+#include <Xm/DialogS.h>
 #include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 
 #include "globals.h"
@@ -117,7 +116,7 @@ void create_eblock_frame(int gno)
 	eblock_graph_choice_item = CreateGraphChoice(eblock_panel,
                                     "Load to a new set in graph:", LIST_TYPE_SINGLE);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, eblock_panel, NULL);
+	CreateSeparator(eblock_panel);
 
 	CreateCommandButtons(eblock_panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

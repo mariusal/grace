@@ -37,14 +37,11 @@
 #include <stdio.h>
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 #include <Xm/ToggleB.h>
 
 #include "globals.h"
@@ -81,7 +78,7 @@ void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	mon_frame = XmCreateDialogShell(app_shell, "Results", NULL, 0);
 	handle_close(mon_frame);
 	mon_panel = XmCreateForm(mon_frame, "mon_form", NULL, 0);
-	fr = XmCreateFrame(mon_panel, "fr", NULL, 0);
+	fr = CreateFrame(mon_panel, NULL);
 	text_w = XmCreateScrolledText(fr, "text_w", NULL, 0);
 	XtVaSetValues(text_w,
 		      XmNrows, 10,
@@ -91,7 +88,6 @@ void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNwordWrap, True,
 		      NULL);
 	XtManageChild(text_w);
-	XtManageChild(fr);
 
 	rc = XmCreateRowColumn(mon_panel, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -197,7 +193,7 @@ static void create_wmon_frame(Widget w, XtPointer client_data, XtPointer call_da
 	wmon_panel = XmCreateRowColumn(wmon_frame, "wmon_rc", NULL, 0);
 
 	wmon_text_item = CreateTextItem2(wmon_panel, 20, "Save to file: ");
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, wmon_panel, NULL);
+	CreateSeparator(wmon_panel);
 
 	CreateCommandButtons(wmon_panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

@@ -40,9 +40,11 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
+#include <Xm/Form.h>
 #include <Xm/RowColumn.h>
+#include <Xm/ScrolledW.h>
+#include <Xm/Label.h>
 #include <Xm/Text.h>
-#include <Xm/TextF.h>
 
 #include "Tab.h"
 
@@ -243,7 +245,7 @@ void create_axes_dialog(int axisno)
 
 
 
-        fr = XmCreateFrame(axes_main, "fr", NULL, 0);
+        fr = CreateFrame(axes_main, NULL);
         XtVaCreateManagedWidget("Display options", xmLabelWidgetClass, fr,
 					XmNchildType, XmFRAME_TITLE_CHILD,
 					NULL);
@@ -263,7 +265,6 @@ void create_axes_dialog(int axisno)
         XtManageChild(rc2);
 
         XtManageChild(rc);
-        XtManageChild(fr);
 
         fr = CreateFrame(axes_main, "Axis placement");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -391,7 +392,6 @@ void create_axes_dialog(int axisno)
                                         "Axis min", "Specified:", 0,
                                         0);
         tlstart = XtVaCreateManagedWidget("tlstart", xmTextWidgetClass, rc3,
-                                          XmNtraversalOn, True,
                                           XmNcolumns, 8,
                                           NULL);
         XtManageChild(rc3);
@@ -403,7 +403,6 @@ void create_axes_dialog(int axisno)
                                        "Axis max", "Specified:", 0,
                                        0);
         tlstop = XtVaCreateManagedWidget("tlstop", xmTextWidgetClass, rc3,
-                                         XmNtraversalOn, True,
                                          XmNcolumns, 8,
                                          NULL);
         XtManageChild(rc3);
@@ -556,10 +555,10 @@ void create_axes_dialog(int axisno)
             sprintf(buf, "%2d", i);
             specnum[i] = XtVaCreateManagedWidget(buf, xmLabelWidgetClass, rc3,
                                                  NULL);
-            specloc[i] = XtVaCreateManagedWidget("tickmark", xmTextFieldWidgetClass, rc3,
+            specloc[i] = XtVaCreateManagedWidget("tickmark", xmTextWidgetClass, rc3,
                                                  XmNcolumns, 10,
                                                  NULL);
-            speclabel[i] = XtVaCreateManagedWidget("ticklabel", xmTextFieldWidgetClass, rc3,
+            speclabel[i] = XtVaCreateManagedWidget("ticklabel", xmTextWidgetClass, rc3,
                                                    XmNcolumns, 25,
                                                    NULL);
             XtManageChild(rc3);
@@ -979,9 +978,9 @@ void update_ticks(int gno)
         }
 
         sprintf(buf, "%.2f", t.offsx);
-        XmTextSetString(offx, buf);
+        xv_setstr(offx, buf);
         sprintf(buf, "%.2f", t.offsy);
-        XmTextSetString(offy, buf);
+        xv_setstr(offy, buf);
 
         SetChoice(axislabellayout, t.label_layout == LAYOUT_PERPENDICULAR ? 1 : 0);
         SetChoice(axislabelplace, t.label_place == TYPE_AUTO ? 0 : 1);

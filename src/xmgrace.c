@@ -48,25 +48,15 @@
 #endif
 
 #include <Xm/Xm.h>
-#include <Xm/ArrowB.h>
-#include <Xm/CascadeB.h>
-#include <Xm/DialogS.h>
-#include <Xm/DrawingA.h>
-#include <Xm/BulletinB.h>
-#include <Xm/FileSB.h>
-#include <Xm/Frame.h>
-#include <Xm/Form.h>
-#include <Xm/MainW.h>
-#include <Xm/MessageB.h>
 #include <Xm/Protocols.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/Label.h>
+#include <Xm/MainW.h>
+#include <Xm/Form.h>
 #include <Xm/RowColumn.h>
-#include <Xm/SelectioB.h>
+#include <Xm/Label.h>
 #include <Xm/ToggleB.h>
-#include <Xm/Separator.h>
+#include <Xm/PushB.h>
 #include <Xm/ScrolledW.h>
+#include <Xm/DrawingA.h>
 #if XmVersion >= 1002
 #  include <Xm/RepType.h>
 #endif
@@ -899,8 +889,7 @@ void startup_gui(void)
 
     form = XmCreateForm(main_frame, "form", NULL, 0);
 
-    frleft = XtVaCreateManagedWidget("fr", xmFrameWidgetClass, form,
-				     NULL);
+    frleft = CreateFrame(form, NULL);
     rcleft = XtVaCreateManagedWidget("toolBar", xmRowColumnWidgetClass, frleft,
 				     XmNorientation, XmVERTICAL,
 				     XmNpacking, XmPACK_TIGHT,
@@ -1144,8 +1133,7 @@ void startup_gui(void)
                 (XtCallbackProc) graph_scroll_proc, (XtPointer) GSCROLL_UP);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#up");
 
-    XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, rcleft,
-			    NULL);
+    CreateSeparator(rcleft);
 
 
     bt = XtVaCreateManagedWidget("AutoT", xmPushButtonWidgetClass, rcleft,

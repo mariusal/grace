@@ -38,15 +38,12 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Scale.h>
-#include <Xm/Separator.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -100,8 +97,7 @@ void create_plot_frame(void)
 	bg_fill_item = CreateToggleButton(rc, "Fill");
         XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel,
-				NULL);
+	CreateSeparator(panel);
 
 	timestamp_active_item = XtVaCreateManagedWidget("Display Time stamp",
 					   xmToggleButtonWidgetClass, panel,
@@ -133,8 +129,7 @@ void create_plot_frame(void)
 	timestamp_x_item = CreateTextItem2(panel, 10, "Timestamp X:");
 	timestamp_y_item = CreateTextItem2(panel, 10, "Timestamp Y:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel,
-				NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

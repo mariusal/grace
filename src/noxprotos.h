@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -35,10 +35,8 @@
 #ifndef __NOXPROTOS_H_
 #define __NOXPROTOS_H_
 
-#include <config.h>
-
+/* For FILE */
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "defines.h"
 #include "graphs.h"

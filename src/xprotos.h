@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -34,32 +34,9 @@
 #ifndef __XPROTOS_H_
 #define __XPROTOS_H_
 
-#include <X11/X.h>
-#include <X11/Xatom.h>
-#include <X11/Intrinsic.h>
-#include <X11/Shell.h>
-#include <X11/keysym.h>
-#include <X11/StringDefs.h>
-
 #include <Xm/Xm.h>
-#include <Xm/ArrowB.h>
-#include <Xm/CascadeB.h>
-#include <Xm/DialogS.h>
-#include <Xm/DrawingA.h>
-#include <Xm/BulletinB.h>
-#include <Xm/FileSB.h>
-#include <Xm/Frame.h>
-#include <Xm/Form.h>
-#include <Xm/MainW.h>
-#include <Xm/MessageB.h>
-#include <Xm/Label.h>
-#include <Xm/PushB.h>
-#include <Xm/Label.h>
-#include <Xm/RowColumn.h>
-#include <Xm/SelectioB.h>
-#include <Xm/ToggleB.h>
-#include <Xm/Separator.h>
-#include <Xm/ScrolledW.h>
+
+#include "defines.h"
 
 int initialize_gui(int *argc, char **argv);
 void startup_gui(void);

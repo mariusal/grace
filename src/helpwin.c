@@ -32,14 +32,17 @@
 #include <string.h>
 
 #include "globals.h"
-#include "graphs.h"
 #include "utils.h"
+#include "buildinfo.h"
 #include "protos.h"
 
 #include <X11/cursorfont.h>
-#include <Xm/ToggleB.h>
+#include <Xm/DialogS.h>
+#include <Xm/Label.h>
+#include <Xm/RowColumn.h>
+#include <Xm/PushB.h>
+
 #include "motifinc.h"
-#include "buildinfo.h"
 
 #define NO_HELP "nohelp.html"
 

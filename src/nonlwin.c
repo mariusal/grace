@@ -40,13 +40,13 @@
 #include <Xm/Xm.h>
 #include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
+#include <Xm/ToggleB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 #include <Xm/ScrolledW.h>
+#include <Xm/FileSB.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -179,14 +179,13 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNrightAttachment, XmATTACH_FORM,
 		      NULL);
         
-        fr1 = XmCreateFrame(nonl_panel, "nonl_frame", NULL, 0);
+        fr1 = CreateFrame(nonl_panel, NULL);
         nonl_set_item  = CreateSetSelector(fr1, "Apply to set:",
                                     SET_SELECT_ACTIVE,
                                     FILTER_SELECT_NONE,
                                     GRAPH_SELECT_CURRENT,
                                     SELECTION_TYPE_SINGLE);
 	
-	XtManageChild(fr1);
 	XtVaSetValues(fr1,
 		      XmNtopAttachment, XmATTACH_WIDGET,
 		      XmNtopWidget, menubar,
@@ -194,14 +193,13 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNrightAttachment, XmATTACH_FORM,
 		      NULL);
 		      
-	fr = XmCreateFrame(nonl_panel, "nonl_frame", NULL, 0);
+	fr = CreateFrame(nonl_panel, NULL);
 	rc = XmCreateRowColumn(fr, "nonl_rc", NULL, 0);
 	
-	title_fr = XmCreateFrame(rc, "nonl_title_frame", NULL, 0);
+	title_fr = CreateFrame(rc, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
 	nonl_title_item = XmCreateLabel(title_fr, nonl_opts.title, NULL, 0);
     	XtManageChild(nonl_title_item);
-	XtManageChild(title_fr);
     	
 	nonl_formula_item = CreateScrollTextItem2(rc, 40, 2, "Formula:");
 	rc1 = XmCreateRowColumn(rc, "nonl_rc", NULL, 0);
@@ -264,7 +262,6 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtManageChild(rc2);
 	XtManageChild(rc);
-	XtManageChild(fr);
 
         XtVaSetValues(fr,
                       XmNtopAttachment, XmATTACH_WIDGET,
@@ -273,7 +270,7 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
                       XmNrightAttachment, XmATTACH_FORM,
                       NULL);
                       
-	fr3 = XmCreateFrame(nonl_panel, "nonl_frame", NULL, 0);
+	fr3 = CreateFrame(nonl_panel, NULL);
 	rc3 = XmCreateRowColumn(fr3, "rc3", NULL, 0);
 	
 	CreateCommandButtons(rc3, 4, fitbut, fitlabel);
@@ -286,7 +283,7 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(fitbut[3], XmNactivateCallback,
 	     		   (XtCallbackProc) do_nonl_proc, (XtPointer) (100));
 	
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, rc3, NULL);	
+	CreateSeparator(rc3);	
 	
 	nonl_fload_rc = XmCreateRowColumn(rc3, "nonl_fload_rc", NULL, 0);
 	XtVaSetValues(nonl_fload_rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -303,7 +300,6 @@ void create_nonl_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		(XtCallbackProc) destroy_nonl_frame, (XtPointer) NONL_CANCEL);
 
 	XtManageChild(rc3);
-	XtManageChild(fr3);
 	XtVaSetValues(fr3,
 	              XmNtopAttachment, XmATTACH_WIDGET,
                       XmNtopWidget, fr,
@@ -740,13 +736,12 @@ void create_savefit_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(savefit_dialog, XmNokCallback, (XtCallbackProc) do_savefit_proc, 0);
 	XtAddCallback(savefit_dialog, XmNhelpCallback, (XtCallbackProc) HelpCB, 
 	              (XtPointer) NULL);
-	fr = XmCreateFrame(savefit_dialog, "fr", NULL, 0);
+	fr = CreateFrame(savefit_dialog, NULL);
 	dialog = XmCreateRowColumn(fr, "dialog_rc", NULL, 0);
 
 	save_title_item = CreateTextItem2(dialog, 25, "Title: ");
 
 	XtManageChild(dialog);
-	XtManageChild(fr);
     }
     
     XtManageChild(savefit_dialog);

@@ -40,10 +40,9 @@
 #include <sys/types.h>
 
 #include <Xm/Xm.h>
-#include <Xm/Frame.h>
+#include <Xm/DialogS.h>
+#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
-#include <Xm/Scale.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -342,7 +341,7 @@ void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					   0);
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
@@ -398,7 +397,7 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	strings_size_item = CreateCharSizeChoice(panel, "Size");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
@@ -463,7 +462,7 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					   0);
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
@@ -511,7 +510,7 @@ void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
 					   0);
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
@@ -735,7 +734,7 @@ void box_edit_popup(int boxno)
 	box_ui.y2_item = CreateTextItem2(rc, 12, "Ymax = ");
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
@@ -794,7 +793,7 @@ void ellipse_edit_popup(int boxno)
 	ellip_ui.y2_item = CreateTextItem2(rc, 12, "Height = ");
     	XtManageChild(rc);
 
-    	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+    	CreateSeparator(panel);
 
     	ellip_ui.boxno = boxno;
     	CreateCommandButtons(panel, 2, buts, label1);
@@ -960,7 +959,7 @@ void line_edit_popup(int lineno)
 	line_ui.y2_item = CreateTextItem2(rc, 12, "Y2 = ");
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,
@@ -1105,7 +1104,7 @@ void string_edit_popup(int stringno)
 
 	string_ui.size_item = CreateCharSizeChoice(panel, "Size");
 						    
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

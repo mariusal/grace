@@ -38,13 +38,10 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -145,26 +142,24 @@ void create_locator_frame(Widget w, XtPointer client_data, XtPointer call_data)
 /*
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 */
-	fr = XmCreateFrame(rc2, "fr", NULL, 0);
+	fr = CreateFrame(rc2, NULL);
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 
 	loc_formatx = CreateFormatChoice(rc, "Format X:");
 	loc_precx = CreatePrecisionChoice(rc, "Precision X:");
 	locx_item = (Widget) CreateTextItem2(rc, 10, "Fixed point X:");
 	XtManageChild(rc);
-	XtManageChild(fr);
 
-	fr = XmCreateFrame(rc2, "fr", NULL, 0);
+	fr = CreateFrame(rc2, NULL);
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	loc_formaty = CreateFormatChoice(rc, "Format Y:");
 	loc_precy = CreatePrecisionChoice(rc, "Precision Y:");
 
 	locy_item = (Widget) CreateTextItem2(rc, 10, "Fixed point Y:");
 	XtManageChild(rc);
-	XtManageChild(fr);
 	XtManageChild(rc2);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, locator_panel, NULL);
+	CreateSeparator(locator_panel);
 
 	CreateCommandButtons(locator_panel, 3, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback,

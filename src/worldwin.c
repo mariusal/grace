@@ -39,14 +39,9 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
-#include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
-#include <Xm/Text.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -234,7 +229,7 @@ void create_arrange_frame(Widget w, XtPointer client_data, XtPointer call_data)
         
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, arrange_panel, NULL);
+	CreateSeparator(arrange_panel);
 
 	CreateCommandButtons(arrange_panel, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) define_arrange_proc, (XtPointer) NULL);
@@ -311,7 +306,7 @@ void create_overlay_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	    "X and Y axes different:",
 	    NULL, NULL);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, overlay_panel, NULL);
+	CreateSeparator(overlay_panel);
 
 	CreateCommandButtons(overlay_panel, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) define_overlay_proc, (XtPointer) NULL);
@@ -388,7 +383,7 @@ void create_autos_frame(Widget w, XtPointer client_data, XtPointer call_data)
                                     GRAPH_SELECT_CURRENT,
                                     SELECTION_TYPE_MULTIPLE);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, panel, NULL);
+	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, 

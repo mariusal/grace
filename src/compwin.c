@@ -42,17 +42,13 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
-#include <Xm/LabelG.h>
 #include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
 #include <Xm/ToggleB.h>
+#include <Xm/RowColumn.h>
 #include <Xm/Text.h>
-#include <Xm/List.h>
 
 #include "globals.h"
 #include "graphs.h"
@@ -128,7 +124,7 @@ void create_eval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	eui.formula_item = CreateScrollTextItem2(dialog, 30, 3,"Formula:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_compute_proc, (XtPointer) & eui);
@@ -235,7 +231,7 @@ void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtVaSetValues(hui.binw_item, XmNcolumns, 10, NULL);
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 	hui.type_item = CreatePanelChoice(dialog, "Compute: ",
 					  3,
 					  "Histogram",
@@ -243,7 +239,7 @@ void create_histo_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  0,
 					  0);
 	hui.graph_item = CreateGraphChoice(dialog, "Load result to graph:", LIST_TYPE_SINGLE);
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_histo_proc, (XtPointer) & hui);
@@ -399,7 +395,7 @@ void create_fourier_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  0);
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 	CreateCommandButtons(dialog, 4, buts, l);
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_fourier_proc, (XtPointer) & fui);
 	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) do_fft_proc, (XtPointer) & fui);
@@ -586,7 +582,7 @@ void create_run_frame(Widget w, XtPointer client_data, XtPointer call_data)
 
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_runavg_proc, (XtPointer) & rui);
@@ -771,7 +767,7 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChild(regui.rinvert_item);
 	XtManageChild(rc2);
 	
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, rc, NULL);
+	CreateSeparator(rc);
 
 	regui.fload_rc = XmCreateRowColumn(rc, "nonl_fload_rc", NULL, 0);
 	XtVaSetValues(regui.fload_rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -783,7 +779,7 @@ void create_reg_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChild(rc);
 	XtSetSensitive(regui.fload_rc, False);
 	
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, buts, label1);
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_regress_proc, (XtPointer) & regui);
@@ -913,7 +909,7 @@ void create_diff_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  0,
 					  0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_differ_proc, (XtPointer) & dui);
@@ -997,7 +993,7 @@ void create_int_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  0);
 	iui.sum_item = CreateTextItem2(dialog, 10, "Sum:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_int_proc, (XtPointer) & iui);
@@ -1079,7 +1075,7 @@ void create_seasonal_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				    SELECTION_TYPE_MULTIPLE);
 	sui.period_item = CreateTextItem2(dialog, 10, "Period:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_seasonal_proc, (XtPointer) & sui);
@@ -1171,7 +1167,7 @@ void create_interp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  "Akima",
 					  NULL, 0);
 					  
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_interp_proc, (XtPointer) & interpui);
@@ -1265,7 +1261,7 @@ void create_xcor_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					 SELECTION_TYPE_SINGLE);
 	crossui.lag_item = CreateTextItem2(dialog, 10, "Maximum lag:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_xcor_proc, (XtPointer) & crossui);
@@ -1345,7 +1341,7 @@ void create_spline_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					  "Akima",
 					  0, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_spline_proc, (XtPointer) & splineui);
@@ -1455,7 +1451,7 @@ void create_samp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	sampui.expr_item = CreateTextItem4(rc, 10, "Logical expression:");
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_sample_proc, (XtPointer) & sampui);
@@ -1561,7 +1557,7 @@ void create_prune_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	pruneui.dy_item = CreateTextItem4(pruneui.dy_rc, 17, "Delta Y:");
         XtManageChild(pruneui.dy_rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
         pruneui.deltatype_item = CreatePanelChoice(dialog,
 	    "Type of Delta coordinates:", 3, "Viewport", "World", NULL, 0);
@@ -1584,7 +1580,7 @@ void create_prune_frame(Widget w, XtPointer client_data, XtPointer call_data)
         }
         do_prune_toggle ((Widget) NULL, (XtPointer) &pruneui, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_prune_proc, (XtPointer) & pruneui);
@@ -1750,7 +1746,7 @@ void create_digf_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					GRAPH_SELECT_CURRENT,
 					SELECTION_TYPE_SINGLE);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_digfilter_proc, (XtPointer) & digfui);
@@ -1819,7 +1815,7 @@ void create_lconv_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					 GRAPH_SELECT_CURRENT,
 					 SELECTION_TYPE_SINGLE);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_linearc_proc, (XtPointer) & lconvui);
@@ -1917,7 +1913,7 @@ void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	levalui.stop_item = CreateTextItem4(rc, 10, "Stop load at:");
 	levalui.npts_item = CreateTextItem4(rc, 10, "# of points:");
 	XtManageChild(rc);
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_compute_proc2, (XtPointer) & levalui);
@@ -2140,7 +2136,7 @@ void create_geom_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	gui.transy_item = CreateTextItem4(rc, 10, "Translate Y:");
 	XtManageChild(rc);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 3, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_geom_proc, (XtPointer) & gui);

@@ -35,13 +35,12 @@
 #include <stdio.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
+#include <Xm/Form.h>
 #include <Xm/DialogS.h>
-#include <Xm/Frame.h>
 #include <Xm/Label.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
-#include <Xm/Separator.h>
+#include <Xm/ScrolledW.h>
 #include <Xm/Text.h>
 
 #include "globals.h"
@@ -134,7 +133,7 @@ void create_define_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					       "Current", "All",
 					       NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but2, label2);
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_define_region, (XtPointer) NULL);
@@ -183,7 +182,7 @@ void create_clear_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					      "0", "1", "2", "3", "4", "All",
 					      NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_clear_region, (XtPointer) NULL);
@@ -273,7 +272,7 @@ void create_extract_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				    "Current", "0", "1", "2", "3", "4", "5",
 					       "6", "7", "8", "9", NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_extract_region, (XtPointer) NULL);
@@ -341,7 +340,7 @@ void create_delete_frame(Widget w, XtPointer client_data, XtPointer call_data)
 				    "Current", "0", "1", "2", "3", "4", "5",
 					"6", "7", "8", "9", "All", NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_delete_region, (XtPointer) NULL);
@@ -379,7 +378,7 @@ void create_area_frame(Widget w, XtPointer client_data, XtPointer call_data)
 					   XmNlabelString, pstring = XmStringCreateLtoR("[    Perim    ]", charset),
 					   NULL);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 3, but3, label3);
 	XtAddCallback(but3[0], XmNactivateCallback, (XtCallbackProc) do_select_area, (XtPointer) NULL);
@@ -442,7 +441,7 @@ void create_evalregion_frame(Widget w, XtPointer client_data, XtPointer call_dat
 
 	eval_region_item = CreateScrollTextItem2(dialog, 30, 2, "Expression:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_eval_region, (XtPointer) NULL);
@@ -497,7 +496,7 @@ void create_extractsets_frame(Widget w, XtPointer client_data, XtPointer call_da
 
 	extractsets_graph_item = CreateGraphChoice(dialog, "Load to graph:", LIST_TYPE_SINGLE);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_extractsets_region, (XtPointer) NULL);
@@ -539,7 +538,7 @@ void create_deletesets_frame(Widget w, XtPointer client_data, XtPointer call_dat
 		   "0", "1", "2", "3", "4", "Inside world", "Outside world",
 						   NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_deletesets_region, (XtPointer) NULL);
@@ -597,7 +596,7 @@ void create_reporton_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		   				"No", "Yes",
 						   NULL, 0);
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_reporton_region, (XtPointer) NULL);
@@ -686,7 +685,7 @@ void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNworkWindow, rc3,
 		      NULL);
 
-	fr2 = XmCreateFrame(status_panel, "fr2", NULL, 0);
+	fr2 = CreateFrame(status_panel, NULL);
 	rc = XmCreateRowColumn(fr2, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 
@@ -699,7 +698,6 @@ void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) update_status_popup, NULL);
 
 	XtManageChild(rc);
-	XtManageChild(fr2);
 
 	XtVaSetValues(status_sw,
 		      XmNtopAttachment, XmATTACH_FORM,

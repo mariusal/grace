@@ -38,6 +38,7 @@
 #include <stdlib.h>
 
 #include <Xm/Xm.h>
+#include <Xm/Form.h>
 #include <Xm/DialogS.h>
 #include <Xm/Label.h>
 #include <Xm/RowColumn.h>

@@ -48,8 +48,9 @@
 
 #ifndef NONE_GUI
 #  include <Xm/Xm.h>
-#  include <Xm/BulletinB.h>
+#  include <Xm/Form.h>
 #  include <Xm/RowColumn.h>
+#  include <Xm/DialogS.h>
 
 #  include "motifinc.h"
 #endif

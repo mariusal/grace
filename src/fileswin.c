@@ -44,17 +44,12 @@
 
 #include <Xm/Xm.h>
 #include <Xm/DialogS.h>
-#include <Xm/BulletinB.h>
 #include <Xm/FileSB.h>
-#include <Xm/Frame.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
-#include <Xm/List.h>
 #include <Xm/PushB.h>
-#include <Xm/RowColumn.h>
-#include <Xm/SelectioB.h>
-#include <Xm/Separator.h>
 #include <Xm/ToggleB.h>
+#include <Xm/RowColumn.h>
 #include <Xm/Text.h>
 
 #include "globals.h"
@@ -165,7 +160,7 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 
 	rc = XmCreateRowColumn(rdata_dialog, "Read data main RC", NULL, 0);
 
-	fr = XmCreateFrame(rc, "frame_1", NULL, 0);
+	fr = CreateFrame(rc, NULL);
 	rc2 = XmCreateRowColumn(fr, "Read data main RC", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	read_ftype_item = CreateSetTypeChoice(rc2, "Set type:");
@@ -174,9 +169,8 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
                                 (XtCallbackProc) read_nxy_proc, NULL);
 
 	XtManageChild(rc2);
-	XtManageChild(fr);
 
-	fr = XmCreateFrame(rc, "frame_2", NULL, 0);
+	fr = CreateFrame(rc, NULL);
 	rc2 = XmCreateRowColumn(fr, "Read data main RC", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	lab = XmCreateLabel(rc2, "Data source:", NULL, 0);
@@ -191,7 +185,6 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 	XtManageChild(rb);
 	XtManageChildren(w, 2);
 	XtManageChild(rc2);
-	XtManageChild(fr);
 	XmToggleButtonSetState(w[0], True, False);
 
 	fr = CreateFrame(rc, NULL);
@@ -613,7 +606,7 @@ void create_netcdfs_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	netcdf_file_item = CreateTextItem2(dialog, 30, "netCDF file:");
 
-	XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, dialog, NULL);
+	CreateSeparator(dialog);
 
 	CreateCommandButtons(dialog, 5, but1, label1);
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_netcdf_proc,
@@ -904,13 +897,12 @@ void create_saveproject_popup(void)
 	XtAddCallback(sui.top, XmNhelpCallback, (XtCallbackProc) HelpCB, 
 	              (XtPointer) "file.html#save");
 
-	fr = XmCreateFrame(sui.top, "fr", NULL, 0);
+	fr = CreateFrame(sui.top, NULL);
 	dialog = XmCreateRowColumn(fr, "dialog_rc", NULL, 0);
 
 	save_format_item = CreateTextItem2(dialog, 15, "Format: ");
 
 	XtManageChild(dialog);
-	XtManageChild(fr);
     }
     XtManageChild(sui.top);
     XtRaise(XtParent(sui.top));
@@ -1028,8 +1020,7 @@ void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data)
 		      NULL);
 		XtManageChild(text_w);
 
-		XtVaCreateManagedWidget("sep", xmSeparatorWidgetClass, describe_panel, 
-															NULL);
+		CreateSeparator(describe_panel);
 		CreateCommandButtons(describe_panel, 2, buts, label);
 		XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc)
 							update_descript, (XtPointer) text_w);
@@ -1120,7 +1111,7 @@ void create_write_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(wui.top, XmNhelpCallback, (XtCallbackProc) HelpCB, 
 	              (XtPointer) "file.html#writesets");
 	
-	fr = XmCreateFrame(wui.top, "fr", NULL, 0);
+	fr = CreateFrame(wui.top, NULL);
 	dialog = XmCreateRowColumn(fr, "dialog_rc", NULL, 0);
 
         wui.sel = CreateSetChoice(dialog, "Write set(s):",
@@ -1128,7 +1119,6 @@ void create_write_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	wui.format_item = CreateTextItem2(dialog, 15, "Format: ");
 
 	XtManageChild(dialog);
-	XtManageChild(fr);
     }
     xv_setstr(wui.format_item, sformat);
     XtManageChild(wui.top);
@@ -1181,7 +1171,7 @@ void create_block_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	XtAddCallback(block_dialog, XmNhelpCallback, (XtCallbackProc) HelpCB, 
 	              (XtPointer) "file.html#readblock");
 
-	fr = XmCreateFrame(block_dialog, "frame", NULL, 0);
+	fr = CreateFrame(block_dialog, NULL);
 
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -1201,7 +1191,6 @@ void create_block_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	XtManageChildren(rw, 2);
 	XtManageChild(rb);
 	XtManageChild(rc);
-	XtManageChild(fr);
 	XmToggleButtonSetState(rw[0], True, False);
     }
     XtManageChild(block_dialog);

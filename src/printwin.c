@@ -35,9 +35,11 @@
 #include <stdio.h>
 
 #include <Xm/Xm.h>
-#include <Xm/BulletinB.h>
+#include <Xm/Form.h>
+#include <Xm/DialogS.h>
 #include <Xm/PushB.h>
 #include <Xm/RowColumn.h>
+#include <Xm/FileSB.h>
 
 #include "globals.h"
 #include "device.h"

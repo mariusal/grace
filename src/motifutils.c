@@ -42,19 +42,23 @@
 #include <X11/Xatom.h>
 
 #include <Xm/Xm.h>
+#include <Xm/Protocols.h>
 #include <Xm/BulletinB.h>
+#include <Xm/MessageB.h>
 #include <Xm/DialogS.h>
 #include <Xm/Frame.h>
 #include <Xm/Form.h>
 #include <Xm/Scale.h>
 #include <Xm/Label.h>
+#include <Xm/LabelG.h>
 #include <Xm/List.h>
 #include <Xm/PushB.h>
+#include <Xm/CascadeB.h>
 #include <Xm/RowColumn.h>
+#include <Xm/Separator.h>
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
-#include <Xm/Protocols.h>
 
 #include "Tab.h"
 #include "motifinc.h"
@@ -2219,7 +2223,7 @@ Widget CreateFrame(Widget parent, char *s)
     
     fr = XtVaCreateManagedWidget("frame", xmFrameWidgetClass, parent, NULL);
     if (s != NULL) {
-        XtVaCreateManagedWidget(s, xmLabelWidgetClass, fr,
+        XtVaCreateManagedWidget(s, xmLabelGadgetClass, fr,
 				XmNchildType, XmFRAME_TITLE_CHILD,
 				NULL);
     }

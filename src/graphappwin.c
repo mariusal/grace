@@ -35,6 +35,7 @@
 #include <config.h>
 
 #include <Xm/Xm.h>
+#include <Xm/Form.h>
 #include <Xm/DialogS.h>
 #include <Xm/RowColumn.h>
 #include <Xm/PanedW.h>
@@ -354,13 +355,12 @@ void create_graphapp_frame(int gno)
         SelectTabPage(graphapp_tab, graphapp_main);
 
 
-        fr = XmCreateFrame(graphapp_panel, "fr", NULL, 0); 
+        fr = CreateFrame(graphapp_panel, NULL); 
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 
         CreateAACButtons(rc, graphapp_panel, graphapp_aac_cb);
         
         XtManageChild(rc);
-        XtManageChild(fr);
         XtVaSetValues(fr,
                       XmNtopAttachment, XmATTACH_NONE,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -499,7 +499,7 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
 	}
     }
     
-    free(values);
+    xfree(values);
 
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(graphapp_dialog);
@@ -527,7 +527,7 @@ void update_graphapp_items(Widget list, XtPointer client_data,
         return;
     } else {
         gno = values[0];
-        free(values);
+        xfree(values);
         if (n > 1) {
             return;
         }
