@@ -327,32 +327,41 @@ void do_xcor(int gno1, int set1, int gno2, int set2, int maxlag)
 /*
  * numerical integration
  */
-double do_int(int gno, int setno, int itype)
+int do_int(int gsrc, int setfrom, int gdest, int setto,
+    int disponly, double *sum)
 {
-    int intset;
-    double sum = 0;
+    int len;
+    double *x, *y;
+    
+    *sum = 0.0;
 
-    if (!is_set_active(gno, setno)) {
+    if (!is_set_active(gsrc, setfrom)) {
 	errmsg("Set not active");
-	return 0.0;
+	return RETURN_FAILURE;
     }
-    if (getsetlength(gno, setno) < 3) {
+    
+    len = getsetlength(gsrc, setfrom);
+    if (len < 3) {
 	errmsg("Set length < 3");
-	return 0.0;
+	return RETURN_FAILURE;
     }
-    if (itype == 0) {
-	intset = nextset(gno);
-	if (intset != (-1)) {
-	    activateset(gno, intset);
-	    setlength(gno, intset, getsetlength(gno, setno));
-	    sprintf(buf, "Cumulative sum of set %d", setno);
-	    sum = trapint(getx(gno, setno), gety(gno, setno), getx(gno, intset), gety(gno, intset), getsetlength(gno, setno));
-	    setcomment(gno, intset, buf);
+    
+    x = getcol(gsrc, setfrom, DATA_X);
+    y = getcol(gsrc, setfrom, DATA_Y);
+    if (!disponly) {
+	if (activateset(gdest, setto)    != RETURN_SUCCESS ||
+            setlength(gdest, setto, len) != RETURN_SUCCESS) {
+	    errmsg("Can't activate target set");
+	    return RETURN_FAILURE;
+        } else {
+	    *sum = trapint(x, y, getx(gdest, setto), gety(gdest, setto), len);
+	    sprintf(buf, "Integral of set G%d.S%d", gsrc, setfrom);
+	    setcomment(gdest, setto, buf);
 	}
     } else {
-	sum = trapint(getx(gno, setno), gety(gno, setno), NULL, NULL, getsetlength(gno, setno));
+	*sum = trapint(x, y, NULL, NULL, len);
     }
-    return sum;
+    return RETURN_SUCCESS;
 }
 
 /*

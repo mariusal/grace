@@ -2892,8 +2892,9 @@ actions:
 	    do_differ($3->gno, $3->setno, get_cg(), nextset(get_cg()),
                 TRUE, $5, 1);
 	}
-	| INTEGRATE '(' selectset ')' {
-	    do_int($3->gno, $3->setno, 0);
+	| INTEGRATE '(' selectset ',' selectset ')' {
+	    double dummy;
+            do_int($3->gno, $3->setno, $5->gno, $5->setno, FALSE, &dummy);
 	}
  	| XCOR '(' selectset ',' selectset ',' nexpr ')' {
 	    do_xcor($3->gno, $3->setno, $5->gno, $5->setno, $7);

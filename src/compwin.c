@@ -60,16 +60,16 @@ static Widget but1[3];
 static Widget but2[3];
 
 static int compute_aac(void *data);
+static int do_histo_proc(void *data);
+static int do_fourier_proc(void *data);
+static int do_interp_proc(void *data);
+static int do_runavg_proc(void *data);
+static int do_differ_proc(void *data);
+static int do_int_proc(void *data);
+static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static int do_differ_proc(void *data);
-static int do_interp_proc(void *data);
-static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static int do_runavg_proc(void *data);
-static int do_fourier_proc(void *data);
-static int do_histo_proc(void *data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_toggle(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -1002,6 +1002,95 @@ static int do_runavg_proc(void *data)
     }
 }
 
+/* numerical integration */
+
+typedef struct _Int_ui {
+    TransformStructure *tdialog;
+    Widget disponly;
+} Int_ui;
+
+
+void create_int_frame(void *data)
+{
+    static Int_ui *iui = NULL;
+
+    set_wait_cursor();
+    
+    if (iui == NULL) {
+        Widget rc;
+        
+        iui = xmalloc(sizeof(Run_ui));
+        iui->tdialog = CreateTransformDialogForm(app_shell,
+            "Running properties", LIST_TYPE_MULTIPLE);
+
+	rc = CreateVContainer(iui->tdialog->form);
+
+	iui->disponly = CreateToggleButton(rc, "Display integral value only");
+
+        CreateAACDialog(iui->tdialog->form, rc, do_int_proc, (void *) iui);
+
+    }
+    
+    RaiseWindow(GetParent(iui->tdialog->form));
+    unset_wait_cursor();
+}
+
+/*
+ * numerical integration
+ */
+static int do_int_proc(void *data)
+{
+    int nssrc, nsdest, *svaluessrc, *svaluesdest, gsrc, gdest;
+    int i, res, err = FALSE;
+    int disponly;
+    double sum;
+    Int_ui *ui = (Int_ui *) data;
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &gsrc, &gdest, &nssrc, &svaluessrc, &nsdest, &svaluesdest);
+    
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    disponly = GetToggleButtonState(ui->disponly);
+    
+    for (i = 0; i < nssrc; i++) {
+	int setfrom, setto;
+        setfrom = svaluessrc[i];
+	if (nsdest) {
+            setto = svaluesdest[i];
+        } else {
+            setto = nextset(gdest);
+        }
+	res = do_int(gsrc, setfrom, gdest, setto, disponly, &sum);
+        if (res != RETURN_SUCCESS) {
+            err = TRUE;
+        } else {
+            char buf[64];
+            sprintf(buf, "Integral of set G%d.S%d: %g\n", gsrc, setfrom, sum);
+            stufftext(buf);
+        }
+    }
+    
+    xfree(svaluessrc);
+    if (nsdest > 0) {
+        xfree(svaluesdest);
+    }
+    
+    if (!disponly) {
+        update_set_lists(gdest);
+        xdrawgraph();
+    }
+    
+    if (err) {
+        return RETURN_FAILURE;
+    } else {
+        return RETURN_SUCCESS;
+    }
+}
+
+
 typedef struct _Reg_ui {
     Widget top;
     SetChoiceItem sel;
@@ -1226,90 +1315,6 @@ static void do_regress_proc(Widget w, XtPointer client_data, XtPointer call_data
     xdrawgraph();
 }
 
-
-/* numerical integration */
-
-typedef struct _Int_ui {
-    Widget top;
-    SetChoiceItem sel;
-    Widget *type_item;
-    Widget sum_item;
-    Widget *region_item;
-    Widget rinvert_item;
-} Int_ui;
-
-static Int_ui iui;
-
-void create_int_frame(void *data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (iui.top == NULL) {
-	char *label2[2];
-	label2[0] = "Accept";
-	label2[1] = "Close";
-	iui.top = XmCreateDialogShell(app_shell, "Integration", NULL, 0);
-	handle_close(iui.top);
-	dialog = XmCreateRowColumn(iui.top, "dialog_rc", NULL, 0);
-	iui.sel = CreateSetSelector(dialog, "Apply to set:",
-				    SET_SELECT_ALL,
-				    FILTER_SELECT_NONE,
-				    GRAPH_SELECT_CURRENT,
-				    SELECTION_TYPE_MULTIPLE);
-
-	iui.type_item = CreatePanelChoice(dialog,
-					  "Load:",
-					  3,
-					  "Cumulative sum",
-					  "Sum only",
-					  0,
-					  0);
-	iui.sum_item = CreateTextItem2(dialog, 10, "Sum:");
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but2, label2);
-	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_int_proc, (XtPointer) & iui);
-	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) iui.top);
-
-	ManageChild(dialog);
-    }
-    RaiseWindow(iui.top);
-    unset_wait_cursor();
-}
-
-/*
- * numerical integration
- */
-static void do_int_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int gno = get_cg();
-    int *selsets;
-    int i, cnt;
-    int setno, itype;
-    double sum;
-    Int_ui *ui = (Int_ui *) client_data;
-    char buf[32];
-    
-    cnt = GetSelectedSets(ui->sel, &selsets);
-    if (cnt == SET_SELECT_ERROR) {
-        errwin("No sets selected");
-        return;
-    }
-    itype = GetChoice(ui->type_item);
-    set_wait_cursor();
-    for (i = 0; i < cnt; i++) {
-	setno = selsets[i];
-	sum = do_int(gno, setno, itype);
-	sprintf(buf, "%g", sum);
-	xv_setstr(ui->sum_item, buf);
-    }
-    update_set_lists(gno);
-    unset_wait_cursor();
-    xfree(selsets);
-    xdrawgraph();
-}
 
 /* cross correlation */
 
