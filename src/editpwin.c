@@ -663,6 +663,7 @@ static EditPoints *new_ep(void)
     }
 
     ep->top = CreateDialogForm(app_shell, "Spreadsheet dataset editor");
+    SetDialogFormResizable(ep->top, TRUE);
 
     menubar = CreateMenuBar(ep->top);
     ManageChild(menubar);
