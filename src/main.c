@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -347,22 +347,6 @@ int main(int argc, char *argv[])
 		} else {
 		    getdata(grace->project, argv[i], rt->cursource, LOAD_BLOCK);
 		}
-	    } else if (argmatch(argv[i], "-bxy", 4)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing parameter for block data set creation\n");
-		    usage(stderr, argv[0]);
-		} else {
-                    int nc, *cols, scol;
-                    if (field_string_to_cols(argv[i], &nc, &cols, &scol) !=
-                        RETURN_SUCCESS) {
-                        errmsg("Erroneous field specifications");
-                        return 1;
-                    }
-		    // create_set_fromblock(grace_set_new(cur_graph),
-                    //    rt->curtype, nc, cols, scol, rt->autoscale_onread);
-                    xfree(cols);
-                }
 	    } else if (argmatch(argv[i], "-nxy", 4)) {
 		i++;
 		if (i == argc) {
@@ -532,9 +516,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-barebones                            Turn off all toolbars\n");
 #endif
     fprintf(stream, "-block     [block_data]               Assume data file is block data\n");
-    fprintf(stream, "-bxy       [x:y:etc.]                 Form a set from the current block data set\n");
-    fprintf(stream, "                                        using the current set type from columns\n");
-    fprintf(stream, "                                        given in the argument\n");
     fprintf(stream, "-datehint  [iso|european|us\n");
     fprintf(stream, "            |days|seconds|nohint]     Set the hint for dates analysis\n");
     fprintf(stream, "                                        (it is only a hint for the parser)\n");
@@ -624,7 +605,7 @@ static void VersionInfo(const Grace *grace)
     fprintf(stdout, "\n\n");
     
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");
-    fprintf(stdout, "(C) Copyright 1996-2004 Grace Development Team\n");
+    fprintf(stdout, "(C) Copyright 1996-2005 Grace Development Team\n");
     fprintf(stdout, "All Rights Reserved\n");
 
     return;
