@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -489,6 +489,13 @@ char *create_fstring(int form, int prec, double loc, int type)
     double arcmin, arcsec;
     int exponent;
     double mantissa;
+    int yprec;
+    
+    if (two_digits_years_allowed()) {
+        yprec = 2;
+    } else {
+        yprec = 4;
+    }
 
     /* for locale decimal points */
     set_locale_num(TRUE);
@@ -621,24 +628,24 @@ char *create_fstring(int form, int prec, double loc, int type)
 	}
 	break;
     case FORMAT_DDMMYY:
-	strcpy(format, "%02d-%02d-%d");
+	strcpy(format, "%02d-%02d-%0*d");
 	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, d, m, y);
+	sprintf(s, format, d, m, yprec, y);
 	break;
     case FORMAT_MMDDYY:
-	strcpy(format, "%02d-%02d-%d");
+	strcpy(format, "%02d-%02d-%0*d");
 	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, d, y);
+	sprintf(s, format, m, d, yprec, y);
 	break;
     case FORMAT_YYMMDD:
-	strcpy(format, "%d-%02d-%02d");
+	strcpy(format, "%0*d-%02d-%02d");
 	jul_to_cal_and_time(loc, ROUND_DAY, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, y, m, d);
+	sprintf(s, format, yprec, y, m, d);
 	break;
     case FORMAT_MMYY:
-	strcpy(format, "%02d-%d");
+	strcpy(format, "%02d-%0*d");
 	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, m, y);
+	sprintf(s, format, m, yprec, y);
 	break;
     case FORMAT_MMDD:
 	strcpy(format, "%02d-%02d");
@@ -673,12 +680,12 @@ char *create_fstring(int form, int prec, double loc, int type)
 	}
 	break;
     case FORMAT_MONTHSY:
-	strcpy(format, "%s-%d");
+	strcpy(format, "%s-%0*d");
 	jul_to_cal_and_time(loc, ROUND_MONTH, &y, &m, &d, &h, &mm, &sec);
 	if (m - 1 < 0 || m - 1 > 11) {
 	    sprintf(s, format, "???");
 	} else {
-	    sprintf(s, format, months[m - 1], y);
+	    sprintf(s, format, months[m - 1], yprec, y);
 	}
 	break;
     case FORMAT_MONTHL:
@@ -720,9 +727,9 @@ char *create_fstring(int form, int prec, double loc, int type)
 	sprintf(s, format, m, d, y, h, mm, sec);
 	break;
     case FORMAT_YYMMDDHMS:
-	strcpy(format, "%d-%02d-%02d %02d:%02d:%02d");
+	strcpy(format, "%0*d-%02d-%02d %02d:%02d:%02d");
 	jul_to_cal_and_time(loc, ROUND_SECOND, &y, &m, &d, &h, &mm, &sec);
-	sprintf(s, format, y, m, d, h, mm, sec);
+	sprintf(s, format, yprec, y, m, d, h, mm, sec);
 	break;
     case FORMAT_DEGREESLON:
 	if (loc < 0.0) {
