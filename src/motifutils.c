@@ -1439,6 +1439,7 @@ char *GetTextString(TextStructure *cst)
 void SetTextString(TextStructure *cst, char *s)
 {
     XmTextSetString(cst->text, s ? s : "");
+    XmTextSetInsertionPosition(cst->text, s ? strlen(s):0);
 }
 
 typedef struct {
