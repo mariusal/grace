@@ -42,10 +42,6 @@
 #include <X11/X.h>
 #include <X11/Xatom.h>
 
-#ifdef WITH_EDITRES
-#  include <X11/Xmu/Editres.h>
-#endif
-
 #include <Xm/Xm.h>
 #include <Xm/Protocols.h>
 #include <Xm/BulletinB.h>
@@ -65,6 +61,10 @@
 #include <Xm/Text.h>
 #include <Xm/ToggleB.h>
 #include <Xm/ArrowBG.h>
+
+#ifdef WITH_EDITRES
+#  include <X11/Xmu/Editres.h>
+#endif
 
 #if XmVersion < 2000
 #  define XmStringConcatAndFree(a, b) XmStringConcat(a, b); XmStringFree(a); XmStringFree(b)
