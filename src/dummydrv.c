@@ -41,7 +41,7 @@ int register_dummy_drv(Canvas *canvas)
 {
     Device_entry *d;
 
-    d = device_new("Dummy", DEVICE_TERM, FALSE, NULL);
+    d = device_new("Dummy", DEVICE_TERM, FALSE, NULL, NULL);
     if (!d) {
         return -1;
     }

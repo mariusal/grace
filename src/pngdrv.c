@@ -311,14 +311,15 @@ int register_png_drv(Canvas *canvas)
         pngdata->transparent = FALSE;
         pngdata->compression = 4;
         
-        xdev.type   = DEVICE_FILE;
-        xdev.name   = "PNG";
-        xdev.fext   = "png";
-        xdev.fontaa = TRUE;
-        xdev.parser = png_op_parser;
-        xdev.setup  = png_gui_setup;
-        xdev.dump   = png_output;
-        xdev.data   = pngdata;
+        xdev.type     = DEVICE_FILE;
+        xdev.name     = "PNG";
+        xdev.fext     = "png";
+        xdev.fontaa   = TRUE;
+        xdev.parser   = png_op_parser;
+        xdev.setup    = png_gui_setup;
+        xdev.dump     = png_output;
+        xdev.data     = pngdata;
+        xdev.freedata = xfree;
 
         return register_xrst_device(canvas, &xdev);
     } else {

@@ -109,6 +109,17 @@ static PDF_data *init_pdf_data(void)
     return data;
 }
 
+static void pdf_data_free(void *data)
+{
+    PDF_data *pdfdata = (PDF_data *) data;
+    
+    if (pdfdata) {
+        xfree(pdfdata->font_ids);
+        xfree(pdfdata->pattern_ids);
+        xfree(pdfdata);
+    }
+}
+
 int register_pdf_drv(Canvas *canvas)
 {
     Device_entry *d;
@@ -121,7 +132,7 @@ int register_pdf_drv(Canvas *canvas)
         return -1;
     }
 
-    d = device_new("PDF", DEVICE_FILE, TRUE, data);
+    d = device_new("PDF", DEVICE_FILE, TRUE, data, pdf_data_free);
     if (!d) {
         xfree(data);
         return -1;

@@ -268,14 +268,15 @@ int register_pnm_drv(Canvas *canvas)
         pnmdata->format  = DEFAULT_PNM_FORMAT;
         pnmdata->rawbits = TRUE;
         
-        xdev.type   = DEVICE_FILE;
-        xdev.name   = "PNM";
-        xdev.fext   = "pnm";
-        xdev.fontaa = TRUE;
-        xdev.parser = pnm_op_parser;
-        xdev.setup  = pnm_gui_setup;
-        xdev.dump   = pnm_output;
-        xdev.data   = pnmdata;
+        xdev.type     = DEVICE_FILE;
+        xdev.name     = "PNM";
+        xdev.fext     = "pnm";
+        xdev.fontaa   = TRUE;
+        xdev.parser   = pnm_op_parser;
+        xdev.setup    = pnm_gui_setup;
+        xdev.dump     = pnm_output;
+        xdev.data     = pnmdata;
+        xdev.freedata = xfree;
 
         return register_xrst_device(canvas, &xdev);
     } else {

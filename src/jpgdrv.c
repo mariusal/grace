@@ -346,14 +346,15 @@ int register_jpg_drv(Canvas *canvas)
         jpgdata->smoothing   = 0;                  
         jpgdata->dct         = JPEG_DCT_DEFAULT;   
         
-        xdev.type   = DEVICE_FILE;
-        xdev.name   = "JPEG";
-        xdev.fext   = "jpg";
-        xdev.fontaa = TRUE;
-        xdev.parser = jpg_op_parser;
-        xdev.setup  = jpg_gui_setup;
-        xdev.dump   = jpg_output;
-        xdev.data   = jpgdata;
+        xdev.type     = DEVICE_FILE;
+        xdev.name     = "JPEG";
+        xdev.fext     = "jpg";
+        xdev.fontaa   = TRUE;
+        xdev.parser   = jpg_op_parser;
+        xdev.setup    = jpg_gui_setup;
+        xdev.dump     = jpg_output;
+        xdev.data     = jpgdata;
+        xdev.freedata = xfree;
 
         return register_xrst_device(canvas, &xdev);
     } else {

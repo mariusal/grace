@@ -44,7 +44,7 @@ int register_mf_drv(Canvas *canvas)
 {
     Device_entry *d;
 
-    d = device_new("Metafile", DEVICE_FILE, TRUE, NULL);
+    d = device_new("Metafile", DEVICE_FILE, TRUE, NULL, NULL);
     if (!d) {
         return -1;
     }

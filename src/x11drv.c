@@ -103,7 +103,6 @@ static X11_data *init_x11_data(void)
     return data;
 }
 
-
 static void VPoint2XPoint(const VPoint *vp, XPoint *xp)
 {
     x11_VPoint2dev(vp, &xp->x, &xp->y);
@@ -559,7 +558,7 @@ int register_x11_drv(Canvas *canvas)
         return -1;
     }
     
-    d = device_new("X11", DEVICE_TERM, FALSE, data);
+    d = device_new("X11", DEVICE_TERM, FALSE, data, xfree);
     if (!d) {
         return -1;
     }

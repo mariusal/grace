@@ -129,7 +129,7 @@ int register_ps_drv(Canvas *canvas)
         return -1;
     }
 
-    d = device_new("PostScript", DEVICE_PRINT, TRUE, (void *) data);
+    d = device_new("PostScript", DEVICE_PRINT, TRUE, (void *) data, xfree);
     if (!d) {
         xfree(data);
         return -1;
@@ -166,7 +166,7 @@ int register_eps_drv(Canvas *canvas)
         return -1;
     }
 
-    d = device_new("EPS", DEVICE_FILE, TRUE, (void *) data);
+    d = device_new("EPS", DEVICE_FILE, TRUE, (void *) data, xfree);
     if (!d) {
         xfree(data);
         return -1;

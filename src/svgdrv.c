@@ -74,6 +74,19 @@ static Svg_data *init_svg_data(const Canvas *canvas)
     return data;
 }
 
+static void svg_data_free(void *data)
+{   
+    Svg_data *svgdata = (Svg_data *) data;
+    if (svgdata) {
+        xfree(svgdata->pattern_defined);
+        xfree(svgdata->pattern_empty);
+        xfree(svgdata->pattern_full);
+        xfree(svgdata->colorfilter_defined);
+        
+        xfree(svgdata);
+    }
+}
+
 /*
  * scale coordinates, using a SVG-viewer to do this gives rounding-problems
  */
@@ -92,7 +105,7 @@ int register_svg_drv(Canvas *canvas)
         return -1;
     }
     
-    d = device_new("SVG", DEVICE_FILE, TRUE, (void *) data);
+    d = device_new("SVG", DEVICE_FILE, TRUE, (void *) data, svg_data_free);
     if (!d) {
         xfree(data);
         return -1;

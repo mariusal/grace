@@ -216,7 +216,7 @@ int register_mif_drv(Canvas *canvas)
 {
     Device_entry *d;
 
-    d = device_new("MIF", DEVICE_FILE, TRUE, (void *) &page_side);
+    d = device_new("MIF", DEVICE_FILE, TRUE, (void *) &page_side, NULL);
     if (!d) {
         return -1;
     }
