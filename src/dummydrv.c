@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -78,7 +78,7 @@ void dummy_drawpixel(VPoint vp){}
 void dummy_drawpolyline(VPoint *vps, int n, int mode){}
 void dummy_fillpolygon(VPoint *vps, int nc){}
 void dummy_drawarc(VPoint vp1, VPoint vp2, int a1, int a2){}
-void dummy_fillarc(VPoint vp1, VPoint vp2, int a1, int a2){}
+void dummy_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode){}
 void dummy_putpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type){}
 void dummy_puttext (VPoint start, VPoint end, double size, 

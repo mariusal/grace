@@ -43,7 +43,7 @@ void ps_drawpixel(VPoint vp);
 void ps_drawpolyline(VPoint *vps, int n, int mode);
 void ps_fillpolygon(VPoint *vps, int nc);
 void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
 void ps_putpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void ps_puttext(VPoint start, VPoint end, double size, 

@@ -322,7 +322,8 @@ void draw_pie_chart(int gno)
                     setpattern((int) rint(pt[i]));
                     DrawFilledArc(vp1, vp2,
                         (int) rint(180.0/M_PI*start_angle),
-                        (int) rint(180.0/M_PI*stop_angle));
+                        (int) rint(180.0/M_PI*stop_angle),
+                        ARCFILL_PIESLICE);
                     
                     setpen(p.sympen);
                     setlinewidth(p.symlinew);

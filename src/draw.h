@@ -41,15 +41,21 @@
 
 #define MAX_LINEWIDTH 10.0        /* max width of drawn lines */
 
-#define POLYLINE_OPEN	0
-#define POLYLINE_CLOSED	1
-
-#define PIXMAP_TRANSPARENT	0
-#define PIXMAP_OPAQUE		1
+/* polyline drawing modes */
+#define POLYLINE_OPEN	    0
+#define POLYLINE_CLOSED	    1
 
 /* polygon fill type */
 #define FILLRULE_WINDING    0
 #define FILLRULE_EVENODD    1
+
+/* arc fill modes */
+#define ARCFILL_CHORD       0
+#define ARCFILL_PIESLICE    1
+
+/* pixmap transparency types */
+#define PIXMAP_TRANSPARENT  0
+#define PIXMAP_OPAQUE	    1
 
 /* line cap parameter */
 #define LINECAP_BUTT        0
@@ -178,7 +184,7 @@ void DrawLine(VPoint vp1, VPoint vp2);
 void DrawPolyline(VPoint *vps, int n, int mode);
 void DrawPolygon(VPoint *vps, int n);
 void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2);
-void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2);
+void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode);
 void DrawEllipse(VPoint vp1, VPoint vp2);
 void DrawFilledEllipse(VPoint vp1, VPoint vp2);
 void DrawCircle(VPoint vp, double radius);

@@ -94,7 +94,7 @@ extern void (*devfillpolygon) (VPoint *vps, int nc);
 /* device arc routine */
 extern void (*devdrawarc) (VPoint vp1, VPoint vp2, int a1, int a2);	
 /* device fill arc routine */
-extern void (*devfillarc) (VPoint vp1, VPoint vp2, int a1, int a2);	
+extern void (*devfillarc) (VPoint vp1, VPoint vp2, int a1, int a2, int mode);	
 /* device pixmap drawing */
 extern void (*devputpixmap) (VPoint vp, int width, int height, char *databits,
                                int pixmap_bpp, int bitmap_pad, int pixmap_type);

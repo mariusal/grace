@@ -333,7 +333,7 @@ void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     PDF_restore(phandle);
 }
 
-void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
@@ -359,6 +359,9 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
                         (float) rx/ry*vpc.y + rx*sin(a1*M_PI/180.0));
     PDF_arc(phandle, (float) vpc.x, (float) rx/ry*vpc.y, rx, 
                                         (float) a1, (float) a2);
+    if (mode == ARCFILL_PIESLICE) {
+        PDF_lineto(phandle, (float) vpc.x, (float) rx/ry*vpc.y);
+    }
     PDF_fill(phandle);
     PDF_restore(phandle);
 }

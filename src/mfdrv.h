@@ -34,7 +34,7 @@ void mf_drawpixel(VPoint vp);
 void mf_drawpolyline(VPoint *vps, int n, int mode);
 void mf_fillpolygon(VPoint *vps, int nc);
 void mf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void mf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void mf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
 void mf_putpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void mf_puttext (VPoint start, VPoint end, double size, 

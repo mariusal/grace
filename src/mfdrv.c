@@ -143,12 +143,20 @@ void mf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
                                    vp1.x, vp1.y,   vp2.x, vp2.y, a1, a2);
 }
 
-void mf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void mf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
+    char *name;
+    
     mf_setpen();
     
-    fprintf(prstream, "FillArc { ( %.4f , %.4f ) ( %.4f , %.4f ) %3d %3d }\n", 
-                                   vp1.x, vp1.y,   vp2.x, vp2.y, a1, a2);
+    /* FIXME - mode */
+    if (mode == ARCFILL_CHORD) {
+        name = "FillChord";
+    } else {
+        name = "FillPieSlice";
+    }
+    fprintf(prstream, "%s { ( %.4f , %.4f ) ( %.4f , %.4f ) %3d %3d }\n", 
+        name, vp1.x, vp1.y,   vp2.x, vp2.y, a1, a2);
 }
 
 void mf_putpixmap(VPoint vp, int width, int height, char *databits, 

@@ -440,7 +440,7 @@ void rst_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     gdImageArc(ihandle, gdc.x, gdc.y, w, h, a1, a2, rst_drawbrush);
 }
 
-void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
     gdPoint gdp1, gdp2, gdc;
     int w, h;
@@ -453,7 +453,8 @@ void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
     h = (gdp2.y - gdp1.y);
     
     rst_setfillbrush();
-    gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, a1, a2, rst_fillbrush);
+    gdImageFilledArc(ihandle, gdc.x, gdc.y, w, h, a1, a2,
+        mode == ARCFILL_CHORD ? gdArcFillChord:gdArcFillPieSlice, rst_fillbrush);
 }
 
 void rst_putpixmap(VPoint vp, int width, int height, 

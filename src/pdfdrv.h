@@ -34,7 +34,7 @@ void pdf_drawpixel(VPoint vp);
 void pdf_drawpolyline(VPoint *vps, int n, int mode);
 void pdf_fillpolygon(VPoint *vps, int nc);
 void pdf_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
 void pdf_putpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void pdf_puttext(VPoint start, VPoint end, double size, 

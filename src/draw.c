@@ -554,7 +554,7 @@ void DrawArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 /*
  * DrawFilledArc - draw a filled arc 
  */
-void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
+void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
 {
     if ((getpen()).pattern == 0) {
         return;
@@ -567,7 +567,7 @@ void DrawFilledArc(VPoint vp1, VPoint vp2, int angle1, int angle2)
         
     /* TODO: clipping!!!*/
     if (get_draw_mode() == TRUE) {
-        (*devfillarc)(vp1, vp2, angle1, angle2);
+        (*devfillarc)(vp1, vp2, angle1, angle2, mode);
     }
     /* TODO: consider open arcs! */
     update_bboxes(vp1);
@@ -587,7 +587,7 @@ void DrawEllipse(VPoint vp1, VPoint vp2)
  */
 void DrawFilledEllipse(VPoint vp1, VPoint vp2)
 {
-    DrawFilledArc(vp1, vp2, 0, 360);
+    DrawFilledArc(vp1, vp2, 0, 360, ARCFILL_CHORD);
 }
 
 /*
@@ -617,9 +617,8 @@ void DrawFilledCircle(VPoint vp, double radius)
     vp2.x = vp.x + radius;
     vp2.y = vp.y + radius;
     
-    DrawFilledArc(vp1, vp2, 0, 360);
+    DrawFilledArc(vp1, vp2, 0, 360, ARCFILL_CHORD);
 }
-
 
 
 /* 

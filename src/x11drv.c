@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -82,6 +82,8 @@ static int xlibbgcolor;
 static int xlibpatno;
 static int xliblinewidth;
 static int xliblinestyle;
+static int xlibfillrule;
+static int xlibarcfillmode;
 static int xliblinecap;
 static int xliblinejoin;
 
@@ -310,6 +312,8 @@ int xlibinitgraphics(void)
     xlibpatno = -1;
     xliblinewidth = -1;
     xliblinestyle = -1;
+    xlibarcfillmode = -1;
+    xlibarcfillmode = -1;
     xliblinecap   = -1;
     xliblinejoin  = -1;
     
@@ -534,10 +538,13 @@ void xlibfillpolygon(VPoint *vps, int npoints)
     
     xlib_setpen();
 
-    if (getfillrule() == FILLRULE_WINDING) {
-        XSetFillRule(disp, gc, WindingRule);
-    } else {
-        XSetFillRule(disp, gc, EvenOddRule);
+    if (getfillrule() != xlibfillrule) {
+        xlibfillrule = getfillrule();
+        if (getfillrule() == FILLRULE_WINDING) {
+            XSetFillRule(disp, gc, WindingRule);
+        } else {
+            XSetFillRule(disp, gc, EvenOddRule);
+        }
     }
 
     XFillPolygon(disp, displaybuff, gc, p, npoints, Complex, CoordModeOrigin);
@@ -572,7 +579,7 @@ void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2)
 /*
  *  xlibfillarc
  */
-void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2)
+void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode)
 {
     int x1, y1, x2, y2;
     
@@ -582,6 +589,14 @@ void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2)
     if (getpattern() != 0) {
         xlib_setpen();
         if (x1 != x2 || y1 != y2) {
+            if (xlibarcfillmode != mode) {
+                xlibarcfillmode = mode;
+                if (mode == ARCFILL_CHORD) {
+                    XSetArcMode(disp, gc, ArcChord);
+                } else {
+                    XSetArcMode(disp, gc, ArcPieSlice);
+                }
+            }
             XFillArc(disp, displaybuff, gc, MIN2(x1, x2), MIN2(y1, y2),
                abs(x2 - x1), abs(y2 - y1), 64 * angle1, 64 * (angle2 - angle1));
         } else { /* zero radius */

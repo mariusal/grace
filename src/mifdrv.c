@@ -449,8 +449,9 @@ void mif_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     mif_arc(TRUE, FALSE, vp1, vp2, a1, a2);
 }
 
-void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void mif_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
+    /* FIXME - mode */
     mif_arc(FALSE, TRUE, vp1, vp2, a1, a2);
 }
 

@@ -57,7 +57,7 @@ void rst_drawpixel(VPoint vp);
 void rst_drawpolyline(VPoint *vps, int n, int mode);
 void rst_fillpolygon(VPoint *vps, int nc);
 void rst_drawarc(VPoint vp1, VPoint vp2, int a1, int a2);
-void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2);
+void rst_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode);
 void rst_putpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void rst_leavegraphics(void);

@@ -63,6 +63,9 @@ typedef struct {
 	This is used in line styles only. */
 #define gdTransparent (-6)
 
+#define gdArcFillChord      0
+#define gdArcFillPieSlice   1
+
 /* Functions to manipulate images. */
 
 gdImagePtr gdImageCreate(int sx, int sy);
@@ -82,7 +85,8 @@ void gdImagePolygon(gdImagePtr im, gdPointPtr p, int n, int c);
 void gdImageFilledPolygon(gdImagePtr im, gdPointPtr p, int n, int c);
 
 void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
-void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
+void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h,
+    int s, int e, int mode, int color);
 
 int gdImageGetPixel(gdImagePtr im, int x, int y);
 

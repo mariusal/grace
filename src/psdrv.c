@@ -538,7 +538,7 @@ void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
                        vpc.x, vpc.y, rx, ry, a1, a2);
 }
 
-void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
+void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
 {
     VPoint vpc;
     double rx, ry;
@@ -554,6 +554,10 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
     ry = fabs(vp2.y - vp1.y)/2;
     
     fprintf(prstream, "n\n");
+    
+    if (mode == ARCFILL_PIESLICE) {
+        fprintf(prstream, "%.4f %.4f m\n", vpc.x, vpc.y);
+    }
     fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d ellipse c\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 

@@ -420,9 +420,10 @@ void gdImageArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int c
 	}
 }
 
-void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color)
+void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h,
+    int s, int e, int mode, int color)
 {
-	int i, n;
+	int i, n, ntot;
 	int w2, h2;
 	gdPointPtr p;
 	w2 = w/2;
@@ -430,17 +431,27 @@ void gdImageFilledArc(gdImagePtr im, int cx, int cy, int w, int h, int s, int e,
 	while (e < s) {
 		e += 360;
 	}
+        
         n = e - s + 1;
-        p = malloc(n*sizeof(gdPoint));
+        if (mode == gdArcFillPieSlice) {
+            ntot = n + 1;
+        } else {
+            ntot = n;
+        }
+        p = malloc(ntot*sizeof(gdPoint));
         if (p == NULL) {
             return;
         }
         for (i=0; i < n; i++) {
-		int a = i + s;
-		p[i].x = ((long)cost[a % 360] * (long)w2 / costScale) + cx; 
-		p[i].y = ((long)sint[a % 360] * (long)h2 / sintScale) + cy;
+	    int a = i + s;
+	    p[i].x = ((long)cost[a % 360] * (long)w2 / costScale) + cx; 
+	    p[i].y = ((long)sint[a % 360] * (long)h2 / sintScale) + cy;
 	}
-        gdImageFilledPolygon(im, p, n, color);
+        if (mode == gdArcFillPieSlice) {
+	    p[n].x = cx; 
+	    p[n].y = cy;
+        }
+        gdImageFilledPolygon(im, p, ntot, color);
         free(p);
 }
 

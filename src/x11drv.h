@@ -43,7 +43,7 @@ void xlibdrawpixel(VPoint vp);
 void xlibdrawpolyline(VPoint *vps, int n, int mode);
 void xlibfillpolygon(VPoint *vps, int npoints);
 void xlibdrawarc(VPoint vp1, VPoint vp2, int angle1, int angle2);
-void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2);
+void xlibfillarc(VPoint vp1, VPoint vp2, int angle1, int angle2, int mode);
 void xlibredraw(Window window, int x, int y, int widht, int height);
 void xlibputpixmap(VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
