@@ -357,7 +357,7 @@ static void bugwarn(char *signame)
         interrupts = 0;
         fprintf(stderr, "\a\nOops! Got %s\n", signame);
         if (is_dirtystate()) {
-            strcpy(buf, docname);
+            strcpy(buf, get_docname());
             strcat(buf, "$");
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
@@ -986,7 +986,7 @@ char *get_grace_home(void)
     return grace_home;
 }
 
-void set_grace_home(char *dir)
+void set_grace_home(const char *dir)
 {
     strncpy(grace_home, dir, GR_MAXPATHLEN - 1);
 }
@@ -999,7 +999,7 @@ char *get_print_cmd(void)
     return print_cmd;
 }
 
-void set_print_cmd(char *cmd)
+void set_print_cmd(const char *cmd)
 {
     strncpy(print_cmd, cmd, GR_MAXPATHLEN - 1);
 }
@@ -1012,7 +1012,7 @@ char *get_editor(void)
     return grace_editor;
 }
 
-void set_editor(char *cmd)
+void set_editor(const char *cmd)
 {
     strncpy(grace_editor, cmd, GR_MAXPATHLEN - 1);
 }
@@ -1024,9 +1024,26 @@ char *get_help_viewer(void)
     return help_viewer;
 }
 
-void set_help_viewer(char *dir)
+void set_help_viewer(const char *dir)
 {
     strncpy(help_viewer, dir, GR_MAXPATHLEN - 1);
+}
+
+/* project file name */
+static char docname[GR_MAXPATHLEN] = NONAME;	
+
+char *get_docname(void)
+{
+    return docname;
+}
+
+void set_docname(const char *s)
+{
+    if (s != NULL) {
+        strncpy(docname, s, GR_MAXPATHLEN - 1);
+    } else {
+        strcpy(docname, NONAME);
+    }
 }
 
 /*
@@ -1080,7 +1097,7 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 }
  
 
-int fexists(char *to)
+int fexists(const char *to)
 {
     struct stat stto;
     char tbuf[256];
@@ -1105,7 +1122,7 @@ void stufftext(char *s, int sp)
 }
 
 
-char *mybasename(char *s)
+char *mybasename(const char *s)
 {
     int start, end;
     static char basename[GR_MAXPATHLEN];
@@ -1141,7 +1158,7 @@ char *mybasename(char *s)
 
 static char workingdir[GR_MAXPATHLEN];
 
-int set_workingdir(char *wd)
+int set_workingdir(const char *wd)
 {
     char buf[GR_MAXPATHLEN];
     
@@ -1280,7 +1297,7 @@ void update_app_title(void)
     char buf[100];
     
     strcpy(buf, "Grace: ");
-    strncat(buf, mybasename(docname), 80);
+    strncat(buf, mybasename(get_docname()), 80);
     if (is_dirtystate()) {
         strcat(buf, " (modified)");
     }

@@ -80,16 +80,19 @@ int compare_strings(const char *s1, const char *s2);
 void reverse_string(char *s);
 
 char *get_grace_home(void);
-void set_grace_home(char *dir);
+void set_grace_home(const char *dir);
 
 char *get_help_viewer(void);
-void set_help_viewer(char *dir);
+void set_help_viewer(const char *dir);
 
 char *get_print_cmd(void);
-void set_print_cmd(char *cmd);
+void set_print_cmd(const char *cmd);
 
 char *get_editor(void);
-void set_editor(char *cmd);
+void set_editor(const char *cmd);
+
+char *get_docname(void);
+void set_docname(const char *s);
 
 void errmsg(char *buf);
 void echomsg(char *msg);
@@ -99,12 +102,12 @@ void log_results(char *buf);
 int yesnoterm(char *msg);
 int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 
-int fexists(char *to);
+int fexists(const char *to);
 
-char *mybasename(char *s);
+char *mybasename(const char *s);
 
 void expand_tilde(char *buf);
-int set_workingdir(char *wd);
+int set_workingdir(const char *wd);
 char *get_workingdir(void);
 
 void init_username(void);
