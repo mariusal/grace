@@ -221,6 +221,12 @@ double get_italic_angle(const Canvas *canvas, int font)
     return (double) T1_GetItalicAngle(font);
 }
 
+char *get_charname(const Canvas *canvas, int font, char c)
+{
+    return T1_GetCharName(font, c);
+}
+
+
 double *get_kerning_vector(const Canvas *canvas,
     const char *str, int len, int font)
 {

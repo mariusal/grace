@@ -409,6 +409,7 @@ double get_textline_width(const Canvas *canvas, int font);
 double get_underline_pos(const Canvas *canvas, int font);
 double get_overline_pos(const Canvas *canvas, int font);
 double get_italic_angle(const Canvas *canvas, int font);
+char *get_charname(const Canvas *canvas, int font, char c);
 
 unsigned int number_of_patterns(const Canvas *canvas);
 Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
