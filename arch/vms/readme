@@ -3,34 +3,6 @@ README for GRACE on VMS -- 17-Dec-1998
 Rolf Niepraschk (niepraschk@ptb.de)
 John Hasstedt (John.Hasstedt@sunysb.edu)
 
-Some notes about the current release of grace:
-
- On VAX, the example test.com fails; it give the error "Oops, got SIGSYS ..."
- when you move the mouse in the graphics window after the test completes.
- This may be a decwindows bug, but installing the latest patches from DEC
- did not fix the problem.
-
- Printing to the printer does not work; the print command gives an error
- that the temporary file cannot be found.  I know the cause of this, but
- don't have a fix yet.  You can print to a file.
-
- Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
- problem report in case there is a guru lurking:
-  >>
-  >>  I have apply your patch for Tab.c and I get the next problems:
-  >>
-  >>          XFontSet *font_set;
-  >>          ^
-  >>  %CC-E-UNDECLARED, In this statement, "XFontSet" is not declared.
-  >> ...
-  >
-  >I see. It seems that all problems are related to the font stuff. Since no
-  >advanced features like localization etc are really needed for xmgr, I'm
-  >sure it can be solved. However, I have no experience with backward porting
-  >to X11R4 and Motif-1.1 :). Probably, there is a guru lurking around you
-  >(I mean who is using the same OS). Such a guy would definitly be familiar
-  >with the issue.
-
 1. Introduction
 
  We have compiled grace with the following combinations:
@@ -50,6 +22,25 @@ Some notes about the current release of grace:
  You need mms or mmk to compile it.  You can get mmk from
 
      ftp://ftp.madgoat.com/madgoat/mmk.zip
+
+ In the current release, the sleep command does not work.
+
+ Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
+ problem report in case there is a guru lurking:
+  >>
+  >>  I have apply your patch for Tab.c and I get the next problems:
+  >>
+  >>          XFontSet *font_set;
+  >>          ^
+  >>  %CC-E-UNDECLARED, In this statement, "XFontSet" is not declared.
+  >> ...
+  >
+  >I see. It seems that all problems are related to the font stuff. Since no
+  >advanced features like localization etc are really needed for xmgr, I'm
+  >sure it can be solved. However, I have no experience with backward porting
+  >to X11R4 and Motif-1.1 :). Probably, there is a guru lurking around you
+  >(I mean who is using the same OS). Such a guy would definitly be familiar
+  >with the issue.
 
 2. Compilation
 
@@ -106,8 +97,8 @@ Some notes about the current release of grace:
       There is a command file, [.arch.vms]netscape.com, that you can use
       with netscape.  When you select help, this command file will start
       netscape if it is not already running; otherwise, it will display
-      the new help in the existing netscape window.  To use it, you need
-      to specify HELP="@dev:[dir]netscape.com %s"; you cannot use
+      the new help using the existing netscape process.  To use it, you
+      need to specify HELP="@dev:[dir]netscape.com %s"; you cannot use
       GRACE_HOME: instead of the device and directory because GRACE_HOME
       is defined in Unix format.
 
@@ -146,6 +137,9 @@ Some notes about the current release of grace:
 
 3. Installation
 
+ To run, you need the files in [.doc] and [.fonts...]; and you probably
+ want the files in [.examples].
+
  Define a symbol for the executable:
 
   $ xmgrace :== $disk:[path]xmgrace
@@ -153,7 +147,8 @@ Some notes about the current release of grace:
  Define the following logicals if necessary:
 
   $ define GRACE_HOME "/disk/dir1/dir2/grace"
-  ! the path of the directory for [.doc] and [.fonts] (unix-like)
+  ! the path of the directory for [.doc] and [.fonts] in Unix format
+  ! see the description of the HOME= option above
 
   $ define GRACE_HELPVIEWER "www-browser %s"
   ! see the description of the HELP= option above
@@ -168,6 +163,9 @@ Some notes about the current release of grace:
 
   $ set default [.examples]
   $ @dotest
+
+ Since the sleep command does not work, test.com and slideshow.d run
+ faster than they should.
 
 5. Bugs
 

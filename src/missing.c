@@ -254,8 +254,6 @@ waitpid(unsigned long int pid, int *statusp, int flags)
 
 /* temporary filename */
 static char tfile[GR_MAXPATHLEN];
-/* closing command    */
-static char closecom[GR_MAXPATHLEN];
 /* filter action */
 static enum filtact { FILTER_NONE, FILTER_READ, FILTER_WRITE } filt_act;
 
@@ -298,7 +296,6 @@ int pclose(FILE *fp)
         tfile[0] = '\0';
         break;
     case FILTER_WRITE:
-        system( closecom );
         remove( tfile );
         tfile[0] = '\0';
         break;

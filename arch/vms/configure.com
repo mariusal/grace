@@ -2,6 +2,26 @@ $! configure for GRACE -- VMS version
 $! Rolf Niepraschk, 12/97, niepraschk@ptb.de
 $! John Hasstedt, 12/98, John.Hasstedt@sunysb.edu
 $!
+$ IF (P1 .NES. "DEFINE_TOP_IN_UNIX_FORMAT") THEN GOTO CONFIGURE
+$!
+$! code to define a logical name as part of the build procedure
+$!
+$ LOG = F$ELEMENT (0, "]", F$ENVIRONMENT ("PROCEDURE")) - "[" - ".ARCH.VMS"
+$ N = F$LOCATE(":",LOG)
+$ LOG[N,1] := /
+$LOOP_DEFINE_TOP_IN_UNIX_FORMAT:
+$ N = F$LOCATE(".",LOG)
+$ IF (N .NE. F$LENGTH(LOG))
+$ THEN
+$   LOG[N,1] := /
+$   GOTO LOOP_DEFINE_TOP_IN_UNIX_FORMAT
+$ ENDIF
+$ LOG = "/" + LOG
+$ DEFINE/NOLOG TOP_IN_UNIX_FORMAT "''LOG'"
+$ EXIT
+$!
+$CONFIGURE:
+$!
 $ echo := WRITE SYS$OUTPUT
 $!
 $! get versions, hardware type, etc
@@ -263,14 +283,10 @@ $ IF (FORCECOPY .OR. F$SEARCH("''GRCONVERT_DIR'XDR.OPT") .EQS. "") THEN -
 $ IF (FORCECOPY .OR. F$SEARCH("''EXAMPLES_DIR'DOTEST.COM") .EQS. "") THEN -
       COPY DOTEST.COM 'EXAMPLES_DIR'DOTEST.COM
 $!
-$! copy files that are soft links in the tar file
+$! copy the default font encoding file
 $!
-$ IF (F$SEARCH("''T1LIB_DIR'T1LIB.H") .NES. "") THEN -
-      DELETE 'T1LIB_DIR'T1LIB.H;*
-$ COPY [--.T1LIB.T1LIB]T1LIB.H 'T1LIB_DIR'T1LIB.H
-$ IF (F$SEARCH("[--.FONTS.ENC]DEFAULT.ENC") .NES. "") THEN -
-      DELETE [--.FONTS.ENC]DEFAULT.ENC;*
-$ COPY [--.FONTS.ENC]ISOLATIN1.ENC [--.FONTS.ENC]DEFAULT.ENC
+$ IF (F$SEARCH("[--.FONTS.ENC]DEFAULT.ENC") .EQS. "") THEN -
+      COPY [--.FONTS.ENC]ISOLATIN1.ENC [--.FONTS.ENC]DEFAULT.ENC
 $!
 $! define symbols for make.conf
 $! These symbols are in make.conf_in; they are set to the value they
@@ -468,7 +484,7 @@ $ HAVE_ACOSH = F$INTEGER(DPML)
 $ HAVE_ATANH = F$INTEGER(DPML)
 $ HAVE_ERF = F$INTEGER(DPML)
 $ HAVE_ERFC = F$INTEGER(DPML)
-$ HAVE_FINITE = 0
+$ HAVE_FINITE = (HW .EQS. "Alpha")
 $ HAVE_ISFINITE = 0
 $ HAVE_J0 = F$INTEGER(DPML)
 $ HAVE_J1 = F$INTEGER(DPML)
@@ -492,9 +508,9 @@ $ HAVE_X11_XPM_H = 0
 $ HAVE_LIBXBAE = 0
 $ WITH_LIBHELP = 0
 $ WITH_EDITRES = 0
+$ PRINT_CMD_UNLINKS = 1
 $ WITH_DEBUG = 0
 $ HAVE_LIBT1 = 0
-$ PRINT_CMD_UNLINKS = 1
 $!
 $! create config.h
 $! Any lines beginning with #define SIZEOF or #undef are rewritten; all

@@ -11,11 +11,10 @@ make CHANGES
 make MIGRATION
 CDIR=`pwd`
 CDIR_BNAME=`basename $CDIR`
-cd ..
-cd -
 cd src
 make pars.c
 cd ..
 rm -f Make.conf
+cd ..
 tar --exclude \*CVS\* -cvzf ${CDIR_BNAME}.tar.gz $CDIR_BNAME
-
+cd -

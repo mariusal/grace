@@ -18,7 +18,7 @@ T1_LIB = ,$(T1LIBDIR)libt1lib.olb/LIBRARY
 
 MYSTIC = ,"lines=lines_"
 
-CFLAGS = $(CFLAGS0)/INCLUDE=($(TOP),$(T1LIBDIR)$(NETCDF_INC)) \
+CFLAGS = $(CFLAGS0)/INCLUDE=("''F$TRNLNM("TOP_IN_UNIX_FORMAT")'"$(NETCDF_INC)) \
   /DEFINE=(GRACE_HOME="""$(GRACE_HOME)""",GRACE_HELPVIEWER="""$(HELPVIEWER)""" \
   ,PRINT_CMD="""$(PRINT_CMD)"""$(MYSTIC))
 
@@ -26,10 +26,7 @@ LIBS = $(GUI_LIBS)$(CEPHES_LIB)$(NETCDF_LIBS)$(FFTW_LIB) \
        $(T1_LIB)$(PDF_LIB)$(GD_LIB)$(NOGUI_LIBS)$(DL_LIB)
 
 .FIRST
-        @ define/nolog cephes 'f$string(f$parse("[-]","","","device")+ \
-          f$parse("[-]","","","directory") - "]" + ".cephes]")
-        @ define/nolog t1lib 'f$string(f$parse("[-]","","","device")+ \
-          f$parse("[-]","","","directory") - "]" + ".t1lib]")
+	@ @[-.ARCH.VMS]CONFIGURE.COM DEFINE_TOP_IN_UNIX_FORMAT
 
 ALL : msg $(GRACE)
 	@ !
