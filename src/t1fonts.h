@@ -41,6 +41,21 @@
 
 #include "defines.h"
 
+
+#if defined(DEBUG_T1LIB)
+#  define T1LOGFILE LOGFILE
+#else
+#  define T1LOGFILE NO_LOGFILE
+#endif
+
+#define T1_DEFAULT_BITMAP_PAD  8
+
+#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
+#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
+
+#define T1_AALEVELS 5
+
+
 #define BAD_FONT_ID     -1
 
 /* Font mappings */
@@ -55,12 +70,6 @@
 #define SUPSCRIPT_SHIFT 0.6
 #define ENLARGE_SCALE sqrt(M_SQRT2)
 #define OBLIQUE_FACTOR 0.25
-
-
-#define T1_DEFAULT_ENCODING_FILE  "Default.enc"
-#define T1_FALLBACK_ENCODING_FILE "IsoLatin1.enc"
-#define T1_DEFAULT_SLANT 0.0
-#define T1_AALEVELS 5
 
 #define TEXT_ADVANCING_LR   0
 #define TEXT_ADVANCING_RL   1
@@ -106,7 +115,6 @@ typedef struct {
 } FontDB;
 
 int init_t1(void);
-void update_t1(void);
 
 int number_of_fonts(void);
 char *get_fontname(int font);
@@ -115,6 +123,7 @@ char *get_fontalias(int font);
 char *get_fontfallback(int font);
 char *get_fontfilename(int font);
 char *get_encodingscheme(int font);
+char **get_default_encoding(void);
 
 int get_font_by_name(char *fname);
 int get_font_mapped_id(int font);

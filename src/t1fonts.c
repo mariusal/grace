@@ -42,19 +42,14 @@
 
 #include "protos.h"
 
-static char LastEncodingFile[GR_MAXPATHLEN];
-static char EncodingFile[GR_MAXPATHLEN];
-static float lastExtent;
-static float lastSlant;
-static int bitmap_pad;
+static int nfonts = 0;
+static FontDB *FontDBtable = NULL;
+static char **DefEncoding = NULL;
 
 void (*devputpixmap) (VPoint vp, int width, int height, 
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void (*devputtext) (VPoint vp, char *s, int len, int font,
      TextMatrix *tm, int underline, int overline, int kerning);
-
-static int nfonts = 0;
-static FontDB *FontDBtable = NULL;
 
 
 int init_t1(void)
@@ -62,7 +57,6 @@ int init_t1(void)
     int i;
     char buf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
-    static char **Encoding = NULL;
     
     /* Set search paths: */
     bufp = grace_path("fonts/type1");
@@ -87,12 +81,6 @@ int init_t1(void)
     /* Set log-level: */
     T1_SetLogLevel(T1LOG_DEBUG);
     
-#if defined(DEBUG_T1LIB)
-#  define T1LOGFILE LOGFILE
-#else
-#  define T1LOGFILE NO_LOGFILE
-#endif
-    
     /* Initialize t1-library */
     if (T1_InitLib(T1LOGFILE|IGNORE_CONFIGFILE) == NULL) {
         return (RETURN_FAILURE);
@@ -108,7 +96,7 @@ int init_t1(void)
         return (RETURN_FAILURE);
     }
     
-    FontDBtable = (FontDB *) xmalloc(nfonts*sizeof(FontDB));
+    FontDBtable = xmalloc(nfonts*sizeof(FontDB));
     
     /* skip the first line */
     grace_fgets(buf, GR_MAXPATHLEN - 1, fd); 
@@ -125,75 +113,21 @@ int init_t1(void)
     
     T1_SetDeviceResolutions(72.0, 72.0);
     
-
-    Encoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
-    if (Encoding != NULL) {
-        strcpy(EncodingFile, T1_DEFAULT_ENCODING_FILE);
-    } else {
-        Encoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
-        strcpy(EncodingFile, T1_FALLBACK_ENCODING_FILE);
+    DefEncoding = T1_LoadEncoding(T1_DEFAULT_ENCODING_FILE);
+    if (DefEncoding == NULL) {
+        DefEncoding = T1_LoadEncoding(T1_FALLBACK_ENCODING_FILE);
     }
-    if (Encoding != NULL) {
-        T1_SetDefaultEncoding(Encoding);
-        strcpy(LastEncodingFile, EncodingFile);
+    if (DefEncoding != NULL) {
+        T1_SetDefaultEncoding(DefEncoding);
     } else {
         return (RETURN_FAILURE);
     }
     
-    lastExtent = 1.0;
-    lastSlant = T1_DEFAULT_SLANT;
-
     T1_AASetBitsPerPixel(GRACE_BPP);
     
-    bitmap_pad = T1_GetBitmapPad();
+    T1_SetBitmapPad(T1_DEFAULT_BITMAP_PAD);
     
     return (RETURN_SUCCESS);
-}
-
-void update_t1(void)
-{
-    int i;
-    
-    float Slant = T1_DEFAULT_SLANT, Extent;
-    
-    static char **Encoding = NULL;
-    
-    if (strcmp(EncodingFile, LastEncodingFile)) {
-      	/* Delete all size dependent data */
-      	for (i = 0; i < T1_Get_no_fonts(); i++) {
-  	    T1_DeleteAllSizes(i);
-  	    T1_LoadFont(i);
-      	}
-      	Encoding = T1_LoadEncoding(EncodingFile);
-      	for (i = 0; i < T1_Get_no_fonts(); i++) {
-  	    T1_ReencodeFont(i, Encoding);
-      	}
-      	strcpy(LastEncodingFile, EncodingFile);
-    }
-    if (Slant != lastSlant) {
-      	/* Delete all size dependent data */
-      	for (i = 0; i < T1_Get_no_fonts(); i++) {
-  	    T1_DeleteAllSizes(i);
-  	    T1_LoadFont(i);
-      	}
-      	for (i = 0; i < T1_Get_no_fonts(); i++) {
-  	    T1_SlantFont(i, Slant);
-      	}
-      	lastSlant = Slant;
-    }
-
-    Extent = 1.0;
-    if (Extent != lastExtent) {
-      	/* Delete all size dependent data */
-      	for (i = 0; i < T1_Get_no_fonts(); i++) {
-  	    T1_DeleteAllSizes(i);
-  	    T1_LoadFont(i);
-      	}
-      	for (i = 0; i < T1_Get_no_fonts(); i++) {
-  	    T1_ExtendFont(i, Extent);
-      	}
-      	lastExtent=Extent;
-    }    
 }
 
 void map_fonts(int map)
@@ -342,6 +276,11 @@ char *get_fontfallback(int font)
 char *get_encodingscheme(int font)
 {
     return (T1_GetEncodingScheme(font));
+}
+
+char **get_default_encoding(void)
+{
+    return (DefEncoding);
 }
 
 static int tm_scale(TextMatrix *tm, double s)
@@ -1209,7 +1148,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
                 vptmp.y += (double) glyph->metrics.ascent/page_dpv;
 
                 (*devputpixmap) (vptmp, pwidth, pheight, glyph->bits, 
-                                    glyph->bpp, bitmap_pad, PIXMAP_TRANSPARENT);
+                    glyph->bpp, T1_DEFAULT_BITMAP_PAD, PIXMAP_TRANSPARENT);
             }
         }
     }
