@@ -299,13 +299,16 @@ void AddOptionChoiceCB(OptionStructure *opt, OC_CBProc cbproc, void *anydata)
     OC_CBdata *cbdata;
     unsigned int i;
     
-    opt->cblist = xrealloc(opt->cblist, (opt->cbnum + 1)*sizeof(OC_CBdata));
-    cbdata = &opt->cblist[opt->cbnum];
-    opt->cbnum++;
-    
+    cbdata = xmalloc(sizeof(OC_CBdata));
+
     cbdata->opt = opt;
     cbdata->cbproc = cbproc;
     cbdata->anydata = anydata;
+
+    opt->cblist = xrealloc(opt->cblist, (opt->cbnum + 1)*sizeof(OC_CBdata *));
+    opt->cblist[opt->cbnum] = cbdata;
+    opt->cbnum++;
+    
     for (i = 0; i < opt->nchoices; i++) {
         XtAddCallback(opt->options[i].widget, XmNactivateCallback, 
                                     oc_int_cb_proc, (XtPointer) cbdata);
@@ -355,7 +358,7 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
         optp->options[i].widget = 
                   XmCreatePushButton(optp->pulldown, "button", NULL, 0);
         for (j = 0; j < optp->cbnum; j++) {
-            OC_CBdata *cbdata = &optp->cblist[j];
+            OC_CBdata *cbdata = optp->cblist[j];
             XtAddCallback(optp->options[i].widget, XmNactivateCallback, 
                                     oc_int_cb_proc, (XtPointer) cbdata);
         }

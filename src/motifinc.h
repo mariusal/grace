@@ -99,7 +99,7 @@ struct _OptionStructure {
     OptionWidgetItem *options;
     
     unsigned int cbnum;
-    OC_CBdata *cblist;
+    OC_CBdata **cblist;
 };
 
 typedef struct {
