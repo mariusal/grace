@@ -263,7 +263,7 @@
 @    string font 4
 @    string just 0
 @    string char size 0.920000
-@    string def "Grace doesn't anymore use the Hershey fonts for drawing text on the screen."
+@    string def "Grace no longer uses the Hershey fonts for drawing text on the screen."
 @with string
 @    string on
 @    string loctype view
