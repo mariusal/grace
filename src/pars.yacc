@@ -2655,13 +2655,13 @@ setprop:
 	| selectset AVALUE PREPEND CHRSTR
         {
 	    set *p = set_get_data($1);
-	    strcpy(p->avalue.prestr, $4);
+            p->avalue.prestr = copy_string(p->avalue.prestr, $4);
 	    xfree($4);
 	}
 	| selectset AVALUE APPEND CHRSTR
         {
 	    set *p = set_get_data($1);
-	    strcpy(p->avalue.appstr, $4);
+            p->avalue.appstr = copy_string(p->avalue.appstr, $4);
 	    xfree($4);
 	}
 
@@ -2838,11 +2838,11 @@ ticklabelattr:
 	    curtm->tl_format = $2;
 	}
 	| APPEND CHRSTR {
-	    strcpy(curtm->tl_appstr, $2);
+            curtm->tl_appstr = copy_string(curtm->tl_appstr, $2);
 	    xfree($2);
 	}
 	| PREPEND CHRSTR {
-	    strcpy(curtm->tl_prestr, $2);
+            curtm->tl_prestr = copy_string(curtm->tl_prestr, $2);
 	    xfree($2);
 	}
 	| ANGLE nexpr {

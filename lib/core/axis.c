@@ -84,8 +84,8 @@ static void set_default_ticks(Quark *q)
     t->tl_stop = 0.0;
     t->tl_op = PLACEMENT_NORMAL;
     t->tl_gaptype = TYPE_AUTO;
-    t->tl_appstr[0] = 0;
-    t->tl_prestr[0] = 0;
+    t->tl_appstr = NULL;
+    t->tl_prestr = NULL;
     t->t_spec = TICKS_SPEC_NONE;
     t->t_autonum = 6;
     t->t_op = PLACEMENT_BOTH;
@@ -145,6 +145,8 @@ tickmarks *axis_data_copy(tickmarks *t)
             memcpy(retval, t, sizeof(tickmarks));
 	    retval->label = copy_string(NULL, t->label);
 	    retval->tl_formula = copy_string(NULL, t->tl_formula);
+	    retval->tl_prestr = copy_string(NULL, t->tl_prestr);
+	    retval->tl_appstr = copy_string(NULL, t->tl_appstr);
             for (i = 0; i < MAX_TICKS; i++) {
                 retval->tloc[i].label = copy_string(NULL, t->tloc[i].label);
             }
@@ -160,6 +162,8 @@ void axis_data_free(tickmarks *t)
 
         xfree(t->label);
         xfree(t->tl_formula);
+        xfree(t->tl_prestr);
+        xfree(t->tl_appstr);
         
         for (i = 0; i < MAX_TICKS; i++) {
             xfree(t->tloc[i].label);

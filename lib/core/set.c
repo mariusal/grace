@@ -293,10 +293,10 @@ static void set_default_set(Quark *pset)
     } else {
         p->avalue.tprops.just = JUST_CENTER|JUST_BOTTOM;
     }
-    p->avalue.format = FORMAT_GENERAL;           /* format */
-    p->avalue.prec = 3;                          /* precision */
-    p->avalue.prestr[0] = '\0';
-    p->avalue.appstr[0] = '\0';
+    p->avalue.format = FORMAT_GENERAL;            /* format */
+    p->avalue.prec = 3;                           /* precision */
+    p->avalue.prestr = NULL;
+    p->avalue.appstr = NULL;
 
     p->line.type = LINE_TYPE_STRAIGHT;
     p->line.line = grdefs.line;
@@ -312,11 +312,11 @@ static void set_default_set(Quark *pset)
     p->errbar.active = TRUE;                      /* on by default */
     p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
     p->errbar.pen = grdefs.line.pen;
-    p->errbar.lines = grdefs.line.style;      /* error bar line width */
-    p->errbar.linew = grdefs.line.width;      /* error bar line style */
-    p->errbar.riser_linew = grdefs.line.width;/* riser line width */
-    p->errbar.riser_lines = grdefs.line.style;/* riser line style */
-    p->errbar.barsize = grdefs.charsize;      /* size of error bar */
+    p->errbar.lines = grdefs.line.style;          /* error bar line width */
+    p->errbar.linew = grdefs.line.width;          /* error bar line style */
+    p->errbar.riser_linew = grdefs.line.width;    /* riser line width */
+    p->errbar.riser_lines = grdefs.line.style;    /* riser line style */
+    p->errbar.barsize = grdefs.charsize;          /* size of error bar */
     p->errbar.arrow_clip = FALSE;                 /* draw arrows if clipped */
     p->errbar.cliplen = 0.1;                      /* max v.p. riser length */
 
@@ -339,6 +339,7 @@ set *set_data_new(void)
     if (!p) {
         return NULL;
     }
+    memset(p, 0, sizeof(set));
     p->data = dataset_new();
     if (!p->data) {
         xfree(p);
@@ -355,6 +356,8 @@ void set_data_free(set *p)
     if (p) {
         dataset_free(p->data);
         xfree(p->legstr);
+        xfree(p->avalue.prestr);
+        xfree(p->avalue.appstr);
         xfree(p);
     }
 }
@@ -381,6 +384,8 @@ set *set_data_copy(set *p)
         return NULL;
     }
     p->legstr  = copy_string(NULL, p->legstr);
+    p->avalue.prestr = copy_string(NULL, p->avalue.prestr);
+    p->avalue.appstr = copy_string(NULL, p->avalue.appstr);
 
     return p_new;
 }
@@ -593,7 +598,11 @@ int set_set_avalue(Quark *pset, const AValue *av)
     
     p = set_get_data(pset);
     
+    XCFREE(p->avalue.prestr);
+    XCFREE(p->avalue.appstr);
     p->avalue = *av;
+    p->avalue.prestr = copy_string(NULL, av->prestr);
+    p->avalue.appstr = copy_string(NULL, av->appstr);
     
     return RETURN_SUCCESS;
 }

@@ -446,6 +446,25 @@ TextPointer *textpointer_new(void)
     return retval;
 }
 
+AValue *avalue_new(void)
+{
+    AValue *retval;
+    retval = xmalloc(sizeof(AValue));
+    if (retval) {
+        memset(retval, 0, sizeof(AValue));
+    }
+    return retval;
+}
+
+void avalue_free(AValue *av)
+{
+    if (av) {
+        xfree(av->prestr);
+        xfree(av->appstr);
+        xfree(av);
+    }
+}
+
 char *utf2iso(const char *s)
 {
     char *retval;
@@ -764,8 +783,7 @@ char *utf2iso(const char *s)
         $$ = setline_new();
     ]]></element-type>
     <element-type name="annotation" ctype="AValue *"><![CDATA[
-        $$ = xmalloc(sizeof(AValue));
-        memset($$, 0, sizeof(AValue));
+        $$ = avalue_new();
     ]]></element-type>
     <element-type name="errorbar" ctype="Errbar *"><![CDATA[
         $$ = xmalloc(sizeof(Errbar));
@@ -1331,8 +1349,8 @@ char *utf2iso(const char *s)
                 t->tl_start     = $?->tlabels.start;
                 t->tl_stoptype  = $?->tlabels.autostop ? TYPE_AUTO:TYPE_SPEC;
                 t->tl_stop      = $?->tlabels.stop;
-                strcpy(t->tl_prestr, $?->tlabels.prepend);
-                strcpy(t->tl_appstr, $?->tlabels.append);
+                t->tl_prestr    = copy_string(NULL, $?->tlabels.prepend);
+                t->tl_appstr    = copy_string(NULL, $?->tlabels.append);
             }
             xfree($?->tlabels.prepend);
             xfree($?->tlabels.append);
@@ -1793,7 +1811,7 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrAnnotation">
             set_set_avalue($$, $?);
-            xfree($?);
+            avalue_free($?);
         </child>
         <child name="#EStrErrorbar">
             set_set_errbar($$, $?);
@@ -1878,12 +1896,10 @@ char *utf2iso(const char *s)
             }
         </attribute>
         <attribute name="#AStrPrepend" type="sval">
-            strcpy($$->prestr, $?);
-            xfree($?);
+            $$->prestr = $?;
         </attribute>
         <attribute name="#AStrAppend" type="sval">
-            strcpy($$->appstr, $?);
-            xfree($?);
+            $$->appstr = $?;
         </attribute>
 
         <!-- Child elements -->

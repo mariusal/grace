@@ -607,12 +607,11 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->tlprestr) {
             char *s = GetTextString(ui->tlprestr);
-            strcpy(t->tl_prestr, s);
-            xfree(s);
+            t->tl_prestr = copy_string(t->tl_prestr, s);
         }
         if (!caller || caller == ui->tlappstr) {
             char *s = GetTextString(ui->tlappstr);
-            strcpy(t->tl_appstr, s);
+            t->tl_appstr = copy_string(t->tl_appstr, s);
             xfree(s);
         }
         if (!caller || caller == ui->tlgaptype) {

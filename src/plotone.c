@@ -1086,6 +1086,10 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
 void drawtext(Canvas *canvas,
     const VPoint *vp, const TextProps *tprops, const char *s)
 {
+    if (!s) {
+        return;
+    }
+    
     setcolor(canvas, tprops->color);
     setfont(canvas, tprops->font);
     setcharsize(canvas, tprops->charsize);
@@ -1107,7 +1111,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     VPoint vp, vprev;
     int skip = p->symskip + 1;
     AValue avalue;
-    char str[MAX_STRING_LENGTH];
+    char *str, *buf, buf1[MAX_STRING_LENGTH];
     int stacked_chart;
 
     avalue = p->avalue;
@@ -1157,35 +1161,35 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
 	     continue;
 	vprev = vp;
             
-        strcpy(str, avalue.prestr);
-        
+        buf = NULL;
         switch(avalue.type) {
         case AVALUE_TYPE_NONE:
             break;
         case AVALUE_TYPE_X:
-            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.x, 
-                                                 LFORMAT_TYPE_EXTENDED));
+            buf = create_fstring(pr, avalue.format, avalue.prec, wp.x, 
+                                                 LFORMAT_TYPE_EXTENDED);
             break;
         case AVALUE_TYPE_Y:
-            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.y,
-                                                 LFORMAT_TYPE_EXTENDED));
+            buf = create_fstring(pr, avalue.format, avalue.prec, wp.y,
+                                                 LFORMAT_TYPE_EXTENDED);
             break;
         case AVALUE_TYPE_XY:
-            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.x,
+            strcat(buf1, create_fstring(pr, avalue.format, avalue.prec, wp.x,
                                                  LFORMAT_TYPE_EXTENDED));
-            strcat(str, ", ");
-            strcat(str, create_fstring(pr, avalue.format, avalue.prec, wp.y,
+            strcat(buf1, ", ");
+            strcat(buf1, create_fstring(pr, avalue.format, avalue.prec, wp.y,
                                                  LFORMAT_TYPE_EXTENDED));
+            buf = buf1;
             break;
         case AVALUE_TYPE_STRING:
             if (p->data->s != NULL && p->data->s[i] != NULL) {
-                strcat(str, p->data->s[i]);
+                buf = p->data->s[i];
             }
             break;
         case AVALUE_TYPE_Z:
             if (z != NULL) {
-                strcat(str, create_fstring(pr, avalue.format, avalue.prec, z[i], 
-                                                 LFORMAT_TYPE_EXTENDED));
+                buf = create_fstring(pr, avalue.format, avalue.prec, z[i], 
+                                                 LFORMAT_TYPE_EXTENDED);
             }
             break;
         default:
@@ -1193,9 +1197,13 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
             return;
         }
         
-        strcat(str, avalue.appstr);
+        str = copy_string(NULL, avalue.prestr);
+        str = concat_strings(str, buf);
+        str = concat_strings(str, avalue.appstr);
         
-        drawtext(canvas, &vp, &avalue.tprops, str); 
+        drawtext(canvas, &vp, &avalue.tprops, str);
+        
+        xfree(str);
     }
 }
 
@@ -1676,7 +1684,7 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
     double e_max, norm;
     double *x, *c, *e, *pt;
     AValue avalue;
-    char str[MAX_STRING_LENGTH];
+    char *str, *buf;
     set *p;
     Quark *gr, *pr;
     Canvas *canvas = plot_rt->canvas;
@@ -1780,25 +1788,28 @@ void draw_pie_chart_set(Quark *pset, plot_rt_t *plot_rt)
             vpa.y = vpc.y + ((1 + e[i])*r + avalue.offset.y)*
                 sin((start_angle + stop_angle)/2.0);
 
-            strcpy(str, avalue.prestr);
-
+            buf = NULL;
             switch (avalue.type) {
             case AVALUE_TYPE_X:
-                strcat(str, create_fstring(pr, avalue.format, avalue.prec, x[i], 
-                                                     LFORMAT_TYPE_EXTENDED));
+                buf = create_fstring(pr, avalue.format, avalue.prec, x[i], 
+                                                     LFORMAT_TYPE_EXTENDED);
                 break;
             case AVALUE_TYPE_STRING:
                 if (p->data->s != NULL && p->data->s[i] != NULL) {
-                    strcat(str, p->data->s[i]);
+                    buf = p->data->s[i];
                 }
                 break;
             default:
                 continue;
             }
 
-            strcat(str, avalue.appstr);
+            str = copy_string(NULL, avalue.prestr);
+            str = concat_strings(str, buf);
+            str = concat_strings(str, avalue.appstr);
 
-            drawtext(canvas, &vpa, &tprops, str); 
+            drawtext(canvas, &vpa, &tprops, str);
+            
+            xfree(str);
         }
     }
 }

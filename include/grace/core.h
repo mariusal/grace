@@ -502,8 +502,8 @@ typedef struct {
     int tl_format;              /* tickmark label format */
     int tl_prec;                /* places to right of decimal point */
 
-    char tl_appstr[64];         /* append string to tick label */
-    char tl_prestr[64];         /* prepend string to tick label */
+    char *tl_appstr;            /* append string to tick label */
+    char *tl_prestr;            /* prepend string to tick label */
 
     char *tl_formula;           /* transformation formula */
 
@@ -629,8 +629,8 @@ typedef struct {
     int format;                 /* format */
     int prec;                   /* precision */
 
-    char prestr[64];            /* prepend string */
-    char appstr[64];            /* append string */
+    char *prestr;               /* prepend string */
+    char *appstr;               /* append string */
 } AValue;
 
 typedef struct {

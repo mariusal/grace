@@ -598,12 +598,12 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->avalue_prestr) {
             char *s = GetTextString(ui->avalue_prestr);
-            strcpy(p->avalue.prestr, s);
+            p->avalue.prestr = copy_string(p->avalue.prestr, s);
             xfree(s);
         }
         if (!caller || caller == ui->avalue_appstr) {
             char *s = GetTextString(ui->avalue_appstr);
-            strcpy(p->avalue.appstr, s);
+            p->avalue.appstr = copy_string(p->avalue.appstr, s);
             xfree(s);
         }
         if (!caller || caller == ui->avalue_offsetx) {

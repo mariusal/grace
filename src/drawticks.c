@@ -545,7 +545,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	        continue;
 	    }
 
-	    if (t->tl_prestr[0]) {
+	    if (t->tl_prestr) {
 	        strcpy(tlabel, t->tl_prestr);
 	    } else {
                 tlabel[0] = '\0';
@@ -553,7 +553,7 @@ static void drawaxis(Canvas *canvas, Quark *q)
 	    if (t->tloc[itick].label != NULL) {
 	        strcat(tlabel, t->tloc[itick].label);
 	    }
-	    if (t->tl_appstr[0]) {
+	    if (t->tl_appstr) {
 	        strcat(tlabel, t->tl_appstr);
 	    }
 
