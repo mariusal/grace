@@ -654,11 +654,12 @@ void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata)
     cllnode = sto->start;
     step = 0;
     while (cllnode) {
+        LLNode *next = cllnode->next;
         if (hook(step, cllnode->data, udata) != TRUE) {
             return;
         }
         step++;
-        cllnode = cllnode->next;
+        cllnode = next;
     }
 }
 
