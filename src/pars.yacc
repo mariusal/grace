@@ -1786,9 +1786,7 @@ parmset:
             if (project_get_version_id(project) < 50001) {
                 add_xmgr_fonts(project);
             }
-            if (project_get_version_id(project) < 50002) {
-                add_xmgr_colors(project);
-            }
+            add_xmgr_colors(project);
             dobject_id = 0;
         }
         | PAGE SIZE nexpr ',' nexpr {
