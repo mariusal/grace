@@ -305,7 +305,7 @@ void expose_resize(Widget w, XtPointer client_data,
 	}
 	
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "STDIN", SOURCE_STDIN, SET_XY);
+	    getdata(get_cg(), "STDIN", SOURCE_STDIN, curtype);
 	    inpipe = FALSE;
             drawgraph();
 	}

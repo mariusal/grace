@@ -63,16 +63,6 @@
 #include "t1fonts.h"
 #include "protos.h"
 
-#ifdef NONE_GUI
-char gui_version[] = "None";
-#else
-#  ifdef HAVE_LESSTIF
-char gui_version[] = "Lesstif";
-#  else
-char gui_version[] = "Motif";
-#  endif
-#endif
-
 extern char batchfile[];
 extern char print_file[];
 extern int install_cmap;
@@ -507,12 +497,6 @@ int main(int argc, char *argv[])
 		    page_layout = PAGE_FREE;
 		} else if (argmatch(argv[i], "-noask", 5)) {
 		    noask = TRUE;
-/*
- * 		} else if (argmatch(argv[i], "-font_aa", 8)) {
- * 		    pg.fontaa = TRUE;
- * 		} else if (argmatch(argv[i], "-nofont_aa", 10)) {
- * 		    pg.fontaa = FALSE;
- */
 		} else if (argmatch(argv[i], "-mono", 5)) {
 		    monomode = TRUE;
 		} else if (argmatch(argv[i], "-dc", 3)) {
@@ -904,7 +888,7 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "STDIN", SOURCE_STDIN, SET_XY);
+	    getdata(get_cg(), "STDIN", SOURCE_STDIN, curtype);
 	    inpipe = FALSE;
 	}
 	if (batchfile[0]) {
