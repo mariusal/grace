@@ -327,7 +327,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 	        {
                     DOLineData *l = (DOLineData *) o->odata;
                     l->length = hypot(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
-                    o->angle  = atan2(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
+                    o->angle  = 180.0/M_PI*atan2(vp.y - anchor_vp.y, vp.x - anchor_vp.x);
                     object_place_at_vp(o, anchor_vp);
                 }
                 
