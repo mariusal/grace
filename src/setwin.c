@@ -211,9 +211,7 @@ void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_da
             NULL);
 
 	fr = CreateFrame(panel, NULL);
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        CreateAACButtons(rc, panel, datasetprop_aac_cb);
-        XtManageChild(rc);
+        CreateAACButtons(fr, panel, datasetprop_aac_cb);
         XtVaSetValues(fr,
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, dialog,
@@ -496,9 +494,7 @@ void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data
             NULL);
 
 	fr = CreateFrame(panel, NULL);
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        CreateAACButtons(rc, panel, datasetop_aac_cb);
-        XtManageChild(rc);
+        CreateAACButtons(fr, panel, datasetop_aac_cb);
         XtVaSetValues(fr,
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, dialog,
@@ -711,9 +707,7 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
             XmNrightAttachment, XmATTACH_FORM,
             XmNbottomAttachment, XmATTACH_FORM,
             NULL);
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        CreateAACButtons(rc, panel, swap_aac_cb);
-        XtManageChild(rc);
+        CreateAACButtons(fr, panel, swap_aac_cb);
 
 	XtManageChild(panel);
     }

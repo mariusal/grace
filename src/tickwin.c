@@ -354,17 +354,13 @@ void create_axes_dialog(int axisno)
         axes_ticklabel = CreateTabPage(axes_tab, "Tick labels");
 
         fr = CreateFrame(axes_ticklabel, "Labels");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-
-        rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
+        rc2 = XmCreateRowColumn(fr, "rc2", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         tlcharsize = CreateCharSizeChoice(rc2, "Char size");
 	XtVaSetValues(tlcharsize, XmNscaleWidth, 200, NULL);
-
         tlangle = CreateAngleChoice(rc2, "Angle");
 	XtVaSetValues(tlangle, XmNscaleWidth, 180, NULL);
         XtManageChild(rc2);
-        XtManageChild(rc);
         XtManageChild(fr);
 
 
@@ -503,9 +499,7 @@ void create_axes_dialog(int axisno)
 
         tgrid = CreateToggleButton(rc, "Draw grid lines");
 
-        rc3 = XmCreateRowColumn(rc, "rc3", NULL, 0);
-        tlen = CreateCharSizeChoice(rc3, "Tick length");
-        XtManageChild(rc3);
+        tlen = CreateCharSizeChoice(rc, "Tick length");
 
         tgridcol = CreateColorChoice(rc, "Color:");
 
@@ -518,9 +512,7 @@ void create_axes_dialog(int axisno)
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 
         tmgrid = CreateToggleButton(rc, "Draw grid lines");
-        rc3 = XmCreateRowColumn(rc, "rc", NULL, 0);
-        tmlen = CreateCharSizeChoice(rc3, "Tick length");
-        XtManageChild(rc3);
+        tmlen = CreateCharSizeChoice(rc, "Tick length");
 
         tmgridcol = CreateColorChoice(rc, "Color:");
         tmgridlinew = CreateLineWidthChoice(rc, "Line width:");

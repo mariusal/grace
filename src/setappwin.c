@@ -215,9 +215,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         setapp_main = CreateTabPage(setapp_tab, "Main");
 
         fr = CreateFrame(setapp_main, "Set presentation");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	type_item = CreateSetTypeChoice(rc, "Type:");
-        XtManageChild(rc);
+	type_item = CreateSetTypeChoice(fr, "Type:");
 
         rc2 = XmCreateRowColumn(setapp_main, "rc", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
@@ -268,9 +266,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         XtManageChild(rc2);
 
         fr = CreateFrame(setapp_main, "Legend");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-        legend_str_item = CreateCSText(rc, "String:");
-        XtManageChild(rc);
+        legend_str_item = CreateCSText(fr, "String:");
 
         fr = CreateFrame(setapp_main, "Display options");
         rc2 = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -435,8 +431,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc2, NULL);
         fr = CreateFrame(rc1, "Placement");
-        rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
-        errbar_type_item = CreatePanelChoice(rc,
+        errbar_type_item = CreatePanelChoice(fr,
                                              "Type:",
                                              4,
                                              "Both",
@@ -444,7 +439,6 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
                                              "Bottom/right",
                                              NULL,
                                              0);
-        XtManageChild(rc);
         
         fr = CreateFrame(rc1, "Riser line");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -459,12 +453,8 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 
         fr = CreateFrame(setapp_panel, NULL); 
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-
-        CreateAACButtons(rc, setapp_panel, setapp_aac_cb);
+        CreateAACButtons(fr, setapp_panel, setapp_aac_cb);
         
-        XtManageChild(rc);
-        XtManageChild(fr);
         XtVaSetValues(fr,
                       XmNtopAttachment, XmATTACH_NONE,
                       XmNleftAttachment, XmATTACH_FORM,

@@ -71,7 +71,6 @@ static ListStructure *read_graph_item;	/* graph choice item */
 static OptionStructure *read_ftype_item;	/* set type choice item */
 static Widget read_nxy_item;	/* nxy "set type" */
 static Widget wparam_frame;	/* write params popup */
-static Widget wparam_panel;
 static Widget *wparam_choice_item;
 static Widget save_format_item;
 
@@ -195,12 +194,9 @@ void create_file_popup(Widget wid, XtPointer client_data, XtPointer call_data)
 	XtManageChild(fr);
 	XmToggleButtonSetState(w[0], True, False);
 
-	fr = XmCreateFrame(rc, "frame_3", NULL, 0);
-	rc2 = XmCreateRowColumn(fr, "Read data main RC", NULL, 0);
-	read_graph_item = CreateGraphChoice(rc2,
+	fr = CreateFrame(rc, NULL);
+	read_graph_item = CreateGraphChoice(fr,
                                             "Read to graph:", LIST_TYPE_SINGLE);
-	XtManageChild(rc2);
-	XtManageChild(fr);
 	XtManageChild(rc);
     }
     XtManageChild(rdata_dialog);
@@ -272,18 +268,14 @@ void create_wparam_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	handle_close(wparam_frame);
 */
 
-	fr = XmCreateFrame(wparam_frame, "fr", NULL, 0);
-	wparam_panel = XmCreateRowColumn(fr, "wparam_rc", NULL, 0);
-	wparam_choice_item = CreatePanelChoice(wparam_panel,
+	fr = CreateFrame(wparam_frame, NULL);
+	wparam_choice_item = CreatePanelChoice(fr,
                                                "Write parameters from graph:",
                                                3,
                                                "Current",
                                                "All",
                                                NULL,
                                                NULL);
-
-	XtManageChild(wparam_panel);
-	XtManageChild(fr);
     }
     
     XtManageChild(wparam_frame);
