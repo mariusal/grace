@@ -468,10 +468,8 @@ void create_ss_frame(int gno, int setno)
     AddDialogFormChild(ep->top, fr);
     ep->label = CreateLabel(fr, "");
 
-    dialog = CreateVContainer(ep->top);
-
     ep->mw = XtVaCreateManagedWidget("mw",
-        xbaeMatrixWidgetClass, dialog,
+        xbaeMatrixWidgetClass, ep->top,
         XmNrows, ep->nrows,
         XmNcolumns, ep->ncols + ep->scols,
         XmNvisibleRows, 10,
@@ -487,15 +485,16 @@ void create_ss_frame(int gno, int setno)
         XmNaltRowCount, 0,
         NULL);
 
-    update_cells(ep);
-
     XtAddCallback(ep->mw, XmNselectCellCallback, selectCB, ep);	
     XtAddCallback(ep->mw, XmNdrawCellCallback, drawcellCB, ep);	
     XtAddCallback(ep->mw, XmNleaveCellCallback, leaveCB, ep);
     XtAddCallback(ep->mw, XmNwriteCellCallback, writeCB, ep);  
 
-    CreateSeparator(dialog);
-    
+    AddDialogFormChild(ep->top, ep->mw);
+
+    dialog = CreateVContainer(ep->top);
+    AddDialogFormChild(ep->top, dialog);
+
     CreateCommandButtons(dialog, 2, but2, label2);
     XtAddCallback(but2[0], XmNactivateCallback, del_point_cb, (XtPointer) ep);
     XtAddCallback(but2[1], XmNactivateCallback, add_pt_cb, (XtPointer) ep);
@@ -511,7 +510,10 @@ void create_ss_frame(int gno, int setno)
     	    (XtPointer) GetParent(ep->top));
 
     ManageChild(ep->top);
+
+    update_cells(ep);
     RaiseWindow(GetParent(ep->top));
+
     unset_wait_cursor();
 }
 
