@@ -239,6 +239,7 @@ void draw_atext(Canvas *canvas, Quark *q)
         get_string_bbox(canvas, &anchor,
             at->text_props.angle, at->text_props.just, at->s, &bbox);
         view_extend(&bbox, at->frame_offset);
+        at->bb = bbox;
         switch (at->frame_decor) {
         case FRAME_DECOR_LINE:
             vp1.x = bbox.xv1;
