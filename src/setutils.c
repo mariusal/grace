@@ -1731,23 +1731,28 @@ void do_sort(int setno, int sorton, int stype)
 
 double setybase(int gno, int setno)
 {
-    double ybase = 0.0;
-    double xmin, xmax, ymin, ymax;
+    double dummy, *y, ybase = 0.0;
+    int len;
 
     if (is_valid_setno(gno, setno) != TRUE) {
         return 0.0;
     }
     
-    getsetminmax(gno, setno, &xmin, &xmax, &ymin, &ymax);
+    y = getcol(gno, setno, DATA_Y);
+    len = getsetlength(gno, setno);
+    
     switch (g[gno].p[setno].baseline_type) {
     case BASELINE_TYPE_0:
         ybase = 0.0;
         break;
     case BASELINE_TYPE_SMIN:
-        ybase = ymin;
+        ybase = vmin(y, len);
+        break;
+    case BASELINE_TYPE_SAVG:
+        stasum(y, len, &ybase, &dummy);
         break;
     case BASELINE_TYPE_SMAX:
-        ybase = ymax;
+        ybase = vmax(y, len);
         break;
     case BASELINE_TYPE_GMIN:
         ybase = g[gno].w.yg1;

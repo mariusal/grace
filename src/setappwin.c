@@ -305,12 +305,13 @@ void define_symbols_popup(void *data)
         fr = CreateFrame(setapp_line, "Base line");
         rc = CreateHContainer(fr);
         baselinetype_item = CreatePanelChoice(rc, "Type:",
-                                             6,
+                                             7,
                                              "Zero",
                                              "Set min",
                                              "Set max",
                                              "Graph min",
                                              "Graph max",
+                                             "Set average",
                                              NULL,
                                              0);
         baseline_item = CreateToggleButton(rc, "Draw line");

@@ -148,6 +148,13 @@
 #define PAGE_FREE       0
 #define PAGE_FIXED      1
 
+/* Strings and things */
+#define OBJECT_NONE    -1
+#define OBJECT_LINE     0
+#define OBJECT_BOX      1
+#define OBJECT_ELLIPSE  2
+#define OBJECT_STRING   3
+
 /* Region definitions */
 #define REGION_ABOVE    0
 #define REGION_BELOW    1
@@ -329,6 +336,7 @@ typedef enum {
 #define BASELINE_TYPE_SMAX      2
 #define BASELINE_TYPE_GMIN      3
 #define BASELINE_TYPE_GMAX      4
+#define BASELINE_TYPE_SAVG      5
 
 /* set fill types */
 #define SETFILL_NONE            0
@@ -409,15 +417,64 @@ typedef struct {
     double xv1, xv2, yv1, yv2;  /* viewport */
 } view;
 
+
 /*
  * typedefs for objects
  */
+typedef struct {
+    int active;
+    int loctype;
+    int gno;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    int lines;
+    double linew;
+    int color;
+    int fillcolor;
+    int fillpattern;
+    view bb;
+} boxtype;
+
 typedef struct {
     int type;
     double length;  /* head length (L) */
     double dL_ff;   /* d/L form factor */
     double lL_ff;   /* l/L form factor */
 } Arrow;
+
+typedef struct {
+    int active;
+    int loctype;
+    int gno;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    int lines;
+    double linew;
+    int color;
+    int arrow_end;
+    Arrow arrow;
+    view bb;
+} linetype;
+
+typedef struct {
+    int active;
+    int loctype;
+    int gno;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    int lines;
+    double linew;
+    int color;
+    int fillcolor;
+    int fillpattern;
+    view bb;
+} ellipsetype;
 
 typedef struct {
     int active;
