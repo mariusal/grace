@@ -344,9 +344,9 @@ void do_spline(int gno, int set, double start, double stop, int n, int type)
 	c = xcalloc(len, SIZEOF_DOUBLE);
 	d = xcalloc(len, SIZEOF_DOUBLE);
 	if (b == NULL || c == NULL || d == NULL) {
-	    XCFREE(b);
-	    XCFREE(c);
-	    XCFREE(d);
+	    xfree(b);
+	    xfree(c);
+	    xfree(d);
 	    killset(gno, splineset);
 	    return;
 	}
@@ -358,22 +358,22 @@ void do_spline(int gno, int set, double start, double stop, int n, int type)
 	xtmp = getx(gno, splineset);
 	ytmp = gety(gno, splineset);
 
-	for (i = 0; i < n; i++) {
+        for (i = 0; i < n; i++) {
 	    xtmp[i] = start + i * delx;
-	    if (type == SPLINE_AKIMA) {
-	    	ytmp[i] = seval(len, xtmp[i], x, y, b, c, d);
-	        sprintf(buf, "Akima spline fit from set %d", set);
-	    } else {
-	    	ytmp[i] = seval (len, xtmp[i], x, y, b, c, d);
-	        sprintf(buf, "Cubic spline fit from set %d", set);
-	    }
+	}
+	seval(xtmp, ytmp, n, x, y, b, c, d, len);
+	
+        if (type == SPLINE_AKIMA) {
+	    sprintf(buf, "Akima spline fit from set %d", set);
+	} else {
+	    sprintf(buf, "Cubic spline fit from set %d", set);
 	}
 	setcomment(gno, splineset, buf);
 	log_results(buf);
 
-	XCFREE(b);
-	XCFREE(c);
-	XCFREE(d);
+	xfree(b);
+	xfree(c);
+	xfree(d);
     }
 }
 
@@ -1577,9 +1577,9 @@ int interpolate(double *mesh, double *yint, int meshlen,
             /* Plain cubic spline */
             spline(len, x, y, b, c, d);
         }
-        for (i = 0; i < meshlen; i++) {
-            yint[i] = seval(len, mesh[i], x, y, b, c, d);
-        }
+
+	seval(mesh, yint, meshlen, x, y, b, c, d, len);
+
         xfree(b);
         xfree(c);
         xfree(d);
