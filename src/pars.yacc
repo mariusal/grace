@@ -89,7 +89,7 @@ static tickmarks *curtm;
 static DObject *curobject;
 static Quark *objgno;
 static int curobject_loctype = COORD_VIEW;
-
+static int dobject_id = 0;
 
 static double  s_result;    /* return value if a scalar expression is scanned*/
 static grarr *v_result;    /* return value if a vector expression is scanned*/
@@ -1902,6 +1902,7 @@ parmset:
             if (project_get_version_id(grace->project) < 50001) {
                 add_xmgr_fonts(grace->project);
             }
+            dobject_id = 0;
         }
         | PAGE SIZE nexpr ',' nexpr {
             set_page_dimensions(grace, $3, $5, FALSE);
@@ -2010,7 +2011,7 @@ parmset:
 
 /* Objects */
 	| WITH objecttype {
-	    curobject = object_data_new_complete($2);
+            curobject = object_data_new_complete($2);
 	}
 	| objecttype onoff {
 	    if (!curobject) {
@@ -2243,8 +2244,12 @@ parmset:
                         }
                     }
                     if (q) {
+                        char buf[16];
                         object_data_free(object_get_data(q));
                         q->data = curobject;
+	                sprintf(buf, "DO%d", dobject_id);
+                        quark_idstr_set(q, buf);
+                        dobject_id++;
                     }
                 }
             }
@@ -2268,8 +2273,12 @@ parmset:
                     }
                 }
                 if (q) {
+                    char buf[16];
                     object_data_free(object_get_data(q));
                     q->data = curobject;
+	            sprintf(buf, "DO%d", dobject_id);
+                    quark_idstr_set(q, buf);
+                    dobject_id++;
                 }
             }
         }
