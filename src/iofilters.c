@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -146,7 +146,7 @@ FILE *filter_read( char *fn )
 	FILE *in;
 	
 	/* check if file name o.k. */
-	if( (in=fopen( fn, "r")) == NULL )
+	if( (in=fopen( fn, "rb")) == NULL )
 		return NULL;
 
 	for( i=0; i<numIfilt; i++ )
@@ -177,7 +177,7 @@ FILE *filter_write(  char *fn )
 	FILE *out;
 	
 	/* check if file name o.k. */
-	if( (out=fopen( fn, "w")) == NULL )
+	if( (out=fopen( fn, "wb")) == NULL )
 		return NULL;
 		
 	/* see if we get a match */
