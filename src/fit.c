@@ -346,7 +346,7 @@ int crosscorr(double *x, double *y, int n, int maxlag, int covar, double *xres)
     
     if (covar) {
         stasum(x, n, &xbar, &sd);
-        stasum(x, n, &ybar, &sd);
+        stasum(y, n, &ybar, &sd);
     } else {
         xbar = 0.0;
         ybar = 0.0;
