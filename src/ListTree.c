@@ -272,7 +272,7 @@ ListTreeClassRec listtreeClassRec =
 	/* compress_motion       */ True,
 	/* compress_exposure     */ XtExposeCompressMultiple,
 	/* compress_enterleave   */ True,
-	/* visible_interest      */ True,
+	/* visible_interest      */ False,
 	/* destroy               */ (XtWidgetProc)Destroy,
 	/* resize                */ (XtWidgetProc)Resize,
 	/* expose                */ (XtExposeProc)Redisplay,
