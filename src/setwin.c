@@ -55,12 +55,13 @@
 #define cg get_cg()
 
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data);
-static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data);
+static void changetypeCB(int n, int *values, void *data);
 static void datasetprop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 static void datasetop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void update_sets_cb(int n, int *values, void *data);
 static void datasetoptypeCB(int value, void *data);
-static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
+static void setop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 
 
 typedef struct _Type_ui {
@@ -119,7 +120,7 @@ void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_da
 
 	tui.sel = CreateSetChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
-	AddListChoiceCB(tui.sel, changetypeCB);
+	AddListChoiceCB(tui.sel, changetypeCB, (void *) tui.sel);
 
 
         menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
@@ -227,7 +228,7 @@ void create_datasetprop_popup(Widget w, XtPointer client_data, XtPointer call_da
     unset_wait_cursor();
 }
 
-static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void changetypeCB(int n, int *values, void *data)
 {
     int i, j, ncols;
     double *datap;
@@ -239,7 +240,7 @@ static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
     char buf[32];
     char **cells[MAX_SET_COLS];
     
-    listp = (ListStructure *) client_data;
+    listp = (ListStructure *) data;
     if (listp == NULL) {
         return;
     }
@@ -247,15 +248,15 @@ static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
     sdata = (SetChoiceData *) listp->anydata;
     gno = sdata->gno;
     
-    if (GetSingleListChoice(listp, &setno) == GRACE_EXIT_SUCCESS &&
-                is_set_active(gno, setno) == TRUE) {
+    if (n == 1 && is_set_active(gno, setno = values[0]) == TRUE) {
 	ncols = dataset_cols(gno, setno);
         xv_setstr(tui.comment_item, getcomment(gno, setno));
 	sprintf(buf, "%d", getsetlength(gno, setno));
         xv_setstr(tui.length_item, buf);
         SetOptionChoice(tui.datatype_item, dataset_type(gno, setno));
     } else {
-	ncols = 0;
+	setno = -1;
+        ncols = 0;
     }
     for (i = 0; i < MAX_SET_COLS; i++) {
         datap = getcol(gno, setno, i);
@@ -419,10 +420,6 @@ void create_datasetop_popup(Widget w, XtPointer client_data, XtPointer call_data
 
 	datasetopui.sel = CreateSetChoice(dialog,
             "Data sets:", LIST_TYPE_MULTIPLE, TRUE);
-/*
- * 	AddListChoiceCB(datasetopui.sel, changetypeCB);
- */
-
 
         menupane = CreateMenu(menubar, "dataSetFileMenu", "File", 'F', NULL, NULL);
         CreateMenuButton(menupane, "close", "Close", 'C',
@@ -609,40 +606,6 @@ typedef struct _Setop_ui {
 
 static Setop_ui setopui;
 
-void source_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    ListStructure *listp;
-    int gno;
-    
-    listp = (ListStructure *) client_data;
-    if (listp == NULL) {
-        return;
-    }
-    
-    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
-        UpdateSetChoice(setopui.sel1, gno);
-    } else {
-        UpdateSetChoice(setopui.sel1, -1);
-    }
-}
-
-void target_cb(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    ListStructure *listp;
-    int gno;
-    
-    listp = (ListStructure *) client_data;
-    if (listp == NULL) {
-        return;
-    }
-    
-    if (GetSingleListChoice(listp, &gno) == GRACE_EXIT_SUCCESS) {
-        UpdateSetChoice(setopui.sel2, gno);
-    } else {
-        UpdateSetChoice(setopui.sel2, -1);
-    }
-}
-
 #define OPTYPE_COPY 0
 #define OPTYPE_MOVE 1
 #define OPTYPE_SWAP 2
@@ -666,7 +629,7 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
         rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
 	setopui.graph1_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
 	setopui.sel1 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(setopui.graph1_item, source_cb);
+        AddListChoiceCB(setopui.graph1_item, update_sets_cb, (void *) setopui.sel1);
         UpdateSetChoice(setopui.sel1, cg);
         XtManageChild(rc2);
 
@@ -674,7 +637,7 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
         rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
 	setopui.graph2_item = CreateGraphChoice(rc2, "Graph:", LIST_TYPE_SINGLE);
 	setopui.sel2 = CreateSetChoice(rc2, "Set:", LIST_TYPE_MULTIPLE, FALSE);
-        AddListChoiceCB(setopui.graph2_item, target_cb);
+        AddListChoiceCB(setopui.graph2_item, update_sets_cb, (void *) setopui.sel2);
         UpdateSetChoice(setopui.sel2, cg);
         XtManageChild(rc2);
 
@@ -708,7 +671,7 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
             XmNrightAttachment, XmATTACH_FORM,
             XmNbottomAttachment, XmATTACH_FORM,
             NULL);
-        CreateAACButtons(fr, panel, swap_aac_cb);
+        CreateAACButtons(fr, panel, setop_aac_cb);
 
 	XtManageChild(panel);
     }
@@ -716,11 +679,20 @@ void create_setop_popup(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
+static void update_sets_cb(int n, int *values, void *data)
+{
+    int gno;
+    ListStructure *set_listp = (ListStructure *) data;
+    
+    if (n == 1) {
+        gno = values[0];
+    } else {
+        gno = -1;
+    }
+    UpdateSetChoice(set_listp, gno);
+}
 
-/*
- * swap a set with another set
- */
-static void swap_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
+static void setop_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int aac_mode, optype, error;
     int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2, gno1, gno2, setno2;

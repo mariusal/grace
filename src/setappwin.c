@@ -121,7 +121,7 @@ static Widget avalue_prestr;
 static Widget avalue_appstr;
 
 static void UpdateSymbols(int gno, int value);
-static void set_cset_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void set_cset_proc(int n, int *values, void *data);
 static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 static void setapp_data_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
@@ -203,7 +203,7 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         toggle_symset_item = CreateSetChoice(rc_head, "Select set:",
                                                 LIST_TYPE_MULTIPLE, TRUE);
 
-        AddListChoiceCB(toggle_symset_item, set_cset_proc);
+        AddListChoiceCB(toggle_symset_item, set_cset_proc, NULL);
 
         XtManageChild(rc_head);
         XtVaSetValues(rc_head,
@@ -734,16 +734,10 @@ static void UpdateSymbols(int gno, int value)
 }
 
 
-static void set_cset_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static void set_cset_proc(int n, int *values, void *data)
 {
-    ListStructure *listp;
-    
-    listp = (ListStructure *) client_data;
-    if (listp == NULL) {
-        return;
-    }
-    
-    if (GetSingleListChoice(listp, &cset) == GRACE_EXIT_SUCCESS) {
+    if (n == 1) {
+        cset = values[0];
         UpdateSymbols(cg, cset);
     }
 }

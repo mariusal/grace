@@ -110,8 +110,7 @@ static OptionStructure *legend_boxpattern_item;
  */
 static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data);
 static void updatelegends(int gno);
-void update_graphapp_items(Widget list, XtPointer client_data,
-                                                    XmListCallbackStruct *cbs);
+void update_graphapp_items(int n, int *values, void *data);
 
 void create_graphapp_frame_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
@@ -148,8 +147,7 @@ void create_graphapp_frame(int gno)
  */
         graph_selector = CreateGraphChoice(graphapp_panel, "Graph:",
                             LIST_TYPE_MULTIPLE);
-        AddListChoiceCB(graph_selector,
-                            (XtCallbackProc) update_graphapp_items);
+        AddListChoiceCB(graph_selector, update_graphapp_items, NULL);
 /*
  *         XtManageChild(rc_head);
  */
@@ -509,28 +507,15 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
     set_dirtystate();
 }
 
-void update_graphapp_items(Widget list, XtPointer client_data,
-                                                    XmListCallbackStruct *cbs)
+void update_graphapp_items(int n, int *values, void *data)
 {
-    ListStructure *listp;
-    int n, *values;
     int gno;
     labels labs;
     
-    listp = (ListStructure *) client_data;
-    if (listp == NULL) {
-        return;
-    }
-
-    n = GetListChoices(listp, &values);
-    if (n < 1) {
+    if (n != 1) {
         return;
     } else {
         gno = values[0];
-        xfree(values);
-        if (n > 1) {
-            return;
-        }
     }
 
     if (is_valid_gno(gno) != TRUE) {
