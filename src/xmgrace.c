@@ -100,12 +100,10 @@ static XtActionsRec dummy_actions[] = {
 
 static XtActionsRec canvas_actions[] = {
     {"autoscale",         autoscale_action        },     
-    {"autoscale_on_near", autoscale_on_near_action},     
     {"draw_line",         draw_line_action        },     
     {"draw_box",          draw_box_action         },      
     {"draw_ellipse",      draw_ellipse_action     },  
     {"write_string",      write_string_action     },  
-    {"delete_object",     delete_object_action    }, 
     {"refresh_hotlink",   refresh_hotlink_action  },
     {"set_viewport",      set_viewport_action     },  
     {"enable_zoom",       enable_zoom_action      }
@@ -127,7 +125,6 @@ static char canvas_table[] = "#override\n\
 	Ctrl Alt <Key>e: draw_ellipse()\n\
 	Ctrl Alt <Key>t: write_string()\n\
 	Ctrl <Key>a: autoscale()\n\
-	Ctrl <Key>d: delete_object()\n\
 	Ctrl <Key>u: refresh_hotlink()\n\
 	Ctrl <Key>v: set_viewport()\n\
 	Ctrl <Key>z: enable_zoom()";

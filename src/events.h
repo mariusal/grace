@@ -130,12 +130,10 @@ void push_and_zoom(void);
 void set_viewport_action( Widget, XEvent *, String *, Cardinal * );
 void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );
 void autoscale_action( Widget, XEvent *, String *, Cardinal * );
-void autoscale_on_near_action( Widget, XEvent *, String *, Cardinal * );
 void draw_line_action( Widget, XEvent *, String *, Cardinal * );
 void draw_box_action( Widget, XEvent *, String *, Cardinal * );
 void draw_ellipse_action( Widget, XEvent *, String *, Cardinal * );
 void write_string_action( Widget, XEvent *, String *, Cardinal * );
-void delete_object_action( Widget, XEvent *, String *, Cardinal * );
 void refresh_hotlink_action( Widget, XEvent *, String *, Cardinal * );
 
 void update_point_locator(Quark *pset, int loc);
