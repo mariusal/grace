@@ -146,6 +146,38 @@ int register_pdf_drv(Canvas *canvas)
     return register_device(canvas, d);
 }
 
+static char *pdf_builtin_fonts[] = 
+{
+    "Times-Roman",
+    "Times-Italic",
+    "Times-Bold",
+    "Times-BoldItalic",
+    "Helvetica",
+    "Helvetica-Oblique",
+    "Helvetica-Bold",
+    "Helvetica-BoldOblique",
+    "Courier",
+    "Courier-Oblique",
+    "Courier-Bold",
+    "Courier-BoldOblique",
+    "Symbol",
+    "ZapfDingbats"
+};
+
+static int number_of_pdf_builtin_fonts = sizeof(pdf_builtin_fonts)/sizeof(char *);
+
+static int pdf_builtin_font(const char *fname)
+{
+    int i;
+    for (i = 0; i < number_of_pdf_builtin_fonts; i++) {
+        if (strcmp(pdf_builtin_fonts[i], fname) == 0) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+
 int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats)
 {
     PDF_data *pdfdata = (PDF_data *) data;
@@ -172,6 +204,8 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
         return RETURN_FAILURE;
     }
 
+    PDF_set_parameter(pdfdata->phandle, "fontwarning", "false");
+    
     /* check PDFlib capabilities */
     if (!strcmp(PDF_get_parameter(pdfdata->phandle, "pdi", 0), "true")) {
         pdfdata->kerning_supported = TRUE;
@@ -209,6 +243,44 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     pdfdata->font_ids = xmalloc(number_of_fonts(canvas)*SIZEOF_INT);
     for (i = 0; i < number_of_fonts(canvas); i++) {
         pdfdata->font_ids[i] = -1;
+    }
+    for (i = 0; i < cstats->nfonts; i++) {
+        int font;
+        char buf[GR_MAXPATHLEN];
+        char *fontname, *encscheme;
+        char *pdflibenc;
+        int embed;
+        
+        font = cstats->fonts[i].font;
+        
+        fontname = get_fontalias(canvas, font);
+        
+        if (pdf_builtin_font(fontname)) {
+            embed = 0;
+        } else {
+            sprintf(buf, "%s==%s",
+                fontname, get_afmfilename(canvas, font, TRUE));
+            PDF_set_parameter(pdfdata->phandle, "FontAFM", buf);
+            sprintf(buf, "%s==%s",
+                fontname, get_fontfilename(canvas, font, TRUE));
+            PDF_set_parameter(pdfdata->phandle, "FontOutline", buf);
+
+            embed = 1;
+        }
+
+        encscheme = get_encodingscheme(canvas, font);
+        if (strcmp(encscheme, "FontSpecific") == 0) {
+            pdflibenc = "builtin";
+        } else {
+            pdflibenc = "winansi";
+        }
+        
+        pdfdata->font_ids[font] =
+            PDF_findfont(pdfdata->phandle, fontname, pdflibenc, embed);
+        
+        if (pdfdata->font_ids[font] < 0) {
+            errmsg(PDF_get_errmsg(pdfdata->phandle));
+        }
     }
     
     if (pdfdata->compat >= PDF_1_3) {
@@ -627,37 +699,6 @@ void pdf_putpixmap(const Canvas *canvas, void *data,
     xfree(buf);
 }
 
-static char *pdf_builtin_fonts[] = 
-{
-    "Times-Roman",
-    "Times-Italic",
-    "Times-Bold",
-    "Times-BoldItalic",
-    "Helvetica",
-    "Helvetica-Oblique",
-    "Helvetica-Bold",
-    "Helvetica-BoldOblique",
-    "Courier",
-    "Courier-Oblique",
-    "Courier-Bold",
-    "Courier-BoldOblique",
-    "Symbol",
-    "ZapfDingbats"
-};
-
-static int number_of_pdf_builtin_fonts = sizeof(pdf_builtin_fonts)/sizeof(char *);
-
-static int pdf_builtin_font(const char *fname)
-{
-    int i;
-    for (i = 0; i < number_of_pdf_builtin_fonts; i++) {
-        if (strcmp(pdf_builtin_fonts[i], fname) == 0) {
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
 void pdf_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
@@ -665,40 +706,12 @@ void pdf_puttext(const Canvas *canvas, void *data,
     PDF_data *pdfdata = (PDF_data *) data;
     Pen pen;
 
+    if (pdfdata->font_ids[font] < 0) {
+        return;
+    } 
+    
     getpen(canvas, &pen);
     pdf_setpen(canvas, &pen, pdfdata);
-    
-    if (pdfdata->font_ids[font] < 0) {
-        char buf[GR_MAXPATHLEN];
-        char *fontname, *encscheme;
-        char *pdflibenc;
-        int embed;
-        
-        fontname = get_fontalias(canvas, font);
-        
-        if (pdf_builtin_font(fontname)) {
-            embed = 0;
-        } else {
-            sprintf(buf, "%s==%s",
-                fontname, get_afmfilename(canvas, font, TRUE));
-            PDF_set_parameter(pdfdata->phandle, "FontAFM", buf);
-            sprintf(buf, "%s==%s",
-                fontname, get_fontfilename(canvas, font, TRUE));
-            PDF_set_parameter(pdfdata->phandle, "FontOutline", buf);
-
-            embed = 1;
-        }
-
-        encscheme = get_encodingscheme(canvas, font);
-        if (strcmp(encscheme, "FontSpecific") == 0) {
-            pdflibenc = "builtin";
-        } else {
-            pdflibenc = "winansi";
-        }
-        
-        pdfdata->font_ids[font] =
-            PDF_findfont(pdfdata->phandle, fontname, pdflibenc, embed);
-    } 
     
     PDF_save(pdfdata->phandle);
     
