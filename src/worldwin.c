@@ -38,11 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/Form.h>
-#include <Xm/RowColumn.h>
-
 #include "mbitmaps.h"
 
 #include "globals.h"
@@ -54,8 +49,7 @@
 #include "protos.h"
 
 
-static Widget overlay_frame;
-static Widget overlay_panel;
+static Widget overlay_dialog = NULL;
 
 /*
  * Panel item declarations
@@ -65,11 +59,9 @@ static ListStructure *graph_overlay1_choice_item;
 static ListStructure *graph_overlay2_choice_item;
 static OptionStructure *graph_overlaytype_item;
 
-static Widget but1[2];
-
 static int define_arrange_proc(void *data);
-static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void define_autos_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int define_overlay_proc(void *data);
+static int define_autos_proc(void *data);
 
 typedef struct _Arrange_ui {
     Widget top;
@@ -263,30 +255,32 @@ void create_arrange_frame(void *data)
 /*
  * Overlay graphs popup routines
  */
-static void define_overlay_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int define_overlay_proc(void *data)
 {
     int g1, g2;
     int type = GetOptionChoice(graph_overlaytype_item);
     
     if (GetSingleListChoice(graph_overlay1_choice_item, &g1) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
-	return;
+	return RETURN_FAILURE;
     }
     
     if (GetSingleListChoice(graph_overlay2_choice_item, &g2) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
-	return;
+	return RETURN_FAILURE;
     }
 
     if (g1 == g2) {
 	errmsg("Can't overlay a graph onto itself");
-	return;
+	return RETURN_FAILURE;
     }
 
     overlay_graphs(g1, g2, type);
 
     update_all();
     drawgraph();
+    
+    return RETURN_SUCCESS;
 }
 
 void create_overlay_frame(void *data)
@@ -294,18 +288,19 @@ void create_overlay_frame(void *data)
     char *label1[2];
     
     set_wait_cursor();
-    if (overlay_frame == NULL) {
+    if (overlay_dialog == NULL) {
         OptionItem opitems[5];
 	label1[0] = "Accept";
 	label1[1] = "Close";
         
-	overlay_frame = XmCreateDialogShell(app_shell, "Overlay graphs", NULL, 0);
-	handle_close(overlay_frame);
-	overlay_panel = XmCreateRowColumn(overlay_frame, "overlay_rc", NULL, 0);
-	graph_overlay1_choice_item = CreateGraphChoice(overlay_panel,
+	overlay_dialog = CreateDialogForm(app_shell, "Overlay graphs");
+	
+        graph_overlay1_choice_item = CreateGraphChoice(overlay_dialog,
             "Overlay graph:", LIST_TYPE_SINGLE);
-	graph_overlay2_choice_item = CreateGraphChoice(overlay_panel,
+	AddDialogFormChild(overlay_dialog, graph_overlay1_choice_item->rc);
+        graph_overlay2_choice_item = CreateGraphChoice(overlay_dialog,
             "Onto graph:", LIST_TYPE_SINGLE);
+	AddDialogFormChild(overlay_dialog, graph_overlay2_choice_item->rc);
 	
         opitems[0].value = GOVERLAY_SMART_AXES_DISABLED;
         opitems[0].label = "Disabled";
@@ -317,19 +312,14 @@ void create_overlay_frame(void *data)
         opitems[3].label = "Same Y axis scaling";
         opitems[4].value = GOVERLAY_SMART_AXES_XY;
         opitems[4].label = "Same X and Y axis scaling";
-        graph_overlaytype_item = CreateOptionChoice(overlay_panel,
+        graph_overlaytype_item = CreateOptionChoice(overlay_dialog,
             "Smart axis hints:", 0, 5, opitems);
 
-	CreateSeparator(overlay_panel);
-
-	CreateCommandButtons(overlay_panel, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, define_overlay_proc, NULL);
-	XtAddCallback(but1[1], XmNactivateCallback, destroy_dialog, (XtPointer) overlay_frame);
-
-	ManageChild(overlay_panel);
+	CreateAACDialog(overlay_dialog,
+            graph_overlaytype_item->menu, define_overlay_proc, NULL);
     }
 
-    RaiseWindow(overlay_frame);
+    RaiseWindow(GetParent(overlay_dialog));
     unset_wait_cursor();
 }
 
@@ -339,75 +329,60 @@ void create_overlay_frame(void *data)
 typedef struct _Auto_ui {
     Widget top;
     SetChoiceItem sel;
-    Widget *on_item;
+    OptionStructure *on_item;
     Widget *applyto_item;
 } Auto_ui;
 
 static Auto_ui aui;
 
-static void define_autos_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int define_autos_proc(void *data)
 {
     int aon, au, ap;
-    Auto_ui *ui = (Auto_ui *) client_data;
-    aon = GetChoice(ui->on_item);
+    Auto_ui *ui = (Auto_ui *) data;
+    
+    aon = GetOptionChoice(ui->on_item);
+    ap = GetChoice(ui->applyto_item);
     au = GetSelectedSet(ui->sel);
     if (au == SET_SELECT_ERROR) {
-        errwin("No set selected");
-        return;
+        errmsg("No set selected");
+        return RETURN_FAILURE;
     }
     if (au == SET_SELECT_ALL) {
-	au = -1;
-    } 
-    ap = GetChoice(ui->applyto_item);
+      au = -1;
+    }
+    
     define_autos(aon, au, ap);
+    
+    return RETURN_SUCCESS;
 }
 
 void create_autos_frame(void *data)
 {
-    Widget panel;
-
     set_wait_cursor();
+    
     if (aui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	aui.top = XmCreateDialogShell(app_shell, "Autoscale graphs", NULL, 0);
-	handle_close(aui.top);
-	panel = XmCreateRowColumn(aui.top, "autos_rc", NULL, 0);
+	Widget rc;
+        
+        aui.top = CreateDialogForm(app_shell, "Autoscale graphs");
 
-	aui.on_item = CreatePanelChoice(panel, "Autoscale:",
-					 5,
-				  	 "None",
-				  	 "All X-axes",
-				  	 "All Y-axes",
-				  	 "All axes",
-				  	 NULL,
-				  	 NULL);
-
-	aui.applyto_item = CreatePanelChoice(panel, "Apply to:",
-					       3,
-					       "Current graph",
-					       "All active graphs",
-					       NULL,
-					       NULL);
-
-	aui.sel = CreateSetSelector(panel, "Use set:",
+	rc = CreateVContainer(aui.top);
+        aui.on_item = CreateASChoice(rc, "Autoscale:");
+        aui.sel = CreateSetSelector(rc, "Use set:",
                                     SET_SELECT_ALL,
                                     FILTER_SELECT_NONE,
                                     GRAPH_SELECT_CURRENT,
-                                    SELECTION_TYPE_MULTIPLE);
+                                    SELECTION_TYPE_SINGLE);
+	aui.applyto_item = CreatePanelChoice(rc, "Apply to graph:",
+					     3,
+					     "Current",
+					     "All",
+					     NULL,
+					     NULL);
 
-	CreateSeparator(panel);
-
-	CreateCommandButtons(panel, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, 
-	              define_autos_proc, (XtPointer) &aui);
-	XtAddCallback(but1[1], XmNactivateCallback,
-	              destroy_dialog, (XtPointer) aui.top);
-
-	ManageChild(panel);
+	CreateAACDialog(aui.top, rc, define_autos_proc, &aui);
     }
-    RaiseWindow(aui.top);
+    
+    RaiseWindow(GetParent(aui.top));
     unset_wait_cursor();
 }
 
