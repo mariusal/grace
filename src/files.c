@@ -248,19 +248,18 @@ void unregister_real_time_input(const char *name)
         if (l1 == l2 && strcmp (name, ib->name) == 0) {
             /* name is usually the same pointer as ib->name so we cannot */
             /* free the string and output the message using name afterwards */
+#ifndef NONE_GUI
+            xunregister_rti((XtInputId) ib->id);
+#endif
             close(ib->fd);
             ib->fd = -1;
             free(ib->name);
             ib->name = NULL;
-#ifndef NONE_GUI
-            xunregister_rti((XtInputId) ib->id);
-#endif
         } else {
             /* this descriptor is still in use */
             nb_rt++;
         }
     }
-
 }
 
 /*
@@ -327,7 +326,6 @@ int register_real_time_input(int fd, const char *name, int reopen)
     nb_rt++;
 
     return GRACE_EXIT_SUCCESS;
-
 }
 
 /*
@@ -484,10 +482,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
     struct timeval timeout;
     int highest, first_time, retsel;
 
-#ifndef NONE_GUI
-    set_wait_cursor();
-#endif
-
     /* we don't want to get stuck here, we memorize the start date
        and will check we do not exceed our allowed time slice */
     gettimeofday(&read_begin, NULL);
@@ -509,9 +503,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 
         if (highest < 0) {
             /* there's nothing to do */
-#ifndef NONE_GUI
-            unset_wait_cursor();
-#endif
             return GRACE_EXIT_SUCCESS;
         }
 
@@ -536,9 +527,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
                 /* there is pending input */
                 if (read_real_time_lines(ib) != GRACE_EXIT_SUCCESS
                     || process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
-#ifndef NONE_GUI
-                    unset_wait_cursor();
-#endif
                     return GRACE_EXIT_FAILURE;
                 }
 
@@ -550,9 +538,6 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
                         /* we should reset the input buffer, in case
                            the peer also reopens it */
                         if (reopen_real_time_input(ib) != GRACE_EXIT_SUCCESS) {
-#ifndef NONE_GUI
-                            unset_wait_cursor();
-#endif
                             return GRACE_EXIT_FAILURE;
                         }
                     } else {
@@ -561,22 +546,15 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
 
                     /* we have changed the table, we should end the loop */
                     break;
-
                 }
-
             }
         }
 
         /* after one pass, we obey timeout */
         first_time = 0;
-
     }
 
-#ifndef NONE_GUI
-    unset_wait_cursor();
-#endif
     return GRACE_EXIT_SUCCESS;
-
 }
 
 
