@@ -14,6 +14,7 @@
 #include "draw.h"
 #include "graphs.h"
 #include "graphutils.h"
+#include "objutils.h"
 #include "protos.h"
 
 #include "xstrings.h"
@@ -374,6 +375,21 @@ typedef struct {
     double value;
 } Autoval;
 
+typedef struct {
+    int type;
+    APoint ap;
+} Location;
+
+Location *location_new()
+{
+    Location *retval;
+    retval = xmalloc(sizeof(Location));
+    if (retval) {
+        memset(retval, 0, sizeof(Location));
+    }
+    return retval;
+}
+
     ]]></preamble>
 
     <!-- Attribute types -->
@@ -447,6 +463,13 @@ typedef struct {
         } else {
             $$->autov = FALSE;
             $$->value = atof($?);
+        }
+    ]]></attribute-type>
+    <attribute-type name="loctype" ctype="int"><![CDATA[
+        if (!strcmp($?, VStrWorld)) {
+            $$ = COORD_WORLD;
+        } else {
+            $$ = COORD_VIEW;
         }
     ]]></attribute-type>
 
@@ -544,6 +567,24 @@ typedef struct {
     ]]></element-type>
     <element-type name="tlabels" ctype="TLabels *"><![CDATA[
         $$ = tlabels_new();
+    ]]></element-type>
+    <element-type name="object" ctype="DObject *"><![CDATA[
+        $$ = object_new();
+    ]]></element-type>
+    <element-type name="location" ctype="Location *"><![CDATA[
+        $$ = location_new();
+    ]]></element-type>
+    <element-type name="do_line_data" ctype="DOLineData *"><![CDATA[
+        $$ = object_data_new(DO_LINE);
+    ]]></element-type>
+    <element-type name="do_box_data" ctype="DOBoxData *"><![CDATA[
+        $$ = object_data_new(DO_BOX);
+    ]]></element-type>
+    <element-type name="do_arc_data" ctype="DOArcData *"><![CDATA[
+        $$ = object_data_new(DO_ARC);
+    ]]></element-type>
+    <element-type name="do_string_data" ctype="DOStringData *"><![CDATA[
+        $$ = object_data_new(DO_STRING);
     ]]></element-type>
 
 
@@ -785,6 +826,12 @@ typedef struct {
                 $$->t[axis] = $?;
             }
         ]]></child>
+        <child name="#EStrObject">
+            Storage *objects = ((Project *) $0)->objects;
+            int id = storage_get_unique_id(objects);
+            $?->gno = ((ParserData *) $U)->gid;
+            storage_add(objects, id, (void *) $?);
+        </child>
     </element>
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
@@ -1298,6 +1345,115 @@ typedef struct {
         <attribute name="#AStrPrec" type="ival">
             $$->prec = $?;
         </attribute>
+    </element>
+    <element name="#EStrObject" type="object">
+        <!-- Attributes -->
+        <attribute name="#AStrActive" type="bval">
+            $$->active = $?;
+        </attribute>
+        <attribute name="#AStrAngle" type="dval">
+            $$->angle = $?;
+        </attribute>
+        <attribute name="#AStrOffset" type="offset">
+            $$->offset = *($?);
+            xfree($?);
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrLineSpec">
+            $$->pen   = $?->pen;
+            $$->linew = $?->width;
+            $$->lines = $?->style;
+            xfree($?);
+        </child>
+        <child name="#EStrLocation">
+            $$->loctype = $?->type;
+            $$->ap = $?->ap;
+            xfree($?);
+        </child>
+        <child name="#EStrFillSpec">
+            $$->fillpen = *($?);
+            xfree($?);
+        </child>
+        <child name="#EStrLineData">
+            $$->odata = $?;
+            $$->type = DO_LINE;
+        </child>
+        <child name="#EStrBoxData">
+            $$->odata = $?;
+            $$->type = DO_BOX;
+        </child>
+        <child name="#EStrArcData">
+            $$->odata = $?;
+            $$->type = DO_ARC;
+        </child>
+        <child name="#EStrStringData">
+            $$->odata = $?;
+            $$->type = DO_STRING;
+        </child>
+    </element>
+    <element name="#EStrLocation" type="location">
+        <!-- Attributes -->
+        <attribute name="#AStrType" type="loctype">
+            $$->type = $?;
+        </attribute>
+        <attribute name="#AStrX" type="dval">
+            $$->ap.x = $?;
+        </attribute>
+        <attribute name="#AStrY" type="dval">
+            $$->ap.y = $?;
+        </attribute>
+    </element>
+    <element name="#EStrBoxData" type="do_box_data">
+        <!-- Attributes -->
+        <attribute name="#AStrWidth" type="dval">
+            $$->width = $?;
+        </attribute>
+        <attribute name="#AStrHeight" type="dval">
+            $$->height = $?;
+        </attribute>
+    </element>
+    <element name="#EStrArcData" type="do_arc_data">
+        <!-- Attributes -->
+        <attribute name="#AStrWidth" type="dval">
+            $$->width = $?;
+        </attribute>
+        <attribute name="#AStrHeight" type="dval">
+            $$->height = $?;
+        </attribute>
+        <attribute name="#AStrStartAngle" type="dval">
+            $$->angle1 = $?;
+        </attribute>
+        <attribute name="#AStrStopAngle" type="dval">
+            $$->angle2 = $?;
+        </attribute>
+        <attribute name="#AStrFillMode" type="ival">
+            $$->fillmode = $?;
+        </attribute>
+    </element>
+    <element name="#EStrLineData" type="do_line_data">
+        <!-- Attributes -->
+        <attribute name="#AStrLength" type="dval">
+            $$->length = $?;
+        </attribute>
+    </element>
+    <element name="#EStrStringData" type="do_string_data">
+        <!-- Attributes -->
+        <attribute name="#AStrFontId" type="ival">
+            $$->font = $?;
+        </attribute>
+        <attribute name="#AStrCharSize" type="dval">
+            $$->size = $?;
+        </attribute>
+        <attribute name="#AStrJustification" type="ival">
+            $$->just = $?;
+        </attribute>
+        
+        <!-- Child elements -->
+        <child name="#EStrText">
+            $$->s = $?->s;
+            xfree($?);
+        </child>
     </element>
 
     <!-- Postamble -->
