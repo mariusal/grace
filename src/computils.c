@@ -1374,12 +1374,10 @@ int do_xcor(Quark *psrc, Quark *pdest,
         dres = set_get_col(pdest, nc);
         for (i = 0; i < maxlag; i++) {
             dres[i] = d1_re[i]/buflen*xspace1;
-            if (i == 0) {
-                cnorm = dres[i];
-                dres[i] = 1.0;
-            } else {
-                dres[i] /= cnorm;
+            if (i == 0 && dres[0] != 0.0) {
+                cnorm = fabs(dres[0]);
             }
+            dres[i] /= cnorm;
         }
         
         /* free the remaining buffer storage */
