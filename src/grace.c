@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2001-2003 Grace Development Team
+ * Copyright (c) 2001-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -36,6 +36,7 @@
 #include "utils.h"
 #include "dicts.h"
 #include "core_utils.h"
+#include "parser.h"
 #include "protos.h"
 
 GUI *gui_new(Grace *grace)
@@ -405,6 +406,7 @@ int grace_set_project(Grace *grace, Quark *project)
         
         quark_free(grace->project);
         grace->project = project;
+        parser_state_reset(project);
         
         /* Reset colormap */
         canvas_cmap_reset(grace->rt->canvas);
