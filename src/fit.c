@@ -32,7 +32,6 @@
  *
  * Contents:
  *
- * void gauss() - simple gauss elimination for least squares poly fit
  * void stasum() - compute mean and variance
  * double leasev() - evaluate least squares polynomial
  * int  fitcurve() - compute coefficients for a polynomial fit of degree >1
@@ -62,32 +61,6 @@ static char buf[256];
 
 int dofitcurve(int cnt, double *xd, double *yd, int nd, double *c);
 
-/*
-	simple gauss elimination - no pivoting or scaling strategies
-	all matrices are sym-pos-def
-*/
-void gauss(int n, double *a, int adim, double *b, double *x)
-{
-
-    int i, k, j;
-    double mult;
-
-    for (k = 0; k < n - 1; k++) {
-	for (i = k + 1; i < n; i++) {
-	    mult = a[adim * i + k] / a[adim * k + k];
-	    for (j = k + 1; j < n; j++) {
-		a[adim * i + j] = a[adim * i + j] - mult * a[adim * k + j];
-	    }
-	    b[i] = b[i] - mult * b[k];
-	}
-    }
-    for (i = n - 1; i >= 0; i--) {
-	x[i] = b[i];
-	for (j = i + 1; j < n; j++)
-	    x[i] = x[i] - a[adim * i + j] * x[j];
-	x[i] = x[i] / a[adim * i + i];
-    }
-}
 
 /*
 	compute mean and standard dev

@@ -95,7 +95,6 @@ int register_real_time_input(int fd, const char *name, int reopen);
 int real_time_under_monitoring(void);
 int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 
-void gauss(int n, double *a, int adim, double *b, double *x);
 void stasum(double *x, int n, double *xbar, double *sd);
 double leasev(double *c, int degree, double x);
 int fitcurve(double *x, double *y, int n, int ideg, double *fitted);
