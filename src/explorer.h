@@ -52,8 +52,6 @@ typedef struct {
     Widget          top;
     
     Widget          main_tp;
-    Widget          frame_tp;
-    Widget          titles_tp;
     Widget          legends_tp;
     Widget          legendbox_tp;
 
@@ -63,15 +61,6 @@ typedef struct {
     Widget          view_xv2;
     Widget          view_yv1;
     Widget          view_yv2;
-
-    TextStructure   *label_title_text;
-    TextStructure   *label_subtitle_text;
-    OptionStructure *title_color;
-    OptionStructure *title_font;
-    Widget          title_size;
-    OptionStructure *stitle_color;
-    OptionStructure *stitle_font;
-    Widget          stitle_size;
 
     OptionStructure *frame_framestyle_choice;
     OptionStructure *frame_color_choice;

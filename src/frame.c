@@ -90,10 +90,6 @@ static void set_default_frame(Quark *q)
 
     memcpy(&f->v, &d_v, sizeof(view));
     set_default_legend(&f->l, &grdefaults);
-    set_default_string(&f->labs.title);
-    f->labs.title.charsize = 1.5;
-    set_default_string(&f->labs.stitle);
-    f->labs.stitle.charsize = 1.0;
 }
 
 Quark *frame_new(Quark *project)
@@ -117,11 +113,7 @@ frame *frame_data_new(void)
 
 void frame_data_free(frame *f)
 {
-    if (f) {
-        xfree(f->labs.title.s);
-        xfree(f->labs.stitle.s);
-        xfree(f);
-    }
+    xfree(f);
 }
 
 frame *frame_data_copy(frame *f)
@@ -139,10 +131,6 @@ frame *frame_data_copy(frame *f)
     
     memcpy(f_new, f, sizeof(frame));
 
-    /* duplicate allocatable storage */
-    f_new->labs.title.s = copy_string(NULL, f->labs.title.s);
-    f_new->labs.stitle.s = copy_string(NULL, f->labs.stitle.s);
-    
     return f_new;
 }
 
@@ -160,16 +148,6 @@ view *frame_get_view(Quark *q)
     frame *f = frame_get_data(q);
     if (f) {
         return &f->v;
-    } else {
-        return NULL;
-    }
-}
-
-labels *frame_get_labels(Quark *q)
-{
-    frame *f = frame_get_data(q);
-    if (f) {
-        return &f->labs;
     } else {
         return NULL;
     }
@@ -258,56 +236,6 @@ int frame_set_view(Quark *q, const view *v)
         f->v = *v;
         quark_dirtystate_set(q, TRUE);
     
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int frame_set_title(Quark *q, const plotstr *s)
-{
-    frame *f = frame_get_data(q);
-
-    if (f) {
-        xfree(f->labs.title.s);
-        memcpy(&f->labs.title, s, sizeof(plotstr));
-        f->labs.title.s = copy_string(NULL, s->s);
-
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int frame_set_stitle(Quark *q, const plotstr *s)
-{
-    frame *f = frame_get_data(q);
-
-    if (f) {
-        xfree(f->labs.stitle.s);
-        memcpy(&f->labs.stitle, s, sizeof(plotstr));
-        f->labs.stitle.s = copy_string(NULL, s->s);
-
-        quark_dirtystate_set(q, TRUE);
-        return RETURN_SUCCESS;
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-int frame_set_labels(Quark *q, const labels *labs)
-{
-    frame *f = frame_get_data(q);
-
-    if (f) {
-        xfree(f->labs.title.s);
-        xfree(f->labs.stitle.s);
-        memcpy(&f->labs, labs, sizeof(labels));
-        f->labs.title.s = copy_string(NULL, labs->title.s);
-        f->labs.stitle.s = copy_string(NULL, labs->stitle.s);
-
-        quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

@@ -513,6 +513,7 @@ static void yyerror(char *s);
 %type <quark> selectgraph
 %type <quark> selectset
 %type <quark> selectregion
+%type <quark> title
 
 %type <ival> pagelayout
 %type <ival> pageorient
@@ -2463,39 +2464,34 @@ parmset:
 	    v.yv2 = $3;
             frame_set_view(whichframe, &v);
 	}
-	| TITLE CHRSTR {
-	    labels *labs = frame_get_labels(whichframe);
-            set_plotstr_string(&labs->title, $2);
+	
+        | title CHRSTR {
+            DObject *o = object_get_data($1);
+            if (o) {
+                DOStringData *s = (DOStringData *) o->odata;
+                s->s = copy_string(s->s, $2);
+            }
 	    xfree($2);
 	}
-	| TITLE font_select {
-	    labels *labs = frame_get_labels(whichframe);
-	    labs->title.font = $2;
+	| title font_select {
+            DObject *o = object_get_data($1);
+            if (o) {
+                DOStringData *s = (DOStringData *) o->odata;
+                s->font = $2;
+            }
 	}
-	| TITLE SIZE expr {
-	    labels *labs = frame_get_labels(whichframe);
-	    labs->title.charsize = $3;
+	| title SIZE expr {
+            DObject *o = object_get_data($1);
+            if (o) {
+                DOStringData *s = (DOStringData *) o->odata;
+                s->size = $3;
+            }
 	}
-	| TITLE color_select {
-	    labels *labs = frame_get_labels(whichframe);
-	    labs->title.color = $2;
-	}
-	| SUBTITLE CHRSTR {
-	    labels *labs = frame_get_labels(whichframe);
-	    set_plotstr_string(&labs->stitle, $2);
-	    xfree($2);
-	}
-	| SUBTITLE font_select {
-	    labels *labs = frame_get_labels(whichframe);
-	    labs->stitle.font = $2;
-	}
-	| SUBTITLE SIZE expr {
-	    labels *labs = frame_get_labels(whichframe);
-	    labs->stitle.charsize = $3;
-	}
-	| SUBTITLE color_select {
-	    labels *labs = frame_get_labels(whichframe);
-	    labs->stitle.color = $2;
+	| title color_select {
+            DObject *o = object_get_data($1);
+            if (o) {
+                o->line.pen.color = $2;
+            }
 	}
 
 	| XAXES SCALE scaletype {
@@ -3370,6 +3366,47 @@ axis:
         }
 	;
 
+title:
+	TITLE {
+            Quark *q = quark_find_descendant_by_idstr(whichframe, "title");
+            if (!q) {
+                DObject *o;
+                q = object_new_complete(whichframe, DO_STRING);
+                o = object_get_data(q);
+                if (o) {
+                    DOStringData *s = (DOStringData *) o->odata;
+                    APoint ap = {0.5, 1.0};
+                    VPoint offset = {0.0, 0.06};
+                    quark_idstr_set(q, "title");
+                    object_set_location(q, &ap);
+                    object_set_offset(q, &offset);
+                    s->just = JUST_CENTER|JUST_BOTTOM;
+                }
+            }
+            
+            $$ = q;
+        }
+	| SUBTITLE {
+            Quark *q = quark_find_descendant_by_idstr(whichframe, "subtitle");
+            if (!q) {
+                DObject *o;
+                q = object_new_complete(whichframe, DO_STRING);
+                o = object_get_data(q);
+                if (o) {
+                    DOStringData *s = (DOStringData *) o->odata;
+                    APoint ap = {0.5, 1.0};
+                    VPoint offset = {0.0, 0.02};
+                    quark_idstr_set(q, "subtitle");
+                    object_set_location(q, &ap);
+                    object_set_offset(q, &offset);
+                    s->just = JUST_CENTER|JUST_BOTTOM;
+                }
+            }
+            
+            $$ = q;
+        }
+	;
+
 selectregion:
         REGNUM
         {
@@ -3714,8 +3751,7 @@ parmset_obs:
 
 	| TIMESTAMP linew_select { }
 
-	| TITLE linew_select { }
-	| SUBTITLE linew_select { }
+	| title linew_select { }
 
 	| LEGEND BOX onoff {
 	    if ($3 == FALSE && project_get_version_id(grace->project) <= 40102) {

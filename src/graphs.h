@@ -234,8 +234,6 @@ typedef struct {
 
     legend l;                   /* legends */
     view v;                     /* viewport */
-
-    labels labs;                /* title and subtitle */
 } frame;
 
 typedef struct {
@@ -378,8 +376,6 @@ int frame_set_active(Quark *q, int flag);
 int frame_set_type(Quark *q, int type);
 int frame_set_view(Quark *q, const view *v);
 int frame_set_legend(Quark *q, const legend *l);
-int frame_set_title(Quark *q, const plotstr *s);
-int frame_set_stitle(Quark *q, const plotstr *s);
 int frame_set_outline(Quark *q, const Line *line);
 int frame_set_fillpen(Quark *q, const Pen *pen);
 
@@ -405,7 +401,6 @@ int get_graph_viewport(Quark *gr, view *v);
 
 Quark *get_parent_project(const Quark *q);
 Quark *get_parent_frame(Quark *q);
-labels *frame_get_labels(Quark *gr);
 legend *frame_get_legend(Quark *gr);
 GLocator *get_graph_locator(Quark *gr);
 

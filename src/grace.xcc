@@ -923,14 +923,6 @@ char *utf2iso(const char *s)
             frame_set_legend($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrTitle">
-            frame_set_title($$, $?);
-            plotstr_free($?);
-        </child>
-        <child name="#EStrSubtitle">
-            frame_set_stitle($$, $?);
-            plotstr_free($?);
-        </child>
         <child name="#EStrLineSpec">
             frame_set_outline($$, $?);
             xfree($?);
@@ -1183,32 +1175,6 @@ char *utf2iso(const char *s)
         <attribute name="#AStrPrec" type="ival">
             $$->prec = $?;
         </attribute>
-    </element>
-    <element name="#EStrTitle" type="plotstr">
-        <!-- Child elements -->
-        <child name="#EStrFaceSpec">
-            $$->font     = $?->font;
-            $$->color    = $?->color;
-            $$->charsize = $?->size;
-            xfree($?);
-        </child>
-        <child name="#EStrText">
-            $$->s = copy_string(NULL, $?->s);
-            xcc_string_free($?);
-        </child>
-    </element>
-    <element name="#EStrSubtitle" type="plotstr">
-        <!-- Child elements -->
-        <child name="#EStrFaceSpec">
-            $$->font     = $?->font;
-            $$->color    = $?->color;
-            $$->charsize = $?->size;
-            xfree($?);
-        </child>
-        <child name="#EStrText">
-            $$->s = copy_string(NULL, $?->s);
-            xcc_string_free($?);
-        </child>
     </element>
     <element name="#EStrAxis" type="axis">
         <!-- Attributes -->

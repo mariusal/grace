@@ -363,11 +363,6 @@ typedef struct {
 
 
 typedef struct {
-    plotstr title;              /* graph title */
-    plotstr stitle;             /* graph subtitle */
-} labels;
-
-typedef struct {
     int active;                 /* active flag */
     int type;                   /* regression type */
     int npts;                   /* number of points */

@@ -446,22 +446,6 @@ int save_frame_properties(XFile *xf, frame *f)
     }
     xfile_end_element(xf, EStrLegend);
 
-    /* Title/subtitle */
-    xfile_begin_element(xf, EStrTitle, NULL);
-    {
-        xmlio_write_face_spec(xf, attrs,
-            f->labs.title.font, f->labs.title.charsize, f->labs.title.color);
-        xmlio_write_text(xf, f->labs.title.s);
-    }
-    xfile_end_element(xf, EStrTitle);
-    xfile_begin_element(xf, EStrSubtitle, NULL);
-    {
-        xmlio_write_face_spec(xf, attrs,
-            f->labs.stitle.font, f->labs.stitle.charsize, f->labs.stitle.color);
-        xmlio_write_text(xf, f->labs.stitle.s);
-    }
-    xfile_end_element(xf, EStrSubtitle);
-
     return RETURN_SUCCESS;
 }
 

@@ -62,13 +62,6 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     ui->active = CreateToggleButton(rc, "Active");
     AddToggleButtonCB(ui->active, tb_explorer_cb, eui);
 
-    fr = CreateFrame(ui->main_tp, "Titles");
-    rc = CreateVContainer(fr);
-    ui->label_title_text = CreateCSText(rc, "Title: ");
-    AddTextInputCB(ui->label_title_text, text_explorer_cb, eui);
-    ui->label_subtitle_text = CreateCSText(rc, "Subtitle: ");
-    AddTextInputCB(ui->label_subtitle_text, text_explorer_cb, eui);
-
     fr = CreateFrame(ui->main_tp, "Viewport");
     rc = CreateVContainer(fr);
 
@@ -84,39 +77,7 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     ui->view_yv2 = CreateTextItem2(rc1, 8, "Ymax:");
     AddTextItemCB(ui->view_yv2, titem_explorer_cb, eui);
 
-    fr = CreateFrame(ui->main_tp, "Display options");
-    rc = CreateHContainer(fr);
-    ui->toggle_legends = CreateToggleButton(rc, "Display legend");
-    AddToggleButtonCB(ui->toggle_legends, tb_explorer_cb, eui);
-
-
-    /* ------------ Titles tab -------------- */
-
-    ui->titles_tp = CreateTabPage(tab, "Titles");
-
-    fr = CreateFrame(ui->titles_tp, "Title");
-    rc2 = CreateVContainer(fr);
-    ui->title_font = CreateFontChoice(rc2, "Font:");
-    AddOptionChoiceCB(ui->title_font, oc_explorer_cb, eui);
-    ui->title_size = CreateCharSizeChoice(rc2, "Character size");
-    AddScaleCB(ui->title_size, scale_explorer_cb, eui);
-    ui->title_color = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->title_color, oc_explorer_cb, eui);
-
-    fr = CreateFrame(ui->titles_tp, "Subtitle");
-    rc2 = CreateVContainer(fr);
-    ui->stitle_font = CreateFontChoice(rc2, "Font:");
-    AddOptionChoiceCB(ui->stitle_font, oc_explorer_cb, eui);
-    ui->stitle_size = CreateCharSizeChoice(rc2, "Character size");
-    AddScaleCB(ui->stitle_size, scale_explorer_cb, eui);
-    ui->stitle_color = CreateColorChoice(rc2, "Color:");
-    AddOptionChoiceCB(ui->stitle_color, oc_explorer_cb, eui);
-
-    /* ------------ Frame tab -------------- */
-
-    ui->frame_tp = CreateTabPage(tab, "Frame");
-
-    fr = CreateFrame(ui->frame_tp, "Frame box");
+    fr = CreateFrame(ui->main_tp, "Frame box");
     rc = CreateVContainer(fr);
     ui->frame_framestyle_choice = CreatePanelChoice(rc, "Frame type:",
 						     7,
@@ -141,12 +102,17 @@ FrameUI *create_frame_ui(ExplorerUI *eui)
     ui->frame_lines_choice = CreateLineStyleChoice(rc2, "Style:");
     AddOptionChoiceCB(ui->frame_lines_choice, oc_explorer_cb, eui);
 
-    fr = CreateFrame(ui->frame_tp, "Frame fill");
+    fr = CreateFrame(ui->main_tp, "Frame fill");
     rc = CreateHContainer(fr);
     ui->frame_fillcolor_choice = CreateColorChoice(rc, "Color:");
     AddOptionChoiceCB(ui->frame_fillcolor_choice, oc_explorer_cb, eui);
     ui->frame_fillpattern_choice = CreatePatternChoice(rc, "Pattern:");
     AddOptionChoiceCB(ui->frame_fillpattern_choice, oc_explorer_cb, eui);
+
+    fr = CreateFrame(ui->main_tp, "Display options");
+    rc = CreateHContainer(fr);
+    ui->toggle_legends = CreateToggleButton(rc, "Display legend");
+    AddToggleButtonCB(ui->toggle_legends, tb_explorer_cb, eui);
 
 
     /* ------------ Legend frame tab -------------- */
@@ -236,11 +202,9 @@ void update_frame_ui(FrameUI *ui, Quark *q)
         char buf[32];
         view *v;
         legend *l;
-        labels *labs;
     
 	v = frame_get_view(q);
 	l = frame_get_legend(q);
-        labs = frame_get_labels(q);
         
         SetToggleButtonState(ui->active, frame_is_active(q));
         
@@ -283,18 +247,6 @@ void update_frame_ui(FrameUI *ui, Quark *q)
 	SetOptionChoice(ui->legend_boxpattern, l->boxline.pen.pattern);
 	SetSpinChoice(ui->legend_boxlinew, l->boxline.width);
 	SetOptionChoice(ui->legend_boxlines, l->boxline.style);
-
-        SetTextString(ui->label_title_text, labs->title.s);
-        SetTextString(ui->label_subtitle_text, labs->stitle.s);
- 
-        SetCharSizeChoice(ui->title_size, labs->title.charsize);
-        SetCharSizeChoice(ui->stitle_size, labs->stitle.charsize);
-
-        SetOptionChoice(ui->title_color, labs->title.color);
-        SetOptionChoice(ui->stitle_color, labs->stitle.color);
-
-        SetOptionChoice(ui->title_font, labs->title.font);
-        SetOptionChoice(ui->stitle_font, labs->stitle.font);
     }
 }
 
@@ -304,10 +256,8 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
     if (f) {
         view *v, vtmp;
         legend *l;
-        labels *labs;
 
         v    = frame_get_view(q);
-        labs = frame_get_labels(q);
         l    = frame_get_legend(q);
 
         if (!caller || caller == ui->active) {
@@ -334,34 +284,6 @@ int set_frame_data(FrameUI *ui, Quark *q, void *caller)
             frame_set_view(q, &vtmp);
         }
 
-        if (!caller || caller == ui->label_title_text) {
-            char *s = GetTextString(ui->label_title_text);
-            set_plotstr_string(&labs->title, s);
-            xfree(s);
-        }
-        if (!caller || caller == ui->title_size) {
-            labs->title.charsize = GetCharSizeChoice(ui->title_size);
-        }
-        if (!caller || caller == ui->title_color) {
-            labs->title.color = GetOptionChoice(ui->title_color);
-        }
-        if (!caller || caller == ui->title_font) {
-            labs->title.font = GetOptionChoice(ui->title_font);
-        }
-        if (!caller || caller == ui->label_subtitle_text) {
-            char *s = GetTextString(ui->label_subtitle_text);
-            set_plotstr_string(&labs->stitle, s);
-            xfree(s);
-        }
-        if (!caller || caller == ui->stitle_size) {
-            labs->stitle.charsize = GetCharSizeChoice(ui->stitle_size);
-        }
-        if (!caller || caller == ui->stitle_color) {
-            labs->stitle.color = GetOptionChoice(ui->stitle_color);
-        }
-        if (!caller || caller == ui->stitle_font) {
-            labs->stitle.font = GetOptionChoice(ui->stitle_font);
-        }
         if (!caller || caller == ui->frame_framestyle_choice) {
             f->type = GetOptionChoice(ui->frame_framestyle_choice);
         }

@@ -90,8 +90,6 @@ void draw_arrowhead(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
 
 void draw_legends(Quark *q, plot_rt_t *plot_rt);
 
-void draw_titles(Canvas *canvas, Quark *gr);
-
 void draw_ref_point(Canvas *canvas, Quark *gr);
 
 #endif /* __PLOTONE_H_ */

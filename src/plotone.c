@@ -520,36 +520,6 @@ void draw_ref_point(Canvas *canvas, Quark *gr)
     }
 }
 
-
-/* draw title and subtitle */
-void draw_titles(Canvas *canvas, Quark *q)
-{
-    view *v;
-    labels *lab;
-    VPoint vp1, vp2;
-    
-    v = frame_get_view(q);
-    lab = frame_get_labels(q);
-
-    vp1.x = (v->xv2 + v->xv1) / 2;
-    vp1.y = (v->yv2 < v->yv1)? v->yv1 : v->yv2;
-    vp2 = vp1;
-    if (lab->title.s && lab->title.s[0]) {
-        setcolor(canvas, lab->title.color);
-        setcharsize(canvas, lab->title.charsize);
-        setfont(canvas, lab->title.font);
-        vp1.y += 0.06;
-        WriteString(canvas, &vp1, 0.0, JUST_CENTER|JUST_BOTTOM, lab->title.s);
-    }
-    if (lab->stitle.s && lab->stitle.s[0]) {
-        setcolor(canvas, lab->stitle.color);
-        setcharsize(canvas, lab->stitle.charsize);
-        setfont(canvas, lab->stitle.font);
-        vp2.y += 0.02;
-        WriteString(canvas, &vp2, 0.0, JUST_CENTER|JUST_BOTTOM, lab->stitle.s);
-    }
-}
-
 /*
  * draw the graph frame
  */
@@ -631,9 +601,6 @@ void draw_frame(Quark *q, plot_rt_t *plot_rt)
     }
 
     draw_legends(q, plot_rt);
-
-    /* draw title and subtitle */
-    draw_titles(canvas, q);
 }
 
 void fillframe(Canvas *canvas, Quark *q)
