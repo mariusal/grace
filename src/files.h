@@ -58,7 +58,6 @@ int getdata(int gno, char *fn, int src, int type);
 int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col);
 
 int readblockdata(int gno, char *fn, FILE * fp);
-void create_set_fromblock(int gno, int type, char *cols);
 
 int load_project_file(char *fn, int as_template);
 
