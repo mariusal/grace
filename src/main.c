@@ -799,11 +799,11 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        the display only)\n");
 #endif
 #ifdef HAVE_NETCDF
-    fprintf(stream, "-netcdf    [netcdf file]              Assume data file is bnetCDF format\n");
+    fprintf(stream, "-netcdf    [netcdf file]              Assume data file is in netCDF format\n");
     fprintf(stream, "-netcdfxy  [X var name] [Y var name]  If -netcdf was used previously, read from\n");
-    fprintf(stream, "                                        the netCDF file, 'X var name' and 'Y\n");
+    fprintf(stream, "                                        the netCDF file 'X var name' and 'Y\n");
     fprintf(stream, "                                        var name' and create a set. If 'X var\n");
-    fprintf(stream, "                                        name' equals \"null\" then load the\n");
+    fprintf(stream, "                                        name' is \"null\" then load the\n");
     fprintf(stream, "                                        index of Y to X\n");
 #endif
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
