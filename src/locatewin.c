@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -55,7 +55,6 @@ static Widget locator_panel;
 /*
  * Panel item declarations
  */
-static Widget *locator_onoff_item;
 static Widget *delta_item;
 static OptionStructure *loc_formatx;
 static OptionStructure *loc_formaty;
@@ -72,10 +71,6 @@ static Widget *fixedp_item;
 static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void locator_reset_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
 
-extern int go_locateflag;
-
-static int locfx = 2, locfy = 2, locpx = 6, locpy = 6;
-
 void update_locator_items(int gno)
 {
     char buf[32];
@@ -85,19 +80,16 @@ void update_locator_items(int gno)
     get_graph_locator(gno, &locator);
     
     if (locator_frame) {
-	SetChoice(locator_onoff_item, go_locateflag == FALSE);
-	SetChoice(fixedp_item, locator.pointset == TRUE);
+	SetChoice(fixedp_item, locator.pointset);
 	SetChoice(delta_item, locator.pt_type);
 	SetOptionChoice(loc_formatx, locator.fx);
 	SetOptionChoice(loc_formaty, locator.fy);
 	SetChoice(loc_precx, locator.px);
 	SetChoice(loc_precy, locator.py);
-	if (locator.pointset) {
-	    sprintf(buf, "%f", locator.dsx);
-	    xv_setstr(locx_item, buf);
-	    sprintf(buf, "%f", locator.dsy);
-	    xv_setstr(locy_item, buf);
-	}
+	sprintf(buf, "%g", locator.dsx);
+	xv_setstr(locx_item, buf);
+	sprintf(buf, "%g", locator.dsy);
+	xv_setstr(locy_item, buf);
     }
 }
 
@@ -118,13 +110,7 @@ void create_locator_frame(void *data)
 	handle_close(locator_frame);
 	locator_panel = XmCreateRowColumn(locator_frame, "ticks_rc", NULL, 0);
 
-	locator_onoff_item = (Widget *) CreatePanelChoice(locator_panel, "Locator:",
-							  3,
-							  "ON",
-							  "OFF",
-							  NULL,
-							  NULL);
-	delta_item = (Widget *) CreatePanelChoice(locator_panel, "Locator display type:",
+	delta_item = CreatePanelChoice(locator_panel, "Locator display type:",
 						  7,
 						  "[X, Y]",
 						  "[DX, DY]",
@@ -139,9 +125,6 @@ void create_locator_frame(void *data)
 					NULL);
 
 	rc2 = XmCreateRowColumn(locator_panel, "rc2", NULL, 0);
-/*
-	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
-*/
 	fr = CreateFrame(rc2, NULL);
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 
@@ -186,18 +169,14 @@ static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointe
     
     get_graph_locator(get_cg(), &locator);
     
-    go_locateflag = (int) GetChoice(locator_onoff_item) == 0;
-    locator.pt_type = (int) GetChoice(delta_item);
-    locfx = locator.fx = GetOptionChoice(loc_formatx);
-    locfy = locator.fy = GetOptionChoice(loc_formaty);
-    locpx = locator.px = (int) GetChoice(loc_precx);
-    locpy = locator.py = (int) GetChoice(loc_precy);
-    locator.pointset = (int) GetChoice(fixedp_item);
-    if (locator.pointset) {
-	xv_evalexpr(locx_item, &locator.dsx ); 
-	xv_evalexpr(locy_item, &locator.dsy ); 
-    }
-    make_format(get_cg());
+    locator.pt_type = GetChoice(delta_item);
+    locator.fx = GetOptionChoice(loc_formatx);
+    locator.fy = GetOptionChoice(loc_formaty);
+    locator.px = GetChoice(loc_precx);
+    locator.py = GetChoice(loc_precy);
+    locator.pointset = GetChoice(fixedp_item);
+    xv_evalexpr(locx_item, &locator.dsx ); 
+    xv_evalexpr(locy_item, &locator.dsy ); 
     set_graph_locator(get_cg(), &locator);
     
     XtUnmanageChild(locator_frame);
@@ -207,7 +186,7 @@ static void locator_reset_notify_proc(Widget w, XtPointer client_data, XtPointer
 {
     GLocator locator;
     
-    locator.dsx = locator.dsy = 0.0;/* locator props */
+    locator.dsx = locator.dsy = 0.0;
     locator.pointset = FALSE;
     locator.pt_type = 0;
     locator.fx = FORMAT_GENERAL;
