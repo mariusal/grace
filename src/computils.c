@@ -921,52 +921,42 @@ void apply_window(double *xx, double *yy, int ilen, int type, int wind)
 /*
  * histograms
  */
-void do_histo(int fromgraph, int fromset, int tograph, int toset,
-	      double xmin, double xmax, int nbins, int hist_type)
+int do_histo(int fromgraph, int fromset, int tograph, int toset,
+	      double *bins, int nbins, int cumulative, int normalize)
 {
     int i, ndata;
     int *hist;
-    double *x, *y, *data, binw, *bins;
+    double *x, *y, *data;
     plotarr p;
     
     if (!is_set_active(fromgraph, fromset)) {
 	errmsg("Set not active");
-	return;
+	return RETURN_FAILURE;
     }
     if (nbins <= 0) {
 	errmsg("Number of bins <= 0");
-	return;
+	return RETURN_FAILURE;
     }
     if (toset == SET_SELECT_NEXT) {
 	toset = nextset(tograph);
     }
     if (!is_valid_setno(tograph, toset)) {
 	errmsg("Can't activate target set");
-        return;
+        return RETURN_FAILURE;
     }
     
-    binw = (xmax - xmin)/nbins;
-
     ndata = getsetlength(fromgraph, fromset);
     data = gety(fromgraph, fromset);
     
     hist = xmalloc(nbins*SIZEOF_INT);
     if (hist == NULL) {
         errmsg("xmalloc failed in do_histo()");
-        return;
+        return RETURN_FAILURE;
     }
 
-    bins = allocate_mesh(xmin, xmax, nbins + 1);
-    if (bins == NULL) {
-        errmsg("xmalloc failed in do_histo()");
-        xfree(hist);
-        return;
-    }
-    
     if (histogram(ndata, data, nbins, bins, hist) == RETURN_FAILURE){
         xfree(hist);
-        xfree(bins);
-        return;
+        return RETURN_FAILURE;
     }
     
     activateset(tograph, toset);
@@ -978,11 +968,25 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
     y[0] = 0.0;
     for (i = 1; i < nbins + 1; i++) {
         x[i] = bins[i];
-        y[i] = (hist_type == HISTOGRAM_TYPE_CUMULATIVE)*y[i - 1] + hist[i - 1];
+        y[i] = hist[i - 1];
+        if (cumulative) {
+            y[i] += y[i - 1];
+        }
+    }
+    
+    if (normalize) {
+        for (i = 1; i < nbins + 1; i++) {
+            double factor;
+            if (cumulative) {
+                factor = 1.0/ndata;
+            } else {
+                factor = 1.0/((bins[i] - bins[i - 1])*ndata);
+            }
+            y[i] *= factor;
+        }
     }
     
     xfree(hist);
-    xfree(bins);
 
     get_graph_plotarr(tograph, toset, &p);
     p.sym = SYM_NONE;
@@ -996,6 +1000,8 @@ void do_histo(int fromgraph, int fromset, int tograph, int toset,
     set_graph_plotarr(tograph, toset, &p);
 
     log_results(buf);
+    
+    return RETURN_SUCCESS;
 }
 
 int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
@@ -1008,19 +1014,10 @@ int histogram(int ndata, double *data, int nbins, double *bins, int *hist)
         return RETURN_FAILURE;
     }
     
-    bsign = sign(bins[1] - bins[0]);
-    
-    if (nbins > 1) {
-        if (bsign == 0) {
-            errmsg("Zero-width bin");
-            return RETURN_FAILURE;
-        }
-        for (i = 1; i < nbins; i++) {
-            if (bsign != sign(bins[i + 1] - bins[i])) {
-                errmsg("Non-monotonic bins");
-                return RETURN_FAILURE;
-            }
-        }
+    bsign = monotonicity(bins, nbins + 1, TRUE);
+    if (bsign == 0) {
+        errmsg("Non-monotonic bins");
+        return RETURN_FAILURE;
     }
     
     for (i = 0; i < nbins; i++) {
