@@ -48,7 +48,6 @@
 #define MAX_STRING_LENGTH 512
 
 
-#define MAXBLOCK 30             /* max number of cols in a block data */
 #define MAXAXES 4               /* max number of axes per graph */
 #define MAX_TICKS 100           /* max number of ticks/labels per axis */
 #define MAXREGION 5             /* max number of regions */
