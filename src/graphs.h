@@ -56,6 +56,7 @@ typedef enum {
     SET_XYHILO    ,
     SET_XYZ       ,
     SET_XYR       ,
+    SET_XYSYMSIZE ,
     SET_XYCOLPAT  ,
     SET_XYVMAP    ,
     SET_BOXPLOT   ,

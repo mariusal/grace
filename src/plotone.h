@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -69,7 +69,8 @@ void drawcirclexy(plotarr *p);
 void drawsetvmap(int gno, plotarr *p);
 void drawsetboxplot(plotarr *p);
 
-int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s);
+int drawxysym(VPoint vp, double size, int symtype,
+    Pen sympen, Pen symfillpen, char s);
 void drawerrorbar(VPoint vp1, VPoint vp2, Errbar *eb);
 
 void draw_region(int r);

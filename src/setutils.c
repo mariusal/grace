@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -104,6 +104,9 @@ char *set_types(int it)
     case SET_BOXPLOT:
 	s = "boxplot";
 	break;
+    case SET_XYSYMSIZE:
+	s = "xysymsize";
+	break;
     }
     return s;
 }
@@ -134,6 +137,7 @@ int settype_cols(int type)
     case SET_XYZ:
     case SET_BARDY:
     case SET_XYR:
+    case SET_XYSYMSIZE:
 	ncols = 3;
 	break;
     case SET_XYDXDX:

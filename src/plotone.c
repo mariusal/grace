@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -393,6 +393,7 @@ void draw_polar_graph(int gno)
             get_graph_plotarr(gno, i, &p);
             switch (dataset_type(gno, i)) {
             case SET_XY:
+            case SET_XYSYMSIZE:
                 drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                 drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -426,6 +427,7 @@ void xyplot(int gno)
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
+                case SET_XYSYMSIZE:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -462,6 +464,7 @@ void xyplot(int gno)
                     break;
                 case SET_BOXPLOT:
                     drawsetboxplot(&p);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -500,6 +503,7 @@ void xyplot(int gno)
                 }
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
+                case SET_XYSYMSIZE:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
@@ -557,6 +561,7 @@ void xyplot(int gno)
                 if (is_set_drawable(gno, i)) {
                     switch (dataset_type(gno, i)) {
                     case SET_XY:
+                    case SET_XYSYMSIZE:
                         drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
@@ -593,6 +598,7 @@ void xyplot(int gno)
                 get_graph_plotarr(gno, i, &p);
                 switch (dataset_type(gno, i)) {
                 case SET_XY:
+                case SET_XYSYMSIZE:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
@@ -1212,12 +1218,13 @@ void drawsetsyms(int gno, int setno, plotarr *p,
 {
     int setlen;
     int i, sy = p->sym;
-    double symsize = p->symsize;
+    double symsize;
     VPoint vp;
     WPoint wp;
-    double *x, *y;
+    double *x, *y, *z;
     int skip = p->symskip;
     int stacked_chart;
+    double znorm = get_graph_znorm(gno);
     
     if (get_graph_type(gno) == GRAPH_CHART) {
         x = refx;
@@ -1234,6 +1241,15 @@ void drawsetsyms(int gno, int setno, plotarr *p,
         stacked_chart = FALSE;
     }
     
+    if (p->type == SET_XYSYMSIZE) {
+        if (znorm == 0.0) {
+            return;
+        }
+        z = p->data.ex[2];
+    } else {
+        z = NULL;
+    }
+    
     skip++;
     
     setclipping(FALSE);
@@ -1244,7 +1260,6 @@ void drawsetsyms(int gno, int setno, plotarr *p,
         setlinewidth(p->symlinew);
         setlinestyle(p->symlines);
         setfont(p->charfont);
-        setcharsize(symsize);
         for (i = 0; i < setlen; i += skip) {
             wp.x = x[i];
             wp.y = y[i];
@@ -1259,7 +1274,13 @@ void drawsetsyms(int gno, int setno, plotarr *p,
             vp = Wpoint2Vpoint(wp);
     	    vp.x += offset;
             
-            if (drawxysym(vp, sy, p->sympen, p->symfillpen, p->symchar) != RETURN_SUCCESS) {
+            if (z) {
+                symsize = z[i]/znorm;
+            } else {
+                symsize = p->symsize;
+            }
+            if (drawxysym(vp, symsize, sy, p->sympen, p->symfillpen, p->symchar)
+                != RETURN_SUCCESS) {
                 return;
             }
         } 
@@ -1791,11 +1812,14 @@ void drawsetboxplot(plotarr *p)
     }
 }
 
-int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
+int drawxysym(VPoint vp, double size, int symtype,
+    Pen sympen, Pen symfillpen, char s)
 {
+    double symsize;
     VPoint vps[4];
     char buf[2];
-    double symsize = 0.01 * getcharsize();
+    
+    symsize = size*0.01;
     
     switch (symtype) {
     case SYM_NONE:
@@ -1905,6 +1929,7 @@ int drawxysym(VPoint vp, int symtype, Pen sympen, Pen symfillpen, char s)
         setcolor(sympen.color);
         buf[0] = s;
         buf[1] = '\0';
+        setcharsize(size);
         WriteString(vp, 0, JUST_CENTER|JUST_MIDDLE, buf);
         break;
     default:
@@ -2540,7 +2565,6 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
             vpstr.y = get_bbox(BBOX_TYPE_TEMP).yv1 - yskip;
             
             setfont(p.charfont);
-            setcharsize(p.symsize);
             if (p.type == SET_BAR) {
                 p.sym = SYM_SQUARE;
             }
@@ -2553,8 +2577,8 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
         
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
-                drawxysym(vp, p.sym, p.sympen, p.symfillpen, p.symchar);
-                drawxysym(vp2, p.sym, p.sympen, p.symfillpen, p.symchar);
+                drawxysym(vp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
+                drawxysym(vp2, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
             } else {
                 VPoint vptmp;
                 vptmp.x = (vp.x + vp2.x)/2;
@@ -2562,7 +2586,7 @@ void putlegends(int gno, VPoint vp, double ldist, double sdist, double yskip)
                 
                 setlinewidth(p.symlinew);
                 setlinestyle(p.symlines);
-                drawxysym(vptmp, p.sym, p.sympen, p.symfillpen, p.symchar);
+                drawxysym(vptmp, p.symsize, p.sym, p.sympen, p.symfillpen, p.symchar);
             }
         }
     }
