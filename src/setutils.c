@@ -1254,14 +1254,22 @@ int allocate_set(int gno, int setno)
         return RETURN_SUCCESS;
     } else {
         set *p;
+        int ncolors, color;
+        
         p = set_new();
-        if (!p) {
+        ncolors = number_of_colors();
+        if (ncolors > 1) {
+            color = setno % (ncolors - 1) + 1;
+        } else {
+            color = 1;
+        }
+        if (!p || set_set_colors(p, color) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         } else {
             return storage_add(g->sets, setno, p);
         }
     }
-}    
+}
 
 int activateset(int gno, int setno)
 {
@@ -1297,16 +1305,9 @@ int set_next(int gno)
     
     g = graph_get(gno);
     if (g) {
-        set *p = set_new();
-        if (p) {
-            setno = storage_get_unique_id(g->sets);
-            if (storage_add(g->sets, setno, p) == RETURN_SUCCESS) {
-                set_dirtystate();
-                return setno;
-            } else {
-                set_free(p);
-                return -1;
-            }
+        setno = storage_get_unique_id(g->sets);
+        if (allocate_set(gno, setno) == RETURN_SUCCESS) {
+            return setno;
         } else {
             return -1;
         }

@@ -1204,17 +1204,13 @@ int islogity(int gno)
     }
 }
 
-int set_set_colors(int gno, int setno, int color)
+int set_set_colors(set *p, int color)
 {
-    set *s;
-    
-    s = set_get(gno, setno);
-    
-    if (s && color < number_of_colors() && color >= 0) {
-        s->linepen.color    = color;
-        s->sympen.color     = color;
-        s->symfillpen.color = color;
-        s->errbar.pen.color = color;
+    if (p && color < number_of_colors() && color >= 0) {
+        p->linepen.color    = color;
+        p->sympen.color     = color;
+        p->symfillpen.color = color;
+        p->errbar.pen.color = color;
 
         set_dirtystate();
         return RETURN_SUCCESS;

@@ -697,7 +697,7 @@ static void setapp_data_proc(void *data)
                     c++;
                     c %= number_of_colors();
                 }
-                set_set_colors(cg, setno, c);
+                set_set_colors(p, c);
                 c++;
                 break;
             case SETAPP_ALL_SYMBOLS:
@@ -710,7 +710,7 @@ static void setapp_data_proc(void *data)
                 p->lines = (i % (number_of_linestyles() - 1)) + 1;
                 break;
             case SETAPP_ALL_BW:
-                set_set_colors(cg, setno, 1);
+                set_set_colors(p, 1);
                 break;
             }
         }

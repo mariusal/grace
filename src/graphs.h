@@ -325,7 +325,7 @@ int graph_world_stack_size(int gno);
 int get_world_stack_current(int gno);
 int get_world_stack_entry(int gno, int n, world_stack *ws);
 
-int set_set_colors(int gno, int setno, int color);
+int set_set_colors(set *p, int color);
 
 int moveset(int gnofrom, int setfrom, int gnoto, int setto);
 int copyset(int gnofrom, int setfrom, int gnoto, int setto);
