@@ -825,7 +825,7 @@ void ps_gui_setup(void)
 
 	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL);
+        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	ps_setup_offset_x_item = CreateSpinChoice(rc,
             "X: ", 3, SPIN_TYPE_INT, 0.0, 100.0, 10.0);
 	ps_setup_offset_y_item = CreateSpinChoice(rc,
