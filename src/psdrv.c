@@ -251,16 +251,29 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "/s {stroke} def\n");
     fprintf(prstream, "/n {newpath} def\n");
     fprintf(prstream, "/c {closepath} def\n");
-    fprintf(prstream, "/pix {n m 0 0 rlineto s} def\n");
+    fprintf(prstream, "/RL {rlineto} def\n");
+    fprintf(prstream, "/SLW {setlinewidth} def\n");
+    fprintf(prstream, "/GS {gsave} def\n");
+    fprintf(prstream, "/GR {grestore} def\n");
+    fprintf(prstream, "/SC {setcolor} def\n");
+    fprintf(prstream, "/SGRY {setgray} def\n");
+    fprintf(prstream, "/SRGB {setrgbcolor} def\n");
+    fprintf(prstream, "/SD {setdash} def\n");
+    fprintf(prstream, "/SLC {setlinecap} def\n");
+    fprintf(prstream, "/SLJ {setlinejoin} def\n");
+    fprintf(prstream, "/SCS {setcolorspace} def\n");
+    fprintf(prstream, "/FFSF {findfont setfont} def\n");
+    fprintf(prstream, "/CC {concat} def\n");
+    fprintf(prstream, "/PXL {n m 0 0 RL s} def\n");
     
     for (i = 0; i < number_of_colors(); i++) {
-        fprintf(prstream,"/Color%d {\n", i);
+        fprintf(prstream,"/Color%d {", i);
         if (ps_grayscale == TRUE) {
-            fprintf(prstream," %.4f\n", get_colorintensity(i));
+            fprintf(prstream,"%.4f", get_colorintensity(i));
         } else {
             frgb = get_frgb(i);
             if (frgb != NULL) {
-                fprintf(prstream, " %.4f %.4f %.4f\n",
+                fprintf(prstream, "%.4f %.4f %.4f",
                                     frgb->red,frgb->green, frgb->blue);
             }
         }
@@ -268,7 +281,7 @@ static int ps_initgraphics(int format)
     }
        
     if (ps_level2 == TRUE) {
-        fprintf(prstream, "/pattern {\n");
+        fprintf(prstream, "/PTRN {\n");
         fprintf(prstream, " /pat_bits exch def \n");
         fprintf(prstream, " <<\n");
         fprintf(prstream, "  /PaintType 2\n");
@@ -288,14 +301,14 @@ static int ps_initgraphics(int format)
             for (j = 0; j < 32; j++) {
                 fprintf(prstream, "%02x", pat_bits[i][j]);
             }
-            fprintf(prstream, "> pattern} bind def\n");
+            fprintf(prstream, "> PTRN} bind def\n");
         }
     }
     
     /* Elliptic arc */
     fprintf(prstream, "/ellipsedict 8 dict def\n");
     fprintf(prstream, "ellipsedict /mtrx matrix put\n");
-    fprintf(prstream, "/ellipse {\n");
+    fprintf(prstream, "/EARC {\n");
     fprintf(prstream, " ellipsedict begin\n");
     fprintf(prstream, "  /endangle exch def\n");
     fprintf(prstream, "  /startangle exch def\n");
@@ -315,11 +328,11 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "/TL {\n");
     fprintf(prstream, "  /linewidth exch def\n");
     fprintf(prstream, "  /offset exch def\n");
-    fprintf(prstream, "  gsave\n");
+    fprintf(prstream, "  GS\n");
     fprintf(prstream, "  0 offset rmoveto\n");
-    fprintf(prstream, "  linewidth setlinewidth\n");
-    fprintf(prstream, "  dup stringwidth rlineto s\n");
-    fprintf(prstream, "  grestore\n");
+    fprintf(prstream, "  linewidth SLW\n");
+    fprintf(prstream, "  dup stringwidth RL s\n");
+    fprintf(prstream, "  GR\n");
     fprintf(prstream, "} def\n");
 
     /* Default encoding */
@@ -369,25 +382,25 @@ void ps_setpen(void)
         if (ps_level2 == TRUE) {
             if (pen.pattern == 1) {
                 if (ps_grayscale == TRUE) {
-                    fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+                    fprintf(prstream, "[/DeviceGray] SCS\n");
                 } else {
-                    fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+                    fprintf(prstream, "[/DeviceRGB] SCS\n");
                 }
-                fprintf(prstream, "Color%d setcolor\n", pen.color);
+                fprintf(prstream, "Color%d SC\n", pen.color);
             } else {
                 if (ps_grayscale == TRUE) {
-                    fprintf(prstream, "[/Pattern /DeviceGray] setcolorspace\n");
+                    fprintf(prstream, "[/Pattern /DeviceGray] SCS\n");
                 } else {
-                    fprintf(prstream, "[/Pattern /DeviceRGB] setcolorspace\n");
+                    fprintf(prstream, "[/Pattern /DeviceRGB] SCS\n");
                 }
                 fprintf(prstream,
-                    "Color%d Pattern%d setcolor\n", pen.color, pen.pattern);
+                    "Color%d Pattern%d SC\n", pen.color, pen.pattern);
             }
         } else {
             if (ps_grayscale == TRUE) {
-                fprintf(prstream, "Color%d setgray\n", pen.color);
+                fprintf(prstream, "Color%d SGRY\n", pen.color);
             } else {
-                fprintf(prstream, "Color%d setrgbcolor\n", pen.color);
+                fprintf(prstream, "Color%d SRGB\n", pen.color);
             }
         }
         ps_color = pen.color;
@@ -413,8 +426,8 @@ void ps_setdrawbrush(void)
                 fprintf(prstream, "%.4f ", lw*dash_array[ls][i]);
             }
         }
-        fprintf(prstream, "] 0 setdash\n");
-        fprintf(prstream, "%.4f setlinewidth\n", lw);
+        fprintf(prstream, "] 0 SD\n");
+        fprintf(prstream, "%.4f SLW\n", lw);
         ps_linew = lw;
         ps_lines = ls;
     }
@@ -430,13 +443,13 @@ void ps_setlineprops(void)
     if (lc != ps_linecap) {
         switch (lc) {
         case LINECAP_BUTT:
-            fprintf(prstream, "0 setlinecap\n");
+            fprintf(prstream, "0 SLC\n");
             break;
         case LINECAP_ROUND:
-            fprintf(prstream, "1 setlinecap\n");
+            fprintf(prstream, "1 SLC\n");
             break;
         case LINECAP_PROJ:
-            fprintf(prstream, "2 setlinecap\n");
+            fprintf(prstream, "2 SLC\n");
             break;
         }
         ps_linecap = lc;
@@ -445,13 +458,13 @@ void ps_setlineprops(void)
     if (lj != ps_linejoin) {
         switch (lj) {
         case LINEJOIN_MITER:
-            fprintf(prstream, "0 setlinejoin\n");
+            fprintf(prstream, "0 SLJ\n");
             break;
         case LINEJOIN_ROUND:
-            fprintf(prstream, "1 setlinejoin\n");
+            fprintf(prstream, "1 SLJ\n");
             break;
         case LINEJOIN_BEVEL:
-            fprintf(prstream, "2 setlinejoin\n");
+            fprintf(prstream, "2 SLJ\n");
             break;
         }
         ps_linejoin = lj;
@@ -463,19 +476,19 @@ void ps_drawpixel(VPoint vp)
     ps_setpen();
     
     if (ps_linew != pixel_size) {
-        fprintf(prstream, "%.4f setlinewidth\n", pixel_size);
+        fprintf(prstream, "%.4f SLW\n", pixel_size);
         ps_linew = pixel_size;
     }
     if (ps_linecap != LINECAP_ROUND) {
-        fprintf(prstream, "1 setlinecap\n");
+        fprintf(prstream, "1 SLC\n");
         ps_linecap = LINECAP_ROUND;
     }
     if (ps_lines != 1) {
-        fprintf(prstream, "[] 0 setdash\n");
+        fprintf(prstream, "[] 0 SD\n");
         ps_lines = 1;
     }
     
-    fprintf(prstream, "%.4f %.4f pix\n", vp.x, vp.y);
+    fprintf(prstream, "%.4f %.4f PXL\n", vp.x, vp.y);
 }
 
 void ps_drawpolyline(VPoint *vps, int n, int mode)
@@ -516,24 +529,24 @@ void ps_fillpolygon(VPoint *vps, int nc)
 
     /* fill bg first if the pattern != solid */
     if (pen.pattern != 1 && ps_level2 == TRUE) {
-        fprintf(prstream, "gsave\n");
+        fprintf(prstream, "GS\n");
         if (ps_grayscale == TRUE) {
             if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+                fprintf(prstream, "[/DeviceGray] SCS\n");
             }
-            fprintf(prstream, "Color%d setgray\n", getbgcolor());
+            fprintf(prstream, "Color%d SGRY\n", getbgcolor());
         } else {
             if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+                fprintf(prstream, "[/DeviceRGB] SCS\n");
             }
-            fprintf(prstream, "Color%d setrgbcolor\n", getbgcolor());
+            fprintf(prstream, "Color%d SRGB\n", getbgcolor());
         }
         if (getfillrule() == FILLRULE_WINDING) {
             fprintf(prstream, "fill\n");
         } else {
             fprintf(prstream, "eofill\n");
         }
-        fprintf(prstream, "grestore\n");
+        fprintf(prstream, "GR\n");
     }
     
     ps_setpen();
@@ -556,8 +569,7 @@ void ps_drawarc(VPoint vp1, VPoint vp2, int a1, int a2)
     rx = fabs(vp2.x - vp1.x)/2;
     ry = fabs(vp2.y - vp1.y)/2;
     
-    fprintf(prstream, "n\n");
-    fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d ellipse s\n",
+    fprintf(prstream, "n %.4f %.4f %.4f %.4f %d %d EARC s\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 }
 
@@ -581,25 +593,25 @@ void ps_fillarc(VPoint vp1, VPoint vp2, int a1, int a2, int mode)
     if (mode == ARCFILL_PIESLICE) {
         fprintf(prstream, "%.4f %.4f m\n", vpc.x, vpc.y);
     }
-    fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d ellipse c\n",
+    fprintf(prstream, "%.4f %.4f %.4f %.4f %d %d EARC c\n",
                        vpc.x, vpc.y, rx, ry, a1, a2);
 
     /* fill bg first if the pattern != solid */
     if (pen.pattern != 1 && ps_level2 == TRUE) {
-        fprintf(prstream, "gsave\n");
+        fprintf(prstream, "GS\n");
         if (ps_grayscale == TRUE) {
             if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceGray] setcolorspace\n");
+                fprintf(prstream, "[/DeviceGray] SCS\n");
             }
-            fprintf(prstream, "Color%d setgray\n", getbgcolor());
+            fprintf(prstream, "Color%d SGRY\n", getbgcolor());
         } else {
             if (ps_pattern != 1) {
-                fprintf(prstream, "[/DeviceRGB] setcolorspace\n");
+                fprintf(prstream, "[/DeviceRGB] SCS\n");
             }
-            fprintf(prstream, "Color%d setrgbcolor\n", getbgcolor());
+            fprintf(prstream, "Color%d SRGB\n", getbgcolor());
         }
         fprintf(prstream, "fill\n");
-        fprintf(prstream, "grestore\n");
+        fprintf(prstream, "GR\n");
     }
 
     ps_setpen();
@@ -618,7 +630,7 @@ void ps_putpixmap(VPoint vp, int width, int height,
 
     ps_setpen();
     
-    fprintf(prstream, "gsave\n");
+    fprintf(prstream, "GS\n");
     fprintf(prstream, "%.4f %.4f translate\n", vp.x, vp.y);
     fprintf(prstream, "%.4f %.4f scale\n", (float) width/page_scale, 
                                            (float) height/page_scale);    
@@ -660,20 +672,20 @@ void ps_putpixmap(VPoint vp, int width, int height,
         paddedW = PAD(width, bitmap_pad);
         if (pixmap_type == PIXMAP_OPAQUE) {
             if (ps_grayscale == TRUE) {
-                fprintf(prstream,"%.4f setgray\n",
+                fprintf(prstream,"%.4f SGRY\n",
                                   get_colorintensity(getbgcolor()));
             } else {
                 frgb = get_frgb(getbgcolor());
-                fprintf(prstream,"%.4f %.4f %.4f setrgbcolor\n",
+                fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
                                   frgb->red, frgb->green, frgb->blue);
             }
             fprintf(prstream, "0 0 1 -1 rectfill\n");
         }
         if (ps_grayscale == TRUE) {
-            fprintf(prstream,"%.4f setgray\n", get_colorintensity(getcolor()));
+            fprintf(prstream,"%.4f SGRY\n", get_colorintensity(getcolor()));
         } else {
             frgb = get_frgb(getcolor());
-            fprintf(prstream,"%.4f %.4f %.4f setrgbcolor\n",
+            fprintf(prstream,"%.4f %.4f %.4f SRGB\n",
                               frgb->red, frgb->green, frgb->blue);
         }
         fprintf(prstream, "/picstr %d string def\n", paddedW/8);
@@ -689,7 +701,7 @@ void ps_putpixmap(VPoint vp, int width, int height,
             fprintf(prstream, "\n");
         }
     }
-    fprintf(prstream, "grestore\n");
+    fprintf(prstream, "GR\n");
 }
 
 void ps_puttext(VPoint vp, char *s, int len, int font,
@@ -712,13 +724,13 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
         fprintf(prstream, "/Font%d exch definefont pop\n", font);
         psfont_status[font] = TRUE;
     }
-    fprintf(prstream, "/Font%d findfont setfont\n", font);
+    fprintf(prstream, "/Font%d FFSF\n", font);
 
     ps_setpen();
     
     fprintf(prstream, "%.4f %.4f m\n", vp.x, vp.y);
-    fprintf(prstream, "gsave\n");
-    fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] concat\n",
+    fprintf(prstream, "GS\n");
+    fprintf(prstream, "[%.4f %.4f %.4f %.4f 0 0] CC\n",
                         tm->cxx, tm->cyx, tm->cxy, tm->cyy);
     
     put_string(prstream, s, len);
@@ -737,7 +749,7 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
     
     fprintf(prstream, " show\n");
     
-    fprintf(prstream, "grestore\n");
+    fprintf(prstream, "GR\n");
 }
 
 
