@@ -444,13 +444,11 @@ ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
 
     retval = xmalloc(sizeof(ListStructure));
     retval->rc = XmCreateRowColumn(parent, "rcList", NULL, 0);
+    AddHelpCB(retval->rc, "doc/UsersGuide.html#list-selector");
 
     lab = XmCreateLabel(retval->rc, labelstr, NULL, 0);
     XtManageChild(lab);
     
-/*
- *     XtSetArg(args[0], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
- */
     XtSetArg(args[0], XmNlistSizePolicy, XmCONSTANT);
     XtSetArg(args[1], XmNscrollBarDisplayPolicy, XmSTATIC);
     if (type == LIST_TYPE_SINGLE) {
@@ -1799,6 +1797,10 @@ ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
     retvalp = CreateListChoice(parent, labelstr, type, nvisible,
                                ngraph_select_items, graph_select_items);
+    if (retvalp == NULL) {
+        return NULL;
+    }
+    AddHelpCB(retvalp->rc, "doc/UsersGuide.html#graph-selector");
     graph_selectors[ngraph_selectors - 1] = retvalp;
     
     XtAddCallback(retvalp->list, XmNdefaultActionCallback,
@@ -2392,6 +2394,7 @@ ListStructure *CreateSetChoice(Widget parent, char *labelstr,
     if (retvalp == NULL) {
         return NULL;
     }
+    AddHelpCB(retvalp->rc, "doc/UsersGuide.html#set-selector");
 
     sdata = xmalloc(sizeof(SetChoiceData));
     if (sdata == NULL) {
