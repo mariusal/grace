@@ -3958,18 +3958,21 @@ Widget CreateMenu(Widget parent, char *label, char mnemonic, int help)
 {
     Widget menupane, cascade;
     XmString str;
-    char *name;
+    char *name, ms[2];
     
     name = label_to_resname(label, "Menu");
     menupane = XmCreatePulldownMenu(parent, name, NULL, 0);
     xfree(name);
 
+    ms[0] = mnemonic;
+    ms[1] = '\0';
+    
     str = XmStringCreateLocalized(label);
     cascade = XtVaCreateManagedWidget("cascade",
         xmCascadeButtonGadgetClass, parent, 
     	XmNsubMenuId, menupane, 
     	XmNlabelString, str, 
-    	XmNmnemonic, mnemonic,
+    	XmNmnemonic, XStringToKeysym(ms),
     	NULL);
     XmStringFree(str);
 
@@ -3989,14 +3992,17 @@ Widget CreateMenuButton(Widget parent, char *label, char mnemonic,
 {
     Widget button;
     XmString str;
-    char *name;
+    char *name, ms[2];
+    
+    ms[0] = mnemonic;
+    ms[1] = '\0';
     
     str = XmStringCreateLocalized(label);
     name = label_to_resname(label, "Button");
     button = XtVaCreateManagedWidget(name,
         xmPushButtonWidgetClass, parent, 
     	XmNlabelString, str,
-    	XmNmnemonic, mnemonic,
+    	XmNmnemonic, XStringToKeysym(ms),
     	NULL);
     xfree(name);
     XmStringFree(str);
@@ -4037,14 +4043,17 @@ Widget CreateMenuToggle(Widget parent, char *label, char mnemonic,
 {
     Widget button;
     XmString str;
-    char *name;
+    char *name, ms[2];
+    
+    ms[0] = mnemonic;
+    ms[1] = '\0';
     
     str = XmStringCreateLocalized(label);
     name = label_to_resname(label, NULL);
     button = XtVaCreateManagedWidget(name,
         xmToggleButtonWidgetClass, parent, 
     	XmNlabelString, str,
-    	XmNmnemonic, mnemonic,
+    	XmNmnemonic, XStringToKeysym(ms),
     	XmNvisibleWhenOff, True,
     	XmNindicatorOn, True,
     	NULL);
