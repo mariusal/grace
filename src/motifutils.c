@@ -4243,7 +4243,7 @@ void ContextHelpCB(Widget but, void *data)
 }
 
 
-static int yesno_retval = 0;
+static int yesno_retval = FALSE;
 static Boolean keep_grab = True;
 
 void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
@@ -4257,11 +4257,11 @@ void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
     XtUnmanageChild(w);
     switch (why) {
     case XmCR_OK:
-	yesno_retval = 1;
+	yesno_retval = TRUE;
 	/* process ok action */
 	break;
     case XmCR_CANCEL:
-	yesno_retval = 0;
+	yesno_retval = FALSE;
 	/* process cancel action */
 	break;
     }

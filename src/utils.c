@@ -798,13 +798,13 @@ void errmsg(const char *buf)
 
 int yesnoterm(char *msg)
 {
-    return 1;
+    return TRUE;
 }
 
 int yesno(char *msg, char *s1, char *s2, char *help_anchor)
 {
     if (grace->gui->noask) {
-	return 1;
+	return TRUE;
     }
 #ifdef NONE_GUI
     return (yesnoterm(msg));
