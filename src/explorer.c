@@ -457,7 +457,6 @@ void define_explorer_popup(Widget but, void *data)
         eui->tree = XmCreateScrolledListTree(panel, "tree", NULL, 0);
         XtAddCallback(eui->tree, XtNhighlightCallback, highlight_cb, eui);
         XtAddCallback(eui->tree, XtNdestroyItemCallback, destroy_cb, eui);
-        ManageChild(eui->tree);
         PlaceGridChild(panel, GetParent(eui->tree), 0, 0);
 
         eui->scrolled_window = XtVaCreateManagedWidget("scrolled_window",
@@ -489,6 +488,8 @@ void define_explorer_popup(Widget but, void *data)
 
         eui->project = CreateQuarkTree(eui->tree, NULL,
             grace->project, NULL, q_labeling);
+        
+        ManageChild(eui->tree);
     }
 
     RaiseWindow(GetParent(eui->top));
