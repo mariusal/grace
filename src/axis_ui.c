@@ -52,6 +52,7 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
 
     /* ------------ Tabs --------------*/
     tab = CreateTab(eui->scrolled_window); 
+    AddHelpCB(tab, "doc/UsersGuide.html#axis-properties");
 
     ui->main_tp = CreateTabPage(tab, "Main");
 
