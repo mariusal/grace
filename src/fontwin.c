@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
+ * Copyright (c) 1996-99 Grace Development Team
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -54,21 +54,13 @@
 #include <Xm/Text.h>
 #include <Xm/XmosP.h>
 
-#ifdef HAVE_LIBXBAE
-#  include <Xbae/Matrix.h>
-#endif
+#include <Xbae/Matrix.h>
 
-#if defined (HAVE_LIBT1)
-#  include <t1lib.h>
-#else
-#  include "T1lib/t1lib/t1lib.h"
-#endif
-
+#include "t1fonts.h"
 #include "utils.h"
 #include "motifinc.h"
 #include "protos.h"
 
-#ifdef HAVE_LIBXBAE
 
 /* used globally */
 extern XtAppContext app_con;
@@ -76,6 +68,8 @@ extern Widget app_shell;
 extern Display *disp;
 extern Window xwin;
 extern Window root;
+extern GC gc;
+extern int depth;
 
 extern unsigned long xvlibcolors[];
 
@@ -85,17 +79,21 @@ static OptionStructure *font_select_item;
 static Widget string_item;
 static Widget glyph_item;
 
-static int FontID = 0;
+static int FontID;
+static BBox bbox;
+static float Size = 20.0;
 
 static void DrawCB(Widget w,XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs);
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs);
-static void update_fonttool(Widget w, XtPointer client_data, XtPointer call_data);
+static void update_fonttool(int font);
+static void update_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data);
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs);
 
 void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i;
     short widths[16];
+    unsigned char column_alignments[16];
     Widget fonttool_panel, scrolled_window;
     
     if (fonttool_frame == NULL) {
@@ -105,7 +103,8 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
                                         fonttool_frame, NULL, 0);
 
         font_select_item = CreateFontChoice(fonttool_panel, "Font:");
-        AddOptionChoiceCB(font_select_item, update_fonttool);
+        AddOptionChoiceCB(font_select_item, update_fonttool_cb);
+        SetOptionChoice(font_select_item, 0);
         XtVaSetValues(font_select_item->rc,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
@@ -114,6 +113,7 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
         
         for (i = 0; i < 16; i++) {
             widths[i] = 2;
+            column_alignments[i] = XmALIGNMENT_END;
         }
         font_table = XtVaCreateManagedWidget(
             "fontTable", xbaeMatrixWidgetClass, fonttool_panel,
@@ -123,9 +123,11 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
             XmNvisibleColumns, 16,
             XmNfill, True,
             XmNcolumnWidths, widths,
+            XmNcolumnAlignments, column_alignments,
 	    XmNgridType, XmGRID_SHADOW_IN,
 	    XmNcellShadowType, XmSHADOW_ETCHED_OUT,
 	    XmNcellShadowThickness, 2,
+            XmNaltRowCount, 0,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_WIDGET,
@@ -168,6 +170,7 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
 	    xvlibcolors[0],
 	    NULL);
 
+        update_fonttool(0);
         XtManageChild(fonttool_panel);
     }
     
@@ -180,22 +183,37 @@ static void DrawCB(Widget w, XtPointer cd, XbaeMatrixDrawCellCallbackStruct *cbs
 {
     unsigned char c;
     GLYPH *glyph;
-    int height, width;
-    Pixmap pixmap;
-    float Size = 20.0;
+    int height, width, hshift, vshift;
+    Pixmap pixmap, ptmp;
     char dummy_bits[1] = {0};
     int valid_char;
+    long bg, fg;
+    
         
     c = 16*cbs->row + cbs->column;
-    
-    glyph = T1_SetChar(FontID, c, Size, &UNITY_MATRIX);
+        
+    if (FontID == BAD_FONT_ID) {
+        glyph = NULL;
+    } else {
+        glyph = T1_SetChar(FontID, c, Size, &UNITY_MATRIX);
+    }
        
     if (glyph != NULL) {
         valid_char = TRUE;
         height = glyph->metrics.ascent - glyph->metrics.descent;
         width = glyph->metrics.rightSideBearing - glyph->metrics.leftSideBearing;
-        pixmap = XCreateBitmapFromData(disp, root,
-             (char *) glyph->bits, width, height);
+        hshift = MAX2(glyph->metrics.leftSideBearing - bbox.llx, 0);
+        vshift = MAX2(bbox.ury - glyph->metrics.ascent, 0);
+        XtVaGetValues(w, XmNbackground, &bg, XmNforeground, &fg, NULL);
+        XSetForeground(disp, gc, bg);
+        ptmp = XCreateBitmapFromData(disp, root,
+                    (char *) glyph->bits, width, height);
+        XSetBackground(disp, gc, bg);
+        pixmap = XCreatePixmap(disp, root, bbox.urx - bbox.llx, bbox.ury - bbox.lly, depth);
+        XFillRectangle(disp, pixmap, gc, 0, 0, bbox.urx - bbox.llx, bbox.ury - bbox.lly);
+        XSetForeground(disp, gc, fg);
+        XCopyPlane(disp, ptmp, pixmap, gc, 0, 0, width, height, hshift, vshift, 1);
+        XFreePixmap(disp, ptmp);
     } else {
         if (c == ' ') {
             valid_char = TRUE;
@@ -248,15 +266,39 @@ static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *c
 }
 
 
-static void update_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
+static void update_fonttool(int font)
 {
     char buf[32];
     
-    FontID = (int) client_data;
+    FontID = font;
+    switch (CheckForFontID(FontID)) {
+    case 0:
+        T1_LoadFont(FontID);
+        break;
+    case -1:
+        errmsg("Couldn't load font");
+        FontID = BAD_FONT_ID;
+        return;
+        break;
+    default:
+        break;
+    }
+
+    bbox = T1_GetFontBBox(FontID);
+    
+    bbox.llx = bbox.llx*Size/1000;
+    bbox.lly = bbox.lly*Size/1000;
+    bbox.urx = bbox.urx*Size/1000;
+    bbox.ury = bbox.ury*Size/1000;
     
     XbaeMatrixRefresh(font_table);
     sprintf(buf, "\\f{%d}", FontID);
     insert_into_string(buf);
+}
+
+static void update_fonttool_cb(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    update_fonttool((int) client_data);
 }
 
 static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *cbs)
@@ -297,12 +339,3 @@ static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *c
  *     WriteString(vp, 0, 0, string);
  */
 }
-
-#else /* No Xbae */
-
-void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    errmsg("No fonttool for this build");
-}
-
-#endif
