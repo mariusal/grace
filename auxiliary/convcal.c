@@ -50,10 +50,15 @@
  * separator (it is traditionally used in iso8601 format) and as the
  * unary minus (for dates in the far past or for numerical
  * dates). When the year is between 0 and 99 and is written with two
- * or less digits, it is mapped to the present era as follows :
+ * or less digits, it is mapped to the era beginning at wrap year and
+ * ending at wrap year + 99 as follows :
+ *   [wy ; 99] -> [ wrap_year ; 100*(1 + wrap_year/100) - 1 ]
+ *   [00 ; wy-1] -> [ 100*(1 + wrap_year/100) ; wrap_year + 99]
+ * so for example if the wrap year is set to 1950 (which is the default
+ * value), then the mapping is :
  *    range [00 ; 49] is mapped to [2000 ; 2049]
  *    range [50 ; 99] is mapped to [1950 ; 1999]
- * this is Y2K compliant and is consistent with current use.
+ * this is reasonably Y2K compliant and is consistent with current use.
  * Specifying year 1 is still possible using more than two digits as
  * follows : "0001-03-04" is unambiguously March the 4th, year 1, even
  * if the user's choice is us format. However using two digits only is
@@ -73,8 +78,8 @@
 
  * The program can be used either for Denys's and gregorian
  * calendars. It does not take into account leap seconds : you can
- * think it works only in International Atomic Time (IAT) and not in
- * Unified Time Coordinate (UTC) ...  Inexistant dates are detected,
+ * think it works only in International Atomic Time (TAI) and not in
+ * Coordinated Unified Time (UTC) ...  Inexistant dates are detected,
  * they include year 0, dates between 1582-10-05 and 1582-10-14,
  * February 29th of non leap years, months below 1 or above 12, ...
 
@@ -97,6 +102,7 @@
  * -r date   : set reference date (the date is read using the current
  *             input format) at the beginning the reference is set
  *             according to the REFDATE constant below.
+ * -w year   : set the wrap year to year
  * -h        : prints an help message on stderr and exits successfully
 
  */
@@ -114,8 +120,7 @@
 
 #define REFDATE "-4713-01-01 12:00:00"
 
-typedef enum   { FTM_none,
-                 FMT_iso,
+typedef enum   { FMT_iso,
                  FMT_european,
                  FMT_us,
                  FMT_days,
@@ -141,7 +146,7 @@ static int neg_julian_non_leap (int year)
 static long neg_julian_cal_to_jul(int y, int m, int d)
 {
     /* day 0       : -4713-01-01
-     * day 1721423 :    -1-01-01
+     * day 1721423 :    -1-12-31
      */
     return (1461L*(y + 1L))/4L
         + (m*489)/16 - ((m > 2) ? (neg_julian_non_leap(y) ? 32L : 31L) : 30L)
@@ -202,7 +207,7 @@ static int pos_julian_year_estimate(long n)
 static int gregorian_non_leap(int year)
 {
     /* one leap year every four years, except for multiple of 100 that
-     * are not also multiple of 400 (so 1600, 1896, 1904, &nd 2000 are
+     * are not also multiple of 400 (so 1600, 1896, 1904, and 2000 are
      * leap years, but 1700, 1800 and 1900 are non leap years
      */
     return (year & 3) || ((year % 100) == 0 && ((year/100 & 3)));
@@ -223,12 +228,12 @@ static long gregorian_cal_to_jul(int y, int m, int d)
 static int gregorian_year_estimate(long n)
 {
     /*
-     * year bounds : 400n - 688569888 <= 146097y <= 400n - 688423312
+     * year bounds : 400n - 688570288 <= 146097y <= 400n - 688423712
      * lower bound reached on : 1696-12-31, 2096-12-31, 2496-12-31 ...
      * upper bound reached on : 1904-01-01, 2304-01-01, 2704-01-01 ...
      * the lower bound gives a low estimate of the year
      */
-    return (int) ((400L*n - 688569888L)/146097L);
+    return (int) ((400L*n - 688570288L)/146097L);
 }
 
 
@@ -380,15 +385,17 @@ void jul_to_cal_and_time(double jday, double rounding_tol,
  * this includes either number of day in the month
  * and calendars pecularities (year 0 and October 1582)
  */
-static int check_date(Int_token y, Int_token m, Int_token d, long *jul)
+static int check_date(int century, int wy,
+                      Int_token y, Int_token m, Int_token d,
+                      long *jul)
 {
     int y_expand, y_check, m_check, d_check;
 
     /* expands years written with two digits only */
-    if (y.value >= 0 && y.value < 50 && y.digits <= 2) {
-        y_expand = 2000 + y.value;
-    } else if (y.value >= 50 && y.value < 100 && y.digits <= 2) {
-        y_expand = 1900 + y.value;
+    if (y.value >= 0 && y.value < wy && y.digits <= 2) {
+        y_expand = century + y.value;
+    } else if (y.value >= wy && y.value < 100 && y.digits <= 2) {
+        y_expand = century - 100 + y.value;
     } else {
         y_expand = y.value;
     }
@@ -588,7 +595,7 @@ static int parse_calendar_date(const char* s,
 /*
  * parse a date given either in calendar or numerical format
  */
-int parse_date(const char* s, Dates_format preferred,
+int parse_date(const char* s, int century, int wy, Dates_format preferred,
                double *jul, Dates_format *recognized)
 {
     int i, n;
@@ -644,7 +651,8 @@ int parse_date(const char* s, Dates_format preferred,
                   continue;
               }
 
-              if (check_date(tab[ky], tab[km], tab[kd], &j) == EXIT_SUCCESS) {
+              if (check_date(century, wy, tab[ky], tab[km], tab[kd], &j)
+                  == EXIT_SUCCESS) {
                   *jul = jul_and_time_to_jul(j, tab[3].value, tab[4].value,
                                              sec);
                   *recognized = trials[i];
@@ -679,7 +687,8 @@ int parse_date(const char* s, Dates_format preferred,
 
 }
 
-int convert_and_write(const char *s, double reference_date,
+int convert_and_write(const char *s,
+                      int century, int wy, double reference_date,
                       Dates_format input_format, Dates_format output_format)
 {
     Dates_format recognized;
@@ -687,7 +696,8 @@ int convert_and_write(const char *s, double reference_date,
     double jul;
     double sec;
 
-    if (parse_date(s, input_format, &jul, &recognized) != EXIT_SUCCESS) {
+    if (parse_date(s, century, wy, input_format, &jul, &recognized)
+        != EXIT_SUCCESS) {
         return EXIT_FAILURE;
     }
 
@@ -813,11 +823,15 @@ int main(int argc, char *argv[])
     Dates_format input_format;
     Dates_format output_format;
     Dates_format recognized;
+    int    century, wy;
+
     int    i, j, converted;
     int    retval = EXIT_SUCCESS;
 
     /* initial values */
-    if (parse_date(REFDATE, FMT_iso, &reference_date, &recognized)
+    century = 2000;
+    wy      = 50;
+    if (parse_date(REFDATE, century, wy, FMT_iso, &reference_date, &recognized)
         != EXIT_SUCCESS) {
         fprintf(stderr,
                 "%s: unable to parse compiled in reference date (%s) !\n",
@@ -876,8 +890,8 @@ int main(int argc, char *argv[])
                 return EXIT_FAILURE;
             }
 
-            if (parse_date(argv[j], input_format, &reference_date, &recognized)
-                != EXIT_SUCCESS) {
+            if (parse_date(argv[j], century, wy, input_format,
+                           &reference_date, &recognized) != EXIT_SUCCESS) {
                 fprintf(stderr,
                         "%s: unable to parse reference date (%s)\n",
                         argv[0], REFDATE);
@@ -886,18 +900,33 @@ int main(int argc, char *argv[])
 
             ++j;
 
+        } else if (string_equal(argv[i], "-w")) {
+            /* wrap year */
+
+            if (argc < j + 1) {
+                fprintf(stderr,
+                        "%s: missing argument for %s flag\n",
+                        argv[0], argv[i]);
+                return EXIT_FAILURE;
+            }
+
+            century = 100*(1 + atoi(argv[j])/100);
+            wy      = atoi(argv[j]) - (century - 100);
+
+            ++j;
+
         } else if (string_equal(argv[i], "-h")) {
             /* help */
             fprintf(stderr,
                     "usage : %s [-i input_format] [-o output_format]"
-                    " [-r reference_date] [date ...]\n",
+                    " [-r reference_date] [-w wrap_year] [date ...]\n",
                     argv[0]);
             return EXIT_SUCCESS;
 
         } else {
             /* date */
             converted = 1;
-            if (convert_and_write (argv[i], reference_date,
+            if (convert_and_write (argv[i], century, wy, reference_date,
                                    input_format, output_format)
                 != EXIT_SUCCESS) {
                 fprintf(stderr,
@@ -954,7 +983,7 @@ int main(int argc, char *argv[])
 
             if (reading) {
                 /* converting the date */
-                if (convert_and_write (line + 1, reference_date,
+                if (convert_and_write (line + 1, century, wy, reference_date,
                                        input_format, output_format)
                     != EXIT_SUCCESS) {
                     fprintf(stderr,
