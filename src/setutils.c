@@ -392,7 +392,7 @@ double *getcol(int gno, int setno, int col)
     }
 }
 
-void setcol(int gno, double *x, int setno, int len, int col)
+void setcol(int gno, int setno, int col, double *x, int len)
 {
     if (is_valid_setno(gno, setno) != TRUE) {
         return;
@@ -1637,35 +1637,4 @@ int dataset_cols(int gno, int setno)
 int load_comments_to_legend(int gno, int setno)
 {
     return set_legend_string(gno, setno, getcomment(gno, setno));
-}
-
-
-void kill_blockdata(void)
-{
-    int j;
-    if (blockdata != NULL) {
-	for (j = 0; j < maxblock; j++) {
-	    cxfree(blockdata[j]);
-	}
-    }
-}
-
-void alloc_blockdata(int ncols)
-{
-    int j;
-    if (blockdata != NULL) {
-	kill_blockdata();
-    }
-    if (ncols < MAXBLOCK) {
-	ncols = MAXBLOCK;
-    }
-    blockdata = malloc(ncols * sizeof(double *));
-    if (blockdata != NULL) {
-	maxblock = ncols;
-	for (j = 0; j < maxblock; j++) {
-	    blockdata[j] = NULL;
-	}
-    } else {
-	errmsg("alloc_blockdata(): Error, unable to allocate memory for block data");
-    }
 }
