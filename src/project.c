@@ -46,13 +46,27 @@ static void *wrap_graph_copy(void *data)
     return (void *) quark_copy((Quark *) data);
 }
 
+static int project_free_cb(Quark *pr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        Grace *grace = pr->grace;
+        if (pr == grace->project) {
+            grace->project = NULL;
+        }
+    }
+#ifndef NONE_GUI
+    clean_graph_selectors(pr, etype, data);
+#endif
+    return RETURN_SUCCESS;
+}
+
 Quark *project_new(Grace *grace)
 {
     Quark *q;
     q = quark_root(grace, QFlavorProject);
 #ifndef NONE_GUI
     if (q) {
-        quark_cb_set(q, clean_graph_selectors, NULL);
+        quark_cb_set(q, project_free_cb, NULL);
     }
 #endif
     return q;

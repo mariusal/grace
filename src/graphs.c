@@ -59,8 +59,12 @@ int number_of_graphs(const Quark *project)
 
 Quark *graph_get_current(const Quark *project)
 {
-    Project *pr = (Project *) project->data;
-    return pr->cg;
+    if (project) {
+        Project *pr = (Project *) project->data;
+        return pr->cg;
+    } else {
+        return NULL;
+    }
 }
 
 graph *graph_get_data(Quark *gr)
@@ -217,6 +221,36 @@ graph *graph_data_copy(graph *g)
     }
 }
 
+static int hook(unsigned int step, void *data, void *udata)
+{
+    Project *project = (Project *) udata;
+    Quark *gr = (Quark *) data;
+    
+    Quark *cg = project->cg;
+    
+    if (cg != gr) {
+        project->cg = gr;
+        return FALSE;
+    } else {
+        return TRUE;
+    }
+}
+
+static int graph_free_cb(Quark *gr, int etype, void *data)
+{
+    if (etype == QUARK_ETYPE_DELETE) {
+        Quark *pr = gr->parent;
+        Project *project = (Project *) pr->data;
+        if (project->cg == gr) {
+            storage_traverse(project->graphs, hook, project);
+        }
+        if (project->cg == gr) {
+            project->cg = NULL;
+        }
+    }
+    return RETURN_SUCCESS;
+}
+
 Quark *graph_new(Quark *project)
 {
     Quark *g; 
@@ -227,9 +261,7 @@ Quark *graph_new(Quark *project)
             quark_free(g);
             return NULL;
         }
-#ifndef NONE_GUI
-        quark_cb_set(g, clean_set_selectors, NULL);
-#endif
+        quark_cb_set(g, graph_free_cb, NULL);
     }
     return g;
 }

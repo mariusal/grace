@@ -880,6 +880,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
     if (n > 0) {
         xfree(values);
         UpdateStorageChoice(ss);
+        update_all();
         set_dirtystate();
         xdrawgraph();
     }
@@ -2393,14 +2394,17 @@ StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
     return ss;
 }
 
-void update_graph_selectors(void)
+void update_graph_selectors(Quark *pr)
 {
     int i;
     for (i = 0; i < ngraph_selectors; i++) {
         StorageStructure *ss = graph_selectors[i];
-        if (!ss->sto) {
-            Project *pr = (Project *) grace->project->data;
-            ss->sto = pr->graphs;
+        if (!ss->sto && pr) {
+            Project *project = (Project *) pr->data;
+            ss->sto = project->graphs;
+        } else 
+        if (!pr) {
+            ss->sto = NULL;
         }
         UpdateStorageChoice(ss);
     }
@@ -2657,7 +2661,9 @@ void update_set_selectors(Quark *gr)
 {
     int i;
     
-    update_graph_selectors();
+    if (gr) {
+        update_graph_selectors(gr->parent);
+    }
     
     for (i = 0; i < nset_selectors; i++) {
         Quark *cg;
@@ -4207,6 +4213,7 @@ void update_all(void)
         return;
     }
     
+    update_graph_selectors(grace->project);
     update_set_lists(NULL);
 
     if (ReqUpdateColorSel == TRUE) {
@@ -4226,13 +4233,16 @@ void update_all_cb(void *data)
     update_all();
 }
 
-int clean_graph_selectors(Quark *gr, int etype, void *data)
+int clean_graph_selectors(Quark *pr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
         int i;
         for (i = 0; i < ngraph_selectors; i++) {
             SetStorageChoiceStorage(graph_selectors[i], NULL);
         }
+    } else
+    if (etype == QUARK_ETYPE_MODIFY) {
+        // update_graph_selectors(pr);
     }
     
     return RETURN_SUCCESS;
