@@ -41,8 +41,6 @@
 #define GRACE_BPP	8
 #define MAXCOLORS	(0x01 << GRACE_BPP)
 
-#define MAX_LINEWIDTH 20.0        /* max width of drawn lines */
-
 /* polyline drawing modes */
 #define POLYLINE_OPEN	    0
 #define POLYLINE_CLOSED	    1
@@ -81,17 +79,6 @@
 #define JUST_TOP        8
 #define JUST_MIDDLE    12
 
-#if defined(DEBUG_T1LIB)
-#  define T1LOGFILE LOGFILE
-#else
-#  define T1LOGFILE NO_LOGFILE
-#endif
-
-#define T1_DEFAULT_BITMAP_PAD  8
-
-#define T1_AALEVELS_LOW   5
-#define T1_AALEVELS_HIGH 17
-
 
 #define BAD_FONT_ID     -1
 
@@ -127,14 +114,22 @@
 
 #define INTENSITY(r, g, b) ((299*r + 587*g + 114*b)/1000)
 
-#define fRGB2fSRGB(c) (c <= 0.0031308 ? 12.92*c:1.055*pow(c, 1.0/2.4) - 0.055)
-
 #define COLOR_TRANS_NONE        0
 #define COLOR_TRANS_GREYSCALE   1
 #define COLOR_TRANS_BW          2
 #define COLOR_TRANS_NEGATIVE    3
 #define COLOR_TRANS_REVERSE     4
 #define COLOR_TRANS_SRGB        5
+
+#define BAD_COLOR	-1
+
+#define COLOR_NONE      0
+#define COLOR_AUX       1
+#define COLOR_MAIN      2
+
+#define BBOX_TYPE_GLOB	0
+#define BBOX_TYPE_TEMP	1
+
 
 /* A point in viewport coordinates */
 typedef struct {
@@ -232,15 +227,9 @@ typedef struct {
 } CStringSegment;
 
 typedef struct {
-    VPoint start;
-    VPoint stop;
-    GLYPH *glyph;
-} CSGlyphCache;
-
-typedef struct {
     unsigned int nsegs;
     CStringSegment *segs;
-    CSGlyphCache *cglyphs;
+    struct _CSGlyphCache *cglyphs;
 } CompositeString;
 
 typedef struct {
@@ -340,15 +329,6 @@ typedef struct {
     LineStyle linestyle;
     char used;
 } LMap_entry;
-
-#define BAD_COLOR	-1
-
-#define COLOR_NONE      0
-#define COLOR_AUX       1
-#define COLOR_MAIN      2
-
-#define BBOX_TYPE_GLOB	0
-#define BBOX_TYPE_TEMP	1
 
 /* Standard formats */
 typedef enum {
@@ -476,9 +456,6 @@ double getlinewidth(const Canvas *canvas);
 double getcharsize(const Canvas *canvas);
 int getfont(const Canvas *canvas);
 
-int initgraphics(Canvas *canvas, const CanvasStats *cstats);
-void leavegraphics(Canvas *canvas, const CanvasStats *cstats);
-
 void DrawPixel(Canvas *canvas, const VPoint *vp);
 void DrawPolyline(Canvas *canvas, const VPoint *vps, int n, int mode);
 void DrawPolygon(Canvas *canvas, const VPoint *vps, int n);
@@ -489,13 +466,6 @@ void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
 void WriteString(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *s);
 
-CStringSegment *cstring_seg_new(CompositeString *cstring);
-double tm_size(const TextMatrix *tm);
-int tm_scale(TextMatrix *tm, double s);
-int tm_rotate(TextMatrix *tm, double angle);
-int tm_slant(TextMatrix *tm, double slant);
-int tm_product(TextMatrix *tm, const TextMatrix *p);
-
 void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawLine(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
@@ -504,20 +474,22 @@ void DrawFilledEllipse(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void DrawCircle(Canvas *canvas, const VPoint *vp, double radius);
 void DrawFilledCircle(Canvas *canvas, const VPoint *vp, double radius);
 
+CStringSegment *cstring_seg_new(CompositeString *cstring);
+double tm_size(const TextMatrix *tm);
+int tm_scale(TextMatrix *tm, double s);
+int tm_rotate(TextMatrix *tm, double angle);
+int tm_slant(TextMatrix *tm, double slant);
+int tm_product(TextMatrix *tm, const TextMatrix *p);
+
 
 int is_validVPoint(const Canvas *canvas, const VPoint *vp);
 
 void reset_bbox(Canvas *canvas, int type);
-void reset_bboxes(Canvas *canvas);
 void freeze_bbox(Canvas *canvas, int type);
 int get_bbox(const Canvas *canvas, int type, view *v);
 void update_bbox(Canvas *canvas, int type, const VPoint *vp);
-void update_bboxes(Canvas *canvas, const VPoint *vp);
 int melt_bbox(Canvas *canvas, int type);
 void activate_bbox(Canvas *canvas, int type, int status);
-int update_bboxes_with_view(Canvas *canvas, const view *v);
-int update_bboxes_with_vpoints(Canvas *canvas,
-    const VPoint *vps, int n, double lw);
 
 void set_draw_mode(Canvas *canvas, int mode);
 int get_draw_mode(const Canvas *canvas);
@@ -525,13 +497,7 @@ int get_draw_mode(const Canvas *canvas);
 void set_max_path_limit(Canvas *canvas, int limit);
 int get_max_path_limit(const Canvas *canvas);
 
-int clip_line(const Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, VPoint *vp1c, VPoint *vp2c);
-
-int points_overlap(const Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
-
 int view_extend(view *v, double w);
-int is_valid_bbox(const view *v);
 int merge_bboxes(const view *v1, const view *v2, view *v);
 void vpswap(VPoint *vp1, VPoint *vp2);
 int VPoints2bbox(const VPoint *vp1, const VPoint *vp2, view *bb);
@@ -542,7 +508,6 @@ unsigned int number_of_colors(const Canvas *canvas);
 int is_valid_color(const RGB *rgb);
 int find_color(const Canvas *canvas, const RGB *rgb);
 int get_color_by_name(const Canvas *canvas, const char *cname);
-int realloc_color(Canvas *canvas, int n);
 int store_color(Canvas *canvas, int n, const Color *color);
 int add_color(Canvas *canvas, const Color *color);
 int get_rgb(const Canvas *canvas, unsigned int cindex, RGB *rgb);
@@ -550,21 +515,12 @@ int  get_frgb(const Canvas *canvas, unsigned int cindex, fRGB *frgb);
 Color *get_color_def(const Canvas *canvas, unsigned int cindex);
 char *get_colorname(const Canvas *canvas, unsigned int cindex);
 int get_colortype(const Canvas *canvas, unsigned int cindex);
-void canvas_color_trans(Canvas *canvas, CMap_entry *cmap);
 
 double get_colorintensity(const Canvas *canvas, int cindex);
 
 int get_cmy(const Canvas *canvas, unsigned int cindex, CMY *cmy);
 int get_cmyk(const Canvas *canvas, unsigned int cindex, CMYK *cmyk);
 int get_fcmyk(const Canvas *canvas, unsigned int cindex, fCMYK *fcmyk);
-
-void initialize_cmap(Canvas *canvas);
-
-int make_color_scale(Canvas *canvas,
-    unsigned int fg, unsigned int bg,
-    unsigned int ncolors, unsigned long *colors);
-
-int init_t1(Canvas *canvas);
 
 int canvas_set_encoding(Canvas *canvas, char *encfile);
 int canvas_add_font(Canvas *canvas, char *ffile, const char *alias);
@@ -594,12 +550,10 @@ char *font_subset(const Canvas *canvas,
 unsigned int number_of_patterns(const Canvas *canvas);
 int canvas_set_pattern(Canvas *canvas, unsigned int n, const Pattern *pat);
 Pattern *canvas_get_pattern(const Canvas *canvas, unsigned int n);
-void initialize_patterns(Canvas *canvas);
 
 unsigned int number_of_linestyles(const Canvas *canvas);
 int canvas_set_linestyle(Canvas *canvas, unsigned int n, const LineStyle *ls);
 LineStyle *canvas_get_linestyle(const Canvas *canvas, unsigned int n);
-void initialize_linestyles(Canvas *canvas);
 
 Device_entry *device_new(const char *name, int type, int twopass, void *data);
 int device_set_procs(Device_entry *d,
@@ -667,23 +621,6 @@ PageFormat get_page_format(const Canvas *canvas, int device);
 
 #define page_width_pp(canvas)  (72*page_width_in(canvas))
 #define page_height_pp(canvas) (72*page_height_in(canvas))
-
-void canvas_dev_drawpixel(Canvas *canvas, const VPoint *vp);
-void canvas_dev_drawpolyline(Canvas *canvas,
-    const VPoint *vps, int n, int mode);
-void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc);
-void canvas_dev_drawarc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, double a1, double a2);
-void canvas_dev_fillarc(Canvas *canvas,
-    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
-void canvas_dev_putpixmap(Canvas *canvas,
-    const VPoint *vp, int width, int height, char *databits,
-    int pixmap_bpp, int bitmap_pad, int pixmap_type);
-void canvas_dev_puttext(Canvas *canvas,
-    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
-    int underline, int overline, int kerning);
-
-void canvas_stats_reset(Canvas *canvas);
 
 int canvas_draw(Canvas *canvas, CanvasDrawProc dproc, void *data);
 

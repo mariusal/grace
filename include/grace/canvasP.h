@@ -34,6 +34,19 @@
 
 #include <grace/canvas.h>
 
+#if defined(DEBUG_T1LIB)
+#  define T1LOGFILE LOGFILE
+#else
+#  define T1LOGFILE NO_LOGFILE
+#endif
+
+#define T1_DEFAULT_BITMAP_PAD  8
+
+#define T1_AALEVELS_LOW   5
+#define T1_AALEVELS_HIGH 17
+
+#define fRGB2fSRGB(c) (c <= 0.0031308 ? 12.92*c:1.055*pow(c, 1.0/2.4) - 0.055)
+
 /* Drawing properties */
 typedef struct {
     Pen pen;
@@ -58,6 +71,12 @@ typedef struct {
     view v;
     view fv;
 } BBox_type;
+
+typedef struct _CSGlyphCache {
+    VPoint start;
+    VPoint stop;
+    GLYPH *glyph;
+} CSGlyphCache;
 
 /* Canvas */
 struct _Canvas {
@@ -127,5 +146,48 @@ struct _Canvas {
     int aacolors_high_ok;
     unsigned long aacolors_high[T1_AALEVELS_HIGH];
 };
+
+int clip_line(const Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, VPoint *vp1c, VPoint *vp2c);
+int points_overlap(const Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
+
+void canvas_dev_drawpixel(Canvas *canvas, const VPoint *vp);
+void canvas_dev_drawpolyline(Canvas *canvas,
+    const VPoint *vps, int n, int mode);
+void canvas_dev_fillpolygon(Canvas *canvas, const VPoint *vps, int nc);
+void canvas_dev_drawarc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2);
+void canvas_dev_fillarc(Canvas *canvas,
+    const VPoint *vp1, const VPoint *vp2, double a1, double a2, int mode);
+void canvas_dev_putpixmap(Canvas *canvas,
+    const VPoint *vp, int width, int height, char *databits,
+    int pixmap_bpp, int bitmap_pad, int pixmap_type);
+void canvas_dev_puttext(Canvas *canvas,
+    const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
+    int underline, int overline, int kerning);
+
+void canvas_stats_reset(Canvas *canvas);
+
+int initgraphics(Canvas *canvas, const CanvasStats *cstats);
+void leavegraphics(Canvas *canvas, const CanvasStats *cstats);
+
+int is_valid_bbox(const view *v);
+
+void reset_bboxes(Canvas *canvas);
+void update_bboxes(Canvas *canvas, const VPoint *vp);
+int update_bboxes_with_view(Canvas *canvas, const view *v);
+int update_bboxes_with_vpoints(Canvas *canvas,
+    const VPoint *vps, int n, double lw);
+
+int realloc_color(Canvas *canvas, int n);
+void canvas_color_trans(Canvas *canvas, CMap_entry *cmap);
+int make_color_scale(Canvas *canvas,
+    unsigned int fg, unsigned int bg,
+    unsigned int ncolors, unsigned long *colors);
+
+void initialize_cmap(Canvas *canvas);
+int init_t1(Canvas *canvas);
+void initialize_patterns(Canvas *canvas);
+void initialize_linestyles(Canvas *canvas);
 
 #endif /* __CANVASP_H_ */
