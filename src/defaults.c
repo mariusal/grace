@@ -76,10 +76,10 @@ void set_region_defaults(region *r)
 void set_default_framep(framep * f)
 {
     f->type = 0;                /* frame type */
-    f->lines = grdefaults.lines;
-    f->linew = grdefaults.linew;
-    f->pen.color = grdefaults.color;
-    f->pen.pattern = grdefaults.pattern;
+    f->outline.style = grdefaults.lines;
+    f->outline.width = grdefaults.linew;
+    f->outline.pen.color = grdefaults.color;
+    f->outline.pen.pattern = grdefaults.pattern;
     f->fillpen.color = grdefaults.bgcolor;      /* fill background */
     f->fillpen.pattern = 0;
 }

@@ -219,10 +219,8 @@ typedef struct {
 
 typedef struct {
     int type;                   /* frame type */
-    Pen pen;                    /* frame pen */
-    int lines;                  /* frame linestyle */
-    double linew;                  /* frame line width */
-    Pen fillpen;                /* fill pen */
+    Line outline;               /* outline    */
+    Pen fillpen;                /* fill pen   */
 } framep;
 
 typedef struct {

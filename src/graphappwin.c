@@ -552,16 +552,16 @@ static int graphapp_aac_cb(void *data)
                 f->type = GetOptionChoice(frame_framestyle_choice_item);
             }
             if (data == frame_color_choice_item || data == NULL) {
-                f->pen.color = GetOptionChoice(frame_color_choice_item);
+                f->outline.pen.color = GetOptionChoice(frame_color_choice_item);
             }
             if (data == frame_pattern_choice_item || data == NULL) {
-                f->pen.pattern = GetOptionChoice(frame_pattern_choice_item);
+                f->outline.pen.pattern = GetOptionChoice(frame_pattern_choice_item);
             }
             if (data == frame_linew_choice_item || data == NULL) {
-                f->linew = GetSpinChoice(frame_linew_choice_item);
+                f->outline.width = GetSpinChoice(frame_linew_choice_item);
             }
             if (data == frame_lines_choice_item || data == NULL) {
-                f->lines = GetOptionChoice(frame_lines_choice_item);
+                f->outline.style = GetOptionChoice(frame_lines_choice_item);
             }
             if (data == frame_fillcolor_choice_item || data == NULL) {
                 f->fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
@@ -749,10 +749,10 @@ static void update_frame_items(Quark *gr)
         f = get_graph_frame(gr);
     
 	SetOptionChoice(frame_framestyle_choice_item, f->type);
-	SetOptionChoice(frame_color_choice_item, f->pen.color);
-	SetOptionChoice(frame_pattern_choice_item, f->pen.pattern);
-	SetSpinChoice(frame_linew_choice_item, f->linew);
-	SetOptionChoice(frame_lines_choice_item, f->lines);
+	SetOptionChoice(frame_color_choice_item, f->outline.pen.color);
+	SetOptionChoice(frame_pattern_choice_item, f->outline.pen.pattern);
+	SetSpinChoice(frame_linew_choice_item, f->outline.width);
+	SetOptionChoice(frame_lines_choice_item, f->outline.style);
 	SetOptionChoice(frame_fillcolor_choice_item, f->fillpen.color);
 	SetOptionChoice(frame_fillpattern_choice_item, f->fillpen.pattern);
     }

@@ -1181,9 +1181,7 @@ char *utf2iso(const char *s)
         </attribute>
         <!-- Child elements -->
         <child name="#EStrLineSpec">
-            $$->linew = $?->width;
-            $$->lines = $?->style;
-            $$->pen   = $?->pen;
+            $$->outline = *$?;
             xfree($?);
         </child>
         <child name="#EStrFillSpec">

@@ -776,9 +776,7 @@ void drawframe(Canvas *canvas, Quark *gr)
     get_graph_viewport(gr, &v);
     f = get_graph_frame(gr);
 
-    setpen(canvas, &f->pen);
-    setlinewidth(canvas, f->linew);
-    setlinestyle(canvas, f->lines);
+    setline(canvas, &f->outline);
 
     switch (f->type) {
     case 0:

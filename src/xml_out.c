@@ -494,7 +494,8 @@ int save_graph_properties(XFile *xf, Quark *gr)
     attributes_set_ival(attrs, AStrType, g->f.type); /* FIXME: textual */
     xfile_begin_element(xf, EStrFrame, attrs);
     {
-        xmlio_write_line_spec(xf, attrs, &(g->f.pen), g->f.linew, g->f.lines);
+        xmlio_write_line_spec(xf, attrs,
+            &(g->f.outline.pen), g->f.outline.width, g->f.outline.style);
         xmlio_write_fill_spec(xf, attrs, &(g->f.fillpen));
     }
     xfile_end_element(xf, EStrFrame);

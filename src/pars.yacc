@@ -2581,7 +2581,7 @@ parmset:
 
 	| FRAMEP onoff {
 	    framep *f = get_graph_frame(whichgraph);
-            f->pen.pattern = $2;
+            f->outline.pen.pattern = $2;
 	}
 	| FRAMEP TYPE nexpr {
 	    framep *f = get_graph_frame(whichgraph);
@@ -2589,19 +2589,19 @@ parmset:
 	}
 	| FRAMEP lines_select {
 	    framep *f = get_graph_frame(whichgraph);
-	    f->lines = $2;
+	    f->outline.style = $2;
 	}
 	| FRAMEP linew_select {
 	    framep *f = get_graph_frame(whichgraph);
-	    f->linew = $2;
+	    f->outline.width = $2;
 	}
 	| FRAMEP color_select {
 	    framep *f = get_graph_frame(whichgraph);
-	    f->pen.color = $2;
+	    f->outline.pen.color = $2;
 	}
 	| FRAMEP pattern_select {
 	    framep *f = get_graph_frame(whichgraph);
-	    f->pen.pattern = $2;
+	    f->outline.pen.pattern = $2;
 	}
 	| FRAMEP BACKGROUND color_select
         { 
