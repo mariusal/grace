@@ -147,6 +147,12 @@ extern int action_flag;
 static Pixmap zoompm, shrinkpm, expandpm, autopm;
 static Pixmap uppm, leftpm, downpm, rightpm;
 
+static int toolbar_visible = 1;
+static int statusbar_visible = 1;
+static int locbar_visible = 1;
+
+static Widget windowbarw[3];
+
 /* action routines */
 void autoscale( Widget, XKeyEvent *, String *, Cardinal * );
 void autoscale_on_near( Widget, XKeyEvent *, String *, Cardinal * );
@@ -162,12 +168,6 @@ void exit_abruptly( Widget, XKeyEvent *, String *, Cardinal * );
 void enable_zoom( Widget, XKeyEvent *, String *, Cardinal * );
 static void graph_scroll_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data);
-static void graph_stack_proc(Widget w, XtPointer client_data, XtPointer call_data);
-
-#define STACK_CYCLE     0
-#define STACK_POP       1
-#define STACK_PUSH      2
-#define STACK_PUSHZOOM  3
 
 /*
  * establish action routines
@@ -217,6 +217,9 @@ typedef struct {
     Boolean auto_redraw;
     Boolean status_auto_redraw;
     Boolean logwindow;
+    Boolean toolbar;
+    Boolean statusbar;
+    Boolean locatorbar;
 }
 ApplicationData, *ApplicationDataPtr;
 
@@ -240,6 +243,15 @@ static XtResource resources[] =
     {"logWindow", "LogWindow", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, logwindow), XtRImmediate,
      (XtPointer) FALSE},
+    {"toolBar", "ToolBar", XtRBoolean, sizeof(Boolean),
+     XtOffset(ApplicationDataPtr, toolbar), XtRImmediate,
+     (XtPointer) TRUE},
+    {"statusBar", "StatusBar", XtRBoolean, sizeof(Boolean),
+     XtOffset(ApplicationDataPtr, statusbar), XtRImmediate,
+     (XtPointer) TRUE},
+    {"locatorBar", "LocatorBar", XtRBoolean, sizeof(Boolean),
+     XtOffset(ApplicationDataPtr, locatorbar), XtRImmediate,
+     (XtPointer) TRUE}
 };
 
 String fallbackResources[] = {
@@ -316,6 +328,9 @@ void xlibprocess_args(int *argc, char **argv)
     logwindow = rd.logwindow;
     auto_redraw = rd.auto_redraw;
     status_auto_redraw = rd.status_auto_redraw;
+    toolbar_visible = rd.toolbar;
+    statusbar_visible = rd.statusbar;
+    locbar_visible = rd.locatorbar;
 
     XtAppAddActions(app_con, canvas_actions, XtNumber(canvas_actions));
     XtAppAddActions(app_con, graph_select_actions, XtNumber(graph_select_actions));
@@ -446,12 +461,6 @@ void do_clear_point(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * set visibility of the toolbars
  */
-int toolbar_visible = 1;
-int statusbar_visible = 1;
-int locbar_visible = 1;
-
-static Widget windowbarw[3];
-
 static void set_view_items(void)
 {
     if (statusbar_visible) {
@@ -529,27 +538,6 @@ static void set_view_items(void)
 			  XmNtopAttachment, XmATTACH_FORM,
 			  NULL);
 	}
-    }
-}
-
-/*
- * called from the parser
- */
-void set_toolbars(int bar, int onoff)
-{
-    switch (bar) {
-    case BAR_TOOLBAR:
-	toolbar_visible = onoff;
-	break;
-    case BAR_STATUSBAR:
-	statusbar_visible = onoff;
-	break;
-    case BAR_LOCATORBAR:
-	locbar_visible = onoff;
-	break;
-    }
-    if (inwin) {
-	set_view_items();
     }
 }
 
@@ -1332,14 +1320,12 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("PZ", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_PUSHZOOM);
+    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) push_and_zoom, NULL);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#pz");
 
     bt = XtVaCreateManagedWidget("Pu", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_PUSH);
+    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) push_world, NULL);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#pu");
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
@@ -1352,14 +1338,12 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("Po", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_POP);
+    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) pop_world, NULL);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#po");
 
     bt = XtVaCreateManagedWidget("Cy", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback,
-            (XtCallbackProc) graph_stack_proc, (XtPointer) STACK_CYCLE);
+    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) cycle_world_stack, NULL);
     XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#cy");
 
     sdstring = XmStringCreateLtoR("SD:1 ", charset);
@@ -1510,24 +1494,3 @@ static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data
     drawgraph();
 }
 
-static void graph_stack_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int action = (int) client_data;
-
-    switch (action) {
-    case STACK_POP:
-        pop_world();
-        break;
-    case STACK_PUSH:
-        push_world();
-        break;
-    case STACK_PUSHZOOM:
-        push_and_zoom();
-        break;
-    case STACK_CYCLE:
-        cycle_world_stack();
-        break;
-    }
-    update_all();
-    drawgraph();
-}

@@ -1,25 +1,27 @@
 !
 ! X defaults for xmgrace
 !
-!XMgrace*fontList:  -adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*
-!XMgrace*tabFontList:  -adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*
+!XMgrace*fontList: -adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*
+!XMgrace*tabFontList: -adobe-helvetica-bold-r-normal-*-14-*-*-*-*-*-*-*
 !XMgrace*background: #e5e5e5e5e5e5
 !XMgrace*XmPushButton*background: #b0b0c4c4dede
 !XMgrace*XmArrowButton*background: #b0b0c4c4dede
 !XMgrace*XmText*background: #ceb8e75be75b
 !XMgrace*XmMenuShell*background: #cccccccccccc
-!XMgrace*XmToggleButton.fillOnSelect:       true
-!XMgrace*XmToggleButton.selectColor:        red
-!XMgrace*XmSeparator.margin:        0
+!XMgrace*XmToggleButton.fillOnSelect: True
+!XMgrace*XmToggleButton.selectColor:  red
+!XMgrace*XmSeparator.margin: 0
 ! Disable tear-off menus
 !XMgrace*tearOffModel: XmTEAR_OFF_DISABLED
 ! Use GXinvert rather than GXxor for rubberband lines
 ! if the rubberbanding for zooms and lines, etc. doesn't
 ! appear on the canvas, set the following resource to yes.
-!XMgrace.invertDraw: no
-! do backing store if the server doesn't
-!XMgrace.backingstore: no
+!XMgrace.invertDraw: No
 ! Verify Edit/Set ops/Pick sets operations
-!XMgrace.verifyAction: no
+!XMgrace.verifyAction: No
 ! Allow double clicks on canvas
 !XMgrace.allowDoubleClick: No
+! Switch toolbar(s) off
+!XMgrace*toolBar: Off
+!XMgrace*statusBar: Off
+!XMgrace*locatorBar: Off

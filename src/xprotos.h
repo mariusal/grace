@@ -275,8 +275,6 @@ void set_pagelayout(int layout);
 int GetXVText(double scale, char *s);
 int GetYVText(double scale, char *s);
 
-void set_toolbars(int bar, int onoff);
-
 void errwin(char *s);
 
 void create_describe_popup(Widget w, XtPointer client_data, XtPointer call_data);
