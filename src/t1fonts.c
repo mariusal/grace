@@ -94,7 +94,7 @@ int init_t1(void)
         return (RETURN_FAILURE);
     }
     
-    fd = grace_openr(bufp, SOURCE_DISK);
+    fd = grace_openr("fonts/FontDataBase", SOURCE_DISK);
     if (fd == NULL) {
         return (RETURN_FAILURE);
     }
