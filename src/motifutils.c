@@ -464,26 +464,7 @@ static char list_translation_table[] = "\
 
 static void list_selectall(Widget list)
 {
-    int i, n;
-    unsigned char selection_type_save;
-    
-    XtVaGetValues(list,
-                  XmNselectionPolicy, &selection_type_save,
-                  XmNitemCount, &n,
-                  NULL);
-    if (selection_type_save == XmSINGLE_SELECT) {
-        XBell(disp, 50);
-        return;
-    }
-    
-    XtVaSetValues(list, XmNselectionPolicy, XmMULTIPLE_SELECT, NULL);
-                             
-    XmListDeselectAllItems(list);
-    for (i = 1; i <= n; i++) {
-        XmListSelectPos(list, i, False);
-    }
-    
-    XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+    XtCallActionProc(list, "ListKbdSelectAll", NULL, NULL, 0);
 }
 
 static void list_unselectall(Widget list)
@@ -510,6 +491,22 @@ static void list_invertselection(Widget list)
         XmListSelectPos(list, i, False);
     }
     XtVaSetValues(list, XmNselectionPolicy, selection_type_save, NULL);
+}
+
+static int list_get_selected_count(Widget list)
+{
+    int n;
+#if XmVersion < 2000
+    int *selected;
+    if (XmListGetSelectedPos(list, &selected, &n) != True) {
+        n = 0;
+    } else {
+        XFree(selected);
+    }
+#else
+    XtVaGetValues(list, XmNselectedPositionCount, &n, NULL);
+#endif    
+    return n;
 }
 
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
@@ -763,7 +760,7 @@ static void storage_popup(Widget parent,
         return;
     }
     
-    XtVaGetValues(ss->list, XmNselectedPositionCount, &n, NULL);
+    n = list_get_selected_count(ss->list);
     
     if (n != 0) {
         selected = TRUE;
