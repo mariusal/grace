@@ -236,6 +236,7 @@ void draw_atext(Canvas *canvas, Quark *q)
         VPoint vp1, vp2;
 
         setcharsize(canvas, at->text_props.charsize);
+        setfont(canvas, at->text_props.font);
         get_string_bbox(canvas, &anchor,
             at->text_props.angle, at->text_props.just, at->s, &bbox);
         view_extend(&bbox, at->frame_offset);
