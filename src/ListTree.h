@@ -138,6 +138,7 @@ ListTreeItem *ListTreeFindChildName (Widget w, ListTreeItem *item, char *name);
 void ListTreeHighlightItem (Widget w, ListTreeItem *item);
 void ListTreeHighlightItemMultiple(Widget w, ListTreeItem * item);
 ListTreeItem *ListTreeFirstItem (Widget w);
+void ListTreeClearHighlighted(Widget w);
 void ListTreeGetHighlighted(Widget w,ListTreeMultiReturnStruct *ret);
 void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
 			    int count,Boolean clear);
