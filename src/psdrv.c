@@ -132,6 +132,7 @@ static int ps_initgraphics(int format)
     Page_geometry pg;
     fRGB *frgb;
     int width_pp, height_pp, page_offset_x, page_offset_y;
+    char **enc;
     
     time_t time_value;
     
@@ -290,6 +291,8 @@ static int ps_initgraphics(int format)
             fprintf(prstream, "> pattern} bind def\n");
         }
     }
+    
+    /* Elliptic arc */
     fprintf(prstream, "/ellipsedict 8 dict def\n");
     fprintf(prstream, "ellipsedict /mtrx matrix put\n");
     fprintf(prstream, "/ellipse {\n");
@@ -307,6 +310,14 @@ static int ps_initgraphics(int format)
     fprintf(prstream, "  savematrix setmatrix\n");
     fprintf(prstream, " end\n");
     fprintf(prstream, "} def\n");
+
+    /* Default encoding */
+    enc = get_default_encoding();
+    fprintf(prstream, "/DefEncoding [\n");
+    for (i = 0; i < 256; i++) {
+        fprintf(prstream, " (%s)\n", enc[i]);
+    }
+    fprintf(prstream, "] def\n");
 
     fprintf(prstream, "%%%%EndProlog\n");
 
@@ -680,10 +691,10 @@ void ps_puttext(VPoint vp, char *s, int len, int font,
         fontname = get_fontalias(font);
         encscheme = get_encodingscheme(font);
         fprintf(prstream, "/%s findfont\n", fontname);
-        if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
+        if (strcmp(encscheme, "FontSpecific") != 0) {
             fprintf(prstream, "dup length dict begin\n");
             fprintf(prstream, " {1 index /FID ne {def} {pop pop} ifelse} forall\n");
-            fprintf(prstream, " /Encoding ISOLatin1Encoding def\n");
+            fprintf(prstream, " /Encoding DefEncoding def\n");
             fprintf(prstream, " currentdict\n");
             fprintf(prstream, "end\n");
         }
