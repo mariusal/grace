@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 2000 Grace Development Team
+ * Copyright (c) 2000,2001 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -38,9 +38,8 @@
 #define STORAGE_ENOENT  1
 #define STORAGE_ENOMEM  2
 #define STORAGE_ENULLP  3
-#define STORAGE_EEXIST  4
-#define STORAGE_EPARAM  5
-#define STORAGE_EFATAL  6
+#define STORAGE_EPARAM  4
+#define STORAGE_EFATAL  5
 
 /* error types */
 #define STORAGE_ETYPE_DEBUG 0
@@ -54,7 +53,6 @@ typedef void *(*Storage_data_copy)(void *data);
 typedef void (*Storage_exception_handler)(int type, const char *msg); 
 
 typedef struct _LLNode {
-    int id;
     struct _LLNode *next;
     struct _LLNode *prev;
     void *data;
@@ -64,7 +62,6 @@ typedef struct _Storage {
     LLNode *start;
     LLNode *cp;
     int count;
-    int *ids;
     int ierrno;
     Storage_data_free data_free;
     Storage_data_copy data_copy;
@@ -73,7 +70,7 @@ typedef struct _Storage {
 
 typedef struct _StorageTData {
     unsigned int step;
-    int id;
+    char *id;
     void *data;
 } StorageTData;
 
@@ -99,34 +96,30 @@ int storage_scroll_to_id(Storage *sto, int id);
 
 int storage_id_exists(Storage *sto, int id);
 
-int storage_add(Storage *sto, int id, void *data);
-int storage_insert(Storage *sto, int id, void *data);
+int storage_add(Storage *sto, void *data);
+int storage_insert(Storage *sto, void *data);
 int storage_delete(Storage *sto);
 
-int storage_duplicate(Storage *sto, int id);
-
-int storage_get_id(Storage *sto, int *id);
+void *storage_duplicate(Storage *sto, int id);
 
 int storage_get_data(Storage *sto, void **datap);
 
-int storage_get_unique_id(Storage *sto);
-
-int storage_get_all_ids(Storage *sto, int **ids);
-int storage_pack_ids(Storage *sto);
 int storage_push_id(Storage *sto, int id, int forward);
+
+int storage_get_id(Storage *sto);
 
 int storage_get_data_next(Storage *sto, void **datap);
 int storage_get_data_by_id(Storage *sto, int id, void **datap);
 int storage_delete_by_id(Storage *sto, int id);
 
-int storage_data_copy(Storage *sto, int id1, int id2, int create);
-int storage_data_move(Storage *sto, int id1, int id2, int create);
-int storage_data_swap(Storage *sto, int id1, int id2, int create);
+int storage_data_copy(Storage *sto, int id1, int id2);
+int storage_data_move(Storage *sto, int id1, int id2);
+int storage_data_swap(Storage *sto, int id1, int id2);
 
 void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata);
 
-int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2, int create);
-int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2, int create);
-int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2, int create);
+int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2);
+int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2);
+int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2);
 
 #endif /* __STORAGE_H_ */
