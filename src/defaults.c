@@ -367,7 +367,9 @@ void set_default_ticks(tickmarks *t, int a)
     t->mprops.color = grdefaults.color;
     t->mprops.lines = grdefaults.lines;
     t->mprops.linew = grdefaults.linew;
+    t->nticks = 0;
     for (i = 0; i < MAX_TICKS; i++) {
+        t->tloc[i].wtpos = 0.0;
         t->tloc[i].label = NULL;
     }
 }
