@@ -20,7 +20,7 @@ CFLAGS=$(CFLAGS0) -I$(TOP)/include -I$(TOP)/cephes -I. \
 	$(T1_INC) $(EXPAT_INC) $(XBAE_INC) $(CPPFLAGS) $(GUI_FLAGS)
 
 LIBS=$(GUI_LIBS) $(CEPHES_LIB) $(NETCDF_LIBS) $(FFTW_LIB) \
-	$(XCC_LIB) $(EXPAT_LIB) \
+	$(EXPAT_LIB) \
 	$(GRACE_CORE_LIB) $(GRACE_CANVAS_LIB) $(T1_LIB) $(XMI_LIB) \
 	$(PDF_LIB) $(TIFF_LIB) $(JPEG_LIB) $(PNG_LIB) $(Z_LIB) \
 	$(GRACE_BASE_LIB) $(NOGUI_LIBS) $(DL_LIB)
@@ -68,7 +68,7 @@ $(PARS_C) : $(PARS_Y)
 	$(YACC) -t $? && mv y.tab.c $@
 
 xml_in.c : grace.xcc
-	$(XCC) -i $? -o $@
+	$(XCC) -b -i $? -o $@
 
 install : $(GRACE)
 	$(MKINSTALLDIRS) $(DESTDIR)$(GRACE_HOME)/bin

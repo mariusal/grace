@@ -39,9 +39,6 @@ T1_AA_TYPE64=@T1_AA_TYPE64@
 # XCC exec
 XCC=xcc
 
-# XCC library
-XCC_LIB=-lxcc
-
 # Expat library
 EXPAT_LIB=-lexpat
 
