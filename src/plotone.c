@@ -257,11 +257,13 @@ void draw_pie_chart(int gno)
     int i, setno, nsets = 0;
     plotarr p;
     view v;
-    VPoint vpc, vp1, vp2, vps[3];
+    VPoint vpc, vp1, vp2, vps[3], vpa;
     VVector offset;
     double r, start_angle, stop_angle;
     double norm;
     double *x, *c, *e, *pt;
+    AValue avalue;
+    char str[MAX_STRING_LENGTH];
 
     get_graph_viewport(gno, &v);
     vpc.x = (v.xv1 + v.xv2)/2;
@@ -332,6 +334,40 @@ void draw_pie_chart(int gno)
                     DrawArc(vp1, vp2,
                         (int) rint(180.0/M_PI*start_angle),
                         (int) rint(180.0/M_PI*stop_angle));
+
+                    avalue = p.avalue;
+
+                    if (avalue.active == TRUE) {
+
+                        vpa.x = vpc.x + ((1 + e[i])*r + avalue.offset.y)*
+                            cos((start_angle + stop_angle)/2.0);
+                        vpa.y = vpc.y + ((1 + e[i])*r + avalue.offset.y)*
+                            sin((start_angle + stop_angle)/2.0);
+
+                        strcpy(str, avalue.prestr);
+
+                        switch(avalue.type) {
+                        case AVALUE_TYPE_X:
+                            strcat(str, create_fstring(avalue.format, avalue.prec, x[i], 
+                                                                 LFORMAT_TYPE_EXTENDED));
+                            break;
+                        case AVALUE_TYPE_STRING:
+                            if (p.data.s != NULL && p.data.s[i] != NULL) {
+                                strcat(str, p.data.s[i]);
+                            }
+                            break;
+                        default:
+                            continue;
+                        }
+
+                        strcat(str, avalue.appstr);
+
+                        setcharsize(avalue.size);
+                        setfont(avalue.font);
+                        setcolor(avalue.color);
+
+                        WriteString(vpa, avalue.angle, JUST_CENTER|JUST_MIDDLE, str);
+                    }
                 }
                 break;
             default:
