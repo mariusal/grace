@@ -261,6 +261,14 @@ plotstr *plotstr_new()
     return retval;
 }
 
+void plotstr_free(plotstr *s)
+{
+    if (s) {
+        xfree(s->s);
+        xfree(s);
+    }
+}
+
 typedef struct {
     int zero;
     VPoint offset;
@@ -956,11 +964,11 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrTitle">
             set_graph_title($$, $?);
-            xfree($?);
+            plotstr_free($?);
         </child>
         <child name="#EStrSubtitle">
             set_graph_stitle($$, $?);
-            xfree($?);
+            plotstr_free($?);
         </child>
         <child name="#EStrAxis"><![CDATA[
             int axis = ((ParserData *) $U)->axis;
