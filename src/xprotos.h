@@ -308,4 +308,6 @@ void set_graph_selectors(int gno);
 void update_props_items(void);
 void update_all(void);
 
+void push_and_zoom(void);
+
 #endif /* __XPROTOS_H_ */

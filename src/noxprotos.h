@@ -150,7 +150,6 @@ void set_graph_ellipse(int i, ellipsetype * e);
 
 void newworld(int gno, int lz, int axes, double wx1, double wy1, double wx2, double wy2);
 
-void push_and_zoom(void);
 void pop_world(void);
 
 void define_autos(int aon, int au, int ap);

@@ -168,6 +168,12 @@ void exit_abruptly( Widget, XKeyEvent *, String *, Cardinal * );
 void enable_zoom( Widget, XKeyEvent *, String *, Cardinal * );
 static void graph_scroll_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_data);
+
+#define WSTACK_PUSH         0
+#define WSTACK_POP          1
+#define WSTACK_CYCLE        2
+#define WSTACK_PUSH_ZOOM    3
 
 /*
  * establish action routines
@@ -390,18 +396,10 @@ static void MenuCB(Widget w, XtPointer client_data, XtPointer call_data)
  */
 static void autoscale_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    if (activeset(get_cg())) {
-	switch ((int) client_data) {
-	case 0:
-	    autoscale_graph(get_cg(), AUTOSCALE_XY);
-	    break;
-	case 1:
-	    autoscale_graph(get_cg(), AUTOSCALE_X);
-	    break;
-	case 2:
-	    autoscale_graph(get_cg(), AUTOSCALE_Y);
-	    break;
-	}
+    int cg = get_cg();
+    
+    if (activeset(cg)) {
+	autoscale_graph(cg, (int) client_data);
 	drawgraph();
     } else {
 	errwin("No active sets!");
@@ -1168,8 +1166,10 @@ void initialize_screen()
 		  XmNlabelType, XmPIXMAP,
 		  XmNlabelPixmap, autopm,
 		  NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) autoscale_proc, (XtPointer) 0);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#as");
+    XtAddCallback(bt, XmNactivateCallback,
+                                    autoscale_proc, (XtPointer) AUTOSCALE_XY);
+    XtAddCallback(bt, XmNhelpCallback,
+                         (XtCallbackProc) HelpCB, (XtPointer) "main.html#as");
 
 /* expand/shrink */
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
@@ -1302,13 +1302,17 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("AX", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) autoscale_proc, (XtPointer) 1);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#autox");
+    XtAddCallback(bt, XmNactivateCallback,
+                                     autoscale_proc, (XtPointer) AUTOSCALE_X);
+    XtAddCallback(bt, XmNhelpCallback,
+                      (XtCallbackProc) HelpCB, (XtPointer) "main.html#autox");
 
     bt = XtVaCreateManagedWidget("AY", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) autoscale_proc, (XtPointer) 2);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#autoy");
+    XtAddCallback(bt, XmNactivateCallback,
+                                     autoscale_proc, (XtPointer) AUTOSCALE_Y);
+    XtAddCallback(bt, XmNhelpCallback,
+                      (XtCallbackProc) HelpCB, (XtPointer) "main.html#autoy");
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1320,13 +1324,17 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("PZ", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) push_and_zoom, NULL);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#pz");
+    XtAddCallback(bt, XmNactivateCallback, 
+                            world_stack_proc, (XtPointer) WSTACK_PUSH_ZOOM);
+    XtAddCallback(bt, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#pz");
 
     bt = XtVaCreateManagedWidget("Pu", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) push_world, NULL);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#pu");
+    XtAddCallback(bt, XmNactivateCallback, 
+                                 world_stack_proc, (XtPointer) WSTACK_PUSH);
+    XtAddCallback(bt, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#pu");
 
     rc3 = XtVaCreateManagedWidget("rc", xmRowColumnWidgetClass, rcleft,
 				  XmNorientation, XmHORIZONTAL,
@@ -1338,31 +1346,40 @@ void initialize_screen()
 				  NULL);
     bt = XtVaCreateManagedWidget("Po", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) pop_world, NULL);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#po");
+    XtAddCallback(bt, XmNactivateCallback, 
+                                world_stack_proc, (XtPointer) WSTACK_POP);
+    XtAddCallback(bt, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#po");
 
     bt = XtVaCreateManagedWidget("Cy", xmPushButtonWidgetClass, rc3,
 				 NULL);
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) cycle_world_stack, NULL);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#cy");
+    XtAddCallback(bt, XmNactivateCallback, 
+                                world_stack_proc, (XtPointer) WSTACK_CYCLE);
+    XtAddCallback(bt, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#cy");
 
     sdstring = XmStringCreateLtoR("SD:1 ", charset);
-    stack_depth_item = XtVaCreateManagedWidget("stackdepth", xmLabelWidgetClass, rcleft,
+    stack_depth_item = XtVaCreateManagedWidget("stackdepth",
+                                               xmLabelWidgetClass, rcleft,
 					       XmNlabelString, sdstring,
 					       NULL);
-    XtAddCallback(stack_depth_item, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#sd");
+    XtAddCallback(stack_depth_item, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#sd");
 
     cystring = XmStringCreateLtoR("CW:0 ", charset);
     curw_item = XtVaCreateManagedWidget("curworld", xmLabelWidgetClass, rcleft,
 					XmNlabelString, cystring,
 					NULL);
-    XtAddCallback(curw_item, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#cw");
+    XtAddCallback(curw_item, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#cw");
 
     bt = XtVaCreateManagedWidget("Exit", xmPushButtonWidgetClass, rcleft,
 				 NULL);
 
-    XtAddCallback(bt, XmNactivateCallback, (XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT);
-    XtAddCallback(bt, XmNhelpCallback, (XtCallbackProc) HelpCB, (XtPointer) "main.html#exit");
+    XtAddCallback(bt, XmNactivateCallback,
+                            (XtCallbackProc) MenuCB, (XtPointer) MENU_EXIT);
+    XtAddCallback(bt, XmNhelpCallback,
+                        (XtCallbackProc) HelpCB, (XtPointer) "main.html#exit");
 
 /*
  * initialize cursors
@@ -1494,3 +1511,24 @@ static void graph_zoom_proc(Widget w, XtPointer client_data, XtPointer call_data
     drawgraph();
 }
 
+static void world_stack_proc(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    switch ((int) client_data) {
+    case WSTACK_PUSH_ZOOM:
+        push_and_zoom();
+        break;
+    case WSTACK_PUSH:
+        push_world();
+        break;
+    case WSTACK_POP:
+        pop_world();
+        break;
+    case WSTACK_CYCLE:
+        cycle_world_stack();
+        break;
+    default:
+        return;
+    }
+    update_all();
+    drawgraph();
+}
