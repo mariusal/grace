@@ -543,6 +543,7 @@ symtab_entry *key;
 
 /* Precedence */
 %right '='
+%nonassoc '?' ':'
 %right UCONSTANT
 %left OR
 %left AND
