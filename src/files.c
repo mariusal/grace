@@ -1129,7 +1129,7 @@ int load_project_file(char *fn, int as_template)
         
         quark_idstr_set(grace->project, buf);
         
-        clear_dirtystate();
+        quark_dirtystate_set(grace->project, FALSE);
     }
 
     /* try to switch to the first active graph */

@@ -249,7 +249,6 @@ int dataset_empty(Dataset *dsp)
                 XCFREE(dsp->s);
             }
             dsp->len = 0;
-	    set_dirtystate();
         }
         return RETURN_SUCCESS;
     } else {
@@ -511,14 +510,11 @@ Dataset *dataset_get(Quark *pset)
  */
 void killsetdata(Quark *pset)
 {
-    set *p;
-    
-    if (!pset) {
-        return;
+    set *p = set_get_data(pset);
+    if (p) {
+        dataset_empty(p->data);
+        quark_dirtystate_set(pset, TRUE);
     }
-    
-    p = set_get_data(pset);
-    dataset_empty(p->data);
 }
 
 /*
@@ -526,15 +522,13 @@ void killsetdata(Quark *pset)
  */
 int setlength(Quark *pset, int len)
 {
-    set *p;
+    set *p = set_get_data(pset);
 
-    if (!pset) {
+    if (!p) {
         return RETURN_FAILURE;
     }
     
-    p = set_get_data(pset);
-
-    set_dirtystate();
+    quark_dirtystate_set(pset, TRUE);
     
     return set_dataset_nrows(p->data, len);
 }
@@ -546,12 +540,12 @@ int copysetdata(Quark *psrc, Quark *pdest)
 {
     set *p1, *p2;
     
-    if (!psrc || !pdest || psrc == pdest) {
-	return RETURN_FAILURE;
-    }
-    
     p1 = set_get_data(psrc);
     p2 = set_get_data(pdest);
+    
+    if (!p1 || !p2 || p1 == p2) {
+	return RETURN_FAILURE;
+    }
     
     dataset_free(p2->data);
     p2->data = dataset_copy(p1->data);
@@ -560,7 +554,7 @@ int copysetdata(Quark *psrc, Quark *pdest)
         if (dataset_cols(pdest) != dataset_cols(psrc)) {
             p2->type = p1->type;
         }
-        set_dirtystate();
+        quark_dirtystate_set(pdest, TRUE);
 	return RETURN_SUCCESS;
     } else {
 	return RETURN_FAILURE;
@@ -591,7 +585,7 @@ void setcol(Quark *pset, int col, double *x, int len)
         set *p = set_get_data(pset);
         p->data->ex[col] = x;
         p->data->len = len;
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
     }
 }
 
@@ -611,7 +605,7 @@ int set_set_strings(Quark *pset, int len, char **s)
         set *p = set_get_data(pset);
         p->data->s = s;
         p->data->len = len;
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -635,7 +629,7 @@ int setcomment(Quark *pset, char *s)
     dsp = dataset_get(pset);
     if (dsp) {
         dsp->comment = copy_string(dsp->comment, s);
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -659,7 +653,7 @@ int set_legend_string(Quark *pset, char *s)
     if (pset) {
         set *p = set_get_data(pset);
         p->legstr = copy_string(p->legstr, s);
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -688,7 +682,7 @@ int set_dataset_type(Quark *pset, int type)
     p = set_get_data(pset);
     if (set_dataset_ncols(p->data, ncols_new) == RETURN_SUCCESS) {
         p->type = type;
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -715,7 +709,7 @@ void set_hotlink(Quark *pset, int onoroff, char *fname, int src)
         dsp->hotlink = onoroff;
 	dsp->hotfile = copy_string(dsp->hotfile, fname);
 	dsp->hotsrc = src;
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
     }
 }
 
@@ -1029,7 +1023,7 @@ int set_point(Quark *pset, int seti, const WPoint *wp)
     }
     (getcol(pset, DATA_X))[seti] = wp->x;
     (getcol(pset, DATA_Y))[seti] = wp->y;
-    set_dirtystate();
+    quark_dirtystate_set(pset, TRUE);
     return RETURN_SUCCESS;
 }
 
@@ -1064,7 +1058,7 @@ void copycol2(Quark *psrc, Quark *pdest, int col)
     for (i = 0; i < n1; i++) {
 	x2[i] = x1[i];
     }
-    set_dirtystate();
+    quark_dirtystate_set(pdest, TRUE);
 }
 
 int is_set_active(Quark *pset)
@@ -1219,7 +1213,7 @@ void reverse_set(Quark *pset)
             s[j] = stmp;
 	}
     }
-    set_dirtystate();
+    quark_dirtystate_set(pset, TRUE);
 }
 /*
  * sort a set
@@ -1346,54 +1340,7 @@ void sortset(Quark *pset, int sorton, int stype)
     xfree(xtmp);
     xfree(ind);
 
-    set_dirtystate();
-}
-
-/*
- * sort two arrays
- */
-void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype)
-{
-
-    int d, i, j;
-    int lo = 0;
-    double t1, t2;
-
-    if (sorton == 1) {
-	double *ttmp;
-
-	ttmp = tmp1;
-	tmp1 = tmp2;
-	tmp2 = ttmp;
-    }
-    up--;
-
-    for (d = up - lo + 1; d > 1;) {
-	if (d < 5)
-	    d = 1;
-	else
-	    d = (5 * d - 1) / 11;
-	for (i = up - d; i >= lo; i--) {
-	    t1 = tmp1[i];
-	    t2 = tmp2[i];
-	    if (!stype) {
-		for (j = i + d; j <= up && (t1 > tmp1[j]); j += d) {
-		    tmp1[j - d] = tmp1[j];
-		    tmp2[j - d] = tmp2[j];
-		}
-		tmp1[j - d] = t1;
-		tmp2[j - d] = t2;
-	    } else {
-		for (j = i + d; j <= up && (t1 < tmp1[j]); j += d) {
-		    tmp1[j - d] = tmp1[j];
-		    tmp2[j - d] = tmp2[j];
-		}
-		tmp1[j - d] = t1;
-		tmp2[j - d] = t2;
-	    }
-	}
-    }
-    set_dirtystate();
+    quark_dirtystate_set(pset, TRUE);
 }
 
 /*
@@ -1501,7 +1448,7 @@ int add_point_at(Quark *pset, int ind, const Datapoint *dpoint)
             }
             s[ind] = copy_string(NULL, dpoint->s);
         }
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1809,7 +1756,7 @@ int set_set_colors(Quark *pset, int color)
         p->sym.fillpen.color  = color;
         p->errbar.pen.color  = color;
 
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

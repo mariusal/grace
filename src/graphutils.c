@@ -435,7 +435,7 @@ void autotick_axis(Quark *q)
         }
     }
     
-    set_dirtystate();
+    quark_dirtystate_set(q, TRUE);
 }
 
 /*
@@ -758,7 +758,7 @@ void move_legend(Quark *gr, VVector shift)
             break;
         }
 
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
     }
 }
 
@@ -810,7 +810,7 @@ void rescale_viewport(Quark *project, double ext_x, double ext_y)
 
     quark_traverse(project, hook, &ext_xy);
 
-    set_dirtystate();
+    quark_dirtystate_set(project, TRUE);
 }
 
 

@@ -341,7 +341,7 @@ void move_object(Quark *q, VVector shift)
         view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
     }
     
-    set_dirtystate();
+    quark_dirtystate_set(q, TRUE);
 }
 
 int object_place_at_vp(Quark *q, VPoint vp)
@@ -359,7 +359,7 @@ int object_place_at_vp(Quark *q, VPoint vp)
         view2world(vp.x, vp.y, &o->ap.x, &o->ap.y);
     }
     
-    set_dirtystate();
+    quark_dirtystate_set(q, TRUE);
     return RETURN_SUCCESS;
 }
 #endif

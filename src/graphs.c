@@ -590,7 +590,7 @@ int set_set_hidden(Quark *pset, int flag)
     if (pset) {
         set *p = set_get_data(pset);
         p->active = !flag;
-        set_dirtystate();
+        quark_dirtystate_set(pset, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -670,8 +670,8 @@ Quark *get_parent_frame(Quark *q)
 
 GLocator *get_graph_locator(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return &g->locator;
     } else {
         return NULL;
@@ -680,8 +680,8 @@ GLocator *get_graph_locator(Quark *gr)
 
 int get_graph_world(Quark *gr, world *w)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         memcpy(w, &g->w, sizeof(world));
         return RETURN_SUCCESS;
     } else {
@@ -705,39 +705,39 @@ int get_graph_viewport(Quark *gr, view *v)
 
 void set_graph_locator(Quark *gr, const GLocator *locator)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
 
         memcpy(&g->locator, locator, sizeof(GLocator));
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
     }
 }
 
 void set_graph_world(Quark *gr, const world *w)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
 
         g->w = *w;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
     }
 }
 
 void set_graph_xyflip(Quark *gr, int xyflip)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
 
         g->xyflip = xyflip;
 
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
     }
 }
 
 int get_graph_xyflip(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
 
         return g->xyflip;
     } else {
@@ -747,8 +747,8 @@ int get_graph_xyflip(Quark *gr)
 
 int is_graph_hidden(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return !(g->active);
     } else {
         return TRUE;
@@ -757,10 +757,10 @@ int is_graph_hidden(Quark *gr)
 
 int set_graph_hidden(Quark *gr, int flag)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         g->active = !flag;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -769,10 +769,10 @@ int set_graph_hidden(Quark *gr, int flag)
 
 int set_graph_stacked(Quark *gr, int flag)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         g->stacked = flag;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -781,8 +781,8 @@ int set_graph_stacked(Quark *gr, int flag)
 
 int is_graph_stacked(Quark *gr)
 {
-    if (gr) {
-        graph *g = graph_get_data(gr);
+    graph *g = graph_get_data(gr);
+    if (g) {
         return g->stacked;
     } else {
         return FALSE;
@@ -804,7 +804,7 @@ int set_graph_bargap(Quark *gr, double bargap)
     graph *g = graph_get_data(gr);
     if (g) {
         g->bargap = bargap;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -879,7 +879,7 @@ int set_graph_xscale(Quark *gr, int scale)
                 }
             }
 #endif
-            set_dirtystate();
+            quark_dirtystate_set(gr, TRUE);
         }
         return RETURN_SUCCESS;
     } else {
@@ -915,7 +915,7 @@ int set_graph_yscale(Quark *gr, int scale)
                 }
             }
 #endif
-            set_dirtystate();
+            quark_dirtystate_set(gr, TRUE);
         }
         return RETURN_SUCCESS;
     } else {
@@ -928,7 +928,7 @@ int set_graph_znorm(Quark *gr, double norm)
     graph *g = graph_get_data(gr);
     if (g) {
         g->znorm = norm;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -970,7 +970,7 @@ int set_graph_xinvert(Quark *gr, int flag)
     graph *g = graph_get_data(gr);
     if (g) {
         g->xinvert = flag;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -982,7 +982,7 @@ int set_graph_yinvert(Quark *gr, int flag)
     graph *g = graph_get_data(gr);
     if (g) {
         g->yinvert = flag;
-        set_dirtystate();
+        quark_dirtystate_set(gr, TRUE);
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

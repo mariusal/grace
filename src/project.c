@@ -152,7 +152,7 @@ void project_set_description(Quark *q, char *descr)
 {
     Project *pr = project_get_data(q);
     pr->description = copy_string(pr->description, descr);
-    set_dirtystate();
+    quark_dirtystate_set(q, TRUE);
 }
 
 char *project_get_description(const Quark *q)

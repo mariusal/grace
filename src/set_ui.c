@@ -94,7 +94,6 @@ static void setapp_data_proc(Widget but, void *data)
     }
 
     UpdateSymbols(cset);
-    set_dirtystate();
     xdrawgraph();
 }
 #endif

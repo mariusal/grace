@@ -1006,25 +1006,6 @@ void update_app_title(Quark *q)
 #endif
 }
 
-/*
- * dirtystate routines
- */
-void set_dirtystate(void)
-{
-    Quark *q = grace->project;
-    if (q) {
-        quark_dirtystate_set(q, TRUE);
-        project_set_dirtystate(q);
-    }
-}
-
-void clear_dirtystate(void)
-{
-    Quark *q = grace->project;
-    quark_dirtystate_set(q, FALSE);
-    project_clear_dirtystate(q);
-}
-
 int system_wrap(const char *string)
 {
     return system(string);

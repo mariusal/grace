@@ -132,7 +132,6 @@ int swapset(int gfrom, int j1, int gto, int j2);
 int pushset(Quark *pset, int push_type);
 void droppoints(Quark *pset, int startno, int endno);
 int join_sets(Quark **sets, int nsets);
-void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype);
 void reverse_set(Quark *pset);
 
 void del_point(Quark *pset, int pt);

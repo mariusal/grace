@@ -949,7 +949,7 @@ int save_project(char *fn)
     
     pr->docname = copy_string(pr->docname, fn);
 
-    clear_dirtystate();
+    quark_dirtystate_set(grace->project, FALSE);
     
     return RETURN_SUCCESS;
 }

@@ -354,7 +354,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     }
     
     if (changed) {
-        set_dirtystate();
+        quark_dirtystate_set(ep->pset, TRUE);
         
         /* don't refresh this editor */
         ep->update = FALSE;

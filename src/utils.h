@@ -109,9 +109,6 @@ char *get_timestamp(void);
 
 void update_app_title(Quark *q);
 
-void set_dirtystate(void);
-void clear_dirtystate(void);
-
 int system_wrap(const char *string);
 void msleep_wrap(unsigned int msec);
 
