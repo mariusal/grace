@@ -74,7 +74,7 @@ static Widget offx;             /* x offset of axis in viewport coords */
 static Widget offy;             /* y offset of axis in viewport coords */
 static Widget tonoff;           /* toggle display of axis ticks */
 static Widget tlonoff;          /* toggle display of tick labels */
-static CSTextStructure *axislabel;        /* axis label */
+static TextStructure *axislabel;        /* axis label */
 static Widget *axislabellayout; /* axis label layout (perp or parallel) */
 static Widget *axislabelplace;  /* axis label placement, auto or specified */
 static Widget axislabelspec;    /* location of axis label if specified (viewport coords) */
@@ -657,7 +657,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     t.tl_flag = GetToggleButtonState(tlonoff);
     t.t_flag = GetToggleButtonState(tonoff);
     t.t_drawbar = GetToggleButtonState(baronoff);
-    set_plotstr_string(&t.label, GetCSTextString(axislabel));
+    set_plotstr_string(&t.label, GetTextString(axislabel));
 
     xv_evalexpr(offx, &t.offsx);
     xv_evalexpr(offy, &t.offsy);
@@ -974,7 +974,7 @@ void update_ticks(int gno)
         SetToggleButtonState(tlonoff, t.tl_flag);
         SetToggleButtonState(tonoff, t.t_flag);
         SetToggleButtonState(baronoff, t.t_drawbar);
-        SetCSTextString(axislabel, t.label.s);
+        SetTextString(axislabel, t.label.s);
 
         if (is_log_axis(gno, curaxis)) {
             if (t.tmajor <= 1.0) {

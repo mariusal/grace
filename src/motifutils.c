@@ -54,7 +54,7 @@
 #include <Xm/LabelG.h>
 #include <Xm/List.h>
 #include <Xm/PushB.h>
-#include <Xm/CascadeB.h>
+#include <Xm/CascadeBG.h>
 #include <Xm/RowColumn.h>
 #include <Xm/Separator.h>
 #include <Xm/Text.h>
@@ -683,21 +683,13 @@ double GetSpinChoice(SpinStructure *spinp)
 }
 
 
-void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+TextStructure *CreateTextInput(Widget parent, char *s)
 {
-    create_fonttool(w);
-}
-
-static char cstext_translation_table[] = "\
-    Ctrl<Key>E: cstext_edit_action()";
-
-CSTextStructure *CreateCSText(Widget parent, char *s)
-{
-    CSTextStructure *retval;
+    TextStructure *retval;
     XmString str;
     
-    retval = malloc(sizeof(CSTextStructure));
-    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL, 0);
+    retval = malloc(sizeof(TextStructure));
+    retval->form = XtVaCreateWidget("form", xmFormWidgetClass, parent, NULL);
 
     str = XmStringCreateLocalized(s);
     retval->label = XtVaCreateManagedWidget("label", 
@@ -710,7 +702,7 @@ CSTextStructure *CreateCSText(Widget parent, char *s)
         NULL);
     XmStringFree(str);
 
-    retval->cstext = XtVaCreateManagedWidget("cstext",
+    retval->text = XtVaCreateManagedWidget("cstext",
         xmTextWidgetClass, retval->form,
         XmNtraversalOn, True,
         XmNtopAttachment, XmATTACH_FORM,
@@ -720,39 +712,55 @@ CSTextStructure *CreateCSText(Widget parent, char *s)
         XmNrightAttachment, XmATTACH_FORM,
         NULL);
 
-    XtOverrideTranslations(retval->cstext, 
-        XtParseTranslationTable(cstext_translation_table));
-
     XtManageChild(retval->form);
 
     return retval;
 }
 
-char *GetCSTextString(CSTextStructure *cst)
+void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    create_fonttool(w);
+}
+
+static char cstext_translation_table[] = "\
+    Ctrl<Key>E: cstext_edit_action()";
+
+TextStructure *CreateCSText(Widget parent, char *s)
+{
+    TextStructure *retval;
+
+    retval = CreateTextInput(parent, s);
+    XtOverrideTranslations(retval->text, 
+        XtParseTranslationTable(cstext_translation_table));
+        
+    return retval;
+}
+
+char *GetTextString(TextStructure *cst)
 {
     static char *buf = NULL;
     char *s;
     
-    s = XmTextGetString(cst->cstext);
+    s = XmTextGetString(cst->text);
     buf = copy_string(buf, s);
     XtFree(s);
     
     return buf;
 }
 
-void SetCSTextString(CSTextStructure *cst, char *s)
+void SetTextString(TextStructure *cst, char *s)
 {
-    XmTextSetString(cst->cstext, s);
+    XmTextSetString(cst->text, s);
 }
 
-int GetCSTextCursorPos(CSTextStructure *cst)
+int GetTextCursorPos(TextStructure *cst)
 {
-    return XmTextGetInsertionPosition(cst->cstext);
+    return XmTextGetInsertionPosition(cst->text);
 }
 
-void CSTextInsert(CSTextStructure *cst, int pos, char *s)
+void TextInsert(TextStructure *cst, int pos, char *s)
 {
-    XmTextInsert(cst->cstext, pos, s);
+    XmTextInsert(cst->text, pos, s);
 }
 
 
@@ -2578,32 +2586,32 @@ Widget CreateTextItem4(Widget parent, int len, char *label)
 /* 
  * create a multiline editable window
  * parent = parent widget
- * len    = width of edit window
  * hgt    = number of lines in edit window
  * s      = label for window
  * 
  * returns the edit window widget
  */
-Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s)
+Widget CreateScrollTextItem2(Widget parent, int hgt, char *s)
 {
     Widget w;
     Widget rc;
     XmString str;
 	
     rc = XmCreateRowColumn(parent, "rc", NULL, 0);
-    XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+
     str = XmStringCreateLocalized(s);
-    XtVaCreateManagedWidget("label", xmLabelWidgetClass, rc,
-			    XmNlabelString, str,
-			    NULL);
+    XtVaCreateManagedWidget("label",
+        xmLabelWidgetClass, rc,
+	XmNlabelString, str,
+	NULL);
     XmStringFree(str);
-    w = XmCreateScrolledText( rc, "text", NULL, 0 );
+
+    w = XmCreateScrolledText(rc, "text", NULL, 0);
     XtVaSetValues(w,
-		  XmNcolumns, len,
-		  XmNrows, hgt,
-		  XmNeditMode, XmMULTI_LINE_EDIT,
-		  XmNwordWrap, True,
-		  NULL);
+	XmNrows, hgt,
+	XmNeditMode, XmMULTI_LINE_EDIT,
+	XmNwordWrap, True,
+	NULL);
     XtManageChild(w);
     XtManageChild(rc);
     return w;
@@ -3142,19 +3150,22 @@ Widget CreateMenu(Widget parent, char *name, char *label, char mnemonic,
     Widget menu, cascadeTmp;
     XmString str;
     
-    str = XmStringCreateLocalized(label);
     menu = XmCreatePulldownMenu(parent, name, NULL, 0);
-    cascadeTmp = XtVaCreateWidget((String) name, xmCascadeButtonWidgetClass, parent, 
+
+    str = XmStringCreateLocalized(label);
+    cascadeTmp = XtVaCreateManagedWidget(name,
+        xmCascadeButtonGadgetClass, parent, 
+    	XmNsubMenuId, menu, 
     	XmNlabelString, str, 
     	XmNmnemonic, mnemonic,
-    	XmNsubMenuId, menu, 
-    	0);
+    	NULL);
     XmStringFree(str);
+
     if (help_anchor) {
      	XtAddCallback(menu, XmNhelpCallback, (XtCallbackProc) HelpCB,
     			(XtPointer) help_anchor);
     }
-    XtManageChild(cascadeTmp);
+
     if (cascade != NULL) {
     	*cascade = cascadeTmp;
     }

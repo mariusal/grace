@@ -999,7 +999,7 @@ void line_edit_popup(int lineno)
 
 typedef struct {
     Widget top;
-    CSTextStructure *string_item;
+    TextStructure *string_item;
     OptionStructure *color_item;
     Widget *loc_item;
     OptionStructure *font_item;
@@ -1016,7 +1016,7 @@ void update_string_edit(EditStringUI *ui)
 {
     if (ui->top) {
 	plotstr *pstring = &pstr[ui->stringno];
-	SetCSTextString(ui->string_item, pstring->s);
+	SetTextString(ui->string_item, pstring->s);
 	SetOptionChoice(ui->color_item, pstring->color);
 	SetChoice(ui->just_item, pstring->just);
 	SetOptionChoice(ui->font_item, pstring->font );
@@ -1058,7 +1058,7 @@ void string_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     EditStringUI *ui = (EditStringUI *) client_data;
     int stringno = ui->stringno;
 
-    pstr[stringno].s = copy_string(pstr[stringno].s, GetCSTextString(ui->string_item));
+    pstr[stringno].s = copy_string(pstr[stringno].s, GetTextString(ui->string_item));
     pstr[stringno].color = GetOptionChoice(ui->color_item);
     pstr[stringno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     pstr[stringno].font = GetOptionChoice(ui->font_item);

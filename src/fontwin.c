@@ -74,7 +74,7 @@ extern unsigned long xvlibcolors[];
 static Widget fonttool_frame = NULL;
 static Widget font_table;
 static OptionStructure *font_select_item;
-static CSTextStructure *string_item = NULL;
+static TextStructure *string_item = NULL;
 
 static Widget cstext_parent = NULL;
 
@@ -103,7 +103,7 @@ void create_fonttool(Widget cstext)
     unsigned char column_alignments[16];
     Widget fonttool_panel, aac_buts;
     
-    if (string_item != NULL && cstext == string_item->cstext) {
+    if (string_item != NULL && cstext == string_item->text) {
         /* avoid recursion */
         return;
     }
@@ -164,7 +164,7 @@ void create_fonttool(Widget cstext)
             XmNtopWidget, font_table,
             NULL);
 
-        XtAddCallback(string_item->cstext,
+        XtAddCallback(string_item->text,
             XmNmodifyVerifyCallback, (XtCallbackProc) EditStringCB, NULL);
         
 /*
@@ -205,9 +205,9 @@ void create_fonttool(Widget cstext)
 
     enable_edit_cb = FALSE;
     if (cstext_parent == NULL) {
-        SetCSTextString(string_item, "");
+        SetTextString(string_item, "");
     } else {
-        SetCSTextString(string_item, xv_getstr(cstext_parent));
+        SetTextString(string_item, xv_getstr(cstext_parent));
         /* Lock editable text */
         XtSetSensitive(cstext_parent, False);
     }
@@ -275,8 +275,8 @@ static void insert_into_string(char *s)
 {
     int pos;
     
-    pos = GetCSTextCursorPos(string_item);
-    CSTextInsert(string_item, pos, s);
+    pos = GetTextCursorPos(string_item);
+    TextInsert(string_item, pos, s);
 }
 
 static void EnterCB(Widget w, XtPointer cd, XbaeMatrixEnterCellCallbackStruct *cbs)
@@ -363,7 +363,7 @@ static void EditStringCB(Widget w, XtPointer client_data, XmAnyCallbackStruct *c
         }
     }
     
-    strcpy(string, GetCSTextString(string_item));
+    strcpy(string, GetTextString(string_item));
 }
 
 static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
@@ -381,7 +381,7 @@ static void fonttool_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
     }
 
     if (cstext_parent != NULL) {
-        xv_setstr(cstext_parent, GetCSTextString(string_item));
+        xv_setstr(cstext_parent, GetTextString(string_item));
     }
     
     if (aac_mode == AAC_ACCEPT) {

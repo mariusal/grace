@@ -93,7 +93,7 @@ static ListStructure *toggle_symset_item;
 static Widget baseline_item;
 static Widget *baselinetype_item;
 
-static CSTextStructure *legend_str_item;
+static TextStructure *legend_str_item;
 
 static Widget errbar_active_item;
 static Widget *errbar_ptype_item;
@@ -603,7 +603,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.setfillpen.pattern = fillpat;
             p.setfillpen.color = fillcol;
             if (cd == 1 || duplegs) {
-                strcpy(p.lstr, GetCSTextString(legend_str_item));
+                strcpy(p.lstr, GetTextString(legend_str_item));
             }
             p.sym = sym;
             p.linet = linet;
@@ -696,7 +696,7 @@ static void UpdateSymbols(int gno, int value)
         SetToggleButtonState(baseline_item, p.baseline);
         SetChoice(baselinetype_item, p.baseline_type);
 
-        SetCSTextString(legend_str_item, p.lstr);
+        SetTextString(legend_str_item, p.lstr);
         
         SetToggleButtonState(errbar_active_item, p.errbar.active);
         SetChoice(errbar_ptype_item, p.errbar.ptype);

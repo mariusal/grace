@@ -104,8 +104,8 @@ typedef struct {
 typedef struct {
     Widget label;
     Widget form;
-    Widget cstext;
-} CSTextStructure;
+    Widget text;
+} TextStructure;
 
 typedef struct {
     Widget popup;
@@ -251,11 +251,12 @@ SpinStructure *CreateSpinChoice(Widget parent, char *s, int len,
 double GetSpinChoice(SpinStructure *spinp);
 void SetSpinChoice(SpinStructure *spinp, double value);
 
-CSTextStructure *CreateCSText(Widget parent, char *s);
-char *GetCSTextString(CSTextStructure *cst);
-void SetCSTextString(CSTextStructure *cst, char *s);
-int GetCSTextCursorPos(CSTextStructure *cst);
-void CSTextInsert(CSTextStructure *cst, int pos, char *s);
+TextStructure *CreateTextInput(Widget parent, char *s);
+TextStructure *CreateCSText(Widget parent, char *s);
+char *GetTextString(TextStructure *cst);
+void SetTextString(TextStructure *cst, char *s);
+int GetTextCursorPos(TextStructure *cst);
+void TextInsert(TextStructure *cst, int pos, char *s);
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 
 FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern);
@@ -311,7 +312,7 @@ int GetChoice(Widget * w);
 
 Widget CreateTextItem2(Widget parent, int len, char *s);
 Widget CreateTextItem4(Widget parent, int len, char *s);
-Widget CreateScrollTextItem2(Widget parent, int len, int hgt, char *s);
+Widget CreateScrollTextItem2(Widget parent, int hgt, char *s);
 
 Widget CreateCommandButtons(Widget parent, int n, Widget * buts, char **l);
 Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char **l);

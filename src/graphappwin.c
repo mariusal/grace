@@ -66,8 +66,8 @@ static Widget *graph_type_choice_item;
 
 static Widget stacked_item;
 
-static CSTextStructure *label_title_text_item;
-static CSTextStructure *label_subtitle_text_item;
+static TextStructure *label_title_text_item;
+static TextStructure *label_subtitle_text_item;
 static OptionStructure *title_color_item;
 static OptionStructure *title_font_item;
 static Widget title_size_item;
@@ -447,8 +447,8 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
             set_graph_stacked(gno, stacked);
             set_graph_bargap(gno, bargap);
 
-            set_plotstr_string(&labs.title, GetCSTextString(label_title_text_item));
-            set_plotstr_string(&labs.stitle, GetCSTextString(label_subtitle_text_item));
+            set_plotstr_string(&labs.title, GetTextString(label_title_text_item));
+            set_plotstr_string(&labs.stitle, GetTextString(label_subtitle_text_item));
 
             labs.title.charsize = GetCharSizeChoice(title_size_item);
             labs.stitle.charsize = GetCharSizeChoice(stitle_size_item);
@@ -537,8 +537,8 @@ void update_graphapp_items(int n, int *values, void *data)
 
         SetToggleButtonState(stacked_item, is_graph_stacked(gno));
 
-        SetCSTextString(label_title_text_item, labs.title.s);
-        SetCSTextString(label_subtitle_text_item, labs.stitle.s);
+        SetTextString(label_title_text_item, labs.title.s);
+        SetTextString(label_subtitle_text_item, labs.stitle.s);
  
         SetCharSizeChoice(title_size_item, labs.title.charsize);
         SetCharSizeChoice(stitle_size_item, labs.stitle.charsize);
