@@ -660,27 +660,6 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
 
-/*
- * Read submenu
- */
-
-    submenupane = CreateMenu(menupane, "Read", 'R', FALSE);
-
-    CreateMenuButton(submenupane, "Sets...", 'S', create_file_popup, NULL);
-#ifdef HAVE_NETCDF
-    CreateMenuButton(submenupane, "NetCDF...", 'N', create_netcdfs_popup, NULL);
-#endif
-    CreateMenuButton(submenupane, "Parameters...", 'P', create_rparams_popup, NULL);
-   
-/*
- * Write submenu
- */  
-    submenupane = CreateMenu(menupane, "Write", 'W', FALSE);
-
-    CreateMenuButton(submenupane, "Sets...", 'S', create_write_popup, NULL);
-    CreateMenuButton(submenupane, "Parameters...", 'P', create_wparam_frame, NULL);
-
-    CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Print", 'P', MenuCB, (void *) MENU_PRINT);
     CreateMenuButton(menupane, "Device setup...", 't', create_printer_setup, NULL);
     CreateMenuSeparator(menupane);
@@ -752,6 +731,18 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Prune data...", 'P', create_prune_frame, NULL);
 
     CreateMenuButton(menupane, "Feature extraction...", 'x', create_featext_frame, NULL);
+
+    CreateMenuSeparator(menupane);
+
+    submenupane = CreateMenu(menupane, "Import", 'I', FALSE);
+    CreateMenuButton(submenupane, "ASCII...", 'A', create_file_popup, NULL);
+#ifdef HAVE_NETCDF
+    CreateMenuButton(submenupane, "NetCDF...", 'N', create_netcdfs_popup, NULL);
+#endif
+   
+    submenupane = CreateMenu(menupane, "Export", 'E', FALSE);
+    CreateMenuButton(submenupane, "ASCII...", 'A', create_write_popup, NULL);
+
 
 /* Plot menu */
     menupane = CreateMenu(menubar, "Plot", 'P', FALSE);
