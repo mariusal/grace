@@ -563,8 +563,10 @@ char *utf2iso(const char *s)
         $$ = compare_strings($?, "yes");
     ]]></attribute-type>
     <attribute-type name="rgb" ctype="RGB *"><![CDATA[
+        unsigned int r, g, b;
         $$ = xmalloc(sizeof(RGB));
-        sscanf($?, "#%02x%02x%02x", &($$->red), &($$->green), &($$->blue));
+        sscanf($?, "#%02x%02x%02x", &r, &g, &b);
+        $$->red = r; $$->green = g; $$->blue = b;
     ]]></attribute-type>
     <attribute-type name="ftype" ctype="int"><![CDATA[
         $$ = get_format_type_by_name($?);
