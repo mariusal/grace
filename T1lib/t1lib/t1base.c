@@ -704,7 +704,7 @@ int test_for_t1_file( char *buffer )
 char *T1_GetFontFileName( int FontID)
 {
 
-  static char filename[MAXPATHLEN+1];
+  static char filename[T1_MAXPATHLEN+1];
   
   if (CheckForInit())return(NULL);
 
@@ -767,7 +767,7 @@ int T1_SetAfmFileName( int FontID, char *afm_name)
 char *T1_GetAfmFileName( int FontID)
 {
 
-  static char filename[MAXPATHLEN+1];
+  static char filename[T1_MAXPATHLEN+1];
   
   if (CheckForInit())return(NULL);
 
@@ -1163,7 +1163,7 @@ extern void T1_SetRasterFlags( int flags)
 char *T1_GetFontFilePath( int FontID)
 {
 
-  static char filepath[MAXPATHLEN+1];
+  static char filepath[T1_MAXPATHLEN+1];
   char *FileNamePath=NULL;
   
   /* is initialzed? */
@@ -1202,7 +1202,7 @@ char *T1_GetFontFilePath( int FontID)
 char *T1_GetAfmFilePath( int FontID)
 {
   
-  static char filepath[MAXPATHLEN+1];
+  static char filepath[T1_MAXPATHLEN+1];
   char *FontFileName;
   char *AFMFilePath;
   int i, j;
