@@ -950,8 +950,29 @@ int save_project(Quark *project, char *fn)
     XFile *xf;
     Attributes *attrs;
     Project *pr = project_get_data(project);
+    GUI *gui = gui_from_quark(project);
+    int noask_save;
+    static int save_unsupported = FALSE;
+
+    if (fn && strstr(fn, ".agr")) {
+        errmsg("Cowardly refusing to overwrite an agr file");
+        return RETURN_FAILURE;
+    }
+    if (!save_unsupported &&
+        !yesno("The current format may be unsupported by the final release. Continue?",
+            "Yea, I'm risky", NULL, "doc/UsersGuide.html#unsupported_format")) {
+        return RETURN_FAILURE;
+    }
+    save_unsupported = TRUE;
+
+    noask_save = gui->noask;
+    if (compare_strings(project_get_docname(project), fn)) {
+        /* If saving under the same name, don't warn about overwriting */
+        gui->noask = TRUE;
+    }
     
     fp = grace_openw(grace_from_quark(project), fn);
+    gui->noask = noask_save;
     xf = xfile_new(fp);
     attrs = attributes_new();
     
