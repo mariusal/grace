@@ -317,6 +317,7 @@ int is_graph_yinvert(int gno);
 int set_graph_xinvert(int gno, int flag);
 int set_graph_yinvert(int gno, int flag);
 
+int is_valid_axis(int gno, int axis);
 int is_axis_active(int gno, int axis);
 int is_zero_axis(int gno, int axis);
 
