@@ -70,6 +70,9 @@ Project *project_data_new(void)
     pr->bgcolor  = 0;
     pr->bgfill   = TRUE;
 
+    pr->fscale   = 0.025;
+    pr->lscale   = 0.0015;
+
     pr->grdefaults = d_d;
     
     return pr;
@@ -191,6 +194,30 @@ int project_set_docname(Quark *q, char *s)
     Project *pr = project_get_data(q);
     if (pr) {
         pr->docname = copy_string(pr->docname, s);
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int project_set_fontsize_scale(Quark *q, double fscale)
+{
+    Project *pr = project_get_data(q);
+    if (pr) {
+        pr->fscale = fscale;
+        quark_dirtystate_set(q, TRUE);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int project_set_linewidth_scale(Quark *q, double lscale)
+{
+    Project *pr = project_get_data(q);
+    if (pr) {
+        pr->lscale = lscale;
         quark_dirtystate_set(q, TRUE);
         return RETURN_SUCCESS;
     } else {

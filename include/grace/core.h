@@ -242,6 +242,11 @@ typedef struct _Project {
     int bgcolor;
     int bgfill;
     
+    /* font size scale */
+    double fscale;
+    /* line width scale */
+    double lscale;
+
     /* format for saving data sets */
     char *sformat;
 
@@ -773,6 +778,9 @@ char *project_get_sformat(const Quark *q);
 int project_set_sformat(Quark *q, const char *s);
 char *project_get_docname(const Quark *q);
 int project_set_docname(Quark *q, char *s);
+
+int project_set_fontsize_scale(Quark *q, double fscale);
+int project_set_linewidth_scale(Quark *q, double lscale);
 
 int project_set_ref_date(Quark *q, double ref);
 int project_allow_two_digits_years(Quark *q, int flag);
