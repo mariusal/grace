@@ -86,8 +86,7 @@ svgdrv$(O) : svgdrv.c defines.h utils.h ../cmath.h draw.h graphs.h grace.h \
 gd$(O) : gd.c gd.h
 rstdrv$(O) : rstdrv.c defines.h utils.h draw.h device.h t1fonts.h devlist.h \
   patterns.h rstdrv.h protos.h missing.h noxprotos.h graphs.h grace.h \
-  storage.h dict3.h xprotos.h gd.h /usr/include/jmorecfg.h \
-  /usr/include/pngconf.h motifinc.h
+  storage.h dict3.h xprotos.h gd.h motifinc.h
 dummydrv$(O) : dummydrv.c defines.h draw.h device.h t1fonts.h devlist.h \
   dummydrv.h
 storage$(O) : storage.c defines.h utils.h storage.h
