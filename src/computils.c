@@ -91,8 +91,10 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 		killset(graphto, loadto);
 	    }
 	    return GRACE_EXIT_FAILURE;
-	}
-	return GRACE_EXIT_SUCCESS;
+	} else {
+	    set_dirtystate();
+            return GRACE_EXIT_SUCCESS;
+        }
     } else {
         return GRACE_EXIT_FAILURE;
     }
