@@ -3,7 +3,7 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -489,15 +489,15 @@ void pdf_fillarc(const Canvas *canvas, void *data,
         solid_pen.color = getbgcolor(canvas);
         solid_pen.pattern = 1;
         
-        PDF_save(phandle);
         pdf_setpen(canvas, &solid_pen);
+        PDF_save(phandle);
         pdf_arc_path(vp1, vp2, a1, a2, mode);
         PDF_fill(phandle);
         PDF_restore(phandle);
     }
 
-    PDF_save(phandle);
     pdf_setpen(canvas, &pen);
+    PDF_save(phandle);
     pdf_arc_path(vp1, vp2, a1, a2, mode);
     PDF_fill(phandle);
     PDF_restore(phandle);
