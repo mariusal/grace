@@ -886,7 +886,7 @@ static void usage(FILE *stream, char *progname)
     exit(0);
 }
 
-void VersionInfo(void)
+static void VersionInfo(void)
 {
     int i;
     

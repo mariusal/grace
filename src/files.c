@@ -94,7 +94,7 @@ int nb_rt = 0;		        /* number of real time file descriptors */
 Input_buffer *ib_tbl = 0;	/* table for each open input */
 int ib_tblsize = 0;		/* number of elements in ib_tbl */
 
-static int time_spent();
+static int time_spent(void);
 static int expand_ib_tbl(void);
 static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
 static int reopen_real_time_input(Input_buffer *ib);
@@ -108,7 +108,7 @@ static int uniread(FILE *fp, int load_type, char *label);
 /*
  * part of the time sliced already spent in milliseconds
  */
-int time_spent()
+static int time_spent(void)
 {
     struct timeval now;
 
