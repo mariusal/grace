@@ -129,7 +129,7 @@ struct _Canvas {
     int device_ready;
     
     /* output stream */
-    FILE *prstream;
+    void *prstream;
     
     /* info */
     char *username;

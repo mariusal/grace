@@ -506,12 +506,12 @@ void canvas_set_pagefill(Canvas *canvas, int flag)
     canvas->pagefill = flag;
 }
 
-void canvas_set_prstream(Canvas *canvas, FILE *prstream)
+void canvas_set_prstream(Canvas *canvas, void *prstream)
 {
     canvas->prstream = prstream;
 }
 
-FILE *canvas_get_prstream(const Canvas *canvas)
+void *canvas_get_prstream(const Canvas *canvas)
 {
     return canvas->prstream;
 }

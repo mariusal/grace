@@ -386,8 +386,8 @@ double getcharsize(const Canvas *canvas);
 int getfont(const Canvas *canvas);
 
 
-void canvas_set_prstream(Canvas *canvas, FILE *prstream);
-FILE *canvas_get_prstream(const Canvas *canvas);
+void canvas_set_prstream(Canvas *canvas, void *prstream);
+void *canvas_get_prstream(const Canvas *canvas);
 
 void set_max_path_limit(Canvas *canvas, int limit);
 int get_max_path_limit(const Canvas *canvas);
