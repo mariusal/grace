@@ -117,22 +117,23 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
                               NULL);
 
 	XtVaCreateManagedWidget("Set type: ", xmLabelWidgetClass, rc, NULL);
-	eblock_type_choice_item = CreatePanelChoice(rc,
-						    " ",
-						    12,
-						    "XY",
-						    "BAR",
-						    "XY DX",
-						    "XY DY",
-						    "XY DX1 DX2",
-						    "XY DY1 DY2",
-						    "XY DX DY",
-						    "XY Z",
-						    "XY HILO",
-						    "XY R",
-						    "POLY",
-						    NULL, 0);
-	for (i = 0; i < 11; i++) {
+	eblock_type_choice_item = CreatePanelChoice(rc, "", 14,
+					    "XY",
+					    "XY DX",
+					    "XY DY",
+					    "XY DX1 DX2",
+					    "XY DY1 DY2",
+					    "XY DX DY",
+					    "BAR",
+					    "BAR DY",
+					    "BAR DY DY",
+					    "XY STRING (N/I)",
+					    "XY HILO",
+					    "XY Z",
+					    "XY RADIUS",
+					    NULL, NULL);
+
+	for (i = 0; i < 13; i++) {
 	    XtAddCallback(eblock_type_choice_item[2 + i],
 			  XmNactivateCallback, (XtCallbackProc) eblock_type_notify_proc, (XtPointer) i);
 	}
@@ -190,38 +191,36 @@ static void update_eblock(void)
     XtSetArg(al, XmNlabelString, string);
     XtSetValues(eblock_ncols_item, &al, 1);
     XmStringFree(string);
-    switch (block_curtype) {
-    case SET_XY:
-    case SET_BAR:
+    switch (settype_cols(block_curtype)) {
+    case 2:
 	XtSetSensitive(eblock_e1_choice_item[0], False);
 	XtSetSensitive(eblock_e2_choice_item[0], False);
 	XtSetSensitive(eblock_e3_choice_item[0], False);
 	XtSetSensitive(eblock_e4_choice_item[0], False);
 	break;
-    case SET_XYR:
-    case SET_XYDX:
-    case SET_XYDY:
-    case SET_XYZ:
-    case SET_BARDY:
+    case 3:
 	XtSetSensitive(eblock_e1_choice_item[0], True);
 	XtSetSensitive(eblock_e2_choice_item[0], False);
 	XtSetSensitive(eblock_e3_choice_item[0], False);
 	XtSetSensitive(eblock_e4_choice_item[0], False);
 	break;
-    case SET_XYDXDX:
-    case SET_XYDYDY:
-    case SET_XYDXDY:
-    case SET_BARDYDY:
+    case 4:
 	XtSetSensitive(eblock_e1_choice_item[0], True);
 	XtSetSensitive(eblock_e2_choice_item[0], True);
 	XtSetSensitive(eblock_e3_choice_item[0], False);
 	XtSetSensitive(eblock_e4_choice_item[0], False);
 	break;
-    case SET_XYHILO:
+    case 5:
 	XtSetSensitive(eblock_e1_choice_item[0], True);
 	XtSetSensitive(eblock_e2_choice_item[0], True);
 	XtSetSensitive(eblock_e3_choice_item[0], True);
 	XtSetSensitive(eblock_e4_choice_item[0], False);
+	break;
+    case 6:
+	XtSetSensitive(eblock_e1_choice_item[0], True);
+	XtSetSensitive(eblock_e2_choice_item[0], True);
+	XtSetSensitive(eblock_e3_choice_item[0], True);
+	XtSetSensitive(eblock_e4_choice_item[0], True);
 	break;
     }
 }
@@ -237,161 +236,47 @@ static void eblock_type_notify_proc(Widget w, XtPointer client_data, XtPointer c
 
 static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i = 0;
-    char buf[256];
-    int setno, graphno;
-    int d1, cx, cy, c1 = 0, c2 = 0, c3 = 0;
-    double *tx, *ty, *t2, *t3, *t4;
+    char blockcols[32];
+    int graphno;
+    int cx, cy, c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
-    d1 = (int) GetChoice(eblock_type_choice_item);
-    cx = (int) GetChoice(eblock_x_choice_item) - 1;
-    cy = (int) GetChoice(eblock_y_choice_item);
-    if (cx >= 0 && cx >= blockncols) {
-	errwin("Column for X exceeds the number of columns in block data");
-	return;
-    }
-    if (cy >= blockncols) {
-	errwin("Column for Y exceeds the number of columns in block data");
-	return;
-    }
-    switch (block_curtype) {
-    case SET_XY:
-    case SET_BAR:
+    cx = GetChoice(eblock_x_choice_item) - 1;
+    cy = GetChoice(eblock_y_choice_item);
+    switch (settype_cols(block_curtype)) {
+    case 2:
+	sprintf(blockcols, "%d:%d", cx, cy);
+        break;
+    case 3:
+	c1 = GetChoice(eblock_e1_choice_item);
+	sprintf(blockcols, "%d:%d:%d", cx, cy, c1);
 	break;
-    case SET_XYR:
-    case SET_XYDX:
-    case SET_XYDY:
-    case SET_XYZ:
-    case SET_BARDY:
-	c1 = (int) GetChoice(eblock_e1_choice_item);
-	if (c1 >= blockncols) {
-	    errwin("Column for E1 exceeds the number of columns in block data");
-	    return;
-	}
+    case 4:
+	c1 = GetChoice(eblock_e1_choice_item);
+	c2 = GetChoice(eblock_e2_choice_item);
+	sprintf(blockcols, "%d:%d:%d:%d", cx, cy, c1, c2);
 	break;
-    case SET_XYDXDX:
-    case SET_XYDYDY:
-    case SET_XYDXDY:
-    case SET_BARDYDY:
-	c1 = (int) GetChoice(eblock_e1_choice_item);
-	c2 = (int) GetChoice(eblock_e2_choice_item);
-	if (c1 >= blockncols) {
-	    errwin("Column for E1 exceeds the number of columns in block data");
-	    return;
-	}
-	if (c2 >= blockncols) {
-	    errwin("Column for E2 exceeds the number of columns in block data");
-	    return;
-	}
+    case 5:
+	c1 = GetChoice(eblock_e1_choice_item);
+	c2 = GetChoice(eblock_e2_choice_item);
+	c3 = GetChoice(eblock_e3_choice_item);
+	sprintf(blockcols, "%d:%d:%d:%d:%d", cx, cy, c1, c2, c3);
 	break;
-    case SET_XYHILO:
-	c1 = (int) GetChoice(eblock_e1_choice_item);
-	c2 = (int) GetChoice(eblock_e2_choice_item);
-	c3 = (int) GetChoice(eblock_e3_choice_item);
-	if (c1 >= blockncols) {
-	    errwin("Column for E1 exceeds the number of columns in block data");
-	    return;
-	}
-	if (c2 >= blockncols) {
-	    errwin("Column for E2 exceeds the number of columns in block data");
-	    return;
-	}
-	if (c3 >= blockncols) {
-	    errwin("Column for E3 exceeds the number of columns in block data");
-	    return;
-	}
+    case 6:
+	c1 = GetChoice(eblock_e1_choice_item);
+	c2 = GetChoice(eblock_e2_choice_item);
+	c3 = GetChoice(eblock_e3_choice_item);
+	c4 = GetChoice(eblock_e4_choice_item);
+	sprintf(blockcols, "%d:%d:%d:%d:%d%d", cx, cy, c1, c2, c3, c4);
 	break;
     }
-    setno = -1;
-    graphno = (int) GetChoice(eblock_graph_choice_item) - 1;
+    graphno = GetChoice(eblock_graph_choice_item) - 1;
 
     if (graphno == -1) {
 	graphno = get_cg();
     }
-    if (setno == -1) {
-	setno = nextset(graphno);
-    }
-    if (setno == -1) {
-	return;
-    }
-    if (!is_graph_active(graphno)) {
-	set_graph_active(graphno, TRUE);
-    }
-    activateset(graphno, setno);
-    settype(graphno, setno, block_curtype);
-
-    tx = (double *) calloc(blocklen, sizeof(double));
-    if (tx == NULL) {
-	errwin("Can't allocate memory for X");
-	return;
-    }
-    ty = (double *) calloc(blocklen, sizeof(double));
-    if (ty == NULL) {
-	free(tx);
-	errwin("Can't allocate memory for Y");
-	return;
-    }
-    for (i = 0; i < blocklen; i++) {
-	if (cx == -1) {
-	    tx[i] = i + 1;
-	}
-	else {
-	    tx[i] = blockdata[cx][i];
-	}
-	ty[i] = blockdata[cy][i];
-    }
-    setcol(graphno, tx, setno, blocklen, 0);
-    setcol(graphno, ty, setno, blocklen, 1);
-
-    switch (block_curtype) {
-    case SET_XY:
-    case SET_BAR:
-	sprintf(buf, "Cols %d %d", cx + 1, cy + 1);
-	break;
-    case SET_XYR:
-    case SET_XYDX:
-    case SET_XYDY:
-    case SET_XYZ:
-    case SET_BARDY:
-	sprintf(buf, "Cols %d %d %d", cx + 1, cy + 1, c1 + 1);
-	t2 = (double *) calloc(blocklen, sizeof(double));
-	for (i = 0; i < blocklen; i++) {
-	    t2[i] = blockdata[c1][i];
-	}
-	setcol(graphno, t2, setno, blocklen, 2);
-	break;
-    case SET_XYDXDX:
-    case SET_XYDYDY:
-    case SET_XYDXDY:
-    case SET_BARDYDY:
-	sprintf(buf, "Cols %d %d %d %d", cx + 1, cy + 1, c1 + 1, c2 + 1);
-	t2 = (double *) calloc(blocklen, sizeof(double));
-	t3 = (double *) calloc(blocklen, sizeof(double));
-	for (i = 0; i < blocklen; i++) {
-	    t2[i] = blockdata[c1][i];
-	    t3[i] = blockdata[c2][i];
-	}
-	setcol(graphno, t2, setno, blocklen, 2);
-	setcol(graphno, t3, setno, blocklen, 3);
-	break;
-    case SET_XYHILO:
-	sprintf(buf, "Cols %d %d %d %d %d", cx + 1, cy + 1, c1 + 1, c2 + 1, c3 + 1);
-	t2 = (double *) calloc(blocklen, sizeof(double));
-	t3 = (double *) calloc(blocklen, sizeof(double));
-	t4 = (double *) calloc(blocklen, sizeof(double));
-	for (i = 0; i < blocklen; i++) {
-	    t2[i] = blockdata[c1][i];
-	    t3[i] = blockdata[c2][i];
-	    t4[i] = blockdata[c3][i];
-	}
-	setcol(graphno, t2, setno, blocklen, 2);
-	setcol(graphno, t3, setno, blocklen, 3);
-	setcol(graphno, t4, setno, blocklen, 4);
-	break;
-    }
-
-    setcomment(graphno, setno, buf);
-
+    
+    create_set_fromblock(graphno, block_curtype, blockcols);
+    
     update_status_popup(NULL, NULL, NULL);
     drawgraph();
 }

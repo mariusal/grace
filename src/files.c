@@ -1076,7 +1076,7 @@ void create_set_fromblock(int gno, int type, char *cols)
     strcpy(buf, cols);
     s = buf;
     c1 = c2 = c3 = c4 = nc = 0;
-    coli = (int *) malloc(maxblock * sizeof(int *));
+    coli = malloc(maxblock * sizeof(int *));
     while ((s = strtok(s, ":")) != NULL) {
 	coli[nc] = atoi(s);
 	coli[nc]--;
@@ -1108,15 +1108,10 @@ void create_set_fromblock(int gno, int type, char *cols)
 	free(coli);
 	return;
     }
-    switch (type) {
-    case SET_XY:
-    case SET_BAR:
+    switch (settype_cols(type)) {
+    case 2:
 	break;
-    case SET_XYR:
-    case SET_XYDX:
-    case SET_XYDY:
-    case SET_XYZ:
-    case SET_BARDY:
+    case 3:
 	c1 = coli[2];
 	if (c1 >= blockncols) {
 	    errmsg("Column for E1 exceeds the number of columns in block data");
@@ -1124,10 +1119,7 @@ void create_set_fromblock(int gno, int type, char *cols)
 	    return;
 	}
 	break;
-    case SET_XYDXDX:
-    case SET_XYDYDY:
-    case SET_XYDXDY:
-    case SET_BARDYDY:
+    case 4:
 	c1 = coli[2];
 	c2 = coli[3];
 	if (c1 >= blockncols) {
@@ -1141,7 +1133,7 @@ void create_set_fromblock(int gno, int type, char *cols)
 	    return;
 	}
 	break;
-    case SET_XYHILO:
+    case 5:
 	c1 = coli[2];
 	c2 = coli[3];
 	c3 = coli[4];
@@ -1193,16 +1185,11 @@ void create_set_fromblock(int gno, int type, char *cols)
     setcol(gno, tx, setno, blocklen, 0);
     setcol(gno, ty, setno, blocklen, 1);
 
-    switch (type) {
-    case SET_XY:
-    case SET_BAR:
+    switch (settype_cols(type)) {
+    case 2:
 	sprintf(buf, "Cols %d %d", cx + 1, cy + 1);
 	break;
-    case SET_XYR:
-    case SET_XYDX:
-    case SET_XYDY:
-    case SET_XYZ:
-    case SET_BARDY:
+    case 3:
 	sprintf(buf, "Cols %d %d %d", cx + 1, cy + 1, c1 + 1);
 	t2 = calloc(blocklen, SIZEOF_DOUBLE);
 	for (i = 0; i < blocklen; i++) {
@@ -1215,10 +1202,7 @@ void create_set_fromblock(int gno, int type, char *cols)
 	}
 	setcol(gno, t2, setno, blocklen, 2);
 	break;
-    case SET_XYDXDX:
-    case SET_XYDYDY:
-    case SET_XYDXDY:
-    case SET_BARDYDY:
+    case 4:
 	sprintf(buf, "Cols %d %d %d %d", cx + 1, cy + 1, c1 + 1, c2 + 1);
 	t2 = calloc(blocklen, SIZEOF_DOUBLE);
 	t3 = calloc(blocklen, SIZEOF_DOUBLE);
@@ -1239,7 +1223,7 @@ void create_set_fromblock(int gno, int type, char *cols)
 	setcol(gno, t2, setno, blocklen, 2);
 	setcol(gno, t3, setno, blocklen, 3);
 	break;
-    case SET_XYHILO:
+    case 5:
 	sprintf(buf, "Cols %d %d %d %d %d", cx + 1, cy + 1, c1 + 1, c2 + 1, c3 + 1);
 	t2 = calloc(blocklen, SIZEOF_DOUBLE);
 	t3 = calloc(blocklen, SIZEOF_DOUBLE);
@@ -1302,29 +1286,21 @@ void outputset(int gno, int setno, char *fname, char *dformat)
 	x = getx(gno, setno);
 	y = gety(gno, setno);
 	n = getsetlength(gno, setno);
-	switch (dataset_type(gno, setno)) {
-	case SET_XY:
-	case SET_BAR:
+	switch (settype_cols(dataset_type(gno, setno))) {
+	case 2:
 	    for (i = 0; i < n; i++) {
 		fprintf(cp, format, x[i], y[i]);
 		fputc('\n', cp);
 	    }
 	    break;
-	case SET_XYDX:
-	case SET_XYDY:
-	case SET_XYZ:
-	case SET_XYR:
-	case SET_BARDY:
+	case 3:
 	    dx = getcol(gno, setno, 2);
 	    for (i = 0; i < n; i++) {
 		fprintf(cp, "%g %g %g", x[i], y[i], dx[i]);
 		fputc('\n', cp);
 	    }
 	    break;
-	case SET_XYDXDX:
-	case SET_XYDYDY:
-	case SET_XYDXDY:
-	case SET_BARDYDY:
+	case 4:
 	    dx = getcol(gno, setno, 2);
 	    dy = getcol(gno, setno, 3);
 	    for (i = 0; i < n; i++) {
@@ -1332,7 +1308,7 @@ void outputset(int gno, int setno, char *fname, char *dformat)
 		fputc('\n', cp);
 	    }
 	    break;
-	case SET_XYHILO:
+	case 5:
 	    dx = getcol(gno, setno, 2);
 	    dy = getcol(gno, setno, 3);
 	    dz = getcol(gno, setno, 4);
@@ -1406,44 +1382,6 @@ int do_writesets(int gno, int setno, int embed, char *fn, char *format)
 		    y = gety(k, j);
 		    n = getsetlength(k, j);
 		    switch (dataset_type(k, j)) {
-		    case SET_XY:
-		    case SET_BAR:
-			for (i = 0; i < n; i++) {
-			    fprintf(cp, format, x[i], y[i]);
-			    fputc('\n', cp);
-			}
-			break;
-		    case SET_XYDX:
-		    case SET_XYDY:
-		    case SET_XYZ:
-		    case SET_XYR:
-		    case SET_BARDY:
-			dx = getcol(k, j, 2);
-			for (i = 0; i < n; i++) {
-			    fprintf(cp, "%g %g %g", x[i], y[i], dx[i]);
-			    fputc('\n', cp);
-			}
-			break;
-		    case SET_XYDXDX:
-		    case SET_XYDYDY:
-		    case SET_XYDXDY:
-		    case SET_BARDYDY:
-			dx = getcol(k, j, 2);
-			dy = getcol(k, j, 3);
-			for (i = 0; i < n; i++) {
-			    fprintf(cp, "%g %g %g %g", x[i], y[i], dx[i], dy[i]);
-			    fputc('\n', cp);
-			}
-			break;
-		    case SET_XYHILO:
-			dx = getcol(k, j, 2);
-			dy = getcol(k, j, 3);
-			dz = getcol(k, j, 4);
-			for (i = 0; i < n; i++) {
-			    fprintf(cp, "%g %g %g %g %g", x[i], y[i], dx[i], dy[i], dz[i]);
-			    fputc('\n', cp);
-			}
-			break;
 		    case SET_XYSTRING:
 			s = get_set_strings(k, j);
                         for (i = 0; i < n; i++) {
@@ -1451,8 +1389,41 @@ int do_writesets(int gno, int setno, int embed, char *fn, char *format)
 			    fputc('\n', cp);
 			}
 			break;
+		    default:    
+                        switch (settype_cols(dataset_type(k, j))) {
+                        case 2:
+		            for (i = 0; i < n; i++) {
+		                fprintf(cp, format, x[i], y[i]);
+		                fputc('\n', cp);
+		            }
+		            break;
+		        case 3:
+		            dx = getcol(k, j, 2);
+		            for (i = 0; i < n; i++) {
+		                fprintf(cp, "%g %g %g", x[i], y[i], dx[i]);
+		                fputc('\n', cp);
+		            }
+		            break;
+		        case 4:
+		            dx = getcol(k, j, 2);
+		            dy = getcol(k, j, 3);
+		            for (i = 0; i < n; i++) {
+		                fprintf(cp, "%g %g %g %g", x[i], y[i], dx[i], dy[i]);
+		                fputc('\n', cp);
+		            }
+		            break;
+		        case 5:
+		            dx = getcol(k, j, 2);
+		            dy = getcol(k, j, 3);
+		            dz = getcol(k, j, 4);
+		            for (i = 0; i < n; i++) {
+		                fprintf(cp, "%g %g %g %g %g", x[i], y[i], dx[i], dy[i], dz[i]);
+		                fputc('\n', cp);
+		            }
+		            break;
+		        }
 		    }
-		    fprintf(cp, "&\n");
+                    fprintf(cp, "&\n");
 		}
 	    }
 	}
