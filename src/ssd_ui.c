@@ -135,44 +135,55 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
     cs->string = get_cell_content(ui, cs->row, cs->column, &format);
 }
 
-static void writeCB(Widget w, XtPointer client_data, XtPointer call_data)
+static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
-    XbaeMatrixWriteCellCallbackStruct *cs =
-    	    (XbaeMatrixWriteCellCallbackStruct *) call_data;
+
+    XbaeMatrixDeselectAll(ui->mw);
+}
+
+static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    SSDataUI *ui = (SSDataUI *) client_data;
+    XbaeMatrixLeaveCellCallbackStruct *cs =
+    	    (XbaeMatrixLeaveCellCallbackStruct *) call_data;
 
     int nrows = ssd_get_nrows(ui->q);
     int ncols = ssd_get_ncols(ui->q);
     int format;
     
     int changed = FALSE;
-
+    
     if (cs->row < 0 || cs->column < 0 || cs->column >= ncols) {
         return;
     }
     
-    if (cs->row >= nrows && !string_is_empty(cs->string)) {
+    if (cs->row >= nrows && !string_is_empty(cs->value)) {
         ssd_set_nrows(ui->q, cs->row + 1);
         changed = TRUE;
     }
     
     if (cs->column < ncols) {
         char *old_value = get_cell_content(ui, cs->row, cs->column, &format);
-        if (!strings_are_equal(old_value, cs->string)) {
+        if (!strings_are_equal(old_value, cs->value)) {
             double value;
 	    switch (format) {
             case FFORMAT_STRING:
-                ssd_set_string(ui->q, cs->row, cs->column, cs->string);
-                changed = TRUE;
+                if (ssd_set_string(ui->q, cs->row, cs->column, cs->value) ==
+                    RETURN_SUCCESS) {
+                    changed = TRUE;
+                }
                 break;    
             default:
                 if (parse_date_or_number(get_parent_project(ui->q),
-                    cs->string, FALSE, &value) == RETURN_SUCCESS) {
-                    ssd_set_value(ui->q, cs->row, cs->column, value);
-                    changed = TRUE;
+                    cs->value, FALSE, &value) == RETURN_SUCCESS) {
+                    if (ssd_set_value(ui->q, cs->row, cs->column, value) ==
+                        RETURN_SUCCESS) {
+                        changed = TRUE;
+                    }
                 } else {
-                    XbaeMatrixSetCell(ui->mw, cs->row, cs->column, old_value);
                     errmsg("Can't parse input value");
+                    cs->doit = False;
                 }
                 break;
             }
@@ -246,6 +257,10 @@ static void labelCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
+static char tfield_translations[] = "#override\n\
+<Key>osfCancel			:	CancelEdit(True)\n\
+<Key>osfActivate		:	EditCell(Down)\n\
+~Shift ~Meta ~Alt <Key>Return	:   	EditCell(Down)";
 
 SSDataUI *create_ssd_ui(ExplorerUI *eui)
 {
@@ -256,7 +271,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
     char *rowlabels[MIN_SS_ROWS];
     char *collabels[MIN_SS_COLS];
     unsigned char clab_alignments[MIN_SS_COLS];
-    Widget tab, fr, rc, rc1, wbut;
+    Widget tab, fr, rc, rc1, wbut, tfield;
     
     ui = xmalloc(sizeof(SSDataUI));
     if (!ui) {
@@ -292,7 +307,7 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         widths[i] = CELL_WIDTH;
     }
 
-    ui->mw = XtVaCreateManagedWidget("mw",
+    ui->mw = XtVaCreateManagedWidget("SSD",
         xbaeMatrixWidgetClass, ui->main_tp,
 #if 0
         XmNhorizontalScrollBarDisplayPolicy, XmDISPLAY_NONE,
@@ -315,12 +330,16 @@ SSDataUI *create_ssd_ui(ExplorerUI *eui)
         XmNcalcCursorPosition, True,
         NULL);
 
+    tfield = XtNameToWidget(ui->mw, "textField");
+    XtOverrideTranslations(tfield, XtParseTranslationTable(tfield_translations));
+
     for (i = 0; i < MIN_SS_ROWS; i++) {
 	xfree(rowlabels[i]);
     }
 
     XtAddCallback(ui->mw, XmNdrawCellCallback, drawcellCB, ui);	
-    XtAddCallback(ui->mw, XmNwriteCellCallback, writeCB, ui);
+    XtAddCallback(ui->mw, XmNleaveCellCallback, leaveCB, ui);
+    XtAddCallback(ui->mw, XmNenterCellCallback, enterCB, ui);
     XtAddCallback(ui->mw, XmNlabelActivateCallback, labelCB, ui);
 
     
