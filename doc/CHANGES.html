@@ -13,6 +13,22 @@
 
 <H3>Functionality</H3>
  !  [ES] objects...
+ !  [ES] Storage for graphs/sets -&gt; #806, #894
+ !  [ES] transformation dialogs: act on all columns (including #659), provide
+         destination selectors (#837), use new set selectors everywhere (#885)
+ !  [ES] feature extraction
+ !  [ES] Fourier transforms (including #554, #630, #684)
+ !  [ES] diff/derivatives
+ !  [ES] removed geom. trans.
+ !  [ES] running properties
+ !  [ES] integration
+ !  [ES] removed regression
+ !  [ES] removed digital filter
+ !  [ES] convolution
+ !  [ES] correlation - now via FT
+ !  [ES] INTERPOLATE, HISTOGRAM, FFT, DIFFERENCE, INTEGRATE, XCOR
+ !  [ES] sampling
+ !  [ES] prune data
 
 <H3>Interface</H3>
  *  [ES] don't hardcode file extensions in file selection dialogs, but define
@@ -25,6 +41,9 @@
  *  [ES] implemented font kerning in the (E)PS output
  *  [ES] added option to choose document data (7bit/8bit/binary) for the PS
          driver
+
+<H3>Portability/Compilation</H3>
+ *  [AM] OS/2 updates
 
 <H3>Bug fixes</H3>
  *  [ES] "-saveall" filename argument was ignored (rep. #841)
@@ -39,9 +58,14 @@
  *  [ES] path in print setup
  *  [ES] too wide pulldowns in "Edit block data" if block data contained too
          many columns
-
-<H3>Portability/Compilation</H3>
- *  [AM] OS/2 updates
+ *  [ES] it was impossible using GUI to disable annotated values in the XYZ
+         set type
+ *  [LM] creating sets with strings from block data might crash
+ *  [ES] fixed a floating point rounding bug in the polygon clipping which
+         (in rare cases under some OS's) caused set filling be performed wrong
+         (rep. #874)
+ *  [ES] fixed a bug in the Xbae widget crashing under a multi-head X server
+         (rep. #878)
 
 
 <H2>5.1.1</H2>
