@@ -929,7 +929,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
 
     int text_advancing;
 
-    int iss, nss, first = TRUE;
+    int iss, nss;
     GLYPH *glyph;
  
     CompositeString *cstring;
@@ -1010,6 +1010,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
     
     rpoint = vp;
     baseline_start = rpoint;
+    bbox_ll = rpoint;
+    bbox_ur = rpoint;
     for (iss = 0; iss < nss; iss++) {
 	CompositeString *cs = &cstring[iss];
         
@@ -1070,14 +1072,8 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             /* update bbox */
             vptmp.x = cs->start.x + (double) glyph->metrics.leftSideBearing/page_dpv;
             vptmp.y = cs->start.y + (double) glyph->metrics.descent/page_dpv;
-            if (first == TRUE) {
-                bbox_ll = vptmp;
-                bbox_ur = vptmp;
-                first = FALSE;
-            } else {
-                bbox_ll.x = MIN2(bbox_ll.x, vptmp.x);
-                bbox_ll.y = MIN2(bbox_ll.y, vptmp.y);
-            }
+            bbox_ll.x = MIN2(bbox_ll.x, vptmp.x);
+            bbox_ll.y = MIN2(bbox_ll.y, vptmp.y);
 
             vptmp.x = cs->start.x + (double) glyph->metrics.rightSideBearing/page_dpv;
             vptmp.y = cs->start.y + (double) glyph->metrics.ascent/page_dpv;
