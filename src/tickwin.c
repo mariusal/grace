@@ -184,13 +184,13 @@ void create_axes_dialog(int axisno)
         axis_active = CreateToggleButton(rc, "Active");
         XtAddCallback(axis_active, XmNvalueChangedCallback,
                                 (XtCallbackProc) set_active_proc, NULL);
-        XtManageChild(rc);
+        ManageChild(rc);
         
         rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         axis_world_start = CreateTextItem2(rc, 10, "Start:");
 	axis_world_stop = CreateTextItem2(rc, 10, "Stop:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         rc = XmCreateRowColumn(rc_head, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -205,9 +205,9 @@ void create_axes_dialog(int axisno)
         AddOptionChoiceCB(axis_scale, axis_scale_cb, NULL);
 
 	axis_invert = CreateToggleButton(rc, "Invert axis");
-        XtManageChild(rc);
+        ManageChild(rc);
         
-        XtManageChild(rc_head);
+        ManageChild(rc_head);
         XtVaSetValues(rc_head,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -226,7 +226,7 @@ void create_axes_dialog(int axisno)
         
         axislabel = CreateCSText(fr, "Label string:");
         
-        XtManageChild(fr);
+        ManageChild(fr);
 
         fr = CreateFrame(axes_main, "Tick properties");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -236,16 +236,16 @@ void create_axes_dialog(int axisno)
         tmajor = CreateTextItem2(rc2, 8, "Major spacing:");
         nminor = CreateSpinChoice(rc2, "Minor ticks:",
             2, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS - 1, 1.0);
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         tlform = CreateFormatChoice(rc2, "Format:");
         tlprec = CreatePrecisionChoice(rc2, "Precision:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
 
 
 
@@ -260,15 +260,15 @@ void create_axes_dialog(int axisno)
 
         tlonoff = CreateToggleButton(rc2, "Display tick labels");
         tonoff = CreateToggleButton(rc2, "Display tick marks");
-        XtManageChild(rc2);
+        ManageChild(rc2);
         
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
         
         baronoff = CreateToggleButton(rc2, "Display axis bar");
 
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(axes_main, "Axis placement");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -278,8 +278,8 @@ void create_axes_dialog(int axisno)
         offx = CreateTextItem2(rc, 5, "Offsets - Left/bottom:");
         offy = CreateTextItem2(rc, 5, "Right/top:");
 
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
 
         fr = CreateFrame(axes_main, "Tick label properties");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -287,7 +287,7 @@ void create_axes_dialog(int axisno)
 
         tlfont = CreateFontChoice(rc, "Font:");
         tlcolor = CreateColorChoice(rc, "Color:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
 
 
@@ -302,7 +302,7 @@ void create_axes_dialog(int axisno)
 
         axislabelfont = CreateFontChoice(rc2, "Font:");
         axislabelcolor = CreateColorChoice(rc2, "Color:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
         
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
@@ -316,7 +316,7 @@ void create_axes_dialog(int axisno)
                                                        "Perpendicular to axis",
                                                        NULL,
                                                        NULL);
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
@@ -332,10 +332,10 @@ void create_axes_dialog(int axisno)
                                                 "Specified",
                                                 0, 0);
         axislabelspec = CreateTextItem2(rc2, 9, " ");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
         
 
         fr = CreateFrame(axes_label, "Bar properties");
@@ -346,12 +346,12 @@ void create_axes_dialog(int axisno)
 
         barcolor = CreateColorChoice(rc2, "Color:");
         barlinew = CreateLineWidthChoice(rc2, "Width:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
         
         barlines = CreateLineStyleChoice(rc, "Line style:");
 
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
 
 
 
@@ -365,8 +365,8 @@ void create_axes_dialog(int axisno)
 	XtVaSetValues(tlcharsize, XmNscaleWidth, 200, NULL);
         tlangle = CreateAngleChoice(rc2, "Angle");
 	XtVaSetValues(tlangle, XmNscaleWidth, 180, NULL);
-        XtManageChild(rc2);
-        XtManageChild(fr);
+        ManageChild(rc2);
+        ManageChild(fr);
 
 
         fr = CreateFrame(axes_ticklabel, "Placement");
@@ -385,7 +385,7 @@ void create_axes_dialog(int axisno)
                                       11,
                         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 0,
                                       0);
-        XtManageChild(rc2);
+        ManageChild(rc2);
         
         
         rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
@@ -398,7 +398,7 @@ void create_axes_dialog(int axisno)
         tlstart = XtVaCreateManagedWidget("tlstart", xmTextWidgetClass, rc3,
                                           XmNcolumns, 8,
                                           NULL);
-        XtManageChild(rc3);
+        ManageChild(rc3);
 
         rc3 = XmCreateRowColumn(rc2, "rc3", NULL, 0);
         XtVaSetValues(rc3, XmNorientation, XmHORIZONTAL, NULL);
@@ -409,10 +409,10 @@ void create_axes_dialog(int axisno)
         tlstop = XtVaCreateManagedWidget("tlstop", xmTextWidgetClass, rc3,
                                          XmNcolumns, 8,
                                          NULL);
-        XtManageChild(rc3);
-        XtManageChild(rc2);
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc3);
+        ManageChild(rc2);
+        ManageChild(rc);
+        ManageChild(fr);
 
 
         fr = CreateFrame(axes_ticklabel, "Extra");
@@ -426,13 +426,13 @@ void create_axes_dialog(int axisno)
                                    0);
 
         tlformula = CreateTextInput(rc2, "Axis transform:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         tlprestr = CreateTextItem2(rc2, 13, "Prepend:");
         tlappstr = CreateTextItem2(rc2, 13, "Append:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
@@ -443,11 +443,11 @@ void create_axes_dialog(int axisno)
                                                        NULL,
                                                        NULL);
         tlgap = CreateTextItem2(rc2, 16, " ");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
 
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
 
 
         axes_tickmark = CreateTabPage(axes_tab, "Tick marks");
@@ -466,7 +466,7 @@ void create_axes_dialog(int axisno)
                                    "Opposite side",
                                    "Both sides",
                                    0, 0);
-        XtManageChild(rc);
+        ManageChild(rc);
         rc = XmCreateRowColumn(rc2, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         tround = CreateToggleButton(rc, "Place at rounded positions");
@@ -485,9 +485,9 @@ void create_axes_dialog(int axisno)
                                     "12",
 				    NULL,
 				    NULL);
-        XtManageChild(rc);
-        XtManageChild(rc2);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(rc2);
+        ManageChild(fr);
         
         rc2 = XmCreateRowColumn(axes_tickmark, "rc2", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
@@ -504,8 +504,8 @@ void create_axes_dialog(int axisno)
 
         tgridlinew = CreateLineWidthChoice(rc, "Line width:");
         tgridlines = CreateLineStyleChoice(rc, "Line style:");
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
 
         fr = CreateFrame(rc2, "Minor ticks");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -516,9 +516,9 @@ void create_axes_dialog(int axisno)
         tmgridcol = CreateColorChoice(rc, "Color:");
         tmgridlinew = CreateLineWidthChoice(rc, "Line width:");
         tmgridlines = CreateLineStyleChoice(rc, "Line style:");
-        XtManageChild(rc);
-        XtManageChild(fr);
-        XtManageChild(rc2);
+        ManageChild(rc);
+        ManageChild(fr);
+        ManageChild(rc2);
 
 
 
@@ -538,7 +538,7 @@ void create_axes_dialog(int axisno)
             3, SPIN_TYPE_INT, 0.0, (double) MAX_TICKS, 1.0);
         XtVaCreateManagedWidget("Tick location - Label:", xmLabelWidgetClass,
                                          rc, NULL);
-        XtManageChild(rc);
+        ManageChild(rc);
 
         sw = XtVaCreateManagedWidget("sw",
                                      xmScrolledWindowWidgetClass, axes_special,
@@ -567,11 +567,11 @@ void create_axes_dialog(int axisno)
             speclabel[i] = XtVaCreateManagedWidget("ticklabel", xmTextWidgetClass, rc3,
                                                    XmNcolumns, 25,
                                                    NULL);
-            XtManageChild(rc3);
+            ManageChild(rc3);
         }
 
-        XtManageChild(rc);
-        XtManageChild(sw);
+        ManageChild(rc);
+        ManageChild(sw);
 
 
         SelectTabPage(axes_tab, axes_main);
@@ -592,8 +592,8 @@ void create_axes_dialog(int axisno)
 
         CreateAACButtons(rc, axes_panel, axes_aac_cb);
         
-        XtManageChild(rc);
-        XtManageChild(fr);
+        ManageChild(rc);
+        ManageChild(fr);
         XtVaSetValues(fr,
                       XmNtopAttachment, XmATTACH_NONE,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -611,7 +611,7 @@ void create_axes_dialog(int axisno)
                       NULL);
  
  
-        XtManageChild(axes_panel);
+        ManageChild(axes_panel);
     }
     XtRaise(axes_dialog);
     update_ticks(cg);
@@ -638,7 +638,7 @@ static void axes_aac_cb(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(axes_dialog);
+        UnmanageChild(axes_dialog);
         return;
     }
 
@@ -874,7 +874,7 @@ static void axes_aac_cb(void *data)
     free_graph_tickmarks(t);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(axes_dialog);
+        UnmanageChild(axes_dialog);
     }
 
     drawgraph();

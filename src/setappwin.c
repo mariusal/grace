@@ -190,7 +190,7 @@ void define_symbols_popup(void *data)
 
         CreateMenuButton(menupane, "On set appearance", 's', HelpCB, NULL);
         
-        XtManageChild(menubar);
+        ManageChild(menubar);
         XtVaSetValues(menubar,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -205,7 +205,7 @@ void define_symbols_popup(void *data)
 
         AddListChoiceCB(toggle_symset_item, set_cset_proc, NULL);
 
-        XtManageChild(rc_head);
+        ManageChild(rc_head);
         XtVaSetValues(rc_head,
                       XmNtopAttachment, XmATTACH_WIDGET,
                       XmNtopWidget, menubar,
@@ -254,7 +254,7 @@ void define_symbols_popup(void *data)
         symcolor_item = CreateColorChoice(rc, "Color:");
         AddOptionChoiceCB(symcolor_item, csync_cb, (void *) CSYNC_SYM);
         symchar_item = CreateTextItem2(rc, 3, "Symbol char:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(rc2, "Line properties");
         rc = XtVaCreateWidget("linesrc", xmRowColumnWidgetClass, fr, NULL);
@@ -272,9 +272,9 @@ void define_symbols_popup(void *data)
         toggle_width_item = CreateLineWidthChoice(rc, "Width:");
         toggle_color_item = CreateColorChoice(rc, "Color:");
         AddOptionChoiceCB(toggle_color_item, csync_cb, (void *) CSYNC_LINE);
-        XtManageChild(rc);
+        ManageChild(rc);
         
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
         fr = CreateFrame(setapp_main, "Legend");
         legend_str_item = CreateCSText(fr, "String:");
@@ -284,7 +284,7 @@ void define_symbols_popup(void *data)
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         avalue_active_item = CreateToggleButton(rc2, "Annotate values");
         errbar_active_item = CreateToggleButton(rc2, "Display error bars");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
 
         /* ------------ Symbols tab --------------*/
@@ -298,22 +298,22 @@ void define_symbols_popup(void *data)
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         symlines_item = CreateLineStyleChoice(rc2, "Style:");
         symlinew_item = CreateLineWidthChoice(rc2, "Width:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
         sympattern_item = CreatePatternChoice(rc, "Pattern:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(setapp_symbols, "Symbol fill");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         symfillcolor_item = CreateColorChoice(rc, "Color:");
         symfillpattern_item = CreatePatternChoice(rc, "Pattern:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(setapp_symbols, "Extra");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
         symskip_item = CreateTextItem2(rc, 4, "Symbol skip:");
         char_font_item = CreateFontChoice(rc, "Font for char symbol:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
 
         /* ------------ Line tab --------------*/
@@ -325,7 +325,7 @@ void define_symbols_popup(void *data)
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         toggle_pattern_item = CreatePatternChoice(rc, "Pattern:");
         dropline_item = CreateToggleButton(rc, "Draw drop lines");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(setapp_line, "Fill properties");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -344,13 +344,13 @@ void define_symbols_popup(void *data)
                                              "Even-Odd",
                                              NULL,
                                              0);
-        XtManageChild(rc2);
+        ManageChild(rc2);
         rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         toggle_fillpat_item = CreatePatternChoice(rc2, "Pattern:");
         toggle_fillcol_item = CreateColorChoice(rc2, "Color:");
-        XtManageChild(rc2);
-        XtManageChild(rc);
+        ManageChild(rc2);
+        ManageChild(rc);
         
         fr = CreateFrame(setapp_line, "Base line");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -365,7 +365,7 @@ void define_symbols_popup(void *data)
                                              NULL,
                                              0);
         baseline_item = CreateToggleButton(rc, "Draw line");
-        XtManageChild(rc);
+        ManageChild(rc);
         
         
         /* ------------ AValue tab --------------*/
@@ -380,22 +380,22 @@ void define_symbols_popup(void *data)
 	avalue_font_item = CreateFontChoice(rc2, "Font:");
 	avalue_charsize_item = CreateCharSizeChoice(rc2, "Char size");
 	XtVaSetValues(avalue_charsize_item, XmNscaleWidth, 120, NULL);
-	XtManageChild(rc2);
+	ManageChild(rc2);
         
         rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	avalue_color_item = CreateColorChoice(rc2, "Color:");
 	avalue_angle_item = CreateAngleChoice(rc2, "Angle");
 	XtVaSetValues(avalue_angle_item, XmNscaleWidth, 180, NULL);
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
         rc2 = XmCreateRowColumn(rc, "rc", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         avalue_prestr = CreateTextItem2(rc2, 10, "Prepend:");
         avalue_appstr = CreateTextItem2(rc2, 10, "Append:");
-	XtManageChild(rc2);
+	ManageChild(rc2);
         
-        XtManageChild(rc);
+        ManageChild(rc);
         
 	fr = CreateFrame(setapp_avalue, "Format options");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -413,9 +413,9 @@ void define_symbols_popup(void *data)
                                              NULL,
                                              0);
 	avalue_precision_item = CreatePrecisionChoice(rc2, "Precision:");
-	XtManageChild(rc2);
+	ManageChild(rc2);
         
-        XtManageChild(rc);
+        ManageChild(rc);
 
 
 	fr = CreateFrame(setapp_avalue, "Placement");
@@ -423,7 +423,7 @@ void define_symbols_popup(void *data)
         XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
         avalue_offsetx = CreateTextItem2(rc2, 10, "X offset:");
         avalue_offsety = CreateTextItem2(rc2, 10, "Y offset:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
         
 
         /* ------------ Errbar tab --------------*/
@@ -447,16 +447,16 @@ void define_symbols_popup(void *data)
                                              0);
 	errbar_color_item = CreateColorChoice(rc, "Color:");
 	errbar_pattern_item = CreatePatternChoice(rc, "Pattern:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(rc1, "Clipping");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	errbar_aclip_item = CreateToggleButton(rc, "Arrow clip");
 	errbar_cliplen_item = CreateSpinChoice(rc, "Max riser length",
             3, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
-        XtManageChild(rc);
+        ManageChild(rc);
 
-        XtManageChild(rc1);
+        ManageChild(rc1);
 
         rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc2, NULL);
 
@@ -465,17 +465,17 @@ void define_symbols_popup(void *data)
         errbar_size_item = CreateCharSizeChoice(rc, "Size");
         errbar_width_item = CreateLineWidthChoice(rc, "Width:");
         errbar_lines_item = CreateLineStyleChoice(rc, "Style:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(rc1, "Riser line");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
         errbar_riserlinew_item = CreateLineWidthChoice(rc, "Width:");
         errbar_riserlines_item = CreateLineStyleChoice(rc, "Style:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
-        XtManageChild(rc1);
+        ManageChild(rc1);
         
-        XtManageChild(rc2);
+        ManageChild(rc2);
 
         SelectTabPage(setapp_tab, setapp_main);
 
@@ -498,7 +498,7 @@ void define_symbols_popup(void *data)
                       XmNbottomWidget, fr,
                       NULL);
 
-        XtManageChild(setapp_panel);
+        ManageChild(setapp_panel);
     }
     
     updatesymbols(cg, cset);
@@ -535,7 +535,7 @@ static void setapp_aac_cb(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(setapp_dialog);
+        UnmanageChild(setapp_dialog);
         return;
     }
 
@@ -637,7 +637,7 @@ static void setapp_aac_cb(void *data)
     } 
 
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(setapp_dialog);
+        UnmanageChild(setapp_dialog);
     }
 
     set_dirtystate();

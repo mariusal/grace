@@ -161,7 +161,7 @@ void create_featext_frame(void *data)
 					SELECTION_TYPE_SINGLE);
 	update_save_set_list( feui.absic_set, 0 );
 	
-	XtManageChild(feui.legload_rc);
+	ManageChild(feui.legload_rc);
 	XtSetSensitive(feui.legload_rc, False);
 	CreateSeparator(dialog);
 
@@ -171,7 +171,7 @@ void create_featext_frame(void *data)
 	XtAddCallback(but2[1], XmNactivateCallback,
 	(XtCallbackProc)destroy_dialog,(XtPointer)feui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(feui.top);
     unset_wait_cursor();

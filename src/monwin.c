@@ -80,7 +80,7 @@ void create_monitor_frame(void *data)
         XtSetArg(args[ac], XmNwordWrap, True); ac++;
         XtSetArg(args[ac], XmNeditable, False); ac++;
 	monText = XmCreateScrolledText(fr, "monText", args, ac);
-        XtManageChild(monText);
+        ManageChild(monText);
 
 	rc = XmCreateRowColumn(mon_panel, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -96,7 +96,7 @@ void create_monitor_frame(void *data)
 	wbut = CreateButton(rc, "Help");
 	AddButtonCB(wbut, HelpCB, NULL);
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	XtVaSetValues(fr,
 		      XmNtopAttachment, XmATTACH_FORM,
@@ -111,7 +111,7 @@ void create_monitor_frame(void *data)
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
 
-	XtManageChild(mon_panel);
+	ManageChild(mon_panel);
     }
     SetToggleButtonState(mon_log_item, logwindow);
     XtRaise(mon_frame);
@@ -188,7 +188,7 @@ static void create_wmon_frame(void *data)
 	AddButtonCB(buts[0], wmon_apply_notify_proc, NULL);
 	AddButtonCB(buts[1], destroy_dialog_cb, wmon_frame);
 
-	XtManageChild(wmon_panel);
+	ManageChild(wmon_panel);
     }
     XtRaise(wmon_frame);
     unset_wait_cursor();

@@ -284,7 +284,7 @@ void do_props_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	CreateCommandButtons(dialog, 2, but1, label1);
 	XtAddCallback(but1[1], XmNactivateCallback,
 	    	(XtCallbackProc) destroy_dialog, (XtPointer) top);
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     /* TODO: remove the dirty stuff */
     XtRemoveAllCallbacks(but1[0], XmNactivateCallback);
@@ -516,7 +516,7 @@ void create_ss_frame(int gno, int setno)
     XtAddCallback(but1[2], XmNactivateCallback, (XtCallbackProc) destroy_ep,
     	    (XtPointer) ep);
 
-    XtManageChild(dialog);
+    ManageChild(dialog);
     XtRaise(ep->top);
     unset_wait_cursor();
 }

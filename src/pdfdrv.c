@@ -617,14 +617,14 @@ void pdf_gui_setup(void)
 	pdf_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT, 0.0, 9.0, 1.0);
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(pdf_setup_rc);
 
 	CreateAACButtons(pdf_setup_rc, pdf_setup_panel, set_pdf_setup_proc);
         
-	XtManageChild(pdf_setup_rc);
-	XtManageChild(pdf_setup_panel);
+	ManageChild(pdf_setup_rc);
+	ManageChild(pdf_setup_panel);
     }
     XtRaise(pdf_setup_frame);
     update_pdf_setup_frame();
@@ -645,7 +645,7 @@ static void set_pdf_setup_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(pdf_setup_frame);
+        UnmanageChild(pdf_setup_frame);
         return;
     }
     
@@ -653,7 +653,7 @@ static void set_pdf_setup_proc(void *data)
     pdf_setup_compression = (int) GetSpinChoice(pdf_setup_compression_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(pdf_setup_frame);
+        UnmanageChild(pdf_setup_frame);
     }
 }
 

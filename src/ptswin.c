@@ -164,7 +164,7 @@ static void do_gotopt_proc(void *data)
 static void points_done_proc(void *data)
 {
     set_action(DO_NOTHING);
-    XtUnmanageChild((Widget) data);
+    UnmanageChild((Widget) data);
 }
 
 static void track_set_cbproc(int n, int *values, void *data)
@@ -197,7 +197,7 @@ void create_points_frame(void *data)
 	goto_index_item = CreateTextItem2(rc, 6, "Point location:");
 	wbut = CreateButton(rc, "Goto point");
 	AddButtonCB(wbut, do_gotopt_proc, NULL);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	locate_point_item = CreateTextInput(dialog, "Point data:");
 
@@ -229,9 +229,9 @@ void create_points_frame(void *data)
 	wbut = CreateButton(rc, "Close");
 	AddButtonCB(wbut, points_done_proc, (void *) points_frame);
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(points_frame);
     unset_wait_cursor();

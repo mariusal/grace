@@ -147,7 +147,7 @@ void create_about_grtool(void *data)
 #ifdef DEBUG
 	CreateLabel(rc, "Debugging is enabled");
 #endif
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Legal stuff");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -157,7 +157,7 @@ void create_about_grtool(void *data)
 	CreateLabel(rc, "All rights reserved");
 	CreateLabel(rc,
             "The program is distributed under the terms of the GNU General Public License");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Third party copyrights");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -176,7 +176,7 @@ void create_about_grtool(void *data)
 #ifdef HAVE_LIBPDF
 	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2000 Thomas Merz");
 #endif
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Build info");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -188,12 +188,12 @@ void create_about_grtool(void *data)
 	CreateLabel(rc, buf);
 	sprintf(buf, "T1lib: %s ", bi_t1lib());
 	CreateLabel(rc, buf);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Home page");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	CreateLabel(rc, "http://plasma-gate.weizmann.ac.il/Grace/");
-	XtManageChild(rc);
+	ManageChild(rc);
 	
 	CreateSeparator(about_panel);
 
@@ -201,7 +201,7 @@ void create_about_grtool(void *data)
 	AlignLabel(wbut, ALIGN_CENTER);
         XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) about_frame);
 
-	XtManageChild(about_panel);
+	ManageChild(about_panel);
     }
     XtRaise(about_frame);
     unset_wait_cursor();

@@ -954,7 +954,7 @@ void ps_gui_setup(void)
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	ps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	ps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(ps_setup_rc, "Page offsets (pt)");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -963,20 +963,20 @@ void ps_gui_setup(void)
             "X: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
 	ps_setup_offset_y_item = CreateSpinChoice(rc,
             "Y: ", 4, SPIN_TYPE_INT, -999.0, 999.0, 10.0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(ps_setup_rc, "Hardware");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	ps_setup_feed_item = CreateOptionChoice(rc, "Media feed:", 1, 3, op_items);
 	ps_setup_hwres_item = CreateToggleButton(rc, "Set hardware resolution");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(ps_setup_rc);
 
 	CreateAACButtons(ps_setup_rc, ps_setup_panel, set_ps_setup_proc);
         
-	XtManageChild(ps_setup_rc);
-	XtManageChild(ps_setup_panel);
+	ManageChild(ps_setup_rc);
+	ManageChild(ps_setup_panel);
     }
     XtRaise(ps_setup_frame);
     update_ps_setup_frame();
@@ -1001,7 +1001,7 @@ static void set_ps_setup_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(ps_setup_frame);
+        UnmanageChild(ps_setup_frame);
         return;
     }
     
@@ -1013,7 +1013,7 @@ static void set_ps_setup_proc(void *data)
     ps_setup_hwres     = GetToggleButtonState(ps_setup_hwres_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(ps_setup_frame);
+        UnmanageChild(ps_setup_frame);
     }
 }
 
@@ -1041,14 +1041,14 @@ void eps_gui_setup(void)
 	eps_setup_grayscale_item = CreateToggleButton(rc, "Grayscale output");
 	eps_setup_level2_item = CreateToggleButton(rc, "PS Level 2");
 	eps_setup_tight_bb_item = CreateToggleButton(rc, "Tight BBox");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(eps_setup_rc);
 
 	CreateAACButtons(eps_setup_rc, eps_setup_panel, set_eps_setup_proc);
         
-	XtManageChild(eps_setup_rc);
-	XtManageChild(eps_setup_panel);
+	ManageChild(eps_setup_rc);
+	ManageChild(eps_setup_panel);
     }
     XtRaise(eps_setup_frame);
     update_eps_setup_frame();
@@ -1070,7 +1070,7 @@ static void set_eps_setup_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(eps_setup_frame);
+        UnmanageChild(eps_setup_frame);
         return;
     }
     
@@ -1079,7 +1079,7 @@ static void set_eps_setup_proc(void *data)
     eps_setup_tight_bb = GetToggleButtonState(eps_setup_tight_bb_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(eps_setup_frame);
+        UnmanageChild(eps_setup_frame);
     }
 }
 

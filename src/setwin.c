@@ -111,7 +111,7 @@ void create_datasetprop_popup(void *data)
 
         menubar = CreateMenuBar(panel);
         
-        XtManageChild(menubar);
+        ManageChild(menubar);
         XtVaSetValues(menubar,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -162,7 +162,7 @@ void create_datasetprop_popup(void *data)
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	tui.datatype_item = CreateSetTypeChoice(rc, "Type:");
 	tui.length_item = CreateTextItem2(rc, 6, "Length:");
-        XtManageChild(rc);
+        ManageChild(rc);
 	tui.comment_item = CreateTextItem2(dialog, 26, "Comment:");
 
         for (i = 0; i < MAX_SET_COLS; i++) {
@@ -200,7 +200,7 @@ void create_datasetprop_popup(void *data)
  */
         XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
         XtVaSetValues(dialog,
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, menubar,
@@ -218,7 +218,7 @@ void create_datasetprop_popup(void *data)
             XmNbottomAttachment, XmATTACH_FORM,
             NULL);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(tui.top);
     unset_wait_cursor();
@@ -313,7 +313,7 @@ static void datasetprop_aac_cb(void *data)
     
     aac_mode = (int) data;
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(tui.top);
+        UnmanageChild(tui.top);
         return;
     }
 
@@ -343,7 +343,7 @@ static void datasetprop_aac_cb(void *data)
         }
  
         if (aac_mode == AAC_ACCEPT && error == FALSE) {
-            XtUnmanageChild(tui.top);
+            UnmanageChild(tui.top);
         }
         
         xfree(selset);
@@ -405,7 +405,7 @@ void create_datasetop_popup(void *data)
 
         menubar = CreateMenuBar(panel);
         
-        XtManageChild(menubar);
+        ManageChild(menubar);
         XtVaSetValues(menubar,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -475,9 +475,9 @@ void create_datasetop_popup(void *data)
         datasetopui.stop_item  = CreateTextItem2(rc, 6, "Stop at:");
         datasettype_controls[4] = rc;
 
-	XtManageChild(datasettype_controls[0]);
+	ManageChild(datasettype_controls[0]);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
         XtVaSetValues(dialog,
             XmNtopAttachment, XmATTACH_WIDGET,
             XmNtopWidget, menubar,
@@ -495,7 +495,7 @@ void create_datasetop_popup(void *data)
             XmNbottomAttachment, XmATTACH_FORM,
             NULL);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(datasetopui.top);
     unset_wait_cursor();
@@ -508,9 +508,9 @@ static void datasetoptypeCB(int value, void *data)
     
     for (i = 0; i < 5; i++) {
         if (i == type) {
-            XtManageChild(datasettype_controls[i]);
+            ManageChild(datasettype_controls[i]);
         } else {
-            XtUnmanageChild(datasettype_controls[i]);
+            UnmanageChild(datasettype_controls[i]);
         }
     }
 }
@@ -527,7 +527,7 @@ static void datasetop_aac_cb(void *data)
     
     aac_mode = (int) data;
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(datasetopui.top);
+        UnmanageChild(datasetopui.top);
         return;
     }
     
@@ -577,7 +577,7 @@ static void datasetop_aac_cb(void *data)
         }
  
         if (aac_mode == AAC_ACCEPT && error == FALSE) {
-            XtUnmanageChild(datasetopui.top);
+            UnmanageChild(datasetopui.top);
         }
         
         xfree(selset);
@@ -640,7 +640,7 @@ void create_setop_popup(void *data)
             NULL);
         CreateAACButtons(fr, panel, setop_aac_cb);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(setopui.top);
     unset_wait_cursor();
@@ -654,7 +654,7 @@ static void setop_aac_cb(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(setopui.top);
+        UnmanageChild(setopui.top);
         return;
     }
 
@@ -719,7 +719,7 @@ static void setop_aac_cb(void *data)
     }
     
     if (aac_mode == AAC_ACCEPT && error == FALSE) {
-        XtUnmanageChild(setopui.top);
+        UnmanageChild(setopui.top);
     }
 
     if (ns1 > 0) {
@@ -811,7 +811,7 @@ void create_leval_frame(void *data)
 	levalui.start = CreateTextItem2(rc1, 10, "Start at:");
 	levalui.stop = CreateTextItem2(rc1, 10, "Stop at:");
 	levalui.npts = CreateTextItem2(rc1, 6, "Length:");
-	XtManageChild(rc1);
+	ManageChild(rc1);
 
         XtVaSetValues(fr,
             XmNtopAttachment, XmATTACH_FORM,
@@ -878,7 +878,7 @@ void create_leval_frame(void *data)
             NULL);
         CreateAACButtons(fr, panel, leval_aac_cb);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(levalui.top);
     unset_wait_cursor();
@@ -899,7 +899,7 @@ static void leval_aac_cb(void *data)
     aac_mode = (int) data;
 
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(levalui.top);
+        UnmanageChild(levalui.top);
         return;
     }
 
@@ -981,7 +981,7 @@ static void leval_aac_cb(void *data)
     t->length = 0;
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(levalui.top);
+        UnmanageChild(levalui.top);
     }
 
     update_set_lists(gno);

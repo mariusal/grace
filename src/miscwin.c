@@ -133,7 +133,7 @@ void create_props_frame(void *data)
 	autoredraw_type_item = CreateToggleButton(rc1, "Auto redraw");
 	cursor_type_item = CreateToggleButton(rc1, "Crosshair cursor");
 
-	XtManageChild(rc1);
+	ManageChild(rc1);
         
 	fr = CreateFrame(panel, "Limits");
 	max_path_item = CreateSpinChoice(fr,
@@ -164,7 +164,7 @@ void create_props_frame(void *data)
 	    XmNorientation, XmHORIZONTAL,
 	    NULL);
 	linkscroll_item = CreateToggleButton(rc1, "Linked scrolling");
-        XtManageChild(rc1);
+        ManageChild(rc1);
 
 	fr = CreateFrame(panel, "Dates");
         rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -184,9 +184,9 @@ void create_props_frame(void *data)
         wrap_year_item = CreateTextItem2(rc, 4, "Wrap year:");
 	AddToggleButtonCB(two_digits_years_item,
             wrap_year_cb, (void *) wrap_year_item);
-        XtManageChild(rc);
+        ManageChild(rc);
 
-        XtManageChild(rc1);
+        ManageChild(rc1);
 	CreateSeparator(panel);
 
 	CreateCommandButtons(panel, 2, buts, label1);
@@ -195,7 +195,7 @@ void create_props_frame(void *data)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		  (XtCallbackProc) destroy_dialog, (XtPointer) props_frame);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(props_frame);
     update_props_items();

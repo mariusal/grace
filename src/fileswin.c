@@ -100,10 +100,10 @@ void create_saveproject_popup(void)
 	rc = XmCreateRowColumn(fr, "rc", NULL, 0);
 	save_gui.descr_item  = CreateScrollTextItem2(rc, 5, "Project description:");
 	save_gui.format_item = CreateTextItem2(rc, 15, "Data format:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
 	AddFileSelectionBoxCB(fsb, save_proc, &save_gui);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     update_save_gui(&save_gui);
@@ -141,7 +141,7 @@ void create_openproject_popup(void)
         fsb = CreateFileSelectionBox(app_shell,
             "Open project", "*.agr");
 	AddFileSelectionBoxCB(fsb, open_proc, NULL);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     XtRaise(fsb->dialog);
 
@@ -205,7 +205,7 @@ void create_file_popup(void *data)
 	gui->load_item = CreateOptionChoice(rc2, "Load as", 1, 3, option_items);
         AddOptionChoiceCB(gui->load_item, set_load_proc, (void *) gui);
 	gui->ftype_item = CreateSetTypeChoice(rc2, "Set type:");
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
 	rc2 = XmCreateRowColumn(rc, "rc2", NULL, 0);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
@@ -218,15 +218,16 @@ void create_file_popup(void *data)
 	    XtAddCallback(w[i],
                 XmNvalueChangedCallback, set_src_proc, (XtPointer) i);
 	}
-	XtManageChild(rb);
-	XtManageChildren(w, 2);
+	ManageChild(rb);
+	ManageChild(w[0]);
+	ManageChild(w[1]);
 	SetToggleButtonState(w[0], TRUE);
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
 	gui->auto_item = CreateASChoice(rc, "Autoscale on read:");
 
-	XtManageChild(rc);
-        XtManageChild(rdata_dialog->FSB);
+	ManageChild(rc);
+        ManageChild(rdata_dialog->FSB);
     }
     
     
@@ -315,9 +316,9 @@ void create_write_popup(void *data)
             "Write set(s):", LIST_TYPE_MULTIPLE, TRUE);
 	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
         xv_setstr(gui->format_item, sformat);
-        XtManageChild(rc);
+        ManageChild(rc);
 
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     XtRaise(fsb->dialog);
 
@@ -369,7 +370,7 @@ void create_rparams_popup(void *data)
 	rparams_dialog = CreateFileSelectionBox(app_shell,
             "Read parameters", "*.par");
 	AddFileSelectionBoxCB(rparams_dialog, read_params_proc, NULL);
-        XtManageChild(rparams_dialog->FSB);
+        ManageChild(rparams_dialog->FSB);
     }
     
     XtRaise(rparams_dialog->dialog);
@@ -410,7 +411,7 @@ void create_wparam_frame(void *data)
             NULL,
             NULL);
 	AddFileSelectionBoxCB(fsb, write_params_proc, graph_item);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     XtRaise(fsb->dialog);
@@ -620,11 +621,11 @@ void create_netcdfs_popup(void *data)
 
 	lab = CreateLabel(dialog, "Select set X:");
 	netcdf_listx_item = XmCreateScrolledList(dialog, "list", args, 2);
-	XtManageChild(netcdf_listx_item);
+	ManageChild(netcdf_listx_item);
 
 	lab = CreateLabel(dialog, "Select set Y:");
 	netcdf_listy_item = XmCreateScrolledList(dialog, "list", args, 2);
-	XtManageChild(netcdf_listy_item);
+	ManageChild(netcdf_listy_item);
 
 	netcdf_file_item = CreateTextItem2(dialog, 30, "netCDF file:");
 
@@ -642,7 +643,7 @@ void create_netcdfs_popup(void *data)
 	XtAddCallback(but1[4], XmNactivateCallback, (XtCallbackProc) destroy_dialog,
 		      (XtPointer) top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
 	netcdf_frame = top;
 	if (strlen(netcdf_name)) {
 	    xv_setstr(netcdf_file_item, netcdf_name);
@@ -670,7 +671,7 @@ void create_netcdffiles_popup(Widget w, XtPointer client_data, XtPointer call_da
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Select netCDF file", "*.nc");
 	AddFileSelectionBoxCB(fsb, do_netcdffile_proc, NULL);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     XtRaise(fsb->dialog);

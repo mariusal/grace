@@ -125,7 +125,7 @@ void create_printer_setup(void *data)
         menupane = CreateMenu(menubar, "Help", 'H', TRUE);
         CreateMenuButton(menupane, "On device setup", 'd', HelpCB, NULL);
 
-        XtManageChild(menubar);
+        ManageChild(menubar);
         XtVaSetValues(menubar,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -159,9 +159,9 @@ void create_printer_setup(void *data)
         
         device_opts_item = CreateButton(pdev_rc, "Device options...");
 	AddButtonCB(device_opts_item, create_devopts_popup, NULL);
-        XtManageChild(pdev_rc);
+        ManageChild(pdev_rc);
         
-        XtManageChild(rc1);
+        ManageChild(rc1);
         
         output_frame = CreateFrame(psetup_rc, "Output");
         rc1 = XmCreateRowColumn(output_frame, "rc", NULL, 0);
@@ -183,9 +183,9 @@ void create_printer_setup(void *data)
 
 	wbut = CreateButton(rc_filesel, "Browse...");
 	AddButtonCB(wbut, create_printfiles_popup, NULL);
-	XtManageChild(rc_filesel);
+	ManageChild(rc_filesel);
 
-	XtManageChild(rc1);
+	ManageChild(rc1);
 	
         fr = CreateFrame(psetup_rc, "Page");
         rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -211,7 +211,7 @@ void create_printer_setup(void *data)
 	    XtAddCallback(page_format_item[2 + i], XmNactivateCallback,
 			  (XtCallbackProc) do_format_toggle, (XtPointer) i);
 	}
-        XtManageChild(rc);
+        ManageChild(rc);
 
 	rc = XmCreateRowColumn(rc1, "rc", NULL, 0);
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
@@ -228,23 +228,23 @@ void create_printer_setup(void *data)
 			  (XtCallbackProc) do_units_toggle, (XtPointer) i);
 	}
         SetChoice(page_size_unit_item, current_page_units);
-        XtManageChild(rc);
+        ManageChild(rc);
 
         dev_res_item = CreateTextItem2(rc1, 4, "Resolution (dpi):");
 
-        XtManageChild(rc1);
+        ManageChild(rc1);
 
         fr = CreateFrame(psetup_rc, "Fonts");
         rc1 = XmCreateRowColumn(fr, "rc", NULL, 0);
 	fontaa_item = CreateToggleButton(rc1, "Enable font antialiasing");
 	devfont_item = CreateToggleButton(rc1, "Use device fonts");
-        XtManageChild(rc1);
+        ManageChild(rc1);
         
 	CreateSeparator(psetup_rc);
 
 	CreateAACButtons(psetup_rc, device_panel, set_printer_proc);
-	XtManageChild(psetup_rc);
-	XtManageChild(device_panel);
+	ManageChild(psetup_rc);
+	ManageChild(device_panel);
     }
     
     XtRaise(psetup_frame);
@@ -299,25 +299,25 @@ static void update_device_setup(int device_id)
         
         switch (dev.type) {
         case DEVICE_TERM:
-            XtUnmanageChild(output_frame);
+            UnmanageChild(output_frame);
             break;
         case DEVICE_FILE:
-            XtManageChild(output_frame);
+            ManageChild(output_frame);
             SetChoice(printto_item, TRUE);
             XtSetSensitive(printto_item[0], False);
-            XtSetSensitive(XtParent(print_string_item), False);
+            XtSetSensitive(GetParent(print_string_item), False);
             XtSetSensitive(rc_filesel, True);
             break;
         case DEVICE_PRINT:
-            XtManageChild(output_frame);
+            ManageChild(output_frame);
             SetChoice(printto_item, get_ptofile());
             XtSetSensitive(printto_item[0], True);
             if (get_ptofile() == TRUE) {
                 XtSetSensitive(rc_filesel, True);
-                XtSetSensitive(XtParent(print_string_item), False);
+                XtSetSensitive(GetParent(print_string_item), False);
             } else {
                 XtSetSensitive(rc_filesel, False);
-                XtSetSensitive(XtParent(print_string_item), True);
+                XtSetSensitive(GetParent(print_string_item), True);
             }
             break;
         }
@@ -388,7 +388,7 @@ static void set_printer_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(psetup_frame);
+        UnmanageChild(psetup_frame);
         return;
     }
     
@@ -460,7 +460,7 @@ static void set_printer_proc(void *data)
     }
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(psetup_frame);
+        UnmanageChild(psetup_frame);
     }
     
     if (do_redraw) {
@@ -483,10 +483,10 @@ static void do_pr_toggle(Widget w, XtPointer client_data, XtPointer call_data)
     
     if (value == TRUE) {
         XtSetSensitive(rc_filesel, True);
-        XtSetSensitive(XtParent(print_string_item), False);
+        XtSetSensitive(GetParent(print_string_item), False);
     } else {
         XtSetSensitive(rc_filesel, False);
-        XtSetSensitive(XtParent(print_string_item), True);
+        XtSetSensitive(GetParent(print_string_item), True);
     }
 }
 
@@ -612,7 +612,7 @@ void create_printfiles_popup(void *data)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Select print file", "*");
 	AddFileSelectionBoxCB(fsb, do_prfilesel_proc, NULL);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
 
     device = GetOptionChoice(devices_item);

@@ -186,7 +186,7 @@ void create_fonttool(Widget cstext)
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, XtParent(string_item),
+            XmNtopWidget, GetParent(string_item),
             XmNbottomAttachment, XmATTACH_FORM,
 	    NULL);
 
@@ -211,7 +211,7 @@ void create_fonttool(Widget cstext)
             NULL);
         
         update_fonttool_cb(0, font_table);
-        XtManageChild(fonttool_panel);
+        ManageChild(fonttool_panel);
     }
 
     enable_edit_cb = FALSE;
@@ -386,7 +386,7 @@ static void fonttool_aac_cb(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(fonttool_frame);
+        UnmanageChild(fonttool_frame);
         if (cstext_parent != NULL) {
             XtSetSensitive(cstext_parent, True);
         }
@@ -398,7 +398,7 @@ static void fonttool_aac_cb(void *data)
     }
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(fonttool_frame);
+        UnmanageChild(fonttool_frame);
         if (cstext_parent != NULL) {
             XtSetSensitive(cstext_parent, True);
         }

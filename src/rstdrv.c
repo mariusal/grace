@@ -1031,14 +1031,14 @@ void png_gui_setup(void)
 	png_setup_compression_item = CreateSpinChoice(rc,
             "Compression:", 1, SPIN_TYPE_INT,
             (double) Z_NO_COMPRESSION, (double) Z_BEST_COMPRESSION, 1.0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(png_setup_rc);
 
 	CreateAACButtons(png_setup_rc, png_setup_panel, set_png_setup_proc);
         
-	XtManageChild(png_setup_rc);
-	XtManageChild(png_setup_panel);
+	ManageChild(png_setup_rc);
+	ManageChild(png_setup_panel);
     }
     XtRaise(png_setup_frame);
     update_png_setup_frame();
@@ -1060,7 +1060,7 @@ static void set_png_setup_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(png_setup_frame);
+        UnmanageChild(png_setup_frame);
         return;
     }
     
@@ -1069,7 +1069,7 @@ static void set_png_setup_proc(void *data)
     png_setup_compression = GetSpinChoice(png_setup_compression_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(png_setup_frame);
+        UnmanageChild(png_setup_frame);
     }
 }
 #endif
@@ -1095,14 +1095,14 @@ void pnm_gui_setup(void)
 					 "8-bit color (PPM)",
                                          0, 0);
 	pnm_setup_rawbits_item = CreateToggleButton(rc, "\"Rawbits\"");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(pnm_setup_rc);
 
 	CreateAACButtons(pnm_setup_rc, pnm_setup_panel, set_pnm_setup_proc);
         
-	XtManageChild(pnm_setup_rc);
-	XtManageChild(pnm_setup_panel);
+	ManageChild(pnm_setup_rc);
+	ManageChild(pnm_setup_panel);
     }
     XtRaise(pnm_setup_frame);
     update_pnm_setup_frame();
@@ -1123,7 +1123,7 @@ static void set_pnm_setup_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(pnm_setup_frame);
+        UnmanageChild(pnm_setup_frame);
         return;
     }
     
@@ -1131,7 +1131,7 @@ static void set_pnm_setup_proc(void *data)
     pnm_setup_rawbits = GetToggleButtonState(pnm_setup_rawbits_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(pnm_setup_frame);
+        UnmanageChild(pnm_setup_frame);
     }
 }
 
@@ -1167,7 +1167,7 @@ void jpg_gui_setup(void)
 	jpg_setup_optimize_item = CreateToggleButton(rc, "Optimize");
 	jpg_setup_progressive_item = CreateToggleButton(rc, "Progressive");
 	jpg_setup_grayscale_item = CreateToggleButton(rc, "Grayscale");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	fr = CreateFrame(jpg_setup_rc, "JPEG advanced options");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
@@ -1180,14 +1180,14 @@ void jpg_gui_setup(void)
 					 "Slow integer",
 					 "Float",
                                          0, 0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(jpg_setup_rc);
 
 	CreateAACButtons(jpg_setup_rc, jpg_setup_panel, set_jpg_setup_proc);
         
-	XtManageChild(jpg_setup_rc);
-	XtManageChild(jpg_setup_panel);
+	ManageChild(jpg_setup_rc);
+	ManageChild(jpg_setup_panel);
     }
     XtRaise(jpg_setup_frame);
     update_jpg_setup_frame();
@@ -1213,7 +1213,7 @@ static void set_jpg_setup_proc(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(jpg_setup_frame);
+        UnmanageChild(jpg_setup_frame);
         return;
     }
     
@@ -1226,7 +1226,7 @@ static void set_jpg_setup_proc(void *data)
     jpg_setup_dct = GetChoice(jpg_setup_dct_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(jpg_setup_frame);
+        UnmanageChild(jpg_setup_frame);
     }
 }
 #endif

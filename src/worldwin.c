@@ -223,7 +223,7 @@ void create_arrange_frame(void *data)
         xv_setstr(arrange_widthx_item, "0.8");
         xv_setstr(arrange_widthy_item, "0.8");
         
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(arrange_panel);
 
@@ -231,7 +231,7 @@ void create_arrange_frame(void *data)
 	XtAddCallback(but1[0], XmNactivateCallback, define_arrange_proc, (XtPointer) NULL);
 	XtAddCallback(but1[1], XmNactivateCallback, destroy_dialog, (XtPointer) arrange_frame);
 
-	XtManageChild(arrange_panel);
+	ManageChild(arrange_panel);
     }
 /*
  *     update_arrange();
@@ -306,7 +306,7 @@ void create_overlay_frame(void *data)
 	XtAddCallback(but1[0], XmNactivateCallback, define_overlay_proc, NULL);
 	XtAddCallback(but1[1], XmNactivateCallback, destroy_dialog, (XtPointer) overlay_frame);
 
-	XtManageChild(overlay_panel);
+	ManageChild(overlay_panel);
     }
 
     XtRaise(overlay_frame);
@@ -385,7 +385,7 @@ void create_autos_frame(void *data)
 	XtAddCallback(but1[1], XmNactivateCallback,
 	              destroy_dialog, (XtPointer) aui.top);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(aui.top);
     unset_wait_cursor();

@@ -253,7 +253,7 @@ void define_objects_popup(void *data)
         AddButtonCB(wbut, set_actioncb, (void *) MAKE_ELLIP_1ST);
 	wbut = CreateButton(rc, "Ellipse props...");
         AddButtonCB(wbut, define_ellip_popup, NULL);
-	XtManageChild(rc);
+	ManageChild(rc);
 
         rc = XmCreateRowColumn(panel, "rc", NULL, 0);
 	wbut = CreateButton(rc, "Edit object");
@@ -274,9 +274,9 @@ void define_objects_popup(void *data)
         AddButtonCB(wbut, clear_objects_cb, (void *) OBJECT_ELLIPSE);
 	wbut = CreateButton(rc, "Close");
 	XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) objects_frame);
-	XtManageChild(rc);
+	ManageChild(rc);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(objects_frame);
     unset_wait_cursor();
@@ -313,7 +313,7 @@ static void define_ellip_popup(void *data)
 					   "Viewport coordinates",
 					   0,
 					   0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -323,7 +323,7 @@ static void define_ellip_popup(void *data)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		  destroy_dialog, (XtPointer) ellip_frame);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(ellip_frame);
     update_ellip();
@@ -359,7 +359,7 @@ static void define_strings_popup(void *data)
 					     "Viewport coordinates",
 					     0,
 					     0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	strings_rot_item = CreateAngleChoice(panel, "Rotation");
 
@@ -373,7 +373,7 @@ static void define_strings_popup(void *data)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		destroy_dialog, (XtPointer) strings_frame);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(strings_frame);
     updatestrings();
@@ -426,7 +426,7 @@ static void define_lines_popup(void *data)
             4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
 	lines_a_lL_ff_item = CreateSpinChoice(rc2, "l/L form factor",
             4, SPIN_TYPE_FLOAT, -1.0, 1.0, 0.1);
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
 	lines_loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
@@ -434,7 +434,7 @@ static void define_lines_popup(void *data)
 					   "Viewport coordinates",
 					   0,
 					   0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -444,7 +444,7 @@ static void define_lines_popup(void *data)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		  destroy_dialog, (XtPointer) lines_frame);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     update_lines();
     XtRaise(lines_frame);
@@ -482,7 +482,7 @@ static void define_boxes_popup(void *data)
 					   "Viewport coordinates",
 					   0,
 					   0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -492,7 +492,7 @@ static void define_boxes_popup(void *data)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		  destroy_dialog, (XtPointer) boxes_frame);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(boxes_frame);
     update_boxes();
@@ -706,7 +706,7 @@ void box_edit_popup(int boxno)
 	box_ui.y1_item = CreateTextItem2(rc, 12, "Ymin = ");
 	box_ui.x2_item = CreateTextItem2(rc, 12, "Xmax = ");
 	box_ui.y2_item = CreateTextItem2(rc, 12, "Ymax = ");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -715,7 +715,7 @@ void box_edit_popup(int boxno)
 	  	box_edit_proc, (XtPointer) &box_ui);
 	XtAddCallback(buts[1], XmNactivateCallback,
 		destroy_dialog, (XtPointer) box_ui.top);
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     box_ui.boxno = boxno;
     update_box_edit(&box_ui);
@@ -765,7 +765,7 @@ void ellipse_edit_popup(int boxno)
 	ellip_ui.y1_item = CreateTextItem2(rc, 12, "Ycentre = ");
 	ellip_ui.x2_item = CreateTextItem2(rc, 12, "Width = ");
 	ellip_ui.y2_item = CreateTextItem2(rc, 12, "Height = ");
-    	XtManageChild(rc);
+    	ManageChild(rc);
 
     	CreateSeparator(panel);
 
@@ -775,7 +775,7 @@ void ellipse_edit_popup(int boxno)
 		    	  ellipse_edit_proc, (XtPointer) &ellip_ui);
     	XtAddCallback(buts[1], XmNactivateCallback,
 			  destroy_dialog, (XtPointer) ellip_ui.top);
-    	XtManageChild(panel);
+    	ManageChild(panel);
     }
     ellip_ui.boxno = boxno;
     update_ellipse_edit(&ellip_ui);
@@ -925,7 +925,7 @@ void line_edit_popup(int lineno)
             4, SPIN_TYPE_FLOAT, 0.0, 10.0, 0.1);
 	line_ui.lL_ff_item = CreateSpinChoice(rc2, "l/L form factor",
             4, SPIN_TYPE_FLOAT, -1.0, 1.0, 0.1);
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
 	line_ui.loc_item = CreatePanelChoice(rc, "Position in:",
 					   3,
@@ -943,7 +943,7 @@ void line_edit_popup(int lineno)
 	line_ui.y1_item = CreateTextItem2(rc, 12, "Y1 = ");
 	line_ui.x2_item = CreateTextItem2(rc, 12, "X2 = ");
 	line_ui.y2_item = CreateTextItem2(rc, 12, "Y2 = ");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -953,7 +953,7 @@ void line_edit_popup(int lineno)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		destroy_dialog, (XtPointer) line_ui.top);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(line_ui.top);
     line_ui.lineno = lineno;
@@ -1078,7 +1078,7 @@ void string_edit_popup(int stringno)
 	string_ui.x1_item = CreateTextItem2(rc, 12, "X = ");
 	string_ui.y1_item = CreateTextItem2(rc, 12, "Y = ");	
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	string_ui.rot_item = CreateAngleChoice(panel, "Rotation");
 
@@ -1092,7 +1092,7 @@ void string_edit_popup(int stringno)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		destroy_dialog, (XtPointer) string_ui.top);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(string_ui.top);
     string_ui.stringno = stringno;

@@ -122,7 +122,7 @@ void create_eval_frame(void *data)
         eui.restr_item =
             CreateRestrictionChoice(rc_trans, "Source data filtering");
 
-        XtManageChild(rc_trans);
+        ManageChild(rc_trans);
 	fr = CreateFrame(dialog, NULL);
         XtVaSetValues(fr,
             XmNtopAttachment, XmATTACH_NONE,
@@ -142,7 +142,7 @@ void create_eval_frame(void *data)
             NULL);
 
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(eui.top);
     unset_wait_cursor();
@@ -163,7 +163,7 @@ static void compute_aac(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(eui.top);
+        UnmanageChild(eui.top);
         return;
     }
 
@@ -215,7 +215,7 @@ static void compute_aac(void *data)
     }
     
     if (aac_mode == AAC_ACCEPT && error == FALSE) {
-        XtUnmanageChild(eui.top);
+        UnmanageChild(eui.top);
     }
 
     if (ns1 > 0) {
@@ -287,7 +287,7 @@ void create_histo_frame(void *data)
 	XtVaCreateManagedWidget("Number of bins: ", xmLabelWidgetClass, rc, NULL);
 	hui.nbins_item = XtVaCreateManagedWidget("nbins", xmTextWidgetClass, rc, NULL);
 	XtVaSetValues(hui.nbins_item, XmNcolumns, 10, NULL);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(dialog);
 	hui.type_item = CreatePanelChoice(dialog, "Compute: ",
@@ -303,7 +303,7 @@ void create_histo_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_histo_proc, (XtPointer) & hui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) hui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(hui.top);
     unset_wait_cursor();
@@ -445,7 +445,7 @@ void create_fourier_frame(void *data)
 					  "Complex",
 					  0,
 					  0);
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(dialog);
 	CreateCommandButtons(dialog, 4, buts, l);
@@ -454,7 +454,7 @@ void create_fourier_frame(void *data)
 	XtAddCallback(buts[2], XmNactivateCallback, (XtCallbackProc) do_window_proc, (XtPointer) & fui);
 	XtAddCallback(buts[3], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) fui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(fui.top);
     unset_wait_cursor();
@@ -620,7 +620,7 @@ void create_run_frame(void *data)
 
 	rui.rinvert_item = CreateToggleButton(rc, "Invert region");
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(dialog);
 
@@ -628,7 +628,7 @@ void create_run_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_runavg_proc, (XtPointer) & rui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) rui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(rui.top);
     unset_wait_cursor();
@@ -753,7 +753,7 @@ void create_reg_frame(void *data)
 					      "Inverse y=1/(A+Bx)",
 					      0,
 					      0);
-	XtManageChild(rc2);
+	ManageChild(rc2);
 	
 	rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, rc,
 			      XmNorientation, XmHORIZONTAL,
@@ -768,7 +768,7 @@ void create_reg_frame(void *data)
 						 "Function",
 					     0,
 					     0);
-        XtManageChild(rc2);
+        ManageChild(rc2);
 	for( i=2; i<5; i++ )
 		XtAddCallback( regui.resid_item[i], XmNactivateCallback, 
 					set_regr_sensitivity, (XtPointer)(i-2) );
@@ -794,7 +794,7 @@ void create_reg_frame(void *data)
 					      0);
 	
         regui.rinvert_item = CreateToggleButton(rc2, "Invert region");
-	XtManageChild(rc2);
+	ManageChild(rc2);
 	
 	CreateSeparator(rc);
 
@@ -803,9 +803,9 @@ void create_reg_frame(void *data)
 	regui.start_item = CreateTextItem2(regui.fload_rc, 6, "Start load at:");
 	regui.stop_item  = CreateTextItem2(regui.fload_rc, 6, "Stop load at:");
 	regui.step_item  = CreateTextItem2(regui.fload_rc, 4, "# of points:");
-	XtManageChild(regui.fload_rc);
+	ManageChild(regui.fload_rc);
 
-	XtManageChild(rc);
+	ManageChild(rc);
 	XtSetSensitive(regui.fload_rc, False);
 	
 	CreateSeparator(dialog);
@@ -814,7 +814,7 @@ void create_reg_frame(void *data)
 	XtAddCallback(buts[0], XmNactivateCallback, (XtCallbackProc) do_regress_proc, (XtPointer) & regui);
 	XtAddCallback(buts[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) regui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(regui.top);
     unset_wait_cursor();
@@ -940,7 +940,7 @@ void create_diff_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_differ_proc, (XtPointer) & dui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) dui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(dui.top);
     unset_wait_cursor();
@@ -1019,7 +1019,7 @@ void create_int_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_int_proc, (XtPointer) & iui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) iui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(iui.top);
     unset_wait_cursor();
@@ -1096,7 +1096,7 @@ void create_seasonal_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_seasonal_proc, (XtPointer) & sui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(sui.top);
     unset_wait_cursor();
@@ -1182,7 +1182,7 @@ void create_interp_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_interp_proc, (XtPointer) & interpui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) interpui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(interpui.top);
     unset_wait_cursor();
@@ -1254,7 +1254,7 @@ void create_xcor_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_xcor_proc, (XtPointer) & crossui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) crossui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(crossui.top);
     unset_wait_cursor();
@@ -1335,7 +1335,7 @@ void create_spline_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_spline_proc, (XtPointer) & splineui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) splineui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(splineui.top);
     unset_wait_cursor();
@@ -1432,7 +1432,7 @@ void create_samp_frame(void *data)
 	sampui.start_item = CreateTextItem4(rc, 10, "Start:");
 	sampui.step_item = CreateTextItem4(rc, 10, "Step:");
 	sampui.expr_item = CreateTextItem4(rc, 10, "Logical expression:");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(dialog);
 
@@ -1440,7 +1440,7 @@ void create_samp_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_sample_proc, (XtPointer) & sampui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) sampui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(sampui.top);
     unset_wait_cursor();
@@ -1525,14 +1525,14 @@ void create_prune_frame(void *data)
             XmNorientation, XmHORIZONTAL,
 	    NULL);
 	pruneui.dx_item = CreateTextItem4(pruneui.dx_rc, 17, "Delta X:");
-        XtManageChild(pruneui.dx_rc);
+        ManageChild(pruneui.dx_rc);
 
 	pruneui.dy_rc = XtVaCreateWidget("dy_rc",
             xmRowColumnWidgetClass, dialog,
             XmNorientation, XmHORIZONTAL,
 	    NULL);
 	pruneui.dy_item = CreateTextItem4(pruneui.dy_rc, 17, "Delta Y:");
-        XtManageChild(pruneui.dy_rc);
+        ManageChild(pruneui.dy_rc);
 
 	CreateSeparator(dialog);
 
@@ -1563,7 +1563,7 @@ void create_prune_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_prune_proc, (XtPointer) & pruneui);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) pruneui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(pruneui.top);
     unset_wait_cursor();
@@ -1723,7 +1723,7 @@ void create_digf_frame(void *data)
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_digfilter_proc, (XtPointer) & digfui);
 	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) digfui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(digfui.top);
     unset_wait_cursor();
@@ -1792,7 +1792,7 @@ void create_lconv_frame(void *data)
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_linearc_proc, (XtPointer) & lconvui);
 	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) lconvui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(lconvui.top);
     unset_wait_cursor();
@@ -1893,7 +1893,7 @@ void create_geom_frame(void *data)
 	gui.scaley_item = CreateTextItem4(rc, 10, "Scale Y:");
 	gui.transx_item = CreateTextItem4(rc, 10, "Translate X:");
 	gui.transy_item = CreateTextItem4(rc, 10, "Translate Y:");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	CreateSeparator(dialog);
 
@@ -1903,7 +1903,7 @@ void create_geom_frame(void *data)
 	& gui.top);
 	XtAddCallback(but1[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) gui.top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
 	xv_setstr(gui.degrees_item, "0.0");
 	xv_setstr(gui.rotx_item, "0.0");
 	xv_setstr(gui.roty_item, "0.0");

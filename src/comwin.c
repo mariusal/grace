@@ -329,9 +329,9 @@ void open_command(void *data)
 	AddButtonCB(but[5], HelpCB, NULL);
 
 	XtAddCallback(command, XmNcommandEnteredCallback, comcall, NULL);
-	XtManageChild(form);
-	XtManageChild(command);
-	XtManageChild(comshell);
+	ManageChild(form);
+	ManageChild(command);
+	ManageChild(comshell);
 	XtAppAddActions(app_con, actions, XtNumber(actions));
 	XtOverrideTranslations(XmCommandGetChild(command, XmDIALOG_COMMAND_TEXT),
 	    XtParseTranslationTable(comwin_table));
@@ -344,7 +344,7 @@ static Widget rhist_dialog;
 
 void close_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    XtUnmanageChild(rhist_dialog);
+    UnmanageChild(rhist_dialog);
 }
 
 static int do_rhist_proc(char *filename, void *data)
@@ -382,7 +382,7 @@ void create_rhist_popup(Widget w, XtPointer client_data, XtPointer call_data)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Read history", "*.com");
 	AddFileSelectionBoxCB(fsb, do_rhist_proc, NULL);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     XtRaise(fsb->dialog);
@@ -421,7 +421,7 @@ void create_whist_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		      (XtCallbackProc) whist_apply_notify_proc, (XtPointer) NULL);
 	XtAddCallback(buts[1], XmNactivateCallback,
 		      (XtCallbackProc) destroy_dialog, (XtPointer) whist_frame);
-	XtManageChild(whist_panel);
+	ManageChild(whist_panel);
     }
     XtRaise(whist_frame);
     unset_wait_cursor();
@@ -450,5 +450,5 @@ static void whist_apply_notify_proc(Widget w, XtPointer client_data, XtPointer c
         }
         grace_close(pp);
     }
-    XtUnmanageChild(whist_frame);
+    UnmanageChild(whist_frame);
 }

@@ -177,13 +177,13 @@ void create_graphapp_frame(int gno)
 						   NULL);
 	stacked_item = CreateToggleButton(rc, "Stacked chart");
 
-        XtManageChild(rc);
+        ManageChild(rc);
 
 	fr = CreateFrame(graphapp_main, "Titles");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	label_title_text_item = CreateCSText(rc, "Title: ");
 	label_subtitle_text_item = CreateCSText(rc, "Subtitle: ");
-        XtManageChild(rc);
+        ManageChild(rc);
 
         fr = CreateFrame(graphapp_main, "Viewport");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -192,22 +192,22 @@ void create_graphapp_frame(int gno)
 	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
 	define_view_xv1 = CreateTextItem2(rc1, 8, "Xmin:");
 	define_view_xv2 = CreateTextItem2(rc1, 8, "Xmax:");
-        XtManageChild(rc1);
+        ManageChild(rc1);
 
         rc1 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
 	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
 	define_view_yv1 = CreateTextItem2(rc1, 8, "Ymin:");
 	define_view_yv2 = CreateTextItem2(rc1, 8, "Ymax:");
-        XtManageChild(rc1);
+        ManageChild(rc1);
 
-        XtManageChild(rc);
+        ManageChild(rc);
         
         fr = CreateFrame(graphapp_main, "Display options");
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	toggle_legends_item = CreateToggleButton(rc, "Display legend");
 	graph_flipxy_item = CreateToggleButton(rc, "Flip XY (N/I)");
-        XtManageChild(rc);
+        ManageChild(rc);
 
 
 
@@ -223,7 +223,7 @@ void create_graphapp_frame(int gno)
 
 	title_color_item = CreateColorChoice(rc2, "Color:");
 
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
 	fr = CreateFrame(graphapp_titles, "Subtitle");
 	rc2 = XtVaCreateWidget("rc2", xmRowColumnWidgetClass, fr, NULL);
@@ -232,7 +232,7 @@ void create_graphapp_frame(int gno)
 	stitle_size_item = CreateCharSizeChoice(rc2, "Character size");
 	stitle_color_item = CreateColorChoice(rc2, "Color:");
 
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
 
         /* ------------ Frame tab --------------*/
@@ -256,20 +256,20 @@ void create_graphapp_frame(int gno)
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	frame_color_choice_item = CreateColorChoice(rc2, "Color:");
 	frame_pattern_choice_item = CreatePatternChoice(rc2, "Pattern:");
-        XtManageChild(rc2);
+        ManageChild(rc2);
 	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	frame_linew_choice_item = CreateLineWidthChoice(rc2, "Width:");
 	frame_lines_choice_item = CreateLineStyleChoice(rc2, "Style:");
-        XtManageChild(rc2);
-        XtManageChild(rc);
+        ManageChild(rc2);
+        ManageChild(rc);
 
 	fr = CreateFrame(graphapp_frame, "Frame fill");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	frame_fillcolor_choice_item = CreateColorChoice(rc, "Color:");
 	frame_fillpattern_choice_item = CreatePatternChoice(rc, "Pattern:");
-        XtManageChild(rc);
+        ManageChild(rc);
 
 
 
@@ -289,8 +289,8 @@ void create_graphapp_frame(int gno)
 	XtVaSetValues(rc1, XmNorientation, XmHORIZONTAL, NULL);
 	legend_x_item = CreateTextItem2(rc1, 10, "X:");
 	legend_y_item = CreateTextItem2(rc1, 10, "Y:");
-	XtManageChild(rc1);
-	XtManageChild(rc);
+	ManageChild(rc1);
+	ManageChild(rc);
 
 	fr = CreateFrame(graphapp_legendbox, "Frame line");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -299,20 +299,20 @@ void create_graphapp_frame(int gno)
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	legend_boxcolor_item = CreateColorChoice(rc2, "Color:");
 	legend_boxpattern_item = CreatePatternChoice(rc2, "Pattern:");
-	XtManageChild(rc2);
+	ManageChild(rc2);
 	rc2 = XtVaCreateWidget("rc", xmRowColumnWidgetClass, rc, NULL);
 	XtVaSetValues(rc2, XmNorientation, XmHORIZONTAL, NULL);
 	legend_boxlinew_item = CreateLineWidthChoice(rc2, "Width:");
 	legend_boxlines_item = CreateLineStyleChoice(rc2, "Style:");
-	XtManageChild(rc2);
-	XtManageChild(rc);
+	ManageChild(rc2);
+	ManageChild(rc);
 
 	fr = CreateFrame(graphapp_legendbox, "Frame fill");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
 	legend_boxfillcolor_item = CreateColorChoice(rc, "Color:");
 	legend_boxfillpat_item = CreatePatternChoice(rc, "Pattern:");
-	XtManageChild(rc);
+	ManageChild(rc);
 
 
         /* ------------ Legends tab --------------*/
@@ -326,7 +326,7 @@ void create_graphapp_frame(int gno)
 	legend_charsize_item = CreateCharSizeChoice(rc, "Char size");
 	legend_color_item = CreateColorChoice(rc, "Color:");
         
-        XtManageChild(rc);
+        ManageChild(rc);
 
 	fr = CreateFrame(graphapp_legends, "Placement");
 	rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, fr, NULL);
@@ -341,7 +341,7 @@ void create_graphapp_frame(int gno)
 					     7,
 					     "0", "1", "2", "3", "4", "5",
 					     0, 0);
-	XtManageChild(rc1);
+	ManageChild(rc1);
 
 	legends_len_item = CreatePanelChoice(rc, "Legend line length:",
 					     10,
@@ -349,7 +349,7 @@ void create_graphapp_frame(int gno)
                                              "5", "6", "7", "8",
 					     0, 0);
 	legends_invert_item = CreateToggleButton(rc, "Put in reverse order");
-	XtManageChild(rc);
+	ManageChild(rc);
         
 
         /* ------------ Special tab --------------*/
@@ -372,7 +372,7 @@ void create_graphapp_frame(int gno)
 
         CreateAACButtons(rc, graphapp_panel, graphapp_aac_cb);
         
-        XtManageChild(rc);
+        ManageChild(rc);
         XtVaSetValues(fr,
                       XmNtopAttachment, XmATTACH_NONE,
                       XmNleftAttachment, XmATTACH_FORM,
@@ -388,7 +388,7 @@ void create_graphapp_frame(int gno)
                       XmNbottomWidget, fr,
                       NULL);
 
-        XtManageChild(graphapp_panel);
+        ManageChild(graphapp_panel);
 
 #ifdef HAVE_LESSTIF
         /* a kludge against Lesstif geometry calculation bug */
@@ -426,7 +426,7 @@ static void graphapp_aac_cb(void *data)
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(graphapp_dialog);
+        UnmanageChild(graphapp_dialog);
         return;
     }
     
@@ -510,7 +510,7 @@ static void graphapp_aac_cb(void *data)
     xfree(values);
 
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(graphapp_dialog);
+        UnmanageChild(graphapp_dialog);
     }
     
     drawgraph();

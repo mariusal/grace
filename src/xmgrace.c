@@ -500,7 +500,7 @@ static void set_view_items(void)
 {
     if (statusbar_visible) {
 	SetToggleButtonState(windowbarw[1], TRUE);
-	XtManageChild(frbot);
+	ManageChild(frbot);
 	XtVaSetValues(drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
 		      XmNbottomWidget, frbot,
@@ -516,7 +516,7 @@ static void set_view_items(void)
 	XtVaSetValues(drawing_window,
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
-	XtUnmanageChild(frbot);
+	UnmanageChild(frbot);
 	if (toolbar_visible) {
 	    XtVaSetValues(frleft,
 			  XmNbottomAttachment, XmATTACH_FORM,
@@ -525,7 +525,7 @@ static void set_view_items(void)
     }
     if (toolbar_visible) {
 	SetToggleButtonState(windowbarw[2], TRUE);
-	XtManageChild(frleft);
+	ManageChild(frleft);
 	if (statusbar_visible) {
 	    XtVaSetValues(frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
@@ -544,14 +544,14 @@ static void set_view_items(void)
 		      NULL);
     } else {
 	SetToggleButtonState(windowbarw[2], FALSE);
-	XtUnmanageChild(frleft);
+	UnmanageChild(frleft);
 	XtVaSetValues(drawing_window,
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
     }
     if (locbar_visible) {
 	SetToggleButtonState(windowbarw[0], TRUE);
-	XtManageChild(frtop);
+	ManageChild(frtop);
 	XtVaSetValues(drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
 		      XmNtopWidget, frtop,
@@ -564,7 +564,7 @@ static void set_view_items(void)
 	}
     } else {
 	SetToggleButtonState(windowbarw[0], FALSE);
-	XtUnmanageChild(frtop);
+	UnmanageChild(frtop);
 	XtVaSetValues(drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,
 		      NULL);
@@ -898,7 +898,7 @@ void startup_gui(void)
 					 NULL);
 
     menu_bar = CreateMainMenuBar(main_frame);
-    XtManageChild(menu_bar);
+    ManageChild(menu_bar);
 
     form = XmCreateForm(main_frame, "form", NULL, 0);
 
@@ -998,7 +998,7 @@ void startup_gui(void)
 		  XmNleftAttachment, XmATTACH_FORM,
 		  NULL);
 
-    XtManageChild(form);
+    ManageChild(form);
 
     XmMainWindowSetAreas(main_frame, menu_bar, NULL, NULL, NULL, form);
 

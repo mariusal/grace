@@ -129,7 +129,7 @@ void create_define_frame(void *data)
 	XtAddCallback(but2[0], XmNactivateCallback, (XtCallbackProc) do_define_region, (XtPointer) NULL);
 	XtAddCallback(but2[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(top);
     unset_wait_cursor();
@@ -178,7 +178,7 @@ void create_clear_frame(void *data)
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_clear_region, (XtPointer) NULL);
 	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(top);
     unset_wait_cursor();
@@ -219,7 +219,7 @@ void create_area_frame(void *data)
 	XtAddCallback(but3[1], XmNactivateCallback, (XtCallbackProc) do_select_peri, (XtPointer) NULL);
 	XtAddCallback(but3[2], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(top);
     unset_wait_cursor();
@@ -269,7 +269,7 @@ void create_reporton_frame(void *data)
 	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_reporton_region, (XtPointer) NULL);
 	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
     }
     XtRaise(top);
     unset_wait_cursor();
@@ -345,7 +345,7 @@ void define_status_popup(void *data)
 		NULL);
             SetFixedFont(labx[i]);
         }
-        XtManageChild(rc3);
+        ManageChild(rc3);
 	XtVaSetValues(status_sw, XmNworkWindow, rc3, NULL);
 
 	fr2 = CreateFrame(status_panel, NULL);
@@ -360,7 +360,7 @@ void define_status_popup(void *data)
 				       NULL);
 	XtAddCallback(wbut, XmNactivateCallback, (XtCallbackProc) update_status_popup, NULL);
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	XtVaSetValues(status_sw,
 		      XmNtopAttachment, XmATTACH_FORM,
@@ -374,7 +374,7 @@ void define_status_popup(void *data)
 		      XmNrightAttachment, XmATTACH_FORM,
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
-	XtManageChild(status_panel);
+	ManageChild(status_panel);
 
     }
     XtRaise(status_frame);

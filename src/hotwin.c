@@ -219,7 +219,7 @@ void create_hotlinks_popup(void *data)
 	XtSetArg(args[1], XmNvisibleItemCount, 5);
 	XtSetArg(args[2], XmNselectionPolicy, XmEXTENDED_SELECT );
 	hotlink_list_item = XmCreateScrolledList(dialog, "list", args, 3);
-	XtManageChild(hotlink_list_item);
+	ManageChild(hotlink_list_item);
 
         hotlink_set_item = CreateSetSelector(dialog, "Link set:",
                 SET_SELECT_ACTIVE,
@@ -250,7 +250,7 @@ void create_hotlinks_popup(void *data)
 	XtAddCallback(but1[4], XmNactivateCallback, (XtCallbackProc) destroy_dialog,
 		      (XtPointer) top);
 
-	XtManageChild(dialog);
+	ManageChild(dialog);
 	hotlink_frame = top;
     }
     XtRaise(top);
@@ -282,7 +282,7 @@ void create_hotfiles_popup(Widget w, XtPointer client_data, XtPointer call_data)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Select hot link file", "*.dat");
 	AddFileSelectionBoxCB(fsb, do_hotlinkfile_proc, NULL);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     XtRaise(fsb->dialog);

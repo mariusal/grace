@@ -91,7 +91,7 @@ void create_plot_frame(void)
         XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
         bg_color_item = CreateColorChoice(rc, "Color:");
 	bg_fill_item = CreateToggleButton(rc, "Fill");
-        XtManageChild(rc);
+        ManageChild(rc);
 
 	fr = CreateFrame(panel, "Time stamp");
         rc = XmCreateRowColumn(fr, "bg_rc", NULL, 0);
@@ -104,7 +104,7 @@ void create_plot_frame(void)
 	timestamp_x_item = CreateTextItem2(rc, 10, "Timestamp X:");
 	timestamp_y_item = CreateTextItem2(rc, 10, "Timestamp Y:");
 
-        XtManageChild(rc);
+        ManageChild(rc);
 
 	CreateSeparator(panel);
 
@@ -114,7 +114,7 @@ void create_plot_frame(void)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		   (XtCallbackProc) destroy_dialog, (XtPointer) plot_frame);
 
-	XtManageChild(panel);
+	ManageChild(panel);
     }
     XtRaise(plot_frame);
     update_plot_items();

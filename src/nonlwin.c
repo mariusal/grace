@@ -157,7 +157,7 @@ void create_nonl_frame(void *data)
 
         CreateMenuButton(menupane, "On fit", 'f', HelpCB, NULL);
 
-        XtManageChild(menubar);
+        ManageChild(menubar);
 	XtVaSetValues(menubar,
 		      XmNtopAttachment, XmATTACH_FORM,
 		      XmNleftAttachment, XmATTACH_FORM,
@@ -218,7 +218,7 @@ void create_nonl_frame(void *data)
             SPIN_TYPE_INT, 0.0, 500.0, 5.0);
 	SetSpinChoice(nonl_nsteps_item, 5.0);
         
-	XtManageChild(rc1);
+	ManageChild(rc1);
 	
 	sw = XtVaCreateManagedWidget("sw",
 				     xmScrolledWindowWidgetClass, nonl_main,
@@ -246,7 +246,7 @@ void create_nonl_frame(void *data)
 	    nonl_uppb_item[i] = CreateTextItem2(nonl_parm_item[i], 6, "");
 	}
 
-	XtManageChild(rc2);
+	ManageChild(rc2);
 
         /* ------------ Advanced tab --------------*/
 
@@ -273,7 +273,7 @@ void create_nonl_frame(void *data)
 	nonl_weigh_item = CreateOptionChoice(rc3, "Weights", 1, 5, option_items);
 	nonl_wfunc_item = CreateTextItem2(rc3, 30, "Function:");
 	AddOptionChoiceCB(nonl_weigh_item, nonl_wf_cb, (void *) nonl_wfunc_item);
-        XtManageChild(rc3);
+        ManageChild(rc3);
 
 
 	fr3 = CreateFrame(nonl_advanced, "Load options");
@@ -291,10 +291,10 @@ void create_nonl_frame(void *data)
 	nonl_start_item = CreateTextItem2(nonl_fload_rc, 6, "Start load at:");
 	nonl_stop_item = CreateTextItem2(nonl_fload_rc, 6, "Stop load at:");
 	nonl_npts_item = CreateTextItem2(nonl_fload_rc, 4, "# of points:");
-	XtManageChild(nonl_fload_rc);
+	ManageChild(nonl_fload_rc);
         AddOptionChoiceCB(nonl_load_item, do_nonl_toggle, (void *) nonl_fload_rc);
 
-	XtManageChild(rc3);
+	ManageChild(rc3);
 
 
 	fr3 = CreateFrame(nonl_panel, NULL);
@@ -309,7 +309,7 @@ void create_nonl_frame(void *data)
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
 
-	XtManageChild(nonl_panel);
+	ManageChild(nonl_panel);
     }
     update_nonl_frame();
     
@@ -324,11 +324,11 @@ static void do_nparm_toggle(int value, void *data)
     for (i = 0; i < MAXPARM; i++) {
         if (i < value) {
             if (!XtIsManaged (nonl_parm_item[i])) {
-                XtManageChild(nonl_parm_item[i]);
+                ManageChild(nonl_parm_item[i]);
             }
         } else {
             if (XtIsManaged (nonl_parm_item[i])) {
-                XtUnmanageChild(nonl_parm_item[i]);
+                UnmanageChild(nonl_parm_item[i]);
             }
         }
     }
@@ -375,11 +375,11 @@ void update_nonl_frame(void)
             XtSetSensitive(nonl_uppb_item[i], nonl_parms[i].constr);
             if (i < nonl_opts.parnum) {
                 if (!XtIsManaged (nonl_parm_item[i])) {
-                    XtManageChild(nonl_parm_item[i]);
+                    ManageChild(nonl_parm_item[i]);
                 }
             } else {
                 if (XtIsManaged (nonl_parm_item[i])) {
-                    XtUnmanageChild(nonl_parm_item[i]);
+                    UnmanageChild(nonl_parm_item[i]);
                 }
             }
         }
@@ -394,9 +394,9 @@ void update_nonl_frame(void)
         }
 
         if (GetOptionChoice(nonl_weigh_item) == WEIGHT_CUSTOM) {
-            XtSetSensitive(XtParent(nonl_wfunc_item), True);
+            XtSetSensitive(GetParent(nonl_wfunc_item), True);
         } else {
-            XtSetSensitive(XtParent(nonl_wfunc_item), False);
+            XtSetSensitive(GetParent(nonl_wfunc_item), False);
         }
         
         sprintf(buf, "%g", nonl_prefs.start);
@@ -411,7 +411,7 @@ void update_nonl_frame(void)
 
 static void nonl_wf_cb(int value, void *data)
 {
-    Widget rc = XtParent((Widget) data);
+    Widget rc = GetParent((Widget) data);
     
     if (value == WEIGHT_CUSTOM) {
     	XtSetSensitive(rc, True);
@@ -462,7 +462,7 @@ static void do_nonl_proc(void *data)
     
     aac_mode = (int) data;
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(nonl_frame);
+        UnmanageChild(nonl_frame);
         return;
     }
     
@@ -627,7 +627,7 @@ static void do_nonl_proc(void *data)
     load_nonl_fit(src_gno, src_setno, FALSE);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(nonl_frame);
+        UnmanageChild(nonl_frame);
     }
     
     unset_wait_cursor();
@@ -738,7 +738,7 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
 
 static void destroy_nonl_frame_cb(void *data)
 {
-    XtUnmanageChild(nonl_frame);
+    UnmanageChild(nonl_frame);
 }
 
 static void create_openfit_popup(void *data)
@@ -750,7 +750,7 @@ static void create_openfit_popup(void *data)
     if (fsb == NULL) {
         fsb = CreateFileSelectionBox(app_shell, "Open fit parameter file", "*.fit");
 	AddFileSelectionBoxCB(fsb, do_openfit_proc, NULL);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     XtRaise(fsb->dialog);
@@ -782,7 +782,7 @@ static void create_savefit_popup(void *data)
 	fr = CreateFrame(fsb->rc, NULL);
 	title_item = CreateTextItem2(fr, 25, "Title: ");
 	AddFileSelectionBoxCB(fsb, do_savefit_proc, (void *) title_item);
-        XtManageChild(fsb->FSB);
+        ManageChild(fsb->FSB);
     }
     
     xv_setstr(title_item, nonl_opts.title);

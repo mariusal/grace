@@ -120,7 +120,7 @@ void create_eblock_frame(int gno)
         eblock_schoice_item = CreateOptionChoice(rc,
             "Strings from column:", 1, 1, &blockitem);
 
-	XtManageChild(rc);
+	ManageChild(rc);
 
 	auto_item = CreateASChoice(eblock_panel, "Autoscale graph on load:");
 
@@ -132,7 +132,7 @@ void create_eblock_frame(int gno)
 	XtAddCallback(buts[1], XmNactivateCallback,
 		 (XtCallbackProc) destroy_dialog, (XtPointer) eblock_frame);
 
-	XtManageChild(eblock_panel);
+	ManageChild(eblock_panel);
     }
     XtRaise(eblock_frame);
     update_eblock(gno);
