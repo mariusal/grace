@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -483,7 +483,7 @@ int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol)
             char *s1;
             strcol = TRUE;
             s++;
-            if ((s1 = index(s, '}')) != NULL) {
+            if ((s1 = strchr(s, '}')) != NULL) {
                 *s1 = '\0';
             }
         } else {
