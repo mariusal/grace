@@ -1121,6 +1121,9 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	endmask = (char) ~(0xFF << ((start+string_glyph.metrics.advanceX) % 8));
 	Target_c= (unsigned char *)(string_glyph.bits +(i*paddedW/8)
 				    + (start / 8));
+	if (!Target_c) {
+	    continue;
+	}
 	j=middle;
 	if (j == 0)
 	  *Target_c++ |= startmask & endmask;
@@ -1146,6 +1149,9 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	endmask = (char) ~(0xFF << ((start+string_glyph.metrics.advanceX) % 8));
 	Target_c= (unsigned char *)(string_glyph.bits +(i*paddedW/8)
 				    + (start / 8));
+	if (!Target_c) {
+	    continue;
+	}
 	j=middle;
 	if (j == 0)
 	  *Target_c++ |= startmask & endmask;
@@ -1171,6 +1177,9 @@ GLYPH *T1_SetString( int FontID, char *string, volatile int len,
 	endmask = (char) ~(0xFF << ((start+string_glyph.metrics.advanceX) % 8));
 	Target_c= (unsigned char *)(string_glyph.bits +(i*paddedW/8)
 				    + (start / 8));
+	if (!Target_c) {
+	    continue;
+	}
 	j=middle;
 	if (j == 0)
 	  *Target_c++ |= startmask & endmask;
