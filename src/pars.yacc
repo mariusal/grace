@@ -2060,6 +2060,18 @@ parmset:
             free((char *) $5);
 	    free((char *) $7);
 	}
+	| MAP COLOR NUMBER TO '(' NUMBER ',' NUMBER ',' NUMBER ')' ',' CHRSTR {
+	    CMap_entry cmap;
+            cmap.rgb.red   = $6;
+            cmap.rgb.green = $8;
+            cmap.rgb.blue  = $10;
+            cmap.ctype = COLOR_MAIN;
+            cmap.cname = (char *) $13;
+            if (store_color((int) $3, cmap) == GRACE_EXIT_FAILURE) {
+                errmsg("Failed mapping a color");
+            }
+	    free((char *) $13);
+        }
 
 	| WORLD expr ',' expr ',' expr ',' expr {
 	    g[get_cg()].w.xg1 = $2;

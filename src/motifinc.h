@@ -112,29 +112,30 @@ void SetToggleButtonState(Widget w, int value);
 
 Widget CreateAACButtons(Widget parent, Widget form, XtCallbackProc aac_cb);
 
-OptionStructure CreateOptionChoice(Widget parent, char *labelstr, int ncols,
+OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items);
-OptionStructure CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
+OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int ncols,
                 int nchoices, int width, int height, BitmapOptionItem *items);
-void SetOptionChoice(OptionStructure opt, int value);
-int GetOptionChoice(OptionStructure opt);
+void SetOptionChoice(OptionStructure *opt, int value);
+int GetOptionChoice(OptionStructure *opt);
+void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items);
 
-void AddOptionChoiceCB(OptionStructure opt, XtCallbackProc cb);
+void AddOptionChoiceCB(OptionStructure *opt, XtCallbackProc cb);
 
-ListStructure CreateListChoice(Widget parent, char *labelstr,
+ListStructure *CreateListChoice(Widget parent, char *labelstr,
                                               int nchoices, OptionItem *items);
-void SelectListChoice(ListStructure list, int choice);
-void SelectListChoices(ListStructure list, int nchoices, int *choices);
+void SelectListChoice(ListStructure *listp, int choice);
+void SelectListChoices(ListStructure *listp, int nchoices, int *choices);
 void UpdateListChoice(ListStructure *listp, int nchoices, OptionItem *items);
 int GetListChoices(ListStructure *listp, int **values);
 
 void list_choice_selectall(Widget w, XEvent *e, String *par, Cardinal *npar);
 
-OptionStructure CreateFontChoice(Widget parent, char *s);
-OptionStructure CreatePatternChoice(Widget parent, char *s);
-OptionStructure CreateLineStyleChoice(Widget parent, char *s);
+OptionStructure *CreateFontChoice(Widget parent, char *s);
+OptionStructure *CreatePatternChoice(Widget parent, char *s);
+OptionStructure *CreateLineStyleChoice(Widget parent, char *s);
 
-ListStructure CreateNewGraphChoice(Widget parent, char *labelstr, XtCallbackProc cbproc);
+ListStructure *CreateNewGraphChoice(Widget parent, char *labelstr, XtCallbackProc cbproc);
 
 Widget *CreateSetChoice(Widget parent, char *labelstr, int nsets, int type);
 SetChoiceItem CreateSetSelector(Widget parent, char *label, int type, int ff, int gtype, int stype);
@@ -154,7 +155,7 @@ void SetChoice(Widget * w, int value);
 int GetChoice(Widget * w);
 
 Widget *CreateGraphChoice(Widget parent, char *labelstr, int ngraphs, int type);
-Widget *CreateColorChoice(Widget parent, char *s);
+OptionStructure *CreateColorChoice(Widget parent, char *s);
 Widget *CreateLineWidthChoice(Widget parent, char *s);
 
 Widget *CreateFormatChoice(Widget parent, char *s);

@@ -77,7 +77,7 @@ extern unsigned long xvlibcolors[];
 
 static Widget fonttool_frame = NULL;
 static Widget font_table;
-static OptionStructure font_select_item;
+static OptionStructure *font_select_item;
 static Widget string_item;
 static Widget glyph_item;
 
@@ -102,7 +102,7 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
 
         font_select_item = CreateFontChoice(fonttool_panel, "Font:");
         AddOptionChoiceCB(font_select_item, update_fonttool);
-        XtVaSetValues(font_select_item.rc,
+        XtVaSetValues(font_select_item->rc,
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_FORM,
@@ -125,7 +125,7 @@ void create_fonttool(Widget w, XtPointer client_data, XtPointer call_data)
             XmNleftAttachment, XmATTACH_FORM,
             XmNrightAttachment, XmATTACH_FORM,
             XmNtopAttachment, XmATTACH_WIDGET,
-            XmNtopWidget, font_select_item.rc,
+            XmNtopWidget, font_select_item->rc,
             NULL);
             
         XtAddCallback(font_table, XmNdrawCellCallback, (XtCallbackProc) DrawCB, NULL);

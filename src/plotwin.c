@@ -59,13 +59,13 @@ static Widget plot_frame;
 /*
  * Panel item declarations
  */
-static Widget *page_color_item;
+static OptionStructure *page_color_item;
 
 static Widget timestamp_active_item;
-static OptionStructure timestamp_font_item;
+static OptionStructure *timestamp_font_item;
 static Widget timestamp_size_item;
 static Widget timestamp_rotate_item;
-static Widget *timestamp_color_item;
+static OptionStructure *timestamp_color_item;
 Widget timestamp_x_item;
 Widget timestamp_y_item;
 
@@ -145,11 +145,11 @@ static void update_plot_items(void)
     char buf[32];
 
     if (plot_frame) {
-	SetChoice(page_color_item, getbgcolor());
+	SetOptionChoice(page_color_item, getbgcolor());
 
 	XmToggleButtonSetState(timestamp_active_item, timestamp.active == TRUE, False);
 	SetOptionChoice(timestamp_font_item, timestamp.font);
-	SetChoice(timestamp_color_item, timestamp.color);
+	SetOptionChoice(timestamp_color_item, timestamp.color);
 
 	iv = (int) (100 * timestamp.charsize);
 	XtSetArg(a, XmNvalue, iv);
@@ -171,11 +171,11 @@ static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer c
     int value;
     Arg a;
 
-    setbgcolor (GetChoice(page_color_item));
+    setbgcolor (GetOptionChoice(page_color_item));
 
     timestamp.active = XmToggleButtonGetState(timestamp_active_item) ? TRUE : FALSE;
     timestamp.font = GetOptionChoice(timestamp_font_item);
-    timestamp.color = GetChoice(timestamp_color_item);
+    timestamp.color = GetOptionChoice(timestamp_color_item);
     
     XtSetArg(a, XmNvalue, &value);
     XtGetValues(timestamp_size_item, &a, 1);

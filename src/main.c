@@ -63,6 +63,16 @@
 #include "t1fonts.h"
 #include "protos.h"
 
+#ifdef NONE_GUI
+char gui_version[] = "None";
+#else
+#  ifdef HAVE_LESSTIF
+char gui_version[] = "Lesstif";
+#  else
+char gui_version[] = "Motif";
+#  endif
+#endif
+
 extern char batchfile[];
 extern char print_file[];
 extern int install_cmap;

@@ -54,7 +54,7 @@ static Widget graphapp_panel;
 /*
  * Widget item declarations
  */
-static ListStructure graph_selector;
+static ListStructure *graph_selector;
 
 static Widget define_view_xv1;
 static Widget define_view_xv2;
@@ -67,11 +67,11 @@ static Widget stacked_item;
 
 static Widget label_title_text_item;
 static Widget label_subtitle_text_item;
-static Widget *title_color_item;
-static OptionStructure title_font_item;
+static OptionStructure *title_color_item;
+static OptionStructure *title_font_item;
 static Widget title_size_item;
-static Widget *stitle_color_item;
-static OptionStructure stitle_font_item;
+static OptionStructure *stitle_color_item;
+static OptionStructure *stitle_font_item;
 static Widget stitle_size_item;
 
 static Widget graph_flipxy_item;
@@ -79,12 +79,12 @@ static Widget graph_flipxy_item;
 static Widget bargap_item;
 
 static Widget *frame_framestyle_choice_item;
-static Widget *frame_color_choice_item;
-static OptionStructure frame_pattern_choice_item;
-static OptionStructure frame_lines_choice_item;
+static OptionStructure *frame_color_choice_item;
+static OptionStructure *frame_pattern_choice_item;
+static OptionStructure *frame_lines_choice_item;
 static Widget *frame_linew_choice_item;
-static Widget *frame_fillcolor_choice_item;
-static OptionStructure frame_fillpattern_choice_item;
+static OptionStructure *frame_fillcolor_choice_item;
+static OptionStructure *frame_fillpattern_choice_item;
 
 static Widget legend_x_item;
 static Widget legend_y_item;
@@ -94,15 +94,15 @@ static Widget *legends_vgap_item;
 static Widget *legends_hgap_item;
 static Widget *legends_len_item;
 static Widget legends_invert_item;
-static OptionStructure legend_font_item;
+static OptionStructure *legend_font_item;
 static Widget legend_charsize_item;
-static Widget *legend_color_item;
-static Widget *legend_boxfillcolor_item;
-static OptionStructure legend_boxfillpat_item;
+static OptionStructure *legend_color_item;
+static OptionStructure *legend_boxfillcolor_item;
+static OptionStructure *legend_boxfillpat_item;
 static Widget *legend_boxlinew_item;
-static OptionStructure legend_boxlines_item;
-static Widget *legend_boxcolor_item;
-static OptionStructure legend_boxpattern_item;
+static OptionStructure *legend_boxlines_item;
+static OptionStructure *legend_boxcolor_item;
+static OptionStructure *legend_boxpattern_item;
 
 /*
  * Event and Notify proc declarations
@@ -142,7 +142,7 @@ void create_graphapp_frame(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  *         XtManageChild(rc_head);
  */
-        XtVaSetValues(graph_selector.rc,
+        XtVaSetValues(graph_selector->rc,
                       XmNtopAttachment, XmATTACH_FORM,
                       XmNleftAttachment, XmATTACH_FORM,
                       XmNrightAttachment, XmATTACH_FORM,
@@ -357,7 +357,7 @@ void create_graphapp_frame(Widget w, XtPointer client_data, XtPointer call_data)
                       NULL);
         XtVaSetValues(graphapp_tab,
                       XmNtopAttachment, XmATTACH_WIDGET,
-                      XmNtopWidget, graph_selector.rc,
+                      XmNtopWidget, graph_selector->rc,
                       XmNleftAttachment, XmATTACH_FORM,
                       XmNrightAttachment, XmATTACH_FORM,
                       XmNbottomAttachment, XmATTACH_WIDGET,
@@ -421,7 +421,7 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
  *     flipxy = GetToggleButtonState(graph_flipxy_item);
  */
 
-    n = GetListChoices(&graph_selector, &values);
+    n = GetListChoices(graph_selector, &values);
     for (j = 0; j < n; j++) {
 	gno = values[j];
         if (is_valid_gno(gno)) {
@@ -437,8 +437,8 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
             labs.title.charsize = GetCharSizeChoice(title_size_item);
             labs.stitle.charsize = GetCharSizeChoice(stitle_size_item);
 
-            labs.title.color = GetChoice(title_color_item);
-            labs.stitle.color = GetChoice(stitle_color_item);
+            labs.title.color = GetOptionChoice(title_color_item);
+            labs.stitle.color = GetOptionChoice(stitle_color_item);
             
             labs.title.font = GetOptionChoice(title_font_item);
             labs.stitle.font = GetOptionChoice(stitle_font_item);
@@ -449,11 +449,11 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
            
 
 	    f.type = GetChoice(frame_framestyle_choice_item);
-	    f.pen.color = GetChoice(frame_color_choice_item);
+	    f.pen.color = GetOptionChoice(frame_color_choice_item);
 	    f.pen.pattern = GetOptionChoice(frame_pattern_choice_item);
 	    f.linew = GetChoice(frame_linew_choice_item);
 	    f.lines = GetOptionChoice(frame_lines_choice_item);
-	    f.fillpen.color = GetChoice(frame_fillcolor_choice_item);
+	    f.fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
 	    f.fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
 
 	    l.charsize = GetCharSizeChoice(legend_charsize_item);
@@ -466,10 +466,10 @@ static void graphapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data
 	    xv_evalexpr(legend_x_item, &l.legx);
 	    xv_evalexpr(legend_y_item, &l.legy);
 	    l.font = GetOptionChoice(legend_font_item);
-	    l.color = GetChoice(legend_color_item);
-	    l.boxfillpen.color = GetChoice(legend_boxfillcolor_item);
+	    l.color = GetOptionChoice(legend_color_item);
+	    l.boxfillpen.color = GetOptionChoice(legend_boxfillcolor_item);
 	    l.boxfillpen.pattern = GetOptionChoice(legend_boxfillpat_item);
-	    l.boxpen.color = GetChoice(legend_boxcolor_item);
+	    l.boxpen.color = GetOptionChoice(legend_boxcolor_item);
 	    l.boxpen.pattern = GetOptionChoice(legend_boxpattern_item);
 	    l.boxlinew = GetChoice(legend_boxlinew_item);
 	    l.boxlines = GetOptionChoice(legend_boxlines_item);
@@ -540,8 +540,8 @@ void update_graphapp_items(Widget list, XtPointer client_data,
         SetCharSizeChoice(title_size_item, labs.title.charsize);
         SetCharSizeChoice(stitle_size_item, labs.stitle.charsize);
 
-        SetChoice(title_color_item, labs.title.color);
-        SetChoice(stitle_color_item, labs.stitle.color);
+        SetOptionChoice(title_color_item, labs.title.color);
+        SetOptionChoice(stitle_color_item, labs.stitle.color);
 
         SetOptionChoice(title_font_item, labs.title.font);
         SetOptionChoice(stitle_font_item, labs.stitle.font);
@@ -600,10 +600,10 @@ static void updatelegends(int gno)
 
 	SetChoice(toggle_legendloc_item, l.loctype == COORD_VIEW);
 	SetOptionChoice(legend_font_item, l.font);
-	SetChoice(legend_color_item, l.color);
-	SetChoice(legend_boxfillcolor_item, l.boxfillpen.color);
+	SetOptionChoice(legend_color_item, l.color);
+	SetOptionChoice(legend_boxfillcolor_item, l.boxfillpen.color);
 	SetOptionChoice(legend_boxfillpat_item, l.boxfillpen.pattern);
-	SetChoice(legend_boxcolor_item, l.boxpen.color);
+	SetOptionChoice(legend_boxcolor_item, l.boxpen.color);
 	SetOptionChoice(legend_boxpattern_item, l.boxpen.pattern);
 	SetChoice(legend_boxlinew_item, l.boxlinew);
 	SetOptionChoice(legend_boxlines_item, l.boxlines);
@@ -618,11 +618,11 @@ void update_frame_items(int gno)
         get_graph_framep(gno, &f);
     
 	SetChoice(frame_framestyle_choice_item, f.type);
-	SetChoice(frame_color_choice_item, f.pen.color);
+	SetOptionChoice(frame_color_choice_item, f.pen.color);
 	SetOptionChoice(frame_pattern_choice_item, f.pen.pattern);
 	SetChoice(frame_linew_choice_item, f.linew);
 	SetOptionChoice(frame_lines_choice_item, f.lines);
-	SetChoice(frame_fillcolor_choice_item, f.fillpen.color);
+	SetOptionChoice(frame_fillcolor_choice_item, f.fillpen.color);
 	SetOptionChoice(frame_fillpattern_choice_item, f.fillpen.pattern);
     }
 }

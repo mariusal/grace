@@ -59,25 +59,25 @@ static Widget *type_item;
 static Widget *toggle_symbols_item;
 static Widget symsize_item;
 static Widget symskip_item;
-static Widget *symcolor_item;
-static OptionStructure sympattern_item;
-static Widget *symfillcolor_item;
-static OptionStructure symfillpattern_item;
+static OptionStructure *symcolor_item;
+static OptionStructure *sympattern_item;
+static OptionStructure *symfillcolor_item;
+static OptionStructure *symfillpattern_item;
 static Widget *symlinew_item;
-static OptionStructure symlines_item;
+static OptionStructure *symlines_item;
 static Widget symchar_item;
-static OptionStructure char_font_item;
+static OptionStructure *char_font_item;
 
-static Widget *toggle_color_item;
-static OptionStructure toggle_pattern_item;
+static OptionStructure *toggle_color_item;
+static OptionStructure *toggle_pattern_item;
 static Widget *toggle_width_item;
 static Widget dropline_item;
-static OptionStructure toggle_lines_item;
+static OptionStructure *toggle_lines_item;
 static Widget *toggle_linet_item;
 static Widget *toggle_filltype_item;
 static Widget *toggle_fillrule_item;
-static OptionStructure toggle_fillpat_item;
-static Widget *toggle_fillcol_item;
+static OptionStructure *toggle_fillpat_item;
+static OptionStructure *toggle_fillcol_item;
 static SetChoiceItem toggle_symset_item;
 static Widget baseline_item;
 static Widget *baselinetype_item;
@@ -87,15 +87,15 @@ static Widget legend_str_panel;
 static Widget errbar_active_item;
 static Widget errbar_size_item;
 static Widget *errbar_width_item;
-static OptionStructure errbar_lines_item;
+static OptionStructure *errbar_lines_item;
 static Widget *errbar_type_item;
 static Widget *errbar_riserlinew_item;
-static OptionStructure errbar_riserlines_item;
+static OptionStructure *errbar_riserlines_item;
 
 static Widget avalue_active_item;
 static Widget *avalue_type_item;
-static OptionStructure avalue_font_item;
-static Widget *avalue_color_item;
+static OptionStructure *avalue_font_item;
+static OptionStructure *avalue_color_item;
 static Widget avalue_charsize_item ;
 static Widget avalue_angle_item;
 static Widget *avalue_format_item;
@@ -529,7 +529,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     type = GetChoice(type_item);
     symsize = GetCharSizeChoice(symsize_item);
     sym = GetChoice(toggle_symbols_item);
-    color = GetChoice(toggle_color_item);
+    color = GetOptionChoice(toggle_color_item);
     pattern = GetOptionChoice(toggle_pattern_item);
     wid = GetChoice(toggle_width_item);
     baseline = GetToggleButtonState(baseline_item);
@@ -540,11 +540,11 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     filltype = GetChoice(toggle_filltype_item);
     fillrule = GetChoice(toggle_fillrule_item);
     fillpat = GetOptionChoice(toggle_fillpat_item);
-    fillcol = GetChoice(toggle_fillcol_item);
+    fillcol = GetOptionChoice(toggle_fillcol_item);
     xv_evalexpri(symskip_item, &symskip);
-    symcolor = GetChoice(symcolor_item);
+    symcolor = GetOptionChoice(symcolor_item);
     sympattern = GetOptionChoice(sympattern_item);
-    symfillcolor = GetChoice(symfillcolor_item);
+    symfillcolor = GetOptionChoice(symfillcolor_item);
     symfillpattern = GetOptionChoice(symfillpattern_item);
     symlinew = GetChoice(symlinew_item);
     symlines = GetOptionChoice(symlines_item);
@@ -562,7 +562,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     avalue.type = GetChoice(avalue_type_item);
     avalue.size = GetCharSizeChoice(avalue_charsize_item);
     avalue.font = GetOptionChoice(avalue_font_item);
-    avalue.color = GetChoice(avalue_color_item);
+    avalue.color = GetOptionChoice(avalue_color_item);
     avalue.angle = GetAngleChoice(avalue_angle_item);
     avalue.format = GetChoice(avalue_format_item);
     avalue.prec = GetChoice(avalue_precision_item);
@@ -671,16 +671,16 @@ static void UpdateSymbols(int gno, int value)
         xv_setstr(symchar_item, val);
         SetChoice(toggle_symbols_item, p.sym);
         
-        SetChoice(symcolor_item, p.sympen.color);
+        SetOptionChoice(symcolor_item, p.sympen.color);
         SetOptionChoice(sympattern_item, p.sympen.pattern);
-        SetChoice(symfillcolor_item, p.symfillpen.color);
+        SetOptionChoice(symfillcolor_item, p.symfillpen.color);
         SetOptionChoice(symfillpattern_item, p.symfillpen.pattern);
         SetChoice(symlinew_item, p.symlinew);
         SetOptionChoice(symlines_item, p.symlines);
         
         SetOptionChoice(char_font_item, p.charfont);        
         
-        SetChoice(toggle_color_item, p.linepen.color);
+        SetOptionChoice(toggle_color_item, p.linepen.color);
         SetOptionChoice(toggle_pattern_item, p.linepen.pattern);
         SetChoice(toggle_width_item, p.linew);
         SetToggleButtonState(dropline_item, p.dropline);
@@ -688,7 +688,7 @@ static void UpdateSymbols(int gno, int value)
         SetChoice(toggle_linet_item, p.linet);
         SetChoice(toggle_filltype_item, p.filltype);
         SetChoice(toggle_fillrule_item, p.fillrule);
-        SetChoice(toggle_fillcol_item, p.setfillpen.color);
+        SetOptionChoice(toggle_fillcol_item, p.setfillpen.color);
         SetOptionChoice(toggle_fillpat_item, p.setfillpen.pattern);
         
         SetToggleButtonState(baseline_item, p.baseline);
@@ -724,7 +724,7 @@ static void UpdateSymbols(int gno, int value)
         SetChoice(avalue_type_item, p.avalue.type);
         SetCharSizeChoice(avalue_charsize_item, p.avalue.size);
         SetOptionChoice(avalue_font_item, p.avalue.font);
-        SetChoice(avalue_color_item, p.avalue.color);
+        SetOptionChoice(avalue_color_item, p.avalue.color);
         SetAngleChoice(avalue_angle_item, p.avalue.angle);
         SetChoice(avalue_format_item, p.avalue.format);
         SetChoice(avalue_precision_item, p.avalue.prec);

@@ -131,6 +131,7 @@ void putparms(int gno, FILE * pp, int embed)
     world_stack ws;
     world w;
     view v;
+    CMap_entry *cmap;
     GLocator locator;
     char *p1, *p2, *tmpbuf;
     Page_geometry pg;
@@ -155,7 +156,7 @@ void putparms(int gno, FILE * pp, int embed)
             errmsg("Unable to malloc in putparms()");
             return;
         }
-        strcpy (tmpbuf, description);
+        strcpy(tmpbuf, description);
         p1 = tmpbuf;
         while ((p2 = strchr (p1, '\n')) != NULL) {
             *p2 = 0;
@@ -167,7 +168,7 @@ void putparms(int gno, FILE * pp, int embed)
         if (*p1) {
             fprintf (pp, "%sdescription \"%s\"\n", embedstr, escapequotes(p1));
         }
-        free (tmpbuf);
+        free(tmpbuf);
     }
     /* End of added globals */
 
@@ -177,10 +178,22 @@ void putparms(int gno, FILE * pp, int embed)
 
     for (i = 0; i < number_of_fonts(); i++) {
         if (get_font_mapped_id(i) != BAD_FONT_ID) {
-            fprintf(pp, "%smap font %d to \"%s\" , \"%s\"\n", embedstr,
+            fprintf(pp, "%smap font %d to \"%s\", \"%s\"\n", embedstr,
                                                     get_font_mapped_id(i),
                                                     get_fontalias(i),
                                                     get_fontfallback(i));
+        }
+    }
+
+    for (i = 0; i < number_of_colors(); i++) {
+        cmap = get_cmap_entry(i);
+        if (cmap != NULL && cmap->ctype == COLOR_MAIN) {
+            fprintf(pp, "%smap color %d to (%d, %d, %d), \"%s\"\n", embedstr,
+                                                    i,
+                                                    cmap->rgb.red,
+                                                    cmap->rgb.green,
+                                                    cmap->rgb.blue,
+                                                    cmap->cname);
         }
     }
     

@@ -74,9 +74,9 @@ static Widget axislabel;        /* axis label */
 static Widget *axislabellayout; /* axis label layout (perp or parallel) */
 static Widget *axislabelplace;  /* axis label placement, auto or specified */
 static Widget axislabelspec;    /* location of axis label if specified (viewport coords) */
-static OptionStructure axislabelfont;   /* axis label font */
+static OptionStructure *axislabelfont;   /* axis label font */
 static Widget axislabelcharsize;/* axis label charsize */
-static Widget *axislabelcolor;  /* axis label color */
+static OptionStructure *axislabelcolor;  /* axis label color */
 static Widget *axislabelop;     /* tick labels normal|opposite|both sides */
 static Widget tmajor;           /* major tick spacing */
 static Widget nminor;           /* minor tick spacing */
@@ -84,9 +84,9 @@ static Widget *tickop;          /* ticks normal|opposite|both sides */
 static Widget *ticklop;         /* tick labels normal|opposite|both sides */
 static Widget *tlform;          /* format for labels */
 static Widget *tlprec;          /* precision for labels */
-static OptionStructure tlfont;  /* tick label font */
+static OptionStructure *tlfont;  /* tick label font */
 static Widget tlcharsize;       /* tick label charsize */
-static Widget *tlcolor;         /* tick label color */
+static OptionStructure *tlcolor; /* tick label color */
 static Widget tlappstr;         /* tick label append string */
 static Widget tlprestr;         /* tick label prepend string */
 static Widget *tlskip;          /* tick marks to skip */
@@ -103,20 +103,20 @@ static Widget *tlsign;          /* sign of tick label (normal, negate, *
 static Widget *autonum;         /* number of autotick divisions */
 static Widget tround;           /* place at rounded positions */
 static Widget tgrid;            /* major ticks grid */
-static Widget *tgridcol;
+static OptionStructure *tgridcol;
 static Widget *tgridlinew;
-static OptionStructure tgridlines;
+static OptionStructure *tgridlines;
 static Widget tmgrid;           /* minor ticks grid */
-static Widget *tmgridcol;
+static OptionStructure *tmgridcol;
 static Widget *tmgridlinew;
-static OptionStructure tmgridlines;
+static OptionStructure *tmgridlines;
 static Widget tlen;             /* tick length */
 static Widget tmlen;
 static Widget *tinout;          /* ticks in out or both */
 static Widget baronoff;         /* axis bar */
-static Widget *barcolor;
+static OptionStructure *barcolor;
 static Widget *barlinew;
-static OptionStructure barlines;
+static OptionStructure *barlines;
 
 static Widget specticks;        /* special ticks and tick labels */
 static Widget specticklabels;
@@ -663,7 +663,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
         sscanf(buf, "%lf %lf", &t.label.x, &t.label.y);
     }
     t.label.font = GetOptionChoice(axislabelfont);
-    t.label.color = GetChoice(axislabelcolor);
+    t.label.color = GetOptionChoice(axislabelcolor);
     t.label.charsize = GetCharSizeChoice(axislabelcharsize);
 
     /* somehow the value of axislabelop gets automagically correctly
@@ -690,7 +690,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     }
 
     t.tl_font = GetOptionChoice(tlfont);
-    t.tl_color = GetChoice(tlcolor);
+    t.tl_color = GetOptionChoice(tlcolor);
     t.tl_skip = GetChoice(tlskip);
     t.tl_prec = GetChoice(tlprec);
     t.tl_staggered = (int) GetChoice(tlstagger);
@@ -747,10 +747,10 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
         break;
     }
     
-    t.props.color = GetChoice(tgridcol);
+    t.props.color = GetOptionChoice(tgridcol);
     t.props.linew = GetChoice(tgridlinew);
     t.props.lines = GetOptionChoice(tgridlines);
-    t.mprops.color = GetChoice(tmgridcol);
+    t.mprops.color = GetOptionChoice(tmgridcol);
     t.mprops.linew = GetChoice(tmgridlinew);
     t.mprops.lines = GetOptionChoice(tmgridlines);
     
@@ -764,7 +764,7 @@ static void axes_aac_cb(Widget widget, XtPointer client_data, XtPointer call_dat
     t.props.gridflag = GetToggleButtonState(tgrid);
     t.mprops.gridflag = GetToggleButtonState(tmgrid);
 
-    t.t_drawbarcolor = GetChoice(barcolor);
+    t.t_drawbarcolor = GetOptionChoice(barcolor);
     t.t_drawbarlinew = GetChoice(barlinew);
     t.t_drawbarlines = GetOptionChoice(barlines);
 
@@ -996,7 +996,7 @@ void update_ticks(int gno)
         sprintf(buf, "%.2f %.2f", t.label.x, t.label.y);
         xv_setstr(axislabelspec, buf);
         SetOptionChoice(axislabelfont, t.label.font);
-        SetChoice(axislabelcolor, t.label.color);
+        SetOptionChoice(axislabelcolor, t.label.color);
         SetCharSizeChoice(axislabelcharsize, t.label.charsize);
         switch (t.label_op) {
         case PLACE_LEFT:
@@ -1046,7 +1046,7 @@ void update_ticks(int gno)
         xv_setstr(nminor, buf);
 
         SetOptionChoice(tlfont, t.tl_font);
-        SetChoice(tlcolor, t.tl_color);
+        SetOptionChoice(tlcolor, t.tl_color);
         SetChoice(tlskip, t.tl_skip);
         SetChoice(tlstagger, t.tl_staggered);
         xv_setstr(tlappstr, t.tl_appstr);
@@ -1130,10 +1130,10 @@ void update_ticks(int gno)
             SetChoice(tickop, 2);
             break;
         }
-        SetChoice(tgridcol, t.props.color);
+        SetOptionChoice(tgridcol, t.props.color);
         SetChoice(tgridlinew, t.props.linew);
         SetOptionChoice(tgridlines, t.props.lines);
-        SetChoice(tmgridcol, t.mprops.color);
+        SetOptionChoice(tmgridcol, t.mprops.color);
         SetChoice(tmgridlinew, t.mprops.linew);
         SetOptionChoice(tmgridlines, t.mprops.lines);
         SetCharSizeChoice(tlen, t.props.size);
@@ -1145,7 +1145,7 @@ void update_ticks(int gno)
         SetToggleButtonState(tgrid, t.props.gridflag);
         SetToggleButtonState(tmgrid, t.mprops.gridflag);
 
-        SetChoice(barcolor, t.t_drawbarcolor);
+        SetOptionChoice(barcolor, t.t_drawbarcolor);
         SetChoice(barlinew, t.t_drawbarlinew);
         SetOptionChoice(barlines, t.t_drawbarlines);
 

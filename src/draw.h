@@ -82,8 +82,9 @@ typedef struct {
 
 #define BAD_COLOR	-1
 
-#define COLOR_AUX 	0
-#define COLOR_MAIN 	1
+#define COLOR_NONE      0
+#define COLOR_AUX       1
+#define COLOR_MAIN      2
 
 typedef struct {
     RGB rgb;
@@ -158,6 +159,8 @@ int clip_polygon(VPoint *vps, int n);
 
 int is_valid_color(RGB rgb);
 int find_color(RGB rgb);
+int realloc_color(int n);
+int store_color(int n, CMap_entry cmap);
 int add_color(CMap_entry cmap);
 RGB *get_rgb(unsigned int cindex);
 fRGB *get_frgb(unsigned int cindex);

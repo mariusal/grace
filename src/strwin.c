@@ -60,11 +60,11 @@ static Widget lines_frame;
 static Widget boxes_frame;
 static Widget ellip_frame;
 
-static OptionStructure strings_font_item;
+static OptionStructure *strings_font_item;
 static Widget strings_rot_item;
 static Widget strings_size_item;
 static Widget *strings_loc_item;
-static Widget *strings_pen_item;
+static OptionStructure *strings_color_item;
 static Widget *strings_just_item;
 Widget strings_x_item;
 Widget strings_y_item;
@@ -72,32 +72,32 @@ Widget strings_y_item;
 static Widget *lines_arrow_item;
 static Widget lines_asize_item;
 static Widget *lines_atype_item;
-static Widget *lines_pen_item;
-static OptionStructure lines_style_item;
+static OptionStructure *lines_color_item;
+static OptionStructure *lines_style_item;
 static Widget *lines_width_item;
 static Widget *lines_loc_item;
-static Widget *boxes_pen_item;
-static OptionStructure boxes_lines_item;
+static OptionStructure *boxes_color_item;
+static OptionStructure *boxes_lines_item;
 static Widget *boxes_linew_item;
-static OptionStructure boxes_fillpat_item;
-static Widget *boxes_fillcol_item;
+static OptionStructure *boxes_fillpat_item;
+static OptionStructure *boxes_fillcol_item;
 static Widget *boxes_loc_item;
 
-static Widget *ellip_pen_item;
-static OptionStructure ellip_lines_item;
+static OptionStructure *ellip_color_item;
+static OptionStructure *ellip_lines_item;
 static Widget *ellip_linew_item;
-static OptionStructure ellip_fillpat_item;
-static Widget *ellip_fillcol_item;
+static OptionStructure *ellip_fillpat_item;
+static OptionStructure *ellip_fillcol_item;
 static Widget *ellip_loc_item;
 void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void ellip_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    defellip.color = GetChoice(ellip_pen_item);
+    defellip.color = GetOptionChoice(ellip_color_item);
     defellip.loctype = GetChoice(ellip_loc_item) ? COORD_VIEW : COORD_WORLD;
     defellip.lines = GetOptionChoice(ellip_lines_item);
     defellip.linew = GetChoice(ellip_linew_item);
-    defellip.fillcolor = GetChoice(ellip_fillcol_item);
+    defellip.fillcolor = GetOptionChoice(ellip_fillcol_item);
     defellip.fillpattern = GetOptionChoice(ellip_fillpat_item);
     defellip.active = TRUE;
 }
@@ -105,29 +105,29 @@ void ellip_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 void update_ellip(void)
 {
     if (ellip_frame) {
-	SetChoice(ellip_pen_item, defellip.color);
+	SetOptionChoice(ellip_color_item, defellip.color);
 	SetOptionChoice(ellip_lines_item, defellip.lines);
 	SetChoice(ellip_linew_item, defellip.linew);
 	SetOptionChoice(ellip_fillpat_item, defellip.fillpattern);
-	SetChoice(ellip_fillcol_item, defellip.fillcolor);
+	SetOptionChoice(ellip_fillcol_item, defellip.fillcolor);
 	SetChoice(ellip_loc_item, defellip.loctype == COORD_VIEW ? 1 : 0);
     }
 }
 
 void boxes_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    box_color = GetChoice(boxes_pen_item);
+    box_color = GetOptionChoice(boxes_color_item);
     box_loctype = GetChoice(boxes_loc_item) ? COORD_VIEW : COORD_WORLD;
     box_lines = GetOptionChoice(boxes_lines_item);
     box_linew = GetChoice(boxes_linew_item);
-    box_fillcolor = GetChoice(boxes_fillcol_item);
+    box_fillcolor = GetOptionChoice(boxes_fillcol_item);
     box_fillpat = GetOptionChoice(boxes_fillpat_item);
 }
 
 void lines_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     line_asize = GetCharSizeChoice(lines_asize_item);
-    line_color = GetChoice(lines_pen_item);
+    line_color = GetOptionChoice(lines_color_item);
     line_arrow = GetChoice(lines_arrow_item);
     line_atype = GetChoice(lines_atype_item);
     line_lines = GetOptionChoice(lines_style_item);
@@ -139,7 +139,7 @@ void updatestrings(void)
 {
     if (strings_frame) {
 	SetOptionChoice(strings_font_item, string_font);
-	SetChoice(strings_pen_item, string_color);
+	SetOptionChoice(strings_color_item, string_color);
 	SetCharSizeChoice(strings_size_item, string_size);
 	SetAngleChoice(strings_rot_item, string_rot);
 	SetChoice(strings_loc_item, string_loctype == COORD_VIEW ? 1 : 0);
@@ -150,7 +150,7 @@ void updatestrings(void)
 void update_lines(void)
 {
     if (lines_frame) {
-	SetChoice(lines_pen_item, line_color);
+	SetOptionChoice(lines_color_item, line_color);
 	SetOptionChoice(lines_style_item, line_lines);
 	SetChoice(lines_width_item, line_linew);
 	SetChoice(lines_arrow_item, line_arrow);
@@ -163,11 +163,11 @@ void update_lines(void)
 void update_boxes(void)
 {
     if (boxes_frame) {
-	SetChoice(boxes_pen_item, box_color);
+	SetOptionChoice(boxes_color_item, box_color);
 	SetOptionChoice(boxes_lines_item, box_lines);
 	SetChoice(boxes_linew_item, box_linew);
 	SetOptionChoice(boxes_fillpat_item, box_fillpat);
-	SetChoice(boxes_fillcol_item, box_fillcolor);
+	SetOptionChoice(boxes_fillcol_item, box_fillcolor);
 	SetChoice(boxes_loc_item, box_loctype == COORD_VIEW ? 1 : 0);
     }
 }
@@ -176,7 +176,7 @@ void define_string_defaults(Widget w, XtPointer client_data, XtPointer call_data
 {
     if (strings_frame) {
 	string_font = GetOptionChoice(strings_font_item);
-	string_color = GetChoice(strings_pen_item);
+	string_color = GetOptionChoice(strings_color_item);
 	string_size = GetCharSizeChoice(strings_size_item);
 	string_rot = GetAngleChoice(strings_rot_item);
 	string_loctype = GetChoice(strings_loc_item) ? COORD_VIEW : COORD_WORLD;
@@ -295,7 +295,7 @@ void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel, NULL);
 
-	ellip_pen_item = CreateColorChoice(rc, "Color: ");
+	ellip_color_item = CreateColorChoice(rc, "Color: ");
 
 	ellip_linew_item = CreateLineWidthChoice(rc, "Line width:");
 
@@ -345,7 +345,7 @@ void define_strings_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 	strings_font_item = CreateFontChoice(rc, "Font:");
 
-	strings_pen_item = CreateColorChoice(rc, "Color: ");
+	strings_color_item = CreateColorChoice(rc, "Color: ");
 
 	strings_just_item = CreatePanelChoice(rc, "Justification:",
 					      4,
@@ -399,7 +399,7 @@ void define_lines_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel, NULL);
 
-	lines_pen_item = CreateColorChoice(rc, "Color: ");
+	lines_color_item = CreateColorChoice(rc, "Color: ");
 
 	lines_width_item = CreateLineWidthChoice(rc, "Width:");
 
@@ -464,7 +464,7 @@ void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
         rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, panel, NULL);
 
-	boxes_pen_item = CreateColorChoice(rc, "Color: ");
+	boxes_color_item = CreateColorChoice(rc, "Color: ");
 
 	boxes_linew_item = CreateLineWidthChoice(rc, "Line width:");
 
@@ -497,11 +497,11 @@ void define_boxes_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 typedef struct {
     Widget top;
-    Widget *color_item;
+    OptionStructure *color_item;
     Widget *linew_item;
-    OptionStructure lines_item;
-    Widget *fill_color_item;
-    OptionStructure fill_pattern_item;
+    OptionStructure *lines_item;
+    OptionStructure *fill_color_item;
+    OptionStructure *fill_pattern_item;
     Widget *loc_item;
     Widget x1_item;
     Widget x2_item;
@@ -516,11 +516,11 @@ void update_box_edit(EditBoxUI *ui)
 {
     if (ui->top) {
 	int boxno = ui->boxno;
-	SetChoice(ui->color_item, boxes[boxno].color);
+	SetOptionChoice(ui->color_item, boxes[boxno].color);
 	SetOptionChoice(ui->lines_item, boxes[boxno].lines);
 	SetChoice(ui->linew_item, boxes[boxno].linew);
 	SetOptionChoice(ui->fill_pattern_item, boxes[boxno].fillpattern);
-	SetChoice(ui->fill_color_item, boxes[boxno].fillcolor);
+	SetOptionChoice(ui->fill_color_item, boxes[boxno].fillcolor);
 	SetChoice(ui->loc_item, boxes[boxno].loctype == COORD_VIEW ? 1 : 0);
 	sprintf(buf, "%.12f", boxes[boxno].x1);
 	xv_setstr(ui->x1_item, buf);
@@ -537,11 +537,11 @@ void update_ellipse_edit(EditBoxUI *ui)
 {
     if (ui->top) {
 	int ellipno = ui->boxno;
-	SetChoice(ui->color_item, ellip[ellipno].color);
+	SetOptionChoice(ui->color_item, ellip[ellipno].color);
 	SetOptionChoice(ui->lines_item, ellip[ellipno].lines);
 	SetChoice(ui->linew_item, ellip[ellipno].linew);
 	SetOptionChoice(ui->fill_pattern_item, ellip[ellipno].fillpattern);
-	SetChoice(ui->fill_color_item, ellip[ellipno].fillcolor);
+	SetOptionChoice(ui->fill_color_item, ellip[ellipno].fillcolor);
 	SetChoice(ui->loc_item, ellip[ellipno].loctype == COORD_VIEW ? 1 : 0);
 	sprintf(buf, "%.12f", 0.5*(ellip[ellipno].x1+ellip[ellipno].x2));
 	xv_setstr(ui->x1_item, buf);
@@ -596,11 +596,11 @@ void ellipse_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
         xv_evalexpr( ui->y2_item, &d ) != GRACE_EXIT_SUCCESS ) {
         return;
     }
-    ellip[ellipno].color = GetChoice(ui->color_item);
+    ellip[ellipno].color = GetOptionChoice(ui->color_item);
     ellip[ellipno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     ellip[ellipno].lines = GetOptionChoice(ui->lines_item);
     ellip[ellipno].linew = GetChoice(ui->linew_item);
-    ellip[ellipno].fillcolor = GetChoice(ui->fill_color_item);
+    ellip[ellipno].fillcolor = GetOptionChoice(ui->fill_color_item);
     ellip[ellipno].fillpattern = GetOptionChoice(ui->fill_pattern_item);
     ellip[ellipno].x1 = a - b/2.;
     ellip[ellipno].x2 = a + b/2.;
@@ -643,11 +643,11 @@ void box_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     EditBoxUI *ui = (EditBoxUI *) client_data;
     int boxno = ui->boxno;
 
-    boxes[boxno].color = GetChoice(ui->color_item);
+    boxes[boxno].color = GetOptionChoice(ui->color_item);
     boxes[boxno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     boxes[boxno].lines = GetOptionChoice(ui->lines_item);
     boxes[boxno].linew = GetChoice(ui->linew_item);
-    boxes[boxno].fillcolor = GetChoice(ui->fill_color_item);
+    boxes[boxno].fillcolor = GetOptionChoice(ui->fill_color_item);
     boxes[boxno].fillpattern = GetOptionChoice(ui->fill_pattern_item);
     xv_evalexpr( ui->x1_item, &boxes[boxno].x1 );
     xv_evalexpr( ui->x2_item, &boxes[boxno].x2 );
@@ -779,9 +779,9 @@ void ellipse_edit_popup(int boxno)
 
 typedef struct {
     Widget top;
-    Widget *color_item;
+    OptionStructure *color_item;
     Widget *linew_item;
-    OptionStructure lines_item;
+    OptionStructure *lines_item;
     Widget *loc_item;
     Widget *arrow_item;
     Widget *atype_item;
@@ -798,7 +798,7 @@ void update_line_edit(EditLineUI *ui)
     int iv;
     if (ui->top) {
 	int lineno = ui->lineno;
-	SetChoice(ui->color_item, lines[lineno].color);
+	SetOptionChoice(ui->color_item, lines[lineno].color);
 	SetOptionChoice(ui->lines_item, lines[lineno].lines);
 	SetChoice(ui->linew_item, lines[lineno].linew);
 	SetChoice(ui->arrow_item, lines[lineno].arrow);
@@ -850,7 +850,7 @@ void line_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int value;
     int lineno = ui->lineno;
 
-    lines[lineno].color = GetChoice(ui->color_item);
+    lines[lineno].color = GetOptionChoice(ui->color_item);
     lines[lineno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     lines[lineno].lines = GetOptionChoice(ui->lines_item);
     lines[lineno].linew = GetChoice(ui->linew_item);
@@ -945,9 +945,9 @@ void line_edit_popup(int lineno)
 typedef struct {
     Widget top;
     Widget string_item;
-    Widget *color_item;
+    OptionStructure *color_item;
     Widget *loc_item;
-    OptionStructure font_item;
+    OptionStructure *font_item;
     Widget size_item;
     Widget rot_item;
     Widget *just_item;
@@ -962,7 +962,7 @@ void update_string_edit(EditStringUI *ui)
     if (ui->top) {
 	plotstr *pstring = &pstr[ui->stringno];
 	xv_setstr(ui->string_item, pstring->s);
-	SetChoice(ui->color_item, pstring->color);
+	SetOptionChoice(ui->color_item, pstring->color);
 	SetChoice(ui->just_item, pstring->just);
 	SetOptionChoice(ui->font_item, pstring->font );
         SetCharSizeChoice(ui->size_item, pstring->charsize);
@@ -1004,7 +1004,7 @@ void string_edit_proc(Widget w, XtPointer client_data, XtPointer call_data)
     int stringno = ui->stringno;
 
     pstr[stringno].s = copy_string(pstr[stringno].s, xv_getstr(ui->string_item));
-    pstr[stringno].color = GetChoice(ui->color_item);
+    pstr[stringno].color = GetOptionChoice(ui->color_item);
     pstr[stringno].loctype = GetChoice(ui->loc_item) ? COORD_VIEW : COORD_WORLD;
     pstr[stringno].font = GetOptionChoice(ui->font_item);
     pstr[stringno].just = GetChoice(ui->just_item);

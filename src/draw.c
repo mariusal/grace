@@ -227,7 +227,7 @@ void symplus(VPoint vp, double s)
 void symx(VPoint vp, double s)
 {
     VPoint vp1, vp2;
-    double side = s * 0.707;
+    double side = M_SQRT1_2*s;
     
     vp1.x = vp.x - side;
     vp1.y = vp.y - side;
@@ -819,6 +819,66 @@ int find_color(RGB rgb)
     return (cindex);
 }
 
+int realloc_colors(int n)
+{
+    int i;
+    CMap_entry *cmap_tmp;
+    
+    if (n > MAXCOLORS) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+        for (i = n; i < maxcolors; i++) {
+            cxfree(cmap_table[i].cname);
+        }
+        cmap_tmp = xrealloc(cmap_table, n*sizeof(CMap_entry));
+        if (cmap_tmp == NULL) {
+            return GRACE_EXIT_FAILURE;
+        } else {
+            cmap_table = cmap_tmp;
+            for (i = maxcolors; i < n; i++) {
+                cmap_table[i].rgb.red = 0;
+                cmap_table[i].rgb.green = 0;
+                cmap_table[i].rgb.blue = 0;
+                cmap_table[i].cname = NULL;
+                cmap_table[i].ctype = COLOR_NONE;
+                cmap_table[i].tstamp = 0;
+            }
+        }
+        maxcolors = n;
+    }
+    
+    return GRACE_EXIT_SUCCESS;
+}
+
+int store_color(int n, CMap_entry cmap)
+{
+    if (is_valid_color(cmap.rgb) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    } else if (n >= maxcolors && realloc_colors(n + 1) == GRACE_EXIT_FAILURE) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+        if (cmap.cname == NULL || strlen(cmap.cname) == 0) {
+            cmap_table[n].cname =
+                copy_string(cmap_table[n].cname, "unnamed");
+        } else {
+            cmap_table[n].cname =
+                copy_string(cmap_table[n].cname, cmap.cname);
+        }
+        cmap_table[n].rgb = cmap.rgb;
+        cmap_table[n].ctype = cmap.ctype;
+        cmap_table[n].tstamp = 1;
+                
+        /* inform current device of changes in the cmap database */
+        if (devupdatecmap != NULL) {
+            (*devupdatecmap)();
+        }
+#ifndef NONE_GUI        
+        update_color_selectors();
+#endif        
+        return GRACE_EXIT_SUCCESS;
+    }
+}
+
 /*
  * add_color() adds a new entry to the colormap table
  */
@@ -829,30 +889,17 @@ int add_color(CMap_entry cmap)
     if (is_valid_color(cmap.rgb) != TRUE) {
         cindex = BAD_COLOR;
     } else if ((cindex = find_color(cmap.rgb)) != BAD_COLOR) {
-        if (cmap.ctype == COLOR_MAIN) {
+        if (cmap.ctype == COLOR_MAIN && 
+            cmap_table[cindex].ctype != COLOR_MAIN) {
             cmap_table[cindex].ctype = COLOR_MAIN;
+#ifndef NONE_GUI        
+            update_color_selectors();
+#endif
         }
-    } else if (maxcolors >= MAXCOLORS) {
+    } else if (store_color(maxcolors, cmap) == GRACE_EXIT_FAILURE) {
         cindex = BAD_COLOR;
     } else {
-        maxcolors++;
         cindex = maxcolors - 1;
-        cmap_table = xrealloc(cmap_table, maxcolors*sizeof(CMap_entry));
-        if (cmap.cname == NULL || strlen(cmap.cname) == 0) {
-            cmap_table[cindex].cname = malloc(8);
-            strcpy(cmap_table[cindex].cname, (char *) "unnamed");
-        } else { 
-            cmap_table[cindex].cname = malloc((strlen(cmap.cname) + 1));
-            strcpy(cmap_table[cindex].cname, cmap.cname);
-        }
-        cmap_table[cindex].rgb = cmap.rgb;
-        cmap_table[cindex].ctype = cmap.ctype;
-        cmap_table[cindex].tstamp = 1;
-        
-        /* inform current device of changes in the cmap database */
-        if (devupdatecmap != NULL) {
-            (*devupdatecmap)();
-        }
     }
     
     return (cindex);
@@ -988,12 +1035,12 @@ static CMap_entry cmap_init[] = {
  */
 void initialize_cmap(void)
 {
-    int i;
+    int i, n;
     
-    maxcolors = 0;
-    
-    for (i = 0; i < sizeof(cmap_init)/sizeof(CMap_entry); i++) {
-        add_color(cmap_init[i]);
+    n = sizeof(cmap_init)/sizeof(CMap_entry);
+    realloc_colors(n);
+    for (i = 0; i < n; i++) {
+        store_color(i, cmap_init[i]);
     }
 }
 
