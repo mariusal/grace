@@ -131,19 +131,16 @@ typedef struct {
     int part;
     view bbox;
     int found;
-    int depth;
 } canvas_target;
 
 static void target_consider(canvas_target *ct, Quark *q, int part,
-    const view *v, int depth)
+    const view *v)
 {
-    if ((depth > ct->depth || (depth == ct->depth && part > ct->part)) &&
-        is_vpoint_inside(v, &ct->vp, 0.0)) {
+    if (is_vpoint_inside(v, &ct->vp, 0.0)) {
         ct->q = q;
         ct->part = part;
         ct->bbox = *v;
         ct->found = TRUE;
-        ct->depth = depth;
     }
 }
 
@@ -156,10 +153,22 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
         legend *l;
         
         frame_get_view(q, &v);
-        target_consider(ct, q, 0, &v, (int) closure->depth);
+        target_consider(ct, q, 0, &v);
         
         if ((l = frame_get_legend(q)) && l->active) {
-            target_consider(ct, q, 1, &l->bb, (int) closure->depth);
+            target_consider(ct, q, 1, &l->bb);
+        }
+    } else
+    if (q->fid == QFlavorAText) {
+        AText *at = atext_get_data(q);
+        if (at->active) {
+            target_consider(ct, q, 0, &at->bb);
+        }
+    } else
+    if (q->fid == QFlavorDObject) {
+        DObject *o = object_get_data(q);
+        if (o->active) {
+            target_consider(ct, q, 0, &o->bb);
         }
     }
     
@@ -169,10 +178,36 @@ static int target_hook(Quark *q, void *udata, QTraverseClosure *closure)
 static int find_target(Quark *pr, canvas_target *ct)
 {
     ct->found = FALSE;
-    ct->depth = -1;
     quark_traverse(pr, target_hook, ct);
 
     return ct->found ? RETURN_SUCCESS:RETURN_FAILURE;
+}
+
+static void move_target(canvas_target *ct, const VPoint *vp)
+{
+    VVector vshift;
+    
+    vshift.x = vp->x - ct->vp.x;
+    vshift.y = vp->y - ct->vp.y;
+    
+    switch (ct->q->fid) {
+    case QFlavorFrame:
+        switch (ct->part) {
+        case 0:
+            frame_shift(ct->q, &vshift);
+            break;
+        case 1:
+            frame_legend_shift(ct->q, &vshift);
+            break;
+        }
+        break;
+    case QFlavorAText:
+        atext_shift(ct->q, &vshift);
+        break;
+    case QFlavorDObject:
+        object_shift(ct->q, &vshift);
+        break;
+    }
 }
 
 void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
@@ -197,7 +232,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
     int collect_points = FALSE;
     int npoints = 0, npoints_requested = 0;
     
-    canvas_target ct;
+    static canvas_target ct;
     
     x = event->xmotion.x;
     y = event->xmotion.y;
@@ -210,7 +245,13 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         }
 
 	if (xme->state & Button1Mask) {
-            scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
+            if (xme->state & ControlMask) {
+                if (ct.found) {
+                    slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, TRUE);
+                }
+            } else {
+                scroll_pix(drawing_window, last_b1down_x - x, last_b1down_y - y);
+            }
         } else {
 	    x11_dev2VPoint(x, y, &vp);
 
@@ -245,9 +286,7 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
                 if (xbe->state & ControlMask) {
                     ct.vp = vp;
                     if (find_target(grace->project, &ct) == RETURN_SUCCESS) {
-                        fprintf(stderr, "%s(%d) [%f %f %f %f]\n",
-                            QIDSTR(ct.q), ct.part,
-                            ct.bbox.xv1, ct.bbox.yv1, ct.bbox.xv2, ct.bbox.yv2);
+                        slide_region(grace->gui, ct.bbox, 0, 0, FALSE);
                     }
                 } else {
                     if (grace->gui->focus_policy == FOCUS_CLICK) {
@@ -292,7 +331,18 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         }
         break;
     case ButtonRelease:
-            set_cursor(grace->gui, -1);
+        xbe = (XButtonEvent *) event;
+        if (xbe->state & ControlMask && ct.found) {
+            slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+	    
+            x11_dev2VPoint(x, y, &vp);
+            
+            move_target(&ct, &vp);
+            ct.found = FALSE;
+    
+            xdrawgraph(grace->project, TRUE);
+        }
+        set_cursor(grace->gui, -1);
         break;
     case KeyPress:
 	xke = (XKeyEvent *) event;
@@ -326,6 +376,10 @@ void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont)
         if (cursortype == 0 &&
             (keybuf == XK_Shift_L || keybuf == XK_Shift_R)) { /* Shift */
             reset_crosshair(grace->gui, TRUE);
+        }
+        if (xke->state & ControlMask && ct.found) {
+            slide_region(grace->gui, ct.bbox, x - last_b1down_x, y - last_b1down_y, FALSE);
+            ct.found = FALSE;
         }
         break;
     default:
@@ -535,14 +589,6 @@ void write_string_action(Widget w, XEvent *e, String *p, Cardinal *c)
 
 
 void delete_object_action(Widget w, XEvent *e, String *p, Cardinal *c)
-{
-}
-
-void place_legend_action(Widget w, XEvent *e, String *p, Cardinal *c)
-{
-}
-
-void move_object_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
 }
 

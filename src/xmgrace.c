@@ -106,8 +106,6 @@ static XtActionsRec canvas_actions[] = {
     {"draw_ellipse",      draw_ellipse_action     },  
     {"write_string",      write_string_action     },  
     {"delete_object",     delete_object_action    }, 
-    {"place_legend",      place_legend_action     },  
-    {"move_object",       move_object_action      },   
     {"refresh_hotlink",   refresh_hotlink_action  },
     {"set_viewport",      set_viewport_action     },  
     {"enable_zoom",       enable_zoom_action      }
@@ -130,8 +128,6 @@ static char canvas_table[] = "#override\n\
 	Ctrl Alt <Key>t: write_string()\n\
 	Ctrl <Key>a: autoscale()\n\
 	Ctrl <Key>d: delete_object()\n\
-	Ctrl <Key>l: place_legend()\n\
-	Ctrl <Key>m: move_object()\n\
 	Ctrl <Key>u: refresh_hotlink()\n\
 	Ctrl <Key>v: set_viewport()\n\
 	Ctrl <Key>z: enable_zoom()";
@@ -502,7 +498,7 @@ static void autoscale_proc(Widget but, void *data)
     Quark *cg = graph_get_current(grace->project);
     
     if (autoscale_graph(cg, (int) data) == RETURN_SUCCESS) {
-	update_ticks(cg);
+	update_ticks();
         xdrawgraph(grace->project, FALSE);
     } else {
 	errmsg("Can't autoscale (no active sets?)");
@@ -521,7 +517,7 @@ static void autoon_proc(Widget but, void *data)
 static void autoticks_proc(Widget but, void *data)
 {
     autotick_graph_axes(graph_get_current(grace->project), AXIS_MASK_XY);
-    update_ticks(graph_get_current(grace->project));
+    update_ticks();
     xdrawgraph(grace->project, FALSE);
 }
 
@@ -721,7 +717,7 @@ static Widget CreateMainMenuBar(Widget parent)
 
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Arrange graphs...", 'r', create_arrange_frame, NULL);
-    CreateMenuButton(menupane, "Autoscale graph...", 'A', create_autos_frame, NULL);
+    CreateMenuButton(menupane, "Autoscale graphs...", 'A', create_autos_frame, NULL);
     CreateMenuSeparator(menupane);
 
     CreateMenuButton(menupane, "Set locator fixed point", 'f', set_actioncb, (void *) SEL_POINT);

@@ -136,10 +136,7 @@ void draw_box_action( Widget, XEvent *, String *, Cardinal * );
 void draw_ellipse_action( Widget, XEvent *, String *, Cardinal * );
 void write_string_action( Widget, XEvent *, String *, Cardinal * );
 void delete_object_action( Widget, XEvent *, String *, Cardinal * );
-void move_object_action( Widget, XEvent *, String *, Cardinal * );
-void place_legend_action( Widget, XEvent *, String *, Cardinal * );
 void refresh_hotlink_action( Widget, XEvent *, String *, Cardinal * );
-void exit_abruptly_action( Widget, XEvent *, String *, Cardinal * );
 
 void update_point_locator(Quark *pset, int loc);
 void get_tracking_props(int *setno, int *move_dir, int *add_at);
