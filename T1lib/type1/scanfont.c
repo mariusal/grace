@@ -1218,14 +1218,10 @@ int scan_font(FontP)
  
  
   char   filename[128];
-  char   filetype[3];
   FILE   *fileP;
   char   *nameP;
   int    namelen;
  
-    filetype[0] = 'r';
-    filetype[1] = 'b';
-    filetype[2] = '\0';
     /* copy the filename and remove leading or trailing blanks */
     /* point to name and search for leading blanks */
     nameP= FontP->FontFileName.data.nameP;
@@ -1245,7 +1241,7 @@ int scan_font(FontP)
     filterFile.data.fileP = NULL;
  
     inputP = &inputFile;
-    if ((fileP = fopen(filename,filetype))!=NULL) {
+    if ((fileP = fopen(filename,"rb"))!=NULL) {
       objFormatFile(inputP,fileP);
     }
     else {

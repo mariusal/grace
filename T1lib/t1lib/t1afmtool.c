@@ -331,7 +331,7 @@ int T1_WriteAFMFallbackFile( int FontID)
   afmfilename[i+2]='f';
   afmfilename[i+3]='m';
   
-  if ((afmfile=fopen( afmfilename, "w"))==NULL){
+  if ((afmfile=fopen( afmfilename, "wb"))==NULL){
     sprintf( err_warn_msg_buf,
 	     "Could not open %s, (FontID = %d)",
 	     afmfilename, FontID);

@@ -273,12 +273,12 @@ int intT1_ScanConfigFile( void)
     strcat( globalcnffilepath, DIRECTORY_SEP);
     strcat( globalcnffilepath, GLOBAL_CONFIG_FILE);
     
-    if ((cfg_fp=fopen( cnffilepath, "r"))==NULL){
+    if ((cfg_fp=fopen( cnffilepath, "rb"))==NULL){
       sprintf( err_warn_msg_buf, "Could not open configfile %s",
 	       cnffilepath);
       T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf, T1LOG_STATISTIC);
       /* Try global config file */
-      if ((cfg_fp=fopen( globalcnffilepath, "r"))==NULL){
+      if ((cfg_fp=fopen( globalcnffilepath, "rb"))==NULL){
 	sprintf( err_warn_msg_buf, "Could not open global configfile %s",
 		 globalcnffilepath);
 	T1_PrintLog( "ScanConfigFile()", err_warn_msg_buf, T1LOG_WARNING);
@@ -305,7 +305,7 @@ int intT1_ScanConfigFile( void)
   }
   else {
     /* open specified file for reading the configuration */
-    if ((cfg_fp=fopen(env_str,"r"))==NULL){
+    if ((cfg_fp=fopen(env_str,"rb"))==NULL){
       T1_PrintLog( "ScanConfigFile()",
 		   "Configfile as specified by Environment has not been found",
 		   T1LOG_WARNING);

@@ -126,7 +126,7 @@ void *T1_InitLib( int log)
   if ((log & LOGFILE) || (usrforcelog!=0)) {
     pFontBase->t1lib_flags |= LOGFILE;
     /* Try first opening in current directory: */
-    if ((t1lib_log_file=fopen( T1_LOG_FILE, "w"))==NULL) {
+    if ((t1lib_log_file=fopen( T1_LOG_FILE, "wb"))==NULL) {
       if ((usershome=getenv("HOME"))!=NULL) {
 	logfilepath=(char *)malloc((strlen(usershome) +
 				    strlen(T1_LOG_FILE) + 2
@@ -134,7 +134,7 @@ void *T1_InitLib( int log)
 	strcpy( logfilepath, usershome);
 	strcat( logfilepath, DIRECTORY_SEP);
 	strcat( logfilepath, T1_LOG_FILE);
-	if ((t1lib_log_file=fopen( logfilepath, "w"))==NULL){
+	if ((t1lib_log_file=fopen( logfilepath, "wb"))==NULL){
 	  t1lib_log_file=stderr;
 	}
 	free( logfilepath);
@@ -296,7 +296,11 @@ int intT1_scanFontDBase( char *filename)
   FONTPRIVATE* fontarrayP=NULL;
   
   
-  if ((fd=open( filename, O_RDONLY))<3){
+#ifndef O_BINARY
+#  define O_BINARY 0x0
+#endif
+
+  if ((fd=open( filename, O_RDONLY | O_BINARY))<3){
     T1_PrintLog( "intT1_scanFontDBase()", "Font Database File %s not found!",
 		 T1LOG_WARNING, filename);
     T1_errno=T1ERR_FILE_OPEN_ERR;

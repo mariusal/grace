@@ -279,7 +279,7 @@ char *T1_SubsetFont( int FontID,
   
   /* Open and initialize scanning machinery */
   T1io_reset();
-  if ((ifp = (FILE *)T1Open(T1_GetFontFilePath( FontID), "r"))==NULL) {
+  if ((ifp = (FILE *)T1Open(T1_GetFontFilePath( FontID), "rb"))==NULL) {
     T1_errno=T1ERR_FILE_OPEN_ERR;
     return(NULL);
   }

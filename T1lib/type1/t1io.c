@@ -101,13 +101,12 @@ F_FILE *T1Open(fn, mode)
   eexec_startOK=0;
   eexec_endOK=0;
  
-  /* We know we are only reading */
-  /* cygwin32 also needs the binary flag to be set */
-#if defined(MSDOS) | defined(_WIN32) | defined (__EMX__)
-  if ((of->fd=open(fn, O_RDONLY | O_BINARY)) < 0) return NULL;
-#else
-  if ((of->fd=open(fn, O_RDONLY)) < 0) return NULL;
+#ifndef O_BINARY
+#  define O_BINARY 0x0
 #endif
+
+  /* We know we are only reading */
+  if ((of->fd=open(fn, O_RDONLY | O_BINARY)) < 0) return NULL;
 
   /* We check for pfa/pfb file */
   if (read( of->fd, &c, 1)!=1) {

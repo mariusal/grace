@@ -468,7 +468,7 @@ static char **ScanEncodingFile( char *FileName)
   int filesize;
   int i=0, j=0;
   
-  if ((enc_fp=fopen( FileName,"r"))==NULL){
+  if ((enc_fp=fopen( FileName,"rb"))==NULL){
     T1_errno=T1ERR_FILE_OPEN_ERR;
     return(NULL);  /* file could not be opened 
 		      => no encoding read */

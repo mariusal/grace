@@ -812,7 +812,7 @@ static int openFontMetricsFile( int FontID, int open_sloppy)
   
   /* open afm-file: */
   if (AFMFileNamePath!=NULL){
-    if ((metricsfile=fopen(AFMFileNamePath,"r"))==NULL){
+    if ((metricsfile=fopen(AFMFileNamePath,"rb"))==NULL){
       free(AFMFileNamePath);
       return(-4);
     }
