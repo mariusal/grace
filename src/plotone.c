@@ -783,6 +783,7 @@ void drawsetline(int gno, int setno, plotarr *p,
     VPoint vps[4], *vpstmp;
     WPoint wp;
     double *x, *y;
+    double lw;
     double ybase;
     double xmin, xmax, ymin, ymax;
     int stacked_chart;
@@ -812,11 +813,18 @@ void drawsetline(int gno, int setno, plotarr *p,
 
     drawsetfill(gno, setno, p, refn, refx, refy, offset);
 
+    setpen(p->linepen);
+    setlinewidth(p->linew);
+    setlinestyle(ly);
+
+    if (stacked_chart == TRUE) {
+        lw = getlinewidth();
+    } else {
+        lw = 0.0;
+    }
+    
 /* draw the line */
-    if (ly != 0) {
-        setpen(p->linepen);
-        setlinewidth(p->linew);
-        setlinestyle(ly);
+    if (ly != 0 && p->linepen.pattern != 0) {
         
         switch (line_type) {
         case LINE_TYPE_NONE:
@@ -835,9 +843,8 @@ void drawsetline(int gno, int setno, plotarr *p,
                 }
                 vpstmp[i] = Wpoint2Vpoint(wp);
     	        vpstmp[i].x += offset;
-                if (stacked_chart == TRUE) {
-                    vpstmp[i].y -= getlinewidth()/2.0;
-                }
+                
+                vpstmp[i].y -= lw/2.0;
             }
             DrawPolyline(vpstmp, setlen, POLYLINE_OPEN);
             free(vpstmp);
@@ -858,10 +865,10 @@ void drawsetline(int gno, int setno, plotarr *p,
                 }
                 vps[1] = Wpoint2Vpoint(wp);
     	        vps[1].x += offset;
-                if (stacked_chart == TRUE) {
-                    vps[0].y -= getlinewidth()/2.0;
-                    vps[1].y -= getlinewidth()/2.0;
-                }
+                
+                vps[0].y -= lw/2.0;
+                vps[1].y -= lw/2.0;
+                
                 DrawLine(vps[0], vps[1]);
             }
             break;
@@ -889,11 +896,10 @@ void drawsetline(int gno, int setno, plotarr *p,
                 vps[2] = Wpoint2Vpoint(wp);
     	        vps[2].x += offset;
                 DrawPolyline(vps, 3, POLYLINE_OPEN);
-                if (stacked_chart == TRUE) {
-                    vps[0].y -= getlinewidth()/2.0;
-                    vps[1].y -= getlinewidth()/2.0;
-                    vps[2].y -= getlinewidth()/2.0;
-                }
+                
+                vps[0].y -= lw/2.0;
+                vps[1].y -= lw/2.0;
+                vps[2].y -= lw/2.0;
             }
             if (i == setlen - 2) {
                 wp.x = x[i];
@@ -910,10 +916,10 @@ void drawsetline(int gno, int setno, plotarr *p,
                 }
                 vps[1] = Wpoint2Vpoint(wp);
     	        vps[1].x += offset;
-                if (stacked_chart == TRUE) {
-                    vps[0].y -= getlinewidth()/2.0;
-                    vps[1].y -= getlinewidth()/2.0;
-                }
+                
+                vps[0].y -= lw/2.0;
+                vps[1].y -= lw/2.0;
+                
                 DrawLine(vps[0], vps[1]);
             }
             break;
@@ -935,11 +941,10 @@ void drawsetline(int gno, int setno, plotarr *p,
     	        vps[2].x += offset;
                 vps[1].x = vps[0].x;
                 vps[1].y = vps[2].y;
-                if (stacked_chart == TRUE) {
-                    vps[0].y -= getlinewidth()/2.0;
-                    vps[1].y -= getlinewidth()/2.0;
-                    vps[2].y -= getlinewidth()/2.0;
-                }
+                
+                vps[0].y -= lw/2.0;
+                vps[1].y -= lw/2.0;
+                vps[2].y -= lw/2.0;
                
                 DrawPolyline(vps, 3, POLYLINE_OPEN);
             }
@@ -962,11 +967,10 @@ void drawsetline(int gno, int setno, plotarr *p,
     	        vps[2].x += offset;
                 vps[1].x = vps[2].x;
                 vps[1].y = vps[0].y;
-                if (stacked_chart == TRUE) {
-                    vps[0].y -= getlinewidth()/2.0;
-                    vps[1].y -= getlinewidth()/2.0;
-                    vps[2].y -= getlinewidth()/2.0;
-                }
+                
+                vps[0].y -= lw/2.0;
+                vps[1].y -= lw/2.0;
+                vps[2].y -= lw/2.0;
                
                 DrawPolyline(vps, 3, POLYLINE_OPEN);
             }
@@ -994,9 +998,8 @@ void drawsetline(int gno, int setno, plotarr *p,
             }
             vps[1] = Wpoint2Vpoint(wp);
     	    vps[1].x += offset;
-            if (stacked_chart == TRUE) {
-                vps[1].y -= getlinewidth()/2.0;
-            }
+            
+            vps[1].y -= lw/2.0;
  
             DrawLine(vps[0], vps[1]);
         }
@@ -1452,7 +1455,7 @@ void drawsetbars(int gno, int setno, plotarr *p,
 {
     int i, n;
     double *x, *y;
-    double bw = 0.01*p->symsize;
+    double lw, bw = 0.01*p->symsize;
     double ybase;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1472,11 +1475,22 @@ void drawsetbars(int gno, int setno, plotarr *p,
     } else {
         stacked_chart = FALSE;
     }
+
+
     
     if (stacked_chart == TRUE) {
         ybase = 0.0;
     } else {
         ybase = setybase(gno, setno);
+    }
+
+    setlinewidth(p->symlinew);
+    setlinestyle(p->symlines);
+    if (get_graph_type(gno) == GRAPH_CHART &&
+        p->symlines != 0 && p->sympen.pattern != 0) {
+        lw = getlinewidth();
+    } else {
+        lw = 0.0;
     }
 
     if (p->symfillpen.pattern != 0) {
@@ -1500,13 +1514,16 @@ void drawsetbars(int gno, int setno, plotarr *p,
     	    vp2 = Wpoint2Vpoint(wp);
             vp2.x += bw;
     	    vp2.x += offset;
+            
+            vp1.x += lw/2.0;
+            vp2.x -= lw/2.0;
+            vp1.y += lw/2.0;
+            
             FillRect(vp1, vp2);
         }
     }
     if (p->symlines != 0 && p->sympen.pattern != 0) {
         setpen(p->sympen);
-        setlinewidth(p->symlinew);
-        setlinestyle(p->symlines);
         for (i = 0; i < n; i++) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1526,11 +1543,11 @@ void drawsetbars(int gno, int setno, plotarr *p,
     	    vp2 = Wpoint2Vpoint(wp);
             vp2.x += bw;
     	    vp2.x += offset;
-            if (get_graph_type(gno) == GRAPH_CHART) {
-                vp1.x += getlinewidth()/2.0;
-                vp2.x -= getlinewidth()/2.0;
-            }
-            vp1.y += getlinewidth()/2.0;
+
+            vp1.x += lw/2.0;
+            vp2.x -= lw/2.0;
+            vp1.y += lw/2.0;
+
     	    DrawRect(vp1, vp2);
         }
     }
