@@ -63,32 +63,20 @@
 #include "t1fonts.h"
 #include "ssdata.h"
 #include "protos.h"
+#include "parser.h"
+
+typedef double (*ParserFnc)();
 
 extern graph *g;
 
-#define GRVAR_TMP       0
-#define GRVAR_SCRARRAY  1
-#define GRVAR_DATASET   2
-
-/* variable */
-typedef struct _grvar {
-    int type;
-    int length;
-    double *data;
-} grvar;
-
-static void free_tmpvrbl(grvar *vrbl);
-static void copy_vrbl(grvar *dest, grvar *src);
-static int find_set_bydata(double *data, target *tgt);
-
 static double  s_result;    /* return value if a scalar expression is scanned*/
-static grvar *v_result;    /* return value if a vector expression is scanned*/
+static grarr *v_result;    /* return value if a vector expression is scanned*/
 
 static int expr_parsed, vexpr_parsed;
 
 static int interr;
 
-static grvar freelist[100]; 	/* temporary vectors */
+static grarr freelist[100]; 	/* temporary vectors */
 static int fcnt = 0;		/* number of the temporary vectors allocated */
 
 static target trgt_pool[100]; 	/* pool of temporary targets */
@@ -109,10 +97,6 @@ char batchfile[GR_MAXPATHLEN] = "",
 static char f_string[MAX_STRING_LENGTH]; /* buffer for string to parse */
 static int pos;
 
-/* scratch arrays used in scanner */
-static int sarray_len[4] = {0, 0, 0, 0};
-static double *sarrays[] = {NULL, NULL, NULL, NULL};
-
 /* the graph, set, and its length of the parser's current state */
 static int whichgraph;
 static int whichset;
@@ -131,10 +115,10 @@ static int filltype_obs;
 
 static int index_shift = 0;     /* 0 for C, 1 for F77 index notation */
 
-static int get_scratch(int ind, grvar *vrbl);
+static void free_tmpvrbl(grarr *vrbl);
+static void copy_vrbl(grarr *dest, grarr *src);
+static int find_set_bydata(double *data, target *tgt);
 
-static double rnorm(double mean, double sdev);
-static double fx(double x);
 static int getcharstr(void);
 static void ungetchstr(void);
 static int follow(int expect, int ifyes, int ifno);
@@ -155,17 +139,19 @@ static double sqr_wrap(double x);
 static double max_wrap(double x, double y);
 static double min_wrap(double x, double y);
 static double irand_wrap(int x);
+static double rnorm(double mean, double sdev);
+static double fx(double x);
 
 /* constants */
 static double pi_const(void);
 static double deg_uconst(void);
 static double rad_uconst(void);
 
-int yylex(void);
-int yyparse(void);
-void yyerror(char *s);
+static int yylex(void);
+static int yyparse(void);
+static void yyerror(char *s);
 
-int findf(symtab_entry *keytable, char *s);
+static int findf(symtab_entry *keytable, char *s);
 
 /* Total (intrinsic + user-defined) list of functions and keywords */
 symtab_entry *key;
@@ -178,11 +164,28 @@ symtab_entry *key;
     char   *sval;
     double *dptr;
     target *trgt;
-    grvar  *vrbl;
+    grarr  *vrbl;
 }
+
+%token KEY_VAR       
+%token KEY_VEC       
+
+%token KEY_CONST     
+%token KEY_UNIT      
+%token KEY_FUNC_I    
+%token KEY_FUNC_D    
+%token KEY_FUNC_NN   
+%token KEY_FUNC_ND   
+%token KEY_FUNC_DD   
+%token KEY_FUNC_NND  
+%token KEY_FUNC_PPD  
+%token KEY_FUNC_PPPD 
 
 %token <ival> INDEX
 %token <ival> DATE
+
+%token <dptr> VAR_D	 /* a (pointer to) double variable                                     */
+%token <vrbl> VEC_D	 /* a (pointer to) double array variable                                     */
 
 %token <ival> CONSTANT	 /* a (double) constant                                     */
 %token <ival> UCONSTANT	 /* a (double) unit constant                                */
@@ -194,16 +197,6 @@ symtab_entry *key;
 %token <ival> FUNC_NND   /* a function of 2 int parameters and 1 double variable    */
 %token <ival> FUNC_PPD   /* a function of 2 double parameters and 1 double variable */
 %token <ival> FUNC_PPPD  /* a function of 3 double parameters and 1 double variable */
-%token <ival> PROC_CONST
-%token <ival> PROC_UNIT
-%token <ival> PROC_FUNC_I
-%token <ival> PROC_FUNC_D
-%token <ival> PROC_FUNC_NN
-%token <ival> PROC_FUNC_ND
-%token <ival> PROC_FUNC_DD
-%token <ival> PROC_FUNC_NND
-%token <ival> PROC_FUNC_PPD
-%token <ival> PROC_FUNC_PPPD
 
 %token <ival> ABOVE
 %token <ival> ABSOLUTE
@@ -518,12 +511,12 @@ symtab_entry *key;
 %token <ival> YYMMDDHMS
 %token <ival> ZERO
 
-%token <ival> SCRARRAY
-
 %token <ival> FITPARM
 %token <ival> FITPMAX
 %token <ival> FITPMIN
 %token <dval> NUMBER
+
+%token <sval> NEW_TOKEN
 
 %type <ival> onoff
 
@@ -638,6 +631,7 @@ list:
 	| options {}
 	| asgn {}
 	| vasgn {}
+	| defines {}
 	| error {
 	    return 1;
 	}
@@ -647,6 +641,9 @@ list:
 
 expr:	NUMBER {
 	    $$ = $1;
+	}
+	|  VAR_D {
+	    $$ = *($1);
 	}
 	|  FITPARM {
 	    $$ = nonl_parms[$1].value;
@@ -678,13 +675,16 @@ expr:	NUMBER {
 	    case MAXP:
 		$$ = vmax($3->data, length);
 		break;
-            case AVG:;
+            case AVG:
 		stasum($3->data, length, &$$, &dummy);
                 break;
             case SD:
 		stasum($3->data, length, &dummy, &$$);
                 break;
 	    }
+	}
+	| VEC_D '.' LENGTH {
+	    $$ = $1->length;
 	}
 	| selectset '.' LENGTH {
 	    $$ = getsetlength($1->gno, $1->setno);
@@ -697,43 +697,43 @@ expr:	NUMBER {
 	}
 	| CONSTANT
 	{
-	    $$ = key[$1].fnc();
+            $$ = ((ParserFnc) (key[$1].data)) ();
 	}
 	| expr UCONSTANT
 	{
-	    $$ = $1 * key[$2].fnc();
+	    $$ = $1 * ((ParserFnc) (key[$2].data)) ();
 	}
 	| FUNC_I '(' iexpr ')'
 	{
-	    $$ = key[$1].fnc($3);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3);
 	}
 	| FUNC_D '(' expr ')'
 	{
-	    $$ = key[$1].fnc($3);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3);
 	}
 	| FUNC_ND '(' iexpr ',' expr ')'
 	{
-	    $$ = key[$1].fnc($3, $5);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5);
 	}
 	| FUNC_NN '(' iexpr ',' iexpr ')'
 	{
-	    $$ = key[$1].fnc($3, $5);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5);
 	}
 	| FUNC_DD '(' expr ',' expr ')'
 	{
-	    $$ = key[$1].fnc($3, $5);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5);
 	}
 	| FUNC_NND '(' iexpr ',' iexpr ',' expr ')'
 	{
-	    $$ = key[$1].fnc($3, $5, $7);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7);
 	}
 	| FUNC_PPD '(' expr ',' expr ',' expr ')'
 	{
-	    $$ = key[$1].fnc($3, $5, $7);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7);
 	}
 	| FUNC_PPPD '(' expr ',' expr ',' expr ',' expr ')'
 	{
-	    $$ = key[$1].fnc($3, $5, $7, $9);
+	    $$ = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9);
 	}
 	| selectgraph '.' VX1 {
 	    $$ = g[$1].v.xv1;
@@ -947,16 +947,15 @@ indx:	'[' iexpr ']' {
         ;
 
 array:
-	SCRARRAY
+	VEC_D
 	{
-            $$ = &freelist[fcnt++];
-            get_scratch($1, $$);
+            $$ = $1;
 	}
         | datacolumn
 	{
 	    double *ptr = getcol(vasgn_gno, vasgn_setno, $1);
             $$ = &freelist[fcnt++];
-            $$->type = GRVAR_DATASET;
+            $$->type = GRARR_SET;
             $$->data = ptr;
             if (ptr == NULL) {
                 errmsg("NULL variable - check set type");
@@ -969,7 +968,7 @@ array:
 	{
 	    double *ptr = getcol($1->gno, $1->setno, $3);
             $$ = &freelist[fcnt++];
-            $$->type = GRVAR_DATASET;
+            $$->type = GRARR_SET;
             $$->data = ptr;
             if (ptr == NULL) {
                 errmsg("NULL variable - check set type");
@@ -997,7 +996,7 @@ vexpr:
                     return 1;
                 } else {
                     $$ = &freelist[fcnt++];
-                    $$->type = GRVAR_TMP;
+                    $$->type = GRARR_TMP;
                     $$->data = ptr;
                     $$->length = len;
                 }
@@ -1009,18 +1008,13 @@ vexpr:
             if (len < 2) {
                 yyerror("npoints must be > 1");
             } else {
-                double *ptr = calloc(len, SIZEOF_DOUBLE);
+                double *ptr = allocate_mesh($3, $5, len);
                 if (ptr == NULL) {
                     errmsg("Malloc failed");
                     return 1;
                 } else {
-                    int i;
-                    double s = ($3 + $5)/2, d = ($5 - $3)/2;
-                    for (i = 0; i < len; i++) {
-                        ptr[i] = s + d*((double) (2*i + 1 - len)/(len - 1));
-                    }
                     $$ = &freelist[fcnt++];
-                    $$->type = GRVAR_TMP;
+                    $$->type = GRARR_TMP;
                     $$->data = ptr;
                     $$->length = len;
                 }
@@ -1031,9 +1025,9 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc((int) ($3->data[i]));
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ((int) ($3->data[i]));
 	    }
 	}
 	| FUNC_D '(' vexpr ')'
@@ -1041,9 +1035,9 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc(($3->data[i]));
+		$$->data[i] = ((ParserFnc) (key[$1].data)) (($3->data[i]));
 	    }
 	}
 	| FUNC_DD '(' vexpr ',' vexpr ')'
@@ -1055,10 +1049,10 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3->data[i], $5->data[i]);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3->data[i], $5->data[i]);
 	    }
 	}
 	| FUNC_DD '(' expr ',' vexpr ')'
@@ -1066,10 +1060,10 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $5);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3, $5->data[i]);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5->data[i]);
 	    }
 	}
 	| FUNC_DD '(' vexpr ',' expr ')'
@@ -1077,10 +1071,10 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3->data[i], $5);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3->data[i], $5);
 	    }
 	}
 	| FUNC_ND '(' iexpr ',' vexpr ')'
@@ -1088,10 +1082,10 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $5);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3, $5->data[i]);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5->data[i]);
 	    }
 	}
 	| FUNC_NND '(' iexpr ',' iexpr ',' vexpr ')'
@@ -1099,10 +1093,10 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $7);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3, $5, $7->data[i]);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7->data[i]);
 	    }
 	}
 	| FUNC_PPD '(' expr ',' expr ',' vexpr ')'
@@ -1110,10 +1104,10 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $7);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3, $5, $7->data[i]);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7->data[i]);
 	    }
 	}
 	| FUNC_PPPD '(' expr ',' expr ',' expr ',' vexpr ')'
@@ -1121,10 +1115,10 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $9);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = key[$1].fnc($3, $5, $7, $9->data[i]);
+		$$->data[i] = ((ParserFnc) (key[$1].data)) ($3, $5, $7, $9->data[i]);
 	    }
 	}
 	| vexpr '+' vexpr
@@ -1136,7 +1130,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] + $3->data[i];
@@ -1147,7 +1141,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] + $3;
@@ -1158,7 +1152,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1 + $3->data[i];
@@ -1173,7 +1167,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] - $3->data[i];
@@ -1184,7 +1178,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] - $3;
@@ -1195,7 +1189,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1 - $3->data[i];
@@ -1210,7 +1204,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] * $3->data[i];
@@ -1221,7 +1215,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] * $3;
@@ -1232,7 +1226,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1 * $3->data[i];
@@ -1247,7 +1241,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		if ($3->data[i] == 0.0) {
@@ -1266,7 +1260,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] / $3;
@@ -1277,7 +1271,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		if ($3->data[i] == 0.0) {
@@ -1296,7 +1290,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		if ($3->data[i] == 0.0) {
@@ -1316,7 +1310,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = fmod($1->data[i], $3);
@@ -1327,7 +1321,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		if ($3->data[i] == 0.0) {
@@ -1347,7 +1341,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 	        if ($1->data[i] < 0 && rint($3->data[i]) != $3->data[i]) {
@@ -1366,7 +1360,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 	        if ($1->data[i] < 0 && rint($3) != $3) {
@@ -1385,7 +1379,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 	        if ($1 < 0 && rint($3->data[i]) != $3->data[i]) {
@@ -1404,16 +1398,16 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 	    for (i = 0; i < $$->length; i++) {
-		$$->data[i] = $1->data[i] * key[$2].fnc();
+		$$->data[i] = $1->data[i] * ((ParserFnc) (key[$2].data)) ();
 	    }
 	}
 	| vexpr '?' expr ':' expr {
             int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = $1->data[i] ? $3 : $5;
             }
@@ -1426,7 +1420,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = $1->data[i] ? $3 : $5->data[i];
             }
@@ -1439,7 +1433,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = $1->data[i] ? $3->data[i] : $5;
             }
@@ -1452,7 +1446,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = $1->data[i] ? $3->data[i] : $5->data[i];
             }
@@ -1466,7 +1460,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] || $3->data[i];
@@ -1477,7 +1471,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] || $3;
@@ -1488,7 +1482,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1 || $3->data[i];
@@ -1503,7 +1497,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] && $3->data[i];
@@ -1514,7 +1508,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1->data[i] && $3;
@@ -1525,7 +1519,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = $1 && $3->data[i];
@@ -1540,7 +1534,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] > $3->data[i]);
@@ -1551,7 +1545,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] > $3);
@@ -1562,7 +1556,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1 > $3->data[i]);
@@ -1577,7 +1571,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] < $3->data[i]);
@@ -1588,7 +1582,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] < $3);
@@ -1599,7 +1593,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1 < $3->data[i]);
@@ -1614,7 +1608,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] >= $3->data[i]);
@@ -1625,7 +1619,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] >= $3);
@@ -1636,7 +1630,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1 >= $3->data[i]);
@@ -1651,7 +1645,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] <= $3->data[i]);
@@ -1662,7 +1656,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] <= $3);
@@ -1673,7 +1667,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1 <= $3->data[i]);
@@ -1688,7 +1682,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] == $3->data[i]);
@@ -1699,7 +1693,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] == $3);
@@ -1710,7 +1704,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1 == $3->data[i]);
@@ -1725,7 +1719,7 @@ vexpr:
             }
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] != $3->data[i]);
@@ -1736,7 +1730,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $1);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1->data[i] != $3);
@@ -1747,7 +1741,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $3);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
 
 	    for (i = 0; i < $$->length; i++) {
 		$$->data[i] = ($1 != $3->data[i]);
@@ -1758,7 +1752,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $2);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = !$2->data[i];
             }
@@ -1768,7 +1762,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $2);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = $2->data[i];
             }
@@ -1777,7 +1771,7 @@ vexpr:
 	    int i;
             $$ = &freelist[fcnt++];
 	    copy_vrbl($$, $2);
-            $$->type = GRVAR_TMP;
+            $$->type = GRARR_TMP;
             for (i = 0; i < $$->length; i++) { 
                 $$->data[i] = - $2->data[i];
             }
@@ -1786,7 +1780,11 @@ vexpr:
 
 
 asgn:
-	FITPARM '=' expr
+	VAR_D '=' expr
+	{
+	    *($1) = $3;
+	}
+	| FITPARM '=' expr
 	{
 	    nonl_parms[$1].value = $3;
 	}
@@ -1813,7 +1811,7 @@ lside_array:
         {
             target tgt;
             switch ($1->type) {
-            case GRVAR_DATASET:
+            case GRARR_SET:
                 if (find_set_bydata($1->data, &tgt) == GRACE_EXIT_SUCCESS) {
                     vasgn_gno   = tgt.gno;
                     vasgn_setno = tgt.setno;
@@ -1822,7 +1820,7 @@ lside_array:
 		    return 1;
                 }
                 break;
-            case GRVAR_SCRARRAY:
+            case GRARR_VEC:
                 vasgn_gno   = -1;
                 vasgn_setno = -1;
                 break;
@@ -1853,6 +1851,92 @@ vasgn:
 	    for (i = 0; i < $1->length; i++) {
 	        $1->data[i] = $3;
 	    }
+	}
+        ;
+
+defines:
+	DEFINE NEW_TOKEN
+        {
+	    symtab_entry tmpkey;
+            double *var;
+            
+            var = malloc(SIZEOF_DOUBLE);
+            *var = 0.0;
+            
+	    tmpkey.s = $2;
+	    tmpkey.type = KEY_VAR;
+	    tmpkey.data = (void *) var;
+	    if (addto_symtab(tmpkey) != GRACE_EXIT_SUCCESS) {
+	        yyerror("Keyword already exists");
+	    }
+
+            free($2);
+        }
+	| DEFINE NEW_TOKEN '[' ']'
+        {
+	    if (define_parser_arr($2) == NULL) {
+	        yyerror("Keyword already exists");
+	    }
+
+            free($2);
+        }
+	| DEFINE NEW_TOKEN '[' nexpr ']'
+        {
+	    grarr *var;
+            if ((var = define_parser_arr($2)) == NULL) {
+	        yyerror("Keyword already exists");
+	    } else {
+                realloc_vrbl(var, $4);
+            }
+
+            free($2);
+        }
+	| CLEAR VAR_D
+        {
+            undefine_parser_var((void *) $2);
+            free($2);
+        }
+	| CLEAR VEC_D
+        {
+            realloc_vrbl($2, 0);
+            undefine_parser_var((void *) $2);
+            free($2);
+        }
+	| ALIAS CHRSTR CHRSTR {
+	    int position;
+
+	    lowtoupper($3);
+	    if ((position = findf(key, $3)) >= 0) {
+	        symtab_entry tmpkey;
+		tmpkey.s = $2;
+		tmpkey.type = key[position].type;
+		tmpkey.data = key[position].data;
+		if (addto_symtab(tmpkey) != GRACE_EXIT_SUCCESS) {
+		    yyerror("Keyword already exists");
+		}
+	    } else {
+	        yyerror("Aliased keyword not found");
+	    }
+	    free($2);
+	    free($3);
+	}
+	| ALIAS FORCE onoff {
+	    alias_force = $3;
+	}
+	| USE CHRSTR TYPE proctype FROM CHRSTR {
+	    if (load_module($6, $2, $2, $4) != 0) {
+	        yyerror("DL module load failed");
+	    }
+	    free($2);
+	    free($6);
+	}
+	| USE CHRSTR TYPE proctype FROM CHRSTR ALIAS CHRSTR {
+	    if (load_module($6, $2, $8, $4) != 0) {
+	        yyerror("DL module load failed");
+	    }
+	    free($2);
+	    free($6);
+	    free($8);
 	}
         ;
 
@@ -2625,46 +2709,6 @@ parmset:
 	    curtype = $2;
 	}
 
-
-	| ALIAS CHRSTR CHRSTR {
-	    int position;
-	    lowtoupper($2);
-	    lowtoupper($3);
-	    if ((position = findf(key, $3)) >= 0) {
-	        symtab_entry tmpkey;
-		tmpkey.s = malloc(strlen($2) + 1);
-		strcpy(tmpkey.s, $2);
-		tmpkey.type = key[position].type;
-		tmpkey.fnc = key[position].fnc;
-		if (addto_symtab(tmpkey) != 0) {
-		    yyerror("Keyword already exists");
-		}
-		free (tmpkey.s);
-	    } else {
-	        yyerror("Aliased keyword not found");
-	    }
-	    free($2);
-	    free($3);
-	}
-	| ALIAS FORCE onoff {
-	    alias_force = $3;
-	}
-	| USE CHRSTR TYPE proctype FROM CHRSTR {
-	    if (load_module($6, $2, $2, $4) != 0) {
-	        yyerror("DL module load failed");
-	    }
-	    free($2);
-	    free($6);
-	}
-	| USE CHRSTR TYPE proctype FROM CHRSTR ALIAS CHRSTR {
-	    if (load_module($6, $2, $8, $4) != 0) {
-	        yyerror("DL module load failed");
-	    }
-	    free($2);
-	    free($6);
-	    free($8);
-	}
-
 /* I/O filters */
 	| DEFINE filtertype CHRSTR filtermethod CHRSTR {
 	    if (add_io_filter($2, $4, $5, $3) != 0) {
@@ -2772,8 +2816,8 @@ actions:
 	| selectset LENGTH nexpr {
 	    setlength($1->gno, $1->setno, $3);
 	}
-	| SCRARRAY LENGTH nexpr {
-	    realloc_scratch($1, $3);
+	| VEC_D LENGTH nexpr {
+	    realloc_vrbl($1, $3);
 	}
 	| selectset POINT expr ',' expr {
 	    add_point($1->gno, $1->setno, $3, $5);
@@ -3607,16 +3651,16 @@ axis:
 	;
 
 proctype:
-        PROC_CONST        { $$ = CONSTANT; }
-        | PROC_UNIT      { $$ = UCONSTANT; }
-        | PROC_FUNC_I       { $$ = FUNC_I; }
-	| PROC_FUNC_D       { $$ = FUNC_D; }
-	| PROC_FUNC_ND     { $$ = FUNC_ND; }
-	| PROC_FUNC_NN     { $$ = FUNC_NN; }
-	| PROC_FUNC_DD     { $$ = FUNC_DD; }
-	| PROC_FUNC_NND   { $$ = FUNC_NND; }
-	| PROC_FUNC_PPD   { $$ = FUNC_PPD; }
-	| PROC_FUNC_PPPD { $$ = FUNC_PPPD; }
+        KEY_CONST        { $$ = CONSTANT; }
+        | KEY_UNIT      { $$ = UCONSTANT; }
+        | KEY_FUNC_I       { $$ = FUNC_I; }
+	| KEY_FUNC_D       { $$ = FUNC_D; }
+	| KEY_FUNC_ND     { $$ = FUNC_ND; }
+	| KEY_FUNC_NN     { $$ = FUNC_NN; }
+	| KEY_FUNC_DD     { $$ = FUNC_DD; }
+	| KEY_FUNC_NND   { $$ = FUNC_NND; }
+	| KEY_FUNC_PPD   { $$ = FUNC_PPD; }
+	| KEY_FUNC_PPPD { $$ = FUNC_PPPD; }
 	;
 
 
@@ -4188,7 +4232,6 @@ opchoice_obs: TOP { $$ = PLACEMENT_OPPOSITE; }
 
 /* list of intrinsic functions and keywords */
 symtab_entry ikey[] = {
-	{"A", SCRARRAY, NULL},
 	{"A0", FITPARM, NULL},
 	{"A0MAX", FITPMAX, NULL},
 	{"A0MIN", FITPMIN, NULL},
@@ -4220,11 +4263,11 @@ symtab_entry ikey[] = {
 	{"A9MAX", FITPMAX, NULL},
 	{"A9MIN", FITPMIN, NULL},
 	{"ABOVE", ABOVE, NULL},
-	{"ABS", FUNC_D, fabs},
+	{"ABS", FUNC_D, (void *) fabs},
 	{"ABSOLUTE", ABSOLUTE, NULL},
-	{"ACOS", FUNC_D, acos},
-	{"ACOSH", FUNC_D, acosh},
-	{"AI", FUNC_D, ai_wrap},
+	{"ACOS", FUNC_D, (void *) acos},
+	{"ACOSH", FUNC_D, (void *) acosh},
+	{"AI", FUNC_D, (void *) ai_wrap},
 	{"ALIAS", ALIAS, NULL},
 	{"ALT", ALT, NULL},
 	{"ALTXAXIS", ALTXAXIS, NULL},
@@ -4236,18 +4279,17 @@ symtab_entry ikey[] = {
 	{"ARRANGE", ARRANGE, NULL},
 	{"ARROW", ARROW, NULL},
 	{"ASCENDING", ASCENDING, NULL},
-	{"ASIN", FUNC_D, asin},
-	{"ASINH", FUNC_D, asinh},
+	{"ASIN", FUNC_D, (void *) asin},
+	{"ASINH", FUNC_D, (void *) asinh},
 	{"ASPLINE", ASPLINE, NULL},
-	{"ATAN", FUNC_D, atan},
-	{"ATAN2", FUNC_DD, atan2},
-	{"ATANH", FUNC_D, atanh},
+	{"ATAN", FUNC_D, (void *) atan},
+	{"ATAN2", FUNC_DD, (void *) atan2},
+	{"ATANH", FUNC_D, (void *) atanh},
 	{"AUTO", AUTO, NULL},
 	{"AUTOSCALE", AUTOSCALE, NULL},
 	{"AUTOTICKS", AUTOTICKS, NULL},
 	{"AVALUE", AVALUE, NULL},
 	{"AVG", AVG, NULL},
-	{"B", SCRARRAY, NULL},
 	{"BACKGROUND", BACKGROUND, NULL},
 	{"BAR", BAR, NULL},
 	{"BARDY", BARDY, NULL},
@@ -4256,26 +4298,25 @@ symtab_entry ikey[] = {
 	{"BATCH", BATCH, NULL},
         {"BEGIN", BEGIN, NULL},
 	{"BELOW", BELOW, NULL},
-	{"BETA", FUNC_DD, beta},
+	{"BETA", FUNC_DD, (void *) beta},
 	{"BETWEEN", BETWEEN, NULL},
-	{"BI", FUNC_D, bi_wrap},
+	{"BI", FUNC_D, (void *) bi_wrap},
 	{"BLACKMAN", BLACKMAN, NULL},
 	{"BLOCK", BLOCK, NULL},
 	{"BOTH", BOTH, NULL},
 	{"BOTTOM", BOTTOM, NULL},
 	{"BOX", BOX, NULL},
-	{"C", SCRARRAY, NULL},
 	{"CD", CD, NULL},
-	{"CEIL", FUNC_D, ceil},
+	{"CEIL", FUNC_D, (void *) ceil},
 	{"CENTER", CENTER, NULL},
 	{"CHAR", CHAR, NULL},
 	{"CHART", CHART, NULL},
-	{"CHDTR", FUNC_DD, chdtr},
-	{"CHDTRC", FUNC_DD, chdtrc},
-	{"CHDTRI", FUNC_DD, chdtri},
-	{"CHI", FUNC_D, chi_wrap},
+	{"CHDTR", FUNC_DD, (void *) chdtr},
+	{"CHDTRC", FUNC_DD, (void *) chdtrc},
+	{"CHDTRI", FUNC_DD, (void *) chdtri},
+	{"CHI", FUNC_D, (void *) chi_wrap},
 	{"CHRSTR", CHRSTR, NULL},
-	{"CI", FUNC_D, ci_wrap},
+	{"CI", FUNC_D, (void *) ci_wrap},
 	{"CLEAR", CLEAR, NULL},
 	{"CLICK", CLICK, NULL},
 	{"CLIP", CLIP, NULL},
@@ -4284,15 +4325,14 @@ symtab_entry ikey[] = {
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},
 	{"COMPLEX", COMPLEX, NULL},
-	{"CONST", PROC_CONST, NULL},
+	{"CONST", KEY_CONST, NULL},
 	{"CONSTRAINTS", CONSTRAINTS, NULL},
 	{"COPY", COPY, NULL},
-	{"COS", FUNC_D, cos},
-	{"COSH", FUNC_D, cosh},
+	{"COS", FUNC_D, (void *) cos},
+	{"COSH", FUNC_D, (void *) cosh},
 	{"CYCLE", CYCLE, NULL},
-	{"D", SCRARRAY, NULL},
 	{"DATE", DATE, NULL},
-	{"DAWSN", FUNC_D, dawsn},
+	{"DAWSN", FUNC_D, (void *) dawsn},
 	{"DAYMONTH", DAYMONTH, NULL},
 	{"DAYOFWEEKL", DAYOFWEEKL, NULL},
 	{"DAYOFWEEKS", DAYOFWEEKS, NULL},
@@ -4302,7 +4342,7 @@ symtab_entry ikey[] = {
 	{"DEF", DEF, NULL},
 	{"DEFAULT", DEFAULT, NULL},
 	{"DEFINE", DEFINE, NULL},
-	{"DEG", UCONSTANT, deg_uconst},
+	{"DEG", UCONSTANT, (void *) deg_uconst},
 	{"DEGREESLAT", DEGREESLAT, NULL},
 	{"DEGREESLON", DEGREESLON, NULL},
 	{"DEGREESMMLAT", DEGREESMMLAT, NULL},
@@ -4321,33 +4361,33 @@ symtab_entry ikey[] = {
 	{"DROP", DROP, NULL},
 	{"DROPLINE", DROPLINE, NULL},
 	{"ECHO", ECHO, NULL},
-	{"ELLIE", FUNC_DD, ellie},
-	{"ELLIK", FUNC_DD, ellik},
+	{"ELLIE", FUNC_DD, (void *) ellie},
+	{"ELLIK", FUNC_DD, (void *) ellik},
 	{"ELLIPSE", ELLIPSE, NULL},
-	{"ELLPE", FUNC_D, ellpe},
-	{"ELLPK", FUNC_D, ellpk},
+	{"ELLPE", FUNC_D, (void *) ellpe},
+	{"ELLPK", FUNC_D, (void *) ellpk},
 	{"ENGINEERING", ENGINEERING, NULL},
 	{"EQ", EQ, NULL},
 	{"ER", ERRORBAR, NULL},
-	{"ERF", FUNC_D, erf},
-	{"ERFC", FUNC_D, erfc},
+	{"ERF", FUNC_D, (void *) erf},
+	{"ERFC", FUNC_D, (void *) erfc},
 	{"ERRORBAR", ERRORBAR, NULL},
 	{"EXIT", EXIT, NULL},
-	{"EXP", FUNC_D, exp},
-	{"EXPN", FUNC_ND, expn},
+	{"EXP", FUNC_D, (void *) exp},
+	{"EXPN", FUNC_ND, (void *) expn},
 	{"EXPONENTIAL", EXPONENTIAL, NULL},
-	{"FAC", FUNC_I, fac},
+	{"FAC", FUNC_I, (void *) fac},
 	{"FALSE", OFF, NULL},
-	{"FDTR", FUNC_NND, fdtr},
-	{"FDTRC", FUNC_NND, fdtrc},
-	{"FDTRI", FUNC_NND, fdtri},
+	{"FDTR", FUNC_NND, (void *) fdtr},
+	{"FDTRC", FUNC_NND, (void *) fdtrc},
+	{"FDTRI", FUNC_NND, (void *) fdtri},
 	{"FFT", FFT, NULL},
 	{"FILE", FILEP, NULL},
 	{"FILL", FILL, NULL},
 	{"FIT", FIT, NULL},
 	{"FIXED", FIXED, NULL},
 	{"FIXEDPOINT", FIXEDPOINT, NULL},
-	{"FLOOR", FUNC_D, floor},
+	{"FLOOR", FUNC_D, (void *) floor},
 	{"FLUSH", FLUSH, NULL},
 	{"FOCUS", FOCUS, NULL},
 	{"FOLLOWS", FOLLOWS, NULL},
@@ -4358,20 +4398,20 @@ symtab_entry ikey[] = {
 	{"FRAME", FRAMEP, NULL},
 	{"FREE", FREE, NULL},
 	{"FREQUENCY", FREQUENCY, NULL},
-	{"FRESNLC", FUNC_D, fresnlc_wrap},
-	{"FRESNLS", FUNC_D, fresnls_wrap},
+	{"FRESNLC", FUNC_D, (void *) fresnlc_wrap},
+	{"FRESNLS", FUNC_D, (void *) fresnls_wrap},
 	{"FROM", FROM, NULL},
-	{"F_OF_D", PROC_FUNC_D, NULL},
-	{"F_OF_DD", PROC_FUNC_DD, NULL},
-        {"F_OF_I", PROC_FUNC_I, NULL},
-	{"F_OF_ND", PROC_FUNC_ND, NULL},
-	{"F_OF_NN", PROC_FUNC_NN, NULL},
-	{"F_OF_NND", PROC_FUNC_NND, NULL},
-	{"F_OF_PPD", PROC_FUNC_PPD, NULL},
-	{"F_OF_PPPD", PROC_FUNC_PPPD, NULL},
-	{"GAMMA", FUNC_D, true_gamma},
-	{"GDTR", FUNC_PPD, gdtr},
-	{"GDTRC", FUNC_PPD, gdtrc},
+	{"F_OF_D", KEY_FUNC_D, NULL},
+	{"F_OF_DD", KEY_FUNC_DD, NULL},
+        {"F_OF_I", KEY_FUNC_I, NULL},
+	{"F_OF_ND", KEY_FUNC_ND, NULL},
+	{"F_OF_NN", KEY_FUNC_NN, NULL},
+	{"F_OF_NND", KEY_FUNC_NND, NULL},
+	{"F_OF_PPD", KEY_FUNC_PPD, NULL},
+	{"F_OF_PPPD", KEY_FUNC_PPPD, NULL},
+	{"GAMMA", FUNC_D, (void *) true_gamma},
+	{"GDTR", FUNC_PPD, (void *) gdtr},
+	{"GDTRC", FUNC_PPD, (void *) gdtrc},
 	{"GE", GE, NULL},
 	{"GENERAL", GENERAL, NULL},
 	{"GETP", GETP, NULL},
@@ -4389,19 +4429,19 @@ symtab_entry ikey[] = {
 	{"HORIZI", HORIZI, NULL},
 	{"HORIZO", HORIZO, NULL},
 	{"HORIZONTAL", HORIZONTAL, NULL},
-	{"HYP2F1", FUNC_PPPD, hyp2f1},
-	{"HYPERG", FUNC_PPD, hyperg},
-	{"HYPOT", FUNC_DD, hypot},
-	{"I0E", FUNC_D, i0e},
-	{"I1E", FUNC_D, i1e},
+	{"HYP2F1", FUNC_PPPD, (void *) hyp2f1},
+	{"HYPERG", FUNC_PPD, (void *) hyperg},
+	{"HYPOT", FUNC_DD, (void *) hypot},
+	{"I0E", FUNC_D, (void *) i0e},
+	{"I1E", FUNC_D, (void *) i1e},
 	{"ID", ID, NULL},
 	{"IFILTER", IFILTER, NULL},
-	{"IGAM", FUNC_DD, igam},
-	{"IGAMC", FUNC_DD, igamc},
-	{"IGAMI", FUNC_DD, igami},
+	{"IGAM", FUNC_DD, (void *) igam},
+	{"IGAMC", FUNC_DD, (void *) igamc},
+	{"IGAMI", FUNC_DD, (void *) igami},
 	{"IN", IN, NULL},
-	{"INCBET", FUNC_PPD, incbet},
-	{"INCBI", FUNC_PPD, incbi},
+	{"INCBET", FUNC_PPD, (void *) incbet},
+	{"INCBI", FUNC_PPD, (void *) incbi},
 	{"INCREMENT", INCREMENT, NULL},
 	{"INDEX", INDEX, NULL},
 	{"INOUT", INOUT, NULL},
@@ -4410,33 +4450,33 @@ symtab_entry ikey[] = {
 	{"INVDFT", INVDFT, NULL},
 	{"INVERT", INVERT, NULL},
 	{"INVFFT", INVFFT, NULL},
-	{"IRAND", FUNC_I, irand_wrap},
-	{"IV", FUNC_DD, iv_wrap},
+	{"IRAND", FUNC_I, (void *) irand_wrap},
+	{"IV", FUNC_DD, (void *) iv_wrap},
 	{"JUST", JUST, NULL},
-	{"JV", FUNC_DD, jv_wrap},
-	{"K0E", FUNC_D, k0e},
-	{"K1E", FUNC_D, k1e},
+	{"JV", FUNC_DD, (void *) jv_wrap},
+	{"K0E", FUNC_D, (void *) k0e},
+	{"K1E", FUNC_D, (void *) k1e},
 	{"KILL", KILL, NULL},
-	{"KN", FUNC_ND, kn_wrap},
+	{"KN", FUNC_ND, (void *) kn_wrap},
 	{"LABEL", LABEL, NULL},
 	{"LANDSCAPE", LANDSCAPE, NULL},
 	{"LAYOUT", LAYOUT, NULL},
-	{"LBETA", FUNC_DD, lbeta},
+	{"LBETA", FUNC_DD, (void *) lbeta},
 	{"LE", LE, NULL},
 	{"LEFT", LEFT, NULL},
 	{"LEGEND", LEGEND, NULL},
 	{"LENGTH", LENGTH, NULL},
-	{"LGAMMA", FUNC_D, lgamma},
+	{"LGAMMA", FUNC_D, (void *) lgamma},
 	{"LINE", LINE, NULL},
 	{"LINESTYLE", LINESTYLE, NULL},
 	{"LINEWIDTH", LINEWIDTH, NULL},
 	{"LINK", LINK, NULL},
-	{"LN", FUNC_D, log},
+	{"LN", FUNC_D, (void *) log},
 	{"LOAD", LOAD, NULL},
 	{"LOCTYPE", LOCTYPE, NULL},
 	{"LOG", LOG, NULL},
-	{"LOG10", FUNC_D, log10},
-	{"LOG2", FUNC_D, log2},
+	{"LOG10", FUNC_D, (void *) log10},
+	{"LOG2", FUNC_D, (void *) log2},
 	{"LOGARITHMIC", LOGARITHMIC, NULL},
 	{"LOGX", LOGX, NULL},
 	{"LOGXY", LOGXY, NULL},
@@ -4447,10 +4487,10 @@ symtab_entry ikey[] = {
 	{"MAJOR", MAJOR, NULL},
 	{"MAP", MAP, NULL},
 	{"MAX", MAXP, NULL},
-	{"MAXOF", FUNC_DD, max_wrap},
+	{"MAXOF", FUNC_DD, (void *) max_wrap},
 	{"MESH", MESH, NULL},
 	{"MIN", MINP, NULL},
-	{"MINOF", FUNC_DD, min_wrap},
+	{"MINOF", FUNC_DD, (void *) min_wrap},
 	{"MINOR", MINOR, NULL},
 	{"MMDD", MMDD, NULL},
 	{"MMDDHMS", MMDDHMS, NULL},
@@ -4459,20 +4499,20 @@ symtab_entry ikey[] = {
 	{"MMSSLAT", MMSSLAT, NULL},
 	{"MMSSLON", MMSSLON, NULL},
 	{"MMYY", MMYY, NULL},
-	{"MOD", FUNC_DD, fmod},
+	{"MOD", FUNC_DD, (void *) fmod},
 	{"MONTHDAY", MONTHDAY, NULL},
 	{"MONTHL", MONTHL, NULL},
 	{"MONTHS", MONTHS, NULL},
 	{"MONTHSY", MONTHSY, NULL},
 	{"MOVE", MOVE, NULL},
-	{"NDTR", FUNC_D, ndtr},
-	{"NDTRI", FUNC_D, ndtri},
+	{"NDTR", FUNC_D, (void *) ndtr},
+	{"NDTRI", FUNC_D, (void *) ndtri},
 	{"NE", NE, NULL},
 	{"NEGATE", NEGATE, NULL},
 	{"NEW", NEW, NULL},
 	{"NONE", NONE, NULL},
 	{"NONLFIT", NONLFIT, NULL},
-	{"NORM", FUNC_D, fx},
+	{"NORM", FUNC_D, (void *) fx},
 	{"NORMAL", NORMAL, NULL},
 	{"NOT", NOT, NULL},
 	{"OFF", OFF, NULL},
@@ -4490,13 +4530,13 @@ symtab_entry ikey[] = {
 	{"PARAMETERS", PARAMETERS, NULL},
 	{"PARZEN", PARZEN, NULL},
 	{"PATTERN", PATTERN, NULL},
-	{"PDTR", FUNC_ND, pdtr},
-	{"PDTRC", FUNC_ND, pdtrc},
-	{"PDTRI", FUNC_ND, pdtri},
+	{"PDTR", FUNC_ND, (void *) pdtr},
+	{"PDTRC", FUNC_ND, (void *) pdtrc},
+	{"PDTRI", FUNC_ND, (void *) pdtri},
 	{"PERIOD", PERIOD, NULL},
 	{"PERP", PERP, NULL},
 	{"PHASE", PHASE, NULL},
-	{"PI", CONSTANT, pi_const},
+	{"PI", CONSTANT, (void *) pi_const},
 	{"PIPE", PIPE, NULL},
 	{"PLACE", PLACE, NULL},
 	{"POINT", POINT, NULL},
@@ -4510,11 +4550,11 @@ symtab_entry ikey[] = {
 	{"PREPEND", PREPEND, NULL},
 	{"PRINT", PRINT, NULL},
 	{"PS", PS, NULL},
-	{"PSI", FUNC_D, psi},
+	{"PSI", FUNC_D, (void *) psi},
 	{"PUSH", PUSH, NULL},
 	{"PUTP", PUTP, NULL},
-	{"RAD", UCONSTANT, rad_uconst},
-	{"RAND", CONSTANT, drand48},
+	{"RAD", UCONSTANT, (void *) rad_uconst},
+	{"RAND", CONSTANT, (void *) drand48},
 	{"READ", READ, NULL},
 	{"REAL", REAL, NULL},
 	{"RECIPROCAL", RECIPROCAL, NULL},
@@ -4522,11 +4562,11 @@ symtab_entry ikey[] = {
 	{"REFERENCE", REFERENCE, NULL},
 	{"REGRESS", REGRESS, NULL},
 	{"REVERSE", REVERSE, NULL},
-	{"RGAMMA", FUNC_D, rgamma},
+	{"RGAMMA", FUNC_D, (void *) rgamma},
 	{"RIGHT", RIGHT, NULL},
-	{"RINT", FUNC_D, rint},
+	{"RINT", FUNC_D, (void *) rint},
 	{"RISER", RISER, NULL},
-	{"RNORM", FUNC_DD, rnorm},
+	{"RNORM", FUNC_DD, (void *) rnorm},
 	{"ROT", ROT, NULL},
 	{"ROUNDED", ROUNDED, NULL},
 	{"RULE", RULE, NULL},
@@ -4542,11 +4582,11 @@ symtab_entry ikey[] = {
 	{"SD", SD, NULL},
 	{"SET", SET, NULL},
 	{"SFORMAT", SFORMAT, NULL},
-	{"SHI", FUNC_D, shi_wrap},
-	{"SI", FUNC_D, si_wrap},
+	{"SHI", FUNC_D, (void *) shi_wrap},
+	{"SI", FUNC_D, (void *) si_wrap},
 	{"SIGN", SIGN, NULL},
-	{"SIN", FUNC_D, sin},
-	{"SINH", FUNC_D, sinh},
+	{"SIN", FUNC_D, (void *) sin},
+	{"SINH", FUNC_D, (void *) sinh},
 	{"SIZE", SIZE, NULL},
 	{"SKIP", SKIP, NULL},
 	{"SLEEP", SLEEP, NULL},
@@ -4554,26 +4594,26 @@ symtab_entry ikey[] = {
 	{"SORT", SORT, NULL},
 	{"SOURCE", SOURCE, NULL},
 	{"SPEC", SPEC, NULL},
-	{"SPENCE", FUNC_D, spence},
+	{"SPENCE", FUNC_D, (void *) spence},
 	{"SPLINE", SPLINE, NULL},
 	{"SPLIT", SPLIT, NULL},
-	{"SQR", FUNC_D, sqr_wrap},
-	{"SQRT", FUNC_D, sqrt},
+	{"SQR", FUNC_D, (void *) sqr_wrap},
+	{"SQRT", FUNC_D, (void *) sqrt},
 	{"STACK", STACK, NULL},
 	{"STACKED", STACKED, NULL},
 	{"STACKEDBAR", STACKEDBAR, NULL},
 	{"STACKEDHBAR", STACKEDHBAR, NULL},
 	{"STAGGER", STAGGER, NULL},
 	{"START", START, NULL},
-	{"STDTR", FUNC_ND, stdtr},
-	{"STDTRI", FUNC_ND, stdtri},
+	{"STDTR", FUNC_ND, (void *) stdtr},
+	{"STDTRI", FUNC_ND, (void *) stdtri},
 	{"STOP", STOP, NULL},
 	{"STRING", STRING, NULL},
-	{"STRUVE", FUNC_DD, struve},
+	{"STRUVE", FUNC_DD, (void *) struve},
 	{"SUBTITLE", SUBTITLE, NULL},
 	{"SYMBOL", SYMBOL, NULL},
-	{"TAN", FUNC_D, tan},
-	{"TANH", FUNC_D, tanh},
+	{"TAN", FUNC_D, (void *) tan},
+	{"TANH", FUNC_D, (void *) tanh},
 	{"TARGET", TARGET, NULL},
 	{"TICK", TICKP, NULL},
 	{"TICKLABEL", TICKLABEL, NULL},
@@ -4587,7 +4627,7 @@ symtab_entry ikey[] = {
 	{"TRUE", ON, NULL},
 	{"TYPE", TYPE, NULL},
 	{"UNLINK", UNLINK, NULL},
-	{"UNIT", PROC_UNIT, NULL},
+	{"UNIT", KEY_UNIT, NULL},
 	{"UP", UP, NULL},
 	{"USE", USE, NULL},
 	{"VERSION", VERSION, NULL},
@@ -4641,14 +4681,14 @@ symtab_entry ikey[] = {
 	{"YEAR", YEAR, NULL},
 	{"YMAX", YMAX, NULL},
 	{"YMIN", YMIN, NULL},
-	{"YV", FUNC_DD, yv_wrap},
+	{"YV", FUNC_DD, (void *) yv_wrap},
 	{"YYMMDD", YYMMDD, NULL},
 	{"YYMMDDHMS", YYMMDDHMS, NULL},
 	{"ZERO", ZERO, NULL},
 	{"ZEROXAXIS", ALTXAXIS, NULL},
 	{"ZEROYAXIS", ALTYAXIS, NULL},
-	{"ZETA", FUNC_DD, zeta},
-	{"ZETAC", FUNC_D, zetac}
+	{"ZETA", FUNC_DD, (void *) zeta},
+	{"ZETAC", FUNC_D, (void *) zetac}
 };
 
 static int maxfunc = sizeof(ikey) / sizeof(symtab_entry);
@@ -4688,45 +4728,29 @@ int set_parser_setno(int gno, int setno)
     }
 }
 
-double *realloc_scratch(int ind, int len)
+void realloc_vrbl(grarr *vrbl, int len)
 {
     double *a;
     int i, oldlen;
     
-    if (ind < 0 || ind > 3 || len < 0) {
+    if (vrbl->type != GRARR_VEC) {
         errmsg("Internal error");
-        return NULL;
-    } else {
-        a = sarrays[ind];
-        oldlen = sarray_len[ind];
-        if (oldlen == len) {
-            return a;
-        } else {
-            a = xrealloc(a, len * SIZEOF_DOUBLE);
-            if (a != NULL) {
-                sarrays[ind] = a;
-                sarray_len[ind] = len;
-                for (i = oldlen; i < len; i++) {
-                    sarrays[ind][i] = 0.0;
-                }
-            } else {
-                errmsg("Malloc failed in realloc_scratch()");
-            }
-            return sarrays[ind];
-        }
+        return;
     }
-}
-
-static int get_scratch(int ind, grvar *vrbl)
-{
-    if (ind < 0 || ind > 3) {
-        errmsg("Internal error");
-        return GRACE_EXIT_FAILURE;
+    oldlen = vrbl->length;
+    if (oldlen == len) {
+        return;
     } else {
-        vrbl->type   = GRVAR_SCRARRAY;
-        vrbl->length = sarray_len[ind];
-        vrbl->data   = sarrays[ind];
-        return GRACE_EXIT_SUCCESS;
+        a = xrealloc(vrbl->data, len*SIZEOF_DOUBLE);
+        if (a != NULL || len == 0) {
+            vrbl->data = a;
+            vrbl->length = len;
+            for (i = oldlen; i < len; i++) {
+                vrbl->data[i] = 0.0;
+            }
+        } else {
+            errmsg("Malloc failed in realloc_vrbl()");
+        }
     }
 }
 
@@ -4817,13 +4841,13 @@ int v_scanner(char *s, int *reslen, double **vres)
         return GRACE_EXIT_FAILURE;
     } else {
         *reslen = v_result->length;
-        if (v_result->type == GRVAR_TMP) {
+        if (v_result->type == GRARR_TMP) {
             *vres = v_result->data;
+            v_result->length = 0;
+            v_result->data = NULL;
         } else {
             *vres = copy_data_column(v_result->data, v_result->length);
         }
-        v_result->length = 0;
-        v_result->data = NULL;
         return GRACE_EXIT_SUCCESS;
     }
 }
@@ -4853,15 +4877,15 @@ int scanner(char *s)
     return retval;
 }
 
-static void free_tmpvrbl(grvar *vrbl)
+static void free_tmpvrbl(grarr *vrbl)
 {
-    if (vrbl->type == GRVAR_TMP) {
+    if (vrbl->type == GRARR_TMP) {
         vrbl->length = 0;
         cxfree(vrbl->data);
     }
 }
 
-static void copy_vrbl(grvar *dest, grvar *src)
+static void copy_vrbl(grarr *dest, grarr *src)
 {
     dest->type = src->type;
     dest->data = malloc(src->length*SIZEOF_DOUBLE);
@@ -4871,6 +4895,68 @@ static void copy_vrbl(grvar *dest, grvar *src)
         memcpy(dest->data, src->data, src->length*SIZEOF_DOUBLE);
         dest->length = src->length;
     }
+}
+
+grarr *get_parser_arr_by_name(char * const name)
+{
+     int position;
+     char *s;
+     
+     s = copy_string(NULL, name);
+     lowtoupper(s);
+     
+     position = findf(key, s);
+     xfree(s);
+     
+     if (position >= 0) {
+         if (key[position].type == KEY_VEC) {
+            return (grarr *) key[position].data;
+         }
+     }
+     
+     return NULL;
+}
+
+grarr *define_parser_arr(char * const name)
+{
+     if (get_parser_arr_by_name(name) == NULL) {
+	symtab_entry tmpkey;
+        grarr *var;
+        
+        var = malloc(sizeof(grarr));
+        var->type = GRARR_VEC;
+        var->length = 0;
+        var->data = NULL;
+        
+	tmpkey.s = name;
+	tmpkey.type = KEY_VEC;
+	tmpkey.data = (void *) var;
+	if (addto_symtab(tmpkey) == GRACE_EXIT_SUCCESS) {
+	    return var;
+	} else {
+            return NULL;
+        }
+     } else {
+        return NULL;
+     }
+}
+
+int undefine_parser_var(void *ptr)
+{
+    int i;
+    
+    for (i = 0; i < maxfunc; i++) {
+	if (key[i].data == ptr) {
+            xfree(key[i].s);
+            maxfunc--;
+            if (i != maxfunc) {
+                memmove(&(key[i]), &(key[i + 1]), (maxfunc - i)*sizeof(symtab_entry));
+            }
+            key = xrealloc(key, maxfunc*sizeof(symtab_entry));
+            return GRACE_EXIT_SUCCESS;
+        }
+    }
+    return GRACE_EXIT_FAILURE;
 }
 
 static int find_set_bydata(double *data, target *tgt)
@@ -4895,7 +4981,7 @@ static int find_set_bydata(double *data, target *tgt)
     return GRACE_EXIT_FAILURE;
 }
 
-int findf(symtab_entry *keytable, char *s)
+static int findf(symtab_entry *keytable, char *s)
 {
 
     int low, high, mid;
@@ -4917,34 +5003,40 @@ int findf(symtab_entry *keytable, char *s)
     return (-1);
 }
 
-int compare_keys (const void *a, const void *b)
+static int compare_keys (const void *a, const void *b)
 {
-  return (int) strcmp (((const symtab_entry*)a)->s, ((const symtab_entry*)b)->s);
+    return (int) strcmp (((const symtab_entry*)a)->s,
+                         ((const symtab_entry*)b)->s);
 }
 
 /* add new entry to the symbol table */
 int addto_symtab(symtab_entry newkey)
 {
     int position;
-    if ((position = findf(key, newkey.s)) < 0) {
-        if ((key = (symtab_entry *) realloc(key, (maxfunc + 1)*sizeof(symtab_entry))) != NULL) {
+    char *s;
+    
+    s = copy_string(NULL, newkey.s);
+    lowtoupper(s);
+    if ((position = findf(key, s)) < 0) {
+        if ((key = (symtab_entry *) xrealloc(key, (maxfunc + 1)*sizeof(symtab_entry))) != NULL) {
 	    key[maxfunc].type = newkey.type;
-	    key[maxfunc].fnc = newkey.fnc;
-	    key[maxfunc].s = malloc(strlen(newkey.s) + 1);
-	    strcpy(key[maxfunc].s, newkey.s);
+	    key[maxfunc].data = newkey.data;
+	    key[maxfunc].s = s;
 	    maxfunc++;
 	    qsort(key, maxfunc, sizeof(symtab_entry), compare_keys);
-	    return 0;
+	    return GRACE_EXIT_SUCCESS;
 	} else {
-	    errmsg ("Memory allocation failed in addto_symtab()!");
-	    return -2;
+	    xfree(s);
+            errmsg ("Memory allocation failed in addto_symtab()!");
+	    return GRACE_EXIT_FAILURE;
 	}
     } else if (alias_force == TRUE) { /* already exists but alias_force enabled */
         key[position].type = newkey.type;
-	key[position].fnc = newkey.fnc;
-	return 0;
+	key[position].data = newkey.data;
+	return GRACE_EXIT_SUCCESS;
     } else {
-        return -1;
+	xfree(s);
+        return GRACE_EXIT_FAILURE;
     }
 }
 
@@ -4968,26 +5060,25 @@ void init_symtab(void)
     }
 }
 
-int getcharstr(void)
+static int getcharstr(void)
 {
     if (pos >= strlen(f_string))
 	 return EOF;
     return (f_string[pos++]);
 }
 
-void ungetchstr(void)
+static void ungetchstr(void)
 {
     if (pos > 0)
 	pos--;
 }
 
-int yylex(void)
+static int yylex(void)
 {
     int c, i;
     int found;
     static char s[MAX_STRING_LENGTH];
     char sbuf[MAX_STRING_LENGTH + 40];
-    char *str;
 
     while ((c = getcharstr()) == ' ' || c == '\t');
     if (c == EOF) {
@@ -5014,9 +5105,7 @@ int yylex(void)
 	    return 0;
 	}
 	s[i] = '\0';
-	str = malloc(strlen(s) + 1);
-	strcpy(str, s);
-	yylval.sval = str;
+	yylval.sval = copy_string(NULL, s);
 	return CHRSTR;
     }
     if (c == '.' || isdigit(c)) {
@@ -5107,7 +5196,7 @@ int yylex(void)
 	    }
 	}
     }
-    if (isalpha(c)) {
+    if (isalpha(c) || c == '$') {
 	char *p = sbuf;
 
 	do {
@@ -5123,23 +5212,7 @@ int yylex(void)
 #endif
 	found = -1;
 	if ((found = findf(key, sbuf)) >= 0) {
-	    if (key[found].type == SCRARRAY) {
-		switch (sbuf[0]) {
-		case 'A':
-		    yylval.ival = 0;
-		    return SCRARRAY;
-		case 'B':
-		    yylval.ival = 1;
-		    return SCRARRAY;
-		case 'C':
-		    yylval.ival = 2;
-		    return SCRARRAY;
-		case 'D':
-		    yylval.ival = 3;
-		    return SCRARRAY;
-		}
-	    }
-	    else if (key[found].type == FITPARM) {
+	    if (key[found].type == FITPARM) {
 		int index = sbuf[1] - '0';
 		yylval.ival = index;
 		return FITPARM;
@@ -5154,6 +5227,16 @@ int yylex(void)
 		yylval.ival = index;
 		return FITPMIN;
 	    }
+
+	    else if (key[found].type == KEY_VAR) {
+		yylval.dptr = (double *) key[found].data;
+		return VAR_D;
+	    }
+	    else if (key[found].type == KEY_VEC) {
+		yylval.vrbl = (grarr *) key[found].data;
+		return VEC_D;
+	    }
+
 	    else if (key[found].type == FUNC_I) {
 		yylval.ival = found;
 		return FUNC_I;
@@ -5195,9 +5278,8 @@ int yylex(void)
 	        return key[found].type;
 	    }
 	} else {
-	    strcat(sbuf, ": No such function or variable");
-	    errmsg(sbuf);
-	    return 0;
+	    yylval.sval = copy_string(NULL, sbuf);
+	    return NEW_TOKEN;
 	}
     }
     switch (c) {
@@ -5220,7 +5302,7 @@ int yylex(void)
     }
 }
 
-int follow(int expect, int ifyes, int ifno)
+static int follow(int expect, int ifyes, int ifno)
 {
     int c = getcharstr();
 
@@ -5231,7 +5313,7 @@ int follow(int expect, int ifyes, int ifno)
     return ifno;
 }
 
-void yyerror(char *s)
+static void yyerror(char *s)
 {
     int i;
     char buf[2*MAX_STRING_LENGTH + 40];
