@@ -74,12 +74,6 @@ int inpipe = FALSE;		/* if xmgrace is to participate in a pipe */
 extern int yydebug;
 #endif
 
-#ifdef HAVE_NETCDF
-static char netcdf_name[512] = "";
-static char xvar_name[128] = "";
-static char yvar_name[128] = "";
-#endif
-
 int main(int argc, char *argv[])
 {
     char *s;
@@ -104,6 +98,12 @@ int main(int argc, char *argv[])
     RunTime *rt;
     GUI *gui;
     
+#ifdef HAVE_NETCDF
+    char netcdf_name[512] = "";
+    char xvar_name[128] = "";
+    char yvar_name[128] = "";
+#endif
+
     grace = grace_new();
     if (!grace) {
         errmsg("Failed to allocate run-time structures");
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
 		} else {
 		    strcpy(netcdf_name, argv[i]);
 		}
-	    } else if (argmatch(argv[i], "-netcdfxy", 9) || argmatch(argv[i], "-hdfxy", 6)) {
+	    } else if (argmatch(argv[i], "-netcdfxy", 9)) {
 		i++;
 		if (i == argc) {
 		    fprintf(stderr, "Missing argument for netcdf X variable name\n");
