@@ -106,6 +106,7 @@ void del_point_cb(Widget w, XtPointer client_data, XtPointer call_data)
     if(is_set_active(ep->gno, ep->setno)) {
         update_cells(ep);
     }
+    drawgraph();
 }
 
 
@@ -137,6 +138,7 @@ void add_pt_cb(Widget w, XtPointer client_data, XtPointer call_data)
         update_cells(ep);
     }
     update_set_lists(gno);
+    drawgraph();
 }
 
 static Widget *editp_col_item;
