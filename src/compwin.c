@@ -66,7 +66,6 @@ static int do_interp_proc(void *data);
 static int do_runavg_proc(void *data);
 static int do_differ_proc(void *data);
 static int do_int_proc(void *data);
-static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_linearc_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_xcor_proc(Widget w, XtPointer client_data, XtPointer call_data);
 static void do_sample_proc(Widget w, XtPointer client_data, XtPointer call_data);
@@ -1467,73 +1466,6 @@ static void do_prune_proc(Widget w, XtPointer client_data, XtPointer call_data)
     xdrawgraph();
 }
 
-/* apply a digital filter in set 2 to set 1 */
-
-typedef struct _Digf_ui {
-    Widget top;
-    SetChoiceItem sel1;
-    SetChoiceItem sel2;
-    Widget *type_item;
-    Widget *region_item;
-    Widget rinvert_item;
-} Digf_ui;
-
-static Digf_ui digfui;
-
-void create_digf_frame(void *data)
-{
-    Widget dialog;
-
-    set_wait_cursor();
-    if (digfui.top == NULL) {
-	char *label1[2];
-	label1[0] = "Accept";
-	label1[1] = "Close";
-	digfui.top = XmCreateDialogShell(app_shell, "Digital filter", NULL, 0);
-	handle_close(digfui.top);
-	dialog = XmCreateRowColumn(digfui.top, "dialog_rc", NULL, 0);
-
-	digfui.sel1 = CreateSetSelector(dialog, "Filter set:",
-					SET_SELECT_ACTIVE,
-					FILTER_SELECT_NONE,
-					GRAPH_SELECT_CURRENT,
-					SELECTION_TYPE_SINGLE);
-	digfui.sel2 = CreateSetSelector(dialog, "With weights from set:",
-					SET_SELECT_ACTIVE,
-					FILTER_SELECT_NONE,
-					GRAPH_SELECT_CURRENT,
-					SELECTION_TYPE_SINGLE);
-
-	CreateSeparator(dialog);
-
-	CreateCommandButtons(dialog, 2, but1, label1);
-	XtAddCallback(but1[0], XmNactivateCallback, (XtCallbackProc) do_digfilter_proc, (XtPointer) & digfui);
-	XtAddCallback(but1[1], XmNactivateCallback, (XtCallbackProc) destroy_dialog, (XtPointer) digfui.top);
-
-	ManageChild(dialog);
-    }
-    RaiseWindow(digfui.top);
-    unset_wait_cursor();
-}
-
-/*
- * apply a digital filter
- */
-static void do_digfilter_proc(Widget w, XtPointer client_data, XtPointer call_data)
-{
-    int set1, set2;
-    Digf_ui *ui = (Digf_ui *) client_data;
-    set1 = GetSelectedSet(ui->sel1);
-    set2 = GetSelectedSet(ui->sel2);
-    if (set1 == SET_SELECT_ERROR || set2 == SET_SELECT_ERROR) {
-	errwin("Select 2 sets");
-	return;
-    }
-    set_wait_cursor();
-    do_digfilter(set1, set2);
-    update_set_lists(get_cg());
-    unset_wait_cursor();
-}
 
 /* linear convolution */
 

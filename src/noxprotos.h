@@ -45,7 +45,6 @@ int filter_set(int gno, int setno, char *rarray);
 
 int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
-void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
 void do_xcor(int gno1, int set1, int gno2, int set2, int lag);
 int do_int(int gsrc, int setfrom, int gdest, int setto,

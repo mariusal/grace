@@ -732,7 +732,6 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Non-linear curve fitting...", 'N', create_nonl_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Cross/auto correlation...", 'C', create_xcor_frame, NULL);
-    CreateMenuButton(submenupane, "Digital filter...", 'f', create_digf_frame, NULL);
     CreateMenuButton(submenupane, "Linear convolution...", 'v', create_lconv_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Sample points...", 'm', create_samp_frame, NULL);

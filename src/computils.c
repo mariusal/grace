@@ -219,36 +219,6 @@ double trapint(double *x, double *y, double *resx, double *resy, int n)
     return sum;
 }
 
-/*
- * apply a digital filter
- */
-void do_digfilter(int set1, int set2)
-{
-    int digfiltset;
-
-    if (!(is_set_active(get_cg(), set1) && is_set_active(get_cg(), set2))) {
-	errmsg("Set not active");
-	return;
-    }
-    if ((getsetlength(get_cg(), set1) < 3) || (getsetlength(get_cg(), set2) < 3)) {
-	errmsg("Set length < 3");
-	return;
-    }
-    digfiltset = nextset(get_cg());
-    if (digfiltset != (-1)) {
-	activateset(get_cg(), digfiltset);
-	setlength(get_cg(), digfiltset, getsetlength(get_cg(), set1) - getsetlength(get_cg(), set2) + 1);
-	sprintf(buf, "Digital filter from set %d applied to set %d", set2, set1);
-	filterser(getsetlength(get_cg(), set1),
-		  getx(get_cg(), set1),
-		  gety(get_cg(), set1),
-		  getx(get_cg(), digfiltset),
-		  gety(get_cg(), digfiltset),
-		  gety(get_cg(), set2),
-		  getsetlength(get_cg(), set2));
-	setcomment(get_cg(), digfiltset, buf);
-    }
-}
 
 /*
  * linear convolution

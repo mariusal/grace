@@ -81,33 +81,6 @@ void stasum(double *x, int n, double *xbar, double *sd)
 }
 
 
-
-/*
-	Apply a digital filter of length len to a set in x, y,
-	of length n with the results going to resx, resy.
-	the length of the result is set by the caller
-*/
-void filterser(int n, double *x, double *y, double *resx, double *resy, double *h, int len)
-{
-    int i, j, outlen, eo, ld2;
-    double sum;
-
-    outlen = n - len + 1;
-    eo = len % 2;
-    ld2 = len / 2;
-    for (i = 0; i < outlen; i++) {
-	sum = 0.0;
-	for (j = 0; j < len; j++) {
-	    sum = sum + h[j] * y[j + i];
-	}
-	resy[i] = sum;
-	if (eo)
-	    resx[i] = x[i + ld2];
-	else
-	    resx[i] = (x[i + ld2] + x[i + ld2 - 1]) / 2.0;
-    }
-}
-
 /*
 	linear convolution of set x (length n) with h (length m) and
 	result to y. the length of y is set by the caller

@@ -90,7 +90,6 @@ void create_int_frame(void *data);
 void create_xcor_frame(void *data);
 void create_samp_frame(void *data);
 void create_prune_frame(void *data);
-void create_digf_frame(void *data);
 void create_lconv_frame(void *data);
 void create_leval_frame(void *data);
 
