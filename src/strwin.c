@@ -94,24 +94,23 @@ void define_ellip_popup(Widget w, XtPointer client_data, XtPointer call_data);
 
 void ellip_def_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    defellip.color = GetOptionChoice(ellip_color_item);
-    defellip.loctype = GetChoice(ellip_loc_item) ? COORD_VIEW : COORD_WORLD;
-    defellip.lines = GetOptionChoice(ellip_lines_item);
-    defellip.linew = GetSpinChoice(ellip_linew_item);
-    defellip.fillcolor = GetOptionChoice(ellip_fillcol_item);
-    defellip.fillpattern = GetOptionChoice(ellip_fillpat_item);
-    defellip.active = TRUE;
+    ellipse_color = GetOptionChoice(ellip_color_item);
+    ellipse_loctype = GetChoice(ellip_loc_item) ? COORD_VIEW : COORD_WORLD;
+    ellipse_lines = GetOptionChoice(ellip_lines_item);
+    ellipse_linew = GetSpinChoice(ellip_linew_item);
+    ellipse_fillcolor = GetOptionChoice(ellip_fillcol_item);
+    ellipse_fillpat = GetOptionChoice(ellip_fillpat_item);
 }
 
 void update_ellip(void)
 {
     if (ellip_frame) {
-	SetOptionChoice(ellip_color_item, defellip.color);
-	SetOptionChoice(ellip_lines_item, defellip.lines);
-	SetSpinChoice(ellip_linew_item, defellip.linew);
-	SetOptionChoice(ellip_fillpat_item, defellip.fillpattern);
-	SetOptionChoice(ellip_fillcol_item, defellip.fillcolor);
-	SetChoice(ellip_loc_item, defellip.loctype == COORD_VIEW ? 1 : 0);
+	SetOptionChoice(ellip_color_item, ellipse_color);
+	SetOptionChoice(ellip_lines_item, ellipse_lines);
+	SetSpinChoice(ellip_linew_item, ellipse_linew);
+	SetOptionChoice(ellip_fillpat_item, ellipse_fillpat);
+	SetOptionChoice(ellip_fillcol_item, ellipse_fillcolor);
+	SetChoice(ellip_loc_item, ellipse_loctype == COORD_VIEW ? 1 : 0);
     }
 }
 
