@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 
     /* initialize T1lib */
     if (init_t1() != GRACE_EXIT_SUCCESS) {
-        errmsg("Initialization of t1-library failed!");
+        errmsg("--> Broken or incomplete installation - read the FAQ!");
 	exit (1);
     }
 
