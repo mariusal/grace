@@ -775,6 +775,8 @@ char *utf2iso(const char *s)
         </child>
         <child name="#EStrFrame">
         </child>
+        <child name="#EStrObject">
+        </child>
     </element>
     <element name="#EStrDefinitions" type="dummy">
         <!-- Child elements -->
@@ -935,6 +937,8 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrGraph">
+        </child>
+        <child name="#EStrObject">
         </child>
     </element>
     <element name="#EStrGraph" type="graph">
@@ -1537,6 +1541,10 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrObject" type="object">
         <!-- Attributes -->
+        <attribute name="#AStrId" type="sval">
+            quark_idstr_set($$, $?);
+            xfree($?);
+        </attribute>
         <attribute name="#AStrActive" type="bval">
             object_set_active($$, $?);
         </attribute>
@@ -1554,7 +1562,7 @@ char *utf2iso(const char *s)
             xfree($?);
         </child>
         <child name="#EStrLocation"><![CDATA[
-            object_set_location($$, $?->type, &($?->ap));
+            object_set_location($$, &($?->ap));
             xfree($?);
         ]]></child>
         <child name="#EStrFillSpec">
@@ -1592,9 +1600,6 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrLocation" type="location">
         <!-- Attributes -->
-        <attribute name="#AStrType" type="loctype">
-            $$->type = $?;
-        </attribute>
         <attribute name="#AStrX" type="dval">
             $$->ap.x = $?;
         </attribute>

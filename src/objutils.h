@@ -47,7 +47,6 @@ typedef enum {
 typedef struct _DObject {
     int active;
 
-    int loctype;
     APoint ap;
     
     VPoint offset;
@@ -113,12 +112,14 @@ int object_set_angle(Quark *q, double angle);
 int object_set_offset(Quark *q, const VPoint *offset);
 int object_set_line(Quark *q, const Line *line);
 int object_set_fillpen(Quark *q, const Pen *pen);
-int object_set_location(Quark *q, int loctype, const APoint *ap);
+int object_set_location(Quark *q, const APoint *ap);
 
 int isactive_object(DObject *o);
 
 int get_object_bb(DObject *o, view *bb);
-void move_object(DObject *o, VVector shift);
-int object_place_at_vp(DObject *o, VPoint vp);
+void move_object(Quark *q, VVector shift);
+int object_place_at_vp(Quark *q, VPoint vp);
+
+int object_get_loctype(const Quark *q);
 
 #endif /* __OBJUTILS_H_ */

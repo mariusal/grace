@@ -324,7 +324,6 @@ typedef struct {
     
     TextStructure   *x;
     TextStructure   *y;
-    OptionStructure *loctype;
     
     SpinStructure   *offsetx;
     SpinStructure   *offsety;

@@ -40,8 +40,6 @@
 #include "xstrings.h"
 #include "protos.h"
 
-#define w_or_v(x) ((x == COORD_WORLD) ? VStrWorld:VStrView)
-
 /*
  * XML project output
  */
@@ -117,7 +115,6 @@ static void xmlio_write_location(XFile *xf, Attributes *attrs,
     int loctype, double x, double y)
 {
     attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrType, w_or_v(loctype));
     if (loctype == COORD_WORLD) {
         xmlio_set_world_value(attrs, AStrX, x);
         xmlio_set_world_value(attrs, AStrY, y);
@@ -842,13 +839,15 @@ static int project_save_hook(Quark *q,
     case QFlavorDObject:
         o = object_get_data(q);
 
+        attributes_set_sval(attrs, AStrId, QIDSTR(q));
+
         xmlio_set_active(attrs, o->active);
         xmlio_set_angle(attrs, o->angle);
         xmlio_set_offset(attrs, o->offset.x, o->offset.y);
         xfile_begin_element(xf, EStrObject, attrs);
         {
             char buf[32];
-            xmlio_write_location(xf, attrs, o->loctype, o->ap.x, o->ap.y);
+            xmlio_write_location(xf, attrs, object_get_loctype(q), o->ap.x, o->ap.y);
             xmlio_write_line_spec(xf, attrs,
                 &(o->line.pen), o->line.width, o->line.style);
             xmlio_write_fill_spec(xf, attrs, &(o->fillpen));

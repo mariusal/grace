@@ -133,7 +133,8 @@ typedef enum {
 
 /* Coordinates */
 #define COORD_VIEW      0
-#define COORD_WORLD     1
+#define COORD_FRAME     1
+#define COORD_WORLD     2
 
 /* Tick sign type */
 #define SIGN_NORMAL     0
@@ -347,6 +348,12 @@ typedef struct {
     double x;
     double y;
 } WPoint;
+
+/* A point in frame coordinates */
+typedef struct {
+    double x;
+    double y;
+} FPoint;
 
 
 typedef struct {

@@ -41,16 +41,25 @@ void draw_object(Canvas *canvas, Quark *q)
 {
     VPoint anchor;
     DObject *o = object_get_data(q);
+    int loctype;
 
     if (o == NULL || o->active == FALSE) {
         return;
     }
     
-    if (o->loctype == COORD_WORLD) {
+    loctype = object_get_loctype(q);
+    if (loctype == COORD_WORLD) {
         WPoint wp;
         wp.x = o->ap.x;
         wp.y = o->ap.y;
         anchor = Wpoint2Vpoint(wp);
+    } else
+    if (loctype == COORD_FRAME) {
+        FPoint fp;
+        Quark *f = get_parent_frame(q);
+        fp.x = o->ap.x;
+        fp.y = o->ap.y;
+        Fpoint2Vpoint(f, &fp, &anchor);
     } else {
         anchor.x = o->ap.x;
         anchor.y = o->ap.y;

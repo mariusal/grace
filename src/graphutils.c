@@ -807,7 +807,7 @@ static int hook(Quark *q, void *udata, QTraverseClosure *closure)
         break;
     case QFlavorDObject:
         o = object_get_data(q);
-        if (o->loctype == COORD_VIEW) {
+        if (object_get_loctype(q) == COORD_VIEW) {
             o->ap.x     *= ext_xy->x;
             o->ap.y     *= ext_xy->y;
             o->offset.x *= ext_xy->x;

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -88,6 +88,21 @@ int is_wpoint_inside(WPoint *wp, world *w)
 {
     return ((wp->x >= w->xg1) && (wp->x <= w->xg2) &&
             (wp->y >= w->yg1) && (wp->y <= w->yg2));
+}
+
+/*
+ * Convert point's frame coordinates to viewport
+ */
+int Fpoint2Vpoint(Quark *f, const FPoint *fp, VPoint *vp)
+{
+    view *v = frame_get_view(f);
+    if (v) {
+        vp->x = v->xv1 + (v->xv2 - v->xv1)*fp->x;
+        vp->y = v->yv1 + (v->yv2 - v->yv1)*fp->y;
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
 }
 
 char *scale_types(ScaleType it)

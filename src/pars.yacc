@@ -88,6 +88,7 @@ static Quark *whichset;
 static tickmarks *curtm;
 static DObject *curobject;
 static Quark *objgno;
+static int curobject_loctype = COORD_VIEW;
 
 
 static double  s_result;    /* return value if a scalar expression is scanned*/
@@ -2034,7 +2035,7 @@ parmset:
 	    if (!curobject) {
                 yyerror("No active object");
 	    } else {
-	        curobject->loctype = $3;
+	        curobject_loctype = $3;
             }
 	}
 	| objecttype lines_select {
@@ -2228,17 +2229,20 @@ parmset:
                 if (!curobject) {
                     yyerror("No active object");
 	        } else {
-                    Quark *gr;
-                    if (curobject->loctype == COORD_VIEW) {
-                        gr = graph_get_current(grace->project);
+                    Quark *q = NULL;
+                    if (curobject_loctype == COORD_VIEW) {
+                        q = object_new(grace->project);
                     } else {
+                        Quark *gr;
                         gr = objgno;
+                        if (!gr) {
+                            gr = allocate_graph(grace->project, 0);
+                        }
+                        if (gr) {
+                            q = object_new(gr);
+                        }
                     }
-                    if (!gr) {
-                        gr = allocate_graph(grace->project, 0);
-                    }
-                    if (gr) {
-                        Quark *q = object_new(gr);
+                    if (q) {
                         object_data_free(object_get_data(q));
                         q->data = curobject;
                     }
@@ -2250,17 +2254,20 @@ parmset:
             if (!curobject) {
                 yyerror("No active object");
 	    } else {
-                Quark *gr;
-                if (curobject->loctype == COORD_VIEW) {
-                    gr = graph_get_current(grace->project);
+                Quark *q = NULL;
+                if (curobject_loctype == COORD_VIEW) {
+                    q = object_new(grace->project);
                 } else {
+                    Quark *gr;
                     gr = objgno;
+                    if (!gr) {
+                        gr = allocate_graph(grace->project, 0);
+                    }
+                    if (gr) {
+                        q = object_new(gr);
+                    }
                 }
-                if (!gr) {
-                    gr = allocate_graph(grace->project, 0);
-                }
-                if (gr) {
-                    Quark *q = object_new(gr);
+                if (q) {
                     object_data_free(object_get_data(q));
                     q->data = curobject;
                 }
@@ -2272,18 +2279,14 @@ parmset:
             curobject = object_data_new_complete(DO_STRING);
             if (curobject) {
 	        DOStringData *s = (DOStringData *) curobject->odata;
-                Quark *gr;
+                Quark *q;
                 
                 curobject->active = $2;
-                curobject->loctype = COORD_VIEW;
+                curobject_loctype = COORD_VIEW;
                 s->s = copy_string(NULL, "\\${timestamp}");
 
-                gr = graph_get_current(grace->project);
-                if (!gr) {
-                    gr = allocate_graph(grace->project, 0);
-                }
-                if (gr) {
-                    Quark *q = object_new(gr);
+                q = object_new(grace->project);
+                if (q) {
                     object_data_free(object_get_data(q));
                     q->data = curobject;
                     quark_idstr_set(q, "timestamp");
@@ -4425,7 +4428,7 @@ int set_parser_gno(Quark *gr)
 {
     if (gr) {
         whichgraph = gr;
-        whichframe = graph_get_frame(gr);
+        whichframe = get_parent_frame(gr);
         return RETURN_SUCCESS;
     } else {
         whichframe = NULL;
@@ -4442,7 +4445,7 @@ int set_parser_setno(Quark *pset)
 {
     if (pset) {
         whichgraph = get_parent_graph(pset);
-        whichframe = graph_get_frame(whichgraph);
+        whichframe = get_parent_frame(whichgraph);
         whichset = pset;
         /* those will usually be overridden except when evaluating
            a _standalone_ vexpr */

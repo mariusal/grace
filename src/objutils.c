@@ -104,7 +104,6 @@ DObject *object_data_new(void)
         
         o->type = DO_NONE;
 
-        o->loctype = COORD_VIEW;
         o->ap.x = 0.0;
         o->ap.y = 0.0;
     
@@ -308,13 +307,16 @@ int get_object_bb(DObject *o, view *bb)
     }
 }
 
-void move_object(DObject *o, VVector shift)
+#if 0
+void move_object(Quark *q, VVector shift)
 {
+    DObject *o = object_get_data(q);
+    
     if (!o) {
         return;
     }
 
-    if (o->loctype == COORD_VIEW) {
+    if (object_get_loctype(q) == COORD_VIEW) {
         o->ap.x += shift.x;
         o->ap.y += shift.y;
     } else {
@@ -334,13 +336,15 @@ void move_object(DObject *o, VVector shift)
     set_dirtystate();
 }
 
-int object_place_at_vp(DObject *o, VPoint vp)
+int object_place_at_vp(Quark *q, VPoint vp)
 {
+    DObject *o = object_get_data(q);
+
     if (!o) {
         return RETURN_FAILURE;
     }
     
-    if (o->loctype == COORD_VIEW) {
+    if (object_get_loctype(q) == COORD_VIEW) {
         o->ap.x = vp.x;
         o->ap.y = vp.y;
     } else {
@@ -350,6 +354,7 @@ int object_place_at_vp(DObject *o, VPoint vp)
     set_dirtystate();
     return RETURN_SUCCESS;
 }
+#endif
 
 int isactive_object(DObject *o)
 {
@@ -426,12 +431,11 @@ int object_set_fillpen(Quark *q, const Pen *pen)
     }
 }
 
-int object_set_location(Quark *q, int loctype, const APoint *ap)
+int object_set_location(Quark *q, const APoint *ap)
 {
     if (q && q->fid == QFlavorDObject) {
         DObject *o = object_get_data(q);
         
-        o->loctype = loctype;
         o->ap      = *ap;
         
         return RETURN_SUCCESS;
@@ -440,3 +444,23 @@ int object_set_location(Quark *q, int loctype, const APoint *ap)
     }
 }
 
+int object_get_loctype(const Quark *q)
+{
+    Quark *p = (Quark *) q;
+    
+    while (p) {
+        p = quark_parent_get(p);
+        if (p->fid == QFlavorGraph) {
+            return COORD_WORLD;
+        } else
+        if (p->fid == QFlavorFrame) {
+            return COORD_FRAME;
+        } else
+        if (p->fid == QFlavorProject) {
+            return COORD_VIEW;
+        }
+    }
+    
+    /* default */
+    return COORD_VIEW;
+}

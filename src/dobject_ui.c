@@ -59,10 +59,6 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
 {    
     ObjectUI *ui;
     Widget tab, fr, rc, rc1;
-    OptionItem opitems[] = {
-        {COORD_VIEW,  "View" },
-        {COORD_WORLD, "World"}
-    };
 
     ui = xmalloc(sizeof(ObjectUI));
 
@@ -77,8 +73,6 @@ ObjectUI *create_object_ui(ExplorerUI *eui)
 
     fr = CreateFrame(ui->main_tp, "Anchor point");
     rc = CreateHContainer(fr);
-    ui->loctype = CreateOptionChoice(rc, "Type:", 1, 2, opitems);
-    AddOptionChoiceCB(ui->loctype, oc_explorer_cb, eui);
     ui->x = CreateTextInput(rc, "X:");
     XtVaSetValues(ui->x->text, XmNcolumns, 10, NULL);
     AddTextInputCB(ui->x, text_explorer_cb, eui);
@@ -399,11 +393,10 @@ void update_object_ui(ObjectUI *ui, Quark *q)
         
         SetToggleButtonState(ui->active, o->active);
         
-        SetOptionChoice(ui->loctype, o->loctype);
-        if (o->loctype == COORD_VIEW) {
-            format = "%.4f";
-        } else {
+        if (object_get_loctype(q) == COORD_WORLD) {
             format = "%.8g";
+        } else {
+            format = "%.4f";
         }
         sprintf(buf, format, o->ap.x);
         SetTextString(ui->x, buf);
@@ -469,9 +462,6 @@ int set_object_data(ObjectUI *ui, Quark *q, void *caller)
     if (o && ui) {
         if (!caller || caller == ui->active) {
             o->active = GetToggleButtonState(ui->active);
-        }
-        if (!caller || caller == ui->loctype) {
-            o->loctype = GetOptionChoice(ui->loctype);
         }
         if (!caller || caller == ui->x) {
             xv_evalexpr(ui->x->text, &o->ap.x);

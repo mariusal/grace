@@ -75,6 +75,10 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
             /* FIXME: stacked graphs */
             plot_rt->last_pass  = TRUE;
             plot_rt->first_pass = TRUE;
+            
+            plot_rt->refn = 0;
+            plot_rt->refx = NULL;
+            plot_rt->refy = NULL;
 
             if (draw_graph(q, plot_rt) != RETURN_SUCCESS) {
                 closure->descend = FALSE;
@@ -226,9 +230,6 @@ int draw_graph(Quark *gr, plot_rt_t *plot_rt)
     plot_rt->offset = 0.0;
 
     if (plot_rt->first_pass) {
-        plot_rt->refn = 0;
-        plot_rt->refx = NULL;
-        plot_rt->refy = NULL;
         
         gtype = get_graph_type(gr);
 

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -33,7 +33,7 @@
 #ifndef __CTRANS_H_
 #define __CTRANS_H_
 
-#include "defines.h"
+#include "graphs.h"
 
 /*
  * types of coordinate frames
@@ -69,6 +69,8 @@ double xy_yconv(double wy);
 VPoint Wpoint2Vpoint(WPoint wp);
 int world2view(double x, double y, double *xv, double *yv);
 void view2world(double xv, double yv, double *xw, double *yw);
+
+int Fpoint2Vpoint(Quark *f, const FPoint *fp, VPoint *vp);
 
 int definewindow(const world *w, const view *v,
     int ctrans_type, int xscale, int yscale, int xyfixed, int invx, int invy);

@@ -166,9 +166,9 @@ static int hook(unsigned int step, void *data, void *udata)
     }
 }
 
-Quark *graph_get_project(const Quark *gr)
+Quark *get_parent_project(const Quark *q)
 {
-    Quark *p = (Quark *) gr;
+    Quark *p = (Quark *) q;
     
     while (p) {
         p = quark_parent_get(p);
@@ -197,7 +197,7 @@ Quark *get_parent_graph(const Quark *child)
 static int graph_free_cb(Quark *gr, int etype, void *data)
 {
     if (etype == QUARK_ETYPE_DELETE) {
-        Quark *pr = graph_get_project(gr);
+        Quark *pr = get_parent_project(gr);
         Project *project = project_get_data(pr);
         if (project->cg == gr) {
             storage_traverse(pr->children, hook, project);
@@ -375,7 +375,7 @@ int select_graph(Quark *gr)
     if (definewindow(&g->w, &v, ctrans_type, xyfixed,
             g->xscale,  g->yscale,
             g->xinvert, g->yinvert) == RETURN_SUCCESS) {
-        Project *pr = project_get_data(graph_get_project(gr));
+        Project *pr = project_get_data(get_parent_project(gr));
         if (pr) {
             set_parser_gno(gr);
             pr->cg = gr;
@@ -762,9 +762,9 @@ int get_descendant_sets(Quark *q, Quark ***sets)
     }
 }
 
-Quark *graph_get_frame(Quark *gr)
+Quark *get_parent_frame(Quark *q)
 {
-    Quark *p = (Quark *) gr;
+    Quark *p = (Quark *) q;
     
     while (p) {
         p = quark_parent_get(p);
@@ -801,7 +801,7 @@ int get_graph_viewport(Quark *gr, view *v)
 {
     if (gr) {
         view *vv;
-        Quark *fr = graph_get_frame(gr);
+        Quark *fr = get_parent_frame(gr);
         
         vv = frame_get_view(fr);
         memcpy(v, vv, sizeof(view));
@@ -1362,7 +1362,7 @@ static int project_postprocess_hook(Quark *q,
 
         if (version_id < 50200) {
             DObject *o = object_get_data(q);
-            if (o->loctype == COORD_WORLD) {
+            if (object_get_loctype(q) == COORD_WORLD) {
                 WPoint wp;
                 VPoint vp1, vp2;
 
