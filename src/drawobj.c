@@ -134,13 +134,11 @@ void draw_object(Canvas *canvas, Quark *q)
 
             setpen(canvas, &o->fillpen);
             /* FIXME: implement true ellipse rotation! */
-            DrawFilledArc(canvas, &vp1, &vp2,
-                e->angle1 + o->angle, e->angle2 + o->angle,
+            DrawFilledArc(canvas, &vp1, &vp2, e->angle1 + o->angle, e->angle2,
                 e->fillmode);
 
             setline(canvas, &o->line);
-            DrawArc(canvas, &vp1, &vp2,
-                e->angle1 + o->angle, e->angle2 + o->angle);
+            DrawArc(canvas, &vp1, &vp2, e->angle1 + o->angle, e->angle2);
         }
         break;
     case DO_STRING:
