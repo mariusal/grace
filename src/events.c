@@ -1377,8 +1377,6 @@ void enable_zoom_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
 void push_and_zoom(void)
 {
     push_world();
-#ifndef NONE_GUI
     set_action(DO_NOTHING);
     set_action(ZOOM_1ST);
-#endif
 }
