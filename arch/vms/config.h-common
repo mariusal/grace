@@ -6,35 +6,6 @@
 /* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS 1
 
-/* Define if char is unsigned   */
-#undef __CHAR_UNSIGNED__
-/* Define sizeof(char)          */
-#define SIZEOF_CHAR         sizeof(char)
-/* Define sizeof(short)         */
-#define SIZEOF_SHORT        sizeof(short)
-/* Define sizeof(int)           */
-#define SIZEOF_INT          sizeof(int)
-/* Define sizeof(long)          */
-#define SIZEOF_LONG         sizeof(long)
-/* Define sizeof(long long)     */
-#if defined(__alpha)
-#  define SIZEOF_LONG_LONG  sizeof(long long)
-#else
-#  define SIZEOF_LONG_LONG  sizeof(long)
-#endif
-/* Define sizeof(float)         */
-#define SIZEOF_FLOAT        sizeof(float)
-/* Define sizeof(double)        */
-#define SIZEOF_DOUBLE       sizeof(double)
-/* Define sizeof(long double)   */
-#if defined(__alpha)
-#  define SIZEOF_LONG_DOUBLE  sizeof(long double)
-#else
-#  define SIZEOF_LONG_DOUBLE  sizeof(double)
-#endif
-/* Define sizeof(void *)        */
-#define SIZEOF_VOID_P       sizeof(void *)
-
 /* Define to empty if the keyword does not work.  */
 #undef const
 
@@ -50,12 +21,6 @@
 /* Define to one of _getb67, GETB67, getb67 for Cray-2 and Cray-YMP systems.
    This function is required for alloca.c support on those systems.  */
 #undef CRAY_STACKSEG_END
-
-/* Define if using alloca.c.  */
-#define C_ALLOCA 1
-
-/* Define if you have alloca, as a function or macro.  */
-#undef HAVE_ALLOCA
 
 /* Define if you have <alloca.h> and it should be used (not on Ultrix).  */
 #undef HAVE_ALLOCA_H

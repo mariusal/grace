@@ -33,7 +33,7 @@ CFLAGS = $(CFLAGS0)/INC=($(VMSDIR),$(TOP)$(NETCDF_INC)) \
 # LIBS = ,$(VMSDIR)'MOTIF_OPT',$(CEPHES_LIB)/LIB
 LIBS = ,$(CEPHES_LIB)/LIB,$(T1LIB_LIB)/LIB$(GUI_LIBS)$(NETCDF_LIBS)
 
-VMSOBJS = alloca.obj getpwnam.obj vms_unix.obj
+VMSOBJS = getpwnam.obj vms_unix.obj
 
 .FIRST
 

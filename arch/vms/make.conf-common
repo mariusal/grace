@@ -87,6 +87,3 @@ HELPVIEWER=mosaic %s
 
 # netCDF libraries
 NETCDF_LIBS=
-
-# missing routines
-MISSING_O=missing.obj

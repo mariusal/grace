@@ -2,6 +2,7 @@ $ ! This command file reads DOTEST. and executes the GRACE commands.
 $ !
 $ GRACE = GRACE + " -noask"
 $ !
+$ ON CONTROL_Y THEN GOTO DONE
 $ OPEN IN DOTEST.
 $LOOP:
 $ READ/END=DONE IN REC

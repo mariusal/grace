@@ -2,19 +2,12 @@ README for GRACE on VMS -- 4-Nov-1998
 
 Some notes about the current release of grace:
 
- I have not tested it with options other than the defaults.  NODPML
- and D_FLOAT may not work.
-
- I define HAVE_GETHOSTNAME.  I am not sure when gethostname was added
- to the run time library.  It should be undefined for versions of VMS
- that do not have it.
-
- On VAX, the example test.com fails with "Oops, got SIGSYS ...".
+ On VAX, the example test.com fails; it give the error "Oops, got SIGSYS ..."
+ when you move the mouse in the graphics window after the test completes.
+ I assume this is a decwindows bug, but installing the latest patches from
+ DEC did not fix the problem.
 
  Pipes do not work on VMS V6.
-
- There are two informational messages relating to alloca not being
- declared; I haven't figured out the proper fix yet.
 
  Grace will not compile with Motif 1.1.  Below is Evgeny's answer to the
  problem report in case there is a guru lurking:
@@ -50,7 +43,7 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
      VMS Alpha V7.1    DECC V5.7                   (Rolf)
      VMS VAX V6.2      DECC V5.6     Motif 1.2-4   (John)
      VMS Alpha V6.2    DECC V5.6     Motif 1.2-4   (John)
-  We have also received a report that it compiled with
+  We have received a report that it compiled with
      VMS Alpha V6.1    DECC V5.7     Motif 1.2-3
 
  You need mms or mmk to compile it.  You can get mmk from
@@ -75,6 +68,9 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
       overflow in the T1 library if you use D_FLOAT.  IEEE will not work
       on VAX, but configure allows you to set it.
 
+ I have not tested it with options other than the defaults.  NODPML
+ and D_FLOAT may not work.
+
  You can specify multiple options on the command line; separate them
  with spaces.  All other strings are ignored--configure reports the
  options it uses so you can check that you get what you want.
@@ -91,6 +87,12 @@ John Hasstedt (John.Hasstedt@sunysb.edu)
 
  You can find the NETCDF package at ftp://ftp.ncsa.uiuc.edu/HDF/,
  including precompiled binaries for VAX and Alpha.
+
+ If you get an error on linking about gethostname being undefined, edit
+ config.h and #undef HAVE_GETHOSTNAME.  I am not sure when gethostname
+ was added to the run time library, so there is no check for it in
+ configure.com; we can add a check if someone lets us know when it was
+ added.
 
 3. Installation
 
