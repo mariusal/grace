@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1afmtool.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        03/27/1998
+  ----- Date:        10/23/1998
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1afmtool.c.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -32,7 +32,8 @@ int      T1_WriteAFMFallbackFile( int FontID);
 extern struct region *fontfcnB_ByName( int FontID, int modflag,
 				       struct XYspace *S,
 				       char *charname,
-				       int *mode, psfont *Font_Ptr);
+				       int *mode, psfont *Font_Ptr,
+				       int do_raster);
 
 #else
 

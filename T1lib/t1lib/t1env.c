@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/02/1998
+  ----- Date:        1999-03-31
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
@@ -292,13 +292,17 @@ char *Env_GetCompletePath( char *FileName,
     return(NULL);
   fnamelen=strlen(FileName);
   enamelen=strlen(env_ptr);
-  /* We check whether absolute pathname is given. If so, stat() it
-     and if appropriate, retrun that string immediately. */
-  if (!strncmp( FileName, DIRECTORY_SEP, 1)){
+  /* We check whether absolute or relative pathname is given. If so,
+     stat() it and if appropriate, return that string immediately. */
+  if ( (FileName[0]==DIRECTORY_SEP_CHAR) ||
+       ((fnamelen>1) && (FileName[0]=='.') &&
+	(FileName[1]==DIRECTORY_SEP_CHAR)) ||
+       ((fnamelen>2) && (FileName[0]=='.') &&
+	(FileName[1]=='.') && (FileName[2]==DIRECTORY_SEP_CHAR))) {
     /* Check for existence of the path: */
     if (!stat( FileName, &filestats)){
       if (t1lib_log_file!=NULL){
-	sprintf( err_warn_msg_buf, "stat()'ing absolute path %s successful",
+	sprintf( err_warn_msg_buf, "stat()'ing complete path %s successful",
 		 FileName);
 	T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
 		     T1LOG_DEBUG);
@@ -312,7 +316,7 @@ char *Env_GetCompletePath( char *FileName,
       return(FullPathName);
     }
     if (t1lib_log_file!=NULL){
-      sprintf( err_warn_msg_buf, "stat()'ing absolute path %s failed",
+      sprintf( err_warn_msg_buf, "stat()'ing complete path %s failed",
 	       FileName);
       T1_PrintLog( "Env_GetCompletePath()", err_warn_msg_buf,
 		   T1LOG_DEBUG);
@@ -322,7 +326,7 @@ char *Env_GetCompletePath( char *FileName,
        path entries. */
     i=fnamelen-1;
     StrippedName=&(FileName[i]);
-    while ( strncmp( &(FileName[i]), DIRECTORY_SEP, 1)!=0){
+    while ( FileName[i]!=DIRECTORY_SEP_CHAR){
       i--;
     }
     i++;

@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        11/13/1998
+  ----- Date:        1999-04-23
   ----- Description: This file is part of the t1-library. It contains
                      functions for setting characters and strings of
 		     characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <setjmp.h>
 
 #include "../type1/ffilest.h" 
 #include "../type1/types.h"
@@ -76,6 +77,7 @@ static int s_shift=16;
 static int l_shift=32;
 
 
+
 /* T1_SetChar(...): Generate the bitmap for a character */
 GLYPH *T1_SetChar( int FontID, char charcode, float size,
 		   T1_TMATRIX *transform)
@@ -92,7 +94,7 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
   FONTSIZEDEPS *font_ptr;
   FONTPRIVATE  *fontarrayP;
   
-  int memsize=0;
+  volatile int memsize=0;
   LONG h,w;
   LONG paddedW;
 
@@ -101,6 +103,19 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
   int modflag=0;
 
   static GLYPH glyph={NULL,{0,0,0,0,0,0},NULL,1};
+
+  extern char *t1_get_abort_message( int number);
+  
+
+  /* We return to this if something goes wrong deep in the rasterizer */
+  if ((i=setjmp( stck_state))!=0) {
+    T1_errno=T1ERR_TYPE1_ABORT;
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
+	     t1_get_abort_message( i));
+    T1_PrintLog( "T1_SetChar()", err_warn_msg_buf,
+	       T1LOG_ERROR);
+    return( NULL);
+  }
 
   ucharcode=(unsigned char)charcode;
 
@@ -192,14 +207,16 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
      to be made permanent. */
   if (rot_flag){
     Current_S=(struct XYspace *) 
-      Permanent(Transform (font_ptr->pCharSpaceLocal,
-			   transform->cxx, - transform->cxy,
-			   transform->cyx, - transform->cyy));
+      Permanent(Scale(Transform (font_ptr->pCharSpaceLocal,
+				 transform->cxx, - transform->cxy,
+				 transform->cyx, - transform->cyy),
+		      DeviceSpecifics.scale_x, DeviceSpecifics.scale_y));
   }
   else{
     Current_S=(struct XYspace *)
-      Permanent(Transform(font_ptr->pCharSpaceLocal,
-			  1.0, 0.0, 0.0, -1.0));
+      Permanent(Scale(Transform(font_ptr->pCharSpaceLocal,
+				1.0, 0.0, 0.0, -1.0),
+		      DeviceSpecifics.scale_x, DeviceSpecifics.scale_y));
   }
   
   /* fnt_ptr now points to the correct FontSizeDeps-struct =>
@@ -208,7 +225,8 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
   area=fontfcnB( FontID, modflag, Current_S,
 		 fontarrayP->pFontEnc,
 		 ucharcode, &mode,
-		 fontarrayP->pType1Data);
+		 fontarrayP->pType1Data,
+		 DO_RASTER);
   KillSpace (Current_S);
 
   /* fill the glyph-structure */
@@ -234,12 +252,19 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
 	     "No black pixels found for character %d from font %d, returning NULL",
 	     ucharcode, FontID);
     T1_PrintLog( "T1_SetChar()", err_warn_msg_buf, T1LOG_WARNING);
+
+    glyph.metrics.leftSideBearing  = 0;
+    glyph.metrics.advanceX   = NEARESTPEL(area->ending.x - area->origin.x);
+    glyph.metrics.advanceY   = - NEARESTPEL(area->ending.y - area->origin.y);
+    glyph.metrics.rightSideBearing = 0;
+    glyph.metrics.descent          = 0;
+    glyph.metrics.ascent           = 0;
     /* make sure to get rid of 'area' before leaving! */
     KillRegion (area);
-    return(NULL);
+    return( &glyph);
   }
   if (h > 0 && w > 0) {
-    memsize = h * paddedW / 8;
+    memsize = h * paddedW / 8 + 1;
     /* This is for the users copy of the character, for security-reasons
        the original pointer to the cache area is not used. The entry glyph.bits
        is free'ed every time this function is called: */
@@ -270,9 +295,9 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
     (void) memset(glyph.bits, 0, memsize);
     fill(glyph.bits, h, paddedW, area, T1_byte, T1_bit, T1_wordsize );
   }
-
   /* make sure to get rid of 'area' before leaving! */
   KillRegion (area);
+  
   
   /* Cache glyph if requested */
   if (cache_flag){
@@ -295,23 +320,24 @@ GLYPH *T1_SetChar( int FontID, char charcode, float size,
     memcpy( font_ptr->pFontCache[ucharcode].bits, glyph.bits, memsize);
   }
 
+
   return(&glyph);
 }
 
 
 
 /* T1_SetString(...): Generate the bitmap for a string of characters */
-GLYPH *T1_SetString( int FontID, char *string, int len, 
+GLYPH *T1_SetString( int FontID, char *string, volatile int len, 
 		     long spaceoff, int modflag, float size,
 		     T1_TMATRIX *transform)
 {
-  int i, j, k;
+  volatile int i, j=0, k;
   int mode;
   /* initialize this to NULL just to be on the safe side */
   struct region *area = NULL;
   struct XYspace *Current_S;
   int cache_flag=1;
-  int rot_flag=0;
+  volatile int rot_flag=0;
   int *kern_pairs;       /* use for accessing the kern pairs if kerning is
 			    requested */
   int no_chars=0;        /* The number of characters in the string */
@@ -324,7 +350,7 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
   FONTPRIVATE  *fontarrayP;
   
 
-  int memsize=0;
+  volatile int memsize=0;
 
   long h,w;
   long paddedW, char_paddedW;
@@ -341,10 +367,13 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
   int overstrike_startx, overstrike_starty, overstrike_endx, overstrike_endy;
   int start, middle;
   char startmask, endmask;
-  
+  static unsigned char *r2lstring;
+  static int r2l_len=0;
   
   static GLYPH string_glyph={NULL,{0,0,0,0,0,0},NULL,1};
   GLYPH *currchar;
+
+  
   
   /* The following are for bitmap blitting */
   long BitShift;
@@ -366,8 +395,48 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
   unsigned char *ustring;
   
 
+  extern char *t1_get_abort_message( int number);
+  
+
+  /* We return to this if something goes wrong deep in the rasterizer */
+  if ((i=setjmp( stck_state))!=0) {
+    T1_errno=T1ERR_TYPE1_ABORT;
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
+	     t1_get_abort_message( i));
+    T1_PrintLog( "T1_SetString()", err_warn_msg_buf,
+	       T1LOG_ERROR);
+    return( NULL);
+  }
+
   /* force string elements into unsigned */
   ustring=(unsigned char*)string;
+
+  /* Check for valid string */
+  if (string==NULL){
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(NULL);
+  }
+
+  /* Reorganize if required */
+  if (modflag & T1_RIGHT_TO_LEFT){
+    if (len)
+      i=len;
+    else
+      i=j=strlen( string);
+    if (i+1>r2l_len){
+      if (r2lstring!=NULL)
+	free( r2lstring);
+      r2lstring=(unsigned char *)malloc( (i+1)*sizeof(char));
+      r2l_len=i+1;
+    }
+    j--;
+    while ( i--) {
+      r2lstring[j-i]=ustring[i];
+    }
+    ustring=r2lstring;
+    len=j+1;
+  }
+  
   
   /* Reset string glyph, if necessary */
   if (string_glyph.bits!=NULL){
@@ -437,7 +506,8 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
     return(NULL);
   }
   
-  if (len==0) /* should be computed assuming "normal" 0-terminated string */
+  if (len==0) /* should be computed assuming "normal" 0-terminated string,
+		 or R2L-part has already been computed! */
     no_chars=strlen(string);
   else        /* use value given on command line */
     no_chars=len;
@@ -469,14 +539,16 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
      to be made permanent. */
   if (rot_flag){
     Current_S=(struct XYspace *) 
-      Permanent(Transform (font_ptr->pCharSpaceLocal,
-			   transform->cxx, - transform->cxy,
-			   transform->cyx, - transform->cyy));
+      Permanent(Scale(Transform (font_ptr->pCharSpaceLocal,
+				 transform->cxx, - transform->cxy,
+				 transform->cyx, - transform->cyy),
+		      DeviceSpecifics.scale_x, DeviceSpecifics.scale_y));
   }
   else{
     Current_S=(struct XYspace *)
-      Permanent(Transform(font_ptr->pCharSpaceLocal,
-			  1.0, 0.0, 0.0, -1.0));
+      Permanent(Scale(Transform(font_ptr->pCharSpaceLocal,
+				1.0, 0.0, 0.0, -1.0),
+		      DeviceSpecifics.scale_x, DeviceSpecifics.scale_y));
   }
   
   /* Compute the correct spacewidth value (in charspace units). The
@@ -508,7 +580,8 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
 	  area=fontfcnB( FontID, 0, Current_S,
 			 fontarrayP->pFontEnc,
 			 ustring[i], &mode,
-			 fontarrayP->pType1Data);
+			 fontarrayP->pType1Data,
+			 DO_RASTER);
 
 	  /* fill the glyph-structure */
 	  if (mode != 0) {
@@ -546,7 +619,7 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
 	  }
 	  paddedW = PAD(w, T1_pad);
 	  if (h > 0 && w > 0 && flags[i]==0) {
-	    memsize = h * paddedW / 8;
+	    memsize = h * paddedW / 8 + 1;
 	    currchar->bits = (char *)malloc(memsize*sizeof( char));
 	    if (currchar->bits == NULL) {
 	      T1_errno=T1ERR_ALLOC_MEM;
@@ -725,105 +798,115 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
       }
       
     }
-    else{
-      T1_errno=T1ERR_UNSPECIFIED;
-      return(NULL);
+    else {
+    /* We have only characters without pixels in the string ->
+       we allow this and only set the advance width in the glyph.
+       The bits pointer will be NULL. We reset rsb and lsb */
+      string_glyph.metrics.rightSideBearing=0;      
+      string_glyph.metrics.leftSideBearing=0;
+      string_glyph.metrics.ascent=0;      
+      string_glyph.metrics.descent=0;
     }
-    memset(string_glyph.bits, 0, memsize);
     
-    /* Now comes the loop for bitmap blitting: */
-    for (i=0;i<no_chars;i++){
-      /* Get pointer to character number i of string: */
-      currchar=&(font_ptr->pFontCache[ustring[i]]);
+    if (string_glyph.bits != NULL) {
       
-      /* First, we have to correct the positioning values to refer to
-	 the bitmap BBox */
-      pixel_h_anchor_corr[i] -= lsb_min;
-      pixel_h_anchor_corr[i] += currchar->metrics.leftSideBearing;	
+      memset(string_glyph.bits, 0, memsize);
       
-      /* Compute vertical anchor for current char-bitmap: */
-      v_anchor=overallascent - currchar->metrics.ascent;
-      char_paddedW=PAD( currchar->metrics.rightSideBearing
-			- currchar->metrics.leftSideBearing , T1_pad);
-      /* We have to check for Big Endian. In that case, we have to
-	 act on byte-level */
-      if (T1_byte){
-	BitShift =  pixel_h_anchor_corr[i] % 8;
-	ByteOffset = pixel_h_anchor_corr[i] / 8;
-      }
-      else { 
-	BitShift =  pixel_h_anchor_corr[i] % T1_pad;
-	ByteOffset = pixel_h_anchor_corr[i] / T1_pad;
-	if (T1_pad==32)
-	  ByteOffset *=4;
-	else if (T1_pad==16)
-	  ByteOffset *=2;
-      }  
+      /* Now comes the loop for bitmap blitting: */
+      for (i=0;i<no_chars;i++){
+	/* Get pointer to character number i of string: */
+	currchar=&(font_ptr->pFontCache[ustring[i]]);
+	
+	/* First, we have to correct the positioning values to refer to
+	   the bitmap BBox */
+	pixel_h_anchor_corr[i] -= lsb_min;
+	pixel_h_anchor_corr[i] += currchar->metrics.leftSideBearing;	
+	
+	/* Compute vertical anchor for current char-bitmap: */
+	v_anchor=overallascent - currchar->metrics.ascent;
+	char_paddedW=PAD( currchar->metrics.rightSideBearing
+			  - currchar->metrics.leftSideBearing , T1_pad);
+	/* We have to check for Big Endian. In that case, we have to
+	   act on byte-level */
+	if (T1_byte){
+	  BitShift =  pixel_h_anchor_corr[i] % 8;
+	  ByteOffset = pixel_h_anchor_corr[i] / 8;
+	}
+	else { 
+	  BitShift =  pixel_h_anchor_corr[i] % T1_pad;
+	  ByteOffset = pixel_h_anchor_corr[i] / T1_pad;
+	  if (T1_pad==32)
+	    ByteOffset *=4;
+	  else if (T1_pad==16)
+	    ByteOffset *=2;
+	}  
 #ifdef T1_AA_TYPE64
-      /* We compile this part only if long is 64 bits to be conform to ANSI C */
-      if (T1_pad==32 && T1_byte==0){
-	/* The following loop steps through the lines of the character bitmap: */
-	for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
-	  Target_l= (unsigned long *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
-				      +ByteOffset);
-	  /* The following loop copies the scanline of a character bitmap: */
-	  p_l = (unsigned long *)(currchar->bits+(char_paddedW/8*j));
-	  if (BitShift == 0) {
-	    for (k=char_paddedW >> 5; k; k--)
-	      *Target_l++ |= *p_l++;
-	  } else {
-	    for (k=0; k < char_paddedW / 32 ; k++){
-	      BitBuf_l= ((T1_AA_TYPE64)(*p_l++)) << BitShift;
-	      *Target_l++ |= BitBuf_l;
-	      *Target_l |= BitBuf_l>>l_shift;
-	    } /* End of for ( .. ) stepping through columns */
-	  }
-	} /* End of for( .. ) steppin' through lines of char bitmap */
-      }/* end if (T1_pad==32) */
-      else
+	/* We compile this part only if long is 64 bits to be conform to ANSI C */
+	if (T1_pad==32 && T1_byte==0){
+	  /* The following loop steps through the lines of the character bitmap: */
+	  for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
+	    Target_l= (unsigned long *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
+					+ByteOffset);
+	    /* The following loop copies the scanline of a character bitmap: */
+	    p_l = (unsigned long *)(currchar->bits+(char_paddedW/8*j));
+	    if (BitShift == 0) {
+	      for (k=char_paddedW >> 5; k; k--)
+		*Target_l++ |= *p_l++;
+	    } else {
+	      for (k=0; k < char_paddedW / 32 ; k++){
+		BitBuf_l= ((T1_AA_TYPE64)(*p_l++)) << BitShift;
+		*Target_l++ |= BitBuf_l;
+		*Target_l |= BitBuf_l>>l_shift;
+	      } /* End of for ( .. ) stepping through columns */
+	    }
+	  } /* End of for( .. ) steppin' through lines of char bitmap */
+	}/* end if (T1_pad==32) */
+	else
 #endif 
-	if (T1_pad==16 && T1_byte==0){
-	/* The following loop steps through the lines of the character bitmap: */
-	for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
-	  Target_s= (unsigned short *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
-				       +ByteOffset);
-	  /* The following loop copies the scanline of a character bitmap: */
-	  p_s = (unsigned short *)(currchar->bits+(char_paddedW/8*j));
-	  if (BitShift == 0) {
-	    for (k=char_paddedW >> 4; k; k--)
-	      *Target_s++ |= *p_s++;
-	  }
-	  else{
-	    for (k=char_paddedW >> 4; k; k--){
-	      BitBuf_s= ((long)(*p_s++))<<BitShift;
-	      *Target_s++ |= BitBuf_s;
-	      *Target_s |= BitBuf_s>>s_shift;
-	    } /* End of for ( .. ) stepping through columns */
-	  }
-	} /* End of for( .. ) steppin' through lines of char bitmap */
-      }/* end if (T1_pad==16 */
-      else{ /* T1_pad = 8 or Big Endian machine */
-	/* The following loop steps through the lines of the character bitmap: */
-	for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
-	  Target_c= (unsigned char *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
-				      +ByteOffset);
-	  /* The following loop copies the scanline of a character bitmap: */
-	  p_c = (unsigned char *)(currchar->bits+(char_paddedW/8*j));
-	  if (BitShift == 0){
-	    for (k=char_paddedW >> 3; k; k--)
-	      *Target_c++ |= *p_c++;
-	  }
-	  else{
-	    for (k=char_paddedW >> 3; k; k--){
-	      BitBuf_c = ((short)*p_c++) << BitShift;
-	      *Target_c++ |= BitBuf_c;
-	      *Target_c |= BitBuf_c>>c_shift;
-	    } /* End of for ( .. ) stepping through columns */
-	  }
-	} /* End of for( .. ) steppin' through lines of char bitmap */
-      } /* end if (T1_pad==8) and/or BigEndian  */
-    }
-
+	  if (T1_pad==16 && T1_byte==0){
+	    /* The following loop steps through the lines of the character bitmap: */
+	    for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
+	      Target_s= (unsigned short *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
+					   +ByteOffset);
+	      /* The following loop copies the scanline of a character bitmap: */
+	      p_s = (unsigned short *)(currchar->bits+(char_paddedW/8*j));
+	      if (BitShift == 0) {
+		for (k=char_paddedW >> 4; k; k--)
+		  *Target_s++ |= *p_s++;
+	      }
+	      else{
+		for (k=char_paddedW >> 4; k; k--){
+		  BitBuf_s= ((long)(*p_s++))<<BitShift;
+		  *Target_s++ |= BitBuf_s;
+		  *Target_s |= BitBuf_s>>s_shift;
+		} /* End of for ( .. ) stepping through columns */
+	      }
+	    } /* End of for( .. ) steppin' through lines of char bitmap */
+	  }/* end if (T1_pad==16 */
+	  else{ /* T1_pad = 8 or Big Endian machine */
+	    /* The following loop steps through the lines of the character bitmap: */
+	    for (j=0;j<currchar->metrics.ascent-currchar->metrics.descent;j++){
+	      Target_c= (unsigned char *)(string_glyph.bits +((v_anchor+j)*paddedW/8)
+					  +ByteOffset);
+	      /* The following loop copies the scanline of a character bitmap: */
+	      p_c = (unsigned char *)(currchar->bits+(char_paddedW/8*j));
+	      if (BitShift == 0){
+		for (k=char_paddedW >> 3; k; k--)
+		  *Target_c++ |= *p_c++;
+	      }
+	      else{
+		for (k=char_paddedW >> 3; k; k--){
+		  BitBuf_c = ((short)*p_c++) << BitShift;
+		  *Target_c++ |= BitBuf_c;
+		  *Target_c |= BitBuf_c>>c_shift;
+		} /* End of for ( .. ) stepping through columns */
+	      }
+	    } /* End of for( .. ) steppin' through lines of char bitmap */
+	  } /* end if (T1_pad==8) and/or BigEndian  */
+      }
+    } /* if (string_glyph.bits != NULL) */
+    
+    
     /* We now put the underlining rule on the glyph */
     if (modflag & T1_UNDERLINE){
       start=-string_glyph.metrics.leftSideBearing;
@@ -899,6 +982,13 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
 	}
       }
     }
+
+    /* Check for writing direction and re-compute dimensions appropriately: */
+    if (modflag & T1_RIGHT_TO_LEFT){
+      string_glyph.metrics.advanceX *= -1;
+      string_glyph.metrics.leftSideBearing += string_glyph.metrics.advanceX;
+      string_glyph.metrics.rightSideBearing += string_glyph.metrics.advanceX;
+    } 
     
     return(&string_glyph);
   } /* end of "if (rot_flag==0.0)" */
@@ -913,9 +1003,10 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
       kern_pairs[i]=T1_GetKerning( FontID, ustring[i], ustring[i+1]);
   area=fontfcnB_string( FontID, modflag, Current_S,
 			fontarrayP->pFontEnc,
-			string, no_chars, &mode,
+			ustring, no_chars, &mode,
 			fontarrayP->pType1Data,
-			kern_pairs, spacewidth);
+			kern_pairs, spacewidth,
+			DO_RASTER);
   KillSpace (Current_S);
   
   /* In all cases, free memory for kerning pairs */
@@ -942,7 +1033,7 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
   w = area->xmax - area->xmin;
   paddedW = PAD(w, T1_pad);
   if (h > 0 && w > 0) {
-    memsize = h * paddedW / 8;
+    memsize = h * paddedW / 8 + 1;
     /* This is for the users copy of the character, for security-reasons
        the original pointer to the cache area is not used. The entry string_glyph.bits
        is free'ed every time this function is called: */
@@ -964,22 +1055,40 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
     area->ymax = area->ymax = 0;
   }
   
-  string_glyph.metrics.leftSideBearing  = area->xmin;
-  string_glyph.metrics.advanceX   = NEARESTPEL(area->ending.x - area->origin.x);
-  string_glyph.metrics.advanceY   = - NEARESTPEL(area->ending.y - area->origin.y);
-  string_glyph.metrics.rightSideBearing = area->xmax; 
-  string_glyph.metrics.descent          = - area->ymax;  
-  string_glyph.metrics.ascent           = - area->ymin; 
+  string_glyph.metrics.leftSideBearing=area->xmin;
+  string_glyph.metrics.advanceX=NEARESTPEL(area->ending.x - area->origin.x);
+  string_glyph.metrics.advanceY=-NEARESTPEL(area->ending.y - area->origin.y);
+  string_glyph.metrics.rightSideBearing=area->xmax; 
+  string_glyph.metrics.descent=-area->ymax;  
+  string_glyph.metrics.ascent=-area->ymin; 
 
   if (h > 0 && w > 0) {
     (void) memset(string_glyph.bits, 0, memsize);
     fill(string_glyph.bits, h, paddedW, area, T1_byte, T1_bit, T1_wordsize );
   }
+  else { /* We have no black pixels */
+    string_glyph.metrics.leftSideBearing=0;
+    string_glyph.metrics.advanceX=NEARESTPEL(area->ending.x - area->origin.x);
+    string_glyph.metrics.advanceY=-NEARESTPEL(area->ending.y - area->origin.y);
+    string_glyph.metrics.rightSideBearing=0; 
+    string_glyph.metrics.descent=0;  
+    string_glyph.metrics.ascent=0; 
+  }
+  
 
   /* make sure to get rid of area if it's there */
   if (area){
     KillRegion (area);
   }
+  /* Check for writing direction and re-compute dimensions appropriately: */
+  if (modflag & T1_RIGHT_TO_LEFT){
+    string_glyph.metrics.advanceX *= -1;
+    string_glyph.metrics.advanceY *= -1;
+    string_glyph.metrics.leftSideBearing += string_glyph.metrics.advanceX;
+    string_glyph.metrics.rightSideBearing += string_glyph.metrics.advanceX;
+    string_glyph.metrics.descent += string_glyph.metrics.advanceY;
+    string_glyph.metrics.ascent += string_glyph.metrics.advanceY;
+  } 
   return(&string_glyph);
 }
 
@@ -1007,7 +1116,7 @@ void fill(dest, h, w, area, byte, bit, wordsize)
     rightP = edge->link->xvalues;
     
     for (y = edge->ymin; y < edge->ymax; y++) {
-      fillrun(p, *leftP++ - xmin, *rightP++ - xmin, bit);
+      fillrun(p, *leftP++ - xmin , *rightP++ - xmin, bit);
       p += wbytes;
     }
   }
@@ -1265,7 +1374,7 @@ void T1_ComputeLineParameters( int FontID, int mode,
    x_off, y_off are respected. By the function.
    If either glyph is NULL or the glyphs have distinct depth, NULL is
    returned. */
-GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2, int x_off, int y_off)
+GLYPH *T1_ConcatGlyphs( GLYPH *glyph_1, GLYPH *glyph_2, int x_off, int y_off, int mode)
 {
 
   int lsb1, lsb2, rsb1, rsb2;
@@ -1274,6 +1383,7 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2, int x_off, int y_off)
   int rsb, lsb, ascent, descent, advanceX, advanceY;
   int vanchor, w, h, wscanline, wscanline1, wscanline2, bpp;
   int memsize, BitShift;
+  GLYPH *glyph1, *glyph2;
   unsigned T1_AA_TYPE16 BitBuf_c;
   unsigned T1_AA_TYPE32 BitBuf_s;
   unsigned long BitBuf_l;   /* This is only actually used if sizeof long = 8 */
@@ -1289,6 +1399,22 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2, int x_off, int y_off)
   static GLYPH glyph={NULL,{0,0,0,0,0,0},NULL,1};
   
 
+  /* We handle the Right-To-Left concatenation the simple way:
+     1) Change the order of the two glyphs
+     2) Invert the sign of the y-part of the offset
+     3) Recalculate the dimensions of the resulating glyph.
+  */
+  /* Check for writing direction and reorganize appropriately: */
+  if (mode & T1_RIGHT_TO_LEFT){
+    glyph1=glyph_2;
+    glyph2=glyph_1;
+    y_off=-y_off;
+  }
+  else {
+    glyph1=glyph_1;
+    glyph2=glyph_2;
+  }
+  
   if (glyph1==NULL){
     T1_errno=T1ERR_INVALID_PARAMETER;
     return( NULL);
@@ -1346,7 +1472,7 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2, int x_off, int y_off)
   wscanline1=PAD( (rsb1-lsb1)*bpp, T1_pad) / 8;
   wscanline2=PAD( (rsb2-lsb2)*bpp, T1_pad) / 8;
   memsize=wscanline*h;
-  if ((glyph.bits=(char *)calloc( memsize, sizeof(unsigned char)))==NULL){
+  if ((glyph.bits=(char *)calloc( memsize + 1, sizeof(unsigned char)))==NULL){
     T1_errno=T1ERR_ALLOC_MEM;
     return(NULL);
   }
@@ -1553,6 +1679,18 @@ GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2, int x_off, int y_off)
   } /* end of if (bpp==32) ... */
   
   
+  /* Check for writing direction and re-compute dimens appropriately: */
+  if (mode & T1_RIGHT_TO_LEFT){
+    advanceX=-advanceX1-advanceX2;
+    advanceY=-advanceY1-advanceY2;
+    lsb=lsb1 < lsb2+advanceX1 ? advanceX+lsb1 : advanceX+lsb2+advanceX1;
+    rsb=rsb1 > rsb2+advanceX1 ? advanceX+rsb1 : advanceX+rsb2+advanceX1;
+    ascent=ascent1 > ascent2+advanceY1 ? ascent1 : ascent2+advanceY1;
+    descent=descent1 < descent2+advanceY1 ? descent1 : descent2+advanceY1;
+    ascent += advanceY;
+    descent += advanceY;
+  } 
+  
   glyph.metrics.leftSideBearing=lsb;
   glyph.metrics.rightSideBearing=rsb;
   glyph.metrics.advanceX=advanceX;
@@ -1626,3 +1764,122 @@ void T1_DumpPixmap( GLYPH *glyph)
   } 
 } 
 
+
+
+/* T1_FillOutline(): Create a filled glyph from an outline description */
+GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag)
+{
+  struct region *area=NULL;
+  struct region *Interior(struct segment *path, int fillrule);
+
+  static GLYPH glyph={NULL,{0,0,0,0,0,0},NULL,1};
+  volatile int memsize=0;
+  int i;
+  LONG h,w;
+  LONG paddedW;
+
+  
+  extern char *t1_get_abort_message( int number);
+  
+
+  /* We return to this if something goes wrong deep in the rasterizer */
+  if ((i=setjmp( stck_state))!=0) {
+    T1_errno=T1ERR_TYPE1_ABORT;
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
+	     t1_get_abort_message( i));
+    T1_PrintLog( "T1_FillOutline()", err_warn_msg_buf,
+	       T1LOG_ERROR);
+    return( NULL);
+  }
+
+  /* Reset character glyph, if necessary */
+  if (glyph.bits!=NULL){
+    free(glyph.bits);
+    glyph.bits=NULL;
+  }
+  glyph.metrics.leftSideBearing=0;
+  glyph.metrics.rightSideBearing=0;
+  glyph.metrics.advanceX=0;
+  glyph.metrics.advanceY=0;
+  glyph.metrics.ascent=0;
+  glyph.metrics.descent=0;
+  glyph.pFontCacheInfo=NULL;
+  glyph.bpp=1;  
+  
+  
+  /* Assign padding value */
+  T1_pad=pFontBase->bitmap_pad;
+  if (pFontBase->endian)
+    T1_byte=1;
+  else
+    T1_byte=0;
+  T1_wordsize=T1_pad;
+
+  /* Create a region from outline */
+  area=(struct region *)Interior( (struct segment *)path,
+				  WINDINGRULE+CONTINUITY);
+
+  /* fill the glyph-structure */
+  if (area == NULL){
+    T1_PrintLog( "T1_FillOutline()", "area=NULL returned by Interior()", T1LOG_WARNING);
+    T1_errno=1000;
+    return(NULL);
+  }
+  h = area->ymax - area->ymin;
+  w = area->xmax - area->xmin;
+
+  
+  paddedW = PAD(w, T1_pad);
+  if ( (area->xmin > area->xmax) || (area->ymin > area->ymax) ){
+    /* There was a character like .notdef or space, that didn't
+       produce any black pixels on the bitmap! -> pathological */
+    sprintf( err_warn_msg_buf,
+	     "No black pixels within outline, returning NULL");
+    T1_PrintLog( "T1_FillOutline()", err_warn_msg_buf, T1LOG_WARNING);
+    return(NULL);
+  }
+  if (h > 0 && w > 0) {
+    memsize = h * paddedW / 8 + 1;
+    /* This is for the users copy of the character, for security-reasons
+       the original pointer to the cache area is not used. The entry glyph.bits
+       is free'ed every time this function is called: */
+    glyph.bits = (char *)malloc(memsize*sizeof( char));
+    if (glyph.bits == NULL){
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(NULL);
+    }
+    
+  }
+  else {
+    h = w = 0;
+    area->xmin = area->xmax = 0;
+    area->ymax = area->ymax = 0;
+  }
+  
+  glyph.metrics.leftSideBearing  = area->xmin;
+  glyph.metrics.advanceX   = NEARESTPEL(area->ending.x - area->origin.x);
+  glyph.metrics.advanceY   = - NEARESTPEL(area->ending.y - area->origin.y);
+  glyph.metrics.rightSideBearing = area->xmax;
+  glyph.metrics.descent          = - area->ymax;
+  glyph.metrics.ascent           = - area->ymin;
+
+  
+  if (h > 0 && w > 0) {
+    (void) memset(glyph.bits, 0, memsize);
+    fill(glyph.bits, h, paddedW, area, T1_byte, T1_bit, T1_wordsize );
+  }
+
+  /* Check for writing direction and re-compute dimensions appropriately: */
+  if (modflag & T1_RIGHT_TO_LEFT){
+    glyph.metrics.advanceX *= -1;
+    glyph.metrics.advanceY *= -1;
+    glyph.metrics.leftSideBearing += glyph.metrics.advanceX;
+    glyph.metrics.rightSideBearing += glyph.metrics.advanceX;
+    glyph.metrics.descent += glyph.metrics.advanceY;
+    glyph.metrics.ascent += glyph.metrics.advanceY;
+  } 
+  
+  return( &glyph);
+  
+  
+}

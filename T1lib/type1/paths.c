@@ -794,7 +794,7 @@ So, we add "dest" instead of subtracting it:
                        break;
  
                    default:
-                       abort("Reverse: bad path segment");
+                       abort("Reverse: bad path segment", 23);
                }
 /*
 We need to reverse the order of segments too, so we break this segment
@@ -928,7 +928,7 @@ static int UnClose(p0)
        for (p=p0; p->link->link != NULL; p=p->link) { ; }
  
        if (!LASTCLOSED(p->link->flag))
-               abort("UnClose:  no LASTCLOSED");
+               abort("UnClose:  no LASTCLOSED", 24);
  
        Free(SplitPath(p0, p));
        p0->flag &= ~ISCLOSED(ON);
@@ -1031,7 +1031,7 @@ struct segment *PathTransform(p0, S)
  
                    default:
                        IfTrace1(TRUE,"path = %p\n", p);
-                       abort("PathTransform:  invalid segment");
+                       abort("PathTransform:  invalid segment", 25);
                }
                oldx += savex;
                oldy += savey;
@@ -1183,7 +1183,7 @@ void QueryPath(path, typeP, Bp, Cp, Dp, fP)
                break;
  
            default:
-               abort("QueryPath: unknown segment");
+               abort("QueryPath: unknown segment", 26);
        }
        if (coerced)
                KillPath(path);
@@ -1323,7 +1323,7 @@ void QueryBounds(p0, S, xminP, yminP, xmaxP, ymaxP)
                    case HINTTYPE:
                        break;
                    default:
-                       abort("QueryBounds: unknown type");
+                       abort("QueryBounds: unknown type", 27);
                }
  
                if (x < min.x) min.x = x;

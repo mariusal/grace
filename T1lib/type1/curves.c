@@ -212,7 +212,7 @@ struct segment *StepBezier(R, xA, yA, xB, yB, xC, yC, xD, yD)
  
        if ( TOOBIG(xB) || TOOBIG(yB) || TOOBIG(xC) || TOOBIG(yC)
             || TOOBIG(xD) || TOOBIG(yD) )
-               abort("Beziers this big not yet supported");
+               abort("Beziers this big not yet supported", 3);
  
        return(StepBezierRecurse(&Info,
                                 (fractpel) 0, (fractpel) 0, xB, yB, xC, yC, xD, yD));

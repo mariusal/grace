@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1afmtool.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/15/1998
+  ----- Date:        1999-04-22
   ----- Description: This file is part of the t1-library. It contains
                      functions for generating a fallback set of afm data
 		     from type 1 font files.
@@ -81,6 +81,20 @@ FontInfo *T1_GenerateAFMFallbackInfo( int FontID)
   FontInfo *pAFMData;
   
   
+  extern char *t1_get_abort_message( int number);
+  
+
+  /* We return to this if something goes wrong deep in the rasterizer */
+  if ((i=setjmp( stck_state))!=0) {
+    T1_errno=T1ERR_TYPE1_ABORT;
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
+	     t1_get_abort_message( i));
+    T1_PrintLog( "T1_GenerateAFMFallbackInfo()", err_warn_msg_buf,
+	       T1LOG_ERROR);
+    return( NULL);
+  }
+  
+
   /* Check whether font is loaded: */
   if (CheckForFontID(FontID)!=1){
     sprintf( err_warn_msg_buf,
@@ -154,7 +168,7 @@ FontInfo *T1_GenerateAFMFallbackInfo( int FontID)
   /* Get metrics values */
   for (i=0; i<nochars; i++){
     area=fontfcnB_ByName( FontID, 0, S, charnames[i], &mode,
-			  pFontBase->pFontArray[FontID].pType1Data);
+			  pFontBase->pFontArray[FontID].pType1Data, DO_RASTER);
     
     if (area==NULL){
       sprintf( err_warn_msg_buf,

@@ -52,9 +52,10 @@ extern int GetFontInfo();
 #define SCAN_ERROR           -2
 #define SCAN_OUT_OF_MEMORY   -3
 #define SCAN_FILE_OPEN_ERROR -4
-#define SCAN_TRUE            -5
-#define SCAN_FALSE           -6
-#define SCAN_END             -7
+#define SCAN_MMFONT          -5   /* font is a Multiple Master Font */
+#define SCAN_TRUE            -6
+#define SCAN_FALSE           -7
+#define SCAN_END             -8
  
 /***================================================================***/
 /*  Name of FontInfo fields                                           */

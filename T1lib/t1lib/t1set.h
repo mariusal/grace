@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1set.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        08/20/1998
+  ----- Date:        1999-03-21
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1set.c.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -33,8 +33,8 @@ GLYPH *T1_SetString( int FontID, char *string, int len,
 		     long spaceoff, int modflag,
 		     float size, T1_TMATRIX *transform);
 void fill(char *dest, int h, int w,
-		 struct region *area, int byte, int bit,
-		 int wordsize);
+	  struct region *area, int byte, int bit,
+	  int wordsize);
 void fillrun(char *p, pel x0, pel x1, int bit);
 GLYPH *T1_CopyGlyph(GLYPH *glyph);
 void T1_DumpGlyph( GLYPH *glyph);
@@ -43,8 +43,9 @@ void T1_ComputeLineParameters( int FontID, int width,
 			       int *startx, int *endx,
 			       int *starty, int *endy);
 GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
-			int x_off, int y_off);
+			int x_off, int y_off, int mode);
 void T1_DumpGlyph( GLYPH *glyph);
+GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
 #else
 
@@ -53,11 +54,16 @@ extern GLYPH *T1_SetChar( int FontID, char charcode,
 extern GLYPH *T1_SetString( int FontID, char *string, int len,
 			    long spaceoff, int modflag,
 			    float size, T1_TMATRIX *transform);
+extern void fill(char *dest, int h, int w,
+		 struct region *area, int byte, int bit,
+		 int wordsize);
+extern void fillrun(char *p, pel x0, pel x1, int bit);
 extern GLYPH *T1_CopyGlyph(GLYPH *glyph);
 extern void T1_DumpGlyph( GLYPH *glyph);
 extern GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
-			       int x_off, int y_off);
+			       int x_off, int y_off, int mode);
 extern void T1_DumpGlyph( GLYPH *glyph);
+extern GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
 #endif
 

@@ -178,7 +178,8 @@ char *env;
 xobject fontfcnB(int FontID, int modflag,
 		 struct XYspace *S, char **ev,
 		 unsigned char index, int *mode,
-		 psfont *Font_Ptr)
+		 psfont *Font_Ptr,
+		 int do_raster)
 {
   path updateWidth();
  
@@ -238,15 +239,17 @@ xobject fontfcnB(int FontID, int modflag,
   
   /* for debugging path elements */
   /*  tmppath1=charpath;
-#define   LINETYPE    (10)
-#define   CONICTYPE   (11)
-#define   BEZIERTYPE  (12)
-#define   HINTTYPE    (13)
+#define   LINETYPE    (0x10)
+#define   CONICTYPE   (0x11)
+#define   BEZIERTYPE  (0x12)
+#define   HINTTYPE    (0x13)
  			
-#define   MOVETYPE    (15)
-#define   TEXTTYPE    (16)
+#define   MOVETYPE    (0x15)
+#define   TEXTTYPE    (0x16)
   
   while (tmppath1->link!=NULL){
+    printf("tmppath1=%p\n", tmppath1);
+    
     if (tmppath1->type==LINETYPE)
       printf("path->type: LINETYPE\n");
     if (tmppath1->type==CONICTYPE)
@@ -260,8 +263,8 @@ xobject fontfcnB(int FontID, int modflag,
     if (tmppath1->type==TEXTTYPE)
       printf("path->type: TEXTTYPE\n");
     tmppath1=tmppath1->link;
-    }*/
-  
+    }
+  */
     
   /* Get width of char in charspace coordinates. We do not multiply with
      extension factor because extension is already done in the space matrix */
@@ -294,9 +297,11 @@ xobject fontfcnB(int FontID, int modflag,
 
   if ( *mode == FF_PARSE_ERROR)  return(NULL);
   if ( *mode == FF_PATH_ERROR)  return(NULL);
-  /* fill with winding rule unless path was requested */
-  if (*mode != FF_PATH) {
-    charpath =  (struct segment *)Interior(charpath,WINDINGRULE+CONTINUITY);
+  if (do_raster) { 
+    /* fill with winding rule unless path was requested */
+    if (*mode != FF_PATH) {
+      charpath =  (struct segment *)Interior(charpath,WINDINGRULE+CONTINUITY);
+    }
   }
   
   return((xobject) charpath);
@@ -467,7 +472,8 @@ xobject fontfcnB_string( int FontID, int modflag,
 			 struct XYspace *S, char **ev,
 			 unsigned char *string, int no_chars,
 			 int *mode, psfont *Font_Ptr,
-			 int *kern_pairs, long spacewidth)
+			 int *kern_pairs, long spacewidth,
+			 int do_raster)
 {
   path updateWidth();
  
@@ -598,11 +604,13 @@ xobject fontfcnB_string( int FontID, int modflag,
 
   if ( *mode == FF_PARSE_ERROR)  return(NULL);
   if ( *mode == FF_PATH_ERROR)  return(NULL);
-  /* fill with winding rule unless path was requested */
-  if (*mode != FF_PATH) {
-    charpath = (struct segment *) Interior((path) charpath,WINDINGRULE+CONTINUITY);
+  if (do_raster) { 
+    /* fill with winding rule unless path was requested */
+    if (*mode != FF_PATH) {
+      charpath = (struct segment *) Interior((path) charpath,WINDINGRULE+CONTINUITY);
+    }
   }
-
+  
   return((path)charpath);
 }
 
@@ -612,7 +620,8 @@ xobject fontfcnB_string( int FontID, int modflag,
 xobject fontfcnB_ByName( int FontID, int modflag,
 			 struct XYspace *S,
 			 unsigned char *charname,
-			 int *mode, psfont *Font_Ptr)
+			 int *mode, psfont *Font_Ptr,
+			 int do_raster)
 {
   path updateWidth();
  
@@ -657,10 +666,13 @@ xobject fontfcnB_ByName( int FontID, int modflag,
 
   if ( *mode == FF_PARSE_ERROR)  return(NULL);
   if ( *mode == FF_PATH_ERROR)  return(NULL);
-  /* fill with winding rule unless path was requested */
-  if (*mode != FF_PATH) {
-    charpath = (struct segment *) Interior(charpath,WINDINGRULE+CONTINUITY);
+  if (do_raster) { 
+    /* fill with winding rule unless path was requested */
+    if (*mode != FF_PATH) {
+      charpath = (struct segment *) Interior(charpath,WINDINGRULE+CONTINUITY);
+    }
   }
 
   return((xobject) charpath);
 }
+

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1types.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        08/19/1998
+  ----- Date:        1999-02-17
   ----- Description: This file is part of the t1-library. It contains
                      type definitions used by the t1-library.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -26,6 +26,8 @@
 --------------------------------------------------------------------------*/
   
 
+#define T1TYPES_H
+
 
 typedef struct
 {
@@ -38,11 +40,12 @@ typedef struct
 typedef struct 
 {
   char *pFontFileName; /* Pointer to the font's filename */
-  FontInfo *pAFMData; /* A pointer to a struct which gives access to all
-			 the data contained in the .afm-file. If this
-			 pointer is NULL, no .afm-file had been found.
-			 => There's no advanced info on the font available.
-			 */
+  char *pAfmFileName;  /* Pointer to the afm filename, IFF set explicitly */
+  FontInfo *pAFMData;  /* A pointer to a struct which gives access to all
+			  the data contained in the .afm-file. If this
+			  pointer is NULL, no .afm-file had been found.
+			  => There's no advanced info on the font available.
+		       */
   psfont *pType1Data;  /* A pointer to a struct giving access to all
 			  information contained in the .pfa/.pfb-file. This
 			  is needed! */
@@ -150,4 +153,49 @@ typedef struct
 			   positions in (afm units) of the individual
 			   characters in the string are stored */
 } METRICSINFO;
+
+
+/* Handling of outlines: These definitions  decouple from the type 1 rasterizers
+   def's and make the necessary stuff available to end users */
+ 
+#define   FRACTBITS     16   /* number of fractional bits in 'fractpel'      */
+/* From/to conversion of pels/fractpels */
+#define   T1_TOPATHPOINT(p)      (((long)p)<<FRACTBITS)
+#define   PPHALF                 (1<<(FRACTBITS-1))
+#define   T1_NEARESTPOINT(fp)    (((fp)+PPHALF)>>FRACTBITS)
+
+/* A fractional point */
+typedef struct {
+  long x;
+  long y;
+} T1_PATHPOINT;
+
+
+/* A straight outline segment, stroked or not stroked */
+typedef struct pathsegment {  
+  char type;                /* type of segment (line or move) */
+  unsigned char flag;       /* type1 rasterizer internal stuff */
+  short references;         /* type1 rasterizer internal stuff */
+  unsigned char size;       /* size of the structure */
+  unsigned char context;    /* index to device context */
+  struct pathsegment *link; /* pointer to next structure in linked list */
+  struct pathsegment *last; /* pointer to last structure in list */
+  T1_PATHPOINT    dest;     /* relative ending location of path segment */
+} T1_PATHSEGMENT;
+
+/* A third order bezier segment */
+typedef struct bezierpathsegment {
+  char type;                /* type of segment (bezier) */
+  unsigned char flag;       /* type1 rasterizer internal stuff */
+  short references;         /* type1 rasterizer internal stuff */
+  unsigned char size;       /* as with any 'segment' type */
+  unsigned char context;    /* as with any 'segment' type */
+  T1_PATHSEGMENT *link;     /* as with any 'segment' type */
+  T1_PATHSEGMENT *last;     /* as with any 'segment' type */
+  T1_PATHPOINT    dest;     /* ending point (D) */
+  T1_PATHPOINT    B;        /* control point B */
+  T1_PATHPOINT    C;        /* control point C */
+} T1_BEZIERSEGMENT;
+
+typedef T1_PATHSEGMENT  T1_OUTLINE;
 

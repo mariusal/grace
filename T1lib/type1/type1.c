@@ -69,7 +69,7 @@ typedef struct xobject xobject;
 #define MAXPSFAKESTACK 32  /* Max depth of fake PostScript stack (local) */
 #define MAXSTRLEN 512      /* Max length of a Type 1 string (local) */
 #define MAXLABEL 256       /* Maximum number of new hints */
-#define MAXSTEMS 512       /* Maximum number of VSTEM and HSTEM hints */
+#define MAXSTEMS 256       /* Maximum number of VSTEM and HSTEM hints */
 #define EPS 0.001          /* Small number for comparisons */
  
 /************************************/
@@ -557,8 +557,8 @@ int stemno;
       if (unitpixels < blues->BlueScale){
         suppressovershoot = TRUE;
       }
-      else
-        if (alignmentzones[i].topzone)
+      else{
+        if (alignmentzones[i].topzone){
           if (stemtop >= alignmentzones[i].bottomy + blues->BlueShift){
             enforceovershoot = TRUE;
 	  }
@@ -566,6 +566,9 @@ int stemno;
           if (stembottom <= alignmentzones[i].topy - blues->BlueShift){
             enforceovershoot = TRUE;
 	  }
+	}
+      }
+      
       
       /*************************************************/
       /* ALIGN THE FLAT POSITION OF THE ALIGNMENT ZONE */
@@ -601,21 +604,25 @@ int stemno;
         /* ENFORCE overshoot by shifting the entire stem (if necessary) so that
            it falls at least one pixel beyond the flat position. */
  
-        if (enforceovershoot)
-          if (overshoot < onepixel)
+        if (enforceovershoot){
+          if (overshoot < onepixel){
             if (alignmentzones[i].topzone)
               stemshift += onepixel - overshoot;
             else
               stemshift -= onepixel - overshoot;
+	  }
+	}
+	
  
         /* SUPPRESS overshoot by aligning the stem to the alignment zone's
            flat position. */
  
-        if (suppressovershoot)
+        if (suppressovershoot){
           if (alignmentzones[i].topzone)
             stemshift -= overshoot;
           else
             stemshift += overshoot;
+	}
       }
  
       /************************************************************/

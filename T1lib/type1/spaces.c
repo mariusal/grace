@@ -212,7 +212,7 @@ static int FindDeviceContext(device)
        int rc = -1;          /* return code for QueryDeviceState             */
  
        if (rc != 0)          /* we only bother with this check once          */
-               abort("Context:  QueryDeviceState didn't work");
+               abort("Context:  QueryDeviceState didn't work", 44);
  
        M[0][0] = M[1][0] = M[0][1] = M[1][1] = 0.0;
  
@@ -230,7 +230,7 @@ static int FindDeviceContext(device)
                M[1][0] = -Yres;  M[0][1] = -Xres;
                break;
            default:
-               abort("QueryDeviceState returned invalid orientation");
+               abort("QueryDeviceState returned invalid orientation", 45);
        }
        return(FindContext(M));
 }
@@ -254,7 +254,7 @@ int FindContext(M)
  
        if (i >= nextcontext) {
                if (i >= MAXCONTEXTS)
-                       abort("Context:  out of them");
+                       abort("Context:  out of them", 46);
                LONGCOPY(contexts[i].normal, M, sizeof(contexts[i].normal));
                MatrixInvert(M, contexts[i].inverse);
                nextcontext++;
@@ -901,7 +901,7 @@ void MatrixInvert(M, Mprime)
  
        D = M[1][1] * M[0][0] - M[1][0] * M[0][1];
        if (D == 0.0)
-               abort("MatrixInvert:  can't");
+               abort("MatrixInvert:  can't", 47);
  
        Mprime[0][0] = tyy / D;
        Mprime[1][0] = -txy / D;

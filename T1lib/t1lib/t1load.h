@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/24/1998
+  ----- Date:        1999-02-17
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t1load.c.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -29,8 +29,7 @@
 #ifdef T1LOAD_C
 
 int T1_LoadFont( int FontID);
-int openFontMetricsFile( int FontID);
-int openFontMetricsFileSloppy( int FontID);
+static int openFontMetricsFile( int FontID, int open_sloppy);
 FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa);
 FONTSIZEDEPS *GetLastFontSize( int FontID);
 FONTSIZEDEPS *QueryFontSize( int FontID, float size, int aa);
@@ -42,8 +41,6 @@ extern char *vm_used; /* from fontfcn.c in fontfcnA()! */
 #else
 
 extern int T1_LoadFont( int FontID);
-extern int openFontMetricsFile( int FontID);
-extern int openFontMetricsFileSloppy( int FontID);
 extern FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa);
 extern FONTSIZEDEPS *GetLastFontSize( int FontID);
 extern FONTSIZEDEPS *QueryFontSize( int FontID, float size, int aa);

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1finfo.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        09/01/1998
+  ----- Date:        1999-04-22
   ----- Description: This file is part of the t1-library. It contains
                      functions for accessing afm-data and some other
 		     fontinformation data.
@@ -151,12 +151,26 @@ BBox T1_GetCharBBox( int FontID, char char1)
   struct region *area;
   struct XYspace *S;    
   int mode=0;
+  int i;
   
   extern int ForceAFMBBox;
   BBox NullBBox= { 0, 0, 0, 0}; /* A bounding box containing all 0's. */
   BBox ResultBox= { 0, 0, 0, 0}; /* The Box returned if char is found */
   
   unsigned char uchar1;
+
+  extern char *t1_get_abort_message( int number);
+  
+
+  /* We return to this if something goes wrong deep in the rasterizer */
+  if ((i=setjmp( stck_state))!=0) {
+    T1_errno=T1ERR_TYPE1_ABORT;
+    sprintf( err_warn_msg_buf, "t1_abort: Reason: %s",
+	     t1_get_abort_message( i));
+    T1_PrintLog( "T1_GetCharBBox()", err_warn_msg_buf,
+	       T1LOG_ERROR);
+    return( NullBBox);
+  }
 
   
   uchar1=(unsigned char) char1;
@@ -196,7 +210,8 @@ BBox T1_GetCharBBox( int FontID, char char1)
     area=fontfcnB( FontID, 0, S,
 		   pFontBase->pFontArray[FontID].pFontEnc,
 		   (int) uchar1, &mode,
-		   pFontBase->pFontArray[FontID].pType1Data);
+		   pFontBase->pFontArray[FontID].pType1Data,
+		   DO_RASTER);
     /* Read out bounding box */
     ResultBox.llx =area->xmin;
     ResultBox.urx =area->xmax;

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1global.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        05/30/1998
+  ----- Date:        1999-04-20
   ----- Description: This file is part of the t1-library. It contains
                      global declarations used by the t1-library.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
@@ -32,6 +32,7 @@
 /* Following struct will allow all accesses to font data! */
 struct FONTBASE
 {
+  int t1lib_flags;    /* Global library flags */
   int no_fonts_ini;   /* The number of fonts initially declared in
 			 Font database file. */
   int no_fonts;       /* The number of currently allocated fonts including
@@ -113,4 +114,6 @@ int  t1lib_log_level=2;
 /* The errno for t1lib */
 int T1_errno=0;
 
+/* A variable for saving stack info */
+jmp_buf stck_state;
 

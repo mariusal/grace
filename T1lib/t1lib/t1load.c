@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1load.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        09/01/1998
+  ----- Date:        1999-05-06
   ----- Description: This file is part of the t1-library. It contains
                      functions for loading fonts  and for managing size
 		     dependent data.
@@ -461,9 +461,9 @@ int T1_LoadFont( int FontID)
 
   
   /* Now try to load afm-structures from corresponding .afm-file. */
-  if ((i=openFontMetricsFile( FontID))){
-    /* Try a fallback function: */
-    if ((i=openFontMetricsFileSloppy( FontID))){
+  if ((i=openFontMetricsFile( FontID, 0))){
+    /* Try a fallback, opening sloppy: */
+    if ((i=openFontMetricsFile( FontID, 1))){
       sprintf( err_warn_msg_buf,
 	       "Alert: Error (%d) sloppy-processing afm-file for Font %d!",
 	       i ,FontID);
@@ -664,46 +664,63 @@ int T1_LoadFont( int FontID)
 }
   
 
-/* openFontMetricsFile( FontID): Gets the fontfilename corresponding to
-   FontID, opens the corresponding afm-file and fills the data structures.
-   return-value is the value returned by the T1lib_parseFile() function: */
-
-int openFontMetricsFile( int FontID)
+/* openFontMetricsFile( FontID, open_sloppy): Gets the fontfilename
+   corresponding to FontID, opens the corresponding afm-file and fills
+   the data structures. return-value is the value returned by the
+   T1lib_parseFile() function. If open_sloppy is set, the minimum
+   information needed is read from AFM file. This can be considered a
+   fallback for problematic AFM files. */
+static int openFontMetricsFile( int FontID, int open_sloppy)
 {
   char *FontFileName;
   char *AFMFileName;
+  char *afm_name;
   char *AFMFileNamePath;
   
   int i, j;
   FILE *metricsfile;
   
 
-  FontFileName=T1_GetFontFileName( FontID);
-  i=strlen(FontFileName);
-  j=i;
-  AFMFileName=(char *)malloc( i+5);
-  strcpy( AFMFileName, FontFileName);
-  while ( AFMFileName[i] != '.'){
-    if (i==0) break;
-    else i--;
+  afm_name=T1_GetAfmFileName(FontID);
+  
+  if (afm_name!=NULL) { /* We have name explicitly specified */
+    /* It needs to be freeable */
+    if ((AFMFileName=
+	 (char *)malloc( (strlen(afm_name)+1)*sizeof( char)))==NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return( -6);
+    }
+    strcpy( AFMFileName, afm_name);
   }
-  if (i==0){
-    /* We have a filename without extension -> append extension */
-    AFMFileName[j]='.';
-    AFMFileName[j+1]='a';
-    AFMFileName[j+2]='f';
-    AFMFileName[j+3]='m';
-    AFMFileName[j+4]='\0';
-  }
-  else{
-    /* we found a '.' -> replace extension */
-    AFMFileName[i+1]='a';
-    AFMFileName[i+2]='f';
-    AFMFileName[i+3]='m';
-    AFMFileName[i+4]='\0';
+  else {
+    FontFileName=T1_GetFontFileName( FontID);
+    i=strlen(FontFileName);
+    j=i;
+    AFMFileName=(char *)malloc( i+5);
+    strcpy( AFMFileName, FontFileName);
+    while ( AFMFileName[i] != '.'){
+      if (i==0) break;
+      else i--;
+    }
+    if (i==0){
+      /* We have a filename without extension -> append extension */
+      AFMFileName[j]='.';
+      AFMFileName[j+1]='a';
+      AFMFileName[j+2]='f';
+      AFMFileName[j+3]='m';
+      AFMFileName[j+4]='\0';
+    }
+    else{
+      /* we found a '.' -> replace extension */
+      AFMFileName[i+1]='a';
+      AFMFileName[i+2]='f';
+      AFMFileName[i+3]='m';
+      AFMFileName[i+4]='\0';
+    }
   }
   
-  /* Get full path of the afm file */
+  /* Get full path of the afm file (The case of a full path name
+     name specification is valid */
   AFMFileNamePath=Env_GetCompletePath( AFMFileName, T1_AFM_ptr);
   free( AFMFileName);
   
@@ -732,81 +749,17 @@ int openFontMetricsFile( int FontID)
      There's no way to make a serious decision whether an error has
      occured or not.
      */
-  i=T1lib_parseFile( (FILE *) metricsfile,
-		     (FontInfo **) &(FontBase.pFontArray[FontID].pAFMData),
-		     P_M | P_P );
+  if (open_sloppy)
+    i=T1lib_parseFile( (FILE *) metricsfile,
+		       (FontInfo **) &(FontBase.pFontArray[FontID].pAFMData),
+		       P_M );
+  else
+    i=T1lib_parseFile( (FILE *) metricsfile,
+		       (FontInfo **) &(FontBase.pFontArray[FontID].pAFMData),
+		       P_M | P_P );
   fclose(metricsfile);
   return(i);
 }
-
-
-
-/* openFontMetricsFileSloppy( FontID): Gets the fontfilename corresponding to
-   FontID, opens the corresponding afm-file and tries to fill the data
-   structures only with metric data. This can be considered a fallback!
-   */
-int openFontMetricsFileSloppy( int FontID)
-{
-  char *FontFileName;
-  char *AFMFileName;
-  char *AFMFileNamePath;
-  int i, j;
-  FILE *metricsfile;
-  
-
-  FontFileName=T1_GetFontFileName( FontID);
-  i=strlen(FontFileName);
-  j=i;
-  AFMFileName=(char *)malloc( i+5);
-  strcpy( AFMFileName, FontFileName);
-  while ( AFMFileName[i] != '.'){
-    if (i==0) break;
-    else i--;
-  }
-  if (i==0){
-    /* We have a filename without extension -> append extension */
-    AFMFileName[j]='.';
-    AFMFileName[j+1]='a';
-    AFMFileName[j+2]='f';
-    AFMFileName[j+3]='m';
-    AFMFileName[j+4]='\0';
-  }
-  else{
-    /* we found a '.' -> replace extension */
-    AFMFileName[i+1]='a';
-    AFMFileName[i+2]='f';
-    AFMFileName[i+3]='m';
-    AFMFileName[i+4]='\0';
-  }
-  
-  /* Get full path of the afm file */
-  AFMFileNamePath=Env_GetCompletePath( AFMFileName, T1_AFM_ptr);
-  free( AFMFileName);
-  
-  /* open afm-file: */
-  if (AFMFileNamePath!=NULL){
-    if ((metricsfile=fopen(AFMFileNamePath,"r"))==NULL){
-      free(AFMFileNamePath);
-      return(-4);
-    }
-    else {
-      free(AFMFileNamePath);
-    }
-  }
-  else{
-    return( -5);
-  }
-  
-  /* Call procedure to read afm-file and store the data formatted.
-     Flags used here: P_M  All Metrics Information
-     */
-  i=T1lib_parseFile( (FILE *) metricsfile,
-	       (FontInfo **) &(FontBase.pFontArray[FontID].pAFMData),
-	       P_M );
-  fclose(metricsfile);
-  return(i);
-}
-
 
 
 
@@ -816,7 +769,12 @@ int openFontMetricsFileSloppy( int FontID)
    font. Returns a pointer to the newly created FontSizeDeps-struct
    if all went correct and NULL otherwise.
    Since of version 0.3 a member antialias has been added to the
-   FONTSIZEDEPS structure!
+   FONTSIZEDEPS structure! This can be:
+
+   0:     bitmaps are stored in this struct
+   1:     non-antialiased bytemaps are stored in this struct
+   2:     low-antialiased bytemaps are stored in this struct
+   4:     high-antialiased bytemaps are stored in this struct
    */
 FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa)
 {
@@ -853,10 +811,7 @@ FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa)
   /* Put the size into this structure */
   pFontSizeDeps->size=size;
   /* Set the antialias mark: */
-  if (aa)
-    pFontSizeDeps->antialias=1;
-  else
-    pFontSizeDeps->antialias=0;
+  pFontSizeDeps->antialias=aa;
   
   /* Just the current becomes now the last item in the linked list: */
   pFontSizeDeps->pNextFontSizeDeps=NULL;
@@ -876,11 +831,6 @@ FONTSIZEDEPS *CreateNewFontSize( int FontID, float size, int aa)
 	      pFontBase->pFontArray[FontID].FontTransform[1],
 	      pFontBase->pFontArray[FontID].FontTransform[2],
 	      pFontBase->pFontArray[FontID].FontTransform[3]);
-  /* Apply device specific scaling */
-  pFontSizeDeps->pCharSpaceLocal=(struct XYspace *)
-    Scale(pFontSizeDeps->pCharSpaceLocal,
-	  DeviceSpecifics.scale_x,
-	  DeviceSpecifics.scale_y);
   /* Apply desired scaling factor, and make it Permanent */
   pFontSizeDeps->pCharSpaceLocal=(struct XYspace *) Permanent
     (Scale(pFontSizeDeps->pCharSpaceLocal, size, size));

@@ -169,7 +169,7 @@ multiple of 90 degrees.
     }
   else                             /* error */
     {
-    abort("ComputeHint: invalid orientation");
+    abort("ComputeHint: invalid orientation", 4);
     }
  
   IfTrace4((HintDebug > 1),
@@ -203,7 +203,7 @@ multiple of 90 degrees.
     }
   else                           /* error */
     {
-    abort("ComputeHint: invalid hinttype");
+    abort("ComputeHint: invalid hinttype", 5);
     }
  
   IfTrace1((HintDebug > 1),"  hintValue=%d", hintValue);
@@ -220,7 +220,7 @@ multiple of 90 degrees.
     }
   else                             /* error */
     {
-    abort("ComputeHint: invalid orientation");
+    abort("ComputeHint: invalid orientation", 6);
     }
 }
  
@@ -269,7 +269,7 @@ void ProcessHint(hP, currX, currY, hintP)
       }
     else                             /* error */
       {
-      abort("ProcessHint: invalid label");
+      abort("ProcessHint: invalid label", 7);
       }
     }
   else if (hP->adjusttype == 'r')  /* Reverse */
@@ -285,18 +285,18 @@ void ProcessHint(hP, currX, currY, hintP)
         }
       else                           /* error */
         {
-        abort("ProcessHint: label is not in use");
+        abort("ProcessHint: label is not in use", 8);
         }
       }
     else                           /* error */
       {
-      abort("ProcessHint: invalid label");
+      abort("ProcessHint: invalid label", 9);
       }
  
     }
   else                           /* error */
     {
-    abort("ProcessHint: invalid adjusttype");
+    abort("ProcessHint: invalid adjusttype", 10);
     }
   IfTrace3((HintDebug > 1),"  label=%d, thisHint=(%d,%d)\n",
     hP->label, thisHint.x, thisHint.y);
@@ -388,7 +388,7 @@ static pel SearchXofY(edge, y)
        else
                return(XofY(edge, y));
  
-       abort("bad subpath chain");
+       abort("bad subpath chain", 11);
        /*NOTREACHED*/
        /* To make ANSI-C-compiler happy: */
        return(y);
@@ -472,7 +472,7 @@ Now we have everything to return the answer:
        else if (ISBOTTOM(e1->flag) && y == e1->ymax)
                return(!ISDOWN(e2->flag));
        else
-               abort("ImpliedHorizontalLine:  why ask?");
+               abort("ImpliedHorizontalLine:  why ask?", 12);
        /*NOTREACHED*/
        /* To make ANSI-C-compiler happy */
        return(0);
@@ -514,7 +514,7 @@ static void FixSubPaths(R)
                if (!ISBREAK(edge, next))
                        continue;
                if (edge->ymax < next->ymin)
-                       abort("disjoint subpath?");
+                       abort("disjoint subpath?", 13);
 /*
 'edge' now contains an edgelist at the bottom of an edge, and 'next'
 contains the next subsequent edgelist in the subpath, which must be at
@@ -575,7 +575,7 @@ as 'next':
  
                break1->subpath = break2->subpath;
                if (ISBREAK(break1, break1->subpath))
-                       abort("unable to fix subpath break?");
+                       abort("unable to fix subpath break?", 14);
  
                break2->subpath = next;
  

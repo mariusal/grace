@@ -68,7 +68,7 @@ boolean vm_init()
   }
   vm_init_count++;
   
-  vm_next = vm_base = (char *) malloc(vm_init_amount);
+  vm_next = vm_base = (char *) calloc( vm_init_amount, sizeof(char));
 
   if (vm_base != NULL) {
     vm_free = vm_init_amount;

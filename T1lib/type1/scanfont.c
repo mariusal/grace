@@ -1240,6 +1240,13 @@ int scan_font(FontP)
       case TOKEN_LITERAL_NAME:
             /* Look up the name */
             tokenStartP[tokenLength] = '\0';
+	    /* At this point we check for the font not being a
+	       Multiple Master Font. If it is, we return an error.
+	       (RMz, 01/29/1999) */
+	    if (strncmp(tokenStartP, "BlendAxisTypes", 14)==0){
+	      rc=SCAN_MMFONT;
+	      break;
+	    }
             if (InPrivateDict ) {
               if (0== strncmp(tokenStartP,"Subrs",5) ) {
                 rc = BuildSubrs(FontP);

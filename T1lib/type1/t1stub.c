@@ -35,7 +35,7 @@
 int xiStub( void)
 {
        printf("xiStub called\n");
-       abort("xiStub called");
+       abort("xiStub called", 48);
        return(0);
        
 }

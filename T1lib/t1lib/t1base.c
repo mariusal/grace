@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        08/14/1998
+  ----- Date:        1999-05-06
   ----- Description: This file is part of the t1-library. It contains basic
                      basic routines to initialize the data structures used
 		     by the t1-library.
@@ -25,6 +25,7 @@
 		     independ from X11.
                      Thanks to all people who make free software living!
 --------------------------------------------------------------------------*/
+
 
 #define T1BASE_C
 
@@ -82,8 +83,16 @@ void *T1_InitLib( int log)
   else
     pFontBase->bitmap_pad=T1GLYPH_PAD;
 
+  pFontBase->t1lib_flags=0;
+  /* Chek for AA-caching */
+  if ((log & T1_AA_CACHING)){
+    pFontBase->t1lib_flags |= T1_AA_CACHING;
+  }
+  
+  
   /* Open log-file: */
   if ((log & LOGFILE)){
+    pFontBase->t1lib_flags |= LOGFILE;
     /* Try first opening in current directory: */
     if ((t1lib_log_file=fopen( T1_LOG_FILE, "w"))==NULL){
 
@@ -117,6 +126,10 @@ void *T1_InitLib( int log)
 
   /* Save version identifier */
   sprintf( err_warn_msg_buf, "Version Identifier: %s", T1LIB_IDENT);
+  T1_PrintLog( "T1_InitLib()", err_warn_msg_buf,
+	       T1LOG_DEBUG);
+  /* Save how t1lib is initialized */
+  sprintf( err_warn_msg_buf, "Initialization flags: 0x%X", log);
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf,
 	       T1LOG_DEBUG);
   /* Save padding value in log file */
@@ -160,6 +173,7 @@ void *T1_InitLib( int log)
   T1_PrintLog( "T1_InitLib()", err_warn_msg_buf, T1LOG_DEBUG);
   
   if (log & IGNORE_CONFIGFILE){
+    pFontBase->t1lib_flags |= IGNORE_CONFIGFILE;
     T1_PrintLog( "T1_InitLib()", "Skipping configuration file search!",
 		 T1LOG_STATISTIC);
   }
@@ -176,6 +190,7 @@ void *T1_InitLib( int log)
   
   /* Check whether to read font database */
   if ((log & IGNORE_FONTDATABASE)){
+    pFontBase->t1lib_flags |= IGNORE_FONTDATABASE;
     /* Initialize the no_fonts... values */
     pFontBase->no_fonts=0;
     pFontBase->no_fonts_ini=pFontBase->no_fonts;
@@ -280,12 +295,17 @@ int scanFontDBase( char *filename)
 	/* We are at the last printable character of a line; let's 
 	   step back (over the [afm/sfm]) to the period and replace it
 	   by an ASCII 0 */
-	while (filebuffer[k]!='.'){
+	while ((filebuffer[k]!='.') && (!isspace((int)filebuffer[k])) ){
 	  k--;
 	}
-	filebuffer[k]=0; /* termination for string reading */
-	while (!isspace((int)filebuffer[k])){
-	  k--;
+	if (filebuffer[k]=='.'){ /* We have a name terminated with . */
+	  filebuffer[k]=0; /* termination for string reading */
+	  while (!isspace((int)filebuffer[k])){
+	    k--;
+	  }
+	}
+	else { /* The filename was without . and / or the first on the line */ 
+	  ;
 	}
 	sscanf( &filebuffer[k+1], "%s", &linebuf[0]);
 	/* We print error string before testing because after the call
@@ -341,11 +361,17 @@ int T1_CloseLib( void)
     for (i=pFontBase->no_fonts; i; i--){
       /* Free filename only if not NULL and if the font is physical!
 	 Do it before removing the font since the physical information
-	 is no more available afterwards
+	 is no more available afterwards. If necessary, an explicitly
+	 specified AFM filename is also freed.
 	 */
       if ((pFontBase->pFontArray[i-1].pFontFileName!=NULL)
 	  && (pFontBase->pFontArray[i-1].physical==1)){
 	free( pFontBase->pFontArray[i-1].pFontFileName);
+	pFontBase->pFontArray[i-1].pFontFileName=NULL;
+	if (pFontBase->pFontArray[i-1].pAfmFileName!=NULL){
+	  free( pFontBase->pFontArray[i-1].pAfmFileName);
+	  pFontBase->pFontArray[i-1].pAfmFileName=NULL;
+	}
       }
       
       /* Now, remove font: */
@@ -380,6 +406,9 @@ int T1_CloseLib( void)
 	free( T1_FDB_ptr);
     T1_FDB_ptr=T1_fontdatabase;
 
+    /* Reset the flags */
+    pFontBase->t1lib_flags=0;
+    
     /* Indicate Library is no more initialized */
     pFontBase=NULL;
     T1_Up=0;
@@ -446,6 +475,7 @@ int T1_AddFont( char *fontfilename)
     for ( i=pFontBase->no_fonts;
 	  i<pFontBase->no_fonts+ADVANCE_FONTPRIVATE; i++){
       pFontBase->pFontArray[i].pFontFileName=NULL;
+      pFontBase->pFontArray[i].pAfmFileName=NULL;
       pFontBase->pFontArray[i].pAFMData=NULL;
       pFontBase->pFontArray[i].pType1Data=NULL;
       pFontBase->pFontArray[i].pEncMap=NULL;
@@ -494,7 +524,6 @@ int T1_AddFont( char *fontfilename)
   
 }
 
-		  
 
 /* This function prints a message to stderr and places an entry in the log
    file */
@@ -590,7 +619,13 @@ int test_for_t1_file( char *buffer )
   int i=0;
   char *FullName;
   
-  
+  /* First case: A PostScript Font ASCII File without extension
+     (according to some UNIX-conventions) */
+  if ((FullName=Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL){
+    free(FullName);
+    return(0);
+  }
+
   while (buffer[i]!=0){
     i++;
   }
@@ -600,13 +635,13 @@ int test_for_t1_file( char *buffer )
   buffer[i+4]=0;
 
   
-  /* First case: A PostScript Font ASCII File */
+  /* Second case: A PostScript Font ASCII File */
   buffer[i+3]='a';
   if ((FullName=Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL){
     free(FullName);
     return(0);
   }
-  /* Second case: A PostScript Font Binary File */
+  /* Third case: A PostScript Font Binary File */
   buffer[i+3]='b';
   if ((FullName=Env_GetCompletePath(buffer,T1_PFAB_ptr))!=NULL){
     free(FullName);
@@ -624,7 +659,6 @@ int test_for_t1_file( char *buffer )
 /* T1_GetFontFileName() returns a pointer to the filename of the font,
    associated with FontID. This filename does not contain a full path.
    */
-
 char *T1_GetFontFileName( int FontID)
 {
 
@@ -646,8 +680,73 @@ char *T1_GetFontFileName( int FontID)
 
 
 
-/* T1_Get_no_fonts(): Return the number of declared fonts */
+/* As suggested by Nicolai Langfeldt, we make it possible to specify
+   a completely independent path for the afm filename. This should
+   make t1lib usable in context with using the kpathsearch-library.
+   We allow setting those path´s after initialization, but before a
+   font is loaded.
+   returns  0:   OK
+           -1:   Operation could not be performed
+*/
+int T1_SetAfmFileName( int FontID, char *afm_name)
+{
 
+  if (CheckForFontID(FontID)!=0){
+    /* Operation may not be applied because FontID is invalid
+       or font is loaded */
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(-1);
+  }
+  if (afm_name==NULL) {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return(-1);
+  }
+  if (pFontBase->pFontArray[FontID].pAfmFileName!=NULL){
+    /* we first free the current name */
+    free( pFontBase->pFontArray[FontID].pAfmFileName);
+    pFontBase->pFontArray[FontID].pAfmFileName=NULL;
+  }
+  
+  if ((pFontBase->pFontArray[FontID].pAfmFileName=
+       (char *)malloc( (strlen(afm_name)+1)*sizeof( char)))==NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return( -1);
+  }
+  strcpy( pFontBase->pFontArray[FontID].pAfmFileName, afm_name);
+	  
+  return(0);
+  
+}
+
+		  
+ 
+/* We have a function for querying the name. Returns a pointer
+   to the string or NULL if name was not explicitly set .*/
+char *T1_GetAfmFileName( int FontID)
+{
+
+  static char filename[MAXPATHLEN+1];
+  
+  if (CheckForInit())return(NULL);
+
+  /* Check first for valid FontID */
+  if ((FontID<0) || (FontID>FontBase.no_fonts)){
+    T1_errno=T1ERR_INVALID_FONTID;
+    return(NULL);
+  }
+
+  if (pFontBase->pFontArray[FontID].pAfmFileName==NULL) {
+    return( NULL);
+  }
+  
+  strcpy( filename, pFontBase->pFontArray[FontID].pAfmFileName);
+  return( filename);
+  
+}
+
+
+  
+/* T1_Get_no_fonts(): Return the number of declared fonts */
 int  T1_Get_no_fonts(void)
 {
   if (CheckForInit())return(-1);

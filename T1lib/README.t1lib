@@ -4,7 +4,7 @@
   --------------------------------------------------------------------------
 
 /*--------------------------------------------------------------------------
-  ----- File:        REAMDE.t1lib-0.8-beta
+  ----- File:        REAMDE.t1lib-0.9
   ----- Author:      Rainer Menzner 
 		     (Rainer.Menzner@neuroinformatik.ruhr-uni-bochum.de)
 
@@ -12,13 +12,13 @@
 		     from:
                                 Raph Levien (raph@acm.org) and 
 				Fred L. Drake, Jr. (fdrake@acm.org)
-  ----- Date:        10/30/1998
+  ----- Date:        1999-05-05
   ----- Description: This is file README.t1lib of the t1lib-package. It
                      contains an overview and brief installation
                      instructions for the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
-		     GNU General Public Library Lincense. The
+		     GNU General Public Library License. The
 		     conditions can be found in the files LICENSE and
 		     LGPL, which should reside in the toplevel
 		     directory of the distribution.  Please note that 
@@ -33,7 +33,7 @@
                      their rasterizer freely available.
 		     Also thanks to Piet Tutelaers for his ps2pk, from
 		     which I took the rasterizer sources in a format
-		     independ from X11.
+		     independent from X11.
                      Thanks to all people who make free software living!
 --------------------------------------------------------------------------*/
 
@@ -70,18 +70,20 @@ of the features:
 
 - a program to generate afm-files from Type 1 font files is included
 
-- rotation and arbitrary affine transformation is supported
+- rotation and arbitrary transformations are supported
 
-- there's support for extending and slanting fonts 
+- there's support for extending and slanting fonts
 
 - underlining, overlining and overstriking is supported
 
 - new encoding vectors may be loaded at runtime and fonts may be
   reencoded using these encoding vectors 
 
-- antialiasing is implemented in low (2x) and high (4x) rsolution
+- antialiasing is implemented 
 
-- an interactive test program called "xglyph" is included in the
+- Right-To-Left typesetting is supported
+
+- An interactive test program called "xglyph" is included in the
   distribution. This program allows to test all of the features of the
   library. It requires X11.
 
@@ -126,8 +128,8 @@ directory T1-.../doc and execute
    $ latex t1lib_doc.tex
    $ latex t1lib_doc.tex
 
-This will generate the docs which contain a description of the
-build-process. LaTeX2e is required.
+This will generate the docs which contain a more detailed description 
+of the build-process. LaTeX2e is required.
 
 
 Before installing the libraries, you should test whether all things 
@@ -175,11 +177,11 @@ How to get it:
 
 t1lib is available at
 
-ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-0.8-beta.tar.gz
+ftp://ftp.neuroinformatik.ruhr-uni-bochum.de/pub/software/t1lib/t1lib-0.9.tar.gz
 
 and 
 
-ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-0.8-beta.tar.gz
+ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-0.9.tar.gz
 
 
 Closing:

@@ -2,11 +2,11 @@
   ----- File:        t1aaset.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
                      Subsampling-code by Raph Levien (raph@acm.org)
-  ----- Date:        10/01/1998
+  ----- Date:        1999-04-23
   ----- Description: This file is part of the t1-library. It contains
                      functions for antialiased setting of characters
 		     and strings of characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -48,7 +48,6 @@
 #include "../type1/fontfcn.h"
 #include "../type1/regions.h"
 
-
 #include "t1types.h"
 #include "t1extern.h"
 #include "t1aaset.h"
@@ -57,6 +56,7 @@
 #include "t1finfo.h"
 #include "t1misc.h"
 #include "t1base.h"
+#include "t1outline.h"
 
 
 #define DEFAULTBPP 8
@@ -76,18 +76,23 @@
    black (foreground) value. */
 static unsigned T1_AA_TYPE32 gv[5]={0,0,0,0,0};
 static unsigned T1_AA_TYPE32 gv_h[17]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static unsigned T1_AA_TYPE32 gv_n[2]={0,0};
 
 static int T1aa_level=T1_AA_LOW;  /* The default value */
 static T1_AA_TYPE32 T1aa_lut[625];
 static int T1aa_count[256];
 static T1_AA_TYPE32 T1aa_h_lut[289];
 static int T1aa_h_count[256];
+static T1_AA_TYPE32 T1aa_n_lut[64];
 
 /* This global is for querying the current bg from other parts
    of t1lib */
 unsigned T1_AA_TYPE32 T1aa_bg=0;
 
-
+/* The limit values for smart antialiasing */
+float T1aa_smartlimit1=T1_AA_SMARTLIMIT1;
+float T1aa_smartlimit2=T1_AA_SMARTLIMIT2;
+int    T1aa_SmartOn=0;     /* We do not enable smart AA by default */
 
 /* T1_AAInit: This function must be called whenever the T1aa_gray_val
    or T1aa_bpp variables change, or the level changes. */
@@ -96,10 +101,32 @@ static int T1_AAInit ( int level )
   int i;
   int i0, i1, i2, i3;
   int movelow=0, movehigh=0, indlow=0, indhigh=0;
-  
 
   /* Note: movelow, movehigh, indlow and indhigh take care for proper
      byte swapping in dependence of endianess for level=4 */
+  if (level==T1_AA_NONE){
+    if (T1aa_bpp==8){
+      if (pFontBase->endian){
+	movelow=3;
+	movehigh=2;
+      }
+      else{
+	movelow=0;
+	movehigh=1;
+      }
+    }
+    else if (T1aa_bpp==16){
+      if (pFontBase->endian){
+	movelow=1;
+	movehigh=0;
+      }
+      else{
+	movelow=0;
+	movehigh=1;
+      }
+    }
+  }
+
   if (level==T1_AA_HIGH){
     
     if (T1aa_bpp==8){
@@ -130,7 +157,7 @@ static int T1_AAInit ( int level )
 	movehigh=1;
       }
     }
-    if (T1aa_bpp==32){
+    else if (T1aa_bpp==32){
       indlow=1;
       indhigh=17;
     }
@@ -146,7 +173,6 @@ static int T1_AAInit ( int level )
       if (i & 0x01) T1aa_h_count[i] += indlow;
     }
   }
-  
   
   if (level == 2 && T1aa_bpp == 8) {
     for (i0 = 0; i0 < 5; i0++)
@@ -203,7 +229,8 @@ static int T1_AAInit ( int level )
       if (i & 0x01) T1aa_count[i] += 1;
     }
     return(0);
-  } else if (level == 4 && T1aa_bpp == 8) {
+  }
+  else if (level == 4 && T1aa_bpp == 8) {
     for (i0 = 0; i0 < 17; i0++){ /* i0 indexes higher nibble */
       for (i1 = 0; i1 < 17; i1++){ /* i1 indixes lower nibble */
 	((char *)T1aa_h_lut)[(i0 * 17 + i1) * 4 + movelow] = gv_h[i1];
@@ -211,7 +238,8 @@ static int T1_AAInit ( int level )
       }
     }
     return(0);
-  } else if (level == 4 && T1aa_bpp == 16) {
+  }
+  else if (level == 4 && T1aa_bpp == 16) {
     for (i0 = 0; i0 < 17; i0++){ /* i0 indexes higher nibble */
       for (i1 = 0; i1 < 17; i1++){ /* i1 indixes lower nibble */
 	((T1_AA_TYPE16 *)T1aa_h_lut)[(i0 * 17 + i1) * 2 + movelow] = gv_h[i1];
@@ -219,11 +247,34 @@ static int T1_AAInit ( int level )
       }
     }
     return(0);
-  } else if (level == 4 && T1aa_bpp == 32) {
+  }
+  else if (level == 4 && T1aa_bpp == 32) {
     for (i0 = 0; i0 < 17; i0++){ /* i0 indexes higher nibble */
       for (i1 = 0; i1 < 17; i1++){ /* i1 indixes lower nibble */
 	((T1_AA_TYPE32 *)T1aa_h_lut)[(i0 * 17 + i1)] = gv_h[i1];
       }
+    }
+    return(0);
+  }
+  else if (level == 1 && T1aa_bpp == 8) {
+    for (i0=0; i0<16; i0++) {
+      ((char *)T1aa_n_lut)[i0*4+movelow]=gv_n[i0 & 0x01];
+      ((char *)T1aa_n_lut)[i0*4+movelow+1]=gv_n[(i0>>1) & 0x01];
+      ((char *)T1aa_n_lut)[i0*4+movelow+2]=gv_n[(i0>>2) & 0x01];
+      ((char *)T1aa_n_lut)[i0*4+movelow+3]=gv_n[(i0>>3) & 0x01];
+    }
+    return(0);
+  }
+  else if (level == 1 && T1aa_bpp == 16) {
+    for (i0=0; i0<4; i0++) {
+      ((T1_AA_TYPE16 *)T1aa_n_lut)[i0*2]=gv_n[i0 & 0x01];
+      ((T1_AA_TYPE16 *)T1aa_n_lut)[i0*2+1]=gv_n[(i0>>1) & 0x01];
+    }
+    return(0);
+  }
+  else if (level == 1 && T1aa_bpp == 32) {
+    for ( i0=0; i0<2; i0++) {
+      ((T1_AA_TYPE32 *)T1aa_n_lut)[i0]=gv_n[i0];
     }
     return(0);
   }
@@ -243,45 +294,47 @@ static int T1_AAInit ( int level )
 /* T1_AADoLine: Create a single scanline of antialiased output. The
    (x, y) arguments refer to the number of pixels in the input image
    to convert down. The width argument is the number of bytes
-   separating scanlines in the input. */
+   separating scanlines in the input. The quantity hcorr describes the
+   number of subpixels. It is the shift of the oversampled bitmap to
+   the right */
 static void T1_AADoLine ( int level, int x, int y, int width,
-			  char *c_in_ptr,
-			  char *target_ptr )
+			  char *c_in_ptr, char *target_ptr, int hcorr )
 {
   int i=0;
   int size;
-  char buf[8];
   int count=0;
   int mod;
   
+  unsigned char bcarry1=0, bcarry2=0, bcarry3=0, bcarry4=0;
   
   static char *align_buf = NULL;
   static int align_buf_size = 0;
   unsigned char *in_ptr;
   
   int new_size=55;
-  char *optr;
+  register char *optr;
 
   
-
-  /* Perhaps we should mask the last byte when the line end isn't aligned
-     with a byte, but it always seems to be zero, so we don't bother. */
-
+  
   /* We convert the input pointer to unsigned since we use it as index! */
   in_ptr=(unsigned char*)c_in_ptr;
   
-
+  
   if ((long)target_ptr & 3){
     /* calculate new_size (size in bytes of output buffer */
-    if (level == T1_AA_LOW)
-      new_size = ((x + 1) >> 1) * (T1aa_bpp >> 3);
-    else /* T1_AA_HIGH */
-      new_size = ((x + 3) >> 2) * (T1aa_bpp >> 3);
+    if (level == T1_AA_LOW){
+      new_size=((x + hcorr + 1) >> 1) * (T1aa_bpp >> 3);
+    }
+    else{ /* T1_AA_HIGH */
+      new_size = ((x + hcorr + 3) >> 2) * (T1aa_bpp >> 3);
+    }
     if (new_size > align_buf_size)
       {
 	if (align_buf)
 	  free (align_buf);
-	align_buf = (char *)malloc(new_size);
+	/* Note: we allocate 12 more than necessary to have tolerance
+	   at the end of line */
+	align_buf = (char *)malloc(new_size+12);
 	align_buf_size = new_size;
       }
     optr = align_buf;
@@ -289,240 +342,356 @@ static void T1_AADoLine ( int level, int x, int y, int width,
   else
     optr = target_ptr;
 
+
+  /* size: The number of valid byte in the input string, i.e., the number of bytes
+           partially filled with pixels before shifting with hcorr.
+     mod:  Is 1 if after shifting with hcorr the last byte in the input line has an
+           overflow.
+  */
+  
   if (level == T1_AA_LOW) {
-    /* Note: (x+1)&6 is an identical statement to ((x+1)>>1)&3 which
-       in turn is the horizontal pixelnumber in the aaglyph */
-    size = (x + 1) >> 3; 
-    mod = ((x+1)>>1)&3;
+    size=(x+7)>>3; 
+    mod=(x+hcorr)>(size*8) ? 1 : 0;
     
     if (T1aa_bpp == 8) {
       if (y == 2){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE32 *)optr)[i] = T1aa_lut[(T1aa_count[in_ptr[i]] +
-						T1aa_count[in_ptr[i + width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_lut[(T1aa_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+		      T1aa_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
 	}
       }
       else if (y == 1){
 	for (i = 0; i < size; i++) {
-	  /* could collapse the luts here, but it would be a marginal
-	     performance gain at best. */
-	  ((T1_AA_TYPE32 *)optr)[i] = T1aa_lut[(T1aa_count[in_ptr[i]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_lut[(T1aa_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
 	}
       }
       if (mod) {
 	if (y == 2)
-	  ((T1_AA_TYPE32 *)buf)[0] = T1aa_lut[(T1aa_count[in_ptr[i]] +
-					       T1aa_count[in_ptr[i + width]])];
+	  ((T1_AA_TYPE32 *)optr)[i]=T1aa_lut[(T1aa_count[bcarry1] +
+					      T1aa_count[bcarry2])];
 	else if (y == 1)
-	  ((T1_AA_TYPE32 *)buf)[0] = T1aa_lut[(T1aa_count[in_ptr[i]])];
-	memcpy (optr + i * 4, buf, mod );
+	  ((T1_AA_TYPE32 *)optr)[i]=T1aa_lut[(T1aa_count[bcarry1])];
       }
-      
-    } else if (T1aa_bpp == 16) {
-      if (y == 2)
+    }
+    else if (T1aa_bpp == 16) {
+      if (y == 2){
 	for (i = 0; i < size; i++) {
-	  count = T1aa_count[in_ptr[i]] + T1aa_count[in_ptr[i + width]];
+	  count = T1aa_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)]
+	    + T1aa_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)];
 	  ((T1_AA_TYPE32 *)optr)[i * 2] = T1aa_lut[count & 31];
 	  ((T1_AA_TYPE32 *)optr)[i * 2 + 1] = T1aa_lut[count >> 5];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
 	}
-      else if (y == 1)
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
+	}
+      }
+      else if (y == 1){
 	for (i = 0; i < size; i++) {
-	  count = T1aa_count[in_ptr[i]];
+	  count = T1aa_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)];
 	  ((T1_AA_TYPE32 *)optr)[i * 2] = T1aa_lut[count & 31];
 	  ((T1_AA_TYPE32 *)optr)[i * 2 + 1] = T1aa_lut[count >> 5];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
 	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	}
+      }
       if (mod){
 	if (y == 2)
-	  count = T1aa_count[in_ptr[i]] + T1aa_count[in_ptr[i + width]];
+	  count = T1aa_count[bcarry1] +
+	    T1aa_count[bcarry2];
 	else if (y == 1)
-	  count = T1aa_count[in_ptr[i]];
-	((T1_AA_TYPE32 *)buf)[0] = T1aa_lut[count & 31];
-	((T1_AA_TYPE32 *)buf)[1] = T1aa_lut[count >> 5];
-	memcpy (optr + i * 8, buf, mod<<1 );
+	  count = T1aa_count[bcarry1];
+	((T1_AA_TYPE32 *)optr)[i * 2] = T1aa_lut[count & 31];
+	((T1_AA_TYPE32 *)optr)[i * 2 + 1] = T1aa_lut[count >> 5];
       }
-    } else if (T1aa_bpp == 32) {
-      if (y == 2)
+    }
+    else if (T1aa_bpp == 32) {
+      if (y == 2){
 	for (i = 0; i < size; i++) {
-	  count = T1aa_count[in_ptr[i]] + T1aa_count[in_ptr[i + width]];
+	  count = T1aa_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+	    T1aa_count[(unsigned char)((in_ptr[i+width]<<hcorr)|bcarry2)];
 	  ((T1_AA_TYPE32 *)optr)[i * 4] = T1aa_lut[count & 7];
 	  ((T1_AA_TYPE32 *)optr)[i * 4 + 1] = T1aa_lut[(count >> 3) & 7];
 	  ((T1_AA_TYPE32 *)optr)[i * 4 + 2] = T1aa_lut[(count >> 6) & 7];
 	  ((T1_AA_TYPE32 *)optr)[i * 4 + 3] = T1aa_lut[(count >> 9) & 7];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
 	}
-      else if (y == 1)
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
+	}
+      }
+      else if (y == 1) {
 	for (i = 0; i < size; i++) {
-	  count = T1aa_count[in_ptr[i]];
+	  count = T1aa_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)];
 	  ((T1_AA_TYPE32 *)optr)[i * 4] = T1aa_lut[count & 7];
 	  ((T1_AA_TYPE32 *)optr)[i * 4 + 1] = T1aa_lut[(count >> 3) & 7];
 	  ((T1_AA_TYPE32 *)optr)[i * 4 + 2] = T1aa_lut[(count >> 6) & 7];
 	  ((T1_AA_TYPE32 *)optr)[i * 4 + 3] = T1aa_lut[(count >> 9) & 7];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
 	}
-      if(mod){
-	if (y == 2)
-	  count = T1aa_count[in_ptr[i]] + T1aa_count[in_ptr[i + width]];
-	else if (y == 1)
-	  count = T1aa_count[in_ptr[i]];
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	}
+      }
+      if(mod) {
+	if (y == 2){
+	  count = T1aa_count[bcarry1] +
+	    T1aa_count[bcarry2];
+	}
+	else if (y == 1){
+	  count = T1aa_count[bcarry1];
+	}
 	((T1_AA_TYPE32 *)optr)[i * 4] = T1aa_lut[count & 7];
-	if (((x + 1) & 6) > 2) {
-	  ((T1_AA_TYPE32 *)optr)[i * 4 + 1] = T1aa_lut[(count >> 3) & 7];
-	  if (((x + 1) & 6) > 4) {
-	    ((T1_AA_TYPE32 *)optr)[i * 4 + 2] = T1aa_lut[(count >> 6) & 7];
-	  }
-	}
+	((T1_AA_TYPE32 *)optr)[i * 4 + 1] = T1aa_lut[(count >> 3) & 7];
+	((T1_AA_TYPE32 *)optr)[i * 4 + 2] = T1aa_lut[(count >> 6) & 7];
+	((T1_AA_TYPE32 *)optr)[i * 4 + 3] = T1aa_lut[(count >> 9) & 7];
       }
     }
   }
   else if (level==T1_AA_HIGH){ 
-    size = (x+3)>>3; 
-    mod =  ((x+3)>>2)&1;
+    size=(x+7)>>3; 
+    mod=(x+hcorr)>(size*8) ? 1 : 0;
+    
     if (T1aa_bpp == 8) {
       if (y == 4){
 	for (i = 0; i < size; i++) {
-	  count=T1aa_h_count[in_ptr[i]]+
-	    T1aa_h_count[in_ptr[i + width]] +
-	    T1aa_h_count[in_ptr[i + 2*width]] +
-	    T1aa_h_count[in_ptr[i + 3*width]];
-	  ((T1_AA_TYPE16 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] + 
-						  T1aa_h_count[in_ptr[i + width]] + 
-						  T1aa_h_count[in_ptr[i + 2*width]] + 
-						  T1aa_h_count[in_ptr[i + 3*width]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] + 
+			T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)] + 
+			T1aa_h_count[(unsigned char)((in_ptr[i + 2*width]<<hcorr)|bcarry3)] + 
+			T1aa_h_count[(unsigned char)((in_ptr[i + 3*width]<<hcorr)|bcarry4)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	  bcarry3=in_ptr[i+2*width]>>(8-hcorr);
+	  bcarry4=in_ptr[i+3*width]>>(8-hcorr);
 	}
       }
       else if (y == 3){
 	for (i = 0; i < size; i++) {
-	  count=T1aa_h_count[in_ptr[i]]+
-	    T1aa_h_count[in_ptr[i + width]] +
-	    T1aa_h_count[in_ptr[i + 2*width]];
-	  ((T1_AA_TYPE16 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						  T1aa_h_count[in_ptr[i + width]] +
-						  T1aa_h_count[in_ptr[i + 2*width]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+			T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)] +
+			T1aa_h_count[(unsigned char)((in_ptr[i + 2*width]<<hcorr)|bcarry3)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	  bcarry3=in_ptr[i+2*width]>>(8-hcorr);
 	}
       }
       else if (y == 2){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE16 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						  T1aa_h_count[in_ptr[i + width]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+			T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
 	}
       }
       else if (y == 1){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE16 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
 	}
       }
       if (mod) {
 	if (y == 4)
-	  ((T1_AA_TYPE16 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						 T1aa_h_count[in_ptr[i + width]] + 
-						 T1aa_h_count[in_ptr[i + 2*width]] +
-						 T1aa_h_count[in_ptr[i + 3*width]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1] +
+			T1aa_h_count[bcarry2] + 
+			T1aa_h_count[bcarry3] +
+			T1aa_h_count[bcarry4])];
 	else if (y == 3)
-	  ((T1_AA_TYPE16 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						 T1aa_h_count[in_ptr[i + width]] + 
-						 T1aa_h_count[in_ptr[i + 2*width]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1] +
+			T1aa_h_count[bcarry2] + 
+			T1aa_h_count[bcarry3])];
 	else if (y == 2)
-	  ((T1_AA_TYPE16 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						 T1aa_h_count[in_ptr[i + width]])];
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1] +
+			T1aa_h_count[bcarry2])];
 	else if (y == 1)
-	  ((T1_AA_TYPE16 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]])];
-	memcpy (optr + i * 2, buf, mod );
+	  ((T1_AA_TYPE16 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1])];
       }
-      
     } else if (T1aa_bpp == 16) {
       if (y == 4){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE32 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] + 
-						  T1aa_h_count[in_ptr[i + width]] + 
-						  T1aa_h_count[in_ptr[i + 2*width]] + 
-						  T1aa_h_count[in_ptr[i + 3*width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] + 
+			T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)] + 
+			T1aa_h_count[(unsigned char)((in_ptr[i + 2*width]<<hcorr)|bcarry3)] + 
+			T1aa_h_count[(unsigned char)((in_ptr[i + 3*width]<<hcorr)|bcarry4)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	  bcarry3=in_ptr[i+2*width]>>(8-hcorr);
+	  bcarry4=in_ptr[i+3*width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
+	  bcarry3=in_ptr[2*width]<<hcorr;
+	  bcarry4=in_ptr[3*width]<<hcorr;
 	}
       }
       else if (y == 3){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE32 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						  T1aa_h_count[in_ptr[i + width]] +
-						  T1aa_h_count[in_ptr[i + 2*width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+			T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)] +
+			T1aa_h_count[(unsigned char)((in_ptr[i + 2*width]<<hcorr)|bcarry3)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+2*width]>>(8-hcorr);
+	  bcarry3=in_ptr[i+3*width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
+	  bcarry3=in_ptr[2*width]<<hcorr;
 	}
       }
       else if (y == 2){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE32 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						  T1aa_h_count[in_ptr[i + width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+			T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
 	}
       }
       else if (y == 1){
 	for (i = 0; i < size; i++) {
-	  ((T1_AA_TYPE32 *)optr)[i] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)])];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
 	}
       }
       if (mod) {
 	if (y == 4)
-	  ((T1_AA_TYPE32 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						 T1aa_h_count[in_ptr[i + width]] + 
-						 T1aa_h_count[in_ptr[i + 2*width]] +
-						 T1aa_h_count[in_ptr[i + 3*width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1] +
+			T1aa_h_count[bcarry2] + 
+			T1aa_h_count[bcarry3] +
+			T1aa_h_count[bcarry4])];
 	else if (y == 3)
-	  ((T1_AA_TYPE32 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						 T1aa_h_count[in_ptr[i + width]] + 
-						 T1aa_h_count[in_ptr[i + 2*width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1] +
+			T1aa_h_count[bcarry2] + 
+			T1aa_h_count[bcarry3])];
 	else if (y == 2)
-	  ((T1_AA_TYPE32 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]] +
-						 T1aa_h_count[in_ptr[i + width]])];
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	    T1aa_h_lut[(T1aa_h_count[bcarry1] +
+			T1aa_h_count[bcarry2])];
 	else if (y == 1)
-	  ((T1_AA_TYPE32 *)buf)[0] = T1aa_h_lut[(T1aa_h_count[in_ptr[i]])];
-	memcpy (optr + i * 4, buf, mod << 1);
+	  ((T1_AA_TYPE32 *)optr)[i] =
+	  T1aa_h_lut[(T1aa_h_count[bcarry1])]; 
       }
-    } else if (T1aa_bpp == 32) {
+    }
+    else if (T1aa_bpp == 32) {
       if (y == 4){
 	for (i = 0; i < size; i++) {
-	  count=T1aa_h_count[in_ptr[i]] +
-	    T1aa_h_count[in_ptr[i + width]] +
-	    T1aa_h_count[in_ptr[i + 2*width]] +
-	    T1aa_h_count[in_ptr[i + 3*width]];
+	  count=T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+	    T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)] +
+	    T1aa_h_count[(unsigned char)((in_ptr[i + 2*width]<<hcorr)|bcarry3)] +
+	    T1aa_h_count[(unsigned char)((in_ptr[i + 3*width]<<hcorr)|bcarry4)];
 	  ((T1_AA_TYPE32 *)optr)[2*i] = T1aa_h_lut[count % 17];
 	  ((T1_AA_TYPE32 *)optr)[2*i+1] = T1aa_h_lut[count / 17];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	  bcarry3=in_ptr[i+2*width]>>(8-hcorr);
+	  bcarry4=in_ptr[i+3*width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
+	  bcarry3=in_ptr[2*width]<<hcorr;
+	  bcarry4=in_ptr[3*width]<<hcorr;
 	}
       }
       else if (y == 3){
 	for (i = 0; i < size; i++) {
-	  count=T1aa_h_count[in_ptr[i]] +
-	    T1aa_h_count[in_ptr[i + width]] +
-	    T1aa_h_count[in_ptr[i + 2*width]];
+	  count=T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+	    T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)] +
+	    T1aa_h_count[(unsigned char)((in_ptr[i + 2*width]<<hcorr)|bcarry3)];
 	  ((T1_AA_TYPE32 *)optr)[2*i] = T1aa_h_lut[count % 17];
 	  ((T1_AA_TYPE32 *)optr)[2*i+1] = T1aa_h_lut[count / 17];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	  bcarry3=in_ptr[i+2*width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
+	  bcarry3=in_ptr[2*width]<<hcorr;
 	}
       }
       else if (y == 2){
 	for (i = 0; i < size; i++) {
-	  count=T1aa_h_count[in_ptr[i]] +
-	    T1aa_h_count[in_ptr[i + width]];
+	  count=T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)] +
+	    T1aa_h_count[(unsigned char)((in_ptr[i + width]<<hcorr)|bcarry2)];
 	  ((T1_AA_TYPE32 *)optr)[2*i] = T1aa_h_lut[count % 17];
 	  ((T1_AA_TYPE32 *)optr)[2*i+1] = T1aa_h_lut[count / 17];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	  bcarry2=in_ptr[i+width]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
+	  bcarry2=in_ptr[width]<<hcorr;
 	}
       }
       else if (y == 1){
 	for (i = 0; i < size; i++) {
-	  count=T1aa_h_count[in_ptr[i]];
+	  count=T1aa_h_count[(unsigned char)((in_ptr[i]<<hcorr)|bcarry1)];
 	  ((T1_AA_TYPE32 *)optr)[2*i] = T1aa_h_lut[count % 17];
 	  ((T1_AA_TYPE32 *)optr)[2*i+1] = T1aa_h_lut[count / 17];
+	  bcarry1=in_ptr[i]>>(8-hcorr);
+	}
+	if (size==0){
+	  bcarry1=in_ptr[0]<<hcorr;
 	}
       }
       if (mod) {
-	if (y == 4)
-	  count=T1aa_h_count[in_ptr[i]] +
-	    T1aa_h_count[in_ptr[i + width]] +
-	    T1aa_h_count[in_ptr[i + 2*width]] +
-	    T1aa_h_count[in_ptr[i + 3*width]];
+	if (y == 4){
+	  count=T1aa_h_count[bcarry1] +
+	    T1aa_h_count[bcarry2] +
+	    T1aa_h_count[bcarry3] +
+	    T1aa_h_count[bcarry4];
+	}
 	else if (y == 3)
-	  count=T1aa_h_count[in_ptr[i]] +
-	    T1aa_h_count[in_ptr[i + width]] +
-	    T1aa_h_count[in_ptr[i + 2*width]];
+	  count=T1aa_h_count[bcarry1] +
+	    T1aa_h_count[bcarry2] +
+	    T1aa_h_count[bcarry3];
 	else if (y == 2)
-	  count=T1aa_h_count[in_ptr[i]] +
-	    T1aa_h_count[in_ptr[i + width]];
+	  count=T1aa_h_count[bcarry1] +
+	    T1aa_h_count[bcarry2];
 	else if (y == 1)
-	  count=T1aa_h_count[in_ptr[i]];
-	((T1_AA_TYPE32 *)buf)[0] = T1aa_h_lut[count % 17];
-	memcpy (optr + 8*i, buf, mod << 2);
+	  count=T1aa_h_count[bcarry1];
+	((T1_AA_TYPE32 *)optr)[2*i] = T1aa_h_lut[count % 17];
+	((T1_AA_TYPE32 *)optr)[2*i+1] = T1aa_h_lut[count / 17];
       }
     }
   }
@@ -535,6 +704,32 @@ static void T1_AADoLine ( int level, int x, int y, int width,
 }
 
 
+/* T1_DoLine(): Generate a scanline of bytes from a scanline of bits */
+static void T1_DoLine ( long wd, long paddedW, char *ptr, register char *target_ptr )
+{
+  register int j;
+  register unsigned char *in_ptr;
+  in_ptr=(unsigned char *)ptr;
+  
+  if (T1aa_bpp==8) {
+    for ( j=0; j<wd; j++ ){
+      *((char *)target_ptr)++=T1aa_n_lut[((in_ptr[j/8])>>j%8)&0x0F];
+    }
+  }
+  else if (T1aa_bpp==16) {
+    for ( j=0; j<wd; j++){
+      *((T1_AA_TYPE16 *)target_ptr)++=T1aa_n_lut[((in_ptr[j/8])>>j%8)&0x03];
+    }
+  }
+  else if (T1aa_bpp==32) {
+    for ( j=0; j<wd; j++)
+      *((T1_AA_TYPE32 *)target_ptr)++=T1aa_n_lut[((in_ptr[j/8])>>j%8)&0x01];
+  }
+  return;
+}
+
+
+
 /* T1_AASetChar(...): Generate the anti-aliased bitmap for a character */
 GLYPH *T1_AASetChar( int FontID, char charcode, float size,
 		     T1_TMATRIX *transform)
@@ -543,17 +738,20 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
   GLYPH *glyph;   /* pointer to bitmap glyph */
   static GLYPH aaglyph={NULL,{0,0,0,0,0,0},NULL,DEFAULTBPP};/* The anti-aliased glyph */
   long asc, dsc, ht, wd;
-  long i, k;
+  long i;
   long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
   long v_start, v_end;
   char *target_ptr;
   long offset;
   char *ptr;
   int y;
-
+  long lsb, aalsb, aahstart;
   int memsize;
   LONG paddedW;
- 
+  int savelevel;
+  FONTSIZEDEPS *font_ptr=NULL;
+  unsigned char ucharcode;
+  
 
   /* Reset character glyph, if necessary */
   if (aaglyph.bits!=NULL){
@@ -568,21 +766,138 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
   aaglyph.metrics.descent=0;
   aaglyph.pFontCacheInfo=NULL;
   aaglyph.bpp=T1aa_bpp;
+
+
+  ucharcode=charcode;
   
+  /* Check for smart antialiasing */
+  savelevel=T1aa_level;
+  if (T1aa_SmartOn){
+    if (size>=T1aa_smartlimit2) {
+      T1aa_level=T1_AA_NONE;
+    }
+    else if (size>=T1aa_smartlimit1) {
+      T1aa_level=T1_AA_LOW;
+    }
+    else {
+      T1aa_level=T1_AA_HIGH;
+    }
+  }
+
+
+  /* The following code is only exectued if caching of antialiased
+     chracters is enabled. */
+  /* Check if char is in cache */
+  if ((pFontBase->t1lib_flags & T1_AA_CACHING)) {
+    if (transform==NULL){
+      /* if size/aa is not existent we create it */
+      if ((font_ptr=QueryFontSize( FontID, size, T1aa_level))==NULL){
+	/* We create the required size struct and leave the rest
+	   for T1_SetChar() */
+	font_ptr=CreateNewFontSize( FontID, size, T1aa_level);
+	if (font_ptr==NULL){
+	  T1_errno=T1ERR_ALLOC_MEM;
+	  T1aa_level=savelevel;
+	  return(NULL);
+	}
+      }
+      else {/* size is already existent in cache */
+	if (font_ptr->pFontCache[ucharcode].bits != NULL){
+	  /* Character is already in Chache -> create a copy of cache
+	     and return a pointer to the result: */
+	  memcpy( &aaglyph, &(font_ptr->pFontCache[ucharcode]), sizeof(GLYPH));
+	  memsize = (aaglyph.metrics.ascent-aaglyph.metrics.descent) *
+	    PAD((aaglyph.metrics.rightSideBearing-aaglyph.metrics.leftSideBearing) *
+		T1aa_bpp,pFontBase->bitmap_pad)/8;
+	  aaglyph.bits = (char *)malloc(memsize*sizeof( char));
+	  if (aaglyph.bits == NULL){
+	    T1_errno=T1ERR_ALLOC_MEM;
+	    T1aa_level=savelevel;
+	    return(NULL);
+	  }
+	  memcpy( aaglyph.bits, font_ptr->pFontCache[ucharcode].bits, memsize);
+	  return(&(aaglyph));
+	}
+      }
+    } /* (transform==NULL) */ 
+  } /* T1_AA_CACHING */
+  
+
   /* First, call routine to rasterize character, all error checking is
      done in this function: */ 
-  if ((glyph=T1_SetChar( FontID, charcode, T1aa_level*size, transform))==NULL)
+  if ((glyph=T1_SetChar( FontID, charcode, T1aa_level*size, transform))==NULL){
+    /* restore level */
+    T1aa_level=savelevel;
     return(NULL); /* An error occured */
+  }
   
+  /* In case there are no black pixels, we simply set the dimensions and
+     then return */
+  if ( glyph->bits == NULL) {
+    aaglyph.bits=NULL;
+    aaglyph.metrics.leftSideBearing=0;
+    aaglyph.metrics.rightSideBearing=0;
+    aaglyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+    aaglyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+    aaglyph.metrics.ascent=0;
+    aaglyph.metrics.descent=0;
+    aaglyph.pFontCacheInfo=NULL;
+    /* restore level and return */
+    T1aa_level=savelevel;
+    return(&aaglyph);
+  }
+
   /* Get dimensions of bitmap: */
   asc=glyph->metrics.ascent;
   dsc=glyph->metrics.descent;
+  lsb=glyph->metrics.leftSideBearing;
   ht=asc-dsc;
-  wd=glyph->metrics.rightSideBearing-glyph->metrics.leftSideBearing;
+  wd=glyph->metrics.rightSideBearing-lsb;
+
   
+  
+  if (T1aa_level==T1_AA_NONE){
+    /* we only convert bitmap to bytemap */
+    aaglyph=*glyph;
+    aaglyph.bpp=T1aa_bpp;
+    /* Compute scanline length and such */
+    n_horz_pad=PAD( wd*T1aa_bpp, pFontBase->bitmap_pad )>>3;
+    /* Allocate memory for glyph */
+    memsize = n_horz_pad*ht*8;
+    /*    aaglyph.bits = (char *)malloc(memsize*sizeof( char)); */
+    aaglyph.bits = (char *)malloc(memsize*sizeof( char));
+    if (aaglyph.bits == NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      /* restore level */
+      T1aa_level=savelevel;
+      return(NULL);
+    }
+    paddedW=PAD(wd,pFontBase->bitmap_pad)>>3;
+    ptr=glyph->bits;
+    target_ptr=aaglyph.bits;
+    for (i = 0; i < ht; i++) {
+      T1_DoLine ( wd, paddedW, ptr, target_ptr );
+      ptr += paddedW;
+      target_ptr += n_horz_pad;
+    }
+    /* restore level */
+    T1aa_level=savelevel;
+    return(&aaglyph);
+  }
+  
+
   /* Set some looping parameters for subsampling */
+  if (lsb<0){
+    aalsb=lsb/T1aa_level-1;
+    aahstart=T1aa_level+(lsb%T1aa_level);
+  }
+  else{
+    aalsb=lsb/T1aa_level;
+    aahstart=lsb%T1aa_level;
+  }
+  
   /* The horizontal number of steps: */
-  n_horz=(wd+T1aa_level-1)/T1aa_level;
+  n_horz=(wd+aahstart+T1aa_level-1)/T1aa_level;
   /* And the padded value */
   n_horz_pad=PAD( n_horz*T1aa_bpp, pFontBase->bitmap_pad )>>3;
 
@@ -620,10 +935,13 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
   
   /* Allocate memory for glyph */
   memsize = n_horz_pad*n_vert;
-  
-  aaglyph.bits = (char *)malloc(memsize*sizeof( char));
+
+  /* Note: we allocate 12 bytes more than necessary */
+  aaglyph.bits = (char *)malloc(memsize*sizeof( char) +12);
   if (aaglyph.bits == NULL) {
     T1_errno=T1ERR_ALLOC_MEM;
+    /* restore level */
+    T1aa_level=savelevel;
     return(NULL);
   }
   
@@ -645,20 +963,35 @@ GLYPH *T1_AASetChar( int FontID, char charcode, float size,
       y=v_end;
     else
       y=T1aa_level;
-    T1_AADoLine ( T1aa_level, wd, y, paddedW, ptr, target_ptr );
+    T1_AADoLine ( T1aa_level, wd, y, paddedW, ptr, target_ptr, aahstart );
     ptr += y * paddedW;
     target_ptr += n_horz_pad;
   }
-  k = n_horz;
   
   /* .. and set them in aaglyph */
-  aaglyph.metrics.leftSideBearing=(int) floor(glyph->metrics.leftSideBearing/(float)T1aa_level+0.5);
-  aaglyph.metrics.rightSideBearing=aaglyph.metrics.leftSideBearing + k;
+  aaglyph.metrics.leftSideBearing=aalsb;
+  aaglyph.metrics.rightSideBearing=aalsb + n_horz;
   aaglyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
   aaglyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
   aaglyph.metrics.ascent=n_asc;
   aaglyph.metrics.descent=n_dsc;
   aaglyph.pFontCacheInfo=NULL;
+
+  
+  if ((pFontBase->t1lib_flags & T1_AA_CACHING) && (transform==NULL)) {
+    /* Put char into cache area */
+    memcpy( &(font_ptr->pFontCache[ucharcode]), &aaglyph, sizeof(GLYPH));
+    font_ptr->pFontCache[ucharcode].bits = (char *)malloc(memsize*sizeof( char));
+    if (font_ptr->pFontCache[ucharcode].bits == NULL){
+      T1_errno=T1ERR_ALLOC_MEM;
+      T1aa_level=savelevel;
+      return(NULL);
+    }
+    memcpy( font_ptr->pFontCache[ucharcode].bits, aaglyph.bits, memsize);
+  }
+  
+  /* restore level */
+  T1aa_level=savelevel;
 
   return(&aaglyph);
 }
@@ -674,17 +1007,18 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   GLYPH *glyph;   /* pointer to bitmap glyph */
   static GLYPH aastring_glyph={NULL,{0,0,0,0,0,0},NULL,DEFAULTBPP};/* The anti-aliased glyph */
   long asc, dsc, ht, wd;
-  long i, k;
+  long i;
   long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
   long v_start, v_end;
   char *target_ptr;
   long offset;
   char *ptr;
   int y;
-  
+  long lsb, aalsb, aahstart;
   int memsize;
   LONG paddedW;
-
+  int savelevel;
+  
   
   /* Reset character glyph, if necessary */
   if (aastring_glyph.bits!=NULL){
@@ -700,22 +1034,95 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   aastring_glyph.pFontCacheInfo=NULL;
   aastring_glyph.bpp=T1aa_bpp;
   
+
+  /* Check for smart antialiasing */
+  savelevel=T1aa_level;
+  if (T1aa_SmartOn){
+    if (size>=T1aa_smartlimit2) {
+      T1aa_level=T1_AA_NONE;
+    }
+    else if (size>=T1aa_smartlimit1) {
+      T1aa_level=T1_AA_LOW;
+    }
+    else {
+      T1aa_level=T1_AA_HIGH;
+    }
+  }
+    
   /* First, call routine to rasterize character, all error checking is
      done in this function: */ 
   if ((glyph=T1_SetString( FontID, string, len, spaceoff,
-			   modflag, T1aa_level*size, transform))==NULL)
+			   modflag, T1aa_level*size, transform))==NULL){
+    /* restore level */
+    T1aa_level=savelevel;
     return(NULL); /* An error occured */
+  }
   
+  /* In case there are no black pixels, we simply set the dimensions and
+     then return */
+  if ( glyph->bits == NULL) {
+    aastring_glyph.bits=NULL;
+    aastring_glyph.metrics.leftSideBearing=0;
+    aastring_glyph.metrics.rightSideBearing=0;
+    aastring_glyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+    aastring_glyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+    aastring_glyph.metrics.ascent=0;
+    aastring_glyph.metrics.descent=0;
+    aastring_glyph.pFontCacheInfo=NULL;
+    /* restore level and return */
+    T1aa_level=savelevel;
+    return(&aastring_glyph);
+  }
+
 
   /* Get dimensions of bitmap: */
   asc=glyph->metrics.ascent;
   dsc=glyph->metrics.descent;
+  lsb=glyph->metrics.leftSideBearing;
   ht=asc-dsc;
-  wd=glyph->metrics.rightSideBearing-glyph->metrics.leftSideBearing;
+  wd=glyph->metrics.rightSideBearing-lsb;
   
+  if (T1aa_level==T1_AA_NONE){
+    /* we only convert bitmap to bytemap */
+    aastring_glyph=*glyph;
+    aastring_glyph.bpp=T1aa_bpp;
+    /* Compute scanline length and such */
+    n_horz_pad=PAD( wd*T1aa_bpp, pFontBase->bitmap_pad )>>3;
+    /* Allocate memory for glyph */
+    memsize = n_horz_pad*ht*8;
+    aastring_glyph.bits = (char *)malloc(memsize*sizeof( char));
+    if (aastring_glyph.bits == NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      /* restore level */
+      T1aa_level=savelevel;
+      return(NULL);
+    }
+    paddedW=PAD(wd,pFontBase->bitmap_pad)>>3;
+    ptr=glyph->bits;
+    target_ptr=aastring_glyph.bits;
+    for (i = 0; i < ht; i++) {
+      T1_DoLine ( wd, paddedW, ptr, target_ptr );
+      ptr += paddedW;
+      target_ptr += n_horz_pad;
+    }
+    /* restore level */
+    T1aa_level=savelevel;
+    return(&aastring_glyph);
+  }
+  
+
   /* Set some looping parameters for subsampling */
+  if (lsb<0){
+    aalsb=lsb/T1aa_level-1;
+    aahstart=T1aa_level+(lsb%T1aa_level);
+  }
+  else{
+    aalsb=lsb/T1aa_level;
+    aahstart=lsb%T1aa_level;
+  }
+  
   /* The horizontal number of steps: */
-  n_horz=(wd+T1aa_level-1)/T1aa_level;
+  n_horz=(wd+aahstart+T1aa_level-1)/T1aa_level;
   /* And the padded value */
   n_horz_pad=PAD( n_horz*T1aa_bpp, pFontBase->bitmap_pad )>>3;
 
@@ -753,8 +1160,9 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
   
   /* Allocate memory for glyph */
   memsize = n_horz_pad*n_vert;
-  
-  aastring_glyph.bits = (char *)malloc(memsize*sizeof( char));
+
+  /* Note: we allocate 12 bytes more than necessary */ 
+  aastring_glyph.bits = (char *)malloc(memsize*sizeof( char) +12);
   if (aastring_glyph.bits == NULL) {
     T1_errno=T1ERR_ALLOC_MEM;
     return(NULL);
@@ -777,20 +1185,22 @@ GLYPH *T1_AASetString( int FontID, char *string, int len,
       y=v_end;
     else
       y=T1aa_level;
-    T1_AADoLine ( T1aa_level, wd, y, paddedW, ptr, target_ptr );
+    T1_AADoLine ( T1aa_level, wd, y, paddedW, ptr, target_ptr, aahstart );
     ptr += y * paddedW;
     target_ptr += n_horz_pad;
   }
-  k = n_horz;
   
   /* .. and set them in aastring_glyph */
-  aastring_glyph.metrics.leftSideBearing=(int)floor(glyph->metrics.leftSideBearing/(float)T1aa_level+0.5);
-  aastring_glyph.metrics.rightSideBearing=aastring_glyph.metrics.leftSideBearing + k;
-  aastring_glyph.metrics.advanceX=(int)floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
-  aastring_glyph.metrics.advanceY=(int)floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+  aastring_glyph.metrics.leftSideBearing=aalsb;
+  aastring_glyph.metrics.rightSideBearing=aalsb + n_horz;
+  aastring_glyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+  aastring_glyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
   aastring_glyph.metrics.ascent=n_asc;
   aastring_glyph.metrics.descent=n_dsc;
   aastring_glyph.pFontCacheInfo=NULL;
+
+  /* restore level */
+  T1aa_level=savelevel;
 
   return(&aastring_glyph);
 }
@@ -857,6 +1267,33 @@ int T1_AAHSetGrayValues( unsigned long *grayvals)
 }
 
 
+
+/* T1_AANSetGrayValues(): Sets the byte values that are put into the
+   pixel position for the respective entries (for 2 gray levels):
+   Returns 0 if successfull. This is for the case the non-antialiased
+   "bytemaps should be generated.
+   */
+int T1_AANSetGrayValues( unsigned long bg, unsigned long fg)
+{
+  
+  if (CheckForInit()){
+    T1_errno=T1ERR_OP_NOT_PERMITTED;
+    return(-1);
+  }
+
+  gv_n[0]=bg;
+  gv_n[1]=fg;
+  
+  T1aa_bg=bg;
+  
+  if ((T1_AAInit( T1_AA_NONE)))
+    return(-1);
+  return(0);
+  
+}
+
+
+
 /* T1_AASetBitsPerPixel(): Sets the depths of the antialiased glyph
    pixel. Returns 0 if bpp is valid and -1 otherwise. If 24 is
    specified, meaning to be the depth rather than the bpp-value,
@@ -907,6 +1344,10 @@ int T1_AASetLevel( int level)
      T1aa_level=T1_AA_HIGH;
      return(0);
    }
+   else if (level==T1_AA_NONE){
+     T1aa_level=T1_AA_NONE;
+     return(0);
+   }
    
    T1_errno=T1ERR_INVALID_PARAMETER;
    return(-1);
@@ -919,4 +1360,223 @@ int T1_AAGetLevel( void)
 {
   return( T1aa_level);
 }
+
+
+/* T1_AAFillOutline(): Create a filled glyph from an outline description */
+GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag)
+{
+  
+  GLYPH *glyph;   /* pointer to bitmap glyph */
+  static GLYPH aaglyph={NULL,{0,0,0,0,0,0},NULL,DEFAULTBPP};/* The anti-aliased glyph */
+  long asc, dsc, ht, wd;
+  long i;
+  long n_horz, n_horz_pad, n_vert, n_asc, n_dsc;
+  long v_start, v_end;
+  char *target_ptr;
+  long offset;
+  char *ptr;
+  int y;
+  long lsb, aalsb, aahstart;
+  int memsize;
+  LONG paddedW;
+ 
+
+  /* Reset character glyph, if necessary */
+  if (aaglyph.bits!=NULL){
+    free(aaglyph.bits);
+    aaglyph.bits=NULL;
+  }
+  aaglyph.metrics.leftSideBearing=0;
+  aaglyph.metrics.rightSideBearing=0;
+  aaglyph.metrics.advanceX=0;
+  aaglyph.metrics.advanceY=0;
+  aaglyph.metrics.ascent=0;
+  aaglyph.metrics.descent=0;
+  aaglyph.pFontCacheInfo=NULL;
+  aaglyph.bpp=T1aa_bpp;
+
+
+  /* First, scale outline appropriately: */
+  path=T1_ScaleOutline( path, T1aa_level);
+  
+  /* Second, call routine to fill outline, all error checking is
+     done in this function: */ 
+  if ((glyph=T1_FillOutline( path, modflag))==NULL)
+    return(NULL); /* An error occured */
+  
+  /* In case there are no black pixels, we simply set the dimensions and
+     then return */
+  if ( glyph->bits == NULL) {
+    aaglyph.bits=NULL;
+    aaglyph.metrics.leftSideBearing=0;
+    aaglyph.metrics.rightSideBearing=0;
+    aaglyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+    aaglyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+    aaglyph.metrics.ascent=0;
+    aaglyph.metrics.descent=0;
+    aaglyph.pFontCacheInfo=NULL;
+    return(&aaglyph);
+  }
+
+  /* Get dimensions of bitmap: */
+  asc=glyph->metrics.ascent;
+  dsc=glyph->metrics.descent;
+  lsb=glyph->metrics.leftSideBearing;
+  ht=asc-dsc;
+  wd=glyph->metrics.rightSideBearing-lsb;
+  
+
+  if (T1aa_level==T1_AA_NONE){
+    /* we only convert bitmap to bytemap */
+    aaglyph=*glyph;
+    aaglyph.bpp=T1aa_bpp;
+    /* Compute scanline length and such */
+    n_horz_pad=PAD( wd*T1aa_bpp, pFontBase->bitmap_pad )>>3;
+    /* Allocate memory for glyph, we alloc 12 bytes more to simplify
+       subsampling! */
+    memsize = n_horz_pad*ht*8;
+    aaglyph.bits = (char *)malloc(memsize*sizeof( char) +12);
+    if (aaglyph.bits == NULL) {
+      T1_errno=T1ERR_ALLOC_MEM;
+      return(NULL);
+    }
+    paddedW=PAD(wd,pFontBase->bitmap_pad)>>3;
+    ptr=glyph->bits;
+    target_ptr=aaglyph.bits;
+    for (i = 0; i < ht; i++) {
+      T1_DoLine ( wd, paddedW, ptr, target_ptr );
+      ptr += paddedW;
+      target_ptr += n_horz_pad;
+    }
+    return(&aaglyph);
+  }
+  
+
+  /* Set some looping parameters for subsampling */
+  if (lsb<0){
+    aalsb=lsb/T1aa_level-1;
+    aahstart=T1aa_level+(lsb%T1aa_level);
+  }
+  else{
+    aalsb=lsb/T1aa_level;
+    aahstart=lsb%T1aa_level;
+  }
+  
+  /* The horizontal number of steps: */
+  n_horz=(wd+aahstart+T1aa_level-1)/T1aa_level;
+  /* And the padded value */
+  n_horz_pad=PAD( n_horz*T1aa_bpp, pFontBase->bitmap_pad )>>3;
+  
+  /* vertical number of steps: */
+  if (asc % T1aa_level){ /* not aligned */
+    if ( asc > 0){
+      n_asc=asc/T1aa_level+1;
+      v_start=asc % T1aa_level;
+    }
+    else{
+      n_asc=asc/T1aa_level;
+      v_start=T1aa_level + (asc % T1aa_level); 
+    }
+  }
+  else{
+    n_asc=asc/T1aa_level;
+    v_start=T1aa_level;
+  }
+  if (dsc % T1aa_level){ /* not aligned */
+    if ( dsc < 0){
+      n_dsc=dsc/T1aa_level-1;
+      v_end=-(dsc % T1aa_level);
+    }
+    else{
+      n_dsc=dsc/T1aa_level;
+      v_end=T1aa_level - (dsc % T1aa_level);
+    }
+  }
+  else{
+    n_dsc=dsc/T1aa_level;
+    v_end=T1aa_level;
+  }
+  /* the total number of lines: */
+  n_vert=n_asc-n_dsc;
+  
+  /* Allocate memory for glyph */
+  memsize = n_horz_pad*n_vert;
+  
+  aaglyph.bits = (char *)malloc(memsize*sizeof( char)+12);
+  if (aaglyph.bits == NULL) {
+    T1_errno=T1ERR_ALLOC_MEM;
+    return(NULL);
+  }
+  
+  paddedW=PAD(wd,pFontBase->bitmap_pad)/8;
+  offset=0;
+  target_ptr=aaglyph.bits;
+  
+  /* We must check for n_vert==1 because the computation above is not
+     valid in this case */
+  if (n_vert==1)
+    v_start=v_start < v_end ? v_start : v_end;
+
+  ptr = glyph->bits;
+  for (i = 0; i < n_vert; i++) {
+    if (i==0)
+      y=v_start;
+    else if (i==n_vert-1)
+      y=v_end;
+    else
+      y=T1aa_level;
+    T1_AADoLine ( T1aa_level, wd, y, paddedW, ptr, target_ptr, aahstart );
+    ptr += y * paddedW;
+    target_ptr += n_horz_pad;
+  }
+  
+  /* .. and set them in aaglyph */
+  aaglyph.metrics.leftSideBearing=aalsb;
+  aaglyph.metrics.rightSideBearing=aalsb + n_horz;
+  aaglyph.metrics.advanceX=(int) floor(glyph->metrics.advanceX/(float)T1aa_level+0.5);
+  aaglyph.metrics.advanceY=(int) floor(glyph->metrics.advanceY/(float)T1aa_level+0.5);
+  aaglyph.metrics.ascent=n_asc;
+  aaglyph.metrics.descent=n_dsc;
+  aaglyph.pFontCacheInfo=NULL;
+
+  return(&aaglyph);
+}
+
+
+
+/* T1_AASetSmartLimits(): Set the limit-values for smart
+   antialiasing. Returns 0 if OK, and -1 else. */
+int T1_AASetSmartLimits( float limit1, float limit2)
+{
+
+  if (limit1 > 0.0 && limit2 > 0.0 && limit2 >= limit2) {
+    T1aa_smartlimit1=limit1;
+    T1aa_smartlimit2=limit2;
+    return( 0);
+  }
+  else{
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return( -1);
+  }
+}
+
+
+
+/* T1_AASetSmartMode(): Enable or disable smart anialiasing */
+int T1_AASetSmartMode( int smart)
+{
+
+  if (smart==T1_YES) {
+    T1aa_SmartOn=1;
+  }
+  else if (smart==T1_NO) {
+    T1aa_SmartOn=0;
+  }
+  else {
+    T1_errno=T1ERR_INVALID_PARAMETER;
+    return( -1);
+  }
+  return( 0);
+}
+
 

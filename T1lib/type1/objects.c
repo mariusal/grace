@@ -59,7 +59,8 @@ you do do not need to include these header files.
 #include  <stdlib.h>
 #include  <string.h>
 #include  <ctype.h>
- 
+#include  <setjmp.h>
+
 /*
 override incorrect system functions; for example you might define
 a macro for "strcpy" that diverts it to "my_strcpy".
@@ -300,14 +301,14 @@ struct xobject *t1_Allocate(size, template, extra)  /* non-ANSI; type checking w
        size = (size + sizeof(LONG) - 1) & -sizeof(LONG);
        extra = (extra + sizeof(LONG) - 1) & -sizeof(LONG);
        if (size + extra <= 0)
-               abort("Non-positive allocate?");
+               abort("Non-positive allocate?", 15);
        r = (struct xobject *) malloc(size + extra);
  
        while (r == NULL) {
                if (!GimeSpace()) {
                        IfTrace1(TRUE, "malloc attempted %d bytes.\n",
                                            size + extra);
-                       abort("We have REALLY run out of memory");
+                       abort("We have REALLY run out of memory", 16);
                }
                r = (struct xobject *) malloc(size + extra);
        }
@@ -358,7 +359,7 @@ void Free(obj)              /* non-ANSI to avoid overly strict type checking */
        register struct xobject *obj;  /* structure to free                   */
 {
        if (obj->type == INVALIDTYPE)
-               abort("Free of already freed object?");
+               abort("Free of already freed object?", 17);
        obj->type = INVALIDTYPE;
  
        if (MemoryDebug > 1) {
@@ -777,7 +778,7 @@ void Pragmatics(username, value)
        char name[NAMESIZE];  /* buffer to store my copy of 'username'        */
  
        if (strlen(username) >= NAMESIZE)
-               abort("Pragmatics name too large");
+               abort("Pragmatics name too large", 18);
        strcpy(name, username);
        for (p = name; *p != '\0'; p++)
                *p = toupper(*p);
@@ -926,7 +927,7 @@ void Consume(n, obj1, obj2, obj3) /* non-ANSI avoids overly strict type checking
                return;
  
            default:
-               abort("Consume:  too many objects");
+               abort("Consume:  too many objects", 19);
        }
 }
 /*
@@ -951,7 +952,7 @@ struct xobject *TypeErr(name, obj, expect, ret) /* non-ANSI avoids overly strict
        ObjectPostMortem(obj);
  
        if (MustCrash)
-               abort("Terminating because of CrashOnUserError...");
+               abort("Terminating because of CrashOnUserError...", 20);
        else
                ErrorMessage = typemsg;
  
@@ -1049,7 +1050,7 @@ struct xobject *ArgErr(string, obj, ret) /* non-ANSI avoids overly strict type c
        if (obj != NULL)
                ObjectPostMortem(obj);
        if (MustCrash)
-               abort("Terminating because of CrashOnUserError...");
+               abort("Terminating because of CrashOnUserError...", 21);
        else
                ErrorMessage = string;
        return(ret);
@@ -1062,19 +1063,83 @@ We divide by zero, and if that doesn't work, call exit(), the results of
 which is system dependent (and thus is part of the Hourglass required
 environment).
 */
-static int test = 0;
- 
+/* RMz: We now do a longjmp in order to be able to recover from the error */ 
 /*ARGSUSED*/
-void abort(string)
+void abort(string, no)
        char *string;
+       int no;
 {
-       LineIOTrace = TRUE;
-       IfTrace1(TRUE,"\nABORT: reason='%s'\n", string);
-       TraceClose();
-       test = 1/test;
-       exit(99);
+  extern jmp_buf stck_state;
+  
+  LineIOTrace = TRUE;
+  TraceClose();
+  longjmp( stck_state, no);
+
 }
- 
+
+/* By RMz: Return the abort string to t1lib! */
+char *t1_get_abort_message( int number)
+{
+  static char *err_msgs[]={
+    "DLdiv:  dividend too large", /* 1 */
+    "divide algorithm error", /* 2 */
+    "Beziers this big not yet supported", /* 3 */
+    "ComputeHint: invalid orientation", /* 4 */
+    "ComputeHint: invalid hinttype", /* 5 */
+    "ComputeHint: invalid orientation", /* 6 */
+    "ProcessHint: invalid label", /* 7 */
+    "ProcessHint: label is not in use", /* 8  */
+    "ProcessHint: invalid label", /* 9 */
+    "ProcessHint: invalid adjusttype", /* 10 */
+    "bad subpath chain", /* 11 */
+    "ImpliedHorizontalLine:  why ask?", /* 12 */
+    "disjoint subpath?", /* 13 */
+    "unable to fix subpath break?", /* 14 */
+    "Non-positive allocate?", /* 15 */
+    "We have REALLY run out of memory", /* 16 */
+    "Free of already freed object?", /* 17 */
+    "Pragmatics name too large", /* 18 */
+    "Consume:  too many objects", /* 19 */
+    "Terminating because of CrashOnUserError...", /* 20 */
+    "Terminating because of CrashOnUserError...", /* 21 */
+    "Fundamental TYPE1IMAGER assumptions invalid in this port", /* 22 */
+    "Reverse: bad path segment", /* 23 */
+    "UnClose:  no LASTCLOSED", /* 24 */
+    "PathTransform:  invalid segment", /* 25 */
+    "QueryPath: unknown segment", /* 26 */
+    "QueryBounds: unknown type", /* 27 */
+    "KillRegion:  negative reference count", /* 28 */
+    "newedge: height not positive", /* 29 */
+    "Interior: path type error", /* 30 */
+    "Unwind:  uneven edges", /* 31 */
+    "negative sized edge?", /* 32 */
+    "splitedge: above top of list", /* 33 */
+    "splitedge: would be null", /* 34 */
+    "null splitedge", /* 35 */
+    "vertjoin not disjoint", /* 36 */
+    "SwathUnion:  0 height swath?", /* 37 */
+    "discard():  ran off end", /* 38 */
+    "UnJumble:  unpaired edge?", /* 39 */
+    "Tighten: existing edge bound was bad", /* 40  */
+    "Tighten: existing region bound was bad", /* 41 */
+    "EDGE ERROR: non EDGETYPE in list", /* 42 */
+    "EDGE ERROR: overlapping swaths", /* 43 */
+    "Context:  QueryDeviceState didn't work", /* 44 */
+    "QueryDeviceState returned invalid orientation", /* 45 */
+    "Context:  out of them", /* 46 */
+    "MatrixInvert:  can't", /* 47 */
+    "xiStub called", /* 48 */
+    "Illegal access type1 abort() message" /* 49 */
+  };
+
+  /* no is valid from 1 to 48 */
+  if ( (number<1)||(number>48))
+    number=49;
+  return( err_msgs[number-1]);
+    
+}
+
+
 /*
 :h3.REAL Miscellaneous Stuff
  
@@ -1107,7 +1172,7 @@ void InitImager()
 /* All other calls to malloc are defined to Xalloc.  */
  
        if (sizeof(SHORT) != 2 || sizeof(LONG) != 4)
-          abort("Fundamental TYPE1IMAGER assumptions invalid in this port");
+          abort("Fundamental TYPE1IMAGER assumptions invalid in this port", 22);
        InitSpaces();
        InitFonts();
        InitFiles();

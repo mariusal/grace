@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        08/29/1998
+  ----- Date:        1999-04-23
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
 		     user must deal with.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -94,6 +94,12 @@ typedef struct
 #define LOGFILE             0x1
 #define IGNORE_FONTDATABASE 0x2  /* Default is to read database */
 #define IGNORE_CONFIGFILE   0x4  /* Default is to read config file */
+#define T1_AA_CACHING       0x8  /* Cache aa-bytes */
+
+
+/* common 'yes'/'no' */
+#define T1_YES              0x1
+#define T1_NO               0x0
 
 
 /* logfile levels: */
@@ -111,18 +117,21 @@ typedef struct
 #define T1_PREPEND_PATH     0x01
 
 
-/* #define's for character attributes (not all implemented) */
+/* #define's for character/string properties (not all implemented) */
+#define T1_DEFAULT             0x0000
 #define T1_UNDERLINE           0x0001
 #define T1_OVERLINE            0x0002
 #define T1_OVERSTRIKE          0x0004
 #define T1_DOUBLEOVERSTRIKE    0x0008
+#define T1_RIGHT_TO_LEFT       0x0010
 #define T1_SUBSCRIPT           0x0100
 #define T1_SUPERSCRIPT         0x0200
-#define T1_OUTLINE             0x1000
+#define T1_STROKED             0x1000
 #define T1_KERNING             0x2000
 
 
 /* Setting the subsampling value */
+#define T1_AA_NONE  1
 #define T1_AA_LOW   2
 #define T1_AA_HIGH  4
 
@@ -131,6 +140,7 @@ typedef struct
 extern int T1_errno;
 
 /* These are from scanning a font file */
+#define T1ERR_SCAN_FONT_FORMAT       -5
 #define T1ERR_SCAN_FILE_OPEN_ERR     -4
 #define T1ERR_SCAN_OUT_OF_MEMORY     -3
 #define T1ERR_SCAN_ERROR             -2
@@ -138,6 +148,7 @@ extern int T1_errno;
 /* These are from generating paths */
 #define T1ERR_PATH_ERROR              1
 #define T1ERR_PARSE_ERROR             2
+#define T1ERR_TYPE1_ABORT             3
 /* These are from t1lib */
 #define T1ERR_INVALID_FONTID          10
 #define T1ERR_INVALID_PARAMETER       11
@@ -157,6 +168,54 @@ extern int T1_errno;
 #define T1_DEBUG_PATH                 0x0400
 #define T1_DEBUG_FONT                 0x0800
 #define T1_DEBUG_HINT                 0x1000
+
+
+/* definitions for outline handling */
+#define   FRACTBITS     16   /* number of fractional bits in 'fractpel'      */
+/* From/to conversion of pels/fractpels */
+#define   T1_TOPATHPOINT(p)      (((long)p)<<FRACTBITS)
+#define   PPHALF                 (1<<(FRACTBITS-1))
+#define   T1_NEARESTPOINT(fp)    (((fp)+PPHALF)>>FRACTBITS)
+
+/* A fractional point */
+typedef struct {
+  long x;
+  long y;
+} T1_PATHPOINT;
+
+
+/* A straight outline segment, stroked or not stroked */
+typedef struct pathsegment {  
+  char type;                /* type of segment (line or move) */
+  unsigned char flag;       /* type1 rasterizer internal stuff */
+  short references;         /* type1 rasterizer internal stuff */
+  unsigned char size;       /* size of the structure */
+  unsigned char context;    /* index to device context */
+  struct pathsegment *link; /* pointer to next structure in linked list */
+  struct pathsegment *last; /* pointer to last structure in list */
+  T1_PATHPOINT    dest;     /* relative ending location of path segment */
+} T1_PATHSEGMENT;
+
+/* A third order bezier segment */
+typedef struct bezierpathsegment {
+  char type;                /* type of segment (bezier) */
+  unsigned char flag;     /* type1 rasterizer internal stuff */
+  short references;       /* type1 rasterizer internal stuff */
+  unsigned char size;     /* as with any 'segment' type */
+  unsigned char context;  /* as with any 'segment' type */
+  T1_PATHSEGMENT *link;   /* as with any 'segment' type */
+  T1_PATHSEGMENT *last;   /* as with any 'segment' type */
+  T1_PATHPOINT    dest;   /* ending point (D) */
+  T1_PATHPOINT    B;      /* control point B */
+  T1_PATHPOINT    C;      /* control point C */
+} T1_BEZIERSEGMENT;
+
+typedef T1_PATHSEGMENT  T1_OUTLINE;
+
+#define   T1_PATHTYPE_LINE           0x10
+#define   T1_PATHTYPE_BEZIER         0x12
+#define   T1_PATHTYPE_MOVE           0x15
+
 
 
 /* function declarations: */
@@ -186,6 +245,8 @@ extern int T1_GetBitmapPad( void);
 extern int T1_SetFontDataBase( char *filename);
 extern char *T1_GetLibIdent( void);
 extern void T1_SetRasterFlags( int flags);
+extern char *T1_GetAfmFileName( int FontID);
+extern int T1_SetAfmFileName( int FontId, char *afm_name);
 
 /* from t1delete.c */
 extern int T1_DeleteSize( int FontID, float size);
@@ -255,8 +316,9 @@ extern GLYPH *T1_SetString( int FontID, char *string, int len,
 extern GLYPH *T1_CopyGlyph(GLYPH *glyph);
 extern void T1_DumpGlyph( GLYPH *glyph);
 extern GLYPH *T1_ConcatGlyphs( GLYPH *glyph1, GLYPH *glyph2,
-			       int x_off, int y_off);
+			       int x_off, int y_off, int mode);
 extern void T1_DumpPixmap( GLYPH *glyph);
+extern GLYPH *T1_FillOutline( T1_OUTLINE *path, int modflag);
 
 /* from t1trans.c */
 extern int T1_ExtendFont( int FontID, double extend);
@@ -289,14 +351,39 @@ extern int T1_AASetGrayValues(unsigned long white,
 			      unsigned long gray25,
 			      unsigned long black);
 extern int T1_AAHSetGrayValues( unsigned long *grayvals);
+extern int T1_AANSetGrayValues( unsigned long bg, unsigned long fg);
 extern int T1_AASetBitsPerPixel( int bpp);
 extern int T1_AASetLevel( int level);
 extern int T1_AAGetLevel( void);
+extern GLYPH *T1_AAFillOutline( T1_OUTLINE *path, int modflag);
+extern int T1_AASetSmartLimits( float limit1, float limit2);
+extern int T1_AASetSmartMode( int smart);
+
 
 /* from t1afmtool.c */
 extern int      T1_WriteAFMFallbackFile( int FontID);
 
+/* from t1outline.c */
+extern T1_OUTLINE *T1_GetCharOutline( int FontID, char charcode,
+				      float size, T1_TMATRIX *transform);
+extern T1_OUTLINE *T1_GetStringOutline( int FontID, char *string, int len, 
+					long spaceoff, int modflag,
+					float size, T1_TMATRIX *transform);
+extern T1_OUTLINE *T1_ConcatOutlines( T1_OUTLINE *path1,
+				      T1_OUTLINE *path2);
+extern T1_OUTLINE *T1_ScaleOutline( T1_OUTLINE *path, float scale);
+extern T1_OUTLINE *T1_GetMoveOutline( int FontID, int deltax, int deltay, int modflag,
+				      float size, T1_TMATRIX *transform);
+extern void T1_DumpPath( T1_OUTLINE *path);
+extern void T1_AbsolutePath( T1_OUTLINE *rpath);
+extern void T1_RelativePath( T1_OUTLINE *apath);
+extern void T1_ManipulatePath( T1_OUTLINE *path,
+			       void (*manipulate)(long *x,long *y,int type));
+
+
+
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
+
 

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1delete.c 
   ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        11/13/1998
+  ----- Date:        1999-03-20
   ----- Description: This file is part of the t1-library. It contains
                      functions for giving free previously allocated
 		     memory areas and similar things.
@@ -60,13 +60,15 @@
    way. Function returns 0 if successful and otherwise -1*/
 int T1_DeleteSize( int FontID, float size)
 {
-  int i;
+  int i, j;
   FONTSIZEDEPS *ptr, *next_ptr, *prev_ptr;
   int jobs=0;
   int antialias;
+  int level[4]={0,T1_AA_NONE,T1_AA_LOW,T1_AA_HIGH};
   
 
-  for ( antialias=0; antialias < 2; antialias++){
+  for ( j=0; j<4; j++){
+    antialias=level[j];
     /* Check if size exists; if not, return 1 */
     if ((ptr=QueryFontSize( FontID, size, antialias))!=NULL){
       /* We have to remove a size-> */
@@ -234,7 +236,8 @@ int T1_DeleteFont( int FontID)
   }
   
   
-  /* Set remaining area explicitly to 0 (all but pFontFileName!) */
+  /* Set remaining area explicitly to 0 (all but pFontFileName and
+     pAfmFileName!) */
   pFontBase->pFontArray[FontID].pAFMData=NULL;
   pFontBase->pFontArray[FontID].pType1Data=NULL;
   pFontBase->pFontArray[FontID].pEncMap=NULL;

@@ -1,4 +1,4 @@
-/* $Header: /usr/shome/cvsroot/grace/T1lib/type1/fontstruct.h,v 1.1 1998-11-24 22:08:53 fnevgeny Exp $ */
+/* $Header: /usr/shome/cvsroot/grace/T1lib/type1/fontstruct.h,v 1.2 1999-05-09 00:38:00 fnevgeny Exp $ */
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
