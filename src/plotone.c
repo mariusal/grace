@@ -295,8 +295,8 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYHILO:
@@ -366,18 +366,18 @@ void xyplot(int gno)
                 case SET_BARDY:
                 case SET_BARDYDY:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
-                    drawsetbars(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
+                    drawsetbars(gno, i, &p, refn, refx, refy, offset);
                     break;
                 case SET_XYDY:
                 case SET_XYDYDY:
                     drawsetline(gno, i, &p, refn, refx, refy, offset);
                     if (is_graph_stacked(gno) != TRUE) {
-                        drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                        drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                     }
                     break;
@@ -420,8 +420,8 @@ void xyplot(int gno)
                         break;
                     case SET_XYDY:
                     case SET_XYDYDY:
-                        drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawseterrbars(gno, i, &p, refn, refx, refy, offset);
+                        drawsetsyms(gno, i, &p, refn, refx, refy, offset);
                         drawsetavalues(gno, i, &p, refn, refx, refy, offset);
                         break;
                     }
@@ -453,8 +453,8 @@ void xyplot(int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawseterrbars(gno, i, &p, 0, NULL, NULL, 0.0);
+                    drawsetsyms(gno, i, &p, 0, NULL, NULL, 0.0);
                     drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYZ:
@@ -1278,7 +1278,8 @@ void drawseterrbars(int gno, int setno, plotarr *p,
 
     setclipping(TRUE);
     
-    setpen(p->sympen);
+    setcolor(p->sympen.color);
+    setpattern(1);
     
 /*
  * draw the riser
