@@ -149,7 +149,7 @@ void set_default_arrow(Arrow *arrowp)
     arrowp->lL_ff = 1.0;
 }
 
-void set_default_legend(int gno, legend * l)
+void set_default_legend(legend *l)
 {
     l->active = TRUE;
     l->loctype = COORD_VIEW;

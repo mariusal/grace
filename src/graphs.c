@@ -1059,7 +1059,7 @@ void set_default_graph(int gno)
     set_default_framep(&g[gno].f);
     set_default_world(&g[gno].w);
     set_default_view(&g[gno].v);
-    set_default_legend(gno, &g[gno].l);
+    set_default_legend(&g[gno].l);
     set_default_string(&g[gno].labs.title);
     g[gno].labs.title.charsize = 1.5;
     set_default_string(&g[gno].labs.stitle);
