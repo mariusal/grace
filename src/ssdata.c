@@ -472,7 +472,7 @@ int create_set_fromblock(Quark *pset, int type,
 
     for (i = 0; i < nc; i++) {
         column = coli[i];
-        if (ssd_get_format(ss, column) != FFORMAT_STRING) {
+        if (ssd_get_col_format(ss, column) != FFORMAT_STRING) {
             dsp->cols[i] = column;
         } else {
             errmsg("Tried to read doubles from strings!");
@@ -483,7 +483,7 @@ int create_set_fromblock(Quark *pset, int type,
 
     /* strings, if any */
     if (scol >= 0) {
-        if (ssd_get_format(ss, scol) != FFORMAT_STRING) {
+        if (ssd_get_col_format(ss, scol) != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
             killsetdata(pset);
             return RETURN_FAILURE;
