@@ -494,14 +494,16 @@ void SelectListChoices(ListStructure *listp, int nchoices, int *choices)
         }
     }
     
-    /* Rewind list so the last choice is always visible */
-    XtVaGetValues(listp->list, XmNtopItemPosition, &bottom,
-                             XmNvisibleItemCount, &visible,
-                             NULL);
-    if (i > bottom) {
-        XmListSetBottomPos(listp->list, i);
-    } else if (i <= bottom - visible) {
-        XmListSetPos(listp->list, i);
+    if (nchoices > 0) {
+        /* Rewind list so the last choice is always visible */
+        XtVaGetValues(listp->list, XmNtopItemPosition, &bottom,
+                                 XmNvisibleItemCount, &visible,
+                                 NULL);
+        if (i > bottom) {
+            XmListSetBottomPos(listp->list, i);
+        } else if (i <= bottom - visible) {
+            XmListSetPos(listp->list, i);
+        }
     }
 
     XtVaSetValues(listp->list, XmNselectionPolicy, selection_type_save, NULL);
