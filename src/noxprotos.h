@@ -239,6 +239,9 @@ void do_interp(int ygno, int yset, int xgno, int xset, int method);
 int get_restriction_array(int gno, int setno,
     int rtype, int negate, char **rarray);
 
+int monotonicity(double *array, int len, int strict);
+int find_span_index(double *array, int len, int m, double x);
+
 int inbounds(int gno, double x, double y);
 int intersect_to_left(double x, double y, double x1, double y1, double x2, double y2);
 int inbound(double x, double y, double *xlist, double *ylist, int n);
