@@ -151,12 +151,8 @@ void ListTreeClearHighlighted(Widget w);
 void ListTreeGetHighlighted(Widget w,ListTreeMultiReturnStruct *ret);
 void ListTreeSetHighlighted(Widget w,ListTreeItem **items,
 			    int count,Boolean clear);
-#ifdef USE_RDD
-void ListTreeHighlightDrop (Widget w, XEvent *event, String *params, Cardinal *num_params);
-ListTreeReturnStruct *ListTreeGetDrop (Widget w);
-#endif
-Widget XmCreateScrolledListTree (Widget parent, char *name, Arg *args, Cardinal count);
 
+Widget XmCreateScrolledListTree (Widget parent, char *name, Arg *args, Cardinal count);
 
 #ifdef __cplusplus
 };
