@@ -54,8 +54,10 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/resource.h>
+#ifdef HAVE_SYS_SELECT_H
+#  include <sys/select.h>
+#endif
 #include <limits.h>
 
 #ifdef HAVE_SETLOCALE

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -44,6 +44,9 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <errno.h>
+#ifdef HAVE_SYS_SELECT_H
+#  include <sys/select.h>
+#endif
 
 #include "globals.h"
 #include "utils.h"
