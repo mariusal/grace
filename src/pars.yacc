@@ -61,18 +61,34 @@
 #include "plotone.h"
 #include "dlmodule.h"
 #include "t1fonts.h"
+#include "ssdata.h"
 #include "protos.h"
 
 extern graph *g;
 
+#define GRVAR_TMP       0
+#define GRVAR_SCRARRAY  1
+#define GRVAR_DATASET   2
+
+/* variable */
+typedef struct _variable {
+    int type;
+    int length;
+    double *data;
+} grvar;
+
+static void free_tmpvrbl(grvar *vrbl);
+static void copy_vrbl(grvar *dest, grvar *src);
+static int find_set_bydata(double *data, target *tgt);
+
 static double  s_result;    /* return value if a scalar expression is scanned*/
-static double *v_result;    /* return value if a vector expression is scanned*/
+static grvar *v_result;    /* return value if a vector expression is scanned*/
 
 static int expr_parsed, vexpr_parsed;
 
 static int interr;
 
-static double *freelist[100]; 	/* temporary vectors */
+static grvar freelist[100]; 	/* temporary vectors */
 static int fcnt = 0;		/* number of the temporary vectors allocated */
 
 static target trgt_pool[100]; 	/* pool of temporary targets */
@@ -99,7 +115,6 @@ static double *ax = NULL, *bx = NULL, *cx = NULL, *dx = NULL;
 /* the graph, set, and its length of the parser's current state */
 static int whichgraph;
 static int whichset;
-static int lxy;
 
 /* the graph and set of the left part of a vector assignment */
 static int vasgn_gno;
@@ -143,7 +158,6 @@ static double pi_const(void);
 static double deg_uconst(void);
 static double rad_uconst(void);
 
-
 int yylex(void);
 int yyparse(void);
 void yyerror(char *s);
@@ -159,8 +173,9 @@ symtab_entry *key;
     long    ival;
     double  dval;
     char   *sval;
-    double *ptr;
+    double *dptr;
     target *trgt;
+    grvar  *vrbl;
 }
 
 %token <ival> INDEX
@@ -548,7 +563,7 @@ symtab_entry *key;
 %type <ival> sourcetype
 
 %type <ival> extremetype
-%type <ival> vector
+%type <ival> datacolumn
 
 %type <ival> runtype
 
@@ -565,11 +580,16 @@ symtab_entry *key;
 
 %type <ival> proctype
 
+%type <ival> indx
+
 %type <dval> expr
 %type <dval> asgn
 
-%type <ptr> vexpr
-%type <ptr> vasgn
+%type <vrbl> array
+%type <vrbl> lside_array
+
+%type <vrbl> vexpr
+%type <dptr> vasgn
 
 /* Precedence */
 %nonassoc '?' ':'
@@ -622,82 +642,32 @@ expr:	NUMBER {
 	|  FITPMIN {
 	    $$ = nonl_parms[$1].min;
 	}
-	|  SCRARRAY '[' expr ']' {
-	    int itmp = (int) $3 - index_shift;
-	    if (itmp >= maxarr || itmp < 0) {
-		yyerror("Access beyond array bounds");
-		return 1;
-	    } else {
-	        double *ptr = get_scratch((int) $1);
-                $$ = ptr[itmp];
+	|  array indx {
+            if ($2 >= $1->length) {
+                errmsg("Access beyond array bounds");
+                return 1;
             }
+            $$ = $1->data[$2];
 	}
-	| vector '[' expr ']' {
-	    double *ptr = getcol(whichgraph, whichset, $1);
-	    if (ptr != NULL) {
-		$$ = ptr[(int) $3 - index_shift];
-	    }
-	    else {
+	| extremetype '(' vexpr ')' {
+	    double dummy;
+            int length = $3->length;
+	    if ($3->data == NULL) {
 		yyerror("NULL variable, check set type");
 		return 1;
 	    }
-	}
-	| selectset '.' vector '[' expr ']' {
-	    double *ptr = getcol($1->setno, $1->gno, $3);
-	    if (ptr != NULL) {
-		$$ = ptr[(int) $5 - index_shift];
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| selectset '.' vector '.' extremetype {
-	    double bar, sd;
-            int gno = $1->gno, setno = $1->setno;
-	    double *ptr = getcol(gno, setno, $3);
-	    if (ptr == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	    switch ($5) {
+	    switch ($1) {
 	    case MINP:
-		$$ = vmin(ptr, getsetlength(gno, setno));
+		$$ = vmin($3->data, length);
 		break;
 	    case MAXP:
-		$$ = vmax(ptr, getsetlength(gno, setno));
-		break;
-            case AVG:
-	        stasum(ptr, getsetlength(gno, setno), &bar, &sd);
-	        $$ = bar;
-                break;
-            case SD:
-	        stasum(ptr, getsetlength(gno, setno), &bar, &sd);
-                $$ = sd;
-                break;
-	    }
-	}
-	| vector '.' extremetype {
-	    double bar, sd;
-	    double *ptr = getcol(whichgraph, whichset, $1);
-	    if (ptr == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	    switch ($3) {
-	    case MINP:
-		$$ = vmin(ptr, getsetlength(whichgraph, whichset));
-		break;
-	    case MAXP:
-		$$ = vmax(ptr, getsetlength(whichgraph, whichset));
+		$$ = vmax($3->data, length);
 		break;
             case AVG:;
-		stasum(ptr, getsetlength(whichgraph, whichset), &bar, &sd);
-	        $$ = bar;
+		stasum($3->data, length, &$$, &dummy);
                 break;
             case SD:
-		stasum(ptr, getsetlength(whichgraph, whichset), &bar, &sd);
-                $$ = sd;
+		stasum($3->data, length, &dummy, &$$);
                 break;
 	    }
 	}
@@ -835,37 +805,46 @@ expr:	NUMBER {
 	    if ($3 != 0.0) {
 		$$ = $1 / $3;
 	    } else {
-		yyerror("Divide by Zero");
+		yyerror("Divide by zero");
 		return 1;
 	    }
 	}
 	| expr '%' expr {
-	    $$ = fmod($1, $3);
-	}
-	| expr '^' expr {
-	    $$ = pow($1, $3);
-	}
-	| expr '?' expr ':' expr {
-	    if ((int) $1) {
-		$$ = $3;
+	    if ($3 != 0.0) {
+		$$ = fmod($1, $3);
 	    } else {
-		$$ = $5;
+		yyerror("Divide by zero");
+		return 1;
 	    }
 	}
-	| expr GT expr {
-	    $$ = ($1 > $3);
+	| expr '^' expr {
+	    if ($1 < 0 && rint($3) != $3) {
+		yyerror("Negative value raised to non-integer power");
+		return 1;
+            } else if ($1 == 0.0 && $3 <= 0.0) {
+		yyerror("Zero raised to non-positive power");
+		return 1;
+            } else {
+                $$ = pow($1, $3);
+            }
 	}
-	| expr LT expr {
-	    $$ = ($1 < $3);
+	| expr '?' expr ':' expr {
+	    $$ = $1 ? $3 : $5;
+	}
+	| expr GT expr {
+	   $$ = ($1 > $3);
+	}
+	| expr LT expr  {
+	   $$ = ($1 < $3);
 	}
 	| expr LE expr {
-	    $$ = ($1 <= $3);
+	   $$ = ($1 <= $3);
 	}
 	| expr GE expr {
-	    $$ = ($1 >= $3);
+	   $$ = ($1 >= $3);
 	}
 	| expr EQ expr {
-	    $$ = ($1 == $3);
+	   $$ = ($1 == $3);
 	}
 	| expr NE expr {
 	    $$ = ($1 != $3);
@@ -881,594 +860,830 @@ expr:	NUMBER {
 	}
 	;
 
-vexpr:
+indx:	'[' expr ']' {
+	    int itmp = rint($2);
+            if (fabs(itmp - $2) > 1.e-6) {
+		yyerror("Non-integer index");
+		return 1;
+            }
+            itmp -= index_shift;
+            if (itmp < 0) {
+		yyerror("Negative index");
+		return 1;
+            }
+            $$ = itmp;
+	}
+        ;
+
+array:
 	SCRARRAY
 	{
-	    if (lxy > maxarr) {
-		yyerror("Access beyond array bounds");
-		return 1;
-	    } else {
-	        int i;
-	        double *ptr = get_scratch((int) $1);
-	        $$ = calloc(lxy, SIZEOF_DOUBLE);
-	        freelist[fcnt++] = $$;
-	        for (i = 0; i < lxy; i++) {
-	            $$[i] = ptr[i];
-	        }
+	    double *ptr = get_scratch($1);
+            $$ = &freelist[fcnt++];
+            $$->type = GRVAR_SCRARRAY;
+            $$->data = ptr;
+            if (ptr == NULL) {
+                $$->length = 0;
+            } else {
+                $$->length = maxarr;
             }
 	}
-	| vector
+        | datacolumn
 	{
-	    int i;
 	    double *ptr = getcol(whichgraph, whichset, $1);
-	    if (ptr == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	    lxy = getsetlength(vasgn_gno, vasgn_setno);
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = ptr[i];
-	    }
-	}
-	| selectset '.' vector
-	{
-	    int i;
-	    double *ptr = getcol($1->gno, $1->setno, $3);
+            $$ = &freelist[fcnt++];
+            $$->type = GRVAR_DATASET;
+            $$->data = ptr;
             if (ptr == NULL) {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	    lxy = getsetlength($1->gno, $1->setno);
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = ptr[i];
-	    }
+                $$->length = 0;
+            } else {
+                $$->length = getsetlength(whichgraph, whichset);
+            }
+	}
+	| selectset '.' datacolumn
+	{
+	    double *ptr = getcol($1->gno, $1->setno, $3);
+            $$ = &freelist[fcnt++];
+            $$->type = GRVAR_DATASET;
+            $$->data = ptr;
+            if (ptr == NULL) {
+                $$->length = 0;
+            } else {
+                $$->length = getsetlength($1->gno, $1->setno);
+            }
+	}
+        ;
+        
+vexpr:
+	array
+	{
+            $$ = &freelist[fcnt++];
+            copy_vrbl($$, $1);
+	}
+	| INDEX
+	{
+	    int length;
+	    length = getsetlength(vasgn_gno, vasgn_setno);
+            $$ = &freelist[fcnt++];
+            $$->type = GRVAR_TMP;
+            $$->data = allocate_index_data(length);
+            $$->length = length;
 	}
 	| FUNC_I '(' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc((int) $3[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc((int) ($3->data[i]));
 	    }
 	}
 	| FUNC_D '(' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc($3[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc(($3->data[i]));
 	    }
 	}
 	| FUNC_DD '(' vexpr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc($3[i], $5[i]);
+	    if ($3->length != $5->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+            
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc($3->data[i], $5->data[i]);
 	    }
 	}
 	| FUNC_DD '(' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc($3, $5[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $5);
+            $$->type = GRVAR_TMP;
+            
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc($3, $5->data[i]);
 	    }
 	}
 	| FUNC_DD '(' vexpr ',' expr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc($3[i], $5);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+            
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc($3->data[i], $5);
 	    }
 	}
 	| FUNC_ND '(' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc((int) $3, $5[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $5);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc((int) $3, $5->data[i]);
 	    }
 	}
 	| FUNC_NND '(' expr ',' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc((int) $3, (int) $5, $7[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $7);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc((int) $3, (int) $5, $7->data[i]);
 	    }
 	}
 	| FUNC_PPD '(' expr ',' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc($3, $5, $7[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $7);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc($3, $5, $7->data[i]);
 	    }
 	}
 	| FUNC_PPPD '(' expr ',' expr ',' expr ',' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = key[$1].fnc($3, $5, $7, $9[i]);
-	    }
-	}
-	| INDEX
-	{
-	    int i;
-	    lxy = getsetlength(vasgn_gno, vasgn_setno);
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = i + index_shift;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $9);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = key[$1].fnc($3, $5, $7, $9->data[i]);
 	    }
 	}
 	| vexpr '+' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] + $3[i];
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] + $3->data[i];
 	    }
 	}
 	| vexpr '+' expr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] + $3;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] + $3;
 	    }
 	}
 	| expr '+' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 + $3[i];
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1 + $3->data[i];
 	    }
 	}
 	| vexpr '-' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] - $3[i];
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] - $3->data[i];
 	    }
 	}
 	| vexpr '-' expr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] - $3;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] - $3;
 	    }
 	}
 	| expr '-' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 - $3[i];
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1 - $3->data[i];
 	    }
 	}
 	| vexpr '*' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] * $3[i];
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] * $3->data[i];
 	    }
 	}
 	| vexpr '*' expr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] * $3;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] * $3;
 	    }
 	}
 	| expr '*' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 * $3[i];
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1 * $3->data[i];
 	    }
 	}
 	| vexpr '/' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		if ($3[i] == 0.0) {
-		    yyerror("Divide by Zero");
-		    return 1;
-		}
-	    }
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] / $3[i];
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		if ($3->data[i] == 0.0) {
+                    errmsg("Divide by zero");
+                    return 1;
+                }
+                $$->data[i] = $1->data[i] / $3->data[i];
 	    }
 	}
 	| vexpr '/' expr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		if ($3 == 0.0) {
-		    yyerror("Divide by Zero");
-		    return 1;
-		}
-	    }
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] / $3;
+	    if ($3 == 0.0) {
+                errmsg("Divide by zero");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] / $3;
 	    }
 	}
 	| expr '/' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		if ($3[i] == 0.0) {
-		    yyerror("Divide by Zero");
-		    return 1;
-		}
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		if ($3->data[i] == 0.0) {
+                    errmsg("Divide by zero");
+                    return 1;
+                }
+		$$->data[i] = $1 / $3->data[i];
 	    }
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 / $3[i];
+	}
+	| vexpr '%' vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		if ($3->data[i] == 0.0) {
+                    errmsg("Divide by zero");
+                    return 1;
+                } else {
+                    $$->data[i] = fmod($1->data[i], $3->data[i]);
+                }
+	    }
+	}
+	| vexpr '%' expr
+	{
+	    int i;
+	    if ($3 == 0.0) {
+                errmsg("Divide by zero");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = fmod($1->data[i], $3);
+	    }
+	}
+	| expr '%' vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		if ($3->data[i] == 0.0) {
+                    errmsg("Divide by zero");
+                    return 1;
+                } else {
+		    $$->data[i] = fmod($1, $3->data[i]);
+                }
 	    }
 	}
 	| vexpr '^' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = pow($1[i], $3[i]);
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+	        if ($1->data[i] < 0 && rint($3->data[i]) != $3->data[i]) {
+	            yyerror("Negative value raised to non-integer power");
+	            return 1;
+                } else if ($1->data[i] == 0.0 && $3->data[i] <= 0.0) {
+	            yyerror("Zero raised to non-positive power");
+	            return 1;
+                } else {
+                    $$->data[i] = pow($1->data[i], $3->data[i]);
+                }
 	    }
 	}
 	| vexpr '^' expr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = pow($1[i], $3);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+	        if ($1->data[i] < 0 && rint($3) != $3) {
+	            yyerror("Negative value raised to non-integer power");
+	            return 1;
+                } else if ($1->data[i] == 0.0 && $3 <= 0.0) {
+	            yyerror("Zero raised to non-positive power");
+	            return 1;
+                } else {
+                    $$->data[i] = pow($1->data[i], $3);
+                }
 	    }
 	}
 	| expr '^' vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = pow($1, $3[i]);
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+	        if ($1 < 0 && rint($3->data[i]) != $3->data[i]) {
+	            yyerror("Negative value raised to non-integer power");
+	            return 1;
+                } else if ($1 == 0.0 && $3->data[i] <= 0.0) {
+	            yyerror("Zero raised to non-positive power");
+	            return 1;
+                } else {
+                    $$->data[i] = pow($1, $3->data[i]);
+                }
 	    }
 	}
 	| vexpr UCONSTANT
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] * key[$2].fnc();
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] * key[$2].fnc();
 	    }
 	}
 	| vexpr '?' expr ':' expr {
-           int i;
-           $$ = calloc(lxy, SIZEOF_DOUBLE); 
-           freelist[fcnt++] = $$;
-           for (i = 0; i < lxy; i++) { 
-               if ((int) $1[i]) {
-                   $$[i] = $3;
-               } else {
-                   $$[i] = $5;
-               }
-           }
+            int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = $1->data[i] ? $3 : $5;
+            }
 	}
 	| vexpr '?' expr ':' vexpr {
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-	        if ((int) $1[i]) {
-		    $$[i] = $3;
-	        } else {
-		    $$[i] = $5[i];
-	        }
-	    }
+            int i;
+	    if ($1->length != $5->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = $1->data[i] ? $3 : $5->data[i];
+            }
 	}
 	| vexpr '?' vexpr ':' expr {
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-	        if ((int) $1[i]) {
-		    $$[i] = $3[i];
-	        } else {
-		    $$[i] = $5;
-	        }
-	    }
+            int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = $1->data[i] ? $3->data[i] : $5;
+            }
 	}
 	| vexpr '?' vexpr ':' vexpr {
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-	        if ((int) $1[i]) {
-		    $$[i] = $3[i];
-	        } else {
-		    $$[i] = $5[i];
-	        }
-	    }
-	}
-	| vexpr GT vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] > $3[i];
-	    }
-	}
-	| expr GT vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 > $3[i];
-	    }
-	}
-	| vexpr GT expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] > $3;
-	    }
-	}
-	| vexpr LT vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] < $3[i];
-	    }
-	}
-	| expr LT vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 < $3[i];
-	    }
-	}
-	| vexpr LT expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] < $3;
-	    }
-	}
-	| vexpr LE vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] <= $3[i];
-	    }
-	}
-	| expr LE vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 <= $3[i];
-	    }
-	}
-	| vexpr LE expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] <= $3;
-	    }
-	}
-	| vexpr GE vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] >= $3[i];
-	    }
-	}
-	| expr GE vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 >= $3[i];
-	    }
-	}
-	| vexpr GE expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] >= $3;
-	    }
-	}
-	| vexpr EQ vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] == $3[i];
-	    }
-	}
-	| expr EQ vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 == $3[i];
-	    }
-	}
-	| vexpr EQ expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] == $3;
-	    }
-	}
-	| vexpr NE vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] != $3[i];
-	    }
-	}
-	| expr NE vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 != $3[i];
-	    }
-	}
-	| vexpr NE expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] != $3;
-	    }
-	}
-	| vexpr AND vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] && $3[i];
-	    }
-	}
-	| vexpr AND expr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] && $3;
-	    }
-	}
-	| expr AND vexpr
-	{
-	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 && $3[i];
-	    }
+            int i;
+	    if ($1->length != $5->length || $1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = $1->data[i] ? $3->data[i] : $5->data[i];
+            }
 	}
 	| vexpr OR vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] || $3[i];
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] || $3->data[i];
 	    }
 	}
 	| vexpr OR expr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1[i] || $3;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] || $3;
 	    }
 	}
 	| expr OR vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $1 || $3[i];
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1 || $3->data[i];
+	    }
+	}
+	| vexpr AND vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] && $3->data[i];
+	    }
+	}
+	| vexpr AND expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1->data[i] && $3;
+	    }
+	}
+	| expr AND vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = $1 && $3->data[i];
+	    }
+	}
+	| vexpr GT vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] > $3->data[i]);
+	    }
+	}
+	| vexpr GT expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] > $3);
+	    }
+	}
+	| expr GT vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1 > $3->data[i]);
+	    }
+	}
+	| vexpr LT vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] < $3->data[i]);
+	    }
+	}
+	| vexpr LT expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] < $3);
+	    }
+	}
+	| expr LT vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1 < $3->data[i]);
+	    }
+	}
+	| vexpr GE vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] >= $3->data[i]);
+	    }
+	}
+	| vexpr GE expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] >= $3);
+	    }
+	}
+	| expr GE vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1 >= $3->data[i]);
+	    }
+	}
+	| vexpr LE vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] <= $3->data[i]);
+	    }
+	}
+	| vexpr LE expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] <= $3);
+	    }
+	}
+	| expr LE vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1 <= $3->data[i]);
+	    }
+	}
+	| vexpr EQ vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] == $3->data[i]);
+	    }
+	}
+	| vexpr EQ expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] == $3);
+	    }
+	}
+	| expr EQ vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1 == $3->data[i]);
+	    }
+	}
+	| vexpr NE vexpr
+	{
+	    int i;
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] != $3->data[i]);
+	    }
+	}
+	| vexpr NE expr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $1);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1->data[i] != $3);
+	    }
+	}
+	| expr NE vexpr
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $3);
+            $$->type = GRVAR_TMP;
+
+	    for (i = 0; i < $$->length; i++) {
+		$$->data[i] = ($1 != $3->data[i]);
 	    }
 	}
 	| NOT vexpr
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = !($2[i]);
-	    }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $2);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = !$2->data[i];
+            }
 	}
 	| '(' vexpr ')'
 	{
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = $2[i];
-	    }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $2);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = $2->data[i];
+            }
 	}
 	| '-' vexpr %prec UMINUS {
 	    int i;
-	    $$ = calloc(lxy, SIZEOF_DOUBLE);
-	    freelist[fcnt++] = $$;
-	    for (i = 0; i < lxy; i++) {
-		$$[i] = -$2[i];
-	    }
+            $$ = &freelist[fcnt++];
+	    copy_vrbl($$, $2);
+            $$->type = GRVAR_TMP;
+            for (i = 0; i < $$->length; i++) { 
+                $$->data[i] = - $2->data[i];
+            }
 	}
 	;
 
@@ -1486,146 +1701,45 @@ asgn:
 	{
 	    nonl_parms[$1].min = $3;
 	}
-	| SCRARRAY '[' expr ']' '=' expr
+	| array indx '=' expr
 	{
-	    double *ptr;
-	    int itmp = (int) $3 - index_shift;
-	    if (itmp < 0) {
+	    if ($2 >= $1->length) {
 		yyerror("Access beyond array bounds");
-                return 1;
-	    } else if (itmp >= maxarr) {
-		init_scratch_arrays(itmp + 1);
-	    }
-	    ptr = get_scratch((int) $1);
-	    ptr[itmp] = $6;
-	}
-	| vector '[' expr ']' '=' expr
-	{
-	    int itmp = (int) $3 - index_shift;
-	    double *ptr = getcol(whichgraph, whichset, $1);
-	    if (ptr != NULL) {
-	        ptr[itmp] = $6;
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
 		return 1;
-	    }
-	}
-	| selectset '.' vector '[' expr ']' '=' expr
-	{
-	    int itmp = (int) $5 - index_shift;
-	    double *ptr = getcol($1->gno, $1->setno, $3);
-	    if (ptr != NULL) {
-	        ptr[itmp] = $8;
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
+            }
+            $1->data[$2] = $4;
 	}
 	;
 
+lside_array:
+        array
+        {
+            target tgt;
+            if (find_set_bydata($1->data, &tgt) == GRACE_EXIT_SUCCESS) {
+                vasgn_gno   = tgt.gno;
+                vasgn_setno = tgt.setno;
+            }
+            $$ = $1;
+        }
+        ;
 
 vasgn:
-	SCRARRAY '=' vexpr
+	lside_array '=' vexpr
 	{
 	    int i;
-	    double *ptr;
-	    if (lxy > maxarr) {
-		init_scratch_arrays(lxy);
-	    }
-	    ptr = get_scratch((int) $1);
-            for (i = 0; i < lxy; i++) {
-		ptr[i] = $3[i];
+	    if ($1->length != $3->length) {
+                errmsg("Can't operate on vectors of different lengths");
+                return 1;
+            }
+	    for (i = 0; i < $1->length; i++) {
+	        $1->data[i] = $3->data[i];
 	    }
 	}
-	| SCRARRAY '=' expr
+	| lside_array '=' expr
 	{
 	    int i;
-	    double *ptr;
-	    if (lxy > maxarr) {
-		init_scratch_arrays(lxy);
-	    }
-	    ptr = get_scratch((int) $1);
-	    for (i = 0; i < lxy; i++) {
-		ptr[i] = $3;
-	    }
-	}
-	| vector '=' vexpr
-	{
-	    int i;
-	    double *ptr;
-	    if (!is_set_active(whichgraph, whichset)) {
-		setlength(whichgraph, whichset, lxy);
-		setcomment(whichgraph, whichset, "Created");
-	    }
-	    ptr = getcol(whichgraph, whichset, $1);
-	    if (ptr != NULL) {
-	        for (i = 0; i < lxy; i++) {
-		    ptr[i] = $3[i];
-	        }
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| vector '=' expr
-	{
-	    int i;
-	    double *ptr;
-	    vasgn_gno = whichgraph;
-	    vasgn_setno = whichset;
-            if (getsetlength(vasgn_gno, vasgn_setno) < lxy) {
-		setlength(vasgn_gno, vasgn_setno, lxy);
-	    }
-	    ptr = getcol(vasgn_gno, vasgn_setno, $1);
-	    if (ptr != NULL) {
-	        for (i = 0; i < lxy; i++) {
-		    ptr[i] = $3;
-	        }
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| selectset '.' vector '=' vexpr {
-	    int i;
-	    double *ptr;
-	    vasgn_gno = $1->gno;
-	    vasgn_setno = $1->setno;
-            if (getsetlength(vasgn_gno, vasgn_setno) < lxy) {
-		setlength(vasgn_gno, vasgn_setno, lxy);
-	    }
-	    ptr = getcol(vasgn_gno, vasgn_setno, $3);
-	    if (ptr != NULL) {
-	        for (i = 0; i < lxy; i++) {
-		    ptr[i] = $5[i];
-	        }
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
-	    }
-	}
-	| selectset '.' vector '=' expr {
-	    int i;
-	    double *ptr;
-	    vasgn_gno = $1->gno;
-	    vasgn_setno = $1->setno;
-            if (getsetlength(vasgn_gno, vasgn_setno) < lxy) {
-		setlength(vasgn_gno, vasgn_setno, lxy);
-	    }
-	    ptr = getcol(vasgn_gno, vasgn_setno, $3);
-	    if (ptr != NULL) {
-	        for (i = 0; i < lxy; i++) {
-		    ptr[i] = $5;
-	        }
-	    }
-	    else {
-		yyerror("NULL variable, check set type");
-		return 1;
+	    for (i = 0; i < $1->length; i++) {
+	        $1->data[i] = $3;
 	    }
 	}
         ;
@@ -2490,7 +2604,7 @@ actions:
 	    free($2);
 	}
 	| ECHO expr {
-	    char buf[MAX_STRING_LENGTH];
+	    char buf[32];
             sprintf(buf, "%g", (double) $2);
             echomsg(buf);
 	}
@@ -3507,7 +3621,7 @@ worldview: WORLD { $$ = COORD_WORLD; }
 	| VIEW { $$ = COORD_VIEW; }
 	;
 
-vector: X_TOK { $$ = DATA_X; }
+datacolumn: X_TOK { $$ = DATA_X; }
 	| Y_TOK { $$ = DATA_Y; }
 	| X0 { $$ = DATA_X; }
 	| Y0 { $$ = DATA_Y; }
@@ -4415,7 +4529,6 @@ int set_parser_setno(int gno, int setno)
     if (is_valid_setno(gno, setno) == TRUE) {
         whichgraph = gno;
         whichset = setno;
-	lxy = getsetlength(gno, setno);
         /* those will usually be overridden except when evaluating
            a _standalone_ vexpr */
         vasgn_gno = gno;
@@ -4472,6 +4585,7 @@ double *get_scratch(int ind)
     }
 }
 
+
 #define PARSER_TYPE_VOID    0
 #define PARSER_TYPE_EXPR    1
 #define PARSER_TYPE_VEXPR   2
@@ -4525,11 +4639,11 @@ static int parser(char *s, int type)
      */
     if (vexpr_parsed && !interr && type == PARSER_TYPE_VEXPR) {
         for (i = 0; i < fcnt - 1; i++) {
-            cxfree(freelist[i]);
+            free_tmpvrbl(&(freelist[i]));
         }
     } else {
         for (i = 0; i < fcnt; i++) {
-            cxfree(freelist[i]);
+            free_tmpvrbl(&(freelist[i]));
         }
     }
     fcnt = 0;
@@ -4554,8 +4668,10 @@ int s_scanner(char *s, double *res)
 int v_scanner(char *s, int *reslen, double **vres)
 {
     int retval = parser(s, PARSER_TYPE_VEXPR);
-    *reslen = lxy;
-    *vres = v_result;
+    *reslen = v_result->length;
+    *vres = v_result->data;
+    v_result->length = 0;
+    v_result->data = NULL;
     return retval;
 }
 
@@ -4581,6 +4697,48 @@ int scanner(char *s)
         do_nonlfit(nlfit_gno, nlfit_setno, nlfit_nsteps);
     }
     return retval;
+}
+
+static void free_tmpvrbl(grvar *vrbl)
+{
+    if (vrbl->type == GRVAR_TMP) {
+        vrbl->length = 0;
+        cxfree(vrbl->data);
+    }
+}
+
+static void copy_vrbl(grvar *dest, grvar *src)
+{
+    dest->type = src->type;
+    dest->data = malloc(src->length*SIZEOF_DOUBLE);
+    if (dest->data == NULL) {
+        errmsg("Malloc failed in copy_vrbl()");
+    } else {
+        memcpy(dest->data, src->data, src->length*SIZEOF_DOUBLE);
+        dest->length = src->length;
+    }
+}
+
+static int find_set_bydata(double *data, target *tgt)
+{
+    int gno, setno, ncol;
+    
+    if (data == NULL) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+        for (gno = 0; gno < number_of_graphs(); gno++) {
+            for (setno = 0; setno < number_of_sets(gno); setno++) {
+                for (ncol = 0; ncol < MAX_SET_COLS; ncol++) {
+                    if (getcol(gno, setno, ncol) == data) {
+                        tgt->gno   = gno;
+                        tgt->setno = setno;
+                        return GRACE_EXIT_SUCCESS;
+                    }
+                }
+            }
+        }
+    }
+    return GRACE_EXIT_FAILURE;
 }
 
 int findf(symtab_entry *keytable, char *s)
