@@ -829,7 +829,7 @@ int getparms(char *plfile)
 static int uniread(FILE *fp, int load_type, char *label)
 {
     int nrows, ncols, nncols, nscols, nncols_req;
-    int *formats;
+    int *formats = NULL;
     int breakon, readerror;
     ss_data ssd;
     char *s, tbuf[128];
@@ -878,6 +878,7 @@ static int uniread(FILE *fp, int load_type, char *label)
 	} else {
 	    if (breakon) {
 		/* parse the data line */
+                XCFREE(formats);
                 if (parse_ss_row(s, &nncols, &nscols, &formats) != RETURN_SUCCESS) {
 		    errmsg("Can't parse data");
 		    xfree(linebuf);
@@ -904,7 +905,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 if (init_ss_data(&ssd, ncols, formats) != RETURN_SUCCESS) {
 		    errmsg("Malloc failed in uniread()");
 		    xfree(linebuf);
-		    return 0;
+		    return RETURN_FAILURE;
                 }
                 
 		breakon = FALSE;
@@ -949,6 +950,7 @@ static int uniread(FILE *fp, int load_type, char *label)
     }
 
     xfree(linebuf);
+    xfree(formats);
     return RETURN_SUCCESS;
 }
 
