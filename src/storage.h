@@ -68,13 +68,7 @@ typedef struct _Storage {
     Storage_exception_handler exception_handler;
 } Storage;
 
-typedef struct _StorageTData {
-    unsigned int step;
-    char *id;
-    void *data;
-} StorageTData;
-
-typedef int (*Storage_traverse_hook)(StorageTData *stdata, void *udata); 
+typedef int (*Storage_traverse_hook)(unsigned int step, void *data, void *udata); 
 
 Storage *storage_new(Storage_data_free data_free, Storage_data_copy data_copy,
                      Storage_exception_handler exception_handler);

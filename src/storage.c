@@ -541,18 +541,17 @@ int storage_data_swap(Storage *sto, int id1, int id2)
 void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata)
 {
     LLNode *cllnode;
-    StorageTData stdata;
+    unsigned int step;
     
     STORAGE_SAFETY_CHECK(sto, return)
 
     cllnode = sto->start;
-    stdata.step = 0;
+    step = 0;
     while (cllnode) {
-        stdata.data = cllnode->data;
-        if (hook(&stdata, udata) != TRUE) {
+        if (hook(step, cllnode->data, udata) != TRUE) {
             return;
         }
-        stdata.step++;
+        step++;
         cllnode = cllnode->next;
     }
 }
