@@ -1135,6 +1135,7 @@ int set_set_colors(int gno, int setno, int color)
     g[gno].p[setno].linepen.color = color;
     g[gno].p[setno].sympen.color = color;
     g[gno].p[setno].symfillpen.color = color;
+    g[gno].p[setno].errbar.pen.color = color;
     
     set_dirtystate();
     return GRACE_EXIT_SUCCESS;
@@ -1211,24 +1212,6 @@ void postprocess_project(int version)
             g[gno].l.vgap -= 1;
         }
 	for (setno = 0; setno < number_of_sets(gno); setno++) {
-            if (version < 50003) {
-                g[gno].p[setno].errbar.active = TRUE;
-                g[gno].p[setno].errbar.pen.color = g[gno].p[setno].sympen.color;
-                g[gno].p[setno].errbar.pen.pattern = 1;
-                switch (g[gno].p[setno].errbar.ptype) {
-                case PLACEMENT_NORMAL:
-                    g[gno].p[setno].errbar.ptype = PLACEMENT_OPPOSITE;
-                    break;
-                case PLACEMENT_OPPOSITE:
-                    g[gno].p[setno].errbar.ptype = PLACEMENT_NORMAL;
-                    break;
-                default:
-                    break;
-                }
-            }
-            if (version < 50002) {
-                g[gno].p[setno].errbar.barsize *= 2;
-            }
             if (version < 50000) {
                 switch (g[gno].p[setno].sym) {
                 case SYM_NONE:
@@ -1264,6 +1247,31 @@ void postprocess_project(int version)
             }
 	    if (version <= 40102 && g[gno].p[setno].type == SET_XYHILO) {
                 g[gno].p[setno].symlinew = g[gno].p[setno].linew;
+            }
+            if (version < 50003) {
+                g[gno].p[setno].errbar.active = TRUE;
+                g[gno].p[setno].errbar.pen.color = g[gno].p[setno].sympen.color;
+                g[gno].p[setno].errbar.pen.pattern = 1;
+                switch (g[gno].p[setno].errbar.ptype) {
+                case PLACEMENT_NORMAL:
+                    g[gno].p[setno].errbar.ptype = PLACEMENT_OPPOSITE;
+                    break;
+                case PLACEMENT_OPPOSITE:
+                    g[gno].p[setno].errbar.ptype = PLACEMENT_NORMAL;
+                    break;
+                case PLACEMENT_BOTH:
+                    switch (g[gno].p[setno].type) {
+                    case SET_XYDXDX:
+                    case SET_XYDYDY:
+                    case SET_BARDYDY:
+                        g[gno].p[setno].errbar.ptype = PLACEMENT_NORMAL;
+                        break;
+                    }
+                    break;
+                }
+            }
+            if (version < 50002) {
+                g[gno].p[setno].errbar.barsize *= 2;
             }
         }
         for (naxis = 0; naxis < MAXAXES; naxis++) {
