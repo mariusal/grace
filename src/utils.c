@@ -208,11 +208,9 @@ double mytrunc(double a)
 void bailout(Grace *grace)
 {
     if (!grace->project->dirtystate ||
-         yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
-         if (grace->rt->resfp) {
-             grace_close(grace->rt->resfp);
-         }
-         exit(0);
+        yesno("Exit losing unsaved changes?", NULL, NULL, NULL)) {
+        grace_free(grace);
+        exit(0);
     }
 }
 

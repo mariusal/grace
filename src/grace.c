@@ -314,6 +314,10 @@ void runtime_free(RunTime *rt)
     canvas_free(rt->canvas);
     
     grace_rt_free_dicts(rt);
+
+    if (rt->resfp) {
+        grace_close(rt->resfp);
+    }
     
     xfree(rt);
 }
