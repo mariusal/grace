@@ -751,6 +751,8 @@ void mif_puttext(const Canvas *canvas, void *data,
             (underline == TRUE) ? "FSingle" : "FNoUnderlining");
     fprintf(prstream, "    <FOverline %s>\n",
             (overline == TRUE) ? "Yes" : "No");
+    fprintf(prstream, "    <FPairKern %s>\n",
+            (kerning == TRUE) ? "Yes" : "No");
     fprintf(prstream, "    <FColor `%s'>\n",
         get_colorname(canvas, pen.color));
     fprintf(prstream, "   > # end of Font\n");
