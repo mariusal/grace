@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -468,6 +468,7 @@ void xyplot(int gno)
                     break;
                 case SET_XYHILO:
                     drawsethilo(&p);
+                    drawsetavalues(gno, i, &p, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
                     drawsetline(gno, i, &p, 0, NULL, NULL, 0.0);
