@@ -21,7 +21,7 @@
  *
  * Author: Andrew Lister
  *
- * $Id: Input.c,v 1.3 1999-07-27 21:25:15 fnevgeny Exp $
+ * $Id: Input.c,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H

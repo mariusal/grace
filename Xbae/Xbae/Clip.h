@@ -1,7 +1,5 @@
 /*
  * Copyright(c) 1992 Bell Communications Research, Inc. (Bellcore)
- * Copyright(c) 1995-99 Andrew Lister
- *
  *                        All rights reserved
  * Permission to use, copy, modify and distribute this material for
  * any purpose and without fee is hereby granted, provided that the
@@ -21,33 +19,57 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.h,v 1.3 1999-07-27 21:25:15 fnevgeny Exp $
+ * ClipWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
+ *
+ * $Id: Clip.h,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
  */
 
 /*
- * Actions.h created by Andrew Lister (6 August, 1995)
+ * Clip.h - Public definitions for Clip widget
  */
 
-#ifndef _Xbae_Actions_h
-#define _Xbae_Actions_h
+#ifndef _Xbae_Clip_h
+#define _Xbae_Clip_h
 
-#include <Xbae/Macros.h>
+#include <Xm/Xm.h>
+#include <Xbae/patchlevel.h>
+
+
+/* Resources:
+ * Name			Class			RepType		Default Value
+ * ----			-----			-------		-------------
+ * exposeProc		Function		Function	NULL
+ * focusCallback	Callback		Callback	NULL
+ */
+
+#define XmNexposeProc "exposeProc"
+
+
+/* Class record constants */
+
+extern WidgetClass xbaeClipWidgetClass;
+
+typedef struct _XbaeClipClassRec *XbaeClipWidgetClass;
+typedef struct _XbaeClipRec *XbaeClipWidget;
+
 
 /*
- * Actions
+ * External interfaces to class methods
  */
 
-void xbaeEditCellACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeCancelEditACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeCommitEditACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeSelectCellACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeDefaultActionACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeResizeColumnsACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeTraverseNextACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeTraversePrevACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeProcessDragACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaeHandleClick P((Widget, XtPointer, XEvent *, Boolean *));
-void xbaeHandleMotionACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaePageDownACT P((Widget, XEvent *, String *, Cardinal *));
-void xbaePageUpACT P((Widget, XEvent *, String *, Cardinal *));
+
+#if defined (__cplusplus) || defined(c_plusplus)
+extern "C" {
 #endif
+
+extern void XbaeClipRedraw(
+#if NeedFunctionPrototypes
+			   Widget	/* w */
+#endif
+			   );
+
+#if defined (__cplusplus) || defined(c_plusplus)
+}
+#endif
+
+#endif /* _Xbae_Clip_h */

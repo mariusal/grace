@@ -21,7 +21,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Actions.c,v 1.4 1999-07-27 21:25:14 fnevgeny Exp $
+ * $Id: Actions.c,v 1.1 1999-09-11 01:25:36 fnevgeny Exp $
  */
 
 /*

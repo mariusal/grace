@@ -20,34 +20,23 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: ScrollMgr.h,v 1.2 1999-07-26 22:55:07 fnevgeny Exp $
+ * $Id: Shadow.h,v 1.1 1999-09-11 01:25:38 fnevgeny Exp $
  */
 
 /*
- * ScrollMgr.h created by Andrew Lister (6 August, 1995)
+ * Shadow.h created by Andrew Lister (30 October, 1995)
  */
 
-#ifndef _Xbae_ScrollMgr_h
-#define _Xbae_ScrollMgr_h
+#ifndef _Xbae_Shadow_h
+#define _Xbae_Shadow_h
 
 #include <Xbae/Macros.h>
-/*
- * ScrollMgr implementation
- */
 
-SmScrollMgr xbaeSmCreateScrollMgr P((void));
-void xbaeSmDestroyScrollMgr P((SmScrollMgr)); 
-void xbaeSmAddScroll P((SmScrollMgr, int, int));
-void xbaeSmRemoveScroll P((SmScrollMgr));
-void xbaeSmScrollEvent P((SmScrollMgr, XEvent *));
+void xbaeDrawCellShadow P((XbaeMatrixWidget, Window, int, int, int, int,
+			    int, int, Boolean, Boolean, Boolean));
 
-/*
- * Scrollbar callbacks
- */
-void xbaeScrollVertCB P((Widget, XtPointer, XmScrollBarCallbackStruct *));
-void xbaeScrollHorizCB P((Widget, XtPointer , XmScrollBarCallbackStruct *));
-
-void xbaeRedrawCells P((XbaeMatrixWidget, Rectangle *));
-void xbaeRedrawLabelsAndFixed P((XbaeMatrixWidget, Rectangle *));
-
+#if XmVersion >= 1002
+void xbaeDrawCellHighlight P((XbaeMatrixWidget, Window, GC, int, int, int,
+			       int, int, int, int));
+#endif
 #endif

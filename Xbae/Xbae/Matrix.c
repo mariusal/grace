@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.c,v 1.4 1999-07-27 21:25:15 fnevgeny Exp $
+ * $Id: Matrix.c,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H

@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Converters.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
+ * $Id: Converters.h,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
  */
 
 #ifndef _Xbae_Converters_h

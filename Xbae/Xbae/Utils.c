@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Utils.c,v 1.2 1999-07-26 22:55:07 fnevgeny Exp $
+ * $Id: Utils.c,v 1.1 1999-09-11 01:25:38 fnevgeny Exp $
  */
 
 /*

@@ -4,14 +4,14 @@
 # You should not change anything here.              #
 #####################################################
 
-TOP=..
+TOP=../..
 
 include $(TOP)/Make.conf
 
 .SUFFIXES : .c $(O)
 
-CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(GUI_FLAGS) -DHAVE_CONFIG_H \
-	-DDRAW_RESIZE_SHADOW
+CFLAGS=$(CFLAGS0) -I$(TOP) -I. $(XBAE_INC) $(CPPFLAGS) $(GUI_FLAGS) \
+	-DHAVE_CONFIG_H -DDRAW_RESIZE_SHADOW
 
 LIB=libXbae.a
 

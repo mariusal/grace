@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Draw.h,v 1.2 1999-07-26 22:55:05 fnevgeny Exp $
+ * $Id: Draw.h,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
  */
 
 /*

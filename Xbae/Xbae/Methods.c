@@ -20,7 +20,7 @@
  * LOST PROFITS OR OTHER INCIDENTAL OR CONSEQUENTIAL DAMAGES RELAT-
  * ING TO THE SOFTWARE.
  *
- * $Id: Methods.c,v 1.4 1999-07-27 21:25:15 fnevgeny Exp $
+ * $Id: Methods.c,v 1.1 1999-09-11 01:25:38 fnevgeny Exp $
  */
 
 /*

@@ -21,7 +21,7 @@
  *
  * Author: Andrew Lister
  *
- * $Id: Input.h,v 1.2 1999-07-27 21:25:15 fnevgeny Exp $
+ * $Id: Input.h,v 1.1 1999-09-11 01:25:37 fnevgeny Exp $
  */
 
 #ifndef _Xbae_Input_h
