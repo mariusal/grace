@@ -98,6 +98,7 @@ void *storage_duplicate(Storage *sto, int id);
 
 int storage_get_data(Storage *sto, void **datap);
 
+int storage_push(Storage *sto, int forward);
 int storage_push_id(Storage *sto, int id, int forward);
 
 int storage_get_id(Storage *sto);

@@ -340,22 +340,37 @@ static void storage_deallocate_node(Storage *sto, LLNode *llnode)
     xfree(llnode);
 }
 
-static void storage_add_node(Storage *sto, LLNode *llnode)
+static void storage_add_node(Storage *sto, LLNode *llnode, int forward)
 {
-    LLNode *prev;
-    
-    storage_eod(sto);
-    
-    prev = sto->cp;
-    
-    if (prev) {
-        prev->next = llnode;
-    } else {
-        sto->start = llnode;
-    }
+    if (forward) {
+        LLNode *prev;
 
-    llnode->prev = prev;
-    llnode->next = NULL;
+        storage_eod(sto);
+
+        prev = sto->cp;
+
+        if (prev) {
+            prev->next = llnode;
+        } else {
+            sto->start = llnode;
+        }
+
+        llnode->prev = prev;
+        llnode->next = NULL;
+    } else {
+        LLNode *next;
+        
+        next = sto->start;
+        
+        if (next) {
+            next->prev = llnode;
+        } else {
+            sto->start = llnode;
+        }
+
+        llnode->next = next;
+        llnode->prev = NULL;
+    }
 
     sto->cp = llnode;
     sto->count++;
@@ -371,7 +386,7 @@ int storage_add(Storage *sto, void *data)
     if (new == NULL) {
         return RETURN_FAILURE;
     } else {
-        storage_add_node(sto, new);
+        storage_add_node(sto, new, TRUE);
         
         return RETURN_SUCCESS;
     }
@@ -468,22 +483,31 @@ int storage_get_data(Storage *sto, void **datap)
     }
 }
 
-int storage_push_id(Storage *sto, int id, int forward)
+int storage_push(Storage *sto, int forward)
 {
-    LLNode *cllnode1, *cllnode2;
+    LLNode *cllnode;
     
     STORAGE_SAFETY_CHECK(sto, return RETURN_FAILURE)
     
+    cllnode = sto->cp;
+    if (!cllnode) {
+        sto->ierrno = STORAGE_ENOENT;
+        return RETURN_FAILURE;
+    }
+    
+    storage_extract_node(sto, cllnode);
+    
+    storage_add_node(sto, cllnode, forward);
+    
+    return RETURN_SUCCESS;
+}
+
+int storage_push_id(Storage *sto, int id, int forward)
+{
     if (storage_scroll_to_id(sto, id) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     } else {
-        cllnode1 = sto->cp;
-        if (forward && cllnode1 == sto->start) {
-            return RETURN_SUCCESS;
-        }
-        cllnode2 = sto->start;
-        /* FIXME */
-        return RETURN_SUCCESS;
+        return storage_push(sto, forward);
     }
 }
 
@@ -693,7 +717,7 @@ int storage2_data_move(Storage *sto1, Storage *sto2)
     
     storage_extract_node(sto1, cllnode);
     
-    storage_add_node(sto2, cllnode);
+    storage_add_node(sto2, cllnode, TRUE);
     
     return RETURN_SUCCESS;
 }
