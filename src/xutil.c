@@ -151,11 +151,14 @@ void init_cursors(void)
  */
 void set_title(char *ts)
 {
+    static char *buf = NULL;
+    
     if (ts == NULL) {
         return;
+    } else if (buf == NULL || strcmp(buf, ts) != 0) {
+        buf = copy_string(buf, ts);
+        XtVaSetValues(app_shell, XtNtitle, ts, NULL);
     }
-    
-    XtVaSetValues(app_shell, XtNtitle, ts, NULL);
 }
 
 /*
@@ -471,9 +474,6 @@ void setpointer(VPoint vp)
     int x, y;
     
     xlibVPoint2dev(vp, &x, &y);
-/*
- *     getpoints(x, y);
- */
     XWarpPointer(disp, None, xwin, 0, None, win_w, win_h, x, y);
 }
 
@@ -481,16 +481,3 @@ char *display_name(void)
 {
     return DisplayString(disp);
 }
-
-/**********************************************************************
- * XtFlush - Flushes all Xt events.
- **********************************************************************/
-/*
- * void XtFlush(void)
- * {
- *     while (XtAppPending(app_con) & XtIMXEvent) {
- *      XtAppProcessEvent(app_con, XtIMXEvent);
- *      XFlush(XtDisplay(app_shell));
- *     }
- * }
- */
