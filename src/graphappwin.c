@@ -535,7 +535,7 @@ static int graphapp_aac_cb(void *data)
                 labs->title.font = GetOptionChoice(title_font_item);
             }
             if (data == label_subtitle_text_item || data == NULL) {
-                char *s = GetTextString(label_title_text_item);
+                char *s = GetTextString(label_subtitle_text_item);
                 set_plotstr_string(&labs->stitle, s);
                 xfree(s);
             }
