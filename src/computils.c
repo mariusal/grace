@@ -593,6 +593,11 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
 	errmsg("Length of running average > set length");
 	return RETURN_FAILURE;
     }
+    
+    if (!formula || formula[0] == '\0') {
+	errmsg("Empty formula");
+	return RETURN_FAILURE;
+    }
 
     newlen = len - runlen + 1;
     activateset(gdest, setto);
@@ -619,6 +624,7 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
     }
     t->length = runlen;
 
+    set_parser_setno(gsrc, setfrom);
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
         d1 = getcol(gsrc, setfrom, nc);
