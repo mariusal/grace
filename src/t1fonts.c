@@ -427,7 +427,7 @@ GLYPH *GetGlyphString(CompositeString *cs)
         return NULL;
     }
 
-    Size = (float) cs->tm.cyy;
+    Size = (float) fabs(cs->tm.cyy);
     if (Size == 0.0) {
         errmsg("t1lib: Zero font size!");
         return NULL;
@@ -803,7 +803,7 @@ CompositeString *String2Composite(char *string)
 	    (new_gotomark  >= 0         ) ||
 	    (string[i]     == 0         )) {
 	    
-            if (isub != 0) {	/* non-empty substring */
+            if (isub != 0 || setmark >= 0) {	/* non-empty substring */
 	
 	        csbuf = xrealloc(csbuf, (nss + 1)*sizeof(CompositeString));
 	        csbuf[nss].font = font;
@@ -922,7 +922,7 @@ static void reverse_string(char *s, int len)
     }
 }
 
-static void proceed_ligatures(CompositeString *cs)
+static void process_ligatures(CompositeString *cs)
 {
     int j, k, l, m, none_found;
     char *ligtheString;
@@ -1047,7 +1047,7 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
             cstring[iglyph].color = def_color;
         }
         if (cstring[iglyph].aux.ligatures == TRUE) {
-            proceed_ligatures(&cstring[iglyph]);
+            process_ligatures(&cstring[iglyph]);
         }
         if (cstring[iglyph].aux.direction == STRING_DIRECTION_RL) {
             reverse_string(cstring[iglyph].s, cstring[iglyph].len);
@@ -1086,7 +1086,9 @@ void WriteString(VPoint vp, int rot, int just, char *theString)
         v_off_last = v_off_buf;
         x_off = (int) rint(h_off*co - v_off*si);
         y_off = (int) rint(v_off*co + h_off*si);
+
         CSglyph = CatGlyphs(CSglyph, glyph, x_off, y_off, text_advancing);
+
         setmark = cstring[iglyph].aux.setmark;
         if (CSglyph != NULL && setmark >= 0 && setmark < MAX_MARKS) {
             cs_marks[setmark].x = CSglyph->metrics.advanceX;
