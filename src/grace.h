@@ -191,8 +191,6 @@ typedef struct _RunTime {
     /* default graphics properties */
     defaults grdefaults;
     
-    /* linked scroll */
-    int scrolling_islinked;
     /* scroll fraction */
     double scrollper;
     /* expand/shrink fraction */

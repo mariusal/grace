@@ -202,7 +202,6 @@ RunTime *runtime_new(Grace *grace)
 
     rt->grdefaults = d_d;
         
-    rt->scrolling_islinked = FALSE;
     rt->scrollper = 0.05;
     rt->shexper = 0.05;
     

@@ -1976,10 +1976,9 @@ parmset:
 	| PAGE INOUT expr '%' {
 	    scrollinout_proc((int) $3);
 	}
-	| LINK PAGE onoff {
-	    grace->rt->scrolling_islinked = $3;
-	}
 
+	| LINK PAGE onoff {
+	}
 	| STACK WORLD expr ',' expr ',' expr ',' expr
 	{
 	}

@@ -70,7 +70,6 @@ static SpinStructure *max_path_item;
 static Widget safe_mode_item;
 static Widget scrollper_item;
 static Widget shexper_item;
-static Widget linkscroll_item;
 
 #if defined WITH_XMHTML || defined WITH_LIBHELP
 static Widget force_external_viewer_item;
@@ -128,7 +127,6 @@ void create_props_frame(Widget but, void *data)
         rc1 = CreateVContainer(fr);
 	scrollper_item = CreateScale(rc1, "Scroll %", 0, 200, 20);
 	shexper_item   = CreateScale(rc1, "Zoom %",   0, 200, 20);
-	linkscroll_item = CreateToggleButton(rc1, "Linked scrolling");
 
 	CreateAACDialog(props_frame, fr, props_define_notify_proc, NULL);
     }
@@ -166,7 +164,6 @@ void update_props_items(void)
 	SetOptionChoice(graph_focus_choice_item, itest);
 	SetToggleButtonState(graph_drawfocus_choice_item, gui->draw_focus_flag);
 
-	SetToggleButtonState(linkscroll_item, grace->rt->scrolling_islinked);
 	SetToggleButtonState(autoredraw_type_item, gui->auto_redraw);
 	SetToggleButtonState(cursor_type_item, cursortype);
 #if defined WITH_XMHTML || defined WITH_LIBHELP
@@ -205,7 +202,6 @@ static int props_define_notify_proc(void *data)
     }
     gui->draw_focus_flag = GetToggleButtonState(graph_drawfocus_choice_item);
 
-    grace->rt->scrolling_islinked = GetToggleButtonState(linkscroll_item);
     gui->auto_redraw = GetToggleButtonState(autoredraw_type_item);
     cursortype = GetToggleButtonState(cursor_type_item);
 #if defined WITH_XMHTML || defined WITH_LIBHELP
