@@ -51,8 +51,7 @@
 
 typedef struct _EditPoints {
     struct _EditPoints *next;
-    int gno;
-    int setno;
+    Quark *pset;
     int cformat[MAX_SET_COLS];
     int cprec[MAX_SET_COLS];
     int update;
@@ -91,13 +90,13 @@ static void get_ep_dims(EditPoints *ep, int *nr, int *nc)
 
 static int get_ep_set_dims(EditPoints *ep, int *nrows, int *ncols, int *scols)
 {
-    if (!ep || !is_valid_setno(ep->gno, ep->setno)) {
+    if (!ep || !ep->pset) {
         return RETURN_FAILURE;
     }
     
-    *nrows = getsetlength(ep->gno, ep->setno);
-    *ncols = dataset_cols(ep->gno, ep->setno);
-    if (get_set_strings(ep->gno, ep->setno) != NULL) {
+    *nrows = getsetlength(ep->pset);
+    *ncols = dataset_cols(ep->pset);
+    if (get_set_strings(ep->pset) != NULL) {
         *scols = 1;
     } else {
         *scols = 0;
@@ -152,12 +151,12 @@ static void del_rows_cb(void *data)
     sprintf(buf, "Delete %d selected row(s)?", nsrows);
     if (yesno(buf, NULL, NULL, NULL)) {
         for (i = nsrows - 1; i >= 0; i--) {
-            del_point(ep->gno, ep->setno, srows[i]);
+            del_point(ep->pset, srows[i]);
         }
 
         XbaeMatrixDeselectAll(ep->mw);
 
-        update_set_lists(ep->gno);
+        update_set_lists(ep->pset->parent);
         update_cells(ep);
 
         xdrawgraph();
@@ -178,7 +177,6 @@ void add_row_cb(void *data)
     char **s;
     Datapoint dpoint;
     EditPoints *ep = (EditPoints *) data;
-    int gno = ep->gno, setno = ep->setno;
 
     XbaeMatrixGetCurrentCell(ep->mw, &i, &j);
     
@@ -195,17 +193,17 @@ void add_row_cb(void *data)
     
     if (i < nrows) {
         for (k = 0; k < ncols; k++) {
-            dpoint.ex[k] = *(getcol(gno, setno, k) + i);
+            dpoint.ex[k] = *(getcol(ep->pset, k) + i);
         }
-        if ((s = get_set_strings(gno, setno)) != NULL) {
+        if ((s = get_set_strings(ep->pset)) != NULL) {
             dpoint.s = s[i];
         }
-        add_point_at(gno, setno, i + 1, &dpoint);
+        add_point_at(ep->pset, i + 1, &dpoint);
     } else {
-        add_point_at(gno, setno, i, &dpoint);
+        add_point_at(ep->pset, i, &dpoint);
     }
     
-    update_set_lists(gno);
+    update_set_lists(ep->pset->parent);
     update_cells(ep);
     
     xdrawgraph();
@@ -323,8 +321,8 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
 
     if (cs->row >= nrows) {
         if (!is_empty_string(cs->value)) {
-            setlength(ep->gno, ep->setno, cs->row + 1);
-            update_set_lists(ep->gno);
+            setlength(ep->pset, cs->row + 1);
+            update_set_lists(ep->pset->parent);
         } else {
             /* empty cell */
             return;
@@ -334,7 +332,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
     /* TODO: add edit_point() function to setutils.c */
     if (cs->column < ncols) {
         char *s;
-        double *datap = getcol(ep->gno, ep->setno, cs->column);
+        double *datap = getcol(ep->pset, cs->column);
         s = create_fstring(ep->cformat[cs->column], ep->cprec[cs->column],
             datap[cs->row], LFORMAT_TYPE_PLAIN);
         if (strcmp(s, cs->value) != 0) {
@@ -347,7 +345,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
             }
         }
     } else if (cs->column < ncols + scols) {
-        char **datap = get_set_strings(ep->gno, ep->setno);
+        char **datap = get_set_strings(ep->pset);
         if (compare_strings(datap[cs->row], cs->value) == 0) {
 	    datap[cs->row] = copy_string(datap[cs->row], cs->value);
             changed = TRUE;
@@ -359,7 +357,7 @@ static void leaveCB(Widget w, XtPointer client_data, XtPointer calld)
         
         /* don't refresh this editor */
         ep->update = FALSE;
-        update_set_lists(ep->gno);
+        update_set_lists(ep->pset->parent);
         ep->update = TRUE;
         
         xdrawgraph();
@@ -386,7 +384,7 @@ static char *get_cell_content(EditPoints *ep, int row, int column)
         s = "";
     } else if (column < ncols) {
         double *datap;
-        datap = getcol(ep->gno, ep->setno, column);
+        datap = getcol(ep->pset, column);
         strcpy(buf[stackp],
             create_fstring(ep->cformat[column], ep->cprec[column], datap[row], LFORMAT_TYPE_PLAIN));
         s = buf[stackp];
@@ -394,7 +392,7 @@ static char *get_cell_content(EditPoints *ep, int row, int column)
         stackp %= STACKLEN;
     } else {
         char **datap;
-        datap = get_set_strings(ep->gno, ep->setno);
+        datap = get_set_strings(ep->pset);
         s = datap[row];
     }
     
@@ -460,12 +458,12 @@ void delete_ep(EditPoints *ep)
     }
 }
 
-EditPoints *get_ep(int gno, int setno)
+EditPoints *get_ep(Quark *pset)
 {
     EditPoints *ep_tmp = ep_start;
 
     while (ep_tmp != NULL) {
-        if (ep_tmp->gno == gno && ep_tmp->setno == setno) {
+        if (ep_tmp->pset == pset) {
             break;
         }
         ep_tmp = ep_tmp->next;
@@ -486,18 +484,16 @@ EditPoints *get_unused_ep()
     return ep_tmp;
 }
 
-void update_ss_editors(int gno)
+void update_ss_editors(Quark *gr)
 {
     EditPoints *ep = ep_start;
 
     while (ep != NULL) {
-        if (ep->gno == gno || gno == ALL_GRAPHS) {
+        if (!gr || ep->pset->parent == gr) {
             /* don't spend time on unmanaged SS editors */
             if (XtIsManaged(GetParent(ep->top))) {
                 update_cells(ep);
             }
-        } else if (!is_valid_gno(ep->gno)) {
-            destroy_dialog_cb(GetParent(ep->top));
         }
         ep = ep->next;
     }
@@ -528,11 +524,11 @@ static void update_cells(EditPoints *ep)
         return;
     }
     
-    sprintf(buf, "Dataset G%d.S%d", ep->gno, ep->setno);
+    sprintf(buf, "Dataset %s", QIDSTR(ep->pset));
     SetLabel(ep->label, buf);
 
-    SetOptionChoice(ep->stype, dataset_type(ep->gno, ep->setno));
-    SetTextString(ep->comment, getcomment(ep->gno, ep->setno));
+    SetOptionChoice(ep->stype, dataset_type(ep->pset));
+    SetTextString(ep->comment, getcomment(ep->pset));
     
     /* get current size of widget and update rows/columns as needed */
     get_ep_dims(ep, &nr, &nc);
@@ -632,9 +628,9 @@ int ep_aac_proc(void *data)
     stype = GetOptionChoice(ep->stype);
     comment = GetTextString(ep->comment);
     
-    set_dataset_type(ep->gno, ep->setno, stype);
-    setcomment(ep->gno, ep->setno, comment);
-    update_set_lists(ep->gno);
+    set_dataset_type(ep->pset, stype);
+    setcomment(ep->pset, comment);
+    update_set_lists(ep->pset->parent);
     xdrawgraph();
     
     return RETURN_SUCCESS;
@@ -729,14 +725,14 @@ static EditPoints *new_ep(void)
     return ep;
 }
 
-void create_ss_frame(int gno, int setno)
+void create_ss_frame(Quark *pset)
 {
     EditPoints *ep;
 
     set_wait_cursor();
 
     /* first, try a previously opened editor with the same set */
-    ep = get_ep(gno, setno);
+    ep = get_ep(pset);
     if (ep == NULL) {
         /* if failed, a first unmanaged one */
         ep = get_unused_ep();
@@ -752,8 +748,7 @@ void create_ss_frame(int gno, int setno)
         return;
     }
     
-    ep->gno = gno;
-    ep->setno = setno;
+    ep->pset = pset;
     
     update_cells(ep);
     
@@ -767,7 +762,7 @@ void create_ss_frame(int gno, int setno)
 /*
  * Start up external editor
  */
-void do_ext_editor(int gno, int setno)
+void do_ext_editor(Quark *pset)
 {
     char *fname, ebuf[256];
     FILE *cp;
@@ -779,7 +774,7 @@ void do_ext_editor(int gno, int setno)
         return;
     }
 
-    write_set(gno, setno, cp, project_get_sformat(grace->project), FALSE);
+    write_set(pset, cp, project_get_sformat(grace->project));
     grace_close(cp);
 
     sprintf(ebuf, "%s %s", get_editor(grace), fname);
@@ -788,11 +783,12 @@ void do_ext_editor(int gno, int setno)
     /* temporarily disable autoscale */
     save_autos = grace->rt->autoscale_onread;
     grace->rt->autoscale_onread = AUTOSCALE_NONE;
-    if (is_set_active(gno, setno)) {
-        grace->rt->curtype = dataset_type(gno, setno);
-	killsetdata(gno, setno);	
+    if (is_set_active(pset)) {
+        grace->rt->curtype = dataset_type(pset);
+        grace->rt->target_set = pset;
+	killsetdata(pset);	
     }
-    getdata(gno, fname, SOURCE_DISK, LOAD_SINGLE);
+    getdata(pset->parent, fname, SOURCE_DISK, LOAD_SINGLE);
     grace->rt->autoscale_onread = save_autos;
     unlink(fname);
     update_all();

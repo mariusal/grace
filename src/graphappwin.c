@@ -49,7 +49,7 @@ static Widget graphapp_dialog = NULL;
 /*
  * Widget item declarations
  */
-static ListStructure *graph_selector;
+static StorageStructure *graph_selector;
 
 static Widget define_view_xv1;
 static Widget define_view_xv2;
@@ -107,10 +107,10 @@ static Widget instantupdate_item;
  * Event and Notify proc declarations
  */
 static int graphapp_aac_cb(void *data);
-void updatelegends(int gno);
-void update_view(int gno);
-static void update_frame_items(int gno);
-void update_graphapp_items(int n, int *values, void *data);
+void updatelegends(Quark *gr);
+void update_view(Quark *gr);
+static void update_frame_items(Quark *gr);
+void update_graphapp_items(int n, void **values, void *data);
 
 static void oc_graph_cb(int a, void *data)
 {
@@ -135,7 +135,7 @@ static void text_graph_cb(char *s, void *data)
 
 void create_graphapp_frame_cb(void *data)
 {
-    create_graphapp_frame((int) data);
+    create_graphapp_frame(data);
 }
 
 static void flipxy_cb(int onoff, void *data)
@@ -148,12 +148,12 @@ static void flipxy_cb(int onoff, void *data)
 /*
  * 
  */
-void create_graphapp_frame(int gno)
+void create_graphapp_frame(Quark *gr)
 {
     set_wait_cursor();
     
-    if (is_valid_gno(gno) == FALSE) {
-        gno = get_cg();
+    if (!gr) {
+        gr = graph_get_current(grace->project);
     }
     
     if (graphapp_dialog == NULL) {
@@ -177,14 +177,15 @@ void create_graphapp_frame(int gno)
         graph_selector = CreateGraphChoice(graphapp_dialog, "Graph:",
                             LIST_TYPE_MULTIPLE);
         AddDialogFormChild(graphapp_dialog, graph_selector->rc);
-        AddListChoiceCB(graph_selector, update_graphapp_items, NULL);
+        AddStorageChoiceCB(graph_selector, update_graphapp_items, NULL);
 
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
         CreateMenuButton(menupane, "Open...", 'O', create_rparams_popup, NULL);
         CreateMenuButton(menupane, "Save...", 'S', create_wparam_frame, NULL);
         CreateMenuSeparator(menupane);
         CreateMenuCloseButton(menupane, graphapp_dialog);
-        
+
+#if 0        
         menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
         CreateMenuButton(menupane,
@@ -201,6 +202,7 @@ void create_graphapp_frame(int gno)
         CreateMenuSeparator(menupane);
         CreateMenuButton(menupane,
             "Create new", 'C', create_new_graph_proc, graph_selector);
+#endif
 
         menupane = CreateMenu(menubar, "Options", 'O', FALSE);
         instantupdate_item =
@@ -445,7 +447,7 @@ void create_graphapp_frame(int gno)
 #endif
     }
     
-    SelectListChoice(graph_selector, gno);
+    SelectStorageChoice(graph_selector, gr);
     
     RaiseWindow(GetParent(graphapp_dialog));
     unset_wait_cursor();
@@ -457,15 +459,15 @@ void create_graphapp_frame(int gno)
 
 static int graphapp_aac_cb(void *data)
 {
-    int j, gno, n, *values;
+    int j, n;
+    Quark *gr;
+    void **values;
     view v;
-    labels labs;
-    framep f;
+    labels *labs;
+    framep *f;
     legend *l;
     double znorm;
-/*
- *     int flipxy;
- */
+    int flipxy;
     
     if (!GetToggleButtonState(instantupdate_item) && data != NULL) {
         return RETURN_SUCCESS;
@@ -475,21 +477,17 @@ static int graphapp_aac_cb(void *data)
         xv_evalexpr(znorm_item, &znorm);
     }
     
-/*
- *     flipxy = GetToggleButtonState(graph_flipxy_item);
- */
+    flipxy = GetToggleButtonState(graph_flipxy_item);
 
-    n = GetListChoices(graph_selector, &values);
+    n = GetStorageChoices(graph_selector, &values);
     for (j = 0; j < n; j++) {
-        gno = values[j];
-        if (is_valid_gno(gno)) {
+        gr = values[j];
+        if (gr) {
 
-            get_graph_viewport(gno, &v);
-            get_graph_labels(gno, &labs);
-            labs.title.s = copy_string(NULL,labs.title.s);  
-            labs.stitle.s = copy_string(NULL,labs.stitle.s);  
-            get_graph_framep(gno, &f);
-            l = get_graph_legend(gno);
+            get_graph_viewport(gr, &v);
+            labs = get_graph_labels(gr);
+            f = get_graph_frame(gr);
+            l = get_graph_legend(gr);
 
             if (data == define_view_xv1 || data == NULL) {
                 xv_evalexpr(define_view_xv1, &v.xv1);  
@@ -508,62 +506,64 @@ static int graphapp_aac_cb(void *data)
                 return RETURN_FAILURE;
             } 
 
+            set_graph_viewport(gr, &v);
+
             if (data == graph_type_choice_item || data == NULL) {
-                set_graph_type(gno, GetOptionChoice(graph_type_choice_item));
+                set_graph_type(gr, GetOptionChoice(graph_type_choice_item));
             }
             if (data == stacked_item || data == NULL) {
-                set_graph_stacked(gno,GetToggleButtonState(stacked_item));
+                set_graph_stacked(gr,GetToggleButtonState(stacked_item));
             }
             if (data == bargap_item || data == NULL) {
-                set_graph_bargap(gno, GetSpinChoice(bargap_item));
+                set_graph_bargap(gr, GetSpinChoice(bargap_item));
             }
             if (data == znorm_item || data == NULL) {
-                set_graph_znorm(gno, znorm);
+                set_graph_znorm(gr, znorm);
             }
             if (data == label_title_text_item || data == NULL) {
-                set_plotstr_string(&labs.title, GetTextString(label_title_text_item));
+                set_plotstr_string(&labs->title, GetTextString(label_title_text_item));
             }
             if (data == title_size_item || data == NULL) {
-                labs.title.charsize = GetCharSizeChoice(title_size_item);
+                labs->title.charsize = GetCharSizeChoice(title_size_item);
             }
             if (data == title_color_item || data == NULL) {
-                labs.title.color = GetOptionChoice(title_color_item);
+                labs->title.color = GetOptionChoice(title_color_item);
             }
             if (data == title_font_item || data == NULL) {
-                labs.title.font = GetOptionChoice(title_font_item);
+                labs->title.font = GetOptionChoice(title_font_item);
             }
             if (data == label_subtitle_text_item || data == NULL) {
-                set_plotstr_string(&labs.stitle, GetTextString(label_subtitle_text_item));
+                set_plotstr_string(&labs->stitle, GetTextString(label_subtitle_text_item));
             }
             if (data == stitle_size_item || data == NULL) {
-                labs.stitle.charsize = GetCharSizeChoice(stitle_size_item);
+                labs->stitle.charsize = GetCharSizeChoice(stitle_size_item);
             }
             if (data == stitle_color_item || data == NULL) {
-                labs.stitle.color = GetOptionChoice(stitle_color_item);
+                labs->stitle.color = GetOptionChoice(stitle_color_item);
             }
             if (data == stitle_font_item || data == NULL) {
-                labs.stitle.font = GetOptionChoice(stitle_font_item);
+                labs->stitle.font = GetOptionChoice(stitle_font_item);
             }
             if (data == frame_framestyle_choice_item || data == NULL) {
-                f.type = GetOptionChoice(frame_framestyle_choice_item);
+                f->type = GetOptionChoice(frame_framestyle_choice_item);
             }
             if (data == frame_color_choice_item || data == NULL) {
-                f.pen.color = GetOptionChoice(frame_color_choice_item);
+                f->pen.color = GetOptionChoice(frame_color_choice_item);
             }
             if (data == frame_pattern_choice_item || data == NULL) {
-                f.pen.pattern = GetOptionChoice(frame_pattern_choice_item);
+                f->pen.pattern = GetOptionChoice(frame_pattern_choice_item);
             }
             if (data == frame_linew_choice_item || data == NULL) {
-                f.linew = GetSpinChoice(frame_linew_choice_item);
+                f->linew = GetSpinChoice(frame_linew_choice_item);
             }
             if (data == frame_lines_choice_item || data == NULL) {
-                f.lines = GetOptionChoice(frame_lines_choice_item);
+                f->lines = GetOptionChoice(frame_lines_choice_item);
             }
             if (data == frame_fillcolor_choice_item || data == NULL) {
-                f.fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
+                f->fillpen.color = GetOptionChoice(frame_fillcolor_choice_item);
             }
             if (data == frame_fillpattern_choice_item || data == NULL) {
-                f.fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
+                f->fillpen.pattern = GetOptionChoice(frame_fillpattern_choice_item);
             }
             if (data == legend_charsize_item || data == NULL) {
                 l->charsize = GetCharSizeChoice(legend_charsize_item);
@@ -620,12 +620,7 @@ static int graphapp_aac_cb(void *data)
                 l->boxline.style = GetOptionChoice(legend_boxlines_item);
             }
 
-            /* g[gno].xyflip = flipxy; */
-            
-            set_graph_viewport(gno, v);
-            set_graph_labels(gno, &labs);
-            set_graph_framep(gno, &f);
-            set_graph_legend(gno, l);
+            set_graph_xyflip(gr, flipxy);
 	}
     }
     
@@ -636,67 +631,65 @@ static int graphapp_aac_cb(void *data)
     return RETURN_SUCCESS;
 }
 
-void update_graphapp_items(int n, int *values, void *data)
+void update_graphapp_items(int n, void **values, void *data)
 {
-    int gno;
-    labels labs;
+    Quark *gr;
+    labels *labs;
     char buf[32];
     
     if (n != 1) {
         return;
     } else {
-        gno = values[0];
+        gr = values[0];
     }
 
-    if (is_valid_gno(gno) != TRUE) {
+    if (!gr) {
         return;
     }
     
     if (graphapp_dialog != NULL) {
 
-        update_view(gno);
+        update_view(gr);
 
-        update_frame_items(gno);
+        update_frame_items(gr);
  
-        updatelegends(gno);
-        get_graph_labels(gno, &labs);
+        updatelegends(gr);
+        labs = get_graph_labels(gr);
             
-        SetOptionChoice(graph_type_choice_item, get_graph_type(gno));
+        SetOptionChoice(graph_type_choice_item, get_graph_type(gr));
 
-        SetSpinChoice(bargap_item, get_graph_bargap(gno));
+        SetSpinChoice(bargap_item, get_graph_bargap(gr));
 
-        SetToggleButtonState(stacked_item, is_graph_stacked(gno));
+        SetToggleButtonState(stacked_item, is_graph_stacked(gr));
 
-        sprintf(buf, "%g", get_graph_znorm(gno));
+        sprintf(buf, "%g", get_graph_znorm(gr));
         xv_setstr(znorm_item, buf);
 
-        SetTextString(label_title_text_item, labs.title.s);
-        SetTextString(label_subtitle_text_item, labs.stitle.s);
+        SetTextString(label_title_text_item, labs->title.s);
+        SetTextString(label_subtitle_text_item, labs->stitle.s);
  
-        SetCharSizeChoice(title_size_item, labs.title.charsize);
-        SetCharSizeChoice(stitle_size_item, labs.stitle.charsize);
+        SetCharSizeChoice(title_size_item, labs->title.charsize);
+        SetCharSizeChoice(stitle_size_item, labs->stitle.charsize);
 
-        SetOptionChoice(title_color_item, labs.title.color);
-        SetOptionChoice(stitle_color_item, labs.stitle.color);
+        SetOptionChoice(title_color_item, labs->title.color);
+        SetOptionChoice(stitle_color_item, labs->stitle.color);
 
-        SetOptionChoice(title_font_item, labs.title.font);
-        SetOptionChoice(stitle_font_item, labs.stitle.font);
+        SetOptionChoice(title_font_item, labs->title.font);
+        SetOptionChoice(stitle_font_item, labs->stitle.font);
 
-/*
- *         SetToggleButtonState(graph_flipxy_item, g[gno].xyflip);
- */
+        SetToggleButtonState(graph_flipxy_item, get_graph_xyflip(gr));
     }
 }
 /*
  * Viewport update
  */
-void update_view(int gno)
+void update_view(Quark *gr)
 {
     view v;
     char buf[32];
     
     if (graphapp_dialog) {
-	get_graph_viewport(gno, &v);
+	get_graph_viewport(gr, &v);
         
         sprintf(buf, "%.9g", v.xv1);
 	xv_setstr(define_view_xv1, buf);
@@ -712,12 +705,12 @@ void update_view(int gno)
 /*
  * legend popup
  */
-void updatelegends(int gno)
+void updatelegends(Quark *gr)
 {
     legend *l;
     
     if (graphapp_dialog != NULL) {
-	l = get_graph_legend(gno);
+	l = get_graph_legend(gr);
         
         SetCharSizeChoice(legend_charsize_item, l->charsize);
 
@@ -744,19 +737,19 @@ void updatelegends(int gno)
     }
 }
 
-static void update_frame_items(int gno)
+static void update_frame_items(Quark *gr)
 {
-    framep f;
+    framep *f;
     
     if (graphapp_dialog) {
-        get_graph_framep(gno, &f);
+        f = get_graph_frame(gr);
     
-	SetOptionChoice(frame_framestyle_choice_item, f.type);
-	SetOptionChoice(frame_color_choice_item, f.pen.color);
-	SetOptionChoice(frame_pattern_choice_item, f.pen.pattern);
-	SetSpinChoice(frame_linew_choice_item, f.linew);
-	SetOptionChoice(frame_lines_choice_item, f.lines);
-	SetOptionChoice(frame_fillcolor_choice_item, f.fillpen.color);
-	SetOptionChoice(frame_fillpattern_choice_item, f.fillpen.pattern);
+	SetOptionChoice(frame_framestyle_choice_item, f->type);
+	SetOptionChoice(frame_color_choice_item, f->pen.color);
+	SetOptionChoice(frame_pattern_choice_item, f->pen.pattern);
+	SetSpinChoice(frame_linew_choice_item, f->linew);
+	SetOptionChoice(frame_lines_choice_item, f->lines);
+	SetOptionChoice(frame_fillcolor_choice_item, f->fillpen.color);
+	SetOptionChoice(frame_fillpattern_choice_item, f->fillpen.pattern);
     }
 }

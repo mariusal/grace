@@ -98,14 +98,14 @@ DObject *object_new(void);
 DObject *object_new_complete(OType type);
 void object_free(DObject *o);
 
-DObject *object_get(graph *g, int id);
+DObject *object_get(Quark *gr, int id);
 DObject *object_copy(DObject *o);
 
 int isactive_object(DObject *o);
 
-int kill_object(graph *g, int id);
-DObject *next_object(graph *g, OType type);
-DObject *duplicate_object(graph *g, int id);
+int kill_object(Quark *gr, int id);
+DObject *next_object(Quark *gr, OType type);
+DObject *duplicate_object(Quark *gr, int id);
 
 int get_object_bb(DObject *o, view *bb);
 void move_object(DObject *o, VVector shift);

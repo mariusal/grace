@@ -194,8 +194,7 @@ RunTime *runtime_new(Grace *grace)
     rt->tdevice = 0;
     rt->hdevice = 0;
     
-    rt->target_set.gno   = -1;
-    rt->target_set.setno = -1;
+    rt->target_set = NULL;
     
     rt->nlfit->title   = NULL;
     rt->nlfit->formula = NULL;
@@ -318,10 +317,41 @@ static QuarkFlavor project_qf = {
     NULL
 };
 
+static QuarkFlavor graph_qf = {
+    (Quark_data_new) graph_data_new,
+    (Quark_data_free) graph_data_free,
+    (Quark_data_copy) graph_data_copy,
+    NULL
+};
+
+static QuarkFlavor set_qf = {
+    (Quark_data_new) set_data_new,
+    (Quark_data_free) set_data_free,
+    (Quark_data_copy) set_data_copy,
+    NULL
+};
+
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid)
 {
-    return &project_qf;
+    QuarkFlavor *qf;
+    
+    switch (fid) {
+    case QFlavorProject:
+        qf = &project_qf;
+        break;
+    case QFlavorGraph:
+        qf = &graph_qf;
+        break;
+    case QFlavorSet:
+        qf = &set_qf;
+        break;
+    default:
+        qf = NULL;
+        break;
+    }
+    
+    return qf;
 }
 
 
@@ -403,7 +433,7 @@ int set_page_dimensions(Grace *grace, int wpp, int hpp, int rescale)
                     ext_y = old_aspectr;
                 }
 
-                rescale_viewport(pr, ext_x, ext_y);
+                rescale_viewport(grace->project, ext_x, ext_y);
             } 
         }
         for (i = 0; i < number_of_devices(canvas); i++) {

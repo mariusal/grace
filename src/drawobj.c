@@ -187,17 +187,15 @@ static int object_draw_hook(unsigned int step, void *data, void *udata)
     return TRUE;
 }
 
-void draw_objects(Canvas *canvas, int gno)
+void draw_objects(Canvas *canvas, Quark *gr)
 {
-    graph *g = graph_get(gno);
-    if (!g) {
-        return;
+    if (gr) {
+        graph *g = (graph *) gr->data;
+        /* disable (?) clipping for object drawing */
+        setclipping(canvas, FALSE);
+
+        storage_traverse(g->dobjects, object_draw_hook, canvas);
+
+        setclipping(canvas, TRUE);
     }
-    
-    /* disable (?) clipping for object drawing */
-    setclipping(canvas, FALSE);
-    
-    storage_traverse(g->dobjects, object_draw_hook, canvas);
-    
-    setclipping(canvas, TRUE);
 }

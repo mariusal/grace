@@ -68,12 +68,12 @@ int wipeout(void);
 
 void scroll_proc(int value);
 void scrollinout_proc(int value);
-int graph_scroll(int type);
-int graph_zoom(int type);
+int graph_scroll(Quark *gr, int type);
+int graph_zoom(Quark *gr, int type);
 
-int overlay_graphs(int gsec, int gpri, int type);
+int overlay_graphs(Quark *gsec, Quark *gpri, int type);
 
-int arrange_graphs(int *graphs, int ngraphs,
+int arrange_graphs(Quark **graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
@@ -81,12 +81,12 @@ int arrange_graphs(int *graphs, int ngraphs,
 int arrange_graphs_simple(int nrows, int ncols,
     int order, int snake, double offset, double hgap, double vgap);
 
-void autotick_axis(int gno, int axis);
-void autoscale_bysets(int gno, int *sets, int nsets, int autos_type);
-int autoscale_graph(int gno, int autos_type);
+void autotick_axis(Quark *gr, int axis);
+void autoscale_bysets(Quark **sets, int nsets, int autos_type);
+int autoscale_graph(Quark *gr, int autos_type);
 
-void move_legend(int gno, VVector shift);
+void move_legend(Quark *gr, VVector shift);
 
-void rescale_viewport(Project *pr, double ext_x, double ext_y);
+void rescale_viewport(Quark *pr, double ext_x, double ext_y);
 
 #endif /* __GRAPHUTILS_H_ */

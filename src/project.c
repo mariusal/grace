@@ -38,12 +38,12 @@
 
 static void wrap_graph_free(void *data)
 {
-    graph_free((graph *) data);
+    quark_free((Quark *) data);
 }
 
 static void *wrap_graph_copy(void *data)
 {
-    return (void *) graph_copy((graph *) data);
+    return (void *) quark_copy((Quark *) data);
 }
 
 Quark *project_new(Grace *grace)

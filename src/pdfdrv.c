@@ -199,7 +199,7 @@ int pdf_initgraphics(const Canvas *canvas, void *data, const CanvasStats *cstats
     PDF_begin_page(phandle, pg->width*72.0/pg->dpi, pg->height*72.0/pg->dpi);
     
     if (pdf_setup_compat >= PDF_1_3) {
-        s = get_project_description();
+        s = canvas_get_description(canvas);
 
         if (!is_empty_string(s)) {
             PDF_set_border_style(phandle, "dashed", 3.0);

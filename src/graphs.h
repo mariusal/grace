@@ -106,31 +106,76 @@ typedef struct {
 } Datapoint;
 
 typedef struct {
+    int type;
+    double size;
+    Line line;
+    Pen fillpen;
+    char symchar;
+    int charfont;
+} Symbol;
+
+typedef struct {
+    int type;
+    int filltype;
+    int fillrule;
+    int baseline;
+    int baseline_type;
+    int droplines;
+    Line line;
+    Pen fillpen;
+} SetLine;
+
+typedef struct {
+    double size;
+    Line line;
+} BarLine;
+
+typedef struct {
+    int arrow_clip;
+    double clip_length;
+    Line line;
+} RiserLine;
+
+typedef struct {
+    int active;          /* on/off */
+    PlacementType ptype; /* placement type */
+    Pen pen;             /* pen */
+    double linew;        /* error bar line width */
+    int lines;           /* error bar line style */
+    double riser_linew;  /* connecting line between error limits line width */
+    int riser_lines;     /* connecting line between error limits line style */
+    double barsize;      /* size of error bar */
+    int arrow_clip;      /* draw arrows if clipped */
+    double cliplen;      /* riser clipped length (v.p.) */
+} Errbar;
+
+/* Annotative strings for data values */
+typedef struct {
+    int active;                 /* active or not */
+    int type;                   /* type */
+    double size;                /* char size */
+    int font;                   /* font */
+    int color;                  /* color */
+    int angle;                  /* angle */
+    int format;                 /* format */
+    int prec;                   /* precision */
+    char prestr[64];            /* prepend string */
+    char appstr[64];            /* append string */
+    VPoint offset;              /* offset related to symbol position */
+} AValue;
+
+typedef struct {
     Dataset *data;              /* dataset */
     
     int hidden;                 /* hidden set */
 
     int type;                   /* set type */
 
-    int sym;                    /* set plot symbol type */
-    double symsize;             /* size of symbols */
-    Line symline;               /* symbol linestyle */
-    Pen symfillpen;             /* pen props of symbol filling */
+    Symbol sym;                 /* set plot symbol props */
+
     int symskip;                /* number of symbols to skip */
-    unsigned char symchar;      /* char used if sym == SYM_CHAR */
-    int charfont;               /* font for symchar if sym == SYM_CHAR */
 
-    int linet;                  /* set line type */
-    Line line;                  /* set line props */
-
-    int baseline_type;          /* type of baseline */
-    int baseline;               /* should the baseline be drawn */
-    int dropline;               /* should the drop lines (from data points to
-                                                      the baseline) be drawn */
-    
-    int filltype;               /* fill type */
-    int fillrule;               /* fill rule (winding/even-odd) */
-    Pen setfillpen;             /* pen props for set fill */
+    SetLine line;               /* set line type */
 
     AValue avalue;              /* Parameters for annotative string */
     Errbar errbar;              /* error bar properties */
@@ -172,6 +217,97 @@ typedef struct {
     view bb;
 } legend;
 
+typedef struct {
+    int type;                   /* frame type */
+    Pen pen;                    /* frame pen */
+    int lines;                  /* frame linestyle */
+    double linew;                  /* frame line width */
+    Pen fillpen;                /* fill pen */
+} framep;
+
+typedef struct {
+    int type;
+    double wtpos;
+    char *label;
+} tickloc;
+
+typedef struct {
+    double size;              /* length of tickmarks */
+    int color;                /* color of tickmarks */
+    double linew;             /* linewidth of tickmarks */
+    int lines;                /* linestyle of tickmarks */
+    int gridflag;             /* grid lines at tick marks */
+} tickprops;
+
+typedef struct {
+    int active;                 /* active or not */
+
+    int zero;                   /* "zero" axis or plain */
+
+    plotstr label;              /* graph axis label */
+    int label_layout;           /* axis label orientation (h or v) */
+    int label_place;            /* axis label placement (specfied or auto) */
+    PlacementType label_op;     /* tick labels on opposite side or both */
+
+    int t_drawbar;              /* draw a bar connecting tick marks */
+    int t_drawbarcolor;         /* color of bar */
+    int t_drawbarlines;         /* linestyle of bar */
+    double t_drawbarlinew;      /* line width of bar */
+
+    double offsx, offsy;        /* offset of axes in viewport coords
+                                   (attention: these
+				   are not x and y coordinates but
+				   perpendicular and parallel offsets */
+
+    int t_flag;                 /* toggle tickmark display */
+    int t_autonum;              /* approximate default number of major ticks */
+
+    int t_spec;                 /* special (user-defined) tickmarks/ticklabels, */
+                                /* can be none/marks/both marks and labels */
+
+    int t_round;                /* place major ticks at rounded positions */
+
+    double tmajor;              /* major tick divisions */
+    int nminor;                 /* number of minor ticks per one major division */
+
+    int nticks;                 /* total number of ticks */
+    tickloc tloc[MAX_TICKS];    /* locations of ticks */
+
+    int t_inout;                /* ticks inward, outward or both */
+    PlacementType t_op;         /* ticks on opposite side */
+    
+    tickprops props;
+    tickprops mprops;
+
+    int tl_flag;                /* toggle ticmark labels on or off */
+    int tl_angle;               /* angle to draw labels */
+
+    int tl_format;              /* tickmark label format */
+    int tl_prec;                /* places to right of decimal point */
+
+    char *tl_formula;           /* transformation formula */
+
+    int tl_skip;                /* tick labels to skip */
+    int tl_staggered;           /* tick labels staggered */
+    int tl_starttype;           /* start at graphmin or use tl_start/stop */
+    int tl_stoptype;            /* start at graphmax or use tl_start/stop */
+    double tl_start;            /* value of x to begin tick labels and major ticks */
+    double tl_stop;             /* value of x to end tick labels and major ticks */
+
+    PlacementType tl_op;        /* tick labels on opposite side or both */
+
+    int tl_gaptype;             /* tick label placement auto or specified */
+    VVector tl_gap;             /* tick label to tickmark distance
+				   (parallel and perpendicular to axis) */
+
+    int tl_font;                /* font to use for tick labels */
+    double tl_charsize;         /* character size for tick labels */
+    int tl_color;               /* color of tick labels */
+
+    char tl_appstr[64];         /* append string to tick label */
+    char tl_prestr[64];         /* prepend string to tick label */
+
+} tickmarks;
 
 /*
  * a graph
@@ -213,164 +349,174 @@ typedef struct {
     Storage *dobjects;          /* drawing objects placed on this graph */
 } graph;
 
+Symbol *symbol_new();
+void symbol_free(Symbol *sym);
+SetLine *setline_new();
+void setline_free(SetLine *sl);
+BarLine *barline_new(void);
+RiserLine *riserline_new(void);
 
-graph *graph_new(void);
-void graph_free(graph *g);
-graph *graph_copy(graph *g);
+Quark *graph_new(Quark *project);
+Quark *graph_next(Quark *project);
 
-int get_cg(void);
+Quark *graph_get_current(const Quark *project);
 
-graph *graph_next(void);
-int kill_graph(int gno);
-void kill_all_graphs(void);
-int copy_graph(int from, int to);
-int move_graph(int from, int to);
-int swap_graph(int from, int to);
-graph *duplicate_graph(int gno);
+graph *graph_get_data(Quark *gr);
+
+graph *graph_data_new(void);
+void graph_data_free(graph *g);
+graph *graph_data_copy(graph *g);
+
+void kill_all_graphs(Quark *project);
+Quark *duplicate_graph(Quark *gr);
 
 tickmarks *new_graph_tickmarks(void);
 tickmarks *copy_graph_tickmarks(tickmarks *);
-tickmarks *get_graph_tickmarks(int gno, int a);
+tickmarks *get_graph_tickmarks(const Quark *gr, int axis);
 void free_graph_tickmarks(tickmarks *t);
-int set_graph_tickmarks(int gno, int a, tickmarks *t);
+int set_graph_tickmarks(Quark *gr, int a, tickmarks *t);
+int is_axis_active(tickmarks *t);
+int is_zero_axis(tickmarks *t);
+int activate_tick_labels(tickmarks *t, int flag);
 
-int get_graph_framep(int gno, framep *f);
-int get_graph_world(int gno, world *w);
-int get_graph_viewport(int gno, view *v);
-int get_graph_labels(int gno, labels *labs);
-legend *get_graph_legend(int gno);
+int get_graph_world(Quark *gr, world *w);
+int get_graph_viewport(Quark *gr, view *v);
 
-int set_graph_active(int gno, int flag);
-void set_graph_framep(int gno, framep *f);
-void set_graph_world(int gno, world w);
-void set_graph_viewport(int gno, view v);
-void set_graph_labels(int gno, labels *labs);
-void set_graph_legend(int gno, legend *leg);
-void set_graph_legend_active(int gno, int flag);
+framep *get_graph_frame(Quark *gr);
+labels *get_graph_labels(Quark *gr);
+legend *get_graph_legend(Quark *gr);
+GLocator *get_graph_locator(Quark *gr);
 
-#define is_graph_active(gno) is_valid_gno(gno)
+void set_graph_frame(Quark *gr, const framep *f);
+void set_graph_world(Quark *gr, const world *w);
+void set_graph_viewport(Quark *gr, const view *v);
+void set_graph_title(Quark *gr, const plotstr *s);
+void set_graph_stitle(Quark *gr, const plotstr *s);
+void set_graph_labels(Quark *gr, const labels *labs);
+void set_graph_legend(Quark *gr, const legend *leg);
+void set_graph_locator(Quark *gr, const GLocator *locator);
 
-int is_graph_hidden(int gno);
-int set_graph_hidden(int gno, int flag);
+int get_graph_xyflip(Quark *gr);
+void set_graph_xyflip(Quark *gr, int xyflip);
 
-int get_graph_type(int gno);
+void set_graph_legend_active(Quark *gr, int flag);
 
-int is_graph_stacked(int gno);
-int set_graph_stacked(int gno, int flag);
+#define is_graph_active(gr) is_valid_gno(gr)
 
-double get_graph_bargap(int gno);
-int set_graph_bargap(int gno, double bargap);
+int is_graph_hidden(Quark *gr);
+int set_graph_hidden(Quark *gr, int flag);
 
-int islogx(int gno);
-int islogy(int gno);
+int get_graph_type(Quark *gr);
 
-int islogitx(int gno);
-int islogity(int gno);
+int is_graph_stacked(Quark *gr);
+int set_graph_stacked(Quark *gr, int flag);
 
-int number_of_graphs(void);
-int select_graph(int gno);
+double get_graph_bargap(Quark *gr);
+int set_graph_bargap(Quark *gr, double bargap);
 
-int realloc_graphs(int n);
-int realloc_graph_plots(int gno, int n);
+int islogx(Quark *gr);
+int islogy(Quark *gr);
 
-int set_graph_xscale(int gno, int scale);
-int set_graph_yscale(int gno, int scale);
+int islogitx(Quark *gr);
+int islogity(Quark *gr);
 
-int get_graph_xscale(int gno);
-int get_graph_yscale(int gno);
+int is_log_axis(Quark *gr, int axis);
+int is_logit_axis(Quark *gr, int axis);
 
-int set_graph_znorm(int gno, double norm);
-double get_graph_znorm(int gno);
+int number_of_graphs(const Quark *project);
+int select_graph(Quark *g);
 
-int is_valid_gno(int gno);
+int realloc_graphs(Quark *project, int n);
+int realloc_graph_plots(Quark *gr, int n);
 
-int set_graph_type(int gno, int gtype);
+int set_graph_xscale(Quark *gr, int scale);
+int set_graph_yscale(Quark *gr, int scale);
 
-int allocate_set(int gno, int setno);
-int activateset(int gno, int setno);
+int get_graph_xscale(Quark *gr);
+int get_graph_yscale(Quark *gr);
 
-int is_valid_setno(int gno, int setno);
-int is_set_active(int gno, int setno);
-int is_set_hidden(int gno, int setno);
-int set_set_hidden(int gno, int setno, int flag);
+int set_graph_znorm(Quark *gr, double norm);
+double get_graph_znorm(Quark *gr);
 
-#define is_set_drawable(gno, setno) (is_set_active(gno, setno) && !is_set_hidden(gno, setno))
+int is_valid_gno(Quark *gr);
 
-int number_of_sets(int gno);
+int set_graph_type(Quark *gr, int gtype);
 
-int load_comments_to_legend(int gno, int setno);
+int is_set_active(Quark *pset);
+int is_set_hidden(Quark *pset);
+int set_set_hidden(Quark *pset, int flag);
+
+int set_set_symskip(Quark *pset, int flag);
+int set_set_symbol(Quark *pset, const Symbol *sym);
+int set_set_line(Quark *pset, const SetLine *sl);
+int set_set_avalue(Quark *pset, const AValue *av);
+int set_set_errbar(Quark *pset, const Errbar *ebar);
+int set_set_legstr(Quark *pset, const char *s);
+
+#define is_set_drawable(p) (is_set_active(p) && !is_set_hidden(p))
+
+int number_of_sets(Quark *gr);
+
+set *set_get_data(Quark *p);
+
+int load_comments_to_legend(Quark *p);
 
 int settype_cols(int type);
-int dataset_type(int gno, int setno);
-int dataset_cols(int gno, int setno);
+int dataset_type(Quark *p);
+int dataset_cols(Quark *p);
 char *dataset_colname(int col);
 
-int is_refpoint_active(int gno);
+int is_refpoint_active(Quark *gr);
 
-int set_refpoint(int gno, WPoint wp);
+int set_refpoint(Quark *gr, const WPoint *wp);
 
-WPoint get_refpoint(int gno);
+WPoint get_refpoint(Quark *gr);
 
-double *getcol(int gno, int setno, int col);
-#define getx(gno, setno) getcol(gno, setno, 0)
-#define gety(gno, setno) getcol(gno, setno, 1)
+double *getcol(Quark *p, int col);
+#define getx(p) getcol(p, 0)
+#define gety(p) getcol(p, 1)
 
-char *get_legend_string(int gno, int setno);
-int set_legend_string(int gno, int setno, char *s);
+char *get_legend_string(Quark *p);
+int set_legend_string(Quark *p, char *s);
 
-int set_dataset_type(int gno, int set, int stype);
+int set_dataset_type(Quark *p, int stype);
 
-char *getcomment(int gno, int setno);
-int setcomment(int gno, int setno, char *s);
+char *getcomment(Quark *p);
+int setcomment(Quark *p, char *s);
 
-int set_set_strings(int gno, int setno, int len, char **s);
-char **get_set_strings(int gno, int setno);
+int set_set_strings(Quark *p, int len, char **s);
+char **get_set_strings(Quark *p);
 
-int setlength(int gno, int setno, int length);
-int getsetlength(int gno, int setno);
+int setlength(Quark *p, int length);
+int getsetlength(Quark *p);
 
-double setybase(int gno, int setno);
+double setybase(Quark *p);
 
-int is_graph_xinvert(int gno);
-int is_graph_yinvert(int gno);
+int is_graph_xinvert(Quark *gr);
+int is_graph_yinvert(Quark *gr);
 
-int set_graph_xinvert(int gno, int flag);
-int set_graph_yinvert(int gno, int flag);
+int set_graph_xinvert(Quark *gr, int flag);
+int set_graph_yinvert(Quark *gr, int flag);
 
-int is_axis_active(int gno, int axis);
-int is_zero_axis(int gno, int axis);
+void cycle_world_stack(Quark *pr);
+void clear_world_stack(Quark *pr);
+void show_world_stack(Quark *pr, int n);
+void add_world(Quark *gr, double x1, double x2, double y1, double y2);
+void push_world(Quark *pr);
+void pop_world(Quark *pr);
+int graph_world_stack_size(Quark *gr);
+int get_world_stack_current(Quark *gr);
+int get_world_stack_entry(Quark *gr, int n, world_stack *ws);
 
-void cycle_world_stack(void);
-void clear_world_stack(void);
-void show_world_stack(int n);
-void add_world(int gno, double x1, double x2, double y1, double y2);
-void push_world(void);
+Quark *set_get(Quark *gr, int setid);
 
-int activate_tick_labels(int gno, int axis, int flag);
+int set_set_colors(Quark *p, int color);
 
-int get_graph_locator(int gno, GLocator *locator);
-void set_graph_locator(int gno, GLocator *locator);
+int copysetdata(Quark *psrc, Quark *pdest);
 
-int graph_world_stack_size(int gno);
-int get_world_stack_current(int gno);
-int get_world_stack_entry(int gno, int n, world_stack *ws);
+void set_data_free(set *s);
+set *set_data_copy(set *s);
 
-int set_set_colors(set *p, int color);
-
-int moveset(int gnofrom, int setfrom, int gnoto, int setto);
-int copyset(int gnofrom, int setfrom, int gnoto, int setto);
-int copysetdata(int gnofrom, int setfrom, int gnoto, int setto);
-
-int get_recent_setno(void);
-int get_recent_gno(void);
-
-char *get_project_description(void);
-
-void set_free(set *s);
-set *set_copy(set *s);
-graph *graph_get(int gno);
-set *set_get(int gno, int setno);
-
-void project_postprocess(Quark *q);
+void project_postprocess(Quark *pr);
 
 #endif /* __GRAPHS_H_ */

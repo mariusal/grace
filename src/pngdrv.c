@@ -199,7 +199,8 @@ static int png_output(const Canvas *canvas, void *data,
     text_ptr[2].text        = bi_version_string();
     text_ptr[2].compression = PNG_TEXT_COMPRESSION_NONE;
     num_text = 3;
-    if ((s = get_project_description())) {
+    s = canvas_get_description(canvas);
+    if (!is_empty_string(s)) {
         text_ptr[3].key         = "Description";
         text_ptr[3].text        = s;
         if (strlen(s) > 1024) {

@@ -51,10 +51,10 @@ typedef struct _grarr {
 void init_symtab(void);
 int addto_symtab(symtab_entry newkey);
 
-int get_parser_gno(void);
-int set_parser_gno(int gno);
-int get_parser_setno(void);
-int set_parser_setno(int gno, int setno);
+int set_parser_gno(Quark *g);
+int set_parser_setno(Quark *pset);
+Quark *get_parser_gno(void);
+Quark *get_parser_setno(void);
 
 int   scanner(char *s);
 int s_scanner(char *s, double *res);

@@ -95,7 +95,7 @@ int storage_data_exists(Storage *sto, const void *data);
 int storage_add(Storage *sto, void *data);
 int storage_delete(Storage *sto);
 
-void *storage_duplicate(Storage *sto, int id);
+void *storage_duplicate(Storage *sto);
 
 int storage_get_data(Storage *sto, void **datap);
 
@@ -109,6 +109,7 @@ int storage_get_id(Storage *sto);
 int storage_get_data_next(Storage *sto, void **datap);
 int storage_get_data_by_id(Storage *sto, int id, void **datap);
 int storage_delete_by_id(Storage *sto, int id);
+int storage_delete_by_data(Storage *sto, void *data);
 
 int storage_data_copy_by_id(Storage *sto, int id1, int id2);
 int storage_data_move_by_id(Storage *sto, int id1, int id2);

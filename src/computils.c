@@ -49,8 +49,6 @@
 #include "parser.h"
 #include "protos.h"
 
-static char buf[256];
-
 /*
  * compute the area bounded by the polygon (xi,yi)
  */
@@ -159,6 +157,22 @@ void linearconv(double *x, int n, double *h, int m, double *y)
     }
 }
 
+int vbarycenter(double *x, double *y, int n, double *barycenter)
+{
+    int i;
+    double wsum = 0.0, xsum = 0.0;
+
+    if (n < 1 || !x || !y) {
+        return RETURN_FAILURE;
+    }
+    
+    for (i = 0; i < n; i++) {
+        wsum += x[i]*y[i];
+        xsum += x[i];
+    }
+    *barycenter = wsum/xsum;
+    return RETURN_SUCCESS;
+}
 
 /*
  * an almost literal translation of the spline routine in
@@ -810,19 +824,20 @@ int monospaced(double *array, int len, double *space)
 /*
  * evaluate a formula
  */
-int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr)
+int do_compute(Quark *psrc, Quark *pdest,
+    char *rarray, char *fstr)
 {
-    if (is_set_active(gno, setno)) {
-	if (gno != graphto || setno != loadto) {
-	    if (copysetdata(gno, setno, graphto, loadto) != RETURN_SUCCESS) {
+    if (is_set_active(psrc)) {
+	if (psrc != pdest) {
+	    if (copysetdata(psrc, pdest) != RETURN_SUCCESS) {
 	        return RETURN_FAILURE;
             }
         }
-	filter_set(graphto, loadto, rarray);
-        set_parser_setno(graphto, loadto);
+	filter_set(pdest, rarray);
+        set_parser_setno(pdest);
         if (scanner(fstr) != RETURN_SUCCESS) {
-	    if (graphto != gno || loadto != setno) {
-		killset(graphto, loadto);
+	    if (psrc != pdest) {
+		killset(pdest);
 	    }
 	    return RETURN_FAILURE;
 	} else {
@@ -837,14 +852,14 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
 /*
  * difference a set
  */
-int do_differ(int gsrc, int setfrom, int gdest, int setto,
+int do_differ(Quark *psrc, Quark *pdest,
     int derivative, int xplace, int period)
 {
     int i, ncols, nc, len, newlen;
     double *x1, *x2;
-    char *stype, pbuf[32];
+    char *stype, pbuf[32], buf[256];
     
-    if (!is_set_active(gsrc, setfrom)) {
+    if (!is_set_active(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
@@ -854,18 +869,19 @@ int do_differ(int gsrc, int setfrom, int gdest, int setto,
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(gsrc, setfrom);
+    len = getsetlength(psrc);
     newlen = len - period;
     if (newlen <= 0) {
 	errmsg("Source set length <= differentiation period");
 	return RETURN_FAILURE;
     }
     
-    x1 = getcol(gsrc, setfrom, DATA_X);
+    x1 = getcol(psrc, DATA_X);
     if (derivative) {
         for (i = 0; i < newlen; i++) {
             if (x1[i + period] - x1[i] == 0.0) {
-	        sprintf(buf, "Can't evaluate derivative, x1[%d] = x1[%d]",
+	        char buf[256];
+                sprintf(buf, "Can't evaluate derivative, x1[%d] = x1[%d]",
                     i, i + period);
                 errmsg(buf);
                 return RETURN_FAILURE;
@@ -873,20 +889,19 @@ int do_differ(int gsrc, int setfrom, int gdest, int setto,
         }
     }
     
-    activateset(gdest, setto);
-    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
     
-    ncols = dataset_cols(gsrc, setfrom);
-    if (dataset_cols(gdest, setto) != ncols) {
-        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    ncols = dataset_cols(psrc);
+    if (dataset_cols(pdest) != ncols) {
+        set_dataset_type(pdest, dataset_type(psrc));
     }
     
     for (nc = 1; nc < ncols; nc++) {
         double h, *d1, *d2;
-        d1 = getcol(gsrc, setfrom, nc);
-        d2 = getcol(gdest, setto, nc);
+        d1 = getcol(psrc, nc);
+        d2 = getcol(pdest, nc);
         for (i = 0; i < newlen; i++) {
             d2[i] = d1[i + period] - d1[i];
             if (derivative) {
@@ -896,7 +911,7 @@ int do_differ(int gsrc, int setfrom, int gdest, int setto,
         }
     }
     
-    x2 = getcol(gdest, setto, DATA_X);
+    x2 = getcol(pdest, DATA_X);
     for (i = 0; i < newlen; i++) {
         switch (xplace) {
         case DIFF_XPLACE_LEFT:
@@ -933,10 +948,9 @@ int do_differ(int gsrc, int setfrom, int gdest, int setto,
     } else {
         pbuf[0] = '\0';
     }
-    sprintf(buf, "%s %s%s of set G%d.S%d", stype, pbuf,
-        derivative ? "derivative":"difference", gsrc, setfrom);
-    
-    setcomment(gdest, setto, buf);
+    sprintf(buf, "%s %s%s of set %s", stype, pbuf,
+       derivative ? "derivative":"difference", QIDSTR(psrc));
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -944,20 +958,15 @@ int do_differ(int gsrc, int setfrom, int gdest, int setto,
 /*
  * linear convolution
  */
-int do_linearc(int gsrc, int setfrom, int gdest, int setto,
-    int gconv, int setconv)
+int do_linearc(Quark *psrc, Quark *pdest,
+    Quark *pconv)
 {
     int srclen, convlen, destlen, i, ncols, nc;
     double xspace1, xspace2, *xsrc, *xconv, *xdest, *yconv;
+    char buf[256];
 
-    if (!is_set_active(gsrc, setfrom) ||
-        !is_set_active(gconv, setconv)) {
-	errmsg("Set not active");
-	return RETURN_FAILURE;
-    }
-    
-    srclen  = getsetlength(gsrc, setfrom);
-    convlen = getsetlength(gconv, setconv);
+    srclen  = getsetlength(psrc);
+    convlen = getsetlength(pconv);
     if (srclen < 2 || convlen < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
@@ -965,7 +974,7 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
     
     destlen = srclen + convlen - 1;
 
-    xsrc  = getcol(gsrc, setfrom, DATA_X);
+    xsrc  = getcol(psrc, DATA_X);
     if (monospaced(xsrc, srclen, &xspace1) != TRUE) {
         errmsg("Abscissas of the set are not monospaced");
         return RETURN_FAILURE;
@@ -976,7 +985,7 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
         }
     }
 
-    xconv = getcol(gconv, setconv, DATA_X);
+    xconv = getcol(pconv, DATA_X);
     if (monospaced(xconv, convlen, &xspace2) != TRUE) {
         errmsg("Abscissas of the set are not monospaced");
         return RETURN_FAILURE;
@@ -987,23 +996,22 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
         }
     }
     
-    activateset(gdest, setto);
-    if (setlength(gdest, setto, destlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, destlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
 
-    ncols = dataset_cols(gsrc, setfrom);
-    if (dataset_cols(gdest, setto) != ncols) {
-        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    ncols = dataset_cols(psrc);
+    if (dataset_cols(pdest) != ncols) {
+        set_dataset_type(pdest, dataset_type(psrc));
     }
     
-    yconv = getcol(gconv, setconv, DATA_Y);
+    yconv = getcol(pconv, DATA_Y);
     
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
         
-        d1 = getcol(gsrc, setfrom, nc);
-        d2 = getcol(gdest, setto, nc);
+        d1 = getcol(psrc, nc);
+        d2 = getcol(pdest, nc);
         
         linearconv(d1, srclen, yconv, convlen, d2);
         for (i = 0; i < destlen; i++) {
@@ -1011,14 +1019,14 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
         }
     }
 
-    xdest = getcol(gdest, setto, DATA_X);
+    xdest = getcol(pdest, DATA_X);
     for (i = 0; i < destlen; i++) {
 	xdest[i] = (xsrc[0] + xconv[0]) + i*xspace1;
     }
     
-    sprintf(buf, "Linear convolution of set G%d.S%d with set G%d.S%d",
-        gsrc, setfrom, gconv, setconv);
-    setcomment(gdest, setto, buf);
+    sprintf(buf, "Linear convolution of set %s with set %s",
+        QIDSTR(psrc), QIDSTR(pconv));
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1026,31 +1034,31 @@ int do_linearc(int gsrc, int setfrom, int gdest, int setto,
 /*
  * cross correlation/covariance
  */
-int do_xcor(int gsrc, int setfrom, int gdest, int setto,
-    int gcor, int setcor, int maxlag, int covar)
+int do_xcor(Quark *psrc, Quark *pdest,
+    Quark *pcor, int maxlag, int covar)
 {
     int autocor;
     int len, i, ncols1, ncols2, ncols, nc;
     double xspace1, xspace2, *xsrc, *xcor, *xdest, xoffset;
-    char *fname;
+    char *fname, buf[256];
 
     if (maxlag < 0) {
 	errmsg("Negative max lag");
 	return RETURN_FAILURE;
     }
 
-    if (!is_set_active(gsrc, setfrom)) {
+    if (!is_set_active(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(gsrc, setfrom);
+    len = getsetlength(psrc);
     if (len < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
     }
 
-    xsrc = getcol(gsrc, setfrom, DATA_X);
+    xsrc = getcol(psrc, DATA_X);
     if (monospaced(xsrc, len, &xspace1) != TRUE) {
         errmsg("Abscissas of the source set are not monospaced");
         return RETURN_FAILURE;
@@ -1061,24 +1069,24 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         }
     }
 
-    if (gsrc == gcor && setfrom == setcor) {
+    if (psrc == pcor) {
         autocor = TRUE;
     } else {
         autocor = FALSE;
     }
 
     if (!autocor) {
-        if (!is_set_active(gcor, setcor)) {
+        if (!is_set_active(pcor)) {
 	    errmsg("Set not active");
 	    return RETURN_FAILURE;
         }
         
-        if (getsetlength(gcor, setcor) != len) {
+        if (getsetlength(pcor) != len) {
 	    errmsg("The correlating sets are of different length");
 	    return RETURN_FAILURE;
         }
 
-        xcor = getcol(gcor, setcor, DATA_X);
+        xcor = getcol(pcor, DATA_X);
         if (monospaced(xcor, len, &xspace2) != TRUE) {
             errmsg("Abscissas of the set are not monospaced");
             return RETURN_FAILURE;
@@ -1094,16 +1102,15 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         xoffset = 0.0;
     }
 
-    activateset(gdest, setto);
-    if (setlength(gdest, setto, maxlag) != RETURN_SUCCESS) {
+    if (setlength(pdest, maxlag) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
 
-    ncols1 = dataset_cols(gsrc, setfrom);
-    ncols2 = dataset_cols(gcor, setcor);
+    ncols1 = dataset_cols(psrc);
+    ncols2 = dataset_cols(pcor);
     ncols = MIN2(ncols1, ncols2);
-    if (dataset_cols(gdest, setto) != ncols) {
-        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    if (dataset_cols(pdest) != ncols) {
+        set_dataset_type(pdest, dataset_type(psrc));
     }
 
     for (nc = 1; nc < ncols; nc++) {
@@ -1115,7 +1122,7 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         buflen = len + maxlag;
         
         /* reallocate input to pad with zeros */
-        d1_re = copy_data_column(getcol(gsrc, setfrom, nc), len);
+        d1_re = copy_data_column(getcol(psrc, nc), len);
         d1_re = xrealloc(d1_re, SIZEOF_DOUBLE*buflen);
         d1_im = xcalloc(buflen, SIZEOF_DOUBLE);
         if (!d1_re || !d1_im) {
@@ -1140,7 +1147,7 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         
         /* do the same with the second input if not autocorrelating */
         if (!autocor) {
-            d2_re = copy_data_column(getcol(gcor, setcor, nc), len);
+            d2_re = copy_data_column(getcol(pcor, nc), len);
             d2_re = xrealloc(d2_re, SIZEOF_DOUBLE*buflen);
             d2_im = xcalloc(buflen, SIZEOF_DOUBLE);
             if (!d1_im || !d2_im) {
@@ -1189,7 +1196,7 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         /* the imaginary part must be zero */
         xfree(d1_im);
         
-        dres = getcol(gdest, setto, nc);
+        dres = getcol(pdest, nc);
         for (i = 0; i < maxlag; i++) {
             dres[i] = d1_re[i]/buflen*xspace1;
             if (i == 0) {
@@ -1204,7 +1211,7 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
         xfree(d1_re);
     }
 
-    xdest = getcol(gdest, setto, DATA_X);
+    xdest = getcol(pdest, DATA_X);
     for (i = 0; i < maxlag; i++) {
 	xdest[i] = xoffset + i*xspace1;
     }
@@ -1216,14 +1223,14 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
     }
     if (autocor) {
 	sprintf(buf,
-            "Auto-%s of set G%d.S%d at maximum lag %d",
-            fname, gsrc, setfrom, maxlag);
+            "Auto-%s of set %s at maximum lag %d",
+            fname, QIDSTR(psrc), maxlag);
     } else {
 	sprintf(buf,
-            "Cross-%s of sets G%d.S%d and G%d.S%d at maximum lag %d",
-            fname, gsrc, setfrom, gcor, setcor, maxlag);
+            "Cross-%s of sets %s and %s at maximum lag %d",
+            fname, QIDSTR(psrc), QIDSTR(pcor), maxlag);
     }
-    setcomment(gdest, setto, buf);
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1232,7 +1239,7 @@ int do_xcor(int gsrc, int setfrom, int gdest, int setto,
 /*
  * numerical integration
  */
-int do_int(int gsrc, int setfrom, int gdest, int setto,
+int do_int(Quark *psrc, Quark *pdest,
     int disponly, double *sum)
 {
     int len;
@@ -1240,28 +1247,28 @@ int do_int(int gsrc, int setfrom, int gdest, int setto,
     
     *sum = 0.0;
 
-    if (!is_set_active(gsrc, setfrom)) {
+    if (!is_set_active(psrc)) {
 	errmsg("Set not active");
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(gsrc, setfrom);
+    len = getsetlength(psrc);
     if (len < 3) {
 	errmsg("Set length < 3");
 	return RETURN_FAILURE;
     }
     
-    x = getcol(gsrc, setfrom, DATA_X);
-    y = getcol(gsrc, setfrom, DATA_Y);
+    x = getcol(psrc, DATA_X);
+    y = getcol(psrc, DATA_Y);
     if (!disponly) {
-	if (activateset(gdest, setto)    != RETURN_SUCCESS ||
-            setlength(gdest, setto, len) != RETURN_SUCCESS) {
+	char buf[256];
+        if (setlength(pdest, len) != RETURN_SUCCESS) {
 	    errmsg("Can't activate target set");
 	    return RETURN_FAILURE;
         } else {
-	    *sum = trapint(x, y, getx(gdest, setto), gety(gdest, setto), len);
-	    sprintf(buf, "Integral of set G%d.S%d", gsrc, setfrom);
-	    setcomment(gdest, setto, buf);
+	    *sum = trapint(x, y, getx(pdest), gety(pdest), len);
+	    sprintf(buf, "Integral of set %s", QIDSTR(psrc));
+	    setcomment(pdest, buf);
 	}
     } else {
 	*sum = trapint(x, y, NULL, NULL, len);
@@ -1272,24 +1279,20 @@ int do_int(int gsrc, int setfrom, int gdest, int setto,
 /*
  * running properties
  */
-int do_runavg(int gsrc, int setfrom, int gdest, int setto,
+int do_runavg(Quark *psrc, Quark *pdest,
     int runlen, char *formula, int xplace)
 {
     int i, nc, ncols, len, newlen;
     double *x1, *x2;
     grarr *t;
+    char buf[256];
 
-    if (!is_valid_setno(gsrc, setfrom)) {
-	errmsg("Source set not active");
-	return RETURN_FAILURE;
-    }
-    
     if (runlen < 1) {
 	errmsg("Length of running average < 1");
 	return RETURN_FAILURE;
     }
 
-    len = getsetlength(gsrc, setfrom);
+    len = getsetlength(psrc);
     if (runlen > len) {
 	errmsg("Length of running average > set length");
 	return RETURN_FAILURE;
@@ -1301,14 +1304,13 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
     }
 
     newlen = len - runlen + 1;
-    activateset(gdest, setto);
-    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
     
-    ncols = dataset_cols(gsrc, setfrom);
-    if (dataset_cols(gdest, setto) != ncols) {
-        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    ncols = dataset_cols(psrc);
+    if (dataset_cols(pdest) != ncols) {
+        set_dataset_type(pdest, dataset_type(psrc));
     }
     
     t = get_parser_arr_by_name("$t");
@@ -1325,11 +1327,11 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
     }
     t->length = runlen;
 
-    set_parser_setno(gsrc, setfrom);
+    set_parser_setno(psrc);
     for (nc = 1; nc < ncols; nc++) {
         double *d1, *d2;
-        d1 = getcol(gsrc, setfrom, nc);
-        d2 = getcol(gdest, setto, nc);
+        d1 = getcol(psrc, nc);
+        d2 = getcol(pdest, nc);
         for (i = 0; i < newlen; i++) {
             t->data = &(d1[i]);
             if (s_scanner(formula, &(d2[i])) != RETURN_SUCCESS) {
@@ -1344,8 +1346,8 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
     t->length = 0;
     t->data = NULL;
 
-    x1 = getcol(gsrc, setfrom, DATA_X);
-    x2 = getcol(gdest, setto, DATA_X);
+    x1 = getcol(psrc, DATA_X);
+    x2 = getcol(pdest, DATA_X);
     for (i = 0; i < newlen; i++) {
         double dummy;
         switch (xplace) {
@@ -1361,8 +1363,8 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
         }
     }
     
-    sprintf(buf, "%d-pt. running %s on G%d.S%d", runlen, formula, gsrc, setfrom);
-    setcomment(gdest, setto, buf);
+    sprintf(buf, "%d-pt. running %s on %s", runlen, formula, QIDSTR(psrc));
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1371,7 +1373,7 @@ int do_runavg(int gsrc, int setfrom, int gdest, int setto,
 /*
  * Fourier transform
  */
-int do_fourier(int gfrom, int setfrom, int gto, int setto,
+int do_fourier(Quark *psrc, Quark *pdest,
     int invflag, int xscale, int norm, int complexin, int dcdump,
     double oversampling, int round2n, int window, double beta, int halflen,
     int output)
@@ -1379,20 +1381,16 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
     int i, inlen, buflen, outlen, ncols, settype;
     double *in_x, *in_re, *in_im, *buf_re, *buf_im, *out_x, *out_y, *out_y1;
     double xspace, amp_correction;
+    char buf[256];
 
-    inlen = getsetlength(gfrom, setfrom);
+    inlen = getsetlength(psrc);
     if (inlen < 2) {
 	errmsg("Set length < 2");
 	return RETURN_FAILURE;
     }
 
-    if (activateset(gto, setto) != RETURN_SUCCESS) {
-	errmsg("Can't activate target set");
-        return RETURN_FAILURE;
-    }
-    
     /* get input */
-    in_re = getcol(gfrom, setfrom, DATA_Y);
+    in_re = getcol(psrc, DATA_Y);
     if (!in_re) {
         /* should never happen */
         return RETURN_FAILURE;
@@ -1400,10 +1398,10 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
     if (!complexin) {
         in_im = NULL;
     } else {
-        in_im = getcol(gfrom, setfrom, DATA_Y1);
+        in_im = getcol(psrc, DATA_Y1);
     }
     
-    in_x = getcol(gfrom, setfrom, DATA_X);
+    in_x = getcol(psrc, DATA_X);
     if (monospaced(in_x, inlen, &xspace) != TRUE) {
         errmsg("Abscissas of the set are not monospaced, can't use for sampling");
         return RETURN_FAILURE;
@@ -1511,21 +1509,21 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
         break;
     }
     
-    if (dataset_cols(gto, setto) != ncols) {
-        if (set_dataset_type(gto, setto, settype) != RETURN_SUCCESS) {
+    if (dataset_cols(pdest) != ncols) {
+        if (set_dataset_type(pdest, settype) != RETURN_SUCCESS) {
             xfree(buf_re);
             xfree(buf_im);
             return RETURN_FAILURE;
         } 
     }
-    if (setlength(gto, setto, outlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, outlen) != RETURN_SUCCESS) {
         xfree(buf_re);
         xfree(buf_im);
         return RETURN_FAILURE;
     }
     
-    out_y  = getcol(gto, setto, DATA_Y);
-    out_y1 = getcol(gto, setto, DATA_Y1);
+    out_y  = getcol(pdest, DATA_Y);
+    out_y1 = getcol(pdest, DATA_Y1);
     
     for (i = 0; i < outlen; i++) {
         switch (output) {
@@ -1552,7 +1550,7 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
         }
     }
     
-    out_x  = getcol(gto, setto, DATA_X);
+    out_x  = getcol(pdest, DATA_X);
     for (i = 0; i < outlen; i++) {
         switch (xscale) {
 	case FFT_XSCALE_NU:
@@ -1570,8 +1568,8 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
     xfree(buf_re);
     xfree(buf_im);
     
-    sprintf(buf, "FFT of set G%d.S%d", gfrom, setfrom);
-    setcomment(gto, setto, buf);
+    sprintf(buf, "FFT of set %s", QIDSTR(psrc));
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1580,33 +1578,22 @@ int do_fourier(int gfrom, int setfrom, int gto, int setto,
 /*
  * histograms
  */
-int do_histo(int fromgraph, int fromset, int tograph, int toset,
+int do_histo(Quark *psrc, Quark *pdest,
 	      double *bins, int nbins, int cumulative, int normalize)
 {
     int i, ndata;
     int *hist;
     double *x, *y, *data;
     set *p;
-    char buf[64];
+    char buf[256];
     
-    if (!is_set_active(fromgraph, fromset)) {
-	errmsg("Set not active");
-	return RETURN_FAILURE;
-    }
     if (nbins <= 0) {
 	errmsg("Number of bins <= 0");
 	return RETURN_FAILURE;
     }
-    if (toset == NEW_SET) {
-	toset = nextset(tograph);
-    }
-    if (!is_valid_setno(tograph, toset)) {
-	errmsg("Can't activate destination set");
-        return RETURN_FAILURE;
-    }
     
-    ndata = getsetlength(fromgraph, fromset);
-    data = gety(fromgraph, fromset);
+    ndata = getsetlength(psrc);
+    data = gety(psrc);
     
     hist = xmalloc(nbins*SIZEOF_INT);
     if (hist == NULL) {
@@ -1619,10 +1606,9 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
         return RETURN_FAILURE;
     }
     
-    activateset(tograph, toset);
-    setlength(tograph, toset, nbins + 1);
-    x = getx(tograph, toset);
-    y = gety(tograph, toset);
+    setlength(pdest, nbins + 1);
+    x = getx(pdest);
+    y = gety(pdest);
     
     x[0] = bins[0];
     y[0] = 0.0;
@@ -1648,16 +1634,16 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
     
     xfree(hist);
 
-    p = set_get(tograph, toset);
-    p->sym = SYM_NONE;
-    p->linet = LINE_TYPE_LEFTSTAIR;
-    p->dropline = TRUE;
-    p->baseline = FALSE;
-    p->baseline_type = BASELINE_TYPE_0;
-    p->line.style = 1;
-    p->symline.style = 1;
-    sprintf(buf, "Histogram from G%d.S%d", fromgraph, fromset);
-    setcomment(tograph, toset, buf);
+    p = (set *) pdest->data;
+    p->sym.type = SYM_NONE;
+    p->line.type = LINE_TYPE_LEFTSTAIR;
+    p->line.droplines = TRUE;
+    p->line.baseline = FALSE;
+    p->line.baseline_type = BASELINE_TYPE_0;
+    p->line.line.style = 1;
+    p->sym.line.style = 1;
+    sprintf(buf, "Histogram from %s", QIDSTR(psrc));
+    setcomment(pdest, buf);
 
     return RETURN_SUCCESS;
 }
@@ -1666,28 +1652,24 @@ int do_histo(int fromgraph, int fromset, int tograph, int toset,
 /*
  * sample a set by a logical expression
  */
-int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
+int do_sample(Quark *psrc, Quark *pdest, char *formula)
 {
     int len, newlen, ncols, i, nc;
     int reslen;
     double *result;
+    char buf[256];
 
-    if (!is_valid_setno(gsrc, setfrom)) {
-	errmsg("Source set not active");
-	return RETURN_FAILURE;
-    }
-    
     if (is_empty_string(formula)) {
 	errmsg("Empty formula");
 	return RETURN_FAILURE;
     }
 
-    if (set_parser_setno(gsrc, setfrom) != RETURN_SUCCESS) {
+    if (set_parser_setno(psrc) != RETURN_SUCCESS) {
 	errmsg("Bad set");
 	return RETURN_FAILURE;
     }
     
-    len = getsetlength(gsrc, setfrom);
+    len = getsetlength(psrc);
     
     if (v_scanner(formula, &reslen, &result) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
@@ -1705,12 +1687,12 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
 	}
     }
 
-    ncols = dataset_cols(gsrc, setfrom);
-    if (dataset_cols(gdest, setto) != ncols) {
-        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    ncols = dataset_cols(psrc);
+    if (dataset_cols(pdest) != ncols) {
+        set_dataset_type(pdest, dataset_type(psrc));
     }
     
-    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
         xfree(result);
         return RETURN_FAILURE;
     }
@@ -1719,8 +1701,8 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
         double *d1, *d2;
         int j;
         j = 0;
-        d1 = getcol(gsrc, setfrom, nc);
-        d2 = getcol(gdest, setto, nc);
+        d1 = getcol(psrc, nc);
+        d2 = getcol(pdest, nc);
         for (i = 0; i < len; i++) {
 	    if ((int) rint(result[i])) {
 	        d2[j] = d1[i];
@@ -1731,8 +1713,8 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
     
     xfree(result);
     
-    sprintf(buf, "Sample from G%d.S%d, using '%s'", gsrc, setfrom, formula);
-    setcomment(gdest, setto, buf);
+    sprintf(buf, "Sample from %s, using '%s'", QIDSTR(psrc), formula);
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1740,12 +1722,13 @@ int do_sample(int gsrc, int setfrom, int gdest, int setto, char *formula)
 /*
  * Prune data
  */
-int do_prune(int gsrc, int setfrom, int gdest, int setto, 
+int do_prune(Quark *psrc, Quark *pdest, 
     int interp, int elliptic, double dx, int reldx, double dy, int reldy)
 {
     int len, newlen, ncols, i, old_i, nc;
     char *iprune;
     double *x, *y, old_x, old_y;
+    char buf[256];
 
     if (dx <= 0.0) {
         errmsg("DX <= 0");
@@ -1756,29 +1739,28 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
 	return RETURN_FAILURE;
     }
     
-    if (!is_set_active(gsrc, setfrom)) {
+    if (!is_set_active(psrc)) {
         errmsg("Set not active");
         return RETURN_FAILURE;
     }
     
-    len = getsetlength(gsrc, setfrom);
+    len = getsetlength(psrc);
     if (len < 3) {
 	errmsg("Set length < 3");
 	return RETURN_FAILURE;
     }
     
-    x = getx(gsrc, setfrom);
-    y = gety(gsrc, setfrom);
+    x = getx(psrc);
+    y = gety(psrc);
 
     if (interp && monotonicity(x, len, FALSE) == 0) {
 	errmsg("Can't prune a non-monotonic set using interpolation");
 	return RETURN_FAILURE;
     }
 
-    activateset(gdest, setto);
-    ncols = dataset_cols(gsrc, setfrom);
-    if (dataset_cols(gdest, setto) != ncols) {
-        set_dataset_type(gdest, setto, dataset_type(gsrc, setfrom));
+    ncols = dataset_cols(psrc);
+    if (dataset_cols(pdest) != ncols) {
+        set_dataset_type(pdest, dataset_type(psrc));
     }
     
     iprune = xmalloc(len*SIZEOF_CHAR);
@@ -1813,7 +1795,7 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
         }
     }
 
-    if (setlength(gdest, setto, newlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, newlen) != RETURN_SUCCESS) {
         xfree(iprune);
         return RETURN_FAILURE;
     }
@@ -1822,8 +1804,8 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
         double *d1, *d2;
         int j;
         j = 0;
-        d1 = getcol(gsrc, setfrom, nc);
-        d2 = getcol(gdest, setto, nc);
+        d1 = getcol(psrc, nc);
+        d2 = getcol(pdest, nc);
         for (i = 0; i < len; i++) {
 	    if (iprune[i] == FALSE) {
 	        d2[j] = d1[i];
@@ -1834,12 +1816,12 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
     
     xfree(iprune);
 
-    sprintf(buf, "Prune from G%d.S%d, method: %s, area: %s (dx = %g, dy = %g)",
-        gsrc, setfrom,
+    sprintf(buf, "Prune from %s, method: %s, area: %s (dx = %g, dy = %g)",
+        QIDSTR(psrc),
         interp ? "interpolation":"plain",
         elliptic ? "elliptic":"rectangular",
         dx, dy);
-    setcomment(gdest, setto, buf);
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
@@ -1850,56 +1832,44 @@ int do_prune(int gsrc, int setfrom, int gdest, int setto,
  * if strict is set, perform interpolation only within source set bounds
  * (i.e., no extrapolation)
  */
-int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
+int do_interp(Quark *psrc, Quark *pdest,
     double *mesh, int meshlen, int method, int strict)
 {
     int len, n, ncols;
     double *x, *xint;
     char *s;
+    char buf[256];
 	
-    if (!is_valid_setno(gno_src, setno_src)) {
-	errmsg("Interpolated set not active");
-	return RETURN_FAILURE;
-    }
     if (mesh == NULL || meshlen < 1) {
         errmsg("NULL sampling mesh");
         return RETURN_FAILURE;
     }
     
-    len = getsetlength(gno_src, setno_src);
-    ncols = dataset_cols(gno_src, setno_src);
+    len = getsetlength(psrc);
+    ncols = dataset_cols(psrc);
 
-    if (setno_dest == NEW_SET) {
-	setno_dest = nextset(gno_dest);
-    }
-    if (!is_valid_setno(gno_dest, setno_dest)) {
-	errmsg("Can't activate destination set");
-	return RETURN_FAILURE;
-    }
-
-    if (dataset_cols(gno_dest, setno_dest) != ncols) {
-        copyset(gno_src, setno_src, gno_dest, setno_dest);
+    if (dataset_cols(pdest) != ncols) {
+        copysetdata(psrc, pdest);
     }
     
-    setlength(gno_dest, setno_dest, meshlen);
-    activateset(gno_dest, setno_dest);
+    setlength(pdest, meshlen);
     
-    x = getcol(gno_src, setno_src, DATA_X);
+    x = getcol(psrc, DATA_X);
     for (n = 1; n < ncols; n++) {
         int res;
         double *y, *yint;
         
-        y    = getcol(gno_src, setno_src, n);
-        yint = getcol(gno_dest, setno_dest, n);
+        y    = getcol(psrc, n);
+        yint = getcol(pdest, n);
         
         res = interpolate(mesh, yint, meshlen, x, y, len, method);
         if (res != RETURN_SUCCESS) {
-            killset(gno_dest, setno_dest);
+            killset(pdest);
             return RETURN_FAILURE;
         }
     }
 
-    xint = getcol(gno_dest, setno_dest, DATA_X);
+    xint = getcol(pdest, DATA_X);
     memcpy(xint, mesh, meshlen*SIZEOF_DOUBLE);
 
     if (strict) {
@@ -1908,7 +1878,7 @@ int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
         minmax(x, len, &xmin, &xmax, &imin, &imax);
         for (i = meshlen - 1; i >= 0; i--) {
             if (xint[i] < xmin || xint[i] > xmax) {
-                del_point(gno_dest, setno_dest, i);
+                del_point(pdest, i);
             }
         }
     }
@@ -1924,15 +1894,16 @@ int do_interp(int gno_src, int setno_src, int gno_dest, int setno_dest,
         s = "linear interpolation";
         break;
     }
-    sprintf(buf, "Interpolated from G%d.S%d using %s", gno_src, setno_src, s);
-    setcomment(gno_dest, setno_dest, buf);
+    sprintf(buf, "Interpolated from %s using %s", QIDSTR(psrc), s);
+    setcomment(pdest, buf);
     
     return RETURN_SUCCESS;
 }
 
-int get_restriction_array(int gno, int setno,
+int get_restriction_array(Quark *pset,
     int rtype, int negate, char **rarray)
 {
+    Quark *gr = pset->parent;
     int i, n, regno;
     double *x, *y;
     world w;
@@ -1943,7 +1914,7 @@ int get_restriction_array(int gno, int setno,
         return RETURN_SUCCESS;
     }
     
-    n = getsetlength(gno, setno);
+    n = getsetlength(pset);
     if (n <= 0) {
         *rarray = NULL;
         return RETURN_FAILURE;
@@ -1954,8 +1925,8 @@ int get_restriction_array(int gno, int setno,
         return RETURN_FAILURE;
     }
     
-    x = getcol(gno, setno, DATA_X);
-    y = getcol(gno, setno, DATA_Y);
+    x = getcol(pset, DATA_X);
+    y = getcol(pset, DATA_Y);
     
     switch (rtype) {
     case RESTRICT_REG0:
@@ -1965,11 +1936,11 @@ int get_restriction_array(int gno, int setno,
     case RESTRICT_REG4:
         regno = rtype - RESTRICT_REG0;
         for (i = 0; i < n; i++) {
-            (*rarray)[i] = inregion(regno, x[i], y[i]) ? !negate : negate;
+            (*rarray)[i] = inregion(gr, regno, x[i], y[i]) ? !negate : negate;
         }
         break;
     case RESTRICT_WORLD:
-        get_graph_world(gno, &w);
+        get_graph_world(gr, &w);
         for (i = 0; i < n; i++) {
             wp.x = x[i];
             wp.y = y[i];
@@ -1986,33 +1957,26 @@ int get_restriction_array(int gno, int setno,
 }
 
 /* feature extraction */
-int featext(int gfrom, int *sfrom, int nsets, int gto, int setto, char *formula)
+int featext(Quark **sets, int nsets, Quark *pdest,
+    char *formula)
 {
     int i;
     char *tbuf;
     double *x, *y;
 
-    if (!is_valid_gno(gfrom) || !is_valid_gno(gto)) {
-	return RETURN_FAILURE;
+    if (dataset_cols(pdest) != 2) {
+        set_dataset_type(pdest, SET_XY);
     }
     
-    if (activateset(gto, setto) != RETURN_SUCCESS) {
+    if (setlength(pdest, nsets) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
-    if (dataset_cols(gto, setto) != 2) {
-        set_dataset_type(gto, setto, SET_XY);
-    }
-    
-    if (setlength(gto, setto, nsets) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    x = getcol(gto, setto, DATA_X);
-    y = getcol(gto, setto, DATA_Y);
+    x = getcol(pdest, DATA_X);
+    y = getcol(pdest, DATA_Y);
     for (i = 0; i < nsets; i++) {
-        int setno = sfrom[i];
-	set_parser_setno(gfrom, setno);
+        Quark *pset = sets[i];
+	set_parser_setno(pset);
         x[i] = (double) i;
         if (s_scanner(formula, &y[i]) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
@@ -2022,32 +1986,28 @@ int featext(int gfrom, int *sfrom, int nsets, int gto, int setto, char *formula)
     /* set comment */
     tbuf = copy_string(NULL, "Feature extraction by formula ");
     tbuf = concat_strings(tbuf, formula);
-    setcomment(gto, setto, tbuf);
+    setcomment(pdest, tbuf);
     xfree(tbuf);
     
     return RETURN_SUCCESS;
 }
 
 /* cumulaive properties (only avg right now) */
-int cumulative(int gsrc, int *ssids, int nsrc, int gdest, int sdest)
+int cumulative(Quark **sets, int nsrc, Quark *pdest)
 {
     int is, j, k, maxlen, maxncols, settype;
 
-    if (!is_valid_gno(gsrc) || !is_valid_gno(gdest)) {
-	return RETURN_FAILURE;
-    }
-
     maxlen = 0; maxncols = 0; settype = SET_XY;
     for (is = 0; is < nsrc; is++) {
-        int setno = ssids[is];
-        int len   = getsetlength(gsrc, setno);
-        int ncols = dataset_cols(gsrc, setno);
+        Quark *pset = sets[is];
+        int len   = getsetlength(pset);
+        int ncols = dataset_cols(pset);
         if (maxlen < len) {
             maxlen = len;
         }
         if (maxncols < ncols) {
             maxncols = ncols;
-            settype  = dataset_type(gsrc, setno);
+            settype  = dataset_type(pset);
         }
     }
     
@@ -2055,23 +2015,23 @@ int cumulative(int gsrc, int *ssids, int nsrc, int gdest, int sdest)
         return RETURN_FAILURE;
     }
     
-    if (dataset_cols(gdest, sdest) != maxncols) {
-        set_dataset_type(gdest, sdest, settype);
+    if (dataset_cols(pdest) != maxncols) {
+        set_dataset_type(pdest, settype);
     }
     
-    if (setlength(gdest, sdest, maxlen) != RETURN_SUCCESS) {
+    if (setlength(pdest, maxlen) != RETURN_SUCCESS) {
         return RETURN_FAILURE;
     }
     
     for (k = 0; k < maxlen; k++) {
         for (j = 0; j < maxncols; j++) {
-            double *y = getcol(gdest, sdest, j);
+            double *y = getcol(pdest, j);
             int nvar = 0;
             double var = 0.0;
             for (is = 0; is < nsrc; is++) {
-                int setno  = ssids[is];
-                int len    = getsetlength(gsrc, setno);
-                double *x = getcol(gsrc, setno, j);
+                Quark *pset = sets[is];
+                int len    = getsetlength(pset);
+                double *x = getcol(pset, j);
                 if (x && k < len) {
                     var += x[k];
                     nvar++;
@@ -2082,7 +2042,7 @@ int cumulative(int gsrc, int *ssids, int nsrc, int gdest, int sdest)
     }
 
     /* set comment */
-    setcomment(gdest, sdest, "Cumulative average");
+    setcomment(pdest, "Cumulative average");
     
     return RETURN_SUCCESS;
 } 

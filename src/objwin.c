@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 
+#include "globals.h"
 #include "utils.h"
 #include "grace/canvas.h"
 #include "storage.h"
@@ -95,7 +96,7 @@ typedef struct {
 typedef struct {
     Widget top;
     
-    ListStructure *gsel;
+    StorageStructure *gsel;
     StorageStructure *ss;
     
     Widget active;
@@ -121,15 +122,16 @@ typedef struct {
     DObject *dobject;
 } ObjectUI;
 
-static void changegraphCB(int n, int *values, void *data)
+static void changegraphCB(int n, void **values, void *data)
 {
-    StorageStructure *ss = (StorageStructure *) data;
+    ObjectUI *ui = (ObjectUI *) data;
+
     if (n == 1) {
-        graph *g;
-        g = graph_get(values[0]);
-        SetStorageChoiceStorage(ss, g->dobjects); 
+        Quark *gr = (Quark *) values[0];
+        graph *g = graph_get_data(gr);
+        SetStorageChoiceStorage(ui->ss, g->dobjects); 
     } else {
-        SetStorageChoiceStorage(ss, NULL); 
+        SetStorageChoiceStorage(ui->ss, NULL); 
     }
 }
 
@@ -613,6 +615,7 @@ StorageStructure *CreateDObjectChoice(Widget parent, char *labelstr, int type)
     Widget popup, submenupane;
     
     ss = CreateStorageChoice(parent, labelstr, type, 6);
+    SetStorageChoiceLabeling(ss, dobject_labeling);
     
     dossdata = xmalloc(sizeof(DOSSData));
     ss->data = dossdata;
@@ -637,7 +640,7 @@ StorageStructure *CreateDObjectChoice(Widget parent, char *labelstr, int type)
 
 void define_objects_popup(void *data)
 {
-    graph *g;
+    Quark *gr;
     
     set_wait_cursor();
     
@@ -665,12 +668,12 @@ void define_objects_popup(void *data)
 
         panel = CreateVContainer(oui->top);
         AddDialogFormChild(oui->top, panel);
+        
         oui->gsel = CreateGraphChoice(panel, "Graphs:", LIST_TYPE_SINGLE);
+        AddStorageChoiceCB(oui->gsel, changegraphCB, (void *) oui);
+        
         oui->ss = CreateDObjectChoice(panel, "Objects:", LIST_TYPE_MULTIPLE);
-        SetStorageChoiceLabeling(oui->ss, dobject_labeling);
-
         AddStorageChoiceCB(oui->ss, selectobjectCB, (void *) oui);
-        AddListChoiceCB(oui->gsel, changegraphCB, (void *) oui->ss);
         
         /* ------------ Tabs -------------- */
         tabs = CreateTab(oui->top);        
@@ -722,19 +725,17 @@ void define_objects_popup(void *data)
         CreateAACDialog(oui->top, tabs, objects_aac, oui);
     }
 
-    g = graph_get(get_cg());
-    SetStorageChoiceStorage(oui->ss, g->dobjects);
-    
     RaiseWindow(GetParent(oui->top));
     unset_wait_cursor();
 }
 
-void object_edit_popup(graph *g, int id)
+void object_edit_popup(Quark *gr, int id)
 {
-    if (g) {
-        DObject *o = object_get(g, id);
+    if (gr) {
+        graph *g = (graph *) gr->data;
+        DObject *o = object_get(gr, id);
         define_objects_popup(NULL);
         SetStorageChoiceStorage(oui->ss, g->dobjects);
-        SelectStorageChoices(oui->ss, 1, (void **) &o);
+        SelectStorageChoice(oui->ss, o);
     }
 }

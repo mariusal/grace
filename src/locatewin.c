@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -36,6 +36,7 @@
 
 #include <stdio.h>
 
+#include "globals.h"
 #include "graphs.h"
 #include "protos.h"
 #include "motifinc.h"
@@ -61,25 +62,25 @@ static Widget fixedp_item;
 
 static int locator_define_notify_proc(void *data);
 
-void update_locator_items(int gno)
+void update_locator_items(Quark *gr)
 {
     if (locator_frame) {
-        GLocator locator;
+        GLocator *locator;
         char buf[32];
 
-        if (get_graph_locator(gno, &locator) != RETURN_SUCCESS) {
+        if ((locator = get_graph_locator(gr)) == NULL) {
             return;
         }
         
-	SetToggleButtonState(fixedp_item, locator.pointset);
-	SetOptionChoice(delta_item, locator.pt_type);
-	SetOptionChoice(loc_formatx, locator.fx);
-	SetOptionChoice(loc_formaty, locator.fy);
-	SetOptionChoice(loc_precx, locator.px);
-	SetOptionChoice(loc_precy, locator.py);
-	sprintf(buf, "%g", locator.dsx);
+	SetToggleButtonState(fixedp_item, locator->pointset);
+	SetOptionChoice(delta_item, locator->pt_type);
+	SetOptionChoice(loc_formatx, locator->fx);
+	SetOptionChoice(loc_formaty, locator->fy);
+	SetOptionChoice(loc_precx, locator->px);
+	SetOptionChoice(loc_precy, locator->py);
+	sprintf(buf, "%g", locator->dsx);
 	xv_setstr(locx_item, buf);
-	sprintf(buf, "%g", locator.dsy);
+	sprintf(buf, "%g", locator->dsy);
 	xv_setstr(locy_item, buf);
     }
 }
@@ -131,7 +132,7 @@ void create_locator_frame(void *data)
             locator_panel, locator_define_notify_proc, NULL);
     }
     
-    update_locator_items(get_cg());
+    update_locator_items(graph_get_current(grace->project));
     RaiseWindow(GetParent(locator_frame));
     
     unset_wait_cursor();
@@ -143,24 +144,23 @@ void create_locator_frame(void *data)
 
 static int locator_define_notify_proc(void *data)
 {
-    GLocator locator;
-    int gno;
+    GLocator *locator;
+    Quark *gr;
 
-    gno = get_cg();
+    gr = graph_get_current(grace->project);
     
-    if (get_graph_locator(gno, &locator) != RETURN_SUCCESS) {
+    if ((locator = get_graph_locator(gr)) == NULL) {
         return RETURN_FAILURE;
     }
     
-    locator.pt_type = GetOptionChoice(delta_item);
-    locator.fx = GetOptionChoice(loc_formatx);
-    locator.fy = GetOptionChoice(loc_formaty);
-    locator.px = GetOptionChoice(loc_precx);
-    locator.py = GetOptionChoice(loc_precy);
-    locator.pointset = GetToggleButtonState(fixedp_item);
-    xv_evalexpr(locx_item, &locator.dsx ); 
-    xv_evalexpr(locy_item, &locator.dsy ); 
-    set_graph_locator(gno, &locator);
+    locator->pt_type = GetOptionChoice(delta_item);
+    locator->fx = GetOptionChoice(loc_formatx);
+    locator->fy = GetOptionChoice(loc_formaty);
+    locator->px = GetOptionChoice(loc_precx);
+    locator->py = GetOptionChoice(loc_precy);
+    locator->pointset = GetToggleButtonState(fixedp_item);
+    xv_evalexpr(locx_item, &locator->dsx ); 
+    xv_evalexpr(locy_item, &locator->dsy ); 
     
     xdrawgraph();
     

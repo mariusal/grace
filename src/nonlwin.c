@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -73,7 +73,8 @@ static char buf[256];
 
 static nonlprefs nonl_prefs = {TRUE, LOAD_VALUES, 10, 0.0, 1.0};
 
-static Widget nonl_frame = NULL;
+static TransformStructure *tdialog;
+
 static TextStructure *nonl_formula_item;
 static Widget nonl_title_item;
 static SrcDestStructure *nonl_set_item;
@@ -108,7 +109,7 @@ static void create_savefit_popup(void *data);
 static int do_openfit_proc(char *filename, void *data);
 static int do_savefit_proc(char *filename, void *data);
 
-static int load_nonl_fit(int src_gno, int src_setno, int force);
+static int load_nonl_fit(Quark *pset, Quark *pdest, int force);
 static void load_nonl_fit_cb(void *data);
 
 
@@ -116,15 +117,18 @@ static void load_nonl_fit_cb(void *data);
 void create_nonl_frame(void *data)
 {
     set_wait_cursor();
-    if (nonl_frame == NULL) {
+    if (!tdialog) {
         int i;
         OptionItem np_option_items[MAXPARM + 1], option_items[5];
-        Widget menubar, menupane;
+        Widget nonl_frame, menubar, menupane;
         Widget nonl_tab, nonl_main, nonl_advanced;
         Widget sw, title_fr, fr3, rc1, rc2, rc3, lab;
 
-	nonl_frame = CreateDialogForm(app_shell, "Non-linear curve fitting");
+	tdialog = CreateTransformDialogForm(app_shell,
+            "Non-linear curve fitting", LIST_TYPE_SINGLE);
+        nonl_frame = tdialog->form;
 
+#if 0
         menubar = CreateMenuBar(nonl_frame);
         
         menupane = CreateMenu(menubar, "File", 'F', FALSE);
@@ -153,10 +157,8 @@ void create_nonl_frame(void *data)
 
         ManageChild(menubar);
         AddDialogFormChild(nonl_frame, menubar);
+#endif
         
-        nonl_set_item = CreateSrcDestSelector(nonl_frame, LIST_TYPE_SINGLE);
-        AddDialogFormChild(nonl_frame, nonl_set_item->form);
-	
 	title_fr = CreateFrame(nonl_frame, NULL);
 	XtVaSetValues(title_fr, XmNshadowType, XmSHADOW_ETCHED_OUT, NULL);
 	nonl_title_item = CreateLabel(title_fr, grace->rt->nlfit->title);
@@ -254,7 +256,7 @@ void create_nonl_frame(void *data)
     }
     update_nonl_frame();
     
-    RaiseWindow(GetParent(nonl_frame));
+    RaiseWindow(GetParent(tdialog->form));
     
     unset_wait_cursor();
 }
@@ -286,7 +288,7 @@ void update_nonl_frame(void)
 {
     int i;
     
-    if (nonl_frame) {
+    if (tdialog) {
         XmString str = XmStringCreateLocalized(grace->rt->nlfit->title);
         XtVaSetValues(nonl_title_item, XmNlabelString, str, NULL);
 /* 
@@ -388,7 +390,6 @@ static int do_nonl_proc(void *data)
 {
     int i;
     int nsteps;
-    int src_gno, src_setno;
     int resno;
     char *fstr;
     int nlen, wlen;
@@ -396,17 +397,16 @@ static int do_nonl_proc(void *data)
     double *ytmp, *warray;
     int restr_type, restr_negate;
     char *rarray;
+    int nssrc;
+    Quark *psrc, *pdest, **srcsets, **destsets;
     
-    if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
-        RETURN_SUCCESS) {
-    	errmsg("No source graph selected");
+    if (GetTransformDialogSettings(tdialog, TRUE, &nssrc, &srcsets, &destsets)
+        != RETURN_SUCCESS) {
     	return RETURN_FAILURE;
     }
-    if (GetSingleListChoice(nonl_set_item->src->set_sel, &src_setno) !=
-        RETURN_SUCCESS) {
-    	errmsg("No source set selected");
-    	return RETURN_FAILURE;
-    }
+    
+    psrc  = srcsets[0];
+    pdest = destsets[0];
     
     grace->rt->nlfit->formula = copy_string(grace->rt->nlfit->formula, GetTextString(nonl_formula_item));
     nsteps = (int) GetSpinChoice(nonl_nsteps_item);
@@ -442,12 +442,12 @@ static int do_nonl_proc(void *data)
     
     if (nsteps) {
         /* apply weigh function */
-    	nlen = getsetlength(src_gno, src_setno);
+    	nlen = getsetlength(psrc);
 	weight_method = GetOptionChoice(nonl_weigh_item);
         switch (weight_method) {
         case WEIGHT_Y:
         case WEIGHT_Y2:
-            ytmp = getcol(src_gno, src_setno, DATA_Y);
+            ytmp = getcol(psrc, DATA_Y);
             for (i = 0; i < nlen; i++) {
                 if (ytmp[i] == 0.0) {
 	            errmsg("Divide by zero while calculating weights");
@@ -468,7 +468,7 @@ static int do_nonl_proc(void *data)
             }
             break;
         case WEIGHT_DY:
-            ytmp = getcol(src_gno, src_setno, DATA_Y1);
+            ytmp = getcol(psrc, DATA_Y1);
             if (ytmp == NULL) {
 	        errmsg("The set doesn't have dY data column");
                 return RETURN_FAILURE;
@@ -488,7 +488,7 @@ static int do_nonl_proc(void *data)
             }
             break;
         case WEIGHT_CUSTOM:
-            if (set_parser_setno(src_gno, src_setno) != RETURN_SUCCESS) {
+            if (set_parser_setno(psrc) != RETURN_SUCCESS) {
                 errmsg("Bad set");
                 return RETURN_FAILURE;
             }
@@ -512,7 +512,7 @@ static int do_nonl_proc(void *data)
         /* apply restriction */
         restr_type = GetOptionChoice(restr_item->r_sel);
         restr_negate = GetToggleButtonState(restr_item->negate);
-        resno = get_restriction_array(src_gno, src_setno,
+        resno = get_restriction_array(psrc,
             restr_type, restr_negate, &rarray);
 	if (resno != RETURN_SUCCESS) {
 	    errmsg("Error in restriction evaluation");
@@ -521,7 +521,7 @@ static int do_nonl_proc(void *data)
 	}
 
         /* The fit itself! */
-    	resno = do_nonlfit(src_gno, src_setno, warray, rarray, nsteps);
+    	resno = do_nonlfit(psrc, warray, rarray, nsteps);
 	xfree(warray);
 	xfree(rarray);
     	if (resno != RETURN_SUCCESS) {
@@ -538,14 +538,15 @@ static int do_nonl_proc(void *data)
 /*
  * Select & activate a set to load results to
  */    
-    load_nonl_fit(src_gno, src_setno, FALSE);
+    load_nonl_fit(psrc, pdest, FALSE);
     
     return RETURN_SUCCESS;
 }
 
 static void load_nonl_fit_cb(void *data)
 {
-    int src_gno, src_setno;
+#if 0
+    int psrc;
     
     if (GetSingleListChoice(nonl_set_item->src->graph_sel, &src_gno) !=
         RETURN_SUCCESS) {
@@ -557,31 +558,15 @@ static void load_nonl_fit_cb(void *data)
     	errmsg("No source set selected");
     	return;
     }
-    load_nonl_fit(src_gno, src_setno, TRUE);
+    load_nonl_fit(psrc, TRUE);
+#endif
 }
 
-static int load_nonl_fit(int src_gno, int src_setno, int force)
+static int load_nonl_fit(Quark *psrc, Quark *pdest, int force)
 {
-    int dest_gno, dest_setno;
     int i, npts = 0;
     double delx, *xfit, *y, *yfit;
     
-    if (GetSingleListChoice(nonl_set_item->dest->graph_sel, &dest_gno) !=
-        RETURN_SUCCESS) {
-    	errmsg("No destination graph selected");
-	return RETURN_FAILURE;
-    }
-    if (GetSingleListChoice(nonl_set_item->dest->set_sel, &dest_setno) !=
-        RETURN_SUCCESS) {
-    	/* no dest sel selected; allocate new one */
-    	dest_setno = nextset(dest_gno);
-    	if (dest_setno == -1) {
-	    return RETURN_FAILURE;
-    	} else {
-    	    activateset(dest_gno, dest_setno);
-    	}
-    }
-
     nonl_prefs.autoload = GetToggleButtonState(nonl_autol_item);
     nonl_prefs.load = GetOptionChoice(nonl_load_item);
     
@@ -608,37 +593,37 @@ static int load_nonl_fit(int src_gno, int src_setno, int force)
     	switch (nonl_prefs.load) {
     	case LOAD_VALUES:
     	case LOAD_RESIDUALS:
-    	    npts = getsetlength(src_gno, src_setno);
-    	    setlength(dest_gno, dest_setno, npts);
-    	    copycol2(src_gno, src_setno, dest_gno, dest_setno, DATA_X);
+    	    npts = getsetlength(psrc);
+    	    setlength(pdest, npts);
+    	    copycol2(psrc, pdest, DATA_X);
     	    break;
     	case LOAD_FUNCTION:
     	    npts  = nonl_prefs.npoints;
  
-    	    setlength(dest_gno, dest_setno, npts);
+    	    setlength(pdest, npts);
  
     	    delx = (nonl_prefs.stop - nonl_prefs.start)/(npts - 1);
-    	    xfit = getx(dest_gno, dest_setno);
+    	    xfit = getx(pdest);
 	    for (i = 0; i < npts; i++) {
 	        xfit[i] = nonl_prefs.start + i * delx;
 	    }
     	    break;
     	}
     	
-    	setcomment(dest_gno, dest_setno, grace->rt->nlfit->formula);
+    	setcomment(pdest, grace->rt->nlfit->formula);
     	
-    	do_compute(dest_gno, dest_setno, dest_gno, dest_setno, NULL, grace->rt->nlfit->formula);
+    	do_compute(pdest, pdest, NULL, grace->rt->nlfit->formula);
     	
     	if (nonl_prefs.load == LOAD_RESIDUALS) { /* load residuals */
-    	    y = gety(src_gno, src_setno);
-    	    yfit = gety(dest_gno, dest_setno);
+    	    y = gety(psrc);
+    	    yfit = gety(pdest);
     	    for (i = 0; i < npts; i++) {
 	        yfit[i] -= y[i];
 	    }
     	}
     	
-    	update_set_lists(dest_gno);
-        SelectListChoice(nonl_set_item->dest->set_sel, dest_setno);
+    	update_set_lists(pdest->parent);
+        SelectStorageChoices(nonl_set_item->dest->set_sel, 1, (void **) &pdest);
     	xdrawgraph();
     }
     

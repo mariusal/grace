@@ -397,14 +397,17 @@ int save_axis_properties(XFile *xf, tickmarks *t)
     return RETURN_SUCCESS;
 }
 
-int save_graph_properties(XFile *xf, graph *g)
+int save_graph_properties(XFile *xf, Quark *gr)
 {
     int i;
     Attributes *attrs;
+    graph *g;
     
-    if (!g) {
+    if (!gr) {
         return RETURN_FAILURE;
     }
+    
+    g = (graph *) gr->data;
     
     attrs = attributes_new();
     
@@ -548,13 +551,16 @@ int save_graph_properties(XFile *xf, graph *g)
     return RETURN_SUCCESS;
 }
 
-int save_set_properties(XFile *xf, set *p)
+int save_set_properties(XFile *xf, Quark *pset)
 {
     Attributes *attrs;
+    set *p;
     
-    if (!p) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
+    
+    p = (set *) pset->data;
     
     attrs = attributes_new();
     
@@ -563,32 +569,31 @@ int save_set_properties(XFile *xf, set *p)
     }
 
     attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrType, p->sym); /* FIXME: textual */
-    attributes_set_dval(attrs, AStrSize, p->symsize);
-    attributes_set_ival(attrs, AStrSkip, p->symskip);
-    attributes_set_ival(attrs, AStrChar, (int) p->symchar);
-    xmlio_set_font_ref(attrs, p->charfont);
+    attributes_set_ival(attrs, AStrType, p->sym.type); /* FIXME: textual */
+    attributes_set_dval(attrs, AStrSize, p->sym.size);
+    attributes_set_ival(attrs, AStrChar, (int) p->sym.symchar);
+    xmlio_set_font_ref(attrs, p->sym.charfont);
     xfile_begin_element(xf, EStrSymbol, attrs);
     {
         xmlio_write_line_spec(xf, attrs,
-            &(p->symline.pen), p->symline.width, p->symline.style);
-        xmlio_write_fill_spec(xf, attrs, &(p->symfillpen));
+            &(p->sym.line.pen), p->sym.line.width, p->sym.line.style);
+        xmlio_write_fill_spec(xf, attrs, &(p->sym.fillpen));
     }
     xfile_end_element(xf, EStrSymbol);
     
     attributes_reset(attrs);
-    attributes_set_ival(attrs, AStrType, p->linet); /* FIXME: textual */
-    attributes_set_ival(attrs, AStrFillType, p->filltype); /* FIXME: textual */
+    attributes_set_ival(attrs, AStrType, p->line.type); /* FIXME: textual */
+    attributes_set_ival(attrs, AStrFillType, p->line.filltype); /* FIXME: textual */
     attributes_set_sval(attrs, AStrFillRule,
-        p->fillrule == FILLRULE_WINDING ? VStrWinding:VStrEvenodd);
-    attributes_set_ival(attrs, AStrBaselineType, p->baseline_type); /* FIXME: textual */
-    attributes_set_bval(attrs, AStrDrawBaseline, p->baseline);
-    attributes_set_bval(attrs, AStrDrawDroplines, p->dropline);
+        p->line.fillrule == FILLRULE_WINDING ? VStrWinding:VStrEvenodd);
+    attributes_set_ival(attrs, AStrBaselineType, p->line.baseline_type); /* FIXME: textual */
+    attributes_set_bval(attrs, AStrDrawBaseline, p->line.baseline);
+    attributes_set_bval(attrs, AStrDrawDroplines, p->line.droplines);
     xfile_begin_element(xf, EStrLine, attrs);
     {
         xmlio_write_line_spec(xf, attrs,
-            &(p->line.pen), p->line.width, p->line.style);
-        xmlio_write_fill_spec(xf, attrs, &(p->setfillpen));
+            &(p->line.line.pen), p->line.line.width, p->line.line.style);
+        xmlio_write_fill_spec(xf, attrs, &(p->line.fillpen));
     }
     xfile_end_element(xf, EStrLine);
 
@@ -643,14 +648,17 @@ int save_set_properties(XFile *xf, set *p)
     return RETURN_SUCCESS;
 }
 
-static int save_dataset(XFile *xf, Dataset *data)
+static int save_dataset(XFile *xf, Quark *pset)
 {
     Attributes *attrs;
     int i, nc;
+    Dataset *data;
 
-    if (!data) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
+    
+    data = set_get_dataset(pset);
     
     attrs = attributes_new();
     
@@ -775,6 +783,39 @@ int save_object(XFile *xf, DObject *o)
     return RETURN_SUCCESS;
 }
 
+static int set_save_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *pset = (Quark *) data;
+    XFile *xf = (XFile *) udata;
+    set *p;
+    Attributes *attrs;
+
+    if (!pset) {
+        return RETURN_FAILURE;
+    }
+
+    attrs = attributes_new();
+    if (attrs == NULL) {
+        return RETURN_FAILURE;
+    }
+    
+    p = (set *) pset->data;
+    
+    xmlio_set_active(attrs, !(p->hidden));
+    attributes_set_sval(attrs, AStrType, set_types(grace->rt, p->type));
+    attributes_set_ival(attrs, AStrSkip, p->symskip);
+    xfile_begin_element(xf, EStrSet, attrs);
+    {
+        save_set_properties(xf, pset);
+        save_dataset(xf, pset);
+    }
+    xfile_end_element(xf, EStrSet);
+
+    attributes_free(attrs);
+        
+    return TRUE;
+}
+
 static int object_save_hook(unsigned int step, void *data, void *udata)
 {
     DObject *o = (DObject *) data;
@@ -785,17 +826,36 @@ static int object_save_hook(unsigned int step, void *data, void *udata)
     return TRUE;
 }
 
-int save_graph_objects(XFile *xf, graph *g)
+int save_graph_objects(XFile *xf, Quark *gr)
 {
-    if (!xf || !g) {
+    graph *g;
+
+    if (!xf || !gr) {
         return RETURN_FAILURE;
     }
+    
+    g = (graph *) gr->data;
     
     storage_traverse(g->dobjects, object_save_hook, xf);
 
     return RETURN_SUCCESS;
 }
+
+int save_graph_sets(XFile *xf, Quark *gr)
+{
+    graph *g;
     
+    if (!xf || !gr) {
+        return RETURN_FAILURE;
+    }
+    
+    g = (graph *) gr->data;
+
+    storage_traverse(g->sets, set_save_hook, xf);
+    
+    return RETURN_SUCCESS;
+}
+
 int save_regions(XFile *xf)
 {
     Attributes *attrs;
@@ -841,8 +901,8 @@ int save_project(char *fn)
 {
     XFile *xf;
     Attributes *attrs;
-    int gno;
     Project *pr = (Project *) grace->project->data;
+    Quark *gr;
     
     xf = xfile_new(fn);
     attrs = attributes_new();
@@ -903,40 +963,18 @@ int save_project(char *fn)
 
     xfile_comment(xf, "Graphs");
     storage_rewind(pr->graphs);
-    while ((gno = storage_get_id(pr->graphs)) >= 0) {
-        graph *g = graph_get(gno);
-        int setno;
-
+    while (storage_get_data(pr->graphs, (void **) &gr) == RETURN_SUCCESS) {
         attributes_reset(attrs);
-        attributes_set_ival(attrs, AStrId, gno);
-        xmlio_set_active(attrs, !(g->hidden));
+        attributes_set_sval(attrs, AStrId, gr->idstr);
+        xmlio_set_active(attrs, !is_graph_hidden(gr));
         xfile_begin_element(xf, EStrGraph, attrs);
         {
-            save_graph_properties(xf, g);
+            save_graph_properties(xf, gr);
             
-            save_graph_objects(xf, g);
+            save_graph_objects(xf, gr);
 
-            storage_rewind(g->sets);
-            while ((setno = storage_get_id(g->sets)) >= 0) {
-                set *p = set_get(gno, setno);
+            save_graph_sets(xf, gr);
 
-                attributes_reset(attrs);
-                attributes_set_ival(attrs, AStrId, setno);
-                xmlio_set_active(attrs, !(p->hidden));
-                attributes_set_sval(attrs, AStrType, set_types(grace->rt,
-                    p->type));
-                xfile_begin_element(xf, EStrSet, attrs);
-                {
-                    save_set_properties(xf, p);
-
-                    save_dataset(xf, p->data);
-                }
-                xfile_end_element(xf, EStrSet);
-
-                if (storage_next(g->sets) != RETURN_SUCCESS) {
-                    break;
-                }
-            }
         }
         xfile_end_element(xf, EStrGraph);
 

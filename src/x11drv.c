@@ -705,10 +705,10 @@ void xlibputpixmap(const Canvas *canvas, void *data,
 void xlibleavegraphics(const Canvas *canvas, void *data, 
     const CanvasStats *cstats)
 {
-    int cg = get_cg();
+    Quark *gr = graph_get_current(grace->project);
     
-    if (is_graph_hidden(cg) == FALSE) {
-        draw_focus(cg);
+    if (is_graph_hidden(gr) == FALSE) {
+        draw_focus(gr);
     }
     reset_crosshair();
     xlibredraw(xwin, 0, 0, win_w, win_h);

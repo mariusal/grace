@@ -160,7 +160,7 @@ static int open_proc(char *filename, void *data)
 
 
 typedef struct {
-    ListStructure *graph_item;     /* graph choice item */
+    StorageStructure *graph_item;     /* graph choice item */
     OptionStructure *ftype_item;   /* set type choice item */
     OptionStructure *load_item;    /* load as single/nxy/block */
     OptionStructure *auto_item;    /* autoscale on read */
@@ -229,13 +229,13 @@ void create_file_popup(void *data)
 
 static int read_sets_proc(char *filename, void *data)
 {
-    int graphno;
+    Quark *gr;
     int load;
     
     rdataGUI *gui = (rdataGUI *) data;
     
     load = GetOptionChoice(gui->load_item);
-    if (GetSingleListChoice(gui->graph_item, &graphno) != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(gui->graph_item, (void **) &gr) != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
     } else {
         if (load == LOAD_SINGLE) {
@@ -244,10 +244,10 @@ static int read_sets_proc(char *filename, void *data)
 
         grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         
-        getdata(graphno, filename, grace->rt->cursource, load);
+        getdata(gr, filename, grace->rt->cursource, load);
 
 	if (load == LOAD_BLOCK) {
-            create_eblock_frame(graphno);
+            create_eblock_frame(gr);
         } else {
             update_all();
             xdrawgraph();
@@ -281,7 +281,7 @@ static void set_load_proc(int value, void *data)
 
 
 typedef struct {
-    ListStructure *sel;
+    StorageStructure *sel;
     Widget format_item;
 } wdataGUI;
 
@@ -303,7 +303,7 @@ void create_write_popup(void *data)
 	fr = CreateFrame(fsb->rc, NULL);
 	rc = CreateVContainer(fr);
         gui->sel = CreateSetChoice(rc,
-            "Write set(s):", LIST_TYPE_MULTIPLE, TRUE);
+            "Write set(s):", LIST_TYPE_MULTIPLE, NULL);
 	gui->format_item = CreateTextItem2(rc, 15, "Format: ");
         xv_setstr(gui->format_item, project_get_sformat(grace->project));
 
@@ -320,8 +320,8 @@ void create_write_popup(void *data)
 static int write_sets_proc(char *filename, void *data)
 {
     wdataGUI *gui = (wdataGUI *) data;
-    int *selset, cd, i;
-    int gno, setno;
+    int cd, i;
+    Quark *pset, **selset;
     char format[32];
     FILE *cp;
     
@@ -330,15 +330,14 @@ static int write_sets_proc(char *filename, void *data)
         return FALSE;
     }
 
-    cd = GetListChoices(gui->sel, &selset);
+    cd = GetStorageChoices(gui->sel, (void ***) &selset);
     if (cd < 1) {
         errmsg("No set selected");
     } else {
-        gno = get_cg();
         strncpy(format, xv_getstr(gui->format_item), 31);
-        for(i = 0; i < cd; i++) {
-            setno = selset[i];
-            write_set(gno, setno, cp, format, TRUE);
+        for (i = 0; i < cd; i++) {
+            pset = selset[i];
+            write_set(pset, cp, format);
         }
         xfree(selset);
     }
@@ -409,16 +408,8 @@ void create_wparam_frame(void *data)
 
 static int write_params_proc(char *filename, void *data)
 {
-    OptionStructure *graph_item = (OptionStructure *) data;
-    int gno;
     FILE *pp;
 
-    if (GetOptionChoice(graph_item) == 0) {
-	gno = get_cg();
-    } else {
-	gno = ALL_GRAPHS;
-    }
-    
     pp = grace_openw(filename);
     if (pp != NULL) {
         errwin("Not implemented yet");
@@ -457,7 +448,6 @@ int getnetcdfvars(void);
 
 static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int setno;
     char fname[256];
     char xvar[256], yvar[256];
     XmString *s, cs;
@@ -470,7 +460,6 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 /*
  * setno == -1, then next set
  */
-    setno = -1;
     strcpy(fname, xv_getstr(netcdf_file_item));
     if (XmListGetSelectedPos(netcdf_listx_item, &pos_list, &pos_cnt)) {
 	XtVaGetValues(netcdf_listx_item,
@@ -506,9 +495,9 @@ static void do_netcdf_proc(Widget w, XtPointer client_data, XtPointer call_data)
 	return;
     }
     if (strcmp(xvar, "INDEX") == 0) {
-	retval = readnetcdf(get_cg(), setno, fname, NULL, yvar, -1, -1, 1);
+	retval = readnetcdf(NULL, fname, NULL, yvar, -1, -1, 1);
     } else {
-	retval = readnetcdf(get_cg(), setno, fname, xvar, yvar, -1, -1, 1);
+	retval = readnetcdf(NULL, fname, xvar, yvar, -1, -1, 1);
     }
     if (retval) {
 	xdrawgraph();

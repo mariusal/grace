@@ -105,15 +105,6 @@
 #define ZX_AXIS 2
 #define ZY_AXIS 3
 
-
-/* setno == new set to be created */
-#define NEW_SET     -2
-
-/*
- * gno == all graphs selected
- */
-#define ALL_GRAPHS    -1
-
 /* type of splines */
 #define INTERP_LINEAR   0
 #define INTERP_SPLINE   1
@@ -372,12 +363,6 @@ typedef struct {
     double xg1, xg2, yg1, yg2;  /* window into world coords */
 } world;
 
-/* target graph & set*/
-typedef struct {
-    int gno;    /* graph # */
-    int setno;  /* set # */
-} target;
-
 /*
  * typedefs for objects
  */
@@ -425,119 +410,6 @@ typedef struct {
     double *d;
 } Spline;
 
-typedef struct {
-    int active;          /* on/off */
-    PlacementType ptype; /* placement type */
-    Pen pen;             /* pen */
-    double linew;        /* error bar line width */
-    int lines;           /* error bar line style */
-    double riser_linew;  /* connecting line between error limits line width */
-    int riser_lines;     /* connecting line between error limits line style */
-    double barsize;      /* size of error bar */
-    int arrow_clip;      /* draw arrows if clipped */
-    double cliplen;      /* riser clipped length (v.p.) */
-} Errbar;
-
-/* Annotative strings for data values */
-typedef struct {
-    int active;                 /* active or not */
-    int type;                   /* type */
-    double size;                /* char size */
-    int font;                   /* font */
-    int color;                  /* color */
-    int angle;                  /* angle */
-    int format;                 /* format */
-    int prec;                   /* precision */
-    char prestr[64];            /* prepend string */
-    char appstr[64];            /* append string */
-    VPoint offset;              /* offset related to symbol position */
-} AValue;
-
-
-
-typedef struct {
-    int type;
-    double wtpos;
-    char *label;
-} tickloc;
-
-typedef struct {
-    double size;              /* length of tickmarks */
-    int color;                /* color of tickmarks */
-    double linew;             /* linewidth of tickmarks */
-    int lines;                /* linestyle of tickmarks */
-    int gridflag;             /* grid lines at tick marks */
-} tickprops;
-
-typedef struct {
-    int active;                 /* active or not */
-
-    int zero;                   /* "zero" axis or plain */
-
-    plotstr label;              /* graph axis label */
-    int label_layout;           /* axis label orientation (h or v) */
-    int label_place;            /* axis label placement (specfied or auto) */
-    PlacementType label_op;     /* tick labels on opposite side or both */
-
-    int t_drawbar;              /* draw a bar connecting tick marks */
-    int t_drawbarcolor;         /* color of bar */
-    int t_drawbarlines;         /* linestyle of bar */
-    double t_drawbarlinew;      /* line width of bar */
-
-    double offsx, offsy;        /* offset of axes in viewport coords
-                                   (attention: these
-				   are not x and y coordinates but
-				   perpendicular and parallel offsets */
-
-    int t_flag;                 /* toggle tickmark display */
-    int t_autonum;              /* approximate default number of major ticks */
-
-    int t_spec;                 /* special (user-defined) tickmarks/ticklabels, */
-                                /* can be none/marks/both marks and labels */
-
-    int t_round;                /* place major ticks at rounded positions */
-
-    double tmajor;              /* major tick divisions */
-    int nminor;                 /* number of minor ticks per one major division */
-
-    int nticks;                 /* total number of ticks */
-    tickloc tloc[MAX_TICKS];    /* locations of ticks */
-
-    int t_inout;                /* ticks inward, outward or both */
-    PlacementType t_op;         /* ticks on opposite side */
-    
-    tickprops props;
-    tickprops mprops;
-
-    int tl_flag;                /* toggle ticmark labels on or off */
-    int tl_angle;               /* angle to draw labels */
-
-    int tl_format;              /* tickmark label format */
-    int tl_prec;                /* places to right of decimal point */
-
-    char *tl_formula;           /* transformation formula */
-
-    int tl_skip;                /* tick labels to skip */
-    int tl_staggered;           /* tick labels staggered */
-    int tl_starttype;           /* start at graphmin or use tl_start/stop */
-    int tl_stoptype;            /* start at graphmax or use tl_start/stop */
-    double tl_start;            /* value of x to begin tick labels and major ticks */
-    double tl_stop;             /* value of x to end tick labels and major ticks */
-
-    PlacementType tl_op;        /* tick labels on opposite side or both */
-
-    int tl_gaptype;             /* tick label placement auto or specified */
-    VVector tl_gap;             /* tick label to tickmark distance
-				   (parallel and perpendicular to axis) */
-
-    int tl_font;                /* font to use for tick labels */
-    double tl_charsize;         /* character size for tick labels */
-    int tl_color;               /* color of tick labels */
-
-    char tl_appstr[64];         /* append string to tick label */
-    char tl_prestr[64];         /* prepend string to tick label */
-
-} tickmarks;
 
 typedef struct {
     int active;                 /* region on or off */
@@ -550,14 +422,6 @@ typedef struct {
     double *x, *y;              /* coordinates if type is POLY */
     double x1, y1, x2, y2;      /* starting and ending points if type is not POLY */
 } region;
-
-typedef struct {
-    int type;                   /* frame type */
-    Pen pen;                    /* frame pen */
-    int lines;                  /* frame linestyle */
-    double linew;                  /* frame line width */
-    Pen fillpen;                /* fill pen */
-} framep;
 
 
 /* parameters for non-linear fit */

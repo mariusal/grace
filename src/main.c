@@ -78,12 +78,8 @@ int main(int argc, char *argv[])
 {
     char *s;
     int i;
-    int gno;
     int fd;
-    world w;
-    view v;
-    int cur_graph;	        /* default (current) graph */
-    int loadlegend = FALSE;	/* legend on and load file names */
+    Quark *cur_graph;	        /* default (current) graph */
     int gracebat;		/* if executed as 'gracebat' then TRUE */
     int cli = FALSE;            /* command line interface only */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
@@ -97,12 +93,6 @@ int main(int argc, char *argv[])
     GUI *gui;
     Canvas *canvas;
     
-#ifdef HAVE_NETCDF
-    char netcdf_name[512] = "";
-    char xvar_name[128] = "";
-    char yvar_name[128] = "";
-#endif
-
     grace = grace_new();
     if (!grace) {
         errmsg("Failed to allocate run-time structures");
@@ -194,9 +184,9 @@ int main(int argc, char *argv[])
 
     /* load default template */
     new_project(NULL);
-
-    cur_graph = get_cg();
     
+    cur_graph = graph_get_current(grace->project);
+
     for (i = 1; i < argc; i++) {
 	if (argv[i][0] == '-' && argv[i][1] != '\0') {
 	    if (argmatch(argv[i], "-version", 2)) {
@@ -299,36 +289,6 @@ int main(int argc, char *argv[])
                         }
                     }
 		}
-#ifdef HAVE_NETCDF
-	    } else if (argmatch(argv[i], "-netcdf", 7) || argmatch(argv[i], "-hdf", 4)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for netcdf file\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    strcpy(netcdf_name, argv[i]);
-		}
-	    } else if (argmatch(argv[i], "-netcdfxy", 9)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for netcdf X variable name\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    strcpy(xvar_name, argv[i]);
-		}
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for netcdf Y variable name\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    strcpy(yvar_name, argv[i]);
-		}
-		if (strcmp(xvar_name, "null")) {
-		    readnetcdf(cur_graph, -1, netcdf_name, xvar_name, yvar_name, -1, -1, 1);
-		} else {
-		    readnetcdf(cur_graph, -1, netcdf_name, NULL, yvar_name, -1, -1, 1);
-		}
-#endif				/* HAVE_NETCDF */
 	    } else if (argmatch(argv[i], "-timer", 6)) {
 		i++;
 		if (i == argc) {
@@ -385,22 +345,6 @@ int main(int argc, char *argv[])
                         exit(1);
                     }
                 }
-	    } else if (argmatch(argv[i], "-log", 2)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for log plots flag\n");
-		    usage(stderr, argv[0]);
-		}
-		if (!strcmp("x", argv[i])) {
-		    set_graph_xscale(cur_graph, SCALE_LOG);
-		} else if (!strcmp("y", argv[i])) {
-		    set_graph_yscale(cur_graph, SCALE_LOG);
-		} else if (!strcmp("xy", argv[i])) {
-		    set_graph_xscale(cur_graph, SCALE_LOG);
-		    set_graph_yscale(cur_graph, SCALE_LOG);
-		} else {
-		    fprintf(stderr, "%s: Improper argument for -l flag; should be one of 'x', 'y', 'xy'\n", argv[0]);
-		}
 	    } else if (argmatch(argv[i], "-printfile", 6)) {
 		i++;
 		if (i == argc) {
@@ -419,20 +363,6 @@ int main(int argc, char *argv[])
 		    usage(stderr, argv[0]);
 		} else {
 		    scanner(argv[i]);
-		}
-	    } else if (argmatch(argv[i], "-graph", 6)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing parameter for graph select\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    sscanf(argv[i], "%d", &gno);
-		    if (set_graph_active(gno, TRUE) == RETURN_SUCCESS) {
-			cur_graph = gno;
-                        select_graph(gno);
-		    } else {
-			fprintf(stderr, "Error activating graph %d\n", gno);
-		    }
 		}
 	    } else if (argmatch(argv[i], "-block", 6)) {
 		i++;
@@ -454,7 +384,7 @@ int main(int argc, char *argv[])
                         errmsg("Erroneous field specifications");
                         return 1;
                     }
-		    create_set_fromblock(cur_graph, NEW_SET,
+		    create_set_fromblock(set_new(cur_graph),
                         rt->curtype, nc, cols, scol, rt->autoscale_onread);
                     xfree(cols);
                 }
@@ -474,40 +404,6 @@ int main(int argc, char *argv[])
                 if (rt->curtype == -1) {
 		    fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
 		    usage(stderr, argv[0]);
-		}
-	    } else if (argmatch(argv[i], "-graphtype", 7)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for graph type\n");
-		} else {
-		    if (!strcmp("xy", argv[i])) {
-			set_graph_type(cur_graph, GRAPH_XY);
-		    } else if (!strcmp("polar", argv[i])) {
-			set_graph_type(cur_graph, GRAPH_POLAR);
-		    } else if (!strcmp("bar", argv[i])) {
-			set_graph_type(cur_graph, GRAPH_CHART);
-		    } else if (!strcmp("smith", argv[i])) {
-			set_graph_type(cur_graph, GRAPH_SMITH);
-		    } else if (!strcmp("fixed", argv[i])) {
-			set_graph_type(cur_graph, GRAPH_FIXED);
-		    } else {
-			fprintf(stderr, "%s: Improper argument for -graphtype\n", argv[0]);
-			usage(stderr, argv[0]);
-		    }
-		}
-	    } else if (argmatch(argv[i], "-legend", 4)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for -legend\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    if (!strcmp("load", argv[i])) {
-			loadlegend = TRUE;
-			set_graph_legend_active(cur_graph, TRUE);
-		    } else {
-			fprintf(stderr, "Improper argument for -legend\n");
-			usage(stderr, argv[0]);
-		    }
 		}
 	    } else if (argmatch(argv[i], "-param", 2)) {
 		i++;
@@ -561,30 +457,6 @@ int main(int argc, char *argv[])
 		} else if (argmatch(argv[i], "disk", 4)) {
 		    rt->cursource = SOURCE_DISK;
 		}
-	    } else if (argmatch(argv[i], "-viewport", 2)) {
-		i++;
-		if (i > argc - 4) {
-		    fprintf(stderr, "Missing parameter(s) for viewport setting\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    v.xv1 = atof(argv[i++]);
-		    v.yv1 = atof(argv[i++]);
-		    v.xv2 = atof(argv[i++]);
-		    v.yv2 = atof(argv[i]);
-		    set_graph_viewport(cur_graph, v);
-		}
-	    } else if (argmatch(argv[i], "-world", 2)) {
-		i++;
-		if (i > argc - 4) {
-		    fprintf(stderr, "Missing parameter(s) for world setting\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    w.xg1 = atof(argv[i++]);
-		    w.yg1 = atof(argv[i++]);
-		    w.xg2 = atof(argv[i++]);
-		    w.yg2 = atof(argv[i]);
-                    set_graph_world(cur_graph, w);
-		}
 	    } else if (argmatch(argv[i], "-seed", 5)) {
 		i++;
 		if (i == argc) {
@@ -615,20 +487,6 @@ int main(int argc, char *argv[])
      */
     if (sigcatch == TRUE) {
         installSignal();
-    }
-
-/*
- * load legend
- */
-    if (loadlegend) {
-        int ngraphs = number_of_graphs();
-        for (gno = 0; gno < ngraphs; gno++) {
-            int nsets = number_of_sets(gno);
-            int setno;
-	    for (setno = 0; setno < nsets; setno++) {
-		load_comments_to_legend(gno, setno);
-	    }
-	}
     }
 
 /*
@@ -682,7 +540,7 @@ void cli_loop(void)
     int previous = -1;
 
     if (inpipe == TRUE) {
-        getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+        getdata(0, "stdin", SOURCE_DISK, LOAD_SINGLE);
         inpipe = FALSE;
     }
     if (batchfile[0]) {
@@ -735,28 +593,13 @@ static void usage(FILE *stream, char *progname)
 #ifndef NONE_GUI
     fprintf(stream, "-free                                 Use free page layout\n");
 #endif
-    fprintf(stream, "-graph     [graph_number]             Set the current graph number\n");
-    fprintf(stream, "-graphtype [graph_type]               Set the type of the current graph\n");
     fprintf(stream, "-hardcopy                             No interactive session, just print and\n");
     fprintf(stream, "                                        quit\n");
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
 #ifndef NONE_GUI
     fprintf(stream, "-install                              Install private colormap\n");
-#endif
-    fprintf(stream, "-legend    [load]                     Turn the graph legend on\n");
-    fprintf(stream, "-log       [x|y|xy]                   Set the axis scaling of the current graph\n");
-    fprintf(stream, "                                        to logarithmic\n");
-#ifndef NONE_GUI
     fprintf(stream, "-mono                                 Run Grace in monochrome mode (affects\n");
     fprintf(stream, "                                        the display only)\n");
-#endif
-#ifdef HAVE_NETCDF
-    fprintf(stream, "-netcdf    [netcdf file]              Assume data file is in netCDF format\n");
-    fprintf(stream, "-netcdfxy  [X var name] [Y var name]  If -netcdf was used previously, read from\n");
-    fprintf(stream, "                                        the netCDF file 'X var name' and 'Y\n");
-    fprintf(stream, "                                        var name' and create a set. If 'X var\n");
-    fprintf(stream, "                                        name' is \"null\" then load the\n");
-    fprintf(stream, "                                        index of Y to X\n");
 #endif
     fprintf(stream, "-noask                                Assume the answer is yes to all requests -\n");
     fprintf(stream, "                                        if the operation would overwrite a file,\n");
@@ -787,10 +630,7 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "                                        inputs to delay ms\n");
     fprintf(stream, "-settype   [xy|xydx|...]              Set the type of the next data file\n");
     fprintf(stream, "-version                              Show the program version\n");
-    fprintf(stream, "-viewport  [xmin ymin xmax ymax]      Set the viewport for the current graph\n");
     fprintf(stream, "-wd        [directory]                Set the working directory\n");
-    fprintf(stream, "-world     [xmin ymin xmax ymax]      Set the world coordinates for the\n");
-    fprintf(stream, "                                        current graph\n");
 
     fprintf(stream, "-usage|-help                          This message\n");
     fprintf(stream, "\n");

@@ -255,15 +255,17 @@ void object_free(DObject *o)
     }
 }
 
-DObject *next_object(graph *g, OType type)
+DObject *next_object(Quark *gr, OType type)
 {
     DObject *o;
     Storage *objects;
+    graph *g;
     
-    if (!g) {
+    if (!gr) {
         return NULL;
     }
     
+    g = (graph *) gr->data;
     objects = g->dobjects;
     o = object_new_complete(type);
     if (o) {
@@ -279,11 +281,14 @@ DObject *next_object(graph *g, OType type)
     }
 }
 
-DObject *object_get(graph *g, int id)
+DObject *object_get(Quark *gr, int id)
 {
     DObject *o;
-    Storage *objects = g->dobjects;
+    Storage *objects;
+    graph *g;
     
+    g = (graph *) gr->data;
+    objects = g->dobjects;
     if (storage_get_data_by_id(objects, id, (void **) &o) != RETURN_SUCCESS) {
         o = NULL;
     }
@@ -301,20 +306,19 @@ int get_object_bb(DObject *o, view *bb)
     }
 }
 
-int kill_object(graph *g, int id)
+int kill_object(Quark *gr, int id)
 {
-    Storage *objects = g->dobjects;
+    Storage *objects;
+    graph *g;
+
+    g = (graph *) gr->data;
+    objects = g->dobjects;
     if (storage_delete_by_id(objects, id) == RETURN_SUCCESS) {
         set_dirtystate();
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
     }
-}
-
-DObject *duplicate_object(graph *g, int id)
-{
-    return storage_duplicate(g->dobjects, id);
 }
 
 void move_object(DObject *o, VVector shift)

@@ -56,10 +56,10 @@ FILE *grace_openr(char *fn, int src);
 void grace_close(FILE *fp);
 
 int getparms(char *plfile);
-int getdata(int gno, char *fn, int src, int type);
-int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col);
+int getdata(Quark *gr, char *fn, int src, int type);
+int read_xyset_fromfile(Quark *pset, char *fn, int src, int col);
 
-int readblockdata(int gno, char *fn, FILE * fp);
+int readblockdata(Quark *gr, char *fn, FILE * fp);
 
 int load_project_file(char *fn, int as_template);
 
@@ -67,11 +67,10 @@ int new_project(char *template);
 int load_project(char *fn);
 int save_project(char *fn);
 
-int write_set(int gno, int setno, FILE *cp, char *format, int rawdata);
-void outputset(int gno, int setno, char *fname, char *dformat);
+int write_set(Quark *pset, FILE *cp, char *format);
+void outputset(Quark *pset, char *fname, char *dformat);
 
-int readnetcdf(int gno,
-	       int setno,
+int readnetcdf(Quark *pset,
 	       char *netcdfname,
 	       char *xvar,
 	       char *yvar,

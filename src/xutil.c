@@ -206,14 +206,14 @@ static void aux_XFillRectangle(int x, int y, unsigned int width, unsigned int he
 /*
  * draw the graph focus indicators
  */
-void draw_focus(int gno)
+void draw_focus(Quark *gr)
 {
     int ix1, iy1, ix2, iy2;
     view v;
     VPoint vp;
     
     if (grace->gui->draw_focus_flag == TRUE) {
-        get_graph_viewport(gno, &v);
+        get_graph_viewport(gr, &v);
         vp.x = v.xv1;
         vp.y = v.yv1;
         xlibVPoint2dev(&vp, &ix1, &iy1);
@@ -353,7 +353,7 @@ void expose_resize(Widget w, XtPointer client_data,
 	}
 	
 	if (inpipe == TRUE) {
-	    getdata(get_cg(), "stdin", SOURCE_DISK, LOAD_SINGLE);
+	    getdata(graph_get_current(grace->project), "stdin", SOURCE_DISK, LOAD_SINGLE);
 	    inpipe = FALSE;
 	}
 

@@ -52,7 +52,7 @@ int regiontype = 0;
 /*
  * see if (x,y) lies inside the plot
  */
-int inbounds(int gno, double x, double y)
+int inbounds(Quark *gr, double x, double y)
 {
     WPoint wp;
     
@@ -147,7 +147,7 @@ void activate_region(int r, int type, int linkto)
 /*
  * report on sets in a region
  */
-void reporton_region(int gno, int rno, int type)
+void reporton_region(Quark *gr, int rno, int type)
 {
     char buf[256];
     int i, setno, first, contained, nsets;
@@ -155,37 +155,36 @@ void reporton_region(int gno, int rno, int type)
     sprintf(buf, "\nRegion R%1d contains:\n", rno);
     stufftext(buf);
     
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     for (setno = 0; setno < nsets; setno++) {
-        if (is_set_active(gno, setno)) {
-	    x = getx(gno, setno);
-	    y = gety(gno, setno);
-	    first = 1;
-	    contained = 0;
-	    for (i = 0; i < getsetlength(gno, setno); i++) {
-		if (inregion(rno, x[i], y[i])) {
-		    contained = 1;
-		    switch (type) {
-		    case 0:	/* report on sets */
-			if (first) {
-			    first = 0;
-			    sprintf(buf, "  Set S%1d\n", setno);
-			    stufftext(buf);
-			}
-			break;
-		    case 1:	/* points */
-			if (first) {
-			    first = 0;
-			    sprintf(buf, "  Set S%1d\n", setno);
-			    stufftext(buf);
-			}
-			sprintf(buf, "    %d %f %f\n", i + 1, x[i], y[i]);
+	Quark *pset = set_get(gr, setno);
+        x = getx(pset);
+	y = gety(pset);
+	first = 1;
+	contained = 0;
+	for (i = 0; i < getsetlength(pset); i++) {
+	    if (inregion(gr, rno, x[i], y[i])) {
+		contained = 1;
+		switch (type) {
+		case 0:	/* report on sets */
+		    if (first) {
+			first = 0;
+			sprintf(buf, "  Set S%1d\n", setno);
 			stufftext(buf);
-			break;
 		    }
-		} else {
-		    contained = 0;
+		    break;
+		case 1:	/* points */
+		    if (first) {
+			first = 0;
+			sprintf(buf, "  Set S%1d\n", setno);
+			stufftext(buf);
+		    }
+		    sprintf(buf, "    %d %f %f\n", i + 1, x[i], y[i]);
+		    stufftext(buf);
+		    break;
 		}
+	    } else {
+		contained = 0;
 	    }
 	}
     }
@@ -366,13 +365,13 @@ int isbelow(double x, double y, double x1, double y1, double x2, double y2)
     return 0;
 }
 
-int inregion(int regno, double x, double y)
+int inregion(Quark *gr, int regno, double x, double y)
 {
     if (regno == MAXREGION) {
-	return (inbounds(get_cg() , x, y));
+	return (inbounds(gr , x, y));
     }
     if (regno == MAXREGION + 1) {
-	return (!inbounds(get_cg() , x, y));
+	return (!inbounds(gr , x, y));
     }
     if (rg[regno].active == TRUE) {
 	switch (rg[regno].type) {

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -31,7 +31,7 @@
  * track/edit points etc.
  *
  */
-
+#if 0
 #include <config.h>
 
 #include <stdio.h>
@@ -277,3 +277,4 @@ void get_tracking_props(int *setno, int *move_dir, int *add_at)
     *move_dir = track_move_dir;
     *add_at = track_add_at;
 }
+#endif

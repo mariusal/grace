@@ -510,7 +510,7 @@ static void MenuCB(void *data)
  */
 static void autoscale_proc(void *data)
 {
-    int cg = get_cg();
+    Quark *cg = graph_get_current(grace->project);
     
     if (autoscale_graph(cg, (int) data) == RETURN_SUCCESS) {
 	update_ticks(cg);
@@ -531,8 +531,8 @@ void autoon_proc(void *data)
  */
 void autoticks_proc(void *data)
 {
-    autotick_axis(get_cg(), ALL_AXES);
-    update_ticks(get_cg());
+    autotick_axis(graph_get_current(grace->project), ALL_AXES);
+    update_ticks(graph_get_current(grace->project));
     xdrawgraph();
 }
 
@@ -561,9 +561,9 @@ void set_stack_message(void)
 {
     char buf[16];
     if (stack_depth_item) {
-	sprintf(buf, " SD:%1d ", graph_world_stack_size(get_cg()));
+	sprintf(buf, " SD:%1d ", graph_world_stack_size(graph_get_current(grace->project)));
 	SetLabel(stack_depth_item, buf);
-        sprintf(buf, " CW:%1d ", get_world_stack_current(get_cg()));
+        sprintf(buf, " CW:%1d ", get_world_stack_current(graph_get_current(grace->project)));
 	SetLabel(curw_item, buf);
     }
 }
@@ -574,11 +574,10 @@ void set_stack_message(void)
  */
 void do_clear_point(void *data)
 {
-    GLocator locator;
+    GLocator *locator;
     
-    get_graph_locator(get_cg(), &locator);
-    locator.pointset = FALSE;
-    set_graph_locator(get_cg(), &locator);
+    locator = get_graph_locator(graph_get_current(grace->project));
+    locator->pointset = FALSE;
     xdrawgraph();
 }
 
@@ -727,8 +726,10 @@ static Widget CreateMainMenuBar(Widget parent)
  */
     menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
 
+#if 0
     CreateMenuButton(menupane, "Data sets...", 'D', create_datasetprop_popup, NULL);
     CreateMenuButton(menupane, "Set operations...", 'o', create_setop_popup, NULL);
+#endif
     CreateMenuSeparator(menupane);
     CreateMenuButton(menupane, "Arrange graphs...", 'r', create_arrange_frame, NULL);
     CreateMenuButton(menupane, "Overlay graphs...", 'O', create_overlay_frame, NULL);
@@ -757,11 +758,11 @@ static Widget CreateMainMenuBar(Widget parent)
  * Data menu
  */
     menupane = CreateMenu(menubar, "Data", 'D', FALSE);
-
+#if 0
     CreateMenuButton(menupane, "Data set operations...", 'o', create_datasetop_popup, NULL);
-
+#endif
     submenupane = CreateMenu(menupane, "Transformations", 'T', FALSE);
-
+#if 0
     CreateMenuButton(submenupane, "Evaluate expression...", 'E', create_eval_frame, NULL);
     CreateMenuSeparator(submenupane);
     CreateMenuButton(submenupane, "Histograms...", 'H', create_histo_frame, NULL);
@@ -784,7 +785,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(menupane, "Cumulative properties...", 'C', create_cumulative_frame, NULL);
 
     CreateMenuSeparator(menupane);
-
+#endif
     submenupane = CreateMenu(menupane, "Import", 'I', FALSE);
     CreateMenuButton(submenupane, "ASCII...", 'A', create_file_popup, NULL);
 #ifdef HAVE_NETCDF
@@ -830,7 +831,9 @@ static Widget CreateMainMenuBar(Widget parent)
 /* Window menu */
     menupane = CreateMenu(menubar, "Tools", 'T', FALSE);
    
+#if 0
     CreateMenuButton(menupane, "Point explorer", 'P', create_points_frame, NULL);
+#endif
     CreateMenuButton(menupane, "Font tool", 'F', create_fonttool_cb, NULL);
 /*
  *     CreateMenuButton(menupane, "Area/perimeter...", 'A', create_area_frame, NULL);
@@ -1200,13 +1203,13 @@ void set_pagelayout(int layout)
 
 static void graph_scroll_proc(void *data)
 {
-    graph_scroll((int) data);
+    graph_scroll(graph_get_current(grace->project), (int) data);
     xdrawgraph();
 }
 
 static void graph_zoom_proc(void *data)
 {
-    graph_zoom((int) data);
+    graph_zoom(graph_get_current(grace->project), (int) data);
     xdrawgraph();
 }
 
@@ -1217,13 +1220,13 @@ static void world_stack_proc(void *data)
         push_and_zoom();
         break;
     case WSTACK_PUSH:
-        push_world();
+        push_world(graph_get_current(grace->project));
         break;
     case WSTACK_POP:
-        pop_world();
+        pop_world(graph_get_current(grace->project));
         break;
     case WSTACK_CYCLE:
-        cycle_world_stack();
+        cycle_world_stack(graph_get_current(grace->project));
         break;
     default:
         return;

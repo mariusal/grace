@@ -46,7 +46,7 @@
 
 extern char print_file[];
 
-static void auto_ticks(int gno, int axis);
+static void auto_ticks(Quark *gr, int axis);
 
 char *get_format_types(FormatType f)
 {
@@ -182,66 +182,75 @@ int wipeout(void)
 
 /* The following routines determine default axis range and tickmarks */
 
-static void autorange_bysets(int gno, int *sets, int nsets, int autos_type);
+static void autorange_bysets(Quark **sets, int nsets, int autos_type);
 static double nicenum(double x, int nrange, int round);
 
 #define NICE_FLOOR   0
 #define NICE_CEIL    1
 #define NICE_ROUND   2
 
-void autotick_axis(int gno, int axis)
+void autotick_axis(Quark *gr, int axis)
 {
     switch (axis) {
     case ALL_AXES:
-        auto_ticks(gno, X_AXIS);
-        auto_ticks(gno, ZX_AXIS);
-        auto_ticks(gno, Y_AXIS);
-        auto_ticks(gno, ZY_AXIS);
+        auto_ticks(gr, X_AXIS);
+        auto_ticks(gr, ZX_AXIS);
+        auto_ticks(gr, Y_AXIS);
+        auto_ticks(gr, ZY_AXIS);
         break;
     case ALL_X_AXES:
-        auto_ticks(gno, X_AXIS);
-        auto_ticks(gno, ZX_AXIS);
+        auto_ticks(gr, X_AXIS);
+        auto_ticks(gr, ZX_AXIS);
         break;
     case ALL_Y_AXES:
-        auto_ticks(gno, Y_AXIS);
-        auto_ticks(gno, ZY_AXIS);
+        auto_ticks(gr, Y_AXIS);
+        auto_ticks(gr, ZY_AXIS);
         break;
     default:
-        auto_ticks(gno, axis);
+        auto_ticks(gr, axis);
         break;
     }
 }
 
-void autoscale_bysets(int gno, int *sets, int nsets, int autos_type)
+void autoscale_bysets(Quark **sets, int nsets, int autos_type)
 {
-    autorange_bysets(gno, sets, nsets, autos_type);
+    Quark *gr;
+    
+    if (nsets <= 0) {
+        return;
+    }
+    
+    gr = sets[0]->parent;
+    
+    autorange_bysets(sets, nsets, autos_type);
     switch (autos_type) {
     case AUTOSCALE_X:
-        autotick_axis(gno, ALL_X_AXES);
+        autotick_axis(gr, ALL_X_AXES);
         break;
     case AUTOSCALE_Y:
-        autotick_axis(gno, ALL_Y_AXES);
+        autotick_axis(gr, ALL_Y_AXES);
         break;
     case AUTOSCALE_XY:
-        autotick_axis(gno, ALL_AXES);
+        autotick_axis(gr, ALL_AXES);
         break;
     }
 }
 
-int autoscale_graph(int gno, int autos_type)
+int autoscale_graph(Quark *gr, int autos_type)
 {
-    int nsets, *sets;
-    nsets = number_of_sets(gno);
+    int nsets;
+    Quark **sets;
+    nsets = number_of_sets(gr);
     if (nsets) {
         int i;
-        sets = xmalloc(nsets*SIZEOF_INT);
+        sets = xmalloc(nsets*SIZEOF_VOID_P);
         if (!sets) {
             return RETURN_FAILURE;
         }
         for (i = 0; i < nsets; i++) {
-            sets[i] = i;
+            sets[i] = set_get(gr, i);
         }
-        autoscale_bysets(gno, sets, nsets, autos_type);
+        autoscale_bysets(sets, nsets, autos_type);
         xfree(sets);
         return RETURN_SUCCESS;
     } else {
@@ -328,19 +337,22 @@ static void round_axis_limits(double *amin, double *amax, int scale)
     }
 }
 
-static void autorange_bysets(int gno, int *sets, int nsets, int autos_type)
+static void autorange_bysets(Quark **sets, int nsets, int autos_type)
 {
+    Quark *gr;
     world w;
     double xmax, xmin, ymax, ymin;
     int scale;
 
-    if (autos_type == AUTOSCALE_NONE) {
+    if (autos_type == AUTOSCALE_NONE || nsets <= 0) {
         return;
     }
     
-    get_graph_world(gno, &w);
+    gr = sets[0]->parent;
     
-    if (get_graph_type(gno) == GRAPH_SMITH) {
+    get_graph_world(gr, &w);
+    
+    if (get_graph_type(gr) == GRAPH_SMITH) {
         if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
             w.xg1 = -1.0;
             w.yg1 = -1.0;
@@ -349,60 +361,60 @@ static void autorange_bysets(int gno, int *sets, int nsets, int autos_type)
             w.xg2 = 1.0;
             w.yg2 = 1.0;
 	}
-        set_graph_world(gno, w);
+        set_graph_world(gr, &w);
         return;
     }
 
-    xmin=w.xg1;
-    xmax=w.xg2;
-    ymin=w.yg1;
-    ymax=w.yg2;
+    xmin = w.xg1;
+    xmax = w.xg2;
+    ymin = w.yg1;
+    ymax = w.yg2;
     if (autos_type == AUTOSCALE_XY) {
-        getsetminmax(gno, sets, nsets, &xmin, &xmax, &ymin, &ymax);
+        getsetminmax(sets, nsets, &xmin, &xmax, &ymin, &ymax);
     } else if (autos_type == AUTOSCALE_X) {
-        getsetminmax_c(gno, sets, nsets, &xmin, &xmax, &ymin, &ymax, 2);
+        getsetminmax_c(sets, nsets, &xmin, &xmax, &ymin, &ymax, 2);
     } else if (autos_type == AUTOSCALE_Y) {
-        getsetminmax_c(gno, sets, nsets, &xmin, &xmax, &ymin, &ymax, 1);
+        getsetminmax_c(sets, nsets, &xmin, &xmax, &ymin, &ymax, 1);
     }
 
     if (autos_type == AUTOSCALE_X || autos_type == AUTOSCALE_XY) {
-        scale = get_graph_xscale(gno);
+        scale = get_graph_xscale(gr);
         round_axis_limits(&xmin, &xmax, scale);
         w.xg1 = xmin;
         w.xg2 = xmax;
     }
 
     if (autos_type == AUTOSCALE_Y || autos_type == AUTOSCALE_XY) {
-        scale = get_graph_yscale(gno);
+        scale = get_graph_yscale(gr);
         round_axis_limits(&ymin, &ymax, scale);
         w.yg1 = ymin;
         w.yg2 = ymax;
     }
 
-    set_graph_world(gno, w);
+    set_graph_world(gr, &w);
 }
 
-static void auto_ticks(int gno, int axis)
+static void auto_ticks(Quark *gr, int axis)
 {
     tickmarks *t;
     world w;
     double range, d, tmpmax, tmpmin;
     int axis_scale;
 
-    t = get_graph_tickmarks(gno, axis);
+    t = get_graph_tickmarks(gr, axis);
     if (t == NULL) {
         return;
     }
-    get_graph_world(gno, &w);
+    get_graph_world(gr, &w);
 
     if (is_xaxis(axis)) {
         tmpmin = w.xg1;
         tmpmax = w.xg2;
-        axis_scale = get_graph_xscale(gno);
+        axis_scale = get_graph_xscale(gr);
     } else {
         tmpmin = w.yg1;
         tmpmax = w.yg2;
-        axis_scale = get_graph_yscale(gno);
+        axis_scale = get_graph_yscale(gr);
     }
 
     if (axis_scale == SCALE_LOG) {
@@ -506,101 +518,79 @@ void scrollinout_proc(int value)
 /*
  * pan through world coordinates
  */
-int graph_scroll(int type)
+int graph_scroll(Quark *gr, int type)
 {
     world w;
     double dwc = 0.0;
-    int gno, cg = get_cg(), gmin, gmax;
 
-    if (grace->rt->scrolling_islinked) {
-        gmin = 0;
-        gmax = number_of_graphs() - 1;
-    } else {
-        gmin = cg;
-        gmax = cg;
-    }
-    
-    for (gno = gmin; gno <= gmax; gno++) {
-        if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
-            switch (type) {
-            case GSCROLL_LEFT:    
-            case GSCROLL_RIGHT:    
-                if (islogx(gno) == TRUE) {
-                    errmsg("Scrolling of LOG axes is not implemented");
-                    return RETURN_FAILURE;
-                }
-                dwc = grace->rt->scrollper * (w.xg2 - w.xg1);
-                break;
-            case GSCROLL_DOWN:    
-            case GSCROLL_UP:    
-                if (islogy(gno) == TRUE) {
-                    errmsg("Scrolling of LOG axes is not implemented");
-                    return RETURN_FAILURE;
-                }
-                dwc = grace->rt->scrollper * (w.yg2 - w.yg1);
-                break;
+    if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
+        switch (type) {
+        case GSCROLL_LEFT:    
+        case GSCROLL_RIGHT:    
+            if (islogx(gr) == TRUE) {
+                errmsg("Scrolling of LOG axes is not implemented");
+                return RETURN_FAILURE;
             }
-            
-            switch (type) {
-            case GSCROLL_LEFT:    
-                w.xg1 -= dwc;
-                w.xg2 -= dwc;
-                break;
-            case GSCROLL_RIGHT:    
-                w.xg1 += dwc;
-                w.xg2 += dwc;
-                break;
-            case GSCROLL_DOWN:    
-                w.yg1 -= dwc;
-                w.yg2 -= dwc;
-                break;
-            case GSCROLL_UP:    
-                w.yg1 += dwc;
-                w.yg2 += dwc;
-                break;
+            dwc = grace->rt->scrollper * (w.xg2 - w.xg1);
+            break;
+        case GSCROLL_DOWN:    
+        case GSCROLL_UP:    
+            if (islogy(gr) == TRUE) {
+                errmsg("Scrolling of LOG axes is not implemented");
+                return RETURN_FAILURE;
             }
-            set_graph_world(gno, w);
+            dwc = grace->rt->scrollper * (w.yg2 - w.yg1);
+            break;
         }
+
+        switch (type) {
+        case GSCROLL_LEFT:    
+            w.xg1 -= dwc;
+            w.xg2 -= dwc;
+            break;
+        case GSCROLL_RIGHT:    
+            w.xg1 += dwc;
+            w.xg2 += dwc;
+            break;
+        case GSCROLL_DOWN:    
+            w.yg1 -= dwc;
+            w.yg2 -= dwc;
+            break;
+        case GSCROLL_UP:    
+            w.yg1 += dwc;
+            w.yg2 += dwc;
+            break;
+        }
+        set_graph_world(gr, &w);
     }
     
     return RETURN_SUCCESS;
 }
 
-int graph_zoom(int type)
+int graph_zoom(Quark *gr, int type)
 {
     double dx, dy;
     world w;
-    int gno, cg = get_cg(), gmin, gmax;
-
-    if (grace->rt->scrolling_islinked) {
-        gmin = 0;
-        gmax = number_of_graphs() - 1;
-    } else {
-        gmin = cg;
-        gmax = cg;
-    }
     
-    for (gno = gmin; gno <= gmax; gno++) {
-        if (!islogx(gno) && !islogy(gno)) {
-            if (get_graph_world(gno, &w) == RETURN_SUCCESS) {
-                dx = grace->rt->shexper * (w.xg2 - w.xg1);
-                dy = grace->rt->shexper * (w.yg2 - w.yg1);
-                if (type == GZOOM_SHRINK) {
-                    dx *= -1;
-                    dy *= -1;
-                }
- 
-                w.xg1 -= dx;
-                w.xg2 += dx;
-                w.yg1 -= dy;
-                w.yg2 += dy;
- 
-                set_graph_world(gno, w);
+    if (!islogx(gr) && !islogy(gr)) {
+        if (get_graph_world(gr, &w) == RETURN_SUCCESS) {
+            dx = grace->rt->shexper * (w.xg2 - w.xg1);
+            dy = grace->rt->shexper * (w.yg2 - w.yg1);
+            if (type == GZOOM_SHRINK) {
+                dx *= -1;
+                dy *= -1;
             }
-        } else {
-            errmsg("Zooming is not implemented for LOG plots");
-            return RETURN_FAILURE;
+
+            w.xg1 -= dx;
+            w.xg2 += dx;
+            w.yg1 -= dy;
+            w.yg2 += dy;
+
+            set_graph_world(gr, &w);
         }
+    } else {
+        errmsg("Zooming is not implemented for LOG plots");
+        return RETURN_FAILURE;
     }
     
     return RETURN_SUCCESS;
@@ -609,15 +599,16 @@ int graph_zoom(int type)
 /*
  *  Arrange graphs
  */
-int arrange_graphs(int *graphs, int ngraphs,
+int arrange_graphs(Quark **graphs, int ngraphs,
                    int nrows, int ncols, int order, int snake,
                    double loff, double roff, double toff, double boff,
                    double vgap, double hgap,
                    int hpack, int vpack)
 {
-    int i, imax, j, jmax, iw, ih, ng, gno;
+    int i, imax, j, jmax, iw, ih, ng;
     double pw, ph, w, h;
     view v;
+    Quark *gr;
 
     if (hpack) {
         hgap = 0.0;
@@ -652,8 +643,7 @@ int arrange_graphs(int *graphs, int ngraphs,
     }
     for (i = 0; i < imax && ng < ngraphs; i++) {
         for (j = 0; j < jmax && ng < ngraphs; j++) {
-            gno = graphs[ng];
-            set_graph_active(gno, TRUE);
+            gr = graphs[ng];
             
             if (order & GA_ORDER_HV_INV) {
                 iw = i;
@@ -680,11 +670,11 @@ int arrange_graphs(int *graphs, int ngraphs,
             v.xv2 = v.xv1 + w;
             v.yv1 = boff + ih*h*(1.0 + vgap);
             v.yv2 = v.yv1 + h;
-            set_graph_viewport(gno, v);
+            set_graph_viewport(gr, &v);
             
             if (hpack) {
+	        tickmarks *t = get_graph_tickmarks(gr, Y_AXIS);
                 if (iw == 0) {
-	            tickmarks *t = get_graph_tickmarks(gno, Y_AXIS);
 	            if (!t) {
                         continue;
                     }
@@ -693,12 +683,12 @@ int arrange_graphs(int *graphs, int ngraphs,
 	            t->t_op = PLACEMENT_NORMAL;
 	            t->tl_op = PLACEMENT_NORMAL;
                 } else {
-                    activate_tick_labels(gno, Y_AXIS, FALSE);
+                    activate_tick_labels(t, FALSE);
                 }
             }
             if (vpack) {
+	        tickmarks *t = get_graph_tickmarks(gr, X_AXIS);
                 if (ih == 0) {
-	            tickmarks *t = get_graph_tickmarks(gno, X_AXIS);
 	            if (!t) {
                         continue;
                     }
@@ -707,7 +697,7 @@ int arrange_graphs(int *graphs, int ngraphs,
 	            t->t_op = PLACEMENT_NORMAL;
 	            t->tl_op = PLACEMENT_NORMAL;
                 } else {
-                    activate_tick_labels(gno, X_AXIS, FALSE);
+                    activate_tick_labels(t, FALSE);
                 }
             }
             
@@ -717,39 +707,9 @@ int arrange_graphs(int *graphs, int ngraphs,
     return RETURN_SUCCESS;
 }
 
-int arrange_graphs_simple(int nrows, int ncols,
-    int order, int snake, double offset, double hgap, double vgap)
+void move_legend(Quark *gr, VVector shift)
 {
-    int *graphs, i, gno, ngraphs, ngraphs_old, retval;
-    
-    ngraphs = nrows*ncols;
-    graphs = xmalloc(ngraphs*SIZEOF_INT);
-    if (graphs == NULL) {
-        return RETURN_FAILURE;
-    }
-    
-    for (i = 0; i < ngraphs; i++) {
-        graphs[i] = i;
-    }
-    
-    ngraphs_old = number_of_graphs();
-    for (gno = 0; gno < ngraphs_old; gno++) {
-        if (gno >= ngraphs) {
-            kill_graph(gno);
-        }
-    }
-    
-    retval = arrange_graphs(graphs, ngraphs, nrows, ncols, order, snake,
-        offset, offset, offset, offset, vgap, hgap, FALSE, FALSE);
-    
-    xfree(graphs);
-    
-    return retval;
-}
-
-void move_legend(int gno, VVector shift)
-{
-    legend *l = get_graph_legend(gno);
+    legend *l = get_graph_legend(gr);
     if (l) {
         switch (l->acorner) {
         case CORNER_LL:
@@ -775,13 +735,15 @@ void move_legend(int gno, VVector shift)
     }
 }
 
-void rescale_viewport(Project *pr, double ext_x, double ext_y)
+void rescale_viewport(Quark *project, double ext_x, double ext_y)
 {
-    graph *g;
+    Project *pr = (Project *) project->data;
+    Quark *gr;
     DObject *o;
 
     storage_rewind(pr->graphs);
-    while (storage_get_data(pr->graphs, (void **) &g) == RETURN_SUCCESS) {
+    while (storage_get_data(pr->graphs, (void **) &gr) == RETURN_SUCCESS) {
+        graph *g = (graph *) gr->data;
         g->v.xv1 *= ext_x;
         g->v.xv2 *= ext_x;
         g->v.yv1 *= ext_y;
@@ -814,7 +776,7 @@ void rescale_viewport(Project *pr, double ext_x, double ext_y)
 }
 
 
-int overlay_graphs(int gsec, int gpri, int type)
+int overlay_graphs(Quark *gsec, Quark *gpri, int type)
 {
     int i;
     tickmarks *tsec, *tpri;
@@ -946,10 +908,10 @@ int overlay_graphs(int gsec, int gpri, int type)
     }
     
     /* set identical viewports */
-    set_graph_viewport(gsec, v);
+    set_graph_viewport(gsec, &v);
     
     /* update world coords */
-    set_graph_world(gsec, wsec);
+    set_graph_world(gsec, &wsec);
 
     return RETURN_SUCCESS;
 }

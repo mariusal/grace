@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -67,7 +67,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats);
 int insert_data_row(ss_data *ssd, int row, char *s);
 int store_data(ss_data *ssd, int load_type);
 
-int create_set_fromblock(int gno, int setno,
+int create_set_fromblock(Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale);
 char *cols_to_field_string(int nc, int *cols, int scol);
 int field_string_to_cols(const char *fs, int *nc, int **cols, int *scol);

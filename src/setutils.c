@@ -334,19 +334,18 @@ static void set_default_set(set *p)
     p->hidden = FALSE;                          /* hidden set */
     p->type = SET_XY;                           /* dataset type */
 
-    p->sym = 0;                                 /* set plot symbol */
-    p->symsize = grdefaults.symsize;            /* size of symbols */
-    p->symline.pen.color = grdefaults.color;    /* color for symbol line */
-    p->symline.pen.pattern = grdefaults.pattern;/* pattern */
-    p->symline.style = grdefaults.lines;        /* set plot sym line style */
-    p->symline.width = grdefaults.linew;        /* set plot sym line width */
-    p->symfillpen.color = grdefaults.color;     /* color for symbol fill */
-    p->symfillpen.pattern = 0;                  /* pattern for symbol fill */
-
-    p->symchar = 'A';
-    p->charfont = grdefaults.font;
-
     p->symskip = 0;                             /* How many symbols to skip */
+
+    p->sym.type = 0;                            /* set plot symbol */
+    p->sym.size = grdefaults.symsize;            /* size of symbols */
+    p->sym.line.pen.color = grdefaults.color;    /* color for symbol line */
+    p->sym.line.pen.pattern = grdefaults.pattern;/* pattern */
+    p->sym.line.style = grdefaults.lines;        /* set plot sym line style */
+    p->sym.line.width = grdefaults.linew;        /* set plot sym line width */
+    p->sym.fillpen.color = grdefaults.color;     /* color for symbol fill */
+    p->sym.fillpen.pattern = 0;                  /* pattern for symbol fill */
+    p->sym.symchar = 'A';
+    p->sym.charfont = grdefaults.font;
 
     p->avalue.active = FALSE;                   /* active or not */
     p->avalue.type = AVALUE_TYPE_Y;             /* type */
@@ -361,20 +360,20 @@ static void set_default_set(set *p)
     p->avalue.offset.x = 0.0;
     p->avalue.offset.y = 0.0;
 
-    p->linet = LINE_TYPE_STRAIGHT;
-    p->line.style = grdefaults.lines;
-    p->line.width = grdefaults.linew;
-    p->line.pen.color = grdefaults.color;
-    p->line.pen.pattern = grdefaults.pattern;
+    p->line.type = LINE_TYPE_STRAIGHT;
+    p->line.line.style = grdefaults.lines;
+    p->line.line.width = grdefaults.linew;
+    p->line.line.pen.color = grdefaults.color;
+    p->line.line.pen.pattern = grdefaults.pattern;
     
-    p->baseline_type = BASELINE_TYPE_0;
-    p->baseline = FALSE;
-    p->dropline = FALSE;
+    p->line.baseline_type = BASELINE_TYPE_0;
+    p->line.baseline = FALSE;
+    p->line.droplines = FALSE;
 
-    p->filltype = SETFILL_NONE;                 /* fill type */
-    p->fillrule = FILLRULE_WINDING;             /* fill type */
-    p->setfillpen.color = grdefaults.color;     /* fill color */
-    p->setfillpen.pattern = grdefaults.pattern; /* fill pattern */
+    p->line.filltype = SETFILL_NONE;                 /* fill type */
+    p->line.fillrule = FILLRULE_WINDING;             /* fill type */
+    p->line.fillpen.color = grdefaults.color;     /* fill color */
+    p->line.fillpen.pattern = grdefaults.pattern; /* fill pattern */
 
     p->errbar.active = TRUE;                      /* on by default */
     p->errbar.ptype = PLACEMENT_BOTH;             /* error bar placement */
@@ -393,7 +392,21 @@ static void set_default_set(set *p)
     p->data = NULL;
 }
 
-set *set_new(void)
+Quark *set_new(Quark *gr)
+{
+    Quark *pset; 
+    pset = quark_new(gr, QFlavorSet);
+    if (pset) {
+        graph *g = (graph *) gr->data;
+        if (storage_add(g->sets, pset) != RETURN_SUCCESS) {
+            quark_free(pset);
+            return NULL;
+        }
+    }
+    return pset;
+}
+
+set *set_data_new(void)
 {
     set *p;
     
@@ -413,7 +426,7 @@ set *set_new(void)
 }
 
 
-void set_free(set *p)
+void set_data_free(set *p)
 {
     if (p) {
         dataset_free(p->data);
@@ -421,7 +434,7 @@ void set_free(set *p)
     }
 }
 
-set *set_copy(set *p)
+set *set_data_copy(set *p)
 {
     set *p_new;
     
@@ -471,9 +484,9 @@ int copy_set_params(set *p1, set *p2)
     }
 }
 
-Dataset *dataset_get(int gno, int setno)
+Dataset *dataset_get(Quark *pset)
 {
-    set *p = set_get(gno, setno);
+    set *p = (set *) pset->data;
     if (p) {
         return p->data;
     } else {
@@ -484,25 +497,30 @@ Dataset *dataset_get(int gno, int setno)
 /*
  * free set data, but preserve the parameter settings
  */
-void killsetdata(int gno, int setno)
+void killsetdata(Quark *pset)
 {
-    set *p = set_get(gno, setno);
-    if (p) {
-        dataset_empty(p->data);
+    set *p;
+    
+    if (!pset) {
+        return;
     }
+    
+    p = (set *) pset->data;
+    dataset_empty(p->data);
 }
 
 /*
  * (re)allocate data arrays for a set of length len.
  */
-int setlength(int gno, int setno, int len)
+int setlength(Quark *pset, int len)
 {
     set *p;
 
-    p = set_get(gno, setno);
-    if (!p) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
+    
+    p = (set *) pset->data;
 
     set_dirtystate();
     
@@ -510,92 +528,26 @@ int setlength(int gno, int setno, int len)
 }
 
 /*
- * moveset 
- */
-int moveset(int gnofrom, int setfrom, int gnoto, int setto)
-{
-    int res;
-    graph *g1, *g2;
-    
-    if (gnoto == gnofrom && setfrom == setto) {
-	return RETURN_FAILURE;
-    }
-    
-    g1 = graph_get(gnofrom);
-    g2 = graph_get(gnoto);
-    if (!g1 || !g2) {
-	return RETURN_FAILURE;
-    }
-    
-    res = storage2_data_move_by_id(g1->sets, setfrom, g2->sets, setto);
-
-    if (res == RETURN_SUCCESS) {
-        set_dirtystate();
-    }
-
-    return res;
-}
-
-
-/*
- * copy a set to another set, if the to set doesn't exist allocate it
- */
-int copyset(int gnofrom, int setfrom, int gnoto, int setto)
-{
-    int res;
-    graph *g1, *g2;
-    
-    if (gnoto == gnofrom && setfrom == setto) {
-	return RETURN_FAILURE;
-    }
-    
-    g1 = graph_get(gnofrom);
-    g2 = graph_get(gnoto);
-    if (!g1 || !g2) {
-	return RETURN_FAILURE;
-    }
-    
-    res = storage2_data_copy_by_id(g1->sets, setfrom, g2->sets, setto);
-
-    if (res == RETURN_SUCCESS) {
-        char buf[64];
-        
-        sprintf(buf, "copy of set G%d.S%d", gnofrom, setfrom);
-        setcomment(gnoto, setto, buf);
-
-        set_dirtystate();
-    }
-
-    return res;
-}
-
-/*
  * same as copyset(), but doesn't alter the to set appearance
  */
-int copysetdata(int gfrom, int setfrom, int gto, int setto)
+int copysetdata(Quark *psrc, Quark *pdest)
 {
     set *p1, *p2;
     
-    if (gto == gfrom && setfrom == setto) {
+    if (!psrc || !pdest || psrc == pdest) {
 	return RETURN_FAILURE;
     }
     
-    p1 = set_get(gfrom, setfrom);
-    p2 = set_get(gto, setto);
-    if (!p1 || !p2) {
-	return RETURN_FAILURE;
-    }
+    p1 = (set *) psrc;
+    p2 = (set *) pdest;
     
     dataset_free(p2->data);
     p2->data = dataset_copy(p1->data);
     
     if (p2->data) {
-        char buf[64];
-        if (dataset_cols(gto, setto) != dataset_cols(gfrom, setfrom)) {
+        if (dataset_cols(pdest) != dataset_cols(psrc)) {
             p2->type = p1->type;
         }
-        sprintf(buf, "copy of setdata G%d.S%d", gfrom, setfrom);
-        setcomment(gto, setto, buf);
         set_dirtystate();
 	return RETURN_SUCCESS;
     } else {
@@ -604,88 +556,53 @@ int copysetdata(int gfrom, int setfrom, int gto, int setto)
 }
 
 /*
- * swap a set with another set
- */
-int swapset(int gnofrom, int setfrom, int gnoto, int setto)
-{
-    int res;
-    graph *g1, *g2;
-    
-    if (gnoto == gnofrom && setfrom == setto) {
-	return RETURN_FAILURE;
-    }
-    
-    g1 = graph_get(gnofrom);
-    g2 = graph_get(gnoto);
-    if (!g1 || !g2) {
-	return RETURN_FAILURE;
-    }
-    
-    res = storage2_data_swap(g1->sets, setfrom, g2->sets, setto);
-
-    if (res == RETURN_SUCCESS) {
-        set_dirtystate();
-    }
-
-    return res;
-}
-
-/*
  * kill a set
  */
-void killset(int gno, int setno)
+void killset(Quark *pset)
 {
+    Quark *gr;
     graph *g;
     
-    g = graph_get(gno);
+    gr = pset->parent;
+    g = (graph *) gr->data;
     
-    if (g) {
-        storage_delete_by_id(g->sets, setno);
-    }
+    storage_delete_by_data(g->sets, pset);
 }
 
-double *getcol(int gno, int setno, int col)
+double *getcol(Quark *pset, int col)
 {
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         return p->data->ex[col];
     } else {
         return NULL;
     }
 }
 
-void setcol(int gno, int setno, int col, double *x, int len)
+void setcol(Quark *pset, int col, double *x, int len)
 {
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         p->data->ex[col] = x;
         p->data->len = len;
         set_dirtystate();
     }
 }
 
-char **get_set_strings(int gno, int setno)
+char **get_set_strings(Quark *pset)
 {
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         return p->data->s;
     } else {
         return NULL;
     }
 }
 
-int set_set_strings(int gno, int setno, int len, char **s)
+int set_set_strings(Quark *pset, int len, char **s)
 {
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p && len > 0 && s!= NULL) {
+    if (pset && len > 0 && s!= NULL) {
+        set *p = pset->data;
         p->data->s = s;
         p->data->len = len;
         set_dirtystate();
@@ -695,23 +612,21 @@ int set_set_strings(int gno, int setno, int len, char **s)
     }
 }
 
-int getsetlength(int gno, int setno)
+int getsetlength(Quark *pset)
 {
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         return p->data->len;
     } else {
         return -1;
     }
 }
 
-int setcomment(int gno, int setno, char *s)
+int setcomment(Quark *pset, char *s)
 { 
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp) {
         dsp->comment = copy_string(dsp->comment, s);
         set_dirtystate();
@@ -721,11 +636,11 @@ int setcomment(int gno, int setno, char *s)
     }
 }
 
-char *getcomment(int gno, int setno)
+char *getcomment(Quark *pset)
 { 
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp) {
         return dsp->comment;
     } else {
@@ -733,12 +648,10 @@ char *getcomment(int gno, int setno)
     }
 }
 
-int set_legend_string(int gno, int setno, char *s)
+int set_legend_string(Quark *pset, char *s)
 { 
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         p->legstr = copy_string(p->legstr, s);
         set_dirtystate();
         return RETURN_SUCCESS;
@@ -747,29 +660,26 @@ int set_legend_string(int gno, int setno, char *s)
     }
 }
 
-char *get_legend_string(int gno, int setno)
+char *get_legend_string(Quark *pset)
 { 
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         return p->legstr;
     } else {
         return NULL;
     }
 }
 
-int set_dataset_type(int gno, int setno, int type)
+int set_dataset_type(Quark *pset, int type)
 { 
+    int ncols_new = settype_cols(type);
     set *p;
-    int ncols_new;
     
-    p = set_get(gno, setno);
-    if (!p) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
     
-    ncols_new = settype_cols(type);
+    p = pset->data;
     if (set_dataset_ncols(p->data, ncols_new) == RETURN_SUCCESS) {
         p->type = type;
         set_dirtystate();
@@ -779,12 +689,10 @@ int set_dataset_type(int gno, int setno, int type)
     }
 }
 
-int dataset_type(int gno, int setno)
+int dataset_type(Quark *pset)
 { 
-    set *p;
-    
-    p = set_get(gno, setno);
-    if (p) {
+    if (pset) {
+        set *p = pset->data;
         return p->type;
     } else {
         return -1;
@@ -792,12 +700,11 @@ int dataset_type(int gno, int setno)
 }
 
 
-
-void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
+void set_hotlink(Quark *pset, int onoroff, char *fname, int src)
 {
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp) {
         dsp->hotlink = onoroff;
         if (onoroff && fname != NULL) {
@@ -808,11 +715,11 @@ void set_hotlink(int gno, int setno, int onoroff, char *fname, int src)
     }
 }
 
-int is_hotlinked(int gno, int setno)
+int is_hotlinked(Quark *pset)
 {
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp && dsp->hotlink && dsp->hotfile) {
         return TRUE;
     } else { 
@@ -820,11 +727,11 @@ int is_hotlinked(int gno, int setno)
     }
 }
 
-char *get_hotlink_file(int gno, int setno)
+char *get_hotlink_file(Quark *pset)
 {
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp) {
         return dsp->hotfile;
     } else {
@@ -832,11 +739,11 @@ char *get_hotlink_file(int gno, int setno)
     }
 }
 
-int get_hotlink_src(int gno, int setno)
+int get_hotlink_src(Quark *pset)
 {
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp) {
         return dsp->hotsrc;
     } else {
@@ -844,13 +751,13 @@ int get_hotlink_src(int gno, int setno)
     }
 }
 
-void do_update_hotlink(int gno, int setno)
+void do_update_hotlink(Quark *pset)
 {
     Dataset *dsp;
     
-    dsp = dataset_get(gno, setno);
+    dsp = dataset_get(pset);
     if (dsp) {
-        read_xyset_fromfile(gno, setno, dsp->hotfile, dsp->hotsrc, dsp->hotlink);
+        read_xyset_fromfile(pset, dsp->hotfile, dsp->hotsrc, dsp->hotlink);
     }
 }
 
@@ -858,7 +765,7 @@ void do_update_hotlink(int gno, int setno)
 /*
  * get the min/max fields of a set
  */
-int getsetminmax(int gno, int *sets, int nsets, 
+int getsetminmax(Quark **sets, int nsets, 
                     double *xmin, double *xmax, double *ymin, double *ymax)
 {
     double *x, *y;
@@ -872,11 +779,11 @@ int getsetminmax(int gno, int *sets, int nsets,
     }
     
     for (i = 0; i < nsets; i++) {
-        int cs = sets[i];
-        if (is_set_drawable(gno, cs)) {
-            x = getcol(gno, cs, DATA_X);
-            y = getcol(gno, cs, DATA_Y);
-            len = getsetlength(gno, cs);
+        Quark *pset = sets[i];
+        if (is_set_drawable(pset)) {
+            x = getcol(pset, DATA_X);
+            y = getcol(pset, DATA_Y);
+            len = getsetlength(pset);
             minmax(x, len, &x1, &x2, &imin, &imax);
             minmax(y, len, &y1, &y2, &imin, &imax);
             if (first) {
@@ -904,7 +811,7 @@ int getsetminmax(int gno, int *sets, int nsets,
 /*
  * get the min/max fields of a set with fixed x/y range
  */
-int getsetminmax_c(int gno, int *sets, int nsets, 
+int getsetminmax_c(Quark **sets, int nsets, 
             double *xmin, double *xmax, double *ymin, double *ymax, int ivec)
 {
     double vmin_t, vmax_t, *vmin, *vmax, bvmin, bvmax, *vec, *bvec;
@@ -928,18 +835,18 @@ int getsetminmax_c(int gno, int *sets, int nsets,
     }
     
     for (i = 0; i < nsets; i++) {
-        int cs = sets[i];
-        if (is_set_drawable(gno, cs)) {
+        Quark *pset = sets[i];
+        if (is_set_drawable(pset)) {
             
             if (ivec == 1) {
-                bvec = getx(gno, cs);
-                vec  = gety(gno, cs);
+                bvec = getx(pset);
+                vec  = gety(pset);
             } else {
-                bvec = gety(gno, cs);
-                vec  = getx(gno, cs);
+                bvec = gety(pset);
+                vec  = getx(pset);
             }
             
-            n = getsetlength(gno, cs);
+            n = getsetlength(pset);
             hits = minmaxrange(bvec, vec, n, bvmin, bvmax, &vmin_t, &vmax_t);
             if (hits == RETURN_SUCCESS) {
                 if (first) {
@@ -1113,207 +1020,57 @@ int vmedian(double *x, int n, double *med)
 }
 
 
-int vbarycenter(double *x, double *y, int n, double *barycenter)
+int set_point(Quark *pset, int seti, const WPoint *wp)
 {
-    int i;
-    double wsum = 0.0, xsum = 0.0;
-
-    if (n < 1 || !x || !y) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
-    
-    for (i = 0; i < n; i++) {
-        wsum += x[i]*y[i];
-        xsum += x[i];
-    }
-    *barycenter = wsum/xsum;
-    return RETURN_SUCCESS;
-}
-
-int set_point(int gno, int setno, int seti, WPoint wp)
-{
-    if (is_valid_setno(gno, setno) != TRUE) {
+    if (seti >= getsetlength(pset) || seti < 0) {
         return RETURN_FAILURE;
     }
-    if (seti >= getsetlength(gno, setno) || seti < 0) {
-        return RETURN_FAILURE;
-    }
-    (getcol(gno, setno, DATA_X))[seti] = wp.x;
-    (getcol(gno, setno, DATA_Y))[seti] = wp.y;
+    (getcol(pset, DATA_X))[seti] = wp->x;
+    (getcol(pset, DATA_Y))[seti] = wp->y;
     set_dirtystate();
     return RETURN_SUCCESS;
 }
 
-int get_point(int gno, int setno, int seti, WPoint *wp)
+int get_point(Quark *pset, int seti, WPoint *wp)
 {
-    if (is_valid_setno(gno, setno) != TRUE) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
-    if (seti >= getsetlength(gno, setno) || seti < 0) {
+    if (seti >= getsetlength(pset) || seti < 0) {
         return RETURN_FAILURE;
     }
-    wp->x = (getcol(gno, setno, DATA_X))[seti];
-    wp->y = (getcol(gno, setno, DATA_Y))[seti];
+    wp->x = (getcol(pset, DATA_X))[seti];
+    wp->y = (getcol(pset, DATA_Y))[seti];
     return RETURN_SUCCESS;
 }
 
-void copycol2(int gfrom, int setfrom, int gto, int setto, int col)
+void copycol2(Quark *psrc, Quark *pdest, int col)
 {
     int i, n1, n2;
     double *x1, *x2;
 
-    if (is_valid_setno(gfrom, setfrom) != TRUE ||
-        is_valid_setno(gto, setto) != TRUE) {
+    if (!psrc || !pdest) {
         return;
     }
-    n1 = getsetlength(gfrom, setfrom);
-    n2 = getsetlength(gto, setto);
+    n1 = getsetlength(psrc);
+    n2 = getsetlength(pdest);
     if (n1 != n2) {
         return;
     }
-    x1 = getcol(gfrom, setfrom, col);
-    x2 = getcol(gto, setto, col);
+    x1 = getcol(psrc, col);
+    x2 = getcol(pdest, col);
     for (i = 0; i < n1; i++) {
 	x2[i] = x1[i];
     }
     set_dirtystate();
 }
 
-
-int pushset(int gno, int setno, int push_type)
+int is_set_active(Quark *pset)
 {
-    graph *g = graph_get(gno);
-    if (g) {
-        return storage_push_id(g->sets, setno, push_type == PUSH_SET_TOFRONT);
-    } else {
-        return RETURN_FAILURE;
-    }
-}
-
-set *set_next(int gno)
-{
-    graph *g;
-    
-    g = graph_get(gno);
-    if (g) {
-        set *p = set_new();
-        if (p) {
-            if (storage_add(g->sets, p) == RETURN_SUCCESS) {
-                set_dirtystate();
-                return p;
-            } else {
-                set_free(p);
-                return NULL;
-            }
-        } else {
-            return NULL;
-        }
-    } else {
-        return NULL;
-    }
-}
-
-int allocate_set(int gno, int setno)
-{
-    set *p;
-    int ncolors, color;
-    int new = FALSE;
-    
-    while ((p = set_get(gno, setno)) == NULL) {
-        new = TRUE;
-        if (!set_next(gno)) {
-            return RETURN_FAILURE;
-        }
-    }
-        
-    if (new) {
-        ncolors = number_of_colors(grace->rt->canvas);
-        if (ncolors > 1) {
-            color = setno % (ncolors - 1) + 1;
-        } else {
-            color = 1;
-        }
-        return set_set_colors(p, color);
-    } else {
-        return RETURN_SUCCESS;
-    }
-}
-
-int activateset(int gno, int setno)
-{
-    int retval;
-    
-    if (is_valid_gno(gno) != TRUE) {
-        return RETURN_FAILURE;
-    } else {
-        retval = allocate_set(gno, setno);
-        if (retval == RETURN_SUCCESS) {
-            set_set_hidden(gno, setno, FALSE);
-        }
-        return retval;
-    }
-}
-
-static target recent_target = {-1, -1};
-
-int get_recent_setno(void)
-{
-    return recent_target.setno;
-}
-
-int get_recent_gno(void)
-{
-    return recent_target.gno;
-}
-
-/*
- * return the next available set in graph gno
- * If target is allocated but with no data, choose it (used for loading sets
- * from project files when sets aren't packed)
- */
-int nextset(int gno)
-{
-    int setno = -1;
-
-    if (is_valid_gno(gno) != TRUE) {
-        return setno;
-    }
-    
-    if ((grace->rt->target_set.gno == gno) &&
-         is_valid_setno(grace->rt->target_set.gno, grace->rt->target_set.setno) &&
-         !is_set_active(gno, grace->rt->target_set.setno)) {
-	setno = grace->rt->target_set.setno;
-	grace->rt->target_set.gno = -1;
-	grace->rt->target_set.setno = -1;
-    } else {
-        int i, nsets;
-        nsets = number_of_sets(gno);
-        for (i = 0; i < nsets; i++) {
-            if (!is_set_active(gno, i)) {
-                setno = i;
-                break;
-            }
-        }
-        /* if no sets found, try allocating new one */
-        if (setno == -1) {
-            if (!set_next(gno)) {
-                errmsg("Can't allocate more sets");
-            } else {
-                graph *g = graph_get(gno);
-                if (g) {
-                    setno = storage_get_id(g->sets);
-                }
-            }
-        }
-    }
-    recent_target.gno = gno;
-    recent_target.setno = setno;
-    return (setno);
-}
-
-int is_set_active(int gno, int setno)
-{
-    if (is_valid_setno(gno, setno) && getsetlength(gno, setno) > 0) {
+    if (pset && getsetlength(pset) > 0) {
         return TRUE;
     } else {
         return FALSE;
@@ -1323,13 +1080,14 @@ int is_set_active(int gno, int setno)
 /*
  * return number of active set(s) in gno
  */
-int number_of_active_sets(int gno)
+int number_of_active_sets(Quark *gr)
 {
     int i, nsets, na = 0;
 
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     for (i = 0; i < nsets; i++) {
-        if (is_set_active(gno, i) == TRUE) {
+        Quark *pset = set_get(gr, i);
+        if (is_set_active(pset) == TRUE) {
 	    na++;
 	}
     }
@@ -1339,13 +1097,13 @@ int number_of_active_sets(int gno)
 /*
  * drop points from a set
  */
-void droppoints(int gno, int setno, int startno, int endno)
+void droppoints(Quark *pset, int startno, int endno)
 {
     double *x;
     char **s;
     int i, j, len, ncols, dist;
 
-    if (is_valid_setno(gno, setno) != TRUE) {
+    if (!pset) {
         return;
     }
 
@@ -1354,28 +1112,29 @@ void droppoints(int gno, int setno, int startno, int endno)
         return;
     }
     
-    len = getsetlength(gno, setno);
+    len = getsetlength(pset);
     
     if (dist == len) {
-        killsetdata(gno, setno);
+        killsetdata(pset);
         return;
     }
     
-    ncols = dataset_cols(gno, setno);
+    ncols = dataset_cols(pset);
     for (j = 0; j < ncols; j++) {
-	x = getcol(gno, setno, j);
+	x = getcol(pset, j);
 	for (i = endno + 1; i < len; i++) {
 	    x[i - dist] = x[i];
 	}
     }
-    if ((s = get_set_strings(gno, setno)) != NULL) {
+    if ((s = get_set_strings(pset)) != NULL) {
 	for (i = endno + 1; i < len; i++) {
 	    s[i - dist] = copy_string(s[i - dist], s[i]);
 	}
     }
-    setlength(gno, setno, len - dist);
+    setlength(pset, len - dist);
 }
 
+#if 0
 /*
  * join several sets together; all but the first set in the list will be killed 
  */
@@ -1391,66 +1150,67 @@ int join_sets(int gno, int *sets, int nsets)
     }
     
     setno_final = sets[0];
-    ncols = dataset_cols(gno, setno_final);
+    ncols = dataset_cols(pset_final);
     for (i = 0; i < nsets; i++) {
         setno = sets[i];
-        if (is_valid_setno(gno, setno) != TRUE) {
+        if (!pset) {
             errmsg("Invalid setno in the list");
             return RETURN_FAILURE;
         }
-        if (dataset_cols(gno, setno) != ncols) {
+        if (dataset_cols(pset) != ncols) {
             errmsg("Can't join datasets with different number of cols");
             return RETURN_FAILURE;
         }
     }
     
-    new_length = getsetlength(gno, setno_final);
+    new_length = getsetlength(pset_final);
     for (i = 1; i < nsets; i++) {
         setno = sets[i];
         old_length = new_length;
-        new_length += getsetlength(gno, setno);
-        if (setlength(gno, setno_final, new_length) != RETURN_SUCCESS) {
+        new_length += getsetlength(pset);
+        if (setlength(pset_final, new_length) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
         for (j = 0; j < ncols; j++) {
-            x1 = getcol(gno, setno_final, j);
-            x2 = getcol(gno, setno, j);
+            x1 = getcol(pset_final, j);
+            x2 = getcol(pset, j);
             for (n = old_length; n < new_length; n++) {
                 x1[n] = x2[n - old_length];
             }
         }
-        s1 = get_set_strings(gno, setno_final);
-        s2 = get_set_strings(gno, setno);
+        s1 = get_set_strings(pset_final);
+        s2 = get_set_strings(pset);
         if (s1 != NULL && s2 != NULL) {
             for (n = old_length; n < new_length; n++) {
                 s1[n] = copy_string(s1[n], s2[n - old_length]);
             }
         }
-        killset(gno, setno);
+        killset(pset);
     }
     
     return RETURN_SUCCESS;
 }
+#endif
 
-void reverse_set(int gno, int setno)
+void reverse_set(Quark *pset)
 {
     int n, i, j, k, ncols;
     double *x;
     char **s;
 
-    if (!is_valid_setno(gno, setno)) {
+    if (!pset) {
 	return;
     }
-    n = getsetlength(gno, setno);
-    ncols = dataset_cols(gno, setno);
+    n = getsetlength(pset);
+    ncols = dataset_cols(pset);
     for (k = 0; k < ncols; k++) {
-	x = getcol(gno, setno, k);
+	x = getcol(pset, k);
 	for (i = 0; i < n / 2; i++) {
 	    j = (n - 1) - i;
 	    fswap(&x[i], &x[j]);
 	}
     }
-    if ((s = get_set_strings(gno, setno)) != NULL) {
+    if ((s = get_set_strings(pset)) != NULL) {
 	char *stmp;
         for (i = 0; i < n / 2; i++) {
 	    j = (n - 1) - i;
@@ -1504,20 +1264,20 @@ static int compare_points2(const void *p1, const void *p2)
     return 0;
 }
 
-void sortset(int gno, int setno, int sorton, int stype)
+void sortset(Quark *pset, int sorton, int stype)
 {
     int i, j, nc, len, *ind;
     double *x, *xtmp;
     char **s, **stmp;
 
     /* get the vector to sort on */
-    vptr = getcol(gno, setno, sorton);
+    vptr = getcol(pset, sorton);
     if (vptr == NULL) {
 	errmsg("NULL vector in sort, operation cancelled, check set type");
 	return;
     }
 
-    len = getsetlength(gno, setno);
+    len = getsetlength(pset);
     if (len <= 1) {
 	return;
     }
@@ -1534,7 +1294,7 @@ void sortset(int gno, int setno, int sorton, int stype)
 	return;
     }
     
-    s = get_set_strings(gno, setno);
+    s = get_set_strings(pset);
     if (s != NULL) {
         stmp = xmalloc(len*sizeof(char *));
         if (stmp == NULL) {
@@ -1555,11 +1315,11 @@ void sortset(int gno, int setno, int sorton, int stype)
 
     /* straighten things out - done one vector at a time for storage */
     
-    nc = dataset_cols(gno, setno);
+    nc = dataset_cols(pset);
     /* loop over the number of columns */
     for (j = 0; j < nc; j++) {
         /* get this vector and put into the temporary vector in the right order */
-	x = getcol(gno, setno, j);
+	x = getcol(pset, j);
 	for (i = 0; i < len; i++) {
 	    xtmp[i] = x[ind[i]];
 	}
@@ -1639,24 +1399,24 @@ void sort_xy(double *tmp1, double *tmp2, int up, int sorton, int stype)
 /*
  * delete the point pt in setno
  */
-void del_point(int gno, int setno, int pt)
+void del_point(Quark *pset, int pt)
 {
-    droppoints(gno, setno, pt, pt);
+    droppoints(pset, pt, pt);
 }
 
 /*
  * add a point to setno
  */
-void add_point(int gno, int setno, double px, double py)
+void add_point(Quark *pset, double px, double py)
 {
     int len;
     double *x, *y;
 
-    if (is_valid_setno(gno, setno)) {
-	 len = getsetlength(gno, setno);
-	 setlength(gno, setno, len + 1);
-	 x = getx(gno, setno);
-	 y = gety(gno, setno);
+    if (pset) {
+	 len = getsetlength(pset);
+	 setlength(pset, len + 1);
+	 x = getx(pset);
+	 y = gety(pset);
 	 x[len] = px;
 	 y[len] = py;
     }
@@ -1713,28 +1473,28 @@ int dataset_set_datapoint(Dataset *dsp, const Datapoint *dpoint, int ind)
 /*
  * add a point to setno at ind
  */
-int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
+int add_point_at(Quark *pset, int ind, const Datapoint *dpoint)
 {
     int len, col, ncols;
     double *ex;
     char **s;
 
-    if (is_valid_setno(gno, setno)) {
-        len = getsetlength(gno, setno);
+    if (pset) {
+        len = getsetlength(pset);
         if (ind < 0 || ind > len) {
             return RETURN_FAILURE;
         }
         len++;
-        setlength(gno, setno, len);
-        ncols = dataset_cols(gno, setno);
+        setlength(pset, len);
+        ncols = dataset_cols(pset);
         for (col = 0; col < ncols; col++) {
-            ex = getcol(gno, setno, col);
+            ex = getcol(pset, col);
             if (ind < len - 1) {
                 memmove(ex + ind + 1, ex + ind, (len - ind - 1)*SIZEOF_DOUBLE);
             }
             ex[ind] = dpoint->ex[col];
         }
-        s = get_set_strings(gno, setno);
+        s = get_set_strings(pset);
         if (s != NULL) {
             if (ind < len - 1) {
                 memmove(s + ind + 1, s + ind, (len - ind - 1)*sizeof(char *));
@@ -1748,22 +1508,22 @@ int add_point_at(int gno, int setno, int ind, const Datapoint *dpoint)
     }
 }
 
-int get_datapoint(int gno, int setno, int ind, int *ncols, Datapoint *dpoint)
+int get_datapoint(Quark *pset, int ind, int *ncols, Datapoint *dpoint)
 {
     int n, col;
     double *ex;
     char **s;
     
-    n = getsetlength(gno, setno);
+    n = getsetlength(pset);
     if (ind < 0 || ind >= n) {
         return RETURN_FAILURE;
     } else {
-        *ncols = dataset_cols(gno, setno);
+        *ncols = dataset_cols(pset);
         for (col = 0; col < *ncols; col++) {
-            ex = getcol(gno, setno, col);
+            ex = getcol(pset, col);
             dpoint->ex[col] = ex[ind];
         }
-        s = get_set_strings(gno, setno);
+        s = get_set_strings(pset);
         if (s != NULL) {
             dpoint->s = s[ind];
         } else {
@@ -1773,95 +1533,41 @@ int get_datapoint(int gno, int setno, int ind, int *ncols, Datapoint *dpoint)
     }
 }
 
-void delete_byindex(int gno, int setno, int *ind)
+void delete_byindex(Quark *pset, int *ind)
 {
     int i, j, cnt = 0;
-    int ncols = dataset_cols(gno, setno);
+    int ncols = dataset_cols(pset);
 
-    if (is_valid_setno(gno, setno) != TRUE) {
+    if (!pset) {
         return;
     }
     
-    for (i = 0; i < getsetlength(gno, setno); i++) {
+    for (i = 0; i < getsetlength(pset); i++) {
 	if (ind[i]) {
 	    cnt++;
 	}
     }
-    if (cnt == getsetlength(gno, setno)) {
-	killset(gno, setno);
+    if (cnt == getsetlength(pset)) {
+	killset(pset);
 	return;
     }
     cnt = 0;
-    for (i = 0; i < getsetlength(gno, setno); i++) {
+    for (i = 0; i < getsetlength(pset); i++) {
 	if (ind[i] == 0) {
 	    for (j = 0; j < ncols; j++) {
-                (getcol(gno, setno, j))[cnt] = (getcol(gno, setno, j))[i];
+                (getcol(pset, j))[cnt] = (getcol(pset, j))[i];
 	    }
 	    cnt++;
 	}
     }
-    setlength(gno, setno, cnt);
+    setlength(pset, cnt);
 }
 
-
-/*
- * move a set to another set, in possibly another graph
- */
-int do_moveset(int gfrom, int setfrom, int gto, int setto)
-{
-    int retval;
-    char buf[64];
-    
-    retval = moveset(gfrom, setfrom, gto, setto);
-    if (retval != RETURN_SUCCESS) {
-        sprintf(buf,
-            "Error moving G%d.S%d to G%d.S%d",
-            gfrom, setfrom, gto, setto);
-        errmsg(buf);
-    }
-    return retval;
-}
-
-/*
- * do_copyset
- */
-int do_copyset(int gfrom, int setfrom, int gto, int setto)
-{
-    int retval;
-    char buf[64];
-    
-    retval = copyset(gfrom, setfrom, gto, setto);
-    if (retval != RETURN_SUCCESS) {
-        sprintf(buf,
-            "Error copying G%d.S%d to G%d.S%d",
-            gfrom, setfrom, gto, setto);
-        errmsg(buf);
-    }
-    return retval;
-}
-
-/*
- * do_swapset
- */
-int do_swapset(int gfrom, int setfrom, int gto, int setto)
-{
-    int retval;
-    char buf[64];
-    
-    retval = swapset(gfrom, setfrom, gto, setto);
-    if (retval != RETURN_SUCCESS) {
-        sprintf(buf,
-            "Error swapping G%d.S%d with G%d.S%d",
-            gfrom, setfrom, gto, setto);
-        errmsg(buf);
-    }
-    return retval;
-}
-
+#if 0
 /*
  * split a set into lpart length sets
  */
-void do_splitsets(int gno, int setno, int lpart)
+void do_splitsets(Quark *pset, int lpart)
 {
     int i, j, k, ncols, len, plen, tmpset, npsets;
     double *x;
@@ -1869,7 +1575,7 @@ void do_splitsets(int gno, int setno, int lpart)
     set *p, *ptmp;
     Dataset *dsp;
 
-    if ((len = getsetlength(gno, setno)) < 2) {
+    if ((len = getsetlength(pset)) < 2) {
 	errmsg("Set length < 2");
 	return;
     }
@@ -1885,9 +1591,9 @@ void do_splitsets(int gno, int setno, int lpart)
     npsets = (len - 1)/lpart + 1;
 
     /* get number of columns in this set */
-    ncols = dataset_cols(gno, setno);
+    ncols = dataset_cols(pset);
 
-    p = set_get(gno, setno);
+    p = set_get(pset);
 
     /* save the contents to a temporary buffer */
     dsp = p->data;
@@ -1930,26 +1636,25 @@ void do_splitsets(int gno, int setno, int lpart)
 	    }
         }
 	
-        sprintf(s, "partition %d of set G%d.S%d", i + 1, gno, setno);
+        sprintf(s, "partition %d of set G%d.S%d", i + 1, pset);
 	setcomment(gno, tmpset, s);
     }
 }
+#endif
 
 /*
  * drop points from an active set
  */
-void do_drop_points(int gno, int setno, int startno, int endno)
+void do_drop_points(Quark *pset, int startno, int endno)
 {
     int setlength;
-    char buf[256];
 
-    if (!is_set_active(gno, setno)) {
-	sprintf(buf, "Set %d not active", setno);
-	errmsg(buf);
+    if (!pset) {
+	errmsg("Set not active");
 	return;
     }
 
-    setlength = getsetlength(gno, setno);
+    setlength = getsetlength(pset);
     if (startno < 0) {
         startno = setlength + 1 + startno;
     }
@@ -1970,43 +1675,43 @@ void do_drop_points(int gno, int setno, int startno, int endno)
 	return;
     }
 
-    droppoints(gno, setno, startno, endno);
+    droppoints(pset, startno, endno);
 }
 
 
 /*
  * sort sets
  */
-void do_sort(int setno, int sorton, int stype)
+void do_sort(Quark *pset, int sorton, int stype)
 {
-    int gno = get_cg();
-
-    if (!is_set_active(gno, setno)) {
-        char buf[256];
-	sprintf(buf, "Set %d not active", setno);
-	errmsg(buf);
+    if (!is_set_active(pset)) {
+	errmsg("Set not active");
 	return;
     } else {
-	sortset(gno, setno, sorton, stype);
+	sortset(pset, sorton, stype);
     }
 }
 
 
-double setybase(int gno, int setno)
+double setybase(Quark *pset)
 {
     double ybase = 0.0;
     double xmin, xmax, ymin, ymax;
-    graph *g;
+    Quark *gr;
     set *p;
+    world w;
     
-    g = graph_get(gno);
-    p = set_get(gno, setno);
-    if (!g || !p) {
+    if (!pset) {
         return 0.0;
     }
     
-    getsetminmax(gno, &setno, 1, &xmin, &xmax, &ymin, &ymax);
-    switch (p->baseline_type) {
+    gr = pset->parent;
+    p = (set *) pset->data;
+    get_graph_world(gr, &w);
+    
+    getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
+
+    switch (p->line.baseline_type) {
     case BASELINE_TYPE_0:
         ybase = 0.0;
         break;
@@ -2017,22 +1722,22 @@ double setybase(int gno, int setno)
         ybase = ymax;
         break;
     case BASELINE_TYPE_GMIN:
-        ybase = g->w.yg1;
+        ybase = w.yg1;
         break;
     case BASELINE_TYPE_GMAX:
-        ybase = g->w.yg2;
+        ybase = w.yg2;
         break;
     default:
         errmsg("Wrong type of baseline");
     }
     
-    return(ybase);
+    return ybase;
 }
 
 
-int dataset_cols(int gno, int setno)
+int dataset_cols(Quark *pset)
 {
-    Dataset *dsp = dataset_get(gno, setno);
+    Dataset *dsp = dataset_get(pset);
     if (dsp) {
         return dsp->ncols;
     } else {
@@ -2040,24 +1745,24 @@ int dataset_cols(int gno, int setno)
     }
 }
 
-int load_comments_to_legend(int gno, int setno)
+int load_comments_to_legend(Quark *pset)
 {
-    return set_legend_string(gno, setno, getcomment(gno, setno));
+    return set_legend_string(pset, getcomment(pset));
 }
 
-int filter_set(int gno, int setno, char *rarray)
+int filter_set(Quark *pset, char *rarray)
 {
     int i, ip, j, ncols;
     Dataset *dsp;
     
-    if (is_valid_setno(gno, setno) != TRUE) {
+    if (!pset) {
         return RETURN_FAILURE;
     }
     if (rarray == NULL) {
         return RETURN_SUCCESS;
     }
-    ncols = dataset_cols(gno, setno);
-    dsp = dataset_get(gno, setno);
+    ncols = dataset_cols(pset);
+    dsp = dataset_get(pset);
     ip = 0;
     for (i = 0; i < dsp->len; i++) {
         if (rarray[i]) {
@@ -2070,6 +1775,131 @@ int filter_set(int gno, int setno, char *rarray)
             ip++;
         }
     }
-    setlength(gno, setno, ip);
+    setlength(pset, ip);
+    return RETURN_SUCCESS;
+}
+
+set *set_get_data(Quark *qset)
+{
+    if (qset) {
+        return qset->data;
+    } else {
+        return NULL;
+    }
+}
+
+Dataset *set_get_dataset(Quark *qset)
+{
+    if (qset) {
+        set *p = (set *) qset->data;
+        return p->data;
+    } else {
+        return NULL;
+    }
+}
+
+int set_set_colors(Quark *pset, int color)
+{
+    set *p;
+    if (!pset) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    if (color < number_of_colors(grace->rt->canvas) && color >= 0) {
+        p->line.line.pen.color    = color;
+        p->sym.line.pen.color = color;
+        p->sym.fillpen.color  = color;
+        p->errbar.pen.color  = color;
+
+        set_dirtystate();
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int set_set_symskip(Quark *pset, int symskip)
+{
+    set *p;
+    if (!pset) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    p->symskip = symskip;
+    
+    return RETURN_SUCCESS;
+}
+
+int set_set_symbol(Quark *pset, const Symbol *sym)
+{
+    set *p;
+    if (!pset || !sym) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    p->sym = *sym;
+    
+    return RETURN_SUCCESS;
+}
+
+int set_set_line(Quark *pset, const SetLine *sl)
+{
+    set *p;
+    if (!pset || !sl) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    p->line = *sl;
+    
+    return RETURN_SUCCESS;
+}
+
+int set_set_avalue(Quark *pset, const AValue *av)
+{
+    set *p;
+    if (!pset || !av) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    p->avalue = *av;
+    
+    return RETURN_SUCCESS;
+}
+
+int set_set_errbar(Quark *pset, const Errbar *ebar)
+{
+    set *p;
+    if (!pset || !ebar) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    p->errbar = *ebar;
+    
+    return RETURN_SUCCESS;
+}
+
+int set_set_legstr(Quark *pset, const char *s)
+{
+    set *p;
+    if (!pset) {
+        return RETURN_FAILURE;
+    }
+    
+    p = pset->data;
+    
+    p->legstr = copy_string(p->legstr, s);
+    
     return RETURN_SUCCESS;
 }

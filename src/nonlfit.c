@@ -190,7 +190,7 @@ int correlation(double *x, double *y, int n, double *cor)
     return RETURN_SUCCESS;
 }
 
-int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
+int do_nonlfit(Quark *psrc, double *warray, char *rarray, int nsteps)
 {
     int info = -1;
     double *fvec, *wa;
@@ -204,10 +204,10 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     double cor, chisq, rms_pe, ysq, theil;
     int rms_ok;
 
-    if (set_parser_setno(gno, setno) != RETURN_SUCCESS) {
+    if (set_parser_setno(psrc) != RETURN_SUCCESS) {
 	return RETURN_FAILURE;
     }
-    n = getsetlength(gno, setno);
+    n = getsetlength(psrc);
     
     lwa = (integer) n * parnum + 5 * parnum + n;
         
@@ -240,8 +240,8 @@ int do_nonlfit(int gno, int setno, double *warray, char *rarray, int nsteps)
     sprintf(buf, "Tolerance = %g\n", nlfit->tolerance);
     stufftext(buf);
     
-    xp = getx(gno, setno);
-    yp = gety(gno, setno);
+    xp = getx(psrc);
+    yp = gety(psrc);
     
     for (i = 0; i < n; ++i) {
     	y_saved[i] = yp[i];

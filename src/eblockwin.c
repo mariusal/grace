@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2000 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -64,12 +64,12 @@ static OptionStructure *auto_item;
  */
 static void eblock_type_notify_proc(int value, void *data);
 static int eblock_accept_notify_proc(void *data);
-static void update_eblock(int gno);
+static void update_eblock(Quark *gr);
 
 /*
  * Create the block data panel
  */
-void create_eblock_frame(int gno)
+void create_eblock_frame(Quark *gr)
 {
     if (get_blockncols() == 0) {
 	errmsg("Need to read block data first");
@@ -115,7 +115,7 @@ void create_eblock_frame(int gno)
 	CreateAACDialog(eblock_frame,
             eblock_panel, eblock_accept_notify_proc, NULL);
     }
-    update_eblock(gno);
+    update_eblock(gr);
     
     RaiseWindow(GetParent(eblock_frame));
     unset_wait_cursor();
@@ -125,7 +125,7 @@ void create_eblock_frame(int gno)
  * Notify and event procs
  */
 
-static void update_eblock(int gno)
+static void update_eblock(Quark *gr)
 {
     int blocklen, blockncols;
     int *blockformats;
@@ -144,8 +144,8 @@ static void update_eblock(int gno)
     }
     blocklen = get_blocknrows();
     blockformats = get_blockformats();
-    if (is_valid_gno(gno)) {
-        SelectListChoice(eblock_graphset_item->graph_sel, gno);
+    if (gr) {
+        SelectStorageChoice(eblock_graphset_item->graph_sel, gr);
     }
     sprintf(buf, "Block data: %d column(s) of length %d",
         blockncols, blocklen);
@@ -205,23 +205,24 @@ static void eblock_type_notify_proc(int value, void *data)
 {
     block_curtype = value;
 
-    update_eblock(-1);
+    update_eblock(NULL);
 }
 
 static int eblock_accept_notify_proc(void *data)
 {
-    int i, gno, setno;
+    int i;
+    Quark *gr, *pset;
     int cs[MAX_SET_COLS], nncols, scol, autoscale;
 
-    if (GetSingleListChoice(eblock_graphset_item->graph_sel, &gno)
+    if (GetSingleStorageChoice(eblock_graphset_item->graph_sel, (void **) &gr)
         != RETURN_SUCCESS) {
         errmsg("Please select a single graph");
         return RETURN_FAILURE;
     }
-    if (GetSingleListChoice(eblock_graphset_item->set_sel, &setno) !=
+    if (GetSingleStorageChoice(eblock_graphset_item->set_sel, (void **) &pset) !=
         RETURN_SUCCESS) {
-    	/* no set selected; allocate new one */
-    	setno = NEW_SET;
+        /* no set selected; allocate new one */
+    	pset = set_new(gr);
     }
     
     nncols = settype_cols(block_curtype);
@@ -232,8 +233,7 @@ static int eblock_accept_notify_proc(void *data)
 
     autoscale = GetOptionChoice(auto_item);
 
-    create_set_fromblock(gno, setno,
-        block_curtype, nncols, cs, scol, autoscale);
+    create_set_fromblock(pset, block_curtype, nncols, cs, scol, autoscale);
 
     update_all();
     xdrawgraph();

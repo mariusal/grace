@@ -431,78 +431,6 @@ typedef struct {
     double value;
 } Autoval;
 
-typedef struct {
-    int type;
-    double size;
-    Line line;
-    Pen fillpen;
-    int skip;
-    char symchar;
-    int charfont;
-} Symbol;
-
-Symbol *symbol_new()
-{
-    Symbol *retval;
-    retval = xmalloc(sizeof(Symbol));
-    if (retval) {
-        memset(retval, 0, sizeof(Symbol));
-    }
-    return retval;
-}
-
-typedef struct {
-    int type;
-    int filltype;
-    int fillrule;
-    int baseline;
-    int baseline_type;
-    int droplines;
-    Line line;
-    Pen fillpen;
-} SetLine;
-
-SetLine *setline_new()
-{
-    SetLine *retval;
-    retval = xmalloc(sizeof(SetLine));
-    if (retval) {
-        memset(retval, 0, sizeof(SetLine));
-    }
-    return retval;
-}
-
-typedef struct {
-    double size;
-    Line line;
-} BarLine;
-
-BarLine *barline_new(void)
-{
-    BarLine *retval;
-    retval = xmalloc(sizeof(BarLine));
-    if (retval) {
-        memset(retval, 0, sizeof(BarLine));
-    }
-    return retval;
-}
-
-typedef struct {
-    int arrow_clip;
-    double clip_length;
-    Line line;
-} RiserLine;
-
-RiserLine *riserline_new(void)
-{
-    RiserLine *retval;
-    retval = xmalloc(sizeof(RiserLine));
-    if (retval) {
-        memset(retval, 0, sizeof(RiserLine));
-    }
-    return retval;
-}
-
 Arrow *arrow_new(void)
 {
     Arrow *retval;
@@ -703,8 +631,8 @@ char *utf2iso(const char *s)
     <element-type name="facespec" ctype="FaceSpec *"><![CDATA[
         $$ = facespec_new();
     ]]></element-type>
-    <element-type name="graph" ctype="graph *"><![CDATA[
-        $$ = graph_new();
+    <element-type name="graph" ctype="Quark *"><![CDATA[
+        $$ = graph_new((Quark *)$P);
     ]]></element-type>
     <element-type name="presentationspec" ctype="PresentationSpec *"><![CDATA[
         $$ = presentationspec_new();
@@ -790,8 +718,8 @@ char *utf2iso(const char *s)
     <element-type name="do_string_data" ctype="DOStringData *"><![CDATA[
         $$ = object_data_new(DO_STRING);
     ]]></element-type>
-    <element-type name="set" ctype="set *"><![CDATA[
-        $$ = set_new();
+    <element-type name="set" ctype="Quark *"><![CDATA[
+        $$ = set_new((Quark *)$P);
     ]]></element-type>
     <element-type name="symbol" ctype="Symbol *"><![CDATA[
         $$ = symbol_new();
@@ -846,8 +774,6 @@ char *utf2iso(const char *s)
         <child name="#EStrDataFormats">
         </child>
         <child name="#EStrGraph">
-            Project *pr = (Project *) $$->data;
-            storage_add(pr->graphs, $?);
         </child>
     </element>
     <element name="#EStrDefinitions" type="dummy">
@@ -978,70 +904,74 @@ char *utf2iso(const char *s)
             /* FIXME */
         </attribute>
         <attribute name="#AStrActive" type="bval">
-            $$->hidden = !($?);
+            set_graph_hidden($$, !$?);
         </attribute>
 
         <!-- Child elements -->
         <child name="#EStrPresentationSpec">
-            $$->type    = $?->type;
-            $$->stacked = $?->stacked;
-            $$->bargap  = $?->bargap;
+            set_graph_type($$, $?->type);
+            set_graph_bargap($$, $?->bargap);
+            set_graph_stacked($$, $?->stacked);
             presentationspec_free($?);
         </child>
         <child name="#EStrViewport">
-            $$->v = *($?);
+            set_graph_viewport($$, $?);
             xfree($?);
         </child>
-        <child name="#EStrXscale">
-            $$->xscale  = $?->type;
-            $$->xinvert = $?->invert;
-            $$->w.xg1   = $?->min;
-            $$->w.xg2   = $?->max;
+        <child name="#EStrXscale"><![CDATA[
+            world w;
+            set_graph_xscale($$, $?->type);
+            set_graph_xinvert($$, $?->invert);
+            get_graph_world($$, &w);
+            w.xg1 = $?->min;
+            w.xg2 = $?->max;
+            set_graph_world($$, &w);
             xfree($?);
-        </child>
-        <child name="#EStrYscale">
-            $$->yscale  = $?->type;
-            $$->yinvert = $?->invert;
-            $$->w.yg1   = $?->min;
-            $$->w.yg2   = $?->max;
+        ]]></child>
+        <child name="#EStrYscale"><![CDATA[
+            world w;
+            set_graph_yscale($$, $?->type);
+            set_graph_yinvert($$, $?->invert);
+            get_graph_world($$, &w);
+            w.yg1 = $?->min;
+            w.yg2 = $?->max;
+            set_graph_world($$, &w);
             xfree($?);
-        </child>
+        ]]></child>
         <child name="#EStrZscale">
-            $$->znorm = *($?);
+            set_graph_znorm($$, *($?));
             xfree($?);
         </child>
         <child name="#EStrLegend">
-            $$->l = *($?);
+            set_graph_legend($$, $?);
             xfree($?);
         </child>
         <child name="#EStrLocator">
-            $$->locator = *($?);
+            set_graph_locator($$, $?);
             xfree($?);
         </child>
         <child name="#EStrFrame">
-            $$->f = *($?);
+            set_graph_frame($$, $?);
             xfree($?);
         </child>
         <child name="#EStrTitle">
-            $$->labs.title = *($?);
+            set_graph_title($$, $?);
             xfree($?);
         </child>
         <child name="#EStrSubtitle">
-            $$->labs.stitle = *($?);
+            set_graph_stitle($$, $?);
             xfree($?);
         </child>
         <child name="#EStrAxis"><![CDATA[
             int axis = ((ParserData *) $U)->axis;
-            if (axis >= 0 && axis < MAXAXES) {
-                free_graph_tickmarks($$->t[axis]);
-                $$->t[axis] = $?;
-            }
+            set_graph_tickmarks($$, axis, $?);
+            free_graph_tickmarks($?);
         ]]></child>
         <child name="#EStrObject">
-            storage_add($$->dobjects, (void *) $?);
+            graph *g = (graph *) $$->data;
+            storage_add(g->dobjects, (void *) $?);
         </child>
         <child name="#EStrSet">
-            storage_add($$->sets, $?);
         </child>
     </element>
     <element name="#EStrPresentationSpec" type="presentationspec">
@@ -1733,49 +1663,40 @@ char *utf2iso(const char *s)
             /* FIXME */
         </attribute>
         <attribute name="#AStrActive" type="bval">
-            $$->hidden = !($?);
+            set_set_hidden($$, !$?);
         </attribute>
         <attribute name="#AStrType" type="settype">
-            $$->type = $?;
+            set_dataset_type($$, $?);
+        </attribute>
+        <attribute name="#AStrSkip" type="ival">
+            set_set_symskip($$, $?);
         </attribute>
         
         <!-- Child elements -->
         <child name="#EStrSymbol">
-            $$->sym        = $?->type;
-            $$->symsize    = $?->size;
-            $$->symline    = $?->line;
-            $$->symfillpen = $?->fillpen;
-            $$->symskip    = $?->skip;
-            $$->symchar    = $?->symchar;
-            $$->charfont   = $?->charfont;
+            set_set_symbol($$, $?);
             xfree($?);
         </child>
         <child name="#EStrLine">
-            $$->linet         = $?->type;
-            $$->line          = $?->line;
-            $$->filltype      = $?->filltype;
-            $$->fillrule      = $?->fillrule;
-            $$->setfillpen    = $?->fillpen;
-            $$->baseline      = $?->baseline;
-            $$->baseline_type = $?->baseline_type;
-            $$->dropline      = $?->droplines;
+            set_set_line($$, $?);
             xfree($?);
         </child>
         <child name="#EStrAnnotation">
-            $$->avalue = *($?);
+            set_set_avalue($$, $?);
             xfree($?);
         </child>
         <child name="#EStrErrorbar">
-            $$->errbar = *($?);
+            set_set_errbar($$, $?);
             xfree($?);
         </child>
         <child name="#EStrLegendEntry">
-            $$->legstr = $?->s;
+            set_set_legstr($$, $?->s);
             xfree($?);
         </child>
         <child name="#EStrDataset">
-            dataset_free($$->data);
-            $$->data = $?;
+            set *p = (set *) $$->data;
+            dataset_free(p->data);
+            p->data = $?;
         </child>
     </element>
     <element name="#EStrSymbol" type="symbol">
@@ -1785,9 +1706,6 @@ char *utf2iso(const char *s)
         </attribute>
         <attribute name="#AStrSize" type="dval">
             $$->size = $?;
-        </attribute>
-        <attribute name="#AStrSkip" type="ival">
-            $$->skip = $?;
         </attribute>
         <attribute name="#AStrChar" type="ival">
             $$->symchar = $?;

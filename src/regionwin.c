@@ -225,7 +225,7 @@ static void do_reporton_region(Widget w, XtPointer client_data, XtPointer call_d
     int regno = (int) GetOptionChoice(reporton_region_item);
     int type = (int) GetOptionChoice(reporton_type_item);
     set_wait_cursor();
-    reporton_region(get_cg(), regno, type);
+    reporton_region(graph_get_current(grace->project), regno, type);
     unset_wait_cursor();
 }
 

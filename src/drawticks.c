@@ -53,27 +53,7 @@ int is_yaxis(int axis)
     return ((axis % 2 == 1));
 }
 
-int is_log_axis(int gno, int axis)
-{
-    if ((is_xaxis(axis) && islogx(gno)) ||
-        (is_yaxis(axis) && islogy(gno))) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
-int is_logit_axis(int gno, int axis)
-{
-    if ((is_xaxis(axis) && islogitx(gno)) ||
-        (is_yaxis(axis) && islogity(gno))) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
-void drawgrid(Canvas *canvas, int gno)
+void drawgrid(Canvas *canvas, Quark *gr)
 {
     int caxis;
     tickmarks *t;
@@ -94,15 +74,15 @@ void drawgrid(Canvas *canvas, int gno)
     /* TODO: add Pen to ticks and remove the following */
     setpattern(canvas, 1);
     
-    get_graph_viewport(gno, &v);
-    get_graph_world(gno, &w);
+    get_graph_viewport(gr, &v);
+    get_graph_world(gr, &w);
     
     /* graph center; for polar plots */
     vpc.x = (v.xv1 + v.xv2)/2.0;
     vpc.y = (v.yv1 + v.yv2)/2.0;
     
     for (caxis = 0; caxis < MAXAXES; caxis++) {
-	t = get_graph_tickmarks(gno, caxis);
+	t = get_graph_tickmarks(gr, caxis);
 	if (!t || t->active != TRUE) {
             continue;
         }
@@ -157,7 +137,7 @@ void drawgrid(Canvas *canvas, int gno)
 	    	vp_grid_stop = Wpoint2Vpoint(wp_grid_stop);
 
 
-                if (!is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
+                if (!is_xaxis(caxis) && get_graph_type(gr) == GRAPH_POLAR) {
                     xy2polar(vp_grid_start.x - vpc.x, vp_grid_start.y - vpc.y,
                              &phi_start, &rho);
                     xy2polar(vp_grid_stop.x - vpc.x, vp_grid_stop.y - vpc.y,
@@ -166,7 +146,7 @@ void drawgrid(Canvas *canvas, int gno)
                     vp1.y = vpc.y + rho;
                     vp2.x = vpc.x + rho;
                     vp2.y = vpc.y - rho;
-                    if (is_graph_xinvert(gno) == TRUE) {
+                    if (is_graph_xinvert(gr) == TRUE) {
                         fswap(&phi_start, &phi_stop);
                     }
                     if (phi_stop < phi_start) {
@@ -182,7 +162,7 @@ void drawgrid(Canvas *canvas, int gno)
     }
 }
 
-void drawaxes(Canvas *canvas, int gno)
+void drawaxes(Canvas *canvas, Quark *gr)
 {
     int caxis;
     tickmarks *t;
@@ -218,8 +198,8 @@ void drawaxes(Canvas *canvas, int gno)
     /* TODO: add Pen to ticks and remove the following */
     setpattern(canvas, 1);
     
-    get_graph_viewport(gno, &v);
-    get_graph_world(gno, &w);
+    get_graph_viewport(gr, &v);
+    get_graph_world(gr, &w);
 
     /* graph center; for polar plots */
     vpc.x = (v.xv1 + v.xv2)/2.0;
@@ -227,7 +207,7 @@ void drawaxes(Canvas *canvas, int gno)
     
        
     for (caxis = 0; caxis < MAXAXES; caxis++) {
-	t = get_graph_tickmarks(gno, caxis);
+	t = get_graph_tickmarks(gr, caxis);
 	if (!t || t->active != TRUE) {
             continue;
         }
@@ -274,13 +254,13 @@ void drawaxes(Canvas *canvas, int gno)
             vp2_start = Wpoint2Vpoint(wp2_start);
             vp2_stop  = Wpoint2Vpoint(wp2_stop);
             
-            if (is_graph_yinvert(gno) == TRUE) {
+            if (is_graph_yinvert(gr) == TRUE) {
                 vpswap(&vp1_start, &vp2_start);
                 vpswap(&vp1_stop, &vp2_stop);
             }
 
             /* TODO axis offset for polar plots */
-            if (get_graph_type(gno) != GRAPH_POLAR) {
+            if (get_graph_type(gr) != GRAPH_POLAR) {
                  vp1_start.y -= t->offsx;
                  vp1_stop.y  -= t->offsx;
                  vp2_start.y += t->offsy;
@@ -341,12 +321,12 @@ void drawaxes(Canvas *canvas, int gno)
             vp2_start = Wpoint2Vpoint(wp2_start);
             vp2_stop  = Wpoint2Vpoint(wp2_stop);
 
-            if (is_graph_xinvert(gno) == TRUE) {
+            if (is_graph_xinvert(gr) == TRUE) {
                 vpswap(&vp1_start, &vp2_start);
                 vpswap(&vp1_stop, &vp2_stop);
             }
 
-            if (get_graph_type(gno) != GRAPH_POLAR) {
+            if (get_graph_type(gr) != GRAPH_POLAR) {
                 vp1_start.x -= t->offsx;
                 vp1_stop.x  -= t->offsx;
                 vp2_start.x += t->offsy;
@@ -378,7 +358,7 @@ void drawaxes(Canvas *canvas, int gno)
 	    setlinewidth(canvas, t->t_drawbarlinew);
 	    setlinestyle(canvas, t->t_drawbarlines);
 	    if (t->t_op == PLACEMENT_NORMAL || t->t_op == PLACEMENT_BOTH) {
-                if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
+                if (is_xaxis(caxis) && get_graph_type(gr) == GRAPH_POLAR) {
                     xy2polar(vp1_start.x - vpc.x, vp1_start.y - vpc.y,
                              &phi_start, &rho);
                     xy2polar(vp1_stop.x - vpc.x, vp1_stop.y - vpc.y,
@@ -387,7 +367,7 @@ void drawaxes(Canvas *canvas, int gno)
                     vp1.y = vpc.y + rho;
                     vp2.x = vpc.x + rho;
                     vp2.y = vpc.y - rho;
-                    if (is_graph_xinvert(gno) == TRUE) {
+                    if (is_graph_xinvert(gr) == TRUE) {
                         fswap(&phi_start, &phi_stop);
                     }
                     if (phi_stop < phi_start) {
@@ -400,7 +380,7 @@ void drawaxes(Canvas *canvas, int gno)
                 }
 	    }
 	    if (t->t_op == PLACEMENT_OPPOSITE || t->t_op == PLACEMENT_BOTH) {
-                if (is_xaxis(caxis) && get_graph_type(gno) == GRAPH_POLAR) {
+                if (is_xaxis(caxis) && get_graph_type(gr) == GRAPH_POLAR) {
                     xy2polar(vp2_start.x - vpc.x, vp2_start.y - vpc.y,
                              &phi_start, &rho);
                     xy2polar(vp2_stop.x - vpc.x, vp2_stop.y - vpc.y,
@@ -409,7 +389,7 @@ void drawaxes(Canvas *canvas, int gno)
                     vp1.y = vpc.y + rho;
                     vp2.x = vpc.x + rho;
                     vp2.y = vpc.y - rho;
-                    if (is_graph_xinvert(gno) == TRUE) {
+                    if (is_graph_xinvert(gr) == TRUE) {
                         fswap(&phi_start, &phi_stop);
                     }
                     if (phi_stop < phi_start) {
@@ -426,7 +406,7 @@ void drawaxes(Canvas *canvas, int gno)
 
         
         /* TODO ticks, labels and axis labels for polar plots */
-        if (get_graph_type(gno) == GRAPH_POLAR) {
+        if (get_graph_type(gr) == GRAPH_POLAR) {
             continue;
         }
 
@@ -698,7 +678,7 @@ void drawaxes(Canvas *canvas, int gno)
     }
 }
 
-void calculate_tickgrid(int gno)
+void calculate_tickgrid(Quark *gr)
 {
     int caxis;
     int itick, imtick, itmaj;
@@ -713,10 +693,10 @@ void calculate_tickgrid(int gno)
     double *tt;
     
 reenter:
-    get_graph_world(gno, &w);
+    get_graph_world(gr, &w);
     
     for (caxis = 0; caxis < MAXAXES; caxis++) {
-	t = get_graph_tickmarks(gno, caxis);
+	t = get_graph_tickmarks(gr, caxis);
 
 	if (!t || t->active != TRUE) {
             continue;
@@ -724,7 +704,7 @@ reenter:
 
 	if (t->t_spec == TICKS_SPEC_NONE) {
             if (is_xaxis(caxis)) {
-                scale = get_graph_xscale(gno);
+                scale = get_graph_xscale(gr);
                 if (scale == SCALE_LOG) {
                     swc_start = fscale(w.xg1, scale);
                     swc_stop  = fscale(w.xg2, scale);
@@ -733,7 +713,7 @@ reenter:
                     swc_stop  = w.xg2;
                 }
             } else {
-                scale = get_graph_yscale(gno);
+                scale = get_graph_yscale(gr);
                 if (scale == SCALE_LOG) {
                     swc_start = fscale(w.yg1, scale);
                     swc_stop  = fscale(w.yg2, scale);
@@ -750,7 +730,7 @@ reenter:
 
             if (stmajor <= 0.0) {
 	        errmsg("Invalid major tick spacing, autoticking");
-	        autotick_axis(gno, caxis);
+	        autotick_axis(gr, caxis);
                 goto reenter;
 	    }
 
@@ -763,7 +743,7 @@ reenter:
 
             if (t->nticks > MAX_TICKS) {
 	        errmsg("Too many ticks ( > MAX_TICKS ), autoticking");
-	        autotick_axis(gno, caxis);
+	        autotick_axis(gr, caxis);
                 goto reenter;
 	    }
 

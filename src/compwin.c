@@ -35,6 +35,7 @@
  *
  */
 
+#if 0
 #include <config.h>
 
 #include <stdio.h>
@@ -59,8 +60,7 @@ static int do_sample_proc(void *data);
 static int do_prune_proc(void *data);
 
 typedef struct _Eval_ui {
-    Widget top;
-    SrcDestStructure *srcdest;
+    TransformStructure *tdialog;
     Widget formula_item;
     RestrictionStructure *restr_item;
 } Eval_ui;
@@ -76,23 +76,20 @@ void create_eval_frame(void *data)
 
 	eui = xmalloc(sizeof(Eval_ui));
         
-        eui->top = CreateDialogForm(app_shell, "Evaluate expression");
-        SetDialogFormResizable(eui->top, TRUE);
+        eui->tdialog = CreateTransformDialogForm(app_shell,
+            "Evaluate expression", LIST_TYPE_MULTIPLE);
 
-        eui->srcdest = CreateSrcDestSelector(eui->top, LIST_TYPE_MULTIPLE);
-        AddDialogFormChild(eui->top, eui->srcdest->form);
-
-	rc_trans = CreateVContainer(eui->top);
+	rc_trans = CreateVContainer(eui->tdialog->form);
 
 	eui->formula_item = CreateScrollTextItem2(rc_trans, 3, "Formula:");
 
         eui->restr_item =
             CreateRestrictionChoice(rc_trans, "Source data filtering");
 
-        CreateAACDialog(eui->top, rc_trans, compute_aac, (void *) eui);
+        CreateAACDialog(eui->tdialog->form, rc_trans, compute_aac, (void *) eui);
     }
     
-    RaiseWindow(GetParent(eui->top));
+    RaiseWindow(GetParent(eui->tdialog->form));
     
     unset_wait_cursor();
 }
@@ -103,8 +100,8 @@ void create_eval_frame(void *data)
 static int compute_aac(void *data)
 {
     int error, resno;
-    int i, g1_ok, g2_ok, ns1, ns2, *svalues1, *svalues2,
-        gno1, gno2, setno1, setno2;
+    int i, nssrc, nsdest;
+    Quark *psrc, *pdest, **srcsets, **destsets;
     char fstr[256];
     int restr_type, restr_negate;
     char *rarray;
@@ -112,63 +109,56 @@ static int compute_aac(void *data)
 
     restr_type = GetOptionChoice(eui->restr_item->r_sel);
     restr_negate = GetToggleButtonState(eui->restr_item->negate);
+    strcpy(fstr, xv_getstr(eui->formula_item));
+
+    res = GetTransformDialogSettings(ui->tdialog, TRUE,
+        &nssrc, &srcsets, &nsdest, &destsets);
     
-    g1_ok = GetSingleListChoice(eui->srcdest->src->graph_sel, &gno1);
-    g2_ok = GetSingleListChoice(eui->srcdest->dest->graph_sel, &gno2);
-    ns1 = GetListChoices(eui->srcdest->src->set_sel, &svalues1);
-    ns2 = GetListChoices(eui->srcdest->dest->set_sel, &svalues2);
+    if (res != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
     
     error = FALSE;
-    if (g1_ok == RETURN_FAILURE || g2_ok == RETURN_FAILURE) {
-        error = TRUE;
-        errmsg("Please select single source and destination graphs");
-    } else if (ns1 == 0) {
-        error = TRUE;
-        errmsg("No source sets selected");
-    } else if (ns1 != ns2 && ns2 != 0) {
-        error = TRUE;
-        errmsg("Different number of source and destination sets");
-    } else {
-        strcpy(fstr, xv_getstr(eui->formula_item));
-        for (i = 0; i < ns1; i++) {
-	    setno1 = svalues1[i];
-	    if (ns2 != 0) {
-                setno2 = svalues2[i];
-            } else {
-                setno2 = nextset(gno2);
-                set_set_hidden(gno2, setno2, FALSE);
-            }
-	    
-            resno = get_restriction_array(gno1, setno1,
-                restr_type, restr_negate, &rarray);
-	    if (resno != RETURN_SUCCESS) {
-	        errmsg("Error in evaluation restriction");
-	        break;
-	    }
-            
-            resno = do_compute(gno1, setno1, gno2, setno2, rarray, fstr);
-	    XCFREE(rarray);
-	    if (resno != RETURN_SUCCESS) {
-	        errmsg("Error in do_compute(), check formula");
-                break;
-	    }
+    
+    for (i = 0; i < nssrc; i++) {
+	psrc = srcsets[i];
+	if (nsdest != 0) {
+            setno2 = svalues2[i];
+        } else {
+            setno2 = nextset(gno2);
+            set_set_hidden(gno2, setno2, FALSE);
         }
+
+        resno = get_restriction_array(gno1, setno1,
+            restr_type, restr_negate, &rarray);
+	if (resno != RETURN_SUCCESS) {
+	    errmsg("Error in evaluation restriction");
+	    break;
+	}
+
+        resno = do_compute(gno1, setno1, gno2, setno2, rarray, fstr);
+	XCFREE(rarray);
+	if (resno != RETURN_SUCCESS) {
+	    errmsg("Error in do_compute(), check formula");
+            break;
+	}
     }
     
-    if (ns1 > 0) {
-        xfree(svalues1);
+    if (nssrc > 0) {
+        xfree(srcsets);
     }
-    if (ns2 > 0) {
-        xfree(svalues2);
+    if (nsdest > 0) {
+        xfree(destsets);
     }
+    
+    update_set_lists(gno1);
+    if (gno1 != gno2) {
+        update_set_lists(gno2);
+    }
+    
+    xdrawgraph();
+    
     if (error == FALSE) {
-        if (gno1 != gno2) {
-            update_set_lists(gno1);
-            update_set_lists(gno2);
-        } else {
-            update_set_lists(gno1);
-        }
-        xdrawgraph();
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -1676,3 +1666,4 @@ void create_cumulative_frame(void *data)
     
     unset_wait_cursor();
 }
+#endif

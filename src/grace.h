@@ -76,6 +76,8 @@ typedef struct _Project {
     Storage *blockdata;
 #endif
     Storage *graphs;
+    /* (pointer to) current graph */
+    Quark *cg;
 #if 0
     Storage *regions;
 #else
@@ -147,7 +149,8 @@ typedef struct _RunTime {
     int ptofile;
     
     /* target set */
-    target target_set;
+    Quark *target_set;
+
     /* parameters for non-linear fit */
     NLFit *nlfit;
     /* real-time input delay (prevents getting stuck reading) */
@@ -221,7 +224,9 @@ struct _Grace {
 };
 
 enum {
-    QFlavorProject
+    QFlavorProject,
+    QFlavorGraph,
+    QFlavorSet
 };
 
 QuarkFlavor *quark_flavor_get(Grace *grace, unsigned int fid);
@@ -236,6 +241,10 @@ int quark_dirtystate_get(const Quark *q);
 
 void quark_data_free(Quark *q);
 
+void quark_idstr_set(Quark *q, const char *s);
+char *quark_idstr_get(const Quark *q);
+
+#define QIDSTR(q) (q->idstr ? q->idstr:"unnamed")
 
 Project *project_data_new(void);
 void project_data_free(Project *pr);

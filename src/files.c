@@ -957,7 +957,7 @@ static int uniread(FILE *fp, int load_type, char *label)
 }
 
 
-int getdata(int gno, char *fn, int src, int load_type)
+int getdata(Quark *gr, char *fn, int src, int load_type)
 {
     FILE *fp;
     int retval;
@@ -971,8 +971,7 @@ int getdata(int gno, char *fn, int src, int load_type)
     save_version = project_get_version_id(grace->project);
     project_set_version_id(grace->project, 0);
 
-    set_graph_active(gno, FALSE);
-    set_parser_gno(gno);
+    set_parser_gno(gr);
     
     retval = uniread(fp, load_type, fn);
 
@@ -984,7 +983,7 @@ int getdata(int gno, char *fn, int src, int load_type)
         project_postprocess(grace->project);
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
-        autoscale_graph(gno, grace->rt->autoscale_onread);
+        autoscale_graph(gr, grace->rt->autoscale_onread);
     }
     project_set_version_id(grace->project, save_version);
 
@@ -997,7 +996,7 @@ int getdata(int gno, char *fn, int src, int load_type)
  * assume the first column is x and take y form the col'th column
  * if only 1 column, use index for x
  */
-int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
+int read_xyset_fromfile(Quark *pset, char *fn, int src, int col)
 {
     FILE *fp;
     int readline = 0;
@@ -1008,7 +1007,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
     char *linebuf=NULL;
     int linelen=0; /* misleading name */
 
-    if (is_set_active(gno, setno) && dataset_cols(gno, setno) != 2) {
+    if (is_set_active(pset) && dataset_cols(pset) != 2) {
         errmsg("Only two-column sets are supported in read_xyset_fromfile()");
 	return 0;
     }
@@ -1026,7 +1025,7 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
         else
             strcat( scstr, "%*lf " );
     i = 0;
-    killsetdata(gno, setno);
+    killsetdata(pset);
     x = xcalloc(BUFSIZE, SIZEOF_DOUBLE);
     y = xcalloc(BUFSIZE, SIZEOF_DOUBLE);
     if (x == NULL || y == NULL) {
@@ -1081,11 +1080,10 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
             }
         }
     }
-    activateset(gno, setno);
-    setcol(gno, setno, 0, x, i);
-    setcol(gno, setno, 1, y, i);
-    if (!strlen(getcomment(gno, setno))) {
-        setcomment(gno, setno, fn);
+    setcol(pset, 0, x, i);
+    setcol(pset, 1, y, i);
+    if (!strlen(getcomment(pset))) {
+        setcomment(pset, fn);
     }
     retval = 1;
 
@@ -1099,14 +1097,14 @@ int read_xyset_fromfile(int gno, int setno, char *fn, int src, int col)
 }
 
 
-void outputset(int gno, int setno, char *fname, char *dformat)
+void outputset(Quark *pset, char *fname, char *dformat)
 {
     FILE *cp;
     
     if ((cp = grace_openw(fname)) == NULL) {
 	return;
     } else {
-        write_set(gno, setno, cp, dformat, TRUE);
+        write_set(pset, cp, dformat);
 	grace_close(cp);
     }
 }
@@ -1114,7 +1112,7 @@ void outputset(int gno, int setno, char *fname, char *dformat)
 /*
  * write out a set
  */
-int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
+int write_set(Quark *pset, FILE *cp, char *format)
 {
     int i, n, col, ncols;
     double *x[MAX_SET_COLS];
@@ -1124,22 +1122,16 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
 	return RETURN_FAILURE;
     }
     
-    if (is_set_active(gno, setno) == TRUE) {
-        n = getsetlength(gno, setno);
-        ncols = dataset_cols(gno, setno);
+    if (is_set_active(pset) == TRUE) {
+        n = getsetlength(pset);
+        ncols = dataset_cols(pset);
         for (col = 0; col < ncols; col++) {
-            x[col] = getcol(gno, setno, col);
+            x[col] = getcol(pset, col);
         }
-        s = get_set_strings(gno, setno);
+        s = get_set_strings(pset);
 
         if (format == NULL) {
             format = project_get_sformat(grace->project);
-        }
-
-        if (!rawdata) {
-            fprintf(cp, "@target G%d.S%d\n", gno, setno);
-            fprintf(cp, "@type %s\n", set_types(grace->rt,
-                dataset_type(gno, setno)));
         }
         
         for (i = 0; i < n; i++) {
@@ -1154,11 +1146,7 @@ int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
             }
             fputs("\n", cp);
         }
-        if (rawdata) {
-            fprintf(cp, "\n");
-        } else {
-            fprintf(cp, "&\n");
-        }
+        fprintf(cp, "\n");
     }
     
     return RETURN_SUCCESS;
@@ -1168,7 +1156,7 @@ extern int load_xgr_project(char *fn);
 
 int load_project_file(char *fn, int as_template)
 {    
-    int gno;
+    Quark *gr;
     int retval;
     Storage *graphs;
 
@@ -1211,9 +1199,9 @@ int load_project_file(char *fn, int as_template)
     /* try to switch to the first active graph */
     graphs = project_get_graphs(grace->project);
     storage_rewind(graphs);
-    while ((gno = storage_get_id(graphs)) >= 0) {
-        if (is_graph_hidden(gno) == FALSE) {
-            select_graph(gno);
+    while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
+        if (is_graph_hidden(gr) == FALSE) {
+            select_graph(gr);
             break;
         }
         if (storage_next(graphs) != RETURN_SUCCESS) {
@@ -1280,15 +1268,14 @@ double read_scale_attr(int cdfid, int varid, char *attrname, double default_valu
 
 
 /*
- * read a variable from netcdf file into a set in graph gno
+ * read a variable from netcdf file into a set in graph gr
  * xvar and yvar are the names for x, y in the netcdf file resp.
  * return 0 on fail, return 1 if success.
  *
  * if xvar == NULL, then load the index of the point to x
  *
  */
-int readnetcdf(int gno,
-	       int setno,
+int readnetcdf(Quark *pset,
 	       char *netcdfname,
 	       char *xvar,
 	       char *yvar,
@@ -1296,6 +1283,7 @@ int readnetcdf(int gno,
 	       int nstop,
 	       int nstride)
 {
+    Quark *gr = pset->parent;
     int cdfid;			/* netCDF id */
     int i, n;
     double *x, *y;
@@ -1322,18 +1310,6 @@ int readnetcdf(int gno,
 
     ncopts = 0;			/* no crash on error */
 
-/*
- * get a set if on entry setno == -1, if setno=-1, then fail
- */
-    if (setno == -1) {
-	if ((setno = nextset(gno)) == -1) {
-	    return 0;
-	}
-    } else {
-	if (is_set_active(gno, setno)) {
-	    killset(gno, setno);
-	}
-    }
 /*
  * open the netcdf file and locate the variable to read
  */
@@ -1512,24 +1488,25 @@ int readnetcdf(int gno,
 /*
  * initialize stuff for the newly created set
  */
-    activateset(gno, setno);
-    set_dataset_type(gno, setno, SET_XY);
-    setcol(gno, setno, 0, x, n);
-    setcol(gno, setno, 1, y, n);
+    set_dataset_type(pset, SET_XY);
+    setcol(pset, 0, x, n);
+    setcol(pset, 1, y, n);
 
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
-    setcomment(gno, setno, buf);
+    setcomment(pset, buf);
     
-    autoscale_graph(gno, grace->rt->autoscale_onread);
+    autoscale_graph(gr, grace->rt->autoscale_onread);
     
     return 1;
 }
 
 int write_netcdf(char *fname)
 {
+    Storage *graphs;
+    Quark *gr; 
     char buf[512];
     int ncid;			/* netCDF id */
-    int i, j;
+    int j;
     /* dimension ids */
     int n_dim;
     /* variable ids */
@@ -1540,36 +1517,41 @@ int write_netcdf(char *fname)
     double *x, *y, x1, x2, y1, y2;
     ncid = nccreate(fname, NC_CLOBBER);
     ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
-    for (i = 0; i < number_of_graphs(); i++) {
-	if (is_graph_active(i)) {
-	    for (j = 0; j < number_of_sets(i); j++) {
-		if (is_set_active(i, j)) {
+    graphs = project_get_graphs(grace->project);
+    while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
+        if (is_graph_active(gr)) {
+	    for (j = 0; j < number_of_sets(gr); j++) {
+		Quark *pset = set_get(gr, j);
+                if (is_set_active(pset)) {
 		    char s[64];
 
-		    sprintf(buf, "g%d_s%d_comment", i, j);
+		    sprintf(buf, "comment");
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR,
-		    strlen(getcomment(i, j)), (void *) getcomment(i, j));
+		    strlen(getcomment(pset)), (void *) getcomment(pset));
 
-		    sprintf(buf, "g%d_s%d_type", i, j);
-		    strcpy(s, set_types(grace->rt, dataset_type(i, j)));
+		    sprintf(buf, "type");
+		    strcpy(s, set_types(grace->rt, dataset_type(pset)));
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
-		    sprintf(buf, "g%d_s%d_n", i, j);
-		    n_dim = ncdimdef(ncid, buf, getsetlength(i, j));
+		    sprintf(buf, "n");
+		    n_dim = ncdimdef(ncid, buf, getsetlength(pset));
 		    dims[0] = n_dim;
-		    getsetminmax(i, &j, 1, &x1, &x2, &y1, &y2);
-		    sprintf(buf, "g%d_s%d_x", i, j);
+		    getsetminmax(&pset, 1, &x1, &x2, &y1, &y2);
+		    sprintf(buf, "x");
 		    x_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
 		    ncattput(ncid, x_id, "min", NC_DOUBLE, 1, (void *) &x1);
 		    ncattput(ncid, x_id, "max", NC_DOUBLE, 1, (void *) &x2);
 		    dims[0] = n_dim;
-		    sprintf(buf, "g%d_s%d_y", i, j);
+		    sprintf(buf, "y");
 		    y_id = ncvardef(ncid, buf, NC_DOUBLE, 1, dims);
 		    ncattput(ncid, y_id, "min", NC_DOUBLE, 1, (void *) &y1);
 		    ncattput(ncid, y_id, "max", NC_DOUBLE, 1, (void *) &y2);
 		}
 	    }
 	}
+        if (storage_next(graphs) != RETURN_SUCCESS) {
+            break;
+        }
     }
     ncendef(ncid);
     ncclose(ncid);
@@ -1577,22 +1559,26 @@ int write_netcdf(char *fname)
 	errmsg("Can't open file.");
 	return 1;
     }
-    for (i = 0; i < number_of_graphs(); i++) {
-	if (is_graph_active(i)) {
-	    for (j = 0; j < number_of_sets(i); j++) {
-		if (is_set_active(i, j)) {
-		    len[0] = getsetlength(i, j);
-		    x = getx(i, j);
-		    y = gety(i, j);
-		    sprintf(buf, "g%d_s%d_x", i, j);
+    while ((storage_get_data(graphs, (void **) &gr)) == RETURN_SUCCESS) {
+	if (is_graph_active(gr)) {
+	    for (j = 0; j < number_of_sets(gr); j++) {
+		Quark *pset = set_get(gr, j);
+                if (is_set_active(pset)) {
+		    len[0] = getsetlength(pset);
+		    x = getx(pset);
+		    y = gety(pset);
+		    sprintf(buf, "x");
 		    x_id = ncvarid(ncid, buf);
-		    sprintf(buf, "g%d_s%d_y", i, j);
+		    sprintf(buf, "y");
 		    y_id = ncvarid(ncid, buf);
 		    ncvarput(ncid, x_id, &it, len, (void *) x);
 		    ncvarput(ncid, y_id, &it, len, (void *) y);
 		}
 	    }
 	}
+        if (storage_next(graphs) != RETURN_SUCCESS) {
+            break;
+        }
     }
 
     ncclose(ncid);

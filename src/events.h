@@ -105,22 +105,22 @@ void anchor_point(int curx, int cury, VPoint curvp);
 void my_proc(Widget parent, XtPointer data, XEvent *event);
 void set_actioncb(void *data);
 void set_action(CanvasAction act);
-void track_point(int gno, int setno, int *loc, int shift);
+void track_point(Quark *pset, int *loc, int shift);
 void getpoints(VPoint *vpp);
 void set_stack_message(void);
 void do_select_area(void);
 void do_select_peri(void);
 void do_dist_proc(void);
 void do_select_region(void);
-int next_graph_containing(int cg, VPoint vp);
-int graph_clicked(int gno, VPoint vp);
-int focus_clicked(int cg, VPoint vp, VPoint *avp);
-int legend_clicked(int gno, VPoint vp, view *bb);
-int axis_clicked(int gno, VPoint vp, int *axisno);
-int title_clicked(int gno, VPoint vp);
-int find_insert_location(int gno, int setno, VPoint vp);
-int find_point(int gno, VPoint vp, int *setno, int *loc);
-void newworld(int gno, int axes, VPoint vp1, VPoint vp2);
+Quark *next_graph_containing(Quark *cg, VPoint vp);
+int graph_clicked(Quark *gr, VPoint vp);
+int focus_clicked(Quark *cg, VPoint vp, VPoint *avp);
+int legend_clicked(Quark *gr, VPoint vp, view *bb);
+int axis_clicked(Quark *gr, VPoint vp, int *axisno);
+int title_clicked(Quark *gr, VPoint vp);
+int find_insert_location(Quark *pset, VPoint vp);
+int find_point(Quark *gr, VPoint vp, Quark **pset, int *loc);
+void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
 
 /* action routines */
@@ -138,7 +138,7 @@ void place_legend_action( Widget, XKeyEvent *, String *, Cardinal * );
 void refresh_hotlink_action( Widget, XKeyEvent *, String *, Cardinal * );
 void exit_abruptly_action( Widget, XKeyEvent *, String *, Cardinal * );
 
-void update_point_locator(int gno, int setno, int loc);
+void update_point_locator(Quark *pset, int loc);
 void get_tracking_props(int *setno, int *move_dir, int *add_at);
 
 #endif /* __EVENTS_H_ */

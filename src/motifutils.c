@@ -533,6 +533,22 @@ static int list_get_selected_count(Widget list)
     return n;
 }
 
+void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    list_selectall(w);
+}
+
+void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
+{
+    list_unselectall(w);
+}
+
+void list_invertselection_action(Widget w, XEvent *e, String *par,
+				 Cardinal *npar)
+{
+    list_invertselection(w);
+}
+
 ListStructure *CreateListChoice(Widget parent, char *labelstr, int type,
                                 int nvisible, int nchoices, OptionItem *items)
 {
@@ -815,7 +831,6 @@ static void ss_any_cb(StorageStructure *ss, int type)
 {
     int i, n;
     void **values;
-    int id;
     
     n = GetStorageChoices(ss, &values);
     
@@ -856,8 +871,7 @@ static void ss_any_cb(StorageStructure *ss, int type)
                 storage_move(ss->sto, FALSE);
                 break;
             case SS_DUPLICATE_CB:
-                id = storage_get_id(ss->sto);
-                storage_duplicate(ss->sto, id);
+                storage_duplicate(ss->sto);
                 break;
             }
         }
@@ -1062,8 +1076,28 @@ int GetStorageChoices(StorageStructure *ss, void ***values)
     return n;
 }
 
+int GetSingleStorageChoice(StorageStructure *ss, void **value)
+{
+    int n, retval;
+    void **values;
+    
+    n = GetStorageChoices(ss, &values);
+    if (n == 1) {
+        *value = values[0];
+        retval = RETURN_SUCCESS;
+    } else {
+        retval = RETURN_FAILURE;
+    }
+    
+    if (n) {
+        xfree(values);
+    }
+    
+    return retval;
+}
 
-void SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices)
+
+int SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices)
 {
     int i = 0, j;
     unsigned char selection_type_save;
@@ -1097,6 +1131,13 @@ void SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices)
     }
 
     XtVaSetValues(ss->list, XmNselectionPolicy, selection_type_save, NULL);
+    
+    return RETURN_SUCCESS;
+}
+
+int SelectStorageChoice(StorageStructure *ss, void *choice)
+{
+    return SelectStorageChoices(ss, 1, &choice);
 }
 
 void UpdateStorageChoice(StorageStructure *ss)
@@ -2210,1059 +2251,344 @@ void AddPenChoiceCB(Widget button, Pen_CBProc cbproc, void *anydata)
 
 
 
-static OptionItem *graph_select_items = NULL;
-static int ngraph_select_items = 0;
-static ListStructure **graph_selectors = NULL;
+static StorageStructure **graph_selectors = NULL;
 static int ngraph_selectors = 0;
+
+
+#define GSS_HIDE_CB          0
+#define GSS_SHOW_CB          1
+
+typedef struct {
+    Widget hide_bt;
+    Widget show_bt;
+} GSSData;
+
+static void gss_any_cb(void *udata, int cbtype)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+    int i, n;
+    void **values;
+    
+    n = GetStorageChoices(ss, &values);
+    
+    for (i = 0; i < n; i ++) {
+        void *data = values[i];
+        
+        if (storage_data_exists(ss->sto, data) == TRUE) {
+            Quark *gr = (Quark *) data;
+            switch (cbtype) {
+            case GSS_HIDE_CB:
+                set_graph_hidden(gr, TRUE);
+                break;
+            case GSS_SHOW_CB:
+                set_graph_hidden(gr, FALSE);
+                break;
+            }
+        }
+    }
+    
+    if (n > 0) {
+        xfree(values);
+        UpdateStorageChoice(ss);
+        set_dirtystate();
+        xdrawgraph();
+    }
+}
+
+static void g_hide_cb(void *udata)
+{
+    gss_any_cb(udata, GSS_HIDE_CB);
+}
+
+static void g_show_cb(void *udata)
+{
+    gss_any_cb(udata, GSS_SHOW_CB);
+}
+
+static void g_popup_cb(StorageStructure *ss, int nselected)
+{
+    GSSData *gssdata = (GSSData *) ss->data;
+    int selected;
+    
+    if (nselected != 0) {
+        selected = TRUE;
+    } else {
+        selected = FALSE;
+    }
+    
+    SetSensitive(gssdata->hide_bt, selected);
+    SetSensitive(gssdata->show_bt, selected);
+}
+
+static void g_new_cb(void *udata)
+{
+    StorageStructure *ss = (StorageStructure *) udata;
+
+    graph_next(grace->project);
+    UpdateStorageChoice(ss);
+    set_dirtystate();
+    xdrawgraph();
+}
+
+static char *graph_labeling(unsigned int step, void *data)
+{
+    char buf[128];
+    Quark *q = (Quark *) data;
+    graph *g = graph_get_data(q);
+    
+    sprintf(buf, "(%c) Graph #%d (type: %s, sets: %d)",
+        !g->hidden ? '+':'-', step, graph_types(grace->rt, g->type),
+        number_of_sets(q));
+    
+    return copy_string(NULL, buf);
+}
+
+StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
+{
+    Project *pr = (Project *) grace->project->data;
+    StorageStructure *ss;
+    GSSData *gssdata;
+    Widget popup;
+    int nvisible;
+    
+    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, graph_labeling);
+    SetStorageChoiceStorage(ss, pr->graphs);
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#graph-selector");
+
+    ngraph_selectors++;
+    graph_selectors =
+        xrealloc(graph_selectors, ngraph_selectors*sizeof(StorageStructure *));
+    graph_selectors[ngraph_selectors - 1] = ss;
+    
+    gssdata = xmalloc(sizeof(GSSData));
+    ss->data = gssdata;
+    ss->popup_cb = g_popup_cb;
+    
+    popup = ss->popup;
+    
+    CreateMenuSeparator(popup);
+    gssdata->hide_bt = CreateMenuButton(popup, "Hide", '\0', g_hide_cb, ss);
+    gssdata->show_bt = CreateMenuButton(popup, "Show", '\0', g_show_cb, ss);
+    
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "Create new", '\0', g_new_cb, ss);
+    
+    return ss;
+}
 
 void graph_select_cb(Widget list, XtPointer client_data, XtPointer call_data)
 {
-    XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
-    ListStructure *plist = (ListStructure *) client_data;
-    int gno;
-    
-    gno = plist->values[cbs->item_position - 1];
-    switch_current_graph(gno);
+    Quark *gr = (Quark *) client_data;
+    switch_current_graph(gr);
 }
 
 void update_graph_selectors(void)
 {
-    int i, new_n, gno;
-    char buf[64];
-    OptionItem *p;
-    
-    new_n = number_of_graphs();
-    for (i = 0; i < ngraph_select_items; i++) {
-        xfree(graph_select_items[i].label);
-    }
-    p = xrealloc(graph_select_items, new_n*sizeof(OptionItem));
-    if (p == NULL && new_n != 0) {
-        ngraph_select_items = 0;
-        return;
-    } else {
-        graph_select_items = p;
-    }
-
-    for (gno = 0; gno < new_n; gno++) {
-        graph_select_items[gno].value = gno;
-        sprintf(buf, "G%d (%s, %d sets)",
-            gno, is_graph_hidden(gno) ? "hidden":"shown", number_of_sets(gno));
-        graph_select_items[gno].label = copy_string(NULL, buf);
-    }
-
-    ngraph_select_items = new_n;
-    
+    int i;
     for (i = 0; i < ngraph_selectors; i++) {
-        UpdateListChoice(graph_selectors[i],
-            ngraph_select_items, graph_select_items);
+        UpdateStorageChoice(graph_selectors[i]);
     }
 }
 
-typedef struct {
-    Widget popup;
-    Widget label_item;
-    Widget focus_item;
-    Widget hide_item;
-    Widget show_item;
-    Widget duplicate_item;
-    Widget kill_item;
-    Widget copy12_item;
-    Widget copy21_item;
-    Widget move12_item;
-    Widget move21_item;
-    Widget swap_item;
-} GraphPopupMenu;
-
-typedef enum {
-    GraphMenuFocusCB,
-    GraphMenuHideCB,
-    GraphMenuShowCB,
-    GraphMenuDuplicateCB,
-    GraphMenuKillCB,
-    GraphMenuCopy12CB,
-    GraphMenuCopy21CB,
-    GraphMenuMove12CB,
-    GraphMenuMove21CB,
-    GraphMenuSwapCB,
-    GraphMenuNewCB
-} GraphMenuCBtype;
-
-void graph_menu_cb(ListStructure *listp, GraphMenuCBtype type)
-{
-    int err = FALSE;
-    int i, n, *values;
-    char buf[32];
-
-    n = GetListChoices(listp, &values);
-    
-    switch (type) {
-    case GraphMenuFocusCB:
-        if (n == 1) {
-            switch_current_graph(values[0]);
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuHideCB:
-        if (n > 0) {
-            for (i = 0; i < n; i++) {
-                set_graph_hidden(values[i], TRUE);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuShowCB:
-        if (n > 0) {
-            for (i = 0; i < n; i++) {
-                set_graph_hidden(values[i], FALSE);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuDuplicateCB:
-        if (n > 0) {
-            for (i = 0; i < n; i++) {
-                duplicate_graph(values[i]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuKillCB:
-        if (n > 0) {
-            if (yesno("Kill selected graph(s)?", NULL, NULL, NULL)) {
-                for (i = n - 1; i >= 0; i--) {
-                    kill_graph(values[i]);
-                }
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuCopy12CB:
-        if (n == 2) {
-            sprintf(buf, "Overwrite G%d?", values[1]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                copy_graph(values[0], values[1]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuCopy21CB:
-        if (n == 2) {
-            sprintf(buf, "Overwrite G%d?", values[0]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                copy_graph(values[1], values[0]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuMove12CB:
-        if (n == 2) {
-            sprintf(buf, "Replace G%d?", values[1]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                move_graph(values[0], values[1]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuMove21CB:
-        if (n == 2) {
-            sprintf(buf, "Replace G%d?", values[0]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                move_graph(values[1], values[0]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuSwapCB:
-        if (n == 2) {
-            swap_graph(values[0], values[1]);
-        } else {
-            err = TRUE;
-        }
-        break;
-    case GraphMenuNewCB:
-        if (!graph_next()) {
-            err = TRUE;
-        }
-        break;
-    default:
-        err = TRUE;
-        break;
-    }
-
-    if (n > 0) {
-        xfree(values);
-    }
-
-    if (err == FALSE) {
-        update_all();
-        xdrawgraph();
-    }
-}
-
-void switch_focus_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuFocusCB);
-}
-
-void hide_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuHideCB);
-}
-
-void show_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuShowCB);
-}
-
-void duplicate_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuDuplicateCB);
-}
-
-void kill_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuKillCB);
-}
-
-void copy12_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuCopy12CB);
-}
-
-void copy21_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuCopy21CB);
-}
-
-void move12_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuMove12CB);
-}
-
-void move21_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuMove21CB);
-}
-
-void swap_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuSwapCB);
-}
-
-void create_new_graph_proc(void *data)
-{
-    graph_menu_cb((ListStructure *) data, GraphMenuNewCB);
-}
-
-GraphPopupMenu *CreateGraphPopupEntries(ListStructure *listp)
-{
-    GraphPopupMenu *graph_popup_menu;
-    Widget popup;
-    
-    graph_popup_menu = xmalloc(sizeof(GraphPopupMenu));
-
-    popup = XmCreatePopupMenu(listp->list, "graphPopupMenu", NULL, 0);
-    graph_popup_menu->popup = popup;
-    
-    graph_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
-    CreateMenuSeparator(popup);
-    graph_popup_menu->focus_item = CreateMenuButton(popup, "Focus to", 'F',
-    	switch_focus_proc, (void *) listp);
-    CreateMenuSeparator(popup);
-    graph_popup_menu->hide_item = CreateMenuButton(popup, "Hide", 'H',
-    	hide_graph_proc, (void *) listp);
-    graph_popup_menu->show_item = CreateMenuButton(popup, "Show", 'S',
-    	show_graph_proc, (void *) listp);
-    graph_popup_menu->duplicate_item = CreateMenuButton(popup,"Duplicate", 'D',
-    	duplicate_graph_proc, (void *) listp);
-    graph_popup_menu->kill_item = CreateMenuButton(popup, "Kill", 'K',
-    	kill_graph_proc, (void *) listp);
-    CreateMenuSeparator(popup);
-    graph_popup_menu->copy12_item = CreateMenuButton(popup, "Copy 1 to 2", '\0',
-    	copy12_graph_proc, (void *) listp);
-    graph_popup_menu->copy21_item = CreateMenuButton(popup, "Copy 2 to 1", '\0',
-    	copy21_graph_proc, (void *) listp);
-    graph_popup_menu->move12_item = CreateMenuButton(popup, "Move 1 to 2", '\0',
-    	move12_graph_proc, (void *) listp);
-    graph_popup_menu->move21_item = CreateMenuButton(popup, "Move 2 to 1", '\0',
-    	move21_graph_proc, (void *) listp);
-    graph_popup_menu->swap_item = CreateMenuButton(popup, "Swap", 'w',
-    	swap_graph_proc, (void *) listp);
-    CreateMenuSeparator(popup);
-    CreateMenuButton(popup, "Create new", 'C',
-    	create_new_graph_proc, (void *) listp);
-
-    return graph_popup_menu;
-}
-
-void graph_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
-{
-    int i, n;
-    int *values;
-    char buf[64];
-    Widget popup;
-    GraphPopupMenu* graph_popup_menu;
-    
-    if (event->button != 3) {
-        return;
-    }
-    
-    graph_popup_menu = (GraphPopupMenu*) listp->anydata;
-    popup = graph_popup_menu->popup;
-    
-    n = GetListChoices(listp, &values);
-    if (n > 0) {
-        sprintf(buf, "G%d", values[0]);
-        for (i = 1; i < n; i++) {
-            if (strlen(buf) > 30) {
-                strcat(buf, "...");
-                break;
-            }
-            sprintf(buf, "%s, G%d", buf, values[i]);
-        }
-    } else {
-        strcpy(buf, "None"); 
-    }
-    
-    SetLabel(graph_popup_menu->label_item, buf);
-    
-    if (n == 0) {
-        XtSetSensitive(graph_popup_menu->hide_item, False);
-        XtSetSensitive(graph_popup_menu->show_item, False);
-        XtSetSensitive(graph_popup_menu->duplicate_item, False);
-        XtSetSensitive(graph_popup_menu->kill_item, False);
-    } else {
-        XtSetSensitive(graph_popup_menu->hide_item, True);
-        XtSetSensitive(graph_popup_menu->show_item, True);
-        XtSetSensitive(graph_popup_menu->duplicate_item, True);
-        XtSetSensitive(graph_popup_menu->kill_item, True);
-    }
-    if (n == 1) {
-        XtSetSensitive(graph_popup_menu->focus_item, True);
-    } else {
-        XtSetSensitive(graph_popup_menu->focus_item, False);
-    }
-    if (n == 2) {
-        sprintf(buf, "Copy G%d to G%d", values[0], values[1]);
-        SetLabel(graph_popup_menu->copy12_item, buf);
-        XtManageChild(graph_popup_menu->copy12_item);
-        sprintf(buf, "Copy G%d to G%d", values[1], values[0]);
-        SetLabel(graph_popup_menu->copy21_item, buf);
-        XtManageChild(graph_popup_menu->copy21_item);
-        sprintf(buf, "Move G%d to G%d", values[0], values[1]);
-        SetLabel(graph_popup_menu->move12_item, buf);
-        XtManageChild(graph_popup_menu->move12_item);
-        sprintf(buf, "Move G%d to G%d", values[1], values[0]);
-        SetLabel(graph_popup_menu->move21_item, buf);
-        XtManageChild(graph_popup_menu->move21_item);
-        XtSetSensitive(graph_popup_menu->swap_item, True);
-    } else {
-        XtUnmanageChild(graph_popup_menu->copy12_item);
-        XtUnmanageChild(graph_popup_menu->copy21_item);
-        XtUnmanageChild(graph_popup_menu->move12_item);
-        XtUnmanageChild(graph_popup_menu->move21_item);
-        XtSetSensitive(graph_popup_menu->swap_item, False);
-    }
-    
-    if (n > 0) {
-        xfree(values);
-    }
-    XmMenuPosition(popup, event);
-    XtManageChild(popup);
-}
-
-void list_selectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
-{
-    list_selectall(w);
-}
-
-static void list_selectall_cb(void *data)
-{
-    ListStructure *listp = (ListStructure *) data;
-    list_selectall(listp->list);
-}
-
-void list_unselectall_action(Widget w, XEvent *e, String *par, Cardinal *npar)
-{
-    list_unselectall(w);
-}
-
-static void list_unselectall_cb(void *data)
-{
-    ListStructure *listp = (ListStructure *) data;
-    list_unselectall(listp->list);
-}
-
-static void list_invertselection_cb(void *data)
-{
-    ListStructure *listp = (ListStructure *) data;
-    list_invertselection(listp->list);
-}
-
-void list_invertselection_action(Widget w, XEvent *e, String *par,
-				 Cardinal *npar)
-{
-    list_invertselection(w);
-}
-
-void set_graph_selectors(int gno)
+void set_graph_selectors(Quark *gr)
 {
     int i;
     
     for (i = 0; i < ngraph_selectors; i++) {
-        SelectListChoice(graph_selectors[i], gno);
+        SelectStorageChoice(graph_selectors[i], gr);
     }
-}
-
-ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type)
-{
-    ListStructure *retvalp;
-    int nvisible;
-        
-    ngraph_selectors++;
-    graph_selectors = xrealloc(graph_selectors, 
-                                    ngraph_selectors*sizeof(ListStructure *));
-
-    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
-    retvalp = CreateListChoice(parent, labelstr, type, nvisible,
-                               ngraph_select_items, graph_select_items);
-    if (retvalp == NULL) {
-        return NULL;
-    }
-    AddHelpCB(retvalp->rc, "doc/UsersGuide.html#graph-selector");
-    graph_selectors[ngraph_selectors - 1] = retvalp;
-    
-    XtAddCallback(retvalp->list, XmNdefaultActionCallback,
-                               graph_select_cb, retvalp);
-    retvalp->anydata = CreateGraphPopupEntries(retvalp);
-    
-    XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
-                            (XtEventHandler) graph_popup, retvalp);
-
-    if (ngraph_select_items == 0) {
-        update_graph_selectors();
-    } else {
-        UpdateListChoice(retvalp, ngraph_select_items, graph_select_items);
-    }
-    
-    SelectListChoice(retvalp, get_cg());
-    
-    return retvalp;
 }
 
 /* Set selectors */
-static ListStructure **set_selectors = NULL;
+static StorageStructure **set_selectors = NULL;
 static int nset_selectors = 0;
 
-void UpdateSetChoice(ListStructure *listp, int gno)
+
+
+
+
+
+#define SSS_HIDE_CB          0
+#define SSS_SHOW_CB          1
+
+typedef struct {
+    StorageStructure *graphss;
+    Widget hide_bt;
+    Widget show_bt;
+} SSSData;
+
+Quark *get_set_choice_gr(StorageStructure *ss)
 {
-    int j, setno, nsets;
-    char buf[64];
-    OptionItem *set_select_items;
-    SetChoiceData *sdata;
+    Quark *gr;
+    SSSData *sdata = (SSSData *) ss->data;
     
-    sdata = (SetChoiceData *) listp->anydata;
-    sdata->gno = gno;
-    
-    nsets = number_of_sets(gno);
-    if (nsets <= 0) {
-        UpdateListChoice(listp, 0, NULL);
-        return;
-    }
-    
-    set_select_items = xmalloc(nsets*sizeof(OptionItem));
-    if (set_select_items == NULL) {
-        return;
-    }
-    
-    for (setno = 0, j = 0; setno < nsets; setno++) {
-        if ((sdata->show_nodata == TRUE || is_set_active(gno, setno) == TRUE) &&
-            (sdata->show_hidden == TRUE || is_set_hidden(gno, setno) != TRUE )) {
-            set_select_items[j].value = setno;
-            sprintf(buf, "(%c) G%d.S%d[%d][%d]",
-                is_set_hidden(gno, setno) ? '-':'+',
-                gno, setno, dataset_cols(gno, setno), getsetlength(gno, setno));
-            set_select_items[j].label = copy_string(NULL, buf);
-            if (sdata->view_comments == TRUE) {
-                set_select_items[j].label =
-                    concat_strings(set_select_items[j].label, " \"");
-                set_select_items[j].label =
-                    concat_strings(set_select_items[j].label,
-                    getcomment(gno, setno));
-                set_select_items[j].label =
-                    concat_strings(set_select_items[j].label, "\"");
-            }
-            j++;
+    if (sdata->graphss) {
+        if (GetSingleStorageChoice(sdata->graphss, (void **) &gr) != RETURN_SUCCESS) {
+            gr = NULL;
         }
+    } else {
+        gr = graph_get_current(grace->project);
     }
-    UpdateListChoice(listp, j, set_select_items);
     
-    xfree(set_select_items);
+    return gr;
 }
 
-void update_set_selectors(int gno)
+static void sss_any_cb(void *udata, int cbtype)
 {
-    int i, cg;
-    SetChoiceData *sdata;
+    StorageStructure *ss = (StorageStructure *) udata;
+    int i, n;
+    void **values;
     
-    cg = get_cg();
-    update_graph_selectors();
-    for (i = 0; i < nset_selectors; i++) {
-        sdata = (SetChoiceData *) set_selectors[i]->anydata;
-        if (sdata->standalone == TRUE && (gno == cg || gno == ALL_GRAPHS)) {
-            UpdateSetChoice(set_selectors[i], cg);
-        } else if (sdata->standalone == FALSE && sdata->gno == gno) {
-            UpdateSetChoice(set_selectors[i], gno);
+    n = GetStorageChoices(ss, &values);
+    
+    for (i = 0; i < n; i ++) {
+        void *data = values[i];
+        
+        if (storage_data_exists(ss->sto, data) == TRUE) {
+            Quark *pset = (Quark *) data;
+            switch (cbtype) {
+            case SSS_HIDE_CB:
+                set_set_hidden(pset, TRUE);
+                break;
+            case SSS_SHOW_CB:
+                set_set_hidden(pset, FALSE);
+                break;
+            }
         }
     }
-}
-
-void set_menu_cb(ListStructure *listp, SetMenuCBtype type)
-{
-    SetChoiceData *sdata;
-    int err = FALSE;
-    int gno;
-    int i, n, setno, *values;
-    char buf[32];
-
-    n = GetListChoices(listp, &values);
-    sdata = (SetChoiceData *) listp->anydata;
-    gno = sdata->gno;
     
-    switch (type) {
-    case SetMenuHideCB:
-        if (n > 0) {
-            for (i = 0; i < n; i++) {
-                set_set_hidden(gno, values[i], TRUE);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuShowCB:
-        if (n > 0) {
-            for (i = 0; i < n; i++) {
-                set_set_hidden(gno, values[i], FALSE);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuBringfCB:
-        if (n == 1) {
-            pushset(gno, values[0], PUSH_SET_TOFRONT);
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuSendbCB:
-        if (n == 1) {
-            pushset(gno, values[0], PUSH_SET_TOBACK);
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuDuplicateCB:
-        if (n > 0) {
-            for (i = 0; i < n; i++) {
-                setno = nextset(gno);
-                do_copyset(gno, values[i], gno, setno);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuKillCB:
-        if (n > 0) {
-            if (yesno("Kill selected set(s)?", NULL, NULL, NULL)) {
-                for (i = 0; i < n; i++) {
-                    killset(gno, values[i]);
-                }
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuKillDCB:
-        if (n > 0) {
-            if (yesno("Kill data in selected set(s)?", NULL, NULL, NULL)) {
-                for (i = 0; i < n; i++) {
-                    killsetdata(gno, values[i]);
-                }
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuCopy12CB:
-        if (n == 2) {
-            sprintf(buf, "Overwrite S%d?", values[1]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                do_copyset(gno, values[0], gno, values[1]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuCopy21CB:
-        if (n == 2) {
-            sprintf(buf, "Overwrite S%d?", values[0]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                do_copyset(gno, values[1], gno, values[0]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuMove12CB:
-        if (n == 2) {
-            sprintf(buf, "Replace S%d?", values[1]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                moveset(gno, values[0], gno, values[1]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuMove21CB:
-        if (n == 2) {
-            sprintf(buf, "Replace S%d?", values[0]);
-            if (yesno(buf, NULL, NULL, NULL)) {
-                moveset(gno, values[1], gno, values[0]);
-            }
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuSwapCB:
-        if (n == 2) {
-            swapset(gno, values[0], gno, values[1]);
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuNewFCB:
-            create_leval_frame((void *) gno);
-        break;
-    case SetMenuNewSCB:
-            if ((setno = nextset(gno)) != -1) {
-                setcomment(gno, setno, "Editor");
-                set_set_hidden(gno, setno, FALSE);
-                create_ss_frame(gno, setno);
-            } else {
-                err = TRUE;
-            }
-        break;
-    case SetMenuNewECB:
-            if ((setno = nextset(gno)) != -1) {
-                setcomment(gno, setno, "Editor");
-                set_set_hidden(gno, setno, FALSE);
-                do_ext_editor(gno, setno);
-            } else {
-                err = TRUE;
-            }
-        break;
-    case SetMenuNewBCB:
-            create_eblock_frame(gno);
-        break;
-    case SetMenuEditSCB:
-        if (n == 1) {
-            create_ss_frame(gno, values[0]);
-        } else {
-            err = TRUE;
-        }
-        break;
-    case SetMenuEditECB:
-        if (n == 1) {
-            do_ext_editor(gno, values[0]);
-        } else {
-            err = TRUE;
-        }
-        break;
-    default:
-        err = TRUE;
-        break;
-    }
-
     if (n > 0) {
         xfree(values);
-    }
-
-    if (err == FALSE) {
-        update_all();
+        UpdateStorageChoice(ss);
+        set_dirtystate();
         xdrawgraph();
     }
 }
 
-
-void hide_set_proc(void *data)
+static void s_hide_cb(void *udata)
 {
-    set_menu_cb((ListStructure *) data, SetMenuHideCB);
+    sss_any_cb(udata, SSS_HIDE_CB);
 }
 
-void show_set_proc(void *data)
+static void s_show_cb(void *udata)
 {
-    set_menu_cb((ListStructure *) data, SetMenuShowCB);
+    sss_any_cb(udata, SSS_SHOW_CB);
 }
 
-void bringf_set_proc(void *data)
+static void s_popup_cb(StorageStructure *ss, int nselected)
 {
-    set_menu_cb((ListStructure *) data, SetMenuBringfCB);
-}
-
-void sendb_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuSendbCB);
-}
-
-void duplicate_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuDuplicateCB);
-}
-
-void kill_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuKillCB);
-}
-
-void killd_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuKillDCB);
-}
-
-void copy12_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuCopy12CB);
-}
-
-void copy21_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuCopy21CB);
-}
-
-void move12_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuMove12CB);
-}
-
-void move21_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuMove21CB);
-}
-
-void swap_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuSwapCB);
-}
-
-void newF_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuNewFCB);
-}
-
-void newS_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuNewSCB);
-}
-
-void newE_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuNewECB);
-}
-
-void newB_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuNewBCB);
-}
-
-void editS_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuEditSCB);
-}
-
-void editE_set_proc(void *data)
-{
-    set_menu_cb((ListStructure *) data, SetMenuEditECB);
-}
-
-void shownd_set_proc(int onoff, void *data)
-{
-    ListStructure *listp = (ListStructure *) data;
-    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
+    SSSData *sssdata = (SSSData *) ss->data;
+    int selected;
     
-    sdata->show_nodata = onoff;
-    UpdateSetChoice(listp, sdata->gno);
+    if (nselected != 0) {
+        selected = TRUE;
+    } else {
+        selected = FALSE;
+    }
+    
+    SetSensitive(sssdata->hide_bt, selected);
+    SetSensitive(sssdata->show_bt, selected);
 }
 
-void showh_set_proc(int onoff, void *data)
+static void s_new_cb(void *udata)
 {
-    ListStructure *listp = (ListStructure *) data;
-    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
-    
-    sdata->show_hidden = onoff;
-    UpdateSetChoice(listp, sdata->gno);
+    StorageStructure *ss = (StorageStructure *) udata;
+    Quark *gr = get_set_choice_gr(ss);
+    set_new(gr);
 }
 
-void view_comments_set_proc(int onoff, void *data)
+static char *set_labeling(unsigned int step, void *data)
 {
-    ListStructure *listp = (ListStructure *) data;
-    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
+    char buf[128];
+    Quark *q = (Quark *) data;
+    set *p = set_get_data(q);
     
-    sdata->view_comments = onoff;
-    UpdateSetChoice(listp, sdata->gno);
+    sprintf(buf, "(%c) Set #%d (type: %s, length: %d)",
+        !p->hidden ? '+':'-', step, set_types(grace->rt, p->type),
+        getsetlength(q));
+    
+    return copy_string(NULL, buf);
 }
 
-void update_set_proc(void *data)
+StorageStructure *CreateSetChoice(Widget parent,
+    char *labelstr, int type, StorageStructure *graphss)
 {
-    ListStructure *listp = (ListStructure *) data;
-    SetChoiceData *sdata = (SetChoiceData *) listp->anydata;
-    
-    UpdateSetChoice(listp, sdata->gno);
-}
-
-SetPopupMenu *CreateSetPopupEntries(ListStructure *listp)
-{
-    SetPopupMenu *set_popup_menu;
-    Widget popup, submenupane;
-    
-    set_popup_menu = xmalloc(sizeof(SetPopupMenu));
-    popup = XmCreatePopupMenu(listp->list, "setPopupMenu", NULL, 0);
-    set_popup_menu->popup = popup;
-    
-    set_popup_menu->label_item = CreateMenuLabel(popup, "Selection:");
-
-    CreateMenuSeparator(popup);
-
-    set_popup_menu->hide_item = CreateMenuButton(popup, "Hide", '\0',
-    	hide_set_proc, (void *) listp);
-    set_popup_menu->show_item = CreateMenuButton(popup, "Show", '\0',
-    	show_set_proc, (void *) listp);
-    set_popup_menu->bringf_item = CreateMenuButton(popup, "Bring to front", '\0',
-    	bringf_set_proc, (void *) listp);
-    set_popup_menu->sendb_item = CreateMenuButton(popup, "Send to back", '\0',
-    	sendb_set_proc, (void *) listp);
-    CreateMenuSeparator(popup);
-    set_popup_menu->duplicate_item = CreateMenuButton(popup, "Duplicate", '\0',
-    	duplicate_set_proc, (void *) listp);
-    set_popup_menu->kill_item = CreateMenuButton(popup, "Kill", '\0',
-    	kill_set_proc, (void *) listp);
-    set_popup_menu->killd_item = CreateMenuButton(popup, "Kill data", '\0',
-    	killd_set_proc, (void *) listp);
-    CreateMenuSeparator(popup);
-    set_popup_menu->copy12_item = CreateMenuButton(popup, "Copy 1 to 2", '\0',
-    	copy12_set_proc, (void *) listp);
-    set_popup_menu->copy21_item = CreateMenuButton(popup, "Copy 2 to 1", '\0',
-    	copy21_set_proc, (void *) listp);
-    set_popup_menu->move12_item = CreateMenuButton(popup, "Move 1 to 2", '\0',
-    	move12_set_proc, (void *) listp);
-    set_popup_menu->move21_item = CreateMenuButton(popup, "Move 2 to 1", '\0',
-    	move21_set_proc, (void *) listp);
-    set_popup_menu->swap_item = CreateMenuButton(popup, "Swap", '\0',
-    	swap_set_proc, (void *) listp);
-    CreateMenuSeparator(popup);
-    set_popup_menu->edit_item = CreateMenu(popup, "Edit", 'E', FALSE);
-    CreateMenuButton(set_popup_menu->edit_item, "In spreadsheet", '\0',
-    	editS_set_proc, (void *) listp);
-    CreateMenuButton(set_popup_menu->edit_item, "In text editor", '\0',
-    	editE_set_proc, (void *) listp);
-    submenupane = CreateMenu(popup, "Create new", '\0', FALSE);
-    CreateMenuButton(submenupane, "By formula", '\0',
-    	newF_set_proc, (void *) listp);
-    CreateMenuButton(submenupane, "In spreadsheet", '\0',
-    	newS_set_proc, (void *) listp);
-    CreateMenuButton(submenupane, "In text editor", '\0',
-    	newE_set_proc, (void *) listp);
-    CreateMenuButton(submenupane, "From block data", '\0',
-    	newB_set_proc, (void *) listp);
-
-    CreateMenuSeparator(popup);
-
-    submenupane = CreateMenu(popup, "Selector operations", 'o', FALSE);
-    CreateMenuToggle(submenupane,
-        "View set comments", '\0', view_comments_set_proc, (void *) listp);
-    CreateMenuSeparator(submenupane);
-    set_popup_menu->shownd_item = CreateMenuToggle(submenupane,
-        "Show data-less", '\0', shownd_set_proc, (void *) listp);
-    set_popup_menu->showh_item = CreateMenuToggle(submenupane,
-        "Show hidden", '\0', showh_set_proc, (void *) listp);
-    CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "Select all", '\0',
-    	list_selectall_cb, (void *) listp);
-    CreateMenuButton(submenupane, "Unselect all", '\0',
-    	list_unselectall_cb, (void *) listp);
-    CreateMenuButton(submenupane, "Invert selection", '\0',
-    	list_invertselection_cb, (void *) listp);
-    CreateMenuSeparator(submenupane);
-    CreateMenuButton(submenupane, "Update", '\0',
-    	update_set_proc, (void *) listp);
-
-    return set_popup_menu;
-}
-
-void set_popup(Widget parent, ListStructure *listp, XButtonPressedEvent *event)
-{
-    SetChoiceData *sdata;
-    int i, n;
-    int *values;
-    char buf[64];
+    StorageStructure *ss;
+    SSSData *sssdata;
     Widget popup;
-    SetPopupMenu* set_popup_menu;
-    
-    if (event->button != 3) {
-        return;
-    }
-    
-    sdata = (SetChoiceData *) listp->anydata;
-    set_popup_menu = sdata->menu;
-    popup = set_popup_menu->popup;
-    
-    n = GetListChoices(listp, &values);
-    if (n > 0) {
-        sprintf(buf, "S%d", values[0]);
-        for (i = 1; i < n; i++) {
-            if (strlen(buf) > 30) {
-                strcat(buf, "...");
-                break;
-            }
-            sprintf(buf, "%s, S%d", buf, values[i]);
-        }
-    } else {
-        strcpy(buf, "None"); 
-    }
-    
-    SetLabel(set_popup_menu->label_item, buf);
-    
-    SetToggleButtonState(set_popup_menu->shownd_item, sdata->show_nodata);
-    SetToggleButtonState(set_popup_menu->showh_item, sdata->show_hidden);
-    
-    if (n == 0) {
-        XtSetSensitive(set_popup_menu->hide_item, False);
-        XtSetSensitive(set_popup_menu->show_item, False);
-        XtSetSensitive(set_popup_menu->duplicate_item, False);
-        XtSetSensitive(set_popup_menu->kill_item, False);
-        XtSetSensitive(set_popup_menu->killd_item, False);
-    } else {
-        XtSetSensitive(set_popup_menu->hide_item, True);
-        XtSetSensitive(set_popup_menu->show_item, True);
-        XtSetSensitive(set_popup_menu->duplicate_item, True);
-        XtSetSensitive(set_popup_menu->kill_item, True);
-        XtSetSensitive(set_popup_menu->killd_item, True);
-    }
-    if (n == 1) {
-        XtSetSensitive(set_popup_menu->bringf_item, True);
-        XtSetSensitive(set_popup_menu->sendb_item, True);
-        XtSetSensitive(set_popup_menu->edit_item, True);
-    } else {
-        XtSetSensitive(set_popup_menu->bringf_item, False);
-        XtSetSensitive(set_popup_menu->sendb_item, False);
-        XtSetSensitive(set_popup_menu->edit_item, False);
-    }
-    if (n == 2) {
-        sprintf(buf, "Copy S%d to S%d", values[0], values[1]);
-        SetLabel(set_popup_menu->copy12_item, buf);
-        XtManageChild(set_popup_menu->copy12_item);
-        sprintf(buf, "Copy S%d to S%d", values[1], values[0]);
-        SetLabel(set_popup_menu->copy21_item, buf);
-        XtManageChild(set_popup_menu->copy21_item);
-        sprintf(buf, "Move S%d to S%d", values[0], values[1]);
-        SetLabel(set_popup_menu->move12_item, buf);
-        XtManageChild(set_popup_menu->move12_item);
-        sprintf(buf, "Move S%d to S%d", values[1], values[0]);
-        SetLabel(set_popup_menu->move21_item, buf);
-        XtManageChild(set_popup_menu->move21_item);
-        XtSetSensitive(set_popup_menu->swap_item, True);
-    } else {
-        XtUnmanageChild(set_popup_menu->copy12_item);
-        XtUnmanageChild(set_popup_menu->copy21_item);
-        XtUnmanageChild(set_popup_menu->move12_item);
-        XtUnmanageChild(set_popup_menu->move21_item);
-        XtSetSensitive(set_popup_menu->swap_item, False);
-    }
-    
-    if (n > 0) {
-        xfree(values);
-    }
-    XmMenuPosition(popup, event);
-    XtManageChild(popup);
-}
-
-static void ss_edit_cb(Widget list, XtPointer client_data, XtPointer call_data)
-{
-    XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
-    ListStructure *plist = (ListStructure *) client_data;
-    SetChoiceData *sdata = (SetChoiceData *) plist->anydata;
-    int gno, setno;
-    
-    gno = sdata->gno;
-    setno = plist->values[cbs->item_position - 1];
-    create_ss_frame(gno, setno);
-}
-
-
-ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
-                                        int type, int standalone)
-{
-    ListStructure *retvalp;
-    SetChoiceData *sdata;
     int nvisible;
-
+    
     nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 8; 
-    retvalp = CreateListChoice(parent, labelstr, type, nvisible, 0, NULL);
-    if (retvalp == NULL) {
-        return NULL;
-    }
-    AddHelpCB(retvalp->rc, "doc/UsersGuide.html#set-selector");
-
-    sdata = xmalloc(sizeof(SetChoiceData));
-    if (sdata == NULL) {
-        XCFREE(retvalp);
-        return NULL;
-    }
-    
-    sdata->standalone = standalone;
-    sdata->view_comments = FALSE;
-    sdata->show_hidden = TRUE;
-    sdata->show_nodata = FALSE;
-    sdata->menu = CreateSetPopupEntries(retvalp);
-    XtAddEventHandler(retvalp->list, ButtonPressMask, False, 
-                            (XtEventHandler) set_popup, retvalp);
-    
-    XtAddCallback(retvalp->list, XmNdefaultActionCallback, ss_edit_cb, retvalp);
-    
-    retvalp->anydata = sdata;
-    
-    if (standalone == TRUE) {
-        UpdateSetChoice(retvalp, get_cg());
-    }
+    ss = CreateStorageChoice(parent, labelstr, type, nvisible);
+    SetStorageChoiceLabeling(ss, set_labeling);
+    AddHelpCB(ss->rc, "doc/UsersGuide.html#set-selector");
 
     nset_selectors++;
-    set_selectors = xrealloc(set_selectors, 
-                                nset_selectors*sizeof(ListStructure *));
-    set_selectors[nset_selectors - 1] = retvalp;
+    set_selectors =
+        xrealloc(set_selectors, nset_selectors*sizeof(StorageStructure *));
+    set_selectors[nset_selectors - 1] = ss;
     
-    return retvalp;
+    sssdata = xmalloc(sizeof(SSSData));
+    ss->data = sssdata;
+    ss->popup_cb = s_popup_cb;
+    
+    popup = ss->popup;
+    
+    CreateMenuSeparator(popup);
+    sssdata->graphss = graphss;
+    sssdata->hide_bt = CreateMenuButton(popup, "Hide", '\0', s_hide_cb, ss);
+    sssdata->show_bt = CreateMenuButton(popup, "Show", '\0', s_show_cb, ss);
+    
+    CreateMenuSeparator(popup);
+
+    CreateMenuButton(popup, "Create new", '\0', s_new_cb, ss);
+
+    UpdateSetChoice(ss);
+    
+    return ss;
 }
 
-static void update_sets_cb(int n, int *values, void *data)
+void UpdateSetChoice(StorageStructure *ss)
 {
-    int gno;
-    ListStructure *set_listp = (ListStructure *) data;
+    Storage *sto;
+    Quark *gr;
     
-    if (n == 1) {
-        gno = values[0];
+    gr = get_set_choice_gr(ss);
+    if (gr) {
+        graph *g = graph_get_data(gr);
+        sto = g->sets;
     } else {
-        gno = -1;
+        sto = NULL;
     }
-    UpdateSetChoice(set_listp, gno);
+    
+    SetStorageChoiceStorage(ss, sto);
+}
+
+
+void update_set_selectors(Quark *gr)
+{
+    int i;
+    
+    update_graph_selectors();
+    
+    for (i = 0; i < nset_selectors; i++) {
+        Quark *cg;
+        
+        cg = get_set_choice_gr(set_selectors[i]);
+        if (!gr || cg == gr) {
+            UpdateSetChoice(set_selectors[i]);
+        }
+    }
+}
+
+static void update_sets_cb(int n, void **values, void *data)
+{
+    GraphSetStructure *gs = (GraphSetStructure *) data;
+
+    UpdateSetChoice(gs->set_sel); 
 }
 
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
@@ -3275,9 +2601,9 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
     rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
     retval->graph_sel = CreateGraphChoice(rc, "Graph:", LIST_TYPE_SINGLE);
     retval->set_sel = CreateSetChoice(rc, "Set:", sel_type, FALSE);
-    AddListChoiceCB(retval->graph_sel,
+    AddStorageChoiceCB(retval->graph_sel,
         update_sets_cb, (void *) retval->set_sel);
-    UpdateSetChoice(retval->set_sel, get_cg());
+    UpdateSetChoice(retval->set_sel);
     XtManageChild(rc);
 
     return retval;
@@ -3817,41 +3143,47 @@ TransformStructure *CreateTransformDialogForm(Widget parent,
 }
 
 int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
-        int *gsrc, int *gdest,
-        int *nssrc, int **svaluessrc, int *nsdest, int **svaluesdest)
+        int *nssrc, Quark ***srcsets, Quark ***destsets)
 {
-    int gsrc_ok, gdest_ok;
+    int i, nsdest;
     
-    gsrc_ok = GetSingleListChoice(tdialog->srcdest->src->graph_sel, gsrc);
-    gdest_ok = GetSingleListChoice(tdialog->srcdest->dest->graph_sel, gdest);
-    if (gsrc_ok == RETURN_FAILURE || gdest_ok == RETURN_FAILURE) {
-        errmsg("Please select single source and destination graphs");
-	return RETURN_FAILURE;
-    }
-    
-    *nssrc = GetListChoices(tdialog->srcdest->src->set_sel, svaluessrc);
+    *nssrc = GetStorageChoices(tdialog->srcdest->src->set_sel, (void ***) srcsets);
     if (*nssrc == 0) {
         errmsg("No source sets selected");
 	return RETURN_FAILURE;
     }    
-    *nsdest = GetListChoices(tdialog->srcdest->dest->set_sel, svaluesdest);
-    if (*nsdest != 0 && *nssrc != *nsdest) {
+    
+    nsdest = GetStorageChoices(tdialog->srcdest->dest->set_sel, (void ***) destsets);
+    if (nsdest != 0 && *nssrc != nsdest) {
         errmsg("Different number of source and destination sets");
-        xfree(*svaluessrc);
-        xfree(*svaluesdest);
+        xfree(*srcsets);
+        xfree(*destsets);
 	return RETURN_FAILURE;
     }
     
     /* check for mutually exclusive selections */
-    if (exclusive && *gsrc == *gdest && *nsdest != 0) {
-        int i;
+    if (exclusive && nsdest != 0) {
         for (i = 0; i < *nssrc; i++) {
-            if (*svaluessrc[i] == *svaluesdest[i]) {
-                xfree(*svaluessrc);
-                xfree(*svaluesdest);
+            if (*srcsets[i] == *destsets[i]) {
+                xfree(*srcsets);
+                xfree(*destsets);
                 errmsg("Source and destination set(s) are not mutually exclusive");
 	        return RETURN_FAILURE;
             }
+        }
+    }
+    
+    if (nsdest == 0) {
+        Quark *destgr;
+        if (GetSingleStorageChoice(tdialog->srcdest->dest->graph_sel,
+            (void **) &destgr) != RETURN_SUCCESS) {
+            errmsg("No dest graph?! - internal error!");
+	    return RETURN_FAILURE;
+        }
+        
+        *destsets = xmalloc((*nssrc)*sizeof(Quark *));
+        for (i = 0; i < *nssrc; i++) {
+            *destsets[i] = set_new(destgr);
         }
     }
     
@@ -4679,30 +4011,30 @@ char *GetStringSimple(XmString xms)
 
 extern int ReqUpdateColorSel;
 
-void update_set_lists(int gno)
+void update_set_lists(Quark *gr)
 {
-    update_set_selectors(gno);
-    update_ss_editors(gno);
+    update_set_selectors(gr);
+    update_ss_editors(gr);
 }
 
 void update_all(void)
 {
-    int gno = get_cg();
+    Quark *gr = graph_get_current(grace->project);
     
     if (!grace->gui->inwin) {
         return;
     }
     
-    update_set_lists(ALL_GRAPHS);
+    update_set_lists(NULL);
 
     if (ReqUpdateColorSel == TRUE) {
         update_color_selectors();
         ReqUpdateColorSel = FALSE;
     }
 
-    update_ticks(gno);
+    update_ticks(gr);
     update_props_items();
-    update_locator_items(gno);
+    update_locator_items(gr);
     set_stack_message();
     set_left_footer(NULL);
 }

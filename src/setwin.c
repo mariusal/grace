@@ -31,7 +31,7 @@
  * setwin - GUI for operations on sets and datasets
  *
  */
-
+#if 0
 #include <config.h>
 
 #include <stdio.h>
@@ -900,3 +900,4 @@ static int leval_aac_cb(void *data)
     
     return RETURN_SUCCESS;
 }
+#endif

@@ -165,7 +165,7 @@ static void text_axes_cb(char *s, void *data)
 void create_axes_dialog(int axisno)
 {
 
-    int cg = get_cg();
+    Quark *cg = graph_get_current(grace->project);
     
     set_wait_cursor();
     
@@ -568,11 +568,11 @@ static int axes_aac_cb(void *data)
 {
     int i, j;
     int applyto;
-    int axis_start, axis_stop, gno, gmin, gmax;
+    int axis_start, axis_stop;
     int scale, invert;
     double axeslim;
     world wo;
-    int cg = get_cg();
+    Quark *cg = graph_get_current(grace->project);
     
     if (!GetToggleButtonState(instantupdate_item) && data != NULL) {
         return RETURN_SUCCESS;
@@ -588,320 +588,300 @@ static int axes_aac_cb(void *data)
     case 0:                     /* current axis */
         axis_start = curaxis;
         axis_stop  = curaxis;
-        gmin = cg;
-        gmax = cg;
         break;
     case 1:                     /* all axes, current graph */
         axis_start = 0;
         axis_stop  = MAXAXES - 1;
-        gmin = cg;
-        gmax = cg;
-        break;
-    case 2:                     /* current axis, all graphs */
-        axis_start = curaxis;
-        axis_stop  = curaxis;
-        gmin = 0;
-        gmax = number_of_graphs();
-        break;
-    case 3:                     /* all axes, all graphs */
-        axis_start = 0;
-        axis_stop  = MAXAXES - 1;
-        gmin = 0;
-        gmax = number_of_graphs();
         break;
     default:
         axis_start = curaxis;
         axis_stop  = curaxis;
-        gmin = cg;
-        gmax = cg;
         break;        
     }
         
 		
-    for (gno = gmin; gno <= gmax; gno++) {
-        for (j = axis_start; j <= axis_stop; j++) {
-            tickmarks *ot;
-        
-            ot = copy_graph_tickmarks(get_graph_tickmarks(gno, j));
+    for (j = axis_start; j <= axis_stop; j++) {
+        tickmarks *ot;
 
-            if (!ot) {
+        ot = copy_graph_tickmarks(get_graph_tickmarks(cg, j));
+
+        if (!ot) {
+            return RETURN_FAILURE;
+        }
+
+        if (data == axis_active || data == NULL) {
+            ot->active = GetToggleButtonState(axis_active);
+        } else {
+            if (!(ot->active)) {
+                free_graph_tickmarks(ot);
+                continue;
+            }
+        }
+
+        get_graph_world(cg, &wo);
+        if (data == axis_world_start || data == NULL) {
+            if (xv_evalexpr(axis_world_start, &axeslim) != RETURN_SUCCESS) {
+                errmsg("Axis start/stop values undefined");
+                free_graph_tickmarks(ot);
+                return RETURN_FAILURE;
+            } else if (is_xaxis(j)) {
+                wo.xg1 = axeslim;
+            } else if (is_yaxis(j)) {
+                wo.yg1 = axeslim; 
+            }
+        }
+        if (data == axis_world_stop || data == NULL) {
+            if (xv_evalexpr(axis_world_stop, &axeslim) != RETURN_SUCCESS) {
+                errmsg("Axis start/stop values undefined");
+                free_graph_tickmarks(ot);
+                return RETURN_FAILURE;
+            } else if (is_xaxis(j)) {
+                wo.xg2 = axeslim;
+            } else if (is_yaxis(j)) {
+                wo.yg2 = axeslim; 
+            }
+        }
+        if (data == axis_world_start || data == axis_world_stop || data == NULL) {
+            set_graph_world(cg, &wo);
+        }
+
+        if (data == axis_scale || data == NULL) {
+        scale = GetOptionChoice(axis_scale);
+        if (is_xaxis(j)) {
+            set_graph_xscale(cg, scale);
+        } else {
+            set_graph_yscale(cg, scale);
+        }
+        }
+
+        if (data == &axis_invert || data == NULL)  {
+        invert = GetToggleButtonState(axis_invert);
+        if (is_xaxis(j)) {
+            set_graph_xinvert(cg, invert);
+        } else {
+            set_graph_yinvert(cg, invert);
+        }
+        }
+
+        if (data == axislabel || data == NULL) {
+            set_plotstr_string(&ot->label, GetTextString(axislabel));
+        }
+        if (data == tmajor || data == NULL) {
+            if (xv_evalexpr(tmajor, &ot->tmajor) != RETURN_SUCCESS) {
+                errmsg("Specify major tick spacing");
+                free_graph_tickmarks(ot);
                 return RETURN_FAILURE;
             }
-
-            if (data == axis_active || data == NULL) {
-                ot->active = GetToggleButtonState(axis_active);
-            } else {
-                if (!(ot->active)) {
-                    free_graph_tickmarks(ot);
-                    continue;
-                }
-            }
-
-            get_graph_world(gno, &wo);
-            if (data == axis_world_start || data == NULL) {
-                if (xv_evalexpr(axis_world_start, &axeslim) != RETURN_SUCCESS) {
-                    errmsg("Axis start/stop values undefined");
-                    free_graph_tickmarks(ot);
-                    return RETURN_FAILURE;
-                } else if (is_xaxis(j)) {
-                    wo.xg1 = axeslim;
-                } else if (is_yaxis(j)) {
-                    wo.yg1 = axeslim; 
-                }
-            }
-            if (data == axis_world_stop || data == NULL) {
-                if (xv_evalexpr(axis_world_stop, &axeslim) != RETURN_SUCCESS) {
-                    errmsg("Axis start/stop values undefined");
-                    free_graph_tickmarks(ot);
-                    return RETURN_FAILURE;
-                } else if (is_xaxis(j)) {
-                    wo.xg2 = axeslim;
-                } else if (is_yaxis(j)) {
-                    wo.yg2 = axeslim; 
-                }
-            }
-            if (data == axis_world_start || data == axis_world_stop || data == NULL) {
-                set_graph_world(gno, wo);
-            }
-            
-            if (data == axis_scale || data == NULL) {
-            scale = GetOptionChoice(axis_scale);
-            if (is_xaxis(j)) {
-                set_graph_xscale(gno, scale);
-            } else {
-                set_graph_yscale(gno, scale);
-            }
-            }
-
-            if (data == &axis_invert || data == NULL)  {
-            invert = GetToggleButtonState(axis_invert);
-            if (is_xaxis(j)) {
-                set_graph_xinvert(gno, invert);
-            } else {
-                set_graph_yinvert(gno, invert);
-            }
-            }
-            
-            if (data == axislabel || data == NULL) {
-                set_plotstr_string(&ot->label, GetTextString(axislabel));
-            }
-            if (data == tmajor || data == NULL) {
-                if (xv_evalexpr(tmajor, &ot->tmajor) != RETURN_SUCCESS) {
-                    errmsg("Specify major tick spacing");
-                    free_graph_tickmarks(ot);
-                    return RETURN_FAILURE;
-                }
-            }
-            if (data == nminor || data == NULL) {
-                ot->nminor = (int) GetSpinChoice(nminor);
-            }
-            if (data == tlform || data == NULL) {
-                ot->tl_format = GetOptionChoice(tlform);
-            }
-            if (data == tlprec || data == NULL) {
-                ot->tl_prec = GetOptionChoice(tlprec);
-            }
-            if (data == tlonoff || data == NULL) {
-                ot->tl_flag = GetToggleButtonState(tlonoff);
-            }
-            if (data == baronoff || data == NULL) {
-                ot->t_drawbar = GetToggleButtonState(baronoff);
-            }
-            if (data == tonoff || data == NULL) {
-                ot->t_flag = GetToggleButtonState(tonoff);
-            }
-            if (data == axis_zero || data == NULL) {
-                ot->zero = GetToggleButtonState(axis_zero);
-            }
-            if (data == offx || data == NULL) {
-                xv_evalexpr(offx, &ot->offsx);
-            }
-            if (data == &offy || data == NULL) {
-                xv_evalexpr(offy, &ot->offsy);
-            }
-            if (data == tlfont || data == NULL) {
-                ot->tl_font = GetOptionChoice(tlfont);
-            }
-            if (data == tlcolor || data == NULL) {
-                ot->tl_color = GetOptionChoice(tlcolor);
-            }
-            if (data == axislabelfont || data == NULL) {
-                ot->label.font = GetOptionChoice(axislabelfont);
-            }
-            if (data == axislabelcolor || data == NULL) {
-                ot->label.color = GetOptionChoice(axislabelcolor);
-            }
-            if (data == axislabelcharsize || data == NULL) {
-                ot->label.charsize = GetCharSizeChoice(axislabelcharsize);
-            }
-            if (data == axislabellayout || data == NULL) {
-                ot->label_layout = 
-                GetOptionChoice(axislabellayout)?LAYOUT_PERPENDICULAR:LAYOUT_PARALLEL;
-            }
-            if (data == axislabelop || data == NULL) {
-                ot->label_op = GetOptionChoice(axislabelop);
-            }
-            if (data == axislabelplace || data == NULL) {
-                ot->label_place = GetOptionChoice(axislabelplace);
-            }
-            if (data == axislabelspec_para || data == NULL) {
-                xv_evalexpr(axislabelspec_para, &ot->label.offset.x);
-            }
-            if (data == axislabelspec_perp || data == NULL) {
-                xv_evalexpr(axislabelspec_perp, &ot->label.offset.y);
-            }
-            if (data == barcolor || data == NULL) {
-                ot->t_drawbarcolor = GetOptionChoice(barcolor);
-            }
-            if (data == barlinew || data == NULL) {
-                ot->t_drawbarlinew = GetSpinChoice(barlinew);
-            }
-            if (data == barlines || data == NULL) {
-                ot->t_drawbarlines = GetOptionChoice(barlines);
-            }
-            if (data == tlcharsize || data == NULL) {
-                ot->tl_charsize = GetCharSizeChoice(tlcharsize);
-            }
-            if (data == tlangle || data == NULL) {
-                ot->tl_angle = GetAngleChoice(tlangle);
-            }
-            if (data == ticklop || data == NULL) {
-                ot->tl_op = GetOptionChoice(ticklop);
-            }
-            if (data == tlstagger || data == NULL) {
-                ot->tl_staggered = (int) GetOptionChoice(tlstagger);
-            }
-            if (data == tlstarttype || data == NULL) {
-                ot->tl_starttype =
-                    (int) GetOptionChoice(tlstarttype) == 0 ? TYPE_AUTO : TYPE_SPEC;
-            }
-            if (data == tlstart || data == NULL) {
-                if (ot->tl_starttype == TYPE_SPEC) {
-                    if (xv_evalexpr(tlstart, &ot->tl_start) != RETURN_SUCCESS) {
-                    errmsg("Specify tick label start");
-                        free_graph_tickmarks(ot);
-                        return RETURN_FAILURE;
-                    }
-                }
-            }
-            if (data == tlstoptype || data == NULL) {
-                ot->tl_stoptype =
-                    (int) GetOptionChoice(tlstoptype) == 0 ? TYPE_AUTO : TYPE_SPEC;
-            }
-            if (data == tlstop || data == NULL) {
-                if (ot->tl_stoptype == TYPE_SPEC) {
-                    if (xv_evalexpr(tlstop, &ot->tl_stop) != RETURN_SUCCESS) {
-                        errmsg("Specify tick label stop");
-                        free_graph_tickmarks(ot);
-                        return RETURN_FAILURE;
-                    }
-                }
-            }
-            if (data == tlskip || data == NULL) {
-                ot->tl_skip = GetOptionChoice(tlskip);
-            }
-            if (data == tlformula || data == NULL) {
-                ot->tl_formula =
-                    copy_string(ot->tl_formula, GetTextString(tlformula));
-            }
-            if (data == tlprestr || data == NULL) {
-                strcpy(ot->tl_prestr, xv_getstr(tlprestr));
-            }
-            if (data == tlappstr || data == NULL) {
-                strcpy(ot->tl_appstr, xv_getstr(tlappstr));
-            }
-            if (data == tlgaptype || data == NULL) {
-                ot->tl_gaptype = GetOptionChoice(tlgaptype);
-            }
-            if (data == tlgap_para || data == NULL) {
-                xv_evalexpr(tlgap_para, &ot->tl_gap.x);
-            }
-            if (data == tlgap_perp || data == NULL) {
-                xv_evalexpr(tlgap_perp, &ot->tl_gap.y);
-            }
-            if (data == tinout || data == NULL) {
-                switch ((int) GetOptionChoice(tinout)) {
-                case 0:
-                    ot->t_inout = TICKS_IN;
-                    break;
-                case 1:
-                    ot->t_inout = TICKS_OUT;
-                    break;
-                case 2:
-                    ot->t_inout = TICKS_BOTH;
-                    break;
-                }
-            }
-            if (data == tickop || data == NULL) {
-                ot->t_op = GetOptionChoice(tickop);
-            }
-            if (data == tround || data == NULL) {
-                ot->t_round = GetToggleButtonState(tround);
-            }
-            if (data == autonum || data == NULL) {
-                ot->t_autonum = GetOptionChoice(autonum) + 2;
-            }
-            if (data == tgrid || data == NULL) {
-                ot->props.gridflag = GetToggleButtonState(tgrid);
-            }
-            if (data == tlen || data == NULL) {
-                ot->props.size = GetCharSizeChoice(tlen);
-            }
-            if (data == tgridcol || data == NULL) {
-                ot->props.color = GetOptionChoice(tgridcol);
-            }
-            if (data == tgridlinew || data == NULL) {
-                ot->props.linew = GetSpinChoice(tgridlinew);
-            }
-            if (data == tgridlines || data == NULL) {
-                ot->props.lines = GetOptionChoice(tgridlines);
-            }
-            if (data == tmgrid || data == NULL) {
-                ot->mprops.gridflag = GetToggleButtonState(tmgrid);
-            }
-            if (data == tmlen || data == NULL) {
-                ot->mprops.size = GetCharSizeChoice(tmlen);
-            }
-            if (data == tmgridcol || data == NULL) {
-                ot->mprops.color = GetOptionChoice(tmgridcol);
-            }
-            if (data == tmgridlinew || data == NULL) {
-                ot->mprops.linew = GetSpinChoice(tmgridlinew);
-            }
-            if (data == tmgridlines || data == NULL) {
-                ot->mprops.lines = GetOptionChoice(tmgridlines);
-            }
-            if (data == specticks ||data == nspec || 
-                               data == specloc || data == NULL) {
-                ot->t_spec = GetOptionChoice(specticks);
-                /* only read special info if special ticks used */
-                if (ot->t_spec != TICKS_SPEC_NONE) {
-                    ot->nticks = (int) GetSpinChoice(nspec);
-                    /* ensure that enough tick positions have been specified */
-                    for (i = 0; i < ot->nticks; i++) {
-                        if (xv_evalexpr(specloc[i], &ot->tloc[i].wtpos) ==
-                                                            RETURN_SUCCESS) {
-                            char *cp;
-                            cp = xv_getstr(speclabel[i]);
-                            if (cp[0] == '\0') {
-                                ot->tloc[i].type = TICK_TYPE_MINOR;
-                            } else {
-                                ot->tloc[i].type = TICK_TYPE_MAJOR;
-                            }
-                            if (ot->t_spec == TICKS_SPEC_BOTH) {
-                                ot->tloc[i].label =
-                                    copy_string(ot->tloc[i].label, cp);
-                            } else {
-                                ot->tloc[i].label = 
-                                    copy_string(ot->tloc[i].label, NULL);
-                            }
-                        }
-                    } 
-                }
-            }
-            set_graph_tickmarks(gno, j, ot);
-            free_graph_tickmarks(ot);
         }
+        if (data == nminor || data == NULL) {
+            ot->nminor = (int) GetSpinChoice(nminor);
+        }
+        if (data == tlform || data == NULL) {
+            ot->tl_format = GetOptionChoice(tlform);
+        }
+        if (data == tlprec || data == NULL) {
+            ot->tl_prec = GetOptionChoice(tlprec);
+        }
+        if (data == tlonoff || data == NULL) {
+            ot->tl_flag = GetToggleButtonState(tlonoff);
+        }
+        if (data == baronoff || data == NULL) {
+            ot->t_drawbar = GetToggleButtonState(baronoff);
+        }
+        if (data == tonoff || data == NULL) {
+            ot->t_flag = GetToggleButtonState(tonoff);
+        }
+        if (data == axis_zero || data == NULL) {
+            ot->zero = GetToggleButtonState(axis_zero);
+        }
+        if (data == offx || data == NULL) {
+            xv_evalexpr(offx, &ot->offsx);
+        }
+        if (data == &offy || data == NULL) {
+            xv_evalexpr(offy, &ot->offsy);
+        }
+        if (data == tlfont || data == NULL) {
+            ot->tl_font = GetOptionChoice(tlfont);
+        }
+        if (data == tlcolor || data == NULL) {
+            ot->tl_color = GetOptionChoice(tlcolor);
+        }
+        if (data == axislabelfont || data == NULL) {
+            ot->label.font = GetOptionChoice(axislabelfont);
+        }
+        if (data == axislabelcolor || data == NULL) {
+            ot->label.color = GetOptionChoice(axislabelcolor);
+        }
+        if (data == axislabelcharsize || data == NULL) {
+            ot->label.charsize = GetCharSizeChoice(axislabelcharsize);
+        }
+        if (data == axislabellayout || data == NULL) {
+            ot->label_layout = 
+            GetOptionChoice(axislabellayout)?LAYOUT_PERPENDICULAR:LAYOUT_PARALLEL;
+        }
+        if (data == axislabelop || data == NULL) {
+            ot->label_op = GetOptionChoice(axislabelop);
+        }
+        if (data == axislabelplace || data == NULL) {
+            ot->label_place = GetOptionChoice(axislabelplace);
+        }
+        if (data == axislabelspec_para || data == NULL) {
+            xv_evalexpr(axislabelspec_para, &ot->label.offset.x);
+        }
+        if (data == axislabelspec_perp || data == NULL) {
+            xv_evalexpr(axislabelspec_perp, &ot->label.offset.y);
+        }
+        if (data == barcolor || data == NULL) {
+            ot->t_drawbarcolor = GetOptionChoice(barcolor);
+        }
+        if (data == barlinew || data == NULL) {
+            ot->t_drawbarlinew = GetSpinChoice(barlinew);
+        }
+        if (data == barlines || data == NULL) {
+            ot->t_drawbarlines = GetOptionChoice(barlines);
+        }
+        if (data == tlcharsize || data == NULL) {
+            ot->tl_charsize = GetCharSizeChoice(tlcharsize);
+        }
+        if (data == tlangle || data == NULL) {
+            ot->tl_angle = GetAngleChoice(tlangle);
+        }
+        if (data == ticklop || data == NULL) {
+            ot->tl_op = GetOptionChoice(ticklop);
+        }
+        if (data == tlstagger || data == NULL) {
+            ot->tl_staggered = (int) GetOptionChoice(tlstagger);
+        }
+        if (data == tlstarttype || data == NULL) {
+            ot->tl_starttype =
+                (int) GetOptionChoice(tlstarttype) == 0 ? TYPE_AUTO : TYPE_SPEC;
+        }
+        if (data == tlstart || data == NULL) {
+            if (ot->tl_starttype == TYPE_SPEC) {
+                if (xv_evalexpr(tlstart, &ot->tl_start) != RETURN_SUCCESS) {
+                errmsg("Specify tick label start");
+                    free_graph_tickmarks(ot);
+                    return RETURN_FAILURE;
+                }
+            }
+        }
+        if (data == tlstoptype || data == NULL) {
+            ot->tl_stoptype =
+                (int) GetOptionChoice(tlstoptype) == 0 ? TYPE_AUTO : TYPE_SPEC;
+        }
+        if (data == tlstop || data == NULL) {
+            if (ot->tl_stoptype == TYPE_SPEC) {
+                if (xv_evalexpr(tlstop, &ot->tl_stop) != RETURN_SUCCESS) {
+                    errmsg("Specify tick label stop");
+                    free_graph_tickmarks(ot);
+                    return RETURN_FAILURE;
+                }
+            }
+        }
+        if (data == tlskip || data == NULL) {
+            ot->tl_skip = GetOptionChoice(tlskip);
+        }
+        if (data == tlformula || data == NULL) {
+            ot->tl_formula =
+                copy_string(ot->tl_formula, GetTextString(tlformula));
+        }
+        if (data == tlprestr || data == NULL) {
+            strcpy(ot->tl_prestr, xv_getstr(tlprestr));
+        }
+        if (data == tlappstr || data == NULL) {
+            strcpy(ot->tl_appstr, xv_getstr(tlappstr));
+        }
+        if (data == tlgaptype || data == NULL) {
+            ot->tl_gaptype = GetOptionChoice(tlgaptype);
+        }
+        if (data == tlgap_para || data == NULL) {
+            xv_evalexpr(tlgap_para, &ot->tl_gap.x);
+        }
+        if (data == tlgap_perp || data == NULL) {
+            xv_evalexpr(tlgap_perp, &ot->tl_gap.y);
+        }
+        if (data == tinout || data == NULL) {
+            switch ((int) GetOptionChoice(tinout)) {
+            case 0:
+                ot->t_inout = TICKS_IN;
+                break;
+            case 1:
+                ot->t_inout = TICKS_OUT;
+                break;
+            case 2:
+                ot->t_inout = TICKS_BOTH;
+                break;
+            }
+        }
+        if (data == tickop || data == NULL) {
+            ot->t_op = GetOptionChoice(tickop);
+        }
+        if (data == tround || data == NULL) {
+            ot->t_round = GetToggleButtonState(tround);
+        }
+        if (data == autonum || data == NULL) {
+            ot->t_autonum = GetOptionChoice(autonum) + 2;
+        }
+        if (data == tgrid || data == NULL) {
+            ot->props.gridflag = GetToggleButtonState(tgrid);
+        }
+        if (data == tlen || data == NULL) {
+            ot->props.size = GetCharSizeChoice(tlen);
+        }
+        if (data == tgridcol || data == NULL) {
+            ot->props.color = GetOptionChoice(tgridcol);
+        }
+        if (data == tgridlinew || data == NULL) {
+            ot->props.linew = GetSpinChoice(tgridlinew);
+        }
+        if (data == tgridlines || data == NULL) {
+            ot->props.lines = GetOptionChoice(tgridlines);
+        }
+        if (data == tmgrid || data == NULL) {
+            ot->mprops.gridflag = GetToggleButtonState(tmgrid);
+        }
+        if (data == tmlen || data == NULL) {
+            ot->mprops.size = GetCharSizeChoice(tmlen);
+        }
+        if (data == tmgridcol || data == NULL) {
+            ot->mprops.color = GetOptionChoice(tmgridcol);
+        }
+        if (data == tmgridlinew || data == NULL) {
+            ot->mprops.linew = GetSpinChoice(tmgridlinew);
+        }
+        if (data == tmgridlines || data == NULL) {
+            ot->mprops.lines = GetOptionChoice(tmgridlines);
+        }
+        if (data == specticks ||data == nspec || 
+                           data == specloc || data == NULL) {
+            ot->t_spec = GetOptionChoice(specticks);
+            /* only read special info if special ticks used */
+            if (ot->t_spec != TICKS_SPEC_NONE) {
+                ot->nticks = (int) GetSpinChoice(nspec);
+                /* ensure that enough tick positions have been specified */
+                for (i = 0; i < ot->nticks; i++) {
+                    if (xv_evalexpr(specloc[i], &ot->tloc[i].wtpos) ==
+                                                        RETURN_SUCCESS) {
+                        char *cp;
+                        cp = xv_getstr(speclabel[i]);
+                        if (cp[0] == '\0') {
+                            ot->tloc[i].type = TICK_TYPE_MINOR;
+                        } else {
+                            ot->tloc[i].type = TICK_TYPE_MAJOR;
+                        }
+                        if (ot->t_spec == TICKS_SPEC_BOTH) {
+                            ot->tloc[i].label =
+                                copy_string(ot->tloc[i].label, cp);
+                        } else {
+                            ot->tloc[i].label = 
+                                copy_string(ot->tloc[i].label, NULL);
+                        }
+                    }
+                } 
+            }
+        }
+        set_graph_tickmarks(cg, j, ot);
+        free_graph_tickmarks(ot);
     }
     
     xdrawgraph();
@@ -973,7 +953,7 @@ static void axis_scale_cb(int value, void *data)
  * Fill 'Axes' dialog with values
  */
 
-void update_ticks(int gno)
+void update_ticks(Quark *gr)
 {
     tickmarks *t;
     world w;
@@ -981,13 +961,13 @@ void update_ticks(int gno)
     int i;
 
     if (axes_dialog && XtIsManaged(axes_dialog)) {
-        t = get_graph_tickmarks(gno, curaxis);
+        t = get_graph_tickmarks(gr, curaxis);
         if (!t) {
             return;
         }
 
-        SetToggleButtonState(axis_active, is_axis_active(gno, curaxis));
-        if (is_axis_active(gno, curaxis) == FALSE) {
+        SetToggleButtonState(axis_active, is_axis_active(t));
+        if (is_axis_active(t) == FALSE) {
             SetSensitive(axes_tab, False);
         } else {
             SetSensitive(axes_tab, True);
@@ -995,23 +975,23 @@ void update_ticks(int gno)
 
         SetOptionChoice(editaxis, curaxis);
 
-        SetToggleButtonState(axis_zero, is_zero_axis(gno, curaxis));
+        SetToggleButtonState(axis_zero, is_zero_axis(t));
 
-        get_graph_world(gno, &w);
+        get_graph_world(gr, &w);
         if (is_xaxis(curaxis)) {
             sprintf(buf, "%.9g", w.xg1);
             xv_setstr(axis_world_start, buf);
             sprintf(buf, "%.9g", w.xg2);
             xv_setstr(axis_world_stop, buf);
-            SetOptionChoice(axis_scale, get_graph_xscale(gno));
-            SetToggleButtonState(axis_invert, is_graph_xinvert(gno));
+            SetOptionChoice(axis_scale, get_graph_xscale(gr));
+            SetToggleButtonState(axis_invert, is_graph_xinvert(gr));
         } else {
             sprintf(buf, "%.9g", w.yg1);
             xv_setstr(axis_world_start, buf);
             sprintf(buf, "%.9g", w.yg2);
             xv_setstr(axis_world_stop, buf);
-            SetOptionChoice(axis_scale, get_graph_yscale(gno));
-            SetToggleButtonState(axis_invert, is_graph_yinvert(gno));
+            SetOptionChoice(axis_scale, get_graph_yscale(gr));
+            SetToggleButtonState(axis_invert, is_graph_yinvert(gr));
         }
 
         sprintf(buf, "%.2f", t->offsx);
@@ -1036,12 +1016,12 @@ void update_ticks(int gno)
         SetToggleButtonState(baronoff, t->t_drawbar);
         SetTextString(axislabel, t->label.s);
 
-        if (is_log_axis(gno, curaxis)) {
+        if (is_log_axis(gr, curaxis)) {
             if (t->tmajor <= 1.0) {
                 t->tmajor = 10.0;
             }
             sprintf(buf, "%g", t->tmajor);	    
-        } else if (is_logit_axis(gno, curaxis)) {
+        } else if (is_logit_axis(gr, curaxis)) {
 	    if (t->tmajor <= 0.0) {
                 t->tmajor = 0.1;
             }
@@ -1127,7 +1107,7 @@ void update_ticks(int gno)
         SetOptionChoice(specticks, t->t_spec);
         SetSpinChoice(nspec, t->nticks);
         for (i = 0; i < t->nticks; i++) {
-            sprintf(buf, "%g", t->tloc[i].wtpos);
+            sprintf(buf, "%.9g", t->tloc[i].wtpos);
             xv_setstr(specloc[i], buf);
             if (t->tloc[i].type == TICK_TYPE_MAJOR) {
                 xv_setstr(speclabel[i], t->tloc[i].label);
@@ -1146,7 +1126,7 @@ static void set_active_proc(int onoff, void *data)
 
 static void set_axis_proc(int value, void *data)
 {
-    int cg = get_cg();
+    Quark *cg = graph_get_current(grace->project);
     curaxis = value;
     update_ticks(cg);
 }

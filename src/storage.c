@@ -564,13 +564,16 @@ int storage_move(Storage *sto, int forward)
     }
 }
 
-void *storage_duplicate(Storage *sto, int id)
+void *storage_duplicate(Storage *sto)
 {
-    void *data, *data_new;
+    void *data_new;
+
+    STORAGE_SAFETY_CHECK(sto, return NULL)
     
-    if (storage_get_data_by_id(sto, id, &data) != RETURN_SUCCESS) {
+    if (!sto->cp) {
         return NULL;
     } else {
+        void *data = sto->cp->data;
         data_new = sto->data_copy(data);
         if (data && !data_new) {
             sto->ierrno = STORAGE_ENOMEM;
@@ -863,6 +866,15 @@ int storage_get_data_by_id(Storage *sto, int id, void **datap)
 int storage_delete_by_id(Storage *sto, int id)
 {
     if (storage_scroll_to_id(sto, id) == RETURN_SUCCESS) {
+        return storage_delete(sto);
+    } else {
+        return RETURN_FAILURE;
+    }
+}
+
+int storage_delete_by_data(Storage *sto, void *data)
+{
+    if (storage_scroll_to_data(sto, data) == RETURN_SUCCESS) {
         return storage_delete(sto);
     } else {
         return RETURN_FAILURE;

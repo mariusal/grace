@@ -40,6 +40,7 @@
 
 #include "mbitmaps.h"
 
+#include "globals.h"
 #include "graphutils.h"
 #include "utils.h"
 #include "motifinc.h"
@@ -52,8 +53,8 @@ static Widget overlay_dialog = NULL;
  * Panel item declarations
  */
 
-static ListStructure *graph_overlay1_choice_item;
-static ListStructure *graph_overlay2_choice_item;
+static StorageStructure *graph_overlay1_choice_item;
+static StorageStructure *graph_overlay2_choice_item;
 static OptionStructure *graph_overlaytype_item;
 
 static int define_arrange_proc(void *data);
@@ -62,7 +63,7 @@ static int define_autos_proc(void *data);
 
 typedef struct _Arrange_ui {
     Widget top;
-    ListStructure *graphs;
+    StorageStructure *graphs;
     SpinStructure *nrows;
     SpinStructure *ncols;
     OptionStructure *order;
@@ -86,7 +87,8 @@ typedef struct _Arrange_ui {
 static int define_arrange_proc(void *data)
 {
     Arrange_ui *ui = (Arrange_ui *) data;
-    int ngraphs, *graphs;
+    int ngraphs;
+    Quark **graphs;
     int nrows, ncols, order, snake;
     int hpack, vpack, add, kill;
     double toff, loff, roff, boff, vgap, hgap;
@@ -98,7 +100,7 @@ static int define_arrange_proc(void *data)
 	return RETURN_FAILURE;
     }
     
-    ngraphs = GetListChoices(ui->graphs, &graphs);
+    ngraphs = GetStorageChoices(ui->graphs, (void ***) &graphs);
     if (ngraphs == 0) {
         graphs = NULL;
     }
@@ -122,15 +124,15 @@ static int define_arrange_proc(void *data)
 
     if (add && ngraphs < nrows*ncols) {
         int i;
-        graphs = xrealloc(graphs, nrows*ncols*SIZEOF_INT);
-        for (i = number_of_graphs(); ngraphs < nrows*ncols; ngraphs++, i++) {
-            graphs[ngraphs] = i;
+        graphs = xrealloc(graphs, nrows*ncols*sizeof(Quark *));
+        for (i = number_of_graphs(grace->project); ngraphs < nrows*ncols; ngraphs++, i++) {
+            graphs[ngraphs] = graph_new(grace->project);
         }
     }
     
     if (kill && ngraphs > nrows*ncols) {
         for (; ngraphs > nrows*ncols; ngraphs--) {
-            kill_graph(graphs[ngraphs - 1]);
+            quark_free(graphs[ngraphs - 1]);
         }
     }
     
@@ -141,7 +143,7 @@ static int define_arrange_proc(void *data)
     
     update_all();
     
-    SelectListChoices(ui->graphs, ngraphs, graphs);
+    SelectStorageChoices(ui->graphs, ngraphs, (void **) graphs);
     xfree(graphs);
     
     xdrawgraph();
@@ -259,15 +261,15 @@ void create_arrange_frame(void *data)
  */
 static int define_overlay_proc(void *data)
 {
-    int g1, g2;
+    Quark *g1, *g2;
     int type = GetOptionChoice(graph_overlaytype_item);
     
-    if (GetSingleListChoice(graph_overlay1_choice_item, &g1) != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(graph_overlay1_choice_item, (void **) &g1) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
 	return RETURN_FAILURE;
     }
     
-    if (GetSingleListChoice(graph_overlay2_choice_item, &g2) != RETURN_SUCCESS) {
+    if (GetSingleStorageChoice(graph_overlay2_choice_item, (void **) &g2) != RETURN_SUCCESS) {
 	errmsg("Please select a single graph");
 	return RETURN_FAILURE;
     }
@@ -330,16 +332,17 @@ void create_overlay_frame(void *data)
  */
 typedef struct _Auto_ui {
     Widget top;
-    ListStructure *sel;
+    StorageStructure *sel;
     OptionStructure *astype;
 } Auto_ui;
 
 static int define_autos_proc(void *data)
 {
-    int astype, nsets, *sids, gno = get_cg();
+    int astype, nsets;
     Auto_ui *ui = (Auto_ui *) data;
+    Quark **sets;
     
-    nsets = GetListChoices(ui->sel, &sids);
+    nsets = GetStorageChoices(ui->sel, (void ***) &sets);
     if (nsets <= 0) {
         errmsg("No sets selected");
         return RETURN_FAILURE;
@@ -347,9 +350,9 @@ static int define_autos_proc(void *data)
 
     astype = GetOptionChoice(ui->astype);
     
-    autoscale_bysets(gno, sids, nsets, astype);
+    autoscale_bysets(sets, nsets, astype);
     
-    xfree(sids);
+    xfree(sets);
     
     update_all();
     xdrawgraph();
@@ -371,7 +374,7 @@ void create_autos_frame(void *data)
         aui->top = CreateDialogForm(app_shell, "Autoscale graph");
 
 	rc = CreateVContainer(aui->top);
-        aui->sel = CreateSetChoice(rc, "Use sets:", LIST_TYPE_MULTIPLE, TRUE);
+        aui->sel = CreateSetChoice(rc, "Use sets:", LIST_TYPE_MULTIPLE, NULL);
         aui->astype = CreateASChoice(rc, "Autoscale type:");
 
 	CreateAACDialog(aui->top, rc, define_autos_proc, aui);

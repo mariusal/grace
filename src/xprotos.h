@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -55,8 +55,8 @@ void slide_region(view bbox, int shift_x, int shift_y, int erase);
 void reset_crosshair(void);
 void crosshair_motion(int x, int y);
 
-void draw_focus(int gno);
-void switch_current_graph(int gto);
+void draw_focus(Quark *gr);
+void switch_current_graph(Quark *gr);
 
 char *display_name(void);
 
@@ -73,7 +73,7 @@ void create_saveproject_popup(void);
 void create_openproject_popup(void);
 void do_hotupdate_proc(void *data);
 
-void create_eblock_frame(int gno);
+void create_eblock_frame(Quark *gr);
 
 void create_printer_setup(void *data);
 
@@ -110,15 +110,15 @@ void define_region(int nr, int rtype);
 void define_status_popup(void *data);
 void create_about_grtool(void *data);
 
-void update_set_lists(int gno);
+void update_set_lists(Quark *gr);
 
-void updatesymbols(int gno, int value);
-void updatelegends(int gno);
-void update_view(int gno);
+void updatesymbols(Quark *pset);
+void updatelegends(Quark *gr);
+void update_view(Quark *gr);
 
 void define_symbols_popup(void *data);
 
-void update_ticks(int gno);
+void update_ticks(Quark *gr);
 void create_axes_dialog(int axisno);
 void create_axes_dialog_cb(void *data);
 
@@ -130,12 +130,12 @@ void create_overlay_frame(void *data);
 void create_autos_frame(void *data);
 
 void define_objects_popup(void *data);
-void object_edit_popup(graph *g, int id);
+void object_edit_popup(Quark *gr, int id);
 
-void update_locator_items(int gno);
+void update_locator_items(Quark *gr);
 void create_locator_frame(void *data);
 
-void create_graphapp_frame(int gno);
+void create_graphapp_frame(Quark *gr);
 void create_graphapp_frame_cb(void *data);
 
 void create_monitor_frame_cb(void *data);
@@ -177,11 +177,11 @@ void create_setop_popup(void *data);
 void create_featext_frame(void *data);
 void create_cumulative_frame(void *data);
 
-void create_ss_frame(int gno, int setno);
-void update_ss_editors(int gno);
-void do_ext_editor(int gno, int setno);
+void create_ss_frame(Quark *pset);
+void update_ss_editors(Quark *gr);
+void do_ext_editor(Quark *pset);
 
-void set_graph_selectors(int gno);
+void set_graph_selectors(Quark *gr);
 
 void update_props_items(void);
 void update_all(void);

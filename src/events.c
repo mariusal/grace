@@ -95,6 +95,7 @@ void anchor_point(int curx, int cury, VPoint curvp)
 
 void my_proc(Widget parent, XtPointer data, XEvent *event)
 {
+#if 0
     char keybuf;
     KeySym keys;
     XComposeStatus compose;
@@ -105,7 +106,8 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     VPoint vp;
     VVector shift;
     view v;
-    int cg, newg, loc;
+    int loc;
+    Quark *cg, *newg;
     int track_setno;
     static int track_loc;
     int add_at;
@@ -114,10 +116,9 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     Datapoint dpoint;
     GLocator locator;
     DObject *o;
-    graph *g;
+    Quark *g;
     
-    cg = get_cg();
-    g = graph_get(cg);
+    g = graph_get_current(grace->project);
     get_tracking_props(&track_setno, &move_dir, &add_at);
     
     switch (event->type) {
@@ -131,7 +132,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
         getpoints(&vp);
 
         if (grace->gui->focus_policy == FOCUS_FOLLOWS) {
-            if ((newg = next_graph_containing(-1, vp)) != cg) {
+            if ((newg = next_graph_containing(NULL, vp)) != cg) {
                 switch_current_graph(newg);
                 cg = newg;
             }
@@ -230,7 +231,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
 		v.yv1 = MIN2(vp.y, anchor_vp.y);
 		v.xv2 = MAX2(vp.x, anchor_vp.x);
 		v.yv2 = MAX2(vp.y, anchor_vp.y);
-                set_graph_viewport(cg, v);
+                set_graph_viewport(cg, &v);
                 update_view(cg);
 		xdrawgraph();
                 break;
@@ -560,6 +561,7 @@ void my_proc(Widget parent, XtPointer data, XEvent *event)
     default:
 	break;
     }
+#endif
 }
 
 
@@ -774,27 +776,28 @@ void set_action(CanvasAction act)
 }
 
 
-void track_point(int gno, int setno, int *loc, int shift)
+void track_point(Quark *pset, int *loc, int shift)
 {
+#if 0
     int len;
     double *xtmp, *ytmp;
     WPoint wp;
     VPoint vp;
     world w;
     
-    if ((len = getsetlength(gno, setno)) > 0) {
+    if ((len = getsetlength(pset)) > 0) {
         *loc += shift;
         if (*loc < 0) {
             *loc += len;
         } else {
             *loc = *loc % len;
         }
-        xtmp = getx(gno, setno);
-        ytmp = gety(gno, setno);
+        xtmp = getx(pset);
+        ytmp = gety(pset);
         wp.x = xtmp[*loc];
         wp.y = ytmp[*loc];
        
-        get_graph_world(gno, &w);
+        get_graph_world(gr, &w);
         wp.x = MAX2(wp.x, w.xg1);
         wp.x = MIN2(wp.x, w.xg2);
         wp.y = MAX2(wp.y, w.yg1);
@@ -802,8 +805,9 @@ void track_point(int gno, int setno, int *loc, int shift)
         vp = Wpoint2Vpoint(wp);
         setpointer(vp);
 
-        update_point_locator(gno, setno, *loc);
+        update_point_locator(pset, *loc);
     }
+#endif
 }
 
 
@@ -822,6 +826,7 @@ static char *typestr[6] = {"X, Y",
  */
 void getpoints(VPoint *vpp)
 {
+#if 0
     static VPoint vp = {0.0, 0.0};
     int cg = get_cg();
     double wx, wy, xtmp, ytmp;
@@ -895,6 +900,7 @@ void getpoints(VPoint *vpp)
     sprintf(buf, "G%1d: %s = [%s, %s]", cg, typestr[locator.pt_type], bufx, bufy);
 
     SetLabel(loclab, buf);
+#endif
 }
 
 
@@ -937,8 +943,9 @@ void do_select_region(void)
  * Given the graph gno, find the graph that contains
  * (wx, wy). Used for setting the graph focus.
  */
-int next_graph_containing(int cg, VPoint vp)
+Quark *next_graph_containing(Quark *cg, VPoint vp)
 {
+#if 0
     int gno, next = cg;
     view v;
     Storage *graphs = project_get_graphs(grace->project);
@@ -951,10 +958,10 @@ int next_graph_containing(int cg, VPoint vp)
     }
 
     while (storage_scroll(graphs, 1, TRUE) == RETURN_SUCCESS &&
-           (gno = storage_get_id(graphs)) >= 0  &&
+           (gr = storage_get_id(graphs)) >= 0  &&
            gno != cg) {
-	if (is_graph_hidden(gno)        == FALSE &&
-            get_graph_viewport(gno, &v) == RETURN_SUCCESS &&
+	if (is_graph_hidden(gr)        == FALSE &&
+            get_graph_viewport(gr, &v) == RETURN_SUCCESS &&
             is_vpoint_inside(&v, &vp, MAXPICKDIST) == TRUE) {
 	    
             next = gno;
@@ -963,14 +970,17 @@ int next_graph_containing(int cg, VPoint vp)
     }
 
     return next;
+#else
+    return NULL;
+#endif
 }
 
-int legend_clicked(int gno, VPoint vp, view *bb)
+int legend_clicked(Quark *gr, VPoint vp, view *bb)
 {
     legend *l;
 
-    if (is_graph_hidden(gno) == FALSE) {
-        l = get_graph_legend(gno);
+    if (is_graph_hidden(gr) == FALSE) {
+        l = get_graph_legend(gr);
 	if (l && l->active && is_vpoint_inside(&l->bb, &vp, MAXPICKDIST)) {
 	    *bb = l->bb;
             return TRUE;
@@ -982,12 +992,12 @@ int legend_clicked(int gno, VPoint vp, view *bb)
     }
 }
 
-int graph_clicked(int gno, VPoint vp)
+int graph_clicked(Quark *gr, VPoint vp)
 {
     view v;
 
-    if (is_graph_hidden(gno) == FALSE) {
-        get_graph_viewport(gno, &v);
+    if (is_graph_hidden(gr) == FALSE) {
+        get_graph_viewport(gr, &v);
 	if (is_vpoint_inside(&v, &vp, MAXPICKDIST)) {
             return TRUE;
 	} else {
@@ -998,14 +1008,14 @@ int graph_clicked(int gno, VPoint vp)
     }
 }
 
-int focus_clicked(int cg, VPoint vp, VPoint *avp)
+int focus_clicked(Quark *gr, VPoint vp, VPoint *avp)
 {
     view v;
     
-    if (is_graph_hidden(cg) == TRUE) {
+    if (is_graph_hidden(gr) == TRUE) {
         return FALSE;
     }
-    if (get_graph_viewport(cg, &v) != RETURN_SUCCESS) {
+    if (get_graph_viewport(gr, &v) != RETURN_SUCCESS) {
         return FALSE;
     }
 
@@ -1030,15 +1040,15 @@ int focus_clicked(int cg, VPoint vp, VPoint *avp)
     }
 }
 
-int axis_clicked(int gno, VPoint vp, int *axisno)
+int axis_clicked(Quark *gr, VPoint vp, int *axisno)
 {
     view v;
     
     /* TODO: check for offsets, zero axes, polar graphs */
-    if (is_graph_hidden(gno) == TRUE) {
+    if (is_graph_hidden(gr) == TRUE) {
         return FALSE;
     } else {
-        get_graph_viewport(gno, &v);
+        get_graph_viewport(gr, &v);
         if (vp.x >= v.xv1 && vp.x <= v.xv2 &&
             (fabs(vp.y - v.yv1) < MAXPICKDIST ||
              fabs(vp.y - v.yv2) < MAXPICKDIST)) {
@@ -1055,15 +1065,15 @@ int axis_clicked(int gno, VPoint vp, int *axisno)
     }
 }
 
-int title_clicked(int gno, VPoint vp)
+int title_clicked(Quark *gr, VPoint vp)
 {
     view v;
     
     /* a rude check; TODO: use right offsets */
-    if (is_graph_hidden(gno) == TRUE) {
+    if (is_graph_hidden(gr) == TRUE) {
         return FALSE;
     } else {
-        get_graph_viewport(gno, &v);
+        get_graph_viewport(gr, &v);
         if (vp.x >= v.xv1 && vp.x <= v.xv2 &&
             vp.y > v.yv2 && vp.y < v.yv2 + 0.1) {
             return TRUE;
@@ -1076,8 +1086,9 @@ int title_clicked(int gno, VPoint vp)
 /*
  * locate a point and the set the point is in
  */
-int find_point(int gno, VPoint vp, int *setno, int *loc)
+int find_point(Quark *gr, VPoint vp, Quark **pset, int *loc)
 {
+#if 0
     int i, nsets, j, found;
     double *xtmp, *ytmp;
     WPoint wptmp;
@@ -1085,15 +1096,15 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
     double dist, mindist = MAXPICKDIST;
     int locked;
 
-    if (is_valid_gno(gno) != TRUE) {
+    if (is_valid_gno(gr) != TRUE) {
         return RETURN_FAILURE;
     }
         
-    if (is_valid_setno(gno, *setno)) {
+    if (pset) {
         nsets = 1;
         locked = TRUE;
     } else {
-        nsets = number_of_sets(gno);
+        nsets = number_of_sets(gr);
         locked = FALSE;
     }
     found = FALSE;
@@ -1104,10 +1115,10 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
         } else {
             setno1 = i;
         }
-        if (is_set_hidden(gno, setno1) == FALSE) {
-	    xtmp = getx(gno, setno1);
-	    ytmp = gety(gno, setno1);
-	    for (j = 0; j < getsetlength(gno, setno1); j++) {
+        if (is_set_hidden(pset1) == FALSE) {
+	    xtmp = getx(pset1);
+	    ytmp = gety(pset1);
+	    for (j = 0; j < getsetlength(pset1); j++) {
 		wptmp.x = xtmp[j];
 		wptmp.y = ytmp[j];
                 vptmp = Wpoint2Vpoint(wptmp);
@@ -1126,12 +1137,15 @@ int find_point(int gno, VPoint vp, int *setno, int *loc)
     if (found == FALSE) {
         return RETURN_FAILURE;
     } else {
-        update_point_locator(gno, *setno, *loc);
+        update_point_locator(gr, *setno, *loc);
         return RETURN_SUCCESS;
     }
+#else
+    return RETURN_FAILURE;
+#endif
 }
 
-int find_insert_location(int gno, int setno, VPoint vp)
+int find_insert_location(Quark *pset, VPoint vp)
 {
     int j, loc = -1;
     double *xtmp, *ytmp;
@@ -1139,11 +1153,11 @@ int find_insert_location(int gno, int setno, VPoint vp)
     VPoint vp1, vp2;
     double dist, mindist = 1.0;
     
-    if (is_valid_setno(gno, setno) == TRUE) {
-        if (is_set_hidden(gno, setno) == FALSE) {
-            xtmp = getx(gno, setno);
-            ytmp = gety(gno, setno);
-            for (j = 0; j < getsetlength(gno, setno) - 1; j++) {
+    if (pset) {
+        if (is_set_hidden(pset) == FALSE) {
+            xtmp = getx(pset);
+            ytmp = gety(pset);
+            for (j = 0; j < getsetlength(pset) - 1; j++) {
                 wptmp.x = xtmp[j];
                 wptmp.y = ytmp[j];
                 vp1 = Wpoint2Vpoint(wptmp);
@@ -1168,8 +1182,9 @@ int find_insert_location(int gno, int setno, VPoint vp)
 /*
  * find object containing vp inside its bb
  */
-int find_item(graph *g, VPoint vp, view *bb, int *id)
+int find_item(Quark *gr, VPoint vp, view *bb, int *id)
 {
+    graph *g = (graph *) gr->data;
     Storage *objects;
     DObject *o;
     int i, n;
@@ -1205,7 +1220,7 @@ int find_item(graph *g, VPoint vp, view *bb, int *id)
  * for zooms
  *
  */
-void newworld(int gno, int axes, VPoint vp1, VPoint vp2)
+void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2)
 {
     world w, wtmp;
 
@@ -1228,8 +1243,8 @@ void newworld(int gno, int axes, VPoint vp1, VPoint vp2)
         fswap(&w.yg1, &w.yg2);
     }
 
-    if (is_graph_active(gno)) {
-        get_graph_world(gno, &wtmp);
+    if (is_graph_active(gr)) {
+        get_graph_world(gr, &wtmp);
         switch (axes) {
         case ALL_AXES:
             wtmp.xg1 = w.xg1;
@@ -1249,22 +1264,22 @@ void newworld(int gno, int axes, VPoint vp1, VPoint vp2)
             return;
             break;
         }
-        set_graph_world(gno, wtmp);
-        autotick_axis(gno, axes);
+        set_graph_world(gr, &wtmp);
+        autotick_axis(gr, axes);
         xdrawgraph();
     }
 }
 
-void switch_current_graph(int gno)
+void switch_current_graph(Quark *gr)
 {
-    int saveg = get_cg();
+    Quark *cg = graph_get_current(grace->project);
     
-    if (is_graph_hidden(gno) == FALSE) {
-        select_graph(gno);
-        draw_focus(saveg);
-        draw_focus(gno);
+    if (is_graph_hidden(gr) == FALSE) {
+        select_graph(gr);
+        draw_focus(cg);
+        draw_focus(gr);
         update_all();
-        set_graph_selectors(gno);
+        set_graph_selectors(gr);
         getpoints(NULL);
     }
 }
@@ -1274,7 +1289,7 @@ void switch_current_graph(int gno)
 /* canvas_actions */
 void autoscale_action(Widget w, XKeyEvent *e, String *p, Cardinal *c)
 {
-    int cg = get_cg();
+    Quark *cg = graph_get_current(grace->project);
     
     autoscale_graph(cg, AUTOSCALE_XY);
     update_ticks(cg);
@@ -1353,9 +1368,11 @@ void enable_zoom_action( Widget w, XKeyEvent *e, String *p, Cardinal *c )
  */
 void push_and_zoom(void)
 {
+#if 0
     push_world();
     set_action(DO_NOTHING);
     set_action(ZOOM_1ST);
+#endif
 }
 
 /*
@@ -1363,6 +1380,7 @@ void push_and_zoom(void)
  */
 void do_hotupdate_proc(void *data)
 {
+#if 0
     int setno;
     int gno = get_cg();
     int nsets;
@@ -1370,13 +1388,14 @@ void do_hotupdate_proc(void *data)
     set_wait_cursor();
 
     /* do links */
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     for (setno = 0; setno < nsets; setno++) {
-        if (is_hotlinked(gno, setno)) {
-            do_update_hotlink(gno, setno);
+        if (is_hotlinked(pset)) {
+            do_update_hotlink(pset);
         }
     }
 
     unset_wait_cursor();
     xdrawgraph();
+#endif
 }

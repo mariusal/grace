@@ -347,13 +347,44 @@ int insert_data_row(ss_data *ssd, int row, char *s)
     return RETURN_SUCCESS;
 }
 
+/*
+ * return the next available set in graph gr
+ * If target is allocated but with no data, choose it (used for loading sets
+ * from project files when sets aren't packed)
+ */
+Quark *nextset(Quark *gr)
+{
+    Quark *pset;
+    
+    if (!gr) {
+        return NULL;
+    }
+    
+    pset = grace->rt->target_set;
+    
+    if (pset && pset->parent == gr && !is_set_active(pset)) {
+        grace->rt->target_set = NULL;
+        return pset;
+    } else {
+        int i, nsets;
+        
+        nsets = number_of_sets(gr);
+        for (i = 0; i < nsets; i++) {
+            pset = set_get(gr, i);
+            if (!is_set_active(pset) == TRUE) {
+	        return pset;
+	    }
+        }
+        return set_new(gr);
+    }
+}
 
 int store_data(ss_data *ssd, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
     double *xdata;
-    int gno, setno;
+    Quark *gr, *pset;
     int x_from_index;
     
     if (ssd == NULL) {
@@ -373,8 +404,8 @@ int store_data(ss_data *ssd, int load_type)
     }
     nscols = ncols - nncols;
     
-    gno = get_parser_gno();
-    if (is_valid_gno(gno) != TRUE) {
+    gr = get_parser_gno();
+    if (!gr) {
         return RETURN_FAILURE;
     }
     
@@ -395,8 +426,8 @@ int store_data(ss_data *ssd, int load_type)
 	    return RETURN_FAILURE;
         }
 
-        setno = nextset(gno);
-        set_dataset_type(gno, setno, grace->rt->curtype);
+        pset = nextset(gr);
+        set_dataset_type(pset, grace->rt->curtype);
 
         nncols = 0;
         if (x_from_index) {
@@ -404,19 +435,19 @@ int store_data(ss_data *ssd, int load_type)
             if (xdata == NULL) {
                 free_ss_data(ssd);
             }
-            setcol(gno, setno, nncols, xdata, nrows);
+            setcol(pset, nncols, xdata, nrows);
             nncols++;
         }
         for (j = 0; j < ncols; j++) {
             if (ssd->formats[j] == FFORMAT_STRING) {
-                set_set_strings(gno, setno, nrows, (char **) ssd->data[j]);
+                set_set_strings(pset, nrows, (char **) ssd->data[j]);
             } else {
-                setcol(gno, setno, nncols, (double *) ssd->data[j], nrows);
+                setcol(pset, nncols, (double *) ssd->data[j], nrows);
                 nncols++;
             }
         }
-        if (!getcomment(gno, setno)) {
-            setcomment(gno, setno, ssd->label);
+        if (!getcomment(pset)) {
+            setcomment(pset, ssd->label);
         }
         
         XCFREE(ssd->data);
@@ -429,8 +460,8 @@ int store_data(ss_data *ssd, int load_type)
         }
         
         for (i = 0; i < ncols - 1; i++) {
-            setno = nextset(gno);
-            if (setno == -1) {
+            pset = set_new(gr);
+            if (!pset) {
                 free_ss_data(ssd);
                 return RETURN_FAILURE;
             }
@@ -442,10 +473,10 @@ int store_data(ss_data *ssd, int load_type)
             } else {
                 xdata = (double *) ssd->data[0];
             }
-            set_dataset_type(gno, setno, SET_XY);
-            setcol(gno, setno, DATA_X, xdata, nrows);
-            setcol(gno, setno, DATA_Y, (double *) ssd->data[i + 1], nrows);
-            setcomment(gno, setno, ssd->label);
+            set_dataset_type(pset, SET_XY);
+            setcol(pset, DATA_X, xdata, nrows);
+            setcol(pset, DATA_Y, (double *) ssd->data[i + 1], nrows);
+            setcomment(pset, ssd->label);
         }
     
         XCFREE(ssd->data);
@@ -537,7 +568,7 @@ char *cols_to_field_string(int nc, int *cols, int scol)
     return s;
 }
 
-int create_set_fromblock(int gno, int setno,
+int create_set_fromblock(Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale)
 {
     int i, ncols, blockncols, blocklen, column;
@@ -574,21 +605,10 @@ int create_set_fromblock(int gno, int setno,
 	return RETURN_FAILURE;
     }
     
-    if (setno == NEW_SET) {
-        setno = nextset(gno);
-        if (setno == -1) {
-            return RETURN_FAILURE;
-        }
-    }
-    
     /* clear data stored in the set, if any */
-    killsetdata(gno, setno);
+    killsetdata(pset);
     
-    if (activateset(gno, setno) != RETURN_SUCCESS) {
-        return RETURN_FAILURE;
-    }
-    
-    set_dataset_type(gno, setno, type);
+    set_dataset_type(pset, type);
 
     for (i = 0; i < nc; i++) {
         column = coli[i];
@@ -599,34 +619,34 @@ int create_set_fromblock(int gno, int setno,
                 cdata = copy_data_column((double *) blockdata.data[column], blocklen);
             } else {
                 errmsg("Tried to read doubles from strings!");
-                killsetdata(gno, setno);
+                killsetdata(pset);
                 return RETURN_FAILURE;
             }
         }
         if (cdata == NULL) {
-            killsetdata(gno, setno);
+            killsetdata(pset);
             return RETURN_FAILURE;
         }
-        setcol(gno, setno, i, cdata, blocklen);
+        setcol(pset, i, cdata, blocklen);
     }
 
     /* strings, if any */
     if (scol >= 0) {
         if (blockdata.formats[scol] != FFORMAT_STRING) {
             errmsg("Tried to read strings from doubles!");
-            killsetdata(gno, setno);
+            killsetdata(pset);
             return RETURN_FAILURE;
         } else {
-            set_set_strings(gno, setno, blocklen,
+            set_set_strings(pset, blocklen,
                 copy_string_column((char **) blockdata.data[scol], blocklen));
         }
     }
 
     sprintf(buf, "%s, cols %s",
         blockdata.label, cols_to_field_string(nc, coli, scol));
-    setcomment(gno, setno, buf);
+    setcomment(pset, buf);
 
-    autoscale_graph(gno, autoscale);
+    autoscale_graph(pset->parent, autoscale);
 
     return RETURN_SUCCESS;
 }

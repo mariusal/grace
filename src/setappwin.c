@@ -44,7 +44,7 @@
 #include "motifinc.h"
 #include "protos.h"
 
-#define cg get_cg()
+#define cg graph_get_current(grace->project)
 
 #define SETAPP_STRIP_LEGENDS    0
 #define SETAPP_LOAD_COMMENTS    1
@@ -57,7 +57,7 @@
 #define CSYNC_LINE      0
 #define CSYNC_SYM       1
 
-static int cset = 0;            /* the current set from the symbols panel */
+static Quark *cset = NULL;      /* the current set from the symbols panel */
 
 static Widget setapp_dialog = NULL;
 
@@ -86,7 +86,7 @@ static OptionStructure *toggle_filltype_item;
 static OptionStructure *toggle_fillrule_item;
 static OptionStructure *toggle_fillpat_item;
 static OptionStructure *toggle_fillcol_item;
-static ListStructure *toggle_symset_item;
+static StorageStructure *toggle_symset_item;
 static Widget baseline_item;
 static OptionStructure *baselinetype_item;
 
@@ -120,8 +120,8 @@ static Widget avalue_appstr;
 static Widget csync_item;
 static Widget instantupdate_item;
 
-static void UpdateSymbols(int gno, int value);
-static void set_cset_proc(int n, int *values, void *data);
+static void UpdateSymbols(Quark *pset);
+static void set_cset_proc(int n, void **values, void *data);
 static int setapp_aac_cb(void *data);
 static void setapp_data_proc(void *data);
 static void csync_cb(int value, void *data);
@@ -155,13 +155,13 @@ static void text_setapp_cb(char *s, void *data)
  */
 void define_symbols_popup(void *data)
 {
-    int setno;
+    Quark *pset;
     
     set_wait_cursor();
     
-    setno = (int)data;
-    if (is_valid_setno(cg, setno)== TRUE) {
-        cset = setno;
+    pset = (Quark *) data;
+    if (pset) {
+        cset = pset;
     }
     
     if (setapp_dialog == NULL) {
@@ -209,9 +209,9 @@ void define_symbols_popup(void *data)
             setapp_dialog, "doc/UsersGuide.html#set-appearance");
         
         toggle_symset_item = CreateSetChoice(setapp_dialog, "Select set:",
-                                                LIST_TYPE_MULTIPLE, TRUE);
+                                                LIST_TYPE_MULTIPLE, NULL);
         AddDialogFormChild(setapp_dialog, toggle_symset_item->rc);
-        AddListChoiceCB(toggle_symset_item, set_cset_proc, NULL);
+        AddStorageChoiceCB(toggle_symset_item, set_cset_proc, NULL);
 
 
         /* ------------ Tabs -------------- */
@@ -482,7 +482,7 @@ void define_symbols_popup(void *data)
 
         CreateAACDialog(setapp_dialog, setapp_tab, setapp_aac_cb, NULL);
     }
-    updatesymbols(cg, cset);
+    updatesymbols(cset);
     
     RaiseWindow(GetParent(setapp_dialog));
     unset_wait_cursor();
@@ -493,10 +493,9 @@ void define_symbols_popup(void *data)
  */
 static int setapp_aac_cb(void *data)
 {
-    int i;
+    int i, cd;
     int duplegs;
-    set *p;
-    int setno, *selset, cd;
+    Quark *pset, **selset;
     
     if (!GetToggleButtonState(instantupdate_item) && data != NULL) {
         return RETURN_SUCCESS;
@@ -504,43 +503,44 @@ static int setapp_aac_cb(void *data)
     
     duplegs = GetToggleButtonState(duplegs_item);
 
-    cd = GetListChoices(toggle_symset_item, &selset);
+    cd = GetStorageChoices(toggle_symset_item, (void ***) &selset);
     if (cd < 1) {
         errwin("No set selected");
         return RETURN_FAILURE;
     } else {
         for(i = 0; i < cd; i++) {
-            setno = selset[i];
-            p = set_get(get_cg(), setno);
+            set *p;
+            pset = selset[i];
+            p = pset->data;
             if (data == symskip_item || data == NULL) {
                 xv_evalexpri(symskip_item, &(p->symskip));
             }
             if (data == symsize_item || data  ==  NULL) {
-                p->symsize = GetCharSizeChoice(symsize_item);
+                p->sym.size = GetCharSizeChoice(symsize_item);
             }
             if (data == symlinew_item || data  ==  NULL) {
-                p->symline.width = GetSpinChoice(symlinew_item);
+                p->sym.line.width = GetSpinChoice(symlinew_item);
             }
             if (data == symlines_item || data  ==  NULL) {
-                p->symline.style = GetOptionChoice(symlines_item);
+                p->sym.line.style = GetOptionChoice(symlines_item);
             }
             if (data == symchar_item || data == NULL) {
-                p->symchar = atoi(xv_getstr(symchar_item));
+                p->sym.symchar = atoi(xv_getstr(symchar_item));
             }
             if (data == char_font_item || data == NULL) {
-                p->charfont = GetOptionChoice(char_font_item);
+                p->sym.charfont = GetOptionChoice(char_font_item);
             }
             if (data == toggle_filltype_item || data == NULL) {
-                p->filltype = GetOptionChoice(toggle_filltype_item);
+                p->line.filltype = GetOptionChoice(toggle_filltype_item);
             }
             if (data == toggle_fillrule_item || data == NULL) {
-                p->fillrule = GetOptionChoice(toggle_fillrule_item);
+                p->line.fillrule = GetOptionChoice(toggle_fillrule_item);
             }
             if (data == toggle_fillpat_item || data == NULL) {
-                p->setfillpen.pattern = GetOptionChoice(toggle_fillpat_item);
+                p->line.fillpen.pattern = GetOptionChoice(toggle_fillpat_item);
             }
             if (data == toggle_fillcol_item || data == NULL) {
-                p->setfillpen.color = GetOptionChoice(toggle_fillcol_item);
+                p->line.fillpen.color = GetOptionChoice(toggle_fillcol_item);
             }
             if (data == legend_str_item || data == NULL) {
                 if (cd == 1 || duplegs) {
@@ -549,43 +549,43 @@ static int setapp_aac_cb(void *data)
                 }
             }
             if (data == toggle_symbols_item || data == NULL) {
-                p->sym = GetOptionChoice(toggle_symbols_item);
+                p->sym.type = GetOptionChoice(toggle_symbols_item);
             }
             if (data == toggle_linet_item || data == NULL) {
-                p->linet = GetOptionChoice(toggle_linet_item);
+                p->line.type = GetOptionChoice(toggle_linet_item);
             }
             if (data == toggle_lines_item || data == NULL) {
-                p->line.style = GetOptionChoice(toggle_lines_item);
+                p->line.line.style = GetOptionChoice(toggle_lines_item);
             }
             if (data == toggle_width_item || data == NULL) {
-                p->line.width = GetSpinChoice(toggle_width_item);
+                p->line.line.width = GetSpinChoice(toggle_width_item);
             }
             if (data == toggle_color_item || data == NULL) {
-                p->line.pen.color = GetOptionChoice(toggle_color_item);
+                p->line.line.pen.color = GetOptionChoice(toggle_color_item);
             }
             if (data == toggle_pattern_item || data == NULL) {
-                p->line.pen.pattern = GetOptionChoice(toggle_pattern_item);
+                p->line.line.pen.pattern = GetOptionChoice(toggle_pattern_item);
             }
             if (data == symcolor_item || data == NULL) {
-                p->symline.pen.color = GetOptionChoice(symcolor_item);
+                p->sym.line.pen.color = GetOptionChoice(symcolor_item);
             }
             if (data == sympattern_item || data == NULL) {
-                p->symline.pen.pattern = GetOptionChoice(sympattern_item);
+                p->sym.line.pen.pattern = GetOptionChoice(sympattern_item);
             }
             if (data == symfillcolor_item || data == NULL) {
-                p->symfillpen.color = GetOptionChoice(symfillcolor_item);
+                p->sym.fillpen.color = GetOptionChoice(symfillcolor_item);
             }
             if (data == symfillpattern_item || data == NULL) {
-                p->symfillpen.pattern = GetOptionChoice(symfillpattern_item);
+                p->sym.fillpen.pattern = GetOptionChoice(symfillpattern_item);
             }
             if (data ==  dropline_item || data == NULL) {
-                p->dropline = GetToggleButtonState(dropline_item);
+                p->line.droplines = GetToggleButtonState(dropline_item);
             }
             if (data == baseline_item || data == NULL) {
-                p->baseline = GetToggleButtonState(baseline_item);
+                p->line.baseline = GetToggleButtonState(baseline_item);
             }
             if (data ==  baselinetype_item || data == NULL) {
-                p->baseline_type = GetOptionChoice(baselinetype_item);
+                p->line.baseline_type = GetOptionChoice(baselinetype_item);
             }
             if (data == errbar_active_item || data == NULL) {
                 p->errbar.active = GetToggleButtonState(errbar_active_item);
@@ -603,7 +603,7 @@ static int setapp_aac_cb(void *data)
                 p->errbar.riser_linew = GetSpinChoice(errbar_riserlinew_item);
             }
             if (data == type_item || data == NULL) {
-                set_dataset_type(get_cg(), setno, GetOptionChoice(type_item));
+                set_dataset_type(pset, GetOptionChoice(type_item));
             }
             if (data == errbar_riserlines_item || data == NULL) {
                 p->errbar.riser_lines = GetOptionChoice(errbar_riserlines_item);
@@ -674,17 +674,14 @@ static int setapp_aac_cb(void *data)
  * freshen up symbol items, generally after a parameter
  * file has been read
  */
-static void UpdateSymbols(int gno, int value)
+static void UpdateSymbols(Quark *pset)
 {
     int i;
     char val[24];
     set *p;
 
-    if ((cset == value)&& (value != -1)) {
-        p = set_get(gno, cset);
-        if (!p) {
-            return;
-        }
+    if (pset && cset == pset) {
+        p = pset->data;
     
         SetOptionChoice(type_item, p->type);
         for (i = 0; i < type_item->nchoices; i++) {
@@ -696,35 +693,35 @@ static void UpdateSymbols(int gno, int value)
             }
         }
 
-        SetCharSizeChoice(symsize_item, p->symsize);
+        SetCharSizeChoice(symsize_item, p->sym.size);
         sprintf(val, "%d", p->symskip);
         xv_setstr(symskip_item, val);
-        sprintf(val, "%d", p->symchar);
+        sprintf(val, "%d", p->sym.symchar);
         xv_setstr(symchar_item, val);
-        SetOptionChoice(toggle_symbols_item, p->sym);
+        SetOptionChoice(toggle_symbols_item, p->sym.type);
         
-        SetOptionChoice(symcolor_item, p->symline.pen.color);
-        SetOptionChoice(sympattern_item, p->symline.pen.pattern);
-        SetOptionChoice(symfillcolor_item, p->symfillpen.color);
-        SetOptionChoice(symfillpattern_item, p->symfillpen.pattern);
-        SetSpinChoice(symlinew_item, p->symline.width);
-        SetOptionChoice(symlines_item, p->symline.style);
+        SetOptionChoice(symcolor_item, p->sym.line.pen.color);
+        SetOptionChoice(sympattern_item, p->sym.line.pen.pattern);
+        SetOptionChoice(symfillcolor_item, p->sym.fillpen.color);
+        SetOptionChoice(symfillpattern_item, p->sym.fillpen.pattern);
+        SetSpinChoice(symlinew_item, p->sym.line.width);
+        SetOptionChoice(symlines_item, p->sym.line.style);
         
-        SetOptionChoice(char_font_item, p->charfont);        
+        SetOptionChoice(char_font_item, p->sym.charfont);        
         
-        SetOptionChoice(toggle_color_item, p->line.pen.color);
-        SetOptionChoice(toggle_pattern_item, p->line.pen.pattern);
-        SetSpinChoice(toggle_width_item, p->line.width);
-        SetToggleButtonState(dropline_item, p->dropline);
-        SetOptionChoice(toggle_lines_item, p->line.style);
-        SetOptionChoice(toggle_linet_item, p->linet);
-        SetOptionChoice(toggle_filltype_item, p->filltype);
-        SetOptionChoice(toggle_fillrule_item, p->fillrule);
-        SetOptionChoice(toggle_fillcol_item, p->setfillpen.color);
-        SetOptionChoice(toggle_fillpat_item, p->setfillpen.pattern);
+        SetOptionChoice(toggle_color_item, p->line.line.pen.color);
+        SetOptionChoice(toggle_pattern_item, p->line.line.pen.pattern);
+        SetSpinChoice(toggle_width_item, p->line.line.width);
+        SetToggleButtonState(dropline_item, p->line.droplines);
+        SetOptionChoice(toggle_lines_item, p->line.line.style);
+        SetOptionChoice(toggle_linet_item, p->line.type);
+        SetOptionChoice(toggle_filltype_item, p->line.filltype);
+        SetOptionChoice(toggle_fillrule_item, p->line.fillrule);
+        SetOptionChoice(toggle_fillcol_item, p->line.fillpen.color);
+        SetOptionChoice(toggle_fillpat_item, p->line.fillpen.pattern);
         
-        SetToggleButtonState(baseline_item, p->baseline);
-        SetOptionChoice(baselinetype_item, p->baseline_type);
+        SetToggleButtonState(baseline_item, p->line.baseline);
+        SetOptionChoice(baselinetype_item, p->line.baseline_type);
 
         SetTextString(legend_str_item, p->legstr);
         
@@ -771,23 +768,19 @@ static void UpdateSymbols(int gno, int value)
 }
 
 
-static void set_cset_proc(int n, int *values, void *data)
+static void set_cset_proc(int n, void **values, void *data)
 {
     if (n == 1) {
         cset = values[0];
-        UpdateSymbols(cg, cset);
+        UpdateSymbols(cset);
     }
 }
 
-void updatesymbols(int gno, int setno)
+void updatesymbols(Quark *pset)
 {    
-    if (gno != cg) {
-        return;
-    }
-    
     if (setapp_dialog != NULL) { 
-        if (SelectListChoice(toggle_symset_item, setno)== RETURN_SUCCESS) {
-            cset = setno;
+        if (SelectStorageChoice(toggle_symset_item, pset) == RETURN_SUCCESS) {
+            cset = pset;
         }
     }
 }
@@ -796,31 +789,32 @@ void updatesymbols(int gno, int setno)
 static void setapp_data_proc(void *data)
 {
     int proc_type;
-    int *selset, cd;
-    int i, setno;
+    int cd;
+    int i;
+    Quark *pset, **selset;
     set *p;
     int c = 0, bg = getbgcolor(grace->rt->canvas);
     
     proc_type = (int)data;
 
-    cd = GetListChoices(toggle_symset_item, &selset);
+    cd = GetStorageChoices(toggle_symset_item, (void ***) &selset);
     if (cd < 1) {
         errmsg("No set selected");
         return;
     } else {
         for(i = 0; i < cd; i++) {
-            setno = selset[i];
-            p = set_get(cg, setno);
-            if (!p) {
+            pset = selset[i];
+            if (!pset) {
                 return;
             }
+            p = pset->data;;
             switch (proc_type) {
             case SETAPP_STRIP_LEGENDS:
-                set_legend_string(cg, setno,
-                    mybasename(get_legend_string(cg, setno)));
+                set_legend_string(pset,
+                    mybasename(get_legend_string(pset)));
                 break;
             case SETAPP_LOAD_COMMENTS:
-                load_comments_to_legend(cg, setno);
+                load_comments_to_legend(pset);
                 break;
             case SETAPP_ALL_COLORS:
                 while (c == bg ||
@@ -828,28 +822,28 @@ static void setapp_data_proc(void *data)
                     c++;
                     c %= number_of_colors(grace->rt->canvas);
                 }
-                set_set_colors(p, c);
+                set_set_colors(pset, c);
                 c++;
                 break;
             case SETAPP_ALL_SYMBOLS:
-                p->sym = (i % (MAXSYM - 2))+ 1;
+                p->sym.type = (i % (MAXSYM - 2))+ 1;
                 break;
             case SETAPP_ALL_LINEW:
-                p->line.width = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
+                p->line.line.width = ((i % (2*((int)MAX_LINEWIDTH)- 1))+ 1)/2.0;
                 break;
             case SETAPP_ALL_LINES:
-                p->line.style = (i % (number_of_linestyles(grace->rt->canvas)- 1))
+                p->line.line.style = (i % (number_of_linestyles(grace->rt->canvas)- 1))
                     + 1;
                 break;
             case SETAPP_ALL_BW:
-                set_set_colors(p, 1);
+                set_set_colors(pset, 1);
                 break;
             }
         }
         
         xfree(selset);
         
-        UpdateSymbols(cg, cset);
+        UpdateSymbols(cset);
         set_dirtystate();
         xdrawgraph();
     }

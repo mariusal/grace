@@ -43,6 +43,7 @@
 
 /* for Storage */
 #include "storage.h"
+#include "grace.h"
 
 /* 
  * Accept/Apply/Close for aac_cb callbacks
@@ -203,18 +204,9 @@ typedef enum {
 } SetMenuCBtype;
 
 typedef struct {
-    int standalone;
-    int gno;
-    int view_comments;
-    int show_hidden;
-    int show_nodata;
-    SetPopupMenu *menu;
-} SetChoiceData;
-
-typedef struct {
     Widget frame;
-    ListStructure *graph_sel;
-    ListStructure *set_sel;
+    StorageStructure *graph_sel;
+    StorageStructure *set_sel;
 } GraphSetStructure;
 
 typedef struct {
@@ -398,7 +390,9 @@ StorageStructure *CreateStorageChoice(Widget parent,
     char *labelstr, int type, int nvisible);
 void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc);
 int GetStorageChoices(StorageStructure *ss, void ***values);
-void SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices);
+int GetSingleStorageChoice(StorageStructure *ss, void **value);
+int SelectStorageChoice(StorageStructure *ss, void *choice);
+int SelectStorageChoices(StorageStructure *ss, int nchoices, void **choices);
 void UpdateStorageChoice(StorageStructure *ss);
 void SetStorageChoiceStorage(StorageStructure *ss, Storage *sto);
 void AddStorageChoiceCB(StorageStructure *ss,
@@ -443,11 +437,11 @@ int GetPenChoice(Widget pen_button, Pen *pen);
 
 RestrictionStructure *CreateRestrictionChoice(Widget parent, char *s);
 
-ListStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
+StorageStructure *CreateGraphChoice(Widget parent, char *labelstr, int type);
 
-ListStructure *CreateSetChoice(Widget parent, char *labelstr, 
-                                        int type, int standalone);
-void UpdateSetChoice(ListStructure *listp, int gno);
+StorageStructure *CreateSetChoice(Widget parent, char *labelstr, 
+                                        int type, StorageStructure *graphss);
+void UpdateSetChoice(StorageStructure *ss);
 
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
@@ -497,8 +491,7 @@ Widget CreateCommandButtonsNoDefault(Widget parent, int n, Widget * buts, char *
 TransformStructure *CreateTransformDialogForm(Widget parent,
     char *s, int sel_type);
 int GetTransformDialogSettings(TransformStructure *tdialog, int exclusive,
-        int *gsrc, int *gdest,
-        int *nssrc, int **svaluessrc, int *nsdest, int **svaluesdest);
+    int *nssrc, Quark ***srcsets, Quark ***destsets);
 
 void SetLabel(Widget w, char *s);
 void AlignLabel(Widget w, int alignment);

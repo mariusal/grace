@@ -51,14 +51,22 @@
 
 char print_file[GR_MAXPATHLEN] = "";
 
+static int plotone_hook(unsigned int step, void *data, void *udata)
+{
+    Quark *gr = (Quark *) data;
+    Canvas *canvas = (Canvas *) udata;
+    
+    plotone(canvas, gr);
+    
+    return TRUE;
+}
+
 static void dproc(Canvas *canvas, void *data)
 {
-    int gno, ngraphs;
-    
-    ngraphs = number_of_graphs();
-    for (gno = 0; gno < ngraphs; gno++) {
-        plotone(canvas, gno);
-    }
+    Quark *project = (Quark *) data;
+    Project *pr = (Project *) project->data;
+
+    storage_traverse(pr->graphs, plotone_hook, canvas);
 }
 
 /*
@@ -68,17 +76,17 @@ void drawgraph(Grace *grace)
 {
     Canvas *canvas = grace->rt->canvas;
     Project *pr = (Project *) grace->project->data;
-    int saveg;
+    Quark *saveg;
 
-    saveg = get_cg();
+    saveg = graph_get_current(grace->project);
     
     canvas_set_docname(canvas, get_docname(grace->project));
     canvas_set_username(canvas, get_username(grace));
     canvas_set_pagepen(canvas, &pr->bgpen);
     
-    canvas_draw(canvas, dproc, NULL);
+    canvas_draw(canvas, dproc, grace->project);
     
-    if (get_cg() != saveg) {
+    if (graph_get_current(grace->project) != saveg) {
         select_graph(saveg);
     }
 }
@@ -152,16 +160,16 @@ void do_hardcopy(Grace *grace)
 }
 
 
-void plotone(Canvas *canvas, int gno)
+void plotone(Canvas *canvas, Quark *gr)
 {
     GraphType gtype;
-    graph *g = graph_get(gno);
+    graph *g = graph_get_data(gr);
     
     if (!g || g->hidden) {
         return;
     }
 
-    if (select_graph(gno) != RETURN_SUCCESS) {
+    if (select_graph(gr) != RETURN_SUCCESS) {
         return;
     }
     
@@ -171,68 +179,67 @@ void plotone(Canvas *canvas, int gno)
     set_draw_mode(canvas, TRUE);
     
     /* fill frame */
-    fillframe(canvas, gno);
+    fillframe(canvas, gr);
     
-    gtype = get_graph_type(gno);
+    gtype = get_graph_type(gr);
     
     if (gtype != GRAPH_PIE) {
         /* calculate tick mark positions for all axes */
-        calculate_tickgrid(gno);
+        calculate_tickgrid(gr);
     
         /* draw grid lines */
-        drawgrid(canvas, gno);
+        drawgrid(canvas, gr);
     }
     
     /* plot type specific routines */
     switch (gtype) {
     case GRAPH_POLAR:
-        draw_polar_graph(canvas, gno);
+        draw_polar_graph(canvas, gr);
         break;
     case GRAPH_SMITH:
-        draw_smith_chart(canvas, gno);
+        draw_smith_chart(canvas, gr);
         break;
     case GRAPH_PIE:
-        draw_pie_chart(canvas, gno);
+        draw_pie_chart(canvas, gr);
         break;
     default:
-        xyplot(canvas, gno);
+        xyplot(canvas, gr);
         break;
     }
 
     if (gtype != GRAPH_PIE) {
         /* plot axes and tickmarks */
-        drawaxes(canvas, gno);
+        drawaxes(canvas, gr);
     }
     
     /* plot frame */
-    drawframe(canvas, gno);
+    drawframe(canvas, gr);
 
     /* plot objects */
-    draw_objects(canvas, gno);
+    draw_objects(canvas, gr);
     
     if (gtype != GRAPH_PIE) {
         /* plot legends */
-        dolegend(canvas, gno);
+        dolegend(canvas, gr);
     }
     
     /* draw title and subtitle */
-    draw_titles(canvas, gno);
+    draw_titles(canvas, gr);
 
     /* draw regions and mark the reference points only if in interactive mode */
     if (terminal_device(canvas) == TRUE) {
-        draw_regions(canvas, gno);
-        draw_ref_point(canvas, gno);
+        draw_regions(canvas, gr);
+        draw_ref_point(canvas, gr);
     }
 }
 
-void draw_smith_chart(Canvas *canvas, int gno)
+void draw_smith_chart(Canvas *canvas, Quark *gr)
 {
 }
 
-void draw_pie_chart(Canvas *canvas, int gno)
+void draw_pie_chart(Canvas *canvas, Quark *gr)
 {
     int i, setno, nsets, ndsets = 0;
-    set *p;
     view v;
     world w;
     int sgn;
@@ -244,47 +251,48 @@ void draw_pie_chart(Canvas *canvas, int gno)
     AValue avalue;
     char str[MAX_STRING_LENGTH];
 
-    get_graph_viewport(gno, &v);
+    get_graph_viewport(gr, &v);
     vpc.x = (v.xv1 + v.xv2)/2;
     vpc.y = (v.yv1 + v.yv2)/2;
 
-    get_graph_world(gno, &w);
-    sgn = is_graph_xinvert(gno) ? -1:1;
+    get_graph_world(gr, &w);
+    sgn = is_graph_xinvert(gr) ? -1:1;
     
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     
     for (setno = 0; setno < nsets; setno++) {
-        if (is_set_drawable(gno, setno)) {
+        Quark *pset = set_get(gr, setno);
+        if (is_set_drawable(pset)) {
+            set *p = (set *) pset->data;
             ndsets++;
             if (ndsets > 1) {
                 errmsg("Only one set per pie chart can be drawn");
                 return;
             }
             
-            switch (dataset_type(gno, setno)) {
+            switch (dataset_type(pset)) {
             case SET_XY:
             case SET_XYCOLOR:
             case SET_XYCOLPAT:
-                p = set_get(gno, setno);
                 /* data */
-                x = getcol(gno, setno, DATA_X);
+                x = getcol(pset, DATA_X);
                 /* explode factor */
-                e = getcol(gno, setno, DATA_Y);
+                e = getcol(pset, DATA_Y);
                 /* colors */
-                c = getcol(gno, setno, DATA_Y1);
+                c = getcol(pset, DATA_Y1);
                 /* patterns */
-                pt = getcol(gno, setno, DATA_Y2);
+                pt = getcol(pset, DATA_Y2);
                 
                 /* get max explode factor */
                 e_max = 0.0;
-                for (i = 0; i < p->data->len; i++) {
+                for (i = 0; i < getsetlength(pset); i++) {
                     e_max = MAX2(e_max, e[i]);
                 }
                 
                 r = 0.8/(1.0 + e_max)*MIN2(v.xv2 - v.xv1, v.yv2 - v.yv1)/2;
 
                 norm = 0.0;
-                for (i = 0; i < p->data->len; i++) {
+                for (i = 0; i < getsetlength(pset); i++) {
                     if (x[i] < 0.0) {
                         errmsg("No negative values in pie charts allowed");
                         return;
@@ -297,7 +305,7 @@ void draw_pie_chart(Canvas *canvas, int gno)
                 }
                 
                 stop_angle = w.xg1;
-                for (i = 0; i < p->data->len; i++) {
+                for (i = 0; i < getsetlength(pset); i++) {
                     Pen pen;
                     
                     start_angle = stop_angle;
@@ -318,12 +326,12 @@ void draw_pie_chart(Canvas *canvas, int gno)
                     if (c != NULL) {
                         pen.color   = (int) rint(c[i]);
                     } else {
-                        pen.color = p->symfillpen.color;
+                        pen.color = p->sym.fillpen.color;
                     }
                     if (pt != NULL) {
                         pen.pattern   = (int) rint(pt[i]);
                     } else {
-                        pen.pattern = p->symfillpen.pattern;
+                        pen.pattern = p->sym.fillpen.pattern;
                     }
                     setpen(canvas, &pen);
                     DrawFilledArc(canvas, &vp1, &vp2,
@@ -331,7 +339,7 @@ void draw_pie_chart(Canvas *canvas, int gno)
                         180.0/M_PI*(stop_angle - start_angle),
                         ARCFILL_PIESLICE);
                     
-                    setline(canvas, &p->symline);
+                    setline(canvas, &p->sym.line);
                     DrawPolyline(canvas, vps, 3, POLYLINE_OPEN);
                     DrawArc(canvas, &vp1, &vp2,
                         180.0/M_PI*start_angle,
@@ -381,24 +389,23 @@ void draw_pie_chart(Canvas *canvas, int gno)
     }
 }
 
-void draw_polar_graph(Canvas *canvas, int gno)
+void draw_polar_graph(Canvas *canvas, Quark *gr)
 {
     int setno, nsets;
-    set *p;
 
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     
     for (setno = 0; setno < nsets; setno++) {
-        if (is_set_drawable(gno, setno)) {
-            p = set_get(gno, setno);
-            switch (dataset_type(gno, setno)) {
+        Quark *pset = set_get(gr, setno);
+        if (is_set_drawable(pset)) {
+            switch (dataset_type(pset)) {
             case SET_XY:
             case SET_XYSIZE:
             case SET_XYCOLOR:
             case SET_XYZ:
-                drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                 break;
             default:
                 errmsg("Unsupported in polar graph set type");
@@ -408,10 +415,9 @@ void draw_polar_graph(Canvas *canvas, int gno)
     }
 }
 
-void xyplot(Canvas *canvas, int gno)
+void xyplot(Canvas *canvas, Quark *gr)
 {
     int j, setno, nsets;
-    set *p;
     int refn;
     double *refx, *refy;
     double offset;
@@ -421,27 +427,27 @@ void xyplot(Canvas *canvas, int gno)
     refx = NULL;
     refy = NULL;
 
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
 
     /* draw sets */
-    switch (get_graph_type(gno)) {
+    switch (get_graph_type(gr)) {
     case GRAPH_XY:
         for (setno = 0; setno < nsets; setno++) {
-            if (is_set_drawable(gno, setno)) {
-                p = set_get(gno, setno);
-                switch (dataset_type(gno, setno)) {
+            Quark *pset = set_get(gr, setno);
+            if (is_set_drawable(pset)) {
+                switch (dataset_type(pset)) {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
                 case SET_XYZ:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BAR:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetbars(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -449,24 +455,24 @@ void xyplot(Canvas *canvas, int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawseterrbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawseterrbars(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYHILO:
-                    drawsethilo(canvas, p);
+                    drawsethilo(canvas, pset);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetvmap(canvas, gno, p);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetvmap(canvas, pset);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_BOXPLOT:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetboxplot(canvas, p);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetboxplot(canvas, pset);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -477,20 +483,21 @@ void xyplot(Canvas *canvas, int gno)
         break;
     case GRAPH_CHART:
         for (setno = 0; setno < nsets; setno++) {
-            p = set_get(gno, setno);
-            if (is_set_drawable(gno, setno)) {
-                if (p->data->len > refn) {
-                    refn = p->data->len;
-                    refx = p->data->ex[0];
+            Quark *pset = set_get(gr, setno);
+            if (is_set_drawable(pset)) {
+                set *p = (set *) pset->data;
+                if (getsetlength(pset) > refn) {
+                    refn = getsetlength(pset);
+                    refx = getx(pset);
                 }
-                if (is_graph_stacked(gno) != TRUE) {
-                    offset -= 0.5*0.02*p->symsize;
+                if (is_graph_stacked(gr) != TRUE) {
+                    offset -= 0.5*0.02*p->sym.size;
                 }
             }
         }
-        offset -= 0.5*(number_of_active_sets(gno) - 1)*get_graph_bargap(gno);
+        offset -= 0.5*(number_of_active_sets(gr) - 1)*get_graph_bargap(gr);
         
-        if (is_graph_stacked(gno) == TRUE) {
+        if (is_graph_stacked(gr) == TRUE) {
             refy = xcalloc(refn, SIZEOF_DOUBLE);
             if (refy == NULL) {
                 return;
@@ -498,61 +505,62 @@ void xyplot(Canvas *canvas, int gno)
         }
 
         for (setno = 0; setno < nsets; setno++) {
-            p = set_get(gno, setno);
-            if (is_set_drawable(gno, setno)) {
-                if (is_graph_stacked(gno) != TRUE) {
-                    offset += 0.5*0.02*p->symsize;
+            Quark *pset = set_get(gr, setno);
+            if (is_set_drawable(pset)) {
+                set *p = (set *) pset->data;
+                if (is_graph_stacked(gr) != TRUE) {
+                    offset += 0.5*0.02*p->sym.size;
                 }
-                switch (dataset_type(gno, setno)) {
+                switch (dataset_type(pset)) {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
-                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
-                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, pset, refn, refx, refy, offset);
+                    if (is_graph_stacked(gr) != TRUE) {
+                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                     }
                     break;
                 case SET_BAR:
-                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
-                    drawsetbars(canvas, gno, setno, p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, pset, refn, refx, refy, offset);
+                    drawsetbars(canvas, pset, refn, refx, refy, offset);
+                    if (is_graph_stacked(gr) != TRUE) {
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                     }
                     break;
                 case SET_BARDY:
                 case SET_BARDYDY:
-                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
-                    drawsetbars(canvas, gno, setno, p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
-                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, pset, refn, refx, refy, offset);
+                    drawsetbars(canvas, pset, refn, refx, refy, offset);
+                    if (is_graph_stacked(gr) != TRUE) {
+                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                     }
                     break;
                 case SET_XYDY:
                 case SET_XYDYDY:
-                    drawsetline(canvas, gno, setno, p, refn, refx, refy, offset);
-                    if (is_graph_stacked(gno) != TRUE) {
-                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                    drawsetline(canvas, pset, refn, refx, refy, offset);
+                    if (is_graph_stacked(gr) != TRUE) {
+                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
+                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                     }
                     break;
                 default:
                     errmsg("Unsupported in XY chart set type");
                     break;
                 }
-                if (is_graph_stacked(gno) != TRUE) {
-                    offset += 0.5*0.02*p->symsize + get_graph_bargap(gno);
+                if (is_graph_stacked(gr) != TRUE) {
+                    offset += 0.5*0.02*p->sym.size + get_graph_bargap(gr);
                 } else {
-                    for (j = 0; j < p->data->len; j++) {
+                    for (j = 0; j < getsetlength(pset); j++) {
                         refy[j] += p->data->ex[1][j];
                     }
                 }
             }
         }
         
-        if (is_graph_stacked(gno) == TRUE) {
+        if (is_graph_stacked(gr) == TRUE) {
             /* Second pass for stacked charts: symbols and avalues */
             offset = 0.0;
             for (j = 0; j < refn; j++) {
@@ -560,33 +568,33 @@ void xyplot(Canvas *canvas, int gno)
             }
             
             for (setno = 0; setno < nsets; setno++) {
-                p = set_get(gno, setno);
-                if (is_set_drawable(gno, setno)) {
-                    switch (dataset_type(gno, setno)) {
+                Quark *pset = set_get(gr, setno);
+                if (is_set_drawable(pset)) {
+                    switch (dataset_type(pset)) {
                     case SET_XY:
                     case SET_XYSIZE:
                     case SET_XYCOLOR:
-                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                         break;
                     case SET_BAR:
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                         break;
                     case SET_BARDY:
                     case SET_BARDYDY:
-                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                         break;
                     case SET_XYDY:
                     case SET_XYDYDY:
-                        drawseterrbars(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetsyms(canvas, gno, setno, p, refn, refx, refy, offset);
-                        drawsetavalues(canvas, gno, setno, p, refn, refx, refy, offset);
+                        drawseterrbars(canvas, pset, refn, refx, refy, offset);
+                        drawsetsyms(canvas, pset, refn, refx, refy, offset);
+                        drawsetavalues(canvas, pset, refn, refx, refy, offset);
                         break;
                     }
                     
-                    for (j = 0; j < p->data->len; j++) {
-                        refy[j] += p->data->ex[1][j];
+                    for (j = 0; j < getsetlength(pset); j++) {
+                        refy[j] += gety(pset)[j];
                     }
                 }
             }
@@ -598,16 +606,16 @@ void xyplot(Canvas *canvas, int gno)
         break;
     case GRAPH_FIXED:
         for (setno = 0; setno < nsets; setno++) {
-            if (is_set_drawable(gno, setno)) {
-                p = set_get(gno, setno);
-                switch (dataset_type(gno, setno)) {
+            Quark *pset = set_get(gr, setno);
+            if (is_set_drawable(pset)) {
+                switch (dataset_type(pset)) {
                 case SET_XY:
                 case SET_XYSIZE:
                 case SET_XYCOLOR:
                 case SET_XYZ:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYDX:
                 case SET_XYDY:
@@ -615,21 +623,21 @@ void xyplot(Canvas *canvas, int gno)
                 case SET_XYDYDY:
                 case SET_XYDXDY:
                 case SET_XYDXDXDYDY:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawseterrbars(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawseterrbars(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYR:
-                    drawcirclexy(canvas, p);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawcirclexy(canvas, pset);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 case SET_XYVMAP:
-                    drawsetline(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetvmap(canvas, gno, p);
-                    drawsetsyms(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
-                    drawsetavalues(canvas, gno, setno, p, 0, NULL, NULL, 0.0);
+                    drawsetline(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetvmap(canvas, pset);
+                    drawsetsyms(canvas, pset, 0, NULL, NULL, 0.0);
+                    drawsetavalues(canvas, pset, 0, NULL, NULL, 0.0);
                     break;
                 default:
                     errmsg("Unsupported in XY graph set type");
@@ -642,8 +650,9 @@ void xyplot(Canvas *canvas, int gno)
 
 }
 
-void draw_regions(Canvas *canvas, int gno)
+void draw_regions(Canvas *canvas, Quark *gr)
 {
+#if 0
     int i;
     Project *pr = (Project *) grace->project->data;
 
@@ -652,7 +661,7 @@ void draw_regions(Canvas *canvas, int gno)
     /* draw any defined regions for this graph */
     for (i = 0; i < MAXREGION; i++) {
         region r = pr->rg[i];
-        if (r.active && r.linkto == gno) {
+        if (r.active && r.linkto == gr) {
             setcolor(canvas, r.color);
             setpattern(canvas, 1);
             setlinewidth(canvas, r.linew);
@@ -660,18 +669,19 @@ void draw_regions(Canvas *canvas, int gno)
             draw_region(canvas, &r);
         }
     }
+#endif
 }
 
-void draw_ref_point(Canvas *canvas, int gno)
+void draw_ref_point(Canvas *canvas, Quark *gr)
 {
-    GLocator locator;
+    GLocator *locator;
     WPoint wp;
     VPoint vp;
     
-    if (is_refpoint_active(gno)) {      
-        get_graph_locator(gno, &locator);
-        wp.x = locator.dsx;
-        wp.y = locator.dsy;
+    if (is_refpoint_active(gr)) {      
+        locator = get_graph_locator(gr);
+        wp.x = locator->dsx;
+        wp.y = locator->dsy;
         vp = Wpoint2Vpoint(wp);
         setcolor(canvas, 1);
         setpattern(canvas, 1);
@@ -684,51 +694,51 @@ void draw_ref_point(Canvas *canvas, int gno)
 
 
 /* draw title and subtitle */
-void draw_titles(Canvas *canvas, int gno)
+void draw_titles(Canvas *canvas, Quark *gr)
 {
     view v;
-    labels lab;
+    labels *lab;
     VPoint vp1, vp2;
     
-    get_graph_viewport(gno, &v);
-    get_graph_labels(gno, &lab);
+    get_graph_viewport(gr, &v);
+    lab = get_graph_labels(gr);
 
     vp1.x = (v.xv2 + v.xv1) / 2;
     vp1.y = (v.yv2 < v.yv1)? v.yv1 : v.yv2;
     vp2 = vp1;
-    if (lab.title.s && lab.title.s[0]) {
-        setcolor(canvas, lab.title.color);
-        setcharsize(canvas, lab.title.charsize);
-        setfont(canvas, lab.title.font);
+    if (lab->title.s && lab->title.s[0]) {
+        setcolor(canvas, lab->title.color);
+        setcharsize(canvas, lab->title.charsize);
+        setfont(canvas, lab->title.font);
         vp1.y += 0.06;
-        WriteString(canvas, &vp1, 0.0, JUST_CENTER|JUST_BOTTOM, lab.title.s);
+        WriteString(canvas, &vp1, 0.0, JUST_CENTER|JUST_BOTTOM, lab->title.s);
     }
-    if (lab.stitle.s && lab.stitle.s[0]) {
-        setcolor(canvas, lab.stitle.color);
-        setcharsize(canvas, lab.stitle.charsize);
-        setfont(canvas, lab.stitle.font);
+    if (lab->stitle.s && lab->stitle.s[0]) {
+        setcolor(canvas, lab->stitle.color);
+        setcharsize(canvas, lab->stitle.charsize);
+        setfont(canvas, lab->stitle.font);
         vp2.y += 0.02;
-        WriteString(canvas, &vp2, 0.0, JUST_CENTER|JUST_BOTTOM, lab.stitle.s);
+        WriteString(canvas, &vp2, 0.0, JUST_CENTER|JUST_BOTTOM, lab->stitle.s);
     }
 }
 
 /*
  * draw the graph frame
  */
-void drawframe(Canvas *canvas, int gno)
+void drawframe(Canvas *canvas, Quark *gr)
 {
     view v;
-    framep f;
+    framep *f;
     VPoint vps[4];
 
-    get_graph_viewport(gno, &v);
-    get_graph_framep(gno, &f);
+    get_graph_viewport(gr, &v);
+    f = get_graph_frame(gr);
 
-    setpen(canvas, &f.pen);
-    setlinewidth(canvas, f.linew);
-    setlinestyle(canvas, f.lines);
+    setpen(canvas, &f->pen);
+    setlinewidth(canvas, f->linew);
+    setlinestyle(canvas, f->lines);
 
-    switch (f.type) {
+    switch (f->type) {
     case 0:
         vps[0].x = v.xv1;
         vps[0].y = v.yv1;
@@ -792,18 +802,18 @@ void drawframe(Canvas *canvas, int gno)
     }
 }
 
-void fillframe(Canvas *canvas, int gno)
+void fillframe(Canvas *canvas, Quark *gr)
 {
     view v;
-    framep f;
+    framep *f;
     VPoint vp1, vp2;
 
-    get_graph_viewport(gno, &v);
-    get_graph_framep(gno, &f);
+    get_graph_viewport(gr, &v);
+    f = get_graph_frame(gr);
     
     /* fill coordinate frame with background color */
-    if (f.fillpen.pattern != 0) {
-        setpen(canvas, &f.fillpen);
+    if (f->fillpen.pattern != 0) {
+        setpen(canvas, &f->fillpen);
         vp1.x = v.xv1;
         vp1.y = v.yv1;
         vp2.x = v.xv2;
@@ -815,11 +825,13 @@ void fillframe(Canvas *canvas, int gno)
 /*
  * draw a set filling polygon
  */
-void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
+void drawsetfill(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int i, len, setlen, polylen;
-    int line_type = p->linet;
+    int line_type = p->line.type;
     double *x, *y;
     double ybase;
     world w;
@@ -828,20 +840,20 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
     double xmin, xmax, ymin, ymax;
     int stacked_chart;
     
-    if (p->filltype == SETFILL_NONE) {
+    if (p->line.filltype == SETFILL_NONE) {
         return;
     }
     
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gr) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->data->len, refn);
+        setlen = MIN2(getsetlength(pset), refn);
     } else {
         x = p->data->ex[0];
-        setlen = p->data->len;
+        setlen = getsetlength(pset);
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -849,13 +861,13 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
     
     setclipping(canvas, TRUE);
     
-    get_graph_world(gno, &w);
+    get_graph_world(gr, &w);
 
     switch (line_type) {
     case LINE_TYPE_STRAIGHT:
     case LINE_TYPE_SEGMENT2:
     case LINE_TYPE_SEGMENT3:
-        if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE) {
+        if (stacked_chart == TRUE && p->line.filltype == SETFILL_BASELINE) {
             len = 2*setlen;
         } else {
             len = setlen;
@@ -875,7 +887,7 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
             vps[i] = Wpoint2Vpoint(wptmp);
     	    vps[i].x += offset;
         }
-        if (stacked_chart == TRUE && p->filltype == SETFILL_BASELINE) {
+        if (stacked_chart == TRUE && p->line.filltype == SETFILL_BASELINE) {
             for (i = 0; i < setlen; i++) {
                 wptmp.x = x[setlen - i - 1];
                 wptmp.y = refy[setlen - i - 1];
@@ -916,7 +928,7 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
         return;
     }
     
-    switch (p->filltype) {
+    switch (p->line.filltype) {
     case SETFILL_POLYGON:
         polylen = len;
         break;
@@ -924,8 +936,8 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
         if (stacked_chart == TRUE) {
             polylen = len;
         } else {
-            getsetminmax(gno, &setno, 1, &xmin, &xmax, &ymin, &ymax);
-            ybase = setybase(gno, setno);
+            getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
+            ybase = setybase(pset);
             polylen = len + 2;
             wptmp.x = MIN2(xmax, w.xg2);
             wptmp.y = ybase;
@@ -942,8 +954,8 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
         return;
     }
     
-    setpen(canvas, &p->setfillpen);
-    setfillrule(canvas, p->fillrule);
+    setpen(canvas, &p->line.fillpen);
+    setfillrule(canvas, p->line.fillrule);
     DrawPolygon(canvas, vps, polylen);
     
     xfree(vps);
@@ -952,12 +964,14 @@ void drawsetfill(Canvas *canvas, int gno, int setno, set *p,
 /*
  * draw set's connecting line
  */
-void drawsetline(Canvas *canvas, int gno, int setno, set *p,
+void drawsetline(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int setlen, len;
     int i;
-    int line_type = p->linet;
+    int line_type = p->line.type;
     VPoint vps[4], *vpstmp;
     WPoint wp;
     double *x, *y;
@@ -966,16 +980,16 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
     double xmin, xmax, ymin, ymax;
     int stacked_chart;
     
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gr) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->data->len, refn);
+        setlen = MIN2(getsetlength(pset), refn);
     } else {
         x = p->data->ex[0];
-        setlen = p->data->len;
+        setlen = getsetlength(pset);
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -984,14 +998,14 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
     if (stacked_chart == TRUE) {
         ybase = 0.0;
     } else {
-        ybase = setybase(gno, setno);
+        ybase = setybase(pset);
     }
     
     setclipping(canvas, TRUE);
 
-    drawsetfill(canvas, gno, setno, p, refn, refx, refy, offset);
+    drawsetfill(canvas, pset, refn, refx, refy, offset);
 
-    setline(canvas, &p->line);
+    setline(canvas, &p->line.line);
 
     if (stacked_chart == TRUE) {
         lw = getlinewidth(canvas);
@@ -1000,7 +1014,7 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
     }
     
 /* draw the line */
-    if (p->line.style != 0 && p->line.pen.pattern != 0) {
+    if (p->line.line.style != 0 && p->line.line.pen.pattern != 0) {
         
         switch (line_type) {
         case LINE_TYPE_NONE:
@@ -1134,7 +1148,7 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
         }
     }
 
-    if (p->dropline == TRUE) {
+    if (p->line.droplines == TRUE) {
         for (i = 0; i < setlen; i ++) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1158,9 +1172,9 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
         }
     }
     
-    getsetminmax(gno, &setno, 1, &xmin, &xmax, &ymin, &ymax);
+    getsetminmax(&pset, 1, &xmin, &xmax, &ymin, &ymax);
        
-    if (p->baseline == TRUE && stacked_chart != TRUE) {
+    if (p->line.baseline == TRUE && stacked_chart != TRUE) {
         wp.x = xmin;
         wp.y = ybase;
         vps[0] = Wpoint2Vpoint(wp);
@@ -1174,29 +1188,30 @@ void drawsetline(Canvas *canvas, int gno, int setno, set *p,
 }    
 
 /* draw the symbols */
-void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
+void drawsetsyms(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int setlen;
-    int i, sy = p->sym;
-    double symsize;
+    int i;
     VPoint vp;
     WPoint wp;
     double *x, *y, *z, *c;
     int skip = p->symskip + 1;
     int stacked_chart;
-    double znorm = get_graph_znorm(gno);
+    double znorm = get_graph_znorm(gr);
     
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gr) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->data->len, refn);
+        setlen = MIN2(getsetlength(pset), refn);
     } else {
         x = p->data->ex[0];
-        setlen = p->data->len;
+        setlen = getsetlength(pset);
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1219,13 +1234,13 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
     
     setclipping(canvas, FALSE);
     
-    if ((p->symline.pen.pattern != 0 && p->symline.style != 0) ||
-                        (p->symfillpen.pattern != 0)) {
+    if ((p->sym.line.pen.pattern != 0 && p->sym.line.style != 0) ||
+                        (p->sym.fillpen.pattern != 0)) {
               
-        Pen fillpen;
+        Symbol sym = p->sym;
         
-        setline(canvas, &p->symline);
-        setfont(canvas, p->charfont);
+        setline(canvas, &sym.line);
+        setfont(canvas, sym.charfont);
         for (i = 0; i < setlen; i += skip) {
             wp.x = x[i];
             wp.y = y[i];
@@ -1241,22 +1256,16 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
     	    vp.x += offset;
             
             if (z) {
-                symsize = z[i]/znorm;
-            } else {
-                symsize = p->symsize;
+                sym.size = z[i]/znorm;
             }
             if (c) {
-                fillpen.color = (int) rint(c[i]);
-                if (get_colortype(canvas, fillpen.color) != COLOR_MAIN) {
-                    fillpen.color = 1;
+                int color = (int) rint(c[i]);
+                if (get_colortype(canvas, color) != COLOR_MAIN) {
+                    color = 1;
                 }
-            } else {
-                fillpen.color = p->symfillpen.color;
+                sym.fillpen.color = color;
             }
-            fillpen.pattern = p->symfillpen.pattern;
-            if (drawxysym(canvas,
-                &vp, symsize, sy, &p->symline.pen, &fillpen, p->symchar)
-                != RETURN_SUCCESS) {
+            if (drawxysym(canvas, &vp, &sym) != RETURN_SUCCESS) {
                 return;
             }
         } 
@@ -1265,9 +1274,11 @@ void drawsetsyms(Canvas *canvas, int gno, int setno, set *p,
 
 
 /* draw the annotative values */
-void drawsetavalues(Canvas *canvas, int gno, int setno, set *p,
+void drawsetavalues(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int i;
     int setlen;
     double *x, *y, *z;
@@ -1283,22 +1294,22 @@ void drawsetavalues(Canvas *canvas, int gno, int setno, set *p,
         return;
     }
 
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gr) == GRAPH_CHART) {
         x = refx;
-        setlen = MIN2(p->data->len, refn);
+        setlen = MIN2(getsetlength(pset), refn);
     } else {
         x = p->data->ex[0];
-        setlen = p->data->len;
+        setlen = getsetlength(pset);
     }
     y = p->data->ex[1];
     
-    if (dataset_cols(gno, setno) > 2) {
+    if (dataset_cols(pset) > 2) {
         z = p->data->ex[2];
     } else {
         z = NULL;
     }
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1368,9 +1379,11 @@ void drawsetavalues(Canvas *canvas, int gno, int setno, set *p,
     } 
 }
 
-void drawseterrbars(Canvas *canvas, int gno, int setno, set *p,
+void drawseterrbars(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int i, n;
     double *x, *y;
     double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
@@ -1384,16 +1397,16 @@ void drawseterrbars(Canvas *canvas, int gno, int setno, set *p,
         return;
     }
     
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gr) == GRAPH_CHART) {
         x = refx;
-        n = MIN2(p->data->len, refn);
+        n = MIN2(getsetlength(pset), refn);
     } else {
         x = p->data->ex[0];
-        n = p->data->len;
+        n = getsetlength(pset);
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1502,19 +1515,20 @@ void drawseterrbars(Canvas *canvas, int gno, int setno, set *p,
 /*
  * draw hi/lo-open/close
  */
-void drawsethilo(Canvas *canvas, set *p)
+void drawsethilo(Canvas *canvas, Quark *pset)
 {
+    set *p = (set *) pset->data;
     int i;
     double *x = p->data->ex[0], *y1 = p->data->ex[1];
     double *y2 = p->data->ex[2], *y3 = p->data->ex[3], *y4 = p->data->ex[4];
-    double ilen = 0.02*p->symsize;
+    double ilen = 0.02*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
 
-    if (p->symline.style != 0) {
-        setline(canvas, &p->symline);
-        for (i = 0; i < p->data->len; i += skip) {
+    if (p->sym.line.style != 0) {
+        setline(canvas, &p->sym.line);
+        for (i = 0; i < getsetlength(pset); i += skip) {
             wp.x = x[i];
             wp.y = y1[i];
             vp1 = Wpoint2Vpoint(wp);
@@ -1538,28 +1552,30 @@ void drawsethilo(Canvas *canvas, set *p)
 /*
  * draw 2D bars
  */
-void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
+void drawsetbars(Canvas *canvas, Quark *pset,
                  int refn, double *refx, double *refy, double offset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int i, n;
     double *x, *y;
-    double lw, bw = 0.01*p->symsize;
+    double lw, bw = 0.01*p->sym.size;
     int skip = p->symskip + 1;
     double ybase;
     WPoint wp;
     VPoint vp1, vp2;
     int stacked_chart;
     
-    if (get_graph_type(gno) == GRAPH_CHART) {
+    if (get_graph_type(gr) == GRAPH_CHART) {
         x = refx;
-        n = MIN2(p->data->len, refn);
+        n = MIN2(getsetlength(pset), refn);
     } else {
         x = p->data->ex[0];
-        n = p->data->len;
+        n = getsetlength(pset);
     }
     y = p->data->ex[1];
     
-    if (get_graph_type(gno) == GRAPH_CHART && is_graph_stacked(gno) == TRUE) {
+    if (get_graph_type(gr) == GRAPH_CHART && is_graph_stacked(gr) == TRUE) {
         stacked_chart = TRUE;
     } else {
         stacked_chart = FALSE;
@@ -1570,19 +1586,19 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
     if (stacked_chart == TRUE) {
         ybase = 0.0;
     } else {
-        ybase = setybase(gno, setno);
+        ybase = setybase(pset);
     }
 
-    setline(canvas, &p->symline);
-    if (get_graph_type(gno) == GRAPH_CHART &&
-        p->symline.style != 0 && p->symline.pen.pattern != 0) {
+    setline(canvas, &p->sym.line);
+    if (get_graph_type(gr) == GRAPH_CHART &&
+        p->sym.line.style != 0 && p->sym.line.pen.pattern != 0) {
         lw = getlinewidth(canvas);
     } else {
         lw = 0.0;
     }
 
-    if (p->symfillpen.pattern != 0) {
-	setpen(canvas, &p->symfillpen);
+    if (p->sym.fillpen.pattern != 0) {
+	setpen(canvas, &p->sym.fillpen);
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1610,8 +1626,8 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
             FillRect(canvas, &vp1, &vp2);
         }
     }
-    if (p->symline.style != 0 && p->symline.pen.pattern != 0) {
-        setpen(canvas, &p->symline.pen);
+    if (p->sym.line.style != 0 && p->sym.line.pen.pattern != 0) {
+        setpen(canvas, &p->sym.line.pen);
         for (i = 0; i < n; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
@@ -1641,8 +1657,9 @@ void drawsetbars(Canvas *canvas, int gno, int setno, set *p,
     }
 }
 
-void drawcirclexy(Canvas *canvas, set *p)
+void drawcirclexy(Canvas *canvas, Quark *pset)
 {
+    set *p = (set *) pset->data;
     int i, setlen;
     double *x, *y, *r;
     int skip = p->symskip + 1;
@@ -1651,13 +1668,13 @@ void drawcirclexy(Canvas *canvas, set *p)
 
     setclipping(canvas, TRUE);
     
-    setlen = p->data->len;
+    setlen = getsetlength(pset);
     x = p->data->ex[0];
     y = p->data->ex[1];
     r = p->data->ex[2];
 
-    setfillrule(canvas, p->fillrule);
-    setline(canvas, &p->line);
+    setfillrule(canvas, p->line.fillrule);
+    setline(canvas, &p->line.line);
 
     for (i = 0; i < setlen; i += skip) {
         wp.x = x[i];
@@ -1672,20 +1689,22 @@ void drawcirclexy(Canvas *canvas, set *p)
         wp.x = x[i] + r[i];
         wp.y = y[i] + r[i];
         vp2 = Wpoint2Vpoint(wp);
-        if (p->filltype != SETFILL_NONE) {
-            setpen(canvas, &p->setfillpen);
+        if (p->line.filltype != SETFILL_NONE) {
+            setpen(canvas, &p->line.fillpen);
             DrawFilledEllipse(canvas, &vp1, &vp2);
         }
-        setpen(canvas, &p->line.pen);
+        setpen(canvas, &p->line.line.pen);
         DrawEllipse(canvas, &vp1, &vp2);
     }
 }
 
 /* Arrows for vector map plots */
-void drawsetvmap(Canvas *canvas, int gno, set *p)
+void drawsetvmap(Canvas *canvas, Quark *pset)
 {
+    Quark *gr = pset->parent;
+    set *p = (set *) pset->data;
     int i, setlen;
-    double znorm = get_graph_znorm(gno);
+    double znorm = get_graph_znorm(gr);
     int skip = p->symskip + 1;
     double *x, *y, *vx, *vy;
     WPoint wp;
@@ -1700,7 +1719,7 @@ void drawsetvmap(Canvas *canvas, int gno, set *p)
         return;
     }
     
-    setlen = p->data->len;
+    setlen = getsetlength(pset);
     x = p->data->ex[DATA_X];
     y = p->data->ex[DATA_Y];
     vx = p->data->ex[DATA_Y1];
@@ -1730,11 +1749,12 @@ void drawsetvmap(Canvas *canvas, int gno, set *p)
     }
 }
 
-void drawsetboxplot(Canvas *canvas, set *p)
+void drawsetboxplot(Canvas *canvas, Quark *pset)
 {
+    set *p = (set *) pset->data;
     int i;
     double *x, *md, *lb, *ub, *lw, *uw;
-    double size = 0.01*p->symsize;
+    double size = 0.01*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
     VPoint vp1, vp2;
@@ -1748,7 +1768,7 @@ void drawsetboxplot(Canvas *canvas, set *p)
 
     setclipping(canvas, TRUE);
 
-    for (i = 0; i < p->data->len; i += skip) {
+    for (i = 0; i < getsetlength(pset); i += skip) {
         wp.x =  x[i];
 
         wp.y = lb[i];
@@ -1770,10 +1790,10 @@ void drawsetboxplot(Canvas *canvas, set *p)
         /* box */
         vp1.x -= size;
         vp2.x += size;
-        setpen(canvas, &p->symfillpen);
+        setpen(canvas, &p->sym.fillpen);
         FillRect(canvas, &vp1, &vp2);
 
-        setline(canvas, &p->symline);
+        setline(canvas, &p->sym.line);
         DrawRect(canvas, &vp1, &vp2);
 
         /* median line */
@@ -1825,22 +1845,21 @@ void symsplat(Canvas *canvas, const VPoint *vp, double s)
     symx(canvas, vp, s);
 }
 
-int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
-    const Pen *sympen, const Pen *symfillpen, char s)
+int drawxysym(Canvas *canvas, const VPoint *vp, const Symbol *sym)
 {
     double symsize;
     VPoint vps[4];
     char buf[2];
     
-    symsize = size*0.01;
+    symsize = sym->size*0.01;
     
-    switch (symtype) {
+    switch (sym->type) {
     case SYM_NONE:
         break;
     case SYM_CIRCLE:
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawFilledCircle(canvas, vp, symsize);
-        setpen(canvas, sympen);
+        setpen(canvas, &sym->line.pen);
         DrawCircle(canvas, vp, symsize);
         break;
     case SYM_SQUARE:
@@ -1854,9 +1873,9 @@ int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
         vps[3].x = vps[2].x;
         vps[3].y = vps[0].y;
         
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawPolygon(canvas, vps, 4);
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
         break;
     case SYM_DIAMOND:
@@ -1869,9 +1888,9 @@ int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
         vps[3].x = vp->x + symsize;
         vps[3].y = vps[1].y;
         
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawPolygon(canvas, vps, 4);
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         DrawPolyline(canvas, vps, 4, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG1:
@@ -1882,9 +1901,9 @@ int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
         vps[2].x = vp->x + symsize;
         vps[2].y = vps[1].y;
         
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawPolygon(canvas, vps, 3);
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG2:
@@ -1895,9 +1914,9 @@ int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
         vps[2].x = vps[1].x;
         vps[2].y = vp->y + symsize;
         
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawPolygon(canvas, vps, 3);
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG3:
@@ -1908,9 +1927,9 @@ int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
         vps[2].x = vp->x + symsize;
         vps[2].y = vps[0].y;
         
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawPolygon(canvas, vps, 3);
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_TRIANG4:
@@ -1921,28 +1940,28 @@ int drawxysym(Canvas *canvas, const VPoint *vp, double size, int symtype,
         vps[2].x = vp->x + 2*M_SQRT1_3*symsize;
         vps[2].y = vp->y;
         
-        setpen(canvas, symfillpen);
+        setpen(canvas, &sym->fillpen);
         DrawPolygon(canvas, vps, 3);
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         DrawPolyline(canvas, vps, 3, POLYLINE_CLOSED);
         break;
     case SYM_PLUS:
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         symplus(canvas, vp, symsize);
         break;
     case SYM_X:
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         symx(canvas, vp, symsize);
         break;
     case SYM_SPLAT:
-        setpen(canvas, sympen);
+        setline(canvas, &sym->line);
         symsplat(canvas, vp, symsize);
         break;
     case SYM_CHAR:
-        setcolor(canvas, sympen->color);
-        buf[0] = s;
+        setline(canvas, &sym->line);
+        buf[0] = sym->symchar;
         buf[1] = '\0';
-        setcharsize(canvas, size);
+        setcharsize(canvas, sym->size);
         WriteString(canvas, vp, 0.0, JUST_CENTER|JUST_MIDDLE, buf);
         break;
     default:
@@ -2195,7 +2214,7 @@ void draw_region(Canvas *canvas, region *this)
 /*
  * draw the legend
  */
-void dolegend(Canvas *canvas, int gno)
+void dolegend(Canvas *canvas, Quark *gr)
 {
     int setno, nsets;
     int draw_flag;
@@ -2208,22 +2227,23 @@ void dolegend(Canvas *canvas, int gno)
     legend *l;
     set *p;
 
-    l = get_graph_legend(gno);
+    l = get_graph_legend(gr);
     if (l->active == FALSE) {
         return;
     }
     
     maxsymsize = 0.0;
     draw_flag = FALSE;
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     for (setno = 0; setno < nsets; setno++) {
-        if (is_set_drawable(gno, setno)) {
-            p = set_get(gno, setno);
+        Quark *pset = set_get(gr, setno);
+        if (is_set_drawable(pset)) {
+            p = (set *) pset->data;
             if (!is_empty_string(p->legstr)) {
                 draw_flag = TRUE;
             }
-            if (p->symsize > maxsymsize) {
-                maxsymsize = p->symsize;
+            if (p->sym.size > maxsymsize) {
+                maxsymsize = p->sym.size;
             }
         }  
     }
@@ -2241,13 +2261,13 @@ void dolegend(Canvas *canvas, int gno)
     update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
     
     set_draw_mode(canvas, FALSE);
-    putlegends(canvas, gno, &vp, maxsymsize);
+    putlegends(canvas, gr, &vp, maxsymsize);
     get_bbox(canvas, BBOX_TYPE_TEMP, &v);
     
     bb_width  = fabs(v.xv2 - v.xv1) + 2*l->hgap;
     bb_height = fabs(v.yv2 - v.yv1) + 2*l->vgap;
     
-    get_graph_viewport(gno, &v);
+    get_graph_viewport(gr, &v);
     
     switch (l->acorner) {
     case CORNER_LL:
@@ -2292,10 +2312,10 @@ void dolegend(Canvas *canvas, int gno)
     reset_bbox(canvas, BBOX_TYPE_TEMP);
     update_bbox(canvas, BBOX_TYPE_TEMP, &vp);
 
-    putlegends(canvas, gno, &vp, maxsymsize);
+    putlegends(canvas, gr, &vp, maxsymsize);
 }
 
-void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
+void putlegends(Canvas *canvas, Quark *gr, const VPoint *vp, double maxsymsize)
 {
     int i, setno, nsets;
     VPoint vp1, vp2, vpstr;
@@ -2303,7 +2323,7 @@ void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
     legend *l;
     int draw_line, singlesym;
     
-    l = get_graph_legend(gno);
+    l = get_graph_legend(gr);
 
     vp1.x = vp->x + 0.01*maxsymsize;
     vp2.y = vp->y;
@@ -2311,17 +2331,22 @@ void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
     vpstr.y = vp->y;
     vpstr.x = vp2.x + l->hgap + 0.01*maxsymsize;
     
-    nsets = number_of_sets(gno);
+    nsets = number_of_sets(gr);
     for (i = 0; i < nsets; i++) {
+        Quark *pset;
+        
         if (l->invert == FALSE) {
             setno = i;
         } else {
             setno = nsets - i - 1;
         }
-        if (is_set_drawable(gno, setno)) {
+        
+        pset = set_get(gr, setno);
+        
+        if (is_set_drawable(pset)) {
             view vtmp;
             
-            p = set_get(gno, setno);
+            p = (set *) pset->data;
             
             if (is_empty_string(p->legstr)) {
                 continue;
@@ -2336,11 +2361,11 @@ void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
             vp2.y = vp1.y;
             vpstr.y = vtmp.yv1 - l->vgap;
             
-            setfont(canvas, p->charfont);
+            setfont(canvas, p->sym.charfont);
             
             if (l->len <= 0.0 ||
-                p->line.style == 0 || p->line.pen.pattern == 0 ||
-                p->linet == 0) {
+                p->line.line.style == 0 || p->line.line.pen.pattern == 0 ||
+                p->line.type == 0) {
                 draw_line = FALSE;
                 singlesym = TRUE;
             } else {
@@ -2349,25 +2374,21 @@ void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
             }
             
             if (draw_line) {
-                setline(canvas, &p->line);
+                setline(canvas, &p->line.line);
                 DrawLine(canvas, &vp1, &vp2);
             }
             
-            setline(canvas, &p->symline);
+            setline(canvas, &p->sym.line);
             if (!singlesym) {
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(canvas,
-                        &vp1, p->symsize, &p->symline.pen, &p->symfillpen);
+                        &vp1, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
                     drawlegbarsym(canvas,
-                        &vp2, p->symsize, &p->symline.pen, &p->symfillpen);
+                        &vp2, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
                 } else {
-                    drawxysym(canvas,
-                        &vp1, p->symsize, p->sym,
-                        &p->symline.pen, &p->symfillpen, p->symchar);
-                    drawxysym(canvas,
-                        &vp2, p->symsize, p->sym,
-                        &p->symline.pen, &p->symfillpen, p->symchar);
+                    drawxysym(canvas, &vp1, &p->sym);
+                    drawxysym(canvas, &vp2, &p->sym);
                 }
             } else {
                 VPoint vptmp;
@@ -2377,10 +2398,9 @@ void putlegends(Canvas *canvas, int gno, const VPoint *vp, double maxsymsize)
                 if (p->type == SET_BAR   || p->type == SET_BOXPLOT ||
                     p->type == SET_BARDY || p->type == SET_BARDYDY) {
                     drawlegbarsym(canvas,
-                        &vptmp, p->symsize, &p->symline.pen, &p->symfillpen);
+                        &vptmp, p->sym.size, &p->sym.line.pen, &p->sym.fillpen);
                 } else {
-                    drawxysym(canvas,
-                        &vptmp, p->symsize, p->sym, &p->symline.pen, &p->symfillpen, p->symchar);
+                    drawxysym(canvas, &vptmp, &p->sym);
                 }
             }
         }

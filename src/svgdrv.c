@@ -248,6 +248,7 @@ int svg_initgraphics(const Canvas *canvas, void *data,
 {
     Svg_data *svgdata = (Svg_data *) data;
     int i;
+    char *s;
 
     svgdata->pattern_defined = NULL;
     svgdata->pattern_empty = NULL;
@@ -298,9 +299,10 @@ int svg_initgraphics(const Canvas *canvas, void *data,
             page_height_pp(canvas));
 
     /* project description */
-    if (get_project_description() != NULL) {
+    s = canvas_get_description(canvas);
+    if (!is_empty_string(s)) {
         fprintf(canvas->prstream,
-            " <desc>%s</desc>\n", get_project_description());
+            " <desc>%s</desc>\n", s);
     }
     
     return RETURN_SUCCESS;
