@@ -13,6 +13,8 @@ project$(O) : project.c defines.h draw.h ../include/grace/base.h utils.h \
   ctrans.h protos.h noxprotos.h xprotos.h
 draw$(O) : draw.c draw.h ../include/grace/base.h patterns.h utils.h grace.h \
   ../include/grace/baseP.h defines.h storage.h dict3.h graphs.h ctrans.h
+typeset$(O) : typeset.c draw.h ../include/grace/base.h utils.h grace.h \
+  ../include/grace/baseP.h defines.h storage.h dict3.h
 ctrans$(O) : ctrans.c utils.h grace.h ../include/grace/baseP.h \
   ../include/grace/base.h defines.h draw.h storage.h dict3.h ctrans.h
 drawticks$(O) : drawticks.c utils.h grace.h ../include/grace/baseP.h \
@@ -100,9 +102,9 @@ mifdrv$(O) : mifdrv.c defines.h draw.h ../include/grace/base.h utils.h \
 psdrv$(O) : psdrv.c defines.h draw.h ../include/grace/base.h utils.h grace.h \
   ../include/grace/baseP.h storage.h dict3.h devlist.h psdrv.h protos.h \
   noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
-pdfdrv$(O) : pdfdrv.c defines.h draw.h ../include/grace/base.h utils.h \
-  grace.h ../include/grace/baseP.h storage.h dict3.h devlist.h pdfdrv.h \
-  protos.h noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
+pdfdrv$(O) : pdfdrv.c utils.h grace.h ../include/grace/baseP.h \
+  ../include/grace/base.h defines.h draw.h storage.h dict3.h devlist.h \
+  pdfdrv.h protos.h noxprotos.h graphs.h ctrans.h xprotos.h motifinc.h
 svgdrv$(O) : svgdrv.c defines.h draw.h ../include/grace/base.h utils.h \
   grace.h ../include/grace/baseP.h storage.h dict3.h graphs.h ctrans.h \
   devlist.h svgdrv.h

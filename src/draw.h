@@ -334,6 +334,9 @@ typedef void (*DevPutTextProc)(const Canvas *canvas, void *data,
 /* drawing procedure */
 typedef void (*CanvasDrawProc)(Canvas *canvas, void *data);
 
+typedef int (*CanvasCSParseProc)(const Canvas *canvas,
+    const char *s, CompositeString *cstring);
+
 typedef struct {
     RGB rgb;
     char *cname;
@@ -508,6 +511,12 @@ struct _Canvas {
     /* info */
     char *username;
     char *docname;
+    
+    /* user-supplied procsedure for parsing composite strings */
+    CanvasCSParseProc csparse;
+    
+    /* user data */
+    void *udata;
 
     /* cached values of the grayscale AA levels and validity flags */
     int aacolors_low_ok;
@@ -522,10 +531,15 @@ struct _Canvas {
 Canvas *canvas_new(void);
 void canvas_free(Canvas *canvas);
 
+void canvas_set_udata(Canvas *canvas, void *data);
+void *canvas_get_udata(const Canvas *canvas);
+
 void canvas_set_username(Canvas *canvas, const char *s);
 void canvas_set_docname(Canvas *canvas, const char *s);
 char *canvas_get_username(const Canvas *canvas);
 char *canvas_get_docname(const Canvas *canvas);
+
+void canvas_set_csparse(Canvas *canvas, CanvasCSParseProc csparse);
 
 void canvas_set_pagepen(Canvas *canvas, const Pen *pen);
 
@@ -569,6 +583,13 @@ void DrawFilledArc(Canvas *canvas, const VPoint *vp1, const VPoint *vp2,
     double angle1, double angle2, int mode);
 void WriteString(Canvas *canvas,
     const VPoint *vp, double angle, int just, const char *s);
+
+CStringSegment *cstring_seg_new(CompositeString *cstring);
+double tm_size(const TextMatrix *tm);
+int tm_scale(TextMatrix *tm, double s);
+int tm_rotate(TextMatrix *tm, double angle);
+int tm_slant(TextMatrix *tm, double slant);
+int tm_product(TextMatrix *tm, const TextMatrix *p);
 
 void DrawRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);
 void FillRect(Canvas *canvas, const VPoint *vp1, const VPoint *vp2);

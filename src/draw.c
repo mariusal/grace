@@ -154,6 +154,19 @@ void canvas_dev_puttext(Canvas *canvas,
     }
 }
 
+static int csparse_default(const Canvas *canvas,
+    const char *s, CompositeString *cstring)
+{
+    CStringSegment *cseg;
+    
+    if (s && (cseg = cstring_seg_new(cstring))) {
+        cseg->s = copy_string(NULL, s);
+        cseg->len = strlen(s);
+        return RETURN_SUCCESS;
+    } else {
+        return RETURN_FAILURE;
+    }
+}
 
 Canvas *canvas_new(void)
 {
@@ -174,6 +187,8 @@ Canvas *canvas_new(void)
         initialize_patterns(canvas);
         /* initialize linestyle data */
         initialize_linestyles(canvas);
+        
+        canvas->csparse = csparse_default;
         
         /* initialize T1lib */
         if (init_t1(canvas) != RETURN_SUCCESS) {
@@ -393,6 +408,21 @@ char *canvas_get_username(const Canvas *canvas)
 char *canvas_get_docname(const Canvas *canvas)
 {
     return canvas->docname;
+}
+
+void canvas_set_udata(Canvas *canvas, void *data)
+{
+    canvas->udata = data;
+}
+
+void *canvas_get_udata(const Canvas *canvas)
+{
+    return canvas->udata;
+}
+
+void canvas_set_csparse(Canvas *canvas, CanvasCSParseProc csparse)
+{
+    canvas->csparse = csparse;
 }
 
 void canvas_set_pagepen(Canvas *canvas, const Pen *pen)

@@ -113,6 +113,8 @@ int main(int argc, char *argv[])
     rt      = grace->rt      = runtime_new(grace);
     gui     = grace->gui     = gui_new(grace);
     canvas  = rt->canvas     = canvas_new();
+    canvas_set_udata(canvas, grace);
+    canvas_set_csparse(canvas, csparse);
     
     /* initialize the parser symbol table */
     init_symtab();
