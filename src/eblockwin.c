@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -50,8 +50,6 @@
 #include "ssdata.h"
 #include "motifinc.h"
 #include "protos.h"
-
-static char ncolsbuf[128];
 
 static int block_curtype = SET_XY;
 
@@ -150,7 +148,8 @@ static void update_eblock(int gno)
     int blocklen, blockncols;
     int *blockformats;
     int i, ncols, nncols, nscols;
-    char buf[16];
+    char buf[128];
+
     OptionItem *blockitems, *sblockitems;
     
     if (eblock_frame == NULL) {
@@ -166,9 +165,9 @@ static void update_eblock(int gno)
     if (is_valid_gno(gno)) {
         SelectListChoice(eblock_graphset_item->graph_sel, gno);
     }
-    sprintf(ncolsbuf, "Block data: %d column(s) of length %d",
+    sprintf(buf, "Block data: %d column(s) of length %d",
         blockncols, blocklen);
-    SetLabel(eblock_ncols_item, ncolsbuf);
+    SetLabel(eblock_ncols_item, buf);
     
     /* TODO: check if new data arrived */
     if (1) {
@@ -193,9 +192,12 @@ static void update_eblock(int gno)
             }
         }
         for (i = 0; i < MAX_SET_COLS; i++) {
+            int oldchoice = GetOptionChoice(eblock_nchoice_items[i]);
             UpdateOptionChoice(eblock_nchoice_items[i],
                 nncols + 1, blockitems);
-            if (i < blockncols) {
+            if (oldchoice < blockncols) {
+                SetOptionChoice(eblock_nchoice_items[i], oldchoice);
+            } else if (i < blockncols) {
                 SetOptionChoice(eblock_nchoice_items[i], i);
             }
         }
