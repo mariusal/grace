@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -36,6 +36,7 @@
 #include <cmath.h>
 
 #include <stdlib.h>
+#include <ctype.h>
 #include <stdarg.h>
 
 #include <X11/X.h>
@@ -124,6 +125,35 @@ static OptionItem *color_option_items = NULL;
 static int ncolor_option_items = 0;
 static OptionStructure **color_selectors = NULL;
 static int ncolor_selectors = 0;
+
+static char *label_to_resname(const char *s, const char *suffix)
+{
+    char *retval, *rs;
+    int capitalize = FALSE;
+    
+    retval = copy_string(NULL, s);
+    rs = retval;
+    while (*s) {
+        if (isalnum(*s)) {
+            if (capitalize == TRUE) {
+                *rs = toupper(*s);
+                capitalize = FALSE;
+            } else {
+                *rs = tolower(*s);
+            }
+            rs++;
+        } else {
+            capitalize = TRUE;
+        }
+        s++;
+    }
+    *rs = '\0';
+    if (suffix != NULL) {
+        retval = concat_strings(retval, "_");
+        retval = concat_strings(retval, suffix);
+    }
+    return retval;
+}
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
                                                 int nchoices, OptionItem *items)
@@ -865,10 +895,12 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     OptionStructure *opt;
     Widget w, fr, form, button;
     XmString xmstr;
-    char *bufp;
+    char *bufp, *resname;
     
     retval = malloc(sizeof(FSBStructure));
-    retval->FSB = XmCreateFileSelectionDialog(parent, "FSB", NULL, 0);
+    resname = label_to_resname(s, "FSB");
+    retval->FSB = XmCreateFileSelectionDialog(parent, resname, NULL, 0);
+    xfree(resname);
     retval->dialog = XtParent(retval->FSB);
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
