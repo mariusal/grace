@@ -118,23 +118,23 @@ static XtActionsRec dummy_actions[] = {
 };
 
 static XtActionsRec canvas_actions[] = {
-	{ "autoscale", (XtActionProc) autoscale_action },	
-	{ "autoscale_on_near", (XtActionProc) autoscale_on_near_action },	
-	{ "draw_line", (XtActionProc) draw_line_action },	
-	{ "draw_box", (XtActionProc) draw_box_action },	
-	{ "draw_ellipse", (XtActionProc) draw_ellipse_action },	
-	{ "write_string", (XtActionProc) write_string_action },	
-	{ "delete_object", (XtActionProc) delete_object_action },	
-	{ "place_legend", (XtActionProc) place_legend_action },	
-	{ "move_object", (XtActionProc) move_object_action },	
-	{ "refresh_hotlink", (XtActionProc) refresh_hotlink_action },
-	{ "set_viewport", (XtActionProc) set_viewport_action },	
-	{ "enable_zoom", (XtActionProc) enable_zoom_action }
+    {"autoscale",         autoscale_action        },     
+    {"autoscale_on_near", autoscale_on_near_action},     
+    {"draw_line",         draw_line_action        },     
+    {"draw_box",          draw_box_action         },      
+    {"draw_ellipse",      draw_ellipse_action     },  
+    {"write_string",      write_string_action     },  
+    {"delete_object",     delete_object_action    }, 
+    {"place_legend",      place_legend_action     },  
+    {"move_object",       move_object_action      },   
+    {"refresh_hotlink",   refresh_hotlink_action  },
+    {"set_viewport",      set_viewport_action     },  
+    {"enable_zoom",       enable_zoom_action      }
 };
 
 static XtActionsRec list_select_actions[] = {
-    {"list_selectall_action",   list_selectall_action},
-    {"list_unselectall_action", list_unselectall_action},
+    {"list_selectall_action",       list_selectall_action      },
+    {"list_unselectall_action",     list_unselectall_action    },
     {"list_invertselection_action", list_invertselection_action}
 };
 
@@ -959,14 +959,13 @@ void startup_gui(void)
     XtAddCallback(canvas, XmNresizeCallback,
                             (XtCallbackProc) expose_resize, NULL);
 
-    XtAddEventHandler(canvas, EnterWindowMask
-		      | LeaveWindowMask
-		      | ButtonPressMask
+    XtAddEventHandler(canvas, ButtonPressMask
 		      | PointerMotionMask
 		      | KeyPressMask
+		      | KeyReleaseMask
 		      | ColormapChangeMask,
 		      False,
-		      (XtEventHandler) my_proc, NULL);
+		      canvas_event_proc, grace);
 		      
     XtOverrideTranslations(canvas, XtParseTranslationTable(canvas_table));
     

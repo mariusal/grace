@@ -297,10 +297,16 @@ void slide_region(view bb, int shift_x, int shift_y, int erase)
 }
 
 static int crosshair_erase = FALSE;
+static int cursor_oldx, cursor_oldy;
 
-void reset_crosshair(void)
+
+void reset_crosshair(int clear)
 {
     crosshair_erase = FALSE;
+    if (clear) {
+        aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);
+        aux_XDrawLine(cursor_oldx, 0, cursor_oldx, win_h);
+    }
 }
 
 /*
@@ -308,8 +314,6 @@ void reset_crosshair(void)
  */
 void crosshair_motion(int x, int y)
 {
-    static int cursor_oldx, cursor_oldy;
-    
     /* Erase the previous crosshair */
     if (crosshair_erase == TRUE) {
         aux_XDrawLine(0, cursor_oldy, win_w, cursor_oldy);

@@ -52,7 +52,7 @@ void setpointer(VPoint vp);
 void select_line(int x1, int y1, int x2, int y2, int erase);
 void select_region(int x1, int y1, int x2, int y2, int erase);
 void slide_region(view bbox, int shift_x, int shift_y, int erase);
-void reset_crosshair(void);
+void reset_crosshair(int clear);
 void crosshair_motion(int x, int y);
 
 void draw_focus(Quark *gr);

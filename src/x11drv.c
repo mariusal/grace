@@ -710,7 +710,7 @@ void xlibleavegraphics(const Canvas *canvas, void *data,
     if (is_graph_hidden(gr) == FALSE) {
         draw_focus(gr);
     }
-    reset_crosshair();
+    reset_crosshair(FALSE);
     xlibredraw(xwin, 0, 0, win_w, win_h);
     
     XFlush(disp);

@@ -37,6 +37,8 @@
 
 #include <config.h>
 
+#include "grace.h"
+
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
 
@@ -95,24 +97,25 @@ typedef enum {
 /*
  * double click detection interval (ms)
  */
-#define CLICKINT 400
+#define CLICK_INT 400
+#define CLICK_DIST 10
 
 #define MAXPICKDIST 0.015      /* the maximum distance away from an object */
                               /* you may be when picking it (in viewport  */
                               /* coordinates)                             */  
 
+void canvas_event_proc(Widget w, XtPointer data, XEvent *event, Boolean *cont);
 void anchor_point(int curx, int cury, VPoint curvp);
-void my_proc(Widget parent, XtPointer data, XEvent *event);
 void set_actioncb(Widget but, void *data);
 void set_action(CanvasAction act);
 void track_point(Quark *pset, int *loc, int shift);
-void getpoints(VPoint *vpp);
+void update_locator_lab(Quark *cg, VPoint *vpp);
 void set_stack_message(void);
 void do_select_area(void);
 void do_select_peri(void);
 void do_dist_proc(void);
 void do_select_region(void);
-Quark *next_graph_containing(Quark *cg, VPoint vp);
+Quark *next_graph_containing(Quark *cg, VPoint *vp);
 int graph_clicked(Quark *gr, VPoint vp);
 int focus_clicked(Quark *cg, VPoint vp, VPoint *avp);
 int legend_clicked(Quark *gr, VPoint vp, view *bb);
@@ -124,19 +127,19 @@ void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
 
 /* action routines */
-void set_viewport_action( Widget, XKeyEvent *, String *, Cardinal * );
-void enable_zoom_action( Widget, XKeyEvent *, String *, Cardinal * );
-void autoscale_action( Widget, XKeyEvent *, String *, Cardinal * );
-void autoscale_on_near_action( Widget, XKeyEvent *, String *, Cardinal * );
-void draw_line_action( Widget, XKeyEvent *, String *, Cardinal * );
-void draw_box_action( Widget, XKeyEvent *, String *, Cardinal * );
-void draw_ellipse_action( Widget, XKeyEvent *, String *, Cardinal * );
-void write_string_action( Widget, XKeyEvent *, String *, Cardinal * );
-void delete_object_action( Widget, XKeyEvent *, String *, Cardinal * );
-void move_object_action( Widget, XKeyEvent *, String *, Cardinal * );
-void place_legend_action( Widget, XKeyEvent *, String *, Cardinal * );
-void refresh_hotlink_action( Widget, XKeyEvent *, String *, Cardinal * );
-void exit_abruptly_action( Widget, XKeyEvent *, String *, Cardinal * );
+void set_viewport_action( Widget, XEvent *, String *, Cardinal * );
+void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );
+void autoscale_action( Widget, XEvent *, String *, Cardinal * );
+void autoscale_on_near_action( Widget, XEvent *, String *, Cardinal * );
+void draw_line_action( Widget, XEvent *, String *, Cardinal * );
+void draw_box_action( Widget, XEvent *, String *, Cardinal * );
+void draw_ellipse_action( Widget, XEvent *, String *, Cardinal * );
+void write_string_action( Widget, XEvent *, String *, Cardinal * );
+void delete_object_action( Widget, XEvent *, String *, Cardinal * );
+void move_object_action( Widget, XEvent *, String *, Cardinal * );
+void place_legend_action( Widget, XEvent *, String *, Cardinal * );
+void refresh_hotlink_action( Widget, XEvent *, String *, Cardinal * );
+void exit_abruptly_action( Widget, XEvent *, String *, Cardinal * );
 
 void update_point_locator(Quark *pset, int loc);
 void get_tracking_props(int *setno, int *move_dir, int *add_at);
