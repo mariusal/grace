@@ -648,7 +648,7 @@ dnl **** Check for Motif
     GUI="NONE_GUI"
     GUI_FLAGS=""
     GUI_LIBS=""
-    AC_MSG_WARN(M*tif has not been found; building a GUI-less version)
+    AC_MSG_ERROR(M*tif has not been found)
   else
     GUI_LIBS="$MOTIF_LIB $GUI_LIBS"
     GUI="MOTIF_GUI"
