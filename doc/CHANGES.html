@@ -11,59 +11,86 @@
 
 <H2>5.1.1</H2>
 
- *  [ES] fixed text under/overlining in SVG
- *  [ES] fixed dashed patterns for thick lines in SVG
- *  [ES] configure checks for netCDF version
- *  [ES] a bug in interpolation caused crash under some conditions (rep. #783)
- *  [ES] fixed interpolation of reversed arrays (rep. #675)
- *  [ES] fixed a memory leak in interpolation using splines
+<H3>New functionality</H3>
  *  [ES] interpolation now takes into account all data set columns
- *  [ES] there was no automatic canvas refresh after performing interpolation
- *  [ES] there was no automatic canvas refresh after changes in locator props
- *  [ES] fixed "\\" in strings
- *  [ES] removed restriction on the max line length (512) in parameter files
- *  [ES] check for positive page dims and dpi in device setup (rep. #779)
- *  [ES] invert logics of the yesno dialog popped up if printout is truncated
-         (rep. #778)
- *  [ES] fixed overflowing of some tables in dvi output of the User's guide
- *  [WB] some fixes/additions to the User's guide
- *  [ES] "Edit/Locator props" popup rewritten
- *  [ES] "Spline" popup removed
- *  [ES] "Interpolation" popup rewritten
- *  [ES] SPLINE, ASPLINE, INTERP -&gt; INTERPOLATE
- *  [ES] added RAND(nexpr)
- *  [ES] "Histograms" popup rewritten
  *  [ES] option to calculate normalized histograms
  *  [ES] histograms with varying bin widths - abscissas of a set can be used
          as a bin mesh
+ *  [EV/ES] GraceOpenVA()
+ *  [ES] \V{} escape code in strings - baseline shift
+ *  [ES] \n escape code in strings - new line
+ 
+<H3>Interface</H3>
+ *  [ES] "Edit/Locator props" popup rewritten
+ *  [ES] "Spline" popup removed
+ *  [ES] "Interpolation" popup rewritten
+ *  [ES] "Histograms" popup rewritten
+ !  [ES] "Arrange graphs" rewritten (including reps. #368, #592, #735)
+ *  [ES] double click on a set selector entry now pops up the SS editor
+ !  [ES] SS editor
+ !  [ES] date/time format in the SS editor
+ !  [ES] XmHTML/Gracilla
+ *  [ES] removed -[no]logwindow command line options and X resource
+ *  [ES] removed -arrange, -cols, and -rows command line options
+ !  [ES] Results and errwin merged into Console
+ *  [ES] menubar added to the "Graph appearance" dialog
+ *  [ES] "File/Read/Parameters" and "File/Write/Parameters" moved to the
+         "Graph appearance" menubar
+ *  [ES] "File/Read/Sets" and "File/Write/Setts" moved to the "Data/Import"
+         and "Data/Export" submenus, respectively
+ *  [ES] renamed "File/Device setup" to "File/Print setup" and added
+         "View/Page setup" (same dialog but with X11 as the selected device)
+ *  [ES] splitted axis/tick label offset input fields into two
+ 
+<H3>Documentation/Info</H3>
+ *  [WB] some fixes/additions to the User's guide
+ *  [AM] include Xbae version in -version and Help/About
+ *  [DP] UG updates
+ *  [EV] Tutorials updated
+ 
+<H3>Parser</H3>
+ *  [ES] removed restriction on the max line length (512) in parameter files
+ *  [ES] SPLINE, ASPLINE, INTERP -&gt; INTERPOLATE
+ *  [ES] added RAND(nexpr)
  *  [ES] HISTO -&gt; HISTOGRAM
+ !  [ES] ARRANGE
+ 
+<H3>Portability/Compilation</H3>
+ *  [ES] configure checks for netCDF version
+ *  [AC] a couple of configure fixes
+ *  [AM] check for build/runtime Xbae version match
+ *  [AM] OS/2 updates
+ *  [JH] VMS updates
+ 
+<H3>Bug fixes</H3>
+ *  [ES] fixed text under/overlining in SVG
+ *  [ES] fixed dashed patterns for thick lines in SVG
+ *  [ES] a bug in interpolation caused crash under some conditions (rep. #783)
+ *  [ES] fixed overflowing of some tables in dvi output of the User's guide
+ *  [ES] fixed interpolation of reversed arrays (rep. #675)
+ *  [ES] fixed a memory leak in interpolation using splines
+ *  [ES] there was no automatic canvas refresh after performing interpolation
+ *  [ES] there was no automatic canvas refresh after changes in locator props
+ *  [ES] fixed "\\" in strings
+ *  [ES] check for positive page dims and dpi in device setup (rep. #779)
+ *  [ES] invert logics of the yesno dialog popped up if printout is truncated
+         (rep. #778)
  *  [JSB] text color might be wrongly set on raster devices with antialiasing
          off (rep. #803)
- *  [ES] (rep. #805)
- *  [AC] a couple of configure fixes
- !  [ES] "Arrange graphs" rewritten (including reps. #368, #592, #735)
- !  [ES] SS editor + memory leak fix
+ *  [ES] memory leak fix in the SS editor
  *  [ES] "File/New" didn't update project description in "File/Save as"
- *  [ES] (rep. #807)
+ *  [ES] graph operations on killed graphs result in crash (rep. #805)
+ *  [ES] drawing objects cursor remained active after closing window
+         (rep. #807)
+ *  [ES] switching between (overlaid) graphs updated the locator bar only
+         after pointer move (rep. #808)
  *  [GJ] canvas didn't refresh on autoscale shortcut (rep. #809)
- *  [ES] (rep. #808)
- *  [AM] include Xbae version in -version and Help/About
  *  [ES] initial values of fit parameters with bounds set were printed wrongly
          in the "Results" window
  *  [ES] disable canvas events on hidden graphs
- !  [ES] double click on a set selector entry now pops up the SS editor
- !  [ES] date/time format in the SS editor
  *  [ES] white space at the beginning of text strings wasn't accounted in bbox
          calculations
- !  [ES] XmHTML/Gracilla
- *  [DP] UG updates
- *  [EV/ES] GraceOpenVA()
- *  [ES] removed -[no]logwindow command line options and X resource
- *  [ES] removed -arrange, -cols, and -rows command line options
- !  [ES] ARRANGE
- *  [AM] check for build/runtime Xbae version match
- *  [EV] Tutorials updated
- !  [ES] Results and errwin merged into Console
+ *  [ES] fixed wrong initial canvas size in the free page mode (rep. #821)
 
 
 <H2>5.1.0</H2>

@@ -6,7 +6,7 @@
 
   <title>Grace FAQ (for Grace-5.1.1)
   <author>by the Grace Team
-  <date>19.05.2000
+  <date>30.05.2000
   <abstract>
     This document contains Frequently Asked Questions (FAQ) about
     <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -371,7 +371,7 @@
       <p>
 
         Yes. You can search and browse the database of known bugs in
-        Xmgr and Grace at the bug report facility <url name="w3todo"
+        Grace at the bug report facility <url name="w3todo"
         url="http://plasma-gate.weizmann.ac.il/w3todo/index.phtml">
         or using the <tt>"Help/Comments"</tt> menu from within
         Grace.  The database also keeps track of the status of the
@@ -509,7 +509,7 @@
         <url url="http://www.lesstif.org">). LessTif is intended to be a 100%
         source compatible replacement for Motif, but is still under
         development. For the purposes of Grace, try using the latest version
-        of LessTif (at least 0.89.9 and above) - if you don't mind that it
+        of LessTif (at least 0.90 and above) - if you don't mind that it
         might be a bit slower than commercial versions of Motif and graphical
         details may be different. Be aware, however, that occasional crashes
         might occur under certain circumstances. The LessTif people usually

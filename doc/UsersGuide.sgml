@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.1)
 <author>by the Grace Team
-<date>26.05.2000
+<date>05.06.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -251,7 +251,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
   <p>
 
   For a jump-in start, you can browse the demos ("Help/Examples" menu tree).
-  These are ordinary grace projects, so you can play with them and modify them.
+  These are ordinary Grace projects, so you can play with them and modify them.
   Also, read the <url name="Tutorial" url="Tutorial.html">.
   <p>
   O.k. Here's a VERY quick introduction:
@@ -261,7 +261,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               Setup.
        <item> If needed, set the graph size ('Viewport' in
               Plot/Graph Appearance).
-       <item> Load your data with File/Read/Sets. 'Load as': 'Single set' for
+       <item> Load your data with Data/Import/ASCII. 'Load as': 'Single set' for
               two-column ASCII data, 'Block data' for multi-column ASCII data.
        <item> Adjust the scales, axis labels and tick marks in Plot/Axis
               properties. Acknowledge all changes with 'Apply'.
@@ -272,7 +272,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               data set by 20 to the left, e.g., in 'Evaluate Expression'
               select the same set on the left and the right, and say Formula:
               y=y-20.
-              As you'll probably notice, grace can do MUCH more than that.
+              As you'll probably notice, Grace can do MUCH more than that.
               Explore at your leisure.
        <item> When you like your plot, select File/Print. That's it!
        </enum>
@@ -321,7 +321,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           a title and a subtitle, a number of sets and additional annotative
           objects (time stamp string, text strings, lines, boxes and ellipses).
 
-          The graph type can be any of:
+          The graph type can be any of:<label id="graph-types">
           <itemize>
              <item> XY Graph
              <item> XY Chart
@@ -820,81 +820,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       last save. A confirmation popup is fired to allow the user
       canceling the operation.
 
-      <sect2> Read menu <label id="read-menu">
-      <p>
-         <sect3> Sets <label id="read-sets">
-         <p>
-         Read new sets of data in a graph. A <ref id="graph-selector"
-         name="graph selector"> is used to specify the graph where the
-         data should go (except when reading block data, which are
-         copied to graphs later on).
-
-         Reading as "Single set" means that if the source contains
-         only one column of numeric data, one set will be created
-         using the indices (from 1 to the total number of points) as
-         abscissas and read values as ordinates and that if the source
-         contains more than one column of data, the first two numeric
-         columns will be used. Reading as "NXY" means that the first
-         numeric column will provide the abscissas and all remaining
-         columns will provide the ordinates of several sets. Reading
-         as "Block data" means all column will be read and stored and
-         that another popup will allow to select the abscissas and
-         ordinates at will. It should be noted that block data are
-         stored as long as you do not override them by a new read. You
-         can still retrieve data from a block long after having closed
-         all popups, using the <ref id="set-selector" name="set
-         selector">.
-
-         The set type can be one of the predefined set presentation types
-         (see <ref id="sets" name="sets">).
-
-         The data source can be selected as "Disk" or "Pipe". In the
-         first case the text in the "Selection" field is considered to
-         be a file name (it can be automatically set by the file
-         selector at the top of the popup). In the latter case the
-         text is considered to be a command which is executed and
-         should produce the data on its standard output. On systems
-         that allows is, the command can be a complete sequence of
-         programs glued together with pipes.
-
-         If the source contains date fields, they should be
-         automatically detected. Several formats are recognized (see
-         appendix <ref id="dates" name="dates in grace">). Calendar
-         dates are converted to numerical dates upon reading.
-         
-         The "Autoscale on read" menu controls whether, upon reading in new
-         sets, which axes of the graph should be autoscaled.
-
-         <sect3> NetCDF <label id="read-netCDF">
-         <p>
-         This entry exists only if Grace has been compiled with
-         support for the NetCDF data format (see <ref
-         id="configuration" name="configuration">).
-
-         <sect3> Parameters <label id="read-parameters">
-         <p>
-         Retrieve settings previously saved.
-
-      <sect2> Write menu <label id="write-menu">
-      <p>
-         <sect3> Sets <label id="write-sets">
-         <p>
-         Save data sets in a file. A <ref id="set-selector" name="set
-         selector"> is used to specify the set to be saved. The format
-         to use for saving data points can be specified (the default
-         value is "%16.8g"). A warning is displayed if a file with the
-         same name already exists.
-
-         <sect3> Parameters <label id="write-parameters">
-         <p>
-         Save the parameters either for only the current graph or for
-         all graphs.
-
       <sect2> Print <label id="print">
       <p>
       Print the project using the current printer settings
 
-      <sect2> Device setup <label id="device-setup">
+      <sect2> Print setup <label id="print-setup">
       <p>
       Set the properties of the printing device. Each device has its
       own set of specific options (see <ref name="Device-specific
@@ -1019,7 +949,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       You can link a set to a file or a pipe using this feature. Once
       a link has been established, you can update it (i.e., read data
       again) by clicking on the update button. If you have specified a
-      command (using grace language) in the corresponding text field
+      command (using Grace language) in the corresponding text field
       of the popup, it will be executed after each update. Note that
       you can use several commands separated by ';' characters.
       <p>
@@ -1047,7 +977,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <sect2> Preferences <label id="preferences">
       <p>
       The preferences popup allows you to set miscellaneous properties
-      of your grace session, such as GUI behavior, cursor type,
+      of your Grace session, such as GUI behavior, cursor type,
       date reading hint and reference date used for calendar conversions.
 
    <sect1> Data menu <label id="data-menu">
@@ -1333,6 +1263,67 @@ integral     | cumulative sum @
       </caption>
       </table>
 
+      <sect2> Import menu <label id="read-menu">
+      <p>
+         <sect3> ASCII <label id="read-sets">
+         <p>
+         Read new sets of data in a graph. A <ref id="graph-selector"
+         name="graph selector"> is used to specify the graph where the
+         data should go (except when reading block data, which are
+         copied to graphs later on).
+
+         Reading as "Single set" means that if the source contains
+         only one column of numeric data, one set will be created
+         using the indices (from 1 to the total number of points) as
+         abscissas and read values as ordinates and that if the source
+         contains more than one column of data, the first two numeric
+         columns will be used. Reading as "NXY" means that the first
+         numeric column will provide the abscissas and all remaining
+         columns will provide the ordinates of several sets. Reading
+         as "Block data" means all column will be read and stored and
+         that another popup will allow to select the abscissas and
+         ordinates at will. It should be noted that block data are
+         stored as long as you do not override them by a new read. You
+         can still retrieve data from a block long after having closed
+         all popups, using the <ref id="set-selector" name="set
+         selector">.
+
+         The set type can be one of the predefined set presentation types
+         (see <ref id="sets" name="sets">).
+
+         The data source can be selected as "Disk" or "Pipe". In the
+         first case the text in the "Selection" field is considered to
+         be a file name (it can be automatically set by the file
+         selector at the top of the popup). In the latter case the
+         text is considered to be a command which is executed and
+         should produce the data on its standard output. On systems
+         that allows is, the command can be a complete sequence of
+         programs glued together with pipes.
+
+         If the source contains date fields, they should be
+         automatically detected. Several formats are recognized (see
+         appendix <ref id="dates" name="dates in grace">). Calendar
+         dates are converted to numerical dates upon reading.
+         
+         The "Autoscale on read" menu controls whether, upon reading in new
+         sets, which axes of the graph should be autoscaled.
+
+         <sect3> NetCDF <label id="read-netCDF">
+         <p>
+         This entry exists only if Grace has been compiled with
+         support for the NetCDF data format (see <ref
+         id="configuration" name="configuration">).
+
+      <sect2> Export menu <label id="write-menu">
+      <p>
+         <sect3> ASCII <label id="write-sets">
+         <p>
+         Save data sets in a file. A <ref id="set-selector" name="set
+         selector"> is used to specify the set to be saved. The format
+         to use for saving data points can be specified (the default
+         value is "%16.8g"). A warning is displayed if a file with the
+         same name already exists.
+
 
    <sect1> Plot menu <label id="plot-menu">
    <p>
@@ -1345,19 +1336,19 @@ integral     | cumulative sum @
 
       <sect2> Graph appearance <label id="graph-appearance">
       <p>
-      The graph appearance popup can be displayed from both the plot
-      menu and by double-clicking on a legend, title, or subtitle of a
-      graph (see <ref name="Clicks and double clicks"
-      id="clicks">). The graph selector at the top allows to choose
-      the graph you want to operate on, it also allows certain common
-      actions through its popup menu (see <ref name="graph selector"
-      id="graph-selector">). The main tab includes the properties you
-      will need more often (title for example), and other tabs are
-      used to fine tune some less frequently used options (fonts,
-      sizes, colors, placements).
+      The graph appearance popup can be displayed from both the plot menu
+      and by double-clicking on a legend, title, or subtitle of a graph
+      (see <ref name="Clicks and double clicks" id="clicks">). The graph
+      selector at the top allows to choose the graph you want to operate
+      on, it also allows certain common actions through its popup menu (see
+      <ref name="graph selector" id="graph-selector">). Most of the actions
+      can also be performed using the "Edit" menu available from the popup
+      menubar. The main tab includes the properties you will need more
+      often (title for example), and other tabs are used to fine tune some
+      less frequently used options (fonts, sizes, colors, placements).
 
       If you need special characters or special formatting in your
-      title or subtitle, you can use grace escape sequences (the
+      title or subtitle, you can use Grace escape sequences (the
       sequence will appear verbatim in the text field but will be
       rendered on the graph), see <ref name="typesetting"
       id="typesetting">. If you don't remember the mapping between
@@ -1369,6 +1360,12 @@ integral     | cumulative sum @
       the position of the cursor as you enter text or change font in
       the font tool, the character or command will be inserted at this
       position, not at the end of the string!
+
+      You can save graph appearance parameters or retrieve settings
+      previously saved via the "File" menu of this popup. In the "Save
+      parameters" dialog, you can choose to save settings either for
+      the current graph only or for all graphs.
+      
 
       <sect2> Set appearance <label id="set-appearance">
       <p>
@@ -1385,13 +1382,13 @@ integral     | cumulative sum @
       properties for example).
 
       You should note that despite the legend string related to
-      <em/one/ set is entered in the set appearance popup, this is not
-      sufficient to display it. Displaying <em/all/ legends is a graph
+      <em>one</em> set is entered in the set appearance popup, this is not
+      sufficient to display it. Displaying <em>all</em> legends is a graph
       level decision, so the toggle is in the main tab of the <ref
       name="graph appearance" id="graph-appearance"> popup.
 
       If you need special characters or special formatting in your
-      legend, you can use grace escape sequences (the sequence will
+      legend, you can use Grace escape sequences (the sequence will
       appear verbatim in the text field but will be rendered on the
       graph), see <ref name="typesetting" id="typesetting">. If you
       don't remember the mapping between alphabetic characters and the
@@ -1422,7 +1419,7 @@ integral     | cumulative sum @
       placements, stagger, grid lines, special ticks, ...).
 
       If you need special characters or special formatting in your
-      label, you can use grace escape sequences (the
+      label, you can use Grace escape sequences (the
       sequence will appear verbatim in the text field but will be
       rendered on the graph), see <ref name="typesetting"
       id="typesetting">. If you don't remember the mapping between
@@ -1458,6 +1455,11 @@ integral     | cumulative sum @
       This toggle item shows or hides the tool bar at the left of the
       canvas.
 
+      <sect2> Page setup <label id="page-setup">
+      <p>
+      Set the properties of the display device. It is the same dialog as
+      in <ref name="Print setup" id="print-setup">.
+      
       <sect2> Redraw <label id="redraw">
       <p>
       This menu item triggers a redrawing of the canvas.
@@ -1479,7 +1481,7 @@ integral     | cumulative sum @
       <p>
       <sect2> Font tool <label id="font-tool">
       <p>
-      <sect2> Results <label id="results">
+      <sect2> Console <label id="console">
       <p>
 
    <sect1> Help menu <label id="help-menu">
@@ -1530,8 +1532,9 @@ integral     | cumulative sum @
 
     <itemize> 
       <item> <tt>  Draw</tt>: This will redraw the canvas and sets.
-	Useful after editing drawing objects such as boxes, circles, and
-	text.
+	Useful if "Auto Redraw" has been deselected in the Edit|Preferences
+	dialog or after executing commands directly from the Window|Commands
+	interpreter.
         <p>
 
       <item> <tt>  Lens</tt>: A zoom lens.  Click on the lens, then select the
@@ -1541,7 +1544,8 @@ integral     | cumulative sum @
         data points of all visible (not hidden) sets.
       <item> <tt>   Z/z</tt>:  Zoom in/out by 5%.
       <item> <tt>Arrows</tt>:  Scroll active graph by 5% in the arrow's
-        direction.
+        direction.  The scroll percentage can be set in the
+	Edit|Preferences dialog.
 
         <p>
       <item> <tt>AutoT</tt>: AutoTick Axes.  This will find the optimum
@@ -1647,6 +1651,8 @@ integral     | cumulative sum @
            </itemize>
          </itemize>
 
+         Double-clicking on a list entry will open the spreadsheet editor on
+         the set data.
 
     
 <!-- **************************************** --> 
@@ -1776,7 +1782,7 @@ integral     | cumulative sum @
           set <it>id</it> in graph <it>graph</it>|
           indx <it>id</it>, graphsel <it>graph</it> |
           GRAPH&lsqb;0&rsqb;.SETS&lsqb;1&rsqb; @
-        <it>graph</it>.S<it>nn</it> |
+	  <it>graph</it>.S<it>nn</it> |
           set <it>nn</it> in graph <it>graph</it>|
           <it>nn</it>: 0-99, graphsel <it>graph</it> |
           G0.S1 @
@@ -2232,14 +2238,73 @@ integral     | cumulative sum @
 
   <sect1>Graph properties
     <p>
+      <table loc="htbp">
+      <tabular ca="lp{6cm}ll">
+        <hline>
+        Statement | Description | Types | Example @
+        <hline>
+	FOCUS <it>graph</it> | Makes <it>graph</it> current and unhides it if necessary |
+	                      <ref id="graph-sel" name="graphsel"> <it>graph</it> | FOCUS G0 @
+	KILL <it>graph</it> | Kills <it>graph</it> | <ref id="graph-sel" name="graphsel"> <it>graph</it> | KILL G0 @
+      </tabular>
+      <caption>
+        <label id="graph-ops">
+        Graph operations
+      </caption>
+      </table>
+    </p>
+<p>
+In the following table, when <it>graph</it> is the first item it is
+optional.  If  omitted, the settings will be applied to the
+current graph.
+</p>
+    <p>
+      <table loc="htbp">
+      <tabular ca="lp{7cm}ll">
+        <hline>
+        Statement | Description | Types | Example @
+        <hline>
+	WITH <it>graph</it> | Makes  <it>graph</it> current | 
+	                    <ref id="graph-sel" name="graphsel"> <it>graph</it> | WITH G0 @
+	TYPE <it>type</it>  | Sets <it>type</it> of current graph |
+	                   graphtype <it>type</it> |TYPE XY @
+	 <it>graph</it> onoff| (De)Activates selected graph | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G0 ON @
+	 <it>graph</it> HIDDEN onoff | Hides selected graph | <ref id="graph-sel" name="graphsel"> <it>graph</it>, onoff | G1 HIDDEN TRUE @
+	 <it>graph</it> TYPE <it>type</it> | Sets <it>type</it> of <it>graph</it>  |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, graphtype <it>type</it> | G0 TYPE XYDY @
+	 <it>graph</it> WORLD XMIN <it>xmin</it> | Sets minimum value of  <it>graph</it>'s x axis to <it>xmin</it> |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmin</it> | G0 WORLD XMIN -10 @
+	 <it>graph</it> WORLD XMAX <it>xmax</it> | Sets maximum value of  <it>graph</it>'s x axis to <it>xmin</it> |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmax</it> | G0 WORLD XMAX 22.5 @
+	 <it>graph</it> WORLD YMIN <it>ymin</it> | Sets minimum value of  <it>graph</it>'s y axis to <it>xmin</it> |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymin</it> | G0 WORLD YMIN 0 @
+	 <it>graph</it> WORLD YMAX <it>ymax</it> | Sets maximum value of  <it>graph</it>'s y axis to <it>xmin</it> |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymax</it> | G0 WORLD YMAX 1e4 @
+	 <it>graph</it> VIEW XMIN <it>xmin</it> | Sets left edge of <it>graph</it> at x=<it>xmin</it> in the viewport |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmin</it>| G0 VIEW XMIN .2 @
+	 <it>graph</it> VIEW XMAX <it>xmax</it> | Sets right edge of <it>graph</it> at x=<it>xmax</it> in the viewport |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>xmax</it>| G0 VIEW XMAX 1.0 @
+	 <it>graph</it> VIEW YMIN <it>ymin</it> | Sets bottom edge of <it>graph</it> at x=<it>ymin</it> in the viewport |
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymin</it>| G0 VIEW YMIN .25 @
+	 <it>graph</it> VIEW YMAX <it>ymax</it> | Sets top edge of <it>graph</it> at x=<it>ymax</it> in the viewport | 
+	          <ref id="graph-sel" name="graphsel"> <it>graph</it>, <ref id="types" name="expr"> <it>ymax</it>| G0 VIEW YMAX .75 @
+      </tabular>
+      <caption>
+        <label id="graph-pars">
+        Graph parameters
+      </caption>
+      </table>
+    </p>
 
-      Not written yet...
-
+   <p>
+   Not finished yet...
+   </p>
+   
   <sect1>Set properties
     <p>
 
       Not written yet...
-
+      
 <!-- **************************************** -->
 <sect>Advanced topics
   <p>
@@ -2449,7 +2514,7 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "grace_np.h"
+#include <grace_np.h>
 
 #ifndef EXIT_SUCCESS
 #  define EXIT_SUCCESS 0
@@ -2851,7 +2916,10 @@ C
               &bsol;l{x}   | slant by factor x   @
               &bsol;v{x}   | shift vertically by x   @
               &bsol;v{}    | return to unshifted baseline   @
+              &bsol;V{x}   | shift baseline by x   @
+              &bsol;V{}    | reset baseline   @
               &bsol;h{x}   | horizontal shift by x   @
+              &bsol;n      | new line   @
               &bsol;u      | begin underline   @
               &bsol;U      | stop underline   @
               &bsol;o      | begin overline   @
