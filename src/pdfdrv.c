@@ -50,9 +50,7 @@
 
 #include "protos.h"
 
-/* uncomment this if the PDFlib was compiled w/ support for TIFF images */
-/* #define USE_TIFF */
-#include <pdf.h>
+#include <pdflib.h>
 
 #ifndef NONE_GUI
 #  include <Xm/Xm.h>
@@ -63,11 +61,13 @@
 #  include "motifinc.h"
 #endif
 
-static void pdf_error_handler(int level, const char *fmt, va_list ap);
+static void pdf_error_handler(PDF *p, int type, const char* msg);
 
 static unsigned long page_scale;
 static float pixel_size;
 static float page_scalef;
+
+static int *pdf_font_ids;
 
 static int pdf_color;
 static int pdf_pattern;
@@ -77,6 +77,7 @@ static int pdf_linecap;
 static int pdf_linejoin;
 
 static int pdf_setup_binary = TRUE;
+static int pdf_setup_compress = TRUE;
 
 extern FILE *prstream;
 
@@ -95,16 +96,16 @@ static Device_entry dev_pdf = {DEVICE_FILE,
 
 int register_pdf_drv(void)
 {
+    PDF_boot();
     return register_device(dev_pdf);
 }
 
 int pdfinitgraphics(void)
 {
-    int i, buflen;
+    int i;
     Page_geometry pg;
-    PDF_info *info;
-    static char buf_cr[64], buf_fp[GR_MAXPATHLEN], buf[64];
-    
+    char *s;
+   
     /* device-dependent routines */
     devupdatecmap   = NULL;
     
@@ -132,41 +133,50 @@ int pdfinitgraphics(void)
     pdf_linecap = -1;
     pdf_linejoin = -1;
 
-    info = PDF_get_info();
-    
-    sprintf(buf_cr, "%s\n", bi_version_string());
-    info->Creator = buf_cr;
-    info->Author = get_username();
-    info->Title = docname;
-
-    info->binary_mode = pdf_setup_binary;
-    
-    sprintf(buf_fp, "%s/fonts/type1", get_grace_home());
-    info->fontpath = buf_fp;
-
-    info->error_handler = pdf_error_handler;
-           
-    phandle = PDF_open(prstream, info);
-    
+    phandle = PDF_new2(pdf_error_handler, NULL, NULL, NULL, NULL);
     if (phandle == NULL) {
         return GRACE_EXIT_FAILURE;
     }
+    if (PDF_open_fp(phandle, prstream) == -1) {
+        return GRACE_EXIT_FAILURE;
+    }
     
-    for (i = 0; i < number_of_fonts(); i++) {
-   	strcpy(buf, mybasename(get_fontfilename(i))); 
-   	buflen = 0;
-        while (buf[buflen] != '\0' && buf[buflen] != '.') {
-            buflen++;
-        }
-        buf[buflen] = '\0';
-        strcat(buf, ".afm");
+    PDF_set_info(phandle, "Creator", bi_version_string());
+    PDF_set_info(phandle, "Author", get_username());
+    PDF_set_info(phandle, "Title", docname);
         
-        PDF_add_font_alias(phandle, get_fontalias(i), buf, get_fontfilename(i));
+    /* just to disable warning - should be fixed in pdflib-2.0.1 */
+    PDF_set_parameter(phandle, "resourcefile", "/dev/null");
+
+    if (pdf_setup_binary == TRUE) {
+        PDF_set_parameter(phandle, "nodebug", "a");
+    } else {
+        PDF_set_parameter(phandle, "debug", "a");
+    }
+    if (pdf_setup_compress == TRUE) {
+        PDF_set_parameter(phandle, "nodebug", "c");
+    } else {
+        PDF_set_parameter(phandle, "debug", "c");
+    }
+
+    pdf_font_ids = malloc(number_of_fonts()*SIZEOF_INT);
+    for (i = 0; i < number_of_fonts(); i++) {
+        pdf_font_ids[i] = -1;
     }
     
     PDF_begin_page(phandle, pg.width*72.0/pg.dpi, pg.height*72.0/pg.dpi);
-    PDF_scale(phandle, page_scalef, page_scalef);
+
+    if ((s = get_project_description())) {
+        PDF_set_border_style(phandle, "dashed", 3.0);
+        PDF_set_border_dash(phandle, 5.0, 1.0);
+        PDF_set_border_color(phandle, 1.0, 0.0, 0.0);
+
+        PDF_add_note(phandle,
+            20.0, 50.0, 320.0, 100.0, s, "Project description", "note", 0);
+    }
     
+    PDF_scale(phandle, page_scalef, page_scalef);
+
     return GRACE_EXIT_SUCCESS;
 }
 
@@ -313,9 +323,9 @@ void pdf_fillpolygon(VPoint *vps, int nc)
         PDF_lineto(phandle, (float) vps[i].x, (float) vps[i].y);
     }
     if (getfillrule() == FILLRULE_WINDING) {
-        PDF_setfillrule(phandle, Winding);
+        PDF_set_fillrule(phandle, "winding");
     } else {
-        PDF_setfillrule(phandle, EvenOdd);
+        PDF_set_fillrule(phandle, "evenodd");
     }
     PDF_fill(phandle);
 }
@@ -384,33 +394,16 @@ void pdf_fillarc(VPoint vp1, VPoint vp2, int a1, int a2)
 void pdf_putpixmap(VPoint vp, int width, int height, char *databits, 
                              int pixmap_bpp, int bitmap_pad, int pixmap_type)
 {
-    byte *buf, *bp;
-    long buflen;
-    PDF_image image;
+    unsigned char *buf, *bp;
+    int image;
     int cindex;
     RGB *fg, *bg;
     int	i, k, j;
     long paddedW;
 
-    image.width		= width;
-    image.height	= height;
-    image.bpc		= 8;
-    image.components    = 3;
-    image.colorspace    = DeviceRGB;
-    
-/*
- *     if (pixmap_bpp == 1) {
- *         image.components	= 1;
- *         image.colorspace	= DeviceGray;
- *     } else {
- *         image.components	= 3;
- *         image.colorspace	= DeviceRGB;
- *     }
- */
-
-    buflen = image.width * image.height * image.components;
-    
-    buf = (byte *) malloc(buflen);
+    int components    = 3;
+        
+    buf = malloc(width*height*components);
     if (buf == NULL) {
         errmsg("malloc failed in pdf_putpixmap()");
         return;
@@ -421,44 +414,45 @@ void pdf_putpixmap(VPoint vp, int width, int height, char *databits,
         paddedW = PAD(width, bitmap_pad);
         fg = get_rgb(getcolor());
         bg = get_rgb(getbgcolor());
-        for (k = 0; k < image.height; k++) {
+        for (k = 0; k < height; k++) {
             for (j = 0; j < paddedW/bitmap_pad; j++) {
-                for (i = 0; i < bitmap_pad && j*bitmap_pad + i < image.width; i++) {
-                    if (bin_dump(&(databits)[k*paddedW/bitmap_pad+j], i, bitmap_pad)) {
-                        *bp++ = (byte) fg->red;
-                        *bp++ = (byte) fg->green;
-                        *bp++ = (byte) fg->blue;
+                for (i = 0; i < bitmap_pad && j*bitmap_pad + i < width; i++) {
+                    if (bin_dump(&(databits)[k*paddedW/bitmap_pad + j], i, bitmap_pad)) {
+                        *bp++ = (unsigned char) fg->red;
+                        *bp++ = (unsigned char) fg->green;
+                        *bp++ = (unsigned char) fg->blue;
                     } else {
-                        *bp++ = (byte) bg->red;
-                        *bp++ = (byte) bg->green;
-                        *bp++ = (byte) bg->blue;
+                        *bp++ = (unsigned char) bg->red;
+                        *bp++ = (unsigned char) bg->green;
+                        *bp++ = (unsigned char) bg->blue;
                     }
                 }
             }
         }
     } else {
-        for (k = 0; k < image.height; k++) {
-            for (j = 0; j < image.width; j++) {
-                cindex = (databits)[k*image.width+j];
+        for (k = 0; k < height; k++) {
+            for (j = 0; j < width; j++) {
+                cindex = (databits)[k*width + j];
                 fg = get_rgb(cindex);
-                *bp++ = (byte) fg->red;
-                *bp++ = (byte) fg->green;
-                *bp++ = (byte) fg->blue;
+                *bp++ = (unsigned char) fg->red;
+                *bp++ = (unsigned char) fg->green;
+                *bp++ = (unsigned char) fg->blue;
             }
         }
     }
     
-    PDF_save(phandle);
+    image = PDF_open_memory_image(phandle,
+        buf, width, height, components, GRACE_BPP);
+    if (image == -1) {
+        errmsg("Not enough memory for image!");
+        free(buf);
+        return;
+    }
 
-    PDF_translate(phandle, vp.x, vp.y);
-    PDF_scale(phandle, pixel_size, pixel_size);
-    PDF_translate(phandle, 0.0, - (float) image.height);
-     
-    PDF_data_source_from_buf(phandle, &image.src, buf, buflen);
-    PDF_place_inline_image(phandle, &image, 0.0, 0.0, 1.0);
+    PDF_place_image(phandle,
+        image, vp.x, vp.y - height*pixel_size, pixel_size);
+    PDF_close_image(phandle, image);
     
-    PDF_restore(phandle);
-
     free(buf);
 }
 
@@ -466,14 +460,14 @@ void pdf_puttext(VPoint start, VPoint end, double size,
                                             CompositeString *cstring)
 {
     int iglyph;
+    int font;
     float angle;
+    float vshift, hshift, fsize;
     float length, pdfstring_length;
-    char *fontname, *encscheme;
-    int pdflibenc;
     
     pdf_setpen();
     
-    size /= page_scalef;
+    size /= page_scale;
     
     angle = (float) (180.0/M_PI) * atan2(end.y - start.y, end.x - start.x);
     length = (float) hypot (end.x - start.x, end.y - start.y);
@@ -482,18 +476,35 @@ void pdf_puttext(VPoint start, VPoint end, double size,
     
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
-        fontname = get_fontalias(cstring[iglyph].font);
-        encscheme = get_encodingscheme(cstring[iglyph].font);
-        if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
-            pdflibenc = winansi;
-        } else if (strcmp(encscheme, "FontSpecific") == 0) {
-            pdflibenc = builtin;
-        } else {
-            pdflibenc = pdfdoc;
-        }
-        PDF_set_font(phandle, fontname, (float) size*cstring[iglyph].scale, pdflibenc);
-        pdfstring_length += (float) size*cstring[iglyph].hshift;
-        pdfstring_length += PDF_stringwidth(phandle, (unsigned char*) cstring[iglyph].s);
+        hshift = (float) size*cstring[iglyph].hshift;
+        fsize  = (float) size*cstring[iglyph].scale;
+        font   = cstring[iglyph].font;
+        if (pdf_font_ids[font] < 0) {
+            char buf[GR_MAXPATHLEN];
+            char *fontname, *encscheme;
+            char *pdflibenc;
+            fontname = get_fontalias(font);
+            sprintf(buf, "%s=%s/fonts/type1/%s",
+                fontname, get_grace_home(), get_afmfilename(font));
+            PDF_set_parameter(phandle, "FontAFM", buf);
+            sprintf(buf, "%s=%s/fonts/type1/%s",
+                fontname, get_grace_home(), get_fontfilename(font));
+            PDF_set_parameter(phandle, "FontOutline", buf);
+
+            encscheme = get_encodingscheme(font);
+            if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
+                pdflibenc = "winansi";
+            } else if (strcmp(encscheme, "FontSpecific") == 0) {
+                pdflibenc = "builtin";
+            } else {
+                pdflibenc = "pdfdoc";
+            }
+            pdf_font_ids[font] = PDF_findfont(phandle, fontname, pdflibenc, 1);
+        } 
+        PDF_setfont(phandle, pdf_font_ids[font], fsize);
+        pdfstring_length += hshift;
+        pdfstring_length += PDF_stringwidth(phandle,
+            cstring[iglyph].s, pdf_font_ids[font], fsize);
         iglyph++;
     }
 
@@ -510,25 +521,20 @@ void pdf_puttext(VPoint start, VPoint end, double size,
     
     iglyph = 0;
     while (cstring[iglyph].s != NULL) {
-        fontname = get_fontalias(cstring[iglyph].font);
-        encscheme = get_encodingscheme(cstring[iglyph].font);
-        if (strcmp(encscheme, "ISOLatin1Encoding") == 0) {
-            pdflibenc = winansi;
-        } else if (strcmp(encscheme, "FontSpecific") == 0) {
-            pdflibenc = builtin;
-        } else {
-            pdflibenc = pdfdoc;
-        }
-        PDF_set_font(phandle, fontname, (float) cstring[iglyph].scale, pdflibenc);
-        if (cstring[iglyph].vshift != 0.0 || cstring[iglyph].hshift != 0.0) {
-            PDF_translate(phandle, (float) cstring[iglyph].hshift,
-                                   (float) cstring[iglyph].vshift);
+        vshift = (float) cstring[iglyph].vshift;
+        hshift = (float) cstring[iglyph].hshift;
+        fsize  = (float) cstring[iglyph].scale;
+        font   = cstring[iglyph].font;
+        PDF_setfont(phandle, pdf_font_ids[font], fsize);
+
+        if (hshift != 0.0 || vshift != 0.0) {
+            PDF_set_text_rise(phandle, vshift);
             PDF_show(phandle, cstring[iglyph].s);
-            PDF_translate(phandle, 0.0, - (float) cstring[iglyph].vshift);
+            PDF_set_text_rise(phandle, 0.0);
         } else {
             PDF_show(phandle, cstring[iglyph].s);
         }
-        
+
         if (cstring[iglyph].underline == TRUE) {
             /* TODO */
         }
@@ -547,34 +553,26 @@ void pdf_leavegraphics(void)
 {
     PDF_end_page(phandle);
     PDF_close(phandle);
+    PDF_delete(phandle);
+    xfree(pdf_font_ids);
 }
 
-static void pdf_error_handler(int level, const char* fmt, va_list ap)
+static void pdf_error_handler(PDF *p, int type, const char* msg)
 {
-    char buf[MAX_STRING_LENGTH], buf_tail[MAX_STRING_LENGTH];
-    
-    switch (level) {
-        case PDF_INFO:
-            strcpy(buf, "PDFlib note: ");
-            break;
+    char buf[MAX_STRING_LENGTH];
 
-        case PDF_WARN:
-            strcpy(buf, "PDFlib warning: ");
-            break;
-
-        case PDF_INTERNAL:
-            strcpy(buf, "PDFlib internal error: ");
-            break;
-
-        case PDF_FATAL:
-        default:
-            strcpy(buf, "PDFlib fatal error: ");
-            break;
+    switch (type) {
+    case PDF_NonfatalError:
+        /* continue on a non-fatal error */
+        sprintf(buf, "PDFlib: %s", msg);
+        errmsg(buf);
+        break;
+    default:
+        /* give up in all other cases */
+        sprintf(buf, "PDFlib: %s", msg);
+        errmsg(buf);
+        return;
     }
-    vsprintf(buf_tail, fmt, ap);
-    strcat(buf, buf_tail);
-    
-    errmsg(buf);
 }
 
 int pdf_op_parser(char *opstring)
@@ -637,6 +635,7 @@ static void update_pdf_setup_frame(void)
 {
     if (pdf_setup_frame) {
         SetToggleButtonState(pdf_setup_binary_item, pdf_setup_binary);
+        SetToggleButtonState(pdf_setup_compress_item, pdf_setup_compress);
     }
 }
 
@@ -651,6 +650,7 @@ static void set_pdf_setup_proc(void *data)
     }
     
     pdf_setup_binary = GetToggleButtonState(pdf_setup_binary_item);
+    pdf_setup_compress = GetToggleButtonState(pdf_setup_compress_item);
     
     if (aac_mode == AAC_ACCEPT) {
         XtUnmanageChild(pdf_setup_frame);
