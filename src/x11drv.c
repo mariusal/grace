@@ -593,7 +593,7 @@ void xlibputpixmap(const Canvas *canvas,
         /* re-index pixmap */
         for (k = 0; k < height; k++) {
             for (j = 0; j < width; j++) {
-                cindex = (databits)[k*width+j];
+                cindex = (unsigned char) (databits)[k*width+j];
                 for (l = 0; l < pixel_size; l++) {
                     pixmap_ptr[pixel_size*(k*width+j) + l] =
                                         (char) (xvlibcolors[cindex] >> (8*l));
@@ -619,7 +619,7 @@ void xlibputpixmap(const Canvas *canvas,
                 for (k = 0; k < height; k++) {
                     line_off = k*(PAD(width, 8) >> 3);
                     for (j = 0; j < width; j++) {
-                        cindex = (databits)[k*width+j];
+                        cindex = (unsigned char) (databits)[k*width+j];
                         if (cindex != bg) {
                             clipmask_ptr[line_off+(j>>3)] |= (0x01 << (j%8));
                         }
