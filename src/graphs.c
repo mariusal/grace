@@ -1161,6 +1161,42 @@ int is_logit_axis(const Quark *q)
     }
 }
 
+static int fcomp(const Quark *q1, const Quark *q2, void *udata)
+{
+    if (q1->fid == QFlavorDObject && q2->fid == QFlavorDObject) {
+        DObject *o1 = object_get_data(q1), *o2 = object_get_data(q2);
+        if (o1->type != o2->type) {
+            return (o1->type - o2->type);
+        } else {
+            return strcmp(QIDSTR(q1), QIDSTR(q2));
+        }
+    } else
+    if (q1->fid == QFlavorDObject) {
+        return 1;
+    } else
+    if (q2->fid == QFlavorDObject) {
+        return -1;
+    } else
+    if (q1->fid == QFlavorAxis) {
+        tickmarks *t = axis_get_data(q1);
+        if (t->props.gridflag || t->mprops.gridflag) {
+            return -1;
+        } else {
+            return 1;
+        }
+    } else
+    if (q2->fid == QFlavorAxis) {
+        tickmarks *t = axis_get_data(q2);
+        if (t->props.gridflag || t->mprops.gridflag) {
+            return 1;
+        } else {
+            return -1;
+        }
+    } else {
+        return 0;
+    }
+}
+
 static int project_postprocess_hook(Quark *q,
     void *udata, QTraverseClosure *closure)
 {
@@ -1173,6 +1209,10 @@ static int project_postprocess_hook(Quark *q,
     
     switch (q->fid) {
     case QFlavorProject:
+        if (version_id < 50200) {
+            quark_sort_children(q, fcomp, NULL);
+        }
+
         if (version_id < 40005) {
             set_page_dimensions(grace, 792, 612, FALSE);
         }
@@ -1208,6 +1248,9 @@ static int project_postprocess_hook(Quark *q,
 
         break;
     case QFlavorGraph:
+        if (version_id < 50200) {
+            quark_sort_children(q, fcomp, NULL);
+        }
         select_graph(q);
 
         break;
