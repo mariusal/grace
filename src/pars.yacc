@@ -75,9 +75,9 @@ static int fcnt;		/* number allocated */
 int naxis = 0;	/* current axis */
 static int curline, curbox, curellipse, curstring;
 /* these guys attempt to avoid reentrancy problems */
-static int gotbatch = 0, gotparams = 0, gotread = 0; 
+static int gotbatch = 0, gotparams = 0, gotread = 0, gotnlfit = 0; 
 int readtype, readsrc, readxformat;
-static int gotnlfit, nlfit_gno, nlfit_setno, nlfit_nsteps;
+static int nlfit_gno, nlfit_setno, nlfit_nsteps;
 
 char batchfile[GR_MAXPATHLEN] = "",
      paramfile[GR_MAXPATHLEN] = "",
@@ -257,7 +257,6 @@ symtab_entry *key;
 %token <pset> ERRORBAR
 %token <pset> EXIT
 %token <pset> EXPONENTIAL
-%token <pset> FALSEP
 %token <pset> FFT
 %token <pset> FILEP
 %token <pset> FILL
@@ -427,7 +426,6 @@ symtab_entry *key;
 %token <pset> TO
 %token <pset> TOP
 %token <pset> TRIANGULAR
-%token <pset> TRUEP
 %token <pset> TYPE
 %token <pset> UP
 %token <pset> USE
@@ -514,7 +512,6 @@ symtab_entry *key;
 %type <pset> selectsets
 %type <pset> signchoice
 %type <pset> sourcetype
-%type <pset> torf
 %type <pset> vector
 %type <pset> worldview
 %type <pset> xytype
@@ -2156,7 +2153,7 @@ parmset:
 	| LEGEND LENGTH NUMBER {
 	    g[get_cg()].l.len = (int) $3;
 	}
-	| LEGEND INVERT torf {
+	| LEGEND INVERT onoff {
 	    g[get_cg()].l.invert = (int) $3;
         }
 	| LEGEND BOX FILL COLOR NUMBER {
@@ -2231,13 +2228,13 @@ parmset:
 	| GRAPHNO onoff {
             set_graph_active($1, $2);
         }
-	| GRAPHNO HIDDEN torf {
+	| GRAPHNO HIDDEN onoff {
             set_graph_hidden($1, $3);
         }
 	| GRAPHNO TYPE graphtype {
             set_graph_type($1, $3);
         }
-	| GRAPHNO STACKED torf {
+	| GRAPHNO STACKED onoff {
             set_graph_stacked($1, $3);
         }
 
@@ -2406,10 +2403,10 @@ actions:
 	    }
 	    free((char *) $2);
 	}
-	| SETNUM HIDDEN torf {
+	| SETNUM HIDDEN onoff {
 	    set_set_hidden(get_cg(), $1, (int) $3);
 	}
-	| GRAPHNO '.' SETNUM HIDDEN torf {
+	| GRAPHNO '.' SETNUM HIDDEN onoff {
 	    set_set_hidden($1, $3, (int) $5);
 	}
 	| SETNUM LENGTH NUMBER {
@@ -2974,7 +2971,7 @@ axisfeature:
 	onoff {
 	    g[get_cg()].t[naxis].active = (int) $1;
 	}
-	| TYPE ZERO torf {
+	| TYPE ZERO onoff {
 	    g[get_cg()].t[naxis].zero = (int) $3;
 	}
 	| TICKP tickattr {}
@@ -3000,7 +2997,7 @@ tickattr:
 	| MINOR TICKSP NUMBER {
 	    g[get_cg()].t[naxis].nminor = (int) $3;
 	}
-	| PLACE ROUNDED torf {
+	| PLACE ROUNDED onoff {
 	    g[get_cg()].t[naxis].t_round = (int) $3;
 	}
 
@@ -3360,10 +3357,6 @@ scaletype: NORMAL { $$ = SCALE_NORMAL; }
 	| RECIPROCAL { $$ = SCALE_REC; }
 	;
 
-torf: TRUEP { $$ = TRUE; }
-	| FALSEP { $$ = FALSE; }
-	;
-
 onoff: ON { $$ = TRUE; }
 	| OFF { $$ = FALSE; }
 	;
@@ -3647,7 +3640,7 @@ setprop_obs:
 	| SYMBOL COLOR '-' NUMBER {
 	    g[whichgraph].p[whichset].sympen.color = -1;
 	}
-	| SYMBOL CENTER torf {
+	| SYMBOL CENTER onoff {
 	}
 	| LINESTYLE NUMBER {
 	    g[whichgraph].p[whichset].lines = (int) $2;
@@ -3857,7 +3850,7 @@ symtab_entry ikey[] = {
 	{"EXPN", FUNC_ND, expn},
 	{"EXPONENTIAL", EXPONENTIAL, NULL},
 	{"FAC", FUNC_I, fac},
-	{"FALSE", FALSEP, NULL},
+	{"FALSE", OFF, NULL},
 	{"FDTR", FUNC_NND, fdtr},
 	{"FDTRC", FUNC_NND, fdtrc},
 	{"FDTRI", FUNC_NND, fdtri},
@@ -4101,7 +4094,7 @@ symtab_entry ikey[] = {
 	{"TO", TO, NULL},
 	{"TOP", TOP, NULL},
 	{"TRIANGULAR", TRIANGULAR, NULL},
-	{"TRUE", TRUEP, NULL},
+	{"TRUE", ON, NULL},
 	{"TYPE", TYPE, NULL},
 	{"UNLINK", UNLINK, NULL},
 	{"UNIT", PROC_UNIT, NULL},
