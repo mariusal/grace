@@ -169,6 +169,7 @@ int wipeout(void)
     do_clear_boxes();
     do_clear_ellipses();
     do_clear_text();
+    kill_all_regions();
     reset_project_version();
     map_fonts(FONT_MAP_DEFAULT);
     set_docname(NULL);
