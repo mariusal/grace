@@ -15,8 +15,8 @@
 
 #define MAJOR_REV 5
 #define MINOR_REV 0
-#define PATCHLEVEL 5
-#define BETA_VER "(gamma)"
+#define PATCHLEVEL 6
+#define BETA_VER "(991029)"
 
 #ifndef GRACE_HOME
 #  define GRACE_HOME "/usr/local/grace"
