@@ -111,8 +111,17 @@ static void xmlio_set_angle(Attributes *attrs, double angle)
 
 static void xmlio_set_font_ref(Attributes *attrs, int font)
 {
-    attributes_set_ival_formatted(attrs,
-        "font-ref", get_font_mapped_id(font), "font-%d");
+    attributes_set_ival(attrs, "font-id", get_font_mapped_id(font));
+}
+
+static void xmlio_set_color_ref(Attributes *attrs, int color)
+{
+    attributes_set_ival(attrs, "color-id", color);
+}
+
+static void xmlio_set_pattern_ref(Attributes *attrs, int pattern)
+{
+    attributes_set_ival(attrs, "pattern-id", pattern);
 }
 
 
@@ -145,7 +154,7 @@ static void xmlio_write_face_spec(XFile *xf, Attributes *attrs,
     attributes_reset(attrs);
 
     xmlio_set_font_ref(attrs, font);
-    attributes_set_ival_formatted(attrs, "color-ref", color, "color-%d");
+    xmlio_set_color_ref(attrs, color);
     attributes_set_dval(attrs, "char-size", charsize);
     xfile_empty_element(xf, "face-spec", attrs);
 }
@@ -154,9 +163,8 @@ static void xmlio_write_fill_spec(XFile *xf, Attributes *attrs, Pen *pen)
 {
     attributes_reset(attrs);
 
-    attributes_set_ival_formatted(attrs, "color-ref", pen->color, "color-%d");
-    attributes_set_ival_formatted(attrs,
-        "pattern-ref", pen->pattern, "pattern-%d");
+    xmlio_set_color_ref(attrs, pen->color);
+    xmlio_set_pattern_ref(attrs, pen->pattern);
     xfile_empty_element(xf, "fill-spec", attrs);
 }
 
@@ -165,22 +173,19 @@ static void xmlio_write_line_spec(XFile *xf, Attributes *attrs,
 {
     attributes_reset(attrs);
 
-    attributes_set_ival_formatted(attrs, "color-ref", pen->color, "color-%d");
-    attributes_set_ival_formatted(attrs,
-        "pattern-ref", pen->pattern, "pattern-%d");
-    attributes_set_ival_formatted(attrs, "style-ref", lines, "style-%d");
+    xmlio_set_color_ref(attrs, pen->color);
+    xmlio_set_pattern_ref(attrs, pen->pattern);
+    attributes_set_ival(attrs, "style-id", lines);
     attributes_set_dval(attrs, "width", linew);
     xfile_empty_element(xf, "line-spec", attrs);
 }
 
-static void xmlio_write_text(XFile *xf, char *name, char *text)
+static void xmlio_write_text(XFile *xf, char *text)
 {
     if (is_empty_string(text)) {
-        xfile_empty_element(xf, name, NULL);
+        xfile_empty_element(xf, "text", NULL);
     } else {
-        xfile_begin_element(xf, name, NULL);
-        xfile_cdata(xf, text);
-        xfile_end_element(xf, name);
+        xfile_text_element(xf, "text", NULL, text);
     }
 }
 
@@ -195,18 +200,17 @@ int save_fontmap(XFile *xf)
         return RETURN_FAILURE;
     }
 
-    xfile_begin_element(xf, "fonts", NULL);
+    xfile_begin_element(xf, "fontmap", NULL);
     for (i = 0; i < number_of_fonts(); i++) {
         if (get_font_mapped_id(i) != BAD_FONT_ID) {
             attributes_reset(attrs);
-            attributes_set_ival_formatted(attrs,
-                "id", get_font_mapped_id(i), "font-%d");
+            attributes_set_ival(attrs, "id", get_font_mapped_id(i));
             attributes_set_sval(attrs, "name", get_fontalias(i));
             attributes_set_sval(attrs, "fallback", get_fontfallback(i));
             xfile_empty_element(xf, "font-def", attrs);
         }
     }
-    xfile_end_element(xf, "fonts");
+    xfile_end_element(xf, "fontmap");
     
     attributes_free(attrs);
     
@@ -224,14 +228,14 @@ int save_colormap(XFile *xf)
         return RETURN_FAILURE;
     }
 
-    xfile_begin_element(xf, "colors", NULL);
+    xfile_begin_element(xf, "colormap", NULL);
     for (i = 0; i < number_of_colors(); i++) {
         CMap_entry *cmap;
         cmap = get_cmap_entry(i);
         if (cmap != NULL && cmap->ctype == COLOR_MAIN) {
             char buf[16];
             attributes_reset(attrs);
-            attributes_set_ival_formatted(attrs, "id", i, "color-%d");
+            attributes_set_ival(attrs, "id", i);
             sprintf(buf, "#%02x%02x%02x",
                 cmap->rgb.red, cmap->rgb.green, cmap->rgb.blue);
             attributes_set_sval(attrs, "rgb", buf);
@@ -239,7 +243,7 @@ int save_colormap(XFile *xf)
             xfile_empty_element(xf, "color-def", attrs);
         }
     }
-    xfile_end_element(xf, "colors");
+    xfile_end_element(xf, "colormap");
 
     attributes_free(attrs);
     
@@ -285,7 +289,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
     {
         xmlio_write_face_spec(xf, attrs,
             t->label.font, t->label.charsize, t->label.color);
-        xmlio_write_text(xf, "text", t->label.s);
+        xmlio_write_text(xf, t->label.s);
     }
     xfile_end_element(xf, "axislabel");
 
@@ -429,22 +433,18 @@ int save_graph_properties(XFile *xf, graph *g)
     attributes_set_dval(attrs, "xmax", g->v.xv2);
     attributes_set_dval(attrs, "ymin", g->v.yv1);
     attributes_set_dval(attrs, "ymax", g->v.yv2);
-    xfile_empty_element(xf, "view", attrs);
+    xfile_empty_element(xf, "viewport", attrs);
 
-    /* World */
+    /* World coordinate scales */
     attributes_reset(attrs);
-    attributes_set_dval(attrs, "xmin", g->w.xg1);
-    attributes_set_dval(attrs, "xmax", g->w.xg2);
-    attributes_set_dval(attrs, "ymin", g->w.yg1);
-    attributes_set_dval(attrs, "ymax", g->w.yg2);
-    xfile_empty_element(xf, "world", attrs);
-
-    /* Coordinate scales */
-    attributes_reset(attrs);
+    xmlio_set_world_value(attrs, "min", g->w.xg1);
+    xmlio_set_world_value(attrs, "max", g->w.xg2);
     attributes_set_sval(attrs, "type", scale_types(g->xscale));
     attributes_set_bval(attrs, "invert", g->xinvert);
     xfile_empty_element(xf, "xscale", attrs);
     attributes_reset(attrs);
+    xmlio_set_world_value(attrs, "min", g->w.yg1);
+    xmlio_set_world_value(attrs, "max", g->w.yg2);
     attributes_set_sval(attrs, "type", scale_types(g->yscale));
     attributes_set_bval(attrs, "invert", g->yinvert);
     xfile_empty_element(xf, "yscale", attrs);
@@ -463,7 +463,7 @@ int save_graph_properties(XFile *xf, graph *g)
     {
         xmlio_write_face_spec(xf, attrs,
             g->l.font, g->l.charsize, g->l.color);
-        xfile_begin_element(xf, "legframe", attrs);
+        xfile_begin_element(xf, "legframe", NULL);
         {
             xmlio_write_location(xf, attrs,
                 g->l.loctype, g->l.legx, g->l.legy);
@@ -507,14 +507,14 @@ int save_graph_properties(XFile *xf, graph *g)
     {
         xmlio_write_face_spec(xf, attrs,
             g->labs.title.font, g->labs.title.charsize, g->labs.title.color);
-        xmlio_write_text(xf, "text", g->labs.title.s);
+        xmlio_write_text(xf, g->labs.title.s);
     }
     xfile_end_element(xf, "title");
     xfile_begin_element(xf, "subtitle", NULL);
     {
         xmlio_write_face_spec(xf, attrs,
             g->labs.stitle.font, g->labs.stitle.charsize, g->labs.stitle.color);
-        xmlio_write_text(xf, "text", g->labs.stitle.s);
+        xmlio_write_text(xf, g->labs.stitle.s);
     }
     xfile_end_element(xf, "subtitle");
 
@@ -641,7 +641,9 @@ int save_set_properties(XFile *xf, set *p)
     }
     xfile_end_element(xf, "errorbar");
 
-    xmlio_write_text(xf, "legend", p->legstr);
+    xfile_begin_element(xf, "legend-entry", NULL);
+    xmlio_write_text(xf, p->legstr);
+    xfile_end_element(xf, "legend-entry");
 
     attributes_free(attrs);
     
@@ -738,7 +740,7 @@ int save_object(XFile *xf, Attributes *attrs, DObject *o)
             xfile_begin_element(xf, buf, attrs);
             {
                 DOStringData *s = (DOStringData *) o->odata;
-                xmlio_write_text(xf, "text", s->s);
+                xmlio_write_text(xf, s->s);
             }
             xfile_end_element(xf, buf);
         } else {
@@ -826,18 +828,6 @@ int save_preferences(XFile *xf)
         return RETURN_FAILURE;
     }
     
-    xfile_comment(xf, "Preferences");
-    xfile_begin_element(xf, "preferences", attrs);
-    {
-        /* FIXME */
-/*
-    (int) rint(grace->project->scrollper * 100);
-    (int) rint(grace->project->shexper * 100);
-    grace->project->scrolling_islinked ? "on" : "off";
-*/    
-    }
-    xfile_end_element(xf, "preferences");
-
     attributes_free(attrs);
 
     return RETURN_SUCCESS;
@@ -862,8 +852,12 @@ int save_project(char *fn)
     xfile_begin(xf, "ISO-8859-1", FALSE, NULL, "grace.dtd", "grace", attrs);
 
     xfile_comment(xf, "Description");
-    xmlio_write_text(xf, "description", grace->project->description);
-
+    xfile_begin_element(xf, "description", NULL);
+    {
+        xmlio_write_text(xf, grace->project->description);
+    }
+    xfile_end_element(xf, "description");
+    
     xfile_comment(xf, "Definitions");
     xfile_begin_element(xf, "definitions", NULL);
     {
@@ -931,7 +925,7 @@ int save_project(char *fn)
         int setno;
 
         attributes_reset(attrs);
-        attributes_set_ival_formatted(attrs, "id", gno, "G%d");
+        attributes_set_ival(attrs, "id", gno);
         xmlio_set_active(attrs, !(g->hidden));
         xfile_begin_element(xf, "graph", attrs);
         {
@@ -941,12 +935,12 @@ int save_project(char *fn)
 
             storage_rewind(g->sets);
             while (storage_get_id(g->sets, &setno) == RETURN_SUCCESS) {
-                char buf[32];
+                char data_ref[32];
                 set *p = set_get(gno, setno);
 
                 attributes_reset(attrs);
-                sprintf(buf, "G%d.S%d-data", gno, setno);
-                attributes_set_sval(attrs, "id", buf);
+                sprintf(data_ref, "G%d.S%d-data", gno, setno);
+                attributes_set_sval(attrs, "id", data_ref);
                 attributes_set_sval(attrs, "comment", p->comment);
                 if (p->hotlink) {
                     attributes_set_sval(attrs, "hotfile", p->hotfile);
@@ -959,11 +953,9 @@ int save_project(char *fn)
                 xfile_end_element(xf, "dataset");
 
                 attributes_reset(attrs);
-                sprintf(buf, "G%d.S%d", gno, setno);
-                attributes_set_sval(attrs, "id", buf);
+                attributes_set_ival(attrs, "id", setno);
                 xmlio_set_active(attrs, !(p->hidden));
-                sprintf(buf, "G%d.S%d-data", gno, setno);
-                attributes_set_sval(attrs, "data-ref", buf);
+                attributes_set_sval(attrs, "data-ref", data_ref);
                 xfile_begin_element(xf, "set", attrs);
                 {
                     save_set_properties(xf, p);
@@ -1002,7 +994,7 @@ save_prefs()
     xfile_begin_element(xf, "defaults", NULL);
     {
         Pen pen;
-        defaults grdefaults = grace->project->grdefaults;
+        defaults grdefaults = grace->rt->grdefaults;
         pen.color = grdefaults.color;
         pen.pattern = grdefaults.pattern;
         xmlio_write_line_spec(xf, attrs,
@@ -1012,5 +1004,15 @@ save_prefs()
             grdefaults.font, grdefaults.charsize, grdefaults.color);
     }
     xfile_end_element(xf, "defaults");
+
+    xfile_comment(xf, "Preferences");
+    xfile_begin_element(xf, "preferences", attrs);
+    {
+        (int) rint(grace->rt->scrollper * 100);
+        (int) rint(grace->rt->shexper * 100);
+        grace->rt->scrolling_islinked ? "on" : "off";
+    }
+    xfile_end_element(xf, "preferences");
+
 }
 */
