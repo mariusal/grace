@@ -45,14 +45,12 @@
 
 void set_lists_dirty(int dirtyflag);
 
-void loadset(int gno, int selset, int toval, double startno, double stepno);
 int formula(int gno, int selset, char *sscanstr);
 
 void do_running_command(int type, int setno, int rlen);
 void do_fourier_command(int ftype, int setno, int ltype);
 int do_compute(int setno, int loadto, int graphto, char *fstr);
 void do_load(int setno, int toval,  double start, double step );
-void do_compute2(int gno, char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval);
 double trapint(double *x, double *y, double *resx, double *resy, int n);
 void do_digfilter(int set1, int set2);
 void do_linearc(int set1, int set2);
@@ -181,7 +179,11 @@ void do_clear_boxes(void);
 void do_clear_text(void);
 void do_clear_ellipses(void);
 
-void scanner(char *s, double *x, double *y, int len, double *a, double *b, double *c, double *d, int lenscr, int i, int setno, int *errpos);
+int init_array(double **a, int n);
+int init_scratch_arrays(int n);
+double *get_scratch(int ind);
+
+void scanner(char *s, int len, int setno, int *errpos);
 
 int get_parser_gno(void);
 void set_parser_gno(int gno);
@@ -194,8 +196,6 @@ void init_symtab(void);
 int addto_symtab(symtab_entry newkey);
 
 
-int init_array(double **a, int n);
-int init_scratch_arrays(int n);
 int getsetminmax(int gno, int setno, double *x1, double *x2, double *y1, double *y2);
 int getsetminmax_c(int gno, int setno, double *xmin, double *xmax, double *ymin, double *ymax, int ivec);
 void minmax(double *x, int n, double *xmin, double *xmax, int *imin, int *imax);

@@ -61,9 +61,8 @@ static char buf[256];
 int read_param(char *stext)
 {
     int errpos = 0;
-    double a, b, c, d, x, y;
 
-    scanner(stext, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &errpos);
+    scanner(stext, 1, 0, &errpos);
 
     return errpos;
 }

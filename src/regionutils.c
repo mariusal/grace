@@ -277,7 +277,6 @@ void delete_region(int gno, int setno, int regno)
 
 void evaluate_region(int regno, int gno, int setno, char *buf)
 {
-    double a, b, c, d;
     double *x, *y, tmpx, tmpy;
     int errpos;
     int i, j, k;
@@ -328,8 +327,7 @@ void evaluate_region(int regno, int gno, int setno, char *buf)
 	
 		            x[0] = x[i];
 		            y[0] = y[i];
-		            scanner(buf, &x[i], &y[i], 1, 
-		                    &a, &b, &c, &d, 1, i, j, &errpos);
+		            scanner(buf, 1, j, &errpos);
 		            if (errpos) {
 		                x[0] = tmpx;
 		                y[0] = tmpy;

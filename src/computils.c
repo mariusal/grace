@@ -139,73 +139,6 @@ int do_compute(int setno, int loadto, int graphto, char *fstr)
 }
 
 /*
- * evaluate a formula loading the next set
- */
-void do_compute2(int gno, char *fstrx, char *fstry, char *startstr, char *stopstr, int npts, int toval)
-{
-    int setno, ier;
-    double start, stop, step, x, y, a, b, c, d;
-    char comment[256];
-
-    if (npts < 2) {
-	errmsg("Number of points < 2");
-	return;
-    }
-    /*
-     * if npts is > maxarr, then increase length of scratch arrays
-     */
-    if (npts > maxarr) {
-	if (init_scratch_arrays(npts)) {
-	    return;
-	}
-    }
-    setno = nextset(gno);
-    if (setno < 0) {
-	return;
-    }
-    activateset(gno, setno);
-    setlength(gno, setno, npts);
-    if (strlen(fstrx) == 0) {
-	errmsg("Undefined expression for X");
-	return;
-    }
-    if (strlen(fstry) == 0) {
-	errmsg("Undefined expression for Y");
-	return;
-    }
-    if (strlen(startstr) == 0) {
-	errmsg("Start item undefined");
-	return;
-    }
-    scanner(startstr, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &ier);
-    if (ier)
-	return;
-    start = result;
-
-    if (strlen(stopstr) == 0) {
-	errmsg("Stop item undefined");
-	return;
-    }
-    scanner(stopstr, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &ier);
-    if (ier) {
-	return;
-    }
-    stop = result;
-
-    step = (stop - start) / (npts - 1);
-    loadset(gno, setno, toval, start, step);
-    strcpy(buf, "X=");
-    strcat(buf, fstrx);
-    strcat( strcpy( comment, buf ), ", " );
-    formula(gno, setno, buf);
-    strcpy(buf, "Y=");
-    strcat(buf, fstry);
-    formula(gno, setno, buf);
-    strncat( comment, buf, 256-strlen(comment) );
-    setcomment(gno, setno, comment );
-}
-
-/*
  * forward, backward and centered differences
  */
 static void forwarddiff(double *x, double *y, double *resx, double *resy, int n)
@@ -1245,7 +1178,6 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 {
     int len, npts = 0, i, resset, ier;
     double *x, *y, tmpx, tmpy;
-    double a, b, c, d;
 
     if (!is_set_active(get_cg(), setno)) {
 	errmsg("Set not active");
@@ -1290,7 +1222,7 @@ void do_sample(int setno, int typeno, char *exprstr, int startno, int stepno)
 	for (i = 0; i < len; i++) {
 	    x[0] = x[i];
 	    y[0] = y[i];
-	    scanner(exprstr, &x[i], &y[i], 1, &a, &b, &c, &d, 1, i, setno, &ier);
+	    scanner(exprstr, 1, setno, &ier);
 	    if (ier) {
 		killset(get_cg(), resset);
 		x[0] = tmpx;

@@ -2352,7 +2352,6 @@ Boolean xv_evalexpr(Widget w, double *answer )
     char *s;
     static char buf[MAX_STRING_LENGTH];
     int i, len, ier = 0;
-    double x, y, a, b, c, d;
 	
     strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
     XtFree(s);
@@ -2378,7 +2377,7 @@ Boolean xv_evalexpr(Widget w, double *answer )
         *answer = atof( buf );
         return GRACE_EXIT_SUCCESS;
     } else {                /* must evaluate an expression */
-        scanner(buf, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &ier);
+        scanner(buf, 1, 0, &ier);
         if( !ier ) {
             *answer = result;
             return GRACE_EXIT_SUCCESS;
@@ -2400,7 +2399,6 @@ Boolean xv_evalexpri(Widget w, int *answer )
     char *s;
     static char buf[MAX_STRING_LENGTH];
     int i, len, ier = 0;
-    double x, y, a, b, c, d;
 	
     strncpy(buf, s = XmTextGetString(w), MAX_STRING_LENGTH - 1);
     XtFree(s);
@@ -2426,7 +2424,7 @@ Boolean xv_evalexpri(Widget w, int *answer )
         *answer = atoi(buf);
         return GRACE_EXIT_SUCCESS;
     } else {                    /* must evaluate an expression */
-        scanner(buf, &x, &y, 1, &a, &b, &c, &d, 1, 0, 0, &ier);
+        scanner(buf, 1, 0, &ier);
         if( !ier ) {
             *answer = (int)result;
             return GRACE_EXIT_SUCCESS;

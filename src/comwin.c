@@ -134,9 +134,7 @@ static void comcall(Widget w, XtPointer cd, XtPointer calld)
     XmStringGetLtoR(s->value, charset, &ts);
     strcpy(val, ts);
     XtFree(ts);
-    scanner(val, getx(get_cg(), curset), gety(get_cg(), curset),
-	    getsetlength(get_cg(), curset), ax, bx, cx, dx,
-	    maxarr, 0, curset, &errpos);
+    scanner(val, getsetlength(get_cg(), curset), curset, &errpos);
     if (errpos) {
 	errorcount++;
     }
@@ -268,9 +266,7 @@ static void replay_history(Widget w, XtPointer client_data, XtPointer call_data)
         XtFree(ts);
 
         errpos = 0;
-        scanner(buf, getx(get_cg(), curset), gety(get_cg(), curset), 
-	        getsetlength(get_cg(), curset), ax, bx, cx, dx, maxarr, 0, 
-		curset, &errpos);
+        scanner(buf, getsetlength(get_cg(), curset), curset, &errpos);
         if (errpos) {
             errcount++;
         }

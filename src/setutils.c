@@ -223,31 +223,6 @@ static int allocxy(plotarr *p, int len)
     return GRACE_EXIT_SUCCESS;
 }
 
-int init_array(double **a, int n)
-{
-    *a = (double *) xrealloc(*a, n * SIZEOF_DOUBLE);
-    
-    return *a == NULL ? 1 : 0;
-}
-
-int init_scratch_arrays(int n)
-{
-    if (!init_array(&ax, n)) {
-	if (!init_array(&bx, n)) {
-	    if (!init_array(&cx, n)) {
-		if (!init_array(&dx, n)) {
-		    maxarr = n;
-		    return 0;
-		}
-		free(cx);
-	    }
-	    free(bx);
-	}
-	free(ax);
-    }
-    return 1;
-}
-
 /*
  * get the min/max fields of a set
  */

@@ -177,7 +177,7 @@ void update_hotlinks(void)
 void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int i, errpos;
-	char hotcom[256];
+    char hotcom[256];
 
     set_wait_cursor();
 
@@ -190,11 +190,8 @@ void do_hotupdate_proc(Widget w, XtPointer client_data, XtPointer call_data)
 
 	/* perform specified command */
 	if( hotlink_command != NULL ) {
-		strcpy(hotcom, xv_getstr(hotlink_command));
-		if( hotcom[0] != '\0' )
-			scanner( hotcom, getx(get_cg(), curset), gety(get_cg(), curset),
-				getsetlength(get_cg(), curset), ax, bx, cx, dx, maxarr, 0, curset, 
-	    														&errpos);
+	    strcpy(hotcom, xv_getstr(hotlink_command));
+            scanner(hotcom, getsetlength(get_cg(), curset), curset, &errpos);
 	}
 	
     unset_wait_cursor();

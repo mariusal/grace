@@ -87,10 +87,6 @@ void set_program_defaults(void)
     timestamp.x = 0.03;
     timestamp.y = 0.03;
     
-    if (init_scratch_arrays(maxarr)) {
-        errmsg("Couldn't allocate memory for scratch arrays, don't use them");
-    }
-    
     target_set.gno = -1;
     target_set.setno = -1;
 }

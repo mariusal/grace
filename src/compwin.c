@@ -1929,26 +1929,131 @@ void create_leval_frame(Widget w, XtPointer client_data, XtPointer call_data)
     unset_wait_cursor();
 }
 
+
+
+
+
+void loadset(int gno, int selset, int toval, double startno, double stepno)
+{
+    int i, lenset;
+    double *ltmp;
+    double *xtmp, *ytmp;
+
+    if ((lenset = getsetlength(gno, selset)) <= 0) {
+	char stmp[60];
+
+	sprintf(stmp, "Length of set %d <= 0", selset);
+	errmsg(stmp);
+	return;
+    }
+    xtmp = getx(gno, selset);
+    ytmp = gety(gno, selset);
+    switch (toval) {
+    case 1:
+	ltmp = xtmp;
+	break;
+    case 2:
+	ltmp = ytmp;
+	break;
+    case 3:
+	ltmp = get_scratch(0);
+	break;
+    case 4:
+	ltmp = get_scratch(1);
+	break;
+    case 5:
+	ltmp = get_scratch(2);
+	break;
+    case 6:
+	ltmp = get_scratch(3);
+	break;
+    default:
+	return;
+    }
+    for (i = 0; i < lenset; i++) {
+	*ltmp++ = startno + i * stepno;
+    }
+
+    set_dirtystate();
+}
+
+
+
+/*
+ * evaluate a formula loading the next set
+ */
+void do_compute2(int gno, char *fstrx, char *fstry, double start, double stop, int npts, int toval)
+{
+    int setno;
+    double step;
+    char buf[MAX_STRING_LENGTH];
+
+    if (npts < 2) {
+	errmsg("Number of points < 2");
+	return;
+    }
+
+    setno = nextset(gno);
+    if (setno < 0) {
+	return;
+    }
+    activateset(gno, setno);
+    setlength(gno, setno, npts);
+    if (strlen(fstrx) == 0) {
+	errmsg("Undefined expression for X");
+	return;
+    }
+    if (strlen(fstry) == 0) {
+	errmsg("Undefined expression for Y");
+	return;
+    }
+
+    step = (stop - start) / (npts - 1);
+    loadset(gno, setno, toval, start, step);
+
+    sprintf(buf, "X=%s", fstrx);
+    formula(gno, setno, buf);
+
+    sprintf(buf, "Y=%s", fstry);
+    formula(gno, setno, buf);
+
+    sprintf(buf, "X=%s, Y=%s", fstrx, fstry);
+    setcomment(gno, setno, buf);
+}
+
+
 /*
  * evaluate a formula loading the next set
  */
 static void do_compute_proc2(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int npts, toval;
+    double start, stop;
     char fstrx[256], fstry[256];
-    char startstr[256], stopstr[256];
     Leval_ui *ui = (Leval_ui *) client_data;
 
     if (xv_evalexpri(ui->npts_item, &npts) != GRACE_EXIT_SUCCESS) {
+	errmsg("Number of points undefined");
         return;
     }
+
+    if (xv_evalexpr(ui->start_item, &start) != GRACE_EXIT_SUCCESS) {
+	errmsg("Start item undefined");
+        return;
+    }
+
+    if (xv_evalexpr(ui->stop_item, &stop) != GRACE_EXIT_SUCCESS) {
+	errmsg("Stop item undefined");
+        return;
+    }
+
     strcpy(fstrx, xv_getstr(ui->x_item));
     strcpy(fstry, xv_getstr(ui->y_item));
-    strcpy(startstr, xv_getstr(ui->start_item));
-    strcpy(stopstr, xv_getstr(ui->stop_item));
+
     toval = GetChoice(ui->load_item) + 1;
+
     set_wait_cursor();
-    do_compute2(ui->gno, fstrx, fstry, startstr, stopstr, npts, toval);
+    do_compute2(ui->gno, fstrx, fstry, start, stop, npts, toval);
     update_all();
     drawgraph();
     unset_wait_cursor();

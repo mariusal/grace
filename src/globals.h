@@ -50,16 +50,11 @@ char description[2048];
 
 int debuglevel = 0;
 
-int maxarr = MAXARR;
-
 int ptofile = FALSE;            /* flag to indicate destination of hardcopy
                                  * output, ptofile = 0 means print to printer
                                  * non-zero print to file */
 
 char sformat[128] = "%16.8lg";   /* format for saving data sets */
-
-double *ax, *bx, *cx, *dx;	/* scratch arrays used in scanner */
-
 
 int logwindow = FALSE;		/* TRUE if results are displayed in the log window */
 
@@ -208,8 +203,6 @@ extern int debuglevel;
 extern int inwin;		/* true if running X */
 extern int ispipe;		/* true if reading from stdin */
 
-extern int maxarr;
-
 extern int maxboxes;
 extern int maxlines;
 extern int maxstr;
@@ -245,8 +238,6 @@ extern double shexper;		/* expand/shrink fraction */
  */
 extern int verify_action;	/* request verification of actions if TRUE */
 extern int allow_dc;		/* allow double click ops */
-
-extern double *ax, *bx, *cx, *dx;
 
 extern defaults grdefaults;	/* default properties */
 
