@@ -548,8 +548,6 @@ int parse_device_options(Canvas *canvas, int dindex, char *options);
 
 int number_of_devices(const Canvas *canvas);
 
-void get_page_viewport(const Canvas *canvas, double *vx, double *vy);
-
 int terminal_device(const Canvas *canvas);
 
 PageFormat get_page_format(const Canvas *canvas, int device);

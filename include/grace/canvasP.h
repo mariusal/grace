@@ -200,6 +200,8 @@ int init_t1(Canvas *canvas);
 void initialize_patterns(Canvas *canvas);
 void initialize_linestyles(Canvas *canvas);
 
+void get_page_viewport(const Canvas *canvas, double *vx, double *vy);
+
 Device_entry *get_curdevice_props(const Canvas *canvas);
 
 #endif /* __CANVASP_H_ */
