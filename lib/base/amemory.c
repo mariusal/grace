@@ -136,7 +136,6 @@ AMem *amem_amem_new(int model)
 #ifdef HAVE_LIBUNDO
         case AMEM_MODEL_LIBUNDO:
             undo_new("grace");
-            undo_set_memory_limit(10000000L);
             
             amem->heap            = undo_get_session();
             amem->undoable        = TRUE;
@@ -183,6 +182,25 @@ void amem_amem_free(AMem *amem)
             break;
         }
         xfree(amem);
+    }
+}
+
+int amem_set_undo_limit(AMem *amem, size_t max_memory)
+{
+    switch (amem->model) {
+#ifdef HAVE_LIBUNDO
+    case AMEM_MODEL_LIBUNDO:
+        undo_set_session((UNDO *) amem->heap);
+        if (undo_set_memory_limit(max_memory) == UNDO_NOERROR) {
+            return RETURN_SUCCESS;
+        } else {
+            return RETURN_FAILURE;
+        }
+        break;
+#endif
+    default:
+        return RETURN_FAILURE;
+        break;
     }
 }
 

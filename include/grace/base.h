@@ -94,6 +94,8 @@ void *amem_realloc(AMem *amem, void *ptr, size_t size);
 void amem_free(AMem *amem, void *ptr);
 # define AMEM_CFREE(amem, ptr) amem_free(amem, ptr); ptr = NULL
 
+int amem_set_undo_limit(AMem *amem, size_t max_memory);
+
 int amem_snapshot(AMem *amem);
 int amem_undo(AMem *amem);
 int amem_redo(AMem *amem);
