@@ -140,6 +140,11 @@ char *bi_gui_xbae(void);
 char *bi_ccompiler(void);
 char *bi_t1lib(void);
 
+char *bi_home(void);
+char *bi_print_cmd(void);
+char *bi_editor(void);
+char *bi_helpviewer(void);
+
 #ifdef DEBUG
 void set_debuglevel(int level);
 int get_debuglevel(void);

@@ -38,7 +38,6 @@
 
 /* FIXME */
 #include "device.h"
-#include "buildinfo.h"
 
 static defaults d_d =
 {1, 0, 1, 1, 1, 1.0, 0, 1.0};
@@ -188,13 +187,13 @@ RunTime *runtime_new(void)
     
     /* grace home directory */
     if ((s = getenv("GRACE_HOME")) == NULL) {
-	s = GRACE_HOME;
+	s = bi_home();
     }
     rt->grace_home = copy_string(NULL, s);
 
     /* print command */
     if ((s = getenv("GRACE_PRINT_CMD")) == NULL) {
-	s = GRACE_PRINT_CMD;
+	s = bi_print_cmd();
     }
     rt->print_cmd = copy_string(NULL, s);
     /* if no print command defined, print to file by default */
@@ -206,13 +205,13 @@ RunTime *runtime_new(void)
 
     /* editor */
     if ((s = getenv("GRACE_EDITOR")) == NULL) {
-	s = GRACE_EDITOR;
+	s = bi_editor();
     }
     rt->grace_editor = copy_string(NULL, s);
 
     /* html viewer */
     if ((s = getenv("GRACE_HELPVIEWER")) == NULL) {
-	s = GRACE_HELPVIEWER;
+	s = bi_helpviewer();
     }
     rt->help_viewer = copy_string(NULL, s);
 

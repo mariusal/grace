@@ -35,10 +35,10 @@ $(GROBJS) $(GUIOBJS) $(PARS_O) buildinfo$(O) : $(TOP)/config.h
 
 include Make.dep
 
-xmgrace$(EXE) : $(GROBJS) $(PARS_C) $(GUIOBJS) $(CEPHES_LIB)
+xmgrace$(EXE) : $(GROBJS) $(GUIOBJS) $(CEPHES_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) $(GUIOBJS) -o $@ $(LDFLAGS) $(LIBS)
 
-grace$(EXE) : $(GROBJS) $(PARS_C) $(CEPHES_LIB)
+grace$(EXE) : $(GROBJS) $(CEPHES_LIB)
 	$(CC) $(CFLAGS) $(GROBJS) -o $@ $(LDFLAGS) $(LIBS)
 
 

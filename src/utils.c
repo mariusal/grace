@@ -63,8 +63,6 @@
 #  include <locale.h>
 #endif
 
-#include "buildinfo.h"
-
 #include "globals.h"
 #include "utils.h"
 #include "files.h"
@@ -1312,51 +1310,6 @@ void set_locale_num(int flag)
 #endif
 }
 
-/*
- * Build info stuff
- */
-long bi_version_id(void)
-{
-    return BI_VERSION_ID;
-}
-
-char *bi_version_string(void)
-{
-    return BI_VERSION;
-}
-
-char *bi_system(void)
-{
-    return BI_SYSTEM;
-}
-
-char *bi_date(void)
-{
-    return BI_DATE;
-}
-
-char *bi_gui(void)
-{
-    return BI_GUI;
-}
-
-#ifdef MOTIF_GUI
-char *bi_gui_xbae(void)
-{
-    return BI_GUI_XBAE;
-}
-#endif
-
-char *bi_t1lib(void)
-{
-    return BI_T1LIB;
-}
-
-char *bi_ccompiler(void)
-{
-    return BI_CCOMPILER;
-}
-
 #ifdef DEBUG
 void set_debuglevel(int level)
 {
@@ -1368,4 +1321,3 @@ int get_debuglevel(void)
     return grace->rt->debuglevel;
 }
 #endif
-
