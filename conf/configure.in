@@ -246,7 +246,7 @@ if test "$ac_cv_func_strerror" = no; then
       AC_DEFINE(HAVE_SYS_ERRLIST_IN_STDIO_H), ac_sys_errlist_in_stdio_h="no"))
 fi
 AC_CHECK_FUNCS(memcpy memmove)
-AC_CHECK_FUNCS(unlink)
+AC_CHECK_FUNCS(unlink fcntl)
 AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(fnmatch)
 AC_CHECK_FUNCS(vsnprintf)

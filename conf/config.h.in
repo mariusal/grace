@@ -136,6 +136,9 @@
 /* Define if you have the unlink function.  */
 #undef HAVE_UNLINK
 
+/* Define if you have the fcntl function.  */
+#undef HAVE_FCNTL
+
 /* Define if you have the popen function.  */
 #undef HAVE_POPEN
 
