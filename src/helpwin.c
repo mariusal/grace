@@ -33,11 +33,10 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "files.h"
 #include "protos.h"
 
 #include <X11/cursorfont.h>
-#include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
 
 #include "motifinc.h"
 
@@ -47,9 +46,10 @@
 #  include <help.h>
 #endif
 
-extern Display *disp;
-extern Widget app_shell;
-
+#ifdef WITH_XMHTML
+#  include <XmHTML/XmHTML.h>
+void create_helper_frame(char *fname);
+#endif
 
 void HelpCB(void *data)
 {
@@ -66,8 +66,6 @@ void HelpCB(void *data)
         ha = NO_HELP;
     }
     
-    set_wait_cursor();
-    
 #ifdef WITH_LIBHELP
     if (strstr(ha, "http:")) {
         char buf[256];
@@ -81,10 +79,16 @@ void HelpCB(void *data)
     }
 #else /* usual HTML browser */
 
-    if (strstr(ha, "http:")) {
+    if (strstr(ha, "http:") || strstr(ha, "ftp:") || strstr(ha, "mailto:")) {
         strcpy(URL, ha);
     } else {
+#ifdef WITH_XMHTML
+        sprintf(URL, "doc/%s", ha);
+        create_helper_frame(URL);
+        return;
+#else
         sprintf(URL, "file://localhost%s/doc/%s", get_grace_home(), ha);
+#endif
     }
     
     help_viewer = get_help_viewer();
@@ -106,9 +110,9 @@ void HelpCB(void *data)
 #endif
 
 #endif /* WITH_LIBHELP */
-
-    unset_wait_cursor();
 }
+
+extern Display *disp;
 
 void ContextHelpCB(void *data)
 {
@@ -127,40 +131,38 @@ void ContextHelpCB(void *data)
  * say a few things about Grace
  */
 static Widget about_frame;
-static Widget about_panel;
 
 void create_about_grtool(void *data)
 {
     set_wait_cursor();
     
     if (about_frame == NULL) {
-        Widget wbut, fr, rc;
+        Widget wbut, fr, rc, about_panel;
         char buf[1024];
         
-	about_frame = XmCreateDialogShell(app_shell, "About", NULL, 0);
-	handle_close(about_frame);
-	about_panel = XmCreateRowColumn(about_frame, "about_rc", NULL, 0);
+	about_frame = CreateDialogForm(app_shell, "About");
+	
+        about_panel = CreateVContainer(about_frame);
+        AddDialogFormChild(about_frame, about_panel);
 
 	fr = CreateFrame(about_panel, NULL);
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	CreateLabel(rc, bi_version_string());
 #ifdef DEBUG
 	CreateLabel(rc, "Debugging is enabled");
 #endif
-	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Legal stuff");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	CreateLabel(rc, "Copyright (c) 1991-1995 Paul J Turner");
 	CreateLabel(rc, "Copyright (c) 1996-2000 Grace Development Team");
 	CreateLabel(rc, "Maintained by Evgeny Stambulchik");
 	CreateLabel(rc, "All rights reserved");
 	CreateLabel(rc,
             "The program is distributed under the terms of the GNU General Public License");
-	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Third party copyrights");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	CreateLabel(rc,
             "Tab widget, Copyright (c) 1997 Pralay Dakua");
 	CreateLabel(rc, "Xbae widget,");
@@ -176,10 +178,9 @@ void create_about_grtool(void *data)
 #ifdef HAVE_LIBPDF
 	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2000 Thomas Merz");
 #endif
-	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Build info");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
         sprintf(buf, "Host: %s", bi_system());
 	CreateLabel(rc, buf);
 	sprintf(buf, "Time: %s", bi_date());
@@ -190,21 +191,277 @@ void create_about_grtool(void *data)
 	CreateLabel(rc, buf);
 	sprintf(buf, "T1lib: %s ", bi_t1lib());
 	CreateLabel(rc, buf);
-	ManageChild(rc);
 
 	fr = CreateFrame(about_panel, "Home page");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
+        rc = CreateVContainer(fr);
 	CreateLabel(rc, "http://plasma-gate.weizmann.ac.il/Grace/");
-	ManageChild(rc);
 	
 	CreateSeparator(about_panel);
 
 	wbut = CreateButton(about_panel, "Close");
 	AlignLabel(wbut, ALIGN_CENTER);
-        XtAddCallback(wbut, XmNactivateCallback, destroy_dialog, (XtPointer) about_frame);
-
-	ManageChild(about_panel);
+        AddButtonCB(wbut, destroy_dialog_cb, GetParent(about_frame));
+        
+        ManageChild(about_frame);
     }
-    RaiseWindow(about_frame);
+    
+    RaiseWindow(GetParent(about_frame));
+    
     unset_wait_cursor();
 }
+
+
+#ifdef WITH_XMHTML
+/*
+ * Simplistic HTML viewer
+ */
+
+typedef struct _html_ui {
+    Widget top;
+    Widget html;
+    TextStructure *input;
+    Widget case_sensitive;
+    Widget find_backwards;
+    XmHTMLTextFinder finder;
+    char *last;
+} html_ui;
+
+static char *loadFile(char *filename)
+{
+    FILE *file;
+    int size;
+    char *content;
+
+    /* open the given file */
+    if ((file = grace_openr(filename, SOURCE_DISK)) == NULL) {
+	return NULL;
+    }
+
+    /* see how large this file is */
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+    rewind(file);
+
+    /* allocate a buffer large enough to contain the entire file */
+    if ((content = xmalloc(size + 1)) == NULL) {
+        errmsg("xmalloc failed");
+        return NULL;
+    }
+
+    /* now read the contents of this file */
+    if ((fread(content, 1, size, file)) != size) {
+        errmsg("Warning: did not read entire file!");
+    }
+
+    grace_close(file);
+
+    /* sanity */
+    content[size] = '\0';
+
+    return content;
+}
+
+static void anchorCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    int id;
+    XmHTMLAnchorPtr href_data = (XmHTMLAnchorPtr) call_data;
+    
+    /* see if we have been called with a valid reason */
+    if (href_data->reason != XmCR_ACTIVATE) {
+        return;
+    }
+
+    switch (href_data->url_type) {
+    /* a named anchor */
+    case ANCHOR_JUMP:
+        /* see if XmHTML knows this anchor */
+        if ((id = XmHTMLAnchorGetId(w, href_data->href)) != -1) {
+            /* and let XmHTML jump and mark as visited */
+            href_data->doit = True;
+            href_data->visited = True;
+            return;
+        }
+        return;
+        break;
+    /* let HelpCB check all other types */
+    default:
+        HelpCB(href_data->href);
+        break;
+    }
+}
+
+
+static int find_cb(void *data)
+{
+    char *s, *ptr;
+    int case_sensitive, find_backwards;
+    XmHTMLTextPosition start, end;
+    html_ui *ui = (html_ui *) data;
+    
+    ptr = GetTextString(ui->input);
+
+    if (!ptr || ptr[0] == '\0') {
+        return RETURN_FAILURE;
+    }
+    
+    if (ui->finder == NULL) {
+        ui->finder = XmHTMLTextFinderCreate(ui->html);
+        if (ui->finder == NULL) {
+            errmsg("XmHTMLTextFinderCreate failed!");
+            return RETURN_FAILURE;
+        }
+    }
+
+    s = copy_string(NULL, ptr);
+
+    case_sensitive = GetToggleButtonState(ui->case_sensitive);
+    find_backwards = GetToggleButtonState(ui->find_backwards);
+
+    /*****
+    * The second arg represent regcomp flags, the default being
+    * REG_EXTENDED. Using -1 for this arg instructs the finder to
+    * keep the current flags. See man regcomp on possible values for
+    * your system. The third arg specifies whether or not the search
+    * should be done case-insensitive (True) or not (False). The last arg
+    * specifies the search direction. Currently only forward (top to
+    * bottom) is supported.
+    *****/
+    XmHTMLTextFinderSetPatternFlags(ui->finder,
+        -1,
+        case_sensitive ? False : True,
+        find_backwards ? XmHTML_BACKWARD : XmHTML_FORWARD);
+    
+    if (ui->last == NULL || strcmp(ui->last, s)) {
+        if(!XmHTMLTextFinderSetPattern(ui->finder, s)) {
+            /* failure dialog */
+            ptr = XmHTMLTextFinderGetErrorString(ui->finder);
+
+            errmsg(ptr ? ptr : "(unknown error)");
+
+            /* must free this */
+            xfree(ptr);
+            xfree(ui->last);
+            ui->last = s;
+            return RETURN_FAILURE;
+        }
+    }
+
+    switch (XmHTMLTextFindString(ui->html, ui->finder)) {
+    case XmREG_ERROR:
+        ptr = XmHTMLTextFinderGetErrorString(ui->finder);
+        errmsg(ptr ? ptr : "(unknown error)");
+        xfree(ptr);
+        break;
+    case XmREG_NOMATCH:
+        if (yesno("End of document reached; continue from beginning?",
+                  NULL, NULL, NULL) == TRUE) {
+            xfree(s);
+            XCFREE(ui->last);
+            return find_cb((void *) ui);
+        } 
+        break;
+    case XmREG_MATCH:
+        if (XmHTMLTextFindToPosition(ui->html, ui->finder, &start, &end)) {
+            XmHTMLTextSetHighlight(ui->html, start, end, XmHIGHLIGHT_SELECTED);
+            XmHTMLTextShowPosition(ui->html, start);
+        }
+        break;
+    }
+
+    xfree(ui->last);
+    ui->last = s;
+    
+    return RETURN_SUCCESS;
+}
+
+static void create_find_dialog(void *data)
+{
+    static Widget dialog = NULL;
+    html_ui *ui = (html_ui *) data;
+
+    if (!dialog) {
+        Widget rc, rc2;
+        
+        dialog = CreateDialogForm(ui->top, "Find Dialog");
+        
+        rc = CreateVContainer(dialog);
+        ui->input = CreateTextInput(rc, "Find:");
+        rc2 = CreateHContainer(rc);
+        ui->case_sensitive = CreateToggleButton(rc2, "Case sensitive");
+        ui->find_backwards = CreateToggleButton(rc2, "Find backwards (N/I)");
+
+        CreateAACDialog(dialog, rc, find_cb, data);
+        
+        ManageChild(dialog);
+    }
+
+    RaiseWindow(GetParent(dialog));
+}
+
+void create_helper_frame(char *fname)
+{
+    static html_ui *ui = NULL;
+    
+    char *content;
+    
+    set_wait_cursor();
+    
+    if (ui == NULL) {
+        Widget panel, fr, menubar, menupane;
+        
+	ui = xmalloc(sizeof(html_ui));
+        ui->finder = NULL;
+        ui->last = NULL;
+        
+        ui->top = CreateDialogForm(app_shell, "Gracilla");
+	
+        menubar = CreateMenuBar(ui->top);
+        ManageChild(menubar);
+        AddDialogFormChild(ui->top, menubar);
+        
+        menupane = CreateMenu(menubar, "File", 'F', FALSE);
+        CreateMenuButton(menupane, "Close", 'C', destroy_dialog_cb, GetParent(ui->top));
+        
+        menupane = CreateMenu(menubar, "Edit", 'E', FALSE);
+        CreateMenuButton(menupane, "Find", 'F', create_find_dialog, ui);
+        
+        panel = CreateVContainer(ui->top);
+        AddDialogFormChild(ui->top, panel);
+
+	fr = CreateFrame(panel, NULL);
+        ui->html = XtVaCreateManagedWidget("html",
+	   xmHTMLWidgetClass, fr,
+           XmNenableBadHTMLWarnings, XmHTML_NONE,
+           XmNanchorButtons, False,
+	   XmNmarginWidth, 20,
+	   XmNmarginHeight, 20,
+	   XmNwidth, 600,
+	   XmNheight, 500,
+	   NULL);
+
+	XtAddCallback(ui->html, XmNactivateCallback, anchorCB, NULL);
+	
+        ManageChild(ui->top);
+        
+    }
+    
+    if (ui->finder) {
+        XmHTMLTextFinderDestroy(ui->finder);
+        ui->finder = NULL;
+        ui->last = NULL;
+    }
+    
+    content = loadFile(fname);
+    if (content == NULL) {
+	XmHTMLTextSetString(ui->html,
+            "<html><body>Could not read given file</body></html>");
+    } else {
+	XmHTMLTextSetString(ui->html, content);
+	xfree(content);
+    }
+
+    RaiseWindow(GetParent(ui->top));
+    
+    unset_wait_cursor();
+}
+#endif
