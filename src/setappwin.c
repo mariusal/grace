@@ -64,6 +64,8 @@ static int cset = 0;            /* the current set from the symbols panel */
 
 static Widget setapp_dialog = NULL;
 
+static Widget duplegs_item;
+
 static OptionStructure *type_item;
 static Widget *toggle_symbols_item;
 static Widget symsize_item;
@@ -173,6 +175,9 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
         
         menupane = CreateMenu(menubar, "setappOptionsMenu", "Options", 'O', NULL, NULL);
       
+        duplegs_item = CreateMenuToggle(menupane,
+            "duplicateLegends", "Duplicate legends", 'D',
+            (XtCallbackProc) NULL, (XtPointer) NULL, NULL);
         CreateMenuToggle(menupane, "colorSync", "Color sync (N/I)", 's',
             (XtCallbackProc) NULL, (XtPointer) NULL, NULL);
 
@@ -191,7 +196,6 @@ void define_symbols_popup(Widget w, XtPointer client_data, XtPointer call_data)
                       XmNleftAttachment, XmATTACH_FORM,
                       XmNrightAttachment, XmATTACH_FORM,
                       NULL);
-
 
 
         rc_head = XmCreateRowColumn(setapp_panel, "rc_head", NULL, 0);
@@ -507,6 +511,7 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int aac_mode;
     int i;
+    int duplegs;
     int type;
     int sym, symskip, symlines;
     double symlinew;
@@ -524,13 +529,15 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
     
     int setno;
     int *selset, cd;
-
+    
     aac_mode = (int) client_data;
     
     if (aac_mode == AAC_CLOSE) {
         XtUnmanageChild(setapp_dialog);
         return;
     }
+
+    duplegs = GetToggleButtonState(duplegs_item);
 
     type = GetOptionChoice(type_item);
     symsize = GetCharSizeChoice(symsize_item);
@@ -595,7 +602,9 @@ static void setapp_aac_cb(Widget w, XtPointer client_data, XtPointer call_data)
             p.fillrule = fillrule;
             p.setfillpen.pattern = fillpat;
             p.setfillpen.color = fillcol;
-            strcpy(p.lstr, GetCSTextString(legend_str_item));
+            if (cd == 1 || duplegs) {
+                strcpy(p.lstr, GetCSTextString(legend_str_item));
+            }
             p.sym = sym;
             p.linet = linet;
             p.lines = line;
