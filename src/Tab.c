@@ -53,7 +53,7 @@ void DrawShadowLines(Display*, Drawable, GC, XPoint*, int, Dimension);
 
 #define offset(field) XtOffsetOf(XmTabRec, field)
 #define ACTIONPROC(proc)  static void proc(Widget,XEvent*,String*,Cardinal*)
-#define DEFAULT_FONT_LIST(w)  _XmGetDefaultFontList((Widget)w, XmFONT_IS_FONT)
+#define DEFAULT_FONT_LIST(w)  _XmGetDefaultFontList((Widget)w, XmLABEL_FONTLIST)
 
 #define MANAGE(w)    w->core.managed = True
 #define UNMANAGE(w)    w->core.managed = False
@@ -71,8 +71,8 @@ static XtResource resources[]={
 	NULL
 	},
 	{
-	XmNtabFontList,
-	XmCTabFontList,
+	XmNfontList,
+	XmCFontList,
 	XmRFontList,
 	sizeof(XmRFontList),
 	offset(tab.tab_font_list),

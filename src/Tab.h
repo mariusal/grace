@@ -31,9 +31,6 @@ extern WidgetClass xmTabWidgetClass;
 typedef struct _XmTabClassRec *XmTabWidgetClass;
 typedef struct _XmTabRec *XmTabWidget;
 
-#define XmNtabFontList "tabFontList"
-#define XmCTabFontList "TabFontList"
-
 #define XmNresizeChildren "resizeChildren"
 #define XmCResizeChildren "ResizeChildren"
 
