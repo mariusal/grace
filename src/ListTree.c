@@ -21,7 +21,7 @@
  * Author: Rob McMullen <rwmcm@mail.ae.utexas.edu>
  *         http://www.ae.utexas.edu/~rwmcm
  *
- * Minor cleaning-ups by E. Stambulchik
+ * Minor modifications and cleaning-ups by E. Stambulchik
  */
 
 #define _ListTree_
@@ -1027,18 +1027,21 @@ MakeActivateCallbackStruct(ListTreeWidget w, ListTreeItem * item, ListTreeActiva
 }
 
 static void
-SelectDouble(ListTreeWidget w)
+SelectDouble(ListTreeWidget w, Boolean highlight_selected)
 {
   ListTreeActivateStruct ret;
+  ListTreeItem *item = w->list.timer_item;
 
   TreeCheck(w, "in SelectDouble");
-  if (w->list.timer_item) {
+  if (item) {
     w->list.timer_type = TIMER_DOUBLE;
-    w->list.timer_item->open = !w->list.timer_item->open;
-    w->list.highlighted = w->list.timer_item;
-    HighlightAll(w, False, True);
+    item->open = !item->open;
+    if (highlight_selected || !item->firstchild && item->type != ItemBranchType) {
+      w->list.highlighted = item;
+      HighlightAll(w, False, True);
+    }
 
-    MakeActivateCallbackStruct(w, w->list.timer_item, &ret);
+    MakeActivateCallbackStruct(w, item, &ret);
     
     /* Highlight the path if we need to */
     if (w->list.HighlightPath) {
@@ -1056,7 +1059,9 @@ SelectDouble(ListTreeWidget w)
       XtCallCallbacks((Widget) w, XtNactivateCallback, (XtPointer) & ret);
     }
     
-    w->list.timer_item->highlighted = True;
+    if (highlight_selected || !item->firstchild && item->type != ItemBranchType) {
+      item->highlighted = True;
+    }
     w->list.recount = True;
     DrawChanged(w);
   }
@@ -1072,7 +1077,7 @@ SelectSingle(XtPointer client_data, XtIntervalId * idp)
   w->list.timer_id = (XtIntervalId) 0;
   if (w->list.timer_item) {
     if (w->list.ClickPixmapToOpen && w->list.timer_x < w->list.timer_item->x) {
-      SelectDouble(w);
+      SelectDouble(w, False);
     }
     else {
       HighlightAll(w, False, True);
@@ -1105,7 +1110,7 @@ select_start(Widget aw, XEvent *event, String *params, Cardinal *num_params)
     if (w->list.timer_id) {
       XtRemoveTimeOut(w->list.timer_id);
       w->list.timer_id = (XtIntervalId) 0;
-      SelectDouble(w);
+      SelectDouble(w, True);
     }
     else {
       w->list.timer_id = XtAppAddTimeOut(
