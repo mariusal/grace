@@ -138,8 +138,16 @@ static void drawcellCB(Widget w, XtPointer client_data, XtPointer call_data)
 static void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
     SSDataUI *ui = (SSDataUI *) client_data;
-
-    XbaeMatrixDeselectAll(ui->mw);
+    XbaeMatrixEnterCellCallbackStruct *cs =
+        (XbaeMatrixEnterCellCallbackStruct *) call_data;
+    int ncols = ssd_get_ncols(ui->q);
+    
+    if (cs->column >= 0 && cs->column < ncols) {
+        XbaeMatrixDeselectAll(ui->mw);
+    } else {
+        cs->doit = False;
+        cs->map  = False;
+    }
 }
 
 static void leaveCB(Widget w, XtPointer client_data, XtPointer call_data)
