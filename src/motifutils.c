@@ -2855,16 +2855,23 @@ Widget CreateDialogForm(Widget parent, char *s)
 {
     Widget dialog, w;
     char *bufp;
+    int standalone;
     
-    bufp = label_to_resname(s, "Dialog");
     if (parent == NULL) {
-        parent = XtVaAppCreateShell("XMgrace", "XMgrace",
+        standalone = TRUE;
+        parent = XtAppCreateShell("XMgrace", "XMgrace",
             topLevelShellWidgetClass, disp,
-            XtNtitle, bufp,
-            NULL);
+            NULL, 0);
+    } else {
+        standalone = FALSE;
     }
+    bufp = label_to_resname(s, "Dialog");
     dialog = XmCreateDialogShell(parent, bufp, NULL, 0);
     xfree(bufp);
+    
+    if (standalone) {
+        RegisterEditRes(dialog);
+    }
     
     handle_close(dialog);
 
@@ -2876,9 +2883,6 @@ Widget CreateDialogForm(Widget parent, char *s)
     xfree(bufp);
 
     w = XmCreateForm(dialog, "form", NULL, 0);
-    XtVaSetValues(w,
-        XmNuserData, NULL,
-        NULL);
     
     return w;
 }
