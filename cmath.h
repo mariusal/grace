@@ -157,5 +157,5 @@ extern int finite ( double x );
 #endif
 
 #ifndef HAVE_ISNAN_DECL
-extern double isnan ( double x );
+extern int isnan ( double x );
 #endif
