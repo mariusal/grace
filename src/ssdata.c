@@ -350,6 +350,9 @@ int store_data(ss_data *ssd, int load_type, char *label)
     nscols = ncols - nncols;
     
     gno = get_parser_gno();
+    if (is_valid_gno(gno) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    }
     
     switch (load_type) {
     case LOAD_SINGLE:
