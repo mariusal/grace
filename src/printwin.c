@@ -373,7 +373,7 @@ static int set_printer_proc(void *data)
         return RETURN_FAILURE;
     }
 
-    if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS) {
+    if (xv_evalexpr(dev_res_item, &dpi) != RETURN_SUCCESS || dpi <= 0.0) {
         errmsg("Invalid dpi");
         return RETURN_FAILURE;
     }
@@ -400,18 +400,17 @@ static int set_printer_proc(void *data)
     
     pg.dpi = dpi;
     
-    dev.pg = pg;
-    
-    if (set_device_props(seldevice, dev) != RETURN_SUCCESS) {
-        errmsg("Invalid page dimensions or DPI");
-        return RETURN_FAILURE;
-    }
-    
     if (GetToggleButtonState(dsync_item) == TRUE) {
         set_page_dimensions((int) rint(72.0*pg.width/pg.dpi),
                             (int) rint(72.0*pg.height/pg.dpi),
                             GetToggleButtonState(psync_item) == TRUE);
         do_redraw = TRUE;
+    }
+    
+    dev.pg = pg;
+    if (set_device_props(seldevice, dev) != RETURN_SUCCESS) {
+        errmsg("Invalid page dimensions or DPI");
+        return RETURN_FAILURE;
     }
     
     if (seldevice == tdevice) {
