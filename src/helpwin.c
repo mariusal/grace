@@ -173,7 +173,7 @@ void create_about_grtool(Widget but, void *data)
 	CreateLabel(rc,
             "      Copyright (c) 1995-1999 Andrew Lister");
 #ifdef HAVE_LIBPDF
-	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2002 Thomas Merz");
+	CreateLabel(rc, "PDFlib library, Copyright (c) 1997-2004 Thomas Merz and PDFlib GmbH");
 #endif
 
 	fr = CreateFrame(about_panel, "Build info");
