@@ -47,13 +47,12 @@ int register_mf_drv(void);
 #ifdef HAVE_LIBPDF
 int register_pdf_drv(void);
 #endif
-#ifdef HAVE_LIBGD
-int register_gd_drv(void);
-int register_gif_drv(void);
 int register_pnm_drv(void);
-#  ifdef HAVE_LIBJPEG
+#ifdef HAVE_LIBJPEG
 int register_jpg_drv(void);
-#  endif
+#endif
+#ifdef HAVE_LIBPNG
+int register_png_drv(void);
 #endif
 
 #endif /* __DEVLIST_H_ */

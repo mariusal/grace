@@ -28,14 +28,13 @@
 
 #include "defines.h"
 
-#define RST_FORMAT_GD   0
-#define RST_FORMAT_GIF  1
-#define RST_FORMAT_PNM  2
-#  define RST_FORMAT_JPG  3
-#ifdef HAVE_LIBJPEG
-#endif
+typedef enum {
+    RST_FORMAT_PNM,
+    RST_FORMAT_JPG,
+    RST_FORMAT_PNG
+} RasterFormat;
 
-#  define DEFAULT_RASTER_FORMAT RST_FORMAT_GIF
+#  define DEFAULT_RASTER_FORMAT RST_FORMAT_PNM
 
 /* PNM sub-formats */
 #define PNM_FORMAT_PBM  0
@@ -63,29 +62,30 @@ void rst_putpixmap(VPoint vp, int width, int height,
      char *databits, int pixmap_bpp, int bitmap_pad, int pixmap_type);
 void rst_leavegraphics(void);
 
-int gdinitgraphics(void);
-int gifinitgraphics(void);
 int pnminitgraphics(void);
+int pnm_op_parser(char *opstring);
+#ifdef NONE_GUI
+#  define pnm_gui_setup NULL
+#else
+void pnm_gui_setup(void);
+#endif
+
 #ifdef HAVE_LIBJPEG
 int jpginitgraphics(void);
-#endif
-
-int gif_op_parser(char *opstring);
-int pnm_op_parser(char *opstring);
-#ifdef HAVE_LIBJPEG
 int jpg_op_parser(char *opstring);
+#  ifdef NONE_GUI
+#    define jpg_gui_setup NULL
+#  else
+void jpg_gui_setup(void);
+#  endif
 #endif
 
-#if defined(NONE_GUI)
-#  define gif_gui_setup NULL
-#  define pnm_gui_setup NULL
-#  ifdef HAVE_LIBJPEG
-#    define jpg_gui_setup NULL
+#ifdef HAVE_LIBPNG
+int pnginitgraphics(void);
+int png_op_parser(char *opstring);
+#  ifdef NONE_GUI
+#    define png_gui_setup NULL
+#  else
+void png_gui_setup(void);
 #  endif
-#else
-void gif_gui_setup(void);
-void pnm_gui_setup(void);
-#  ifdef HAVE_LIBJPEG
-void jpg_gui_setup(void);
-#endif
 #endif

@@ -206,20 +206,18 @@ int main(int argc, char *argv[])
     hdevice = register_ps_drv();
     register_eps_drv();
 
-    register_mf_drv();
-
 #ifdef HAVE_LIBPDF
     register_pdf_drv();
 #endif
-
-#ifdef HAVE_LIBGD
-    register_gd_drv();
-    register_gif_drv();
     register_pnm_drv();
-#  ifdef HAVE_LIBJPEG
+#ifdef HAVE_LIBJPEG
     register_jpg_drv();
-#  endif
 #endif
+#ifdef HAVE_LIBPNG
+    register_png_drv();
+#endif
+
+    register_mf_drv();
 
     /* check whether locale is correctly set */
     if (set_locale_num(TRUE) == NULL) {

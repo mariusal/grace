@@ -45,11 +45,15 @@
 #include "rstdrv.h"
 #include "protos.h"
 
-#include <gd.h>
+#include "gd.h"
 
 #ifdef HAVE_LIBJPEG
 #  define JPEG_INTERNAL_OPTIONS
 #  include <jpeglib.h>
+#endif
+
+#ifdef HAVE_LIBPNG
+#  include <png.h>
 #endif
 
 #ifndef NONE_GUI
@@ -80,9 +84,6 @@ static int rst_dash_array_length;
 
 static unsigned long page_scale;
 
-static int gif_setup_interlaced = FALSE;
-static int gif_setup_transparent = FALSE;
-
 #ifdef HAVE_LIBJPEG
 static void rstImageJpg(gdImagePtr ihandle, FILE *prstream);
 
@@ -95,27 +96,13 @@ static int jpg_setup_smoothing = 0;
 static int jpg_setup_dct = JPEG_DCT_DEFAULT;
 #endif
 
-static Device_entry dev_gd = {DEVICE_FILE,
-          "GD",
-          gdinitgraphics,
-          NULL,
-          NULL,
-          "gd",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
-         };
+#ifdef HAVE_LIBPNG
+static void rstImagePng(gdImagePtr ihandle, FILE *prstream);
 
-static Device_entry dev_gif = {DEVICE_FILE,
-          "GIF",
-          gifinitgraphics,
-          gif_op_parser,
-          gif_gui_setup,
-          "gif",
-          FALSE,
-          TRUE,
-          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
-         };
+static int png_setup_interlaced = FALSE;
+static int png_setup_transparent = FALSE;
+static int png_setup_compression = 4;
+#endif
 
 static Device_entry dev_pnm = {DEVICE_FILE,
           "PNM",
@@ -141,15 +128,18 @@ static Device_entry dev_jpg = {DEVICE_FILE,
          };
 #endif
 
-int register_gd_drv(void)
-{
-    return register_device(dev_gd);
-}
-
-int register_gif_drv(void)
-{
-    return register_device(dev_gif);
-}
+#ifdef HAVE_LIBPNG
+static Device_entry dev_png = {DEVICE_FILE,
+          "PNG",
+          pnginitgraphics,
+          png_op_parser,
+          png_gui_setup,
+          "png",
+          FALSE,
+          TRUE,
+          {DEFAULT_PAGE_WIDTH, DEFAULT_PAGE_HEIGHT, 72.0}
+         };
+#endif
 
 int register_pnm_drv(void)
 {
@@ -160,6 +150,13 @@ int register_pnm_drv(void)
 int register_jpg_drv(void)
 {
     return register_device(dev_jpg);
+}
+#endif
+
+#ifdef HAVE_LIBPNG
+int register_png_drv(void)
+{
+    return register_device(dev_png);
 }
 #endif
 
@@ -522,16 +519,6 @@ void rst_leavegraphics(void)
 {
     /* Output the image to the disk file. */
     switch (curformat) {
-    case RST_FORMAT_GD:
-        gdImageGd(ihandle, prstream);
-        break;   
-    case RST_FORMAT_GIF:
-        if (gif_setup_transparent == TRUE) {
-            gdImageColorTransparent(ihandle, rst_colors[getbgcolor()]);
-        }
-        gdImageInterlace(ihandle, gif_setup_interlaced);
-        gdImageGif(ihandle, prstream);
-        break;
     case RST_FORMAT_PNM:
         rstImagePnm(ihandle, prstream);
         break;   
@@ -540,6 +527,15 @@ void rst_leavegraphics(void)
         rstImageJpg(ihandle, prstream);
         break;   
 #endif
+#ifdef HAVE_LIBPNG
+    case RST_FORMAT_PNG:
+        if (png_setup_transparent == TRUE) {
+            gdImageColorTransparent(ihandle, rst_colors[getbgcolor()]);
+        }
+        gdImageInterlace(ihandle, png_setup_interlaced);
+        rstImagePng(ihandle, prstream);
+        break;
+#endif
     default:
         errmsg("Invalid raster format");  
         break;
@@ -547,32 +543,6 @@ void rst_leavegraphics(void)
     
     /* Destroy the image in memory. */
     gdImageDestroy(ihandle);
-}
-
-int gifinitgraphics(void)
-{
-    int result;
-    
-    result = rst_initgraphics(RST_FORMAT_GIF);
-    
-    if (result == GRACE_EXIT_SUCCESS) {
-        curformat = RST_FORMAT_GIF;
-    }
-    
-    return (result);
-}
-
-int gdinitgraphics(void)
-{
-    int result;
-    
-    result = rst_initgraphics(RST_FORMAT_GD);
-    
-    if (result == GRACE_EXIT_SUCCESS) {
-        curformat = RST_FORMAT_GD;
-    }
-    
-    return (result);
 }
 
 int pnminitgraphics(void)
@@ -843,7 +813,6 @@ int jpg_op_parser(char *opstring)
         } else {
             return GRACE_EXIT_FAILURE;
         }
-        return GRACE_EXIT_SUCCESS;
     } else if (!strncmp(opstring, "smoothing:", 10)) {
         bufp = strchr(opstring, ':');
         bufp++;
@@ -853,31 +822,11 @@ int jpg_op_parser(char *opstring)
         } else {
             return GRACE_EXIT_FAILURE;
         }
-        return GRACE_EXIT_SUCCESS;
     } else {
         return GRACE_EXIT_FAILURE;
     }
 }
 #endif
-
-int gif_op_parser(char *opstring)
-{
-    if (!strcmp(opstring, "interlaced:on")) {
-        gif_setup_interlaced = TRUE;
-        return GRACE_EXIT_SUCCESS;
-    } else if (!strcmp(opstring, "interlaced:off")) {
-        gif_setup_interlaced = FALSE;
-        return GRACE_EXIT_SUCCESS;
-    } else if (!strcmp(opstring, "transparent:on")) {
-        gif_setup_transparent = TRUE;
-        return GRACE_EXIT_SUCCESS;
-    } else if (!strcmp(opstring, "transparent:off")) {
-        gif_setup_transparent = FALSE;
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
 
 int pnm_op_parser(char *opstring)
 {
@@ -901,14 +850,130 @@ int pnm_op_parser(char *opstring)
     }
 }
 
+#ifdef HAVE_LIBPNG
+int pnginitgraphics(void)
+{
+    int result;
+    
+    result = rst_initgraphics(RST_FORMAT_PNG);
+    
+    if (result == GRACE_EXIT_SUCCESS) {
+        curformat = RST_FORMAT_PNG;
+    }
+    
+    return (result);
+}
+
+static void rstImagePng(gdImagePtr ihandle, FILE *prstream)
+{
+    png_structp png_ptr;
+    png_infop info_ptr;
+    int w, h;
+    int interlace_type;
+    int i, num_palette;
+    png_color *palette;
+    png_byte trans;
+
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
+        NULL, NULL, NULL);
+    if (png_ptr == NULL) {
+        return;
+    }
+
+    info_ptr = png_create_info_struct(png_ptr);
+    if (info_ptr == NULL) {
+        png_destroy_write_struct(&png_ptr, NULL);
+        return;
+    }
+
+    if (setjmp(png_ptr->jmpbuf)) {
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+        return;
+    }
+
+    png_init_io(png_ptr, prstream);
+
+    /* set the zlib compression level */
+    png_set_compression_level(png_ptr, png_setup_compression);
+
+    w = gdImageSX(ihandle);
+    h = gdImageSY(ihandle);
+
+    if (png_setup_interlaced) {
+        interlace_type = PNG_INTERLACE_ADAM7;
+    } else {
+        interlace_type = PNG_INTERLACE_NONE;
+    }
+
+    png_set_IHDR(png_ptr, info_ptr, w, h,
+        8, PNG_COLOR_TYPE_PALETTE, interlace_type,
+        PNG_COMPRESSION_TYPE_DEFAULT,
+        PNG_FILTER_TYPE_DEFAULT);
+
+    num_palette = gdImageColorsTotal(ihandle);
+    palette = malloc(num_palette*sizeof(png_color));
+    if (palette == NULL) {
+        return;
+    }
+    for (i = 0; i < num_palette; i++) {
+        palette[i].red   = gdImageRed(ihandle, i);
+        palette[i].green = gdImageGreen(ihandle, i);
+        palette[i].blue  = gdImageBlue(ihandle, i);
+    }
+    png_set_PLTE(png_ptr, info_ptr, palette, num_palette);
+    
+/*
+ *     png_set_pHYs(png_ptr, info_ptr, res_x, res_y, PNG_RESOLUTION_UNKNOWN);
+ */
+
+#ifdef PNG_WRITE_tRNS_SUPPORTED
+    if (png_setup_transparent) {
+        trans = gdImageGetTransparent(ihandle);
+        png_set_tRNS(png_ptr, info_ptr, &trans, 1, NULL);
+    }
+#endif
+    
+    png_write_info(png_ptr, info_ptr);
+    
+    png_write_image(png_ptr, (png_byte **) ihandle->pixels);
+    
+    png_write_end(png_ptr, info_ptr);
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    xfree(palette);
+}
+
+int png_op_parser(char *opstring)
+{
+    char *bufp;
+
+    if (!strcmp(opstring, "interlaced:on")) {
+        png_setup_interlaced = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "interlaced:off")) {
+        png_setup_interlaced = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "transparent:on")) {
+        png_setup_transparent = TRUE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strcmp(opstring, "transparent:off")) {
+        png_setup_transparent = FALSE;
+        return GRACE_EXIT_SUCCESS;
+    } else if (!strncmp(opstring, "compression:", 12)) {
+        bufp = strchr(opstring, ':');
+        bufp++;
+        if (bufp != NULL && *bufp != '\0') {
+            png_setup_compression = atoi(bufp);
+            return GRACE_EXIT_SUCCESS;
+        } else {
+            return GRACE_EXIT_FAILURE;
+        }
+    } else {
+        return GRACE_EXIT_FAILURE;
+    }
+}
+#endif
+
 #ifndef NONE_GUI
-
-static void update_gif_setup_frame(void);
-static void set_gif_setup_proc(void *data);
-
-static Widget gif_setup_frame;
-static Widget gif_setup_interlaced_item;
-static Widget gif_setup_transparent_item;
 
 static void update_pnm_setup_frame(void);
 static void set_pnm_setup_proc(void *data);
@@ -916,61 +981,76 @@ static Widget pnm_setup_frame;
 static Widget pnm_setup_rawbits_item;
 static Widget *pnm_setup_format_item;
 
-void gif_gui_setup(void)
+#ifdef HAVE_LIBPNG
+static void update_png_setup_frame(void);
+static void set_png_setup_proc(void *data);
+
+static Widget png_setup_frame;
+static Widget png_setup_interlaced_item;
+static Widget png_setup_transparent_item;
+static SpinStructure *png_setup_compression_item;
+
+void png_gui_setup(void)
 {
-    Widget gif_setup_panel, gif_setup_rc, fr, rc;
+    Widget png_setup_panel, png_setup_rc, fr, rc;
     
     set_wait_cursor();
-    if (gif_setup_frame == NULL) {
-	gif_setup_frame = XmCreateDialogShell(app_shell, "GIF options", NULL, 0);
-	handle_close(gif_setup_frame);
-        gif_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        gif_setup_frame, NULL, 0);
-        gif_setup_rc = XmCreateRowColumn(gif_setup_panel, "psetup_rc", NULL, 0);
+    if (png_setup_frame == NULL) {
+	png_setup_frame = XmCreateDialogShell(app_shell, "PNG options", NULL, 0);
+	handle_close(png_setup_frame);
+        png_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
+                                        png_setup_frame, NULL, 0);
+        png_setup_rc = XmCreateRowColumn(png_setup_panel, "psetup_rc", NULL, 0);
 
-	fr = CreateFrame(gif_setup_rc, "GIF options");
+	fr = CreateFrame(png_setup_rc, "PNG options");
         rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	gif_setup_interlaced_item = CreateToggleButton(rc, "Interlaced");
-	gif_setup_transparent_item = CreateToggleButton(rc, "Transparent");
+	png_setup_interlaced_item = CreateToggleButton(rc, "Interlaced");
+	png_setup_transparent_item = CreateToggleButton(rc, "Transparent");
+	png_setup_compression_item = CreateSpinChoice(rc,
+            "Compression:", 1, SPIN_TYPE_INT,
+            (double) Z_NO_COMPRESSION, (double) Z_BEST_COMPRESSION, 1.0);
 	XtManageChild(rc);
 
-	CreateSeparator(gif_setup_rc);
+	CreateSeparator(png_setup_rc);
 
-	CreateAACButtons(gif_setup_rc, gif_setup_panel, set_gif_setup_proc);
+	CreateAACButtons(png_setup_rc, png_setup_panel, set_png_setup_proc);
         
-	XtManageChild(gif_setup_rc);
-	XtManageChild(gif_setup_panel);
+	XtManageChild(png_setup_rc);
+	XtManageChild(png_setup_panel);
     }
-    XtRaise(gif_setup_frame);
-    update_gif_setup_frame();
+    XtRaise(png_setup_frame);
+    update_png_setup_frame();
     unset_wait_cursor();
 }
 
-static void update_gif_setup_frame(void)
+static void update_png_setup_frame(void)
 {
-    if (gif_setup_frame) {
-        SetToggleButtonState(gif_setup_interlaced_item, gif_setup_interlaced);
-        SetToggleButtonState(gif_setup_transparent_item, gif_setup_transparent);
+    if (png_setup_frame) {
+        SetToggleButtonState(png_setup_interlaced_item, png_setup_interlaced);
+        SetToggleButtonState(png_setup_transparent_item, png_setup_transparent);
+        SetSpinChoice(png_setup_compression_item, png_setup_compression);
     }
 }
 
-static void set_gif_setup_proc(void *data)
+static void set_png_setup_proc(void *data)
 {
     int aac_mode;
     aac_mode = (int) data;
     
     if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(gif_setup_frame);
+        XtUnmanageChild(png_setup_frame);
         return;
     }
     
-    gif_setup_interlaced = GetToggleButtonState(gif_setup_interlaced_item);
-    gif_setup_transparent = GetToggleButtonState(gif_setup_transparent_item);
+    png_setup_interlaced = GetToggleButtonState(png_setup_interlaced_item);
+    png_setup_transparent = GetToggleButtonState(png_setup_transparent_item);
+    png_setup_compression = GetSpinChoice(png_setup_compression_item);
     
     if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(gif_setup_frame);
+        XtUnmanageChild(png_setup_frame);
     }
 }
+#endif
 
 void pnm_gui_setup(void)
 {
@@ -1032,7 +1112,6 @@ static void set_pnm_setup_proc(void *data)
         XtUnmanageChild(pnm_setup_frame);
     }
 }
-
 
 #ifdef HAVE_LIBJPEG
 static void update_jpg_setup_frame(void);
