@@ -1,7 +1,5 @@
 <!doctype linuxdoc system>
 
-<!-- $Id: FAQ.sgml,v 1.6 1999-05-09 22:00:09 fnevgeny Exp $ -->
-
 <!-- This is the FAQ for Grace, the 2d plotting tool -->
 
 <!-- Note to the FAQ maintainer: -->
@@ -12,7 +10,7 @@
 
       <title>Grace FAQ
       <author>by the Grace Team
-      <date>v0.4  1999/03/11
+      <date>v0.5  1999/05/13
       <abstract>
 	This document contains Frequently Asked Questions (FAQ) about
 	<bf/Grace/, the free 2d plotting tool for scientific data.
@@ -1048,20 +1046,6 @@
 	  the mailing list (question <ref id="mailinglist"
 	  name="Mailing Lists">) or post it as a wish to the w3todo web
 	  page (see question <ref id="w3todo" name="Known Bugs">).
-
-      <sect1>What is Plotz?
-	<p>
-
-	  Plotz is a neat web interface to Grace created by <url
-	    name="Susan Chacko" url="mailto:susanc@helix.nih.gov"> and
-	  can be found at <url url="http://helix.nih.gov/plotz.html">
-
-      <sect1>I use lots of text strings/boxes/.... How can I increase
-             the maximum number of the objects?
-	<p>
-
-	  Use the <tt>-maxboxes/-maxellipses/-maxlines/-maxstr</tt> command
-          line options.
 
       <sect1>What different kinds of sets can Grace plot?
 	<p>

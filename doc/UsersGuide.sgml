@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.3)
 <author>by the Grace Team
-<date>05.04.1999
+<date>13.05.1999
 <abstract>
   This document explains the usage of
   <bf/Grace/, a 2D plotting tool for scientific data.
@@ -253,18 +253,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       <tag> -maxblock <it>number_of_columns</it> </tag> 
             Set the number of columns for block data (default is 30)
 
-      <tag> -maxboxes <it>number_of_boxes</it> </tag>
-            Set the number of boxes
-
-      <tag> -maxellipses <it>number_of_ellipses</it> </tag> 
-            Set the number of ellipses
-
-      <tag> -maxlines <it>number_of_lines</it> </tag> 
-            Set the number of lines
-
-      <tag> -maxstr <it>number_of_strings</it> </tag> 
-            Set the number of strings
-
       <tag> -mono </tag> 
             Run Grace in monochrome mode (affects the display only)
 
@@ -324,7 +312,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
             Source type of next data file
 
       <tag> -timer <it>delay</it> </tag> 
-            Set timer for named pipes to delay ms
+            Set allowed time slice for real time inputs to delay ms
 
       <tag> -timestamp </tag> Add timestamp to plot
 
@@ -631,16 +619,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
       <itemize>
         <item> Ctrl &lt;Key&gt;A: Autoscale
-        <item> Ctrl &lt;Key&gt;B: Draw a box
         <item> Ctrl &lt;Key&gt;D: Delete an object
         <item> Ctrl &lt;Key&gt;L: Move current graph legend
         <item> Ctrl &lt;Key&gt;M: Move an object
-        <item> Ctrl &lt;Key&gt;P: Draw a line
         <item> Ctrl &lt;Key&gt;T: Place timestamp
         <item> Ctrl &lt;Key&gt;U: Refresh hotlinks
         <item> Ctrl &lt;Key&gt;V: Set the viewport with mouse
-        <item> Ctrl &lt;Key&gt;W: Write a string
         <item> Ctrl &lt;Key&gt;Z: Zoom
+        <item> Ctrl Alt &lt;Key&gt;L: Draw a line
+        <item> Ctrl Alt &lt;Key&gt;B: Draw a box
+        <item> Ctrl Alt &lt;Key&gt;E: Draw an ellipse
+        <item> Ctrl Alt &lt;Key&gt;T: Write a text string
       </itemize>
 
   <sect1>Clicks and double clicks
