@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -168,8 +168,9 @@ void create_locator_frame(void *data)
 static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
 {
     GLocator locator;
+    int gno = get_cg();
     
-    get_graph_locator(get_cg(), &locator);
+    get_graph_locator(gno, &locator);
     
     locator.pt_type = GetChoice(delta_item);
     locator.fx = GetOptionChoice(loc_formatx);
@@ -179,7 +180,9 @@ static void locator_define_notify_proc(Widget w, XtPointer client_data, XtPointe
     locator.pointset = GetChoice(fixedp_item);
     xv_evalexpr(locx_item, &locator.dsx ); 
     xv_evalexpr(locy_item, &locator.dsy ); 
-    set_graph_locator(get_cg(), &locator);
+    set_graph_locator(gno, &locator);
+    
+    xdrawgraph();
     
     XtUnmanageChild(locator_frame);
 }
