@@ -589,7 +589,7 @@ static void popup_cb(StorageStructure *ss, int nselected)
 
 static void new_line_cb(void *udata)
 {
-    StorageStructure *ss = (StorageStructure *) udata;
+    /* StorageStructure *ss = (StorageStructure *) udata; */
     set_action(DO_NOTHING);
     set_action(MAKE_LINE_1ST);
 }
