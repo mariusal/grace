@@ -74,7 +74,9 @@ static Device_entry dev_mif = {
 };
 
 /* mapping between Grace and MIF fill patterns. This is really ugly but
- * MIF does not allow to define document patterns */
+ * MIF uses only 16 patterns which can only be customised on UNIX platforms
+ * and there only for the whole FrameMaker-product and not for a single
+ * document. */
 static int mif_fillpattern(int fillpattern)
 {
   switch (fillpattern) {
@@ -662,7 +664,7 @@ void mif_puttext(const Canvas *canvas, void *data,
     const VPoint *vp, const char *s, int len, int font, const TextMatrix *tm,
     int underline, int overline, int kerning)
 {
-    char *fontalias, *dash, *family;
+    char *fontalias, *fontfullname;
     double angle, side, size;
     Pen pen;
 
@@ -682,27 +684,56 @@ void mif_puttext(const Canvas *canvas, void *data,
     fprintf(canvas->prstream, "    <FTag `'>\n");
 
     fontalias = get_fontalias(canvas, font);
-    if ((dash = strchr(fontalias, '-')) == NULL) {
-        family = copy_string(NULL, fontalias);
-    } else {
-        family    = xmalloc(dash - fontalias + 1);
-        strncpy(family, fontalias, dash - fontalias);
-        family[dash - fontalias] = '\0';
-    }
-    fprintf(canvas->prstream, "    <FFamily `%s'>\n", family);
+    fontfullname = get_fontfullname(canvas, font);
 
-    if (strstr(fontalias, "Bold") != NULL) {
-        fprintf(canvas->prstream, "    <FWeight `Bold'>\n");
-    } else {
-        fprintf(canvas->prstream, "    <FWeight `Regular'>\n");
-    }
+    fprintf(canvas->prstream, "    <FFamily `%s'>\n", get_fontfamilyname(canvas, font));
+    fprintf(canvas->prstream, "    <FWeight `%s'>\n", get_fontweight(canvas, font));
 
-    if (strstr(fontalias, "Italic") != NULL) {
-        fprintf(canvas->prstream, "    <FAngle `Italic'>\n");
-    } else if (strstr(fontalias, "Oblique") != NULL) {
-        fprintf(canvas->prstream, "    <FAngle `Oblique'>\n");
-    } else {
-        fprintf(canvas->prstream, "    <FAngle `Regular'>\n");
+    if (strstr(fontfullname, "UltraCompressed") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `UltraCompressed'>\n");
+    } else if (strstr(fontfullname, "ExtraCompressed") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `ExtraCompressed'>\n");
+    } else if (strstr(fontfullname, "Compressed") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Compressed'>\n");
+    } else if (strstr(fontfullname, "UltraCondensed") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `UltraCondensed'>\n");
+    } else if (strstr(fontfullname, "ExtraCondensed") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `ExtraCondensed'>\n");
+    } else if (strstr(fontfullname, "Condensed") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Condensed'>\n");
+    } else if (strstr(fontfullname, "Narrow") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Narrow'>\n");
+    } else if (strstr(fontfullname, "Wide") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Wide'>\n");
+    } else if (strstr(fontfullname, "Poster") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Poster'>\n");
+    } else if (strstr(fontfullname, "Expanded") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Expanded'>\n");
+    } else if (strstr(fontfullname, "ExtraExtended") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `ExtraExtended'>\n");
+    } else if (strstr(fontfullname, "Extended") != NULL) {
+        fprintf(canvas->prstream, "    <FVar `Extended'>\n");
+    }
+    if (get_italic_angle(canvas, font) != 0) {
+        if (strstr(fontfullname, "Italic") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Italic'>\n");
+        } else if (strstr(fontfullname, "Obliqued") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Obliqued'>\n");
+        } else if (strstr(fontfullname, "Oblique") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Oblique'>\n");
+        } else if (strstr(fontfullname, "Upright") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Upright'>\n");
+        } else if (strstr(fontfullname, "Kursiv") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Kursiv'>\n");
+        } else if (strstr(fontfullname, "Cursive") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Cursive'>\n");
+        } else if (strstr(fontfullname, "Slanted") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Slanted'>\n");
+        } else if (strstr(fontfullname, "Inclined") != NULL) {
+            fprintf(canvas->prstream, "    <FAngle `Inclined'>\n");
+        } else {
+            fprintf(canvas->prstream, "    <FAngle `Italic'>\n");
+        }
     }
 
     size = fabs((tm->cxx*tm->cyy - tm->cxy*tm->cyx)
@@ -721,8 +752,6 @@ void mif_puttext(const Canvas *canvas, void *data,
     fprintf(canvas->prstream, "   <String `%s'>\n",
             escape_specials((unsigned char *) s, len));
     fprintf(canvas->prstream, "  > # end of TextLine\n");
-
-    copy_string(family, NULL);
 }
 
 void mif_leavegraphics(const Canvas *canvas, void *data,
