@@ -1589,3 +1589,91 @@ void create_featext_frame(void *data)
     
     unset_wait_cursor();
 }
+
+typedef struct _Cumulative_ui {
+    Widget top;
+    GraphSetStructure *src;
+    GraphSetStructure *dest;
+} Cumulative_ui;
+
+static int do_cumulative_proc(void *data)
+{
+    int nsrc, ndest, *ssids, *dsids, sdest, gsrc, gdest;
+
+    Featext_ui *ui = (Featext_ui *) data;
+
+    if (GetSingleListChoice(ui->src->graph_sel, &gsrc) != RETURN_SUCCESS) {
+        errmsg("Please select a single source graph");
+        return RETURN_FAILURE;
+    }
+    if (GetSingleListChoice(ui->dest->graph_sel, &gdest) != RETURN_SUCCESS) {
+        errmsg("Please select a single source graph");
+        return RETURN_FAILURE;
+    }
+    
+    nsrc = GetListChoices(ui->src->set_sel, &ssids);
+    if (nsrc < 1) {
+        errmsg("No source sets selected");
+        return RETURN_FAILURE;
+    }
+
+    ndest = GetListChoices(ui->dest->set_sel, &dsids);
+    if (ndest == 0) {
+        sdest = nextset(gdest);
+    } else if (ndest == 1) {
+        sdest = dsids[0];
+        xfree(dsids);
+    } else {
+        errmsg("Please select a single or none destination set");
+        if (ndest > 0) {
+            xfree(dsids);
+        }
+        if (nsrc > 0) {
+            xfree(ssids);
+        }
+        return RETURN_FAILURE;
+    }
+
+    cumulative(gsrc, ssids, nsrc, gdest, sdest); 
+
+    if (nsrc > 0) {
+        xfree(ssids);
+    }
+    
+    update_set_lists(gdest);
+    xdrawgraph();
+    
+    return RETURN_SUCCESS;
+}
+
+void create_cumulative_frame(void *data)
+{
+    static Cumulative_ui *ui = NULL;
+ 
+    set_wait_cursor();
+    
+    if (!ui) {
+        Widget grid;
+
+        ui = xmalloc(sizeof(Cumulative_ui));
+        if (!ui) {
+            unset_wait_cursor();
+            return;
+        }
+        
+        ui->top = CreateDialogForm(app_shell, "Cumulative properties");
+        grid = CreateGrid(ui->top, 2, 1);
+	ui->src = CreateGraphSetSelector(grid,
+            "Source group:", LIST_TYPE_MULTIPLE);
+	ui->dest = CreateGraphSetSelector(grid,
+            "Destination:", LIST_TYPE_SINGLE);
+        PlaceGridChild(grid, ui->src->frame, 0, 0);
+        PlaceGridChild(grid, ui->dest->frame, 1, 0);
+
+	CreateAACDialog(ui->top, grid, do_cumulative_proc, (void *) ui);
+    }
+    
+    RaiseWindow(GetParent(ui->top));
+    
+    unset_wait_cursor();
+}

@@ -175,6 +175,7 @@ void create_datasetop_popup(void *data);
 void create_setop_popup(void *data);
 
 void create_featext_frame(void *data);
+void create_cumulative_frame(void *data);
 
 void create_ss_frame(int gno, int setno);
 void update_ss_editors(int gno);

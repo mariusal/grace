@@ -2027,3 +2027,62 @@ int featext(int gfrom, int *sfrom, int nsets, int gto, int setto, char *formula)
     
     return RETURN_SUCCESS;
 }
+
+/* cumulaive properties (only avg right now) */
+int cumulative(int gsrc, int *ssids, int nsrc, int gdest, int sdest)
+{
+    int is, j, k, maxlen, maxncols, settype;
+
+    if (!is_valid_gno(gsrc) || !is_valid_gno(gdest)) {
+	return RETURN_FAILURE;
+    }
+
+    maxlen = 0; maxncols = 0; settype = SET_XY;
+    for (is = 0; is < nsrc; is++) {
+        int setno = ssids[is];
+        int len   = getsetlength(gsrc, setno);
+        int ncols = dataset_cols(gsrc, setno);
+        if (maxlen < len) {
+            maxlen = len;
+        }
+        if (maxncols < ncols) {
+            maxncols = ncols;
+            settype  = dataset_type(gsrc, setno);
+        }
+    }
+    
+    if (maxlen == 0 || maxncols < 2) {
+        return RETURN_FAILURE;
+    }
+    
+    if (dataset_cols(gdest, sdest) != maxncols) {
+        set_dataset_type(gdest, sdest, settype);
+    }
+    
+    if (setlength(gdest, sdest, maxlen) != RETURN_SUCCESS) {
+        return RETURN_FAILURE;
+    }
+    
+    for (k = 0; k < maxlen; k++) {
+        for (j = 0; j < maxncols; j++) {
+            double *y = getcol(gdest, sdest, j);
+            int nvar = 0;
+            double var = 0.0;
+            for (is = 0; is < nsrc; is++) {
+                int setno  = ssids[is];
+                int len    = getsetlength(gsrc, setno);
+                double *x = getcol(gsrc, setno, j);
+                if (x && k < len) {
+                    var += x[k];
+                    nvar++;
+                }
+            }
+            y[k] = var/nvar;
+        }
+    }
+
+    /* set comment */
+    setcomment(gdest, sdest, "Cumulative average");
+    
+    return RETURN_SUCCESS;
+} 

@@ -781,6 +781,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(submenupane, "Prune data...", 'P', create_prune_frame, NULL);
 
     CreateMenuButton(menupane, "Feature extraction...", 'x', create_featext_frame, NULL);
+    CreateMenuButton(menupane, "Cumulative properties...", 'C', create_cumulative_frame, NULL);
 
     CreateMenuSeparator(menupane);
 
