@@ -1086,6 +1086,7 @@ int load_project_file(Grace *grace, char *fn, int as_template)
         time_t mtime;
         static char buf[GR_MAXPATHLEN];
         char *bufp;
+        AMem *amem;
         
         if (as_template == FALSE) {
             project_set_docname(grace->project, fn);
@@ -1112,8 +1113,12 @@ int load_project_file(Grace *grace, char *fn, int as_template)
         /* Clear dirtystate */
         quark_dirtystate_set(grace->project, FALSE);
 
+        amem = quark_get_amem(grace->project);
+
+        /* Set undo limit of 16MB */
+        amem_set_undo_limit(amem, 0x1000000L);
         /* Get initial memory snapshot */
-        amem_snapshot(quark_get_amem(grace->project));
+        amem_snapshot(amem);
     } else {
         errmsg("Failed loading project file");
     }
