@@ -27,6 +27,7 @@
 
 /* Frame UI */
 
+#include "graphs.h"
 #include "explorer.h"
 #include "protos.h"
 

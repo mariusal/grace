@@ -28,7 +28,6 @@
 #ifndef __EXPLORER_H_
 #define __EXPLORER_H_
 
-#include "graphs.h"
 #include "motifinc.h"
 #include "ListTree.h"
 

@@ -27,6 +27,7 @@
 
 /* Graph UI */
 
+#include "graphs.h"
 #include "explorer.h"
 
 static void axis_scale_cb(OptionStructure *opt, int value, void *data);
