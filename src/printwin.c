@@ -62,7 +62,7 @@ static Widget print_string_item;
 static Widget rc_filesel;
 static Widget printfile_item;
 static Widget pdev_rc;
-static Widget *devices_item;
+static OptionStructure *devices_item;
 static Widget output_frame;
 static Widget *page_orient_item;
 static Widget *page_format_item;
@@ -89,8 +89,9 @@ static void update_device_setup(int device_id);
 
 void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i;
+    int i, ndev;
     Widget device_panel, rc, rc1, fr, wbut;
+    OptionItem *option_items;
     
     set_wait_cursor();
     
@@ -109,25 +110,16 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
 	pdev_rc = XmCreateRowColumn(rc1, "pdev_rc", NULL, 0);
         XtVaSetValues(pdev_rc, XmNorientation, XmHORIZONTAL, NULL);
 
-	devices_item = CreatePanelChoice(pdev_rc, "Device: ",
-					 number_of_devices() + 1,
-					 "Display",
-					 "PostScript",
-					 "EPS",
-					 "Metafile",
-#ifdef HAVE_LIBPDF
-					 "PDF",
-#endif
-#ifdef HAVE_LIBGD
-					 "GD",
-					 "GIF",
-					 "PNM",
-#endif
-					 0, 0);
-	for (i = 0; i < number_of_devices(); i++) {
-	    XtAddCallback(devices_item[2 + i], XmNactivateCallback,
-			(XtCallbackProc) do_device_toggle, (XtPointer) i);
-	}
+	ndev = number_of_devices();
+        option_items = malloc(ndev*sizeof(OptionItem));
+        for (i = 0; i < ndev; i++) {
+            option_items[i].value = i;
+            option_items[i].label = get_device_name(i);
+        }
+        devices_item = CreateOptionChoice(pdev_rc, "Device: ",
+					    1, ndev, option_items);
+	AddOptionChoiceCB(devices_item, do_device_toggle);
+        free(option_items);
         
         device_opts_item = XtVaCreateManagedWidget("Device options...",
                                                 xmPushButtonWidgetClass, 
@@ -238,7 +230,7 @@ void create_printer_setup(Widget w, XtPointer client_data, XtPointer call_data)
 static void update_printer_setup(int device_id)
 {
     if (psetup_frame) {
-        SetChoice(devices_item, device_id);
+        SetOptionChoice(devices_item, device_id);
         update_device_setup(device_id);
     }
 }
@@ -376,7 +368,7 @@ static void set_printer_proc(Widget w, XtPointer client_data, XtPointer call_dat
         return;
     }
     
-    seldevice = GetChoice(devices_item);
+    seldevice = GetOptionChoice(devices_item);
 
     dev = get_device_props(seldevice);
 
@@ -604,7 +596,7 @@ void create_printfiles_popup(Widget w, XtPointer client_data, XtPointer call_dat
                                                     (XtPointer) top);
     }
     
-    device = GetChoice(devices_item);
+    device = GetOptionChoice(devices_item);
     dev = get_device_props(device);
     sprintf(buf, "*.%s", dev.fext);
     XtVaSetValues(top, XmNdirMask, XmStringCreate(buf, charset), NULL );
@@ -617,7 +609,7 @@ void create_devopts_popup(Widget w, XtPointer client_data, XtPointer call_data)
     int device_id;
     Device_entry dev;
     
-    device_id = GetChoice(devices_item);
+    device_id = GetOptionChoice(devices_item);
     dev = get_device_props(device_id);
     if (dev.setup == NULL) {
         /* Should never come to here */
