@@ -141,15 +141,15 @@ void create_eblock_frame(Widget w, XtPointer client_data, XtPointer call_data)
 	XtVaCreateManagedWidget("X from column:", xmLabelWidgetClass, rc, NULL);
 	eblock_x_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
 	XtVaCreateManagedWidget("Y from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_y_choice_item = CreateBlockChoice(rc, " ", maxblock, 0);
+	eblock_y_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
 	XtVaCreateManagedWidget("E1 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e1_choice_item = CreateBlockChoice(rc, " ", maxblock, 0);
+	eblock_e1_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
 	XtVaCreateManagedWidget("E2 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e2_choice_item = CreateBlockChoice(rc, " ", maxblock, 0);
+	eblock_e2_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
 	XtVaCreateManagedWidget("E3 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e3_choice_item = CreateBlockChoice(rc, " ", maxblock, 0);
+	eblock_e3_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
 	XtVaCreateManagedWidget("E4 from column:", xmLabelWidgetClass, rc, NULL);
-	eblock_e4_choice_item = CreateBlockChoice(rc, " ", maxblock, 0);
+	eblock_e4_choice_item = CreateBlockChoice(rc, " ", maxblock, 1);
 
 	eblock_graph_choice_item = CreateGraphChoice(rc,
                                     "Load to set in graph:", LIST_TYPE_SINGLE);
@@ -240,7 +240,7 @@ static void eblock_accept_notify_proc(Widget w, XtPointer client_data, XtPointer
     int n, *values;
     int cx, cy, c1 = 0, c2 = 0, c3 = 0, c4 = 0;
 
-    cx = GetChoice(eblock_x_choice_item) - 1;
+    cx = GetChoice(eblock_x_choice_item);
     cy = GetChoice(eblock_y_choice_item);
     switch (settype_cols(block_curtype)) {
     case 2:
