@@ -596,6 +596,15 @@ int doclipping(void)
     return(clipflag ? TRUE:FALSE);
 }
 
+/*
+ * is_wpoint_inside() checks if point qp is inside of world rectangle w
+ */
+int is_wpoint_inside(WPoint *wp, world *w)
+{
+    return ((wp->x >= w->xg1) && (wp->x <= w->xg2) &&
+            (wp->y >= w->yg1) && (wp->y <= w->yg2));
+}
+
 /* some to avoid round errors due to the finite FP precision */
 #define VP_EPSILON  0.0001
 
@@ -604,8 +613,8 @@ int doclipping(void)
  */
 int is_vpoint_inside(view v, VPoint vp, double epsilon)
 {
-        return ((vp.x >= v.xv1 - epsilon) && (vp.x <= v.xv2 + epsilon) &&
-                (vp.y >= v.yv1 - epsilon) && (vp.y <= v.yv2 + epsilon));
+    return ((vp.x >= v.xv1 - epsilon) && (vp.x <= v.xv2 + epsilon) &&
+            (vp.y >= v.yv1 - epsilon) && (vp.y <= v.yv2 + epsilon));
 }
 
 /*

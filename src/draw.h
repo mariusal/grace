@@ -169,9 +169,11 @@ void DrawFilledEllipse(VPoint vp1, VPoint vp2);
 void DrawCircle(VPoint vp, double radius);
 void DrawFilledCircle(VPoint vp, double radius);
 
+int is_wpoint_inside(WPoint *wp, world *w);
+int is_vpoint_inside(view v, VPoint vp, double epsilon);
+
 void setclipping(int fl);
 int doclipping(void);
-int is_vpoint_inside(view v, VPoint vp, double epsilon);
 int is_validVPoint(VPoint vp);
 int is_validWPoint(WPoint wp);
 VPoint *line_intersect(VPoint vp1, VPoint vp2, VPoint vp1p, VPoint vp2p, int mode);
