@@ -128,10 +128,11 @@
 #define ZX_AXIS 2
 #define ZY_AXIS 3
 
-/*
- * setno == all sets selected
- */
+
+/* setno == all sets selected */
 #define ALL_SETS    -1
+/* setno == new set to be created */
+#define NEW_SET     -2
 
 /*
  * gno == all graphs selected
