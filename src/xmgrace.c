@@ -828,6 +828,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Log scale", '\0', load_example, "tlog.agr");
     CreateMenuButton(sub2menupane, "Log2 scale", '\0', load_example, "log2.agr");
     CreateMenuButton(sub2menupane, "Logit scale", '\0', load_example, "logit.agr");
+    CreateMenuButton(sub2menupane, "Reciprocal scale", '\0', load_example, "reciprocal.agr");
     CreateMenuButton(sub2menupane, "Error bars", '\0', load_example, "terr.agr");
     CreateMenuButton(sub2menupane, "Date/time axis formats", '\0', load_example, "times.agr");
     CreateMenuButton(sub2menupane, "Australia map", '\0', load_example, "au.agr");
@@ -854,6 +855,7 @@ static Widget CreateMainMenuBar(Widget parent)
     CreateMenuButton(sub2menupane, "Box plot", '\0', load_example, "boxplot.agr");
     CreateMenuButton(sub2menupane, "Vector map", '\0', load_example, "vmap.agr");
     CreateMenuButton(sub2menupane, "XY Size", '\0', load_example, "xysize.agr");
+    CreateMenuButton(sub2menupane, "XY Color", '\0', load_example, "xycolor.agr");
 
     sub2menupane = CreateMenu(submenupane, "Type setting", 'T', FALSE);
     CreateMenuButton(sub2menupane, "Simple", '\0', load_example, "test2.agr");
