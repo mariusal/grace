@@ -588,7 +588,7 @@ void mif_puttext (VPoint start, VPoint end, double size,
         fprintf(prstream, "    <FTag `'>\n");
 
         fontalias = get_fontalias(cstring[iglyph].font);
-        if ((dash = index(fontalias, '-')) == NULL) {
+        if ((dash = strchr(fontalias, '-')) == NULL) {
             family = copy_string(family, fontalias);
         } else {
             family    = xrealloc(family, dash - fontalias + 1);
