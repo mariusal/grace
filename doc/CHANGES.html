@@ -8,6 +8,30 @@
 <H1>Grace list of changes</H1>
 
 <PRE>
+<H2>5.1.10</H2>
+
+<H3>Functionality</H3>
+ *  [M?] added IsoLatin7 encoding file
+
+<H3>Interface</H3>
+ *  [ES] disable showing hidden files in file selection dialogs by default
+         and added a checkbox to alter this behaviour (Motif-2.* only)
+ *  [ES] in the spreadsheet dataset editor, set text insertion position
+	 corresponding to the mouse click location
+
+<H3>Defaults</H3>
+ *  [ES] changed default data format to %.8g (rep. #985)
+
+<H3>Bug fixes</H3>
+ *  [ES] the default GRACE_HELPVIEWER command was incompatible with Mozilla
+         (rep. #1198)
+ *  [ES] fonts with long names (&gt; 27 chars) could crash Grace (rep. #1200)
+ *  [ES] font antialiasing was broken for projects with more than 16 default
+         colors defined
+ *  [ES] fonttool might crash on fonts with an invalid FontBBox entry
+         (rep. #1202)
+
+
 <H2>5.1.9</H2>
 
 <H3>Drivers</H3>
@@ -1230,6 +1254,7 @@
     [JS]  - Jan Schaumann &lt;jschauma@netmeister.org&gt;
     [SR]  - Stewart Rounds &lt;sarounds@usgs.gov&gt;
     [PB]  - Peter Breitenlohner &lt;peb@mppmu.mpg.de&gt;
+    [M?]  - Marius &lt;img@mail.lt&gt;
     [ES]  - Evgeny Stambulchik &lt;fnevgeny@plasma-gate.weizmann.ac.il&gt;
 
     "!" means no documentation provided (yet)

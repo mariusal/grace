@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.9)</title>
 <author>by the Grace Team</author>
-<date>31.07.2002</date>
+<date>12.08.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -130,7 +130,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
               <item> The PDF driver requires the PDFlib library of Thomas
                      Merz to be installed, which is available
                      <url name="here" url="http://www.pdflib.com/">, version
-                     4.01 or above.
+                     4.0.3 or above.
               <item> If your computer has the FFTW library installed when
                      Grace is compiled, Grace will link itself to this, and
                      drop all conventional FFT's and DFT's. All transforms
