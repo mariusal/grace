@@ -111,7 +111,7 @@ void type_cb(OptionStructure *opt, int a, void *data)
     SetUI *ui = (SetUI *) data;
     unsigned int i, nncols;
     
-    nncols = settype_cols(GetOptionChoice(ui->type));
+    nncols = settype_cols(a);
     for (i = 0; i < MAX_SET_COLS; i++) {
         SetSensitive(ui->cols[i]->menu, (i < nncols));
     }
