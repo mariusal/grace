@@ -506,6 +506,36 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
+    
+static void xdrawgrid(X11Stuff *xstuff)
+{
+    int i, j;
+    double step;
+    XPoint xp;
+    unsigned long black = BlackPixel(xstuff->disp, xstuff->screennumber);
+    unsigned long white = WhitePixel(xstuff->disp, xstuff->screennumber);
+    
+    XSetForeground(xstuff->disp, xstuff->gc, white);
+    XSetFillStyle(xstuff->disp, xstuff->gc, FillSolid);
+    XFillRectangle(xstuff->disp, xstuff->bufpixmap, xstuff->gc, 0, 0, xstuff->win_w, xstuff->win_h);
+    XSetForeground(xstuff->disp, xstuff->gc, black);
+    
+    step = (double) (xstuff->win_scale)/10;
+    for (i = 0; i < xstuff->win_w/step; i++) {
+        for (j = 0; j < xstuff->win_h/step; j++) {
+            xp.x = rint(i*step);
+            xp.y = xstuff->win_h - rint(j*step);
+            XDrawPoint(xstuff->disp, xstuff->bufpixmap,
+                xstuff->gc, xp.x, xp.y);
+        }
+    }
+    
+    XSetLineAttributes(xstuff->disp, xstuff->gc,
+        1, LineSolid, CapButt, JoinMiter);
+    XDrawRectangle(xstuff->disp, xstuff->bufpixmap,
+        xstuff->gc, 0, 0, xstuff->win_w - 1, xstuff->win_h - 1);
+}
+
 /* 
  * redraw all
  */
@@ -534,6 +564,8 @@ void xdrawgraph(const Quark *q)
         }
         
         resize_drawables(pg->width, pg->height);
+        
+        xdrawgrid(xstuff);
         
         xstream.screen = DefaultScreenOfDisplay(xstuff->disp);
         xstream.pixmap = xstuff->bufpixmap;

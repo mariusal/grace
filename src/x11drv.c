@@ -48,6 +48,7 @@
 typedef struct {
     RGB rgb;
     unsigned long pixel;
+    int allocated;
 } x11color;
 
 typedef struct {
@@ -82,7 +83,6 @@ static X11_data *init_x11_data(void)
         memset(data, 0, sizeof(X11_data));
     }
     
-    
     return data;
 }
 
@@ -99,22 +99,23 @@ static void x11_initcmap(const Canvas *canvas, X11_data *x11data)
     long pixel;
     
     for (i = 0; i < number_of_colors(canvas); i++) {
+        x11color *xc = &x11data->colors[i];
         /* even in mono, b&w must be allocated */
         if (x11data->monomode == FALSE || i < 2) {
             if (get_rgb(canvas, i, &rgb) == RETURN_SUCCESS) {
-                if (!compare_rgb(&rgb, &x11data->colors[i].rgb)) {
+                if (!xc->allocated || !compare_rgb(&rgb, &xc->rgb)) {
                     pixel = x11_allocate_color(grace->gui, &rgb);
                     if (pixel >= 0) {
-                        x11data->colors[i].pixel = pixel;
+                        xc->pixel = pixel;
                     } else {
-                        x11data->colors[i].pixel =
-                            BlackPixelOfScreen(x11data->screen);
+                        xc->pixel = BlackPixelOfScreen(x11data->screen);
                     }
-                    x11data->colors[i].rgb = rgb;
+                    xc->rgb = rgb;
+                    xc->allocated = TRUE;
                 }
             }
         } else {
-            x11data->colors[i].pixel = BlackPixelOfScreen(x11data->screen);
+            xc->pixel = BlackPixelOfScreen(x11data->screen);
         }
     }
 }
@@ -130,9 +131,6 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
     const CanvasStats *cstats)
 {
     X11_data *x11data = (X11_data *) data;
-    int i, j;
-    double step;
-    XPoint xp;
     X11stream *xstream;
 
     Page_geometry *pg = get_page_geometry(canvas);
@@ -164,30 +162,6 @@ static int x11_initgraphics(const Canvas *canvas, void *data,
     x11data->linejoin    = -1;
 
     x11_initcmap(canvas, x11data);
-    
-    XSetForeground(DisplayOfScreen(x11data->screen),
-        DefaultGCOfScreen(x11data->screen), x11data->colors[0].pixel);
-    XSetFillStyle(DisplayOfScreen(x11data->screen),
-        DefaultGCOfScreen(x11data->screen), FillSolid);
-    XFillRectangle(DisplayOfScreen(x11data->screen), x11data->pixmap,
-        DefaultGCOfScreen(x11data->screen), 0, 0, pg->width, pg->height);
-    XSetForeground(DisplayOfScreen(x11data->screen),
-        DefaultGCOfScreen(x11data->screen), x11data->colors[1].pixel);
-    
-    step = (double) (x11data->page_scale)/10;
-    for (i = 0; i < pg->width/step; i++) {
-        for (j = 0; j < pg->height/step; j++) {
-            xp.x = rint(i*step);
-            xp.y = pg->height - rint(j*step);
-            XDrawPoint(DisplayOfScreen(x11data->screen), x11data->pixmap,
-                DefaultGCOfScreen(x11data->screen), xp.x, xp.y);
-        }
-    }
-    
-    XSetLineAttributes(DisplayOfScreen(x11data->screen),
-        DefaultGCOfScreen(x11data->screen), 1, LineSolid, CapButt, JoinMiter);
-    XDrawRectangle(DisplayOfScreen(x11data->screen), x11data->pixmap,
-        DefaultGCOfScreen(x11data->screen), 0, 0, pg->width - 1, pg->height - 1);
     
     return RETURN_SUCCESS;
 }
