@@ -184,7 +184,7 @@ void putparms(int gno, FILE * pp, int embed)
     fprintf(pp, "# ACE/gr parameter file\n");
     fprintf(pp, "#\n");
 
-    fprintf(pp, "%sversion 00001\n", embedstr);
+    fprintf(pp, "%sversion 40000\n", embedstr);
 
     /* Print some global variables. Added by Henrik Seidel Tue Jun 10 16:47:14 MET DST 1997 */
     switch (page_layout) {
