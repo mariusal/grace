@@ -1,7 +1,26 @@
-/*************************************************************************/
-/*  (C) 04.08.1997 Henrik Seidel (HS)                                    */
-/*  <henrik@itb.biologie.hu-berlin.de>                                   */
-/*************************************************************************/
+/*
+ * grace_np - a library for interfacing with Grace using pipes
+ * 
+ * Copyright (c) 1997-98 Henrik Seidel
+ * Copyright (c) 1999 Grace Development Team
+ *
+ *
+ *                           All Rights Reserved
+ * 
+ *    This library is free software; you can redistribute it and/or
+ *    modify it under the terms of the GNU Library General Public
+ *    License as published by the Free Software Foundation; either
+ *    version 2 of the License, or (at your option) any later version.
+ * 
+ *    This library is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *    Library General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU Library General Public
+ *    License along with this library; if not, write to the Free
+ *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #ifndef GRACE_NPIPE_H_
 #define GRACE_NPIPE_H_
@@ -49,4 +68,3 @@ int GraceCommand(const char*);
 #endif
 
 #endif /* GRACE_NPIPE_H */
-
