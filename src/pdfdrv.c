@@ -52,15 +52,6 @@
 
 #include <pdflib.h>
 
-#ifndef NONE_GUI
-#  include <Xm/Xm.h>
-#  include <Xm/Form.h>
-#  include <Xm/RowColumn.h>
-#  include <Xm/DialogS.h>
-
-#  include "motifinc.h"
-#endif
-
 static void pdf_error_handler(PDF *p, int type, const char* msg);
 
 static unsigned long page_scale;
@@ -76,9 +67,6 @@ static int pdf_lines;
 static int pdf_linecap;
 static int pdf_linejoin;
 
-static int pdf_setup_binary = TRUE;
-static int pdf_setup_compress = TRUE;
-
 extern FILE *prstream;
 
 static PDF *phandle;
@@ -86,8 +74,8 @@ static PDF *phandle;
 static Device_entry dev_pdf = {DEVICE_FILE,
           "PDF",
           pdfinitgraphics,
-          pdf_op_parser,
-          pdf_gui_setup,
+          NULL,
+          NULL,
           "pdf",
           TRUE,
           FALSE,
@@ -147,17 +135,6 @@ int pdfinitgraphics(void)
         
     /* just to disable warning - should be fixed in pdflib-2.0.1 */
     PDF_set_parameter(phandle, "resourcefile", "/dev/null");
-
-    if (pdf_setup_binary == TRUE) {
-        PDF_set_parameter(phandle, "nodebug", "a");
-    } else {
-        PDF_set_parameter(phandle, "debug", "a");
-    }
-    if (pdf_setup_compress == TRUE) {
-        PDF_set_parameter(phandle, "nodebug", "c");
-    } else {
-        PDF_set_parameter(phandle, "debug", "c");
-    }
 
     pdf_font_ids = malloc(number_of_fonts()*SIZEOF_INT);
     for (i = 0; i < number_of_fonts(); i++) {
@@ -574,87 +551,3 @@ static void pdf_error_handler(PDF *p, int type, const char* msg)
         return;
     }
 }
-
-int pdf_op_parser(char *opstring)
-{
-    if (!strcmp(opstring, "binary") ||
-        !strcmp(opstring, "binary:on") ||
-        !strcmp(opstring, "ascii:off")) {
-        pdf_setup_binary = TRUE;
-        return GRACE_EXIT_SUCCESS;
-    } else if (!strcmp(opstring, "ascii") ||
-        !strcmp(opstring, "ascii:on") ||
-        !strcmp(opstring, "binary:off")) {
-        pdf_setup_binary = FALSE;
-        return GRACE_EXIT_SUCCESS;
-    } else {
-        return GRACE_EXIT_FAILURE;
-    }
-}
-
-#ifndef NONE_GUI
-
-static void update_pdf_setup_frame(void);
-static void set_pdf_setup_proc(void *data);
-
-static Widget pdf_setup_frame;
-static Widget pdf_setup_binary_item;
-static Widget pdf_setup_compress_item;
-
-void pdf_gui_setup(void)
-{
-    Widget pdf_setup_panel, pdf_setup_rc, fr, rc;
-    
-    set_wait_cursor();
-    if (pdf_setup_frame == NULL) {
-	pdf_setup_frame = XmCreateDialogShell(app_shell, "PDF options", NULL, 0);
-	handle_close(pdf_setup_frame);
-        pdf_setup_panel = XtVaCreateWidget("device_panel", xmFormWidgetClass, 
-                                        pdf_setup_frame, NULL, 0);
-        pdf_setup_rc = XmCreateRowColumn(pdf_setup_panel, "psetup_rc", NULL, 0);
-
-	fr = CreateFrame(pdf_setup_rc, "PDF options");
-        rc = XmCreateRowColumn(fr, "rc", NULL, 0);
-	pdf_setup_binary_item = CreateToggleButton(rc, "Binary output");
-	pdf_setup_compress_item = CreateToggleButton(rc, "Compression (N/I)");
-	XtManageChild(rc);
-
-	CreateSeparator(pdf_setup_rc);
-
-	CreateAACButtons(pdf_setup_rc, pdf_setup_panel, set_pdf_setup_proc);
-        
-	XtManageChild(pdf_setup_rc);
-	XtManageChild(pdf_setup_panel);
-    }
-    XtRaise(pdf_setup_frame);
-    update_pdf_setup_frame();
-    unset_wait_cursor();
-}
-
-static void update_pdf_setup_frame(void)
-{
-    if (pdf_setup_frame) {
-        SetToggleButtonState(pdf_setup_binary_item, pdf_setup_binary);
-        SetToggleButtonState(pdf_setup_compress_item, pdf_setup_compress);
-    }
-}
-
-static void set_pdf_setup_proc(void *data)
-{
-    int aac_mode;
-    aac_mode = (int) data;
-    
-    if (aac_mode == AAC_CLOSE) {
-        XtUnmanageChild(pdf_setup_frame);
-        return;
-    }
-    
-    pdf_setup_binary = GetToggleButtonState(pdf_setup_binary_item);
-    pdf_setup_compress = GetToggleButtonState(pdf_setup_compress_item);
-    
-    if (aac_mode == AAC_ACCEPT) {
-        XtUnmanageChild(pdf_setup_frame);
-    }
-}
-
-#endif
