@@ -22,7 +22,7 @@
  *
  * MatrixWidget Author: Andrew Wason, Bellcore, aw@bae.bellcore.com
  *
- * $Id: Matrix.c,v 1.1.2.1 2001-12-26 21:42:27 fnevgeny Exp $
+ * $Id: Matrix.c,v 1.1.2.2 2004-07-02 21:53:02 fnevgeny Exp $
  */
 
 #ifdef HAVE_CONFIG_H
@@ -78,7 +78,7 @@ Shift ~Ctrl ~Meta ~Alt <Key>Tab	:	EditCell(Left)\n\
 <Key>osfDown			:	EditCell(Down)\n\
 <Key>osfActivate		:	CommitEdit(False)\n\
 ~Shift ~Meta ~Alt <Key>Return	:   	CommitEdit(False)\n\
-<Key>osfCancel			:	CancelEdit(False)\n\
+Ctrl <Key>osfCancel		:	CancelEdit(False)\n\
 Shift Ctrl ~Meta ~Alt <Key>Tab	:	TraversePrev()\n\
 Ctrl ~Meta ~Alt <Key>Tab	:	TraverseNext()\n\
 <Key>osfPageDown		:	PageDown()\n\
