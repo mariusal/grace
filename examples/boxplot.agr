@@ -2,6 +2,8 @@
 #
 @version 50100
 @page size 792, 612
+@description "This sample is based on a real data processed with the"
+@description "\"gracebox\" script by Stewart Rounds."
 @page scroll 5%
 @page inout 5%
 @link page off
@@ -54,7 +56,29 @@
 @timestamp rot 0
 @timestamp font 0
 @timestamp char size 1.000000
-@timestamp def "Tue Feb  8 15:14:34 2000"
+@timestamp def "Thu Feb 17 02:28:30 2000"
+@with line
+@    line on
+@    line loctype view
+@    line 0.718954248366, 0.661764705882, 0.62, 0.53
+@    line linewidth 1.0
+@    line linestyle 1
+@    line color 1
+@    line arrow 2
+@    line arrow type 2
+@    line arrow length 1.000000
+@    line arrow layout 1.000000, -0.300000
+@line def
+@with string
+@    string on
+@    string loctype view
+@    string 0.72, 0.66
+@    string color 1
+@    string rot 0
+@    string font 4
+@    string just 6
+@    string char size 0.800000
+@    string def "\m{0}The whisker properties are controlled by\M{0}\v{-1}\"Plot/Set appearance/Error bars\""
 @r0 type above
 @r0 linestyle 1
 @r0 linewidth 1.0
@@ -127,15 +151,15 @@
 @    xaxis  label font 0
 @    xaxis  label color 1
 @    xaxis  label place normal
-@    xaxis  tick off
+@    xaxis  tick on
 @    xaxis  tick major 2
 @    xaxis  tick minor ticks 1
 @    xaxis  tick default 6
 @    xaxis  tick place rounded true
-@    xaxis  tick in
-@    xaxis  tick major size 1.000000
+@    xaxis  tick both
+@    xaxis  tick major size 0.200000
 @    xaxis  tick major color 1
-@    xaxis  tick major linewidth 1.0
+@    xaxis  tick major linewidth 6.0
 @    xaxis  tick major linestyle 1
 @    xaxis  tick major grid off
 @    xaxis  tick minor color 1
@@ -162,7 +186,7 @@
 @    xaxis  ticklabel char size 1.000000
 @    xaxis  ticklabel font 0
 @    xaxis  ticklabel color 1
-@    xaxis  tick place both
+@    xaxis  tick place normal
 @    xaxis  tick spec type both
 @    xaxis  tick spec 12
 @    xaxis  tick major 0,                1
@@ -220,8 +244,8 @@
 @    yaxis  tick minor grid on
 @    yaxis  tick minor size 0.500000
 @    yaxis  ticklabel on
-@    yaxis  ticklabel format general
-@    yaxis  ticklabel prec 5
+@    yaxis  ticklabel format engineering
+@    yaxis  ticklabel prec 0
 @    yaxis  ticklabel formula ""
 @    yaxis  ticklabel append ""
 @    yaxis  ticklabel prepend ""
