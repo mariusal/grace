@@ -52,9 +52,6 @@
 
 extern Display *disp;
 
-static XFontStruct *f;
-static XmFontList xmf;
-
 static Widget mon_frame, mon_panel, text_w;
 static Widget wmon_text_item;
 static Widget mon_log_item;
@@ -70,9 +67,12 @@ static void wmon_apply_notify_proc(Widget w, XtPointer client_data, XtPointer ca
  */
 void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    Widget wbut, rc, fr;
     set_wait_cursor();
     if (mon_frame == NULL) {
+        Widget wbut, rc, fr;
+        XFontStruct *f;
+        XmFontList xmf;
+
 	f = (XFontStruct *) XLoadQueryFont(disp, "fixed");
 	xmf = XmFontListCreate(f, charset);
 	mon_frame = XmCreateDialogShell(app_shell, "Results", NULL, 0);
@@ -88,6 +88,7 @@ void create_monitor_frame(Widget w, XtPointer client_data, XtPointer call_data)
 		      XmNwordWrap, True,
 		      NULL);
 	XtManageChild(text_w);
+        XmFontListFree(xmf);
 
 	rc = XmCreateRowColumn(mon_panel, "rc", NULL, 0);
 	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);

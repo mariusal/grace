@@ -81,9 +81,6 @@ static Widget status_sw;
 static Widget header_w;
 static Widget *labx;
 
-static XFontStruct *f;
-static XmFontList xmf;
-
 static void do_define_region(Widget w, XtPointer client_data, XtPointer call_data)
 {
     int rtype = GetChoice(define_type_item);
@@ -647,15 +644,18 @@ void update_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 
 void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
-    int i;
-    Widget wbut, rc, rc3, fr2;
-    
     set_wait_cursor();
+    
     if (status_frame == NULL) {
+        int i;
+        Widget wbut, rc, rc3, fr2;
+        XFontStruct *f;
+        XmFontList xmf;
+
 	status_frame = XmCreateDialogShell(app_shell, "Status", NULL, 0);
 	handle_close(status_frame);
 
-	f = (XFontStruct *) XLoadQueryFont(disp, "fixed");
+	f = XLoadQueryFont(disp, "fixed");
 	xmf = XmFontListCreate(f, charset);
 
 	status_panel = XmCreateForm(status_frame, "form", NULL, 0);
@@ -680,6 +680,7 @@ void define_status_popup(Widget w, XtPointer client_data, XtPointer call_data)
 		XmNrecomputeSize, True,
 		NULL);
         }
+        XmFontListFree(xmf);
         XtManageChild(rc3);
 	XtVaSetValues(status_sw,
 		      XmNworkWindow, rc3,
