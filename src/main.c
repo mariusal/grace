@@ -870,6 +870,9 @@ static void VersionInfo(void)
 #else
     fprintf(stdout, "NetCDF support: off\n");
 #endif
+#ifdef HAVE_LIBPNG
+fprintf(stdout, "libpng: %s\n", bi_pnglib());
+#endif
 
 #ifdef DEBUG
     fprintf(stdout, "Debugging: enabled\n");

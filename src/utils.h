@@ -141,6 +141,10 @@ char *bi_gui_xbae(void);
 #endif
 char *bi_ccompiler(void);
 char *bi_t1lib(void);
+#ifdef HAVE_LIBPNG
+char *bi_pnglib(void);
+#endif
+
 
 #ifdef DEBUG
 void set_debuglevel(int level);

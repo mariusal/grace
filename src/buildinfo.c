@@ -14,6 +14,9 @@
 #endif
 
 #include <t1lib.h>
+#ifdef HAVE_LIBPNG
+#include <png.h>
+#endif
 
 #define MAJOR_REV 5
 #define MINOR_REV 1
@@ -66,6 +69,13 @@ static void VersionInfo(FILE *outfile)
     
     fprintf(outfile, "#define BI_T1LIB \"%s\"\n",
         T1_GetLibIdent());
+
+#ifdef HAVE_LIBPNG
+    fprintf(outfile, "#define BI_PNGLIB \"%s\"\n",
+        PNG_LIBPNG_VER_STRING);
+#else
+    fprintf(outfile, "#define BI_PNGLIB \"\"\n");
+#endif
 
     fprintf(outfile, "#define BI_CCOMPILER \"%s\"\n",
         CCOMPILER);

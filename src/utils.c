@@ -1404,6 +1404,13 @@ char *bi_t1lib(void)
     return BI_T1LIB;
 }
 
+#ifdef HAVE_LIBPNG
+char *bi_pnglib(void)
+{
+    return BI_PNGLIB;
+}
+#endif
+
 char *bi_ccompiler(void)
 {
     return BI_CCOMPILER;
