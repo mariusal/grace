@@ -4360,8 +4360,8 @@ proctype:
 	| KEY_FUNC_NND    { $$ = FUNC_NND;  }
 	| KEY_FUNC_PPD    { $$ = FUNC_PPD;  }
 	| KEY_FUNC_PPPD   { $$ = FUNC_PPPD; }
-	| KEY_FUNC_PPPPD  { $$ = FUNC_PPPD; }
-	| KEY_FUNC_PPPPPD { $$ = FUNC_PPPD; }
+	| KEY_FUNC_PPPPD  { $$ = FUNC_PPPPD; }
+	| KEY_FUNC_PPPPPD { $$ = FUNC_PPPPPD; }
 	;
 
 tickspectype:
@@ -6187,6 +6187,14 @@ static int yylex(void)
 	    else if (key[found].type == FUNC_PPPD) {
 		yylval.ival = found;
 		return FUNC_PPPD;
+	    }
+	    else if (key[found].type == FUNC_PPPPD) {
+		yylval.ival = found;
+		return FUNC_PPPPD;
+	    }
+	    else if (key[found].type == FUNC_PPPPPD) {
+		yylval.ival = found;
+		return FUNC_PPPPPD;
 	    }
 	    else {
 	        yylval.ival = key[found].type;
