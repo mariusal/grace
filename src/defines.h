@@ -381,6 +381,10 @@
 #define LOAD_RESIDUALS      1
 #define LOAD_FUNCTION       2
 
+/* push set direction */
+#define PUSH_SET_TOFRONT    0
+#define PUSH_SET_TOBACK     1
+
 
 /*
  * symbol table entry type

@@ -660,6 +660,38 @@ int swapset(int gno1, int setno1, int gno2, int setno2)
     return GRACE_EXIT_SUCCESS;
 }
 
+int pushset(int gno, int setno, int push_type)
+{
+    int i, newsetno;
+    
+    if (is_valid_setno(gno, setno) != TRUE) {
+        return GRACE_EXIT_FAILURE;
+    } else {
+        switch (push_type) {
+        case PUSH_SET_TOFRONT:
+            newsetno = number_of_sets(gno) - 1;
+            for (i = setno; i < newsetno; i++) {
+                if (swapset(gno, i, gno, i + 1) != GRACE_EXIT_SUCCESS) {
+                    return GRACE_EXIT_FAILURE;
+                }
+            }
+            break;
+        case PUSH_SET_TOBACK:
+            newsetno = 0;
+            for (i = setno; i > newsetno; i--) {
+                if (swapset(gno, i, gno, i - 1) != GRACE_EXIT_SUCCESS) {
+                    return GRACE_EXIT_FAILURE;
+                }
+            }
+            break;
+        default:
+            return GRACE_EXIT_FAILURE;
+            break;
+        }
+        return GRACE_EXIT_SUCCESS;
+    }
+}
+
 
 /*
  * pack all sets leaving no gaps in the set structure
