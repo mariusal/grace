@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -620,6 +620,10 @@ int realloc_graph_plots(int gno, int n)
 int set_graph_type(int gno, int gtype)
 {
     if (is_valid_gno(gno) == TRUE) {
+        if (g[gno].type == gtype) {
+            return RETURN_SUCCESS;
+        }
+        
         switch (gtype) {
         case GRAPH_XY:
         case GRAPH_CHART:
