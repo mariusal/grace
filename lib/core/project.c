@@ -99,7 +99,12 @@ void project_data_free(Project *pr)
         xfree(f->fallback);
     }
     xfree(pr->fontmap);
-    pr->nfonts = 0;
+    
+    for (i = 0; i < pr->ncolors; i++) {
+        Colordef *c = &pr->colormap[i];
+        xfree(c->cname);
+    }
+    xfree(pr->colormap);
     
     xfree(pr);
 }
@@ -324,6 +329,20 @@ int project_add_font(Quark *project, const Fontdef *f)
     fnew->fontname = copy_string(NULL, f->fontname);
     fnew->fallback = copy_string(NULL, f->fallback);
     pr->nfonts++;
+    
+    return RETURN_SUCCESS;
+}
+
+int project_add_color(Quark *project, const Colordef *c)
+{
+    Project *pr = project_get_data(project);
+    Colordef *cnew;
+    pr->colormap = xrealloc(pr->colormap, (pr->ncolors + 1)*sizeof(Colordef));
+    cnew = &pr->colormap[pr->ncolors];
+    cnew->id = c->id;
+    cnew->rgb = c->rgb;
+    cnew->cname = copy_string(NULL, c->cname);
+    pr->ncolors++;
     
     return RETURN_SUCCESS;
 }

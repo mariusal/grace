@@ -205,6 +205,12 @@ typedef struct {
     char *fallback;
 } Fontdef;
 
+typedef struct {
+    int id;
+    RGB rgb;
+    char *cname;
+} Colordef;
+
 typedef struct _Project {
     /* Version ID */
     int version_id;
@@ -223,6 +229,10 @@ typedef struct _Project {
     
     /* page size */
     int page_wpp, page_hpp;
+    
+    /* color map */
+    unsigned int ncolors;
+    Colordef *colormap;
     
     /* font map */
     unsigned int nfonts;
@@ -779,7 +789,6 @@ int quark_is_last_child(const Quark *q);
 /* Project */
 Project *project_data_new(void);
 void project_data_free(Project *pr);
-void project_free(Quark *q);
 
 Project *project_get_data(const Quark *q);
 
@@ -805,6 +814,7 @@ char *project_get_timestamp(Quark *q);
 int project_update_timestamp(Quark *q, time_t *t);
 
 int project_add_font(Quark *project, const Fontdef *f);
+int project_add_color(Quark *project, const Colordef *c);
 
 Quark *get_parent_project(const Quark *q);
 
