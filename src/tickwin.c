@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2001 Grace Development Team
+ * Copyright (c) 1996-2002 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -908,7 +908,7 @@ void update_ticks(int gno)
         SetOptionChoice(specticks, t->t_spec);
         SetSpinChoice(nspec, t->nticks);
         for (i = 0; i < t->nticks; i++) {
-            sprintf(buf, "%g", t->tloc[i].wtpos);
+            sprintf(buf, "%.9g", t->tloc[i].wtpos);
             xv_setstr(specloc[i], buf);
             if (t->tloc[i].type == TICK_TYPE_MAJOR) {
                 xv_setstr(speclabel[i], t->tloc[i].label);
