@@ -943,9 +943,8 @@ static void axis_scale_cb(int value, void *data)
             sprintf(buf, "%g", axestart);
             xv_setstr(axis_world_start, buf);
         }
-        if (major_space <= 1.0) {
-            xv_setstr(tmajor, "10");
-        }
+        xv_setstr(tmajor, "10");
+        SetSpinChoice(nminor, 9);
         break;
      case SCALE_LOGIT:
         if (axestart <= 0.0 && axestop <= 0.0) {
