@@ -86,6 +86,7 @@ typedef struct {
 
 typedef struct {
     int nchoices;
+    int ncols;  /* preferred number of columns */
     Widget menu;
     Widget pulldown;
     OptionWidgetItem *options;
