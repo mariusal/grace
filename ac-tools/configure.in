@@ -546,21 +546,21 @@ then
                  AC_MSG_RESULT(--> using legacy unoptimized FFT code))
 fi
 
-dnl **** check for libz - needed for PDF and PNG drivers
-if test $pngdrv = true || test $pdfdrv = true
+dnl **** check for libz - needed for PDF and PNG drivers and XmHTML
+if test $pngdrv = true || test $pdfdrv = true || test $xmhtml = true
 then
   ACX_CHECK_ZLIB(1.0.3)
 fi
 
-dnl **** check for IJG's libjpeg - also, for PDF driver
-if test $jpegdrv = true || test $pdfdrv = true
+dnl **** check for IJG's libjpeg - also, for PDF driver and XmHTML
+if test $jpegdrv = true || test $pdfdrv = true || test $xmhtml = true
 then
   ACX_CHECK_JPEG(61, AC_DEFINE(HAVE_LIBJPEG),
                      AC_MSG_RESULT(--> JPEG backend is disabled))
 fi
 
-dnl **** check for libpng - needed for PDF and PNG drivers
-if test $pngdrv = true || test $pdfdrv = true
+dnl **** check for libpng - needed for PDF and PNG drivers and XmHTML
+if test $pngdrv = true || test $pdfdrv = true || test $xmhtml = true
 then
   ACX_CHECK_PNG(0.9.6, AC_DEFINE(HAVE_LIBPNG),
                        AC_MSG_RESULT(--> PNG backend is disabled))
@@ -632,7 +632,7 @@ dnl **** Check for Motif
     GUI="NONE_GUI"
     GUI_FLAGS=""
     GUI_LIBS=""
-    AC_MSG_WARN(Motif/LessTif has not been found; building a GUI-less version)
+    AC_MSG_WARN(M*tif has not been found; building a GUI-less version)
   else
     AC_DEFINE(HAVE_MOTIF)
     GUI_LIBS="-lXm $GUI_LIBS"
