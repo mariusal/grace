@@ -4,13 +4,13 @@
 @with string
 @    string on
 @    string loctype view
-@    string 0.050125, 0.959612
+@    string 0.03, 0.96
 @    string linewidth 1
 @    string color 1
 @    string rot 0
 @    string font 4
 @    string just 0
-@    string char size 1.000000
+@    string char size 0.800000
 @string def "See Plot/Set appearance (line tab) for fills"
 @with g0
 @g0 ON
