@@ -388,17 +388,20 @@ int main(int argc, char *argv[])
 		    } else {
                         fd = atoi(argv[i]);
 #ifdef HAVE_FCNTL
-                        if (fcntl(fd, F_GETFL) != O_RDONLY) {
+                        switch (fcntl(fd, F_GETFL)) {
+                        case O_RDONLY:
+                        case O_RDWR:
+                            break;
+                        default:
                             fprintf(stderr,
                                     "Descriptor %d not open for reading\n",
                                     fd);
-                            usage(stderr, argv[0]);
-                        } else 
-#endif
-                        {
-                            sprintf (fd_name, "pipe<%d>", fd);
-                            register_real_time_input(fd, fd_name);
+                            exit(1);
+                            break;
                         }
+#endif
+                        sprintf(fd_name, "pipe<%d>", fd);
+                        register_real_time_input(fd, fd_name);
 		    }
 		} else if (argmatch(argv[i], "-npipe", 6)) {
 		    i++;
