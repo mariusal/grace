@@ -346,6 +346,12 @@ int ps_initgraphics(const Canvas *canvas, void *data,
         psdata->colorspace = COLORSPACE_RGB;
     }
 
+    if (psdata->curformat == EPS_FORMAT) {
+        fprintf(canvas->prstream, "%%!PS-Adobe-3.0 EPSF-3.0\n");
+    } else {
+        fprintf(canvas->prstream, "%%!PS-Adobe-3.0\n");
+    }
+
     if (psdata->page_orientation == PAGE_ORIENT_LANDSCAPE) {
         width_pp  = (int) rint(72.0*pg->height/pg->dpi);
         height_pp = (int) rint(72.0*pg->width/pg->dpi);
