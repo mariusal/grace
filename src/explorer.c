@@ -60,6 +60,7 @@ typedef struct {
 
 static ListTreeItem *q_create(Widget w,
     ListTreeItem *parent, char *string, void *udata);
+static void update_explorer(ExplorerUI *ui, int reselect);
 
 static char *default_quark_labeling_proc(Quark *q)
 {
@@ -396,6 +397,8 @@ static int explorer_apply(ExplorerUI *ui, void *caller)
     
     xdrawgraph();
     
+    update_explorer(ui, FALSE);
+    
     return res;
 }
 
@@ -406,20 +409,65 @@ static int explorer_aac(void *data)
     return explorer_apply(ui, NULL);
 }
 
-static void update_explorer(ExplorerUI *ui)
+static void highlight_selected(Widget w, ListTreeItem *parent,
+    int nsquarks, Quark **squarks)
 {
+    ListTreeItem *item, *sibling;
+
+    item = parent;
+    while (item) {
+        TreeItemData *ti_data = (TreeItemData *) item->user_data;
+        int i;
+        for (i = 0; i < nsquarks; i++) {
+            if (ti_data->q == squarks[i]) {
+                ListTreeHighlightItemMultiple(w, item);
+            }
+        }
+        if (item->firstchild) {
+            highlight_selected(w, item->firstchild, nsquarks, squarks);
+        }
+        sibling = item->nextsibling;
+        item = sibling;
+    }
+}
+
+static void update_explorer(ExplorerUI *ui, int reselect)
+{
+    ListTreeMultiReturnStruct ret;
+    int i, nsquarks;
+    Quark **squarks;
+    
+    ListTreeGetHighlighted(ui->tree, &ret);
+    nsquarks = ret.count;
+    
+    squarks = xmalloc(nsquarks*SIZEOF_VOID_P);
+    for (i = 0; i < nsquarks; i++) {
+        ListTreeItem *item = ret.items[i];
+        TreeItemData *ti_data = (TreeItemData *) item->user_data;
+        squarks[i] = ti_data->q;
+    }
+    
     ListTreeRefreshOff(ui->tree);
     ListTreeDelete(ui->tree, ui->project);
     ui->project = CreateQuarkTree(ui->tree, NULL,
         grace->project, NULL, q_labeling);
+
+    highlight_selected(ui->tree, ui->project, nsquarks, squarks);
+    xfree(squarks);
+
     ListTreeRefreshOn(ui->tree);
     ListTreeRefresh(ui->tree);
+
+    if (reselect) {
+        ListTreeGetHighlighted(ui->tree, &ret);
+        XtCallCallbacks(ui->tree, XtNhighlightCallback, (XtPointer) &ret);
+    }
 }
 
 static void update_explorer_cb(Widget but, void *data)
 {
     ExplorerUI *ui = (ExplorerUI *) data;
-    update_explorer(ui);
+    update_explorer(ui, TRUE);
 }
 
 void define_explorer_popup(Widget but, void *data)
