@@ -107,14 +107,14 @@ int storage_get_data_next(Storage *sto, void **datap);
 int storage_get_data_by_id(Storage *sto, int id, void **datap);
 int storage_delete_by_id(Storage *sto, int id);
 
-int storage_data_copy(Storage *sto, int id1, int id2);
-int storage_data_move(Storage *sto, int id1, int id2);
+int storage_data_copy_by_id(Storage *sto, int id1, int id2);
+int storage_data_move_by_id(Storage *sto, int id1, int id2);
 int storage_data_swap(Storage *sto, int id1, int id2);
 
 void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata);
 
-int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2);
-int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2);
+int storage2_data_copy_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
+int storage2_data_move_by_id(Storage *sto1, int id1, Storage *sto2, int id2);
 int storage2_data_swap(Storage *sto1, int id1, Storage *sto2, int id2);
 
 #endif /* __STORAGE_H_ */

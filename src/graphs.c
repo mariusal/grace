@@ -313,7 +313,7 @@ int copy_graph(int from, int to)
 {
     int res;
     
-    if ((res = storage_data_copy(graphs, from, to)) == RETURN_SUCCESS) {
+    if ((res = storage_data_copy_by_id(graphs, from, to)) == RETURN_SUCCESS) {
         set_dirtystate();
     }
     return res;
@@ -323,7 +323,7 @@ int move_graph(int from, int to)
 {
     int res;
     
-    if ((res = storage_data_move(graphs, from, to)) == RETURN_SUCCESS) {
+    if ((res = storage_data_move_by_id(graphs, from, to)) == RETURN_SUCCESS) {
         set_dirtystate();
     }
     return res;

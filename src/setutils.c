@@ -607,7 +607,7 @@ int moveset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_move(g1->sets, setfrom, g2->sets, setto);
+    res = storage2_data_move_by_id(g1->sets, setfrom, g2->sets, setto);
 
     if (res == RETURN_SUCCESS) {
         set_dirtystate();
@@ -635,7 +635,7 @@ int copyset(int gnofrom, int setfrom, int gnoto, int setto)
 	return RETURN_FAILURE;
     }
     
-    res = storage2_data_copy(g1->sets, setfrom, g2->sets, setto);
+    res = storage2_data_copy_by_id(g1->sets, setfrom, g2->sets, setto);
 
     if (res == RETURN_SUCCESS) {
         char buf[64];

@@ -521,7 +521,7 @@ void *storage_duplicate(Storage *sto, int id)
     }
 }
 
-int storage_data_copy(Storage *sto, int id1, int id2)
+int storage_data_copy_by_id(Storage *sto, int id1, int id2)
 {
     LLNode *llnode1, *llnode2;
     void *data;
@@ -548,10 +548,10 @@ int storage_data_copy(Storage *sto, int id1, int id2)
     }
 }
 
-int storage_data_move(Storage *sto, int id1, int id2)
+int storage_data_move_by_id(Storage *sto, int id1, int id2)
 {
     /* FIXME */
-    if (storage_data_copy(sto, id1, id2) == RETURN_SUCCESS) {
+    if (storage_data_copy_by_id(sto, id1, id2) == RETURN_SUCCESS) {
         storage_delete_by_id(sto, id1);
         return RETURN_SUCCESS;
     } else {
@@ -600,13 +600,13 @@ void storage_traverse(Storage *sto, Storage_traverse_hook hook, void *udata)
     }
 }
 
-int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2)
+int storage2_data_copy_by_id(Storage *sto1, int id1, Storage *sto2, int id2)
 {
     LLNode *llnode1, *llnode2;
     void *data;
     
     if (sto1 == sto2) {
-        return storage_data_copy(sto1, id1, id2);
+        return storage_data_copy_by_id(sto1, id1, id2);
     }
     
     llnode1 = storage_get_node_by_id(sto1, id1);
@@ -626,14 +626,14 @@ int storage2_data_copy(Storage *sto1, int id1, Storage *sto2, int id2)
     }
 }
 
-int storage2_data_move(Storage *sto1, int id1, Storage *sto2, int id2)
+int storage2_data_move_by_id(Storage *sto1, int id1, Storage *sto2, int id2)
 {
     if (sto1 == sto2) {
-        return storage_data_move(sto1, id1, id2);
+        return storage_data_move_by_id(sto1, id1, id2);
     }
     
     /* FIXME */
-    if (storage2_data_copy(sto1, id1, sto2, id2) == RETURN_SUCCESS) {
+    if (storage2_data_copy_by_id(sto1, id1, sto2, id2) == RETURN_SUCCESS) {
         storage_delete_by_id(sto1, id1);
         return RETURN_SUCCESS;
     } else {
