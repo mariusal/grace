@@ -59,6 +59,7 @@ double *copy_data_column(double *src, int nrows)
     return dest;
 }
 
+/* TODO: index_shift */
 double *allocate_index_data(int nrows)
 {
     int i;
