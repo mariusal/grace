@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -33,16 +33,10 @@
  */
 
 #include <config.h>
-#include <cmath.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
-
-#include "globals.h"
 #include "utils.h"
 #include "draw.h"
 #include "graphs.h"
@@ -164,7 +158,7 @@ static void do_gotopt_proc(void *data)
 static void points_done_proc(void *data)
 {
     set_action(DO_NOTHING);
-    UnmanageChild((Widget) data);
+    UnmanageChild(GetParent((Widget) data));
 }
 
 static void track_set_cbproc(int n, int *values, void *data)
@@ -178,33 +172,34 @@ static void track_set_cbproc(int n, int *values, void *data)
 
 void create_points_frame(void *data)
 {
-    Widget dialog, wbut, rc, fr;
-    
     set_wait_cursor();
+    
     if (points_frame == NULL) {
-	points_frame = XmCreateDialogShell(app_shell, "Point explorer", NULL, 0);
-	handle_close(points_frame);
-	dialog = XmCreateRowColumn(points_frame, "dialog_rc", NULL, 0);
-	fr = CreateFrame(dialog, NULL);
+        Widget dialog, wbut, rc, fr;
+        
+	points_frame = CreateDialogForm(app_shell, "Point explorer");
+	
+	fr = CreateFrame(points_frame, NULL);
+        AddDialogFormChild(points_frame, fr);
 	locate_point_message = CreateLabel(fr, "Point explorer");
+        
+        dialog = CreateVContainer(points_frame);
+        AddDialogFormChild(points_frame, dialog);
 
         track_set_sel = CreateSetChoice(dialog,
             "Restrict to set:", LIST_TYPE_SINGLE, TRUE);
         AddListChoiceCB(track_set_sel, track_set_cbproc, NULL);
         
-	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	rc = CreateHContainer(dialog);
 	goto_index_item = CreateTextItem2(rc, 6, "Point location:");
 	wbut = CreateButton(rc, "Goto point");
 	AddButtonCB(wbut, do_gotopt_proc, NULL);
-	ManageChild(rc);
 
 	locate_point_item = CreateTextInput(dialog, "Point data:");
 
 	CreateSeparator(dialog);
 
-	rc = XmCreateRowColumn(dialog, "rc", NULL, 0);
-	XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+	rc = CreateHContainer(dialog);
 
 	wbut = CreateButton(rc, "Track");
 	AddButtonCB(wbut, do_track_proc, NULL);
@@ -228,12 +223,11 @@ void create_points_frame(void *data)
 
 	wbut = CreateButton(rc, "Close");
 	AddButtonCB(wbut, points_done_proc, (void *) points_frame);
-
-	ManageChild(rc);
-
-	ManageChild(dialog);
+        
+        ManageChild(points_frame);
     }
-    RaiseWindow(points_frame);
+    
+    RaiseWindow(GetParent(points_frame));
     unset_wait_cursor();
 }
 

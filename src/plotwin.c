@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2000 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -37,15 +37,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <Xm/Xm.h>
-#include <Xm/DialogS.h>
-#include <Xm/RowColumn.h>
-
 #include "globals.h"
 #include "utils.h"
 #include "plotone.h"
-#include "motifinc.h"
 #include "protos.h"
+#include "motifinc.h"
 
 static Widget plot_frame;
 
@@ -63,7 +59,7 @@ static OptionStructure *timestamp_color_item;
 Widget timestamp_x_item;
 Widget timestamp_y_item;
 
-static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data);
+static int plot_define_notify_proc(void *data);
 static void update_plot_items(void);
 
 void create_plot_frame_cb(void *data)
@@ -73,28 +69,22 @@ void create_plot_frame_cb(void *data)
 
 void create_plot_frame(void)
 {
-    Widget panel, fr, rc;
-    Widget buts[2];
-    char *label1[2];
     set_wait_cursor();
     
     if (plot_frame == NULL) {
-        label1[0] = "Accept";
-        label1[1] = "Close";
+        Widget panel, fr, rc;
     
-	plot_frame = XmCreateDialogShell(app_shell, "Plot appearance", NULL, 0);
-	handle_close(plot_frame);
-	panel = XmCreateRowColumn(plot_frame, "plot_rc", NULL, 0);
+	plot_frame = CreateDialogForm(app_shell, "Plot appearance");
+
+	panel = CreateVContainer(plot_frame);
 
 	fr = CreateFrame(panel, "Page background");
-        rc = XmCreateRowColumn(fr, "bg_rc", NULL, 0);
-        XtVaSetValues(rc, XmNorientation, XmHORIZONTAL, NULL);
+        rc = CreateHContainer(fr);
         bg_color_item = CreateColorChoice(rc, "Color:");
 	bg_fill_item = CreateToggleButton(rc, "Fill");
-        ManageChild(rc);
 
 	fr = CreateFrame(panel, "Time stamp");
-        rc = XmCreateRowColumn(fr, "bg_rc", NULL, 0);
+        rc = CreateVContainer(fr);
 
 	timestamp_active_item = CreateToggleButton(rc, "Enable");
 	timestamp_font_item = CreateFontChoice(rc, "Font:");
@@ -104,20 +94,11 @@ void create_plot_frame(void)
 	timestamp_x_item = CreateTextItem2(rc, 10, "Timestamp X:");
 	timestamp_y_item = CreateTextItem2(rc, 10, "Timestamp Y:");
 
-        ManageChild(rc);
-
-	CreateSeparator(panel);
-
-	CreateCommandButtons(panel, 2, buts, label1);
-	XtAddCallback(buts[0], XmNactivateCallback,
-		   (XtCallbackProc) plot_define_notify_proc, (XtPointer) 0);
-	XtAddCallback(buts[1], XmNactivateCallback,
-		   (XtCallbackProc) destroy_dialog, (XtPointer) plot_frame);
-
-	ManageChild(panel);
+	CreateAACDialog(plot_frame, panel, plot_define_notify_proc, NULL);
     }
-    RaiseWindow(plot_frame);
     update_plot_items();
+    
+    RaiseWindow(GetParent(plot_frame));
     unset_wait_cursor();
 }
 
@@ -144,7 +125,7 @@ static void update_plot_items(void)
     }
 }
 
-static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer call_data)
+static int plot_define_notify_proc(void *data)
 {
     setbgcolor(GetOptionChoice(bg_color_item));
     setbgfill(GetToggleButtonState(bg_fill_item));
@@ -161,5 +142,7 @@ static void plot_define_notify_proc(Widget w, XtPointer client_data, XtPointer c
     xv_evalexpr(timestamp_y_item, &timestamp.y);
     set_dirtystate();
     drawgraph();
+    
+    return RETURN_SUCCESS;
 }
 
