@@ -557,7 +557,7 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
     int w, h;
     int i, j, k;
     int c;
-    int r, g, b;
+    unsigned char r, g, b;
     unsigned char y, pbm_buf;
     
     if (pnm_setup_rawbits == TRUE) {
@@ -601,9 +601,9 @@ static void rstImagePnm(gdImagePtr ihandle, FILE *prstream)
     for (i = 0; i < h; i++) {
         for (j = 0; j < w; j++) {
             c = gdImageGetPixel(ihandle, j, i);
-            r = gdImageRed(ihandle, c);
-            g = gdImageGreen(ihandle, c);
-            b = gdImageBlue(ihandle, c);
+            r = (unsigned char) gdImageRed(ihandle, c);
+            g = (unsigned char) gdImageGreen(ihandle, c);
+            b = (unsigned char) gdImageBlue(ihandle, c);
             if (pnm_setup_rawbits == TRUE) {
                 switch (pnm_setup_format) {
                 case PNM_FORMAT_PBM:
