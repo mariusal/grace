@@ -400,6 +400,7 @@ symtab_entry *key;
 %token <ival> PS
 %token <ival> PUSH
 %token <ival> PUTP
+%token <ival> RAND
 %token <ival> READ
 %token <ival> REAL
 %token <ival> RECIPROCAL
@@ -718,6 +719,10 @@ expr:	NUMBER {
 	{
 	    $$ = $1 * ((ParserFnc) (key[$2].data)) ();
 	}
+	| RAND
+	{
+	    $$ = drand48();
+	}
 	| FUNC_I '(' iexpr ')'
 	{
 	    $$ = ((ParserFnc) (key[$1].data)) ($3);
@@ -1034,6 +1039,22 @@ vexpr:
                     $$->length = len;
                 }
             }
+	}
+	| RAND '(' nexpr ')'
+	{
+	    int i;
+            $$ = &freelist[fcnt++];
+	    $$->data = xmalloc($3*SIZEOF_DOUBLE);
+            if ($$->data == NULL) {
+                errmsg("Not enough memory");
+                return 1;
+            } else {
+                $$->length = $3;
+                $$->type = GRARR_TMP;
+            }
+            for (i = 0; i < $$->length; i++) {
+		$$->data[i] = drand48();
+	    }
 	}
 	| FUNC_I '(' vexpr ')'
 	{
@@ -4609,7 +4630,7 @@ symtab_entry ikey[] = {
 	{"PUSH", PUSH, NULL},
 	{"PUTP", PUTP, NULL},
 	{"RAD", UCONSTANT, (void *) rad_uconst},
-	{"RAND", CONSTANT, (void *) drand48},
+	{"RAND", RAND, NULL},
 	{"READ", READ, NULL},
 	{"REAL", REAL, NULL},
 	{"RECIPROCAL", RECIPROCAL, NULL},
