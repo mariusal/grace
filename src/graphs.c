@@ -1252,6 +1252,14 @@ void postprocess_project(int version)
 	    if (version <= 40102 && g[gno].p[setno].type == SET_XYHILO) {
                 g[gno].p[setno].symlinew = g[gno].p[setno].linew;
             }
+	    if (version <= 40102 && g[gno].p[setno].type == SET_BOXPLOT) {
+                g[gno].p[setno].symlinew = g[gno].p[setno].linew;
+                g[gno].p[setno].symlines = g[gno].p[setno].lines;
+                g[gno].p[setno].symsize = 2.0;
+                g[gno].p[setno].errbar.riser_linew = g[gno].p[setno].linew;
+                g[gno].p[setno].errbar.riser_lines = g[gno].p[setno].lines;
+                g[gno].p[setno].errbar.barsize = 0.0;
+            }
             if (version < 50003) {
                 g[gno].p[setno].errbar.active = TRUE;
                 g[gno].p[setno].errbar.pen.color = g[gno].p[setno].sympen.color;
