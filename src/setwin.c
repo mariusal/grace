@@ -51,6 +51,8 @@
 #include <Xm/Separator.h>
 #include <Xm/Protocols.h>
 
+#include <Xbae/Matrix.h>
+
 #include "globals.h"
 #include "graphs.h"
 #include "utils.h"
@@ -77,37 +79,107 @@ typedef struct _Type_ui {
     Widget comment_item;
     Widget length_item;
     OptionStructure *datatype_item;
+    Widget mw;
+    char *rows[MAX_SET_COLS][6];
 } Type_ui;
 
 static Type_ui tui;
 
 static void changetypeCB(Widget w, XtPointer client_data, XtPointer call_data)
 {
+    int i, j, ncols;
+    double *datap;
+    int imin, imax;
+    double dmin, dmax, dmean, dsd;
     ListStructure *listp;
-    int setno;
+    SetChoiceData *sdata;
+    int gno, setno;
     char buf[32];
+    char **cells[MAX_SET_COLS];
     
     listp = (ListStructure *) client_data;
     if (listp == NULL) {
         return;
     }
     
-    if (GetSingleListChoice(listp, &setno) == GRACE_EXIT_SUCCESS) {
-	if (is_valid_setno(cg, setno)) {
-	    xv_setstr(tui.comment_item, getcomment(cg, setno));
-	    sprintf(buf, "%d", getsetlength(cg, setno));
-            xv_setstr(tui.length_item, buf);
-            SetOptionChoice(tui.datatype_item, dataset_type(cg, setno));
-	}
+    sdata = (SetChoiceData *) listp->anydata;
+    gno = sdata->gno;
+    
+    if (GetSingleListChoice(listp, &setno) == GRACE_EXIT_SUCCESS &&
+                is_set_active(gno, setno) == TRUE) {
+	ncols = dataset_cols(gno, setno);
+        xv_setstr(tui.comment_item, getcomment(gno, setno));
+	sprintf(buf, "%d", getsetlength(gno, setno));
+        xv_setstr(tui.length_item, buf);
+        SetOptionChoice(tui.datatype_item, dataset_type(gno, setno));
+    } else {
+	ncols = 0;
     }
+    for (i = 0; i < MAX_SET_COLS; i++) {
+        datap = getcol(gno, setno, i);
+	minmax(datap, getsetlength(gno, setno), &dmin, &dmax, &imin, &imax);
+	stasum(datap, getsetlength(gno, setno), &dmean, &dsd);
+        for (j = 0; j < 6; j++) {
+            if (i < ncols) {
+                switch (j) {
+                case 0:
+                    sprintf(buf, "%g", dmin);
+                    break;
+                case 1:
+                    sprintf(buf, "%d", imin);
+                    break;
+                case 2:
+                    sprintf(buf, "%g", dmax);
+                    break;
+                case 3:
+                    sprintf(buf, "%d", imax);
+                    break;
+                case 4:
+                    sprintf(buf, "%g", dmean);
+                    break;
+                case 5:
+                    sprintf(buf, "%g", dsd);
+                    break;
+                default:
+                    strcpy(buf, "");
+                    break;
+                }
+                tui.rows[i][j] = copy_string(tui.rows[i][j], buf);
+            } else {
+                tui.rows[i][j] = copy_string(tui.rows[i][j], "");
+            }
+        }
+        cells[i] = &tui.rows[i][0];
+    }
+    XtVaSetValues(tui.mw, XmNcells, cells, NULL);
 }
+
+void enterCB(Widget w, XtPointer client_data, XtPointer call_data)
+{
+    XbaeMatrixEnterCellCallbackStruct *cbs =
+        (XbaeMatrixEnterCellCallbackStruct *) call_data;
+    
+    cbs->doit = False;
+}
+
 
 void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget panel, dialog, rc, fr;
+    int i, j;
 
     set_wait_cursor();
     if (tui.top == NULL) {
+        char *rowlabels[MAX_SET_COLS] = {"X", "Y", "Y1", "Y2", "Y3", "Y4"};
+        char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
+        unsigned char column_alignments[6] = {
+                                                XmALIGNMENT_CENTER,
+                                                XmALIGNMENT_CENTER,
+                                                XmALIGNMENT_CENTER,
+                                                XmALIGNMENT_CENTER,
+                                                XmALIGNMENT_CENTER,
+                                                XmALIGNMENT_CENTER
+                                             };
 	tui.top = XmCreateDialogShell(app_shell, "Data set props", NULL, 0);
 	handle_close(tui.top);
         panel = XtVaCreateWidget("panel",
@@ -123,6 +195,37 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
 	tui.length_item = CreateTextItem2(rc, 6, "Length:");
         XtManageChild(rc);
 	tui.comment_item = CreateTextItem2(dialog, 24, "Comment:");
+
+	fr = CreateFrame(dialog, "Statistics");
+        tui.mw = XtVaCreateManagedWidget("mw",
+            xbaeMatrixWidgetClass, fr,
+            XmNrows, MAX_SET_COLS,
+            XmNcolumns, 6,
+            XmNvisibleRows, MAX_SET_COLS,
+            XmNvisibleColumns, 4,
+            XmNcolumnLabels, collabels,
+            XmNcolumnLabelAlignments, column_alignments,
+            XmNrowLabels, rowlabels,
+            XmNrowLabelAlignment, XmALIGNMENT_CENTER,
+            XmNallowColumnResize, True,
+            XmNgridType, XmGRID_COLUMN_SHADOW,
+            XmNcellShadowType, XmSHADOW_OUT,
+            XmNcellShadowThickness, 1,
+            XmNaltRowCount, 1,
+            XmNtraversalOn, False,
+            NULL);
+
+/*
+ *         XtUninstallTranslations(tui.mw);
+ */
+        XtAddCallback(tui.mw, XmNenterCellCallback, enterCB, NULL);	
+
+        for (i = 0; i < MAX_SET_COLS; i++) {
+            for (j = 0; j < 6; j++) {
+                tui.rows[i][j] = NULL;
+            }
+        }
+
 	XtManageChild(dialog);
         XtVaSetValues(dialog,
             XmNtopAttachment, XmATTACH_FORM,
