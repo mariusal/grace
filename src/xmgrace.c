@@ -105,7 +105,6 @@ static XtActionsRec canvas_actions[] = {
     {"draw_ellipse",      draw_ellipse_action     },  
     {"write_string",      write_string_action     },  
     {"refresh_hotlink",   refresh_hotlink_action  },
-    {"set_viewport",      set_viewport_action     },  
     {"enable_zoom",       enable_zoom_action      }
 };
 
@@ -126,7 +125,6 @@ static char canvas_table[] = "#override\n\
 	Ctrl Alt <Key>t: write_string()\n\
 	Ctrl <Key>a: autoscale()\n\
 	Ctrl <Key>u: refresh_hotlink()\n\
-	Ctrl <Key>v: set_viewport()\n\
 	Ctrl <Key>z: enable_zoom()";
 
 /*

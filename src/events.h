@@ -3,8 +3,8 @@
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
- * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-99 Grace Development Team
+ * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
+ * Copyright (c) 1996-2004 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -127,7 +127,6 @@ void newworld(Quark *gr, int axes, VPoint vp1, VPoint vp2);
 void push_and_zoom(void);
 
 /* action routines */
-void set_viewport_action( Widget, XEvent *, String *, Cardinal * );
 void enable_zoom_action( Widget, XEvent *, String *, Cardinal * );
 void autoscale_action( Widget, XEvent *, String *, Cardinal * );
 void draw_line_action( Widget, XEvent *, String *, Cardinal * );

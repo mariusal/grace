@@ -867,10 +867,6 @@ void refresh_hotlink_action(Widget w, XEvent *e, String *p, Cardinal *c)
     do_hotupdate_proc(NULL);
 }
 
-void set_viewport_action(Widget w, XEvent *e, String *p, Cardinal *c)
-{
-}
-
 void enable_zoom_action(Widget w, XEvent *e, String *p, Cardinal *c)
 {
 }
@@ -879,6 +875,13 @@ void enable_zoom_action(Widget w, XEvent *e, String *p, Cardinal *c)
  * update the sets in the current graph
  */
 void do_hotupdate_proc(void *data)
+{
+}
+
+/*
+ * define a (polygon) region
+ */
+void do_select_region(void)
 {
 }
 
@@ -893,13 +896,6 @@ void do_select_area(void)
  * switch on the perimeter calculator
  */
 void do_select_peri(void)
-{
-}
-
-/*
- * define a (polygon) region
- */
-void do_select_region(void)
 {
 }
 
