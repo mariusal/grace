@@ -431,10 +431,11 @@ void putparms(int gno, FILE *pp, int embed)
                 }
                 if (t.t_type == TYPE_SPEC || t.tl_type == TYPE_SPEC) {
                     for (j = 0; j < t.nticks; j++) {
+                        sprintf(tmpstr1, sformat, t.tloc[j].wtpos);
                         if (t.tloc[j].type == TICK_TYPE_MAJOR) {
                             if (t.t_type == TYPE_SPEC) {
-                                fprintf(pp, "%s tick major %d, %g\n", buf, j,
-                                                            t.tloc[j].wtpos);
+                                fprintf(pp, "%s tick major %d, %s\n",
+                                    buf, j, tmpstr1);
                             }
                             if (t.tl_type == TYPE_SPEC) {
                                 fprintf(pp, "%s ticklabel %d, \"%s\"\n", buf, j,
@@ -442,8 +443,8 @@ void putparms(int gno, FILE *pp, int embed)
                             }
                         } else {
                             if (t.t_type == TYPE_SPEC) {
-                                fprintf(pp, "%s tick minor %d, %g\n", buf, j,
-                                                            t.tloc[j].wtpos);
+                                fprintf(pp, "%s tick minor %d, %s\n",
+                                    buf, j, tmpstr1);
                             }
                         }
                     }
