@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1subset.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2001-02-09
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-06-03
   ----- Description: This file is part of the t1-library. It contains
                      functions for subsetting type 1 fonts.
   ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
@@ -125,7 +125,6 @@ static unsigned char lowHexByte[256]={
   0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x41,0x42,0x43,0x44,0x45,0x46
 };
   
-  
 
 /* parameters for eexec encryption */
 static unsigned short int eexec_r;
@@ -224,7 +223,6 @@ char *T1_SubsetFont( int FontID,
   int currstring_no=0;
   char *charnameP;
   unsigned char cipher;
-  
   char rdstring[3];
   char ndstring[3];
 
@@ -258,13 +256,12 @@ char *T1_SubsetFont( int FontID,
 
 
   /* Check parameters */
-  if ( (mask==NULL) || (bufsize==NULL) ||
-       (linewidth < 8) || (linewidth > 1024) ||
-       (maxblocksize < 4) ) {
+  if ( (mask==NULL) || (bufsize==NULL) || (linewidth < 8) ||
+       (linewidth > 1024) || (maxblocksize < 4) ) {
     T1_errno=T1ERR_INVALID_PARAMETER;
     return(NULL);
   } 
-  
+
   for ( j=0; j<256; j++) {
     if (mask[j]!=0) {
       nocharstrings++;
@@ -305,7 +302,7 @@ char *T1_SubsetFont( int FontID,
 	   T1_GetFontFilePath( FontID), filesize);
   T1_PrintLog( "T1_SubsetFont()", err_warn_msg_buf,
 	       T1LOG_DEBUG);
-  if ((filebuf=(char *)malloc( filesize))==NULL) {
+  if ((filebuf=(char *)calloc( filesize, sizeof(char)))==NULL) {
     T1_errno=T1ERR_ALLOC_MEM;
     return( NULL);
   }
@@ -819,7 +816,7 @@ char *T1_GetCharString( int FontID, char *charname, int *len)
 
 
 /* For those who really need it, this function returns the value
-   of lenIV from the Private dictionary. It specified how many
+   of lenIV from the Private dictionary. It specifies how many
    random leading bytes are used in Charstring encryption in the
    current font. */
 int T1_GetlenIV( int FontID)

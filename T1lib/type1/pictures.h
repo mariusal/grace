@@ -31,7 +31,7 @@
  
 #define    CopyPicture(p)         p
 #define    UniquePicture(p)       p
-#define    KillPicture(p)
+/* #define    KillPicture(p)     */
 #define    BegHandle(o,m)         o
 #define    EndHandle(o,m)         o
 #define    PictureBounds(P)       P

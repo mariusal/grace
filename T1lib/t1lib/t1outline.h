@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1outline.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-06-26
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-05-27
   ----- Description: This file is part of the t1-library. It contains
                      definitions and declarations for t1outline.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -67,6 +67,22 @@ extern void T1_FreeOutline( T1_OUTLINE *path);
 
 #endif
 
-extern struct region *fontfcnB( );
-extern struct region *fontfcnB_string( );
+
+extern struct region *fontfcnB(int FontID, int modflag,
+			       struct XYspace *S, char **ev,
+			       unsigned char index, int *mode,
+			       psfont *Font_Ptr,
+			       int do_raster);
+extern struct region *fontfcnB_string( int FontID, int modflag,
+				       struct XYspace *S, char **ev,
+				       unsigned char *string, int no_chars,
+				       int *mode, psfont *Font_Ptr,
+				       int *kern_pairs, long spacewidth,
+				       int do_raster);
+extern struct region *fontfcnB_ByName( int FontID, int modflag,
+				       struct XYspace *S,
+				       char *charname,
+				       int *mode, psfont *Font_Ptr,
+				       int do_raster);
+
 

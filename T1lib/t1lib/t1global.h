@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1global.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-11-29
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-04-01
   ----- Description: This file is part of the t1-library. It contains
                      global declarations used by the t1-library.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and

@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1aaset.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
                      Subsampling based on code by Raph Levien (raph@acm.org)
-  ----- Date:        1999-09-01
+  ----- Date:        2001-04-01
   ----- Description: This file is part of the t1-library. It contains
                      functions for antialiased setting of characters
 		     and strings of characters.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1999. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and

@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1lib.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2001-02-08
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-06-16
   ----- Description: This file is part of the t1-library. It must be
                      included by the user of the t1lib. It contains
 		     function declarations and some basic data types, the
@@ -163,6 +163,7 @@ extern int T1_errno;
 #define T1ERR_UNSPECIFIED             15
 #define T1ERR_NO_AFM_DATA             16
 #define T1ERR_X11                     17
+#define T1ERR_COMPOSITE_CHAR          18
 
 
 /* Flags to control the rasterizer */
@@ -234,6 +235,25 @@ typedef T1_PATHSEGMENT  T1_OUTLINE;
 #define T1_SUBSET_ENCRYPT_NONE       0x08
 
 
+/* Two structures for handling composite character data */
+/* One structure for each symbol of the composite character */
+typedef struct
+{
+  int piece;               /* the index of the current symbol */
+  int deltax;              /* horizontal displacement of current symbol in CS */ 
+  int deltay;              /* vertical displacement of current symbol in CS */ 
+} T1_COMP_PIECE;
+
+/* This one defines the composite character, the number of pieces and how to
+   access their data. */
+typedef struct 
+{
+  int compchar;             /* the base character in the current encoding */
+  int numPieces;            /* the number of defined pieces including the base char */
+  T1_COMP_PIECE *pieces;   /* a pointer to the pieces' information */
+} T1_COMP_CHAR_INFO;
+
+
 
 /* function declarations: */
 
@@ -271,10 +291,10 @@ extern char *T1_GetAfmFilePath( int FontID);
 extern int T1_DeleteSize( int FontID, float size);
 extern int T1_DeleteAllSizes( int FontID);
 extern int T1_FreeGlyph( GLYPH *glyph);
+extern int T1_FreeCompCharData( T1_COMP_CHAR_INFO *cci);
 extern int T1_DeleteFont( int FontID);
 
 /* from t1enc.c */
-extern char **ScanEncodingFile( char *FileName);
 extern char **T1_LoadEncoding( char *FileName);
 extern int T1_DeleteEncoding( char **encoding);
 extern int T1_ReencodeFont( int FontID, char **Encoding);
@@ -310,6 +330,7 @@ extern int T1_QueryLigs( int FontID,
 			 char **successors,
 			 char **ligatures);
 extern int T1_GetEncodingIndex( int FontID, char *char1);
+extern int *T1_GetEncodingIndices( int FontID, char *char1);
 extern int T1_GetStringWidth( int FontID, char *string,
 			      int len,  long spaceoff, int kerning);
 extern BBox T1_GetStringBBox( int FontID, char *string,
@@ -319,6 +340,11 @@ extern METRICSINFO T1_GetMetricsInfo( int FontID, char *string,
 extern BBox T1_GetFontBBox( int FontID);
 extern char **T1_GetAllCharNames( int FontID);
 extern int T1_GetNoKernPairs( int FontID);
+extern int T1_GetNoCompositeChars( int FontID);
+extern int T1_QueryCompositeChar( int FontID, char char1);
+extern T1_COMP_CHAR_INFO *T1_GetCompCharData( int FontID, char char1);
+extern T1_COMP_CHAR_INFO *T1_GetCompCharDataByIndex( int FontID, int index);
+extern int T1_IsInternalChar( int FontID, char char1);
 
 /* from t1load.c */
 extern int T1_LoadFont( int FontID);

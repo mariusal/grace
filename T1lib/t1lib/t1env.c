@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1env.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2000-01-12
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-04-01
   ----- Description: This file is part of the t1-library. It implements
                      the reading of a configuration file and path-searching
 		     of type1-, afm- and encoding files.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2000. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and

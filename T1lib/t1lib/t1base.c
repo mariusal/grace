@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1base.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2001-02-11
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-04-01
   ----- Description: This file is part of the t1-library. It contains basic
                      routines to initialize the data structures used
 		     by the t1-library.

@@ -199,7 +199,7 @@ int T1Gets(char *string,
     }
 
     /* do not skip white space as required by Adobe spec, because
-       if have found fonts where the first decrypted byte was of
+       if have found fonts where the first encrypted byte was of
        white space type. */
     if ( (eexec_startOK==1) && (eexec_endOK==1)) {
       T1eexec( f);

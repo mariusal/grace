@@ -1,11 +1,11 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1delete.c 
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        1999-08-26
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-06-03
   ----- Description: This file is part of the t1-library. It contains
                      functions for giving free previously allocated
 		     memory areas and similar things.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -164,15 +164,29 @@ int T1_DeleteAllSizes( int FontID)
 /* T1_FreeGlyph(): Gives the memory used by a glyph back to the system. */
 int T1_FreeGlyph( GLYPH *glyph)
 {
-  if (glyph!=NULL){
-    if (glyph->bits!=NULL)
+  if (glyph!=NULL) {
+    if (glyph->bits!=NULL) {
       free(glyph->bits);
+    }
     free(glyph);
-    glyph=NULL;
   }
   return(0);
 }
 
+
+/* T1_FreeCompCharData(): Return emory used by a composite character
+   data information structure to the system */
+int T1_FreeCompCharData( T1_COMP_CHAR_INFO *cci)
+{
+
+  if (cci!=NULL) {
+    if (cci->pieces!=NULL) {
+      free( cci->pieces);
+    }
+    free( cci);
+  }
+  return( 0);
+}
 
 
 /* T1_DeleteFont(): Gives all memory used by a font back to the system.

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1misc.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        2000-03-29
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-05-20
   ----- Description: This file is part of the t1-library. It contains
                      some miscellaneous definitions.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2000. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001. 
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -169,6 +169,7 @@
 #define T1ERR_UNSPECIFIED             15
 #define T1ERR_NO_AFM_DATA             16
 #define T1ERR_X11                     17
+#define T1ERR_COMPOSITE_CHAR          18
 
 
 /* The info_flags meaning */

@@ -1,10 +1,10 @@
 /*--------------------------------------------------------------------------
   ----- File:        t1enc.h
-  ----- Author:      Rainer Menzner (rmz@neuroinformatik.ruhr-uni-bochum.de)
-  ----- Date:        06/26/1998
+  ----- Author:      Rainer Menzner (Rainer.Menzner@web.de)
+  ----- Date:        2001-06-16
   ----- Description: This file is part of the t1-library. It contains
                      declarations and definitions for t11enc.c.
-  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-1998. 
+  ----- Copyright:   t1lib is copyrighted (c) Rainer Menzner, 1996-2001.
                      As of version 0.5, t1lib is distributed under the
 		     GNU General Public Library Lincense. The
 		     conditions can be found in the files LICENSE and
@@ -27,7 +27,7 @@
 
 #ifdef T1ENC_C
 
-char **ScanEncodingFile( char *FileName);
+static char **ScanEncodingFile( char *FileName);
 char **T1_LoadEncoding( char *FileName);
 int T1_DeleteEncoding( char **encoding);
 int T1_ReencodeFont( int FontID, char **Encoding);
@@ -37,7 +37,6 @@ static int cmp_METRICS_ENTRY( const void *entry1, const void *entry2);
 
 #else
 
-extern char **ScanEncodingFile( char *FileName);
 extern char **T1_LoadEncoding( char *FileName);
 extern int T1_DeleteEncoding( char **encoding);
 extern int T1_ReencodeFont( int FontID, char **Encoding);
@@ -45,5 +44,4 @@ extern int T1_SetDefaultEncoding( char **encoding);
 extern char *T1_GetEncodingScheme( int FontID);
 
 #endif
-
 
