@@ -68,6 +68,11 @@ GUI *gui_new(void)
     gui->draw_focus_flag = TRUE;
     gui->monomode        = FALSE;
     gui->noask           = FALSE;
+
+    gui->instant_update  = FALSE;
+    gui->toolbar         = TRUE;
+    gui->statusbar       = TRUE;
+    gui->locbar          = TRUE;
     
     return gui;
 }

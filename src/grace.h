@@ -91,6 +91,12 @@ typedef struct _GUI {
     int monomode;
     /* if TRUE, assume yes for everything */
     int noask;
+    /* instant update enabled for controls on appearance dialogs */
+    int instant_update;
+    /* toolbars visible on/off */
+    int toolbar;
+    int statusbar;
+    int locbar;
 } GUI;
 
 typedef struct _RunTime {
