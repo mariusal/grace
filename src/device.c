@@ -231,7 +231,7 @@ int parse_device_options(Canvas *canvas, int dindex, char *options)
             }
             oldp = p + 1;
         }
-        return dev->parser(canvas, oldp, dev->data);
+        return dev->parser(canvas, dev->data, oldp);
     }
 }
 
