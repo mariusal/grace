@@ -85,7 +85,8 @@ int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *
             }
         }
 	filter_set(graphto, loadto, rarray);
-        if (formula(graphto, loadto, fstr)) {
+        set_parser_setno(graphto, loadto);
+        if (scanner(fstr) != GRACE_EXIT_SUCCESS) {
 	    if (graphto != gno || loadto != setno) {
 		killset(graphto, loadto);
 	    }

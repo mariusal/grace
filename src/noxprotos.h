@@ -41,8 +41,6 @@
 #include "defines.h"
 #include "graphs.h"
 
-int formula(int gno, int selset, char *sscanstr);
-
 int filter_set(int gno, int setno, char *rarray);
 
 void do_fourier_command(int gno, int setno, int ftype, int ltype);

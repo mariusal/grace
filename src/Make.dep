@@ -43,7 +43,6 @@ defaults$(O) : defaults.c defines.h globals.h graphs.h draw.h utils.h \
 params$(O) : params.c globals.h defines.h graphs.h draw.h utils.h files.h \
  graphutils.h device.h t1fonts.h parser.h protos.h missing.h \
  noxprotos.h xprotos.h
-compute$(O) : compute.c defines.h utils.h parser.h
 draw$(O) : draw.c defines.h device.h t1fonts.h graphs.h utils.h draw.h
 dlmodule$(O) : dlmodule.c dlmodule.h defines.h globals.h graphs.h draw.h \
  utils.h parser.h
