@@ -60,7 +60,7 @@
 #include "protos.h"
 
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
-#  include "netcdf.h"
+#  include <netcdf.h>
 #endif
 
 #define MAXERR 5
