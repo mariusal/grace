@@ -122,6 +122,7 @@ int xrst_initgraphics(const Canvas *canvas, void *data,
 {
     Xrst_data *ddata    = (Xrst_data *) data;
     Page_geometry *pg   = get_page_geometry(canvas);
+    int bg              = getbgcolor(canvas);
     
     ddata->color        = BAD_COLOR;
     ddata->bgcolor      = BAD_COLOR;
@@ -135,11 +136,11 @@ int xrst_initgraphics(const Canvas *canvas, void *data,
     
     ddata->width        = pg->width;
     ddata->height       = pg->height;
-    ddata->page_scale    = (ddata->height < ddata->width) ? ddata->height:ddata->width;
+    ddata->page_scale   = (ddata->height < ddata->width) ? ddata->height:ddata->width;
     
     ddata->gc           = NULL;
     ddata->paintedSet   = miNewPaintedSet();
-    ddata->mcanvas      = miNewCanvas(ddata->width, ddata->height, 0);
+    ddata->mcanvas      = miNewCanvas(ddata->width, ddata->height, bg);
     
     return RETURN_SUCCESS;
 }
