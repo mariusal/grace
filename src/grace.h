@@ -72,6 +72,9 @@ typedef struct _GUI {
     int toolbar;
     int statusbar;
     int locbar;
+    
+    /* if TRUE, font selectors need update */
+    int need_fontsel_update;
 
     /* colormap stuff */
     int install_cmap;

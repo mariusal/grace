@@ -411,6 +411,9 @@ int grace_set_project(Grace *grace, Quark *project)
         /* Reset set autocolorization index */
         grace->rt->setcolor = 0;
         
+        /* Request update of font selectors */
+        grace->gui->need_fontsel_update = TRUE;
+
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

@@ -1952,7 +1952,6 @@ void AlignLabel(Widget w, int alignment)
         NULL);
 }
 
-static OptionItem *font_option_items;
 static OptionItem *settype_option_items;
 static BitmapOptionItem *pattern_option_items;
 static BitmapOptionItem *lines_option_items;
@@ -1986,25 +1985,11 @@ int init_option_menus(void) {
     
     init_xvlibcolors();
     
-    n = number_of_fonts(canvas);
-    if (n) {
-        font_option_items = xmalloc(n*sizeof(OptionItem));
-        if (font_option_items == NULL) {
-            errmsg("Malloc error in init_option_menus()");
-            return RETURN_FAILURE;
-        }
-        for (i = 0; i < n; i++) {
-            font_option_items[i].value = i;
-            font_option_items[i].label = get_fontalias(canvas, i);
-        }
-    }
-    
     n = number_of_patterns(canvas);
     if (n) {
         pattern_option_items = xmalloc(n*sizeof(BitmapOptionItem));
         if (pattern_option_items == NULL) {
             errmsg("Malloc error in init_option_menus()");
-            xfree(font_option_items);
             return RETURN_FAILURE;
         }
         for (i = 0; i < n; i++) {
@@ -2024,7 +2009,6 @@ int init_option_menus(void) {
         if (lines_option_items == NULL) {
             errmsg("Malloc error in init_option_menus()");
             xfree(pattern_option_items);
-            xfree(font_option_items);
             return RETURN_FAILURE;
         }
         for (i = 0; i < n; i++) {
@@ -2070,10 +2054,50 @@ int init_option_menus(void) {
     return RETURN_SUCCESS;
 }
 
+static OptionItem *font_option_items = NULL;
+static unsigned int nfont_option_items = 0;
+static OptionStructure **font_selectors = NULL;
+static unsigned int nfont_selectors = 0;
+
+void update_font_selectors(void)
+{
+    unsigned int i;
+    Project *pr = project_get_data(grace->project);
+    
+    nfont_option_items = pr->nfonts;
+    font_option_items =
+        xrealloc(font_option_items, nfont_option_items*sizeof(OptionItem));
+
+    for (i = 0; i < nfont_option_items; i++) {
+        Fontdef *f = &pr->fontmap[i];
+        font_option_items[i].value = f->id;
+        font_option_items[i].label = f->fontname;
+    }
+    
+    for (i = 0; i < nfont_selectors; i++) {
+        UpdateOptionChoice(font_selectors[i], 
+                            nfont_option_items, font_option_items);
+    }
+}
+
 OptionStructure *CreateFontChoice(Widget parent, char *s)
 {
-    return (CreateOptionChoice(parent,
-        s, 0, number_of_fonts(canvas), font_option_items));
+    OptionStructure *retvalp = NULL;
+
+    nfont_selectors++;
+    font_selectors = xrealloc(font_selectors, 
+                                    nfont_selectors*sizeof(OptionStructure *));
+    if (font_selectors == NULL) {
+        errmsg("Malloc failed in CreateFontChoice()");
+        return retvalp;
+    }
+    
+    retvalp = CreateOptionChoice(parent, s, 0, 
+                                nfont_option_items, font_option_items);
+
+    font_selectors[nfont_selectors - 1] = retvalp;
+    
+    return retvalp;
 }
 
 OptionStructure *CreatePatternChoice(Widget parent, char *s)
@@ -4478,6 +4502,11 @@ void update_all(void)
         init_xvlibcolors();
         update_color_selectors();
         ReqUpdateColorSel = FALSE;
+    }
+
+    if (grace->gui->need_fontsel_update == TRUE) {
+        update_font_selectors();
+        grace->gui->need_fontsel_update = FALSE;
     }
 
     update_props_items();
