@@ -631,7 +631,7 @@ fi
 dnl **** check for PDFlib
 if test $pdfdrv = true
 then
-  ACX_CHECK_PDFLIB(5.0.0, AC_DEFINE(HAVE_LIBPDF), pdfdrv=false)
+  ACX_CHECK_PDFLIB(6.0.0, AC_DEFINE(HAVE_LIBPDF), pdfdrv=false)
 fi
 if test $pdfdrv != true; then
   AC_MSG_RESULT(--> PDF driver is disabled)
