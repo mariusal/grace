@@ -458,7 +458,7 @@ static void MenuCB(Widget but, void *data)
 	bailout(grace);
 	break;
     case MENU_NEW:
-	new_project(NULL);
+	new_project(grace, NULL);
 
         xdrawgraph();
 	break;
@@ -469,7 +469,7 @@ static void MenuCB(Widget but, void *data)
 	if (strcmp (get_docname(grace->project), NONAME) != 0) {
 	    set_wait_cursor();
 	    
-	    save_project(get_docname(grace->project));
+	    save_project(grace->project, get_docname(grace->project));
 	    
 	    unset_wait_cursor();
 	} else {
@@ -483,9 +483,9 @@ static void MenuCB(Widget but, void *data)
 	set_wait_cursor();
 	s = copy_string(NULL, get_docname(grace->project));
 	if (strcmp (s, NONAME) != 0) {
-            load_project(s);
+            load_project(grace, s);
         } else {
-	    new_project(NULL);
+	    new_project(grace, NULL);
         }
         xfree(s);
         xdrawgraph();
@@ -1191,7 +1191,7 @@ static void load_example(Widget but, void *data)
     
     s = (char *) data;
     sprintf(buf, "examples/%s", s);
-    load_project_file(buf, FALSE);
+    load_project_file(grace, buf, FALSE);
 
     xdrawgraph();
 

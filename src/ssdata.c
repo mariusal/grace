@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -38,10 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "defines.h"
-#include "globals.h"
-#include "utils.h"
-#include "graphs.h"
 #include "graphutils.h"
 #include "files.h"
 #include "ssdata.h"
@@ -242,7 +238,7 @@ static char *next_token(char *s, char **token, int *quoted)
     }
 }
 
-int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
+int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **formats)
 {
     int ncols;
     int quoted;
@@ -275,7 +271,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
         if (quoted) {
             (*formats)[ncols] = FFORMAT_STRING;
             (*nscols)++;
-        } else if (parse_date(grace->project, token, df_pref, FALSE, &value, &ddummy) ==
+        } else if (parse_date(pr, token, df_pref, FALSE, &value, &ddummy) ==
             RETURN_SUCCESS) {
             (*formats)[ncols] = FFORMAT_DATE;
             (*nncols)++;
@@ -295,7 +291,7 @@ int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats)
 
 
 /* NOTE: the input string will be corrupted! */
-int insert_data_row(ss_data *ssd, int row, char *s)
+int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s)
 {
     int i, j;
     int ncols = ssd->ncols;
@@ -330,7 +326,7 @@ int insert_data_row(ss_data *ssd, int row, char *s)
                 }
             } else if (ssd->formats[i] == FFORMAT_DATE) {
                 np = (double *) ssd->data[i];
-                res = parse_date(grace->project, token, df_pref, FALSE, &np[row], &ddummy);
+                res = parse_date(pr, token, df_pref, FALSE, &np[row], &ddummy);
             } else {
                 np = (double *) ssd->data[i];
                 res = parse_float(token, &np[row], &sdummy);
@@ -363,10 +359,10 @@ Quark *nextset(Quark *gr)
         return NULL;
     }
     
-    pset = grace->rt->target_set;
+    pset = gr->grace->rt->target_set;
     
     if (pset && get_parent_graph(pset) == gr && !is_set_active(pset)) {
-        grace->rt->target_set = NULL;
+        gr->grace->rt->target_set = NULL;
         return pset;
     } else {
         int i, nsets;
@@ -384,7 +380,7 @@ Quark *nextset(Quark *gr)
     }
 }
 
-int store_data(ss_data *ssd, int load_type)
+int store_data(Quark *pr, ss_data *ssd, int load_type)
 {
     int ncols, nncols, nncols_req, nscols, nrows;
     int i, j;
@@ -422,7 +418,7 @@ int store_data(ss_data *ssd, int load_type)
             return RETURN_FAILURE;
         }
 
-        nncols_req = settype_cols(grace->rt->curtype);
+        nncols_req = settype_cols(pr->grace->rt->curtype);
         x_from_index = FALSE;
         if (nncols_req == nncols + 1) {
             x_from_index = TRUE;
@@ -432,7 +428,7 @@ int store_data(ss_data *ssd, int load_type)
         }
 
         pset = nextset(gr);
-        set_dataset_type(pset, grace->rt->curtype);
+        set_dataset_type(pset, pr->grace->rt->curtype);
 
         nncols = 0;
         if (x_from_index) {

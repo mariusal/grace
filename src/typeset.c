@@ -42,18 +42,19 @@ int init_font_db(Canvas *canvas)
     int i, nfonts;
     char buf[GR_MAXPATHLEN], abuf[GR_MAXPATHLEN], fbuf[GR_MAXPATHLEN], *bufp;
     FILE *fd;
+    Grace *grace = (Grace *) canvas_get_udata(canvas);
     
     /* Set default encoding */
-    bufp = grace_path2("fonts/enc/", T1_DEFAULT_ENCODING_FILE);
+    bufp = grace_path2(grace, "fonts/enc/", T1_DEFAULT_ENCODING_FILE);
     if (canvas_set_encoding(canvas, bufp) != RETURN_SUCCESS) {
-        bufp = grace_path2("fonts/enc/", T1_FALLBACK_ENCODING_FILE);
+        bufp = grace_path2(grace, "fonts/enc/", T1_FALLBACK_ENCODING_FILE);
         if (canvas_set_encoding(canvas, bufp) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
     }
     
     /* Open & process the font database */
-    fd = grace_openr("fonts/FontDataBase", SOURCE_DISK);
+    fd = grace_openr(grace, "fonts/FontDataBase", SOURCE_DISK);
     if (fd == NULL) {
         return RETURN_FAILURE;
     }
@@ -71,7 +72,7 @@ int init_font_db(Canvas *canvas)
             fclose(fd);
             return RETURN_FAILURE;
         }
-        bufp = grace_path2("fonts/type1/", fbuf);
+        bufp = grace_path2(grace, "fonts/type1/", fbuf);
         if (canvas_add_font(canvas, bufp, abuf) != RETURN_SUCCESS) {
             fclose(fd);
             return RETURN_FAILURE;
@@ -186,7 +187,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
         if (s[i] == '\\' && s[i + 1] == '$' &&
             (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
             if (!strcmp(macro, "timestamp")) {
-                subst = get_timestamp();
+                subst = get_timestamp(grace->project);
             } else
             if (!strcmp(macro, "filename")) {
                 subst = get_docname(grace->project);
@@ -215,7 +216,7 @@ static char *expand_macros(const Canvas *canvas, const char *s)
         if (s[i] == '\\' && s[i + 1] == '$' &&
             (k = get_escape_args(&(s[i + 2]), macro)) >= 0) {
             if (!strcmp(macro, "timestamp")) {
-                subst = get_timestamp();
+                subst = get_timestamp(grace->project);
             } else
             if (!strcmp(macro, "filename")) {
                 subst = get_docname(grace->project);

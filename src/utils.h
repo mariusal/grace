@@ -104,8 +104,8 @@ int yesno(char *msg, char *s1, char *s2, char *help_anchor);
 char *mybasename(const char *s);
 
 void expand_tilde(const Grace *grace, char *buf);
-void update_timestamp(time_t *t);
-char *get_timestamp(void);
+void update_timestamp(Quark *project, time_t *t);
+char *get_timestamp(Quark *project);
 
 void update_app_title(Quark *q);
 
@@ -132,8 +132,8 @@ char *bi_editor(void);
 char *bi_helpviewer(void);
 
 #ifdef DEBUG
-void set_debuglevel(int level);
-int get_debuglevel(void);
+void set_debuglevel(Grace *grace, int level);
+int get_debuglevel(Grace *grace);
 #endif
 
 #endif /* __UTILS_H_*/

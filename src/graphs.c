@@ -152,10 +152,10 @@ Quark *get_parent_project(const Quark *q)
     Quark *p = (Quark *) q;
     
     while (p) {
-        p = quark_parent_get(p);
         if (p->fid == QFlavorProject) {
             return p;
         }
+        p = quark_parent_get(p);
     }
     
     return NULL;

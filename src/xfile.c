@@ -288,7 +288,6 @@ int attributes_reset(Attributes *attrs)
 void xfile_free(XFile *xf)
 {
     if (xf) {
-        xfree(xf->fname);
         xstack_free(xf->tree);
         xfree(xf->indstr);
         if (xf->fp) {
@@ -298,7 +297,7 @@ void xfile_free(XFile *xf)
     }
 }
 
-XFile *xfile_new(char *fname)
+XFile *xfile_new(FILE *fp)
 {
     XFile *xf;
 
@@ -309,10 +308,9 @@ XFile *xfile_new(char *fname)
         xf->tree    = xstack_new();
         xf->convert = CONVERT_NONE;
         xf->indstr  = copy_string(NULL, DEFAULT_INDENT_STRING);
-        xf->fname   = copy_string(NULL, fname);
-        xf->fp      = grace_openw(xf->fname);
+        xf->fp      = fp;
         
-        if (!xf->tree || !xf->indstr || !xf->fname || !xf->fp) {
+        if (!xf->tree || !xf->indstr || !xf->fp) {
             xfile_free(xf);
             xf = NULL;
         }

@@ -83,11 +83,11 @@ void HelpCB(Widget w, void *data)
         if (pa) {
             char *base = copy_string(NULL, p);
             base[pa - p] = '\0';
-            URL = copy_string(NULL, grace_path(base));
+            URL = copy_string(NULL, grace_path(grace, base));
             URL = concat_strings(URL, pa);
             xfree(base);
         } else {
-            URL = copy_string(NULL, grace_path(p));
+            URL = copy_string(NULL, grace_path(grace, p));
         }
 
         remote = FALSE;
@@ -245,7 +245,7 @@ static char *loadFile(char *URL)
     char *content;
 
     /* open the given file */
-    if ((file = grace_openr(URL, SOURCE_DISK)) == NULL) {
+    if ((file = grace_openr(grace, URL, SOURCE_DISK)) == NULL) {
         return NULL;
     }
 

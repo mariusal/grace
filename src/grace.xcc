@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
 #include "defines.h"
 #include "files.h"
 #include "utils.h"
@@ -20,6 +19,7 @@
 #include "xstrings.h"
 
 typedef struct {
+    Grace *grace;
     int nrow;
 } ParserData;
 
@@ -587,7 +587,8 @@ char *utf2iso(const char *s)
         }
     ]]></attribute-type>
     <attribute-type name="settype" ctype="SetType"><![CDATA[
-        $$ = get_settype_by_name(grace->rt, $?);
+        RunTime *rt = ((ParserData *)$U)->grace->rt;
+        $$ = get_settype_by_name(rt, $?);
     ]]></attribute-type>
     <attribute-type name="fillrule" ctype="int"><![CDATA[
         if (!strcmp($?, VStrWinding)) {
@@ -599,7 +600,7 @@ char *utf2iso(const char *s)
     
     <!-- Element types -->
     <element-type name="project" ctype="Quark *"><![CDATA[
-        $$ = project_new(grace);
+        $$ = project_new(((ParserData *) $U)->grace);
     ]]></element-type>
     <element-type name="page" ctype="Page *"><![CDATA[
         $$ = page_new();
@@ -788,7 +789,8 @@ char *utf2iso(const char *s)
     <element name="#EStrColormap" type="dummy">
         <!-- Child elements -->
         <child name="#EStrColorDef"><![CDATA[
-            store_color(grace->rt->canvas, $?->id, &$?->color);
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            store_color(rt->canvas, $?->id, &$?->color);
             colordef_free($?);
         ]]></child>
     </element>
@@ -991,7 +993,8 @@ char *utf2iso(const char *s)
     <element name="#EStrPresentationSpec" type="presentationspec">
         <!-- Attributes -->
         <attribute name="#AStrType" type="sval">
-            $$->type = get_graph_type_by_name(grace->rt, $?);
+            RunTime *rt = ((ParserData *)$U)->grace->rt;
+            $$->type = get_graph_type_by_name(rt, $?);
             xfree($?);
         </attribute>
         <attribute name="#AStrStacked" type="bval">
@@ -1893,18 +1896,19 @@ char *utf2iso(const char *s)
 
     <!-- Postamble -->
     <postamble><![CDATA[
-int load_xgr_project(char *fn)
+int load_xgr_project(Grace *grace, char *fn)
 {
     ParserData udata;
     Quark *project;
     FILE *fp;
     int ret;
 
-    fp = grace_openr(fn, SOURCE_DISK);
+    fp = grace_openr(grace, fn, SOURCE_DISK);
     if (fp == NULL) {
 	return RETURN_FAILURE;
     }
 
+    udata.grace = grace;
     udata.nrow = -1;
     
     ret = xcc_parse(fp, &udata, (void **) &project, xcc_start_handler, xcc_end_handler);

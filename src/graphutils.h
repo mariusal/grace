@@ -46,12 +46,6 @@
 #define GZOOM_SHRINK    0
 #define GZOOM_EXPAND    1
 
-#define GOVERLAY_SMART_AXES_DISABLED  0
-#define GOVERLAY_SMART_AXES_NONE      1
-#define GOVERLAY_SMART_AXES_X         2
-#define GOVERLAY_SMART_AXES_Y         3
-#define GOVERLAY_SMART_AXES_XY        4
-
 /* Order of matrix fill (inversion mask bits) */
 #define GA_ORDER_V_INV  1
 #define GA_ORDER_H_INV  2
@@ -64,10 +58,6 @@
 char *get_format_types(FormatType f);
 FormatType get_format_type_by_name(const char *name);
 
-int wipeout(void);
-
-void scroll_proc(int value);
-void scrollinout_proc(int value);
 int graph_scroll(Quark *gr, int type);
 int graph_zoom(Quark *gr, int type);
 

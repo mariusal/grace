@@ -55,7 +55,6 @@ typedef struct _Attributes {
 } Attributes;
 
 typedef struct _XFile {
-    char *fname;
     FILE *fp;
     XStack *tree;
     int indent;
@@ -90,7 +89,7 @@ int attributes_set_dval_formatted(Attributes *attrs, const char *name,
 
 int attributes_set_ns(Attributes *attrs, const char *ns, const char *uri);
 
-XFile *xfile_new(char *fname);
+XFile *xfile_new(FILE *fp);
 void xfile_free(XFile *xf);
 
 int xfile_set_ns(XFile *xf, const char *ns, const char *uri, int force);

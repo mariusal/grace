@@ -1978,10 +1978,10 @@ parmset:
 	    pr->bgfill = $4;
 	}
 	| PAGE SCROLL expr '%' {
-	    scroll_proc((int) $3);
+	    grace->rt->scrollper = $3 / 100.0;
 	}
 	| PAGE INOUT expr '%' {
-	    scrollinout_proc((int) $3);
+	    grace->rt->shexper = $3 / 100.0;
 	}
 
 	| LINK PAGE onoff {
@@ -3731,10 +3731,10 @@ parmset_obs:
             set_page_dimensions(grace, (int) $3, (int) $4, FALSE);
         }
 	| PAGE nexpr {
-	    scroll_proc($2);
+	    grace->rt->scrollper = $2 / 100.0;
 	}
 	| PAGE INOUT nexpr {
-	    scrollinout_proc($3);
+	    grace->rt->shexper = $3 / 100.0;
 	}
 
 	| DEFAULT FONTP SOURCE expr {
@@ -4648,12 +4648,12 @@ int scanner(char *s)
     
     if (gotparams) {
 	gotparams = FALSE;
-        getparms(paramfile);
+        getparms(grace, paramfile);
     }
     
     if (gotread) {
 	gotread = FALSE;
-        getdata(whichgraph, readfile, grace->rt->cursource, LOAD_SINGLE);
+        getdata(grace, whichgraph, readfile, grace->rt->cursource, LOAD_SINGLE);
     }
     return retval;
 }
@@ -5006,7 +5006,7 @@ static int yylex(void)
 	ungetchstr();
 	*p = '\0';
 #ifdef DEBUG
-        if (get_debuglevel() == 2) {
+        if (get_debuglevel(grace->project) == 2) {
 	    printf("->%s<-\n", sbuf);
 	}
 #endif

@@ -39,7 +39,7 @@
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
 
-#include "utils.h"
+#include "globals.h"
 #include "files.h"
 #include "parser.h"
 #include "motifinc.h"
@@ -237,7 +237,7 @@ static int save_logs_proc(FSBStructure *fsb, char *filename, void *data)
     console_ui *ui = (console_ui *) data;
     FILE *pp;
 
-    pp = grace_openw(filename);
+    pp = grace_openw(grace, filename);
 
     if (pp == NULL) {
         return RETURN_FAILURE;

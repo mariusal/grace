@@ -45,7 +45,7 @@ static int project_free_cb(Quark *pr, int etype, void *data)
         }
     } else
     if (etype == QUARK_ETYPE_MODIFY) {
-        update_timestamp(NULL);
+        update_timestamp(pr, NULL);
         update_app_title(pr);
 
 #if 0

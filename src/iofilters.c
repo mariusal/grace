@@ -139,7 +139,7 @@ void clear_io_filters( int f )
 /* 
  * filter input file and return pointer to a pipe
  */
-FILE *filter_read( char *fn )
+FILE *filter_read(Grace *grace, char *fn)
 {
 	char buf[1024];
 	int i;
@@ -160,7 +160,7 @@ FILE *filter_read( char *fn )
 		fclose( in );
 		sprintf( buf, ifilt[i].command, fn );
 		fflush( stdout );
-		return popen(grace_exe_path(buf), "r");
+		return popen(grace_exe_path(grace, buf), "r");
 	} else {
 		return in;
 	}
@@ -170,7 +170,7 @@ FILE *filter_read( char *fn )
 /*
  * filter output file and return pointer to a pipe or file
  */
-FILE *filter_write(  char *fn )
+FILE *filter_write(Grace *grace, char *fn)
 {
 	char buf[1024];
 	int i;
@@ -192,7 +192,7 @@ FILE *filter_write(  char *fn )
 		fclose( out );
 		sprintf( buf, ofilt[i].command, fn );
 		fflush( stdin );
-		return popen(grace_exe_path(buf), "w");
+		return popen(grace_exe_path(grace, buf), "w");
 	} else {
 		return out;
 	}

@@ -27,15 +27,13 @@
 
 #include <config.h>
 
-#include "globals.h"
-#include "defines.h"
+#include "grace/canvas.h"
 #include "utils.h"
 #include "dicts.h"
-#include "grace/canvas.h"
+#include "files.h"
 #include "graphs.h"
 #include "graphutils.h"
 #include "objutils.h"
-#include "files.h"
 #include "xfile.h"
 #include "xstrings.h"
 #include "protos.h"
@@ -49,10 +47,10 @@ static void xmlio_set_active(Attributes *attrs, int active)
     attributes_set_bval(attrs, AStrActive, active);
 }
 
-static void xmlio_set_world_value(Attributes *attrs, char *name, double value)
+static void xmlio_set_world_value(Quark *q, Attributes *attrs, char *name, double value)
 {
     attributes_set_dval_formatted(attrs, name, value,
-        project_get_sformat(grace->project));
+        project_get_sformat(get_parent_project(q)));
 }
 
 static void xmlio_set_inout_placement(RunTime *rt, Attributes *attrs, int inout)
@@ -111,13 +109,13 @@ static void xmlio_set_pattern_ref(Attributes *attrs, int pattern)
 }
 
 
-static void xmlio_write_location(XFile *xf, Attributes *attrs,
+static void xmlio_write_location(Quark *q, XFile *xf, Attributes *attrs,
     int loctype, double x, double y)
 {
     attributes_reset(attrs);
     if (loctype == COORD_WORLD) {
-        xmlio_set_world_value(attrs, AStrX, x);
-        xmlio_set_world_value(attrs, AStrY, y);
+        xmlio_set_world_value(q, attrs, AStrX, x);
+        xmlio_set_world_value(q, attrs, AStrY, y);
     } else {
         attributes_set_dval(attrs, AStrX, x);
         attributes_set_dval(attrs, AStrY, y);
@@ -246,9 +244,10 @@ int save_colormap(XFile *xf, const Canvas *canvas)
     return RETURN_SUCCESS;
 }
 
-int save_axis_properties(XFile *xf, tickmarks *t)
+int save_axis_properties(XFile *xf, Quark *q)
 {
     Attributes *attrs;
+    tickmarks *t = axis_get_data(q);
     
     if (!t) {
         return RETURN_SUCCESS;
@@ -280,7 +279,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
         t->label_layout == LAYOUT_PERPENDICULAR ? VStrPerpendicular:VStrParallel);
     xmlio_set_offset_placement(attrs,
         t->label_place == TYPE_AUTO, t->label.offset.x, t->label.offset.y);
-    xmlio_set_side_placement(grace->rt, attrs, t->label_op);
+    xmlio_set_side_placement(q->grace->rt, attrs, t->label_op);
     xfile_begin_element(xf, EStrAxislabel, attrs);
     {
         xmlio_write_face_spec(xf, attrs,
@@ -290,7 +289,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
     xfile_end_element(xf, EStrAxislabel);
 
     attributes_reset(attrs);
-    xmlio_set_world_value(attrs, AStrMajorStep, t->tmajor);
+    xmlio_set_world_value(q, attrs, AStrMajorStep, t->tmajor);
     attributes_set_ival(attrs, AStrMinorDivisions, t->nminor);
     attributes_set_ival(attrs, AStrAutoTicking, t->t_autonum);
     attributes_set_bval(attrs, AStrRoundedPosition, t->t_round);
@@ -298,7 +297,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
     {
         char *s;
         
-        s = spec_tick_name(grace->rt, t->t_spec);
+        s = spec_tick_name(q->grace->rt, t->t_spec);
         
         attributes_reset(attrs);
         attributes_set_sval(attrs, AStrType, s);
@@ -312,7 +311,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
                     attributes_reset(attrs);
                     attributes_set_sval(attrs, AStrType,
                         t->tloc[i].type == TICK_TYPE_MAJOR ? VStrMajor:VStrMinor);
-                    xmlio_set_world_value(attrs,
+                    xmlio_set_world_value(q, attrs,
                         AStrPosition, t->tloc[i].wtpos);
                     if (t->t_spec == TICKS_SPEC_BOTH) {
                         attributes_set_sval(attrs, AStrLabel, t->tloc[i].label);
@@ -325,8 +324,8 @@ int save_axis_properties(XFile *xf, tickmarks *t)
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->t_flag);
-        xmlio_set_side_placement(grace->rt, attrs, t->t_op);
-        xmlio_set_inout_placement(grace->rt, attrs, t->t_inout);
+        xmlio_set_side_placement(q->grace->rt, attrs, t->t_op);
+        xmlio_set_inout_placement(q->grace->rt, attrs, t->t_inout);
         xfile_begin_element(xf, EStrTickmarks, attrs);
         {
             Pen pen;
@@ -359,7 +358,7 @@ int save_axis_properties(XFile *xf, tickmarks *t)
 
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->tl_flag);
-        xmlio_set_side_placement(grace->rt, attrs, t->tl_op);
+        xmlio_set_side_placement(q->grace->rt, attrs, t->tl_op);
         attributes_set_sval(attrs, AStrTransform, t->tl_formula);
         attributes_set_sval(attrs, AStrPrepend, t->tl_prestr);
         attributes_set_sval(attrs, AStrAppend, t->tl_appstr);
@@ -371,12 +370,12 @@ int save_axis_properties(XFile *xf, tickmarks *t)
         if (t->tl_starttype == TYPE_AUTO) {
             attributes_set_sval(attrs, AStrStart, VStrAuto);
         } else {
-            xmlio_set_world_value(attrs, AStrStart, t->tl_start);
+            xmlio_set_world_value(q, attrs, AStrStart, t->tl_start);
         }
         if (t->tl_stoptype == TYPE_AUTO) {
             attributes_set_sval(attrs, AStrStop, VStrAuto);
         } else {
-            xmlio_set_world_value(attrs, AStrStop, t->tl_stop);
+            xmlio_set_world_value(q, attrs, AStrStop, t->tl_stop);
         }
         xfile_begin_element(xf, EStrTicklabels, attrs);
         {
@@ -467,21 +466,21 @@ int save_graph_properties(XFile *xf, Quark *gr)
     }
     
     attributes_reset(attrs);
-    attributes_set_sval(attrs, AStrType, graph_types(grace->rt, g->type));
+    attributes_set_sval(attrs, AStrType, graph_types(gr->grace->rt, g->type));
     attributes_set_bval(attrs, AStrStacked, g->stacked);
     attributes_set_dval(attrs, AStrBargap, g->bargap);
     xfile_empty_element(xf, EStrPresentationSpec, attrs);
 
     /* World coordinate scales */
     attributes_reset(attrs);
-    xmlio_set_world_value(attrs, AStrMin, g->w.xg1);
-    xmlio_set_world_value(attrs, AStrMax, g->w.xg2);
+    xmlio_set_world_value(gr, attrs, AStrMin, g->w.xg1);
+    xmlio_set_world_value(gr, attrs, AStrMax, g->w.xg2);
     attributes_set_sval(attrs, AStrType, scale_types(g->xscale));
     attributes_set_bval(attrs, AStrInvert, g->xinvert);
     xfile_empty_element(xf, EStrXscale, attrs);
     attributes_reset(attrs);
-    xmlio_set_world_value(attrs, AStrMin, g->w.yg1);
-    xmlio_set_world_value(attrs, AStrMax, g->w.yg2);
+    xmlio_set_world_value(gr, attrs, AStrMin, g->w.yg1);
+    xmlio_set_world_value(gr, attrs, AStrMax, g->w.yg2);
     attributes_set_sval(attrs, AStrType, scale_types(g->yscale));
     attributes_set_bval(attrs, AStrInvert, g->yinvert);
     xfile_empty_element(xf, EStrYscale, attrs);
@@ -578,7 +577,7 @@ int save_set_properties(XFile *xf, Quark *pset)
 
     attributes_reset(attrs);
     xmlio_set_active(attrs, p->errbar.active);
-    xmlio_set_side_placement(grace->rt, attrs, p->errbar.ptype);
+    xmlio_set_side_placement(pset->grace->rt, attrs, p->errbar.ptype);
     xfile_begin_element(xf, EStrErrorbar, attrs);
     {
         attributes_reset(attrs);
@@ -642,7 +641,7 @@ static int save_dataset(XFile *xf, Quark *pset)
         attributes_reset(attrs);
         for (nc = 0; nc < data->ncols; nc++) {
             if (data->ex[nc]) {
-                xmlio_set_world_value(attrs,
+                xmlio_set_world_value(pset, attrs,
                     dataset_colname(nc), data->ex[nc][i]);
             }
         }
@@ -734,7 +733,7 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrDefinitions, NULL);
         {
             xfile_comment(xf, "Color map");
-            save_colormap(xf, grace->rt->canvas);
+            save_colormap(xf, q->grace->rt->canvas);
             xfile_comment(xf, "Font map");
             save_fontmap(xf, pr);
         }
@@ -752,7 +751,7 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrDataFormats, NULL);
         {
             attributes_reset(attrs);
-            xmlio_set_world_value(attrs, AStrReference, pr->ref_date);
+            xmlio_set_world_value(q, attrs, AStrReference, pr->ref_date);
             attributes_set_bval(attrs, AStrWrap, pr->two_digits_years);
             attributes_set_ival(attrs, AStrWrapYear, pr->wrap_year);
             xfile_empty_element(xf, EStrDates, attrs);
@@ -800,7 +799,7 @@ static int project_save_hook(Quark *q,
         
         attributes_set_sval(attrs, AStrId, QIDSTR(q));
         xmlio_set_active(attrs, p->active);
-        attributes_set_sval(attrs, AStrType, set_types(grace->rt, p->type));
+        attributes_set_sval(attrs, AStrType, set_types(q->grace->rt, p->type));
         attributes_set_ival(attrs, AStrSkip, p->symskip);
         xfile_begin_element(xf, EStrSet, attrs);
         {
@@ -818,7 +817,7 @@ static int project_save_hook(Quark *q,
         attributes_set_sval(attrs, AStrType, axis_is_x(q) ? "x":"y");
         xmlio_set_active(attrs, t->active);
         xfile_begin_element(xf, EStrAxis, attrs);
-        save_axis_properties(xf, t);
+        save_axis_properties(xf, q);
         xfile_end_element(xf, EStrAxis);
         
         break;
@@ -833,7 +832,7 @@ static int project_save_hook(Quark *q,
         xfile_begin_element(xf, EStrObject, attrs);
         {
             char buf[32];
-            xmlio_write_location(xf, attrs, object_get_loctype(q), o->ap.x, o->ap.y);
+            xmlio_write_location(q, xf, attrs, object_get_loctype(q), o->ap.x, o->ap.y);
             xmlio_write_line_spec(xf, attrs,
                 &(o->line.pen), o->line.width, o->line.style);
             xmlio_write_fill_spec(xf, attrs, &(o->fillpen));
@@ -905,13 +904,15 @@ static int project_save_hook(Quark *q,
 }
 
 
-int save_project(char *fn)
+int save_project(Quark *project, char *fn)
 {
+    FILE *fp;
     XFile *xf;
     Attributes *attrs;
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(project);
     
-    xf = xfile_new(fn);
+    fp = grace_openw(project->grace, fn);
+    xf = xfile_new(fp);
     attrs = attributes_new();
     
     if (xf == NULL || attrs == NULL) {
@@ -924,7 +925,7 @@ int save_project(char *fn)
     attributes_set_ival(attrs, AStrVersion, bi_version_id());
     xfile_begin(xf, FALSE, NULL, "grace.dtd", EStrGrace, attrs);
 
-    quark_traverse(grace->project, project_save_hook, xf);
+    quark_traverse(project, project_save_hook, xf);
         
     attributes_free(attrs);
     
@@ -933,8 +934,8 @@ int save_project(char *fn)
     
     pr->docname = copy_string(pr->docname, fn);
 
-    quark_dirtystate_set(grace->project, FALSE);
-    update_app_title(grace->project);
+    quark_dirtystate_set(project, FALSE);
+    update_app_title(project);
     
     return RETURN_SUCCESS;
 }

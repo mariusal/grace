@@ -65,9 +65,9 @@ int realloc_ss_data(ss_data *ssd, int nrows);
 void free_ss_data(ss_data *ssd);
 int init_ss_data(ss_data *ssd, int ncols, int *formats, const  char *label);
 
-int parse_ss_row(const char *s, int *nncols, int *nscols, int **formats);
-int insert_data_row(ss_data *ssd, int row, char *s);
-int store_data(ss_data *ssd, int load_type);
+int parse_ss_row(Quark *pr, const char *s, int *nncols, int *nscols, int **formats);
+int insert_data_row(Quark *pr, ss_data *ssd, int row, char *s);
+int store_data(Quark *pr, ss_data *ssd, int load_type);
 
 int create_set_fromblock(Quark *pset,
     int type, int nc, int *coli, int scol, int autoscale);

@@ -39,13 +39,11 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "globals.h"
+#include "grace/canvas.h"
+
 #include "utils.h"
 #include "files.h"
 #include "graphs.h"
-#include "graphutils.h"
-#include "grace/canvas.h"
-#include "objutils.h"
 #include "plotone.h"
 #include "protos.h"
 
@@ -56,7 +54,17 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
     
     switch (q->fid) {
     case QFlavorProject:
-        set_draw_mode(canvas, TRUE);   
+        if (!closure->post) {
+            plot_rt->saveg = graph_get_current(q);
+
+            set_draw_mode(canvas, TRUE);   
+            
+            closure->post = TRUE;
+        } else {
+            if (graph_get_current(q) != plot_rt->saveg) {
+                select_graph(plot_rt->saveg);
+            }
+        }
         break;
     case QFlavorFrame:
         if (!frame_is_active(q)) {
@@ -82,8 +90,6 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
             plot_rt->refx = NULL;
             plot_rt->refy = NULL;
 
-            plot_rt->saveg = graph_get_current(grace->project);
-
             select_graph(q);
 
             if (draw_graph(q, plot_rt) != RETURN_SUCCESS) {
@@ -97,10 +103,6 @@ static int plotone_hook(Quark *q, void *udata, QTraverseClosure *closure)
             /* mark the reference points only if in interactive mode */
             if (terminal_device(plot_rt->canvas) == TRUE) {
                 draw_ref_point(plot_rt->canvas, q);
-            }
-
-            if (graph_get_current(grace->project) != plot_rt->saveg) {
-                select_graph(plot_rt->saveg);
             }
         }
         break;
@@ -178,7 +180,7 @@ void do_hardcopy(Grace *grace)
         strcat(fname, ".prn");
     }
     
-    prstream = grace_openw(fname);
+    prstream = grace_openw(grace, fname);
     if (prstream == NULL) {
         return;
     }

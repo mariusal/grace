@@ -37,13 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "globals.h"
-
-#include "graphs.h"
 #include "grace/canvas.h"
-#include "utils.h"
 #include "objutils.h"
-#include "protos.h"
 
 static int object_odata_size(OType type)
 {

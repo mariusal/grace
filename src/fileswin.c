@@ -85,7 +85,7 @@ void create_saveproject_popup(void)
  */
 static int save_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    if (save_project(filename) == RETURN_SUCCESS) {
+    if (save_project(grace->project, filename) == RETURN_SUCCESS) {
         return TRUE;
     } else {
         return FALSE;
@@ -113,7 +113,7 @@ void create_openproject_popup(void)
  */
 static int open_proc(FSBStructure *fsb, char *filename, void *data)
 {
-    if (load_project(filename) == RETURN_SUCCESS) {
+    if (load_project(grace, filename) == RETURN_SUCCESS) {
         update_all();
         xdrawgraph();
         return TRUE;
@@ -219,7 +219,7 @@ static int read_sets_proc(FSBStructure *fsb, char *filename, void *data)
         grace->rt->autoscale_onread = GetOptionChoice(gui->auto_item);
         set_date_hint(GetOptionChoice(gui->datehint));
         
-        getdata(gr, filename, grace->rt->cursource, load);
+        getdata(grace, gr, filename, grace->rt->cursource, load);
 
 	if (load == LOAD_BLOCK) {
             create_eblock_frame(gr);
@@ -300,7 +300,7 @@ static int write_sets_proc(FSBStructure *fsb, char *filename, void *data)
     char format[32];
     FILE *cp;
     
-    cp = grace_openw(filename);
+    cp = grace_openw(grace, filename);
     if (cp == NULL) {
         return FALSE;
     }

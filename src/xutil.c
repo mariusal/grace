@@ -343,7 +343,7 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
     XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
 #if defined(DEBUG)
-    if (get_debuglevel() == 7) {
+    if (get_debuglevel(grace) == 7) {
 	printf("Call to expose_resize(); reason == %d\n", cbs->reason);
     }
 #endif
@@ -358,11 +358,11 @@ void expose_resize(Widget w, XtPointer client_data, XtPointer call_data)
 	inc++;
         
 	if (batchfile[0]) {
-            getparms(batchfile);
+            getparms(grace, batchfile);
 	}
 	
 	if (inpipe == TRUE) {
-	    getdata(graph_get_current(grace->project), "stdin", SOURCE_DISK, LOAD_SINGLE);
+	    getdata(grace, graph_get_current(grace->project), "stdin", SOURCE_DISK, LOAD_SINGLE);
 	    inpipe = FALSE;
 	}
 
@@ -438,7 +438,7 @@ static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
 {
     set_wait_cursor();
     
-    monitor_input((Input_buffer *) ib, 1, 1);
+    monitor_input(grace, (Input_buffer *) ib, 1, 1);
     
     unset_wait_cursor();
 }

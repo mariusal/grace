@@ -145,11 +145,11 @@ void update_props_items(void)
     if (props_frame) {
         GUI *gui = grace->gui;
 #ifdef DEBUG
-	if (get_debuglevel() > 8) {
+	if (get_debuglevel(grace) > 8) {
 	    errwin("Debug level > 8, resetting to 0");
-	    set_debuglevel(0);
+	    set_debuglevel(grace, 0);
 	}
-	SetSpinChoice(debug_item, (double) get_debuglevel());
+	SetSpinChoice(debug_item, (double) get_debuglevel(grace));
 #endif
 	SetToggleButtonState(noask_item, gui->noask);
 	SetToggleButtonState(dc_item, gui->allow_dc);
@@ -184,7 +184,7 @@ static int props_define_notify_proc(void *data)
     GUI *gui = grace->gui;
     
 #ifdef DEBUG
-    set_debuglevel((int) GetSpinChoice(debug_item));
+    set_debuglevel(grace, (int) GetSpinChoice(debug_item));
 #endif
     gui->noask = GetToggleButtonState(noask_item);
     gui->allow_dc = GetToggleButtonState(dc_item);

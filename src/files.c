@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -53,7 +53,6 @@
 #  include <netcdf.h>
 #endif
 
-#include "globals.h"
 #include "grace.h"
 #include "utils.h"
 #include "dicts.h"
@@ -85,22 +84,22 @@ char *close_input;		/* name of real-time input to close */
 
 struct timeval read_begin = {0l, 0l};	/* used to check too long inputs */
 
-static Input_buffer dummy_ib = {-1, 0, 0, 0, 0, NULL, 0, 0, NULL, 0l};
+static Input_buffer dummy_ib = {-1, 0, 0, 0, 0, 0, NULL, 0, 0, NULL, 0l};
 
 int nb_rt = 0;		        /* number of real time file descriptors */
 Input_buffer *ib_tbl = 0;	/* table for each open input */
 int ib_tblsize = 0;		/* number of elements in ib_tbl */
 
 static int time_spent(void);
-static int expand_ib_tbl(void);
+static int expand_ib_tbl(int delay);
 static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
-static int reopen_real_time_input(Input_buffer *ib);
+static int reopen_real_time_input(Grace *gr, Input_buffer *ib);
 static int read_real_time_lines(Input_buffer *ib);
 static int process_complete_lines(Input_buffer *ib);
 
 static int read_long_line(FILE *fp, char **linebuf, int *buflen);
 
-static int uniread(FILE *fp, int load_type, char *label);
+static int uniread(Quark *pr, FILE *fp, int load_type, char *label);
 
 /*
  * part of the time sliced already spent in milliseconds
@@ -120,7 +119,7 @@ static int time_spent(void)
 /*
  * expand the table of monitored real time inputs
  */
-static int expand_ib_tbl(void)
+static int expand_ib_tbl(int delay)
 {
     int i, new_size;
     Input_buffer *new_tbl;
@@ -133,6 +132,7 @@ static int expand_ib_tbl(void)
 
     for (i = 0; i < new_size; i++) {
         new_tbl[i] = (i < ib_tblsize) ? ib_tbl[i] : dummy_ib;
+        new_tbl[i].delay = delay;
     }
 
     if (ib_tblsize > 0) {
@@ -142,7 +142,6 @@ static int expand_ib_tbl(void)
     ib_tblsize = new_size;
 
     return RETURN_SUCCESS;
-
 }
 
 
@@ -184,7 +183,7 @@ static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
 /*
  * reopen an Input_buffer (surely a fifo)
  */
-static int reopen_real_time_input(Input_buffer *ib)
+static int reopen_real_time_input(Grace *grace, Input_buffer *ib)
 {
     int fd;
     char buf[256];
@@ -253,7 +252,7 @@ void unregister_real_time_input(const char *name)
 /*
  * register a file descriptor for monitoring
  */
-int register_real_time_input(int fd, const char *name, int reopen)
+int register_real_time_input(Grace *grace, int fd, const char *name, int reopen)
 {
     Input_buffer *ib;
     char buf[256];
@@ -292,7 +291,7 @@ int register_real_time_input(int fd, const char *name, int reopen)
     if (ib == ib_tbl + ib_tblsize) {
         /* the table was full, we expand it */
         int old_size = ib_tblsize;
-        if (expand_ib_tbl() != RETURN_SUCCESS) {
+        if (expand_ib_tbl(grace->rt->timer_delay) != RETURN_SUCCESS) {
             return RETURN_FAILURE;
         }
         ib = ib_tbl + old_size;
@@ -466,7 +465,7 @@ int real_time_under_monitoring(void)
 /*
  * monitor the set of registered file descriptors for pending input
  */
-int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
+int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait)
 {
 
     Input_buffer *ib;
@@ -480,7 +479,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
     gettimeofday(&read_begin, NULL);
     first_time    = 1;
     retsel        = 1;
-    while (((time_spent() < grace->rt->timer_delay) || first_time) && retsel > 0) {
+    while (((time_spent() < tbl->delay) || first_time) && retsel > 0) {
 
         /* register all the monitored descriptors */
         highest = -1;
@@ -504,7 +503,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
             remaining = 0;
         } else {
             /* wait until data or end of time slice arrive */
-            remaining = grace->rt->timer_delay - time_spent();
+            remaining = tbl->delay - time_spent();
             if (remaining < 0) {
                 remaining = 0;
             }
@@ -514,7 +513,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
         retsel = select(highest + 1, &rfds, NULL, NULL, &timeout);
 
         for (ib = tbl;
-             ((time_spent() < grace->rt->timer_delay) || first_time) && ib < tbl + tblsize;
+             ((time_spent() < tbl->delay) || first_time) && ib < tbl + tblsize;
              ib++) {
             if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
                 /* there is pending input */
@@ -530,7 +529,7 @@ int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
                     if (ib->reopen) {
                         /* we should reset the input buffer, in case
                            the peer also reopens it */
-                        if (reopen_real_time_input(ib) != RETURN_SUCCESS) {
+                        if (reopen_real_time_input(grace, ib) != RETURN_SUCCESS) {
                             return RETURN_FAILURE;
                         }
                     } else {
@@ -594,7 +593,7 @@ static int read_long_line(FILE * fp, char **linebuf, int *buflen)
 
 
 /* open a file for write */
-FILE *grace_openw(char *fn)
+FILE *grace_openw(Grace *grace, char *fn)
 {
     struct stat statb;
     char buf[GR_MAXPATHLEN + 50];
@@ -619,7 +618,7 @@ FILE *grace_openw(char *fn)
 	        return NULL;
             }
         }
-        retval = filter_write(fn);
+        retval = filter_write(grace, fn);
         if (!retval) {
 	    sprintf(buf, "Can't write to file %s, check permissions!", fn);
             errmsg(buf);
@@ -628,7 +627,7 @@ FILE *grace_openw(char *fn)
     }
 }
 
-char *grace_path(char *fn)
+char *grace_path(Grace *grace, char *fn)
 {
     static char buf[GR_MAXPATHLEN];
     struct stat statb;
@@ -694,7 +693,7 @@ char *grace_path(char *fn)
     }
 }
 
-char *grace_path2(const char *prefix, char *fn)
+char *grace_path2(Grace *grace, const char *prefix, char *fn)
 {
     char *s, *bufp;
     
@@ -709,14 +708,14 @@ char *grace_path2(const char *prefix, char *fn)
     
     s = concat_strings(s, fn);
     
-    bufp = grace_path(s);
+    bufp = grace_path(grace, s);
     
     xfree(s);
     
     return bufp;
 }
 
-char *grace_exe_path(char *fn)
+char *grace_exe_path(Grace *grace, char *fn)
 {
     static char buf[GR_MAXPATHLEN];
     char *cp;
@@ -726,11 +725,11 @@ char *grace_exe_path(char *fn)
     } else {
         cp = strchr(fn, ' ');
         if (cp == NULL) {
-            return exe_path_translate(grace_path(fn));
+            return exe_path_translate(grace_path(grace, fn));
         } else {
             strcpy(buf, fn);
             buf[cp - fn] = '\0';
-            strcpy(buf, grace_path(buf));
+            strcpy(buf, grace_path(grace, buf));
             strcat(buf, " ");
             strcat(buf, cp);
             return exe_path_translate(buf);
@@ -739,7 +738,7 @@ char *grace_exe_path(char *fn)
 }
 
 /* open a file for read */
-FILE *grace_openr(char *fn, int src)
+FILE *grace_openr(Grace *grace, char *fn, int src)
 {
     struct stat statb;
     char *tfn;
@@ -751,7 +750,7 @@ FILE *grace_openr(char *fn, int src)
     }
     switch (src) {
     case SOURCE_DISK:
-        tfn = grace_path(fn);
+        tfn = grace_path(grace, fn);
 	if (strcmp(tfn, "-") == 0 || strcmp(tfn, "stdin") == 0) {
             return stdin;
 	} else if (stat(tfn, &statb)) {
@@ -764,11 +763,11 @@ FILE *grace_openr(char *fn, int src)
             errmsg(buf);
 	    return NULL;
         } else {
-            return filter_read(tfn);
+            return filter_read(grace, tfn);
 	}
         break;
     case SOURCE_PIPE:
-        tfn = grace_exe_path(fn);
+        tfn = grace_exe_path(grace, fn);
 	return popen(tfn, "r");
 	break;
     default:
@@ -791,14 +790,14 @@ void grace_close(FILE *fp)
     }
 }
 
-int getparms(char *plfile)
+int getparms(Grace *grace, char *plfile)
 {
     int linecount = 0, errcnt = 0;
     char *linebuf=NULL;
     int linelen=0;
     FILE *pp;
 
-    if ((pp = grace_openr(plfile, SOURCE_DISK)) == NULL) {
+    if ((pp = grace_openr(grace, plfile, SOURCE_DISK)) == NULL) {
         return 0;
     } else {
         errcnt = 0;
@@ -827,7 +826,7 @@ int getparms(char *plfile)
     return 1;
 }
 
-static int uniread(FILE *fp, int load_type, char *label)
+static int uniread(Quark *pr, FILE *fp, int load_type, char *label)
 {
     int nrows, ncols, nncols, nscols, nncols_req;
     int *formats = NULL;
@@ -864,7 +863,7 @@ static int uniread(FILE *fp, int load_type, char *label)
                 realloc_ss_data(&ssd, nrows);
 
                 /* store accumulated data in set(s) */
-                if (store_data(&ssd, load_type) != RETURN_SUCCESS) {
+                if (store_data(pr, &ssd, load_type) != RETURN_SUCCESS) {
 		    xfree(linebuf);
                     return RETURN_FAILURE;
                 }
@@ -882,14 +881,14 @@ static int uniread(FILE *fp, int load_type, char *label)
 	    if (breakon) {
 		/* parse the data line */
                 XCFREE(formats);
-                if (parse_ss_row(s, &nncols, &nscols, &formats) != RETURN_SUCCESS) {
+                if (parse_ss_row(pr, s, &nncols, &nscols, &formats) != RETURN_SUCCESS) {
 		    errmsg("Can't parse data");
 		    xfree(linebuf);
 		    return RETURN_FAILURE;
                 }
                 
                 if (load_type == LOAD_SINGLE) {
-                    nncols_req = settype_cols(grace->rt->curtype);
+                    nncols_req = settype_cols(pr->grace->rt->curtype);
                     if (nncols_req <= nncols) {
                         nncols = nncols_req;
                     } else if (nncols_req == nncols + 1) {
@@ -923,7 +922,7 @@ static int uniread(FILE *fp, int load_type, char *label)
 		}
 	    }
 
-            if (insert_data_row(&ssd, nrows, s) != RETURN_SUCCESS) {
+            if (insert_data_row(pr, &ssd, nrows, s) != RETURN_SUCCESS) {
                 sprintf(tbuf, "Error parsing line %d, skipped", linecount);
                 errmsg(tbuf);
                 readerror++;
@@ -947,7 +946,7 @@ static int uniread(FILE *fp, int load_type, char *label)
         realloc_ss_data(&ssd, nrows);
 
         /* store accumulated data in set(s) */
-        if (store_data(&ssd, load_type) != RETURN_SUCCESS) {
+        if (store_data(pr, &ssd, load_type) != RETURN_SUCCESS) {
 	    xfree(linebuf);
 	    return RETURN_FAILURE;
         }
@@ -959,35 +958,36 @@ static int uniread(FILE *fp, int load_type, char *label)
 }
 
 
-int getdata(Quark *gr, char *fn, int src, int load_type)
+int getdata(Grace *grace, Quark *gr, char *fn, int src, int load_type)
 {
     FILE *fp;
     int retval;
     int save_version, cur_version;
+    Quark *pr = grace->project;
 
-    fp = grace_openr(fn, src);
+    fp = grace_openr(grace, fn, src);
     if (fp == NULL) {
 	return RETURN_FAILURE;
     }
     
-    save_version = project_get_version_id(grace->project);
-    project_set_version_id(grace->project, 0);
+    save_version = project_get_version_id(pr);
+    project_set_version_id(pr, 0);
 
     set_parser_gno(gr);
     
-    retval = uniread(fp, load_type, fn);
+    retval = uniread(pr, fp, load_type, fn);
 
     grace_close(fp);
     
-    cur_version = project_get_version_id(grace->project);
+    cur_version = project_get_version_id(pr);
     if (cur_version != 0) {
         /* a complete project */
-        project_postprocess(grace->project);
+        project_postprocess(pr);
     } else if (load_type != LOAD_BLOCK) {
         /* just a few sets */
         autoscale_graph(gr, grace->rt->autoscale_onread);
     }
-    project_set_version_id(grace->project, save_version);
+    project_set_version_id(pr, save_version);
 
     return retval;
 }
@@ -1008,11 +1008,11 @@ int update_set_from_file(Quark *pset)
     } else {
         FILE *fp;
         
-        fp = grace_openr(dsp->hotfile, dsp->hotsrc);
+        fp = grace_openr(pset->grace, dsp->hotfile, dsp->hotsrc);
         
         killsetdata(pset);
-        grace->rt->curtype = dataset_type(pset);
-        retval = uniread(fp, LOAD_SINGLE, dsp->hotfile);
+        pset->grace->rt->curtype = dataset_type(pset);
+        retval = uniread(get_parent_project(pset), fp, LOAD_SINGLE, dsp->hotfile);
 
         grace_close(fp);
     }
@@ -1025,7 +1025,7 @@ void outputset(Quark *pset, char *fname, char *dformat)
 {
     FILE *cp;
     
-    if ((cp = grace_openw(fname)) == NULL) {
+    if ((cp = grace_openw(pset->grace, fname)) == NULL) {
 	return;
     } else {
         write_set(pset, cp, dformat);
@@ -1055,7 +1055,7 @@ int write_set(Quark *pset, FILE *cp, char *format)
         s = get_set_strings(pset);
 
         if (format == NULL) {
-            format = project_get_sformat(grace->project);
+            format = project_get_sformat(get_parent_project(pset));
         }
         
         for (i = 0; i < n; i++) {
@@ -1076,9 +1076,21 @@ int write_set(Quark *pset, FILE *cp, char *format)
     return RETURN_SUCCESS;
 }
 
-extern int load_xgr_project(char *fn);
+extern int load_xgr_project(Grace *grace, char *fn);
 
-int load_project_file(char *fn, int as_template)
+int load_agr_project(Grace *grace, char *fn)
+{
+    quark_free(grace->project);
+    grace->project = project_new(grace);
+
+    grace->rt->print_file[0] = '\0';
+    grace->rt->curtype = SET_XY;
+
+    parser_state_reset();
+    return getdata(grace, NULL, fn, SOURCE_DISK, LOAD_SINGLE);
+}
+
+int load_project_file(Grace *grace, char *fn, int as_template)
 {    
     Quark *gr;
     int retval;
@@ -1092,11 +1104,9 @@ int load_project_file(char *fn, int as_template)
     
     /* A temporary hack */
     if (fn && strstr(fn, ".xgr")) {
-        retval = load_xgr_project(fn);
+        retval = load_xgr_project(grace, fn);
     } else {
-        wipeout();
-	parser_state_reset();
-        retval = getdata(0, fn, SOURCE_DISK, LOAD_SINGLE);
+        retval = load_agr_project(grace, fn);
     }
 
     if (retval == RETURN_SUCCESS) {
@@ -1111,7 +1121,7 @@ int load_project_file(char *fn, int as_template)
         }
         
         /* Set timestamp */
-        tfn = grace_path(fn);
+        tfn = grace_path(grace, fn);
         if (tfn && !stat(tfn, &statb)) {
             mtime = statb.st_mtime;
         } else {
@@ -1119,7 +1129,7 @@ int load_project_file(char *fn, int as_template)
             time(&mtime);
         }
 
-        update_timestamp(&mtime);
+        update_timestamp(grace->project, &mtime);
 
         strcpy(buf, mybasename(fn)); 
         bufp = strrchr(buf, '.');
@@ -1149,27 +1159,27 @@ int load_project_file(char *fn, int as_template)
     return retval;
 }
 
-int load_project(char *fn)
+int load_project(Grace *grace, char *fn)
 {
-    return load_project_file(fn, FALSE);
+    return load_project_file(grace, fn, FALSE);
 }
 
-int new_project(char *template)
+int new_project(Grace *grace, char *template)
 {
     int retval;
     char *s;
     
     if (is_empty_string(template)) {
-        retval = load_project_file("templates/Default.agr", TRUE);
+        retval = load_project_file(grace, "templates/Default.agr", TRUE);
     } else if (template[0] == '/') {
-        retval = load_project_file(template, TRUE);
+        retval = load_project_file(grace, template, TRUE);
     } else {
         s = xmalloc(strlen("templates/") + strlen(template) + 1);
         if (s == NULL) {
             retval = RETURN_FAILURE;
         } else {
             sprintf(s, "templates/%s", template);
-            retval = load_project_file(s, TRUE);
+            retval = load_project_file(grace, s, TRUE);
             xfree(s);
         }
     }
@@ -1429,12 +1439,12 @@ int readnetcdf(Quark *pset,
     sprintf(buf, "File %s x = %s y = %s", netcdfname, xvar == NULL ? "Index" : xvar, yvar);
     setcomment(pset, buf);
     
-    autoscale_graph(gr, grace->rt->autoscale_onread);
+    autoscale_graph(gr, gr->grace->rt->autoscale_onread);
     
     return 1;
 }
 
-int write_netcdf(char *fname)
+int write_netcdf(Quark *pr, char *fname)
 {
     Quark **graphs;
     int i, ngraphs;
@@ -1452,7 +1462,7 @@ int write_netcdf(char *fname)
     double *x, *y, x1, x2, y1, y2;
     ncid = nccreate(fname, NC_CLOBBER);
     ncattput(ncid, NC_GLOBAL, "Contents", NC_CHAR, 11, (void *) "grace sets");
-    ngraphs = project_get_graphs(grace->project, &graphs);
+    ngraphs = project_get_graphs(pr, &graphs);
     for (i = 0; i < ngraphs; i++) {
         gr = graphs[i];
         if (gr) {
@@ -1468,7 +1478,7 @@ int write_netcdf(char *fname)
 		    strlen(getcomment(pset)), (void *) getcomment(pset));
 
 		    sprintf(buf, "type");
-		    strcpy(s, set_types(grace->rt, dataset_type(pset)));
+		    strcpy(s, set_types(pr->grace->rt, dataset_type(pset)));
 		    ncattput(ncid, NC_GLOBAL, buf, NC_CHAR, strlen(s), (void *) s);
 
 		    sprintf(buf, "n");

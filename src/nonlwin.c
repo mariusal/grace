@@ -693,7 +693,7 @@ static int do_savefit_proc(FSBStructure *fsb, char *filename, void *data)
     FILE *pp;
     /* Widget title_item = (Widget) data; */
     
-    pp = grace_openw(filename);
+    pp = grace_openw(grace, filename);
     if (pp != NULL) {
 #if 0
         nlfit.title = copy_string(nlfit.title, xv_getstr(title_item));

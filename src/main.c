@@ -179,10 +179,10 @@ int main(int argc, char *argv[])
     set_locale_num(FALSE);
     
     /* load startup file */
-    getparms("gracerc");
+    getparms(grace, "gracerc");
 
     /* load default template */
-    new_project(NULL);
+    new_project(grace, NULL);
     
     cur_graph = graph_get_current(grace->project);
 
@@ -199,8 +199,8 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing argument for debug flag\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    set_debuglevel(atoi(argv[i]));
-		    if (get_debuglevel() == 4) { 
+		    set_debuglevel(grace, atoi(argv[i]));
+		    if (get_debuglevel(grace) == 4) { 
 			/* turn on debugging in pars.y */
 			yydebug = TRUE;
 		    }
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 		} else {
                     fd = atoi(argv[i]);
                     sprintf(fd_name, "pipe<%d>", fd);
-                    if (register_real_time_input(fd, fd_name, FALSE) !=
+                    if (register_real_time_input(grace, fd, fd_name, FALSE) !=
                         RETURN_SUCCESS) {
                         exit(1);
                     }
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
                     if (fd < 0) {
                         fprintf(stderr, "Can't open fifo\n");
                     } else {
-                        if (register_real_time_input(fd, argv[i], TRUE) !=
+                        if (register_real_time_input(grace, fd, argv[i], TRUE) !=
                             RETURN_SUCCESS) {
                             exit(1);
                         }
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for block data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    getdata(cur_graph, argv[i], rt->cursource, LOAD_BLOCK);
+		    getdata(grace, cur_graph, argv[i], rt->cursource, LOAD_BLOCK);
 		}
 	    } else if (argmatch(argv[i], "-bxy", 4)) {
 		i++;
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing filename for nxy data\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    getdata(cur_graph, argv[i], rt->cursource, LOAD_NXY);
+		    getdata(grace, cur_graph, argv[i], rt->cursource, LOAD_NXY);
 		}
 	    } else if (argmatch(argv[i], "-type", 2) ||
                        argmatch(argv[i], "-settype", 8)) {
@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing parameter file name\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    if (!getparms(argv[i])) {
+		    if (!getparms(grace, argv[i])) {
 			fprintf(stderr, "Unable to read parameter file %s\n", argv[i]);
 		    }
 		}
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
 		    usage(stderr, argv[0]);
 		} else {
                     /*  open resfile if -results option given */
-		    if ((rt->resfp = grace_openw(argv[i])) == NULL) {
+		    if ((rt->resfp = grace_openw(grace, argv[i])) == NULL) {
 		        exit(1);
 		    }
 		    setvbuf(rt->resfp, NULL, _IOLBF, 0);
@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
 		    fprintf(stderr, "Missing save file name\n");
 		    usage(stderr, argv[0]);
 		} else {
-		    save_project(argv[i]);
+		    save_project(grace->project, argv[i]);
 		}
 	    } else if (argmatch(argv[i], "-wd", 3)) {
 		i++;
@@ -477,7 +477,7 @@ int main(int argc, char *argv[])
 		usage(stderr, argv[0]);
 	    }
 	} else {
-	    load_project(argv[i]);
+	    load_project(grace, argv[i]);
 	} /* end else */
     } /* end for */
     
@@ -498,14 +498,14 @@ int main(int argc, char *argv[])
 	    exit(1);
 	}
 	if (inpipe == TRUE) {
-            getdata(cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
+            getdata(grace, cur_graph, "stdin", SOURCE_DISK, LOAD_SINGLE);
 	    inpipe = FALSE;
 	}
 	if (batchfile[0]) {
-	    getparms(batchfile);
+	    getparms(grace, batchfile);
 	}
         while (real_time_under_monitoring()) {
-            monitor_input(ib_tbl, ib_tblsize, 0);
+            monitor_input(grace, ib_tbl, ib_tblsize, 0);
         }
 	if (!noprint) {
 	    do_hardcopy(grace);
@@ -539,14 +539,14 @@ void cli_loop(void)
     int previous = -1;
 
     if (inpipe == TRUE) {
-        getdata(0, "stdin", SOURCE_DISK, LOAD_SINGLE);
+        getdata(grace, NULL, "stdin", SOURCE_DISK, LOAD_SINGLE);
         inpipe = FALSE;
     }
     if (batchfile[0]) {
-        getparms(batchfile);
+        getparms(grace, batchfile);
     }
     
-    if (register_real_time_input(STDIN_FILENO, "stdin", 0)
+    if (register_real_time_input(grace, STDIN_FILENO, "stdin", 0)
         != RETURN_SUCCESS) {
         exit(1);
     }
@@ -561,7 +561,7 @@ void cli_loop(void)
             fflush(stdout);
             previous = ib_stdin->lineno;
         }
-        monitor_input(ib_tbl, ib_tblsize, 0);
+        monitor_input(grace, ib_tbl, ib_tblsize, 0);
     }
 
 }

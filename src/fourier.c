@@ -36,6 +36,7 @@
 #include <stdlib.h>
 
 #include "grace/baseP.h"
+#include "globals.h"
 #include "defines.h"
 #include "utils.h"
 #include "files.h"
@@ -59,7 +60,7 @@ static void save_wisdom(void){
     if (!initial_wisdom ||
         compare_strings(initial_wisdom, final_wisdom) != TRUE) {
         FILE *wf;
-        wf = grace_openw(wisdom_file);
+        wf = grace_openw(grace, wisdom_file);
         if (wf) {
             fftw_export_wisdom_to_file(wf);
             grace_close(wf);
@@ -93,7 +94,7 @@ static void init_wisdom(void)
             FILE *wf;
             fftw_status fstat;
             
-            wf = grace_openr(wisdom_file, SOURCE_DISK);
+            wf = grace_openr(grace, wisdom_file, SOURCE_DISK);
             if (wf) {
 	        fstat = fftw_import_wisdom_from_file(wf);
 	        grace_close(wf);

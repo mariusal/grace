@@ -37,7 +37,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "globals.h"
 #include "utils.h"
 #include "graphs.h"
 #include "objutils.h"
@@ -161,18 +160,6 @@ FormatType get_format_type_by_name(const char *name)
     }
     
     return FORMAT_BAD;
-}
-
-
-int wipeout(void)
-{
-    quark_free(grace->project);
-    grace->project = project_new(grace);
-    
-    grace->rt->print_file[0] = '\0';
-    grace->rt->curtype = SET_XY;
-    
-    return 0;
 }
 
 
@@ -482,19 +469,6 @@ static double nicenum(double x, int nrange, int round)
 }
 
 /*
- * set scroll amount
- */
-void scroll_proc(int value)
-{
-    grace->rt->scrollper = value / 100.0;
-}
-
-void scrollinout_proc(int value)
-{
-    grace->rt->shexper = value / 100.0;
-}
-
-/*
  * pan through world coordinates
  */
 int graph_scroll(Quark *gr, int type)
@@ -525,14 +499,14 @@ int graph_scroll(Quark *gr, int type)
         case GSCROLL_LEFT:
 	    dwc = -1.0;
 	case GSCROLL_RIGHT:    
-            dwc *= grace->rt->scrollper * (xmax - xmin);
+            dwc *= gr->grace->rt->scrollper * (xmax - xmin);
             xmin += dwc;
             xmax += dwc;
             break;
         case GSCROLL_DOWN:
 	    dwc = -1.0;
 	case GSCROLL_UP:    
-            dwc *= grace->rt->scrollper * (ymax - ymin);
+            dwc *= gr->grace->rt->scrollper * (ymax - ymin);
             ymin += dwc;
             ymax += dwc;
             break;
@@ -586,8 +560,8 @@ int graph_zoom(Quark *gr, int type)
 	    ymax = w.yg2;
 	}
 
-	dx = grace->rt->shexper * (xmax - xmin);
-	dy = grace->rt->shexper * (ymax - ymin);
+	dx = gr->grace->rt->shexper * (xmax - xmin);
+	dy = gr->grace->rt->shexper * (ymax - ymin);
 	if (type == GZOOM_SHRINK) {
 	    dx *= -1;
 	    dy *= -1;
@@ -636,6 +610,11 @@ int arrange_graphs(Quark **graphs, int ngraphs,
     view v;
     Quark *gr;
 
+    if (!graphs) {
+        return RETURN_FAILURE;
+    }
+    gr = graphs[0];
+    
     if (hpack) {
         hgap = 0.0;
     }
@@ -651,7 +630,7 @@ int arrange_graphs(Quark **graphs, int ngraphs,
         return RETURN_FAILURE;
     }
     
-    get_page_viewport(grace->rt->canvas, &pw, &ph);
+    get_page_viewport(gr->grace->rt->canvas, &pw, &ph);
     w = (pw - loff - roff)/(ncols + (ncols - 1)*hgap);
     h = (ph - toff - boff)/(nrows + (nrows - 1)*vgap);
     if (h <= 0.0 || w <= 0.0) {

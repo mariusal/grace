@@ -396,6 +396,7 @@ typedef struct {
 /* real time inputs */
 typedef struct _Input_buffer {
     int           fd;     /* file descriptor */
+    int           delay;  /* real-time input delay */
     int           errors; /* number of successive parse errors */
     int           lineno; /* line number */
     int           zeros;  /* number of successive reads of zero byte */

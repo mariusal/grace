@@ -34,7 +34,6 @@
 
 #include <config.h>
 
-#include "globals.h"
 #include "graphs.h"
 #include "utils.h"
 #include "parser.h"

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2002 Grace Development Team
+ * Copyright (c) 1996-2003 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -56,7 +56,7 @@
 #include "files.h"
 #include "protos.h"
 
-static void rereadConfig(void);
+static void rereadConfig(Grace *grace);
 static RETSIGTYPE actOnSignal(int signo);
 
 /*
@@ -230,9 +230,9 @@ void bailout(Grace *grace)
 /*
  * Reread config (TODO)
  */
-static void rereadConfig(void)
+static void rereadConfig(Grace *grace)
 {
-    getparms("gracerc");
+    getparms(grace, "gracerc");
 }
 
 static void please_report_the_bug(void)
@@ -277,7 +277,7 @@ void emergency_exit(Grace *grace, int is_my_bug, char *msg)
             fprintf(stderr, "Trying to save your work into file \"%s\"... ", buf);
             fflush(stderr);
             grace->gui->noask = TRUE;
-            if (save_project(buf) == RETURN_SUCCESS) {
+            if (save_project(grace->project, buf) == RETURN_SUCCESS) {
                 fprintf(stderr, "ok!\n");
             } else {
                 fprintf(stderr, "oh, no luck :-(\n");
@@ -303,7 +303,7 @@ static RETSIGTYPE actOnSignal(int signo)
     switch (signo) {
 #ifdef SIGHUP
     case SIGHUP:
-    	rereadConfig();
+    	rereadConfig(grace);
     	break;
 #endif
 #ifdef SIGINT
@@ -972,9 +972,9 @@ void echomsg(char *msg)
     stufftext("\n");
 }
 
-void update_timestamp(time_t *t)
+void update_timestamp(Quark *project, time_t *t)
 {
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(project);
     struct tm tm;
     time_t time_value;
     char *str;
@@ -996,9 +996,9 @@ void update_timestamp(time_t *t)
     pr->timestamp = copy_string(pr->timestamp, str);
 }
 
-char *get_timestamp(void)
+char *get_timestamp(Quark *project)
 {
-    Project *pr = project_get_data(grace->project);
+    Project *pr = project_get_data(project);
     return pr->timestamp;
 }
 
@@ -1007,7 +1007,6 @@ void update_app_title(Quark *q)
 #ifndef NONE_GUI
     if (q) {
         set_title(q);
-        update_explorer(q->grace->gui->eui, FALSE);
     }
 #endif
 }
@@ -1067,12 +1066,12 @@ void set_locale_num(int flag)
 }
 
 #ifdef DEBUG
-void set_debuglevel(int level)
+void set_debuglevel(Grace *grace, int level)
 {
     grace->rt->debuglevel = level;
 }
 
-int get_debuglevel(void)
+int get_debuglevel(Grace *grace)
 {
     return grace->rt->debuglevel;
 }

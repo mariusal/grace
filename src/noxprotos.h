@@ -84,9 +84,9 @@ int fmap_proc(const Canvas *canvas, int font);
 int init_font_db(Canvas *canvas);
 
 void unregister_real_time_input(const char *name);
-int register_real_time_input(int fd, const char *name, int reopen);
+int register_real_time_input(Grace *grace, int fd, const char *name, int reopen);
 int real_time_under_monitoring(void);
-int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
+int monitor_input(Grace *grace, Input_buffer *tbl, int tblsize, int no_wait);
 
 double comp_area(int n, double *x, double *y);
 double comp_perimeter(int n, double *x, double *y);

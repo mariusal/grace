@@ -35,6 +35,8 @@
 
 #include <stdio.h>
 
+#include "grace.h"
+
 /* data load types */
 #define LOAD_SINGLE 0
 #define LOAD_NXY    1
@@ -44,28 +46,28 @@ int add_io_filter( int type, int method, char *id, char *comm );
 int add_input_filter( int method, char *id, char *comm );
 int add_output_filter( int method, char *id, char *comm );
 void clear_io_filters( int f );
-FILE *filter_read( char *fn );
-FILE *filter_write(  char *fn );
+FILE *filter_read(Grace *grace, char *fn);
+FILE *filter_write(Grace *grace, char *fn);
 
-char *grace_path(char *fn);
-char *grace_path2(const char *prefix, char *fn);
-char *grace_exe_path(char *fn);
+char *grace_path(Grace *grace, char *fn);
+char *grace_path2(Grace *grace, const char *prefix, char *fn);
+char *grace_exe_path(Grace *grace, char *fn);
 
-FILE *grace_openw(char *fn);
-FILE *grace_openr(char *fn, int src);
+FILE *grace_openw(Grace *grace, char *fn);
+FILE *grace_openr(Grace *grace, char *fn, int src);
 void grace_close(FILE *fp);
 
-int getparms(char *plfile);
-int getdata(Quark *gr, char *fn, int src, int type);
+int getparms(Grace *grace, char *plfile);
+int getdata(Grace *grace, Quark *gr, char *fn, int src, int type);
 int update_set_from_file(Quark *pset);
 
 int readblockdata(Quark *gr, char *fn, FILE * fp);
 
-int load_project_file(char *fn, int as_template);
+int load_project_file(Grace *grace, char *fn, int as_template);
 
-int new_project(char *template);
-int load_project(char *fn);
-int save_project(char *fn);
+int new_project(Grace *grace, char *template);
+int load_project(Grace *grace, char *fn);
+int save_project(Quark *project, char *fn);
 
 int write_set(Quark *pset, FILE *cp, char *format);
 void outputset(Quark *pset, char *fname, char *dformat);
@@ -77,6 +79,6 @@ int readnetcdf(Quark *pset,
 	       int nstart,
 	       int nstop,
 	       int nstride);
-int write_netcdf(char *fname);
+int write_netcdf(Quark *pr, char *fname);
 
 #endif /* __FILES_H_ */
