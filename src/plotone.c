@@ -2083,7 +2083,8 @@ void draw_region(Canvas *canvas, Quark *q)
     while (vp.x <= v.xv2) {
         vp.y = v.yv1;
         while (vp.y <= v.yv2) {
-            if (Vpoint2Wpoint(q, &vp, &wp) && inregion(q, &wp)) {
+            if (Vpoint2Wpoint(q, &vp, &wp) == RETURN_SUCCESS &&
+                inregion(q, &wp)) {
                 DrawPixel(canvas, &vp);
             }
             vp.y += dv;
