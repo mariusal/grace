@@ -342,7 +342,8 @@ fi
 dnl **** Check for libgen
 AC_CHECK_LIB(gen, main)
 
-AC_CHECK_LIB(t1, T1_TransformMatrix, T1_LIB="-lt1";AC_DEFINE(HAVE_LIBT1))
+dnl **** Check for T1lib installed
+AC_CHECK_LIB(t1, T1_SetAfmFileName, T1_LIB="-lt1";AC_DEFINE(HAVE_LIBT1))
 
 if test -z "$T1_LIB"
 then
