@@ -95,7 +95,7 @@ if test "x${GCC}" = "xyes"
 then
   dnl **** some arch-specific optimizations/settings for gcc
   case "${host}" in
-    i?86-*-linux-*) CFLAGS="-m486 -malign-doubles $CFLAGS";;
+    i?86-*-linux-*) CFLAGS="-m486 -malign-double $CFLAGS";;
     i?86-*) CFLAGS="-m486 $CFLAGS";;
   esac
 
