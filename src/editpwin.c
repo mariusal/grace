@@ -497,7 +497,7 @@ void do_ext_editor(int gno, int setno)
         return;
     }
 
-    write_set(gno, setno, cp, sformat);
+    write_set(gno, setno, cp, sformat, FALSE);
     grace_close(cp);
 
     if ((s = getenv("GRACE_EDITOR")) != NULL) {

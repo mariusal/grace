@@ -1112,7 +1112,7 @@ static void do_write_sets_proc(Widget w, XtPointer client_data, XtPointer call_d
         set_wait_cursor();
         for(i = 0; i < cd; i++) {
             setno = selset[i];
-            write_set(gno, setno, cp, format);
+            write_set(gno, setno, cp, format, TRUE);
         }
         free(selset);
     }

@@ -55,7 +55,7 @@ void create_set_fromblock(int gno, int type, char *cols);
 
 int save_project(char *fn);
 
-int write_set(int gno, int setno, FILE *cp, char *format);
+int write_set(int gno, int setno, FILE *cp, char *format, int rawdata);
 void outputset(int gno, int setno, char *fname, char *dformat);
 
 int readnetcdf(int gno,

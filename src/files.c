@@ -1077,6 +1077,12 @@ void create_set_fromblock(int gno, int type, char *cols)
     double *tx, *ty, *t2, *t3, *t4;
     int nc, *coli;
     char *s, buf[256];
+
+    if (blockncols <= 0) {
+        errmsg("No block data read");
+        return;
+    }
+    
     strcpy(buf, cols);
     s = buf;
     c1 = c2 = c3 = c4 = nc = 0;
@@ -1274,7 +1280,7 @@ void outputset(int gno, int setno, char *fname, char *dformat)
     if ((cp = grace_openw(fname)) == NULL) {
 	return;
     } else {
-        write_set(gno, setno, cp, dformat);
+        write_set(gno, setno, cp, dformat, TRUE);
 	grace_close(cp);
     }
 }
@@ -1294,7 +1300,7 @@ int save_project(char *fn)
         for (setno = 0; setno < number_of_sets(gno); setno++) {
             if (is_set_active(gno, setno) == TRUE &&
                 is_set_hidden(gno, setno) == FALSE) {
-                write_set(gno, setno, cp, sformat);
+                write_set(gno, setno, cp, sformat, FALSE);
             }
         }
     }
@@ -1306,7 +1312,7 @@ int save_project(char *fn)
 /*
  * write out a set
  */
-int write_set(int gno, int setno, FILE *cp, char *format)
+int write_set(int gno, int setno, FILE *cp, char *format, int rawdata)
 {
     int i, n, ncols;
     double *x, *y, *dx, *dy, *dz;
@@ -1316,10 +1322,16 @@ int write_set(int gno, int setno, FILE *cp, char *format)
     if (cp == NULL) {
 	return GRACE_EXIT_FAILURE;
     }
+    
+    if (format == NULL) {
+        format = sformat;
+    }
 
     if (is_set_active(gno, setno) == TRUE) {
-        fprintf(cp, "@target G%d.S%d\n", gno, setno);
-        fprintf(cp, "@type %s\n", set_types(dataset_type(gno, setno)));
+        if (!rawdata) {
+            fprintf(cp, "@target G%d.S%d\n", gno, setno);
+            fprintf(cp, "@type %s\n", set_types(dataset_type(gno, setno)));
+        }
         x = getx(gno, setno);
         y = gety(gno, setno);
         n = getsetlength(gno, setno);
@@ -1372,7 +1384,11 @@ int write_set(int gno, int setno, FILE *cp, char *format)
                 break;
             }
         }
-        fprintf(cp, "&\n");
+        if (rawdata) {
+            fprintf(cp, "\n");
+        } else {
+            fprintf(cp, "&\n");
+        }
         free(format_string);
     }
     return GRACE_EXIT_SUCCESS;
