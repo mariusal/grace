@@ -1231,6 +1231,28 @@ int new_project(char *template)
 }
 
 #ifdef HAVE_NETCDF
+				
+/*  
+ * Read scaling attribute such ass add_offset or scale_factor 
+ * with default value
+*/
+
+double read_scale_attr(int cdfid, int varid, char *attrname, double default_value) {
+  double attribute;
+  int status;
+  nc_type attr_type;
+  size_t length;
+  status =  nc_inq_att(cdfid, varid, attrname, &attr_type, &length);
+  if((status!=NC_NOERR) || (length != 1)) {
+    return default_value;
+  }
+  status= nc_get_att_double (cdfid, varid, attrname, &attribute); 
+  if(status!=NC_NOERR) {
+    return default_value;
+  }
+  return attribute;
+}
+
 
 /*
  * read a variable from netcdf file into a set in graph gno
@@ -1255,6 +1277,7 @@ int readnetcdf(int gno,
     float *xf, *yf;
     short *xs, *ys;
     long *xl, *yl;
+    char *xb,*yb;
     char buf[256];
 
     /* variable ids */
@@ -1263,6 +1286,8 @@ int readnetcdf(int gno,
     /* variable shapes */
     long start[2];
     long count[2];
+    /* scaling attributes */
+    double scale_factor, add_offset;
 
     nc_type xdatatype = 0;
     nc_type ydatatype = 0;
@@ -1348,15 +1373,28 @@ int readnetcdf(int gno,
  * read the variables from the netcdf file
  */
     if (xvar != NULL) {
+      scale_factor = read_scale_attr(cdfid,x_id, "scale_factor", 1.0);
+      add_offset = read_scale_attr(cdfid,x_id, "add_offset", 0.0);
 /* TODO should check for other data types here */
 /* TODO should check for NULL on the xcallocs() */
 /* TODO making assumptions about the sizes of shorts and longs */
 	switch (xdatatype) {
+	case NC_BYTE:
+	    xb = xcalloc(n, 1);	
+	    /* Theoretically I should add macro to autoconf
+	     file to figure out sizeof(byte) 
+	    */
+	    ncvarget(cdfid, x_id, start, count, (void *) xb);
+	    for (i = 0; i < n; i++) {
+		x[i] = scale_factor*xb[i]+add_offset;
+	    }
+	    xfree(xb);
+	    break;
 	case NC_SHORT:
 	    xs = xcalloc(n, SIZEOF_SHORT);
 	    ncvarget(cdfid, x_id, start, count, (void *) xs);
 	    for (i = 0; i < n; i++) {
-		x[i] = xs[i];
+		x[i] = x[i] = scale_factor*xs[i]+add_offset;
 	    }
 	    xfree(xs);
 	    break;
@@ -1364,7 +1402,7 @@ int readnetcdf(int gno,
 	    xl = xcalloc(n, SIZEOF_LONG);
 	    ncvarget(cdfid, x_id, start, count, (void *) xl);
 	    for (i = 0; i < n; i++) {
-		x[i] = xl[i];
+		x[i] = scale_factor*xl[i]+add_offset;
 	    }
 	    xfree(xl);
 	    break;
@@ -1372,12 +1410,15 @@ int readnetcdf(int gno,
 	    xf = xcalloc(n, SIZEOF_FLOAT);
 	    ncvarget(cdfid, x_id, start, count, (void *) xf);
 	    for (i = 0; i < n; i++) {
-		x[i] = xf[i];
+		x[i] = scale_factor*xf[i]+add_offset;
 	    }
 	    xfree(xf);
 	    break;
 	case NC_DOUBLE:
 	    ncvarget(cdfid, x_id, start, count, (void *) x);
+	    for (i = 0; i < n; i++) {
+		x[i] = scale_factor*x[i]+add_offset;
+	    }
 	    break;
 	default:
 	    errmsg("Data type not supported");
@@ -1392,19 +1433,30 @@ int readnetcdf(int gno,
 	    x[i] = i + 1;
 	}
     }
+    scale_factor = read_scale_attr(cdfid,y_id, "scale_factor", 1.0);
+    add_offset = read_scale_attr(cdfid,y_id, "add_offset", 0.0);
     switch (ydatatype) {
+    case NC_BYTE:
+      yb = xcalloc(n, 1);	
+      ncvarget(cdfid, y_id, start, count, (void *) yb);
+      for (i = 0; i < n; i++) {
+	y[i] = scale_factor*yb[i]+add_offset;
+      }
+      xfree(yb);
+      break;
+
     case NC_SHORT:
 	ys = xcalloc(n, SIZEOF_SHORT);
 	ncvarget(cdfid, y_id, start, count, (void *) ys);
 	for (i = 0; i < n; i++) {
-	    y[i] = ys[i];
+	    y[i] = scale_factor*ys[i]+add_offset;
 	}
 	break;
     case NC_LONG:
 	yl = xcalloc(n, SIZEOF_LONG);
 	ncvarget(cdfid, y_id, start, count, (void *) yl);
 	for (i = 0; i < n; i++) {
-	    y[i] = yl[i];
+	    y[i] = scale_factor*yl[i]+add_offset;
 	}
 	break;
     case NC_FLOAT:
@@ -1412,12 +1464,15 @@ int readnetcdf(int gno,
 	yf = xcalloc(n, SIZEOF_FLOAT);
 	ncvarget(cdfid, y_id, start, count, (void *) yf);
 	for (i = 0; i < n; i++) {
-	    y[i] = yf[i];
+	    y[i] = scale_factor*yf[i]+add_offset;
 	}
 	xfree(yf);
 	break;
     case NC_DOUBLE:
 	ncvarget(cdfid, y_id, start, count, (void *) y);
+	for (i = 0; i < n; i++) {
+	    y[i] = scale_factor*y[i]+add_offset;
+	}
 	break;
     default:
 	errmsg("Data type not supported");
