@@ -128,7 +128,7 @@ static void sp_graph_cb(double a, void *data)
 {
     graphapp_aac_cb(data);
 }
-static void text_graph_cb(void *data)
+static void text_graph_cb(char *s, void *data)
 {
     graphapp_aac_cb(data);
 }

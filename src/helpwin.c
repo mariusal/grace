@@ -487,11 +487,9 @@ static XmImageInfo *loadImage(Widget w,
     return image;
 }
 
-void location_cb(void *data)
+void location_cb(const char *s, void *data)
 {
-    TextStructure *location = (TextStructure *) data;
-    char *url = GetTextString(location);
-    HelpCB(url);
+    HelpCB((void *) s);
 }
 
 void create_helper_frame(char *URL)

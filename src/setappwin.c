@@ -145,7 +145,7 @@ static void sp_setapp_cb(double a, void *data)
 {
     setapp_aac_cb(data);
 }
-static void text_setapp_cb(void *data)
+static void text_setapp_cb(char *s, void *data)
 {
     setapp_aac_cb(data);
 }

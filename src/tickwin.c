@@ -154,7 +154,7 @@ static void sp_axes_cb(double c, void *data)
 {
     axes_aac_cb(data);
 }
-static void text_axes_cb(void *data)
+static void text_axes_cb(char *s, void *data)
 {
     axes_aac_cb(data);
 }
