@@ -30,7 +30,6 @@ AC_SUBST(FFTW_LIB)
 AC_SUBST(Z_LIB)
 AC_SUBST(JPEG_LIB)
 AC_SUBST(PNG_LIB)
-AC_SUBST(TIFF_LIB)
 AC_SUBST(PDF_LIB)
 AC_SUBST(GRACE_EDITOR)
 AC_SUBST(XBAE_INC)
@@ -594,16 +593,10 @@ then
                        AC_MSG_RESULT(--> PNG backend is disabled))
 fi
 
-dnl **** check for libtiff - may be needed for PDF driver
-if test $pdfdrv = true
-then
-  ACX_CHECK_TIFF(19960307)
-fi
-
 dnl **** check for PDFlib
 if test $pdfdrv = true
 then
-  ACX_CHECK_PDFLIB(4.0.3, AC_DEFINE(HAVE_LIBPDF), pdfdrv=false)
+  ACX_CHECK_PDFLIB(5.0.0, AC_DEFINE(HAVE_LIBPDF), pdfdrv=false)
 fi
 if test $pdfdrv != true; then
   AC_MSG_RESULT(--> PDF driver is disabled)
