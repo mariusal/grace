@@ -342,7 +342,6 @@ int main(int argc, char *argv[])
 			usage(stderr, argv[0]);
 		    } else {
 			strcpy(netcdf_name, argv[i]);
-			readcdf = 1;
 		    }
 		} else if (argmatch(argv[i], "-netcdfxy", 9) || argmatch(argv[i], "-hdfxy", 6)) {
 		    i++;
