@@ -432,6 +432,7 @@ typedef struct {
 } tickloc;
 
 typedef struct {
+    int inout;                /* inward, outward or both */
     double size;              /* length of tickmarks */
     int color;                /* color of tickmarks */
     double linew;             /* linewidth of tickmarks */
@@ -486,7 +487,6 @@ typedef struct {
     int nticks;                 /* total number of ticks */
     tickloc tloc[MAX_TICKS];    /* locations of ticks */
 
-    int t_inout;                /* ticks inward, outward or both */
     PlacementType t_op;         /* ticks on opposite side */
     
     tickprops props;

@@ -3122,7 +3122,8 @@ tickattr:
 	    curtm->t_autonum = $2;
 	}
 	| inoutchoice {
-	    curtm->t_inout = $1;
+	    curtm->props.inout = $1;
+	    curtm->mprops.inout = $1;
 	}
 	| MAJOR SIZE expr {
 	    curtm->props.size = $3;

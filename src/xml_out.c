@@ -323,13 +323,13 @@ int save_axis_properties(XFile *xf, Quark *q)
         attributes_reset(attrs);
         xmlio_set_active(attrs, t->t_flag);
         xmlio_set_side_placement(rt_from_quark(q), attrs, t->t_op);
-        xmlio_set_inout_placement(rt_from_quark(q), attrs, t->t_inout);
         xfile_begin_element(xf, EStrTickmarks, attrs);
         {
             Pen pen;
             
             attributes_reset(attrs);
             attributes_set_dval(attrs, AStrSize, t->props.size);
+            xmlio_set_inout_placement(rt_from_quark(q), attrs, t->props.inout);
             attributes_set_bval(attrs, AStrGridLines, t->props.gridflag);
             xfile_begin_element(xf, EStrMajor, attrs);
             {
@@ -343,6 +343,7 @@ int save_axis_properties(XFile *xf, Quark *q)
             attributes_reset(attrs);
             attributes_set_dval(attrs, AStrSize, t->mprops.size);
             attributes_set_bval(attrs, AStrGridLines, t->mprops.gridflag);
+            xmlio_set_inout_placement(rt_from_quark(q), attrs, t->mprops.inout);
             xfile_begin_element(xf, EStrMinor, attrs);
             {
                 pen.color = t->mprops.color;

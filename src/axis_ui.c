@@ -256,10 +256,6 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     fr = CreateFrame(ui->tickmark_tp, "Placement");
     rc2 = CreateVContainer(fr);
     rc = CreateHContainer(rc2);
-    ui->tinout = CreatePanelChoice(rc, "Pointing:",
-                               4,
-                               "In", "Out", "Both", NULL);
-    AddOptionChoiceCB(ui->tinout, oc_explorer_cb, eui);
     ui->tickop = CreatePanelChoice(rc, "Draw on:",
                                4,
                                "Normal side",
@@ -293,6 +289,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->tgrid = CreateToggleButton(rc, "Draw grid lines");
     AddToggleButtonCB(ui->tgrid, tb_explorer_cb, eui);
+    ui->tinout = CreatePanelChoice(rc, "Pointing:", 4,
+                                   "In", "Out", "Both", NULL);
+    AddOptionChoiceCB(ui->tinout, oc_explorer_cb, eui);
     ui->tlen = CreateCharSizeChoice(rc, "Tick length");
     AddScaleCB(ui->tlen, scale_explorer_cb, eui);
     ui->tgridcol = CreateColorChoice(rc, "Color:");
@@ -306,6 +305,9 @@ AxisUI *create_axis_ui(ExplorerUI *eui)
     rc = CreateVContainer(fr);
     ui->tmgrid = CreateToggleButton(rc, "Draw grid lines");
     AddToggleButtonCB(ui->tmgrid, tb_explorer_cb, eui);
+    ui->tminout = CreatePanelChoice(rc, "Pointing:", 4,
+                                   "In", "Out", "Both", NULL);
+    AddOptionChoiceCB(ui->tminout, oc_explorer_cb, eui);
     ui->tmlen = CreateCharSizeChoice(rc, "Tick length");
     AddScaleCB(ui->tmlen, scale_explorer_cb, eui);
     ui->tmgridcol = CreateColorChoice(rc, "Color:");
@@ -449,34 +451,26 @@ void update_axis_ui(AxisUI *ui, Quark *q)
         SetCharSizeChoice(ui->tlcharsize, t->tl_charsize);
         SetAngleChoice(ui->tlangle, t->tl_angle);
 
-        switch (t->t_inout) {
-        case TICKS_IN:
-            SetOptionChoice(ui->tinout, 0);
-            break;
-        case TICKS_OUT:
-            SetOptionChoice(ui->tinout, 1);
-            break;
-        case TICKS_BOTH:
-            SetOptionChoice(ui->tinout, 2);
-            break;
-        }
         
         SetOptionChoice(ui->tickop, t->t_op);
         
-        SetOptionChoice(ui->tgridcol, t->props.color);
-        SetSpinChoice(ui->tgridlinew, t->props.linew);
-        SetOptionChoice(ui->tgridlines, t->props.lines);
-        SetOptionChoice(ui->tmgridcol, t->mprops.color);
-        SetSpinChoice(ui->tmgridlinew, t->mprops.linew);
-        SetOptionChoice(ui->tmgridlines, t->mprops.lines);
-        SetCharSizeChoice(ui->tlen, t->props.size);
-        SetCharSizeChoice(ui->tmlen, t->mprops.size);
-
         SetOptionChoice(ui->autonum, t->t_autonum - 2);
 
         SetToggleButtonState(ui->tround, t->t_round);
+
         SetToggleButtonState(ui->tgrid, t->props.gridflag);
+        SetOptionChoice(ui->tinout, t->props.inout);
+        SetCharSizeChoice(ui->tlen, t->props.size);
+        SetOptionChoice(ui->tgridcol, t->props.color);
+        SetSpinChoice(ui->tgridlinew, t->props.linew);
+        SetOptionChoice(ui->tgridlines, t->props.lines);
+        
         SetToggleButtonState(ui->tmgrid, t->mprops.gridflag);
+        SetOptionChoice(ui->tminout, t->mprops.inout);
+        SetOptionChoice(ui->tmgridcol, t->mprops.color);
+        SetSpinChoice(ui->tmgridlinew, t->mprops.linew);
+        SetOptionChoice(ui->tmgridlines, t->mprops.lines);
+        SetCharSizeChoice(ui->tmlen, t->mprops.size);
 
         SetOptionChoice(ui->barcolor, t->t_drawbarcolor);
         SetSpinChoice(ui->barlinew, t->t_drawbarlinew);
@@ -600,10 +594,10 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             t->tl_op = GetOptionChoice(ui->ticklop);
         }
         if (!caller || caller == ui->tlstagger) {
-            t->tl_staggered = (int) GetOptionChoice(ui->tlstagger);
+            t->tl_staggered = GetOptionChoice(ui->tlstagger);
         }
         if (!caller || caller == ui->tlstarttype) {
-            t->tl_starttype = (int) GetOptionChoice(ui->tlstarttype) == 0 ?
+            t->tl_starttype = GetOptionChoice(ui->tlstarttype) == 0 ?
                 TYPE_AUTO : TYPE_SPEC;
         }
         if (!caller || caller == ui->tlstart) {
@@ -615,7 +609,7 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
             }
         }
         if (!caller || caller == ui->tlstoptype) {
-            t->tl_stoptype = (int) GetOptionChoice(ui->tlstoptype) == 0 ?
+            t->tl_stoptype = GetOptionChoice(ui->tlstoptype) == 0 ?
                 TYPE_AUTO : TYPE_SPEC;
         }
         if (!caller || caller == ui->tlstop) {
@@ -648,19 +642,6 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->tlgap_perp) {
             xv_evalexpr(ui->tlgap_perp, &t->tl_gap.y);
         }
-        if (!caller || caller == ui->tinout) {
-            switch ((int) GetOptionChoice(ui->tinout)) {
-            case 0:
-                t->t_inout = TICKS_IN;
-                break;
-            case 1:
-                t->t_inout = TICKS_OUT;
-                break;
-            case 2:
-                t->t_inout = TICKS_BOTH;
-                break;
-            }
-        }
         if (!caller || caller == ui->tickop) {
             t->t_op = GetOptionChoice(ui->tickop);
         }
@@ -670,8 +651,12 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         if (!caller || caller == ui->autonum) {
             t->t_autonum = GetOptionChoice(ui->autonum) + 2;
         }
+
         if (!caller || caller == ui->tgrid) {
             t->props.gridflag = GetToggleButtonState(ui->tgrid);
+        }
+        if (!caller || caller == ui->tinout) {
+            t->props.inout = GetOptionChoice(ui->tinout);
         }
         if (!caller || caller == ui->tlen) {
             t->props.size = GetCharSizeChoice(ui->tlen);
@@ -687,6 +672,9 @@ int set_axis_data(AxisUI *ui, Quark *q, void *caller)
         }
         if (!caller || caller == ui->tmgrid) {
             t->mprops.gridflag = GetToggleButtonState(ui->tmgrid);
+        }
+        if (!caller || caller == ui->tminout) {
+            t->mprops.inout = GetOptionChoice(ui->tminout);
         }
         if (!caller || caller == ui->tmlen) {
             t->mprops.size = GetCharSizeChoice(ui->tmlen);

@@ -105,8 +105,9 @@ static void set_default_ticks(Quark *q)
     t->tl_prestr[0] = 0;
     t->t_spec = TICKS_SPEC_NONE;
     t->t_autonum = 6;
-    t->t_inout = TICKS_IN;
     t->t_op = PLACEMENT_BOTH;
+    t->props.inout = TICKS_IN;
+    t->mprops.inout = TICKS_IN;
     t->props.size = grdefaults.charsize;
     t->mprops.size = grdefaults.charsize / 2;
     t->t_drawbar = TRUE;

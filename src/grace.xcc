@@ -311,7 +311,6 @@ ALabel *axislabel_new()
 typedef struct {
     int active;
     int sideplacement;
-    int inoutplacement;
     tickprops props;
     tickprops mprops;
 } TMarks;
@@ -1250,7 +1249,6 @@ char *utf2iso(const char *s)
                 t->t_round   = $?->round;
 
                 t->t_flag    = $?->tmarks.active;
-                t->t_inout   = $?->tmarks.inoutplacement;
                 t->t_op      = $?->tmarks.sideplacement;
                 t->props     = $?->tmarks.props;
                 t->mprops    = $?->tmarks.mprops;
@@ -1393,9 +1391,6 @@ char *utf2iso(const char *s)
         <attribute name="#AStrSidePlacement" type="sideplacement">
             $$->sideplacement = $?;
         </attribute>
-        <attribute name="#AStrInoutPlacement" type="inoutplacement">
-            $$->inoutplacement = $?;
-        </attribute>
         
         <!-- Child elements -->
         <child name="#EStrMajor">
@@ -1409,6 +1404,9 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrMajor" type="tickprops">
         <!-- Attributes -->
+        <attribute name="#AStrInoutPlacement" type="inoutplacement">
+            $$->inout = $?;
+        </attribute>
         <attribute name="#AStrSize" type="dval">
             $$->size = $?;
         </attribute>
@@ -1426,6 +1424,9 @@ char *utf2iso(const char *s)
     </element>
     <element name="#EStrMinor" type="tickprops">
         <!-- Attributes -->
+        <attribute name="#AStrInoutPlacement" type="inoutplacement">
+            $$->inout = $?;
+        </attribute>
         <attribute name="#AStrSize" type="dval">
             $$->size = $?;
         </attribute>
