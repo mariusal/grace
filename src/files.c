@@ -606,7 +606,7 @@ FILE *grace_openw(char *fn)
     struct stat statb;
     char buf[GR_MAXPATHLEN + 50];
 
-    if (!fn[0]) {
+    if (!fn || !fn[0]) {
         errmsg("No file name given");
 	return NULL;
     } else if (strcmp(fn, "-") == 0 || strcmp(fn, "stdout") == 0) {
@@ -718,7 +718,7 @@ FILE *grace_openr(char *fn, int src)
     char *tfn;
     char buf[GR_MAXPATHLEN + 50];
 
-    if (!fn[0]) {
+    if (!fn || !fn[0]) {
         errmsg("No file name given");
 	return NULL;
     }
