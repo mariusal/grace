@@ -3472,54 +3472,44 @@ void yesnoCB(Widget w, XtPointer client_data, XtPointer call_data)
     }
 }
 
+static void update_yesno(Widget w, char *msg, char *ha)
+{
+    Widget hb;
+    XmString str;
+	
+    if (msg != NULL) {
+        str = XmStringCreateLocalized(msg);
+    } else {
+        str = XmStringCreateLocalized("Warning");
+    }
+    XtVaSetValues(w, XmNmessageString, str, NULL);
+    XmStringFree(str);
+    
+    hb = XtNameToWidget(w, "Help");
+    if (ha) {
+        AddButtonCB(hb, HelpCB, ha);
+        XtSetSensitive(hb, True);
+    } else {    
+        XtSetSensitive(hb, False);
+    }
+}
+
 int yesnowin(char *msg, char *s1, char *s2, char *help_anchor)
 {
     static Widget yesno_popup = NULL;
-    Widget hb;
-    XmString str;
     XEvent event;
 
     keep_grab = True;
 
     if (yesno_popup == NULL) {
 	yesno_popup = XmCreateErrorDialog(app_shell, "warndlg", NULL, 0);
-	if (msg != NULL) {
-	    str = XmStringCreateLocalized(msg);
-	} else {
-	    str = XmStringCreateLocalized("Warning");
-	}
-	XtVaSetValues(yesno_popup, XmNmessageString, str, NULL);
-	XmStringFree(str);
-	
-	if (s1 != NULL) {
-	    str = XmStringCreateLocalized(s1);
-	} else {
-	    str = XmStringCreateLocalized("OK");
-	}
-	XtVaSetValues(yesno_popup, str, XmNokLabelString, NULL);
-	XmStringFree(str);
-	
-	if (s2 != NULL) {
-	    str = XmStringCreateLocalized(s2);
-	} else {
-	    str = XmStringCreateLocalized("Cancel");
-	}
-	XtVaSetValues(yesno_popup, str, XmNcancelLabelString, NULL);
-	XmStringFree(str);
-	
+
 	XtAddCallback(yesno_popup, XmNokCallback, yesnoCB, NULL);
 	XtAddCallback(yesno_popup, XmNcancelCallback, yesnoCB, NULL);
-
-	if (help_anchor) {
-	    hb = XtNameToWidget(yesno_popup, "Help");
-            AddButtonCB(yesno_popup, HelpCB, help_anchor);
-	    XtSetSensitive(hb, True);
-	} else {    
-	    XtSetSensitive(XtNameToWidget(yesno_popup, "Help"), False);
-	}
-	XtManageChild(yesno_popup);
     }
+    update_yesno(yesno_popup, msg, help_anchor);
     XtRaise(yesno_popup);
+    
     XtAddGrab(XtParent(yesno_popup), True, False);
     while (keep_grab || XtAppPending(app_con)) {
 	XtAppNextEvent(app_con, &event);
