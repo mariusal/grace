@@ -2,7 +2,7 @@
  * grace_np - a library for interfacing with Grace using pipes
  * 
  * Copyright (c) 1997-1998 Henrik Seidel
- * Copyright (c) 1999-2000 Grace Development Team
+ * Copyright (c) 1999-2002 Grace Development Team
  *
  *
  *                           All Rights Reserved
@@ -115,8 +115,24 @@ GracePerror(const char *prefix)
     error_function(msg);
 }
 
+/* Close the pipe and free the buffer */
+static void
+GraceCleanup(void)
+{
+    if (fd_pipe != -1) {
+        if (close(fd_pipe) != 0) {
+            GracePerror("GraceCleanup");
+        }
+        fd_pipe = -1;
+    }
+    broken_pipe = 1;
+    
+    free(buf);
+    buf = NULL;
+}
+
 /*
- * try to send data to grace (on pass only)
+ * try to send data to grace (one pass only)
  */
 static int
 GraceOneWrite(int left)
@@ -145,8 +161,7 @@ GraceOneWrite(int left)
         GracePerror("GraceOneWrite");
         if (errno == EPIPE) {
             /* Grace has closed the pipe : we cannot write anymore */
-            broken_pipe = 1;
-            GraceClose();
+            GraceCleanup();
         }
         return (-1);
     }
@@ -166,6 +181,12 @@ GraceRegisterErrorFunction(GraceErrorFunctionType f)
         error_function = f;
     }
     return old;
+}
+
+static void
+handle_signals(int signum)
+{
+    GraceCleanup();
 }
 
 int
@@ -200,10 +221,10 @@ GraceOpenVA(char* exe, int bs, ...)
 #endif
 
     /* Don't exit on SIGPIPE */
-    signal(SIGPIPE, SIG_IGN);
+    signal(SIGPIPE, handle_signals);
 
     /* Don't exit when our child "grace" exits */
-    signal(SIGCHLD, SIG_IGN);
+    signal(SIGCHLD, handle_signals);
 
     /* Make the pipe */
     if (pipe(fd)) {
@@ -279,7 +300,7 @@ GraceOpenVA(char* exe, int bs, ...)
 int
 GraceOpen(int bs)
 {
-    return GraceOpenVA("xmgrace", bs, "-noask", NULL);
+    return GraceOpenVA("xmgrace", bs, "-nosafe", "-noask", NULL);
 }
 
 int
@@ -291,7 +312,6 @@ GraceIsOpen(void)
 int
 GraceClose(void)
 {
-
     if (fd_pipe == -1) {
         error_function("No grace subprocess");
         return (-1);
@@ -310,22 +330,14 @@ GraceClose(void)
     /* Wait until grace exit */
     waitpid (pid, NULL, 0);
 
-    /* Close the pipe and free the buffer */
-    if (close(fd_pipe) == -1) {
-        GracePerror("GraceClose");
-	return (-1);
-    }
-    fd_pipe = -1;
-    free (buf);
+    GraceCleanup();
 
     return (0);
-
 }
 
 int
 GraceClosePipe(void)
 {
-
     if (fd_pipe == -1) {
         error_function("No grace subprocess");
         return (-1);
@@ -339,16 +351,9 @@ GraceClosePipe(void)
             return (-1);
     }
 
-    /* Close the pipe and free the buffer */
-    if (close(fd_pipe) == -1) {
-        GracePerror("GraceClose");
-	return (-1);
-    }
-    fd_pipe = -1;
-    free (buf);
-
+    GraceCleanup();
+    
     return (0);
-
 }
 
 int
@@ -373,8 +378,8 @@ GraceFlush(void)
     }
 
     error_function("GraceFlush: ran into eternal loop");
-    return (-1);
 
+    return (-1);
 }
 
 int
