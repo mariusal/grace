@@ -869,21 +869,40 @@ static void usage(FILE *stream, char *progname)
 
 void VersionInfo(void)
 {
-    fprintf(stdout, "%s\n", bi_version_string());
+    int i;
+    
+    fprintf(stdout, "\n%s\n\n", bi_version_string());
 
 /* We don't want to reproduce the complete config.h,
    but those settings which may be related to problems on runtime */
 
     fprintf(stdout, "GUI toolkit: %s\n", BI_GUI);
     fprintf(stdout, "T1lib: %s\n", BI_T1LIB);
+#ifdef HAVE_FFTW
+    fprintf(stdout, "FFT: FFTW\n");
+#else
+    fprintf(stdout, "FFT: built-in\n");
+#endif
+#ifdef HAVE_NETCDF
+    fprintf(stdout, "NetCDF support: on\n");
+#else
+    fprintf(stdout, "NetCDF support: off\n");
+#endif
 
 #ifdef DEBUG
-    fprintf(stdout, "Debugging is enabled\n");
+    fprintf(stdout, "Debugging: enabled\n");
 #endif
-    fprintf(stdout, "Built %s on %s\n", BI_DATE, BI_SYSTEM);
+    fprintf(stdout, "Built: %s on %s\n", BI_DATE, BI_SYSTEM);
     fprintf(stdout, "Compiler flags: %s\n", BI_CCOMPILER);
  
     fprintf(stdout, "\n");
+    
+    fprintf(stdout, "Registered devices:\n");
+    for (i = 0; i < number_of_devices(); i++) {
+        fprintf(stdout, "%s ", get_device_name(i));
+    }
+    fprintf(stdout, "\n\n");
+    
     fprintf(stdout, "(C) Copyright 1991-1995 Paul J Turner\n");
     fprintf(stdout, "(C) Copyright 1996-1999 Grace Development Team\n");
     fprintf(stdout, "All Rights Reserved\n");
