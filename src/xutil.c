@@ -62,6 +62,9 @@ extern int win_h, win_w;	/* declared in x11drv.c */
 extern int inpipe;
 extern char batchfile[];
 
+extern Input_buffer *ib_tbl;
+extern int ib_tblsize;
+
 /*
  * cursors
  */
@@ -73,6 +76,8 @@ static Cursor move_cursor;
 static Cursor text_cursor;
 static Cursor kill_cursor;
 static int cur_cursor = -1;
+
+static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId);
 
 void DefineDialogCursor(Cursor c);
 void UndefineDialogCursor();
@@ -281,6 +286,7 @@ void expose_resize(Widget w, XtPointer client_data,
     Dimension ww, wh;
     Page_geometry pg;
     static int inc = 0;
+    Input_buffer *ib;
 
 #if defined(DEBUG)
     if (debuglevel == 7) {
@@ -317,7 +323,15 @@ void expose_resize(Widget w, XtPointer client_data,
 	    inpipe = FALSE;
             drawgraph();
 	}
-        
+
+        if (ib_tblsize > 0) {
+            for (ib = ib_tbl; ib < ib_tbl + ib_tblsize; ib++) {
+                if (ib->fd >= 0) {
+                    xregister_rti(ib);
+                }
+            }
+        }
+
         return;
     }
     
@@ -422,6 +436,31 @@ void switch_current_graph(int gno)
         update_all();
         set_graph_selectors(gno);
     }
+}
+
+static void xmonitor_rti(XtPointer ib, int *ptrFd, XtInputId *ptrId)
+{
+    monitor_input((Input_buffer *) ib, 1, 1);
+}
+
+void xunregister_rti(XtInputId id)
+{
+  if (disp != (Display *) NULL) {
+      /* the screen has been initialized : we can remove the buffer */
+      XtRemoveInput(id);
+  }
+}
+
+void xregister_rti(Input_buffer *ib)
+{
+  if (disp != (Display *) NULL) {
+      /* the screen has been initialized : we can register the buffer */
+      ib->id = (unsigned long) XtAppAddInput(app_con,
+                                             ib->fd,
+                                             (XtPointer) XtInputReadMask,
+                                             xmonitor_rti,
+                                             (XtPointer) ib);
+  }
 }
 
 /*

@@ -89,6 +89,9 @@ void switch_current_graph(int gto);
 
 char *display_name(void);
 
+void xunregister_rti(XtInputId);
+void xregister_rti(Input_buffer *ib);
+
 void yesnoCB(Widget w, Boolean * keep_grab, XmAnyCallbackStruct * reason);
 int yesnowin(char *msg1, char *msg2, char *s1, char *help_anchor);
 

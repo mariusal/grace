@@ -734,4 +734,15 @@ typedef struct {
     char *s;                   /* string */
 } Datapoint;
 
+/* real time inputs */
+typedef struct _Input_buffer {
+    int           fd;
+    int           lineno;
+    char         *name;
+    int           size;
+    int           used;
+    char         *buf;
+    unsigned long id;
+} Input_buffer;
+
 #endif /* __DEFINES_H_ */

@@ -222,7 +222,7 @@ AC_PROG_MAKE_SET
 dnl **** Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h sys/time.h)
+AC_CHECK_HEADERS(unistd.h fcntl.h sys/param.h sys/time.h sys/resource.h)
 AC_HEADER_TIME
 dnl **** math.h and related
 AC_CHECK_HEADERS(math.h float.h ieeefp.h)
@@ -250,7 +250,7 @@ AC_CHECK_FUNCS(popen)
 AC_CHECK_FUNCS(fnmatch)
 AC_CHECK_FUNCS(vsnprintf)
 AC_CHECK_FUNCS(on_exit)
-AC_CHECK_FUNC(mkfifo, grace_np_dir="grace_np")
+AC_CHECK_FUNCS(getrlimit)
 
 dnl **** Check for buggy realloc()
 AC_CACHE_CHECK( "whether realloc is buggy", ac_cv_c_realloc_bug,
@@ -698,6 +698,6 @@ dnl **** define help viewer
 fi
 
 dnl **** Final list of subdirs
-SUBDIRS="cephes ${t1lib_dir} ${xbae_dir} src ${grconvert_dir} ${grace_np_dir} fonts doc examples auxiliary"
+SUBDIRS="cephes ${t1lib_dir} ${xbae_dir} src ${grconvert_dir} grace_np fonts doc examples auxiliary"
 
 AC_OUTPUT(Make.conf:conf/Make.conf.in)

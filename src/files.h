@@ -40,9 +40,6 @@ void clear_io_filters( int f );
 FILE *filter_read( char *fn );
 FILE *filter_write(  char *fn );
 
-int expand_line_buffer(char **adrPtr);
-int read_long_line(FILE *fp);
-
 char *grace_path(char *fn);
 char *grace_exe_path(char *fn);
 

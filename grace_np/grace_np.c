@@ -21,6 +21,15 @@
 #ifdef HAVE_SYS_WAIT_H
 #  include <sys/wait.h>
 #endif
+#ifdef HAVE_SYS_RESOURCE_H
+#  include <sys/resource.h>
+#endif
+#ifndef HAVE_GETRLIMIT
+#  include <limits.h>
+#  ifndef OPEN_MAX
+#    define OPEN_MAX 64
+#  endif
+#endif
 
 #include "grace_np.h"
 
@@ -28,149 +37,253 @@
 static char* buf = NULL;               /* global write buffer */
 static int bufsize;                    /* size of the global write buffer */
 static int bufsizeforce;               /* threshold for forcing a flush */
-static char fifo[MAXPATHLEN] = "";     /* name of the fifo */
-static int fd_fifo = -1;               /* file descriptor of the fifo */
+static int fd_pipe = -1;               /* file descriptor of the pipe */
+static int broken_pipe = 0;            /* is the pipe broken ? */
 static pid_t pid = (pid_t) -1;         /* pid of grace */
 
-/* function prototypes of static functions */
+/*
+ * default function for reporting errors
+ */
 static void
-#if (defined(HAVE_ON_EXIT))
-unlink_fifo (int status, void* arg)
-#else
-unlink_fifo (void)
-#endif
+GraceDefaultError(const char *msg)
 {
-    /* Delete the named pipe if it exists */
-    if (*fifo != 0) {
-        unlink (fifo);
-        *fifo = 0;
-    }
+    fprintf(stderr, "%s\n", msg);
 }
 
-static RETSIGTYPE
-handler (const int signum)
+/*
+ * variable holding user function for reporting errors
+ */
+static GraceErrorFunctionType error_function = GraceDefaultError;
+
+/*
+ * function for reporting system errors
+ */
+static void
+GracePerror(const char *prefix)
 {
-    /* Call the exit procedure to ensure proper deleting of the named */
-    /* pipe (we registered unlink_fifo with atexit) */
-    exit (EXIT_FAILURE);
+    char msg[1024];
+
+#ifdef HAVE_STRERROR
+    sprintf(msg, "%s: %s", prefix, strerror(errno));
+#else
+# ifdef HAVE_SYS_ERRLIST_IN_STDIO_H
+    sprintf(msg, "%s: %s", prefix, sys_errlist[errno]);
+# else
+    if (errno == EPIPE) {
+        /* this one deserve special attention here */
+        sprintf(msg, "%s: Broken pipe", prefix);
+    } else {
+        sprintf(msg, "%s: System error (errno = %d)", prefix, errno);
+    }
+# endif
+#endif
+
+    error_function(msg);
+
+}
+
+/*
+ * try to send data to grace (on pass only)
+ */
+static int
+GraceOneWrite(int left)
+{
+    int written;
+
+    written = write(fd_pipe, buf, left);
+
+    if (written > 0) {
+
+        left -= written;
+
+        if (left > 0) {
+            /* move the remaining characters (and the final '\0') */
+#ifdef HAVE_MEMMOVE
+            memmove(buf, buf + written, left + 1);
+#else
+            bcopy(buf + written, buf, left + 1);
+#endif
+        } else {
+            /* clear the buffer */
+            *buf = '\0';
+        }
+
+    } else if (written < 0) {
+        GracePerror("GraceOneWrite");
+        if (errno == EPIPE) {
+            /* Grace has closed the pipe : we cannot write anymore */
+            broken_pipe = 1;
+            GraceClose();
+        }
+        return (-1);
+    }
+
+    return (left);
+
+}
+
+/*
+ * register an user function to report errors
+ */
+GraceErrorFunctionType
+GraceRegisterErrorFunction(GraceErrorFunctionType f)
+{
+    GraceErrorFunctionType old = error_function;
+    if (f != (GraceErrorFunctionType) NULL) {
+        error_function = f;
+    }
+    return old;
 }
 
 int
 GraceOpen (const int arg)
 {
+    int i, fd[2], fdmax;
+    int retval;
+    char fd_number [4];
+#ifdef HAVE_GETRLIMIT
+    struct rlimit rlim;
+#endif
+
+    if (fd_pipe != -1) {
+        error_function("Grace subprocess already running");
+        return (-1);
+    }
+
     /* Set the buffer sizes according to arg */
     if (arg < 64) {
-        fprintf (stderr, "The buffer size in GraceOpen should be >= 64\n");
+        error_function("The buffer size in GraceOpen should be >= 64");
         return (-1);
     }
     bufsize = arg;
     bufsizeforce = arg / 2;
     
     /* Don't exit on SIGPIPE */
-    signal (SIGPIPE, SIG_IGN);
-    
-    /* Make sure that fifo is removed on exit and interruptions */
-#if (defined(HAVE_ON_EXIT))
-    on_exit (unlink_fifo, NULL);
-#else
-    atexit (unlink_fifo);
-#endif
-    signal (SIGHUP, handler);
-    signal (SIGINT, handler);
-    signal (SIGQUIT, handler);
-    signal (SIGTERM, handler);
-    signal (SIGCHLD, handler);
+    signal(SIGPIPE, SIG_IGN);
 
-    /* Make the named pipe */
-    if (mkfifo (tmpnam(fifo), 0600)) {
-        perror ("GraceOpen");
+    /* Don't exit when our child "grace" exits */
+    signal (SIGCHLD, SIG_IGN);
+
+    /* Make the pipe */
+    if (pipe(fd)) {
+        GracePerror("GraceOpen");
         return (-1);
     }
 
     /* Fork a subprocess for starting grace */
-    pid = vfork ();
+    pid = fork();
     if (pid == (pid_t) (-1)) {
-        perror ("GraceOpen");
+        GracePerror("GraceOpen");
         return (-1);
     }
 
     /* If we are the child, replace ourselves with grace */
     if (pid == (pid_t) 0) {
-        /* we use a timer delay of 0.9 seconds -- it should not be an
-           integer number since this might produce race conditions
-           with sleep() */
-        int retval = execlp ("xmgrace", "xmgrace", "-noask", "-npipe",
-                             fifo, "-timer", "900", (char *) NULL);
+#ifdef HAVE_GETRLIMIT
+        getrlimit(RLIMIT_NOFILE, &rlim);
+        fdmax = rlim.rlim_cur;
+#else
+        fdmax = OPEN_MAX;
+#endif
+        for (i = 3; i < fdmax; i++) {
+            if (i != fd[0]) {
+                /* we close everything except stdin, stdout, stderr
+                   and the read part of the pipe */
+                close(i);
+            }
+        }
+        sprintf(fd_number, "%d", fd[0]);
+        retval = execlp("xmgrace", "xmgrace", "-noask", "-dpipe",
+                        fd_number, (char *) NULL);
         if (retval == -1) {
-            perror ("GraceOpen: Could not start xmgrace");
-            return (-1);
+            fprintf(stderr, "GraceOpen: Could not start xmgrace\n");
+            exit(1);
         }
     }
 
-    /* We are the parent -> open the fifo for writing and allocate the */
-    /* write buffer */
-    fd_fifo = open (fifo, O_WRONLY);
-    if (fd_fifo == -1) {
-        perror ("GraceOpen");
-        return (-1);
-    }
+    /* We are the parent -> keep the write part of the pipe
+       and allocate the write buffer */
     buf = (char *) malloc ((size_t) bufsize);
     if (buf == NULL) {
-        fprintf (stderr, "GraceOpen: Not enough memory\n");
+        error_function("GraceOpen: Not enough memory");
+        close(fd[0]);
+        close(fd[1]);
         return (-1);
     }
-    *buf = 0;
+    *buf = '\0';
+
+    close(fd[0]);
+    fd_pipe = fd[1];
+    broken_pipe = 0;
+
     return (0);
+
+}
+
+int
+GraceIsOpen (const int arg)
+{
+    return (fd_pipe >= 0) ? 1 : 0;
 }
 
 int
 GraceClose (void)
 {
-    /* Don't exit when our child "grace" exits */
-    signal (SIGCHLD, SIG_IGN);
-    /* Tell grace to exit and wait until it did so */
-    if (GraceCommand ("exit") == -1)
-	return (-1);
-    if (GraceFlush () == EOF)
-	return (-1);
+
+    if (fd_pipe == -1) {
+        error_function("No grace subprocess");
+        return (-1);
+    }
+
+    /* Tell grace to exit */
+    if (! broken_pipe) {
+        if (GraceCommand ("exit") == -1)
+            return (-1);
+        if (GraceFlush() != 0)
+            return (-1);
+    } else {
+        kill(pid, SIGTERM);
+    }
+
+    /* Wait until grace exit */
     waitpid (pid, NULL, 0);
-    /* Close the fifo and free the buffer */
-    if (close (fd_fifo) == -1)
+
+    /* Close the pipe and free the buffer */
+    if (close(fd_pipe) == -1) {
+        GracePerror("GraceClose");
 	return (-1);
+    }
+    fd_pipe = -1;
     free (buf);
+
     return (0);
+
 }
 
 int
 GraceFlush (void)
 {
-    int loop = 0;
-    int len, res;
+    int loop, left;
 
-    len = strlen (buf);
-    while (loop < 30) {
-        res = write (fd_fifo, buf, len);
-        if (res == len) {
-            /* We successfully wrote everything -> clear the buffer
-               and return */
-            *buf = 0;
-            return (0);
-        } else {
-            /* There was an error, we could not write the buffer */
-            if (errno == EPIPE) {
-                /* Wait a second, since every 1.8 seconds there is a 0.9 s
-                   time window for writing */
-                sleep (1);
-            } else {
-                /* There was an error we cannot handle */
-                perror ("GraceFlush");
-                return (EOF);
-            }
-        }
-        loop++;
+    if (fd_pipe == -1) {
+        error_function("No grace subprocess");
+        return (-1);
     }
-    fprintf (stderr, "GraceFlush: ran into eternal loop\n");
-    return (EOF);
+
+    left = strlen(buf);
+
+    for (loop = 0; loop < 30; loop++) {
+        left = GraceOneWrite(left);
+        if (left < 0) {
+            return (-1);
+        } else if (left == 0) {
+            return (0);
+        }
+    }
+
+    error_function("GraceFlush: ran into eternal loop");
+    return (-1);
+
 }
 
 int
@@ -180,10 +293,15 @@ GracePrintf (const char* fmt, ...)
     char* str;
     int nchar;
     
+    if (fd_pipe == -1) {
+        error_function("No grace subprocess");
+        return (0);
+    }
+
     /* Allocate a new string buffer for the function arguments */
     str = (char *) malloc ((size_t) bufsize);
     if (str == (char *) NULL) {
-        fprintf (stderr, "GracePrintf: Not enough memory\n");
+        error_function("GracePrintf: Not enough memory");
         return (0);
     }
     /* Print to the string buffer according to the function arguments */
@@ -196,7 +314,6 @@ GracePrintf (const char* fmt, ...)
     va_end (ap);
     nchar++;               /* This is for the appended "\n" */
     if (GraceCommand (str) == -1) {
-        fprintf (stderr, "GracePrintf: Error while calling GraceCommand\n");
         nchar = 0;
     }
     free (str);
@@ -206,37 +323,32 @@ GracePrintf (const char* fmt, ...)
 int
 GraceCommand (const char* cmd)
 {
-    int len, res;
+    int left;
     
+    if (fd_pipe == -1) {
+        error_function("No grace subprocess");
+        return (-1);
+    }
+
     /* Append the new string to the global write buffer */
-    strncat (buf, cmd, bufsize);
-    strncat (buf, "\n", bufsize);
-    len = strlen (buf);
+    if (strlen(buf) + strlen(cmd) + 2 > bufsize) {
+        error_function("GraceCommand: Buffer full");
+        return (-1);
+    }
+    strcat(buf, cmd);
+    strcat(buf, "\n");
+    left = strlen(buf);
     
     /* Try to send the global write buffer to grace */
-    res = write (fd_fifo, buf, len);
-    if (res < len) {
-        /* We could not write the buffer */
-        if (errno == EPIPE) {
-            /* The reason is that we got a SIGPIPE, we can handle
-               this. If the filling of the global write buffer exceeds
-               some threshold, flush the buffer. This involves waiting
-               for a time window to write to grace. */
-            if (strlen (buf) >= bufsizeforce) {
-                if (GraceFlush () == EOF) {
-                    fprintf (stderr,
-                             "GraceCommand: Can't flush write buffer\n");
-                    return (-1);
-                }
-            }
-        } else {
-            /* There was some error we cannot handle */
-            perror ("GraceCommand");
+    left = GraceOneWrite(left);
+    if (left >= bufsizeforce) {
+        if (GraceFlush() != 0) {
             return (-1);
         }
-    } else {
-        /* We could write the entire buffer -> clear it */
-        *buf = 0;
+    } else if (left < 0) {
+        return (-1);
     }
+
     return (0);
+
 }

@@ -41,6 +41,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/time.h>
+#include <signal.h>
+#include <errno.h>
 
 #include "globals.h"
 #include "utils.h"
@@ -58,6 +61,11 @@
  * number of doubles to allocate for each call to realloc
  */
 #define BUFSIZE  512
+/*
+ * number of bytes in each line chunk
+ * (should be related to system pipe size, typically 4K)
+ */
+#define CHUNKSIZE 4096
 
 static char buf[256];
 
@@ -69,72 +77,405 @@ static int cur_gno;		/* if the graph number changes on read in */
 int change_type;		/* current set type */
 static int cur_type;		/* current set type */
 
+char *close_input;		/* name of real-time input to close */
+
 static int readerror = 0;	/* number of errors */
 static int readline = 0;	/* line number in file */
+
+int loops_allowed = 0;		/* periodically reset to stop long inputs */
+
+static Input_buffer dummy_ib = {-1, 0, NULL, 0, 0, NULL, 0l};
+
+int nb_rt = 0;		        /* number if real time file descriptors */
+Input_buffer *ib_tbl = 0;	/* table for each open input */
+int ib_tblsize = 0;		/* number of elements in ib_tbl */
+
+static int expand_ib_tbl(void);
+static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr);
+static int read_real_time_lines(Input_buffer *ib);
+static int process_complete_lines(Input_buffer *ib);
+static int read_long_line(FILE * fp);
 
 static int readxyany(int gno, char *fn, FILE * fp, int type);
 static int readxystring(int gno, char *fn, FILE * fp);
 static int readnxy(int gno, char *fn, FILE * fp);
 
 /*
- * read a line increasing buffer as necessary
+ * expand the table of monitored real time inputs
  */
-int expand_line_buffer(char **adrPtr)
+static int expand_ib_tbl(void)
+{
+    int i, new_size;
+    Input_buffer *new_tbl;
+
+    new_size = (ib_tblsize > 0) ? 2*ib_tblsize : 5;
+    new_tbl  = (Input_buffer *) calloc(new_size, sizeof(Input_buffer));
+    if (new_tbl == NULL) {
+        sprintf(buf, "Insufficient memory for real time inputs table");
+        errmsg(buf);
+        return GRACE_EXIT_FAILURE;
+    }
+
+    for (i = 0; i < new_size; i++) {
+        new_tbl[i] = (i < ib_tblsize) ? ib_tbl[i] : dummy_ib;
+    }
+
+    if (ib_tblsize > 0) {
+        free((void *) ib_tbl);
+    }
+    ib_tbl  = new_tbl;
+    ib_tblsize = new_size;
+
+    return GRACE_EXIT_SUCCESS;
+
+}
+
+
+/*
+ * expand a line buffer
+ */
+static int expand_line_buffer(char **adrBuf, int *ptrSize, char **adrPtr)
 {
     char *newbuf;
-    int   newlen;
+    int   newsize;
 
-    newlen = linelen + BUFSIZE;
-    newbuf = (char *) malloc (newlen);
+    newsize = *ptrSize + CHUNKSIZE;
+    newbuf = (char *) malloc(newsize);
     if (newbuf == 0) {
         sprintf(buf, "Insufficient memory for line");
         errmsg(buf);
-        return 0;
+        return GRACE_EXIT_FAILURE;
     }
 
-    if (linelen == 0) {
+    if (*ptrSize == 0) {
         /* this is the first time through */
-        *adrPtr = newbuf;
+        if (adrPtr) {
+            *adrPtr = newbuf;
+        }
     } else {
         /* we are expanding an existing line */
-        strncpy (newbuf, linebuf, linelen);
-        *adrPtr += newbuf - linebuf;
-        free (linebuf);
+        strncpy(newbuf, *adrBuf, *ptrSize);
+        if (adrPtr) {
+            *adrPtr += newbuf - *adrBuf;
+        }
+        free(*adrBuf);
     }
 
-    linebuf = newbuf;
-    linelen = newlen;    
+    *adrBuf  = newbuf;
+    *ptrSize = newsize;    
 
-    return 1;
+    return GRACE_EXIT_SUCCESS;
+}
+
+
+/*
+ * unregister a file descriptor no longer monitored
+ * (since Input_buffer structures dedicated to static inputs
+ *  are not kept in the table, it is not an error to unregister
+ *  an input not already registered)
+ */
+void unregister_real_time_input(const char *name)
+{
+    Input_buffer *ib;
+    int           l1, l2;
+
+    l1 = strlen (name);
+
+    nb_rt = 0;
+    for (ib = ib_tbl; ib < ib_tbl + ib_tblsize; ib++) {
+        l2 = (ib->name == 0) ? -1 : strlen (ib->name);
+        if (l1 == l2 && strcmp (name, ib->name) == 0) {
+            /* this descriptor will be ignored from now */
+            close(ib->fd);
+            ib->fd = -1;
+            free(ib->name);
+            ib->name = NULL;
+#ifndef NONE_GUI
+            xunregister_rti((XtInputId) ib->id);
+#endif
+        } else {
+            /* this descriptor is still in use */
+            nb_rt++;
+        }
+    }
+
 }
 
 /*
- * read a line increasing buffer as necessary
- * returns 0 on failure (memory or no character), and 1 on success
+ * register a file descriptor for monitoring
  */
-int read_long_line(FILE * fp)
+int register_real_time_input(int fd, const char *name)
+{
+
+    Input_buffer *ib;
+
+    if (fd < 0) {
+        sprintf(buf, "%s : internal error, wrong file descriptor", name);
+        errmsg(buf);
+        return GRACE_EXIT_FAILURE;
+    }
+
+    /* remove previous entry for the same set if any */
+    unregister_real_time_input(name);
+
+    /* find an empty slot in the table */
+    for (ib = ib_tbl; ib < ib_tbl + ib_tblsize; ib++) {
+        if (ib->fd == fd) {
+            sprintf(buf, "%s : internal error, file descriptor already in use",
+                    name);
+            errmsg(buf);
+            return GRACE_EXIT_FAILURE;
+        } else if (ib->fd < 0) {
+            break;
+        }
+    }
+
+    if (ib == ib_tbl + ib_tblsize) {
+        /* the table was full, we expand it */
+        int old_size = ib_tblsize;
+        if (expand_ib_tbl() != GRACE_EXIT_SUCCESS) {
+            return GRACE_EXIT_FAILURE;
+        }
+        ib = ib_tbl + old_size;
+    }
+
+    /* we keep the current buffer (even if 0),
+       and only say everything is available */
+    ib->fd           = fd;
+    ib->lineno       = 0;
+    ib->name         = copy_string(ib->name, name);
+    ib->used         = 0;
+#ifndef NONE_GUI
+    xregister_rti (ib);
+#endif
+
+    nb_rt++;
+
+    return GRACE_EXIT_SUCCESS;
+
+}
+
+/*
+ * read a real-time line
+ */
+static int read_real_time_lines(Input_buffer *ib)
+{
+    char *cursor;
+    int   available, nbread;
+
+    cursor     = ib->buf  + ib->used;
+    available  = ib->size - ib->used;
+
+    /* have we enough space to store the characters ? */
+    if (available < 2) {
+        if (expand_line_buffer(&(ib->buf), &(ib->size), &cursor)
+            != GRACE_EXIT_SUCCESS) {
+            return GRACE_EXIT_FAILURE;
+        }
+        available = ib->buf + ib->size - cursor;
+    }
+
+    /* read as much as possible */
+    nbread = read(ib->fd, (void *) cursor, available - 1);
+
+    if (nbread < 0) {
+        sprintf(buf, "%s : read error on real time input",
+                ib->name);
+        errmsg(buf);
+        return GRACE_EXIT_FAILURE;
+    } else if (nbread > 0) {
+        ib->used += nbread;
+        ib->buf[ib->used] = '\0';
+    }
+
+    return GRACE_EXIT_SUCCESS;
+
+}
+
+
+/*
+ * process complete lines
+ */
+static int process_complete_lines(Input_buffer *ib)
+{
+
+    char *begin_of_line, *end_of_line;
+
+    if (ib->used <= 0) {
+        return GRACE_EXIT_SUCCESS;
+    }
+
+    end_of_line = NULL;
+    do {
+        /* loop over the embedded lines */
+        begin_of_line = (end_of_line == NULL) ? ib->buf : (end_of_line + 1);
+        end_of_line   = strchr(begin_of_line, '\n');
+
+        if (end_of_line != NULL) {
+            /* we have a whole line */
+
+            ++(ib->lineno);
+            *end_of_line = '\0';
+
+            close_input = NULL;
+            read_param(begin_of_line);
+            if (close_input != NULL) {
+                /* something should be closed */
+                if (close_input[0] == '\0') {
+                    unregister_real_time_input(ib->name);
+                } else {
+                    unregister_real_time_input(close_input);
+                }
+
+                free(close_input);
+                close_input = NULL;
+
+                if (ib->fd < 0) {
+                    /* we have closed ourselves */
+                    return GRACE_EXIT_SUCCESS;
+                }
+
+            }
+
+        }
+
+    } while (loops_allowed && end_of_line != NULL);
+
+    if (end_of_line != NULL) {
+        /* the line has just been processed */
+        begin_of_line = end_of_line + 1;
+    }
+
+    if (begin_of_line > ib->buf) {
+        /* move the remaining data to the beginning */
+        ib->used -= begin_of_line - ib->buf;
+        memmove(ib->buf, begin_of_line, ib->used);
+        ib->buf[ib->used] = '\0';
+
+    }
+
+    return GRACE_EXIT_SUCCESS;
+
+}
+
+int real_time_under_monitoring(void)
+{
+    return nb_rt > 0;
+}
+
+/*
+ * monitor the set of registered file descriptors for pending input
+ */
+int monitor_input(Input_buffer *tbl, int tblsize, int no_wait)
+{
+
+    Input_buffer *ib;
+    fd_set rfds;
+    struct timeval timeout;
+    int highest, first_time, retsel;
+
+#ifndef NONE_GUI
+    set_wait_cursor();
+#endif
+
+    /* we don't want to get stuck here, a timer will disable
+       the loops later to remind us we should return */
+    loops_allowed = 1;
+    first_time    = 1;
+
+    for (ib = tbl; ib < tbl + tblsize; ib++) {
+        /* first process the already read data */
+        /* (it is possible no more data will arrive here) */
+        if (process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
+            return GRACE_EXIT_FAILURE;
+        }
+    }
+
+    retsel = 1;
+    while ((loops_allowed || first_time) && retsel > 0) {
+
+        /* register all the monitored descriptors */
+        highest = -1;
+        FD_ZERO(&rfds);
+        for (ib = tbl; ib < tbl + tblsize; ib++) {
+            FD_SET(ib->fd, &rfds);
+            if (ib->fd > highest) {
+                highest = ib->fd;
+            }
+        }
+
+        if (highest < 0) {
+            /* there's nothing to do */
+            return GRACE_EXIT_SUCCESS;
+        }
+
+        if (no_wait) {
+            /* just check for available data without waiting */
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 0;
+            retsel = select(highest + 1, &rfds, NULL, NULL, &timeout);
+        } else {
+            /* wait until data or signal arrive */
+            retsel = select(highest + 1, &rfds, NULL, NULL, NULL);
+        }
+
+        for (ib = tbl;
+             (loops_allowed || first_time) && ib < tbl + tblsize;
+             ib++) {
+            if (ib->fd >= 0 && FD_ISSET(ib->fd, &rfds)) {
+                /* there is pending input */
+                if (read_real_time_lines(ib) != GRACE_EXIT_SUCCESS
+                    || process_complete_lines(ib) != GRACE_EXIT_SUCCESS) {
+                    return GRACE_EXIT_FAILURE;
+                }
+            }
+        }
+
+        /* after one pass, we obey timeout */
+        first_time = 0;
+
+    }
+
+#ifndef NONE_GUI
+    unset_wait_cursor();
+#endif
+
+    return GRACE_EXIT_SUCCESS;
+
+}
+
+
+/*
+ * read a line increasing buffer as necessary
+ */
+static int read_long_line(FILE * fp)
 {
     char *cursor;
     int   available, nbread, retval;
 
     cursor    = linebuf;
     available = linelen;
-    retval    = 0;
+    retval    = GRACE_EXIT_FAILURE;
     do {
         /* have we enough space to store the characters ? */
-        if (available < 2)
-            if (expand_line_buffer (&cursor) == 0)
-                return 0;
+        if (available < 2) {
+            if (expand_line_buffer(&linebuf, &linelen, &cursor)
+                != GRACE_EXIT_SUCCESS) {
+                return GRACE_EXIT_FAILURE;
+            }
+        }
         available = linebuf + linelen - cursor;
 
         /* read as much as possible */
-        if (fgets (cursor, available, fp) == NULL)
+        if (fgets(cursor, available, fp) == NULL) {
             return retval;
-        nbread = strlen (cursor);
-        if (nbread < 1)
+        }
+        nbread = strlen(cursor);
+        if (nbread < 1) {
             return retval;
-        else
-            retval = 1;
+        } else {
+            retval = GRACE_EXIT_SUCCESS;
+        }
 
         /* prepare next read */
         cursor    += nbread;
@@ -143,6 +484,7 @@ int read_long_line(FILE * fp)
     } while (*(cursor - 1) != '\n');
 
     return retval;
+
 }
 
 /* open a file for write */
@@ -402,12 +744,13 @@ int read_set_fromfile(int gno, int setno, char *fn, int src, int col)
         cxfree(y);
         goto breakout;
     }
-    while (read_long_line(fp) > 0) {
+    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
         readline++;
         if (linebuf[strlen(linebuf) - 1] != '\n') { 
             /* must have a newline char at the end of line */
             readerror++;
-            fprintf(stderr, "No newline at line #%1d: %s", readline, linebuf);
+            sprintf(buf, "No newline at line #%1d: %s", readline, linebuf);
+            errmsg(buf);
             continue;
         }
         if (linebuf[0] == '#') {
@@ -484,7 +827,8 @@ static int readnxy(int gno, char *fn, FILE * fp)
  */
   restart:;
 
-    while ((read_long_line(fp) > 0) && ((linebuf[0] == '#') || (linebuf[0] == '@'))) {
+    while ((read_long_line(fp) == GRACE_EXIT_SUCCESS)
+           && ((linebuf[0] == '#') || (linebuf[0] == '@'))) {
 	readline++;
 	if (linebuf[0] == '@') {
 	    change_gno = -1;
@@ -547,7 +891,7 @@ static int readnxy(int gno, char *fn, FILE * fp)
 	    *(y[i]) = yr[i];
 	    scnt[i] = 1;
 	}
-	while (!do_restart && (read_long_line(fp) > 0)) {
+	while (!do_restart && read_long_line(fp) == GRACE_EXIT_SUCCESS) {
 	    readline++;
 	    if (linebuf[0] == '#') {
 		continue;
@@ -653,7 +997,7 @@ static int readxyany(int gno, char *fn, FILE * fp, int type)
     
     ncols = settype_cols(type);
    
-    while (read_long_line (fp) > 0) {
+    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
 	readline++;
 	/* ignore comments or empty lines: */
         if (linebuf[0] == '#' || strlen(linebuf) < 2) {
@@ -881,13 +1225,14 @@ static int readxystring(int gno, char *fn, FILE * fp)
 	cxfree(strs);
 	return retval;
     }
-    while (read_long_line (fp) > 0) {
+    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
 	readline++;
 	ll = strlen(linebuf);
 	if ((ll > 0) && (linebuf[ll - 1] != '\n')) {	/* must have a newline
 							 * char at end of line */
 	    readerror++;
-	    fprintf(stderr, "No newline at line #%1d: %s\n", readline, linebuf);
+            sprintf(buf, "No newline at line #%1d: %s", readline, linebuf);
+            errmsg(buf);
 	    if (readerror > MAXERR) {
 		if (yesno("Lots of errors, abort?", NULL, NULL, NULL)) {
 		    cxfree(x);
@@ -1048,7 +1393,7 @@ int readblockdata(int gno, char *fn, FILE * fp)
 
     i = 0;
     pstat = 0;
-    while (read_long_line (fp) > 0) {
+    while (read_long_line(fp) == GRACE_EXIT_SUCCESS) {
         s = linebuf;
 	readline++;
 	linecount++;

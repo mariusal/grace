@@ -11,10 +11,17 @@
 #  define EXIT_FAILURE -1
 #endif
 
+void my_error_function(const char *msg)
+{
+    fprintf(stderr, "library message : \"%s\"\n", msg);
+}
+
 int
 main (int argc, char* argv[])
 {
     int i;
+
+    GraceRegisterErrorFunction (my_error_function);
 
     /* Start Grace with a buffer size of 2048 and open the pipe */
     if (GraceOpen(2048) == -1) {
@@ -36,7 +43,7 @@ main (int argc, char* argv[])
     GracePrintf ("sets symbol size 0.3");
 
     /* Display sample data */
-    for (i = 1; i <= 100; i++) {
+    for (i = 1; i <= 100 && GraceIsOpen(); i++) {
         GracePrintf ("g0.s0 point %d, %d", i, i);
         GracePrintf ("g0.s1 point %d, %d", i, i * i);
         /* Update the Grace display after every ten steps */
@@ -48,13 +55,18 @@ main (int argc, char* argv[])
         }
     }
 
-    /* Tell Grace to save the data */
-    GracePrintf ("saveall \"sample.gr\"");
+    if (GraceIsOpen()) {
+        /* Tell Grace to save the data */
+        GracePrintf ("saveall \"sample.gr\"");
 
-    /* Flush the output buffer and close the pipe */
-    GraceClose ();
+        /* Flush the output buffer and close the pipe */
+        GraceClose ();
 
-    /* We are done */
-    exit (EXIT_SUCCESS);
+        /* We are done */
+        exit (EXIT_SUCCESS);
+    } else {
+        exit (EXIT_FAILURE);
+    }
+
 }
 

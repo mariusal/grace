@@ -8,6 +8,29 @@
 
 #include "grace_np.h"
 
+typedef void (*GraceFortranFunctionType) (const char *str, int len);
+static GraceFortranFunctionType fortran_error = (GraceFortranFunctionType) 0;
+
+static void GraceFortranWrapper(const char *str)
+{
+    if (fortran_error == (GraceFortranFunctionType) 0) {
+        fprintf(stderr, "%s\n", str);
+    } else {
+        fortran_error(str, strlen(str));
+    }
+}
+
+void
+#ifdef NEED_F77_UNDERSCORE
+graceregistererrorfunctionf_ (GraceFortranFunctionType f)
+#else
+graceregistererrorfunctionf (GraceFortranFunctionType f)
+#endif
+{
+    fortran_error = f;
+    GraceRegisterErrorFunction(GraceFortranWrapper);
+}
+
 int
 #ifdef NEED_F77_UNDERSCORE
 graceopenf_ (const int *arg)
@@ -16,6 +39,16 @@ graceopenf (const int *arg)
 #endif
 {
     return (GraceOpen (*arg));
+}
+
+int
+#ifdef NEED_F77_UNDERSCORE
+graceisopenf_ (void)
+#else
+graceisopenf (void)
+#endif
+{
+    return (GraceIsOpen ());
 }
 
 int

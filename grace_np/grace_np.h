@@ -18,7 +18,11 @@ extern "C" {
 #  define EXIT_FAILURE -1
 #endif
 
+typedef void (*GraceErrorFunctionType) (const char *);
+GraceErrorFunctionType GraceRegisterErrorFunction(GraceErrorFunctionType f);
+
 int GraceOpen (const int);
+int GraceIsOpen ();
 int GraceClose (void);
 int GraceFlush (void);
 int GracePrintf (const char*, ...);

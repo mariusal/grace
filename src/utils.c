@@ -54,6 +54,8 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <limits.h>
 
 #ifdef HAVE_SETLOCALE
@@ -64,6 +66,8 @@
 #include "utils.h"
 #include "files.h"
 #include "protos.h"
+
+extern int loops_allowed;
 
 static void rereadConfig(void);
 static RETSIGTYPE actOnSignal(int signo);
@@ -481,70 +485,6 @@ static void bugwarn(char *signame)
     exit(GRACE_EXIT_FAILURE);
 }
 
-static void timerUpdates(void)
-{
-    static int reading_now = FALSE;
-    static int fd = -1;
-    static char buf[2*PIPE_BUF + 1];
-    static char *s = buf;
-    char *sstart, *sstop;
-    int nread, nread_max, len;
-#ifndef NONE_GUI
-    int cursor_set;
-#endif
-
-    
-    if (named_pipe == TRUE && fd < 0) {
-        fd = open(pipe_name, O_NONBLOCK | O_RDONLY);
-        if (fd < 0) {
-            errmsg("Can't open fifo");
-            named_pipe = FALSE;
-        }
-    }
-    
-    if (fd < 0 || reading_now == TRUE) {
-        return;
-    } else {
-        reading_now = TRUE;
-        cursor_set = FALSE;
-
-        while (TRUE) {
-            nread_max = 2*PIPE_BUF - (s - buf);
-            if ((nread = read(fd, s, nread_max)) <= 0) {
-                break;
-            }
-            /* make sure there will be no overflow */
-            s[nread] = '\0';
-            
-#ifndef NONE_GUI
-            if (cursor_set == FALSE) {
-                set_wait_cursor();
-                cursor_set = TRUE;
-            }
-#endif
-            for (sstop = buf, sstart = buf; *sstop != '\0'; sstop++) {
-                if (*sstop == '\n') {
-                    *sstop = '\0';
-                    read_param(sstart);
-                    sstart = sstop + 1;
-                } 
-            }
-            /* move rest of the string to the beginning of the buffer */
-            len = strlen(sstart);
-            memmove(buf, sstart, len + 1);
-            /* continue reading in at the point where we stopped */
-            s = buf + len;
-        }
-        
-#ifndef NONE_GUI
-        if (cursor_set == TRUE) {
-            unset_wait_cursor();
-        }
-#endif
-        reading_now = FALSE;
-    }
-}
-
 /*
  * Signal-handling routines
  */
@@ -562,7 +502,7 @@ static RETSIGTYPE actOnSignal(int signo)
     	break;
 #endif
     case SIGALRM:
-    	timerUpdates();
+        loops_allowed = 0;
     	break;
 #ifdef SIGINT
     case SIGINT:
@@ -639,6 +579,9 @@ void installSignal(void){
 #endif
     signal(SIGALRM, actOnSignal);  /* timer */
     alarm((int) ceil((double) timer_delay/1000));
+#ifdef SIGIO
+    signal(SIGIO, actOnSignal);     /* input/output ready */
+#endif
 }
 
 /* create format string */

@@ -64,11 +64,9 @@ double *ax, *bx, *cx, *dx;	/* scratch arrays used in scanner */
 int logwindow = FALSE;		/* TRUE if results are displayed in the log window */
 
 /*
- * named pipes
+ * real-time input delay (prevents getting stuck reading)
  */
 int timer_delay = 1000;         /* timer */
-int named_pipe;			/* true if named pipe is active */
-char pipe_name[GR_MAXPATHLEN];	/* path to named pipe */
 
 /*
  * scroll amount
@@ -236,9 +234,7 @@ extern int noask;		/* if TRUE, assume yes for everything (dangerous) */
 
 extern int index_shift; 	/* 0 for C, 1 for F77 index notation */
 
-extern int timer_delay;		/* timer */
-extern int named_pipe;		/* true if named pipe is active */
-extern char pipe_name[];	/* path to named pipe */
+extern int timer_delay;		/* timer to interrupt too long reads */
 
 extern int scrolling_islinked;	/* linked scroll */
 extern double scrollper;	/* scroll fraction */

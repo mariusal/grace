@@ -96,6 +96,7 @@ static int alias_force = FALSE; /* controls whether aliases can override
 
 extern int change_gno;
 extern int change_type;
+extern char *close_input;
 
 static int check_err;
 
@@ -219,6 +220,7 @@ symtab_entry *key;
 %token <pset> CHRSTR
 %token <pset> CLEAR
 %token <pset> CLICK
+%token <pset> CLOSE
 %token <pset> COEFFICIENTS
 %token <pset> COLOR
 %token <pset> COMMENT
@@ -2351,6 +2353,12 @@ actions:
             sprintf(buf, "%g", (double) $2);
             echomsg(buf);
 	}
+	| CLOSE {
+	    close_input = copy_string(close_input, "");
+	}
+	| CLOSE CHRSTR {
+	    close_input = copy_string(close_input, (char *) $2);
+	}
 	| EXIT {
 	    exit(0);
 	}
@@ -3814,6 +3822,7 @@ symtab_entry ikey[] = {
 	{"CI", FUNC_D, ci_wrap},
 	{"CLEAR", CLEAR, NULL},
 	{"CLICK", CLICK, NULL},
+	{"CLOSE", CLOSE, NULL},
 	{"COEFFICIENTS", COEFFICIENTS, NULL},
 	{"COLOR", COLOR, NULL},
 	{"COMMENT", COMMENT, NULL},

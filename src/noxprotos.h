@@ -97,6 +97,10 @@ void calculate_tickgrid(int gno);
 void drawgrid(int gno);
 void drawaxes(int gno);
 
+void unregister_real_time_input(const char *name);
+int register_real_time_input(int fd, const char *name);
+int real_time_under_monitoring(void);
+int monitor_input(Input_buffer *tbl, int tblsize, int no_wait);
 
 void gauss(int n, double *a, int adim, double *b, double *x);
 void stasum(double *x, int n, double *xbar, double *sd);

@@ -120,7 +120,7 @@ XmString sdstring;		/* string for stack depth */
 XmString cystring;		/* string for stack cycle */
 XmString statstring;		/* string for pointer status */
 
-Display *disp;
+Display *disp = (Display *) NULL;
 Window xwin;
 
 extern Window root;

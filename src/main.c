@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -77,6 +77,9 @@ char gui_version[] = "Motif";
 extern char batchfile[];
 extern char print_file[];
 extern int install_cmap;
+
+extern Input_buffer *ib_tbl;
+extern int ib_tblsize;
 
 static void usage(FILE *stream, char *progname);
 static void VersionInfo(void);
@@ -195,6 +198,7 @@ int main(int argc, char *argv[])
     char *s;
     int i, j;
     int gno;
+    int fd;
     world w;
     view v;
     int cur_graph = 0;	        /* default graph is graph 0 */
@@ -204,6 +208,8 @@ int main(int argc, char *argv[])
     int remove_flag = FALSE;	/* remove file after read */
     int noprint = FALSE;	/* if gracebat, then don't print if true */
     int sigcatch = TRUE;	/* we handle signals ourselves */
+
+    char fd_name[GR_MAXPATHLEN];
 
     Page_geometry pg;
     
@@ -277,15 +283,15 @@ int main(int argc, char *argv[])
     register_device(dev_pnm);
 #endif
 
-/* initialize T1lib */
+    /* initialize T1lib */
     if (init_t1() != GRACE_EXIT_SUCCESS) {
         errmsg("Initialization of t1-library failed!");
 	exit (1);
     }
 
-/* initialize colormap data */
+    /* initialize colormap data */
     initialize_cmap();
-        
+
     /*
      * if program name is gracebat* then don't initialize the X toolkit
      */
@@ -373,14 +379,35 @@ int main(int argc, char *argv[])
 		    logwindow = TRUE;
 		} else if (argmatch(argv[i], "-nologwindow", 7)) {
 		    logwindow = FALSE;
+		} else if (argmatch(argv[i], "-dpipe", 6)) {
+		    i++;
+		    if (i == argc) {
+			fprintf(stderr, "Missing argument for descriptor pipe\n");
+			usage(stderr, argv[0]);
+		    } else {
+                        fd = atoi(argv[i]);
+                        if (fcntl(fd, F_GETFL) != O_RDONLY) {
+                            fprintf(stderr,
+                                    "Descriptor %d not open for reading\n",
+                                    fd);
+                            usage(stderr, argv[0]);
+                        } else {
+                            sprintf (fd_name, "pipe<%d>", fd);
+                            register_real_time_input(fd, fd_name);
+                        }
+		    }
 		} else if (argmatch(argv[i], "-npipe", 6)) {
 		    i++;
 		    if (i == argc) {
 			fprintf(stderr, "Missing argument for named pipe\n");
 			usage(stderr, argv[0]);
 		    } else {
-			strcpy(pipe_name, argv[i]);
-			named_pipe = 1;
+                        fd = open(argv[i], O_RDONLY | O_NONBLOCK);
+                        if (fd < 0) {
+                            fprintf(stderr, "Can't open fifo\n");
+                        } else {
+                            register_real_time_input(fd, argv[i]);
+                        }
 		    }
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
 		} else if (argmatch(argv[i], "-netcdf", 7) || argmatch(argv[i], "-hdf", 4)) {
@@ -847,6 +874,9 @@ int main(int argc, char *argv[])
 	if (batchfile[0]) {
 	    getparms(batchfile);
 	}
+        while (real_time_under_monitoring()) {
+            monitor_input(ib_tbl, ib_tblsize, 0);
+        }
 	if (!noprint) {
 	    do_hardcopy();
 	}
@@ -887,6 +917,7 @@ static void usage(FILE *stream, char *progname)
 #if defined(DEBUG)
     fprintf(stream, "-debug     [debug_level]              Set debugging options\n");
 #endif
+    fprintf(stream, "-dpipe     [descriptor]               Read data from descriptor on startup\n");
     fprintf(stream, "-hdevice   [hardcopy_device_name]     Set default hardcopy device\n");
     fprintf(stream, "-fixed     [width] [height]           Set canvas size fixed to width*height\n");
     fprintf(stream, "-free                                 Use free page layout\n");
