@@ -1,5 +1,5 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
@@ -419,7 +419,10 @@ int main(int argc, char *argv[])
                         if (fd < 0) {
                             fprintf(stderr, "Can't open fifo\n");
                         } else {
-                            register_real_time_input(fd, argv[i], TRUE);
+                            if (register_real_time_input(fd, argv[i], TRUE) !=
+                                GRACE_EXIT_SUCCESS) {
+                                exit(1);
+                            }
                         }
 		    }
 #if defined(HAVE_NETCDF) || defined(HAVE_MFHDF)
@@ -859,9 +862,8 @@ int main(int argc, char *argv[])
  */
 void cli_loop(void)
 {
-    char pstring[MAX_STRING_LENGTH] = "";
-    int ilen;
-    int i = 1;
+    Input_buffer *ib_stdin;
+    int previous = -1;
 
     if (inpipe == TRUE) {
         getdata(get_cg(), "stdin", SOURCE_DISK, curtype);
@@ -870,18 +872,25 @@ void cli_loop(void)
     if (batchfile[0]) {
         getparms(batchfile);
     }
-    /* TODO: RTI */
     
-    while (TRUE) {
-        printf("grace:%d> ", i);
-        fgets(pstring, MAX_STRING_LENGTH - 1, stdin);
-        ilen = strlen(pstring);
-        if (ilen < 2) {
-            continue;
-        }
-        read_param(pstring);
-        i++;
+    if (register_real_time_input(STDIN_FILENO, "stdin", 0)
+        != GRACE_EXIT_SUCCESS) {
+        exit(1);
     }
+    for (ib_stdin = ib_tbl; ib_stdin->fd != STDIN_FILENO; ib_stdin++) {
+        ;
+    }
+
+    while (ib_stdin->fd == STDIN_FILENO) {
+        /* the standard input is still under monitoring */
+        if (ib_stdin->lineno != previous) {
+            printf("grace:%d> ", ib_stdin->lineno + 1);
+            fflush(stdout);
+            previous = ib_stdin->lineno;
+        }
+        monitor_input(ib_tbl, ib_tblsize, 0);
+    }
+
 }
 
 static void usage(FILE *stream, char *progname)
