@@ -139,6 +139,7 @@ typedef struct {
     OptionStructure *symbols;
     SpinStructure   *symsize;
     SpinStructure   *symskip;
+    SpinStructure   *symskipmindist;
     Widget          sympen;
     Widget          symfillpen;
     SpinStructure   *symlinew;

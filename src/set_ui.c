@@ -229,6 +229,10 @@ SetUI *create_set_ui(ExplorerUI *eui)
     ui->symskip = CreateSpinChoice(rc, "Symbol skip:",
         5, SPIN_TYPE_INT, (double) 0, (double) 100000, (double) 1);
     AddSpinChoiceCB(ui->symskip, sp_explorer_cb, eui);
+    ui->symskipmindist = CreateSpinChoice(
+	 rc, "Minimum symbol separation:",
+	 5, SPIN_TYPE_FLOAT, 0.0, 100.0, 0.01);
+    AddSpinChoiceCB(ui->symskipmindist, sp_explorer_cb, eui);
     ui->char_font = CreateFontChoice(rc, "Font for char symbol:");
     AddOptionChoiceCB(ui->char_font, oc_explorer_cb, eui);
     AddOptionChoiceCB(ui->char_font, charfont_cb, ui->symchar);
@@ -398,6 +402,7 @@ void update_set_ui(SetUI *ui, Quark *q)
 
         SetSpinChoice(ui->symsize, p->sym.size);
         SetSpinChoice(ui->symskip, p->symskip);
+        SetSpinChoice(ui->symskipmindist, p->symskipmindist);
         UpdateCharOptionChoice(ui->symchar, p->sym.charfont);
         SetOptionChoice(ui->symchar, p->sym.symchar);
         SetOptionChoice(ui->symbols, p->sym.type);
@@ -477,6 +482,9 @@ int set_set_data(SetUI *ui, Quark *q, void *caller)
 
         if (!caller || caller == ui->symskip) {
             p->symskip = GetSpinChoice(ui->symskip);
+        }
+        if (!caller || caller == ui->symskipmindist) {
+            p->symskipmindist = GetSpinChoice(ui->symskipmindist);
         }
         if (!caller || caller == ui->symsize) {
             p->sym.size = GetSpinChoice(ui->symsize);

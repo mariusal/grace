@@ -668,7 +668,8 @@ typedef struct {
     Symbol sym;                 /* set plot symbol props */
 
     int symskip;                /* number of symbols to skip */
-
+    double symskipmindist;      /* min. distance between symbols */
+     
     SetLine line;               /* set line type */
 
     AValue avalue;              /* Parameters for annotative string */
@@ -947,6 +948,7 @@ int set_set_legstr(Quark *pset, const char *s);
 int set_get_ncols(Quark *pset);
 
 int set_set_symskip(Quark *pset, int symskip);
+int set_set_symskipmindist(Quark *pset, double symskipmindist);
 int set_set_symbol(Quark *pset, const Symbol *sym);
 int set_set_line(Quark *pset, const SetLine *sl);
 int set_set_avalue(Quark *pset, const AValue *av);

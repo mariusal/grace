@@ -1759,6 +1759,9 @@ char *utf2iso(const char *s)
         <attribute name="#AStrSkip" type="ival">
             set_set_symskip($$, $?);
         </attribute>
+        <attribute name="#AStrSkipMinDist" type="dval">
+            set_set_symskipmindist($$, $?);
+        </attribute>
         
         <!-- Child elements -->
         <child name="#EStrSymbol">

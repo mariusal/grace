@@ -797,6 +797,7 @@ static int project_save_hook(Quark *q,
         xmlio_set_active(attrs, p->active);
         attributes_set_sval(attrs, AStrType, set_types(rt_from_quark(q), p->type));
         attributes_set_ival(attrs, AStrSkip, p->symskip);
+        attributes_set_dval(attrs, AStrSkipMinDist, p->symskipmindist);
         xfile_begin_element(xf, EStrSet, attrs);
         {
             save_set_properties(xf, q);

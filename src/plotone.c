@@ -778,12 +778,13 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     int setlen, len;
     int i;
     int line_type = p->line.type;
-    VPoint vps[4], *vpstmp;
+    VPoint vps[4], *vpstmp, vprev;
     WPoint wp;
     double *x, *y;
     double lw;
     double ybase;
     double xmin, xmax, ymin, ymax;
+    int skip = p->symskip + 1;
     int stacked_chart;
     
     if (graph_get_type(gr) == GRAPH_CHART) {
@@ -955,7 +956,7 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
     }
 
     if (p->line.droplines == TRUE) {
-        for (i = 0; i < setlen; i ++) {
+        for (i = 0; i < setlen; i += skip) {
             wp.x = x[i];
             if (stacked_chart == TRUE) {
                 wp.y = plot_rt->refy[i];
@@ -974,6 +975,11 @@ void drawsetline(Quark *pset, plot_rt_t *plot_rt)
             
             vps[1].y -= lw/2.0;
  
+	    if (i && 
+		hypot(vps[1].x-vprev.x, vps[1].y-vprev.y) < p->symskipmindist)
+		 continue;
+	    vprev = vps[1];
+            
             DrawLine(canvas, &vps[0], &vps[1]);
         }
     }
@@ -1001,7 +1007,7 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
     set *p = set_get_data(pset);
     int setlen;
     int i;
-    VPoint vp;
+    VPoint vp, vprev;
     WPoint wp;
     double *x, *y, *z, *c;
     int skip = p->symskip + 1;
@@ -1060,6 +1066,10 @@ void drawsetsyms(Quark *pset, plot_rt_t *plot_rt)
         
             Wpoint2Vpoint(gr, &wp, &vp);
     	    vp.x += plot_rt->offset;
+
+	    if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist)
+		 continue;
+	    vprev = vp;
             
             if (z) {
                 sym.size = z[i]/znorm;
@@ -1100,7 +1110,7 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
     int setlen;
     double *x, *y, *z;
     WPoint wp;
-    VPoint vp;
+    VPoint vp, vprev;
     int skip = p->symskip + 1;
     AValue avalue;
     char str[MAX_STRING_LENGTH];
@@ -1149,6 +1159,10 @@ void drawsetavalues(Quark *pset, plot_rt_t *plot_rt)
         vp.y += avalue.offset.y;
     	vp.x += plot_rt->offset;
         
+	if (i && hypot(vp.x - vprev.x, vp.y - vprev.y) < p->symskipmindist)
+	     continue;
+	vprev = vp;
+            
         strcpy(str, avalue.prestr);
         
         switch(avalue.type) {
@@ -1201,7 +1215,7 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
     double *dx_plus, *dx_minus, *dy_plus, *dy_minus, *dtmp;
     PlacementType ptype = p->errbar.ptype;
     WPoint wp1, wp2;
-    VPoint vp1, vp2;
+    VPoint vp1, vp2, vprev;
     int stacked_chart;
     int skip = p->symskip + 1;
     
@@ -1293,6 +1307,10 @@ void drawseterrbars(Quark *pset, plot_rt_t *plot_rt)
         Wpoint2Vpoint(gr, &wp1, &vp1);
         vp1.x += plot_rt->offset;
 
+	if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
+	     continue;
+	vprev = vp1;
+            
         if (dx_plus != NULL) {
             wp2 = wp1;
             wp2.x += fabs(dx_plus[i]);
@@ -1337,12 +1355,18 @@ void drawsethilo(Quark *pset, plot_rt_t *plot_rt)
     double ilen = 0.02*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
-    VPoint vp1, vp2;
+    VPoint vp1, vp2, vprev;
 
     if (p->sym.line.style != 0) {
         setline(canvas, &p->sym.line);
         for (i = 0; i < set_get_length(pset); i += skip) {
             wp.x = x[i];
+	    wp.y = (y1[i] + y2[i] + y3[i] + y4[i]) * 0.25;
+	    Wpoint2Vpoint(pset, &wp, &vp1);
+	    if (i && hypot(vp1.x-vprev.x, vp1.y-vprev.y) < p->symskipmindist)
+		 continue;
+	    vprev = vp1;
+
             wp.y = y1[i];
             Wpoint2Vpoint(pset, &wp, &vp1);
             wp.y = y2[i];
@@ -1376,7 +1400,7 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
     int skip = p->symskip + 1;
     double ybase;
     WPoint wp;
-    VPoint vp1, vp2;
+    VPoint vp1, vp2, vprev;
     int stacked_chart;
     
     if (graph_get_type(gr) == GRAPH_CHART) {
@@ -1436,6 +1460,11 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
             vp2.x -= lw/2.0;
             vp1.y += lw/2.0;
             
+	    if (i &&
+		hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
+		 continue;
+	    vprev = vp2;
+            
             FillRect(canvas, &vp1, &vp2);
         }
     }
@@ -1465,6 +1494,11 @@ void drawsetbars(Quark *pset, plot_rt_t *plot_rt)
             vp2.x -= lw/2.0;
             vp1.y += lw/2.0;
 
+	    if (i &&
+		hypot(vp2.x - vprev.x, vp2.y - vprev.y) < p->symskipmindist)
+		 continue;
+	    vprev = vp2;
+            
     	    DrawRect(canvas, &vp1, &vp2);
         }
     }
@@ -1478,7 +1512,7 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
     double *x, *y, *r;
     int skip = p->symskip + 1;
     WPoint wp;
-    VPoint vp1, vp2;
+    VPoint vp1, vp2, vprev;
 
     setclipping(canvas, TRUE);
     
@@ -1503,6 +1537,11 @@ void drawcirclexy(Quark *pset, plot_rt_t *plot_rt)
         wp.x = x[i] + r[i];
         wp.y = y[i] + r[i];
         Wpoint2Vpoint(pset, &wp, &vp2);
+	if (i && hypot((vp1.x+vp2.x)*0.5 - vprev.x,
+		       (vp1.y+vp2.y)*0.5 - vprev.y) < p->symskipmindist)
+	     continue;
+	vprev.x = (vp1.x+vp2.x)*0.5;
+	vprev.y = (vp1.y+vp2.y)*0.5;
         if (p->line.filltype != SETFILL_NONE) {
             setpen(canvas, &p->line.fillpen);
             DrawFilledEllipse(canvas, &vp1, &vp2);
@@ -1523,7 +1562,7 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
     int skip = p->symskip + 1;
     double *x, *y, *vx, *vy;
     WPoint wp;
-    VPoint vp1, vp2;
+    VPoint vp1, vp2, vprev;
     Arrow arrow = {0, 1.0, 1.0, 0.0};
     
     Errbar eb = p->errbar;
@@ -1551,7 +1590,10 @@ void drawsetvmap(Quark *pset, plot_rt_t *plot_rt)
             continue;
         }
         Wpoint2Vpoint(gr, &wp, &vp1);
-        vp2.x = vp1.x + vx[i]/znorm;
+	if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
+	     continue;
+	vprev = vp1;
+	vp2.x = vp1.x + vx[i]/znorm;
         vp2.y = vp1.y + vy[i]/znorm;
 
         setlinewidth(canvas, eb.riser_linew);
@@ -1573,7 +1615,7 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
     double size = 0.01*p->sym.size;
     int skip = p->symskip + 1;
     WPoint wp;
-    VPoint vp1, vp2;
+    VPoint vp1, vp2, vprev;
 
     x  = p->data->ex[0];
     md = p->data->ex[1];
@@ -1586,6 +1628,12 @@ void drawsetboxplot(Quark *pset, plot_rt_t *plot_rt)
 
     for (i = 0; i < set_get_length(pset); i += skip) {
         wp.x =  x[i];
+
+        wp.y = md[i]; /* use median-line y for symskipmindist */
+        Wpoint2Vpoint(pset, &wp, &vp1);
+	if (i && hypot(vp1.x - vprev.x, vp1.y - vprev.y) < p->symskipmindist)
+	     continue;
+	vprev = vp1;
 
         wp.y = lb[i];
         Wpoint2Vpoint(pset, &wp, &vp1);

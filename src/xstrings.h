@@ -162,6 +162,7 @@
 #define AStrSingleSymbol        "single-symbol"
 #define AStrSize                "size"
 #define AStrSkip                "skip"
+#define AStrSkipMinDist         "skipmindist"
 #define AStrStacked             "stacked"
 #define AStrStagger             "stagger"
 #define AStrStart               "start"

@@ -276,7 +276,7 @@ static void set_default_set(Quark *pset)
     p->type = SET_XY;                            /* dataset type */
 
     p->symskip = 0;                              /* How many symbols to skip */
-
+    p->symskipmindist = 0;                  /* Min. distance between symbols */
     p->sym.type = 0;                             /* set plot symbol */
     p->sym.size = grdefs.charsize;           /* size of symbols */
     p->sym.line = grdefs.line;
@@ -561,6 +561,20 @@ int set_set_symskip(Quark *pset, int symskip)
     p = set_get_data(pset);
     
     p->symskip = symskip;
+    
+    return RETURN_SUCCESS;
+}
+
+int set_set_symskipmindist(Quark *pset, double symskipmindist)
+{
+    set *p;
+    if (!pset || symskipmindist < 0) {
+        return RETURN_FAILURE;
+    }
+    
+    p = set_get_data(pset);
+    
+    p->symskipmindist = symskipmindist;
     
     return RETURN_SUCCESS;
 }
