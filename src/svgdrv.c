@@ -143,7 +143,7 @@ int register_svg_drv(Canvas *canvas)
     return register_device(canvas, &dev_svg);
 }
 
-static void define_pattern(Svg_data *svgdata, int i)
+static void define_pattern(const Canvas *canvas, Svg_data *svgdata, int i)
 {
 #ifndef EXPERIMENTAL_SVG_PATTERNS
     svgdata->pattern_full[i]  = TRUE;
@@ -151,6 +151,7 @@ static void define_pattern(Svg_data *svgdata, int i)
     return;
 #else
     int j, k, l;
+    Pattern *pat;
 
     if (svgdata->pattern_defined[i] == TRUE) {
         return;
@@ -159,11 +160,12 @@ static void define_pattern(Svg_data *svgdata, int i)
     /* testing if the pattern is either empty or full */
     svgdata->pattern_empty[i] = TRUE;
     svgdata->pattern_full[i]  = TRUE;
+    pat = canvas_get_pattern(canvas, i);
     for (j = 0; j < 32; j++) {
-        if (pat_bits[i][j] != 0x00) {
+        if (pat->bits[j] != 0x00) {
             svgdata->pattern_empty[i] = FALSE;
         }
-        if (pat_bits[i][j] != 0xff) {
+        if (pat->bits[j] != 0xff) {
             svgdata->pattern_full[i] = FALSE;
         }
     }
@@ -178,7 +180,7 @@ static void define_pattern(Svg_data *svgdata, int i)
         for (j = 0; j < 256; j++) {
             k = j/16;
             l = j%16;
-            if ((pat_bits[i][j/8] >> (j%8)) & 0x01) {
+            if ((pat->bits[j/8] >> (j%8)) & 0x01) {
                 /* the bit is set */
                 fprintf(canvas->prstream,
                         "     <rect x=\"%d\" y=\"%d\""
@@ -344,7 +346,7 @@ static void svg_group_props(const Canvas *canvas, Svg_data *svgdata,
             svgdata->group_is_open = FALSE;
         }
 
-        define_pattern(svgdata, pen.pattern);
+        define_pattern(canvas, svgdata, pen.pattern);
         if (get_rgb(canvas, pen.color, &rgb) == RETURN_SUCCESS) {
             red   = rgb.red   >> (GRACE_BPP - 8);
             green = rgb.green >> (GRACE_BPP - 8);
