@@ -234,6 +234,7 @@ void SetSensitive(Widget w, int onoff);
 Widget GetParent(Widget w);
 
 Widget CreateDialogForm(Widget parent, char *s);
+void SetDialogFormResizable(Widget form, int onoff);
 void AddDialogFormChild(Widget form, Widget child);
 Widget CreateFrame(Widget parent, char *s);
 

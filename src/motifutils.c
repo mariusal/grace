@@ -2833,18 +2833,26 @@ Widget CreateDialogForm(Widget parent, char *s)
     bufp = copy_string(NULL, "Grace: ");
     bufp = concat_strings(bufp, s);
     XtVaSetValues(dialog,
-        XmNallowShellResize, True,
         XmNtitle, bufp,
         NULL);
     xfree(bufp);
 
     w = XmCreateForm(dialog, "form", NULL, 0);
     XtVaSetValues(w,
-        XmNresizePolicy, XmRESIZE_ANY,
         XmNuserData, NULL,
         NULL);
     
     return w;
+}
+
+void SetDialogFormResizable(Widget form, int onoff)
+{
+    XtVaSetValues(form,
+        XmNresizePolicy, onoff ? XmRESIZE_ANY:XmRESIZE_NONE,
+        NULL);
+    XtVaSetValues(XtParent(form),
+        XmNallowShellResize, onoff ? True:False,
+        NULL);
 }
 
 void AddDialogFormChild(Widget form, Widget child)
