@@ -427,6 +427,10 @@ int set_graph_type(int gno, int gtype)
     
     g = graph_get(gno);
     if (g) {
+        if (g->type == gtype) {
+            return RETURN_SUCCESS;
+        }
+        
         switch (gtype) {
         case GRAPH_XY:
         case GRAPH_CHART:
