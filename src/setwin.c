@@ -174,13 +174,21 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
         char *collabels[6] = {"Min", "at", "Max", "at", "Mean", "Stdev"};
         short column_widths[6] = {10, 6, 10, 6, 10, 10};
         unsigned char column_alignments[6] = {
-                                                XmALIGNMENT_CENTER,
-                                                XmALIGNMENT_CENTER,
-                                                XmALIGNMENT_CENTER,
-                                                XmALIGNMENT_CENTER,
-                                                XmALIGNMENT_CENTER,
-                                                XmALIGNMENT_CENTER
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END,
+                                                XmALIGNMENT_END
                                              };
+        unsigned char column_label_alignments[6] = {
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER,
+                                                      XmALIGNMENT_CENTER
+                                                   };
 	tui.top = XmCreateDialogShell(app_shell, "Data set props", NULL, 0);
 	handle_close(tui.top);
         panel = XtVaCreateWidget("dataSetPanel",
@@ -264,10 +272,12 @@ void create_change_popup(Widget w, XtPointer client_data, XtPointer call_data)
             XmNvisibleColumns, 4,
             XmNcolumnLabels, collabels,
             XmNcolumnWidths, column_widths,
-            XmNcolumnLabelAlignments, column_alignments,
+            XmNcolumnAlignments, column_alignments,
+            XmNcolumnLabelAlignments, column_label_alignments,
             XmNrowLabels, rowlabels,
 	    XmNrowLabelWidth, 3,
             XmNrowLabelAlignment, XmALIGNMENT_CENTER,
+            XmNshowArrows, True,
             XmNallowColumnResize, True,
             XmNgridType, XmGRID_COLUMN_SHADOW,
             XmNcellShadowType, XmSHADOW_OUT,
