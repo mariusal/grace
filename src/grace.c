@@ -309,6 +309,8 @@ void runtime_free(RunTime *rt)
     xfree(rt->username);
     xfree(rt->userhome);
     
+    qfactory_free(rt->qfactory);
+    
     canvas_free(rt->canvas);
     
     grace_rt_free_dicts(rt);
