@@ -941,6 +941,8 @@ static void storage_popup(Widget parent,
         selected = FALSE;
     }
     
+    SetSensitive(ss->popup_hide_bt, selected);
+    SetSensitive(ss->popup_show_bt, selected);
     SetSensitive(ss->popup_delete_bt, selected);
     SetSensitive(ss->popup_duplicate_bt, selected);
     SetSensitive(ss->popup_bring_to_front_bt, selected);
