@@ -71,7 +71,11 @@
  * number of bytes in each line chunk
  * (should be related to system pipe size, typically 4K)
  */
-#define CHUNKSIZE 4096
+
+#ifndef PIPE_BUF
+#  define PIPE_BUF 4096
+#endif
+#define CHUNKSIZE 2*PIPE_BUF
 
 static char buf[256];
 
