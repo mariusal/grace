@@ -340,14 +340,6 @@ int main(int argc, char *argv[])
 		}
 	    } else if (argmatch(argv[i], "-hardcopy", 6)) {
 		gracebat = TRUE;
-	    } else if (argmatch(argv[i], "-pexec", 6)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing argument for exec\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    scanner(argv[i]);
-		}
 	    } else if (argmatch(argv[i], "-block", 6)) {
 		i++;
 		if (i == argc) {
@@ -388,16 +380,6 @@ int main(int argc, char *argv[])
                 if (rt->curtype == -1) {
 		    fprintf(stderr, "%s: Unknown set type '%s'\n", argv[0], argv[i]);
 		    usage(stderr, argv[0]);
-		}
-	    } else if (argmatch(argv[i], "-param", 2)) {
-		i++;
-		if (i == argc) {
-		    fprintf(stderr, "Missing parameter file name\n");
-		    usage(stderr, argv[0]);
-		} else {
-		    if (!getparms(grace, argv[i])) {
-			fprintf(stderr, "Unable to read parameter file %s\n", argv[i]);
-		    }
 		}
 	    } else if (argmatch(argv[i], "-results", 2)) {
 		i++;
@@ -584,9 +566,6 @@ static void usage(FILE *stream, char *progname)
     fprintf(stream, "-npipe     [file]                     Read data from named pipe on startup\n");
     fprintf(stream, "-nxy       [nxy_file]                 Assume data file is in X Y1 Y2 Y3 ...\n");
     fprintf(stream, "                                        format\n");
-    fprintf(stream, "-param     [parameter_file]           Load parameters from parameter_file to the\n");
-    fprintf(stream, "                                        current graph\n");
-    fprintf(stream, "-pexec     [parameter_string]         Interpret string as a parameter setting\n");
     fprintf(stream, "-printfile [file for hardcopy output] Save print output to file \n");
     fprintf(stream, "-results   [results_file]             Write results of some data manipulations\n");
     fprintf(stream, "                                        to results_file\n");

@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.99.0)</title>
 <author>by the Grace Team</author>
-<date>24.07.2004</date>
+<date>10.08.2004</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -574,7 +574,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         <tag> -hdevice <it>hardcopy_device_name</it> </tag>
               Set default hardcopy device
 
-        <tag> -hdevice-options <it>option_strin</it> </tag>
+        <tag> -hdevice-options <it>option_string</it> </tag>
               Set options for default hardcopy device
 
         <tag> -install </tag>
@@ -598,12 +598,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
         <tag> -nxy <it>nxy_file</it> </tag>
               Assume data file is in X Y1 Y2 Y3 ... format
-
-        <tag> -param <it>parameter_file</it> </tag>
-              Load parameters from parameter_file to the current graph
-
-        <tag> -pexec <it>parameter_string</it> </tag>
-              Interpret string as a parameter setting
 
         <tag> -printfile </tag> <it>file</it>
               Save print output to file
