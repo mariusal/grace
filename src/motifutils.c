@@ -148,6 +148,26 @@ static char *label_to_resname(const char *s, const char *suffix)
     return retval;
 }
 
+
+void ManageChild(Widget w)
+{
+    if (w) {
+        XtManageChild(w);
+    } else {
+        errmsg("Internal error: ManageChild() called with NULL widget");
+    }
+}
+
+void UnmanageChild(Widget w)
+{
+    if (w) {
+        XtUnmanageChild(w);
+    } else {
+        errmsg("Internal error: UnmanageChild() called with NULL widget");
+    }
+}
+
+
 #define MAX_PULLDOWN_LENGTH 30
 
 OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,

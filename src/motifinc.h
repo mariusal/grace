@@ -222,6 +222,9 @@ typedef int (*AACDialog_CBProc)(
     void *               /* data the application registered */
 );
 
+void ManageChild(Widget w);
+void UnanageChild(Widget w);
+
 Widget CreateDialogForm(Widget parent, char *s);
 Widget CreateFrame(Widget parent, char *s);
 
