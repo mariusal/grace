@@ -430,6 +430,7 @@ symtab_entry *key;
 %token <ival> START
 %token <ival> STOP
 %token <ival> STRING
+%token <ival> SUM
 %token <ival> SUBTITLE
 %token <ival> SWAP
 %token <ival> SYMBOL
@@ -682,6 +683,10 @@ expr:	NUMBER {
                 break;
             case SD:
 		stasum($3->data, length, &dummy, &$$);
+                break;
+            case SUM:
+		stasum($3->data, length, &$$, &dummy);
+                $$ *= length;
                 break;
 	    }
 	}
@@ -3976,6 +3981,7 @@ stattype: MINP { $$ = MINP; }
 	| MAXP { $$ = MAXP; }
         | AVG { $$ = AVG; }
 	| SD { $$ = SD; }
+	| SUM { $$ = SUM; }
 	;
 
 font_select:
@@ -4775,6 +4781,7 @@ symtab_entry ikey[] = {
 	{"STRING", STRING, NULL},
 	{"STRUVE", FUNC_DD, (void *) struve},
 	{"SUBTITLE", SUBTITLE, NULL},
+	{"SUM", SUM, NULL},
 	{"SWAP", SWAP, NULL},
 	{"SYMBOL", SYMBOL, NULL},
 	{"TAN", FUNC_D, (void *) tan},
