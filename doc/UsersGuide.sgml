@@ -6,7 +6,7 @@
 
 <title>Grace User's Guide (for Grace-5.1.7)</title>
 <author>by the Grace Team</author>
-<date>12.03.2002</date>
+<date>14.03.2002</date>
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for numerical data.
@@ -2444,6 +2444,10 @@ integral     | cumulative sum @
          Same as above, plus additional <it>hvinv</it>, <it>hinv</it>, and <it>vinv</it> flags allowing to alter the order of the matrix filling |
          nexpr <it>nrows</it>, <it>ncols</it>, expr <it>offset</it>, <it>hgap</it>, <it>vgap</it>, onoff <it>hvinv</it>, <it>hinv</it>, <it>vinv</it> |
          ARRANGE(2, 2, 0.1, 0.15, 0.2, ON, OFF, ON) @
+	ARRANGE(<it>nrows</it>, <it>ncols</it>, <it>offset</it>, <it>hgap</it>, <it>vgap</it>, <it>hvinv</it>, <it>hinv</it>, <it>vinv</it>, <it>snake</it>) |
+         Same as above, plus additional <it>snake</it> flag allowing to fill the matrix in a snake-like fashion |
+         nexpr <it>nrows</it>, <it>ncols</it>, expr <it>offset</it>, <it>hgap</it>, <it>vgap</it>, onoff <it>hvinv</it>, <it>hinv</it>, <it>vinv</it>, <it>snake</it> |
+         ARRANGE(2, 2, 0.1, 0.15, 0.2, ON, OFF, ON, ON) @
       </tabular>
       <caption>
         <label id="graph-ops">
