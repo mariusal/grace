@@ -1204,9 +1204,13 @@ void expand_tilde(char *buf)
 	if (strlen(buf) == 1) {
             strcpy(buf, get_userhome());
 	} else if (buf[1] == '/') {
-            strcpy(buf2, get_userhome());
-	    strcat(buf2, buf + 1);
-	    strcpy(buf, buf2);
+            if (strlen(buf) > 2) {
+                strcpy(buf2, get_userhome());
+	        strcat(buf2, buf + 1);
+	        strcpy(buf, buf2);
+            } else {
+                strcpy(buf, get_userhome());
+            }
 	} else {
 	    char tmp[128], *pp = tmp, *q = buf + 1;
 	    struct passwd *pent;
