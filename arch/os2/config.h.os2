@@ -1,10 +1,10 @@
 /*
- * Grace - Graphics for Exploratory Data Analysis
+ * Grace - GRaphing, Advanced Computation and Exploration of data
  * 
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-95 Paul J Turner, Portland, OR
- * Copyright (c) 1996-98 GRACE Development Team
+ * Copyright (c) 1996-99 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik <fnevgeny@plasma-gate.weizmann.ac.il>
  * 
@@ -198,10 +198,10 @@
 #define HAVE_LIBM 1
 
 /* Define if you have the <math.h> header file.  */
-#define HAVE_MATH_H
+#define HAVE_MATH_H 1
 
 /* Define if you have <float.h>.  */
-#define HAVE_FLOAT_H
+#define HAVE_FLOAT_H 1
 
 /* Define if you have <ieeefp.h>.  */
 #undef HAVE_IEEEFP_H
@@ -216,7 +216,7 @@
 #define HAVE_CBRT 1
 
 /* Define if the cbrt function is declared in math.h.  */
-#undef HAVE_CBRT_DECL
+#define HAVE_CBRT_DECL 1
 
 /* Define if you have the log2 function.  */
 #undef HAVE_LOG2

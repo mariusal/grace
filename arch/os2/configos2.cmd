@@ -1,6 +1,6 @@
 /* 
   REXX-Script to configure&build GRACE 5.x for XFree86 OS/2
-  (19990519)
+  (19990721)
 */
 
 /*
@@ -96,7 +96,7 @@ if FileExists(cf_make_conf) = True then
 else 
   do 
   call FileCopy systemdir'\'cf_make_conf'.os2', curdir'\'cf_make_conf
-  call Execute 'touch 'curdir'\'cf_make_conf
+/*  call Execute 'touch 'curdir'\'cf_make_conf */
   end
 
 /* 
@@ -119,7 +119,7 @@ if FileExists(cf_config_h) = True then
 else 
   do 
   call FileCopy systemdir'\'cf_config_h'.os2', curdir'\'cf_config_h
-  call Execute 'touch 'curdir'\'cf_config_h
+/*  call Execute 'touch 'curdir'\'cf_config_h */
   end
 
 /*
@@ -154,8 +154,9 @@ Parse Arg par1, par2
 call Execute '@copy 'par1' 'par2' >nul'
 return
 
-FileExists: procedure
+FileExists: procedure expose True False
 Parse Arg fe_file
+say "fe_file="fe_file
 rs = Stream(fe_file, 'C', 'QUERY EXISTS')
 if rs = '' then
   return False
@@ -173,13 +174,14 @@ say " -o : optimize"
 */
 return
 
+
 rtest:
 /* work in progress (hopefully ;-) */
 _CR     = D2C(13)
 _LF     = D2C(10)
 _CRLF   = _CR''_LF
 rc = LineIn (rfile,1,0)
-rlength = Chars(rfile)
+rlength  = Chars(rfile)
 rcontent = CharIn(rfile, rlength)
 call LineOut rfile
 rcount = 0

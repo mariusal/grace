@@ -14,7 +14,7 @@ BAT=.cmd
 SHELL=sh
 
 # Path prefix for installation links
-PREFIX=$(X11ROOT)/xfree86
+PREFIX=$(X11ROOT)/XFree86
 
 # List of subdirectories
 SUBDIRS=cephes T1lib Xbae src grace_np templates doc examples auxiliary
@@ -23,7 +23,7 @@ SUBDIRS=cephes T1lib Xbae src grace_np templates doc examples auxiliary
 GRACE=xmgrace.exe
 
 # Location of the Grace home
-GRACE_HOME=$(X11ROOT)/xfree86/lib/grace
+GRACE_HOME=$(X11ROOT)/XFree86/lib/grace
 
 # Relocatable that contains alloca()
 ALLOCA=
@@ -94,7 +94,7 @@ INSTALL_DATA=
 MKINSTALLDIRS=
 
 # C flags
-CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/xfree86/include -D__ST_MT_ERRNO -Zmt
+CFLAGS0= -Wall -Wno-unused -O2 -I$(X11ROOT)/XFree86/include -Zmt
 
 # GUI flags
 GUI_FLAGS=
@@ -106,7 +106,7 @@ LDFLAGS=-s -Zmt -Zcrtdll -Zsysv-signals -Zbin-files
 NOGUI_LIBS=
 
 # GUI libraries
-GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/xfree86/lib -lhlpclient ../Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lX11 -lsocket
+GUI_LIBS= -L. -ldlfcn -L$(X11ROOT)/XFree86/lib -lhlpclient ../Xbae/libXbae.a -lXm -lXpm -lXt -lXext -lX11 -lsocket
 
 # Commamd used to print
 PRINT_CMD='lp'
