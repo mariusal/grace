@@ -1295,6 +1295,9 @@ int nextset(int gno)
         /* if no sets found, try allocating new one */
         if (setno == -1) {
             setno = set_next(gno);
+            if (setno == -1) {
+                errmsg("Can't allocate more sets");
+            }
         }
     }
     recent_target.gno = gno;
