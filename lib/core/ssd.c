@@ -157,13 +157,23 @@ unsigned int ssd_get_nrows(const Quark *q)
     }
 }
 
-int ssd_get_format(const Quark *q, int col)
+int ssd_get_col_format(const Quark *q, int col)
 {
     ss_data *ssd = ssd_get_data(q);
     if (ssd && col >= 0 && col < ssd->ncols) {
         return ssd->cols[col].format;
     } else {
         return FFORMAT_UNKNOWN;
+    }
+}
+
+char *ssd_get_col_label(const Quark *q, int col)
+{
+    ss_data *ssd = ssd_get_data(q);
+    if (ssd && col >= 0 && col < ssd->ncols) {
+        return ssd->cols[col].label;
+    } else {
+        return NULL;
     }
 }
 

@@ -839,7 +839,8 @@ Quark *ssd_new(Quark *q);
 unsigned int ssd_get_ncols(const Quark *q);
 unsigned int ssd_get_nrows(const Quark *q);
 ss_column *ssd_get_col(const Quark *q, int col);
-int ssd_get_format(const Quark *q, int col);
+int ssd_get_col_format(const Quark *q, int col);
+char *ssd_get_col_label(const Quark *q, int col);
 
 int ssd_set_nrows(Quark *q, unsigned int nrows);
 int ssd_set_ncols(Quark *q, unsigned int ncols, const int *formats);
