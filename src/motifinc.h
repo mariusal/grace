@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2003 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -222,6 +222,12 @@ typedef struct {
     StorageStructure *graph_sel;
     StorageStructure *set_sel;
 } GraphSetStructure;
+
+typedef struct {
+    Widget frame;
+    StorageStructure *ssd_sel;
+    ListStructure *col_sel;
+} SSDColStructure;
 
 typedef struct {
     Widget form;
@@ -528,6 +534,9 @@ Quark *get_set_choice_gr(StorageStructure *ss);
 
 GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type);
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type);
+
+SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type);
+int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols);
 
 void switch_focus_proc(void *data);
 void hide_graph_proc(void *data);

@@ -4,7 +4,7 @@
  * Home page: http://plasma-gate.weizmann.ac.il/Grace/
  * 
  * Copyright (c) 1991-1995 Paul J Turner, Portland, OR
- * Copyright (c) 1996-2004 Grace Development Team
+ * Copyright (c) 1996-2005 Grace Development Team
  * 
  * Maintained by Evgeny Stambulchik
  * 
@@ -1183,6 +1183,13 @@ void SetStorageChoiceLabeling(StorageStructure *ss, Storage_LabelingProc proc)
     ss->labeling_proc = proc;
 }
 
+int GetStorageSelectedCount(StorageStructure *ss)
+{
+    int count;
+    XtVaGetValues(ss->list, XmNselectedItemCount, &count, NULL);
+    return count;
+}
+
 int GetStorageChoices(StorageStructure *ss, Quark ***values)
 {
     int i, n;
@@ -1289,6 +1296,13 @@ void UpdateStorageChoice(StorageStructure *ss)
     
     if (nsel > 0) {
         xfree(selvalues);
+    }
+    
+    nsel = GetStorageSelectedCount(ss);
+    if (!nsel && XtHasCallbacks(ss->list, XmNsingleSelectionCallback) ==
+            XtCallbackHasSome) {
+        /* invoke callbacks to make any dependent GUI control to sync */
+        XtCallCallbacks(ss->list, XmNsingleSelectionCallback, NULL);
     }
 }   
 
@@ -2655,7 +2669,7 @@ StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
     StorageStructure *ss;
     int nvisible;
     
-    nvisible = (type == LIST_TYPE_SINGLE) ? 2 : 4; 
+    nvisible = (type == LIST_TYPE_SINGLE) ? 4 : 6; 
 
     ss = CreateStorageChoice(parent, labelstr, type, nvisible);
     SetStorageChoiceLabeling(ss, ssd_labeling);
@@ -2669,6 +2683,15 @@ StorageStructure *CreateSSDChoice(Widget parent, char *labelstr, int type)
     AddHelpCB(ss->rc, "doc/UsersGuide.html#ssd-selector");
 
     return ss;
+}
+
+int GetSSDColChoices(SSDColStructure *sc, Quark **ssd, int **cols)
+{
+    if (GetSingleStorageChoice(sc->ssd_sel, ssd) != RETURN_SUCCESS) {
+        return -1;
+    } else {
+        return GetListChoices(sc->col_sel, cols);
+    }
 }
 
 void update_ssd_selectors(Quark *pr)
@@ -3033,6 +3056,74 @@ GraphSetStructure *CreateGraphSetSelector(Widget parent, char *s, int sel_type)
 
     return retval;
 }
+
+
+
+static ListStructure *CreateColChoice(Widget parent, char *labelstr, int type)
+{
+    int nvisible;
+    ListStructure *retval;
+    
+    nvisible = 6; 
+
+    retval = CreateListChoice(parent, labelstr, type, nvisible, 0, NULL);
+    
+    return retval;
+}
+
+static void update_ssd_cb(StorageStructure *ss, int n, Quark **values, void *data)
+{
+    SSDColStructure *gs = (SSDColStructure *) data;
+    unsigned int i, ncols;
+    OptionItem *items;
+    
+    if (n == 1) {
+        Quark *ssd = values[0];
+        ncols = ssd_get_ncols(ssd);
+        items = xmalloc(ncols*sizeof(OptionItem));
+        for (i = 0; i < ncols; i++) {
+            char *label, *s, buf[32];
+            items[i].value = i;
+            label = ssd_get_col_label(ssd, i);
+            if (string_is_empty(label)) {
+                sprintf(buf, "#%d", i + 1);
+                s = copy_string(NULL, buf);
+            } else {
+                s = copy_string(NULL, label);
+            }
+            items[i].label = s;
+        }
+    } else {
+        ncols = 0;
+        items = NULL;
+    }
+    UpdateListChoice(gs->col_sel, ncols, items);
+    
+    for (i = 0; i < ncols; i++) {
+        xfree(items[i].label);
+    }
+    xfree(items);
+}
+
+SSDColStructure *CreateSSDColSelector(Widget parent, char *s, int sel_type)
+{
+    SSDColStructure *retval;
+    Widget rc;
+
+    retval = xmalloc(sizeof(SSDColStructure));
+    retval->frame = CreateFrame(parent, s);
+    rc = XtVaCreateWidget("rc", xmRowColumnWidgetClass, retval->frame, NULL);
+    retval->ssd_sel = CreateSSDChoice(rc, "SSData:", LIST_TYPE_SINGLE);
+    retval->col_sel = CreateColChoice(rc,
+        sel_type == LIST_TYPE_SINGLE ? "Column:" : "Column(s):", sel_type);
+    AddStorageChoiceCB(retval->ssd_sel, update_ssd_cb, (void *) retval);
+
+    XtManageChild(rc);
+
+    return retval;
+}
+
+
 
 SrcDestStructure *CreateSrcDestSelector(Widget parent, int sel_type)
 {
