@@ -752,8 +752,31 @@ int get_graph_yscale(int gno)
 int set_graph_xscale(int gno, int scale)
 {
     if (is_valid_gno(gno) == TRUE) {
-        g[gno].xscale = scale;
-        set_dirtystate();
+        if (g[gno].xscale != scale) {
+            int naxis;
+            g[gno].xscale = scale;
+            for (naxis = 0; naxis < MAXAXES; naxis++) {
+                if (is_xaxis(naxis)) {
+                    tickmarks *t;
+                    t = get_graph_tickmarks(gno, naxis);
+                    if (t) {
+                        if (scale == SCALE_LOG) {
+                            if (g[gno].w.xg2 <= 0.0) {
+                                g[gno].w.xg2 = 10.0;
+                            }
+                            if (g[gno].w.xg1 <= 0.0) {
+                                g[gno].w.xg1 = g[gno].w.xg2/1.0e3;
+                            }
+                            t->tmajor = 10.0;
+                            t->nminor = 9;
+                        } else {
+                            t->nminor = 1;
+                        }
+                    }
+                }
+            }
+            set_dirtystate();
+        }
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
@@ -763,8 +786,31 @@ int set_graph_xscale(int gno, int scale)
 int set_graph_yscale(int gno, int scale)
 {
     if (is_valid_gno(gno) == TRUE) {
-        g[gno].yscale = scale;
-        set_dirtystate();
+        if (g[gno].yscale != scale) {
+            int naxis;
+            g[gno].yscale = scale;
+            for (naxis = 0; naxis < MAXAXES; naxis++) {
+                if (is_yaxis(naxis)) {
+                    tickmarks *t;
+                    t = get_graph_tickmarks(gno, naxis);
+                    if (t) {
+                        if (scale == SCALE_LOG) {
+                            if (g[gno].w.yg2 <= 0.0) {
+                                g[gno].w.yg2 = 10.0;
+                            }
+                            if (g[gno].w.yg1 <= 0.0) {
+                                g[gno].w.yg1 = g[gno].w.yg2/1.0e3;
+                            }
+                            t->tmajor = 10.0;
+                            t->nminor = 9;
+                        } else {
+                            t->nminor = 1;
+                        }
+                    }
+                }
+            }
+            set_dirtystate();
+        }
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;
