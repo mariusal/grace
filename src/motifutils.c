@@ -1003,7 +1003,7 @@ static OptionItem fsb_items[3] = {
     {FSB_ROOT, "/"}
 };
 
-FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
+FSBStructure *CreateFileSelectionBox(Widget parent, char *s)
 {
     FSBStructure *retval;
     OptionStructure *opt;
@@ -1021,12 +1021,6 @@ FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern)
     bufp = concat_strings(bufp, s);
     XtVaSetValues(retval->dialog, XmNtitle, bufp, NULL);
     xfree(bufp);
-    
-    if (pattern != NULL) {
-        xmstr = XmStringCreateLocalized(pattern);
-        XtVaSetValues(retval->FSB, XmNpattern, xmstr, NULL);
-        XmStringFree(xmstr);
-    }
     
     xmstr = XmStringCreateLocalized(get_workingdir());
     XtVaSetValues(retval->FSB, XmNdirectory, xmstr, NULL);

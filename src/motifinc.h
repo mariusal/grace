@@ -331,7 +331,7 @@ int GetTextCursorPos(TextStructure *cst);
 void TextInsert(TextStructure *cst, int pos, char *s);
 void cstext_edit_action(Widget w, XEvent *e, String *par, Cardinal *npar);
 
-FSBStructure *CreateFileSelectionBox(Widget parent, char *s, char *pattern);
+FSBStructure *CreateFileSelectionBox(Widget parent, char *s);
 void AddFileSelectionBoxCB(FSBStructure *fsbp, FSB_CBProc cbproc, void *anydata);
 void SetFileSelectionBoxPattern(FSBStructure *fsb, char *pattern);
 
