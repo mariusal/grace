@@ -16,7 +16,7 @@
 #define MAJOR_REV 5
 #define MINOR_REV 1
 #define PATCHLEVEL 0
-#define BETA_VER "(pre4)"
+/* #define BETA_VER "(pre4)" */
 
 #ifndef GRACE_HOME
 #  define GRACE_HOME "/usr/local/grace"
@@ -44,8 +44,13 @@ static void VersionInfo(FILE *outfile)
 
     fprintf(outfile, "#define BI_VERSION_ID %d\n",
             MAJOR_REV*10000 + MINOR_REV*100 + PATCHLEVEL);
+#ifdef BETA_VER
     fprintf(outfile, "#define BI_VERSION \"Grace-%d.%d.%d %s\"\n",
 	    MAJOR_REV, MINOR_REV, PATCHLEVEL, BETA_VER);
+#else
+    fprintf(outfile, "#define BI_VERSION \"Grace-%d.%d.%d\"\n",
+	    MAJOR_REV, MINOR_REV, PATCHLEVEL);
+#endif
 
 /* We don't want to reproduce the complete config.h,
    but those settings which may be related to problems at runtime */

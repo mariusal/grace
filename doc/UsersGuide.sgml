@@ -7,7 +7,7 @@
 
 <title>Grace User's Guide (v0.6 - for Grace-5.1.0)
 <author>by the Grace Team
-<date>20.03.2000
+<date>02.04.2000
 <abstract>
   This document explains the usage of
   <bf>Grace</bf>, a WYSIWYG 2D plotting tool for scientific data.
@@ -84,8 +84,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
      the Grace Copyright holders can not influence or change them.
 
    <p>
-   <table LOC=htbp>
-     <tabular CA="ll">
+   <table loc="htbp">
+     <tabular ca="ll">
        <hline>
        Package    |  License  @
        <hline>
@@ -291,47 +291,29 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         
         <p>
         
-          <table LOC=htbp>
-          <tabular CA="lcl">
+          <table loc="htbp">
+          <tabular ca="lcl">
             <hline>
-            Set type   | # of num. cols | Description              @
+            Set type   | # of num. cols | Description @
             <hline>
-            XY         | 2 | An X-Y scatter and/or line plot, plus 
-                             (optionally) an annotated value       @
-            XYDX       | 3 | Same as XY, but with error bars
-                             (either one- or two-sided) along
-                              X axis                               @
-            XYDY       | 3 | Same as XYDX, but error bars are
-                             along Y axis                          @
-            XYDXDX     | 4 | Same as XYDX, but left and right error
-                             bars are defined separately           @
-            XYDYDY     | 4 | Same as XYDXDX, but error bars are
-                             along Y axis @
-            XYDXDY     | 4 | Same as XY, but with X and Y error bars
-                             (either one- or two-sided)            @
-            XYDXDXDYDY | 6 | Same as XYDXDY, but left/right and 
-                             upper/lower error bars are defined
-                             separately                            @
-            BAR        | 2 | Same as XY, but vertical bars are used
-                             instead of symbols                    @
-            BARDY      | 3 | Same as BAR, but with error bars
-                             (either one- or two-sided) along
-                              Y axis                               @
-            BARDYDY    | 4 | Same as BARDY, but lower and upper
-                             error bars are defined separately     @
-            XYHILO     | 5 | Hi/Low/Open/Close plot                @
-            XYZ        | 3 | Same as XY; makes no sense unless the
-                             annotated value is Z                  @
-            XYR        | 3 | X, Y,  Radius. Only allowed in Fixed
-                             graphs                                @
-            XYSIZE     | 3 | Same as XY, but symbol size is
-                             variable                              @
+            XY         | 2 | An X-Y scatter and/or line plot, plus (optionally) an annotated value @
+            XYDX       | 3 | Same as XY, but with error bars (either one- or two-sided) along X axis @
+            XYDY       | 3 | Same as XYDX, but error bars are along Y axis @
+            XYDXDX     | 4 | Same as XYDX, but left and right error bars are defined separately @
+            XYDYDY     | 4 | Same as XYDXDX, but error bars are along Y axis @
+            XYDXDY     | 4 | Same as XY, but with X and Y error bars (either one- or two-sided) @
+            XYDXDXDYDY | 6 | Same as XYDXDY, but left/right and upper/lower error bars are defined separately @
+            BAR        | 2 | Same as XY, but vertical bars are used instead of symbols @
+            BARDY      | 3 | Same as BAR, but with error bars (either one- or two-sided) along Y axis @
+            BARDYDY    | 4 | Same as BARDY, but lower and upper error bars are defined separately @
+            XYHILO     | 5 | Hi/Low/Open/Close plot @
+            XYZ        | 3 | Same as XY; makes no sense unless the annotated value is Z @
+            XYR        | 3 | X, Y,  Radius. Only allowed in Fixed graphs @
+            XYSIZE     | 3 | Same as XY, but symbol size is variable @
             XYCOLOR    | 3 | X, Y, color index (of the symbol fill)@
-            XYCOLPAT   | 4 | X, Y, color index, pattern index
-                             (currently used for Pie charts only)  @
-            XYVMAP     | 4 | Vector map                            @
-            XYBOXPLOT  | 6 | Box plot (X, median, uper/lower limit,
-                             upper/lower whisker)                  @
+            XYCOLPAT   | 4 | X, Y, color index, pattern index (currently used for Pie charts only) @
+            XYVMAP     | 4 | Vector map @
+            XYBOXPLOT  | 6 | Box plot (X, median, upper/lower limit, upper/lower whisker) @
             <hline>
           </tabular>
           <caption>
@@ -346,8 +328,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
         <p>
 
-          <table LOC=htbp>
-          <tabular CA="lccccc">
+          <table loc="htbp">
+          <tabular ca="lccccc">
             <hline>
             Set type          | XY Graph | XY Chart | Fixed | Polar | Pie @
             <hline>
@@ -378,11 +360,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
       <sect2>Datasets <label id="datasets">
-	<p>
 
+	<p>
           A dataset is a collection of points with x and y coordinates, up to
           four optional data values (which, depending on the set type, can be
           displayed as error bars or like) and one optional character string.
+	</p>
 
       <sect2>Regions <label id="regions">
 	<p>
@@ -435,7 +418,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
           <itemize>
           <item> X11
           <item> PostScript (level 1 and level 2)
-          <item> EPS
+          <item> EPS (encapsulated PostScript)
           <item> Metafile (which is Grace format, used at the moment mostly
                  for debugging purposes)
           <item> MIF (Maker Interchange Format used by FrameMaker)
@@ -444,7 +427,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
                  in XML)
           <item> PDF (depends on extra libraries,
                       see <ref name="configuration" id="configuration">)
-          <item> PNM
+          <item> PNM (portable anymap file format)
           <item> JPEG (depends on extra libraries,
                       see <ref name="configuration" id="configuration">)
           <item> PNG (depends on extra libraries,
@@ -476,6 +459,31 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
         the external function, there is no need to recompile Grace
         itself (the functions already compiled in Grace are
         "statically linked").
+
+      <sect2>Coordinate frames <label id="coordinates">
+
+	<p>
+          There are two types of coordinates in Grace: the <bf>world
+          coordinates</bf> and the <bf>viewport coordinates</bf>. Points of
+          data sets are defined in the world coordinates. The viewport
+          coordinates correspond to the image of the plot drawn on the canvas
+          (or printed on, say, PS output page). The transformation converting
+          the world coordinates into the viewport ones is determined by both
+          the graph type and the axis scaling.
+	</p>
+
+	<p>
+          Actually, there is yet another level in the hierarchy of coordinates
+          - the <bf>device coordinates</bf>. However, you (as a user of Grace)
+          should not worry about the latter. The mapping between the viewport
+          coordinates and the device coordinates is always set in such a way
+          that the origin of the viewport corresponds to the left bottom corner
+          of the device page, the smallest of the device dimensions corresponds
+          to one unit in the viewport coordinates. Oh, and the most important
+          thing about the viewport &rarr; device transformation is that it is
+          homotetic, i.e. a square is guaranteed to remain a square, not a
+          rectangle, a circle remains a circle (not an ellipse) etc.
+	</p>
 
   <sect1>Invocation
     <p>
@@ -1261,8 +1269,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
       for a new curve.
 
       <p>
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Feature           | Description                       @
               <hline>
@@ -1628,8 +1636,8 @@ integral     | cumulative sum @
   <sect1>Definitions
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="lll">
+      <table loc="htbp">
+      <tabular ca="lll">
         <hline>
         Name | Description | Examples @
         <hline>
@@ -1643,7 +1651,7 @@ integral     | cumulative sum @
           Non-negative iexpr |
           2 - 1 @
         indx |
-          Non-negative or positive iexpr for C or Fortran index notation, respectively|
+          Non-negative iexpr |
           &nbsp; @
         qstr |
           Quoted string |
@@ -1658,8 +1666,8 @@ integral     | cumulative sum @
     </p>
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Expression | Description | Types | Example @
         <hline>
@@ -1681,8 +1689,8 @@ integral     | cumulative sum @
     </p>
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Expression | Description | Types | Example @
         <hline>
@@ -1712,8 +1720,8 @@ integral     | cumulative sum @
     </p>
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Expression | Description | Types | Example @
         <hline>
@@ -1735,8 +1743,8 @@ integral     | cumulative sum @
     </p>
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Expression | Description | Types | Example @
         <hline>
@@ -1754,8 +1762,8 @@ integral     | cumulative sum @
     </p>
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Expression | Description | Types | Example @
         <hline>
@@ -1787,8 +1795,8 @@ integral     | cumulative sum @
   <sect1>Variables
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
         <hline>
         Variable        | Description      @
         <hline>
@@ -1806,8 +1814,8 @@ integral     | cumulative sum @
 
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
         <hline>
         Variable               | Description      @
         <hline>
@@ -1831,8 +1839,8 @@ integral     | cumulative sum @
       
       <p>
 
-      <table LOC=htbp>
-      <tabular CA="cl">
+      <table loc="htbp">
+      <tabular ca="cl">
         <hline>
         Operator | Description      @
         <hline>
@@ -1852,8 +1860,8 @@ integral     | cumulative sum @
       
       <p>
       
-      <table LOC=htbp>
-      <tabular CA="cl">
+      <table loc="htbp">
+      <tabular ca="cl">
         <hline>
         Operator               | Description @
         <hline>
@@ -1870,8 +1878,8 @@ integral     | cumulative sum @
       
       <p>
 
-      <table LOC=htbp>
-      <tabular CA="cl">
+      <table loc="htbp">
+      <tabular ca="cl">
         <hline>
         Operator    | Description           @
         <hline>
@@ -1891,48 +1899,99 @@ integral     | cumulative sum @
       
       <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
         <hline>
         Function        | Description      @
         <hline>
 	abs(x)          | absolute value @
 	acos(x)         | arccosine @
 	acosh(x)        | hyperbolic arccosine @
-	ai(x), bi(x)    | Airy functions (two independent solutions of the differential equation <tt>y''(x) = xy</tt>). @
 	asin(x)         | arcsine @
 	asinh(x)        | hyperbolic arcsine @
 	atan(x)         | arctangent @
 	atan2(y,x)      | arc tangent of two variables @
 	atanh(x)        | hyperbolic arctangent @
-	beta(x)         | beta function @
 	ceil(x)         | greatest integer function @
+	cos(x)          | cosine @
+	cosh(x)         | hyperbolic cosine @
+	exp(x)          | e^x @
+	fac(n)          | factorial function, n! @
+	floor(x)        | least integer function @
+	irand(n)        | random integer less than n @
+	ln(x)           | natural log  @
+	log10(x)        | log base 10 @
+	log2(x)         | base 2 logarithm of x @
+	maxof(x,y)      | returns greater of x and y @
+	minof(x,y)      | returns lesser of x and y @
+	mod(x,y)        | mod function (also x % y) @
+	pi              | the PI constant @
+	rand            | pseudo random number distributed uniformly on (0.0,1.0) @
+	rint(x)         | round to closest integer @
+	sin(x)          | sine function @
+	sinh(x)         | hyperbolic sine @
+	sqr(x)          | x^2 @
+	sqrt(x)         | x^0.5 @
+	tan(x)          | tangent function @
+	tanh(x)         | hyperbolic tangent @
+        <hline>
+      </tabular>
+      <caption>
+        <label id="functions">
+        Functions
+      </caption>
+      </table>
+
+      <table loc="htbp">
+      <tabular ca="ll">
+        <hline>
+        Function        | Description      @
+        <hline>
 	chdtr(df, x)    | chi-square distribution @
 	chdtrc(v, x)    | complemented Chi-square distribution @
 	chdtri(df, y)   | inverse of complemented Chi-square distribution @
+	erf(x)          | error function @
+	erfc(x)         | complement of error function @
+	fdtr(df1, df2, x) | F distribution function @
+	fdtrc(x)        | complemented F distribution @
+	fdtri(x)        | inverse of complemented F distribution @
+	gdtr(a, b, x)   | gamma distribution function @
+	gdtrc(a, b, x)  | complemented gamma distribution function @
+	ndtr(x)         | Normal distribution function @
+	ndtri(x)        | inverse of Normal distribution function @
+	norm(x)         | gaussian density function @
+	pdtr(k, m)      | Poisson distribution @
+	pdtrc(k, m)     | complemented Poisson distribution @
+	pdtri(k, y)     | inverse Poisson distribution @
+	rnorm(xbar,s)   | pseudo random number distributed N(xbar,s) @
+	stdtr(k, t)     | Student's t distribution @
+	stdtri(k, p)    | functional inverse of Student's t distribution @
+        <hline>
+      </tabular>
+      <caption>
+        <label id="stat-functions">
+        Statistical functions
+      </caption>
+      </table>
+
+      <table loc="htbp">
+      <tabular ca="ll">
+        <hline>
+        Function        | Description      @
+        <hline>
+	ai(x), bi(x)    | Airy functions (two independent solutions of the differential equation <tt>y''(x) = xy</tt>) @
+	beta(x)         | beta function @
 	chi(x)          | hyperbolic cosine integral @
 	ci(x)           | cosine integral @
-	cos(x)          | cosine @
-	cosh(x)         | hyperbolic cosine @
 	dawsn(x)        | Dawson's integral @
 	ellie(phi, m)   | incomplete elliptic integral of the second kind @
 	ellik(phi, m)   | incomplete elliptic integral of the first kind @
 	ellpe(m)        | complete elliptic integral of the second kind @
 	ellpk(m)        | complete elliptic integral of the first kind @
-	erf(x)          | error function @
-	erfc(x)         | complement of error function @
-	exp(x)          | e^x @
 	expn(x)         | exponential integral @
-	fac(n)          | factorial function, n! @
-	fdtr(df1, df2, x) | F distribution function @
-	fdtrc(x)        | complemented F distribution @
-	fdtri(x)        | inverse of complemented F distribution @
-	floor(x)        | least integer function @
 	fresnlc(x)      | cosine Fresnel integral @
 	fresnls(x)      | sine Fresnel integral @
 	gamma(x)        | gamma function @
-	gdtr(a, b, x)   | gamma distribution function @
-	gdtrc(a, b, x)  | complemented gamma distribution function @
 	hyp2f1(a, b, c, x) | Gauss hyper-geometric function @
 	hyperg(a, b, x) | confluent hyper-geometric function @
 	i0e(x)          | modified Bessel function of order zero, exponentially  scaled @
@@ -1942,57 +2001,30 @@ integral     | cumulative sum @
 	igami(a, p)     | inverse of complemented incomplete gamma integral @
 	incbet(a, b, x) | incomplete beta integral @
 	incbi(a, b, y)  | Inverse of incomplete beta integral @
-	index           | the index of the current point in the selected set @
-	irand(n)        | random integer less than n @
 	iv(v, x)        | modified Bessel function of order v @
 	jv(v, x)        | Bessel function of order v @
 	k0e(x)          | modified Bessel function, third kind, order zero, exponentially scaled @
 	k1e(x)          | modified Bessel function, third kind, order one, exponentially scaled @
 	kn(n, x)        | modified Bessel function, third kind, integer order @
 	lbeta(x)        | natural log of &verbar;beta(x)&verbar; @
-	length          | number of points of the current set @
 	lgamma(x)       | log of gamma function @
-	ln(x)           | natural log  @
-	log10(x)        | log base 10 @
-	log2(x)         | base 2 logarithm of x @
-	maxof(x,y)      | returns greater of x and y @
-	minof(x,y)      | returns lesser of x and y @
-	mod(x,y)        | mod function (also x % y) @
-	ndtr(x)         | Normal distribution function @
-	ndtri(x)        | inverse of Normal distribution function @
-	norm(x)         | gaussian density function @
-	pdtr(k, m)      | Poisson distribution @
-	pdtrc(k, m)     | complemented Poisson distribution @
-	pdtri(k, y)     | inverse Poisson distribution @
-	pi              | the PI constant @
 	psi(x)          | psi (digamma) function @
-	rand            | pseudo random number distributed uniformly on (0.0,1.0) @
-	rint(x)         | round to closest integer @
 	rgamma(x)       | reciprocal gamma function @
-	rnorm(xbar,s)   | pseudo random number distributed N(xbar,s) @
 	shi(x)          | hyperbolic sine integral @
 	si(x)           | sine integral @
-	sin(x)          | sine function @
-	sinh(x)         | hyperbolic sine @
 	spence(x)       | dilogarithm @
-	sqr(x)          | x^2 @
-	sqrt(x)         | x^0.5 @
-	stdtr(k, t)     | Student's t distribution @
-	stdtri(k, p)    | functional inverse of Student's t distribution @
 	struve(v, x)    | Struve function @
-	tan(x)          | tangent function @
-	tanh(x)         | hyperbolic tangent @
 	yv(v, x)        | Bessel function of order v @
 	zeta(x, q)      | Riemann zeta function of two arguments @
 	zetac(x)        | Riemann zeta function   @
         <hline>
       </tabular>
       <caption>
-        <label id="functions">
-        Functions
+        <label id="spec-functions">
+        Special math functions
       </caption>
       </table>
-      
+
   <sect1>Procedures
     <p>
 
@@ -2003,8 +2035,8 @@ integral     | cumulative sum @
   <sect1>Device parameters
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
         <hline>
         Command                                           | Description   @
         <hline>
@@ -2019,15 +2051,15 @@ integral     | cumulative sum @
       </tabular>
       <caption>
         <label id="device-parameters">
-        Device parameters.
+        Device parameters
       </caption>
       </table>
 
   <sect1>Flow control
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Statement | Description | Types | Example @
         <hline>
@@ -2055,8 +2087,8 @@ integral     | cumulative sum @
   <sect1>Declarations
 
     <p>
-      <table LOC=htbp>
-      <tabular CA="llll">
+      <table loc="htbp">
+      <tabular ca="llll">
         <hline>
         Statement | Description | Types | Example @
         <hline>
@@ -2111,7 +2143,7 @@ integral     | cumulative sum @
 
   <sect1>Fonts
     <p>
-    For all devices, Grace uses Type1 fonts. Both PFA (ascii) and PFB
+    For all devices, Grace uses Type1 fonts. Both PFA (ASCII) and PFB
     (binary) formats can be used.
     <p>
     <sect2>Font configuration
@@ -2166,7 +2198,7 @@ ZapfDingbats            ZapfDingbats            d050000l.pfb
                <tt>fonts/type1</tt> directory, too.
         <item> <tt>.enc</tt>-files: These contain encoding arrays in a special
                but simple form. They are only needed if someone wants to load
-               a special encoding to reencode a font. Their place is
+               a special encoding to re-encode a font. Their place is
                <tt>fonts/enc</tt>
       </enum>
       
@@ -2208,7 +2240,7 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
       </code></tscreen>
       The font mapping information (Font name &lt;-&gt; Font fall-back) is
       stored in the Grace project files. Provided that all the localized fonts
-      have English characters in the lower part of the ascii table unmodified,
+      have English characters in the lower part of the ASCII table unmodified,
       I can send my friend files (with no Hebrew characters, of course) and be
       sure they render correctly on his computer.
       <p>
@@ -2232,39 +2264,26 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
       subprocess, to send it commands or data, to stop it or detach
       from it.
 
-      <table LOC=htbp>
-      <tabular CA="lll">
+      <table loc="htbp">
+      <tabular ca="lll">
         <hline>
         Function           | Arguments          |  Description                 @
         <hline>
         int GraceOpen      | (int <it>buf&lowbar;size</it>)
-                                                | launch a Grace subprocess
-                                                  and open a communication
-                                                  channel with it              @
-        int GraceIsOpen    | (void)             | test if a Grace subprocess
-                                                  is currently connected       @
-        int GraceClose     | (void)             | close the communication
-                                                  channel and exit the Grace
-                                                  subprocess                   @
-        int GraceClosePipe | (void)             | close the communication
-                                                  channel and leave the Grace
-                                                  subprocess alone             @
+                                                | launch a Grace subprocess and open a communication channel with it @
+        int GraceIsOpen    | (void)             | test if a Grace subprocess is currently connected @
+        int GraceClose     | (void)             | close the communication channel and exit the Grace subprocess @
+        int GraceClosePipe | (void)             | close the communication channel and leave the Grace subprocess alone @
         <hline>
-        int GraceFlush     | (void)             | flush all the data remaining
-                                                  in the buffer                @
+        int GraceFlush     | (void)             | flush all the data remaining in the buffer @
         int GracePrintf    | (const char* <it>format</it>, ...)
-                                                | format a command and send it
-                                                  to the Grace subprocess      @
+                                                | format a command and send it to the Grace subprocess @
         int GraceCommand   | (const char* <it>cmd</it>)
-                                                | send an already formated
-                                                  command to the Grace
-                                                  subprocess                   @
+                                                | send an already formated command to the Grace subprocess @
         <hline>
-        GraceErrorFunctionType <newline> GraceRegisterErrorFunction
+        GraceErrorFunctionType GraceRegisterErrorFunction
                            | (GraceErrorFunctionType <it>f</it>)
-                                                | register a user function
-                                                  <it>f</it> to display
-                                                  library errors               @
+                                                | register a user function <it>f</it> to display library errors @
         <hline>
       </tabular>
       <caption>
@@ -2272,36 +2291,24 @@ Cronix-Courier-Oblique      Courier-Oblique         croxco.pfb
       </caption>
       </table>
 
-      <table LOC=htbp>
-      <tabular CA="lll">
+      <table loc="htbp">
+      <tabular ca="lll">
         <hline>
         Function                | Arguments     |  Description                 @
         <hline>
         integer GraceOpenF      | (integer <it>buf&lowbar;size</it>)
-                                                | launch a Grace subprocess
-                                                  and open a communication
-                                                  channel with it              @
-        integer GraceIsOpenF    | (void)        | test if a Grace subprocess
-                                                  is currently connected       @
-        integer GraceCloseF     | (void)        | close the communication
-                                                  channel and exit the Grace
-                                                  subprocess                   @
-        integer GraceClosePipeF | (void)        | close the communication
-                                                  channel and leave the Grace
-                                                  subprocess alone             @
+                                                | launch a Grace subprocess and open a communication channel with it @
+        integer GraceIsOpenF    | (void)        | test if a Grace subprocess is currently connected @
+        integer GraceCloseF     | (void)        | close the communication channel and exit the Grace subprocess @
+        integer GraceClosePipeF | (void)        | close the communication channel and leave the Grace subprocess alone @
         <hline>
-        integer GraceFlushF     | (void)        | flush all the data remaining
-                                                  in the buffer                @
+        integer GraceFlushF     | (void)        | flush all the data remaining in the buffer @
         integer GraceCommandF   | (character*(*) <it>cmd</it>)
-                                                | send an already formatted
-                                                  command to the Grace
-                                                  subprocess                   @
+                                                | send an already formatted command to the Grace subprocess @
         <hline>
-        GraceFortranFunctionType <newline> GraceRegisterErrorFunctionF
+        GraceFortranFunctionType GraceRegisterErrorFunctionF
                                 | (GraceFortranFunctionType <it>f</it>)
-                                                | register a user function
-                                                  <it>f</it> to display
-                                                  library errors               @
+                                                | register a user function <it>f</it> to display library errors @
         <hline>
       </tabular>
       <caption>
@@ -2452,8 +2459,8 @@ main(int argc, char* argv[])
     <p>
     One must make sure, however, that the external function is of one
     of supported by Grace types:
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
       Grace type | Description   @
               <hline>
@@ -2652,20 +2659,22 @@ C
          <p>
          <sect3>OS/2
           <p>
-         In general method outlined in the examples above describe can be used
-         on OS/2, too. However you have to create a DLL (Dynamic Link Library)
-         which is a bit more tricky on OS/2 than on some un*x systems. 
+         In general the method outlined in the examples above can be
+	 used on OS/2, too. However you have to create a
+	 DLL (Dynamic Link Library) which is a bit more tricky on OS/2 than
+	 on some un*x systems. 
          This document can't explain the whole procedure in detail but roughly
-         describe the way to go.
-         Since Grace was ported with EMX I also use it to create the examples.
+         describes the way to go.
+         Since Grace was ported with EMX we also use it to create the examples,
+	 however other development environments should work as well.
          We refer to Example 2, since Example 1 is showing a problem on OS/2:
-         DLLs are likely to have their entry points (i.e. exported functions)
-         callable as ordinals only, so you may not know how to access a
-         specific function without some research.
-         Compile my_func.c to my_func.obj
+         DLLs might have their entry points (i.e. exported functions)
+         callable as ordinals only, so you might not know how to access a
+         specific function without some research. 
+         First compile my_func.c to my_func.obj
 
          <tscreen>
-         gcc -Zomf -c my_func.c
+         gcc -Zomf -Zmt -c my_func.c
          </tscreen>
 
          Then you need to create a linker definition file my_func.def which
@@ -2673,8 +2682,7 @@ C
          functions.
 
          <tscreen><code>
-         LIBRARY my_func
-         INITINSTANCE TERMINSTANCE
+         LIBRARY my_func INITINSTANCE TERMINSTANCE
          CODE LOADONCALL
          DATA LOADONCALL MULTIPLE NONSHARED
          DESCRIPTION 'This is a test DLL: my_func.dll'
@@ -2686,12 +2694,13 @@ C
          Finally link the DLL:
 
          <tscreen>
-         gcc my_func.obj my_func.def -o my_func.dll -Zdll -Zno-rte -Zomf
+         gcc my_func.obj my_func.def -o my_func.dll -Zdll -Zno-rte -Zmt -Zomf
          </tscreen>
 
          (the -Zno-rte flag depends on the content of the library;
-          check out the EMX documentation when you may use it)
-         To make use of the function in Grace you may either put the
+          check out the EMX documentation about this as well as 
+	  the other compiler/linker flags used here!)
+         To use these new library function in Grace you may either put the
          DLL in the LIBPATH and use the short form:
 
          <tscreen>
@@ -2717,8 +2726,8 @@ C
       string etc.
        <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Control code | Description   @
               <hline>
@@ -2848,8 +2857,8 @@ C
 
     <p>
       
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Command           | Description                               @
               <hline>
@@ -2857,8 +2866,13 @@ C
               color             | set color output                          @
               level1            | use only PS Level 1 subset of commands    @
               level2            | use also PS Level 2 commands if needed    @
-              xoffset:<it/x/    | set page offset in X direction <it/x/ pp  @
-              yoffset:<it/y/    | set page offset in Y direction <it/y/ pp  @
+              xoffset:<it>x</it> | set page offset in X direction <it>x</it> pp  @
+              yoffset:<it>y</it> | set page offset in Y direction <it>y</it> pp  @
+              mediafeed:auto    | default input tray                        @
+              mediafeed:match   | select input with media matching page dimensions @
+              mediafeed:manual  | manual media feed                         @
+              hwresolution:on   | set hardware resolution                   @
+              hwresolution:off  | do not set hardware resolution            @
               <hline>
       </tabular>
       <caption>
@@ -2868,8 +2882,8 @@ C
 
     <p>
       
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Command       | Description                                   @
               <hline>
@@ -2888,8 +2902,8 @@ C
 
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Command           | Description                        @
               <hline>
@@ -2905,8 +2919,8 @@ C
 
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Command           | Description               @
               <hline>
@@ -2924,8 +2938,8 @@ C
 
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Command               | Description                           @
               <hline>
@@ -2948,8 +2962,8 @@ C
 
     <p>
 
-      <table LOC=htbp>
-      <tabular CA="ll">
+      <table loc="htbp">
+      <tabular ca="ll">
               <hline>
               Command           | Description                       @
               <hline>
@@ -3163,4 +3177,4 @@ C
 
 </article>
 
-<!-- End of USerGuide.sgml -->
+<!-- End of UsersGuide.sgml -->
