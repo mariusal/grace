@@ -102,10 +102,6 @@ static Widget form;		/* form for magrace->gui->inwindow */
 static void MenuCB(void *data);
 static Widget CreateMainMenuBar(Widget parent);
 
-static int toolbar_visible = 1;
-static int statusbar_visible = 1;
-static int locbar_visible = 1;
-
 static Widget windowbarw[3];
 
 static void graph_scroll_proc(void *data);
@@ -181,6 +177,7 @@ typedef struct {
     Boolean toolbar;
     Boolean statusbar;
     Boolean locatorbar;
+    Boolean instantupdate;
 }
 ApplicationData, *ApplicationDataPtr;
 
@@ -203,7 +200,10 @@ static XtResource resources[] =
      (XtPointer) TRUE},
     {"locatorBar", "LocatorBar", XtRBoolean, sizeof(Boolean),
      XtOffset(ApplicationDataPtr, locatorbar), XtRImmediate,
-     (XtPointer) TRUE}
+     (XtPointer) TRUE},
+    {"instantUpdate", "InstantUpdate", XtRBoolean, sizeof(Boolean),
+     XtOffset(ApplicationDataPtr, instantupdate), XtRImmediate,
+     (XtPointer) FALSE},
 };
 
 String fallbackResources[] = {
@@ -384,9 +384,10 @@ int initialize_gui(int *argc, char **argv)
     grace->gui->invert = rd.invert;
     grace->gui->allow_dc = rd.allow_dc;
     grace->gui->auto_redraw = rd.auto_redraw;
-    toolbar_visible = rd.toolbar;
-    statusbar_visible = rd.statusbar;
-    locbar_visible = rd.locatorbar;
+    grace->gui->instant_update = rd.instantupdate;
+    grace->gui->toolbar = rd.toolbar;
+    grace->gui->statusbar = rd.statusbar;
+    grace->gui->locbar = rd.locatorbar;
 
     return RETURN_SUCCESS;
 }
@@ -530,14 +531,14 @@ void do_clear_point(void *data)
  */
 static void set_view_items(void)
 {
-    if (statusbar_visible) {
+    if (grace->gui->statusbar) {
 	SetToggleButtonState(windowbarw[1], TRUE);
 	ManageChild(frbot);
 	XtVaSetValues(drawing_window,
 		      XmNbottomAttachment, XmATTACH_WIDGET,
 		      XmNbottomWidget, frbot,
 		      NULL);
-	if (toolbar_visible) {
+	if (grace->gui->toolbar) {
 	    XtVaSetValues(frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
 			  XmNbottomWidget, frbot,
@@ -549,22 +550,22 @@ static void set_view_items(void)
 		      XmNbottomAttachment, XmATTACH_FORM,
 		      NULL);
 	UnmanageChild(frbot);
-	if (toolbar_visible) {
+	if (grace->gui->toolbar) {
 	    XtVaSetValues(frleft,
 			  XmNbottomAttachment, XmATTACH_FORM,
 			  NULL);
 	}
     }
-    if (toolbar_visible) {
+    if (grace->gui->toolbar) {
 	SetToggleButtonState(windowbarw[2], TRUE);
 	ManageChild(frleft);
-	if (statusbar_visible) {
+	if (grace->gui->statusbar) {
 	    XtVaSetValues(frleft,
 			  XmNbottomAttachment, XmATTACH_WIDGET,
 			  XmNbottomWidget, frbot,
 			  NULL);
 	}
-	if (locbar_visible) {
+	if (grace->gui->locbar) {
 	    XtVaSetValues(frleft,
 			  XmNtopAttachment, XmATTACH_WIDGET,
 			  XmNtopWidget, frtop,
@@ -581,14 +582,14 @@ static void set_view_items(void)
 		      XmNleftAttachment, XmATTACH_FORM,
 		      NULL);
     }
-    if (locbar_visible) {
+    if (grace->gui->locbar) {
 	SetToggleButtonState(windowbarw[0], TRUE);
 	ManageChild(frtop);
 	XtVaSetValues(drawing_window,
 		      XmNtopAttachment, XmATTACH_WIDGET,
 		      XmNtopWidget, frtop,
 		      NULL);
-	if (toolbar_visible) {
+	if (grace->gui->toolbar) {
 	    XtVaSetValues(frleft,
 			  XmNtopAttachment, XmATTACH_WIDGET,
 			  XmNtopWidget, frtop,
@@ -600,7 +601,7 @@ static void set_view_items(void)
 	XtVaSetValues(drawing_window,
 		      XmNtopAttachment, XmATTACH_FORM,
 		      NULL);
-	if (toolbar_visible) {
+	if (grace->gui->toolbar) {
 	    XtVaSetValues(frleft,
 			  XmNtopAttachment, XmATTACH_FORM,
 			  NULL);
@@ -613,40 +614,28 @@ static void set_view_items(void)
  */
 void set_statusbar(int onoff, void *data)
 {
-    if (onoff) {
-	statusbar_visible = 1;
-    } else {
-	statusbar_visible = 0;
-    }
+    grace->gui->statusbar = onoff;
     set_view_items();
 }
 
 void set_toolbar(int onoff, void *data)
 {
-    if (onoff) {
-	toolbar_visible = 1;
-    } else {
-	toolbar_visible = 0;
-    }
+    grace->gui->toolbar = onoff;
     set_view_items();
 }
 
 void set_locbar(int onoff, void *data)
 {
-    if (onoff) {
-	locbar_visible = 1;
-    } else {
-	locbar_visible = 0;
-    }
+    grace->gui->locbar = onoff;
     set_view_items();
 }
 
 void set_barebones(int onoff)
 {
-    if (onoff){
-        locbar_visible = 0;
-        toolbar_visible = 0;
-        statusbar_visible = 0;
+    if (onoff) {
+        grace->gui->locbar    = FALSE;
+        grace->gui->toolbar   = FALSE;
+        grace->gui->statusbar = FALSE;
     }
 }
 
