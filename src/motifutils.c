@@ -256,7 +256,7 @@ OptionStructure *CreateOptionChoice(Widget parent, char *labelstr, int ncols,
 
 void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
 {
-    int i, nold, ncols;
+    int i, nold, ncols, nw;
     XmString str;
     
     nold = optp->nchoices;
@@ -293,8 +293,15 @@ void UpdateOptionChoice(OptionStructure *optp, int nchoices, OptionItem *items)
             XmStringFree(str);
         }
     }
-    for (i = nold; i < nchoices; i++) {
-        XtManageChild(optp->options[i].widget);
+    
+    nw = nchoices - nold;
+    if (nw > 0) {
+        Widget *wlist = xmalloc(nw*sizeof(Widget));
+        for (i = nold; i < nchoices; i++) {
+            wlist[i - nold] = optp->options[i].widget;
+        }
+        XtManageChildren(wlist, nw);
+        xfree(wlist);
     }
 }
 
