@@ -171,9 +171,9 @@ int graph_get_viewport(Quark *gr, view *v)
 
 int is_refpoint_active(Quark *gr)
 {
-    graph *g = graph_get_data(gr);
-    if (g) {
-        return g->locator.pointset;
+    GLocator *l = graph_get_locator(gr);
+    if (l) {
+        return l->pointset;
     } else {
         return FALSE;
     }

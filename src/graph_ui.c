@@ -176,9 +176,7 @@ GraphUI *create_graph_ui(ExplorerUI *eui)
 
 void update_graph_ui(GraphUI *ui, Quark *q)
 {
-    graph *g = graph_get_data(q);
-    
-    if (g) {
+    if (q && q->fid == QFlavorGraph) {
         char buf[32];
         world w;
         GLocator *locator;
@@ -186,7 +184,7 @@ void update_graph_ui(GraphUI *ui, Quark *q)
         graph_get_world(q, &w);
         locator = graph_get_locator(q);
 
-        SetToggleButtonState(ui->active, g->active);
+        SetToggleButtonState(ui->active, graph_is_active(q));
 
         SetOptionChoice(ui->graph_type, graph_get_type(q));
         SetToggleButtonState(ui->stacked, graph_is_stacked(q));
@@ -227,9 +225,7 @@ void update_graph_ui(GraphUI *ui, Quark *q)
 
 int graph_set_data(GraphUI *ui, Quark *q, void *caller)
 {
-    graph *g = graph_get_data(q);
-    
-    if (g) {
+    if (q->fid == QFlavorGraph) {
         double axislim, znorm;
         world w;
         GLocator *locator;
@@ -238,7 +234,7 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
         locator = graph_get_locator(q);
 
         if (!caller || caller == ui->active) {
-            g->active = GetToggleButtonState(ui->active);
+            graph_set_active(q, GetToggleButtonState(ui->active));
         }
 
         if (!caller || caller == ui->graph_type) {
@@ -265,6 +261,28 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             }
             w.xg2 = axislim;
         }
+
+        if (!caller || caller == ui->start_y) {
+            if (xv_evalexpr(ui->start_y, &axislim) != RETURN_SUCCESS) {
+                errmsg("Axis start/stop values undefined");
+                return RETURN_FAILURE;
+            }
+            w.yg1 = axislim;
+        }
+        if (!caller || caller == ui->stop_y) {
+            if (xv_evalexpr(ui->stop_y, &axislim) != RETURN_SUCCESS) {
+                errmsg("Axis start/stop values undefined");
+                return RETURN_FAILURE;
+            }
+            w.yg2 = axislim;
+        }
+
+        if (!caller ||
+            caller == ui->start_x || caller == ui->stop_x ||
+            caller == ui->start_y || caller == ui->stop_y) {
+            graph_set_world(q, &w);
+        }
+
         if (!caller || caller == ui->scale_x) {
             graph_set_xscale(q, GetOptionChoice(ui->scale_x));
         }
@@ -272,31 +290,11 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             graph_set_xinvert(q, GetToggleButtonState(ui->invert_x));
         }
 
-        if (!caller || caller == ui->start_y) {
-            if (xv_evalexpr(ui->start_y, &axislim) != RETURN_SUCCESS) {
-                errmsg("Ayis start/stop values undefined");
-                return RETURN_FAILURE;
-            }
-            w.yg1 = axislim;
-        }
-        if (!caller || caller == ui->stop_y) {
-            if (xv_evalexpr(ui->stop_y, &axislim) != RETURN_SUCCESS) {
-                errmsg("Ayis start/stop values undefined");
-                return RETURN_FAILURE;
-            }
-            w.yg2 = axislim;
-        }
         if (!caller || caller == ui->scale_y) {
             graph_set_yscale(q, GetOptionChoice(ui->scale_y));
         }
         if (!caller || caller == ui->invert_y)  {
             graph_set_yinvert(q, GetToggleButtonState(ui->invert_y));
-        }
-
-        if (!caller ||
-            caller == ui->start_x || caller == ui->stop_x ||
-            caller == ui->start_y || caller == ui->stop_y) {
-            graph_set_world(q, &w);
         }
 
         if (!caller || caller == ui->bargap) {
@@ -333,8 +331,6 @@ int graph_set_data(GraphUI *ui, Quark *q, void *caller)
             xv_evalexpr(ui->locy, &locator->dsy); 
         }
 
-        quark_dirtystate_set(q, TRUE);
-        
         return RETURN_SUCCESS;
     } else {
         return RETURN_FAILURE;

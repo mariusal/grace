@@ -225,9 +225,8 @@ void do_hardcopy(const Quark *project)
 int draw_graph(Quark *gr, plot_rt_t *plot_rt)
 {
     GraphType gtype;
-    graph *g = graph_get_data(gr);
     
-    if (!g || !g->active) {
+    if (!graph_is_active(gr)) {
         return RETURN_FAILURE;
     }
 

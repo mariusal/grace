@@ -180,7 +180,6 @@ static int project_postprocess_hook(Quark *q,
     RunTime *rt = rt_from_quark(q);
     Project *pr;
     frame *f;
-    graph *g;
     tickmarks *t;
     set *s;
     int gtype;
@@ -235,7 +234,6 @@ static int project_postprocess_hook(Quark *q,
         break;
     case QFlavorAxis:
 	t = axis_get_data(q);
-        g = graph_get_data(get_parent_graph(q));
 
         if (version_id <= 40102) {
             if ((axis_is_x(q) && islogx(q)) ||
