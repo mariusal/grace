@@ -2950,7 +2950,7 @@ static char *set_labeling(Quark *q, unsigned int *rid)
         set *p = set_get_data(q);
 
         sprintf(buf, "Set \"%s\" (type: %s, length: %d)",
-            QIDSTR(q), set_types(grace->rt, p->type),
+            QIDSTR(q), set_type_descr(grace->rt, p->type),
             set_get_length(q));
 
         (*rid)++;
