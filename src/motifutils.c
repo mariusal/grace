@@ -425,6 +425,93 @@ OptionStructure *CreateBitmapOptionChoice(Widget parent, char *labelstr, int nco
     return retval;
 }
 
+void UpdateCharOptionChoice(OptionStructure *opt, int font)
+{
+    int *old_font;
+    old_font = (int *) GetUserData(opt->menu);
+    if (*old_font != font) {
+        int i, csize = 24;
+        for (i = 0; i < opt->nchoices; i++) {
+            Widget w = opt->options[i].widget;
+            Pixmap ptmp = char_to_pixmap(opt->pulldown, font, (char) i, csize);
+            XtVaSetValues(w, XmNlabelPixmap, ptmp, NULL);
+            SetSensitive(w, ptmp ? TRUE:FALSE);
+        }
+        *old_font = font;
+    }
+}
+
+static unsigned char dummy_bits[] = {
+   0x00, 0x00, 0x00, 0x00, 0xec, 0x2e, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00,
+   0x04, 0x20, 0x04, 0x20, 0x00, 0x20, 0x04, 0x00, 0x04, 0x20, 0x04, 0x20,
+   0x00, 0x20, 0xdc, 0x1d, 0x00, 0x00, 0x00, 0x00};
+
+OptionStructure *CreateCharOptionChoice(Widget parent, char *s)
+{
+    X11Stuff *xstuff = grace->gui->xstuff;
+    int i;
+    int ncols = 16, nchoices = 256;
+    XmString str;
+    OptionStructure *retval;
+    long bg, fg;
+    Pixmap ptmp;
+    int *fontid;
+
+    retval = xmalloc(sizeof(OptionStructure));
+    if (retval == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+    }
+    retval->nchoices = nchoices;
+    retval->options = xmalloc(nchoices*sizeof(OptionWidgetItem));
+    if (retval->options == NULL) {
+        errmsg("Malloc error in CreateBitmapOptionChoice()");
+        XCFREE(retval);
+        return retval;
+    }
+
+    retval->pulldown = XmCreatePulldownMenu(parent, "pulldownMenu", NULL, 0);
+    XtVaSetValues(retval->pulldown, 
+                  XmNentryAlignment, XmALIGNMENT_CENTER,
+                  XmNpacking, XmPACK_COLUMN,
+                  XmNorientation, XmHORIZONTAL,
+                  XmNnumColumns, ncols,
+                  NULL);
+
+    XtVaGetValues(retval->pulldown,
+                  XmNforeground, &fg,
+                  XmNbackground, &bg,
+                  NULL);
+    ptmp = XCreatePixmapFromBitmapData(xstuff->disp,
+        xstuff->root, (char *) dummy_bits, 16, 16, fg, bg, xstuff->depth);
+
+    for (i = 0; i < nchoices; i++) {
+	retval->options[i].value = i;
+        retval->options[i].widget =
+            XtVaCreateWidget("pixButton", xmPushButtonWidgetClass,
+                             retval->pulldown,
+	                     XmNlabelType, XmPIXMAP,
+	                     XmNlabelPixmap, ptmp,
+	                     NULL);
+    }
+    for (i = 0; i < nchoices; i++) {
+        XtManageChild(retval->options[i].widget);
+    }
+
+    retval->menu = XmCreateOptionMenu(parent, "optionMenu", NULL, 0);
+    str = XmStringCreateLocalized(s);
+    XtVaSetValues(retval->menu,
+		  XmNlabelString, str,
+		  XmNsubMenuId, retval->pulldown,
+		  NULL);
+    XmStringFree(str);
+    XtManageChild(retval->menu);
+    
+    fontid = xmalloc(SIZEOF_INT);
+    *fontid = -1;
+    SetUserData(retval->menu, fontid);
+    
+    return retval;
+}
 
 void SetOptionChoice(OptionStructure *opt, int value)
 {
