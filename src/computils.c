@@ -71,48 +71,29 @@ void do_fourier_command(int gno, int setno, int ftype, int ltype)
     }
 }
 
+
 /*
  * evaluate a formula
  */
-int do_compute(int setno, int loadto, int graphto, char *fstr)
+int do_compute(int gno, int setno, int graphto, int loadto, char *rarray, char *fstr)
 {
-    if (graphto < 0) {
-	graphto = get_cg();
-    }
-    if (strlen(fstr) == 0) {
-	errmsg("Define formula first");
-	return -1;
-    }
-    if (is_set_active(get_cg(), setno)) {
-	/* both loadto and setno do double duty here */
-	if (loadto) {
-	    loadto = nextset(graphto);
-	    if (loadto != -1) {
-		do_copyset(get_cg(), setno, graphto, loadto);
-		setno = loadto;
-	    } else {
-		return -1;
-	    }
-	} else if (graphto != get_cg()) {
-	    loadto = setno;
-	    if (is_set_active(graphto, loadto)) {
+    if (is_set_active(gno, setno)) {
+	if (gno != graphto || setno != loadto) {
+	    if (copyset(gno, setno, graphto, loadto) != GRACE_EXIT_SUCCESS) {
+	        return GRACE_EXIT_FAILURE;
+            }
+        }
+	filter_set(graphto, loadto, rarray);
+        if (formula(graphto, loadto, fstr)) {
+	    if (graphto != gno || loadto != setno) {
 		killset(graphto, loadto);
 	    }
-	    do_copyset(get_cg(), setno, graphto, loadto);
-	    setno = loadto;
+	    return GRACE_EXIT_FAILURE;
 	}
-	if (formula(graphto, setno, fstr)) {
-	    if (graphto != get_cg() || loadto != setno) {
-		killset(graphto, loadto);
-	    }
-	    return -1;
-	}
-	if (!is_graph_active(graphto)) {
-	    set_graph_active(graphto, TRUE);
-	}
-	return loadto;
+	return GRACE_EXIT_SUCCESS;
+    } else {
+        return GRACE_EXIT_FAILURE;
     }
-    return -1;
 }
 
 /*
