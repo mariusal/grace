@@ -11,7 +11,7 @@
 @    string font 4
 @    string just 0
 @    string char size 1.000000
-@string def "To make a graph within a graph, simply activate a graph and"
+@string def "To make a graph within a graph, simply activate a graph and set the"
 @with string
 @    string on
 @    string loctype view
@@ -22,7 +22,7 @@
 @    string font 4
 @    string just 0
 @    string char size 1.000000
-@string def "set the viewport to the desired location. Some problems may"
+@string def "viewport to the desired location. Some problems may arise with"
 @with string
 @    string on
 @    string loctype view
@@ -33,7 +33,7 @@
 @    string font 4
 @    string just 0
 @    string char size 1.000000
-@string def "arise with getting/setting the graph focus, use Graphs/Focus to"
+@string def "getting/setting the graph focus, use the popup menu of any graph"
 @with string
 @    string on
 @    string loctype view
@@ -44,7 +44,7 @@
 @    string font 4
 @    string just 0
 @    string char size 1.000000
-@string def "set the focus to a particular graph."
+@string def "selector (e.g. in Plot/Graph appearance) to set the focus to a particular graph."
 @with g0
 @g0 on
 @g0 label off

@@ -88,7 +88,7 @@ with string
     string font 4
     string just 0
     string char size 1.000000
-string def "See Data/Regions for operations based on regions, e.g.,"
+string def "See Data/Region operations for operations based on regions,"
 with string
     string on
     string loctype view
@@ -99,7 +99,7 @@ with string
     string font 4
     string just 0
     string char size 1.000000
-string def "Extract, Delete, and Evaluate."
+string def "e.g., Extract, Delete, and Evaluate."
 r0 ON
 r0 type polyi
 r0 linestyle 1

@@ -51,7 +51,7 @@
 @    string font 4
 @    string just 0
 @    string char size 0.790000
-@    string def "in 'Plot/Ticks/User ticks/labels'. There are a couple of variations"
+@    string def "in 'Plot/Axis properties (Tick labels, Tick marks, and special tabs)'. There"
 @with string
 @    string on
 @    string loctype view
@@ -61,7 +61,7 @@
 @    string font 4
 @    string just 0
 @    string char size 0.790000
-@    string def "allowed - tick marks may be specified while the tick labels are drawn"
+@    string def "are a couple of variations allowed - tick marks may be specified while the"
 @with string
 @    string on
 @    string loctype view
@@ -71,7 +71,7 @@
 @    string font 4
 @    string just 0
 @    string char size 0.790000
-@    string def "using the location of the tick mark or the tick labels may be specified"
+@    string def "tick labels are drawn using the location of the tick mark or the tick labels"
 @with string
 @    string on
 @    string loctype view
@@ -81,7 +81,7 @@
 @    string font 4
 @    string just 0
 @    string char size 0.790000
-@    string def "while using the start/step method of tick mark placement."
+@    string def "may be specified while using the start/step method of tick mark placement."
 @with string
 @    string on
 @    string loctype view

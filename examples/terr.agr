@@ -75,7 +75,7 @@
 @    string font 4
 @    string just 0
 @    string char size 1.000000
-@string def "of error bars is done in Plot/Symbols/Error bar props. "
+@string def "of error bars is done in Plot/Set appearance (error bars tab). "
 @with g0
 @g0 on
 @g0 label off

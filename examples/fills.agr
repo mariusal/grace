@@ -11,7 +11,7 @@
 @    string font 4
 @    string just 0
 @    string char size 1.000000
-@string def "See Plot/Symbols for fills"
+@string def "See Plot/Set appearance (line tab) for fills"
 @with g0
 @g0 ON
 @g0 label OFF
