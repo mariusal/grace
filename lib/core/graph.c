@@ -419,11 +419,38 @@ int graph_get_yscale(const Quark *gr)
     }
 }
 
+typedef struct {
+    int type;
+    int scale;
+} axis_hook_t;
+
+static int axis_hook(Quark *q, void *udata, QTraverseClosure *closure)
+{
+    if (q->fid == QFlavorAxis) {
+        tickmarks *t = axis_get_data(q);
+        axis_hook_t *hdata = (axis_hook_t *) udata;
+        closure->descend = FALSE;
+        
+        if (hdata && t && t->type == hdata->type) {
+            if (hdata->scale == SCALE_LOG) {
+                t->tmajor = 10.0;
+                t->nminor = 9;
+            } else {
+                t->nminor = 1;
+            }
+        }
+    }
+
+    return TRUE;
+}
+
 int graph_set_xscale(Quark *gr, int scale)
 {
     graph *g = graph_get_data(gr);
     if (g) {
         if (g->xscale != scale) {
+            axis_hook_t hdata;
+            
             if (g->type == GRAPH_FIXED && scale != SCALE_NORMAL) {
                 errmsg("Only linear axis scales are allowed in Fixed graphs");
                 return RETURN_FAILURE;
@@ -432,8 +459,8 @@ int graph_set_xscale(Quark *gr, int scale)
                 errmsg("Only linear axis scales are allowed in Polar plots");
                 return RETURN_FAILURE;
             }
-            if (scale == SCALE_LOG && g->w.xg1 <= 0) {
-                errmsg("Can't set Log scale when World X-min <= 0.0");
+            if (scale == SCALE_LOG && g->w.xg2 <= 0.0) {
+                errmsg("Can't set log scale when World X-max <= 0.0");
                 return RETURN_FAILURE;
             }
             if (scale == SCALE_REC && sign(g->w.xg1) != sign(g->w.xg2)) {
@@ -441,40 +468,26 @@ int graph_set_xscale(Quark *gr, int scale)
                 return RETURN_FAILURE;
             }
             if (scale == SCALE_LOGIT) {
-                if (g->w.xg1 <= 0) {
+                if (g->w.xg1 <= 0.0) {
                     errmsg("World X-min <= 0.0");
                     return RETURN_FAILURE;
                 }
-                if (g->w.xg2 >= 1) {
+                if (g->w.xg2 >= 1.0) {
                     errmsg("World X-max >= 1.0");
                     return RETURN_FAILURE;
                 }
 	    }    
 
-            g->xscale = scale;
-#if 0
-            for (naxis = 0; naxis < MAXAXES; naxis++) {
-                if (axis_is_x(naxis)) {
-                    tickmarks *t;
-                    t = graph_get_tickmarks(gr, naxis);
-                    if (t) {
-                        if (scale == SCALE_LOG) {
-                            if (g->w.xg2 <= 0.0) {
-                                g->w.xg2 = 10.0;
-                            }
-                            if (g->w.xg1 <= 0.0) {
-                                g->w.xg1 = g->w.xg2/1.0e3;
-                            }
-                            t->tmajor = 10.0;
-                            t->nminor = 9;
-                        } else {
-                            t->nminor = 1;
-                        }
-                    }
-                }
+            if (scale == SCALE_LOG && g->w.xg1 <= 0.0) {
+                g->w.xg1 = g->w.xg2/1.0e3;
             }
-#endif
+            g->xscale = scale;
             update_graph_ccache(gr);
+
+            hdata.scale = scale;
+            hdata.type = AXIS_TYPE_X;
+            quark_traverse(gr, axis_hook, &hdata);
+
             quark_dirtystate_set(gr, TRUE);
         }
         return RETURN_SUCCESS;
@@ -488,6 +501,8 @@ int graph_set_yscale(Quark *gr, int scale)
     graph *g = graph_get_data(gr);
     if (g) {
         if (g->yscale != scale) {
+            axis_hook_t hdata;
+            
             if (g->type == GRAPH_FIXED && scale != SCALE_NORMAL) {
                 errmsg("Only linear axis scales are allowed in Fixed graphs");
                 return RETURN_FAILURE;
@@ -496,8 +511,8 @@ int graph_set_yscale(Quark *gr, int scale)
                 errmsg("Only linear axis scales are allowed in Polar plots");
                 return RETURN_FAILURE;
             }
-            if (scale == SCALE_LOG && g->w.yg1 <= 0) {
-                errmsg("Can't set Log scale when World Y-min <= 0.0");
+            if (scale == SCALE_LOG && g->w.yg2 <= 0) {
+                errmsg("Can't set log scale when World Y-max <= 0.0");
                 return RETURN_FAILURE;
             }
             if (scale == SCALE_REC && sign(g->w.yg1) != sign(g->w.yg2)) {
@@ -515,30 +530,16 @@ int graph_set_yscale(Quark *gr, int scale)
                 }
 	    }    
 
-            g->yscale = scale;
-#if 0
-            for (naxis = 0; naxis < MAXAXES; naxis++) {
-                if (axis_is_y(naxis)) {
-                    tickmarks *t;
-                    t = graph_get_tickmarks(gr, naxis);
-                    if (t) {
-                        if (scale == SCALE_LOG) {
-                            if (g->w.yg2 <= 0.0) {
-                                g->w.yg2 = 10.0;
-                            }
-                            if (g->w.yg1 <= 0.0) {
-                                g->w.yg1 = g->w.yg2/1.0e3;
-                            }
-                            t->tmajor = 10.0;
-                            t->nminor = 9;
-                        } else {
-                            t->nminor = 1;
-                        }
-                    }
-                }
+            if (scale == SCALE_LOG && g->w.yg1 <= 0.0) {
+                g->w.yg1 = g->w.yg2/1.0e3;
             }
-#endif
+            g->yscale = scale;
             update_graph_ccache(gr);
+
+            hdata.scale = scale;
+            hdata.type = AXIS_TYPE_Y;
+            quark_traverse(gr, axis_hook, &hdata);
+
             quark_dirtystate_set(gr, TRUE);
         }
         return RETURN_SUCCESS;
